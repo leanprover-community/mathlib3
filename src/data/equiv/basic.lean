@@ -183,8 +183,11 @@ lemma perm.subsingleton_eq_refl [subsingleton α] (e : perm α) :
 protected def decidable_eq (e : α ≃ β) [decidable_eq β] : decidable_eq α :=
 e.injective.decidable_eq
 
-lemma nonempty_iff_nonempty (e : α ≃ β) : nonempty α ↔ nonempty β :=
+lemma nonempty_congr (e : α ≃ β) : nonempty α ↔ nonempty β :=
 nonempty.congr e e.symm
+
+protected lemma nonempty (e : α ≃ β) [nonempty β] : nonempty α :=
+e.nonempty_congr.mpr ‹_›
 
 /-- If `α ≃ β` and `β` is inhabited, then so is `α`. -/
 protected def inhabited [inhabited β] (e : α ≃ β) : inhabited α :=
@@ -373,16 +376,11 @@ protected lemma subset_image {α β} (e : α ≃ β) (s : set α) (t : set β) :
 by rw [set.image_subset_iff, e.image_eq_preimage]
 
 @[simp] lemma symm_image_image {α β} (e : α ≃ β) (s : set α) : e.symm '' (e '' s) = s :=
-by { rw [← set.image_comp], simp }
+e.left_inverse_symm.image_image s
 
 lemma eq_image_iff_symm_image_eq {α β} (e : α ≃ β) (s : set α) (t : set β) :
   t = e '' s ↔ e.symm '' t = s :=
-begin
-  refine (injective.eq_iff' _ _).symm,
-  { rw set.image_injective,
-    exact (equiv.symm e).injective },
-  { exact equiv.symm_image_image _ _ }
-end
+(e.symm.injective.image_injective.eq_iff' (e.symm_image_image s)).symm
 
 @[simp] lemma image_symm_image {α β} (e : α ≃ β) (s : set β) : e '' (e.symm '' s) = s :=
 e.symm.symm_image_image s
@@ -399,11 +397,11 @@ set.image_compl_eq f.bijective
 
 @[simp] lemma symm_preimage_preimage {α β} (e : α ≃ β) (s : set β) :
   e.symm ⁻¹' (e ⁻¹' s) = s :=
-by ext; simp
+e.right_inverse_symm.preimage_preimage s
 
 @[simp] lemma preimage_symm_preimage {α β} (e : α ≃ β) (s : set α) :
   e ⁻¹' (e.symm ⁻¹' s) = s :=
-by ext; simp
+e.left_inverse_symm.preimage_preimage s
 
 @[simp] lemma preimage_subset {α β} (e : α ≃ β) (s t : set β) : e ⁻¹' s ⊆ e ⁻¹' t ↔ s ⊆ t :=
 e.surjective.preimage_subset_preimage_iff
@@ -827,7 +825,10 @@ section sum_compl
 
 /-- For any predicate `p` on `α`,
 the sum of the two subtypes `{a // p a}` and its complement `{a // ¬ p a}`
-is naturally equivalent to `α`. -/
+is naturally equivalent to `α`.
+
+See `subtype_or_equiv` for sum types over subtypes `{x // p x}` and `{x // q x}`
+that are not necessarily `is_compl p q`.  -/
 def sum_compl {α : Type*} (p : α → Prop) [decidable_pred p] :
   {a // p a} ⊕ {a // ¬ p a} ≃ α :=
 { to_fun := sum.elim coe coe,
@@ -1266,6 +1267,9 @@ def unique_congr (e : α ≃ β) : unique α ≃ unique β :=
 lemma is_empty_congr (e : α ≃ β) : is_empty α ↔ is_empty β :=
 ⟨λ h, @function.is_empty _ _ h e.symm, λ h, @function.is_empty _ _ h e⟩
 
+protected lemma is_empty (e : α ≃ β) [is_empty β] : is_empty α :=
+e.is_empty_congr.mpr ‹_›
+
 section
 open subtype
 
@@ -1288,8 +1292,7 @@ by { ext, refl }
   (h : ∀ (a : α), p a ↔ q (e a)) :
   (e.subtype_equiv h).symm = e.symm.subtype_equiv (λ a, by {
     convert (h $ e.symm a).symm,
-    exact (e.apply_symm_apply a).symm,
-  }) :=
+    exact (e.apply_symm_apply a).symm }) :=
 rfl
 
 @[simp] lemma subtype_equiv_trans {p : α → Prop} {q : β → Prop} {r : γ → Prop}
@@ -1727,6 +1730,14 @@ protected noncomputable def image_of_inj_on {α β} (f : α → β) (s : set α)
 protected noncomputable def image {α β} (f : α → β) (s : set α) (H : injective f) : s ≃ (f '' s) :=
 equiv.set.image_of_inj_on f s (H.inj_on s)
 
+@[simp] protected lemma image_symm_apply {α β} (f : α → β) (s : set α) (H : injective f)
+  (x : α) (h : x ∈ s) :
+  (set.image f s H).symm ⟨f x, ⟨x, ⟨h, rfl⟩⟩⟩ = ⟨x, h⟩ :=
+begin
+  apply (set.image f s H).injective,
+  simp [(set.image f s H).apply_symm_apply],
+end
+
 lemma image_symm_preimage {α β} {f : α → β} (hf : injective f) (u s : set α) :
   (λ x, (set.image f s hf).symm x : f '' s → α) ⁻¹' u = coe ⁻¹' (f '' u) :=
 begin
@@ -1751,6 +1762,19 @@ protected def powerset {α} (S : set α) : 𝒫 S ≃ set S :=
   inv_fun := λ x : set S, ⟨coe '' x, by rintro _ ⟨a : S, _, rfl⟩; exact a.2⟩,
   left_inv := λ x, by ext y; exact ⟨λ ⟨⟨_, _⟩, h, rfl⟩, h, λ h, ⟨⟨_, x.2 h⟩, h, rfl⟩⟩,
   right_inv := λ x, by ext; simp }
+
+/--
+If `s` is a set in `range f`,
+then its image under `range_splitting f` is in bijection (via `f`) with `s`.
+-/
+@[simps]
+noncomputable def range_splitting_image_equiv {α β : Type*} (f : α → β) (s : set (range f)) :
+  range_splitting f '' s ≃ s :=
+{ to_fun := λ x, ⟨⟨f x, by simp⟩,
+    (by { rcases x with ⟨x, ⟨y, ⟨m, rfl⟩⟩⟩, simpa [apply_range_splitting f] using m, })⟩,
+  inv_fun := λ x, ⟨range_splitting f x, ⟨x, ⟨x.2, rfl⟩⟩⟩,
+  left_inv := λ x, by { rcases x with ⟨x, ⟨y, ⟨m, rfl⟩⟩⟩, simp [apply_range_splitting f] },
+  right_inv := λ x, by simp [apply_range_splitting f], }
 
 end set
 
@@ -2197,15 +2221,6 @@ lemma function.injective.swap_comp [decidable_eq α] [decidable_eq β] {f : α �
   equiv.swap (f x) (f y) ∘ f = f ∘ equiv.swap x y :=
 funext $ λ z, hf.swap_apply _ _ _
 
-instance {α} [subsingleton α] : subsingleton (ulift α) := equiv.ulift.subsingleton
-instance {α} [subsingleton α] : subsingleton (plift α) := equiv.plift.subsingleton
-
-instance {α} [unique α] : unique (ulift α) := equiv.ulift.unique
-instance {α} [unique α] : unique (plift α) := equiv.plift.unique
-
-instance {α} [decidable_eq α] : decidable_eq (ulift α) := equiv.ulift.decidable_eq
-instance {α} [decidable_eq α] : decidable_eq (plift α) := equiv.plift.decidable_eq
-
 /-- If both `α` and `β` are singletons, then `α ≃ β`. -/
 def equiv_of_unique_of_unique [unique α] [unique β] : α ≃ β :=
 { to_fun := λ _, default β,
@@ -2260,6 +2275,11 @@ protected def congr {ra : α → α → Prop} {rb : β → β → Prop} (e : α 
   left_inv := by { rintros ⟨a⟩, dunfold quot.map, simp only [equiv.symm_apply_apply] },
   right_inv := by { rintros ⟨a⟩, dunfold quot.map, simp only [equiv.apply_symm_apply] } }
 
+@[simp]
+lemma congr_mk {ra : α → α → Prop} {rb : β → β → Prop} (e : α ≃ β)
+  (eq : ∀ (a₁ a₂ : α), ra a₁ a₂ ↔ rb (e a₁) (e a₂)) (a : α) :
+  quot.congr e eq (quot.mk ra a) = quot.mk rb (e a) := rfl
+
 /-- Quotients are congruent on equivalences under equality of their relation.
 An alternative is just to use rewriting with `eq`, but then computational proofs get stuck. -/
 protected def congr_right {r r' : α → α → Prop} (eq : ∀a₁ a₂, r a₁ a₂ ↔ r' a₁ a₂) :
@@ -2281,6 +2301,12 @@ protected def congr {ra : setoid α} {rb : setoid β} (e : α ≃ β)
   (eq : ∀a₁ a₂, @setoid.r α ra a₁ a₂ ↔ @setoid.r β rb (e a₁) (e a₂)) :
   quotient ra ≃ quotient rb :=
 quot.congr e eq
+
+@[simp]
+lemma congr_mk {ra : setoid α} {rb : setoid β} (e : α ≃ β)
+  (eq : ∀ (a₁ a₂ : α), setoid.r a₁ a₂ ↔ setoid.r (e a₁) (e a₂)) (a : α):
+  quotient.congr e eq (quotient.mk a) = quotient.mk (e a) :=
+rfl
 
 /-- Quotients are congruent on equivalences under equality of their relation.
 An alternative is just to use rewriting with `eq`, but then computational proofs get stuck. -/

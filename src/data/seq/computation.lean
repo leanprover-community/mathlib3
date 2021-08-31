@@ -187,7 +187,7 @@ end
 section bisim
   variable (R : computation α → computation α → Prop)
 
-  local infix ~ := R
+  local infix ` ~ `:50 := R
 
   def bisim_o : α ⊕ computation α → α ⊕ computation α → Prop
   | (sum.inl a) (sum.inl a') := a = a'
@@ -719,7 +719,7 @@ end
   or both loop forever. -/
 def equiv (c₁ c₂ : computation α) : Prop := ∀ a, a ∈ c₁ ↔ a ∈ c₂
 
-infix ~ := equiv
+infix ` ~ `:50 := equiv
 
 @[refl] theorem equiv.refl (s : computation α) : s ~ s := λ_, iff.rfl
 

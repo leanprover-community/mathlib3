@@ -3,9 +3,10 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import data.polynomial.ring_division
+import algebra.gcd_monoid.basic
 import data.polynomial.derivative
-import algebra.gcd_monoid
+import data.polynomial.ring_division
+import ring_theory.euclidean_domain
 
 /-!
 # Theory of univariate polynomials
@@ -66,9 +67,11 @@ lemma is_unit_iff_degree_eq_zero : is_unit p ↔ degree p = 0 :=
 
 lemma degree_pos_of_ne_zero_of_nonunit (hp0 : p ≠ 0) (hp : ¬is_unit p) :
   0 < degree p :=
-lt_of_not_ge (λ h, by rw [eq_C_of_degree_le_zero h] at hp0 hp;
-  exact (hp $ is_unit.map' C $
-    is_unit.mk0 (coeff p 0) (mt C_inj.2 (by simpa using hp0))))
+lt_of_not_ge (λ h, begin
+  rw [eq_C_of_degree_le_zero h] at hp0 hp,
+  exact hp (is_unit.map (C.to_monoid_hom : R →* _)
+    (is_unit.mk0 (coeff p 0) (mt C_inj.2 (by simpa using hp0)))),
+end)
 
 lemma monic_mul_leading_coeff_inv (h : p ≠ 0) :
   monic (p * C (leading_coeff p)⁻¹) :=
@@ -341,12 +344,12 @@ lemma degree_normalize : degree (normalize p) = degree p := by simp
 
 lemma prime_of_degree_eq_one (hp1 : degree p = 1) : prime p :=
 have prime (normalize p),
-  from prime_of_degree_eq_one_of_monic (hp1 ▸ degree_normalize)
+  from monic.prime_of_degree_eq_one (hp1 ▸ degree_normalize)
     (monic_normalize (λ hp0, absurd hp1 (hp0.symm ▸ by simp; exact dec_trivial))),
-prime_of_associated normalize_associated this
+(normalize_associated _).prime this
 
 lemma irreducible_of_degree_eq_one (hp1 : degree p = 1) : irreducible p :=
-irreducible_of_prime (prime_of_degree_eq_one hp1)
+(prime_of_degree_eq_one hp1).irreducible
 
 theorem not_irreducible_C (x : R) : ¬irreducible (C x) :=
 if H : x = 0 then by { rw [H, C_0], exact not_irreducible_zero }

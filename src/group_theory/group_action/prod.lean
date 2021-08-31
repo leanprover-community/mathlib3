@@ -3,7 +3,6 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot, Eric Wieser
 -/
-import group_theory.group_action.defs
 import algebra.group.prod
 
 /-!
@@ -33,6 +32,16 @@ instance [has_scalar M N] [is_scalar_tower M N α] [is_scalar_tower M N β] :
 @[to_additive] instance [smul_comm_class M N α] [smul_comm_class M N β] :
   smul_comm_class M N (α × β) :=
 { smul_comm := λ r s x, mk.inj_iff.mpr ⟨smul_comm _ _ _, smul_comm _ _ _⟩ }
+
+@[to_additive has_faithful_vadd_left]
+instance has_faithful_scalar_left [has_faithful_scalar M α] [nonempty β] :
+  has_faithful_scalar M (α × β) :=
+⟨λ x y h, let ⟨b⟩ := ‹nonempty β› in eq_of_smul_eq_smul $ λ a : α, by injection h (a, b)⟩
+
+@[to_additive has_faithful_vadd_right]
+instance has_faithful_scalar_right [nonempty α] [has_faithful_scalar M β] :
+  has_faithful_scalar M (α × β) :=
+⟨λ x y h, let ⟨a⟩ := ‹nonempty α› in eq_of_smul_eq_smul $ λ b : β, by injection h (a, b)⟩
 
 end
 

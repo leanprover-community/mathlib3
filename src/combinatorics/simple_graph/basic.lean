@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jalex Stark, Kyle Miller, Alena Gusakov, Hunter Monroe
 -/
 import data.fintype.basic
-import data.sym2
 import data.set.finite
+import data.sym.sym2
+
 /-!
 # Simple graphs
 

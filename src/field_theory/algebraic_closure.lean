@@ -74,7 +74,7 @@ theorem of_exists_root (H : ∀ p : polynomial k, p.monic → irreducible p → 
 ⟨λ p, or.inr $ λ q hq hqp,
  have irreducible (q * C (leading_coeff q)⁻¹),
    by { rw ← coe_norm_unit_of_ne_zero hq.ne_zero,
-        exact irreducible_of_associated associated_normalize hq },
+        exact (associated_normalize _).irreducible hq },
  let ⟨x, hx⟩ := H (q * C (leading_coeff q)⁻¹) (monic_mul_leading_coeff_inv hq.ne_zero) this in
  degree_mul_leading_coeff_inv q hq.ne_zero ▸ degree_eq_one_of_irreducible_of_root this hx⟩
 
@@ -293,7 +293,7 @@ instance : inhabited (algebraic_closure k) := ⟨37⟩
 
 /-- The canonical ring embedding from the `n`th step to the algebraic closure. -/
 def of_step (n : ℕ) : step k n →+* algebraic_closure k :=
-ring_hom.of $ ring.direct_limit.of _ _ _
+ring.direct_limit.of _ _ _
 
 instance algebra_of_step (n) : algebra (step k n) (algebraic_closure k) :=
 (of_step k n).to_algebra
@@ -323,8 +323,19 @@ end
 instance : is_alg_closed (algebraic_closure k) :=
 is_alg_closed.of_exists_root _ $ λ f, exists_root k
 
-instance : algebra k (algebraic_closure k) :=
-(of_step k 0).to_algebra
+instance {R : Type*} [comm_semiring R] [alg : algebra R k] :
+  algebra R (algebraic_closure k) :=
+((of_step k 0).comp (@algebra_map _ _ _ _ alg)).to_algebra
+
+lemma algebra_map_def {R : Type*} [comm_semiring R] [alg : algebra R k] :
+  algebra_map R (algebraic_closure k) = ((of_step k 0 : k →+* _).comp (@algebra_map _ _ _ _ alg)) :=
+rfl
+
+instance {R S : Type*} [comm_semiring R] [comm_semiring S]
+  [algebra R S] [algebra S k] [algebra R k] [is_scalar_tower R S k] :
+  is_scalar_tower R S (algebraic_closure k) :=
+is_scalar_tower.of_algebra_map_eq (λ x,
+  ring_hom.congr_arg _ (is_scalar_tower.algebra_map_apply R S k x : _))
 
 /-- Canonical algebra embedding from the `n`th step to the algebraic closure. -/
 def of_step_hom (n) : step k n →ₐ[k] algebraic_closure k :=

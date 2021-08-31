@@ -3,9 +3,8 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-
-import data.polynomial.eval
 import algebra.algebra.tower
+import data.polynomial.eval
 
 /-!
 # Theory of univariate polynomials
@@ -229,6 +228,10 @@ aeval_alg_hom_apply (algebra.of_id R A) x p
 lemma coeff_zero_eq_aeval_zero (p : polynomial R) : p.coeff 0 = aeval 0 p :=
 by simp [coeff_zero_eq_eval_zero]
 
+lemma coeff_zero_eq_aeval_zero' (p : polynomial R) :
+  algebra_map R A (p.coeff 0) = aeval (0 : A) p :=
+by simp [aeval_def]
+
 section comm_semiring
 
 variables [comm_semiring S] {f : R →+* S}
@@ -311,8 +314,7 @@ begin
   rw sum_range_succ',
   conv_lhs {
     congr, apply_congr, skip,
-    rw [coeff_mul_X_sub_C, sub_mul, mul_assoc, ←pow_succ],
-  },
+    rw [coeff_mul_X_sub_C, sub_mul, mul_assoc, ←pow_succ], },
   simp [sum_range_sub', coeff_monomial],
 end
 
@@ -327,7 +329,7 @@ lemma aeval_endomorphism {M : Type*}
   aeval f p v = p.sum (λ n b, b • (f ^ n) v) :=
 begin
   rw [aeval_def, eval₂],
-  exact (finset.sum_hom p.support (λ h : M →ₗ[R] M, h v)).symm
+  exact (linear_map.applyₗ v).map_sum ,
 end
 
 end polynomial

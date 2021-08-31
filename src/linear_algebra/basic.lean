@@ -2215,7 +2215,7 @@ section
 
 /-- The type `ι → M` can be split as a product by separating the coordinates in `ι` depending on
 whether they satisfy a predicate `p` or not. This identification is linear when `M` is a module. -/
-@[simps] def arrow_linear_equiv_subtype_arrow_prod {ι : Type*}
+@[simps] def arrow_linear_equiv_subtype_arrow_prod (R : Type*) [semiring R] {ι : Type*}
   (p : ι → Prop) [decidable_pred p] (M : Type*) [add_comm_monoid M] [module R M] :
   (ι → M) ≃ₗ[R] ({x // p x} → M) × ({x // ¬ p x} → M) :=
 { map_add' := λ f g, by ext1; { ext1 i, simp },

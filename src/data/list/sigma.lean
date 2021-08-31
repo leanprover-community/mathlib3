@@ -17,12 +17,12 @@ This file includes several ways of interacting with `list (sigma β)`, treated a
 ## Main Definitions
 
 - `list.keys` extracts the list of keys.
-- `nodupkeys` determines if the store has duplicate keys.
-- `lookup`/`lookup_all` accesses the value(s) of a particular key.
-- `kreplace` modifies a value.
-- `kerase` removes a value.
-- `kinsert` inserts a value.
-- `kunion` computes the union of two stores.
+- `list.nodupkeys` determines if the store has duplicate keys.
+- `list.lookup`/`lookup_all` accesses the value(s) of a particular key.
+- `list.kreplace` modifies a value.
+- `list.kerase` removes a value.
+- `list.kinsert` inserts a value.
+- `list.kunion` computes the union of two stores.
 -/
 
 universes u v

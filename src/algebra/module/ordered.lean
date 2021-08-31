@@ -175,7 +175,7 @@ pi.ordered_module
 end field
 
 
-section order_dual
+namespace order_dual
 
 variables {R M : Type*}
 

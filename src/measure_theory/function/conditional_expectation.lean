@@ -1146,6 +1146,17 @@ variables {𝕜}
 
 variables {hm : m ≤ m0} [sigma_finite (μ.trim hm)]
 
+lemma condexp_ind_empty (x : E') : condexp_ind 𝕜 hm μ measurable_set.empty x = 0 :=
+begin
+  ext1,
+  refine (condexp_ind_ae_eq_condexp_L2_indicator 𝕜 hm measurable_set.empty (by simp) x).trans _,
+  rw indicator_const_empty,
+  simp only [coe_fn_coe_base, submodule.coe_zero, continuous_linear_map.map_zero],
+  refine (Lp.coe_fn_zero E' 2 μ).trans _,
+  refine eventually_eq.trans _ (Lp.coe_fn_zero E' 1 μ).symm,
+  refl,
+end
+
 lemma condexp_ind_smul (hs : measurable_set s) (c : 𝕜) (x : E') :
   condexp_ind 𝕜 hm μ hs (c • x) = c • condexp_ind 𝕜 hm μ hs x :=
 condexp_ind_L1_smul hs c x

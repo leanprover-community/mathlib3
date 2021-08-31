@@ -149,9 +149,12 @@ calc a ≤ c • b ↔ c • c⁻¹ • a ≤ c • b : by rw [smul_inv_smul' hc
 ... ↔ c⁻¹ • a ≤ b : smul_le_smul_iff_of_pos hc
 
 -- TODO: solve `prod.has_lt` and `prod.has_le` misalignment issue
--- instance prod.ordered_module : ordered_module k (M × N) :=
--- ordered_module.mk' $ λ (v u : M × N) (c : k) h hc,
-  -- ⟨smul_le_smul_of_nonneg h.1.1 hc.le, smul_le_smul_of_nonneg h.1.2 hc.le⟩
+instance prod.ordered_module {k M N : Type*} [linear_ordered_field k]
+  [ordered_add_comm_group M] [module k M] [ordered_module k M]
+  [ordered_add_comm_group N] [module k N] [ordered_module k N] :
+  ordered_module k (M × N) :=
+ordered_module.mk' $ λ (v u : M × N) (c : k) h hc,
+  ⟨smul_le_smul_of_nonneg h.1.1 hc.le, smul_le_smul_of_nonneg h.1.2 hc.le⟩
 
 instance pi.ordered_module {ι : Type*} {M : ι → Type*} [Π i, ordered_add_comm_group (M i)]
   [Π i, mul_action_with_zero k (M i)] [∀ i, ordered_module k (M i)] :

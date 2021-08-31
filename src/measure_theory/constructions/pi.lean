@@ -496,6 +496,42 @@ begin
   exacts [ennreal.prod_lt_top (λ i _, hμ i), λ i, (ho i).measurable_set]
 end
 
+lemma zoug (p : ι → Prop) [decidable_pred p] {β : Type*} [measurable_space β]
+  (μ : Π (i : ι), measure β) [∀ i, sigma_finite (μ i)] :
+  measure.map (equiv.arrow_equiv_subtype_arrow_prod p β).symm
+    (measure.prod (measure.pi (λ i, μ i)) (measure.pi (λ i, μ i))) = measure.pi μ :=
+begin
+  symmetry,
+  refine (measure.pi_eq (λ s hs, _)),
+  have A : (equiv.arrow_equiv_subtype_arrow_prod p β).symm ⁻¹' (set.pi set.univ (λ (i : ι), s i)) =
+    set.prod (set.pi set.univ (λ i, s i)) (set.pi set.univ (λ i, s i)),
+  sorry,
+  /-{ ext x,
+    simp only [equiv.arrow_equiv_subtype_arrow_prod_symm_apply, mem_prod, mem_univ_pi,
+      mem_preimage, subtype.forall, subtype.coe_mk],
+    split,
+    { exact λ h, ⟨λ i hi, by simpa [dif_pos hi] using h i,
+                  λ i hi, by simpa [dif_neg hi] using h i⟩ },
+    { assume h i,
+      by_cases hi : p i,
+      simpa [dif_pos hi] using h.1 i hi,
+      simpa [dif_neg hi] using h.2 i hi } },-/
+  rw [measure.map_apply sorry (measurable_set.univ_pi_fintype hs), A,
+      measure.prod_prod, pi_pi, pi_pi, ← fintype.prod_subtype_mul_prod_subtype p (λ i, μ i (s i))],
+  { exact λ i, hs i.1 },
+  { exact λ i, hs i.1 },
+  { exact measurable_set.univ_pi_fintype (λ i, hs i.1) },
+  { exact measurable_set.univ_pi_fintype (λ i, hs i.1) }
+end
+
+#exit
+
+  rw [measure.map_apply sorry (measurable_set.univ_pi_fintype hs), A, measure.volume_eq_prod,
+      measure.prod_prod, volume_pi_pi, volume_pi_pi],
+
+
+end
+
 end measure
 
 instance measure_space.pi [Π i, measure_space (α i)] : measure_space (Π i, α i) :=

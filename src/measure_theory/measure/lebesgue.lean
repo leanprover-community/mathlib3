@@ -326,22 +326,6 @@ begin
   { exact λ i, measurable_const_mul _ (hs i) },
 end
 
-#check measure_preserving.skew_product
-
-@[simps] def my_equiv (α : Type*) [decidable_eq ι] (p : ι → Prop) [decidable_pred p] :
-({x // p x} → α) × ({x // ¬ p x} → α) ≃ (ι → α) :=
-  { to_fun := λ f x, if h : p x then f.1 ⟨x, h⟩ else f.2 ⟨x, h⟩,
-    inv_fun := λ f, (λ x, f x, λ x, f x),
-    left_inv := begin
-      rintros ⟨f, g⟩,
-      ext1;
-      { ext y,
-        rcases y,
-        simp [y_property] },
-    end,
-    right_inv := λ f, by simp }
-
-.
 
 lemma my_equiv_map [decidable_eq ι] (p : ι → Prop) [decidable_pred p] :
   measure.map (my_equiv ℝ p) volume = volume :=

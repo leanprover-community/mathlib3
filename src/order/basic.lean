@@ -174,6 +174,12 @@ def strict_mono_decr_on [has_lt α] [has_lt β] (f : α → β) (t : set α) : P
 def order_dual (α : Type*) : Type* := α
 
 namespace order_dual
+
+/-- Recursor for `order_dual α`. -/
+@[elab_as_eliminator]
+def dual_rec {C : order_dual α → Sort*} (h₂ : Π (a : α), C (a : order_dual α)) :
+  Π (a : order_dual α), C a := h₂
+
 instance (α : Type*) [h : nonempty α] : nonempty (order_dual α) := h
 instance (α : Type*) [h : subsingleton α] : subsingleton (order_dual α) := h
 instance (α : Type*) [has_le α] : has_le (order_dual α) := ⟨λ x y : α, y ≤ x⟩

@@ -275,11 +275,16 @@ local notation `c` := line_map a b r
 segment `[(a, f a), (b, f b)]` if and only if `slope f a c ≤ slope f a b`. -/
 lemma map_le_line_map_iff_slope_le_slope_left (h : 0 < r * (b - a)) :
   f c ≤ line_map (f a) (f b) r ↔ slope f a c ≤ slope f a b :=
-by simp_rw [line_map_apply, slope, vsub_eq_sub, vadd_eq_add, smul_eq_mul, add_sub_cancel, smul_sub,
-  sub_le_iff_le_add, mul_inv_rev', mul_smul, ← smul_sub, ← smul_add, smul_smul, ← mul_inv_rev',
-  smul_le_iff_of_pos (inv_pos.2 h), inv_inv', smul_smul,
+begin
+  rw [line_map_apply, line_map_apply, slope, slope,
+  vsub_eq_sub, vsub_eq_sub, vsub_eq_sub, vadd_eq_add, vadd_eq_add,
+  smul_eq_mul, add_sub_cancel, smul_sub, smul_sub, smul_sub,
+  sub_le_iff_le_add, mul_inv_rev', mul_smul, mul_smul, ←smul_sub, ←smul_sub, ←smul_add, smul_smul,
+  ← mul_inv_rev', smul_le_iff_of_pos (inv_pos.2 h), inv_inv', smul_smul,
   mul_inv_cancel_right' (right_ne_zero_of_mul h.ne'), smul_add,
-  smul_inv_smul' (left_ne_zero_of_mul h.ne')]
+  smul_inv_smul' (left_ne_zero_of_mul h.ne')],
+  apply_instance
+end
 
 /-- Given `c = line_map a b r`, `a < c`, the point `(c, f c)` is non-strictly above the
 segment `[(a, f a), (b, f b)]` if and only if `slope f a b ≤ slope f a c`. -/

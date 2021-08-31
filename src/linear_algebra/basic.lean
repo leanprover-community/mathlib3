@@ -2212,19 +2212,6 @@ protected def curry :
 end uncurry
 
 section
-
-/-- The type `ι → M` can be split as a product by separating the coordinates in `ι` depending on
-whether they satisfy a predicate `p` or not. This identification is linear when `M` is a module. -/
-@[simps] def arrow_linear_equiv_subtype_arrow_prod (R : Type*) [semiring R] {ι : Type*}
-  (p : ι → Prop) [decidable_pred p] (M : Type*) [add_comm_monoid M] [module R M] :
-  (ι → M) ≃ₗ[R] ({x // p x} → M) × ({x // ¬ p x} → M) :=
-{ map_add' := λ f g, by ext1; { ext1 i, simp },
-  map_smul' := λ c f, by ext1; { ext1 i, simp },
-  .. equiv.arrow_equiv_subtype_arrow_prod p M }
-
-end
-
-section
 variables {module_M : module R M} {module_M₂ : module R M₂}
   {module_M₃ : module R M₃}
 variables (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M) (e : M ≃ₗ[R] M₂) (h : M₂ →ₗ[R] M₃) (l : M₃ →ₗ[R] M)

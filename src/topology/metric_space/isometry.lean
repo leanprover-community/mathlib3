@@ -307,33 +307,6 @@ complete_space_of_is_complete_univ $ is_complete_of_complete_image e.isometry.un
 lemma complete_space_iff (e : α ≃ᵢ β) : complete_space α ↔ complete_space β :=
 ⟨λ h, e.symm.complete_space h, λ h, e.complete_space h⟩
 
-/-- The type `α → β` can be split as a product by separating the coordinates in `α` depending on
-whether they satisfy a predicate `p` or not. This identification is isometric when `β` is a
-pseudo emetric space. -/
-@[simps] def arrow_isometric_subtype_arrow_prod {α : Type*} [fintype α]
-  (p : α → Prop) [decidable_pred p] (β : Type*) [pseudo_emetric_space β] :
-  (α → β) ≃ᵢ ({x // p x} → β) × ({x // ¬ p x} → β) :=
-{ isometry_to_fun := begin
-    assume f g,
-    apply le_antisymm,
-    { simp [prod.edist_eq, edist_pi_le_iff, edist_le_pi_edist] },
-    { apply edist_pi_le_iff.2 (λ a, _),
-      by_cases ha : p a,
-      { simp only [prod.edist_eq, equiv.to_fun_as_coe, equiv.arrow_equiv_subtype_arrow_prod_apply,
-          le_max_iff],
-        left,
-        change edist ((λ (x : {x // p x}), f ↑x) ⟨a, ha⟩) ((λ (x : {x // p x}), g ↑x) ⟨a, ha⟩)
-          ≤ edist (λ (x : {x // p x}), f ↑x) (λ (x : {x // p x}), g ↑x),
-        exact edist_le_pi_edist _ _ _ },
-      { simp only [prod.edist_eq, equiv.to_fun_as_coe, equiv.arrow_equiv_subtype_arrow_prod_apply,
-          le_max_iff],
-        right,
-        change edist ((λ (x : {x // ¬ p x}), f ↑x) ⟨a, ha⟩) ((λ (x : {x // ¬ p x}), g ↑x) ⟨a, ha⟩)
-          ≤ edist (λ (x : {x // ¬ p x}), f ↑x) (λ (x : {x // ¬ p x}), g ↑x),
-        exact edist_le_pi_edist _ _ _ } }
-  end,
-  .. equiv.arrow_equiv_subtype_arrow_prod p β }
-
 end pseudo_emetric_space
 
 section pseudo_metric_space

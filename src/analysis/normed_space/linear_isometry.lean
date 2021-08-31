@@ -355,23 +355,6 @@ variables {R}
 
 @[simp] lemma symm_neg : (neg R : E ≃ₗᵢ[R] E).symm = neg R := rfl
 
-/-- The type `ι → E` can be split as a product by separating the coordinates in `ι` depending on
-whether they satisfy a predicate `p` or not. This identification is a continuous linear isometry
-when `E` is a normed module. -/
-@[simps] noncomputable def arrow_linear_isometry_equiv_subtype_arrow_prod
-  (R : Type*) [semiring R] {ι : Type*} [fintype ι]
-  (p : ι → Prop) [decidable_pred p] (E : Type*) [semi_normed_group E] [module R E] :
-  (ι → E) ≃ₗᵢ[R] ({x // p x} → E) × ({x // ¬ p x} → E) :=
-{ norm_map' := λ f, begin
-    rw [← dist_zero_right, ← dist_zero_right],
-    have A : (isometric.arrow_isometric_subtype_arrow_prod p E) 0 = 0 :=
-      (linear_equiv.arrow_linear_equiv_subtype_arrow_prod R p E).map_zero,
-    have := (isometric.arrow_isometric_subtype_arrow_prod p E).dist_eq f 0,
-    rw A at this,
-    exact this,
-  end,
-  .. linear_equiv.arrow_linear_equiv_subtype_arrow_prod R p E }
-
 end linear_isometry_equiv
 
 namespace linear_isometry

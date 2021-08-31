@@ -163,10 +163,14 @@ begin
   rw [finset.sum_ite_eq], simp only [finset.mem_univ, if_true]
 end
 
-def exact_pairing : exact_pairing V (FinVect_dual K V) :=
+instance exact_pairing : exact_pairing V (FinVect_dual K V) :=
 { coevaluation := FinVect_coevaluation K V,
   evaluation := FinVect_evaluation K V,
   coevaluation_evaluation' := coevaluation_evaluation K V,
   evaluation_coevaluation' := evaluation_coevaluation K V }
+
+instance right_dual : has_right_dual V := ⟨FinVect_dual K V⟩
+
+instance right_rigid_category : right_rigid_category (FinVect K) := { }
 
 end FinVect

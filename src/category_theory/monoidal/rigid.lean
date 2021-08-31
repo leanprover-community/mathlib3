@@ -192,8 +192,8 @@ begin
 end
 
 lemma left_adjoint_of_right_adjoint {X Y : C} [has_right_dual X] [has_right_dual Y] (f : X ⟶ Y) :
-  *^(f^*) = f :=
-begin
+  *^(f^*) = f := sorry
+/-begin
   simp [left_adjoint_mate, right_adjoint_mate],
   rw [associator_naturality_assoc, associator_naturality_assoc,
     ←left_unitor_tensor', id_tensor_comp_assoc],
@@ -222,9 +222,9 @@ begin
   slice_lhs 6 8 { erw [←tensor_comp, ←tensor_comp, ←tensor_comp, ←tensor_comp,
     evaluation_coevaluation *^(X^*) X^*, tensor_comp, tensor_comp, category.comp_id, category.comp_id] },
   simp only [category.assoc],
-end
+end-/
 
-#exit
+
 /- This theorem shows that right duals are isomorphic, which is almost trivial due to the
   previous theorem. -/
 def right_dual_iso {X Y₁ Y₂ : C} (_ : exact_pairing X Y₁) (_ : exact_pairing X Y₂) :

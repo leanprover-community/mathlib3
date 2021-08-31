@@ -62,6 +62,8 @@ open set
 open filter
 open_locale topological_space ennreal nnreal
 
+namespace measure_theory
+
 section finite_measures
 /-!
 ### Finite measures
@@ -74,26 +76,15 @@ variables {α : Type*} [measurable_space α]
 
 /-- Finite measures are defined as the subtype of measures that have the property of being finite
 measures (i.e., their total mass is finite). -/
-def finite_measures (α : Type*) [measurable_space α] : Type :=
+def finite_measures (α : Type*) [measurable_space α] : Type* :=
 { μ : measure α // finite_measure μ }
 
 namespace finite_measures
 
-instance has_zero {α : Type*} [measurable_space α] :
-  has_zero (finite_measures α) :=
+instance has_zero : has_zero (finite_measures α) :=
 { zero := ⟨0, measure_theory.finite_measure_zero⟩ }
 
 instance : inhabited (finite_measures α) := { default := 0 }
-
-instance {α : Type*} [measurable_space α] : has_add (finite_measures α) :=
-{ add := (λ (μ ν : finite_measures α),
-  { val := μ + ν,
-    property := measure_theory.finite_measure_add, }), }
-
-instance {α : Type*} [measurable_space α] : has_scalar ℝ≥0 (finite_measures α) :=
-{ smul := (λ (c : ℝ≥0) (μ : finite_measures α),
-  { val := c • μ.val,
-    property := @measure_theory.finite_measure_smul_nnreal α _ μ.val μ.prop c, }), }
 
 -- TODO: A coercion `finite_measures α → measure α` is crucial. Now it is the subtype coercion.
 -- Another alternative is to use a bijection with `vector_measure α ℝ≥0` as an intermediate step.
@@ -110,12 +101,20 @@ instance : has_coe (finite_measures α) (measure_theory.measure α) := coe_subty
 instance to_measure.finite_measure (μ : finite_measures α) :
   finite_measure (μ : measure α) := μ.prop
 
-instance (α : Type*) [measurable_space α] :
-  has_coe_to_fun (finite_measures α) :=
+instance : has_add (finite_measures α) :=
+{ add := (λ μ ν, ⟨μ + ν, measure_theory.finite_measure_add⟩) }
+
+instance : has_scalar ℝ≥0 (finite_measures α) :=
+{ smul := (λ (c : ℝ≥0) μ, ⟨c • μ, measure_theory.finite_measure_smul_nnreal⟩), }
+
+instance : has_coe_to_fun (finite_measures α) :=
 ⟨λ _, set α → ℝ≥0, λ μ s, (μ s).to_nnreal⟩
 
-lemma to_fun_eq_to_measure_to_nnreal (ν : finite_measures α) :
+lemma to_fun_eq_to_measure_to_nnreal' (ν : finite_measures α) :
   (ν : set α → ℝ≥0) = λ s, ((ν : measure α) s).to_nnreal := rfl
+
+lemma to_fun_eq_to_measure_to_nnreal (ν : finite_measures α) (s : set α) :
+  ν s = ((ν : measure α) s).to_nnreal := rfl
 
 lemma to_measure_eq_val (ν : finite_measures α) : (ν : measure α) = ν.val := rfl
 
@@ -132,18 +131,17 @@ lemma coe_zero : (coe : finite_measures α → measure α) 0 = 0 := rfl
 
 /-- The (total) mass of a finite measure `μ` is `μ univ`, i.e., the cast to `nnreal` of
 `(μ : measure α) univ`. -/
-def mass {α : Type*} [measurable_space α] (μ : finite_measures α) : ℝ≥0 := μ univ
+def mass (μ : finite_measures α) : ℝ≥0 := μ univ
 
-@[simp] lemma mass_ennreal {α : Type*} [measurable_space α]
-  {μ : finite_measures α} : (μ.mass : ℝ≥0∞) = (μ : measure α) univ :=
+@[simp] lemma mass_ennreal {μ : finite_measures α} :
+  (μ.mass : ℝ≥0∞) = (μ : measure α) univ :=
 begin
   apply ennreal.coe_to_nnreal,
   exact ennreal.lt_top_iff_ne_top.mp (μ.prop).measure_univ_lt_top,
 end
 
 -- TODO: Another alternative would use a bijection with `vector_measure α ℝ≥0`.
-instance {α : Type*} [measurable_space α] :
-  add_comm_monoid (finite_measures α) :=
+instance : add_comm_monoid (finite_measures α) :=
 (finite_measures.coe_injective).add_comm_monoid
   (coe : finite_measures α → measure α) finite_measures.coe_zero finite_measures.coe_add
 
@@ -159,8 +157,6 @@ function.injective.module _ coe_add_monoid_hom finite_measures.coe_injective coe
 end finite_measures -- end namespace
 
 end finite_measures -- end section
-
-
 
 section probability_measures
 /-!
@@ -188,8 +184,7 @@ instance [inhabited α] : inhabited (probability_measures α) :=
 /-- A probability measure can be interpreted as a measure. -/
 instance : has_coe (probability_measures α) (measure_theory.measure α) := coe_subtype
 
-instance (α : Type*) [measurable_space α] :
-  has_coe_to_fun (probability_measures α) :=
+instance : has_coe_to_fun (probability_measures α) :=
 ⟨λ _, set α → ℝ≥0, λ μ s, (μ s).to_nnreal⟩
 
 instance to_measure.probability_measure (μ : probability_measures α) :
@@ -198,10 +193,9 @@ instance to_measure.probability_measure (μ : probability_measures α) :
 lemma to_fun_eq_to_measure_to_nnreal (ν : probability_measures α) :
   (ν : set α → ℝ≥0) = λ s, ((ν : measure α) s).to_nnreal := rfl
 
-lemma to_measure_eq_val (ν : probability_measures α) : (ν : measure α) = ν.val := rfl
+@[simp] lemma val_eq_to_measure (ν : probability_measures α) : ν.val = (ν : measure α) := rfl
 
-lemma coe_injective :
-  function.injective (coe : probability_measures α → measure α) :=
+lemma coe_injective : function.injective (coe : probability_measures α → measure α) :=
 subtype.coe_injective
 
 @[simp]
@@ -211,8 +205,7 @@ begin
   exact congr_arg ennreal.to_nnreal ν.prop.measure_univ,
 end
 
-instance has_coe_to_finite_measures (α : Type*) [measurable_space α] :
-  has_coe (probability_measures α) (finite_measures α) :=
+instance has_coe_to_finite_measures : has_coe (probability_measures α) (finite_measures α) :=
 { coe := λ μ , ⟨μ, infer_instance⟩ }
 
 /-- A probability measure can be interpreted as a finite measure. -/
@@ -240,3 +233,5 @@ end
 end probability_measures -- end namespace
 
 end probability_measures -- end section
+
+end measure_theory

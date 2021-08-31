@@ -451,8 +451,7 @@ lemma integral_norm_le_of_forall_fin_meas_integral_eq (hm : m ≤ m0) {f g : α 
   (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) :
   ∫ x in s, ∥g x∥ ∂μ ≤ ∫ x in s, ∥f x∥ ∂μ :=
 begin
-  rw integral_norm_eq_pos_sub_neg (hg.mono hm le_rfl) hgi,
-  rw integral_norm_eq_pos_sub_neg hf hfi,
+  rw [integral_norm_eq_pos_sub_neg (hg.mono hm le_rfl) hgi, integral_norm_eq_pos_sub_neg hf hfi],
   have h_meas_nonneg_g : measurable_set[m] {x | 0 ≤ g x},
     from @measurable_set_le _ α _ _ _ m _ _ _ _ g (@measurable_const _ α _ m _) hg,
   have h_meas_nonneg_f : measurable_set {x | 0 ≤ f x},

@@ -127,9 +127,8 @@ lemma smul_le_smul_iff_of_pos (hc : 0 < c) : c • a ≤ c • b ↔ a ≤ b :=
   smul_le_smul_of_nonneg h (inv_nonneg.2 hc.le),
   λ h, smul_le_smul_of_nonneg h hc.le⟩
 
-lemma smul_le_smul_iff_of_neg {k M N : Type*} [linear_ordered_field k]
+lemma smul_le_smul_iff_of_neg {k M : Type*} [linear_ordered_field k]
   [ordered_add_comm_group M] [module k M] [ordered_module k M]
-  [ordered_add_comm_group N] [smul_with_zero k N] [ordered_module k N]
   {a b : M} {c : k} (hc : c < 0) : c • a ≤ c • b ↔ b ≤ a :=
 begin
   rw [← neg_neg c, neg_smul, neg_smul (-c), neg_le_neg_iff, smul_le_smul_iff_of_pos (neg_pos.2 hc)],
@@ -179,7 +178,7 @@ namespace order_dual
 
 variables {R M : Type*}
 
-instance [semiring R] [ordered_add_comm_monoid M] [has_scalar R M] : has_scalar R (order_dual M) :=
+instance [has_scalar R M] : has_scalar R (order_dual M) :=
 { smul := λ k x, dual_rec (λ x', (k • x' : M)) x }
 
 instance [semiring R] [ordered_add_comm_monoid M] [h : smul_with_zero R M] :
@@ -188,7 +187,7 @@ instance [semiring R] [ordered_add_comm_monoid M] [h : smul_with_zero R M] :
   smul_zero := λ r, dual_rec (smul_zero' _) r,
   ..order_dual.has_scalar }
 
-instance [semiring R] [ordered_add_comm_monoid M] [mul_action R M] : mul_action R (order_dual M) :=
+instance [semiring R] [mul_action R M] : mul_action R (order_dual M) :=
 { one_smul := λ m, dual_rec (one_smul _) m,
   mul_smul := λ r, dual_rec mul_smul r,
   ..order_dual.has_scalar }

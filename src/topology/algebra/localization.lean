@@ -23,16 +23,15 @@ to the equivalence class of `(x, 1)` in the localization of `R` at a `M`.
 
 -/
 
+variables {R : Type*} [comm_ring R] [topological_space R] {M : submonoid R}
+
 /-- The ring topology on `localization M` coinduced from the natural homomorphism sending `x : R`
 to the equivalence class of `(x, 1)`. -/
-def localization.ring_topology {R : Type*}
-  [comm_ring R][topological_space R]{M: submonoid R} : ring_topology (localization M) :=
+def localization.ring_topology : ring_topology (localization M) :=
 ring_topology.coinduced (localization.monoid_of M).to_fun
 
-instance {R : Type*}
-  [comm_ring R][topological_space R]{M: submonoid R} : topological_space (localization M) :=
+instance : topological_space (localization M) :=
 localization.ring_topology.to_topological_space
 
-instance {R : Type*}
-  [comm_ring R][topological_space R]{M: submonoid R} : topological_ring (localization M) :=
+instance : topological_ring (localization M) :=
 localization.ring_topology.to_topological_ring

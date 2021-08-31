@@ -980,8 +980,16 @@ section covariant_add_le
 section has_neg
 variables [has_neg α] [linear_order α] {a b: α}
 
-/-- `abs a` is the absolute value of `a`. -/
-def abs {α : Type*} [has_neg α] [linear_order α] (a : α) : α := max a (-a)
+/-- `mabs a` is the multiplicative absolute value of `a`. -/
+@[to_additive abs
+"`abs a` is the additive absolute value of `a`."
+]
+def mabs {α : Type*} [has_inv α] [lattice α] (a : α) : α := a ⊔ (a⁻¹)
+
+lemma abs_eq_max_neg {α : Type*} [has_neg α] [linear_order α] (a : α) : abs a = max a (-a) :=
+begin
+  exact rfl,
+end
 
 lemma abs_choice (x : α) : abs x = x ∨ abs x = -x := max_choice _ _
 
@@ -1007,7 +1015,9 @@ section add_group
 variables [add_group α] [linear_order α]
 
 @[simp] lemma abs_neg (a : α) : abs (-a) = abs a :=
-begin unfold abs, rw [max_comm, neg_neg] end
+begin
+  rw [abs_eq_max_neg, max_comm, neg_neg, abs_eq_max_neg]
+end
 
 lemma eq_or_eq_neg_of_abs_eq {a b : α} (h : abs a = b) : a = b ∨ a = -b :=
 by simpa only [← h, eq_comm, eq_neg_iff_eq_neg] using abs_choice a

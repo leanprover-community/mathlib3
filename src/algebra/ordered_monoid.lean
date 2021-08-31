@@ -783,8 +783,6 @@ lemma with_bot.add_lt_add_iff_left :
     { norm_cast, exact add_lt_add_iff_left _ }
   end
 
-local attribute [semireducible] with_zero
-
 lemma with_top.add_lt_add_iff_right
   {a b c : with_top α} : a < ⊤ → (c + a < b + a ↔ c < b) :=
 by simpa [add_comm] using @with_top.add_lt_add_iff_left _ _ a b c

@@ -107,7 +107,7 @@ end
 Let `α` be a lattice ordered commutative group. For all elements `a` and `b` in `α`,
 $$ -(a ⊓ b) = -a ⊔ -b.$$
 -/
-@[to_additive, simp]
+@[to_additive]
 lemma inv_inf_eq_sup_inv [covariant_class α α (*) (≤)] (a b : α) : (a ⊓ b)⁻¹ = a⁻¹ ⊔ b⁻¹ :=
 by rw [← inv_inv (a⁻¹ ⊔ b⁻¹), inv_sup_eq_inv_inf_inv a⁻¹ b⁻¹, inv_inv, inv_inv]
 

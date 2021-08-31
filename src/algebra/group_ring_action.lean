@@ -50,12 +50,14 @@ instance mul_semiring_action.to_mul_distrib_mul_action [h : mul_semiring_action 
 { ..h }
 
 /-- Each element of the monoid defines a additive monoid homomorphism. -/
+@[simps]
 def distrib_mul_action.to_add_monoid_hom [distrib_mul_action M A] (x : M) : A →+ A :=
 { to_fun   := (•) x,
   map_zero' := smul_zero x,
   map_add' := smul_add x }
 
 /-- Each element of the group defines an additive monoid isomorphism. -/
+@[simps]
 def distrib_mul_action.to_add_equiv [distrib_mul_action G A] (x : G) : A ≃+ A :=
 { .. distrib_mul_action.to_add_monoid_hom G A x,
   .. mul_action.to_perm_hom G A x }
@@ -72,6 +74,7 @@ def distrib_mul_action.to_mul_equiv [mul_distrib_mul_action G M] (x : G) : M ≃
   .. mul_action.to_perm_hom G M x }
 
 /-- Each element of the monoid defines a semiring homomorphism. -/
+@[simps]
 def mul_semiring_action.to_ring_hom [mul_semiring_action M R] (x : M) : R →+* R :=
 { .. mul_distrib_mul_action.to_monoid_hom R x,
   .. distrib_mul_action.to_add_monoid_hom M R x }
@@ -81,6 +84,7 @@ theorem to_ring_hom_injective [mul_semiring_action M R] [has_faithful_scalar M R
 λ m₁ m₂ h, eq_of_smul_eq_smul $ λ r, ring_hom.ext_iff.1 h r
 
 /-- Each element of the group defines a semiring isomorphism. -/
+@[simps]
 def mul_semiring_action.to_ring_equiv [mul_semiring_action G R] (x : G) : R ≃+* R :=
 { .. distrib_mul_action.to_add_equiv G R x,
   .. mul_semiring_action.to_ring_hom G R x }

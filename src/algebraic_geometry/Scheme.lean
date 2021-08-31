@@ -42,14 +42,11 @@ structure Scheme extends X : LocallyRingedSpace :=
 -- PROJECT
 -- In fact, we can make the isomorphism `i` above an isomorphism in `LocallyRingedSpace`.
 -- However this is a consequence of the above definition, and not necessary for defining schemes.
--- We haven't done this yet because we haven't shown that you can restrict a `LocallyRingedSpace`
--- along an open embedding.
--- We can do this already for `SheafedSpace` (as above), but we need to know that
--- the stalks of the restriction are still local rings, which we follow if we knew that
--- the stalks didn't change.
--- This will follow if we define cofinal functors, and show precomposing with a cofinal functor
--- doesn't change colimits, because open neighbourhoods of `x` within `U` are cofinal in
--- all open neighbourhoods of `x`.
+-- We haven't done this yet because we don't currently have an analogue of
+-- `PresheafedSpace.restrict_top_iso` for locally ringed spaces. But this is needed below to show
+-- that the spectrum of a ring is indeed a scheme.
+-- This will follow once we have shown that the forgetful functor
+-- `LocallyRingedSpace ⥤ SheafedSpace CommRing` reflects isomorphisms.
 
 namespace Scheme
 

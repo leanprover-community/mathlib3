@@ -662,3 +662,36 @@ by exact {
   ..g }
 
 end module
+
+namespace distrib_mul_action
+
+variables (R M) [semiring R] [add_comm_monoid M] [module R M]
+
+section
+variables [monoid S] [distrib_mul_action S M] [smul_comm_class S R M]
+
+/-- Each element of the monoid defines a linear map.
+
+This is a stronger version of `distrib_mul_action.to_add_monoid_hom`. -/
+@[simps]
+def to_linear_map (s : S) : M →ₗ[R] M :=
+{ to_fun := has_scalar.smul s,
+  map_add' := smul_add s,
+  map_smul' := λ a b, smul_comm _ _ _ }
+
+end
+
+section
+variables [group S] [distrib_mul_action S M] [smul_comm_class S R M]
+
+/-- Each element of the group defines a linear equivalence.
+
+This is a stronger version of `distrib_mul_action.to_add_equiv`. -/
+@[simps]
+def to_linear_equiv (s : S) : M ≃ₗ[R] M :=
+{ ..to_add_equiv _ _ s,
+  ..to_linear_map R M s }
+
+end
+
+end distrib_mul_action

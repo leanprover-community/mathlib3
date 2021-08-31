@@ -856,7 +856,7 @@ lemma minpoly_dvd_mod_p {p : ℕ} [hprime : fact p.prime] (hdiv : ¬ p ∣ n) :
   map (int.cast_ring_hom (zmod p)) (minpoly ℤ μ) ∣
   map (int.cast_ring_hom (zmod p)) (minpoly ℤ (μ ^ p)) :=
 (unique_factorization_monoid.dvd_pow_iff_dvd_of_squarefree (squarefree_minpoly_mod h
-  hpos hdiv) hprime.1.pos).1 (minpoly_dvd_pow_mod h hpos hdiv)
+  hpos hdiv) hprime.1.ne_zero).1 (minpoly_dvd_pow_mod h hpos hdiv)
 
 /-- If `p` is a prime that does not divide `n`,
 then the minimal polynomials of a primitive `n`-th root of unity `μ`

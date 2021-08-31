@@ -86,7 +86,7 @@ begin
   simp at DET,
   have H1 : g.1 1 0 = 0 ∨ z.im = 0, by simpa using congr_arg complex.im H,
   cases H1,
-  { simp [H1, complex.of_real_zero] at H, have:= det_of_22 _ g, simp at *, rw H1 at H, simp at *, rw this at DET,
+  { simp [H1, complex.of_real_zero] at H, have:= det_of_22 g, simp at *, rw H1 at H, simp at *, rw this at DET,
     simp [H, H1] at DET, exact DET,  },
   change z.im > 0 at hz,
   linarith,
@@ -108,7 +108,7 @@ begin
   set NsqBot := (denom g z).norm_sq,
   have : NsqBot ≠ 0,
   { simp only [denom_ne_zero g z, monoid_with_zero_hom.map_eq_zero, ne.def, not_false_iff], },
-  field_simp [smul_aux'], ring_nf, have:= det_of_22 _ g, simp at this, rw this, ring,
+  field_simp [smul_aux'], ring_nf, have:= det_of_22  g, simp at this, rw this, ring,
 end
 
 /-- Fractional linear transformation -/

@@ -1165,9 +1165,14 @@ lemma condexp_ind_smul (hs : measurable_set s) (c : 𝕜) (x : E') :
   condexp_ind 𝕜 hm μ hs (c • x) = c • condexp_ind 𝕜 hm μ hs x :=
 condexp_ind_L1_smul hs c x
 
-lemma norm_condexp_ind_le (hs : measurable_set s) (x : E') :
+lemma norm_condexp_ind_apply_le (hs : measurable_set s) (x : E') :
   ∥condexp_ind 𝕜 hm μ hs x∥ ≤ (μ s).to_real * ∥x∥ :=
 norm_condexp_ind_L1_le hs x
+
+lemma norm_condexp_ind_le (hs : measurable_set s) :
+  ∥(condexp_ind 𝕜 hm μ hs : E' →L[ℝ] α →₁[μ] E')∥ ≤ (μ s).to_real :=
+continuous_linear_map.op_norm_le_bound _ ennreal.to_real_nonneg
+  (λ x, norm_condexp_ind_apply_le hs x)
 
 lemma condexp_ind_disjoint_union (hs : measurable_set s) (ht : measurable_set t)
   (hμs : μ s ≠ ∞) (hμt : μ t ≠ ∞) (hst : s ∩ t = ∅) (x : E') :

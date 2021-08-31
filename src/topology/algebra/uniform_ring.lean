@@ -19,7 +19,7 @@ variables (α : Type*) [ring α] [uniform_space α]
 instance : has_one (completion α) := ⟨(1:α)⟩
 
 instance : has_mul (completion α) :=
-  ⟨curry $ (dense_inducing_coe.prod dense_inducing_coe).extend (coe ∘ uncurry (*))⟩
+⟨curry $ (dense_inducing_coe.prod dense_inducing_coe).extend (coe ∘ uncurry (*))⟩
 
 @[norm_cast] lemma coe_one : ((1 : α) : completion α) = 1 := rfl
 
@@ -34,21 +34,14 @@ variables [uniform_add_group α]
 
 lemma continuous_mul : continuous (λ p : completion α × completion α, p.1 * p.2) :=
 begin
-  haveI : is_Z_bilin ((coe ∘ uncurry (*)) : α × α → completion α) :=
-  { add_left := begin
-      introv,
-      change coe ((a + a')*b) = coe (a*b) + coe (a'*b),
-      rw_mod_cast add_mul
-    end,
-    add_right := begin
-      introv,
-      change coe (a*(b + b')) = coe (a*b) + coe (a*b'),
-      rw_mod_cast mul_add
-    end },
-  have : continuous ((coe ∘ uncurry (*)) : α × α → completion α),
-    from (continuous_coe α).comp continuous_mul,
-  convert dense_inducing_coe.extend_Z_bilin dense_inducing_coe this,
-  simp only [(*), curry, prod.mk.eta]
+  let m := (add_monoid_hom.mul : α →+ α →+ α).compr₂ to_compl,
+  have : continuous (λ p : α × α, m p.1 p.2),
+  from (continuous_coe α).comp continuous_mul,
+  have di : dense_inducing (to_compl : α → completion α),
+  from dense_inducing_coe,
+  convert di.extend_Z_bilin di this,
+  ext ⟨x, y⟩,
+  refl
 end
 
 lemma continuous.mul {β : Type*} [topological_space β] {f g : β → completion α}
@@ -92,6 +85,9 @@ instance : ring (completion α) :=
 def coe_ring_hom : α →+* completion α :=
 ⟨coe, coe_one α, assume a b, coe_mul a b, coe_zero, assume a b, coe_add a b⟩
 
+lemma continuous_coe_ring_hom : continuous (coe_ring_hom : α → completion α) :=
+continuous_coe α
+
 universes u
 variables {β : Type u} [uniform_space β] [ring β] [uniform_add_group β] [topological_ring β]
           (f : α →+* β) (hf : continuous f)
@@ -99,7 +95,8 @@ variables {β : Type u} [uniform_space β] [ring β] [uniform_add_group β] [top
 /-- The completion extension as a ring morphism. -/
 def extension_hom [complete_space β] [separated_space β] :
   completion α →+* β :=
-have hf : uniform_continuous f, from uniform_continuous_of_continuous hf,
+have hf' : continuous (f : α →+ β), from hf, -- helping the elaborator
+have hf : uniform_continuous f, from uniform_continuous_of_continuous hf',
 { to_fun := completion.extension f,
   map_zero' := by rw [← coe_zero, extension_coe hf, f.map_zero],
   map_add' := assume a b, completion.induction_on₂ a b
@@ -124,8 +121,8 @@ instance top_ring_compl : topological_ring (completion α) :=
   continuous_neg := continuous_neg }
 
 /-- The completion map as a ring morphism. -/
-def map_ring_hom : completion α →+* completion β :=
-  extension_hom (coe_ring_hom.comp f) ((continuous_coe β).comp hf)
+def map_ring_hom (hf : continuous f) : completion α →+* completion β :=
+extension_hom (coe_ring_hom.comp f) (continuous_coe_ring_hom.comp  hf)
 
 variables (R : Type*) [comm_ring R] [uniform_space R] [uniform_add_group R] [topological_ring R]
 

@@ -159,9 +159,9 @@ open filter set
 open_locale classical big_operators topological_space
 local notation `|`x`|` := abs x
 
-/-- This theorem establishes Leibniz's series for `π`: The alternating sum of the reciprocals of the
-  odd numbers is `π/4`. Note that this is a conditionally rather than absolutely convergent series.
-  The main tool that this proof uses is the Mean Value Theorem (specifically avoiding the
+/-- This theorem establishes **Leibniz's series for `π`**: The alternating sum of the reciprocals
+  of the odd numbers is `π/4`. Note that this is a conditionally rather than absolutely convergent
+  series. The main tool that this proof uses is the Mean Value Theorem (specifically avoiding the
   Fundamental Theorem of Calculus).
 
   Intuitively, the theorem holds because Leibniz's series is the Taylor series of `arctan x`
@@ -190,14 +190,15 @@ begin
   --     constructed from `u` tends to `0` at `+∞`
   let u := λ k : ℕ, (k:nnreal) ^ (-1 / (2 * (k:ℝ) + 1)),
   have H : tendsto (λ k : ℕ, (1:ℝ) - (u k) + (u k) ^ (2 * (k:ℝ) + 1)) at_top (𝓝 0),
-  { convert (((tendsto_rpow_div_mul_add (-1) 2 1 $ by norm_num).neg.const_add 1).add
+  { convert (((tendsto_rpow_div_mul_add (-1) 2 1 two_ne_zero.symm).neg.const_add 1).add
       tendsto_inv_at_top_zero).comp tendsto_coe_nat_at_top_at_top,
     { ext k,
       simp only [nnreal.coe_nat_cast, function.comp_app, nnreal.coe_rpow],
       rw [← rpow_mul (nat.cast_nonneg k) ((-1)/(2*(k:ℝ)+1)) (2*(k:ℝ)+1),
-          @div_mul_cancel _ _ _ (2*(k:ℝ)+1) (by { norm_cast, linarith }), rpow_neg_one k],
-      ring },
-    { simp } },
+         @div_mul_cancel _ _ _ (2*(k:ℝ)+1)
+            (by { norm_cast, simp only [nat.succ_ne_zero, not_false_iff] }), rpow_neg_one k,
+          sub_eq_add_neg] },
+    { simp only [add_zero, add_right_neg] } },
   -- (2) We convert the limit in our goal to an inequality
   refine squeeze_zero_norm _ H,
   intro k,
@@ -216,7 +217,7 @@ begin
     { simpa only [U, hk] using zero_rpow_le_one _ },
     { exact rpow_le_one_of_one_le_of_nonpos (by { norm_cast, exact nat.succ_le_iff.mpr
         (nat.pos_of_ne_zero hk) }) (le_of_lt (@div_neg_of_neg_of_pos _ _ (-(1:ℝ)) (2*k+1)
-          (by norm_num) (by { norm_cast, linarith }))) } },
+          (neg_neg_iff_pos.mpr zero_lt_one) (by { norm_cast, exact nat.succ_pos' }))) } },
   have hU2 := nnreal.coe_nonneg U,
   -- (4) We compute the derivative of `f`, denoted by `f'`
   let f' := λ x : ℝ, (-x^2) ^ k / (1 + x^2),
@@ -235,7 +236,8 @@ begin
             pow_mul x 2 i, ← mul_pow (-1) (x^2) i],
         ring_nf } },
     convert (has_deriv_at_arctan x).sub (has_deriv_at.sum has_deriv_at_b),
-    have g_sum := @geom_sum_eq _ _ (-x^2) (by linarith [neg_nonpos.mpr (sq_nonneg x)]) k,
+    have g_sum :=
+      @geom_sum_eq _ _ (-x^2) ((neg_nonpos.mpr (sq_nonneg x)).trans_lt zero_lt_one).ne k,
     simp only [geom_sum, f'] at g_sum ⊢,
     rw [g_sum, ← neg_add' (x^2) 1, add_comm (x^2) 1, sub_eq_add_neg, neg_div', neg_div_neg_eq],
     ring },
@@ -247,10 +249,11 @@ begin
   have f'_bound : ∀ x ∈ Icc (-1:ℝ) 1, |f' x| ≤ |x|^(2*k),
   { intros x hx,
     rw [abs_div, is_absolute_value.abv_pow abs (-x^2) k, abs_neg, is_absolute_value.abv_pow abs x 2,
-        tactic.ring_exp.pow_e_pf_exp rfl rfl, @abs_of_pos _ _ (1+x^2) (by nlinarith)],
-    convert @div_le_div_of_le_left _ _ _ (1+x^2) 1 (pow_nonneg (abs_nonneg x) (2*k)) (by norm_num)
-      (by nlinarith),
-    simp },
+       tactic.ring_exp.pow_e_pf_exp rfl rfl],
+    refine div_le_of_nonneg_of_le_mul (abs_nonneg _) (pow_nonneg (abs_nonneg _) _) _,
+    refine le_mul_of_one_le_right (pow_nonneg (abs_nonneg _) _) _,
+    rw abs_of_nonneg ((add_nonneg zero_le_one (sq_nonneg x)) : (0 : ℝ) ≤ _),
+    exact (le_add_of_nonneg_right (sq_nonneg x) : (1 : ℝ) ≤ _) },
   have hbound1 : ∀ x ∈ Ico (U:ℝ) 1, |f' x| ≤ 1,
   { rintros x ⟨hx_left, hx_right⟩,
     have hincr := pow_le_pow_of_le_left (le_trans hU2 hx_left) (le_of_lt hx_right) (2*k),
@@ -298,13 +301,13 @@ begin
       by { rw div_eq_iff (integral_sin_pow_pos (2 * n + 1)).ne',
            convert integral_sin_pow (2 * n + 1), simp with field_simps, norm_cast } },
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le _ _ (λ n, (h₄ n).le) (λ n, (h₃ n)),
-  { refine metric.tendsto_at_top.mpr (λ ε hε, ⟨nat_ceil (1 / ε), λ n hn, _⟩),
+  { refine metric.tendsto_at_top.mpr (λ ε hε, ⟨⌈1 / ε⌉₊, λ n hn, _⟩),
     have h : (2:ℝ) * n / (2 * n + 1) - 1 = -1 / (2 * n + 1),
     { conv_lhs { congr, skip, rw ← @div_self _ _ ((2:ℝ) * n + 1) (by { norm_cast, linarith }), },
       rw [← sub_div, ← sub_sub, sub_self, zero_sub] },
     have hpos : (0:ℝ) < 2 * n + 1, { norm_cast, norm_num },
     rw [dist_eq, h, abs_div, abs_neg, abs_one, abs_of_pos hpos, one_div_lt hpos hε],
-    calc 1 / ε ≤ nat_ceil (1 / ε) : le_nat_ceil _
+    calc 1 / ε ≤ ⌈1 / ε⌉₊ : le_nat_ceil _
           ... ≤ n : by exact_mod_cast hn.le
           ... < 2 * n + 1 : by { norm_cast, linarith } },
   { exact tendsto_const_nhds },

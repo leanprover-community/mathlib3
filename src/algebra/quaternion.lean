@@ -153,6 +153,32 @@ instance : algebra R ℍ[R, c₁, c₂] :=
 @[simp] lemma smul_im_j : (r • a).im_j = r • a.im_j := rfl
 @[simp] lemma smul_im_k : (r • a).im_k = r • a.im_k := rfl
 
+@[simp] lemma smul_mk (re im_i im_j im_k : R) :
+  r • (⟨re, im_i, im_j, im_k⟩ : ℍ[R, c₁, c₂]) = ⟨r • re, r • im_i, r • im_j, r • im_k⟩ := rfl
+
+lemma algebra_map_eq (r : R) : algebra_map R ℍ[R,c₁,c₂] r = ⟨r, 0, 0, 0⟩ := rfl
+
+section
+variables (R c₁ c₂)
+
+/-- `quaternion_algebra.re` as a `linear_map`-/
+@[simps] def re_lm : ℍ[R, c₁, c₂] →ₗ[R] R :=
+{ to_fun := re, map_add' := λ x y, rfl, map_smul' := λ r x, rfl }
+
+/-- `quaternion_algebra.im_i` as a `linear_map`-/
+@[simps] def im_i_lm : ℍ[R, c₁, c₂] →ₗ[R] R :=
+{ to_fun := im_i, map_add' := λ x y, rfl, map_smul' := λ r x, rfl }
+
+/-- `quaternion_algebra.im_j` as a `linear_map`-/
+@[simps] def im_j_lm : ℍ[R, c₁, c₂] →ₗ[R] R :=
+{ to_fun := im_j, map_add' := λ x y, rfl, map_smul' := λ r x, rfl }
+
+/-- `quaternion_algebra.im_k` as a `linear_map`-/
+@[simps] def im_k_lm : ℍ[R, c₁, c₂] →ₗ[R] R :=
+{ to_fun := im_k, map_add' := λ x y, rfl, map_smul' := λ r x, rfl }
+
+end
+
 @[norm_cast, simp] lemma coe_add : ((x + y : R) : ℍ[R, c₁, c₂]) = x + y :=
 (algebra_map R ℍ[R, c₁, c₂]).map_add x y
 
@@ -190,6 +216,10 @@ linear_equiv.of_involutive
 @[simp] lemma im_i_conj : (conj a).im_i = - a.im_i := rfl
 @[simp] lemma im_j_conj : (conj a).im_j = - a.im_j := rfl
 @[simp] lemma im_k_conj : (conj a).im_k = - a.im_k := rfl
+
+@[simp] lemma conj_mk (a₁ a₂ a₃ a₄ : R) :
+  conj (mk a₁ a₂ a₃ a₄ : ℍ[R, c₁, c₂]) = ⟨a₁, -a₂, -a₃, -a₄⟩ :=
+rfl
 
 @[simp] lemma conj_conj : a.conj.conj = a := ext _ _ rfl (neg_neg _) (neg_neg _) (neg_neg _)
 
@@ -271,14 +301,14 @@ instance : star_ring ℍ[R, c₁, c₂] :=
 open opposite
 
 /-- Quaternion conjugate as an `alg_equiv` to the opposite ring. -/
-def conj_alg_equiv : ℍ[R, c₁, c₂] ≃ₐ[R] (ℍ[R, c₁, c₂]ᵒᵖ) :=
+def conj_ae : ℍ[R, c₁, c₂] ≃ₐ[R] (ℍ[R, c₁, c₂]ᵒᵖ) :=
 { to_fun := op ∘ conj,
   inv_fun := conj ∘ unop,
   map_mul' := λ x y, by simp,
   commutes' := λ r, by simp,
   .. conj.to_add_equiv.trans op_add_equiv }
 
-@[simp] lemma coe_conj_alg_equiv : ⇑(conj_alg_equiv : ℍ[R, c₁, c₂] ≃ₐ[R] _) = op ∘ conj := rfl
+@[simp] lemma coe_conj_ae : ⇑(conj_ae : ℍ[R, c₁, c₂] ≃ₐ[R] _) = op ∘ conj := rfl
 
 end quaternion_algebra
 
@@ -451,9 +481,9 @@ lemma mul_conj_eq_coe : a * conj a = (a * conj a).re := a.mul_conj_eq_coe
 open opposite
 
 /-- Quaternion conjugate as an `alg_equiv` to the opposite ring. -/
-def conj_alg_equiv : ℍ[R] ≃ₐ[R] (ℍ[R]ᵒᵖ) := quaternion_algebra.conj_alg_equiv
+def conj_ae : ℍ[R] ≃ₐ[R] (ℍ[R]ᵒᵖ) := quaternion_algebra.conj_ae
 
-@[simp] lemma coe_conj_alg_equiv : ⇑(conj_alg_equiv : ℍ[R] ≃ₐ[R] ℍ[R]ᵒᵖ) = op ∘ conj := rfl
+@[simp] lemma coe_conj_ae : ⇑(conj_ae : ℍ[R] ≃ₐ[R] ℍ[R]ᵒᵖ) = op ∘ conj := rfl
 
 /-- Square of the norm. -/
 def norm_sq : monoid_with_zero_hom ℍ[R] R :=
@@ -496,8 +526,7 @@ variables [linear_ordered_comm_ring R] {a : ℍ[R]}
 @[simp] lemma norm_sq_eq_zero : norm_sq a = 0 ↔ a = 0 :=
 begin
   refine ⟨λ h, _, λ h, h.symm ▸ norm_sq.map_zero⟩,
-  rw [norm_sq_def', add_eq_zero_iff_eq_zero_of_nonneg, add_eq_zero_iff_eq_zero_of_nonneg,
-    add_eq_zero_iff_eq_zero_of_nonneg] at h,
+  rw [norm_sq_def', add_eq_zero_iff', add_eq_zero_iff', add_eq_zero_iff'] at h,
   exact ext a 0 (pow_eq_zero h.1.1.1) (pow_eq_zero h.1.1.2) (pow_eq_zero h.1.2) (pow_eq_zero h.2),
   all_goals { apply_rules [sq_nonneg, add_nonneg] }
 end

@@ -3,7 +3,7 @@ Copyright (c) 2021 Benjamin Davidson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Davidson
 -/
-import measure_theory.interval_integral
+import measure_theory.integral.interval_integral
 
 /-!
 # Integration of specific interval integrals
@@ -15,6 +15,7 @@ This file contains proofs of the integrals of various specific functions. This i
 * Reduction formulae for the integrals of `sin x ^ n` and `cos x ^ n` for `n ≥ 2`
 * The computation of `∫ x in 0..π, sin x ^ n` as a product for even and odd `n` (used in proving the
   Wallis product for pi)
+* Integrals of the form `sin x ^ m * cos x ^ n`
 
 With these lemmas, many simple integrals can be computed by `simp` or `norm_num`.
 See `test/integration.lean` for specific examples.
@@ -34,7 +35,7 @@ variables {a b : ℝ} (n : ℕ)
 
 namespace interval_integral
 open measure_theory
-variables {f : ℝ → ℝ} {μ ν : measure ℝ} [locally_finite_measure μ] (c d : ℝ)
+variables {f : ℝ → ℝ} {μ ν : measure ℝ} [is_locally_finite_measure μ] (c d : ℝ)
 
 /-! ### Interval integrability -/
 
@@ -231,8 +232,10 @@ lemma integral_log (h : (0:ℝ) ∉ interval a b) :
 begin
   obtain ⟨h', heq⟩ := ⟨λ x hx, ne_of_mem_of_not_mem hx h, λ x hx, mul_inv_cancel (h' x hx)⟩,
   convert integral_mul_deriv_eq_deriv_mul (λ x hx, has_deriv_at_log (h' x hx))
-    (λ x hx, has_deriv_at_id x) (continuous_on_inv'.mono $ subset_compl_singleton_iff.mpr h)
-      continuous_on_const using 1; simp [integral_congr heq, mul_comm, ← sub_add],
+      (λ x hx, has_deriv_at_id x)
+      (continuous_on_inv'.mono $ subset_compl_singleton_iff.mpr h).interval_integrable
+      continuous_on_const.interval_integrable using 1;
+    simp [integral_congr heq, mul_comm, ← sub_add],
 end
 
 @[simp]
@@ -256,7 +259,8 @@ by rw integral_deriv_eq_sub'; norm_num [continuous_on_cos]
 lemma integral_cos_sq_sub_sin_sq :
   ∫ x in a..b, cos x ^ 2 - sin x ^ 2 = sin b * cos b - sin a * cos a :=
 by simpa only [sq, sub_eq_add_neg, neg_mul_eq_mul_neg] using integral_deriv_mul_eq_sub
-  (λ x hx, has_deriv_at_sin x) (λ x hx, has_deriv_at_cos x) continuous_on_cos continuous_on_sin.neg
+  (λ x hx, has_deriv_at_sin x) (λ x hx, has_deriv_at_cos x) continuous_on_cos.interval_integrable
+  continuous_on_sin.neg.interval_integrable
 
 @[simp]
 lemma integral_inv_one_add_sq : ∫ x : ℝ in a..b, (1 + x^2)⁻¹ = arctan b - arctan a :=
@@ -286,13 +290,13 @@ begin
     λ x hx, by simpa only [neg_neg] using (has_deriv_at_cos x).neg,
   have H := integral_mul_deriv_eq_deriv_mul hu hv _ _,
   calc  ∫ x in a..b, sin x ^ (n + 2)
-      = ∫ x in a..b, sin x ^ (n + 1) * sin x : by simp only [pow_succ']
-  ... = C + (n + 1) * ∫ x in a..b, cos x ^ 2 * sin x ^ n : by simp [H, h, sq]
+      = ∫ x in a..b, sin x ^ (n + 1) * sin x                   : by simp only [pow_succ']
+  ... = C + (n + 1) * ∫ x in a..b, cos x ^ 2 * sin x ^ n       : by simp [H, h, sq]
   ... = C + (n + 1) * ∫ x in a..b, sin x ^ n - sin x ^ (n + 2) : by simp [cos_sq', sub_mul,
                                                                           ← pow_add, add_comm]
   ... = C + (n + 1) * (∫ x in a..b, sin x ^ n) - (n + 1) * ∫ x in a..b, sin x ^ (n + 2) :
     by rw [integral_sub, mul_sub, add_sub_assoc]; apply continuous.interval_integrable; continuity,
-  all_goals { apply continuous.continuous_on, continuity },
+  all_goals { apply continuous.interval_integrable, continuity },
 end
 
 /-- The reduction formula for the integral of `sin x ^ n` for any natural `n ≥ 2`. -/
@@ -337,15 +341,9 @@ begin
   linarith,
 end
 
-lemma integral_sin_pow_antimono :
-  ∫ x in 0..π, sin x ^ (n + 1) ≤ ∫ x in 0..π, sin x ^ n :=
-begin
-  refine integral_mono_on _ _ pi_pos.le (λ x hx, _),
-  { exact ((continuous_pow (n + 1)).comp continuous_sin).interval_integrable 0 π },
-  { exact ((continuous_pow n).comp continuous_sin).interval_integrable 0 π },
-  { refine pow_le_pow_of_le_one (sin_nonneg_of_mem_Icc _) (sin_le_one x) (nat.le_add_right n 1),
-    rwa interval_of_le pi_pos.le at hx },
-end
+lemma integral_sin_pow_antimono : ∫ x in 0..π, sin x ^ (n + 1) ≤ ∫ x in 0..π, sin x ^ n :=
+let H := λ x h, pow_le_pow_of_le_one (sin_nonneg_of_mem_Icc h) (sin_le_one x) (n.le_add_right 1) in
+by refine integral_mono_on pi_pos.le _ _ H; exact (continuous_sin.pow _).interval_integrable 0 π
 
 /-! ### Integral of `cos x ^ n` -/
 
@@ -360,13 +358,13 @@ begin
   have hv : ∀ x ∈ interval a b, has_deriv_at sin (cos x) x := λ x hx, has_deriv_at_sin x,
   have H := integral_mul_deriv_eq_deriv_mul hu hv _ _,
   calc  ∫ x in a..b, cos x ^ (n + 2)
-      = ∫ x in a..b, cos x ^ (n + 1) * cos x : by simp only [pow_succ']
-  ... = C + (n + 1) * ∫ x in a..b, sin x ^ 2 * cos x ^ n : by simp [H, h, sq, -neg_add_rev]
+      = ∫ x in a..b, cos x ^ (n + 1) * cos x                   : by simp only [pow_succ']
+  ... = C + (n + 1) * ∫ x in a..b, sin x ^ 2 * cos x ^ n       : by simp [H, h, sq, -neg_add_rev]
   ... = C + (n + 1) * ∫ x in a..b, cos x ^ n - cos x ^ (n + 2) : by simp [sin_sq, sub_mul,
                                                                           ← pow_add, add_comm]
   ... = C + (n + 1) * (∫ x in a..b, cos x ^ n) - (n + 1) * ∫ x in a..b, cos x ^ (n + 2) :
     by rw [integral_sub, mul_sub, add_sub_assoc]; apply continuous.interval_integrable; continuity,
-  all_goals { apply continuous.continuous_on, continuity },
+  all_goals { apply continuous.interval_integrable, continuity },
 end
 
 /-- The reduction formula for the integral of `cos x ^ n` for any natural `n ≥ 2`. -/
@@ -383,3 +381,80 @@ end
 @[simp]
 lemma integral_cos_sq : ∫ x in a..b, cos x ^ 2 = (cos b * sin b - cos a * sin a + b - a) / 2 :=
 by field_simp [integral_cos_pow, add_sub_assoc]
+
+/-! ### Integral of `sin x ^ m * cos x ^ n` -/
+
+/-- Simplification of the integral of `sin x ^ m * cos x ^ n`, case `n` is odd. -/
+lemma integral_sin_pow_mul_cos_pow_odd (m n : ℕ) :
+  ∫ x in a..b, sin x ^ m * cos x ^ (2 * n + 1) = ∫ u in sin a..sin b, u ^ m * (1 - u ^ 2) ^ n :=
+have hc : continuous (λ u : ℝ, u ^ m * (1 - u ^ 2) ^ n), by continuity,
+calc  ∫ x in a..b, sin x ^ m * cos x ^ (2 * n + 1)
+    = ∫ x in a..b, sin x ^ m * (1 - sin x ^ 2) ^ n * cos x : by simp only [pow_succ', ← mul_assoc,
+                                                                           pow_mul, cos_sq']
+... = ∫ u in sin a..sin b, u ^ m * (1 - u ^ 2) ^ n         : integral_comp_mul_deriv
+                                                              (λ x hx, has_deriv_at_sin x)
+                                                                continuous_on_cos hc
+
+/-- The integral of `sin x * cos x`, given in terms of sin².
+  See `integral_sin_mul_cos₂` below for the integral given in terms of cos². -/
+@[simp]
+lemma integral_sin_mul_cos₁ :
+  ∫ x in a..b, sin x * cos x = (sin b ^ 2 - sin a ^ 2) / 2 :=
+by simpa using integral_sin_pow_mul_cos_pow_odd 1 0
+
+@[simp]
+lemma integral_sin_sq_mul_cos :
+  ∫ x in a..b, sin x ^ 2 * cos x = (sin b ^ 3 - sin a ^ 3) / 3 :=
+by simpa using integral_sin_pow_mul_cos_pow_odd 2 0
+
+@[simp]
+lemma integral_cos_pow_three :
+  ∫ x in a..b, cos x ^ 3 = sin b - sin a - (sin b ^ 3 - sin a ^ 3) / 3 :=
+by simpa using integral_sin_pow_mul_cos_pow_odd 0 1
+
+/-- Simplification of the integral of `sin x ^ m * cos x ^ n`, case `m` is odd. -/
+lemma integral_sin_pow_odd_mul_cos_pow (m n : ℕ) :
+  ∫ x in a..b, sin x ^ (2 * m + 1) * cos x ^ n = ∫ u in cos b..cos a, u ^ n * (1 - u ^ 2) ^ m :=
+have hc : continuous (λ u : ℝ, u ^ n * (1 - u ^ 2) ^ m), by continuity,
+calc   ∫ x in a..b, sin x ^ (2 * m + 1) * cos x ^ n
+    = -∫ x in b..a, sin x ^ (2 * m + 1) * cos x ^ n          : by rw integral_symm
+... =  ∫ x in b..a, (1 - cos x ^ 2) ^ m * -sin x * cos x ^ n : by simp [pow_succ', pow_mul, sin_sq]
+... =  ∫ x in b..a, cos x ^ n * (1 - cos x ^ 2) ^ m * -sin x : by { congr, ext, ring }
+... =  ∫ u in cos b..cos a, u ^ n * (1 - u ^ 2) ^ m          : integral_comp_mul_deriv
+                                                                (λ x hx, has_deriv_at_cos x)
+                                                                  continuous_on_sin.neg hc
+
+/-- The integral of `sin x * cos x`, given in terms of cos².
+See `integral_sin_mul_cos₁` above for the integral given in terms of sin². -/
+lemma integral_sin_mul_cos₂  :
+  ∫ x in a..b, sin x * cos x = (cos a ^ 2 - cos b ^ 2) / 2 :=
+by simpa using integral_sin_pow_odd_mul_cos_pow 0 1
+
+@[simp]
+lemma integral_sin_mul_cos_sq :
+  ∫ x in a..b, sin x * cos x ^ 2 = (cos a ^ 3 - cos b ^ 3) / 3 :=
+by simpa using integral_sin_pow_odd_mul_cos_pow 0 2
+
+@[simp]
+lemma integral_sin_pow_three :
+  ∫ x in a..b, sin x ^ 3 = cos a - cos b - (cos a ^ 3 - cos b ^ 3) / 3 :=
+by simpa using integral_sin_pow_odd_mul_cos_pow 1 0
+
+/-- Simplification of the integral of `sin x ^ m * cos x ^ n`, case `m` and `n` are both even. -/
+lemma integral_sin_pow_even_mul_cos_pow_even (m n : ℕ) :
+    ∫ x in a..b, sin x ^ (2 * m) * cos x ^ (2 * n)
+  = ∫ x in a..b, ((1 - cos (2 * x)) / 2) ^ m * ((1 + cos (2 * x)) / 2) ^ n :=
+by field_simp [pow_mul, sin_sq, cos_sq, ← sub_sub, (by ring : (2:ℝ) - 1 = 1)]
+
+@[simp]
+lemma integral_sin_sq_mul_cos_sq :
+  ∫ x in a..b, sin x ^ 2 * cos x ^ 2 = (b - a) / 8 - (sin (4 * b) - sin (4 * a)) / 32 :=
+begin
+  convert integral_sin_pow_even_mul_cos_pow_even 1 1 using 1,
+  have h1 : ∀ c : ℝ, (1 - c) / 2 * ((1 + c) / 2) = (1 - c ^ 2) / 4 := λ c, by ring,
+  have h2 : continuous (λ x, cos (2 * x) ^ 2) := by continuity,
+  have h3 : ∀ x, cos x * sin x = sin (2 * x) / 2, { intro, rw sin_two_mul, ring },
+  have h4 : ∀ d : ℝ, 2 * (2 * d) = 4 * d := λ d, by ring,
+  simp [h1, h2.interval_integrable, integral_comp_mul_left (λ x, cos x ^ 2), h3, h4],
+  ring,
+end

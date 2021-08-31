@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import topology.locally_constant.basic
+import topology.continuous_function.algebra
+import algebra.algebra.basic
 
 /-!
 # Algebraic structure on locally constant functions
@@ -20,18 +22,26 @@ variables {X Y : Type*} [topological_space X]
 @[to_additive] instance [has_one Y] : has_one (locally_constant X Y) :=
 { one := const X 1 }
 
-@[simp, to_additive] lemma one_apply [has_one Y] (x : X) : (1 : locally_constant X Y) x = 1 := rfl
+@[simp, to_additive] lemma coe_one [has_one Y] : ⇑(1 : locally_constant X Y) = (1 : X → Y) := rfl
+
+@[to_additive] lemma one_apply [has_one Y] (x : X) : (1 : locally_constant X Y) x = 1 := rfl
 
 @[to_additive] instance [has_inv Y] : has_inv (locally_constant X Y) :=
 { inv := λ f, ⟨f⁻¹ , f.is_locally_constant.inv⟩ }
 
-@[simp, to_additive] lemma inv_apply [has_inv Y] (f : locally_constant X Y) (x : X) :
+@[simp, to_additive] lemma coe_inv [has_inv Y] (f : locally_constant X Y) : ⇑(f⁻¹) = f⁻¹ := rfl
+
+@[to_additive] lemma inv_apply [has_inv Y] (f : locally_constant X Y) (x : X) :
   f⁻¹ x = (f x)⁻¹ := rfl
 
 @[to_additive] instance [has_mul Y] : has_mul (locally_constant X Y) :=
 { mul := λ f g, ⟨f * g, f.is_locally_constant.mul g.is_locally_constant⟩ }
 
-@[simp, to_additive] lemma mul_apply [has_mul Y] (f g : locally_constant X Y) (x : X) :
+@[simp, to_additive] lemma coe_mul [has_mul Y] (f g : locally_constant X Y) :
+  ⇑(f * g) = f * g :=
+rfl
+
+@[to_additive] lemma mul_apply [has_mul Y] (f g : locally_constant X Y) (x : X) :
   (f * g) x = f x * g x := rfl
 
 @[to_additive] instance [mul_one_class Y] : mul_one_class (locally_constant X Y) :=
@@ -39,6 +49,20 @@ variables {X Y : Type*} [topological_space X]
   mul_one := by { intros, ext, simp only [mul_apply, one_apply, mul_one] },
   .. locally_constant.has_one,
   .. locally_constant.has_mul }
+
+/-- `coe_fn` is a `monoid_hom`. -/
+@[to_additive "`coe_fn` is an `add_monoid_hom`.", simps]
+def coe_fn_monoid_hom [mul_one_class Y] : locally_constant X Y →* (X → Y) :=
+{ to_fun   := coe_fn,
+  map_one' := rfl,
+  map_mul' := λ _ _, rfl }
+
+/-- The constant-function embedding, as a multiplicative monoid hom. -/
+@[to_additive "The constant-function embedding, as an additive monoid hom.", simps]
+def const_monoid_hom [mul_one_class Y] : Y →* locally_constant X Y :=
+{ to_fun   := const X,
+  map_one' := rfl,
+  map_mul' := λ _ _, rfl, }
 
 instance [mul_zero_class Y] : mul_zero_class (locally_constant X Y) :=
 { zero_mul := by { intros, ext, simp only [mul_apply, zero_apply, zero_mul] },
@@ -51,6 +75,9 @@ instance [mul_zero_one_class Y] : mul_zero_one_class (locally_constant X Y) :=
 
 @[to_additive] instance [has_div Y] : has_div (locally_constant X Y) :=
 { div := λ f g, ⟨f / g, f.is_locally_constant.div g.is_locally_constant⟩ }
+
+@[to_additive] lemma coe_div [has_div Y] (f g : locally_constant X Y) :
+  ⇑(f / g) = f / g := rfl
 
 @[to_additive] lemma div_apply [has_div Y] (f g : locally_constant X Y) (x : X) :
   (f / g) x = f x / g x := rfl
@@ -97,6 +124,12 @@ instance [non_unital_semiring Y] : non_unital_semiring (locally_constant X Y) :=
 instance [non_assoc_semiring Y] : non_assoc_semiring (locally_constant X Y) :=
 { .. locally_constant.mul_one_class, .. locally_constant.non_unital_non_assoc_semiring }
 
+/-- The constant-function embedding, as a ring hom.  -/
+@[simps] def const_ring_hom [non_assoc_semiring Y] : Y →+* locally_constant X Y :=
+{ to_fun    := const X,
+  .. const_monoid_hom,
+  .. const_add_monoid_hom, }
+
 instance [semiring Y] : semiring (locally_constant X Y) :=
 { .. locally_constant.add_comm_monoid, .. locally_constant.monoid,
   .. locally_constant.distrib, .. locally_constant.mul_zero_class }
@@ -109,5 +142,43 @@ instance [ring Y] : ring (locally_constant X Y) :=
 
 instance [comm_ring Y] : comm_ring (locally_constant X Y) :=
 { .. locally_constant.comm_semiring, .. locally_constant.ring }
+
+variables {R : Type*}
+
+instance [has_scalar R Y] : has_scalar R (locally_constant X Y) :=
+{ smul := λ r f,
+  { to_fun := r • f,
+    is_locally_constant := ((is_locally_constant f).comp ((•) r) : _), } }
+
+@[simp] lemma coe_smul [has_scalar R Y] (r : R) (f : locally_constant X Y) : ⇑(r • f) = r • f := rfl
+
+lemma smul_apply [has_scalar R Y] (r : R) (f : locally_constant X Y) (x : X) :
+  (r • f) x = r • (f x) :=
+rfl
+
+instance [monoid R] [mul_action R Y] : mul_action R (locally_constant X Y) :=
+function.injective.mul_action _ coe_injective (λ _ _, rfl)
+
+instance [monoid R] [add_monoid Y] [distrib_mul_action R Y] :
+  distrib_mul_action R (locally_constant X Y) :=
+function.injective.distrib_mul_action coe_fn_add_monoid_hom coe_injective (λ _ _, rfl)
+
+instance [semiring R] [add_comm_monoid Y] [module R Y] : module R (locally_constant X Y) :=
+function.injective.module R coe_fn_add_monoid_hom coe_injective (λ _ _, rfl)
+
+section algebra
+
+variables [comm_semiring R] [semiring Y] [algebra R Y]
+
+instance : algebra R (locally_constant X Y) :=
+{ to_ring_hom := const_ring_hom.comp $ algebra_map R Y,
+  commutes'   := by { intros, ext, exact algebra.commutes' _ _, },
+  smul_def'   := by { intros, ext, exact algebra.smul_def' _ _, }, }
+
+@[simp] lemma coe_algebra_map (r : R) :
+  ⇑(algebra_map R (locally_constant X Y) r) = algebra_map R (X → Y) r :=
+rfl
+
+end algebra
 
 end locally_constant

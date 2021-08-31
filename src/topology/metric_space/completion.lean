@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import topology.uniform_space.completion
 import topology.metric_space.isometry
+import topology.instances.real
 
 /-!
 # The completion of a metric space
@@ -125,7 +126,7 @@ begin
     simp only [uniformity_prod_eq_prod, mem_prod_iff, exists_prop,
                filter.mem_map, set.mem_set_of_eq] at T,
     rcases T with ⟨t1, ht1, t2, ht2, ht⟩,
-    refine mem_sets_of_superset ht1 _,
+    refine mem_of_superset ht1 _,
     have A : ∀a b : completion α, (a, b) ∈ t1 → dist a b < ε,
     { assume a b hab,
       have : ((a, b), (a, a)) ∈ set.prod t1 t2 := ⟨hab, refl_mem_uniformity ht2⟩,
@@ -155,7 +156,7 @@ of the metric space structure. -/
 protected lemma completion.uniformity_dist' :
   uniformity (completion α) = (⨅ε:{ε : ℝ // 0 < ε}, 𝓟 {p | dist p.1 p.2 < ε.val}) :=
 begin
-  ext s, rw mem_infi,
+  ext s, rw mem_infi_of_directed,
   { simp [completion.mem_uniformity_dist, subset_def] },
   { rintro ⟨r, hr⟩ ⟨p, hp⟩, use ⟨min r p, lt_min hr hp⟩,
     simp [lt_min_iff, (≥)] {contextual := tt} }

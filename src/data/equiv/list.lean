@@ -29,7 +29,7 @@ def encode_list : list α → ℕ
 /-- Explicit decoding function for `list α` -/
 def decode_list : ℕ → option (list α)
 | 0        := some []
-| (succ v) := match unpair v, unpair_le_right v with
+| (succ v) := match unpair v, unpair_right_le v with
   | (v₁, v₂), h :=
     have v₂ < succ v, from lt_succ_of_le h,
     (::) <$> decode α v₁ <*> decode_list v₂
@@ -58,7 +58,7 @@ end
 
 theorem length_le_encode : ∀ (l : list α), length l ≤ encode l
 | [] := _root_.zero_le _
-| (a :: l) := succ_le_succ $ (length_le_encode l).trans (le_mkpair_right _ _)
+| (a :: l) := succ_le_succ $ (length_le_encode l).trans (right_le_mkpair _ _)
 
 end list
 
@@ -104,7 +104,7 @@ def trunc_encodable_of_fintype (α : Type*) [decidable_eq α] [fintype α] : tru
 /-- A noncomputable way to arbitrarily choose an ordering on a finite type.
   It is not made into a global instance, since it involves an arbitrary choice.
   This can be locally made into an instance with `local attribute [instance] fintype.encodable`. -/
-noncomputable def fintype.encodable (α : Type*) [fintype α] : encodable α :=
+noncomputable def _root_.fintype.encodable (α : Type*) [fintype α] : encodable α :=
 by { classical, exact (encodable.trunc_encodable_of_fintype α).out }
 
 /-- If `α` is encodable, then so is `vector α n`. -/
@@ -182,7 +182,7 @@ theorem denumerable_list_aux : ∀ n : ℕ,
 | 0        := by rw decode_list; exact ⟨_, rfl, rfl⟩
 | (succ v) := begin
   cases e : unpair v with v₁ v₂,
-  have h := unpair_le_right v,
+  have h := unpair_right_le v,
   rw e at h,
   rcases have v₂ < succ v, from lt_succ_of_le h,
     denumerable_list_aux v₂ with ⟨a, h₁, h₂⟩,

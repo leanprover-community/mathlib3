@@ -23,7 +23,7 @@ open_locale big_operators matrix
 open finset matrix simple_graph
 
 universes u v
-variables {α : Type u} [fintype α]
+variables {α : Type u}
 variables (R : Type v) [semiring R]
 
 namespace simple_graph
@@ -42,7 +42,9 @@ lemma adj_matrix_apply (v w : α) : G.adj_matrix R v w = if (G.adj v w) then 1 e
 
 @[simp]
 theorem transpose_adj_matrix : (G.adj_matrix R)ᵀ = G.adj_matrix R :=
-by { ext, simp [edge_symm] }
+by { ext, simp [adj_comm] }
+
+variables [fintype α]
 
 @[simp]
 lemma adj_matrix_dot_product (v : α) (vec : α → R) :
@@ -52,7 +54,7 @@ by simp [neighbor_finset_eq_filter, dot_product, sum_filter]
 @[simp]
 lemma dot_product_adj_matrix (v : α) (vec : α → R) :
   dot_product vec (G.adj_matrix R v) = ∑ u in G.neighbor_finset v, vec u :=
-by simp [neighbor_finset_eq_filter, dot_product, sum_filter, sum_apply]
+by simp [neighbor_finset_eq_filter, dot_product, sum_filter, finset.sum_apply]
 
 @[simp]
 lemma adj_matrix_mul_vec_apply (v : α) (vec : α → R) :
@@ -76,7 +78,7 @@ by simp [mul_apply, neighbor_finset_eq_filter, sum_filter]
 @[simp]
 lemma mul_adj_matrix_apply (M : matrix α α R) (v w : α) :
   (M ⬝ G.adj_matrix R) v w = ∑ u in G.neighbor_finset w, M v u :=
-by simp [mul_apply, neighbor_finset_eq_filter, sum_filter, edge_symm]
+by simp [mul_apply, neighbor_finset_eq_filter, sum_filter, adj_comm]
 
 variable (R)
 theorem trace_adj_matrix : matrix.trace α R R (G.adj_matrix R) = 0 := by simp

@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 -/
 import algebra.big_operators.order
 import data.mv_polynomial.monad
-import data.set.disjointed
+import data.set.pairwise
 
 /-!
 # Degrees and variables of polynomials
@@ -115,8 +115,8 @@ begin
   refine finset.sup_le (assume b hb, _),
   have := finsupp.support_add hb, rw finset.mem_union at this,
   cases this,
-  { exact le_sup_left_of_le (finset.le_sup this) },
-  { exact le_sup_right_of_le (finset.le_sup this) },
+  { exact le_sup_of_le_left (finset.le_sup this) },
+  { exact le_sup_of_le_right (finset.le_sup this) },
 end
 
 lemma degrees_sum {ι : Type*} (s : finset ι) (f : ι → mv_polynomial σ R) :
@@ -469,8 +469,8 @@ finset.sup_le $ assume n hn,
   begin
     rw finset.mem_union at this,
     cases this,
-    { exact le_max_left_of_le (finset.le_sup this) },
-    { exact le_max_right_of_le (finset.le_sup this) }
+    { exact le_max_of_le_left (finset.le_sup this) },
+    { exact le_max_of_le_right (finset.le_sup this) }
   end
 
 lemma total_degree_mul (a b : mv_polynomial σ R) :

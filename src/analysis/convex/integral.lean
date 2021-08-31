@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
 import analysis.convex.basic
-import measure_theory.set_integral
+import measure_theory.integral.set_integral
 
 /-!
 # Jensen's inequality for integrals
@@ -46,7 +46,7 @@ variables {α E : Type*} [measurable_space α] {μ : measure α}
   [topological_space.second_countable_topology E] [measurable_space E] [borel_space E]
 
 private lemma convex.smul_integral_mem_of_measurable
-  [finite_measure μ] {s : set E} (hs : convex s) (hsc : is_closed s)
+  [is_finite_measure μ] {s : set E} (hs : convex s) (hsc : is_closed s)
   (hμ : μ ≠ 0) {f : α → E} (hfs : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) (hfm : measurable f) :
   (μ univ).to_real⁻¹ • ∫ x, f x ∂μ ∈ s :=
 begin
@@ -60,7 +60,7 @@ begin
       (simple_func.integrable_approx_on hfm hfi h₀ hc _)],
     exact tendsto_integral_of_L1 _ hfi
       (eventually_of_forall $ simple_func.integrable_approx_on hfm hfi h₀ hc)
-      (simple_func.tendsto_approx_on_L1_edist hfm h₀ hfs (hfi.sub hc).2) },
+      (simple_func.tendsto_approx_on_L1_nnnorm hfm h₀ hfs (hfi.sub hc).2) },
   refine hsc.mem_of_tendsto (tendsto_const_nhds.smul this) (eventually_of_forall $ λ n, _),
   have : ∑ y in (F n).range, (μ ((F n) ⁻¹' {y})).to_real = (μ univ).to_real,
     by rw [← (F n).sum_range_measure_preimage_singleton, @ennreal.to_real_sum _ _
@@ -79,7 +79,7 @@ integrable function sending `μ`-a.e. points to `s`, then the average value of `
 `(μ univ).to_real⁻¹ • ∫ x, f x ∂μ ∈ s`. See also `convex.center_mass_mem` for a finite sum version
 of this lemma. -/
 lemma convex.smul_integral_mem
-  [finite_measure μ] {s : set E} (hs : convex s) (hsc : is_closed s)
+  [is_finite_measure μ] {s : set E} (hs : convex s) (hsc : is_closed s)
   (hμ : μ ≠ 0) {f : α → E} (hfs : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) :
   (μ univ).to_real⁻¹ • ∫ x, f x ∂μ ∈ s :=
 begin
@@ -96,19 +96,19 @@ end
 /-- If `μ` is a probability measure on `α`, `s` is a convex closed set in `E`, and `f` is an
 integrable function sending `μ`-a.e. points to `s`, then the expected value of `f` belongs to `s`:
 `∫ x, f x ∂μ ∈ s`. See also `convex.sum_mem` for a finite sum version of this lemma. -/
-lemma convex.integral_mem [probability_measure μ] {s : set E} (hs : convex s) (hsc : is_closed s)
+lemma convex.integral_mem [is_probability_measure μ] {s : set E} (hs : convex s) (hsc : is_closed s)
   {f : α → E} (hf : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) :
   ∫ x, f x ∂μ ∈ s :=
-by simpa [measure_univ] using hs.smul_integral_mem hsc (probability_measure.ne_zero μ) hf hfi
+by simpa [measure_univ] using hs.smul_integral_mem hsc (is_probability_measure.ne_zero μ) hf hfi
 
 /-- Jensen's inequality: if a function `g : E → ℝ` is convex and continuous on a convex closed set
 `s`, `μ` is a finite non-zero measure on `α`, and `f : α → E` is a function sending `μ`-a.e. points
 to `s`, then the value of `g` at the average value of `f` is less than or equal to the average value
 of `g ∘ f` provided that both `f` and `g ∘ f` are integrable. See also `convex.map_center_mass_le`
 for a finite sum version of this lemma. -/
-lemma convex_on.map_smul_integral_le [finite_measure μ] {s : set E} {g : E → ℝ} (hg : convex_on s g)
-  (hgc : continuous_on g s) (hsc : is_closed s) (hμ : μ ≠ 0) {f : α → E} (hfs : ∀ᵐ x ∂μ, f x ∈ s)
-  (hfi : integrable f μ) (hgi : integrable (g ∘ f) μ) :
+lemma convex_on.map_smul_integral_le [is_finite_measure μ] {s : set E} {g : E → ℝ}
+  (hg : convex_on s g) (hgc : continuous_on g s) (hsc : is_closed s) (hμ : μ ≠ 0) {f : α → E}
+  (hfs : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) (hgi : integrable (g ∘ f) μ) :
   g ((μ univ).to_real⁻¹ • ∫ x, f x ∂μ) ≤ (μ univ).to_real⁻¹ • ∫ x, g (f x) ∂μ :=
 begin
   set t := {p : E × ℝ | p.1 ∈ s ∧ g p.1 ≤ p.2},
@@ -126,9 +126,9 @@ end
 `s`, then the value of `g` at the expected value of `f` is less than or equal to the expected value
 of `g ∘ f` provided that both `f` and `g ∘ f` are integrable. See also `convex.map_sum_le` for a
 finite sum version of this lemma. -/
-lemma convex_on.map_integral_le [probability_measure μ] {s : set E} {g : E → ℝ} (hg : convex_on s g)
-  (hgc : continuous_on g s) (hsc : is_closed s) {f : α → E} (hfs : ∀ᵐ x ∂μ, f x ∈ s)
-  (hfi : integrable f μ) (hgi : integrable (g ∘ f) μ) :
+lemma convex_on.map_integral_le [is_probability_measure μ] {s : set E} {g : E → ℝ}
+  (hg : convex_on s g) (hgc : continuous_on g s) (hsc : is_closed s) {f : α → E}
+  (hfs : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) (hgi : integrable (g ∘ f) μ) :
   g (∫ x, f x ∂μ) ≤ ∫ x, g (f x) ∂μ :=
 by simpa [measure_univ]
-  using hg.map_smul_integral_le hgc hsc (probability_measure.ne_zero μ) hfs hfi hgi
+  using hg.map_smul_integral_le hgc hsc (is_probability_measure.ne_zero μ) hfs hfi hgi

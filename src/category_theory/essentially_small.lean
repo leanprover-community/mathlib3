@@ -188,7 +188,7 @@ begin
     refine ⟨⟨S, _, ⟨_⟩⟩⟩,
     apply induced_category.category (e'.trans e).symm,
     refine (shrink_homs.equivalence C).trans
-      ((from_skeleton _).as_equivalence.symm.trans
+      ((skeleton_equivalence _).symm.trans
       ((induced_functor (e'.trans e).symm).as_equivalence.symm)), },
 end
 

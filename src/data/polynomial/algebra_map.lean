@@ -3,9 +3,8 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-
-import data.polynomial.eval
 import algebra.algebra.tower
+import data.polynomial.eval
 
 /-!
 # Theory of univariate polynomials
@@ -203,6 +202,13 @@ theorem aeval_alg_hom_apply (f : A →ₐ[R] B) (x : A) (p : polynomial R) :
   aeval (f x) p = f (aeval x p) :=
 alg_hom.ext_iff.1 (aeval_alg_hom f x) p
 
+theorem aeval_alg_equiv (f : A ≃ₐ[R] B) (x : A) : aeval (f x) = (f : A →ₐ[R] B).comp (aeval x) :=
+aeval_alg_hom (f : A →ₐ[R] B) x
+
+theorem aeval_alg_equiv_apply (f : A ≃ₐ[R] B) (x : A) (p : polynomial R) :
+  aeval (f x) p = f (aeval x p) :=
+aeval_alg_hom_apply (f : A →ₐ[R] B) x p
+
 lemma aeval_algebra_map_apply (x : R) (p : polynomial R) :
   aeval (algebra_map R A x) p = algebra_map R A (p.eval x) :=
 aeval_alg_hom_apply (algebra.of_id R A) x p
@@ -222,7 +228,21 @@ aeval_alg_hom_apply (algebra.of_id R A) x p
 lemma coeff_zero_eq_aeval_zero (p : polynomial R) : p.coeff 0 = aeval 0 p :=
 by simp [coeff_zero_eq_eval_zero]
 
-variables [comm_ring S] {f : R →+* S}
+lemma coeff_zero_eq_aeval_zero' (p : polynomial R) :
+  algebra_map R A (p.coeff 0) = aeval (0 : A) p :=
+by simp [aeval_def]
+
+section comm_semiring
+
+variables [comm_semiring S] {f : R →+* S}
+
+lemma aeval_eq_sum_range [algebra R S] {p : polynomial R} (x : S) :
+  aeval x p = ∑ i in finset.range (p.nat_degree + 1), p.coeff i • x ^ i :=
+by { simp_rw algebra.smul_def, exact eval₂_eq_sum_range (algebra_map R S) x }
+
+lemma aeval_eq_sum_range' [algebra R S] {p : polynomial R} {n : ℕ} (hn : p.nat_degree < n) (x : S) :
+aeval x p = ∑ i in finset.range n, p.coeff i • x ^ i :=
+by { simp_rw algebra.smul_def, exact eval₂_eq_sum_range' (algebra_map R S) hn x }
 
 lemma is_root_of_eval₂_map_eq_zero
   (hf : function.injective f) {r : R} : eval₂ f (f r) p = 0 → p.is_root r :=
@@ -236,6 +256,12 @@ lemma is_root_of_aeval_algebra_map_eq_zero [algebra R S] {p : polynomial R}
   (inj : function.injective (algebra_map R S))
   {r : R} (hr : aeval (algebra_map R S r) p = 0) : p.is_root r :=
 is_root_of_eval₂_map_eq_zero inj hr
+
+end comm_semiring
+
+section comm_ring
+
+variables [comm_ring S] {f : R →+* S}
 
 lemma dvd_term_of_dvd_eval_of_dvd_terms {z p : S} {f : polynomial S} (i : ℕ)
   (dvd_eval : p ∣ f.eval z) (dvd_terms : ∀ (j ≠ i), p ∣ f.coeff j * z ^ j) :
@@ -259,13 +285,7 @@ lemma dvd_term_of_is_root_of_dvd_terms {r p : S} {f : polynomial S} (i : ℕ)
   (hr : f.is_root r) (h : ∀ (j ≠ i), p ∣ f.coeff j * r ^ j) : p ∣ f.coeff i * r ^ i :=
 dvd_term_of_dvd_eval_of_dvd_terms i (eq.symm hr ▸ dvd_zero p) h
 
-lemma aeval_eq_sum_range [algebra R S] {p : polynomial R} (x : S) :
-  aeval x p = ∑ i in finset.range (p.nat_degree + 1), p.coeff i • x ^ i :=
-by { simp_rw algebra.smul_def, exact eval₂_eq_sum_range (algebra_map R S) x }
-
-lemma aeval_eq_sum_range' [algebra R S] {p : polynomial R} {n : ℕ} (hn : p.nat_degree < n) (x : S) :
-  aeval x p = ∑ i in finset.range n, p.coeff i • x ^ i :=
-by { simp_rw algebra.smul_def, exact eval₂_eq_sum_range' (algebra_map R S) hn x }
+end comm_ring
 
 end aeval
 
@@ -294,8 +314,7 @@ begin
   rw sum_range_succ',
   conv_lhs {
     congr, apply_congr, skip,
-    rw [coeff_mul_X_sub_C, sub_mul, mul_assoc, ←pow_succ],
-  },
+    rw [coeff_mul_X_sub_C, sub_mul, mul_assoc, ←pow_succ], },
   simp [sum_range_sub', coeff_monomial],
 end
 
@@ -310,7 +329,7 @@ lemma aeval_endomorphism {M : Type*}
   aeval f p v = p.sum (λ n b, b • (f ^ n) v) :=
 begin
   rw [aeval_def, eval₂],
-  exact (finset.sum_hom p.support (λ h : M →ₗ[R] M, h v)).symm
+  exact (linear_map.applyₗ v).map_sum ,
 end
 
 end polynomial

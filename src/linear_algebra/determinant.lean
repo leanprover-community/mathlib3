@@ -11,7 +11,6 @@ import linear_algebra.matrix.reindex
 import linear_algebra.multilinear
 import linear_algebra.dual
 import ring_theory.algebra_tower
-import ring_theory.matrix_algebra
 
 /-!
 # Determinant of families of vectors
@@ -65,33 +64,39 @@ def equiv_of_pi_lequiv_pi {R : Type*} [integral_domain R]
   (e : (m → R) ≃ₗ[R] (n → R)) : m ≃ n :=
 basis.index_equiv (basis.of_equiv_fun e.symm) (pi.basis_fun _ _)
 
+namespace matrix
+
 /-- If `M` and `M'` are each other's inverse matrices, they are square matrices up to
 equivalence of types. -/
-def matrix.index_equiv_of_inv [decidable_eq m] [decidable_eq n]
+def index_equiv_of_inv [decidable_eq m] [decidable_eq n]
   {M : matrix m n A} {M' : matrix n m A}
   (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
   m ≃ n :=
-equiv_of_pi_lequiv_pi (matrix.to_lin'_of_inv hMM' hM'M)
+equiv_of_pi_lequiv_pi (to_lin'_of_inv hMM' hM'M)
+
+lemma det_comm [decidable_eq n] (M N : matrix n n A) : det (M ⬝ N) = det (N ⬝ M) :=
+by rw [det_mul, det_mul, mul_comm]
+
+/-- If there exists a two-sided inverse `M'` for `M` (indexed differently),
+then `det (N ⬝ M) = det (M ⬝ N)`. -/
+lemma det_comm' [decidable_eq m] [decidable_eq n]
+  {M : matrix n m A} {N : matrix m n A} {M' : matrix m n A}
+  (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
+  det (M ⬝ N) = det (N ⬝ M) :=
+-- Although `m` and `n` are different a priori, we will show they have the same cardinality.
+-- This turns the problem into one for square matrices, which is easy.
+let e := index_equiv_of_inv hMM' hM'M in
+by rw [← det_minor_equiv_self e, minor_mul_equiv _ _ _ (equiv.refl n) _, det_comm,
+  ← minor_mul_equiv, equiv.coe_refl, minor_id_id]
 
 /-- If `M'` is a two-sided inverse for `M` (indexed differently), `det (M ⬝ N ⬝ M') = det N`. -/
-lemma matrix.det_conj
-  [decidable_eq m] [decidable_eq n]
+lemma det_conj [decidable_eq m] [decidable_eq n]
   {M : matrix m n A} {M' : matrix n m A} {N : matrix n n A}
   (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
   det (M ⬝ N ⬝ M') = det N :=
-begin
-  -- Although `m` and `n` are different a priori, we will show they have the same cardinality.
-  -- This turns the problem into one for square matrices (`matrix.det_units_conj`), which is easy.
-  let e : m ≃ n := matrix.index_equiv_of_inv hMM' hM'M,
-  let U : units (matrix n n A) :=
-    ⟨M.minor e.symm (equiv.refl _),
-     M'.minor (equiv.refl _) e.symm,
-     by rw [mul_eq_mul, ←minor_mul_equiv, hMM', minor_one_equiv],
-     by rw [mul_eq_mul, ←minor_mul_equiv, hM'M, minor_one_equiv]⟩,
-  rw [← matrix.det_units_conj U N, ← det_minor_equiv_self e.symm],
-  simp only [minor_mul_equiv _ _ _ (equiv.refl n) _, equiv.coe_refl, minor_id_id,
-             units.coe_mk, units.inv_mk]
-end
+by rw [← det_comm' hM'M hMM', ← matrix.mul_assoc, hM'M, matrix.one_mul]
+
+end matrix
 
 end conjugate
 
@@ -122,7 +127,7 @@ or avoid mentioning a basis at all using `linear_map.det`.
 def det_aux : trunc (basis ι A M) → (M →ₗ[A] M) →* A :=
 trunc.lift
   (λ b : basis ι A M,
-    (monoid_hom.of (matrix.det)).comp (to_matrix_alg_equiv b : (M →ₗ[A] M) →* matrix ι ι A))
+    (det_monoid_hom).comp (to_matrix_alg_equiv b : (M →ₗ[A] M) →* matrix ι ι A))
   (λ b c, monoid_hom.ext $ det_to_matrix_eq_det_to_matrix b c)
 
 /-- Unfold lemma for `det_aux`.
@@ -158,13 +163,13 @@ open_locale classical
 If there is no finite basis on `M`, the result is `1` instead.
 -/
 protected def det : (M →ₗ[A] M) →* A :=
-if H : ∃ (s : set M) (b : basis s A M), s.finite
-then @linear_map.det_aux _ _ _ _ H.some_spec.some_spec.some _ _ _ (trunc.mk H.some_spec.some)
+if H : ∃ (s : finset M), nonempty (basis s A M)
+then linear_map.det_aux (trunc.mk H.some_spec.some)
 else 1
 
 lemma coe_det [decidable_eq M] : ⇑(linear_map.det : (M →ₗ[A] M) →* A) =
-  if H : ∃ (s : set M) (b : basis s A M), s.finite
-  then @linear_map.det_aux _ _ _ _ H.some_spec.some_spec.some _ _ _ (trunc.mk H.some_spec.some)
+  if H : ∃ (s : finset M), nonempty (basis s A M)
+  then linear_map.det_aux (trunc.mk H.some_spec.some)
   else 1 :=
 by { ext, unfold linear_map.det,
      split_ifs,
@@ -178,18 +183,31 @@ attribute [irreducible] linear_map.det
 
 -- Auxiliary lemma, the `simp` normal form goes in the other direction
 -- (using `linear_map.det_to_matrix`)
-lemma det_eq_det_to_matrix_of_finite_set [decidable_eq M]
-  {s : set M} (b : basis s A M) [hs : fintype s] (f : M →ₗ[A] M) :
+lemma det_eq_det_to_matrix_of_finset [decidable_eq M]
+  {s : finset M} (b : basis s A M) (f : M →ₗ[A] M) :
   f.det = matrix.det (linear_map.to_matrix b b f) :=
-have ∃ (s : set M) (b : basis s A M), s.finite,
-from ⟨s, b, ⟨hs⟩⟩,
+have ∃ (s : finset M), nonempty (basis s A M),
+from ⟨s, ⟨b⟩⟩,
 by rw [linear_map.coe_det, dif_pos, det_aux_def' _ b]; assumption
 
 @[simp] lemma det_to_matrix
   (b : basis ι A M) (f : M →ₗ[A] M) :
   matrix.det (to_matrix b b f) = f.det :=
 by { haveI := classical.dec_eq M,
-     rw [det_eq_det_to_matrix_of_finite_set b.reindex_range, det_to_matrix_eq_det_to_matrix b] }
+     rw [det_eq_det_to_matrix_of_finset b.reindex_finset_range, det_to_matrix_eq_det_to_matrix b] }
+
+/-- To show `P f.det` it suffices to consider `P (to_matrix _ _ f).det` and `P 1`. -/
+@[elab_as_eliminator]
+lemma det_cases [decidable_eq M] {P : A → Prop} (f : M →ₗ[A] M)
+  (hb : ∀ (s : finset M) (b : basis s A M), P (to_matrix b b f).det) (h1 : P 1) :
+  P f.det :=
+begin
+  unfold linear_map.det,
+  split_ifs with h,
+  { convert hb _ h.some_spec.some,
+    apply det_aux_def' },
+  { exact h1 }
+end
 
 @[simp]
 lemma det_comp (f g : M →ₗ[A] M) : (f.comp g).det = f.det * g.det :=
@@ -214,6 +232,12 @@ begin
   apply is_unit_det_of_left_inverse,
   simpa using (linear_map.to_matrix_comp v v' v f.symm f).symm
 end
+
+/-- Specialization of `linear_equiv.is_unit_det` -/
+lemma linear_equiv.is_unit_det' {A : Type*} [integral_domain A] [module A M]
+  (f : M ≃ₗ[A] M) : is_unit (linear_map.det (f : M →ₗ[A] M)) :=
+by haveI := classical.dec_eq M; exact
+(f : M →ₗ[A] M).det_cases (λ s b, f.is_unit_det _ _) is_unit_one
 
 /-- Builds a linear equivalence from a linear map whose determinant in some bases is a unit. -/
 @[simps]

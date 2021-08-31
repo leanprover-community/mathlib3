@@ -126,8 +126,20 @@ instance [mul_one_class α] : mul_one_class (opposite α) :=
 instance [monoid α] : monoid (opposite α) :=
 { .. opposite.semigroup α, .. opposite.mul_one_class α }
 
+instance [right_cancel_monoid α] : left_cancel_monoid (opposite α) :=
+{ .. opposite.left_cancel_semigroup α, ..opposite.monoid α }
+
+instance [left_cancel_monoid α] : right_cancel_monoid (opposite α) :=
+{ .. opposite.right_cancel_semigroup α, ..opposite.monoid α }
+
+instance [cancel_monoid α] : cancel_monoid (opposite α) :=
+{ .. opposite.right_cancel_monoid α, ..opposite.left_cancel_monoid α }
+
 instance [comm_monoid α] : comm_monoid (opposite α) :=
 { .. opposite.monoid α, .. opposite.comm_semigroup α }
+
+instance [cancel_comm_monoid α] : cancel_comm_monoid (opposite α) :=
+{ .. opposite.cancel_monoid α, ..opposite.comm_monoid α }
 
 instance [has_inv α] : has_inv (opposite α) :=
 { inv := λ x, op $ (unop x)⁻¹ }
@@ -210,9 +222,25 @@ instance (R : Type*) [monoid R] [add_monoid α] [distrib_mul_action R α] :
   smul_zero := λ r, unop_injective $ smul_zero r,
   ..opposite.mul_action α R }
 
+/-- Like `has_mul.to_has_scalar`, but multiplies on the right.
+
+See also `monoid.to_opposite_mul_action` and `monoid_with_zero.to_opposite_mul_action`. -/
+instance _root_.has_mul.to_has_opposite_scalar [has_mul α] : has_scalar (opposite α) α :=
+{ smul := λ c x, x * c.unop }
+
+lemma op_smul_eq_mul [has_mul α] {a a' : α} : op a • a' = a' * a := rfl
+
+instance _root_.semigroup.opposite_smul_comm_class [semigroup α] :
+  smul_comm_class (opposite α) α α :=
+{ smul_comm := λ x y z, (mul_assoc _ _ _) }
+
+instance _root_.semigroup.opposite_smul_comm_class' [semigroup α] :
+  smul_comm_class α (opposite α) α :=
+{ smul_comm := λ x y z, (mul_assoc _ _ _).symm }
+
 /-- Like `monoid.to_mul_action`, but multiplies on the right. -/
-instance monoid.to_opposite_mul_action [monoid α] : mul_action (opposite α) α :=
-{ smul := λ c x, x * c.unop,
+instance _root_.monoid.to_opposite_mul_action [monoid α] : mul_action (opposite α) α :=
+{ smul := (•),
   one_smul := mul_one,
   mul_smul := λ x y r, (mul_assoc _ _ _).symm }
 
@@ -220,7 +248,15 @@ instance monoid.to_opposite_mul_action [monoid α] : mul_action (opposite α) α
 -- `mul_action (opposite α) (opposite α)` are defeq.
 example [monoid α] : monoid.to_mul_action (opposite α) = opposite.mul_action α (opposite α) := rfl
 
-lemma op_smul_eq_mul [monoid α] {a a' : α} : op a • a' = a' * a := rfl
+/-- `monoid.to_opposite_mul_action` is faithful on cancellative monoids. -/
+instance _root_.left_cancel_monoid.to_has_faithful_opposite_scalar [left_cancel_monoid α] :
+  has_faithful_scalar (opposite α) α :=
+⟨λ x y h, unop_injective $ mul_left_cancel (h 1)⟩
+
+/-- `monoid.to_opposite_mul_action` is faithful on nontrivial cancellative monoids with zero. -/
+instance _root_.cancel_monoid_with_zero.to_has_faithful_opposite_scalar
+  [cancel_monoid_with_zero α] [nontrivial α] : has_faithful_scalar (opposite α) α :=
+⟨λ x y h, unop_injective $ mul_left_cancel' one_ne_zero (h 1)⟩
 
 @[simp] lemma op_zero [has_zero α] : op (0 : α) = 0 := rfl
 @[simp] lemma unop_zero [has_zero α] : unop (0 : αᵒᵖ) = 0 := rfl
@@ -364,3 +400,101 @@ rfl
 lemma units.coe_op_equiv_symm {R} [monoid R] (u : (units R)ᵒᵖ) :
   (units.op_equiv.symm u : Rᵒᵖ) = op (u.unop : R) :=
 rfl
+
+/-- A hom `α →* β` can equivalently be viewed as a hom `αᵒᵖ →* βᵒᵖ`. This is the action of the
+(fully faithful) `ᵒᵖ`-functor on morphisms. -/
+@[simps]
+def monoid_hom.op {α β} [mul_one_class α] [mul_one_class β] :
+  (α →* β) ≃ (αᵒᵖ →* βᵒᵖ) :=
+{ to_fun    := λ f, { to_fun   := op ∘ f ∘ unop,
+                      map_one' := unop_injective f.map_one,
+                      map_mul' := λ x y, unop_injective (f.map_mul y.unop x.unop) },
+  inv_fun   := λ f, { to_fun   := unop ∘ f ∘ op,
+                      map_one' := congr_arg unop f.map_one,
+                      map_mul' := λ x y, congr_arg unop (f.map_mul (op y) (op x)) },
+  left_inv  := λ f, by { ext, refl },
+  right_inv := λ f, by { ext, refl } }
+
+/-- The 'unopposite' of a monoid hom `αᵒᵖ →* βᵒᵖ`. Inverse to `monoid_hom.op`. -/
+@[simp] def monoid_hom.unop {α β} [mul_one_class α] [mul_one_class β] :
+  (αᵒᵖ →* βᵒᵖ) ≃ (α →* β) := monoid_hom.op.symm
+
+/-- A hom `α →+ β` can equivalently be viewed as a hom `αᵒᵖ →+ βᵒᵖ`. This is the action of the
+(fully faithful) `ᵒᵖ`-functor on morphisms. -/
+@[simps]
+def add_monoid_hom.op {α β} [add_zero_class α] [add_zero_class β] :
+  (α →+ β) ≃ (αᵒᵖ →+ βᵒᵖ) :=
+{ to_fun    := λ f, { to_fun    := op ∘ f ∘ unop,
+                      map_zero' := unop_injective f.map_zero,
+                      map_add'  := λ x y, unop_injective (f.map_add x.unop y.unop) },
+  inv_fun   := λ f, { to_fun    := unop ∘ f ∘ op,
+                      map_zero' := congr_arg unop f.map_zero,
+                      map_add'  := λ x y, congr_arg unop (f.map_add (op x) (op y)) },
+  left_inv  := λ f, by { ext, refl },
+  right_inv := λ f, by { ext, refl } }
+
+/-- The 'unopposite' of an additive monoid hom `αᵒᵖ →+ βᵒᵖ`. Inverse to `add_monoid_hom.op`. -/
+@[simp] def add_monoid_hom.unop {α β} [add_zero_class α] [add_zero_class β] :
+  (αᵒᵖ →+ βᵒᵖ) ≃ (α →+ β) := add_monoid_hom.op.symm
+
+/-- A ring hom `α →+* β` can equivalently be viewed as a ring hom `αᵒᵖ →+* βᵒᵖ`. This is the action
+of the (fully faithful) `ᵒᵖ`-functor on morphisms. -/
+@[simps]
+def ring_hom.op {α β} [non_assoc_semiring α] [non_assoc_semiring β] :
+  (α →+* β) ≃ (αᵒᵖ →+* βᵒᵖ) :=
+{ to_fun    := λ f, { ..f.to_add_monoid_hom.op, ..f.to_monoid_hom.op },
+  inv_fun   := λ f, { ..f.to_add_monoid_hom.unop, ..f.to_monoid_hom.unop },
+  left_inv  := λ f, by { ext, refl },
+  right_inv := λ f, by { ext, refl } }
+
+/-- The 'unopposite' of a ring hom `αᵒᵖ →+* βᵒᵖ`. Inverse to `ring_hom.op`. -/
+@[simp] def ring_hom.unop {α β} [non_assoc_semiring α] [non_assoc_semiring β] :
+  (αᵒᵖ →+* βᵒᵖ) ≃ (α →+* β) := ring_hom.op.symm
+
+/-- A iso `α ≃+ β` can equivalently be viewed as an iso `αᵒᵖ ≃+ βᵒᵖ`. -/
+@[simps]
+def add_equiv.op {α β} [has_add α] [has_add β] :
+  (α ≃+ β) ≃ (αᵒᵖ ≃+ βᵒᵖ) :=
+{ to_fun    := λ f, op_add_equiv.symm.trans (f.trans op_add_equiv),
+  inv_fun   := λ f, op_add_equiv.trans (f.trans op_add_equiv.symm),
+  left_inv  := λ f, by { ext, refl },
+  right_inv := λ f, by { ext, refl } }
+
+/-- The 'unopposite' of an iso `αᵒᵖ ≃+ βᵒᵖ`. Inverse to `add_equiv.op`. -/
+@[simp] def add_equiv.unop {α β} [has_add α] [has_add β] :
+  (αᵒᵖ ≃+ βᵒᵖ) ≃ (α ≃+ β) := add_equiv.op.symm
+
+/-- A iso `α ≃* β` can equivalently be viewed as an iso `αᵒᵖ ≃+ βᵒᵖ`. -/
+@[simps]
+def mul_equiv.op {α β} [has_mul α] [has_mul β] :
+  (α ≃* β) ≃ (αᵒᵖ ≃* βᵒᵖ) :=
+{ to_fun    := λ f, { to_fun   := op ∘ f ∘ unop,
+                      inv_fun  := op ∘ f.symm ∘ unop,
+                      left_inv := λ x, unop_injective (f.symm_apply_apply x.unop),
+                      right_inv := λ x, unop_injective (f.apply_symm_apply x.unop),
+                      map_mul' := λ x y, unop_injective (f.map_mul y.unop x.unop) },
+  inv_fun   := λ f, { to_fun   := unop ∘ f ∘ op,
+                      inv_fun  := unop ∘ f.symm ∘ op,
+                      left_inv := λ x, op_injective (f.symm_apply_apply (op x)),
+                      right_inv := λ x, op_injective (f.apply_symm_apply (op x)),
+                      map_mul' := λ x y, congr_arg unop (f.map_mul (op y) (op x)) },
+  left_inv  := λ f, by { ext, refl },
+  right_inv := λ f, by { ext, refl } }
+
+/-- The 'unopposite' of an iso `αᵒᵖ ≃* βᵒᵖ`. Inverse to `mul_equiv.op`. -/
+@[simp] def mul_equiv.unop {α β} [has_mul α] [has_mul β] :
+  (αᵒᵖ ≃* βᵒᵖ) ≃ (α ≃* β) := mul_equiv.op.symm
+
+section ext
+
+/-- This ext lemma change equalities on `αᵒᵖ →+ β` to equalities on `α →+ β`.
+This is useful because there are often ext lemmas for specific `α`s that will apply
+to an equality of `α →+ β` such as `finsupp.add_hom_ext'`. -/
+@[ext]
+lemma add_monoid_hom.op_ext {α β} [add_zero_class α] [add_zero_class β]
+  (f g : αᵒᵖ →+ β)
+  (h : f.comp (op_add_equiv : α ≃+ αᵒᵖ).to_add_monoid_hom =
+       g.comp (op_add_equiv : α ≃+ αᵒᵖ).to_add_monoid_hom) : f = g :=
+add_monoid_hom.ext $ λ x, (add_monoid_hom.congr_fun h : _) x.unop
+
+end ext

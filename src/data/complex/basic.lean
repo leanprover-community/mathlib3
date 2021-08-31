@@ -133,17 +133,43 @@ ext_iff.2 $ by simp
 
 /-! ### Commutative ring instance and lemmas -/
 
+/- We use a nonstandard formula for the `ℕ` and `ℤ` actions to make sure there is no
+diamond from the other actions they inherit through the `ℝ`-action on `ℂ` and action transitivity
+defined in `data.complex.module.lean`. -/
 instance : comm_ring ℂ :=
-by refine_struct { zero := (0 : ℂ), add := (+), neg := has_neg.neg, sub := has_sub.sub, one := 1,
-  mul := (*), nsmul := @nsmul_rec _ ⟨(0)⟩ ⟨(+)⟩, npow := @npow_rec _ ⟨(1)⟩ ⟨(*)⟩,
-  gsmul := @gsmul_rec _ ⟨(0)⟩ ⟨(+)⟩ ⟨has_neg.neg⟩ };
+by refine_struct
+  { zero := (0 : ℂ),
+    add := (+),
+    neg := has_neg.neg,
+    sub := has_sub.sub,
+    one := 1,
+    mul := (*),
+    zero_add := λ z, by { apply ext_iff.2, simp },
+    add_zero := λ z, by { apply ext_iff.2, simp },
+    nsmul := λ n z, ⟨n • z.re - 0 * z.im, n • z.im + 0 * z.re⟩,
+    npow := @npow_rec _ ⟨(1)⟩ ⟨(*)⟩,
+    gsmul := λ n z, ⟨n • z.re - 0 * z.im, n • z.im + 0 * z.re⟩ };
 intros; try { refl }; apply ext_iff.2; split; simp; {ring1 <|> ring_nf}
 
-instance re.is_add_group_hom : is_add_group_hom complex.re :=
-{ map_add := complex.add_re }
+/-- This shortcut instance ensures we do not find `ring` via the noncomputable `complex.field`
+instance. -/
+instance : ring ℂ := by apply_instance
 
-instance im.is_add_group_hom : is_add_group_hom complex.im :=
-{ map_add := complex.add_im }
+/-- The "real part" map, considered as an additive group homomorphism. -/
+def re_add_group_hom : ℂ →+ ℝ :=
+{ to_fun := re,
+  map_zero' := zero_re,
+  map_add' := add_re }
+
+@[simp] lemma coe_re_add_group_hom : (re_add_group_hom : ℂ → ℝ) = re := rfl
+
+/-- The "imaginary part" map, considered as an additive group homomorphism. -/
+def im_add_group_hom : ℂ →+ ℝ :=
+{ to_fun := im,
+  map_zero' := zero_im,
+  map_add' := add_im }
+
+@[simp] lemma coe_im_add_group_hom : (im_add_group_hom : ℂ → ℝ) = im := rfl
 
 @[simp] lemma I_pow_bit0 (n : ℕ) : I ^ (bit0 n) = (-1) ^ n :=
 by rw [pow_bit0', I_mul_I]
@@ -445,6 +471,9 @@ lemma re_le_abs (z : ℂ) : z.re ≤ abs z :=
 lemma im_le_abs (z : ℂ) : z.im ≤ abs z :=
 (abs_le.1 (abs_im_le_abs _)).2
 
+/--
+The **triangle inequality** for complex numbers.
+-/
 lemma abs_add (z w : ℂ) : abs (z + w) ≤ abs z + abs w :=
 (mul_self_le_mul_self_iff (abs_nonneg _)
   (add_nonneg (abs_nonneg _) (abs_nonneg _))).2 $
@@ -467,7 +496,7 @@ _root_.abs_of_nonneg (abs_nonneg _)
 
 @[simp] lemma abs_pos {z : ℂ} : 0 < abs z ↔ z ≠ 0 := abv_pos abs
 @[simp] lemma abs_neg : ∀ z, abs (-z) = abs z := abv_neg abs
-lemma abs_sub : ∀ z w, abs (z - w) = abs (w - z) := abv_sub abs
+lemma abs_sub_comm : ∀ z w, abs (z - w) = abs (w - z) := abv_sub abs
 lemma abs_sub_le : ∀ a b c, abs (a - c) ≤ abs (a - b) + abs (b - c) := abv_sub_le abs
 @[simp] theorem abs_inv : ∀ z, abs z⁻¹ = (abs z)⁻¹ := abv_inv abs
 @[simp] theorem abs_div : ∀ z w, abs (z / w) = abs z / abs w := abv_div abs

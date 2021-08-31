@@ -60,7 +60,7 @@ We define cardinal numbers as a quotient of types under the equivalence relation
 ## Tags
 
 cardinal number, cardinal arithmetic, cardinal exponentiation, omega,
-Cantor's theorem, König's theorem
+Cantor's theorem, König's theorem, Konig's theorem
 -/
 
 open function set
@@ -140,10 +140,14 @@ instance : has_zero cardinal.{u} := ⟨⟦pempty⟧⟩
 
 instance : inhabited cardinal.{u} := ⟨0⟩
 
+@[simp]
+lemma eq_zero_of_is_empty {α : Type u} [is_empty α] : mk α = 0 :=
+quotient.sound ⟨equiv.equiv_pempty α⟩
+
 lemma eq_zero_iff_is_empty {α : Type u} : mk α = 0 ↔ is_empty α :=
 ⟨λ e, let ⟨h⟩ := quotient.exact e in
   equiv.equiv_empty_equiv α $ h.trans equiv.empty_equiv_pempty.symm,
-  λ h, by exactI quotient.sound ⟨equiv.equiv_pempty α⟩⟩
+  @eq_zero_of_is_empty _⟩
 
 theorem ne_zero_iff_nonempty {α : Type u} : mk α ≠ 0 ↔ nonempty α :=
 (not_iff_not.2 eq_zero_iff_is_empty).trans not_is_empty_iff
@@ -164,7 +168,7 @@ instance : has_add cardinal.{u} :=
 ⟨λq₁ q₂, quotient.lift_on₂ q₁ q₂ (λα β, mk (α ⊕ β)) $ assume α β γ δ ⟨e₁⟩ ⟨e₂⟩,
   quotient.sound ⟨equiv.sum_congr e₁ e₂⟩⟩
 
-@[simp] theorem add_def (α β) : mk α + mk β = mk (α ⊕ β) := rfl
+@[simp] theorem add_def (α β : Type u) : mk α + mk β = mk (α ⊕ β) := rfl
 
 instance : has_mul cardinal.{u} :=
 ⟨λq₁ q₂, quotient.lift_on₂ q₁ q₂ (λα β, mk (α × β)) $ assume α β γ δ ⟨e₁⟩ ⟨e₂⟩,
@@ -280,7 +284,7 @@ section order_properties
 open sum
 
 protected theorem zero_le : ∀(a : cardinal), 0 ≤ a :=
-by rintro ⟨α⟩; exact ⟨embedding.of_not_nonempty $ λ ⟨a⟩, a.elim⟩
+by rintro ⟨α⟩; exact ⟨embedding.of_is_empty⟩
 
 protected theorem add_le_add : ∀{a b c d : cardinal}, a ≤ b → c ≤ d → a + c ≤ b + d :=
 by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨δ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.sum_map e₂⟩
@@ -335,8 +339,7 @@ quotient.induction_on₃ a b c $ assume α β γ ⟨e⟩, ⟨embedding.arrow_con
 
 end order_properties
 
-
-
+/-- **Cantor's theorem** -/
 theorem cantor : ∀(a : cardinal.{u}), a < 2 ^ a :=
 by rw ← prop_eq_two; rintros ⟨a⟩; exact ⟨
   ⟨⟨λ a b, ⟨a = b⟩, λ a b h, cast (ulift.up.inj (@congr_fun _ _ _ _ h b)).symm rfl⟩⟩,
@@ -454,8 +457,8 @@ sup_le.2 $ le_sum _
 theorem sum_le_sup {ι : Type u} (f : ι → cardinal.{u}) : sum f ≤ mk ι * sup.{u u} f :=
 by rw ← sum_const; exact sum_le_sum _ _ (le_sup _)
 
-theorem sup_eq_zero {ι} {f : ι → cardinal} (h : ι → false) : sup f = 0 :=
-by { rw [← nonpos_iff_eq_zero, sup_le], intro x, exfalso, exact h x }
+theorem sup_eq_zero {ι} {f : ι → cardinal} [is_empty ι] : sup f = 0 :=
+by { rw [← nonpos_iff_eq_zero, sup_le], exact is_empty_elim }
 
 /-- The indexed product of cardinals is the cardinality of the Pi type
   (dependent product). -/
@@ -509,11 +512,27 @@ theorem lift_mk_le {α : Type u} {β : Type v} :
 ⟨λ ⟨f⟩, ⟨embedding.congr equiv.ulift equiv.ulift f⟩,
  λ ⟨f⟩, ⟨embedding.congr equiv.ulift.symm equiv.ulift.symm f⟩⟩
 
+/-- A variant of `lift_mk_le` with specialized universes.
+Because Lean often can not realize it should use this specialization itself,
+we provide this statement separately so you don't have to solve the specialization problem either.
+-/
+theorem lift_mk_le' {α : Type u} {β : Type v} :
+  lift.{u v} (mk α) ≤ lift.{v u} (mk β) ↔ nonempty (α ↪ β) :=
+lift_mk_le.{u v 0}
+
 theorem lift_mk_eq {α : Type u} {β : Type v} :
   lift.{u (max v w)} (mk α) = lift.{v (max u w)} (mk β) ↔ nonempty (α ≃ β) :=
 quotient.eq.trans
 ⟨λ ⟨f⟩, ⟨equiv.ulift.symm.trans $ f.trans equiv.ulift⟩,
  λ ⟨f⟩, ⟨equiv.ulift.trans $ f.trans equiv.ulift.symm⟩⟩
+
+/-- A variant of `lift_mk_eq` with specialized universes.
+Because Lean often can not realize it should use this specialization itself,
+we provide this statement separately so you don't have to solve the specialization problem either.
+-/
+theorem lift_mk_eq' {α : Type u} {β : Type v} :
+  lift.{u v} (mk α) = lift.{v u} (mk β) ↔ nonempty (α ≃ β) :=
+lift_mk_eq.{u v 0}
 
 @[simp] theorem lift_le {a b : cardinal} : lift a ≤ lift b ↔ a ≤ b :=
 quotient.induction_on₂ a b $ λ α β,
@@ -601,6 +620,62 @@ begin
   convert mk_prod using 1,
   exact quotient.sound ⟨equiv.sigma_equiv_prod ι α⟩,
 end
+
+protected lemma le_sup_iff {ι : Type v} {f : ι → cardinal.{max v w}} {c : cardinal} :
+  (c ≤ sup f) ↔ (∀ b, (∀ i, f i ≤ b) → c ≤ b) :=
+⟨λ h b hb, le_trans h (sup_le.mpr hb), λ h, h _ $ λ i, le_sup f i⟩
+
+/-- The lift of a supremum is the supremum of the lifts. -/
+lemma lift_sup {ι : Type v} (f : ι → cardinal.{max v w}) :
+  lift.{(max v w) u} (sup.{v w} f) =
+    sup.{v (max u w)} (λ i : ι, lift.{(max v w) u} (f i)) :=
+begin
+  apply le_antisymm,
+  { rw [cardinal.le_sup_iff], intros c hc, by_contra h,
+    obtain ⟨d, rfl⟩ := cardinal.lift_down (not_le.mp h).le,
+    simp only [lift_le, sup_le] at h hc,
+    exact h hc },
+  { simp only [cardinal.sup_le, lift_le, le_sup, implies_true_iff] }
+end
+
+/-- To prove that the lift of a supremum is bounded by some cardinal `t`,
+it suffices to show that the lift of each cardinal is bounded by `t`. -/
+lemma lift_sup_le {ι : Type v} (f : ι → cardinal.{max v w})
+  (t : cardinal.{max u v w}) (w : ∀ i, lift.{_ u} (f i) ≤ t) :
+  lift.{(max v w) u} (sup f) ≤ t :=
+by { rw lift_sup, exact sup_le.mpr w, }
+
+@[simp] lemma lift_sup_le_iff {ι : Type v} (f : ι → cardinal.{max v w}) (t : cardinal.{max u v w}) :
+  lift.{(max v w) u} (sup f) ≤ t ↔ ∀ i, lift.{_ u} (f i) ≤ t :=
+⟨λ h i, (lift_le.mpr (le_sup f i)).trans h,
+ λ h, lift_sup_le f t h⟩
+
+universes v' w'
+
+/--
+To prove an inequality between the lifts to a common universe of two different supremums,
+it suffices to show that the lift of each cardinal from the smaller supremum
+if bounded by the lift of some cardinal from the larger supremum.
+-/
+lemma lift_sup_le_lift_sup
+  {ι : Type v} {ι' : Type v'} (f : ι → cardinal.{max v w}) (f' : ι' → cardinal.{max v' w'})
+  (g : ι → ι') (h : ∀ i, lift.{_ (max v' w')} (f i) ≤ lift.{_ (max v w)} (f' (g i))) :
+  lift.{_ (max v' w')} (sup f) ≤ lift.{_ (max v w)} (sup f') :=
+begin
+  apply lift_sup_le.{(max v' w')} f,
+  intro i,
+  apply le_trans (h i),
+  simp only [lift_le],
+  apply le_sup,
+end
+
+/-- A variant of `lift_sup_le_lift_sup` with universes specialized via `w = v` and `w' = v'`.
+This is sometimes necessary to avoid universe unification issues. -/
+lemma lift_sup_le_lift_sup'
+  {ι : Type v} {ι' : Type v'} (f : ι → cardinal.{v}) (f' : ι' → cardinal.{v'})
+  (g : ι → ι') (h : ∀ i, lift.{_ v'} (f i) ≤ lift.{_ v} (f' (g i))) :
+  lift.{_ v'} (sup.{v v} f) ≤ lift.{_ v} (sup.{v' v'} f') :=
+lift_sup_le_lift_sup f f' g h
 
 /-- `ω` is the smallest infinite cardinal, also known as ℵ₀. -/
 def omega : cardinal.{u} := lift (mk ℕ)
@@ -764,9 +839,9 @@ begin
     right, by_cases hb : b = 0, { left, exact hb },
     right, rw [← ne, ← one_le_iff_ne_zero] at ha hb, split,
     { rw [← mul_one a],
-      refine lt_of_le_of_lt (canonically_ordered_semiring.mul_le_mul (le_refl a) hb) h },
+      refine lt_of_le_of_lt (mul_le_mul' (le_refl a) hb) h },
     { rw [← _root_.one_mul b],
-      refine lt_of_le_of_lt (canonically_ordered_semiring.mul_le_mul ha (le_refl b)) h }},
+      refine lt_of_le_of_lt (mul_le_mul' ha (le_refl b)) h }},
   rintro (rfl|rfl|⟨ha,hb⟩); simp only [*, mul_lt_omega, omega_pos, _root_.zero_mul, mul_zero]
 end
 
@@ -790,7 +865,7 @@ begin
 end
 
 theorem infinite_iff {α : Type u} : infinite α ↔ omega ≤ mk α :=
-by rw [←not_lt, lt_omega_iff_fintype, not_nonempty_fintype]
+by rw [←not_lt, lt_omega_iff_fintype, not_nonempty_iff, is_empty_fintype]
 
 lemma denumerable_iff {α : Type u} : nonempty (denumerable α) ↔ mk α = omega :=
 ⟨λ⟨h⟩, quotient.sound $ by exactI ⟨ (denumerable.eqv α).trans equiv.ulift.symm ⟩,
@@ -927,7 +1002,7 @@ begin
   { rintro ⟨y, h⟩, exact ⟨x, y, h⟩ }
 end
 
-/-- König's theorem -/
+/-- **König's theorem** -/
 theorem sum_lt_prod {ι} (f g : ι → cardinal) (H : ∀ i, f i < g i) : sum f < prod g :=
 lt_of_not_ge $ λ ⟨F⟩, begin
   have : inhabited (Π (i : ι), (g i).out),
@@ -1030,6 +1105,10 @@ lift_mk_le.{v u 0}.mpr ⟨embedding.of_surjective _ surjective_onto_image⟩
 
 theorem mk_range_le {α β : Type u} {f : α → β} : mk (range f) ≤ mk α :=
 mk_le_of_surjective surjective_onto_range
+
+theorem mk_range_le_lift {α : Type u} {β : Type v} {f : α → β} :
+  lift.{v u} (mk (range f)) ≤ lift.{u v} (mk α) :=
+lift_mk_le.{v u 0}.mpr ⟨embedding.of_surjective _ surjective_onto_range⟩
 
 lemma mk_range_eq (f : α → β) (h : injective f) : mk (range f) = mk α :=
 quotient.sound ⟨(equiv.of_injective f h).symm⟩
@@ -1234,7 +1313,10 @@ begin
 end
 
 lemma powerlt_zero {a : cardinal} : a ^< 0 = 0 :=
-by { apply sup_eq_zero, rintro ⟨x, hx⟩, rw [←not_le] at hx, apply hx, apply zero_le }
+begin
+  convert sup_eq_zero,
+  exact subtype.is_empty_of_false (λ x, (zero_le _).not_lt),
+end
 
 end cardinal
 

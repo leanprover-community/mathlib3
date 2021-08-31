@@ -32,7 +32,7 @@ intervals.)
 * `boolean_algebra`: the main type class for Boolean algebras; it extends both
   `generalized_boolean_algebra` and `boolean_algebra.core`. An instance of `boolean_algebra` can be
   obtained from one of `boolean_algebra.core` using `boolean_algebra.of_core`.
-* `boolean_algebra_Prop`: the Boolean algebra instance on `Prop`
+* `Prop.boolean_algebra`: the Boolean algebra instance on `Prop`
 
 ## Implementation notes
 
@@ -84,8 +84,7 @@ operation `\` (called `sdiff`, after "set difference") satisfying `(a ⊓ b) ⊔
 
 This is a generalization of Boolean algebras which applies to `finset α` for arbitrary
 (not-necessarily-`fintype`) `α`. -/
-class generalized_boolean_algebra (α : Type u) extends semilattice_sup_bot α, semilattice_inf_bot α,
-  distrib_lattice α, has_sdiff α :=
+class generalized_boolean_algebra (α : Type u) extends distrib_lattice_bot α, has_sdiff α :=
 (sup_inf_sdiff : ∀a b:α, (a ⊓ b) ⊔ (a \ b) = a)
 (inf_inf_sdiff : ∀a b:α, (a ⊓ b) ⊓ (a \ b) = ⊥)
 
@@ -323,6 +322,14 @@ calc x \ y = x ↔ x \ y = x \ ⊥ : by rw sdiff_bot
 theorem sdiff_eq_self_iff_disjoint' : x \ y = x ↔ disjoint x y :=
 by rw [sdiff_eq_self_iff_disjoint, disjoint.comm]
 
+lemma sdiff_lt (hx : y ≤ x) (hy : y ≠ ⊥) :
+  x \ y < x :=
+begin
+  refine sdiff_le.lt_of_ne (λ h, hy _),
+  rw [sdiff_eq_self_iff_disjoint', disjoint_iff] at h,
+  rw [←h, inf_eq_right.mpr hx],
+end
+
 -- cf. `is_compl.antimono`
 lemma sdiff_le_sdiff_self (h : z ≤ x) : w \ x ≤ w \ z :=
 le_of_inf_le_sup_le
@@ -520,7 +527,7 @@ end generalized_boolean_algebra
 
 
 /-- Set / lattice complement -/
-class has_compl (α : Type*) := (compl : α → α)
+@[notation_class] class has_compl (α : Type*) := (compl : α → α)
 
 export has_compl (compl)
 
@@ -577,8 +584,13 @@ is_compl_bot_top.compl_eq
 @[simp] theorem compl_compl (x : α) : xᶜᶜ = x :=
 is_compl_compl.symm.compl_eq
 
+@[simp] theorem compl_involutive : function.involutive (compl : α → α) := compl_compl
+
+theorem compl_bijective : function.bijective (compl : α → α) :=
+compl_involutive.bijective
+
 theorem compl_injective : function.injective (compl : α → α) :=
-function.involutive.injective compl_compl
+compl_involutive.injective
 
 @[simp] theorem compl_inj_iff : xᶜ = yᶜ ↔ x = y :=
 compl_injective.eq_iff
@@ -666,12 +678,12 @@ theorem top_sdiff : ⊤ \ x = xᶜ := by rw [sdiff_eq, top_inf_eq]
 
 end boolean_algebra
 
-instance boolean_algebra_Prop : boolean_algebra Prop :=
+instance Prop.boolean_algebra : boolean_algebra Prop :=
 boolean_algebra.of_core
 { compl := not,
   inf_compl_le_bot := λ p ⟨Hp, Hpc⟩, Hpc Hp,
   top_le_sup_compl := λ p H, classical.em p,
-  .. bounded_distrib_lattice_Prop }
+  .. Prop.bounded_distrib_lattice }
 
 instance pi.boolean_algebra {ι : Type u} {α : ι → Type v} [∀ i, boolean_algebra (α i)] :
   boolean_algebra (Π i, α i) :=

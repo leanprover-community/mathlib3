@@ -59,9 +59,9 @@ variables (N)
 /-- Given a Lie module `M` over a Lie algebra `L`, together with a Lie submodule `N ⊆ M`, there
 is a natural Lie algebra morphism from `L` to the linear endomorphism of the quotient `M/N`. -/
 def action_as_endo_map : L →ₗ⁅R⁆ module.End R N.quotient :=
-{ map_lie' := λ x y, by { ext n, apply quotient.induction_on' n, intros m,
-                         change mk ⁅⁅x, y⁆, m⁆ = mk (⁅x, ⁅y, m⁆⁆ - ⁅y, ⁅x, m⁆⁆),
-                         congr, apply lie_lie, },
+{ map_lie' := λ x y, by { ext m,
+                          change mk ⁅⁅x, y⁆, m⁆ = mk (⁅x, ⁅y, m⁆⁆ - ⁅y, ⁅x, m⁆⁆),
+                          congr, apply lie_lie, },
   ..linear_map.comp (submodule.mapq_linear (N : submodule R M) ↑N) lie_submodule_invariant }
 
 /-- Given a Lie module `M` over a Lie algebra `L`, together with a Lie submodule `N ⊆ M`, there is
@@ -126,6 +126,20 @@ instance lie_quotient_lie_algebra : lie_algebra R (quotient I) :=
                             rw ←mk_bracket <|>
                             rw ←submodule.quotient.mk_smul, },
                    apply congr_arg, apply lie_smul, } }
+
+/-- `lie_submodule.quotient.mk` as a `lie_module_hom`. -/
+@[simps]
+def mk' : M →ₗ⁅R,L⁆ quotient N :=
+{ to_fun := mk, map_lie' := λ r m, rfl, ..N.to_submodule.mkq}
+
+/-- Two `lie_module_hom`s from a quotient lie module are equal if their compositions with
+`lie_submodule.quotient.mk'` are equal.
+
+See note [partially-applied ext lemmas]. -/
+@[ext]
+lemma lie_module_hom_ext ⦃f g : quotient N →ₗ⁅R,L⁆ M⦄ (h : f.comp (mk' N) = g.comp (mk' N)) :
+  f = g :=
+lie_module_hom.ext $ λ x, quotient.induction_on' x $ lie_module_hom.congr_fun h
 
 end quotient
 

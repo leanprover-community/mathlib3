@@ -105,7 +105,7 @@ begin
   { to_fun    := λ I, ⁅I, I⁆,
     monotone' := λ I J h, lie_submodule.mono_lie I J I J h h, },
   have h₁ : ∀ (I J : lie_ideal R L), D₁ (I ⊔ J) ≤ (D₁ I) ⊔ J,
-  { simp [lie_submodule.lie_le_right, lie_submodule.lie_le_left, le_sup_right_of_le], },
+  { simp [lie_submodule.lie_le_right, lie_submodule.lie_le_left, le_sup_of_le_right], },
   rw ← D₁.iterate_sup_le_sup_iff at h₁,
   exact h₁ k l I J,
 end

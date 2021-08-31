@@ -10,6 +10,26 @@ import ring_theory.ideal.basic
 import ring_theory.subring
 import algebra.ring.prod
 
+/-!
+
+# Topological (semi)rings
+
+A topological (semi)ring is a (semi)ring equipped with a topology such that all operations are
+continuous. Besides this definition, this file proves that the topological closure of a subring
+(resp. an ideal) is a subring (resp. an ideal) and defines products and quotients
+of topological (semi)rings.
+
+## Main Results
+
+- `subring.topological_closure`/`subsemiring.topological_closure`: the topological closure of a
+  `subring`/`subsemiring` is itself a `sub(semi)ring`.
+- `prod.topological_semiring`/`prod.topological_ring`: The product of two topological (semi)rings.
+- `pi.topological_semiring`/`pi.topological_ring`: The arbitrary product of topological (semi)rings.
+- `ideal.closure`: The closure of an ideal is an ideal.
+- `topological_ring_quotient`: The quotient of a topological ring by an ideal is a topological ring.
+
+-/
+
 open classical set filter topological_space
 open_locale classical
 
@@ -52,26 +72,21 @@ lemma subsemiring.topological_closure_minimal
   s.topological_closure ≤ t :=
 closure_minimal h ht
 
-instance (S : submonoid α) : has_continuous_mul (S.topological_closure) :=
-{ continuous_mul :=
-  begin
-    apply continuous_induced_rng,
-    change continuous (λ p : S.topological_closure × S.topological_closure, (p.1 : α) * (p.2 : α)),
-    continuity,
-  end }
-
 /-- The product topology on the cartesian product of two topological semirings
   makes the product into a topological semiring. -/
-instance prod_semiring {β : Type*}
+instance {β : Type*}
   [semiring β] [topological_space β] [topological_semiring β] : topological_semiring (α × β) :=
+{}
+
+instance {β : Type*} {C : β → Type*} [∀ b, topological_space (C b)]
+  [Π b, semiring (C b)] [Π b, topological_semiring (C b)] : topological_semiring (Π b, C b) :=
 {}
 
 end
 
 /-- A topological ring is a ring where the ring operations are continuous. -/
 class topological_ring [topological_space α] [ring α]
-  extends has_continuous_add α, has_continuous_mul α : Prop :=
-(continuous_neg : continuous (λa:α, -a))
+  extends topological_add_group α, has_continuous_mul α : Prop
 
 variables {α} [ring α] [topological_space α]
 
@@ -79,17 +94,18 @@ section
 variables [t : topological_ring α]
 @[priority 100] -- see Note [lower instance priority]
 instance topological_ring.to_topological_semiring : topological_semiring α := {..t}
-
-@[priority 100] -- see Note [lower instance priority]
-instance topological_ring.to_topological_add_group : topological_add_group α := {..t}
 end
 
 variables [topological_ring α]
 
 /-- The product topology on the cartesian product of two topological rings
   makes the product into a topological ring. -/
-instance prod_ring {β : Type*}
+instance {β : Type*}
   [ring β] [topological_space β] [topological_ring β] : topological_ring (α × β) :=
+{ }
+
+instance {β : Type*} {C : β → Type*} [Π b, topological_space (C b)]
+  [Π b, ring (C b)] [∀ b, topological_ring (C b)] : topological_ring (Π b, C b) :=
 { continuous_neg := continuous_neg }
 
 /-- In a topological ring, the left-multiplication `add_monoid_hom` is continuous. -/
@@ -104,8 +120,8 @@ continuous_id.mul continuous_const
 itself a subring. -/
 def subring.topological_closure (S : subring α) : subring α :=
 { carrier := closure (S : set α),
-  ..(S.to_submonoid.topological_closure),
-  ..(S.to_add_subgroup.topological_closure) }
+  ..S.to_submonoid.topological_closure,
+  ..S.to_add_subgroup.topological_closure }
 
 instance subring.topological_closure_topological_ring (s : subring α) :
   topological_ring (s.topological_closure) :=
@@ -113,17 +129,14 @@ instance subring.topological_closure_topological_ring (s : subring α) :
   ..s.to_submonoid.topological_closure_has_continuous_mul }
 
 lemma subring.subring_topological_closure (s : subring α) :
-  s ≤ s.topological_closure :=
-subset_closure
+  s ≤ s.topological_closure := subset_closure
 
 lemma subring.is_closed_topological_closure (s : subring α) :
-  is_closed (s.topological_closure : set α) :=
-by convert is_closed_closure
+  is_closed (s.topological_closure : set α) := by convert is_closed_closure
 
 lemma subring.topological_closure_minimal
   (s : subring α) {t : subring α} (h : s ≤ t) (ht : is_closed (t : set α)) :
-  s.topological_closure ≤ t :=
-closure_minimal h ht
+  s.topological_closure ≤ t := closure_minimal h ht
 
 end topological_ring
 
@@ -132,14 +145,11 @@ variables {α : Type*} [topological_space α] [comm_ring α] [topological_ring �
 
 /-- The closure of an ideal in a topological ring as an ideal. -/
 def ideal.closure (S : ideal α) : ideal α :=
-{ carrier := closure S,
-  smul_mem' := assume c x hx,
-    have continuous (λx:α, c * x) := continuous_const.mul continuous_id,
-    map_mem_closure this hx $ assume a, S.mul_mem_left _,
+{ carrier   := closure S,
+  smul_mem' := λ c x hx, map_mem_closure (mul_left_continuous _) hx $ λ a, S.mul_mem_left c,
   ..(add_submonoid.topological_closure S.to_add_submonoid) }
 
-@[simp] lemma ideal.coe_closure (S : ideal α) :
-  (S.closure : set α) = closure S := rfl
+@[simp] lemma ideal.coe_closure (S : ideal α) : (S.closure : set α) = closure S := rfl
 
 end topological_comm_ring
 
@@ -150,51 +160,34 @@ open ideal.quotient
 instance topological_ring_quotient_topology : topological_space N.quotient :=
 by dunfold ideal.quotient submodule.quotient; apply_instance
 
-lemma quotient_ring_saturate {α : Type*} [comm_ring α] (N : ideal α) (s : set α) :
-  mk N ⁻¹' (mk N '' s) = (⋃ x : N, (λ y, x.1 + y) '' s) :=
-begin
-  ext x,
-  simp only [mem_preimage, mem_image, mem_Union, ideal.quotient.eq],
-  split,
-  { exact assume ⟨a, a_in, h⟩, ⟨⟨_, N.neg_mem h⟩, a, a_in, by simp⟩ },
-  { exact assume ⟨⟨i, hi⟩, a, ha, eq⟩, ⟨a, ha,
-      by rw [← eq, sub_add_eq_sub_sub_swap, sub_self, zero_sub];
-      exact N.neg_mem hi⟩ }
-end
+-- note for the reader: in the following, `mk` is `ideal.quotient.mk`, the canonical map `R → R/I`.
 
 variable [topological_ring α]
 
 lemma quotient_ring.is_open_map_coe : is_open_map (mk N) :=
 begin
-  assume s s_op,
-  show is_open (mk N ⁻¹' (mk N '' s)),
-  rw quotient_ring_saturate N s,
-  exact is_open_Union (assume ⟨n, _⟩, is_open_map_add_left n s s_op)
+  intros s s_op,
+  change is_open (mk N ⁻¹' (mk N '' s)),
+  rw quotient_ring_saturate,
+  exact is_open_Union (λ ⟨n, _⟩, is_open_map_add_left n s s_op)
 end
 
 lemma quotient_ring.quotient_map_coe_coe : quotient_map (λ p : α × α, (mk N p.1, mk N p.2)) :=
-begin
-  apply is_open_map.to_quotient_map,
-  { exact (quotient_ring.is_open_map_coe N).prod (quotient_ring.is_open_map_coe N) },
-  { exact (continuous_quot_mk.comp continuous_fst).prod_mk
-          (continuous_quot_mk.comp continuous_snd) },
-  { rintro ⟨⟨x⟩, ⟨y⟩⟩,
-    exact ⟨(x, y), rfl⟩ }
-end
+is_open_map.to_quotient_map
+((quotient_ring.is_open_map_coe N).prod (quotient_ring.is_open_map_coe N))
+((continuous_quot_mk.comp continuous_fst).prod_mk (continuous_quot_mk.comp continuous_snd))
+(by rintro ⟨⟨x⟩, ⟨y⟩⟩; exact ⟨(x, y), rfl⟩)
 
 instance topological_ring_quotient : topological_ring N.quotient :=
 { continuous_add :=
     have cont : continuous (mk N ∘ (λ (p : α × α), p.fst + p.snd)) :=
       continuous_quot_mk.comp continuous_add,
-    (quotient_map.continuous_iff (quotient_ring.quotient_map_coe_coe N)).2 cont,
+    (quotient_map.continuous_iff (quotient_ring.quotient_map_coe_coe N)).mpr cont,
   continuous_neg :=
-  begin
-    convert continuous_quotient_lift _ (continuous_quot_mk.comp continuous_neg),
-    apply_instance,
-  end,
+    by convert continuous_quotient_lift _ (continuous_quot_mk.comp continuous_neg); apply_instance,
   continuous_mul :=
     have cont : continuous (mk N ∘ (λ (p : α × α), p.fst * p.snd)) :=
       continuous_quot_mk.comp continuous_mul,
-    (quotient_map.continuous_iff (quotient_ring.quotient_map_coe_coe N)).2 cont }
+    (quotient_map.continuous_iff (quotient_ring.quotient_map_coe_coe N)).mpr cont }
 
 end topological_ring

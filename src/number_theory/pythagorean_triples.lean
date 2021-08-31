@@ -330,14 +330,12 @@ begin
     { have hp2' : p = 2 := (nat.le_of_dvd zero_lt_two hp2).antisymm hp.two_le,
       revert hp1, rw hp2',
       apply mt int.mod_eq_zero_of_dvd,
-      norm_num [sq, int.sub_mod, int.mul_mod, hm, hn],
-    },
+      norm_num [sq, int.sub_mod, int.mul_mod, hm, hn] },
     apply mt (int.dvd_gcd (int.coe_nat_dvd_left.mpr hpm)) hnp,
     apply (or_self _).mp, apply int.prime.dvd_mul' hp,
     rw (by ring : n * n = - (m ^ 2 - n ^ 2) + m * m),
     apply dvd_add (dvd_neg_of_dvd hp1),
-    exact dvd_mul_of_dvd_left (int.coe_nat_dvd_left.mpr hpm) m
-  },
+    exact dvd_mul_of_dvd_left (int.coe_nat_dvd_left.mpr hpm) m },
   rw int.gcd_comm at hnp,
   apply mt (int.dvd_gcd (int.coe_nat_dvd_left.mpr hpn)) hnp,
   apply (or_self _).mp, apply int.prime.dvd_mul' hp,
@@ -601,6 +599,7 @@ begin
     exact zero_ne_one h_parity }
 end
 
+/-- **Formula for Pythagorean Triples** -/
 theorem classification :
   pythagorean_triple x y z ↔
   ∃ k m n, ((x = k * (m ^ 2 - n ^ 2) ∧ y = k * (2 * m * n)) ∨

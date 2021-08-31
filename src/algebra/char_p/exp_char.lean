@@ -116,7 +116,7 @@ begin
   casesI char_p.exists R with p hp,
   have p_ne_zero : p ≠ 0,
   { intro p_zero,
-    haveI : char_p R 0 := by { rwa ←p_zero },
+    haveI : char_p R 0, { rwa ←p_zero },
     have : q = 1 := exp_char_one_of_char_zero R q,
     contradiction, },
   have p_eq_q : p = q := (char_eq_exp_char_iff R p q).mpr (char_prime_of_ne_zero R p_ne_zero),

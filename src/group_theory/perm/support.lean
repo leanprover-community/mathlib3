@@ -38,10 +38,13 @@ variables {f g h : perm α}
 @[symm] lemma disjoint.symm : disjoint f g → disjoint g f :=
 by simp only [disjoint, or.comm, imp_self]
 
+lemma disjoint.symmetric : symmetric (@disjoint α) :=
+λ _ _, disjoint.symm
+
 lemma disjoint_comm : disjoint f g ↔ disjoint g f :=
 ⟨disjoint.symm, disjoint.symm⟩
 
-lemma disjoint.mul_comm (h : disjoint f g) : f * g = g * f :=
+lemma disjoint.commute (h : disjoint f g) : commute f g :=
 equiv.ext $ λ x, (h x).elim
   (λ hf, (h (g x)).elim (λ hg, by simp [mul_apply, hf, hg])
     (λ hg, by simp [mul_apply, hf, g.injective hg]))
@@ -101,7 +104,7 @@ end
 
 lemma disjoint_prod_perm {l₁ l₂ : list (perm α)} (hl : l₁.pairwise disjoint)
   (hp : l₁ ~ l₂) : l₁.prod = l₂.prod :=
-hp.prod_eq' $ hl.imp $ λ f g, disjoint.mul_comm
+hp.prod_eq' $ hl.imp $ λ f g, disjoint.commute
 
 lemma nodup_of_pairwise_disjoint {l : list (perm α)} (h1 : (1 : perm α) ∉ l)
   (h2 : l.pairwise disjoint) : l.nodup :=
@@ -193,6 +196,42 @@ end is_swap
 
 section support
 
+section set
+
+variables (p q : perm α)
+
+lemma set_support_inv_eq :
+  {x | p⁻¹ x ≠ x} = {x | p x ≠ x} :=
+begin
+  ext x,
+  simp only [set.mem_set_of_eq, ne.def],
+  rw [inv_def, symm_apply_eq, eq_comm]
+end
+
+lemma set_support_apply_mem {p : perm α} {a : α} :
+  p a ∈ {x | p x ≠ x} ↔ a ∈ {x | p x ≠ x} :=
+by simp
+
+lemma set_support_gpow_subset (n : ℤ) :
+  {x | (p ^ n) x ≠ x} ⊆ {x | p x ≠ x} :=
+begin
+  intros x,
+  simp only [set.mem_set_of_eq, ne.def],
+  intros hx H,
+  simpa [gpow_apply_eq_self_of_apply_eq_self H] using hx
+end
+
+lemma set_support_mul_subset :
+  {x | (p * q) x ≠ x} ⊆ {x | p x ≠ x} ∪ {x | q x ≠ x} :=
+begin
+  intro x,
+  simp only [perm.coe_mul, function.comp_app, ne.def, set.mem_union_eq, set.mem_set_of_eq],
+  by_cases hq : q x = x;
+  simp [hq]
+end
+
+end set
+
 variables [decidable_eq α] [fintype α] {f g : perm α}
 
 /-- The `finset` of nonfixed points of a permutation. -/
@@ -203,6 +242,10 @@ by rw [support, mem_filter, and_iff_right (mem_univ x)]
 
 lemma not_mem_support {x : α} : x ∉ f.support ↔ f x = x := by simp
 
+lemma coe_support_eq_set_support (f : perm α) :
+  (f.support : set α) = {x | f x ≠ x} :=
+by { ext, simp }
+
 @[simp] lemma support_eq_empty_iff {σ : perm α} : σ.support = ∅ ↔ σ = 1 :=
 by simp_rw [finset.ext_iff, mem_support, finset.not_mem_empty, iff_false, not_not,
   equiv.perm.ext_iff, one_apply]
@@ -212,14 +255,14 @@ by rw support_eq_empty_iff
 
 @[simp] lemma support_refl : support (equiv.refl α) = ∅ := support_one
 
-lemma support_congr (h : f.support = g.support)
-  (h' : ∀ x ∈ f.support, f x = g x) : f = g :=
+lemma support_congr (h : f.support ⊆ g.support)
+  (h' : ∀ x ∈ g.support, f x = g x) : f = g :=
 begin
   ext x,
-  by_cases hx : x ∈ f.support,
+  by_cases hx : x ∈ g.support,
   { exact h' x hx },
-  { have : x ∉ g.support := h ▸ hx,
-    rw [not_mem_support.mp hx, not_mem_support.mp this] }
+  { rw [not_mem_support.mp hx, ←not_mem_support],
+    exact λ H, hx (h H) }
 end
 
 lemma support_mul_le (f g : perm α) :
@@ -242,9 +285,9 @@ begin
   { rw [list.prod_cons, mul_apply, ih (λ g hg, hx g (or.inr hg)), hx f (or.inl rfl)] },
 end
 
-lemma support_pow_le (σ : perm α) (n : ℤ) :
+lemma support_pow_le (σ : perm α) (n : ℕ) :
   (σ ^ n).support ≤ σ.support :=
-λ x h1, mem_support.mpr (λ h2, mem_support.mp h1 (gpow_apply_eq_self_of_apply_eq_self h2 n))
+λ x h1, mem_support.mpr (λ h2, mem_support.mp h1 (pow_apply_eq_self_of_apply_eq_self h2 n))
 
 @[simp] lemma support_inv (σ : perm α) : support (σ⁻¹) = σ.support :=
 by simp_rw [finset.ext_iff, mem_support, not_iff_not,
@@ -271,6 +314,16 @@ begin
   cases n,
   { rw [int.of_nat_eq_coe, gpow_coe_nat, pow_apply_mem_support] },
   { rw [gpow_neg_succ_of_nat, ← support_inv, ← inv_pow, pow_apply_mem_support] }
+end
+
+lemma pow_eq_on_of_mem_support (h : ∀ (x ∈ f.support ∩ g.support), f x = g x)
+  (k : ℕ) : ∀ (x ∈ f.support ∩ g.support), (f ^ k) x = (g ^ k) x :=
+begin
+  induction k with k hk,
+  { simp },
+  { intros x hx,
+    rw [pow_succ', mul_apply, pow_succ', mul_apply, h _ hx, hk],
+    rwa [mem_inter, apply_mem_support, ←h _ hx, apply_mem_support, ←mem_inter] }
 end
 
 lemma disjoint_iff_disjoint_support :
@@ -312,7 +365,7 @@ end
 
 lemma support_gpow_le (σ : perm α) (n : ℤ) :
   (σ ^ n).support ≤ σ.support :=
-by { cases n; exact support_pow_le σ _ }
+λ x h1, mem_support.mpr (λ h2, mem_support.mp h1 (gpow_apply_eq_self_of_apply_eq_self h2 n))
 
 @[simp] lemma support_swap {x y : α} (h : x ≠ y) : support (swap x y) = {x, y} :=
 begin
@@ -387,6 +440,42 @@ begin
   by_cases h : f y = x,
   { split; intro; simp only [*, if_true, eq_self_iff_true, not_true, ne.def] at * },
   { split_ifs at hy; cc }
+end
+
+lemma disjoint.mem_imp (h : disjoint f g) {x : α} (hx : x ∈ f.support) :
+  x ∉ g.support :=
+λ H, h.disjoint_support (mem_inter_of_mem hx H)
+
+lemma eq_on_support_mem_disjoint {l : list (perm α)} (h : f ∈ l) (hl : l.pairwise disjoint) :
+  ∀ (x ∈ f.support), f x = l.prod x :=
+begin
+  induction l with hd tl IH,
+  { simpa using h },
+  { intros x hx,
+    rw list.pairwise_cons at hl,
+    rw list.mem_cons_iff at h,
+    rcases h with rfl|h,
+    { rw [list.prod_cons, mul_apply, not_mem_support.mp
+          ((disjoint_prod_right tl hl.left).mem_imp hx)] },
+    { rw [list.prod_cons, mul_apply, ←IH h hl.right _ hx, eq_comm, ←not_mem_support],
+      refine (hl.left _ h).symm.mem_imp _,
+      simpa using hx } }
+end
+
+lemma disjoint.mono {x y : perm α} (h : disjoint f g)
+  (hf : x.support ≤ f.support) (hg : y.support ≤ g.support) :
+  disjoint x y :=
+begin
+  rw disjoint_iff_disjoint_support at h ⊢,
+  intros a ha,
+  exact h (mem_inter_of_mem (hf (mem_of_mem_inter_left ha)) (hg (mem_of_mem_inter_right ha)))
+end
+
+lemma support_le_prod_of_mem {l : list (perm α)} (h : f ∈ l) (hl : l.pairwise disjoint) :
+  f.support ≤ l.prod.support :=
+begin
+  intros x hx,
+  rwa [mem_support, ←eq_on_support_mem_disjoint h hl _ hx, ←mem_support],
 end
 
 section extend_domain

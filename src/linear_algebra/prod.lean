@@ -48,10 +48,10 @@ section
 variables (R M M₂)
 
 /-- The first projection of a product is a linear map. -/
-def fst : M × M₂ →ₗ[R] M := ⟨prod.fst, λ x y, rfl, λ x y, rfl⟩
+def fst : M × M₂ →ₗ[R] M := { to_fun := prod.fst, map_add' := λ x y, rfl, map_smul' := λ x y, rfl }
 
 /-- The second projection of a product is a linear map. -/
-def snd : M × M₂ →ₗ[R] M₂ := ⟨prod.snd, λ x y, rfl, λ x y, rfl⟩
+def snd : M × M₂ →ₗ[R] M₂ := { to_fun := prod.snd, map_add' := λ x y, rfl, map_smul' := λ x y, rfl }
 end
 
 @[simp] theorem fst_apply (x : M × M₂) : fst R M M₂ x = x.1 := rfl
@@ -143,6 +143,16 @@ theorem snd_eq_coprod : snd R M M₂ = coprod 0 linear_map.id := by ext; simp
   (f.coprod g).comp (f'.prod g') = f.comp f' + g.comp g' :=
 rfl
 
+@[simp]
+lemma coprod_map_prod (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) (S : submodule R M)
+  (S' : submodule R M₂) :
+  (submodule.prod S S').map (linear_map.coprod f g) = S.map f ⊔ S'.map g :=
+set_like.coe_injective $ begin
+  simp only [linear_map.coprod_apply, submodule.coe_sup, submodule.map_coe],
+  rw [←set.image2_add, set.image2_image_left, set.image2_image_right],
+  exact set.image_prod (λ m m₂, f m + g m₂),
+end
+
 /-- Taking the product of two maps with the same codomain is equivalent to taking the product of
 their domains.
 
@@ -191,6 +201,21 @@ begin
   dsimp only [ker],
   rw [←prod_map_comap_prod, submodule.prod_bot],
 end
+
+section map_mul
+
+variables {A : Type*} [non_unital_non_assoc_semiring A] [module R A]
+variables {B : Type*} [non_unital_non_assoc_semiring B] [module R B]
+
+lemma inl_map_mul (a₁ a₂ : A) : linear_map.inl R A B (a₁ * a₂) =
+  linear_map.inl R A B a₁ * linear_map.inl R A B a₂ :=
+prod.ext rfl (by simp)
+
+lemma inr_map_mul (b₁ b₂ : B) : linear_map.inr R A B (b₁ * b₂) =
+  linear_map.inr R A B b₁ * linear_map.inr R A B b₂ :=
+prod.ext (by simp) rfl
+
+end map_mul
 
 end linear_map
 
@@ -524,7 +549,7 @@ Give an injective map `f : M × N →ₗ[R] M` we can find a nested sequence of 
 all isomorphic to `M`.
 -/
 def tunnel (f : M × N →ₗ[R] M) (i : injective f) : ℕ →ₘ order_dual (submodule R M) :=
-⟨λ n, (tunnel' f i n).1, monotone_of_monotone_nat (λ n, begin
+⟨λ n, (tunnel' f i n).1, monotone_nat_of_le_succ (λ n, begin
     dsimp [tunnel', tunnel_aux],
     rw [submodule.map_comp, submodule.map_comp],
     apply submodule.map_subtype_le,

@@ -1,11 +1,12 @@
 /-
 Copyright (c) 2020 Aaron Anderson, Jalex Stark, Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Aaron Anderson, Jalex Stark, Kyle Miller, Alena Gusakov
+Authors: Aaron Anderson, Jalex Stark, Kyle Miller, Alena Gusakov, Hunter Monroe
 -/
 import data.fintype.basic
-import data.sym2
 import data.set.finite
+import data.sym.sym2
+
 /-!
 # Simple graphs
 
@@ -31,29 +32,45 @@ finitely many vertices.
 * `incidence_finset` is the `finset` of edges containing a given vertex,
    if `incidence_set` is finite
 
+* `homo`, `embedding`, and `iso` for graph homomorphisms, graph embeddings, and
+  graph isomorphisms. Note that a graph embedding is a stronger notion than an
+  injective graph homomorphism, since its image is an induced subgraph.
+
+* `boolean_algebra` instance: Under the subgraph relation, `simple_graph` forms a `boolean_algebra`.
+  In other words, this is the lattice of spanning subgraphs of the complete graph.
+
+## Notations
+
+* `→g`, `↪g`, and `≃g` for graph homomorphisms, graph embeddings, and graph isomorphisms,
+  respectively.
+
 ## Implementation notes
 
-* A locally finite graph is one with instances `∀ v, fintype (G.neighbor_set v)`.
+* A locally finite graph is one with instances `Π v, fintype (G.neighbor_set v)`.
 
 * Given instances `decidable_rel G.adj` and `fintype V`, then the graph
   is locally finite, too.
+
+* Morphisms of graphs are abbreviations for `rel_hom`, `rel_embedding`, and `rel_iso`.
+  To make use of pre-existing simp lemmas, definitions involving morphisms are
+  abbreviations as well.
 
 ## Naming Conventions
 
 * If the vertex type of a graph is finite, we refer to its cardinality as `card_verts`.
 
-TODO: This is the simplest notion of an unoriented graph.  This should
+## Todo
+
+* Upgrade `simple_graph.boolean_algebra` to a `complete_boolean_algebra`.
+
+* This is the simplest notion of an unoriented graph.  This should
 eventually fit into a more complete combinatorics hierarchy which
 includes multigraphs and directed graphs.  We begin with simple graphs
 in order to start learning what the combinatorics hierarchy should
 look like.
-
-TODO: Part of this would include defining, for example, subgraphs of a
-simple graph.
-
 -/
 open finset
-universe u
+universes u v w
 
 /--
 A simple graph is an irreflexive symmetric relation `adj` on a vertex type `V`.
@@ -84,34 +101,145 @@ lemma simple_graph.from_rel_adj {V : Type u} (r : V → V → Prop) (v w : V) :
   (simple_graph.from_rel r).adj v w ↔ v ≠ w ∧ (r v w ∨ r w v) :=
 iff.rfl
 
-/--
-The complete graph on a type `V` is the simple graph with all pairs of distinct vertices adjacent.
--/
-def complete_graph (V : Type u) : simple_graph V :=
-{ adj := ne }
+/-- The complete graph on a type `V` is the simple graph with all pairs of distinct vertices
+adjacent. In `mathlib`, this is usually referred to as `⊤`. -/
+def complete_graph (V : Type u) : simple_graph V := { adj := ne }
 
-instance (V : Type u) : inhabited (simple_graph V) :=
-⟨complete_graph V⟩
-
-instance complete_graph_adj_decidable (V : Type u) [decidable_eq V] :
-  decidable_rel (complete_graph V).adj :=
-λ v w, not.decidable
+/-- The graph with no edges on a given vertex type `V`. `mathlib` prefers the notation `⊥`. -/
+def empty_graph (V : Type u) : simple_graph V := { adj := λ i j, false }
 
 namespace simple_graph
-variables {V : Type u} (G : simple_graph V)
+
+variables {V : Type u} {W : Type v} {X : Type w} (G : simple_graph V) (G' : simple_graph W)
+
+@[simp] lemma irrefl {v : V} : ¬G.adj v v := G.loopless v
+
+lemma adj_comm (u v : V) : G.adj u v ↔ G.adj v u := ⟨λ x, G.sym x, λ x, G.sym x⟩
+
+@[symm] lemma adj_symm {u v : V} (h : G.adj u v) : G.adj v u := G.sym h
+
+lemma ne_of_adj {a b : V} (hab : G.adj a b) : a ≠ b :=
+by { rintro rfl, exact G.irrefl hab }
+
+section order
+
+/-- The relation that one `simple_graph` is a subgraph of another.
+Note that this should be spelled `≤`. -/
+def is_subgraph (x y : simple_graph V) : Prop := ∀ ⦃v w : V⦄, x.adj v w → y.adj v w
+
+instance : has_le (simple_graph V) := ⟨is_subgraph⟩
+
+@[simp] lemma is_subgraph_eq_le : (is_subgraph : simple_graph V → simple_graph V → Prop) = (≤) :=
+rfl
+
+/-- The supremum of two graphs `x ⊔ y` has edges where either `x` or `y` have edges. -/
+instance : has_sup (simple_graph V) := ⟨λ x y,
+  { adj := x.adj ⊔ y.adj,
+    sym := λ v w h, by rwa [sup_apply, sup_apply, x.adj_comm, y.adj_comm] }⟩
+
+@[simp] lemma sup_adj (x y : simple_graph V) (v w : V) : (x ⊔ y).adj v w ↔ x.adj v w ∨ y.adj v w :=
+iff.rfl
+
+/-- The infinum of two graphs `x ⊓ y` has edges where both `x` and `y` have edges. -/
+instance : has_inf (simple_graph V) := ⟨λ x y,
+  { adj := x.adj ⊓ y.adj,
+    sym := λ v w h, by rwa [inf_apply, inf_apply, x.adj_comm, y.adj_comm] }⟩
+
+@[simp] lemma inf_adj (x y : simple_graph V) (v w : V) : (x ⊓ y).adj v w ↔ x.adj v w ∧ y.adj v w :=
+iff.rfl
+
+/--
+We define `Gᶜ` to be the `simple_graph V` such that no two adjacent vertices in `G`
+are adjacent in the complement, and every nonadjacent pair of vertices is adjacent
+(still ensuring that vertices are not adjacent to themselves).
+-/
+instance : has_compl (simple_graph V) := ⟨λ G,
+  { adj := λ v w, v ≠ w ∧ ¬G.adj v w,
+    sym := λ v w ⟨hne, _⟩, ⟨hne.symm, by rwa adj_comm⟩,
+    loopless := λ v ⟨hne, _⟩, (hne rfl).elim }⟩
+
+@[simp] lemma compl_adj (G : simple_graph V) (v w : V) : Gᶜ.adj v w ↔ v ≠ w ∧ ¬G.adj v w := iff.rfl
+
+/-- The difference of two graphs `x / y` has the edges of `x` with the edges of `y` removed. -/
+instance : has_sdiff (simple_graph V) := ⟨λ x y,
+  { adj := x.adj \ y.adj,
+    sym := λ v w h, by change x.adj w v ∧ ¬ y.adj w v; rwa [x.adj_comm, y.adj_comm] }⟩
+
+@[simp] lemma sdiff_adj (x y : simple_graph V) (v w : V) :
+  (x \ y).adj v w ↔ (x.adj v w ∧ ¬ y.adj v w) := iff.rfl
+
+instance : boolean_algebra (simple_graph V) :=
+{ le := (≤),
+  sup := (⊔),
+  inf := (⊓),
+  compl := has_compl.compl,
+  sdiff := (\),
+  top := complete_graph V,
+  bot := empty_graph V,
+  le_top := λ x v w h, x.ne_of_adj h,
+  bot_le := λ x v w h, h.elim,
+  sup_le := λ x y z hxy hyz v w h, h.cases_on (λ h, hxy h) (λ h, hyz h),
+  sdiff_eq := λ x y, by { ext v w, refine ⟨λ h, ⟨h.1, ⟨_, h.2⟩⟩, λ h, ⟨h.1, h.2.2⟩⟩,
+                          rintro rfl, exact x.irrefl h.1 },
+  sup_inf_sdiff := λ a b, by { ext v w, refine ⟨λ h, _, λ h', _⟩,
+                               obtain ⟨ha, _⟩|⟨ha, _⟩ := h; exact ha,
+                               by_cases b.adj v w; exact or.inl ⟨h', h⟩ <|> exact or.inr ⟨h', h⟩ },
+  inf_inf_sdiff := λ a b, by { ext v w, exact ⟨λ ⟨⟨_, hb⟩,⟨_, hb'⟩⟩, hb' hb, λ h, h.elim⟩ },
+  le_sup_left := λ x y v w h, or.inl h,
+  le_sup_right := λ x y v w h, or.inr h,
+  le_inf := λ x y z hxy hyz v w h, ⟨hxy h, hyz h⟩,
+  le_sup_inf := λ a b c v w h, or.dcases_on h.2 or.inl $
+    or.dcases_on h.1 (λ h _, or.inl h) $ λ hb hc, or.inr ⟨hb, hc⟩,
+  inf_compl_le_bot := λ a v w h, false.elim $ h.2.2 h.1,
+  top_le_sup_compl := λ a v w ne, by { by_cases a.adj v w, exact or.inl h, exact or.inr ⟨ne, h⟩ },
+  inf_le_left := λ x y v w h, h.1,
+  inf_le_right := λ x y v w h, h.2,
+  .. partial_order.lift adj ext }
+
+@[simp] lemma top_adj (v w : V) : (⊤ : simple_graph V).adj v w ↔ v ≠ w := iff.rfl
+
+@[simp] lemma bot_adj (v w : V) : (⊥ : simple_graph V).adj v w ↔ false := iff.rfl
+
+@[simp] lemma complete_graph_eq_top (V : Type u) : complete_graph V = ⊤ := rfl
+
+@[simp] lemma empty_graph_eq_bot (V : Type u) : empty_graph V = ⊥ := rfl
+
+instance (V : Type u) : inhabited (simple_graph V) := ⟨⊤⟩
+
+section decidable
+
+variables (V) (H : simple_graph V) [decidable_rel G.adj] [decidable_rel H.adj]
+
+instance bot.adj_decidable   : decidable_rel (⊥ : simple_graph V).adj := λ v w, decidable.false
+
+instance sup.adj_decidable   : decidable_rel (G ⊔ H).adj := λ v w, or.decidable
+
+instance inf.adj_decidable   : decidable_rel (G ⊓ H).adj := λ v w, and.decidable
+
+instance sdiff.adj_decidable : decidable_rel (G \ H).adj := λ v w, and.decidable
+
+variable [decidable_eq V]
+
+instance top.adj_decidable   : decidable_rel (⊤ : simple_graph V).adj :=  λ v w, not.decidable
+
+instance compl.adj_decidable : decidable_rel Gᶜ.adj := λ v w, and.decidable
+
+end decidable
+
+end order
 
 /-- `G.neighbor_set v` is the set of vertices adjacent to `v` in `G`. -/
 def neighbor_set (v : V) : set V := set_of (G.adj v)
 
 instance neighbor_set.mem_decidable (v : V) [decidable_rel G.adj] :
-  decidable_pred (G.neighbor_set v) := by { unfold neighbor_set, apply_instance }
-
-lemma ne_of_adj {a b : V} (hab : G.adj a b) : a ≠ b :=
-by { rintro rfl, exact G.loopless a hab }
+  decidable_pred (∈ G.neighbor_set v) := by { unfold neighbor_set, apply_instance }
 
 /--
 The edges of G consist of the unordered pairs of vertices related by
 `G.adj`.
+
+The way `edge_set` is defined is such that `mem_edge_set` is proved by `refl`.
+(That is, `⟦(v, w)⟧ ∈ G.edge_set` is definitionally equal to `G.adj v w`.)
 -/
 def edge_set : set (sym2 V) := sym2.from_rel G.sym
 
@@ -125,7 +253,7 @@ lemma incidence_set_subset (v : V) : G.incidence_set v ⊆ G.edge_set :=
 
 @[simp]
 lemma mem_edge_set {v w : V} : ⟦(v, w)⟧ ∈ G.edge_set ↔ G.adj v w :=
-by refl
+iff.rfl
 
 /--
 Two vertices are adjacent iff there is an edge between them.  The
@@ -151,14 +279,14 @@ begin
   exact G.ne_of_adj he,
 end
 
-instance edge_set_decidable_pred [decidable_rel G.adj] :
-  decidable_pred G.edge_set := sym2.from_rel.decidable_pred _
+instance decidable_mem_edge_set [decidable_rel G.adj] :
+  decidable_pred (∈ G.edge_set) := sym2.from_rel.decidable_pred _
 
 instance edges_fintype [decidable_eq V] [fintype V] [decidable_rel G.adj] :
   fintype G.edge_set := subtype.fintype _
 
-instance incidence_set_decidable_pred [decidable_eq V] [decidable_rel G.adj] (v : V) :
-  decidable_pred (G.incidence_set v) := λ e, and.decidable
+instance decidable_mem_incidence_set [decidable_eq V] [decidable_rel G.adj] (v : V) :
+  decidable_pred (∈ G.incidence_set v) := λ e, and.decidable
 
 /--
 The `edge_set` of the graph as a `finset`.
@@ -173,12 +301,6 @@ set.mem_to_finset
 @[simp] lemma edge_set_univ_card [decidable_eq V] [fintype V] [decidable_rel G.adj] :
   (univ : finset G.edge_set).card = G.edge_finset.card :=
 fintype.card_of_subtype G.edge_finset (mem_edge_finset _)
-
-@[simp] lemma irrefl {v : V} : ¬G.adj v v := G.loopless v
-
-lemma edge_symm (u v : V) : G.adj u v ↔ G.adj v u := ⟨λ x, G.sym x, λ x, G.sym x⟩
-
-@[symm] lemma edge_symm' {u v : V} (h : G.adj u v) : G.adj v u := G.sym h
 
 @[simp] lemma mem_neighbor_set (v w : V) : w ∈ G.neighbor_set v ↔ G.adj v w :=
 iff.rfl
@@ -198,6 +320,24 @@ begin
   { intro h', rw ←sym2.mem_other_spec h,
     exact (sym2.elems_iff_eq (edge_other_ne G he h).symm).mp ⟨h'.1.2, h'.2.2⟩, },
   { rintro rfl, use [he, h, he], apply sym2.mem_other_mem, },
+end
+
+lemma compl_neighbor_set_disjoint (G : simple_graph V) (v : V) :
+  disjoint (G.neighbor_set v) (Gᶜ.neighbor_set v) :=
+begin
+  rw set.disjoint_iff,
+  rintro w ⟨h, h'⟩,
+  rw [mem_neighbor_set, compl_adj] at h',
+  exact h'.2 h,
+end
+
+lemma neighbor_set_union_compl_neighbor_set_eq (G : simple_graph V) (v : V) :
+  G.neighbor_set v ∪ Gᶜ.neighbor_set v = {v}ᶜ :=
+begin
+  ext w,
+  have h := @ne_of_adj _ G,
+  simp_rw [set.mem_union, mem_neighbor_set, compl_adj, set.mem_compl_eq, set.mem_singleton_iff],
+  tauto,
 end
 
 /--
@@ -224,7 +364,8 @@ lemma not_mem_common_neighbors_right (v w : V) : w ∉ G.common_neighbors v w :=
 lemma common_neighbors_subset_neighbor_set (v w : V) : G.common_neighbors v w ⊆ G.neighbor_set v :=
 by simp [common_neighbors]
 
-instance [decidable_rel G.adj] (v w : V) : decidable_pred (G.common_neighbors v w) :=
+instance decidable_mem_common_neighbors [decidable_rel G.adj] (v w : V) :
+  decidable_pred (∈ G.common_neighbors v w) :=
 λ a, and.decidable
 
 section incidence
@@ -337,7 +478,7 @@ end locally_finite
 
 section finite
 
-variables [fintype V]
+variable [fintype V]
 
 instance neighbor_set_fintype [decidable_rel G.adj] (v : V) : fintype (G.neighbor_set v) :=
 @subtype.fintype _ _ (by { simp_rw mem_neighbor_set, apply_instance }) _
@@ -348,14 +489,14 @@ by { ext, simp }
 
 @[simp]
 lemma complete_graph_degree [decidable_eq V] (v : V) :
-  (complete_graph V).degree v = fintype.card V - 1 :=
+  (⊤ : simple_graph V).degree v = fintype.card V - 1 :=
 begin
   convert univ.card.pred_eq_sub_one,
   erw [degree, neighbor_finset_eq_filter, filter_ne, card_erase_of_mem (mem_univ v)],
 end
 
 lemma complete_graph_is_regular [decidable_eq V] :
-  (complete_graph V).is_regular_of_degree (fintype.card V - 1) :=
+  (⊤ : simple_graph V).is_regular_of_degree (fintype.card V - 1) :=
 by { intro v, simp }
 
 /--
@@ -462,8 +603,8 @@ end
 
 /--
 The maximum degree of a nonempty graph is less than the number of vertices. Note that the assumption
-that `V` is nonempty is necessary, as otherwise this would assert the existence of a natural less
-than zero.
+that `V` is nonempty is necessary, as otherwise this would assert the existence of a
+natural number less than zero.
 -/
 lemma max_degree_lt_card_verts [decidable_rel G.adj] [nonempty V] : G.max_degree < fintype.card V :=
 begin
@@ -511,69 +652,184 @@ begin
     { simpa, },
     { rw [neighbor_finset, ← set.subset_iff_to_finset_subset],
       apply common_neighbors_subset_neighbor_set } },
-
 end
 
 end finite
 
-section complement
-
-/-!
-## Complement of a simple graph
-
-This section contains definitions and lemmas concerning the complement of a simple graph.
--/
+section maps
 
 /--
-We define `compl G` to be the `simple_graph V` such that no two adjacent vertices in `G`
-are adjacent in the complement, and every nonadjacent pair of vertices is adjacent
-(still ensuring that vertices are not adjacent to themselves.)
+A graph homomorphism is a map on vertex sets that respects adjacency relations.
+
+The notation `G →g G'` represents the type of graph homomorphisms.
 -/
-def compl (G : simple_graph V) : simple_graph V :=
-{ adj := λ v w, v ≠ w ∧ ¬G.adj v w,
-  sym := λ v w ⟨hne, _⟩, ⟨hne.symm, by rwa edge_symm⟩,
-  loopless := λ v ⟨hne, _⟩, false.elim (hne rfl) }
+abbreviation hom := rel_hom G.adj G'.adj
 
-instance has_compl : has_compl (simple_graph V) :=
-{ compl := compl }
+/--
+A graph embedding is an embedding `f` such that for vertices `v w : V`,
+`G.adj f(v) f(w) ↔ G.adj v w `. Its image is an induced subgraph of G'.
 
-@[simp]
-lemma compl_adj (G : simple_graph V) (v w : V) : Gᶜ.adj v w ↔ v ≠ w ∧ ¬G.adj v w := iff.rfl
+The notation `G ↪g G'` represents the type of graph embeddings.
+-/
+abbreviation embedding := rel_embedding G.adj G'.adj
 
-instance compl_adj_decidable (V : Type u) [decidable_eq V] (G : simple_graph V)
-  [decidable_rel G.adj] : decidable_rel Gᶜ.adj := λ v w, and.decidable
+/--
+A graph isomorphism is an bijective map on vertex sets that respects adjacency relations.
 
-@[simp]
-lemma compl_compl (G : simple_graph V) : Gᶜᶜ = G :=
+The notation `G ≃g G'` represents the type of graph isomorphisms.
+-/
+abbreviation iso := rel_iso G.adj G'.adj
+
+infix ` →g ` : 50 := hom
+infix ` ↪g ` : 50 := embedding
+infix ` ≃g ` : 50 := iso
+
+namespace hom
+variables {G G'} (f : G →g G')
+
+/-- The identity homomorphism from a graph to itself. -/
+abbreviation id : G →g G := rel_hom.id _
+
+lemma map_adj {v w : V} (h : G.adj v w) : G'.adj (f v) (f w) := f.map_rel' h
+
+lemma map_mem_edge_set {e : sym2 V} (h : e ∈ G.edge_set) : e.map f ∈ G'.edge_set :=
+quotient.ind (λ e h, sym2.from_rel_prop.mpr (f.map_rel' h)) e h
+
+lemma apply_mem_neighbor_set {v w : V} (h : w ∈ G.neighbor_set v) : f w ∈ G'.neighbor_set (f v) :=
+map_adj f h
+
+/-- The map between edge sets induced by a homomorphism.
+The underlying map on edges is given by `sym2.map`. -/
+@[simps] def map_edge_set (e : G.edge_set) : G'.edge_set :=
+⟨sym2.map f e, f.map_mem_edge_set e.property⟩
+
+/-- The map between neighbor sets induced by a homomorphism. -/
+@[simps] def map_neighbor_set (v : V) (w : G.neighbor_set v) : G'.neighbor_set (f v) :=
+⟨f w, f.apply_mem_neighbor_set w.property⟩
+
+lemma map_edge_set.injective (hinj : function.injective f) : function.injective f.map_edge_set :=
 begin
-  ext v w,
-  split; simp only [compl_adj, not_and, not_not],
-  { exact λ ⟨hne, h⟩, h hne },
-  { intro h,
-    simpa [G.ne_of_adj h], },
+  rintros ⟨e₁, h₁⟩ ⟨e₂, h₂⟩,
+  dsimp [hom.map_edge_set],
+  repeat { rw subtype.mk_eq_mk },
+  apply sym2.map.injective hinj,
 end
 
-@[simp]
-lemma compl_involutive : function.involutive (@compl V) := compl_compl
+variable {G'' : simple_graph X}
 
-lemma compl_neighbor_set_disjoint (G : simple_graph V) (v : V) :
-  disjoint (G.neighbor_set v) (Gᶜ.neighbor_set v) :=
-begin
-  rw set.disjoint_iff,
-  rintro w ⟨h, h'⟩,
-  rw [mem_neighbor_set, compl_adj] at h',
-  exact h'.2 h,
-end
+/-- Composition of graph homomorphisms. -/
+abbreviation comp (f' : G' →g G'') (f : G →g G') : G →g G'' := f'.comp f
 
-lemma neighbor_set_union_compl_neighbor_set_eq (G : simple_graph V) (v : V) :
-  G.neighbor_set v ∪ Gᶜ.neighbor_set v = {v}ᶜ :=
-begin
-  ext w,
-  have h := @ne_of_adj _ G,
-  simp_rw [set.mem_union, mem_neighbor_set, compl_adj, set.mem_compl_eq, set.mem_singleton_iff],
-  tauto,
-end
+@[simp] lemma coe_comp (f' : G' →g G'') (f : G →g G') : ⇑(f'.comp f) = f' ∘ f := rfl
 
-end complement
+end hom
+
+namespace embedding
+variables {G G'} (f : G ↪g G')
+
+/-- The identity embedding from a graph to itself. -/
+abbreviation refl : G ↪g G := rel_embedding.refl _
+
+/-- An embedding of graphs gives rise to a homomorphism of graphs. -/
+abbreviation to_hom : G →g G' := f.to_rel_hom
+
+lemma map_adj_iff {v w : V} : G'.adj (f v) (f w) ↔ G.adj v w := f.map_rel_iff
+
+lemma map_mem_edge_set_iff {e : sym2 V} : e.map f ∈ G'.edge_set ↔ e ∈ G.edge_set :=
+quotient.ind (λ ⟨v, w⟩, f.map_adj_iff) e
+
+lemma apply_mem_neighbor_set_iff {v w : V} : f w ∈ G'.neighbor_set (f v) ↔ w ∈ G.neighbor_set v :=
+map_adj_iff f
+
+/-- A graph embedding induces an embedding of edge sets. -/
+@[simps] def map_edge_set : G.edge_set ↪ G'.edge_set :=
+{ to_fun := hom.map_edge_set f,
+  inj' := hom.map_edge_set.injective f f.inj' }
+
+/-- A graph embedding induces an embedding of neighbor sets. -/
+@[simps] def map_neighbor_set (v : V) : G.neighbor_set v ↪ G'.neighbor_set (f v) :=
+{ to_fun := λ w, ⟨f w, f.apply_mem_neighbor_set_iff.mpr w.2⟩,
+  inj' := begin
+    rintros ⟨w₁, h₁⟩ ⟨w₂, h₂⟩ h,
+    rw subtype.mk_eq_mk at h ⊢,
+    exact f.inj' h,
+  end }
+
+variables {G'' : simple_graph X}
+
+/-- Composition of graph embeddings. -/
+abbreviation comp (f' : G' ↪g G'') (f : G ↪g G') : G ↪g G'' := f.trans f'
+
+@[simp] lemma coe_comp (f' : G' ↪g G'') (f : G ↪g G') : ⇑(f'.comp f) = f' ∘ f := rfl
+
+end embedding
+
+namespace iso
+variables {G G'} (f : G ≃g G')
+
+/-- The identity isomorphism of a graph with itself. -/
+abbreviation refl : G ≃g G := rel_iso.refl _
+
+/-- An isomorphism of graphs gives rise to an embedding of graphs. -/
+abbreviation to_embedding : G ↪g G' := f.to_rel_embedding
+
+/-- An isomorphism of graphs gives rise to a homomorphism of graphs. -/
+abbreviation to_hom : G →g G' := f.to_embedding.to_hom
+
+/-- The inverse of a graph isomorphism. --/
+abbreviation symm : G' ≃g G := f.symm
+
+lemma map_adj_iff {v w : V} : G'.adj (f v) (f w) ↔ G.adj v w := f.map_rel_iff
+
+lemma map_mem_edge_set_iff {e : sym2 V} : e.map f ∈ G'.edge_set ↔ e ∈ G.edge_set :=
+quotient.ind (λ ⟨v, w⟩, f.map_adj_iff) e
+
+lemma apply_mem_neighbor_set_iff {v w : V} : f w ∈ G'.neighbor_set (f v) ↔ w ∈ G.neighbor_set v :=
+map_adj_iff f
+
+/-- An isomorphism of graphs induces an equivalence of edge sets. -/
+@[simps] def map_edge_set : G.edge_set ≃ G'.edge_set :=
+{ to_fun := hom.map_edge_set f,
+  inv_fun := hom.map_edge_set f.symm,
+  left_inv := begin
+    rintro ⟨e, h⟩,
+    simp only [hom.map_edge_set, sym2.map_map, rel_iso.coe_coe_fn,
+      rel_embedding.coe_coe_fn, subtype.mk_eq_mk, subtype.coe_mk, coe_coe],
+    apply congr_fun,
+    convert sym2.map_id,
+    exact funext (λ _, rel_iso.symm_apply_apply _ _),
+  end,
+  right_inv := begin
+    rintro ⟨e, h⟩,
+    simp only [hom.map_edge_set, sym2.map_map, rel_iso.coe_coe_fn,
+      rel_embedding.coe_coe_fn, subtype.mk_eq_mk, subtype.coe_mk, coe_coe],
+    apply congr_fun,
+    convert sym2.map_id,
+    exact funext (λ _, rel_iso.apply_symm_apply _ _),
+  end }
+
+/-- A graph isomorphism induces an equivalence of neighbor sets. -/
+@[simps] def map_neighbor_set (v : V) : G.neighbor_set v ≃ G'.neighbor_set (f v) :=
+{ to_fun := λ w, ⟨f w, f.apply_mem_neighbor_set_iff.mpr w.2⟩,
+  inv_fun := λ w, ⟨f.symm w, begin
+    convert f.symm.apply_mem_neighbor_set_iff.mpr w.2,
+    simp only [rel_iso.symm_apply_apply],
+  end⟩,
+  left_inv := λ w, by simp,
+  right_inv := λ w, by simp }
+
+lemma card_eq_of_iso [fintype V] [fintype W] (f : G ≃g G') : fintype.card V = fintype.card W :=
+by convert (fintype.of_equiv_card f.to_equiv).symm
+
+variables {G'' : simple_graph X}
+
+/-- Composition of graph isomorphisms. -/
+abbreviation comp (f' : G' ≃g G'') (f : G ≃g G') : G ≃g G'' := f.trans f'
+
+@[simp] lemma coe_comp (f' : G' ≃g G'') (f : G ≃g G') : ⇑(f'.comp f) = f' ∘ f := rfl
+
+end iso
+
+end maps
 
 end simple_graph

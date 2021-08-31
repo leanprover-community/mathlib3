@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov
 -/
 import algebra.module.submodule
 import algebra.punit_instances
-import algebra.module.prod
 
 /-!
 # The lattice structure on `submodule`s
@@ -24,10 +23,11 @@ to unify the APIs where possible.
 
 -/
 
-variables {R : Type*} {M : Type*}
+variables {R S M : Type*}
 
 section add_comm_monoid
-variables [semiring R] [add_comm_monoid M] [module R M]
+variables [semiring R] [semiring S] [add_comm_monoid M] [module R M] [module S M]
+variables [has_scalar S R] [is_scalar_tower S R M]
 variables {p q : submodule R M}
 
 namespace submodule
@@ -43,6 +43,8 @@ instance inhabited' : inhabited (submodule R M) := ⟨⊥⟩
 
 section
 variables (R)
+@[simp] lemma restrict_scalars_bot : restrict_scalars S (⊥ : submodule R M) = ⊥ := rfl
+
 @[simp] lemma mem_bot {x : M} : x ∈ (⊥ : submodule R M) ↔ x = 0 := set.mem_singleton_iff
 end
 
@@ -92,6 +94,11 @@ instance : has_top (submodule R M) :=
 @[simp] lemma top_to_add_submonoid : (⊤ : submodule R M).to_add_submonoid = ⊤ := rfl
 
 @[simp] lemma mem_top {x : M} : x ∈ (⊤ : submodule R M) := trivial
+
+section
+variables (R)
+@[simp] lemma restrict_scalars_top : restrict_scalars S (⊤ : submodule R M) = ⊤ := rfl
+end
 
 instance : order_top (submodule R M) :=
 { top := ⊤,

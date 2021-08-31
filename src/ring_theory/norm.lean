@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 
+import linear_algebra.char_poly.coeff
 import linear_algebra.determinant
 import ring_theory.power_basis
 
@@ -38,7 +39,8 @@ universes u v w
 
 variables {R S T : Type*} [integral_domain R] [integral_domain S] [integral_domain T]
 variables [algebra R S] [algebra R T]
-variables {K L : Type*} [field K] [field L] [algebra K L]
+variables {K L F : Type*} [field K] [field L] [field F]
+variables [algebra K L] [algebra L F] [algebra K F]
 variables {ι : Type w} [fintype ι]
 
 open finite_dimensional
@@ -59,7 +61,7 @@ linear_map.det.comp (lmul R S).to_ring_hom.to_monoid_hom
 @[simp] lemma norm_apply (x : S) : norm R x = linear_map.det (lmul R S x) := rfl
 
 lemma norm_eq_one_of_not_exists_basis
-  (h : ¬ ∃ (s : set S) (b : basis s R S), s.finite) (x : S) : norm R x = 1 :=
+  (h : ¬ ∃ (s : finset S), nonempty (basis s R S)) (x : S) : norm R x = 1 :=
 by { rw [norm_apply, linear_map.det], split_ifs with h, refl }
 
 variables {R}
@@ -87,12 +89,35 @@ end
 @[simp]
 lemma norm_algebra_map (x : K) : norm K (algebra_map K L x) = x ^ finrank K L :=
 begin
-  by_cases H : ∃ (s : set L) (b : basis s K L), s.finite,
-  { haveI : fintype H.some := H.some_spec.some_spec.some,
-    rw [norm_algebra_map_of_basis H.some_spec.some, finrank_eq_card_basis H.some_spec.some] },
+  by_cases H : ∃ (s : finset L), nonempty (basis s K L),
+  { rw [norm_algebra_map_of_basis H.some_spec.some, finrank_eq_card_basis H.some_spec.some] },
   { rw [norm_eq_one_of_not_exists_basis K H, finrank_eq_zero_of_not_exists_basis, pow_zero],
     rintros ⟨s, ⟨b⟩⟩,
-    exact H ⟨↑s, b, s.finite_to_set⟩ },
+    exact H ⟨s, ⟨b⟩⟩ },
 end
+
+section eq_prod_roots
+
+lemma norm_gen_eq_prod_roots [algebra K S] (pb : power_basis K S)
+  (hf : (minpoly K pb.gen).splits (algebra_map K F)) :
+  algebra_map K F (norm K pb.gen) =
+    ((minpoly K pb.gen).map (algebra_map K F)).roots.prod :=
+begin
+  -- Write the LHS as the 0'th coefficient of `minpoly K pb.gen`
+  rw [norm_eq_matrix_det pb.basis, det_eq_sign_char_poly_coeff, char_poly_left_mul_matrix,
+      ring_hom.map_mul, ring_hom.map_pow, ring_hom.map_neg, ring_hom.map_one,
+      ← polynomial.coeff_map, fintype.card_fin],
+  -- Rewrite `minpoly K pb.gen` as a product over the roots.
+  conv_lhs { rw polynomial.eq_prod_roots_of_splits hf },
+  rw [polynomial.coeff_C_mul, polynomial.coeff_zero_multiset_prod, multiset.map_map,
+      (minpoly.monic pb.is_integral_gen).leading_coeff, ring_hom.map_one, one_mul],
+  -- Incorporate the `-1` from the `char_poly` back into the product.
+  rw [← multiset.prod_repeat (-1 : F), ← pb.nat_degree_minpoly,
+      polynomial.nat_degree_eq_card_roots hf, ← multiset.map_const, ← multiset.prod_map_mul],
+  -- And conclude that both sides are the same.
+  congr, convert multiset.map_id _, ext f, simp
+end
+
+end eq_prod_roots
 
 end algebra

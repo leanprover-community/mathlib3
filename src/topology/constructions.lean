@@ -131,6 +131,9 @@ continuous_snd.continuous_at
   (hf : continuous f) (hg : continuous g) : continuous (λx, (f x, g x)) :=
 continuous_inf_rng (continuous_induced_rng hf) (continuous_induced_rng hg)
 
+@[continuity] lemma continuous.prod.mk (a : α) : continuous (prod.mk a : β → α × β) :=
+continuous_const.prod_mk continuous_id'
+
 lemma continuous.prod_map {f : γ → α} {g : δ → β} (hf : continuous f) (hg : continuous g) :
   continuous (λ x : γ × δ, (f x.1, g x.2)) :=
 (hf.comp continuous_fst).prod_mk (hg.comp continuous_snd)
@@ -284,6 +287,21 @@ begin
   simp only [and_assoc, and.left_comm]
 end
 
+/-- A product of induced topologies is induced by the product map -/
+lemma prod_induced_induced {α γ : Type*} (f : α → β) (g : γ → δ) :
+  @prod.topological_space α γ (induced f ‹_›) (induced g ‹_›) =
+  induced (λ p, (f p.1, g p.2)) prod.topological_space :=
+begin
+  set fxg := (λ p : α × γ, (f p.1, g p.2)),
+  have key1 : f ∘ (prod.fst : α × γ → α) = (prod.fst : β × δ → β) ∘ fxg, from rfl,
+  have key2 : g ∘ (prod.snd : α × γ → γ) = (prod.snd : β × δ → δ) ∘ fxg, from rfl,
+  unfold prod.topological_space,
+  conv_lhs {
+    rw [induced_compose, induced_compose, key1, key2],
+    congr, rw ← induced_compose, skip, rw ← induced_compose, },
+  rw induced_inf
+end
+
 lemma continuous_uncurry_of_discrete_topology_left [discrete_topology α]
   {f : α → β → γ} (h : ∀ a, continuous (f a)) : continuous (function.uncurry f) :=
 continuous_iff_continuous_at.2 $ λ ⟨a, b⟩,
@@ -305,7 +323,7 @@ begin
   rw [mem_map, nhds_within, mem_inf_principal, mem_nhds_prod_iff] at hs,
   rcases hs with ⟨u, hu, v, hv, H⟩,
   simp only [prod_subset_iff, mem_singleton_iff, mem_set_of_eq, mem_preimage] at H,
-  exact mem_sets_of_superset hu (λ z hz, H _ hz _ (mem_of_mem_nhds hv) rfl)
+  exact mem_of_superset hu (λ z hz, H _ hz _ (mem_of_mem_nhds hv) rfl)
 end
 
 @[simp] lemma map_fst_nhds (x : α × β) : map prod.fst (𝓝 x) = 𝓝 x.1 :=
@@ -324,7 +342,7 @@ begin
   rw [mem_map, nhds_within, mem_inf_principal, mem_nhds_prod_iff] at hs,
   rcases hs with ⟨u, hu, v, hv, H⟩,
   simp only [prod_subset_iff, mem_singleton_iff, mem_set_of_eq, mem_preimage] at H,
-  exact mem_sets_of_superset hv (λ z hz, H _ (mem_of_mem_nhds hu) _ hz rfl)
+  exact mem_of_superset hv (λ z hz, H _ (mem_of_mem_nhds hu) _ hz rfl)
 end
 
 @[simp] lemma map_snd_nhds (x : α × β) : map prod.snd (𝓝 x) = 𝓝 x.2 :=
@@ -716,10 +734,41 @@ lemma is_closed_set_pi [∀a, topological_space (π a)] {i : set ι} {s : Πa, s
 by rw [pi_def];
   exact (is_closed_Inter $ λ a, is_closed_Inter $ λ ha, (hs _ ha).preimage (continuous_apply _))
 
+lemma mem_nhds_pi {ι : Type*} {α : ι → Type*} [Π (i : ι), topological_space (α i)]
+  {I : set ι} {s : Π i, set (α i)} (a : Π i, α i) (hs : I.pi s ∈ 𝓝 a) {i : ι} (hi : i ∈ I) :
+  s i ∈ 𝓝 (a i) :=
+begin
+  set p := λ i, λ (x : Π (i : ι), α i), x i,
+  rw [nhds_pi, pi_def] at hs,
+  obtain ⟨t : ι → set (Π i, α i),
+          ht : ∀ i, t i ∈ comap (p i) (𝓝 (a i)), ht' : (⋂ i ∈ I, p i ⁻¹' s i) = ⋂ (i : ι), t i⟩ :=
+    exists_Inter_of_mem_infi hs,
+  simp only [exists_prop, mem_comap] at ht,
+  choose v hv hv' using ht,
+  apply mem_of_superset (hv i),
+  have := calc (⋂ i, p i ⁻¹' v i) ⊆ (⋂ i, t i) : Inter_subset_Inter hv'
+  ... = ⋂ i ∈ I, p i ⁻¹' s i : by simp_rw ht'
+  ... ⊆ p i ⁻¹' s i : bInter_subset_of_mem hi,
+  rwa [← image_subset_iff, image_projection_prod] at this,
+  use a,
+  rw [mem_univ_pi],
+  exact λ j, mem_of_mem_nhds (hv j)
+end
+
 lemma set_pi_mem_nhds [Π a, topological_space (π a)] {i : set ι} {s : Π a, set (π a)}
   {x : Π a, π a} (hi : finite i) (hs : ∀ a ∈ i, s a ∈ 𝓝 (x a)) :
   pi i s ∈ 𝓝 x :=
-by { rw [pi_def, bInter_mem_sets hi], exact λ a ha, (continuous_apply a).continuous_at (hs a ha) }
+by { rw [pi_def, bInter_mem hi], exact λ a ha, (continuous_apply a).continuous_at (hs a ha) }
+
+lemma set_pi_mem_nhds_iff [fintype ι] {α : ι → Type*} [Π (i : ι), topological_space (α i)]
+  {I : set ι} {s : Π i, set (α i)} (a : Π i, α i) :
+  I.pi s ∈ 𝓝 a ↔ ∀ (i : ι), i ∈ I → s i ∈ 𝓝 (a i) :=
+⟨by apply mem_nhds_pi, set_pi_mem_nhds $ finite.of_fintype I⟩
+
+lemma interior_pi_set [fintype ι] {α : ι → Type*} [Π i, topological_space (α i)]
+  {I : set ι} {s : Π i, set (α i)} :
+  interior (pi I s) = I.pi (λ i, interior (s i)) :=
+by { ext a, simp only [mem_pi, mem_interior_iff_mem_nhds, set_pi_mem_nhds_iff] }
 
 lemma pi_eq_generate_from [∀a, topological_space (π a)] :
   Pi.topological_space =

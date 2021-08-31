@@ -3,7 +3,7 @@ Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-
+import algebra.algebra.restrict_scalars
 import algebra.algebra.tower
 import algebra.invertible
 import linear_algebra.basis
@@ -27,6 +27,7 @@ of `A`, then `{bi cj | i ∈ I, j ∈ J}` is an `R`-basis of `A`. This statement
 base rings to be a field, so we also generalize the lemma to rings in this file.
 -/
 
+open_locale pointwise
 universes u v w u₁
 
 variables (R : Type u) (S : Type v) (A : Type w) (B : Type u₁)
@@ -67,7 +68,8 @@ namespace algebra
 
 theorem adjoin_algebra_map' {R : Type u} {S : Type v} {A : Type w}
   [comm_ring R] [comm_ring S] [comm_ring A] [algebra R S] [algebra S A] (s : set S) :
-  adjoin R (algebra_map S (comap R S A) '' s) = subalgebra.map (adjoin R s) (to_comap R S A) :=
+  adjoin R (algebra_map S (restrict_scalars R S A) '' s) = (adjoin R s).map
+  ((algebra.of_id S (restrict_scalars R S A)).restrict_scalars R) :=
 le_antisymm (adjoin_le $ set.image_subset_iff.2 $ λ y hy, ⟨y, subset_adjoin hy, rfl⟩)
   (subalgebra.map_le.2 $ adjoin_le $ λ y hy, subset_adjoin ⟨y, hy, rfl⟩)
 
@@ -103,7 +105,7 @@ lemma adjoin_res_eq_adjoin_res (C D E F : Type*) [comm_semiring C] [comm_semirin
   (algebra.adjoin D (algebra_map E F '' T)).res C :=
 by { rw [adjoin_res, adjoin_res, ←hS, ←hT, ←algebra.adjoin_image, ←algebra.adjoin_image,
   ←alg_hom.coe_to_ring_hom, ←alg_hom.coe_to_ring_hom, is_scalar_tower.coe_to_alg_hom,
-  is_scalar_tower.coe_to_alg_hom, ←algebra.adjoin_union, ←algebra.adjoin_union, set.union_comm] }
+  is_scalar_tower.coe_to_alg_hom, ←adjoin_union_eq_under, ←adjoin_union_eq_under, set.union_comm] }
 
 end algebra
 
@@ -114,9 +116,30 @@ lemma algebra.fg_trans' {R S A : Type*} [comm_ring R] [comm_ring S] [comm_ring A
   (hRS : (⊤ : subalgebra R S).fg) (hSA : (⊤ : subalgebra S A).fg) :
   (⊤ : subalgebra R A).fg :=
 let ⟨s, hs⟩ := hRS, ⟨t, ht⟩ := hSA in ⟨s.image (algebra_map S A) ∪ t,
-by rw [finset.coe_union, finset.coe_image, algebra.adjoin_union, algebra.adjoin_algebra_map, hs,
-    algebra.map_top, is_scalar_tower.range_under_adjoin, ht, subalgebra.res_top]⟩
+by rw [finset.coe_union, finset.coe_image, algebra.adjoin_union_eq_under,
+  algebra.adjoin_algebra_map, hs, algebra.map_top, is_scalar_tower.range_under_adjoin, ht,
+  subalgebra.res_top]⟩
 end
+
+section algebra_map_coeffs
+
+variables {R} (A) {ι M : Type*} [comm_semiring R] [semiring A] [add_comm_monoid M]
+variables [algebra R A] [module A M] [module R M] [is_scalar_tower R A M]
+variables (b : basis ι R M) (h : function.bijective (algebra_map R A))
+
+/-- If `R` and `A` have a bijective `algebra_map R A` and act identically on `M`,
+then a basis for `M` as `R`-module is also a basis for `M` as `R'`-module. -/
+@[simps]
+noncomputable def basis.algebra_map_coeffs : basis ι A M :=
+b.map_coeffs (ring_equiv.of_bijective _ h) (λ c x, by simp)
+
+lemma basis.algebra_map_coeffs_apply (i : ι) : b.algebra_map_coeffs A h i = b i :=
+b.map_coeffs_apply _ _ _
+
+@[simp] lemma basis.coe_algebra_map_coeffs : (b.algebra_map_coeffs A h : ι → M) = b :=
+b.coe_map_coeffs _ _
+
+end algebra_map_coeffs
 
 section ring
 

@@ -189,6 +189,10 @@ inv_inv
 @[simp, to_additive]
 lemma inv_involutive : function.involutive (has_inv.inv : G → G) := inv_inv
 
+@[simp, to_additive]
+lemma inv_surjective : function.surjective (has_inv.inv : G → G) :=
+inv_involutive.surjective
+
 @[to_additive]
 lemma inv_injective : function.injective (has_inv.inv : G → G) :=
 inv_involutive.injective
@@ -320,9 +324,19 @@ by simpa only [div_eq_mul_inv] using λ a a' h, mul_left_injective (b⁻¹) h
 lemma div_right_injective : function.injective (λ a, b / a) :=
 by simpa only [div_eq_mul_inv] using λ a a' h, inv_injective (mul_right_injective b h)
 
+-- The unprimed version is used by `group_with_zero`.  This is the preferred choice.
+-- See https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/.60div_one'.60
+@[simp, to_additive sub_zero]
+lemma div_one' (a : G) : a / 1 = a :=
+calc  a / 1 = a * 1⁻¹ : div_eq_mul_inv a 1
+          ... = a * 1 : congr_arg _ one_inv
+          ... = a     : mul_one a
+
 end group
 
 section add_group
+-- TODO: Generalize the contents of this section with to_additive as per
+-- https://leanprover.zulipchat.com/#narrow/stream/144837-PR-reviews/topic/.238667
 variables {G : Type u} [add_group G] {a b c d : G}
 
 @[simp] lemma sub_self (a : G) : a - a = 0 :=
@@ -340,9 +354,6 @@ by rw [sub_eq_add_neg, add_assoc, ←sub_eq_add_neg]
 lemma eq_of_sub_eq_zero (h : a - b = 0) : a = b :=
 calc a = a - b + b : (sub_add_cancel a b).symm
    ... = b         : by rw [h, zero_add]
-
-@[simp] lemma sub_zero (a : G) : a - 0 = a :=
-by rw [sub_eq_add_neg, neg_zero, add_zero]
 
 lemma sub_ne_zero_of_ne (h : a ≠ b) : a - b ≠ 0 :=
 mt eq_of_sub_eq_zero h
@@ -435,9 +446,15 @@ variables {G : Type u} [comm_group G]
 lemma mul_inv (a b : G) : (a * b)⁻¹ = a⁻¹ * b⁻¹ :=
 by rw [mul_inv_rev, mul_comm]
 
+@[to_additive]
+lemma div_eq_of_eq_mul' {a b c : G} (h : a = b * c) : a / b = c :=
+by rw [h, div_eq_mul_inv, mul_comm, inv_mul_cancel_left]
+
 end comm_group
 
 section add_comm_group
+-- TODO: Generalize the contents of this section with to_additive as per
+-- https://leanprover.zulipchat.com/#narrow/stream/144837-PR-reviews/topic/.238667
 variables {G : Type u} [add_comm_group G] {a b c d : G}
 
 local attribute [simp] add_assoc add_comm add_left_comm sub_eq_add_neg
@@ -462,9 +479,6 @@ by simp
 
 lemma eq_sub_of_add_eq' (h : c + a = b) : a = b - c :=
 by simp [h.symm]
-
-lemma sub_eq_of_eq_add' (h : a = b + c) : a - b = c :=
-begin simp [h], rw [add_left_comm], simp end
 
 lemma eq_add_of_sub_eq' (h : a - b = c) : a = b + c :=
 by simp [h.symm]

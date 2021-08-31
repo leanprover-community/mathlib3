@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
 import algebra.big_operators.basic
-import algebra.group.hom
-import group_theory.group_action.group
 import algebra.smul_with_zero
+import group_theory.group_action.group
 
 /-!
 # Modules over a ring
@@ -18,16 +17,17 @@ In this file we define
   the operation `•` satisfies some natural associativity and distributivity axioms similar to those
   on a ring.
 
-  ## Implementation notes
-  In typical mathematical usage, our definition of `module` corresponds to "semimodule", and the
-  word "module" is reserved for `module R M` where `R` is a `ring` and `M` an `add_comm_group`.
-  If `R` is a `field` and `M` an `add_comm_group`, `M` would be called an `R`-vector space.
-  Since those assumptions can be made by changing the typeclasses applied to `R` and `M`,
-  without changing the axioms in `module`, mathlib calls everything a `module`.
+## Implementation notes
 
-  In older versions of mathlib, we had separate `semimodule` and `vector_space` abbreviations.
-  This caused inference issues in some cases, while not providing any real advantages, so we decided
-  to use a canonical `module` typeclass throughout.
+In typical mathematical usage, our definition of `module` corresponds to "semimodule", and the
+word "module" is reserved for `module R M` where `R` is a `ring` and `M` an `add_comm_group`.
+If `R` is a `field` and `M` an `add_comm_group`, `M` would be called an `R`-vector space.
+Since those assumptions can be made by changing the typeclasses applied to `R` and `M`,
+without changing the axioms in `module`, mathlib calls everything a `module`.
+
+In older versions of mathlib, we had separate `semimodule` and `vector_space` abbreviations.
+This caused inference issues in some cases, while not providing any real advantages, so we decided
+to use a canonical `module` typeclass throughout.
 
 ## Tags
 
@@ -100,10 +100,12 @@ protected def function.surjective.module [add_comm_monoid M₂] [has_scalar R M�
 
 variables {R} (M)
 
-/-- Compose a `module` with a `ring_hom`, with action `f s • m` -/
-def module.comp_hom [semiring S] (f : S →+* R) :
+/-- Compose a `module` with a `ring_hom`, with action `f s • m`.
+
+See note [reducible non-instances]. -/
+@[reducible] def module.comp_hom [semiring S] (f : S →+* R) :
   module S M :=
-{ smul := (•) ∘ f,
+{ smul := has_scalar.comp.smul f,
   add_smul := λ r s x, by simp [add_smul],
   .. mul_action_with_zero.comp_hom M f.to_monoid_with_zero_hom,
   .. distrib_mul_action.comp_hom M (f : S →* R) }
@@ -239,15 +241,32 @@ instance semiring.to_module [semiring R] : module R R :=
   zero_smul := zero_mul,
   smul_zero := mul_zero }
 
+@[priority 910] -- see Note [lower instance priority]
+instance semiring.to_opposite_module [semiring R] : module Rᵒᵖ R :=
+{ smul_add := λ r x y, add_mul _ _ _,
+  add_smul := λ r x y, mul_add _ _ _,
+  ..monoid_with_zero.to_opposite_mul_action_with_zero R}
+
 /-- A ring homomorphism `f : R →+* M` defines a module structure by `r • x = f r * x`. -/
 def ring_hom.to_module [semiring R] [semiring S] (f : R →+* S) : module R S :=
-{ smul := λ r x, f r * x,
-  smul_add := λ r x y, by unfold has_scalar.smul; rw [mul_add],
-  add_smul := λ r s x, by unfold has_scalar.smul; rw [f.map_add, add_mul],
-  mul_smul := λ r s x, by unfold has_scalar.smul; rw [f.map_mul, mul_assoc],
-  one_smul := λ x, show f 1 * x = _, by rw [f.map_one, one_mul],
-  zero_smul := λ x, show f 0 * x = 0, by rw [f.map_zero, zero_mul],
-  smul_zero := λ r, mul_zero (f r) }
+module.comp_hom S f
+
+/-- The tautological action by `R →+* R` on `R`.
+
+This generalizes `function.End.apply_mul_action`. -/
+instance ring_hom.apply_distrib_mul_action [semiring R] : distrib_mul_action (R →+* R) R :=
+{ smul := ($),
+  smul_zero := ring_hom.map_zero,
+  smul_add := ring_hom.map_add,
+  one_smul := λ _, rfl,
+  mul_smul := λ _ _ _, rfl }
+
+@[simp] protected lemma ring_hom.smul_def [semiring R] (f : R →+* R) (a : R) :
+  f • a = f a := rfl
+
+/-- `ring_hom.apply_distrib_mul_action` is faithful. -/
+instance ring_hom.apply_has_faithful_scalar [semiring R] : has_faithful_scalar (R →+* R) R :=
+⟨ring_hom.ext⟩
 
 section add_comm_monoid
 
@@ -449,7 +468,7 @@ section smul_injective
 
 variables (M)
 
-lemma smul_left_injective [no_zero_smul_divisors R M] {c : R} (hc : c ≠ 0) :
+lemma smul_right_injective [no_zero_smul_divisors R M] {c : R} (hc : c ≠ 0) :
   function.injective (λ (x : M), c • x) :=
 λ x y h, sub_eq_zero.mp ((smul_eq_zero.mp
   (calc c • (x - y) = c • x - c • y : smul_sub c x y
@@ -482,7 +501,7 @@ section smul_injective
 
 variables (R)
 
-lemma smul_right_injective {x : M} (hx : x ≠ 0) :
+lemma smul_left_injective {x : M} (hx : x ≠ 0) :
   function.injective (λ (c : R), c • x) :=
 λ c d h, sub_eq_zero.mp ((smul_eq_zero.mp
   (calc (c - d) • x = c • x - d • x : sub_smul c d x

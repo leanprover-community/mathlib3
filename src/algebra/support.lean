@@ -62,6 +62,10 @@ mul_support_eq_empty_iff.2 rfl
 @[simp, to_additive] lemma mul_support_one : mul_support (λ x : α, (1 : M)) = ∅ :=
 mul_support_one'
 
+@[to_additive] lemma mul_support_const {c : M} (hc : c ≠ 1) :
+  mul_support (λ x : α, c) = set.univ :=
+by { ext x, simp [hc] }
+
 @[to_additive] lemma mul_support_binop_subset (op : M → N → P) (op1 : op 1 1 = 1)
   (f : α → M) (g : α → N) :
   mul_support (λ x, op (f x) (g x)) ⊆ mul_support f ∪ mul_support g :=

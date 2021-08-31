@@ -1171,8 +1171,7 @@ norm_condexp_ind_L1_le hs x
 
 lemma norm_condexp_ind_le (hs : measurable_set s) :
   ∥(condexp_ind 𝕜 hm μ hs : E' →L[ℝ] α →₁[μ] E')∥ ≤ (μ s).to_real :=
-continuous_linear_map.op_norm_le_bound _ ennreal.to_real_nonneg
-  (λ x, norm_condexp_ind_apply_le hs x)
+continuous_linear_map.op_norm_le_bound _ ennreal.to_real_nonneg (norm_condexp_ind_apply_le hs)
 
 lemma condexp_ind_disjoint_union (hs : measurable_set s) (ht : measurable_set t)
   (hμs : μ s ≠ ∞) (hμt : μ t ≠ ∞) (hst : s ∩ t = ∅) (x : E') :

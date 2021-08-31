@@ -479,9 +479,6 @@ begin
   sorry --- easy from here.
 end
 
-lemma nth_count_le [decidable_pred p] (i: set.infinite p) (n : ℕ): n ≤ nth p (count p n) :=
-sorry
-
 lemma nth_count [decidable_pred p] (n : ℕ) (h : p n) : nth p (count p n) = n :=
 begin
   unfreezingI { induction n with n ih generalizing p },
@@ -762,6 +759,82 @@ begin
     exact i, },
   { exact hp, },
   { convert h, },
+end
+
+lemma count_lt_card {n: ℕ} (hf: set.finite p) (hp: p n):
+  count p n < hf.to_finset.card :=
+begin
+  rw count_eq_card_finset,
+  apply finset.card_lt_card,
+  split,
+  { intro a,
+    simp,
+    intros ha hp,
+    exact hp, },
+  { rw finset.subset_iff,
+    simp,
+    use n,
+    split,
+    { exact hp, },
+    { simp, }, },
+end
+
+lemma count_injective {m n: ℕ}
+  (hm: p m) (hn: p n) (heq: count p m = count p n): m = n :=
+begin
+  by_contra,
+  have hmn: m < n ∨ n < m := ne.lt_or_lt h,
+  cases hmn,
+  { have hlt: count p m < count p n,
+    { apply count_strict_mono,
+      exact hm,
+      exact hn,
+      exact hmn, },
+    rw heq at hlt,
+    simp at hlt,
+    exact hlt, },
+  { have hlt: count p n < count p m,
+    { apply count_strict_mono,
+      exact hn,
+      exact hm,
+      exact hmn, },
+    rw heq at hlt,
+    simp at hlt,
+    exact hlt, },
+end
+
+lemma nth_count_of_finite {n: ℕ} (hf: set.finite p) (hp: p n):
+  nth p (count p n) = n :=
+begin
+  have h: count p (nth p (count p n)) = count p n,
+  { apply count_nth_of_lt_card_finite,
+    { apply count_lt_card,
+      exact hp, },
+    exact hf, },
+  apply count_injective,
+  { apply nth_mem_of_lt_card_finite,
+    { apply count_lt_card,
+      exact hp, },
+    exact hf, },
+  { exact hp, },
+  { convert h, },
+end
+
+lemma nth_count' {n: ℕ} (hp: p n): nth p (count p n) = n :=
+begin
+  have hfi: set.finite p ∨ set.infinite p := em (set.finite p),
+  cases hfi,
+  { apply nth_count_of_finite,
+    exact hfi,
+    exact hp, },
+  { apply nth_count_of_infinite,
+    exact hfi,
+    exact hp, },
+end
+
+lemma nth_count_le [decidable_pred p] (i: set.infinite p) (n : ℕ): n ≤ nth p (count p n) :=
+begin
+  sorry
 end
 
 lemma count_nth_gc (i : set.infinite p) : galois_connection (count p) (nth p) :=

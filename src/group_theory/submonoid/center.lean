@@ -15,7 +15,8 @@ import group_theory.submonoid.operations
 * `set.add_center`: the center of an additive magma
 * `add_submonoid.center`: the center of an additive monoid
 
-We show `subgrup.center` and `subsemiring.center` and `subring.center` in other files.
+We provide `subgroup.center`, `add_subgroup.center`, `subsemiring.center`, and `subring.center` in
+other files.
 -/
 
 variables {M : Type*}

@@ -231,6 +231,27 @@ variable (β)
 
 local notation `Ω` := (quotient $ orbit_rel α β)
 
+/-- **Class formula** : given `G` a group acting on `X` and `φ` a function mapping each orbit of `X`
+under this action (that is, each element of the quotient of `X` by the relation `orbit_rel G X`) to
+an element in this orbit, this gives a (noncomputable) bijection between `X` and the disjoint union
+of `G/Stab(φ(ω))` over all orbits `ω`. In most cases you'll want `φ` to be `quotient.out'`, so we
+provide `mul_action.self_equiv_sigma_orbits_quotient_stabilizer` as a special case. -/
+noncomputable def self_equiv_sigma_orbits_quotient_stabilizer' {φ : Ω → β}
+  (hφ : left_inverse quotient.mk' φ) : β ≃ Σ (ω : Ω), quotient (stabilizer α (φ ω)) :=
+calc  β
+    ≃ Σ (ω : Ω), {b // quotient.mk' b = ω} : (equiv.sigma_preimage_equiv quotient.mk').symm
+... ≃ Σ (ω : Ω), orbit α (φ ω) :
+        equiv.sigma_congr_right (λ ω, equiv.subtype_equiv_right $
+          λ x, by {rw [← hφ ω, quotient.eq', hφ ω], refl })
+... ≃ Σ (ω : Ω), quotient (stabilizer α (φ ω)) :
+        equiv.sigma_congr_right (λ ω, orbit_equiv_quotient_stabilizer α (φ ω))
+
+/-- **Class formula**. This is a special case of
+`mul_action.self_equiv_sigma_orbits_quotient_stabilizer'` with `φ = quotient.out'`. -/
+noncomputable def self_equiv_sigma_orbits_quotient_stabilizer :
+  β ≃ Σ (ω : Ω), quotient (stabilizer α ω.out') :=
+self_equiv_sigma_orbits_quotient_stabilizer' α β quotient.out_eq'
+
 /-- **Burnside's lemma** : a (noncomputable) bijection between the disjoint union of all
 `{x ∈ X | g • x = x}` for `g ∈ G` and the product `G × X/G`, where `G` is a group acting on `X` and
 `X/G`denotes the quotient of `X` by the relation `orbit_rel G X`. -/

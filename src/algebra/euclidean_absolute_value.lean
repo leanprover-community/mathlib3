@@ -15,7 +15,8 @@ values compatible with the Euclidean domain structure on its domain `R`.
 
 ## Main definitions
 
- * `euclidean_absolute_value R S` is the type of absolute values on `R` mapping to `S`.
+ * `euclidean_absolute_value R S` is the type of absolute values on `R` mapping to `S`
+    that preserve the order on `R` arising from the Euclidean domain structure.
  * `euclidean_absolute_value.abs` is the "standard" absolute value on `ℤ`,
    mapping negative `x` to `-x`.
  * `euclidean_absolute_value.card_pow_degree` is an Euclidean absolute value on

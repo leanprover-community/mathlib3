@@ -355,6 +355,9 @@ def map {R : Type u} {S : Type v} [ring R] [ring S]
   y ∈ s.map f ↔ ∃ x ∈ s, f x = y :=
 set.mem_image_iff_bex
 
+@[simp] lemma map_id : s.map (ring_hom.id R) = s :=
+set_like.coe_injective $ set.image_id _
+
 lemma map_map (g : S →+* T) (f : R →+* S) : (s.map f).map g = s.map (g.comp f) :=
 set_like.coe_injective $ set.image_image _ _ _
 

@@ -769,7 +769,7 @@ ext $ by simp [this, eq_comm]
 lemma map_add_le (f g : M →ₗ[R] M₂) : map (f + g) p ≤ map f p + map g p :=
 begin
   rintros x ⟨m, hm, rfl⟩,
-  refine add_mem_sup (mem_map_of_mem hm) (mem_map_of_mem hm),
+  exact add_mem_sup (mem_map_of_mem hm) (mem_map_of_mem hm),
 end
 
 lemma range_map_nonempty (N : submodule R M) :

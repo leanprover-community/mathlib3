@@ -493,6 +493,14 @@ option.rec h₁ h₂
 theorem coe_eq_coe {a b : α} : (a : with_bot α) = b ↔ a = b :=
 by rw [← option.some.inj_eq a b]; refl
 
+/-- Deconstruct a `x : with_bot α` to the underlying value in `α`, given a proof that `x ≠ ⊥`. -/
+def unbot : Π (x : with_bot α), x ≠ ⊥ → α
+| ⊥        h := absurd rfl h
+| (some x) h := x
+
+@[simp] lemma unbot_coe (x : α) (h : (x : with_bot α) ≠ ⊥ := coe_ne_bot _) :
+  (x : with_bot α).unbot h = x := rfl
+
 @[priority 10]
 instance has_lt [has_lt α] : has_lt (with_bot α) :=
 { lt := λ o₁ o₂ : option α, ∃ b ∈ o₂, ∀ a ∈ o₁, a < b }
@@ -719,6 +727,13 @@ by rw [← option.some.inj_eq a b]; refl
 
 @[simp] theorem top_ne_coe {a : α} : ⊤ ≠ (a : with_top α) .
 @[simp] theorem coe_ne_top {a : α} : (a : with_top α) ≠ ⊤ .
+
+/-- Deconstruct a `x : with_top α` to the underlying value in `α`, given a proof that `x ≠ ⊤`. -/
+def untop : Π (x : with_top α), x ≠ ⊤ → α :=
+with_bot.unbot
+
+@[simp] lemma untop_coe (x : α) (h : (x : with_top α) ≠ ⊤ := coe_ne_top) :
+  (x : with_top α).untop h = x := rfl
 
 @[priority 10]
 instance has_lt [has_lt α] : has_lt (with_top α) :=

@@ -14,9 +14,12 @@ This file provides basic API for subtypes, which are defined in core.
 
 A subtype is a type made from restricting another type, say `α`, to its elements that satisfy some
 predicate, say `p : α → Prop`. Specifically, it is the type of pairs `⟨val, property⟩` where
-`val : α` and `property : p val`. A subtype has a natural coercion to the parent type, by coercing
-`⟨val, property⟩` to `val`. Subtypes can be thought of as bundled sets, the difference being that
-elements of a set are still of type `α` while elements of a subtype aren't.
+`val : α` and `property : p val`. It is denoted `subtype p` and notation `{val : α // p val}` is
+available.
+
+A subtype has a natural coercion to the parent type, by coercing `⟨val, property⟩` to `val`. As
+such, subtypes can be thought of as bundled sets, the difference being that elements of a set are
+still of type `α` while elements of a subtype aren't.
 -/
 
 open function

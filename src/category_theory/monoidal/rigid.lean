@@ -104,10 +104,8 @@ attribute [instance] has_left_dual.exact
 
 open exact_pairing has_right_dual has_left_dual monoidal_category
 
-reserve prefix `*^`:1025
-notation `*^` X := left_dual X
-reserve postfix `^*`:1025
-notation X `^*` := right_dual X
+prefix `*^`:1025 := left_dual
+postfix `^*`:1025 := right_dual
 
 instance has_right_dual_unit : has_right_dual (𝟙_ C) :=
 { right_dual := 𝟙_ C }
@@ -127,10 +125,12 @@ lemma left_dual_right_dual {X : C} [has_right_dual X] : *^(X^*) = X := rfl
 @[simp]
 lemma right_dual_left_dual {X : C} [has_left_dual X] : (*^X)^* = X := rfl
 
+/-- The right adjoint mate `f^* : X^* ⟶ Y^*` of a morphism `f : X ⟶ Y`. -/
 def right_adjoint_mate {X Y : C} [has_right_dual X] [has_right_dual Y] (f : X ⟶ Y) : Y^* ⟶ X^* :=
 (ρ_ _).inv ≫ (𝟙 _ ⊗ η_ _ _) ≫ (𝟙 _ ⊗ (f ⊗ 𝟙 _))
  ≫ (α_ _ _ _).inv ≫ ((ε_ _ _) ⊗ 𝟙 _) ≫ (λ_ _).hom
 
+/-- The left adjoint mate `*^f : *^Y ⟶ *^X` of a morphism `f : X ⟶ Y`. -/
 def left_adjoint_mate {X Y : C} [has_left_dual X] [has_left_dual Y] (f : X ⟶ Y) : *^Y ⟶ *^X :=
 (λ_ _).inv ≫ (η_ *^X X ⊗ 𝟙 _) ≫ ((𝟙 _ ⊗ f) ⊗ 𝟙 _)
  ≫ (α_ _ _ _).hom ≫ (𝟙 _ ⊗ ε_ _ _) ≫ (ρ_ _).hom
@@ -265,8 +265,8 @@ class right_rigid_category (C : Type u) [category.{v} C] [monoidal_category.{v} 
 class left_rigid_category (C : Type u) [category.{v} C] [monoidal_category.{v} C] :=
   [left_dual : Π (X : C), has_left_dual X]
 
-attribute [instance] right_rigid_category.right_dual
-attribute [instance] left_rigid_category.left_dual
+attribute [instance, priority 100] right_rigid_category.right_dual
+attribute [instance, priority 100] left_rigid_category.left_dual
 
 /-- A rigid monoidal category is a monoidal category which is left rigid and right rigid. -/
 class rigid_category (C : Type u) [category.{v} C] [monoidal_category.{v} C]

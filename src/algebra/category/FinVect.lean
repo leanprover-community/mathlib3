@@ -32,19 +32,21 @@ universes u
 
 variables (K : Type u) [field K]
 
-namespace FinVect
-
---TODO decide between this and a new structure extending `Module`.
+/-- Define `FinVect` as the subtype of `Module.{u} K` of finite dimensional vector spaces. -/
 def FinVect := { V : Module.{u} K // finite_dimensional K V.carrier }
 
-instance FinVect_category : category (FinVect K) := by unfold FinVect; apply_instance
+namespace FinVect
 
-instance FinVect_finite_dimensional (V : FinVect K): finite_dimensional K V.val := V.prop
+instance category : category (FinVect K) := by unfold FinVect; apply_instance
 
-instance FinVect_has_sort_coe : has_coe_to_sort (FinVect K) := ⟨_, λ V, V.val⟩
+instance finite_dimensional (V : FinVect K): finite_dimensional K V.val := V.prop
 
-instance FinVect_has_coe_to_fn (V W : FinVect K) : has_coe_to_fun (V ⟶ W) :=
+instance has_sort_coe : has_coe_to_sort (FinVect K) := ⟨_, λ V, V.val⟩
+
+instance has_coe_to_fn (V W : FinVect K) : has_coe_to_fun (V ⟶ W) :=
   ⟨λ _, V.val → W.val, λ f, f.to_fun⟩
+
+instance : inhabited (FinVect K) := ⟨⟨Module.of K K, finite_dimensional.finite_dimensional_self K⟩⟩
 
 /- This should go to `linear_algebra` after `linear_algebra` is cleaned up.
   Right now it cannot go to either `linear_algebra.tensor_product` or
@@ -56,7 +58,7 @@ instance finite_dimensional_tensor_product (V V₂ : Type*) [add_comm_group V]
 finite_dimensional.of_fintype_basis
   (finsupp.basis.tensor_product (basis.of_vector_space K V) (basis.of_vector_space K V₂))
 
-instance FinVect_monoidal_category : monoidal_category (FinVect K) :=
+instance monoidal_category : monoidal_category (FinVect K) :=
 @monoidal_category.full_monoidal_subcategory _ _ Module.monoidal_category
  (λ (V : Module K), finite_dimensional K V)
  (by { exact finite_dimensional.finite_dimensional_self K})
@@ -70,11 +72,13 @@ finite_dimensional.of_fintype_basis (basis.dual_basis (basis.of_vector_space K V
 
 variables (V : FinVect K)
 
+/-- The dual module is the dual in the rigid monoidal category `FinVect K`. -/
 def FinVect_dual : FinVect K :=
 ⟨Module.of K (module.dual K V.val), FinVect.finite_dimensional_dual K V.val⟩
 
 open category_theory.monoidal_category
 
+/-- The coevaluation map is defined in `linear_algebra.coevaluation`. -/
 def FinVect_coevaluation : 𝟙_ (FinVect K) ⟶ V ⊗ (FinVect_dual K V) :=
 by { haveI := V.prop, change _ →ₗ[K] _, apply coevaluation K V.val }
 
@@ -91,7 +95,7 @@ end
 
 /-- The evaluation morphism is given by the contraction map. -/
 def FinVect_evaluation : (FinVect_dual K V) ⊗ V ⟶ 𝟙_ (FinVect K) :=
-(contract_left K V.val : _ →ₗ[K] _)
+(contract_left K V.val : _  →ₗ[K] K)
 
 lemma FinVect_evaluation_apply (f : (FinVect_dual K V).val) (x : V.val) :
   (FinVect_evaluation K V) (f ⊗ₜ x) = by { change K, change _ →ₗ[K] _ at f, exact f x } :=

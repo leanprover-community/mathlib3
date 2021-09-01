@@ -158,11 +158,13 @@ lemma det_aux_comp (b : trunc $ basis ι A M) (f g : M →ₗ[A] M) :
 section
 open_locale classical
 
+-- Discourage the elaborator from unfolding `det` and producing a huge term by marking it
+-- as irreducible.
 /-- The determinant of an endomorphism independent of basis.
 
 If there is no finite basis on `M`, the result is `1` instead.
 -/
-protected def det : (M →ₗ[A] M) →* A :=
+@[irreducible] protected def det : (M →ₗ[A] M) →* A :=
 if H : ∃ (s : finset M), nonempty (basis s A M)
 then linear_map.det_aux (trunc.mk H.some_spec.some)
 else 1
@@ -178,9 +180,6 @@ by { ext, unfold linear_map.det,
 
 end
 
--- Discourage the elaborator from unfolding `det` and producing a huge term.
-attribute [irreducible] linear_map.det
-
 -- Auxiliary lemma, the `simp` normal form goes in the other direction
 -- (using `linear_map.det_to_matrix`)
 lemma det_eq_det_to_matrix_of_finset [decidable_eq M]
@@ -195,6 +194,11 @@ by rw [linear_map.coe_det, dif_pos, det_aux_def' _ b]; assumption
   matrix.det (to_matrix b b f) = f.det :=
 by { haveI := classical.dec_eq M,
      rw [det_eq_det_to_matrix_of_finset b.reindex_finset_range, det_to_matrix_eq_det_to_matrix b] }
+
+@[simp] lemma det_to_matrix' {ι : Type*} [fintype ι] [decidable_eq ι]
+  (f : (ι → A) →ₗ[A] (ι → A)) :
+  det (f.to_matrix') = f.det :=
+by simp [← to_matrix_eq_to_matrix']
 
 /-- To show `P f.det` it suffices to consider `P (to_matrix _ _ f).det` and `P 1`. -/
 @[elab_as_eliminator]

@@ -16,6 +16,9 @@ In this file we define and prove properties about finite products of measures
 * `measure_theory.measure.pi`: The product of finitely many σ-finite measures.
   Given `μ : Π i : ι, measure (α i)` for `[fintype ι]` it has type `measure (Π i : ι, α i)`.
 
+To apply Fubini along some subset of the variables, use `map_pi_equiv_pi_subtype_prod_symm` to
+reduce to the situation of a product of two measures.
+
 ## Implementation Notes
 
 We define `measure_theory.outer_measure.pi`, the product of finitely many outer measures, as the
@@ -496,40 +499,44 @@ begin
   exacts [ennreal.prod_lt_top (λ i _, hμ i), λ i, (ho i).measurable_set]
 end
 
-lemma zoug (p : ι → Prop) [decidable_pred p] {β : Type*} [measurable_space β]
-  (μ : Π (i : ι), measure β) [∀ i, sigma_finite (μ i)] :
-  measure.map (equiv.arrow_equiv_subtype_arrow_prod p β).symm
+variable (μ)
+
+/-- Separating the coordinates into those that satisfy a predicate `p` and those that don't maps
+a product measure to a product of product measures. This is useful to apply Fubini to some subset
+of the variables. The converse is `map_pi_equiv_pi_subtype_prod` -/
+lemma map_pi_equiv_pi_subtype_prod_symm (p : ι → Prop) [decidable_pred p] :
+  map (equiv.pi_equiv_pi_subtype_prod p α).symm
     (measure.prod (measure.pi (λ i, μ i)) (measure.pi (λ i, μ i))) = measure.pi μ :=
 begin
-  symmetry,
-  refine (measure.pi_eq (λ s hs, _)),
-  have A : (equiv.arrow_equiv_subtype_arrow_prod p β).symm ⁻¹' (set.pi set.univ (λ (i : ι), s i)) =
+  refine (measure.pi_eq (λ s hs, _)).symm,
+  have A : (equiv.pi_equiv_pi_subtype_prod p α).symm ⁻¹' (set.pi set.univ (λ (i : ι), s i)) =
     set.prod (set.pi set.univ (λ i, s i)) (set.pi set.univ (λ i, s i)),
-  sorry,
-  /-{ ext x,
-    simp only [equiv.arrow_equiv_subtype_arrow_prod_symm_apply, mem_prod, mem_univ_pi,
-      mem_preimage, subtype.forall, subtype.coe_mk],
+  { ext x,
+    simp only [equiv.pi_equiv_pi_subtype_prod_symm_apply, mem_prod, mem_univ_pi, mem_preimage,
+      subtype.forall],
     split,
     { exact λ h, ⟨λ i hi, by simpa [dif_pos hi] using h i,
                   λ i hi, by simpa [dif_neg hi] using h i⟩ },
     { assume h i,
       by_cases hi : p i,
-      simpa [dif_pos hi] using h.1 i hi,
-      simpa [dif_neg hi] using h.2 i hi } },-/
-  rw [measure.map_apply sorry (measurable_set.univ_pi_fintype hs), A,
+      simpa only [dif_pos hi] using h.1 i hi,
+      simpa only [dif_neg hi] using h.2 i hi } },
+  rw [measure.map_apply (measurable_pi_equiv_pi_subtype_prod_symm _ p)
+        (measurable_set.univ_pi_fintype hs), A,
       measure.prod_prod, pi_pi, pi_pi, ← fintype.prod_subtype_mul_prod_subtype p (λ i, μ i (s i))],
   { exact λ i, hs i.1 },
   { exact λ i, hs i.1 },
   { exact measurable_set.univ_pi_fintype (λ i, hs i.1) },
-  { exact measurable_set.univ_pi_fintype (λ i, hs i.1) }
+  { exact measurable_set.univ_pi_fintype (λ i, hs i.1) },
 end
 
-#exit
-
-  rw [measure.map_apply sorry (measurable_set.univ_pi_fintype hs), A, measure.volume_eq_prod,
-      measure.prod_prod, volume_pi_pi, volume_pi_pi],
-
-
+lemma map_pi_equiv_pi_subtype_prod (p : ι → Prop) [decidable_pred p] :
+  map (equiv.pi_equiv_pi_subtype_prod p α) (measure.pi μ) =
+    measure.prod (measure.pi (λ i, μ i)) (measure.pi (λ i, μ i)) :=
+begin
+  rw [← map_pi_equiv_pi_subtype_prod_symm μ p, measure.map_map
+      (measurable_pi_equiv_pi_subtype_prod _ p) (measurable_pi_equiv_pi_subtype_prod_symm _ p)],
+  simp only [equiv.self_comp_symm, map_id]
 end
 
 end measure

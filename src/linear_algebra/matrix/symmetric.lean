@@ -69,7 +69,7 @@ by simp [matrix.is_sym, transpose_mul]
 
 /-- The identity matrix is symmetric. -/
 @[simp] lemma is_sym_one [decidable_eq I] [has_zero α] [has_one α] :
-(1 : matrix I I α).is_sym := by {ext, simp}
+  (1 : matrix I I α).is_sym := by {ext, simp}
 
 /-- The negtive identity matrix is symmetric. -/
 @[simp] lemma is_sym_of_neg_one [decidable_eq I] [has_zero α] [has_one α] [has_neg α] :

@@ -59,7 +59,7 @@ class add_torsor (G : out_param Type*) (P : Type*) [out_param $ add_group G]
 (vsub_vadd' : ∀ (p1 p2 : P), (p1 -ᵥ p2 : G) +ᵥ p2 = p1)
 (vadd_vsub' : ∀ (g : G) (p : P), g +ᵥ p -ᵥ p = g)
 
-attribute [instance, priority 100, nolint dangerous_instance] add_torsor.nonempty
+-- attribute [instance, priority 100, nolint dangerous_instance] add_torsor.nonempty
 attribute [nolint dangerous_instance] add_torsor.to_has_vsub
 
 /-- An `add_group G` is a torsor for itself. -/
@@ -296,6 +296,8 @@ namespace prod
 
 variables {G : Type*} {P : Type*} {G' : Type*} {P' : Type*} [add_group G] [add_group G']
   [add_torsor G P] [add_torsor G' P']
+
+local attribute [instance] add_torsor.nonempty
 
 instance : add_torsor (G × G') (P × P') :=
 { vadd := λ v p, (v.1 +ᵥ p.1, v.2 +ᵥ p.2),

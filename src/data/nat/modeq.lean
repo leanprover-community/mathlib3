@@ -353,4 +353,14 @@ lemma rotate_eq_self_iff_eq_repeat [hα : nonempty α] : ∀ {l : list α},
       by rw [nth_le_repeat, ← option.some_inj, ← list.nth_le_nth, nth_rotate h, list.nth_le_nth,
         nth_le_repeat]; simp * at *)⟩
 
+lemma rotate_repeat (a : α) (n : ℕ) (k : ℕ) :
+  (list.repeat a n).rotate k = list.repeat a n :=
+let h : nonempty α := ⟨a⟩ in by exactI rotate_eq_self_iff_eq_repeat.mpr ⟨a, by rw length_repeat⟩ k
+
+lemma rotate_one_eq_self_iff_eq_repeat [nonempty α] {l : list α} :
+  l.rotate 1 = l ↔ ∃ a : α, l = list.repeat a l.length :=
+⟨λ h, rotate_eq_self_iff_eq_repeat.mp (λ n, nat.rec l.rotate_zero
+  (λ n hn, by rwa [nat.succ_eq_add_one, ←l.rotate_rotate, hn]) n),
+    λ h, rotate_eq_self_iff_eq_repeat.mpr h 1⟩
+
 end list

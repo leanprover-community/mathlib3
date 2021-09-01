@@ -2472,8 +2472,8 @@ lemma map_coe_at_top_of_Ioo_subset (hb : s ⊆ Iio b)
   map (coe : s → α) at_top = 𝓝[Iio b] b :=
 begin
   rcases eq_empty_or_nonempty (Iio b) with (hb'|⟨a, ha⟩),
-  { rw [filter_eq_bot_of_not_nonempty at_top, map_bot, hb', nhds_within_empty],
-    exact λ ⟨⟨x, hx⟩⟩, not_nonempty_iff_eq_empty.2 hb' ⟨x, hb hx⟩ },
+  { rw [filter_eq_bot_of_is_empty at_top, map_bot, hb', nhds_within_empty],
+    exact ⟨λ x, hb'.subset (hb x.2)⟩ },
   { rw [← comap_coe_nhds_within_Iio_of_Ioo_subset hb (λ _, hs a ha), map_comap_of_mem],
     rw subtype.range_coe,
     exact (mem_nhds_within_Iio_iff_exists_Ioo_subset' ha).2 (hs a ha) },
@@ -3212,90 +3212,195 @@ end order_topology
 /-!
 ### Bounded monotone sequences converge
 
-The first result in this section is that in a linear order `α`, if the range of a monotone function
-`f : α → ι` admits a least upper bound `a`, then `f` converges to `a`.
+In this section we prove a few theorems of the form “if the range of a monotone function `f : ι → α`
+admits a least upper bound `a`, then `f x` tends to `a` as `x → ∞`”, as well as version of this
+statement for (conditionally) complete lattices that use `⨆ x, f x` instead of `is_lub`.
 
-Later results specialize this to the case of (conditionally) complete linear orders, where the
-existence of a least upper bound `α` is automatic.  In these settings the result is that `f`
-converges to its supremum, `⨆ i, f i`.
-
-Here is a counter-example to show that the order must be a linear (i.e., total) order. Take
-`α = [0, 1) → ℝ` with the natural lattice structure; this is a `conditionally_complete_lattice`.
-Take `ι = ℕ` and `f n x = -x^n`. Then `⨆ n, f n = 0` while none of `f n` is strictly greater than
-the constant function `-0.5`.
+These theorems work for linear orders with order topologies as well as their products (both in terms
+of `prod` and in terms of function types). In order to reduce code duplication, we introduce two
+typeclasses (one for the property formulated above and one for the dual property), prove theorems
+assuming one of these typeclasses, and provide instances for linear orders and their products.
 -/
 
-lemma tendsto_at_top_is_lub {ι α : Type*} [preorder ι] [topological_space α] [linear_order α]
-  [order_topology α] {f : ι → α} (h_mono : monotone f) {a : α} (ha : is_lub (set.range f) a) :
+/-- We say that `α` is a `Sup_convergence_class` if the following holds. Let `f : ι → α` be a
+monotone function, let `a : α` be a least upper bound of `set.range f`. Then `f x` tends to `𝓝 a` as
+`x → ∞` (formally, at the filter `filter.at_top`). We require this for `ι = (s : set α)`, `f = coe`
+in the definition, then prove it for any `f` in `tendsto_at_top_is_lub`.
+
+This property holds for linear orders with order topology as well as their products. -/
+class Sup_convergence_class (α : Type*) [preorder α] [topological_space α] : Prop :=
+(tendsto_coe_at_top_is_lub : ∀ (a : α) (s : set α), is_lub s a → tendsto (coe : s → α) at_top (𝓝 a))
+
+/-- We say that `α` is an `Inf_convergence_class` if the following holds. Let `f : ι → α` be a
+monotone function, let `a : α` be a greatest lower bound of `set.range f`. Then `f x` tends to `𝓝 a`
+as `x → -∞` (formally, at the filter `filter.at_bot`). We require this for `ι = (s : set α)`,
+`f = coe` in the definition, then prove it for any `f` in `tendsto_at_bot_is_glb`.
+
+This property holds for linear orders with order topology as well as their products. -/
+class Inf_convergence_class (α : Type*) [preorder α] [topological_space α] : Prop :=
+(tendsto_coe_at_bot_is_glb : ∀ (a : α) (s : set α), is_glb s a → tendsto (coe : s → α) at_bot (𝓝 a))
+
+instance order_dual.Sup_convergence_class [preorder α] [topological_space α]
+  [Inf_convergence_class α] : Sup_convergence_class (order_dual α) :=
+⟨‹Inf_convergence_class α›.1⟩
+
+instance order_dual.Inf_convergence_class [preorder α] [topological_space α]
+  [Sup_convergence_class α] : Inf_convergence_class (order_dual α) :=
+⟨‹Sup_convergence_class α›.1⟩
+
+@[priority 100] -- see Note [lower instance priority]
+instance linear_order.Sup_convergence_class [topological_space α] [linear_order α]
+  [order_topology α] : Sup_convergence_class α :=
+begin
+  refine ⟨λ a s ha, tendsto_order.2 ⟨λ b hb, _, λ b hb, _⟩⟩,
+  { rcases ha.exists_between hb with ⟨c, hcs, bc, bca⟩,
+    lift c to s using hcs,
+    refine (eventually_ge_at_top c).mono (λ x hx, bc.trans_le hx) },
+  { exact eventually_of_forall (λ x, (ha.1 x.2).trans_lt hb) }
+end
+
+@[priority 100] -- see Note [lower instance priority]
+instance linear_order.Inf_convergence_class [topological_space α] [linear_order α]
+  [order_topology α] : Inf_convergence_class α :=
+show Inf_convergence_class (order_dual $ order_dual α), from order_dual.Inf_convergence_class
+
+section
+
+variables {ι : Type*} [preorder ι] [topological_space α]
+
+section is_lub
+
+variables [preorder α] [Sup_convergence_class α] {f : ι → α} {a : α}
+
+lemma tendsto_at_top_is_lub (h_mono : monotone f) (ha : is_lub (set.range f) a) :
   tendsto f at_top (𝓝 a) :=
 begin
-  by_cases hi : nonempty ι,
-  { resetI,
-    rw tendsto_order,
-    split,
-    { intros a' ha',
-      obtain ⟨_, ⟨N, rfl⟩, hN⟩ : ∃ x ∈ set.range f, a' < x := (lt_is_lub_iff ha).mp ha',
-      have := ha.2,
-      apply eventually.mono (mem_at_top N),
-      exact λ i hi, lt_of_lt_of_le hN (h_mono hi) },
-    { intros a' ha',
-      exact eventually_of_forall (λ i, lt_of_le_of_lt (ha.1 (set.mem_range_self i)) ha') } },
-  { exact tendsto_of_not_nonempty hi }
+  suffices : tendsto (range_factorization f) at_top at_top,
+    from (Sup_convergence_class.tendsto_coe_at_top_is_lub _ _ ha).comp this,
+  exact h_mono.range_factorization.tendsto_at_top_at_top (λ b, b.2.imp $ λ a ha, ha.ge)
 end
 
-lemma tendsto_at_bot_is_glb {ι α : Type*} [preorder ι] [topological_space α] [linear_order α]
-  [order_topology α] {f : ι → α} (h_mono : monotone f) {a : α} (ha : is_glb (set.range f) a) :
-  tendsto f at_bot (𝓝 a) :=
-@tendsto_at_top_is_lub (order_dual ι) (order_dual α) _ _ _ _ _ h_mono.order_dual _ ha
+lemma tendsto_at_bot_is_lub (h_mono : monotone (order_dual.to_dual ∘ f))
+  (ha : is_lub (set.range f) a) : tendsto f at_bot (𝓝 a) :=
+@tendsto_at_top_is_lub α (order_dual ι) _ _ _ _ f a h_mono.order_dual ha
 
-lemma tendsto_at_top_csupr {ι α : Type*} [preorder ι] [topological_space α]
-  [conditionally_complete_linear_order α] [order_topology α]
-  {f : ι → α} (h_mono : monotone f) (hbdd : bdd_above $ range f) :
+end is_lub
+
+section is_glb
+
+variables [preorder α] [Inf_convergence_class α] {f : ι → α} {a : α}
+
+lemma tendsto_at_bot_is_glb (h_mono : monotone f) (ha : is_glb (set.range f) a) :
+  tendsto f at_bot (𝓝 a) :=
+@tendsto_at_top_is_lub (order_dual α) (order_dual ι) _ _ _ _ f a h_mono.order_dual ha
+
+lemma tendsto_at_top_is_glb (h_mono : monotone (order_dual.to_dual ∘ f))
+  (ha : is_glb (set.range f) a) :
+  tendsto f at_top (𝓝 a) :=
+@tendsto_at_top_is_lub (order_dual α) ι _ _ _ _ f a h_mono ha
+
+end is_glb
+
+section csupr
+
+variables [conditionally_complete_lattice α] [Sup_convergence_class α] {f : ι → α} {a : α}
+
+lemma tendsto_at_top_csupr (h_mono : monotone f) (hbdd : bdd_above $ range f) :
   tendsto f at_top (𝓝 (⨆i, f i)) :=
 begin
-  by_cases hi : nonempty ι,
-  { resetI,
-    exact tendsto_at_top_is_lub h_mono (is_lub_cSup (range_nonempty f) hbdd) },
-  { exact tendsto_of_not_nonempty hi }
+  casesI is_empty_or_nonempty ι,
+  exacts [tendsto_of_is_empty, tendsto_at_top_is_lub h_mono (is_lub_csupr hbdd)]
 end
 
-lemma tendsto_at_bot_cinfi {ι α : Type*} [preorder ι] [topological_space α]
-  [conditionally_complete_linear_order α] [order_topology α]
-  {f : ι → α} (h_mono : monotone f) (hbdd : bdd_below $ range f) :
-  tendsto f at_bot (𝓝 (⨅i, f i)) :=
-@tendsto_at_top_csupr (order_dual ι) (order_dual α) _ _ _ _ _ h_mono.order_dual hbdd
-
-lemma tendsto_at_top_cinfi {ι α : Type*} [preorder ι] [topological_space α]
-  [conditionally_complete_linear_order α] [order_topology α]
-  {f : ι → α} (h_mono : ∀ ⦃i j⦄, i ≤ j → f j ≤ f i) (hbdd : bdd_below $ range f) :
-  tendsto f at_top (𝓝 (⨅i, f i)) :=
-@tendsto_at_top_csupr _ (order_dual α) _ _ _ _ _ @h_mono hbdd
-
-lemma tendsto_at_bot_csupr {ι α : Type*} [preorder ι] [topological_space α]
-  [conditionally_complete_linear_order α] [order_topology α]
-  {f : ι → α} (h_mono : ∀ ⦃i j⦄, i ≤ j → f j ≤ f i) (hbdd : bdd_above $ range f) :
+lemma tendsto_at_bot_csupr (h_mono : monotone (order_dual.to_dual ∘ f))
+  (hbdd : bdd_above $ range f) :
   tendsto f at_bot (𝓝 (⨆i, f i)) :=
-@tendsto_at_bot_cinfi ι (order_dual α) _ _ _ _ _ h_mono hbdd
+@tendsto_at_top_csupr α (order_dual ι) _ _ _ _ _ h_mono.order_dual hbdd
 
-lemma tendsto_at_top_supr {ι α : Type*} [preorder ι] [topological_space α]
-  [complete_linear_order α] [order_topology α] {f : ι → α} (h_mono : monotone f) :
-  tendsto f at_top (𝓝 (⨆i, f i)) :=
+end csupr
+
+section cinfi
+
+variables [conditionally_complete_lattice α] [Inf_convergence_class α] {f : ι → α} {a : α}
+
+lemma tendsto_at_bot_cinfi (h_mono : monotone f) (hbdd : bdd_below $ range f) :
+  tendsto f at_bot (𝓝 (⨅i, f i)) :=
+@tendsto_at_top_csupr (order_dual α) (order_dual ι) _ _ _ _ _ h_mono.order_dual hbdd
+
+lemma tendsto_at_top_cinfi (h_mono : monotone (order_dual.to_dual ∘ f))
+  (hbdd : bdd_below $ range f) :
+  tendsto f at_top (𝓝 (⨅i, f i)) :=
+@tendsto_at_top_csupr (order_dual α) ι _ _ _ _ _ h_mono hbdd
+
+end cinfi
+
+section supr
+
+variables [complete_lattice α] [Sup_convergence_class α] {f : ι → α} {a : α}
+
+lemma tendsto_at_top_supr (h_mono : monotone f) : tendsto f at_top (𝓝 (⨆i, f i)) :=
 tendsto_at_top_csupr h_mono (order_top.bdd_above _)
 
-lemma tendsto_at_bot_infi {ι α : Type*} [preorder ι] [topological_space α]
-  [complete_linear_order α] [order_topology α] {f : ι → α} (h_mono : monotone f) :
-  tendsto f at_bot (𝓝 (⨅i, f i)) :=
-tendsto_at_bot_cinfi h_mono (order_bot.bdd_below _)
-
-lemma tendsto_at_top_infi {ι α : Type*} [preorder ι] [topological_space α]
-  [complete_linear_order α] [order_topology α] {f : ι → α} (h_mono : ∀ ⦃i j⦄, i ≤ j → f j ≤ f i) :
-  tendsto f at_top (𝓝 (⨅i, f i)) :=
-tendsto_at_top_cinfi @h_mono (order_bot.bdd_below _)
-
-lemma tendsto_at_bot_supr {ι α : Type*} [preorder ι] [topological_space α]
-  [complete_linear_order α] [order_topology α] {f : ι → α} (h_mono : ∀ ⦃i j⦄, i ≤ j → f j ≤ f i) :
+lemma tendsto_at_bot_supr (h_mono : monotone (order_dual.to_dual ∘ f)) :
   tendsto f at_bot (𝓝 (⨆i, f i)) :=
 tendsto_at_bot_csupr h_mono (order_top.bdd_above _)
+
+end supr
+
+section infi
+
+variables [complete_lattice α] [Inf_convergence_class α] {f : ι → α} {a : α}
+
+lemma tendsto_at_bot_infi (h_mono : monotone f) : tendsto f at_bot (𝓝 (⨅i, f i)) :=
+tendsto_at_bot_cinfi h_mono (order_bot.bdd_below _)
+
+lemma tendsto_at_top_infi (h_mono : monotone (order_dual.to_dual ∘ f)) :
+  tendsto f at_top (𝓝 (⨅i, f i)) :=
+tendsto_at_top_cinfi h_mono (order_bot.bdd_below _)
+
+end infi
+
+end
+
+instance [preorder α] [preorder β] [topological_space α] [topological_space β]
+  [Sup_convergence_class α] [Sup_convergence_class β] : Sup_convergence_class (α × β) :=
+begin
+  constructor,
+  rintro ⟨a, b⟩ s h,
+  rw [is_lub_prod, ← range_restrict, ← range_restrict] at h,
+  have A : tendsto (λ x : s, (x : α × β).1) at_top (𝓝 a),
+    from tendsto_at_top_is_lub (monotone_fst.restrict s) h.1,
+  have B : tendsto (λ x : s, (x : α × β).2) at_top (𝓝 b),
+    from tendsto_at_top_is_lub (monotone_snd.restrict s) h.2,
+  convert A.prod_mk_nhds B,
+  ext1 ⟨⟨x, y⟩, h⟩, refl
+end
+
+instance [preorder α] [preorder β] [topological_space α] [topological_space β]
+  [Inf_convergence_class α] [Inf_convergence_class β] : Inf_convergence_class (α × β) :=
+show Inf_convergence_class (order_dual $ (order_dual α × order_dual β)),
+  from order_dual.Inf_convergence_class
+
+instance {ι : Type*} {α : ι → Type*} [Π i, preorder (α i)] [Π i, topological_space (α i)]
+  [Π i, Sup_convergence_class (α i)] : Sup_convergence_class (Π i, α i) :=
+begin
+  refine ⟨λ f s h, _⟩,
+  simp only [is_lub_pi, ← range_restrict] at h,
+  exact tendsto_pi.2 (λ i, tendsto_at_top_is_lub ((monotone_eval _).restrict _) (h i))
+end
+
+instance {ι : Type*} {α : ι → Type*} [Π i, preorder (α i)] [Π i, topological_space (α i)]
+  [Π i, Inf_convergence_class (α i)] : Inf_convergence_class (Π i, α i) :=
+show Inf_convergence_class (order_dual $ Π i, order_dual (α i)),
+  from order_dual.Inf_convergence_class
+
+instance pi.Sup_convergence_class' {ι : Type*} [preorder α] [topological_space α]
+  [Sup_convergence_class α] : Sup_convergence_class (ι → α) :=
+pi.Sup_convergence_class
+
+instance pi.Inf_convergence_class' {ι : Type*} [preorder α] [topological_space α]
+  [Inf_convergence_class α] : Inf_convergence_class (ι → α) :=
+pi.Inf_convergence_class
 
 lemma tendsto_of_monotone {ι α : Type*} [preorder ι] [topological_space α]
   [conditionally_complete_linear_order α] [order_topology α] {f : ι → α} (h_mono : monotone f) :

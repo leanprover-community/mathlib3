@@ -393,6 +393,10 @@ begin
   { assume a s has ih, simp [has, ih, mul_sup], }
 end
 
+lemma finset_sup_div {α} {f : α → ℝ≥0} {s : finset α} (r : ℝ≥0) :
+  s.sup f / r = s.sup (λ a, f a / r) :=
+by simp only [div_eq_inv_mul, mul_finset_sup]
+
 @[simp, norm_cast] lemma coe_max (x y : ℝ≥0) :
   ((max x y : ℝ≥0) : ℝ) = max (x : ℝ) (y : ℝ) :=
 by { delta max, split_ifs; refl }
@@ -763,19 +767,26 @@ abs_of_nonneg x.property
 
 end nnreal
 
+namespace real
+
 /-- The absolute value on `ℝ` as a map to `ℝ≥0`. -/
-@[pp_nodot] def real.nnabs (x : ℝ) : ℝ≥0 := ⟨abs x, abs_nonneg x⟩
+@[pp_nodot] def nnabs : monoid_with_zero_hom ℝ ℝ≥0 :=
+{ to_fun := λ x, ⟨abs x, abs_nonneg x⟩,
+  map_zero' := by { ext, simp },
+  map_one' := by { ext, simp },
+  map_mul' := λ x y, by { ext, simp [abs_mul] } }
 
-@[norm_cast, simp] lemma nnreal.coe_nnabs (x : ℝ) : (real.nnabs x : ℝ) = abs x :=
-by simp [real.nnabs]
+@[norm_cast, simp] lemma coe_nnabs (x : ℝ) : (nnabs x : ℝ) = abs x :=
+by simp [nnabs]
 
-@[simp]
-lemma real.nnabs_of_nonneg {x : ℝ} (h : 0 ≤ x) : real.nnabs x = real.to_nnreal x :=
-by { ext, simp [real.coe_to_nnreal x h, abs_of_nonneg h] }
+@[simp] lemma nnabs_of_nonneg {x : ℝ} (h : 0 ≤ x) : nnabs x = to_nnreal x :=
+by { ext, simp [coe_to_nnreal x h, abs_of_nonneg h] }
 
-lemma real.coe_to_nnreal_le (x : ℝ) : (real.to_nnreal x : ℝ) ≤ abs x :=
+lemma coe_to_nnreal_le (x : ℝ) : (to_nnreal x : ℝ) ≤ abs x :=
 max_le (le_abs_self _) (abs_nonneg _)
 
 lemma cast_nat_abs_eq_nnabs_cast (n : ℤ) :
-  (n.nat_abs : ℝ≥0) = real.nnabs n :=
-by { ext, rw [nnreal.coe_nat_cast, int.cast_nat_abs, nnreal.coe_nnabs] }
+  (n.nat_abs : ℝ≥0) = nnabs n :=
+by { ext, rw [nnreal.coe_nat_cast, int.cast_nat_abs, real.coe_nnabs] }
+
+end real

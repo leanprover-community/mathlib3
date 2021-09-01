@@ -436,6 +436,13 @@ begin
       simp only [or.by_cases, dif_neg this, dif_pos h], } }
 end
 
+/-- A version of `is_noetherian_pi` for non-dependent functions. We need this instance because
+sometimes Lean fails to apply the dependent version in non-dependent settings (e.g., it fails to
+prove that `ι → ℝ` is finite dimensional over `ℝ`). -/
+instance is_noetherian_pi' {R ι M : Type*} [ring R] [add_comm_group M] [module R M] [fintype ι]
+  [is_noetherian R M] : is_noetherian R (ι → M) :=
+is_noetherian_pi
+
 end
 
 open is_noetherian submodule function
@@ -461,8 +468,8 @@ variables {R M}
 lemma finite_of_linear_independent [nontrivial R] [is_noetherian R M]
   {s : set M} (hs : linear_independent R (coe : s → M)) : s.finite :=
 begin
-  refine classical.by_contradiction (λ hf, rel_embedding.well_founded_iff_no_descending_seq.1
-    (well_founded_submodule_gt R M) ⟨_⟩),
+  refine classical.by_contradiction (λ hf, (rel_embedding.well_founded_iff_no_descending_seq.1
+    (well_founded_submodule_gt R M)).elim' _),
   have f : ℕ ↪ s, from @infinite.nat_embedding s ⟨λ f, hf ⟨f⟩⟩,
   have : ∀ n, (coe ∘ f) '' {m | m ≤ n} ⊆ s,
   { rintros n x ⟨y, hy₁, hy₂⟩, subst hy₂, exact (f y).2 },
@@ -614,6 +621,16 @@ theorem is_noetherian_of_quotient_of_noetherian (R) [ring R] (M) [add_comm_group
 begin
   rw is_noetherian_iff_well_founded at h ⊢,
   exact order_embedding.well_founded (submodule.comap_mkq.order_embedding N).dual h,
+end
+
+/-- If `M / S / R` is a scalar tower, and `M / R` is Noetherian, then `M / S` is
+also noetherian. -/
+theorem is_noetherian_of_tower (R) {S M} [comm_ring R] [ring S]
+  [add_comm_group M] [algebra R S] [module S M] [module R M] [is_scalar_tower R S M]
+  (h : is_noetherian R M) : is_noetherian S M :=
+begin
+  rw is_noetherian_iff_well_founded at h ⊢,
+  refine (submodule.restrict_scalars_embedding R S M).dual.well_founded h
 end
 
 theorem is_noetherian_of_fg_of_noetherian {R M} [ring R] [add_comm_group M] [module R M]

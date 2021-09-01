@@ -58,3 +58,22 @@ let t := d.type.eta_expand env reorder,
 let decl := declaration.defn `barr6 d.univ_params t e d.reducibility_hints d.is_trusted,
 add_decl decl,
 skip
+
+/-! Test the namespace bug (#8733). This code should *not* generate a lemma
+  `add_some_def.in_namespace`. -/
+def some_def.in_namespace : bool := ff
+
+def some_def {α : Type*} [has_mul α] (x : α) : α :=
+if some_def.in_namespace then x * x else x
+
+-- cannot apply `@[to_additive]` to `some_def` if `some_def.in_namespace` doesn't have the attribute
+run_cmd do
+  dict ← to_additive.aux_attr.get_cache,
+  success_if_fail
+    (transform_decl_with_prefix_dict dict ff tt mk_name_map mk_name_map `some_def `add_some_def []),
+  skip
+
+attribute [to_additive some_other_name] some_def.in_namespace
+attribute [to_additive add_some_def] some_def
+
+run_cmd success_if_fail (get_decl `add_some_def.in_namespace)

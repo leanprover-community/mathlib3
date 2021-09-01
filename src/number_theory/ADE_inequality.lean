@@ -97,8 +97,8 @@ def sum_inv (pqr : multiset ℕ+) : ℚ :=
 multiset.sum $ pqr.map $ λ x, x⁻¹
 
 lemma sum_inv_pqr (p q r : ℕ+) : sum_inv {p,q,r} = p⁻¹ + q⁻¹ + r⁻¹ :=
-by simp only [sum_inv, map_congr, coe_coe, add_zero, insert_eq_cons, add_assoc,
-    singleton_eq_singleton, map_cons, sum_cons, map_zero, sum_zero]
+by simp only [sum_inv, coe_coe, add_zero, insert_eq_cons, add_assoc,
+    map_cons, sum_cons, map_singleton, sum_singleton]
 
 /-- A multiset `pqr` of positive natural numbers is `admissible`
 if it is equal to `A' q r`, or `D' r`, or one of `E6`, `E7`, or `E8`. -/
@@ -203,8 +203,8 @@ begin
   have hpqr : ({p,q,r} : multiset ℕ+) = S := (sort_eq has_le.le {p, q, r}).symm,
   simp only [hpqr] at *,
   apply admissible_of_one_lt_sum_inv_aux hS _ H,
-  simp only [singleton_eq_singleton, length_sort, insert_eq_cons, card_singleton,
-    card_cons, card_zero],
+  simp only [S, length_sort],
+  dec_trivial,
 end
 
 /-- A multiset `{p,q,r}` of positive natural numbers

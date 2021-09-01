@@ -61,7 +61,7 @@ def generate_from (g : set (set α)) : topological_space α :=
 { is_open        := generate_open g,
   is_open_univ   := generate_open.univ,
   is_open_inter  := generate_open.inter,
-  is_open_sUnion := generate_open.sUnion  }
+  is_open_sUnion := generate_open.sUnion }
 
 lemma nhds_generate_from {g : set (set α)} {a : α} :
   @nhds α (generate_from g) a = (⨅s∈{s | a ∈ s ∧ s ∈ g}, 𝓟 s) :=

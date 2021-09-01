@@ -255,18 +255,15 @@ begin
   case perm.cons : a l u hlu ih {
     cases huv with _ b _ v hab huv',
     rcases ih huv' with ⟨l₂, h₁₂, h₂₃⟩,
-    exact ⟨b::l₂, forall₂.cons hab h₁₂, h₂₃.cons _⟩
-  },
+    exact ⟨b::l₂, forall₂.cons hab h₁₂, h₂₃.cons _⟩ },
   case perm.swap : a₁ a₂ l₁ l₂ h₂₃ {
     cases h₂₃ with _ b₁ _ l₂ h₁ hr_₂₃,
     cases hr_₂₃ with _ b₂ _ l₂ h₂ h₁₂,
-    exact ⟨b₂::b₁::l₂, forall₂.cons h₂ (forall₂.cons h₁ h₁₂), perm.swap _ _ _⟩
-  },
+    exact ⟨b₂::b₁::l₂, forall₂.cons h₂ (forall₂.cons h₁ h₁₂), perm.swap _ _ _⟩ },
   case perm.trans : la₁ la₂ la₃ _ _ ih₁ ih₂ {
     rcases ih₂ huv with ⟨lb₂, hab₂, h₂₃⟩,
     rcases ih₁ hab₂ with ⟨lb₁, hab₁, h₁₂⟩,
-    exact ⟨lb₁, hab₁, perm.trans h₁₂ h₂₃⟩
-  }
+    exact ⟨lb₁, hab₁, perm.trans h₁₂ h₂₃⟩ }
 end
 
 lemma forall₂_comp_perm_eq_perm_comp_forall₂ : forall₂ r ∘r perm = perm ∘r forall₂ r :=
@@ -344,6 +341,13 @@ h₁.perm_of_length_le h₂.length_le
 
 theorem subperm.subset {l₁ l₂ : list α} : l₁ <+~ l₂ → l₁ ⊆ l₂
 | ⟨l, p, s⟩ := subset.trans p.symm.subset s.subset
+
+lemma subperm.filter (p : α → Prop) [decidable_pred p]
+  ⦃l l' : list α⦄ (h : l <+~ l') : filter p l <+~ filter p l' :=
+begin
+  obtain ⟨xs, hp, h⟩ := h,
+  exact ⟨_, hp.filter p, h.filter p⟩
+end
 
 end subperm
 

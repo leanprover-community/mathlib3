@@ -174,7 +174,7 @@ begin
 end
 
 /-- A bijection between the stabilizers of two elements in the same orbit. -/
-@[to_additive "A bijection between the stabilizers of two elements in the same orbit. "]
+--@[to_additive "A bijection between the stabilizers of two elements in the same orbit. "]
 noncomputable def stabilizer_equiv_stabilizer_of_orbit_rel {x y : β} (h : (orbit_rel α β).rel x y) :
   stabilizer α x ≃* stabilizer α y :=
 let g : α := classical.some h in
@@ -182,6 +182,38 @@ have hg : g • y = x := classical.some_spec h,
 have this : stabilizer α x = (stabilizer α y).map (mul_aut.conj g).to_monoid_hom,
   by rw [← hg, stabilizer_smul_eq_stabilizer_map_conj],
 (mul_equiv.subgroup_congr this).trans ((mul_aut.conj g).subgroup_equiv_map $ stabilizer α y).symm
+
+end mul_action
+
+namespace add_action
+
+variables [add_group α] [add_action α β]
+
+/-- If the stabilizer of `x` is `S`, then the stabilizer of `g • x` is `gSg⁻¹`. -/
+lemma stabilizer_smul_eq_stabilizer_map_conj (g : α) (x : β) :
+  (stabilizer α (g +ᵥ x) = (stabilizer α x).map (add_aut.conj g).to_add_monoid_hom) :=
+begin
+  ext h,
+  rw [mem_stabilizer_iff, ← vadd_left_cancel_iff (-g) , vadd_vadd, vadd_vadd, vadd_vadd,
+      add_left_neg, zero_vadd, ← mem_stabilizer_iff, add_subgroup.mem_map_equiv,
+      add_aut.conj_symm_apply]
+end
+
+noncomputable def stabilizer_equiv_stabilizer_of_orbit_rel {x y : β}
+  (h : (orbit_rel α β).rel x y) :
+  stabilizer α x ≃+ stabilizer α y :=
+let g : α := classical.some h in
+have hg : g +ᵥ y = x := classical.some_spec h,
+have this : stabilizer α x = (stabilizer α y).map (add_aut.conj g).to_add_monoid_hom,
+  by rw [← hg, stabilizer_smul_eq_stabilizer_map_conj],
+(add_equiv.add_subgroup_congr this).trans
+  ((add_aut.conj g).add_subgroup_equiv_map $ stabilizer α y).symm
+
+end add_action
+
+namespace mul_action
+
+variables [group α] [mul_action α β]
 
 open quotient_group
 

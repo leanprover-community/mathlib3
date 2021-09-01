@@ -53,6 +53,7 @@ In this file we define various operations on `submonoid`s and `monoid_hom`s.
 ### Operations on `monoid_hom`s
 
 * `monoid_hom.mrange`: range of a monoid homomorphism as a submonoid of the codomain;
+* `monoid_hom.mker`: kernel of a monoid homomorphism as a submonoid of the domain;
 * `monoid_hom.mrestrict`: restrict a monoid homomorphism to a submonoid;
 * `monoid_hom.cod_mrestrict`: restrict the codomain of a monoid homomorphism to a submonoid;
 * `monoid_hom.mrange_restrict`: restrict a monoid homomorphism to its range;
@@ -692,7 +693,7 @@ lemma prod_map_comap_prod' {M' : Type*} {N' : Type*} [mul_one_class M'] [mul_one
 set_like.coe_injective $ set.preimage_prod_map_prod f g _ _
 
 @[to_additive]
-lemma ker_prod_map' {M' : Type*} {N' : Type*} [mul_one_class M'] [mul_one_class N'] (f : M →* N)
+lemma mker_prod_map {M' : Type*} {N' : Type*} [mul_one_class M'] [mul_one_class N'] (f : M →* N)
   (g : M' →* N') : (prod_map f g).mker = f.mker.prod g.mker :=
 by rw [←comap_bot', ←comap_bot', ←comap_bot', ←prod_map_comap_prod', bot_prod_bot]
 

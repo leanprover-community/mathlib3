@@ -6,6 +6,7 @@ Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl, Reid Barton
 
 import category_theory.category.Cat
 import category_theory.category.default
+import category_theory.opposites
 import order.category.Preorder
 
 /-!
@@ -76,6 +77,11 @@ alias le_of_hom ← quiver.hom.le
 @[simp] lemma le_of_hom_hom_of_le {a b : α} (h : a ≤ b) : h.hom.le = h := rfl
 @[simp] lemma hom_of_le_le_of_hom {a b : α} (h : a ⟶ b) : h.le.hom = h :=
 by { cases h, cases h, refl, }
+
+/-- Construct a morphism in the opposite of a preorder category from an inequality. -/
+def op_hom_of_le {U V : αᵒᵖ} (h : unop V ≤ unop U) : U ⟶ V := h.hom.op
+
+lemma le_of_op_hom {U V : αᵒᵖ} (h : U ⟶ V) : unop V ≤ unop U := h.unop.le
 
 end category_theory
 

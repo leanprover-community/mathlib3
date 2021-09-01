@@ -1085,6 +1085,39 @@ end division_ring
 
 end alg_equiv
 
+namespace mul_semiring_action
+
+variables {M G : Type*} (R A : Type*) [comm_semiring R] [semiring A] [algebra R A]
+
+section
+variables [monoid M] [mul_semiring_action M A] [smul_comm_class M R A]
+
+/-- Each element of the monoid defines a algebra homomorphism.
+
+This is a stronger version of `mul_semiring_action.to_ring_hom` and
+`distrib_mul_action.to_linear_map`. -/
+@[simps]
+def to_alg_hom (m : M) : A →ₐ[R] A :=
+alg_hom.mk' (mul_semiring_action.to_ring_hom _ _ m) (smul_comm _)
+
+end
+
+section
+variables [group G] [mul_semiring_action G A] [smul_comm_class G R A]
+
+/-- Each element of the group defines a algebra equivalence.
+
+This is a stronger version of `mul_semiring_action.to_ring_equiv` and
+`distrib_mul_action.to_linear_equiv`. -/
+@[simps]
+def to_alg_equiv (g : G) : A ≃ₐ[R] A :=
+{ .. mul_semiring_action.to_ring_equiv _ _ g,
+  .. mul_semiring_action.to_alg_hom R A g }
+
+end
+
+end mul_semiring_action
+
 section nat
 
 variables {R : Type*} [semiring R]

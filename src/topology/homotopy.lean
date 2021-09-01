@@ -68,7 +68,8 @@ Extending a curried homotopy to a function `X → ℝ → Y`.
 def extend (F : homotopy f₀ f₁) : X → ℝ → Y := λ x, set.Icc_extend zero_le_one (F.curry x)
 
 @[simp]
-lemma extend_apply_zero (F : homotopy f₀ f₁) (x : X) : F.extend x 0 = f₀ x := by simp [extend, curry]
+lemma extend_apply_zero (F : homotopy f₀ f₁) (x : X) : F.extend x 0 = f₀ x :=
+  by simp [extend, curry]
 @[simp]
 lemma extend_apply_one (F : homotopy f₀ f₁) (x : X) : F.extend x 1 = f₁ x := by simp [extend, curry]
 

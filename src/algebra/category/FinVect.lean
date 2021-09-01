@@ -46,10 +46,12 @@ instance FinVect_has_sort_coe : has_coe_to_sort (FinVect K) := ⟨_, λ V, V.val
 instance FinVect_has_coe_to_fn (V W : FinVect K) : has_coe_to_fun (V ⟶ W) :=
   ⟨λ _, V.val → W.val, λ f, f.to_fun⟩
 
--- This should go to `linear_algebra` after `linear_algebra` is cleaned up.
--- Right now it cannot go to either `linear_algebra.tensor_product` or `linear_algebra.finite_dimension` because of dependencies.
+/- This should go to `linear_algebra` after `linear_algebra` is cleaned up.
+  Right now it cannot go to either `linear_algebra.tensor_product` or
+  `linear_algebra.finite_dimension` because of dependencies. -/
 instance finite_dimensional_tensor_product (V V₂ : Type*) [add_comm_group V]
-  [module K V] [add_comm_group V₂] [module K V₂] [finite_dimensional K V] [finite_dimensional K V₂] :
+  [module K V] [add_comm_group V₂] [module K V₂]
+  [finite_dimensional K V] [finite_dimensional K V₂] :
   finite_dimensional K (tensor_product K V V₂) :=
 finite_dimensional.of_fintype_basis
   (finsupp.basis.tensor_product (basis.of_vector_space K V) (basis.of_vector_space K V₂))

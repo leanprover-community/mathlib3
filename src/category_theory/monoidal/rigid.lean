@@ -22,12 +22,14 @@ exact pairings and duals.
 
 ## Main statements
 
-* `comp_right_adjoint_mate`: The adjoint mates of the composition is the composition of adjoint mates.
+* `comp_right_adjoint_mate`: The adjoint mates of the composition is the composition of
+  adjoint mates.
 
 ## Notations
 
 * `η_` and `ε_` denote the coevaluation and evaluation morphism of an exact pairing.
-* `X^*` and `*^X` denote the right and left dual of an object, as well as the adjoint mate of a morphism.
+* `X^*` and `*^X` denote the right and left dual of an object, as well as the adjoint
+  mate of a morphism.
 
 ## Future work
 
@@ -126,10 +128,12 @@ lemma left_dual_right_dual {X : C} [has_right_dual X] : *^(X^*) = X := rfl
 lemma right_dual_left_dual {X : C} [has_left_dual X] : (*^X)^* = X := rfl
 
 def right_adjoint_mate {X Y : C} [has_right_dual X] [has_right_dual Y] (f : X ⟶ Y) : Y^* ⟶ X^* :=
-(ρ_ _).inv ≫ (𝟙 _ ⊗ η_ _ _) ≫ (𝟙 _ ⊗ (f ⊗ 𝟙 _)) ≫ (α_ _ _ _).inv ≫ ((ε_ _ _) ⊗ 𝟙 _) ≫ (λ_ _).hom
+(ρ_ _).inv ≫ (𝟙 _ ⊗ η_ _ _) ≫ (𝟙 _ ⊗ (f ⊗ 𝟙 _))
+ ≫ (α_ _ _ _).inv ≫ ((ε_ _ _) ⊗ 𝟙 _) ≫ (λ_ _).hom
 
 def left_adjoint_mate {X Y : C} [has_left_dual X] [has_left_dual Y] (f : X ⟶ Y) : *^Y ⟶ *^X :=
-(λ_ _).inv ≫ (η_ *^X X ⊗ 𝟙 _) ≫ ((𝟙 _ ⊗ f) ⊗ 𝟙 _) ≫ (α_ _ _ _).hom ≫ (𝟙 _ ⊗ ε_ _ _) ≫ (ρ_ _).hom
+(λ_ _).inv ≫ (η_ *^X X ⊗ 𝟙 _) ≫ ((𝟙 _ ⊗ f) ⊗ 𝟙 _)
+ ≫ (α_ _ _ _).hom ≫ (𝟙 _ ⊗ ε_ _ _) ≫ (ρ_ _).hom
 
 notation f `^*` := right_adjoint_mate f
 notation `*^` f := left_adjoint_mate f
@@ -151,9 +155,10 @@ lemma right_adjoint_mate_comp {X Y Z : C} [has_right_dual X]
     ≫ (α_ Y^* Y Z).inv ≫ (ε_ Y Y^* ⊗ 𝟙 _) ≫ (λ_ Z).hom :=
 begin
   dunfold right_adjoint_mate,
-  rw [category.assoc, category.assoc, associator_inv_naturality_assoc, associator_inv_naturality_assoc,
-    ←tensor_id_comp_id_tensor g, category.assoc, category.assoc, category.assoc, category.assoc,
-    id_tensor_comp_tensor_id_assoc, ←left_unitor_naturality, tensor_id_comp_id_tensor_assoc],
+  rw [category.assoc, category.assoc, associator_inv_naturality_assoc,
+    associator_inv_naturality_assoc, ←tensor_id_comp_id_tensor g, category.assoc, category.assoc,
+    category.assoc, category.assoc, id_tensor_comp_tensor_id_assoc, ←left_unitor_naturality,
+    tensor_id_comp_id_tensor_assoc],
 end
 
 lemma left_adjoint_mate_comp {X Y Z : C} [has_left_dual X] [has_left_dual Y]
@@ -175,7 +180,8 @@ lemma comp_right_adjoint_mate {X Y Z : C}
   (f ≫ g)^* = g^* ≫ f^* :=
 begin
   rw right_adjoint_mate_comp,
-  simp only [right_adjoint_mate, comp_tensor_id, iso.cancel_iso_inv_left, id_tensor_comp, category.assoc],
+  simp only [right_adjoint_mate, comp_tensor_id, iso.cancel_iso_inv_left, id_tensor_comp,
+    category.assoc],
   symmetry, iterate 5 { transitivity, rw [←category.id_comp g, tensor_comp] },
   rw ←category.assoc,
   symmetry, iterate 2 { transitivity, rw ←category.assoc }, apply eq_whisker,
@@ -183,7 +189,8 @@ begin
   rw [←id_tensor_comp_tensor_id (λ_ X^*).hom g, id_tensor_right_unitor_inv, category.assoc,
     category.assoc, right_unitor_inv_naturality_assoc, ←associator_naturality_assoc, tensor_id,
     tensor_id_comp_id_tensor_assoc, ←associator_naturality_assoc],
-  slice_rhs 2 3 { rw [←tensor_comp, tensor_id, category.comp_id, ←category.id_comp (η_ Y Y^*), tensor_comp] },
+  slice_rhs 2 3 { rw [←tensor_comp, tensor_id, category.comp_id,
+    ←category.id_comp (η_ Y Y^*), tensor_comp] },
   rw [←id_tensor_comp_tensor_id _ (η_ Y Y^*), ←tensor_id],
   repeat { rw category.assoc },
   rw [pentagon_hom_inv_assoc, ←associator_naturality_assoc, associator_inv_naturality_assoc],
@@ -202,7 +209,8 @@ lemma comp_left_adjoint_mate {X Y Z : C}
   *^(f ≫ g) = *^g ≫ *^f :=
 begin
   rw left_adjoint_mate_comp,
-  simp only [left_adjoint_mate, id_tensor_comp, iso.cancel_iso_inv_left, comp_tensor_id, category.assoc],
+  simp only [left_adjoint_mate, id_tensor_comp, iso.cancel_iso_inv_left,
+    comp_tensor_id, category.assoc],
   symmetry, iterate 5 { transitivity, rw [←category.id_comp g, tensor_comp] },
   rw ← category.assoc,
   symmetry, iterate 2 { transitivity, rw ←category.assoc }, apply eq_whisker,
@@ -210,7 +218,8 @@ begin
   rw [←tensor_id_comp_id_tensor g (ρ_ *^X).hom, left_unitor_inv_tensor_id, category.assoc,
     category.assoc, left_unitor_inv_naturality_assoc, ←associator_inv_naturality_assoc, tensor_id,
     id_tensor_comp_tensor_id_assoc, ←associator_inv_naturality_assoc],
-  slice_rhs 2 3 { rw [←tensor_comp, tensor_id, category.comp_id, ←category.id_comp (η_ *^Y Y), tensor_comp] },
+  slice_rhs 2 3 { rw [←tensor_comp, tensor_id, category.comp_id,
+    ←category.id_comp (η_ *^Y Y), tensor_comp] },
   rw [←tensor_id_comp_id_tensor (η_ *^Y Y), ←tensor_id],
   repeat { rw category.assoc },
   rw [pentagon_inv_hom_assoc, ←associator_inv_naturality_assoc, associator_naturality_assoc],

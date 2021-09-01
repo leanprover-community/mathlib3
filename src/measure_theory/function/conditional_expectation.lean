@@ -841,8 +841,7 @@ variables {𝕜}
 
 lemma set_lintegral_nnnorm_condexp_L2_indicator_le (hm : m ≤ m0) (hs : measurable_set s)
   (hμs : μ s ≠ ∞) (x : E') {t : set α} (ht : @measurable_set _ m t) (hμt : μ t ≠ ∞) :
-  ∫⁻ a in t, ∥condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs x) a∥₊ ∂μ
-    ≤ μ (s ∩ t) * ∥x∥₊ :=
+  ∫⁻ a in t, ∥condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs x) a∥₊ ∂μ ≤ μ (s ∩ t) * ∥x∥₊ :=
 calc ∫⁻ a in t, ∥condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs x) a∥₊ ∂μ
     = ∫⁻ a in t, ∥(condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ)) a) • x∥₊ ∂μ :
 set_lintegral_congr_fun (hm t ht)
@@ -927,7 +926,7 @@ section condexp_ind
 /-! ## Conditional expectation of an indicator as a condinuous linear map.
 
 The goal of this section is to build
-`condexp_ind 𝕜 (hm : m ≤ m0) (μ : measure α) (hs : measurable_set s) : E' →L[ℝ] α →₁[μ] E'`, which
+`condexp_ind 𝕜 (hm : m ≤ m0) (μ : measure α) (s : set s) : E' →L[ℝ] α →₁[μ] E'`, which
 takes `x : E'` to the conditional expectation of the indicator of the set `s` with value `x`,
 seen as an element of `α →₁[μ] E'`.
 -/
@@ -1050,7 +1049,8 @@ end condexp_ind_L1_fin
 section condexp_ind_L1
 
 variables (𝕜)
-/-- Conditional expectation of the indicator of a measurable set, as a function in L1. -/
+/-- Conditional expectation of the indicator of a set, as a function in L1. Its value for sets
+which are not both measurable and of finite measure is not used: we set it to 0. -/
 def condexp_ind_L1 {m m0 : measurable_space α} (hm : m ≤ m0) (μ : measure α) (s : set α)
   [sigma_finite (μ.trim hm)] [decidable (measurable_set s)] (x : E') :
   α →₁[μ] E' :=
@@ -1058,6 +1058,7 @@ dite (measurable_set s ∧ μ s ≠ ∞) (λ hs, condexp_ind_L1_fin 𝕜 hm hs.1
 variables {𝕜}
 
 variables {hm : m ≤ m0} [sigma_finite (μ.trim hm)] [decidable (measurable_set s)]
+  [decidable (measurable_set t)] [decidable (measurable_set (s ∪ t))]
 
 lemma condexp_ind_L1_of_measurable_set_of_measure_ne_top (hs : measurable_set s) (hμs : μ s ≠ ∞)
   (x : E') :
@@ -1123,8 +1124,7 @@ lemma continuous_condexp_ind_L1 : continuous (λ x : E', condexp_ind_L1 𝕜 hm 
 continuous_of_linear_of_bound condexp_ind_L1_add condexp_ind_L1_smul_real norm_condexp_ind_L1_le
 
 lemma condexp_ind_L1_disjoint_union (hs : measurable_set s) (ht : measurable_set t)
-  (hμs : μ s ≠ ∞) (hμt : μ t ≠ ∞) (hst : s ∩ t = ∅) (x : E') [decidable (measurable_set t)]
-  [decidable (measurable_set (s ∪ t))] :
+  (hμs : μ s ≠ ∞) (hμt : μ t ≠ ∞) (hst : s ∩ t = ∅) (x : E') :
   condexp_ind_L1 𝕜 hm μ (s ∪ t) x = condexp_ind_L1 𝕜 hm μ s x + condexp_ind_L1 𝕜 hm μ t x :=
 begin
   have hμst : μ (s ∪ t) ≠ ∞, from ((measure_union_le s t).trans_lt

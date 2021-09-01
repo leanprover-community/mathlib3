@@ -7,6 +7,7 @@ Authors: Shing Tak Lam
 import topology.unit_interval
 import topology.algebra.ordered.proj_Icc
 import topology.continuous_function.basic
+import topology.compact_open
 
 /-!
 # Homotopy between functions
@@ -33,10 +34,9 @@ open_locale unit_interval
 /--
 The type of homotopies between two functions.
 -/
-
-structure homotopy (f₀ f₁ : X → Y) extends C(X × I, Y) :=
-(to_fun_zero : ∀ x, to_fun (x, 0) = f₀ x)
-(to_fun_one : ∀ x, to_fun (x, 1) = f₁ x)
+structure homotopy (f₀ f₁ : X → Y) extends C(I × X, Y) :=
+(to_fun_zero : ∀ x, to_fun (0, x) = f₀ x)
+(to_fun_one : ∀ x, to_fun (1, x) = f₁ x)
 
 namespace homotopy
 
@@ -44,30 +44,41 @@ section
 
 variables {f₀ f₁ : X → Y}
 
-instance : has_coe_t (homotopy f₀ f₁) C(X × I, Y) := ⟨homotopy.to_continuous_map⟩
 instance : has_coe_to_fun (homotopy f₀ f₁) := ⟨_, λ F, F.to_fun⟩
+
+@[ext]
+lemma ext {F G : homotopy f₀ f₁} (h : ∀ x, F x = G x) : F = G :=
+begin
+  cases F, cases G,
+  congr' 1,
+  ext x,
+  exact h x,
+end
 
 @[continuity]
 protected lemma continuous (F : homotopy f₀ f₁) : continuous F := F.continuous_to_fun
 
 @[simp]
-lemma apply_zero (F : homotopy f₀ f₁) (x : X) : F (x, 0) = f₀ x := F.to_fun_zero x
+lemma apply_zero (F : homotopy f₀ f₁) (x : X) : F (0, x) = f₀ x := F.to_fun_zero x
 @[simp]
-lemma apply_one (F : homotopy f₀ f₁) (x : X) : F (x, 1) = f₁ x := F.to_fun_one x
+lemma apply_one (F : homotopy f₀ f₁) (x : X) : F (1, x) = f₁ x := F.to_fun_one x
 
 /--
-Currying a homotopy to give us a function `X → I → Y`.
+Currying a homotopy
 -/
-def curry (F : homotopy f₀ f₁) : X → I → Y := function.curry F
+def curry (F : homotopy f₀ f₁) : C(I, C(X, Y)) := F.to_continuous_map.curry
 
 /--
-Extending a curried homotopy to a function `X → ℝ → Y`.
+Extending a homotopy to a curried function.
 -/
-def extend (F : homotopy f₀ f₁) : X → ℝ → Y := λ x, set.Icc_extend zero_le_one (F.curry x)
+def extend (F : homotopy f₀ f₁) : C(ℝ, C(X, Y)) := F.curry.extend zero_le_one
 
 @[simp]
-lemma extend_apply_zero (F : homotopy f₀ f₁) (x : X) : F.extend x 0 = f₀ x :=
-  by simp [extend, curry]
+lemma extend_apply_zero (F : homotopy f₀ f₁) (x : X) : F.extend 0 x = f₀ x :=
+begin
+  simp [extend, curry],
+end
+
 @[simp]
 lemma extend_apply_one (F : homotopy f₀ f₁) (x : X) : F.extend x 1 = f₁ x := by simp [extend, curry]
 
@@ -92,6 +103,10 @@ def symm {f₀ f₁ : X → Y} (F : homotopy f₀ f₁) : homotopy f₁ f₀ :=
   continuous_to_fun := by continuity,
   to_fun_zero := by norm_num,
   to_fun_one := by norm_num }
+
+@[simp]
+lemma symm_apply {f₀ f₁ : X → Y} (F : homotopy f₀ f₁) (x : X) (t : I) :
+  F.symm (x, t) = F (x, σ t) := rfl
 
 /--
 Given `homotopy f₀ f₁` and `homotopy f₁ f₂`, we can define a `homotopy f₀ f₂` by putting the first

@@ -50,11 +50,11 @@ is_sym.ext
 
 /-- A block matrix `A.from_blocks B C D` is symmetric,
     if `A` and `D` are symmetric and `Bᵀ = C`. -/
-lemma is_sym_of_block_conditions
-{A : matrix I I α} {B : matrix I J α} {C : matrix J I α} {D : matrix J J α} :
-(A.is_sym) ∧ (D.is_sym) ∧ (Bᵀ = C) → (A.from_blocks B C D).is_sym :=
+lemma is_sym_from_blocks
+  {A : matrix I I α} {B : matrix I J α} {C : matrix J I α} {D : matrix J J α}
+  (h1 : A.is_sym) (h2 : D.is_sym) (h3 : Bᵀ = C) :
+  (A.from_blocks B C D).is_sym :=
 begin
-  rintros ⟨h1, h2, h3⟩,
   have h4 : Cᵀ = B, {rw ← h3, simp},
   unfold matrix.is_sym,
   rw from_blocks_transpose,

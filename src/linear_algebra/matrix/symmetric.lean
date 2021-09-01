@@ -71,10 +71,6 @@ by simp [matrix.is_sym, transpose_mul]
 @[simp] lemma is_sym_one [decidable_eq n] [has_zero α] [has_one α] :
   (1 : matrix n n α).is_sym := by {ext, simp}
 
-/-- The negtive identity matrix is symmetric. -/
-@[simp] lemma is_sym_neg_one [decidable_eq n] [has_zero α] [has_one α] [has_neg α] :
-  (-1 : matrix n n α).is_sym := by {ext, simp}
-
 @[simp] lemma is_sym.neg
 [has_neg α] {A : matrix n n α} (h : A.is_sym) :
 (-A).is_sym :=

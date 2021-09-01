@@ -926,19 +926,16 @@ lemma convex_on.sup (hf : convex_on s f) (hg : convex_on s g) :
   convex_on s (f ⊔ g) :=
 begin
    refine ⟨hf.left, λ x y hx hy a b ha hb hab, _⟩,
-   rw convex_on_iff_div at hf hg,
    simp only [sup_apply, sup_le_iff],
    split,
-   { calc f (a • x + b • y) ≤ a • f x + b • f y : by simpa [hab] using
-       hf.right hx hy ha hb (zero_lt_one.trans_le hab.ge)
-      ...                   ≤ a • max (f x) (g x) + b • max (f y) (g y) : add_le_add
-      (smul_le_smul_of_nonneg (le_max_left _ _) ha)
-      (smul_le_smul_of_nonneg (le_max_left _ _) hb) },
-   { calc g (a • x + b • y) ≤ a • g x + b • g y : by simpa [hab] using
-      hg.right hx hy ha hb (zero_lt_one.trans_le hab.ge)
-      ...                   ≤ a • max (f x) (g x) + b • max (f y) (g y) : add_le_add
-      (smul_le_smul_of_nonneg (le_max_right _ _) ha)
-      (smul_le_smul_of_nonneg (le_max_right _ _) hb) }
+   { calc f (a • x + b • y) ≤ a • f x + b • f y : by simpa [hab] using hf.right hx hy ha hb hab
+      ...                   ≤ a • (f x ⊔ g x) + b • (f y ⊔ g y) : add_le_add
+      (smul_le_smul_of_nonneg le_sup_left ha)
+      (smul_le_smul_of_nonneg le_sup_left hb) },
+   { calc g (a • x + b • y) ≤ a • g x + b • g y : by simpa [hab] using hg.right hx hy ha hb hab
+      ...                   ≤ a • (f x ⊔ g x) + b • (f y ⊔ g y) : add_le_add
+      (smul_le_smul_of_nonneg le_sup_right ha)
+      (smul_le_smul_of_nonneg le_sup_right hb) }
 end
 
 /-- The pointwise minimum of concave functions is concave. -/

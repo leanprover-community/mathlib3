@@ -61,11 +61,17 @@ lemma dimension_le_one.principal_ideal_ring
   [is_principal_ideal_ring A] : dimension_le_one A :=
 λ p nonzero prime, by { haveI := prime, exact is_prime.to_maximal_ideal nonzero }
 
+lemma dimension_le_one.is_integral_closure (B : Type*) [integral_domain B]
+  [nontrivial R] [algebra R A] [algebra R B] [algebra B A] [is_scalar_tower R B A]
+  [is_integral_closure B R A] (h : dimension_le_one R) :
+  dimension_le_one B :=
+λ p ne_bot prime, by exactI
+  is_integral_closure.is_maximal_of_is_maximal_comap A p
+    (h _ (is_integral_closure.comap_ne_bot A ne_bot) infer_instance)
+
 lemma dimension_le_one.integral_closure [nontrivial R] [algebra R A]
   (h : dimension_le_one R) : dimension_le_one (integral_closure R A) :=
-λ p ne_bot prime, by exactI
-  integral_closure.is_maximal_of_is_maximal_comap p
-    (h _ (integral_closure.comap_ne_bot ne_bot) infer_instance)
+h.is_integral_closure R A (integral_closure R A)
 
 end ring
 

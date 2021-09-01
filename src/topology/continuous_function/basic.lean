@@ -6,7 +6,7 @@ Authors: Nicolò Cavalleri
 
 import topology.subset_properties
 import topology.tactic
-import topology.algebra.ordered.basic
+import topology.algebra.ordered.proj_Icc
 
 /-!
 # Continuous bundled map
@@ -206,6 +206,45 @@ lemma inf'_coe {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, �
 end inf'
 
 end lattice
+
+section extend
+
+variables [linear_order α] [order_topology α] {a b : α} (h : a ≤ b)
+
+/--
+Extend a continuous function `f : C(set.Icc a b, β)` to a function `f : C(α, β)`.
+-/
+def Icc_extend (f : C(set.Icc a b, β)) : C(α, β) := ⟨set.Icc_extend h f⟩
+
+@[simp] lemma Icc_extend_range (f : C(set.Icc a b, β)) :
+  set.range (Icc_extend h f) = set.range f :=
+set.Icc_extend_range h f
+
+lemma Icc_extend_of_le_left (f : C(set.Icc a b, β)) {x : α} (hx : x ≤ a) :
+  Icc_extend h f x = f ⟨a, set.left_mem_Icc.2 h⟩ :=
+set.Icc_extend_of_le_left h f hx
+
+@[simp] lemma Icc_extend_left (f : C(set.Icc a b, β)) :
+  Icc_extend h f a = f ⟨a, set.left_mem_Icc.2 h⟩ :=
+set.Icc_extend_left h f
+
+lemma Icc_extend_of_right_le (f : C(set.Icc a b, β)) {x : α} (hx : b ≤ x) :
+  Icc_extend h f x = f ⟨b, set.right_mem_Icc.2 h⟩ :=
+set.Icc_extend_of_right_le h f hx
+
+@[simp] lemma Icc_extend_right (f : C(set.Icc a b, β)) :
+  Icc_extend h f b = f ⟨b, set.right_mem_Icc.2 h⟩ :=
+set.Icc_extend_right h f
+
+lemma Icc_extend_of_mem (f : C(set.Icc a b, β)) {x : α} (hx : x ∈ set.Icc a b) :
+  Icc_extend h f x = f ⟨x, hx⟩ :=
+set.Icc_extend_of_mem h f hx
+
+@[simp] lemma Icc_extend_coe (f : C(set.Icc a b, β)) (x : set.Icc a b) :
+  Icc_extend h f x = f x :=
+set.Icc_extend_coe h f x
+
+end extend
 
 end continuous_map
 

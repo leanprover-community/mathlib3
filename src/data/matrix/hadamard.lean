@@ -98,9 +98,8 @@ section trace
 
 variables [fintype I] [fintype J]
 variables [semiring β] [semiring R] [comm_semiring α] [module β α] [module R ℂ]
-variables [decidable_eq I] [decidable_eq J]
 
-lemma trace_identity (v : I → α) (w : J → α):
+lemma trace_identity [decidable_eq I] [decidable_eq J] (v : I → α) (w : J → α):
 dot_product (vec_mul  v  (A ⊙ B)) w =
 trace I β α ((diagonal v)ᵀ ⬝ A ⬝ (diagonal w) ⬝ Bᵀ) :=
 begin
@@ -115,6 +114,7 @@ end
 lemma sum_Hadamard_eq:
 ∑ (i : I) (j : J), (A ⊙ B) i j = trace I β α (A ⬝ Bᵀ) :=
 begin
+  classical,
   have h:= trace_identity A B (λ i, 1 : I → α) (λ i, 1 : J → α),
   simp [vec_mul, dot_product] at h,
   rw finset.sum_comm at h,
@@ -122,7 +122,7 @@ begin
   exact β, assumption, assumption,
 end
 
-lemma trace_identity_ℂ
+lemma trace_identity_ℂ [decidable_eq I] [decidable_eq J]
 (M₁ : matrix I J ℂ) (M₂ : matrix I J ℂ) (v : I → ℂ) (w : J → ℂ) :
 dot_product (vec_mul (star v)  (M₁ ⊙ M₂)) w =
 trace I R ℂ ((diagonal v)ᴴ ⬝ M₁ ⬝ (diagonal w) ⬝ M₂ᵀ) :=

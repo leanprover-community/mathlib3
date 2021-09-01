@@ -141,30 +141,25 @@ local attribute [instance]
 
 instance : semiring (free_algebra R X) :=
 { add := quot.map₂ (+) (λ _ _ _, rel.add_compat_right) (λ _ _ _, rel.add_compat_left),
-  add_assoc := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, exact quot.sound rel.add_assoc },
+  add_assoc := quot.ind₃ $ by exact λ _ _ _, quot.sound rel.add_assoc,
   zero := quot.mk _ 0,
-  zero_add := by { rintro ⟨⟩, exact quot.sound rel.zero_add },
-  add_zero := begin
-    rintros ⟨⟩,
-    change quot.mk _ _ = _,
-    rw [quot.sound rel.add_comm, quot.sound rel.zero_add],
-  end,
-  add_comm := by { rintros ⟨⟩ ⟨⟩, exact quot.sound rel.add_comm },
+  zero_add := quot.ind $ by exact λ _, quot.sound rel.zero_add,
+  add_zero := quot.ind $ by exact λ _, (quot.sound rel.add_comm).trans (quot.sound rel.zero_add),
+  add_comm := quot.ind₂ $ by exact λ _ _, quot.sound rel.add_comm,
   mul := quot.map₂ (*) (λ _ _ _, rel.mul_compat_right) (λ _ _ _, rel.mul_compat_left),
-  mul_assoc := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, exact quot.sound rel.mul_assoc },
+  mul_assoc := quot.ind₃ $ by exact λ _ _ _, quot.sound rel.mul_assoc,
   one := quot.mk _ 1,
-  one_mul := by { rintros ⟨⟩, exact quot.sound rel.one_mul },
-  mul_one := by { rintros ⟨⟩, exact quot.sound rel.mul_one },
-  left_distrib := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, exact quot.sound rel.left_distrib },
-  right_distrib := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, exact quot.sound rel.right_distrib },
-  zero_mul := by { rintros ⟨⟩, exact quot.sound rel.zero_mul },
-  mul_zero := by { rintros ⟨⟩, exact quot.sound rel.mul_zero } }
+  one_mul := quot.ind $ by exact λ _, quot.sound rel.one_mul,
+  mul_one := quot.ind $ by exact λ _, quot.sound rel.mul_one,
+  left_distrib := quot.ind₃ $ by exact λ _ _ _, quot.sound rel.left_distrib,
+  right_distrib := quot.ind₃ $ by exact λ _ _ _, quot.sound rel.right_distrib,
+  zero_mul := quot.ind $ by exact λ _, quot.sound rel.zero_mul,
+  mul_zero := quot.ind $ by exact λ _, quot.sound rel.mul_zero }
 
 instance : inhabited (free_algebra R X) := ⟨0⟩
 
 instance : has_scalar R (free_algebra R X) :=
-{ smul := λ r a, quot.lift_on a (λ x, quot.mk _ $ ↑r * x) $
-  λ a b h, quot.sound (rel.mul_compat_right h) }
+{ smul := λ r, quot.map ((•) r) $ λ a b, rel.mul_compat_right }
 
 instance : algebra R (free_algebra R X) :=
 { to_fun := λ r, quot.mk _ r,
@@ -172,7 +167,7 @@ instance : algebra R (free_algebra R X) :=
   map_mul' := λ _ _, quot.sound rel.mul_scalar,
   map_zero' := rfl,
   map_add' := λ _ _, quot.sound rel.add_scalar,
-  commutes' := λ _, by { rintros ⟨⟩, exact quot.sound rel.central_scalar },
+  commutes' := λ _, quot.ind $ by exact λ _, quot.sound rel.central_scalar,
   smul_def' := λ _ _, rfl }
 
 instance {S : Type*} [comm_ring S] : ring (free_algebra S X) := algebra.semiring_to_ring S

@@ -119,16 +119,28 @@ lemma map₂_mk (f : α → β → γ)
   (a : α) (b : β) : quot.map₂ f hr hs (quot.mk r a) (quot.mk s b) = quot.mk t (f a b) := rfl
 
 attribute [elab_as_eliminator]
+protected lemma ind₂
+  {δ : quot r → quot s → Prop} (h : ∀ a b, δ (quot.mk r a) (quot.mk s b))
+  (q₁ : quot r) (q₂ : quot s) : δ q₁ q₂ :=
+quot.ind (λ a₁, quot.ind (λ a₂, h a₁ a₂) q₂) q₁
+
+attribute [elab_as_eliminator]
+protected lemma ind₃
+  {δ : quot r → quot s → quot t → Prop} (h : ∀ a b c, δ (quot.mk r a) (quot.mk s b) (quot.mk t c))
+  (q₁ : quot r) (q₂ : quot s) (q₃ : quot t) : δ q₁ q₂ q₃ :=
+quot.ind (λ a₁, quot.ind (λ a₂, quot.ind (λ a₃, h a₁ a₂ a₃) q₃) q₂) q₁
+
+attribute [elab_as_eliminator]
 protected lemma induction_on₂
   {δ : quot r → quot s → Prop} (q₁ : quot r) (q₂ : quot s)
   (h : ∀ a b, δ (quot.mk r a) (quot.mk s b)) : δ q₁ q₂ :=
-quot.ind (λ a₁, quot.ind (λ a₂, h a₁ a₂) q₂) q₁
+quot.ind₂ h _ _
 
 attribute [elab_as_eliminator]
 protected lemma induction_on₃
   {δ : quot r → quot s → quot t → Prop} (q₁ : quot r) (q₂ : quot s) (q₃ : quot t)
   (h : ∀ a b c, δ (quot.mk r a) (quot.mk s b) (quot.mk t c)) : δ q₁ q₂ q₃ :=
-quot.ind (λ a₁, quot.ind (λ a₂, quot.ind (λ a₃, h a₁ a₂ a₃) q₃) q₂) q₁
+quot.ind₃ h _ _
 
 end quot
 

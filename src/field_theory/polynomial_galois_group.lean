@@ -97,6 +97,14 @@ instance [h : fact (p.splits (algebra_map F E))] : is_scalar_tower F p.splitting
 is_scalar_tower.of_algebra_map_eq
   (λ x, ((is_splitting_field.lift p.splitting_field p h.1).commutes x).symm)
 
+-- The `algebra p.splitting_field E` instance above behaves badly when
+-- `E := p.splitting_field`, since it may result in a unification problem
+-- `is_splitting_field.lift.to_ring_hom.to_algebra =?= algebra.id`,
+-- which takes an extremely long time to resolve, causing timeouts.
+-- Since we don't really care about this definition, marking it as irreducible
+-- causes that unification to error out early.
+attribute [irreducible] gal.algebra
+
 /-- Restrict from a superfield automorphism into a member of `gal p`. -/
 def restrict [fact (p.splits (algebra_map F E))] : (E ≃ₐ[F] E) →* p.gal :=
 alg_equiv.restrict_normal_hom p.splitting_field
@@ -222,7 +230,7 @@ monoid_hom.prod (restrict_dvd (dvd_mul_right p q)) (restrict_dvd (dvd_mul_left q
 lemma restrict_prod_injective : function.injective (restrict_prod p q) :=
 begin
   by_cases hpq : (p * q) = 0,
-  { haveI : unique (p * q).gal := by { rw hpq, apply_instance },
+  { haveI : unique (p * q).gal, { rw hpq, apply_instance },
     exact λ f g h, eq.trans (unique.eq_default f) (unique.eq_default g).symm },
   intros f g hfg,
   dsimp only [restrict_prod, restrict_dvd] at hfg,
@@ -279,7 +287,7 @@ begin
     exact splits_of_splits_of_dvd _
       (minpoly.ne_zero qx_int)
       (normal.splits h_normal _)
-      (dvd_symm_of_irreducible (minpoly.irreducible qx_int) hr (minpoly.dvd F _ hx)) },
+      ((minpoly.irreducible qx_int).dvd_symm hr (minpoly.dvd F _ hx)) },
   have key2 : ∀ {p₁ p₂ : polynomial F}, P p₁ → P p₂ → P (p₁ * p₂),
   { intros p₁ p₂ hp₁ hp₂,
     by_cases h₁ : p₁.comp q = 0,
@@ -332,7 +340,7 @@ begin
   { rw [←finite_dimensional.finrank_mul_finrank F F⟮α⟯ p.splitting_field,
         intermediate_field.adjoin.finrank hα, this] },
   suffices : minpoly F α ∣ p,
-  { have key := dvd_symm_of_irreducible (minpoly.irreducible hα) p_irr this,
+  { have key := (minpoly.irreducible hα).dvd_symm p_irr this,
     apply le_antisymm,
     { exact nat_degree_le_of_dvd this p_irr.ne_zero },
     { exact nat_degree_le_of_dvd key (minpoly.ne_zero hα) } },

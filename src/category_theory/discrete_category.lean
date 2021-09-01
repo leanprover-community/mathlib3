@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison, Floris van Doorn
 -/
 import category_theory.eq_to_hom
+import data.ulift
 
 /-!
 # Discrete categories

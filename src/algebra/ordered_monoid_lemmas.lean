@@ -20,8 +20,8 @@ The reason is that we did not want to change existing names in the library.
 
 ## Remark
 
-No monoid is actually present in this file: all assumptions have been generalized to `has_mul` or
-`mul_one_class`.
+Almost no monoid is actually present in this file: most assumptions have been generalized to
+`has_mul` or `mul_one_class`.
 
 -/
 
@@ -37,19 +37,6 @@ variables [has_mul α]
 
 section has_le
 variables [has_le α]
-
-@[simp, to_additive]
-lemma mul_le_mul_iff_left [covariant_class α α (*) (≤)] [contravariant_class α α (*) (≤)]
-  (a : α) {b c : α} :
-  a * b ≤ a * c ↔ b ≤ c :=
-rel_iff_cov α α (*) (≤) a
-
-@[simp, to_additive]
-lemma mul_le_mul_iff_right
-  [covariant_class α α (swap (*)) (≤)] [contravariant_class α α (swap (*)) (≤)]
-  (a : α) {b c : α} :
-  b * a ≤ c * a ↔ b ≤ c :=
-rel_iff_cov α α (swap (*)) (≤) a
 
 /- The prime on this lemma is present only on the multiplicative version.  The unprimed version
 is taken by the analogous lemma for semiring, with an extra non-negativity assumption. -/
@@ -77,6 +64,19 @@ lemma le_of_mul_le_mul_right' [contravariant_class α α (swap (*)) (≤)]
   {a b c : α} (bc : b * a ≤ c * a) :
   b ≤ c :=
 contravariant_class.elim a bc
+
+@[simp, to_additive]
+lemma mul_le_mul_iff_left [covariant_class α α (*) (≤)] [contravariant_class α α (*) (≤)]
+  (a : α) {b c : α} :
+  a * b ≤ a * c ↔ b ≤ c :=
+rel_iff_cov α α (*) (≤) a
+
+@[simp, to_additive]
+lemma mul_le_mul_iff_right
+  [covariant_class α α (swap (*)) (≤)] [contravariant_class α α (swap (*)) (≤)]
+  (a : α) {b c : α} :
+  b * a ≤ c * a ↔ b ≤ c :=
+rel_iff_cov α α (swap (*)) (≤) a
 
 end has_le
 
@@ -364,6 +364,17 @@ calc  a * b ≤ a * 1 : mul_le_mul_left' h a
 
 end mul_one_class
 
+@[to_additive]
+lemma mul_left_cancel'' [semigroup α] [partial_order α]
+  [contravariant_class α α (*) (≤)] {a b c : α} (h : a * b = a * c) : b = c :=
+(le_of_mul_le_mul_left' h.le).antisymm (le_of_mul_le_mul_left' h.ge)
+
+@[to_additive]
+lemma mul_right_cancel'' [semigroup α] [partial_order α]
+  [contravariant_class α α (swap (*)) (≤)] {a b c : α} (h : a * b = c * b) :
+  a = c :=
+le_antisymm (le_of_mul_le_mul_right' h.le) (le_of_mul_le_mul_right' h.ge)
+
 /- This is not instance, since we want to have an instance from `left_cancel_semigroup`s
 to the appropriate `covariant_class`. -/
 /--  A semigroup with a partial order and satisfying `left_cancel_semigroup`
@@ -372,10 +383,9 @@ to the appropriate `covariant_class`. -/
 "An additive semigroup with a partial order and satisfying `left_cancel_add_semigroup`
 (i.e. `c + a < c + b → a < b`) is a `left_cancel add_semigroup`."]
 def contravariant.to_left_cancel_semigroup [semigroup α] [partial_order α]
-  [contravariant_class α α ((*) : α → α → α) (≤)] :
+  [contravariant_class α α (*) (≤)] :
   left_cancel_semigroup α :=
-{ mul_left_cancel := λ a b c bc,
-    (le_of_mul_le_mul_left' bc.le).antisymm (le_of_mul_le_mul_left' bc.ge),
+{ mul_left_cancel := λ a b c, mul_left_cancel''
   ..‹semigroup α› }
 
 /- This is not instance, since we want to have an instance from `right_cancel_semigroup`s
@@ -386,10 +396,9 @@ to the appropriate `covariant_class`. -/
 "An additive semigroup with a partial order and satisfying `right_cancel_add_semigroup`
 (`a + c < b + c → a < b`) is a `right_cancel add_semigroup`."]
 def contravariant.to_right_cancel_semigroup [semigroup α] [partial_order α]
-  [contravariant_class α α (swap (*) : α → α → α) (≤)] :
+  [contravariant_class α α (swap (*)) (≤)] :
   right_cancel_semigroup α :=
-{ mul_right_cancel := λ a b c bc,
-    le_antisymm (le_of_mul_le_mul_right' bc.le) (le_of_mul_le_mul_right' bc.ge)
+{ mul_right_cancel := λ a b c, mul_right_cancel''
   ..‹semigroup α› }
 
 variables {a b c d : α}
@@ -743,3 +752,78 @@ lemma strict_mono.mul_monotone' (hf : strict_mono f) (hg : monotone g) :
 λ x y h, mul_lt_mul_of_lt_of_le (hf h) (hg h.le)
 
 end strict_mono
+
+/--
+An element `a : α` is `mul_le_cancellable` if `x ↦ a * x` is order-reflecting.
+We will make a separate version of many lemmas that require `[contravariant_class α α (*) (≤)]` with
+`mul_le_cancellable` assumptions instead. These lemmas can then be instantiated to specific types,
+like `ennreal`, where we can replace the assumption `add_le_cancellable x` by `x ≠ ∞`.
+-/
+@[to_additive /-" An element `a : α` is `add_le_cancellable` if `x ↦ a + x` is order-reflecting.
+We will make a separate version of many lemmas that require `[contravariant_class α α (+) (≤)]` with
+`mul_le_cancellable` assumptions instead. These lemmas can then be instantiated to specific types,
+like `ennreal`, where we can replace the assumption `add_le_cancellable x` by `x ≠ ∞`. "-/
+]
+def mul_le_cancellable [has_mul α] [has_le α] (a : α) : Prop :=
+∀ ⦃b c⦄, a * b ≤ a * c → b ≤ c
+
+@[to_additive]
+lemma contravariant.mul_le_cancellable [has_mul α] [has_le α] [contravariant_class α α (*) (≤)]
+  {a : α} : mul_le_cancellable a :=
+λ b c, le_of_mul_le_mul_left'
+
+namespace mul_le_cancellable
+
+@[to_additive]
+protected lemma injective [has_mul α] [partial_order α] {a : α} (ha : mul_le_cancellable a) :
+  injective ((*) a) :=
+λ b c h, le_antisymm (ha h.le) (ha h.ge)
+
+@[to_additive]
+protected lemma inj [has_mul α] [partial_order α] {a b c : α} (ha : mul_le_cancellable a) :
+  a * b = a * c ↔ b = c :=
+ha.injective.eq_iff
+
+@[to_additive]
+protected lemma injective_left [comm_semigroup α] [partial_order α] {a : α}
+  (ha : mul_le_cancellable a) : injective (* a) :=
+λ b c h, ha.injective $ by rwa [mul_comm a, mul_comm a]
+
+@[to_additive]
+protected lemma inj_left [comm_semigroup α] [partial_order α] {a b c : α}
+  (hc : mul_le_cancellable c) : a * c = b * c ↔ a = b :=
+hc.injective_left.eq_iff
+
+variable [has_le α]
+
+@[to_additive]
+protected lemma mul_le_mul_iff_left [has_mul α] [covariant_class α α (*) (≤)]
+  {a b c : α} (ha : mul_le_cancellable a) : a * b ≤ a * c ↔ b ≤ c :=
+⟨λ h, ha h, λ h, mul_le_mul_left' h a⟩
+
+@[to_additive]
+protected lemma mul_le_mul_iff_right [comm_semigroup α] [covariant_class α α (*) (≤)]
+  {a b c : α} (ha : mul_le_cancellable a) : b * a ≤ c * a ↔ b ≤ c :=
+by rw [mul_comm b, mul_comm c, ha.mul_le_mul_iff_left]
+
+@[to_additive]
+protected lemma le_mul_iff_one_le_right [mul_one_class α] [covariant_class α α (*) (≤)]
+  {a b : α} (ha : mul_le_cancellable a) : a ≤ a * b ↔ 1 ≤ b :=
+iff.trans (by rw [mul_one]) ha.mul_le_mul_iff_left
+
+@[to_additive]
+protected lemma mul_le_iff_le_one_right [mul_one_class α] [covariant_class α α (*) (≤)]
+  {a b : α} (ha : mul_le_cancellable a) : a * b ≤ a ↔ b ≤ 1 :=
+iff.trans (by rw [mul_one]) ha.mul_le_mul_iff_left
+
+@[to_additive]
+protected lemma le_mul_iff_one_le_left [comm_monoid α] [covariant_class α α (*) (≤)]
+  {a b : α} (ha : mul_le_cancellable a) : a ≤ b * a ↔ 1 ≤ b :=
+by rw [mul_comm, ha.le_mul_iff_one_le_right]
+
+@[to_additive]
+protected lemma mul_le_iff_le_one_left [comm_monoid α] [covariant_class α α (*) (≤)]
+  {a b : α} (ha : mul_le_cancellable a) : b * a ≤ a ↔ b ≤ 1 :=
+by rw [mul_comm, ha.mul_le_iff_le_one_right]
+
+end mul_le_cancellable

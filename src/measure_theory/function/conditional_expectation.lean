@@ -92,7 +92,7 @@ end
 /-- A m-measurable function almost everywhere equal to `f`. -/
 def mk (f : α → β) (hfm : ae_measurable' m f μ) : α → β := hfm.some
 
-lemma measurable_mk {f : α → β} (hfm : ae_measurable' m f μ) : @measurable _ _ m _ (hfm.mk f) :=
+lemma measurable_mk {f : α → β} (hfm : ae_measurable' m f μ) : measurable[m] (hfm.mk f) :=
 hfm.some_spec.1
 
 lemma ae_eq_mk {f : α → β} (hfm : ae_measurable' m f μ) : f =ᵐ[μ] hfm.mk f :=
@@ -113,7 +113,7 @@ lemma ae_measurable'_of_ae_measurable'_trim {α β} {m m0 m0' : measurable_space
 by { obtain ⟨g, hg_meas, hfg⟩ := hf, exact ⟨g, hg_meas, ae_eq_of_ae_eq_trim hfg⟩, }
 
 lemma measurable.ae_measurable' {α β} {m m0 : measurable_space α} [measurable_space β]
-  {μ : measure α} {f : α → β} (hf : @measurable _ _ m _ f) :
+  {μ : measure α} {f : α → β} (hf : measurable[m] f) :
   ae_measurable' m f μ :=
 ⟨f, hf, ae_eq_refl _⟩
 
@@ -629,7 +629,7 @@ lemma lintegral_nnnorm_condexp_L2_le (hm : m ≤ m0) (hs : measurable_set[m] s) 
 begin
   let h_meas := Lp_meas.ae_measurable' (condexp_L2 ℝ hm f),
   let g := h_meas.some,
-  have hg_meas : @measurable _ _ m _ g, from h_meas.some_spec.1,
+  have hg_meas : measurable[m] g, from h_meas.some_spec.1,
   have hg_eq : g =ᵐ[μ] condexp_L2 ℝ hm f, from h_meas.some_spec.2.symm,
   have hg_eq_restrict : g =ᵐ[μ.restrict s] condexp_L2 ℝ hm f, from ae_restrict_of_ae hg_eq,
   have hg_nnnorm_eq : (λ x, (∥g x∥₊ : ℝ≥0∞))

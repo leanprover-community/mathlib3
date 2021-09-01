@@ -220,29 +220,8 @@ def Icc_extend (f : C(set.Icc a b, β)) : C(α, β) := ⟨set.Icc_extend h f⟩
   set.range (Icc_extend h f) = set.range f :=
 set.Icc_extend_range h f
 
-lemma Icc_extend_of_le_left (f : C(set.Icc a b, β)) {x : α} (hx : x ≤ a) :
-  Icc_extend h f x = f ⟨a, set.left_mem_Icc.2 h⟩ :=
-set.Icc_extend_of_le_left h f hx
-
-@[simp] lemma Icc_extend_left (f : C(set.Icc a b, β)) :
-  Icc_extend h f a = f ⟨a, set.left_mem_Icc.2 h⟩ :=
-set.Icc_extend_left h f
-
-lemma Icc_extend_of_right_le (f : C(set.Icc a b, β)) {x : α} (hx : b ≤ x) :
-  Icc_extend h f x = f ⟨b, set.right_mem_Icc.2 h⟩ :=
-set.Icc_extend_of_right_le h f hx
-
-@[simp] lemma Icc_extend_right (f : C(set.Icc a b, β)) :
-  Icc_extend h f b = f ⟨b, set.right_mem_Icc.2 h⟩ :=
-set.Icc_extend_right h f
-
-lemma Icc_extend_of_mem (f : C(set.Icc a b, β)) {x : α} (hx : x ∈ set.Icc a b) :
-  Icc_extend h f x = f ⟨x, hx⟩ :=
-set.Icc_extend_of_mem h f hx
-
-@[simp] lemma Icc_extend_coe (f : C(set.Icc a b, β)) (x : set.Icc a b) :
-  Icc_extend h f x = f x :=
-set.Icc_extend_coe h f x
+@[simp] lemma Icc_extend_apply (f : C(set.Icc a b, β)) (x : α) :
+  Icc_extend h f x = set.Icc_extend h f x := rfl
 
 end extend
 

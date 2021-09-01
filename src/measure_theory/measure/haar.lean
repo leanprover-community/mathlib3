@@ -54,9 +54,31 @@ where `ᵒ` denotes the interior.
 noncomputable theory
 
 open set has_inv function topological_space measurable_space
-open_locale nnreal classical ennreal pointwise
+open_locale nnreal classical ennreal pointwise topological_space
 
 variables {G : Type*} [group G]
+
+
+section positive_compacts
+
+
+@[to_additive] lemma positive_compacts.locally_compact_space_of_group
+  {G : Type*} [group G] [topological_space G] [topological_group G]
+  [t2_space G] (K₀ : positive_compacts G) :
+  locally_compact_space G :=
+begin
+  refine locally_compact_of_compact_nhds (λ x, _),
+  obtain ⟨y, hy⟩ : ∃ y, y ∈ interior K₀.1 := K₀.2.2,
+  let F := homeomorph.mul_left (x * y⁻¹),
+  refine ⟨F '' K₀.1, _, is_compact.image K₀.2.1 F.continuous⟩,
+  suffices : F.symm ⁻¹' K₀.1 ∈ 𝓝 x, by { convert this, apply equiv.image_eq_preimage },
+  apply continuous_at.preimage_mem_nhds F.symm.continuous.continuous_at,
+  have : F.symm x = y, by simp [F, homeomorph.mul_left_symm],
+  rw this,
+  exact mem_interior_iff_mem_nhds.1 hy
+end
+
+end positive_compacts
 
 namespace measure_theory
 namespace measure
@@ -506,6 +528,15 @@ scaled so that `add_haar_measure K₀ K₀ = 1`."]
 def haar_measure (K₀ : positive_compacts G) : measure G :=
 ((haar_content K₀).outer_measure K₀.1)⁻¹ • (haar_content K₀).measure
 
+class is_haar_measure (μ : measure G) : Prop :=
+{ is_haar : ∃ (K : positive_compacts G), μ = haar_measure K }
+
+class is_add_haar_measure {G : Type*} [add_group G] [topological_space G] [t2_space G]
+  [topological_add_group G] [measurable_space G] [borel_space G] (μ : measure G) : Prop :=
+{ is_add_haar : ∃ (K : positive_compacts G), μ = add_haar_measure K}
+
+attribute [to_additive] is_haar_measure
+
 @[to_additive]
 lemma haar_measure_apply {K₀ : positive_compacts G} {s : set G} (hs : measurable_set s) :
   haar_measure K₀ s = (haar_content K₀).outer_measure s / (haar_content K₀).outer_measure K₀.1 :=
@@ -513,9 +544,11 @@ by simp only [haar_measure, hs, div_eq_mul_inv, mul_comm, content.measure_apply,
       algebra.id.smul_eq_mul, pi.smul_apply, measure.coe_smul]
 
 @[to_additive]
-lemma is_mul_left_invariant_haar_measure (K₀ : positive_compacts G) :
-  is_mul_left_invariant (haar_measure K₀) :=
+lemma is_mul_left_invariant_haar_measure (μ : measure G) [hμ : is_haar_measure μ] :
+  is_mul_left_invariant (μ) :=
 begin
+  rcases hμ.is_haar with ⟨K₀, hK₀⟩,
+  rw hK₀,
   intros g A hA,
   rw [haar_measure_apply hA, haar_measure_apply (measurable_const_mul g hA)],
   congr' 1,
@@ -532,10 +565,14 @@ begin
   { exact ne_of_lt (content.outer_measure_lt_top_of_is_compact _ K₀.2.1) }
 end
 
+
+#exit
+
 @[to_additive]
-lemma haar_measure_pos_of_is_open [locally_compact_space G] {K₀ : positive_compacts G}
+lemma haar_measure_pos_of_is_open {K₀ : positive_compacts G}
   {U : set G} (hU : is_open U) (h2U : U.nonempty) : 0 < haar_measure K₀ U :=
 begin
+  haveI : locally_compact_space G := sorry,
   rw [haar_measure_apply hU.measurable_set, ennreal.div_pos_iff],
   refine ⟨_, ne_of_lt $ content.outer_measure_lt_top_of_is_compact _ K₀.2.1⟩,
   rw [← pos_iff_ne_zero],

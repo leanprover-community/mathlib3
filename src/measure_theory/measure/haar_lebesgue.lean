@@ -34,4 +34,26 @@ begin
   { exact is_add_left_invariant_real_volume }
 end
 
+class is_real_additive_haar_measure {E : Type*} [normed_group E] [normed_space ℝ E]
+  [finite_dimensional ℝ E] [measurable_space E] [borel_space E] (μ : measure E) : Prop :=
+{ is_haar : ∃ (K : positive_compacts E), μ = add_haar_measure K }
+
+instance : is_real_additive_haar_measure (volume : measure ℝ) :=
+{ is_haar := ⟨Icc01, haar_measure_eq_lebesgue_measure.symm⟩ }
+
+lemma map_is_real_additive_haar_measure
+  {E : Type*} [normed_group E] [normed_space ℝ E]
+  [finite_dimensional ℝ E] [measurable_space E] [borel_space E]
+  {F : Type*} [normed_group F] [normed_space ℝ F]
+  [finite_dimensional ℝ F] [measurable_space F] [borel_space F]
+  (e : E ≃ₗ[ℝ] F) (μ : measure E) [hμ : is_real_additive_haar_measure μ] :
+  is_real_additive_haar_measure (measure.map e μ) :=
+begin
+  have Z : ∃ (K : positive_compacts E), μ = add_haar_measure K := hμ.is_haar,
+  unfreezingI { rcases Z with ⟨K, rfl⟩ },
+end
+
+
+#exit
+
 end measure_theory

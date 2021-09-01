@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2020 Jakob von Raumer. All rights reserved.
+Copyright (c) 2021 Jakob von Raumer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jakob von Raumer
 -/
@@ -26,13 +26,15 @@ noncomputable theory
 
 section coevaluation
 open tensor_product finite_dimensional
-open_locale tensor_product classical big_operators
+open_locale tensor_product big_operators
 
 universes u v
 
 variables (K : Type u) [field K]
 variables (V : Type v) [add_comm_group V] [module K V] [finite_dimensional K V]
 
+/-- The coevaluation map is a linear map from a field `K` to a finite dimensional
+  vector space `V`. -/
 def coevaluation : K →ₗ[K] V ⊗[K] (module.dual K V) :=
   let bV := basis.of_vector_space K V in
   (basis.singleton unit K).constr K $

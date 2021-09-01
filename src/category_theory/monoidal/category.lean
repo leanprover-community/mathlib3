@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Michael Jendrusch. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Michael Jendrusch, Scott Morrison, Bhavik Mehta
+Authors: Michael Jendrusch, Scott Morrison, Bhavik Mehta, Jakob von Raumer
 -/
 import category_theory.products.basic
 
@@ -191,10 +191,6 @@ by { rw [←tensor_comp], simp }
 @[simp, reassoc] lemma tensor_id_comp_id_tensor (f : W ⟶ X) (g : Y ⟶ Z) :
   (g ⊗ (𝟙 W)) ≫ ((𝟙 Z) ⊗ f) = g ⊗ f :=
 by { rw [←tensor_comp], simp }
-
-@[reassoc] lemma tensor_sliding (f : W ⟶ X) (g : Y ⟶ Z) :
-  (g ⊗ (𝟙 W)) ≫ ((𝟙 Z) ⊗ f) = ((𝟙 Y) ⊗ f) ≫ (g ⊗ (𝟙 X)) :=
-(tensor_id_comp_id_tensor _ _).trans (id_tensor_comp_tensor_id _ _).symm
 
 @[reassoc]
 lemma left_unitor_inv_naturality {X X' : C} (f : X ⟶ X') :
@@ -577,7 +573,7 @@ by simp [tensor_right_tensor]
 
 variables {C}
 
-/-
+/--
 Any property closed under `𝟙_` and `⊗` induces a full monoidal subcategory of `C`, where
 the category on the subtype is given by `full_subcategory`.
 -/

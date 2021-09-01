@@ -19,7 +19,7 @@ This file contains the definition and basic results about symmetric matrices.
 sym, symmetric, matrix
 -/
 
-variables {α n m R : Type*} [fintype n] [fintype m]
+variables {α n m R : Type*}
 
 namespace matrix
 
@@ -63,7 +63,7 @@ begin
 end
 
 /-- `A ⬝ Aᵀ` is symmertric. -/
-lemma is_sym_mul_transpose_self [comm_semiring α] (A : matrix n n α) :
+lemma is_sym_mul_transpose_self [fintype n] [comm_semiring α] (A : matrix n n α) :
   (A ⬝ Aᵀ).is_sym :=
 by simp [matrix.is_sym, transpose_mul]
 

@@ -356,33 +356,52 @@ pure $ format.to_string $
 You should add a `has_coe_to_fun` instance for the following types.
 See Note [function coercion]." }
 
-/-- Checks whether non-instances with a class as type are reducible. -/
+/--
+Checks whether an instance contains a semireducible non-instance with a class as
+type in its value. We add some restrictions to get not too many false positives:
+* We only consider classes with an `add` or `mul` field, since those classes are most likely to
+  occur as a field to another class, and be an extension of another class.
+* We only consider instances of type-valued classes and non-instances that are definitions.
+* We currently ignore declarations `foo` that have a `foo._main` declaration. We could look inside,
+or at the generated equation lemmas, but it's unlikely that there are many problematic instances
+defined using the equation compiler.
+-/
 meta def check_reducible_non_instances (d : declaration) : tactic (option string) := do
-  let nm := d.to_name,
-  ff ← is_instance nm | return none,
-  tt ← is_class d.type | return none,
-  -- we only check type-classes with a single argument.
-  -- Type-classes with more arguments are likely (but not always) false positives
-  1 ← return d.type.pi_codomain.get_app_num_args | return none,
+  tt ← is_instance d.to_name | return none,
   ff ← is_prop d.type | return none,
-  ff ← has_attribute' `reducible nm | return none,
-  e ← get_env,
-  ff ← return $ e.is_constructor nm | return none,
-  return $ some "make reducible"
+  env ← get_env,
+  -- We only check if the class of the instance contains an `add` or a `mul` field.
+  let cls := d.type.pi_codomain.get_app_fn.const_name,
+  some constrs ← return $ env.structure_fields cls | return none,
+  tt ← return $ constrs.mem `add || constrs.mem `mul | return none,
+  l ← d.value.list_constant.mfilter $ λ nm, do {
+    d ← env.get nm,
+    ff ← is_instance nm | return ff,
+    tt ← is_class d.type | return ff,
+    tt ← return d.is_definition | return ff,
+    -- We only check if the class of the non-instance contains an `add` or a `mul` field.
+    let cls := d.type.pi_codomain.get_app_fn.const_name,
+    some constrs ← return $ env.structure_fields cls | return ff,
+    tt ← return $ constrs.mem `add || constrs.mem `mul | return ff,
+    ff ← has_attribute' `reducible nm | return ff,
+    return tt },
+  if l.empty then return none else
+  -- we currently ignore declarations that have a `foo._main` declaration.
+  if l.to_list = [d.to_name ++ `_main] then return none else
+    return $ some $ "This instance contains the declarations " ++ to_string l.to_list ++
+      ", which are semireducible non-instances."
 
-/-- A linter that checks whether non-instances with a class as type are reducible. -/
+/-- A linter that checks whether an instance contains a semireducible non-instance. -/
 @[linter]
 meta def linter.check_reducibility : linter :=
 { test := check_reducible_non_instances,
   auto_decls := ff,
   no_errors_found :=
     "All non-instances are reducible.",
-  errors_found := "THE FOLLOWING DEFINITIONS ARE NOT INSTANCES BUT ALSO NOT REDUCIBLE.
-This means that if we define an instance using these definitions, type-class inference cannot " ++
-"compute the fields of these instances, which means that type-class inference might fail to " ++
-"unify found instances with another instance, causing unexpected errors when this class occurs " ++
-"as an *argument* to a type-class problem. See note [reducible non-instances].
-Feel free to give this a `@[nolint]` tag if one of the following holds:
-(1) no instance will ever be defined using this definition;
-(2) no type-class will ever take this type-class as an *argument*.",
+  errors_found := "THE FOLLOWING INSTANCES MIGHT NOT REDUCE.
+These instances contain one or more declarations that are not instances and are also not marked
+`@[reducible]`. This means that type-class inference cannot unfold these declarations, " ++
+"which might mean that type-class inference cannot infer that two instances are definitionally " ++
+"equal. This can cause unexpected errors when this class occurs " ++
+"as an *argument* to a type-class problem. See note [reducible non-instances].",
   is_fast := tt }

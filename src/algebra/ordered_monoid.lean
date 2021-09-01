@@ -276,50 +276,6 @@ instance [ordered_comm_monoid α] : ordered_comm_monoid (with_zero α) :=
   ..with_zero.comm_monoid_with_zero,
   ..with_zero.partial_order }
 
-/-
-Note 1 : the below is not an instance because it requires `zero_le`. It seems
-like a rather pathological definition because α already has a zero.
-Note 2 : there is no multiplicative analogue because it does not seem necessary.
-Mathematicians might be more likely to use the order-dual version, where all
-elements are ≤ 1 and then 1 is the top element.
--/
-
-/--
-If `0` is the least element in `α`, then `with_zero α` is an `ordered_add_comm_monoid`.
--/
-def ordered_add_comm_monoid [ordered_add_comm_monoid α]
-  (zero_le : ∀ a : α, 0 ≤ a) : ordered_add_comm_monoid (with_zero α) :=
-begin
-  suffices, refine {
-    add_le_add_left := this,
-    ..with_zero.partial_order,
-    ..with_zero.add_comm_monoid, .. },
-  { intros a b c h,
-    have h' := lt_iff_le_not_le.1 h,
-    rw lt_iff_le_not_le at ⊢,
-    refine ⟨λ b h₂, _, λ h₂, h'.2 $ this _ _ h₂ _⟩,
-    cases h₂, cases c with c,
-    { cases h'.2 (this _ _ bot_le a) },
-    { refine ⟨_, rfl, _⟩,
-      cases a with a,
-      { exact with_bot.some_le_some.1 h'.1 },
-      { exact le_of_lt (lt_of_add_lt_add_left $
-          with_bot.some_lt_some.1 h), } } },
-  { intros a b h c ca h₂,
-    cases b with b,
-    { rw le_antisymm h bot_le at h₂,
-      exact ⟨_, h₂, le_refl _⟩ },
-    cases a with a,
-    { change c + 0 = some ca at h₂,
-      simp at h₂, simp [h₂],
-      exact ⟨_, rfl, by simpa using add_le_add_left (zero_le b) _⟩ },
-    { simp at h,
-      cases c with c; change some _ = _ at h₂;
-        simp [-add_comm] at h₂; subst ca; refine ⟨_, rfl, _⟩,
-      { exact h },
-      { exact add_le_add_left h _ } } }
-end
-
 end with_zero
 
 namespace with_top
@@ -448,6 +404,7 @@ instance [add_comm_semigroup α] : add_comm_semigroup (with_bot α) := with_top.
 instance [add_monoid α] : add_monoid (with_bot α) := with_top.add_monoid
 instance [add_comm_monoid α] : add_comm_monoid (with_bot α) :=  with_top.add_comm_monoid
 
+/-- Adding `⊥` to an ordered additive monoid produces another one. -/
 instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (with_bot α) :=
 begin
   suffices, refine {
@@ -595,30 +552,6 @@ begin
   { rw [one_lt_iff_ne_one], apply mt, rintro rfl, rw [mul_one] },
   { rw [← (self_le_mul_right a c).lt_iff_ne], apply lt_mul_of_one_lt_right' }
 end
-
-local attribute [semireducible] with_zero
-
--- This instance looks absurd: a monoid already has a zero
-/-- Adding a new zero to a canonically ordered additive monoid produces another one. -/
-instance with_zero.canonically_ordered_add_monoid {α : Type u} [canonically_ordered_add_monoid α] :
-  canonically_ordered_add_monoid (with_zero α) :=
-{ le_iff_exists_add := λ a b, begin
-    cases a with a,
-    { exact iff_of_true bot_le ⟨b, (zero_add b).symm⟩ },
-    cases b with b,
-    { exact iff_of_false
-        (mt (le_antisymm bot_le) (by simp))
-        (λ ⟨c, h⟩, by cases c; cases h) },
-    { simp [le_iff_exists_add, -add_comm],
-      split; intro h; rcases h with ⟨c, h⟩,
-      { exact ⟨some c, congr_arg some h⟩ },
-      { cases c; cases h,
-        { exact ⟨_, (add_zero _).symm⟩ },
-        { exact ⟨_, rfl⟩ } } }
-  end,
-  bot    := 0,
-  bot_le := assume a a' h, option.no_confusion h,
-  .. with_zero.ordered_add_comm_monoid zero_le }
 
 instance with_top.canonically_ordered_add_monoid {α : Type u} [canonically_ordered_add_monoid α] :
   canonically_ordered_add_monoid (with_top α) :=

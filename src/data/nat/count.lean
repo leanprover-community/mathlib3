@@ -534,7 +534,7 @@ begin
 end
 
 lemma count_strict_mono {m n : ℕ}
-  (hm : p m) (hn : p n) (hmn : m < n) : count p m < count p n :=
+  (hm : p m) (hmn : m < n) : count p m < count p n :=
 begin
   rw [count_eq_card_finset, count_eq_card_finset],
   apply finset.card_lt_card,
@@ -555,7 +555,7 @@ begin
   by_contra,
   wlog hmn : m < n,
   { exact ne.lt_or_lt h },
-  { have hlt : count p m < count p n := count_strict_mono _ hm hn hmn,
+  { have hlt : count p m < count p n := count_strict_mono _ hm hmn,
     rw heq at hlt,
     simpa using hlt, },
 end
@@ -597,9 +597,62 @@ begin
   { exact nth_count_of_infinite p hinf hp, },
 end
 
+lemma nth_count_eq_Inf {n : ℕ} : nth p (count p n) = Inf{i : ℕ | p i ∧ n ≤ i} :=
+begin
+  rw nth,
+  have h: {i : ℕ | p i ∧ ∀ (k : ℕ), k < count p n → nth p k < i} = {i : ℕ | p i ∧ n ≤ i},
+  { ext a,
+    simp,
+    intro hp,
+    split,
+    { intro h,
+      by_contra ha,
+      simp at ha,
+      have hn: nth p (count p a) < a,
+      { apply h,
+        apply count_strict_mono,
+        { exact hp, },
+        { exact ha, }, },
+      rw nth_count at hn,
+      { simp at hn,
+        exact hn, },
+      { exact hp, }, },
+    { intros hn k hk,
+      apply lt_of_lt_of_le,
+      swap,
+      { exact hn,},
+      { apply (count_monotone p).reflect_lt,
+        convert hk,
+        have hfi: set.finite p ∨ set.infinite p := em (set.finite p),
+        cases hfi,
+        { rw count_nth_of_lt_card_finite,
+          apply lt_trans,
+          { exact hk, },
+          { apply lt_of_le_of_lt,
+            { apply count_monotone,
+              exact hn, },
+            { apply count_lt_card p hfi hp, }, }, },
+          { apply count_nth_of_infinite p hfi, }, }, }, },
+  rw h,
+end
+
 lemma nth_count_le [decidable_pred p] (i : (set_of p).infinite) (n : ℕ) : n ≤ nth p (count p n) :=
 begin
-  sorry
+  rw nth_count_eq_Inf,
+  have h: Inf {i : ℕ | p i ∧ n ≤ i} ∈ {i : ℕ | p i ∧ n ≤ i},
+  { apply Inf_mem,
+    have hg := set.exists_gt_of_infinite,
+    specialize hg p i n,
+    cases hg with m hm,
+    use m,
+    simp,
+    cases hm with hp hn,
+    split,
+    { exact hp, },
+    { apply le_of_lt hn, }, },
+  simp at h,
+  cases h with hp hle,
+  exact hle,
 end
 
 lemma count_nth_gc (i : (set_of p).infinite) : galois_connection (count p) (nth p) :=

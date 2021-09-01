@@ -53,7 +53,9 @@ protected lemma is_algebraic : algebra.is_algebraic ℚ K := algebra.is_algebrai
 
 /-- The ring of integers (or number ring) corresponding to a number field
 is the integral closure of ℤ in the number field. -/
-@[nolint unused_arguments] -- There are multiple definitions of rings of integers.
+-- The `is_number_field K` hypothesis is not used but is required for
+-- this definition to make sense.
+@[nolint unused_arguments]
 def ring_of_integers := integral_closure ℤ K
 
 namespace ring_of_integers

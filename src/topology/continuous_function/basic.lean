@@ -216,12 +216,8 @@ Extend a continuous function `f : C(set.Icc a b, β)` to a function `f : C(α, �
 -/
 def Icc_extend (f : C(set.Icc a b, β)) : C(α, β) := ⟨set.Icc_extend h f⟩
 
-@[simp] lemma Icc_extend_range (f : C(set.Icc a b, β)) :
-  set.range (Icc_extend h f) = set.range f :=
-set.Icc_extend_range h f
-
-@[simp] lemma Icc_extend_apply (f : C(set.Icc a b, β)) (x : α) :
-  Icc_extend h f x = set.Icc_extend h f x := rfl
+@[simp] lemma coe_Icc_extend (f : C(set.Icc a b, β)) :
+  ((Icc_extend h f : C(α, β)) : α → β) = set.Icc_extend h f := rfl
 
 end extend
 

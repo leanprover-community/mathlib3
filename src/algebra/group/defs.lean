@@ -757,8 +757,20 @@ instance group.to_cancel_monoid : cancel_monoid G :=
 
 end group
 
+@[to_additive]
+lemma group.to_div_inv_monoid_injective {G : Type*} :
+  function.injective (@group.to_div_inv_monoid G) :=
+begin
+  rintros ⟨⟩ ⟨⟩ h,
+  replace h := div_inv_monoid.mk.inj h,
+  dsimp at h,
+  rcases h with ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩,
+  refl
+end
+
 @[ext, to_additive]
 lemma group.ext {G : Type*} ⦃g₁ g₂ : group G⦄ (h_mul : g₁.mul = g₂.mul) : g₁ = g₂ :=
+group.to_div_inv_monoid_injective $ div_inv_monoid.ext h_mul
 begin
   let iG : group G := g₁,
   unfreezingI {
@@ -779,34 +791,7 @@ begin
     convert (rfl : (1 : G) = 1),
     { exact mul_left_inv₁ a },
     { exact mul_left_inv₂ a } },
-  subst h_inv,
-  have h_div : div₁ = div₂,
-  { ext a b,
-    convert (rfl : a * b⁻¹ = a * b⁻¹),
-    { exact div_eq_mul_inv₁ a b },
-    { exact div_eq_mul_inv₂ a b } },
-  subst h_div,
-  have h_npow : npow₁ = npow₂,
-  { ext n,
-    induction n with n IH,
-    { rw [npow_zero'₁, npow_zero'₂] },
-    { rw [npow_succ'₁, npow_succ'₂, IH] } },
-  subst h_npow,
-  have h_gpow_aux : ∀ n g, gpow₁ (int.of_nat n) g = gpow₂ (int.of_nat n) g,
-  { intros n g,
-    induction n with n IH,
-    { convert (rfl : (1 : G) = 1),
-      { exact gpow_zero'₁ g },
-      { exact gpow_zero'₂ g } },
-    { rw [gpow_succ'₁, gpow_succ'₂, IH] } },
-  have h_gpow : gpow₁ = gpow₂,
-  { ext z,
-    cases z with z z,
-    { exact h_gpow_aux z x },
-    { rw [gpow_neg'₁, gpow_neg'₂],
-      congr',
-      exact h_gpow_aux _ _ } },
-  subst h_gpow,
+  exact h_inv
 end
 
 attribute [ext] add_group.ext
@@ -820,13 +805,15 @@ class add_comm_group (G : Type u) extends add_group G, add_comm_monoid G
 attribute [to_additive] comm_group
 attribute [instance, priority 300] add_comm_group.to_add_comm_monoid
 
--- TODO: this is super slow for some reason!
 @[to_additive]
 lemma comm_group.to_group_injective {G : Type u} :
   function.injective (@comm_group.to_group G) :=
 begin
   rintros ⟨⟩ ⟨⟩ h,
-  congr'; injection h,
+  replace h := group.mk.inj h,
+  dsimp at h,
+  rcases h with ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩,
+  refl
 end
 
 @[ext, to_additive]

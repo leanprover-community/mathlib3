@@ -23,6 +23,8 @@ local infix ` ≺ `:50 := euclidean_domain.r
 
 namespace absolute_value
 
+section ordered_semiring
+
 variables {R S : Type*} [euclidean_domain R] [ordered_semiring S]
 variables (abv : absolute_value R S)
 
@@ -47,6 +49,25 @@ lemma sub_mod_lt (h : abv.is_euclidean) (a : R) {b : R} (hb : b ≠ 0) :
 h.map_lt_map_iff.mpr (euclidean_domain.mod_lt a hb)
 
 end is_euclidean
+
+end ordered_semiring
+
+section linear_ordered_comm_ring
+
+variables {R S : Type*} [euclidean_domain R] [linear_ordered_comm_ring S]
+variables (abv : euclidean_absolute_value R S)
+
+@[simp] protected theorem map_neg (a : R) : abv (-a) = abv a :=
+(abv : absolute_value R S).map_neg a
+
+protected theorem map_sub (a b : R) : abv (a - b) = abv (b - a) :=
+(abv : absolute_value R S).map_sub a b
+
+lemma abs_abv_sub_le_abv_sub (a b : R) :
+  abs (abv a - abv b) ≤ abv (a - b) :=
+(abv : absolute_value R S).abs_abv_sub_le_abv_sub a b
+
+end linear_ordered_comm_ring
 
 section int
 

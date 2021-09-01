@@ -7,6 +7,7 @@ import ring_theory.discrete_valuation_ring
 import ring_theory.fractional_ideal
 import ring_theory.ideal.over
 import ring_theory.integrally_closed
+import ring_theory.trace
 
 /-!
 # Dedekind domains
@@ -698,3 +699,154 @@ theorem ideal.prime_iff_is_prime {P : ideal A} (hP : P ≠ ⊥) :
 ⟨ideal.is_prime_of_prime, ideal.prime_of_is_prime hP⟩
 
 end is_dedekind_domain
+
+section integral_domain
+
+/-! ### `integral_closure` section
+
+We show that the integral closure of a Dedekind domain in a finite separable
+field extension is again a Dedekind domain. This implies the ring of integers
+of a number field is a Dedekind domain. -/
+
+open algebra
+open_locale big_operators
+
+variables [algebra A K]
+variables {L : Type*} [integral_domain R] [field L] [algebra K L] [algebra A L]
+variables [is_scalar_tower A K L] [finite_dimensional K L]
+
+lemma integral_closure_le_span_dual_basis [is_separable K L]
+  {ι : Type*} [fintype ι] [decidable_eq ι] (b : basis ι K L)
+  (hb_int : ∀ i, is_integral A (b i)) (int_cl : integral_closure A K = ⊥) :
+  (integral_closure A L).to_submodule ≤ submodule.span A (set.range $
+    (trace_form K L).dual_basis (trace_form_nondegenerate K L) b) :=
+begin
+  let db := (trace_form K L).dual_basis (trace_form_nondegenerate K L) b,
+  rintros x (hx : is_integral A x),
+  suffices : ∃ (c : ι → A), x = ∑ i, c i • db i,
+  { obtain ⟨c, rfl⟩ := this,
+    refine submodule.sum_mem _ (λ i _, submodule.smul_mem _ _ (submodule.subset_span _)),
+    rw set.mem_range,
+    exact ⟨i, rfl⟩ },
+  suffices : ∃ (c : ι → K), ((∀ i, is_integral A (c i)) ∧ x = ∑ i, c i • db i),
+  { obtain ⟨c, hc, hx⟩ := this,
+    have hc' : ∀ i, is_localization.is_integer A (c i) := λ i, algebra.mem_bot.mp
+      (int_cl ▸ (hc i : c i ∈ integral_closure A K)),
+    use λ i, classical.some (hc' i),
+    refine hx.trans (finset.sum_congr rfl (λ i _, _)),
+    conv_lhs { rw [← classical.some_spec (hc' i)] },
+    rw [← is_scalar_tower.algebra_map_smul K (classical.some (hc' i)) (db i)] },
+  refine ⟨λ i, db.repr x i, (λ i, _), (db.sum_repr _).symm⟩,
+  rw bilin_form.dual_basis_repr_apply,
+  exact is_integral_trace (is_integral_mul hx (hb_int i))
+end
+
+variables (A) (K) [is_fraction_ring A K]
+
+include K
+
+/-- Send a set of `x`'es in a finite extension `L` of the fraction field of `R`
+to `(y : R) • x ∈ integral_closure R L`. -/
+lemma exists_integral_multiples (s : finset L) :
+  ∃ (y ≠ (0 : A)), ∀ x ∈ s, is_integral A (y • x) :=
+begin
+  haveI := classical.dec_eq L,
+  refine s.induction _ _,
+  { use [1, one_ne_zero],
+    rintros x ⟨⟩ },
+  { rintros x s hx ⟨y, hy, hs⟩,
+    obtain ⟨x', y', hy', hx'⟩ := exists_integral_multiple
+      ((is_fraction_ring.is_algebraic_iff A K).mpr (algebra.is_algebraic_of_finite x))
+      ((algebra_map A L).injective_iff.mp _),
+    refine ⟨y * y', mul_ne_zero hy hy', λ x'' hx'', _⟩,
+    rcases finset.mem_insert.mp hx'' with (rfl | hx''),
+    { rw [mul_smul, algebra.smul_def, algebra.smul_def, mul_comm _ x'', hx'],
+      exact is_integral_mul is_integral_algebra_map x'.2 },
+    { rw [mul_comm, mul_smul, algebra.smul_def],
+      exact is_integral_mul is_integral_algebra_map (hs _ hx'') },
+    { rw is_scalar_tower.algebra_map_eq A K L,
+      apply (algebra_map K L).injective.comp,
+      exact is_fraction_ring.injective _ _ } }
+end
+
+variables (L)
+
+/-- If `L` is a finite extension of `K = Frac(A)`,
+then `L` has a basis over `A` consisting of integral elements. -/
+lemma finite_dimensional.exists_is_basis_integral :
+  ∃ (s : finset L) (b : basis s K L), (∀ x, is_integral A (b x)) :=
+begin
+  letI := classical.dec_eq L,
+  let s' := is_noetherian.finset_basis_index K L,
+  let bs' := is_noetherian.finset_basis K L,
+  obtain ⟨y, hy, his'⟩ := exists_integral_multiples A K (finset.univ.image bs'),
+  have hy' : algebra_map A L y ≠ 0,
+  { refine mt ((algebra_map A L).injective_iff.mp _ _) hy,
+    rw is_scalar_tower.algebra_map_eq A K L,
+    exact (algebra_map K L).injective.comp (is_fraction_ring.injective A K) },
+  refine ⟨s', bs'.map { to_fun := λ x, algebra_map A L y * x,
+                        inv_fun := λ x, (algebra_map A L y)⁻¹ * x,
+                        left_inv := _,
+                        right_inv := _,
+                        .. algebra.lmul _ _ (algebra_map A L y) },
+          _⟩,
+  { intros x, simp only [inv_mul_cancel_left' hy'] },
+  { intros x, simp only [mul_inv_cancel_left' hy'] },
+  { rintros ⟨x', hx'⟩,
+    simp only [algebra.smul_def, finset.mem_image, exists_prop, finset.mem_univ, true_and] at his',
+    simp only [basis.map_apply, linear_equiv.coe_mk],
+    exact his' _ ⟨_, rfl⟩ }
+end
+
+variables {A K} [is_separable K L]
+
+/- If `L` is a finite separable extension of `K = Frac(A)`, where `A` is
+integrally closed and Noetherian, the integral closure of `A` in `L` is
+Noetherian. -/
+lemma integral_closure.is_noetherian_ring [is_noetherian_ring A]
+  (int_cl : integral_closure A K = ⊥) :
+  is_noetherian_ring (integral_closure A L) :=
+begin
+  haveI := classical.dec_eq L,
+  obtain ⟨s, b, hb_int⟩ := finite_dimensional.exists_is_basis_integral A K L,
+  rw is_noetherian_ring_iff,
+  letI := is_noetherian_span_of_finite A (set.finite_range ((trace_form K L).dual_basis
+    (trace_form_nondegenerate K L) b)),
+  exact is_noetherian_of_tower A (is_noetherian_of_le
+    (integral_closure_le_span_dual_basis A K b (λ x, hb_int x) int_cl)),
+end
+
+variables (A K)
+/- If `L` is a finite separable extension of `K = Frac(A)`, where `A` is a Dedekind domain,
+the integral closure of `A` in `L` is a Dedekind domain.
+
+Can't be an instance since `K` can't be inferred. See also the instance
+`integral_closure.is_dedekind_domain_fraction_ring` where `K := fraction_ring A`.
+-/
+lemma integral_closure.is_dedekind_domain [h : is_dedekind_domain A] :
+  is_dedekind_domain (integral_closure A L) :=
+begin
+  haveI : is_fraction_ring (integral_closure A L) L :=
+    integral_closure.is_fraction_ring_of_finite_extension K L,
+  exact (is_dedekind_domain_iff _ _).mpr
+    ⟨integral_closure.is_noetherian_ring L ((is_dedekind_domain_iff A K).mp h).2.2,
+     h.dimension_le_one.integral_closure _ _,
+     integral_closure_idem⟩
+end
+
+omit K
+
+variables [algebra (fraction_ring A) L] [is_scalar_tower A (fraction_ring A) L]
+variables [finite_dimensional (fraction_ring A) L] [is_separable (fraction_ring A) L]
+
+/- If `L` is a finite separable extension of `Frac(A)`, where `A` is a Dedekind domain,
+the integral closure of `A` in `L` is a Dedekind domain.
+
+See also the lemma `integral_closure.is_dedekind_domain` where you can choose
+the field of fractions yourself.
+-/
+instance integral_closure.is_dedekind_domain_fraction_ring
+  [is_dedekind_domain A] : is_dedekind_domain (integral_closure A L) :=
+integral_closure.is_dedekind_domain A (fraction_ring A) L
+
+end integral_domain

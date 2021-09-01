@@ -145,7 +145,9 @@ end add_comm_monoid
 variables (R)
 
 /-- An `add_comm_monoid` that is a `module` over a `ring` carries a natural `add_comm_group`
-structure. -/
+structure.
+See note [reducible non-instances]. -/
+@[reducible]
 def module.add_comm_monoid_to_add_comm_group [ring R] [add_comm_monoid M] [module R M] :
   add_comm_group M :=
 { neg          := λ a, (-1 : R) • a,

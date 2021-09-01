@@ -813,6 +813,10 @@ mem_map_of_mem f x.prop
 lemma map_mono {f : G →* N} {K K' : subgroup G} : K ≤ K' → map f K ≤ map f K' :=
 image_subset _
 
+@[simp, to_additive]
+lemma map_id : K.map (monoid_hom.id G) = K :=
+set_like.coe_injective $ image_id _
+
 @[to_additive]
 lemma map_map (g : N →* P) (f : G →* N) : (K.map f).map g = K.map (g.comp f) :=
 set_like.coe_injective $ image_image _ _ _

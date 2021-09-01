@@ -378,20 +378,33 @@ See note [reducible non-instances]. -/
   smul_add := λ x, smul_add (f x),
   .. mul_action.comp_hom A f }
 
+/-- Each element of the monoid defines a additive monoid homomorphism. -/
+@[simps]
+def distrib_mul_action.to_add_monoid_hom [distrib_mul_action M A] (x : M) : A →+ A :=
+{ to_fun  := (•) x,
+  map_zero' := smul_zero x,
+  map_add' := smul_add x }
+
+variables (M)
+
+/-- Each element of the group defines an additive monoid homomorphism. -/
+def distrib_mul_action.hom_add_monoid_hom [distrib_mul_action M A] : M →* add_monoid.End A :=
+{ to_fun := distrib_mul_action.to_add_monoid_hom A,
+  map_one' := add_monoid_hom.ext $ λ x, one_smul M x,
+  map_mul' := λ x y, add_monoid_hom.ext $ λ z, mul_smul x y z }
+
+variables {M}
+
 /-- Scalar multiplication by `r` as an `add_monoid_hom`. -/
 def const_smul_hom (r : M) : A →+ A :=
-{ to_fun := (•) r,
-  map_zero' := smul_zero r,
-  map_add' := smul_add r }
+distrib_mul_action.to_add_monoid_hom A r
 
 variable {A}
 
-@[simp] lemma const_smul_hom_apply (r : M) (x : A) :
-  const_smul_hom A r x = r • x := rfl
+@[simp] lemma const_smul_hom_apply (r : M) (x : A) : const_smul_hom A r x = r • x := rfl
 
-@[simp] lemma const_smul_hom_one :
-  const_smul_hom A (1:M) = add_monoid_hom.id _ :=
-by { ext, rw [const_smul_hom_apply, one_smul, add_monoid_hom.id_apply] }
+@[simp] lemma const_smul_hom_one : const_smul_hom A (1:M) = add_monoid_hom.id _ :=
+(distrib_mul_action.hom_add_monoid_hom M A).map_one
 
 end
 

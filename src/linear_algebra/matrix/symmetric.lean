@@ -100,13 +100,14 @@ begin
   intro g, exfalso, exact h g.symm
 end
 
-/-- If a block matrix `A.from_blocks B C D` is symmetric,
+/- If a block matrix `A.from_blocks B C D` is symmetric,
     `A`, `D` are symmetric, and `Cᵀ = B`, and `Bᵀ = C`.-/
+/-
 lemma block_conditions_of_is_sym
-{A : matrix m m α} {B : matrix m n α} {C : matrix n m α} {D : matrix n n α} :
-(A.from_blocks B C D).is_sym → (A.is_sym) ∧ (D.is_sym) ∧ (Cᵀ = B) ∧ (Bᵀ = C) :=
+{A : matrix m m α} {B : matrix m n α} {C : matrix n m α} {D : matrix n n α}
+(h : (A.from_blocks B C D).is_sym) :
+(A.is_sym) ∧ (D.is_sym) ∧ (Cᵀ = B) ∧ (Bᵀ = C) :=
 begin
-  rintros h,
   unfold matrix.is_sym at h,
   rw from_blocks_transpose at h,
   have h1 : (Aᵀ.from_blocks Cᵀ Bᵀ Dᵀ).to_blocks₁₁ = (A.from_blocks B C D).to_blocks₁₁, {rw h},
@@ -116,5 +117,6 @@ begin
   simp at *,
   use ⟨h1, h4, h2, h3⟩
 end
+-/
 
 end matrix

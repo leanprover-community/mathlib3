@@ -493,6 +493,9 @@ option.rec h₁ h₂
 theorem coe_eq_coe {a b : α} : (a : with_bot α) = b ↔ a = b :=
 by rw [← option.some.inj_eq a b]; refl
 
+lemma ne_bot_iff_exists {x : with_bot α} : x ≠ ⊥ ↔ ∃ (a : α), ↑a = x :=
+option.ne_none_iff_exists
+
 /-- Deconstruct a `x : with_bot α` to the underlying value in `α`, given a proof that `x ≠ ⊥`. -/
 def unbot : Π (x : with_bot α), x ≠ ⊥ → α
 | ⊥        h := absurd rfl h
@@ -727,6 +730,9 @@ by rw [← option.some.inj_eq a b]; refl
 
 @[simp] theorem top_ne_coe {a : α} : ⊤ ≠ (a : with_top α) .
 @[simp] theorem coe_ne_top {a : α} : (a : with_top α) ≠ ⊤ .
+
+lemma ne_top_iff_exists {x : with_top α} : x ≠ ⊤ ↔ ∃ (a : α), ↑a = x :=
+option.ne_none_iff_exists
 
 /-- Deconstruct a `x : with_top α` to the underlying value in `α`, given a proof that `x ≠ ⊤`. -/
 def untop : Π (x : with_top α), x ≠ ⊤ → α :=

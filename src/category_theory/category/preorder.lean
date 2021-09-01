@@ -13,15 +13,15 @@ import order.category.Preorder
 # Preorders as categories
 
 We install a category instance on any preorder. This is not to be confused with the category _of_
-preorders, defined in `order.category.Preorder`.
+preorders, defined in `order/category/Preorder`.
 
 We show that monotone functions between preorders correspond to functors of the associated
 categories. Furthermore, galois connections correspond to adjoint functors.
 
 ## Main definitions
 
-* `hom_of_le` and `le_of_hom` provide between inequalities and morphisms in the
-  preorder category.
+* `hom_of_le` and `le_of_hom` provide translations between inequalities in the preorder, and
+  morphisms in the associated category.
 * `monotone.functor` is the functor associated to a monotone function.
 * `galois_connection.adjunction` is the adjunction associated to a galois connection.
 * `Preorder_to_Cat` is the functor embedding the category of preorders into `Cat`.
@@ -103,7 +103,7 @@ namespace category_theory
 /--
 A functor between preorder categories is monotone.
 -/
-lemma monotone_of_functor (f : X ⥤ Y) : monotone f.obj :=
+@[mono] lemma functor.monotone (f : X ⥤ Y) : monotone f.obj :=
 λ x y hxy, (f.map hxy.hom).le
 
 /--

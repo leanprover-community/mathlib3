@@ -954,7 +954,7 @@ lemma concave_on.le_on_segment {f : E → γ} (hf : concave_on s f) {x y z : E}
 
 end monoid
 
-variables {γ : Type*} [linear_ordered_add_comm_group γ] [module ℝ γ] [ordered_module ℝ γ]
+variables {γ : Type*} [linear_ordered_cancel_add_comm_monoid γ] [module ℝ γ] [ordered_module ℝ γ]
   {f : E → γ}
 
 -- could be shown without contradiction but yeah

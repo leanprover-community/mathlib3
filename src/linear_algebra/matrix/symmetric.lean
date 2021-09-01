@@ -63,7 +63,7 @@ begin
 end
 
 /-- `A ⬝ Aᵀ` is symmertric. -/
-lemma is_sym_of_mul_transpose_self [comm_semiring α] (A : matrix I I α) :
+lemma is_sym_mul_transpose_self [comm_semiring α] (A : matrix I I α) :
   (A ⬝ Aᵀ).is_sym :=
 by simp [matrix.is_sym, transpose_mul]
 

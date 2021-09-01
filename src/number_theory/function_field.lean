@@ -5,6 +5,7 @@ Authors: Anne Baanen, Ashvni Narayanan
 -/
 import ring_theory.algebraic
 import ring_theory.localization
+import ring_theory.integrally_closed
 
 /-!
 # Function fields
@@ -86,11 +87,17 @@ variables [algebra (polynomial Fq) F]
 instance : integral_domain (ring_of_integers Fq F) :=
 (ring_of_integers Fq F).integral_domain
 
+instance : is_integral_closure (ring_of_integers Fq F) (polynomial Fq) F :=
+integral_closure.is_integral_closure _ _
+
 variables [algebra (fraction_ring (polynomial Fq)) F] [function_field Fq F]
 variables [is_scalar_tower (polynomial Fq) (fraction_ring (polynomial Fq)) F]
 
 instance : is_fraction_ring (ring_of_integers Fq F) F :=
 integral_closure.is_fraction_ring_of_finite_extension (fraction_ring (polynomial Fq)) F
+
+instance : is_integrally_closed (ring_of_integers Fq F) :=
+integral_closure.is_integrally_closed_of_finite_extension (fraction_ring (polynomial Fq))
 
 -- TODO: show `ring_of_integers Fq F` is a Dedekind domain
 

@@ -107,14 +107,6 @@ rfl
 instance : is_scalar_tower R S (restrict_scalars R S M) :=
 ⟨λ r S M, by { rw [algebra.smul_def, mul_smul], refl }⟩
 
-instance submodule.restricted_module (V : submodule S M) :
-  module R V :=
-restrict_scalars.module R S V
-
-instance submodule.restricted_module_is_scalar_tower (V : submodule S M) :
-  is_scalar_tower R S V :=
-restrict_scalars.is_scalar_tower R S V
-
 end module
 
 section algebra

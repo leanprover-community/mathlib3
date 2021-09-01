@@ -425,7 +425,7 @@ def subtype : S →* M := ⟨coe, rfl, λ _ _, rfl⟩
 @[to_additive "An additive submonoid is isomorphic to its image under an injective function"]
 noncomputable def equiv_map_of_injective
   (f : M →* N) (hf : function.injective f) : S ≃* S.map f :=
-{ map_mul' := λ _ _, subtype.ext (f.map_mul _ _), ..equiv.set.image f S hf  }
+{ map_mul' := λ _ _, subtype.ext (f.map_mul _ _), ..equiv.set.image f S hf }
 
 @[simp, to_additive] lemma coe_equiv_map_of_injective_apply
   (f : M →* N) (hf : function.injective f) (x : S) :
@@ -826,6 +826,10 @@ instance
 ⟨λ a, (smul_assoc (a : M') : _)⟩
 
 example {S : submonoid M'} : is_scalar_tower S M' M' := by apply_instance
+
+instance [mul_action M' α] [has_faithful_scalar M' α] (S : submonoid M') :
+  has_faithful_scalar S α :=
+{ eq_of_smul_eq_smul := λ x y h, subtype.ext (eq_of_smul_eq_smul h) }
 
 end submonoid
 

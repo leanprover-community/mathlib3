@@ -105,7 +105,7 @@ variables {R} (M)
 See note [reducible non-instances]. -/
 @[reducible] def module.comp_hom [semiring S] (f : S →+* R) :
   module S M :=
-{ smul := (•) ∘ f,
+{ smul := has_scalar.comp.smul f,
   add_smul := λ r s x, by simp [add_smul],
   .. mul_action_with_zero.comp_hom M f.to_monoid_with_zero_hom,
   .. distrib_mul_action.comp_hom M (f : S →* R) }
@@ -250,6 +250,23 @@ instance semiring.to_opposite_module [semiring R] : module Rᵒᵖ R :=
 /-- A ring homomorphism `f : R →+* M` defines a module structure by `r • x = f r * x`. -/
 def ring_hom.to_module [semiring R] [semiring S] (f : R →+* S) : module R S :=
 module.comp_hom S f
+
+/-- The tautological action by `R →+* R` on `R`.
+
+This generalizes `function.End.apply_mul_action`. -/
+instance ring_hom.apply_distrib_mul_action [semiring R] : distrib_mul_action (R →+* R) R :=
+{ smul := ($),
+  smul_zero := ring_hom.map_zero,
+  smul_add := ring_hom.map_add,
+  one_smul := λ _, rfl,
+  mul_smul := λ _ _ _, rfl }
+
+@[simp] protected lemma ring_hom.smul_def [semiring R] (f : R →+* R) (a : R) :
+  f • a = f a := rfl
+
+/-- `ring_hom.apply_distrib_mul_action` is faithful. -/
+instance ring_hom.apply_has_faithful_scalar [semiring R] : has_faithful_scalar (R →+* R) R :=
+⟨ring_hom.ext⟩
 
 section add_comm_monoid
 

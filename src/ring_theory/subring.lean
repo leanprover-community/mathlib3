@@ -32,6 +32,8 @@ Notation used here:
 
 * `instance : complete_lattice (subring R)` : the complete lattice structure on the subrings.
 
+* `subring.center` : the center of a ring `R`.
+
 * `subring.closure` : subring closure of a set, i.e., the smallest subring that includes the set.
 
 * `subring.gi` : `closure : set M → subring M` and coercion `coe : subring M → set M`
@@ -368,7 +370,7 @@ noncomputable def equiv_map_of_injective
   (f : R →+* S) (hf : function.injective f) : s ≃+* s.map f :=
 { map_mul' := λ _ _, subtype.ext (f.map_mul _ _),
   map_add' := λ _ _, subtype.ext (f.map_add _ _),
-  ..equiv.set.image f s hf  }
+  ..equiv.set.image f s hf }
 
 @[simp] lemma coe_equiv_map_of_injective_apply
   (f : R →+* S) (hf : function.injective f) (x : s) :
@@ -475,6 +477,35 @@ instance : complete_lattice (subring R) :=
 
 lemma eq_top_iff' (A : subring R) : A = ⊤ ↔ ∀ x : R, x ∈ A :=
 eq_top_iff.trans ⟨λ h m, h $ mem_top m, λ h m _, h m⟩
+
+section
+
+variables (R)
+
+/-- The center of a semiring `R` is the set of elements that commute with everything in `R` -/
+def center : subring R :=
+{ carrier := set.center R,
+  neg_mem' := λ a, set.neg_mem_center,
+  .. subsemiring.center R }
+
+lemma coe_center : ↑(center R) = set.center R := rfl
+
+@[simp] lemma center_to_subsemiring : (center R).to_subsemiring = subsemiring.center R := rfl
+
+variables {R}
+
+lemma mem_center_iff {z : R} : z ∈ center R ↔ ∀ g, g * z = z * g :=
+iff.rfl
+
+@[simp] lemma center_eq_top (R) [comm_ring R] : center R = ⊤ :=
+set_like.coe_injective (set.center_eq_univ R)
+
+/-- The center is commutative. -/
+instance : comm_ring (center R) :=
+{ ..subsemiring.center.comm_semiring,
+  ..(center R).to_ring}
+
+end
 
 /-! # subring closure of a subset -/
 
@@ -894,6 +925,10 @@ instance
   [has_scalar α β] [mul_action R α] [mul_action R β] [is_scalar_tower R α β] (S : subring R) :
   is_scalar_tower S α β :=
 S.to_subsemiring.is_scalar_tower
+
+instance [mul_action R α] [has_faithful_scalar R α] (S : subring R) :
+  has_faithful_scalar S α :=
+S.to_subsemiring.has_faithful_scalar
 
 /-- The action by a subring is the action by the underlying ring. -/
 instance [add_monoid α] [distrib_mul_action R α] (S : subring R) : distrib_mul_action S α :=

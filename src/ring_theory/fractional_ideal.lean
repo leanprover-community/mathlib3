@@ -64,8 +64,9 @@ fractional ideal, fractional ideals, invertible ideal
 -/
 
 open is_localization
+open_locale pointwise
 
-local notation R`⁰`:9000 := non_zero_divisors R
+open_locale non_zero_divisors
 
 section defs
 

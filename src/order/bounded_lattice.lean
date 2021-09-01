@@ -97,6 +97,10 @@ theorem ne_top_of_le_ne_top {a b : α} (hb : b ≠ ⊤) (hab : a ≤ b) : a ≠ 
 lemma eq_top_of_maximal (h : ∀ b, ¬ a < b) : a = ⊤ :=
 or.elim (lt_or_eq_of_le le_top) (λ hlt, absurd hlt (h ⊤)) (λ he, he)
 
+lemma ne.lt_top (h : a ≠ ⊤) : a < ⊤ := lt_top_iff_ne_top.mpr h
+
+lemma ne.lt_top' (h : ⊤ ≠ a) : a < ⊤ := h.symm.lt_top
+
 end order_top
 
 lemma strict_mono.top_preimage_top' [linear_order α] [order_top β]
@@ -160,6 +164,10 @@ bot_lt_iff_ne_bot.1 $ lt_of_le_of_lt bot_le h
 
 lemma eq_bot_of_minimal (h : ∀ b, ¬ b < a) : a = ⊥ :=
 or.elim (lt_or_eq_of_le bot_le) (λ hlt, absurd hlt (h ⊥)) (λ he, he.symm)
+
+lemma ne.bot_lt (h : a ≠ ⊥) : ⊥ < a := bot_lt_iff_ne_bot.mpr h
+
+lemma ne.bot_lt' (h : ⊥ ≠ a) : ⊥ < a := h.symm.bot_lt
 
 end order_bot
 
@@ -415,7 +423,7 @@ instance pi.lattice {ι : Type*} {α : ι → Type*} [Π i, lattice (α i)] : la
 
 instance pi.distrib_lattice {ι : Type*} {α : ι → Type*} [Π i, distrib_lattice (α i)] :
   distrib_lattice (Π i, α i) :=
-by refine_struct {  .. pi.lattice }; tactic.pi_instance_derive_field
+by refine_struct { .. pi.lattice }; tactic.pi_instance_derive_field
 
 instance pi.bounded_lattice {ι : Type*} {α : ι → Type*} [Π i, bounded_lattice (α i)] :
   bounded_lattice (Π i, α i) :=
@@ -484,6 +492,14 @@ option.rec h₁ h₂
 @[norm_cast]
 theorem coe_eq_coe {a b : α} : (a : with_bot α) = b ↔ a = b :=
 by rw [← option.some.inj_eq a b]; refl
+
+/-- Deconstruct a `x : with_bot α` to the underlying value in `α`, given a proof that `x ≠ ⊥`. -/
+def unbot : Π (x : with_bot α), x ≠ ⊥ → α
+| ⊥        h := absurd rfl h
+| (some x) h := x
+
+@[simp] lemma unbot_coe (x : α) (h : (x : with_bot α) ≠ ⊥ := coe_ne_bot _) :
+  (x : with_bot α).unbot h = x := rfl
 
 @[priority 10]
 instance has_lt [has_lt α] : has_lt (with_bot α) :=
@@ -711,6 +727,13 @@ by rw [← option.some.inj_eq a b]; refl
 
 @[simp] theorem top_ne_coe {a : α} : ⊤ ≠ (a : with_top α) .
 @[simp] theorem coe_ne_top {a : α} : (a : with_top α) ≠ ⊤ .
+
+/-- Deconstruct a `x : with_top α` to the underlying value in `α`, given a proof that `x ≠ ⊤`. -/
+def untop : Π (x : with_top α), x ≠ ⊤ → α :=
+with_bot.unbot
+
+@[simp] lemma untop_coe (x : α) (h : (x : with_top α) ≠ ⊤ := coe_ne_top) :
+  (x : with_top α).untop h = x := rfl
 
 @[priority 10]
 instance has_lt [has_lt α] : has_lt (with_top α) :=

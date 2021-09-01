@@ -322,18 +322,17 @@ theorem totally_bounded_iff_subset {s : set α} : totally_bounded s ↔
 ⟨λ H d hd, begin
   rcases comp_symm_of_uniformity hd with ⟨r, hr, rs, rd⟩,
   rcases H r hr with ⟨k, fk, ks⟩,
-  let u := {y ∈ k | ∃ x, x ∈ s ∧ (x, y) ∈ r},
-  let f : u → α := λ x, classical.some x.2.2,
-  have : ∀ x : u, f x ∈ s ∧ (f x, x.1) ∈ r := λ x, classical.some_spec x.2.2,
+  let u := k ∩ {y | ∃ x ∈ s, (x, y) ∈ r},
+  choose hk f hfs hfr using λ x : u, x.coe_prop,
   refine ⟨range f, _, _, _⟩,
-  { exact range_subset_iff.2 (λ x, (this x).1) },
-  { have : finite u := fk.subset (λ x h, h.1),
-    exact ⟨@set.fintype_range _ _ _ _ this.fintype⟩ },
+  { exact range_subset_iff.2 hfs },
+  { haveI : fintype u := (fk.inter_of_left _).fintype,
+    exact finite_range f },
   { intros x xs,
-    have := ks xs, simp at this,
-    rcases this with ⟨y, hy, xy⟩,
-    let z : coe_sort u := ⟨y, hy, x, xs, xy⟩,
-    exact mem_bUnion_iff.2 ⟨_, ⟨z, rfl⟩, rd $ mem_comp_rel.2 ⟨_, xy, rs (this z).2⟩⟩ }
+    obtain ⟨y, hy, xy⟩ : ∃ y ∈ k, (x, y) ∈ r, from mem_bUnion_iff.1 (ks xs),
+    rw [bUnion_range, mem_Union],
+    set z : ↥u := ⟨y, hy, ⟨x, xs, xy⟩⟩,
+    exact ⟨z, rd $ mem_comp_rel.2 ⟨y, xy, rs (hfr z)⟩⟩ }
 end,
 λ H d hd, let ⟨t, _, ht⟩ := H d hd in ⟨t, ht⟩⟩
 

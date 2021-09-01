@@ -512,11 +512,27 @@ theorem lift_mk_le {α : Type u} {β : Type v} :
 ⟨λ ⟨f⟩, ⟨embedding.congr equiv.ulift equiv.ulift f⟩,
  λ ⟨f⟩, ⟨embedding.congr equiv.ulift.symm equiv.ulift.symm f⟩⟩
 
+/-- A variant of `lift_mk_le` with specialized universes.
+Because Lean often can not realize it should use this specialization itself,
+we provide this statement separately so you don't have to solve the specialization problem either.
+-/
+theorem lift_mk_le' {α : Type u} {β : Type v} :
+  lift.{u v} (mk α) ≤ lift.{v u} (mk β) ↔ nonempty (α ↪ β) :=
+lift_mk_le.{u v 0}
+
 theorem lift_mk_eq {α : Type u} {β : Type v} :
   lift.{u (max v w)} (mk α) = lift.{v (max u w)} (mk β) ↔ nonempty (α ≃ β) :=
 quotient.eq.trans
 ⟨λ ⟨f⟩, ⟨equiv.ulift.symm.trans $ f.trans equiv.ulift⟩,
  λ ⟨f⟩, ⟨equiv.ulift.trans $ f.trans equiv.ulift.symm⟩⟩
+
+/-- A variant of `lift_mk_eq` with specialized universes.
+Because Lean often can not realize it should use this specialization itself,
+we provide this statement separately so you don't have to solve the specialization problem either.
+-/
+theorem lift_mk_eq' {α : Type u} {β : Type v} :
+  lift.{u v} (mk α) = lift.{v u} (mk β) ↔ nonempty (α ≃ β) :=
+lift_mk_eq.{u v 0}
 
 @[simp] theorem lift_le {a b : cardinal} : lift a ≤ lift b ↔ a ≤ b :=
 quotient.induction_on₂ a b $ λ α β,
@@ -652,6 +668,14 @@ begin
   simp only [lift_le],
   apply le_sup,
 end
+
+/-- A variant of `lift_sup_le_lift_sup` with universes specialized via `w = v` and `w' = v'`.
+This is sometimes necessary to avoid universe unification issues. -/
+lemma lift_sup_le_lift_sup'
+  {ι : Type v} {ι' : Type v'} (f : ι → cardinal.{v}) (f' : ι' → cardinal.{v'})
+  (g : ι → ι') (h : ∀ i, lift.{_ v'} (f i) ≤ lift.{_ v} (f' (g i))) :
+  lift.{_ v'} (sup.{v v} f) ≤ lift.{_ v} (sup.{v' v'} f') :=
+lift_sup_le_lift_sup f f' g h
 
 /-- `ω` is the smallest infinite cardinal, also known as ℵ₀. -/
 def omega : cardinal.{u} := lift (mk ℕ)
@@ -841,7 +865,7 @@ begin
 end
 
 theorem infinite_iff {α : Type u} : infinite α ↔ omega ≤ mk α :=
-by rw [←not_lt, lt_omega_iff_fintype, not_nonempty_fintype]
+by rw [←not_lt, lt_omega_iff_fintype, not_nonempty_iff, is_empty_fintype]
 
 lemma denumerable_iff {α : Type u} : nonempty (denumerable α) ↔ mk α = omega :=
 ⟨λ⟨h⟩, quotient.sound $ by exactI ⟨ (denumerable.eqv α).trans equiv.ulift.symm ⟩,

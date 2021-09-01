@@ -516,7 +516,7 @@ variables (R A)
 /-- Identity map as an `alg_hom`. -/
 protected def id : A →ₐ[R] A :=
 { commutes' := λ _, rfl,
-  ..ring_hom.id A  }
+  ..ring_hom.id A }
 
 @[simp] lemma coe_id : ⇑(alg_hom.id R A) = id := rfl
 
@@ -549,7 +549,7 @@ theorem comp_assoc (φ₁ : C →ₐ[R] D) (φ₂ : B →ₐ[R] C) (φ₃ : A �
 ext $ λ x, rfl
 
 /-- R-Alg ⥤ R-Mod -/
-def to_linear_map : A →ₗ B :=
+def to_linear_map : A →ₗ[R] B :=
 { to_fun := φ,
   map_add' := φ.map_add,
   map_smul' := φ.map_smul }
@@ -602,6 +602,10 @@ def snd : A × B →ₐ[R] B :=
 { commutes' := λ r, rfl, .. ring_hom.snd A B}
 
 end prod
+
+lemma algebra_map_eq_apply (f : A →ₐ[R] B) {y : R} {x : A} (h : algebra_map R A y = x) :
+  algebra_map R B y = f x :=
+h ▸ (f.commutes _).symm
 
 end semiring
 
@@ -1008,6 +1012,34 @@ by { ext, refl }
 @[simp] lemma aut_congr_trans (ϕ : A₁ ≃ₐ[R] A₂) (ψ : A₂ ≃ₐ[R] A₃) :
   (aut_congr ϕ).trans (aut_congr ψ) = aut_congr (ϕ.trans ψ) := rfl
 
+/-- The tautological action by `A₁ ≃ₐ[R] A₁` on `A₁`.
+
+This generalizes `function.End.apply_mul_action`. -/
+instance apply_mul_semiring_action : mul_semiring_action (A₁ ≃ₐ[R] A₁) A₁ :=
+{ smul := ($),
+  smul_zero := alg_equiv.map_zero,
+  smul_add := alg_equiv.map_add,
+  smul_one := alg_equiv.map_one,
+  smul_mul := alg_equiv.map_mul,
+  one_smul := λ _, rfl,
+  mul_smul := λ _ _ _, rfl }
+
+@[simp] protected lemma smul_def (f : A₁ ≃ₐ[R] A₁) (a : A₁) : f • a = f a := rfl
+
+instance apply_has_faithful_scalar : has_faithful_scalar (A₁ ≃ₐ[R] A₁) A₁ :=
+⟨λ _ _, alg_equiv.ext⟩
+
+instance apply_smul_comm_class : smul_comm_class R (A₁ ≃ₐ[R] A₁) A₁ :=
+{ smul_comm := λ r e a, (e.to_linear_equiv.map_smul r a).symm }
+
+instance apply_smul_comm_class' : smul_comm_class (A₁ ≃ₐ[R] A₁) R A₁ :=
+{ smul_comm := λ e r a, (e.to_linear_equiv.map_smul r a) }
+
+@[simp] lemma algebra_map_eq_apply (e : A₁ ≃ₐ[R] A₂) {y : R} {x : A₁} :
+  (algebra_map R A₂ y = e x) ↔ (algebra_map R A₁ y = x) :=
+⟨λ h, by simpa using e.symm.to_alg_hom.algebra_map_eq_apply h,
+ λ h, e.to_alg_hom.algebra_map_eq_apply h⟩
+
 end semiring
 
 section comm_semiring
@@ -1052,6 +1084,39 @@ e.to_alg_hom.map_div x y
 end division_ring
 
 end alg_equiv
+
+namespace mul_semiring_action
+
+variables {M G : Type*} (R A : Type*) [comm_semiring R] [semiring A] [algebra R A]
+
+section
+variables [monoid M] [mul_semiring_action M A] [smul_comm_class M R A]
+
+/-- Each element of the monoid defines a algebra homomorphism.
+
+This is a stronger version of `mul_semiring_action.to_ring_hom` and
+`distrib_mul_action.to_linear_map`. -/
+@[simps]
+def to_alg_hom (m : M) : A →ₐ[R] A :=
+alg_hom.mk' (mul_semiring_action.to_ring_hom _ _ m) (smul_comm _)
+
+end
+
+section
+variables [group G] [mul_semiring_action G A] [smul_comm_class G R A]
+
+/-- Each element of the group defines a algebra equivalence.
+
+This is a stronger version of `mul_semiring_action.to_ring_equiv` and
+`distrib_mul_action.to_linear_equiv`. -/
+@[simps]
+def to_alg_equiv (g : G) : A ≃ₐ[R] A :=
+{ .. mul_semiring_action.to_ring_equiv _ _ g,
+  .. mul_semiring_action.to_alg_hom R A g }
+
+end
+
+end mul_semiring_action
 
 section nat
 
@@ -1144,11 +1209,11 @@ def lmul : A →ₐ[R] (End R A) :=
 variables {A}
 
 /-- The multiplication on the left in an algebra is a linear map. -/
-def lmul_left (r : A) : A →ₗ A :=
+def lmul_left (r : A) : A →ₗ[R] A :=
 lmul R A r
 
 /-- The multiplication on the right in an algebra is a linear map. -/
-def lmul_right (r : A) : A →ₗ A :=
+def lmul_right (r : A) : A →ₗ[R] A :=
 (lmul R A).to_linear_map.flip r
 
 /-- Simultaneous multiplication on the left and right is a linear map. -/

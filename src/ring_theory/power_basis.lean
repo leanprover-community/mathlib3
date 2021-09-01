@@ -316,14 +316,34 @@ pb.constr_pow_aeval hy f
 maps sending `pb.gen` to that root.
 
 This is the bundled equiv version of `power_basis.lift`.
+If the codomain of the `alg_hom`s is an integral domain, then the roots form a multiset,
+see `lift_equiv'` for the corresponding statement.
 -/
 @[simps]
 noncomputable def lift_equiv (pb : power_basis A S) :
-  {y : S' // aeval y (minpoly A pb.gen) = 0} ≃ (S →ₐ[A] S') :=
-{ to_fun := λ y, pb.lift y y.2,
-  inv_fun := λ f, ⟨f pb.gen, by rw [aeval_alg_hom_apply, minpoly.aeval, f.map_zero]⟩,
-  left_inv := λ y, subtype.ext $ lift_gen _ _ y.prop,
-  right_inv := λ f, pb.alg_hom_ext $ lift_gen _ _ _  }
+  (S →ₐ[A] S') ≃ {y : S' // aeval y (minpoly A pb.gen) = 0} :=
+{ to_fun := λ f, ⟨f pb.gen, by rw [aeval_alg_hom_apply, minpoly.aeval, f.map_zero]⟩,
+  inv_fun := λ y, pb.lift y y.2,
+  left_inv := λ f, pb.alg_hom_ext $ lift_gen _ _ _,
+  right_inv := λ y, subtype.ext $ lift_gen _ _ y.prop }
+
+/-- `pb.lift_equiv'` states that elements of the root set of the minimal
+polynomial of `pb.gen` correspond to maps sending `pb.gen` to that root. -/
+@[simps {fully_applied := ff}]
+noncomputable def lift_equiv' (pb : power_basis A S) :
+  (S →ₐ[A] B) ≃ {y : B // y ∈ ((minpoly A pb.gen).map (algebra_map A B)).roots} :=
+pb.lift_equiv.trans ((equiv.refl _).subtype_equiv (λ x,
+  begin
+    rw [mem_roots, is_root.def, equiv.refl_apply, ← eval₂_eq_eval_map, ← aeval_def],
+    exact map_monic_ne_zero (minpoly.monic pb.is_integral_gen)
+  end))
+
+/-- There are finitely many algebra homomorphisms `S →ₐ[A] B` if `S` is of the form `A[x]`
+and `B` is an integral domain. -/
+noncomputable def alg_hom.fintype (pb : power_basis A S) :
+  fintype (S →ₐ[A] B) :=
+by letI := classical.dec_eq B; exact
+fintype.of_equiv _ pb.lift_equiv'.symm
 
 /-- `pb.equiv pb' h` is an equivalence of algebras with the same power basis. -/
 noncomputable def equiv

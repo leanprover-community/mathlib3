@@ -211,6 +211,44 @@ end
   f (∏ᶠ x, g x) = ∏ᶠ x, f (g x) :=
 f.map_finprod_plift g (finite.of_fintype _)
 
+@[to_additive] lemma monoid_hom.map_finprod_of_preimage_one (f : M →* N)
+  (hf : ∀ x, f x = 1 → x = 1) (g : α → M) :
+  f (∏ᶠ i, g i) = ∏ᶠ i, f (g i) :=
+begin
+  by_cases hg : (mul_support $ g ∘ plift.down).finite, { exact f.map_finprod_plift g hg },
+  rw [finprod, dif_neg, f.map_one, finprod, dif_neg],
+  exacts [infinite_mono (λ x hx, mt (hf (g x.down)) hx) hg, hg]
+end
+
+@[to_additive] lemma monoid_hom.map_finprod_of_injective (g : M →* N) (hg : injective g)
+  (f : α → M) :
+  g (∏ᶠ i, f i) = ∏ᶠ i, g (f i) :=
+g.map_finprod_of_preimage_one (λ x, (hg.eq_iff' g.map_one).mp) f
+
+@[to_additive] lemma mul_equiv.map_finprod (g : M ≃* N) (f : α → M) :
+  g (∏ᶠ i, f i) = ∏ᶠ i, g (f i) :=
+g.to_monoid_hom.map_finprod_of_injective g.injective f
+
+lemma finsum_smul {R M : Type*} [ring R] [add_comm_group M] [module R M]
+  [no_zero_smul_divisors R M] (f : ι → R) (x : M) :
+  (∑ᶠ i, f i) • x = (∑ᶠ i, (f i) • x) :=
+begin
+  rcases eq_or_ne x 0 with rfl|hx, { simp },
+  exact ((smul_add_hom R M).flip x).map_finsum_of_injective (smul_left_injective R hx) _
+end
+
+lemma smul_finsum {R M : Type*} [ring R] [add_comm_group M] [module R M]
+  [no_zero_smul_divisors R M] (c : R) (f : ι → M) :
+  c • (∑ᶠ i, f i) = (∑ᶠ i, c • f i) :=
+begin
+  rcases eq_or_ne c 0 with rfl|hc, { simp },
+  exact (smul_add_hom R M c).map_finsum_of_injective (smul_right_injective M hc) _
+end
+
+@[to_additive] lemma finprod_inv_distrib {G : Type*} [comm_group G] (f : α → G) :
+  ∏ᶠ x, (f x)⁻¹ = (∏ᶠ x, f x)⁻¹ :=
+((mul_equiv.inv G).map_finprod f).symm
+
 end sort
 
 section type

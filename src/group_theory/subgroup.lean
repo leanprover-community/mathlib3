@@ -1374,7 +1374,7 @@ variables {M : Type*} [mul_one_class M]
 such that `f x = 0`"]
 def ker (f : G →* M) : subgroup G :=
 { inv_mem' := λ x (hx : f x = 1),
-  calc f x⁻¹ = f x * f x⁻¹ : by rw [hx, one_mul]
+    calc f x⁻¹ = f x * f x⁻¹ : by rw [hx, one_mul]
            ... = f (x * x⁻¹) : by rw [f.map_mul]
            ... = f 1 :         by rw [mul_right_inv]
            ... = 1 :           f.map_one,

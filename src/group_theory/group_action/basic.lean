@@ -174,6 +174,7 @@ begin
 end
 
 /-- A bijection between the stabilizers of two elements in the same orbit. -/
+@[to_additive "A bijection between the stabilizers of two elements in the same orbit. "]
 noncomputable def stabilizer_equiv_stabilizer_of_orbit_rel {x y : β} (h : (orbit_rel α β).rel x y) :
   stabilizer α x ≃* stabilizer α y :=
 let g : α := classical.some h in

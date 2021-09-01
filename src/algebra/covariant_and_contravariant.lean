@@ -28,7 +28,7 @@ relation (typically `(≤)` or `(<)`), these are the only two typeclasses that I
 The general approach is to formulate the lemma that you are interested in and prove it, with the
 `ordered_[...]` typeclass of your liking.  After that, you convert the single typeclass,
 say `[ordered_cancel_monoid M]`, into three typeclasses, e.g.
-`[left_cancel_semigroup M] [partial_order M] [covariant_class M M (swap (*)) (≤)]`
+`[left_cancel_semigroup M] [partial_order M] [covariant_class M M (function.swap (*)) (≤)]`
 and have a go at seeing if the proof still works!
 
 Note that it is possible to combine several co(ntra)variant_class assumptions together.
@@ -46,8 +46,8 @@ holds -- note the `co*ntra*` assumption on the `(≤)`-relation.
 
 # Formalization notes
 
-We stick to the convention of using `swap (*)` (or `swap (+)`), for the
-typeclass assumptions, since `swap` is slightly better behaved than `flip`.
+We stick to the convention of using `function.swap (*)` (or `function.swap (+)`), for the
+typeclass assumptions, since `function.swap` is slightly better behaved than `flip`.
 However, sometimes as a **non-typeclass** assumption, we prefer `flip (*)` (or `flip (+)`),
 as it is easier to use. -/
 

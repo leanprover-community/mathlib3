@@ -486,8 +486,8 @@ instance [h : nonempty ι] [∀ i, has_no_atoms (μ i)] : has_no_atoms (measure.
 h.elim $ λ i, pi_has_no_atoms i
 
 instance [Π i, topological_space (α i)] [∀ i, opens_measurable_space (α i)]
-  [∀ i, locally_finite_measure (μ i)] :
-  locally_finite_measure (measure.pi μ) :=
+  [∀ i, is_locally_finite_measure (μ i)] :
+  is_locally_finite_measure (measure.pi μ) :=
 begin
   refine ⟨λ x, _⟩,
   choose s hxs ho hμ using λ i, (μ i).exists_is_open_measure_lt_top (x i),

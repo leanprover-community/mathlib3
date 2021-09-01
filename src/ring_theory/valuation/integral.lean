@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import ring_theory.integral_closure
+import ring_theory.integrally_closed
 import ring_theory.valuation.integers
 
 /-!
@@ -45,6 +45,17 @@ protected lemma integral_closure : integral_closure O R = ⊥ :=
 bot_unique $ λ r hr, let ⟨x, hx⟩ := hv.3 (hv.mem_of_integral hr) in algebra.mem_bot.2 ⟨x, hx⟩
 
 end comm_ring
+
+section fraction_field
+
+variables {K : Type u} {Γ₀ : Type v} [field K] [linear_ordered_comm_group_with_zero Γ₀]
+variables {v : valuation K Γ₀} {O : Type w} [integral_domain O] [algebra O K] [is_fraction_ring O K]
+variables (hv : integers v O)
+
+lemma integrally_closed : is_integrally_closed O :=
+(is_integrally_closed.integral_closure_eq_bot_iff K).mp (valuation.integers.integral_closure hv)
+
+end fraction_field
 
 end integers
 

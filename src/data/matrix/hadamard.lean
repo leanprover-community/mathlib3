@@ -28,18 +28,19 @@ and contains basic properties about them.
 
 ## Tags
 
-Hadamard product, Kronecker product, Hadamard, Kronecker
+Hadamard product, Hadamard
 -/
 
 variables {α β γ I J K L M N: Type*}
 variables {R : Type*}
 variables {m n p q r s t: ℕ}
-variables [fintype I] [fintype J] [fintype K] [fintype L] [fintype M] [fintype N]
 
 namespace matrix
 open_locale matrix big_operators
 open complex
 
+/-- `matrix.Hadamard` defines the Hadamard product,
+    which is the pointwise product of two matrices of the same size.-/
 def Hadamard [has_mul α] (A : matrix I J α) (B : matrix I J α) :
 matrix I J α :=
 λ i j, (A i j) * (B i j)
@@ -95,6 +96,7 @@ end zero
 
 section trace
 
+variables [fintype I] [fintype J]
 variables [semiring β] [semiring R] [comm_semiring α] [module β α] [module R ℂ]
 variables [decidable_eq I] [decidable_eq J]
 

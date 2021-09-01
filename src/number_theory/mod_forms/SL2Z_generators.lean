@@ -599,17 +599,71 @@ begin
 rw reps, dsimp, sorry,
 end
 
+universe u
+variables {G : Type*} {α : Sort*} [group G] [H : subgroup G]
 
+def triv_rel (α: Sort u) : α → α → Prop :=
+λ a b, true
+
+
+
+lemma rel_triv (α: Type u) (r: α → α → Prop ) (h: quot r ≃ trunc α) : eqv_gen r = triv_rel α :=
+begin
+ext, rw triv_rel, simp, rw trunc at h, have:h  (quot.mk r x) = h (quot.mk r x_1), by {apply trunc.eq,},
+simp at this, have h2:= quot.exact r this, exact h2,
+end
+
+lemma eqv_gen_is_triv (α: Type u) (r: α → α → Prop ) (h: eqv_gen r = triv_rel α) (h2 : equivalence r) : r = triv_rel α:=
+begin
+ rw ← h, ext,
+simp_rw relation.eqv_gen_iff_of_equivalence h2,
+end
+
+lemma top_trunc : quotient_group.quotient (⊤: subgroup G) = trunc G :=
+begin
+rw trunc, congr',
+end
+
+lemma lef_rel_triv (H :subgroup G) (h: (quotient_group.left_rel H).r = triv_rel G ) : ∀ x y : G , x⁻¹ * y ∈ H:=
+begin
+rw triv_rel at h,
+let s:=(quotient_group.left_rel H).r,
+have h2: ∀ x y : G, s x y ↔ x⁻¹ * y ∈ H, by {intros x y, refl,  },
+intros x y,
+have h3:= h2 x y, rw ← h3, simp_rw s, rw h, tauto,
+end
+
+lemma quot_triv  (h: quotient_group.quotient H ≃ quotient_group.quotient (⊤: subgroup G)) : H = ⊤ :=
+begin
+ext1, simp at *, rw top_trunc at h,
+rw quotient_group.quotient at h,
+have H2:= rel_triv _ _ h,
+let rr:= quotient_group.left_rel H,
+simp_rw quotient_group.left_rel at h,
+have HH:= setoid.iseqv,
+have H3:= eqv_gen_is_triv _ _ H2 HH,
+have H4:= lef_rel_triv H H3,
+have H5:= H4 1 x, simp at H5, exact H5,
+end
 
 lemma sl2z_gens: subgroup.closure gens = (⊤ : subgroup SL2Z) :=
 begin
-rw gens,
-
 have h0: (1: ℤ) ≠ 0, by {simp,},
 have h1:= reps_equiv' 1 h0,
-have h2:= reps_sl2z,   rw h2 at h1, dsimp at h1, simp_rw orbit_rel''' at h1, simp_rw mul_action.orbit at h1,simp at h1, dsimp at h1,
+have h2:= reps_sl2z,   rw h2 at h1, dsimp at h1, simp_rw orbit_rel''' at h1,
+ simp_rw mul_action.orbit at h1,simp at h1, dsimp at h1,
+apply quot_triv,
+rw top_trunc,
+have hh: quotient (orbit_rel''' 1) ≃ trunc SL2Z, by { apply equiv.trans h1, sorry,},
 
-sorry,
+have hh2: quotient_group.quotient (subgroup.closure gens) ≃ quotient (orbit_rel''' 1) , by {
+  let r1:=(orbit_rel''' 1).r,
+  let r2:=(quotient_group.left_rel (subgroup.closure gens)).r, rw Mat1_eq_SL2Z at r1,
+  apply quot.congr_right,
+  have rh1: ∀ x y : SL2Z, r1 x y ↔ x ∈ mul_action.orbit gengrp y, by {intros x y, sorry,   },
+
+  sorry,},
+apply equiv.trans hh2 hh,
 
 end
 

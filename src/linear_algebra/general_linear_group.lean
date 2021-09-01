@@ -148,9 +148,13 @@ variables {n : Type u} {R : Type v} [decidable_eq n] [fintype n] [linear_ordered
 each element. -/
 instance : has_neg (GL_pos n R) :=
 ⟨λ g,
-  ⟨- g, by {simp, have:= det_smul g (-1), simp at this, rw this,
-  simp [nat.neg_one_pow_of_even (fact.out (even (fintype.card n)))], have gdet:=g.property,
-  simp at gdet, exact gdet,}⟩⟩
+  ⟨- g, by {simp, have:= det_smul g (-1),
+  simp at this,
+  rw this,
+  simp [nat.neg_one_pow_of_even (fact.out (even (fintype.card n)))],
+  have gdet:=g.property,
+  simp at gdet,
+  exact gdet,}⟩⟩
 
 @[simp] lemma GL_pos_coe_neg (g : GL_pos n R) : ↑(- g) = - (↑g : matrix n n R) :=
 rfl

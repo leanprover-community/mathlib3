@@ -15,7 +15,7 @@ import number_theory.mod_forms.modular_group
 
 This file defines `upper_half_plane` to be the upper half plane in `ℂ`.
 
-We furthermore equip it with the structure of an `SL(2,ℝ)` action by
+We furthermore equip it with the structure of an `GL_pos 2 ℝ` action by
 fractional linear transformations.
 
 We define the notation `ℍ` for the upper half plane available in the locale
@@ -98,7 +98,7 @@ complex.norm_sq_pos.mpr (denom_ne_zero g z)
 lemma norm_sq_denom_ne_zero (g :  GL_pos (fin 2) ℝ) (z : ℍ) : complex.norm_sq (denom g z) ≠ 0 :=
 ne_of_gt (norm_sq_denom_pos g z)
 
-/-- Fractional linear transformation -/
+/-- Fractional linear transformation, also known as the Moebius transformation -/
 def smul_aux' (g :  GL_pos (fin 2) ℝ) (z : ℍ) : ℂ := num g z / denom g z
 
 lemma smul_aux'_im (g :  GL_pos (fin 2) ℝ) (z : ℍ) :
@@ -111,11 +111,17 @@ begin
   field_simp [smul_aux'], ring_nf, have:= det_of_22  g, simp at this, rw this, ring,
 end
 
-/-- Fractional linear transformation -/
+/-- Fractional linear transformation,  also known as the Moebius transformation -/
 def smul_aux (g :  GL_pos (fin 2) ℝ) (z : ℍ) : ℍ :=
-⟨smul_aux' g z,
-by { rw smul_aux'_im, simp, have h1:= div_pos z.im_pos (complex.norm_sq_pos.mpr (denom_ne_zero g z)),
-have h2:=g.property, simp at h2, simp at *, have:= mul_pos h2 h1, convert this, ring, }⟩
+  ⟨smul_aux' g z,
+    by { rw smul_aux'_im,
+    simp,
+    have h1:= div_pos z.im_pos (complex.norm_sq_pos.mpr (denom_ne_zero g z)),
+    have h2:=g.property,
+    simp at *,
+    have:= mul_pos h2 h1,
+    convert this,
+    ring, }⟩
 
 lemma denom_cocycle (x y : GL_pos (fin 2) ℝ) (z : ℍ) :
   denom (x * y) z = denom x (smul_aux y z) * denom y z :=
@@ -143,8 +149,8 @@ instance : mul_action  (GL_pos (fin 2) ℝ) ℍ :=
   one_smul := λ z, by { ext1, change _ / _ = _, simp },
   mul_smul := mul_smul' }
 
-@[simp] lemma coe_smul (g :  GL_pos (fin 2) ℝ) (z : ℍ) : ↑(g • z) = num g z / denom g z := rfl
-@[simp] lemma re_smul (g :  GL_pos (fin 2) ℝ) (z : ℍ) : (g • z).re = (num g z / denom g z).re := rfl
+@[simp] lemma coe_smul (g : GL_pos (fin 2) ℝ) (z : ℍ) : ↑(g • z) = num g z / denom g z := rfl
+@[simp] lemma re_smul (g : GL_pos (fin 2) ℝ) (z : ℍ) : (g • z).re = (num g z / denom g z).re := rfl
 
 lemma im_smul (g : GL_pos (fin 2) ℝ) (z : ℍ) : (g • z).im = (num g z / denom g z).im := rfl
 
@@ -158,7 +164,12 @@ begin
   change _ / _ = _ / _,
   field_simp [denom_ne_zero, -denom, -num],
   simp [GL_pos_coe_neg],
-  ring_nf, simp_rw ← coe_coe, simp only [GL_pos_coe_neg, GL_pos_neg_elt], simp, ring,
+  ring_nf,
+  simp_rw ← coe_coe,
+  simp only [GL_pos_coe_neg, GL_pos_neg_elt],
+  simp only [neg_mul_eq_neg_mul_symm, general_linear_group.coe_fn_eq_coe,
+    mul_neg_eq_neg_mul_symm, coe_fn_coe_base, coe_coe, complex.of_real_neg],
+  ring,
   end
 
 end upper_half_plane

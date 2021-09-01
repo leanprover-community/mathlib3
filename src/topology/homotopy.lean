@@ -98,17 +98,12 @@ Given `homotopy f₀ f₁` and `homotopy f₁ f₂`, we can define a `homotopy f
 homotopy on `[0, 1/2]` and the second on `[1/2, 1]`.
 -/
 def trans {f₀ f₁ f₂ : X → Y} (F : homotopy f₀ f₁) (G : homotopy f₁ f₂) : homotopy f₀ f₂ :=
-{ to_fun := λ x, (if (x.2 : ℝ) ≤ 1/2 then F.extend x.1 (2 * x.2) else G.extend x.1 (2 * x.2 - 1)),
+{ to_fun := λ x, if (x.2 : ℝ) ≤ 1/2 then F.extend x.1 (2 * x.2) else G.extend x.1 (2 * x.2 - 1),
   continuous_to_fun := begin
-    apply continuous.if,
-    { intros a ha,
-      suffices : (a.2 : ℝ) = 1/2,
-      { rw this, norm_num },
-      have : {x : X × I | (x.2 : ℝ) ≤ 1/2} = (set.univ : set X).prod {x : I | (x : ℝ) ≤ 1/2},
-      { ext, simp },
-      simp only [this, frontier_univ_prod_eq, true_and, set.mem_univ, set.mem_prod] at ha,
-      have := frontier_le_subset_eq continuous_subtype_coe continuous_const ha,
-      rwa set.mem_set_of_eq at this },
+    refine continuous_if_le _ _ (continuous.continuous_on _) (continuous.continuous_on _) _,
+    swap 5,
+    { rintros x hx,
+      norm_num [hx] },
     continuity,
   end,
   to_fun_zero := λ x, by norm_num,

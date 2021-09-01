@@ -517,9 +517,9 @@ instance : field (center K) :=
 { inv := λ ⟨a, ha⟩, ⟨a⁻¹, λ r, begin
     by_cases ha0 : a = 0,
     { simp [ha0] },
-    calc a⁻¹ * r = a⁻¹ * r * a * a ⁻¹ : by rw [mul_assoc, mul_inv_cancel ha0, mul_one]
-             ... = r * a⁻¹ : by rw [mul_assoc _ r, ←ha r, ←mul_assoc, ←ha a⁻¹,
-                                    mul_inv_cancel ha0, one_mul],
+    calc r * a⁻¹ = a⁻¹ * r * a * a⁻¹ : by rw [mul_assoc _ r, ha r, ←mul_assoc, ha a⁻¹,
+                                              mul_inv_cancel ha0, one_mul]
+             ... = a⁻¹ * r : by rw [mul_assoc, mul_inv_cancel ha0, mul_one],
   end⟩,
   exists_pair_ne := ⟨0, 1, λ h, @zero_ne_one K _ _ $ congr_arg subtype.val h⟩,
   mul_inv_cancel := λ ⟨a, ha⟩ h, subtype.ext $ show a * a⁻¹ = 1, from mul_inv_cancel $

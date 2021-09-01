@@ -683,7 +683,7 @@ lemma subtype_comp_of_le (p q : submodule R M) (h : p ≤ q) :
 by { ext ⟨b, hb⟩, refl }
 
 
-instance add_comm_monoid_submodule : add_comm_monoid (submodule R M) :=
+instance pointwise_add_comm_monoid : add_comm_monoid (submodule R M) :=
 { add := (⊔),
   add_assoc := λ _ _ _, sup_assoc,
   zero := ⊥,
@@ -765,6 +765,12 @@ image_subset _
 @[simp] lemma map_zero : map (0 : M →ₗ[R] M₂) p = ⊥ :=
 have ∃ (x : M), x ∈ p := ⟨0, p.zero_mem⟩,
 ext $ by simp [this, eq_comm]
+
+lemma map_add_le (f g : M →ₗ[R] M₂) : map (f + g) p ≤ map f p + map g p :=
+begin
+  rintros x ⟨m, hm, rfl⟩,
+  refine add_mem_sup (mem_map_of_mem hm) (mem_map_of_mem hm),
+end
 
 lemma range_map_nonempty (N : submodule R M) :
   (set.range (λ ϕ, submodule.map ϕ N : (M →ₗ[R] M₂) → submodule R M₂)).nonempty :=
@@ -887,6 +893,60 @@ ext $ λ x, ⟨by rintro ⟨⟨_, h₁⟩, h₂, rfl⟩; exact ⟨h₁, h₂⟩,
 
 lemma eq_zero_of_bot_submodule : ∀(b : (⊥ : submodule R M)), b = 0
 | ⟨b', hb⟩ := subtype.eq $ show b' = 0, from (mem_bot R).1 hb
+
+
+section
+variables {α : Type*} [monoid α] [distrib_mul_action α M] [smul_comm_class α R M]
+
+/-- The action on a submodule corresponding to applying the action to every element.
+
+This is available as an instance in the `pointwise` locale. -/
+protected def pointwise_distrib_mul_action : distrib_mul_action α (submodule R M) :=
+{ smul := λ a S, S.map (distrib_mul_action.to_linear_map _ _ a),
+  one_smul := λ S,
+    (congr_arg (λ f, S.map f) (linear_map.ext $ by exact one_smul α)).trans S.map_id,
+  mul_smul := λ a₁ a₂ S,
+    (congr_arg (λ f, S.map f) (linear_map.ext $ by exact mul_smul _ _)).trans (S.map_comp _ _),
+  smul_zero := λ a, map_bot _,
+  smul_add := λ a S₁ S₂, map_sup _ _ _ }
+
+localized "attribute [instance] submodule.pointwise_distrib_mul_action" in pointwise
+open_locale pointwise
+
+@[simp] lemma coe_pointwise_smul (a : α) (S : submodule R M) : ↑(a • S) = a • (S : set M) := rfl
+
+@[simp] lemma pointwise_smul_to_add_submonoid (a : α) (S : submodule R M) :
+  (a • S).to_add_submonoid = a • S.to_add_submonoid := rfl
+
+lemma smul_mem_pointwise_smul (m : M) (a : α) (S : submodule R M) : m ∈ S → a • m ∈ a • S :=
+(set.smul_mem_smul_set : _ → _ ∈ a • (S : set M))
+
+@[simp] lemma smul_le_self_of_tower {α : Type*}
+  [semiring α] [module α R] [module α M] [smul_comm_class α R M] [is_scalar_tower α R M]
+  (a : α) (S : submodule R M) : a • S ≤ S :=
+begin
+  rintro y ⟨x, hx, rfl⟩,
+  exact smul_of_tower_mem _ a hx,
+end
+
+end
+
+section
+variables {α : Type*} [semiring α] [module α M] [smul_comm_class α R M]
+/-- The action on a submodule corresponding to applying the action to every element.
+
+This is available as an instance in the `pointwise` locale.
+
+This is a stronger version of `submodule.pointwise_distrib_mul_action`. Note that `add_smul` does
+not hold so this cannot be stated as a `module`. -/
+protected def pointwise_mul_action_with_zero : mul_action_with_zero α (submodule R M) :=
+{ zero_smul := λ S,
+    (congr_arg (λ f, S.map f) (linear_map.ext $ by exact zero_smul α)).trans S.map_zero,
+  .. submodule.pointwise_distrib_mul_action }
+
+localized "attribute [instance] submodule.pointwise_mul_action_with_zero" in pointwise
+
+end
 
 section
 variables (R)
@@ -1011,16 +1071,6 @@ begin
     exact ⟨k, add_mem _ (ik hi) (jk hj)⟩ },
   { exact λ a x i hi, ⟨i, smul_mem _ a hi⟩ },
 end
-
-lemma sum_mem_bsupr {ι : Type*} {s : finset ι} {f : ι → M} {p : ι → submodule R M}
-  (h : ∀ i ∈ s, f i ∈ p i) :
-  ∑ i in s, f i ∈ ⨆ i ∈ s, p i :=
-sum_mem _ $ λ i hi, mem_supr_of_mem i $ mem_supr_of_mem hi (h i hi)
-
-lemma sum_mem_supr {ι : Type*} [fintype ι] {f : ι → M} {p : ι → submodule R M}
-  (h : ∀ i, f i ∈ p i) :
-  ∑ i, f i ∈ ⨆ i, p i :=
-sum_mem _ $ λ i hi, mem_supr_of_mem i (h i)
 
 @[simp] theorem mem_supr_of_directed {ι} [nonempty ι]
   (S : ι → submodule R M) (H : directed (≤) S) {x} :

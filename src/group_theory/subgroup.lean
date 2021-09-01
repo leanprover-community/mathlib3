@@ -2283,8 +2283,8 @@ open_locale pointwise
 
 @[simp] lemma coe_pointwise_smul (a : α) (S : add_subgroup A) : ↑(a • S) = a • (S : set A) := rfl
 
-@[simp] lemma pointwise_smul_to_submonoid (a : α) (S : add_subgroup A) :
-  (a • S).to_submonoid = a • S.to_submonoid := rfl
+@[simp] lemma pointwise_smul_to_add_submonoid (a : α) (S : add_subgroup A) :
+  (a • S).to_add_submonoid = a • S.to_add_submonoid := rfl
 
 lemma smul_mem_pointwise_smul (m : A) (a : α) (S : add_subgroup A) : m ∈ S → a • m ∈ a • S :=
 (set.smul_mem_smul_set : _ → _ ∈ a • (S : set A))

@@ -11,7 +11,16 @@ import linear_algebra.coevaluation
 import .Module.monoidal
 
 /-!
-# The category of finite dimensional `R`-modules
+# The category of finite dimensional vector spaces
+
+This introduces `FinVect K`, the category of finite dimensional vector spaces on a field `K`.
+It is implemented as a full subcategory on a subtype of  `Module K`.
+We first create the instance as a category, then as a monoidal category and then as a rigid monoidal
+category.
+
+## Future work
+
+* Show that `FinVect K` is a symmetric monoidal category.
 
 -/
 noncomputable theory
@@ -29,14 +38,16 @@ namespace FinVect
 def FinVect := { V : Module.{u} K // finite_dimensional K V.carrier }
 
 instance FinVect_category : category (FinVect K) := by unfold FinVect; apply_instance
+
 instance FinVect_finite_dimensional (V : FinVect K): finite_dimensional K V.val := V.prop
-instance FinVect_add_comm_group (V : FinVect K) : add_comm_group V.val := by simp [FinVect] at *; apply_instance
 
 instance FinVect_has_sort_coe : has_coe_to_sort (FinVect K) := ⟨_, λ V, V.val⟩
+
 instance FinVect_has_coe_to_fn (V W : FinVect K) : has_coe_to_fun (V ⟶ W) :=
   ⟨λ _, V.val → W.val, λ f, f.to_fun⟩
 
--- This should go to `linear_algebra.finite_dimensional`.
+-- This should go to `linear_algebra` after `linear_algebra` is cleaned up.
+-- Right now it cannot go to either `linear_algebra.tensor_product` or `linear_algebra.finite_dimension` because of dependencies.
 instance finite_dimensional_tensor_product (V V₂ : Type*) [add_comm_group V]
   [module K V] [add_comm_group V₂] [module K V₂] [finite_dimensional K V] [finite_dimensional K V₂] :
   finite_dimensional K (tensor_product K V V₂) :=
@@ -49,7 +60,7 @@ instance FinVect_monoidal_category : monoidal_category (FinVect K) :=
  (by { exact finite_dimensional.finite_dimensional_self K})
  (λ X Y hX hY, @FinVect.finite_dimensional_tensor_product K _ X Y _ _ _ _ hX hY)
 
--- This should go to `linear_algebra.finite_dimensional`.
+-- This should go to `linear_algebra`.
 instance finite_dimensional_dual (V : Type*) [add_comm_group V] [module K V]
   [finite_dimensional K V] :
   finite_dimensional K (module.dual K V) :=
@@ -76,8 +87,9 @@ begin
    basis.equiv_fun_apply,basis.coe_of_vector_space, one_nsmul, finset.card_singleton],
 end
 
-private def FinVect_evaluation : (FinVect_dual K V) ⊗ V ⟶ 𝟙_ (FinVect K) :=
-by { change _ →ₗ[K] _, apply contract_left K V.val }
+/-- The evaluation morphism is given by the contraction map. -/
+def FinVect_evaluation : (FinVect_dual K V) ⊗ V ⟶ 𝟙_ (FinVect K) :=
+(contract_left K V.val : _ →ₗ[K] _)
 
 lemma FinVect_evaluation_apply (f : (FinVect_dual K V).val) (x : V.val) :
   (FinVect_evaluation K V) (f ⊗ₜ x) = by { change K, change _ →ₗ[K] _ at f, exact f x } :=

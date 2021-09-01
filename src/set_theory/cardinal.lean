@@ -929,6 +929,27 @@ by rw [← to_nat_cast 0, nat.cast_zero]
 lemma one_to_nat : cardinal.to_nat 1 = 1 :=
 by rw [← to_nat_cast 1, nat.cast_one]
 
+lemma to_nat_mul (x y : cardinal) : (x * y).to_nat = x.to_nat * y.to_nat :=
+begin
+  by_cases hx1 : x = 0,
+  { rw [comm_semiring.mul_comm, hx1, mul_zero, cardinal.zero_to_nat, nat.zero_mul] },
+  by_cases hy1 : y = 0,
+  { rw [hy1, cardinal.zero_to_nat, mul_zero, mul_zero, cardinal.zero_to_nat] },
+  cases lt_or_ge x cardinal.omega with hx2 hx2,
+  { cases lt_or_ge y cardinal.omega with hy2 hy2,
+    { rw [cardinal.to_nat_apply_of_lt_omega (cardinal.mul_lt_omega hx2 hy2),
+          cardinal.to_nat_apply_of_lt_omega hx2, cardinal.to_nat_apply_of_lt_omega hy2,
+          ←cardinal.nat_cast_inj, nat.cast_mul, ←classical.some_spec (cardinal.lt_omega.mp hx2),
+          ←classical.some_spec (cardinal.lt_omega.mp hy2),
+          ←classical.some_spec (cardinal.lt_omega.mp (cardinal.mul_lt_omega hx2 hy2))] },
+    { rw [cardinal.to_nat_apply_of_omega_le hy2, mul_zero, cardinal.to_nat_apply_of_omega_le],
+      rw [←not_lt, cardinal.mul_lt_omega_iff_of_ne_zero hx1 hy1, not_and_distrib, not_lt, not_lt],
+      exact or.inr hy2 } },
+  { rw [cardinal.to_nat_apply_of_omega_le hx2, nat.zero_mul, cardinal.to_nat_apply_of_omega_le],
+    rw [←not_lt, cardinal.mul_lt_omega_iff_of_ne_zero hx1 hy1, not_and_distrib, not_lt, not_lt],
+    exact or.inl hx2 },
+end
+
 /-- This function sends finite cardinals to the corresponding natural, and infinite cardinals
   to `⊤`. -/
 noncomputable def to_enat : cardinal →+ enat :=

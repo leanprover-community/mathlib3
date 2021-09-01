@@ -224,7 +224,7 @@ lemma norm_set_integral_le_of_norm_le_const_ae {C : ℝ} (hs : μ s < ∞)
   ∥∫ x in s, f x ∂μ∥ ≤ C * (μ s).to_real :=
 begin
   rw ← measure.restrict_apply_univ at *,
-  haveI : finite_measure (μ.restrict s) := ⟨‹_›⟩,
+  haveI : is_finite_measure (μ.restrict s) := ⟨‹_›⟩,
   exact norm_integral_le_of_norm_le_const hC
 end
 
@@ -490,7 +490,7 @@ arguments, `m i = (μ (s i)).to_real` is used in the output. -/
 lemma continuous_within_at.integral_sub_linear_is_o_ae
   [topological_space α] [opens_measurable_space α]
   [normed_space ℝ E] [second_countable_topology E] [complete_space E] [borel_space E]
-  {μ : measure α} [locally_finite_measure μ] {a : α} {t : set α}
+  {μ : measure α} [is_locally_finite_measure μ] {a : α} {t : set α}
   {f : α → E} (ha : continuous_within_at f t a) (ht : measurable_set t)
   (hfm : measurable_at_filter f (𝓝[t] a) μ)
   {s : ι → set α} {li : filter ι} (hs : tendsto s li ((𝓝[t] a).lift' powerset))
@@ -513,7 +513,7 @@ arguments, `m i = (μ (s i)).to_real` is used in the output. -/
 lemma continuous_at.integral_sub_linear_is_o_ae
   [topological_space α] [opens_measurable_space α]
   [normed_space ℝ E] [second_countable_topology E] [complete_space E] [borel_space E]
-  {μ : measure α} [locally_finite_measure μ] {a : α}
+  {μ : measure α} [is_locally_finite_measure μ] {a : α}
   {f : α → E} (ha : continuous_at f a) (hfm : measurable_at_filter f (𝓝 a) μ)
   {s : ι → set α} {li : filter ι} (hs : tendsto s li ((𝓝 a).lift' powerset))
   (m : ι → ℝ := λ i, (μ (s i)).to_real)
@@ -546,7 +546,7 @@ arguments, `m i = (μ (s i)).to_real` is used in the output. -/
 lemma continuous_on.integral_sub_linear_is_o_ae
   [topological_space α] [opens_measurable_space α]
   [normed_space ℝ E] [second_countable_topology E] [complete_space E] [borel_space E]
-  {μ : measure α} [locally_finite_measure μ] {a : α} {t : set α}
+  {μ : measure α} [is_locally_finite_measure μ] {a : α} {t : set α}
   {f : α → E} (hft : continuous_on f t) (ha : a ∈ t) (ht : measurable_set t)
   {s : ι → set α} {li : filter ι} (hs : tendsto s li ((𝓝[t] a).lift' powerset))
   (m : ι → ℝ := λ i, (μ (s i)).to_real)

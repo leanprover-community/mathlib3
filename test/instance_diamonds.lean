@@ -8,11 +8,16 @@ import algebra.module.pi
 import data.polynomial.basic
 import group_theory.group_action.prod
 import group_theory.group_action.units
+import data.complex.module
 
 /-! # Tests that instances do not form diamonds -/
 
 /-! ## Scalar action instances -/
 section has_scalar
+
+example :
+  (sub_neg_monoid.has_scalar_int : has_scalar ℤ ℂ) = (complex.has_scalar : has_scalar ℤ ℂ) :=
+rfl
 
 section units
 

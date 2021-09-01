@@ -484,15 +484,7 @@ end
 
 lemma indicator_nonpos_le_indicator {β} [linear_order β] [has_zero β] (s : set α) (f : α → β) :
   {x | f x ≤ 0}.indicator f ≤ s.indicator f :=
-begin
-  intro x,
-  simp_rw indicator_apply,
-  split_ifs,
-  { exact le_rfl, },
-  { exact h, },
-  { exact (not_le.mp h).le, },
-  { exact le_rfl, },
-end
+@indicator_le_indicator_nonneg α (order_dual β) _ _ s f
 
 end set
 

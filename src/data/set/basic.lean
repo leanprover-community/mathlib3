@@ -371,9 +371,6 @@ theorem eq_empty_iff_forall_not_mem {s : set α} : s = ∅ ↔ ∀ x, x ∉ s :=
 
 theorem eq_empty_of_subset_empty {s : set α} : s ⊆ ∅ → s = ∅ := subset_empty_iff.1
 
-theorem eq_empty_of_not_nonempty (h : ¬nonempty α) (s : set α) : s = ∅ :=
-eq_empty_of_subset_empty $ λ x hx, h ⟨x⟩
-
 theorem eq_empty_of_is_empty [is_empty α] (s : set α) : s = ∅ :=
 eq_empty_of_subset_empty $ λ x hx, is_empty_elim x
 

@@ -238,6 +238,16 @@ Union_image_left _
 lemma Union_mul_right_image [has_mul α] : (⋃ a ∈ t, (λ x, x * a) '' s) = s * t :=
 Union_image_right _
 
+@[to_additive]
+lemma Union_mul {ι : Sort*} [has_mul α] (s : ι → set α) (t : set α) :
+  (⋃ i, s i) * t = ⋃ i, (s i * t) :=
+image2_Union_left _ _ _
+
+@[to_additive]
+lemma mul_Union {ι : Sort*} [has_mul α] (t : set α) (s : ι → set α) :
+  t * (⋃ i, s i) = ⋃ i, (t * s i) :=
+image2_Union_right _ _ _
+
 @[simp, to_additive]
 lemma univ_mul_univ [monoid α] : (univ : set α) * univ = univ :=
 begin

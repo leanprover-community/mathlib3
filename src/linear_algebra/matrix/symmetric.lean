@@ -75,6 +75,10 @@ by simp [matrix.is_sym, transpose_mul]
 @[simp] lemma is_sym_neg_one [decidable_eq n] [has_zero α] [has_one α] [has_neg α] :
   (-1 : matrix n n α).is_sym := by {ext, simp}
 
+@[simp] lemma is_sym.neg
+[has_neg α] {A : matrix n n α} (h : A.is_sym) :
+(-A).is_sym :=
+by ext; simp [h.apply']
 
 @[simp] lemma is_sym.smul
 [has_scalar R α] {A : matrix n n α} (h : A.is_sym) (k : R) :
@@ -87,6 +91,7 @@ by ext; simp [h.apply']
 (k • (1 : matrix n n α)).is_sym :=
 is_sym_one.smul k
 
+/-- The diagonal matrix `diagonal v` is symmetric. -/
 @[simp] lemma is_sym_diagonal [decidable_eq n] [has_zero α] (v : n → α) :
 (diagonal v).is_sym :=
 begin
@@ -95,7 +100,8 @@ begin
   intro g, exfalso, exact h g.symm
 end
 
-/-- If a block matrix `A.from_blocks B C D` is symmetric,-/
+/-- If a block matrix `A.from_blocks B C D` is symmetric,
+    `A`, `D` are symmetric, and `Cᵀ = B`, and `Bᵀ = C`.-/
 lemma block_conditions_of_is_sym
 {A : matrix m m α} {B : matrix m n α} {C : matrix n m α} {D : matrix n n α} :
 (A.from_blocks B C D).is_sym → (A.is_sym) ∧ (D.is_sym) ∧ (Cᵀ = B) ∧ (Bᵀ = C) :=

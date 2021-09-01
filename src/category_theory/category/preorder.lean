@@ -77,30 +77,6 @@ alias le_of_hom ← quiver.hom.le
 @[simp] lemma hom_of_le_le_of_hom {a b : α} (h : a ⟶ b) : h.le.hom = h :=
 by { cases h, cases h, refl, }
 
-lemma iso.to_eq {x y : X} (f : x ≅ y) : x = y := le_antisymm f.hom.le f.inv.le
-
-/--
-A categorical equivalence between partial orders is just an order isomorphism.
--/
-def equivalence.to_order_iso (e : X ≌ Y) : X ≃o Y :=
-{ to_fun := e.functor.obj,
-  inv_fun := e.inverse.obj,
-  left_inv := λ a, (e.unit_iso.app a).to_eq.symm,
-  right_inv := λ b, (e.counit_iso.app b).to_eq,
-  map_rel_iff' := λ a a',
-    ⟨λ h, ((equivalence.unit e).app a ≫ e.inverse.map h.hom ≫ (equivalence.unit_inv e).app a').le,
-     λ (h : a ≤ a'), (e.functor.map h.hom).le⟩, }
-
--- `@[simps]` on `equivalence.to_order_iso` produces lemmas that fail the `simp_nf` linter,
--- so we provide them by hand:
-@[simp]
-lemma equivalence.to_order_iso_apply (e : X ≌ Y) (a : α) :
-  e.to_order_iso a = e.functor.obj a := rfl
-
-@[simp]
-lemma equivalence.to_order_iso_symm_apply (e : X ≌ Y) (b : β) :
-  e.to_order_iso.symm b = e.inverse.obj b := rfl
-
 end category_theory
 
 variables {X : Type u} {Y : Type v} [preorder X] [preorder Y]
@@ -151,7 +127,37 @@ instance : faithful Preorder_to_Cat :=
 { map_injective' := λ X Y f g h, begin ext x, exact functor.congr_obj h x end }
 
 instance : full Preorder_to_Cat :=
-{ preimage := λ X Y f, ⟨f.obj, monotone_of_functor f⟩,
+{ preimage := λ X Y f, ⟨f.obj, f.monotone⟩,
   witness' := λ X Y f, begin apply category_theory.functor.ext, tidy end }
+
+section partial_order
+
+variables {α : Type u} {β : Type v} [partial_order α] [partial_order β]
+
+lemma iso.to_eq {x y : X} (f : x ≅ y) : x = y := le_antisymm f.hom.le f.inv.le
+
+/--
+A categorical equivalence between partial orders is just an order isomorphism.
+-/
+def equivalence.to_order_iso (e : X ≌ Y) : X ≃o Y :=
+{ to_fun := e.functor.obj,
+  inv_fun := e.inverse.obj,
+  left_inv := λ a, (e.unit_iso.app a).to_eq.symm,
+  right_inv := λ b, (e.counit_iso.app b).to_eq,
+  map_rel_iff' := λ a a',
+    ⟨λ h, ((equivalence.unit e).app a ≫ e.inverse.map h.hom ≫ (equivalence.unit_inv e).app a').le,
+     λ (h : a ≤ a'), (e.functor.map h.hom).le⟩, }
+
+-- `@[simps]` on `equivalence.to_order_iso` produces lemmas that fail the `simp_nf` linter,
+-- so we provide them by hand:
+@[simp]
+lemma equivalence.to_order_iso_apply (e : X ≌ Y) (a : α) :
+  e.to_order_iso a = e.functor.obj a := rfl
+
+@[simp]
+lemma equivalence.to_order_iso_symm_apply (e : X ≌ Y) (b : β) :
+  e.to_order_iso.symm b = e.inverse.obj b := rfl
+
+end partial_order
 
 end category_theory

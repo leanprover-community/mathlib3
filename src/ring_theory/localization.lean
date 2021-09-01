@@ -1797,6 +1797,43 @@ lemma is_integral_localization' {R S : Type*} [comm_ring R] [comm_ring S]
 
 end is_integral
 
+namespace is_integral_closure
+
+variables (A) {L : Type*} [field K] [field L] [algebra A K] [algebra A L] [is_fraction_ring A K]
+variables (C : Type*) [integral_domain C] [algebra C L] [is_integral_closure C A L]
+variables [algebra A C] [is_scalar_tower A C L]
+
+open algebra
+
+/-- If the field `L` is an algebraic extension of the integral domain `A`,
+the integral closure `C` of `A` in `L` has fraction field `L`. -/
+lemma is_fraction_ring_of_algebraic (alg : is_algebraic A L)
+  (inj : ∀ x, algebra_map A L x = 0 → x = 0) :
+  is_fraction_ring C L :=
+{ map_units := λ ⟨y, hy⟩,
+    is_unit.mk0 _ (show algebra_map C L y ≠ 0, from λ h, mem_non_zero_divisors_iff_ne_zero.mp hy
+      ((algebra_map C L).injective_iff.mp (algebra_map_injective C A L) _ h)),
+  surj := λ z, let ⟨x, y, hy, hxy⟩ := exists_integral_multiple (alg z) inj in
+    ⟨⟨mk' C (x : L) x.2, algebra_map _ _ y,
+        mem_non_zero_divisors_iff_ne_zero.mpr (λ h, hy (inj _
+          (by rw [is_scalar_tower.algebra_map_apply A C L, h, ring_hom.map_zero])))⟩,
+     by rw [set_like.coe_mk, algebra_map_mk', ← is_scalar_tower.algebra_map_apply A C L, hxy]⟩,
+  eq_iff_exists := λ x y, ⟨λ h, ⟨1, by simpa using algebra_map_injective C A L h⟩, λ ⟨c, hc⟩,
+    congr_arg (algebra_map _ L) (mul_right_cancel' (mem_non_zero_divisors_iff_ne_zero.mp c.2) hc)⟩ }
+
+variables (K L)
+
+/-- If the field `L` is a finite extension of the fraction field of the integral domain `A`,
+the integral closure `C` of `A` in `L` has fraction field `L`. -/
+lemma is_fraction_ring_of_finite_extension [algebra K L] [is_scalar_tower A K L]
+  [finite_dimensional K L] : is_fraction_ring C L :=
+is_fraction_ring_of_algebraic A C
+  (is_fraction_ring.comap_is_algebraic_iff.mpr (is_algebraic_of_finite : is_algebraic K L))
+  (λ x hx, is_fraction_ring.to_map_eq_zero_iff.mp ((algebra_map K L).map_eq_zero.mp $
+    (is_scalar_tower.algebra_map_apply _ _ _ _).symm.trans hx))
+
+end is_integral_closure
+
 namespace integral_closure
 
 variables {L : Type*} [field K] [field L] [algebra A K] [is_fraction_ring A K]
@@ -1808,15 +1845,7 @@ the integral closure of `A` in `L` has fraction field `L`. -/
 lemma is_fraction_ring_of_algebraic [algebra A L] (alg : is_algebraic A L)
   (inj : ∀ x, algebra_map A L x = 0 → x = 0) :
   is_fraction_ring (integral_closure A L) L :=
-⟨(λ ⟨⟨y, integral⟩, nonzero⟩,
-   have y ≠ 0 := λ h, mem_non_zero_divisors_iff_ne_zero.mp nonzero (subtype.ext_iff_val.mpr h),
-   show is_unit y, from ⟨⟨y, y⁻¹, mul_inv_cancel this, inv_mul_cancel this⟩, rfl⟩),
- (λ z, let ⟨x, y, hy, hxy⟩ := exists_integral_multiple (alg z) inj in
-   ⟨⟨x, ⟨algebra_map _ _ y, mem_non_zero_divisors_iff_ne_zero.mpr
-      (λ h, hy (inj _ ((congr_arg coe h).trans (subalgebra.coe_zero _))))⟩⟩, hxy⟩),
- (λ x y, ⟨λ (h : x.1 = y.1), ⟨1, by simpa using subtype.ext_iff_val.mpr h⟩,
-          λ ⟨c, hc⟩, congr_arg (algebra_map _ L)
-            (mul_right_cancel' (mem_non_zero_divisors_iff_ne_zero.mp c.2) hc)⟩)⟩
+is_integral_closure.is_fraction_ring_of_algebraic A (integral_closure A L) alg inj
 
 variables (K L)
 
@@ -1825,10 +1854,7 @@ the integral closure of `A` in `L` has fraction field `L`. -/
 lemma is_fraction_ring_of_finite_extension [algebra A L] [algebra K L]
   [is_scalar_tower A K L] [finite_dimensional K L] :
   is_fraction_ring (integral_closure A L) L :=
-is_fraction_ring_of_algebraic
-  (is_fraction_ring.comap_is_algebraic_iff.mpr (is_algebraic_of_finite : is_algebraic K L))
-  (λ x hx, is_fraction_ring.to_map_eq_zero_iff.mp ((algebra_map K L).map_eq_zero.mp $
-    (is_scalar_tower.algebra_map_apply _ _ _ _).symm.trans hx))
+is_integral_closure.is_fraction_ring_of_finite_extension A K L (integral_closure A L)
 
 end integral_closure
 

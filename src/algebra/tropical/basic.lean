@@ -294,7 +294,7 @@ section semiring
 
 variable [linear_ordered_add_comm_monoid_with_top R]
 
-instance : semiring (tropical R) :=
+instance : comm_semiring (tropical R) :=
 { zero_add := λ _, untrop_injective (min_top_left _),
   add_zero := λ _, untrop_injective (min_top_right _),
   zero_mul := λ _, untrop_injective (top_add _),

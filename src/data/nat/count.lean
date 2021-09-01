@@ -312,7 +312,8 @@ begin
     simp only [finset.card_eq_zero, set.finite_to_finset_eq_empty_iff, ←set.subset_empty_iff],
     convert_to _ ⊆ {i : ℕ | p i ∧ ∀ (k : ℕ), k < hf.to_finset.card → nth p k < i},
     { symmetry,
-      rw [←set.finite_to_finset_eq_empty_iff, ←finset.card_eq_zero, ←nat.sub_self hf.to_finset.card],
+      rw [←set.finite_to_finset_eq_empty_iff, ←finset.card_eq_zero],
+      rw ←nat.sub_self hf.to_finset.card,
       { apply nth_set_card_aux p hf _ (le_refl _), },
       { apply hf.subset,
         simp {contextual := tt}, }, },
@@ -380,7 +381,8 @@ lemma nth_monotone_of_infinite (i : (set_of p).infinite) : monotone (nth p) :=
 lemma nth_nonzero_of_ge_nonzero (h : ¬p 0) (k : ℕ) (h : nth p k ≠ 0) : ∀ a ≤ k, nth p a ≠ 0 :=
 sorry
 
-lemma nth_of_not_zero (h : ¬ p 0) (k : ℕ) (h : nth p k ≠ 0) : nth p k = nth (λ i, p (i + 1)) k + 1 :=
+lemma nth_of_not_zero (h : ¬ p 0) (k : ℕ) (h : nth p k ≠ 0) :
+  nth p k = nth (λ i, p (i + 1)) k + 1 :=
 begin
   revert h,
   apply nat.strong_induction_on k,

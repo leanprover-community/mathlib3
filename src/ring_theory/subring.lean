@@ -521,10 +521,9 @@ instance : field (center K) :=
                                               mul_inv_cancel ha0, one_mul]
              ... = a⁻¹ * r : by rw [mul_assoc, mul_inv_cancel ha0, mul_one],
   end⟩,
-  exists_pair_ne := ⟨0, 1, λ h, @zero_ne_one K _ _ $ congr_arg subtype.val h⟩,
-  mul_inv_cancel := λ ⟨a, ha⟩ h, subtype.ext $ show a * a⁻¹ = 1, from mul_inv_cancel $
-    λ hc, h $ subtype.ext hc,
+  mul_inv_cancel := λ ⟨a, ha⟩ h, subtype.ext $ mul_inv_cancel $ subtype.coe_injective.ne h,
   inv_zero := subtype.ext inv_zero,
+  ..(center K).nontrivial,
   ..center.comm_ring }
 
 end division_ring

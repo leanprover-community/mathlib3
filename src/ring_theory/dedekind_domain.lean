@@ -719,13 +719,12 @@ variables [algebra C L] [is_integral_closure C A L] [algebra A C] [is_scalar_tow
 lemma is_integral_closure.range_le_span_dual_basis [is_separable K L]
   {ι : Type*} [fintype ι] [decidable_eq ι] (b : basis ι K L)
   (hb_int : ∀ i, is_integral A (b i)) [is_integrally_closed A] :
-  ((algebra.of_id C L).to_linear_map.restrict_scalars A).range ≤
+  ((algebra.linear_map C L).restrict_scalars A).range ≤
     submodule.span A (set.range $ (trace_form K L).dual_basis (trace_form_nondegenerate K L) b) :=
 begin
   let db := (trace_form K L).dual_basis (trace_form_nondegenerate K L) b,
   rintros _ ⟨x, rfl⟩,
-  simp only [alg_hom.to_linear_map_apply, linear_map.coe_restrict_scalars_eq_coe,
-    algebra.of_id_apply],
+  simp only [linear_map.coe_restrict_scalars_eq_coe, algebra.linear_map_apply],
   have hx : is_integral A (algebra_map C L x) :=
     (is_integral_closure.is_integral A L x).algebra_map,
   suffices : ∃ (c : ι → A), algebra_map C L x = ∑ i, c i • db i,
@@ -831,7 +830,7 @@ begin
   letI := is_noetherian_span_of_finite A (set.finite_range b'),
   let f : C →ₗ[A] submodule.span A (set.range b') :=
     (submodule.of_le (is_integral_closure.range_le_span_dual_basis C b hb_int)).comp
-    ((algebra.of_id C L).to_linear_map.restrict_scalars A).range_restrict,
+    ((algebra.linear_map C L).restrict_scalars A).range_restrict,
   refine is_noetherian_of_tower A (is_noetherian_of_injective f _),
   rw [linear_map.ker_comp, submodule.ker_of_le, submodule.comap_bot, linear_map.ker_cod_restrict],
   exact linear_map.ker_eq_bot_of_injective (is_integral_closure.algebra_map_injective C A L)

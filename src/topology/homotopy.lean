@@ -6,6 +6,7 @@ Authors: Shing Tak Lam
 
 import topology.unit_interval
 import topology.algebra.ordered.proj_Icc
+import topology.continuous_function.basic
 
 /-!
 # Homotopy between functions
@@ -33,11 +34,7 @@ open_locale unit_interval
 The type of homotopies between two functions.
 -/
 
--- There are functions for which there are no homotopies between them.
-@[nolint has_inhabited_instance]
-structure homotopy (f₀ f₁ : X → Y) :=
-(to_fun : X × I → Y)
-(continuous_to_fun : continuous to_fun)
+structure homotopy (f₀ f₁ : X → Y) extends C(X × I, Y) :=
 (to_fun_zero : ∀ x, to_fun (x, 0) = f₀ x)
 (to_fun_one : ∀ x, to_fun (x, 1) = f₁ x)
 
@@ -47,7 +44,8 @@ section
 
 variables {f₀ f₁ : X → Y}
 
-instance : has_coe_to_fun (homotopy f₀ f₁) := ⟨_, homotopy.to_fun⟩
+instance : has_coe_t (homotopy f₀ f₁) C(X × I, Y) := ⟨homotopy.to_continuous_map⟩
+instance : has_coe_to_fun (homotopy f₀ f₁) := ⟨_, λ F, F.to_fun⟩
 
 @[continuity]
 protected lemma continuous (F : homotopy f₀ f₁) : continuous F := F.continuous_to_fun
@@ -83,6 +81,8 @@ def refl {f : X → Y} (hf : continuous f) : homotopy f f :=
   continuous_to_fun := by continuity,
   to_fun_zero := λ _, rfl,
   to_fun_one := λ _, rfl }
+
+instance : inhabited (homotopy (id : X → X) id) := ⟨homotopy.refl continuous_id⟩
 
 /--
 Given a `homotopy f₀ f₁`, we can define a `homotopy f₁ f₀` by reversing the homotopy.

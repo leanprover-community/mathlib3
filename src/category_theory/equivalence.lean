@@ -7,6 +7,7 @@ import category_theory.fully_faithful
 import category_theory.full_subcategory
 import category_theory.whiskering
 import category_theory.essential_image
+import category_theory.category.preorder
 import tactic.slice
 
 /-!

@@ -60,8 +60,22 @@ namespace ring_of_integers
 
 variables {K}
 
+instance : is_fraction_ring (ring_of_integers K) K :=
+integral_closure.is_fraction_ring_of_finite_extension ℚ _
+
+instance : is_integral_closure (ring_of_integers K) ℤ K :=
+integral_closure.is_integral_closure _ _
+
+instance : is_integrally_closed (ring_of_integers K) :=
+integral_closure.is_integrally_closed_of_finite_extension ℚ
+
 lemma is_integral_coe (x : ring_of_integers K) : is_integral ℤ (x : K) :=
 x.2
+
+/-- The ring of integers of `K` are equivalent to any integral closure of `ℤ` in `K` -/
+protected noncomputable def equiv (R : Type*) [comm_ring R] [algebra R K]
+  [is_integral_closure R ℤ K] : ring_of_integers K ≃+* R :=
+(is_integral_closure.equiv ℤ R K _).symm.to_ring_equiv
 
 variables (K)
 
@@ -77,30 +91,17 @@ namespace rat
 
 open number_field
 
-instance rat.finite_dimensional : finite_dimensional ℚ ℚ :=
-(infer_instance : is_noetherian ℚ ℚ)
-
 instance rat.number_field : number_field ℚ :=
 { to_char_zero := infer_instance,
-  to_finite_dimensional := by { convert rat.finite_dimensional,
+  to_finite_dimensional := by { convert (infer_instance : finite_dimensional ℚ ℚ),
              -- The vector space structure of `ℚ` over itself can arise in multiple ways:
              -- all fields are vector spaces over themselves (used in `rat.finite_dimensional`)
-             -- all fields have a canonical embedding of `ℚ` (used in `number_field`).
+             -- all char 0 fields have a canonical embedding of `ℚ` (used in `number_field`).
              -- Show that these coincide:
              ext, simp [algebra.smul_def] } }
 
 /-- The ring of integers of `ℚ` as a number field is just `ℤ`. -/
 noncomputable def ring_of_integers_equiv : ring_of_integers ℚ ≃+* ℤ :=
-ring_equiv.symm $
-ring_equiv.of_bijective (algebra_map ℤ (ring_of_integers ℚ))
-  ⟨λ x y hxy, int.cast_injective $
-      show (x : ring_of_integers ℚ) = (y : ring_of_integers ℚ), by simpa using hxy,
-   λ y, begin
-     obtain ⟨x, hx⟩ := unique_factorization_monoid.integer_of_integral
-       (ring_of_integers.is_integral_coe y),
-     use x,
-     refine subtype.coe_injective _,
-     rw [← hx, subalgebra.coe_algebra_map]
-   end⟩
+ring_of_integers.equiv ℤ
 
 end rat

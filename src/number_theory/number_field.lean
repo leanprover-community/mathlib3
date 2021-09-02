@@ -44,31 +44,32 @@ open function
 open_locale classical big_operators
 
 namespace number_field
-variables (K : Type*) [field K] [number_field K]
+variables (K : Type*) [field K] [nf : number_field K]
+
+include nf
 
 -- See note [lower instance priority]
 attribute [priority 100, instance] number_field.to_char_zero number_field.to_finite_dimensional
 
 protected lemma is_algebraic : algebra.is_algebraic ℚ K := algebra.is_algebraic_of_finite
 
+omit nf
+
 /-- The ring of integers (or number ring) corresponding to a number field
 is the integral closure of ℤ in the number field. -/
--- The `is_number_field K` hypothesis is not used but is required for
--- this definition to make sense.
-@[nolint unused_arguments]
 def ring_of_integers := integral_closure ℤ K
 
 namespace ring_of_integers
 
 variables {K}
 
-instance : is_fraction_ring (ring_of_integers K) K :=
+instance [number_field K] : is_fraction_ring (ring_of_integers K) K :=
 integral_closure.is_fraction_ring_of_finite_extension ℚ _
 
 instance : is_integral_closure (ring_of_integers K) ℤ K :=
 integral_closure.is_integral_closure _ _
 
-instance : is_integrally_closed (ring_of_integers K) :=
+instance [number_field K] : is_integrally_closed (ring_of_integers K) :=
 integral_closure.is_integrally_closed_of_finite_extension ℚ
 
 lemma is_integral_coe (x : ring_of_integers K) : is_integral ℤ (x : K) :=
@@ -81,7 +82,7 @@ protected noncomputable def equiv (R : Type*) [comm_ring R] [algebra R K]
 
 variables (K)
 
-instance : char_zero (ring_of_integers K) := char_zero.of_algebra K
+instance [number_field K] : char_zero (ring_of_integers K) := char_zero.of_algebra K
 
 -- TODO: show `ring_of_integers K` is a Dedekind domain
 

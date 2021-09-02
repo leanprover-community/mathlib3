@@ -918,21 +918,21 @@ lemma concave_on.smul [ordered_module ℝ β] {f : E → β} {c : ℝ} (hc : 0 �
 @convex_on.smul _ _ _ _ (order_dual β) _ _ _ f c hc hf
 
 section linear_order
-variables {γ : Type*} [linear_ordered_add_comm_group γ] [module ℝ γ] [ordered_module ℝ γ]
+section monoid
+
+variables {γ : Type*} [linear_ordered_add_comm_monoid γ] [module ℝ γ] [ordered_module ℝ γ]
   {f g : E → γ}
 
 /-- The pointwise maximum of convex functions is convex. -/
 lemma convex_on.sup (hf : convex_on s f) (hg : convex_on s g) :
   convex_on s (f ⊔ g) :=
 begin
-   refine ⟨hf.left, λ x y hx hy a b ha hb hab, _⟩,
-   simp only [sup_apply, sup_le_iff],
-   split,
-   { calc f (a • x + b • y) ≤ a • f x + b • f y : by simpa [hab] using hf.right hx hy ha hb hab
+   refine ⟨hf.left, λ x y hx hy a b ha hb hab, sup_le _ _⟩,
+   { calc f (a • x + b • y) ≤ a • f x + b • f y : hf.right hx hy ha hb hab
       ...                   ≤ a • (f x ⊔ g x) + b • (f y ⊔ g y) : add_le_add
       (smul_le_smul_of_nonneg le_sup_left ha)
       (smul_le_smul_of_nonneg le_sup_left hb) },
-   { calc g (a • x + b • y) ≤ a • g x + b • g y : by simpa [hab] using hg.right hx hy ha hb hab
+   { calc g (a • x + b • y) ≤ a • g x + b • g y : hg.right hx hy ha hb hab
       ...                   ≤ a • (f x ⊔ g x) + b • (f y ⊔ g y) : add_le_add
       (smul_le_smul_of_nonneg le_sup_right ha)
       (smul_le_smul_of_nonneg le_sup_right hb) }
@@ -967,12 +967,15 @@ lemma convex_on.le_on_segment (hf : convex_on s f) {x y z : E}
 let ⟨a, b, ha, hb, hab, hz⟩ := hz in hz ▸ hf.le_on_segment' hx hy ha hb hab
 
 /-- A concave function on a segment is lower-bounded by the min of its endpoints. -/
-lemma concave_on.le_on_segment {γ : Type*}
-  [linear_ordered_add_comm_group γ] [module ℝ γ] [ordered_module ℝ γ]
-  {f : E → γ} (hf : concave_on s f) {x y z : E}
+lemma concave_on.le_on_segment {f : E → γ} (hf : concave_on s f) {x y z : E}
   (hx : x ∈ s) (hy : y ∈ s) (hz : z ∈ [x, y]) :
     min (f x) (f y) ≤ f z :=
 @convex_on.le_on_segment _ _ _ _ (order_dual γ) _ _ _ f hf x y z hx hy hz
+
+end monoid
+
+variables {γ : Type*} [linear_ordered_cancel_add_comm_monoid γ] [module ℝ γ] [ordered_module ℝ γ]
+  {f : E → γ}
 
 -- could be shown without contradiction but yeah
 lemma convex_on.le_left_of_right_le' (hf : convex_on s f) {x y : E} {a b : ℝ}

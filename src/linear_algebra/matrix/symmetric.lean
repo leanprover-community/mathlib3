@@ -130,6 +130,6 @@ lemma is_symm_from_blocks_iff
   (A.from_blocks B C D).is_symm ↔ A.is_symm ∧ Bᵀ = C ∧ Cᵀ = B ∧ D.is_symm :=
 ⟨λ h, ⟨congr_arg to_blocks₁₁ h, congr_arg to_blocks₂₁ h,
        congr_arg to_blocks₁₂ h, congr_arg to_blocks₂₂ h⟩,
- λ ⟨hA, hBC, hCB, hD⟩, is_symm_from_blocks hA hD hBC⟩
+ λ ⟨hA, hBC, hCB, hD⟩, is_symm.from_blocks hA hBC hD⟩
 
 end matrix

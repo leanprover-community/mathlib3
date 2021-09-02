@@ -62,7 +62,7 @@ begin
   assumption
 end
 
-/-- `A ⬝ Aᵀ` is symmertric. -/
+/-- `A ⬝ Aᵀ` is symmetric. -/
 lemma is_sym_mul_transpose_self [fintype n] [comm_semiring α] (A : matrix n n α) :
   (A ⬝ Aᵀ).is_sym :=
 by simp [matrix.is_sym, transpose_mul]

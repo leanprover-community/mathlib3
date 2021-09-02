@@ -45,7 +45,7 @@ open complex
 def Hadamard [has_mul α] (A : matrix I J α) (B : matrix I J α) : matrix I J α
 | i j := A i j * B i j
 
-localized "infix `⊙`:100 := matrix.Hadamard" in matrix -- declares the notation
+localized "infix ` ⊙ `:100 := matrix.Hadamard" in matrix
 
 section basic_properties
 

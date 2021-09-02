@@ -1157,8 +1157,7 @@ end
 
 variables {hm : m ≤ m0} [sigma_finite (μ.trim hm)]
 
-@[simp] lemma condexp_ind_empty :
-  condexp_ind hm μ ∅ = (0 : G →L[ℝ] α →₁[μ] G) :=
+@[simp] lemma condexp_ind_empty : condexp_ind hm μ ∅ = (0 : G →L[ℝ] α →₁[μ] G) :=
 begin
   ext1,
   ext1,
@@ -1173,12 +1172,10 @@ lemma condexp_ind_smul [normed_space ℝ F] [smul_comm_class ℝ 𝕜 F] (c : �
   condexp_ind hm μ s (c • x) = c • condexp_ind hm μ s x :=
 condexp_ind_L1_smul' c x
 
-lemma norm_condexp_ind_apply_le (x : G) :
-  ∥condexp_ind hm μ s x∥ ≤ (μ s).to_real * ∥x∥ :=
+lemma norm_condexp_ind_apply_le (x : G) : ∥condexp_ind hm μ s x∥ ≤ (μ s).to_real * ∥x∥ :=
 norm_condexp_ind_L1_le x
 
-lemma norm_condexp_ind_le :
-  ∥(condexp_ind hm μ s : G →L[ℝ] α →₁[μ] G)∥ ≤ (μ s).to_real :=
+lemma norm_condexp_ind_le : ∥(condexp_ind hm μ s : G →L[ℝ] α →₁[μ] G)∥ ≤ (μ s).to_real :=
 continuous_linear_map.op_norm_le_bound _ ennreal.to_real_nonneg norm_condexp_ind_apply_le
 
 lemma condexp_ind_disjoint_union_apply (hs : measurable_set s) (ht : measurable_set t)

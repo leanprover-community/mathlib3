@@ -902,6 +902,11 @@ lemma cast_to_nat_of_lt_omega {c : cardinal} (h : c < omega) :
 by rw [to_nat_apply_of_lt_omega h, ← classical.some_spec (lt_omega.1 h)]
 
 @[simp]
+lemma cast_to_nat_of_omega_le {c : cardinal} (h : omega ≤ c) :
+  ↑c.to_nat = (0 : cardinal) :=
+by rw [to_nat_apply_of_omega_le h, nat.cast_zero]
+
+@[simp]
 lemma to_nat_cast (n : ℕ) : cardinal.to_nat n = n :=
 begin
   rw [to_nat_apply_of_lt_omega (nat_lt_omega n), ← nat_cast_inj],
@@ -912,6 +917,9 @@ end
 lemma to_nat_right_inverse : function.right_inverse (coe : ℕ → cardinal) to_nat := to_nat_cast
 
 lemma to_nat_surjective : surjective to_nat := to_nat_right_inverse.surjective
+
+lemma nat_cast_injective : injective (coe : ℕ → cardinal) :=
+to_nat_right_inverse.left_inverse.injective
 
 @[simp]
 lemma mk_to_nat_of_infinite [h : infinite α] : (mk α).to_nat = 0 :=
@@ -932,22 +940,18 @@ by rw [← to_nat_cast 1, nat.cast_one]
 lemma to_nat_mul (x y : cardinal) : (x * y).to_nat = x.to_nat * y.to_nat :=
 begin
   by_cases hx1 : x = 0,
-  { rw [comm_semiring.mul_comm, hx1, mul_zero, cardinal.zero_to_nat, nat.zero_mul] },
+  { rw [comm_semiring.mul_comm, hx1, mul_zero, zero_to_nat, nat.zero_mul] },
   by_cases hy1 : y = 0,
-  { rw [hy1, cardinal.zero_to_nat, mul_zero, mul_zero, cardinal.zero_to_nat] },
-  cases lt_or_ge x cardinal.omega with hx2 hx2,
-  { cases lt_or_ge y cardinal.omega with hy2 hy2,
-    { rw [cardinal.to_nat_apply_of_lt_omega (cardinal.mul_lt_omega hx2 hy2),
-          cardinal.to_nat_apply_of_lt_omega hx2, cardinal.to_nat_apply_of_lt_omega hy2,
-          ←cardinal.nat_cast_inj, nat.cast_mul, ←classical.some_spec (cardinal.lt_omega.mp hx2),
-          ←classical.some_spec (cardinal.lt_omega.mp hy2),
-          ←classical.some_spec (cardinal.lt_omega.mp (cardinal.mul_lt_omega hx2 hy2))] },
-    { rw [cardinal.to_nat_apply_of_omega_le hy2, mul_zero, cardinal.to_nat_apply_of_omega_le],
-      rw [←not_lt, cardinal.mul_lt_omega_iff_of_ne_zero hx1 hy1, not_and_distrib, not_lt, not_lt],
-      exact or.inr hy2 } },
-  { rw [cardinal.to_nat_apply_of_omega_le hx2, nat.zero_mul, cardinal.to_nat_apply_of_omega_le],
-    rw [←not_lt, cardinal.mul_lt_omega_iff_of_ne_zero hx1 hy1, not_and_distrib, not_lt, not_lt],
-    exact or.inl hx2 },
+  { rw [hy1, zero_to_nat, mul_zero, mul_zero, zero_to_nat] },
+  refine nat_cast_injective (eq.trans _ (nat.cast_mul _ _).symm),
+  cases lt_or_ge x omega with hx2 hx2,
+  { cases lt_or_ge y omega with hy2 hy2,
+    { rw [cast_to_nat_of_lt_omega, cast_to_nat_of_lt_omega hx2, cast_to_nat_of_lt_omega hy2],
+      exact mul_lt_omega hx2 hy2 },
+    { rw [cast_to_nat_of_omega_le hy2, mul_zero, cast_to_nat_of_omega_le],
+      exact not_lt.mp (mt (mul_lt_omega_iff_of_ne_zero hx1 hy1).mp (λ h, not_lt.mpr hy2 h.2)) } },
+  { rw [cast_to_nat_of_omega_le hx2, _root_.zero_mul, cast_to_nat_of_omega_le],
+    exact not_lt.mp (mt (mul_lt_omega_iff_of_ne_zero hx1 hy1).mp (λ h, not_lt.mpr hx2 h.1)) },
 end
 
 /-- This function sends finite cardinals to the corresponding natural, and infinite cardinals

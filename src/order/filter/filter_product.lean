@@ -97,28 +97,12 @@ begin
   { rw [max_eq_left h, map₂_coe, coe_eq], exact h.mono (λ i hi, (max_eq_left hi).symm) }
 end
 
-lemma sup_def [linear_order β] (x y : β*) : x ⊔ y = map₂ has_sup.sup x y :=
-induction_on₂ x y $ λ a b,
-begin
-  cases le_total (a : β*) b,
-  { rw [sup_eq_right.2 h, map₂_coe, coe_eq], exact h.mono (λ i hi, (max_eq_right hi).symm) },
-  { rw [sup_eq_left.2 h, map₂_coe, coe_eq], exact h.mono (λ i hi, (max_eq_left hi).symm)}
-end
-
 lemma min_def [K : linear_order β] (x y : β*) : min x y = map₂ min x y :=
 induction_on₂ x y $ λ a b,
 begin
   cases le_total (a : β*) b,
   { rw [min_eq_left h, map₂_coe, coe_eq], exact h.mono (λ i hi, (min_eq_left hi).symm) },
   { rw [min_eq_right h, map₂_coe, coe_eq], exact h.mono (λ i hi, (min_eq_right hi).symm) }
-end
-
-lemma inf_def [linear_order β] (x y : β*) : x ⊓ y = map₂ has_inf.inf x y :=
-induction_on₂ x y $ λ a b,
-begin
-  cases le_total (a : β*) b,
-  { rw [inf_eq_left.2 h, map₂_coe, coe_eq], exact h.mono (λ i hi, (min_eq_left hi).symm) },
-  { rw [inf_eq_right.2 h, map₂_coe, coe_eq], exact h.mono (λ i hi, (min_eq_right hi).symm) }
 end
 
 lemma abs_def [linear_ordered_add_comm_group β] (x : β*) : abs x = map abs x :=

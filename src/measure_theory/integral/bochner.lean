@@ -216,9 +216,6 @@ begin
       use [i, finset.mem_insert_of_mem hi, hxi], }, },
 end
 
-lemma neg_singleton {β : Type*} [add_group β] (x : β) : -({x} : set β) = {-x} :=
-by { ext1 y, rw [mem_neg, mem_singleton_iff, mem_singleton_iff, neg_eq_iff_neg_eq, eq_comm], }
-
 end to_be_moved
 
 local infixr ` →ₛ `:25 := simple_func

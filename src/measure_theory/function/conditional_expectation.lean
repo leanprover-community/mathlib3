@@ -602,8 +602,10 @@ end
 
 section real
 
-lemma integral_condexp_L2_eq_of_fin_meas_real (hm : m ≤ m0) (f : Lp 𝕜 2 μ) {s : set α}
-  (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) :
+variables {hm : m ≤ m0}
+
+lemma integral_condexp_L2_eq_of_fin_meas_real (f : Lp 𝕜 2 μ) (hs : measurable_set[m] s)
+  (hμs : μ s ≠ ∞) :
   ∫ x in s, condexp_L2 𝕜 hm f x ∂μ = ∫ x in s, f x ∂μ :=
 begin
   rw ← L2.inner_indicator_const_Lp_one (hm s hs) hμs,
@@ -614,8 +616,7 @@ begin
   rw [h_eq_inner, ← inner_condexp_L2_left_eq_right, condexp_L2_indicator_of_measurable hm hs hμs],
 end
 
-lemma lintegral_nnnorm_condexp_L2_le (hm : m ≤ m0) (hs : measurable_set[m] s) (hμs : μ s ≠ ∞)
-  (f : Lp ℝ 2 μ) :
+lemma lintegral_nnnorm_condexp_L2_le (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) (f : Lp ℝ 2 μ) :
   ∫⁻ x in s, ∥condexp_L2 ℝ hm f x∥₊ ∂μ ≤ ∫⁻ x in s, ∥f x∥₊ ∂μ :=
 begin
   let h_meas := Lp_meas.ae_measurable' (condexp_L2 ℝ hm f),
@@ -635,11 +636,11 @@ begin
   { rw [integrable_on, integrable_congr hg_eq_restrict],
     exact integrable_on_condexp_L2_of_measure_ne_top hm hμs f, },
   { intros t ht hμt,
-    rw ← integral_condexp_L2_eq_of_fin_meas_real hm f ht hμt.ne,
+    rw ← integral_condexp_L2_eq_of_fin_meas_real f ht hμt.ne,
     exact set_integral_congr_ae (hm t ht) (hg_eq.mono (λ x hx _, hx)), },
 end
 
-lemma condexp_L2_ae_eq_zero_of_ae_eq_zero (hm : m ≤ m0) (hs : measurable_set[m] s) (hμs : μ s ≠ ∞)
+lemma condexp_L2_ae_eq_zero_of_ae_eq_zero (hs : measurable_set[m] s) (hμs : μ s ≠ ∞)
   {f : Lp ℝ 2 μ} (hf : f =ᵐ[μ.restrict s] 0) :
   condexp_L2 ℝ hm f =ᵐ[μ.restrict s] 0 :=
 begin
@@ -653,7 +654,7 @@ begin
       rw Lp_meas_coe,
       exact Lp.measurable _, }, },
   refine le_antisymm _ (zero_le _),
-  refine (lintegral_nnnorm_condexp_L2_le hm hs hμs f).trans (le_of_eq _),
+  refine (lintegral_nnnorm_condexp_L2_le hs hμs f).trans (le_of_eq _),
   rw lintegral_eq_zero_iff,
   { refine hf.mono (λ x hx, _),
     dsimp only,
@@ -662,11 +663,11 @@ begin
   { exact (Lp.measurable _).nnnorm.coe_nnreal_ennreal, },
 end
 
-lemma lintegral_nnnorm_condexp_L2_indicator_le_real (hm : m ≤ m0) {s : set α}
-  (hs : measurable_set s) (hμs : μ s ≠ ∞) {t : set α} (ht : measurable_set[m] t) (hμt : μ t ≠ ∞) :
+lemma lintegral_nnnorm_condexp_L2_indicator_le_real
+  (hs : measurable_set s) (hμs : μ s ≠ ∞) (ht : measurable_set[m] t) (hμt : μ t ≠ ∞) :
   ∫⁻ a in t, ∥condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ)) a∥₊ ∂μ ≤ μ (s ∩ t) :=
 begin
-  refine (lintegral_nnnorm_condexp_L2_le hm ht hμt _).trans (le_of_eq _),
+  refine (lintegral_nnnorm_condexp_L2_le ht hμt _).trans (le_of_eq _),
   have h_eq : ∫⁻ x in t, ∥(indicator_const_Lp 2 hs hμs (1 : ℝ)) x∥₊ ∂μ
     = ∫⁻ x in t, s.indicator (λ x, (1 : ℝ≥0∞)) x ∂μ,
   { refine lintegral_congr_ae (ae_restrict_of_ae _),
@@ -698,7 +699,7 @@ begin
     rw [integrable_on, integrable_congr (ae_restrict_of_ae h_eq)],
     exact (integrable_on_condexp_L2_of_measure_ne_top hm hμs.ne _).const_inner _, },
   { intros s hs hμs,
-    rw [← Lp_meas_coe, integral_condexp_L2_eq_of_fin_meas_real hm _ hs hμs.ne,
+    rw [← Lp_meas_coe, integral_condexp_L2_eq_of_fin_meas_real _ hs hμs.ne,
       integral_congr_ae (ae_restrict_of_ae h_eq), Lp_meas_coe,
       ← L2.inner_indicator_const_Lp_eq_set_integral_inner ↑(condexp_L2 𝕜 hm f) (hm s hs) c hμs.ne,
       ← inner_condexp_L2_left_eq_right, condexp_L2_indicator_of_measurable,
@@ -729,7 +730,7 @@ begin
   rw [← Lp_meas_coe, sub_eq_zero,
     ← set_integral_congr_ae (hm s hs) ((condexp_L2_const_inner hm f c).mono (λ x hx _, hx)),
     ← set_integral_congr_ae (hm s hs) (h_ae_eq_f.mono (λ x hx _, hx))],
-  exact integral_condexp_L2_eq_of_fin_meas_real hm _ hs hμs,
+  exact integral_condexp_L2_eq_of_fin_meas_real _ hs hμs,
 end
 
 variables {E'' 𝕜' : Type*} [is_R_or_C 𝕜'] [measurable_space 𝕜'] [borel_space 𝕜']
@@ -844,7 +845,7 @@ begin
   exact (Lp.measurable _).nnnorm.coe_nnreal_ennreal,
 end
 ... ≤ μ (s ∩ t) * ∥x∥₊ :
-  ennreal.mul_le_mul (lintegral_nnnorm_condexp_L2_indicator_le_real hm hs hμs ht hμt) le_rfl
+  ennreal.mul_le_mul (lintegral_nnnorm_condexp_L2_indicator_le_real hs hμs ht hμt) le_rfl
 
 lemma lintegral_nnnorm_condexp_L2_indicator_le (hm : m ≤ m0) (hs : measurable_set s)
   (hμs : μ s ≠ ∞) (x : E') [sigma_finite (μ.trim hm)] :

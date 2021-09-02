@@ -1112,16 +1112,16 @@ end condexp_ind_L1
 
 variables (𝕜)
 /-- Conditional expectation of the indicator of a set, as a linear map from `E'` to L1. -/
-def condexp_ind {m m0 : measurable_space α} (hm : m ≤ m0) (μ : measure α) [sigma_finite (μ.trim hm)]
-  (s : set α) [decidable (measurable_set s)] :
+def condexp_ind {m m0 : measurable_space α} [decidable_pred (measurable_set : set α → Prop)]
+  (hm : m ≤ m0) (μ : measure α) [sigma_finite (μ.trim hm)] (s : set α) :
   E' →L[ℝ] α →₁[μ] E' :=
 { to_fun := condexp_ind_L1 𝕜 hm μ s,
   map_add' := condexp_ind_L1_add,
   map_smul' := condexp_ind_L1_smul_real,
   cont := continuous_condexp_ind_L1, }
 
-lemma condexp_ind_ae_eq_condexp_L2_indicator (hm : m ≤ m0) [sigma_finite (μ.trim hm)]
-  (hs : measurable_set s) (hμs : μ s ≠ ∞) [decidable (measurable_set s)] (x : E') :
+lemma condexp_ind_ae_eq_condexp_L2_indicator [decidable_pred (measurable_set : set α → Prop)]
+  (hm : m ≤ m0) [sigma_finite (μ.trim hm)] (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : E') :
   condexp_ind 𝕜 hm μ s x =ᵐ[μ] condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs x) :=
 begin
   refine eventually_eq.trans _ (condexp_ind_L1_fin_ae_eq_condexp_L2_indicator 𝕜 hm hs hμs x),
@@ -1130,10 +1130,9 @@ end
 
 variables {𝕜}
 
-variables {hm : m ≤ m0} [sigma_finite (μ.trim hm)] [decidable (measurable_set s)]
-  [decidable (measurable_set t)] [decidable (measurable_set (s ∪ t))]
+variables {hm : m ≤ m0} [sigma_finite (μ.trim hm)]
 
-@[simp] lemma condexp_ind_empty [decidable (measurable_set (∅ : set α))] :
+@[simp] lemma condexp_ind_empty [decidable_pred (measurable_set : set α → Prop)] :
   condexp_ind 𝕜 hm μ ∅ = (0 : E' →L[ℝ] α →₁[μ] E') :=
 begin
   ext1,
@@ -1146,20 +1145,30 @@ begin
   refl,
 end
 
-lemma condexp_ind_smul (c : 𝕜) (x : E') :
+lemma condexp_ind_smul [decidable_pred (measurable_set : set α → Prop)] (c : 𝕜) (x : E') :
   condexp_ind 𝕜 hm μ s (c • x) = c • condexp_ind 𝕜 hm μ s x :=
 condexp_ind_L1_smul c x
 
-lemma norm_condexp_ind_apply_le (x : E') : ∥condexp_ind 𝕜 hm μ s x∥ ≤ (μ s).to_real * ∥x∥ :=
+lemma norm_condexp_ind_apply_le [decidable_pred (measurable_set : set α → Prop)] (x : E') :
+  ∥condexp_ind 𝕜 hm μ s x∥ ≤ (μ s).to_real * ∥x∥ :=
 norm_condexp_ind_L1_le x
 
-lemma norm_condexp_ind_le : ∥(condexp_ind 𝕜 hm μ s : E' →L[ℝ] α →₁[μ] E')∥ ≤ (μ s).to_real :=
+lemma norm_condexp_ind_le [decidable_pred (measurable_set : set α → Prop)] :
+  ∥(condexp_ind 𝕜 hm μ s : E' →L[ℝ] α →₁[μ] E')∥ ≤ (μ s).to_real :=
 continuous_linear_map.op_norm_le_bound _ ennreal.to_real_nonneg norm_condexp_ind_apply_le
 
-lemma condexp_ind_disjoint_union (hs : measurable_set s) (ht : measurable_set t)
-  (hμs : μ s ≠ ∞) (hμt : μ t ≠ ∞) (hst : s ∩ t = ∅) (x : E') :
+lemma condexp_ind_disjoint_union_apply [decidable_pred (measurable_set : set α → Prop)]
+  (hs : measurable_set s) (ht : measurable_set t) (hμs : μ s ≠ ∞) (hμt : μ t ≠ ∞) (hst : s ∩ t = ∅)
+  (x : E') :
   condexp_ind 𝕜 hm μ (s ∪ t) x = condexp_ind 𝕜 hm μ s x + condexp_ind 𝕜 hm μ t x :=
 condexp_ind_L1_disjoint_union hs ht hμs hμt hst x
+
+lemma condexp_ind_disjoint_union [decidable_pred (measurable_set : set α → Prop)]
+  (hs : measurable_set s) (ht : measurable_set t) (hμs : μ s ≠ ∞) (hμt : μ t ≠ ∞)
+  (hst : s ∩ t = ∅) :
+  (condexp_ind 𝕜 hm μ (s ∪ t) : E' →L[ℝ] α →₁[μ] E')
+    = condexp_ind 𝕜 hm μ s + condexp_ind 𝕜 hm μ t :=
+by { ext1, push_cast, exact condexp_ind_disjoint_union_apply hs ht hμs hμt hst x, }
 
 end condexp_ind
 

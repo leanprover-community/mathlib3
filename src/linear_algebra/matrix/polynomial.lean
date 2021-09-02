@@ -41,9 +41,8 @@ begin
   simp only [forall_apply_eq_imp_iff', true_and, function.comp_app, multiset.map_map,
                multiset.mem_map, exists_imp_distrib, finset.mem_univ_val],
   intro g,
-  calc
-  nat_degree (sign g • ∏ (i : n), (X • A.map C + B.map C) (g i) i)
-    ≤ nat_degree (∏ (i : n), (X • A.map C + B.map C) (g i) i) : by {
+  calc  nat_degree (sign g • ∏ (i : n), (X • A.map C + B.map C) (g i) i)
+      ≤ nat_degree (∏ (i : n), (X • A.map C + B.map C) (g i) i) : by {
       cases int.units_eq_one_or (sign g) with sg sg,
         { rw [sg, one_smul] },
         { rw [sg, units.neg_smul, one_smul, nat_degree_neg] } }
@@ -51,9 +50,8 @@ begin
     nat_degree_prod_le (finset.univ : finset n) (λ (i : n), (X • A.map C + B.map C) (g i) i)
   ... ≤ finset.univ.card • 1 : finset.sum_le_of_forall_le _ _ 1 (λ (i : n) _, _)
   ... ≤ fintype.card n : by simpa,
-  calc
-  nat_degree (((X : polynomial α) • A.map C + B.map C) (g i) i)
-  = nat_degree ((X : polynomial α) * C (A (g i) i) + C (B (g i) i)) : by simp
+  calc  nat_degree (((X : polynomial α) • A.map C + B.map C) (g i) i)
+      = nat_degree ((X : polynomial α) * C (A (g i) i) + C (B (g i) i)) : by simp
   ... ≤ max (nat_degree ((X : polynomial α) * C (A (g i) i))) (nat_degree (C (B (g i) i))) :
     nat_degree_add_le _ _
   ... = nat_degree ((X : polynomial α) * C (A (g i) i)) :

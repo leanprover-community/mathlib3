@@ -30,24 +30,17 @@ def is_symm (A : matrix n n α) : Prop := Aᵀ = A
 
 lemma is_symm.eq {A : matrix n n α} (h : A.is_symm) : Aᵀ = A := h
 
-lemma is_symm.ext_iff {A : matrix n n α} : A.is_symm ↔ ∀ i j, Aᵀ i j = A i j :=
-by rw [is_symm, matrix.ext_iff]
+/-- A version of `matrix.ext_iff` that unfolds the `matrix.transpose`. -/
+lemma is_symm.ext_iff {A : matrix n n α} : A.is_symm ↔ ∀ i j, A j i = A i j :=
+matrix.ext_iff.symm
 
-lemma is_symm.ext_iff' {A : matrix n n α} : A.is_symm ↔ ∀ i j, A j i = A i j :=
-is_symm.ext_iff
+/-- A version of `matrix.ext` that unfolds the `matrix.transpose`. -/
+@[ext]
+lemma is_symm.ext {A : matrix n n α} : (∀ i j, A j i = A i j) → A.is_symm :=
+matrix.ext
 
-lemma is_symm.apply {A : matrix n n α} (h : A.is_symm) (i j : n) : Aᵀ i j = A i j :=
+lemma is_symm.apply {A : matrix n n α} (h : A.is_symm) (i j : n) : A j i = A i j :=
 is_symm.ext_iff.1 h i j
-
-lemma is_symm.apply' {A : matrix n n α} (h : A.is_symm) (i j : n) : A j i = A i j :=
-is_symm.apply h i j
-
-lemma is_symm.ext {A : matrix n n α} : (∀ i j, Aᵀ i j = A i j) → A.is_symm :=
-is_symm.ext_iff.2
-
-lemma is_symm.ext' {A : matrix n n α} : (∀ i j, A j i = A i j) → A.is_symm :=
-is_symm.ext
-
 lemma is_symm_mul_transpose_self [fintype n] [comm_semiring α] (A : matrix n n α) :
   (A ⬝ Aᵀ).is_symm :=
 transpose_mul _ _

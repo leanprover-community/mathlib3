@@ -70,9 +70,8 @@ by ext; simp [Hadamard, right_distrib]
 /- scalar multiplication -/
 section scalar
 
-@[simp] lemma smul_Hadamard
-[has_mul α] [has_scalar R α] [is_scalar_tower R α α] (k : R) :
-(k • A) ⊙ B = k • A ⊙ B :=
+@[simp] lemma smul_Hadamard [has_mul α] [has_scalar R α] [is_scalar_tower R α α] (k : R) :
+  (k • A) ⊙ B = k • A ⊙ B :=
 by {ext, simp [Hadamard], exact smul_assoc _ (A i j) _}
 
 @[simp] lemma Hadamard_smul

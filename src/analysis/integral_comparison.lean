@@ -1,4 +1,13 @@
+/-
+Copyright (c) 2021 Anatole Dedecker. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Anatole Dedecker
+-/
 import measure_theory.integral_eq_improper
+
+/-!
+TODO
+-/
 
 open measure_theory set filter finset
 

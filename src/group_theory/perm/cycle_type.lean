@@ -325,7 +325,7 @@ begin
   obtain ⟨m, -, hm⟩ := (nat.dvd_prime_pow hp.out).mp (order_of_dvd_of_pow_eq_one hσ),
   obtain ⟨l, -, rfl⟩ := (nat.dvd_prime_pow hp.out).mp
     ((congr_arg _ hm).mp (dvd_of_mem_cycle_type hk)),
-  exact dvd_pow_self (λ h, (one_lt_of_mem_cycle_type hk).ne $ by rw [h, pow_zero]),
+  exact dvd_pow_self _ (λ h, (one_lt_of_mem_cycle_type hk).ne $ by rw [h, pow_zero]),
 end
 
 lemma exists_fixed_point_of_prime {p n : ℕ} [hp : fact p.prime] (hα : ¬ p ∣ fintype.card α)

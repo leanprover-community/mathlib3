@@ -134,7 +134,8 @@ lemma sum_hadamard_eq :
 begin
   classical,
   have h:= trace_identity R A B (λ i, 1 : m → α) (λ i, 1 : n → α),
-  simp [vec_mul, dot_product] at h,
+  simp only [vec_mul, dot_product, trace_diag, diag_apply, mul_one, diagonal_one,
+             one_mul, matrix.mul_one, matrix.one_mul, hadamard] at h,
   rw finset.sum_comm at h,
   assumption,
 end

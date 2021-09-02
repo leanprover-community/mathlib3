@@ -10,12 +10,30 @@ import data.list.basic
 
 In this file we define finite hereditary lists. This is useful for calculations in naive set theory.
 
-## Main declarations
-
-A ZFA list is inductively defined as
+We distinguish two kinds of ZFA lists:
+* Atoms. Directly correspond to an element of the original type.
+* Proper ZFA lists. Can thought of (but aren't implemented) as a list of ZFA lists (not necessarily
+  proper).
 
 For example, `lists ℕ` contains stuff like `23`, `[]`, `[37]`, `[1, [[2], 3], 4]`.
 
+## Implementation note
+
+As we want to be able to append both atoms and proper ZFA lists to proper ZFA lists, it's handy that
+atoms and proper ZFA lists belong to the same type, even though atoms of `α` could be modelled as
+`α` directly. But we don't want to be able to append anything to atoms.
+
+This calls for a two-steps definition of ZFA lists:
+* First, define ZFA prelists as atoms and proper ZFA prelists. Those proper ZFA prelists are defined
+  by inductive appending of (not necessarily proper) ZFA lists.
+* Second, define ZFA lists by rubbing out the distinction between atoms and proper lists.
+
+## Main declarations
+
+* `lists' α ff`: Atoms as ZFA prelists. Basically a copy of `α`.
+* `lists' α tt`: Proper ZFA prelists. Defined inductively from the empty ZFA prelist (`lists'.nil`)
+  and from appending a ZFA prelist to a proper ZFA prelist (`lists'.cons a l`).
+* `lists α`: ZFA lists. Sum of the atoms and proper ZFA prelists.
 
 ## TODO
 

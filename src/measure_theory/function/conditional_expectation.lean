@@ -802,7 +802,7 @@ begin
   ext1,
   rw ← Lp_meas_coe,
   refine (condexp_L2_indicator_ae_eq_smul 𝕜 hm hs hμs x).trans _,
-  have h_comp :=  (lsmul_left ℝ x).coe_fn_comp_Lp
+  have h_comp := (lsmul_left ℝ x).coe_fn_comp_Lp
     (condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ)) : α →₂[μ] ℝ),
   rw ← eventually_eq at h_comp,
   refine eventually_eq.trans _ h_comp.symm,

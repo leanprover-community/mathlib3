@@ -118,4 +118,23 @@ set.inclusion $ λ s hs, hs.2.is_closed
 
 end nonempty_compacts
 
+section positive_compacts
+
+/-- The image of a positive compact under a homeomorphism is again a positive compact. -/
+protected def positive_compacts.map (f : α ≃ₜ β) (K : positive_compacts α) : positive_compacts β :=
+begin
+  refine ⟨f '' K.1, K.2.1.image f.continuous, _⟩,
+  rcases K.2.2 with ⟨x, hx⟩,
+  have : f '' K.1 = f.symm ⁻¹' K.1 := equiv.image_eq_preimage _ _,
+  rw this,
+  refine ⟨f x, _⟩,
+  apply preimage_interior_subset_interior_preimage f.symm.continuous,
+  simpa,
+end
+
+@[simp] lemma map_val (f : α ≃ₜ β) (K : positive_compacts α) :
+  (K.map f).val = f '' K.1 := rfl
+
+end positive_compacts
+
 end topological_space

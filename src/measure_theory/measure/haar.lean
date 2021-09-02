@@ -626,7 +626,8 @@ end
 /-- A left invariant measure giving finite positive mass to a compact set with nonempty interior is
 a Haar measure. -/
 @[to_additive]
-theorem is_mul_left_invariant.is_haar_measure (hμ : is_mul_left_invariant μ) {K} (hK : is_compact K)
+theorem _root_.measure_theory.is_mul_left_invariant.is_haar_measure
+  (hμ : is_mul_left_invariant μ) (K : set G) (hK : is_compact K)
   (h2K : (interior K).nonempty) (hK_pos : μ K ≠ 0) (hK_ne_top : μ K ≠ ∞) :
   is_haar_measure μ :=
 { is_haar := begin
@@ -634,6 +635,34 @@ theorem is_mul_left_invariant.is_haar_measure (hμ : is_mul_left_invariant μ) {
     rw [haar_measure_unique hμ K'],
     exact ⟨K', μ K, rfl, bot_lt_iff_ne_bot.2 hK_pos, lt_top_iff_ne_top.2 hK_ne_top⟩,
   end  }
+
+lemma map_is_haar_measure {H : Type*} [group H] [topological_space H] [topological_group H]
+  [measurable_space H] [borel_space H] [t2_space H]
+  (μ : measure G) [hμ : is_haar_measure μ]
+  (f : G ≃* H) (hf : continuous f) (hfsymm : continuous f.symm) :
+  is_haar_measure (measure.map f μ) :=
+begin
+  rcases hμ.is_haar with ⟨K₀, c, hK₀, cpos, ctop⟩,
+  haveI : second_countable_topology H := sorry,
+  haveI : sigma_finite (measure.map f μ),
+  { have A : sigma_finite μ, by apply_instance,
+    have : μ = measure.map f.symm (measure.map f μ),
+    { rw map_map hfsymm.measurable hf.measurable,
+      simp only [mul_equiv.symm_comp_self, map_id] },
+    rw this at A,
+    apply sigma_finite.of_map _ hfsymm.measurable A },
+  have I : is_mul_left_invariant (measure.map f μ),
+  { rw ← map_mul_left_eq_self,
+    assume g,
+    rw map_map (continuous_mul_left g).measurable hf.measurable,
+    conv_rhs {rw ← map_mul_left_eq_self.2 (is_mul_left_invariant_of_is_haar_measure μ) (f.symm g) },
+    rw map_map hf.measurable (continuous_mul_left _).measurable,
+    congr' 2,
+    ext y,
+    simp only [mul_equiv.apply_symm_apply, comp_app, mul_equiv.map_mul] },
+  apply I.is_haar_measure (f '' K₀.1) (K₀.2.1.image hf),
+end
+
 
 end unique
 

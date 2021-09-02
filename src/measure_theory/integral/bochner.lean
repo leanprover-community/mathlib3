@@ -194,30 +194,6 @@ end
 
 end weighted_smul
 
-section to_be_moved
-
-variables {m : measurable_space α} {μ : measure α} {s t : set α}
-
-lemma set_finset_union_bUnion {α ι} (S : ι → set α) (s : finset ι) (a : ι) :
-  (⋃ (i : ι) (H : i ∈ insert a s), S i) = S a ∪ ⋃ (i : ι) (H : i ∈ s), S i :=
-begin
-  ext1 x,
-  simp_rw [set.mem_union, set.mem_Union],
-  split; intro h,
-  { obtain ⟨i, hi, hxi⟩ := h,
-    rw finset.mem_insert at hi,
-    cases hi,
-    { rw ← hi,
-      exact or.inl hxi, },
-    { exact or.inr ⟨i, hi, hxi⟩, }, },
-  { cases h,
-    { use [a, finset.mem_insert_self a s, h], },
-    { obtain ⟨i, hi, hxi⟩ := h,
-      use [i, finset.mem_insert_of_mem hi, hxi], }, },
-end
-
-end to_be_moved
-
 local infixr ` →ₛ `:25 := simple_func
 
 namespace simple_func
@@ -304,22 +280,18 @@ begin
   { simp only [finset.not_mem_empty, forall_false_left, Union_false, Union_empty, sum_empty,
     forall_2_true_iff, implies_true_iff, forall_true_left, not_false_iff, T_empty], },
   intros a s has h hps h_disj,
-  rw finset.sum_insert has,
-  rw ← h,
+  rw [finset.sum_insert has, ← h],
   swap, { exact λ i hi, hps i (finset.mem_insert_of_mem hi), },
   swap, { exact λ i j hi hj hij,
     h_disj i j (finset.mem_insert_of_mem hi) (finset.mem_insert_of_mem hj) hij, },
   rw ← h_add (S a) (⋃ i ∈ s, S i) (hS_meas a) (measurable_set_bUnion _ (λ i _, hS_meas i))
     (hps a (finset.mem_insert_self a s)),
-  { congr, rw set_finset_union_bUnion, },
+  { congr, convert finset.supr_insert a s S, },
   { exact ((measure_bUnion_finset_le _ _).trans_lt
       (ennreal.sum_lt_top (λ i hi, lt_top_iff_ne_top.mpr
       (hps i (finset.mem_insert_of_mem hi))))).ne, },
   { simp_rw set.inter_Union,
-    rw Union_eq_empty,
-    intro i,
-    rw Union_eq_empty,
-    intro hi,
+    refine Union_eq_empty.mpr (λ i, Union_eq_empty.mpr (λ hi, _)),
     rw ← set.disjoint_iff_inter_eq_empty,
     refine h_disj a i (finset.mem_insert_self a s) (finset.mem_insert_of_mem hi) (λ hai, _),
     rw ← hai at hi,

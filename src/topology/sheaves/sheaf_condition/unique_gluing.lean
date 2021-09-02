@@ -268,7 +268,7 @@ begin
   have := sheaf_condition_equiv_sheaf_condition_unique_gluing _ F.sheaf_condition U sf h,
   refine ⟨this.default.1, this.default.2, _⟩,
   intros s hs,
-  exact congr_arg subtype.val (this.uniq ⟨s,hs⟩),
+  exact congr_arg subtype.val (this.uniq ⟨s, hs⟩),
 end
 
 /--
@@ -281,14 +281,16 @@ lemma exists_unique_gluing' (V : opens X) (iUV : Π i : ι, U i ⟶ V) (hcover :
 begin
   have V_eq_supr_U : V = supr U := le_antisymm hcover (supr_le (λ i, (iUV i).le)),
   obtain ⟨gl, gl_spec, gl_uniq⟩ := F.exists_unique_gluing U sf h,
-  refine ⟨F.presheaf.map (eq_to_hom V_eq_supr_U).op gl, (λ i,_), (λ gl' gl'_spec,_)⟩,
-  { rw [← comp_apply, ← F.presheaf.map_comp],
+  refine ⟨F.presheaf.map (eq_to_hom V_eq_supr_U).op gl, _, _⟩,
+  { intro i,
+    rw [← comp_apply, ← F.presheaf.map_comp],
     exact gl_spec i },
-  { convert congr_arg _ (gl_uniq (F.presheaf.map (eq_to_hom V_eq_supr_U.symm).op gl') (λ i,_)) ;
+  { intros gl' gl'_spec,
+    convert congr_arg _ (gl_uniq (F.presheaf.map (eq_to_hom V_eq_supr_U.symm).op gl') (λ i,_)) ;
       rw [← comp_apply, ← F.presheaf.map_comp],
     { rw [eq_to_hom_op, eq_to_hom_op, eq_to_hom_trans, eq_to_hom_refl,
       F.presheaf.map_id, id_apply] },
-    { convert gl'_spec i }}
+    { convert gl'_spec i } }
 end
 
 @[ext]
@@ -296,7 +298,13 @@ lemma eq_of_locally_eq (s t : F.presheaf.obj (op (supr U)))
   (h : ∀ i, F.presheaf.map (opens.le_supr U i).op s = F.presheaf.map (opens.le_supr U i).op t) :
   s = t :=
 begin
-  sorry
+  let sf : Π i : ι, F.presheaf.obj (op (U i)) := λ i, F.presheaf.map (opens.le_supr U i).op s,
+  have sf_compatible : is_compatible _ U sf,
+  { intros i j, simp_rw [← comp_apply, ← F.presheaf.map_comp], refl },
+  obtain ⟨gl, -, gl_uniq⟩ := F.exists_unique_gluing U sf sf_compatible,
+  transitivity gl,
+  { apply gl_uniq, intro i, refl },
+  { symmetry, apply gl_uniq, intro i, rw ← h },
 end
 
 /--
@@ -311,12 +319,12 @@ begin
   suffices : F.presheaf.map (eq_to_hom V_eq_supr_U.symm).op s =
              F.presheaf.map (eq_to_hom V_eq_supr_U.symm).op t,
   { convert congr_arg (F.presheaf.map (eq_to_hom V_eq_supr_U).op) this ;
-    rw ← functor_to_types.map_comp_apply ;
-    exact (functor_to_types.map_id_apply _ _).symm },
+    rw [← comp_apply, ← F.presheaf.map_comp, eq_to_hom_op, eq_to_hom_op, eq_to_hom_trans,
+      eq_to_hom_refl, F.presheaf.map_id, id_apply] },
   apply eq_of_locally_eq,
   intro i,
-  rw [← functor_to_types.map_comp_apply, ← functor_to_types.map_comp_apply],
-  convert h i
+  rw [← comp_apply, ← comp_apply, ← F.presheaf.map_comp],
+  convert h i,
 end
 
 end

@@ -1404,24 +1404,34 @@ noncomputable def of_injective {f : G →* N} (hf : function.injective f) : G �
 lemma of_injective_apply {f : G →* N} (hf : function.injective f) {x : G} :
   ↑(of_injective hf x) = f x := rfl
 
+section ker
+
+variables {M : Type*} [mul_one_class M]
+
 /-- The multiplicative kernel of a monoid homomorphism is the subgroup of elements `x : G` such that
 `f x = 1` -/
 @[to_additive "The additive kernel of an `add_monoid` homomorphism is the `add_subgroup` of elements
 such that `f x = 0`"]
-def ker (f : G →* N) := (⊥ : subgroup N).comap f
+def ker (f : G →* M) : subgroup G :=
+{ inv_mem' := λ x (hx : f x = 1),
+    calc f x⁻¹ = f x * f x⁻¹ : by rw [hx, one_mul]
+           ... = f (x * x⁻¹) : by rw [f.map_mul]
+           ... = f 1 :         by rw [mul_right_inv]
+           ... = 1 :           f.map_one,
+  ..f.mker }
 
 @[to_additive]
-lemma mem_ker (f : G →* N) {x : G} : x ∈ f.ker ↔ f x = 1 := iff.rfl
+lemma mem_ker (f : G →* M) {x : G} : x ∈ f.ker ↔ f x = 1 := iff.rfl
 
 @[to_additive]
-lemma coe_ker (f : G →* N) : (f.ker : set G) = (f : G → N) ⁻¹' {1} := rfl
+lemma coe_ker (f : G →* M) : (f.ker : set G) = (f : G → M) ⁻¹' {1} := rfl
 
 @[to_additive]
 lemma eq_iff (f : G →* N) {x y : G} : f x = f y ↔ y⁻¹ * x ∈ f.ker :=
 by rw [f.mem_ker, f.map_mul, f.map_inv, inv_mul_eq_one, eq_comm]
 
 @[to_additive]
-instance decidable_mem_ker [decidable_eq N] (f : G →* N) :
+instance decidable_mem_ker [decidable_eq M] (f : G →* M) :
   decidable_pred (∈ f.ker) :=
 λ x, decidable_of_iff (f x = 1) f.mem_ker
 
@@ -1439,7 +1449,7 @@ begin
 end
 
 @[simp, to_additive]
-lemma ker_one : (1 : G →* N).ker = ⊤ :=
+lemma ker_one : (1 : G →* M).ker = ⊤ :=
 by { ext, simp [mem_ker] }
 
 @[to_additive] lemma ker_eq_bot_iff (f : G →* N) : f.ker = ⊥ ↔ function.injective f :=
@@ -1459,10 +1469,9 @@ set_like.coe_injective $ set.preimage_prod_map_prod f g _ _
 @[to_additive]
 lemma ker_prod_map {G' : Type*} {N' : Type*} [group G'] [group N'] (f : G →* N) (g : G' →* N') :
   (prod_map f g).ker = f.ker.prod g.ker :=
-begin
-  dsimp only [ker],
-  rw [←prod_map_comap_prod, bot_prod_bot],
-end
+by rw [←comap_bot, ←comap_bot, ←comap_bot, ←prod_map_comap_prod, bot_prod_bot]
+
+end ker
 
 /-- The subgroup of elements `x : G` such that `f x = g x` -/
 @[to_additive "The additive subgroup of elements `x : G` such that `f x = g x`"]
@@ -1562,7 +1571,7 @@ lemma map_le_range (H : subgroup G) : map f H ≤ f.range :=
 
 @[to_additive]
 lemma ker_le_comap (H : subgroup N) : f.ker ≤ comap f H :=
-comap_mono bot_le
+(comap_bot f) ▸ comap_mono bot_le
 
 @[to_additive]
 lemma map_comap_le (H : subgroup N) : map f (comap f H) ≤ H :=
@@ -1819,7 +1828,7 @@ instance subgroup.normal_comap {H : subgroup N}
 
 @[priority 100, to_additive]
 instance monoid_hom.normal_ker (f : G →* N) : f.ker.normal :=
-by rw [monoid_hom.ker]; apply_instance
+by { rw [←f.comap_bot], apply_instance }
 
 @[priority 100, to_additive]
 instance subgroup.normal_inf (H N : subgroup G) [hN : N.normal] :

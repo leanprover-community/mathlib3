@@ -109,7 +109,7 @@ variables [decidable_eq n] [mul_zero_class α]
 
 lemma diagonal_hadamard_diagonal (v : n → α) (w : n → α) :
   diagonal v ⊙ diagonal w = diagonal (v * w) :=
-by {ext, simp [diagonal], intro h, simp [h]}
+ext $ λ _ _, (apply_ite2 _ _ _ _ _ _).trans (congr_arg _ $ zero_mul 0)
 
 end diagonal
 

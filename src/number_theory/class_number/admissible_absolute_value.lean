@@ -11,19 +11,22 @@ import field_theory.finite.basic
 
 /-!
 # Admissible absolute values
-This file defines a structure `admissible_absolute_value` which we use to show the class number
+This file defines a structure `absolute_value.is_admissible` which we use to show the class number
 of the ring of integers of a global field is finite.
 
 ## Main definitions
 
- * `admissible_absolute_value R S` is the type of "admissible" absolute values mapping `R` to `ℤ`,
-   that respect the Euclidean domain structure on `R` and such that a large enough set of elements
-   of `R^n` contains a pair of elements whose remainders are pointwise clase together.
- * `admissible_absolute_value.abs` is the "standard" absolute value on `ℤ`,
-   mapping negative `x` to `-x`.
- * `admissible_absolute_value.card_pow_degree` is an admissible absolute value on
-   `𝔽_q[t]` the ring of polynomials over a finite field of cardinality `q`,
-   mapping a polynomial `p` to `q ^ degree p` (where `q ^ degree 0 = 0`)
+ * `absolute_value.is_admissible abv` states the absolute value `abv : R → ℤ`
+   respects the Euclidean domain structure on `R`, and that a large enough set
+   of elements of `R^n` contains a pair of elements whose remainders are
+   pointwise clase together.
+
+## Main results
+
+ * `absolute_value.abs_is_admissible` shows the "standard" absolute value on `ℤ`,
+   mapping negative `x` to `-x`, is admissible.
+ * `polynomial.card_pow_degree_is_admissible` shows `card_pow_degree`,
+   mapping `p : polynomial 𝔽_q` to `q ^ degree p`, is admissible
 -/
 
 local infix ` ≺ `:50 := euclidean_domain.r

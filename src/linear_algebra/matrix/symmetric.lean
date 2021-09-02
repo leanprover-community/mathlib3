@@ -88,11 +88,11 @@ h.transpose.map _
   (-A).is_symm :=
 (transpose_neg _).trans (congr_arg _ h)
 
-@[simp] lemma is_symm.add {A B : matrix n n α} [has_add α] (hA : A.is_symm) (hB : B.is_symm) :
+@[simp] lemma is_symm.add [has_add α] {A B : matrix n n α} (hA : A.is_symm) (hB : B.is_symm) :
   (A + B).is_symm :=
 (transpose_add _ _).trans (hA.symm ▸ hB.symm ▸ rfl)
 
-@[simp] lemma is_symm.sub {A B : matrix n n α} [has_sub α] (hA : A.is_symm) (hB : B.is_symm) :
+@[simp] lemma is_symm.sub [has_sub α] {A B : matrix n n α} (hA : A.is_symm) (hB : B.is_symm) :
   (A - B).is_symm :=
 (transpose_sub _ _).trans (hA.symm ▸ hB.symm ▸ rfl)
 

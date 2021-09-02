@@ -116,7 +116,7 @@ end diagonal
 section trace
 
 variables [fintype m] [fintype n]
-variables [semiring α] [semiring R] [module R α]
+variables (R) [semiring α] [semiring R] [module R α]
 
 lemma trace_identity [decidable_eq m] [decidable_eq n] (v : m → α) (w : n → α):
   dot_product (vec_mul v (A ⊙ B)) w = trace m R α (diagonal v ⬝ A ⬝ (B ⬝ diagonal w)ᵀ) :=

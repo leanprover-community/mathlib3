@@ -655,6 +655,10 @@ lemma neg_of_mul_pos_right (h : 0 < a * b) (ha : a ≤ 0) : b < 0 :=
 by haveI := @linear_order.decidable_le α _; exact
 lt_of_not_ge (λ hb, absurd h (decidable.mul_nonpos_of_nonpos_of_nonneg ha hb).not_lt)
 
+instance linear_ordered_semiring.to_linear_ordered_add_comm_monoid {α : Type*}
+  [h : linear_ordered_semiring α] : linear_ordered_add_comm_monoid R :=
+{ ..h }
+
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_semiring.to_no_top_order {α : Type*} [linear_ordered_semiring α] :
   no_top_order α :=

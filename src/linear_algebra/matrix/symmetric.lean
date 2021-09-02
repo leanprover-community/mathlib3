@@ -48,27 +48,22 @@ is_symm.ext_iff.2
 lemma is_symm.ext' {A : matrix n n α} : (∀ i j, A j i = A i j) → A.is_symm :=
 is_symm.ext
 
-/-- `A ⬝ Aᵀ` is symmertric. -/
 lemma is_symm_mul_transpose_self [fintype n] [comm_semiring α] (A : matrix n n α) :
   (A ⬝ Aᵀ).is_symm :=
 transpose_mul _ _
 
-/-- `Aᵀ ⬝ A` is symmertric. -/
 lemma is_symm_transpose_mul_self [fintype n] [comm_semiring α] (A : matrix n n α) :
   (A ⬝ Aᵀ).is_symm :=
 transpose_mul _ _
 
-/-- `A + Aᵀ` is symmertric. -/
 lemma is_symm_add_transpose_self [fintype n] [add_comm_semigroup α] (A : matrix n n α) :
   (A + Aᵀ).is_symm :=
 add_comm _ _
 
-/-- `Aᵀ + A` is symmertric. -/
 lemma is_symm_transpose_add_self [fintype n] [add_comm_semigroup α] (A : matrix n n α) :
   (Aᵀ + A).is_symm :=
 add_comm _ _
 
-/-- The identity matrix is symmetric. -/
 @[simp] lemma is_symm_one [decidable_eq n] [has_zero α] [has_one α] :
   (1 : matrix n n α).is_symm :=
 transpose_one

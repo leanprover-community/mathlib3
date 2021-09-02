@@ -2286,7 +2286,7 @@ variables [monoid α] [distrib_mul_action α A]
 
 This is available as an instance in the `pointwise` locale. -/
 protected def pointwise_mul_action : mul_action α (add_subgroup A) :=
-{ smul := λ a S, S.map (distrib_mul_action.hom_add_monoid_hom _ _ a),
+{ smul := λ a S, S.map (distrib_mul_action.to_add_monoid_End _ _ a),
   one_smul := λ S, (congr_arg (λ f, S.map f) (monoid_hom.map_one _)).trans S.map_id,
   mul_smul := λ a₁ a₂ S,
     (congr_arg (λ f, S.map f) (monoid_hom.map_mul _ _ _)).trans (S.map_map _ _).symm,}

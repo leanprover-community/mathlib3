@@ -54,36 +54,40 @@ end preorder
 
 namespace category_theory
 
-variables {α : Type u} [preorder α]
+open opposite
+
+variables {X : Type u} [preorder X]
 
 /--
 Express an inequality as a morphism in the corresponding preorder category.
 -/
-def hom_of_le {U V : α} (h : U ≤ V) : U ⟶ V := ulift.up (plift.up h)
+def hom_of_le {x y : X} (h : x ≤ y) : x ⟶ y := ulift.up (plift.up h)
 
 alias hom_of_le ← has_le.le.hom
 
-@[simp] lemma hom_of_le_refl {U : α} : (le_refl U).hom = 𝟙 U := rfl
-@[simp] lemma hom_of_le_comp {U V W : α} (h : U ≤ V) (k : V ≤ W) :
+@[simp] lemma hom_of_le_refl {x : X} : (le_refl x).hom = 𝟙 x := rfl
+@[simp] lemma hom_of_le_comp {x y z : X} (h : x ≤ y) (k : y ≤ z) :
   h.hom ≫ k.hom = (h.trans k).hom := rfl
 
 /--
 Extract the underlying inequality from a morphism in a preorder category.
 -/
-lemma le_of_hom {U V : α} (h : U ⟶ V) : U ≤ V := h.down.down
+lemma le_of_hom {x y : X} (h : x ⟶ y) : x ≤ y := h.down.down
 
 alias le_of_hom ← quiver.hom.le
 
-@[simp] lemma le_of_hom_hom_of_le {a b : α} (h : a ≤ b) : h.hom.le = h := rfl
-@[simp] lemma hom_of_le_le_of_hom {a b : α} (h : a ⟶ b) : h.le.hom = h :=
+@[simp] lemma le_of_hom_hom_of_le {x y : X} (h : x ≤ y) : h.hom.le = h := rfl
+@[simp] lemma hom_of_le_le_of_hom {x y : X} (h : x ⟶ y) : h.le.hom = h :=
 by { cases h, cases h, refl, }
 
 /-- Construct a morphism in the opposite of a preorder category from an inequality. -/
-def op_hom_of_le {U V : αᵒᵖ} (h : unop V ≤ unop U) : U ⟶ V := h.hom.op
+def op_hom_of_le {x y : Xᵒᵖ} (h : unop x ≤ unop y) : y ⟶ x := h.hom.op
 
-lemma le_of_op_hom {U V : αᵒᵖ} (h : U ⟶ V) : unop V ≤ unop U := h.unop.le
+lemma le_of_op_hom {x y : Xᵒᵖ} (h : x ⟶ y) : unop y ≤ unop x := h.unop.le
 
 end category_theory
+
+section
 
 variables {X : Type u} {Y : Type v} [preorder X] [preorder Y]
 
@@ -104,7 +108,13 @@ def galois_connection.adjunction {l : X → Y} {u : Y → X} (gc : galois_connec
 category_theory.adjunction.mk_of_hom_equiv
 { hom_equiv := λ X Y, ⟨λ f, (gc.le_u f.le).hom, λ f, (gc.l_le f.le).hom, by tidy, by tidy⟩ }
 
+end
+
 namespace category_theory
+
+section preorder
+
+variables {X : Type u} {Y : Type v} [preorder X] [preorder Y]
 
 /--
 A functor between preorder categories is monotone.
@@ -136,9 +146,11 @@ instance : full Preorder_to_Cat :=
 { preimage := λ X Y f, ⟨f.obj, f.monotone⟩,
   witness' := λ X Y f, begin apply category_theory.functor.ext, tidy end }
 
+end preorder
+
 section partial_order
 
-variables {α : Type u} {β : Type v} [partial_order α] [partial_order β]
+variables {X : Type u} {Y : Type v} [partial_order X] [partial_order Y]
 
 lemma iso.to_eq {x y : X} (f : x ≅ y) : x = y := le_antisymm f.hom.le f.inv.le
 
@@ -157,12 +169,12 @@ def equivalence.to_order_iso (e : X ≌ Y) : X ≃o Y :=
 -- `@[simps]` on `equivalence.to_order_iso` produces lemmas that fail the `simp_nf` linter,
 -- so we provide them by hand:
 @[simp]
-lemma equivalence.to_order_iso_apply (e : X ≌ Y) (a : α) :
-  e.to_order_iso a = e.functor.obj a := rfl
+lemma equivalence.to_order_iso_apply (e : X ≌ Y) (x : X) :
+  e.to_order_iso x = e.functor.obj x := rfl
 
 @[simp]
-lemma equivalence.to_order_iso_symm_apply (e : X ≌ Y) (b : β) :
-  e.to_order_iso.symm b = e.inverse.obj b := rfl
+lemma equivalence.to_order_iso_symm_apply (e : X ≌ Y) (y : Y) :
+  e.to_order_iso.symm y = e.inverse.obj y := rfl
 
 end partial_order
 

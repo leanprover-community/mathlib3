@@ -764,22 +764,27 @@ variables {𝕜 𝕜'}
 
 /-- TODO: surely something like this exists somewhere? -/
 def rsmul {γ} [normed_group γ] [normed_space ℝ γ] (x : γ) : ℝ →L[ℝ] γ :=
-{ to_fun := λ r, r • x,
-  map_add' := λ r r', add_smul r r' x,
-  map_smul' := λ r r', smul_assoc r r' x, }
+(continuous_linear_map.lsmul ℝ ℝ).flip x
 
 lemma rsmul_add {γ} [normed_group γ] [normed_space ℝ γ] (x y : γ) :
   rsmul (x + y) = rsmul x + rsmul y :=
-by { simp only [rsmul, smul_add], ext1, refl, }
+(continuous_linear_map.lsmul ℝ ℝ).flip.map_add x y
 
 lemma rsmul_smul_real {γ} [normed_group γ] [normed_space ℝ γ] (c : ℝ) (x : γ) :
   rsmul (c • x) = c • rsmul x :=
-by { simp only [rsmul], ext1, simp, }
+(continuous_linear_map.lsmul ℝ ℝ).flip.map_smul c x
 
 lemma rsmul_smul {γ} (𝕜) [nondiscrete_normed_field 𝕜] [normed_group γ] [normed_space ℝ γ]
   [normed_space 𝕜 γ] [smul_comm_class ℝ 𝕜 γ] (c : 𝕜) (x : γ) :
   rsmul (c • x) = c • rsmul x :=
-by { simp only [rsmul], ext1, simp, }
+begin
+  simp only [rsmul],
+  ext1,
+  rw continuous_linear_map.flip_apply,
+  rw continuous_linear_map.lsmul_apply,
+  rw continuous_linear_map.lsmul_apply,
+  sorry,
+end
 
 lemma indicator_const_Lp_eq_rsmul_comp_Lp [normed_space ℝ F] (hs : measurable_set s)
   (hμs : μ s ≠ ∞) (x : F) :

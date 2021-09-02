@@ -622,6 +622,10 @@ def lsmul : 𝕜' →L[𝕜] E →L[𝕜] E :=
 ((algebra.lsmul 𝕜 E).to_linear_map : 𝕜' →ₗ[𝕜] E →ₗ[𝕜] E).mk_continuous₂ 1 $
   λ c x, by simpa only [one_mul] using (norm_smul c x).le
 
+lemma lsmul_apply (r : 𝕜') (x : E) : lsmul 𝕜 𝕜' r x = r • x :=
+by simp only [lsmul, alg_hom.to_linear_map_apply, linear_map.mk_continuous₂_apply,
+  algebra.lsmul_coe]
+
 end smul_linear
 
 section restrict_scalars

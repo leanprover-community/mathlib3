@@ -305,7 +305,7 @@ quotient.out_eq' a
 
 variables (s)
 
-/- It can be useful to write `obtain ⟨g, s⟩ := mk_out'_eq_mul ...`, and then `rw [h]` or
+/- It can be useful to write `obtain ⟨g, h⟩ := mk_out'_eq_mul ...`, and then `rw [h]` or
   `simp_rw [h]` or `simp only [h]`. In order for `simp_rw` and `simp only` to work, this lemma is
   stated in terms of an arbitrary `h : s`, rathern that the specific `h = g⁻¹ * (mk g).out'`. -/
 @[to_additive quotient_add_group.mk_out'_eq_mul]

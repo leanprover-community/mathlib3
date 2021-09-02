@@ -241,6 +241,36 @@ begin
   field_simp [this]
 end
 
+lemma exp_mul_exp_neg_of_mem_ball [char_zero 𝕂] {x : 𝔸}
+  (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
+  (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 $ -x) = 1 :=
+have hnx : -x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius,
+  by {rw mem_emetric_ball_0_iff at *, rwa nnnorm_neg},
+calc  (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 $ -x)
+    = exp 𝕂 𝔸 (x + (-x)) : (exp_add_of_commute_of_mem_ball (commute.refl x).neg_right hx hnx).symm
+... = exp 𝕂 𝔸 0 : by rw add_right_neg
+... = 1 : exp_zero
+
+lemma exp_neg_mul_exp_of_mem_ball [char_zero 𝕂] {x : 𝔸}
+  (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
+  (exp 𝕂 𝔸 $ -x) * (exp 𝕂 𝔸 x) = 1 :=
+begin
+  have hnx : -x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius,
+  { rw mem_emetric_ball_0_iff at *,
+    rwa nnnorm_neg },
+  convert exp_mul_exp_neg_of_mem_ball hnx,
+  rw neg_neg
+end
+
+noncomputable def exp_emetric_ball_to_units [char_zero 𝕂] (x : 𝔸)
+  (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) : units 𝔸 :=
+⟨exp 𝕂 𝔸 x, exp 𝕂 𝔸 (-x), exp_mul_exp_neg_of_mem_ball hx, exp_neg_mul_exp_of_mem_ball hx⟩
+
+lemma is_unit_exp_of_mem_ball [char_zero 𝕂] {x : 𝔸}
+  (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
+  is_unit (exp 𝕂 𝔸 x) :=
+⟨exp_emetric_ball_to_units x hx, rfl⟩
+
 end complete_algebra
 
 end any_field_any_algebra

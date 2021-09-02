@@ -1699,6 +1699,51 @@ def comp_Lpₗ (L : E →L[𝕜] F) : (Lp E p μ) →ₗ[𝕜] (Lp F p μ) :=
 def comp_LpL [fact (1 ≤ p)] (L : E →L[𝕜] F) : (Lp E p μ) →L[𝕜] (Lp F p μ) :=
 linear_map.mk_continuous (L.comp_Lpₗ p μ) ∥L∥ L.norm_comp_Lp_le
 
+variables {μ p}
+
+lemma coe_fn_comp_LpL [fact (1 ≤ p)] (L : E →L[𝕜] F) (f : Lp E p μ) :
+  L.comp_LpL p μ f =ᵐ[μ] λ a, L (f a) :=
+L.coe_fn_comp_Lp f
+
+lemma add_comp_LpL [fact (1 ≤ p)] (L L' : E →L[𝕜] F) :
+  (L + L').comp_LpL p μ = L.comp_LpL p μ + L'.comp_LpL p μ :=
+begin
+  ext1 f,
+  ext1,
+  refine ((L + L').coe_fn_comp_LpL f).trans _,
+  refine eventually_eq.trans _ (Lp.coe_fn_add _ _).symm,
+  refine eventually_eq.trans _
+    (eventually_eq.add (L.coe_fn_comp_LpL f).symm (L'.coe_fn_comp_LpL f).symm),
+  refine eventually_of_forall (λ x, _),
+  refl,
+end
+
+lemma smul_comp_LpL [fact (1 ≤ p)] (c : 𝕜) (L : E →L[𝕜] F) :
+  (c • L).comp_LpL p μ  = c • (L.comp_LpL p μ) :=
+begin
+  ext1 f,
+  ext1,
+  refine (coe_fn_comp_LpL (c • L) f).trans _,
+  refine eventually_eq.trans _ (Lp.coe_fn_smul _ _).symm,
+  refine (L.coe_fn_comp_LpL f).mono (λ x hx, _),
+  simp only [coe_smul', pi.smul_apply, coe_coe],
+  rw hx,
+end
+
+/-- TODO: written in an "apply" way because of a missing `has_scalar` instance. -/
+lemma smul_comp_LpL_apply [fact (1 ≤ p)] {𝕜'} [normed_field 𝕜'] [measurable_space 𝕜']
+  [opens_measurable_space 𝕜'] [normed_space 𝕜' F] [smul_comm_class 𝕜 𝕜' F]
+  (c : 𝕜') (L : E →L[𝕜] F) (f : Lp E p μ) :
+  (c • L).comp_LpL p μ f = c • (L.comp_LpL p μ f) :=
+begin
+  ext1,
+  refine (coe_fn_comp_LpL (c • L) f).trans _,
+  refine eventually_eq.trans _ (Lp.coe_fn_smul _ _).symm,
+  refine (L.coe_fn_comp_LpL f).mono (λ x hx, _),
+  simp only [coe_smul', pi.smul_apply, coe_coe],
+  rw hx,
+end
+
 lemma norm_compLpL_le [fact (1 ≤ p)] (L : E →L[𝕜] F) :
   ∥L.comp_LpL p μ∥ ≤ ∥L∥ :=
 linear_map.mk_continuous_norm_le _ (norm_nonneg _) _

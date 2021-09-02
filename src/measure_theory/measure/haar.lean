@@ -58,28 +58,6 @@ open_locale nnreal classical ennreal pointwise topological_space
 
 variables {G : Type*} [group G]
 
-
-section positive_compacts
-
-
-@[to_additive] lemma positive_compacts.locally_compact_space_of_group
-  {G : Type*} [group G] [topological_space G] [topological_group G]
-  [t2_space G] (K₀ : positive_compacts G) :
-  locally_compact_space G :=
-begin
-  refine locally_compact_of_compact_nhds (λ x, _),
-  obtain ⟨y, hy⟩ : ∃ y, y ∈ interior K₀.1 := K₀.2.2,
-  let F := homeomorph.mul_left (x * y⁻¹),
-  refine ⟨F '' K₀.1, _, is_compact.image K₀.2.1 F.continuous⟩,
-  suffices : F.symm ⁻¹' K₀.1 ∈ 𝓝 x, by { convert this, apply equiv.image_eq_preimage },
-  apply continuous_at.preimage_mem_nhds F.symm.continuous.continuous_at,
-  have : F.symm x = y, by simp [F, homeomorph.mul_left_symm],
-  rw this,
-  exact mem_interior_iff_mem_nhds.1 hy
-end
-
-end positive_compacts
-
 namespace measure_theory
 namespace measure
 
@@ -529,13 +507,19 @@ def haar_measure (K₀ : positive_compacts G) : measure G :=
 ((haar_content K₀).outer_measure K₀.1)⁻¹ • (haar_content K₀).measure
 
 class is_haar_measure (μ : measure G) : Prop :=
-{ is_haar : ∃ (K : positive_compacts G), μ = haar_measure K }
+{ is_haar : ∃ (K : positive_compacts G) (c : ennreal),
+              μ = c • haar_measure K ∧ 0 < c ∧ c < ∞ }
 
 class is_add_haar_measure {G : Type*} [add_group G] [topological_space G] [t2_space G]
   [topological_add_group G] [measurable_space G] [borel_space G] (μ : measure G) : Prop :=
-{ is_add_haar : ∃ (K : positive_compacts G), μ = add_haar_measure K}
+{ is_add_haar : ∃ (K : positive_compacts G) (c : ennreal),
+                  μ = c • add_haar_measure K ∧ 0 < c ∧ c < ∞}
 
 attribute [to_additive] is_haar_measure
+
+@[to_additive]
+instance is_haar_measure_haar {K₀ : positive_compacts G} : is_haar_measure (haar_measure K₀) :=
+{ is_haar := ⟨K₀, 1, by rw one_smul, ennreal.zero_lt_one, ennreal.one_lt_top⟩ }
 
 @[to_additive]
 lemma haar_measure_apply {K₀ : positive_compacts G} {s : set G} (hs : measurable_set s) :
@@ -544,37 +528,39 @@ by simp only [haar_measure, hs, div_eq_mul_inv, mul_comm, content.measure_apply,
       algebra.id.smul_eq_mul, pi.smul_apply, measure.coe_smul]
 
 @[to_additive]
-lemma is_mul_left_invariant_haar_measure (μ : measure G) [hμ : is_haar_measure μ] :
-  is_mul_left_invariant (μ) :=
+lemma is_mul_left_invariant_of_is_haar_measure (μ : measure G) [hμ : is_haar_measure μ] :
+  is_mul_left_invariant μ :=
 begin
-  rcases hμ.is_haar with ⟨K₀, hK₀⟩,
+  rcases hμ.is_haar with ⟨K₀, c, hK₀, cpos, ctop⟩,
   rw hK₀,
   intros g A hA,
-  rw [haar_measure_apply hA, haar_measure_apply (measurable_const_mul g hA)],
-  congr' 1,
+  rw [smul_apply, smul_apply, haar_measure_apply hA,
+    haar_measure_apply (measurable_const_mul g hA)],
+  congr' 2,
   apply content.is_mul_left_invariant_outer_measure,
   apply is_left_invariant_haar_content,
 end
 
 @[to_additive]
-lemma haar_measure_self [locally_compact_space G] {K₀ : positive_compacts G} :
+lemma haar_measure_self {K₀ : positive_compacts G} :
   haar_measure K₀ K₀.1 = 1 :=
 begin
+  haveI : locally_compact_space G := K₀.locally_compact_space_of_group,
   rw [haar_measure_apply K₀.2.1.measurable_set, ennreal.div_self],
   { rw [← pos_iff_ne_zero], exact haar_content_outer_measure_self_pos },
   { exact ne_of_lt (content.outer_measure_lt_top_of_is_compact _ K₀.2.1) }
 end
 
-
-#exit
-
 @[to_additive]
-lemma haar_measure_pos_of_is_open {K₀ : positive_compacts G}
-  {U : set G} (hU : is_open U) (h2U : U.nonempty) : 0 < haar_measure K₀ U :=
+lemma measure_pos_of_is_open_of_is_haar_measure (μ : measure G) [hμ : is_haar_measure μ]
+  {U : set G} (hU : is_open U) (h2U : U.nonempty) : 0 < μ U :=
 begin
-  haveI : locally_compact_space G := sorry,
-  rw [haar_measure_apply hU.measurable_set, ennreal.div_pos_iff],
-  refine ⟨_, ne_of_lt $ content.outer_measure_lt_top_of_is_compact _ K₀.2.1⟩,
+  rcases hμ.is_haar with ⟨K₀, c, hK₀, cpos, ctop⟩,
+  rw hK₀,
+  haveI : locally_compact_space G := K₀.locally_compact_space_of_group,
+  rw [smul_apply, haar_measure_apply hU.measurable_set],
+  apply ennreal.mul_pos.2 ⟨cpos, _⟩,
+  apply ennreal.div_pos_iff.2 ⟨_, ne_of_lt $ content.outer_measure_lt_top_of_is_compact _ K₀.2.1⟩,
   rw [← pos_iff_ne_zero],
   exact content.outer_measure_pos_of_is_mul_left_invariant _ is_left_invariant_haar_content
     ⟨K₀.1, K₀.2.1⟩ (by simp only [haar_content_self, ennreal.zero_lt_one]) hU h2U
@@ -582,17 +568,32 @@ end
 
 /-- The Haar measure is regular. -/
 @[to_additive]
-instance regular_haar_measure [locally_compact_space G] {K₀ : positive_compacts G} :
-  (haar_measure K₀).regular :=
+instance regular_of_is_haar_measure (μ : measure G) [hμ : is_haar_measure μ] :
+  μ.regular :=
 begin
-  apply regular.smul,
-  rw ennreal.inv_lt_top,
-  exact haar_content_outer_measure_self_pos,
+  rcases hμ.is_haar with ⟨K₀, c, hK₀, cpos, ctop⟩,
+  rw hK₀,
+  haveI : locally_compact_space G := K₀.locally_compact_space_of_group,
+  haveI : regular (haar_measure K₀),
+  { apply regular.smul,
+    rw ennreal.inv_lt_top,
+    exact haar_content_outer_measure_self_pos },
+  exact regular.smul ctop,
+end
+
+@[to_additive]
+instance sigma_finite_of_is_haar_measure [second_countable_topology G]
+  (μ : measure G) [hμ : is_haar_measure μ] :
+  sigma_finite μ :=
+begin
+  rcases hμ.is_haar with ⟨K₀, c, hK₀, cpos, ctop⟩,
+  haveI : locally_compact_space G := K₀.locally_compact_space_of_group,
+  apply_instance
 end
 
 section unique
 
-variables [locally_compact_space G] [second_countable_topology G] {μ : measure G} [sigma_finite μ]
+variables [second_countable_topology G] {μ : measure G} [sigma_finite μ]
 /-- The Haar measure is unique up to scaling. More precisely: every σ-finite left invariant measure
   is a scalar multiple of the Haar measure. -/
 @[to_additive]
@@ -600,13 +601,15 @@ theorem haar_measure_unique (hμ : is_mul_left_invariant μ)
   (K₀ : positive_compacts G) : μ = μ K₀.1 • haar_measure K₀ :=
 begin
   ext1 s hs,
-  have := measure_mul_measure_eq hμ (is_mul_left_invariant_haar_measure K₀) K₀.2.1 hs,
+  have := measure_mul_measure_eq hμ
+    (is_mul_left_invariant_of_is_haar_measure (haar_measure K₀)) K₀.2.1 hs,
   rw [haar_measure_self, one_mul] at this,
   rw [← this (by norm_num), smul_apply],
 end
 
 @[to_additive]
-theorem regular_of_is_mul_left_invariant (hμ : is_mul_left_invariant μ) {K} (hK : is_compact K)
+theorem regular_of_is_mul_left_invariant
+  (hμ : is_mul_left_invariant μ) {K} (hK : is_compact K)
   (h2K : (interior K).nonempty) (hμK : μ K < ∞) : regular μ :=
 begin
   rw [haar_measure_unique hμ ⟨K, hK, h2K⟩],

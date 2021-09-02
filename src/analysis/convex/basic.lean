@@ -940,7 +940,7 @@ end
 
 /-- The pointwise minimum of concave functions is concave. -/
 lemma concave_on.inf (hf : concave_on s f) (hg : concave_on s g) :
-   concave_on s (f ⊓ g) :=
+  concave_on s (f ⊓ g) :=
 @convex_on.sup _ _ _ _ (order_dual γ) _ _ _ _ _ hf hg
 
 /-- A convex function on a segment is upper-bounded by the max of its endpoints. -/

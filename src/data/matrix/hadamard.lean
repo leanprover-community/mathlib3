@@ -121,11 +121,11 @@ variables [semiring α] [semiring R] [module R α]
 lemma trace_identity [decidable_eq m] [decidable_eq n] (v : m → α) (w : n → α):
   dot_product (vec_mul v (A ⊙ B)) w = trace m R α (diagonal v ⬝ A ⬝ (B ⬝ diagonal w)ᵀ) :=
 begin
-  simp [dot_product, vec_mul, hadamard, finset.sum_mul],
+  dsimp only [dot_product, vec_mul, trace_apply, hadamard],
+  simp_rw [finset.sum_mul],
   rw finset.sum_comm,
-  apply finset.sum_congr, refl, intros i hi,
-  simp [diagonal, transpose, matrix.mul, dot_product],
-  apply finset.sum_congr, refl, intros j hj,
+  congr' 1 with i,
+  congr' 1 with j,
   simp [mul_assoc]
 end
 

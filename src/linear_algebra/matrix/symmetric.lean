@@ -123,8 +123,7 @@ begin
   assumption
 end
 
-/-- If a block matrix `A.from_blocks B C D` is symmetric, then `A`, `D` are symmetric, `Cᵀ = B`, and `Bᵀ = C`.
-This is the `iff` version of `matrix.is_symm.from_blocks`. -/
+/-- This is the `iff` version of `matrix.is_symm.from_blocks`. -/
 lemma is_symm_from_blocks_iff
   {A : matrix m m α} {B : matrix m n α} {C : matrix n m α} {D : matrix n n α} :
   (A.from_blocks B C D).is_symm ↔ A.is_symm ∧ Bᵀ = C ∧ Cᵀ = B ∧ D.is_symm :=

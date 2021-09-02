@@ -120,13 +120,13 @@ begin
   assumption
 end
 
-/-- If a block matrix `A.from_blocks B C D` is symmetric,
-    `A`, `D` are symmetric, and `Cᵀ = B`, and `Bᵀ = C`.
-    This is the converse of `matrix.is_symm_from_blocks`. -/
-lemma block_conditions_of_is_symm
-  {A : matrix m m α} {B : matrix m n α} {C : matrix n m α} {D : matrix n n α}
-  (h : (A.from_blocks B C D).is_symm) :
-  (A.is_symm) ∧ (D.is_symm) ∧ (Cᵀ = B) ∧ (Bᵀ = C) :=
-⟨congr_arg to_blocks₁₁ h, congr_arg to_blocks₂₂ h, congr_arg to_blocks₁₂ h, congr_arg to_blocks₂₁ h⟩
+/-- If a block matrix `A.from_blocks B C D` is symmetric, then `A`, `D` are symmetric, `Cᵀ = B`, and `Bᵀ = C`.
+This is the `iff` version of `matrix.is_symm.from_blocks`. -/
+lemma is_symm_from_blocks_iff
+  {A : matrix m m α} {B : matrix m n α} {C : matrix n m α} {D : matrix n n α} :
+  (A.from_blocks B C D).is_symm ↔ A.is_symm ∧ Bᵀ = C ∧ Cᵀ = B ∧ D.is_symm :=
+⟨λ h, ⟨congr_arg to_blocks₁₁ h, congr_arg to_blocks₂₁ h,
+       congr_arg to_blocks₁₂ h, congr_arg to_blocks₂₂ h⟩,
+ λ ⟨hA, hBC, hCB, hD⟩, is_symm_from_blocks hA hD hBC⟩
 
 end matrix

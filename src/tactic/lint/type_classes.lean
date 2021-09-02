@@ -227,7 +227,7 @@ This tactic succeeds if `mk_instance` succeeds quickly or fails quickly with the
 message that it cannot find an instance. It fails if the tactic takes too long, or if any other
 error message is raised (usually a maximum depth in the search).
 -/
-meta def fails_quickly (max_steps : ℕ) (d : declaration) : tactic (option string) := do
+meta def fails_quickly (max_steps : ℕ) (d : declaration) : tactic (option string) := retrieve $ do
   tt ← is_instance d.to_name | return none,
   let e := d.type,
   g ← mk_meta_var e,

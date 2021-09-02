@@ -603,6 +603,10 @@ def snd : A × B →ₐ[R] B :=
 
 end prod
 
+lemma algebra_map_eq_apply (f : A →ₐ[R] B) {y : R} {x : A} (h : algebra_map R A y = x) :
+  algebra_map R B y = f x :=
+h ▸ (f.commutes _).symm
+
 end semiring
 
 section comm_semiring
@@ -1031,6 +1035,11 @@ instance apply_smul_comm_class : smul_comm_class R (A₁ ≃ₐ[R] A₁) A₁ :=
 instance apply_smul_comm_class' : smul_comm_class (A₁ ≃ₐ[R] A₁) R A₁ :=
 { smul_comm := λ e r a, (e.to_linear_equiv.map_smul r a) }
 
+@[simp] lemma algebra_map_eq_apply (e : A₁ ≃ₐ[R] A₂) {y : R} {x : A₁} :
+  (algebra_map R A₂ y = e x) ↔ (algebra_map R A₁ y = x) :=
+⟨λ h, by simpa using e.symm.to_alg_hom.algebra_map_eq_apply h,
+ λ h, e.to_alg_hom.algebra_map_eq_apply h⟩
+
 end semiring
 
 section comm_semiring
@@ -1075,6 +1084,39 @@ e.to_alg_hom.map_div x y
 end division_ring
 
 end alg_equiv
+
+namespace mul_semiring_action
+
+variables {M G : Type*} (R A : Type*) [comm_semiring R] [semiring A] [algebra R A]
+
+section
+variables [monoid M] [mul_semiring_action M A] [smul_comm_class M R A]
+
+/-- Each element of the monoid defines a algebra homomorphism.
+
+This is a stronger version of `mul_semiring_action.to_ring_hom` and
+`distrib_mul_action.to_linear_map`. -/
+@[simps]
+def to_alg_hom (m : M) : A →ₐ[R] A :=
+alg_hom.mk' (mul_semiring_action.to_ring_hom _ _ m) (smul_comm _)
+
+end
+
+section
+variables [group G] [mul_semiring_action G A] [smul_comm_class G R A]
+
+/-- Each element of the group defines a algebra equivalence.
+
+This is a stronger version of `mul_semiring_action.to_ring_equiv` and
+`distrib_mul_action.to_linear_equiv`. -/
+@[simps]
+def to_alg_equiv (g : G) : A ≃ₐ[R] A :=
+{ .. mul_semiring_action.to_ring_equiv _ _ g,
+  .. mul_semiring_action.to_alg_hom R A g }
+
+end
+
+end mul_semiring_action
 
 section nat
 

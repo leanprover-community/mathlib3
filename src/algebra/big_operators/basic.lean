@@ -715,6 +715,20 @@ calc (∏ x in s, f x) = ∏ x in (s.filter $ λ x, f x ≠ 1), f x : prod_filte
         let ⟨a, ha₁, ha₂, eq⟩ := i_surj b h₁ h₂ in ⟨a, mem_filter.mpr ⟨ha₁, ha₂⟩, eq⟩)
   ... = (∏ x in t, g x) : prod_filter_ne_one
 
+@[to_additive] lemma prod_dite_of_false {p : α → Prop} {hp : decidable_pred p}
+  (h : ∀ x ∈ s, ¬ p x) (f : Π (x : α), p x → β) (g : Π (x : α), ¬p x → β) :
+  (∏ x in s, if hx : p x then f x hx else g x hx) =
+  ∏ (x : s), g x.val (h x.val x.property) :=
+prod_bij (λ x hx, ⟨x,hx⟩) (λ x hx, by simp) (λ a ha, by { dsimp, rw dif_neg })
+  (λ a₁ a₂ h₁ h₂ hh, congr_arg coe hh) (λ b hb, ⟨b.1, b.2, by simp⟩)
+
+@[to_additive] lemma prod_dite_of_true {p : α → Prop} {hp : decidable_pred p}
+  (h : ∀ x ∈ s, p x) (f : Π (x : α), p x → β) (g : Π (x : α), ¬p x → β) :
+  (∏ x in s, if hx : p x then f x hx else g x hx) =
+  ∏ (x : s), f x.val (h x.val x.property) :=
+prod_bij (λ x hx, ⟨x,hx⟩) (λ x hx, by simp) (λ a ha, by { dsimp, rw dif_pos })
+  (λ a₁ a₂ h₁ h₂ hh, congr_arg coe hh) (λ b hb, ⟨b.1, b.2, by simp⟩)
+
 @[to_additive]
 lemma nonempty_of_prod_ne_one (h : (∏ x in s, f x) ≠ 1) : s.nonempty :=
 s.eq_empty_or_nonempty.elim (λ H, false.elim $ h $ H.symm ▸ prod_empty) id
@@ -773,6 +787,12 @@ begin
   { simp },
   { rw [nat.add_succ, prod_range_succ, hm, prod_range_succ, mul_assoc], },
 end
+
+@[to_additive]
+lemma prod_range_add_div_prod_range {α : Type*} [comm_group α] (f : ℕ → α) (n m : ℕ) :
+  (∏ k in range (n + m), f k) / (∏ k in range n, f k) = ∏ k in finset.range m, f (n + k) :=
+div_eq_of_eq_mul' (prod_range_add f n m)
+
 
 @[to_additive]
 lemma prod_range_zero (f : ℕ → β) :

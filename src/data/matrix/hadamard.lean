@@ -53,7 +53,7 @@ variables (A : matrix I J α) (B : matrix I J α) (C : matrix I J α)
 
 /- commutativity -/
 lemma Hadamard_comm [comm_semigroup α] : A ⊙ B = B ⊙ A :=
-by ext; simp [Hadamard, mul_comm]
+ext $ λ _ _, mul_comm _ _
 
 /- associativity -/
 lemma Hadamard_assoc [semigroup α] : A ⊙ B ⊙ C = A ⊙ (B ⊙ C) :=

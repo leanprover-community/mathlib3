@@ -636,17 +636,16 @@ variables (𝕜)
 TODO: why does it fail with a universe error if we don't specify `E` explicitly for `lsmul`? -/
 def lsmul_left (x : E) : 𝕜 →L[𝕜] E := (@lsmul 𝕜 E _ _ _ 𝕜 _ _ _ _).flip x
 
+lemma lsmul_left_apply (x : E) (r : 𝕜) : lsmul_left 𝕜 x r = r • x :=
+by rw [lsmul_left, flip_apply, lsmul_apply]
+
 lemma lsmul_left_add (x y : E) : lsmul_left 𝕜 (x + y) = lsmul_left 𝕜 x + lsmul_left 𝕜 y :=
 (@lsmul 𝕜 E _ _ _ 𝕜 _ _ _ _).flip.map_add x y
 
 lemma lsmul_left_smul' (𝕜') [nondiscrete_normed_field 𝕜'] [semi_normed_space 𝕜' E]
   [smul_comm_class 𝕜 𝕜' E] (c : 𝕜') (x : E) :
   lsmul_left 𝕜 (c • x) = c • lsmul_left 𝕜 x :=
-begin
-  simp only [lsmul_left],
-  ext1,
-  rw [flip_apply, smul_apply, flip_apply, lsmul_apply, lsmul_apply, smul_comm],
-end
+by { ext1, rw [lsmul_left_apply, smul_apply, lsmul_left_apply, smul_comm], }
 
 lemma lsmul_left_smul (c : 𝕜) (x : E) : lsmul_left 𝕜 (c • x) = c • lsmul_left 𝕜 x :=
 lsmul_left_smul' 𝕜 𝕜 c x
@@ -655,6 +654,9 @@ variables {𝕜} (E)
 
 /-- Scalar product `λ (x : E), r • x` as a continuous linear map. -/
 def lsmul_right (r : 𝕜) : E →L[𝕜] E := lsmul 𝕜 𝕜 r
+
+lemma lsmul_right_apply (r : 𝕜) (x : E) : lsmul_right E r x = r • x :=
+by rw [lsmul_right, lsmul_apply]
 
 lemma lsmul_right_add (x y : 𝕜) : lsmul_right E (x + y) = lsmul_right E x + lsmul_right E y :=
 (lsmul 𝕜 𝕜).map_add x y

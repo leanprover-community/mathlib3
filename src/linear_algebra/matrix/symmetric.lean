@@ -85,10 +85,9 @@ lemma is_symm.map {A : matrix n n α} (h : A.is_symm) (f : α → β) :
   (A.map f).is_symm :=
 by ext; simp [h.apply']
 
-@[simp] lemma is_symm.neg
-[has_neg α] {A : matrix n n α} (h : A.is_symm) :
-(-A).is_symm :=
-by ext; simp [h.apply']
+@[simp] lemma is_symm.neg [has_neg α] {A : matrix n n α} (h : A.is_symm) :
+  (-A).is_symm :=
+(transpose_neg _).trans (congr_arg _ h)
 
 @[simp] lemma is_symm.smul
 [has_scalar R α] {A : matrix n n α} (h : A.is_symm) (k : R) :

@@ -74,9 +74,8 @@ by simp [matrix.is_sym, transpose_mul]
 @[simp] lemma is_sym.neg [has_neg α] {A : matrix n n α} (h : A.is_sym) : (-A).is_sym :=
 by ext; simp [h.apply']
 
-@[simp] lemma is_sym.smul
-[has_scalar R α] {A : matrix n n α} (h : A.is_sym) (k : R) :
-(k • A).is_sym :=
+@[simp] lemma is_sym.smul [has_scalar R α] {A : matrix n n α} (h : A.is_sym) (k : R) :
+  (k • A).is_sym :=
 by ext; simp [h.apply']
 
 /-- The identity matrix multiplied by any scalar `k` is symmetric. -/

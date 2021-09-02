@@ -108,7 +108,7 @@ diagonal_transpose _
 
 /-- A block matrix `A.from_blocks B C D` is symmetric,
     if `A` and `D` are symmetric and `Bᵀ = C`. -/
-lemma is_symm_from_blocks
+lemma is_symm.from_blocks
   {A : matrix m m α} {B : matrix m n α} {C : matrix n m α} {D : matrix n n α}
   (h1 : A.is_symm) (h2 : D.is_symm) (h3 : Bᵀ = C) :
   (A.from_blocks B C D).is_symm :=

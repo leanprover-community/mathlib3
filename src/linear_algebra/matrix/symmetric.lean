@@ -41,6 +41,7 @@ matrix.ext
 
 lemma is_symm.apply {A : matrix n n α} (h : A.is_symm) (i j : n) : A j i = A i j :=
 is_symm.ext_iff.1 h i j
+
 lemma is_symm_mul_transpose_self [fintype n] [comm_semiring α] (A : matrix n n α) :
   (A ⬝ Aᵀ).is_symm :=
 transpose_mul _ _

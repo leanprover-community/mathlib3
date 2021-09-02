@@ -96,7 +96,7 @@ variables [decidable_eq n] [mul_zero_one_class α]
 variables (M : matrix n n α)
 
 lemma hadamard_one : M ⊙ (1 : matrix n n α) = diagonal (λ i, M i i) :=
-by {ext, simp [diagonal, one_apply], by_cases i = j; simp*}
+by { ext, by_cases h : i = j; simp [h] }
 
 lemma one_hadamard : (1 : matrix n n α) ⊙ M = diagonal (λ i, M i i) :=
 by {ext, simp [diagonal, one_apply], by_cases i = j; simp*}

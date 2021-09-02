@@ -628,6 +628,39 @@ by simp only [lsmul, alg_hom.to_linear_map_apply, linear_map.mk_continuous₂_ap
 
 end smul_linear
 
+section lsmul_left_right
+
+variables (𝕜)
+
+/-- Scalar product `λ (r : 𝕜), r • x` as a continuous linear map.
+TODO: why does it fail with a universe error if we don't specify `E` explicitly for `lsmul`? -/
+def lsmul_left (x : E) : 𝕜 →L[𝕜] E := (@lsmul 𝕜 E _ _ _ 𝕜 _ _ _ _).flip x
+
+lemma lsmul_left_add (x y : E) : lsmul_left 𝕜 (x + y) = lsmul_left 𝕜 x + lsmul_left 𝕜 y :=
+(@lsmul 𝕜 E _ _ _ 𝕜 _ _ _ _).flip.map_add x y
+
+lemma lsmul_left_smul' (𝕜') [nondiscrete_normed_field 𝕜'] [semi_normed_space 𝕜' E]
+  [smul_comm_class 𝕜 𝕜' E] (c : 𝕜') (x : E) :
+  lsmul_left 𝕜 (c • x) = c • lsmul_left 𝕜 x :=
+begin
+  simp only [lsmul_left],
+  ext1,
+  rw [flip_apply, smul_apply, flip_apply, lsmul_apply, lsmul_apply, smul_comm],
+end
+
+lemma lsmul_left_smul (c : 𝕜) (x : E) : lsmul_left 𝕜 (c • x) = c • lsmul_left 𝕜 x :=
+lsmul_left_smul' 𝕜 𝕜 c x
+
+variables {𝕜} (E)
+
+/-- Scalar product `λ (x : E), r • x` as a continuous linear map. -/
+def lsmul_right (r : 𝕜) : E →L[𝕜] E := lsmul 𝕜 𝕜 r
+
+lemma lsmul_right_add (x y : 𝕜) : lsmul_right E (x + y) = lsmul_right E x + lsmul_right E y :=
+(lsmul 𝕜 𝕜).map_add x y
+
+end lsmul_left_right
+
 section restrict_scalars
 
 variables {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜' 𝕜]

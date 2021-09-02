@@ -22,7 +22,7 @@ We build the conditional expectation with respect to a sub-sigma-algebra `m` in 
 -/
 
 noncomputable theory
-open topological_space measure_theory.Lp filter
+open topological_space measure_theory.Lp filter continuous_linear_map
 open_locale nnreal ennreal topological_space big_operators measure_theory
 
 namespace measure_theory
@@ -762,33 +762,6 @@ begin
 end
 variables {𝕜 𝕜'}
 
-section lsmul_left
-
-variables (R : Type*) [nondiscrete_normed_field R] [semi_normed_group γ] [semi_normed_space R γ]
-
-/-- Scalar product `λ (r : R), r • x` as a continuous linear map. TODO: why does it fail with a
-universe error if we don't specify `γ` explicitly for `continuous_linear_map.lsmul`? -/
-def lsmul_left (x : γ) : R →L[R] γ := (@continuous_linear_map.lsmul R γ _ _ _ R _ _ _ _).flip x
-
-lemma lsmul_left_add (x y : γ) : lsmul_left R (x + y) = lsmul_left R x + lsmul_left R y :=
-(@continuous_linear_map.lsmul R γ _ _ _ R _ _ _ _).flip.map_add x y
-
-lemma lsmul_left_smul_real (c : R) (x : γ) : lsmul_left R (c • x) = c • lsmul_left R x :=
-(@continuous_linear_map.lsmul R γ _ _ _ R _ _ _ _).flip.map_smul c x
-
-lemma lsmul_left_smul (𝕜) [nondiscrete_normed_field 𝕜] [semi_normed_space 𝕜 γ]
-  [smul_comm_class R 𝕜 γ] (c : 𝕜) (x : γ) :
-  lsmul_left R (c • x) = c • lsmul_left R x :=
-begin
-  simp only [lsmul_left],
-  ext1,
-  rw [continuous_linear_map.flip_apply, continuous_linear_map.smul_apply,
-    continuous_linear_map.flip_apply, continuous_linear_map.lsmul_apply,
-    continuous_linear_map.lsmul_apply, smul_comm],
-end
-
-end lsmul_left
-
 lemma indicator_const_Lp_eq_lsmul_left_comp_Lp [normed_space ℝ F] (hs : measurable_set s)
   (hμs : μ s ≠ ∞) (x : F) :
   indicator_const_Lp 2 hs hμs x = (lsmul_left ℝ x).comp_Lp (indicator_const_Lp 2 hs hμs (1 : ℝ)) :=
@@ -802,7 +775,7 @@ begin
   dsimp only,
   rw hy,
   simp_rw [lsmul_left],
-  by_cases hy_mem : y ∈ s; simp [hy_mem, continuous_linear_map.lsmul_apply],
+  by_cases hy_mem : y ∈ s; simp [hy_mem, lsmul_apply],
 end
 
 section condexp_L2_indicator
@@ -892,7 +865,7 @@ begin
   rw [condexp_L2_indicator_eq_lsmul_left_comp 𝕜 hm hs hμs x,
     condexp_L2_indicator_eq_lsmul_left_comp 𝕜 hm hs hμs y,
     condexp_L2_indicator_eq_lsmul_left_comp 𝕜 hm hs hμs (x + y),
-    lsmul_left_add ℝ x y, continuous_linear_map.add_comp_Lp],
+    lsmul_left_add ℝ x y, add_comp_Lp],
 end
 
 lemma condexp_L2_indicator_smul (hs : measurable_set s) (hμs : μ s ≠ ∞) (c : 𝕜) (x : E') :
@@ -903,7 +876,7 @@ begin
   push_cast,
   rw [condexp_L2_indicator_eq_lsmul_left_comp 𝕜 hm hs hμs x,
     condexp_L2_indicator_eq_lsmul_left_comp 𝕜 hm hs hμs (c • x),
-    lsmul_left_smul ℝ 𝕜 c x, continuous_linear_map.smul_comp_Lp c (lsmul_left ℝ x)],
+    lsmul_left_smul ℝ 𝕜 c x, smul_comp_Lp c (lsmul_left ℝ x)],
 end
 
 lemma condexp_L2_indicator_smul_real (hs : measurable_set s) (hμs : μ s ≠ ∞) (c : ℝ) (x : E') :
@@ -914,8 +887,7 @@ begin
   push_cast,
   rw [condexp_L2_indicator_eq_lsmul_left_comp 𝕜 hm hs hμs x,
     condexp_L2_indicator_eq_lsmul_left_comp 𝕜 hm hs hμs (c • x), lsmul_left_smul_real ℝ c x,
-    continuous_linear_map.smul_comp_Lp c (lsmul_left ℝ x), is_R_or_C.of_real_alg, smul_assoc,
-    one_smul],
+    smul_comp_Lp c (lsmul_left ℝ x), is_R_or_C.of_real_alg, smul_assoc, one_smul],
 end
 
 end condexp_L2_indicator

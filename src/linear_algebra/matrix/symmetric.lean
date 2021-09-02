@@ -19,7 +19,7 @@ This file contains the definition and basic results about symmetric matrices.
 symm, symmetric, matrix
 -/
 
-variables {α n m R : Type*}
+variables {α β n m R : Type*}
 
 namespace matrix
 
@@ -72,6 +72,18 @@ by simp [matrix.is_symm, add_comm]
 @[simp] lemma is_symm_one [decidable_eq n] [has_zero α] [has_one α] :
   (1 : matrix n n α).is_symm :=
 by {ext, simp}
+
+lemma is_symm.transpose {A : matrix n n α} (h : A.is_symm) :
+  Aᵀ.is_symm :=
+by ext; simp [h.apply']
+
+lemma is_symm.conj_transpose [has_star α] {A : matrix n n α} (h : A.is_symm) :
+  Aᴴ.is_symm :=
+by ext; simp [h.apply']
+
+lemma is_symm.map {A : matrix n n α} (h : A.is_symm) (f : α → β) :
+  (A.map f).is_symm :=
+by ext; simp [h.apply']
 
 @[simp] lemma is_symm.neg
 [has_neg α] {A : matrix n n α} (h : A.is_symm) :

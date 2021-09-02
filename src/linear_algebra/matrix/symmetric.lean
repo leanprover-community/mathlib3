@@ -70,7 +70,7 @@ transpose_one
 
 lemma is_symm.transpose {A : matrix n n α} (h : A.is_symm) :
   Aᵀ.is_symm :=
-by ext; simp [h.apply']
+congr_arg _ h
 
 lemma is_symm.conj_transpose [has_star α] {A : matrix n n α} (h : A.is_symm) :
   Aᴴ.is_symm :=

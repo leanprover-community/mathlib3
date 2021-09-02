@@ -1320,6 +1320,18 @@ instance normed_space_L1 : normed_space 𝕜 (Lp E 1 μ) := by apply_instance
 instance normed_space_L2 : normed_space 𝕜 (Lp E 2 μ) := by apply_instance
 instance normed_space_Ltop : normed_space 𝕜 (Lp E ∞ μ) := by apply_instance
 
+instance [normed_space ℝ E] [has_scalar ℝ 𝕜] [is_scalar_tower ℝ 𝕜 E] :
+  is_scalar_tower ℝ 𝕜 (Lp E p μ) :=
+begin
+  refine ⟨λ r c f, _⟩,
+  ext1,
+  refine (Lp.coe_fn_smul _ _).trans _,
+  rw smul_assoc,
+  refine eventually_eq.trans _ (Lp.coe_fn_smul _ _).symm,
+  refine (Lp.coe_fn_smul c f).mono (λ x hx, _),
+  rw [pi.smul_apply, pi.smul_apply, pi.smul_apply, hx, pi.smul_apply],
+end
+
 end normed_space
 
 end Lp
@@ -1623,6 +1635,34 @@ L.lipschitz.comp_Lp (map_zero L) f
 lemma coe_fn_comp_Lp (L : E →L[𝕜] F) (f : Lp E p μ) :
   ∀ᵐ a ∂μ, (L.comp_Lp f) a = L (f a) :=
 lipschitz_with.coe_fn_comp_Lp _ _ _
+
+lemma coe_fn_comp_Lp' (L : E →L[𝕜] F) (f : Lp E p μ) :
+  L.comp_Lp f =ᵐ[μ] λ a, L (f a) :=
+L.coe_fn_comp_Lp f
+
+lemma add_comp_Lp (L L' : E →L[𝕜] F) (f : Lp E p μ) :
+  (L + L').comp_Lp f = L.comp_Lp f + L'.comp_Lp f :=
+begin
+  ext1,
+  refine (coe_fn_comp_Lp' (L + L') f).trans _,
+  refine eventually_eq.trans _ (Lp.coe_fn_add _ _).symm,
+  refine eventually_eq.trans _
+    (eventually_eq.add (L.coe_fn_comp_Lp' f).symm (L'.coe_fn_comp_Lp' f).symm),
+  refine eventually_of_forall (λ x, _),
+  refl,
+end
+
+lemma smul_comp_Lp {𝕜'} [normed_field 𝕜'] [measurable_space 𝕜'] [opens_measurable_space 𝕜']
+  [normed_space 𝕜' F] [smul_comm_class 𝕜 𝕜' F] (c : 𝕜') (L : E →L[𝕜] F) (f : Lp E p μ) :
+  (c • L).comp_Lp f = c • L.comp_Lp f :=
+begin
+  ext1,
+  refine (coe_fn_comp_Lp' (c • L) f).trans _,
+  refine eventually_eq.trans _ (Lp.coe_fn_smul _ _).symm,
+  refine (L.coe_fn_comp_Lp' f).mono (λ x hx, _),
+  rw [pi.smul_apply, hx],
+  refl,
+end
 
 lemma norm_comp_Lp_le (L : E →L[𝕜] F) (f : Lp E p μ)  : ∥L.comp_Lp f∥ ≤ ∥L∥ * ∥f∥ :=
 lipschitz_with.norm_comp_Lp_le _ _ _

@@ -278,6 +278,7 @@ instance has_measurable_div₂.to_has_measurable_div [has_measurable_div₂ G] :
 attribute [measurability] measurable.sub measurable.sub' ae_measurable.sub ae_measurable.sub'
   measurable.const_sub ae_measurable.const_sub measurable.sub_const ae_measurable.sub_const
 
+@[measurability]
 lemma measurable_set_eq_fun {E} [measurable_space E] [add_group E] [measurable_singleton_class E]
   [has_measurable_sub₂ E] {f g : α → E} (hf : measurable f) (hg : measurable g) :
   measurable_set {x | f x = g x} :=

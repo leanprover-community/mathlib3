@@ -42,7 +42,7 @@ section
 variables [has_scalar R ℝ]
 
 /- The useless `0` multiplication in `smul` is to make sure that
-`restrict_scalars.module ℝ ℂ ℂ  = complex.module` definitionally. -/
+`restrict_scalars.module ℝ ℂ ℂ = complex.module` definitionally. -/
 instance : has_scalar R ℂ :=
 { smul := λ r x, ⟨r • x.re - 0 * x.im, r • x.im + 0 * x.re⟩ }
 

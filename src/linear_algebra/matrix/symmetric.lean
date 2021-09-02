@@ -61,7 +61,7 @@ by simp [matrix.is_symm, transpose_mul]
 /-- `A + Aᵀ` is symmertric. -/
 lemma is_symm_add_transpose_self [fintype n] [add_comm_semigroup α] (A : matrix n n α) :
   (A + Aᵀ).is_symm :=
-by simp [matrix.is_symm, add_comm]
+add_comm _ _
 
 /-- `Aᵀ + A` is symmertric. -/
 lemma is_symm_transpose_add_self [fintype n] [add_comm_semigroup α] (A : matrix n n α) :

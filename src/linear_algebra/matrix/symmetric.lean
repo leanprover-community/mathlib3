@@ -96,12 +96,8 @@ by ext; simp [h.apply']
 
 /-- The diagonal matrix `diagonal v` is symmetric. -/
 @[simp] lemma is_symm_diagonal [decidable_eq n] [has_zero α] (v : n → α) :
-(diagonal v).is_symm :=
-begin
-  ext,
-  by_cases i = j; simp [*, diagonal],
-  intro g, exfalso, exact h g.symm
-end
+  (diagonal v).is_symm :=
+diagonal_transpose _
 
 /-- A block matrix `A.from_blocks B C D` is symmetric,
     if `A` and `D` are symmetric and `Bᵀ = C`. -/

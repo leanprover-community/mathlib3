@@ -118,10 +118,10 @@ end diagonal
 section trace
 
 variables [fintype m] [fintype n]
-variables [semiring R] [module R α]
+variables [semiring α] [semiring R] [module R α]
 
 lemma trace_identity [decidable_eq m] [decidable_eq n] (v : m → α) (w : n → α):
-  dot_product (vec_mul v (A ⊙ B)) w = trace m β α (diagonal v ⬝ A ⬝ (B ⬝ diagonal w)ᵀ) :=
+  dot_product (vec_mul v (A ⊙ B)) w = trace m R α (diagonal v ⬝ A ⬝ (B ⬝ diagonal w)ᵀ) :=
 begin
   simp [dot_product, vec_mul, hadamard, finset.sum_mul],
   rw finset.sum_comm,
@@ -132,21 +132,21 @@ begin
 end
 
 lemma sum_hadamard_eq :
-  ∑ (i : m) (j : n), (A ⊙ B) i j = trace m β α (A ⬝ Bᵀ) :=
+  ∑ (i : m) (j : n), (A ⊙ B) i j = trace m R α (A ⬝ Bᵀ) :=
 begin
   classical,
   have h:= trace_identity A B (λ i, 1 : m → α) (λ i, 1 : n → α),
   simp [vec_mul, dot_product] at h,
   rw finset.sum_comm at h,
   assumption,
-  exact β, assumption, assumption,
+  exact R, assumption, assumption,
 end
 
 /-- the `star` version of `trace_identity` -/
-lemma trace_identity' [decidable_eq m] [decidable_eq n]
-  (M₁ : matrix m n γ) (M₂ : matrix m n γ) (v : m → γ) (w : n → γ) :
+lemma trace_identity' [star_ring α] [decidable_eq m] [decidable_eq n]
+  (M₁ : matrix m n α) (M₂ : matrix m n α) (v : m → α) (w : n → α) :
   dot_product (vec_mul (star v)  (M₁ ⊙ M₂)) w =
-  trace m R γ ((diagonal v)ᴴ ⬝ M₁ ⬝ (M₂ ⬝ (diagonal w))ᵀ) :=
+  trace m R α ((diagonal v)ᴴ ⬝ M₁ ⬝ (M₂ ⬝ (diagonal w))ᵀ) :=
 begin
   convert trace_identity _ _ _ _,
   simp,

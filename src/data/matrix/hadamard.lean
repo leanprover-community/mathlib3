@@ -121,7 +121,8 @@ variables (R) [semiring α] [semiring R] [module R α]
 lemma sum_hadamard_eq : ∑ (i : m) (j : n), (A ⊙ B) i j = trace m R α (A ⬝ Bᵀ) :=
 rfl
 
-lemma trace_identity [decidable_eq m] [decidable_eq n] (v : m → α) (w : n → α):
+lemma trace_identity [decidable_eq m] [decidable_eq n]
+  (A : matrix m n α) (B : matrix m n α) (v : m → α) (w : n → α):
   dot_product (vec_mul v (A ⊙ B)) w = trace m R α (diagonal v ⬝ A ⬝ (B ⬝ diagonal w)ᵀ) :=
 begin
   dsimp only [dot_product, vec_mul, trace_apply, hadamard],

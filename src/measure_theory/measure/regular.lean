@@ -201,16 +201,19 @@ begin
     rw [map_apply hf hK.measurable_set] }
 end
 
-protected lemma smul [regular μ] {x : ℝ≥0∞} (hx : x < ∞) :
+protected lemma smul [regular μ] {x : ℝ≥0∞} (hx : x ≠ ∞) :
   (x • μ).regular :=
 begin
   split,
-  { intros K hK, exact ennreal.mul_lt_top hx (regular.lt_top_of_is_compact hK) },
+  { intros K hK, exact ennreal.mul_lt_top (lt_top_iff_ne_top.2 hx)
+      (regular.lt_top_of_is_compact hK) },
   { intros A hA, rw [coe_smul],
     refine le_trans _ (ennreal.mul_left_mono $ regular.outer_regular hA),
     simp only [infi_and'], simp only [infi_subtype'],
     haveI : nonempty {s : set α // is_open s ∧ A ⊆ s} := ⟨⟨set.univ, is_open_univ, subset_univ _⟩⟩,
-    rw [ennreal.mul_infi], refl', exact ne_of_lt hx },
+    rw [ennreal.mul_infi],
+    { refl' },
+    { exact hx } },
   { intros U hU,
     rw [coe_smul],
     refine le_trans (ennreal.mul_left_mono $ regular.inner_regular hU) _,

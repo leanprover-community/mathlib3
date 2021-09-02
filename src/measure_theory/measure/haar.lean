@@ -506,10 +506,17 @@ scaled so that `add_haar_measure K₀ K₀ = 1`."]
 def haar_measure (K₀ : positive_compacts G) : measure G :=
 ((haar_content K₀).outer_measure K₀.1)⁻¹ • (haar_content K₀).measure
 
+/-- A measure is a Haar measure if it is a positive multiple of a Haar measure associated to a
+compact set of nonempty interior. Equivalently, it is a left-invariant measure giving positive
+finite mass to such a compact set, see `is_mul_left_invariant.is_haar_measure`. -/
 class is_haar_measure (μ : measure G) : Prop :=
 { is_haar : ∃ (K : positive_compacts G) (c : ennreal),
               μ = c • haar_measure K ∧ 0 < c ∧ c < ∞ }
 
+/-- A measure is an additive Haar measure if it is a positive multiple of an additive Haar measure
+associated to a compact set of nonempty interior. Equivalently, it is a left-invariant measure
+giving positive finite mass to such a compact set,
+see `is_add_left_invariant.is_add_haar_measure`. -/
 class is_add_haar_measure {G : Type*} [add_group G] [topological_space G] [t2_space G]
   [topological_add_group G] [measurable_space G] [borel_space G] (μ : measure G) : Prop :=
 { is_add_haar : ∃ (K : positive_compacts G) (c : ennreal),
@@ -567,7 +574,7 @@ begin
 end
 
 /-- The Haar measure is regular. -/
-@[to_additive]
+@[to_additive, priority 100]
 instance regular_of_is_haar_measure (μ : measure G) [hμ : is_haar_measure μ] :
   μ.regular :=
 begin
@@ -576,12 +583,12 @@ begin
   haveI : locally_compact_space G := K₀.locally_compact_space_of_group,
   haveI : regular (haar_measure K₀),
   { apply regular.smul,
-    rw ennreal.inv_lt_top,
-    exact haar_content_outer_measure_self_pos },
-  exact regular.smul ctop,
+    rw ennreal.inv_ne_top,
+    exact haar_content_outer_measure_self_pos.ne' },
+  exact regular.smul ctop.ne,
 end
 
-@[to_additive]
+@[to_additive, priority 100]
 instance sigma_finite_of_is_haar_measure [second_countable_topology G]
   (μ : measure G) [hμ : is_haar_measure μ] :
   sigma_finite μ :=
@@ -610,11 +617,23 @@ end
 @[to_additive]
 theorem regular_of_is_mul_left_invariant
   (hμ : is_mul_left_invariant μ) {K} (hK : is_compact K)
-  (h2K : (interior K).nonempty) (hμK : μ K < ∞) : regular μ :=
+  (h2K : (interior K).nonempty) (hμK : μ K ≠ ∞) : regular μ :=
 begin
   rw [haar_measure_unique hμ ⟨K, hK, h2K⟩],
   exact regular.smul hμK
 end
+
+/-- A left invariant measure giving finite positive mass to a compact set with nonempty interior is
+a Haar measure. -/
+@[to_additive]
+theorem is_mul_left_invariant.is_haar_measure (hμ : is_mul_left_invariant μ) {K} (hK : is_compact K)
+  (h2K : (interior K).nonempty) (hK_pos : μ K ≠ 0) (hK_ne_top : μ K ≠ ∞) :
+  is_haar_measure μ :=
+{ is_haar := begin
+    let K' : positive_compacts G := ⟨K, hK, h2K⟩,
+    rw [haar_measure_unique hμ K'],
+    exact ⟨K', μ K, rfl, bot_lt_iff_ne_bot.2 hK_pos, lt_top_iff_ne_top.2 hK_ne_top⟩,
+  end  }
 
 end unique
 

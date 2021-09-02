@@ -56,7 +56,7 @@ transpose_mul _ _
 /-- `Aᵀ ⬝ A` is symmertric. -/
 lemma is_symm_transpose_mul_self [fintype n] [comm_semiring α] (A : matrix n n α) :
   (A ⬝ Aᵀ).is_symm :=
-by simp [matrix.is_symm, transpose_mul]
+transpose_mul _ _
 
 /-- `A + Aᵀ` is symmertric. -/
 lemma is_symm_add_transpose_self [fintype n] [add_comm_semigroup α] (A : matrix n n α) :

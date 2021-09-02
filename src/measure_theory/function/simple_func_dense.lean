@@ -533,9 +533,8 @@ i.e. has no scalar action). -/
 
 variables [normed_field 𝕜] [normed_space 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜]
 
-/-- If `E` is a normed space, `Lp.simple_func E p μ` is a `has_scalar`. Not declared as an
-instance as it is (as of writing) used only in the construction of the Bochner integral. -/
-protected def has_scalar : has_scalar 𝕜 (Lp.simple_func E p μ) := ⟨λk f, ⟨k • f,
+/-- If `E` is a normed space, `Lp.simple_func E p μ` is a `has_scalar`. -/
+instance has_scalar : has_scalar 𝕜 (Lp.simple_func E p μ) := ⟨λk f, ⟨k • f,
 begin
   rcases f with ⟨f, ⟨s, hs⟩⟩,
   use k • s,
@@ -549,9 +548,8 @@ local attribute [instance] simple_func.has_scalar
 @[simp, norm_cast] lemma coe_smul (c : 𝕜) (f : Lp.simple_func E p μ) :
   ((c • f : Lp.simple_func E p μ) : Lp E p μ) = c • (f : Lp E p μ) := rfl
 
-/-- If `E` is a normed space, `Lp.simple_func E p μ` is a module. Not declared as an
-instance as it is (as of writing) used only in the construction of the Bochner integral. -/
-protected def module : module 𝕜 (Lp.simple_func E p μ) :=
+/-- If `E` is a normed space, `Lp.simple_func E p μ` is a module. -/
+instance module : module 𝕜 (Lp.simple_func E p μ) :=
 { one_smul  := λf, by { ext1, exact one_smul _ _ },
   mul_smul  := λx y f, by { ext1, exact mul_smul _ _ _ },
   smul_add  := λx f g, by { ext1, exact smul_add _ _ _ },
@@ -561,9 +559,8 @@ protected def module : module 𝕜 (Lp.simple_func E p μ) :=
 
 local attribute [instance] simple_func.module
 
-/-- If `E` is a normed space, `Lp.simple_func E p μ` is a normed space. Not declared as an
-instance as it is (as of writing) used only in the construction of the Bochner integral. -/
-protected def normed_space [fact (1 ≤ p)] : normed_space 𝕜 (Lp.simple_func E p μ) :=
+/-- If `E` is a normed space, `Lp.simple_func E p μ` is a normed space. -/
+instance normed_space [fact (1 ≤ p)] : normed_space 𝕜 (Lp.simple_func E p μ) :=
 ⟨ λc f, by { rw [coe_norm_subgroup, coe_norm_subgroup, coe_smul, norm_smul] } ⟩
 
 end instances

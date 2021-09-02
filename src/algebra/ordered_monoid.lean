@@ -401,34 +401,37 @@ section sub_neg
 instance [has_neg α] : has_neg (with_top α) :=
 ⟨option.map (λ (a : α), -a)⟩
 
-variable [sub_neg_monoid α]
+@[simp] lemma neg_top [has_neg α] : - (⊤ : with_top α) = ⊤ := rfl
+lemma neg_coe [has_neg α] (x : α) : (-x : with_top α) = ((-x : α) : with_top α) := rfl
+@[simp] lemma neg_eq_top [has_neg α] (x : with_top α) : - x = ⊤ ↔ x = ⊤ :=
+by { induction x using with_top.rec_top_coe; simp [neg_coe] }
 
-instance : sub_neg_monoid (with_top α) :=
-{ sub := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a - b)), -- explicit, just in case
-  sub_eq_add_neg := λ a b, begin
+instance [has_sub α] : has_sub (with_top α) :=
+⟨λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a - b))⟩
+
+@[simp] lemma coe_sub [has_sub α] (x y : α) : ((x - y : α) : with_top α) = x - y := rfl
+@[simp] lemma top_sub [has_sub α] (x : with_top α) : (⊤ : with_top α) - x = ⊤ := rfl
+@[simp] lemma sub_top [has_sub α] (x : with_top α) : x - ⊤ = ⊤ :=
+rec_top_coe rfl (λ _, rfl) x
+
+lemma sub_eq_top_iff [has_sub α] {a b : with_top α} : a - b = ⊤ ↔ a = ⊤ ∨ b = ⊤ :=
+begin
+  induction a using with_top.rec_top_coe;
+  induction b using with_top.rec_top_coe;
+  simp [←with_top.coe_sub]
+end
+
+instance [sub_neg_monoid α] : sub_neg_monoid (with_top α) :=
+{ sub_eq_add_neg := λ a b, begin
     induction a using with_top.rec_top_coe,
     { refl },
     induction b using with_top.rec_top_coe,
     { refl },
-    { have : (- b : with_top α) = ((-b : α) : with_top α) := rfl,
-      rw [this, ←coe_add, ←sub_eq_add_neg a b],
-      refl }
+    { rw [neg_coe, ←coe_add, ←sub_eq_add_neg a b, ←coe_sub] }
   end,
   ..with_top.has_neg,
+  ..with_top.has_sub,
   ..with_top.add_monoid }
-
-@[simp] lemma neg_top : - (⊤ : with_top α) = ⊤ := rfl
-lemma neg_coe (x : α) : (-x : with_top α) = ((-x : α) : with_top α) := rfl
-@[simp] lemma neg_eq_top (x : with_top α) : - x = ⊤ ↔ x = ⊤ :=
-by { induction x using with_top.rec_top_coe; simp [neg_coe] }
-
-@[simp] lemma coe_sub (x y : α) : ((x - y : α) : with_top α) = x - y := rfl
-@[simp] lemma top_sub (x : with_top α) : (⊤ : with_top α) - x = ⊤ := rfl
-@[simp] lemma sub_top (x : with_top α) : x - ⊤ = ⊤ :=
-by rw [sub_eq_add_neg, neg_top, add_top]
-
-lemma sub_eq_top_iff {a b : with_top α} : a - b = ⊤ ↔ a = ⊤ ∨ b = ⊤ :=
-by simp [sub_eq_add_neg, add_eq_top]
 
 end sub_neg
 

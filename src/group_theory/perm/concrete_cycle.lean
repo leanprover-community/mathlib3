@@ -40,7 +40,7 @@ begin
   { intros h x,
     by_cases hx : x ∈ l; by_cases hx' : x ∈ l',
     { exact (h hx hx').elim },
-    all_goals { have := form_perm_apply_not_mem _ _ ‹_›, tauto } }
+    all_goals { have := form_perm_eq_self_of_not_mem _ _ ‹_›, tauto } }
 end
 
 lemma is_cycle_form_perm (hl : nodup l) (hn : 2 ≤ l.length) :
@@ -54,7 +54,7 @@ begin
     split,
     { rwa form_perm_apply_mem_ne_self_iff _ hl _ (mem_cons_self _ _) },
     { intros w hw,
-      have : w ∈ (x :: y :: l) := form_perm_ne_self_imp_mem _ _ hw,
+      have : w ∈ (x :: y :: l) := mem_of_form_perm_ne_self _ _ hw,
       obtain ⟨k, hk, rfl⟩ := nth_le_of_mem this,
       use k,
       simp only [gpow_coe_nat, form_perm_pow_apply_head _ _ hl k, nat.mod_eq_of_lt hk] } }

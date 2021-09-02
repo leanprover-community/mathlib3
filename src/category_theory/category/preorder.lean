@@ -133,7 +133,7 @@ lemma galois_connection_of_adjunction {L : X ⥤ Y} {R : Y ⥤ X} (adj : L ⊣ R
 The embedding of `Preorder` into `Cat`.
 -/
 @[simps]
-def Preorder_to_Cat : Preorder ⥤ Cat :=
+def Preorder_to_Cat : Preorder.{u} ⥤ Cat :=
 { obj := λ X, Cat.of X.1,
   map := λ X Y f, f.monotone.functor,
   map_id' := λ X, begin apply category_theory.functor.ext, tidy end,

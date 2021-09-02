@@ -41,9 +41,9 @@ open complex
 
 /-- `matrix.Hadamard` defines the Hadamard product,
     which is the pointwise product of two matrices of the same size.-/
-def Hadamard [has_mul α] (A : matrix I J α) (B : matrix I J α) :
-matrix I J α :=
-λ i j, (A i j) * (B i j)
+@[simp]
+def Hadamard [has_mul α] (A : matrix I J α) (B : matrix I J α) : matrix I J α
+| i j := A i j * B i j
 
 localized "infix `⊙`:100 := matrix.Hadamard" in matrix -- declares the notation
 

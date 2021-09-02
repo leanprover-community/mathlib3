@@ -133,7 +133,7 @@ lemma sum_hadamard_eq :
   ∑ (i : m) (j : n), (A ⊙ B) i j = trace m R α (A ⬝ Bᵀ) :=
 begin
   classical,
-  have h:= trace_identity R A B (λ i, 1 : m → α) (λ i, 1 : n → α),
+  have h := trace_identity R A B (λ i, 1 : m → α) (λ i, 1 : n → α),
   simp only [vec_mul, dot_product, trace_diag, diag_apply, mul_one, diagonal_one,
              one_mul, matrix.mul_one, matrix.one_mul, hadamard] at h,
   rw finset.sum_comm at h,

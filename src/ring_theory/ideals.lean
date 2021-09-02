@@ -479,14 +479,10 @@ variables [local_ring α] [local_ring β]
 variable (α)
 def residue_field := (nonunits_ideal α).quotient
 
-noncomputable instance residue_field.field : field (residue_field α) :=
-ideal.quotient.field (nonunits_ideal α)
-
-/-- The quotient map from a local ring to it's residue field. -/
-def residue : α →+* (residue_field α) :=
-ideal.quotient.mk_hom _
-
 namespace residue_field
+
+noncomputable instance : field (residue_field α) :=
+ideal.quotient.field (nonunits_ideal α)
 
 variables {α β}
 noncomputable def map (f : α →+* β) [is_local_ring_hom f] :

@@ -70,11 +70,11 @@ section scalar
 
 @[simp] lemma smul_hadamard [has_mul α] [has_scalar R α] [is_scalar_tower R α α] (k : R) :
   (k • A) ⊙ B = k • A ⊙ B :=
-by {ext, simp, exact smul_assoc _ (A i j) _}
+ext $ λ _ _, smul_assoc _ (A _ _) _
 
 @[simp] lemma hadamard_smul[has_mul α] [has_scalar R α] [smul_comm_class R α α] (k : R):
   A ⊙ (k • B) = k • A ⊙ B :=
-by {ext, simp, exact (smul_comm k (A i j) (B i j)).symm}
+ext $ λ _ _, (smul_comm _ (A _ _) _).symm
 
 end scalar
 
@@ -83,27 +83,25 @@ section zero
 variables [mul_zero_class α]
 
 @[simp] lemma hadamard_zero : A ⊙ (0 : matrix m n α) = 0 :=
-by ext; simp
+ext $ λ _ _, mul_zero _
 
 @[simp] lemma zero_hadamard : (0 : matrix m n α) ⊙ A = 0 :=
-by ext; simp
+ext $ λ _ _, zero_mul _
 
 end zero
 
-/-
 section one
 
 variables [decidable_eq n] [mul_zero_one_class α]
 variables (M : matrix n n α)
 
-@[simp] lemma hadamard_one : M ⊙ (1 : matrix n n α) = diagonal (diag M) :=
-by ext; simp
+@[simp] lemma hadamard_one : M ⊙ (1 : matrix n n α) = diagonal (λ i, M i i) :=
+by {ext, simp [diagonal, one_apply], by_cases i = j; simp*}
 
-@[simp] lemma one_hadamard : (1 : matrix m n α) ⊙ M = diagonal (diag M) :=
-by ext; simp
+@[simp] lemma one_hadamard : (1 : matrix n n α) ⊙ M = diagonal (λ i, M i i) :=
+by {ext, simp [diagonal, one_apply], by_cases i = j; simp*}
 
 end one
--/
 
 section diagonal
 

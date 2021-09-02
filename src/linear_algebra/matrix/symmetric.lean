@@ -96,8 +96,7 @@ h.transpose.map _
   (A - B).is_symm :=
 (transpose_sub _ _).trans (hA.symm ▸ hB.symm ▸ rfl)
 
-@[simp] lemma is_symm.smul
-[has_scalar R α] {A : matrix n n α} (h : A.is_symm) (k : R) :
+@[simp] lemma is_symm.smul [has_scalar R α] {A : matrix n n α} (h : A.is_symm) (k : R) :
   (k • A).is_symm :=
 (transpose_smul _ _).trans (congr_arg _ h)
 
@@ -114,23 +113,23 @@ diagonal_transpose _
     if `A` and `D` are symmetric and `Bᵀ = C`. -/
 lemma is_symm.from_blocks
   {A : matrix m m α} {B : matrix m n α} {C : matrix n m α} {D : matrix n n α}
-  (h1 : A.is_symm) (h2 : D.is_symm) (h3 : Bᵀ = C) :
+  (hA : A.is_symm) (hBC : Bᵀ = C) (hD : D.is_symm) :
   (A.from_blocks B C D).is_symm :=
 begin
-  have h4 : Cᵀ = B, {rw ← h3, simp},
+  have hCB : Cᵀ = B, {rw ← hBC, simp},
   unfold matrix.is_symm,
   rw from_blocks_transpose,
   congr;
   assumption
 end
 
-/-- If a block matrix `A.from_blocks B C D` is symmetric,
-    `A`, `D` are symmetric, and `Cᵀ = B`, and `Bᵀ = C`.
-    This is the converse of `matrix.is_symm_from_blocks`. -/
-lemma block_conditions_of_is_symm
-  {A : matrix m m α} {B : matrix m n α} {C : matrix n m α} {D : matrix n n α}
-  (h : (A.from_blocks B C D).is_symm) :
-  (A.is_symm) ∧ (D.is_symm) ∧ (Cᵀ = B) ∧ (Bᵀ = C) :=
-⟨congr_arg to_blocks₁₁ h, congr_arg to_blocks₂₂ h, congr_arg to_blocks₁₂ h, congr_arg to_blocks₂₁ h⟩
+/-- If a block matrix `A.from_blocks B C D` is symmetric, then `A`, `D` are symmetric, `Cᵀ = B`, and `Bᵀ = C`.
+This is the `iff` version of `matrix.is_symm.from_blocks`. -/
+lemma is_symm_from_blocks_iff
+  {A : matrix m m α} {B : matrix m n α} {C : matrix n m α} {D : matrix n n α} :
+  (A.from_blocks B C D).is_symm ↔ A.is_symm ∧ Bᵀ = C ∧ Cᵀ = B ∧ D.is_symm :=
+⟨λ h, ⟨congr_arg to_blocks₁₁ h, congr_arg to_blocks₂₁ h,
+       congr_arg to_blocks₁₂ h, congr_arg to_blocks₂₂ h⟩,
+ λ ⟨hA, hBC, hCB, hD⟩, is_symm_from_blocks hA hD hBC⟩
 
 end matrix

@@ -762,44 +762,47 @@ begin
 end
 variables {𝕜 𝕜'}
 
-/-- TODO: surely something like this exists somewhere? -/
-def rsmul {γ} [normed_group γ] [normed_space ℝ γ] (x : γ) : ℝ →L[ℝ] γ :=
-(continuous_linear_map.lsmul ℝ ℝ).flip x
+section lsmul_left
 
-lemma rsmul_add {γ} [normed_group γ] [normed_space ℝ γ] (x y : γ) :
-  rsmul (x + y) = rsmul x + rsmul y :=
-(continuous_linear_map.lsmul ℝ ℝ).flip.map_add x y
+variables (R : Type*) [nondiscrete_normed_field R] [semi_normed_group γ] [semi_normed_space R γ]
 
-lemma rsmul_smul_real {γ} [normed_group γ] [normed_space ℝ γ] (c : ℝ) (x : γ) :
-  rsmul (c • x) = c • rsmul x :=
-(continuous_linear_map.lsmul ℝ ℝ).flip.map_smul c x
+/-- Scalar product `λ (r : R), r • x` as a linear map. TODO: why does it fail with a universe error
+if we don't specify `γ` explicitly for `continuous_linear_map.lsmul`? -/
+def lsmul_left (x : γ) : R →L[R] γ := (@continuous_linear_map.lsmul R γ _ _ _ R _ _ _ _).flip x
 
-lemma rsmul_smul {γ} (𝕜) [nondiscrete_normed_field 𝕜] [normed_group γ] [normed_space ℝ γ]
-  [normed_space 𝕜 γ] [smul_comm_class ℝ 𝕜 γ] (c : 𝕜) (x : γ) :
-  rsmul (c • x) = c • rsmul x :=
+lemma lsmul_left_add (x y : γ) : lsmul_left R (x + y) = lsmul_left R x + lsmul_left R y :=
+(@continuous_linear_map.lsmul R γ _ _ _ R _ _ _ _).flip.map_add x y
+
+lemma lsmul_left_smul_real (c : R) (x : γ) : lsmul_left R (c • x) = c • lsmul_left R x :=
+(@continuous_linear_map.lsmul R γ _ _ _ R _ _ _ _).flip.map_smul c x
+
+lemma lsmul_left_smul (𝕜) [nondiscrete_normed_field 𝕜] [semi_normed_space 𝕜 γ]
+  [smul_comm_class R 𝕜 γ] (c : 𝕜) (x : γ) :
+  lsmul_left R (c • x) = c • lsmul_left R x :=
 begin
-  simp only [rsmul],
+  simp only [lsmul_left],
   ext1,
-  rw continuous_linear_map.flip_apply,
-  rw continuous_linear_map.lsmul_apply,
-  rw continuous_linear_map.lsmul_apply,
-  sorry,
+  rw [continuous_linear_map.flip_apply, continuous_linear_map.smul_apply,
+    continuous_linear_map.flip_apply, continuous_linear_map.lsmul_apply,
+    continuous_linear_map.lsmul_apply, smul_comm],
 end
 
-lemma indicator_const_Lp_eq_rsmul_comp_Lp [normed_space ℝ F] (hs : measurable_set s)
+end lsmul_left
+
+lemma indicator_const_Lp_eq_lsmul_left_comp_Lp [normed_space ℝ F] (hs : measurable_set s)
   (hμs : μ s ≠ ∞) (x : F) :
-  indicator_const_Lp 2 hs hμs x = (rsmul x).comp_Lp (indicator_const_Lp 2 hs hμs (1 : ℝ)) :=
+  indicator_const_Lp 2 hs hμs x = (lsmul_left ℝ x).comp_Lp (indicator_const_Lp 2 hs hμs (1 : ℝ)) :=
 begin
   ext1,
   refine indicator_const_Lp_coe_fn.trans _,
-  have h_comp_Lp := (rsmul x).coe_fn_comp_Lp (indicator_const_Lp 2 hs hμs (1 : ℝ)),
+  have h_comp_Lp := (lsmul_left ℝ x).coe_fn_comp_Lp (indicator_const_Lp 2 hs hμs (1 : ℝ)),
   rw ← eventually_eq at h_comp_Lp,
   refine eventually_eq.trans _ h_comp_Lp.symm,
   refine (@indicator_const_Lp_coe_fn _ _ _ 2 μ _ _ s hs hμs (1 : ℝ) _ _).mono (λ y hy, _),
   dsimp only,
   rw hy,
-  simp_rw [rsmul],
-  by_cases hy_mem : y ∈ s; simp [hy_mem],
+  simp_rw [lsmul_left],
+  by_cases hy_mem : y ∈ s; simp [hy_mem, continuous_linear_map.lsmul_apply],
 end
 
 section condexp_L2_indicator
@@ -810,23 +813,23 @@ lemma condexp_L2_indicator_ae_eq_smul (hm : m ≤ m0) (hs : measurable_set s) (h
   condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs x)
     =ᵐ[μ] λ a, (condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ)) a) • x :=
 begin
-  rw indicator_const_Lp_eq_rsmul_comp_Lp hs hμs x,
-  have h_comp := condexp_L2_comp_continuous_linear_map ℝ 𝕜 hm (rsmul x)
+  rw indicator_const_Lp_eq_lsmul_left_comp_Lp hs hμs x,
+  have h_comp := condexp_L2_comp_continuous_linear_map ℝ 𝕜 hm (lsmul_left ℝ x)
     (indicator_const_Lp 2 hs hμs (1 : ℝ)),
   rw ← Lp_meas_coe at h_comp,
   refine h_comp.trans _,
-  exact (rsmul x).coe_fn_comp_Lp _,
+  exact (lsmul_left ℝ x).coe_fn_comp_Lp _,
 end
 
-lemma condexp_L2_indicator_eq_rsmul_comp (hm : m ≤ m0) (hs : measurable_set s) (hμs : μ s ≠ ∞)
+lemma condexp_L2_indicator_eq_lsmul_left_comp (hm : m ≤ m0) (hs : measurable_set s) (hμs : μ s ≠ ∞)
   (x : E') :
   (condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs x) : α →₂[μ] E')
-    = (rsmul x).comp_Lp (condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ))) :=
+    = (lsmul_left ℝ x).comp_Lp (condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ))) :=
 begin
   ext1,
   rw ← Lp_meas_coe,
   refine (condexp_L2_indicator_ae_eq_smul 𝕜 hm hs hμs x).trans _,
-  have h_comp :=  (rsmul x).coe_fn_comp_Lp
+  have h_comp :=  (lsmul_left ℝ x).coe_fn_comp_Lp
     (condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ)) : α →₂[μ] ℝ),
   rw ← eventually_eq at h_comp,
   refine eventually_eq.trans _ h_comp.symm,
@@ -886,10 +889,10 @@ lemma condexp_L2_indicator_add (hs : measurable_set s) (hμs : μ s ≠ ∞) (x 
 begin
   ext1,
   push_cast,
-  rw [condexp_L2_indicator_eq_rsmul_comp 𝕜 hm hs hμs x,
-    condexp_L2_indicator_eq_rsmul_comp 𝕜 hm hs hμs y,
-    condexp_L2_indicator_eq_rsmul_comp 𝕜 hm hs hμs (x + y),
-    rsmul_add x y, continuous_linear_map.add_comp_Lp],
+  rw [condexp_L2_indicator_eq_lsmul_left_comp 𝕜 hm hs hμs x,
+    condexp_L2_indicator_eq_lsmul_left_comp 𝕜 hm hs hμs y,
+    condexp_L2_indicator_eq_lsmul_left_comp 𝕜 hm hs hμs (x + y),
+    lsmul_left_add ℝ x y, continuous_linear_map.add_comp_Lp],
 end
 
 lemma condexp_L2_indicator_smul (hs : measurable_set s) (hμs : μ s ≠ ∞) (c : 𝕜) (x : E') :
@@ -898,9 +901,9 @@ lemma condexp_L2_indicator_smul (hs : measurable_set s) (hμs : μ s ≠ ∞) (c
 begin
   ext1,
   push_cast,
-  rw [condexp_L2_indicator_eq_rsmul_comp 𝕜 hm hs hμs x,
-    condexp_L2_indicator_eq_rsmul_comp 𝕜 hm hs hμs (c • x),
-    rsmul_smul 𝕜 c x, continuous_linear_map.smul_comp_Lp c (rsmul x)],
+  rw [condexp_L2_indicator_eq_lsmul_left_comp 𝕜 hm hs hμs x,
+    condexp_L2_indicator_eq_lsmul_left_comp 𝕜 hm hs hμs (c • x),
+    lsmul_left_smul ℝ 𝕜 c x, continuous_linear_map.smul_comp_Lp c (lsmul_left ℝ x)],
 end
 
 lemma condexp_L2_indicator_smul_real (hs : measurable_set s) (hμs : μ s ≠ ∞) (c : ℝ) (x : E') :
@@ -909,9 +912,9 @@ lemma condexp_L2_indicator_smul_real (hs : measurable_set s) (hμs : μ s ≠ �
 begin
   ext1,
   push_cast,
-  rw [condexp_L2_indicator_eq_rsmul_comp 𝕜 hm hs hμs x,
-    condexp_L2_indicator_eq_rsmul_comp 𝕜 hm hs hμs (c • x), rsmul_smul_real c x,
-    continuous_linear_map.smul_comp_Lp c (rsmul x), is_R_or_C.of_real_alg, smul_assoc, one_smul],
+  rw [condexp_L2_indicator_eq_lsmul_left_comp 𝕜 hm hs hμs x,
+    condexp_L2_indicator_eq_lsmul_left_comp 𝕜 hm hs hμs (c • x), lsmul_left_smul_real ℝ c x,
+    continuous_linear_map.smul_comp_Lp c (lsmul_left ℝ x), is_R_or_C.of_real_alg, smul_assoc, one_smul],
 end
 
 end condexp_L2_indicator

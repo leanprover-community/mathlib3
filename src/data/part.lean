@@ -7,6 +7,38 @@ import data.equiv.basic
 
 /-!
 # Partial values of a type
+
+What to do when you only want to provide a term of `α` against the proof of your favorite
+proposition? Use partial values™!
+"But we already have `option α`..." I hear. Que nenni! What if your proposition isn't decidable
+because you don't believe in the excluded middle? Use partial values™!
+Ask for partial values at your local mathlib® distribution. To be found under reference `part α`.
+
+## Main declarations
+
+`option`-like declarations:
+* `part.none`: The partial value whose domain is `false`.
+* `part.some a`: The partial value whose domain is `true` and whose value is `a`.
+* `part.of_option`: Converts an `option α` to a `part α` by sending `none` to `none` and `some a` to
+  `some a`.
+* `part.to_option`: Converts a `part α` with a decidable domain to an `option α`.
+* `part.equiv_option`: Classical equivalence between `part α` and `option α`.
+
+Monadic structure:
+* `part.bind`: `o.bind f` has value `(f (o.get _)).get _` (`f o` morally) and is defined when `o`
+  and `f (o.get _)` are defined.
+* `part.map`: Maps the value and keeps the same domain.
+
+Other:
+* `part.restrict`: `part.restrict p o` replaces the domain of `o : part α` by `p : Prop` so long as
+  `p → o.dom`.
+* `part.assert`: `assert p f` appends `p` to the domains of the values of a partial function.
+* `part.unwrap`: Gets the value of a partial value regardless of its domain. Unsound.
+
+## Notation
+
+For `a : α`, `o : part α`, `a ∈ o` means that `o` is defined and equal to `a`. Formally, it means
+`o.dom` and `o.get _ = a`.
 -/
 
 /-- `part α` is the type of "partial values" of type `α`. It
@@ -42,7 +74,7 @@ instance : has_mem α (part α) := ⟨part.mem⟩
 theorem mem_eq (a : α) (o : part α) : (a ∈ o) = (∃ h, o.get h = a) :=
 rfl
 
-theorem dom_iff_mem : ∀ {o : part α}, o.dom ↔ ∃y, y ∈ o
+theorem dom_iff_mem : ∀ {o : part α}, o.dom ↔ ∃ y, y ∈ o
 | ⟨p, f⟩ := ⟨λh, ⟨f h, h, rfl⟩, λ⟨_, h, rfl⟩, h⟩
 
 theorem get_mem {o : part α} (h) : get o h ∈ o := ⟨_, rfl⟩
@@ -95,7 +127,7 @@ theorem eq_none_iff' {o : part α} : o = none ↔ ¬ o.dom :=
 lemma some_ne_none (x : α) : some x ≠ none :=
 by { intro h, change none.dom, rw [← h], trivial }
 
-lemma ne_none_iff {o : part α} : o ≠ none ↔ ∃x, o = some x :=
+lemma ne_none_iff {o : part α} : o ≠ none ↔ ∃ x, o = some x :=
 begin
   split,
   { rw [ne, eq_none_iff], intro h, push_neg at h, cases h with x hx, use x, rwa [eq_some_iff] },
@@ -224,7 +256,7 @@ end
 /-- `assert p f` is a bind-like operation which appends an additional condition
   `p` to the domain and uses `f` to produce the value. -/
 def assert (p : Prop) (f : p → part α) : part α :=
-⟨∃h : p, (f h).dom, λha, (f ha.fst).get ha.snd⟩
+⟨∃ h : p, (f h).dom, λha, (f ha.fst).get ha.snd⟩
 
 /-- The bind operation has value `g (f.get)`, and is defined when all the
   parts are defined. -/

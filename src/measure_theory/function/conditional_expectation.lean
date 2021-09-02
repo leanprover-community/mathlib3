@@ -1190,36 +1190,51 @@ by { ext1, push_cast, exact condexp_ind_disjoint_union_apply hs ht hμs hμt hst
 
 end condexp_ind
 
+section condexp_L1
+
+local attribute [instance] fact_one_le_one_ennreal
+
+variables {𝕜} {m m0 : measurable_space α} {μ : measure α} [borel_space 𝕜] [is_scalar_tower ℝ 𝕜 F']
+  {hm : m ≤ m0} [sigma_finite (μ.trim hm)] {f : α → F'}
+
+def condexp_L1 (hm : m ≤ m0) (μ : measure α) [sigma_finite (μ.trim hm)] :
+  (α →₁[μ] F') →L[ℝ] α →₁[μ] F' :=
+L1.set_to_L1_clm (@condexp_ind α F' _ _ _ _ _ _ _ hm μ _) (λ s t, condexp_ind_disjoint_union)
+  zero_le_one (λ s, norm_condexp_ind_le.trans (one_mul _).symm.le)
+
+lemma condexp_L1_smul (c : 𝕜) (f : α →₁[μ] F') : condexp_L1 hm μ (c • f) = c • condexp_L1 hm μ f :=
+map_smul (L1.set_to_L1_clm' 𝕜 (@condexp_ind α F' _ _ _ _ _ _ _ hm μ _)
+  (λ s t, condexp_ind_disjoint_union) (λ c s x, condexp_ind_smul c x) zero_le_one
+  (λ s, norm_condexp_ind_le.trans (one_mul _).symm.le))
+  c f
+
+end condexp_L1
+
 section condexp
 
-variables (𝕜) {m m0 : measurable_space α} {μ : measure α}
-  [borel_space 𝕜] [is_scalar_tower ℝ 𝕜 E'] {hm : m ≤ m0} [sigma_finite (μ.trim hm)]
-  {f : α → E'}
+open_locale classical
 
-def condexp (hm : m ≤ m0) (μ : measure α) [sigma_finite (μ.trim hm)] (f : α → E') : α → E' :=
-if hf : integrable f μ then condexp_L1 𝕜 hm (hf.to_L1 f) else 0
+variables {𝕜} {m m0 : measurable_space α} {ℙ : measure α} [borel_space 𝕜] [is_scalar_tower ℝ 𝕜 F']
+  {hm : m ≤ m0} [sigma_finite (ℙ.trim hm)] {f : α → F'}
 
-notation `E(` μ `)[` f `]` := ∫ x, f x ∂μ
+def condexp (hm : m ≤ m0) (ℙ : measure α) [sigma_finite (ℙ.trim hm)] (f : α → F') : α → F' :=
+if hf : integrable f ℙ then condexp_L1 hm ℙ (hf.to_L1 f) else 0
 
-notation `𝔼(` μ `,` 𝕜 `)[` f `|` hm `]` := condexp 𝕜 hm μ f -- 𝕜 should disappear once we generalize
+notation  ℙ `[` f `]` := ∫ x, f x ∂ℙ
+notation  ℙ `[` f `|` hm `]` := condexp hm ℙ f
 
-variables {𝕜}
-
-lemma condexp_eq_condexp_L1_of_integrable (hf : integrable f μ) :
-  𝔼(μ,𝕜)[f | hm] = condexp_L1 𝕜 hm (hf.to_L1 f) :=
+lemma condexp_eq_condexp_L1_of_integrable (hf : integrable f ℙ) :
+  ℙ[f | hm] = condexp_L1 hm ℙ (hf.to_L1 f) :=
 by simp only [condexp, hf, dif_pos]
 
-lemma condexp_eq_zero_of_not_integrable (hf : ¬ integrable f μ) : 𝔼(μ,𝕜)[f | hm] = 0 :=
+lemma condexp_eq_zero_of_not_integrable (hf : ¬ integrable f ℙ) : ℙ[f | hm] = 0 :=
 by simp only [condexp, hf, dif_neg, not_false_iff]
 
-lemma integrable_condexp (f : α → E') : integrable 𝔼(μ,𝕜)[f | hm] μ :=
+lemma integrable_condexp (f : α → F') : integrable (ℙ[f | hm]) ℙ :=
 begin
-  by_cases hf : integrable f μ,
-  { rw condexp_eq_condexp_L1_of_integrable hf,
-    rw ← mem_ℒp_one_iff_integrable,
-    exact Lp.mem_ℒp _, },
-  { rw condexp_eq_zero_of_not_integrable hf,
-    exact integrable_zero _ _ _, },
+  by_cases hf : integrable f ℙ,
+  { rw [condexp_eq_condexp_L1_of_integrable hf, ← mem_ℒp_one_iff_integrable], exact Lp.mem_ℒp _, },
+  { rw condexp_eq_zero_of_not_integrable hf, exact integrable_zero _ _ _, },
 end
 
 end condexp

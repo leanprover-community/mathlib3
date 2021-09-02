@@ -64,9 +64,17 @@ lemma is_symm_transpose_add_self [fintype n] [add_comm_semigroup α] (A : matrix
   (Aᵀ + A).is_symm :=
 add_comm _ _
 
+@[simp] lemma is_symm_zero [has_zero α] :
+  (0 : matrix n n α).is_symm :=
+transpose_zero
+
 @[simp] lemma is_symm_one [decidable_eq n] [has_zero α] [has_one α] :
   (1 : matrix n n α).is_symm :=
 transpose_one
+
+lemma is_symm.map {A : matrix n n α} (h : A.is_symm) (f : α → β) :
+  (A.map f).is_symm :=
+transpose_map.symm.trans (h.symm ▸ rfl)
 
 lemma is_symm.transpose {A : matrix n n α} (h : A.is_symm) :
   Aᵀ.is_symm :=
@@ -75,10 +83,6 @@ congr_arg _ h
 lemma is_symm.conj_transpose [has_star α] {A : matrix n n α} (h : A.is_symm) :
   Aᴴ.is_symm :=
 h.transpose.map _
-
-lemma is_symm.map {A : matrix n n α} (h : A.is_symm) (f : α → β) :
-  (A.map f).is_symm :=
-transpose_map.symm.trans (h.symm ▸ rfl)
 
 @[simp] lemma is_symm.neg [has_neg α] {A : matrix n n α} (h : A.is_symm) :
   (-A).is_symm :=

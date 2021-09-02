@@ -86,7 +86,7 @@ is_sym_one.smul k
 
 /-- The diagonal matrix `diagonal v` is symmetric. -/
 @[simp] lemma is_sym_diagonal [decidable_eq n] [has_zero α] (v : n → α) :
-(diagonal v).is_sym :=
+  (diagonal v).is_sym :=
 begin
   ext,
   by_cases i = j; simp [*, diagonal],

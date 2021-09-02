@@ -1170,7 +1170,7 @@ begin
   apply dot_product_comm
 end
 
-@[simp] lemma transpose_smul [semiring α] (c : α) (M : matrix m n α) :
+@[simp] lemma transpose_smul {R : Type*} [has_scalar R α] (c : R) (M : matrix m n α) :
   (c • M)ᵀ = c • Mᵀ :=
 by { ext i j, refl }
 

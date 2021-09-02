@@ -91,7 +91,7 @@ h.transpose.map _
 @[simp] lemma is_symm.smul
 [has_scalar R α] {A : matrix n n α} (h : A.is_symm) (k : R) :
 (k • A).is_symm :=
-by ext; simp [h.apply']
+(transpose_smul _ _).trans (congr_arg _ h)
 
 /-- The diagonal matrix `diagonal v` is symmetric. -/
 @[simp] lemma is_symm_diagonal [decidable_eq n] [has_zero α] (v : n → α) :

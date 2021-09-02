@@ -205,7 +205,7 @@ meta def slim_check (cfg : slim_check_cfg := {}) : tactic unit := do
                trace_success           := cfg.trace_success
                 || is_trace_enabled_for `slim_check.success },
   inst ← mk_app ``testable [tgt'] >>= mk_instance <|>
-    fail!"Failed to create a `testable` instance for `{tgt}`.
+    fail!("Failed to create a `testable` instance for `{tgt}`.
 What to do:
 1. make sure that the types you are using have `slim_check.sampleable` instances (you can use" ++
 " `#sample my_type` if you are unsure);
@@ -220,7 +220,7 @@ Use `set_option trace.class_instances true` to understand what instances are mis
 
 Try this:
 set_option trace.class_instances true
-#check (by apply_instance : slim_check.testable ({tgt'}))",
+#check (by apply_instance : slim_check.testable ({tgt'}))"),
   e ← mk_mapp ``testable.check [tgt, `(cfg), tgt', inst],
   when_tracing `slim_check.decoration trace!"[testable decoration]\n  {tgt'}",
   when_tracing `slim_check.instance   $ do

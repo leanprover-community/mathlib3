@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
 import tactic.monotonicity.interactive
 
@@ -63,7 +63,8 @@ do x ← to_expr ``(7 + 3 : ℕ) >>= check_ac,
    let y := "(some (is_left_id.left_id, (is_right_id.right_id, 0)))",
    guard (x.to_string = y) <|> fail ("guard: " ++ x.to_string)
 
-meta def test_pp {α} [has_to_tactic_format α] (tag : format) (expected : string) (prog : tactic α) : tactic unit :=
+meta def test_pp {α} [has_to_tactic_format α] (tag : format) (expected : string) (prog : tactic α) :
+  tactic unit :=
 do r ← prog,
    pp_r ← pp r,
    guard (pp_r.to_string = expected) <|> fail format!"test_pp: {tag}"
@@ -78,3 +79,25 @@ do test_pp "test1"
    test_pp "test3"
            "([3] ++ [2], ([5] ++ [4], ([], append (some [1]) _ (some [2]))))"
            (parse_mono_function' ``([1] ++ [3] ++ [2] ++ [2]) ``([1] ++ [5] ++ ([4] ++ [2])))
+
+def my_id {α : Type*} : α → α := id
+
+@[mono]
+lemma test_monotone {α : Type*} [preorder α] : monotone (my_id : α → α) :=
+λ x y h, h
+
+example : my_id 0 ≤ my_id 1 :=
+begin
+  mono,
+  simp,
+end
+
+@[mono]
+lemma test_strict_mono {α : Type*} [preorder α] : strict_mono (my_id : α → α) :=
+λ x y h, h
+
+example : my_id 0 < my_id 1 :=
+begin
+  mono,
+  simp,
+end

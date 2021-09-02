@@ -92,7 +92,7 @@ theorem nodupkeys_join {L : list (list (sigma β))} :
 begin
   rw [nodupkeys_iff_pairwise, pairwise_join, pairwise_map],
   refine and_congr (ball_congr $ λ l h, by simp [nodupkeys_iff_pairwise]) _,
-  apply iff_of_eq, congr', ext l₁ l₂,
+  apply iff_of_eq, congr' with l₁ l₂,
   simp [keys, disjoint_iff_ne]
 end
 
@@ -103,12 +103,12 @@ lemma mem_ext {l₀ l₁ : list (sigma β)}
   (nd₀ : l₀.nodup) (nd₁ : l₁.nodup)
   (h : ∀ x, x ∈ l₀ ↔ x ∈ l₁) : l₀ ~ l₁ :=
 begin
-  induction l₀ with x xs generalizing l₁; cases l₁ with x ys,
+  induction l₀ with x xs generalizing l₁; cases l₁ with y ys,
   { constructor },
   iterate 2
-  { specialize h x, simp at h,
+  { specialize h x <|> specialize h y, simp at h,
     cases h },
-  simp at nd₀ nd₁, rename x y, classical,
+  simp at nd₀ nd₁, classical,
   cases nd₀, cases nd₁,
   by_cases h' : x = y,
   { subst y, constructor, apply l₀_ih ‹ _ › ‹ nodup ys ›,
@@ -118,7 +118,7 @@ begin
     { simp [h'] at h, exact h } },
   { transitivity x :: y :: ys.erase x,
     { constructor, apply l₀_ih ‹ _ ›,
-      { simp, split, { intro, apply nd₁_left, apply mem_of_mem_erase a },
+      { simp, split, { intro, apply nd₁_left, apply mem_of_mem_erase ‹_› },
         apply nodup_erase_of_nodup; assumption },
       { intro a, specialize h a, simp at h,
         by_cases h' : a = x,
@@ -161,11 +161,7 @@ end
 
 theorem lookup_eq_none {a : α} {l : list (sigma β)} :
   lookup a l = none ↔ a ∉ l.keys :=
-begin
-  have := not_congr (@lookup_is_some _ _ _ a l),
-  simp at this, refine iff.trans _ this,
-  cases lookup a l; exact dec_trivial
-end
+by simp [← lookup_is_some, option.is_none_iff_eq_none]
 
 theorem of_mem_lookup
   {a : α} {b : β a} : ∀ {l : list (sigma β)}, b ∈ lookup a l → sigma.mk a b ∈ l
@@ -228,7 +224,7 @@ theorem lookup_all_eq_nil {a : α} : ∀ {l : list (sigma β)},
 | []             := by simp
 | (⟨a', b⟩ :: l) := begin
   by_cases h : a = a',
-  { subst a', simp, exact ⟨_, or.inl rfl⟩ },
+  { subst a', simp },
   { simp [h, lookup_all_eq_nil] },
 end
 
@@ -435,8 +431,7 @@ begin
     { substs h₁ h₂, cases ne.irrefl h },
     { subst h₁, simp [h₂] },
     { subst h₂, simp [h] },
-    { simp [h₁, h₂, ih] }
-  }
+    { simp [h₁, h₂, ih] } }
 end
 
 theorem kerase_append_left {a} : ∀ {l₁ l₂ : list (sigma β)},
@@ -475,6 +470,16 @@ else if ha₁ : a₁ ∈ l.keys then
     by simp [ha₂, mt mem_keys_of_mem_keys_kerase ha₂]
 else
   by simp [ha₁, mt mem_keys_of_mem_keys_kerase ha₁]
+
+lemma sizeof_kerase {α} {β : α → Type*} [decidable_eq α] [has_sizeof (sigma β)] (x : α)
+  (xs : list (sigma β)) :
+  sizeof (list.kerase x xs) ≤ sizeof xs :=
+begin
+  unfold_wf,
+  induction xs with y ys,
+  { simp },
+  { by_cases x = y.1; simp [*, list.sizeof] },
+end
 
 /- kinsert -/
 
@@ -549,6 +554,18 @@ begin
   by_cases a = a',
   { subst a', rw [erase_dupkeys_cons,lookup_kinsert,lookup_cons_eq] },
   { rw [erase_dupkeys_cons,lookup_kinsert_ne h,l_ih,lookup_cons_ne], exact h },
+end
+
+lemma sizeof_erase_dupkeys {α} {β : α → Type*} [decidable_eq α] [has_sizeof (sigma β)]
+  (xs : list (sigma β)) :
+  sizeof (list.erase_dupkeys xs) ≤ sizeof xs :=
+begin
+  unfold_wf,
+  induction xs with x xs,
+  { simp [list.erase_dupkeys] },
+  { simp only [erase_dupkeys_cons, list.sizeof, kinsert_def, add_le_add_iff_left, sigma.eta],
+    transitivity, apply sizeof_kerase,
+    assumption }
 end
 
 /- kunion -/

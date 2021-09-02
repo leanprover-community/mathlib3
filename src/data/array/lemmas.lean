@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import control.traversable.equiv
-import data.vector2
+import data.vector.basic
 
 universes u v w
 
@@ -52,7 +52,7 @@ theorem mem.def : v ∈ a ↔ ∃ i, a.read i = v :=
 iff.rfl
 
 theorem mem_rev_list_aux : ∀ {i} (h : i ≤ n),
-  (∃ (j : fin n), j.1 < i ∧ read a j = v) ↔ v ∈ a.iterate_aux (λ _, (::)) i h []
+  (∃ (j : fin n), (j : ℕ) < i ∧ read a j = v) ↔ v ∈ a.iterate_aux (λ _, (::)) i h []
 | 0     _ := ⟨λ ⟨i, n, _⟩, absurd n i.val.not_lt_zero, false.elim⟩
 | (i+1) h := let IH := mem_rev_list_aux (le_of_lt h) in
   ⟨λ ⟨j, ji1, e⟩, or.elim (lt_or_eq_of_le $ nat.le_of_succ_le_succ ji1)
@@ -134,14 +134,14 @@ theorem to_list_nth_le_aux (i : ℕ) (ih : i < n) : ∀ j {jh t h'},
   show list.nth_le (a.read ⟨j, jh⟩ :: t) k tl = a.read ⟨i, ih⟩, from
   match k, hjk, tl with
   | 0,    e, tl := match i, e, ih with ._, rfl, _ := rfl end
-  | k'+1, _, tl := by simp[list.nth_le]; exact al _ _ (by simp [*]; cc)
+  | k'+1, _, tl := by simp[list.nth_le]; exact al _ _ (by simp [add_comm, add_assoc, *]; cc)
   end
 
 theorem to_list_nth_le (i : ℕ) (h h') : list.nth_le a.to_list i h' = a.read ⟨i, h⟩ :=
 to_list_nth_le_aux _ _ _ (λ k tl, absurd tl k.not_lt_zero)
 
 @[simp] theorem to_list_nth_le' (a : array n α) (i : fin n) (h') :
-  list.nth_le a.to_list i.1 h' = a.read i :=
+  list.nth_le a.to_list i h' = a.read i :=
 by cases i; apply to_list_nth_le
 
 theorem to_list_nth {i v} : list.nth a.to_list i = some v ↔ ∃ h, a.read ⟨i, h⟩ = v :=
@@ -153,13 +153,13 @@ begin
   { exact ⟨ll.symm ▸ h, to_list_nth_le _ _ _⟩ }
 end
 
-theorem write_to_list {i v} : (a.write i v).to_list = a.to_list.update_nth i.1 v :=
+theorem write_to_list {i v} : (a.write i v).to_list = a.to_list.update_nth i v :=
 list.ext_le (by simp) $ λ j h₁ h₂, begin
   have h₃ : j < n, {simpa using h₁},
   rw [to_list_nth_le _ h₃],
   refine let ⟨_, e⟩ := list.nth_eq_some.1 _ in e.symm,
-  by_cases ij : i.1 = j,
-  { subst j, rw [show fin.mk i.val h₃ = i, from fin.eq_of_veq rfl,
+  by_cases ij : (i : ℕ) = j,
+  { subst j, rw [show (⟨(i : ℕ), h₃⟩ : fin _) = i, from fin.eq_of_veq rfl,
       array.read_write, list.nth_update_nth_of_lt],
     simp [h₃] },
   { rw [list.nth_update_nth_ne _ _ ij, a.read_write_of_ne,
@@ -191,7 +191,7 @@ heq_of_heq_of_eq
   d_array.ext $ λ ⟨i, h⟩, to_list_nth_le i h _
 
 @[simp] theorem to_array_to_list (l : list α) : l.to_array.to_list = l :=
-list.ext_le (to_list_length _) $ λ n h1 h2, to_list_nth_le _ _ _
+list.ext_le (to_list_length _) $ λ n h1 h2, to_list_nth_le _ h2 _
 
 end to_array
 
@@ -222,6 +222,20 @@ end
 
 @[simp] theorem push_back_to_list : (a.push_back v).to_list = a.to_list ++ [v] :=
 by rw [←rev_list_reverse, ←rev_list_reverse, push_back_rev_list, list.reverse_cons]
+
+@[simp] lemma read_push_back_left (i : fin n) : (a.push_back v).read i.cast_succ = a.read i :=
+begin
+  cases i with i hi,
+  have : ¬ i = n := ne_of_lt hi,
+  simp [push_back, this, fin.cast_succ, fin.cast_add, fin.cast_le, fin.cast_lt, read, d_array.read]
+end
+
+@[simp] lemma read_push_back_right : (a.push_back v).read (fin.last _) = v :=
+begin
+  cases hn : fin.last n with k hk,
+  have : k = n := by simpa [fin.eq_iff_veq ] using hn.symm,
+  simp [push_back, this, fin.cast_succ, fin.cast_add, fin.cast_le, fin.cast_lt, read, d_array.read]
+end
 
 end push_back
 
@@ -259,15 +273,20 @@ end array
 
 namespace equiv
 
-def d_array_equiv_fin {n : ℕ} (α : fin n → Type*) : d_array n α ≃ (∀ i, α i) :=
+/-- The natural equivalence between length-`n` heterogeneous arrays
+and dependent functions from `fin n`. -/
+def d_array_equiv_fin {n : ℕ} (α : fin n → Type*) : d_array n α ≃ (Π i, α i) :=
 ⟨d_array.read, d_array.mk, λ ⟨f⟩, rfl, λ f, rfl⟩
 
+/-- The natural equivalence between length-`n` arrays and functions from `fin n`. -/
 def array_equiv_fin (n : ℕ) (α : Type*) : array n α ≃ (fin n → α) :=
 d_array_equiv_fin _
 
+/-- The natural equivalence between length-`n` vectors and functions from `fin n`. -/
 def vector_equiv_fin (α : Type*) (n : ℕ) : vector α n ≃ (fin n → α) :=
 ⟨vector.nth, vector.of_fn, vector.of_fn_nth, λ f, funext $ vector.nth_of_fn f⟩
 
+/-- The natural equivalence between length-`n` vectors and length-`n` arrays. -/
 def vector_equiv_array (α : Type*) (n : ℕ) : vector α n ≃ array n α :=
 (vector_equiv_fin _ _).trans (array_equiv_fin _ _).symm
 

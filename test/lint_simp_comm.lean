@@ -1,18 +1,19 @@
 import tactic.lint
+import algebra.group.basic
 
 /-! ## Commutativity lemmas should be rejected  -/
 
 attribute [simp] add_comm add_left_comm
 
 open tactic
-#eval do
+run_cmd do
 decl ← get_decl ``add_comm,
 res ← linter.simp_comm.test decl,
 -- linter complains
 guard res.is_some
 
 open tactic
-#eval do
+run_cmd do
 decl ← get_decl ``add_left_comm,
 res ← linter.simp_comm.test decl,
 -- linter complains
@@ -36,7 +37,7 @@ end
 
 open tactic
 set_option pp.all true
-#eval do
+run_cmd do
 decl ← get_decl ``list.filter_congr_decidable,
 res ← linter.simp_comm.test decl,
 -- linter does not complain

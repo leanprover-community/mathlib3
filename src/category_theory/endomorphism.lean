@@ -5,7 +5,6 @@ Authors: Yury Kudryashov, Scott Morrison, Simon Hudon
 
 Definition and basic properties of endomorphisms and automorphisms of an object in a category.
 -/
-import category_theory.category
 import category_theory.groupoid
 import data.equiv.mul_add
 
@@ -13,22 +12,29 @@ universes v v' u u'
 
 namespace category_theory
 
-/-- Endomorphisms of an object in a category. Arguments order in multiplication agrees with `function.comp`, not with `category.comp`. -/
-def End {C : Type u} [𝒞_struct : category_struct.{v} C] (X : C) := X ⟶ X
+/-- Endomorphisms of an object in a category. Arguments order in multiplication agrees with
+`function.comp`, not with `category.comp`. -/
+def End {C : Type u} [category_struct.{v} C] (X : C) := X ⟶ X
 
 namespace End
 
 section struct
 
-variables {C : Type u} [𝒞_struct : category_struct.{v} C] (X : C)
-include 𝒞_struct
+variables {C : Type u} [category_struct.{v} C] (X : C)
 
 instance has_one : has_one (End X) := ⟨𝟙 X⟩
+instance inhabited : inhabited (End X) := ⟨𝟙 X⟩
 
 /-- Multiplication of endomorphisms agrees with `function.comp`, not `category_struct.comp`. -/
 instance has_mul : has_mul (End X) := ⟨λ x y, y ≫ x⟩
 
 variable {X}
+
+/-- Assist the typechecker by expressing a morphism `X ⟶ X` as a term of `End X`. -/
+def of (f : X ⟶ X) : End X := f
+
+/-- Assist the typechecker by expressing an endomorphism `f : End X` as a term of `X ⟶ X`. -/
+def as_hom (f : End X) : X ⟶ X := f
 
 @[simp] lemma one_def : (1 : End X) = 𝟙 X := rfl
 
@@ -49,18 +55,40 @@ instance group {C : Type u} [groupoid.{v} C] (X : C) : group (End X) :=
 
 end End
 
+lemma is_unit_iff_is_iso {C : Type u} [category.{v} C] {X : C} (f : End X) :
+  is_unit (f : End X) ↔ is_iso f :=
+⟨λ h, { out := ⟨h.unit.inv,
+  ⟨by { convert h.unit.inv_val, exact h.unit_spec.symm, },
+    by { convert h.unit.val_inv, exact h.unit_spec.symm, }⟩⟩ },
+  λ h, by exactI ⟨⟨f, inv f, by simp, by simp⟩, rfl⟩⟩
+
 variables {C : Type u} [category.{v} C] (X : C)
 
+/--
+Automorphisms of an object in a category.
+
+The order of arguments in multiplication agrees with
+`function.comp`, not with `category.comp`.
+-/
 def Aut (X : C) := X ≅ X
 
 attribute [ext Aut] iso.ext
 
 namespace Aut
 
+instance inhabited : inhabited (Aut X) := ⟨iso.refl X⟩
+
 instance : group (Aut X) :=
-by refine { one := iso.refl X,
-            inv := iso.symm,
-            mul := flip iso.trans, .. } ; dunfold flip; obviously
+by refine_struct
+{ one := iso.refl X,
+  inv := iso.symm,
+  mul := flip iso.trans,
+  div := _,
+  npow := @npow_rec (Aut X) ⟨iso.refl X⟩ ⟨flip iso.trans⟩,
+  gpow := @gpow_rec (Aut X) ⟨iso.refl X⟩ ⟨flip iso.trans⟩ ⟨iso.symm⟩ };
+intros; try { refl }; ext;
+simp [flip, (*), monoid.mul, mul_one_class.mul, mul_one_class.one, has_one.one, monoid.one,
+  has_inv.inv]
 
 /--
 Units in the monoid of endomorphisms of an object
@@ -80,7 +108,7 @@ namespace functor
 variables {D : Type u'} [category.{v'} D] (f : C ⥤ D) (X)
 
 /-- `f.map` as a monoid hom between endomorphism monoids. -/
-def map_End : End X →* End (f.obj X) :=
+@[simps] def map_End : End X →* End (f.obj X) :=
 { to_fun := functor.map f,
   map_mul' := λ x y, f.map_comp y x,
   map_one' := f.map_id X }

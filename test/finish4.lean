@@ -1,18 +1,19 @@
 /-
 Copyright (c) 2019 Jesse Michael Han. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author(s): Jesse Michael Han 
+Author(s): Jesse Michael Han
 
 Tests for `finish using [...]`
 -/
 
 import tactic.finish
+import algebra.ordered_ring
 
 section list_rev
 open list
 variable {α : Type*}
 
-def append1 (a : α) : list α → list α 
+def append1 (a : α) : list α → list α
 | nil      := [a]
 | (b :: l) := b :: (append1 l)
 
@@ -43,7 +44,10 @@ by finish using [h barber]
 end barber
 
 constant real : Type
-@[instance] constant  orreal : ordered_ring real
+@[instance] constant orreal : ordered_ring real
+
+-- TODO(Mario): suspicious fix
+@[irreducible] noncomputable instance : has_lt real := by apply_instance
 constants (log exp : real → real)
 constant  log_exp_eq : ∀ x, log (exp x) = x
 constant  exp_log_eq : ∀ {x}, x > 0 → exp (log x) = x

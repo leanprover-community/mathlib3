@@ -1,11 +1,12 @@
 /-
 Copyright (c) 2017 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 
 Instances for identity and composition functors
 -/
 import control.functor
+import algebra.group.basic
 
 universe variables u v w
 
@@ -16,8 +17,6 @@ open function
 variables {F : Type u → Type v}
 variables [applicative F] [is_lawful_applicative F]
 variables {α β γ σ : Type u}
-
-attribute [functor_norm] seq_assoc pure_seq_eq_map map_pure seq_map_assoc map_seq
 
 lemma applicative.map_seq_map (f : α → β → γ) (g : σ → β) (x : F α) (y : F σ) :
   (f <$> x) <*> (g <$> y) = (flip (∘) g ∘ f) <$> x <*> y :=
@@ -54,6 +53,7 @@ end lemmas
 instance : is_comm_applicative id :=
 by refine { .. }; intros; refl
 
+namespace functor
 namespace comp
 
 open function (hiding comp)
@@ -62,27 +62,6 @@ open functor
 variables {F : Type u → Type w} {G : Type v → Type u}
 
 variables [applicative F] [applicative G]
-
-protected def seq {α β : Type v} : comp F G (α → β) → comp F G α → comp F G β
-| (comp.mk f) (comp.mk x) := comp.mk $ (<*>) <$> f <*> x
-
-instance : has_pure (comp F G) :=
-⟨λ _ x, comp.mk $ pure $ pure x⟩
-
-instance : has_seq (comp F G) :=
-⟨λ _ _ f x, comp.seq f x⟩
-
-@[simp] protected lemma run_pure {α : Type v} :
-  ∀ x : α, (pure x : comp F G α).run = pure (pure x)
-| _ := rfl
-
-@[simp] protected lemma run_seq {α β : Type v} (f : comp F G (α → β)) (x : comp F G α) :
-  (f <*> x).run = (<*>) <$> f.run <*> x.run := rfl
-
-instance : applicative (comp F G) :=
-{ map := @comp.map F G _ _,
-  seq := @comp.seq F G _ _,
-  ..comp.has_pure }
 
 variables [is_lawful_applicative F] [is_lawful_applicative G]
 variables {α β γ : Type v}
@@ -131,6 +110,7 @@ by { refine { .. @comp.is_lawful_applicative f g _ _ _ _, .. },
      congr, funext, rw [commutative_map], congr }
 
 end comp
+end functor
 
 open functor
 
@@ -146,11 +126,11 @@ instance {α} [has_one α] [has_mul α] : applicative (const α) :=
   seq := λ β γ f x, (f * x : α) }
 
 instance {α} [monoid α] : is_lawful_applicative (const α) :=
-by refine { .. }; intros; simp [mul_assoc]
+by refine { .. }; intros; simp [mul_assoc, (<$>), (<*>), pure]
 
 instance {α} [has_zero α] [has_add α] : applicative (add_const α) :=
 { pure := λ β x, (0 : α),
   seq := λ β γ f x, (f + x : α) }
 
 instance {α} [add_monoid α] : is_lawful_applicative (add_const α) :=
-by refine { .. }; intros; simp
+by refine { .. }; intros; simp [add_assoc, (<$>), (<*>), pure]

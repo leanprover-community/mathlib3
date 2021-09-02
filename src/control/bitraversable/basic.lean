@@ -1,9 +1,10 @@
 /-
 Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
 import control.bifunctor
+import control.traversable.basic
 
 /-!
 # Bitraversable type class
@@ -33,13 +34,10 @@ traversable bitraversable iterator functor bifunctor applicative
 
 universes u
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 class bitraversable (t : Type u → Type u → Type u)
   extends bifunctor t :=
 (bitraverse : Π {m : Type u → Type u} [applicative m] {α α' β β'},
   (α → m α') → (β → m β') → t α β → m (t α' β'))
-end prio
 export bitraversable ( bitraverse )
 
 def bisequence {t m} [bitraversable t] [applicative m] {α β} : t (m α) (m β) → m (t α β) :=
@@ -47,8 +45,6 @@ bitraverse id id
 
 open functor
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 class is_lawful_bitraversable (t : Type u → Type u → Type u) [bitraversable t]
   extends is_lawful_bifunctor t :=
 (id_bitraverse : ∀ {α β} (x : t α β), bitraverse id.mk id.mk x = id.mk x )
@@ -65,7 +61,6 @@ class is_lawful_bitraversable (t : Type u → Type u → Type u) [bitraversable 
     (η : applicative_transformation F G) {α α' β β'}
     (f : α → F β) (f' : α' → F β') (x : t α α'),
   η (bitraverse f f' x) = bitraverse (@η _ ∘ f) (@η _ ∘ f') x)
-end prio
 
 export is_lawful_bitraversable ( id_bitraverse comp_bitraverse
                                  bitraverse_eq_bimap_id  )

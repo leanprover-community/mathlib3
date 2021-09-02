@@ -40,7 +40,7 @@ do repeat $ to_expr ``(category.assoc) >>= λ e, tactic.rewrite_target e {symm:=
    iterate_range (k+1+a-b) (k+1+a-b) conv.congr,
    repeat $ to_expr ``(category.assoc) >>= λ e, tactic.rewrite_target e {symm:=ff},
    rotate 1,
-   iterate_exactly (k+1+a-b) conv.skip
+   iterate_exactly' (k+1+a-b) conv.skip
 
 meta def slice_lhs (a b : ℕ) (t : conv unit) : tactic unit :=
 do conv.interactive.to_lhs,

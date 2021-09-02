@@ -23,14 +23,15 @@ namespace CommRing
 open_locale classical
 
 /--
-The free functor `Type u ⥤ CommRing.{u}` sending a type `X` to the multivariable (commutative)
+The free functor `Type u ⥤ CommRing` sending a type `X` to the multivariable (commutative)
 polynomials with variables `x : X`.
 -/
 def free : Type u ⥤ CommRing.{u} :=
 { obj := λ α, of (mv_polynomial α ℤ),
-  -- TODO this should just be `ring_hom.of (rename f)`, but this causes a mysterious deterministic timeout!
-  map := λ X Y f, @ring_hom.of _ _ _ _ (rename f) (by apply_instance),
-  -- TODO these next two fields can be done by `tidy`, but the calls in `dsimp` and `simp` it generates are too slow.
+  map := λ X Y f,
+    (↑(rename f : _ →ₐ[ℤ] _) : (mv_polynomial X ℤ →+* mv_polynomial Y ℤ)),
+  -- TODO these next two fields can be done by `tidy`, but the calls in `dsimp` and `simp` it
+  -- generates are too slow.
   map_id' := λ X, ring_hom.ext $ rename_id,
   map_comp' := λ X Y Z f g, ring_hom.ext $ λ p, (rename_rename f g p).symm }
 
@@ -43,9 +44,12 @@ def free : Type u ⥤ CommRing.{u} :=
 /--
 The free-forgetful adjunction for commutative rings.
 -/
-def adj : free ⊣ forget CommRing :=
+def adj : free ⊣ forget CommRing.{u} :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X R, hom_equiv,
-  hom_equiv_naturality_left_symm' := by {intros, ext, dsimp, apply eval₂_cast_comp} }
+  hom_equiv_naturality_left_symm' :=
+    λ _ _ Y f g, ring_hom.ext $ λ x, eval₂_cast_comp f (int.cast_ring_hom Y) g x }
+
+instance : is_right_adjoint (forget CommRing.{u}) := ⟨_, adj⟩
 
 end CommRing

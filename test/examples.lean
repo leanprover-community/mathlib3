@@ -1,4 +1,4 @@
-import tactic
+import data.finset.basic
 
 /-!
 ## Miscellaneous examples
@@ -93,7 +93,3 @@ example (n m k : ℕ) : {x ∈ finset.range n | x < m ∨ x < k } =
 by simp [finset.filter_or]
 
 end
-
--- Test that squeeze_simp succeeds when it closes the goal.
-example : 1 = 1 :=
-by { squeeze_simp }

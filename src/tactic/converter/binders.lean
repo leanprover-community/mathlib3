@@ -28,7 +28,9 @@ meta def head_beta : old_conv unit :=
 meta def congr_arg : old_conv unit → old_conv unit := congr_core (return ())
 meta def congr_fun : old_conv unit → old_conv unit := λc, congr_core c (return ())
 
-meta def congr_rule (congr : expr) (cs : list (list expr → old_conv unit)) : old_conv unit := λr lhs, do
+meta def congr_rule (congr : expr) (cs : list (list expr → old_conv unit)) :
+  old_conv unit :=
+λr lhs, do
   meta_rhs ← infer_type lhs >>= mk_meta_var, -- is maybe overly restricted for `heq`
   t ← mk_app r [lhs, meta_rhs],
   ((), meta_pr) ← solve_aux t (do
@@ -137,10 +139,6 @@ meta def binder_eq_elim.old_conv (b : binder_eq_elim) : old_conv unit := do
   b.check x (bd.instantiate_var x),
   b.adapt_rel b.push
 
-theorem {u v} exists_comm {α : Sort u} {β : Sort v} (p : α → β → Prop) :
-  (∃a b, p a b) ↔ (∃b a, p a b) :=
-⟨λ⟨a, ⟨b, h⟩⟩, ⟨b, ⟨a, h⟩⟩, λ⟨a, ⟨b, h⟩⟩, ⟨b, ⟨a, h⟩⟩⟩
-
 theorem {u v} exists_elim_eq_left {α : Sort u} (a : α) (p : Π(a':α), a' = a → Prop) :
   (∃(a':α)(h : a' = a), p a' h) ↔ p a rfl :=
 ⟨λ⟨a', ⟨h, p_h⟩⟩, match a', h, p_h with ._, rfl, h := h end, λh, ⟨a, rfl, h⟩⟩
@@ -176,14 +174,14 @@ meta def forall_eq_elim : binder_eq_elim :=
   apply_elim_eq := apply' ``forall_elim_eq_left <|> apply' ``forall_elim_eq_right }
 
 meta def supr_eq_elim : binder_eq_elim :=
-{ match_binder  := λe, (do `(@supr %%α %%β %%cl %%f) ← return e, return (β, f)),
+{ match_binder  := λe, (do `(@supr %%α %%cl %%β %%f) ← return e, return (β, f)),
   adapt_rel     := λc, (do r ← current_relation, guard (r = `eq), c),
   apply_comm    := applyc ``supr_comm,
   apply_congr   := congr_arg ∘ funext',
   apply_elim_eq := applyc ``supr_supr_eq_left <|> applyc ``supr_supr_eq_right }
 
 meta def infi_eq_elim : binder_eq_elim :=
-{ match_binder  := λe, (do `(@infi %%α %%β %%cl %%f) ← return e, return (β, f)),
+{ match_binder  := λe, (do `(@infi %%α %%cl %%β %%f) ← return e, return (β, f)),
   adapt_rel     := λc, (do r ← current_relation, guard (r = `eq), c),
   apply_comm    := applyc ``infi_comm,
   apply_congr   := congr_arg ∘ funext',

@@ -99,7 +99,7 @@ do
       else if e.occurs tgt then trunc_cases_dependent e ids
       else trunc_cases_nondependent e ids,
   c ← infer_type e >>= is_class,
-  when c unfreeze_local_instances
+  when c reset_instance_cache
 
 end interactive
 end tactic

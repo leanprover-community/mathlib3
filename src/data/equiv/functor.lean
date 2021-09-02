@@ -34,10 +34,8 @@ variables (f : Type u → Type v) [functor f] [is_lawful_functor f]
 def map_equiv (h : α ≃ β) : f α ≃ f β :=
 { to_fun    := map h,
   inv_fun   := map h.symm,
-  left_inv  := λ x,
-    by { rw map_map, convert is_lawful_functor.id_map x, ext a, apply symm_apply_apply },
-  right_inv := λ x,
-    by { rw map_map, convert is_lawful_functor.id_map x, ext a, apply apply_symm_apply } }
+  left_inv  := λ x, by simp [map_map],
+  right_inv := λ x, by simp [map_map] }
 
 @[simp]
 lemma map_equiv_apply (h : α ≃ β) (x : f α) :
@@ -65,10 +63,8 @@ variables {α' β' : Type v} (F : Type u → Type v → Type w) [bifunctor F] [i
 def map_equiv (h : α ≃ β) (h' : α' ≃ β') : F α α' ≃ F β β' :=
 { to_fun    := bimap h h',
   inv_fun   := bimap h.symm h'.symm,
-  left_inv  := λ x,
-    by { rw bimap_bimap, convert is_lawful_bifunctor.id_bimap x; { ext a, apply symm_apply_apply } },
-  right_inv := λ x,
-    by { rw bimap_bimap, convert is_lawful_bifunctor.id_bimap x; { ext a, apply apply_symm_apply } } }
+  left_inv  := λ x, by simp [bimap_bimap, id_bimap],
+  right_inv := λ x, by simp [bimap_bimap, id_bimap] }
 
 @[simp]
 lemma map_equiv_apply (h : α ≃ β) (h' : α' ≃ β') (x : F α α') :
@@ -82,8 +78,7 @@ lemma map_equiv_symm_apply (h : α ≃ β) (h' : α' ≃ β') (y : F β β') :
 lemma map_equiv_refl_refl : map_equiv F (equiv.refl α) (equiv.refl α') = equiv.refl (F α α') :=
 begin
   ext x,
-  simp only [map_equiv_apply, refl_apply],
-  exact is_lawful_bifunctor.id_bimap x,
+  simp [id_bimap]
 end
 
 end bifunctor

@@ -61,8 +61,7 @@ begin
     -- so we get to rewrite `f x`, in the presence of the crucial `H : x ∈ S` hypothesis.
     apply_congr,
     skip,
-    simp [h, H],
-  }
+    simp [h, H], }
 end
 ```
 
@@ -86,7 +85,7 @@ do
   -- For every lemma:
   congr_lemmas.any_of (λ n,
     -- Call tactic.eapply
-    seq (tactic.eapply n >> tactic.skip)
+    seq' (tactic.eapply n >> tactic.skip)
     -- and then call `intros` on each resulting goal, and require that afterwards it's an equation.
         (tactic.intros >> (do `(_ = _) ← target, tactic.skip)))
 

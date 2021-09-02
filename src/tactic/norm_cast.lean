@@ -130,7 +130,7 @@ pure $ ncoes - count_head_coes e
 Classifies a declaration of type `ty` as a `norm_cast` rule.
 -/
 meta def classify_type (ty : expr) : tactic label := do
-(_, ty) ← mk_local_pis ty,
+(_, ty) ← open_pis ty,
 (lhs, rhs) ← match ty with
   | `(%%lhs = %%rhs) := pure (lhs, rhs)
   | `(%%lhs ↔ %%rhs) := pure (lhs, rhs)
@@ -205,7 +205,11 @@ The optional label is used to overwrite the classifier.
 -/
 meta def norm_cast_attr_ty : Type := user_attribute norm_cast_cache (option label)
 
-/-- Efficient getter for the `@[norm_cast]` attribute parameter that does not call `eval_expr`.  -/
+/--
+Efficient getter for the `@[norm_cast]` attribute parameter that does not call `eval_expr`.
+
+See Note [user attribute parameters].
+-/
 meta def get_label_param (attr : norm_cast_attr_ty) (decl : name) : tactic (option label) := do
 p ← attr.get_param_untyped decl,
 match p with
@@ -305,9 +309,22 @@ open norm_cast
 For example, `↑(a + b)` will be written to `↑a + ↑b`.
 Equivalent to `simp only with push_cast`.
 Can also be used at hypotheses.
+
+`push_cast` can also be used at hypotheses and with extra simp rules.
+
+```lean
+example (a b : ℕ) (h1 : ((a + b : ℕ) : ℤ) = 10) (h2 : ((a + b + 0 : ℕ) : ℤ) = 10) :
+  ((a + b : ℕ) : ℤ) = 10 :=
+begin
+  push_cast,
+  push_cast at h1,
+  push_cast [int.add_zero] at h2,
+end
+```
 -/
-meta def push_cast (l : parse location): tactic unit :=
-tactic.interactive.simp none tt [] [`push_cast] l
+meta def push_cast (hs : parse tactic.simp_arg_list) (l : parse location) : tactic unit :=
+tactic.interactive.simp none none tt hs [`push_cast] l
+
 
 end tactic.interactive
 
@@ -316,8 +333,8 @@ open tactic expr
 
 /-- Prove `a = b` using the given simp set. -/
 meta def prove_eq_using (s : simp_lemmas) (a b : expr) : tactic expr := do
-(a', a_a') ← simplify s [] a {fail_if_unchanged := ff},
-(b', b_b') ← simplify s [] b {fail_if_unchanged := ff},
+(a', a_a', _) ← simplify s [] a {fail_if_unchanged := ff},
+(b', b_b', _) ← simplify s [] b {fail_if_unchanged := ff},
 on_exception (trace_norm_cast "failed: " (to_expr ``(%%a' = %%b') >>= pp)) $
   is_def_eq a' b' reducible,
 b'_b ← mk_eq_symm b_b',
@@ -497,7 +514,7 @@ do
   trace_norm_cast "after upward_and_elim: " e2,
 
   -- step 3: casts are squashed
-  (e3, pr3) ← simplify cache.squash [] e2 cfg,
+  (e3, pr3, _) ← simplify cache.squash [] e2 cfg,
   trace_norm_cast "after squashing: " e3,
 
   -- step 4: post-processing of numerals
@@ -510,6 +527,16 @@ do
   pr ← mk_eq_trans pr pr3,
   pr ← mk_eq_trans pr pr4,
   return (new_e, pr)
+
+/--
+A small variant of `push_cast` suited for non-interactive use.
+
+`derive_push_cast extra_lems e` returns an expression `e'` and a proof that `e = e'`.
+-/
+meta def derive_push_cast (extra_lems : list simp_arg_type) (e : expr) : tactic (expr × expr) :=
+do (s, _) ← mk_simp_set tt [`push_cast] extra_lems,
+   (e, prf, _) ← simplify (s.erase [`int.coe_nat_succ]) [] e {fail_if_unchanged := ff},
+   return (e, prf)
 
 end norm_cast
 
@@ -531,7 +558,8 @@ match e with
   get_local `this
 end
 
-/-- `exact_mod_cast e` runs `norm_cast` on the goal and `e`, and tries to use `e` to close the goal. -/
+/-- `exact_mod_cast e` runs `norm_cast` on the goal and `e`, and tries to use `e` to close the
+goal. -/
 meta def exact_mod_cast (e : expr) : tactic unit :=
 decorate_error "exact_mod_cast failed:" $ do
   new_e ← aux_mod_cast e,
@@ -551,11 +579,10 @@ decorate_error "assumption_mod_cast failed:" $ do
     fail_if_unchanged := ff,
     canonize_instances := ff,
     canonize_proofs := ff,
-    proj := ff
-  },
+    proj := ff },
   replace_at derive [] tt,
   ctx ← local_context,
-  try_lst $ ctx.map (λ h, aux_mod_cast h ff >>= tactic.exact)
+  ctx.mfirst (λ h, aux_mod_cast h ff >>= tactic.exact)
 
 end tactic
 
@@ -601,8 +628,7 @@ do
     pty ← pp ty, ptgt ← pp e,
     fail ("exact_mod_cast failed, expression type not directly " ++
     "inferrable. Try:\n\nexact_mod_cast ...\nshow " ++
-    to_fmt pty ++ ",\nfrom " ++ ptgt : format)
-  },
+    to_fmt pty ++ ",\nfrom " ++ ptgt : format) },
   tactic.exact_mod_cast e
 
 /--
@@ -631,9 +657,14 @@ meta def norm_cast : conv unit := replace_lhs derive
 end conv.interactive
 
 -- TODO: move this elsewhere?
-@[norm_cast] lemma ite_cast {α β : Type} [has_coe α β]
+@[norm_cast] lemma ite_cast {α β} [has_lift_t α β]
   {c : Prop} [decidable c] {a b : α} :
   ↑(ite c a b) = ite c (↑a : β) (↑b : β) :=
+by by_cases h : c; simp [h]
+
+@[norm_cast] lemma dite_cast {α β} [has_lift_t α β]
+  {c : Prop} [decidable c] {a : c → α} {b : ¬ c → α} :
+  ↑(dite c a b) = dite c (λ h, (↑(a h) : β)) (λ h, (↑(b h) : β)) :=
 by by_cases h : c; simp [h]
 
 add_hint_tactic "norm_cast at *"
@@ -668,8 +699,19 @@ expression `h` in the context it will try to normalize `h` and use
 `push_cast` rewrites the expression to move casts toward the leaf nodes.
 This uses `norm_cast` lemmas in the forward direction.
 For example, `↑(a + b)` will be written to `↑a + ↑b`.
-It is equivalent to `simp only with push_cast`, and can also be used at hypotheses
-with `push_cast at h`.
+It is equivalent to `simp only with push_cast`.
+It can also be used at hypotheses with `push_cast at h`
+and with extra simp lemmas with `push_cast [int.add_zero]`.
+
+```lean
+example (a b : ℕ) (h1 : ((a + b : ℕ) : ℤ) = 10) (h2 : ((a + b + 0 : ℕ) : ℤ) = 10) :
+  ((a + b : ℕ) : ℤ) = 10 :=
+begin
+  push_cast,
+  push_cast at h1,
+  push_cast [int.add_zero] at h2,
+end
+```
 
 The implementation and behavior of the `norm_cast` family is described in detail at
 <https://lean-forward.github.io/norm_cast/norm_cast.pdf>.
@@ -711,8 +753,8 @@ Examples:
 @[norm_cast] theorem cast_one : ((1 : ℚ) : α) = 1
 ```
 
-Lemmas tagged with `@[norm_cast]` are classified into three categories: `move`, `elim`, and `squash`.
-They are classified roughly as follows:
+Lemmas tagged with `@[norm_cast]` are classified into three categories: `move`, `elim`, and
+`squash`. They are classified roughly as follows:
 
 * elim lemma:   LHS has 0 head coes and ≥ 1 internal coe
 * move lemma:   LHS has 1 head coe and 0 internal coes,    RHS has 0 head coes and ≥ 1 internal coes

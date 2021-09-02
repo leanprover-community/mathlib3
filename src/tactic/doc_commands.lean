@@ -40,8 +40,8 @@ nspace <.> ("_" ++ to_string id.hash)
 
 open tactic
 
-/-- 
-`copy_doc_string fr to` copies the docstring from the declaration named `fr` 
+/--
+`copy_doc_string fr to` copies the docstring from the declaration named `fr`
 to each declaration named in the list `to`. -/
 meta def tactic.copy_doc_string (fr : name) (to : list name) : tactic unit :=
 do fr_ds ← doc_string fr,
@@ -68,7 +68,8 @@ do fr ← parser.ident,
 output. -/
 @[user_attribute] meta def library_note_attr : user_attribute :=
 { name := `library_note,
-  descr := "Notes about library features to be included in documentation" }
+  descr := "Notes about library features to be included in documentation",
+  parser := failed }
 
 /--
 `mk_reflected_definition name val` constructs a definition declaration by reflection.
@@ -87,10 +88,6 @@ meta def tactic.add_library_note (note_name note : string) : tactic unit :=
 do let decl_name := note_name.mk_hashed_name `library_note,
    add_decl $ mk_reflected_definition decl_name (note_name, note),
    library_note_attr.set decl_name () tt none
-
-/-- `tactic.eval_pexpr e α` evaluates the pre-expression `e` to a VM object of type `α`. -/
-meta def tactic.eval_pexpr (α) [reflected α] (e : pexpr) : tactic α :=
-to_expr ``(%%e : %%(reflect α)) ff ff >>= eval_expr α
 
 open tactic
 
@@ -142,15 +139,18 @@ structure tactic_doc_entry :=
 (description : string := "")
 (inherit_description_from : option _root_.name := none)
 
-/-- format a `tactic_doc_entry` -/
-meta def tactic_doc_entry.to_string : tactic_doc_entry → string
-| ⟨name, category, decl_names, tags, description, _⟩ :=
-let decl_names := decl_names.map (repr ∘ to_string),
-    tags := tags.map repr in
-"{" ++ to_string (format!"\"name\": {repr name}, \"category\": \"{category}\", \"decl_names\":{decl_names}, \"tags\": {tags}, \"description\": {repr description}") ++ "}"
+/-- Turns a `tactic_doc_entry` into a JSON representation. -/
+meta def tactic_doc_entry.to_json (d : tactic_doc_entry) : json :=
+json.object [
+  ("name", d.name),
+  ("category", d.category.to_string),
+  ("decl_names", d.decl_names.map (json.of_string ∘ to_string)),
+  ("tags", d.tags.map json.of_string),
+  ("description", d.description)
+]
 
 meta instance : has_to_string tactic_doc_entry :=
-⟨tactic_doc_entry.to_string⟩
+⟨json.unparse ∘ tactic_doc_entry.to_json⟩
 
 /-- `update_description_from tde inh_id` replaces the `description` field of `tde` with the
     doc string of the declaration named `inh_id`. -/
@@ -177,7 +177,8 @@ end
 for use in doc output -/
 @[user_attribute] meta def tactic_doc_entry_attr : user_attribute :=
 { name := `tactic_doc,
-  descr := "Information about a tactic to be included in documentation" }
+  descr := "Information about a tactic to be included in documentation",
+  parser := failed }
 
 /-- Collects everything in the environment tagged with the attribute `tactic_doc`. -/
 meta def tactic.get_tactic_doc_entries : tactic (list tactic_doc_entry) :=
@@ -191,11 +192,11 @@ if `tde.description` is the empty string, `add_tactic_doc` uses the doc
 string of `decl` as the description. -/
 meta def tactic.add_tactic_doc (tde : tactic_doc_entry) : tactic unit :=
 do when (tde.description = "" ∧ tde.inherit_description_from.is_none ∧ tde.decl_names.length ≠ 1) $
-     fail
-     ("A tactic doc entry must either:\n" ++
-     " 1. have a description written as a doc-string for the `add_tactic_doc` invocation, or\n" ++
-     " 2. have a single declaration in the `decl_names` field, to inherit a description from, or\n" ++
-     " 3. explicitly indicate the declaration to inherit the description from using `inherit_description_from`."),
+     fail "A tactic doc entry must either:
+ 1. have a description written as a doc-string for the `add_tactic_doc` invocation, or
+ 2. have a single declaration in the `decl_names` field, to inherit a description from, or
+ 3. explicitly indicate the declaration to inherit the description from using
+    `inherit_description_from`.",
    tde ← if tde.description = "" then tde.update_description else return tde,
    let decl_name := (tde.name ++ tde.category.to_string).mk_hashed_name `tactic_doc,
    add_decl $ mk_definition decl_name [] `(tactic_doc_entry) (reflect tde),
@@ -368,7 +369,7 @@ add_tactic_doc
 `conv {...}` allows the user to perform targeted rewriting on a goal or hypothesis,
 by focusing on particular subexpressions.
 
-See <https://leanprover-community.github.io/mathlib_docs/conv.html> for more details.
+See <https://leanprover-community.github.io/extras/conv.html> for more details.
 
 Inside `conv` blocks, mathlib currently additionally provides
 * `erw`,
@@ -392,8 +393,7 @@ by conv {
   to_lhs,
   conv {
     congr, skip,
-    rw h₁,
-  },
+    rw h₁ },
   rw h₂,
 }
 ```
@@ -427,6 +427,33 @@ add_tactic_doc
   category := doc_category.tactic,
   decl_names := [`tactic.interactive.simp],
   tags := ["core", "simplification"] }
+
+/--
+Accepts terms with the type `component tactic_state string` or `html empty` and
+renders them interactively.
+Requires a compatible version of the vscode extension to view the resulting widget.
+
+### Example:
+
+```lean
+/-- A simple counter that can be incremented or decremented with some buttons. -/
+meta def counter_widget {π α : Type} : component π α :=
+component.ignore_props $ component.mk_simple int int 0 (λ _ x y, (x + y, none)) (λ _ s,
+  h "div" [] [
+    button "+" (1 : int),
+    html.of_string $ to_string $ s,
+    button "-" (-1)
+  ]
+)
+
+#html counter_widget
+```
+-/
+add_tactic_doc
+{ name := "#html",
+  category := doc_category.cmd,
+  decl_names := [`show_widget_cmd],
+  tags := ["core", "widgets"] }
 
 /--
 The `add_decl_doc` command is used to add a doc string to an existing declaration.

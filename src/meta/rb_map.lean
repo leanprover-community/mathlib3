@@ -1,19 +1,22 @@
 /-
 Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Robert Y. Lewis
+Authors: Robert Y. Lewis
 -/
-import data.option.defs
+import data.list.defs
 
 /-!
 # rb_map
 
 This file defines additional operations on native rb_maps and rb_sets.
-These structures are defined in core in `init.meta.rb_map`. They are meta objects,
-and are generally the most efficient dictionary structures to use for pure metaprogramming right now.
+These structures are defined in core in `init.meta.rb_map`.
+They are meta objects, and are generally the most efficient dictionary structures
+to use for pure metaprogramming right now.
 -/
 
 namespace native
+
+/-! ### Declarations about `rb_set` -/
 namespace rb_set
 
 meta instance {key} [has_lt key] [decidable_rel ((<) : key → key → Prop)] :
@@ -35,7 +38,41 @@ s.fold (pure s) (λ a m,
 meta def union {key} (s t : rb_set key) : rb_set key :=
 s.fold t (λ a t, t.insert a)
 
+/--
+`of_list_core empty l` turns a list of keys into an `rb_set`.
+It takes a user_provided `rb_set` to use for the base case.
+This can be used to pre-seed the set with additional elements,
+and/or to use a custom comparison operator.
+-/
+meta def of_list_core {key} (base : rb_set key) : list key → rb_map key unit
+| []      := base
+| (x::xs) := rb_set.insert (of_list_core xs) x
+
+/--
+`of_list l` transforms a list `l : list key` into an `rb_set`,
+inferring an order on the type `key`.
+-/
+meta def of_list {key} [has_lt key] [decidable_rel ((<) : key → key → Prop)] :
+  list key → rb_set key :=
+of_list_core mk_rb_set
+
+/--
+`sdiff s1 s2` returns the set of elements that are in `s1` but not in `s2`.
+It does so by folding over `s2`. If `s1` is significantly smaller than `s2`,
+it may be worth it to reverse the fold.
+-/
+meta def sdiff {α} (s1 s2 : rb_set α) : rb_set α :=
+s2.fold s1 $ λ v s, s.erase v
+
+/--
+`insert_list s l` inserts each element of `l` into `s`.
+-/
+meta def insert_list {key} (s : rb_set key) (l : list key) : rb_set key :=
+l.foldl rb_set.insert s
+
 end rb_set
+
+/-! ### Declarations about `rb_map` -/
 
 namespace rb_map
 
@@ -100,6 +137,8 @@ end
 
 end rb_map
 
+/-! ### Declarations about `rb_lmap` -/
+
 namespace rb_lmap
 
 meta instance (key : Type) [has_lt key] [decidable_rel ((<) : key → key → Prop)] (data : Type) :
@@ -118,6 +157,8 @@ m.fold [] (λ _, (++))
 
 end rb_lmap
 end native
+
+/-! ### Declarations about `name_set` -/
 
 namespace name_set
 
@@ -141,15 +182,21 @@ s.fold (pure mk_name_set) (λ a m,
      b ← f a,
      (pure $ x.insert b))
 
-/-- `union s t` returns an rb_set containing every element that appears in either `s` or `t`. -/
-meta def union (s t : name_set) : name_set :=
-s.fold t (λ a t, t.insert a)
-
 /-- `insert_list s l` inserts every element of `l` into `s`. -/
 meta def insert_list (s : name_set) (l : list name) : name_set :=
 l.foldr (λ n s', s'.insert n) s
 
+/--
+`local_list_to_name_set lcs` is the set of unique names of the local
+constants `lcs`. If any of the `lcs` are not local constants, the returned set
+will contain bogus names.
+-/
+meta def local_list_to_name_set (lcs : list expr) : name_set :=
+lcs.foldl (λ ns h, ns.insert h.local_uniq_name) mk_name_set
+
 end name_set
+
+/-! ### Declarations about `name_map` -/
 
 namespace name_map
 
@@ -157,3 +204,17 @@ meta instance {data : Type} : inhabited (name_map data) :=
 ⟨mk_name_map⟩
 
 end name_map
+
+/-! ### Declarations about `expr_set` -/
+
+namespace expr_set
+
+/--
+`local_set_to_name_set lcs` is the set of unique names of the local constants
+`lcs`. If any of the `lcs` are not local constants, the returned set will
+contain bogus names.
+-/
+meta def local_set_to_name_set (lcs : expr_set) : name_set :=
+lcs.fold mk_name_set $ λ h ns, ns.insert h.local_uniq_name
+
+end expr_set

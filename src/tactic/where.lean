@@ -37,25 +37,29 @@ meta def binder_less_important (u v : binder_info) : bool :=
 /-- Selects the elements of the given `list α` which under the image of `p : α → β × γ` have `β`
 component equal to `b'`. Returns the `γ` components of the selected elements under the image of `p`,
 and the elements of the original `list α` which were not selected. -/
-def select_for_which {α β γ : Type} (p : α → β × γ) [decidable_eq β] (b' : β) : list α → list γ × list α
+def select_for_which {α β γ : Type} (p : α → β × γ) [decidable_eq β] (b' : β) :
+  list α → list γ × list α
 | [] := ([], [])
 | (a :: rest) :=
   let (cs, others) := select_for_which rest, (b, c) := p a in
   if b = b' then (c :: cs, others) else (cs, a :: others)
 
 /-- Helper function for `collect_by`. -/
-private meta def collect_by_aux {α β γ : Type} (p : α → β × γ) [decidable_eq β] : list β → list α → list (β × list γ)
+private meta def collect_by_aux {α β γ : Type} (p : α → β × γ) [decidable_eq β] :
+  list β → list α → list (β × list γ)
 | [] [] := []
 | [] _ := undefined_core "didn't find every key entry!"
 | (b :: rest) as := let (cs, as) := select_for_which p b as in (b, cs) :: collect_by_aux rest as
 
 /-- Returns the elements of `l` under the image of `p`, collecting together elements with the same
 `β` component, deleting duplicates. -/
-meta def collect_by {α β γ : Type} (l : list α) (p : α → β × γ) [decidable_eq β] : list (β × list γ) :=
+meta def collect_by {α β γ : Type} (l : list α) (p : α → β × γ) [decidable_eq β] :
+  list (β × list γ) :=
 collect_by_aux p (l.map $ prod.fst ∘ p).erase_dup l
 
 /-- Sort the variables by their priority as defined by `where.binder_priority`. -/
-meta def sort_variable_list (l : list (name × binder_info × expr)) : list (expr × binder_info × list name) :=
+meta def sort_variable_list (l : list (name × binder_info × expr)) :
+  list (expr × binder_info × list name) :=
 let l := collect_by l $ λ v, (v.2.2, (v.1, v.2.1)) in
 let l := l.map $ λ el, (el.1, collect_by el.2 $ λ v, (v.2, v.1)) in
 (list.join $ l.map $ λ e, prod.mk e.1 <$> e.2).qsort (λ v u, binder_less_important v.2.1 u.2.1)
@@ -150,8 +154,6 @@ do let msg := "",
    return msg
 
 open interactive
-
-reserve prefix `#where`:max
 
 /--
 When working in a Lean file with namespaces, parameters, and variables, it can be confusing to

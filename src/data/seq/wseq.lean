@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import data.seq.seq
 import data.dlist
@@ -122,9 +122,9 @@ def length (s : wseq α) : computation ℕ :=
 
 /-- A weak sequence is finite if `to_list s` terminates. Equivalently,
   it is a finite number of `think` and `cons` applied to `nil`. -/
-@[class] def is_finite (s : wseq α) : Prop := (to_list s).terminates
+class is_finite (s : wseq α) : Prop := (out : (to_list s).terminates)
 
-instance to_list_terminates (s : wseq α) [h : is_finite s] : (to_list s).terminates := h
+instance to_list_terminates (s : wseq α) [h : is_finite s] : (to_list s).terminates := h.out
 
 /-- Get the list corresponding to a finite weak sequence. -/
 def get (s : wseq α) [is_finite s] : list α := (to_list s).get
@@ -132,11 +132,16 @@ def get (s : wseq α) [is_finite s] : list α := (to_list s).get
 /-- A weak sequence is *productive* if it never stalls forever - there are
  always a finite number of `think`s between `cons` constructors.
  The sequence itself is allowed to be infinite though. -/
-@[class] def productive (s : wseq α) : Prop := ∀ n, (nth s n).terminates
+class productive (s : wseq α) : Prop := (nth_terminates : ∀ n, (nth s n).terminates)
 
-instance nth_terminates (s : wseq α) [h : productive s] : ∀ n, (nth s n).terminates := h
+theorem productive_iff (s : wseq α) : productive s ↔ ∀ n, (nth s n).terminates :=
+⟨λ h, h.1, λ h, ⟨h⟩⟩
 
-instance head_terminates (s : wseq α) [h : productive s] : (head s).terminates := h 0
+instance nth_terminates (s : wseq α) [h : productive s] :
+  ∀ n, (nth s n).terminates := h.nth_terminates
+
+instance head_terminates (s : wseq α) [productive s] :
+  (head s).terminates := s.nth_terminates 0
 
 /-- Replace the `n`th element of `s` with `a`. -/
 def update_nth (s : wseq α) (n : ℕ) (a : α) : wseq α :=
@@ -373,7 +378,7 @@ theorem lift_rel_destruct_iff {R : α → β → Prop} {s : wseq α} {t : wseq �
     intros s t, apply or.inl
   end⟩⟩
 
-infix ~ := equiv
+infix ` ~ `:50 := equiv
 
 theorem destruct_congr {s t : wseq α} :
   s ~ t → computation.lift_rel (bisim_o (~)) (destruct s) (destruct t) :=
@@ -484,7 +489,8 @@ end
 @[simp] theorem flatten_think (c : computation (wseq α)) : flatten c.think = think (flatten c) :=
 seq.destruct_eq_cons $ by simp [flatten, think]
 
-@[simp] theorem destruct_flatten (c : computation (wseq α)) : destruct (flatten c) = c >>= destruct :=
+@[simp]
+theorem destruct_flatten (c : computation (wseq α)) : destruct (flatten c) = c >>= destruct :=
 begin
   refine computation.eq_of_bisim (λc1 c2, c1 = c2 ∨
     ∃ c, c1 = destruct (flatten c) ∧ c2 = computation.bind c destruct) _ (or.inr ⟨c, rfl, rfl⟩),
@@ -554,9 +560,8 @@ by { simp [think, join], unfold functor.map, simp [join, cons, append] }
 theorem destruct_tail (s : wseq α) :
   destruct (tail s) = destruct s >>= tail.aux :=
 begin
-  dsimp [tail], simp, rw [← bind_pure_comp_eq_map, is_lawful_monad.bind_assoc],
-  apply congr_arg, funext o,
-  rcases o with _|⟨a, s⟩;
+  simp [tail], rw [← bind_pure_comp_eq_map, is_lawful_monad.bind_assoc],
+  apply congr_arg, ext1 (_|⟨a, s⟩);
   apply (@pure_bind computation _ _ _ _ _ _).trans _; simp
 end
 
@@ -578,7 +583,7 @@ theorem destruct_dropn :
 theorem head_terminates_of_head_tail_terminates (s : wseq α) [T : terminates (head (tail s))] :
   terminates (head s) :=
 (head_terminates_iff _).2 $ begin
-  cases (head_terminates_iff _).1 T with a h,
+  rcases (head_terminates_iff _).1 T with ⟨⟨a, h⟩⟩,
   simp [tail] at h,
   rcases exists_of_mem_bind h with ⟨s', h1, h2⟩,
   unfold functor.map at h1,
@@ -614,10 +619,10 @@ begin
 end
 
 instance productive_tail (s : wseq α) [productive s] : productive (tail s) :=
-λ n, by rw [nth_tail]; apply_instance
+⟨λ n, by rw [nth_tail]; apply_instance⟩
 
 instance productive_dropn (s : wseq α) [productive s] (n) : productive (drop s n) :=
-λ m, by rw [←nth_add]; apply_instance
+⟨λ m, by rw [←nth_add]; apply_instance⟩
 
 /-- Given a productive weak sequence, we can collapse all the `think`s to
   produce a sequence. -/
@@ -631,14 +636,17 @@ begin
   contradiction
 end⟩
 
-theorem nth_terminates_le {s : wseq α} {m n} (h : m ≤ n) : terminates (nth s n) → terminates (nth s m) :=
+theorem nth_terminates_le {s : wseq α} {m n} (h : m ≤ n) :
+  terminates (nth s n) → terminates (nth s m) :=
 by induction h with m' h IH; [exact id,
   exact λ T, IH (@head_terminates_of_head_tail_terminates _ _ T)]
 
-theorem head_terminates_of_nth_terminates {s : wseq α} {n} : terminates (nth s n) → terminates (head s) :=
+theorem head_terminates_of_nth_terminates {s : wseq α} {n} :
+  terminates (nth s n) → terminates (head s) :=
 nth_terminates_le (nat.zero_le n)
 
-theorem destruct_terminates_of_nth_terminates {s : wseq α} {n} (T : terminates (nth s n)) : terminates (destruct s) :=
+theorem destruct_terminates_of_nth_terminates {s : wseq α} {n} (T : terminates (nth s n)) :
+  terminates (destruct s) :=
 (head_terminates_iff _).1 $ head_terminates_of_nth_terminates T
 
 theorem mem_rec_on {C : wseq α → Prop} {a s} (M : a ∈ s)
@@ -729,7 +737,7 @@ end
 theorem exists_dropn_of_mem {s : wseq α} {a} (h : a ∈ s) :
   ∃ n s', some (a, s') ∈ destruct (drop s n) :=
 let ⟨n, h⟩ := exists_nth_of_mem h in ⟨n, begin
-  cases (head_terminates_iff _).1 ⟨_, h⟩ with o om,
+  rcases (head_terminates_iff _).1 ⟨⟨_, h⟩⟩ with ⟨⟨o, om⟩⟩,
   have := mem_unique (mem_map _ om) h,
   cases o with o; injection this with i,
   cases o with a' s', dsimp at i,
@@ -762,7 +770,7 @@ theorem exists_of_lift_rel_right {R : α → β → Prop} {s t}
 by rw ←lift_rel.swap at H; exact exists_of_lift_rel_left H h
 
 theorem head_terminates_of_mem {s : wseq α} {a} (h : a ∈ s) : terminates (head s) :=
-let ⟨n, h⟩ := exists_nth_of_mem h in head_terminates_of_nth_terminates ⟨_, h⟩
+let ⟨n, h⟩ := exists_nth_of_mem h in head_terminates_of_nth_terminates ⟨⟨_, h⟩⟩
 
 theorem of_mem_append {s₁ s₂ : wseq α} {a : α} : a ∈ append s₁ s₂ → a ∈ s₁ ∨ a ∈ s₂ :=
 seq.of_mem_append
@@ -862,7 +870,8 @@ suffices ∀ {s t : wseq α}, s ~ t → a ∈ s → a ∈ t, from ⟨this h, thi
 nth_mem ((nth_congr h _ _).1 hn)
 
 theorem productive_congr {s t : wseq α} (h : s ~ t) : productive s ↔ productive t :=
-forall_congr $ λn, terminates_congr $ nth_congr h _
+by simp only [productive_iff]; exact
+  forall_congr (λ n, terminates_congr $ nth_congr h _)
 
 theorem equiv.ext {s t : wseq α} (h : ∀ n, nth s n ~ nth t n) : s ~ t :=
 ⟨λ s t, ∀ n, nth s n ~ nth t n, h, λs t h, begin
@@ -971,7 +980,7 @@ theorem nth_of_seq (s : seq α) (n) : nth (of_seq s) n = return (seq.nth s n) :=
 by dsimp [nth]; rw [dropn_of_seq, head_of_seq, seq.head_dropn]
 
 instance productive_of_seq (s : seq α) : productive (of_seq s) :=
-λ n, by rw nth_of_seq; apply_instance
+⟨λ n, by rw nth_of_seq; apply_instance⟩
 
 theorem to_seq_of_seq (s : seq α) : to_seq (of_seq s) = s :=
 begin
@@ -1003,7 +1012,7 @@ theorem map_comp (f : α → β) (g : β → γ) (s : wseq α) :
 begin
   dsimp [map], rw ←seq.map_comp,
   apply congr_fun, apply congr_arg,
-  funext o, cases o; refl
+  ext ⟨⟩; refl
 end
 
 theorem mem_map (f : α → β) {a : α} {s : wseq α} : a ∈ s → f a ∈ map f s :=
@@ -1148,7 +1157,7 @@ begin
   let ⟨o, m, k, rs1, rs2, en⟩ := of_results_bind ra,
       ⟨p, mT, rop⟩ := computation.exists_of_lift_rel_left (lift_rel_destruct ST) rs1.mem in
   by exact match o, p, rop, rs1, rs2, mT with
-  | none, none, _, rs1, rs2, mT := by simp [destruct_join]; exact
+  | none, none, _, rs1, rs2, mT := by simp only [destruct_join]; exact
     ⟨none, mem_bind mT (ret_mem _), by rw eq_of_ret_mem rs2.mem; trivial⟩
   | some (s, S'), some (t, T'), ⟨st, ST'⟩, rs1, rs2, mT :=
     by simp [destruct_append] at rs2; exact
@@ -1229,9 +1238,9 @@ begin
   { exact λ c1 c2 h, match c1, c2, h with
     | ._, ._, ⟨s, rfl, rfl⟩ := begin
       clear h _match,
-      apply s.cases_on _ (λ a s, _) (λ s, _); simp [ret],
-      { refine ⟨_, ret_mem _, _⟩, simp },
-      { exact ⟨s, rfl, rfl⟩ }
+      have : ∀ s, ∃ s' : wseq α, (map ret s).join.destruct = (map ret s').join.destruct ∧
+        destruct s = s'.destruct, from λ s, ⟨s, rfl, rfl⟩,
+      apply s.cases_on _ (λ a s, _) (λ s, _); simp [ret, ret_mem, this, option.exists]
     end end },
   { exact ⟨s, rfl, rfl⟩ }
 end

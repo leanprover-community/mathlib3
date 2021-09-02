@@ -212,8 +212,8 @@ namespace add_action
 
 variables [add_group α] [add_action α β]
 
-/-- If the stabilizer of `x` is `S`, then the stabilizer of `g • x` is `gSg⁻¹`. -/
-lemma stabilizer_smul_eq_stabilizer_map_conj (g : α) (x : β) :
+/-- If the stabilizer of `x` is `S`, then the stabilizer of `g +ᵥ x` is `g + S + (-g)`. -/
+lemma stabilizer_vadd_eq_stabilizer_map_conj (g : α) (x : β) :
   (stabilizer α (g +ᵥ x) = (stabilizer α x).map (add_aut.conj g).to_add_monoid_hom) :=
 begin
   ext h,
@@ -229,7 +229,7 @@ noncomputable def stabilizer_equiv_stabilizer_of_orbit_rel {x y : β}
 let g : α := classical.some h in
 have hg : g +ᵥ y = x := classical.some_spec h,
 have this : stabilizer α x = (stabilizer α y).map (add_aut.conj g).to_add_monoid_hom,
-  by rw [← hg, stabilizer_smul_eq_stabilizer_map_conj],
+  by rw [← hg, stabilizer_vadd_eq_stabilizer_map_conj],
 (add_equiv.add_subgroup_congr this).trans
   ((add_aut.conj g).add_subgroup_equiv_map $ stabilizer α y).symm
 

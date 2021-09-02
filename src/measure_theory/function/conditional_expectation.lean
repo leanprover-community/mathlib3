@@ -9,11 +9,15 @@ import measure_theory.function.ae_eq_of_integral
 
 /-! # Conditional expectation
 
-The conditional expectation will be defined for functions in `L²` by an orthogonal projection into
-a complete subspace of `L²`. It will then be extended to `L¹`.
-
-For now, this file contains only the definition of the subspace of `Lᵖ` containing functions which
-are measurable with respect to a sub-σ-algebra, as well as a proof that it is complete.
+We build the conditional expectation with respect to a sub-sigma-algebra `m` in three steps:
+* Define the conditional expectation of an `L²` function, as an element of `L²`. This is the
+  orthogonal projection on the subspace of almost everywhere `m`-measurable functions.
+* Show that the conditional expectation of the indicator of a measurable set with finite measure
+  is integrable and define a map `set α → (E →L[ℝ] (α →₁[μ] E))` which to a set associates a linear
+  map. That linear map sends `x ∈ E` to the conditional expectation of the indicator of the set
+  with value `x`.
+* Extend that map to `(α →₁[μ] E) →L[𝕜] (α →₁[μ] E)`. This is done using the same construction as
+  the Bochner integral. TODO.
 
 -/
 
@@ -92,7 +96,7 @@ end
 /-- A m-measurable function almost everywhere equal to `f`. -/
 def mk (f : α → β) (hfm : ae_measurable' m f μ) : α → β := hfm.some
 
-lemma measurable_mk {f : α → β} (hfm : ae_measurable' m f μ) : @measurable _ _ m _ (hfm.mk f) :=
+lemma measurable_mk {f : α → β} (hfm : ae_measurable' m f μ) : measurable[m] (hfm.mk f) :=
 hfm.some_spec.1
 
 lemma ae_eq_mk {f : α → β} (hfm : ae_measurable' m f μ) : f =ᵐ[μ] hfm.mk f :=
@@ -113,7 +117,7 @@ lemma ae_measurable'_of_ae_measurable'_trim {α β} {m m0 m0' : measurable_space
 by { obtain ⟨g, hg_meas, hfg⟩ := hf, exact ⟨g, hg_meas, ae_eq_of_ae_eq_trim hfg⟩, }
 
 lemma measurable.ae_measurable' {α β} {m m0 : measurable_space α} [measurable_space β]
-  {μ : measure α} {f : α → β} (hf : @measurable _ _ m _ f) :
+  {μ : measure α} {f : α → β} (hf : measurable[m] f) :
   ae_measurable' m f μ :=
 ⟨f, hf, ae_eq_refl _⟩
 
@@ -470,8 +474,7 @@ lemma integral_norm_le_of_forall_fin_meas_integral_eq (hm : m ≤ m0) {f g : α 
   (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) :
   ∫ x in s, ∥g x∥ ∂μ ≤ ∫ x in s, ∥f x∥ ∂μ :=
 begin
-  rw integral_norm_eq_pos_sub_neg (hg.mono hm le_rfl) hgi,
-  rw integral_norm_eq_pos_sub_neg hf hfi,
+  rw [integral_norm_eq_pos_sub_neg (hg.mono hm le_rfl) hgi, integral_norm_eq_pos_sub_neg hf hfi],
   have h_meas_nonneg_g : measurable_set[m] {x | 0 ≤ g x},
     from @measurable_set_le _ α _ _ _ m _ _ _ _ g (@measurable_const _ α _ m _) hg,
   have h_meas_nonneg_f : measurable_set {x | 0 ≤ f x},
@@ -542,7 +545,8 @@ lemma integrable_on_condexp_L2_of_measure_ne_top (hm : m ≤ m0) (hμs : μ s �
 integrable_on_Lp_of_measure_ne_top ((condexp_L2 𝕜 hm f) : α →₂[μ] E)
   fact_one_le_two_ennreal.elim hμs
 
-lemma integrable_condexp_L2_of_finite_measure (hm : m ≤ m0) [finite_measure μ] {f : α →₂[μ] E} :
+lemma integrable_condexp_L2_of_is_finite_measure (hm : m ≤ m0) [is_finite_measure μ]
+  {f : α →₂[μ] E} :
   integrable (condexp_L2 𝕜 hm f) μ :=
 integrable_on_univ.mp $ integrable_on_condexp_L2_of_measure_ne_top hm (measure_ne_top _ _) f
 
@@ -556,8 +560,8 @@ lemma norm_condexp_L2_le (hm : m ≤ m0) (f : α →₂[μ] E) : ∥condexp_L2 �
 lemma snorm_condexp_L2_le (hm : m ≤ m0) (f : α →₂[μ] E) :
   snorm (condexp_L2 𝕜 hm f) 2 μ ≤ snorm f 2 μ :=
 begin
-  rw [Lp_meas_coe, ← ennreal.to_real_le_to_real (Lp.snorm_ne_top _) (Lp.snorm_ne_top _), ← norm_def,
-    ← norm_def, submodule.norm_coe],
+  rw [Lp_meas_coe, ← ennreal.to_real_le_to_real (Lp.snorm_ne_top _) (Lp.snorm_ne_top _),
+    ← norm_def, ← norm_def, submodule.norm_coe],
   exact norm_condexp_L2_le hm f,
 end
 
@@ -616,7 +620,7 @@ lemma lintegral_nnnorm_condexp_L2_le (hm : m ≤ m0) (hs : measurable_set[m] s) 
 begin
   let h_meas := Lp_meas.ae_measurable' (condexp_L2 ℝ hm f),
   let g := h_meas.some,
-  have hg_meas : @measurable _ _ m _ g, from h_meas.some_spec.1,
+  have hg_meas : measurable[m] g, from h_meas.some_spec.1,
   have hg_eq : g =ᵐ[μ] condexp_L2 ℝ hm f, from h_meas.some_spec.2.symm,
   have hg_eq_restrict : g =ᵐ[μ.restrict s] condexp_L2 ℝ hm f, from ae_restrict_of_ae hg_eq,
   have hg_nnnorm_eq : (λ x, (∥g x∥₊ : ℝ≥0∞))
@@ -828,8 +832,7 @@ variables {𝕜}
 
 lemma set_lintegral_nnnorm_condexp_L2_indicator_le (hm : m ≤ m0) (hs : measurable_set s)
   (hμs : μ s ≠ ∞) (x : E') {t : set α} (ht : @measurable_set _ m t) (hμt : μ t ≠ ∞) :
-  ∫⁻ a in t, ∥condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs x) a∥₊ ∂μ
-    ≤ μ (s ∩ t) * ∥x∥₊ :=
+  ∫⁻ a in t, ∥condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs x) a∥₊ ∂μ ≤ μ (s ∩ t) * ∥x∥₊ :=
 calc ∫⁻ a in t, ∥condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs x) a∥₊ ∂μ
     = ∫⁻ a in t, ∥(condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ)) a) • x∥₊ ∂μ :
 set_lintegral_congr_fun (hm t ht)
@@ -914,7 +917,7 @@ section condexp_ind
 /-! ## Conditional expectation of an indicator as a condinuous linear map.
 
 The goal of this section is to build
-`condexp_ind 𝕜 (hm : m ≤ m0) (μ : measure α) (hs : measurable_set s) : E' →L[ℝ] α →₁[μ] E'`, which
+`condexp_ind 𝕜 (hm : m ≤ m0) (μ : measure α) (s : set s) : E' →L[ℝ] α →₁[μ] E'`, which
 takes `x : E'` to the conditional expectation of the indicator of the set `s` with value `x`,
 seen as an element of `α →₁[μ] E'`.
 -/
@@ -1037,7 +1040,8 @@ end condexp_ind_L1_fin
 section condexp_ind_L1
 
 variables (𝕜)
-/-- Conditional expectation of the indicator of a measurable set, as a function in L1. -/
+/-- Conditional expectation of the indicator of a set, as a function in L1. Its value for sets
+which are not both measurable and of finite measure is not used: we set it to 0. -/
 def condexp_ind_L1 {m m0 : measurable_space α} (hm : m ≤ m0) (μ : measure α) (s : set α)
   [sigma_finite (μ.trim hm)] [decidable (measurable_set s)] (x : E') :
   α →₁[μ] E' :=
@@ -1045,6 +1049,7 @@ dite (measurable_set s ∧ μ s ≠ ∞) (λ hs, condexp_ind_L1_fin 𝕜 hm hs.1
 variables {𝕜}
 
 variables {hm : m ≤ m0} [sigma_finite (μ.trim hm)] [decidable (measurable_set s)]
+  [decidable (measurable_set t)] [decidable (measurable_set (s ∪ t))]
 
 lemma condexp_ind_L1_of_measurable_set_of_measure_ne_top (hs : measurable_set s) (hμs : μ s ≠ ∞)
   (x : E') :
@@ -1110,8 +1115,7 @@ lemma continuous_condexp_ind_L1 : continuous (λ x : E', condexp_ind_L1 𝕜 hm 
 continuous_of_linear_of_bound condexp_ind_L1_add condexp_ind_L1_smul_real norm_condexp_ind_L1_le
 
 lemma condexp_ind_L1_disjoint_union (hs : measurable_set s) (ht : measurable_set t)
-  (hμs : μ s ≠ ∞) (hμt : μ t ≠ ∞) (hst : s ∩ t = ∅) (x : E') [decidable (measurable_set t)]
-  [decidable (measurable_set (s ∪ t))] :
+  (hμs : μ s ≠ ∞) (hμt : μ t ≠ ∞) (hst : s ∩ t = ∅) (x : E') :
   condexp_ind_L1 𝕜 hm μ (s ∪ t) x = condexp_ind_L1 𝕜 hm μ s x + condexp_ind_L1 𝕜 hm μ t x :=
 begin
   have hμst : μ (s ∪ t) ≠ ∞, from ((measure_union_le s t).trans_lt
@@ -1125,8 +1129,7 @@ end
 end condexp_ind_L1
 
 variables (𝕜)
-/-- Conditional expectation of the indicator of a measurable set, as a linear map from `E'`
-to L1. -/
+/-- Conditional expectation of the indicator of a set, as a linear map from `E'` to L1. -/
 def condexp_ind {m m0 : measurable_space α} (hm : m ≤ m0) (μ : measure α) [sigma_finite (μ.trim hm)]
   (s : set α) [decidable (measurable_set s)] :
   E' →L[ℝ] α →₁[μ] E' :=

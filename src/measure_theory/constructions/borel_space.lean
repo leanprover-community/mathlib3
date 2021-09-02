@@ -613,15 +613,14 @@ end
 lemma ae_measurable_comp_iff_of_closed_embedding {f : δ → β} {μ : measure δ}
   (g : β → γ) (hg : closed_embedding g) : ae_measurable (g ∘ f) μ ↔ ae_measurable f μ :=
 begin
-  by_cases h : nonempty β,
-  { resetI,
-    refine ⟨λ hf, _, λ hf, hg.measurable.comp_ae_measurable hf⟩,
+  casesI is_empty_or_nonempty β,
+  { haveI := function.is_empty f,
+    simp only [(measurable_of_empty (g ∘ f)).ae_measurable,
+      (measurable_of_empty f).ae_measurable] },
+  { refine ⟨λ hf, _, λ hf, hg.measurable.comp_ae_measurable hf⟩,
     convert hg.measurable_inv_fun.comp_ae_measurable hf,
     ext x,
     exact (function.left_inverse_inv_fun hg.to_embedding.inj (f x)).symm },
-  { have H : ¬ nonempty δ, by { contrapose! h, exact nonempty.map f h },
-    simp [(measurable_of_not_nonempty H (g ∘ f)).ae_measurable,
-          (measurable_of_not_nonempty H f).ae_measurable] }
 end
 
 lemma ae_measurable_comp_right_iff_of_closed_embedding {g : α → β} {μ : measure α}
@@ -629,9 +628,7 @@ lemma ae_measurable_comp_right_iff_of_closed_embedding {g : α → β} {μ : mea
   ae_measurable (f ∘ g) μ ↔ ae_measurable f (measure.map g μ) :=
 begin
   refine ⟨λ h, _, λ h, h.comp_measurable hg.measurable⟩,
-  by_cases hα : nonempty α,
-  swap, { simp [measure.eq_zero_of_not_nonempty hα μ] },
-  resetI,
+  casesI is_empty_or_nonempty α, { simp [μ.eq_zero_of_is_empty] },
   refine ⟨(h.mk _) ∘ (function.inv_fun g), h.measurable_mk.comp hg.measurable_inv_fun, _⟩,
   have : μ = measure.map (function.inv_fun g) (measure.map g μ),
     by rw [measure.map_map hg.measurable_inv_fun hg.measurable,
@@ -1091,7 +1088,7 @@ by simpa using is_pi_system_Ioo (coe : ℚ → ℝ)
 
 /-- The intervals `(-(n + 1), (n + 1))` form a finite spanning sets in the set of open intervals
 with rational endpoints for a locally finite measure `μ` on `ℝ`. -/
-def finite_spanning_sets_in_Ioo_rat (μ : measure ℝ) [locally_finite_measure μ] :
+def finite_spanning_sets_in_Ioo_rat (μ : measure ℝ) [is_locally_finite_measure μ] :
   μ.finite_spanning_sets_in (⋃ (a b : ℚ) (h : a < b), {Ioo a b}) :=
 { set := λ n, Ioo (-(n + 1)) (n + 1),
   set_mem := λ n,
@@ -1102,12 +1099,12 @@ def finite_spanning_sets_in_Ioo_rat (μ : measure ℝ) [locally_finite_measure �
     end,
   finite := λ n,
     calc μ (Ioo _ _) ≤ μ (Icc _ _) : μ.mono Ioo_subset_Icc_self
-                 ... < ∞           : is_compact_Icc.finite_measure,
+                 ... < ∞           : is_compact_Icc.is_finite_measure,
   spanning := Union_eq_univ_iff.2 $ λ x,
     ⟨⌊abs x⌋₊, neg_lt.1 ((neg_le_abs_self x).trans_lt (lt_nat_floor_add_one _)),
       (le_abs_self x).trans_lt (lt_nat_floor_add_one _)⟩ }
 
-lemma measure_ext_Ioo_rat {μ ν : measure ℝ} [locally_finite_measure μ]
+lemma measure_ext_Ioo_rat {μ ν : measure ℝ} [is_locally_finite_measure μ]
   (h : ∀ a b : ℚ, μ (Ioo a b) = ν (Ioo a b)) : μ = ν :=
 (finite_spanning_sets_in_Ioo_rat μ).ext borel_eq_generate_from_Ioo_rat is_pi_system_Ioo_rat $
   by { simp only [mem_Union, mem_singleton_iff], rintro _ ⟨a, b, -, rfl⟩, apply h }
@@ -1281,6 +1278,15 @@ lemma measurable.ennreal_tsum {ι} [encodable ι] {f : ι → α → ℝ≥0∞}
   measurable (λ x, ∑' i, f i x) :=
 by { simp_rw [ennreal.tsum_eq_supr_sum], apply measurable_supr,
   exact λ s, s.measurable_sum (λ i _, h i) }
+
+@[measurability]
+lemma measurable.ennreal_tsum' {ι} [encodable ι] {f : ι → α → ℝ≥0∞} (h : ∀ i, measurable (f i)) :
+  measurable (∑' i, f i) :=
+begin
+  convert measurable.ennreal_tsum h,
+  ext1 x,
+  exact tsum_apply (pi.summable.2 (λ _, ennreal.summable)),
+end
 
 @[measurability]
 lemma measurable.nnreal_tsum {ι} [encodable ι] {f : ι → α → ℝ≥0} (h : ∀ i, measurable (f i)) :
@@ -1589,6 +1595,6 @@ is_compact.induction_on h (by simp) (λ s t hst ht, (measure_mono hst).trans_lt 
   (λ s t hs ht, (measure_union_le s t).trans_lt (ennreal.add_lt_top.2 ⟨hs, ht⟩)) hμ
 
 lemma is_compact.measure_lt_top [topological_space α] {s : set α} {μ : measure α}
-  [locally_finite_measure μ] (h : is_compact s) :
+  [is_locally_finite_measure μ] (h : is_compact s) :
   μ s < ∞ :=
 h.measure_lt_top_of_nhds_within $ λ x hx, μ.finite_at_nhds_within _ _

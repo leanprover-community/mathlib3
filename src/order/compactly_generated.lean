@@ -181,7 +181,7 @@ end
 lemma is_sup_closed_compact.well_founded (h : is_sup_closed_compact α) :
   well_founded ((>) : α → α → Prop) :=
 begin
-  rw rel_embedding.well_founded_iff_no_descending_seq, rintros ⟨a⟩,
+  refine rel_embedding.well_founded_iff_no_descending_seq.mpr ⟨λ a, _⟩,
   suffices : Sup (set.range a) ∈ set.range a,
   { obtain ⟨n, hn⟩ := set.mem_range.mp this,
     have h' : Sup (set.range a) < a (n+1), { change _ > _, simp [← hn, a.map_rel_iff], },

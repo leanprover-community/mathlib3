@@ -345,7 +345,7 @@ end interval_integrable
 
 section
 
-variables {μ : measure ℝ} [locally_finite_measure μ]
+variables {μ : measure ℝ} [is_locally_finite_measure μ]
 
 lemma continuous_on.interval_integrable [borel_space E] {u : ℝ → E} {a b : ℝ}
   (hu : continuous_on u (interval a b)) : interval_integrable u μ a b :=
@@ -366,9 +366,9 @@ end
 section
 
 variables {ι : Type*} [topological_space ι] [conditionally_complete_linear_order ι]
-  [order_topology ι] [measurable_space ι] [borel_space ι] {μ : measure ι} [locally_finite_measure μ]
-  [conditionally_complete_linear_order E] [order_topology E] [second_countable_topology E]
-  [borel_space E]
+  [order_topology ι] [measurable_space ι] [borel_space ι] {μ : measure ι}
+  [is_locally_finite_measure μ] [conditionally_complete_linear_order E] [order_topology E]
+  [second_countable_topology E] [borel_space E]
 
 lemma interval_integrable_of_monotone_on {u : ι → E} {a b : ι}
   (hu : ∀ ⦃x y⦄, x ∈ interval a b → y ∈ interval a b → x ≤ y → u x ≤ u y) :
@@ -819,7 +819,7 @@ begin
 end
 
 /-- If `μ` is a finite measure then `∫ x in a..b, c ∂μ = (μ (Iic b) - μ (Iic a)) • c`. -/
-lemma integral_const_of_cdf [finite_measure μ] (c : E) :
+lemma integral_const_of_cdf [is_finite_measure μ] (c : E) :
   ∫ x in a..b, c ∂μ = ((μ (Iic b)).to_real - (μ (Iic a)).to_real) • c :=
 begin
   simp only [sub_smul, ← set_integral_const],
@@ -1241,7 +1241,7 @@ instance nhds_within_singleton (a : β) : FTC_filter a (𝓝[{a}] a) ⊥ :=
 by { rw [nhds_within, principal_singleton, inf_eq_right.2 (pure_le_nhds a)], apply_instance }
 
 lemma finite_at_inner {a : β} (l : filter β) {l'} [h : FTC_filter a l l']
-  {μ : measure β} [locally_finite_measure μ] :
+  {μ : measure β} [is_locally_finite_measure μ] :
   μ.finite_at_filter l' :=
 (μ.finite_at_nhds a).filter_mono h.le_nhds
 
@@ -1278,7 +1278,7 @@ finite at `l'`, then `∫ x in u..v, f x ∂μ = ∫ x in u..v, c ∂μ + o(∫ 
 `u` and `v` tend to `l`.
 
 See also `measure_integral_sub_linear_is_o_of_tendsto_ae` for a version assuming
-`[FTC_filter a l l']` and `[locally_finite_measure μ]`. If `l` is one of `𝓝[Ici a] a`,
+`[FTC_filter a l l']` and `[is_locally_finite_measure μ]`. If `l` is one of `𝓝[Ici a] a`,
 `𝓝[Iic a] a`, `𝓝 a`, then it's easier to apply the non-primed version.
 The primed version also works, e.g., for `l = l' = at_top`.
 
@@ -1309,7 +1309,7 @@ finite at `l`, then `∫ x in u..v, f x ∂μ = μ (Ioc u v) • c + o(μ(Ioc u 
 `u` and `v` tend to `l` so that `u ≤ v`.
 
 See also `measure_integral_sub_linear_is_o_of_tendsto_ae_of_le` for a version assuming
-`[FTC_filter a l l']` and `[locally_finite_measure μ]`. If `l` is one of `𝓝[Ici a] a`,
+`[FTC_filter a l l']` and `[is_locally_finite_measure μ]`. If `l` is one of `𝓝[Ici a] a`,
 `𝓝[Iic a] a`, `𝓝 a`, then it's easier to apply the non-primed version.
 The primed version also works, e.g., for `l = l' = at_top`. -/
 lemma measure_integral_sub_linear_is_o_of_tendsto_ae_of_le'
@@ -1329,7 +1329,7 @@ finite at `l`, then `∫ x in u..v, f x ∂μ = -μ (Ioc v u) • c + o(μ(Ioc v
 `u` and `v` tend to `l` so that `v ≤ u`.
 
 See also `measure_integral_sub_linear_is_o_of_tendsto_ae_of_ge` for a version assuming
-`[FTC_filter a l l']` and `[locally_finite_measure μ]`. If `l` is one of `𝓝[Ici a] a`,
+`[FTC_filter a l l']` and `[is_locally_finite_measure μ]`. If `l` is one of `𝓝[Ici a] a`,
 `𝓝[Iic a] a`, `𝓝 a`, then it's easier to apply the non-primed version.
 The primed version also works, e.g., for `l = l' = at_top`. -/
 lemma measure_integral_sub_linear_is_o_of_tendsto_ae_of_ge'
@@ -1345,7 +1345,7 @@ variables [topological_space α]
 
 section
 
-variables [locally_finite_measure μ] [FTC_filter a l l']
+variables [is_locally_finite_measure μ] [FTC_filter a l l']
 
 include a
 
@@ -1403,7 +1403,7 @@ variables [order_topology α] [borel_space α]
 
 local attribute [instance] FTC_filter.meas_gen
 
-variables [FTC_filter a la la'] [FTC_filter b lb lb'] [locally_finite_measure μ]
+variables [FTC_filter a la la'] [FTC_filter b lb lb'] [is_locally_finite_measure μ]
 
 /-- Fundamental theorem of calculus-1, strict derivative in both limits for a locally finite
 measure.

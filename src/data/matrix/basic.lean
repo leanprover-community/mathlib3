@@ -258,6 +258,9 @@ diagonal_apply_ne'
   (1 : matrix n n α).map f = (1 : matrix n n β) :=
 by { ext, simp only [one_apply, map_apply], split_ifs; simp [h₀, h₁], }
 
+lemma one_eq_pi_single {i j} : (1 : matrix n n α) i j = pi.single i 1 j :=
+by simp only [one_apply, pi.single_apply, eq_comm]; congr -- deal with decidable_eq
+
 end one
 
 section numeral

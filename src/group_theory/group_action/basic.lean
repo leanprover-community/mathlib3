@@ -248,7 +248,7 @@ variables [monoid α] [add_monoid β] [distrib_mul_action α β]
 
 lemma list.smul_sum {r : α} {l : list β} :
   r • l.sum = (l.map ((•) r)).sum :=
-(const_smul_hom β r).map_list_sum l
+(distrib_mul_action.to_add_monoid_hom β r).map_list_sum l
 
 /-- `smul` by a `k : M` over a ring is injective, if `k` is not a zero divisor.
 The general theory of such `k` is elaborated by `is_smul_regular`.
@@ -269,10 +269,10 @@ variables [monoid α] [add_comm_monoid β] [distrib_mul_action α β]
 
 lemma multiset.smul_sum {r : α} {s : multiset β} :
   r • s.sum = (s.map ((•) r)).sum :=
-(const_smul_hom β r).map_multiset_sum s
+(distrib_mul_action.to_add_monoid_hom β r).map_multiset_sum s
 
 lemma finset.smul_sum {r : α} {f : γ → β} {s : finset γ} :
   r • ∑ x in s, f x = ∑ x in s, r • f x :=
-(const_smul_hom β r).map_sum f s
+(distrib_mul_action.to_add_monoid_hom β r).map_sum f s
 
 end

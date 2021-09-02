@@ -110,10 +110,10 @@ diagonal_transpose _
     if `A` and `D` are symmetric and `Bᵀ = C`. -/
 lemma is_symm.from_blocks
   {A : matrix m m α} {B : matrix m n α} {C : matrix n m α} {D : matrix n n α}
-  (h1 : A.is_symm) (h2 : D.is_symm) (h3 : Bᵀ = C) :
+  (hA : A.is_symm) (hBC : Bᵀ = C) (hD : D.is_symm) :
   (A.from_blocks B C D).is_symm :=
 begin
-  have h4 : Cᵀ = B, {rw ← h3, simp},
+  have hCB : Cᵀ = B, {rw ← hBC, simp},
   unfold matrix.is_symm,
   rw from_blocks_transpose,
   congr;

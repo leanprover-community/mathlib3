@@ -126,10 +126,7 @@ calc a⊓b * (a ⊔ b) = a ⊓ b * ((a * b) * (b⁻¹ ⊔ a⁻¹)) :
 /--
 Absolute value is a unary operator with properties similar to the absolute value of a real number.
 -/
-class has_abs (α : Type u) := (abs : α → α)
-local notation `|`a`|` := has_abs.abs a
-@[priority 100, to_additive] -- see Note [lower instance priority]
-instance lattice_ordered_comm_group_has_abs : has_abs (α)  := ⟨λa, a⊔a⁻¹⟩
+local notation `|`a`|` := mabs a
 
 namespace lattice_ordered_comm_group
 
@@ -337,7 +334,7 @@ lemma pos_mul_neg [covariant_class α α (*) (≤)] (a : α) : |a| = a⁺ * a⁻
 begin
   rw le_antisymm_iff,
   split,
-  { unfold has_abs.abs,
+  { unfold mabs,
     rw sup_le_iff,
     split,
     { nth_rewrite 0 ← mul_one a,
@@ -485,7 +482,7 @@ equal to its absolute value `|a|`.
 -/
 lemma abs_pos_eq [covariant_class α α (*) (≤)] (a : α) (h: 1 ≤ a) : |a| = a :=
 begin
-  unfold has_abs.abs,
+  unfold mabs,
   rw [sup_eq_mul_pos_div, div_eq_mul_inv, inv_inv, ← pow_two, inv_mul_eq_iff_eq_mul,
     ← pow_two, pos_pos_id ],
   rw pow_two,

@@ -98,7 +98,7 @@ h.transpose.map _
 
 @[simp] lemma is_symm.smul
 [has_scalar R α] {A : matrix n n α} (h : A.is_symm) (k : R) :
-(k • A).is_symm :=
+  (k • A).is_symm :=
 (transpose_smul _ _).trans (congr_arg _ h)
 
 /-- The diagonal matrix `diagonal v` is symmetric. -/

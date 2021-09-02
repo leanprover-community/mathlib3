@@ -203,15 +203,6 @@ begin
   { simp [h, transpose, diagonal_apply_ne' h] }
 end
 
-@[simp] lemma diagonal_conj_transpose [semiring α] [star_ring α] (v : n → α) :
-  (diagonal v)ᴴ = diagonal (star v) :=
-begin
-  ext i j,
-  by_cases h : i = j,
-  { simp [h, conj_transpose] },
-  { simp [h, conj_transpose, diagonal_apply_ne' h], }
-end
-
 @[simp] theorem diagonal_add [add_zero_class α] (d₁ d₂ : n → α) :
   diagonal d₁ + diagonal d₂ = diagonal (λ i, d₁ i + d₂ i) :=
 by ext i j; by_cases h : i = j; simp [h]
@@ -244,6 +235,13 @@ variables {n α R}
 @[simp] lemma diagonal_map [has_zero α] [has_zero β] {f : α → β} (h : f 0 = 0) {d : n → α} :
   (diagonal d).map f = diagonal (λ m, f (d m)) :=
 by { ext, simp only [diagonal, map_apply], split_ifs; simp [h], }
+
+@[simp] lemma diagonal_conj_transpose [semiring α] [star_ring α] (v : n → α) :
+  (diagonal v)ᴴ = diagonal (star v) :=
+begin
+  rw [conj_transpose, diagonal_transpose, diagonal_map (star_zero _)],
+  refl,
+end
 
 section one
 variables [has_zero α] [has_one α]

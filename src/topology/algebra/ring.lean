@@ -197,7 +197,6 @@ variables {α : Type*} [ring α]
 instance inhabited {α : Type u} [ring α] : inhabited (ring_topology α) :=
 ⟨{to_topological_space := ⊤,
   continuous_add       := continuous_top,
-  continuous_neg       := continuous_top,
   continuous_mul       := continuous_top}⟩
 
 @[ext]
@@ -222,14 +221,6 @@ let Inf_S' := Inf (to_topological_space '' S) in
     have h_continuous_id := @continuous.prod_map _ _ _ _ t t Inf_S' Inf_S' _ _ h h,
     have h_continuous_add : cont (id _) t (λ (p : α × α), p.fst + p.snd) := continuous_add,
     exact @continuous.comp _ _ _ (id _) (id _) t _ _ h_continuous_add h_continuous_id,
-  end,
-  continuous_neg       :=
-  begin
-    apply continuous_Inf_rng,
-    intros t ht,
-    apply continuous_Inf_dom ht,
-    rcases ht with ⟨⟨t, tr⟩, -, rfl⟩, resetI,
-    apply continuous_neg,
   end,
   continuous_mul       :=
   begin

@@ -56,26 +56,25 @@ ext $ λ _ _, mul_comm _ _
 
 /- associativity -/
 lemma hadamard_assoc [semigroup α] : A ⊙ B ⊙ C = A ⊙ (B ⊙ C) :=
-by ext; simp [hadamard, mul_assoc]
+ext $ λ _ _, mul_assoc _ _ _
 
 /- distributivity -/
 lemma hadamard_add [distrib α] : A ⊙ (B + C) = A ⊙ B + A ⊙ C :=
-by ext; simp [hadamard, left_distrib]
+ext $ λ _ _, left_distrib _ _ _
 
 lemma add_hadamard [distrib α] : (B + C) ⊙ A = B ⊙ A + C ⊙ A :=
-by ext; simp [hadamard, right_distrib]
-
+ext $ λ _ _, right_distrib _ _ _
 
 /- scalar multiplication -/
 section scalar
 
 @[simp] lemma smul_hadamard [has_mul α] [has_scalar R α] [is_scalar_tower R α α] (k : R) :
   (k • A) ⊙ B = k • A ⊙ B :=
-by {ext, simp [hadamard], exact smul_assoc _ (A i j) _}
+by {ext, simp, exact smul_assoc _ (A i j) _}
 
 @[simp] lemma hadamard_smul[has_mul α] [has_scalar R α] [smul_comm_class R α α] (k : R):
   A ⊙ (k • B) = k • A ⊙ B :=
-by {ext, simp [hadamard], exact (smul_comm k (A i j) (B i j)).symm}
+by {ext, simp, exact (smul_comm k (A i j) (B i j)).symm}
 
 end scalar
 
@@ -84,12 +83,37 @@ section zero
 variables [mul_zero_class α]
 
 @[simp] lemma hadamard_zero : A ⊙ (0 : matrix m n α) = 0 :=
-by ext; simp [hadamard]
+by ext; simp
 
 @[simp] lemma zero_hadamard : (0 : matrix m n α) ⊙ A = 0 :=
-by ext; simp [hadamard]
+by ext; simp
 
 end zero
+
+/-
+section one
+
+variables [decidable_eq n] [mul_zero_one_class α]
+variables (M : matrix n n α)
+
+@[simp] lemma hadamard_one : M ⊙ (1 : matrix n n α) = diagonal (diag M) :=
+by ext; simp
+
+@[simp] lemma one_hadamard : (1 : matrix m n α) ⊙ M = diagonal (diag M) :=
+by ext; simp
+
+end one
+-/
+
+section diagonal
+
+variables [decidable_eq n] [mul_zero_class α]
+
+lemma diagonal_hadamard_diagonal (v : n → α) (w : n → α) :
+  diagonal v ⊙ diagonal w = diagonal (v * w) :=
+by {ext, simp [diagonal], intro h, simp [h]}
+
+end diagonal
 
 section trace
 

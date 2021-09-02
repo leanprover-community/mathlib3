@@ -9,11 +9,15 @@ import measure_theory.function.ae_eq_of_integral
 
 /-! # Conditional expectation
 
-The conditional expectation will be defined for functions in `L²` by an orthogonal projection into
-a complete subspace of `L²`. It will then be extended to `L¹`.
-
-For now, this file contains only the definition of the subspace of `Lᵖ` containing functions which
-are measurable with respect to a sub-σ-algebra, as well as a proof that it is complete.
+We build the conditional expectation with respect to a sub-sigma-algebra `m` in three steps:
+* Define the conditional expectation of an `L²` function, as an element of `L²`. This is the
+  orthogonal projection on the subspace of almost everywhere `m`-measurable functions.
+* Show that the conditional expectation of the indicator of a measurable set with finite measure
+  is integrable and define a map `set α → (E →L[ℝ] (α →₁[μ] E))` which to a set associates a linear
+  map. That linear map sends `x ∈ E` to the conditional expectation of the indicator of the set
+  with value `x`.
+* Extend that map to `(α →₁[μ] E) →L[𝕜] (α →₁[μ] E)`. This is done using the same construction as
+  the Bochner integral. TODO.
 
 -/
 
@@ -1138,8 +1142,7 @@ end
 end condexp_ind_L1
 
 variables (𝕜)
-/-- Conditional expectation of the indicator of a measurable set, as a linear map from `E'`
-to L1. -/
+/-- Conditional expectation of the indicator of a set, as a linear map from `E'` to L1. -/
 def condexp_ind {m m0 : measurable_space α} (hm : m ≤ m0) (μ : measure α) [sigma_finite (μ.trim hm)]
   (s : set α) [decidable (measurable_set s)] :
   E' →L[ℝ] α →₁[μ] E' :=

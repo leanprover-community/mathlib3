@@ -1159,7 +1159,7 @@ end
   (M + N)ᵀ = Mᵀ + Nᵀ  :=
 by { ext i j, simp }
 
-@[simp] lemma transpose_sub [add_group α] (M : matrix m n α) (N : matrix m n α) :
+@[simp] lemma transpose_sub [has_sub α] (M : matrix m n α) (N : matrix m n α) :
   (M - N)ᵀ = Mᵀ - Nᵀ  :=
 by { ext i j, simp }
 

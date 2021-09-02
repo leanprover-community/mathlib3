@@ -71,7 +71,7 @@ by simp [matrix.is_symm, add_comm]
 /-- The identity matrix is symmetric. -/
 @[simp] lemma is_symm_one [decidable_eq n] [has_zero α] [has_one α] :
   (1 : matrix n n α).is_symm :=
-by {ext, simp}
+transpose_one
 
 lemma is_symm.transpose {A : matrix n n α} (h : A.is_symm) :
   Aᵀ.is_symm :=

@@ -766,8 +766,8 @@ section lsmul_left
 
 variables (R : Type*) [nondiscrete_normed_field R] [semi_normed_group γ] [semi_normed_space R γ]
 
-/-- Scalar product `λ (r : R), r • x` as a linear map. TODO: why does it fail with a universe error
-if we don't specify `γ` explicitly for `continuous_linear_map.lsmul`? -/
+/-- Scalar product `λ (r : R), r • x` as a continuous linear map. TODO: why does it fail with a
+universe error if we don't specify `γ` explicitly for `continuous_linear_map.lsmul`? -/
 def lsmul_left (x : γ) : R →L[R] γ := (@continuous_linear_map.lsmul R γ _ _ _ R _ _ _ _).flip x
 
 lemma lsmul_left_add (x y : γ) : lsmul_left R (x + y) = lsmul_left R x + lsmul_left R y :=
@@ -914,7 +914,8 @@ begin
   push_cast,
   rw [condexp_L2_indicator_eq_lsmul_left_comp 𝕜 hm hs hμs x,
     condexp_L2_indicator_eq_lsmul_left_comp 𝕜 hm hs hμs (c • x), lsmul_left_smul_real ℝ c x,
-    continuous_linear_map.smul_comp_Lp c (lsmul_left ℝ x), is_R_or_C.of_real_alg, smul_assoc, one_smul],
+    continuous_linear_map.smul_comp_Lp c (lsmul_left ℝ x), is_R_or_C.of_real_alg, smul_assoc,
+    one_smul],
 end
 
 end condexp_L2_indicator

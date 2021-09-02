@@ -1,5 +1,28 @@
+/-
+Copyright (c) 2021 Anne Baanen. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Anne Baanen
+-/
 import algebra.euclidean_absolute_value
 import data.polynomial.field_division
+
+/-!
+# Absolute value on polynomials over a finite field.
+
+Let `Fq` be a finite field of cardinality `q`, then the map sending a polynomial `p`
+to `q ^ degree p` (where `q ^ degree 0 = 0`) is an absolute value.
+
+## Main definitions
+
+ * `polynomial.card_pow_degree` is an absolute value on `𝔽_q[t]`, the ring of
+   polynomials over a finite field of cardinality `q`, mapping a polynomial `p`
+   to `q ^ degree p` (where `q ^ degree 0 = 0`)
+
+## Main results
+ * `polynomial.card_pow_degree_is_euclidean`: `card_pow_degree` respects the
+   Euclidean domain structure on the ring of polynomials
+
+-/
 
 namespace polynomial
 

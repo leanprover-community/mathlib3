@@ -74,12 +74,12 @@ theorem one_dvd (a : α) : 1 ∣ a := dvd.intro a (one_mul _)
 @[simp] theorem dvd_mul_right (a b : α) : a ∣ a * b := dvd.intro b rfl
 
 theorem dvd_mul_of_dvd_left (h : a ∣ b) (c : α) : a ∣ b * c :=
-dvd.elim h (λ d h', begin rw [h', mul_assoc], apply dvd_mul_right end)
+h.trans (dvd_mul_right b c)
 
 alias dvd_mul_of_dvd_left ← has_dvd.dvd.mul_right
 
 theorem dvd_of_mul_right_dvd (h : a * b ∣ c) : a ∣ c :=
-dvd.elim h (begin intros d h₁, rw [h₁, mul_assoc], apply dvd_mul_right end)
+(dvd_mul_right a b).trans h
 
 section map_dvd
 

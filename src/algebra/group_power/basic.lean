@@ -233,7 +233,7 @@ monoid, considered as a morphism of additive monoids.", simps]
 def pow_monoid_hom (n : ℕ) : M →* M :=
 { to_fun := (^ n),
   map_one' := one_pow _,
-  map_mul' := λ a b ,mul_pow a b n }
+  map_mul' := λ a b, mul_pow a b n }
 
 -- the below line causes the linter to complain :-/
 -- attribute [simps] pow_monoid_hom nsmul_add_monoid_hom
@@ -241,11 +241,9 @@ def pow_monoid_hom (n : ℕ) : M →* M :=
 lemma dvd_pow {x y : M} (hxy : x ∣ y) :
   ∀ {n : ℕ} (hn : n ≠ 0), x ∣ y^n
 | 0       hn := (hn rfl).elim
-| (n + 1) hn := by { rw [pow_succ], exact hxy.mul_right _ }
+| (n + 1) hn := by { rw pow_succ, exact hxy.mul_right _ }
 
-lemma has_dvd.dvd.pow {x y : M} (hxy : x ∣ y) {n : ℕ} (hn : n ≠ 0) :
-  x ∣ y^n :=
-dvd_pow hxy hn
+alias dvd_pow ← has_dvd.dvd.pow
 
 lemma dvd_pow_self (a : M) {n : ℕ} (hn : n ≠ 0) : a ∣ a^n :=
 dvd_rfl.pow hn

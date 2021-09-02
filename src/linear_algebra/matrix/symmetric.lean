@@ -127,15 +127,6 @@ lemma block_conditions_of_is_symm
 {A : matrix m m α} {B : matrix m n α} {C : matrix n m α} {D : matrix n n α}
 (h : (A.from_blocks B C D).is_symm) :
 (A.is_symm) ∧ (D.is_symm) ∧ (Cᵀ = B) ∧ (Bᵀ = C) :=
-begin
-  unfold matrix.is_symm at h,
-  rw from_blocks_transpose at h,
-  have h1 : (Aᵀ.from_blocks Cᵀ Bᵀ Dᵀ).to_blocks₁₁ = (A.from_blocks B C D).to_blocks₁₁, {rw h},
-  have h2 : (Aᵀ.from_blocks Cᵀ Bᵀ Dᵀ).to_blocks₁₂ = (A.from_blocks B C D).to_blocks₁₂, {rw h},
-  have h3 : (Aᵀ.from_blocks Cᵀ Bᵀ Dᵀ).to_blocks₂₁ = (A.from_blocks B C D).to_blocks₂₁, {rw h},
-  have h4 : (Aᵀ.from_blocks Cᵀ Bᵀ Dᵀ).to_blocks₂₂ = (A.from_blocks B C D).to_blocks₂₂, {rw h},
-  simp at *,
-  use ⟨h1, h4, h2, h3⟩
-end
+⟨congr_arg to_blocks₁₁ h, congr_arg to_blocks₂₂ h, congr_arg to_blocks₁₂ h, congr_arg to_blocks₂₁ h⟩
 
 end matrix

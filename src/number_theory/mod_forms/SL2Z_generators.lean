@@ -163,11 +163,26 @@ attribute [elab_as_eliminator] nat.strong_induction_on
 
 def gengrp :subgroup SL2Z := subgroup.closure ({ S, T,S⁻¹,T⁻¹} : set SL2Z)
 
+
+
 lemma Tpows (n: ℤ) : T^n ∈ gengrp:=
+begin
+have  h1: T ∈ gengrp, by {rw gengrp, apply subgroup.subset_closure, simp,}  ,
+ apply subgroup.gpow_mem _ h1,
+end
+
+lemma TSS (n: ℤ): T^n*S*S ∈ gengrp :=
+begin
+have h1:= Tpows n,
+have h2: S ∈ gengrp , by {rw gengrp, apply subgroup.subset_closure, simp,},
+have:= subgroup.mul_mem _ h1 h2,
+apply subgroup.mul_mem _ this h2,
+end
+
+lemma SST (n: ℤ): S * SL2Z_M.S * (T^n)⁻¹ ∈ gengrp:=
 begin
 sorry,
 end
-
 
 def reps (m : ℤ) : set (Mat m) :=
 {A : Mat m | A 1 0 = 0 ∧ 0 < A 0 0 ∧ 0 ≤ A 0 1 ∧ int.nat_abs (A 0 1) < int.nat_abs (A 1 1) }
@@ -244,10 +259,17 @@ begin
     {have:= reduce_eq1 m, simp at this, have h1:=this hc ha, simp at h1, simp  [*, int.nat_abs_eq_zero, h1 , exists_apply_eq_apply],
      let gg:= (T ^ (A 0 1 / A 1 1))⁻¹, use gg, simp, apply Tpows, simp_rw gg, refl, },
     {simp only [*, int.div_neg, int.nat_abs_eq_zero, not_false_iff, neg_neg, reduce_eq2],
-    erw [← mul_smul], rw [← mul_smul],  sorry,} },
-  { rintros A hc ⟨S, eq⟩, rw reduce_eq3 m hc, rw ← eq, rw reduce_step, simp,  sorry, }
-    --rw [reduce_eq3 m hc, ← eq, reduce_step, ← mul_smul, ← mul_smul],
-    --exact ⟨_, rfl⟩ }
+    erw [← mul_smul], rw [← mul_smul], let g:= (T ^ (-A 0 1 / A 1 1))*S*S, use g, apply TSS,  simp_rw g,refl,} },
+  { rintros A hc ⟨U, eq⟩, rw reduce_eq3 m hc, rw ← eq, rw reduce_step, simp,  simp at *,
+    let g:= (U : SL2Z) * S *(T ^ (A 0 0 / A 1 0))⁻¹,  use g, simp_rw g,
+
+    sorry,
+   have j: ∀ (x y z : SL2Z) (M: Mat m), x • y • z • M = (x * y*z)• M , by {simp_rw ← mul_smul, intros x y z A,
+   rw mul_assoc,},
+   have:= j (S: SL2Z)  (SL2Z_M.S) (T ^ (A 0 0 / A 1 0))⁻¹ A,
+   apply this.symm,
+
+   }
 end
 
 
@@ -596,7 +618,29 @@ end
 
 lemma reps_sl2z: reps 1 = {(1: SL2Z)}:=
 begin
-rw reps, dsimp, sorry,
+rw reps, dsimp,
+ext1, split,
+intro hx, simp at *,
+have detsl:= det_of_22  x,
+simp at detsl,
+rw hx.1 at detsl, simp at detsl,
+have:= detsl.symm,
+rw int.mul_eq_one at this,
+have hx2:= hx.2.1,
+have hh:= one_time' _ _ hx2 this,
+have hx3: x 0 1 = 0, by {
+have i1:= hx.2.2.2, rw hh.2 at i1, simp at i1, simp [i1],},
+simp at hx3, ext,
+fin_cases i; fin_cases j,
+simp [hh.1], simp [hx3],
+simp [hx.1], simp [hh.2],
+intro hx, simp at *, split,
+simp [hx],
+split,
+simp [hx],
+split,
+simp [hx],
+simp [hx],
 end
 
 universe u
@@ -619,16 +663,35 @@ begin
 simp_rw relation.eqv_gen_iff_of_equivalence h2,
 end
 
+def quotient_r (A: subgroup G) : Type* := quotient (quotient_group.right_rel A)
+
+
 lemma top_trunc : quotient_group.quotient (⊤: subgroup G) = trunc G :=
 begin
 rw trunc, congr',
 end
+
+lemma top_trunc_r : quotient_r (⊤: subgroup G) = trunc G :=
+begin
+rw trunc, congr',
+end
+
 
 lemma lef_rel_triv (H :subgroup G) (h: (quotient_group.left_rel H).r = triv_rel G ) : ∀ x y : G , x⁻¹ * y ∈ H:=
 begin
 rw triv_rel at h,
 let s:=(quotient_group.left_rel H).r,
 have h2: ∀ x y : G, s x y ↔ x⁻¹ * y ∈ H, by {intros x y, refl,  },
+intros x y,
+have h3:= h2 x y, rw ← h3, simp_rw s, rw h, tauto,
+end
+
+
+lemma lef_rel_triv_r (H :subgroup G) (h: (quotient_group.right_rel H).r = triv_rel G ) : ∀ x y : G , y * x⁻¹ ∈ H:=
+begin
+rw triv_rel at h,
+let s:=(quotient_group.right_rel H).r,
+have h2: ∀ x y : G, s x y ↔ y * x⁻¹ ∈ H, by {intros x y, refl,  },
 intros x y,
 have h3:= h2 x y, rw ← h3, simp_rw s, rw h, tauto,
 end
@@ -646,23 +709,69 @@ have H4:= lef_rel_triv H H3,
 have H5:= H4 1 x, simp at H5, exact H5,
 end
 
+
+lemma quot_triv_r  (h: quotient_r H ≃ quotient_r (⊤: subgroup G)) : H = ⊤ :=
+begin
+ext1, simp at *, rw top_trunc_r at h,
+rw quotient_r at h,
+have H2:= rel_triv _ _ h,
+let rr:= quotient_group.right_rel H,
+simp_rw quotient_group.right_rel at h,
+have HH:= setoid.iseqv,
+have H3:= eqv_gen_is_triv _ _ H2 HH,
+have H4:= lef_rel_triv_r H H3,
+have H5:= H4 1 x, simp at H5, exact H5,
+end
+
+instance subsingtruc : subsingleton (trunc SL2Z) := infer_instance
+
+instance subsingtruc2 : subsingleton ( {(1: SL2Z)} : set (Mat 1) ) := infer_instance
+
+def trunceq : (trunc SL2Z) ≃ ( {(1: SL2Z)} : set (Mat 1) ) :=
+{ to_fun := λ _, default ( {(1: SL2Z)} : set (Mat 1) ),
+  inv_fun := λ _, default (trunc SL2Z),
+  left_inv := λ _, subsingleton.elim _ _,
+  right_inv := λ _, subsingleton.elim _ _ }
+
+lemma grpinv (a : G) : a ∈ H ↔ a⁻¹ ∈ H:=
+begin
+exact (subgroup.inv_mem_iff H).symm,
+
+end
+
 lemma sl2z_gens: subgroup.closure gens = (⊤ : subgroup SL2Z) :=
 begin
 have h0: (1: ℤ) ≠ 0, by {simp,},
 have h1:= reps_equiv' 1 h0,
 have h2:= reps_sl2z,   rw h2 at h1, dsimp at h1, simp_rw orbit_rel''' at h1,
  simp_rw mul_action.orbit at h1,simp at h1, dsimp at h1,
-apply quot_triv,
-rw top_trunc,
-have hh: quotient (orbit_rel''' 1) ≃ trunc SL2Z, by { apply equiv.trans h1, sorry,},
+apply quot_triv_r,
+rw top_trunc_r,
+have hh: quotient (orbit_rel''' 1) ≃ trunc SL2Z, by { apply equiv.trans h1, exact trunceq.symm,},
 
-have hh2: quotient_group.quotient (subgroup.closure gens) ≃ quotient (orbit_rel''' 1) , by {
+have hh2: quotient_r (subgroup.closure gens) ≃ quotient (orbit_rel''' 1) , by {
   let r1:=(orbit_rel''' 1).r,
-  let r2:=(quotient_group.left_rel (subgroup.closure gens)).r, rw Mat1_eq_SL2Z at r1,
+  let r2:=(quotient_group.right_rel (subgroup.closure gens)).r,
   apply quot.congr_right,
-  have rh1: ∀ x y : SL2Z, r1 x y ↔ x ∈ mul_action.orbit gengrp y, by {intros x y, sorry,   },
-
-  sorry,},
+  have rh1: ∀ x y : SL2Z, r1 x y ↔ x ∈ mul_action.orbit gengrp y, by {intros x y, refl,   },
+  have rh2: ∀ x y : SL2Z, r2 x y ↔ y * x⁻¹ ∈ gengrp, by {intros x y, refl,},
+  intros a b, simp at *,
+  have goal: r2 a b ↔ r1 a b, by {rw rh1, rw rh2,
+  rw mul_action.orbit, simp, split,
+  intro ha, use a* b⁻¹ ,
+  have haa: a*b⁻¹ ∈ gengrp, by {rw (subgroup.inv_mem_iff gengrp).symm, simp , exact ha,},
+  exact haa, have:= smul_is_mul_1 (a * b⁻¹) b, convert this, simp,
+  intro hb,
+  have HB: ∃ y : gengrp , (y : SL2Z) * b =a, by {apply hb, },
+  rw (subgroup.inv_mem_iff gengrp).symm, simp,
+  have HBB: ∀ (x y z : SL2Z), x* y= z ↔ x = z* y⁻¹, by {intros x y z, split, intro x1, rw ← x1,
+   simp, intro x2, rw x2, simp,},
+  simp_rw HBB at HB,
+  simp at *,
+  let v:= classical.some HB,
+  have hv: (v : SL2Z)= a * b⁻¹, by {simp_rw v, apply classical.some_spec HB,},
+  rw ← hv, simp,},
+  apply goal,  },
 apply equiv.trans hh2 hh,
 
 end

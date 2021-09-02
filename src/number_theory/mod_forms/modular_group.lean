@@ -353,6 +353,22 @@ simp [SL2Z_M],
 refl,
 end
 
+lemma SLEQ:  SL2Z = integral_matrices_with_determinant 1 :=
+begin
+refl,
+end
+
+instance : has_coe (integral_matrices_with_determinant 1) SL2Z :=
+⟨ λ a, ⟨a.1, a.2⟩⟩
+
+
+
+lemma smul_is_mul_1 (A : SL2Z) (M : integral_matrices_with_determinant 1): ((A • M) : SL2Z) =A * (M : SL2Z) :=
+begin
+simp [SL2Z_M],
+
+end
+
 lemma m_a_b (m : ℤ) (hm : m ≠ 0) (A : SL2Z) (M N : integral_matrices_with_determinant m):
  (A • M) = N ↔  N 0 0= A 0 0 * M 0 0 + A 0 1 * M 1 0 ∧
  N 0 1= A 0 0 * M 0 1 + A 0 1 * M 1 1 ∧

@@ -1320,6 +1320,18 @@ instance normed_space_L1 : normed_space 𝕜 (Lp E 1 μ) := by apply_instance
 instance normed_space_L2 : normed_space 𝕜 (Lp E 2 μ) := by apply_instance
 instance normed_space_Ltop : normed_space 𝕜 (Lp E ∞ μ) := by apply_instance
 
+instance [normed_space ℝ E] [has_scalar ℝ 𝕜] [is_scalar_tower ℝ 𝕜 E] :
+  is_scalar_tower ℝ 𝕜 (Lp E p μ) :=
+begin
+  refine ⟨λ r c f, _⟩,
+  ext1,
+  refine (Lp.coe_fn_smul _ _).trans _,
+  rw smul_assoc,
+  refine eventually_eq.trans _ (Lp.coe_fn_smul _ _).symm,
+  refine (Lp.coe_fn_smul c f).mono (λ x hx, _),
+  rw [pi.smul_apply, pi.smul_apply, pi.smul_apply, hx, pi.smul_apply],
+end
+
 end normed_space
 
 end Lp

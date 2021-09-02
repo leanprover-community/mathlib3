@@ -515,19 +515,6 @@ end
 
 end integral_norm_le
 
-instance {m : measurable_space α} {μ : measure α} [normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E]
-  [opens_measurable_space 𝕜] :
-  is_scalar_tower ℝ 𝕜 (Lp E p μ) :=
-begin
-  refine ⟨λ r c f, _⟩,
-  ext1,
-  refine (Lp.coe_fn_smul _ _).trans _,
-  rw smul_assoc,
-  refine eventually_eq.trans _ (Lp.coe_fn_smul _ _).symm,
-  refine (Lp.coe_fn_smul c f).mono (λ x hx, _),
-  rw [pi.smul_apply, pi.smul_apply, pi.smul_apply, hx, pi.smul_apply],
-end
-
 /-! ## Conditional expectation in L2
 
 We define a conditional expectation in `L2`: it is the orthogonal projection on the subspace

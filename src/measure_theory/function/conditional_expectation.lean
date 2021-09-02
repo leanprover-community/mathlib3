@@ -305,9 +305,9 @@ end
 lemma Lp_meas_to_Lp_trim_norm_map [hp : fact (1 ≤ p)] (hm : m ≤ m0) (f : Lp_meas F 𝕜 m p μ) :
   ∥Lp_meas_to_Lp_trim F 𝕜 p μ hm f∥ = ∥f∥ :=
 begin
-  rw [norm_def, snorm_trim hm (Lp.measurable _)],
+  rw [Lp.norm_def, snorm_trim hm (Lp.measurable _)],
   swap, { apply_instance, },
-  rw [snorm_congr_ae (Lp_meas_to_Lp_trim_ae_eq hm _), Lp_meas_coe, ← norm_def],
+  rw [snorm_congr_ae (Lp_meas_to_Lp_trim_ae_eq hm _), Lp_meas_coe, ← Lp.norm_def],
   congr,
 end
 
@@ -561,14 +561,14 @@ lemma snorm_condexp_L2_le (hm : m ≤ m0) (f : α →₂[μ] E) :
   snorm (condexp_L2 𝕜 hm f) 2 μ ≤ snorm f 2 μ :=
 begin
   rw [Lp_meas_coe, ← ennreal.to_real_le_to_real (Lp.snorm_ne_top _) (Lp.snorm_ne_top _),
-    ← norm_def, ← norm_def, submodule.norm_coe],
+    ← Lp.norm_def, ← Lp.norm_def, submodule.norm_coe],
   exact norm_condexp_L2_le hm f,
 end
 
 lemma norm_condexp_L2_coe_le (hm : m ≤ m0) (f : α →₂[μ] E) :
   ∥(condexp_L2 𝕜 hm f : α →₂[μ] E)∥ ≤ ∥f∥ :=
 begin
-  rw [norm_def, norm_def, ← Lp_meas_coe],
+  rw [Lp.norm_def, Lp.norm_def, ← Lp_meas_coe],
   refine (ennreal.to_real_le_to_real _ (Lp.snorm_ne_top _)).mpr (snorm_condexp_L2_le hm f),
   exact Lp.snorm_ne_top _,
 end
@@ -876,7 +876,7 @@ begin
   push_cast,
   rw [condexp_L2_indicator_eq_lsmul_left_comp 𝕜 hm hs hμs x,
     condexp_L2_indicator_eq_lsmul_left_comp 𝕜 hm hs hμs (c • x),
-    lsmul_left_smul ℝ 𝕜 c x, smul_comp_Lp c (lsmul_left ℝ x)],
+    lsmul_left_smul' ℝ 𝕜 c x, smul_comp_Lp c (lsmul_left ℝ x)],
 end
 
 lemma condexp_L2_indicator_smul_real (hs : measurable_set s) (hμs : μ s ≠ ∞) (c : ℝ) (x : E') :
@@ -886,7 +886,7 @@ begin
   ext1,
   push_cast,
   rw [condexp_L2_indicator_eq_lsmul_left_comp 𝕜 hm hs hμs x,
-    condexp_L2_indicator_eq_lsmul_left_comp 𝕜 hm hs hμs (c • x), lsmul_left_smul_real ℝ c x,
+    condexp_L2_indicator_eq_lsmul_left_comp 𝕜 hm hs hμs (c • x), lsmul_left_smul ℝ c x,
     smul_comp_Lp c (lsmul_left ℝ x), is_R_or_C.of_real_alg, smul_assoc, one_smul],
 end
 

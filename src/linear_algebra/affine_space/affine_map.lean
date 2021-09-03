@@ -459,7 +459,7 @@ instance : module k (P1 →ᵃ[k] V2) :=
 
 @[simp] lemma coe_smul (c : k) (f : P1 →ᵃ[k] V2) : ⇑(c • f) = c • f := rfl
 
-/-- `homothety c r` is the homothety about `c` with scale factor `r`. -/
+/-- `homothety c r` is the homothety (also known as dilation) about `c` with scale factor `r`. -/
 def homothety (c : P1) (r : k) : P1 →ᵃ[k] P1 :=
 r • (id k P1 -ᵥ const k P1 c) +ᵥ const k P1 c
 

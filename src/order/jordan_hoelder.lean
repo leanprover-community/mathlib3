@@ -8,25 +8,24 @@ import data.fin
 import data.set_like.basic
 import data.list.sort
 import data.equiv.fin
-import data.equiv.functor
 /-!
 # Jordan Hölder Theorem
 
-This file proves the Jordan Hölder theorem for a `jordan_hoelder_lattice`, a class also defined in this
-file. Examples of `jordan_hoelder_lattice` include `subgroup G` if `G` is a group, and
-`submodule R M` if `M` is an `R`-module. Using this approach the theorem need not be proved seperately
-for both groups and modules, the proof in this file can be applied to both.
+This file proves the Jordan Hölder theorem for a `jordan_hoelder_lattice`, a class also defined in
+this file. Examples of `jordan_hoelder_lattice` include `subgroup G` if `G` is a group, and
+`submodule R M` if `M` is an `R`-module. Using this approach the theorem need not be proved
+seperately for both groups and modules, the proof in this file can be applied to both.
 
 ## Main definitions
 The main definitions in this file are `jordan_hoelder_lattice` and `composition_series`,
 and the relation `equivalent` on `composition_series`
 
-A `jordan_hoelder_lattice` is the class for which the Jordan Hölder theorem is proved. A Jordan Hölder
-class is a lattice equipped with a notion of maximality, `is_maximal`, and a notion of isoorphism of
-pairs `iso`. In the example of subgroups of a group, `is_maximal H K` means that `H` is a maximal normal
-subgroup of `K`, and `iso (H₁, K₁) (H₂, K₂)` means that the quotient `H₁ / K₁` is isomorphic to the
-quotient `H₂ / K₂`. `iso` be symmetric and transitive and must satisfy the second isomorphism theorem
-`iso (H, H ⊔ K) (H ⊓ K, K)`.
+A `jordan_hoelder_lattice` is the class for which the Jordan Hölder theorem is proved. A
+Jordan Hölder lattice is a lattice equipped with a notion of maximality, `is_maximal`, and a notion
+of isomorphism of pairs `iso`. In the example of subgroups of a group, `is_maximal H K` means that
+`H` is a maximal normal subgroup of `K`, and `iso (H₁, K₁) (H₂, K₂)` means that the quotient
+`H₁ / K₁` is isomorphic to the quotient `H₂ / K₂`. `iso` be symmetric and transitive and must
+satisfy the second isomorphism theorem `iso (H, H ⊔ K) (H ⊓ K, K)`.
 
 A `composition_series X` is a finite nonempty series of elements of the lattice `X` such that
 each element is maximal inside the next. The length of a `composition_series X` is
@@ -51,13 +50,13 @@ universe u
 open set
 
 /--
-A `jordan_hoelder_lattice` is the class for which the Jordan Hölder theorem is proved. A Jordan Hölder
-class is a lattice equipped with a notion of maximality, `is_maximal`, and a notion of isoorphism of
-pairs `iso`. In the example of subgroups of a group, `is_maximal H K` means that `H` is a maximal normal
-subgroup of `K`, and `iso (H₁, K₁) (H₂, K₂)` means that the quotient `H₁ / K₁` is isomorphic to the
-quotient `H₂ / K₂`. `iso` be symmetric and transitive and must satisfy the second isomorphism theorem
-`iso (H, H ⊔ K) (H ⊓ K, K)`. Examples include `subgroup G` if `G` is a group, and
-`submodule R M` if `M` is an `R`-module
+A `jordan_hoelder_lattice` is the class for which the Jordan Hölder theorem is proved. A
+Jordan Hölder lattice is a lattice equipped with a notion of maximality, `is_maximal`, and a notion
+of isomorphism of pairs `iso`. In the example of subgroups of a group, `is_maximal H K` means that
+`H` is a maximal normal subgroup of `K`, and `iso (H₁, K₁) (H₂, K₂)` means that the quotient
+`H₁ / K₁` is isomorphic to the quotient `H₂ / K₂`. `iso` be symmetric and transitive and must
+satisfy the second isomorphism theorem `iso (H, H ⊔ K) (H ⊓ K, K)`.
+Examples include `subgroup G` if `G` is a group, and `submodule R M` if `M` is an `R`-module
 -/
 class jordan_hoelder_lattice (X : Type u) [lattice X] :=
 (is_maximal : X → X → Prop)
@@ -112,11 +111,11 @@ attribute [symm] iso_symm
 attribute [trans] iso_trans
 
 /--
-A `composition_series X` is a finite nonempty series of elements of a `jordan_hoelder_lattice` such that
-each element is maximal inside the next. The length of a `composition_series X` is
-one less than the number of elements in the series. Note that there is no stipulation
-that a series start from the bottom of the lattice and finish at the top.
-For a composition series `s`, `s.top` is the largest element of the series,
+A `composition_series X` is a finite nonempty series of elements of a
+`jordan_hoelder_lattice` such that each element is maximal inside the next. The length of a
+`composition_series X` is one less than the number of elements in the series.
+Note that there is no stipulation that a series start from the bottom of the lattice and finish at
+the top. For a composition series `s`, `s.top` is the largest element of the series,
 and `s.bot` is the least element.
 -/
 structure composition_series (X : Type u) [lattice X] [jordan_hoelder_lattice X] : Type u :=
@@ -233,7 +232,8 @@ list.nodup_iff_nth_le_inj.2
   (λ i j hi hj,
     begin
       delta to_list,
-      rw [list.nth_le_of_fn', list.nth_le_of_fn', s.injective.eq_iff, fin.ext_iff, fin.coe_mk, fin.coe_mk],
+      rw [list.nth_le_of_fn', list.nth_le_of_fn', s.injective.eq_iff, fin.ext_iff,
+        fin.coe_mk, fin.coe_mk],
       exact id
     end)
 
@@ -364,7 +364,8 @@ the `i`th term.  -/
       by rw [← add_assoc, nat.add_sub_cancel' (nat.le_of_lt_succ i.is_lt)],
     λ j, s (fin.cast this (fin.cast_add_right i j)),
   step' := λ j, begin
-    have := s.step (fin.cast (nat.add_sub_cancel' (nat.le_of_lt_succ i.is_lt)) (fin.cast_add_right i j)),
+    have := s.step (fin.cast (nat.add_sub_cancel'
+      (nat.le_of_lt_succ i.is_lt)) (fin.cast_add_right i j)),
     cases j,
     simpa
   end }
@@ -917,7 +918,8 @@ whose `i`th term is `x ⊓ s i` -/
       exact is_maximal_of_eq_inf
         (s i.cast_succ)
         (s i.succ)
-        (by rw [inf_comm, inf_assoc, inf_eq_right.2 (le_of_lt (s.strict_mono (i.cast_succ_lt_succ)))])
+        (by rw [inf_comm, inf_assoc, inf_eq_right.2
+          (le_of_lt (s.strict_mono (i.cast_succ_lt_succ)))])
         (λ h, hb (le_trans (bot_le i.cast_succ) (h.symm ▸ inf_le_left)))
         (s.step i)
         (is_maximal_inf_series (fin.le_last _) hm

@@ -55,7 +55,7 @@ end
 variables {H} {K : subgroup G}
 
 /-- If `H ≤ K` then `G/H ≃ G/K × K/H` -/
-def quotient_equiv_prod_of_le' (h_le : H ≤ K) (f : quotient_group.quotient K → G)
+@[simps] def quotient_equiv_prod_of_le' (h_le : H ≤ K) (f : quotient_group.quotient K → G)
   (hf : function.right_inverse f quotient_group.mk) :
   quotient_group.quotient H ≃
   quotient_group.quotient K × quotient_group.quotient (H.subgroup_of K) :=
@@ -79,7 +79,7 @@ def quotient_equiv_prod_of_le' (h_le : H ≤ K) (f : quotient_group.quotient K �
     simp_rw [quotient.map'_mk', id.def, key, inv_mul_cancel_left, subtype.coe_eta] } }
 
 /-- If `H ≤ K` then `G/H ≃ G/K × K/H` -/
-noncomputable def quotient_equiv_prod_of_le (h_le : H ≤ K) : quotient_group.quotient H ≃
+@[simps] noncomputable def quotient_equiv_prod_of_le (h_le : H ≤ K) : quotient_group.quotient H ≃
   quotient_group.quotient K × quotient_group.quotient (H.subgroup_of K) :=
 quotient_equiv_prod_of_le' h_le quotient.out' quotient.out_eq'
 

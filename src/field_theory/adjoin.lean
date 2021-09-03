@@ -245,8 +245,7 @@ algebra.adjoin_le (subset_adjoin _ _)
 lemma adjoin_eq_algebra_adjoin (inv_mem : ∀ x ∈ algebra.adjoin F S, x⁻¹ ∈ algebra.adjoin F S) :
   (adjoin F S).to_subalgebra = algebra.adjoin F S :=
 le_antisymm
-  (show adjoin F S ≤
-      { neg_mem' := λ x, (algebra.adjoin F S).neg_mem, inv_mem' := inv_mem, .. algebra.adjoin F S},
+  (show adjoin F S ≤ intermediate_field.mk' (algebra.adjoin F S) inv_mem,
     from adjoin_le_iff.mpr (algebra.subset_adjoin))
   (algebra_adjoin_le_adjoin _ _)
 

@@ -304,6 +304,23 @@ s.subtype.map_nat_cast n
 @[simp, norm_cast] lemma coe_int_cast (n : ℤ) : ((n : s) : R) = n :=
 s.subtype.map_int_cast n
 
+/-! # Center of a ring -/
+
+/-- The center of a ring `R` is the subring of elements that commute with all of `R`. -/
+def center (R : Type*) [ring R] : subring R :=
+{ carrier := {x : R | ∀ y : R, x * y = y * x},
+  one_mem' := λ y, by rw [one_mul, mul_one],
+  zero_mem' := λ y, by rw [zero_mul, mul_zero],
+  neg_mem' := λ x h y, by rw [neg_mul_comm, h (-y), neg_mul_comm],
+  add_mem' := λ x₁ x₂ h₁ h₂ y, by rw [add_mul, mul_add, h₁ y, h₂ y],
+  mul_mem' := λ x₁ x₂ h₁ h₂ y, by rw [mul_assoc, h₂ y, ← mul_assoc, h₁ y, mul_assoc] }
+
+lemma mem_center {x : R} : x ∈ center R ↔ ∀ y, x * y = y * x := iff.rfl
+
+instance : comm_ring (center R) :=
+{ mul_comm := λ x y, subtype.ext $ x.2 y,
+  .. (infer_instance : ring (center R)) }
+
 /-! # Partial order -/
 
 @[simp] lemma mem_to_submonoid {s : subring R} {x : R} : x ∈ s.to_submonoid ↔ x ∈ s := iff.rfl

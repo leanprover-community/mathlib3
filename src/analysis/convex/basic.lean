@@ -920,7 +920,7 @@ lemma concave_on.smul [ordered_smul ℝ β] {f : E → β} {c : ℝ} (hc : 0 ≤
 section linear_order
 section monoid
 
-variables {γ : Type*} [linear_ordered_add_comm_monoid γ] [module ℝ γ] [ordered_module ℝ γ]
+variables {γ : Type*} [linear_ordered_add_comm_monoid γ] [module ℝ γ] [ordered_smul ℝ γ]
   {f g : E → γ}
 
 /-- The pointwise maximum of convex functions is convex. -/

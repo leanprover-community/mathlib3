@@ -292,21 +292,21 @@ begin
     (normal.conj_mem (lower_central_series.subgroup.normal n) z⁻¹ (inv_mem _ hz) a),
 end
 
-lemma lower_central_series_antimono' (m n : ℕ) (h : n < m) :
-  lower_central_series G m ≤ lower_central_series G n :=
-begin
+-- lemma lower_central_series_antimono' (m n : ℕ) (h : n < m) :
+--   lower_central_series G m ≤ lower_central_series G n :=
+-- begin
 
-  sorry,
-  -- intros x hx,
-  -- simp only [mem_lower_central_series_succ_iff, exists_prop, mem_top, exists_true_left, true_and]
-  --   at hx,
-  -- refine closure_induction hx _ (subgroup.one_mem _) (@subgroup.mul_mem _ _ _)
-  --   (@subgroup.inv_mem _ _ _),
-  -- rintros y ⟨z, hz, a, ha⟩,
-  -- rw [← ha, mul_assoc, mul_assoc, ← mul_assoc a z⁻¹ a⁻¹],
-  -- exact mul_mem (lower_central_series G n) hz
-    -- (normal.conj_mem (lower_central_series.subgroup.normal n) z⁻¹ (inv_mem _ hz) a),
-end
+--   sorry,
+--   -- intros x hx,
+--   -- simp only [mem_lower_central_series_succ_iff, exists_prop, mem_top, exists_true_left, true_and]
+--   --   at hx,
+--   -- refine closure_induction hx _ (subgroup.one_mem _) (@subgroup.mul_mem _ _ _)
+--   --   (@subgroup.inv_mem _ _ _),
+--   -- rintros y ⟨z, hz, a, ha⟩,
+--   -- rw [← ha, mul_assoc, mul_assoc, ← mul_assoc a z⁻¹ a⁻¹],
+--   -- exact mul_mem (lower_central_series G n) hz
+--     -- (normal.conj_mem (lower_central_series.subgroup.normal n) z⁻¹ (inv_mem _ hz) a),
+-- end
 
 /-- The lower central series of a group is a descending central series. -/
 theorem lower_central_series_is_descending_central_series :

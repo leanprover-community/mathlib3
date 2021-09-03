@@ -47,7 +47,7 @@ If a^r = 1 mod p, but a^(r/q) ≠ 1 mod p for all prime factors q of r, then a h
 multiplicative group mod p.
 -/
 theorem order_from_pows (n r : ℕ) (a : zmod n)
-  (hp : 0 < r)
+  (hr : 0 < r)
   (ha : a^r = 1)
   (hd : (∀ q : ℕ, (nat.prime q) -> (q ∣ r) -> a^(r/q) ≠ 1))
   : order_of a = r :=
@@ -69,7 +69,7 @@ begin
       hb, mul_comm, nat.mul_dvd_mul_iff_left (order_of_pos' _)],
   { exact nat.min_fac_dvd b, },
   { rw is_of_fin_order_iff_pow_eq_one,
-    exact Exists.intro r (id ⟨sub_pos_iff_lt.mpr hp, ha⟩), },
+    exact Exists.intro r (id ⟨sub_pos_iff_lt.mpr hr, ha⟩), },
 end
 
 /--

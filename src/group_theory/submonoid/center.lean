@@ -95,7 +95,7 @@ end
 
 @[simp]
 lemma div_mem_center' [group_with_zero M] {a b : M} (ha : a ∈ set.center M)
-  (hb : b ∈  set.center M) : a / b ∈ set.center M :=
+  (hb : b ∈ set.center M) : a / b ∈ set.center M :=
 begin
   rw div_eq_mul_inv,
   exact mul_mem_center ha (inv_mem_center' hb),

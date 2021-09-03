@@ -516,6 +516,8 @@ variables {K : Type u} [division_ring K]
 instance : field (center K) :=
 { inv := λ a, ⟨a⁻¹, set.inv_mem_center' a.prop⟩,
   mul_inv_cancel := λ ⟨a, ha⟩ h, subtype.ext $ mul_inv_cancel $ subtype.coe_injective.ne h,
+  div := λ a b, ⟨a / b, set.div_mem_center' a.prop b.prop⟩,
+  div_eq_mul_inv := λ a b, subtype.ext $ div_eq_mul_inv _ _,
   inv_zero := subtype.ext inv_zero,
   ..(center K).nontrivial,
   ..center.comm_ring }
@@ -524,8 +526,7 @@ instance : field (center K) :=
 lemma center.coe_inv (a : center K) : ((a⁻¹ : center K) : K) = (a : K)⁻¹ := rfl
 
 @[simp]
-lemma center.coe_div (a b : center K) : ((a / b : center K) : K) = (a : K) / (b : K) :=
-by rw [div_eq_mul_inv, coe_mul, div_eq_mul_inv, center.coe_inv]
+lemma center.coe_div (a b : center K) : ((a / b : center K) : K) = (a : K) / (b : K) := rfl
 
 end division_ring
 

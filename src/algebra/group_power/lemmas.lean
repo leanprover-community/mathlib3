@@ -242,13 +242,9 @@ begin
   { simp [←int.neg_succ_of_nat_coe', ←with_top.neg_coe, nsmul_coe] }
 end
 
-@[simp] lemma gsmul_zero (r : ℤ) :
-  r • (0 : with_top A) = 0 :=
-by rw [←with_top.coe_zero, with_top.gsmul_coe, gsmul_zero]
-
-lemma zero_gsmul (x : with_top A) :
-  (0 : ℤ) • x = 0 :=
-by simp
+instance : smul_with_zero ℤ (with_top A) :=
+{ smul_zero := λ _, by rw [←coe_zero, gsmul_coe, gsmul_zero],
+  zero_smul := by simp }
 
 @[simp] lemma gsmul_coe_succ_top (r : ℕ) :
   (r + 1 : ℤ) • (⊤ : with_top A) = ⊤ :=
@@ -280,6 +276,10 @@ begin
   { simp_rw [with_top.gsmul_coe, mul_gsmul] }
 end
 
+instance : mul_action ℤ (with_top A) :=
+{ one_smul := by simp,
+  mul_smul := with_top.mul_gsmul }
+
 end
 
 variable [add_comm_group A]
@@ -297,13 +297,12 @@ begin
 end
 
 instance : distrib_mul_action ℤ (with_top A) :=
-{ one_smul := by simp,
-  mul_smul := with_top.mul_gsmul,
-  smul_add := with_top.gsmul_add,
-  smul_zero := with_top.gsmul_zero }
+{ smul_add := with_top.gsmul_add,
+  ..with_top.smul_with_zero,
+  ..with_top.mul_action }
 
 instance : mul_action_with_zero ℤ (with_top A) :=
-{ zero_smul := with_top.zero_gsmul,
+{ ..with_top.smul_with_zero,
   ..with_top.distrib_mul_action }
 
 -- While we have `with_top.zero_gsmul`, we cannot have `module ℤ (with_top A)` due to missing

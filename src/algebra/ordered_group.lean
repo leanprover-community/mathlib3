@@ -1027,6 +1027,10 @@ begin
   { simp [with_top.neg_coe, with_top.coe_eq_coe, neg_eq_iff_neg_eq] }
 end
 
+lemma with_top.eq_neg_iff_eq_neg {x y : with_top α} :
+  x = -y ↔ y = -x :=
+by rw [eq_comm, with_top.neg_eq_iff_neg_eq, eq_comm]
+
 end sub_neg
 
 variables [linear_order α]

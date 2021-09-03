@@ -166,14 +166,10 @@ variables {S : Type*} [comm_ring S]
 
 /-- A ring homomorphism from `R` to `S` induces a group homomorphism from
 `special_linear_group n R` to `special_linear_group n S`. -/
-def map (f : R →+* S) : special_linear_group n R →* special_linear_group n S :=
-{ to_fun := λ g, ⟨f.map_matrix ↑g, ring_hom.map_det_one f g.2⟩,
+@[simps] def map (f : R →+* S) : special_linear_group n R →* special_linear_group n S :=
+{ to_fun := λ g, ⟨f.map_matrix ↑g, by rw ← matrix.ring_hom.map_det; simp [g.2]⟩,
   map_one' := subtype.ext $ f.map_matrix.map_one,
   map_mul' := λ x y, subtype.ext $ f.map_matrix.map_mul x y }
-
-@[simp] lemma coe_matrix_map (f : R →+* S) (g : special_linear_group n R) :
-  (map f g : matrix n n S) = f.map_matrix ↑g :=
-rfl
 
 section cast
 
@@ -184,7 +180,7 @@ instance : has_coe (special_linear_group n ℤ) (special_linear_group n R) :=
 @[simp] lemma coe_matrix_coe (g : special_linear_group n ℤ) :
   ↑(g : special_linear_group n R)
   = (↑g : matrix n n ℤ).map (int.cast_ring_hom R) :=
-coe_matrix_map (int.cast_ring_hom R) g
+map_apply_coe (int.cast_ring_hom R) g
 
 end cast
 

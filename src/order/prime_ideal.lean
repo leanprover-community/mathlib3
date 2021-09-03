@@ -6,6 +6,7 @@ Authors: Noam Atar
 import order.basic
 import order.ideal
 import order.pfilter
+import order.boolean_algebra
 
 /-!
 # Prime ideals
@@ -147,6 +148,19 @@ begin
 end
 
 end distrib_lattice
+
+section boolean_algebra
+
+variables [boolean_algebra P] {x : P} {I : ideal P}
+
+lemma is_prime.mem_or_compl_mem (hI : is_prime I) : x ∈ I ∨ xᶜ ∈ I :=
+begin
+  apply is_prime.mem_or_mem hI,
+  rw inf_compl_eq_bot,
+  exact bot_mem,
+end
+
+end boolean_algebra
 
 end ideal
 

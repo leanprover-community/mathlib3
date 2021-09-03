@@ -250,18 +250,22 @@ def auto_descend' : Schwarz → (real.angle' → ℂ )  :=
 --(add_subgroup.gmultiples (2*real.pi))
 begin
   intros a b hab,
-  cases hab with n hn,
+
   rw automorphic_point_pair_invariant',
+  cases hab with n hn,
   simp,
   simp at hn,
+
   have : b = a+n,
   { rw hn,
     ring, },
   rw this,
-  --- ????? How to change variables???
-  sorry,
-
---  dsimp [quotient_add_group.left_rel] at hab,
+  convert (equiv.tsum_eq (equiv.vadd_const n) _ ).symm using 2,
+  ext1,
+  congr' 1,
+  simp,
+  ring,
+  apply_instance,
 end
 
 /--  x,y:ℝ/ℤ   ↦ K(x,y):= ∑ f ( x + m -y  )-/
@@ -286,6 +290,42 @@ def cof : Schwarz → real.angle' → ℤ → ℂ := λ f, λ θ, λ m,
   inner (fourier_Lp 2 m) (auto_descend''' f θ)
 
 
+lemma real_to_haar (f : Schwarz) : ∫ (x : ℝ), f x = ∑' (n : ℤ), ∫ x in set.Icc (0:ℝ) (1:ℝ), f( x + n) :=
+begin
+  have :∀ᶠ n in (filter.cofinite), ae_measurable (indicator (set.Icc (n:ℝ) (n+1)) f ),
+  {
+--    intros n,
+   sorry,
+  },
+  have h2 : ae_measurable f,
+  {
+    sorry,
+  },
+  have :=  measure_theory.tendsto_integral_filter_of_dominated_convergence (λ x, complex.abs (f x)) _ this h2 _ _,
+
+  repeat {sorry},
+end
+
+-- Schwarz are integrable,
+-- they are almost everywhere measurable
+-- Multiply by |⬝|=1 and get another Schwarz function.
+
+
+-- pushforward under expm of rest_Lebesgue = haar
+-- map under expm ...
+lemma pushforward_is_Haar :
+measure_theory.measure.map exp_map_circle (volume.restrict (Icc (0:ℝ) 1))
+=
+haar_circle
+:=
+begin
+
+  --  measure_theory.measure.map
+  sorry,
+end
+
+
+
 lemma unfolding_trick (f : Schwarz ) ( y : ℝ ) (m : ℤ ) :
 cof f (quotient.mk' y) m = Fourier_transform f (m:ℝ ) * complex.exp (-2 * real.pi * complex.I * m * y) :=
 begin
@@ -302,7 +342,8 @@ begin
   rw auto_descend'',
   rw auto_descend,
   simp,
---  rw auto_descend',
+  dsimp [auto_descend, auto_descend', automorphic_point_pair_invariant'],
+  rw real_to_haar,
 --  simp,
 
   sorry,

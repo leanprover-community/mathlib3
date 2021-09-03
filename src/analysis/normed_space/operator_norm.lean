@@ -632,8 +632,7 @@ section lsmul_left_right
 
 variables (𝕜)
 
-/-- Scalar product `λ (r : 𝕜), r • x` as a continuous linear map.
-TODO: why does it fail with a universe error if we don't specify `E` explicitly for `lsmul`? -/
+/-- Scalar product `λ (r : 𝕜), r • x` as a continuous linear map. -/
 def lsmul_left (x : E) : 𝕜 →L[𝕜] E := (@lsmul 𝕜 E _ _ _ 𝕜 _ _ _ _).flip x
 
 lemma lsmul_left_apply (x : E) (r : 𝕜) : lsmul_left 𝕜 x r = r • x :=

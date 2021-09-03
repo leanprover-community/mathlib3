@@ -86,11 +86,11 @@ begin
   have order_of_a : order_of a = p-1,
     { apply order_from_pows p (p - 1) a _ ha hd,
       exact sub_pos_iff_lt.mpr hp, },
-  rw prime_iff_card_units,
+  rw nat.prime_iff_card_units,
   -- Prove cardinality of units of zmod p are le and ge p-1
   rw le_antisymm_iff,
   split,
-    { exact card_units_zmod_lt_sub_one p hp, },
+    { exact nat.card_units_zmod_lt_sub_one hp, },
     { have hp' : p - 2 + 1 = p - 1,
         { apply eq.symm,
           rw [nat.sub_eq_iff_eq_add, add_assoc, one_add_one_eq_two, ←nat.sub_eq_iff_eq_add],

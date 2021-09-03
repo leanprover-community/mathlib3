@@ -174,6 +174,7 @@ def strict_mono_decr_on [has_lt α] [has_lt β] (f : α → β) (t : set α) : P
 def order_dual (α : Type*) : Type* := α
 
 namespace order_dual
+
 instance (α : Type*) [h : nonempty α] : nonempty (order_dual α) := h
 instance (α : Type*) [h : subsingleton α] : subsingleton (order_dual α) := h
 instance (α : Type*) [has_le α] : has_le (order_dual α) := ⟨λ x y : α, y ≤ x⟩

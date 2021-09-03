@@ -159,7 +159,82 @@ def orbit_rel : setoid β :=
   iseqv := ⟨mem_orbit_self, λ a b, by simp [orbit_eq_iff.symm, eq_comm],
     λ a b, by simp [orbit_eq_iff.symm, eq_comm] {contextual := tt}⟩ }
 
+local notation `Ω` := (quotient $ orbit_rel α β)
+
+/-- Decomposition of a type `X` as a disjoint union of its orbits under a group action.
+This version works with any right inverse to `quotient.mk'` in order to stay computable. In most
+cases you'll want to use `quotient.out'`, so we provide `mul_action.self_equiv_sigma_orbits` as
+a special case. -/
+@[to_additive "Decomposition of a type `X` as a disjoint union of its orbits under an additive group
+action. This version works with any right inverse to `quotient.mk'` in order to stay computable.
+In most cases you'll want to use `quotient.out'`, so we provide `add_action.self_equiv_sigma_orbits`
+as a special case."]
+def self_equiv_sigma_orbits' {φ : Ω → β} (hφ : right_inverse φ quotient.mk') :
+  β ≃ Σ (ω : Ω), orbit α (φ ω) :=
+calc  β
+    ≃ Σ (ω : Ω), {b // quotient.mk' b = ω} : (equiv.sigma_preimage_equiv quotient.mk').symm
+... ≃ Σ (ω : Ω), orbit α (φ ω) :
+        equiv.sigma_congr_right (λ ω, equiv.subtype_equiv_right $
+          λ x, by {rw [← hφ ω, quotient.eq', hφ ω], refl })
+
+/-- Decomposition of a type `X` as a disjoint union of its orbits under a group action. -/
+@[to_additive "Decomposition of a type `X` as a disjoint union of its orbits under an additive group
+action."]
+noncomputable def self_equiv_sigma_orbits : β ≃ Σ (ω : Ω), orbit α ω.out' :=
+self_equiv_sigma_orbits' α β quotient.out_eq'
+
 variables {α β}
+
+/-- If the stabilizer of `x` is `S`, then the stabilizer of `g • x` is `gSg⁻¹`. -/
+lemma stabilizer_smul_eq_stabilizer_map_conj (g : α) (x : β) :
+  (stabilizer α (g • x) = (stabilizer α x).map (mul_aut.conj g).to_monoid_hom) :=
+begin
+  ext h,
+  rw [mem_stabilizer_iff, ← smul_left_cancel_iff g⁻¹, smul_smul, smul_smul, smul_smul, mul_left_inv,
+      one_smul, ← mem_stabilizer_iff, subgroup.mem_map_equiv, mul_aut.conj_symm_apply]
+end
+
+/-- A bijection between the stabilizers of two elements in the same orbit. -/
+noncomputable def stabilizer_equiv_stabilizer_of_orbit_rel {x y : β} (h : (orbit_rel α β).rel x y) :
+  stabilizer α x ≃* stabilizer α y :=
+let g : α := classical.some h in
+have hg : g • y = x := classical.some_spec h,
+have this : stabilizer α x = (stabilizer α y).map (mul_aut.conj g).to_monoid_hom,
+  by rw [← hg, stabilizer_smul_eq_stabilizer_map_conj],
+(mul_equiv.subgroup_congr this).trans ((mul_aut.conj g).subgroup_equiv_map $ stabilizer α y).symm
+
+end mul_action
+
+namespace add_action
+
+variables [add_group α] [add_action α β]
+
+/-- If the stabilizer of `x` is `S`, then the stabilizer of `g +ᵥ x` is `g + S + (-g)`. -/
+lemma stabilizer_vadd_eq_stabilizer_map_conj (g : α) (x : β) :
+  (stabilizer α (g +ᵥ x) = (stabilizer α x).map (add_aut.conj g).to_add_monoid_hom) :=
+begin
+  ext h,
+  rw [mem_stabilizer_iff, ← vadd_left_cancel_iff (-g) , vadd_vadd, vadd_vadd, vadd_vadd,
+      add_left_neg, zero_vadd, ← mem_stabilizer_iff, add_subgroup.mem_map_equiv,
+      add_aut.conj_symm_apply]
+end
+
+/-- A bijection between the stabilizers of two elements in the same orbit. -/
+noncomputable def stabilizer_equiv_stabilizer_of_orbit_rel {x y : β}
+  (h : (orbit_rel α β).rel x y) :
+  stabilizer α x ≃+ stabilizer α y :=
+let g : α := classical.some h in
+have hg : g +ᵥ y = x := classical.some_spec h,
+have this : stabilizer α x = (stabilizer α y).map (add_aut.conj g).to_add_monoid_hom,
+  by rw [← hg, stabilizer_vadd_eq_stabilizer_map_conj],
+(add_equiv.add_subgroup_congr this).trans
+  ((add_aut.conj g).add_subgroup_equiv_map $ stabilizer α y).symm
+
+end add_action
+
+namespace mul_action
+
+variables [group α] [mul_action α β]
 
 open quotient_group
 
@@ -225,6 +300,20 @@ equiv.symm $ equiv.of_bijective
   ⟨λ x y hxy, injective_of_quotient_stabilizer α b (by convert congr_arg subtype.val hxy),
   λ ⟨b, ⟨g, hgb⟩⟩, ⟨g, subtype.eq hgb⟩⟩
 
+/-- Orbit-stabilizer theorem. -/
+@[to_additive "Orbit-stabilizer theorem."]
+noncomputable def orbit_prod_stabilizer_equiv_group (b : β) :
+  orbit α b × stabilizer α b ≃ α :=
+(equiv.prod_congr (orbit_equiv_quotient_stabilizer α _) (equiv.refl _)).trans
+subgroup.group_equiv_quotient_times_subgroup.symm
+
+/-- Orbit-stabilizer theorem. -/
+@[to_additive "Orbit-stabilizer theorem."]
+lemma card_orbit_mul_card_stabilizer_eq_card_group (b : β) [fintype α] [fintype $ orbit α b]
+  [fintype $ stabilizer α b] :
+  fintype.card (orbit α b) * fintype.card (stabilizer α b) = fintype.card α :=
+by rw [← fintype.card_prod, fintype.card_congr (orbit_prod_stabilizer_equiv_group α b)]
+
 @[simp, to_additive] theorem orbit_equiv_quotient_stabilizer_symm_apply (b : β) (a : α) :
   ((orbit_equiv_quotient_stabilizer α b).symm a : β) = a • b :=
 rfl
@@ -233,7 +322,104 @@ rfl
   mul_action.stabilizer G ((1 : G) : quotient H) = H :=
 by { ext, simp [quotient_group.eq] }
 
-@[to_additive ] instance is_pretransitive_quotient (G) [group G] (H : subgroup G) :
+variable (β)
+
+local notation `Ω` := (quotient $ orbit_rel α β)
+
+/-- **Class formula** : given `G` a group acting on `X` and `φ` a function mapping each orbit of `X`
+under this action (that is, each element of the quotient of `X` by the relation `orbit_rel G X`) to
+an element in this orbit, this gives a (noncomputable) bijection between `X` and the disjoint union
+of `G/Stab(φ(ω))` over all orbits `ω`. In most cases you'll want `φ` to be `quotient.out'`, so we
+provide `mul_action.self_equiv_sigma_orbits_quotient_stabilizer` as a special case. -/
+@[to_additive "**Class formula** : given `G` an additive group acting on `X` and `φ` a function
+mapping each orbit of `X` under this action (that is, each element of the quotient of `X` by the
+relation `orbit_rel G X`) to an element in this orbit, this gives a (noncomputable) bijection
+between `X` and the disjoint union of `G/Stab(φ(ω))` over all orbits `ω`. In most cases you'll want
+`φ` to be `quotient.out'`, so we provide `add_action.self_equiv_sigma_orbits_quotient_stabilizer`
+as a special case. "]
+noncomputable def self_equiv_sigma_orbits_quotient_stabilizer' {φ : Ω → β}
+  (hφ : left_inverse quotient.mk' φ) : β ≃ Σ (ω : Ω), quotient (stabilizer α (φ ω)) :=
+calc  β
+    ≃ Σ (ω : Ω), orbit α (φ ω) : self_equiv_sigma_orbits' α β hφ
+... ≃ Σ (ω : Ω), quotient (stabilizer α (φ ω)) :
+        equiv.sigma_congr_right (λ ω, orbit_equiv_quotient_stabilizer α (φ ω))
+
+/-- **Class formula** for a finite group acting on a finite type. See
+`mul_action.card_eq_sum_card_group_div_card_stabilizer` for a specialized version using
+`quotient.out'`. -/
+@[to_additive "**Class formula** for a finite group acting on a finite type. See
+`add_action.card_eq_sum_card_add_group_div_card_stabilizer` for a specialized version using
+`quotient.out'`."]
+lemma card_eq_sum_card_group_div_card_stabilizer' [fintype α] [fintype β] [fintype Ω]
+  [Π (b : β), fintype $ stabilizer α b] {φ : Ω → β} (hφ : left_inverse quotient.mk' φ) :
+  fintype.card β = ∑ (ω : Ω), fintype.card α / fintype.card (stabilizer α (φ ω)) :=
+begin
+  classical,
+  have : ∀ ω : Ω, fintype.card α / fintype.card ↥(stabilizer α (φ ω)) =
+    fintype.card (quotient $ stabilizer α (φ ω)),
+  { intro ω,
+    rw [fintype.card_congr (@subgroup.group_equiv_quotient_times_subgroup α _ (stabilizer α $ φ ω)),
+        fintype.card_prod, nat.mul_div_cancel],
+    exact fintype.card_pos_iff.mpr (by apply_instance) },
+  simp_rw [this, ← fintype.card_sigma, fintype.card_congr
+            (self_equiv_sigma_orbits_quotient_stabilizer' α β hφ)],
+end
+
+/-- **Class formula**. This is a special case of
+`mul_action.self_equiv_sigma_orbits_quotient_stabilizer'` with `φ = quotient.out'`. -/
+@[to_additive "**Class formula**. This is a special case of
+`add_action.self_equiv_sigma_orbits_quotient_stabilizer'` with `φ = quotient.out'`. "]
+noncomputable def self_equiv_sigma_orbits_quotient_stabilizer :
+  β ≃ Σ (ω : Ω), quotient (stabilizer α ω.out') :=
+self_equiv_sigma_orbits_quotient_stabilizer' α β quotient.out_eq'
+
+/-- **Class formula** for a finite group acting on a finite type. -/
+@[to_additive "**Class formula** for a finite group acting on a finite type."]
+lemma card_eq_sum_card_group_div_card_stabilizer [fintype α] [fintype β] [fintype Ω]
+  [Π (b : β), fintype $ stabilizer α b] :
+  fintype.card β = ∑ (ω : Ω), fintype.card α / fintype.card (stabilizer α ω.out') :=
+card_eq_sum_card_group_div_card_stabilizer' α β quotient.out_eq'
+
+/-- **Burnside's lemma** : a (noncomputable) bijection between the disjoint union of all
+`{x ∈ X | g • x = x}` for `g ∈ G` and the product `G × X/G`, where `G` is a group acting on `X` and
+`X/G`denotes the quotient of `X` by the relation `orbit_rel G X`. -/
+@[to_additive "**Burnside's lemma** : a (noncomputable) bijection between the disjoint union of all
+`{x ∈ X | g • x = x}` for `g ∈ G` and the product `G × X/G`, where `G` is an additive group acting
+on `X` and `X/G`denotes the quotient of `X` by the relation `orbit_rel G X`. "]
+noncomputable def sigma_fixed_by_equiv_orbits_prod_group :
+  (Σ (a : α), (fixed_by α β a)) ≃ Ω × α :=
+calc  (Σ (a : α), fixed_by α β a)
+    ≃ {ab : α × β // ab.1 • ab.2 = ab.2} :
+        (equiv.subtype_prod_equiv_sigma_subtype _).symm
+... ≃ {ba : β × α // ba.2 • ba.1 = ba.1} :
+        (equiv.prod_comm α β).subtype_equiv (λ ab, iff.rfl)
+... ≃ Σ (b : β), stabilizer α b :
+        equiv.subtype_prod_equiv_sigma_subtype (λ (b : β) a, a ∈ stabilizer α b)
+... ≃ Σ (ωb : (Σ (ω : Ω), orbit α ω.out')), stabilizer α (ωb.2 : β) :
+        (self_equiv_sigma_orbits α β).sigma_congr_left'
+... ≃ Σ (ω : Ω), (Σ (b : orbit α ω.out'), stabilizer α (b : β)) :
+        equiv.sigma_assoc (λ (ω : Ω) (b : orbit α ω.out'), stabilizer α (b : β))
+... ≃ Σ (ω : Ω), (Σ (b : orbit α ω.out'), stabilizer α ω.out') :
+        equiv.sigma_congr_right (λ ω, equiv.sigma_congr_right $
+          λ ⟨b, hb⟩, (stabilizer_equiv_stabilizer_of_orbit_rel hb).to_equiv)
+... ≃ Σ (ω : Ω), orbit α ω.out' × stabilizer α ω.out' :
+        equiv.sigma_congr_right (λ ω, equiv.sigma_equiv_prod _ _)
+... ≃ Σ (ω : Ω), α :
+        equiv.sigma_congr_right (λ ω, orbit_prod_stabilizer_equiv_group α ω.out')
+... ≃ Ω × α :
+        equiv.sigma_equiv_prod Ω α
+
+/-- **Burnside's lemma** : given a finite group `G` acting on a set `X`, the average number of
+elements fixed by each `g ∈ G` is the number of orbits. -/
+@[to_additive "**Burnside's lemma** : given a finite additive group `G` acting on a set `X`,
+the average number of elements fixed by each `g ∈ G` is the number of orbits. "]
+lemma sum_card_fixed_by_eq_card_orbits_mul_card_group [fintype α] [Π a, fintype $ fixed_by α β a]
+  [fintype Ω] :
+  ∑ (a : α), fintype.card (fixed_by α β a) = fintype.card Ω * fintype.card α :=
+by rw [← fintype.card_prod, ← fintype.card_sigma,
+        fintype.card_congr (sigma_fixed_by_equiv_orbits_prod_group α β)]
+
+@[to_additive] instance is_pretransitive_quotient (G) [group G] (H : subgroup G) :
   is_pretransitive G (quotient_group.quotient H) :=
 { exists_smul_eq := begin
     rintros ⟨x⟩ ⟨y⟩,
@@ -248,7 +434,7 @@ variables [monoid α] [add_monoid β] [distrib_mul_action α β]
 
 lemma list.smul_sum {r : α} {l : list β} :
   r • l.sum = (l.map ((•) r)).sum :=
-(const_smul_hom β r).map_list_sum l
+(distrib_mul_action.to_add_monoid_hom β r).map_list_sum l
 
 /-- `smul` by a `k : M` over a ring is injective, if `k` is not a zero divisor.
 The general theory of such `k` is elaborated by `is_smul_regular`.
@@ -269,11 +455,11 @@ variables [monoid α] [add_comm_monoid β] [distrib_mul_action α β]
 
 lemma multiset.smul_sum {r : α} {s : multiset β} :
   r • s.sum = (s.map ((•) r)).sum :=
-(const_smul_hom β r).map_multiset_sum s
+(distrib_mul_action.to_add_monoid_hom β r).map_multiset_sum s
 
 lemma finset.smul_sum {r : α} {f : γ → β} {s : finset γ} :
   r • ∑ x in s, f x = ∑ x in s, r • f x :=
-(const_smul_hom β r).map_sum f s
+(distrib_mul_action.to_add_monoid_hom β r).map_sum f s
 
 end
 

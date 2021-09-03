@@ -116,7 +116,7 @@ other arguments belong to specific domains.
 
 section ordered_ring
 
-variables [ordered_ring k] [ordered_add_comm_group E] [module k E] [ordered_module k E]
+variables [ordered_ring k] [ordered_add_comm_group E] [module k E] [ordered_smul k E]
 
 variables {a a' b b' : E} {r r' : k}
 
@@ -185,7 +185,7 @@ end ordered_ring
 section linear_ordered_ring
 
 variables [linear_ordered_ring k] [ordered_add_comm_group E] [module k E]
-  [ordered_module k E] [invertible (2:k)] {a a' b b' : E} {r r' : k}
+  [ordered_smul k E] [invertible (2:k)] {a a' b b' : E} {r r' : k}
 
 lemma midpoint_le_midpoint (ha : a ≤ a') (hb : b ≤ b') :
   midpoint k a b ≤ midpoint k a' b' :=
@@ -197,7 +197,7 @@ end linear_ordered_ring
 section linear_ordered_field
 
 variables [linear_ordered_field k] [ordered_add_comm_group E]
-variables [module k E] [ordered_module k E]
+variables [module k E] [ordered_smul k E]
 
 section
 

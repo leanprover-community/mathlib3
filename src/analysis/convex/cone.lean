@@ -192,9 +192,9 @@ ext' $ preimage_comp.symm
 Constructs an ordered module given an `ordered_add_comm_group`, a cone, and a proof that
 the order relation is the one defined by the cone.
 -/
-lemma to_ordered_module {M : Type*} [ordered_add_comm_group M] [module ℝ M]
-  (S : convex_cone M) (h : ∀ x y : M, x ≤ y ↔ y - x ∈ S) : ordered_module ℝ M :=
-ordered_module.mk'
+lemma to_ordered_smul {M : Type*} [ordered_add_comm_group M] [module ℝ M]
+  (S : convex_cone M) (h : ∀ x y : M, x ≤ y ↔ y - x ∈ S) : ordered_smul ℝ M :=
+ordered_smul.mk'
 begin
   intros x y z xy hz,
   rw [h (z • x) (z • y), ←smul_sub z y x],
@@ -275,7 +275,7 @@ def to_ordered_add_comm_group (S : convex_cone E) (h₁ : pointed S) (h₂ : sal
 /-! ### Positive cone of an ordered module -/
 section positive_cone
 
-variables (M : Type*) [ordered_add_comm_group M] [module ℝ M] [ordered_module ℝ M]
+variables (M : Type*) [ordered_add_comm_group M] [module ℝ M] [ordered_smul ℝ M]
 
 /--
 The positive cone is the convex cone formed by the set of nonnegative elements in an ordered

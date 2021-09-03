@@ -25,8 +25,12 @@ ordered module, ordered scalar, ordered smul, ordered action, ordered vector spa
 
 variables {k M N : Type*}
 
-lemma smul_le_smul_iff_of_neg [linear_ordered_field k]
-  [ordered_add_comm_group M] [module k M] [ordered_smul k M]
+section field
+
+variables [linear_ordered_field k] [ordered_add_comm_group M] [module k M] [ordered_smul k M]
+  [ordered_add_comm_group N] [module k N] [ordered_smul k N]
+
+lemma smul_le_smul_iff_of_neg
   {a b : M} {c : k} (hc : c < 0) : c • a ≤ c • b ↔ b ≤ a :=
 begin
   rw [← neg_neg c, neg_smul, neg_smul (-c), neg_le_neg_iff, smul_le_smul_iff_of_pos (neg_pos.2 hc)],
@@ -34,10 +38,7 @@ begin
 end
 
 -- TODO: solve `prod.has_lt` and `prod.has_le` misalignment issue
-instance prod.ordered_smul [linear_ordered_field k]
-  [ordered_add_comm_group M] [module k M] [ordered_smul k M]
-  [ordered_add_comm_group N] [module k N] [ordered_smul k N] :
-  ordered_smul k (M × N) :=
+instance prod.ordered_smul : ordered_smul k (M × N) :=
 ordered_smul.mk' $ λ (v u : M × N) (c : k) h hc,
   ⟨smul_le_smul_of_nonneg h.1.1 hc.le, smul_le_smul_of_nonneg h.1.2 hc.le⟩
 
@@ -52,8 +53,7 @@ end
 
 -- Sometimes Lean fails to apply the dependent version to non-dependent functions,
 -- so we define another instance
-instance pi.ordered_smul' {ι : Type*} {M : Type*} [ordered_semiring k]
-  [ordered_add_comm_group M]
+instance pi.ordered_smul' {ι : Type*} {M : Type*} [ordered_add_comm_group M]
   [mul_action_with_zero k M] [ordered_smul k M] :
   ordered_smul k (ι → M) :=
 pi.ordered_smul
@@ -62,9 +62,7 @@ end field
 
 namespace order_dual
 
-variables {R M : Type*}
-
-instance [semiring R] [ordered_add_comm_monoid M] [module R M] : module R (order_dual M) :=
+instance [semiring k] [ordered_add_comm_monoid M] [module k M] : module k (order_dual M) :=
 { add_smul := λ r s x, order_dual.rec (add_smul _ _) x,
   zero_smul := λ m, order_dual.rec (zero_smul _) m }
 

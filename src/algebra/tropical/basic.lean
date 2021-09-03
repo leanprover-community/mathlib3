@@ -212,6 +212,19 @@ instance [has_add R] : has_mul (tropical R) := ⟨tropical.mul⟩
 lemma trop_mul_def [has_add R] (x y : tropical R) :
   x * y = trop (untrop x + untrop y) := rfl
 
+instance [has_zero R] : has_one (tropical R) := ⟨trop 0⟩
+instance [has_zero R] : nontrivial (tropical (with_top R)) :=
+⟨⟨0, 1, trop_injective.ne with_top.top_ne_coe⟩⟩
+
+instance [has_neg R] : has_inv (tropical R) := ⟨λ x, trop (- untrop x)⟩
+
+@[simp] lemma untrop_inv [has_neg R] (x : tropical R) : untrop x⁻¹ = - untrop x := rfl
+
+instance [has_sub R] : has_div (tropical R) := ⟨λ x y, trop (untrop x - untrop y)⟩
+
+@[simp] lemma untrop_div [has_sub R] (x y : tropical R) :
+  untrop (x / y) = untrop x - untrop y := rfl
+
 instance [add_semigroup R] : semigroup (tropical R) :=
 { mul := tropical.mul,
   mul_assoc := λ _ _ _, untrop_injective (add_assoc _ _ _) }
@@ -251,12 +264,6 @@ instance [add_group R] : group (tropical R) :=
 instance [add_comm_group R] : comm_group (tropical R) :=
 { mul_comm := λ _ _, untrop_injective (add_comm _ _),
   ..tropical.group }
-
-@[simp] lemma untrop_inv [add_group R] (x : tropical R) : untrop x⁻¹ = - untrop x := rfl
-
-@[simp] lemma untrop_div [add_group R] (x y : tropical R) :
-  untrop (x / y) = untrop x - untrop y :=
-by rw [div_eq_mul_inv, untrop_mul, untrop_inv, sub_eq_add_neg]
 
 end monoid
 
@@ -326,10 +333,6 @@ by simp [←untrop_inj_iff, with_top.add_eq_top]
 instance {R : Type*} [linear_ordered_add_comm_monoid R] :
   no_zero_divisors (tropical (with_top R)) :=
 ⟨λ _ _, mul_eq_zero_iff.mp⟩
-
-instance {R : Type*} [linear_ordered_add_comm_monoid R] :
-  nontrivial (tropical (with_top R)) :=
-⟨⟨0, 1, trop_injective.ne with_top.top_ne_zero⟩⟩
 
 end semiring
 

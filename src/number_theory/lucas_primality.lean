@@ -35,6 +35,7 @@ noncomputable instance units_zmod.fintype : Π n, fintype (units (zmod n))
 | 0     := units_int.fintype
 | (n+1) := units.fintype
 ```
+
 Note that Mario also remarked this could be made computable.
 
 -/

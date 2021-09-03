@@ -16,6 +16,8 @@ is a commutative group. We also prove the same instances for additive situations
 
 Since these structures permit morphisms of morphisms, we also provide some composition-like
 operations.
+
+Finally, we provide the `ring` structure on `add_monoid.End`.
 -/
 
 universes uM uN uP uQ
@@ -82,6 +84,18 @@ instance {M G} [add_zero_class M] [add_comm_group G] : add_comm_group (M →+ G)
   ..add_monoid_hom.add_comm_monoid }
 
 attribute [to_additive] monoid_hom.comm_group
+
+instance [add_comm_monoid M] : semiring (add_monoid.End M) :=
+{ zero_mul := λ x, add_monoid_hom.ext $ λ i, rfl,
+  mul_zero := λ x, add_monoid_hom.ext $ λ i, add_monoid_hom.map_zero _,
+  left_distrib := λ x y z, add_monoid_hom.ext $ λ i, add_monoid_hom.map_add _ _ _,
+  right_distrib := λ x y z, add_monoid_hom.ext $ λ i, rfl,
+  .. add_monoid.End.monoid M,
+  .. add_monoid_hom.add_comm_monoid }
+
+instance [add_comm_group M] : ring (add_monoid.End M) :=
+{ .. add_monoid.End.semiring,
+  .. add_monoid_hom.add_comm_group }
 
 /-!
 ### Morphisms of morphisms

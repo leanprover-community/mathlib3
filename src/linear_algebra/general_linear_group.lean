@@ -13,19 +13,13 @@ import group_theory.subgroup
 
 /-!
 # The General Linear group $GL(n, R)$
-
 This file defines the elements of the General Linear group `general_linear_group n R`,
 consisting of all invertible `n` by `n` `R`-matrices.
-
-
 ## Main definitions
-
 * `matrix.general_linear_group` is the type of matrices over R which are units in the matrix ring.
 * `matrix.GL_plus.GL_pos` gives the subgroup of matrices with
   positive determinant (over a linear ordered ring).
-
 ## Tags
-
 matrix group, group, matrix inverse
 -/
 
@@ -110,6 +104,7 @@ begin
   exact inv_eq_nonsing_inv_of_invertible (↑A : matrix n n R),
 end
 
+
 @[simp] lemma to_lin'_one : to_lin' (1 : GL n R).1 = linear_map.id :=
 matrix.to_lin'_one
 
@@ -143,6 +138,34 @@ end
 @[simp] lemma mem_GL_pos (A : GL n R) : A ∈ GL_pos n R ↔ 0 < (A.det : R) := iff.rfl
 
 end
+
+section has_neg
+
+variables {n : Type u} {R : Type v} [decidable_eq n] [fintype n] [linear_ordered_comm_ring R ]
+[fact (even (fintype.card n))]
+
+/-- Formal operation of negation on special linear group on even cardinality `n` given by negating
+each element. -/
+instance : has_neg (GL_pos n R) :=
+⟨λ g,
+  ⟨- g, by {simp,
+  have:= det_smul g (-1),
+  simp at this,
+  rw this,
+  simp [nat.neg_one_pow_of_even (fact.out (even (fintype.card n)))],
+  have gdet:=g.property,
+  simp at gdet,
+  exact gdet,}⟩⟩
+
+@[simp] lemma GL_pos_coe_neg (g : GL_pos n R) : ↑(- g) = - (↑g : matrix n n R) :=
+rfl
+
+@[simp]lemma GL_pos_neg_elt (g : GL_pos n R): ∀ i j, ( ↑(-g): matrix n n R) i j= - (g i j):=
+begin
+simp,
+end
+
+end has_neg
 
 namespace special_linear_group
 

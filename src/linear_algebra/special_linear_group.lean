@@ -169,7 +169,7 @@ variables {S : Type*} [comm_ring S]
 def map (f : R →+* S) : special_linear_group n R →* special_linear_group n S :=
 { to_fun := λ g, ⟨f.map_matrix ↑g, ring_hom.map_det_one f g.2⟩,
   map_one' := subtype.ext $ f.map_matrix.map_one,
-  map_mul' := λ x y, subtype.ext $ f.map_matrix.map_mul' x y }
+  map_mul' := λ x y, subtype.ext $ f.map_matrix.map_mul x y }
 
 @[simp] lemma coe_matrix_map (f : R →+* S) (g : special_linear_group n R) :
   (map f g : matrix n n S) = f.map_matrix ↑g :=

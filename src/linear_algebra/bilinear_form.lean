@@ -601,7 +601,7 @@ end basis
 end bilin_form
 
 section matrix
-variables {n o : Type*} [fintype n] [fintype o]
+variables {n o : Type*}
 
 open bilin_form finset linear_map matrix
 open_locale matrix
@@ -609,7 +609,7 @@ open_locale matrix
 /-- The map from `matrix n n R` to bilinear forms on `n → R`.
 
 This is an auxiliary definition for the equivalence `matrix.to_bilin_form'`. -/
-def matrix.to_bilin'_aux (M : matrix n n R₂) : bilin_form R₂ (n → R₂) :=
+def matrix.to_bilin'_aux [fintype n] (M : matrix n n R₂) : bilin_form R₂ (n → R₂) :=
 { bilin := λ v w, ∑ i j, v i * M i j * w j,
   bilin_add_left := λ x y z, by simp only [pi.add_apply, add_mul, sum_add_distrib],
   bilin_smul_left := λ a x y, by simp only [pi.smul_apply, smul_eq_mul, mul_assoc, mul_sum],
@@ -617,9 +617,8 @@ def matrix.to_bilin'_aux (M : matrix n n R₂) : bilin_form R₂ (n → R₂) :=
   bilin_smul_right := λ a x y,
     by simp only [pi.smul_apply, smul_eq_mul, mul_assoc, mul_left_comm, mul_sum] }
 
-lemma matrix.to_bilin'_aux_std_basis [decidable_eq n] (M : matrix n n R₂) (i j : n) :
-  M.to_bilin'_aux (std_basis R₂ (λ _, R₂) i 1) (std_basis R₂ (λ _, R₂) j 1) =
-    M i j :=
+lemma matrix.to_bilin'_aux_std_basis [fintype n] [decidable_eq n] (M : matrix n n R₂)
+  (i j : n) : M.to_bilin'_aux (std_basis R₂ (λ _, R₂) i 1) (std_basis R₂ (λ _, R₂) j 1) = M i j :=
 begin
   rw [matrix.to_bilin'_aux, coe_fn_mk, sum_eq_single i, sum_eq_single j],
   { simp only [std_basis_same, std_basis_same, one_mul, mul_one] },
@@ -647,9 +646,10 @@ def bilin_form.to_matrix_aux (b : n → M₂) : bilin_form R₂ M₂ →ₗ[R₂
   map_add' := λ f g, rfl,
   map_smul' := λ f g, rfl }
 
+variables [fintype n] [fintype o]
+
 lemma to_bilin'_aux_to_matrix_aux [decidable_eq n] (B₃ : bilin_form R₃ (n → R₃)) :
-  matrix.to_bilin'_aux (bilin_form.to_matrix_aux (λ j, std_basis R₃ (λ _, R₃) j 1) B₃) =
-    B₃ :=
+  matrix.to_bilin'_aux (bilin_form.to_matrix_aux (λ j, std_basis R₃ (λ _, R₃) j 1) B₃) = B₃ :=
 begin
   refine ext_basis (pi.basis_fun R₃ n) (λ i j, _),
   rw [bilin_form.to_matrix_aux, linear_map.coe_mk, pi.basis_fun_apply, pi.basis_fun_apply,
@@ -1464,6 +1464,35 @@ B.to_lin.linear_equiv_of_ker_eq_bot
 lemma to_dual_def {B : bilin_form K V} (b : B.nondegenerate) {m n : V} :
   B.to_dual b m n = B m n := rfl
 
+section dual_basis
+
+variables {ι : Type*} [decidable_eq ι] [fintype ι]
+
+/-- The `B`-dual basis `B.dual_basis hB b` to a finite basis `b` satisfies
+`B (B.dual_basis hB b i) (b j) = B (b i) (B.dual_basis hB b j) = if i = j then 1 else 0`,
+where `B` is a nondegenerate (symmetric) bilinear form and `b` is a finite basis. -/
+noncomputable def dual_basis (B : bilin_form K V) (hB : B.nondegenerate) (b : basis ι K V) :
+  basis ι K V :=
+b.dual_basis.map (B.to_dual hB).symm
+
+@[simp] lemma dual_basis_repr_apply (B : bilin_form K V) (hB : B.nondegenerate) (b : basis ι K V)
+  (x i) : (B.dual_basis hB b).repr x i = B x (b i) :=
+by rw [dual_basis, basis.map_repr, linear_equiv.symm_symm, linear_equiv.trans_apply,
+       basis.dual_basis_repr, to_dual_def]
+
+lemma apply_dual_basis_left (B : bilin_form K V) (hB : B.nondegenerate) (b : basis ι K V)
+  (i j) : B (B.dual_basis hB b i) (b j) = if j = i then 1 else 0 :=
+by rw [dual_basis, basis.map_apply, basis.coe_dual_basis, ← to_dual_def hB,
+       linear_equiv.apply_symm_apply, basis.coord_apply, basis.repr_self,
+       finsupp.single_apply]
+
+lemma apply_dual_basis_right (B : bilin_form K V) (hB : B.nondegenerate)
+  (sym : sym_bilin_form.is_sym B) (b : basis ι K V)
+  (i j) : B (b i) (B.dual_basis hB b j) = if i = j then 1 else 0 :=
+by rw [sym, apply_dual_basis_left]
+
+end dual_basis
+
 end
 
 /-! We note that we cannot use `bilin_form.restrict_nondegenerate_iff_is_compl_orthogonal` for the
@@ -1546,5 +1575,29 @@ theorem is_adjoint_pair_iff_eq_of_nondegenerate
  λ h, h.symm ▸ is_adjoint_pair_left_adjoint_of_nondegenerate _ _ _⟩
 
 end linear_adjoints
+
+section det
+
+open matrix
+
+variables {A : Type*} [integral_domain A] [module A M₃] (B₃ : bilin_form A M₃)
+variables {ι : Type*} [decidable_eq ι] [fintype ι]
+
+theorem nondegenerate_of_det_ne_zero' (M : matrix ι ι A) (h : M.det ≠ 0) :
+  (to_bilin' M).nondegenerate :=
+λ x hx, matrix.nondegenerate_of_det_ne_zero h x (λ y,
+  by simpa only [to_bilin'_apply, dot_product, mul_vec, finset.mul_sum, mul_assoc] using hx y)
+
+theorem nondegenerate_of_det_ne_zero (b : basis ι A M₃) (h : (to_matrix b B₃).det ≠ 0) :
+  B₃.nondegenerate :=
+begin
+  intros x hx,
+  refine b.equiv_fun.map_eq_zero_iff.mp (nondegenerate_of_det_ne_zero' _ h _ (λ w, _)),
+  convert hx (b.equiv_fun.symm w),
+  rw [bilin_form.to_matrix, linear_equiv.trans_apply, to_bilin'_to_matrix', congr_apply,
+      linear_equiv.symm_apply_apply]
+end
+
+end det
 
 end bilin_form

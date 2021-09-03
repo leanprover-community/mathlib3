@@ -610,8 +610,21 @@ def cast_add (m) : fin n ↪o fin (n + m) := cast_le $ nat.le_add_right n m
 
 @[simp] lemma coe_cast_add (m : ℕ) (i : fin n) : (cast_add m i : ℕ) = i := rfl
 
+lemma cast_add_lt {m : ℕ} (n : ℕ) (i : fin m) : (cast_add n i : ℕ) < m := i.2
+
 @[simp] lemma cast_add_mk (m : ℕ) (i : ℕ) (h : i < n) :
   cast_add m ⟨i, h⟩ = ⟨i, lt_add_right i n m h⟩ := rfl
+
+/-- embedding `fin n` into `fin (m + n)` sending `i` to `m + i` -/
+def cast_add_right (m : ℕ) {n : ℕ} : fin n ↪ fin (m + n) :=
+{ to_fun := λ i, ⟨m + i, add_lt_add_left i.2 _⟩,
+  inj' := λ i j h, fin.ext (by simpa using h) }
+
+@[simp] lemma coe_cast_add_right (m : ℕ) {n : ℕ} (i : fin n) :
+  (cast_add_right m i : ℕ) = m + i := rfl
+
+lemma le_cast_add_right (m : ℕ) {n : ℕ} (i : fin n) : m ≤ cast_add_right m i :=
+nat.le_add_right _ _
 
 /-- `cast_succ i` embeds `i : fin n` in `fin (n+1)`. -/
 def cast_succ : fin n ↪o fin (n + 1) := cast_add 1
@@ -694,6 +707,10 @@ begin
   rw ← coe_cast_succ,
   exact congr_arg coe (equiv.apply_of_injective_symm _ _ _)
 end
+
+lemma succ_cast_succ {n : ℕ} (i : fin n) :
+  i.cast_succ.succ = i.succ.cast_succ :=
+fin.ext (by simp)
 
 /-- `add_nat m i` adds `m` to `i`, generalizes `fin.succ`. -/
 def add_nat (m) : fin n ↪o fin (n + m) :=
@@ -809,6 +826,110 @@ lemma exists_fin_succ {P : fin (n+1) → Prop} :
   (∃ i, P i) ↔ P 0 ∨ (∃i:fin n, P i.succ) :=
 ⟨λ ⟨i, h⟩, fin.cases or.inl (λ i hi, or.inr ⟨i, hi⟩) i h,
   λ h, or.elim h (λ h, ⟨0, h⟩) $ λ⟨i, hi⟩, ⟨i.succ, hi⟩⟩
+
+/--
+Define `C i` by reverse induction on `i : fin (n + 1)` via induction on the underlying `nat` value.
+This function has two arguments: `hlast` handles the base case on `C (fin.last n)`,
+and `hs` defines the inductive step using `C i.succ`, inducting downwards.
+-/
+@[elab_as_eliminator]
+def reverse_induction {n : ℕ}
+  {C : fin (n + 1) → Sort*}
+  (hlast : C (fin.last n))
+  (hs : ∀ i : fin n, C i.succ → C i.cast_succ) :
+  Π (i : fin (n + 1)), C i
+| i :=
+if hi : i = fin.last n
+then _root_.cast (by rw hi) hlast
+else
+  let j : fin n := ⟨i, lt_of_le_of_ne (nat.le_of_lt_succ i.2) (λ h, hi (fin.ext h))⟩ in
+  have wf : n + 1 - j.succ < n + 1 - i, begin
+    cases i,
+    rw [nat.sub_lt_sub_left_iff];
+    simp [*, nat.succ_le_iff],
+  end,
+  have hi : i = fin.cast_succ j, from fin.ext rfl,
+_root_.cast (by rw hi) (hs _ (reverse_induction j.succ))
+using_well_founded { rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ i : fin (n+1), n + 1 - i)⟩],
+  dec_tac := `[assumption] }
+
+@[simp] lemma reverse_induction_last {n : ℕ}
+  {C : fin (n + 1) → Sort*}
+  (h0 : C (fin.last n))
+  (hs : ∀ i : fin n, C i.succ → C i.cast_succ) :
+  (reverse_induction h0 hs (fin.last n) : C (fin.last n)) = h0 :=
+by rw [reverse_induction]; simp
+
+@[simp] lemma reverse_induction_cast_succ {n : ℕ}
+  {C : fin (n + 1) → Sort*}
+  (h0 : C (fin.last n))
+  (hs : ∀ i : fin n, C i.succ → C i.cast_succ) (i : fin n):
+  (reverse_induction h0 hs i.cast_succ : C i.cast_succ) =
+    hs i (reverse_induction h0 hs i.succ) :=
+begin
+  rw [reverse_induction, dif_neg (ne_of_lt (fin.cast_succ_lt_last i))],
+  cases i,
+  refl
+end
+
+/-- Define `f : Π i : fin n.succ, C i` by separately handling the cases `i = fin.last n` and
+`i = j.cast_succ`, `j : fin n`. -/
+@[elab_as_eliminator, elab_strategy]
+def last_cases {n : ℕ} {C : fin (n + 1) → Sort*}
+  (hlast : C (fin.last n)) (hcast : (Π (i : fin n), C i.cast_succ)) (i : fin (n + 1)) : C i :=
+reverse_induction hlast (λ i _, hcast i) i
+
+@[simp] lemma last_cases_last {n : ℕ} {C : fin (n + 1) → Sort*}
+  (hlast : C (fin.last n)) (hcast : (Π (i : fin n), C i.cast_succ)) :
+  (fin.last_cases hlast hcast (fin.last n): C (fin.last n)) = hlast :=
+reverse_induction_last _ _
+
+@[simp] lemma last_cases_cast_succ {n : ℕ} {C : fin (n + 1) → Sort*}
+  (hlast : C (fin.last n)) (hcast : (Π (i : fin n), C i.cast_succ)) (i : fin n) :
+  (fin.last_cases hlast hcast (fin.cast_succ i): C (fin.cast_succ i)) = hcast i :=
+reverse_induction_cast_succ _ _ _
+
+/-- Define `f : Π i : fin (m + n), C i` by separately handling the cases `i = cast_add n i`,
+`j : fin m` and `i = cast_add_right m j`, `j : fin n`. -/
+@[elab_as_eliminator, elab_strategy]
+def add_cases {m n : ℕ} {C : fin (m + n) → Sort*}
+  (hleft : Π i, C (cast_add n i))
+  (hright : Π i, C (cast_add_right m i)) (i : fin (m + n)) : C i :=
+if hi : (i : ℕ) < m
+then have hi' : i = fin.cast_add _ ⟨i, hi⟩, from fin.ext rfl,
+  _root_.cast (congr_arg C hi'.symm) (hleft _)
+else have hi' : i = fin.cast_add_right m
+  ⟨i - m, show (i : ℕ) - m < n,
+      from (nat.sub_lt_left_iff_lt_add (le_of_not_gt hi)).2 i.2⟩,
+    from fin.ext $ by simp [nat.add_sub_cancel' (le_of_not_gt hi)],
+  _root_.cast (congr_arg C hi'.symm) (hright _)
+
+@[simp] lemma add_cases_left {m n : ℕ} {C : fin (m + n) → Sort*}
+  (hleft : Π i, C (fin.cast_add n i))
+  (hright : Π i, C (fin.cast_add_right m i))
+  (i : fin m) :
+  (fin.add_cases hleft hright (fin.cast_add n i) : C (fin.cast_add n i)) =
+  hleft i :=
+begin
+  cases i,
+  simp only [add_cases, *, dif_pos, coe_mk, cast_eq, cast_add_mk],
+  refl
+end
+
+@[simp] lemma add_cases_right {m n : ℕ} {C : fin (m + n) → Sort*}
+  (hleft : Π i, C (fin.cast_add n i))
+  (hright : Π i, C (fin.cast_add_right m i))
+  (i : fin n) :
+  (fin.add_cases hleft hright (fin.cast_add_right m i) : C (fin.cast_add_right m i)) =
+  hright i :=
+begin
+  have : ¬ (cast_add_right m i : ℕ) < m, from not_lt_of_ge (le_cast_add_right _ _),
+  cases i with i hi,
+  simp only [add_cases, this, dif_neg, not_false_iff, cast_eq, not_false_iff],
+  rw [cast_eq_iff_heq],
+  congr,
+  simp
+end
 
 end rec
 

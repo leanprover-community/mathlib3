@@ -54,7 +54,7 @@ is automatically satisfied by any finite measure on a metric space.
   of finite measure is the supremum of the measure of compact sets it contains. Such a compact set
   with suitable measure can be constructed with `measurable_set.exists_lt_is_compact_of_lt_top` or
   `measurable_set.exists_lt_is_compact_of_lt_top_of_pos`.
-* `regular.of_sigma_compact_space_of_locally_finite_measure` is an instance registering that a
+* `regular.of_sigma_compact_space_of_is_locally_finite_measure` is an instance registering that a
   locally finite measure on a locally compact metric space is regular (in fact, an emetric space
   is enough).
 
@@ -66,7 +66,7 @@ is automatically satisfied by any finite measure on a metric space.
   `measurable_set.exists_lt_is_closed_of_lt_top` and
   `measurable_set.exists_lt_is_closed_of_lt_top_of_pos`
   state the corresponding properties for weakly regular measures.
-* `weakly_regular.of_pseudo_emetric_space_of_finite_measure` is an instance registering that a
+* `weakly_regular.of_pseudo_emetric_space_of_is_finite_measure` is an instance registering that a
   finite measure on a metric space is weakly regular (in fact, a pseudo emetric space is enough).
 
 ## Implementation notes
@@ -279,7 +279,7 @@ end
 sets. Then any measurable set can be approximated from inside by closed sets, and from outside
 by open sets. -/
 lemma exists_closed_subset_self_subset_open_of_pos [borel_space α]
-  (μ : measure α) [finite_measure μ]
+  (μ : measure α) [is_finite_measure μ]
   (h0 : ∀ (U : set α), is_open U → μ U ≤ ⨆ (F : set α) (hF : is_closed F) (FU : F ⊆ U), μ F) :
   ∀ ⦃s : set α⦄ (hs : measurable_set s),
   ∀ ε > 0, (∃ (U : set α), is_open U ∧ s ⊆ U ∧ μ U ≤ μ s + ε)
@@ -388,8 +388,8 @@ end
 
 /-- In a finite measure space, if every open set can be approximated from inside by closed sets,
 then the measure is weakly regular -/
-theorem weakly_regular_of_inner_regular_of_finite_measure [borel_space α]
-  (μ : measure α) [finite_measure μ]
+theorem weakly_regular_of_inner_regular_of_is_finite_measure [borel_space α]
+  (μ : measure α) [is_finite_measure μ]
   (h0 : ∀ (U : set α), is_open U → μ U ≤ ⨆ (F : set α) (hF : is_closed F) (FU : F ⊆ U), μ F) :
   weakly_regular μ :=
 { outer_regular := begin
@@ -411,7 +411,7 @@ lemma restrict_of_is_open [borel_space α] [weakly_regular μ]
   (U : set α) (hU : is_open U) (h'U : μ U < ∞) : weakly_regular (μ.restrict U) :=
 begin
   haveI : fact (μ U < ∞) := ⟨h'U⟩,
-  refine weakly_regular_of_inner_regular_of_finite_measure _ (λ V V_open, _),
+  refine weakly_regular_of_inner_regular_of_is_finite_measure _ (λ V V_open, _),
   simp only [restrict_apply' hU.measurable_set],
   refine le_trans (weakly_regular.inner_regular (V_open.inter hU)) _,
   simp only [and_imp, supr_le_iff, subset_inter_iff],
@@ -425,8 +425,8 @@ end
 
 /-- Given a weakly regular measure of finite mass, any measurable set can be approximated from
 inside by closed sets. -/
-lemma _root_.measurable_set.measure_eq_supr_is_closed_of_finite_measure
-  [borel_space α] (μ : measure α) [finite_measure μ] [weakly_regular μ]
+lemma _root_.measurable_set.measure_eq_supr_is_closed_of_is_finite_measure
+  [borel_space α] (μ : measure α) [is_finite_measure μ] [weakly_regular μ]
   ⦃A : set α⦄ (hA : measurable_set A) :
   μ A = (⨆ (F : set α) (h : is_closed F) (h2 : F ⊆ A), μ F) :=
 begin
@@ -463,7 +463,7 @@ begin
       exact subset.antisymm (subset_inter (subset.refl _) AU) (inter_subset_left _ _)
     end
   ... = (⨆ (F : set α) (h : is_closed F) (h2 : F ⊆ A), (μ.restrict U) F) :
-    hA.measure_eq_supr_is_closed_of_finite_measure _
+    hA.measure_eq_supr_is_closed_of_is_finite_measure _
   ... ≤ ⨆ (F : set α) (h : is_closed F) (h2 : F ⊆ A), μ F :
   begin
     refine supr_le_supr (λ F, _),
@@ -502,7 +502,7 @@ lemma restrict_of_measurable_set [borel_space α] [weakly_regular μ]
   (A : set α) (hA : measurable_set A) (h'A : μ A < ∞) : weakly_regular (μ.restrict A) :=
 begin
   haveI : fact (μ A < ∞) := ⟨h'A⟩,
-  refine weakly_regular_of_inner_regular_of_finite_measure _ (λ V V_open, _),
+  refine weakly_regular_of_inner_regular_of_is_finite_measure _ (λ V V_open, _),
   simp only [restrict_apply' hA],
   rw (V_open.measurable_set.inter hA).measure_eq_supr_is_closed_of_lt_top,
   { simp only [and_imp, supr_le_iff, subset_inter_iff],
@@ -534,10 +534,10 @@ end
 
 /-- Any finite measure on a metric space (or even a pseudo emetric space) is weakly regular. -/
 @[priority 100] -- see Note [lower instance priority]
-instance of_pseudo_emetric_space_of_finite_measure {X : Type*}
-  [pseudo_emetric_space X] [measurable_space X] [borel_space X] (μ : measure X) [finite_measure μ] :
+instance of_pseudo_emetric_space_of_is_finite_measure {X : Type*} [pseudo_emetric_space X]
+  [measurable_space X] [borel_space X] (μ : measure X) [is_finite_measure μ] :
   weakly_regular μ :=
-weakly_regular_of_inner_regular_of_finite_measure μ $ inner_regular_of_pseudo_emetric_space μ
+weakly_regular_of_inner_regular_of_is_finite_measure μ $ inner_regular_of_pseudo_emetric_space μ
 
 end weakly_regular
 
@@ -545,10 +545,10 @@ namespace regular
 
 /-- Any locally finite measure on a sigma compact locally compact metric space is regular. -/
 @[priority 100] -- see Note [lower instance priority]
-instance of_sigma_compact_space_of_locally_finite_measure {X : Type*}
+instance of_sigma_compact_space_of_is_locally_finite_measure {X : Type*}
   [emetric_space X] [sigma_compact_space X] [locally_compact_space X]
   [measurable_space X] [borel_space X] (μ : measure X)
-  [locally_finite_measure μ] : regular μ :=
+  [is_locally_finite_measure μ] : regular μ :=
 { lt_top_of_is_compact := λ K hK, hK.measure_lt_top,
   inner_regular :=
   begin
@@ -598,7 +598,7 @@ instance of_sigma_compact_space_of_locally_finite_measure {X : Type*}
     have : ∀ n, ∃ U, is_open U ∧ (A ∩ C n ⊆ U) ∧ (μ U ≤ μ (A ∩ C n) + δ n),
     { assume n,
       set ν := μ.restrict (B (n+1)) with hν,
-      haveI : finite_measure ν :=
+      haveI : is_finite_measure ν :=
       ⟨begin
         rw [restrict_apply measurable_set.univ, univ_inter],
         exact is_compact.measure_lt_top (B.is_compact _),

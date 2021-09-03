@@ -390,7 +390,6 @@ apply_nolint function.embedding.Pi_congr_right doc_blame
 apply_nolint function.embedding.arrow_congr_left doc_blame
 apply_nolint function.embedding.arrow_congr_right doc_blame
 apply_nolint function.embedding.congr doc_blame
-apply_nolint function.embedding.of_not_nonempty doc_blame
 apply_nolint function.embedding.refl doc_blame
 apply_nolint function.embedding.subtype_map doc_blame
 apply_nolint function.embedding.trans doc_blame
@@ -485,18 +484,7 @@ apply_nolint pgame.numeric.lt_move_right unused_arguments
 apply_nolint pgame.numeric.move_left_lt unused_arguments
 
 -- set_theory/zfc.lean
-apply_nolint Class doc_blame
 apply_nolint Set.map_definable_aux unused_arguments
-apply_nolint Set.mem doc_blame
-apply_nolint Set.mk doc_blame
-apply_nolint Set.subset doc_blame
-apply_nolint classical.all_definable doc_blame
-apply_nolint pSet.definable.eq_mk doc_blame
-apply_nolint pSet.definable.resp doc_blame
-apply_nolint pSet.resp.equiv doc_blame
-apply_nolint pSet.resp.eval_aux doc_blame
-apply_nolint pSet.resp.f doc_blame
-apply_nolint pSet.subset doc_blame
 apply_nolint pSet.type has_inhabited_instance
 
 -- tactic/abel.lean
@@ -645,10 +633,7 @@ apply_nolint tactic.explode_expr doc_blame
 
 -- tactic/ext.lean
 apply_nolint equiv_type_constr doc_blame
-apply_nolint ext_param doc_blame
-apply_nolint ext_param_type doc_blame
 apply_nolint get_ext_subject doc_blame
-apply_nolint opt_minus doc_blame
 apply_nolint saturate_fun doc_blame
 
 -- tactic/find.lean

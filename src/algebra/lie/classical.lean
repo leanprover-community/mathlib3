@@ -67,11 +67,11 @@ namespace lie_algebra
 open_locale matrix
 
 variables (n p q l : Type*) (R : Type u₂)
-variables [fintype n] [fintype l] [fintype p] [fintype q]
 variables [decidable_eq n] [decidable_eq p] [decidable_eq q] [decidable_eq l]
 variables [comm_ring R]
 
-@[simp] lemma matrix_trace_commutator_zero (X Y : matrix n n R) : matrix.trace n R R ⁅X, Y⁆ = 0 :=
+@[simp] lemma matrix_trace_commutator_zero [fintype n] (X Y : matrix n n R) :
+  matrix.trace n R R ⁅X, Y⁆ = 0 :=
 calc _ = matrix.trace n R R (X ⬝ Y) - matrix.trace n R R (Y ⬝ X) : linear_map.map_sub _ _ _
    ... = matrix.trace n R R (X ⬝ Y) - matrix.trace n R R (X ⬝ Y) :
      congr_arg (λ x, _ - x) (matrix.trace_mul_comm X Y)
@@ -80,11 +80,11 @@ calc _ = matrix.trace n R R (X ⬝ Y) - matrix.trace n R R (Y ⬝ X) : linear_ma
 namespace special_linear
 
 /-- The special linear Lie algebra: square matrices of trace zero. -/
-def sl : lie_subalgebra R (matrix n n R) :=
+def sl [fintype n] : lie_subalgebra R (matrix n n R) :=
 { lie_mem' := λ X Y _ _, linear_map.mem_ker.2 $ matrix_trace_commutator_zero _ _ _ _,
   ..linear_map.ker (matrix.trace n R R) }
 
-lemma sl_bracket (A B : sl n R) : ⁅A, B⁆.val = A.val ⬝ B.val - B.val ⬝ A.val := rfl
+lemma sl_bracket [fintype n] (A B : sl n R) : ⁅A, B⁆.val = A.val ⬝ B.val - B.val ⬝ A.val := rfl
 
 section elementary_basis
 
@@ -100,6 +100,8 @@ abbreviation E : matrix n n R := λ i' j', if i = i' ∧ j = j' then 1 else 0
 @[simp] lemma E_diag_zero (h : j ≠ i) : matrix.diag n R R (E R i j) = 0 :=
 funext $ λ k, if_neg $ λ ⟨e₁, e₂⟩, h (e₂.trans e₁.symm)
 
+variable [fintype n]
+
 lemma E_trace_zero (h : j ≠ i) : matrix.trace n R R (E R i j) = 0 := by simp [h]
 
 /-- When j ≠ i, the elementary matrices are elements of sl n R, in fact they are part of a natural
@@ -111,7 +113,8 @@ def Eb (h : j ≠ i) : sl n R :=
 
 end elementary_basis
 
-lemma sl_non_abelian [nontrivial R] (h : 1 < fintype.card n) : ¬is_lie_abelian ↥(sl n R) :=
+lemma sl_non_abelian [fintype n] [nontrivial R] (h : 1 < fintype.card n) :
+  ¬is_lie_abelian ↥(sl n R) :=
 begin
   rcases fintype.exists_pair_of_one_lt_card h with ⟨j, i, hij⟩,
   let A := Eb R i j hij,
@@ -131,7 +134,7 @@ def J : matrix (l ⊕ l) (l ⊕ l) R := matrix.from_blocks 0 (-1) 1 0
 
 /-- The symplectic Lie algebra: skew-adjoint matrices with respect to the canonical skew-symmetric
 bilinear form. -/
-def sp : lie_subalgebra R (matrix (l ⊕ l) (l ⊕ l) R) :=
+def sp [fintype l] : lie_subalgebra R (matrix (l ⊕ l) (l ⊕ l) R) :=
   skew_adjoint_matrices_lie_subalgebra (J l R)
 
 end symplectic
@@ -140,10 +143,10 @@ namespace orthogonal
 
 /-- The definite orthogonal Lie subalgebra: skew-adjoint matrices with respect to the symmetric
 bilinear form defined by the identity matrix. -/
-def so : lie_subalgebra R (matrix n n R) :=
+def so [fintype n] : lie_subalgebra R (matrix n n R) :=
   skew_adjoint_matrices_lie_subalgebra (1 : matrix n n R)
 
-@[simp] lemma mem_so (A : matrix n n R) : A ∈ so n R ↔ Aᵀ = -A :=
+@[simp] lemma mem_so [fintype n] (A : matrix n n R) : A ∈ so n R ↔ Aᵀ = -A :=
 begin
   erw mem_skew_adjoint_matrices_submodule,
   simp only [matrix.is_skew_adjoint, matrix.is_adjoint_pair, matrix.mul_one, matrix.one_mul],
@@ -155,13 +158,15 @@ def indefinite_diagonal : matrix (p ⊕ q) (p ⊕ q) R :=
 
 /-- The indefinite orthogonal Lie subalgebra: skew-adjoint matrices with respect to the symmetric
 bilinear form defined by the indefinite diagonal matrix. -/
-def so' : lie_subalgebra R (matrix (p ⊕ q) (p ⊕ q) R) :=
+def so' [fintype p] [fintype q] : lie_subalgebra R (matrix (p ⊕ q) (p ⊕ q) R) :=
   skew_adjoint_matrices_lie_subalgebra $ indefinite_diagonal p q R
 
 /-- A matrix for transforming the indefinite diagonal bilinear form into the definite one, provided
 the parameter `i` is a square root of -1. -/
 def Pso (i : R) : matrix (p ⊕ q) (p ⊕ q) R :=
   matrix.diagonal $ sum.elim (λ _, 1) (λ _, i)
+
+variables [fintype p] [fintype q]
 
 lemma Pso_inv {i : R} (hi : i*i = -1) : (Pso p q R i) * (Pso p q R (-i)) = 1 :=
 begin
@@ -224,7 +229,7 @@ def JD : matrix (l ⊕ l) (l ⊕ l) R := matrix.from_blocks 0 1 1 0
 
 /-- The classical Lie algebra of type D as a Lie subalgebra of matrices associated to the matrix
 `JD`. -/
-def type_D := skew_adjoint_matrices_lie_subalgebra (JD l R)
+def type_D [fintype l] := skew_adjoint_matrices_lie_subalgebra (JD l R)
 
 /-- A matrix transforming the bilinear form defined by the matrix `JD` into a split-signature
 diagonal matrix.
@@ -245,7 +250,7 @@ begin
   refl,
 end
 
-lemma JD_transform : (PD l R)ᵀ ⬝ (JD l R) ⬝ (PD l R) = (2 : R) • (S l R) :=
+lemma JD_transform [fintype l] : (PD l R)ᵀ ⬝ (JD l R) ⬝ (PD l R) = (2 : R) • (S l R) :=
 begin
   have h : (PD l R)ᵀ ⬝ (JD l R) = matrix.from_blocks 1 1 1 (-1) := by
   { simp [PD, JD, matrix.from_blocks_transpose, matrix.from_blocks_multiply], },
@@ -253,7 +258,7 @@ begin
   congr; simp [two_smul],
 end
 
-lemma PD_inv [invertible (2 : R)] : (PD l R) * (⅟(2 : R) • (PD l R)ᵀ) = 1 :=
+lemma PD_inv [fintype l] [invertible (2 : R)] : (PD l R) * (⅟(2 : R) • (PD l R)ᵀ) = 1 :=
 begin
   have h : ⅟(2 : R) • (1 : matrix l l R) + ⅟(2 : R) • 1 = 1 := by
     rw [← smul_add, ← (two_smul R _), smul_smul, inv_of_mul_self, one_smul],
@@ -262,7 +267,7 @@ begin
   simp [h],
 end
 
-lemma is_unit_PD [invertible (2 : R)] : is_unit (PD l R) :=
+lemma is_unit_PD [fintype l] [invertible (2 : R)] : is_unit (PD l R) :=
 ⟨{ val     := PD l R,
    inv     := ⅟(2 : R) • (PD l R)ᵀ,
    val_inv := PD_inv l R,
@@ -270,7 +275,7 @@ lemma is_unit_PD [invertible (2 : R)] : is_unit (PD l R) :=
 rfl⟩
 
 /-- An equivalence between two possible definitions of the classical Lie algebra of type D. -/
-noncomputable def type_D_equiv_so' [invertible (2 : R)] :
+noncomputable def type_D_equiv_so' [fintype l] [invertible (2 : R)] :
   type_D l R ≃ₗ⁅R⁆ so' l l R :=
 begin
   apply (skew_adjoint_matrices_lie_subalgebra_equiv (JD l R) (PD l R) (is_unit_PD l R)).trans,
@@ -299,7 +304,7 @@ def JB := matrix.from_blocks ((2 : R) • 1 : matrix unit unit R) 0 0 (JD l R)
 
 /-- The classical Lie algebra of type B as a Lie subalgebra of matrices associated to the matrix
 `JB`. -/
-def type_B := skew_adjoint_matrices_lie_subalgebra (JB l R)
+def type_B  [fintype l] := skew_adjoint_matrices_lie_subalgebra(JB l R)
 
 /-- A matrix transforming the bilinear form defined by the matrix `JB` into an
 almost-split-signature diagonal matrix.
@@ -317,6 +322,8 @@ where sizes of the blocks are:
    [`l x 1` `l x l` `l x l`]
 -/
 def PB := matrix.from_blocks (1 : matrix unit unit R) 0 0 (PD l R)
+
+variable [fintype l]
 
 lemma PB_inv [invertible (2 : R)] : (PB l R) * (matrix.from_blocks 1 0 0 (PD l R)⁻¹) = 1 :=
 begin

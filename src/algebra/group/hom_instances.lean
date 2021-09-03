@@ -16,6 +16,8 @@ is a commutative group. We also prove the same instances for additive situations
 
 Since these structures permit morphisms of morphisms, we also provide some composition-like
 operations.
+
+Finally, we provide the `ring` structure on `add_monoid.End`.
 -/
 
 universes uM uN uP uQ
@@ -49,7 +51,7 @@ instance [add_zero_class M] [add_comm_monoid N] : add_comm_monoid (M →+ N) :=
     map_zero' := by simp [nsmul_zero],
     map_add' := λ x y, by simp [nsmul_add] },
   nsmul_zero' := λ f, by { ext x, simp [zero_nsmul], },
-  nsmul_succ' := λ n f, by { ext x, simp [nat.succ_eq_one_add, add_nsmul] } }
+  nsmul_succ' := λ n f, by { ext x, simp [nat.succ_eq_add_one, add_comm, add_nsmul] } }
 
 attribute [to_additive] monoid_hom.comm_monoid
 
@@ -77,11 +79,23 @@ instance {M G} [add_zero_class M] [add_comm_group G] : add_comm_group (M →+ G)
     map_zero' := by simp,
     map_add' := λ x y, by simp [gsmul_add] },
   gsmul_zero' := λ f, by { ext x, simp },
-  gsmul_succ' := λ n f, by { ext x, simp [gsmul_of_nat, nat.succ_eq_one_add, add_nsmul] },
+  gsmul_succ' := λ n f, by { ext x, simp [gsmul_of_nat, nat.succ_eq_add_one, add_comm, add_nsmul] },
   gsmul_neg'  := λ n f, by { ext x, simp },
   ..add_monoid_hom.add_comm_monoid }
 
 attribute [to_additive] monoid_hom.comm_group
+
+instance [add_comm_monoid M] : semiring (add_monoid.End M) :=
+{ zero_mul := λ x, add_monoid_hom.ext $ λ i, rfl,
+  mul_zero := λ x, add_monoid_hom.ext $ λ i, add_monoid_hom.map_zero _,
+  left_distrib := λ x y z, add_monoid_hom.ext $ λ i, add_monoid_hom.map_add _ _ _,
+  right_distrib := λ x y z, add_monoid_hom.ext $ λ i, rfl,
+  .. add_monoid.End.monoid M,
+  .. add_monoid_hom.add_comm_monoid }
+
+instance [add_comm_group M] : ring (add_monoid.End M) :=
+{ .. add_monoid.End.semiring,
+  .. add_monoid_hom.add_comm_group }
 
 /-!
 ### Morphisms of morphisms
@@ -111,6 +125,26 @@ def flip {mM : mul_one_class M} {mN : mul_one_class N} {mP : comm_monoid P} (f :
   (f : M →* N →* P) (x : M) (y : N) :
   f.flip y x = f x y :=
 rfl
+
+@[to_additive]
+lemma map_one₂ {mM : mul_one_class M} {mN : mul_one_class N} {mP : comm_monoid P}
+  (f : M →* N →* P) (n : N) : f 1 n = 1 :=
+(flip f n).map_one
+
+@[to_additive]
+lemma map_mul₂ {mM : mul_one_class M} {mN : mul_one_class N} {mP : comm_monoid P}
+  (f : M →* N →* P) (m₁ m₂ : M) (n : N) : f (m₁ * m₂) n = f m₁ n * f m₂ n :=
+(flip f n).map_mul _ _
+
+@[to_additive]
+lemma map_inv₂ {mM : group M} {mN : mul_one_class N} {mP : comm_group P}
+  (f : M →* N →* P) (m : M) (n : N) : f m⁻¹ n = (f m n)⁻¹ :=
+(flip f n).map_inv _
+
+@[to_additive]
+lemma map_div₂ {mM : group M} {mN : mul_one_class N} {mP : comm_group P}
+  (f : M →* N →* P) (m₁ m₂ : M) (n : N) : f (m₁ / m₂) n = f m₁ n / f m₂ n :=
+(flip f n).map_div _ _
 
 /-- Evaluation of a `monoid_hom` at a point as a monoid homomorphism. See also `monoid_hom.apply`
 for the evaluation of any function at a point. -/

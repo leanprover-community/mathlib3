@@ -28,7 +28,7 @@ section trace
 
 universes u v w
 
-variables {m : Type*} [fintype m] (n : Type*) [fintype n]
+variables {m : Type*} (n : Type*)
 variables (R : Type*) (M : Type*) [semiring R] [add_comm_monoid M] [module R M]
 
 /--
@@ -53,12 +53,12 @@ variables (n) (R) (M)
 /--
 The trace of a square matrix.
 -/
-def trace : (matrix n n M) →ₗ[R] M :=
+def trace [fintype n] : (matrix n n M) →ₗ[R] M :=
 { to_fun    := λ A, ∑ i, diag n R M A i,
   map_add'  := by { intros, apply finset.sum_add_distrib, },
   map_smul' := by { intros, simp [finset.smul_sum], } }
 
-variables {n} {R} {M}
+variables {n} {R} {M} [fintype n] [fintype m]
 
 @[simp] lemma trace_diag (A : matrix n n M) : trace n R M A = ∑ i, diag n R M A i := rfl
 
@@ -74,7 +74,7 @@ by simp_rw [h, diag_one, finset.sum_const, nsmul_one]; refl
 @[simp] lemma trace_transpose_mul (A : matrix m n R) (B : matrix n m R) :
   trace n R R (Aᵀ ⬝ Bᵀ) = trace m R R (A ⬝ B) := finset.sum_comm
 
-lemma trace_mul_comm {S : Type v} [comm_ring S] (A : matrix m n S) (B : matrix n m S) :
+lemma trace_mul_comm {S : Type v} [comm_semiring S] (A : matrix m n S) (B : matrix n m S) :
   trace n S S (B ⬝ A) = trace m S S (A ⬝ B) :=
 by rw [←trace_transpose, ←trace_transpose_mul, transpose_mul]
 

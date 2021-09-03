@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import algebra.big_operators.basic
+import data.nat.prime
 import data.zmod.basic
 
 /-!
@@ -12,7 +13,8 @@ import data.zmod.basic
 This file defines [Euler's totient function][https://en.wikipedia.org/wiki/Euler's_totient_function]
 `nat.totient n` which counts the number of naturals less than `n` that are coprime with `n`.
 We prove the divisor sum formula, namely that `n` equals `φ` summed over the divisors of `n`. See
-`sum_totient`.
+`sum_totient`. We also prove two lemmas to help compute totients, namely `totient_mul` and
+`totient_prime_pow`.
 -/
 
 open finset
@@ -27,6 +29,11 @@ def totient (n : ℕ) : ℕ := ((range n).filter (nat.coprime n)).card
 localized "notation `φ` := nat.totient" in nat
 
 @[simp] theorem totient_zero : φ 0 = 0 := rfl
+
+@[simp] theorem totient_one : φ 1 = 1 :=
+by simp [totient]
+
+lemma totient_eq_card_coprime (n : ℕ) : φ n = ((range n).filter (nat.coprime n)).card := rfl
 
 lemma totient_le (n : ℕ) : φ n ≤ n :=
 calc totient n ≤ (range n).card : card_filter_le _ _
@@ -67,8 +74,8 @@ if hmn0 : m * n = 0
     haveI : fact (0 < m) := ⟨nat.pos_of_ne_zero $ left_ne_zero_of_mul hmn0⟩,
     haveI : fact (0 < n) := ⟨nat.pos_of_ne_zero $ right_ne_zero_of_mul hmn0⟩,
     rw [← zmod.card_units_eq_totient, ← zmod.card_units_eq_totient,
-      ← zmod.card_units_eq_totient,
-      fintype.card_congr (units.map_equiv (chinese_remainder h).to_mul_equiv).to_equiv,
+      ← zmod.card_units_eq_totient, fintype.card_congr
+      (units.map_equiv (zmod.chinese_remainder h).to_mul_equiv).to_equiv,
       fintype.card_congr (@mul_equiv.prod_units (zmod m) (zmod n) _ _).to_equiv,
       fintype.card_prod]
   end
@@ -119,5 +126,75 @@ calc ∑ m in (range n.succ).filter (∣ n), φ m
         ⟨mem_range.2 (lt_succ_of_le (le_of_dvd (lt_of_le_of_lt (zero_le _) h)
           (gcd_dvd_left _ _))), gcd_dvd_left _ _⟩, mem_filter.2 ⟨hm, rfl⟩⟩⟩))
 ... = n : card_range _
+
+/-- When `p` is prime, then the totient of `p ^ (n + 1)` is `p ^ n * (p - 1)` -/
+lemma totient_prime_pow_succ {p : ℕ} (hp : p.prime) (n : ℕ) :
+  φ (p ^ (n + 1)) = p ^ n * (p - 1) :=
+calc φ (p ^ (n + 1))
+    = ((range (p ^ (n + 1))).filter (coprime (p ^ (n + 1)))).card :
+  totient_eq_card_coprime _
+... = (range (p ^ (n + 1)) \ ((range (p ^ n)).image (* p))).card :
+  congr_arg card begin
+    rw [sdiff_eq_filter],
+    apply filter_congr,
+    simp only [mem_range, mem_filter, coprime_pow_left_iff n.succ_pos,
+      mem_image, not_exists, hp.coprime_iff_not_dvd],
+    intros a ha,
+    split,
+    { rintros hap b _ rfl,
+      exact hap (dvd_mul_left _ _) },
+    { rintros h ⟨b, rfl⟩,
+      rw [pow_succ] at ha,
+      exact h b (lt_of_mul_lt_mul_left ha (zero_le _)) (mul_comm _ _) }
+  end
+... = _ :
+have h1 : set.inj_on (* p) (range (p ^ n)),
+  from λ x _ y _, (nat.mul_left_inj hp.pos).1,
+have h2 : (range (p ^ n)).image (* p) ⊆ range (p ^ (n + 1)),
+  from λ a, begin
+    simp only [mem_image, mem_range, exists_imp_distrib],
+    rintros b h rfl,
+    rw [pow_succ'],
+    exact (mul_lt_mul_right hp.pos).2 h
+  end,
+begin
+  rw [card_sdiff h2, card_image_of_inj_on h1, card_range,
+    card_range, ← one_mul (p ^ n), pow_succ, ← nat.mul_sub_right_distrib,
+    one_mul, mul_comm]
+end
+
+/-- When `p` is prime, then the totient of `p ^ ` is `p ^ (n - 1) * (p - 1)` -/
+lemma totient_prime_pow {p : ℕ} (hp : p.prime) {n : ℕ} (hn : 0 < n) :
+  φ (p ^ n) = p ^ (n - 1) * (p - 1) :=
+by rcases exists_eq_succ_of_ne_zero (pos_iff_ne_zero.1 hn) with ⟨m, rfl⟩;
+  exact totient_prime_pow_succ hp _
+
+lemma totient_prime {p : ℕ} (hp : p.prime) : φ p = p - 1 :=
+by rw [← pow_one p, totient_prime_pow hp]; simp
+
+lemma totient_eq_iff_prime {p : ℕ} (hp : 0 < p) : p.totient = p - 1 ↔ p.prime :=
+begin
+  refine ⟨λ h, _, totient_prime⟩,
+  replace hp : 1 < p,
+  { apply lt_of_le_of_ne,
+    { rwa succ_le_iff },
+    { rintro rfl,
+      rw [totient_one, nat.sub_self] at h,
+      exact one_ne_zero h } },
+  have hsplit : finset.range p = {0} ∪ (finset.Ico 1 p),
+  { rw [finset.range_eq_Ico, ←finset.Ico.union_consecutive zero_le_one hp.le,
+      finset.Ico.succ_singleton] },
+  have hempty : finset.filter p.coprime {0} = ∅,
+  { simp only [finset.filter_singleton, nat.coprime_zero_right, hp.ne', if_false] },
+  rw [totient_eq_card_coprime, hsplit, finset.filter_union, hempty, finset.empty_union,
+    ←finset.Ico.card 1 p] at h,
+  refine p.prime_of_coprime hp (λ n hn hnz, _),
+  apply finset.filter_card_eq h n,
+  refine finset.Ico.mem.mpr ⟨_, hn⟩,
+  rwa [succ_le_iff, pos_iff_ne_zero],
+end
+
+@[simp] lemma totient_two : φ 2 = 1 :=
+(totient_prime prime_two).trans (by norm_num)
 
 end nat

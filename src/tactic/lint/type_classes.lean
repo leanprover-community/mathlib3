@@ -237,8 +237,27 @@ meta def fails_quickly (max_steps : ℕ) (d : declaration) : tactic (option stri
   auto_decls := tt,
   no_errors_found := "No type-class searches timed out.",
   errors_found := "TYPE CLASS SEARCHES TIMED OUT.
-For the following classes, there is an instance that causes a loop, or an excessively long search.",
-  is_fast := ff }
+For the following classes, there is an instance that causes a loop, or an excessively long search.
+It is common that this instance is for a very different class than the one flagged below.
+To debug:
+(1) run `scripts/mk_all.sh` and create a file with `import all` and
+`set_option trace.class_instances true`
+(2) Create an example where you are proving the class on a type with no extra information
+(other than the classes needed to write down this class) and try to prove it using
+`by apply_instance`. For example, if `topological_group` raises an error, run
+```
+example (G : Type*) [topological_space G] [group G] : topological_group G :=
+by apply_instance
+```
+(3) What error do you get?
+(3a) The expected error is \"tactic.mk_instance failed to generate instance\"
+If you get this error, there might be nothing wrong. Check the trace to see if type-class inference
+takes any unnecessary long unexpected turns. If not, feel free to increase the value in the
+definition of the linter `fails_quickly`.
+(3b) If the error is \"maximum class-instance resolution depth has been reached\" there is almost
+certainly a loop in the type-class inference. Find which instance causes the type-class inference to
+go astray, and fix that instance.",
+  is_fast := tt }
 
 /-- Checks that all uses of the `@[class]` attribute apply to structures or inductive types.
   This is future-proofing for lean 4, which no longer supports `@[class] def`. -/

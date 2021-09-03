@@ -351,11 +351,10 @@ instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
   begin
     intros x y,
     unfold inner,
-    rw [←finset.sum_hom finset.univ conj],
+    rw conj.map_sum,
     apply finset.sum_congr rfl,
     rintros z -,
     apply inner_conj_sym,
-    apply_instance
   end,
   add_left := λ x y z,
     show ∑ i, inner (x i + y i) (z i) = ∑ i, inner (x i) (z i) + ∑ i, inner (y i) (z i),
@@ -458,7 +457,7 @@ def linear_isometry_equiv.of_inner_product_space
   E ≃ₗᵢ[𝕜] (euclidean_space 𝕜 (fin n)) :=
 (fin_orthonormal_basis hn).isometry_euclidean_of_orthonormal (fin_orthonormal_basis_orthonormal hn)
 
-local attribute [instance] finite_dimensional_of_finrank_eq_succ
+local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
 
 /-- Given a natural number `n` one less than the `finrank` of a finite-dimensional inner product
 space, there exists an isometry from the orthogonal complement of a nonzero singleton to

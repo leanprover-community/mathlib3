@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov
 -/
 import algebra.module.submodule
 import algebra.punit_instances
-import algebra.module.prod
 
 /-!
 # The lattice structure on `submodule`s
@@ -24,10 +23,11 @@ to unify the APIs where possible.
 
 -/
 
-variables {R : Type*} {M : Type*}
+variables {R S M : Type*}
 
 section add_comm_monoid
-variables [semiring R] [add_comm_monoid M] [module R M]
+variables [semiring R] [semiring S] [add_comm_monoid M] [module R M] [module S M]
+variables [has_scalar S R] [is_scalar_tower S R M]
 variables {p q : submodule R M}
 
 namespace submodule
@@ -43,6 +43,8 @@ instance inhabited' : inhabited (submodule R M) := ⟨⊥⟩
 
 section
 variables (R)
+@[simp] lemma restrict_scalars_bot : restrict_scalars S (⊥ : submodule R M) = ⊥ := rfl
+
 @[simp] lemma mem_bot {x : M} : x ∈ (⊥ : submodule R M) ↔ x = 0 := set.mem_singleton_iff
 end
 
@@ -92,6 +94,11 @@ instance : has_top (submodule R M) :=
 @[simp] lemma top_to_add_submonoid : (⊤ : submodule R M).to_add_submonoid = ⊤ := rfl
 
 @[simp] lemma mem_top {x : M} : x ∈ (⊤ : submodule R M) := trivial
+
+section
+variables (R)
+@[simp] lemma restrict_scalars_top : restrict_scalars S (⊤ : submodule R M) = ⊤ := rfl
+end
 
 instance : order_top (submodule R M) :=
 { top := ⊤,
@@ -173,10 +180,25 @@ show S ≤ S ⊔ T, from le_sup_left
 lemma mem_sup_right {S T : submodule R M} : ∀ {x : M}, x ∈ T → x ∈ S ⊔ T :=
 show T ≤ S ⊔ T, from le_sup_right
 
+lemma add_mem_sup {S T : submodule R M} {s t : M} (hs : s ∈ S) (ht : t ∈ T) : s + t ∈ S ⊔ T :=
+add_mem _ (mem_sup_left hs) (mem_sup_right ht)
+
 lemma mem_supr_of_mem {ι : Sort*} {b : M} {p : ι → submodule R M} (i : ι) (h : b ∈ p i) :
   b ∈ (⨆i, p i) :=
 have p i ≤ (⨆i, p i) := le_supr p i,
 @this b h
+
+open_locale big_operators
+
+lemma sum_mem_supr {ι : Type*} [fintype ι] {f : ι → M} {p : ι → submodule R M}
+  (h : ∀ i, f i ∈ p i) :
+  ∑ i, f i ∈ ⨆ i, p i :=
+sum_mem _ $ λ i hi, mem_supr_of_mem i (h i)
+
+lemma sum_mem_bsupr {ι : Type*} {s : finset ι} {f : ι → M} {p : ι → submodule R M}
+  (h : ∀ i ∈ s, f i ∈ p i) :
+  ∑ i in s, f i ∈ ⨆ i ∈ s, p i :=
+sum_mem _ $ λ i hi, mem_supr_of_mem i $ mem_supr_of_mem hi (h i hi)
 
 /-! Note that `submodule.mem_supr` is provided in `linear_algebra/basic.lean`. -/
 

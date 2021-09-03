@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 import measure_theory.tactic
-import measure_theory.lp_space
+import measure_theory.function.lp_space
 
 open_locale big_operators ennreal
 

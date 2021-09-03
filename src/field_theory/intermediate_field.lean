@@ -208,11 +208,20 @@ end
 instance algebra : algebra K S :=
 S.to_subalgebra.algebra
 
-instance to_algebra : algebra S L :=
+instance to_algebra {R : Type*} [semiring R] [algebra L R] : algebra S R :=
 S.to_subalgebra.to_algebra
 
-instance : is_scalar_tower K S L :=
+instance is_scalar_tower_bot {R : Type*} [semiring R] [algebra L R] :
+  is_scalar_tower S L R :=
+is_scalar_tower.subalgebra _ _ _ S.to_subalgebra
+
+instance is_scalar_tower_mid {R : Type*} [semiring R] [algebra L R] [algebra K R]
+  [is_scalar_tower K L R] : is_scalar_tower K S R :=
 is_scalar_tower.subalgebra' _ _ _ S.to_subalgebra
+
+/-- Specialize `is_scalar_tower_mid` to the common case where the top field is `L` -/
+instance is_scalar_tower_mid' : is_scalar_tower K S L :=
+S.is_scalar_tower_mid
 
 variables {L' : Type*} [field L'] [algebra K L']
 

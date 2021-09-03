@@ -931,12 +931,12 @@ end
 
 -/
 meta def extract_goal (print_use : parse $ tt <$ tk "!" <|> pure ff)
-  (n : parse ident?) (vs : parse with_ident_list)
+  (n : parse ident?) (vs : parse (tk "with" *> ident*)?)
   : tactic unit :=
 do tgt ← target,
    solve_aux tgt $ do {
      ((cxt₀,cxt₁,ls,tgt),_) ← solve_aux tgt $ do {
-         when (¬ vs.empty) (clear_except vs),
+         vs.mmap clear_except,
          ls ← local_context,
          ls ← ls.mfilter $ succeeds ∘ is_local_def,
          n ← revert_lst ls,
@@ -1069,8 +1069,8 @@ do let (p, x) := p,
    tgt ← target,
    tgt' ← do {
      ⟨tgt', _⟩ ← solve_aux tgt (tactic.generalize e x >> target),
-     to_expr ``(Π x, %%e = x → %%(tgt'.binding_body.lift_vars 0 1))
-   } <|> to_expr ``(Π x, %%e = x → %%tgt),
+     to_expr ``(Π x, %%e = x → %%(tgt'.binding_body.lift_vars 0 1)) }
+   <|> to_expr ``(Π x, %%e = x → %%tgt),
    t ← assert h tgt',
    swap,
    exact ``(%%t %%e rfl),

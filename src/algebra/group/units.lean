@@ -33,6 +33,14 @@ structure add_units (α : Type u) [add_monoid α] :=
 
 attribute [to_additive add_units] units
 
+section has_elem
+
+@[to_additive] lemma unique_has_one {α : Type*} [unique α] [has_one α] :
+  default α = 1 :=
+unique.default_eq 1
+
+end has_elem
+
 namespace units
 
 variables [monoid α]
@@ -108,10 +116,9 @@ by rw [←units.coe_one, eq_iff]
 
 @[simp, to_additive] lemma inv_mk (x y : α) (h₁ h₂) : (mk x y h₁ h₂)⁻¹ = mk y x h₂ h₁ := rfl
 
-@[to_additive] lemma val_coe : (↑a : α) = a.val := rfl
+@[simp, to_additive] lemma val_eq_coe : a.val = (↑a : α) := rfl
 
-@[norm_cast, to_additive] lemma coe_inv'' : ((a⁻¹ : units α) : α) = a.inv := rfl
-attribute [norm_cast] add_units.coe_neg''
+@[simp, to_additive] lemma inv_eq_coe_inv : a.inv = ((a⁻¹ : units α) : α) := rfl
 
 @[simp, to_additive] lemma inv_mul : (↑a⁻¹ * a : α) = 1 := inv_val _
 @[simp, to_additive] lemma mul_inv : (a * ↑a⁻¹ : α) = 1 := val_inv _

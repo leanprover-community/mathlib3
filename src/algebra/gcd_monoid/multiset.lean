@@ -3,8 +3,8 @@ Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
+import algebra.gcd_monoid.basic
 import data.multiset.lattice
-import algebra.gcd_monoid
 
 /-!
 # GCD and LCM operations on multisets
@@ -39,7 +39,8 @@ fold_zero _ _
   (a ::ₘ s).lcm = gcd_monoid.lcm a s.lcm :=
 fold_cons_left _ _ _ _
 
-@[simp] lemma lcm_singleton {a : α} : (a ::ₘ 0).lcm = normalize a := by simp
+@[simp] lemma lcm_singleton {a : α} : ({a} : multiset α).lcm = normalize a :=
+(fold_singleton _ _ _).trans $ lcm_one_right _
 
 @[simp] lemma lcm_add (s₁ s₂ : multiset α) : (s₁ + s₂).lcm = gcd_monoid.lcm s₁.lcm s₂.lcm :=
 eq.trans (by simp [lcm]) (fold_add _ _ _ _ _)
@@ -64,7 +65,7 @@ multiset.induction_on s (by simp) $ λ a s IH, begin
   by_cases a ∈ s; simp [IH, h],
   unfold lcm,
   rw [← cons_erase h, fold_cons_left, ← lcm_assoc, lcm_same],
-  apply lcm_eq_of_associated_left associated_normalize,
+  apply lcm_eq_of_associated_left (associated_normalize _),
 end
 
 @[simp] lemma lcm_ndunion (s₁ s₂ : multiset α) :
@@ -94,7 +95,8 @@ fold_zero _ _
   (a ::ₘ s).gcd = gcd_monoid.gcd a s.gcd :=
 fold_cons_left _ _ _ _
 
-@[simp] lemma gcd_singleton {a : α} : (a ::ₘ 0).gcd = normalize a := by simp
+@[simp] lemma gcd_singleton {a : α} : ({a} : multiset α).gcd = normalize a :=
+(fold_singleton _ _ _).trans $ gcd_zero_right _
 
 @[simp] lemma gcd_add (s₁ s₂ : multiset α) : (s₁ + s₂).gcd = gcd_monoid.gcd s₁.gcd s₂.gcd :=
 eq.trans (by simp [gcd]) (fold_add _ _ _ _ _)
@@ -132,7 +134,7 @@ multiset.induction_on s (by simp) $ λ a s IH, begin
   by_cases a ∈ s; simp [IH, h],
   unfold gcd,
   rw [← cons_erase h, fold_cons_left, ← gcd_assoc, gcd_same],
-  apply gcd_eq_of_associated_left associated_normalize,
+  apply (associated_normalize _).gcd_eq_left,
 end
 
 @[simp] lemma gcd_ndunion (s₁ s₂ : multiset α) :

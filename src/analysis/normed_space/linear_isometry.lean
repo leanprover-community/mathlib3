@@ -104,7 +104,11 @@ f.isometry.comp_continuous_iff
 /-- The identity linear isometry. -/
 def id : E →ₗᵢ[R] E := ⟨linear_map.id, λ x, rfl⟩
 
-@[simp] lemma coe_id : ⇑(id : E →ₗᵢ[R] E) = id := rfl
+@[simp] lemma coe_id : ⇑(id : E →ₗᵢ[R] E) = _root_.id := rfl
+
+@[simp] lemma id_apply (x : E) : (id : E →ₗᵢ[R] E) x = x := rfl
+
+@[simp] lemma id_to_linear_map : (id.to_linear_map : E →ₗ[R] E) = linear_map.id := rfl
 
 instance : inhabited (E →ₗᵢ[R] E) := ⟨id⟩
 
@@ -340,12 +344,16 @@ e.isometry.comp_continuous_on_iff
   continuous (e ∘ f) ↔ continuous f :=
 e.isometry.comp_continuous_iff
 
-@[simp]
-lemma linear_isometry.id_apply (x : E) : (linear_isometry.id : E →ₗᵢ[R] E) x = x := rfl
+variables (R)
+/-- The negation operation on a normed space `E`, considered as a linear isometry equivalence. -/
+def neg : E ≃ₗᵢ[R] E :=
+{ norm_map' := norm_neg,
+  .. linear_equiv.neg R }
 
-@[simp]
-lemma linear_isometry.id_to_linear_map :
-  (linear_isometry.id.to_linear_map : E →ₗ[R] E) = linear_map.id := rfl
+variables {R}
+@[simp] lemma coe_neg : (neg R : E → E) = λ x, -x := rfl
+
+@[simp] lemma symm_neg : (neg R : E ≃ₗᵢ[R] E).symm = neg R := rfl
 
 end linear_isometry_equiv
 

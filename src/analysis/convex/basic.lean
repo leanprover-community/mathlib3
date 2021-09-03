@@ -55,7 +55,7 @@ variables {E : Type u} {F : Type v} {ι : Type w} {ι' : Type x} {α : Type v'}
   {s : set E}
 
 open set linear_map
-open_locale classical big_operators
+open_locale classical big_operators pointwise
 
 local notation `I` := (Icc 0 1 : set ℝ)
 
@@ -164,7 +164,7 @@ set.ext $ λ z, ⟨λ ⟨a, b, ha, hb, hab, hz⟩,
 begin
   split,
   { rintro ⟨a, b, ha, hb, hab, hx⟩,
-    refine smul_left_injective _ hb.ne' ((add_right_inj (a • x)).1 _),
+    refine smul_right_injective _ hb.ne' ((add_right_inj (a • x)).1 _),
     rw [hx, ←add_smul, hab, one_smul] },
   rintro rfl,
   simp only [open_segment_same, mem_singleton],
@@ -443,6 +443,30 @@ by { rw ← add_image_prod, exact (hs.prod ht).is_linear_image is_linear_map.is_
 lemma convex.sub {t : set E}  (hs : convex s) (ht : convex t) :
   convex ((λx : E × E, x.1 - x.2) '' (s.prod t)) :=
 (hs.prod ht).is_linear_image is_linear_map.is_linear_map_sub
+
+lemma convex.add_smul (h_conv : convex s) {p q : ℝ} (hple : 0 ≤ p) (hqle : 0 ≤ q) :
+  (p + q) • s = p • s + q • s :=
+begin
+  rcases hple.lt_or_eq with hp | rfl,
+  rcases hqle.lt_or_eq with hq | rfl,
+  { have hpq : 0 < p + q, from add_pos hp hq,
+    ext,
+    split; intro h,
+    { rcases h with ⟨v, hv, rfl⟩,
+      use [p • v, q • v],
+      refine ⟨smul_mem_smul_set hv, smul_mem_smul_set hv, _⟩,
+      rw add_smul, },
+    { rcases h with ⟨v₁, v₂, ⟨v₁₁, h₁₂, rfl⟩, ⟨v₂₁, h₂₂, rfl⟩, rfl⟩,
+      have := h_conv h₁₂ h₂₂ (le_of_lt $ div_pos hp hpq) (le_of_lt $ div_pos hq hpq)
+        (by {field_simp, rw [div_self (ne_of_gt hpq)]} : p / (p + q) + q / (p + q) = 1),
+      rw mem_smul_set,
+      refine ⟨_, this, _⟩,
+      simp only [← mul_smul, smul_add, mul_div_cancel' _ hpq.ne'], }, },
+  all_goals { rcases s.eq_empty_or_nonempty with rfl | hne,
+    { simp, },
+    rw zero_smul_set hne,
+    simp, },
+end
 
 lemma convex.translate (hs : convex s) (z : E) : convex ((λx, z + x) '' s) :=
 hs.affine_image $ affine_map.const ℝ E z +ᵥ affine_map.id ℝ E
@@ -894,7 +918,9 @@ lemma concave_on.smul [ordered_module ℝ β] {f : E → β} {c : ℝ} (hc : 0 �
 @convex_on.smul _ _ _ _ (order_dual β) _ _ _ f c hc hf
 
 section linear_order
-variables {γ : Type*} [linear_ordered_add_comm_group γ] [module ℝ γ] [ordered_module ℝ γ]
+section monoid
+
+variables {γ : Type*} [linear_ordered_add_comm_monoid γ] [module ℝ γ] [ordered_module ℝ γ]
   {f : E → γ}
 
 /-- A convex function on a segment is upper-bounded by the max of its endpoints. -/
@@ -921,12 +947,15 @@ lemma convex_on.le_on_segment (hf : convex_on s f) {x y z : E}
 let ⟨a, b, ha, hb, hab, hz⟩ := hz in hz ▸ hf.le_on_segment' hx hy ha hb hab
 
 /-- A concave function on a segment is lower-bounded by the min of its endpoints. -/
-lemma concave_on.le_on_segment {γ : Type*}
-  [linear_ordered_add_comm_group γ] [module ℝ γ] [ordered_module ℝ γ]
-  {f : E → γ} (hf : concave_on s f) {x y z : E}
+lemma concave_on.le_on_segment {f : E → γ} (hf : concave_on s f) {x y z : E}
   (hx : x ∈ s) (hy : y ∈ s) (hz : z ∈ [x, y]) :
     min (f x) (f y) ≤ f z :=
 @convex_on.le_on_segment _ _ _ _ (order_dual γ) _ _ _ f hf x y z hx hy hz
+
+end monoid
+
+variables {γ : Type*} [linear_ordered_cancel_add_comm_monoid γ] [module ℝ γ] [ordered_module ℝ γ]
+  {f : E → γ}
 
 -- could be shown without contradiction but yeah
 lemma convex_on.le_left_of_right_le' (hf : convex_on s f) {x y : E} {a b : ℝ}

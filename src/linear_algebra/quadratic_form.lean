@@ -978,7 +978,7 @@ begin
   apply_instance
 end
 
-/-- Sylvester's law of inertia: A nondegenerate real quadratic form is equivalent to a weighted
+/-- **Sylvester's law of inertia**: A nondegenerate real quadratic form is equivalent to a weighted
 sum of squares with the weights being ±1. -/
 theorem equivalent_one_neg_one_weighted_sum_squared
   {M : Type*} [add_comm_group M] [module ℝ M] [finite_dimensional ℝ M]

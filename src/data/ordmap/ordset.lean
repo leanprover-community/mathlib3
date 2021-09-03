@@ -1535,7 +1535,7 @@ begin
       rw [t_ih_r, h.sz.1],
       have h_pos_t_r_size := pos_size_of_mem h.right.sz h_mem,
       cases t_r.size with t_r_size, { cases h_pos_t_r_size },
-      simp [nat.succ_add] } },
+      simp [nat.succ_add, nat.add_succ] } },
 end
 
 end

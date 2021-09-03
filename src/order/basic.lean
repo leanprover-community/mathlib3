@@ -174,6 +174,7 @@ def strict_mono_decr_on [has_lt α] [has_lt β] (f : α → β) (t : set α) : P
 def order_dual (α : Type*) : Type* := α
 
 namespace order_dual
+
 instance (α : Type*) [h : nonempty α] : nonempty (order_dual α) := h
 instance (α : Type*) [h : subsingleton α] : subsingleton (order_dual α) := h
 instance (α : Type*) [has_le α] : has_le (order_dual α) := ⟨λ x y : α, y ≤ x⟩
@@ -546,6 +547,12 @@ instance prod.partial_order (α : Type u) (β : Type v) [partial_order α] [part
 { le_antisymm := λ ⟨a, b⟩ ⟨c, d⟩ ⟨hac, hbd⟩ ⟨hca, hdb⟩,
     prod.ext (hac.antisymm hca) (hbd.antisymm hdb),
   .. prod.preorder α β }
+
+lemma monotone_fst {α β : Type*} [preorder α] [preorder β] : monotone (@prod.fst α β) :=
+λ x y h, h.1
+
+lemma monotone_snd {α β : Type*} [preorder α] [preorder β] : monotone (@prod.snd α β) :=
+λ x y h, h.2
 
 /-!
 ### Additional order classes

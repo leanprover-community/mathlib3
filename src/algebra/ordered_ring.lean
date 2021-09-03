@@ -414,7 +414,8 @@ such that multiplication with a positive number and addition are monotone.
 -- but be warned that the instances involving `domain` may cause
 -- typeclass search loops.
 @[protect_proj]
-class linear_ordered_semiring (α : Type u) extends ordered_semiring α, linear_order α, nontrivial α
+class linear_ordered_semiring (α : Type u)
+  extends ordered_semiring α, linear_ordered_add_comm_monoid α, nontrivial α
 
 section linear_ordered_semiring
 variables [linear_ordered_semiring α] {a b c d : α}
@@ -967,6 +968,12 @@ lemma mul_nonneg_iff : 0 ≤ a * b ↔ 0 ≤ a ∧ 0 ≤ b ∨ a ≤ 0 ∧ b ≤
 by haveI := @linear_order.decidable_le α _; exact
 ⟨nonneg_and_nonneg_or_nonpos_and_nonpos_of_mul_nnonneg,
   λ h, h.elim (and_imp.2 decidable.mul_nonneg) (and_imp.2 decidable.mul_nonneg_of_nonpos_of_nonpos)⟩
+
+/-- Out of three elements of a `linear_ordered_ring`, two must have the same sign. -/
+lemma mul_nonneg_of_three (a b c : α) :
+  0 ≤ a * b ∨ 0 ≤ b * c ∨ 0 ≤ c * a :=
+by iterate 3 { rw mul_nonneg_iff };
+  have := le_total 0 a; have := le_total 0 b; have := le_total 0 c; itauto
 
 lemma mul_nonpos_iff : a * b ≤ 0 ↔ 0 ≤ a ∧ b ≤ 0 ∨ a ≤ 0 ∧ 0 ≤ b :=
 by rw [← neg_nonneg, neg_mul_eq_mul_neg, mul_nonneg_iff, neg_nonneg, neg_nonpos]

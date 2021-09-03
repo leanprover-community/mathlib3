@@ -179,9 +179,15 @@ have:= subgroup.mul_mem _ h1 h2,
 apply subgroup.mul_mem _ this h2,
 end
 
-lemma SST (n: ℤ): S * SL2Z_M.S * (T^n)⁻¹ ∈ gengrp:=
+lemma UST (n: ℤ) (U ∈ gengrp ): U * S * (T^n)⁻¹ ∈ gengrp:=
 begin
-sorry,
+ have h1:= Tpows n,
+ have hh1: (T^n)⁻¹ ∈ gengrp , by {rw subgroup.inv_mem_iff, exact h1 } ,
+ have h2: S ∈ gengrp , by {rw gengrp, apply subgroup.subset_closure, simp,},
+ have h3:= subgroup.mul_mem _ h2 hh1,
+have:= subgroup.mul_mem _ H h3,
+rw ← mul_assoc at this,
+exact this,
 end
 
 def reps (m : ℤ) : set (Mat m) :=
@@ -256,18 +262,29 @@ begin
   refine reduce_rec m _ _,
   { intros A hc,
     by_cases ha : 0 < (A 0 0),
-    {have:= reduce_eq1 m, simp at this, have h1:=this hc ha, simp at h1, simp  [*, int.nat_abs_eq_zero, h1 , exists_apply_eq_apply],
-     let gg:= (T ^ (A 0 1 / A 1 1))⁻¹, use gg, simp, apply Tpows, simp_rw gg, refl, },
+    {have:= reduce_eq1 m, simp at this, have h1:=this hc ha, simp only at h1, simp  [*, int.nat_abs_eq_zero, h1 , exists_apply_eq_apply],
+     let gg:= (T ^ (A 0 1 / A 1 1))⁻¹,
+     use gg,
+     simp only [subgroup.inv_mem_iff],
+     apply Tpows,
+     simp_rw gg, refl, },
     {simp only [*, int.div_neg, int.nat_abs_eq_zero, not_false_iff, neg_neg, reduce_eq2],
-    erw [← mul_smul], rw [← mul_smul], let g:= (T ^ (-A 0 1 / A 1 1))*S*S, use g, apply TSS,  simp_rw g,refl,} },
-  { rintros A hc ⟨U, eq⟩, rw reduce_eq3 m hc, rw ← eq, rw reduce_step, simp,  simp at *,
-    let g:= (U : SL2Z) * S *(T ^ (A 0 0 / A 1 0))⁻¹,  use g, simp_rw g,
-
-    sorry,
-   have j: ∀ (x y z : SL2Z) (M: Mat m), x • y • z • M = (x * y*z)• M , by {simp_rw ← mul_smul, intros x y z A,
-   rw mul_assoc,},
-   have:= j (S: SL2Z)  (SL2Z_M.S) (T ^ (A 0 0 / A 1 0))⁻¹ A,
+    erw [← mul_smul], rw [← mul_smul],
+    let g:= (T ^ (-A 0 1 / A 1 1))*S*S,
+    use g,
+    apply TSS,
+    simp_rw g,refl,} },
+  { rintros A hc ⟨U, eq⟩, rw reduce_eq3 m hc, rw ← eq, rw reduce_step, simp only [gpow_neg],
+    simp only [int.nat_abs_eq_zero, ne.def] at *,
+    use (U : SL2Z) * S *(T ^ (A 0 0 / A 1 0))⁻¹,
+    have Umem:= set_like.coe_mem U,
+    apply UST _ U Umem,
+    have j: ∀ (x y z : SL2Z) (M: Mat m), x • y • z • M = (x * y*z)• M , by {simp_rw ← mul_smul, intros x y z A,
+    rw mul_assoc,},
+    have:= j (U : SL2Z)  (SL2Z_M.S) (T ^ (A 0 0 / A 1 0))⁻¹ A,
    apply this.symm,
+
+
 
    }
 end
@@ -609,7 +626,7 @@ equiv.decidable_eq (reps_equiv m hm)
 def finiteness (hm : m ≠ 0) : fintype (quotient $ orbit_rel'' m) :=
 @fintype.of_equiv _ _ (reps.fintype m hm) (reps_equiv m hm).symm
 
-def gens:=({ S, T, S⁻¹, T⁻¹} : set SL2Z)
+
 
 lemma Mat1_eq_SL2Z: Mat 1 = SL2Z :=
 begin
@@ -739,7 +756,7 @@ exact (subgroup.inv_mem_iff H).symm,
 
 end
 
-lemma sl2z_gens: subgroup.closure gens = (⊤ : subgroup SL2Z) :=
+lemma sl2z_gens: gengrp = (⊤ : subgroup SL2Z) :=
 begin
 have h0: (1: ℤ) ≠ 0, by {simp,},
 have h1:= reps_equiv' 1 h0,
@@ -749,9 +766,9 @@ apply quot_triv_r,
 rw top_trunc_r,
 have hh: quotient (orbit_rel''' 1) ≃ trunc SL2Z, by { apply equiv.trans h1, exact trunceq.symm,},
 
-have hh2: quotient_r (subgroup.closure gens) ≃ quotient (orbit_rel''' 1) , by {
+have hh2: quotient_r (gengrp) ≃ quotient (orbit_rel''' 1) , by {
   let r1:=(orbit_rel''' 1).r,
-  let r2:=(quotient_group.right_rel (subgroup.closure gens)).r,
+  let r2:=(quotient_group.right_rel (gengrp)).r,
   apply quot.congr_right,
   have rh1: ∀ x y : SL2Z, r1 x y ↔ x ∈ mul_action.orbit gengrp y, by {intros x y, refl,   },
   have rh2: ∀ x y : SL2Z, r2 x y ↔ y * x⁻¹ ∈ gengrp, by {intros x y, refl,},
@@ -773,7 +790,23 @@ have hh2: quotient_r (subgroup.closure gens) ≃ quotient (orbit_rel''' 1) , by 
   rw ← hv, simp,},
   apply goal,  },
 apply equiv.trans hh2 hh,
+end
 
+
+def Gens:=({ S, T} : set SL2Z)
+
+lemma Gens_subgroup_eq_gengrp : subgroup.closure (Gens) = gengrp :=
+begin
+rw Gens, rw gengrp,
+ refine le_antisymm ((subgroup.closure_le _).2 _) ((subgroup.closure_le _).2 _),
+
+sorry,
+end
+
+theorem SL2Z_Generators : subgroup.closure (Gens) = ⊤ :=
+begin
+rw Gens_subgroup_eq_gengrp,
+apply sl2z_gens,
 end
 
 

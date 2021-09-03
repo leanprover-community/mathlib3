@@ -254,9 +254,6 @@ section semiring
 
 variables [linear_ordered_semiring R]
 
-instance : linear_ordered_add_comm_monoid R :=
-{ ..(show (linear_ordered_semiring R), from infer_instance) }
-
 open polynomial
 
 @[simp] lemma polynomial.add_eq_zero_iff {p q : polynomial (tropical (with_top R))} :

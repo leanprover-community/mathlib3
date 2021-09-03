@@ -314,7 +314,7 @@ structure is_cusp_form_of_lvl_and_weight (Γ : subgroup SL2Z) (k : ℤ) (f : ℍ
   (transf   : is_modular_of_level_and_weight Γ k f)
   (infinity : f ∈ is_zero_at_infinity )
 
-lemma is_cuspform.mk (Γ : subgroup SL2Z) (k : ℤ) (f : ℍ → ℂ)
+lemma is_cuspform_mk (Γ : subgroup SL2Z) (k : ℤ) (f : ℍ → ℂ)
   (h : is_holomorphic_on (hol_extn f) )
   (h2 : is_modular_of_level_and_weight Γ k f)
   (h3 : f ∈ is_zero_at_infinity ) :
@@ -333,7 +333,7 @@ begin
   intro hf,
   simp [hf.hol, hf.transf, hf.infinity],
   intro h,
-  apply is_cuspform.mk Γ k f h.1 h.2.1 h.2.2,
+  apply is_cuspform_mk Γ k f h.1 h.2.1 h.2.2,
 end
 
 

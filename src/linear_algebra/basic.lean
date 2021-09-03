@@ -855,7 +855,7 @@ def gi_map_comap : galois_insertion (map f) (comap f) :=
     exact ⟨y, hx, rfl⟩  
   end)
 
-lemma map_comap_eq_of_jective (p : submodule R M₂) : (p.comap f).map f = p :=
+lemma map_comap_eq_of_surjective (p : submodule R M₂) : (p.comap f).map f = p :=
 (gi_map_comap hf).l_u_eq _
 
 lemma map_surjective_of_surjective : function.surjective (map f) :=
@@ -880,7 +880,7 @@ lemma map_infi_comap_of_surjective (S : ι → submodule R M₂) : (⨅ i, (S i)
 lemma comap_le_comap_iff_of_surjective (p q : submodule R M₂) : p.comap f ≤ q.comap f ↔ p ≤ q :=
 (gi_map_comap hf).u_le_u_iff
 
-lemma comap_strict_mono_of_injective : strict_mono (comap f) :=
+lemma comap_strict_mono_of_surjective : strict_mono (comap f) :=
 (gi_map_comap hf).strict_mono_u
 
 end galois_insertion

@@ -289,9 +289,28 @@ def auto_descend''' : Schwarz → real.angle' → Lp ℂ 2 haar_circle   :=  sor
 def cof : Schwarz → real.angle' → ℤ → ℂ := λ f, λ θ, λ m,
   inner (fourier_Lp 2 m) (auto_descend''' f θ)
 
+open_locale big_operators
+
+lemma real_to_haar_N (f : Schwarz) (M : ℕ) : ∫ x in (set.Icc (-(M:ℝ)) M), f x =
+∑ n in (finset.Ico_ℤ (-(M:ℤ)) (M)), ∫ x in set.Icc (0:ℝ) (1:ℝ), f (x + n) :=
+begin
+  induction M with k hk,
+  { simp,
+    have : finset.Ico_ℤ 0 0 = ∅ ,
+    {
+      sorry,
+    },
+    rw this,
+    simp, },
+  -- ALEX homework
+  sorry,
+end
+
 
 lemma real_to_haar (f : Schwarz) : ∫ (x : ℝ), f x = ∑' (n : ℤ), ∫ x in set.Icc (0:ℝ) (1:ℝ), f( x + n) :=
 begin
+  -- need lemma relating tsum to partial sums, same on the other side. then take limits (dominated convergence)
+
   have :∀ᶠ n in (filter.cofinite), ae_measurable (indicator (set.Icc (n:ℝ) (n+1)) f ),
   {
 --    intros n,

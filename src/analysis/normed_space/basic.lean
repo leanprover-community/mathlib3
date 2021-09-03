@@ -1148,6 +1148,8 @@ instance prod.semi_normed_ring [semi_normed_ring β] : semi_normed_ring (α × �
         ... = (∥x∥*∥y∥) : rfl,
   ..prod.semi_normed_group }
 
+/-- seminormed group instance on a matrix with values in a seminormed group,
+using the sup norm -/
 instance {n m : Type*} [fintype n] [fintype m] : semi_normed_group (matrix n m α) :=
 pi.semi_normed_group
 

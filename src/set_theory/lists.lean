@@ -68,7 +68,7 @@ instance [inhabited α] : ∀ b, inhabited (lists' α b)
 def cons : lists α → lists' α tt → lists' α tt
 | ⟨b, a⟩ l := cons' a l
 
-/-- Converts a ZFA prelist to a `list` of ZFA lists. Atoms are yeeted onto `[]`. -/
+/-- Converts a ZFA prelist to a `list` of ZFA lists. Atoms are sent to `[]`. -/
 @[simp] def to_list : ∀ {b}, lists' α b → list (lists α)
 | _ (atom a)    := []
 | _ nil         := []
@@ -110,8 +110,11 @@ with lists'.subset : lists' α tt → lists' α tt → Prop
   lists'.subset l l' → lists'.subset (lists'.cons a l) l'
 local infix ` ~ `:50 := lists.equiv
 
-run_cmd tactic.add_doc_string `lists.equiv "Equivalence of ZFA lists. Defined inductively."
-run_cmd tactic.add_doc_string `lists'.subset "Subset relation for ZFA lists. Defined inductively."
+/-- Equivalence of ZFA lists. Defined inductively. -/
+add_decl_doc lists.equiv
+
+/-- Subset relation for ZFA lists. Defined inductively. -/
+add_decl_doc lists'.subset
 
 namespace lists'
 
@@ -184,7 +187,7 @@ namespace lists
 /-- Converts a proper ZFA prelist to a ZFA list. -/
 @[pattern] def of' (l : lists' α tt) : lists α := ⟨_, l⟩
 
-/-- Converts a ZFA list to a `list` of ZFA lists. Atoms are yeeted onto `[]`. -/
+/-- Converts a ZFA list to a `list` of ZFA lists. Atoms are sent to `[]`. -/
 @[simp] def to_list : lists α → list (lists α)
 | ⟨b, l⟩ := l.to_list
 

@@ -1,6 +1,5 @@
 import algebra.module.submodule
 import .holomorphic_functions
-import .modular_group
 import analysis.complex.upper_half_plane
 import linear_algebra.general_linear_group
 import linear_algebra.special_linear_group
@@ -34,11 +33,13 @@ local notation `ℍ'`:=(⟨upper_half_space , upper_half_plane_is_open⟩: open_
 
 local notation `ℍ`:=upper_half_plane
 
+local notation `SL2Z` := matrix.special_linear_group (fin 2) ℤ
+
 instance : has_coe ℍ' ℍ :=
 ⟨ λ z, ⟨ z.1, by {simp, cases z, assumption,}, ⟩ ⟩
 
-/--A function `f:ℍ → ℂ` is Petersson, of weight `k ∈ ℤ` (and level one), if for every matrix in
- `γ ∈  SL_2(ℤ)` we have `f(γ  • z)= (c*z+d)^k f(z)` where `γ= ![![a, b], ![c, d]]`,
+/--A function `f:ℍ → ℂ` is modular, of level `Γ` and weight `k ∈ ℤ`, if for every matrix in
+ `γ ∈  Γ` we have `f(γ  • z)= (c*z+d)^k f(z)` where `γ= ![![a, b], ![c, d]]`,
  and it acts on `ℍ` via Moebius trainsformations. -/
 def is_modular_of_level_and_weight (Γ : subgroup SL2Z) (k : ℤ) :=
 { f : ℍ → ℂ | ∀ M : Γ, ∀ z : ℍ,
@@ -61,7 +62,10 @@ def zero_form : ℍ → ℂ:= (0 : (ℍ → ℂ))
 lemma modular_sum_is_modular   (f g : is_modular_of_level_and_weight Γ k) :
   ( Modular_sum Γ k f g ∈  is_modular_of_level_and_weight Γ k):=
 begin
-  simp only [mem_modular], intros M z, rw Modular_sum, simp only [subtype.val_eq_coe],
+  simp only [mem_modular],
+  intros M z,
+  rw Modular_sum,
+  simp only [subtype.val_eq_coe],
   have h1:=f.property,
   simp only [mem_modular, subtype.val_eq_coe] at h1,
   have h2:=g.property, simp only [mem_modular, subtype.val_eq_coe] at h2,
@@ -116,7 +120,7 @@ def modular_submodule : submodule (ℂ) (ℍ  → ℂ) := {
 /--A function ` f : ℍ → ℂ` is bounded at infinity if there exist real numbers `M,A` such that
 for all `z ∈ ℍ` with `im z ≥ A` we have `abs(f (z)) ≤ M`,
  i.e. the function is bounded as you approach `i∞`.  -/
-def is_bound_at_infinity := { f : ℍ → ℂ | ∃ (M A : ℝ), ∀ z : ℍ, im z ≥ A → abs (f z) ≤ M }
+def is_bound_at_infinity := { f : ℍ → ℂ | ∃ (M A : ℝ), ∀ z : ℍ, A ≤ im z → abs (f z) ≤ M }
 
 /--A function ` f : ℍ → ℂ` is zero at infinity if for any `ε > 0` there exist a real
 number `A` such that for all `z ∈ ℍ` with `im z ≥ A` we have `abs(f (z)) ≤ ε`,

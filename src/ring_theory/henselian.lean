@@ -8,6 +8,7 @@ import data.finset.nat_antidiagonal
 import ring_theory.polynomial.content
 import ring_theory.ideal.local_ring
 import linear_algebra.adic_completion
+import number_theory.padics.padic_integers
 import tactic.field_simp
 
 /-!
@@ -70,10 +71,38 @@ lemma local_ring.ker_eq_maximal_ideal {R K : Type*} [comm_ring R] [local_ring R]
 local_ring.eq_maximal_ideal $ φ.ker_is_maximal_of_surjective hφ
 
 -- move this
+section
+open polynomial finset.nat
+
+lemma polynomial.X_add_one_pow_coeff (R : Type*) [semiring R] (n k : ℕ) :
+  ((X + 1) ^ n).coeff k = (n.choose k : R) :=
+begin
+  rw [(commute_X (1 : polynomial R)).add_pow, ← lcoeff_apply, linear_map.map_sum],
+  simp only [one_pow, mul_one, lcoeff_apply, ← C_eq_nat_cast, coeff_mul_C, nat.cast_id],
+  rw [finset.sum_eq_single k, coeff_X_pow_self, one_mul],
+  { intros _ _,
+    simp only [coeff_X_pow, boole_mul, ite_eq_right_iff, ne.def] {contextual := tt},
+    rintro h rfl, contradiction },
+  { simp only [coeff_X_pow_self, one_mul, not_lt, finset.mem_range],
+    intro h, rw [nat.choose_eq_zero_of_lt h, nat.cast_zero], }
+end
+
+open polynomial
+
 /-- Vandermonde's identity -/
 lemma nat.add_choose_eq (m n k : ℕ) :
-  (m + n).choose k = ∑ (ij : ℕ × ℕ) in finset.nat.antidiagonal k, m.choose ij.1 * n.choose ij.2 :=
-sorry
+  (m + n).choose k = ∑ (ij : ℕ × ℕ) in antidiagonal k, m.choose ij.1 * n.choose ij.2 :=
+begin
+  calc (m + n).choose k
+      = ((X + 1) ^ (m + n)).coeff k : _
+  ... = ((X + 1) ^ m * (X + 1) ^ n).coeff k : by rw pow_add
+  ... = ∑ (ij : ℕ × ℕ) in antidiagonal k, m.choose ij.1 * n.choose ij.2 : _,
+  { rw [X_add_one_pow_coeff, nat.cast_id], },
+  { rw [coeff_mul, finset.sum_congr rfl],
+    simp only [X_add_one_pow_coeff, nat.cast_id, eq_self_iff_true, imp_true_iff], }
+end
+
+end
 
 -- move this
 namespace smodeq
@@ -96,6 +125,75 @@ begin
 end
 
 end smodeq
+
+lemma enat.coe_eq_coe (n : ℕ) :
+  @eq enat
+    (@coe nat enat (@coe_to_lift nat enat (@nat.cast_coe enat (@add_zero_class.to_has_zero enat
+      (@add_monoid.to_add_zero_class enat (@add_comm_monoid.to_add_monoid enat enat.add_comm_monoid)))
+        enat.has_one (@add_zero_class.to_has_add enat (@add_monoid.to_add_zero_class enat
+          (@add_comm_monoid.to_add_monoid enat enat.add_comm_monoid))))) n)
+    (@coe nat enat (@coe_to_lift nat enat (@coe_base nat enat enat.has_coe)) n) :=
+begin
+  induction n with n ih, { refl },
+  simp only [nat.succ_eq_add_one, enat.coe_one, enat.coe_add, nat.cast_add, nat.cast_one, ih],
+end
+
+namespace discrete_valuation_ring
+
+variables {R : Type*} [integral_domain R] [discrete_valuation_ring R]
+
+instance : is_Hausdorff (maximal_ideal R) R :=
+{ haus' := λ x hx,
+  begin
+    simp only [← ideal.one_eq_top, smul_eq_mul, mul_one, smodeq.zero] at hx,
+    rw [← add_val_eq_top_iff, enat.eq_top_iff_forall_le],
+    intro n,
+    obtain ⟨ϖ, hϖ⟩ := exists_irreducible R,
+    have : add_val R (ϖ ^ n) = n,
+    { rw [add_val_pow, add_val_uniformizer hϖ, nsmul_one, enat.coe_eq_coe], },
+    rw irreducible_iff_uniformizer at hϖ,
+    rw [← this, add_val_le_iff_dvd, ← ideal.mem_span_singleton, ← ideal.span_singleton_pow, ← hϖ],
+    exact hx n,
+  end }
+
+end discrete_valuation_ring
+
+namespace padic_int
+
+open cau_seq
+
+instance (p : ℕ) [hp : fact p.prime] : is_adic_complete (maximal_ideal ℤ_[p]) ℤ_[p] :=
+{ prec' := λ x hx,
+  begin
+    simp only [← ideal.one_eq_top, smul_eq_mul, mul_one, smodeq.sub_mem, maximal_ideal_eq_span_p,
+      ideal.span_singleton_pow, ← norm_le_pow_iff_mem_span_pow] at hx ⊢,
+    let x' : cau_seq ℤ_[p] norm := ⟨x, _⟩, swap,
+    { intros ε hε, obtain ⟨m, hm⟩ := exists_pow_neg_lt p hε,
+      refine ⟨m, λ n hn, lt_of_le_of_lt _ hm⟩, rw [← neg_sub, norm_neg], exact hx hn },
+    { refine ⟨x'.lim, λ n, _⟩,
+      have : (0:ℝ) < p ^ (-n : ℤ), { apply fpow_pos_of_pos, exact_mod_cast hp.1.pos },
+      obtain ⟨i, hi⟩ := equiv_def₃ (equiv_lim x') this,
+      by_cases hin : i ≤ n,
+      { exact (hi i le_rfl n hin).le, },
+      { push_neg at hin, specialize hi i le_rfl i le_rfl, specialize hx hin.le,
+        have := nonarchimedean (x n - x i) (x i - x'.lim),
+        rw [sub_add_sub_cancel] at this,
+        refine this.trans (max_le_iff.mpr ⟨hx, hi.le⟩), } },
+  end }
+
+end padic_int
+
+namespace ideal
+
+variables {R : Type*} [comm_ring R] (I : ideal R)
+
+lemma pow_mem_pow {x : R} (hx : x ∈ I) (n : ℕ) : x ^ n ∈ I ^ n :=
+begin
+  induction n with n ih, { simp only [pow_zero, ideal.one_eq_top], },
+  simpa only [pow_succ] using mul_mem_mul hx ih,
+end
+
+end ideal
 
 namespace nat
 
@@ -294,30 +392,80 @@ end
 
 end hasse_derivative
 
+-- move this
+/-- Evaluation of polynomials as linear map. -/
+@[simps] def leval {R : Type*} [semiring R] (r : R) : polynomial R →ₗ[R] R :=
+{ to_fun := λ f, f.eval r,
+  map_add' := λ f g, eval_add,
+  map_smul' := λ c f, by simp only [smul_eq_C_mul, eval_C_mul, smul_eq_mul] }
+
 section taylor
 
-variables {R : Type*} [comm_ring R] (f : polynomial R) (r : R)
+variables {R : Type*} [semiring R] (r : R) (f : polynomial R)
 
 /-- The Taylor expansion of a polynomial `f` at `r`. -/
-def taylor (f : polynomial R) (r : R) : polynomial R := f.comp (X + C r)
+def taylor (r : R) : polynomial R →ₗ[R] polynomial R :=
+{ to_fun := λ f, f.comp (X + C r),
+  map_add' := λ f g, add_comp,
+  map_smul' := λ c f, by simp only [smul_eq_C_mul, C_mul_comp] }
 
-lemma eval_taylor (s : R) : (f.taylor r).eval (s - r) = f.eval s :=
-by simp only [taylor, eval_comp, eval_C, eval_X, eval_add, sub_add_cancel]
+lemma taylor_apply : taylor r f = f.comp (X + C r) := rfl
 
-@[simp] lemma taylor_coeff_zero : (f.taylor r).coeff 0 = f.eval r :=
-by rw [coeff_zero_eq_eval_zero, ← sub_self r, eval_taylor]
+@[simp] lemma taylor_X : taylor r X = X + C r :=
+by simp only [taylor_apply, X_comp]
 
-lemma taylor_coeff (n : ℕ) : (n! : R) * (f.taylor r).coeff n = (derivative^[n] f).eval r :=
+@[simp] lemma taylor_C (x : R) : taylor r (C x) = C x :=
+by simp only [taylor_apply, C_comp]
+
+@[simp] lemma taylor_one : taylor r (1 : polynomial R) = C 1 :=
+by rw [← C_1, taylor_C]
+
+lemma taylor_coeff (n : ℕ) : (taylor r f).coeff n = (hasse_derivative n f).eval r :=
+show (lcoeff R n).comp (taylor r) f = (leval r).comp (hasse_derivative n) f,
 begin
-  revert f r,
-  apply nat.strong_induction_on n; clear n,
-  intros n IH f r,
-  induction n with n ih generalizing f,
-  { rw [iterate_zero, taylor_coeff_zero, id, nat.factorial_zero, nat.cast_one, one_mul], },
+  congr' 1, clear f, ext i,
+  simp only [leval_apply, mul_one, one_mul, eval_monomial, linear_map.comp_apply, coeff_C_mul,
+    hasse_derivative_monomial, taylor_apply, monomial_comp, C_1,
+    (commute_X (C r)).add_pow i, linear_map.map_sum],
+  simp only [lcoeff_apply, ← C_eq_nat_cast, mul_assoc, ← C_pow, ← C_mul, coeff_mul_C,
+    (nat.cast_commute _ _).eq, coeff_X_pow, boole_mul, finset.sum_ite_eq, finset.mem_range],
+  split_ifs with h, { refl },
+  push_neg at h, rw [nat.choose_eq_zero_of_lt h, nat.cast_zero, mul_zero],
+end
 
+@[simp] lemma taylor_coeff_zero : (taylor r f).coeff 0 = f.eval r :=
+by rw [taylor_coeff, hasse_derivative_zero, linear_map.id_apply]
+
+@[simp] lemma taylor_coeff_one : (taylor r f).coeff 1 = f.derivative.eval r :=
+by rw [taylor_coeff, hasse_derivative_one]
+
+lemma taylor_eval {R} [comm_semiring R] (r : R) (f : polynomial R) (s : R) :
+  (taylor r f).eval s = f.eval (s + r) :=
+by simp only [taylor_apply, eval_comp, eval_C, eval_X, eval_add]
+
+lemma taylor_eval_sub {R} [comm_ring R] (r : R) (f : polynomial R) (s : R) :
+  (taylor r f).eval (s - r) = f.eval s :=
+by rw [taylor_eval, sub_add_cancel]
+
+lemma taylor_injective {R} [comm_ring R] (r : R) : function.injective (taylor r) :=
+begin
+  intros f g h,
+  apply_fun taylor (-r) at h,
+  simpa only [taylor_apply, comp_assoc, add_comp, X_comp, C_comp, C_neg,
+    neg_add_cancel_right, comp_X] using h,
 end
 
 end taylor
+
+lemma eq_zero_of_hasse_derivative_eq_zero {R} [comm_ring R] (f : polynomial R) (r : R)
+  (h : ∀ k, (hasse_derivative k f).eval r = 0) :
+  f = 0 :=
+begin
+  apply taylor_injective r,
+  rw linear_map.map_zero,
+  ext k,
+  simp only [taylor_coeff, h, coeff_zero],
+end
 
 end polynomial
 
@@ -370,16 +518,46 @@ begin
   classical,
   let I := maximal_ideal R,
   -- a temporary multiplicative inverse for units in `R`
-  let inv : R → R := λ x, if hx : is_unit x then hx.some else 0,
+  let inv : R → R := λ x, if hx : is_unit x then ↑hx.some⁻¹ else 0,
+  have hinv : ∀ x, is_unit x → x * inv x = 1,
+  { intros x hx, simp only [hx, inv, dif_pos], convert units.mul_inv hx.some, rw hx.some_spec },
   -- in the following line, `f.derivative.eval b` is a unit,
   -- because `b` has the same residue class as `a₀`
   let c : ℕ → R := λ n, nat.rec_on n a₀ (λ k b, b - f.eval b * inv (f.derivative.eval b)),
   have hc : ∀ n, c (n+1) = c n - f.eval (c n) * inv (f.derivative.eval (c n)),
   { intro n, dsimp only [c, nat.rec_add_one], refl, },
-  have Hc : ∀ n, f.eval (c n) ∈ I ^ n,
-  { intro n, induction n with n ih, { simp only [ideal.one_eq_top, pow_zero], },
-    simp only [nat.succ_eq_add_one, hc],
-    sorry },
+  have hc' : ∀ n, c n ≡ a₀ [SMOD I],
+  { intro n, induction n with n ih, { refl },
+    rw [nat.succ_eq_add_one, hc, sub_eq_add_neg, ← add_zero a₀],
+    refine ih.add _,
+    rw [smodeq.zero, ideal.neg_mem_iff],
+    refine I.mul_mem_right _ _,
+    rw [← smodeq.zero] at h₁ ⊢,
+    exact (ih.eval f).trans h₁, },
+  have hfc : ∀ n, is_unit (f.derivative.eval (c n)),
+  { intro n, contrapose! h₂,
+    rw [← mem_nonunits_iff, ← local_ring.mem_maximal_ideal, ← smodeq.zero] at h₂ ⊢,
+    exact ((hc' n).symm.eval _).trans h₂, },
+  have Hc : ∀ n, f.eval (c n) ∈ I ^ (n+1),
+  { intro n,
+    induction n with n ih, { simpa only [pow_one] },
+    simp only [nat.succ_eq_add_one],
+    rw [← taylor_eval_sub (c n), hc],
+    simp only [sub_eq_add_neg, add_neg_cancel_comm],
+    rw [eval_eq_sum, sum_over_range' _ _ _ (lt_add_of_pos_right _ zero_lt_two),
+      ← finset.sum_range_add_sum_Ico _ (nat.le_add_left _ _)],
+    swap, { intro i, rw zero_mul },
+    refine ideal.add_mem _ _ _,
+    { simp only [finset.sum_range_succ, taylor_coeff_one, mul_one, pow_one, mul_neg_eq_neg_mul_symm,
+        taylor_coeff_zero, finset.sum_singleton, finset.range_one, pow_zero],
+      rw [mul_left_comm, hinv _ (hfc n), mul_one, add_neg_self],
+      exact ideal.zero_mem _ },
+    { refine submodule.sum_mem _ _, simp only [finset.Ico.mem],
+      rintro i ⟨h2i, hi⟩,
+      have aux : n + 2 ≤ i * (n + 1), { transitivity 2 * (n + 1); nlinarith only [h2i], },
+      refine ideal.mul_mem_left _ _ (ideal.pow_le_pow aux _),
+      rw [pow_mul'],
+      refine ideal.pow_mem_pow _ ((ideal.neg_mem_iff _).2 $ ideal.mul_mem_right _ _ ih) _, } },
   -- the sequence `c : ℕ → R` is a Cauchy sequence
   have aux : ∀ m n, m ≤ n → c m ≡ c n [SMOD (I ^ m • ⊤ : ideal R)],
   { intros m n hmn,
@@ -389,7 +567,8 @@ begin
     rw [nat.succ_eq_add_one, ← add_assoc, hc, ← add_zero (c m), sub_eq_add_neg],
     refine ih.add _, symmetry,
     rw [smodeq.zero, ideal.neg_mem_iff],
-    refine ideal.mul_mem_right _ _ (ideal.pow_le_pow le_self_add (Hc _)), },
+    refine ideal.mul_mem_right _ _ (ideal.pow_le_pow _ (Hc _)),
+    rw [add_assoc], exact le_self_add },
   -- hence the sequence converges to some limit point `a`, which is the `a` we are looking for
   obtain ⟨a, ha⟩ := is_precomplete.prec' c aux,
   refine ⟨a, _, _⟩,
@@ -399,7 +578,7 @@ begin
     rw [← ideal.one_eq_top, algebra.id.smul_eq_mul, mul_one] at ha ⊢,
     refine (ha.symm.eval f).trans _,
     rw [smodeq.zero],
-    exact Hc _, },
+    exact ideal.pow_le_pow le_self_add (Hc _), },
   { show a - a₀ ∈ maximal_ideal R,
     specialize ha 1,
     rw [hc, pow_one, ← ideal.one_eq_top, algebra.id.smul_eq_mul, mul_one, sub_eq_add_neg] at ha,
@@ -481,3 +660,5 @@ TODO: develop enough theory of etale algebras to include the following items in 
 -/
 
 end
+
+instance (p : ℕ) [fact p.prime] : henselian ℤ_[p] := infer_instance

@@ -520,6 +520,13 @@ instance : field (center K) :=
   ..(center K).nontrivial,
   ..center.comm_ring }
 
+@[simp]
+lemma center.coe_inv (a : center K) : ((a⁻¹ : center K) : K) = (a : K)⁻¹ := rfl
+
+@[simp]
+lemma center.coe_div (a b : center K) : ((a / b : center K) : K) = (a : K) / (b : K) :=
+by rw [div_eq_mul_inv, coe_mul, div_eq_mul_inv, center.coe_inv]
+
 end division_ring
 
 /-! ## subring closure of a subset -/

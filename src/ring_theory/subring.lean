@@ -514,13 +514,7 @@ section division_ring
 variables {K : Type u} [division_ring K]
 
 instance : field (center K) :=
-{ inv := λ ⟨a, ha⟩, ⟨a⁻¹, λ r, begin
-    by_cases ha0 : a = 0,
-    { simp [ha0] },
-    calc r * a⁻¹ = a⁻¹ * r * a * a⁻¹ : by rw [mul_assoc _ r, ha r, ←mul_assoc, ha a⁻¹,
-                                              mul_inv_cancel ha0, one_mul]
-             ... = a⁻¹ * r : by rw [mul_assoc, mul_inv_cancel ha0, mul_one],
-  end⟩,
+{ inv := λ a, ⟨a⁻¹, set.inv_mem_center' a.prop⟩,
   mul_inv_cancel := λ ⟨a, ha⟩ h, subtype.ext $ mul_inv_cancel $ subtype.coe_injective.ne h,
   inv_zero := subtype.ext inv_zero,
   ..(center K).nontrivial,

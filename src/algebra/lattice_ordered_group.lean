@@ -156,8 +156,8 @@ Let `α` be a lattice ordered commutative group and let `a` be an element in `α
 `|a|`. Then,
 $$a ≤ |a|.$$
 -/
-@[to_additive additive_le_abs]
-lemma le_abs (a : α) : a ≤ |a| := le_sup_left
+@[to_additive le_abs]
+lemma le_mabs (a : α) : a ≤ |a| := le_sup_left
 
 /--
 Let `α` be a lattice ordered commutative group and let `a` be an element in `α` with absolute value
@@ -171,29 +171,29 @@ lemma inv_le_abs (a : α) : a⁻¹ ≤ |a| := le_sup_right
 Let `α` be a lattice ordered commutative group and let `a` be an element in `α` with positive
  component `a⁺`. Then `a⁺` is positive.
 -/
-@[to_additive additive_pos_pos]
-lemma pos_pos (a : α) : 1 ≤ a⁺ := le_sup_right
+@[to_additive pos_pos]
+lemma m_pos_pos (a : α) : 1 ≤ a⁺ := le_sup_right
 
 /--
 Let `α` be a lattice ordered commutative group and let `a` be an element in `α` withnegative
 component `a⁻`. Then `a⁻` is positive.
 -/
-@[to_additive additive_neg_pos]
-lemma neg_pos (a : α) : 1 ≤ a⁻ := le_sup_right
+@[to_additive neg_pos]
+lemma m_neg_pos (a : α) : 1 ≤ a⁻ := le_sup_right
 
 /--
 Let `α` be a lattice ordered commutative group and let `a` be an element in `α` with positive
 component `a⁺`. Then `a⁺` dominates `a`.
 -/
-@[to_additive additive_le_pos]
-lemma le_pos (a : α) : a ≤ a⁺ := le_sup_left
+@[to_additive le_pos]
+lemma m_le_pos (a : α) : a ≤ a⁺ := le_sup_left
 
 /--
 Let `α` be a lattice ordered commutative group and let `a` be an element in `α` with negative
 component `a⁻`. Then `a⁻` dominates `-a`.
 -/
-@[to_additive additive_le_neg]
-lemma le_neg (a : α) : a⁻¹ ≤ a⁻ := le_sup_left
+@[to_additive le_neg]
+lemma m_le_neg (a : α) : a⁻¹ ≤ a⁻ := le_sup_left
 
 -- Bourbaki A.VI.12
 /--
@@ -304,19 +304,19 @@ Let `α` be a lattice ordered commutative group and let `a` and `b` be elements 
 components `a⁺` and `b⁺` and negative components `a⁻` and `b⁻` respectively. Then `b` dominates `a`
 if and only if `b⁺` dominates `a⁺` and `a⁻` dominates `b⁻`.
 -/
-@[to_additive additive_le_iff_pos_le_neg_ge]
-lemma le_iff_pos_le_neg_ge [covariant_class α α (*) (≤)] (a b : α) : a ≤ b ↔ a⁺ ≤ b⁺ ∧ b⁻ ≤ a⁻ :=
+@[to_additive le_iff_pos_le_neg_ge]
+lemma m_le_iff_pos_le_neg_ge [covariant_class α α (*) (≤)] (a b : α) : a ≤ b ↔ a⁺ ≤ b⁺ ∧ b⁻ ≤ a⁻ :=
 begin
   split,
   { intro h,
     split,
     { apply sup_le
-      (le_trans h (lattice_ordered_comm_group.le_pos b))
-      (lattice_ordered_comm_group.pos_pos b), },
+      (le_trans h (lattice_ordered_comm_group.m_le_pos b))
+      (lattice_ordered_comm_group.m_pos_pos b), },
     { rw ← inv_le_inv_iff at h,
       apply sup_le
-      (le_trans h (lattice_ordered_comm_group.le_neg a))
-      (lattice_ordered_comm_group.neg_pos a), }
+      (le_trans h (lattice_ordered_comm_group.m_le_neg a))
+      (lattice_ordered_comm_group.m_neg_pos a), }
   },
   { intro h,
     rw [← pos_div_neg' a, ← pos_div_neg' b ],
@@ -339,12 +339,12 @@ begin
     split,
     { nth_rewrite 0 ← mul_one a,
       apply mul_le_mul'
-        (lattice_ordered_comm_group.le_pos a)
-        (lattice_ordered_comm_group.neg_pos a) },
+        (lattice_ordered_comm_group.m_le_pos a)
+        (lattice_ordered_comm_group.m_neg_pos a) },
     { nth_rewrite 0 ← one_mul (a⁻¹),
       apply mul_le_mul'
-        (lattice_ordered_comm_group.pos_pos a)
-        (lattice_ordered_comm_group.le_neg a) } },
+        (lattice_ordered_comm_group.m_pos_pos a)
+        (lattice_ordered_comm_group.m_le_neg a) } },
   { have mod_eq_pos: |a|⁺ = |a|,
     { nth_rewrite 1 ← pos_div_neg' (|a|),
       rw div_eq_mul_inv,
@@ -355,20 +355,20 @@ begin
         apply le_inf,
         { rw pos_eq_neg_inv,
           apply and.right
-            (iff.elim_left (le_iff_pos_le_neg_ge _ _)
+            (iff.elim_left (m_le_iff_pos_le_neg_ge _ _)
             (lattice_ordered_comm_group.inv_le_abs a)), },
         { apply and.right
-            (iff.elim_left (le_iff_pos_le_neg_ge _ _)
-            (lattice_ordered_comm_group.le_abs a)), } },
-      { apply lattice_ordered_comm_group.neg_pos, } },
+            (iff.elim_left (m_le_iff_pos_le_neg_ge _ _)
+            (lattice_ordered_comm_group.le_mabs a)), } },
+      { apply lattice_ordered_comm_group.m_neg_pos, } },
     rw [← inf_mul_sup, pos_inf_neg_eq_one, one_mul, ← mod_eq_pos ],
     apply sup_le,
     apply and.left
-      (iff.elim_left (le_iff_pos_le_neg_ge _ _)
-      (lattice_ordered_comm_group.le_abs a)),
+      (iff.elim_left (m_le_iff_pos_le_neg_ge _ _)
+      (lattice_ordered_comm_group.le_mabs a)),
     rw neg_eq_pos_inv,
     apply and.left
-      (iff.elim_left (le_iff_pos_le_neg_ge _ _)
+      (iff.elim_left (m_le_iff_pos_le_neg_ge _ _)
       (lattice_ordered_comm_group.inv_le_abs a)), }
 end
 
@@ -495,13 +495,13 @@ end
 Let `α` be a lattice ordered commutative group and let `a` be an element in `α`. Then the absolute
 value `|a|` of `a` is positive.
 -/
-@[to_additive additive_abs_pos]
-lemma abs_pos [covariant_class α α (*) (≤)] (a : α) : 1 ≤ |a| :=
+@[to_additive abs_pos]
+lemma mabs_pos [covariant_class α α (*) (≤)] (a : α) : 1 ≤ |a| :=
 begin
   rw pos_mul_neg,
   apply one_le_mul
-    (lattice_ordered_comm_group.pos_pos a)
-    (lattice_ordered_comm_group.neg_pos a),
+    (lattice_ordered_comm_group.m_pos_pos a)
+    (lattice_ordered_comm_group.m_neg_pos a),
 end
 
 /--
@@ -512,7 +512,7 @@ idempotent.
 lemma mabs_idempotent [covariant_class α α (*) (≤)] (a : α) : |a| = | |a| | :=
 begin
   rw mabs_pos_eq (|a|),
-  apply lattice_ordered_comm_group.abs_pos,
+  apply lattice_ordered_comm_group.mabs_pos,
 end
 
 -- Commutative case, Zaanen, 3rd lecture
@@ -523,18 +523,18 @@ Let `α` be a lattice ordered commutative group and let `a`, `b` and `c` be elem
 `a ⊔ c - (b ⊔ c)`, `a ⊓ c - b ⊓ c` and`a - b` respectively. Then `|a - b|` dominates
 `|a ⊔ c - (b ⊔ c)|` and `|a ⊓ c - b ⊓ c|`.
 -/
-@[to_additive additive_Birkhoff_inequalities]
-theorem Birkhoff_inequalities [covariant_class α α (*) (≤)] (a b c : α) :
+@[to_additive Birkhoff_inequalities]
+theorem m_Birkhoff_inequalities [covariant_class α α (*) (≤)] (a b c : α) :
 |(a ⊔ c) / (b ⊔ c)| ⊔ |(a ⊓ c) / (b ⊓ c)| ≤ |a / b| :=
 begin
   rw sup_le_iff,
   split,
   { apply le_of_mul_le_of_one_le_left,
     rw abs_div_sup_mul_abs_div_inf,
-    apply lattice_ordered_comm_group.abs_pos, },
+    apply lattice_ordered_comm_group.mabs_pos, },
   { apply le_of_mul_le_of_one_le_right,
     rw abs_div_sup_mul_abs_div_inf,
-    apply lattice_ordered_comm_group.abs_pos, }
+    apply lattice_ordered_comm_group.mabs_pos, }
 end
 
 -- Banasiak Proposition 2.12, Zaanen 2nd lecture
@@ -542,13 +542,13 @@ end
 Let `α` be a lattice ordered commutative group. Then the absolute value satisfies the triangle
 inequality.
 -/
-@[to_additive additive_abs_triangle]
-lemma abs_triangle [covariant_class α α (*) (≤)] (a b : α) : |a * b| ≤ |a| * |b| :=
+@[to_additive abs_triangle]
+lemma mabs_triangle [covariant_class α α (*) (≤)] (a b : α) : |a * b| ≤ |a| * |b| :=
 begin
   apply sup_le,
   { apply mul_le_mul'
-    (lattice_ordered_comm_group.le_abs a)
-    (lattice_ordered_comm_group.le_abs b), },
+    (lattice_ordered_comm_group.le_mabs a)
+    (lattice_ordered_comm_group.le_mabs b), },
   { rw mul_inv,
     apply mul_le_mul',
     apply lattice_ordered_comm_group.inv_le_abs,

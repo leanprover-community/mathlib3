@@ -86,22 +86,11 @@ def finite_measure (α : Type*) [measurable_space α] : Type* :=
 
 namespace finite_measure
 
-instance has_zero : has_zero (finite_measure α) :=
-{ zero := ⟨0, measure_theory.is_finite_measure_zero⟩ }
-
-instance : inhabited (finite_measure α) := ⟨0⟩
-
 /-- A finite measure can be interpreted as a measure. -/
 instance : has_coe (finite_measure α) (measure_theory.measure α) := coe_subtype
 
 instance is_finite_measure (μ : finite_measure α) :
   is_finite_measure (μ : measure α) := μ.prop
-
-instance : has_add (finite_measure α) :=
-{ add := (λ μ ν, ⟨μ + ν, measure_theory.is_finite_measure_add⟩) }
-
-instance : has_scalar ℝ≥0 (finite_measure α) :=
-{ smul := (λ (c : ℝ≥0) μ, ⟨c • μ, measure_theory.is_finite_measure_smul_nnreal⟩), }
 
 instance : has_coe_to_fun (finite_measure α) :=
 ⟨λ _, set α → ℝ≥0, λ μ s, (μ s).to_nnreal⟩
@@ -118,12 +107,28 @@ end
 
 lemma to_measure_eq_val (ν : finite_measure α) : (ν : measure α) = ν.val := rfl
 
-lemma coe_injective :
-  function.injective (coe : finite_measure α → measure α) :=
+lemma coe_injective : function.injective (coe : finite_measure α → measure α) :=
 subtype.coe_injective
 
-@[simp]
-lemma coe_zero : (coe : finite_measure α → measure α) 0 = 0 := rfl
+/-- The (total) mass of a finite measure `μ` is `μ univ`, i.e., the cast to `nnreal` of
+`(μ : measure α) univ`. -/
+def mass (μ : finite_measure α) : ℝ≥0 := μ univ
+
+@[simp] lemma mass_ennreal {μ : finite_measure α} :
+  (μ.mass : ℝ≥0∞) = (μ : measure α) univ := to_fun_coe_eq_to_measure μ set.univ
+
+instance has_zero : has_zero (finite_measure α) :=
+{ zero := ⟨0, measure_theory.is_finite_measure_zero⟩ }
+
+instance : inhabited (finite_measure α) := ⟨0⟩
+
+instance : has_add (finite_measure α) :=
+{ add := (λ μ ν, ⟨μ + ν, measure_theory.is_finite_measure_add⟩) }
+
+instance : has_scalar ℝ≥0 (finite_measure α) :=
+{ smul := (λ (c : ℝ≥0) μ, ⟨c • μ, measure_theory.is_finite_measure_smul_nnreal⟩), }
+
+@[simp] lemma coe_zero : (coe : finite_measure α → measure α) 0 = 0 := rfl
 
 @[simp] lemma coe_add (μ ν : finite_measure α) : ↑(μ + ν) = (↑μ + ↑ν : measure α) := rfl
 
@@ -140,13 +145,6 @@ by { funext, simp [← ennreal.coe_eq_coe], }
 @[simp] lemma coe_fn_smul (c : ℝ≥0) (μ : finite_measure α) :
   (⇑(c • μ) : set α → ℝ≥0) = c • (⇑μ : set α → ℝ≥0) :=
 by { funext, simp [← ennreal.coe_eq_coe], refl, }
-
-/-- The (total) mass of a finite measure `μ` is `μ univ`, i.e., the cast to `nnreal` of
-`(μ : measure α) univ`. -/
-def mass (μ : finite_measure α) : ℝ≥0 := μ univ
-
-@[simp] lemma mass_ennreal {μ : finite_measure α} :
-  (μ.mass : ℝ≥0∞) = (μ : measure α) univ := to_fun_coe_eq_to_measure μ set.univ
 
 instance : add_comm_monoid (finite_measure α) :=
 (finite_measure.coe_injective).add_comm_monoid
@@ -188,19 +186,16 @@ lemma to_fun_eq_to_measure_to_nnreal (ν : probability_measure α) :
 lemma coe_injective : function.injective (coe : probability_measure α → measure α) :=
 subtype.coe_injective
 
-@[simp]
-lemma to_fun_univ (ν : probability_measure α) : ν univ = 1 :=
+@[simp] lemma to_fun_univ (ν : probability_measure α) : ν univ = 1 :=
 congr_arg ennreal.to_nnreal ν.prop.measure_univ
 
 /-- A probability measure can be interpreted as a finite measure. -/
 def to_finite_measure (μ : probability_measure α) : (finite_measure α) := ⟨μ, infer_instance⟩
 
-@[simp]
-lemma to_finite_measure_coe_eq_coe (ν : probability_measure α) :
+@[simp] lemma to_finite_measure_coe_eq_coe (ν : probability_measure α) :
   (ν.to_finite_measure : measure α) = (ν : measure α) := rfl
 
-@[simp]
-lemma to_finite_measure_to_fun_eq_to_fun (ν : probability_measure α) :
+@[simp] lemma to_finite_measure_to_fun_eq_to_fun (ν : probability_measure α) :
   (ν.to_finite_measure : set α → ℝ≥0) = (ν : set α → ℝ≥0) := rfl
 
 @[simp] lemma to_fun_coe_eq_to_measure (ν : probability_measure α) (s : set α) :
@@ -210,8 +205,7 @@ begin
   apply finite_measure.to_fun_coe_eq_to_measure,
 end
 
-@[simp]
-lemma to_finite_measure_mass (μ : probability_measure α) :
+@[simp] lemma to_finite_measure_mass (μ : probability_measure α) :
   μ.to_finite_measure.mass = 1 :=
 μ.to_fun_univ
 

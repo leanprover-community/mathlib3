@@ -139,10 +139,10 @@ def Preorder_to_Cat : Preorder.{u} ⥤ Cat :=
   map_id' := λ X, begin apply category_theory.functor.ext, tidy end,
   map_comp' := λ X Y Z f g, begin apply category_theory.functor.ext, tidy end }
 
-instance : faithful Preorder_to_Cat :=
+instance : faithful Preorder_to_Cat.{u} :=
 { map_injective' := λ X Y f g h, begin ext x, exact functor.congr_obj h x end }
 
-instance : full Preorder_to_Cat :=
+instance : full Preorder_to_Cat.{u} :=
 { preimage := λ X Y f, ⟨f.obj, f.monotone⟩,
   witness' := λ X Y f, begin apply category_theory.functor.ext, tidy end }
 

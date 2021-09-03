@@ -174,23 +174,6 @@ begin
   rwa [h.1, h.2],
 end
 
-lemma congr_hyp_of_le_measure (T : set α → (F' →L[ℝ] F)) {C : ℝ}
-  (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real) {f g : α →ₛ F'} (hfg : f =ᵐ[μ] g)
-  {x y : F'} (hxy : x ≠ y) :
-  T ((f ⁻¹' {x}) ∩ (g ⁻¹' {y})) = 0 :=
-begin
-  have : μ ((pair f g) ⁻¹' {(x, y)}) = 0,
-  { refine measure_mono_null (λ a' ha', _) hfg,
-    simp only [set.mem_preimage, mem_singleton_iff, pair_apply, prod.mk.inj_iff] at ha',
-    show f a' ≠ g a',
-    rwa [ha'.1, ha'.2], },
-  rw ← norm_eq_zero,
-  refine le_antisymm ((hT_norm _).trans (le_of_eq _)) (norm_nonneg _),
-  rw pair_preimage_singleton at this,
-  rw this,
-  simp,
-end
-
 lemma set_to_simple_func_add (T : set α → (E →L[ℝ] F))
   (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
     → T (s ∪ t) = T s + T t)
@@ -472,5 +455,38 @@ def set_to_L1_clm (T : set α → (E' →L[ℝ] F'))
 end set_to_L1
 
 end L1
+
+section function
+
+variables [normed_field 𝕜] [measurable_space 𝕜] [opens_measurable_space 𝕜]
+  {E' F' : Type*} [measurable_space E'] [normed_group E'] [normed_space ℝ E'] [normed_space 𝕜 E']
+  [second_countable_topology E'] [borel_space E']
+  [normed_group F'] [normed_space ℝ F'] [normed_space 𝕜 F'] [complete_space F']
+  {m : measurable_space α} {μ : measure α}
+
+def set_to_fun (T : set α → (E' →L[ℝ] F'))
+  (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
+    → T (s ∪ t) = T s + T t)
+  {C : ℝ} (hC : 0 ≤ C) (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real) (f : α → E') :
+  F' :=
+if hf : integrable f μ then L1.set_to_L1_clm T h_add hC hT_norm (hf.to_L1 f) else 0
+
+lemma set_to_fun_eq (T : set α → (E' →L[ℝ] F'))
+  (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
+    → T (s ∪ t) = T s + T t)
+  {C : ℝ} (hC : 0 ≤ C) (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real) {f : α → E'}
+  (hf : integrable f μ) :
+  set_to_fun T h_add hC hT_norm f = L1.set_to_L1_clm T h_add hC hT_norm (hf.to_L1 f) :=
+dif_pos hf
+
+lemma set_to_fun_undef (T : set α → (E' →L[ℝ] F'))
+  (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
+    → T (s ∪ t) = T s + T t)
+  {C : ℝ} (hC : 0 ≤ C) (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real) {f : α → E'}
+  (hf : ¬ integrable f μ) :
+  set_to_fun T h_add hC hT_norm f = 0 :=
+dif_neg hf
+
+end function
 
 end measure_theory

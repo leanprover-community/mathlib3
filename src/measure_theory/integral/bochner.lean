@@ -150,15 +150,11 @@ variables [normed_group F] [normed_space ℝ F] {m : measurable_space α} {μ : 
 /-- Given a set `s`, return the continuous linear map `λ x, (μ s).to_real • x`. The extension of
 that set function through `set_to_L1` gives the Bochner integral of L1 functions. -/
 def weighted_smul {m : measurable_space α} (μ : measure α) (s : set α) : F →L[ℝ] F :=
-{ to_fun := λ x, (μ s).to_real • x, map_add' := by simp, map_smul' := λ c x, by rw smul_comm, }
-
-@[simp] lemma weighted_smul_zero {m : measurable_space α} (μ : measure α) (s : set α) :
-  weighted_smul μ s (0 : F) = 0 :=
-by simp [weighted_smul]
+continuous_linear_map.lsmul ℝ ℝ (μ s).to_real
 
 lemma weighted_smul_apply {m : measurable_space α} (μ : measure α) (s : set α) (x : F) :
   weighted_smul μ s x = (μ s).to_real • x :=
-rfl
+sorry
 
 @[simp] lemma weighted_smul_empty {m : measurable_space α} (μ : measure α) :
   weighted_smul μ ∅ = (0 : F →L[ℝ] F) :=
@@ -199,7 +195,7 @@ section pos_part
 variables [linear_order E] [has_zero E] [measurable_space α]
 
 /-- Positive part of a simple function. -/
-def pos_part (f : α →ₛ E) : α →ₛ E := f.map (λb, max b 0)
+def pos_part (f : α →ₛ E) : α →ₛ E := f.map (λ b, max b 0)
 
 /-- Negative part of a simple function. -/
 def neg_part [has_neg E] (f : α →ₛ E) : α →ₛ E := pos_part (-f)
@@ -244,10 +240,10 @@ def integral {m : measurable_space α} (μ : measure α) (f : α →ₛ F) : F :
 
 lemma integral_eq_set_to_simple_func {m : measurable_space α} (μ : measure α) (f : α →ₛ F) :
   f.integral μ = f.set_to_simple_func (weighted_smul μ) :=
-by simp [integral, set_to_simple_func, weighted_smul]
+by simp [integral, set_to_simple_func, weighted_smul_apply]
 
 lemma integral_eq_sum_filter {m : measurable_space α} (f : α →ₛ F) (μ : measure α) :
-  f.integral μ = ∑ x in f.range.filter (λ x, x ≠ 0),  (μ (f ⁻¹' {x})).to_real • x :=
+  f.integral μ = ∑ x in f.range.filter (λ x, x ≠ 0), (μ (f ⁻¹' {x})).to_real • x :=
 eq.symm $ sum_filter_of_ne $ λ x _, mt $ λ h0, h0.symm ▸ smul_zero _
 
 /-- The Bochner integral is equal to a sum over any set that includes `f.range` (except `0`). -/
@@ -328,14 +324,9 @@ lemma norm_set_to_simple_func_le_integral_norm (T : set α → (E →L[ℝ] F)) 
   (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real) {f : α →ₛ E} (hf : integrable f μ) :
   ∥f.set_to_simple_func T∥ ≤ C * (f.map norm).integral μ :=
 calc ∥f.set_to_simple_func T∥
-    ≤ ∑ x in f.range, ∥T (f ⁻¹' {x})∥ * ∥x∥ : norm_set_to_simple_func_le_sum_op_norm T f
-... ≤ ∑ x in f.range, C * ennreal.to_real (μ (f ⁻¹' {x})) • ∥x∥ :
-  begin
-    refine finset.sum_le_sum (λb hb, _),
-    rw [smul_eq_mul, ← mul_assoc],
-    exact mul_le_mul (hT_norm _) le_rfl (norm_nonneg _) (mul_nonneg hC ennreal.to_real_nonneg),
-  end
-... = C * (f.map norm).integral μ : by rw [map_integral f norm hf norm_zero, finset.mul_sum]
+    ≤ C * ∑ x in f.range, ennreal.to_real (μ (f ⁻¹' {x})) * ∥x∥ :
+  norm_set_to_simple_func_le_sum_mul_norm T C hC hT_norm hf
+... = C * (f.map norm).integral μ : by { rw map_integral f norm hf norm_zero, simp_rw smul_eq_mul, }
 
 lemma norm_integral_le_integral_norm (f : α →ₛ E) (hf : integrable f μ) :
   ∥f.integral μ∥ ≤ (f.map norm).integral μ :=
@@ -375,10 +366,8 @@ namespace simple_func
 
 lemma norm_eq_integral (f : α →₁ₛ[μ] E) : ∥f∥ = ((to_simple_func f).map norm).integral μ :=
 begin
-  rw [norm_to_simple_func, simple_func.integral_eq_lintegral],
-  { simp only [simple_func.map_apply, of_real_norm_eq_coe_nnnorm, snorm_one_eq_lintegral_nnnorm] },
-  { exact (simple_func.integrable f).norm },
-  { exact eventually_of_forall (λ x, norm_nonneg _) }
+  rw [norm_eq_sum_mul f, (to_simple_func f).map_integral norm (simple_func.integrable f) norm_zero],
+  simp_rw smul_eq_mul,
 end
 
 section pos_part
@@ -424,8 +413,7 @@ lemma integral_eq_lintegral {f : α →₁ₛ[μ] ℝ} (h_pos : 0 ≤ᵐ[μ] (to
   integral f = ennreal.to_real (∫⁻ a, ennreal.of_real ((to_simple_func f) a) ∂μ) :=
 by rw [integral, simple_func.integral_eq_lintegral (simple_func.integrable f) h_pos]
 
-lemma integral_eq_set_to_L1s (f : α →₁ₛ[μ] E) :
-  integral f = set_to_L1s (weighted_smul μ) f :=
+lemma integral_eq_set_to_L1s (f : α →₁ₛ[μ] E) : integral f = set_to_L1s (weighted_smul μ) f :=
 by rw [integral_eq_integral, set_to_L1s_eq_set_to_simple_func,
   simple_func.integral_eq_set_to_simple_func]
 

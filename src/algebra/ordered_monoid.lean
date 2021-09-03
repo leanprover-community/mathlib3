@@ -398,19 +398,17 @@ instance [add_comm_monoid α] : add_comm_monoid (with_top α) :=
 
 section sub_neg
 
-@[priority 100]  -- see Note [lower instance priority]
 instance [has_neg α] : has_neg (with_top α) :=
 ⟨option.map (λ (a : α), -a)⟩
 
 @[simp] lemma neg_top [has_neg α] : - (⊤ : with_top α) = ⊤ := rfl
 lemma neg_coe [has_neg α] (x : α) : (-x : with_top α) = ((-x : α) : with_top α) := rfl
+lemma coe_neg [has_neg α] (x : α) : ((-x : α) : with_top α) = -x := rfl
 @[simp] lemma neg_eq_top [has_neg α] (x : with_top α) : - x = ⊤ ↔ x = ⊤ :=
 by { induction x using with_top.rec_top_coe; simp [neg_coe] }
 
 /-- A `with_top α` can have a subtraction if `[has_sub α]`. However, this might
-not be the subtraction that is preferred, for example `ennreal.has_sub`.
-Because of this, the subtraction and related instances have lower priority. -/
-@[priority 100]  -- see Note [lower instance priority]
+not be the subtraction that is preferred, for example `ennreal.has_sub`. -/
 instance [has_sub α] : has_sub (with_top α) :=
 ⟨λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a - b))⟩
 
@@ -426,7 +424,6 @@ begin
   simp [←with_top.coe_sub]
 end
 
-@[priority 100]  -- see Note [lower instance priority]
 instance [sub_neg_monoid α] : sub_neg_monoid (with_top α) :=
 { sub_eq_add_neg := λ a b, begin
     induction a using with_top.rec_top_coe,

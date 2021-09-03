@@ -492,7 +492,7 @@ do t ← target >>= instantiate_mvars,
     - right: `x < w` and `y ≤ z`
 - `mono using [rule1,rule2]` calls `simp [rule1,rule2]` before applying mono.
 - The general syntax is
-  `mono '*'? ('with' hyp | 'with' [hyp1,hyp2])? ('using' [hyp1,hyp2])? mono_cfg?
+  `mono '*'? ('with' hyp | 'with' [hyp1,hyp2])? ('using' [hyp1,hyp2])? mono_cfg?`
 
 To use it, first import `tactic.monotonicity`.
 

@@ -10,7 +10,7 @@ import algebra.module.prod
 import algebra.ordered_field
 
 /-!
-# Ordered modules
+# Ordered scalar product
 
 In this file we define
 
@@ -22,7 +22,7 @@ In this file we define
 ## Implementation notes
 
 * We choose to define `ordered_smul` as a `Prop`-valued mixin, so that it can be
-  used for both modules and algebras
+  used for actions, modules, and algebras
   (the axioms for an "ordered algebra" are exactly that the algebra is ordered as a module).
 * To get ordered modules and ordered vector spaces, it suffices to replace the
   `order_add_comm_monoid` and the `ordered_semiring` as desired.
@@ -33,13 +33,13 @@ In this file we define
 
 ## Tags
 
-ordered module, ordered module, ordered vector space
+ordered module, ordered scalar, ordered smul, ordered action, ordered vector space
 -/
 
 
 /--
-An ordered module is an ordered additive commutative monoid
-with a partial order in which the scalar multiplication is compatible with the order.
+The ordered scalar product property is when an ordered additive commutative monoid
+with a partial order has a scalar multiplication which is compatible with the order.
 -/
 @[protect_proj]
 class ordered_smul (R M : Type*)

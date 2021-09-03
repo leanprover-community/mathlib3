@@ -32,6 +32,8 @@ Notation used here:
 
 * `instance : complete_lattice (subring R)` : the complete lattice structure on the subrings.
 
+* `subring.center` : the center of a ring `R`.
+
 * `subring.closure` : subring closure of a set, i.e., the smallest subring that includes the set.
 
 * `subring.gi` : `closure : set M → subring M` and coercion `coe : subring M → set M`
@@ -353,6 +355,9 @@ def map {R : Type u} {S : Type v} [ring R] [ring S]
   y ∈ s.map f ↔ ∃ x ∈ s, f x = y :=
 set.mem_image_iff_bex
 
+@[simp] lemma map_id : s.map (ring_hom.id R) = s :=
+set_like.coe_injective $ set.image_id _
+
 lemma map_map (g : S →+* T) (f : R →+* S) : (s.map f).map g = s.map (g.comp f) :=
 set_like.coe_injective $ set.image_image _ _ _
 
@@ -475,6 +480,35 @@ instance : complete_lattice (subring R) :=
 
 lemma eq_top_iff' (A : subring R) : A = ⊤ ↔ ∀ x : R, x ∈ A :=
 eq_top_iff.trans ⟨λ h m, h $ mem_top m, λ h m _, h m⟩
+
+section
+
+variables (R)
+
+/-- The center of a semiring `R` is the set of elements that commute with everything in `R` -/
+def center : subring R :=
+{ carrier := set.center R,
+  neg_mem' := λ a, set.neg_mem_center,
+  .. subsemiring.center R }
+
+lemma coe_center : ↑(center R) = set.center R := rfl
+
+@[simp] lemma center_to_subsemiring : (center R).to_subsemiring = subsemiring.center R := rfl
+
+variables {R}
+
+lemma mem_center_iff {z : R} : z ∈ center R ↔ ∀ g, g * z = z * g :=
+iff.rfl
+
+@[simp] lemma center_eq_top (R) [comm_ring R] : center R = ⊤ :=
+set_like.coe_injective (set.center_eq_univ R)
+
+/-- The center is commutative. -/
+instance : comm_ring (center R) :=
+{ ..subsemiring.center.comm_semiring,
+  ..(center R).to_ring}
+
+end
 
 /-! # subring closure of a subset -/
 

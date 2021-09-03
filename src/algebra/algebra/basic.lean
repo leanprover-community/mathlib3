@@ -1085,6 +1085,39 @@ end division_ring
 
 end alg_equiv
 
+namespace mul_semiring_action
+
+variables {M G : Type*} (R A : Type*) [comm_semiring R] [semiring A] [algebra R A]
+
+section
+variables [monoid M] [mul_semiring_action M A] [smul_comm_class M R A]
+
+/-- Each element of the monoid defines a algebra homomorphism.
+
+This is a stronger version of `mul_semiring_action.to_ring_hom` and
+`distrib_mul_action.to_linear_map`. -/
+@[simps]
+def to_alg_hom (m : M) : A →ₐ[R] A :=
+alg_hom.mk' (mul_semiring_action.to_ring_hom _ _ m) (smul_comm _)
+
+end
+
+section
+variables [group G] [mul_semiring_action G A] [smul_comm_class G R A]
+
+/-- Each element of the group defines a algebra equivalence.
+
+This is a stronger version of `mul_semiring_action.to_ring_equiv` and
+`distrib_mul_action.to_linear_equiv`. -/
+@[simps]
+def to_alg_equiv (g : G) : A ≃ₐ[R] A :=
+{ .. mul_semiring_action.to_ring_equiv _ _ g,
+  .. mul_semiring_action.to_alg_hom R A g }
+
+end
+
+end mul_semiring_action
+
 section nat
 
 variables {R : Type*} [semiring R]
@@ -1143,6 +1176,23 @@ lemma algebra_rat_subsingleton {α} [semiring α] :
 ⟨λ x y, algebra.algebra_ext x y $ ring_hom.congr_fun $ subsingleton.elim _ _⟩
 
 end rat
+
+namespace char_zero
+
+variables {R : Type*} (S : Type*) [comm_semiring R] [semiring S] [algebra R S]
+
+lemma of_algebra [char_zero S] : char_zero R :=
+⟨begin
+  suffices : function.injective (algebra_map R S ∘ coe),
+  { exact this.of_comp },
+  convert char_zero.cast_injective,
+  ext n,
+  rw [function.comp_app, ← (algebra_map ℕ _).eq_nat_cast, ← ring_hom.comp_apply,
+      ring_hom.eq_nat_cast],
+  all_goals { apply_instance }
+end⟩
+
+end char_zero
 
 namespace algebra
 open module

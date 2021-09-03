@@ -1047,6 +1047,14 @@ is equivalent to the product. -/
 def sigma_equiv_prod_of_equiv {α β} {β₁ : α → Sort*} (F : Π a, β₁ a ≃ β) : sigma β₁ ≃ α × β :=
 (sigma_congr_right F).trans (sigma_equiv_prod α β)
 
+/-- Dependent product of types is associative up to an equivalence. -/
+def sigma_assoc {α : Type*} {β : α → Type*} (γ : Π (a : α), β a → Type*) :
+  (Σ (ab : Σ (a : α), β a), γ ab.1 ab.2) ≃ Σ (a : α), (Σ (b : β a), γ a b) :=
+{ to_fun := λ x, ⟨x.1.1, ⟨x.1.2, x.2⟩⟩,
+  inv_fun := λ x, ⟨⟨x.1, x.2.1⟩, x.2.2⟩,
+  left_inv := λ ⟨⟨a, b⟩, c⟩, rfl,
+  right_inv := λ ⟨a, ⟨b, c⟩⟩, rfl }
+
 end
 
 section prod_congr

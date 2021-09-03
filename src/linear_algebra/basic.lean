@@ -766,6 +766,12 @@ image_subset _
 have ∃ (x : M), x ∈ p := ⟨0, p.zero_mem⟩,
 ext $ by simp [this, eq_comm]
 
+lemma map_add_le (f g : M →ₗ[R] M₂) : map (f + g) p ≤ map f p + map g p :=
+begin
+  rintros x ⟨m, hm, rfl⟩,
+  exact add_mem_sup (mem_map_of_mem hm) (mem_map_of_mem hm),
+end
+
 lemma range_map_nonempty (N : submodule R M) :
   (set.range (λ ϕ, submodule.map ϕ N : (M →ₗ[R] M₂) → submodule R M₂)).nonempty :=
 ⟨_, set.mem_range.mpr ⟨0, rfl⟩⟩
@@ -1011,16 +1017,6 @@ begin
     exact ⟨k, add_mem _ (ik hi) (jk hj)⟩ },
   { exact λ a x i hi, ⟨i, smul_mem _ a hi⟩ },
 end
-
-lemma sum_mem_bsupr {ι : Type*} {s : finset ι} {f : ι → M} {p : ι → submodule R M}
-  (h : ∀ i ∈ s, f i ∈ p i) :
-  ∑ i in s, f i ∈ ⨆ i ∈ s, p i :=
-sum_mem _ $ λ i hi, mem_supr_of_mem i $ mem_supr_of_mem hi (h i hi)
-
-lemma sum_mem_supr {ι : Type*} [fintype ι] {f : ι → M} {p : ι → submodule R M}
-  (h : ∀ i, f i ∈ p i) :
-  ∑ i, f i ∈ ⨆ i, p i :=
-sum_mem _ $ λ i hi, mem_supr_of_mem i (h i)
 
 @[simp] theorem mem_supr_of_directed {ι} [nonempty ι]
   (S : ι → submodule R M) (H : directed (≤) S) {x} :

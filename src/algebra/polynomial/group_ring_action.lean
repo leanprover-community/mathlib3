@@ -27,7 +27,7 @@ lemma smul_eq_map [mul_semiring_action M R] (m : M) :
   ((•) m) = map (mul_semiring_action.to_ring_hom M R m) :=
 begin
   suffices :
-    distrib_mul_action.to_add_monoid_hom M (polynomial R) m =
+    distrib_mul_action.to_add_monoid_hom (polynomial R) m =
       (map_ring_hom (mul_semiring_action.to_ring_hom M R m)).to_add_monoid_hom,
   { ext1 r, exact add_monoid_hom.congr_fun this r, },
   ext n r : 2,

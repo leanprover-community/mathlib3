@@ -40,24 +40,6 @@ universes u
 open set finset
 open_locale big_operators
 
-lemma exists_nontrivial_relation_sum_zero_of_not_affine_ind
-  {R M : Type*} [ring R] [add_comm_group M] [module R M]
-  {t : finset M} (h : ¬ affine_independent R (coe : t → M)) :
-  ∃ f : M → R, ∑ e in t, f e • e = 0 ∧ ∑ e in t, f e = 0 ∧ ∃ x ∈ t, f x ≠ 0 :=
-begin
-  classical,
-  rw affine_independent_iff_of_fintype at h,
-  simp only [exists_prop, not_forall] at h,
-  obtain ⟨w, hw, hwt, i, hi⟩ := h,
-  simp only [weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ w (coe : t → M) hw 0,
-    vsub_eq_sub, weighted_vsub_of_point_apply, sub_zero] at hwt,
-  let f : Π (x : M), x ∈ t → R := λ x hx, w ⟨x, hx⟩,
-  refine ⟨λ x, if hx : x ∈ t then f x hx else (0 : R), _, _, by { use i, simp [hi, f], }⟩,
-  suffices : ∑ (e : M) in t, dite (e ∈ t) (λ hx, (f e hx) • e) (λ hx, 0) = 0,
-  { convert this, ext, by_cases hx : x ∈ t; simp [hx], },
-  all_goals { simp only [sum_dite_of_true (λ x hx, hx), subtype.val_eq_coe, f, mk_coe, hwt, hw], },
-end
-
 variables {E : Type u} [add_comm_group E] [module ℝ E]
 
 namespace caratheodory

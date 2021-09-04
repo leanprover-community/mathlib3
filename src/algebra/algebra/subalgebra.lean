@@ -648,6 +648,7 @@ instance : unique (subalgebra R R) :=
   end
   .. algebra.subalgebra.inhabited }
 
+/-- The map `S → T` when `S` is a subalgebra contained in the subalgebra `T`.  -/
 def inclusion {S T : subalgebra R A} (h : S ≤ T) : S →ₐ[R] T :=
 { to_fun := set.inclusion h,
   map_one' := rfl,

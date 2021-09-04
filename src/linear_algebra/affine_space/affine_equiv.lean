@@ -89,6 +89,8 @@ e.map_vadd' p v
 /-- Reinterpret an `affine_equiv` as an `affine_map`. -/
 def to_affine_map (e : P₁ ≃ᵃ[k] P₂) : P₁ →ᵃ[k] P₂ := { to_fun := e, .. e }
 
+instance : has_coe (P₁ ≃ᵃ[k] P₂) (P₁ →ᵃ[k] P₂) := ⟨to_affine_map⟩
+
 @[simp] lemma coe_to_affine_map (e : P₁ ≃ᵃ[k] P₂) :
   (e.to_affine_map : P₁ → P₂) = (e : P₁ → P₂) :=
 rfl
@@ -96,6 +98,8 @@ rfl
 @[simp] lemma to_affine_map_mk (f : P₁ ≃ P₂) (f' : V₁ ≃ₗ[k] V₂) (h) :
   to_affine_map (mk f f' h) = ⟨f, f', h⟩ :=
 rfl
+
+@[norm_cast, simp] lemma coe_coe (e : P₁ ≃ᵃ[k] P₂) : ((e : P₁ →ᵃ[k] P₂) : P₁ → P₂) = e := rfl
 
 @[simp] lemma linear_to_affine_map (e : P₁ ≃ᵃ[k] P₂) : e.to_affine_map.linear = e.linear := rfl
 
@@ -290,18 +294,18 @@ def homothety_units_mul_hom (p : P) : units R →* P ≃ᵃ[R] P :=
 { to_fun   := λ t,
   { to_fun    := affine_map.homothety p (t : R),
     inv_fun   := affine_map.homothety p (↑t⁻¹ : R),
-    left_inv  := λ p, by simp [← affine_map.comp_apply, ← affine_map.homothety_mul, units.inv_mul],
-    right_inv := λ p, by simp [← affine_map.comp_apply, ← affine_map.homothety_mul, units.mul_inv],
+    left_inv  := λ p, by simp [← affine_map.comp_apply, ← affine_map.homothety_mul],
+    right_inv := λ p, by simp [← affine_map.comp_apply, ← affine_map.homothety_mul],
     linear    :=
     { inv_fun   := linear_map.lsmul R V (↑t⁻¹ : R),
-      left_inv  := λ v, by simp [units.inv_mul, smul_smul],
-      right_inv := λ v, by simp [units.mul_inv, smul_smul],
+      left_inv  := λ v, by simp [smul_smul],
+      right_inv := λ v, by simp [smul_smul],
       .. linear_map.lsmul R V t, },
     map_vadd' := λ p v, by simp only [vadd_vsub_assoc, smul_add, add_vadd, affine_map.coe_line_map,
       affine_map.homothety_eq_line_map, equiv.coe_fn_mk, linear_equiv.coe_mk,
       linear_map.lsmul_apply, linear_map.to_fun_eq_coe], },
-  map_one' := by { ext p, simp, },
-  map_mul' := λ t₁ t₂, by { ext p, simp [← affine_map.comp_apply, ← affine_map.homothety_mul], }, }
+  map_one' := by { ext, simp, },
+  map_mul' := λ t₁ t₂, by { ext, simp [← affine_map.comp_apply, ← affine_map.homothety_mul], }, }
 
 @[simp] lemma coe_homothety_units_mul_hom_apply (p : P) (t : units R) :
   (homothety_units_mul_hom p t : P → P) = affine_map.homothety p (t : R) :=
@@ -310,6 +314,11 @@ rfl
 @[simp] lemma coe_homothety_units_mul_hom_apply_symm (p : P) (t : units R) :
   ((homothety_units_mul_hom p t).symm : P → P) = affine_map.homothety p (↑t⁻¹ : R) :=
 rfl
+
+@[simp] lemma coe_homothety_units_mul_hom_eq_homothety_hom_coe (p : P) :
+  (coe : (P ≃ᵃ[R] P) → P →ᵃ[R] P) ∘ homothety_units_mul_hom p =
+  (affine_map.homothety_hom p) ∘ (coe : units R → R) :=
+by { ext, simp, }
 
 end homothety
 

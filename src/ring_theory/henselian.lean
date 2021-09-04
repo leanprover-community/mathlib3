@@ -70,7 +70,7 @@ lemma local_ring.ker_eq_maximal_ideal {R K : Type*} [comm_ring R] [local_ring R]
   (φ : R →+* K) (hφ : surjective φ) : φ.ker = maximal_ideal R :=
 local_ring.eq_maximal_ideal $ φ.ker_is_maximal_of_surjective hφ
 
--- move this
+-- PR #8992
 section
 open polynomial finset.nat
 

@@ -1153,16 +1153,10 @@ using the sup norm -/
 instance {n m : Type*} [fintype n] [fintype m] : semi_normed_group (matrix n m α) :=
 pi.semi_normed_group
 
-lemma norm_matrix_le_iff {n m : Type*} [fintype n] [fintype m] {r : ℝ} (A : matrix n m α) :
-∥A∥ ≤ r ↔ ∀ i j, ∥A i j∥ ≤ r :=
-begin
-  -- Heather homework :)
-  change (A : n → m → α ),
-  dsimp only [norm],
-  simp only [pi_norm_le_iff],
-  dsimp [norm, pi_norm_le_iff],
-  sorry,
-end
+lemma semi_norm_matrix_le_iff {n m : Type*} [fintype n] [fintype m] {r : ℝ} (hr : 0 ≤ r)
+  {A : matrix n m α} :
+  ∥A∥ ≤ r ↔ ∀ i j, ∥A i j∥ ≤ r :=
+by simp [pi_semi_norm_le_iff hr]
 
 end semi_normed_ring
 

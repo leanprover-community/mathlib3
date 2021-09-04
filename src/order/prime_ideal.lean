@@ -163,14 +163,14 @@ end
 lemma is_prime.mem_compl_of_not_mem (hI : is_prime I) (hxnI : x ∉ I) : xᶜ ∈ I :=
 hI.mem_or_compl_mem.resolve_left hxnI
 
-lemma is_prime_of_mem_or_compl_mem [is_proper I] (h : ∀ (x : P), (x ∈ I) ∨ (xᶜ ∈ I)) : is_prime I :=
+lemma is_prime_of_mem_or_compl_mem [is_proper I] (h : ∀ {x : P}, (x ∈ I) ∨ (xᶜ ∈ I)) : is_prime I :=
 begin
   rw is_prime_iff_mem_or_mem,
   intros x y hxy,
   rw or_iff_not_imp_left,
   intro hxI,
   have hxcI : xᶜ ∈ I,
-  exact (h x).resolve_left hxI,
+  exact h.resolve_left hxI,
   suffices ass : (y ⊓ x) ⊔ (y ⊓ xᶜ) ∈ I,
   rwa sup_inf_inf_compl at ass,
   apply sup_mem,
@@ -178,7 +178,8 @@ begin
   exact mem_of_le I inf_le_right hxcI,
 end
 
->>>>>>> - Added is_prime_of_mem_or_compl_mem
+lemma is_prime_iff_mem_or_compl_mem [is_proper I] : is_prime I ↔ ∀ {x : P}, (x ∈ I) ∨ (xᶜ ∈ I) :=
+⟨λ h _, h.mem_or_compl_mem, is_prime_of_mem_or_compl_mem⟩
 end boolean_algebra
 
 end ideal

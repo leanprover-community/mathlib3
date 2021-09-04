@@ -339,6 +339,18 @@ theorem imp.swap : (a → b → c) ↔ (b → a → c) :=
 theorem imp_not_comm : (a → ¬b) ↔ (b → ¬a) :=
 imp.swap
 
+/-! ### Declarations about `xor` -/
+
+@[simp] theorem xor_true : xor true = not := funext $ λ a, by simp [xor]
+
+@[simp] theorem xor_false : xor false = id := funext $ λ a, by simp [xor]
+
+theorem xor_comm (a b) : xor a b = xor b a := by simp [xor, and_comm, or_comm]
+
+instance : is_commutative Prop xor := ⟨xor_comm⟩
+
+@[simp] theorem xor_self (a : Prop) : xor a a = false := by simp [xor]
+
 /-! ### Declarations about `and` -/
 
 theorem and_congr_left (h : c → (a ↔ b)) : a ∧ c ↔ b ∧ c :=
@@ -1132,6 +1144,14 @@ hpq _ $ some_spec _
 noncomputable def subtype_of_exists {α : Type*} {P : α → Prop} (h : ∃ x, P x) : {x // P x} :=
 ⟨classical.some h, classical.some_spec h⟩
 
+/-- A version of `by_contradiction` that uses types instead of propositions. -/
+protected noncomputable def by_contradiction' {α : Sort*} (H : ¬ (α → false)) : α :=
+classical.choice $ peirce _ false $ λ h, (H $ λ a, h ⟨a⟩).elim
+
+/-- `classical.by_contradiction'` is equivalent to lean's axiom `classical.choice`. -/
+def choice_of_by_contradiction' {α : Sort*} (contra : ¬ (α → false) → α) : nonempty α → α :=
+λ H, contra H.elim
+
 end classical
 
 /-- This function has the same type as `exists.rec_on`, and can be used to case on an equality,
@@ -1250,6 +1270,10 @@ by by_cases p; simp *
 @[simp] lemma ite_eq_right_iff {α} {p : Prop} [decidable p] {a b : α} :
   (if p then a else b) = b ↔ (p → a = b) :=
 by by_cases p; simp *
+
+lemma ite_eq_or_eq {α} {p : Prop} [decidable p] (a b : α) :
+  ite p a b = a ∨ ite p a b = b :=
+decidable.by_cases (λ h, or.inl (if_pos h)) (λ h, or.inr (if_neg h))
 
 /-! ### Declarations about `nonempty` -/
 

@@ -882,7 +882,7 @@ begin
       rw map_dvd_map (int.cast_ring_hom ℚ) int.cast_injective Pmonic,
       intro hdiv,
       refine hdiff (eq_of_monic_of_associated Pmonic Qmonic _),
-      exact associated_of_dvd_dvd hdiv (dvd_symm_of_irreducible Pirr Qirr hdiv) },
+      exact associated_of_dvd_dvd hdiv (Pirr.dvd_symm Qirr hdiv) },
     { apply (map_dvd_map (int.cast_ring_hom ℚ) int.cast_injective Pmonic).2,
       exact minpoly_dvd_X_pow_sub_one h hpos },
     { apply (map_dvd_map (int.cast_ring_hom ℚ) int.cast_injective Qmonic).2,
@@ -903,10 +903,10 @@ begin
     (map (int.cast_ring_hom (zmod p)) P) with hle hunit,
   { exact not_lt_of_le hle habs },
   { replace hunit := degree_eq_zero_of_is_unit hunit,
-    rw degree_map_eq_of_leading_coeff_ne_zero _ _ at hunit,
-    { exact (ne_of_lt (minpoly.degree_pos (is_integral h hpos))).symm hunit },
+    rw degree_map_eq_of_leading_coeff_ne_zero (int.cast_ring_hom (zmod p)) _ at hunit,
+    { exact (minpoly.degree_pos (is_integral h hpos)).ne' hunit },
     simp only [Pmonic, ring_hom.eq_int_cast, monic.leading_coeff, int.cast_one, ne.def,
-      not_false_iff, one_ne_zero] },
+      not_false_iff, one_ne_zero] }
 end
 
 /-- If `m : ℕ` is coprime with `n`,

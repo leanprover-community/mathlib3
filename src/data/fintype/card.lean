@@ -71,11 +71,6 @@ begin
   exact λ hc, (hc (finset.mem_univ _)).elim
 end
 
-@[to_additive]
-lemma prod_unique [unique β] (f : β → M) :
-  (∏ x, f x) = f (default β) :=
-by simp only [finset.prod_singleton, univ_unique]
-
 /-- If a product of a `finset` of a subsingleton type has a given
 value, so do the terms in that product. -/
 @[to_additive "If a sum of a `finset` of a subsingleton type has a given
@@ -182,11 +177,6 @@ open finset
   [fintype α] [∀ a, fintype (β a)] :
   fintype.card (sigma β) = ∑ a, fintype.card (β a) :=
 card_sigma _ _
-
--- FIXME ouch, this should be in the main file.
-@[simp] theorem fintype.card_sum (α β : Type*) [fintype α] [fintype β] :
-  fintype.card (α ⊕ β) = fintype.card α + fintype.card β :=
-by simp [sum.fintype, fintype.of_equiv_card]
 
 @[simp] lemma finset.card_pi [decidable_eq α] {δ : α → Type*}
   (s : finset α) (t : Π a, finset (δ a)) :

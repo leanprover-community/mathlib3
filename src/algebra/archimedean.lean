@@ -3,9 +3,9 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-
 import algebra.field_power
 import data.rat
+import data.int.least_greatest
 
 /-!
 # Archimedean groups and fields.
@@ -261,7 +261,7 @@ theorem archimedean_iff_rat_lt :
 ⟨@exists_rat_gt α _,
   λ H, archimedean_iff_nat_lt.2 $ λ x,
   let ⟨q, h⟩ := H x in
-  ⟨nat_ceil q, lt_of_lt_of_le h $
+  ⟨⌈q⌉₊, lt_of_lt_of_le h $
     by simpa only [rat.cast_coe_nat] using (@rat.cast_le α _ _ _).2 (le_nat_ceil _)⟩⟩
 
 theorem archimedean_iff_rat_le :

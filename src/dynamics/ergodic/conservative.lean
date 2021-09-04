@@ -53,7 +53,8 @@ structure conservative (f : α → α) (μ : measure α . volume_tac)
 (exists_mem_image_mem : ∀ ⦃s⦄, measurable_set s → μ s ≠ 0 → ∃ (x ∈ s) (m ≠ 0), f^[m] x ∈ s)
 
 /-- A self-map preserving a finite measure is conservative. -/
-protected lemma measure_preserving.conservative [finite_measure μ] (h : measure_preserving f μ μ) :
+protected lemma measure_preserving.conservative [is_finite_measure μ]
+  (h : measure_preserving f μ μ) :
   conservative f μ :=
 ⟨h.quasi_measure_preserving, λ s hsm h0, h.exists_mem_image_mem hsm h0⟩
 
@@ -188,7 +189,7 @@ begin
   set m := (l - k) / (n + 1),
   have : (n + 1) * m = l - k,
   { apply nat.mul_div_cancel',
-    exact (nat.modeq.modeq_iff_dvd' hkl.le).1 hn },
+    exact (nat.modeq_iff_dvd' hkl.le).1 hn },
   refine ⟨f^[k] x, hk, m, _, _⟩,
   { intro hm,
     rw [hm, mul_zero, eq_comm, nat.sub_eq_zero_iff_le] at this,

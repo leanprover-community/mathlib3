@@ -181,7 +181,7 @@ def restrict {U : Top} (X : PresheafedSpace C)
 /--
 The map from the restriction of a presheafed space.
 -/
-def of_restrict (U : Top) (X : PresheafedSpace C)
+def of_restrict {U : Top} (X : PresheafedSpace C)
   (f : U ⟶ (X : Top.{v})) (h : open_embedding f) :
   X.restrict f h ⟶ X :=
 { base := f,
@@ -211,7 +211,7 @@ The isomorphism from the restriction to the top subspace.
 @[simps]
 def restrict_top_iso (X : PresheafedSpace C) :
   X.restrict (opens.inclusion ⊤) (opens.open_embedding ⊤) ≅ X :=
-{ hom := X.of_restrict _ _ _,
+{ hom := X.of_restrict _ _,
   inv := X.to_restrict_top,
   hom_inv_id' := ext _ _ (concrete_category.hom_ext _ _ $ λ ⟨x, _⟩, rfl) $
     nat_trans.ext _ _ $ funext $ λ U, by { op_induction U,

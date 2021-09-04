@@ -206,7 +206,7 @@ end
 lemma mem_nhds_top_iff {s : set ereal} :
   s ∈ 𝓝 (⊤ : ereal) ↔ ∃ (y : ℝ), Ioi (y : ereal) ⊆ s :=
 begin
-  rw [nhds_top', mem_infi],
+  rw [nhds_top', mem_infi_of_directed],
   { refl },
   exact λ x y, ⟨max x y, by simp [le_refl], by simp [le_refl]⟩,
 end
@@ -233,7 +233,7 @@ end
 lemma mem_nhds_bot_iff {s : set ereal} :
   s ∈ 𝓝 (⊥ : ereal) ↔ ∃ (y : ℝ), Iio (y : ereal) ⊆ s :=
 begin
-  rw [nhds_bot', mem_infi],
+  rw [nhds_bot', mem_infi_of_directed],
   { refl },
   exact λ x y, ⟨min x y, by simp [le_refl], by simp [le_refl]⟩,
 end

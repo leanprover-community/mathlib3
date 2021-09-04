@@ -30,7 +30,7 @@ with `+` and `≤`.
 
 ## Implementation details
 
-`enat` is defined to be `roption ℕ`.
+`enat` is defined to be `part ℕ`.
 
 `+` and `≤` are defined on `enat`, but there is an issue with `*` because it's not
 clear what `0 * ⊤` should be. `mul` is hence left undefined. Similarly `⊤ - ⊤` is ambiguous
@@ -45,10 +45,10 @@ followed by `@[simp] lemma to_with_top_zero'` whose proof uses `convert`.
 
 enat, with_top ℕ
 -/
-open roption
+open part
 
 /-- Type of natural numbers with infinity (`⊤`) -/
-def enat : Type := roption ℕ
+def enat : Type := part ℕ
 
 namespace enat
 
@@ -59,17 +59,17 @@ instance : has_add enat := ⟨λ x y, ⟨x.dom ∧ y.dom, λ h, get x h.1 + get 
 instance : has_coe ℕ enat := ⟨some⟩
 instance (n : ℕ) : decidable (n : enat).dom := is_true trivial
 
-@[simp] lemma coe_inj {x y : ℕ} : (x : enat) = y ↔ x = y := roption.some_inj
+@[simp] lemma coe_inj {x y : ℕ} : (x : enat) = y ↔ x = y := part.some_inj
 
 @[simp] lemma dom_coe (x : ℕ) : (x : enat).dom := trivial
 
 instance : add_comm_monoid enat :=
 { add       := (+),
   zero      := (0),
-  add_comm  := λ x y, roption.ext' and.comm (λ _ _, add_comm _ _),
-  zero_add  := λ x, roption.ext' (true_and _) (λ _ _, zero_add _),
-  add_zero  := λ x, roption.ext' (and_true _) (λ _ _, add_zero _),
-  add_assoc := λ x y z, roption.ext' and.assoc (λ _ _, add_assoc _ _ _) }
+  add_comm  := λ x y, part.ext' and.comm (λ _ _, add_comm _ _),
+  zero_add  := λ x, part.ext' (true_and _) (λ _ _, zero_add _),
+  add_zero  := λ x, part.ext' (and_true _) (λ _ _, add_zero _),
+  add_assoc := λ x y z, part.ext' and.assoc (λ _ _, add_assoc _ _ _) }
 
 instance : has_le enat := ⟨λ x y, ∃ h : y.dom → x.dom, ∀ hy : y.dom, x.get (h hy) ≤ y.get hy⟩
 instance : has_top enat := ⟨none⟩
@@ -81,10 +81,10 @@ iff.rfl
 
 @[elab_as_eliminator] protected lemma cases_on {P : enat → Prop} : ∀ a : enat,
   P ⊤ → (∀ n : ℕ, P n) → P a :=
-roption.induction_on
+part.induction_on
 
 @[simp] lemma top_add (x : enat) : ⊤ + x = ⊤ :=
-roption.ext' (false_and _) (λ h, h.left.elim)
+part.ext' (false_and _) (λ h, h.left.elim)
 
 @[simp] lemma add_top (x : enat) : x + ⊤ = ⊤ :=
 by rw [add_comm, top_add]
@@ -94,7 +94,7 @@ by rw [add_comm, top_add]
 @[simp, norm_cast] lemma coe_one : ((1 : ℕ) : enat) = 1 := rfl
 
 @[simp, norm_cast] lemma coe_add (x y : ℕ) : ((x + y : ℕ) : enat) = x + y :=
-roption.ext' (and_true _).symm (λ _ _, rfl)
+part.ext' (and_true _).symm (λ _ _, rfl)
 
 lemma get_coe {x : ℕ} : get (x : enat) true.intro = x := rfl
 
@@ -107,7 +107,7 @@ lemma coe_add_get {x : ℕ} {y : enat} (h : ((x : enat) + y).dom) :
   get (x + y) h = x.get h.1 + y.get h.2 := rfl
 
 @[simp] lemma coe_get {x : enat} (h : x.dom) : (x.get h : enat) = x :=
-roption.ext' (iff_of_true trivial h) (λ _ _, rfl)
+part.ext' (iff_of_true trivial h) (λ _ _, rfl)
 
 @[simp] lemma get_zero (h : (0 : enat).dom) : (0 : enat).get h = 0 := rfl
 
@@ -135,7 +135,7 @@ instance : partial_order enat :=
   le_refl     := λ x, ⟨id, λ _, le_refl _⟩,
   le_trans    := λ x y z ⟨hxy₁, hxy₂⟩ ⟨hyz₁, hyz₂⟩,
     ⟨hxy₁ ∘ hyz₁, λ _, le_trans (hxy₂ _) (hyz₂ _)⟩,
-  le_antisymm := λ x y ⟨hxy₁, hxy₂⟩ ⟨hyx₁, hyx₂⟩, roption.ext' ⟨hyx₁, hxy₁⟩
+  le_antisymm := λ x y ⟨hxy₁, hxy₂⟩ ⟨hyx₁, hyx₂⟩, part.ext' ⟨hyx₁, hxy₁⟩
     (λ _ _, le_antisymm (hxy₂ _) (hyx₂ _)) }
 
 lemma lt_def (x y : enat) : x < y ↔ ∃ (hx : x.dom), ∀ (hy : y.dom), x.get hx < y.get hy :=
@@ -208,10 +208,10 @@ lt_of_le_of_ne le_top (λ h, absurd (congr_arg dom h) true_ne_false)
 
 @[simp] lemma coe_ne_top (x : ℕ) : (x : enat) ≠ ⊤ := ne_of_lt (coe_lt_top x)
 
-lemma ne_top_iff {x : enat} : x ≠ ⊤ ↔ ∃(n : ℕ), x = n := roption.ne_none_iff
+lemma ne_top_iff {x : enat} : x ≠ ⊤ ↔ ∃(n : ℕ), x = n := part.ne_none_iff
 
 lemma ne_top_iff_dom {x : enat} : x ≠ ⊤ ↔ x.dom :=
-by classical; exact not_iff_comm.1 roption.eq_none_iff'.symm
+by classical; exact not_iff_comm.1 part.eq_none_iff'.symm
 
 lemma ne_top_of_lt {x y : enat} (h : x < y) : x ≠ ⊤ :=
 ne_of_lt $ lt_of_lt_of_le h le_top

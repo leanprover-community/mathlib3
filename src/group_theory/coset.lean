@@ -283,12 +283,25 @@ lemma induction_on' {C : quotient s → Prop} (x : quotient s)
 quotient.induction_on' x H
 
 @[to_additive]
+lemma forall_coe {C : quotient s → Prop} :
+  (∀ x : quotient s, C x) ↔ ∀ x : α, C x :=
+⟨λ hx x, hx _, quot.ind⟩
+
+@[to_additive]
 instance (s : subgroup α) : inhabited (quotient s) :=
 ⟨((1 : α) : quotient s)⟩
 
 @[to_additive quotient_add_group.eq]
 protected lemma eq {a b : α} : (a : quotient s) = b ↔ a⁻¹ * b ∈ s :=
 quotient.eq'
+
+@[to_additive quotient_add_group.eq']
+lemma eq' {a b : α} : (mk a : quotient s) = mk b ↔ a⁻¹ * b ∈ s :=
+quotient_group.eq
+
+@[to_additive quotient_add_group.out_eq']
+lemma out_eq' (a : quotient s) : mk a.out' = a :=
+quotient.out_eq' a
 
 @[to_additive]
 lemma eq_class_eq_left_coset (s : subgroup α) (g : α) :
@@ -361,6 +374,28 @@ by haveI := classical.prop_decidable; simp [card_eq_card_quotient_mul_card_subgr
 lemma card_quotient_dvd_card [fintype α] (s : subgroup α) [decidable_pred (λ a, a ∈ s)]
   [fintype s] : fintype.card (quotient s) ∣ fintype.card α :=
 by simp [card_eq_card_quotient_mul_card_subgroup s]
+
+open fintype
+
+variables {H : Type*} [group H]
+
+lemma card_dvd_of_injective [fintype α] [fintype H] (f : α →* H) (hf : function.injective f) :
+  card α ∣ card H :=
+by classical;
+calc card α = card (f.range : subgroup H) : card_congr (equiv.of_injective f hf)
+...∣ card H : card_subgroup_dvd_card _
+
+lemma card_dvd_of_le {H K : subgroup α} [fintype H] [fintype K] (hHK : H ≤ K) : card H ∣ card K :=
+card_dvd_of_injective (inclusion hHK) (inclusion_injective hHK)
+
+lemma card_comap_dvd_of_injective (K : subgroup H) [fintype K]
+  (f : α →* H) [fintype (K.comap f)] (hf : function.injective f) :
+  fintype.card (K.comap f) ∣ fintype.card K :=
+by haveI : fintype ((K.comap f).map f) :=
+  fintype.of_equiv _ (equiv_map_of_injective _ _ hf).to_equiv;
+calc fintype.card (K.comap f) = fintype.card ((K.comap f).map f) :
+       fintype.card_congr (equiv_map_of_injective _ _ hf).to_equiv
+... ∣ fintype.card K : card_dvd_of_le (map_comap_le _ _)
 
 end subgroup
 

@@ -132,6 +132,10 @@ protected lemma trans : ∀ {x y z}, c x y → c y z → c x z :=
 protected lemma mul : ∀ {w x y z}, c w x → c y z → c (w * y) (x * z) :=
 λ _ _ _ _ h1 h2, c.3 h1 h2
 
+@[simp, to_additive] lemma rel_mk {r : M → M → Prop} {h₁ h₂ a b} :
+  con.mk r h₁ h₂ a b ↔ r a b :=
+iff.rfl
+
 /-- Given a type `M` with a multiplication, a congruence relation `c` on `M`, and elements of `M`
     `x, y`, `(x, y) ∈ M × M` iff `x` is related to `y` by `c`. -/
 @[to_additive "Given a type `M` with an addition, `x, y ∈ M`, and an additive congruence relation
@@ -215,6 +219,10 @@ instance : has_coe_t M c.quotient := ⟨@quotient.mk _ c.to_setoid⟩
 instance [d : ∀ a b, decidable (c a b)] : decidable_eq c.quotient :=
 @quotient.decidable_eq M c.to_setoid d
 
+@[simp, to_additive] lemma quot_mk_eq_coe {M : Type*} [has_mul M] (c : con M) (x : M) :
+  quot.mk c x = (x : c.quotient) :=
+rfl
+
 /-- The function on the quotient by a congruence relation `c` induced by a function that is
     constant on `c`'s equivalence classes. -/
 @[elab_as_eliminator, to_additive "The function on the quotient by a congruence relation `c`
@@ -228,6 +236,20 @@ protected def lift_on {β} {c : con M} (q : c.quotient) (f : M → β)
 induced by a binary function that is constant on `c`'s equivalence classes."]
 protected def lift_on₂ {β} {c : con M} (q r : c.quotient) (f : M → M → β)
   (h : ∀ a₁ a₂ b₁ b₂, c a₁ b₁ → c a₂ b₂ → f a₁ a₂ = f b₁ b₂) : β := quotient.lift_on₂' q r f h
+
+/-- A version of `quotient.hrec_on₂'` for quotients by `con`. -/
+@[to_additive "A version of `quotient.hrec_on₂'` for quotients by `add_con`."]
+protected def hrec_on₂ {cM : con M} {cN : con N} {φ : cM.quotient → cN.quotient → Sort*}
+  (a : cM.quotient) (b : cN.quotient)
+  (f : Π (x : M) (y : N), φ x y) (h : ∀ x y x' y', cM x x' → cN y y' → f x y == f x' y') :
+  φ a b :=
+quotient.hrec_on₂' a b f h
+
+@[simp, to_additive] lemma hrec_on₂_coe {cM : con M} {cN : con N}
+  {φ : cM.quotient → cN.quotient → Sort*} (a : M) (b : N)
+  (f : Π (x : M) (y : N), φ x y) (h : ∀ x y x' y', cM x x' → cN y y' → f x y == f x' y') :
+  con.hrec_on₂ ↑a ↑b f h = f a b :=
+rfl
 
 variables {c}
 
@@ -901,5 +923,53 @@ instance group : group c.quotient :=
   .. con.monoid c}
 
 end groups
+
+section units
+
+variables {α : Type*} [monoid M] {c : con M}
+
+/-- In order to define a function `units (con.quotient c) → α` on the units of `con.quotient c`,
+where `c : con M` is a multiplicative congruence on a monoid, it suffices to define a function `f`
+that takes elements `x y : M` with proofs of `c (x * y) 1` and `c (y * x) 1`, and returns an element
+of `α` provided that `f x y _ _ = f x' y' _ _` whenever `c x x'` and `c y y'`. -/
+@[to_additive lift_on_add_units] def lift_on_units (u : units c.quotient)
+  (f : Π (x y : M), c (x * y) 1 → c (y * x) 1 → α)
+  (Hf : ∀ x y hxy hyx x' y' hxy' hyx', c x x' → c y y' → f x y hxy hyx = f x' y' hxy' hyx') :
+  α :=
+begin
+  refine @con.hrec_on₂ M M _ _ c c (λ x y, x * y = 1 → y * x = 1 → α)
+    (u : c.quotient) (↑u⁻¹ : c.quotient)
+    (λ (x y : M) (hxy : (x * y : c.quotient) = 1) (hyx : (y * x : c.quotient) = 1),
+    f x y (c.eq.1 hxy) (c.eq.1 hyx)) (λ x y x' y' hx hy, _) u.3 u.4,
+  ext1, { rw [c.eq.2 hx, c.eq.2 hy] },
+  rintro Hxy Hxy' -,
+  ext1, { rw [c.eq.2 hx, c.eq.2 hy] },
+  rintro Hyx Hyx' -,
+  exact heq_of_eq (Hf _ _ _ _ _ _ _ _ hx hy)
+end
+
+/-- In order to define a function `units (con.quotient c) → α` on the units of `con.quotient c`,
+where `c : con M` is a multiplicative congruence on a monoid, it suffices to define a function `f`
+that takes elements `x y : M` with proofs of `c (x * y) 1` and `c (y * x) 1`, and returns an element
+of `α` provided that `f x y _ _ = f x' y' _ _` whenever `c x x'` and `c y y'`. -/
+add_decl_doc add_con.lift_on_add_units
+
+@[simp, to_additive]
+lemma lift_on_units_mk (f : Π (x y : M), c (x * y) 1 → c (y * x) 1 → α)
+  (Hf : ∀ x y hxy hyx x' y' hxy' hyx', c x x' → c y y' → f x y hxy hyx = f x' y' hxy' hyx')
+  (x y : M) (hxy hyx) :
+  lift_on_units ⟨(x : c.quotient), y, hxy, hyx⟩ f Hf = f x y (c.eq.1 hxy) (c.eq.1 hyx) :=
+rfl
+
+@[elab_as_eliminator, to_additive induction_on_add_units]
+lemma induction_on_units {p : units c.quotient → Prop} (u : units c.quotient)
+  (H : ∀ (x y : M) (hxy : c (x * y) 1) (hyx : c (y * x) 1), p ⟨x, y, c.eq.2 hxy, c.eq.2 hyx⟩) :
+  p u :=
+begin
+  rcases u with ⟨⟨x⟩, ⟨y⟩, h₁, h₂⟩,
+  exact H x y (c.eq.1 h₁) (c.eq.1 h₂)
+end
+
+end units
 
 end con

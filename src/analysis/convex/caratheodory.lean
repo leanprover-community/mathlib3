@@ -113,7 +113,7 @@ begin
     intro i,
     transitivity,
     { apply ih,
-      rw [card_erase_of_mem, h, nat.pred_succ],
+      rw [card_erase_of_mem, h, nat.add_succ, nat.pred_succ],
       exact i.2, },
     { apply Union_subset_Union,
       intro t',

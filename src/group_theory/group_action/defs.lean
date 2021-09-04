@@ -258,16 +258,16 @@ instance is_scalar_tower.left : is_scalar_tower M M α :=
 
 variables {M}
 
-/-- Note that the `smul_comm_class M α α` typeclass argument is usually satisfied by `algebra M α`.
+/-- Note that the `smul_comm_class α β β` typeclass argument is usually satisfied by `algebra α β`.
 -/
 @[to_additive]
-lemma mul_smul_comm [has_mul α] (s : M) (x y : α) [smul_comm_class M α α] :
+lemma mul_smul_comm [has_mul β] [has_scalar α β] [smul_comm_class α β β] (s : α) (x y : β) :
   x * (s • y) = s • (x * y) :=
 (smul_comm s x y).symm
 
-/-- Note that the `is_scalar_tower M α α` typeclass argument is usually satisfied by `algebra M α`.
+/-- Note that the `is_scalar_tower α β β` typeclass argument is usually satisfied by `algebra α β`.
 -/
-lemma smul_mul_assoc [has_mul α] (r : M) (x y : α) [is_scalar_tower M α α] :
+lemma smul_mul_assoc [has_mul β] [has_scalar α β] [is_scalar_tower α β β] (r : α) (x y : β)  :
   (r • x) * y = r • (x * y) :=
 smul_assoc r x y
 

@@ -1697,7 +1697,7 @@ begin
 end
 
 lemma is_unit_denom_of_num_eq_zero {x : K} (h : num A x = 0) : is_unit (denom A x : A) :=
-num_denom_reduced A x (h.symm ▸ dvd_zero _) (dvd_refl _)
+num_denom_reduced A x (h.symm ▸ dvd_zero _) dvd_rfl
 
 end num_denom
 

@@ -48,7 +48,7 @@ open lean.parser tactic interactive parser
 namespace tactic.alias
 
 @[user_attribute] meta def alias_attr : user_attribute :=
-{ name := `alias, descr := "This definition is an alias of another." }
+{ name := `alias, descr := "This definition is an alias of another.", parser := failed }
 
 meta def alias_direct (d : declaration) (doc : string) (al : name) : tactic unit :=
 do updateex_env $ λ env,
@@ -63,7 +63,7 @@ do updateex_env $ λ env,
   alias_attr.set al () tt,
   add_doc_string al doc
 
-meta def mk_iff_mp_app (iffmp : name) : expr → (nat → expr) → tactic expr
+meta def mk_iff_mp_app (iffmp : name) : expr → (ℕ → expr) → tactic expr
 | (expr.pi n bi e t) f := expr.lam n bi e <$> mk_iff_mp_app t (λ n, f (n+1) (expr.var n))
 | `(%%a ↔ %%b) f := pure $ @expr.const tt iffmp [] a b (f 0)
 | _ f := fail "Target theorem must have the form `Π x y z, a ↔ b`"

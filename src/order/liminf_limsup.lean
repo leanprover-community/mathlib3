@@ -1,9 +1,10 @@
 /-
 Copyright (c) 2018 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Sébastien Gouëzel, Johannes Hölzl
+Authors: Sébastien Gouëzel, Johannes Hölzl, Rémy Degenne
 -/
-import order.filter
+import order.filter.partial
+import order.filter.at_top_bot
 
 /-!
 # liminfs and limsups of functions and filters
@@ -34,8 +35,9 @@ In complete lattices, however, it coincides with the `Inf Sup` definition.
 -/
 
 open filter set
+open_locale filter
 
-variables {α : Type*} {β : Type*}
+variables {α β ι : Type*}
 namespace filter
 
 section relation
@@ -56,12 +58,12 @@ bounded. -/
 lemma is_bounded_iff : f.is_bounded r ↔ (∃s∈f.sets, ∃b, s ⊆ {x | r x b}) :=
 iff.intro
   (assume ⟨b, hb⟩, ⟨{a | r a b}, hb, b, subset.refl _⟩)
-  (assume ⟨s, hs, b, hb⟩, ⟨b, mem_sets_of_superset hs hb⟩)
+  (assume ⟨s, hs, b, hb⟩, ⟨b, mem_of_superset hs hb⟩)
 
 /-- A bounded function `u` is in particular eventually bounded. -/
 lemma is_bounded_under_of {f : filter β} {u : β → α} :
   (∃b, ∀x, r (u x) b) → f.is_bounded_under r u
-| ⟨b, hb⟩ := ⟨b, show ∀ᶠ x in f, r (u x) b, from eventually_of_forall _ hb⟩
+| ⟨b, hb⟩ := ⟨b, show ∀ᶠ x in f, r (u x) b, from eventually_of_forall hb⟩
 
 lemma is_bounded_bot : is_bounded r ⊥ ↔ nonempty α :=
 by simp [is_bounded, exists_true_iff_nonempty]
@@ -69,7 +71,7 @@ by simp [is_bounded, exists_true_iff_nonempty]
 lemma is_bounded_top : is_bounded r ⊤ ↔ (∃t, ∀x, r x t) :=
 by simp [is_bounded, eq_univ_iff_forall]
 
-lemma is_bounded_principal (s : set α) : is_bounded r (principal s) ↔ (∃t, ∀x∈s, r x t) :=
+lemma is_bounded_principal (s : set α) : is_bounded r (𝓟 s) ↔ (∃t, ∀x∈s, r x t) :=
 by simp [is_bounded, subset_def]
 
 lemma is_bounded_sup [is_trans α r] (hr : ∀b₁ b₂, ∃b, r b₁ b ∧ r b₂ b) :
@@ -77,12 +79,42 @@ lemma is_bounded_sup [is_trans α r] (hr : ∀b₁ b₂, ∃b, r b₁ b ∧ r b�
 | ⟨b₁, h₁⟩ ⟨b₂, h₂⟩ := let ⟨b, rb₁b, rb₂b⟩ := hr b₁ b₂ in
   ⟨b, eventually_sup.mpr ⟨h₁.mono (λ x h, trans h rb₁b), h₂.mono (λ x h, trans h rb₂b)⟩⟩
 
-lemma is_bounded_of_le (h : f ≤ g) : is_bounded r g → is_bounded r f
+lemma is_bounded.mono (h : f ≤ g) : is_bounded r g → is_bounded r f
 | ⟨b, hb⟩ := ⟨b, h hb⟩
 
-lemma is_bounded_under_of_is_bounded {q : β → β → Prop} {u : α → β}
+lemma is_bounded_under.mono {f g : filter β} {u : β → α} (h : f ≤ g) :
+  g.is_bounded_under r u → f.is_bounded_under r u :=
+λ hg, hg.mono (map_mono h)
+
+lemma is_bounded.is_bounded_under {q : β → β → Prop} {u : α → β}
   (hf : ∀a₀ a₁, r a₀ a₁ → q (u a₀) (u a₁)) : f.is_bounded r → f.is_bounded_under q u
 | ⟨b, h⟩ := ⟨u b, show ∀ᶠ x in f, q (u x) (u b), from h.mono (λ x, hf x b)⟩
+
+lemma not_is_bounded_under_of_tendsto_at_top [nonempty α] [semilattice_sup α]
+  [preorder β] [no_top_order β] {f : α → β} (hf : tendsto f at_top at_top) :
+  ¬ is_bounded_under (≤) at_top f :=
+begin
+  rintro ⟨b, hb⟩,
+  rw eventually_map at hb,
+  obtain ⟨b', h⟩ := no_top b,
+  have hb' := (tendsto_at_top.mp hf) b',
+  have : {x : α | f x ≤ b} ∩ {x : α | b' ≤ f x} = ∅ :=
+    eq_empty_of_subset_empty (λ x hx, (not_le_of_lt h) (le_trans hx.2 hx.1)),
+  exact at_top.empty_not_mem (this ▸ filter.inter_mem hb hb' : ∅ ∈ (at_top : filter α)),
+end
+
+lemma not_is_bounded_under_of_tendsto_at_bot [nonempty α] [semilattice_sup α]
+  [preorder β] [no_bot_order β] {f : α → β} (hf : tendsto f at_top at_bot) :
+  ¬ is_bounded_under (≥) at_top f :=
+begin
+  rintro ⟨b, hb⟩,
+  rw eventually_map at hb,
+  obtain ⟨b', h⟩ := no_bot b,
+  have hb' := (tendsto_at_bot.mp hf) b',
+  have : {x : α | b ≤ f x} ∩ {x : α | f x ≤ b'} = ∅ :=
+    eq_empty_of_subset_empty (λ x hx, (not_le_of_lt h) (le_trans hx.1 hx.2)),
+  exact at_top.empty_not_mem (this ▸ filter.inter_mem hb hb' : ∅ ∈ (at_top : filter α)),
+end
 
 /-- `is_cobounded (≺) f` states that the filter `f` does not tend to infinity w.r.t. `≺`. This is
 also called frequently bounded. Will be usually instantiated with `≤` or `≥`.
@@ -110,11 +142,10 @@ lemma is_cobounded.mk [is_trans α r] (a : α) (h : ∀s∈f, ∃x∈s, r a x) :
 
 /-- A filter which is eventually bounded is in particular frequently bounded (in the opposite
 direction). At least if the filter is not trivial. -/
-lemma is_cobounded_of_is_bounded [is_trans α r] (hf : f ≠ ⊥) :
+lemma is_bounded.is_cobounded_flip [is_trans α r] [ne_bot f] :
   f.is_bounded r → f.is_cobounded (flip r)
 | ⟨a, ha⟩ := ⟨a, assume b hb,
-  have ∀ᶠ x in f, r x a ∧ r b x, from ha.and hb,
-  let ⟨x, rxa, rbx⟩ := nonempty_of_mem_sets hf this in
+  let ⟨x, rxa, rbx⟩ := (ha.and hb).exists in
   show r b a, from trans rbx rxa⟩
 
 lemma is_cobounded_bot : is_cobounded r ⊥ ↔ (∃b, ∀x, r b x) :=
@@ -124,32 +155,25 @@ lemma is_cobounded_top : is_cobounded r ⊤ ↔ nonempty α :=
 by simp [is_cobounded, eq_univ_iff_forall, exists_true_iff_nonempty] {contextual := tt}
 
 lemma is_cobounded_principal (s : set α) :
-  (principal s).is_cobounded r↔ (∃b, ∀a, (∀x∈s, r x a) → r b a) :=
+  (𝓟 s).is_cobounded r ↔ (∃b, ∀a, (∀x∈s, r x a) → r b a) :=
 by simp [is_cobounded, subset_def]
 
-lemma is_cobounded_of_le (h : f ≤ g) : f.is_cobounded r → g.is_cobounded r
+lemma is_cobounded.mono (h : f ≤ g) : f.is_cobounded r → g.is_cobounded r
 | ⟨b, hb⟩ := ⟨b, assume a ha, hb a (h ha)⟩
 
 end relation
 
-instance is_trans_le [preorder α] : is_trans α (≤) := ⟨assume a b c, le_trans⟩
-
-@[nolint ge_or_gt] -- see Note [nolint_ge]
-instance is_trans_ge [preorder α] : is_trans α (≥) := ⟨assume a b c h₁ h₂, le_trans h₂ h₁⟩
-
 lemma is_cobounded_le_of_bot [order_bot α] {f : filter α} : f.is_cobounded (≤) :=
 ⟨⊥, assume a h, bot_le⟩
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma is_cobounded_ge_of_top [order_top α] {f : filter α} : f.is_cobounded (≥) :=
 ⟨⊤, assume a h, le_top⟩
 
 lemma is_bounded_le_of_top [order_top α] {f : filter α} : f.is_bounded (≤) :=
-⟨⊤, eventually_of_forall _ $ λ _, le_top⟩
+⟨⊤, eventually_of_forall $ λ _, le_top⟩
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma is_bounded_ge_of_bot [order_bot α] {f : filter α} : f.is_bounded (≥) :=
-⟨⊥, eventually_of_forall _ $ λ _, bot_le⟩
+⟨⊥, eventually_of_forall $ λ _, bot_le⟩
 
 lemma is_bounded_under_sup [semilattice_sup α] {f : filter β} {u v : β → α} :
   f.is_bounded_under (≤) u → f.is_bounded_under (≤) v → f.is_bounded_under (≤) (λa, u a ⊔ v a)
@@ -157,7 +181,6 @@ lemma is_bounded_under_sup [semilattice_sup α] {f : filter β} {u v : β → α
   ⟨bu ⊔ bv, show ∀ᶠ x in f, u x ⊔ v x ≤ bu ⊔ bv,
     by filter_upwards [hu, hv] assume x, sup_le_sup⟩
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma is_bounded_under_inf [semilattice_inf α] {f : filter β} {u v : β → α} :
   f.is_bounded_under (≥) u → f.is_bounded_under (≥) v → f.is_bounded_under (≥) (λa, u a ⊓ v a)
 | ⟨bu, (hu : ∀ᶠ x in f, u x ≥ bu)⟩ ⟨bv, (hv : ∀ᶠ x in f, v x ≥ bv)⟩ :=
@@ -218,13 +241,11 @@ theorem Liminf_le_of_le {f : filter α} {a}
   f.Liminf ≤ a :=
 cSup_le hf h
 
-theorem Liminf_le_Limsup {f : filter α} (hf : f ≠ ⊥)
+theorem Liminf_le_Limsup {f : filter α} [ne_bot f]
   (h₁ : f.is_bounded (≤) . is_bounded_default) (h₂ : f.is_bounded (≥) . is_bounded_default) :
   f.Liminf ≤ f.Limsup :=
-Liminf_le_of_le h₂ $ assume a₀ ha₀, le_Limsup_of_le h₁ $ assume a₁ ha₁, show a₀ ≤ a₁, from
-  have ∀ᶠ b in f, a₀ ≤ b ∧ b ≤ a₁, from ha₀.and ha₁,
-  let ⟨b, hb₀, hb₁⟩ := nonempty_of_mem_sets hf this in
-  le_trans hb₀ hb₁
+Liminf_le_of_le h₂ $ assume a₀ ha₀, le_Limsup_of_le h₁ $ assume a₁ ha₁,
+  show a₀ ≤ a₁, from let ⟨b, hb₀, hb₁⟩ := (ha₀.and ha₁).exists in le_trans hb₀ hb₁
 
 lemma Liminf_le_Liminf {f g : filter α}
   (hf : f.is_bounded (≥) . is_bounded_default) (hg : g.is_cobounded (≥) . is_bounded_default)
@@ -247,73 +268,58 @@ lemma Liminf_le_Liminf_of_le {f g : filter α} (h : g ≤ f)
 Liminf_le_Liminf hf hg (assume a ha, h ha)
 
 lemma limsup_le_limsup {α : Type*} [conditionally_complete_lattice β] {f : filter α} {u v : α → β}
-  (h : ∀ᶠ a in f, u a ≤ v a)
+  (h : u ≤ᶠ[f] v)
   (hu : f.is_cobounded_under (≤) u . is_bounded_default)
   (hv : f.is_bounded_under (≤) v . is_bounded_default) :
   f.limsup u ≤ f.limsup v :=
-Limsup_le_Limsup hu hv $ assume b (hb : ∀ᶠ a in f, v a ≤ b), show ∀ᶠ a in f, u a ≤ b,
-  by filter_upwards [h, hb] assume a, le_trans
+Limsup_le_Limsup hu hv $ assume b, h.trans
 
 lemma liminf_le_liminf {α : Type*} [conditionally_complete_lattice β] {f : filter α} {u v : α → β}
   (h : ∀ᶠ a in f, u a ≤ v a)
   (hu : f.is_bounded_under (≥) u . is_bounded_default)
   (hv : f.is_cobounded_under (≥) v . is_bounded_default) :
   f.liminf u ≤ f.liminf v :=
-Liminf_le_Liminf hu hv $ assume b (hb : ∀ᶠ a in f, b ≤ u a), show ∀ᶠ a in f, b ≤ v a,
-  by filter_upwards [hb, h] assume a, le_trans
+@limsup_le_limsup (order_dual β) α _ _ _ _ h hv hu
+
+lemma limsup_le_limsup_of_le {α β} [conditionally_complete_lattice β] {f g : filter α} (h : f ≤ g)
+  {u : α → β} (hf : f.is_cobounded_under (≤) u . is_bounded_default)
+  (hg : g.is_bounded_under (≤) u . is_bounded_default) :
+  f.limsup u ≤ g.limsup u :=
+Limsup_le_Limsup_of_le (map_mono h) hf hg
+
+lemma liminf_le_liminf_of_le {α β} [conditionally_complete_lattice β] {f g : filter α} (h : g ≤ f)
+  {u : α → β} (hf : f.is_bounded_under (≥) u . is_bounded_default)
+  (hg : g.is_cobounded_under (≥) u . is_bounded_default) :
+  f.liminf u ≤ g.liminf u :=
+Liminf_le_Liminf_of_le (map_mono h) hf hg
 
 theorem Limsup_principal {s : set α} (h : bdd_above s) (hs : s.nonempty) :
-  (principal s).Limsup = Sup s :=
+  (𝓟 s).Limsup = Sup s :=
 by simp [Limsup]; exact cInf_upper_bounds_eq_cSup h hs
 
 theorem Liminf_principal {s : set α} (h : bdd_below s) (hs : s.nonempty) :
-  (principal s).Liminf = Inf s :=
-by simp [Liminf]; exact cSup_lower_bounds_eq_cInf h hs
+  (𝓟 s).Liminf = Inf s :=
+@Limsup_principal (order_dual α) _ s h hs
 
 lemma limsup_congr {α : Type*} [conditionally_complete_lattice β] {f : filter α} {u v : α → β}
   (h : ∀ᶠ a in f, u a = v a) : limsup f u = limsup f v :=
 begin
   rw limsup_eq,
-  congr,
-  ext b,
+  congr' with b,
   exact eventually_congr (h.mono $ λ x hx, by simp [hx])
 end
 
 lemma liminf_congr {α : Type*} [conditionally_complete_lattice β] {f : filter α} {u v : α → β}
   (h : ∀ᶠ a in f, u a = v a) : liminf f u = liminf f v :=
-begin
-  rw liminf_eq,
-  congr,
-  ext b,
-  exact eventually_congr (h.mono $ λ x hx, by simp [hx])
-end
+@limsup_congr (order_dual β) _ _ _ _ _ h
 
-lemma limsup_const {α : Type*} [conditionally_complete_lattice β] {f : filter α} (hf : f ≠ ⊥)
+lemma limsup_const {α : Type*} [conditionally_complete_lattice β] {f : filter α} [ne_bot f]
   (b : β) : limsup f (λ x, b) = b :=
-begin
-  rw limsup_eq,
-  apply le_antisymm,
-  { refine cInf_le ⟨b, λ a ha, _⟩ (by simp [le_refl]),
-    obtain ⟨n, hn⟩ : ∃ n, b ≤ a := eventually.exists ha hf,
-    exact hn },
-  { refine le_cInf ⟨b, by simp [le_refl]⟩ (λ a ha, _),
-    obtain ⟨n, hn⟩ : ∃ n, b ≤ a := eventually.exists ha hf,
-    exact hn }
-end
+by simpa only [limsup_eq, eventually_const] using cInf_Ici
 
-lemma liminf_const {α : Type*} [conditionally_complete_lattice β] {f : filter α} (hf : f ≠ ⊥)
+lemma liminf_const {α : Type*} [conditionally_complete_lattice β] {f : filter α} [ne_bot f]
   (b : β) : liminf f (λ x, b) = b :=
-begin
-  rw liminf_eq,
-  apply le_antisymm,
-  { refine cSup_le ⟨b, by simp [le_refl]⟩ (λ a ha, _),
-    obtain ⟨n, hn⟩ : ∃ n, a ≤ b := eventually.exists ha hf,
-    exact hn },
-  { refine le_cSup ⟨b, λ a ha, _⟩ (by simp [le_refl]),
-    obtain ⟨n, hn⟩ : ∃ n, a ≤ b := eventually.exists ha hf,
-    exact hn }
-end
-
+@limsup_const (order_dual β) α _ f _ b
 
 end conditionally_complete_lattice
 
@@ -334,71 +340,94 @@ top_unique $ le_Inf $
 bot_unique $ Sup_le $
   by simp [eq_univ_iff_forall]; exact assume b hb, (bot_unique $ hb _)
 
-lemma liminf_le_limsup {f : filter β} (hf : f ≠ ⊥) {u : β → α}  : liminf f u ≤ limsup f u :=
-  Liminf_le_Limsup (map_ne_bot hf) is_bounded_le_of_top is_bounded_ge_of_bot
+/-- Same as limsup_const applied to `⊥` but without the `ne_bot f` assumption -/
+lemma limsup_const_bot {f : filter β} : limsup f (λ x : β, (⊥ : α)) = (⊥ : α) :=
+begin
+  rw [limsup_eq, eq_bot_iff],
+  exact Inf_le (eventually_of_forall (λ x, le_refl _)),
+end
+
+/-- Same as limsup_const applied to `⊤` but without the `ne_bot f` assumption -/
+lemma liminf_const_top {f : filter β} : liminf f (λ x : β, (⊤ : α)) = (⊤ : α) :=
+@limsup_const_bot (order_dual α) β _ _
+
+lemma liminf_le_limsup {f : filter β} [ne_bot f] {u : β → α}  : liminf f u ≤ limsup f u :=
+Liminf_le_Limsup is_bounded_le_of_top is_bounded_ge_of_bot
+
+theorem has_basis.Limsup_eq_infi_Sup {ι} {p : ι → Prop} {s} {f : filter α} (h : f.has_basis p s) :
+  f.Limsup = ⨅ i (hi : p i), Sup (s i) :=
+le_antisymm
+  (le_binfi $ λ i hi, Inf_le $ h.eventually_iff.2 ⟨i, hi, λ x, le_Sup⟩)
+  (le_Inf $ assume a ha, let ⟨i, hi, ha⟩ := h.eventually_iff.1 ha in
+    infi_le_of_le _ $ infi_le_of_le hi $ Sup_le ha)
+
+theorem has_basis.Liminf_eq_supr_Inf {p : ι → Prop} {s : ι → set α} {f : filter α}
+  (h : f.has_basis p s) : f.Liminf = ⨆ i (hi : p i), Inf (s i) :=
+@has_basis.Limsup_eq_infi_Sup (order_dual α) _ _ _ _ _ h
 
 theorem Limsup_eq_infi_Sup {f : filter α} : f.Limsup = ⨅ s ∈ f, Sup s :=
-le_antisymm
-  (le_infi $ assume s, le_infi $ assume hs, Inf_le $ show ∀ᶠ n in f, n ≤ Sup s,
-    by filter_upwards [hs] assume a, le_Sup)
-  (le_Inf $ assume a (ha : ∀ᶠ n in f, n ≤ a),
-    infi_le_of_le _ $ infi_le_of_le ha $ Sup_le $ assume b, id)
+f.basis_sets.Limsup_eq_infi_Sup
+
+theorem Liminf_eq_supr_Inf {f : filter α} : f.Liminf = ⨆ s ∈ f, Inf s :=
+@Limsup_eq_infi_Sup (order_dual α) _ _
 
 /-- In a complete lattice, the limsup of a function is the infimum over sets `s` in the filter
 of the supremum of the function over `s` -/
 theorem limsup_eq_infi_supr {f : filter β} {u : β → α} : f.limsup u = ⨅ s ∈ f, ⨆ a ∈ s, u a :=
-calc f.limsup u = ⨅ s ∈ (f.map u), Sup s : Limsup_eq_infi_Sup
-  ... = ⨅ s ∈ f, ⨆ a ∈ s, u a :
-    le_antisymm
-      (le_infi $ assume s, le_infi $ assume hs,
-        infi_le_of_le (u '' s) $ infi_le_of_le (image_mem_map hs) $ le_of_eq Sup_image)
-      (le_infi $ assume s, le_infi $ assume (hs : u ⁻¹' s ∈ f),
-        infi_le_of_le _ $ infi_le_of_le hs $ supr_le $ assume a, supr_le $ assume ha, le_Sup ha)
+(f.basis_sets.map u).Limsup_eq_infi_Sup.trans $
+  by simp only [Sup_image, id]
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
-lemma limsup_eq_infi_supr_of_nat {u : ℕ → α} : limsup at_top u = ⨅n:ℕ, ⨆i≥n, u i :=
-calc
-  limsup at_top u = ⨅ s ∈ at_top, ⨆n∈s, u n : limsup_eq_infi_supr
-  ... = ⨅ n, ⨆i≥n, u i :
-    le_antisymm
-      (le_infi $ assume n, infi_le_of_le {i | i ≥ n} $ infi_le_of_le
-        (mem_at_top _)
-        (supr_le_supr $ assume i, supr_le_supr_const (by simp)))
-      (le_infi $ assume s, le_infi $ assume hs,
-        let ⟨n, hn⟩ := mem_at_top_sets.1 hs in
-        infi_le_of_le n $ supr_le_supr $ assume i, supr_le_supr_const (hn i))
+lemma limsup_eq_infi_supr_of_nat {u : ℕ → α} : limsup at_top u = ⨅ n : ℕ, ⨆ i ≥ n, u i :=
+(at_top_basis.map u).Limsup_eq_infi_Sup.trans $
+  by simp only [Sup_image, infi_const]; refl
 
-theorem Liminf_eq_supr_Inf {f : filter α} : f.Liminf = ⨆ s ∈ f, Inf s :=
-le_antisymm
-  (Sup_le $ assume a (ha : ∀ᶠ n in f, a ≤ n),
-    le_supr_of_le _ $ le_supr_of_le ha $ le_Inf $ assume b, id)
-  (supr_le $ assume s, supr_le $ assume hs, le_Sup $ show ∀ᶠ n in f, Inf s ≤ n,
-    by filter_upwards [hs] assume a, Inf_le)
+lemma limsup_eq_infi_supr_of_nat' {u : ℕ → α} : limsup at_top u = ⨅ n : ℕ, ⨆ i : ℕ, u (i + n) :=
+by simp only [limsup_eq_infi_supr_of_nat, supr_ge_eq_supr_nat_add]
+
+theorem has_basis.limsup_eq_infi_supr {p : ι → Prop} {s : ι → set β} {f : filter β} {u : β → α}
+  (h : f.has_basis p s) : f.limsup u = ⨅ i (hi : p i), ⨆ a ∈ s i, u a :=
+(h.map u).Limsup_eq_infi_Sup.trans $ by simp only [Sup_image, id]
 
 /-- In a complete lattice, the liminf of a function is the infimum over sets `s` in the filter
 of the supremum of the function over `s` -/
 theorem liminf_eq_supr_infi {f : filter β} {u : β → α} : f.liminf u = ⨆ s ∈ f, ⨅ a ∈ s, u a :=
-calc f.liminf u = ⨆ s ∈ f.map u, Inf s : Liminf_eq_supr_Inf
-  ... = ⨆ s ∈ f, ⨅a∈s, u a :
-    le_antisymm
-      (supr_le $ assume s, supr_le $ assume (hs : u ⁻¹' s ∈ f),
-        le_supr_of_le _ $ le_supr_of_le hs $ le_infi $ assume a, le_infi $ assume ha, Inf_le ha)
-      (supr_le $ assume s, supr_le $ assume hs,
-        le_supr_of_le (u '' s) $ le_supr_of_le (image_mem_map hs) $ ge_of_eq Inf_image)
+@limsup_eq_infi_supr (order_dual α) β _ _ _
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
-lemma liminf_eq_supr_infi_of_nat {u : ℕ → α} : liminf at_top u = ⨆n:ℕ, ⨅i≥n, u i :=
-calc
-  liminf at_top u = ⨆ s ∈ at_top, ⨅ n ∈ s, u n : liminf_eq_supr_infi
-  ... = ⨆n:ℕ, ⨅i≥n, u i :
-    le_antisymm
-      (supr_le $ assume s, supr_le $ assume hs,
-        let ⟨n, hn⟩ := mem_at_top_sets.1 hs in
-        le_supr_of_le n $ infi_le_infi $ assume i, infi_le_infi_const (hn _) )
-      (supr_le $ assume n, le_supr_of_le {i | n ≤ i} $
-        le_supr_of_le
-          (mem_at_top _)
-          (infi_le_infi $ assume i, infi_le_infi_const (by simp)))
+lemma liminf_eq_supr_infi_of_nat {u : ℕ → α} : liminf at_top u = ⨆ n : ℕ, ⨅ i ≥ n, u i :=
+@limsup_eq_infi_supr_of_nat (order_dual α) _ u
+
+lemma liminf_eq_supr_infi_of_nat' {u : ℕ → α} : liminf at_top u = ⨆ n : ℕ, ⨅ i : ℕ, u (i + n) :=
+@limsup_eq_infi_supr_of_nat' (order_dual α) _ _
+
+theorem has_basis.liminf_eq_supr_infi {p : ι → Prop} {s : ι → set β} {f : filter β} {u : β → α}
+  (h : f.has_basis p s) : f.liminf u = ⨆ i (hi : p i), ⨅ a ∈ s i, u a :=
+@has_basis.limsup_eq_infi_supr (order_dual α) _ _ _ _ _ _ _ h
+
+@[simp] lemma liminf_nat_add (f : ℕ → α) (k : ℕ) :
+  at_top.liminf (λ i, f (i + k)) = at_top.liminf f :=
+by { simp_rw liminf_eq_supr_infi_of_nat, exact supr_infi_ge_nat_add f k }
+
+@[simp] lemma limsup_nat_add (f : ℕ → α) (k : ℕ) :
+  at_top.limsup (λ i, f (i + k)) = at_top.limsup f :=
+@liminf_nat_add (order_dual α) _ f k
+
+lemma liminf_le_of_frequently_le' {α β} [complete_lattice β]
+  {f : filter α} {u : α → β} {x : β} (h : ∃ᶠ a in f, u a ≤ x) :
+  f.liminf u ≤ x :=
+begin
+  rw liminf_eq,
+  refine Sup_le (λ b hb, _),
+  have hbx : ∃ᶠ a in f, b ≤ x,
+  { revert h,
+    rw [←not_imp_not, not_frequently, not_frequently],
+    exact λ h, hb.mp (h.mono (λ a hbx hba hax, hbx (hba.trans hax))), },
+  exact hbx.exists.some_spec,
+end
+
+lemma le_limsup_of_frequently_le' {α β} [complete_lattice β]
+  {f : filter α} {u : α → β} {x : β} (h : ∃ᶠ a in f, x ≤ u a) :
+  x ≤ f.limsup u :=
+@liminf_le_of_frequently_le' _ (order_dual β) _ _ _ _ h
 
 end complete_lattice
 
@@ -416,12 +445,86 @@ end
 lemma eventually_lt_of_limsup_lt {f : filter α} [conditionally_complete_linear_order β]
   {u : α → β} {b : β} (h : limsup f u < b) (hu : f.is_bounded_under (≤) u . is_bounded_default) :
   ∀ᶠ a in f, u a < b :=
+@eventually_lt_of_lt_liminf _ (order_dual β) _ _ _ _ h hu
+
+lemma le_limsup_of_frequently_le {α β} [conditionally_complete_linear_order β] {f : filter α}
+  {u : α → β}  {b : β} (hu_le : ∃ᶠ x in f, b ≤ u x)
+  (hu : f.is_bounded_under (≤) u . is_bounded_default) :
+  b ≤ f.limsup u :=
 begin
-  obtain ⟨c, hc, hbc⟩ : ∃ (c : β) (hc : c ∈ {c : β | ∀ᶠ (n : α) in f, u n ≤ c}), c < b :=
-    exists_lt_of_cInf_lt hu h,
-  exact hc.mono (λ x hx, lt_of_le_of_lt hx hbc)
+  revert hu_le,
+  rw [←not_imp_not, not_frequently],
+  simp_rw ←lt_iff_not_ge,
+  exact λ h, eventually_lt_of_limsup_lt h hu,
 end
+
+lemma liminf_le_of_frequently_le  {α β} [conditionally_complete_linear_order β] {f : filter α}
+  {u : α → β}  {b : β} (hu_le : ∃ᶠ x in f, u x ≤ b)
+  (hu : f.is_bounded_under (≥) u . is_bounded_default) :
+  f.liminf u ≤ b :=
+@le_limsup_of_frequently_le _ (order_dual β) _ f u b hu_le hu
+
+lemma frequently_lt_of_lt_limsup {α β} [conditionally_complete_linear_order β] {f : filter α}
+  {u : α → β}  {b : β}
+  (hu : f.is_cobounded_under (≤) u . is_bounded_default) (h : b < f.limsup u) :
+  ∃ᶠ x in f, b < u x :=
+begin
+  contrapose! h,
+  apply Limsup_le_of_le hu,
+  simpa using h,
+end
+
+lemma frequently_lt_of_liminf_lt {α β} [conditionally_complete_linear_order β] {f : filter α}
+  {u : α → β}  {b : β}
+  (hu : f.is_cobounded_under (≥) u . is_bounded_default) (h : f.liminf u < b) :
+  ∃ᶠ x in f, u x < b :=
+@frequently_lt_of_lt_limsup _ (order_dual β) _ f u b hu h
 
 end conditionally_complete_linear_order
 
 end filter
+
+section order
+open filter
+
+lemma galois_connection.l_limsup_le {α β γ} [conditionally_complete_lattice β]
+  [conditionally_complete_lattice γ] {f : filter α} {v : α → β}
+  {l : β → γ} {u : γ → β} (gc : galois_connection l u)
+  (hlv : f.is_bounded_under (≤) (λ x, l (v x)) . is_bounded_default)
+  (hv_co : f.is_cobounded_under (≤) v . is_bounded_default) :
+  l (f.limsup v) ≤ f.limsup (λ x, l (v x)) :=
+begin
+  refine le_Limsup_of_le hlv (λ c hc, _),
+  rw filter.eventually_map at hc,
+  simp_rw (gc _ _) at hc ⊢,
+  exact Limsup_le_of_le hv_co hc,
+end
+
+lemma order_iso.limsup_apply {γ} [conditionally_complete_lattice β]
+  [conditionally_complete_lattice γ] {f : filter α} {u : α → β} (g : β ≃o γ)
+  (hu : f.is_bounded_under (≤) u . is_bounded_default)
+  (hu_co : f.is_cobounded_under (≤) u . is_bounded_default)
+  (hgu : f.is_bounded_under (≤) (λ x, g (u x)) . is_bounded_default)
+  (hgu_co : f.is_cobounded_under (≤) (λ x, g (u x)) . is_bounded_default) :
+  g (f.limsup u) = f.limsup (λ x, g (u x)) :=
+begin
+  refine le_antisymm (g.to_galois_connection.l_limsup_le hgu hu_co) _,
+  rw [←(g.symm.symm_apply_apply (f.limsup (λ (x : α), g (u x)))), g.symm_symm],
+  refine g.monotone _,
+  have hf : u = λ i, g.symm (g (u i)), from funext (λ i, (g.symm_apply_apply (u i)).symm),
+  nth_rewrite 0 hf,
+  refine g.symm.to_galois_connection.l_limsup_le _ hgu_co,
+  simp_rw g.symm_apply_apply,
+  exact hu,
+end
+
+lemma order_iso.liminf_apply {γ} [conditionally_complete_lattice β]
+  [conditionally_complete_lattice γ] {f : filter α} {u : α → β} (g : β ≃o γ)
+  (hu : f.is_bounded_under (≥) u . is_bounded_default)
+  (hu_co : f.is_cobounded_under (≥) u . is_bounded_default)
+  (hgu : f.is_bounded_under (≥) (λ x, g (u x)) . is_bounded_default)
+  (hgu_co : f.is_cobounded_under (≥) (λ x, g (u x)) . is_bounded_default) :
+  g (f.liminf u) = f.liminf (λ x, g (u x)) :=
+@order_iso.limsup_apply α (order_dual β) (order_dual γ) _ _ f u g.dual hu hu_co hgu hgu_co
+
+end order

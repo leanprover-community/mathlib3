@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Robert Y. Lewis, Gabriel Ebner
+Authors: Robert Y. Lewis, Gabriel Ebner
 -/
 
 import tactic.lint
@@ -87,6 +87,6 @@ let results := (do
   (linter_name, linter, decls) ← results₀,
   [(linter_name, linter, (nolint_file.find linter_name).foldl rb_map.erase decls)]),
 io.print $ to_string $ format_linter_results env results decls non_auto_decls
-  mathlib_path_len "in mathlib" tt tt,
+  mathlib_path_len "in mathlib" tt lint_verbosity.medium linters.length,
 io.write_file "nolints.txt" $ to_string $ mk_nolint_file env mathlib_path_len results₀,
 if results.all (λ r, r.2.2.empty) then pure () else io.fail ""

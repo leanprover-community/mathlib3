@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury G. Kudryashov
+Authors: Yury G. Kudryashov
 -/
 import order.conditionally_complete_lattice
 import logic.function.conjugate
@@ -29,7 +29,7 @@ homeomorphisms of the circle, so in order to apply results from this file one ha
 homeomorphisms to the real line first.
 -/
 
-variables {α : Type*} {β : Type*}
+variables {α β γ : Type*}
 
 open set
 
@@ -44,19 +44,38 @@ lemma is_order_right_adjoint_Sup [complete_lattice α] [preorder β] (f : α →
 λ y, is_lub_Sup _
 
 lemma is_order_right_adjoint_cSup [conditionally_complete_lattice α] [preorder β] (f : α → β)
-  (hne : ∀ y, ∃ x, f x ≤ y) (hbdd : ∀ y, ∃ b, ∀ x, f x ≤ y → x ≤ b) :
+  (hne : ∀ y, ∃ x, f x ≤ y) (hbdd : ∀ y, bdd_above {x | f x ≤ y}) :
   is_order_right_adjoint f (λ y, Sup {x | f x ≤ y}) :=
 λ y, is_lub_cSup (hne y) (hbdd y)
 
-lemma is_order_right_adjoint.unique [partial_order α] [preorder β] {f : α → β} {g₁ g₂ : β → α}
+namespace is_order_right_adjoint
+
+protected lemma unique [partial_order α] [preorder β] {f : α → β} {g₁ g₂ : β → α}
   (h₁ : is_order_right_adjoint f g₁) (h₂ : is_order_right_adjoint f g₂) :
   g₁ = g₂ :=
 funext $ λ y, (h₁ y).unique (h₂ y)
 
-lemma is_order_right_adjoint.right_mono [preorder α] [preorder β] {f : α → β} {g : β → α}
+lemma right_mono [preorder α] [preorder β] {f : α → β} {g : β → α}
   (h : is_order_right_adjoint f g) :
   monotone g :=
 λ y₁ y₂ hy, (h y₁).mono (h y₂) $ λ x hx, le_trans hx hy
+
+lemma order_iso_comp [preorder α] [preorder β] [preorder γ] {f : α → β} {g : β → α}
+  (h : is_order_right_adjoint f g) (e : β ≃o γ) :
+  is_order_right_adjoint (e ∘ f) (g ∘ e.symm) :=
+λ y, by simpa [e.le_symm_apply] using h (e.symm y)
+
+lemma comp_order_iso [preorder α] [preorder β] [preorder γ] {f : α → β} {g : β → α}
+  (h : is_order_right_adjoint f g) (e : γ ≃o α) :
+  is_order_right_adjoint (f ∘ e) (e.symm ∘ g) :=
+begin
+  intro y,
+  change is_lub (e ⁻¹' {x | f x ≤ y}) (e.symm (g y)),
+  rw [e.is_lub_preimage, e.apply_symm_apply],
+  exact h y
+end
+
+end is_order_right_adjoint
 
 namespace function
 
@@ -67,20 +86,20 @@ semiconjugate to `fa` by `g'`.
 This is a version of Proposition 2.1 from [Étienne Ghys, Groupes d'homeomorphismes du cercle et
 cohomologie bornee][ghys87:groupes]. -/
 lemma semiconj.symm_adjoint [partial_order α] [preorder β]
-  {fa : ((≤) : α → α → Prop) ≃o ((≤) : α → α → Prop)}
-  {fb : ((≤) : β → β → Prop) ≼o ((≤) : β → β → Prop)} {g : α → β}
+  {fa : α ≃o α}
+  {fb : β ↪o β} {g : α → β}
   (h : function.semiconj g fa fb) {g' : β → α} (hg' : is_order_right_adjoint g g') :
   function.semiconj g' fb fa :=
 begin
   refine λ y, (hg' _).unique _,
-  rw [← @image_preimage_eq _ _ _ {x | g x ≤ fb y} fa.surjective, preimage_set_of_eq],
-  simp only [h.eq, ← fb.ord, fa.left_ord_continuous (hg' _)]
+  rw [← fa.surjective.image_preimage {x | g x ≤ fb y}, preimage_set_of_eq],
+  simp only [h.eq, fb.le_iff_le, fa.left_ord_continuous (hg' _)]
 end
 
 variable {G : Type*}
 
 lemma semiconj_of_is_lub [partial_order α] [group G]
-  (f₁ f₂ : G →* ((≤) : α → α → Prop) ≃o ((≤) : α → α → Prop)) {h : α → α}
+  (f₁ f₂ : G →* (α ≃o α)) {h : α → α}
   (H : ∀ x, is_lub (range (λ g', (f₁ g')⁻¹ (f₂ g' x))) (h x)) (g : G) :
   function.semiconj h (f₂ g) (f₁ g) :=
 begin
@@ -96,7 +115,7 @@ isomorphisms. Then the map `x ↦ ⨆ g : G, (f₁ g)⁻¹ (f₂ g x)` semiconju
 This is a version of Proposition 5.4 from [Étienne Ghys, Groupes d'homeomorphismes du cercle et
 cohomologie bornee][ghys87:groupes]. -/
 lemma Sup_div_semiconj [complete_lattice α] [group G]
-  (f₁ f₂ : G →* ((≤) : α → α → Prop) ≃o ((≤) : α → α → Prop)) (g : G) :
+  (f₁ f₂ : G →* (α ≃o α)) (g : G) :
   function.semiconj (λ x, ⨆ g' : G, (f₁ g')⁻¹ (f₂ g' x)) (f₂ g) (f₁ g) :=
 semiconj_of_is_lub f₁ f₂ (λ x, is_lub_supr) _
 
@@ -107,7 +126,7 @@ Then the map `x ↦ Sup s(x)` semiconjugates each `f₁ g'` to `f₂ g'`.
 This is a version of Proposition 5.4 from [Étienne Ghys, Groupes d'homeomorphismes du cercle et
 cohomologie bornee][ghys87:groupes]. -/
 lemma cSup_div_semiconj [conditionally_complete_lattice α] [group G]
-  (f₁ f₂ : G →* ((≤) : α → α → Prop) ≃o ((≤) : α → α → Prop))
+  (f₁ f₂ : G →* (α ≃o α))
   (hbdd : ∀ x, bdd_above (range $ λ g, (f₁ g)⁻¹ (f₂ g x))) (g : G) :
   function.semiconj (λ x, ⨆ g' : G, (f₁ g')⁻¹ (f₂ g' x)) (f₂ g) (f₁ g) :=
 semiconj_of_is_lub f₁ f₂ (λ x, is_lub_cSup (range_nonempty _) (hbdd x)) _

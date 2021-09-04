@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
 import tactic.monotonicity.basic
 import control.traversable
@@ -132,7 +132,7 @@ meta def match_ac'
  | es [] := do
 return ([],es,[])
 
-meta def match_ac (unif : bool) (l : list expr) (r : list expr)
+meta def match_ac (l : list expr) (r : list expr)
 : tactic (list expr × list expr × list expr) :=
 do (s',l',r') ← match_ac' l r,
    s' ← mmap instantiate_mvars s',
@@ -213,7 +213,7 @@ do (full_f,ls,rs) ← same_function l r,
    if a
    then if c
    then do
-     (s,ls,rs) ← monad.join (match_ac tt
+     (s,ls,rs) ← monad.join (match_ac
                    <$> parse_assoc_chain f l
                    <*> parse_assoc_chain f r),
      (l',l_id) ← fold_assoc f i ls,
@@ -353,6 +353,8 @@ end
 meta def match_rule (pat : expr) (r : name) : tactic expr :=
 do  r' ← mk_const r,
     t  ← infer_type r',
+    t  ← expr.dsimp t { fail_if_unchanged := ff } tt [] [
+      simp_arg_type.expr ``(monotone), simp_arg_type.expr ``(strict_mono)],
     match_rule_head pat [] r' t
 
 meta def find_lemma (pat : expr) : list name → tactic (list expr)
@@ -406,8 +408,8 @@ do tgt ← target,
    t ← infer_type v,
    tgt' ← do {
      ⟨tgt', _⟩ ← solve_aux tgt (tactic.generalize v x >> target),
-     to_expr ``(λ y : %%t, Π x, y = x → %%(tgt'.binding_body.lift_vars 0 1))
-     } <|> to_expr ``(λ y : %%t, Π x, %%v = x → %%tgt),
+     to_expr ``(λ y : %%t, Π x, y = x → %%(tgt'.binding_body.lift_vars 0 1)) }
+   <|> to_expr ``(λ y : %%t, Π x, %%v = x → %%tgt),
    t ← head_beta (tgt' v) >>= assert h,
    swap,
    r ← mk_eq_refl v,
@@ -439,7 +441,7 @@ do gs ← get_goals,
    tac, done,
    set_goals $ gs
 
-def list.minimum_on {α β} [decidable_linear_order β] (f : α → β) : list α → list α
+def list.minimum_on {α β} [linear_order β] (f : α → β) : list α → list α
 | [] := []
 | (x :: xs) := prod.snd $ xs.foldl (λ ⟨k,a⟩ b,
      let k' := f b in
@@ -467,7 +469,7 @@ do t ← target,
         fail format!"ambiguous match: {msg}\n\nTip: try asserting a side condition to distinguish between the lemmas"
    end
 
-meta def mono_aux (dir : parse side) (cfg : mono_cfg := { mono_cfg . }) :
+meta def mono_aux (dir : parse side) :
   tactic unit :=
 do t ← target >>= instantiate_mvars,
    ns ← get_monotonicity_lemmas t dir,
@@ -521,15 +523,14 @@ by mono*
 meta def mono (many : parse (tk "*")?)
   (dir : parse side)
   (hyps : parse $ tk "with" *> pexpr_list_or_texpr <|> pure [])
-  (simp_rules : parse $ tk "using" *> simp_arg_list <|> pure [])
-  (cfg : mono_cfg := { mono_cfg . }) :
+  (simp_rules : parse $ tk "using" *> simp_arg_list <|> pure []) :
   tactic unit :=
 do hyps ← hyps.mmap (λ p, to_expr p >>= mk_meta_var),
    hyps.mmap' (λ pr, do h ← get_unused_name `h, note h none pr),
-   when (¬ simp_rules.empty) (simp_core { } failed tt simp_rules [] (loc.ns [none])),
+   when (¬ simp_rules.empty) (simp_core { } failed tt simp_rules [] (loc.ns [none]) >> skip),
    if many.is_some
-     then repeat $ mono_aux dir cfg
-     else mono_aux dir cfg,
+     then repeat $ mono_aux dir
+     else mono_aux dir,
    gs ← get_goals,
    set_goals $ hyps ++ gs
 
@@ -549,7 +550,7 @@ associative operator and if the operator is commutative
 meta def ac_mono_aux (cfg : mono_cfg := { mono_cfg . }) :
   tactic unit :=
 hide_meta_vars $ λ asms,
-do try `[dunfold has_sub.sub algebra.sub int.sub],
+do try `[simp only [sub_eq_add_neg]],
    tgt ← target >>= instantiate_mvars,
    (l,r,id_rs,g) ← ac_monotonicity_goal cfg tgt
              <|> fail "monotonic context not found",
@@ -618,9 +619,9 @@ monotonic function `f` to `x ≺ y`.
 `ac_mono^k`, for some literal number `k` applies monotonicity `k`
 times.
 
-`ac_mono h`, with `h` a hypothesis, unwraps monotonic functions and
+`ac_mono := h`, with `h` a hypothesis, unwraps monotonic functions and
 uses `h` to solve the remaining goal. Can be combined with `*` or `^k`:
-`ac_mono* h`
+`ac_mono* := h`
 
 `ac_mono : p` asserts `p` and uses it to discharge the goal result
 unwrapping a series of monotonic functions. Can be combined with * or
@@ -650,7 +651,7 @@ end
 ```
 
 As with `mono*`, `ac_mono*` solves the goal in one go and so does
-`ac_mono* h₁`. The latter syntax becomes especially interesting in the
+`ac_mono* := h₁`. The latter syntax becomes especially interesting in the
 following example:
 
 ```lean
@@ -658,7 +659,7 @@ example (x y z k m n : ℕ)
   (h₀ : z ≥ 0)
   (h₁ : m + x + n ≤ y + n + m) :
   (m + x + n) * z + k ≤ z * (y + n + m) + k :=
-by ac_mono* h₁.
+by ac_mono* := h₁.
 ```
 
 By giving `ac_mono` the assumption `h₁`, we are asking `ac_refl` to
@@ -676,7 +677,7 @@ do h ← i_to_expr t >>= assert `h,
    tactic.swap,
    focus1 $ repeat_or_not rep (ac_mono_aux opt) (some $ done <|> ac_refine h)
 /-
-TODO(Simon): with `ac_mono h` and `ac_mono : p` split the remaining
+TODO(Simon): with `ac_mono := h` and `ac_mono : p` split the remaining
   gaol if the provided rule does not solve it completely.
 -/
 

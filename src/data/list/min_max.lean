@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Minchao Wu, Chris Hughes
 -/
 import data.list.basic
-/-
+/-!
 # Minimum and maximum of lists
 
 ## Main definitions
@@ -19,7 +19,7 @@ The main definitions are `argmax`, `argmin`, `minimum` and `maximum` for lists.
 `[]`
 -/
 namespace list
-variables {α : Type*} {β : Type*} [decidable_linear_order β]
+variables {α : Type*} {β : Type*} [linear_order β]
 
 /-- Auxiliary definition to define `argmax` -/
 def argmax₂ (f : α → β) (a : option α) (b : α) : option α :=
@@ -193,7 +193,7 @@ theorem argmin_eq_some_iff [decidable_eq α] {f : α → β} {m : α} {l : list 
   argmin f l = some m ↔ m ∈ l ∧ (∀ a ∈ l, f m ≤ f a) ∧
     (∀ a ∈ l, f a ≤ f m → l.index_of m ≤ l.index_of a) := mem_argmin_iff
 
-variable [decidable_linear_order α]
+variable [linear_order α]
 
 /-- `maximum l` returns an `with_bot α`, the largest element of `l` for nonempty lists, and `⊥` for
 `[]`  -/
@@ -237,22 +237,23 @@ theorem le_minimum_of_mem' {a : α} {l : list α} (ha : a ∈ l) : minimum l ≤
 theorem maximum_concat (a : α) (l : list α) : maximum (l ++ [a]) = max (maximum l) a :=
 begin
   rw max_comm,
-  simp only [maximum, argmax_concat, id, max],
+  simp only [maximum, argmax_concat, id],
   cases h : argmax id l,
-  { rw [if_neg], refl, exact not_le_of_gt (with_bot.bot_lt_some _) },
+  { rw [max_eq_left], refl, exact bot_le },
   change (coe : α → with_bot α) with some,
-  simp
+  rw [max_comm],
+  simp [max]
 end
 
 theorem minimum_concat (a : α) (l : list α) : minimum (l ++ [a]) = min (minimum l) a :=
-by simp only [min_comm _ (a : with_top α)]; exact @maximum_concat (order_dual α) _ _ _
+@maximum_concat (order_dual α) _ _ _
 
 theorem maximum_cons (a : α) (l : list α) : maximum (a :: l) = max a (maximum l) :=
 list.reverse_rec_on l (by simp [@max_eq_left (with_bot α) _ _ _ bot_le])
   (λ tl hd ih, by rw [← cons_append, maximum_concat, ih, maximum_concat, max_assoc])
 
 theorem minimum_cons (a : α) (l : list α) : minimum (a :: l) = min a (minimum l) :=
-min_comm (minimum l) a ▸ @maximum_cons (order_dual α) _ _ _
+@maximum_cons (order_dual α) _ _ _
 
 theorem maximum_eq_coe_iff {m : α} {l : list α} :
   maximum l = m ↔ m ∈ l ∧ (∀ a ∈ l, a ≤ m) :=
@@ -269,5 +270,53 @@ end
 theorem minimum_eq_coe_iff {m : α} {l : list α} :
   minimum l = m ↔ m ∈ l ∧ (∀ a ∈ l, m ≤ a) :=
 @maximum_eq_coe_iff (order_dual α) _ _ _
+
+section fold
+
+variables {M : Type*} [canonically_linear_ordered_add_monoid M]
+
+/-! Note: since there is no typeclass for both `linear_order` and `has_top`, nor a typeclass dual
+to `canonically_linear_ordered_add_monoid α` we cannot express these lemmas generally for
+`minimum`; instead we are limited to doing so on `order_dual α`. -/
+
+lemma maximum_eq_coe_foldr_max_of_ne_nil (l : list M) (h : l ≠ []) :
+  l.maximum = (l.foldr max ⊥ : M) :=
+begin
+  induction l with hd tl IH,
+  { contradiction },
+  { rw [maximum_cons, foldr, with_bot.coe_max],
+    by_cases h : tl = [],
+    { simp [h, -with_top.coe_zero] },
+    { simp [IH h] } }
+end
+
+lemma minimum_eq_coe_foldr_min_of_ne_nil (l : list (order_dual M)) (h : l ≠ []) :
+  l.minimum = (l.foldr min ⊤ : order_dual M) :=
+maximum_eq_coe_foldr_max_of_ne_nil l h
+
+lemma maximum_nat_eq_coe_foldr_max_of_ne_nil (l : list ℕ) (h : l ≠ []) :
+  l.maximum = (l.foldr max 0 : ℕ) :=
+maximum_eq_coe_foldr_max_of_ne_nil l h
+
+lemma max_le_of_forall_le (l : list M) (n : M) (h : ∀ (x ∈ l), x ≤ n) :
+  l.foldr max ⊥ ≤ n :=
+begin
+  induction l with y l IH,
+  { simp },
+  { specialize IH (λ x hx, h x (mem_cons_of_mem _ hx)),
+    have hy : y ≤ n := h y (mem_cons_self _ _),
+    simpa [hy] using IH }
+end
+
+lemma le_min_of_le_forall (l : list (order_dual M)) (n : (order_dual M))
+  (h : ∀ (x ∈ l), n ≤ x) :
+  n ≤ l.foldr min ⊤ :=
+max_le_of_forall_le l n h
+
+lemma max_nat_le_of_forall_le (l : list ℕ) (n : ℕ) (h : ∀ (x ∈ l), x ≤ n) :
+  l.foldr max 0 ≤ n :=
+max_le_of_forall_le l n h
+
+end fold
 
 end list

@@ -27,7 +27,8 @@ It's probably best not to adjust it without understanding the algorithm used by 
 
 attribute [transport_simps]
   eq_rec_constant
-  eq_mpr_rfl
+  eq_mp_eq_cast
+  cast_eq
   equiv.to_fun_as_coe
   equiv.arrow_congr'_apply
   equiv.symm_apply_apply
@@ -73,7 +74,7 @@ do
       -- The goal probably has messy expressions produced by `equiv_rw` acting on early data fields,
       -- so we clean up a little.
       try unfold_projs_target,
-      `[simp only [] with transport_simps],
+      `[simp only with transport_simps],
       -- If the field is an equation in `β`, try to use injectivity of the equivalence
       -- to turn it into an equation in `α`.
       -- (If the left hand side of the equation involved an operation we've already transported,
@@ -122,6 +123,12 @@ do
   end,
   e ← to_expr e,
   tactic.transport s e
+
+add_tactic_doc
+{ name        := "transport",
+  category    := doc_category.tactic,
+  decl_names  := [`tactic.interactive.transport],
+  tags        := ["rewriting", "equiv", "transport"] }
 
 end interactive
 

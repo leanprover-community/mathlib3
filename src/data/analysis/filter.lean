@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 
 Computational realization of filters (experimental).
 -/
-import order.filter.basic
+import order.filter.cofinite
 open set filter
 
 /-- A `cfilter α σ` is a realization of a filter (base) on `α`,
@@ -76,18 +76,19 @@ def of_eq {f g : filter α} (e : f = g) (F : f.realizer) : g.realizer :=
 /-- A filter realizes itself. -/
 def of_filter (f : filter α) : f.realizer := ⟨f.sets,
 { f            := subtype.val,
-  pt           := ⟨univ, univ_mem_sets⟩,
-  inf          := λ ⟨x, h₁⟩ ⟨y, h₂⟩, ⟨_, inter_mem_sets h₁ h₂⟩,
+  pt           := ⟨univ, univ_mem⟩,
+  inf          := λ ⟨x, h₁⟩ ⟨y, h₂⟩, ⟨_, inter_mem h₁ h₂⟩,
   inf_le_left  := λ ⟨x, h₁⟩ ⟨y, h₂⟩, inter_subset_left x y,
   inf_le_right := λ ⟨x, h₁⟩ ⟨y, h₂⟩, inter_subset_right x y },
-filter_eq $ set.ext $ λ x, set_coe.exists.trans exists_sets_subset_iff⟩
+filter_eq $ set.ext $ λ x, set_coe.exists.trans exists_mem_subset_iff⟩
 
 /-- Transfer a filter realizer to another realizer on a different base type. -/
 def of_equiv {f : filter α} (F : f.realizer) (E : F.σ ≃ τ) : f.realizer :=
 ⟨τ, F.F.of_equiv E, by refine eq.trans _ F.eq; exact filter_eq (set.ext $ λ x,
 ⟨λ ⟨s, h⟩, ⟨E.symm s, by simpa using h⟩, λ ⟨t, h⟩, ⟨E t, by simp [h]⟩⟩)⟩
 
-@[simp] theorem of_equiv_σ {f : filter α} (F : f.realizer) (E : F.σ ≃ τ) : (F.of_equiv E).σ = τ := rfl
+@[simp] theorem of_equiv_σ {f : filter α} (F : f.realizer) (E : F.σ ≃ τ) :
+  (F.of_equiv E).σ = τ := rfl
 @[simp] theorem of_equiv_F {f : filter α} (F : f.realizer) (E : F.σ ≃ τ) (s : τ) :
   (F.of_equiv E).F s = F.F (E.symm s) := by delta of_equiv; simp
 
@@ -125,8 +126,7 @@ protected def map (m : α → β) {f : filter α} (F : f.realizer) : (map m f).r
   inf          := F.F.inf,
   inf_le_left  := λ a b, image_subset _ (F.F.inf_le_left _ _),
   inf_le_right := λ a b, image_subset _ (F.F.inf_le_right _ _) },
-filter_eq $ set.ext $ λ x, by simp [cfilter.to_filter]; rw F.mem_sets; exact
-exists_congr (λ s, image_subset_iff)⟩
+filter_eq $ set.ext $ λ x, by simp [cfilter.to_filter]; rw F.mem_sets; refl ⟩
 
 @[simp] theorem map_σ (m : α → β) {f : filter α} (F : f.realizer) : (F.map m).σ = F.σ := rfl
 @[simp] theorem map_F (m : α → β) {f : filter α} (F : f.realizer) (s) :
@@ -139,32 +139,44 @@ protected def comap (m : α → β) {f : filter β} (F : f.realizer) : (comap m 
   inf          := F.F.inf,
   inf_le_left  := λ a b, preimage_mono (F.F.inf_le_left _ _),
   inf_le_right := λ a b, preimage_mono (F.F.inf_le_right _ _) },
-filter_eq $ set.ext $ λ x, by cases F; subst f; simp [cfilter.to_filter, mem_comap_sets]; exact
+filter_eq $ set.ext $ λ x, by cases F; subst f; simp [cfilter.to_filter, mem_comap]; exact
 ⟨λ ⟨s, h⟩, ⟨_, ⟨s, subset.refl _⟩, h⟩,
  λ ⟨y, ⟨s, h⟩, h₂⟩, ⟨s, subset.trans (preimage_mono h) h₂⟩⟩⟩
 
 /-- Construct a realizer for the sup of two filters -/
-protected def sup {f g : filter α} (F : f.realizer) (G : g.realizer) : (f ⊔ g).realizer := ⟨F.σ × G.σ,
+protected def sup {f g : filter α} (F : f.realizer) (G : g.realizer) :
+  (f ⊔ g).realizer := ⟨F.σ × G.σ,
 { f            := λ ⟨s, t⟩, F.F s ∪ G.F t,
   pt           := (F.F.pt, G.F.pt),
   inf          := λ ⟨a, a'⟩ ⟨b, b'⟩, (F.F.inf a b, G.F.inf a' b'),
   inf_le_left  := λ ⟨a, a'⟩ ⟨b, b'⟩, union_subset_union (F.F.inf_le_left _ _) (G.F.inf_le_left _ _),
-  inf_le_right := λ ⟨a, a'⟩ ⟨b, b'⟩, union_subset_union (F.F.inf_le_right _ _) (G.F.inf_le_right _ _) },
+  inf_le_right := λ ⟨a, a'⟩ ⟨b, b'⟩, union_subset_union (F.F.inf_le_right _ _)
+                    (G.F.inf_le_right _ _) },
 filter_eq $ set.ext $ λ x, by cases F; cases G; substs f g; simp [cfilter.to_filter]; exact
 ⟨λ ⟨s, t, h⟩, ⟨⟨s, subset.trans (subset_union_left _ _) h⟩,
                ⟨t, subset.trans (subset_union_right _ _) h⟩⟩,
  λ ⟨⟨s, h₁⟩, ⟨t, h₂⟩⟩, ⟨s, t, union_subset h₁ h₂⟩⟩⟩
 
 /-- Construct a realizer for the inf of two filters -/
-protected def inf {f g : filter α} (F : f.realizer) (G : g.realizer) : (f ⊓ g).realizer := ⟨F.σ × G.σ,
+protected def inf {f g : filter α} (F : f.realizer) (G : g.realizer) :
+  (f ⊓ g).realizer := ⟨F.σ × G.σ,
 { f            := λ ⟨s, t⟩, F.F s ∩ G.F t,
   pt           := (F.F.pt, G.F.pt),
   inf          := λ ⟨a, a'⟩ ⟨b, b'⟩, (F.F.inf a b, G.F.inf a' b'),
   inf_le_left  := λ ⟨a, a'⟩ ⟨b, b'⟩, inter_subset_inter (F.F.inf_le_left _ _) (G.F.inf_le_left _ _),
-  inf_le_right := λ ⟨a, a'⟩ ⟨b, b'⟩, inter_subset_inter (F.F.inf_le_right _ _) (G.F.inf_le_right _ _) },
-filter_eq $ set.ext $ λ x, by cases F; cases G; substs f g; simp [cfilter.to_filter]; exact
-⟨λ ⟨s, t, h⟩, ⟨_, ⟨s, subset.refl _⟩, _, ⟨t, subset.refl _⟩, h⟩,
- λ ⟨y, ⟨s, h₁⟩, z, ⟨t, h₂⟩, h⟩, ⟨s, t, subset.trans (inter_subset_inter h₁ h₂) h⟩⟩⟩
+  inf_le_right := λ ⟨a, a'⟩ ⟨b, b'⟩, inter_subset_inter (F.F.inf_le_right _ _)
+                    (G.F.inf_le_right _ _) },
+ begin
+   ext x,
+   cases F; cases G; substs f g; simp [cfilter.to_filter],
+   split,
+   { rintro ⟨s : F_σ, t : G_σ, h⟩,
+     apply mem_inf_of_inter _ _ h,
+     use s,
+     use t, },
+   { rintros ⟨s, ⟨a, ha⟩, t, ⟨b, hb⟩, rfl⟩,
+     exact ⟨a, b, inter_subset_inter ha hb⟩ }
+ end⟩
 
 /-- Construct a realizer for the cofinite filter -/
 protected def cofinite [decidable_eq α] : (@cofinite α).realizer := ⟨finset α,
@@ -173,9 +185,9 @@ protected def cofinite [decidable_eq α] : (@cofinite α).realizer := ⟨finset 
   inf          := (∪),
   inf_le_left  := λ s t a, mt (finset.mem_union_left _),
   inf_le_right := λ s t a, mt (finset.mem_union_right _) },
-filter_eq $ set.ext $ λ x, by simp [cfilter.to_filter]; exactI
-⟨λ ⟨s, h⟩, finite_subset (finite_mem_finset s) (compl_subset_comm.1 h),
- λ ⟨fs⟩, ⟨(-x).to_finset, λ a (h : a ∉ (-x).to_finset),
+filter_eq $ set.ext $ λ x,
+⟨λ ⟨s, h⟩, s.finite_to_set.subset (compl_subset_comm.1 h),
+ λ ⟨fs⟩, by exactI ⟨xᶜ.to_finset, λ a (h : a ∉ xᶜ.to_finset),
   classical.by_contradiction $ λ h', h (mem_to_finset.2 h')⟩⟩⟩
 
 /-- Construct a realizer for filter bind -/
@@ -194,7 +206,8 @@ protected def bind {f : filter α} {m : α → filter β} (F : f.realizer) (G : 
     show (x ∈ ⋃ (i : α) (H : i ∈ F.F (F.F.inf a b)), _) →
           x ∈ ⋃ i (H : i ∈ F.F b), ((G i).F) (f' i H), by simp; exact
     λ i h₁ h₂, ⟨i, F.F.inf_le_right _ _ h₁, (G i).F.inf_le_right _ _ h₂⟩ },
-filter_eq $ set.ext $ λ x, by cases F with _ F _; subst f; simp [cfilter.to_filter, mem_bind_sets]; exact
+filter_eq $ set.ext $ λ x,
+by cases F with _ F _; subst f; simp [cfilter.to_filter, mem_bind]; exact
 ⟨λ ⟨s, f, h⟩, ⟨F s, ⟨s, subset.refl _⟩, λ i H, (G i).mem_sets.2
    ⟨f i H, λ a h', h ⟨_, ⟨i, rfl⟩, _, ⟨H, rfl⟩, h'⟩⟩⟩,
  λ ⟨y, ⟨s, h⟩, f⟩,
@@ -220,7 +233,8 @@ theorem le_iff {f g : filter α} (F : f.realizer) (G : g.realizer) :
  λ H x h, F.mem_sets.2 $
    let ⟨s, h₁⟩ := G.mem_sets.1 h, ⟨t, h₂⟩ := H s in ⟨t, subset.trans h₂ h₁⟩⟩
 
-theorem tendsto_iff (f : α → β) {l₁ : filter α} {l₂ : filter β} (L₁ : l₁.realizer) (L₂ : l₂.realizer) :
+theorem tendsto_iff (f : α → β) {l₁ : filter α} {l₂ : filter β} (L₁ : l₁.realizer)
+  (L₂ : l₂.realizer) :
   tendsto f l₁ l₂ ↔ ∀ b, ∃ a, ∀ x ∈ L₁.F a, f x ∈ L₂.F b :=
 (le_iff (L₁.map f) L₂).trans $ forall_congr $ λ b, exists_congr $ λ a, image_subset_iff
 

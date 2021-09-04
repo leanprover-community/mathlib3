@@ -63,12 +63,12 @@ intros; apply 𝒞.hom_ext;
 
 This instance generates the type-class problem `bundled_hom ?m` (which is why this is marked as
 `[nolint]`). Currently that is not a problem, as there are almost no instances of `bundled_hom`. -/
-@[nolint dangerous_instance] instance : concrete_category (bundled c) :=
+@[nolint dangerous_instance] instance : concrete_category.{u} (bundled c) :=
 { forget := { obj := λ X, X,
               map := λ X Y f, 𝒞.to_fun X.str Y.str f,
               map_id' := λ X, 𝒞.id_to_fun X.str,
               map_comp' := by intros; erw 𝒞.comp_to_fun; refl },
-  forget_faithful := { injectivity' := by intros; apply 𝒞.hom_ext } }
+  forget_faithful := { map_injective' := by intros; apply 𝒞.hom_ext } }
 
 variables {hom}
 local attribute [instance] concrete_category.has_coe_to_fun
@@ -127,10 +127,15 @@ instance bundled_hom_of_parent_projection (F : Π {α}, d α → c α) [parent_p
   bundled_hom (map_hom hom @F) :=
 map hom @F
 
-instance forget₂ (F : Π {α}, d α → c α) [parent_projection @F] : has_forget₂ (bundled d) (bundled c) :=
+instance forget₂ (F : Π {α}, d α → c α) [parent_projection @F] :
+  has_forget₂ (bundled d) (bundled c) :=
 { forget₂ :=
   { obj := λ X, ⟨X, F X.2⟩,
     map := λ X Y f, f } }
+
+instance forget₂_full (F : Π {α}, d α → c α) [parent_projection @F] :
+  full (forget₂ (bundled d) (bundled c)) :=
+{ preimage := λ X Y f, f }
 
 end bundled_hom
 

@@ -6,6 +6,8 @@ import tactic.norm_cast
 import data.complex.basic -- ℕ, ℤ, ℚ, ℝ, ℂ
 import data.real.ennreal
 
+open_locale ennreal
+
 constants (an bn cn dn : ℕ) (az bz cz dz : ℤ) (aq bq cq dq : ℚ)
 constants (ar br cr dr : ℝ) (ac bc cc dc : ℂ)
 
@@ -71,7 +73,7 @@ instance [has_mul α] : mul_zero_class (with_zero α) :=
 { mul       := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a * b)),
   zero_mul  := λ a, rfl,
   mul_zero  := λ a, by cases a; refl,
-  ..with_zero.has_zero }
+  ..hidden.with_zero.has_zero }
 
 @[norm_cast] lemma coe_one [has_one α] : ((1 : α) : with_zero α) = 1 := rfl
 
@@ -96,7 +98,7 @@ end
 example (k : ℕ) {x y : ℕ} (h : ((x + y + k : ℕ) : ℤ) = 0) : x + y + k = 0 :=
 begin
   push_cast at h,
-  guard_hyp h := (x : ℤ) + y + k = 0,
+  guard_hyp h : (x : ℤ) + y + k = 0,
   assumption_mod_cast
 end
 
@@ -113,10 +115,10 @@ example {x : ℚ} : ((x + 42 : ℚ) : ℝ) = x + 42 := by push_cast
 namespace ennreal
 
 --TODO: debug
-lemma half_lt_self_bis {a : ennreal} (hz : a ≠ 0) (ht : a ≠ ⊤) : a / 2 < a :=
+lemma half_lt_self_bis {a : ℝ≥0∞} (hz : a ≠ 0) (ht : a ≠ ⊤) : a / 2 < a :=
 begin
   lift a to nnreal using ht,
-  have h : (2 : ennreal) = ((2 : nnreal) : ennreal), from rfl,
+  have h : (2 : ℝ≥0∞) = ((2 : nnreal) : ℝ≥0∞), from rfl,
   have h' : (2 : nnreal) ≠ 0, from _root_.two_ne_zero',
   rw [h, ← coe_div h', coe_lt_coe], -- `norm_cast` fails to apply `coe_div`
   norm_cast at hz,
@@ -124,3 +126,10 @@ begin
 end
 
 end ennreal
+
+lemma b (h g : true) : true ∧ true :=
+begin
+ split,
+ assumption_mod_cast,
+ assumption_mod_cast,
+end

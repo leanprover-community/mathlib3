@@ -3,10 +3,8 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import data.fintype.basic
-import category_theory.limits.limits
-import category_theory.limits.shapes.finite_limits
-import category_theory.sparse
+import category_theory.limits.has_limits
+import category_theory.thin
 
 /-!
 # Wide pullbacks
@@ -30,6 +28,8 @@ universes v u
 
 open category_theory category_theory.limits
 
+namespace category_theory.limits
+
 variable (J : Type v)
 
 /-- A wide pullback shape for any type `J` can be written simply as `option J`. -/
@@ -41,9 +41,6 @@ def wide_pullback_shape := option J
 def wide_pushout_shape := option J
 
 namespace wide_pullback_shape
-
-instance fintype_obj [fintype J] : fintype (wide_pullback_shape J) :=
-by { rw wide_pullback_shape, apply_instance }
 
 variable {J}
 
@@ -70,28 +67,10 @@ instance hom.inhabited : inhabited (hom none none) := ⟨hom.id (none : wide_pul
 
 local attribute [tidy] tactic.case_bash
 
-instance fintype_hom [decidable_eq J] (j j' : wide_pullback_shape J) :
-  fintype (j ⟶ j') :=
-{ elems :=
-  begin
-    cases j',
-    { cases j,
-      { exact {hom.id none} },
-      { exact {hom.term j} } },
-    { by_cases some j' = j,
-      { rw h,
-        exact {hom.id j} },
-      { exact ∅ } }
-  end,
-  complete := by tidy }
-
 instance subsingleton_hom (j j' : wide_pullback_shape J) : subsingleton (j ⟶ j') :=
 ⟨by tidy⟩
 
-instance category : small_category (wide_pullback_shape J) := sparse_category
-
-instance fin_category [fintype J] [decidable_eq J] : fin_category (wide_pullback_shape J) :=
-{ fintype_hom := wide_pullback_shape.fintype_hom }
+instance category : small_category (wide_pullback_shape J) := thin_category
 
 @[simp] lemma hom_id (X : wide_pullback_shape J) : hom.id X = 𝟙 X := rfl
 
@@ -102,7 +81,8 @@ Construct a functor out of the wide pullback shape given a J-indexed collection 
 fixed object.
 -/
 @[simps]
-def wide_cospan (B : C) (objs : J → C) (arrows : Π (j : J), objs j ⟶ B) : wide_pullback_shape J ⥤ C :=
+def wide_cospan (B : C) (objs : J → C) (arrows : Π (j : J), objs j ⟶ B) :
+  wide_pullback_shape J ⥤ C :=
 { obj := λ j, option.cases_on j B objs,
   map := λ X Y f,
   begin
@@ -116,12 +96,22 @@ def diagram_iso_wide_cospan (F : wide_pullback_shape J ⥤ C) :
   F ≅ wide_cospan (F.obj none) (λ j, F.obj (some j)) (λ j, F.map (hom.term j)) :=
 nat_iso.of_components (λ j, eq_to_iso $ by tidy) $ by tidy
 
+/-- Construct a cone over a wide cospan. -/
+@[simps]
+def mk_cone {F : wide_pullback_shape J ⥤ C} {X : C}
+  (f : X ⟶ F.obj none) (π : Π j, X ⟶ F.obj (some j))
+  (w : ∀ j, π j ≫ F.map (hom.term j) = f) : cone F :=
+{ X := X,
+  π :=
+  { app := λ j, match j with
+    | none := f
+    | (some j) := π j
+    end,
+    naturality' := λ j j' f, by { cases j; cases j'; cases f; unfold_aux; dsimp; simp [w], }, } }
+
 end wide_pullback_shape
 
 namespace wide_pushout_shape
-
-instance fintype_obj [fintype J] : fintype (wide_pushout_shape J) :=
-by { rw wide_pushout_shape, apply_instance }
 
 variable {J}
 
@@ -148,28 +138,10 @@ instance hom.inhabited : inhabited (hom none none) := ⟨hom.id (none : wide_pus
 
 local attribute [tidy] tactic.case_bash
 
-instance fintype_hom [decidable_eq J] (j j' : wide_pushout_shape J) :
-  fintype (j ⟶ j') :=
-{ elems :=
-  begin
-    cases j,
-    { cases j',
-      { exact {hom.id none} },
-      { exact {hom.init j'} } },
-    { by_cases some j = j',
-      { rw h,
-        exact {hom.id j'} },
-      { exact ∅ } }
-  end,
-  complete := by tidy }
-
 instance subsingleton_hom (j j' : wide_pushout_shape J) : subsingleton (j ⟶ j') :=
 ⟨by tidy⟩
 
-instance category : small_category (wide_pushout_shape J) := sparse_category
-
-instance fin_category [fintype J] [decidable_eq J] : fin_category (wide_pushout_shape J) :=
-{ fintype_hom := wide_pushout_shape.fintype_hom }
+instance category : small_category (wide_pushout_shape J) := thin_category
 
 @[simp] lemma hom_id (X : wide_pushout_shape J) : hom.id X = 𝟙 X := rfl
 
@@ -194,36 +166,201 @@ def diagram_iso_wide_span (F : wide_pushout_shape J ⥤ C) :
   F ≅ wide_span (F.obj none) (λ j, F.obj (some j)) (λ j, F.map (hom.init j)) :=
 nat_iso.of_components (λ j, eq_to_iso $ by tidy) $ by tidy
 
+/-- Construct a cocone over a wide span. -/
+@[simps]
+def mk_cocone {F : wide_pushout_shape J ⥤ C} {X : C}
+  (f : F.obj none ⟶ X) (ι : Π j, F.obj (some j) ⟶ X)
+  (w : ∀ j, F.map (hom.init j) ≫ ι j = f) : cocone F :=
+{ X := X,
+  ι :=
+  { app := λ j, match j with
+    | none := f
+    | (some j) := ι j
+    end,
+    naturality' := λ j j' f, by { cases j; cases j'; cases f; unfold_aux; dsimp; simp [w], }, } }
+
 end wide_pushout_shape
 
 variables (C : Type u) [category.{v} C]
 
 /-- `has_wide_pullbacks` represents a choice of wide pullback for every collection of morphisms -/
-class has_wide_pullbacks :=
-(has_limits_of_shape : Π (J : Type v), has_limits_of_shape.{v} (wide_pullback_shape J) C)
-
-/-- `has_wide_pullbacks` represents a choice of wide pullback for every finite collection of morphisms -/
-class has_finite_wide_pullbacks :=
-(has_limits_of_shape : Π (J : Type v) [decidable_eq J] [fintype J], has_limits_of_shape.{v} (wide_pullback_shape J) C)
-
-/-- Finite wide pullbacks are finite limits, so if `C` has all finite limits, it also has finite wide pullbacks -/
-def has_finite_wide_pullbacks_of_has_finite_limits [has_finite_limits.{v} C] : has_finite_wide_pullbacks.{v} C :=
-{ has_limits_of_shape := λ J _ _, by exactI (has_finite_limits.has_limits_of_shape _) }
-
-attribute [instance] has_wide_pullbacks.has_limits_of_shape
-attribute [instance] has_finite_wide_pullbacks.has_limits_of_shape
+abbreviation has_wide_pullbacks : Prop :=
+Π (J : Type v), has_limits_of_shape (wide_pullback_shape J) C
 
 /-- `has_wide_pushouts` represents a choice of wide pushout for every collection of morphisms -/
-class has_wide_pushouts :=
-(has_limits_of_shape : Π (J : Type v), has_limits_of_shape.{v} (wide_pushout_shape J) C)
+abbreviation has_wide_pushouts : Prop :=
+Π (J : Type v), has_colimits_of_shape (wide_pushout_shape J) C
 
-/-- `has_wide_pushouts` represents a choice of wide pushout for every finite collection of morphisms -/
-class has_finite_wide_pushouts :=
-(has_limits_of_shape : Π (J : Type v) [decidable_eq J] [fintype J], has_limits_of_shape.{v} (wide_pushout_shape J) C)
+variables {C J}
 
-/-- Finite wide pushouts are finite limits, so if `C` has all finite limits, it also has finite wide pushouts -/
-def has_finite_wide_pushouts_of_has_finite_limits [has_finite_limits.{v} C] : has_finite_wide_pushouts.{v} C :=
-{ has_limits_of_shape := λ J _ _, by exactI (has_finite_limits.has_limits_of_shape _) }
+/-- `has_wide_pullback B objs arrows` means that `wide_cospan B objs arrows` has a limit. -/
+abbreviation has_wide_pullback (B : C) (objs : J → C)
+  (arrows : Π (j : J), objs j ⟶ B) : Prop :=
+has_limit (wide_pullback_shape.wide_cospan B objs arrows)
 
-attribute [instance] has_wide_pushouts.has_limits_of_shape
-attribute [instance] has_finite_wide_pushouts.has_limits_of_shape
+/-- `has_wide_pushout B objs arrows` means that `wide_span B objs arrows` has a colimit. -/
+abbreviation has_wide_pushout (B : C) (objs : J → C)
+  (arrows : Π (j : J), B ⟶ objs j) : Prop :=
+has_colimit (wide_pushout_shape.wide_span B objs arrows)
+
+/-- A choice of wide pullback. -/
+noncomputable
+abbreviation wide_pullback (B : C) (objs : J → C) (arrows : Π (j : J), objs j ⟶ B)
+  [has_wide_pullback B objs arrows] : C :=
+limit (wide_pullback_shape.wide_cospan B objs arrows)
+
+/-- A choice of wide pushout. -/
+noncomputable
+abbreviation wide_pushout (B : C) (objs : J → C) (arrows : Π (j : J), B ⟶ objs j)
+  [has_wide_pushout B objs arrows] : C :=
+colimit (wide_pushout_shape.wide_span B objs arrows)
+
+variable (C)
+
+namespace wide_pullback
+
+variables {C} {B : C} {objs : J → C} (arrows : Π (j : J), objs j ⟶ B)
+variables [has_wide_pullback B objs arrows]
+
+/-- The `j`-th projection from the pullback. -/
+noncomputable
+abbreviation π (j : J) : wide_pullback _ _ arrows ⟶ objs j :=
+limit.π (wide_pullback_shape.wide_cospan _ _ _) (option.some j)
+
+/-- The unique map to the base from the pullback. -/
+noncomputable
+abbreviation base : wide_pullback _ _ arrows ⟶ B :=
+limit.π (wide_pullback_shape.wide_cospan _ _ _) option.none
+
+@[simp, reassoc]
+lemma π_arrow (j : J) : π arrows j ≫ arrows _ = base arrows :=
+by apply limit.w (wide_pullback_shape.wide_cospan _ _ _) (wide_pullback_shape.hom.term j)
+
+variables {arrows}
+
+/-- Lift a collection of morphisms to a morphism to the pullback. -/
+noncomputable
+abbreviation lift {X : C} (f : X ⟶ B) (fs : Π (j : J), X ⟶ objs j)
+  (w : ∀ j, fs j ≫ arrows j = f) : X ⟶ wide_pullback _ _ arrows :=
+limit.lift (wide_pullback_shape.wide_cospan _ _ _)
+  (wide_pullback_shape.mk_cone f fs $ by exact w)
+
+variables (arrows)
+
+variables {X : C} (f : X ⟶ B) (fs : Π (j : J), X ⟶ objs j)
+  (w : ∀ j, fs j ≫ arrows j = f)
+
+@[simp, reassoc]
+lemma lift_π (j : J) : lift f fs w ≫ π arrows j = fs _ :=
+by { simp, refl }
+
+@[simp, reassoc]
+lemma lift_base : lift f fs w ≫ base arrows = f :=
+by { simp, refl }
+
+lemma eq_lift_of_comp_eq (g : X ⟶ wide_pullback _ _ arrows) :
+  (∀ j : J, g ≫ π arrows j = fs j) → g ≫ base arrows = f → g = lift f fs w :=
+begin
+  intros h1 h2,
+  apply (limit.is_limit (wide_pullback_shape.wide_cospan B objs arrows)).uniq
+    (wide_pullback_shape.mk_cone f fs $ by exact w),
+  rintro (_|_),
+  { apply h2 },
+  { apply h1 }
+end
+
+lemma hom_eq_lift (g : X ⟶ wide_pullback _ _ arrows) :
+  g = lift (g ≫ base arrows) (λ j, g ≫ π arrows j) (by tidy) :=
+begin
+  apply eq_lift_of_comp_eq,
+  tidy,
+end
+
+@[ext]
+lemma hom_ext (g1 g2 : X ⟶ wide_pullback _ _ arrows) :
+  (∀ j : J, g1 ≫ π arrows j = g2 ≫ π arrows j) →
+  g1 ≫ base arrows = g2 ≫ base arrows → g1 = g2 :=
+begin
+  intros h1 h2,
+  apply limit.hom_ext,
+  rintros (_|_),
+  { apply h2 },
+  { apply h1 },
+end
+
+end wide_pullback
+
+namespace wide_pushout
+
+variables {C} {B : C} {objs : J → C} (arrows : Π (j : J), B ⟶ objs j)
+variables [has_wide_pushout B objs arrows]
+
+/-- The `j`-th inclusion to the pushout. -/
+noncomputable
+abbreviation ι (j : J) : objs j ⟶ wide_pushout _ _ arrows :=
+colimit.ι (wide_pushout_shape.wide_span _ _ _) (option.some j)
+
+/-- The unique map from the head to the pushout. -/
+noncomputable
+abbreviation head : B ⟶ wide_pushout B objs arrows :=
+colimit.ι (wide_pushout_shape.wide_span _ _ _) option.none
+
+@[simp, reassoc]
+lemma arrow_ι (j : J) : arrows j ≫ ι arrows j = head arrows :=
+by apply colimit.w (wide_pushout_shape.wide_span _ _ _) (wide_pushout_shape.hom.init j)
+
+variables {arrows}
+
+/-- Descend a collection of morphisms to a morphism from the pushout. -/
+noncomputable
+abbreviation desc {X : C} (f : B ⟶ X) (fs : Π (j : J), objs j ⟶ X)
+  (w : ∀ j, arrows j ≫ fs j = f) : wide_pushout _ _ arrows ⟶ X :=
+colimit.desc (wide_pushout_shape.wide_span B objs arrows)
+  (wide_pushout_shape.mk_cocone f fs $ by exact w)
+
+variables (arrows)
+
+variables {X : C} (f : B ⟶ X) (fs : Π (j : J), objs j ⟶ X)
+  (w : ∀ j, arrows j ≫ fs j = f)
+
+@[simp, reassoc]
+lemma ι_desc (j : J) : ι arrows j ≫ desc f fs w = fs _ :=
+by { simp, refl }
+
+@[simp, reassoc]
+lemma head_desc : head arrows ≫ desc f fs w = f :=
+by { simp, refl }
+
+lemma eq_desc_of_comp_eq (g : wide_pushout _ _ arrows ⟶ X) :
+  (∀ j : J, ι arrows j ≫ g = fs j) → head arrows ≫ g = f → g = desc f fs w :=
+begin
+  intros h1 h2,
+  apply (colimit.is_colimit (wide_pushout_shape.wide_span B objs arrows)).uniq
+    (wide_pushout_shape.mk_cocone f fs $ by exact w),
+  rintro (_|_),
+  { apply h2 },
+  { apply h1 }
+end
+
+lemma hom_eq_desc (g : wide_pushout _ _ arrows ⟶ X) :
+  g = desc (head arrows ≫ g) (λ j, ι arrows j ≫ g) (λ j, by { rw ← category.assoc, simp }) :=
+begin
+  apply eq_desc_of_comp_eq,
+  tidy,
+end
+
+@[ext]
+lemma hom_ext (g1 g2 : wide_pushout _ _ arrows ⟶ X) :
+  (∀ j : J, ι arrows j ≫ g1 = ι arrows j ≫ g2) →
+  head arrows ≫ g1 = head arrows ≫ g2 → g1 = g2 :=
+begin
+  intros h1 h2,
+  apply colimit.hom_ext,
+  rintros (_|_),
+  { apply h2 },
+  { apply h1 },
+end
+
+end wide_pushout
+
+end category_theory.limits

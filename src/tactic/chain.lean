@@ -10,8 +10,8 @@ open interactive
 namespace tactic
 
 /-
-This file defines a `chain` tactic, which takes a list of tactics, and exhaustively tries to apply them
-to the goals, until no tactic succeeds on any goal.
+This file defines a `chain` tactic, which takes a list of tactics,
+and exhaustively tries to apply them to the goals, until no tactic succeeds on any goal.
 
 Along the way, it generates auxiliary declarations, in order to speed up elaboration time
 of the resulting (sometimes long!) proofs.
@@ -23,41 +23,14 @@ This tactic is used by the `tidy` tactic.
 -- describing what that tactic did as an interactive tactic.
 variable {α : Type}
 
-/-
-Because chain sometimes pauses work on the first goal and works on later goals, we need a method
-for combining a list of results generated while working on a later goal into a single result.
-This enables `tidy {trace_result := tt}` to output faithfully reproduces its operation, e.g.
-````
-intros,
-simp,
-apply lemma_1,
-work_on_goal 2 {
-  dsimp,
-  simp
-},
-refl
-````
--/
-
-namespace interactive
-open lean.parser
-meta def work_on_goal : parse small_nat → itactic → tactic unit
-| n t := do goals ← get_goals,
-            let earlier_goals := goals.take n,
-            let later_goals := goals.drop (n+1),
-            set_goals (goals.nth n).to_list,
-            t,
-            new_goals ← get_goals,
-            set_goals (earlier_goals ++ new_goals ++ later_goals)
-end interactive
-
 inductive tactic_script (α : Type) : Type
 | base : α → tactic_script
 | work (index : ℕ) (first : α) (later : list tactic_script) (closed : bool) : tactic_script
 
 meta def tactic_script.to_string : tactic_script string → string
 | (tactic_script.base a) := a
-| (tactic_script.work n a l c) := "work_on_goal " ++ (to_string n) ++ " { " ++ (", ".intercalate (a :: l.map tactic_script.to_string)) ++ " }"
+| (tactic_script.work n a l c) :=  "work_on_goal " ++ (to_string n) ++
+    " { " ++ (", ".intercalate (a :: l.map tactic_script.to_string)) ++ " }"
 
 meta instance : has_to_string (tactic_script string) :=
 { to_string := λ s, s.to_string }
@@ -112,7 +85,8 @@ with chain_iter : list expr → list expr → tactic (list (tactic_script α))
   l' ← chain_many current_goals,
   return (w :: l') } <|> chain_iter later_goals (g :: stuck_goals)
 
-meta def chain_core {α : Type} [has_to_string (tactic_script α)] (tactics : list (tactic α)) : tactic (list string) :=
+meta def chain_core {α : Type} [has_to_string (tactic_script α)] (tactics : list (tactic α)) :
+  tactic (list string) :=
 do results ← (get_goals >>= chain_many (first tactics)),
    when results.empty (fail "`chain` tactic made no progress"),
    return (results.map to_string)

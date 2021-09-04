@@ -1,11 +1,10 @@
 /-
 Copyright (c) 2020 Yury Kudryashov All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yury Kudryashov
+Authors: Yury Kudryashov, Frédéric Dupuis
 -/
-import linear_algebra.linear_pmap
 import analysis.convex.basic
-import order.zorn
+import analysis.normed_space.inner_product
 
 /-!
 # Convex cones
@@ -15,7 +14,13 @@ In a vector space `E` over `ℝ`, we define a convex cone as a subset `s` such t
 a `complete_lattice`, and define their images (`convex_cone.map`) and preimages
 (`convex_cone.comap`) under linear maps.
 
+We define pointed, blunt, flat and salient cones, and prove the correspondence between
+convex cones and ordered modules.
+
 We also define `convex.to_cone` to be the minimal cone that includes a given convex set.
+
+We define `set.inner_dual_cone` to be the cone consisting of all points `y` such that for
+all points `x` in a given set `0 ≤ ⟪ x, y ⟫`.
 
 ## Main statements
 
@@ -38,22 +43,20 @@ We prove two extension theorems:
 
 While `convex` is a predicate on sets, `convex_cone` is a bundled convex cone.
 
-## TODO
+## References
 
-* Define predicates `blunt`, `pointed`, `flat`, `sailent`, see
-  [Wikipedia](https://en.wikipedia.org/wiki/Convex_cone#Blunt,_pointed,_flat,_salient,_and_proper_cones)
+* https://en.wikipedia.org/wiki/Convex_cone
 
-* Define the dual cone.
 -/
 
 universes u v
 
 open set linear_map
-open_locale classical
+open_locale classical pointwise
 
-variables (E : Type*) [add_comm_group E] [vector_space ℝ E]
-  {F : Type*} [add_comm_group F] [vector_space ℝ F]
-  {G : Type*} [add_comm_group G] [vector_space ℝ G]
+variables (E : Type*) [add_comm_group E] [module ℝ E]
+  {F : Type*} [add_comm_group F] [module ℝ F]
+  {G : Type*} [add_comm_group G] [module ℝ G]
 
 /-!
 ### Definition of `convex_cone` and basic properties
@@ -153,7 +156,7 @@ instance : complete_lattice (convex_cone E) :=
   Sup_le       := λ s p hs x hx, mem_Inf.1 hx p hs,
   le_Inf       := λ s a ha x hx, mem_Inf.2 $ λ t ht, ha t ht hx,
   Inf_le       := λ s a ha x hx, mem_Inf.1 hx _ ha,
-  .. partial_order.lift (coe : convex_cone E → set E) (λ a b, ext') (by apply_instance) }
+  .. partial_order.lift (coe : convex_cone E → set E) (λ a b, ext') }
 
 instance : inhabited (convex_cone E) := ⟨⊥⟩
 
@@ -185,6 +188,127 @@ ext' $ preimage_comp.symm
 @[simp] lemma mem_comap {f : E →ₗ[ℝ] F} {S : convex_cone F} {x : E} :
   x ∈ S.comap f ↔ f x ∈ S := iff.rfl
 
+/--
+Constructs an ordered module given an `ordered_add_comm_group`, a cone, and a proof that
+the order relation is the one defined by the cone.
+-/
+lemma to_ordered_module {M : Type*} [ordered_add_comm_group M] [module ℝ M]
+  (S : convex_cone M) (h : ∀ x y : M, x ≤ y ↔ y - x ∈ S) : ordered_module ℝ M :=
+ordered_module.mk'
+begin
+  intros x y z xy hz,
+  rw [h (z • x) (z • y), ←smul_sub z y x],
+  exact smul_mem S hz ((h x y).mp (le_of_lt xy))
+end
+
+/-! ### Convex cones with extra properties -/
+
+/-- A convex cone is pointed if it includes 0. -/
+def pointed (S : convex_cone E) : Prop := (0 : E) ∈ S
+
+/-- A convex cone is blunt if it doesn't include 0. -/
+def blunt (S : convex_cone E) : Prop := (0 : E) ∉ S
+
+/-- A convex cone is flat if it contains some nonzero vector `x` and its opposite `-x`. -/
+def flat (S : convex_cone E) : Prop := ∃ x ∈ S, x ≠ (0 : E) ∧ -x ∈ S
+
+/-- A convex cone is salient if it doesn't include `x` and `-x` for any nonzero `x`. -/
+def salient (S : convex_cone E) : Prop := ∀ x ∈ S, x ≠ (0 : E) → -x ∉ S
+
+lemma pointed_iff_not_blunt (S : convex_cone E) : pointed S ↔ ¬blunt S :=
+⟨λ h₁ h₂, h₂ h₁, λ h, not_not.mp h⟩
+
+lemma salient_iff_not_flat (S : convex_cone E) : salient S ↔ ¬flat S :=
+begin
+  split,
+  { rintros h₁ ⟨x, xs, H₁, H₂⟩,
+    exact h₁ x xs H₁ H₂ },
+  { intro h,
+    unfold flat at h,
+    push_neg at h,
+    exact h }
+end
+
+/-- A blunt cone (one not containing 0) is always salient. -/
+lemma salient_of_blunt (S : convex_cone E) : blunt S → salient S :=
+begin
+  intro h₁,
+  rw [salient_iff_not_flat],
+  intro h₂,
+  obtain ⟨x, xs, H₁, H₂⟩ := h₂,
+  have hkey : (0 : E) ∈ S := by rw [(show 0 = x + (-x), by simp)]; exact add_mem S xs H₂,
+  exact h₁ hkey,
+end
+
+/-- A pointed convex cone defines a preorder. -/
+def to_preorder (S : convex_cone E) (h₁ : pointed S) : preorder E :=
+{ le := λ x y, y - x ∈ S,
+  le_refl := λ x, by change x - x ∈ S; rw [sub_self x]; exact h₁,
+  le_trans := λ x y z xy zy, by simp [(show z - x = z - y + (y - x), by abel), add_mem S zy xy] }
+
+/-- A pointed and salient cone defines a partial order. -/
+def to_partial_order (S : convex_cone E) (h₁ : pointed S) (h₂ : salient S) : partial_order E :=
+{ le_antisymm :=
+    begin
+      intros a b ab ba,
+      by_contradiction h,
+      have h' : b - a ≠ 0 := λ h'', h (eq_of_sub_eq_zero h'').symm,
+      have H := h₂ (b-a) ab h',
+      rw [neg_sub b a] at H,
+      exact H ba,
+    end,
+  ..to_preorder S h₁ }
+
+/-- A pointed and salient cone defines an `ordered_add_comm_group`. -/
+def to_ordered_add_comm_group (S : convex_cone E) (h₁ : pointed S) (h₂ : salient S) :
+  ordered_add_comm_group E :=
+{ add_le_add_left :=
+    begin
+      intros a b hab c,
+      change c + b - (c + a) ∈ S,
+      rw [add_sub_add_left_eq_sub],
+      exact hab,
+    end,
+  ..to_partial_order S h₁ h₂,
+  ..show add_comm_group E, by apply_instance }
+
+/-! ### Positive cone of an ordered module -/
+section positive_cone
+
+variables (M : Type*) [ordered_add_comm_group M] [module ℝ M] [ordered_module ℝ M]
+
+/--
+The positive cone is the convex cone formed by the set of nonnegative elements in an ordered
+module.
+-/
+def positive_cone : convex_cone M :=
+{ carrier := {x | 0 ≤ x},
+  smul_mem' :=
+    begin
+      intros c hc x hx,
+      have := smul_le_smul_of_nonneg (show 0 ≤ x, by exact hx) (le_of_lt hc),
+      have h' : c • (0 : M) = 0,
+      { simp only [smul_zero] },
+      rwa [h'] at this
+    end,
+  add_mem' := λ x hx y hy, add_nonneg (show 0 ≤ x, by exact hx) (show 0 ≤ y, by exact hy) }
+
+/-- The positive cone of an ordered module is always salient. -/
+lemma salient_of_positive_cone : salient (positive_cone M) :=
+begin
+  intros x xs hx hx',
+  have := calc
+    0   < x         : lt_of_le_of_ne xs hx.symm
+    ... ≤ x + (-x)  : (le_add_iff_nonneg_right x).mpr hx'
+    ... = 0         : by rw [tactic.ring.add_neg_eq_sub x x]; exact sub_self x,
+  exact lt_irrefl 0 this,
+end
+
+/-- The positive cone of an ordered module is always pointed. -/
+lemma pointed_of_positive_cone : pointed (positive_cone M) := le_refl 0
+
+end positive_cone
+
 end convex_cone
 
 /-!
@@ -193,15 +317,13 @@ end convex_cone
 
 namespace convex
 
-local attribute [instance] smul_set
-
 /-- The set of vectors proportional to those in a convex set forms a convex cone. -/
 def to_cone (s : set E) (hs : convex s) : convex_cone E :=
 begin
   apply convex_cone.mk (⋃ c > 0, (c : ℝ) • s);
     simp only [mem_Union, mem_smul_set],
   { rintros c c_pos _ ⟨c', c'_pos, x, hx, rfl⟩,
-    exact ⟨c * c', mul_pos c_pos c'_pos, x, hx, smul_smul _ _ _⟩ },
+    exact ⟨c * c', mul_pos c_pos c'_pos, x, hx, (smul_smul _ _ _).symm⟩ },
   { rintros _ ⟨cx, cx_pos, x, hx, rfl⟩ _ ⟨cy, cy_pos, y, hy, rfl⟩,
     have : 0 < cx + cy, from add_pos cx_pos cy_pos,
     refine ⟨_, this, _, convex_iff_div.1 hs hx hy (le_of_lt cx_pos) (le_of_lt cy_pos) this, _⟩,
@@ -210,11 +332,9 @@ end
 
 variables {s : set E} (hs : convex s) {x : E}
 
-@[nolint ge_or_gt]
 lemma mem_to_cone : x ∈ hs.to_cone s ↔ ∃ (c > 0) (y ∈ s), (c : ℝ) • y = x :=
-by simp only [to_cone, convex_cone.mem_mk, mem_Union, mem_smul_set, eq_comm]
+by simp only [to_cone, convex_cone.mem_mk, mem_Union, mem_smul_set, eq_comm, exists_prop]
 
-@[nolint ge_or_gt]
 lemma mem_to_cone' : x ∈ hs.to_cone s ↔ ∃ c > 0, (c : ℝ) • x ∈ s :=
 begin
   refine hs.mem_to_cone.trans ⟨_, _⟩,
@@ -283,7 +403,7 @@ lemma step (nonneg : ∀ x : f.domain, (x : E) ∈ s → 0 ≤ f x)
   (dense : ∀ y, ∃ x : f.domain, (x : E) + y ∈ s) (hdom : f.domain ≠ ⊤) :
   ∃ g, f < g ∧ ∀ x : g.domain, (x : E) ∈ s → 0 ≤ g x :=
 begin
-  rcases exists_of_lt (lt_top_iff_ne_top.2 hdom) with ⟨y, hy', hy⟩, clear hy',
+  rcases set_like.exists_of_lt (lt_top_iff_ne_top.2 hdom) with ⟨y, hy', hy⟩, clear hy',
   obtain ⟨c, le_c, c_le⟩ :
     ∃ c, (∀ x : f.domain, -(x:E) - y ∈ s → f x ≤ c) ∧ (∀ x : f.domain, (x:E) + y ∈ s → c ≤ f x),
   { set Sp := f '' {x : f.domain | (x:E) + y ∈ s},
@@ -292,7 +412,7 @@ begin
       by simpa only [set.nonempty, upper_bounds, lower_bounds, ball_image_iff] using this,
     refine exists_between_of_forall_le (nonempty.image f _) (nonempty.image f (dense y)) _,
     { rcases (dense (-y)) with ⟨x, hx⟩,
-      rw [← neg_neg x, coe_neg] at hx,
+      rw [← neg_neg x, coe_neg, ← sub_eq_add_neg] at hx,
       exact ⟨_, hx⟩ },
     rintros a ⟨xn, hxn, rfl⟩ b ⟨xp, hxp, rfl⟩,
     have := s.add_mem hxp hxn,
@@ -300,20 +420,17 @@ begin
     replace := nonneg _ this,
     rwa [f.map_sub, sub_nonneg] at this },
   have hy' : y ≠ 0, from λ hy₀, hy (hy₀.symm ▸ zero_mem _),
-  refine ⟨f.sup (linear_pmap.mk_span_singleton y (-c) hy') _, _, _⟩,
-  { refine linear_pmap.sup_h_of_disjoint _ _ (disjoint_span_singleton.2 _),
-    exact (λ h, (hy h).elim) },
+  refine ⟨f.sup_span_singleton y (-c) hy, _, _⟩,
   { refine lt_iff_le_not_le.2 ⟨f.left_le_sup _ _, λ H, _⟩,
     replace H := linear_pmap.domain_mono.monotone H,
-    rw [linear_pmap.domain_sup, linear_pmap.domain_mk_span_singleton, sup_le_iff,
-      span_le, singleton_subset_iff] at H,
+    rw [linear_pmap.domain_sup_span_singleton, sup_le_iff, span_le, singleton_subset_iff] at H,
     exact hy H.2 },
   { rintros ⟨z, hz⟩ hzs,
     rcases mem_sup.1 hz with ⟨x, hx, y', hy', rfl⟩,
     rcases mem_span_singleton.1 hy' with ⟨r, rfl⟩,
     simp only [subtype.coe_mk] at hzs,
-    rw [linear_pmap.sup_apply _ ⟨x, hx⟩ ⟨_, hy'⟩ ⟨_, hz⟩ rfl, linear_pmap.mk_span_singleton_apply,
-      smul_neg, ← sub_eq_add_neg, sub_nonneg],
+    erw [linear_pmap.sup_span_singleton_apply_mk _ _ _ _ _ hx, smul_neg,
+      ← sub_eq_add_neg, sub_nonneg],
     rcases lt_trichotomy r 0 with hr|hr|hr,
     { have : -(r⁻¹ • x) - y ∈ s,
         by rwa [← s.smul_mem_iff (neg_pos.2 hr), smul_sub, smul_neg, neg_smul, neg_neg, smul_smul,
@@ -333,14 +450,13 @@ begin
         mul_inv_cancel (ne_of_gt hr), one_mul] at this } }
 end
 
-@[nolint ge_or_gt]
 theorem exists_top (p : linear_pmap ℝ E ℝ)
   (hp_nonneg : ∀ x : p.domain, (x : E) ∈ s → 0 ≤ p x)
   (hp_dense : ∀ y, ∃ x : p.domain, (x : E) + y ∈ s) :
   ∃ q ≥ p, q.domain = ⊤ ∧ ∀ x : q.domain, (x : E) ∈ s → 0 ≤ q x :=
 begin
   replace hp_nonneg : p ∈ { p | _ }, by { rw mem_set_of_eq, exact hp_nonneg },
-  obtain ⟨q, hqs, hpq, hq⟩ := zorn.zorn_partial_order₀ _ _ _ hp_nonneg,
+  obtain ⟨q, hqs, hpq, hq⟩ := zorn.zorn_nonempty_partial_order₀ _ _ _ hp_nonneg,
   { refine ⟨q, hpq, _, hqs⟩,
     contrapose! hq,
     rcases step s q hqs _ hq with ⟨r, hqr, hr⟩,
@@ -352,7 +468,7 @@ begin
     refine ⟨linear_pmap.Sup c c_chain.directed_on, _, λ _, linear_pmap.le_Sup c_chain.directed_on⟩,
     rintros ⟨x, hx⟩ hxs,
     have hdir : directed_on (≤) (linear_pmap.domain '' c),
-      from (directed_on_image _).2 (c_chain.directed_on.mono _ linear_pmap.domain_mono.monotone),
+      from directed_on_image.2 (c_chain.directed_on.mono linear_pmap.domain_mono.monotone),
     rcases (mem_Sup_of_directed (cne.image _) hdir).1 hx with ⟨_, ⟨f, hfc, rfl⟩, hfx⟩,
     have : f ≤ linear_pmap.Sup c c_chain.directed_on, from linear_pmap.le_Sup _ hfc,
     convert ← hcs hfc ⟨x, hfx⟩ hxs,
@@ -361,7 +477,7 @@ end
 
 end riesz_extension
 
-/-- M. Riesz extension theorem: given a convex cone `s` in a vector space `E`, a submodule `p`,
+/-- M. **Riesz extension theorem**: given a convex cone `s` in a vector space `E`, a submodule `p`,
 and a linear `f : p → ℝ`, assume that `f` is nonnegative on `p ∩ s` and `p + s = E`. Then
 there exists a globally defined linear function `g : E → ℝ` that agrees with `f` on `p`,
 and is nonnegative on `s`. -/
@@ -377,7 +493,7 @@ begin
   { exact λ x hx, hgs ⟨x, _⟩ hx }
 end
 
-/-- Hahn-Banach theorem: if `N : E → ℝ` is a sublinear map, `f` is a linear map
+/-- **Hahn-Banach theorem**: if `N : E → ℝ` is a sublinear map, `f` is a linear map
 defined on a subspace of `E`, and `f x ≤ N x` for all `x` in the domain of `f`,
 then `f` can be extended to the whole space to a linear map `g` such that `g x ≤ N x`
 for all `x`. -/
@@ -395,17 +511,17 @@ begin
     add_mem' := λ x hx y hy, le_trans (N_add _ _) (add_le_add hx hy) },
   obtain ⟨g, g_eq, g_nonneg⟩ :=
     riesz_extension s ((-f).coprod (linear_map.id.to_pmap ⊤)) _ _;
-    simp only [linear_pmap.coprod_apply, to_pmap_apply, id_apply,
-      linear_pmap.neg_apply, ← sub_eq_neg_add, sub_nonneg, subtype.coe_mk] at *,
+    try { simp only [linear_pmap.coprod_apply, to_pmap_apply, id_apply,
+            linear_pmap.neg_apply, ← sub_eq_neg_add, sub_nonneg, subtype.coe_mk] at * },
   replace g_eq : ∀ (x : f.domain) (y : ℝ), g (x, y) = y - f x,
   { intros x y,
     simpa only [subtype.coe_mk, subtype.coe_eta] using g_eq ⟨(x, y), ⟨x.2, trivial⟩⟩ },
   { refine ⟨-g.comp (inl ℝ E ℝ), _, _⟩; simp only [neg_apply, inl_apply, comp_apply],
-    { intro x, simp  [g_eq x 0] },
+    { intro x, simp [g_eq x 0] },
     { intro x,
       have A : (x, N x) = (x, 0) + (0, N x), by simp,
       have B := g_nonneg ⟨x, N x⟩ (le_refl (N x)),
-      rw [A, map_add, ← neg_le_iff_add_nonneg] at B,
+      rw [A, map_add, ← neg_le_iff_add_nonneg'] at B,
       have C := g_eq 0 (N x),
       simp only [submodule.coe_zero, f.map_zero, sub_zero] at C,
       rwa ← C } },
@@ -415,3 +531,42 @@ begin
     simp only [convex_cone.mem_mk, mem_set_of_eq, subtype.coe_mk, prod.fst_add, prod.snd_add,
       zero_add, sub_add_cancel] }
 end
+
+/-!
+### The dual cone
+-/
+section dual
+
+variables {H : Type*} [inner_product_space ℝ H] (s t : set H)
+open_locale real_inner_product_space
+
+/-- The dual cone is the cone consisting of all points `y` such that for
+all points `x` in a given set `0 ≤ ⟪ x, y ⟫`. -/
+noncomputable def set.inner_dual_cone (s : set H) : convex_cone H :=
+{ carrier := { y | ∀ x ∈ s, 0 ≤ ⟪ x, y ⟫ },
+  smul_mem' := λ c hc y hy x hx,
+  begin
+    rw real_inner_smul_right,
+    exact mul_nonneg (le_of_lt hc) (hy x hx)
+  end,
+  add_mem' := λ u hu v hv x hx,
+  begin
+    rw inner_add_right,
+    exact add_nonneg (hu x hx) (hv x hx)
+  end }
+
+lemma mem_inner_dual_cone (y : H) (s : set H) :
+  y ∈ s.inner_dual_cone ↔ ∀ x ∈ s, 0 ≤ ⟪ x, y ⟫ := by refl
+
+@[simp] lemma inner_dual_cone_empty : (∅ : set H).inner_dual_cone = ⊤ :=
+convex_cone.ext' (eq_univ_of_forall
+  (λ x y hy, false.elim (set.not_mem_empty _ hy)))
+
+lemma inner_dual_cone_le_inner_dual_cone (h : t ⊆ s) :
+  s.inner_dual_cone ≤ t.inner_dual_cone :=
+λ y hy x hx, hy x (h hx)
+
+lemma pointed_inner_dual_cone : s.inner_dual_cone.pointed :=
+λ x hx, by rw inner_zero_right
+
+end dual

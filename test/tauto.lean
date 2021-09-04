@@ -76,7 +76,27 @@ example (h' : p ∧ ¬ y = x) : p ∧ q := by tauto
 example : y = x := by tauto
 example (h' : ¬ x = y) : p ∧ q := by tauto
 example : x = y := by tauto
-
 end modulo_symmetry
 
 end tauto₃
+
+section closer
+
+example {α : Type*} {β : Type*} (a : α)
+  {s_1 : set α} :
+  (∃ (a_1 : α), a_1 = a ∨ a_1 ∈ s_1) :=
+begin
+  tauto {closer := `[simp]}
+end
+
+variables {p q r : Prop} {α : Type} {x y z w : α}
+variables (h : x = y) (h₁ : y = z) (h₂ : z = w)
+variables (h'' : (p ∧ q ↔ q ∨ r) ↔ (r ∧ p ↔ r ∨ q))
+include h h₁ h₂ h''
+
+example : (((r ∧ p ↔ r ∨ q) ∧ (q ∨ r)) → (p ∧ (x = w) ∧ (¬ x = w → p ∧ q ∧ r))) :=
+begin
+  tauto {closer := `[cc]}
+end
+
+end closer

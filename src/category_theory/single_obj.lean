@@ -10,8 +10,9 @@ import algebra.category.Mon.basic
 /-!
 # Single-object category
 
-Single object category with a given monoid of endomorphisms.  It is defined to facilitate transfering
-some definitions and lemmas (e.g., conjugacy etc.) from category theory to monoids and groups.
+Single object category with a given monoid of endomorphisms.
+It is defined to facilitate transfering some definitions and lemmas (e.g., conjugacy etc.)
+from category theory to monoids and groups.
 
 ## Main definitions
 
@@ -37,6 +38,7 @@ universes u v w
 
 namespace category_theory
 /-- Type tag on `unit` used to define single-object categories and groupoids. -/
+@[nolint unused_arguments has_inhabited_instance]
 def single_obj (α : Type u) : Type := unit
 
 namespace single_obj
@@ -55,12 +57,25 @@ instance category [monoid α] : category (single_obj α) :=
   id_comp' := λ _ _, mul_one,
   assoc' := λ _ _ _ _ x y z, (mul_assoc z y x).symm }
 
-/-- Groupoid structure on `single_obj α` -/
+lemma id_as_one [monoid α] (x : single_obj α) : 𝟙 x = 1 := rfl
+
+lemma comp_as_mul [monoid α] {x y z : single_obj α} (f : x ⟶ y) (g : y ⟶ z) :
+  f ≫ g = g * f := rfl
+
+/--
+Groupoid structure on `single_obj α`.
+
+See https://stacks.math.columbia.edu/tag/0019.
+-/
 instance groupoid [group α] : groupoid (single_obj α) :=
 { inv := λ _ _ x, x⁻¹,
   inv_comp' := λ _ _, mul_right_inv,
   comp_inv' := λ _ _, mul_left_inv }
 
+lemma inv_as_inv [group α] {x y : single_obj α} (f : x ⟶ y) : inv f = f⁻¹ :=
+by { ext, rw [comp_as_mul, inv_mul_self, id_as_one] }
+
+/-- The single object in `single_obj α`. -/
 protected def star : single_obj α := unit.star
 
 /-- The endomorphisms monoid of the only object in `single_obj α` is equivalent to the original
@@ -73,7 +88,11 @@ lemma to_End_def [monoid α] (x : α) : to_End α x = x := rfl
 
 /-- There is a 1-1 correspondence between monoid homomorphisms `α → β` and functors between the
     corresponding single-object categories. It means that `single_obj` is a fully faithful
-    functor. -/
+    functor.
+
+See https://stacks.math.columbia.edu/tag/001F --
+although we do not characterize when the functor is full or faithful.
+-/
 def map_hom (α : Type u) (β : Type v) [monoid α] [monoid β] :
   (α →* β) ≃ (single_obj α) ⥤ (single_obj β) :=
 { to_fun := λ f,
@@ -94,6 +113,15 @@ lemma map_hom_comp {α : Type u} {β : Type v} [monoid α] [monoid β] (f : α �
   {γ : Type w} [monoid γ] (g : β →* γ) :
   map_hom α γ (g.comp f) = map_hom α β f ⋙ map_hom β γ g :=
 rfl
+
+/-- Given a function `f : C → G` from a category to a group, we get a functor
+    `C ⥤ G` sending any morphism `x ⟶ y` to `f y * (f x)⁻¹`. -/
+@[simps] def difference_functor {C G} [category C] [group G] (f : C → G) : C ⥤ single_obj G :=
+{ obj := λ _, (),
+  map := λ x y _, f y * (f x)⁻¹,
+  map_id' := by { intro, rw [single_obj.id_as_one, mul_right_inv] },
+  map_comp' := by { intros, rw [single_obj.comp_as_mul, ←mul_assoc,
+    mul_left_inj, mul_assoc, inv_mul_self, mul_one] } }
 
 end single_obj
 
@@ -148,6 +176,6 @@ instance to_Cat_full : full to_Cat :=
   witness' := λ x y, by apply equiv.right_inv }
 
 instance to_Cat_faithful : faithful to_Cat :=
-{ injectivity' := λ x y, by apply equiv.injective }
+{ map_injective' := λ x y, by apply equiv.injective }
 
 end Mon

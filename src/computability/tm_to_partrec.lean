@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import computability.halting
 import computability.turing_machine
@@ -178,7 +178,7 @@ let G := cons tail $ cons succ $ cons (comp pred tail) $
 let F := case id $ comp (comp (comp tail tail) (fix G)) zero' in
 cons (comp F (cons head $ cons (comp f tail) tail)) nil
 
-local attribute [-simp] roption.bind_eq_bind roption.map_eq_map roption.pure_eq_some
+local attribute [-simp] part.bind_eq_bind part.map_eq_map part.pure_eq_some
 
 theorem exists_code.comp {m n} {f : vector ℕ n →. ℕ} {g : fin n → vector ℕ m →. ℕ}
   (hf : ∃ c : code, ∀ v : vector ℕ n, c.eval v.1 = pure <$> f v)
@@ -188,12 +188,13 @@ begin
   suffices : ∃ c : code, ∀ v : vector ℕ m,
     c.eval v.1 = subtype.val <$> vector.m_of_fn (λ i, g i v),
   { obtain ⟨cf, hf⟩ := hf, obtain ⟨cg, hg⟩ := this,
-    exact ⟨cf.comp cg, λ v, by simp [hg, hf, map_bind, seq_bind_eq, (∘)]; refl⟩ },
+    exact ⟨cf.comp cg, λ v,
+      by { simp [hg, hf, map_bind, seq_bind_eq, (∘), -subtype.val_eq_coe], refl }⟩ },
   clear hf f, induction n with n IH,
   { exact ⟨nil, λ v, by simp [vector.m_of_fn]; refl⟩ },
   { obtain ⟨cg, hg₁⟩ := hg 0, obtain ⟨cl, hl⟩ := IH (λ i, hg i.succ),
-    exact ⟨cons cg cl, λ v, by simp [vector.m_of_fn, hg₁, map_bind,
-      seq_bind_eq, bind_assoc, (∘), hl]; refl⟩ },
+    exact ⟨cons cg cl, λ v, by { simp [vector.m_of_fn, hg₁, map_bind,
+      seq_bind_eq, bind_assoc, (∘), hl, -subtype.val_eq_coe], refl }⟩ },
 end
 
 theorem exists_code {n} {f : vector ℕ n →. ℕ} (hf : nat.partrec' f) :
@@ -209,78 +210,81 @@ begin
     { obtain ⟨c, h⟩ := IH,
       exact ⟨c.comp tail, λ v, by simpa [← vector.nth_tail] using h v.tail⟩ } },
   case prim comp : m n f g hf hg IHf IHg {
-    simpa [roption.bind_eq_bind] using exists_code.comp IHf IHg },
+    simpa [part.bind_eq_bind] using exists_code.comp IHf IHg },
   case prim prec : n f g hf hg IHf IHg {
     obtain ⟨cf, hf⟩ := IHf, obtain ⟨cg, hg⟩ := IHg,
-    simp only [roption.map_eq_map, roption.map_some, pfun.coe_val] at hf hg,
+    simp only [part.map_eq_map, part.map_some, pfun.coe_val] at hf hg,
     refine ⟨prec cf cg, λ v, _⟩, rw ← v.cons_head_tail,
-    specialize hf v.tail, replace hg := λ a b, hg (a :: b :: v.tail),
+    specialize hf v.tail, replace hg := λ a b, hg (a ::ᵥ b ::ᵥ v.tail),
     simp only [vector.cons_val, vector.tail_val] at hf hg,
-    simp only [roption.map_eq_map, roption.map_some, vector.cons_val,
+    simp only [part.map_eq_map, part.map_some, vector.cons_val,
       vector.cons_tail, vector.cons_head, pfun.coe_val, vector.tail_val],
-    simp only [← roption.pure_eq_some] at hf hg ⊢,
-    induction v.head with n IH; simp [prec, hf, bind_assoc, ← roption.map_eq_map,
-      ← bind_pure_comp_eq_map, show ∀ x, pure x = [x], from λ _, rfl],
+    simp only [← part.pure_eq_some] at hf hg ⊢,
+    induction v.head with n IH; simp [prec, hf, bind_assoc, ← part.map_eq_map,
+      ← bind_pure_comp_eq_map, show ∀ x, pure x = [x], from λ _, rfl, -subtype.val_eq_coe],
     suffices : ∀ a b, a + b = n →
-      (n.succ :: 0 :: g (n :: nat.elim (f v.tail) (λ y IH, g (y::IH::v.tail)) n :: v.tail)
-         :: v.val.tail : list ℕ) ∈
+      (n.succ :: 0 :: g
+        (n ::ᵥ (nat.elim (f v.tail) (λ y IH, g (y ::ᵥ IH ::ᵥ v.tail)) n) ::ᵥ v.tail)
+        :: v.val.tail : list ℕ) ∈
       pfun.fix (λ v : list ℕ, do
         x ← cg.eval (v.head :: v.tail.tail),
         pure $ if v.tail.head = 0
           then sum.inl (v.head.succ :: v.tail.head.pred :: x.head :: v.tail.tail.tail : list ℕ)
           else sum.inr (v.head.succ :: v.tail.head.pred :: x.head :: v.tail.tail.tail))
-        (a :: b :: nat.elim (f v.tail) (λ y IH, g (y::IH::v.tail)) a :: v.val.tail),
-    { rw (_ : pfun.fix _ _ = pure _), swap, exact roption.eq_some_iff.2 (this 0 n (zero_add n)),
+        (a :: b :: nat.elim (f v.tail)
+          (λ y IH, g (y ::ᵥ IH ::ᵥ v.tail)) a :: v.val.tail),
+    { rw (_ : pfun.fix _ _ = pure _), swap, exact part.eq_some_iff.2 (this 0 n (zero_add n)),
       simp only [list.head, pure_bind, list.tail_cons] },
     intros a b e, induction b with b IH generalizing a e,
-    { refine pfun.mem_fix_iff.2 (or.inl $ roption.eq_some_iff.1 _),
+    { refine pfun.mem_fix_iff.2 (or.inl $ part.eq_some_iff.1 _),
       simp only [hg, ← e, pure_bind, list.tail_cons], refl },
     { refine pfun.mem_fix_iff.2 (or.inr ⟨_, _, IH (a+1) (by rwa add_right_comm)⟩),
       simp only [hg, eval, pure_bind, nat.elim_succ, list.tail],
-      exact roption.mem_some_iff.2 rfl } },
+      exact part.mem_some_iff.2 rfl } },
   case comp : m n f g hf hg IHf IHg { exact exists_code.comp IHf IHg },
   case rfind : n f hf IHf {
     obtain ⟨cf, hf⟩ := IHf, refine ⟨rfind cf, λ v, _⟩,
-    replace hf := λ a, hf (a :: v),
-    simp only [roption.map_eq_map, roption.map_some, vector.cons_val, pfun.coe_val,
+    replace hf := λ a, hf (a ::ᵥ v),
+    simp only [part.map_eq_map, part.map_some, vector.cons_val, pfun.coe_val,
       show ∀ x, pure x = [x], from λ _, rfl] at hf ⊢,
-    refine roption.ext (λ x, _),
-    simp only [rfind, roption.bind_eq_bind, roption.pure_eq_some, roption.map_eq_map,
-      roption.bind_some, exists_prop, eval, list.head, pred_eval, roption.map_some,
-      bool.ff_eq_to_bool_iff, roption.mem_bind_iff, list.length,
-      roption.mem_map_iff, nat.mem_rfind, list.tail, bool.tt_eq_to_bool_iff,
-      roption.mem_some_iff, roption.map_bind],
+    refine part.ext (λ x, _),
+    simp only [rfind, part.bind_eq_bind, part.pure_eq_some, part.map_eq_map,
+      part.bind_some, exists_prop, eval, list.head, pred_eval, part.map_some,
+      bool.ff_eq_to_bool_iff, part.mem_bind_iff, list.length,
+      part.mem_map_iff, nat.mem_rfind, list.tail, bool.tt_eq_to_bool_iff,
+      part.mem_some_iff, part.map_bind],
     split,
     { rintro ⟨v', h1, rfl⟩,
       suffices : ∀ (v₁ : list ℕ), v' ∈ pfun.fix
-        (λ v, (cf.eval v).bind $ λ y, roption.some $ if y.head = 0 then
+        (λ v, (cf.eval v).bind $ λ y, part.some $ if y.head = 0 then
           sum.inl (v.head.succ :: v.tail) else sum.inr (v.head.succ :: v.tail)) v₁ →
-        ∀ n, v₁ = n :: v.val → (∀ m < n, ¬f (m :: v) = 0) →
-        (∃ (a : ℕ), (f (a :: v) = 0 ∧ ∀ {m : ℕ}, m < a → ¬f (m :: v) = 0) ∧ [a] = [v'.head.pred]),
+        ∀ n, v₁ = n :: v.val → (∀ m < n, ¬f (m ::ᵥ v) = 0) →
+        (∃ (a : ℕ), (f (a ::ᵥ v) = 0 ∧ ∀ {m : ℕ}, m < a → ¬f (m ::ᵥ v) = 0) ∧
+          [a] = [v'.head.pred]),
       { exact this _ h1 0 rfl (by rintro _ ⟨⟩) },
       clear h1, intros v₀ h1,
       refine pfun.fix_induction h1 (λ v₁ h2 IH, _), clear h1,
       rintro n rfl hm,
       have := pfun.mem_fix_iff.1 h2,
-      simp only [hf, roption.bind_some] at this,
+      simp only [hf, part.bind_some] at this,
       split_ifs at this,
-      { simp only [list.head, exists_false, or_false, roption.mem_some_iff,
+      { simp only [list.head, exists_false, or_false, part.mem_some_iff,
           list.tail_cons, false_and] at this,
         subst this, exact ⟨_, ⟨h, hm⟩, rfl⟩ },
-      { simp only [list.head, exists_eq_left, roption.mem_some_iff,
+      { simp only [list.head, exists_eq_left, part.mem_some_iff,
           list.tail_cons, false_or] at this,
-        refine IH _ this (by simp [hf, h]) _ rfl (λ m h', _),
+        refine IH _ this (by simp [hf, h, -subtype.val_eq_coe]) _ rfl (λ m h', _),
         obtain h|rfl := nat.lt_succ_iff_lt_or_eq.1 h', exacts [hm _ h, h] } },
     { rintro ⟨n, ⟨hn, hm⟩, rfl⟩, refine ⟨n.succ :: v.1, _, rfl⟩,
       have : (n.succ :: v.1 : list ℕ) ∈ pfun.fix
-        (λ v, (cf.eval v).bind $ λ y, roption.some $ if y.head = 0 then
+        (λ v, (cf.eval v).bind $ λ y, part.some $ if y.head = 0 then
           sum.inl (v.head.succ :: v.tail) else sum.inr (v.head.succ :: v.tail)) (n :: v.val) :=
-        pfun.mem_fix_iff.2 (or.inl (by simp [hf, hn])),
+        pfun.mem_fix_iff.2 (or.inl (by simp [hf, hn, -subtype.val_eq_coe])),
       generalize_hyp : (n.succ :: v.1 : list ℕ) = w at this ⊢, clear hn,
       induction n with n IH, {exact this},
       refine IH (λ m h', hm (nat.lt_succ_of_lt h')) (pfun.mem_fix_iff.2 (or.inr ⟨_, _, this⟩)),
-      simp only [hf, hm n.lt_succ_self, roption.bind_some, list.head, eq_self_iff_true,
-        if_false, roption.mem_some_iff, and_self, list.tail_cons] } }
+      simp only [hf, hm n.lt_succ_self, part.bind_some, list.head, eq_self_iff_true,
+        if_false, part.mem_some_iff, and_self, list.tail_cons] } }
 end
 
 end code
@@ -437,12 +441,15 @@ embedded machine reaches the halt state. -/
 theorem step_normal_then (c) (k k' : cont) (v) :
   step_normal c (k.then k') v = (step_normal c k v).then k' :=
 begin
-  induction c generalizing k v;
+  induction c with generalizing k v;
     simp only [cont.then, step_normal, cfg.then, *] {constructor_eq := ff},
-  { rw [← c_ih_a, cont.then] },
-  { rw [← c_ih_a_1, cont.then] },
+  case turing.to_partrec.code.cons : c c' ih ih'
+  { rw [← ih, cont.then] },
+  case turing.to_partrec.code.comp : c c' ih ih'
+  { rw [← ih', cont.then] },
   { cases v.head; simp only [nat.elim] },
-  { rw [← c_ih, cont.then] },
+  case turing.to_partrec.code.fix : c ih
+  { rw [← ih, cont.then] },
 end
 
 /-- The `step_ret` function respects the `then k'` homomorphism. Note that this is an exact
@@ -472,7 +479,7 @@ theorem code.ok.zero {c} (h : code.ok c) {v} :
   eval step (step_normal c cont.halt v) = cfg.halt <$> code.eval c v :=
 begin
   rw [h, ← bind_pure_comp_eq_map], congr, funext v,
-  exact roption.eq_some_iff.2 (mem_eval.2 ⟨refl_trans_gen.single rfl, rfl⟩),
+  exact part.eq_some_iff.2 (mem_eval.2 ⟨refl_trans_gen.single rfl, rfl⟩),
 end
 
 theorem step_normal.is_ret (c k v) : ∃ k' v', step_normal c k v = cfg.ret k' v' :=
@@ -489,8 +496,8 @@ end
 theorem cont_eval_fix {f k v} (fok : code.ok f) :
   eval step (step_normal f (cont.fix f k) v) = f.fix.eval v >>= λ v, eval step (cfg.ret k v) :=
 begin
-  refine roption.ext (λ x, _),
-  simp only [roption.bind_eq_bind, roption.mem_bind_iff],
+  refine part.ext (λ x, _),
+  simp only [part.bind_eq_bind, part.mem_bind_iff],
   split,
   { suffices :
       ∀ c, x ∈ eval step c →
@@ -502,20 +509,20 @@ begin
       obtain ⟨v₁, hv₁, v₂, hv₂, h₃⟩ :=
         this _ h _ _ (step_normal_then _ cont.halt _ _) refl_trans_gen.refl,
       refine ⟨v₂, pfun.mem_fix_iff.2 _, h₃⟩,
-      simp only [roption.eq_some_iff.2 hv₁, roption.map_some],
+      simp only [part.eq_some_iff.2 hv₁, part.map_some],
       split_ifs at hv₂ ⊢,
-      { rw roption.mem_some_iff.1 hv₂, exact or.inl (roption.mem_some _) },
-      { exact or.inr ⟨_, roption.mem_some _, hv₂⟩ } },
+      { rw part.mem_some_iff.1 hv₂, exact or.inl (part.mem_some _) },
+      { exact or.inr ⟨_, part.mem_some _, hv₂⟩ } },
     refine λ c he, eval_induction he (λ y h IH, _),
     rintro v (⟨v'⟩ | ⟨k',v'⟩) rfl hr; rw cfg.then at h IH,
     { have := mem_eval.2 ⟨hr, rfl⟩,
-      rw [fok, roption.bind_eq_bind, roption.mem_bind_iff] at this,
+      rw [fok, part.bind_eq_bind, part.mem_bind_iff] at this,
       obtain ⟨v'', h₁, h₂⟩ := this,
       rw reaches_eval at h₂, swap, exact refl_trans_gen.single rfl,
-      cases roption.mem_unique h₂ (mem_eval.2 ⟨refl_trans_gen.refl, rfl⟩),
+      cases part.mem_unique h₂ (mem_eval.2 ⟨refl_trans_gen.refl, rfl⟩),
       refine ⟨v', h₁, _⟩, rw [step_ret] at h,
       revert h, by_cases he : v'.head = 0; simp only [exists_prop, if_pos, if_false, he]; intro h,
-      { refine ⟨_, roption.mem_some _, _⟩,
+      { refine ⟨_, part.mem_some _, _⟩,
         rw reaches_eval, exact h, exact refl_trans_gen.single rfl },
       { obtain ⟨k₀, v₀, e₀⟩ := step_normal.is_ret f cont.halt v'.tail,
         have e₁ := step_normal_then f cont.halt (cont.fix f k) v'.tail,
@@ -523,8 +530,8 @@ begin
         obtain ⟨v₁, hv₁, v₂, hv₂, h₃⟩ :=
           IH (step_ret (k₀.then (cont.fix f k)) v₀) _ _ v'.tail _ step_ret_then _,
         { refine ⟨_, pfun.mem_fix_iff.2 _, h₃⟩,
-          simp only [roption.eq_some_iff.2 hv₁, roption.map_some, roption.mem_some_iff],
-          split_ifs at hv₂ ⊢; [exact or.inl (roption.mem_some_iff.1 hv₂),
+          simp only [part.eq_some_iff.2 hv₁, part.map_some, part.mem_some_iff],
+          split_ifs at hv₂ ⊢; [exact or.inl (part.mem_some_iff.1 hv₂),
             exact or.inr ⟨_, rfl, hv₂⟩] },
         { rwa [← @reaches_eval _ _ (cfg.ret (k₀.then (cont.fix f k)) v₀), ← e₁],
           exact refl_trans_gen.single rfl },
@@ -535,18 +542,18 @@ begin
   { rintro ⟨v', he, hr⟩,
     rw reaches_eval at hr, swap, exact refl_trans_gen.single rfl,
     refine pfun.fix_induction he (λ v (he : v' ∈ f.fix.eval v) IH, _),
-    rw [fok, roption.bind_eq_bind, roption.mem_bind_iff],
+    rw [fok, part.bind_eq_bind, part.mem_bind_iff],
     obtain he | ⟨v'', he₁', he₂'⟩ := pfun.mem_fix_iff.1 he,
-    { obtain ⟨v', he₁, he₂⟩ := (roption.mem_map_iff _).1 he, split_ifs at he₂; cases he₂,
+    { obtain ⟨v', he₁, he₂⟩ := (part.mem_map_iff _).1 he, split_ifs at he₂; cases he₂,
       refine ⟨_, he₁, _⟩,
       rw reaches_eval, swap, exact refl_trans_gen.single rfl,
       rwa [step_ret, if_pos h] },
-    { obtain ⟨v₁, he₁, he₂⟩ := (roption.mem_map_iff _).1 he₁', split_ifs at he₂; cases he₂,
+    { obtain ⟨v₁, he₁, he₂⟩ := (part.mem_map_iff _).1 he₁', split_ifs at he₂; cases he₂,
       clear he₂ he₁', change _ ∈ f.fix.eval _ at he₂',
       refine ⟨_, he₁, _⟩,
       rw reaches_eval, swap, exact refl_trans_gen.single rfl,
       rwa [step_ret, if_neg h],
-      exact IH v₁.tail he₂' ((roption.mem_map_iff _).2 ⟨_, he₁, if_neg h⟩) } }
+      exact IH v₁.tail he₂' ((part.mem_map_iff _).2 ⟨_, he₁, if_neg h⟩) } }
 end
 
 theorem code_is_ok (c) : code.ok c :=
@@ -579,7 +586,7 @@ begin
   induction k generalizing v,
   case halt : {
     simp only [mem_eval, cont.eval, map_pure],
-    exact roption.eq_some_iff.2 (mem_eval.2 ⟨refl_trans_gen.refl, rfl⟩) },
+    exact part.eq_some_iff.2 (mem_eval.2 ⟨refl_trans_gen.refl, rfl⟩) },
   case cons₁ : fs as k IH {
     rw [cont.eval, step_ret, code_is_ok],
     simp only [← bind_pure_comp_eq_map, bind_assoc], congr, funext v',
@@ -1156,7 +1163,7 @@ theorem succ_ok {q s n} {c d : list Γ'} :
     ⟨some q, none, K'.elim (tr_list [n.succ]) [] c d⟩ :=
 begin
   simp [tr_nat, num.add_one],
-  cases (n:num),
+  cases (n:num) with a,
   { refine trans_gen.head rfl _, simp,
     rw if_neg, swap, rintro ⟨⟩, rw if_pos, swap, refl,
     convert unrev_ok, simp, refl },
@@ -1188,7 +1195,7 @@ begin
   { refine ⟨none, trans_gen.single _⟩, simp, refl },
   { refine ⟨some Γ'.cons, trans_gen.single _⟩, simp, refl },
   refine ⟨none, _⟩, simp [tr_nat, num.add_one, num.succ, tr_num],
-  cases (n:num),
+  cases (n:num) with a,
   { simp [tr_pos_num, tr_num, show num.zero.succ' = pos_num.one, from rfl],
     refine trans_gen.head rfl _, convert unrev_ok, simp, refl },
   simp [tr_num, num.succ'],
@@ -1297,7 +1304,7 @@ theorem tr_init (c v) : ∃ b, tr_cfg (step_normal c cont.halt v) b ∧
 theorem tr_eval (c v) : eval (TM2.step tr) (init c v) = halt <$> code.eval c v :=
 begin
   obtain ⟨i, h₁, h₂⟩ := tr_init c v,
-  refine roption.ext (λ x, _),
+  refine part.ext (λ x, _),
   rw [reaches_eval h₂.to_refl], simp,
   refine ⟨λ h, _, _⟩,
   { obtain ⟨c, hc₁, hc₂⟩ := tr_eval_rev tr_respects h₁ h,

@@ -22,12 +22,13 @@ The main benefit is that is gives an atomic way of talking about expressions suc
 
 In the following, we write `D k` for the `k`-th Hasse derivative `hasse_deriv k`.
 
-* `hasse_deriv`: the `k`-th Hasse derivative of a polynomial
-* `hasse_deriv_zero`: the `0`th Hasse derivative is the identity
-* `hasse_deriv_one`: the `1`st Hasse derivative is the usual derivative
-* `factorial_smul_hasse_deriv`: the identity `k! • (D k f) = derivative^[k] f`
-* `hasse_deriv_comp`: the identity `(D k).comp (D l) = (k+l).choose k • D (k+l)`
-* `hasse_deriv_mul`: the "Leibniz rule" `D k (f * g) = ∑ ij in antidiagonal k, D ij.1 f * D ij.2 g`
+* `polynomial.hasse_deriv`: the `k`-th Hasse derivative of a polynomial
+* `polynomial.hasse_deriv_zero`: the `0`th Hasse derivative is the identity
+* `polynomial.hasse_deriv_one`: the `1`st Hasse derivative is the usual derivative
+* `polynomial.factorial_smul_hasse_deriv`: the identity `k! • (D k f) = derivative^[k] f`
+* `polynomial.hasse_deriv_comp`: the identity `(D k).comp (D l) = (k+l).choose k • D (k+l)`
+* `polynomial.hasse_deriv_mul`:
+  the "Leibniz rule" `D k (f * g) = ∑ ij in antidiagonal k, D ij.1 f * D ij.2 g`
 
 TODO: Prove the identity principle: a polynomial is 0 iff all its Hasse derivatives are zero.
 

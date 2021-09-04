@@ -99,7 +99,7 @@ calc
         simp_rw [set.mem_compl_iff, not_not],
       end
 
-section option
+namespace equiv
 variables [decidable_eq α]
 
 /-- The set of permutations `f` such that the preimage of `(a, f)` under
@@ -112,7 +112,7 @@ lemma remove_none.mem_fiber (a : option α) (f : perm α) :
   ∃ F : perm (option α), F ∈ derangements (option α) ∧ F none = a ∧ remove_none F = f :=
 by simp [remove_none.fiber, derangements]
 
-lemma remove_none.fiber_none_eq_empty : remove_none.fiber (@none α) = ∅ :=
+lemma remove_none.fiber_none : remove_none.fiber (@none α) = ∅ :=
 begin
   rw set.eq_empty_iff_forall_not_mem,
   intros f hyp,
@@ -123,7 +123,7 @@ end
 
 /-- For any `a : α`, the fiber over `some a` is the set of permutations
     where `a` is the only possible fixed point. -/
-lemma remove_none.fiber_eq_opfp (a : α) :
+lemma remove_none.fiber_some (a : α) :
   (remove_none.fiber (some a)) = {f : perm α | fixed_points f ⊆ {a}} :=
 begin
   ext f,
@@ -155,28 +155,34 @@ begin
     { rw apply_symm_apply } }
 end
 
+
+end equiv
+
+section option
+variables [decidable_eq α]
+
 /-- The set of derangements on `option α` is equivalent to the union over `a : α`
     of "permutations with `a` the only possible fixed point". -/
-def derangements_equiv_sigma_opfp :
+def derangements_equiv_sigma_at_most_one_fixed_point :
   derangements (option α) ≃ Σ a : α, {f : perm α | fixed_points f ⊆ {a}} :=
 begin
-  have fiber_none_is_false : (remove_none.fiber (@none α)) -> false,
-  { rw remove_none.fiber_none_eq_empty, exact is_empty.false },
+  have fiber_none_is_false : (equiv.remove_none.fiber (@none α)) -> false,
+  { rw equiv.remove_none.fiber_none, exact is_empty.false },
 
   calc derangements (option α)
-      ≃ equiv.perm.decompose_option '' derangements (option α)   : equiv.image _ _
-  ... ≃ Σ (a : option α), ↥(remove_none.fiber a)                 : set_prod_equiv_sigma _
-  ... ≃ Σ (a : α), ↥(remove_none.fiber (some a))
+      ≃ equiv.perm.decompose_option '' derangements (option α) : equiv.image _ _
+  ... ≃ Σ (a : option α), ↥(equiv.remove_none.fiber a)         : set_prod_equiv_sigma _
+  ... ≃ Σ (a : α), ↥(equiv.remove_none.fiber (some a))
           : sigma_option_equiv_of_some _ fiber_none_is_false
   ... ≃ Σ (a : α), {f : perm α | fixed_points f ⊆ {a}}
-          : by simp_rw remove_none.fiber_eq_opfp,
+          : by simp_rw equiv.remove_none.fiber_some,
 end
 
 /-- The set of derangements on `option α` is equivalent to the union over all `a : α` of
     "derangements on `α` ⊕ derangements on `{a}ᶜ`". -/
 def derangements_recursion_equiv :
   derangements (option α) ≃ Σ a : α, (derangements (({a}ᶜ : set α) : Type _) ⊕ derangements α) :=
-derangements_equiv_sigma_opfp.trans (sigma_congr_right
+derangements_equiv_sigma_at_most_one_fixed_point.trans (sigma_congr_right
   at_most_one_fixed_point_equiv_sum_derangements)
 
 end option

@@ -376,7 +376,7 @@ begin
   { rw [alg_hom.card, pb.finrank] }
 end
 
-lemma det_trace_form_ne_zero  [is_separable K L] [decidable_eq ι] (b : basis ι K L) :
+lemma det_trace_form_ne_zero [is_separable K L] [decidable_eq ι] (b : basis ι K L) :
   det (bilin_form.to_matrix b (trace_form K L)) ≠ 0 :=
 begin
   haveI : finite_dimensional K L := finite_dimensional.of_fintype_basis b,
@@ -396,5 +396,12 @@ begin
   ... = 1 : by simp only [basis.to_matrix_mul_to_matrix_flip, matrix.transpose_one,
                           matrix.mul_one, matrix.det_one]
 end
+
+variables (K L)
+
+theorem trace_form_nondegenerate [finite_dimensional K L] [is_separable K L] :
+  (trace_form K L).nondegenerate :=
+bilin_form.nondegenerate_of_det_ne_zero (trace_form K L) _
+  (det_trace_form_ne_zero (finite_dimensional.fin_basis K L))
 
 end det_ne_zero

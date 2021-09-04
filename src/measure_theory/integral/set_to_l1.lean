@@ -369,10 +369,10 @@ section set_to_L1s
 variables [second_countable_topology E] [borel_space E] [normed_field 𝕜] [normed_space 𝕜 E]
 
 /-- Extend `set α → (E →L[ℝ] F')` to `(α →₁ₛ[μ] E) → F'`. -/
-def set_to_L1s (T : set α → (E →L[ℝ] F')) (f : α →₁ₛ[μ] E) : F' :=
+def set_to_L1s (T : set α → E →L[ℝ] F) (f : α →₁ₛ[μ] E) : F :=
 (to_simple_func f).set_to_simple_func T
 
-lemma set_to_L1s_eq_set_to_simple_func (T : set α → (E →L[ℝ] F')) (f : α →₁ₛ[μ] E) :
+lemma set_to_L1s_eq_set_to_simple_func (T : set α → E →L[ℝ] F) (f : α →₁ₛ[μ] E) :
   set_to_L1s T f = (to_simple_func f).set_to_simple_func T :=
 rfl
 
@@ -417,8 +417,7 @@ lemma set_to_L1s_smul {E} [normed_group E] [measurable_space E] [normed_space �
   (T : set α → E →L[ℝ] F) (h_zero : ∀ s, measurable_set s → μ s = 0 → T s = 0)
   (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
     → T (s ∪ t) = T s + T t)
-  (h_smul : ∀ c : 𝕜, ∀ s x, T s (c • x) = c • T s x)
-  (c : 𝕜) (f : α →₁ₛ[μ] E) :
+  (h_smul : ∀ c : 𝕜, ∀ s x, T s (c • x) = c • T s x) (c : 𝕜) (f : α →₁ₛ[μ] E) :
   set_to_L1s T (c • f) = c • set_to_L1s T f :=
 begin
   simp_rw set_to_L1s,
@@ -513,10 +512,8 @@ uniformly_extend_of_ind simple_func.uniform_inducing (simple_func.dense_range on
 lemma set_to_L1_closed_property (T : set α → E →L[ℝ] F)
   (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
     → T (s ∪ t) = T s + T t) {C : ℝ} (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real)
-  (p : F → Prop)
-  (hp : ∀ (f : α →₁ₛ[μ] E), p (set_to_L1s_clm α E μ T h_add hT_norm f))
-  (hp_closed : is_closed {f : α →₁[μ] E | p (set_to_L1 T h_add hT_norm f)})
-  (f : α →₁[μ] E) :
+  (p : F → Prop) (hp : ∀ (f : α →₁ₛ[μ] E), p (set_to_L1s_clm α E μ T h_add hT_norm f))
+  (hp_closed : is_closed {f : α →₁[μ] E | p (set_to_L1 T h_add hT_norm f)}) (f : α →₁[μ] E) :
   p (set_to_L1 T h_add hT_norm f) :=
 begin
   refine @is_closed_property _ _ _ (coe : (α →₁ₛ[μ] E) → (α →₁[μ] E))

@@ -33,16 +33,7 @@ variables [normed_group E] [measurable_space E] [normed_group F] [normed_space �
   {G F' : Type*} [normed_group G] [normed_group F'] [normed_space ℝ F']
   {m : measurable_space α} {μ : measure α}
 
-/-- Extend `set α → (F →L[ℝ] G)` to `(α →ₛ F) → G`. -/
-def set_to_simple_func [normed_space ℝ G] {m : measurable_space α}
-  (T : set α → (F →L[ℝ] G)) (f : α →ₛ F) : G :=
-∑ x in f.range, T (f ⁻¹' {x}) x
-
-lemma set_to_simple_func_mono {G} [normed_linear_ordered_group G] [normed_space ℝ G]
-  {m : measurable_space α}
-  (T : set α → (F →L[ℝ] G)) (T' : set α → (F →L[ℝ] G)) (hTT' : ∀ s x, T s x ≤ T' s x) (f : α →ₛ F) :
-  set_to_simple_func T f ≤ set_to_simple_func T' f :=
-by { simp_rw set_to_simple_func, exact sum_le_sum (λ i hi, hTT' _ i), }
+section tools
 
 lemma map_empty_eq_zero_of_map_union {β} [add_cancel_monoid β] (T : set α → β)
   (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
@@ -86,6 +77,50 @@ begin
     rw ← hai at hi,
     exact has hi, },
 end
+
+@[simp] lemma range_eq_empty_of_is_empty [hα : is_empty α] {m : measurable_space α} (f : α →ₛ F) :
+  f.range = ∅ :=
+begin
+  rw ← finset.not_nonempty_iff_eq_empty,
+  by_contra,
+  obtain ⟨y, hy_mem⟩ := h,
+  rw [simple_func.mem_range, set.mem_range] at hy_mem,
+  obtain ⟨x, hxy⟩ := hy_mem,
+  rw is_empty_iff at hα,
+  exact hα x,
+end
+
+end tools
+
+/-- Extend `set α → (F →L[ℝ] G)` to `(α →ₛ F) → G`. -/
+def set_to_simple_func [normed_space ℝ G] {m : measurable_space α}
+  (T : set α → (F →L[ℝ] G)) (f : α →ₛ F) : G :=
+∑ x in f.range, T (f ⁻¹' {x}) x
+
+@[simp] lemma set_to_simple_func_zero [normed_space ℝ G] {m : measurable_space α} (f : α →ₛ F) :
+  set_to_simple_func (0 : set α → (F →L[ℝ] G)) f = 0 :=
+by simp [set_to_simple_func]
+
+@[simp] lemma set_to_simple_func_zero_apply [normed_space ℝ G] {m : measurable_space α}
+  (T : set α → (F →L[ℝ] G)) :
+  set_to_simple_func T (0 : α →ₛ F) = 0 :=
+by casesI is_empty_or_nonempty α; simp [set_to_simple_func]
+
+lemma set_to_simple_func_eq_sum_filter [normed_space ℝ G] {m : measurable_space α}
+  (T : set α → (F →L[ℝ] G)) (f : α →ₛ F) :
+  set_to_simple_func T f = ∑ x in f.range.filter (λ x, x ≠ 0), (T (f ⁻¹' {x})) x :=
+begin
+  symmetry,
+  refine sum_filter_of_ne (λ x hx, mt (λ hx0, _)),
+  rw hx0,
+  exact continuous_linear_map.map_zero _,
+end
+
+lemma set_to_simple_func_mono {G} [normed_linear_ordered_group G] [normed_space ℝ G]
+  {m : measurable_space α}
+  (T : set α → (F →L[ℝ] G)) (T' : set α → (F →L[ℝ] G)) (hTT' : ∀ s x, T s x ≤ T' s x) (f : α →ₛ F) :
+  set_to_simple_func T f ≤ set_to_simple_func T' f :=
+by { simp_rw set_to_simple_func, exact sum_le_sum (λ i hi, hTT' _ i), }
 
 lemma map_set_to_simple_func (T : set α → (F →L[ℝ] F'))
   (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
@@ -172,6 +207,35 @@ begin
   simp_rw [set.mem_inter_iff, set.mem_set_of_eq, set.mem_preimage, set.mem_singleton_iff],
   intro h,
   rwa [h.1, h.2],
+end
+
+lemma set_to_simple_func_add_left {m : measurable_space α} (T T' : set α → (E →L[ℝ] F))
+  {f : α →ₛ E} :
+  set_to_simple_func (T + T') f = set_to_simple_func T f + set_to_simple_func T' f :=
+begin
+  simp_rw [set_to_simple_func, pi.add_apply],
+  push_cast,
+  simp_rw [pi.add_apply, sum_add_distrib],
+end
+
+lemma set_to_simple_func_add_left' (T T' T'' : set α → (E →L[ℝ] F))
+  (h_add : ∀ s, measurable_set s → μ s ≠ ∞ → T'' s = T s + T' s) {f : α →ₛ E}
+  (hf : integrable f μ) :
+  set_to_simple_func (T'') f = set_to_simple_func T f + set_to_simple_func T' f :=
+begin
+  simp_rw [set_to_simple_func_eq_sum_filter],
+  suffices : ∀ x ∈ filter (λ (x : E), x ≠ 0) f.range,
+    T'' (f ⁻¹' {x}) = T (f ⁻¹' {x}) + T' (f ⁻¹' {x}),
+  { rw ← sum_add_distrib,
+    refine finset.sum_congr rfl (λ x hx, _),
+    rw this x hx,
+    push_cast,
+    rw pi.add_apply, },
+  intros x hx,
+  refine h_add (f ⁻¹' {x}) (measurable_set_preimage _ _)
+    (measure_preimage_lt_top_of_integrable _ hf _).ne,
+  rw mem_filter at hx,
+  exact hx.2,
 end
 
 lemma set_to_simple_func_add (T : set α → (E →L[ℝ] F))

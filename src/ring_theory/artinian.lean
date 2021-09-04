@@ -5,6 +5,8 @@ Authors: Chris Hughes
 -/
 import linear_algebra.basic
 import linear_algebra.prod
+import linear_algebra.pi
+import data.set_like.fintype
 
 open set
 open_locale big_operators pointwise
@@ -14,7 +16,7 @@ open_locale big_operators pointwise
 implemented as the well-foundedness of submodule inclusion.
 -/
 class is_artinian (R M) [semiring R] [add_comm_monoid M] [module R M] : Prop :=
-(wf : well_founded ((<) : submodule R M → submodule R M → Prop))
+(well_founded_submodule_lt : well_founded ((<) : submodule R M → submodule R M → Prop))
 
 section
 variables {R : Type*} {M : Type*} {P : Type*} {N : Type*}
@@ -28,7 +30,7 @@ theorem is_artinian_of_injective (f : M →ₗ[R] P) (h : function.injective f)
 ⟨subrelation.wf
   (λ A B hAB, show A.map f < B.map f,
     from submodule.map_strict_mono_of_injective h hAB)
-  (inv_image.wf (submodule.map f) is_artinian.wf)⟩
+  (inv_image.wf (submodule.map f) is_artinian.well_founded_submodule_lt)⟩
 
 instance is_artinian_submodule' [is_artinian R M] (N : submodule R M) : is_artinian R N :=
 is_artinian_of_injective N.subtype subtype.val_injective
@@ -42,8 +44,8 @@ theorem is_artinian_of_surjective (f : M →ₗ[R] P) (hf : function.surjective 
   [is_artinian R M] : is_artinian R P :=
 ⟨subrelation.wf
   (λ A B hAB, show A.comap f < B.comap f,
-    from submodule.comap_strict_mono_of_surjective _ hAB)
-  (inv_image.wf (submodule.comap f) is_artinian.wf)⟩
+    from submodule.comap_strict_mono_of_surjective hf hAB)
+  (inv_image.wf (submodule.comap f) is_artinian.well_founded_submodule_lt)⟩
 variable {M}
 
 theorem is_artinian_of_linear_equiv (f : M ≃ₗ[R] P)
@@ -56,7 +58,19 @@ theorem is_artinian_of_range_eq_ker
   (hf : function.injective f)
   (hg : function.surjective g)
   (h : f.range = g.ker) :
-  is_artinian R N := sorry
+  is_artinian R N :=
+⟨well_founded_lt_exact_sequence
+  is_artinian.well_founded_submodule_lt
+  is_artinian.well_founded_submodule_lt
+  f.range
+  (submodule.map f)
+  (submodule.comap f)
+  (submodule.comap g)
+  (submodule.map g)
+  (submodule.gci_map_comap hf)
+  (submodule.gi_map_comap hg)
+  (by simp [linear_map.map_comap_eq, inf_comm])
+  (by simp [linear_map.comap_map_eq, h])⟩
 
 instance is_artinian_prod [is_artinian R M]
   [is_artinian R P] : is_artinian R (M × P) :=
@@ -67,48 +81,25 @@ is_artinian_of_range_eq_ker
   linear_map.snd_surjective
   (linear_map.range_inl R M P)
 
-instance is_artinian_pi {R ι : Type*} {M : ι → Type*} [ring R]
-  [Π i, add_comm_group (M i)] [Π i, module R (M i)] [fintype ι]
-  [∀ i, is_artinian R (M i)] : is_artinian R (Π i, M i) :=
-begin
-  haveI := classical.dec_eq ι,
-  suffices on_finset : ∀ s : finset ι, is_artinian R (Π i : s, M i),
-  { let coe_e := equiv.subtype_univ_equiv finset.mem_univ,
-    letI : is_artinian R (Π i : finset.univ, M (coe_e i)) := on_finset finset.univ,
-    exact is_artinian_of_linear_equiv (linear_equiv.Pi_congr_left R M coe_e), },
-  intro s,
-  induction s using finset.induction with a s has ih,
-  { split, intro s, convert submodule.fg_bot, apply eq_bot_iff.2,
-    intros x hx, refine (submodule.mem_bot R).2 _, ext i, cases i.2 },
-  refine @is_noetherian_of_linear_equiv _ _ _ _ _ _ _ _
-    _ (@is_noetherian_prod _ (M a) _ _ _ _ _ _ _ ih),
-  fconstructor,
-  { exact λ f i, or.by_cases (finset.mem_insert.1 i.2)
-      (λ h : i.1 = a, show M i.1, from (eq.rec_on h.symm f.1))
-      (λ h : i.1 ∈ s, show M i.1, from f.2 ⟨i.1, h⟩) },
-  { intros f g, ext i, unfold or.by_cases, cases i with i hi,
-    rcases finset.mem_insert.1 hi with rfl | h,
-    { change _ = _ + _, simp only [dif_pos], refl },
-    { change _ = _ + _, have : ¬i = a, { rintro rfl, exact has h },
-      simp only [dif_neg this, dif_pos h], refl } },
-  { intros c f, ext i, unfold or.by_cases, cases i with i hi,
-    rcases finset.mem_insert.1 hi with rfl | h,
-    { change _ = c • _, simp only [dif_pos], refl },
-    { change _ = c • _, have : ¬i = a, { rintro rfl, exact has h },
-      simp only [dif_neg this, dif_pos h], refl } },
-  { exact λ f, (f ⟨a, finset.mem_insert_self _ _⟩, λ i, f ⟨i.1, finset.mem_insert_of_mem i.2⟩) },
-  { intro f, apply prod.ext,
-    { simp only [or.by_cases, dif_pos] },
-    { ext ⟨i, his⟩,
-      have : ¬i = a, { rintro rfl, exact has his },
-      dsimp only [or.by_cases], change i ∈ s at his,
-      rw [dif_neg this, dif_pos his] } },
-  { intro f, ext ⟨i, hi⟩,
-    rcases finset.mem_insert.1 hi with rfl | h,
-    { simp only [or.by_cases, dif_pos], },
-    { have : ¬i = a, { rintro rfl, exact has h },
-      simp only [or.by_cases, dif_neg this, dif_pos h], } }
-end
+instance is_artinian_of_fintype [fintype M] : is_artinian R M :=
+⟨fintype.well_founded_of_trans_of_irrefl _⟩
+
+local attribute [elab_as_eliminator] fintype.induction_empty_option
+#print pi_option
+instance is_artinian_pi {R ι : Type*} [fintype ι] : Π {M : ι → Type*} [ring R]
+  [Π i, add_comm_group (M i)], by exactI Π [Π i, module R (M i)],
+  by exactI Π [∀ i, is_artinian R (M i)], is_artinian R (Π i, M i) :=
+fintype.induction_empty_option
+  (begin
+    introsI α β e hα M _ _ _ _,
+    exact is_artinian_of_linear_equiv
+      (linear_equiv.Pi_congr_left R M e)
+  end)
+  (by { introsI M _ _ _ _, apply_instance })
+  (begin
+     introsI α _ ih M _ _ _ _,
+  end)
+  ι
 
 /-- A version of `is_noetherian_pi` for non-dependent functions. We need this instance because
 sometimes Lean fails to apply the dependent version in non-dependent settings (e.g., it fails to

@@ -648,6 +648,21 @@ instance : unique (subalgebra R R) :=
   end
   .. algebra.subalgebra.inhabited }
 
+def inclusion {S T : subalgebra R A} (h : S ≤ T) : S →ₐ[R] T :=
+{ to_fun := set.inclusion h,
+  map_one' := rfl,
+  map_add' := λ _ _, rfl,
+  map_mul' := λ _ _, rfl,
+  map_zero' := rfl,
+  commutes' := λ _, rfl }
+
+lemma inclusion_injective {S T : subalgebra R A} (h : S ≤ T) :
+  function.injective (inclusion h) :=
+λ _ _, subtype.ext ∘ subtype.mk.inj
+
+@[simp] lemma coe_inclusion {S T : subalgebra R A} (h : S ≤ T) (s : S) :
+  (inclusion h s : A) = s := rfl
+
 /-- Two subalgebras that are equal are also equivalent as algebras.
 
 This is the `subalgebra` version of `linear_equiv.of_eq` and `equiv.set.of_eq`. -/

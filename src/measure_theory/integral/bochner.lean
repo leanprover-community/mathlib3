@@ -333,7 +333,7 @@ lemma norm_set_to_simple_func_le_integral_norm (T : set α → (E →L[ℝ] F)) 
   ∥f.set_to_simple_func T∥ ≤ C * (f.map norm).integral μ :=
 calc ∥f.set_to_simple_func T∥
     ≤ C * ∑ x in f.range, ennreal.to_real (μ (f ⁻¹' {x})) * ∥x∥ :
-  norm_set_to_simple_func_le_sum_mul_norm T C hC hT_norm hf
+  norm_set_to_simple_func_le_sum_mul_norm T C hC hT_norm f
 ... = C * (f.map norm).integral μ : by { rw map_integral f norm hf norm_zero, simp_rw smul_eq_mul, }
 
 lemma norm_integral_le_integral_norm (f : α →ₛ E) (hf : integrable f μ) :

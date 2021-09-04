@@ -12,6 +12,38 @@ import tactic.linarith
 import algebra.algebra.basic
 import ring_theory.noetherian
 
+/-!
+# Artinian rings and modules
+
+
+A module satisfying these equivalent conditions is said to be an *Artinian* R-module
+if every decreasing chain of submodules is eventually constant, or equivalently,
+if the relation `<` on submodules is well founded.
+
+A ring is an *Artinian ring* if it is Artinian as a module over itself.
+
+(Note that we do not assume yet that our rings are commutative,
+so perhaps this should be called "left Artinian".
+To avoid cumbersome names once we specialize to the commutative case,
+we don't make this explicit in the declaration names.)
+
+## Main definitions
+
+Let `R` be a ring and let `M` and `P` be `R`-modules. Let `N` be an `R`-submodule of `M`.
+
+* `is_artinian R M` is the proposition that `M` is a Artinian `R`-module. It is a class,
+  implemented as the predicate that the `<` relation on submodules is well founded.
+
+## References
+
+* [M. F. Atiyah and I. G. Macdonald, *Introduction to commutative algebra*][atiyah-macdonald]
+* [samuel]
+
+## Tags
+
+Artinian, artinian, Artinian ring, Artinian module, artinian ring, artinian module
+
+-/
 open set
 open_locale big_operators pointwise
 

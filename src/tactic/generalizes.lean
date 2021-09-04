@@ -115,8 +115,7 @@ focus1 $ do
   let new_target_type := (e.pis eqs).pis ks,
   type_check new_target_type <|> fail!
     ("generalizes': unable to generalize the target because the generalized target type does not" ++
-    " type check:
-{new_target_type}"),
+    " type check:\n{new_target_type}"),
   n ← mk_fresh_name,
   new_target ← assert n new_target_type,
   swap,

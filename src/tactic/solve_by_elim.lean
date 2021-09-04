@@ -96,8 +96,9 @@ do
   else return [],
   -- Finally, run all of the tactics: any that return an expression without metavariables can safely
   -- be replaced by a `return` tactic.
-  hs ← hs.mmap (λ h : tactic expr, do e ← h, if e.has_meta_var then return h else
-    return (return e)),
+  hs ← hs.mmap (λ h : tactic expr, do
+    e ← h,
+    if e.has_meta_var then return h else return (return e)),
   return (hs, locals)
 
 /--

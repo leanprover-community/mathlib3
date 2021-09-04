@@ -179,8 +179,8 @@ perms ← parse_permutations perms,
     fail "Cases contains variables not declared in `using x y z`",
   perms ← (if perms.length = 1
     then do
-      return (perms'.map $ λp, p ++ vars.filter (λ v, p.all (λ v',
-        v'.local_uniq_name ≠ v.local_uniq_name)))
+      return (perms'.map $ λ p,
+        p ++ vars.filter (λ v, p.all (λ v', v'.local_uniq_name ≠ v.local_uniq_name)))
     else do
       guard (perms.length = perms'.length) <|>
         fail "The provided permutation list has a different length then the provided cases.",
@@ -197,8 +197,8 @@ perms ← parse_permutations perms,
     | [l] := return l
     | _   := failed
     end,
-    let cases := mk_or_lst [pat, pat.instantiate_locals [(x.local_uniq_name, y),
-      (y.local_uniq_name, x)]],
+    let cases := mk_or_lst
+      [pat, pat.instantiate_locals [(x.local_uniq_name, y), (y.local_uniq_name, x)]],
     (do
       `(%%x' ≤ %%y') ← return pat,
       (cases_pr, []) ← local_proof name_h cases (exact ``(le_total %%x' %%y')),
@@ -217,8 +217,8 @@ perms ← parse_permutations perms,
     (cases_pr, [g]) ← local_proof name_h cases skip,
     return (pat, cases_pr, some g, vars, perms))
 end),
-let name_fn := (if perms.length = 2 then λ i, `invariant else λ i,
-  mk_simple_name ("invariant_" ++ to_string (i + 1))),
+let name_fn := if perms.length = 2 then λ _, `invariant else
+  λ i, mk_simple_name ("invariant_" ++ to_string (i + 1)),
 with_enable_tags $ tactic.focus1 $ do
   t ← get_main_tag,
   tactic.wlog vars cases_pr pat perms,

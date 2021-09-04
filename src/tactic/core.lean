@@ -2353,9 +2353,10 @@ then do
   user_attr_const ← mk_const user_attr_nm,
   tac ← eval_pexpr (tactic unit)
     ``(user_attribute.set %%user_attr_const %%c_name (default _) %%persistent) <|>
-    fail!("Cannot set attribute @[{attr_name}]. The corresponding user attribute {user_attr_nm}" ++
-    " has a parameter without a default value.
-Solution: provide an `inhabited` instance."),
+    fail! ("Cannot set attribute @[{attr_name}].\n" ++
+      "The corresponding user attribute {user_attr_nm} " ++
+      "has a parameter without a default value.\n" ++
+      "Solution: provide an `inhabited` instance."),
   tac
 else fail msg
 

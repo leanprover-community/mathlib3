@@ -112,9 +112,9 @@ mmap (λn, do
 private meta def split_params_args :
   list (expr × bool) → list expr → list (expr × option expr) × list expr
 | ((lc, tt) :: ps) (e :: es) := let (ps', es') :=
-    split_params_args ps es in ((lc, some e) :: ps', es')
+  split_params_args ps es in ((lc, some e) :: ps', es')
 | ((lc, ff) :: ps) es        := let (ps', es') :=
-    split_params_args ps es in ((lc, none) :: ps', es')
+  split_params_args ps es in ((lc, none) :: ps', es')
 | _ es := ([], es)
 
 private meta def param_substitutions (ctxt : list expr) :

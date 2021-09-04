@@ -73,7 +73,7 @@ meta def sf.flatten : sf → sf
   | (sf.of_string sx), (sf.compose (sf.of_string sy) z) := sf.compose (sf.of_string (sx ++ sy)) z
   | (sf.compose x (sf.of_string sy)), (sf.of_string sz) := sf.compose x (sf.of_string (sy ++ sz))
   | (sf.compose x (sf.of_string sy1)), (sf.compose (sf.of_string sy2) z) :=
-      sf.compose x (sf.compose (sf.of_string (sy1 ++ sy2)) z)
+    sf.compose x (sf.compose (sf.of_string (sy1 ++ sy2)) z)
   | x, y := sf.compose x y
   end
 | (sf.of_string s) := -- replace newline by space
@@ -235,7 +235,7 @@ $ tc.mk_simple
     | (action.on_mouse_enter ⟨e, ea⟩) := ((ca, some (e, ea)), none)
     | (action.on_mouse_leave_all)     := ((ca, none), none)
     | (action.on_click ⟨e, ea⟩)       :=
-        if some (e,ea) = ca then ((none, sa), none) else ((some (e, ea), sa), none)
+      if some (e,ea) = ca then ((none, sa), none) else ((some (e, ea), sa), none)
     | (action.on_tooltip_action g)    := ((none, sa), some $ sum.inl g)
     | (action.on_close_tooltip)       := ((none, sa), none)
     | (action.effect e)               := ((ca,sa), some $ sum.inr $ e)
@@ -245,8 +245,8 @@ $ tc.mk_simple
     m ← sf.of_eformat <$> tactic.pp_tagged e,
     let m := m.elim_part_apps,
     let m := m.flatten,
-    let m := m.tag_expr [] e, /- [hack] in pp.cpp I forgot to add an expr-boundary for the root
-      expression. -/
+    -- [hack] in pp.cpp I forgot to add an expr-boundary for the root expression.
+    let m := m.tag_expr [] e,
     v ← view tooltip_comp (prod.snd <$> ca) (prod.snd <$> sa) ⟨e, []⟩ m,
     pure $
     [ h "span" [
@@ -445,8 +445,8 @@ tc.mk_simple
           h "li" [className $ "lh-copy mt2", key i] [x])
         $ (goal_message :: hs),
     pure [
-      h "div" [className "fr"] [html.of_component ft $
-        component.map_action tactic_view_action.filter filter_component],
+      h "div" [className "fr"]
+        [html.of_component ft $ component.map_action tactic_view_action.filter filter_component],
       html.map_action tactic_view_action.out goals
     ])
 

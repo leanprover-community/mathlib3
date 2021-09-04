@@ -468,9 +468,8 @@ do t ← target,
              pure $ foldl compose "\n\n" $
                list.intersperse "\n" $ to_fmt l.get_app_fn.const_name :: msg),
         let msg := foldl compose "" lmms,
-        fail format!"ambiguous match: {msg}
-
-Tip: try asserting a side condition to distinguish between the lemmas"
+        fail format!("ambiguous match: {msg}\n\n" ++
+          "Tip: try asserting a side condition to distinguish between the lemmas")
    end
 
 meta def mono_aux (dir : parse side) :

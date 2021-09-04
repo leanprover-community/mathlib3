@@ -328,18 +328,18 @@ lemma integral_smul (c : 𝕜) {f : α →ₛ E} (hf : integrable f μ) :
 set_to_simple_func_smul (weighted_smul μ)
   weighted_smul_union (λ c s x, by simp_rw [weighted_smul_apply, smul_comm]) c hf
 
-lemma norm_set_to_simple_func_le_integral_norm (T : set α → (E →L[ℝ] F)) (C : ℝ) (hC : 0 ≤ C)
+lemma norm_set_to_simple_func_le_integral_norm (T : set α → (E →L[ℝ] F)) {C : ℝ}
   (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real) {f : α →ₛ E} (hf : integrable f μ) :
   ∥f.set_to_simple_func T∥ ≤ C * (f.map norm).integral μ :=
 calc ∥f.set_to_simple_func T∥
     ≤ C * ∑ x in f.range, ennreal.to_real (μ (f ⁻¹' {x})) * ∥x∥ :
-  norm_set_to_simple_func_le_sum_mul_norm T C hC hT_norm f
+  norm_set_to_simple_func_le_sum_mul_norm T hT_norm f
 ... = C * (f.map norm).integral μ : by { rw map_integral f norm hf norm_zero, simp_rw smul_eq_mul, }
 
 lemma norm_integral_le_integral_norm (f : α →ₛ E) (hf : integrable f μ) :
   ∥f.integral μ∥ ≤ (f.map norm).integral μ :=
 begin
-  refine (norm_set_to_simple_func_le_integral_norm _ 1 (by simp) (λ s, _) hf).trans (one_mul _).le,
+  refine (norm_set_to_simple_func_le_integral_norm _ (λ s, _) hf).trans (one_mul _).le,
   exact (norm_weighted_smul_le s).trans (one_mul _).symm.le,
 end
 

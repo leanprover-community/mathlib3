@@ -164,6 +164,7 @@ namespace padic_int
 
 open cau_seq
 
+-- PR #8995
 instance (p : ℕ) [hp : fact p.prime] : is_adic_complete (maximal_ideal ℤ_[p]) ℤ_[p] :=
 { prec' := λ x hx,
   begin

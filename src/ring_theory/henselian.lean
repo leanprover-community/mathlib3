@@ -126,6 +126,7 @@ end
 
 end smodeq
 
+-- PR #8994 (but it should just be fixed... I don't know how)
 lemma enat.coe_eq_coe (n : ℕ) :
   @eq enat
     (@coe nat enat (@coe_to_lift nat enat (@nat.cast_coe enat (@add_zero_class.to_has_zero enat
@@ -142,6 +143,7 @@ namespace discrete_valuation_ring
 
 variables {R : Type*} [integral_domain R] [discrete_valuation_ring R]
 
+-- PR #8994
 instance : is_Hausdorff (maximal_ideal R) R :=
 { haus' := λ x hx,
   begin

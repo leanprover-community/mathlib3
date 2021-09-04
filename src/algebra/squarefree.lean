@@ -124,7 +124,7 @@ begin
   { simp [hx, pow_eq_zero_iff (nat.pos_of_ne_zero h0)] },
   by_cases hy : y = 0,
   { simp [hy, zero_pow (nat.pos_of_ne_zero h0)] },
-  refine ⟨λ h, _, λ h, dvd_pow h h0⟩,
+  refine ⟨λ h, _, λ h, h.pow h0⟩,
   rw [dvd_iff_factors_le_factors hx (pow_ne_zero n hy), factors_pow,
     ((squarefree_iff_nodup_factors hx).1 hsq).le_nsmul_iff_le h0] at h,
   rwa dvd_iff_factors_le_factors hx hy,

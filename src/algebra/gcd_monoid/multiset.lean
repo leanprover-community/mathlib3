@@ -50,7 +50,7 @@ multiset.induction_on s (by simp)
   (by simp [or_imp_distrib, forall_and_distrib, lcm_dvd_iff] {contextual := tt})
 
 lemma dvd_lcm {s : multiset α} {a : α} (h : a ∈ s) : a ∣ s.lcm :=
-lcm_dvd.1 (dvd_refl _) _ h
+lcm_dvd.1 dvd_rfl _ h
 
 lemma lcm_mono {s₁ s₂ : multiset α} (h : s₁ ⊆ s₂) : s₁.lcm ∣ s₂.lcm :=
 lcm_dvd.2 $ assume b hb, dvd_lcm (h hb)
@@ -106,7 +106,7 @@ multiset.induction_on s (by simp)
   (by simp [or_imp_distrib, forall_and_distrib, dvd_gcd_iff] {contextual := tt})
 
 lemma gcd_dvd {s : multiset α} {a : α} (h : a ∈ s) : s.gcd ∣ a :=
-dvd_gcd.1 (dvd_refl _) _ h
+dvd_gcd.1 dvd_rfl _ h
 
 lemma gcd_mono {s₁ s₂ : multiset α} (h : s₁ ⊆ s₂) : s₂.gcd ∣ s₁.gcd :=
 dvd_gcd.2 $ assume b hb, gcd_dvd (h hb)

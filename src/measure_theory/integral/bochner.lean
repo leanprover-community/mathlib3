@@ -347,11 +347,9 @@ lemma integral_add_measure {ν} (f : α →ₛ E) (hf : integrable f (μ + ν)) 
   f.integral (μ + ν) = f.integral μ + f.integral ν :=
 begin
   simp_rw [integral_def],
-  rw set_to_simple_func_add_left' (weighted_smul μ) (weighted_smul ν) (weighted_smul (μ + ν)),
-  swap, { exact hf, },
-  intros s hs hμνs,
-  push_cast at hμνs,
-  rw [pi.add_apply, ennreal.add_ne_top] at hμνs,
+  refine set_to_simple_func_add_left' (weighted_smul μ) (weighted_smul ν) (weighted_smul (μ + ν))
+    (λ s hs hμνs, _) hf,
+  rw [measure.coe_add, pi.add_apply, ennreal.add_ne_top] at hμνs,
   rw weighted_smul_add_measure _ _ hμνs.1 hμνs.2,
 end
 

@@ -22,7 +22,7 @@ depends on `x`.
 In particular, in finite dimensions Carathéodory's theorem implies that the convex hull of a set `s`
 in `ℝᵈ` is the union of the convex hulls of the `(d+1)`-tuples in `s`.
 
-## Main results:
+## Main results
 
 * `convex_hull_eq_union`: Carathéodory's convexity theorem
 

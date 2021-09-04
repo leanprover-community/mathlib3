@@ -203,7 +203,7 @@ namespace polynomial
 
 open_locale nat
 
-section hasse_derivative
+section hasse_deriv
 
 /-!
 Reference: https://math.fontein.de/2009/08/12/the-hasse-derivative/
@@ -212,8 +212,8 @@ Reference: https://math.fontein.de/2009/08/12/the-hasse-derivative/
 variables {R : Type*} [semiring R] (k : ℕ) (f : polynomial R)
 
 /-- The `k`th Hasse derivative of a polynomials `∑ a_i X^i` is `∑ (i.choose k) a_i X^(i-k)`.
-It satisfies `k! * (hasse_derivative k f) = derivative^[k] f`. -/
-def hasse_derivative (k : ℕ) : polynomial R →ₗ[R] polynomial R :=
+It satisfies `k! * (hasse_deriv k f) = derivative^[k] f`. -/
+def hasse_deriv (k : ℕ) : polynomial R →ₗ[R] polynomial R :=
 { to_fun := λ f, f.sum $ λ i r, monomial (i - k) (↑(i.choose k) * r),
   map_add' := λ f g,
   begin
@@ -235,13 +235,13 @@ def hasse_derivative (k : ℕ) : polynomial R →ₗ[R] polynomial R :=
   end }
 .
 
-lemma hasse_derivative_apply :
-  hasse_derivative k f = f.sum (λ i r, monomial (i - k) (↑(i.choose k) * r)) := rfl
+lemma hasse_deriv_apply :
+  hasse_deriv k f = f.sum (λ i r, monomial (i - k) (↑(i.choose k) * r)) := rfl
 
-lemma hasse_derivative_coeff (n : ℕ) :
-  (hasse_derivative k f).coeff n = (n + k).choose k * f.coeff (n + k) :=
+lemma hasse_deriv_coeff (n : ℕ) :
+  (hasse_deriv k f).coeff n = (n + k).choose k * f.coeff (n + k) :=
 begin
-  rw [hasse_derivative_apply, coeff_sum, sum_def, finset.sum_eq_single (n + k), coeff_monomial],
+  rw [hasse_deriv_apply, coeff_sum, sum_def, finset.sum_eq_single (n + k), coeff_monomial],
   { simp only [if_true, nat.add_sub_cancel, eq_self_iff_true], },
   { intros i hi hink,
     rw [coeff_monomial],
@@ -251,25 +251,25 @@ begin
   { intro h, simp only [not_mem_support_iff.mp h, monomial_zero_right, mul_zero, coeff_zero] }
 end
 
-lemma hasse_derivative_zero' : hasse_derivative 0 f = f :=
-by simp only [hasse_derivative_apply, nat.sub_zero, nat.choose_zero_right,
+lemma hasse_deriv_zero' : hasse_deriv 0 f = f :=
+by simp only [hasse_deriv_apply, nat.sub_zero, nat.choose_zero_right,
   nat.cast_one, one_mul, sum_monomial_eq]
 
-@[simp] lemma hasse_derivative_zero : @hasse_derivative R _ 0 = linear_map.id :=
-linear_map.ext $ hasse_derivative_zero'
+@[simp] lemma hasse_deriv_zero : @hasse_deriv R _ 0 = linear_map.id :=
+linear_map.ext $ hasse_deriv_zero'
 
-lemma hasse_derivative_one' : hasse_derivative 1 f = derivative f :=
-by simp only [hasse_derivative_apply, derivative_apply, monomial_eq_C_mul_X, nat.choose_one_right,
+lemma hasse_deriv_one' : hasse_deriv 1 f = derivative f :=
+by simp only [hasse_deriv_apply, derivative_apply, monomial_eq_C_mul_X, nat.choose_one_right,
     (nat.cast_commute _ _).eq]
 
-@[simp] lemma hasse_derivative_one : @hasse_derivative R _ 1 = derivative :=
-linear_map.ext $ hasse_derivative_one'
+@[simp] lemma hasse_deriv_one : @hasse_deriv R _ 1 = derivative :=
+linear_map.ext $ hasse_deriv_one'
 
-@[simp] lemma hasse_derivative_monomial (n : ℕ) (r : R) :
-  hasse_derivative k (monomial n r) = monomial (n - k) (↑(n.choose k) * r) :=
+@[simp] lemma hasse_deriv_monomial (n : ℕ) (r : R) :
+  hasse_deriv k (monomial n r) = monomial (n - k) (↑(n.choose k) * r) :=
 begin
   ext i,
-  simp only [hasse_derivative_coeff, coeff_monomial],
+  simp only [hasse_deriv_coeff, coeff_monomial],
   by_cases hnik : n = i + k,
   { rw [if_pos hnik, if_pos, ← hnik], apply nat.sub_eq_of_eq_add, rwa add_comm },
   { rw [if_neg hnik, mul_zero],
@@ -278,28 +278,28 @@ begin
     { push_neg at hkn, rw [nat.choose_eq_zero_of_lt hkn, nat.cast_zero, zero_mul, if_t_t] } }
 end
 
-lemma hasse_derivative_C (r : R) (hk : 0 < k) : hasse_derivative k (C r) = 0 :=
-by rw [← monomial_zero_left, hasse_derivative_monomial, nat.choose_eq_zero_of_lt hk,
+lemma hasse_deriv_C (r : R) (hk : 0 < k) : hasse_deriv k (C r) = 0 :=
+by rw [← monomial_zero_left, hasse_deriv_monomial, nat.choose_eq_zero_of_lt hk,
     nat.cast_zero, zero_mul, monomial_zero_right]
 
-lemma hasse_derivative_apply_one (hk : 0 < k) : hasse_derivative k (1 : polynomial R) = 0 :=
-by rw [← C_1, hasse_derivative_C k _ hk]
+lemma hasse_deriv_apply_one (hk : 0 < k) : hasse_deriv k (1 : polynomial R) = 0 :=
+by rw [← C_1, hasse_deriv_C k _ hk]
 
-lemma hasse_derivative_X (hk : 1 < k) : hasse_derivative k (X : polynomial R) = 0 :=
-by rw [← monomial_one_one_eq_X, hasse_derivative_monomial, nat.choose_eq_zero_of_lt hk,
+lemma hasse_deriv_X (hk : 1 < k) : hasse_deriv k (X : polynomial R) = 0 :=
+by rw [← monomial_one_one_eq_X, hasse_deriv_monomial, nat.choose_eq_zero_of_lt hk,
     nat.cast_zero, zero_mul, monomial_zero_right]
 
 open nat (hiding nsmul_eq_mul)
 
-lemma factorial_smul_hasse_derivative :
-  ⇑(k! • @hasse_derivative R _ k) = ((@derivative R _)^[k]) :=
+lemma factorial_smul_hasse_deriv :
+  ⇑(k! • @hasse_deriv R _ k) = ((@derivative R _)^[k]) :=
 begin
   induction k with k ih,
-  { rw [hasse_derivative_zero, factorial_zero, iterate_zero, one_smul, linear_map.id_coe], },
+  { rw [hasse_deriv_zero, factorial_zero, iterate_zero, one_smul, linear_map.id_coe], },
   ext f n : 2,
   rw [iterate_succ_apply', ← ih],
   simp only [linear_map.smul_apply, coeff_smul, linear_map.map_smul_of_tower, coeff_derivative,
-    hasse_derivative_coeff, ← @choose_symm_add _ k],
+    hasse_deriv_coeff, ← @choose_symm_add _ k],
   simp only [nsmul_eq_mul, factorial_succ, mul_assoc, succ_eq_add_one, ← add_assoc,
     add_right_comm n 1 k, ← cast_succ],
   rw ← (cast_commute (n+1) (f.coeff (n + k + 1))).eq,
@@ -318,12 +318,12 @@ begin
 end
 .
 
-lemma hasse_derivative_comp (k l : ℕ) :
-  (@hasse_derivative R _ k).comp (hasse_derivative l) = (k+l).choose k • hasse_derivative (k+l) :=
+lemma hasse_deriv_comp (k l : ℕ) :
+  (@hasse_deriv R _ k).comp (hasse_deriv l) = (k+l).choose k • hasse_deriv (k+l) :=
 begin
   ext i : 2,
   simp only [linear_map.smul_apply, comp_app, linear_map.coe_comp, smul_monomial,
-    hasse_derivative_apply, mul_one, monomial_eq_zero_iff, sum_monomial_index, mul_zero,
+    hasse_deriv_apply, mul_one, monomial_eq_zero_iff, sum_monomial_index, mul_zero,
     nat.sub_sub, add_comm l k],
   rw_mod_cast nsmul_eq_mul,
   congr' 2,
@@ -350,11 +350,11 @@ end
 section
 open add_monoid_hom
 
-lemma hasse_derivative_mul (f g : polynomial R) :
-  hasse_derivative k (f * g) =
-    ∑ ij in finset.nat.antidiagonal k, hasse_derivative ij.1 f * hasse_derivative ij.2 g :=
+lemma hasse_deriv_mul (f g : polynomial R) :
+  hasse_deriv k (f * g) =
+    ∑ ij in finset.nat.antidiagonal k, hasse_deriv ij.1 f * hasse_deriv ij.2 g :=
 begin
-  let D := λ k, (@hasse_derivative R _ k).to_add_monoid_hom,
+  let D := λ k, (@hasse_deriv R _ k).to_add_monoid_hom,
   let Φ := @add_monoid_hom.mul (polynomial R) _,
   show (comp_hom (D k)).comp Φ f g =
     ∑ (ij : ℕ × ℕ) in finset.nat.antidiagonal k,
@@ -363,7 +363,7 @@ begin
   congr' 2, clear f g,
   ext m r n s : 4,
   simp only [finset_sum_apply, coe_mul_left, coe_comp, flip_apply, comp_app,
-    hasse_derivative_monomial, linear_map.to_add_monoid_hom_coe, comp_hom_apply_apply, coe_mul,
+    hasse_deriv_monomial, linear_map.to_add_monoid_hom_coe, comp_hom_apply_apply, coe_mul,
     monomial_mul_monomial],
   have aux : ∀ (x : ℕ × ℕ), x ∈ finset.nat.antidiagonal k →
     monomial (m - x.1 + (n - x.2)) (↑(m.choose x.1) * r * (↑(n.choose x.2) * s)) =
@@ -383,7 +383,7 @@ end
 
 end
 
-end hasse_derivative
+end hasse_deriv
 
 -- move this
 /-- Evaluation of polynomials as linear map. -/
@@ -413,12 +413,12 @@ by simp only [taylor_apply, C_comp]
 @[simp] lemma taylor_one : taylor r (1 : polynomial R) = C 1 :=
 by rw [← C_1, taylor_C]
 
-lemma taylor_coeff (n : ℕ) : (taylor r f).coeff n = (hasse_derivative n f).eval r :=
-show (lcoeff R n).comp (taylor r) f = (leval r).comp (hasse_derivative n) f,
+lemma taylor_coeff (n : ℕ) : (taylor r f).coeff n = (hasse_deriv n f).eval r :=
+show (lcoeff R n).comp (taylor r) f = (leval r).comp (hasse_deriv n) f,
 begin
   congr' 1, clear f, ext i,
   simp only [leval_apply, mul_one, one_mul, eval_monomial, linear_map.comp_apply, coeff_C_mul,
-    hasse_derivative_monomial, taylor_apply, monomial_comp, C_1,
+    hasse_deriv_monomial, taylor_apply, monomial_comp, C_1,
     (commute_X (C r)).add_pow i, linear_map.map_sum],
   simp only [lcoeff_apply, ← C_eq_nat_cast, mul_assoc, ← C_pow, ← C_mul, coeff_mul_C,
     (nat.cast_commute _ _).eq, coeff_X_pow, boole_mul, finset.sum_ite_eq, finset.mem_range],
@@ -427,10 +427,10 @@ begin
 end
 
 @[simp] lemma taylor_coeff_zero : (taylor r f).coeff 0 = f.eval r :=
-by rw [taylor_coeff, hasse_derivative_zero, linear_map.id_apply]
+by rw [taylor_coeff, hasse_deriv_zero, linear_map.id_apply]
 
 @[simp] lemma taylor_coeff_one : (taylor r f).coeff 1 = f.derivative.eval r :=
-by rw [taylor_coeff, hasse_derivative_one]
+by rw [taylor_coeff, hasse_deriv_one]
 
 lemma taylor_eval {R} [comm_semiring R] (r : R) (f : polynomial R) (s : R) :
   (taylor r f).eval s = f.eval (s + r) :=
@@ -450,8 +450,8 @@ end
 
 end taylor
 
-lemma eq_zero_of_hasse_derivative_eq_zero {R} [comm_ring R] (f : polynomial R) (r : R)
-  (h : ∀ k, (hasse_derivative k f).eval r = 0) :
+lemma eq_zero_of_hasse_deriv_eq_zero {R} [comm_ring R] (f : polynomial R) (r : R)
+  (h : ∀ k, (hasse_deriv k f).eval r = 0) :
   f = 0 :=
 begin
   apply taylor_injective r,

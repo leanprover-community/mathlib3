@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import linear_algebra.basic
+import linear_algebra.prod
 
 open set
 open_locale big_operators pointwise
@@ -49,184 +50,32 @@ theorem is_artinian_of_linear_equiv (f : M ≃ₗ[R] P)
   [is_artinian R M] : is_artinian R P :=
 is_artinian_of_surjective _ f.to_linear_map f.to_equiv.surjective
 
-example (f : submodule R M) : add_subgroup M :=
-by suggest
-
-theorem submodule.map_comap_eq (f : M →ₗ[R] N)
-  (A : submodule R N) :
-  (A.comap f).map f = f.range ⊓ A :=
-set_like.ext' (set.image_preimage_eq_inter_range.trans inf_comm)
-
-theorem submodule.comap_map_eq (g : N →ₗ[R] P)
-  (A : submodule R N) :
-  (A.map g).comap g = A ⊔ g.ker :=
-le_antisymm
-  _
-  (le_trans _ (submodule.le_comap_map _ _))
-
-section
-open_locale classical
-#print eq_of_inf_eq_sup_eq
-theorem thing (N₁ N₂ K: submodule R M)
-  (h₁ : N₁ ≤ N₂)
-  (hinf : N₁ ⊓ K = N₂ ⊓ K)
-  (hsup : N₁ ⊔ K = N₂ ⊔ K) :
-  N₂ ≤ N₁ :=
-begin
-  assume x hx,
-  have hxKN : x ∈ N₁ ⊔ K,
-  { rw [hsup],
-    exact submodule.mem_sup_left hx },
-  rw [submodule.mem_sup] at hxKN,
-  rcases hxKN with ⟨x', hx'N₁, z, hzK, h⟩,
-  rw [add_comm, ← eq_add_neg_iff_add_eq] at h,
-  have : z ∈ N₂,
-  { rw [h],
-    exact submodule.add_mem _ hx (h₁ (submodule.neg_mem _ hx'N₁)) },
-  have : z ∈ N₂ ⊓ K,
-  { exact submodule.mem_inf.2 ⟨this, hzK⟩ },
-  rw ← hinf at this,
-
-end
-
-theorem inf_sup_left_of_le {A B : submodule R M}
-   (h : A ≤ B) (C : submodule R M) :
-  B ⊓ (A ⊔ C) ≤ A ⊔ (B ⊓ C) :=
-begin
-  intros x,
-  simp only [submodule.mem_sup, submodule.mem_inf],
-  rintros ⟨hxB, y, hyA, z, hzC, rfl⟩,
-  refine ⟨y, hyA, z, _, rfl⟩,
-  rw [submodule.mem_inf],
-  refine ⟨_, hzC⟩,
-  convert B.sub_mem hxB (h hyA),
-  simp
-end
-#print is_modular_lattice
-#print inf_sup_assoc_of_le
-theorem inf_sup_assoc_of_le
-  {A : submodule R M}
-  (B : submodule R M)
-  {C : submodule R M}
-  (h : A ≤ C) :
-  (A ⊔ B) ⊓ C = A ⊔ (B ⊓ C) :=
-le_antisymm
-  begin
-    intros x,
-    simp only [submodule.mem_sup, submodule.mem_inf],
-    rintros ⟨⟨y, hyA, z, hzB, rfl⟩, hxC⟩,
-    refine ⟨y, hyA, z, _, rfl⟩,
-    rw [submodule.mem_inf],
-    refine ⟨hzB, _⟩,
-    convert C.sub_mem hxC (h hyA),
-    simp
-  end
-_
-theorem thing (N₁ N₂ K : submodule R M)
-  (h₁ : N₁ ≤ N₂)
-  (hinf : N₁ ⊓ K = N₂ ⊓ K)
-  (hsup : N₁ ⊔ K = N₂ ⊔ K) :
-  N₂ ≤ N₁ :=
-have h1 : N₂ ≤ N₁ ⊔ K,
-  from calc N₂ ≤ N₂ ⊔ K : le_sup_left
-    ... = N₁ ⊔ K : hsup.symm,
-have h2 : (N₁ ⊔ N₂) ⊓ K ≤ N₁ ⊓ K,
-  from calc
-    (N₁ ⊔ N₂) ⊓ K ≤ N₂ ⊓ K : by rw [sup_eq_right.2 h₁]; exact le_refl _
-    ... = _ : hinf.symm,
-have h3 : N₂ ≤ ((N₁ ⊔ N₂) ⊓ K) ⊔ N₁,
-  from calc N₂ ≤ N₁ ⊔ K : h1
-  ... ≤ N₁ ⊔ (K ⊓ N₂) : begin
-    assume x hx,
-    simp [submodule.mem_sup] at *,
-    rcases hx with ⟨y, hyN₁, z, hzK, rfl⟩,
-    use [y, hyN₁],
-    use z,
-
-  end
-  ... ≤ _ : _,
-begin
-  assume x hx,
-  have hxKN : x ∈ N₁ ⊔ K,
-  { exact h1 hx },
-  rw [submodule.mem_sup] at hxKN,
-  rcases hxKN with ⟨x', hx'N₁, z, hzK, h⟩,
-  rw [add_comm, ← eq_add_neg_iff_add_eq] at h,
-  have : z ∈ N₂,
-  { rw [h],
-    exact submodule.add_mem _ hx (h₁ (submodule.neg_mem _ hx'N₁)) },
-  have : z ∈ N₂ ⊓ K,
-  { exact submodule.mem_inf.2 ⟨this, hzK⟩ },
-  rw ← hinf at this,
-
-end
-
 theorem is_artinian_of_range_eq_ker
   [is_artinian R M] [is_artinian R P]
   (f : M →ₗ[R] N) (g : N →ₗ[R] P)
   (hf : function.injective f)
   (hg : function.surjective g)
   (h : f.range = g.ker) :
-  is_artinian R N :=
-⟨@subrelation.wf _ (inv_image (sum.lex (<) (<))
-    (λ A, if A ≤ f.range
-      then sum.inl (A.comap f)
-      else sum.inr (A.map g))) (<)
-  (λ A B hAB, begin
-     simp [inv_image],
-     split_ifs,
-     { simp, admit },
-     { simp },
-     { exact (h_1 (le_trans (le_of_lt hAB) h_2)).elim },
-     { simp only [sum.lex_inr_inr, lt_iff_le_not_le, ← submodule.map_le_map_iff_of_injective hf,
-        ← submodule.comap_le_comap_iff_of_surjective hg, le_antisymm_iff,
-        submodule.map_comap_eq, submodule.comap_map_eq, ← h],
-       refine ⟨sorry, _⟩,
-        }
-
-  end)
-
-  (inv_image.wf _
-      (sum.lex_wf is_artinian.wf is_artinian.wf))⟩
-
-end
-
--- ⟨subrelation.wf
---   (λ A B hAB, show prod.lex (<) (<) (A.map g, A.comap f) (B.map g, B.comap f),
---     begin
---       simp [prod.lex_def],
---       simp only [lt_iff_le_not_le, ← submodule.map_le_map_iff_of_injective hf,
---         ← submodule.comap_le_comap_iff_of_surjective hg, le_antisymm_iff,
---         submodule.map_comap_eq, submodule.comap_map_eq],
---       simp only [← lt_iff_le_not_le, ← le_antisymm_iff],
---       cases lt_or_eq_of_le (sup_le_sup_right (le_of_lt hAB) g.ker) with hfAB hfAB,
---       { exact or.inl hfAB },
---       { right,
---         refine ⟨hfAB, _⟩,
---         refine lt_of_le_of_ne sorry _,
---         rw ← h,
---         assume hsup,
---         have := eq_of_inf_eq_sup_eq _ hsup,
-
---          }
-
---     end)
---   (inv_image.wf _ (prod.lex_wf is_artinian.wf is_artinian.wf))⟩
-#exit
+  is_artinian R N := sorry
 
 instance is_artinian_prod [is_artinian R M]
   [is_artinian R P] : is_artinian R (M × P) :=
-⟨_⟩
+is_artinian_of_range_eq_ker
+  (linear_map.inl R M P)
+  (linear_map.snd R M P)
+  linear_map.inl_injective
+  linear_map.snd_surjective
+  (linear_map.range_inl R M P)
 
-instance is_noetherian_pi {R ι : Type*} {M : ι → Type*} [ring R]
+instance is_artinian_pi {R ι : Type*} {M : ι → Type*} [ring R]
   [Π i, add_comm_group (M i)] [Π i, module R (M i)] [fintype ι]
-  [∀ i, is_noetherian R (M i)] : is_noetherian R (Π i, M i) :=
+  [∀ i, is_artinian R (M i)] : is_artinian R (Π i, M i) :=
 begin
   haveI := classical.dec_eq ι,
-  suffices on_finset : ∀ s : finset ι, is_noetherian R (Π i : s, M i),
+  suffices on_finset : ∀ s : finset ι, is_artinian R (Π i : s, M i),
   { let coe_e := equiv.subtype_univ_equiv finset.mem_univ,
-    letI : is_noetherian R (Π i : finset.univ, M (coe_e i)) := on_finset finset.univ,
-    exact is_noetherian_of_linear_equiv (linear_equiv.Pi_congr_left R M coe_e), },
+    letI : is_artinian R (Π i : finset.univ, M (coe_e i)) := on_finset finset.univ,
+    exact is_artinian_of_linear_equiv (linear_equiv.Pi_congr_left R M coe_e), },
   intro s,
   induction s using finset.induction with a s has ih,
   { split, intro s, convert submodule.fg_bot, apply eq_bot_iff.2,

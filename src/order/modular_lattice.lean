@@ -95,7 +95,8 @@ theorem inf_lt_inf_of_lt_of_sup_le_sup
   x ⊓ z < y ⊓ z :=
 @sup_lt_sup_of_lt_of_inf_le_inf (order_dual α) _ _ _ _ _ hxy hinf
 
-/-- A generalization of the theorem that  -/
+/-- A generalization of the theorem that if `N` is a submodule of `M` and
+  `N` and `M / N` are both Artinian, then `M` is Artinian. -/
 theorem well_founded_lt_exact_sequence
   {β γ : Type*} [partial_order β] [partial_order γ]
   (h₁ : well_founded ((<) : β → β → Prop))
@@ -118,6 +119,8 @@ subrelation.wf
     end)
   (inv_image.wf _ (prod.lex_wf h₁ h₂))
 
+/-- A generalization of the theorem that if `N` is a submodule of `M` and
+  `N` and `M / N` are both Noetherian, then `M` is Noetherian.  -/
 theorem well_founded_gt_exact_sequence
   {β γ : Type*} [partial_order β] [partial_order γ]
   (h₁ : well_founded ((>) : β → β → Prop))

@@ -387,11 +387,4 @@ by simp
 
 end functor
 
-section partial_order
-variables {α β : Type*} [partial_order α] [partial_order β]
-
-lemma iso.to_eq {X Y : α} (f : X ≅ Y) : X = Y := le_antisymm f.hom.le f.inv.le
-
-end partial_order
-
 end category_theory

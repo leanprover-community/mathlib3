@@ -446,11 +446,23 @@ ring_hom.ext $ monoid_hom.ext_iff.1 $ (to_localization_map M S).lift_comp _
 ring_hom.ext $ monoid_hom.ext_iff.1 $ (to_localization_map M S).lift_of_comp j.to_monoid_hom
 
 variables (M)
+/-- See note [partially-applied ext lemmas] -/
+lemma monoid_hom_ext ⦃j k : S →* P⦄
+  (h : j.comp (algebra_map R S : R →* S) = k.comp (algebra_map R S)) : j = k :=
+submonoid.localization_map.epic_of_localization_map (to_localization_map M S) $
+  monoid_hom.congr_fun h
 
-lemma epic_of_localization_map (j k : S →+* P)
-  (h : ∀ a, j.comp (algebra_map R S) a = k.comp (algebra_map R S) a) : j = k :=
-ring_hom.ext $ monoid_hom.ext_iff.1 $ @submonoid.localization_map.epic_of_localization_map
-  _ _ _ _ _ _ _ (to_localization_map M S) j.to_monoid_hom k.to_monoid_hom h
+/-- See note [partially-applied ext lemmas] -/
+lemma ring_hom_ext ⦃j k : S →+* P⦄
+  (h : j.comp (algebra_map R S) = k.comp (algebra_map R S)) : j = k :=
+ring_hom.coe_monoid_hom_injective $ monoid_hom_ext M $ monoid_hom.ext $ ring_hom.congr_fun h
+
+/-- To show `j` and `k` agree on the whole localization, it suffices to show they agree
+on the image of the base ring, if they preserve `1` and `*`. -/
+protected lemma ext (j k : S → P) (hj1 : j 1 = 1) (hk1 : k 1 = 1)
+  (hjm : ∀ a b, j (a * b) = j a * j b) (hkm : ∀ a b, k (a * b) = k a * k b)
+  (h : ∀ a, j (algebra_map R S a) = k (algebra_map R S a)) : j = k :=
+monoid_hom.mk.inj (monoid_hom_ext M $ monoid_hom.ext h : (⟨j, hj1, hjm⟩ : S →* P) = ⟨k, hk1, hkm⟩)
 
 variables {M}
 
@@ -1685,7 +1697,7 @@ begin
 end
 
 lemma is_unit_denom_of_num_eq_zero {x : K} (h : num A x = 0) : is_unit (denom A x : A) :=
-num_denom_reduced A x (h.symm ▸ dvd_zero _) (dvd_refl _)
+num_denom_reduced A x (h.symm ▸ dvd_zero _) dvd_rfl
 
 end num_denom
 

@@ -180,8 +180,8 @@ end
 
 lemma two_dvd_card_support {σ : perm α} (hσ : σ ^ 2 = 1) : 2 ∣ σ.support.card :=
 (congr_arg (has_dvd.dvd 2) σ.sum_cycle_type).mp
-  (multiset.dvd_sum (λ n hn, by rw le_antisymm (nat.le_of_dvd zero_lt_two (dvd_trans
-  (dvd_of_mem_cycle_type hn) (order_of_dvd_of_pow_eq_one hσ))) (two_le_of_mem_cycle_type hn)))
+  (multiset.dvd_sum (λ n hn, by rw le_antisymm (nat.le_of_dvd zero_lt_two $
+  (dvd_of_mem_cycle_type hn).trans $ order_of_dvd_of_pow_eq_one hσ) (two_le_of_mem_cycle_type hn)))
 
 lemma cycle_type_prime_order {σ : perm α} (hσ : (order_of σ).prime) :
   ∃ n : ℕ, σ.cycle_type = repeat (order_of σ) (n + 1) :=
@@ -325,7 +325,7 @@ begin
   obtain ⟨m, -, hm⟩ := (nat.dvd_prime_pow hp.out).mp (order_of_dvd_of_pow_eq_one hσ),
   obtain ⟨l, -, rfl⟩ := (nat.dvd_prime_pow hp.out).mp
     ((congr_arg _ hm).mp (dvd_of_mem_cycle_type hk)),
-  exact dvd_pow (dvd_refl p) (λ h, ne_of_lt (one_lt_of_mem_cycle_type hk) (by rw [h, pow_zero])),
+  exact dvd_pow_self _ (λ h, (one_lt_of_mem_cycle_type hk).ne $ by rw [h, pow_zero]),
 end
 
 lemma exists_fixed_point_of_prime {p n : ℕ} [hp : fact p.prime] (hα : ¬ p ∣ fintype.card α)

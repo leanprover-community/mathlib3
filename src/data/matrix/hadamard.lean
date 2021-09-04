@@ -70,11 +70,11 @@ section scalar
 
 @[simp] lemma smul_hadamard [has_mul α] [has_scalar R α] [is_scalar_tower R α α] (k : R) :
   (k • A) ⊙ B = k • A ⊙ B :=
-ext $ λ _ _, smul_assoc _ (A _ _) _
+ext $ λ _ _, smul_mul_assoc _ _ _
 
 @[simp] lemma hadamard_smul [has_mul α] [has_scalar R α] [smul_comm_class R α α] (k : R):
   A ⊙ (k • B) = k • A ⊙ B :=
-ext $ λ _ _, (smul_comm _ (A _ _) _).symm
+ext $ λ _ _, mul_smul_comm _ _ _
 
 end scalar
 

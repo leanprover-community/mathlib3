@@ -104,7 +104,7 @@ end
 
 end
 
--- move this
+-- PR #8993
 namespace smodeq
 
 variables {R : Type*} [ring R]

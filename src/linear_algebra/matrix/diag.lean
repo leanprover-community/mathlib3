@@ -27,30 +27,32 @@ diag, diagonal, matrix
 
 namespace matrix
 
-variables {α β R n m : Type*} [fintype n] [fintype m]
+variables {α β R n m : Type*}
 
 open function
 open_locale matrix kronecker
 
 /-- `A.has_orthogonal_rows` means matrix `A` has orthogonal
     (with respect to `dot_product`) rows. -/
-def has_orthogonal_rows [has_mul α] [add_comm_monoid α] (A : matrix m n α) : Prop :=
+def has_orthogonal_rows [fintype n] [fintype m] [has_mul α] [add_comm_monoid α]
+(A : matrix m n α) : Prop :=
 ∀ ⦃i₁ i₂⦄, i₁ ≠ i₂ → dot_product (A i₁) (A i₂) = 0
 
 /-- `A.has_orthogonal_cols` means matrix `A` has orthogonal
     (with respect to `dot_product`) columns. -/
-def has_orthogonal_cols [has_mul α] [add_comm_monoid α] (A : matrix m n α) : Prop :=
+def has_orthogonal_cols [fintype n] [fintype m] [has_mul α] [add_comm_monoid α]
+(A : matrix m n α) : Prop :=
 ∀ ⦃i₁ i₂⦄, i₁ ≠ i₂ → dot_product (λ j, A  j i₁) (λ j, A j i₂) = 0
 
 /-- `Aᵀ` has orthogonal rows iff `A` has orthogonal columns. -/
 lemma transpose_has_orthogonal_rows_iff_has_orthogonal_cols
-[has_mul α] [add_comm_monoid α] (A : matrix m n α) :
+[fintype n] [fintype m] [has_mul α] [add_comm_monoid α] (A : matrix m n α) :
   Aᵀ.has_orthogonal_rows ↔ A.has_orthogonal_cols :=
 by {simp [has_orthogonal_rows, has_orthogonal_cols, transpose_row_eq_col],}
 
 /-- `Aᵀ` has orthogonal columns iff `A` has orthogonal rows. -/
 lemma transpose_has_orthogonal_cols_iff_has_orthogonal_rows
-[has_mul α] [add_comm_monoid α] (A : matrix m n α) :
+[fintype n] [fintype m] [has_mul α] [add_comm_monoid α] (A : matrix m n α) :
   Aᵀ.has_orthogonal_cols ↔ A.has_orthogonal_rows :=
 by simp [has_orthogonal_rows, has_orthogonal_cols, transpose_row_eq_col]
 
@@ -195,7 +197,7 @@ by {rw [h] at *, apply is_diag.from_blocks_of_is_symm symm ha hb hd}
 
 /-- `(A ⬝ Aᵀ).is_diag` iff `A.has_orthogonal_rows`. -/
 lemma mul_tranpose_self_is_diag_iff_has_orthogonal_rows
-[has_mul α] [add_comm_monoid α] {A : matrix m n α} :
+[fintype n] [fintype m] [has_mul α] [add_comm_monoid α] {A : matrix m n α} :
 (A ⬝ Aᵀ).is_diag ↔ A.has_orthogonal_rows :=
 begin
   split,
@@ -207,7 +209,7 @@ end
 
 /-- `(Aᵀ ⬝ A).is_diag` iff `A.has_orthogonal_cols`. -/
 lemma tranpose_mul_self_is_diag_iff_has_orthogonal_cols
-[has_mul α] [add_comm_monoid α] {A : matrix m n α} :
+[fintype n] [fintype m] [has_mul α] [add_comm_monoid α] {A : matrix m n α} :
 (Aᵀ ⬝ A).is_diag ↔ A.has_orthogonal_cols :=
 begin
   rw [←transpose_has_orthogonal_rows_iff_has_orthogonal_cols],

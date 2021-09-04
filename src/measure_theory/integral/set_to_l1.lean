@@ -21,12 +21,11 @@ local attribute [instance] fact_one_le_one_ennreal
 
 namespace measure_theory
 
-variables {α E E' F F' G 𝕜 : Type*} {p : ℝ≥0∞}
-  [normed_group E] [measurable_space E]
-  [normed_group E'] [measurable_space E']
+variables {α E F F' G 𝕜 : Type*} {p : ℝ≥0∞}
+  [normed_group E] [measurable_space E] [normed_space ℝ E]
   [normed_group F] [normed_space ℝ F]
   [normed_group F'] [normed_space ℝ F']
-  [normed_group G]
+  [normed_group G] [measurable_space G]
   {m : measurable_space α} {μ : measure α}
 
 local infixr ` →ₛ `:25 := simple_func
@@ -95,7 +94,7 @@ end
 
 end tools
 
-/-- Extend `set α → (F →L[ℝ] G)` to `(α →ₛ F) → G`. -/
+/-- Extend `set α → (F →L[ℝ] F')` to `(α →ₛ F) → F'`. -/
 def set_to_simple_func {m : measurable_space α} (T : set α → (F →L[ℝ] F')) (f : α →ₛ F) : F' :=
 ∑ x in f.range, T (f ⁻¹' {x}) x
 
@@ -126,7 +125,7 @@ by { simp_rw set_to_simple_func, exact sum_le_sum (λ i hi, hTT' _ i), }
 lemma map_set_to_simple_func (T : set α → (F →L[ℝ] F'))
   (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
     → T (s ∪ t) = T s + T t)
-  {f : α →ₛ E} (hf : integrable f μ) {g : E → F} (hg : g 0 = 0) :
+  {f : α →ₛ G} (hf : integrable f μ) {g : G → F} (hg : g 0 = 0) :
   (f.map g).set_to_simple_func T = ∑ x in f.range, T (f ⁻¹' {x}) (g x) :=
 begin
   have T_empty : T ∅ = 0, from map_empty_eq_zero_of_map_union T h_add,
@@ -144,8 +143,8 @@ begin
     = T (f ⁻¹' ↑(f.range.filter (λ b, g b = g (f a)))) (g (f a)),
   { congr, rw map_preimage_singleton, },
   rw h_left_eq,
-  have h_left_eq' : T (f ⁻¹' ↑(filter (λ (b : E), g b = g (f a)) f.range)) (g (f a))
-    = T (⋃ y ∈ (filter (λ (b : E), g b = g (f a)) f.range), f ⁻¹' {y}) (g (f a)),
+  have h_left_eq' : T (f ⁻¹' ↑(filter (λ (b : G), g b = g (f a)) f.range)) (g (f a))
+    = T (⋃ y ∈ (filter (λ (b : G), g b = g (f a)) f.range), f ⁻¹' {y}) (g (f a)),
   { congr, rw ← finset.set_bUnion_preimage_singleton, },
   rw h_left_eq',
   rw map_Union_fin_meas_set_eq_sum T T_empty h_add,
@@ -168,7 +167,7 @@ begin
     exact absurd rfl hij, },
 end
 
-variables [normed_field 𝕜] [normed_space 𝕜 E] [normed_space ℝ E] [smul_comm_class ℝ 𝕜 E]
+variables [normed_field 𝕜] [normed_space 𝕜 E] [smul_comm_class ℝ 𝕜 E]
 
 lemma set_to_simple_func_congr' (T : set α → (E →L[ℝ] F))
   (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
@@ -338,13 +337,11 @@ namespace L1
 
 open ae_eq_fun Lp.simple_func Lp
 
-variables [second_countable_topology E] [borel_space E]
-
 variables {α E μ}
 
 namespace simple_func
 
-lemma norm_eq_sum_mul (f : α →₁ₛ[μ] E) :
+lemma norm_eq_sum_mul [second_countable_topology G] [borel_space G] (f : α →₁ₛ[μ] G) :
   ∥f∥ = ∑ x in (to_simple_func f).range, (μ ((to_simple_func f) ⁻¹' {x})).to_real * ∥x∥ :=
 begin
   rw [norm_to_simple_func, snorm_one_eq_lintegral_nnnorm],
@@ -367,7 +364,7 @@ end
 
 section set_to_L1s
 
-variables [normed_field 𝕜] [normed_space 𝕜 E] [normed_space ℝ E]
+variables [second_countable_topology E] [borel_space E] [normed_field 𝕜] [normed_space 𝕜 E]
 
 /-- Extend `set α → (E →L[ℝ] F')` to `(α →₁ₛ[μ] E) → F'`. -/
 def set_to_L1s (T : set α → (E →L[ℝ] F')) (f : α →₁ₛ[μ] E) : F' :=
@@ -481,7 +478,7 @@ section set_to_L1
 --open continuous_linear_map
 
 variables (𝕜) [nondiscrete_normed_field 𝕜] [measurable_space 𝕜] [opens_measurable_space 𝕜]
-  [normed_space ℝ E] [normed_space 𝕜 E]
+  [second_countable_topology E] [borel_space E] [normed_space 𝕜 E]
   [normed_space 𝕜 F] [complete_space F]
 
 /-- Extend `set α → (E →L[ℝ] F)` to `(α →₁[μ] E) →L[𝕜] F`. -/
@@ -510,7 +507,7 @@ end set_to_L1
 end L1
 section function
 
-variables [normed_space ℝ E] [second_countable_topology E] [borel_space E] [complete_space F]
+variables [second_countable_topology E] [borel_space E] [complete_space F]
 
 def set_to_fun (T : set α → (E →L[ℝ] F))
   (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅

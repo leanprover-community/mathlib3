@@ -942,6 +942,9 @@ namespace absolutely_continuous
 
 variables {v : vector_measure α M} {w : vector_measure α N}
 
+lemma zero (v : vector_measure α N) : (0 : vector_measure α M) ≪ v :=
+λ s _, vector_measure.zero_apply s
+
 lemma mk (h : ∀ ⦃s : set α⦄, measurable_set s → w s = 0 → v s = 0) : v ≪ w :=
 begin
   intros s hs,

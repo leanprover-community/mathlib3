@@ -10,11 +10,16 @@ import category_theory.limits.shapes.types
 import category_theory.types
 
 /-!
-# The sheaf condition for a type-valued presheaf
+# The sheaf condition in terms of unique gluings
 
-We provide an alternative formulation of the sheaf condition for type-valued presheaves.
+We provide an alternative formulation of the sheaf condition in terms of unique gluings.
 
-A presheaf `F : presheaf (Type u) X` satisfies the sheaf condition if and only if, for every
+We work with sheaves valued in a concrete category `C` admitting all limits, whose forgetful
+functor `C ⥤ Type` preserves limits and reflects isomorphisms. The usual categories of algebraic
+structures, such as `Mon`, `AddCommGroup`, `Ring`, `CommRing` etc. are all examples of this kind of
+category.
+
+A presheaf `F : presheaf C X` satisfies the sheaf condition if and only if, for every
 compatible family of sections `sf : Π i : ι, F.obj (op (U i))`, there exists a unique gluing
 `s : F.obj (op (supr U))`.
 
@@ -23,7 +28,10 @@ and `sf j` to `U i ⊓ U j` agree. A section `s : F.obj (op (supr U))` is a glui
 family `sf`, if `s` restricts to `sf i` on `U i` for all `i : ι`
 
 We show that the sheaf condition in terms of unique gluings is equivalent to the definition
-in terms of equalizers.
+in terms of equalizers. Our approach is as follows: First, we show them to be equivalent for
+`Type`-valued presheaves. Then we use that composing a presheaf with a limit-preserving and
+isomorphism-reflecting functor leaves the sheaf condition invariant, as shown in
+`topology/sheaves/forget.lean`.
 
 -/
 
@@ -75,10 +83,9 @@ def gluing (sf : Π i : ι, F.obj (op (U i))) : Type v :=
   {s : F.obj (op (supr U)) // is_gluing F U sf s}
 
 /--
-The sheaf condition of type-valued presheaves in terms of unique gluings. A presheaf
-`F : presheaf (Type u) X` satisfies this sheaf condition if and only if, for every
-compatible family of sections `sf : Π i : ι, F.obj (op (U i))`, there exists a unique
-gluing `s : F.obj (op (supr U))`.
+The sheaf condition in terms of unique gluings. A presheaf `F : presheaf C X` satisfies this sheaf
+condition if and only if, for every compatible family of sections `sf : Π i : ι, F.obj (op (U i))`,
+there exists a unique gluing `s : F.obj (op (supr U))`.
 
 We prove this to be equivalent to the usual one below in
 `sheaf_condition_equiv_sheaf_condition_unique_gluing`
@@ -95,7 +102,7 @@ section type_valued
 variables {X : Top.{v}} (F : presheaf (Type v) X) {ι : Type v} (U : ι → opens X)
 
 /--
-For presheaves of types, terms of `pi_opens F U` are just families of sections
+For presheaves of types, terms of `pi_opens F U` are just families of sections.
 -/
 def pi_opens_iso_sections_family : pi_opens F U ≅ Π i : ι, F.obj (op (U i)) :=
 limits.is_limit.cone_point_unique_up_to_iso
@@ -142,9 +149,9 @@ end
 
 /--
 The "equalizer" sheaf condition can be obtained from the sheaf condition
-in terms of unique gluings
+in terms of unique gluings.
 -/
-def sheaf_condition_of_sheaf_condition_unique_gluing_type_valued :
+def sheaf_condition_of_sheaf_condition_unique_gluing_types :
   F.sheaf_condition_unique_gluing → F.sheaf_condition := λ Fsh ι U,
 begin
   refine fork.is_limit.mk' _ (λ s, ⟨_, _, _⟩) ; dsimp,
@@ -166,9 +173,9 @@ end
 
 /--
 The sheaf condition in terms of unique gluings can be obtained from the usual
-"equalizer" sheaf condition
+"equalizer" sheaf condition.
 -/
-def sheaf_condition_unique_gluing_of_sheaf_condition_type_valued :
+def sheaf_condition_unique_gluing_of_sheaf_condition_types :
   F.sheaf_condition → F.sheaf_condition_unique_gluing := λ Fsh ι U sf hsf,
 { default := begin
     let sf' := (pi_opens_iso_sections_family F U).inv sf,
@@ -201,11 +208,11 @@ def sheaf_condition_unique_gluing_of_sheaf_condition_type_valued :
 The sheaf condition in terms of unique gluings is equivalent to the usual sheaf condition
 in terms of equalizer diagrams.
 -/
-def sheaf_condition_equiv_sheaf_condition_unique_gluing_type_valued :
+def sheaf_condition_equiv_sheaf_condition_unique_gluing_types :
   F.sheaf_condition ≃ F.sheaf_condition_unique_gluing :=
 equiv_of_subsingleton_of_subsingleton
-  F.sheaf_condition_unique_gluing_of_sheaf_condition_type_valued
-  F.sheaf_condition_of_sheaf_condition_unique_gluing_type_valued
+  F.sheaf_condition_unique_gluing_of_sheaf_condition_types
+  F.sheaf_condition_of_sheaf_condition_unique_gluing_types
 
 end type_valued
 
@@ -218,7 +225,7 @@ variables {X : Top.{v}} (F : presheaf C X) {ι : Type v} (U : ι → opens X)
 def sheaf_condition_equiv_sheaf_condition_unique_gluing :
   F.sheaf_condition ≃ F.sheaf_condition_unique_gluing :=
 equiv.trans (sheaf_condition_equiv_sheaf_condition_comp (forget C) F)
-  (sheaf_condition_equiv_sheaf_condition_unique_gluing_type_valued (F ⋙ forget C))
+  (sheaf_condition_equiv_sheaf_condition_unique_gluing_types (F ⋙ forget C))
 
 /--
 A slightly more convenient way of obtaining the sheaf condition for sheaves of algebraic structures.
@@ -259,7 +266,7 @@ local attribute [instance] concrete_category.has_coe_to_sort concrete_category.h
 variables {X : Top.{v}} (F : sheaf C X) {ι : Type v} (U : ι → opens X)
 
 /--
-A more convenient way of obtaining a unique gluing of sections for a sheaf
+A more convenient way of obtaining a unique gluing of sections for a sheaf.
 -/
 lemma exists_unique_gluing (sf : Π i : ι, F.presheaf.obj (op (U i)))
   (h : is_compatible F.presheaf U sf ) :

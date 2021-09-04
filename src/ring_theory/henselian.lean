@@ -43,11 +43,7 @@ instance field.henselian (K : Type*) [field K] : henselian K :=
     rw sub_self,
   end }
 
--- move this
-instance local_ring.residue_field.algebra (R : Type*) [comm_ring R] [local_ring R] :
-  algebra R (residue_field R) := (residue R).to_algebra
-
--- move this
+-- PR #8990
 /-- The kernel of a homomorphism to a field is a maximal ideal. -/
 lemma ring_hom.ker_is_maximal_of_surjective {R K : Type*} [ring R] [field K]
   (f : R →+* K) (hf : surjective f) :
@@ -64,6 +60,10 @@ begin
   simp only [hy, ring_hom.map_sub, ring_hom.map_one, ring_hom.map_mul,
     inv_mul_cancel (mt f.mem_ker.mpr hxf), sub_self],
 end
+
+-- move this
+instance local_ring.residue_field.algebra (R : Type*) [comm_ring R] [local_ring R] :
+  algebra R (residue_field R) := (residue R).to_algebra
 
 -- move this
 lemma local_ring.ker_eq_maximal_ideal {R K : Type*} [comm_ring R] [local_ring R] [field K]

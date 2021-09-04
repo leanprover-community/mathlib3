@@ -509,20 +509,6 @@ lemma set_to_L1_eq_set_to_L1s_clm (T : set α → E →L[ℝ] F)
 uniformly_extend_of_ind simple_func.uniform_inducing (simple_func.dense_range one_ne_top)
   (set_to_L1s_clm α E μ T h_add hT_norm).uniform_continuous _
 
-lemma set_to_L1_closed_property (T : set α → E →L[ℝ] F)
-  (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
-    → T (s ∪ t) = T s + T t) {C : ℝ} (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real)
-  (p : F → Prop) (hp : ∀ (f : α →₁ₛ[μ] E), p (set_to_L1s_clm α E μ T h_add hT_norm f))
-  (hp_closed : is_closed {f : α →₁[μ] E | p (set_to_L1 T h_add hT_norm f)}) (f : α →₁[μ] E) :
-  p (set_to_L1 T h_add hT_norm f) :=
-begin
-  refine @is_closed_property _ _ _ (coe : (α →₁ₛ[μ] E) → (α →₁[μ] E))
-    (λ (f : α →₁[μ] E), p (set_to_L1 T h_add hT_norm f))
-    (simple_func.dense_range one_ne_top) hp_closed (λ g, _) _,
-  rw set_to_L1_eq_set_to_L1s_clm,
-  exact hp g,
-end
-
 end set_to_L1
 
 end L1

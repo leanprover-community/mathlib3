@@ -562,10 +562,15 @@ def integral (f : α →₁[μ] E) : E := integral_clm f
 
 lemma integral_eq (f : α →₁[μ] E) : integral f = integral_clm f := rfl
 
+lemma integral_eq_set_to_L1 (f : α →₁[μ] E) :
+  integral f = set_to_L1 (weighted_smul μ) weighted_smul_union
+    (λ s, (norm_weighted_smul_le s).trans (one_mul _).symm.le) f :=
+rfl
+
 @[norm_cast] lemma simple_func.integral_L1_eq_integral (f : α →₁ₛ[μ] E) :
   integral (f : α →₁[μ] E) = (simple_func.integral f) :=
-uniformly_extend_of_ind simple_func.uniform_inducing (simple_func.dense_range one_ne_top)
-  (simple_func.integral_clm α E μ).uniform_continuous _
+set_to_L1_eq_set_to_L1s_clm (weighted_smul μ) weighted_smul_union
+  (λ s, (norm_weighted_smul_le s).trans (one_mul _).symm.le) f
 
 variables (α E)
 @[simp] lemma integral_zero : integral (0 : α →₁[μ] E) = 0 :=

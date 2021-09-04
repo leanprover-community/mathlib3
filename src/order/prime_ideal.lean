@@ -161,10 +161,7 @@ begin
 end
 
 lemma is_prime.mem_compl_of_not_mem (hI : is_prime I) (hxnI : x ∉ I) : xᶜ ∈ I :=
-begin
-  have : x ∈ I ∨ xᶜ ∈ I := hI.mem_or_compl_mem,
-  tauto,
-end
+hI.mem_or_compl_mem.resolve_left hxnI
 
 end boolean_algebra
 

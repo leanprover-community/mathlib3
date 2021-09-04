@@ -1254,7 +1254,7 @@ lemma ker_is_prime [ring R] [integral_domain S] (f : R →+* S) :
 λ x y, by simpa only [mem_ker, f.map_mul] using @eq_zero_or_eq_zero_of_mul_eq_zero S _ _ _ _ _⟩
 
 /-- The kernel of a homomorphism to a field is a maximal ideal. -/
-lemma ring_hom.ker_is_maximal_of_surjective {R K : Type*} [ring R] [field K]
+lemma ker_is_maximal_of_surjective {R K : Type*} [ring R] [field K]
   (f : R →+* K) (hf : function.surjective f) :
   f.ker.is_maximal :=
 begin

@@ -730,7 +730,8 @@ begin
     have : ∀ t, has_deriv_at u 0 t,
     { intro t,
       dsimp only [u],
-      have := has_fderiv_at.comp_has_deriv_at t has_fderiv_at_exp ((has_deriv_at_id t).smul_const _).neg,
+      have := has_fderiv_at.comp_has_deriv_at t has_fderiv_at_exp
+        ((has_deriv_at_id t).smul_const _).neg,
       convert has_deriv_at.apply t this (h t), } },
 end
 

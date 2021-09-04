@@ -700,13 +700,6 @@ variables {𝕂 𝔸 : Type*} [is_R_or_C 𝕂] [normed_ring 𝔸] [normed_algebr
 
 #check has_deriv_at.smul_const
 
-set_option pp.all true
-lemma bar (x : 𝔸) (t : 𝕂) : has_deriv_at (λ (u : 𝕂), exp 𝕂 𝔸 (u • x)) (exp 𝕂 𝔸 (t • x) * x) t :=
-begin
-  have := ((has_deriv_at_id t).smul_const x),
-  have := has_fderiv_at_exp.comp t ((has_deriv_at_id t).smul_const x),
-end
-
 end move_me2
 
 variables {𝕂 E : Type*} [is_R_or_C 𝕂] [normed_group E] [normed_space 𝕂 E]

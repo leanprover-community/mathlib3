@@ -53,11 +53,11 @@ the signed measure which maps the set `i` to `∫ᵢ f⁺ ∂μ - ∫ᵢ f⁻ �
 def with_density_signed_measure {m : measurable_space α}
   (μ : measure α) (f : α → ℝ) : signed_measure α :=
 if hf : integrable f μ then
-@to_signed_measure α m (μ.with_density (λ x, ennreal.of_real (f x)))
-(is_finite_measure_of_real_of_integrable hf)
--
-@to_signed_measure α m (μ.with_density (λ x, ennreal.of_real (-f x)))
-(is_finite_measure_of_real_of_integrable (integrable_neg_iff.2 hf))
+  @to_signed_measure α m (μ.with_density (λ x, ennreal.of_real (f x)))
+  (is_finite_measure_of_real_of_integrable hf)
+  -
+  @to_signed_measure α m (μ.with_density (λ x, ennreal.of_real (-f x)))
+  (is_finite_measure_of_real_of_integrable (integrable_neg_iff.2 hf))
 else 0
 
 lemma with_density_signed_measure_apply (hf : integrable f μ)

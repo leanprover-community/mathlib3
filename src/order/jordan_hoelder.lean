@@ -8,6 +8,7 @@ import data.fin
 import data.set_like.basic
 import data.list.sort
 import data.equiv.fin
+import data.equiv.functor
 /-!
 # Jordan Hölder Theorem
 

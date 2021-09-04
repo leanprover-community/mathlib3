@@ -11,6 +11,19 @@ import linear_algebra.adic_completion
 /-!
 # Henselian local rings
 
+In this file we set up the basic theory of Henselian local rings.
+A local ring `R` is *Henselian* if the following condition holds:
+for every polynomial `f` over `R`, with a *simple* root `a₀` over the residue field,
+there exists a lift `a : R` of `a₀` that is a root of `f`.
+(Recall that a root `a` is *simple* if it is not a double root, so `f.derivative.eval a ≠ 0`.)
+
+## Main declarations
+
+* `henselian`: a typeclass on commutative rings, asserting that the ring is local Henselian.
+* `field.henselian`: fields are Henselian local rings
+* `henselian.tfae`: equivalent ways of expressing the Henselian property
+* `is_adic_complete.henselian`:
+  a local ring `R` with maximal ideal `I` that is `I`-adically complete is Henselian
 
 ## References
 
@@ -25,6 +38,10 @@ open_locale big_operators
 
 open local_ring polynomial function
 
+/-- A local ring `R` is *Henselian* if the following condition holds:
+for every polynomial `f` over `R`, with a *simple* root `a₀` over the residue field,
+there exists a lift `a : R` of `a₀` that is a root of `f`.
+(Recall that a root `a` is *simple* if it is not a double root, so `f.derivative.eval a ≠ 0`.) -/
 class henselian (R : Type*) [comm_ring R] extends local_ring R : Prop :=
 (is_henselian : ∀ (f : polynomial R) (hf : f.monic) (a₀ : R) (h₁ : f.eval a₀ ∈ maximal_ideal R)
   (h₂ : is_unit (f.derivative.eval a₀)),
@@ -72,8 +89,8 @@ begin
         ← local_ring.ker_eq_maximal_ideal φ hφ, φ.mem_ker] at h₂, } },
   tfae_finish,
 end
-.
 
+/-- A local ring `R` with maximal ideal `I` that is `I`-adically complete is Henselian. -/
 instance is_adic_complete.henselian (R : Type*)
   [comm_ring R] [local_ring R] [is_adic_complete (maximal_ideal R) R] :
   henselian R :=
@@ -82,15 +99,20 @@ begin
   intros f hf a₀ h₁ h₂,
   classical,
   let I := maximal_ideal R,
+  let f' := f.derivative,
   -- a temporary multiplicative inverse for units in `R`
   let inv : R → R := λ x, if hx : is_unit x then ↑hx.some⁻¹ else 0,
   have hinv : ∀ x, is_unit x → x * inv x = 1,
   { intros x hx, simp only [hx, inv, dif_pos], convert units.mul_inv hx.some, rw hx.some_spec },
-  -- in the following line, `f.derivative.eval b` is a unit,
+  -- in the following line, `f'.eval b` is a unit,
   -- because `b` has the same residue class as `a₀`
-  let c : ℕ → R := λ n, nat.rec_on n a₀ (λ k b, b - f.eval b * inv (f.derivative.eval b)),
-  have hc : ∀ n, c (n+1) = c n - f.eval (c n) * inv (f.derivative.eval (c n)),
+  let c : ℕ → R := λ n, nat.rec_on n a₀ (λ k b, b - f.eval b * inv (f'.eval b)),
+  have hc : ∀ n, c (n+1) = c n - f.eval (c n) * inv (f'.eval (c n)),
   { intro n, dsimp only [c, nat.rec_add_one], refl, },
+  -- we now spend some time determining properties of the sequence `c : ℕ → R`
+  -- `hc'`: for every `n`, we have `c n ≡ a₀ [SMOD I]`
+  -- `hfc`: for every `n`, `f'.eval (c n)` is a unit
+  -- `Hc` : for every `n`, `f.eval (c n)` is contained in `I ^ (n+1)`
   have hc' : ∀ n, c n ≡ a₀ [SMOD I],
   { intro n, induction n with n ih, { refl },
     rw [nat.succ_eq_add_one, hc, sub_eq_add_neg, ← add_zero a₀],
@@ -99,7 +121,7 @@ begin
     refine I.mul_mem_right _ _,
     rw [← smodeq.zero] at h₁ ⊢,
     exact (ih.eval f).trans h₁, },
-  have hfc : ∀ n, is_unit (f.derivative.eval (c n)),
+  have hfc : ∀ n, is_unit (f'.eval (c n)),
   { intro n, contrapose! h₂,
     rw [← mem_nonunits_iff, ← local_ring.mem_maximal_ideal, ← smodeq.zero] at h₂ ⊢,
     exact ((hc' n).symm.eval _).trans h₂, },
@@ -123,7 +145,7 @@ begin
       refine ideal.mul_mem_left _ _ (ideal.pow_le_pow aux _),
       rw [pow_mul'],
       refine ideal.pow_mem_pow ((ideal.neg_mem_iff _).2 $ ideal.mul_mem_right _ _ ih) _, } },
-  -- the sequence `c : ℕ → R` is a Cauchy sequence
+  -- we are now in the position to show that `c : ℕ → R` is a Cauchy sequence
   have aux : ∀ m n, m ≤ n → c m ≡ c n [SMOD (I ^ m • ⊤ : ideal R)],
   { intros m n hmn,
     rw [← ideal.one_eq_top, algebra.id.smul_eq_mul, mul_one],

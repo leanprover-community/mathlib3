@@ -190,6 +190,7 @@ namespace ideal
 
 variables {R : Type*} [comm_ring R] (I : ideal R)
 
+-- PR #8996
 lemma pow_mem_pow {x : R} (hx : x ∈ I) (n : ℕ) : x ^ n ∈ I ^ n :=
 begin
   induction n with n ih, { simp only [pow_zero, ideal.one_eq_top], },

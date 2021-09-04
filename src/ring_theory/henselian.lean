@@ -74,7 +74,7 @@ local_ring.eq_maximal_ideal $ φ.ker_is_maximal_of_surjective hφ
 section
 open polynomial finset.nat
 
-lemma polynomial.X_add_one_pow_coeff (R : Type*) [semiring R] (n k : ℕ) :
+lemma polynomial.coeff_X_add_one_pow (R : Type*) [semiring R] (n k : ℕ) :
   ((X + 1) ^ n).coeff k = (n.choose k : R) :=
 begin
   rw [(commute_X (1 : polynomial R)).add_pow, ← lcoeff_apply, linear_map.map_sum],
@@ -97,9 +97,9 @@ begin
       = ((X + 1) ^ (m + n)).coeff k : _
   ... = ((X + 1) ^ m * (X + 1) ^ n).coeff k : by rw pow_add
   ... = ∑ (ij : ℕ × ℕ) in antidiagonal k, m.choose ij.1 * n.choose ij.2 : _,
-  { rw [X_add_one_pow_coeff, nat.cast_id], },
+  { rw [coeff_X_add_one_pow, nat.cast_id], },
   { rw [coeff_mul, finset.sum_congr rfl],
-    simp only [X_add_one_pow_coeff, nat.cast_id, eq_self_iff_true, imp_true_iff], }
+    simp only [coeff_X_add_one_pow, nat.cast_id, eq_self_iff_true, imp_true_iff], }
 end
 
 end

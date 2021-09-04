@@ -204,7 +204,7 @@ begin
 end
 
 lemma is_proper.top_not_mem {I : ideal P} (hI : is_proper I) : ⊤ ∉ I :=
-by { by_contra, exact hI.ne_top (top_of_mem_top h)}
+by { by_contra, exact hI.ne_top (top_of_mem_top h) }
 
 lemma _root_.is_coatom.is_proper {I : ideal P} (hI : is_coatom I) : is_proper I :=
 is_proper_of_ne_top hI.1

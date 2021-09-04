@@ -133,6 +133,12 @@ by { simp only [← some_eq_coe] at h ⊢, refl }
 
 @[simp] lemma get_one (h : (1 : enat).dom) : (1 : enat).get h = 1 := rfl
 
+lemma get_eq_iff_eq_some {a : enat} {ha : a.dom} {b : ℕ} :
+  a.get ha = b ↔ a = some b := get_eq_iff_eq_some
+
+lemma get_eq_iff_eq_coe {a : enat} {ha : a.dom} {b : ℕ} :
+  a.get ha = b ↔ a = b := by rw [get_eq_iff_eq_some, some_eq_coe]
+
 lemma dom_of_le_of_dom {x y : enat} : x ≤ y → y.dom → x.dom := λ ⟨h, _⟩, h
 
 lemma dom_of_le_some {x : enat} {y : ℕ} (h : x ≤ some y) : x.dom := dom_of_le_of_dom h trivial

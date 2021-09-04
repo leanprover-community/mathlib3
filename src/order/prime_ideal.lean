@@ -155,7 +155,7 @@ variables [boolean_algebra P] {x : P} {I : ideal P}
 
 lemma is_prime.mem_or_compl_mem (hI : is_prime I) : x ∈ I ∨ xᶜ ∈ I :=
 begin
-  apply is_prime.mem_or_mem hI,
+  apply hI.mem_or_mem,
   rw inf_compl_eq_bot,
   exact bot_mem,
 end

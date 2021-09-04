@@ -199,21 +199,6 @@ end
 
 end ideal
 
-namespace nat
-
-open_locale nat
-
-lemma cast_choose_eq (K : Type*) [division_ring K] [char_zero K] (a b : ℕ) (h : b ≤ a) :
-  (a.choose b : K) = a! / b! / (a-b)! :=
-begin
-  have : ∀ {n : ℕ}, (n! : K) ≠ 0, { exact_mod_cast factorial_ne_zero },
-  simp only [eq_div_iff_mul_eq this],
-  norm_cast,
-  rwa [mul_right_comm, nat.choose_mul_factorial_mul_factorial],
-end
-
-end nat
-
 namespace polynomial
 
 open_locale nat
@@ -324,7 +309,7 @@ begin
   have h2 : k + 1 ≤ n + k + 1 := succ_le_succ le_add_self,
   have H : ∀ (n : ℕ), (n! : ℚ) ≠ 0, { exact_mod_cast factorial_ne_zero },
   -- why can't `field_simp` help me here?
-  simp only [cast_mul, cast_choose_eq ℚ, h1, h2, -one_div, -mul_eq_zero,
+  simp only [cast_mul, cast_choose ℚ, h1, h2, -one_div, -mul_eq_zero,
     succ_sub_succ_eq_sub, nat.add_sub_cancel, add_sub_cancel_left] with field_simps,
   rw [eq_div_iff_mul_eq (mul_ne_zero (H _) (H _)), eq_comm, div_mul_eq_mul_div,
     eq_div_iff_mul_eq (mul_ne_zero (H _) (H _))],
@@ -354,7 +339,7 @@ begin
   have h3 : k ≤ k + l := le_self_add,
   have H : ∀ (n : ℕ), (n! : ℚ) ≠ 0, { exact_mod_cast factorial_ne_zero },
   -- why can't `field_simp` help me here?
-  simp only [cast_mul, cast_choose_eq ℚ, h1, h2, h3, hikl, -one_div, -mul_eq_zero,
+  simp only [cast_mul, cast_choose ℚ, h1, h2, h3, hikl, -one_div, -mul_eq_zero,
     succ_sub_succ_eq_sub, nat.add_sub_cancel, add_sub_cancel_left] with field_simps,
   rw [eq_div_iff_mul_eq, eq_comm, div_mul_eq_mul_div, eq_div_iff_mul_eq, nat.sub_sub, add_comm l k],
   { ring, },

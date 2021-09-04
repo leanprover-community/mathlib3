@@ -448,7 +448,8 @@ end
 open is_noetherian submodule function
 
 section
-variables {R M N P : Type*} [ring R] [add_comm_group M] [module R M]
+universe w
+variables {R M P : Type*} {N : Type w} [ring R] [add_comm_group M] [module R M]
   [add_comm_group N] [module R N] [add_comm_group P] [module R P]
 
 theorem is_noetherian_iff_well_founded :
@@ -586,9 +587,6 @@ begin
   exact ⟨n, (λ m p,
     eq_bot_of_disjoint_absorbs (h m) ((eq.symm (w (m + 1) (le_add_right p))).trans (w m p)))⟩
 end
-
-universe w
-variables {N : Type w} [add_comm_group N] [module R N]
 
 /--
 If `M ⊕ N` embeds into `M`, for `M` noetherian over `R`, then `N` is trivial.

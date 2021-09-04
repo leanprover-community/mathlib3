@@ -216,6 +216,10 @@ open_locale nat
 
 section hasse_derivative
 
+/-!
+Reference: https://math.fontein.de/2009/08/12/the-hasse-derivative/
+-/
+
 variables {R : Type*} [semiring R] (k : ℕ) (f : polynomial R)
 
 /-- The `k`th Hasse derivative of a polynomials `∑ a_i X^i` is `∑ (i.choose k) a_i X^(i-k)`.

@@ -95,19 +95,19 @@ end
 end tools
 
 /-- Extend `set α → (F →L[ℝ] F')` to `(α →ₛ F) → F'`. -/
-def set_to_simple_func {m : measurable_space α} (T : set α → (F →L[ℝ] F')) (f : α →ₛ F) : F' :=
+def set_to_simple_func {m : measurable_space α} (T : set α → F →L[ℝ] F') (f : α →ₛ F) : F' :=
 ∑ x in f.range, T (f ⁻¹' {x}) x
 
 @[simp] lemma set_to_simple_func_zero {m : measurable_space α} (f : α →ₛ F) :
-  set_to_simple_func (0 : set α → (F →L[ℝ] F')) f = 0 :=
+  set_to_simple_func (0 : set α → F →L[ℝ] F') f = 0 :=
 by simp [set_to_simple_func]
 
-@[simp] lemma set_to_simple_func_zero_apply {m : measurable_space α} (T : set α → (F →L[ℝ] F')) :
+@[simp] lemma set_to_simple_func_zero_apply {m : measurable_space α} (T : set α → F →L[ℝ] F') :
   set_to_simple_func T (0 : α →ₛ F) = 0 :=
 by casesI is_empty_or_nonempty α; simp [set_to_simple_func]
 
 lemma set_to_simple_func_eq_sum_filter {m : measurable_space α}
-  (T : set α → (F →L[ℝ] F')) (f : α →ₛ F) :
+  (T : set α → F →L[ℝ] F') (f : α →ₛ F) :
   set_to_simple_func T f = ∑ x in f.range.filter (λ x, x ≠ 0), (T (f ⁻¹' {x})) x :=
 begin
   symmetry,
@@ -118,11 +118,11 @@ end
 
 lemma set_to_simple_func_mono {G} [normed_linear_ordered_group G] [normed_space ℝ G]
   {m : measurable_space α}
-  (T : set α → (F →L[ℝ] G)) (T' : set α → (F →L[ℝ] G)) (hTT' : ∀ s x, T s x ≤ T' s x) (f : α →ₛ F) :
+  (T : set α → F →L[ℝ] G) (T' : set α → F →L[ℝ] G) (hTT' : ∀ s x, T s x ≤ T' s x) (f : α →ₛ F) :
   set_to_simple_func T f ≤ set_to_simple_func T' f :=
 by { simp_rw set_to_simple_func, exact sum_le_sum (λ i hi, hTT' _ i), }
 
-lemma map_set_to_simple_func (T : set α → (F →L[ℝ] F'))
+lemma map_set_to_simple_func (T : set α → F →L[ℝ] F')
   (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
     → T (s ∪ t) = T s + T t)
   {f : α →ₛ G} (hf : integrable f μ) {g : G → F} (hg : g 0 = 0) :
@@ -169,7 +169,7 @@ end
 
 variables [normed_field 𝕜] [normed_space 𝕜 E] [smul_comm_class ℝ 𝕜 E]
 
-lemma set_to_simple_func_congr' (T : set α → (E →L[ℝ] F))
+lemma set_to_simple_func_congr' (T : set α → E →L[ℝ] F)
   (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
     → T (s ∪ t) = T s + T t)
   {f g : α →ₛ E} (hf : integrable f μ) (hg : integrable g μ)
@@ -209,7 +209,7 @@ begin
   rwa [h.1, h.2],
 end
 
-lemma set_to_simple_func_add_left {m : measurable_space α} (T T' : set α → (F →L[ℝ] F'))
+lemma set_to_simple_func_add_left {m : measurable_space α} (T T' : set α → F →L[ℝ] F')
   {f : α →ₛ F} :
   set_to_simple_func (T + T') f = set_to_simple_func T f + set_to_simple_func T' f :=
 begin
@@ -218,7 +218,7 @@ begin
   simp_rw [pi.add_apply, sum_add_distrib],
 end
 
-lemma set_to_simple_func_add_left' (T T' T'' : set α → (E →L[ℝ] F))
+lemma set_to_simple_func_add_left' (T T' T'' : set α → E →L[ℝ] F)
   (h_add : ∀ s, measurable_set s → μ s ≠ ∞ → T'' s = T s + T' s) {f : α →ₛ E}
   (hf : integrable f μ) :
   set_to_simple_func (T'') f = set_to_simple_func T f + set_to_simple_func T' f :=
@@ -238,7 +238,7 @@ begin
   exact hx.2,
 end
 
-lemma set_to_simple_func_add (T : set α → (E →L[ℝ] F))
+lemma set_to_simple_func_add (T : set α → E →L[ℝ] F)
   (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
     → T (s ∪ t) = T s + T t)
   {f g : α →ₛ E} (hf : integrable f μ) (hg : integrable g μ) :
@@ -257,7 +257,7 @@ calc set_to_simple_func T (f + g) = ∑ x in (pair f g).range,
   by rw [map_set_to_simple_func T h_add hp_pair prod.snd_zero,
     map_set_to_simple_func T h_add hp_pair prod.fst_zero]
 
-lemma set_to_simple_func_neg (T : set α → (E →L[ℝ] F))
+lemma set_to_simple_func_neg (T : set α → E →L[ℝ] F)
   (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
     → T (s ∪ t) = T s + T t)
   {f : α →ₛ E} (hf : integrable f μ) :
@@ -270,7 +270,7 @@ calc set_to_simple_func T (-f) = set_to_simple_func T (f.map (has_neg.neg)) : rf
     exact finset.sum_congr rfl (λ x h, continuous_linear_map.map_neg _ _),
   end
 
-lemma set_to_simple_func_sub (T : set α → (E →L[ℝ] F))
+lemma set_to_simple_func_sub (T : set α → E →L[ℝ] F)
   (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
     → T (s ∪ t) = T s + T t)
   {f g : α →ₛ E} (hf : integrable f μ) (hg : integrable g μ) :
@@ -286,7 +286,7 @@ begin
   simp [hx_ne],
 end
 
-lemma set_to_simple_func_smul_real (T : set α → (E →L[ℝ] F))
+lemma set_to_simple_func_smul_real (T : set α → E →L[ℝ] F)
   (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
     → T (s ∪ t) = T s + T t)
   (c : ℝ) {f : α →ₛ E} (hf : integrable f μ) :
@@ -299,7 +299,7 @@ calc set_to_simple_func T (c • f) = ∑ x in f.range, T (f ⁻¹' {x}) (c • 
 by simp only [set_to_simple_func, smul_sum, smul_smul, mul_comm]
 
 lemma set_to_simple_func_smul  {E} [measurable_space E] [normed_group E] [normed_space 𝕜 E]
-  [normed_space ℝ E] [normed_space 𝕜 F] (T : set α → (E →L[ℝ] F))
+  [normed_space ℝ E] [normed_space 𝕜 F] (T : set α → E →L[ℝ] F)
   (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
     → T (s ∪ t) = T s + T t)
   (h_smul : ∀ c : 𝕜, ∀ s x, T s (c • x) = c • T s x)
@@ -312,14 +312,14 @@ calc set_to_simple_func T (c • f) = ∑ x in f.range, T (f ⁻¹' {x}) (c • 
 ... = c • set_to_simple_func T f : by simp only [set_to_simple_func, smul_sum, smul_smul, mul_comm]
 
 lemma norm_set_to_simple_func_le_sum_op_norm {m : measurable_space α}
-  (T : set α → (F' →L[ℝ] F)) (f : α →ₛ F') :
+  (T : set α → F' →L[ℝ] F) (f : α →ₛ F') :
   ∥f.set_to_simple_func T∥ ≤ ∑ x in f.range, ∥T (f ⁻¹' {x})∥ * ∥x∥ :=
 calc ∥∑ x in f.range, T (f ⁻¹' {x}) x∥
     ≤ ∑ x in f.range, ∥T (f ⁻¹' {x}) x∥ : norm_sum_le _ _
 ... ≤ ∑ x in f.range, ∥T (f ⁻¹' {x})∥ * ∥x∥ :
   by { refine finset.sum_le_sum (λb hb, _), simp_rw continuous_linear_map.le_op_norm, }
 
-lemma norm_set_to_simple_func_le_sum_mul_norm (T : set α → (F →L[ℝ] F')) (C : ℝ) (hC : 0 ≤ C)
+lemma norm_set_to_simple_func_le_sum_mul_norm (T : set α → F →L[ℝ] F') (C : ℝ) (hC : 0 ≤ C)
   (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real) (f : α →ₛ F) :
   ∥f.set_to_simple_func T∥ ≤ C * ∑ x in f.range, (μ (f ⁻¹' {x})).to_real * ∥x∥ :=
 calc ∥f.set_to_simple_func T∥
@@ -345,8 +345,6 @@ lemma norm_eq_sum_mul [second_countable_topology G] [borel_space G] (f : α →�
   ∥f∥ = ∑ x in (to_simple_func f).range, (μ ((to_simple_func f) ⁻¹' {x})).to_real * ∥x∥ :=
 begin
   rw [norm_to_simple_func, snorm_one_eq_lintegral_nnnorm],
-  have hf' : (to_simple_func f).fin_meas_supp μ,
-    from simple_func.integrable_iff_fin_meas_supp.1 (simple_func.integrable f),
   have h_eq := simple_func.map_apply (λ x, (nnnorm x : ℝ≥0∞)) (to_simple_func f),
   dsimp only at h_eq,
   simp_rw ← h_eq,
@@ -374,7 +372,7 @@ lemma set_to_L1s_eq_set_to_simple_func (T : set α → (E →L[ℝ] F')) (f : α
   set_to_L1s T f = (to_simple_func f).set_to_simple_func T :=
 rfl
 
-lemma set_to_L1s_congr (T : set α → (E →L[ℝ] F'))
+lemma set_to_L1s_congr (T : set α → E →L[ℝ] F)
   (h_zero : ∀ s, measurable_set s → μ s = 0 → T s = 0)
   (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
     → T (s ∪ t) = T s + T t)
@@ -382,7 +380,7 @@ lemma set_to_L1s_congr (T : set α → (E →L[ℝ] F'))
   set_to_L1s T f = set_to_L1s T g :=
 simple_func.set_to_simple_func_congr T h_zero h_add (simple_func.integrable f) h
 
-lemma set_to_L1s_add (T : set α → (E →L[ℝ] F'))
+lemma set_to_L1s_add (T : set α → E →L[ℝ] F)
   (h_zero : ∀ s, measurable_set s → μ s = 0 → T s = 0)
   (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
     → T (s ∪ t) = T s + T t)
@@ -396,7 +394,7 @@ begin
     (add_to_simple_func f g),
 end
 
-lemma set_to_L1s_smul_real (T : set α → (E →L[ℝ] F'))
+lemma set_to_L1s_smul_real (T : set α → E →L[ℝ] F)
   (h_zero : ∀ s, measurable_set s → μ s = 0 → T s = 0)
   (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
     → T (s ∪ t) = T s + T t)
@@ -410,9 +408,9 @@ begin
 end
 
 lemma set_to_L1s_smul {E} [normed_group E] [measurable_space E] [normed_space ℝ E]
-  [normed_space 𝕜 E] [second_countable_topology E] [borel_space E] [normed_space 𝕜 F']
+  [normed_space 𝕜 E] [second_countable_topology E] [borel_space E] [normed_space 𝕜 F]
   [measurable_space 𝕜] [opens_measurable_space 𝕜]
-  (T : set α → (E →L[ℝ] F')) (h_zero : ∀ s, measurable_set s → μ s = 0 → T s = 0)
+  (T : set α → E →L[ℝ] F) (h_zero : ∀ s, measurable_set s → μ s = 0 → T s = 0)
   (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
     → T (s ∪ t) = T s + T t)
   (h_smul : ∀ c : 𝕜, ∀ s x, T s (c • x) = c • T s x)
@@ -425,7 +423,7 @@ begin
   exact smul_to_simple_func c f,
 end
 
-lemma norm_set_to_L1s_le (T : set α → (E →L[ℝ] F'))
+lemma norm_set_to_L1s_le (T : set α → E →L[ℝ] F)
   {C : ℝ} (hC : 0 ≤ C) (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real) (f : α →₁ₛ[μ] E) :
   ∥set_to_L1s T f∥ ≤ C * ∥f∥ :=
 begin
@@ -438,8 +436,8 @@ end
 variables [normed_space 𝕜 F] [measurable_space 𝕜] [opens_measurable_space 𝕜]
 
 variables (α E μ 𝕜)
-/-- Extend `set α → (E →L[ℝ] F)` to `(α →₁ₛ[μ] E) →L[𝕜] F`. -/
-def set_to_L1s_clm' (T : set α → (E →L[ℝ] F))
+/-- Extend `set α → E →L[ℝ] F` to `(α →₁ₛ[μ] E) →L[𝕜] F`. -/
+def set_to_L1s_clm' (T : set α → E →L[ℝ] F)
   (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
     → T (s ∪ t) = T s + T t)
   (h_smul : ∀ c : 𝕜, ∀ s x, T s (c • x) = c • T s x)
@@ -452,8 +450,8 @@ have h_zero : ∀ s (hs : measurable_set s) (hs_zero : μ s = 0), T s = 0,
 linear_map.mk_continuous ⟨set_to_L1s T, set_to_L1s_add T h_zero h_add,
   set_to_L1s_smul T h_zero h_add h_smul⟩ C (λ f, norm_set_to_L1s_le T hC hT_norm f)
 
-/-- Extend `set α → (E →L[ℝ] F)` to `(α →₁ₛ[μ] E) →L[ℝ] F`. -/
-def set_to_L1s_clm (T : set α → (E →L[ℝ] F))
+/-- Extend `set α → E →L[ℝ] F` to `(α →₁ₛ[μ] E) →L[ℝ] F`. -/
+def set_to_L1s_clm (T : set α → E →L[ℝ] F)
   (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
     → T (s ∪ t) = T s + T t)
   {C : ℝ} (hC : 0 ≤ C) (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real) :
@@ -482,7 +480,7 @@ variables (𝕜) [nondiscrete_normed_field 𝕜] [measurable_space 𝕜] [opens_
   [normed_space 𝕜 F] [complete_space F]
 
 /-- Extend `set α → (E →L[ℝ] F)` to `(α →₁[μ] E) →L[𝕜] F`. -/
-def set_to_L1_clm' (T : set α → (E →L[ℝ] F))
+def set_to_L1_clm' (T : set α → E →L[ℝ] F)
   (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
     → T (s ∪ t) = T s + T t)
   (h_smul : ∀ c : 𝕜, ∀ s x, T s (c • x) = c • T s x)
@@ -493,8 +491,8 @@ def set_to_L1_clm' (T : set α → (E →L[ℝ] F))
 
 variables {𝕜}
 
-/-- Extend `set α → (E →L[ℝ] F)` to `(α →₁[μ] E) →L[ℝ] F`. -/
-def set_to_L1_clm (T : set α → (E →L[ℝ] F))
+/-- Extend `set α → E →L[ℝ] F` to `(α →₁[μ] E) →L[ℝ] F`. -/
+def set_to_L1_clm (T : set α → E →L[ℝ] F)
   (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
     → T (s ∪ t) = T s + T t)
   {C : ℝ} (hC : 0 ≤ C) (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real) :
@@ -505,18 +503,20 @@ def set_to_L1_clm (T : set α → (E →L[ℝ] F))
 end set_to_L1
 
 end L1
+
 section function
 
 variables [second_countable_topology E] [borel_space E] [complete_space F]
 
-def set_to_fun (T : set α → (E →L[ℝ] F))
+/-- Extedend `T : set α → E →L[ℝ] F` to `(α → E) → F` (for integrable functions `α → E`). -/
+def set_to_fun (T : set α → E →L[ℝ] F)
   (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
     → T (s ∪ t) = T s + T t)
   {C : ℝ} (hC : 0 ≤ C) (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real) (f : α → E) :
   F :=
 if hf : integrable f μ then L1.set_to_L1_clm T h_add hC hT_norm (hf.to_L1 f) else 0
 
-lemma set_to_fun_eq (T : set α → (E →L[ℝ] F))
+lemma set_to_fun_eq (T : set α → E →L[ℝ] F)
   (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
     → T (s ∪ t) = T s + T t)
   {C : ℝ} (hC : 0 ≤ C) (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real) {f : α → E}
@@ -524,7 +524,7 @@ lemma set_to_fun_eq (T : set α → (E →L[ℝ] F))
   set_to_fun T h_add hC hT_norm f = L1.set_to_L1_clm T h_add hC hT_norm (hf.to_L1 f) :=
 dif_pos hf
 
-lemma set_to_fun_undef (T : set α → (E →L[ℝ] F))
+lemma set_to_fun_undef (T : set α → E →L[ℝ] F)
   (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
     → T (s ∪ t) = T s + T t)
   {C : ℝ} (hC : 0 ≤ C) (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real) {f : α → E}

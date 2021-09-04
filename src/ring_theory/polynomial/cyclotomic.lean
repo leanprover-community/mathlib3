@@ -633,7 +633,7 @@ begin
   have hdiv : map (int.cast_ring_hom (zmod p)) (X - a) ∣
     ∏ i in nat.proper_divisors n, cyclotomic i (zmod p),
   { suffices hdivm : map (int.cast_ring_hom (zmod p)) (X - a) ∣ X ^ m - 1,
-    { exact dvd_trans hdivm (X_pow_sub_one_dvd_prod_cyclotomic (zmod p) hpos
+    { exact hdivm.trans (X_pow_sub_one_dvd_prod_cyclotomic (zmod p) hpos
         (order_of_root_cyclotomic_dvd hpos hroot) hdiff) },
     rw [map_sub, map_X, map_nat_cast, ← C_eq_nat_cast, dvd_iff_is_root, is_root.def, eval_sub,
       eval_pow, eval_one, eval_X, sub_eq_zero, ← zmod.coe_unit_of_coprime a ha, ← units.coe_pow,

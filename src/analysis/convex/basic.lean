@@ -921,7 +921,27 @@ section linear_order
 section monoid
 
 variables {γ : Type*} [linear_ordered_add_comm_monoid γ] [module ℝ γ] [ordered_module ℝ γ]
-  {f : E → γ}
+  {f g : E → γ}
+
+/-- The pointwise maximum of convex functions is convex. -/
+lemma convex_on.sup (hf : convex_on s f) (hg : convex_on s g) :
+  convex_on s (f ⊔ g) :=
+begin
+   refine ⟨hf.left, λ x y hx hy a b ha hb hab, sup_le _ _⟩,
+   { calc f (a • x + b • y) ≤ a • f x + b • f y : hf.right hx hy ha hb hab
+      ...                   ≤ a • (f x ⊔ g x) + b • (f y ⊔ g y) : add_le_add
+      (smul_le_smul_of_nonneg le_sup_left ha)
+      (smul_le_smul_of_nonneg le_sup_left hb) },
+   { calc g (a • x + b • y) ≤ a • g x + b • g y : hg.right hx hy ha hb hab
+      ...                   ≤ a • (f x ⊔ g x) + b • (f y ⊔ g y) : add_le_add
+      (smul_le_smul_of_nonneg le_sup_right ha)
+      (smul_le_smul_of_nonneg le_sup_right hb) }
+end
+
+/-- The pointwise minimum of concave functions is concave. -/
+lemma concave_on.inf (hf : concave_on s f) (hg : concave_on s g) :
+  concave_on s (f ⊓ g) :=
+@convex_on.sup _ _ _ _ (order_dual γ) _ _ _ _ _ hf hg
 
 /-- A convex function on a segment is upper-bounded by the max of its endpoints. -/
 lemma convex_on.le_on_segment' (hf : convex_on s f) {x y : E} {a b : ℝ}

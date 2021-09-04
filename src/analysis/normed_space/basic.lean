@@ -233,6 +233,10 @@ by rw [mem_ball', dist_eq_norm]
 @[simp] lemma mem_ball_0_iff {ε : ℝ} {x : α} : x ∈ ball (0 : α) ε ↔ ∥x∥ < ε :=
 by rw [mem_ball, dist_zero_right]
 
+lemma neg_mem_ball_0_iff {x : α} {r : ℝ} :
+  -x ∈ metric.ball (0 : α) r ↔ x ∈ metric.ball (0 : α) r :=
+by rw [mem_ball_0_iff, mem_ball_0_iff, norm_neg]
+
 lemma mem_closed_ball_iff_norm {g h : α} {r : ℝ} :
   h ∈ closed_ball g r ↔ ∥h - g∥ ≤ r :=
 by rw [mem_closed_ball, dist_eq_norm]
@@ -537,6 +541,10 @@ by rw [edist_eq_coe_nnnorm_sub, _root_.sub_zero]
 
 lemma mem_emetric_ball_0_iff {x : β} {r : ℝ≥0∞} : x ∈ emetric.ball (0 : β) r ↔ ↑∥x∥₊ < r :=
 by rw [emetric.mem_ball, edist_eq_coe_nnnorm]
+
+lemma neg_mem_eball_0_iff {x : β} {r : ℝ≥0∞} :
+  -x ∈ emetric.ball (0 : β) r ↔ x ∈ emetric.ball (0 : β) r :=
+by rw [mem_emetric_ball_0_iff, mem_emetric_ball_0_iff, nnnorm_neg]
 
 lemma nndist_add_add_le (g₁ g₂ h₁ h₂ : α) :
   nndist (g₁ + g₂) (h₁ + h₂) ≤ nndist g₁ h₁ + nndist g₂ h₂ :=

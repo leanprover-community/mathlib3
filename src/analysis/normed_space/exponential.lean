@@ -19,7 +19,7 @@ for most results.
 
 We then prove basic results, as described below.
 
-## Main result
+## Main results
 
 We prove most result for an arbitrary field `𝕂`, and then specialize to `𝕂 = ℝ` or `𝕂 = ℂ`.
 
@@ -65,6 +65,16 @@ We prove most result for an arbitrary field `𝕂`, and then specialize to `𝕂
 
 open filter is_R_or_C continuous_multilinear_map normed_field asymptotics
 open_locale nat topological_space big_operators ennreal
+
+section move_me
+
+variables {S M : Type*} [semigroup S] [monoid M] [has_scalar M S]
+
+lemma commute.smul_left (a : M) {b c : S} (h : commute b c) : commute (a • b) c := sorry
+
+lemma commute.smul_right (a : M) {b c : S} (h : commute b c) : commute b (a • c) := sorry
+
+end move_me
 
 section any_field_any_algebra
 
@@ -241,11 +251,47 @@ begin
   field_simp [this]
 end
 
+lemma has_fderiv_at_exp_smul_const_of_mem_ball [char_zero 𝕂] {𝔸' : Type*} [normed_comm_ring 𝔸']
+  [normed_algebra 𝕂 𝔸'] [algebra 𝔸' 𝔸] [has_continuous_smul 𝔸' 𝔸] [is_scalar_tower 𝕂 𝔸' 𝔸]
+  (x : 𝔸) (t : 𝔸') (htx : t • x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
+  has_fderiv_at (λ (u : 𝔸'), exp 𝕂 𝔸 (u • x))
+    (exp 𝕂 𝔸 (t • x) • ((1 : 𝔸' →L[𝕂] 𝔸').smul_right x)) t :=
+begin
+  have hpos : 0 < (exp_series 𝕂 𝔸).radius := (zero_le _).trans_lt htx,
+  rw has_fderiv_at_iff_is_o_nhds_zero,
+  suffices :
+    (λ h, exp 𝕂 𝔸 (t • x) * (exp 𝕂 𝔸 ((0 + h) • x) - exp 𝕂 𝔸 ((0 : 𝔸') • x)
+      - ((1 : 𝔸' →L[𝕂] 𝔸').smul_right x) h))
+    =ᶠ[𝓝 0] (λ h, exp 𝕂 𝔸 ((t + h) • x) - exp 𝕂 𝔸 (t • x)
+      - (exp 𝕂 𝔸 (t • x) • ((1 : 𝔸' →L[𝕂] 𝔸').smul_right x)) h),
+  { refine (is_o.const_mul_left _ _).congr' this (eventually_eq.refl _ _),
+    rw ← @has_fderiv_at_iff_is_o_nhds_zero _ _ _ _ _ _ _ _
+      (λ u, exp 𝕂 𝔸 (u • x)) ((1 : 𝔸' →L[𝕂] 𝔸').smul_right x) 0,
+    have : has_fderiv_at (exp 𝕂 𝔸) (1 : 𝔸 →L[𝕂] 𝔸) (((1 : 𝔸' →L[𝕂] 𝔸').smul_right x) 0),
+    { rw [continuous_linear_map.smul_right_apply, continuous_linear_map.one_apply, zero_smul],
+      exact has_fderiv_at_exp_zero_of_radius_pos hpos },
+    exact this.comp 0 ((1 : 𝔸' →L[𝕂] 𝔸').smul_right x).has_fderiv_at },
+  have : tendsto (λ h : 𝔸', h • x) (𝓝 0) (𝓝 0),
+  { rw ← zero_smul 𝔸' x,
+    exact tendsto_id.smul_const x },
+  have : ∀ᶠ h in 𝓝 (0 : 𝔸'), h • x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius :=
+    this.eventually (emetric.ball_mem_nhds _ hpos),
+  filter_upwards [this],
+  intros h hh,
+  have : commute (t • x) (h • x) := ((commute.refl x).smul_left t).smul_right h,
+  rw [add_smul t h, exp_add_of_commute_of_mem_ball this htx hh, zero_add, zero_smul, exp_zero,
+      continuous_linear_map.smul_right_apply, continuous_linear_map.one_apply,
+      continuous_linear_map.smul_apply, continuous_linear_map.smul_right_apply,
+      continuous_linear_map.one_apply, smul_eq_mul, mul_sub_left_distrib, mul_sub_left_distrib,
+      mul_one],
+end
+
+
 lemma exp_mul_exp_neg_of_mem_ball [char_zero 𝕂] {x : 𝔸}
   (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
   (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 $ -x) = 1 :=
 have hnx : -x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius,
-  by {rw mem_emetric_ball_0_iff at *, rwa nnnorm_neg},
+  by rwa ← neg_mem_eball_0_iff at hx,
 calc  (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 $ -x)
     = exp 𝕂 𝔸 (x + (-x)) : (exp_add_of_commute_of_mem_ball (commute.refl x).neg_right hx hnx).symm
 ... = exp 𝕂 𝔸 0 : by rw add_right_neg
@@ -256,8 +302,7 @@ lemma exp_neg_mul_exp_of_mem_ball [char_zero 𝕂] {x : 𝔸}
   (exp 𝕂 𝔸 $ -x) * (exp 𝕂 𝔸 x) = 1 :=
 begin
   have hnx : -x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius,
-  { rw mem_emetric_ball_0_iff at *,
-    rwa nnnorm_neg },
+  { rwa ← neg_mem_eball_0_iff at hx },
   convert exp_mul_exp_neg_of_mem_ball hnx,
   rw neg_neg
 end
@@ -270,6 +315,16 @@ lemma is_unit_exp_of_mem_ball [char_zero 𝕂] {x : 𝔸}
   (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
   is_unit (exp 𝕂 𝔸 x) :=
 ⟨exp_emetric_ball_to_units x hx, rfl⟩
+
+lemma exp_conj_of_mem_ball [char_zero 𝕂] (x : 𝔸) (y : units 𝔸)
+  (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
+  exp 𝕂 𝔸 (y * x * (y⁻¹ : units 𝔸)) = y * (exp 𝕂 𝔸 x) * (y⁻¹ : units 𝔸) :=
+begin
+  rw [exp_eq_tsum, ← summable.tsum_mul_left (_ : 𝔸) (exp_series_summable_of_mem_ball' x hx),
+      ← summable.tsum_mul_right (_ : 𝔸) ((exp_series_summable_of_mem_ball' x hx).mul_left _)],
+  refine tsum_congr (λ n, _),
+  rw [y.conj_pow, ← smul_mul_assoc, ← mul_smul_comm]
+end
 
 end complete_algebra
 
@@ -618,3 +673,66 @@ begin
 end
 
 end real
+
+section wip
+
+section move_me
+
+variables {𝕂 E F G : Type*} [nondiscrete_normed_field 𝕂] [normed_group E] [normed_group F]
+  [normed_group G] [normed_space 𝕂 E] [normed_space 𝕂 F] [normed_space 𝕂 G]
+
+lemma has_fderiv_at.apply {f : E → F →L[𝕂] G} {f' : E →L[𝕂] F →L[𝕂] G}
+  {x : E → F} {x' : E →L[𝕂] F} (p : E) (hff' : has_fderiv_at f f' p)
+  (hxx' : has_fderiv_at x x' p) :
+  has_fderiv_at (λ t, (f t) (x t)) ((f p).comp x' + f'.flip (x p)) p :=
+(is_bounded_bilinear_map_apply.has_fderiv_at (f p, x p)).comp p (hff'.prod hxx')
+
+lemma has_deriv_at.apply {f : 𝕂 → F →L[𝕂] G} {f' : F →L[𝕂] G} {x : 𝕂 → F} {x' : F} (p : 𝕂)
+  (hff' : has_deriv_at f f' p) (hxx' : has_deriv_at x x' p) :
+  has_deriv_at (λ t, (f t) (x t)) (f p x' + f' (x p)) p :=
+by convert (has_fderiv_at.apply p hff'.has_fderiv_at hxx'.has_fderiv_at).has_deriv_at; simp
+
+end move_me
+
+section move_me2
+
+variables {𝕂 𝔸 : Type*} [is_R_or_C 𝕂] [normed_ring 𝔸] [normed_algebra 𝕂 𝔸]
+
+#check has_deriv_at.smul_const
+
+set_option pp.all true
+lemma bar (x : 𝔸) (t : 𝕂) : has_deriv_at (λ (u : 𝕂), exp 𝕂 𝔸 (u • x)) (exp 𝕂 𝔸 (t • x) * x) t :=
+begin
+  have := ((has_deriv_at_id t).smul_const x),
+  have := has_fderiv_at_exp.comp t ((has_deriv_at_id t).smul_const x),
+end
+
+end move_me2
+
+variables {𝕂 E : Type*} [is_R_or_C 𝕂] [normed_group E] [normed_space 𝕂 E]
+
+local attribute [instance] char_zero_R_or_C
+
+#check continuous_linear_map.to_normed_ring
+
+lemma foo [nontrivial E] [complete_space E] (y : 𝕂 → E) (L : E →L[𝕂] E) :
+  (∀ t, has_deriv_at y (L $ y t) t) ↔ (y = λ t, (exp 𝕂 _ $ t • L) (y 0)) :=
+begin
+  split; intro h,
+  { let u := λ t, (exp 𝕂 _ (-(t • L)) (y t)),
+    suffices : ∀ t, u t = y 0,
+    { ext t,
+      rw ← this t,
+      dsimp only [u],
+      rw [← continuous_linear_map.mul_apply, exp_mul_exp_neg_of_mem_ball,
+          continuous_linear_map.one_apply],
+      sorry },
+    have : ∀ t, has_deriv_at u 0 t,
+    { intro t,
+      dsimp only [u],
+      have := has_fderiv_at.comp_has_deriv_at t has_fderiv_at_exp ((has_deriv_at_id t).smul_const _).neg,
+      convert has_deriv_at.apply t this (h t), } },
+end
+
+
+end wip

@@ -819,6 +819,13 @@ def of_left_inverse' (f : M →* N) {g : N → M} (h : function.left_inverse g f
     show f (g x) = x, by rw [←hx', h x'],
   .. f.mrange_restrict }
 
+/-- A `mul_equiv` `φ` between two monoids `M` and `N` induces a `mul_equiv` between
+a submonoid `S ≤ M` and the submonoid `φ(S) ≤ N`. -/
+@[to_additive "An `add_equiv` `φ` between two additive monoids `M` and `N` induces an `add_equiv`
+between a submonoid `S ≤ M` and the submonoid `φ(S) ≤ N`. "]
+def submonoid_equiv_map (e : M ≃* N) (S : submonoid M) : S ≃* S.map e.to_monoid_hom :=
+{ map_mul' := λ _ _, subtype.ext (e.map_mul _ _), ..equiv.image e.to_equiv S }
+
 end mul_equiv
 
 /-! ### Actions by `submonoid`s

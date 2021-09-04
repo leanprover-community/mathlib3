@@ -842,6 +842,49 @@ lemma map_comap_le (f : M →ₗ[R] M₂) (q : submodule R M₂) : map f (comap 
 lemma le_comap_map (f : M →ₗ[R] M₂) (p : submodule R M) : p ≤ comap f (map f p) :=
 (gc_map_comap f).le_u_l _
 
+section galois_insertion
+variables {f : M →ₗ[R] M₂} (hf : surjective f)
+include hf
+
+/-- `map f` and `comap f` form a `galois_insertion` when `f` is surjective. -/
+def gi_map_comap : galois_insertion (map f) (comap f) :=
+(gc_map_comap f).to_galois_insertion
+  (λ S x hx, begin
+    rcases hf x with ⟨y, rfl⟩,
+    simp only [mem_map, mem_comap],
+    exact ⟨y, hx, rfl⟩  
+  end)
+
+lemma map_comap_eq_of_surjective (p : submodule R M₂) : (p.comap f).map f = p :=
+(gi_map_comap hf).l_u_eq _
+
+lemma map_surjective_of_surjective : function.surjective (map f) :=
+(gi_map_comap hf).l_surjective
+
+lemma comap_injective_of_surjective : function.injective (comap f) :=
+(gi_map_comap hf).u_injective
+
+lemma map_sup_comap_of_surjective (p q : submodule R M₂) : 
+  (p.comap f ⊔ q.comap f).map f = p ⊔ q :=
+(gi_map_comap hf).l_sup_u _ _
+
+lemma map_supr_comap_of_sujective (S : ι → submodule R M₂) : (⨆ i, (S i).comap f).map f = supr S :=
+(gi_map_comap hf).l_supr_u _
+
+lemma map_inf_comap_of_surjective (p q : submodule R M₂) : (p.comap f ⊓ q.comap f).map f = p ⊓ q :=
+(gi_map_comap hf).l_inf_u _ _
+
+lemma map_infi_comap_of_surjective (S : ι → submodule R M₂) : (⨅ i, (S i).comap f).map f = infi S :=
+(gi_map_comap hf).l_infi_u _
+
+lemma comap_le_comap_iff_of_surjective (p q : submodule R M₂) : p.comap f ≤ q.comap f ↔ p ≤ q :=
+(gi_map_comap hf).u_le_u_iff
+
+lemma comap_strict_mono_of_surjective : strict_mono (comap f) :=
+(gi_map_comap hf).strict_mono_u
+
+end galois_insertion
+
 section galois_coinsertion
 variables {f : M →ₗ[R] M₂} (hf : injective f)
 include hf

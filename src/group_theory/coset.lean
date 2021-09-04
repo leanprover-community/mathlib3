@@ -295,6 +295,14 @@ instance (s : subgroup α) : inhabited (quotient s) :=
 protected lemma eq {a b : α} : (a : quotient s) = b ↔ a⁻¹ * b ∈ s :=
 quotient.eq'
 
+@[to_additive quotient_add_group.eq']
+lemma eq' {a b : α} : (mk a : quotient s) = mk b ↔ a⁻¹ * b ∈ s :=
+quotient_group.eq
+
+@[to_additive quotient_add_group.out_eq']
+lemma out_eq' (a : quotient s) : mk a.out' = a :=
+quotient.out_eq' a
+
 @[to_additive]
 lemma eq_class_eq_left_coset (s : subgroup α) (g : α) :
   {x : α | (x : quotient s) = g} = left_coset g s :=

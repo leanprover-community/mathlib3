@@ -125,7 +125,7 @@ A functor between preorder categories is monotone.
 /--
 An adjunction between preorder categories induces a galois connection.
 -/
-lemma galois_connection_of_adjunction {L : X ⥤ Y} {R : Y ⥤ X} (adj : L ⊣ R) :
+lemma adjunction.gc {L : X ⥤ Y} {R : Y ⥤ X} (adj : L ⊣ R) :
   galois_connection L.obj R.obj :=
 λ x y, ⟨λ h, ((adj.hom_equiv x y).to_fun h.hom).le, λ h, ((adj.hom_equiv x y).inv_fun h.hom).le⟩
 

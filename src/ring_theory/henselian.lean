@@ -61,11 +61,11 @@ begin
     inv_mul_cancel (mt f.mem_ker.mpr hxf), sub_self],
 end
 
--- move this
+-- PR #8991
 instance local_ring.residue_field.algebra (R : Type*) [comm_ring R] [local_ring R] :
   algebra R (residue_field R) := (residue R).to_algebra
 
--- move this
+-- PR #8991
 lemma local_ring.ker_eq_maximal_ideal {R K : Type*} [comm_ring R] [local_ring R] [field K]
   (φ : R →+* K) (hφ : surjective φ) : φ.ker = maximal_ideal R :=
 local_ring.eq_maximal_ideal $ φ.ker_is_maximal_of_surjective hφ

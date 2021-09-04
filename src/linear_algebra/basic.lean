@@ -676,9 +676,6 @@ p.subtype.cod_restrict p' $ λ ⟨x, hx⟩, h hx
 
 theorem of_le_apply (h : p ≤ p') (x : p) : of_le h x = ⟨x, h x.2⟩ := rfl
 
-theorem of_le_injective (h : p ≤ p') : function.injective (of_le h) :=
-λ x y h, subtype.val_injective (subtype.mk.inj h)
-
 variables (p p')
 
 lemma subtype_comp_of_le (p q : submodule R M) (h : p ≤ q) :

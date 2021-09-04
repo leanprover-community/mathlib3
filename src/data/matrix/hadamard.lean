@@ -5,7 +5,6 @@ Authors: Lu-Ming Zhang
 -/
 import data.matrix.notation
 import linear_algebra.matrix.trace
-import data.complex.basic
 
 /-!
 # Hadamard product of matrices
@@ -36,7 +35,6 @@ variables {R : Type*}
 
 namespace matrix
 open_locale matrix big_operators
-open complex
 
 /-- `matrix.hadamard` defines the Hadamard product,
     which is the pointwise product of two matrices of the same size.-/

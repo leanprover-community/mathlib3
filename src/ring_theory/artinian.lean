@@ -117,7 +117,8 @@ is_artinian_of_range_eq_ker
   linear_map.snd_surjective
   (linear_map.range_inl R M P)
 
-instance is_artinian_of_fintype [fintype M] : is_artinian R M :=
+@[instance, priority 100]
+lemma is_artinian_of_fintype [fintype M] : is_artinian R M :=
 ⟨fintype.well_founded_of_trans_of_irrefl _⟩
 
 local attribute [elab_as_eliminator] fintype.induction_empty_option

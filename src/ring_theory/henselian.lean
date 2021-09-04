@@ -582,74 +582,14 @@ begin
 end
 
 /-
-TODO: it's not clear to me (jmc) whether the following items can be easily included,
-      maybe they depend on theory of etale algebras, just like the items further below
+TODO: After a good API for etale ring homomorphisms has been developed,
+we can give more equivalent characterization os Henselian rings.
 
-  ∀ (f : polynomial R) (a₀ : R) (h₁ : f.eval a₀ ∈ maximal_ideal R)
-    (h₂ : f.derivative.eval a₀ ∉ maximal_ideal R),
-    ∃ a : R, f.is_root a ∧ (a - a₀ ∈ maximal_ideal R),
-  ∀ (f : polynomial R) (a₀ : residue_field R) (h₁ : aeval a₀ f = 0)
-    (h₂ : aeval a₀ f.derivative ≠ 0),
-    ∃ a : R, f.is_root a ∧ (residue R a = a₀),
-  ∀ {K : Type u} [field K], by exactI ∀ (φ : R →+* K) (hφ : surjective φ)
-    (f : polynomial R) (a₀ : K) (h₁ : f.eval₂ φ a₀ = 0)
-    (h₂ : f.derivative.eval₂ φ a₀ ≠ 0),
-    ∃ a : R, f.is_root a ∧ (φ a = a₀),
+In particular, this can give a proof that factorizations into coprime polynomials can be lifted
+from the residue field to the Henselian ring.
 
-TODO: develop enough theory of etale algebras to include the following items in the `tfae`.
-
-  ∀ (f : polynomial R) (hf : f.monic) (g₀ h₀ : polynomial (residue_field R))
-    (h₁ : f.map (residue R) = g₀ * h₀) (h₂ : is_coprime g₀ h₀),
-    ∃ g h : polynomial R, f = g * h ∧ g.map (residue R) = g₀ ∧ h.map (residue R) = h₀,
-  ∀ (f : polynomial R) (g₀ h₀ : polynomial (residue_field R))
-    (h₁ : f.map (residue R) = g₀ * h₀) (h₂ : is_coprime g₀ h₀),
-    ∃ g h : polynomial R, f = g * h ∧ g.map (residue R) = g₀ ∧ h.map (residue R) = h₀ ∧
-      g.degree = g₀.degree,
-  ∀ {K : Type u} [field K], by exactI ∀ (φ : R →+* K) (hφ : surjective φ)
-    (f : polynomial R) (hf : f.monic) (g₀ h₀ : polynomial K)
-    (h₁ : f.map φ = g₀ * h₀) (h₂ : is_coprime g₀ h₀),
-    ∃ g h : polynomial R, f = g * h ∧ g.map φ = g₀ ∧ h.map φ = h₀,
-  ∀ {K : Type u} [field K], by exactI ∀ (φ : R →+* K) (hφ : surjective φ)
-    (f : polynomial R) (g₀ h₀ : polynomial K)
-    (h₁ : f.map φ = g₀ * h₀) (h₂ : is_coprime g₀ h₀),
-    ∃ g h : polynomial R, f = g * h ∧ g.map φ = g₀ ∧ h.map φ = h₀ ∧
-      g.degree = g₀.degree,
-
--- Here's a proof showing that the last item implies the 2nd but last item.
-
-  -- tfae_have _10_8 : 10 → 8,
-  -- { introsI H K _K φ hφ f a₀ h₁ h₂,
-  --   let g₀ : polynomial K := X - C a₀,
-  --   let h₀ := (f.map φ).div_by_monic g₀,
-  --   have hg₀ : g₀.degree = 1 := degree_X_sub_C _,
-  --   have hg₀h₀ : f.map φ = g₀ * h₀,
-  --   { rw [← eval_map] at h₁, exact (mul_div_by_monic_eq_iff_is_root.mpr h₁).symm },
-  --   have hcop : is_coprime g₀ h₀,
-  --   { apply is_coprime_of_is_root_of_eval_derivative_ne_zero,
-  --     rwa [derivative_map, eval_map] },
-  --   obtain ⟨g, h, rfl, Hg, Hh, H2⟩ := H φ hφ f g₀ h₀ hg₀h₀ hcop,
-  --   rw hg₀ at H2,
-  --   obtain ⟨u, hu⟩ : is_unit (g.coeff 1),
-  --   { apply local_ring.is_unit_of_mem_nonunits_one_sub_self,
-  --     rw [← local_ring.mem_maximal_ideal, ← local_ring.ker_eq_maximal_ideal φ hφ, φ.mem_ker],
-  --     have : (C a₀).nat_degree < 1, { simp only [nat_degree_C, nat.lt_one_iff], },
-  --     simp only [ring_hom.map_sub, ring_hom.map_one, sub_eq_zero, ← polynomial.coeff_map, Hg,
-  --       coeff_X_one, coeff_sub, coeff_eq_zero_of_nat_degree_lt this, sub_zero], },
-  --   let a := ↑u⁻¹ * -g.coeff 0,
-  --   refine ⟨a, _, _⟩,
-  --   { apply root_mul_right_of_is_root,
-  --     rw [is_root.def, eq_X_add_C_of_degree_le_one H2.le],
-  --     simp only [eval_C, eval_X, eval_add, eval_mul, ← hu, a,
-  --       units.mul_inv_cancel_left, add_left_neg], },
-  --   { calc φ (↑u⁻¹ * -g.coeff 0) = (g₀.coeff 1)⁻¹ * - (g₀.coeff 0) :
-  --           by simp only [φ.map_mul, φ.map_neg, ring_hom.map_units_inv, hu, ←Hg, coeff_map]
-  --     ... = (g₀.leading_coeff)⁻¹ * - (g₀.coeff 0) : _
-  --     ... = a₀ : _,
-  --     { suffices : g₀.nat_degree = 1, { rw ← this, refl },
-  --       rw degree_eq_nat_degree (monic_X_sub_C a₀).ne_zero at hg₀,
-  --       exact_mod_cast hg₀ },
-  --     { simp only [(monic_X_sub_C a₀).leading_coeff, inv_one, one_mul,
-  --         coeff_sub, coeff_X_zero, coeff_C_zero, zero_sub, neg_neg], } } },
+The following gist contains some code sketches in that direction.
+https://gist.github.com/jcommelin/47d94e4af092641017a97f7f02bf9598
 -/
 
 end

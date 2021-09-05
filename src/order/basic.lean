@@ -136,11 +136,6 @@ begin
   { transitivity, assumption, exact hf _ }
 end
 
-theorem antitone_nat_of_succ_le {L : Type*} [preorder L] {f : ℕ → L}
-  (hf : ∀ n : ℕ, f (n + 1) ≤ f n) :
-  ∀ ⦃a b : ℕ⦄, a ≤ b → f b ≤ f a :=
-@monotone_nat_of_le_succ (order_dual L) _ f hf
-
 lemma monotone.reflect_lt {α β} [linear_order α] [preorder β] {f : α → β} (hf : monotone f)
   {x x' : α} (h : f x < f x') : x < x' :=
 by { rw [← not_le], intro h', apply not_le_of_lt h, exact hf h' }
@@ -249,6 +244,11 @@ protected lemma dual_right (H : strict_mono_incr_on f s) :
 H
 
 end dual
+
+theorem antimono_nat_of_succ_le {L : Type*} [preorder L] {f : ℕ → L}
+  (hf : ∀ n : ℕ, f (n + 1) ≤ f n) :
+  ∀ ⦃a b : ℕ⦄, a ≤ b → f b ≤ f a :=
+@monotone_nat_of_le_succ (order_dual L) _ f hf
 
 variables [linear_order α] [preorder β] {f : α → β} {s : set α} {x y : α}
 

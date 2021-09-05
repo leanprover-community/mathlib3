@@ -52,8 +52,13 @@ def is_smul_left_invariant (G) [has_scalar G V] (μ : set V → ℝ≥0∞) : Pr
 ∀ (g : G) {A : set V} (h : measurable_set A), μ ((λ h, g • h) ⁻¹' A) = μ A
 
 @[to_additive]
+lemma is_smul_left_invariant.volume_smul {G : Type*} [group G] [mul_action G V] {μ : measure V}
+  (h : is_smul_left_invariant G μ) (g : G) {S : set V} (hS : measurable_set S) : μ (g • S) = μ S :=
+by rw [← h (g⁻¹) hS, preimage_smul, inv_inv]
+
+@[to_additive]
 lemma is_mul_left_invariant.to_is_smul_left_invariant [measurable_space G] [has_mul G]
-{μ : set G → ℝ≥0∞} (h : is_mul_left_invariant μ) :
+  {μ : set G → ℝ≥0∞} (h : is_mul_left_invariant μ) :
 is_smul_left_invariant G μ := h
 
 end
@@ -98,6 +103,70 @@ begin
       split_ifs with hiS,
       exact (classical.some_spec (h i hiS)).right,
       rw mul_inv_cancel_left' hr, }, },
+end
+
+section
+variables {X Y : Type*} [measure_space Y] [group X] [mul_action X Y]
+  [measurable_space X] [has_measurable_smul X Y]
+@[to_additive]
+lemma measurable_set_smul (x : X) {S : set Y} (h : measurable_set S) : measurable_set (x • S) :=
+begin
+  rw [← inv_inv x, ← preimage_smul (x⁻¹)],
+  apply has_measurable_smul.measurable_const_smul,
+  exact h,
+end
+
+
+--TODO move
+@[to_additive]
+lemma smul_set_inter {α β : Type*} [group α] (a : α) [mul_action α β] {s t : set β} : a • (s ∩ t) = a • s ∩ a • t :=
+begin
+  erw [← image_smul, image_inter],
+  exact mul_action.injective a,
+end
+lemma measure_null_of_null_right {α : Type*} [measurable_space α] {μ : measure α} (S T : set α)
+  (h : μ T = 0) : μ (S ∩ T) = 0 :=
+nonpos_iff_eq_zero.mp (h ▸ measure_mono (inter_subset_right S T))
+
+lemma measure_null_of_null_left {α : Type*} [measurable_space α] {μ : measure α} (S T : set α)
+  (h : μ S = 0) : μ (S ∩ T) = 0 :=
+nonpos_iff_eq_zero.mp (h ▸ measure_mono (inter_subset_left S T))
+
+lemma measure_Union_of_null_inter {α β : Type*} [measurable_space α] {μ : measure α} [encodable β] {f : β → set α}
+  (hn : pairwise ((λ S T, μ (S ∩ T) = 0) on f)) (h : ∀ i, measurable_set (f i)) :
+  μ (⋃ i, f i) = ∑' i, μ (f i) :=
+begin
+  have h_null : μ (⋃ (ij : β × β) (hij : ij.fst ≠ ij.snd), f ij.fst ∩ f ij.snd) = 0,
+  { rw measure_Union_null_iff,
+    rintro ⟨i, j⟩,
+    by_cases hij : i = j,
+    { simp [hij], },
+    { simp [hij], -- TODO squeeze_simp doesn't work
+      apply hn i j hij, }, },
+  have h_pair : pairwise (disjoint on
+    (λ i, f i \ (⋃ (ij : β × β) (hij : ij.fst ≠ ij.snd), f ij.fst ∩ f ij.snd))),
+  { intros i j hij x hx,
+    simp only [not_exists, exists_prop, mem_Union, mem_inter_eq, not_and,
+      inf_eq_inter, ne.def, mem_diff, prod.exists] at hx,
+    simp only [mem_empty_eq, bot_eq_empty],
+    rcases hx with ⟨⟨hx_left_left, hx_left_right⟩, hx_right_left, hx_right_right⟩,
+    exact hx_left_right _ _ hij hx_left_left hx_right_left, },
+  have h_meas :
+    ∀ i, measurable_set (f i \ (⋃ (ij : β × β) (hij : ij.fst ≠ ij.snd), f ij.fst ∩ f ij.snd)),
+  { intro w,
+    apply (h w).diff,
+    apply measurable_set.Union,
+    rintro ⟨i, j⟩,
+    by_cases hij : i = j,
+    { simp [hij], },
+    { simp [hij],
+      exact measurable_set.inter (h i) (h j), }, },
+  have : μ _ = _ := measure_Union h_pair h_meas,
+  rw ← Union_diff at this,
+  simp_rw measure_diff_null h_null at this,
+  exact this,
+end
+
 end
 
 namespace geometry_of_numbers
@@ -187,15 +256,7 @@ variables {X Y : Type*} [measure_space Y] [group X] [mul_action X Y]
   (F : fundamental_domain Y X)
 
 @[to_additive]
-lemma measurable_set_smul' (x : X) {S : set Y} (h : measurable_set S) : measurable_set (x • S) :=
-begin
-  rw [← inv_inv x, ← preimage_smul (x⁻¹)],
-  apply has_measurable_smul.measurable_const_smul,
-  exact h,
-end
-
-@[to_additive]
-lemma measurable_set_smul (x : X) : measurable_set (x • F.F) := measurable_set_smul' x F.hF
+lemma measurable_set_smul (x : X) : measurable_set (x • F.F) := measurable_set_smul x F.hF
 
 @[to_additive]
 protected def interior : set Y := F.F \ ⋃ (l : X) (h : l ≠ 1), (l • F.F)
@@ -253,69 +314,19 @@ end
 @[to_additive]
 lemma volume_interior [encodable X] : volume F.interior = volume F.F :=
 by { rw [fundamental_domain.interior], exact measure_diff_null' (volume_boundary _), }
+open measure_theory
 
-
---TODO move
 @[to_additive]
-lemma smul_set_inter {α β : Type*} [group α] (a : α) [mul_action α β] {s t : set β} : a • (s ∩ t) = a • s ∩ a • t :=
-begin
-  erw [← image_smul, image_inter],
-  exact mul_action.injective a,
-end
-
-lemma measure_Union_of_null_inter {α β : Type*} [measurable_space α] {μ : measure α} [encodable β] {f : β → set α}
-  (hn : pairwise ((λ S T, μ (S ∩ T) = 0) on f)) (h : ∀ i, measurable_set (f i)) :
-  μ (⋃ i, f i) = ∑' i, μ (f i) :=
-begin
-  have h_null : μ (⋃ (ij : β × β) (hij : ij.fst ≠ ij.snd), f ij.fst ∩ f ij.snd) = 0,
-  { rw measure_Union_null_iff,
-    rintro ⟨i, j⟩,
-    by_cases hij : i = j,
-    { simp [hij], },
-    { simp [hij], -- TODO squeeze_simp doesn't work
-      apply hn i j hij, }, },
-  have h_pair : pairwise (disjoint on
-    (λ i, f i \ (⋃ (ij : β × β) (hij : ij.fst ≠ ij.snd), f ij.fst ∩ f ij.snd))),
-  { intros i j hij x hx,
-    simp only [not_exists, exists_prop, mem_Union, mem_inter_eq, not_and,
-      inf_eq_inter, ne.def, mem_diff, prod.exists] at hx,
-    simp only [mem_empty_eq, bot_eq_empty],
-    rcases hx with ⟨⟨hx_left_left, hx_left_right⟩, hx_right_left, hx_right_right⟩,
-    exact hx_left_right _ _ hij hx_left_left hx_right_left, },
-  have h_meas :
-    ∀ i, measurable_set (f i \ (⋃ (ij : β × β) (hij : ij.fst ≠ ij.snd), f ij.fst ∩ f ij.snd)),
-  { intro w,
-    apply (h w).diff,
-    apply measurable_set.Union,
-    rintro ⟨i, j⟩,
-    by_cases hij : i = j,
-    { simp [hij], },
-    { simp [hij],
-      exact measurable_set.inter (h i) (h j), }, },
-  have : μ _ = _ := measure_Union h_pair h_meas,
-  rw ← Union_diff at this,
-  simp_rw measure_diff_null h_null at this,
-  exact this,
-end
-
-lemma volume_set_eq_tsum_volume_inter [encodable X] (S : set Y) :
+lemma volume_set_eq_tsum_volume_inter [encodable X] {S : set Y} (hS : measurable_set S)
+  (h_smul_left : is_smul_left_invariant X ⇑(volume : measure Y))
+  :
   ∑' (x : X), volume (x • S ∩ F.F) = volume S :=
 begin
   rw (_ : ∑' (x : X), volume (x • S ∩ F.F) =
       ∑' (x : X), volume (x⁻¹ • (x • S ∩ F.F))),
   { simp only [smul_set_inter, inv_smul_smul],
-    have : ∀ x : X, volume (S ∩ x⁻¹ • F.F) = volume (S ∩ x⁻¹ • F.interior),
-    sorry,
-    simp_rw [this],
-    rw ← measure_Union,
-    {
-      have : volume (⋃ x : X, S ∩ x⁻¹ • F.interior) =
-             volume (⋃ x : X, S ∩ x⁻¹ • F.F),
-      { simp,
-
-      },
-      rw this,
-      congr,
+    rw ← measure_Union_of_null_inter,
+    { congr,
       rw [← set.inter_Union, set.inter_eq_self_of_subset_left],
       convert set.subset_univ _,
       rw set.eq_univ_iff_forall,
@@ -326,34 +337,25 @@ begin
       refine ⟨_, hl, _⟩,
       rw [inv_smul_smul], },
     { intros x y hxy,
-      suffices : (disjoint on λ (i : X), (i⁻¹ • F.F)) x y,
-      {
-        -- simp [comp_add_right, mul_one, mul_right_inv,
-        --   set.image_mul_right, inv_inv, set.image_id'] at this ⊢,
-        rintros z ⟨⟨hzx, hzxS⟩, ⟨hzy, hzyS⟩⟩,
-        apply this,
-        simp only [set.mem_preimage, set.mem_inter_eq, set.inf_eq_inter],
-        exact ⟨hzxS, hzyS⟩, },
-      rintros t ⟨htx, hty⟩,
-      simp only [set.mem_empty_eq, set.mem_preimage, set.bot_eq_empty,
-        set.image_mul_right, inv_inv] at htx hty ⊢,
-      apply hxy,
-      suffices : x⁻¹ = y⁻¹, by simpa,
-      apply exists_unique.unique (F.exists_unique t) _ _; simpa, },
+      change volume _ = 0,
+      rw inter_assoc,
+      apply measure_null_of_null_right,
+      rw inter_comm,
+      rw inter_assoc,
+      apply measure_null_of_null_right,
+      rw ← h_smul_left.volume_smul y
+        ((F.measurable_set_smul y⁻¹).inter (F.measurable_set_smul x⁻¹)),
+      simp only [smul_set_inter, smul_inv_smul],
+      rw [smul_smul, ← nonpos_iff_eq_zero, ← F.almost_disjoint],
+      apply measure_mono,
+      refine F.F.inter_subset_inter_right _,
+      sorry,},
     { intro l,
-      apply measurable_set.inter _ hS,
-      rw ← preimage_smul (l : X),
-      refine measurable_set_preimage _ F.hF,
-      exact measurable_const_smul (l : X), }, },
+      exact hS.inter (F.measurable_set_smul l⁻¹), }, },
   { congr,
     ext1 l,
-    simp only [image_smul],
-    simp_rw ← preimage_smul (l : X),
-    rw h_smul_left (l : X),
-    apply measurable_set.inter _ F.hF, -- TODO is this a dup goal?
-    rw [← inv_inv (l : X), ← preimage_smul (l⁻¹ : X)],
-    refine measurable_set_preimage _ hS,
-    exact measurable_const_smul _, },
+    rw h_smul_left.volume_smul,
+    exact (_root_.measurable_set_smul l hS).inter F.hF, },
 end
 
 end fundamental_domain
@@ -457,7 +459,7 @@ begin
     exact measurable_set_preimage
       ((measurable_const_smul (p⁻¹ : X)).comp measurable_subtype_coe) hS, },
   convert hlt,
-  have := F.volume_set_eq_tsum_volume_inter,
+  have := F.volume_set_eq_tsum_volume_inter hS h_smul_left,
   convert this,
   ext1 l,
   simp only [image_smul],
@@ -465,11 +467,7 @@ begin
   rw measure.comap_apply _ subtype.val_injective _ _ _,
   { congr,
     ext1 v,
-    simp only [set.mem_preimage, set.mem_image, set.mem_inter_eq, exists_and_distrib_right,
-      exists_eq_right, subtype.exists, subtype.coe_mk, subtype.val_eq_coe],
-    cases l, rcases hlt with ⟨⟨hlt_w_val, hlt_w_property⟩, hlt_h_w, hlt_h_h⟩,
-    simp only [set.image_mul_right, subgroup.coe_mk, option.mem_def,
-      ennreal.some_eq_coe, add_subgroup.coe_mk],
+    simp,
     split; { intros a, rcases a with ⟨a_left, a_right⟩, split; assumption, }, },
   { intros X hX,
     convert measurable_set.subtype_image F.hF hX, },
@@ -487,7 +485,7 @@ lemma exists_mul_inv_mem_lattice_of_volume_lt_volume' {X : Type*} [measure_space
   (h_mul_left : is_mul_left_invariant ⇑(volume : measure X)) :
   ∃ (x y : X) (hx : x ∈ S) (hy : y ∈ S) (hne : x ≠ y), y * x⁻¹ ∈ L :=
 begin
-  obtain ⟨x, y, hx, hy, hne, h⟩ := exists_mul_inv_mem_lattice_of_volume_lt_volume L hS F hlt
+  obtain ⟨x, y, hx, hy, hne, h⟩ := exists_mul_inv_mem_lattice_of_volume_lt_volume hS F hlt
     h_mul_left.to_is_smul_left_invariant _,
   { refine ⟨x, y, hx, hy, hne, _⟩,
     simpa only [smul_eq_mul, image_mul_right, mem_preimage, set_like.mem_coe] using h, },

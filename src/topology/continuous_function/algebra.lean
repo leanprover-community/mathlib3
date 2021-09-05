@@ -226,7 +226,7 @@ section subtype
 
 /-- The subsemiring of continuous maps `α → β`. -/
 def continuous_subsemiring (α : Type*) (R : Type*) [topological_space α] [topological_space R]
-  [semiring R] [topological_semiring R] : subsemiring (α → R) :=
+  [semiring R] [topological_ring R] : subsemiring (α → R) :=
 { ..continuous_add_submonoid α R,
   ..continuous_submonoid α R }.
 
@@ -241,7 +241,7 @@ end subtype
 namespace continuous_map
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
-  [semiring β] [topological_semiring β] : semiring C(α, β) :=
+  [semiring β] [topological_ring β] : semiring C(α, β) :=
 { left_distrib := λ a b c, by ext; exact left_distrib _ _ _,
   right_distrib := λ a b c, by ext; exact right_distrib _ _ _,
   zero_mul := λ a, by ext; exact zero_mul _,
@@ -263,8 +263,8 @@ instance {α : Type*} {β : Type*} [topological_space α]
 /-- Composition on the left by a (continuous) homomorphism of topological rings, as a `ring_hom`.
 Similar to `ring_hom.comp_left`. -/
 @[simps] protected def _root_.ring_hom.comp_left_continuous (α : Type*) {β : Type*} {γ : Type*}
-  [topological_space α] [topological_space β] [semiring β] [topological_semiring β]
-  [topological_space γ] [semiring γ] [topological_semiring γ] (g : β →+* γ) (hg : continuous g) :
+  [topological_space α] [topological_space β] [semiring β] [topological_ring β]
+  [topological_space γ] [semiring γ] [topological_ring γ] (g : β →+* γ) (hg : continuous g) :
   C(α, β) →+* C(α, γ) :=
 { .. g.to_monoid_hom.comp_left_continuous α hg,
   .. g.to_add_monoid_hom.comp_left_continuous α hg }
@@ -373,14 +373,14 @@ section algebra_structure
 
 In this section we show that continuous functions valued in a topological algebra `A` over a ring
 `R` inherit the structure of an algebra. Note that the hypothesis that `A` is a topological algebra
-is obtained by requiring that `A` be both a `has_continuous_smul` and a `topological_semiring`.-/
+is obtained by requiring that `A` be both a `has_continuous_smul` and a `topological_ring`.-/
 
 section subtype
 
 variables {α : Type*} [topological_space α]
 {R : Type*} [comm_semiring R]
 {A : Type*} [topological_space A] [semiring A]
-[algebra R A] [topological_semiring A]
+[algebra R A] [topological_ring A]
 
 /-- The `R`-subalgebra of continuous maps `α → A`. -/
 def continuous_subalgebra : subalgebra R (α → A) :=
@@ -395,9 +395,9 @@ section continuous_map
 variables {α : Type*} [topological_space α]
 {R : Type*} [comm_semiring R]
 {A : Type*} [topological_space A] [semiring A]
-[algebra R A] [topological_semiring A]
+[algebra R A] [topological_ring A]
 {A₂ : Type*} [topological_space A₂] [semiring A₂]
-[algebra R A₂] [topological_semiring A₂]
+[algebra R A₂] [topological_ring A₂]
 
 /-- Continuous constant functions as a `ring_hom`. -/
 def continuous_map.C : R →+* C(α, A) :=
@@ -521,7 +521,7 @@ end continuous_map
 
 -- TODO[gh-6025]: make this an instance once safe to do so
 lemma continuous_map.subsingleton_subalgebra (α : Type*) [topological_space α]
-  (R : Type*) [comm_semiring R] [topological_space R] [topological_semiring R]
+  (R : Type*) [comm_semiring R] [topological_space R] [topological_ring R]
   [subsingleton α] : subsingleton (subalgebra R C(α, R)) :=
 begin
   fsplit,

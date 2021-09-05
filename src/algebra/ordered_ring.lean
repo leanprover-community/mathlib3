@@ -414,7 +414,8 @@ such that multiplication with a positive number and addition are monotone.
 -- but be warned that the instances involving `domain` may cause
 -- typeclass search loops.
 @[protect_proj]
-class linear_ordered_semiring (α : Type u) extends ordered_semiring α, linear_order α, nontrivial α
+class linear_ordered_semiring (α : Type u)
+  extends ordered_semiring α, linear_ordered_add_comm_monoid α, nontrivial α
 
 section linear_ordered_semiring
 variables [linear_ordered_semiring α] {a b c d : α}

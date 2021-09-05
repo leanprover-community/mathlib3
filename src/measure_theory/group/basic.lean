@@ -360,6 +360,13 @@ lemma haar_preimage_mul [topological_group G] [borel_space G] (g : G) (A : set G
   μ ((λ h, g * h) ⁻¹' A) = μ A :=
 (is_mul_left_invariant_haar μ).measure_preimage_mul _ _
 
+@[simp, to_additive]
+lemma haar_preimage_mul_right {G : Type*}
+  [comm_group G] [measurable_space G] [topological_space G] (μ : measure G) [is_haar_measure μ]
+  [topological_group G] [borel_space G] (g : G) (A : set G) :
+  μ ((λ h, h * g) ⁻¹' A) = μ A :=
+by simp_rw [mul_comm, haar_preimage_mul μ g A]
+
 @[to_additive]
 lemma is_haar_measure.smul {c : ℝ≥0∞} (cpos : c ≠ 0) (ctop : c ≠ ∞) :
   is_haar_measure (c • μ) :=

@@ -221,6 +221,13 @@ linear_map.det.map_mul f g
 lemma det_id : (linear_map.id : M →ₗ[A] M).det = 1 :=
 linear_map.det.map_one
 
+/-- Multiplying a map by a scalar `c` multiplies its determinant by `c ^ dim M`. -/
+@[simp] lemma det_smul {𝕜 : Type*} [field 𝕜] {M : Type*} [add_comm_group M] [module 𝕜 M]
+  [finite_dimensional 𝕜 M] (c : 𝕜) (f : M →ₗ[𝕜] M) :
+  linear_map.det (c • f) = c ^ (finite_dimensional.finrank 𝕜 M) * linear_map.det f :=
+by simp only [← det_to_matrix (finite_dimensional.fin_basis 𝕜 M), linear_equiv.map_smul,
+              fintype.card_fin, det_smul]
+
 lemma det_zero {ι : Type*} [fintype ι] [nonempty ι] (b : basis ι A M) :
   linear_map.det (0 : M →ₗ[A] M) = 0 :=
 by { haveI := classical.dec_eq ι,

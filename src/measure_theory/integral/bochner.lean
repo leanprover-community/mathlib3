@@ -726,8 +726,7 @@ integral_sub hf hg
 
 lemma integral_smul [measurable_space 𝕜] [opens_measurable_space 𝕜] (c : 𝕜) (f : α → E) :
   ∫ a, c • (f a) ∂μ = c • ∫ a, f a ∂μ :=
-set_to_fun_smul (weighted_smul μ) weighted_smul_union
-  (λ c s x, by simp_rw [weighted_smul_apply, smul_comm]) norm_weighted_smul_le_one_mul c f
+set_to_fun_smul _ weighted_smul_union weighted_smul_smul norm_weighted_smul_le_one_mul c f
 
 lemma integral_mul_left (r : ℝ) (f : α → ℝ) : ∫ a, r * (f a) ∂μ = r * ∫ a, f a ∂μ :=
 integral_smul r f

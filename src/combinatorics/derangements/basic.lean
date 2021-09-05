@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Henry Swanson
 -/
 import data.equiv.basic
+import data.equiv.option
 import dynamics.fixed_points.basic
 import group_theory.perm.option
 
@@ -18,6 +19,9 @@ We also define some equivalences involving various subtypes of `perm α` and `de
 * `derangements_recursion_equiv`: An equivalence between `derangements (option α)` and the
   sigma-type `Σ a : α, (derangements (({a}ᶜ : set α) : Type _) ⊕ derangements α)` which is later
   used to inductively count the number of derangements.
+
+In order to prove the above, we also prove some results about the effect of `equiv.remove_none`
+on derangements: `remove_none.fiber_none` and `remove_none.fiber_some`.
 -/
 
 open equiv function
@@ -176,7 +180,7 @@ end
     "derangements on `α` ⊕ derangements on `{a}ᶜ`". -/
 def derangements_recursion_equiv :
   derangements (option α) ≃ Σ a : α, (derangements (({a}ᶜ : set α) : Type _) ⊕ derangements α) :=
-derangements_equiv_sigma_at_most_one_fixed_point.trans (sigma_congr_right
+derangements_option_equiv_sigma_at_most_one_fixed_point.trans (sigma_congr_right
   at_most_one_fixed_point_equiv_sum_derangements)
 
 end option

@@ -297,9 +297,10 @@ begin
       mul_one],
 end
 
-lemma has_strict_fderiv_at_exp_smul_const_of_mem_ball [char_zero 𝕂] {𝔸' : Type*} [normed_comm_ring 𝔸']
-  [normed_algebra 𝕂 𝔸'] [algebra 𝔸' 𝔸] [has_continuous_smul 𝔸' 𝔸] [is_scalar_tower 𝕂 𝔸' 𝔸]
-  (x : 𝔸) (t : 𝔸') (htx : t • x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
+lemma has_strict_fderiv_at_exp_smul_const_of_mem_ball [char_zero 𝕂] {𝔸' : Type*}
+  [normed_comm_ring 𝔸'] [normed_algebra 𝕂 𝔸'] [algebra 𝔸' 𝔸] [has_continuous_smul 𝔸' 𝔸]
+  [is_scalar_tower 𝕂 𝔸' 𝔸] (x : 𝔸) (t : 𝔸')
+  (htx : t • x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
   has_strict_fderiv_at (λ (u : 𝔸'), exp 𝕂 𝔸 (u • x))
     (exp 𝕂 𝔸 (t • x) • ((1 : 𝔸' →L[𝕂] 𝔸').smul_right x)) t :=
 let ⟨p, hp⟩ := analytic_at_exp_of_mem_ball (t • x) htx in

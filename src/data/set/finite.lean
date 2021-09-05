@@ -268,11 +268,11 @@ theorem finite.union {s t : set α} : finite s → finite t → finite (s ∪ t)
 
 lemma finite.sup {s t : set α} : finite s → finite t → finite (s ⊔ t) := finite.union
 
-lemma infinite_of_finite_compl {α : Type} [_root_.infinite α] {s : set α}
+lemma infinite_of_finite_compl [_root_.infinite α] {s : set α}
   (hs : sᶜ.finite) : s.infinite :=
 λ h, set.infinite_univ (by simpa using hs.union h)
 
-lemma finite.infinite_compl {α : Type} [_root_.infinite α] {s : set α}
+lemma finite.infinite_compl [_root_.infinite α] {s : set α}
   (hs : s.finite) : sᶜ.infinite :=
 λ h, set.infinite_univ (by simpa using hs.union h)
 

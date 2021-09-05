@@ -70,6 +70,9 @@ by simpa [sub_eq_add_neg, add_assoc] using abv.add_le (a - b) (b - c)
 protected lemma le_sub (a b : R) : abv a - abv b ≤ abv (a - b) :=
 sub_le_iff_le_add.2 $ by simpa using abv.add_le (a - b) b
 
+@[simp] lemma map_sub_eq_zero_iff (a b : R) : abv (a - b) = 0 ↔ a = b :=
+abv.eq_zero.trans sub_eq_zero
+
 end ordered_ring
 
 section linear_ordered_ring

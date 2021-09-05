@@ -319,7 +319,7 @@ set_to_simple_func_add _ weighted_smul_union hf hg
 lemma integral_neg {f : α →ₛ E} (hf : integrable f μ) : integral μ (-f) = - integral μ f :=
 set_to_simple_func_neg _ weighted_smul_union hf
 
-lemma integral_sub [borel_space E] {f g : α →ₛ E} (hf : integrable f μ) (hg : integrable g μ) :
+lemma integral_sub {f g : α →ₛ E} (hf : integrable f μ) (hg : integrable g μ) :
   integral μ (f - g) = integral μ f - integral μ g :=
 set_to_simple_func_sub _ weighted_smul_union hf hg
 
@@ -670,7 +670,7 @@ lemma integral_eq (f : α → E) (hf : integrable f μ) :
   ∫ a, f a ∂μ = L1.integral (hf.to_L1 f) :=
 dif_pos hf
 
-lemma integral_eq_set_to_fun (f : α → E) (hf : integrable f μ) :
+lemma integral_eq_set_to_fun (f : α → E) :
   ∫ a, f a ∂μ = set_to_fun (weighted_smul μ) weighted_smul_union
     (λ s, (norm_weighted_smul_le s).trans (one_mul _).symm.le) f :=
 rfl

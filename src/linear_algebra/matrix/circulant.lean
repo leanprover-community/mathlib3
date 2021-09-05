@@ -31,6 +31,8 @@ cir, matrix
 variables {α β I J R : Type*} {n : ℕ}
 
 namespace matrix
+
+open function
 open_locale matrix big_operators
 
 /-- Given the condition `[has_sub I]` and a vector `v : I → α`,
@@ -57,6 +59,12 @@ begin
   { tidy },
   exact cir_ext_iff
 end
+
+lemma cir_inj [add_group I] : injective (λ v : I → α, cir v) :=
+λ v w h, cir_ext_iff.1 h
+
+lemma fin.cir_inj : injective (λ v : fin n → α, cir v) :=
+λ v w h, fin.cir_ext_iff.1 h
 
 lemma transpose_cir [add_group I] (v : I → α) :
   (cir v)ᵀ =  cir (λ i, v (-i)) :=

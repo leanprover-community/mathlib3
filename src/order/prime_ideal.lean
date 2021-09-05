@@ -182,10 +182,10 @@ lemma is_prime_iff_mem_or_compl_mem [is_proper I] : is_prime I ↔ ∀ {x : P}, 
 ⟨λ h _, h.mem_or_compl_mem, is_prime_of_mem_or_compl_mem⟩
 
 @[priority 100]
-instance is_prime.is_maximal (hI : is_prime I) : is_maximal I :=
+instance is_prime.is_maximal [is_prime I] : is_maximal I :=
 begin
   rw is_maximal_iff,
-  use hI.to_is_proper,
+  use is_prime.to_is_proper,
   intros J hIJ,
   rw set.eq_univ_iff_forall,
   intro x,
@@ -194,7 +194,7 @@ begin
   rwa sup_inf_inf_compl at ass,
   apply sup_mem,
   exact mem_of_le J inf_le_right hyJ,
-  have hycI := hI.mem_compl_of_not_mem hyI,
+  have hycI := is_prime.mem_compl_of_not_mem ‹_› hyI,
   apply mem_of_mem_of_le _ (le_of_lt hIJ),
   exact mem_of_le I inf_le_right hycI,
 end

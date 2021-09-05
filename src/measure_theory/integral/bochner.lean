@@ -205,10 +205,9 @@ lemma norm_weighted_smul_le (s : set α) : ∥(weighted_smul μ s : F →L[ℝ] 
 (norm_lsmul_right_le F _).trans
   ((real.norm_eq_abs _).trans (abs_eq_self.mpr ennreal.to_real_nonneg)).le
 
-/-- Used as hypothesis for lemmas about `set_to_L1`. -/
-lemma norm_weighted_smul_le_one_mul (s : set α) :
-  ∥(weighted_smul μ s : F →L[ℝ] F)∥ ≤ 1 * (μ s).to_real :=
-(norm_weighted_smul_le s).trans (one_mul _).symm.le
+lemma dominated_fin_meas_additive_weighted_smul {m : measurable_space α} (μ : measure α) :
+  dominated_fin_meas_additive μ (weighted_smul μ : set α → F →L[ℝ] F) 1 :=
+⟨weighted_smul_union, λ s, (norm_weighted_smul_le s).trans (one_mul _).symm.le⟩
 
 end weighted_smul
 
@@ -351,7 +350,7 @@ lemma norm_integral_le_integral_norm (f : α →ₛ E) (hf : integrable f μ) :
   ∥f.integral μ∥ ≤ (f.map norm).integral μ :=
 begin
   refine (norm_set_to_simple_func_le_integral_norm _ (λ s, _) hf).trans (one_mul _).le,
-  exact norm_weighted_smul_le_one_mul s,
+  exact (norm_weighted_smul_le s).trans (one_mul _).symm.le,
 end
 
 lemma integral_add_measure {ν} (f : α →ₛ E) (hf : integrable f (μ + ν)) :
@@ -573,12 +572,12 @@ def integral (f : α →₁[μ] E) : E := integral_clm f
 lemma integral_eq (f : α →₁[μ] E) : integral f = integral_clm f := rfl
 
 lemma integral_eq_set_to_L1 (f : α →₁[μ] E) :
-  integral f = set_to_L1 (weighted_smul μ) weighted_smul_union norm_weighted_smul_le_one_mul f :=
+  integral f = set_to_L1 (dominated_fin_meas_additive_weighted_smul μ) f :=
 rfl
 
 @[norm_cast] lemma simple_func.integral_L1_eq_integral (f : α →₁ₛ[μ] E) :
   integral (f : α →₁[μ] E) = (simple_func.integral f) :=
-set_to_L1_eq_set_to_L1s_clm _ weighted_smul_union norm_weighted_smul_le_one_mul f
+set_to_L1_eq_set_to_L1s_clm (dominated_fin_meas_additive_weighted_smul μ) f
 
 variables (α E)
 @[simp] lemma integral_zero : integral (0 : α →₁[μ] E) = 0 :=
@@ -679,12 +678,11 @@ lemma integral_eq (f : α → E) (hf : integrable f μ) :
 dif_pos hf
 
 lemma integral_eq_set_to_fun (f : α → E) :
-  ∫ a, f a ∂μ = set_to_fun (weighted_smul μ) weighted_smul_union norm_weighted_smul_le_one_mul f :=
+  ∫ a, f a ∂μ = set_to_fun (dominated_fin_meas_additive_weighted_smul μ) f :=
 rfl
 
 lemma L1.integral_eq_integral (f : α →₁[μ] E) : L1.integral f = ∫ a, f a ∂μ :=
-(L1.set_to_fun_eq_set_to_L1 (weighted_smul μ) weighted_smul_union
-  norm_weighted_smul_le_one_mul f).symm
+(L1.set_to_fun_eq_set_to_L1 (dominated_fin_meas_additive_weighted_smul μ) f).symm
 
 lemma integral_undef (h : ¬ integrable f μ) : ∫ a, f a ∂μ = 0 :=
 dif_neg h
@@ -695,7 +693,7 @@ integral_undef $ not_and_of_not_left _ h
 variables (α E)
 
 lemma integral_zero : ∫ a : α, (0:E) ∂μ = 0 :=
-set_to_fun_zero (weighted_smul μ) weighted_smul_union norm_weighted_smul_le_one_mul
+set_to_fun_zero (dominated_fin_meas_additive_weighted_smul μ)
 
 @[simp] lemma integral_zero' : integral μ (0 : α → E) = 0 :=
 integral_zero α E
@@ -704,21 +702,21 @@ variables {α E}
 
 lemma integral_add (hf : integrable f μ) (hg : integrable g μ) :
   ∫ a, f a + g a ∂μ = ∫ a, f a ∂μ + ∫ a, g a ∂μ :=
-set_to_fun_add (weighted_smul μ) weighted_smul_union norm_weighted_smul_le_one_mul hf hg
+set_to_fun_add (dominated_fin_meas_additive_weighted_smul μ) hf hg
 
 lemma integral_add' (hf : integrable f μ) (hg : integrable g μ) :
   ∫ a, (f + g) a ∂μ = ∫ a, f a ∂μ + ∫ a, g a ∂μ :=
 integral_add hf hg
 
 lemma integral_neg (f : α → E) : ∫ a, -f a ∂μ = - ∫ a, f a ∂μ :=
-set_to_fun_neg (weighted_smul μ) weighted_smul_union norm_weighted_smul_le_one_mul f
+set_to_fun_neg (dominated_fin_meas_additive_weighted_smul μ) f
 
 lemma integral_neg' (f : α → E) : ∫ a, (-f) a ∂μ = - ∫ a, f a ∂μ :=
 integral_neg f
 
 lemma integral_sub (hf : integrable f μ) (hg : integrable g μ) :
   ∫ a, f a - g a ∂μ = ∫ a, f a ∂μ - ∫ a, g a ∂μ :=
-set_to_fun_sub (weighted_smul μ) weighted_smul_union norm_weighted_smul_le_one_mul hf hg
+set_to_fun_sub (dominated_fin_meas_additive_weighted_smul μ) hf hg
 
 lemma integral_sub' (hf : integrable f μ) (hg : integrable g μ) :
   ∫ a, (f - g) a ∂μ = ∫ a, f a ∂μ - ∫ a, g a ∂μ :=
@@ -726,7 +724,7 @@ integral_sub hf hg
 
 lemma integral_smul [measurable_space 𝕜] [opens_measurable_space 𝕜] (c : 𝕜) (f : α → E) :
   ∫ a, c • (f a) ∂μ = c • ∫ a, f a ∂μ :=
-set_to_fun_smul _ weighted_smul_union weighted_smul_smul norm_weighted_smul_le_one_mul c f
+set_to_fun_smul (dominated_fin_meas_additive_weighted_smul μ) weighted_smul_smul c f
 
 lemma integral_mul_left (r : ℝ) (f : α → ℝ) : ∫ a, r * (f a) ∂μ = r * ∫ a, f a ∂μ :=
 integral_smul r f
@@ -738,7 +736,7 @@ lemma integral_div (r : ℝ) (f : α → ℝ) : ∫ a, (f a) / r ∂μ = ∫ a, 
 integral_mul_right r⁻¹ f
 
 lemma integral_congr_ae (h : f =ᵐ[μ] g) : ∫ a, f a ∂μ = ∫ a, g a ∂μ :=
-set_to_fun_congr_ae (weighted_smul μ) weighted_smul_union norm_weighted_smul_le_one_mul h
+set_to_fun_congr_ae (dominated_fin_meas_additive_weighted_smul μ) h
 
 @[simp] lemma L1.integral_of_fun_eq_integral {f : α → E} (hf : integrable f μ) :
   ∫ a, (hf.to_L1 f) a ∂μ = ∫ a, f a ∂μ :=

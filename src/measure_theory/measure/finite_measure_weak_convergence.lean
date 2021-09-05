@@ -100,12 +100,9 @@ lemma to_fun_eq_to_measure_to_nnreal (ν : finite_measure α) :
 
 @[simp] lemma to_fun_coe_eq_to_measure (ν : finite_measure α) (s : set α) :
   (ν s : ℝ≥0∞) = (ν : measure α) s :=
-begin
-  apply ennreal.coe_to_nnreal,
-  exact (measure_lt_top ↑ν s).ne,
-end
+ennreal.coe_to_nnreal (measure_lt_top ↑ν s).ne
 
-lemma to_measure_eq_val (ν : finite_measure α) : (ν : measure α) = ν.val := rfl
+@[simp] lemma val_eq_to_measure (ν : finite_measure α) : ν.val = (ν : measure α) := rfl
 
 lemma coe_injective : function.injective (coe : finite_measure α → measure α) :=
 subtype.coe_injective
@@ -123,10 +120,10 @@ instance has_zero : has_zero (finite_measure α) :=
 instance : inhabited (finite_measure α) := ⟨0⟩
 
 instance : has_add (finite_measure α) :=
-{ add := (λ μ ν, ⟨μ + ν, measure_theory.is_finite_measure_add⟩) }
+{ add := λ μ ν, ⟨μ + ν, measure_theory.is_finite_measure_add⟩ }
 
 instance : has_scalar ℝ≥0 (finite_measure α) :=
-{ smul := (λ (c : ℝ≥0) μ, ⟨c • μ, measure_theory.is_finite_measure_smul_nnreal⟩), }
+{ smul := λ (c : ℝ≥0) μ, ⟨c • μ, measure_theory.is_finite_measure_smul_nnreal⟩, }
 
 @[simp] lemma coe_zero : (coe : finite_measure α → measure α) 0 = 0 := rfl
 
@@ -147,7 +144,7 @@ by { funext, simp [← ennreal.coe_eq_coe], }
 by { funext, simp [← ennreal.coe_eq_coe], refl, }
 
 instance : add_comm_monoid (finite_measure α) :=
-(finite_measure.coe_injective).add_comm_monoid
+finite_measure.coe_injective.add_comm_monoid
   (coe : finite_measure α → measure α) finite_measure.coe_zero finite_measure.coe_add
 
 /-- Coercion is an `add_monoid_hom`. -/
@@ -158,7 +155,7 @@ def coe_add_monoid_hom : finite_measure α →+ measure α :=
 instance {α : Type*} [measurable_space α] : module ℝ≥0 (finite_measure α) :=
 function.injective.module _ coe_add_monoid_hom finite_measure.coe_injective coe_smul
 
-end finite_measure -- end namespace
+end finite_measure
 
 /-- Probability measures are defined as the subtype of measures that have the property of being
 probability measures (i.e., their total mass is one). -/
@@ -190,7 +187,7 @@ subtype.coe_injective
 congr_arg ennreal.to_nnreal ν.prop.measure_univ
 
 /-- A probability measure can be interpreted as a finite measure. -/
-def to_finite_measure (μ : probability_measure α) : (finite_measure α) := ⟨μ, infer_instance⟩
+def to_finite_measure (μ : probability_measure α) : finite_measure α := ⟨μ, infer_instance⟩
 
 @[simp] lemma to_finite_measure_coe_eq_coe (ν : probability_measure α) :
   (ν.to_finite_measure : measure α) = (ν : measure α) := rfl
@@ -205,7 +202,7 @@ begin
   apply finite_measure.to_fun_coe_eq_to_measure,
 end
 
-@[simp] lemma to_finite_measure_mass (μ : probability_measure α) :
+@[simp] lemma mass_to_finite_measure (μ : probability_measure α) :
   μ.to_finite_measure.mass = 1 :=
 μ.to_fun_univ
 

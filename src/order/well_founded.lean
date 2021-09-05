@@ -113,3 +113,51 @@ begin
 end
 
 end well_founded
+
+namespace function
+
+variables {β : Type*} (f : α → β)
+
+section has_lt
+
+variables [has_lt β] (h : well_founded ((<) : β → β → Prop))
+
+/-- Given a function `f : α → β` where `β` carries a well-founded `<`, this is an element of `α`
+whose image under `f` is minimal in the sense of `function.not_lt_argmin`. -/
+noncomputable def argmin [nonempty α] : α :=
+well_founded.min (inv_image.wf f h) set.univ set.univ_nonempty
+
+lemma not_lt_argmin [nonempty α] (a : α) : ¬ f a < f (argmin f h) :=
+well_founded.not_lt_min (inv_image.wf f h) _ _ (set.mem_univ a)
+
+/-- Given a function `f : α → β` where `β` carries a well-founded `<`, and a non-empty subset `s`
+of `α`, this is an element of `s` whose image under `f` is minimal in the sense of
+`function.not_lt_argmin_on`. -/
+noncomputable def argmin_on (s : set α) (hs : s.nonempty) : α :=
+well_founded.min (inv_image.wf f h) s hs
+
+@[simp] lemma argmin_on_mem (s : set α) (hs : s.nonempty) :
+  argmin_on f h s hs ∈ s :=
+well_founded.min_mem _ _ _
+
+@[simp] lemma not_lt_argmin_on (s : set α) {a : α} (ha : a ∈ s)
+  (hs : s.nonempty := set.nonempty_of_mem ha) :
+  ¬ f a < f (argmin_on f h s hs) :=
+well_founded.not_lt_min (inv_image.wf f h) s hs ha
+
+end has_lt
+
+section linear_order
+
+variables [linear_order β] (h : well_founded ((<) : β → β → Prop))
+
+@[simp] lemma argmin_le (a : α) [nonempty α] : f (argmin f h) ≤ f a :=
+not_lt.mp $ not_lt_argmin f h a
+
+@[simp] lemma argmin_on_le (s : set α) {a : α} (ha : a ∈ s)
+  (hs : s.nonempty := set.nonempty_of_mem ha) : f (argmin_on f h s hs) ≤ f a :=
+not_lt.mp $ not_lt_argmin_on f h s ha hs
+
+end linear_order
+
+end function

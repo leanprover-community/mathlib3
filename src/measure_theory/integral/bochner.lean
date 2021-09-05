@@ -606,7 +606,7 @@ calc ∥integral f∥ = ∥Integral f∥ : rfl
 
 @[continuity]
 lemma continuous_integral : continuous (λ (f : α →₁[μ] E), integral f) :=
-by simp [L1.integral, L1.integral_clm.continuous]
+L1.integral_clm.continuous
 
 section pos_part
 
@@ -625,7 +625,6 @@ begin
   -- Show that the property holds for all simple functions in the `L¹` space.
   { assume s,
     norm_cast,
-    rw [← coe_norm_subgroup, ← coe_norm_subgroup],
     exact simple_func.integral_eq_norm_pos_part_sub _ }
 end
 

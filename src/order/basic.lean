@@ -245,11 +245,6 @@ H
 
 end dual
 
-theorem antimono_nat_of_succ_le {L : Type*} [preorder L] {f : ℕ → L}
-  (hf : ∀ n : ℕ, f (n + 1) ≤ f n) :
-  ∀ ⦃a b : ℕ⦄, a ≤ b → f b ≤ f a :=
-@monotone_nat_of_le_succ (order_dual L) _ f hf
-
 variables [linear_order α] [preorder β] {f : α → β} {s : set α} {x y : α}
 
 lemma le_iff_le (H : strict_mono_incr_on f s) (hx : x ∈ s) (hy : y ∈ s) :

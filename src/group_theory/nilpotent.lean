@@ -349,6 +349,20 @@ begin
     simpa using hd (mem_map_of_mem f (hx y)) }
 end
 
+lemma lower_central_series.map {H : Type*} [group H] (f : G →* H) (n : ℕ) :
+  subgroup.map f (lower_central_series G n) ≤ lower_central_series H n :=
+begin
+  induction n with d hd,
+  { simp [nat.nat_zero_eq_zero] },
+  { rintros a ⟨x, hx : x ∈ lower_central_series G d.succ, rfl⟩,
+    refine closure_induction hx _ (by simp [f.map_one, subgroup.one_mem _])
+      (λ y z hy hz, by simp [monoid_hom.map_mul, subgroup.mul_mem _ hy hz])
+      (λ y hy, by simp [f.map_inv, subgroup.inv_mem _ hy]),
+    rintros a ⟨y, hy, z, ⟨-, rfl⟩⟩,
+    apply mem_closure.mpr,
+    exact λ K hK, hK ⟨f y, hd (mem_map_of_mem f hy), by simp⟩ }
+end
+
 lemma lower_central_series_le_center_to_nilpotent (n : ℕ) (h : lower_central_series G n ≤ center G)
   : lower_central_series G (n + 1) = ⊥ :=
 begin
@@ -364,7 +378,7 @@ lemma ker_le_center_to_nilpotent (G H : Type*) [group G] [group H] (f : G →* H
 begin
   rw nilpotent_iff_lower_central_series at *,
   rcases hH with ⟨n, hn⟩,
-  use n + 1,
-  refine lower_central_series_le_center_to_nilpotent _ (le_trans ((map_eq_bot_iff _).mp _) hf1),
+  refine ⟨n + 1, lower_central_series_le_center_to_nilpotent _
+    (le_trans ((map_eq_bot_iff _).mp _) hf1)⟩,
   exact eq_bot_iff.mpr (hn ▸ (lower_central_series.map f n)),
 end

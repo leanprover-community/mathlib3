@@ -298,7 +298,8 @@ end
 
 --   sorry,
 --   -- intros x hx,
---   -- simp only [mem_lower_central_series_succ_iff, exists_prop, mem_top, exists_true_left, true_and]
+--   -- simp only [mem_lower_central_series_succ_iff, exists_prop, mem_top, exists_true_left,
+-- true_and]
 --   --   at hx,
 --   -- refine closure_induction hx _ (subgroup.one_mem _) (@subgroup.mul_mem _ _ _)
 --   --   (@subgroup.inv_mem _ _ _),

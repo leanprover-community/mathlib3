@@ -40,8 +40,8 @@ finishes the proof.
 
 open real
 
-lemma lower_bound (n l : ℕ) (hl : 2 + sqrt (4 + 2 * n) ≤ 2 * (l : ℝ)) :
-  (n : ℕ) + 4 * l ≤ 2 * l * l :=
+lemma lower_bound (n l : ℕ) (hl : 2 + sqrt (4 + 2 * n) ≤ 2 * l) :
+  n + 4 * l ≤ 2 * l * l :=
 begin
   have h₁ : sqrt (4 + 2 * n) ≤ 2 * l - 2 := le_sub_iff_add_le'.mpr hl,
   replace h₁ := (sqrt_le_iff.1 h₁).2,

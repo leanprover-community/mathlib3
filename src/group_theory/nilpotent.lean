@@ -278,15 +278,10 @@ begin
     exact general_commutator_normal (lower_central_series G d) ⊤ },
 end
 
-theorem antimono_nat_of_succ_le {L : Type*} [preorder L] {f : ℕ → L}
-  (hf : ∀ n : ℕ, f (n + 1) ≤ f n) :
-  ∀ ⦃a b : ℕ⦄, a ≤ b → f b ≤ f a :=
-@monotone_nat_of_le_succ (order_dual L) _ f hf
-
 lemma lower_central_series_antimono (m n : ℕ) (h : n ≤ m) :
   lower_central_series G m ≤ lower_central_series G n :=
 begin
-  apply antimono_nat_of_succ_le _ h,
+  refine @monotone_nat_of_le_succ (order_dual (subgroup G)) _ _ _ _ _ h,
   intros n x hx,
   simp only [mem_lower_central_series_succ_iff, exists_prop, mem_top, exists_true_left, true_and]
     at hx,

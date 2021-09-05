@@ -227,6 +227,26 @@ by { haveI := classical.dec_eq ι,
      rw [← det_to_matrix b, linear_equiv.map_zero, det_zero],
      assumption }
 
+/-- Conjugating a linear map by a linear equiv does not change its determinant. -/
+@[simp] lemma det_conj {N : Type*} [add_comm_group N] [module A N]
+  (f : M →ₗ[A] M) (e : M ≃ₗ[A] N) :
+  linear_map.det ((e : M →ₗ[A] N).comp (f.comp e.symm)) = linear_map.det f :=
+begin
+  classical,
+  by_cases H : ∃ (s : finset M), nonempty (basis s A M),
+  { rcases H with ⟨s, ⟨b⟩⟩,
+    rw [← det_to_matrix b f, ← det_to_matrix (b.map e), to_matrix_comp (b.map e) b (b.map e),
+        to_matrix_comp (b.map e) b b, det_mul, det_mul, mul_comm, mul_assoc, ← det_mul,
+        ← to_matrix_comp],
+    simp only [linear_equiv.refl_to_linear_map, linear_equiv.trans_symm, det_one, mul_one,
+      basis.to_matrix_self, to_matrix_id_eq_basis_to_matrix, linear_equiv.comp_coe] },
+  { have H' : ¬ (∃ (t : finset N), nonempty (basis t A N)),
+    { contrapose! H,
+      rcases H with ⟨s, ⟨b⟩⟩,
+      exact ⟨_, ⟨(b.map e.symm).reindex_finset_range⟩⟩ },
+    simp only [coe_det, H, H', pi.one_apply, dif_neg, not_false_iff] }
+end
+
 end linear_map
 
 -- Cannot be stated using `linear_map.det` because `f` is not an endomorphism.

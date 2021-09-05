@@ -246,6 +246,8 @@ instance has_colimits_Mon : has_colimits Mon :=
     { cocone := colimit_cocone F,
       is_colimit := colimit_is_colimit F } } }
 
+namespace filtered
+
 variables [is_filtered J]
 
 instance monoid_obj (F : J ⥤ Mon) (j) :
@@ -253,26 +255,102 @@ instance monoid_obj (F : J ⥤ Mon) (j) :
 by { change monoid (F.obj j), apply_instance }
 
 noncomputable
+def one_colimit_pre : Σ j, F.obj j :=
+let j : J := nonempty.some (is_filtered.nonempty) in ⟨j, 1⟩
+
+noncomputable
 def one_colimit : types.quot (F ⋙ forget Mon) :=
-let j : J := nonempty.some (is_filtered.nonempty) in quot.mk _ ⟨j, 1⟩
+quot.mk _ (one_colimit_pre F)
 
 noncomputable
 def mul_colimit_pre (x y : Σ j, F.obj j) : types.quot (F ⋙ forget Mon) :=
-begin
-  choose k f g h using is_filtered_or_empty.cocone_objs x.1 y.1,
-  exact quot.mk _ ⟨k, F.map f x.2 * F.map g y.2⟩,
-end
+quot.mk _ ⟨is_filtered.max x.1 y.1,
+  F.map (is_filtered.left_to_max x.1 y.1) x.2 * F.map (is_filtered.right_to_max x.1 y.1) y.2⟩
 
 noncomputable
 def mul_colimit (x y : types.quot (F ⋙ forget Mon)) : types.quot (F ⋙ forget Mon) :=
 quot.lift₂ (mul_colimit_pre F) sorry sorry x y
 
 noncomputable
-def colimit_monoid : monoid (types.colimit_cocone (F ⋙ forget Mon)).X :=
+instance colimit_monoid : monoid (types.quot (F ⋙ forget Mon)) :=
 { one := one_colimit F,
   mul := mul_colimit F,
-  one_mul := sorry,
-  mul_one := sorry,
-  mul_assoc := sorry }
+  one_mul := λ x, begin
+    induction x,
+    dsimp [mul_colimit, one_colimit],
+    rw @quot.lift₂_mk _ _ _ (types.quot.rel (F ⋙ forget Mon)) (types.quot.rel (F ⋙ forget Mon)),
+    apply quot.eqv_gen_sound,
+    apply types.filtered_colimit.eqv_gen_quot_rel_of_rel,
+    refine ⟨_, 𝟙 _, is_filtered.right_to_max _ _, _⟩,
+    dsimp [one_colimit_pre],
+    rw [monoid_hom.map_one, one_mul, category_theory.functor.map_id, id_apply],
+    refl,
+  end,
+  mul_one := λ x, begin
+    induction x,
+    dsimp [mul_colimit, one_colimit],
+    rw @quot.lift₂_mk _ _ _ (types.quot.rel (F ⋙ forget Mon)) (types.quot.rel (F ⋙ forget Mon)),
+    apply quot.eqv_gen_sound,
+    apply types.filtered_colimit.eqv_gen_quot_rel_of_rel,
+    refine ⟨_, 𝟙 _, is_filtered.left_to_max _ _, _⟩,
+    dsimp [one_colimit_pre],
+    rw [monoid_hom.map_one, mul_one, category_theory.functor.map_id, id_apply],
+    refl,
+  end,
+  mul_assoc := λ x y z, begin
+    induction x,
+    induction y,
+    induction z,
+    dsimp [mul_colimit],
+    rw @quot.lift₂_mk _ _ _ (types.quot.rel (F ⋙ forget Mon)) (types.quot.rel (F ⋙ forget Mon)),
+    rw @quot.lift₂_mk _ _ _ (types.quot.rel (F ⋙ forget Mon)) (types.quot.rel (F ⋙ forget Mon)),
+    dsimp [mul_colimit_pre],
+    rw @quot.lift₂_mk _ _ _ (types.quot.rel (F ⋙ forget Mon)) (types.quot.rel (F ⋙ forget Mon)),
+    rw @quot.lift₂_mk _ _ _ (types.quot.rel (F ⋙ forget Mon)) (types.quot.rel (F ⋙ forget Mon)),
+    dsimp [mul_colimit_pre],
+    apply quot.eqv_gen_sound,
+    apply types.filtered_colimit.eqv_gen_quot_rel_of_rel,
+    sorry,
+    refl,
+    refl,
+    refl,
+  end }
+
+/-- The bundled monoid giving the colimit of a diagram. -/
+noncomputable
+def colimit : Mon := ⟨types.quot (F ⋙ forget Mon), by apply_instance⟩
+
+/-- The monoid homomorphism from a given monoid in the diagram to the colimit monoid. -/
+noncomputable
+def cocone_morphism (j : J) : F.obj j ⟶ colimit F :=
+{ to_fun := (types.colimit_cocone (F ⋙ forget Mon)).ι.app j,
+  map_one' := begin
+    apply quot.eqv_gen_sound,
+    apply types.filtered_colimit.eqv_gen_quot_rel_of_rel,
+    dsimp [one_colimit_pre],
+    refine ⟨is_filtered.max _ _, is_filtered.left_to_max _ _, is_filtered.right_to_max _ _, _⟩,
+    simp,
+  end,
+  map_mul' := λ x y, begin
+    apply quot.eqv_gen_sound,
+    apply types.filtered_colimit.eqv_gen_quot_rel_of_rel,
+    sorry
+  end }
+
+@[simp] lemma cocone_naturality {j j' : J} (f : j ⟶ j') :
+  F.map f ≫ (cocone_morphism F j') = cocone_morphism F j :=
+begin
+  apply monoid_hom.coe_inj,
+  exact (types.colimit_cocone (F ⋙ forget Mon)).ι.naturality f,
+end
+
+/-- The cocone over the proposed colimit monoid. -/
+noncomputable
+def colimit_cocone : cocone F :=
+{ X := colimit F,
+  ι :=
+  { app := cocone_morphism F, } }.
+
+end filtered
 
 end Mon.colimits

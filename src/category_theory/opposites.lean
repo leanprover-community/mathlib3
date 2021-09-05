@@ -416,14 +416,6 @@ instance subsingleton_of_unop (A B : Cᵒᵖ) [subsingleton (unop B ⟶ unop A)]
 instance decidable_eq_of_unop (A B : Cᵒᵖ) [decidable_eq (unop B ⟶ unop A)] : decidable_eq (A ⟶ B) :=
 (op_equiv A B).decidable_eq
 
-universes v
-variables {α : Type v} [preorder α]
-
-/-- Construct a morphism in the opposite of a preorder category from an inequality. -/
-def op_hom_of_le {U V : αᵒᵖ} (h : unop V ≤ unop U) : U ⟶ V := h.hom.op
-
-lemma le_of_op_hom {U V : αᵒᵖ} (h : U ⟶ V) : unop V ≤ unop U := h.unop.le
-
 namespace functor
 
 variables (C)

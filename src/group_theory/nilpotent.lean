@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kevin Buzzard
+Authors: Kevin Buzzard, Ines Wright
 -/
 
 import group_theory.general_commutator
@@ -265,6 +265,11 @@ lemma mem_lower_central_series_succ_iff (n : ℕ) (q : G) :
   q ∈ closure {x | ∃ (p ∈ lower_central_series G n) (q ∈ (⊤ : subgroup G)), p * q * p⁻¹ * q⁻¹ = x}
 := iff.rfl
 
+lemma lower_central_series_succ (n : ℕ) :
+  lower_central_series G (n + 1) =
+  closure {x | ∃ (p ∈ lower_central_series G n) (q ∈ (⊤ : subgroup G)), p * q * p⁻¹ * q⁻¹ = x} :=
+rfl
+
 instance (n : ℕ) : normal (lower_central_series G n) :=
 begin
   induction n with d hd,
@@ -306,6 +311,28 @@ begin
     exact eq_bot_iff.mpr this },
   { intro h,
     use [lower_central_series G, lower_central_series_is_descending_central_series, h] },
+end
+
+lemma lower_central_series_map_subtype_le (H : subgroup G) (n : ℕ) :
+  (lower_central_series H n).map H.subtype ≤ lower_central_series G n :=
+begin
+  induction n with d hd,
+  { simp },
+  { rw [lower_central_series_succ, lower_central_series_succ, monoid_hom.map_closure],
+    apply subgroup.closure_mono,
+    rintros x1 ⟨x2, ⟨x3, hx3, x4, hx4, rfl⟩, rfl⟩,
+    exact ⟨x3, (hd (mem_map.mpr ⟨x3, hx3, rfl⟩)), x4, by simp⟩ }
+end
+
+instance subgroup.is_nilpotent (H : subgroup G) [hG : is_nilpotent G] :
+  is_nilpotent H :=
+begin
+  rw nilpotent_iff_lower_central_series at *,
+  rcases hG with ⟨n, hG⟩,
+  use n,
+  have := lower_central_series_map_subtype_le H n,
+  simp only [hG, set_like.le_def, mem_map, forall_apply_eq_imp_iff₂, exists_imp_distrib] at this,
+  exact eq_bot_iff.mpr (λ x hx, subtype.ext (this x hx)),
 end
 
 @[priority 100]

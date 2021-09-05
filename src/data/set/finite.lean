@@ -61,6 +61,10 @@ by rw [← finset.coe_inj, h.coe_to_finset, finset.coe_empty]
   hs.to_finset = ht.to_finset ↔ s = t :=
 by simp [←finset.coe_inj]
 
+lemma subset_to_finset_iff {s : finset α} {t : set α} (ht : finite t) :
+  s ⊆ ht.to_finset ↔ ↑s ⊆ t :=
+by rw [← finset.coe_subset, ht.coe_to_finset]
+
 @[simp] lemma finite_to_finset_eq_empty_iff {s : set α} {h : finite s} :
   h.to_finset = ∅ ↔ s = ∅ :=
 by simp [←finset.coe_inj]
@@ -264,11 +268,11 @@ theorem finite.union {s t : set α} : finite s → finite t → finite (s ∪ t)
 
 lemma finite.sup {s t : set α} : finite s → finite t → finite (s ⊔ t) := finite.union
 
-lemma infinite_of_finite_compl {α : Type} [_root_.infinite α] {s : set α}
+lemma infinite_of_finite_compl [_root_.infinite α] {s : set α}
   (hs : sᶜ.finite) : s.infinite :=
 λ h, set.infinite_univ (by simpa using hs.union h)
 
-lemma finite.infinite_compl {α : Type} [_root_.infinite α] {s : set α}
+lemma finite.infinite_compl [_root_.infinite α] {s : set α}
   (hs : s.finite) : sᶜ.infinite :=
 λ h, set.infinite_univ (by simpa using hs.union h)
 
@@ -315,11 +319,13 @@ mt (λ ht, ht.subset h)
 instance fintype_image [decidable_eq β] (s : set α) (f : α → β) [fintype s] : fintype (f '' s) :=
 fintype.of_finset (s.to_finset.image f) $ by simp
 
-instance fintype_range [decidable_eq β] (f : α → β) [fintype α] : fintype (range f) :=
-fintype.of_finset (finset.univ.image f) $ by simp [range]
+instance fintype_range [decidable_eq α] (f : ι → α) [fintype (plift ι)] :
+  fintype (range f) :=
+fintype.of_finset (finset.univ.image $ f ∘ plift.down) $
+  by simp [(@equiv.plift ι).exists_congr_left]
 
-theorem finite_range (f : α → β) [fintype α] : finite (range f) :=
-by haveI := classical.dec_eq β; exact ⟨by apply_instance⟩
+theorem finite_range (f : ι → α) [fintype (plift ι)] : finite (range f) :=
+by haveI := classical.dec_eq α; exact ⟨by apply_instance⟩
 
 theorem finite.image {s : set α} (f : α → β) : finite s → finite (f '' s)
 | ⟨h⟩ := ⟨@set.fintype_image _ _ (classical.dec_eq β) _ _ h⟩
@@ -411,13 +417,13 @@ lemma finite_option {s : set (option α)} : finite s ↔ finite {x : α | some x
   λ h, ((h.image some).insert none).subset $
     λ x, option.cases_on x (λ _, or.inl rfl) (λ x hx, or.inr $ mem_image_of_mem _ hx)⟩
 
-instance fintype_Union [decidable_eq α] {ι : Type*} [fintype ι]
+instance fintype_Union [decidable_eq α] [fintype (plift ι)]
   (f : ι → set α) [∀ i, fintype (f i)] : fintype (⋃ i, f i) :=
-fintype.of_finset (finset.univ.bUnion (λ i, (f i).to_finset)) $ by simp
+fintype.of_finset (finset.univ.bUnion (λ i : plift ι, (f i.down).to_finset)) $ by simp
 
-theorem finite_Union {ι : Type*} [fintype ι] {f : ι → set α} (H : ∀i, finite (f i)) :
+theorem finite_Union [fintype (plift ι)] {f : ι → set α} (H : ∀i, finite (f i)) :
   finite (⋃ i, f i) :=
-⟨@set.fintype_Union _ (classical.dec_eq α) _ _ _ (λ i, finite.fintype (H i))⟩
+⟨@set.fintype_Union _ _ (classical.dec_eq α) _ _ (λ i, finite.fintype (H i))⟩
 
 /-- A union of sets with `fintype` structure over a set with `fintype` structure has a `fintype`
 structure. -/
@@ -437,10 +443,6 @@ by rw sUnion_eq_Union; haveI := finite.fintype h;
 theorem finite.bUnion {α} {ι : Type*} {s : set ι} {f : Π i ∈ s, set α} :
   finite s → (∀ i ∈ s, finite (f i ‹_›)) → finite (⋃ i∈s, f i ‹_›)
 | ⟨hs⟩ h := by rw [bUnion_eq_Union]; exactI finite_Union (λ i, h _ _)
-
-theorem finite_Union_Prop {p : Prop} {f : p → set α} (hf : ∀ h, finite (f h)) :
-  finite (⋃ h : p, f h) :=
-by by_cases p; simp *
 
 instance fintype_lt_nat (n : ℕ) : fintype {i | i < n} :=
 fintype.of_finset (finset.range n) $ by simp
@@ -500,15 +502,9 @@ hf.seq hs
 
 /-- There are finitely many subsets of a given finite set -/
 lemma finite.finite_subsets {α : Type u} {a : set α} (h : finite a) : finite {b | b ⊆ a} :=
-begin
-  -- we just need to translate the result, already known for finsets,
-  -- to the language of finite sets
-  let s : set (set α) := coe '' (↑(finset.powerset (finite.to_finset h)) : set (finset α)),
-  have : finite s := (finite_mem_finset _).image _,
-  apply this.subset,
-  refine λ b hb, ⟨(h.subset hb).to_finset, _, finite.coe_to_finset _⟩,
-  simpa [finset.subset_iff]
-end
+⟨fintype.of_finset ((finset.powerset h.to_finset).map finset.coe_emb.1) $ λ s,
+  by simpa [← @exists_finite_iff_finset α (λ t, t ⊆ a ∧ t = s), subset_to_finset_iff,
+    ← and.assoc] using h.subset⟩
 
 lemma exists_min_image [linear_order β] (s : set α) (f : α → β) (h1 : finite s) :
   s.nonempty → ∃ a ∈ s, ∀ b ∈ s, f a ≤ f b
@@ -571,16 +567,8 @@ end
 lemma union_finset_finite_of_range_finite (f : α → finset β) (h : (range f).finite) :
   (⋃ a, (f a : set β)).finite :=
 begin
-  classical,
-  have w : (⋃ (a : α), ↑(f a)) = (h.to_finset.bUnion id : set β),
-  { ext x,
-    simp only [mem_Union, finset.mem_coe, finset.mem_bUnion, id.def],
-    use λ ⟨a, ha⟩, ⟨f a, h.mem_to_finset.2 (mem_range_self a), ha⟩,
-    rintro ⟨s, hs, hx⟩,
-    obtain ⟨a, rfl⟩ := h.mem_to_finset.1 hs,
-    exact ⟨a, hx⟩, },
-  rw w,
-  apply set.finite_mem_finset,
+  rw ← bUnion_range,
+  exact h.bUnion (λ y hy, y.finite_to_set)
 end
 
 lemma finite_subset_Union {s : set α} (hs : finite s)

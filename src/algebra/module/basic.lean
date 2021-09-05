@@ -114,7 +114,7 @@ variables (R) (M)
 
 /-- `(•)` as an `add_monoid_hom`. -/
 def smul_add_hom : R →+ M →+ M :=
-{ to_fun := const_smul_hom M,
+{ to_fun := distrib_mul_action.to_add_monoid_hom M,
   map_zero' := add_monoid_hom.ext $ λ r, by simp,
   map_add' := λ x y, add_monoid_hom.ext $ λ r, by simp [add_smul] }
 
@@ -125,7 +125,7 @@ variables {R M}
 
 @[simp] lemma smul_add_hom_one {R M : Type*} [semiring R] [add_comm_monoid M] [module R M] :
   smul_add_hom R M 1 = add_monoid_hom.id _ :=
-const_smul_hom_one
+(distrib_mul_action.to_add_monoid_End R M).map_one
 
 lemma module.eq_zero_of_zero_eq_one (zero_eq_one : (0 : R) = 1) : x = 0 :=
 by rw [←one_smul R x, ←zero_eq_one, zero_smul]

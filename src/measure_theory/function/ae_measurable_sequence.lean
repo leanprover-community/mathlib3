@@ -96,12 +96,8 @@ lemma ae_seq_set_measurable_set {hf : ∀ i, ae_measurable (f i) μ} :
 lemma measurable (hf : ∀ i, ae_measurable (f i) μ) (p : α → (ι → β) → Prop)
   (i : ι) :
   measurable (ae_seq hf p i) :=
-begin
-  refine measurable.ite ae_seq_set_measurable_set (hf i).measurable_mk _,
-  by_cases hα : nonempty α,
-  { exact @measurable_const _ _ _ _ (⟨f i hα.some⟩ : nonempty β).some },
-  { exact measurable_of_not_nonempty hα _ }
-end
+measurable.ite ae_seq_set_measurable_set (hf i).measurable_mk $ measurable_const' $
+  λ x y, rfl
 
 lemma measure_compl_ae_seq_set_eq_zero [encodable ι] (hf : ∀ i, ae_measurable (f i) μ)
   (hp : ∀ᵐ x ∂μ, p x (λ n, f n x)) :

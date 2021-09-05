@@ -509,6 +509,28 @@ lemma set_to_L1_eq_set_to_L1s_clm (T : set α → E →L[ℝ] F)
 uniformly_extend_of_ind simple_func.uniform_inducing (simple_func.dense_range one_ne_top)
   (set_to_L1s_clm α E μ T h_add hT_norm).uniform_continuous _
 
+lemma set_to_L1_eq_set_to_L1' (T : set α → E →L[ℝ] F)
+  (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
+    → T (s ∪ t) = T s + T t)
+  (h_smul : ∀ c : 𝕜, ∀ s x, T s (c • x) = c • T s x)
+  {C : ℝ} (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real)
+  (f : α →₁[μ] E) :
+  set_to_L1 T h_add hT_norm f = set_to_L1' 𝕜 T h_add h_smul hT_norm f :=
+rfl
+
+lemma set_to_L1_smul (T : set α → E →L[ℝ] F)
+  (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
+    → T (s ∪ t) = T s + T t)
+  (h_smul : ∀ c : 𝕜, ∀ s x, T s (c • x) = c • T s x)
+  {C : ℝ} (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real)
+  (c : 𝕜) (f : α →₁[μ] E) :
+  set_to_L1 T h_add hT_norm (c • f) = c • set_to_L1 T h_add hT_norm f :=
+begin
+  rw [set_to_L1_eq_set_to_L1' T h_add h_smul hT_norm,
+    set_to_L1_eq_set_to_L1' T h_add h_smul hT_norm],
+  exact continuous_linear_map.map_smul _ _ _,
+end
+
 end set_to_L1
 
 end L1
@@ -520,24 +542,118 @@ variables [second_countable_topology E] [borel_space E] [complete_space F]
 /-- Extedend `T : set α → E →L[ℝ] F` to `(α → E) → F` (for integrable functions `α → E`). -/
 def set_to_fun (T : set α → E →L[ℝ] F)
   (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
-    → T (s ∪ t) = T s + T t)
-  {C : ℝ} (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real) (f : α → E) :
+    → T (s ∪ t) = T s + T t) {C : ℝ} (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real) (f : α → E) :
   F :=
 if hf : integrable f μ then L1.set_to_L1 T h_add hT_norm (hf.to_L1 f) else 0
 
 lemma set_to_fun_eq (T : set α → E →L[ℝ] F)
   (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
-    → T (s ∪ t) = T s + T t)
-  {C : ℝ} (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real) {f : α → E} (hf : integrable f μ) :
+    → T (s ∪ t) = T s + T t) {C : ℝ} (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real)
+  {f : α → E} (hf : integrable f μ) :
   set_to_fun T h_add hT_norm f = L1.set_to_L1 T h_add hT_norm (hf.to_L1 f) :=
 dif_pos hf
 
+lemma L1.set_to_fun_eq_set_to_L1 (T : set α → E →L[ℝ] F)
+  (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
+    → T (s ∪ t) = T s + T t) {C : ℝ} (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real)
+  (f : α →₁[μ] E) :
+  set_to_fun T h_add hT_norm f = L1.set_to_L1 T h_add hT_norm f :=
+by rw [set_to_fun_eq T h_add hT_norm (L1.integrable_coe_fn f), integrable.to_L1_coe_fn]
+
 lemma set_to_fun_undef (T : set α → E →L[ℝ] F)
   (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
-    → T (s ∪ t) = T s + T t)
-  {C : ℝ} (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real) {f : α → E} (hf : ¬ integrable f μ) :
+    → T (s ∪ t) = T s + T t) {C : ℝ} (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real)
+  {f : α → E} (hf : ¬ integrable f μ) :
   set_to_fun T h_add hT_norm f = 0 :=
 dif_neg hf
+
+lemma set_to_fun_non_ae_measurable (T : set α → E →L[ℝ] F)
+  (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
+    → T (s ∪ t) = T s + T t) {C : ℝ} (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real)
+  {f : α → E} (hf : ¬ ae_measurable f μ) :
+  set_to_fun T h_add hT_norm f = 0 :=
+set_to_fun_undef T h_add hT_norm (not_and_of_not_left _ hf)
+
+@[simp] lemma set_to_fun_zero (T : set α → E →L[ℝ] F)
+  (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
+    → T (s ∪ t) = T s + T t) {C : ℝ} (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real) :
+  set_to_fun T h_add hT_norm (0 : α → E) = 0 :=
+begin
+  rw set_to_fun_eq T h_add hT_norm,
+  { simp only [integrable.to_L1_zero, continuous_linear_map.map_zero], },
+  { exact integrable_zero _ _ _, },
+end
+
+lemma set_to_fun_add (T : set α → E →L[ℝ] F)
+  (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
+    → T (s ∪ t) = T s + T t) {C : ℝ} (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real)
+  {f g : α → E} (hf : integrable f μ) (hg : integrable g μ) :
+  set_to_fun T h_add hT_norm (f + g)
+    = set_to_fun T h_add hT_norm f + set_to_fun T h_add hT_norm g :=
+by rw [set_to_fun_eq T h_add hT_norm (hf.add hg), set_to_fun_eq T h_add hT_norm hf,
+  set_to_fun_eq T h_add hT_norm hg, integrable.to_L1_add, (L1.set_to_L1 T h_add hT_norm).map_add]
+
+lemma set_to_fun_neg (T : set α → E →L[ℝ] F)
+  (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
+    → T (s ∪ t) = T s + T t) {C : ℝ} (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real)
+  (f : α → E) :
+  set_to_fun T h_add hT_norm (-f)
+    = - set_to_fun T h_add hT_norm f :=
+begin
+  by_cases hf : integrable f μ,
+  { rw [set_to_fun_eq T h_add hT_norm hf, set_to_fun_eq T h_add hT_norm hf.neg,
+      integrable.to_L1_neg, (L1.set_to_L1 T h_add hT_norm).map_neg], },
+  { rw [set_to_fun_undef T h_add hT_norm hf, set_to_fun_undef T h_add hT_norm, neg_zero],
+    rwa [← integrable_neg_iff] at hf, }
+end
+
+lemma set_to_fun_sub (T : set α → E →L[ℝ] F)
+  (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
+    → T (s ∪ t) = T s + T t) {C : ℝ} (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real)
+  {f g : α → E} (hf : integrable f μ) (hg : integrable g μ) :
+  set_to_fun T h_add hT_norm (f - g)
+    = set_to_fun T h_add hT_norm f - set_to_fun T h_add hT_norm g :=
+by rw [sub_eq_add_neg, sub_eq_add_neg, set_to_fun_add T h_add hT_norm hf hg.neg,
+  set_to_fun_neg T h_add hT_norm g]
+
+/-- TODO: move this. -/
+lemma integrable.to_L1_smul' [normed_field 𝕜] [measurable_space 𝕜] [opens_measurable_space 𝕜]
+  [normed_space 𝕜 G] [second_countable_topology G] [borel_space G]
+  (f : α → G) (hf : integrable f μ) (k : 𝕜) :
+  integrable.to_L1 (k • f) (hf.smul k) = k • integrable.to_L1 f hf := rfl
+
+lemma set_to_fun_smul [nondiscrete_normed_field 𝕜] [measurable_space 𝕜] [opens_measurable_space 𝕜]
+  [normed_space 𝕜 E] [normed_space 𝕜 F] (T : set α → E →L[ℝ] F)
+  (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
+    → T (s ∪ t) = T s + T t)
+  (h_smul : ∀ c : 𝕜, ∀ s x, T s (c • x) = c • T s x)
+  {C : ℝ} (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real)
+  (c : 𝕜) (f : α → E) :
+  set_to_fun T h_add hT_norm (c • f) = c • set_to_fun T h_add hT_norm f :=
+begin
+  by_cases hf : integrable f μ,
+  { rw [set_to_fun_eq T h_add hT_norm hf, set_to_fun_eq T h_add hT_norm, integrable.to_L1_smul',
+      L1.set_to_L1_smul T h_add h_smul hT_norm c _], },
+  { by_cases hr : c = 0,
+    { rw hr, simp, },
+    { have hf' : ¬ integrable (c • f) μ, by rwa [integrable_smul_iff hr f],
+      rw [set_to_fun_undef T h_add hT_norm hf, set_to_fun_undef T h_add hT_norm hf',
+        smul_zero], }, },
+end
+
+lemma set_to_fun_congr_ae (T : set α → E →L[ℝ] F)
+  (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
+    → T (s ∪ t) = T s + T t) {C : ℝ} (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real)
+  {f g : α → E} (h : f =ᵐ[μ] g) :
+  set_to_fun T h_add hT_norm f = set_to_fun T h_add hT_norm g :=
+begin
+  by_cases hfi : integrable f μ,
+  { have hgi : integrable g μ := hfi.congr h,
+    rw [set_to_fun_eq T h_add hT_norm hfi, set_to_fun_eq T h_add hT_norm hgi,
+      (integrable.to_L1_eq_to_L1_iff f g hfi hgi).2 h] },
+  { have hgi : ¬ integrable g μ, { rw integrable_congr h at hfi, exact hfi },
+    rw [set_to_fun_undef T h_add hT_norm hfi, set_to_fun_undef T h_add hT_norm hgi] },
+end
 
 end function
 

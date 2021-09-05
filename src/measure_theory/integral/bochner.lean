@@ -670,8 +670,14 @@ lemma integral_eq (f : α → E) (hf : integrable f μ) :
   ∫ a, f a ∂μ = L1.integral (hf.to_L1 f) :=
 dif_pos hf
 
+lemma integral_eq_set_to_fun (f : α → E) (hf : integrable f μ) :
+  ∫ a, f a ∂μ = set_to_fun (weighted_smul μ) weighted_smul_union
+    (λ s, (norm_weighted_smul_le s).trans (one_mul _).symm.le) f :=
+rfl
+
 lemma L1.integral_eq_integral (f : α →₁[μ] E) : L1.integral f = ∫ a, f a ∂μ :=
-by rw [integral_eq _ (L1.integrable_coe_fn f), integrable.to_L1_coe_fn]
+(L1.set_to_fun_eq_set_to_L1 (weighted_smul μ) weighted_smul_union
+  (λ s, (norm_weighted_smul_le s).trans (one_mul _).symm.le) f).symm
 
 lemma integral_undef (h : ¬ integrable f μ) : ∫ a, f a ∂μ = 0 :=
 dif_neg h
@@ -682,7 +688,8 @@ integral_undef $ not_and_of_not_left _ h
 variables (α E)
 
 lemma integral_zero : ∫ a : α, (0:E) ∂μ = 0 :=
-by { rw [integral_eq _ (integrable_zero α E μ)], exact L1.integral_zero _ _ }
+set_to_fun_zero (weighted_smul μ) weighted_smul_union
+  (λ s, (norm_weighted_smul_le s).trans (one_mul _).symm.le)
 
 @[simp] lemma integral_zero' : integral μ (0 : α → E) = 0 :=
 integral_zero α E
@@ -691,30 +698,24 @@ variables {α E}
 
 lemma integral_add (hf : integrable f μ) (hg : integrable g μ) :
   ∫ a, f a + g a ∂μ = ∫ a, f a ∂μ + ∫ a, g a ∂μ :=
-begin
-  rw [integral_eq, integral_eq f hf, integral_eq g hg, ← L1.integral_add],
-  { refl },
-  { exact hf.add hg }
-end
+set_to_fun_add (weighted_smul μ) weighted_smul_union
+  (λ s, (norm_weighted_smul_le s).trans (one_mul _).symm.le) hf hg
 
 lemma integral_add' (hf : integrable f μ) (hg : integrable g μ) :
   ∫ a, (f + g) a ∂μ = ∫ a, f a ∂μ + ∫ a, g a ∂μ :=
 integral_add hf hg
 
 lemma integral_neg (f : α → E) : ∫ a, -f a ∂μ = - ∫ a, f a ∂μ :=
-begin
-  by_cases hf : integrable f μ,
-  { rw [integral_eq f hf, integral_eq (λa, - f a) hf.neg, ← L1.integral_neg],
-    refl },
-  { rw [integral_undef hf, integral_undef, neg_zero], rwa [← integrable_neg_iff] at hf }
-end
+set_to_fun_neg (weighted_smul μ) weighted_smul_union
+  (λ s, (norm_weighted_smul_le s).trans (one_mul _).symm.le) f
 
 lemma integral_neg' (f : α → E) : ∫ a, (-f) a ∂μ = - ∫ a, f a ∂μ :=
 integral_neg f
 
 lemma integral_sub (hf : integrable f μ) (hg : integrable g μ) :
   ∫ a, f a - g a ∂μ = ∫ a, f a ∂μ - ∫ a, g a ∂μ :=
-by { simp only [sub_eq_add_neg, ← integral_neg], exact integral_add hf hg.neg }
+set_to_fun_sub (weighted_smul μ) weighted_smul_union
+  (λ s, (norm_weighted_smul_le s).trans (one_mul _).symm.le) hf hg
 
 lemma integral_sub' (hf : integrable f μ) (hg : integrable g μ) :
   ∫ a, (f - g) a ∂μ = ∫ a, f a ∂μ - ∫ a, g a ∂μ :=
@@ -722,15 +723,9 @@ integral_sub hf hg
 
 lemma integral_smul [measurable_space 𝕜] [opens_measurable_space 𝕜] (c : 𝕜) (f : α → E) :
   ∫ a, c • (f a) ∂μ = c • ∫ a, f a ∂μ :=
-begin
-  by_cases hf : integrable f μ,
-  { rw [integral_eq f hf, integral_eq (λa, c • (f a)), integrable.to_L1_smul, L1.integral_smul], },
-  { by_cases hr : c = 0,
-    { simp only [hr, measure_theory.integral_zero, zero_smul] },
-    have hf' : ¬ integrable (λ x, c • f x) μ,
-    { change ¬ integrable (c • f) μ, rwa [integrable_smul_iff hr f] },
-    rw [integral_undef hf, integral_undef hf', smul_zero] }
-end
+set_to_fun_smul (weighted_smul μ) weighted_smul_union
+  (λ c s x, by simp_rw [weighted_smul_apply, smul_comm])
+  (λ s, (norm_weighted_smul_le s).trans (one_mul _).symm.le) c f
 
 lemma integral_mul_left (r : ℝ) (f : α → ℝ) : ∫ a, r * (f a) ∂μ = r * ∫ a, f a ∂μ :=
 integral_smul r f
@@ -742,13 +737,8 @@ lemma integral_div (r : ℝ) (f : α → ℝ) : ∫ a, (f a) / r ∂μ = ∫ a, 
 integral_mul_right r⁻¹ f
 
 lemma integral_congr_ae (h : f =ᵐ[μ] g) : ∫ a, f a ∂μ = ∫ a, g a ∂μ :=
-begin
-  by_cases hfi : integrable f μ,
-  { have hgi : integrable g μ := hfi.congr h,
-    rw [integral_eq f hfi, integral_eq g hgi, (integrable.to_L1_eq_to_L1_iff f g hfi hgi).2 h] },
-  { have hgi : ¬ integrable g μ, { rw integrable_congr h at hfi, exact hfi },
-    rw [integral_undef hfi, integral_undef hgi] },
-end
+set_to_fun_congr_ae (weighted_smul μ) weighted_smul_union
+  (λ s, (norm_weighted_smul_le s).trans (one_mul _).symm.le) h
 
 @[simp] lemma L1.integral_of_fun_eq_integral {f : α → E} (hf : integrable f μ) :
   ∫ a, (hf.to_L1 f) a ∂μ = ∫ a, f a ∂μ :=

@@ -216,7 +216,7 @@ end
 @[to_additive]
 lemma measurable_set_interior [encodable X] : measurable_set F.interior :=
 begin
-  rw interior,
+  rw fundamental_domain.interior,
   exact measurable_set.diff F.hF F.measurable_set_nontrivial_translates,
 end
 
@@ -225,12 +225,12 @@ protected def boundary : set Y := F.F ∩ ⋃ (l : X) (h : l ≠ 1), l • F.F
 
 @[to_additive]
 lemma eq_interior_union_boundary : F.F = F.interior ∪ F.boundary :=
-by rw [interior, boundary, diff_union_inter]
+by rw [fundamental_domain.interior, fundamental_domain.boundary, diff_union_inter]
 
 @[to_additive]
 lemma measurable_set_boundary [encodable X] : measurable_set F.boundary :=
 begin
-  rw boundary,
+  rw fundamental_domain.boundary,
   apply measurable_set.inter F.hF,
   exact F.measurable_set_nontrivial_translates,
 end
@@ -243,7 +243,7 @@ lemma volume_boundary : volume F.boundary = 0 := F.almost_disjoint
 @[to_additive]
 lemma disjoint_interior_boundary : disjoint F.interior F.boundary :=
 begin
-  rw [interior, boundary],
+  rw [fundamental_domain.interior, fundamental_domain.boundary],
   -- TODO from here is general lemma
   apply' disjoint.symm,
   apply disjoint_of_subset_left (inter_subset_right _ _),
@@ -252,7 +252,7 @@ end
 
 @[to_additive]
 lemma volume_interior [encodable X] : volume F.interior = volume F.F :=
-by { rw [interior], exact measure_diff_null' (volume_boundary _), }
+by { rw [fundamental_domain.interior], exact measure_diff_null' (volume_boundary _), }
 
 
 --TODO move
@@ -261,6 +261,41 @@ lemma smul_set_inter {α β : Type*} [group α] (a : α) [mul_action α β] {s t
 begin
   erw [← image_smul, image_inter],
   exact mul_action.injective a,
+end
+
+lemma measure_Union_of_null_inter {α β : Type*} [measurable_space α] {μ : measure α} [encodable β] {f : β → set α}
+  (hn : pairwise ((λ S T, μ (S ∩ T) = 0) on f)) (h : ∀ i, measurable_set (f i)) :
+  μ (⋃ i, f i) = ∑' i, μ (f i) :=
+begin
+  have h_null : μ (⋃ (ij : β × β) (hij : ij.fst ≠ ij.snd), f ij.fst ∩ f ij.snd) = 0,
+  { rw measure_Union_null_iff,
+    rintro ⟨i, j⟩,
+    by_cases hij : i = j,
+    { simp [hij], },
+    { simp [hij], -- TODO squeeze_simp doesn't work
+      apply hn i j hij, }, },
+  have h_pair : pairwise (disjoint on
+    (λ i, f i \ (⋃ (ij : β × β) (hij : ij.fst ≠ ij.snd), f ij.fst ∩ f ij.snd))),
+  { intros i j hij x hx,
+    simp only [not_exists, exists_prop, mem_Union, mem_inter_eq, not_and,
+      inf_eq_inter, ne.def, mem_diff, prod.exists] at hx,
+    simp only [mem_empty_eq, bot_eq_empty],
+    rcases hx with ⟨⟨hx_left_left, hx_left_right⟩, hx_right_left, hx_right_right⟩,
+    exact hx_left_right _ _ hij hx_left_left hx_right_left, },
+  have h_meas :
+    ∀ i, measurable_set (f i \ (⋃ (ij : β × β) (hij : ij.fst ≠ ij.snd), f ij.fst ∩ f ij.snd)),
+  { intro w,
+    apply (h w).diff,
+    apply measurable_set.Union,
+    rintro ⟨i, j⟩,
+    by_cases hij : i = j,
+    { simp [hij], },
+    { simp [hij],
+      exact measurable_set.inter (h i) (h j), }, },
+  have : μ _ = _ := measure_Union h_pair h_meas,
+  rw ← Union_diff at this,
+  simp_rw measure_diff_null h_null at this,
+  exact this,
 end
 
 lemma volume_set_eq_tsum_volume_inter [encodable X] (S : set Y) :

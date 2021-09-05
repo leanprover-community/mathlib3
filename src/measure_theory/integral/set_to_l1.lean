@@ -616,12 +616,6 @@ lemma set_to_fun_sub (T : set α → E →L[ℝ] F)
 by rw [sub_eq_add_neg, sub_eq_add_neg, set_to_fun_add T h_add hT_norm hf hg.neg,
   set_to_fun_neg T h_add hT_norm g]
 
-/-- TODO: move this. -/
-lemma integrable.to_L1_smul' [normed_field 𝕜] [measurable_space 𝕜] [opens_measurable_space 𝕜]
-  [normed_space 𝕜 G] [second_countable_topology G] [borel_space G]
-  (f : α → G) (hf : integrable f μ) (k : 𝕜) :
-  integrable.to_L1 (k • f) (hf.smul k) = k • integrable.to_L1 f hf := rfl
-
 lemma set_to_fun_smul [nondiscrete_normed_field 𝕜] [measurable_space 𝕜] [opens_measurable_space 𝕜]
   [normed_space 𝕜 E] [normed_space 𝕜 F] (T : set α → E →L[ℝ] F)
   (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅

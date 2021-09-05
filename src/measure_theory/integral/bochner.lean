@@ -552,9 +552,6 @@ local attribute [instance] simple_func.normed_space
 open continuous_linear_map
 
 variables (𝕜) [measurable_space 𝕜] [opens_measurable_space 𝕜]
-  {E' F' : Type*} [measurable_space E'] [normed_group E'] [normed_space ℝ E'] [normed_space 𝕜 E']
-  [second_countable_topology E'] [borel_space E']
-  [normed_group F'] [normed_space ℝ F'] [normed_space 𝕜 F'] [complete_space F']
 
 /-- The Bochner integral in L1 space as a continuous linear map. -/
 def integral_clm' : (α →₁[μ] E) →L[𝕜] E :=

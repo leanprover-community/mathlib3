@@ -648,7 +648,9 @@ instance : unique (subalgebra R R) :=
   end
   .. algebra.subalgebra.inhabited }
 
-/-- The map `S → T` when `S` is a subalgebra contained in the subalgebra `T`.  -/
+/-- The map `S → T` when `S` is a subalgebra contained in the subalgebra `T`.
+
+This is the subalgebra version of `submodule.of_le`, or `subring.inclusion`  -/
 def inclusion {S T : subalgebra R A} (h : S ≤ T) : S →ₐ[R] T :=
 { to_fun := set.inclusion h,
   map_one' := rfl,
@@ -660,6 +662,16 @@ def inclusion {S T : subalgebra R A} (h : S ≤ T) : S →ₐ[R] T :=
 lemma inclusion_injective {S T : subalgebra R A} (h : S ≤ T) :
   function.injective (inclusion h) :=
 λ _ _, subtype.ext ∘ subtype.mk.inj
+
+@[simp] lemma inclusion_self {S : subalgebra R A} (x : S) :
+  inclusion (le_refl S) x = x := subtype.ext rfl
+
+@[simp] lemma inclusion_right {S T : subalgebra R A} (h : S ≤ T) (x : T)
+  (m : (x : A) ∈ S) : inclusion h ⟨x, m⟩ = x := subtype.ext rfl
+
+@[simp] lemma inclusion_inclusion {S T U : subalgebra R A} (hst : S ≤ T) (htu : T ≤ U)
+  (x : S) : inclusion htu (inclusion hst x) = inclusion (set.subset.trans hst htu) x :=
+subtype.ext rfl
 
 @[simp] lemma coe_inclusion {S T : subalgebra R A} (h : S ≤ T) (s : S) :
   (inclusion h s : A) = s := rfl

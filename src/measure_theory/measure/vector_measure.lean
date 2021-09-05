@@ -942,9 +942,6 @@ namespace absolutely_continuous
 
 variables {v : vector_measure α M} {w : vector_measure α N}
 
-lemma zero (v : vector_measure α N) : (0 : vector_measure α M) ≪ v :=
-λ s _, vector_measure.zero_apply s
-
 lemma mk (h : ∀ ⦃s : set α⦄, measurable_set s → w s = 0 → v s = 0) : v ≪ w :=
 begin
   intros s hs,
@@ -961,6 +958,9 @@ eq rfl
 
 @[trans] lemma trans {u : vector_measure α L} (huv : u ≪ v) (hvw : v ≪ w) : u ≪ w :=
 λ _ hs, huv $ hvw hs
+
+lemma zero (v : vector_measure α N) : (0 : vector_measure α M) ≪ v :=
+λ s _, vector_measure.zero_apply s
 
 lemma map [measure_space β] (h : v ≪ w) (f : α → β) :
   v.map f ≪ w.map f :=

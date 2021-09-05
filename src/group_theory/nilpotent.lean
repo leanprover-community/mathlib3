@@ -295,7 +295,7 @@ end
 lemma lower_central_series_antimono' (m n : ℕ) (h : n ≤ m) :
   lower_central_series G m ≤ lower_central_series G n :=
 begin
-  have := @lower_central_series_antimono G _ n,
+  have := @lower_central_series_antimono G _,
   sorry,
 end
 

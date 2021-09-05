@@ -268,8 +268,7 @@ instance [has_le β] : has_le (α →ₛ β) := ⟨λf g, ∀a, f a ≤ g a⟩
 @[simp] lemma range_zero [nonempty α] [has_zero β] : (0 : α →ₛ β).range = {0} :=
 finset.ext $ λ x, by simp [eq_comm]
 
-@[simp] lemma range_eq_empty_of_is_empty {β} [hα : is_empty α] {m : measurable_space α}
-  (f : α →ₛ β) :
+@[simp] lemma range_eq_empty_of_is_empty {β} [hα : is_empty α] (f : α →ₛ β) :
   f.range = ∅ :=
 begin
   rw ← finset.not_nonempty_iff_eq_empty,

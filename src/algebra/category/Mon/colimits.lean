@@ -246,4 +246,33 @@ instance has_colimits_Mon : has_colimits Mon :=
     { cocone := colimit_cocone F,
       is_colimit := colimit_is_colimit F } } }
 
+variables [is_filtered J]
+
+instance monoid_obj (F : J ⥤ Mon) (j) :
+  monoid ((F ⋙ forget Mon).obj j) :=
+by { change monoid (F.obj j), apply_instance }
+
+noncomputable
+def one_colimit : types.quot (F ⋙ forget Mon) :=
+let j : J := nonempty.some (is_filtered.nonempty) in quot.mk _ ⟨j, 1⟩
+
+noncomputable
+def mul_colimit_pre (x y : Σ j, F.obj j) : types.quot (F ⋙ forget Mon) :=
+begin
+  choose k f g h using is_filtered_or_empty.cocone_objs x.1 y.1,
+  exact quot.mk _ ⟨k, F.map f x.2 * F.map g y.2⟩,
+end
+
+noncomputable
+def mul_colimit (x y : types.quot (F ⋙ forget Mon)) : types.quot (F ⋙ forget Mon) :=
+quot.lift₂ (mul_colimit_pre F) sorry sorry x y
+
+noncomputable
+def colimit_monoid : monoid (types.colimit_cocone (F ⋙ forget Mon)).X :=
+{ one := one_colimit F,
+  mul := mul_colimit F,
+  one_mul := sorry,
+  mul_one := sorry,
+  mul_assoc := sorry }
+
 end Mon.colimits

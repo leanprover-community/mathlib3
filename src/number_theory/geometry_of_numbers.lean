@@ -198,7 +198,7 @@ end
 lemma measurable_set_smul (x : X) : measurable_set (x • F.F) := measurable_set_smul' x F.hF
 
 @[to_additive]
-def interior : set Y := F.F \ ⋃ (l : X) (h : l ≠ 1), (l • F.F)
+protected def interior : set Y := F.F \ ⋃ (l : X) (h : l ≠ 1), (l • F.F)
 
 @[to_additive]
 lemma measurable_set_nontrivial_translates [encodable X] :
@@ -220,9 +220,8 @@ begin
   exact measurable_set.diff F.hF F.measurable_set_nontrivial_translates,
 end
 
--- TODO this should be private but then to_additive fails
 @[to_additive]
-def boundary : set Y := F.F ∩ ⋃ (l : X) (h : l ≠ 1), l • F.F
+protected def boundary : set Y := F.F ∩ ⋃ (l : X) (h : l ≠ 1), l • F.F
 
 @[to_additive]
 lemma eq_interior_union_boundary : F.F = F.interior ∪ F.boundary :=

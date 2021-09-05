@@ -269,18 +269,72 @@ but that is more convenient when working with filtered colimits.
 Elements in `F.obj j` and `F.obj j'` are equivalent if there is some `k : J` to the right
 where their images are equal.
 -/
-protected def r (x y : Σ j, F.obj j) : Prop :=
+protected def rel (x y : Σ j, F.obj j) : Prop :=
 ∃ k (f : x.1 ⟶ k) (g : y.1 ⟶ k), F.map f x.2 = F.map g y.2
 
-protected lemma r_ge (x y : Σ j, F.obj j) :
-  (∃ f : x.1 ⟶ y.1, y.2 = F.map f x.2) → filtered_colimit.r F x y :=
-λ ⟨f, hf⟩, ⟨y.1, f, 𝟙 y.1, by simp [hf]⟩
+lemma rel_of_quot_rel (x y : Σ j, F.obj j) : quot.rel F x y → filtered_colimit.rel F x y :=
+λ ⟨f, h⟩, ⟨y.1, f, 𝟙 y.1, by rw [← h, functor_to_types.map_id_apply]⟩
 
-variables (t : cocone F)
+lemma eqv_gen_quot_rel_of_rel (x y : Σ j, F.obj j) :
+  filtered_colimit.rel F x y → eqv_gen (quot.rel F) x y :=
+λ ⟨k, f, g, h⟩, eqv_gen.trans _ ⟨k, F.map f x.2⟩ _ (eqv_gen.rel _ _ ⟨f, rfl⟩)
+  (eqv_gen.symm _ _ (eqv_gen.rel _ _ ⟨g, h⟩))
+
+variables [is_filtered_or_empty J]
+
+protected lemma rel_equiv : equivalence (filtered_colimit.rel F) :=
+⟨λ x, ⟨x.1, 𝟙 x.1, 𝟙 x.1, rfl⟩,
+ λ x y ⟨k, f, g, h⟩, ⟨k, g, f, h.symm⟩,
+ λ x y z ⟨k, f, g, h⟩ ⟨k', f', g', h'⟩,
+   let ⟨l, fl, gl, _⟩ := is_filtered_or_empty.cocone_objs k k',
+       ⟨m, n, hn⟩ := is_filtered_or_empty.cocone_maps (g ≫ fl) (f' ≫ gl) in
+   ⟨m, f ≫ fl ≫ n, g' ≫ gl ≫ n, calc
+      F.map (f ≫ fl ≫ n) x.2
+          = F.map (fl ≫ n) (F.map f x.2)  : by simp
+      ... = F.map (fl ≫ n) (F.map g y.2)  : by rw h
+      ... = F.map ((g ≫ fl) ≫ n) y.2      : by simp
+      ... = F.map ((f' ≫ gl) ≫ n) y.2     : by rw hn
+      ... = F.map (gl ≫ n) (F.map f' y.2) : by simp
+      ... = F.map (gl ≫ n) (F.map g' z.2) : by rw h'
+      ... = F.map (g' ≫ gl ≫ n) z.2       : by simp⟩⟩
+
+protected lemma rel_eq_eqv_gen_quot_rel :
+  filtered_colimit.rel F = eqv_gen (quot.rel F) :=
+begin
+  ext ⟨j, x⟩ ⟨j', y⟩,
+  split,
+  { apply eqv_gen_quot_rel_of_rel },
+  { rw ← relation.eqv_gen_iff_of_equivalence (filtered_colimit.rel_equiv F),
+    exact relation.eqv_gen_mono (rel_of_quot_rel F) }
+end
+
 local attribute [elab_simple] nat_trans.app
 
+lemma colimit_eq_iff_aux {i j : J} {xi : F.obj i} {xj : F.obj j} :
+  (colimit_cocone F).ι.app i xi = (colimit_cocone F).ι.app j xj ↔
+    filtered_colimit.rel F ⟨i, xi⟩ ⟨j, xj⟩ :=
+begin
+  change quot.mk _ _ = quot.mk _ _ ↔ _,
+  rw [quot.eq, filtered_colimit.rel_eq_eqv_gen_quot_rel],
+end
+
+lemma is_colimit_eq_iff {t : cocone F} (ht : is_colimit t) {i j : J} {xi : F.obj i} {xj : F.obj j} :
+  t.ι.app i xi = t.ι.app j xj ↔ ∃ k (f : i ⟶ k) (g : j ⟶ k), F.map f xi = F.map g xj :=
+let t' := colimit_cocone F,
+    e : t' ≅ t := is_colimit.unique_up_to_iso (colimit_cocone_is_colimit F) ht,
+    e' : t'.X ≅ t.X := (cocones.forget _).map_iso e in
+begin
+  refine iff.trans _ (colimit_eq_iff_aux F),
+  convert e'.to_equiv.apply_eq_iff_eq; rw ←e.hom.w; refl
+end
+
+lemma colimit_eq_iff {t : cocone F} (ht : is_colimit t) {i j : J} {xi : F.obj i} {xj : F.obj j} :
+  colimit.ι F i xi = colimit.ι F j xj ↔ ∃ k (f : i ⟶ k) (g : j ⟶ k), F.map f xi = F.map g xj :=
+is_colimit_eq_iff _ (colimit.is_colimit F)
+
+/-
 /-- Recognizing filtered colimits of types. -/
-noncomputable def is_colimit_of (hsurj : ∀ (x : t.X), ∃ i xi, x = t.ι.app i xi)
+noncomputable def is_colimit_of (t : cocone F) (hsurj : ∀ (x : t.X), ∃ i xi, x = t.ι.app i xi)
   (hinj : ∀ i j xi xj, t.ι.app i xi = t.ι.app j xj →
    ∃ k (f : i ⟶ k) (g : j ⟶ k), F.map f xi = F.map g xj) : is_colimit t :=
 -- Strategy: Prove that the map from "the" colimit of F (defined above) to t.X
@@ -308,62 +362,7 @@ begin
       simp } },
   { intro j, apply colimit.ι_desc }
 end
-
-variables [is_filtered_or_empty J]
-
-protected lemma r_equiv : equivalence (filtered_colimit.r F) :=
-⟨λ x, ⟨x.1, 𝟙 x.1, 𝟙 x.1, rfl⟩,
- λ x y ⟨k, f, g, h⟩, ⟨k, g, f, h.symm⟩,
- λ x y z ⟨k, f, g, h⟩ ⟨k', f', g', h'⟩,
-   let ⟨l, fl, gl, _⟩ := is_filtered_or_empty.cocone_objs k k',
-       ⟨m, n, hn⟩ := is_filtered_or_empty.cocone_maps (g ≫ fl) (f' ≫ gl) in
-   ⟨m, f ≫ fl ≫ n, g' ≫ gl ≫ n, calc
-      F.map (f ≫ fl ≫ n) x.2
-          = F.map (fl ≫ n) (F.map f x.2)  : by simp
-      ... = F.map (fl ≫ n) (F.map g y.2)  : by rw h
-      ... = F.map ((g ≫ fl) ≫ n) y.2      : by simp
-      ... = F.map ((f' ≫ gl) ≫ n) y.2     : by rw hn
-      ... = F.map (gl ≫ n) (F.map f' y.2) : by simp
-      ... = F.map (gl ≫ n) (F.map g' z.2) : by rw h'
-      ... = F.map (g' ≫ gl ≫ n) z.2       : by simp⟩⟩
-
-protected lemma r_eq :
-  filtered_colimit.r F = eqv_gen (λ x y, ∃ f : x.1 ⟶ y.1, y.2 = F.map f x.2) :=
-begin
-  apply le_antisymm,
-  { rintros ⟨i, x⟩ ⟨j, y⟩ ⟨k, f, g, h⟩,
-    exact eqv_gen.trans _ ⟨k, F.map f x⟩ _ (eqv_gen.rel _ _ ⟨f, rfl⟩)
-      (eqv_gen.symm _ _ (eqv_gen.rel _ _ ⟨g, h⟩)) },
-  { intros x y,
-    convert relation.eqv_gen_mono (filtered_colimit.r_ge F),
-    apply propext,
-    symmetry,
-    exact relation.eqv_gen_iff_of_equivalence (filtered_colimit.r_equiv F) }
-end
-
-lemma colimit_eq_iff_aux {i j : J} {xi : F.obj i} {xj : F.obj j} :
-  (colimit_cocone F).ι.app i xi = (colimit_cocone F).ι.app j xj ↔
-    ∃ k (f : i ⟶ k) (g : j ⟶ k), F.map f xi = F.map g xj :=
-begin
-  change quot.mk _ _ = quot.mk _ _ ↔ _,
-  rw [quot.eq, quot.rel, ←filtered_colimit.r_eq],
-  refl
-end
-
-variables {t} (ht : is_colimit t)
-lemma is_colimit_eq_iff {i j : J} {xi : F.obj i} {xj : F.obj j} :
-  t.ι.app i xi = t.ι.app j xj ↔ ∃ k (f : i ⟶ k) (g : j ⟶ k), F.map f xi = F.map g xj :=
-let t' := colimit_cocone F,
-    e : t' ≅ t := is_colimit.unique_up_to_iso (colimit_cocone_is_colimit F) ht,
-    e' : t'.X ≅ t.X := (cocones.forget _).map_iso e in
-begin
-  refine iff.trans _ (colimit_eq_iff_aux F),
-  convert e'.to_equiv.apply_eq_iff_eq; rw ←e.hom.w; refl
-end
-
-lemma colimit_eq_iff {i j : J} {xi : F.obj i} {xj : F.obj j} :
-  colimit.ι F i xi = colimit.ι F j xj ↔ ∃ k (f : i ⟶ k) (g : j ⟶ k), F.map f xi = F.map g xj :=
-is_colimit_eq_iff _ (colimit.is_colimit F)
+-/
 
 end filtered_colimit
 

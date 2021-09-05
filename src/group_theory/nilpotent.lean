@@ -348,3 +348,21 @@ begin
     rcases (h y') with ⟨y, rfl⟩,
     simpa using hd (mem_map_of_mem f (hx y)) }
 end
+
+lemma nilpotent_quotient_center_to_nilpotent
+  (hG : is_nilpotent (quotient_group.quotient (center G))) : is_nilpotent G :=
+begin
+  rw nilpotent_iff_lower_central_series at *,
+  rcases hG with ⟨n, hG⟩,
+  use n + 1,
+  ext x,
+  split,
+  { have := eq_bot_mono (lower_central_series.map (quotient_group.mk' (center G)) n) hG,
+    refine (set_like.ext_iff.mp ((closure_eq_bot_iff _ _ ).mpr _) x).mp,
+    rintro x ⟨p, hp, q, -, rfl⟩,
+    rw [set.mem_singleton_iff, mul_inv_eq_one, mul_inv_eq_iff_eq_mul],
+    rw [map_eq_bot_iff, set_like.le_def, ker_mk] at this,
+    exact (mem_center_iff.mp (this hp) q).symm },
+  { revert x,
+    exact set_like.le_def.mp (bot_le) },
+end

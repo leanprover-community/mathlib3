@@ -12,18 +12,12 @@ import group_theory.perm.option
 
 In this file we define `derangements α`, the set of derangements on a type `α`.
 
-We also define:
-
-* some related predicates: e.g.,
-
-  - `only_possible_fixed_point f a`: either `f` has no fixed points, or `a` is the only fixed point;
-
-  - `exactly_one_fixed_point f a`: `f` has exactly one fixed point, which is `a`;
-
-* equivalences involving various subtypes of `perm α` and `derangements α`: e.g.,
-
-  - `derangements_equiv_sigma_opfp`: an equivalence between `derangements (option α)` and the
-    sigma-type `Σ a : α, {f : perm α // only_possible_fixed_point f a}`.
+We also define some equivalences involving various subtypes of `perm α` and `derangements α`:
+* `derangements_option_equiv_sigma_at_most_one_fixed_point`: An equivalence between
+  `derangements (option α)` and the sigma-type `Σ a : α, {f : perm α // fixed_points f ⊆ a}`.
+* `derangements_recursion_equiv`: An equivalence between `derangements (option α)` and the
+  sigma-type `Σ a : α, (derangements (({a}ᶜ : set α) : Type _) ⊕ derangements α)` which is later
+  used to inductively count the number of derangements.
 -/
 
 open equiv function
@@ -143,15 +137,15 @@ begin
       simp only [perm.decompose_option_symm_apply, swap_apply_self, perm.coe_mul],
       cases x,
       { simp },
-      { simp only [equiv_functor.map_equiv_apply, equiv_functor.map,
-                    option.map_eq_map, option.map_some'],
-        by_cases x_vs_a : x = a,
-        { rw [x_vs_a, swap_apply_right], apply option.some_ne_none },
-        { have ne_1 : some x ≠ none := option.some_ne_none _,
-          have ne_2 : some x ≠ some a := (option.some_injective α).ne_iff.mpr x_vs_a,
-          rw [swap_apply_of_ne_of_ne ne_1 ne_2, (option.some_injective α).ne_iff],
-          intro contra,
-          exact x_vs_a (h_opfp contra) } } },
+      simp only [equiv_functor.map_equiv_apply, equiv_functor.map,
+                  option.map_eq_map, option.map_some'],
+      by_cases x_vs_a : x = a,
+      { rw [x_vs_a, swap_apply_right], apply option.some_ne_none },
+      have ne_1 : some x ≠ none := option.some_ne_none _,
+      have ne_2 : some x ≠ some a := (option.some_injective α).ne_iff.mpr x_vs_a,
+      rw [swap_apply_of_ne_of_ne ne_1 ne_2, (option.some_injective α).ne_iff],
+      intro contra,
+      exact x_vs_a (h_opfp contra) },
     { rw apply_symm_apply } }
 end
 
@@ -163,7 +157,7 @@ variables [decidable_eq α]
 
 /-- The set of derangements on `option α` is equivalent to the union over `a : α`
     of "permutations with `a` the only possible fixed point". -/
-def derangements_equiv_sigma_at_most_one_fixed_point :
+def derangements_option_equiv_sigma_at_most_one_fixed_point :
   derangements (option α) ≃ Σ a : α, {f : perm α | fixed_points f ⊆ {a}} :=
 begin
   have fiber_none_is_false : (equiv.remove_none.fiber (@none α)) -> false,

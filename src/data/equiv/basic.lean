@@ -1435,9 +1435,8 @@ begin
   { intro x,
     cases x,
     { intro n, exfalso, exact h n },
-    { intro s, exact rfl }},
-  exact equiv.trans
-    (sigma_subtype_equiv_of_subset _ _ h').symm
+    { intro s, exact rfl } },
+  exact (sigma_subtype_equiv_of_subset _ _ h').symm.trans
     (sigma_congr_left' (option_is_some_equiv α)),
 end
 

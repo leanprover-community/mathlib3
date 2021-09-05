@@ -95,10 +95,10 @@ instance is_finite_measure (μ : finite_measure α) :
 instance : has_coe_to_fun (finite_measure α) :=
 ⟨λ _, set α → ℝ≥0, λ μ s, (μ s).to_nnreal⟩
 
-lemma to_fun_eq_to_nnreal_to_measure (ν : finite_measure α) :
+lemma coe_fn_eq_to_nnreal_coe_fn_to_measure (ν : finite_measure α) :
   (ν : set α → ℝ≥0) = λ s, ((ν : measure α) s).to_nnreal := rfl
 
-@[simp] lemma to_fun_coe_eq_to_measure (ν : finite_measure α) (s : set α) :
+@[simp] lemma ennreal_coe_fn_eq_coe_fn_to_measure (ν : finite_measure α) (s : set α) :
   (ν s : ℝ≥0∞) = (ν : measure α) s := ennreal.coe_to_nnreal (measure_lt_top ↑ν s).ne
 
 @[simp] lemma val_eq_to_measure (ν : finite_measure α) : ν.val = (ν : measure α) := rfl
@@ -111,7 +111,7 @@ subtype.coe_injective
 def mass (μ : finite_measure α) : ℝ≥0 := μ univ
 
 @[simp] lemma ennreal_mass {μ : finite_measure α} :
-  (μ.mass : ℝ≥0∞) = (μ : measure α) univ := to_fun_coe_eq_to_measure μ set.univ
+  (μ.mass : ℝ≥0∞) = (μ : measure α) univ := ennreal_coe_fn_eq_coe_fn_to_measure μ set.univ
 
 instance has_zero : has_zero (finite_measure α) :=
 { zero := ⟨0, measure_theory.is_finite_measure_zero⟩ }
@@ -173,7 +173,7 @@ instance : has_coe_to_fun (probability_measure α) :=
 
 instance (μ : probability_measure α) : is_probability_measure (μ : measure α) := μ.prop
 
-lemma to_fun_eq_to_nnreal_to_measure (ν : probability_measure α) :
+lemma coe_fn_eq_to_nnreal_coe_fn_to_measure (ν : probability_measure α) :
   (ν : set α → ℝ≥0) = λ s, ((ν : measure α) s).to_nnreal := rfl
 
 @[simp] lemma val_eq_to_measure (ν : probability_measure α) : ν.val = (ν : measure α) := rfl
@@ -181,7 +181,7 @@ lemma to_fun_eq_to_nnreal_to_measure (ν : probability_measure α) :
 lemma coe_injective : function.injective (coe : probability_measure α → measure α) :=
 subtype.coe_injective
 
-@[simp] lemma to_fun_univ (ν : probability_measure α) : ν univ = 1 :=
+@[simp] lemma coe_fn_univ (ν : probability_measure α) : ν univ = 1 :=
 congr_arg ennreal.to_nnreal ν.prop.measure_univ
 
 /-- A probability measure can be interpreted as a finite measure. -/
@@ -190,16 +190,16 @@ def to_finite_measure (μ : probability_measure α) : finite_measure α := ⟨μ
 @[simp] lemma coe_comp_to_finite_measure_eq_coe (ν : probability_measure α) :
   (ν.to_finite_measure : measure α) = (ν : measure α) := rfl
 
-@[simp] lemma to_fun_comp_to_finite_measure_eq_to_fun (ν : probability_measure α) :
+@[simp] lemma coe_fn_comp_to_finite_measure_eq_coe_fn (ν : probability_measure α) :
   (ν.to_finite_measure : set α → ℝ≥0) = (ν : set α → ℝ≥0) := rfl
 
-@[simp] lemma to_fun_eq_to_measure (ν : probability_measure α) (s : set α) :
+@[simp] lemma ennreal_coe_fn_eq_coe_fn_to_measure (ν : probability_measure α) (s : set α) :
   (ν s : ℝ≥0∞) = (ν : measure α) s :=
-by { rw [← to_fun_comp_to_finite_measure_eq_to_fun,
-     finite_measure.to_fun_coe_eq_to_measure], refl, }
+by { rw [← coe_fn_comp_to_finite_measure_eq_coe_fn,
+     finite_measure.ennreal_coe_fn_eq_coe_fn_to_measure], refl, }
 
 @[simp] lemma mass_to_finite_measure (μ : probability_measure α) :
-  μ.to_finite_measure.mass = 1 := μ.to_fun_univ
+  μ.to_finite_measure.mass = 1 := μ.coe_fn_univ
 
 end probability_measure
 

@@ -68,11 +68,22 @@ open_locale nat topological_space big_operators ennreal
 
 section move_me
 
-variables {S M : Type*} [semigroup S] [monoid M] [has_scalar M S]
+variables {S M : Type*} [semigroup S] [monoid M] [mul_action M S] [is_scalar_tower M S S]
+   [smul_comm_class M S S]
 
-lemma commute.smul_left (a : M) {b c : S} (h : commute b c) : commute (a • b) c := sorry
+lemma semiconj_by.smul_left (a : M) {s x y : S} (h : semiconj_by s x y) :
+  semiconj_by (a • s) x y :=
+by {unfold semiconj_by at *, rw [smul_mul_assoc, h, mul_smul_comm]}
 
-lemma commute.smul_right (a : M) {b c : S} (h : commute b c) : commute b (a • c) := sorry
+lemma semiconj_by.smul_right (a : M) {s x y : S} (h : semiconj_by s x y) :
+  semiconj_by s (a • x) (a • y) :=
+by {unfold semiconj_by at *, rw [mul_smul_comm, h, smul_mul_assoc]}
+
+lemma commute.smul_left (a : M) {b c : S} (h : commute b c) : commute (a • b) c :=
+h.smul_left a
+
+lemma commute.smul_right (a : M) {b c : S} (h : commute b c) : commute b (a • c) :=
+h.smul_right a
 
 end move_me
 
@@ -286,6 +297,28 @@ begin
       mul_one],
 end
 
+lemma has_strict_fderiv_at_exp_smul_const_of_mem_ball [char_zero 𝕂] {𝔸' : Type*} [normed_comm_ring 𝔸']
+  [normed_algebra 𝕂 𝔸'] [algebra 𝔸' 𝔸] [has_continuous_smul 𝔸' 𝔸] [is_scalar_tower 𝕂 𝔸' 𝔸]
+  (x : 𝔸) (t : 𝔸') (htx : t • x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
+  has_strict_fderiv_at (λ (u : 𝔸'), exp 𝕂 𝔸 (u • x))
+    (exp 𝕂 𝔸 (t • x) • ((1 : 𝔸' →L[𝕂] 𝔸').smul_right x)) t :=
+let ⟨p, hp⟩ := analytic_at_exp_of_mem_ball (t • x) htx in
+have deriv₁ : has_strict_fderiv_at (λ (u : 𝔸'), exp 𝕂 𝔸 (u • x)) _ t,
+  from hp.has_strict_fderiv_at.comp t
+    ((continuous_linear_map.id 𝕂 𝔸').smul_right x).has_strict_fderiv_at,
+have deriv₂ : has_fderiv_at (λ (u : 𝔸'), exp 𝕂 𝔸 (u • x)) _ t,
+  from has_fderiv_at_exp_smul_const_of_mem_ball x t htx,
+(deriv₁.has_fderiv_at.unique deriv₂) ▸ deriv₁
+
+lemma has_strict_deriv_at_exp_smul_const_of_mem_ball [char_zero 𝕂] (x : 𝔸) (t : 𝕂)
+  (htx : t • x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
+  has_strict_deriv_at (λ (u : 𝕂), exp 𝕂 𝔸 (u • x)) (exp 𝕂 𝔸 (t • x) • x) t :=
+by simpa using (has_strict_fderiv_at_exp_smul_const_of_mem_ball x t htx).has_strict_deriv_at
+
+lemma has_deriv_at_exp_smul_const_of_mem_ball [char_zero 𝕂] (x : 𝔸) (t : 𝕂)
+  (htx : t • x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
+  has_deriv_at (λ (u : 𝕂), exp 𝕂 𝔸 (u • x)) (exp 𝕂 𝔸 (t • x) • x) t :=
+(has_strict_deriv_at_exp_smul_const_of_mem_ball x t htx).has_deriv_at
 
 lemma exp_mul_exp_neg_of_mem_ball [char_zero 𝕂] {x : 𝔸}
   (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
@@ -350,6 +383,8 @@ lemma has_fderiv_at_exp_of_mem_ball [char_zero 𝕂] {x : 𝔸}
   (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
   has_fderiv_at (exp 𝕂 𝔸) (exp 𝕂 𝔸 x • 1 : 𝔸 →L[𝕂] 𝔸) x :=
 begin
+  -- Note : we could deduce this form `has_fderiv_at_exp_smul_const_of_mem_ball`, but doing the
+  -- proof from scratch turns out to be easier, both for us and the elaborator
   have hpos : 0 < (exp_series 𝕂 𝔸).radius := (zero_le _).trans_lt hx,
   rw has_fderiv_at_iff_is_o_nhds_zero,
   suffices : (λ h, exp 𝕂 𝔸 x * (exp 𝕂 𝔸 (0 + h) - exp 𝕂 𝔸 0 - continuous_linear_map.id 𝕂 𝔸 h))
@@ -707,25 +742,31 @@ variables {𝕂 E : Type*} [is_R_or_C 𝕂] [normed_group E] [normed_space 𝕂 
 local attribute [instance] char_zero_R_or_C
 
 #check continuous_linear_map.to_normed_ring
+#check has_deriv_at.scomp
+
 
 lemma foo [nontrivial E] [complete_space E] (y : 𝕂 → E) (L : E →L[𝕂] E) :
   (∀ t, has_deriv_at y (L $ y t) t) ↔ (y = λ t, (exp 𝕂 _ $ t • L) (y 0)) :=
 begin
   split; intro h,
-  { let u := λ t, (exp 𝕂 _ (-(t • L)) (y t)),
+  { let u := λ t, exp 𝕂 _ ((-t) • L) (y t),
     suffices : ∀ t, u t = y 0,
     { ext t,
       rw ← this t,
       dsimp only [u],
-      rw [← continuous_linear_map.mul_apply, exp_mul_exp_neg_of_mem_ball,
+      rw [neg_smul, ← continuous_linear_map.mul_apply, exp_mul_exp_neg_of_mem_ball,
           continuous_linear_map.one_apply],
       sorry },
     have : ∀ t, has_deriv_at u 0 t,
     { intro t,
       dsimp only [u],
-      have := has_fderiv_at.comp_has_deriv_at t has_fderiv_at_exp
-        ((has_deriv_at_id t).smul_const _).neg,
-      convert has_deriv_at.apply t this (h t), } },
+      have := (has_deriv_at_exp_smul_const_of_mem_ball L (-t) sorry).scomp t (has_deriv_at_neg' t),
+      convert has_deriv_at.apply t this (h t),
+      rw [smul_eq_mul, continuous_linear_map.smul_apply, continuous_linear_map.mul_apply,
+          neg_one_smul, add_neg_self] },
+    sorry },
+  { rw h,
+    intro t, }
 end
 
 

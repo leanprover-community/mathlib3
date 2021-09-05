@@ -60,7 +60,7 @@ begin
   exact cir_ext_iff
 end
 
-lemma cir_inj [add_group I] : injective (λ v : I → α, cir v) :=
+lemma cir_injective [add_group I] : injective (λ v : I → α, cir v) :=
 λ v w h, cir_ext_iff.1 h
 
 lemma fin.cir_inj : injective (λ v : fin n → α, cir v) :=

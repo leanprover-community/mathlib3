@@ -42,7 +42,7 @@ def has_orthogonal_rows [fintype n] [has_mul α] [add_comm_monoid α]
     (with respect to `dot_product`) columns. -/
 def has_orthogonal_cols [fintype m] [has_mul α] [add_comm_monoid α]
 (A : matrix m n α) : Prop :=
-∀ ⦃i₁ i₂⦄, i₁ ≠ i₂ → dot_product (λ j, A  j i₁) (λ j, A j i₂) = 0
+∀ ⦃i₁ i₂⦄, i₁ ≠ i₂ → dot_product (Aᵀ i₁) (Aᵀ i₂) = 0
 
 /-- `Aᵀ` has orthogonal rows iff `A` has orthogonal columns. -/
 lemma transpose_has_orthogonal_rows_iff_has_orthogonal_cols

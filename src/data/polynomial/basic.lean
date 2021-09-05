@@ -591,6 +591,30 @@ by simp [coeff_erase]
   coeff (p.erase n) i = coeff p i :=
 by simp [coeff_erase, h]
 
+def update [Π r : R, decidable (r = 0)] (p : polynomial R) (n : ℕ) (a : R) :
+  polynomial R :=
+polynomial.of_finsupp (p.to_finsupp.update n a)
+
+lemma coeff_update [Π r : R, decidable (r = 0)] (p : polynomial R) (n : ℕ) (a : R) (i : ℕ) :
+  (p.update n a).coeff i = if (i = n) then a else p.coeff i :=
+begin
+  cases p,
+  simp [polynomial.coeff, polynomial.update, function.update_apply]
+end
+
+@[simp] lemma coeff_update_same [Π r : R, decidable (r = 0)] (p : polynomial R) (n : ℕ) (a : R) :
+  (p.update n a).coeff n = a :=
+by rw [p.coeff_update, if_pos rfl]
+
+lemma coeff_update_ne [Π r : R, decidable (r = 0)] (p : polynomial R) {n : ℕ} (a : R)
+  {i : ℕ} (h : i ≠ n) :
+  (p.update n a).coeff i = p.coeff i :=
+by rw [p.coeff_update, if_neg h]
+
+@[simp] lemma update_zero_eq_erase [Π r : R, decidable (r = 0)] (p : polynomial R) (n : ℕ) :
+  p.update n 0 = p.erase n :=
+by { ext, rw [coeff_update, coeff_erase] }
+
 end semiring
 
 section comm_semiring

@@ -402,6 +402,62 @@ lemma submodule.closed_of_finite_dimensional (s : submodule 𝕜 E) [finite_dime
   is_closed (s : set E) :=
 s.complete_of_finite_dimensional.is_closed
 
+/-- In an infinite dimensional space, given a finite number of points, one may find a point
+with norm at most `R` which is at distance at least `1` of all these points. -/
+theorem exists_norm_le_le_norm_sub_of_finset {c : 𝕜} (hc : 1 < ∥c∥) {R : ℝ} (hR : ∥c∥ < R)
+  (h : ¬ (finite_dimensional 𝕜 E)) (s : finset E) :
+  ∃ (x : E), ∥x∥ ≤ R ∧ ∀ y ∈ s, 1 ≤ ∥x - y∥ :=
+begin
+  let F := submodule.span 𝕜 (s : set E),
+  haveI : finite_dimensional 𝕜 F,
+  { apply is_noetherian_span_of_finite _ (finset.finite_to_set s), apply_instance },
+  have Fclosed : is_closed (F : set E) := submodule.closed_of_finite_dimensional _,
+  have : ∃ x, x ∉ F,
+  { contrapose! h,
+    have : (⊤ : submodule 𝕜 E) = F, by { ext x, simp [h] },
+    haveI : finite_dimensional 𝕜 (⊤ : submodule 𝕜 E), by rwa this,
+    exact is_noetherian_of_linear_equiv (linear_equiv.of_top (⊤ : submodule 𝕜 E) rfl) },
+  obtain ⟨x, xR, hx⟩ : ∃ (x : E), ∥x∥ ≤ R ∧ ∀ (y : E), y ∈ F → 1 ≤ ∥x - y∥ :=
+    riesz_lemma_of_norm_lt hc hR Fclosed this,
+  exact ⟨x, xR, λ y hy, hx _ (submodule.subset_span hy)⟩,
+end
+
+/-- A sequence of points in an infinite-dimensional space, which are all bounded by `R` and at
+distance at least `1`. Use `exists_seq_norm_le_le_norm_sub` instead. -/
+noncomputable def exists_seq_norm_le_one_le_norm_sub_aux
+  {c : 𝕜} (hc : 1 < ∥c∥) {R : ℝ} (hR : ∥c∥ < R) (h : ¬ (finite_dimensional 𝕜 E)) : ℕ → E
+| n := classical.some $ exists_norm_le_le_norm_sub_of_finset hc hR h
+        (finset.image (λ (i : fin n), exists_seq_norm_le_one_le_norm_sub_aux i)
+        (finset.univ : finset (fin n)))
+using_well_founded {dec_tac := `[exact i.2]}
+
+/-- In an infinite-dimensional normed space, there exists a sequence of points which are all
+bounded by `R` and at distance at least `1`. -/
+theorem exists_seq_norm_le_one_le_norm_sub {c : 𝕜} (hc : 1 < ∥c∥) {R : ℝ} (hR : ∥c∥ < R)
+  (h : ¬ (finite_dimensional 𝕜 E)) :
+  ∃ f : ℕ → E, (∀ n, ∥f n∥ ≤ R) ∧ (∀ m n, m ≠ n → 1 ≤ ∥f m - f n∥) :=
+begin
+  refine ⟨exists_seq_norm_le_one_le_norm_sub_aux hc hR h, _, _⟩,
+  { assume n,
+    rw exists_seq_norm_le_one_le_norm_sub_aux,
+    exact (classical.some_spec (exists_norm_le_le_norm_sub_of_finset hc hR h _)).1 },
+  { assume m n hmn,
+    wlog hle : n ≤ m := le_total n m using [m n, n m] tactic.skip,
+    { rw exists_seq_norm_le_one_le_norm_sub_aux,
+      have A : exists_seq_norm_le_one_le_norm_sub_aux hc hR h n ∈
+        (finset.image (λ (i : fin m), exists_seq_norm_le_one_le_norm_sub_aux hc hR h i)
+        (finset.univ : finset (fin m))),
+      { simp only [finset.mem_univ, finset.mem_image, exists_true_left],
+        refine ⟨⟨n, lt_of_le_of_ne hle hmn.symm⟩, _⟩,
+        simp },
+      have := (classical.some_spec (exists_norm_le_le_norm_sub_of_finset hc hR h _)).2,
+      exact this _ A },
+    { assume hmn,
+      rw ← norm_neg,
+      convert this hmn.symm,
+      abel } }
+end
+
 lemma continuous_linear_map.exists_right_inverse_of_surjective [finite_dimensional 𝕜 F]
   (f : E →L[𝕜] F) (hf : f.range = ⊤) :
   ∃ g : F →L[𝕜] E, f.comp g = continuous_linear_map.id 𝕜 F :=

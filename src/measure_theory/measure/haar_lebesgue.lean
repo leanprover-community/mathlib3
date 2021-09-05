@@ -14,6 +14,7 @@ We prove that the Haar measure and Lebesgue measure are equal on `ℝ` and on `�
 -/
 
 open topological_space set
+open_locale ennreal
 
 /-- The interval `[0,1]` as a compact set with non-empty interior. -/
 def topological_space.positive_compacts.Icc01 : positive_compacts ℝ :=
@@ -32,13 +33,13 @@ end⟩
 
 namespace measure_theory
 
-open measure topological_space.positive_compacts
+open measure topological_space.positive_compacts finite_dimensional
 
 lemma is_add_left_invariant_real_volume : is_add_left_invariant ⇑(volume : measure ℝ) :=
 by simp [← map_add_left_eq_self, real.map_volume_add_left]
 
 /-- The Haar measure equals the Lebesgue measure on `ℝ`. -/
-lemma haar_measure_eq_volume : add_haar_measure Icc01 = volume :=
+lemma add_haar_measure_eq_volume : add_haar_measure Icc01 = volume :=
 begin
   convert (add_haar_measure_unique _ Icc01).symm,
   { simp [Icc01] },
@@ -47,14 +48,14 @@ begin
 end
 
 instance : is_add_haar_measure (volume : measure ℝ) :=
-by { rw ← haar_measure_eq_volume, apply_instance }
+by { rw ← add_haar_measure_eq_volume, apply_instance }
 
 lemma is_add_left_invariant_real_volume_pi (ι : Type*) [fintype ι] :
   is_add_left_invariant ⇑(volume : measure (ι → ℝ)) :=
 by simp [← map_add_left_eq_self, real.map_volume_pi_add_left]
 
 /-- The Haar measure equals the Lebesgue measure on `ℝ^ι`. -/
-lemma haar_measure_eq_volume_pi (ι : Type*) [fintype ι] :
+lemma add_haar_measure_eq_volume_pi (ι : Type*) [fintype ι] :
   add_haar_measure (pi_Icc01 ι) = volume :=
 begin
   convert (add_haar_measure_unique _ (pi_Icc01 ι)).symm,
@@ -66,11 +67,9 @@ end
 
 instance is_add_haar_measure_volume_pi (ι : Type*) [fintype ι] :
   is_add_haar_measure (volume : measure (ι → ℝ)) :=
-by { rw ← haar_measure_eq_volume_pi, apply_instance }
+by { rw ← add_haar_measure_eq_volume_pi, apply_instance }
 
-open finite_dimensional
-
-lemma map_linear_map_haar_pi_eq_smul_haar
+lemma map_linear_map_add_haar_pi_eq_smul_haar
   {ι : Type*} [fintype ι] {f : (ι → ℝ) →ₗ[ℝ] (ι → ℝ)} (hf : f.det ≠ 0)
   (μ : measure (ι → ℝ)) [is_add_haar_measure μ] :
   measure.map f μ = ennreal.of_real (abs (f.det)⁻¹) • μ :=
@@ -79,17 +78,84 @@ begin
   We deduce it for any Haar measure by uniqueness (up to scalar multiplication). -/
   have := add_haar_measure_unique (is_add_left_invariant_add_haar μ) (pi_Icc01 ι),
   conv_lhs { rw this }, conv_rhs { rw this },
-  simp [haar_measure_eq_volume_pi, real.map_linear_map_volume_pi_eq_smul_volume hf, smul_smul,
+  simp [add_haar_measure_eq_volume_pi, real.map_linear_map_volume_pi_eq_smul_volume hf, smul_smul,
     mul_comm],
 end
 
+@[simp] lemma add_haar_ball
+  {E : Type*} [normed_group E] [measurable_space E]
+  [borel_space E] (μ : measure E) [is_add_haar_measure μ] (x : E) (r : ℝ) :
+  μ (metric.ball x r) = μ (metric.ball (0 : E) r) :=
+begin
+  have : metric.ball (0 : E) r = ((+) x) ⁻¹' (metric.ball x r), by { ext y, simp [dist_eq_norm] },
+  rw [this, add_haar_preimage_add]
+end
+
 lemma finite_dimensional_of_haar_measure
-  {E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E]
+  {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [complete_space 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E] [measurable_space E]
   [borel_space E] (μ : measure E) [is_add_haar_measure μ] :
-  finite_dimensional ℝ E :=
-sorry
+  finite_dimensional 𝕜 E :=
+begin
+  by_contradiction h,
+  obtain ⟨c, hc⟩ : ∃c:𝕜, 1<∥c∥ := normed_field.exists_one_lt_norm 𝕜,
+  have cpos : 0 < ∥c∥ := zero_lt_one.trans hc,
+  set R := ∥c∥^2 with hR,
+  have hR : ∥c∥ < R, by { rw [← one_mul (∥c∥), hR, pow_two], exact (mul_lt_mul_right cpos).2 hc },
+  obtain ⟨f, hf⟩ : ∃ f : ℕ → E, (∀ n, ∥f n∥ ≤ R) ∧ (∀ m n, m ≠ n → 1 ≤ ∥f m - f n∥) :=
+    exists_seq_norm_le_one_le_norm_sub hc hR h,
+  have : ∀ (a : 𝕜), (0 < ∥a∥) → μ (metric.ball (0 : E) ∥a∥) = ∞, sorry,
+  /-{ assume a ha,
+    apply le_antisymm le_top,
+    let g := λ n, (a / c^3) • f n,
+    let r : ℝ := min (∥a∥/(2 * ∥c∥^3)) (∥a∥ * (1 - 1/∥c∥)),
+    have hr : ∥a∥ / ∥c∥ + r ≤ ∥a∥ := calc
+      ∥a∥ / ∥c∥ + r ≤ ∥a∥ / ∥c∥ + ∥a∥ * (1 - 1/∥c∥) : add_le_add le_rfl (min_le_right _ _)
+      ... = ∥a∥ : by { field_simp [cpos.ne'], ring },
+    have h'r : r + r ≤ (∥a∥/∥c∥^3) * 1 := calc
+      r + r ≤ ∥a∥/(2 * ∥c∥^3) + ∥a∥/(2 * ∥c∥^3) : add_le_add (min_le_left _ _) (min_le_left _ _)
+      ... = (∥a∥/∥c∥^3) * 1 : by { field_simp [cpos.ne'], ring },
+    have rpos : 0 < r,
+    { simp only [one_div, lt_min_iff],
+      refine ⟨div_pos ha (mul_pos zero_lt_two (pow_pos cpos 3)), _⟩,
+      apply mul_pos ha (sub_pos.2 _),
+      rw inv_lt cpos zero_lt_one,
+      simpa using hc },
+    have μpos : 0 < μ (metric.ball 0 r) :=
+      metric.is_open_ball.add_haar_pos μ (metric.nonempty_ball.2 rpos),
+    have subset : ∀ n, metric.ball (g n) r ⊆ metric.ball (0 : E) (∥a∥),
+    { assume n y hy,
+      rw mem_ball_0_iff,
+      calc ∥y∥ < ∥g n∥ + r : norm_lt_of_mem_ball hy
+      ... ≤ ∥a∥ / ∥c∥ ^ 3 * ∥f n∥ + r : add_le_add (by simp [g, norm_smul]) le_rfl
+      ... ≤ ∥a∥/∥c∥^3 * ∥c∥^2 + r :
+      begin
+        refine add_le_add _ le_rfl,
+        refine mul_le_mul_of_nonneg_left (hf.1 n) _,
+        exact div_nonneg (norm_nonneg _) (pow_nonneg (norm_nonneg _) _),
+      end
+      ... = ∥a∥/∥c∥ + r : by { field_simp [cpos.ne'], ring }
+      ... ≤ ∥a∥ : hr },
+    have disj : pairwise (disjoint on (λ (n : ℕ), metric.ball (g n) r)),
+    { assume m n hmn,
+      apply metric.ball_disjoint_ball,
+      simp only [dist_eq_norm, ←smul_sub, norm_smul, normed_field.norm_pow, normed_field.norm_div],
+      apply h'r.trans (mul_le_mul_of_nonneg_left (hf.2 m n hmn) _),
+      exact (div_nonneg (norm_nonneg _) (pow_nonneg (norm_nonneg _) _)) },
+    have : ∑' n, μ (metric.ball (g n) r) ≤ μ (metric.ball (0 : E) (∥a∥)) := calc
+      ∑' n, μ (metric.ball (g n) r) = μ (⋃ n, metric.ball (g n) r) :
+        (measure_Union disj (λ n, measurable_set_ball)).symm
+      ... ≤ μ (metric.ball (0 : E) (∥a∥)) : measure_mono (Union_subset subset),
+    simp only [add_haar_ball] at this,
+    rwa ennreal.tsum_const_eq_top_of_ne_zero μpos.ne' at this,
+    apply_instance } -/
+  have : {(0 : E)} = ⋂ (n : ℕ), metric.ball (0 : E) (∥c^n∥) := sorry,
+  have Z := measure_Inter
+end
 
+#exit
 
+pairwise (disjoint on ?m_3) → (∀ (i : ?m_1), measurable_set (?m_3 i)) → ⇑?m_5 (⋃ (i : ?m_1), ?m_3 i) = ∑' (i : ?m_1), ⇑?m_5 (?m_3 i)
 
 lemma map_linear_map_haar_eq_smul_haar
   {E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]

@@ -16,8 +16,8 @@ measure is continuous.
 TODOs:
 * Define the topologies (the current version only defines the types) via
   `weak_dual ℝ≥0 (α →ᵇ ℝ≥0)`.
-* Prove that an equivalent definition of the topologies is obtained using bounded continuous
-  `ℝ`-valued functions instead.
+* Prove that an equivalent definition of the topologies is obtained requiring continuity of
+  integration of bounded continuous `ℝ`-valued functions instead.
 * Include the portmanteau theorem on characterizations of weak convergence of (Borel) probability
   measures.
 
@@ -47,7 +47,8 @@ The topology of weak convergence of finite Borel measures will be defined using 
 The current first implementation of `finite_measure α` and `probability_measure α` is directly
 as subtypes of `measure α`, and the coercion to a function is the composition `ennreal.to_nnreal`
 and the coercion to function of `measure α`. Another alternative would be to use a bijection
-with `vector_measure α ℝ≥0` as an intermediate step. This can be changed if
+with `vector_measure α ℝ≥0` as an intermediate step. The choice of implementation should not have
+drastic downstream effects, so it can be changed later if appropriate.
 
 Potential advantages of using the `nnreal`-valued vector measure alternative:
  * The coercion to function would avoid need to compose with `ennreal.to_nnreal`, the
@@ -57,7 +58,6 @@ Potential drawbacks of the vector measure alternative:
    have measure 0.
  * No integration theory directly. E.g., the topology definition requires `lintegral` w.r.t.
    a coercion to `measure α` in any case.
-
 
 ## References
 
@@ -95,12 +95,11 @@ instance is_finite_measure (μ : finite_measure α) :
 instance : has_coe_to_fun (finite_measure α) :=
 ⟨λ _, set α → ℝ≥0, λ μ s, (μ s).to_nnreal⟩
 
-lemma to_fun_eq_to_measure_to_nnreal (ν : finite_measure α) :
+lemma to_fun_eq_to_nnreal_to_measure (ν : finite_measure α) :
   (ν : set α → ℝ≥0) = λ s, ((ν : measure α) s).to_nnreal := rfl
 
 @[simp] lemma to_fun_coe_eq_to_measure (ν : finite_measure α) (s : set α) :
-  (ν s : ℝ≥0∞) = (ν : measure α) s :=
-ennreal.coe_to_nnreal (measure_lt_top ↑ν s).ne
+  (ν s : ℝ≥0∞) = (ν : measure α) s := ennreal.coe_to_nnreal (measure_lt_top ↑ν s).ne
 
 @[simp] lemma val_eq_to_measure (ν : finite_measure α) : ν.val = (ν : measure α) := rfl
 
@@ -111,7 +110,7 @@ subtype.coe_injective
 `(μ : measure α) univ`. -/
 def mass (μ : finite_measure α) : ℝ≥0 := μ univ
 
-@[simp] lemma mass_ennreal {μ : finite_measure α} :
+@[simp] lemma ennreal_mass {μ : finite_measure α} :
   (μ.mass : ℝ≥0∞) = (μ : measure α) univ := to_fun_coe_eq_to_measure μ set.univ
 
 instance has_zero : has_zero (finite_measure α) :=
@@ -131,8 +130,7 @@ instance : has_scalar ℝ≥0 (finite_measure α) :=
 
 @[simp] lemma coe_smul (c : ℝ≥0) (μ : finite_measure α) : ↑(c • μ) = (c • ↑μ : measure α) := rfl
 
-@[simp] lemma coe_fn_zero :
-  (⇑(0 : finite_measure α) : set α → ℝ≥0) = (0 : set α → ℝ≥0) :=
+@[simp] lemma coe_fn_zero : (⇑(0 : finite_measure α) : set α → ℝ≥0) = (0 : set α → ℝ≥0) :=
 by { funext, refl, }
 
 @[simp] lemma coe_fn_add (μ ν : finite_measure α) :
@@ -175,7 +173,7 @@ instance : has_coe_to_fun (probability_measure α) :=
 
 instance (μ : probability_measure α) : is_probability_measure (μ : measure α) := μ.prop
 
-lemma to_fun_eq_to_measure_to_nnreal (ν : probability_measure α) :
+lemma to_fun_eq_to_nnreal_to_measure (ν : probability_measure α) :
   (ν : set α → ℝ≥0) = λ s, ((ν : measure α) s).to_nnreal := rfl
 
 @[simp] lemma val_eq_to_measure (ν : probability_measure α) : ν.val = (ν : measure α) := rfl
@@ -189,23 +187,20 @@ congr_arg ennreal.to_nnreal ν.prop.measure_univ
 /-- A probability measure can be interpreted as a finite measure. -/
 def to_finite_measure (μ : probability_measure α) : finite_measure α := ⟨μ, infer_instance⟩
 
-@[simp] lemma to_finite_measure_coe_eq_coe (ν : probability_measure α) :
+@[simp] lemma coe_comp_to_finite_measure_eq_coe (ν : probability_measure α) :
   (ν.to_finite_measure : measure α) = (ν : measure α) := rfl
 
-@[simp] lemma to_finite_measure_to_fun_eq_to_fun (ν : probability_measure α) :
+@[simp] lemma to_fun_comp_to_finite_measure_eq_to_fun (ν : probability_measure α) :
   (ν.to_finite_measure : set α → ℝ≥0) = (ν : set α → ℝ≥0) := rfl
 
-@[simp] lemma to_fun_coe_eq_to_measure (ν : probability_measure α) (s : set α) :
+@[simp] lemma to_fun_eq_to_measure (ν : probability_measure α) (s : set α) :
   (ν s : ℝ≥0∞) = (ν : measure α) s :=
-begin
-  rw ←to_finite_measure_to_fun_eq_to_fun,
-  apply finite_measure.to_fun_coe_eq_to_measure,
-end
+by { rw [← to_fun_comp_to_finite_measure_eq_to_fun,
+     finite_measure.to_fun_coe_eq_to_measure], refl, }
 
 @[simp] lemma mass_to_finite_measure (μ : probability_measure α) :
-  μ.to_finite_measure.mass = 1 :=
-μ.to_fun_univ
+  μ.to_finite_measure.mass = 1 := μ.to_fun_univ
 
-end probability_measure -- end namespace
+end probability_measure
 
 end measure_theory

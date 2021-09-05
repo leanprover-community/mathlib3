@@ -48,7 +48,7 @@ def has_orthogonal_cols [fintype m] [has_mul α] [add_comm_monoid α]
 lemma transpose_has_orthogonal_rows_iff_has_orthogonal_cols
 [fintype m] [has_mul α] [add_comm_monoid α] (A : matrix m n α) :
   Aᵀ.has_orthogonal_rows ↔ A.has_orthogonal_cols :=
-by {simp [has_orthogonal_rows, has_orthogonal_cols, transpose_row_eq_col],}
+iff.rfl
 
 /-- `Aᵀ` has orthogonal columns iff `A` has orthogonal rows. -/
 lemma transpose_has_orthogonal_cols_iff_has_orthogonal_rows

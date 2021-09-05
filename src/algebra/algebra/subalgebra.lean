@@ -663,8 +663,9 @@ lemma inclusion_injective {S T : subalgebra R A} (h : S ≤ T) :
   function.injective (inclusion h) :=
 λ _ _, subtype.ext ∘ subtype.mk.inj
 
-@[simp] lemma inclusion_self {S : subalgebra R A} (x : S) :
-  inclusion (le_refl S) x = x := subtype.ext rfl
+@[simp] lemma inclusion_self {S : subalgebra R A}:
+  inclusion (le_refl S) = alg_hom.id R S :=
+alg_hom.ext $ λ x, subtype.ext rfl
 
 @[simp] lemma inclusion_right {S T : subalgebra R A} (h : S ≤ T) (x : T)
   (m : (x : A) ∈ S) : inclusion h ⟨x, m⟩ = x := subtype.ext rfl

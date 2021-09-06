@@ -200,6 +200,12 @@ begin
   { simp [hi] },
 end
 
+lemma basis.algebra_map_injective {ι : Type v₁} [no_zero_divisors R] [nontrivial S]
+  (b : basis ι R S) :
+  function.injective (algebra_map R S) :=
+have no_zero_smul_divisors R S := b.no_zero_smul_divisors,
+by exactI no_zero_smul_divisors.algebra_map_injective R S
+
 end ring
 
 section artin_tate

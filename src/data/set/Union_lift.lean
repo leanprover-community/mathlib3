@@ -40,7 +40,7 @@ or binary functions are preserved. These lemmas are:
 directed union, directed supremum
 -/
 
-variables {α ι : Type*} {β : Type*}
+variables {α ι β : Type*}
 
 namespace set
 

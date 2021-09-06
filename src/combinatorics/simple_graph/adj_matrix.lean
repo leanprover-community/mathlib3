@@ -72,6 +72,7 @@ by { rw [←apply_ne_one_iff h], simp }
 
 /-- For `A : matrix V V α` and `h : is_adj_matrix A`,
     `h.to_graph` is the simple graph whose adjacency matrix is `A`. -/
+@[simps]
 def to_graph [mul_zero_one_class α] [nontrivial α] (h : is_adj_matrix A) :
   simple_graph V :=
 { adj := λ i j, A i j = 1,
@@ -129,7 +130,7 @@ begin
   ext v w,
   cases h.zero_or_one v w with h h;
   by_cases hvw : v = w;
-  simp [matrix.compl, h, hvw],
+  simp [matrix.compl, h, hvw]
 end
 
 end is_adj_matrix
@@ -166,13 +167,15 @@ lemma is_symm_adj_matrix [has_zero α] [has_one α] :
   (G.adj_matrix α).is_symm :=
 transpose_adj_matrix G
 
+variable (α)
+
 /-- The adjacency matrix of `G` is an adjacency matrix. -/
 @[simp]
-lemma is_adj_matrix_adj_matrix (α) [has_zero α] [has_one α] :
+lemma is_adj_matrix_adj_matrix [has_zero α] [has_one α] :
   (G.adj_matrix α).is_adj_matrix :=
 { zero_or_one := λ i j, by by_cases G.adj i j; simp [h] }
 
-variables [fintype V]
+variables {α} [fintype V]
 
 @[simp]
 lemma adj_matrix_dot_product [non_assoc_semiring α] (v : V) (vec : V → α) :
@@ -227,8 +230,9 @@ lemma adj_matrix_mul_vec_const_apply [semiring α] {a : α} {v : V} :
   (G.adj_matrix α).mul_vec (function.const _ a) v = G.degree v * a :=
 by simp [degree]
 
-lemma adj_matrix_mul_vec_const_apply_of_regular [semiring α] {d : ℕ} {a : α}
-  (hd : G.is_regular_of_degree d) {v : V} :
+lemma adj_matrix_mul_vec_const_apply_of_regular
+[semiring α] {d : ℕ} {a : α} (hd : G.is_regular_of_degree d)
+  {v : V} :
   (G.adj_matrix α).mul_vec (function.const _ a) v = (d * a) :=
 by simp [hd v]
 

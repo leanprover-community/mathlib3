@@ -134,7 +134,7 @@ begin
   rw [h.apply i j]
 end
 
-@[simp]
+@[simps]
 lemma adj_matrix_compl [has_zero α] [has_one α] [decidable_eq α] [decidable_eq V]
 (A : matrix V V α) (h : A.is_symm) :
   adj_matrix A.compl :=

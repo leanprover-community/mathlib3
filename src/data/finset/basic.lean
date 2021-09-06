@@ -2249,6 +2249,16 @@ begin
   { rw [erase_eq_of_not_mem h], apply nat.sub_le }
 end
 
+@[simp]
+theorem card_erase [decidable_eq α] {a : α} {s : finset α} :
+  card (erase s a) = if a ∈ s then pred (card s) else card s
+  :=
+begin
+  by_cases h : a ∈ s,
+  { rw [card_erase_of_mem h, if_pos], assumption },
+  { rw [erase_eq_of_not_mem h, if_neg], assumption }
+end
+
 @[simp] theorem card_range (n : ℕ) : card (range n) = n := card_range n
 
 @[simp] theorem card_attach {s : finset α} : card (attach s) = card s := multiset.card_attach

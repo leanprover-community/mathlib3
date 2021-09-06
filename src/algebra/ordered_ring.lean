@@ -3,9 +3,86 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
-import algebra.ordered_group
 import algebra.invertible
+import algebra.ordered_group
 import data.set.intervals.basic
+
+/-!
+# Ordered rings and semirings
+
+This file develops the basics of ordered (semi)rings.
+
+Each typeclass here comprises
+* an algebraic class (`semiring`, `comm_semiring`, `ring`, `comm_ring`)
+* an order class (`partial_order`, `linear_order`)
+* assumptions on how both interact ((strict) monotonicity, canonicity)
+
+For short,
+* "`+` respects `≤`" means "monotonicity of addition"
+* "`*` respects `<`" means "strict monotonicity of multiplication by a positive number".
+
+## Typeclasses
+
+* `ordered_semiring`: Semiring with a partial order such that `+` respects `≤` and `*` respects `<`.
+* `ordered_comm_semiring`: Commutative semiring with a partial order such that `+` respects `≤` and
+  `*` respects `<`.
+* `ordered_ring`: Ring with a partial order such that `+` respects `≤` and `*` respects `<`.
+* `ordered_comm_ring`: Commutative ring with a partial order such that `+` respects `≤` and
+  `*` respects `<`.
+* `linear_ordered_semiring`: Semiring with a total order such that `+` respects `≤` and
+  `*` respects `<`.
+* `linear_ordered_ring`: Ring with a total order such that `+` respects `≤` and `*` respects `<`.
+* `linear_ordered_comm_ring`: Commutative ring with a total order such that `+` respects `≤` and
+  `*` respects `<`.
+* `canonically_ordered_comm_semiring`: Commutative semiring with a partial order such that `+` respects `≤`, `*` respects `<`, and `a ≤ b ↔ ∃ c, b = a + c`.
+
+and some typeclasses to define ordered rings by specifying their nonegative elements:
+* `nonneg_ring`: To define `ordered_ring`s.
+* `linear_nonneg_ring`: To define `linear_ordered_ring`s.
+
+## Hierarchy
+
+The hardest part of proving order lemmas might be to figure out the correct generality and its
+corresponding typeclass. Here's an attempt at demystifying it. For each typeclass, we list its
+immediate predecessors and what conditions are added to each of them.
+
+* `ordered_semiring`
+  - `ordered_cancel_add_comm_monoid`: Multiplication. `*` respects `<`.
+  - `semiring`: Partial order structure. `+` respects `≤` and `*` respects `<`.
+* `ordered_comm_semiring`
+  - `ordered_semiring`: Commutativity of multiplication.
+  - `comm_semiring`: Partial order structure. `+` respects `≤` and `*` respects `<`.
+* `ordered_ring`
+  - `ordered_semiring`: Additive inverses.
+  - `ordered_add_comm_group`: Multiplication. `*` respects `<`.
+  - `ring`: Partial order structure. `+` respects `≤` and `*` respects `<`.
+* `ordered_comm_ring`
+  - `ordered_ring`: Commutativity of multiplication.
+  - `ordered_comm_semiring`: Additive inverses.
+  - `comm_ring`: Partial order structure. `+` respects `≤` and `*` respects `<`.
+* `linear_ordered_semiring`
+  - `ordered_semiring`: Totality of the order. Nontriviality.
+  - `linear_ordered_add_comm_monoid`: Multiplication. Nontriviality. `*` respects `<`.
+* `linear_ordered_ring`
+  - `ordered_ring`: Totality of the order. Nontriviality.
+  - `linear_ordered_semiring`: Additive inverses.
+  - `linear_ordered_add_comm_group`: Multiplication. `*` respects `<`.
+  - `domain`: Linear order structure.
+* `linear_ordered_comm_ring`
+  - `ordered_comm_ring`: Totality of the order. Nontriviality.
+  - `linear_ordered_ring`: Commutativity of multiplication.
+  - `integral_domain`: Linear order structure.
+* `canonically_ordered_comm_semiring`
+  - `canonically_ordered_add_monoid`: Multiplication. `*` respects `<`. No zero divisors.
+  - `comm_semiring`: `a ≤ b ↔ ∃ c, b = a + c`. No zero divisors.
+
+## TODO
+
+We're still missing some typeclasses, like
+* `linear_ordered_comm_semiring`
+* `canonically_ordered_semiring`
+They have yet to come up in practice.
+-/
 
 set_option old_structure_cmd true
 
@@ -19,7 +96,7 @@ calc  a + 1 ≤ a + a : add_le_add_left a1 a
         ... = 2 * a : (two_mul _).symm
 
 /-- An `ordered_semiring α` is a semiring `α` with a partial order such that
-multiplication with a positive number and addition are monotone. -/
+addition is monotone and multiplication by a positive number is strictly monotone. -/
 @[protect_proj]
 class ordered_semiring (α : Type u) extends semiring α, ordered_cancel_add_comm_monoid α :=
 (zero_le_one : 0 ≤ (1 : α))
@@ -388,7 +465,7 @@ end ordered_semiring
 section ordered_comm_semiring
 
 /-- An `ordered_comm_semiring α` is a commutative semiring `α` with a partial order such that
-multiplication with a positive number and addition are monotone. -/
+addition is monotone and multiplication by a positive number is strictly monotone. -/
 @[protect_proj]
 class ordered_comm_semiring (α : Type u) extends ordered_semiring α, comm_semiring α
 
@@ -407,7 +484,7 @@ end ordered_comm_semiring
 
 /--
 A `linear_ordered_semiring α` is a nontrivial semiring `α` with a linear order
-such that multiplication with a positive number and addition are monotone.
+such that addition is monotone and multiplication by a positive number is strictly monotone.
 -/
 -- It's not entirely clear we should assume `nontrivial` at this point;
 -- it would be reasonable to explore changing this,
@@ -751,7 +828,7 @@ lemma min_mul_of_nonneg (a b : α) (hc : 0 ≤ c) : min a b * c = min (a * c) (b
 end linear_ordered_semiring
 
 /-- An `ordered_ring α` is a ring `α` with a partial order such that
-multiplication with a positive number and addition are monotone. -/
+addition is monotone and multiplication by a positive number is strictly monotone. -/
 @[protect_proj]
 class ordered_ring (α : Type u) extends ring α, ordered_add_comm_group α :=
 (zero_le_one : 0 ≤ (1 : α))
@@ -881,7 +958,7 @@ end ordered_ring
 section ordered_comm_ring
 
 /-- An `ordered_comm_ring α` is a commutative ring `α` with a partial order such that
-multiplication with a positive number and addition are monotone. -/
+addition is monotone and multiplication by a positive number is strictly monotone. -/
 @[protect_proj]
 class ordered_comm_ring (α : Type u) extends ordered_ring α, ordered_comm_semiring α, comm_ring α
 
@@ -901,7 +978,7 @@ def function.injective.ordered_comm_ring [ordered_comm_ring α] {β : Type*}
 end ordered_comm_ring
 
 /-- A `linear_ordered_ring α` is a ring `α` with a linear order such that
-multiplication with a positive number and addition are monotone. -/
+addition is monotone and multiplication by a positive number is strictly monotone. -/
 @[protect_proj] class linear_ordered_ring (α : Type u)
   extends ordered_ring α, linear_order α, nontrivial α
 
@@ -1137,9 +1214,9 @@ def function.injective.linear_ordered_ring {β : Type*}
 end linear_ordered_ring
 
 /-- A `linear_ordered_comm_ring α` is a commutative ring `α` with a linear order
-such that multiplication with a positive number and addition are monotone. -/
+such that addition is monotone and multiplication by a positive number is strictly monotone. -/
 @[protect_proj]
-class linear_ordered_comm_ring (α : Type u) extends linear_ordered_ring α, comm_monoid α
+class linear_ordered_comm_ring (α : Type u) extends linear_ordered_ring α, ordered_comm_ring α
 
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_comm_ring.to_ordered_comm_ring [d : linear_ordered_comm_ring α] :

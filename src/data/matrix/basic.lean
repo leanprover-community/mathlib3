@@ -1181,10 +1181,6 @@ by ext i j; refl
 lemma transpose_map {f : α → β} {M : matrix m n α} : Mᵀ.map f = (M.map f)ᵀ :=
 by { ext, refl }
 
-lemma transpose_col_eq_row (M : matrix m n α) (i : m) : (λ j, Mᵀ j i) = M i := rfl
-
-lemma transpose_row_eq_col (M : matrix m n α) (j : n) : Mᵀ j = (λ i, M i j):= rfl
-
 end transpose
 
 section conj_transpose

@@ -441,7 +441,8 @@ open simple_func
 
 section set_to_L1
 
---open continuous_linear_map
+local attribute [instance] Lp.simple_func.module
+local attribute [instance] Lp.simple_func.normed_space
 
 variables (𝕜) [nondiscrete_normed_field 𝕜] [measurable_space 𝕜] [opens_measurable_space 𝕜]
   [second_countable_topology E] [borel_space E] [normed_space 𝕜 E]

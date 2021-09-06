@@ -125,7 +125,7 @@ begin
   rw [h.apply i j]
 end
 
-@[simps]
+@[simp]
 lemma is_adj_matrix_compl [has_zero α] [has_one α] (h : A.is_symm) :
   is_adj_matrix A.compl :=
 { symm := by simp [h] }
@@ -193,7 +193,7 @@ lemma is_symm_adj_matrix [has_zero α] [has_one α] :
 transpose_adj_matrix G
 
 /-- The adjacency matrix of `G` is an adjacency matrix. -/
-@[simps]
+@[simp]
 lemma is_adj_matrix_adj_matrix (α) [has_zero α] [has_one α] :
   (G.adj_matrix α).is_adj_matrix :=
 { zero_or_one := λ i j, by by_cases G.adj i j; simp [h] }

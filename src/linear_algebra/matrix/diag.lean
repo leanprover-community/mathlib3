@@ -222,7 +222,7 @@ begin
 end
 
 /-- `(Aᵀ ⬝ A).is_diag` iff `A.has_orthogonal_cols`. -/
-lemma tranpose_mul_self_is_diag_iff_has_orthogonal_cols
+lemma transpose_mul_self_is_diag_iff_has_orthogonal_cols
 [fintype m] [has_mul α] [add_comm_monoid α] {A : matrix m n α} :
 (Aᵀ ⬝ A).is_diag ↔ A.has_orthogonal_cols :=
 begin

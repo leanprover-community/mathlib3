@@ -40,7 +40,7 @@ instance finite_dimensional (V : FinVect K): finite_dimensional K V := V.prop
 
 instance : inhabited (FinVect K) := ⟨⟨Module.of K K, finite_dimensional.finite_dimensional_self K⟩⟩
 
-protected def coe_comp {U V W : FinVect K} (f : U ⟶ V) (g : V ⟶ W) :
+protected lemma coe_comp {U V W : FinVect K} (f : U ⟶ V) (g : V ⟶ W) :
   ((f ≫ g) : U → W) = (g : V → W) ∘ (f : U → V) := rfl
 
 instance monoidal_category : monoidal_category (FinVect K) :=

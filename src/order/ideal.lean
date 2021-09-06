@@ -90,7 +90,7 @@ ideal_inter_nonempty.inter_nonempty
     Most importantly, a preorder with this property
     satisfies that its ideal poset is a complete lattice.
 -/
-@[mk_iff] class ideal_Inter_nonempty (P) [preorder P] : Prop :=
+class ideal_Inter_nonempty (P) [preorder P] : Prop :=
 (Inter_nonempty : ∀ s : set (ideal P), (set.sInter {S : set P | ∃ (I : ideal P), I ∈ s ∧ S = I.carrier}).nonempty)
 
 lemma Inter_nonempty [preorder P] [ideal_Inter_nonempty P] :
@@ -176,22 +176,19 @@ end
 
 lemma ideal_Inter_nonempty_of_exists_all_mem (h : ∃ a : P, ∀ I : ideal P, a ∈ I) :
 ideal_Inter_nonempty P :=
-begin
-  rw ideal_Inter_nonempty_iff,
-  intro s,
-  cases h with a ha,
-  use a,
-  intros S hS,
-  rcases hS with ⟨I, ⟨hsI, hI⟩⟩,
-  rw hI,
-  exact ha I,
-end
+{ Inter_nonempty := begin
+    intro s,
+    cases h with a ha,
+    use a,
+    intros S hS,
+    rcases hS with ⟨I, ⟨hsI, hI⟩⟩,
+    rw hI,
+    exact ha I,
+  end }
 
-lemma ideal_Inter_nonempty_iff_exists_all_mem :
+lemma ideal_Inter_nonempty_iff :
 ideal_Inter_nonempty P ↔ ∃ a : P, ∀ I : ideal P, a ∈ I :=
-begin
-
-end
+⟨ideal_Inter_nonempty.exists_all_mem, ideal_Inter_nonempty_of_exists_all_mem⟩
 
 end preorder
 
@@ -207,6 +204,10 @@ instance : order_bot (ideal P) :=
 { bot := principal ⊥,
   bot_le := by simp,
   .. ideal.partial_order }
+
+@[priority 100]
+instance order_bot.ideal_inter_nonempty : ideal_inter_nonempty P :=
+{ inter_nonempty := λ _ _, ⟨⊥, ⟨bot_mem, bot_mem⟩⟩ }
 
 end order_bot
 
@@ -345,17 +346,14 @@ section ideal_Inter_nonempty
 
 variables [preorder P] [ideal_Inter_nonempty P]
 
+instance ideal_Inter_nonempty.ideal_inter_nonempty : ideal_inter_nonempty P :=
+{ inter_nonempty := λ _ _, begin
+    cases ideal_Inter_nonempty_iff.1 ‹_› with a ha,
+    exact ⟨a, ha _, ha _⟩
+  end
+}
 
 end ideal_Inter_nonempty
-
-section semilattice_sup_bot
-variables [semilattice_sup_bot P]
-
-@[priority 100]
-instance semilattice_sup_bot.ideal_inter_nonempty : ideal_inter_nonempty P :=
-{ inter_nonempty := λ _ _, ⟨⊥, ⟨bot_mem, bot_mem⟩⟩ }
-
-end semilattice_sup_bot
 
 section semilattice_inf
 

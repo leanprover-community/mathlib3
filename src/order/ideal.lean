@@ -86,15 +86,15 @@ lemma inter_nonempty [preorder P] [ideal_inter_nonempty P] :
 ideal_inter_nonempty.inter_nonempty
 
 /-- A preorder `P` has the `ideal_Inter_nonempty` property if the
-    intersection of any ideals is nonempty.
-    Most importantly, a preorder with this property
+    intersection of all ideals is nonempty.
+    Most importantly, a `???` preorder with this property
     satisfies that its ideal poset is a complete lattice.
 -/
 class ideal_Inter_nonempty (P) [preorder P] : Prop :=
-(Inter_nonempty : ∀ s : set (ideal P), (set.sInter {S : set P | ∃ (I : ideal P), I ∈ s ∧ S = I.carrier}).nonempty)
+(Inter_nonempty : (⋂ (I : ideal P), I.carrier).nonempty)
 
 lemma Inter_nonempty [preorder P] [ideal_Inter_nonempty P] :
-∀ s : set (ideal P), (set.sInter {S : set P | ∃ (I : ideal P), I ∈ s ∧ S = I.carrier}).nonempty :=
+(⋂ (I : ideal P), I.carrier).nonempty :=
 ideal_Inter_nonempty.Inter_nonempty
 
 namespace ideal
@@ -166,25 +166,14 @@ end⟩
 lemma ideal_Inter_nonempty.exists_all_mem (hP : ideal_Inter_nonempty P) :
 ∃ a : P, ∀ I : ideal P, a ∈ I :=
 begin
-  let s : set (ideal P) := λ _, true,
-  have hs := ideal_Inter_nonempty.Inter_nonempty s,
-  rw set.sInter_nonempty_iff at hs,
-  cases hs with a ha,
-  use a,
-  refine λ I, (ha I) ⟨I, by tauto⟩
+  change ∃ (a : P), ∀ (I : ideal P), a ∈ I.carrier,
+  rw ← set.Inter_nonempty_iff,
+  exact Inter_nonempty,
 end
 
 lemma ideal_Inter_nonempty_of_exists_all_mem (h : ∃ a : P, ∀ I : ideal P, a ∈ I) :
 ideal_Inter_nonempty P :=
-{ Inter_nonempty := begin
-    intro s,
-    cases h with a ha,
-    use a,
-    intros S hS,
-    rcases hS with ⟨I, ⟨hsI, hI⟩⟩,
-    rw hI,
-    exact ha I,
-  end }
+{ Inter_nonempty := by rwa set.Inter_nonempty_iff }
 
 lemma ideal_Inter_nonempty_iff :
 ideal_Inter_nonempty P ↔ ∃ a : P, ∀ I : ideal P, a ∈ I :=
@@ -206,8 +195,8 @@ instance : order_bot (ideal P) :=
   .. ideal.partial_order }
 
 @[priority 100]
-instance order_bot.ideal_inter_nonempty : ideal_inter_nonempty P :=
-{ inter_nonempty := λ _ _, ⟨⊥, ⟨bot_mem, bot_mem⟩⟩ }
+instance order_bot.ideal_Inter_nonempty : ideal_Inter_nonempty P :=
+by { rw ideal_Inter_nonempty_iff, exact ⟨⊥, λ I, bot_mem⟩ }
 
 end order_bot
 
@@ -346,14 +335,55 @@ section ideal_Inter_nonempty
 
 variables [preorder P] [ideal_Inter_nonempty P]
 
+@[priority 100]
 instance ideal_Inter_nonempty.ideal_inter_nonempty : ideal_inter_nonempty P :=
 { inter_nonempty := λ _ _, begin
-    cases ideal_Inter_nonempty_iff.1 ‹_› with a ha,
+    cases ideal_Inter_nonempty.exists_all_mem ‹_› with a ha,
     exact ⟨a, ha _, ha _⟩
   end
 }
 
+variables {α β γ : Type*} {ι : Sort*}
+
+lemma ideal_Inter_nonempty.ideal_Inter_nonempty {f : ι → ideal P} :
+(⋂ x, (f x : set P)).nonempty :=
+begin
+  cases ideal_Inter_nonempty.exists_all_mem ‹_› with a ha,
+  exact ⟨a, by simp [ha]⟩
+end
+
+lemma ideal_Inter_nonempty.ideal_bInter_nonempty {f : α → ideal P} {s : set α} :
+(⋂ x ∈ s, (f x : set P)).nonempty :=
+begin
+  cases ideal_Inter_nonempty.exists_all_mem ‹_› with a ha,
+  exact ⟨a, by simp [ha]⟩
+end
+
 end ideal_Inter_nonempty
+
+section semilattice_sup_ideal_Inter_nonempty
+
+variables [semilattice_sup P] [ideal_Inter_nonempty P] {x : P} {I J K : ideal P}
+
+def Inf (s : set (ideal P)) : ideal P :=
+{ carrier := ⋂ (I ∈ s), (I : set P),
+  nonempty := ideal_Inter_nonempty.ideal_bInter_nonempty,
+  directed := λ x hx y hy, ⟨x ⊔ y, ⟨λ S ⟨I, hS⟩,
+    begin
+      simp [← hS],
+      intro hI,
+      rw set.mem_bInter_iff at *,
+      tauto,
+    end, le_sup_left, le_sup_right⟩
+    ⟩,
+  mem_of_le := λ x y hxy hy, begin
+    rw set.mem_bInter_iff at *,
+    exact λ I hI, mem_of_le I ‹_› (hy I hI)
+  end
+}
+
+
+end semilattice_sup_ideal_Inter_nonempty
 
 section semilattice_inf
 

@@ -72,10 +72,10 @@ sqrt.symm_apply_apply x
 
 @[simp] lemma sqrt_mul_self (x : ℝ≥0) : sqrt (x * x) = x := sqrt.apply_symm_apply x
 
-lemma sq_sqrt (x : ℝ≥0) : sqrt x^2 = x :=
+@[simp] lemma sq_sqrt (x : ℝ≥0) : sqrt x^2 = x :=
 by rw [sq, mul_self_sqrt x]
 
-lemma sqrt_sq (x : ℝ≥0) : sqrt (x^2) = x :=
+@[simp] lemma sqrt_sq (x : ℝ≥0) : sqrt (x^2) = x :=
 by rw [sq, sqrt_mul_self x]
 
 lemma sqrt_mul (x y : ℝ≥0) : sqrt (x * y) = sqrt x * sqrt y :=

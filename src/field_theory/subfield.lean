@@ -240,7 +240,7 @@ lemma to_subring.subtype_eq_subtype (F : Type*) [field F] (S : subfield F) :
 
 /-- The center of a division ring `K` is the subfield of elements that commute with all of `K`. -/
 def center (K : Type*) [division_ring K] : subfield K :=
-{ inv_mem' := λ x hx y, by rw [← inv_inv' y, ← mul_inv_rev' x, hx y⁻¹, mul_inv_rev'],
+{ inv_mem' := λ x, set.inv_mem_center',
   mul_comm' := λ x y hx hy, hx y,
   .. subring.center K }
 

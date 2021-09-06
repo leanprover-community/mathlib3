@@ -150,7 +150,7 @@ lemma unit_right {a : α} (ha : ¬is_unit a) (u : units α) : multiplicity a u =
 is_unit_right ha u.is_unit
 
 lemma multiplicity_eq_zero_of_not_dvd {a b : α} (ha : ¬a ∣ b) : multiplicity a b = 0 :=
-nat.cast_zero ▸ eq_coe_iff.2 $ show a ^ 0 ∣ b ∧ ¬a ^ (0 + 1) ∣ b, by simpa
+by { rw [← nat.cast_zero, eq_coe_iff], simpa }
 
 lemma eq_top_iff_not_finite {a b : α} : multiplicity a b = ⊤ ↔ ¬ finite a b :=
 part.eq_none_iff'
@@ -193,7 +193,11 @@ le_antisymm (multiplicity_le_multiplicity_of_dvd_right h.dvd)
   (multiplicity_le_multiplicity_of_dvd_right h.symm.dvd)
 
 lemma dvd_of_multiplicity_pos {a b : α} (h : (0 : enat) < multiplicity a b) : a ∣ b :=
-by { rw ← pow_one a, exact pow_dvd_of_le_multiplicity (nat.cast_one.symm ▸ enat.pos_iff_one_le.1 h) }
+begin
+  rw ← pow_one a,
+  apply pow_dvd_of_le_multiplicity,
+  simpa only [nat.cast_one, enat.pos_iff_one_le] using h
+end
 
 lemma dvd_iff_multiplicity_pos {a b : α} : (0 : enat) < multiplicity a b ↔ a ∣ b :=
 ⟨dvd_of_multiplicity_pos,

@@ -407,7 +407,7 @@ by appending the inverse of the product of `v`. -/
   { rw [←list.prod_cons, ←vector.to_list_cons, v.1.cons_head_tail],
     exact v.2 })).symm rfl).trans v.1.cons_head_tail) }
 
-/-- Given a vector `v` of length `n` whose product is 1, make a vector of length `n - 1`
+/-- Given a vector `v` of length `n` whose product is 1, make a vector of length `n - 1`,
 by deleting the last entry of `v`. -/
 def equiv_vector : vectors_prod_eq_one G n ≃ vector G (n - 1) :=
 ((vector_equiv G (n - 1)).trans (if hn : n = 0 then (show vectors_prod_eq_one G (n - 1 + 1) ≃
@@ -423,6 +423,7 @@ lemma card [fintype G] :
 
 variables {G n} {g : G} (v : vectors_prod_eq_one G n) (j k : ℕ)
 
+/-- Rotate a vector whose product is 1. -/
 def rotate : vectors_prod_eq_one G n :=
 ⟨⟨_, (v.1.1.length_rotate k).trans v.1.2⟩, list.prod_rotate_eq_one_of_prod_eq_one v.2 k⟩
 

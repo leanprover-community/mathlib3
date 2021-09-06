@@ -38,16 +38,13 @@ namespace FinVect
 
 instance finite_dimensional (V : FinVect K): finite_dimensional K V := V.prop
 
-instance has_coe_to_fn (V W : FinVect K) : has_coe_to_fun (V ⟶ W) :=
-  ⟨λ _, V → W, λ f, f.to_fun⟩
-
 instance : inhabited (FinVect K) := ⟨⟨Module.of K K, finite_dimensional.finite_dimensional_self K⟩⟩
 
 instance monoidal_category : monoidal_category (FinVect K) :=
-@monoidal_category.full_monoidal_subcategory _ _ Module.monoidal_category
- (λ (V : Module K), finite_dimensional K V)
- (by { exact finite_dimensional.finite_dimensional_self K})
- (λ X Y hX hY, @finite_dimensional_tensor_product K X Y _ _ _ _ _ hX hY)
+monoidal_category.full_monoidal_subcategory
+  (λ V, finite_dimensional K V)
+  (finite_dimensional.finite_dimensional_self K)
+  (λ X Y hX hY, by exactI finite_dimensional_tensor_product X Y)
 
 variables (V : FinVect K)
 
@@ -59,19 +56,19 @@ open category_theory.monoidal_category
 
 /-- The coevaluation map is defined in `linear_algebra.coevaluation`. -/
 def FinVect_coevaluation : 𝟙_ (FinVect K) ⟶ V ⊗ (FinVect_dual K V) :=
-by { haveI := V.prop, change _ →ₗ[K] _, apply coevaluation K V }
+by { haveI := V.prop, exact coevaluation K V }
 
 lemma FinVect_coevaluation_apply_one : FinVect_coevaluation K V (1 : K) =
    ∑ (i : basis.of_vector_space_index K V),
     (basis.of_vector_space K V) i ⊗ₜ[K] (basis.of_vector_space K V).coord i :=
-by { simp only [FinVect_coevaluation], apply coevaluation_apply_one K V }
+by { apply coevaluation_apply_one K V }
 
 /-- The evaluation morphism is given by the contraction map. -/
 def FinVect_evaluation : (FinVect_dual K V) ⊗ V ⟶ 𝟙_ (FinVect K) :=
 (contract_left K V : _  →ₗ[K] K)
 
 lemma FinVect_evaluation_apply (f : (FinVect_dual K V)) (x : V) :
-  (FinVect_evaluation K V) (f ⊗ₜ x) = by { change K, change _ →ₗ[K] _ at f, exact f x } :=
+  (FinVect_evaluation K V) (f ⊗ₜ x) = by { change _ →ₗ[K] _ at f, exact f x } :=
 by { simp only [FinVect_evaluation, id], apply contract_left_apply f x }
 
 @[simp]
@@ -121,12 +118,12 @@ begin
   simp only [tensor_product.mk_apply, basis.coe_dual_basis],
   erw [linear_map.coe_comp, linear_map.coe_comp, linear_map.coe_comp],
   rw [function.comp_app, function.comp_app, function.comp_app],
-  erw [right_unitor_hom_apply_tensor_one K, left_unitor_inv_apply K, tensor_hom_apply K],
+  rw [right_unitor_hom_apply_tensor_one K, left_unitor_inv_apply K, tensor_hom_apply K],
   rw [id_apply, FinVect_coevaluation_apply_one K V, tensor_product.tmul_sum],
   simp only [linear_map.map_sum, linear_map.to_fun_eq_coe],
   conv_lhs { congr, skip, funext,
     rw [associator_inv_apply K, tensor_hom_apply K, id_apply K, FinVect_evaluation_apply,
-     id.def, id.def, basis.coord_apply, (basis.of_vector_space K V).repr_self_apply,
+     id.def, basis.coord_apply, (basis.of_vector_space K V).repr_self_apply,
      tensor_product.ite_tmul] },
   rw [finset.sum_ite_eq'], simp only [finset.mem_univ, if_true]
 end
@@ -142,12 +139,12 @@ begin
   simp only [tensor_product.mk_apply, basis.coe_dual_basis],
   erw [linear_map.coe_comp, linear_map.coe_comp, linear_map.coe_comp],
   rw [function.comp_app, function.comp_app, function.comp_app],
-  erw [left_unitor_hom_apply_one_tensor K, right_unitor_inv_apply K, tensor_hom_apply K],
+  rw [left_unitor_hom_apply_one_tensor K, right_unitor_inv_apply K, tensor_hom_apply K],
   rw [id_apply, FinVect_coevaluation_apply_one K V, tensor_product.sum_tmul],
   simp only [linear_map.map_sum, linear_map.to_fun_eq_coe],
   conv_lhs { congr, skip, funext,
     rw [associator_hom_apply K, tensor_hom_apply K, id_apply K, FinVect_evaluation_apply,
-     id.def, id.def, basis.coord_apply, (basis.of_vector_space K V).repr_self_apply,
+     id.def, basis.coord_apply, (basis.of_vector_space K V).repr_self_apply,
      tensor_product.tmul_ite] },
   rw [finset.sum_ite_eq], simp only [finset.mem_univ, if_true]
 end

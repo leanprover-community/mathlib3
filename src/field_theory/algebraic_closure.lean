@@ -395,39 +395,64 @@ namespace subfield_with_hom
 variables {E₁ E₂ E₃ : subfield_with_hom K L M hL}
 
 instance : has_le (subfield_with_hom K L M hL) :=
-{ le := λ E₁ E₂, ∃ h : E₁.carrier ≤ E₂.carrier, E₂.emb ∘ inclusion h = E₁.emb }
+{ le := λ E₁ E₂, ∃ h : E₁.carrier ≤ E₂.carrier, ∀ x, E₂.emb (inclusion h x) = E₁.emb x }
 
-lemma le_def : E₁ ≤ E₂ ↔ ∃ h : E₁.carrier ≤ E₂.carrier, E₂.emb ∘ inclusion h = E₁.emb := iff.rfl
+lemma le_def : E₁ ≤ E₂ ↔ ∃ h : E₁.carrier ≤ E₂.carrier, ∀ x, E₂.emb (inclusion h x) = E₁.emb x :=
+iff.rfl
 
-lemma subalgebra_le_of_le (h : E₁ ≤ E₂) : E₁.carrier ≤ E₂.carrier :=
-by { rw le_def at h, cases h, assumption }
-
-lemma compat (h : E₁ ≤ E₂) : E₂.emb ∘ inclusion (subalgebra_le_of_le h) = E₁.emb :=
+lemma compat (h : E₁ ≤ E₂) : ∀ x, E₂.emb (inclusion h.fst x) = E₁.emb x :=
 by { rw le_def at h, cases h, assumption }
 
 instance : preorder (subfield_with_hom K L M hL) :=
-{ le := λ E₁ E₂, ∃ h : E₁.carrier ≤ E₂.carrier, E₂.emb ∘ inclusion h = E₁.emb,
-  le_refl := λ E, ⟨le_refl _, by rw [inclusion_refl, comp.right_id]⟩,
-  le_trans := λ E₁ E₂ E₃ h₁₂ h₂₃, ⟨le_trans (subalgebra_le_of_le h₁₂) (subalgebra_le_of_le h₂₃),
-  begin
-    erw inclusion_trans (subalgebra_le_of_le h₁₂) (subalgebra_le_of_le h₂₃),
-    rw [← comp.assoc, compat, compat]
-  end⟩ }
+{ le := (≤),
+  le_refl := λ E, ⟨le_refl _, by simp⟩,
+  le_trans := λ E₁ E₂ E₃ h₁₂ h₂₃,
+    ⟨le_trans h₁₂.fst h₂₃.fst,
+    λ _, by erw [← inclusion_inclusion h₁₂.fst h₂₃.fst, compat, compat]⟩,
+  -- le_antisymm := λ a b hab hba, begin
+  --   cases a with a aemb,
+  --   cases b with b bemb,
+  --   have h : a = b, from le_antisymm hab.fst hba.fst,
+  --   subst b,
+  --   simp only [true_and, eq_self_iff_true, heq_iff_eq],
+  --   ext x,
+  --   refine eq.trans (hab.snd x).symm _,
+  --   simp
+  -- end
+  }
 
 end subfield_with_hom
 
 open lattice
 
-def maximal_subfield_with_hom_chain (c : set (subfield_with_hom K L M hL)) (hc : chain (≤) c) :
+def maximal_subfield_with_hom_chain (c : set (subfield_with_hom K L M hL))
+  [nonempty c]
+  (hc : chain (≤) c) :
   ∃ ub : subfield_with_hom K L M hL, ∀ N, N ∈ c → N ≤ ub :=
 let ub : subfield_with_hom K L M hL :=
-{ carrier := Sup (subfield_with_hom.carrier '' c),
-  emb :=  } in
-⟨ub, λ N hN,
-begin
-  refine ⟨le_Sup ⟨N, hN, rfl⟩, _⟩,
-  sorry
-end⟩
+{ carrier := ⨆ i : c, (i : subfield_with_hom K L M hL).carrier,
+  emb := subalgebra.supr_lift
+    (λ i : c, (i : subfield_with_hom K L M hL).carrier)
+    (λ i j, let ⟨k, hik, hjk⟩ := directed_on_iff_directed.1 hc.directed_on i j in
+      ⟨k, hik.fst, hjk.fst⟩)
+    (λ i, (i : subfield_with_hom K L M hL).emb)
+    begin
+      assume i j h,
+      ext x,
+      cases hc.total i.prop j.prop with hij hji,
+      { simp [← hij.snd x] },
+      { erw [alg_hom.comp_apply, ← hji.snd (inclusion h x),
+          inclusion_inclusion, inclusion_self, alg_hom.id_apply x] }
+    end } in
+⟨ub, λ N hN, ⟨(le_supr (λ i : c, (i : subfield_with_hom K L M hL).carrier) ⟨N, hN⟩ : _),
+  begin
+    intro x,
+    simp [ub],
+
+  end⟩⟩
+  -- ⟨le_supr (λ i : c, (i : subfield_with_hom K L M hL).carrier) ⟨N, hN⟩, begin
+
+  --end⟩⟩
 
 variables (hL M)
 

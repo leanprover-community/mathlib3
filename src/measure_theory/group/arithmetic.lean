@@ -388,11 +388,13 @@ instance has_measurable_div₂_of_mul_inv (G : Type*) [measurable_space G]
   has_measurable_div₂ G :=
 ⟨by { simp only [div_eq_mul_inv], exact measurable_fst.mul measurable_snd.inv }⟩
 
--- TODO doc
+/-- We say that the action of `M` on `α` `has_measurable_vadd` if for each `c` the map `x ↦ c +ᵥ x`
+is a measurable function and for each `x` the map `c ↦ c +ᵥ x` is a measurable function. -/
 class has_measurable_vadd (M α : Type*) [has_vadd M α] [measurable_space M] [measurable_space α] :
   Prop :=
 (measurable_const_vadd : ∀ c : M, measurable ((+ᵥ) c : α → α))
 (measurable_vadd_const : ∀ x : α, measurable (λ c : M, c +ᵥ x))
+
 /-- We say that the action of `M` on `α` `has_measurable_smul` if for each `c` the map `x ↦ c • x`
 is a measurable function and for each `x` the map `c ↦ c • x` is a measurable function. -/
 @[to_additive]
@@ -401,12 +403,13 @@ class has_measurable_smul (M α : Type*) [has_scalar M α] [measurable_space M] 
 (measurable_const_smul : ∀ c : M, measurable ((•) c : α → α))
 (measurable_smul_const : ∀ x : α, measurable (λ c : M, c • x))
 
---TODO doc
+/-- We say that the action of `M` on `α` `has_measurable_vadd₂` if the map
+`(c, x) ↦ c +ᵥ x` is a measurable function. -/
 class has_measurable_vadd₂ (M α : Type*) [has_vadd M α] [measurable_space M]
   [measurable_space α] : Prop :=
 (measurable_vadd : measurable (function.uncurry (+ᵥ) : M × α → α))
 
-/-- We say that the action of `M` on `α` `has_measurable_smul` if the map
+/-- We say that the action of `M` on `α` `has_measurable_smul₂` if the map
 `(c, x) ↦ c • x` is a measurable function. -/
 @[to_additive has_measurable_vadd₂]
 class has_measurable_smul₂ (M α : Type*) [has_scalar M α] [measurable_space M]
@@ -627,3 +630,5 @@ attribute [measurability] list.measurable_sum' list.ae_measurable_sum' list.meas
   list.ae_measurable_sum multiset.measurable_sum' multiset.ae_measurable_sum'
   multiset.measurable_sum multiset.ae_measurable_sum finset.measurable_sum'
   finset.ae_measurable_sum' finset.measurable_sum finset.ae_measurable_sum
+
+#lint

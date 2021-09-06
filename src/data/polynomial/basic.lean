@@ -624,7 +624,7 @@ lemma support_update [Π r : R, decidable (r = 0)] (p : polynomial R) (n : ℕ) 
   support (p.update n a) = if a = 0 then p.support.erase n else insert n p.support :=
 by { cases p, simpa [support, update] using finsupp.support_update _ _ _ }
 
-@[simp] lemma support_update_zero [Π r : R, decidable (r = 0)] (p : polynomial R) (n : ℕ) :
+lemma support_update_zero [Π r : R, decidable (r = 0)] (p : polynomial R) (n : ℕ) :
   support (p.update n 0) = p.support.erase n :=
 by rw [support_update, if_pos rfl]
 

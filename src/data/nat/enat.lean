@@ -242,11 +242,11 @@ enat.cases_on x not_top_lt $ λ _ _, dom_coe _
 lemma top_eq_none : (⊤ : enat) = none := rfl
 
 @[simp] lemma coe_lt_top (x : ℕ) : (x : enat) < ⊤ :=
-lt_of_le_of_ne le_top (λ h, absurd (congr_arg dom h) $ by simpa only [dom_coe] using true_ne_false)
+ne.lt_top (λ h, absurd (congr_arg dom h) $ by simpa only [dom_coe] using true_ne_false)
 
 @[simp] lemma coe_ne_top (x : ℕ) : (x : enat) ≠ ⊤ := ne_of_lt (coe_lt_top x)
 
-lemma ne_top_iff {x : enat} : x ≠ ⊤ ↔ ∃(n : ℕ), x = n :=
+lemma ne_top_iff {x : enat} : x ≠ ⊤ ↔ ∃ (n : ℕ), x = n :=
 by simpa only [← some_eq_coe] using part.ne_none_iff
 
 lemma ne_top_iff_dom {x : enat} : x ≠ ⊤ ↔ x.dom :=

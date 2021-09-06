@@ -73,9 +73,9 @@ by rw mul_comm; exact finite_of_finite_mul_left
 variable [decidable_rel ((∣) : α → α → Prop)]
 
 lemma pow_dvd_of_le_multiplicity {a b : α} {k : ℕ} : (k : enat) ≤ multiplicity a b → a ^ k ∣ b :=
-by rw [← enat.some_eq_coe]; exact
+by { rw ← enat.some_eq_coe, exact
 nat.cases_on k (λ _, by { rw pow_zero, exact one_dvd _ })
-  (λ k ⟨h₁, h₂⟩, by_contradiction (λ hk, (nat.find_min _ (lt_of_succ_le (h₂ ⟨k, hk⟩)) hk)))
+  (λ k ⟨h₁, h₂⟩, by_contradiction (λ hk, (nat.find_min _ (lt_of_succ_le (h₂ ⟨k, hk⟩)) hk))) }
 
 lemma pow_multiplicity_dvd {a b : α} (h : finite a b) : a ^ get (multiplicity a b) h ∣ b :=
 pow_dvd_of_le_multiplicity (by rw enat.coe_get)
@@ -129,7 +129,7 @@ eq_top_iff.2 (λ _, is_unit_iff_forall_dvd.1 (ha.pow _) _)
 lemma is_unit_right {a b : α} (ha : ¬is_unit a) (hb : is_unit b) :
   multiplicity a b = 0 :=
 eq_coe_iff.2 ⟨show a ^ 0 ∣ b, by simp only [pow_zero, one_dvd],
-  by { rw pow_one, exact λ h, mt (is_unit_of_dvd_unit h) ha hb, }⟩
+  by { rw pow_one, exact λ h, mt (is_unit_of_dvd_unit h) ha hb }⟩
 
 @[simp] lemma one_left (b : α) : multiplicity 1 b = ⊤ := is_unit_left b is_unit_one
 
@@ -191,7 +191,7 @@ le_antisymm (multiplicity_le_multiplicity_of_dvd_right h.dvd)
   (multiplicity_le_multiplicity_of_dvd_right h.symm.dvd)
 
 lemma dvd_of_multiplicity_pos {a b : α} (h : (0 : enat) < multiplicity a b) : a ∣ b :=
-by rw [← pow_one a]; exact pow_dvd_of_le_multiplicity (enat.coe_one.symm ▸ enat.pos_iff_one_le.1 h)
+by { rw ← pow_one a, exact pow_dvd_of_le_multiplicity (enat.coe_one.symm ▸ enat.pos_iff_one_le.1 h) }
 
 lemma dvd_iff_multiplicity_pos {a b : α} : (0 : enat) < multiplicity a b ↔ a ∣ b :=
 ⟨dvd_of_multiplicity_pos,
@@ -343,10 +343,10 @@ variable [decidable_rel ((∣) : α → α → Prop)]
 
 @[simp] lemma multiplicity_self {a : α} (ha : ¬is_unit a) (ha0 : a ≠ 0) :
   multiplicity a a = 1 :=
-by rw [← enat.coe_one]; exact
+by { rw ← nat.cast_one, exact
 eq_coe_iff.2 ⟨by simp, λ ⟨b, hb⟩, ha (is_unit_iff_dvd_one.2
-  ⟨b, mul_left_cancel' ha0 $ by clear _fun_match;
-    simpa [pow_succ, mul_assoc] using hb⟩)⟩
+  ⟨b, mul_left_cancel' ha0 $ by { clear _fun_match,
+    simpa [pow_succ, mul_assoc] using hb }⟩)⟩ }
 
 @[simp] lemma get_multiplicity_self {a : α} (ha : finite a a) :
   get (multiplicity a a) ha = 1 :=

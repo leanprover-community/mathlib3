@@ -55,6 +55,10 @@ variables (V : FinVect K)
 def FinVect_dual : FinVect K :=
 ⟨Module.of K (module.dual K V), subspace.module.dual.finite_dimensional⟩
 
+instance : has_coe_to_fun (FinVect_dual K V) :=
+{ F := λ v, V → K,
+  coe := λ v, by { change V →ₗ[K] K at v, exact v, }, }
+
 open category_theory.monoidal_category
 
 /-- The coevaluation map is defined in `linear_algebra.coevaluation`. -/
@@ -71,8 +75,8 @@ def FinVect_evaluation : (FinVect_dual K V) ⊗ V ⟶ 𝟙_ (FinVect K) :=
 (contract_left K V : _  →ₗ[K] K)
 
 lemma FinVect_evaluation_apply (f : (FinVect_dual K V)) (x : V) :
-  (FinVect_evaluation K V) (f ⊗ₜ x) = by { change _ →ₗ[K] _ at f, exact f x } :=
-by { simp only [FinVect_evaluation, id], apply contract_left_apply f x }
+  (FinVect_evaluation K V) (f ⊗ₜ x) = f x :=
+by apply contract_left_apply f x
 
 @[simp]
 lemma right_unitor_hom_apply_tensor_one (x : V) :
@@ -119,14 +123,13 @@ begin
   apply (basis.of_vector_space K V).dual_basis.ext, intro j, apply linear_map.ext_ring,
   rw [linear_map.compr₂_apply, linear_map.compr₂_apply],
   simp only [tensor_product.mk_apply, basis.coe_dual_basis, FinVect.coe_comp],
-  rw [function.comp_app, function.comp_app, function.comp_app],
-  rw [right_unitor_hom_apply_tensor_one K, left_unitor_inv_apply K, tensor_hom_apply K],
-  rw [id_apply, FinVect_coevaluation_apply_one K V, tensor_product.tmul_sum],
-  simp only [linear_map.map_sum, linear_map.to_fun_eq_coe],
+  rw [function.comp_app, function.comp_app, function.comp_app,
+   right_unitor_hom_apply_tensor_one K, left_unitor_inv_apply K, tensor_hom_apply K,
+   id_apply, FinVect_coevaluation_apply_one K V, tensor_product.tmul_sum],
+  simp only [linear_map.map_sum],
   conv_lhs { congr, skip, funext,
     rw [associator_inv_apply K, tensor_hom_apply K, id_apply K, FinVect_evaluation_apply,
-     id.def, basis.coord_apply, (basis.of_vector_space K V).repr_self_apply,
-     tensor_product.ite_tmul] },
+     basis.coord_apply, (basis.of_vector_space K V).repr_self_apply, tensor_product.ite_tmul] },
   rw [finset.sum_ite_eq'], simp only [finset.mem_univ, if_true]
 end
 
@@ -139,14 +142,13 @@ begin
   apply linear_map.ext_ring, apply (basis.of_vector_space K V).ext, intro j,
   rw [linear_map.compr₂_apply, linear_map.compr₂_apply],
   simp only [tensor_product.mk_apply, basis.coe_dual_basis, FinVect.coe_comp],
-  rw [function.comp_app, function.comp_app, function.comp_app],
-  rw [left_unitor_hom_apply_one_tensor K, right_unitor_inv_apply K, tensor_hom_apply K],
-  rw [id_apply, FinVect_coevaluation_apply_one K V, tensor_product.sum_tmul],
+  rw [function.comp_app, function.comp_app, function.comp_app,
+   left_unitor_hom_apply_one_tensor K, right_unitor_inv_apply K, tensor_hom_apply K,
+   id_apply, FinVect_coevaluation_apply_one K V, tensor_product.sum_tmul],
   simp only [linear_map.map_sum, linear_map.to_fun_eq_coe],
   conv_lhs { congr, skip, funext,
     rw [associator_hom_apply K, tensor_hom_apply K, id_apply K, FinVect_evaluation_apply,
-     id.def, basis.coord_apply, (basis.of_vector_space K V).repr_self_apply,
-     tensor_product.tmul_ite] },
+     basis.coord_apply, (basis.of_vector_space K V).repr_self_apply, tensor_product.tmul_ite] },
   rw [finset.sum_ite_eq], simp only [finset.mem_univ, if_true]
 end
 

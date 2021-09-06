@@ -126,13 +126,6 @@ begin
   simp [dot_product, vec_mul, finset.sum_mul, mul_assoc],
 end
 
-/-- the `star` version of `dot_product_vec_mul_hadamard` -/
-lemma dot_product_vec_mul_star_hadamard [star_ring α] [decidable_eq m] [decidable_eq n]
-  (A : matrix m n α) (B : matrix m n α) (v : m → α) (w : n → α) :
-  dot_product (vec_mul (star v)  (A ⊙ B)) w =
-  trace m R α ((diagonal v)ᴴ ⬝ A ⬝ (B ⬝ (diagonal w))ᵀ) :=
-by rw [diagonal_conj_transpose, dot_product_vec_mul_hadamard R]
-
 end trace
 
 end basic_properties

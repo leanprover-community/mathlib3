@@ -2138,7 +2138,7 @@ instance : semilattice_sup_bot (multiset α) :=
   bot_le := zero_le,
   ..multiset.lattice }
 
-theorem repeat_inf {α : Type} [decidable_eq α] (s : multiset α) (a : α) (n : ℕ) :
+theorem repeat_inf (s : multiset α) (a : α) (n : ℕ) :
   (repeat a n) ⊓ s = repeat a (min (s.count a) n) :=
 begin
   ext x,

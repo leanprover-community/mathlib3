@@ -630,5 +630,3 @@ attribute [measurability] list.measurable_sum' list.ae_measurable_sum' list.meas
   list.ae_measurable_sum multiset.measurable_sum' multiset.ae_measurable_sum'
   multiset.measurable_sum multiset.ae_measurable_sum finset.measurable_sum'
   finset.ae_measurable_sum' finset.measurable_sum finset.ae_measurable_sum
-
-#lint

@@ -125,7 +125,7 @@ end
 
 /-- circulant matrices commute in multiplication under certain condations. -/
 lemma circulant_mul_comm
-[comm_semigroup α] [add_comm_monoid α] [fintype I] [add_comm_group I] (v w : I → α) :
+  [comm_semigroup α] [add_comm_monoid α] [fintype I] [add_comm_group I] (v w : I → α) :
   circulant v ⬝ circulant w = circulant w ⬝ circulant v :=
 begin
   ext i j,
@@ -140,7 +140,7 @@ begin
 end
 
 lemma fin.circulant_mul_comm
-[comm_semigroup α] [add_comm_monoid α] (v w : fin n → α) :
+  [comm_semigroup α] [add_comm_monoid α] (v w : fin n → α) :
   circulant v ⬝ circulant w = circulant w ⬝ circulant v :=
 begin
   induction n with n ih, {refl},

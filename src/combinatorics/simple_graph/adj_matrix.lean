@@ -84,7 +84,7 @@ begin
 end
 
 /-- For `A : matrix V V α` and `h : adj_matrix A`,
-    `h.to_graph` is the simple graph induced by `A`. -/
+    `h.to_graph` is the simple graph whose adjacency matrix is `A`. -/
 def to_graph [has_zero α] [has_one α] [decidable_eq α]
   {A : matrix V V α} (h : adj_matrix A) :
   simple_graph V :=

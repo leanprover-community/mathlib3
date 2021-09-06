@@ -41,22 +41,14 @@ calc totient n ≤ (range n).card : card_filter_le _ _
 
 lemma totient_lt (n : ℕ) (hn : 1 < n) : φ n < n :=
 calc totient n ≤ ((range n).filter (≠ 0)).card :
-                begin
-                  simp only [totient],
-                  apply card_le_of_subset,
-                  apply monotone_filter_right,
-                  intros n1 hn1 hn1',
-                  rw hn1' at hn1,
-                  simp at hn1,
-                  linarith,
-                end
-           ... = n - 1             :
-                begin
-                  rw [filter_ne' (range n) 0, card_erase_of_mem],
-                  simp [pred_eq_sub_one n],
-                  simp [pos_of_gt hn],
-                end
-           ... < n : buffer.lt_aux_2 (pos_of_gt hn)
+  begin
+    apply card_le_of_subset (monotone_filter_right _ _),
+    intros n1 hn1 hn1',
+    simpa only [hn1', coprime_zero_right, hn.ne'] using hn1,
+  end
+... = n - 1 : by simp only [filter_ne' (range n) 0, card_erase_of_mem, n.pred_eq_sub_one,
+                card_range, pos_of_gt hn, mem_range]
+... < n : buffer.lt_aux_2 (pos_of_gt hn)
 
 lemma totient_pos : ∀ {n : ℕ}, 0 < n → 0 < φ n
 | 0 := dec_trivial

@@ -124,7 +124,7 @@ begin
 end
 
 @[simp]
-lemma symm_compl [has_zero α] [has_one α] [decidable_eq α] [decidable_eq V]
+lemma is_symm_compl [has_zero α] [has_one α] [decidable_eq α] [decidable_eq V]
 (A : matrix V V α) (h : A.is_symm) :
   A.compl.is_symm :=
 begin

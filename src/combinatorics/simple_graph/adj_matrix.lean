@@ -127,19 +127,9 @@ lemma compl_to_graph_eq [mul_zero_one_class α] [nontrivial α] (h : is_adj_matr
   h.compl.to_graph = (h.to_graph)ᶜ :=
 begin
   ext v w,
-  dsimp [simple_graph.has_compl, to_graph],
-  simp only [and_true, if_false_right_eq_and, matrix.compl],
-  split,
-  { intros h₁,
-    by_cases h₂ : v = w,
-    { simp * at * },
-    refine ⟨h₂, _⟩,
-    intros g,
-    rw [← apply_ne_zero_iff h] at g,
-    simp * at *  },
-  { rintros ⟨h₁, h₂⟩,
-    rw [apply_ne_one_iff h] at h₂,
-    simp [h₁, h₂] }
+  cases h.zero_or_one v w with h h;
+  by_cases hvw : v = w;
+  simp [matrix.compl, h, hvw],
 end
 
 end is_adj_matrix

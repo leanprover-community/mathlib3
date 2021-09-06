@@ -3,8 +3,10 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import data.finset.nat_antidiagonal
+
 import data.polynomial.basic
+import data.finset.nat_antidiagonal
+import data.nat.choose.sum
 
 /-!
 # Theory of univariate polynomials
@@ -147,6 +149,23 @@ by rw [C_mul_X_pow_eq_monomial, support_monomial n c H]
 
 lemma support_C_mul_X_pow' {c : R} {n : ℕ} : (C c * X^n).support ⊆ singleton n :=
 by { rw [C_mul_X_pow_eq_monomial], exact support_monomial' n c }
+
+lemma coeff_X_add_one_pow (R : Type*) [semiring R] (n k : ℕ) :
+  ((X + 1) ^ n).coeff k = (n.choose k : R) :=
+begin
+  rw [(commute_X (1 : polynomial R)).add_pow, ← lcoeff_apply, linear_map.map_sum],
+  simp only [one_pow, mul_one, lcoeff_apply, ← C_eq_nat_cast, coeff_mul_C, nat.cast_id],
+  rw [finset.sum_eq_single k, coeff_X_pow_self, one_mul],
+  { intros _ _,
+    simp only [coeff_X_pow, boole_mul, ite_eq_right_iff, ne.def] {contextual := tt},
+    rintro h rfl, contradiction },
+  { simp only [coeff_X_pow_self, one_mul, not_lt, finset.mem_range],
+    intro h, rw [nat.choose_eq_zero_of_lt h, nat.cast_zero], }
+end
+
+lemma coeff_one_add_X_pow (R : Type*) [semiring R] (n k : ℕ) :
+  ((1 + X) ^ n).coeff k = (n.choose k : R) :=
+by rw [add_comm _ X, coeff_X_add_one_pow]
 
 lemma C_dvd_iff_dvd_coeff (r : R) (φ : polynomial R) :
   C r ∣ φ ↔ ∀ i, r ∣ φ.coeff i :=

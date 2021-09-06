@@ -628,7 +628,7 @@ by simp only [lsmul, alg_hom.to_linear_map_apply, linear_map.mk_continuous₂_ap
 
 end smul_linear
 
-section lsmul_left_right
+section lsmul_left
 
 variables (𝕜)
 
@@ -658,7 +658,7 @@ begin
     exact (mul_le_mul_right (by simp)).mp h, },
 end
 
-end lsmul_left_right
+end lsmul_left
 
 section restrict_scalars
 

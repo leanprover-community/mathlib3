@@ -52,17 +52,11 @@ instance monoidal_category : monoidal_category (FinVect K) :=
  (by { exact finite_dimensional.finite_dimensional_self K})
  (λ X Y hX hY, @finite_dimensional_tensor_product K X Y _ _ _ _ _ hX hY)
 
--- This should go to `linear_algebra`.
-instance finite_dimensional_dual (V : Type*) [add_comm_group V] [module K V]
-  [finite_dimensional K V] :
-  finite_dimensional K (module.dual K V) :=
-finite_dimensional.of_fintype_basis (basis.dual_basis (basis.of_vector_space K V))
-
 variables (V : FinVect K)
 
 /-- The dual module is the dual in the rigid monoidal category `FinVect K`. -/
 def FinVect_dual : FinVect K :=
-⟨Module.of K (module.dual K V.val), FinVect.finite_dimensional_dual K V.val⟩
+⟨Module.of K (module.dual K V.val), subspace.module.dual.finite_dimensional⟩
 
 open category_theory.monoidal_category
 

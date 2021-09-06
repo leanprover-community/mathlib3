@@ -150,6 +150,45 @@ def trans {f₀ f₁ f₂ : X → Y} (F : homotopy f₀ f₁) (G : homotopy f₁
   to_fun_zero := λ x, by norm_num,
   to_fun_one := λ x, by norm_num }
 
+lemma trans_apply {f₀ f₁ f₂ : X → Y} (F : homotopy f₀ f₁) (G : homotopy f₁ f₂) (x : I × X) :
+  (F.trans G) x = if h : (x.1 : ℝ) ≤ 1/2 then
+    F (⟨2 * x.1, mul_nonneg zero_le_two x.1.2.1, by linarith⟩, x.2)
+  else
+    G (⟨2 * x.1 - 1, by linarith, by { have : (x.1 : ℝ) ≤ 1 := x.1.2.2, linarith }⟩, x.2) :=
+begin
+  change ite _ _ _ = _,
+  split_ifs,
+  { rw [extend, continuous_map.coe_Icc_extend, set.Icc_extend_of_mem],
+    refl },
+  { rw [extend, continuous_map.coe_Icc_extend, set.Icc_extend_of_mem],
+    refl }
+end
+
+lemma symm_trans {f₀ f₁ f₂ : X → Y} (F : homotopy f₀ f₁) (G : homotopy f₁ f₂) :
+  (F.trans G).symm = G.symm.trans F.symm :=
+begin
+  ext,
+  cases x with t x,
+  simp only [symm_apply, trans_apply],
+  split_ifs with h₁ h₂,
+  { change (t : ℝ) ≤ _ at h₂,
+    change (1 : ℝ) - t ≤ _ at h₁,
+    have ht : (t : ℝ) = 1/2,
+    { linarith },
+    norm_num [ht] },
+  { congr' 2,
+    apply subtype.ext,
+    simp only [unit_interval.coe_symm_eq, subtype.coe_mk],
+    linarith },
+  { congr' 2,
+    apply subtype.ext,
+    simp only [unit_interval.coe_symm_eq, subtype.coe_mk],
+    linarith },
+  { change ¬ (t : ℝ) ≤ _ at h,
+    change ¬ (1 : ℝ) - t ≤ _ at h₁,
+    exfalso, linarith }
+end
+
 end homotopy
 
 end continuous_map

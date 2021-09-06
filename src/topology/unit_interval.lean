@@ -63,6 +63,8 @@ subtype.ext $ by simp [symm]
 @[simp] lemma symm_symm (x : I) : σ (σ x) = x :=
 subtype.ext $ by simp [symm]
 
+@[simp] lemma coe_symm_eq (x : I) : (σ x : ℝ) = 1 - x := rfl
+
 @[continuity]
 lemma continuous_symm : continuous σ :=
 by continuity!

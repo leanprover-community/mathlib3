@@ -57,7 +57,7 @@ end
 
 namespace free
 variables [comm_ring R]
-local attribute [ext] tensor_product.mk_compr₂_inj
+local attribute [ext] tensor_product.ext
 
 /-- The free R-module functor is lax monoidal. -/
 -- In fact, it's strong monoidal, but we don't yet have a typeclass for that.

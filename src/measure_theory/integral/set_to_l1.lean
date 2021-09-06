@@ -346,6 +346,8 @@ section set_to_L1s
 
 variables [second_countable_topology E] [borel_space E] [normed_field 𝕜] [normed_space 𝕜 E]
 
+local attribute [instance] simple_func.normed_space
+
 /-- Extend `set α → (E →L[ℝ] F')` to `(α →₁ₛ[μ] E) → F'`. -/
 def set_to_L1s (T : set α → E →L[ℝ] F) (f : α →₁ₛ[μ] E) : F :=
 (to_simple_func f).set_to_simple_func T

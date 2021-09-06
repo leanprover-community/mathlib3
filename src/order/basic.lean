@@ -45,7 +45,7 @@ import data.prod
 - automatic construction of dual definitions / theorems
 
 ## See also
-- `algebra.order` for basic lemmas about orders, and projection notation for orders
+- `algebra.order.basic` for basic lemmas about orders, and projection notation for orders
 
 ## Tags
 

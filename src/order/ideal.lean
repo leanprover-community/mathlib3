@@ -90,7 +90,7 @@ ideal_inter_nonempty.inter_nonempty
     Most importantly, a preorder with this property
     satisfies that its ideal poset is a complete lattice.
 -/
-class ideal_Inter_nonempty (P) [preorder P] : Prop :=
+@[mk_iff] class ideal_Inter_nonempty (P) [preorder P] : Prop :=
 (Inter_nonempty : ∀ s : set (ideal P), (set.sInter {S : set P | ∃ (I : ideal P), I ∈ s ∧ S = I.carrier}).nonempty)
 
 lemma Inter_nonempty [preorder P] [ideal_Inter_nonempty P] :
@@ -168,7 +168,29 @@ lemma ideal_Inter_nonempty.exists_all_mem (hP : ideal_Inter_nonempty P) :
 begin
   let s : set (ideal P) := λ _, true,
   have hs := ideal_Inter_nonempty.Inter_nonempty s,
-  rw ← set.ne_empty_iff_nonempty at hs,
+  rw set.sInter_nonempty_iff at hs,
+  cases hs with a ha,
+  use a,
+  refine λ I, (ha I) ⟨I, by tauto⟩
+end
+
+lemma ideal_Inter_nonempty_of_exists_all_mem (h : ∃ a : P, ∀ I : ideal P, a ∈ I) :
+ideal_Inter_nonempty P :=
+begin
+  rw ideal_Inter_nonempty_iff,
+  intro s,
+  cases h with a ha,
+  use a,
+  intros S hS,
+  rcases hS with ⟨I, ⟨hsI, hI⟩⟩,
+  rw hI,
+  exact ha I,
+end
+
+lemma ideal_Inter_nonempty_iff_exists_all_mem :
+ideal_Inter_nonempty P ↔ ∃ a : P, ∀ I : ideal P, a ∈ I :=
+begin
+
 end
 
 end preorder

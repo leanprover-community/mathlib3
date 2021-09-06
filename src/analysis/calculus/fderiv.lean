@@ -2402,8 +2402,6 @@ lemma fderiv_mul_const (hc : differentiable_at 𝕜 c x) (d : 𝔸') :
   fderiv 𝕜 (λ y, c y * d) x = d • fderiv 𝕜 c x :=
 (hc.has_fderiv_at.mul_const d).fderiv
 
-#check continuous_linear_map.lmul
-
 theorem has_strict_fderiv_at.const_mul (ha : has_strict_fderiv_at a a' x) (b : 𝔸) :
   has_strict_fderiv_at (λ y, b * a y) (b • a') x :=
 (((continuous_linear_map.lmul 𝕜 𝔸) b).has_strict_fderiv_at).comp x ha
@@ -2445,7 +2443,6 @@ lemma fderiv_const_mul (ha : differentiable_at 𝕜 a x) (b : 𝔸) :
 
 end mul
 
-/-
 section algebra_inverse
 variables {R : Type*} [normed_ring R] [normed_algebra 𝕜 R] [complete_space R]
 open normed_ring continuous_linear_map ring
@@ -2941,7 +2938,3 @@ begin
 end
 
 end restrict_scalars
-
--/
-
-end

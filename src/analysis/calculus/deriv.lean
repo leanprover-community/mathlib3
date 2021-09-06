@@ -1231,29 +1231,36 @@ end composition_vector
 
 section mul
 /-! ### Derivative of the multiplication of two scalar functions -/
-variables {c d : 𝕜 → 𝕜} {c' d' : 𝕜}
+variables {𝔸 𝔸' : Type*} [normed_ring 𝔸] [normed_comm_ring 𝔸'] [normed_algebra 𝕜 𝔸]
+  [normed_algebra 𝕜 𝔸'] {a b : 𝕜 → 𝔸} {a' b' : 𝔸} {c d : 𝕜 → 𝔸'} {c' d' : 𝔸'}
 
 theorem has_deriv_within_at.mul
-  (hc : has_deriv_within_at c c' s x) (hd : has_deriv_within_at d d' s x) :
-  has_deriv_within_at (λ y, c y * d y) (c' * d x + c x * d') s x :=
+  (ha : has_deriv_within_at a a' s x) (hb : has_deriv_within_at b b' s x) :
+  has_deriv_within_at (λ y, a y * b y) (a x * b' + a' * b x) s x :=
 begin
-  convert hc.smul hd using 1,
-  rw [smul_eq_mul, smul_eq_mul, add_comm]
+  have := (has_fderiv_within_at.mul' ha hb).has_deriv_within_at,
+  rwa [continuous_linear_map.add_apply, continuous_linear_map.smul_apply,
+      continuous_linear_map.smul_right_apply, continuous_linear_map.smul_right_apply,
+      continuous_linear_map.smul_right_apply, continuous_linear_map.one_apply,
+      one_smul, one_smul] at this,
 end
 
-theorem has_deriv_at.mul (hc : has_deriv_at c c' x) (hd : has_deriv_at d d' x) :
-  has_deriv_at (λ y, c y * d y) (c' * d x + c x * d') x :=
+theorem has_deriv_at.mul (ha : has_deriv_at a a' x) (hb : has_deriv_at b b' x) :
+  has_deriv_at (λ y, a y * b y) (a x * b' + a' * b x) x :=
 begin
   rw [← has_deriv_within_at_univ] at *,
-  exact hc.mul hd
+  exact ha.mul hb
 end
 
 theorem has_strict_deriv_at.mul
-  (hc : has_strict_deriv_at c c' x) (hd : has_strict_deriv_at d d' x) :
-  has_strict_deriv_at (λ y, c y * d y) (c' * d x + c x * d') x :=
+  (ha : has_strict_deriv_at a a' x) (hb : has_strict_deriv_at b b' x) :
+  has_strict_deriv_at (λ y, a y * b y) (a x * b' + a' * b x) x :=
 begin
-  convert hc.smul hd using 1,
-  rw [smul_eq_mul, smul_eq_mul, add_comm]
+  have := (has_strict_fderiv_at.mul' ha hb).has_strict_deriv_at,
+  rwa [continuous_linear_map.add_apply, continuous_linear_map.smul_apply,
+      continuous_linear_map.smul_right_apply, continuous_linear_map.smul_right_apply,
+      continuous_linear_map.smul_right_apply, continuous_linear_map.one_apply,
+      one_smul, one_smul] at this,
 end
 
 lemma deriv_within_mul (hxs : unique_diff_within_at 𝕜 s x)

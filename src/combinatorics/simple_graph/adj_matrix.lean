@@ -80,7 +80,7 @@ def to_graph [mul_zero_one_class α] [nontrivial α] (h : is_adj_matrix A) :
 
 instance [mul_zero_one_class α] [nontrivial α] [decidable_eq α] (h : is_adj_matrix A) :
   decidable_rel h.to_graph.adj :=
-by {simp [to_graph], apply_instance}
+by { simp only [to_graph], apply_instance }
 
 end is_adj_matrix
 

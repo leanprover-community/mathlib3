@@ -118,7 +118,7 @@ begin
   { by_cases h₂ : a < b₂; simp [mkpair, h₂, h],
     simp at h₁,
     rw [add_comm, add_comm _ a, add_assoc, add_lt_add_iff_left],
-    rwa [add_comm, ← sqrt_lt_sqrt_iff, sqrt_add_eq],
+    rwa [add_comm, ← sqrt_lt, sqrt_add_eq],
     exact le_trans h₁ (nat.le_add_left _ _) }
 end
 

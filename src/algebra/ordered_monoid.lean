@@ -6,7 +6,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 import algebra.group.with_one
 import algebra.group.type_tags
 import algebra.group.prod
-import algebra.order_functions
+import algebra.order.functions
 import order.bounded_lattice
 import algebra.ordered_monoid_lemmas
 /-!
@@ -128,7 +128,7 @@ class linear_ordered_comm_monoid_with_zero (α : Type*)
   Instances should include number systems with an infinite element adjoined.` -/
 @[protect_proj, ancestor linear_ordered_add_comm_monoid order_top]
 class linear_ordered_add_comm_monoid_with_top (α : Type*)
-  extends linear_ordered_add_comm_monoid α, order_top α :=
+  extends linear_ordered_add_comm_monoid α, linear_top_order α :=
 (top_add' : ∀ x : α, ⊤ + x = ⊤)
 
 section linear_ordered_add_comm_monoid_with_top
@@ -140,10 +140,6 @@ lemma top_add (a : α) : ⊤ + a = ⊤ := linear_ordered_add_comm_monoid_with_to
 @[simp]
 lemma add_top (a : α) : a + ⊤ = ⊤ :=
 trans (add_comm _ _) (top_add _)
-
--- TODO: Generalize to a not-yet-existing typeclass extending `linear_order` and `order_top`
-@[simp] lemma min_top_left (a : α) : min (⊤ : α) a = a := min_eq_right le_top
-@[simp] lemma min_top_right (a : α) : min a ⊤ = a := min_eq_left le_top
 
 end linear_ordered_add_comm_monoid_with_top
 

@@ -76,6 +76,9 @@ end
 
 end set
 
+lemma nat.subtype.semilattice_sup_bot_bot_apply {s : set ℕ} [decidable_pred (∈ s)] [h : nonempty s] :
+((⊥ : s) : ℕ) = nat.find (nonempty_subtype.1 h) := rfl
+
 end to_move
 
 namespace nat
@@ -246,7 +249,11 @@ When `p` is true infinitely often, `nth` agrees with `nat.subtype.order_iso_of_n
 -/
 lemma nth_eq_order_iso_of_nat [decidable_pred p] (i : infinite (set_of p)) (n : ℕ) :
   nth p n = nat.subtype.order_iso_of_nat (set_of p) n :=
-sorry
+begin
+  cases n; simp [subtype.order_iso_of_nat_apply, subtype.of_nat],
+  { rw [subtype.semilattice_sup_bot_bot_apply, nth_zero_of_exists] },
+  sorry
+end
 
 lemma nth_set_card_aux {n : ℕ}
   (hf : (set_of p).finite)
@@ -697,31 +704,33 @@ lemma lt_nth_iff_count_lt (i : (set_of p).infinite) {a b : ℕ} :
 lt_iff_lt_of_le_iff_le $ count_le_iff_le_nth p i
 
 lemma nth_le_of_le_count (a b : ℕ) (h : a ≤ count p b) : nth p a ≤ b :=
-begin
-  sorry
-end
+sorry
 
 lemma nth_lt_of_lt_count (n k : ℕ) (h : k < count p n) : nth p k < n :=
 sorry
 
-lemma count_nth_of_lt_card (n : ℕ) (w : (n : cardinal) < cardinal.mk { i | p i }) :
+lemma count_nth_of_lt_card (n : ℕ) (w : (n : cardinal) < cardinal.mk (set_of p)) :
   count p (nth p n) = n :=
 begin
-  casesI fintype_or_infinite {i | p i},
-  { sorry },
-  { sorry }
+  casesI fintype_or_infinite (set_of p) with hf hi,
+  { apply count_nth_of_lt_card_finite _ (⟨hf⟩ : set.finite _),
+    rw set.finite.card_to_finset,
+    rw cardinal.fintype_card at w,
+    assumption_mod_cast },
+  { apply count_nth_of_infinite,
+    rwa set.infinite_coe_iff at hi }
 end
 
-lemma nth_mem_of_lt_card (n : ℕ) (w : (n : cardinal) < cardinal.mk { i | p i }) :
+lemma nth_mem_of_lt_card (n : ℕ) (w : (n : cardinal) < cardinal.mk (set_of p)) :
   p (nth p n) :=
 begin
-  casesI fintype_or_infinite {i | p i},
-  { rw [cardinal.fintype_card, cardinal.nat_cast_lt, ←nat.card_eq_fintype_card] at w,
-    apply nth_mem_of_lt_card_finite,
-    sorry,
-    sorry, },
+  casesI fintype_or_infinite (set_of p) with hf hi,
+  { apply nth_mem_of_lt_card_finite _ (⟨hf⟩ : set.finite _),
+    rw set.finite.card_to_finset,
+    rw cardinal.fintype_card at w,
+    assumption_mod_cast },
   { apply nth_mem_of_infinite,
-    rwa ←set.infinite_coe_iff, },
+    rwa set.infinite_coe_iff at hi }
 end
 
 end count

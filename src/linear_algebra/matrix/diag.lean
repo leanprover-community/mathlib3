@@ -77,7 +77,7 @@ end
 
 /-- Every unit matrix is diagonal. -/
 @[simp] lemma is_diag_unit [has_zero α] [subsingleton n] (A : matrix n n α) : A.is_diag :=
-by {intros i j h, have h' := subsingleton.elim i j, contradiction}
+by { intros i j h, have h' := subsingleton.elim i j, contradiction }
 
 /-- Every zero matrix is diagonal. -/
 @[simp] lemma is_diag_zero [has_zero α] : (0 : matrix n n α).is_diag :=
@@ -86,12 +86,12 @@ by {intros i j h, have h' := subsingleton.elim i j, contradiction}
 /-- Every identity matrix is diagonal. -/
 @[simp] lemma is_diag_one [decidable_eq n] [has_zero α] [has_one α] :
   (1 : matrix n n α).is_diag :=
-by {intros i j h, simp [h]}
+by { intros i j h, simp [h] }
 
 @[simp] lemma is_diag.map [has_zero α] [has_zero β]
 {A : matrix n n α} (ha : A.is_diag) {f : α → β} (hf : f 0 = 0):
   (A.map f).is_diag :=
-by {intros i j h, simp [ha h, hf]}
+by { intros i j h, simp [ha h, hf] }
 
 @[simp] lemma is_diag.neg [add_group α] {A : matrix n n α} (ha : A.is_diag) :
   (-A).is_diag :=
@@ -100,32 +100,32 @@ by {intros i j h, simp [ha h]}
 @[simp] lemma is_diag.add
 [add_zero_class α] {A B : matrix n n α} (ha : A.is_diag) (hb : B.is_diag) :
   (A + B).is_diag :=
-by {intros i j h, simp [ha h, hb h]}
+by { intros i j h, simp [ha h, hb h] }
 
 @[simp] lemma is_diag.sub [add_group α]
 {A B : matrix n n α} (ha : A.is_diag) (hb : B.is_diag) :
   (A - B).is_diag :=
-by {intros i j h, simp [ha h, hb h]}
+by { intros i j h, simp [ha h, hb h] }
 
 @[simp] lemma is_diag.smul [monoid R] [add_monoid α] [distrib_mul_action R α]
 {k : R} {A : matrix n n α} (ha : A.is_diag):
   (k • A).is_diag :=
-by {intros i j h, simp [ha h]}
+by { intros i j h, simp [ha h] }
 
 @[simp] lemma is_diag.transpose
 [has_zero α] {A : matrix n n α} (ha : A.is_diag) :
   Aᵀ.is_diag :=
-by {intros i j h, simp [ha h.symm]}
+by { intros i j h, simp [ha h.symm] }
 
 @[simp] lemma is_diag.conj_transpose
 [semiring α] [star_ring α] {A : matrix n n α} (ha : A.is_diag) :
   Aᴴ.is_diag :=
-by {intros i j h, simp [ha h.symm]}
+by { intros i j h, simp [ha h.symm] }
 
 @[simp] lemma is_diag.minor [has_zero α]
 {A : matrix n n α} (ha : A.is_diag) {f : m → n} (hf : injective f):
   (A.minor f f).is_diag:=
-by {intros i j h, specialize @hf i j, simp [ha (mt hf h)]}
+by { intros i j h, specialize @hf i j, simp [ha (mt hf h)] }
 
 /-- `(A ⊗ B).is_diag` if both `A` and `B` are diagonal. -/
 @[simp] lemma is_diag.kronecker [mul_zero_class α]
@@ -141,7 +141,7 @@ end
 
 @[simp] lemma is_diag.diagonal [has_zero α] [decidable_eq n] (d : n → α) :
   (diagonal d).is_diag :=
-by {intros i j h, simp [h]}
+by { intros i j h, simp [h] }
 
 lemma is_diag.is_symm [has_zero α] {A : matrix n n α} (h : A.is_diag) :
   A.is_symm :=
@@ -158,10 +158,10 @@ lemma is_diag.from_blocks [has_zero α]
   (A.from_blocks 0 0 D).is_diag :=
 begin
   rintros (i | i) (j | j) hij,
-  {have h' := ne_of_apply_ne (λ (i : m), sum.inl i) hij, simp [ha h']},
-  {simp * at *},
+  { have h' := ne_of_apply_ne (λ (i : m), sum.inl i) hij, simp [ha h'] },
   { simp * at * },
-  {have h' := ne_of_apply_ne (λ (i : n), sum.inr i) hij, simp [hd h']},
+  { simp * at * },
+  { have h' := ne_of_apply_ne (λ (i : n), sum.inr i) hij, simp [hd h'] },
 end
 
 /-- This is the `iff` version of `matrix.is_diag.from_blocks`. -/
@@ -207,12 +207,12 @@ lemma is_diag.from_blocks_of_is_symm' [has_zero α]
   {M : matrix (m ⊕ n) (m ⊕ n) α} (symm : M.is_symm) (h : M = A.from_blocks B C D)
   (ha : A.is_diag) (hb : B = 0) (hd : D.is_diag) :
   M.is_diag:=
-by {rw [h] at *, apply is_diag.from_blocks_of_is_symm symm ha hb hd}
+by { rw [h] at *, apply is_diag.from_blocks_of_is_symm symm ha hb hd }
 
 /-- `(A ⬝ Aᵀ).is_diag` iff `A.has_orthogonal_rows`. -/
-lemma mul_tranpose_self_is_diag_iff_has_orthogonal_rows
-[fintype n] [has_mul α] [add_comm_monoid α] {A : matrix m n α} :
-(A ⬝ Aᵀ).is_diag ↔ A.has_orthogonal_rows :=
+lemma mul_transpose_self_is_diag_iff_has_orthogonal_rows
+  [fintype n] [has_mul α] [add_comm_monoid α] {A : matrix m n α} :
+  (A ⬝ Aᵀ).is_diag ↔ A.has_orthogonal_rows :=
 begin
   split,
   any_goals
@@ -223,11 +223,11 @@ end
 
 /-- `(Aᵀ ⬝ A).is_diag` iff `A.has_orthogonal_cols`. -/
 lemma transpose_mul_self_is_diag_iff_has_orthogonal_cols
-[fintype m] [has_mul α] [add_comm_monoid α] {A : matrix m n α} :
-(Aᵀ ⬝ A).is_diag ↔ A.has_orthogonal_cols :=
+  [fintype m] [has_mul α] [add_comm_monoid α] {A : matrix m n α} :
+  (Aᵀ ⬝ A).is_diag ↔ A.has_orthogonal_cols :=
 begin
   rw [←transpose_has_orthogonal_rows_iff_has_orthogonal_cols],
-  convert mul_tranpose_self_is_diag_iff_has_orthogonal_rows,
+  convert mul_transpose_self_is_diag_iff_has_orthogonal_rows,
   simp,
 end
 

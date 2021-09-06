@@ -72,14 +72,14 @@ A section `s` is a gluing for a family of sections `sf` if it restricts to `sf i
 for all `i`
 -/
 def is_gluing (sf : Π i : ι, F.obj (op (U i))) (s : F.obj (op (supr U))) : Prop :=
-  ∀ i : ι, F.map (opens.le_supr U i).op s = sf i
+∀ i : ι, F.map (opens.le_supr U i).op s = sf i
 
 /--
 The subtype of all gluings for a given family of sections
 -/
 @[nolint has_inhabited_instance]
 def gluing (sf : Π i : ι, F.obj (op (U i))) : Type v :=
-  {s : F.obj (op (supr U)) // is_gluing F U sf s}
+{s : F.obj (op (supr U)) // is_gluing F U sf s}
 
 /--
 The sheaf condition in terms of unique gluings. A presheaf `F : presheaf C X` satisfies this sheaf
@@ -91,8 +91,8 @@ We prove this to be equivalent to the usual one below in
 -/
 @[derive subsingleton, nolint has_inhabited_instance]
 def sheaf_condition_unique_gluing : Type (v+1) :=
-  Π ⦃ι : Type v⦄ (U : ι → opens X) (sf : Π i : ι, F.obj (op (U i))),
-    is_compatible F U sf → unique (gluing F U sf)
+Π ⦃ι : Type v⦄ (U : ι → opens X) (sf : Π i : ι, F.obj (op (U i))),
+  is_compatible F U sf → unique (gluing F U sf)
 
 end
 

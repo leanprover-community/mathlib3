@@ -230,9 +230,8 @@ lemma adj_matrix_mul_vec_const_apply [semiring α] {a : α} {v : V} :
   (G.adj_matrix α).mul_vec (function.const _ a) v = G.degree v * a :=
 by simp [degree]
 
-lemma adj_matrix_mul_vec_const_apply_of_regular
-[semiring α] {d : ℕ} {a : α} (hd : G.is_regular_of_degree d)
-  {v : V} :
+lemma adj_matrix_mul_vec_const_apply_of_regular [semiring α] {d : ℕ} {a : α}
+  (hd : G.is_regular_of_degree d) {v : V} :
   (G.adj_matrix α).mul_vec (function.const _ a) v = (d * a) :=
 by simp [hd v]
 

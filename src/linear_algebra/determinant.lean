@@ -303,7 +303,7 @@ def linear_equiv.of_is_unit_det {f : M →ₗ[R] M'} {v : basis ι R M} {v' : ba
 determinant is nonzero. -/
 @[reducible] def linear_map.equiv_of_det_ne_zero
   {𝕜 : Type*} [field 𝕜] {M : Type*} [add_comm_group M] [module 𝕜 M]
-  [finite_dimensional 𝕜 M] {f : M →ₗ[𝕜] M} (hf : linear_map.det f ≠ 0) :
+  [finite_dimensional 𝕜 M] (f : M →ₗ[𝕜] M) (hf : linear_map.det f ≠ 0) :
   M ≃ₗ[𝕜] M :=
 have is_unit (linear_map.to_matrix (finite_dimensional.fin_basis 𝕜 M)
   (finite_dimensional.fin_basis 𝕜 M) f).det :=

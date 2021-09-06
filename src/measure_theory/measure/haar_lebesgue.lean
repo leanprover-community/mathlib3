@@ -18,7 +18,7 @@ We deduce basic properties of any Haar measure on a finite dimensional real vect
 -/
 
 open topological_space set
-open_locale ennreal
+open_locale ennreal pointwise
 
 /-- The interval `[0,1]` as a compact set with non-empty interior. -/
 def topological_space.positive_compacts.Icc01 : positive_compacts ℝ :=
@@ -132,18 +132,14 @@ begin
     map_map Cesymm.measurable Ce.measurable, ecomp, map_id]
 end
 
-
 @[simp] lemma haar_preimage_linear_map
   {E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
   [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
   {f : E →ₗ[ℝ] E} (hf : f.det ≠ 0) (s : set E) :
   μ (f ⁻¹' s) = ennreal.of_real (abs (f.det)⁻¹) * μ s :=
 calc μ (f ⁻¹' s) = measure.map f μ s :
-begin
-  have Z := equiv_of_det_ne_zero
-end
-
---  ((homeomorph.add_left a).to_measurable_equiv.map_apply s).symm
+  ((f.equiv_of_det_ne_zero hf).to_continuous_linear_equiv.to_homeomorph
+    .to_measurable_equiv.map_apply s).symm
 ... = ennreal.of_real (abs (f.det)⁻¹) * μ s :
   by { rw map_linear_map_add_haar_eq_smul_add_haar μ hf, refl }
 
@@ -176,6 +172,26 @@ begin
   simp only [map_linear_map_add_haar_eq_smul_add_haar μ hf, mul_one, linear_map.det_smul,
     monoid_hom.map_one],
 end
+
+open_locale pointwise
+
+lemma haar_preimage_smul {r : ℝ} (hr : r ≠ 0) (s : set E) :
+  μ (((•) r) ⁻¹' s) = ennreal.of_real (abs (r^(finrank ℝ E))⁻¹) * μ s :=
+calc μ (((•) r) ⁻¹' s) = measure.map ((•) r) μ s :
+begin
+  let a : units ℝ := is_unit.unit (is_unit_iff_ne_zero.2 hr),
+  let Z : E ≃ₜ E := homeomorph.smul a,
+  convert (Z.to_measurable_equiv.map_apply s).symm,
+  refl,
+end
+
+#exit
+
+  ((f.equiv_of_det_ne_zero hf).to_continuous_linear_equiv.to_homeomorph
+    .to_measurable_equiv.map_apply s).symm
+... = ennreal.of_real (abs (f.det)⁻¹) * μ s :
+  by { rw map_linear_map_add_haar_eq_smul_add_haar μ hf, refl }
+
 
 
 end measure_theory

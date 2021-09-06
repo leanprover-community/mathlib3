@@ -139,31 +139,21 @@ supr_congr_Prop pq f
   (pq : p ↔ q) (f : ∀x, f₁ (pq.mpr x) = f₂ x) : Inter f₁ = Inter f₂ :=
 infi_congr_Prop pq f
 
-lemma Union_prop (f : ι → set α) (p : ι → Prop) (i : ι) [decidable $ p i] :
-  (⋃ (h : p i), f i) = if p i then f i else ∅ :=
-begin
-  ext x,
-  rw mem_Union,
-  split_ifs; tauto,
-end
+lemma Union_eq_if {p : Prop} [decidable p] (s : set α) :
+  (⋃ h : p, s) = if p then s else ∅ :=
+supr_eq_if _
 
-@[simp]
-lemma Union_prop_pos {p : ι → Prop} {i : ι} (hi : p i) (f : ι → set α) :
-  (⋃ (h : p i), f i) = f i :=
-begin
-  classical,
-  ext x,
-  rw [Union_prop, if_pos hi]
-end
+lemma Union_eq_dif {p : Prop} [decidable p] (s : p → set α) :
+  (⋃ (h : p), s h) = if h : p then s h else ∅ :=
+supr_eq_dif _
 
-@[simp]
-lemma Union_prop_neg {p : ι → Prop} {i : ι} (hi : ¬ p i) (f : ι → set α) :
-  (⋃ (h : p i), f i) = ∅ :=
-begin
-  classical,
-  ext x,
-  rw [Union_prop, if_neg hi]
-end
+lemma Inter_eq_if {p : Prop} [decidable p] (s : set α) :
+  (⋂ h : p, s) = if p then s else univ :=
+infi_eq_if _
+
+lemma Infi_eq_dif {p : Prop} [decidable p] (s : p → set α) :
+  (⋂ (h : p), s h) = if h : p then s h else univ :=
+infi_eq_dif _
 
 lemma exists_set_mem_of_union_eq_top {ι : Type*} (t : set ι) (s : ι → set β)
   (w : (⋃ i ∈ t, s i) = ⊤) (x : β) :
@@ -752,6 +742,17 @@ lemma sUnion_eq_univ_iff {c : set (set α)} :
   ⋃₀ c = univ ↔ ∀ a, ∃ b ∈ c, a ∈ b :=
 by simp only [eq_univ_iff_forall, mem_sUnion]
 
+-- classical
+lemma sInter_eq_empty_iff {c : set (set α)} :
+  ⋂₀ c = ∅ ↔ ∀ a, ∃ b ∈ c, a ∉ b :=
+by simp [set.eq_empty_iff_forall_not_mem, mem_sInter]
+
+-- classical
+@[simp] theorem sInter_nonempty_iff {c : set (set α)}:
+  (⋂₀ c).nonempty ↔ ∃ a, ∀ b ∈ c, a ∈ b :=
+by simp [← ne_empty_iff_nonempty, sInter_eq_empty_iff]
+
+-- classical
 theorem compl_sUnion (S : set (set α)) :
   (⋃₀ S)ᶜ = ⋂₀ (compl '' S) :=
 ext $ λ x, by simp

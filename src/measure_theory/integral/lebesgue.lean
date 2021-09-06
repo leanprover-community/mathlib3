@@ -684,9 +684,9 @@ by rw [f.restrict_lintegral hs, lintegral_restrict]
 lemma const_lintegral (c : ℝ≥0∞) : (const α c).lintegral μ = c * μ univ :=
 begin
   rw [lintegral],
-  by_cases ha : nonempty α,
-  { resetI, simp [preimage_const_of_mem] },
-  { simp [μ.eq_zero_of_not_nonempty ha] }
+  casesI is_empty_or_nonempty α,
+  { simp [μ.eq_zero_of_is_empty] },
+  { simp [preimage_const_of_mem] },
 end
 
 lemma const_lintegral_restrict (c : ℝ≥0∞) (s : set α) :
@@ -1068,6 +1068,11 @@ by simp only [h]
 lemma set_lintegral_congr {f : α → ℝ≥0∞} {s t : set α} (h : s =ᵐ[μ] t) :
   ∫⁻ x in s, f x ∂μ = ∫⁻ x in t, f x ∂μ :=
 by rw [restrict_congr_set h]
+
+lemma set_lintegral_congr_fun {f g : α → ℝ≥0∞} {s : set α} (hs : measurable_set s)
+  (hfg : ∀ᵐ x ∂μ, x ∈ s → f x = g x) :
+  ∫⁻ x in s, f x ∂μ = ∫⁻ x in s, g x ∂μ :=
+by { rw lintegral_congr_ae, rw eventually_eq, rwa ae_restrict_iff' hs, }
 
 /-- Monotone convergence theorem -- sometimes called Beppo-Levi convergence.
 
@@ -1735,6 +1740,10 @@ begin
   { rwa pairwise_disjoint_on_bool }
 end
 
+lemma lintegral_add_compl (f : α → ℝ≥0∞) {A : set α} (hA : measurable_set A) :
+  ∫⁻ x in A, f x ∂μ + ∫⁻ x in Aᶜ, f x ∂μ = ∫⁻ x, f x ∂μ :=
+by rw [← lintegral_add_measure, measure.restrict_add_restrict_compl hA]
+
 lemma lintegral_map [measurable_space β] {f : β → ℝ≥0∞} {g : α → β}
   (hf : measurable f) (hg : measurable g) : ∫⁻ a, f a ∂(map g μ) = ∫⁻ a, f (g a) ∂μ :=
 begin
@@ -1874,8 +1883,8 @@ begin
   refl,
 end
 
-lemma finite_measure_with_density {f : α → ℝ≥0∞}
-  (hf : ∫⁻ a, f a ∂μ < ∞) : finite_measure (μ.with_density f) :=
+lemma is_finite_measure_with_density {f : α → ℝ≥0∞}
+  (hf : ∫⁻ a, f a ∂μ < ∞) : is_finite_measure (μ.with_density f) :=
 { measure_univ_lt_top :=
     by rwa [with_density_apply _ measurable_set.univ, measure.restrict_univ] }
 
@@ -1892,6 +1901,24 @@ lemma with_density_zero : μ.with_density 0 = 0 :=
 begin
   ext1 s hs,
   simp [with_density_apply _ hs],
+end
+
+lemma with_density_tsum {f : ℕ → α → ℝ≥0∞} (h : ∀ i, measurable (f i)) :
+  μ.with_density (∑' n, f n) = sum (λ n, μ.with_density (f n)) :=
+begin
+  ext1 s hs,
+  simp_rw [sum_apply _ hs, with_density_apply _ hs],
+  change ∫⁻ x in s, (∑' n, f n) x ∂μ = ∑' (i : ℕ), ∫⁻ x, f i x ∂(μ.restrict s),
+  rw ← lintegral_tsum h,
+  refine lintegral_congr (λ x, tsum_apply (pi.summable.2 (λ _, ennreal.summable))),
+end
+
+lemma with_density_indicator {s : set α} (hs : measurable_set s) (f : α → ℝ≥0∞) :
+  μ.with_density (s.indicator f) = (μ.restrict s).with_density f :=
+begin
+  ext1 t ht,
+  rw [with_density_apply _ ht, lintegral_indicator _ hs,
+      restrict_comm hs ht, ← with_density_apply _ ht]
 end
 
 end lintegral

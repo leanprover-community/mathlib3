@@ -17,7 +17,7 @@ import algebra.periodic
 noncomputable theory
 open classical set filter topological_space metric
 open_locale classical
-open_locale topological_space
+open_locale topological_space filter uniformity
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -31,22 +31,19 @@ theorem rat.dist_eq (x y : ℚ) : dist x y = abs (x - y) := rfl
 
 namespace int
 
-section low_prio
--- we want to ignore this instance for the next declaration
-local attribute [instance, priority 10] int.uniform_space
-instance : metric_space ℤ :=
-begin
-  letI M := metric_space.induced coe int.cast_injective real.metric_space,
-  refine @metric_space.replace_uniformity _ int.uniform_space M
-    (le_antisymm refl_le_uniformity $ λ r ru,
-      mem_uniformity_dist.2 ⟨1, zero_lt_one, λ a b h,
-      mem_principal.1 ru $ dist_le_zero.1 (_ : (abs (a - b) : ℝ) ≤ 0)⟩),
-  have : (abs (↑a - ↑b) : ℝ) < 1 := h,
-  have : abs (a - b) < 1, by norm_cast at this; assumption,
-  have : abs (a - b) ≤ 0 := (@int.lt_add_one_iff _ 0).mp this,
-  norm_cast, assumption
-end
-end low_prio
+lemma uniform_embedding_coe_real : uniform_embedding (coe : ℤ → ℝ) :=
+{ comap_uniformity :=
+    begin
+      refine le_antisymm (le_principal_iff.2 _) (@refl_le_uniformity ℤ $
+        uniform_space.comap coe (infer_instance : uniform_space ℝ)),
+      refine (uniformity_basis_dist.comap _).mem_iff.2 ⟨1, zero_lt_one, _⟩,
+      rintro ⟨a, b⟩ (h : abs (a - b : ℝ) < 1),
+      norm_cast at h,
+      erw [@int.lt_add_one_iff _ 0, abs_nonpos_iff, sub_eq_zero] at h, assumption
+    end,
+  inj := int.cast_injective }
+
+instance : metric_space ℤ := int.uniform_embedding_coe_real.comap_metric_space _
 
 theorem dist_eq (x y : ℤ) : dist x y = abs (x - y) := rfl
 
@@ -212,8 +209,6 @@ tendsto_of_uniform_continuous_subtype
 
 instance : topological_ring ℝ :=
 { continuous_mul := real.continuous_mul, ..real.topological_add_group }
-
-instance : topological_semiring ℝ := by apply_instance  -- short-circuit type class inference
 
 lemma rat.continuous_mul : continuous (λp : ℚ × ℚ, p.1 * p.2) :=
 embedding_of_rat.continuous_iff.2 $ by simp [(∘)]; exact

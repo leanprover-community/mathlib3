@@ -54,7 +54,7 @@ begin
   { have := nat.eq_zero_of_le_zero h, subst m, simp },
   obtain he | hl := h.eq_or_lt,
   { subst m, simp },
-  exact dvd_mul_of_dvd_right (IH (le_of_lt_succ hl)) _,
+  exact (IH (le_of_lt_succ hl)).mul_left _,
 end
 
 theorem dvd_factorial : ∀ {m n}, 0 < m → m ≤ n → m ∣ n!
@@ -158,6 +158,18 @@ begin
   { exact self_le_factorial _ },
   exact add_factorial_succ_le_factorial_add_succ i h,
 end
+
+lemma factorial_mul_pow_sub_le_factorial {n m : ℕ} (hnm : n ≤ m) : n! * n ^ (m - n) ≤ m! :=
+begin
+  suffices : n! * (n + 1) ^ (m - n) ≤ m!,
+  { apply trans _ this,
+    rw mul_le_mul_left,
+    apply pow_le_pow_of_le_left (zero_le n) (le_succ n),
+    exact factorial_pos n,},
+  convert nat.factorial_mul_pow_le_factorial,
+  exact (nat.add_sub_of_le hnm).symm,
+end
+
 
 end factorial
 

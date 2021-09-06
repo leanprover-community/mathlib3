@@ -150,7 +150,7 @@ lemma unit_right {a : α} (ha : ¬is_unit a) (u : units α) : multiplicity a u =
 is_unit_right ha u.is_unit
 
 lemma multiplicity_eq_zero_of_not_dvd {a b : α} (ha : ¬a ∣ b) : multiplicity a b = 0 :=
-enat.coe_zero ▸ eq_coe_iff.2 $ show a ^ 0 ∣ b ∧ ¬a ^ (0 + 1) ∣ b, by simpa
+nat.cast_zero ▸ eq_coe_iff.2 $ show a ^ 0 ∣ b ∧ ¬a ^ (0 + 1) ∣ b, by simpa
 
 lemma eq_top_iff_not_finite {a b : α} : multiplicity a b = ⊤ ↔ ¬ finite a b :=
 part.eq_none_iff'
@@ -193,13 +193,13 @@ le_antisymm (multiplicity_le_multiplicity_of_dvd_right h.dvd)
   (multiplicity_le_multiplicity_of_dvd_right h.symm.dvd)
 
 lemma dvd_of_multiplicity_pos {a b : α} (h : (0 : enat) < multiplicity a b) : a ∣ b :=
-by { rw ← pow_one a, exact pow_dvd_of_le_multiplicity (enat.coe_one.symm ▸ enat.pos_iff_one_le.1 h) }
+by { rw ← pow_one a, exact pow_dvd_of_le_multiplicity (nat.cast_one.symm ▸ enat.pos_iff_one_le.1 h) }
 
 lemma dvd_iff_multiplicity_pos {a b : α} : (0 : enat) < multiplicity a b ↔ a ∣ b :=
 ⟨dvd_of_multiplicity_pos,
   λ hdvd, lt_of_le_of_ne (zero_le _) (λ heq, is_greatest
     (show multiplicity a b < ↑1,
-      by simpa only [heq, enat.coe_zero] using enat.coe_lt_coe.mpr zero_lt_one)
+      by simpa only [heq, nat.cast_zero] using enat.coe_lt_coe.mpr zero_lt_one)
     (by rwa pow_one a))⟩
 
 lemma finite_nat_iff {a b : ℕ} : finite a b ↔ (a ≠ 1 ∧ 0 < b) :=
@@ -274,7 +274,7 @@ begin
     rw [hk], rw_mod_cast [multiplicity_lt_iff_neg_dvd], intro h_dvd,
     rw [← dvd_add_iff_right] at h_dvd,
     apply multiplicity.is_greatest _ h_dvd, rw [hk], apply_mod_cast nat.lt_succ_self,
-    rw [pow_dvd_iff_le_multiplicity, enat.coe_add, ← hk, enat.coe_one],
+    rw [pow_dvd_iff_le_multiplicity, nat.cast_add, ← hk, nat.cast_one],
     exact enat.add_one_le_of_lt h },
   { convert min_le_multiplicity_add, rw [min_eq_right (le_of_lt h)] }
 end
@@ -390,7 +390,7 @@ protected lemma mul {p a b : α} (hp : prime p) :
 if h : finite p a ∧ finite p b then
 by rw [← enat.coe_get (finite_iff_dom.1 h.1), ← enat.coe_get (finite_iff_dom.1 h.2),
   ← enat.coe_get (finite_iff_dom.1 (finite_mul hp h.1 h.2)),
-    ← enat.coe_add, enat.coe_inj, multiplicity.mul' hp]; refl
+    ← nat.cast_add, enat.coe_inj, multiplicity.mul' hp]; refl
 else begin
   rw [eq_top_iff_not_finite.2 (mt (finite_mul_iff hp).1 h)],
   cases not_and_distrib.1 h with h h;
@@ -454,7 +454,7 @@ lemma multiplicity_eq_zero_of_coprime {p a b : ℕ} (hp : p ≠ 1)
   (hab : nat.coprime a b) : multiplicity p a = 0 :=
 begin
   rw [multiplicity_le_multiplicity_iff] at hle,
-  rw [← nonpos_iff_eq_zero, ← not_lt, enat.pos_iff_one_le, ← enat.coe_one,
+  rw [← nonpos_iff_eq_zero, ← not_lt, enat.pos_iff_one_le, ← nat.cast_one,
     ← pow_dvd_iff_le_multiplicity],
   assume h,
   have := nat.dvd_gcd h (hle _ h),

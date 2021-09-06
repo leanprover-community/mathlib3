@@ -108,12 +108,6 @@ part.ext' (false_and _) (λ h, h.left.elim)
 @[simp] lemma add_top (x : enat) : x + ⊤ = ⊤ :=
 by rw [add_comm, top_add]
 
-@[simp, norm_cast] lemma coe_zero : ((0 : ℕ) : enat) = 0 := rfl
-
-@[simp, norm_cast] lemma coe_one : ((1 : ℕ) : enat) = 1 := nat.cast_one
-
-@[simp, norm_cast] lemma coe_add (x y : ℕ) : ((x + y : ℕ) : enat) = x + y := nat.cast_add _ _
-
 @[simp] lemma coe_get {x : enat} (h : x.dom) : (x.get h : enat) = x :=
 by { rw [← some_eq_coe], exact part.ext' (iff_of_true trivial h) (λ _ _, rfl) }
 
@@ -157,7 +151,7 @@ then is_false $ λ h, hx $ dom_of_le_of_dom h hy
 else is_true ⟨λ h, (hy h).elim, λ h, (hy h).elim⟩
 
 /-- The coercion `ℕ → enat` preserves `0` and addition. -/
-def coe_hom : ℕ →+ enat := ⟨coe, enat.coe_zero, enat.coe_add⟩
+def coe_hom : ℕ →+ enat := ⟨coe, nat.cast_zero, nat.cast_add⟩
 
 instance : partial_order enat :=
 { le          := (≤),
@@ -267,8 +261,8 @@ lemma eq_top_iff_forall_le (x : enat) : x = ⊤ ↔ ∀ n : ℕ, (n : enat) ≤ 
 ⟨λ h n, (h n).le, λ h n, lt_of_lt_of_le (coe_lt_coe.mpr n.lt_succ_self) (h (n + 1))⟩
 
 lemma pos_iff_one_le {x : enat} : 0 < x ↔ 1 ≤ x :=
-enat.cases_on x (by simp only [iff_true, le_top, coe_lt_top, ← enat.coe_zero]) $
-  λ n, by { rw [← enat.coe_zero, ← enat.coe_one, enat.coe_lt_coe, enat.coe_le_coe], refl }
+enat.cases_on x (by simp only [iff_true, le_top, coe_lt_top, ← @nat.cast_zero enat]) $
+  λ n, by { rw [← nat.cast_zero, ← nat.cast_one, enat.coe_lt_coe, enat.coe_le_coe], refl }
 
 noncomputable instance : linear_order enat :=
 { le_total := λ x y, enat.cases_on x
@@ -303,7 +297,7 @@ instance : ordered_add_comm_monoid enat :=
       (λ h, absurd h (not_lt_of_ge (by rw add_top; exact le_top)))
       (λ b, enat.cases_on c
         (λ _, coe_lt_top _)
-        (λ c h,  coe_lt_coe.2 (by rw [← coe_add, ← coe_add, coe_lt_coe] at h;
+        (λ c h,  coe_lt_coe.2 (by rw [← nat.cast_add, ← nat.cast_add, coe_lt_coe] at h;
             exact lt_of_add_lt_add_left h)))),
   ..enat.linear_order,
   ..enat.add_comm_monoid }
@@ -315,11 +309,11 @@ instance : canonically_ordered_add_monoid enat :=
       (iff_of_false (not_le_of_gt (coe_lt_top _))
         (not_exists.2 (λ x, ne_of_lt (by rw [top_add]; exact coe_lt_top _))))
       (λ a, ⟨λ h, ⟨(b - a : ℕ),
-          by rw [← coe_add, coe_inj, add_comm, nat.sub_add_cancel (coe_le_coe.1 h)]⟩,
+          by rw [← nat.cast_add, coe_inj, add_comm, nat.sub_add_cancel (coe_le_coe.1 h)]⟩,
         (λ ⟨c, hc⟩, enat.cases_on c
           (λ hc, hc.symm ▸ show (a : enat) ≤ a + ⊤, by rw [add_top]; exact le_top)
           (λ c (hc : (b : enat) = a + c),
-            coe_le_coe.2 (by rw [← coe_add, coe_inj] at hc;
+            coe_le_coe.2 (by rw [← nat.cast_add, coe_inj] at hc;
               rw hc; exact nat.le_add_right _ _)) hc)⟩)),
   ..enat.semilattice_sup_bot,
   ..enat.ordered_add_comm_monoid }
@@ -377,14 +371,14 @@ end
 
 lemma add_eq_top_iff {a b : enat} : a + b = ⊤ ↔ a = ⊤ ∨ b = ⊤ :=
 by apply enat.cases_on a; apply enat.cases_on b;
-  simp; simp only [(enat.coe_add _ _).symm, enat.coe_ne_top]; simp
+  simp; simp only [(nat.cast_add _ _).symm, enat.coe_ne_top]; simp
 
 protected lemma add_right_cancel_iff {a b c : enat} (hc : c ≠ ⊤) : a + c = b + c ↔ a = b :=
 begin
   rcases ne_top_iff.1 hc with ⟨c, rfl⟩,
   apply enat.cases_on a; apply enat.cases_on b;
   simp [add_eq_top_iff, coe_ne_top, @eq_comm _ (⊤ : enat)];
-  simp only [(enat.coe_add _ _).symm, add_left_cancel_iff, enat.coe_inj, add_comm];
+  simp only [(nat.cast_add _ _).symm, add_left_cancel_iff, enat.coe_inj, add_comm];
   tauto
 end
 
@@ -453,7 +447,7 @@ to_with_top_top'
 to_with_top_coe' _
 
 @[simp] lemma with_top_equiv_zero : with_top_equiv 0 = 0 :=
-enat.coe_zero ▸ with_top_equiv_coe _
+by simpa only [nat.cast_zero] using with_top_equiv_coe 0
 
 @[simp] lemma with_top_equiv_le {x y : enat} : with_top_equiv x ≤ with_top_equiv y ↔ x ≤ y :=
 to_with_top_le

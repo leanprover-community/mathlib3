@@ -623,7 +623,7 @@ lemma multiplicity_eq_count_factors {a b : R} (ha : irreducible a) (hb : b ≠ 0
 begin
   apply le_antisymm,
   { apply enat.le_of_lt_add_one,
-    rw [← enat.coe_one, ← enat.coe_add, lt_iff_not_ge, ge_iff_le,
+    rw [← nat.cast_one, ← nat.cast_add, lt_iff_not_ge, ge_iff_le,
       le_multiplicity_iff_repeat_le_factors ha hb, ← le_count_iff_repeat_le],
     simp },
   rw [le_multiplicity_iff_repeat_le_factors ha hb, ← le_count_iff_repeat_le],

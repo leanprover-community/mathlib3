@@ -156,11 +156,22 @@ begin
   rw [this, add_haar_preimage_add]
 end
 
+
+@[simp] lemma add_haar_closed_ball
+  {E : Type*} [normed_group E] [measurable_space E]
+  [borel_space E] (μ : measure E) [is_add_haar_measure μ] (x : E) (r : ℝ) :
+  μ (metric.closed_ball x r) = μ (metric.closed_ball (0 : E) r) :=
+begin
+  have : metric.closed_ball (0 : E) r = ((+) x) ⁻¹' (metric.closed_ball x r),
+    by { ext y, simp [dist_eq_norm] },
+  rw [this, add_haar_preimage_add]
+end
+
 variables {E : Type*} [normed_group E] [measurable_space E] [normed_space ℝ E]
   [finite_dimensional ℝ E]
   [borel_space E] (μ : measure E) [is_add_haar_measure μ]
 
-lemma map_haar_smul {r : ℝ} (hr : r ≠ 0) :
+lemma map_add_haar_smul {r : ℝ} (hr : r ≠ 0) :
   measure.map ((•) r) μ = ennreal.of_real (abs (r^(finrank ℝ E))⁻¹) • μ :=
 begin
   let f : E →ₗ[ℝ] E := r • 1,
@@ -173,13 +184,13 @@ begin
     monoid_hom.map_one],
 end
 
-lemma haar_preimage_smul {r : ℝ} (hr : r ≠ 0) (s : set E) :
+lemma add_haar_preimage_smul {r : ℝ} (hr : r ≠ 0) (s : set E) :
   μ (((•) r) ⁻¹' s) = ennreal.of_real (abs (r^(finrank ℝ E))⁻¹) * μ s :=
 calc μ (((•) r) ⁻¹' s) = measure.map ((•) r) μ s :
   ((homeomorph.smul (is_unit_iff_ne_zero.2 hr).unit).to_measurable_equiv.map_apply s).symm
-... = ennreal.of_real (abs (r^(finrank ℝ E))⁻¹) * μ s : by { rw map_haar_smul μ hr, refl }
+... = ennreal.of_real (abs (r^(finrank ℝ E))⁻¹) * μ s : by { rw map_add_haar_smul μ hr, refl }
 
-lemma haar_smul_of_ne_zero {r : ℝ} (hr : r ≠ 0) (s : set E) :
+lemma add_haar_smul_of_ne_zero {r : ℝ} (hr : r ≠ 0) (s : set E) :
   μ (r • s) = ennreal.of_real (abs (r^(finrank ℝ E))) * μ s :=
 begin
   have : r • s = ((•) r⁻¹) ⁻¹' s,
@@ -193,24 +204,48 @@ begin
       simp at h,
       refine ⟨_, h, _⟩,
       simp [smul_smul, mul_inv_cancel hr] } },
-  rw [this, haar_preimage_smul],
+  rw [this, add_haar_preimage_smul],
   simp only [inv_inv', inv_pow'],
   exact inv_ne_zero hr,
+end
+
+open_locale topological_space
+open filter
+
+lemma haar_singleton_zero_of_finrank_ne_zero (h : finrank ℝ E ≠ 0) : μ {(0 : E)} = 0 :=
+begin
+  have B : ∀ (r : ℝ), r ≠ 0 →
+    1 * μ {(0 : E)} = ennreal.of_real (abs (r^(finrank ℝ E))⁻¹) * μ {(0 : E)},
+  { assume r hr,
+    rw one_mul,
+    have A : ((•) r) ⁻¹' ({(0 : E)} : set E) = {(0 : E)}, by { ext y, simp [hr], },
+    have := add_haar_preimage_smul μ hr ({(0 : E)} : set E),
+    rwa A at this },
+  have : tendsto (λ (r : ℝ), ennreal.of_real (abs (r^(finrank ℝ E))⁻¹)) at_top
+    (𝓝 (ennreal.of_real (abs 0))),
+  { apply tendsto.comp,
+
+  },
+  have T := ennreal.tendsto.mul_const
+  contrapose h,
+  have Z := (ennreal.mul_eq_mul_right h (is_compact_singleton.add_haar_lt_top μ).ne).1
+    (B 2 two_ne_zero),
+  simp at Z,
 end
 
 lemma haar_smul_of_zero (s : set E) :
   μ ((0 : ℝ) • s) = ennreal.of_real (abs ((0 : ℝ)^(finrank ℝ E))) * μ s :=
 begin
-  rcases eq_empty_or_nonempty s with rfl|h,
-  { simp },
+  rcases eq_empty_or_nonempty s with rfl|hs,
+  { simp only [measure_empty, mul_zero, smul_set_empty] },
   { have : (0 : ℝ) • s = {(0 : E)},
-      by { ext y, simp [mem_smul_set, set.nonempty_def.1 h, eq_comm] },
+      by { ext y, simp [mem_smul_set, set.nonempty_def.1 hs, eq_comm] },
     simp only [this],
     by_cases h : finrank ℝ E = 0,
     { haveI : subsingleton E := finrank_zero_iff.1 h,
-
-      simp only [h, one_mul, ennreal.of_real_one, abs_one, pow_zero],
-      congr,
+      simp only [h, one_mul, ennreal.of_real_one, abs_one, subsingleton.eq_univ_of_nonempty hs,
+        pow_zero, subsingleton.eq_univ_of_nonempty (singleton_nonempty (0 : E))] },
+    { simp only [h, zero_mul, ennreal.of_real_zero, abs_zero, ne.def, not_false_iff, zero_pow'],
 
     }
 

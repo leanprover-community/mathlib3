@@ -349,22 +349,12 @@ by { ext, simp [←unitors_equal] }
 @[reassoc]
 lemma right_unitor_inv_comp_tensor (f : W ⟶ X) (g : 𝟙_ C ⟶ Z) :
   (ρ_ _).inv ≫ (f ⊗ g) = f ≫ (ρ_ _).inv ≫ (𝟙 _ ⊗ g) :=
-by {slice_rhs 1 2 { rw right_unitor_inv_naturality }, simp }
-
-@[reassoc]
-lemma right_unitor_inv_sliding_right (f : W ⟶ X) (g : 𝟙_ C ⟶ Z) :
-  f ≫ (ρ_ _).inv ≫ (𝟙 _ ⊗ g) = (ρ_ _).inv ≫ (𝟙 _ ⊗ g) ≫ (f ⊗ 𝟙 _) :=
-by { rw ←right_unitor_inv_comp_tensor, simp }
+by { slice_rhs 1 2 { rw right_unitor_inv_naturality }, simp }
 
 @[reassoc]
 lemma left_unitor_inv_comp_tensor (f : W ⟶ X) (g : 𝟙_ C ⟶ Z) :
   (λ_ _).inv ≫ (g ⊗ f) = f ≫ (λ_ _).inv ≫ (g ⊗ 𝟙 _) :=
-by {slice_rhs 1 2 { rw left_unitor_inv_naturality }, simp }
-
-@[reassoc]
-lemma left_unitor_inv_sliding_right (f : W ⟶ X) (g : 𝟙_ C ⟶ Z) :
-  f ≫ (λ_ _).inv ≫ (g ⊗ 𝟙 _) = (λ_ _).inv ≫ (g ⊗ 𝟙 _) ≫ (𝟙 _ ⊗ f) :=
-by { rw ←left_unitor_inv_comp_tensor, simp }
+by { slice_rhs 1 2 { rw left_unitor_inv_naturality }, simp }
 
 @[simp, reassoc]
 lemma hom_inv_id_tensor {V W X Y Z : C} (f : V ≅ W) (g : X ⟶ Y) (h : Y ⟶ Z) :

@@ -9,7 +9,7 @@ import linear_algebra.finite_dimensional
 import linear_algebra.contraction
 
 /-!
-# The Coevaluation function on finite dimensional vector spaces
+# The coevaluation map on finite dimensional vector spaces
 
 Given a finite dimensional vector space `V` over a field `K` this describes the canonical linear map
 from `K` to `V ⊗ dual K V` which corresponds to the identity function on `V`.

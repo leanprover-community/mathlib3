@@ -33,11 +33,11 @@ universes u
 variables (K : Type u) [field K]
 
 /-- Define `FinVect` as the subtype of `Module.{u} K` of finite dimensional vector spaces. -/
-def FinVect := { V : Module.{u} K // finite_dimensional K V.carrier }
+def FinVect := { V : Module.{u} K // finite_dimensional K V }
 
 namespace FinVect
 
-instance category : category (FinVect K) := by unfold FinVect; apply_instance
+instance category : category (FinVect K) := by { unfold FinVect, apply_instance }
 
 instance finite_dimensional (V : FinVect K): finite_dimensional K V.val := V.prop
 

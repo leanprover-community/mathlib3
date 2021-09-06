@@ -2798,4 +2798,15 @@ lemma eq_univ_of_nonempty {s : set α} : s.nonempty → s = univ :=
 lemma set_cases {p : set α → Prop} (h0 : p ∅) (h1 : p univ) (s) : p s :=
 s.eq_empty_or_nonempty.elim (λ h, h.symm ▸ h0) $ λ h, (eq_univ_of_nonempty h).symm ▸ h1
 
+lemma subset_of_nonempty
+  (s : set α) {t : set α} (ht : t.nonempty) : s ⊆ t :=
+begin
+  rw eq_univ_of_nonempty ht,
+  exact subset_univ _,
+end
+
+lemma eq_of_nonempty
+  {s t : set α} (hs : s.nonempty) (ht : t.nonempty) : s = t :=
+subset.antisymm (subset_of_nonempty s ht) (subset_of_nonempty t hs)
+
 end subsingleton

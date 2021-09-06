@@ -173,26 +173,49 @@ begin
     monoid_hom.map_one],
 end
 
-open_locale pointwise
-
 lemma haar_preimage_smul {r : ℝ} (hr : r ≠ 0) (s : set E) :
   μ (((•) r) ⁻¹' s) = ennreal.of_real (abs (r^(finrank ℝ E))⁻¹) * μ s :=
 calc μ (((•) r) ⁻¹' s) = measure.map ((•) r) μ s :
+  ((homeomorph.smul (is_unit_iff_ne_zero.2 hr).unit).to_measurable_equiv.map_apply s).symm
+... = ennreal.of_real (abs (r^(finrank ℝ E))⁻¹) * μ s : by { rw map_haar_smul μ hr, refl }
+
+lemma haar_smul_of_ne_zero {r : ℝ} (hr : r ≠ 0) (s : set E) :
+  μ (r • s) = ennreal.of_real (abs (r^(finrank ℝ E))) * μ s :=
 begin
-  let a : units ℝ := is_unit.unit (is_unit_iff_ne_zero.2 hr),
-  let Z : E ≃ₜ E := homeomorph.smul a,
-  convert (Z.to_measurable_equiv.map_apply s).symm,
-  refl,
+  have : r • s = ((•) r⁻¹) ⁻¹' s,
+  { ext x,
+    rw mem_smul_set,
+    split,
+    { rintros ⟨y, ys, hy⟩,
+      rw ← hy,
+      simp [smul_smul, inv_mul_cancel hr, ys] },
+    { assume h,
+      simp at h,
+      refine ⟨_, h, _⟩,
+      simp [smul_smul, mul_inv_cancel hr] } },
+  rw [this, haar_preimage_smul],
+  simp only [inv_inv', inv_pow'],
+  exact inv_ne_zero hr,
 end
 
-#exit
+lemma haar_smul_of_zero (s : set E) :
+  μ ((0 : ℝ) • s) = ennreal.of_real (abs ((0 : ℝ)^(finrank ℝ E))) * μ s :=
+begin
+  rcases eq_empty_or_nonempty s with rfl|h,
+  { simp },
+  { have : (0 : ℝ) • s = {(0 : E)},
+      by { ext y, simp [mem_smul_set, set.nonempty_def.1 h, eq_comm] },
+    simp only [this],
+    by_cases h : finrank ℝ E = 0,
+    { haveI : subsingleton E := finrank_zero_iff.1 h,
 
-  ((f.equiv_of_det_ne_zero hf).to_continuous_linear_equiv.to_homeomorph
-    .to_measurable_equiv.map_apply s).symm
-... = ennreal.of_real (abs (f.det)⁻¹) * μ s :
-  by { rw map_linear_map_add_haar_eq_smul_add_haar μ hf, refl }
+      simp only [h, one_mul, ennreal.of_real_one, abs_one, pow_zero],
+      congr,
 
+    }
 
+  }
+end
 
 end measure_theory
 

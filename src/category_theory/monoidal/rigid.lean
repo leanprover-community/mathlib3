@@ -89,12 +89,12 @@ instance exact_pairing_unit : exact_pairing (𝟙_ C) (𝟙_ C) :=
       monoidal_category.unitors_inv_equal,
       monoidal_category.unitors_equal], simp } }
 
-/-- A class of objects which have a right dual, -/
+/-- A class of objects which have a right dual. -/
 class has_right_dual (X : C) :=
   (right_dual : C)
   [exact : exact_pairing X right_dual]
 
-/-- ... and a class of objects with have a left dual.-/
+/-- A class of objects with have a left dual. -/
 class has_left_dual (Y : C) :=
   (left_dual : C)
   [exact : exact_pairing left_dual Y]
@@ -231,7 +231,7 @@ begin
     right_unitor_naturality_assoc, ←unitors_equal, ←category.assoc, ←category.assoc], simp
 end
 
-/-- Right duals are isomorphic, which is almost trivial due to the previous theorem. -/
+/-- Right duals are isomorphic. -/
 def right_dual_iso {X Y₁ Y₂ : C} (_ : exact_pairing X Y₁) (_ : exact_pairing X Y₂) :
   Y₁ ≅ Y₂ :=
 { hom := @right_adjoint_mate C _ _ X X ⟨Y₂⟩ ⟨Y₁⟩ (𝟙 X),
@@ -239,7 +239,7 @@ def right_dual_iso {X Y₁ Y₂ : C} (_ : exact_pairing X Y₁) (_ : exact_pairi
   hom_inv_id' := by rw [←comp_right_adjoint_mate, category.comp_id, right_adjoint_mate_id],
   inv_hom_id' := by rw [←comp_right_adjoint_mate, category.comp_id, right_adjoint_mate_id] }
 
-/-- Left duals are isomorphic, which is almost trivial due to the previous theorem. -/
+/-- Left duals are isomorphic. -/
 def left_dual_iso {X₁ X₂ Y : C} (p₁ : exact_pairing X₁ Y) (p₂ : exact_pairing X₂ Y) :
   X₁ ≅ X₂ :=
 { hom := @left_adjoint_mate C _ _ Y Y ⟨X₂⟩ ⟨X₁⟩ (𝟙 Y),

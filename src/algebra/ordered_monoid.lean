@@ -57,15 +57,6 @@ instance ordered_comm_monoid.to_covariant_class_right (M : Type*) [ordered_comm_
   covariant_class M M (swap (*)) (≤) :=
 covariant_swap_mul_le_of_covariant_mul_le M
 
-/- This instance can be proven with `by apply_instance`.  However, by analogy with the
-instance `ordered_comm_monoid.to_covariant_class_right` above, I imagine that without
-this instance, some Type would not have a `contravariant_class M M (function.swap (*)) (≤)`
-instance. -/
-@[to_additive]
-instance ordered_comm_monoid.to_contravariant_class_right (M : Type*) [ordered_comm_monoid M] :
-  contravariant_class M M (swap (*)) (<) :=
-contravariant_swap_mul_lt_of_contravariant_mul_lt M
-
 end ordered_instances
 
 /-- An `ordered_comm_monoid` with one-sided 'division' in the sense that
@@ -696,7 +687,7 @@ instance. -/
 @[to_additive]
 instance ordered_cancel_comm_monoid.to_contravariant_class_right
   (M : Type*) [ordered_cancel_comm_monoid M] :
-  contravariant_class M M (function.swap (*)) (<) :=
+  contravariant_class M M (swap (*)) (<) :=
 contravariant_swap_mul_lt_of_contravariant_mul_lt M
 
 @[priority 100, to_additive]    -- see Note [lower instance priority]

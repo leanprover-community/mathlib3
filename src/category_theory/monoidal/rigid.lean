@@ -17,7 +17,7 @@ exact pairings and duals.
 
 * `exact_pairing` of two objects of a monoidal category
 * Type classes `has_left_dual` and `has_right_dual` that capture that a pairing exists
-* The `right_adjoint_mate f` as a morphism `f^* : Y^* ⟶ X^*` for a morphism `f : X ⟶ Y`
+* The `right_adjoint_mate f` as a morphism `fᘁ : Yᘁ ⟶ Xᘁ` for a morphism `f : X ⟶ Y`
 * The classes of `right_rigid_category`, `left_rigid_category` and `rigid_category`
 
 ## Main statements
@@ -28,12 +28,12 @@ exact pairings and duals.
 ## Notations
 
 * `η_` and `ε_` denote the coevaluation and evaluation morphism of an exact pairing.
-* `X^*` and `*^X` denote the right and left dual of an object, as well as the adjoint
+* `Xᘁ` and `ᘁX` denote the right and left dual of an object, as well as the adjoint
   mate of a morphism.
 
 ## Future work
 
-* Show that `X ⊗ Y` and `Y^* ⊗ X^*` form an exact pairing.
+* Show that `X ⊗ Y` and `Yᘁ ⊗ Xᘁ` form an exact pairing.
 * Show that the left adjoint mate of the right adjoint mate of a morphism is the morphism itself.
 * Simplify constructions in the case where a symmetry or braiding is present.
 
@@ -104,8 +104,8 @@ attribute [instance] has_left_dual.exact
 
 open exact_pairing has_right_dual has_left_dual monoidal_category
 
-prefix `*^`:1025 := left_dual
-postfix `^*`:1025 := right_dual
+prefix `ᘁ`:1025 := left_dual
+postfix `ᘁ`:1025 := right_dual
 
 instance has_right_dual_unit : has_right_dual (𝟙_ C) :=
 { right_dual := 𝟙_ C }
@@ -113,46 +113,46 @@ instance has_right_dual_unit : has_right_dual (𝟙_ C) :=
 instance has_left_dual_unit : has_left_dual (𝟙_ C) :=
 { left_dual := 𝟙_ C }
 
-instance has_right_dual_left_dual {X : C} [has_left_dual X] : has_right_dual (*^X) :=
+instance has_right_dual_left_dual {X : C} [has_left_dual X] : has_right_dual (ᘁX) :=
 { right_dual := X }
 
-instance has_left_dual_right_dual {X : C} [has_right_dual X] : has_left_dual (X ^*) :=
+instance has_left_dual_right_dual {X : C} [has_right_dual X] : has_left_dual Xᘁ :=
 { left_dual := X }
 
 @[simp]
-lemma left_dual_right_dual {X : C} [has_right_dual X] : *^(X^*) = X := rfl
+lemma left_dual_right_dual {X : C} [has_right_dual X] : ᘁ(Xᘁ) = X := rfl
 
 @[simp]
-lemma right_dual_left_dual {X : C} [has_left_dual X] : (*^X)^* = X := rfl
+lemma right_dual_left_dual {X : C} [has_left_dual X] : (ᘁX)ᘁ = X := rfl
 
-/-- The right adjoint mate `f^* : X^* ⟶ Y^*` of a morphism `f : X ⟶ Y`. -/
-def right_adjoint_mate {X Y : C} [has_right_dual X] [has_right_dual Y] (f : X ⟶ Y) : Y^* ⟶ X^* :=
+/-- The right adjoint mate `fᘁ : Xᘁ ⟶ Yᘁ` of a morphism `f : X ⟶ Y`. -/
+def right_adjoint_mate {X Y : C} [has_right_dual X] [has_right_dual Y] (f : X ⟶ Y) : Yᘁ ⟶ Xᘁ :=
 (ρ_ _).inv ≫ (𝟙 _ ⊗ η_ _ _) ≫ (𝟙 _ ⊗ (f ⊗ 𝟙 _))
  ≫ (α_ _ _ _).inv ≫ ((ε_ _ _) ⊗ 𝟙 _) ≫ (λ_ _).hom
 
-/-- The left adjoint mate `*^f : *^Y ⟶ *^X` of a morphism `f : X ⟶ Y`. -/
-def left_adjoint_mate {X Y : C} [has_left_dual X] [has_left_dual Y] (f : X ⟶ Y) : *^Y ⟶ *^X :=
-(λ_ _).inv ≫ (η_ *^X X ⊗ 𝟙 _) ≫ ((𝟙 _ ⊗ f) ⊗ 𝟙 _)
+/-- The left adjoint mate `ᘁf : ᘁY ⟶ ᘁX` of a morphism `f : X ⟶ Y`. -/
+def left_adjoint_mate {X Y : C} [has_left_dual X] [has_left_dual Y] (f : X ⟶ Y) : ᘁY ⟶ ᘁX :=
+(λ_ _).inv ≫ (η_ (ᘁX) X ⊗ 𝟙 _) ≫ ((𝟙 _ ⊗ f) ⊗ 𝟙 _)
  ≫ (α_ _ _ _).hom ≫ (𝟙 _ ⊗ ε_ _ _) ≫ (ρ_ _).hom
 
-notation f `^*` := right_adjoint_mate f
-notation `*^` f := left_adjoint_mate f
+notation f `ᘁ` := right_adjoint_mate f
+notation `ᘁ` f := left_adjoint_mate f
 
 @[simp]
-lemma right_adjoint_mate_id {X : C} [has_right_dual X] : (𝟙 X)^* = 𝟙 (X^*) :=
+lemma right_adjoint_mate_id {X : C} [has_right_dual X] : (𝟙 X)ᘁ = 𝟙 (Xᘁ) :=
 by simp only [right_adjoint_mate, monoidal_category.tensor_id, category.id_comp,
   coevaluation_evaluation_assoc, category.comp_id, iso.inv_hom_id]
 
 @[simp]
-lemma left_adjoint_mate_id {X : C} [has_left_dual X] : *^(𝟙 X) = 𝟙 (*^X) :=
+lemma left_adjoint_mate_id {X : C} [has_left_dual X] : ᘁ(𝟙 X) = 𝟙 (ᘁX) :=
 by simp only [left_adjoint_mate, monoidal_category.tensor_id, category.id_comp,
   evaluation_coevaluation_assoc, category.comp_id, iso.inv_hom_id]
 
 lemma right_adjoint_mate_comp {X Y Z : C} [has_right_dual X]
-  [has_right_dual Y] {f : X ⟶ Y} {g : X^* ⟶ Z} :
-  f^* ≫ g
-  = (ρ_ Y^*).inv ≫ (𝟙 _ ⊗ η_ X X^*) ≫ (𝟙 _ ⊗ f ⊗ g)
-    ≫ (α_ Y^* Y Z).inv ≫ (ε_ Y Y^* ⊗ 𝟙 _) ≫ (λ_ Z).hom :=
+  [has_right_dual Y] {f : X ⟶ Y} {g : Xᘁ ⟶ Z} :
+  fᘁ ≫ g
+  = (ρ_ Yᘁ).inv ≫ (𝟙 _ ⊗ η_ X Xᘁ) ≫ (𝟙 _ ⊗ f ⊗ g)
+    ≫ (α_ Yᘁ Y Z).inv ≫ (ε_ Y Yᘁ ⊗ 𝟙 _) ≫ (λ_ Z).hom :=
 begin
   dunfold right_adjoint_mate,
   rw [category.assoc, category.assoc, associator_inv_naturality_assoc,
@@ -162,9 +162,9 @@ begin
 end
 
 lemma left_adjoint_mate_comp {X Y Z : C} [has_left_dual X] [has_left_dual Y]
-  {f : X ⟶ Y} {g : *^X ⟶ Z} :
-  *^f ≫ g
-  = (λ_ _).inv ≫ (η_ *^X X ⊗ 𝟙 _) ≫ ((g ⊗ f) ⊗ 𝟙 _)
+  {f : X ⟶ Y} {g : ᘁX ⟶ Z} :
+  ᘁf ≫ g
+  = (λ_ _).inv ≫ (η_ (ᘁX) X ⊗ 𝟙 _) ≫ ((g ⊗ f) ⊗ 𝟙 _)
     ≫ (α_ _ _ _).hom ≫ (𝟙 _ ⊗ ε_ _ _) ≫ (ρ_ _).hom :=
 begin
   dunfold left_adjoint_mate,
@@ -177,7 +177,7 @@ end
 @[reassoc]
 lemma comp_right_adjoint_mate {X Y Z : C}
   [has_right_dual X] [has_right_dual Y] [has_right_dual Z] {f : X ⟶ Y} {g : Y ⟶ Z} :
-  (f ≫ g)^* = g^* ≫ f^* :=
+  (f ≫ g)ᘁ = gᘁ ≫ fᘁ :=
 begin
   rw right_adjoint_mate_comp,
   simp only [right_adjoint_mate, comp_tensor_id, iso.cancel_iso_inv_left, id_tensor_comp,
@@ -186,12 +186,12 @@ begin
   rw ←category.assoc,
   symmetry, iterate 2 { transitivity, rw ←category.assoc }, apply eq_whisker,
   repeat { rw ←id_tensor_comp }, congr' 1,
-  rw [←id_tensor_comp_tensor_id (λ_ X^*).hom g, id_tensor_right_unitor_inv, category.assoc,
+  rw [←id_tensor_comp_tensor_id (λ_ Xᘁ).hom g, id_tensor_right_unitor_inv, category.assoc,
     category.assoc, right_unitor_inv_naturality_assoc, ←associator_naturality_assoc, tensor_id,
     tensor_id_comp_id_tensor_assoc, ←associator_naturality_assoc],
   slice_rhs 2 3 { rw [←tensor_comp, tensor_id, category.comp_id,
-    ←category.id_comp (η_ Y Y^*), tensor_comp] },
-  rw [←id_tensor_comp_tensor_id _ (η_ Y Y^*), ←tensor_id],
+    ←category.id_comp (η_ Y Yᘁ), tensor_comp] },
+  rw [←id_tensor_comp_tensor_id _ (η_ Y Yᘁ), ←tensor_id],
   repeat { rw category.assoc },
   rw [pentagon_hom_inv_assoc, ←associator_naturality_assoc, associator_inv_naturality_assoc],
   slice_rhs 5 7 { rw [←comp_tensor_id, ←comp_tensor_id, evaluation_coevaluation, comp_tensor_id] },
@@ -206,7 +206,7 @@ end
 @[reassoc]
 lemma comp_left_adjoint_mate {X Y Z : C}
   [has_left_dual X] [has_left_dual Y] [has_left_dual Z] {f : X ⟶ Y} {g : Y ⟶ Z} :
-  *^(f ≫ g) = *^g ≫ *^f :=
+  ᘁ(f ≫ g) = ᘁg ≫ ᘁf :=
 begin
   rw left_adjoint_mate_comp,
   simp only [left_adjoint_mate, id_tensor_comp, iso.cancel_iso_inv_left,
@@ -215,12 +215,12 @@ begin
   rw ← category.assoc,
   symmetry, iterate 2 { transitivity, rw ←category.assoc }, apply eq_whisker,
   repeat { rw ←comp_tensor_id }, congr' 1,
-  rw [←tensor_id_comp_id_tensor g (ρ_ *^X).hom, left_unitor_inv_tensor_id, category.assoc,
+  rw [←tensor_id_comp_id_tensor g (ρ_ (ᘁX)).hom, left_unitor_inv_tensor_id, category.assoc,
     category.assoc, left_unitor_inv_naturality_assoc, ←associator_inv_naturality_assoc, tensor_id,
     id_tensor_comp_tensor_id_assoc, ←associator_inv_naturality_assoc],
   slice_rhs 2 3 { rw [←tensor_comp, tensor_id, category.comp_id,
-    ←category.id_comp (η_ *^Y Y), tensor_comp] },
-  rw [←tensor_id_comp_id_tensor (η_ *^Y Y), ←tensor_id],
+    ←category.id_comp (η_ (ᘁY) Y), tensor_comp] },
+  rw [←tensor_id_comp_id_tensor (η_ (ᘁY) Y), ←tensor_id],
   repeat { rw category.assoc },
   rw [pentagon_inv_hom_assoc, ←associator_inv_naturality_assoc, associator_naturality_assoc],
   slice_rhs 5 7 { rw [←id_tensor_comp, ←id_tensor_comp, coevaluation_evaluation, id_tensor_comp ]},

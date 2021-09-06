@@ -154,7 +154,7 @@ by ext; simp [circulant]
 
 /-- The identity matrix is a circulant matrix. -/
 lemma one_eq_circulant [has_zero α] [has_one α] [decidable_eq I] [add_group I]:
-  (1 : matrix I I α) = circulant (λ i, ite (i = 0) 1 0) :=
+  (1 : matrix I I α) = circulant (pi.single 0 1) :=
 begin
   ext,
   simp only [circulant, one_apply],

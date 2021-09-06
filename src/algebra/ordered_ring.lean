@@ -29,12 +29,13 @@ For short,
 * `ordered_ring`: Ring with a partial order such that `+` respects `≤` and `*` respects `<`.
 * `ordered_comm_ring`: Commutative ring with a partial order such that `+` respects `≤` and
   `*` respects `<`.
-* `linear_ordered_semiring`: Semiring with a total order such that `+` respects `≤` and
+* `linear_ordered_semiring`: Semiring with a linear order such that `+` respects `≤` and
   `*` respects `<`.
-* `linear_ordered_ring`: Ring with a total order such that `+` respects `≤` and `*` respects `<`.
-* `linear_ordered_comm_ring`: Commutative ring with a total order such that `+` respects `≤` and
+* `linear_ordered_ring`: Ring with a linear order such that `+` respects `≤` and `*` respects `<`.
+* `linear_ordered_comm_ring`: Commutative ring with a linear order such that `+` respects `≤` and
   `*` respects `<`.
-* `canonically_ordered_comm_semiring`: Commutative semiring with a partial order such that `+` respects `≤`, `*` respects `<`, and `a ≤ b ↔ ∃ c, b = a + c`.
+* `canonically_ordered_comm_semiring`: Commutative semiring with a partial order such that `+`
+  respects `≤`, `*` respects `<`, and `a ≤ b ↔ ∃ c, b = a + c`.
 
 and some typeclasses to define ordered rings by specifying their nonegative elements:
 * `nonneg_ring`: To define `ordered_ring`s.
@@ -47,34 +48,34 @@ corresponding typeclass. Here's an attempt at demystifying it. For each typeclas
 immediate predecessors and what conditions are added to each of them.
 
 * `ordered_semiring`
-  - `ordered_cancel_add_comm_monoid`: Multiplication. `*` respects `<`.
-  - `semiring`: Partial order structure. `+` respects `≤` and `*` respects `<`.
+  - `ordered_cancel_add_comm_monoid` & multiplication & `*` respects `<`
+  - `semiring` & partial order structure & `+` respects `≤` & `*` respects `<`
 * `ordered_comm_semiring`
-  - `ordered_semiring`: Commutativity of multiplication.
-  - `comm_semiring`: Partial order structure. `+` respects `≤` and `*` respects `<`.
+  - `ordered_semiring` & commutativity of multiplication
+  - `comm_semiring` & partial order structure & `+` respects `≤` & `*` respects `<`
 * `ordered_ring`
-  - `ordered_semiring`: Additive inverses.
-  - `ordered_add_comm_group`: Multiplication. `*` respects `<`.
-  - `ring`: Partial order structure. `+` respects `≤` and `*` respects `<`.
+  - `ordered_semiring` & additive inverses
+  - `ordered_add_comm_group` & multiplication & `*` respects `<`
+  - `ring` & partial order structure & `+` respects `≤` & `*` respects `<`
 * `ordered_comm_ring`
-  - `ordered_ring`: Commutativity of multiplication.
-  - `ordered_comm_semiring`: Additive inverses.
-  - `comm_ring`: Partial order structure. `+` respects `≤` and `*` respects `<`.
+  - `ordered_ring` & commutativity of multiplication
+  - `ordered_comm_semiring` & additive inverses
+  - `comm_ring` & partial order structure & `+` respects `≤` & `*` respects `<`
 * `linear_ordered_semiring`
-  - `ordered_semiring`: Totality of the order. Nontriviality.
-  - `linear_ordered_add_comm_monoid`: Multiplication. Nontriviality. `*` respects `<`.
+  - `ordered_semiring` & totality of the order & nontriviality
+  - `linear_ordered_add_comm_monoid` & multiplication & nontriviality & `*` respects `<`
 * `linear_ordered_ring`
-  - `ordered_ring`: Totality of the order. Nontriviality.
-  - `linear_ordered_semiring`: Additive inverses.
-  - `linear_ordered_add_comm_group`: Multiplication. `*` respects `<`.
-  - `domain`: Linear order structure.
+  - `ordered_ring` & totality of the order & nontriviality
+  - `linear_ordered_semiring` & additive inverses
+  - `linear_ordered_add_comm_group` & multiplication & `*` respects `<`
+  - `domain` & linear order structure
 * `linear_ordered_comm_ring`
-  - `ordered_comm_ring`: Totality of the order. Nontriviality.
-  - `linear_ordered_ring`: Commutativity of multiplication.
-  - `integral_domain`: Linear order structure.
+  - `ordered_comm_ring` & totality of the order & nontriviality
+  - `linear_ordered_ring` & commutativity of multiplication
+  - `integral_domain` & linear order structure
 * `canonically_ordered_comm_semiring`
-  - `canonically_ordered_add_monoid`: Multiplication. `*` respects `<`. No zero divisors.
-  - `comm_semiring`: `a ≤ b ↔ ∃ c, b = a + c`. No zero divisors.
+  - `canonically_ordered_add_monoid` & multiplication & `*` respects `<` & no zero divisors
+  - `comm_semiring` & `a ≤ b ↔ ∃ c, b = a + c` & no zero divisors
 
 ## TODO
 
@@ -1216,7 +1217,7 @@ end linear_ordered_ring
 /-- A `linear_ordered_comm_ring α` is a commutative ring `α` with a linear order
 such that addition is monotone and multiplication by a positive number is strictly monotone. -/
 @[protect_proj]
-class linear_ordered_comm_ring (α : Type u) extends linear_ordered_ring α, ordered_comm_ring α
+class linear_ordered_comm_ring (α : Type u) extends linear_ordered_ring α, comm_monoid α
 
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_comm_ring.to_ordered_comm_ring [d : linear_ordered_comm_ring α] :
@@ -1328,7 +1329,7 @@ namespace nonneg_ring
 open nonneg_add_comm_group
 variable [nonneg_ring α]
 
-/-- `to_linear_nonneg_ring` shows that a `nonneg_ring` with a total order is a `domain`,
+/-- `to_linear_nonneg_ring` shows that a `nonneg_ring` with a linear order is a `domain`,
 hence a `linear_nonneg_ring`. -/
 def to_linear_nonneg_ring [nontrivial α] [decidable_pred (@nonneg α _)]
   (nonneg_total : ∀ a : α, nonneg a ∨ nonneg (-a))

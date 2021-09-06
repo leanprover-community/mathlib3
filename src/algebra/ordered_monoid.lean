@@ -22,6 +22,7 @@ The reason is that we did not want to change existing names in the library.
 -/
 
 set_option old_structure_cmd true
+open function
 
 universe u
 variable {α : Type u}
@@ -53,8 +54,17 @@ instance ordered_comm_monoid.to_covariant_class_left (M : Type*) [ordered_comm_m
 pick up a `covariant_class M M (function.swap (*)) (≤)` instance without it (see PR #7940). -/
 @[to_additive]
 instance ordered_comm_monoid.to_covariant_class_right (M : Type*) [ordered_comm_monoid M] :
-  covariant_class M M (function.swap (*)) (≤) :=
+  covariant_class M M (swap (*)) (≤) :=
 covariant_swap_mul_le_of_covariant_mul_le M
+
+/- This instance can be proven with `by apply_instance`.  However, by analogy with the
+instance `ordered_comm_monoid.to_covariant_class_right` above, I imagine that without
+this instance, some Type would not have a `contravariant_class M M (function.swap (*)) (≤)`
+instance. -/
+@[to_additive]
+instance ordered_comm_monoid.to_contravariant_class_right (M : Type*) [ordered_comm_monoid M] :
+  contravariant_class M M (swap (*)) (<) :=
+contravariant_swap_mul_lt_of_contravariant_mul_lt M
 
 end ordered_instances
 
@@ -107,6 +117,10 @@ lemma top_add (a : α) : ⊤ + a = ⊤ := linear_ordered_add_comm_monoid_with_to
 @[simp]
 lemma add_top (a : α) : a + ⊤ = ⊤ :=
 trans (add_comm _ _) (top_add _)
+
+-- TODO: Generalize to a not-yet-existing typeclass extending `linear_order` and `order_top`
+@[simp] lemma min_top_left (a : α) : min (⊤ : α) a = a := min_eq_right le_top
+@[simp] lemma min_top_right (a : α) : min a ⊤ = a := min_eq_left le_top
 
 end linear_ordered_add_comm_monoid_with_top
 
@@ -298,12 +312,6 @@ end has_one
 instance [has_add α] : has_add (with_top α) :=
 ⟨λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a + b))⟩
 
-local attribute [semireducible] with_zero
-
-instance [add_semigroup α] : add_semigroup (with_top α) :=
-{ add := (+),
-  ..(infer_instance : add_semigroup (additive (with_zero (multiplicative α)))) }
-
 @[norm_cast] lemma coe_add [has_add α] {a b : α} : ((a + b : α) : with_top α) = a + b := rfl
 
 @[norm_cast] lemma coe_bit0 [has_add α] {a : α} : ((bit0 a : α) : with_top α) = bit0 a := rfl
@@ -330,21 +338,41 @@ lemma add_eq_coe [has_add α] : ∀ {a b : with_top α} {c : α},
 | (some a) (some b) c :=
     by simp only [some_eq_coe, ← coe_add, coe_eq_coe, exists_and_distrib_left, exists_eq_left]
 
+instance [add_semigroup α] : add_semigroup (with_top α) :=
+{ add_assoc := begin
+    repeat { refine with_top.rec_top_coe _ _; try { intro }};
+    simp [←with_top.coe_add, add_assoc]
+  end,
+  ..with_top.has_add }
+
 instance [add_comm_semigroup α] : add_comm_semigroup (with_top α) :=
-{ ..@additive.add_comm_semigroup _ $
-    @with_zero.comm_semigroup (multiplicative α) _ }
+{ add_comm :=
+  begin
+    repeat { refine with_top.rec_top_coe _ _; try { intro }};
+    simp [←with_top.coe_add, add_comm]
+  end,
+  ..with_top.add_semigroup }
 
 instance [add_monoid α] : add_monoid (with_top α) :=
-{ zero := some 0,
-  add := (+),
-  ..@additive.add_monoid _ $ @monoid_with_zero.to_monoid _ $
-    @with_zero.monoid_with_zero (multiplicative α) _ }
+{ zero_add :=
+  begin
+    refine with_top.rec_top_coe _ _,
+    { simpa },
+    { intro,
+      rw [←with_top.coe_zero, ←with_top.coe_add, zero_add] }
+  end,
+  add_zero :=
+  begin
+    refine with_top.rec_top_coe _ _,
+    { simpa },
+    { intro,
+      rw [←with_top.coe_zero, ←with_top.coe_add, add_zero] }
+  end,
+  ..with_top.has_zero,
+  ..with_top.add_semigroup }
 
 instance [add_comm_monoid α] : add_comm_monoid (with_top α) :=
-{ zero := 0,
-  add := (+),
-  ..@additive.add_comm_monoid _ $ @comm_monoid_with_zero.to_comm_monoid _ $
-    @with_zero.comm_monoid_with_zero (multiplicative α) _ }
+{ ..with_top.add_monoid, ..with_top.add_comm_semigroup }
 
 instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (with_top α) :=
 { add_le_add_left :=
@@ -527,28 +555,29 @@ begin
   { rw [← (self_le_mul_right a c).lt_iff_ne], apply lt_mul_of_one_lt_right' }
 end
 
-local attribute [semireducible] with_zero
-
 -- This instance looks absurd: a monoid already has a zero
 /-- Adding a new zero to a canonically ordered additive monoid produces another one. -/
 instance with_zero.canonically_ordered_add_monoid {α : Type u} [canonically_ordered_add_monoid α] :
   canonically_ordered_add_monoid (with_zero α) :=
 { le_iff_exists_add := λ a b, begin
-    cases a with a,
+    apply with_zero.cases_on a,
     { exact iff_of_true bot_le ⟨b, (zero_add b).symm⟩ },
-    cases b with b,
-    { exact iff_of_false
-        (mt (le_antisymm bot_le) (by simp))
-        (λ ⟨c, h⟩, by cases c; cases h) },
-    { simp [le_iff_exists_add, -add_comm],
-      split; intro h; rcases h with ⟨c, h⟩,
-      { exact ⟨some c, congr_arg some h⟩ },
-      { cases c; cases h,
-        { exact ⟨_, (add_zero _).symm⟩ },
-        { exact ⟨_, rfl⟩ } } }
+    apply with_zero.cases_on b,
+    { intro b',
+      refine iff_of_false (mt (le_antisymm bot_le) (by simp)) (not_exists.mpr (λ c, _)),
+      apply with_zero.cases_on c;
+      simp [←with_zero.coe_add] },
+    { simp only [le_iff_exists_add, with_zero.coe_le_coe],
+      intros,
+      split; rintro ⟨c, h⟩,
+      { exact ⟨c, congr_arg coe h⟩ },
+      { induction c using with_zero.cases_on,
+        { refine ⟨0, _⟩,
+          simpa using h },
+        { refine ⟨c, _⟩,
+          simpa [←with_zero.coe_add] using h } } }
   end,
-  bot    := 0,
-  bot_le := assume a a' h, option.no_confusion h,
+  .. with_zero.order_bot,
   .. with_zero.ordered_add_comm_monoid zero_le }
 
 instance with_top.canonically_ordered_add_monoid {α : Type u} [canonically_ordered_add_monoid α] :
@@ -718,8 +747,6 @@ lemma with_bot.add_lt_add_iff_left :
     { norm_cast, exact add_lt_add_iff_left _ }
   end
 
-local attribute [semireducible] with_zero
-
 lemma with_top.add_lt_add_iff_right
   {a b c : with_top α} : a < ⊤ → (c + a < b + a ↔ c < b) :=
 by simpa [add_comm] using @with_top.add_lt_add_iff_left _ _ a b c
@@ -845,14 +872,14 @@ instance covariant_class_mul_le [has_le α] [has_mul α] [c : covariant_class α
 ⟨c.1.flip⟩
 
 @[to_additive] instance contravariant_class_swap_mul_le [has_le α] [has_mul α]
-  [c : contravariant_class α α (function.swap (*)) (≤)] :
-  contravariant_class (order_dual α) (order_dual α) (function.swap (*)) (≤) :=
+  [c : contravariant_class α α (swap (*)) (≤)] :
+  contravariant_class (order_dual α) (order_dual α) (swap (*)) (≤) :=
 ⟨c.1.flip⟩
 
 @[to_additive]
 instance covariant_class_swap_mul_le [has_le α] [has_mul α]
-  [c : covariant_class α α (function.swap (*)) (≤)] :
-  covariant_class (order_dual α) (order_dual α) (function.swap (*)) (≤) :=
+  [c : covariant_class α α (swap (*)) (≤)] :
+  covariant_class (order_dual α) (order_dual α) (swap (*)) (≤) :=
 ⟨c.1.flip⟩
 
 @[to_additive]
@@ -866,14 +893,14 @@ instance covariant_class_mul_lt [has_lt α] [has_mul α] [c : covariant_class α
 ⟨c.1.flip⟩
 
 @[to_additive] instance contravariant_class_swap_mul_lt [has_lt α] [has_mul α]
-  [c : contravariant_class α α (function.swap (*)) (<)] :
-  contravariant_class (order_dual α) (order_dual α) (function.swap (*)) (<) :=
+  [c : contravariant_class α α (swap (*)) (<)] :
+  contravariant_class (order_dual α) (order_dual α) (swap (*)) (<) :=
 ⟨c.1.flip⟩
 
 @[to_additive]
 instance covariant_class_swap_mul_lt [has_lt α] [has_mul α]
-  [c : covariant_class α α (function.swap (*)) (<)] :
-  covariant_class (order_dual α) (order_dual α) (function.swap (*)) (<) :=
+  [c : covariant_class α α (swap (*)) (<)] :
+  covariant_class (order_dual α) (order_dual α) (swap (*)) (<) :=
 ⟨c.1.flip⟩
 
 @[to_additive]

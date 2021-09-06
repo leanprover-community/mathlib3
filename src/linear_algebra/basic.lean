@@ -766,6 +766,12 @@ image_subset _
 have ∃ (x : M), x ∈ p := ⟨0, p.zero_mem⟩,
 ext $ by simp [this, eq_comm]
 
+lemma map_add_le (f g : M →ₗ[R] M₂) : map (f + g) p ≤ map f p + map g p :=
+begin
+  rintros x ⟨m, hm, rfl⟩,
+  exact add_mem_sup (mem_map_of_mem hm) (mem_map_of_mem hm),
+end
+
 lemma range_map_nonempty (N : submodule R M) :
   (set.range (λ ϕ, submodule.map ϕ N : (M →ₗ[R] M₂) → submodule R M₂)).nonempty :=
 ⟨_, set.mem_range.mpr ⟨0, rfl⟩⟩
@@ -835,6 +841,49 @@ lemma map_comap_le (f : M →ₗ[R] M₂) (q : submodule R M₂) : map f (comap 
 
 lemma le_comap_map (f : M →ₗ[R] M₂) (p : submodule R M) : p ≤ comap f (map f p) :=
 (gc_map_comap f).le_u_l _
+
+section galois_insertion
+variables {f : M →ₗ[R] M₂} (hf : surjective f)
+include hf
+
+/-- `map f` and `comap f` form a `galois_insertion` when `f` is surjective. -/
+def gi_map_comap : galois_insertion (map f) (comap f) :=
+(gc_map_comap f).to_galois_insertion
+  (λ S x hx, begin
+    rcases hf x with ⟨y, rfl⟩,
+    simp only [mem_map, mem_comap],
+    exact ⟨y, hx, rfl⟩  
+  end)
+
+lemma map_comap_eq_of_surjective (p : submodule R M₂) : (p.comap f).map f = p :=
+(gi_map_comap hf).l_u_eq _
+
+lemma map_surjective_of_surjective : function.surjective (map f) :=
+(gi_map_comap hf).l_surjective
+
+lemma comap_injective_of_surjective : function.injective (comap f) :=
+(gi_map_comap hf).u_injective
+
+lemma map_sup_comap_of_surjective (p q : submodule R M₂) : 
+  (p.comap f ⊔ q.comap f).map f = p ⊔ q :=
+(gi_map_comap hf).l_sup_u _ _
+
+lemma map_supr_comap_of_sujective (S : ι → submodule R M₂) : (⨆ i, (S i).comap f).map f = supr S :=
+(gi_map_comap hf).l_supr_u _
+
+lemma map_inf_comap_of_surjective (p q : submodule R M₂) : (p.comap f ⊓ q.comap f).map f = p ⊓ q :=
+(gi_map_comap hf).l_inf_u _ _
+
+lemma map_infi_comap_of_surjective (S : ι → submodule R M₂) : (⨅ i, (S i).comap f).map f = infi S :=
+(gi_map_comap hf).l_infi_u _
+
+lemma comap_le_comap_iff_of_surjective (p q : submodule R M₂) : p.comap f ≤ q.comap f ↔ p ≤ q :=
+(gi_map_comap hf).u_le_u_iff
+
+lemma comap_strict_mono_of_surjective : strict_mono (comap f) :=
+(gi_map_comap hf).strict_mono_u
+
+end galois_insertion
 
 section galois_coinsertion
 variables {f : M →ₗ[R] M₂} (hf : injective f)
@@ -1011,16 +1060,6 @@ begin
     exact ⟨k, add_mem _ (ik hi) (jk hj)⟩ },
   { exact λ a x i hi, ⟨i, smul_mem _ a hi⟩ },
 end
-
-lemma sum_mem_bsupr {ι : Type*} {s : finset ι} {f : ι → M} {p : ι → submodule R M}
-  (h : ∀ i ∈ s, f i ∈ p i) :
-  ∑ i in s, f i ∈ ⨆ i ∈ s, p i :=
-sum_mem _ $ λ i hi, mem_supr_of_mem i $ mem_supr_of_mem hi (h i hi)
-
-lemma sum_mem_supr {ι : Type*} [fintype ι] {f : ι → M} {p : ι → submodule R M}
-  (h : ∀ i, f i ∈ p i) :
-  ∑ i, f i ∈ ⨆ i, p i :=
-sum_mem _ $ λ i hi, mem_supr_of_mem i (h i)
 
 @[simp] theorem mem_supr_of_directed {ι} [nonempty ι]
   (S : ι → submodule R M) (H : directed (≤) S) {x} :

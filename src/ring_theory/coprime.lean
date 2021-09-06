@@ -71,11 +71,11 @@ theorem is_coprime_one_right : is_coprime x 1 :=
 
 theorem is_coprime.dvd_of_dvd_mul_right (H1 : is_coprime x z) (H2 : x ∣ y * z) : x ∣ y :=
 let ⟨a, b, H⟩ := H1 in by { rw [← mul_one y, ← H, mul_add, ← mul_assoc, mul_left_comm],
-exact dvd_add (dvd_mul_left _ _) (dvd_mul_of_dvd_right H2 _) }
+exact dvd_add (dvd_mul_left _ _) (H2.mul_left _) }
 
 theorem is_coprime.dvd_of_dvd_mul_left (H1 : is_coprime x y) (H2 : x ∣ y * z) : x ∣ z :=
 let ⟨a, b, H⟩ := H1 in by { rw [← one_mul z, ← H, add_mul, mul_right_comm, mul_assoc b],
-exact dvd_add (dvd_mul_left _ _) (dvd_mul_of_dvd_right H2 _) }
+exact dvd_add (dvd_mul_left _ _) (H2.mul_left _) }
 
 theorem is_coprime.mul_left (H1 : is_coprime x z) (H2 : is_coprime y z) : is_coprime (x * y) z :=
 let ⟨a, b, h1⟩ := H1, ⟨c, d, h2⟩ := H2 in
@@ -102,9 +102,9 @@ begin
   rw [← mul_one z, ← h, mul_add],
   apply dvd_add,
   { rw [mul_comm z, mul_assoc],
-    exact dvd_mul_of_dvd_right (mul_dvd_mul_left _ H2) _ },
+    exact (mul_dvd_mul_left _ H2).mul_left _ },
   { rw [mul_comm b, ← mul_assoc],
-    exact dvd_mul_of_dvd_left (mul_dvd_mul_right H1 _) _ }
+    exact (mul_dvd_mul_right H1 _).mul_right _ }
 end
 
 theorem finset.prod_dvd_of_coprime :

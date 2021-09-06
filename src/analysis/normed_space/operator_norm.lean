@@ -658,29 +658,6 @@ begin
     exact (mul_le_mul_right (by simp)).mp h, },
 end
 
-variables {𝕜} (E)
-
-/-- Scalar product `λ (x : E), r • x` as a continuous linear map. -/
-def lsmul_right (r : 𝕜) : E →L[𝕜] E := lsmul 𝕜 𝕜 r
-
-lemma lsmul_right_apply (r : 𝕜) (x : E) : lsmul_right E r x = r • x :=
-by rw [lsmul_right, lsmul_apply]
-
-lemma lsmul_right_add (x y : 𝕜) : lsmul_right E (x + y) = lsmul_right E x + lsmul_right E y :=
-(lsmul 𝕜 𝕜).map_add x y
-
-lemma norm_lsmul_right_le (r : 𝕜) : ∥lsmul_right E r∥ ≤ ∥r∥ :=
-op_norm_le_bound _ (norm_nonneg _) (λ x, by rw [lsmul_right_apply, norm_smul])
-
-lemma norm_lsmul_right (r : 𝕜) {x : E} (hx : 0 < ∥x∥) : ∥lsmul_right E r∥ = ∥r∥ :=
-begin
-  refine op_norm_eq_of_bounds (norm_nonneg _) (λ x, _) (λ N hN_nonneg h, _),
-  { rw [lsmul_right_apply, norm_smul], },
-  { specialize h x,
-    rw [lsmul_right_apply, norm_smul] at h,
-    exact (mul_le_mul_right hx).mp h, },
-end
-
 end lsmul_left_right
 
 section restrict_scalars

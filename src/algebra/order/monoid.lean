@@ -8,7 +8,7 @@ import algebra.group.type_tags
 import algebra.group.prod
 import algebra.order.functions
 import order.bounded_lattice
-import algebra.ordered_monoid_lemmas
+import algebra.order.monoid_lemmas
 /-!
 # Ordered monoids
 

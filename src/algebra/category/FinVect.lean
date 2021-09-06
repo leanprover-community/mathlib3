@@ -3,10 +3,8 @@ Copyright (c) 2021 Jakob von Raumer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jakob von Raumer
 -/
-import linear_algebra.finite_dimensional
 import category_theory.monoidal.rigid
-import linear_algebra.finsupp_vector_space
-import linear_algebra.dual
+import linear_algebra.tensor_product_basis
 import linear_algebra.coevaluation
 import .Module.monoidal
 
@@ -48,21 +46,11 @@ instance has_coe_to_fn (V W : FinVect K) : has_coe_to_fun (V ⟶ W) :=
 
 instance : inhabited (FinVect K) := ⟨⟨Module.of K K, finite_dimensional.finite_dimensional_self K⟩⟩
 
-/- This should go to `linear_algebra` after `linear_algebra` is cleaned up.
-  Right now it cannot go to either `linear_algebra.tensor_product` or
-  `linear_algebra.finite_dimension` because of dependencies. -/
-instance finite_dimensional_tensor_product (V V₂ : Type*) [add_comm_group V]
-  [module K V] [add_comm_group V₂] [module K V₂]
-  [finite_dimensional K V] [finite_dimensional K V₂] :
-  finite_dimensional K (tensor_product K V V₂) :=
-finite_dimensional.of_fintype_basis
-  (finsupp.basis.tensor_product (basis.of_vector_space K V) (basis.of_vector_space K V₂))
-
 instance monoidal_category : monoidal_category (FinVect K) :=
 @monoidal_category.full_monoidal_subcategory _ _ Module.monoidal_category
  (λ (V : Module K), finite_dimensional K V)
  (by { exact finite_dimensional.finite_dimensional_self K})
- (λ X Y hX hY, @FinVect.finite_dimensional_tensor_product K _ X Y _ _ _ _ hX hY)
+ (λ X Y hX hY, @finite_dimensional_tensor_product K X Y _ _ _ _ _ hX hY)
 
 -- This should go to `linear_algebra`.
 instance finite_dimensional_dual (V : Type*) [add_comm_group V] [module K V]

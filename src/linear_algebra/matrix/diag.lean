@@ -201,14 +201,6 @@ begin
   simp* at *
 end
 
-/-- A different form of `matrix.is_diag.from_blocks_of_is_symm`. -/
-lemma is_diag.from_blocks_of_is_symm' [has_zero α]
-  {A : matrix m m α} {B : matrix m n α} {C : matrix n m α} {D : matrix n n α}
-  {M : matrix (m ⊕ n) (m ⊕ n) α} (symm : M.is_symm) (h : M = A.from_blocks B C D)
-  (ha : A.is_diag) (hb : B = 0) (hd : D.is_diag) :
-  M.is_diag :=
-by { rw [h] at *, apply is_diag.from_blocks_of_is_symm symm ha hb hd }
-
 /-- `(A ⬝ Aᵀ).is_diag` iff `A.has_orthogonal_rows`. -/
 lemma mul_transpose_self_is_diag_iff_has_orthogonal_rows
   [fintype n] [has_mul α] [add_comm_monoid α] {A : matrix m n α} :

@@ -22,6 +22,7 @@ The reason is that we did not want to change existing names in the library.
 -/
 
 set_option old_structure_cmd true
+open function
 
 universe u
 variable {α : Type u}
@@ -64,7 +65,7 @@ instance ordered_comm_monoid.to_contravariant_class_left (M : Type*) [ordered_co
 pick up a `covariant_class M M (function.swap (*)) (≤)` instance without it (see PR #7940). -/
 @[to_additive]
 instance ordered_comm_monoid.to_covariant_class_right (M : Type*) [ordered_comm_monoid M] :
-  covariant_class M M (function.swap (*)) (≤) :=
+  covariant_class M M (swap (*)) (≤) :=
 covariant_swap_mul_le_of_covariant_mul_le M
 
 /- This instance can be proven with `by apply_instance`.  However, by analogy with the
@@ -73,7 +74,7 @@ this instance, some Type would not have a `contravariant_class M M (function.swa
 instance. -/
 @[to_additive]
 instance ordered_comm_monoid.to_contravariant_class_right (M : Type*) [ordered_comm_monoid M] :
-  contravariant_class M M (function.swap (*)) (<) :=
+  contravariant_class M M (swap (*)) (<) :=
 contravariant_swap_mul_lt_of_contravariant_mul_lt M
 
 end ordered_instances
@@ -908,14 +909,14 @@ instance covariant_class_mul_le [has_le α] [has_mul α] [c : covariant_class α
 ⟨c.1.flip⟩
 
 @[to_additive] instance contravariant_class_swap_mul_le [has_le α] [has_mul α]
-  [c : contravariant_class α α (function.swap (*)) (≤)] :
-  contravariant_class (order_dual α) (order_dual α) (function.swap (*)) (≤) :=
+  [c : contravariant_class α α (swap (*)) (≤)] :
+  contravariant_class (order_dual α) (order_dual α) (swap (*)) (≤) :=
 ⟨c.1.flip⟩
 
 @[to_additive]
 instance covariant_class_swap_mul_le [has_le α] [has_mul α]
-  [c : covariant_class α α (function.swap (*)) (≤)] :
-  covariant_class (order_dual α) (order_dual α) (function.swap (*)) (≤) :=
+  [c : covariant_class α α (swap (*)) (≤)] :
+  covariant_class (order_dual α) (order_dual α) (swap (*)) (≤) :=
 ⟨c.1.flip⟩
 
 @[to_additive]
@@ -929,14 +930,14 @@ instance covariant_class_mul_lt [has_lt α] [has_mul α] [c : covariant_class α
 ⟨c.1.flip⟩
 
 @[to_additive] instance contravariant_class_swap_mul_lt [has_lt α] [has_mul α]
-  [c : contravariant_class α α (function.swap (*)) (<)] :
-  contravariant_class (order_dual α) (order_dual α) (function.swap (*)) (<) :=
+  [c : contravariant_class α α (swap (*)) (<)] :
+  contravariant_class (order_dual α) (order_dual α) (swap (*)) (<) :=
 ⟨c.1.flip⟩
 
 @[to_additive]
 instance covariant_class_swap_mul_lt [has_lt α] [has_mul α]
-  [c : covariant_class α α (function.swap (*)) (<)] :
-  covariant_class (order_dual α) (order_dual α) (function.swap (*)) (<) :=
+  [c : covariant_class α α (swap (*)) (<)] :
+  covariant_class (order_dual α) (order_dual α) (swap (*)) (<) :=
 ⟨c.1.flip⟩
 
 @[to_additive]

@@ -378,8 +378,8 @@ be the absolute value of `b - a`. Then,
 $$a ⊔ b - (a ⊓ b) = |b - a|.$$
 -/
 @[to_additive]
-lemma sup_div_inf_eq_abs_div [covariant_class α α (*) (≤)] (a b : α) : (a ⊔ b) / (a ⊓ b) = |b / a|
-  :=
+lemma sup_div_inf_eq_abs_div [covariant_class α α (*) (≤)] (a b : α) :
+  (a ⊔ b) / (a ⊓ b) = |b / a| :=
 begin
   rw [sup_eq_mul_pos_div, inf_comm, inf_eq_div_pos_div, div_eq_mul_inv],
   nth_rewrite 1 div_eq_mul_inv,

@@ -16,12 +16,12 @@ properties to computational properties of the matrix.
 
 ## Main definitions
 
-* `matrix.adj_matrix`: `A : matrix V V α` is qualified as an "adjacency matrix" if
+* `matrix.is_adj_matrix`: `A : matrix V V α` is qualified as an "adjacency matrix" if
   (1) every entry of `A` is `0` or `1`,
   (2) `A` is symmetric,
   (3) every diagonal entry of `A` is `0`.
 
-* `matrix.adj_matrix.to_graph`: for `A : matrix V V α` and `h : adj_matrix A`,
+* `matrix.is_adj_matrix.to_graph`: for `A : matrix V V α` and `h : A.is_adj_matrix`,
   `h.to_graph` is the simple graph induced by `A`.
 
 * `matrix.compl`: for `A : matrix V V α`, `A.compl` is supposed to be
@@ -34,8 +34,7 @@ properties to computational properties of the matrix.
 open_locale big_operators matrix
 open finset matrix simple_graph
 
-universes u v
-variables {V α β R : Type u}
+variables {V α β : Type*}
 
 namespace matrix
 
@@ -43,27 +42,26 @@ namespace matrix
     (1) every entry of `A` is `0` or `1`,
     (2) `A` is symmetric,
     (3) every diagonal entry of `A` is `0`. -/
-structure adj_matrix [has_zero α] [has_one α] (A : matrix V V α) : Prop :=
+structure is_adj_matrix [has_zero α] [has_one α] (A : matrix V V α) : Prop :=
 (zero_or_one : ∀ i j, (A i j) = 0 ∨ (A i j) = 1 . obviously)
 (symm : A.is_symm . obviously)
 (loopless : ∀ i, A i i = 0 . obviously)
 
-namespace adj_matrix
+namespace is_adj_matrix
 
-lemma apply_diag [has_zero α] [has_one α]
-{A : matrix V V α} (h : adj_matrix A) (i : V) :
+variables {A : matrix V V α}
+
+lemma apply_diag [has_zero α] [has_one α] (h : is_adj_matrix A) (i : V) :
   A i i = 0 :=
 by simp [h.loopless]
 
 @[simp]
-lemma apply_diag_ne [mul_zero_one_class α] [nontrivial α]
-{A : matrix V V α} (h : adj_matrix A) (i : V) :
+lemma apply_diag_ne [mul_zero_one_class α] [nontrivial α] (h : is_adj_matrix A) (i : V) :
   ¬ A i i = 1 :=
 by simp [h.apply_diag i]
 
 @[simp]
-lemma apply_ne_one_iff [mul_zero_one_class α] [nontrivial α]
-{A : matrix V V α} (h : adj_matrix A) (i j : V) :
+lemma apply_ne_one_iff [mul_zero_one_class α] [nontrivial α] (h : is_adj_matrix A) (i j : V) :
   ¬ A i j = 1 ↔ A i j = 0 :=
 begin
   replace h := h.zero_or_one i j,
@@ -73,47 +71,41 @@ begin
 end
 
 @[simp]
-lemma apply_ne_zero_iff [mul_zero_one_class α] [nontrivial α]
-{A : matrix V V α} (h : adj_matrix A) (i j : V) :
+lemma apply_ne_zero_iff [mul_zero_one_class α] [nontrivial α] (h : is_adj_matrix A) (i j : V) :
   ¬ A i j = 0 ↔ A i j = 1 :=
-begin
-  replace h := h.zero_or_one i j,
-  split,
-  { tauto },
-  { rintros g, simp [g] }
-end
+by { rw [←apply_ne_one_iff h], simp }
 
-/-- For `A : matrix V V α` and `h : adj_matrix A`,
+/-- For `A : matrix V V α` and `h : is_adj_matrix A`,
     `h.to_graph` is the simple graph whose adjacency matrix is `A`. -/
-def to_graph [has_zero α] [has_one α] [decidable_eq α]
-  {A : matrix V V α} (h : adj_matrix A) :
+def to_graph [mul_zero_one_class α] [nontrivial α] (h : is_adj_matrix A) :
   simple_graph V :=
 { adj := λ i j, A i j = 1,
   sym := λ i j hij, by simp only [h.symm.apply i j]; convert hij,
   loopless := λ i, by simp [h] }
 
-instance [mul_zero_one_class α] [nontrivial α] [decidable_eq α]
-{A : matrix V V α} (h : adj_matrix A) :
+instance [mul_zero_one_class α] [nontrivial α] [decidable_eq α] (h : is_adj_matrix A) :
   decidable_rel h.to_graph.adj :=
 by {simp [to_graph], apply_instance}
 
-end adj_matrix
+end is_adj_matrix
 
 /-- For `A : matrix V V α`, `A.compl` is supposed to be the adjacency matrix of
     the complement graph of the graph induced by `A.adj_matrix`. -/
-def compl [has_zero α] [has_one α] [decidable_eq α] [decidable_eq V] (A : matrix V V α)  :
+def compl [has_zero α] [has_one α] [decidable_eq α] [decidable_eq V] (A : matrix V V α) :
   matrix V V α :=
 λ i j, ite (i = j) 0 (ite (A i j = 0) 1 0)
 
+section compl
+
+variables [decidable_eq α] [decidable_eq V] (A : matrix V V α)
+
 @[simp]
-lemma compl_apply_diag [has_zero α] [has_one α] [decidable_eq α] [decidable_eq V]
-(A : matrix V V α) (i : V) :
+lemma compl_apply_diag [has_zero α] [has_one α] (i : V) :
   A.compl i i = 0 :=
 by simp [compl]
 
 @[simp]
-lemma compl_apply [has_zero α] [has_one α] [decidable_eq α] [decidable_eq V]
-(A : matrix V V α) (i j : V) :
+lemma compl_apply [has_zero α] [has_one α] (i j : V) :
   A.compl i j = 0 ∨ A.compl i j = 1 :=
 begin
   unfold compl,
@@ -122,8 +114,7 @@ begin
 end
 
 @[simp]
-lemma is_symm_compl [has_zero α] [has_one α] [decidable_eq α] [decidable_eq V]
-(A : matrix V V α) (h : A.is_symm) :
+lemma is_symm_compl [has_zero α] [has_one α] (h : A.is_symm) :
   A.compl.is_symm :=
 begin
   ext,
@@ -135,21 +126,20 @@ begin
 end
 
 @[simps]
-lemma adj_matrix_compl [has_zero α] [has_one α] [decidable_eq α] [decidable_eq V]
-(A : matrix V V α) (h : A.is_symm) :
-  adj_matrix A.compl :=
+lemma is_adj_matrix_compl [has_zero α] [has_one α] (h : A.is_symm) :
+  is_adj_matrix A.compl :=
 { symm := by simp [h] }
 
-namespace adj_matrix
+namespace is_adj_matrix
+
+variable {A}
 
 @[simp]
-lemma compl [has_zero α] [has_one α] [decidable_eq α] [decidable_eq V]
-{A : matrix V V α} (h : adj_matrix A) :
-  adj_matrix A.compl :=
-{ symm := by simp [h.symm] }
+lemma compl [has_zero α] [has_one α] (h : is_adj_matrix A) :
+  is_adj_matrix A.compl :=
+is_adj_matrix_compl A h.symm
 
-lemma compl_to_graph_eq [mul_zero_one_class α] [nontrivial α] [decidable_eq α] [decidable_eq V]
-{A : matrix V V α} (h : adj_matrix A) :
+lemma compl_to_graph_eq [mul_zero_one_class α] [nontrivial α] (h : is_adj_matrix A) :
   h.compl.to_graph = (h.to_graph)ᶜ :=
 begin
   ext v w,
@@ -168,7 +158,9 @@ begin
     simp [h₁, h₂] }
 end
 
-end adj_matrix
+end is_adj_matrix
+
+end compl
 
 end matrix
 
@@ -201,9 +193,9 @@ lemma is_symm_adj_matrix [has_zero α] [has_one α] :
 transpose_adj_matrix G
 
 /-- The adjacency matrix of `G` is an adjacency matrix. -/
-@[simp]
-lemma adj_matrix_adj_matrix (α) [has_zero α] [has_one α] :
-  (G.adj_matrix α).adj_matrix :=
+@[simps]
+lemma is_adj_matrix_adj_matrix (α) [has_zero α] [has_one α] :
+  (G.adj_matrix α).is_adj_matrix :=
 { zero_or_one := λ i j, by by_cases G.adj i j; simp [h] }
 
 variables [fintype V]

@@ -40,4 +40,15 @@ def coevaluation : K →ₗ[K] V ⊗[K] (module.dual K V) :=
   (basis.singleton unit K).constr K $
     λ _, ∑ (i : basis.of_vector_space_index K V), bV i ⊗ₜ[K] bV.coord i
 
+lemma coevaluation_apply_one :
+ (coevaluation K V) (1 : K) =
+   let bV := basis.of_vector_space K V in
+   ∑ (i : basis.of_vector_space_index K V), bV i ⊗ₜ[K] bV.coord i :=
+begin
+  simp only [coevaluation, id],
+  rw [(basis.singleton unit K).constr_apply_fintype K],
+  simp only [fintype.univ_punit, finset.sum_const, one_smul, basis.singleton_repr,
+   basis.equiv_fun_apply,basis.coe_of_vector_space, one_nsmul, finset.card_singleton],
+end
+
 end coevaluation

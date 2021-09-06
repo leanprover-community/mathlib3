@@ -61,16 +61,10 @@ open category_theory.monoidal_category
 def FinVect_coevaluation : 𝟙_ (FinVect K) ⟶ V ⊗ (FinVect_dual K V) :=
 by { haveI := V.prop, change _ →ₗ[K] _, apply coevaluation K V }
 
-lemma FinVect_coevaluation_apply :
- (FinVect_coevaluation K V) (1 : K) =
-   let bV := basis.of_vector_space K V in
-   ∑ (i : basis.of_vector_space_index K V), bV i ⊗ₜ[K] bV.coord i :=
-begin
-  simp only [FinVect_coevaluation, coevaluation, id],
-  rw [(basis.singleton unit K).constr_apply_fintype K],
-  simp only [fintype.univ_punit, finset.sum_const, one_smul, basis.singleton_repr,
-   basis.equiv_fun_apply,basis.coe_of_vector_space, one_nsmul, finset.card_singleton],
-end
+lemma FinVect_coevaluation_apply_one : FinVect_coevaluation K V (1 : K) =
+   ∑ (i : basis.of_vector_space_index K V),
+    (basis.of_vector_space K V) i ⊗ₜ[K] (basis.of_vector_space K V).coord i :=
+by { simp only [FinVect_coevaluation], apply coevaluation_apply_one K V }
 
 /-- The evaluation morphism is given by the contraction map. -/
 def FinVect_evaluation : (FinVect_dual K V) ⊗ V ⟶ 𝟙_ (FinVect K) :=
@@ -128,7 +122,7 @@ begin
   erw [linear_map.coe_comp, linear_map.coe_comp, linear_map.coe_comp],
   rw [function.comp_app, function.comp_app, function.comp_app],
   erw [right_unitor_hom_apply_tensor_one K, left_unitor_inv_apply K, tensor_hom_apply K],
-  rw [id_apply, FinVect_coevaluation_apply K V, tensor_product.tmul_sum],
+  rw [id_apply, FinVect_coevaluation_apply_one K V, tensor_product.tmul_sum],
   simp only [linear_map.map_sum, linear_map.to_fun_eq_coe],
   conv_lhs { congr, skip, funext,
     rw [associator_inv_apply K, tensor_hom_apply K, id_apply K, FinVect_evaluation_apply,
@@ -149,7 +143,7 @@ begin
   erw [linear_map.coe_comp, linear_map.coe_comp, linear_map.coe_comp],
   rw [function.comp_app, function.comp_app, function.comp_app],
   erw [left_unitor_hom_apply_one_tensor K, right_unitor_inv_apply K, tensor_hom_apply K],
-  rw [id_apply, FinVect_coevaluation_apply K V, tensor_product.sum_tmul],
+  rw [id_apply, FinVect_coevaluation_apply_one K V, tensor_product.sum_tmul],
   simp only [linear_map.map_sum, linear_map.to_fun_eq_coe],
   conv_lhs { congr, skip, funext,
     rw [associator_hom_apply K, tensor_hom_apply K, id_apply K, FinVect_evaluation_apply,

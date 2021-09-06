@@ -549,9 +549,9 @@ local attribute [instance] simple_func.has_scalar
 @[simp, norm_cast] lemma coe_smul (c : 𝕜) (f : Lp.simple_func E p μ) :
   ((c • f : Lp.simple_func E p μ) : Lp E p μ) = c • (f : Lp E p μ) := rfl
 
--- If `E` is a normed space, `Lp.simple_func E p μ` is a module. Not declared as an
+/-- If `E` is a normed space, `Lp.simple_func E p μ` is a module. Not declared as an
 instance as it is (as of writing) used only in the construction of the Bochner integral. -/
-protected def module : module 𝕜 (Lp.simple_func E p μ) :==
+protected def module : module 𝕜 (Lp.simple_func E p μ) :=
 { one_smul  := λf, by { ext1, exact one_smul _ _ },
   mul_smul  := λx y f, by { ext1, exact mul_smul _ _ _ },
   smul_add  := λx f g, by { ext1, exact smul_add _ _ _ },

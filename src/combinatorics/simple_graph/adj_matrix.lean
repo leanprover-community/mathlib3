@@ -25,7 +25,7 @@ properties to computational properties of the matrix.
   `h.to_graph` is the simple graph induced by `A`.
 
 * `matrix.compl`: for `A : matrix V V α`, `A.compl` is supposed to be
-  the adjacency matrix of the complement graph of the graph induced by `A.adj_matrix`.
+  the adjacency matrix of the complement graph of the graph induced by `A`.
 
 * `simple_graph.adj_matrix`: the adjacency matrix of a `simple_graph`.
 

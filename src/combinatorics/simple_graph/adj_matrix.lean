@@ -63,12 +63,7 @@ by simp [h.apply_diag i]
 @[simp]
 lemma apply_ne_one_iff [mul_zero_one_class α] [nontrivial α] (h : is_adj_matrix A) (i j : V) :
   ¬ A i j = 1 ↔ A i j = 0 :=
-begin
-  replace h := h.zero_or_one i j,
-  split,
-  { tauto },
-  { rintros g, simp [g] }
-end
+by { obtain (h|h) := h.zero_or_one i j; simp [h] }
 
 @[simp]
 lemma apply_ne_zero_iff [mul_zero_one_class α] [nontrivial α] (h : is_adj_matrix A) (i j : V) :
@@ -80,12 +75,12 @@ by { rw [←apply_ne_one_iff h], simp }
 def to_graph [mul_zero_one_class α] [nontrivial α] (h : is_adj_matrix A) :
   simple_graph V :=
 { adj := λ i j, A i j = 1,
-  sym := λ i j hij, by simp only [h.symm.apply i j]; convert hij,
+  sym := λ i j hij, by rwa h.symm.apply i j,
   loopless := λ i, by simp [h] }
 
 instance [mul_zero_one_class α] [nontrivial α] [decidable_eq α] (h : is_adj_matrix A) :
   decidable_rel h.to_graph.adj :=
-by {simp [to_graph], apply_instance}
+by { simp only [to_graph], apply_instance }
 
 end is_adj_matrix
 
@@ -107,23 +102,12 @@ by simp [compl]
 @[simp]
 lemma compl_apply [has_zero α] [has_one α] (i j : V) :
   A.compl i j = 0 ∨ A.compl i j = 1 :=
-begin
-  unfold compl,
-  by_cases h : i = j, {simp [h]},
-  by_cases g : A i j = 0; simp [h , g]
-end
+by { unfold compl, split_ifs; simp, }
 
 @[simp]
 lemma is_symm_compl [has_zero α] [has_one α] (h : A.is_symm) :
   A.compl.is_symm :=
-begin
-  ext,
-  unfold compl,
-  congr' 1, {tidy},
-  congr' 1,
-  apply propext,
-  rw [h.apply i j]
-end
+by { ext, simp [compl, h.apply, eq_comm], }
 
 @[simp]
 lemma is_adj_matrix_compl [has_zero α] [has_one α] (h : A.is_symm) :
@@ -143,19 +127,9 @@ lemma compl_to_graph_eq [mul_zero_one_class α] [nontrivial α] (h : is_adj_matr
   h.compl.to_graph = (h.to_graph)ᶜ :=
 begin
   ext v w,
-  dsimp [simple_graph.has_compl, to_graph],
-  simp only [and_true, if_false_right_eq_and, matrix.compl],
-  split,
-  { intros h₁,
-    by_cases h₂ : v = w,
-    { simp * at * },
-    refine ⟨h₂, _⟩,
-    intros g,
-    rw [← apply_ne_zero_iff h] at g,
-    simp * at *  },
-  { rintros ⟨h₁, h₂⟩,
-    rw [apply_ne_one_iff h] at h₂,
-    simp [h₁, h₂] }
+  cases h.zero_or_one v w with h h;
+  by_cases hvw : v = w;
+  simp [matrix.compl, h, hvw],
 end
 
 end is_adj_matrix

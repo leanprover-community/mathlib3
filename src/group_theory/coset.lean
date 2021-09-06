@@ -376,6 +376,52 @@ calc α ≃ Σ L : quotient s, {x : α // (x : quotient s) = L} :
     ... ≃ quotient s × s :
   equiv.sigma_equiv_prod _ _
 
+variables {t : subgroup α}
+
+/-- If `H ≤ K` then `G/H ≃ G/K × K/H` -/
+@[simps] def quotient_equiv_prod_of_le' (h_le : s ≤ t)
+  (f : quotient t → α) (hf : function.right_inverse f quotient_group.mk) :
+  quotient s ≃ quotient t × quotient (s.subgroup_of t) :=
+{ to_fun := λ a, ⟨a.map' id (by exact λ b c h, h_le h),
+    a.map' (λ g : α, ⟨(f (quotient.mk' g))⁻¹ * g, quotient.exact' (hf g)⟩) (λ b c h, by
+    { change ((f b)⁻¹ * b)⁻¹ * ((f c)⁻¹ * c) ∈ s,
+      have key : f b = f c := congr_arg f (quotient.sound' (h_le h)),
+      rwa [key, mul_inv_rev, inv_inv, mul_assoc, mul_inv_cancel_left] })⟩,
+  inv_fun := λ a, a.2.map' (λ b, f a.1 * b) (λ b c h, by
+  { change (f a.1 * b)⁻¹ * (f a.1 * c) ∈ s,
+    rwa [mul_inv_rev, mul_assoc, inv_mul_cancel_left] }),
+  left_inv := by
+  { refine quotient.ind' (λ a, _),
+    simp_rw [quotient.map'_mk', id.def, t.coe_mk, mul_inv_cancel_left] },
+  right_inv := by
+  { refine prod.rec _,
+    refine quotient.ind' (λ a, _),
+    refine quotient.ind' (λ b, _),
+    have key : quotient.mk' (f (quotient.mk' a) * b) = quotient.mk' a :=
+    (quotient_group.mk_mul_of_mem (f a) ↑b b.2).trans (hf a),
+    simp_rw [quotient.map'_mk', id.def, key, inv_mul_cancel_left, subtype.coe_eta] } }
+
+/-- If `H ≤ K` then `G/H ≃ G/K × K/H` -/
+@[simps] noncomputable def quotient_equiv_prod_of_le (h_le : s ≤ t) :
+  quotient s ≃ quotient t × quotient (s.subgroup_of t) :=
+quotient_equiv_prod_of_le' h_le quotient.out' quotient.out_eq'
+
+noncomputable def quotient_bot : quotient (⊥ : subgroup α) ≃ α :=
+{ to_fun := quotient.out',
+  inv_fun := quotient_group.mk,
+  left_inv := quotient_group.out_eq',
+  right_inv := λ x, begin
+    sorry
+  end }
+
+noncomputable def group_equiv_quotient_times_subgroup' :
+  α ≃ quotient s × s :=
+calc α ≃ quotient (⊥ : subgroup α) : quotient_bot.symm
+... ≃ quotient s × quotient ((⊥ : subgroup α).subgroup_of s) : quotient_equiv_prod_of_le bot_le
+... ≃ quotient s × quotient (⊥ : subgroup s) : by rw [show (⊥ : subgroup α).subgroup_of s = ⊥,
+  from ext (λ x, (@subtype.ext_iff _ _ x 1).symm)]
+... ≃ quotient s × s : equiv.prod_congr (equiv.refl (quotient s)) quotient_bot
+
 lemma card_eq_card_quotient_mul_card_subgroup [fintype α] (s : subgroup α) [fintype s]
   [decidable_pred (λ a, a ∈ s)] : fintype.card α = fintype.card (quotient s) * fintype.card s :=
 by rw ← fintype.card_prod;

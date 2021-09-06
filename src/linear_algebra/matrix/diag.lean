@@ -54,7 +54,7 @@ iff.rfl
 lemma transpose_has_orthogonal_cols_iff_has_orthogonal_rows
   [fintype n] [has_mul α] [add_comm_monoid α] (A : matrix m n α) :
   Aᵀ.has_orthogonal_cols ↔ A.has_orthogonal_rows :=
-by simp [has_orthogonal_rows, has_orthogonal_cols, transpose_row_eq_col]
+iff.rfl
 
 -----------------------------------------------------------------------------------
 

@@ -346,7 +346,6 @@ section set_to_L1s
 
 variables [second_countable_topology E] [borel_space E] [normed_field 𝕜] [normed_space 𝕜 E]
 
-local attribute [instance] simple_func.has_scalar
 local attribute [instance] simple_func.module
 local attribute [instance] simple_func.normed_space
 
@@ -395,9 +394,9 @@ lemma set_to_L1s_smul {E} [normed_group E] [measurable_space E] [normed_space �
   set_to_L1s T (c • f) = c • set_to_L1s T f :=
 begin
   simp_rw set_to_L1s,
-  rw ← simple_func.set_to_simple_func_smul T h_add h_smul c (simple_func.integrable f),
-  refine simple_func.set_to_simple_func_congr T h_zero h_add (simple_func.integrable _) _,
-  exact smul_to_simple_func c f,
+  --rw ← simple_func.set_to_simple_func_smul T h_add h_smul c (simple_func.integrable f),
+  --refine simple_func.set_to_simple_func_congr T h_zero h_add (simple_func.integrable _) _,
+  --exact smul_to_simple_func c f,
 end
 
 lemma norm_set_to_L1s_le (T : set α → E →L[ℝ] F) {C : ℝ} (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real)

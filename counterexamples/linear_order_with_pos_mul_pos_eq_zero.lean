@@ -68,7 +68,6 @@ instance : linear_ordered_comm_monoid_with_zero foo :=
   zero_mul := by boom,
   mul_zero := by boom,
   mul_le_mul_left := by { rintro ⟨⟩ ⟨⟩ h ⟨⟩; revert h; dec_trivial },
-  lt_of_mul_lt_mul_left := by { rintro ⟨⟩ ⟨⟩ ⟨⟩; dec_trivial },
   zero_le_one := dec_trivial,
   .. foo.linear_order,
   .. foo.comm_monoid }

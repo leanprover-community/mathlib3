@@ -100,6 +100,11 @@ variables (K : Type u) (V : Type v) [division_ring K] [add_comm_group V] [module
 
 variables (K V)
 
+-- Without this apparently redundant instance we get typeclass search errors
+-- in `analysis.normed_space.finite_dimension`.
+instance finite_dimensional_pi {ι} [fintype ι] : finite_dimensional K (ι → K) :=
+is_noetherian_pi
+
 /-- A finite dimensional vector space over a finite field is finite -/
 noncomputable def fintype_of_fintype [fintype K] [is_noetherian K V] : fintype V :=
 module.fintype_of_fintype (finset_basis K V)

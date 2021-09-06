@@ -178,13 +178,13 @@ lemma is_prime_iff_mem_or_compl_mem [is_proper I] : is_prime I ↔ ∀ {x : P}, 
 @[priority 100]
 instance is_prime.is_maximal [is_prime I] : is_maximal I :=
 begin
-  simp only [is_maximal_iff, set.eq_univ_iff_forall, hI.to_is_proper, true_and],
+  simp only [is_maximal_iff, set.eq_univ_iff_forall, is_prime.to_is_proper, true_and],
   intros J hIJ x,
   rcases set.exists_of_ssubset hIJ with ⟨y, hyJ, hyI⟩,
   suffices ass : (x ⊓ y) ⊔ (x ⊓ yᶜ) ∈ J,
   { rwa sup_inf_inf_compl at ass },
   exact sup_mem _ _ (J.mem_of_le inf_le_right hyJ)
-    (hIJ.le (I.mem_of_le inf_le_right (hI.mem_compl_of_not_mem hyI))),
+    (hIJ.le (I.mem_of_le inf_le_right (is_prime.mem_compl_of_not_mem ‹_› hyI))),
 end
 
 end boolean_algebra

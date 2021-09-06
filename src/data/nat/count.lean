@@ -597,24 +597,24 @@ begin
   { exact nth_count_of_infinite p hinf hp, },
 end
 
-lemma nth_count_eq_Inf {n : ℕ} : nth p (count p n) = Inf{i : ℕ | p i ∧ n ≤ i} :=
+lemma nth_count_eq_Inf {n : ℕ} : nth p (count p n) = Inf {i : ℕ | p i ∧ n ≤ i} :=
 begin
   rw nth,
   have h: {i : ℕ | p i ∧ ∀ (k : ℕ), k < count p n → nth p k < i} = {i : ℕ | p i ∧ n ≤ i},
   { ext a,
-    simp,
+    simp only [set.mem_set_of_eq, and.congr_right_iff],
     intro hp,
     split,
     { intro h,
       by_contra ha,
-      simp at ha,
+      simp only [not_le] at ha,
       have hn: nth p (count p a) < a,
       { apply h,
         apply count_strict_mono,
         { exact hp, },
         { exact ha, }, },
       rw nth_count at hn,
-      { simp at hn,
+      { rw lt_self_iff_false at hn,
         exact hn, },
       { exact hp, }, },
     { intros hn k hk,
@@ -645,12 +645,12 @@ begin
     specialize hg p i n,
     cases hg with m hm,
     use m,
-    simp,
+    rw set.mem_set_of_eq,
     cases hm with hp hn,
     split,
     { exact hp, },
     { apply le_of_lt hn, }, },
-  simp at h,
+  rw set.mem_set_of_eq at h,
   cases h with hp hle,
   exact hle,
 end

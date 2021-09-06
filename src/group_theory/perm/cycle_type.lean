@@ -367,44 +367,104 @@ begin
   exact one_lt_two,
 end
 
+section cauchy
+
+variables (G : Type*) [group G] (n : ℕ)
+
+/-- The type of vectors with terms from `G`, length `n`, and product equal to `1:G`. -/
+def vectors_prod_eq_one : set (vector G n) :=
+{v | v.to_list.prod = 1}
+
+namespace vectors_prod_eq_one
+
+lemma mem_iff {n : ℕ} (v : vector G n) :
+v ∈ vectors_prod_eq_one G n ↔ v.to_list.prod = 1 := iff.rfl
+
+lemma zero_eq : vectors_prod_eq_one G 0 = {vector.nil} :=
+set.eq_singleton_iff_unique_mem.mpr ⟨eq.refl (1 : G), λ v hv, v.eq_nil⟩
+
+lemma one_eq : vectors_prod_eq_one G 1 = {vector.nil.cons 1} :=
+begin
+  simp_rw [set.eq_singleton_iff_unique_mem, mem_iff,
+    vector.to_list_singleton, list.prod_singleton, vector.head_cons],
+  exact ⟨rfl, λ v hv, v.cons_head_tail.symm.trans (congr_arg2 vector.cons hv v.tail.eq_nil)⟩,
+end
+
+instance zero_unique : unique (vectors_prod_eq_one G 0) :=
+by { rw zero_eq, exact set.unique_singleton vector.nil }
+
+instance one_unique : unique (vectors_prod_eq_one G 1) :=
+by { rw one_eq, exact set.unique_singleton (vector.nil.cons 1) }
+
+/-- Given a vector `v` of length `n`, make a vector of length `n + 1` whose product is `1`,
+by appending the inverse of the product of `v`. -/
+@[simps] def vector_equiv : vector G n ≃ vectors_prod_eq_one G (n + 1) :=
+{ to_fun := λ v, ⟨v.to_list.prod⁻¹ ::ᵥ v,
+    by rw [mem_iff, vector.to_list_cons, list.prod_cons, inv_mul_self]⟩,
+  inv_fun := λ v, v.1.tail,
+  left_inv := λ v, v.tail_cons v.to_list.prod⁻¹,
+  right_inv := λ v, subtype.ext ((congr_arg2 vector.cons (eq_inv_of_mul_eq_one (by
+  { rw [←list.prod_cons, ←vector.to_list_cons, v.1.cons_head_tail],
+    exact v.2 })).symm rfl).trans v.1.cons_head_tail) }
+
+/-- Given a vector `v` of length `n` whose product is 1, make a vector of length `n - 1`
+by deleting the last entry of `v`. -/
+def equiv_vector : vectors_prod_eq_one G n ≃ vector G (n - 1) :=
+((vector_equiv G (n - 1)).trans (if hn : n = 0 then (show vectors_prod_eq_one G (n - 1 + 1) ≃
+  vectors_prod_eq_one G n, by { rw hn, exact equiv_of_unique_of_unique })
+  else by rw nat.sub_add_cancel (nat.pos_of_ne_zero hn))).symm
+
+instance [fintype G] : fintype (vectors_prod_eq_one G n) :=
+fintype.of_equiv (vector G (n - 1)) (equiv_vector G n).symm
+
+lemma card [fintype G] :
+  fintype.card (vectors_prod_eq_one G n) = fintype.card G ^ (n - 1) :=
+(fintype.card_congr (equiv_vector G n)).trans (card_vector (n - 1))
+
+variables {G n} {g : G} (v : vectors_prod_eq_one G n) (j k : ℕ)
+
+def rotate : vectors_prod_eq_one G n :=
+⟨⟨_, (v.1.1.length_rotate k).trans v.1.2⟩, list.prod_rotate_eq_one_of_prod_eq_one v.2 k⟩
+
+lemma rotate_zero : rotate v 0 = v :=
+subtype.ext (subtype.ext v.1.1.rotate_zero)
+
+lemma rotate_rotate : rotate (rotate v j) k = rotate v (j + k) :=
+subtype.ext (subtype.ext (v.1.1.rotate_rotate j k))
+
+lemma rotate_length : rotate v n = v :=
+subtype.ext (subtype.ext ((congr_arg _ v.1.2.symm).trans v.1.1.rotate_length))
+
+end vectors_prod_eq_one
+
 lemma exists_prime_order_of_dvd_card {G : Type*} [group G] [fintype G] (p : ℕ) [hp : fact p.prime]
   (hdvd : p ∣ fintype.card G) : ∃ x : G, order_of x = p :=
 begin
   have hp' : p - 1 ≠ 0 := mt nat.sub_eq_zero_iff_le.mp (not_le_of_lt hp.out.one_lt),
-  let S : Π n, set (vector G n) := λ n, {v | v.to_list.prod = 1},
-  let ϕ : vector G (p - 1) ≃ S ((p - 1) + 1) :=
-  { to_fun := λ v, ⟨v.to_list.prod⁻¹ ::ᵥ v, show (v.to_list.prod⁻¹ ::ᵥ v).to_list.prod = 1,
-      by rw [vector.to_list_cons, list.prod_cons, inv_mul_self]⟩,
-    inv_fun := λ v, v.1.tail,
-    left_inv := λ v, v.tail_cons v.to_list.prod⁻¹,
-    right_inv := λ v, subtype.ext ((congr_arg2 vector.cons (eq_inv_of_mul_eq_one (by
-    { rw [←list.prod_cons, ←vector.to_list_cons, v.1.cons_head_tail],
-      exact v.2 })).symm rfl).trans v.1.cons_head_tail) },
-  rw nat.sub_add_cancel hp.out.pos at ϕ,
-  haveI Sfin : fintype (S p) := fintype.of_equiv (vector G (p - 1)) ϕ,
   have Scard := calc p ∣ fintype.card G ^ (p - 1) : hdvd.trans (dvd_pow (dvd_refl _) hp')
-  ... = fintype.card (S p) : (card_vector (p - 1)).symm.trans (fintype.card_congr ϕ),
-  let f : ℕ → S p → S p := λ k s, ⟨⟨s.1.1.rotate k, (s.1.1.length_rotate k).trans s.1.2⟩,
-    list.prod_rotate_eq_one_of_prod_eq_one s.2 k⟩,
-  have hf1 : ∀ s : S p, f 0 s = s := λ s, subtype.ext (subtype.ext s.1.1.rotate_zero),
-  have hf2 : ∀ (j k : ℕ) (s : S p), f k (f j s) = f (j + k) s :=
-  λ j k s, subtype.ext (subtype.ext (s.1.1.rotate_rotate j k)),
-  have hf3 : ∀ s : S p, f p s = s :=
-  λ s, subtype.ext (subtype.ext ((congr_arg _ s.1.2.symm).trans s.1.1.rotate_length)),
+  ... = fintype.card (vectors_prod_eq_one G p) : (vectors_prod_eq_one.card G p).symm,
+  let f : ℕ → vectors_prod_eq_one G p → vectors_prod_eq_one G p :=
+  λ k v, vectors_prod_eq_one.rotate v k,
+  have hf1 : ∀ v, f 0 v = v := vectors_prod_eq_one.rotate_zero,
+  have hf2 : ∀ j k v, f k (f j v) = f (j + k) v :=
+  λ j k v, vectors_prod_eq_one.rotate_rotate v j k,
+  have hf3 : ∀ v, f p v = v := vectors_prod_eq_one.rotate_length,
   let σ := equiv.mk (f 1) (f (p - 1)) (λ s, by rw [hf2, nat.add_sub_cancel' hp.out.pos, hf3])
     (λ s, by rw [hf2, nat.sub_add_cancel hp.out.pos, hf3]),
-  have hσ : ∀ (k : ℕ) (s : S p), (σ ^ k) s = f k s :=
-  λ k s, nat.rec (hf1 s).symm (λ k hk, eq.trans (by exact congr_arg σ hk) (hf2 k 1 s)) k,
-  replace hσ : σ ^ (p ^ 1) = 1 := perm.ext (λ s, by rw [pow_one, hσ, hf3, one_apply]),
-  let s₀ : S p := ⟨vector.repeat 1 p, (list.prod_repeat 1 p).trans (one_pow p)⟩,
-  have hs₀ : σ s₀ = s₀ := subtype.ext (subtype.ext (list.rotate_repeat (1 : G) p 1)),
-  obtain ⟨s, hs1, hs2⟩ := exists_fixed_point_of_prime' Scard hσ hs₀,
-  refine exists_imp_exists (λ g hg, order_of_eq_prime _ (λ hg', hs2 _))
-    (list.rotate_one_eq_self_iff_eq_repeat.mp (subtype.ext_iff.mp (subtype.ext_iff.mp hs1))),
-  { rw [←list.prod_repeat, ←s.1.2, ←hg, (show s.val.val.prod = 1, from s.2)] },
-  { rw [subtype.ext_iff_val, subtype.ext_iff_val, hg, hg', s.1.2],
+  have hσ : ∀ k v, (σ ^ k) v = f k v :=
+  λ k v, nat.rec (hf1 v).symm (λ k hk, eq.trans (by exact congr_arg σ hk) (hf2 k 1 v)) k,
+  replace hσ : σ ^ (p ^ 1) = 1 := perm.ext (λ v, by rw [pow_one, hσ, hf3, one_apply]),
+  let v₀ : vectors_prod_eq_one G p := ⟨vector.repeat 1 p, (list.prod_repeat 1 p).trans (one_pow p)⟩,
+  have hv₀ : σ v₀ = v₀ := subtype.ext (subtype.ext (list.rotate_repeat (1 : G) p 1)),
+  obtain ⟨v, hv1, hv2⟩ := exists_fixed_point_of_prime' Scard hσ hv₀,
+  refine exists_imp_exists (λ g hg, order_of_eq_prime _ (λ hg', hv2 _))
+    (list.rotate_one_eq_self_iff_eq_repeat.mp (subtype.ext_iff.mp (subtype.ext_iff.mp hv1))),
+  { rw [←list.prod_repeat, ←v.1.2, ←hg, (show v.val.val.prod = 1, from v.2)] },
+  { rw [subtype.ext_iff_val, subtype.ext_iff_val, hg, hg', v.1.2],
     refl },
 end
+
+end cauchy
 
 lemma subgroup_eq_top_of_swap_mem [decidable_eq α] {H : subgroup (perm α)}
   [d : decidable_pred (∈ H)] {τ : perm α} (h0 : (fintype.card α).prime)

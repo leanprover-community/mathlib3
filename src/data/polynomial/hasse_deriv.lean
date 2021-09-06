@@ -91,7 +91,7 @@ lemma hasse_deriv_zero' : hasse_deriv 0 f = f :=
 by simp only [hasse_deriv_apply, nat.sub_zero, nat.choose_zero_right,
   nat.cast_one, one_mul, sum_monomial_eq]
 
-@[simp] lemma hasse_deriv_zero : @hasse_deriv R _ 0 = linear_map.id :=
+@[simp] lemma hasse_deriv_zero : hasse_deriv (0 : polynomial R) = linear_map.id :=
 linear_map.ext $ hasse_deriv_zero'
 
 lemma hasse_deriv_one' : hasse_deriv 1 f = derivative f :=

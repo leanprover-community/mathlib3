@@ -37,7 +37,7 @@ lemma index_eq_card [fintype (quotient_group.quotient H)] :
   H.index = fintype.card (quotient_group.quotient H) :=
 cardinal.mk_to_nat_eq_card
 
-lemma index_mul_card [fintype G] {hH : fintype H} :
+lemma index_mul_card [fintype G] [hH : fintype H] :
   H.index * fintype.card H = fintype.card G :=
 begin
   classical,

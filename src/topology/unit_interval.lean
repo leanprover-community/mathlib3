@@ -60,6 +60,9 @@ subtype.ext $ by simp [symm]
 @[simp] lemma symm_one : σ 1 = 0 :=
 subtype.ext $ by simp [symm]
 
+@[simp] lemma symm_symm (x : I) : σ (σ x) = x :=
+subtype.ext $ by simp [symm]
+
 @[continuity]
 lemma continuous_symm : continuous σ :=
 by continuity!

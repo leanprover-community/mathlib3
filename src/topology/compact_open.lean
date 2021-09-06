@@ -163,6 +163,9 @@ begin
   tidy
 end
 
+@[simp]
+lemma curry_apply (f : C(α × β, γ)) (a : α) (b : β) : f.curry a b = f (a, b) := rfl
+
 /-- The uncurried form of a continuous map `α → C(β, γ)` is a continuous map `α × β → γ`. -/
 lemma continuous_uncurry_of_continuous [locally_compact_space β] (f : C(α, C(β, γ))) :
   continuous (function.uncurry (λ x y, f x y)) :=

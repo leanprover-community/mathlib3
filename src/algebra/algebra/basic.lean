@@ -1177,6 +1177,23 @@ lemma algebra_rat_subsingleton {α} [semiring α] :
 
 end rat
 
+namespace char_zero
+
+variables {R : Type*} (S : Type*) [comm_semiring R] [semiring S] [algebra R S]
+
+lemma of_algebra [char_zero S] : char_zero R :=
+⟨begin
+  suffices : function.injective (algebra_map R S ∘ coe),
+  { exact this.of_comp },
+  convert char_zero.cast_injective,
+  ext n,
+  rw [function.comp_app, ← (algebra_map ℕ _).eq_nat_cast, ← ring_hom.comp_apply,
+      ring_hom.eq_nat_cast],
+  all_goals { apply_instance }
+end⟩
+
+end char_zero
+
 namespace algebra
 open module
 

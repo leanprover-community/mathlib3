@@ -522,12 +522,12 @@ corresponding to a prime ideal in `R` and the localization of `R` at `p`. -/
     refine (structure_sheaf R).presheaf.germ_ext V hxV (hom_of_le hg) iVU _,
     erw [← hs, res_const']
   end,
-  inv_hom_id' := @is_localization.epic_of_localization_map R _ x.as_ideal.prime_compl
+  inv_hom_id' := @is_localization.ring_hom_ext R _ x.as_ideal.prime_compl
       (localization.at_prime x.as_ideal) _ _ (localization.at_prime x.as_ideal) _ _
       (ring_hom.comp (stalk_to_fiber_ring_hom R x) (localization_to_stalk R x))
       (ring_hom.id (localization.at_prime _)) $
-    λ f, by simp only [ring_hom.comp_apply, ring_hom.id_apply, localization_to_stalk_of,
-        stalk_to_fiber_ring_hom_to_stalk] }
+    by { ext f, simp only [ring_hom.comp_apply, ring_hom.id_apply, localization_to_stalk_of,
+                           stalk_to_fiber_ring_hom_to_stalk] } }
 
 /-- The canonical ring homomorphism interpreting `s ∈ R_f` as a section of the structure sheaf
 on the basic open defined by `f ∈ R`. -/

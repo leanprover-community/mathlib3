@@ -69,7 +69,7 @@ local attribute [elab_as_eliminator] well_founded.fix
 
 lemma exists_irreducible_factor {a : α} (ha : ¬ is_unit a) (ha0 : a ≠ 0) :
   ∃ i, irreducible i ∧ i ∣ a :=
-(irreducible_or_factor a ha).elim (λ hai, ⟨a, hai, dvd_refl _⟩)
+(irreducible_or_factor a ha).elim (λ hai, ⟨a, hai, dvd_rfl⟩)
   (well_founded.fix
     wf_dvd_monoid.well_founded_dvd_not_unit
     (λ a ih ha ha0 ⟨x, y, hx, hy, hxy⟩,
@@ -546,7 +546,7 @@ begin
   { rintros _ ⟨x, rfl⟩ _ a_dvd_bx,
     apply units.dvd_mul_right.mp a_dvd_bx },
   { intros c p hc hp ih no_factors a_dvd_bpc,
-    apply ih (λ q dvd_a dvd_c hq, no_factors dvd_a (dvd_mul_of_dvd_right dvd_c _) hq),
+    apply ih (λ q dvd_a dvd_c hq, no_factors dvd_a (dvd_c.mul_left _) hq),
     rw mul_left_comm at a_dvd_bpc,
     refine or.resolve_left (hp.left_dvd_or_dvd_right_of_dvd_mul a_dvd_bpc) (λ h, _),
     exact no_factors h (dvd_mul_right p c) hp }

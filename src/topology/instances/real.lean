@@ -210,8 +210,6 @@ tendsto_of_uniform_continuous_subtype
 instance : topological_ring ℝ :=
 { continuous_mul := real.continuous_mul, ..real.topological_add_group }
 
-instance : topological_semiring ℝ := by apply_instance  -- short-circuit type class inference
-
 lemma rat.continuous_mul : continuous (λp : ℚ × ℚ, p.1 * p.2) :=
 embedding_of_rat.continuous_iff.2 $ by simp [(∘)]; exact
 real.continuous_mul.comp ((continuous_of_rat.comp continuous_fst).prod_mk

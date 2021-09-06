@@ -111,11 +111,13 @@ by { rw [pow_dvd_iff_le_multiplicity, not_le] }
 
 lemma eq_coe_iff {a b : α} {n : ℕ} :
   multiplicity a b = (n : enat) ↔ a ^ n ∣ b ∧ ¬a ^ (n + 1) ∣ b :=
-by rw [← enat.some_eq_coe]; exact
-⟨λ h, let ⟨h₁, h₂⟩ := eq_some_iff.1 h in
-    h₂ ▸ ⟨pow_multiplicity_dvd _, is_greatest
-      (by { rw [enat.lt_coe_iff], exact ⟨h₁, lt_succ_self _⟩ })⟩,
-  λ h, eq_some_iff.2 ⟨⟨n, h.2⟩, eq.symm $ unique' h.1 h.2⟩⟩
+begin
+  rw [← enat.some_eq_coe],
+  exact ⟨λ h, let ⟨h₁, h₂⟩ := eq_some_iff.1 h in
+      h₂ ▸ ⟨pow_multiplicity_dvd _, is_greatest
+        (by { rw [enat.lt_coe_iff], exact ⟨h₁, lt_succ_self _⟩ })⟩,
+    λ h, eq_some_iff.2 ⟨⟨n, h.2⟩, eq.symm $ unique' h.1 h.2⟩⟩
+end
 
 lemma eq_top_iff {a b : α} :
   multiplicity a b = ⊤ ↔ ∀ n : ℕ, a ^ n ∣ b :=

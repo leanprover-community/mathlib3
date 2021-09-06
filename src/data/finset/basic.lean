@@ -1906,7 +1906,7 @@ by simp only [mem_def, image_val, mem_erase_dup, multiset.mem_map, exists_prop]
 theorem mem_image_of_mem (f : α → β) {a} {s : finset α} (h : a ∈ s) : f a ∈ s.image f :=
 mem_image.2 ⟨_, h, rfl⟩
 
-lemma _root_.function.injective.mem_finset_image_iff {f : α → β} (hf : function.injective f)
+lemma _root_.function.injective.mem_finset_image {f : α → β} (hf : function.injective f)
   {s : finset α} {x : α} :
   f x ∈ s.image f ↔ x ∈ s :=
 begin

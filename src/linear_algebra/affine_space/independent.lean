@@ -136,7 +136,7 @@ begin
   split,
   { intro h,
     have hv : ∀ v : (λ p, (p -ᵥ p₁ : V)) '' (s \ {p₁}), (v : V) +ᵥ p₁ ∈ s \ {p₁} :=
-      λ v, (vsub_left_injective p₁).mem_set_image_iff.1
+      λ v, (vsub_left_injective p₁).mem_set_image.1
              ((vadd_vsub (v : V) p₁).symm ▸ v.property),
     let f : (λ p : P, (p -ᵥ p₁ : V)) '' (s \ {p₁}) → {x : s // x ≠ ⟨p₁, hp₁⟩} :=
       λ x, ⟨⟨(x : V) +ᵥ p₁, set.mem_of_mem_diff (hv x)⟩,

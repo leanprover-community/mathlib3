@@ -160,7 +160,7 @@ begin
   rintros (i | i) (j | j) hij,
   {have h' := ne_of_apply_ne (λ (i : m), sum.inl i) hij, simp [ha h']},
   {simp * at *},
-  {simp * at *},
+  { simp * at * },
   {have h' := ne_of_apply_ne (λ (i : n), sum.inr i) hij, simp [hd h']},
 end
 

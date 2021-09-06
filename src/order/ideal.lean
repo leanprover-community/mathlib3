@@ -85,6 +85,18 @@ lemma inter_nonempty [preorder P] [ideal_inter_nonempty P] :
 ∀ (I J : ideal P), (I.carrier ∩ J.carrier).nonempty :=
 ideal_inter_nonempty.inter_nonempty
 
+/-- A preorder `P` has the `ideal_Inter_nonempty` property if the
+    intersection of any ideals is nonempty.
+    Most importantly, a preorder with this property
+    satisfies that its ideal poset is a complete lattice.
+-/
+class ideal_Inter_nonempty (P) [preorder P] : Prop :=
+(Inter_nonempty : ∀ s : set (ideal P), (set.sInter {S : set P | ∃ (I : ideal P), I ∈ s ∧ S = I.carrier}).nonempty)
+
+lemma Inter_nonempty [preorder P] [ideal_Inter_nonempty P] :
+∀ s : set (ideal P), (set.sInter {S : set P | ∃ (I : ideal P), I ∈ s ∧ S = I.carrier}).nonempty :=
+ideal_Inter_nonempty.Inter_nonempty
+
 namespace ideal
 
 section preorder
@@ -150,6 +162,14 @@ end⟩
 -/
 @[mk_iff] class is_maximal (I : ideal P) extends is_proper I : Prop :=
 (maximal_proper : ∀ ⦃J : ideal P⦄, I < J → J.carrier = set.univ)
+
+lemma ideal_Inter_nonempty.exists_all_mem (hP : ideal_Inter_nonempty P) :
+∃ a : P, ∀ I : ideal P, a ∈ I :=
+begin
+  let s : set (ideal P) := λ _, true,
+  have hs := ideal_Inter_nonempty.Inter_nonempty s,
+  rw ← set.ne_empty_iff_nonempty at hs,
+end
 
 end preorder
 
@@ -298,6 +318,13 @@ begin
 end
 
 end semilattice_sup_ideal_inter_nonempty
+
+section ideal_Inter_nonempty
+
+variables [preorder P] [ideal_Inter_nonempty P]
+
+
+end ideal_Inter_nonempty
 
 section semilattice_sup_bot
 variables [semilattice_sup_bot P]

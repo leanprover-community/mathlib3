@@ -58,11 +58,11 @@ begin
   exact circulant_injective
 end
 
-lemma circulant_ext_iff [add_group I] {v w : I → α} :
+lemma circulant_inj [add_group I] {v w : I → α} :
   circulant v = circulant w ↔ v = w :=
 circulant_injective.eq_iff
 
-lemma fin.circulant_ext_iff {v w : fin n → α} :
+lemma fin.circulant_inj {v w : fin n → α} :
   circulant v = circulant w ↔ v = w :=
 fin.circulant_injective.eq_iff
 
@@ -97,23 +97,27 @@ lemma circulant_neg [has_neg α] [has_sub I] (v : I → α) :
 by ext; simp [circulant]
 
 lemma circulant_add [has_add α] [has_sub I] (v w : I → α) :
-  circulant v + circulant w = circulant (v + w) :=
+  circulant (v + w) = circulant v + circulant w :=
 by ext; simp [circulant]
 
 lemma circulant_sub [has_sub α] [has_sub I] (v w : I → α) :
-  circulant v - circulant w = circulant (v - w) :=
+  circulant (v - w) = circulant v - circulant w :=
 by ext; simp [circulant]
 
-lemma circulant_mul [comm_semiring α] [fintype I] [add_comm_group I] (v w : I → α) :
-  circulant v ⬝ circulant w = circulant (mul_vec (circulant w) v) :=
+lemma circulant_mul [semiring α] [fintype I] [add_comm_group I] (v w : I → α) :
+  circulant v ⬝ circulant w = circulant (mul_vec (circulant v) w) :=
 begin
   ext i j,
-  simp only [mul_apply, mul_vec, circulant, dot_product, mul_comm],
-  refine fintype.sum_equiv (equiv.sub_left i) _ _ (by simp),
+  simp only [mul_apply, mul_vec, circulant, dot_product],
+  refine fintype.sum_equiv (equiv.sub_right j) _ _ _,
+  intro x,
+  simp only [equiv.sub_right_apply],
+  congr' 2,
+  abel
 end
 
-lemma fin.circulant_mul [comm_semiring α] (v w : fin n → α) :
-  circulant v ⬝ circulant w = circulant (mul_vec (circulant w) v) :=
+lemma fin.circulant_mul [semiring α] (v w : fin n → α) :
+  circulant v ⬝ circulant w = circulant (mul_vec (circulant v) w) :=
 begin
   induction n with n ih, {refl},
   exact circulant_mul v w,
@@ -148,8 +152,8 @@ lemma circulant_smul [has_sub I] [has_scalar R α] {k : R} {v : I → α} :
   circulant (k • v) = k • circulant v :=
 by {ext, simp [circulant]}
 
-lemma zero_eq_circulant [has_zero α] [has_sub I]:
-  (0 : matrix I I α) = circulant (λ i, 0) :=
+lemma circulant_zero [has_zero α] [has_sub I]:
+  circulant 0 = (0 : matrix I I α) :=
 by ext; simp [circulant]
 
 /-- The identity matrix is a circulant matrix. -/
@@ -157,7 +161,7 @@ lemma one_eq_circulant [has_zero α] [has_one α] [decidable_eq I] [add_group I]
   (1 : matrix I I α) = circulant (pi.single 0 1) :=
 begin
   ext,
-  simp only [circulant, one_apply],
+  simp only [circulant, one_apply, pi.single_apply],
   congr' 1,
   apply propext sub_eq_zero.symm,
 end
@@ -165,16 +169,21 @@ end
 /-- An alternative version of `one_eq_circulant`. -/
 lemma one_eq_circulant' [has_zero α] [has_one α] [decidable_eq I] [add_group I]:
   (1 : matrix I I α) = circulant (λ i, (1 : matrix I I α) i 0) :=
-one_eq_circulant
+begin
+  convert one_eq_circulant,
+  ext,
+  simp [pi.single_apply, one_apply],
+end
 
 lemma fin.one_eq_circulant [has_zero α] [has_one α] :
   (1 : matrix (fin n) (fin n) α) = circulant (λ i, ite (i.1 = 0) 1 0) :=
 begin
   induction n with n, {dec_trivial},
   convert one_eq_circulant,
-  ext, congr' 1,
-  apply propext,
-  exact (fin.ext_iff x 0).symm,
+  ext,
+  simp only [pi.single_apply],
+  congr' 1,
+  tidy
 end
 
 /-- For a one-ary predicate `p`, `p` applied to every entry of `circulant v` is true

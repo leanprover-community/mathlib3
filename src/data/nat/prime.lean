@@ -527,6 +527,21 @@ lemma prime.pow_not_prime {x n : ℕ} (hn : 2 ≤ n) : ¬ (x ^ n).prime :=
      ... < x ^ n : nat.pow_right_strict_mono (hxn.symm ▸ hp.two_le) hn
      ... = x : hxn.symm)
 
+lemma prime.pow_not_prime' {x : ℕ} : ∀ {n : ℕ}, n ≠ 1 → ¬ (x ^ n).prime
+| 0     := λ _, not_prime_one
+| 1     := λ h, (h rfl).elim
+| (n+2) := λ _, prime.pow_not_prime le_add_self
+
+lemma prime.eq_one_of_pow {x n : ℕ} (h : (x ^ n).prime) : n = 1 :=
+not_imp_not.mp prime.pow_not_prime' h
+
+lemma prime.pow_eq_iff {p a k : ℕ} (hp : p.prime) : a ^ k = p ↔ a = p ∧ k = 1 :=
+begin
+  refine ⟨_, λ h, by rw [h.1, h.2, pow_one]⟩,
+  rintro rfl,
+  rw [hp.eq_one_of_pow, eq_self_iff_true, and_true, pow_one],
+end
+
 lemma prime.mul_eq_prime_sq_iff {x y p : ℕ} (hp : p.prime) (hx : x ≠ 1) (hy : y ≠ 1) :
   x * y = p ^ 2 ↔ x = p ∧ y = p :=
 ⟨λ h, have pdvdxy : p ∣ x * y, by rw h; simp [sq],

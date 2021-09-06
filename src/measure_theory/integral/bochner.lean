@@ -154,15 +154,15 @@ variables [normed_group F] [normed_space ℝ F] {m : measurable_space α} {μ : 
 /-- Given a set `s`, return the continuous linear map `λ x, (μ s).to_real • x`. The extension of
 that set function through `set_to_L1` gives the Bochner integral of L1 functions. -/
 def weighted_smul {m : measurable_space α} (μ : measure α) (s : set α) : F →L[ℝ] F :=
-lsmul_right F (μ s).to_real
+(μ s).to_real • (continuous_linear_map.id ℝ F)
 
 lemma weighted_smul_apply {m : measurable_space α} (μ : measure α) (s : set α) (x : F) :
   weighted_smul μ s x = (μ s).to_real • x :=
-lsmul_apply _ _ _ _
+by simp [weighted_smul]
 
 @[simp] lemma weighted_smul_zero_measure {m : measurable_space α} :
   weighted_smul (0 : measure α) = (0 : set α → F →L[ℝ] F) :=
-by { ext1, simp [weighted_smul, lsmul_right], }
+by { ext1, simp [weighted_smul], }
 
 @[simp] lemma weighted_smul_empty {m : measurable_space α} (μ : measure α) :
   weighted_smul μ ∅ = (0 : F →L[ℝ] F) :=
@@ -201,9 +201,15 @@ lemma weighted_smul_smul [normed_field 𝕜] [normed_space 𝕜 F] [smul_comm_cl
   weighted_smul μ s (c • x) = c • weighted_smul μ s x :=
 by { simp_rw [weighted_smul_apply, smul_comm], }
 
+/-- TODO: move this. -/
+lemma norm_smul_id_le [semi_normed_group E] [nondiscrete_normed_field 𝕜] [semi_normed_space 𝕜 E]
+  (r : 𝕜) :
+  ∥r • (continuous_linear_map.id 𝕜 E)∥ ≤ ∥r∥ :=
+(norm_smul _ _).le.trans
+  ((mul_le_mul_of_nonneg_left norm_id_le (norm_nonneg _)).trans (mul_one _).le)
+
 lemma norm_weighted_smul_le (s : set α) : ∥(weighted_smul μ s : F →L[ℝ] F)∥ ≤ (μ s).to_real :=
-(norm_lsmul_right_le F _).trans
-  ((real.norm_eq_abs _).trans (abs_eq_self.mpr ennreal.to_real_nonneg)).le
+(norm_smul_id_le _).trans ((real.norm_eq_abs _).trans (abs_eq_self.mpr ennreal.to_real_nonneg)).le
 
 lemma dominated_fin_meas_additive_weighted_smul {m : measurable_space α} (μ : measure α) :
   dominated_fin_meas_additive μ (weighted_smul μ : set α → F →L[ℝ] F) 1 :=

@@ -215,13 +215,11 @@ def fin_sum_fin_equiv : fin m ⊕ fin n ≃ fin (m + n) :=
     { dsimp, rw [dif_neg H], simp [fin.ext_iff, nat.add_sub_of_le (le_of_not_gt H)] }
   end }
 
-@[simp] lemma fin_sum_fin_equiv_apply_left (x : fin m) :
-  @fin_sum_fin_equiv m n (sum.inl x) = ⟨x.1, nat.lt_of_lt_of_le x.2 $ nat.le_add_right m n⟩ :=
-rfl
+@[simp] lemma fin_sum_fin_equiv_apply_left (i : fin m) :
+  (fin_sum_fin_equiv (sum.inl i) : fin (m + n)) = fin.cast_add n i := rfl
 
-@[simp] lemma fin_sum_fin_equiv_apply_right (x : fin n) :
-  @fin_sum_fin_equiv m n (sum.inr x) = ⟨m + x.1, nat.add_lt_add_left x.2 m⟩ :=
-rfl
+@[simp] lemma fin_sum_fin_equiv_apply_right (i : fin n) :
+  (fin_sum_fin_equiv (sum.inr i) : fin (m + n)) = fin.cast_add_right m i := rfl
 
 @[simp] lemma fin_sum_fin_equiv_symm_apply_left (x : fin (m + n)) (h : ↑x < m) :
   fin_sum_fin_equiv.symm x = sum.inl ⟨x.1, h⟩ :=
@@ -231,6 +229,20 @@ by simp [fin_sum_fin_equiv, dif_pos h]
   fin_sum_fin_equiv.symm x = sum.inr ⟨x.1 - m, nat.lt_of_add_lt_add_left $
       show m + (x.1 - m) < m + n, from (nat.add_sub_of_le $ h).symm ▸ x.2⟩ :=
 by simp [fin_sum_fin_equiv, dif_neg (not_lt.mpr h)]
+
+@[simp] lemma fin_sum_fin_equiv_symm_apply_cast_add {m n : ℕ} (i : fin m) :
+  fin_sum_fin_equiv.symm (fin.cast_add n i) = sum.inl i :=
+begin
+  rw [fin_sum_fin_equiv_symm_apply_left _ (fin.cast_add_lt _ _)],
+  simp
+end
+
+@[simp] lemma fin_sum_fin_equiv_symm_apply_cast_add_right {m n : ℕ} (i : fin m) :
+  fin_sum_fin_equiv.symm (fin.cast_add_right n i) = sum.inr i :=
+begin
+  rw [fin_sum_fin_equiv_symm_apply_right _ (fin.le_cast_add_right _ _)],
+  simp
+end
 
 /-- The equivalence between `fin (m + n)` and `fin (n + m)` which rotates by `n`. -/
 def fin_add_flip : fin (m + n) ≃ fin (n + m) :=

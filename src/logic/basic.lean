@@ -20,6 +20,7 @@ In the presence of automation, this whole file may be unnecessary. On the other 
 maybe it is useful for writing automation.
 -/
 
+open function
 local attribute [instance, priority 10] classical.prop_decidable
 
 section miscellany
@@ -334,7 +335,7 @@ by { have := @imp_not_self (¬a), rwa decidable.not_not at this }
 @[simp] theorem not_imp_self : (¬a → a) ↔ a := decidable.not_imp_self
 
 theorem imp.swap : (a → b → c) ↔ (b → a → c) :=
-⟨function.swap, function.swap⟩
+⟨swap, swap⟩
 
 theorem imp_not_comm : (a → ¬b) ↔ (b → ¬a) :=
 imp.swap
@@ -793,7 +794,7 @@ lemma exists₄_congr {γ δ : Sort*} {p q : α → β → γ → δ → Prop}
 exists_congr (λ a, exists₃_congr (h a))
 
 theorem forall_swap {p : α → β → Prop} : (∀ x y, p x y) ↔ ∀ y x, p x y :=
-⟨function.swap, function.swap⟩
+⟨swap, swap⟩
 
 theorem exists_swap {p : α → β → Prop} : (∃ x y, p x y) ↔ ∃ y x, p x y :=
 ⟨λ ⟨x, y, h⟩, ⟨y, x, h⟩, λ ⟨y, x, h⟩, ⟨x, y, h⟩⟩
@@ -1143,6 +1144,14 @@ hpq _ $ some_spec _
 /-- A version of classical.indefinite_description which is definitionally equal to a pair -/
 noncomputable def subtype_of_exists {α : Type*} {P : α → Prop} (h : ∃ x, P x) : {x // P x} :=
 ⟨classical.some h, classical.some_spec h⟩
+
+/-- A version of `by_contradiction` that uses types instead of propositions. -/
+protected noncomputable def by_contradiction' {α : Sort*} (H : ¬ (α → false)) : α :=
+classical.choice $ peirce _ false $ λ h, (H $ λ a, h ⟨a⟩).elim
+
+/-- `classical.by_contradiction'` is equivalent to lean's axiom `classical.choice`. -/
+def choice_of_by_contradiction' {α : Sort*} (contra : ¬ (α → false) → α) : nonempty α → α :=
+λ H, contra H.elim
 
 end classical
 

@@ -591,9 +591,11 @@ by simp [coeff_erase]
   coeff (p.erase n) i = coeff p i :=
 by simp [coeff_erase, h]
 
+section update
+
 /-- Replace the coefficient of a `p : polynomial p` at a given degree `n : ℕ`
-by a given value `a : R`. If `a = 0`, this is tantamount to removing the `n`th term in the
-polynomial. If `p.nat_degree < n` and `a ≠ 0`, this increases the degree to `n`.  -/
+by a given value `a : R`. If `a = 0`, this is equal to `p.erase n`
+If `p.nat_degree < n` and `a ≠ 0`, this increases the degree to `n`.  -/
 def update [Π r : R, decidable (r = 0)] (p : polynomial R) (n : ℕ) (a : R) :
   polynomial R :=
 polynomial.of_finsupp (p.to_finsupp.update n a)
@@ -617,6 +619,20 @@ by rw [p.coeff_update, if_neg h]
 @[simp] lemma update_zero_eq_erase [Π r : R, decidable (r = 0)] (p : polynomial R) (n : ℕ) :
   p.update n 0 = p.erase n :=
 by { ext, rw [coeff_update, coeff_erase] }
+
+lemma support_update [Π r : R, decidable (r = 0)] (p : polynomial R) (n : ℕ) (a : R) :
+  support (p.update n a) = if a = 0 then p.support.erase n else insert n p.support :=
+by { cases p, simpa [support, update] using finsupp.support_update _ _ _ }
+
+@[simp] lemma support_update_zero [Π r : R, decidable (r = 0)] (p : polynomial R) (n : ℕ) :
+  support (p.update n 0) = p.support.erase n :=
+by rw [support_update, if_pos rfl]
+
+lemma support_update_ne_zero [Π r : R, decidable (r = 0)] (p : polynomial R) (n : ℕ) {a : R}
+  (ha : a ≠ 0) : support (p.update n a) = insert n p.support :=
+by rw [support_update, if_neg ha]
+
+end update
 
 end semiring
 

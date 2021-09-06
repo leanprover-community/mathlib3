@@ -107,14 +107,7 @@ by { unfold compl, split_ifs; simp, }
 @[simp]
 lemma is_symm_compl [has_zero α] [has_one α] (h : A.is_symm) :
   A.compl.is_symm :=
-begin
-  ext,
-  unfold compl,
-  congr' 1, {tidy},
-  congr' 1,
-  apply propext,
-  rw [h.apply i j]
-end
+by { ext, simp [compl, h.apply, eq_comm], }
 
 @[simps]
 lemma is_adj_matrix_compl [has_zero α] [has_one α] (h : A.is_symm) :

@@ -63,12 +63,7 @@ by simp [h.apply_diag i]
 @[simp]
 lemma apply_ne_one_iff [mul_zero_one_class α] [nontrivial α] (h : is_adj_matrix A) (i j : V) :
   ¬ A i j = 1 ↔ A i j = 0 :=
-begin
-  replace h := h.zero_or_one i j,
-  split,
-  { tauto },
-  { rintros g, simp [g] }
-end
+by { obtain (h|h) := h.zero_or_one i j; simp [h] }
 
 @[simp]
 lemma apply_ne_zero_iff [mul_zero_one_class α] [nontrivial α] (h : is_adj_matrix A) (i j : V) :

@@ -346,6 +346,7 @@ lemma of_algebra_map_injective
 ⟨λ c x hcx, (mul_eq_zero.mp ((smul_def c x).symm.trans hcx)).imp_left
   ((algebra_map R A).injective_iff.mp h _)⟩
 
+variables (R S)
 lemma algebra_map_injective [comm_ring R] [ring A] [nontrivial A]
   [algebra R A] [no_zero_smul_divisors R A] :
   function.injective (algebra_map R A) :=
@@ -353,6 +354,7 @@ suffices function.injective (λ (c : R), c • (1 : A)),
 by { convert this, ext, rw [algebra.smul_def, mul_one] },
 smul_left_injective R one_ne_zero
 
+variables {R S}
 lemma iff_algebra_map_injective [comm_ring R] [domain A] [algebra R A] :
   no_zero_smul_divisors R A ↔ function.injective (algebra_map R A) :=
 ⟨@@no_zero_smul_divisors.algebra_map_injective _ _ _ _ _,

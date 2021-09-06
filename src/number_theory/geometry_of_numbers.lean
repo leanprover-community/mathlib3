@@ -36,8 +36,9 @@ open has_inv set function measure_theory.measure
 -- @[to_additive /-"The additive action by an add_subgroup is the action by the underlying
 -- add_group. "-/]
 @[to_additive]
-instance submonoid.has_measurable_smul {G α : Type*} [monoid G] [mul_action G α] [measurable_space G] [measurable_space α]
-  [has_measurable_smul G α] (S : submonoid G) : has_measurable_smul S α :=
+instance submonoid.has_measurable_smul {G α : Type*} [monoid G] [mul_action G α]
+  [measurable_space G] [measurable_space α] [has_measurable_smul G α] (S : submonoid G) :
+  has_measurable_smul S α :=
 { measurable_const_smul := λ c, (measurable_const_smul (c : G)).comp measurable_id,
   measurable_smul_const := λ x, measurable_id'.subtype_coe.smul_const x, }
 
@@ -45,8 +46,8 @@ instance submonoid.has_measurable_smul {G α : Type*} [monoid G] [mul_action G �
 -- @[to_additive /-"The additive action by an add_subgroup is the action by the underlying
 -- add_group. "-/]
 @[to_additive]
-instance subgroup.has_measurable_smul {G α : Type*} [group G] [mul_action G α] [measurable_space G] [measurable_space α]
-  [has_measurable_smul G α] (S : subgroup G) : has_measurable_smul S α :=
+instance subgroup.has_measurable_smul {G α : Type*} [group G] [mul_action G α] [measurable_space G]
+  [measurable_space α] [has_measurable_smul G α] (S : subgroup G) : has_measurable_smul S α :=
 S.to_submonoid.has_measurable_smul
 
 -- { measurable_const_smul := λ c, (measurable_const_smul (c : G)).comp measurable_id,
@@ -145,7 +146,8 @@ end
 
 --TODO move
 @[to_additive]
-lemma smul_set_inter {α β : Type*} [group α] (a : α) [mul_action α β] {s t : set β} : a • (s ∩ t) = a • s ∩ a • t :=
+lemma smul_set_inter {α β : Type*} [group α] (a : α) [mul_action α β] {s t : set β} :
+  a • (s ∩ t) = a • s ∩ a • t :=
 begin
   erw [← image_smul, image_inter],
   exact mul_action.injective a,
@@ -158,8 +160,8 @@ lemma measure_null_of_null_left {α : Type*} [measurable_space α] {μ : measure
   (h : μ S = 0) : μ (S ∩ T) = 0 :=
 nonpos_iff_eq_zero.mp (h ▸ measure_mono (inter_subset_left S T))
 
-lemma measure_Union_of_null_inter {α β : Type*} [measurable_space α] {μ : measure α} [encodable β] {f : β → set α}
-  (hn : pairwise ((λ S T, μ (S ∩ T) = 0) on f)) (h : ∀ i, measurable_set (f i)) :
+lemma measure_Union_of_null_inter {α β : Type*} [measurable_space α] {μ : measure α} [encodable β]
+  {f : β → set α} (hn : pairwise ((λ S T, μ (S ∩ T) = 0) on f)) (h : ∀ i, measurable_set (f i)) :
   μ (⋃ i, f i) = ∑' i, μ (f i) :=
 begin
   have h_null : μ (⋃ (ij : β × β) (hij : ij.fst ≠ ij.snd), f ij.fst ∩ f ij.snd) = 0,
@@ -380,12 +382,12 @@ begin
       apply measure_mono,
       refine F.domain.inter_subset_inter_right _,
       -- TODO clean up this ugliness
-      intros a ᾰ, cases ᾰ, cases ᾰ_h, induction ᾰ_h_right, dsimp at *, simp at *,
-        fsplit, work_on_goal 1 { fsplit, work_on_goal 0 { intros ᾰ }, work_on_goal 1
+      intros a b, cases b, cases b_h, induction b_h_right, simp at *,
+        fsplit, work_on_goal 1 { fsplit, work_on_goal 0 { intros b }, work_on_goal 1
         { fsplit, work_on_goal 1 { fsplit, work_on_goal 0 { assumption }, refl } }, simp at * },
       apply hxy,
       symmetry,
-      exact mul_inv_eq_one.mp ᾰ,},
+      exact mul_inv_eq_one.mp b,},
     { intro l,
       exact hS.inter (F.measurable_set_smul l⁻¹), }, },
   { congr,
@@ -418,7 +420,8 @@ def map (Y X : Type*) [measurable_space X] [measure_space Y] [group X] [mul_acti
     use x,
     refine mem_Union.mpr _,
     use quotient_group.mk' S l,
-    -- rw mem_smul_set_iff_inv_smul_mem, -- TODO version of mem_smul_set_iff_inv_smul_mem for regular gps?
+    -- rw mem_smul_set_iff_inv_smul_mem,
+    -- TODO version of mem_smul_set_iff_inv_smul_mem for regular gps?
     rw mem_smul_set,
     refine ⟨_, hl, _⟩,
     rw smul_smul,

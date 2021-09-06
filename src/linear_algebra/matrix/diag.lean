@@ -172,7 +172,7 @@ lemma is_diag.from_blocks_of_is_symm [has_zero α]
   (h : (A.from_blocks B C D).is_symm) (ha : A.is_diag) (hb : B = 0) (hd : D.is_diag) :
   (A.from_blocks B C D).is_diag:=
 begin
-  apply ha.from_blocks hb _ hd,
+  convert ha.from_blocks hd,
   obtain ⟨g1, g2, g3, g4⟩ := is_symm_from_blocks_iff.1 h,
   simp* at *
 end

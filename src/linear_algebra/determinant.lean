@@ -228,11 +228,21 @@ linear_map.det.map_one
 by simp only [← det_to_matrix (finite_dimensional.fin_basis 𝕜 M), linear_equiv.map_smul,
               fintype.card_fin, det_smul]
 
-lemma det_zero {ι : Type*} [fintype ι] [nonempty ι] (b : basis ι A M) :
+lemma det_zero' {ι : Type*} [fintype ι] [nonempty ι] (b : basis ι A M) :
   linear_map.det (0 : M →ₗ[A] M) = 0 :=
 by { haveI := classical.dec_eq ι,
      rw [← det_to_matrix b, linear_equiv.map_zero, det_zero],
      assumption }
+
+/-- In a finite-dimensional vector space, the zero map has determinant `1` in dimension `0`,
+and `0` otherwise. -/
+@[simp] lemma det_zero {𝕜 : Type*} [field 𝕜] {M : Type*} [add_comm_group M] [module 𝕜 M]
+  [finite_dimensional 𝕜 M] :
+  linear_map.det (0 : M →ₗ[𝕜] M) = (0 : 𝕜) ^ (finite_dimensional.finrank 𝕜 M) :=
+begin
+  have : (0 : M →ₗ[𝕜] M) = ((0 : 𝕜) • (1 : M →ₗ[𝕜] M)), by { ext x, simp, },
+  simp only [this, det_smul, mul_one, monoid_hom.map_one]
+end
 
 /-- Conjugating a linear map by a linear equiv does not change its determinant. -/
 @[simp] lemma det_conj {N : Type*} [add_comm_group N] [module A N]
@@ -288,6 +298,17 @@ def linear_equiv.of_is_unit_det {f : M →ₗ[R] M'} {v : basis ι R M} {v' : ba
         = to_lin v' v' (to_matrix v v' f ⬝ (to_matrix v v' f)⁻¹) x :
       by { rw [to_lin_mul v' v v', linear_map.comp_apply, to_lin_to_matrix v v'] }
     ... = x : by simp [h] }
+
+/-- Builds a linear equivalence from a linear map on a finite-dimensional vector space whose
+determinant is nonzero. -/
+@[reducible] def linear_map.equiv_of_det_ne_zero
+  {𝕜 : Type*} [field 𝕜] {M : Type*} [add_comm_group M] [module 𝕜 M]
+  [finite_dimensional 𝕜 M] {f : M →ₗ[𝕜] M} (hf : linear_map.det f ≠ 0) :
+  M ≃ₗ[𝕜] M :=
+have is_unit (linear_map.to_matrix (finite_dimensional.fin_basis 𝕜 M)
+  (finite_dimensional.fin_basis 𝕜 M) f).det :=
+    by simp only [linear_map.det_to_matrix, is_unit_iff_ne_zero.2 hf],
+linear_equiv.of_is_unit_det this
 
 /-- The determinant of a family of vectors with respect to some basis, as an alternating
 multilinear map. -/

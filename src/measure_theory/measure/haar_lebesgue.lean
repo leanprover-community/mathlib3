@@ -132,6 +132,21 @@ begin
     map_map Cesymm.measurable Ce.measurable, ecomp, map_id]
 end
 
+
+@[simp] lemma haar_preimage_linear_map
+  {E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
+  [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
+  {f : E →ₗ[ℝ] E} (hf : f.det ≠ 0) (s : set E) :
+  μ (f ⁻¹' s) = ennreal.of_real (abs (f.det)⁻¹) * μ s :=
+calc μ (f ⁻¹' s) = measure.map f μ s :
+begin
+  have Z := equiv_of_det_ne_zero
+end
+
+--  ((homeomorph.add_left a).to_measurable_equiv.map_apply s).symm
+... = ennreal.of_real (abs (f.det)⁻¹) * μ s :
+  by { rw map_linear_map_add_haar_eq_smul_add_haar μ hf, refl }
+
 /-!
 ### Basic properties of Haar measures on real vector spaces
 -/
@@ -145,28 +160,23 @@ begin
   rw [this, add_haar_preimage_add]
 end
 
-lemma map_add_haar_neg {E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E]
-  [borel_space E] [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ] :
-  measure.map has_neg.neg μ = μ :=
-begin
-  let f : E →ₗ[ℝ] E := -1,
-  have hf : f = (-1 : ℝ) • 1, by simp only [one_smul, neg_smul],
-  have : f.det = (-1 : ℝ) ^ (finrank ℝ E),
-  { rw hf,
-    simp,
+variables {E : Type*} [normed_group E] [measurable_space E] [normed_space ℝ E]
+  [finite_dimensional ℝ E]
+  [borel_space E] (μ : measure E) [is_add_haar_measure μ]
 
-  },
-  change map f μ = μ,
-  rw map_linear_map_add_haar_eq_smul_add_haar,
-  simp [f],
+lemma map_haar_smul {r : ℝ} (hr : r ≠ 0) :
+  measure.map ((•) r) μ = ennreal.of_real (abs (r^(finrank ℝ E))⁻¹) • μ :=
+begin
+  let f : E →ₗ[ℝ] E := r • 1,
+  change measure.map f μ = _,
+  have hf : f.det ≠ 0,
+  { simp only [mul_one, linear_map.det_smul, ne.def, monoid_hom.map_one],
+    assume h,
+    exact hr (pow_eq_zero h) },
+  simp only [map_linear_map_add_haar_eq_smul_add_haar μ hf, mul_one, linear_map.det_smul,
+    monoid_hom.map_one],
 end
 
-#exit
-
-@[simp] lemma volume_preimage_neg (s : set ℝ) : volume (-s) = volume s :=
-calc volume (has_neg.neg ⁻¹' s) = measure.map (has_neg.neg) volume s :
-  ((homeomorph.neg ℝ).to_measurable_equiv.map_apply s).symm
-... = volume s : by rw map_volume_neg
 
 end measure_theory
 

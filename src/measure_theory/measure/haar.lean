@@ -591,7 +591,6 @@ begin
   rw [← this (by norm_num), smul_apply],
 end
 
-
 @[to_additive]
 theorem regular_of_is_mul_left_invariant
   (hμ : is_mul_left_invariant μ) {K} (hK : is_compact K)
@@ -602,6 +601,68 @@ begin
 end
 
 end unique
+
+@[to_additive]
+theorem is_haar_measure_eq_smul_is_haar_measure
+  [locally_compact_space G] [second_countable_topology G]
+  (μ ν : measure G) [is_haar_measure μ] [is_haar_measure ν] :
+  ∃ (c : ℝ≥0∞), (c ≠ 0) ∧ (c ≠ ∞) ∧ (μ = c • ν) :=
+begin
+  have K : positive_compacts G := classical.choice (topological_space.nonempty_positive_compacts G),
+  have νpos : 0 < ν K.1 := haar_pos_of_nonempty_interior _ K.2.2,
+  have νlt : ν K.1 < ∞ := is_compact.haar_lt_top _ K.2.1,
+  refine ⟨μ K.1 / ν K.1, _, _, _⟩,
+  { simp only [νlt.ne, (μ.haar_pos_of_nonempty_interior K.property.right).ne', ne.def,
+      ennreal.div_zero_iff, not_false_iff, or_self] },
+  { simp only [div_eq_mul_inv, νpos.ne', (is_compact.haar_lt_top μ K.property.left).ne, or_self,
+      ennreal.inv_eq_top, with_top.mul_eq_top_iff, ne.def, not_false_iff, and_false, false_and] },
+  { calc
+    μ = μ K.1 • haar_measure K : haar_measure_unique (is_mul_left_invariant_haar μ) K
+    ... = (μ K.1 / ν K.1) • (ν K.1 • haar_measure K) :
+      by rw [smul_smul, div_eq_mul_inv, mul_assoc, ennreal.inv_mul_cancel νpos.ne' νlt.ne, mul_one]
+    ... = (μ K.1 / ν K.1) • ν : by rw ← haar_measure_unique (is_mul_left_invariant_haar ν) K }
+end
+
+/-- Any Haar measure is invariant under inversion in a commutative group. -/
+@[to_additive]
+lemma map_haar_inv
+  {G : Type*} [comm_group G] [topological_space G] [topological_group G] [t2_space G]
+  [measurable_space G] [borel_space G] [locally_compact_space G] [second_countable_topology G]
+  (μ : measure G) [is_haar_measure μ] :
+  measure.map has_inv.inv μ = μ :=
+begin
+  -- the image measure is a Haar measure. By uniqueness up to multiplication, it is of the form
+  -- `c μ`. Applying again inversion, one gets the measure `c^2 μ`. But since inversion is an
+  -- involution, this is also `μ`. Hence, `c^2 = 1`, which implies `c = 1`.
+  haveI : is_haar_measure (measure.map has_inv.inv μ) :=
+    is_haar_measure_map μ (mul_equiv.inv G) continuous_inv continuous_inv,
+  obtain ⟨c, cpos, clt, hc⟩ : ∃ (c : ℝ≥0∞), (c ≠ 0) ∧ (c ≠ ∞) ∧ (measure.map has_inv.inv μ = c • μ)
+    := is_haar_measure_eq_smul_is_haar_measure _ _,
+  have : map has_inv.inv (map has_inv.inv μ) = c^2 • μ,
+    by simp only [hc, smul_smul, pow_two, linear_map.map_smul],
+  have μeq : μ = c^2 • μ,
+  { rw [map_map continuous_inv.measurable continuous_inv.measurable] at this,
+    { simpa only [inv_involutive, involutive.comp_self, map_id] },
+    all_goals { apply_instance } },
+  have K : positive_compacts G := classical.choice (topological_space.nonempty_positive_compacts G),
+  have : c^2 * μ K.1 = 1^2 * μ K.1,
+    by { conv_rhs { rw μeq },
+         simp only [one_pow, algebra.id.smul_eq_mul, one_mul, coe_smul, pi.smul_apply] },
+  have : c^2 = 1^2 :=
+    (ennreal.mul_eq_mul_right (haar_pos_of_nonempty_interior _ K.2.2).ne'
+      (is_compact.haar_lt_top _ K.2.1).ne).1 this,
+  have : c = 1 := (ennreal.pow_strict_mono two_ne_zero).injective this,
+  rw [hc, this, one_smul]
+end
+
+@[simp, to_additive] lemma haar_preimage_inv
+  {G : Type*} [comm_group G] [topological_space G] [topological_group G] [t2_space G]
+  [measurable_space G] [borel_space G] [locally_compact_space G] [second_countable_topology G]
+  (μ : measure G) [is_haar_measure μ] (s : set G) :
+  μ (has_inv.inv ⁻¹' s) = μ s :=
+calc μ (has_inv.inv ⁻¹' s) = measure.map (has_inv.inv) μ s :
+  ((homeomorph.inv G).to_measurable_equiv.map_apply s).symm
+... = μ s : by rw map_haar_inv
 
 end measure
 end measure_theory

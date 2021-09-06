@@ -170,6 +170,29 @@ lemma generate_from_mono {α} {g₁ g₂ : set (set α)} (h : g₁ ⊆ g₂) :
 def tmp_complete_lattice {α : Type u} : complete_lattice (topological_space α) :=
 (gi_generate_from α).lift_complete_lattice
 
+section
+
+local attribute [instance] tmp_complete_lattice
+
+lemma generate_from_set_of_is_open (t : topological_space α) :
+  topological_space.generate_from {s | t.is_open s} = t :=
+(gi_generate_from α).l_u_eq t
+
+lemma left_inverse_generate_from :
+  function.left_inverse topological_space.generate_from
+    (λ t : topological_space α, {s | t.is_open s}) :=
+(gi_generate_from α).left_inverse_l_u
+
+lemma generate_from_surjective :
+  function.surjective (topological_space.generate_from : set (set α) → topological_space α) :=
+(gi_generate_from α).l_surjective
+
+lemma set_of_is_open_injective :
+  function.injective (λ t : topological_space α, {s | t.is_open s}) :=
+(gi_generate_from α).u_injective
+
+end
+
 /-- The ordering on topologies on the type `α`.
   `t ≤ s` if every set open in `s` is also open in `t` (`t` is finer than `s`). -/
 instance : partial_order (topological_space α) :=
@@ -241,6 +264,45 @@ lemma forall_open_iff_discrete {X : Type*} [topological_space X] :
 lemma singletons_open_iff_discrete {X : Type*} [topological_space X] :
   (∀ a : X, is_open ({a} : set X)) ↔ discrete_topology X :=
 ⟨λ h, ⟨eq_bot_of_singletons_open h⟩, λ a _, @is_open_discrete _ _ a _⟩
+
+lemma generate_from_union (a b : topological_space α) :
+  topological_space.generate_from ({s | a.is_open s} ∪ {s | b.is_open s}) = a ⊓ b :=
+@galois_insertion.l_sup_u _ _ _ _ _
+  (@lattice.to_semilattice_sup _
+    (@bounded_lattice.to_lattice _
+      (@complete_lattice.to_bounded_lattice _ tmp_complete_lattice)))
+  (gi_generate_from α) a b
+
+lemma generate_from_Union {ι : Sort*} (f : ι → topological_space α) :
+  topological_space.generate_from (⋃ i, {s | (f i).is_open s}) = ⨅ i, (f i) :=
+@galois_insertion.l_supr_u _ _ _ _ _ tmp_complete_lattice (gi_generate_from α) _ f
+
+lemma generate_from_inter (a b : topological_space α) :
+  topological_space.generate_from ({s | a.is_open s} ∩ {s | b.is_open s}) = a ⊔ b :=
+@galois_insertion.l_inf_u _ _ _ _ _
+  (@lattice.to_semilattice_inf _
+    (@bounded_lattice.to_lattice _
+      (@complete_lattice.to_bounded_lattice _ tmp_complete_lattice)))
+  (gi_generate_from α) a b
+
+lemma generate_from_Inter {ι : Sort*} (f : ι → topological_space α) :
+  topological_space.generate_from (⋂ i, {s | (f i).is_open s}) = ⨆ i, (f i) :=
+@galois_insertion.l_infi_u _ _ _ _ _ tmp_complete_lattice (gi_generate_from α) _ f
+
+lemma generate_from_Inter_of_generate_from_eq_self {ι : Sort*} (f : ι → set (set α))
+  (hf : ∀ i, {s | (topological_space.generate_from (f i)).is_open s} = f i) :
+  topological_space.generate_from (⋂ i, (f i)) = ⨆ i, topological_space.generate_from (f i) :=
+@galois_insertion.l_infi_of_ul_eq_self _ _ _ _ _ tmp_complete_lattice (gi_generate_from α) _ f hf
+
+lemma is_open_implies_is_open_iff {a b : topological_space α} :
+  (∀ s, a.is_open s → b.is_open s) ↔ a ≥ b :=
+@galois_insertion.u_le_u_iff _ _ _ _ _
+  (@partial_order.to_preorder _
+    (@semilattice_sup.to_partial_order _
+      (@lattice.to_semilattice_sup _
+        (@bounded_lattice.to_lattice _
+          (@complete_lattice.to_bounded_lattice _ tmp_complete_lattice)))))
+  (gi_generate_from α) a b
 
 end lattice
 

@@ -102,11 +102,7 @@ by simp [compl]
 @[simp]
 lemma compl_apply [has_zero α] [has_one α] (i j : V) :
   A.compl i j = 0 ∨ A.compl i j = 1 :=
-begin
-  unfold compl,
-  by_cases h : i = j, {simp [h]},
-  by_cases g : A i j = 0; simp [h , g]
-end
+by { unfold compl, split_ifs; simp, }
 
 @[simp]
 lemma is_symm_compl [has_zero α] [has_one α] (h : A.is_symm) :

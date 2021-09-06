@@ -394,6 +394,43 @@ begin
     exact (_root_.measurable_set_smul l hS).inter F.measurable_set_domain, },
 end
 
+def map (Y X : Type*) [measurable_space X] [measure_space Y] [group X] [mul_action X Y]
+  [has_measurable_smul X Y] (F : fundamental_domain Y X) (S : subgroup X) [S.normal]
+  [fintype (quotient_group.quotient S)] : fundamental_domain Y S :=
+{ domain := ⋃ g : quotient_group.quotient S, g.out' • F.domain,
+  measurable_set_domain := begin
+    apply' measurable_set.Union,
+    exact fintype.encodable _,
+    intro b,
+    exact F.measurable_set_smul _, -- TODO do we really need all these assumptions for this
+  end,
+  almost_disjoint := begin
+    rw ← nonpos_iff_eq_zero, -- TODO we did the same tricks somewhere else, this needs a lemma
+    rw ← F.almost_disjoint, -- TODO wrong
+    apply measure_mono,
+    simp only [subset_inter_iff, ne.def],
+    sorry,
+  end,
+  covers := begin
+    intro y,
+    obtain ⟨l, hl⟩ := F.covers y,
+    obtain ⟨x, hx⟩ := quotient_group.mk_out'_eq_mul S (l⁻¹),
+    use x,
+    refine mem_Union.mpr _,
+    use quotient_group.mk' S l,
+    -- rw mem_smul_set_iff_inv_smul_mem, -- TODO version of mem_smul_set_iff_inv_smul_mem for regular gps?
+    rw mem_smul_set,
+    refine ⟨_, hl, _⟩,
+    rw smul_smul,
+    congr' 1,
+    simp at *,
+    have := mul_eq_of_eq_inv_mul hx,
+    rw ← this,
+    simp,
+    rw mul_smul,
+  end }
+
+
 end fundamental_domain
 --TODO all f.d.s have same measure https://arxiv.org/pdf/1405.2119.pdf
 -- TODO fin index subgroup has given fundamental domain and covolume

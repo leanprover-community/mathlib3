@@ -376,6 +376,8 @@ def update : α →₀ M :=
 
 @[simp] lemma update_apply : f.update a b i = function.update f a b i := rfl
 @[simp] lemma update_apply_same : f.update a b a = b := function.update_same a _ _
+@[simp] lemma update_self : f.update a (f a) = f :=
+by { ext, simp }
 
 variables {a i}
 

@@ -2138,6 +2138,16 @@ instance : semilattice_sup_bot (multiset α) :=
   bot_le := zero_le,
   ..multiset.lattice }
 
+theorem repeat_inf {α : Type} [decidable_eq α] (s : multiset α) (a : α) (n : ℕ) :
+  (repeat a n) ⊓ s = repeat a (min (s.count a) n) :=
+begin
+  ext x,
+  rw [inf_eq_inter, count_inter, count_repeat, count_repeat],
+  by_cases x = a,
+    simp only [min_comm, h, if_true, eq_self_iff_true],
+    simp only [h, if_false, zero_min],
+end
+
 end
 
 /-! ### Lift a relation to `multiset`s -/

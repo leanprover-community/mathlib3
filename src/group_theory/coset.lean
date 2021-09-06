@@ -408,8 +408,9 @@ noncomputable def quotient_equiv_prod_of_le (h_le : s ≤ t) :
   quotient s ≃ quotient t × quotient (s.subgroup_of t) :=
 quotient_equiv_prod_of_le' h_le quotient.out' quotient.out_eq'
 
-lemma card_eq_card_quotient_mul_card_subgroup [fintype α] (s : subgroup α) [fintype s]
-  [decidable_pred (λ a, a ∈ s)] : fintype.card α = fintype.card (quotient s) * fintype.card s :=
+@[to_additive] lemma card_eq_card_quotient_mul_card_subgroup
+  [fintype α] (s : subgroup α) [fintype s] [decidable_pred (λ a, a ∈ s)] :
+  fintype.card α = fintype.card (quotient s) * fintype.card s :=
 by rw ← fintype.card_prod;
   exact fintype.card_congr (subgroup.group_equiv_quotient_times_subgroup)
 

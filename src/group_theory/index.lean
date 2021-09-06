@@ -30,14 +30,14 @@ namespace subgroup
 variables {G : Type*} [group G] (H : subgroup G)
 
 /-- The index of a subgroup as a natural number -/
-noncomputable def index : ℕ :=
+@[to_additive] noncomputable def index : ℕ :=
 (cardinal.mk (quotient_group.quotient H)).to_nat
 
-lemma index_eq_card [fintype (quotient_group.quotient H)] :
+@[to_additive] lemma index_eq_card [fintype (quotient_group.quotient H)] :
   H.index = fintype.card (quotient_group.quotient H) :=
 cardinal.mk_to_nat_eq_card
 
-lemma index_mul_card [fintype G] [hH : fintype H] :
+@[to_additive] lemma index_mul_card [fintype G] [hH : fintype H] :
   H.index * fintype.card H = fintype.card G :=
 begin
   classical,
@@ -45,20 +45,20 @@ begin
   convert H.card_eq_card_quotient_mul_card_subgroup.symm,
 end
 
-lemma index_dvd_card [fintype G] : H.index ∣ fintype.card G :=
+@[to_additive] lemma index_dvd_card [fintype G] : H.index ∣ fintype.card G :=
 begin
   classical,
-  rw H.index_eq_card,
-  convert H.card_quotient_dvd_card,
+  exact ⟨fintype.card H, H.index_mul_card.symm⟩,
 end
 
 variables {H} {K : subgroup G}
 
-lemma index_eq_mul_of_le (h_le : H ≤ K) : H.index = K.index * (H.subgroup_of K).index :=
+@[to_additive] lemma index_eq_mul_of_le (h_le : H ≤ K) :
+  H.index = K.index * (H.subgroup_of K).index :=
 (congr_arg cardinal.to_nat (by exact cardinal.eq_congr (quotient_equiv_prod_of_le h_le))).trans
   (cardinal.to_nat_mul _ _)
 
-lemma index_dvd_of_le (h_le : H ≤ K) : K.index ∣ H.index :=
+@[to_additive] lemma index_dvd_of_le (h_le : H ≤ K) : K.index ∣ H.index :=
 ⟨(H.subgroup_of K).index, index_eq_mul_of_le h_le⟩
 
 end subgroup

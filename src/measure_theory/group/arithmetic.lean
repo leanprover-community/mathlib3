@@ -419,45 +419,45 @@ section smul
 variables {M β α : Type*} [measurable_space M] [measurable_space β] [has_scalar M β]
   [measurable_space α]
 
-@[measurability]
+@[measurability, to_additive]
 lemma measurable.smul [has_measurable_smul₂ M β]
   {f : α → M} {g : α → β} (hf : measurable f) (hg : measurable g) :
   measurable (λ x, f x • g x) :=
 measurable_smul.comp (hf.prod_mk hg)
 
-@[measurability]
+@[measurability, to_additive]
 lemma ae_measurable.smul [has_measurable_smul₂ M β]
   {f : α → M} {g : α → β} {μ : measure α} (hf : ae_measurable f μ) (hg : ae_measurable g μ) :
   ae_measurable (λ x, f x • g x) μ :=
 has_measurable_smul₂.measurable_smul.comp_ae_measurable (hf.prod_mk hg)
 
-@[priority 100]
+@[priority 100, to_additive]
 instance has_measurable_smul₂.to_has_measurable_smul [has_measurable_smul₂ M β] :
   has_measurable_smul M β :=
 ⟨λ c, measurable_const.smul measurable_id, λ y, measurable_id.smul measurable_const⟩
 
 variables [has_measurable_smul M β] {μ : measure α}
 
-@[measurability]
+@[measurability, to_additive]
 lemma measurable.smul_const {f : α → M} (hf : measurable f) (y : β) : measurable (λ x, f x • y) :=
 (has_measurable_smul.measurable_smul_const y).comp hf
 
-@[measurability]
+@[measurability, to_additive]
 lemma ae_measurable.smul_const {f : α → M} (hf : ae_measurable f μ) (y : β) :
   ae_measurable (λ x, f x • y) μ :=
 (has_measurable_smul.measurable_smul_const y).comp_ae_measurable hf
 
-@[measurability]
+@[measurability, to_additive]
 lemma measurable.const_smul' {f : α → β} (hf : measurable f) (c : M) :
   measurable (λ x, c • f x) :=
 (has_measurable_smul.measurable_const_smul c).comp hf
 
-@[measurability]
+@[measurability, to_additive]
 lemma measurable.const_smul {f : α → β} (hf : measurable f) (c : M) :
   measurable (c • f) :=
 hf.const_smul' c
 
-@[measurability]
+@[measurability, to_additive]
 lemma ae_measurable.const_smul' {f : α → β} (hf : ae_measurable f μ) (c : M) :
   ae_measurable (λ x, c • f x) μ :=
 (has_measurable_smul.measurable_const_smul c).comp_ae_measurable hf
@@ -477,10 +477,12 @@ variables {M β α : Type*} [measurable_space M] [measurable_space β] [monoid M
 variables {G : Type*} [group G] [measurable_space G] [mul_action G β]
   [has_measurable_smul G β]
 
+@[to_additive]
 lemma measurable_const_smul_iff (c : G) :
   measurable (λ x, c • f x) ↔ measurable f :=
 ⟨λ h, by simpa only [inv_smul_smul] using h.const_smul' c⁻¹, λ h, h.const_smul c⟩
 
+@[to_additive]
 lemma ae_measurable_const_smul_iff (c : G) :
   ae_measurable (λ x, c • f x) μ ↔ ae_measurable f μ :=
 ⟨λ h, by simpa only [inv_smul_smul] using h.const_smul' c⁻¹, λ h, h.const_smul c⟩

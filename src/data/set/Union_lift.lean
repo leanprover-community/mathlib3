@@ -40,12 +40,16 @@ or binary functions are preserved. These lemmas are:
 directed union, directed supremum
 -/
 
-variables {α ι : Type*} {β : Type*}
+variables {α ι β : Type*}
 
 namespace set
 
+/- The unused argument `hf` is left in the definition so that the `simp` lemmas
+`Union_lift_inclusion` will work without the user having to provide `hf` explicitly to
+simplify terms involving `Union_lift`. -/
 /-- Given a Union of sets `Union S`, define a function on the Union by defining
 it on each component, and proving that it agrees on the intersections. -/
+@[nolint unused_arguments]
 noncomputable def Union_lift (S : ι → set α)
   (f : Π i (x : S i), β)
   (hf : ∀ i j (x : α) (hxi : x ∈ S i) (hxj : x ∈ S j), f i ⟨x, hxi⟩ = f j ⟨x, hxj⟩)

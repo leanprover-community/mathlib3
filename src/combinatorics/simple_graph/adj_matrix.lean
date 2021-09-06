@@ -27,8 +27,7 @@ properties to computational properties of the matrix.
 * `matrix.compl`: for `A : matrix V V α`, `A.compl` is supposed to be
   the adjacency matrix of the complement graph of the graph induced by `A.adj_matrix`.
 
-* `simple_graph.adj_matrix`: the adjacency matrix of a `simple_graph`
-  with coefficients in a given semiring.
+* `simple_graph.adj_matrix`: the adjacency matrix of a `simple_graph`.
 
 -/
 

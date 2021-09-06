@@ -1,4 +1,4 @@
-src/algebra.order.ring.lean : line 10 : ERR_MOD : Module docstring missing, or too late
+src/algebra/order.ring.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/adjunction/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/adjunction/fully_faithful.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/adjunction/limits.lean : line 9 : ERR_MOD : Module docstring missing, or too late

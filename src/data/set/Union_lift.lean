@@ -7,14 +7,14 @@ import data.set.lattice
 import order.directed
 /-!
 # Union lift
-This file defines `Union_lift` to lift function defined on each of a collection of sets
+This file defines `set.Union_lift` to lift function defined on each of a collection of sets
 to the Union of those sets.
 
 ## Main definitions
 
-* `Union_lift` -  Given a Union of sets `Union S`, define a function on the Union by defining
+* `set.Union_lift` -  Given a Union of sets `Union S`, define a function on the Union by defining
 it on each component, and proving that it agrees on the intersections.
-* `lift_of_eq_Union` Version of `Union_lift` for a set that is propositionally equal to `Union S`.
+* `set.lift_of_eq_Union` Version of `Union_lift` for a set that is propositionally equal to `Union S`.
   This is mainly motivated by the need to define functions on directed supremums of e.g. subgroups,
   where the supremum is propositionally, but not definitionally equal to the Union.
 
@@ -28,12 +28,12 @@ to aid with proving that `Union_lift` of `lift_of_eq_Union` is a homomorphism wh
 on a Union of substructures. There is one lemma each to show that constants, unary functions,
 or binary functions are preserved. These lemmas are:
 
-*`Union_lift_const`
-*`Union_lift_unary`
-*`Union_lift_binary`
-*`lift_of_eq_Union_const`
-*`lift_of_eq_Union_unary`
-*`lift_of_eq_Union_binary`
+*`set.Union_lift_const`
+*`set.Union_lift_unary`
+*`set.Union_lift_binary`
+*`set.lift_of_eq_Union_const`
+*`set.lift_of_eq_Union_unary`
+*`set.lift_of_eq_Union_binary`
 
 ## Tags
 
@@ -50,18 +50,16 @@ noncomputable def Union_lift (S : ι → set α)
   (f : Π i (x : S i), β)
   (hf : ∀ i j (x : α) (hxi : x ∈ S i) (hxj : x ∈ S j), f i ⟨x, hxi⟩ = f j ⟨x, hxj⟩)
   (x : Union S) : β :=
-let i : ι := classical.some (mem_Union.1 x.2) in
-have hi : (x : α) ∈ S i := classical.some_spec (mem_Union.1 x.2),
-f i ⟨x, hi⟩
+let i := classical.indefinite_description _ (mem_Union.1 x.2) in
+f i ⟨x, i.prop⟩
 
 @[simp] lemma Union_lift_inclusion {S : ι → set α}
   {f : Π i (x : S i), β}
   {hf : ∀ i j (x : α) (hxi : x ∈ S i) (hxj : x ∈ S j), f i ⟨x, hxi⟩ = f j ⟨x, hxj⟩ }
   {i : ι} (x : S i) (h : S i ⊆ Union S := set.subset_Union S i) :
   Union_lift S f hf (set.inclusion h x) = f i x :=
-let j : ι := classical.some (mem_Union.1 (h x.2)) in
-have hj : (x : α) ∈ S j := classical.some_spec (mem_Union.1 (h x.2)),
-by cases x with x hx; exact hf j i x hj hx
+let j := classical.indefinite_description _ (mem_Union.1 (h x.2)) in
+by cases x with x hx; exact hf j i x j.2 hx
 
 @[simp] lemma Union_lift_mk
   {S : ι → set α}
@@ -167,6 +165,45 @@ noncomputable def lift_of_eq_Union
   (T : set α) (hT : T = ⋃ i, S i)
   (x : T) : β :=
 by subst hT; exact Union_lift S f hf x
+
+@[simp] lemma lift_of_eq_Union_inclusion {S : ι → set α}
+  {f : Π i (x : S i), β}
+  {hf : ∀ i j (x : α) (hxi : x ∈ S i) (hxj : x ∈ S j), f i ⟨x, hxi⟩ = f j ⟨x, hxj⟩ }
+  {T : set α} {hT : T = Union S}
+  {i : ι} (x : S i) (h : S i ⊆ T := hT.symm ▸ set.subset_Union S i) :
+  lift_of_eq_Union S f hf T hT (set.inclusion h x) = f i x :=
+begin
+  subst hT,
+  delta lift_of_eq_Union,
+  exact Union_lift_inclusion x h
+end
+
+@[simp] lemma lift_of_eq_Union_mk
+  {S : ι → set α}
+  {f : Π i (x : S i), β}
+  {hf : ∀ i j (x : α) (hxi : x ∈ S i) (hxj : x ∈ S j), f i ⟨x, hxi⟩ = f j ⟨x, hxj⟩ }
+  {T : set α} {hT : T = Union S}
+  {i : ι} (x : S i)
+  (hx : (x : α) ∈ T := hT.symm ▸ set.subset_Union S i x.prop) :
+  lift_of_eq_Union S f hf T hT ⟨x, hx⟩ = f i x :=
+begin
+  subst hT,
+  delta lift_of_eq_Union,
+  exact Union_lift_mk x hx
+end
+
+lemma lift_of_eq_Union_of_mem
+  {S : ι → set α}
+  {f : Π i (x : S i), β}
+  {hf : ∀ i j (x : α) (hxi : x ∈ S i) (hxj : x ∈ S j), f i ⟨x, hxi⟩ = f j ⟨x, hxj⟩ }
+  {T : set α} {hT : T = Union S}
+  (x : T) {i : ι} (hx : (x : α) ∈ S i) :
+  lift_of_eq_Union S f hf T hT x = f i ⟨x, hx⟩ :=
+begin
+  subst hT,
+  delta lift_of_eq_Union,
+  exact Union_lift_of_mem x hx
+end
 
 /-- Version of `Union_lift_const` for `lift_of_eq_Union`. -/
 lemma lift_of_eq_Union_const

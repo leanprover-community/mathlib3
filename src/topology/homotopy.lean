@@ -96,6 +96,11 @@ def refl {f : X → Y} (hf : continuous f) : homotopy f f :=
   to_fun_zero := λ _, rfl,
   to_fun_one := λ _, rfl }
 
+/--
+Given `f : continuous_map`, we can define a `homotopy f f` by `F (x, t) = f x`
+-/
+def refl' (f : C(X, Y)) : homotopy f f := refl f.continuous
+
 instance : inhabited (homotopy (id : X → X) id) := ⟨homotopy.refl continuous_id⟩
 
 /--

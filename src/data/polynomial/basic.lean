@@ -591,6 +591,9 @@ by simp [coeff_erase]
   coeff (p.erase n) i = coeff p i :=
 by simp [coeff_erase, h]
 
+/-- Replace the coefficient of a `p : polynomial p` at a given degree `n : ℕ`
+by a given value `a : R`. If `a = 0`, this is tantamount to removing the `n`th term in the
+polynomial. If `p.nat_degree < n` and `a ≠ 0`, this increases the degree to `n`.  -/
 def update [Π r : R, decidable (r = 0)] (p : polynomial R) (n : ℕ) (a : R) :
   polynomial R :=
 polynomial.of_finsupp (p.to_finsupp.update n a)

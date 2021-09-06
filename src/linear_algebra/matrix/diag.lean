@@ -151,8 +151,7 @@ begin
   simp [h g, h (ne.symm g)],
 end
 
-/-- The block matrix `A.from_blocks B C D` is diagonal
-    if  `A` and `D` are diagonal and `B` and `C` are `0`. -/
+/-- The block matrix `A.from_blocks 0 0 D` is diagonal if  `A` and `D` are diagonal. -/
 lemma is_diag.from_blocks [has_zero α]
   {A : matrix m m α} {D : matrix n n α}
   (ha : A.is_diag) (hd : D.is_diag) :
@@ -163,6 +162,31 @@ begin
   {simp * at *},
   {simp * at *},
   {have h' := ne_of_apply_ne (λ (i : n), sum.inr i) hij, simp [hd h']},
+end
+
+/-- This is the `iff` version of `matrix.is_diag.from_blocks`. -/
+lemma is_diag_from_blocks_iff [has_zero α]
+  {A : matrix m m α} {B : matrix m n α} {C : matrix n m α} {D : matrix n n α} :
+  (A.from_blocks B C D).is_diag ↔ A.is_diag ∧ B = 0 ∧ C = 0 ∧ D.is_diag :=
+begin
+  split,
+  { intros h,
+    repeat {split};
+    try {intros i j hij <|> ext i j},
+    { have g : sum.inl i ≠ sum.inl j, {simp [hij]},
+      specialize h g,
+      simp [from_blocks, *] at * },
+    { have g : sum.inl i ≠ sum.inr j, {simp},
+      specialize h g,
+      simp [from_blocks, *] at * },
+    { have g : sum.inr i ≠ sum.inl j, {simp},
+      specialize h g,
+      simp [from_blocks, *] at * },
+    { have g : sum.inr i ≠ sum.inr j, {simp [hij]},
+      specialize h g,
+      simp [from_blocks, *] at * } },
+  { rintros ⟨ha, hb, hc, hd⟩,
+    convert is_diag.from_blocks ha hd }
 end
 
 /-- A symmetric block matrix `A.from_blocks B C D` is diagonal

@@ -107,3 +107,21 @@ variables (R K)
 (integral_closure_eq_bot_iff K).mpr ‹_›
 
 end is_integrally_closed
+
+namespace integral_closure
+
+open is_integrally_closed
+
+variables {R : Type*} [integral_domain R] [iic : is_integrally_closed R]
+variables (K : Type*) [field K] [algebra R K] [is_fraction_ring R K]
+variables {L : Type*} [field L] [algebra K L] [algebra R L] [is_scalar_tower R K L]
+
+-- Can't be an instance because you need to supply `K`.
+lemma is_integrally_closed_of_finite_extension [finite_dimensional K L] :
+  is_integrally_closed (integral_closure R L) :=
+begin
+  letI : is_fraction_ring (integral_closure R L) L := is_fraction_ring_of_finite_extension K L,
+  exact (integral_closure_eq_bot_iff L).mp integral_closure_idem
+end
+
+end integral_closure

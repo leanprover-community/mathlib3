@@ -238,7 +238,7 @@ by by_cases b ≤ a; simp [h, max]
 
 @[simp, norm_cast] theorem cast_abs [linear_ordered_field α] {q : ℚ} :
   ((abs q : ℚ) : α) = abs q :=
-by simp [abs]
+by simp [abs_eq_max_neg]
 
 end rat
 

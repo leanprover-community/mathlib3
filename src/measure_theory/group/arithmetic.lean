@@ -388,27 +388,43 @@ instance has_measurable_div₂_of_mul_inv (G : Type*) [measurable_space G]
   has_measurable_div₂ G :=
 ⟨by { simp only [div_eq_mul_inv], exact measurable_fst.mul measurable_snd.inv }⟩
 
+-- TODO doc
+class has_measurable_vadd (M α : Type*) [has_vadd M α] [measurable_space M] [measurable_space α] :
+  Prop :=
+(measurable_const_vadd : ∀ c : M, measurable ((+ᵥ) c : α → α))
+(measurable_vadd_const : ∀ x : α, measurable (λ c : M, c +ᵥ x))
 /-- We say that the action of `M` on `α` `has_measurable_smul` if for each `c` the map `x ↦ c • x`
 is a measurable function and for each `x` the map `c ↦ c • x` is a measurable function. -/
+@[to_additive]
 class has_measurable_smul (M α : Type*) [has_scalar M α] [measurable_space M] [measurable_space α] :
   Prop :=
 (measurable_const_smul : ∀ c : M, measurable ((•) c : α → α))
 (measurable_smul_const : ∀ x : α, measurable (λ c : M, c • x))
 
+--TODO doc
+class has_measurable_vadd₂ (M α : Type*) [has_vadd M α] [measurable_space M]
+  [measurable_space α] : Prop :=
+(measurable_vadd : measurable (function.uncurry (+ᵥ) : M × α → α))
+
 /-- We say that the action of `M` on `α` `has_measurable_smul` if the map
 `(c, x) ↦ c • x` is a measurable function. -/
+@[to_additive has_measurable_vadd₂]
 class has_measurable_smul₂ (M α : Type*) [has_scalar M α] [measurable_space M]
   [measurable_space α] : Prop :=
 (measurable_smul : measurable (function.uncurry (•) : M × α → α))
 
 export has_measurable_smul (measurable_const_smul measurable_smul_const)
   has_measurable_smul₂ (measurable_smul)
+export has_measurable_vadd (measurable_const_vadd measurable_vadd_const)
+  has_measurable_vadd₂ (measurable_vadd)
 
+@[to_additive]
 instance has_measurable_smul_of_mul (M : Type*) [monoid M] [measurable_space M]
   [has_measurable_mul M] :
   has_measurable_smul M M :=
 ⟨measurable_id.const_mul, measurable_id.mul_const⟩
 
+@[to_additive]
 instance has_measurable_smul₂_of_mul (M : Type*) [monoid M] [measurable_space M]
   [has_measurable_mul₂ M] :
   has_measurable_smul₂ M M :=
@@ -462,7 +478,7 @@ lemma ae_measurable.const_smul' {f : α → β} (hf : ae_measurable f μ) (c : M
   ae_measurable (λ x, c • f x) μ :=
 (has_measurable_smul.measurable_const_smul c).comp_ae_measurable hf
 
-@[measurability]
+@[measurability, to_additive]
 lemma ae_measurable.const_smul {f : α → β} (hf : ae_measurable f μ) (c : M) :
   ae_measurable (c • f) μ :=
 hf.const_smul' c
@@ -487,17 +503,21 @@ lemma ae_measurable_const_smul_iff (c : G) :
   ae_measurable (λ x, c • f x) μ ↔ ae_measurable f μ :=
 ⟨λ h, by simpa only [inv_smul_smul] using h.const_smul' c⁻¹, λ h, h.const_smul c⟩
 
+@[to_additive]
 instance : measurable_space (units M) := measurable_space.comap (coe : units M → M) ‹_›
 
+@[to_additive]
 instance units.has_measurable_smul : has_measurable_smul (units M) β :=
 { measurable_const_smul := λ c, (measurable_const_smul (c : M) : _),
   measurable_smul_const := λ x,
     (measurable_smul_const x : measurable (λ c : M, c • x)).comp measurable_space.le_map_comap, }
 
+@[to_additive]
 lemma is_unit.measurable_const_smul_iff {c : M} (hc : is_unit c) :
   measurable (λ x, c • f x) ↔ measurable f :=
 let ⟨u, hu⟩ := hc in hu ▸ measurable_const_smul_iff u
 
+@[to_additive]
 lemma is_unit.ae_measurable_const_smul_iff {c : M} (hc : is_unit c) :
   ae_measurable (λ x, c • f x) μ ↔ ae_measurable f μ :=
 let ⟨u, hu⟩ := hc in hu ▸ ae_measurable_const_smul_iff u

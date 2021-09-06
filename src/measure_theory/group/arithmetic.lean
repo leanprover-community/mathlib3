@@ -400,10 +400,6 @@ class has_measurable_smul (M α : Type*) [has_scalar M α] [measurable_space M] 
   Prop :=
 (measurable_const_smul : ∀ c : M, measurable ((•) c : α → α))
 (measurable_smul_const : ∀ x : α, measurable (λ c : M, c • x))
--- attribute [to_additive] has_measurable_smul.mk -- TODO why?
--- #print prefix has_measurable_vadd
--- attribute [to_additive] has_measurable_smul.measurable_const_smul -- TODO why?
--- attribute [to_additive] has_measurable_smul.measurable_smul_const -- TODO why?
 
 --TODO doc
 class has_measurable_vadd₂ (M α : Type*) [has_vadd M α] [measurable_space M]
@@ -482,7 +478,7 @@ lemma ae_measurable.const_smul' {f : α → β} (hf : ae_measurable f μ) (c : M
   ae_measurable (λ x, c • f x) μ :=
 (has_measurable_smul.measurable_const_smul c).comp_ae_measurable hf
 
-@[measurability]
+@[measurability, to_additive]
 lemma ae_measurable.const_smul {f : α → β} (hf : ae_measurable f μ) (c : M) :
   ae_measurable (c • f) μ :=
 hf.const_smul' c
@@ -507,17 +503,21 @@ lemma ae_measurable_const_smul_iff (c : G) :
   ae_measurable (λ x, c • f x) μ ↔ ae_measurable f μ :=
 ⟨λ h, by simpa only [inv_smul_smul] using h.const_smul' c⁻¹, λ h, h.const_smul c⟩
 
+@[to_additive]
 instance : measurable_space (units M) := measurable_space.comap (coe : units M → M) ‹_›
 
+@[to_additive]
 instance units.has_measurable_smul : has_measurable_smul (units M) β :=
 { measurable_const_smul := λ c, (measurable_const_smul (c : M) : _),
   measurable_smul_const := λ x,
     (measurable_smul_const x : measurable (λ c : M, c • x)).comp measurable_space.le_map_comap, }
 
+@[to_additive]
 lemma is_unit.measurable_const_smul_iff {c : M} (hc : is_unit c) :
   measurable (λ x, c • f x) ↔ measurable f :=
 let ⟨u, hu⟩ := hc in hu ▸ measurable_const_smul_iff u
 
+@[to_additive]
 lemma is_unit.ae_measurable_const_smul_iff {c : M} (hc : is_unit c) :
   ae_measurable (λ x, c • f x) μ ↔ ae_measurable f μ :=
 let ⟨u, hu⟩ := hc in hu ▸ ae_measurable_const_smul_iff u

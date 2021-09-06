@@ -1619,7 +1619,7 @@ by simpa using order_monomial_of_ne_zero 0 (1:R) one_ne_zero
 
 /-- The order of the formal power series `X` is `1`.-/
 @[simp] lemma order_X : order (X : power_series R) = 1 :=
-nat.cast_one ▸ order_monomial_of_ne_zero 1 (1:R) one_ne_zero
+by simpa only [nat.cast_one] using order_monomial_of_ne_zero 1 (1:R) one_ne_zero
 
 /-- The order of the formal power series `X^n` is `n`.-/
 @[simp] lemma order_X_pow (n : ℕ) : order ((X : power_series R)^n) = n :=

@@ -88,7 +88,7 @@ end
 def to_graph [has_zero α] [has_one α] [decidable_eq α]
   {A : matrix V V α} (h : adj_matrix A) :
   simple_graph V :=
-{ adj := λ i j, ite (A i j = 1) true false,
+{ adj := λ i j, A i j = 1,
   sym := λ i j hij, by simp only [h.symm.apply i j]; convert hij,
   loopless := λ i, by simp [h] }
 

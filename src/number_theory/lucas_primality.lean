@@ -47,10 +47,8 @@ If a^r = 1 mod p, but a^(r/q) ≠ 1 mod p for all prime factors q of r, then a h
 multiplicative group mod p.
 -/
 theorem order_from_pows (n r : ℕ) (a : zmod n)
-  (hr : 0 < r)
-  (ha : a^r = 1)
-  (hd : (∀ q : ℕ, (nat.prime q) -> (q ∣ r) -> a^(r/q) ≠ 1))
-  : order_of a = r :=
+  (hr : 0 < r) (ha : a^r = 1) (hd : (∀ q : ℕ, (nat.prime q) -> (q ∣ r) -> a^(r/q) ≠ 1)) :
+  order_of a = r :=
 begin
   -- Let b be r/(order_of a), and show b = 1
   cases exists_eq_mul_right_of_dvd (order_of_dvd_of_pow_eq_one ha) with b hb,

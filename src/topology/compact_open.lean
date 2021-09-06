@@ -80,15 +80,39 @@ by simp [hs]
 lemma compact_open_eq : (continuous_map.compact_open : topological_space C(α, β))
   = ⨅ (s : set α) (hs : is_compact s), uniform_on β s :=
 begin
-  let T := topological_space C(α, β),
-  haveI : complete_lattice T := tmp_complete_lattice,
-  let l : set (set C(α, β)) → T := topological_space.generate_from,
-  let u : T → set (set C(α, β)) := λ t, {s | t.is_open s},
-  have gc : galois_insertion l u,
-  have : @galois_insertion _ _ _ _ _ _ := gi_generate_from C(α, β),
-  let gc : galois_connection
+
+  -- transitivity ⨅ (s : set α), topological_space.generate_from (set_of (⨅ (hs : is_compact s)))
+  -- rw ← generate_from_Union,
   rw continuous_map.compact_open,
-  change _ = topological_space.generate_from _, --(topological_space.generate_from _),
+  rw bzz,
+  simp only [uniform_on],
+  -- rw ← generate_from_Inter_of_generate_from_eq_self,
+  simp only [← generate_from_Union],
+  -- simp only [foo₃],
+
+  transitivity topological_space.generate_from
+    (⋃ (s : set α),
+      {s' | (topological_space.generate_from (⋃ (hs : is_compact s), uniform_on.gen β s)).is_open s'}),
+
+  simp only [generate_from_set_of_is_open, foo₃],
+  -- simp only [← generate_from_Union],
+  -- congr' 2,
+  -- -- congr' 1,
+  -- ext s,
+  -- rw mem_set_of_eq,
+
+
+  -- rw Union_set_of,
+  -- simp only [generate_from_set_of_is_open],
+  -- let T := topological_space C(α, β),
+  -- haveI : complete_lattice T := tmp_complete_lattice,
+  -- let l : set (set C(α, β)) → T := topological_space.generate_from,
+  -- let u : T → set (set C(α, β)) := λ t, {s | t.is_open s},
+  -- have gc : galois_insertion l u,
+  -- have : @galois_insertion _ _ _ _ _ _ := gi_generate_from C(α, β),
+  -- let gc : galois_connection
+  -- rw continuous_map.compact_open,
+  -- change _ = topological_space.generate_from _, --(topological_space.generate_from _),
   rw bzz,
   simp [uniform_on],
   change _ = topological_space.generate_from

@@ -58,14 +58,14 @@ variables {C : Type u₁} [category.{v₁} C] [monoidal_category C]
 /-- An exact pairing is a pair of objects `X Y : C` which admit
   a coevaluation and evaluation morphism which fulfill two triangle equalities. -/
 class exact_pairing (X Y : C) :=
-  (coevaluation [] : 𝟙_ C ⟶ X ⊗ Y)
-  (evaluation [] : Y ⊗ X ⟶ 𝟙_ C)
-  (coevaluation_evaluation' [] :
-    (𝟙 Y ⊗ coevaluation) ≫ (α_ _ _ _).inv ≫ (evaluation ⊗ 𝟙 Y)
-    = (ρ_ Y).hom ≫ (λ_ Y).inv . obviously)
-  (evaluation_coevaluation' [] :
-    (coevaluation ⊗ 𝟙 X) ≫ (α_ _ _ _).hom ≫ (𝟙 X ⊗ evaluation)
-    = (λ_ X).hom ≫ (ρ_ X).inv . obviously)
+(coevaluation [] : 𝟙_ C ⟶ X ⊗ Y)
+(evaluation [] : Y ⊗ X ⟶ 𝟙_ C)
+(coevaluation_evaluation' [] :
+  (𝟙 Y ⊗ coevaluation) ≫ (α_ _ _ _).inv ≫ (evaluation ⊗ 𝟙 Y)
+  = (ρ_ Y).hom ≫ (λ_ Y).inv . obviously)
+(evaluation_coevaluation' [] :
+  (coevaluation ⊗ 𝟙 X) ≫ (α_ _ _ _).hom ≫ (𝟙 X ⊗ evaluation)
+  = (λ_ X).hom ≫ (ρ_ X).inv . obviously)
 
 open exact_pairing
 

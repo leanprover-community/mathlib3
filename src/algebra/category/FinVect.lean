@@ -40,6 +40,9 @@ instance finite_dimensional (V : FinVect K): finite_dimensional K V := V.prop
 
 instance : inhabited (FinVect K) := ⟨⟨Module.of K K, finite_dimensional.finite_dimensional_self K⟩⟩
 
+protected def coe_comp {U V W : FinVect K} (f : U ⟶ V) (g : V ⟶ W) :
+  ((f ≫ g) : U → W) = (g : V → W) ∘ (f : U → V) := rfl
+
 instance monoidal_category : monoidal_category (FinVect K) :=
 monoidal_category.full_monoidal_subcategory
   (λ V, finite_dimensional K V)
@@ -115,8 +118,7 @@ begin
   apply tensor_product.mk_compr₂_inj,
   apply (basis.of_vector_space K V).dual_basis.ext, intro j, apply linear_map.ext_ring,
   rw [linear_map.compr₂_apply, linear_map.compr₂_apply],
-  simp only [tensor_product.mk_apply, basis.coe_dual_basis],
-  erw [linear_map.coe_comp, linear_map.coe_comp, linear_map.coe_comp],
+  simp only [tensor_product.mk_apply, basis.coe_dual_basis, FinVect.coe_comp],
   rw [function.comp_app, function.comp_app, function.comp_app],
   rw [right_unitor_hom_apply_tensor_one K, left_unitor_inv_apply K, tensor_hom_apply K],
   rw [id_apply, FinVect_coevaluation_apply_one K V, tensor_product.tmul_sum],
@@ -136,8 +138,7 @@ begin
   apply tensor_product.mk_compr₂_inj,
   apply linear_map.ext_ring, apply (basis.of_vector_space K V).ext, intro j,
   rw [linear_map.compr₂_apply, linear_map.compr₂_apply],
-  simp only [tensor_product.mk_apply, basis.coe_dual_basis],
-  erw [linear_map.coe_comp, linear_map.coe_comp, linear_map.coe_comp],
+  simp only [tensor_product.mk_apply, basis.coe_dual_basis, FinVect.coe_comp],
   rw [function.comp_app, function.comp_app, function.comp_app],
   rw [left_unitor_hom_apply_one_tensor K, right_unitor_inv_apply K, tensor_hom_apply K],
   rw [id_apply, FinVect_coevaluation_apply_one K V, tensor_product.sum_tmul],

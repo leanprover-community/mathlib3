@@ -154,9 +154,9 @@ end
 /-- The block matrix `A.from_blocks B C D` is diagonal
     if  `A` and `D` are diagonal and `B` and `C` are `0`. -/
 lemma is_diag.from_blocks [has_zero α]
-  {A : matrix m m α} {B : matrix m n α} {C : matrix n m α} {D : matrix n n α}
-  (ha : A.is_diag) (hb : B = 0) (hc : C = 0) (hd : D.is_diag) :
-  (A.from_blocks B C D).is_diag:=
+  {A : matrix m m α} {D : matrix n n α}
+  (ha : A.is_diag) (hd : D.is_diag) :
+  (A.from_blocks 0 0 D).is_diag :=
 begin
   rintros (i | i) (j | j) hij,
   {have h' := ne_of_apply_ne (λ (i : m), sum.inl i) hij, simp [ha h']},

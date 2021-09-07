@@ -40,6 +40,21 @@ universes u v w
 noncomputable theory
 open_locale classical big_operators
 open polynomial
+-- #print ideal.quotient.lift_mk
+-- open ideal
+
+-- @[simp] lemma ideal.quotient.lift_comp_mk {R : Type*} [comm_ring R]
+--   {S : Type v} [comm_ring S] {I : ideal R} (f : R →+* S) (H : I ≤ f.ker) :
+--   (ideal.quotient.lift I f H).comp I^.quotient.mk = f :=
+-- by ext; simp
+
+-- lemma ker_quotient_lift {R : Type} [comm_ring R]
+--   {S : Type v} [comm_ring S] {I : ideal R} (f : R →+* S) (H : I ≤ f.ker) :
+--   (ideal.quotient.lift I f H).ker = (f.ker).map I^.quotient.mk :=
+-- by rwa [← (comap_injective_of_surjective _ quotient.mk_surjective).eq_iff,
+--     ring_hom.ker_eq_comap_bot, comap_comap, ← ring_hom.ker_eq_comap_bot,
+--     comap_map_of_surjective _ quotient.mk_surjective,
+--     ideal.quotient.lift_comp_mk, ← ring_hom.ker_eq_comap_bot, mk_ker, left_eq_sup]
 
 variables (k : Type u) [field k]
 
@@ -68,6 +83,9 @@ theorem is_alg_closed.splits_domain {k K : Type*} [field k] [is_alg_closed k] [f
 polynomial.splits_of_splits_id _ $ is_alg_closed.splits _
 
 namespace is_alg_closed
+
+theorem exists_root [is_alg_closed k] (p : polynomial k) (hp : p.degree ≠ 0) : ∃ x, is_root p x :=
+exists_root_of_splits _ (is_alg_closed.splits p) hp
 
 theorem of_exists_root (H : ∀ p : polynomial k, p.monic → irreducible p → ∃ x, p.eval x = 0) :
   is_alg_closed k :=
@@ -397,6 +415,10 @@ variables {E₁ E₂ E₃ : subfield_with_hom K L M hL}
 instance : has_le (subfield_with_hom K L M hL) :=
 { le := λ E₁ E₂, ∃ h : E₁.carrier ≤ E₂.carrier, ∀ x, E₂.emb (inclusion h x) = E₁.emb x }
 
+instance : inhabited (subfield_with_hom K L M hL) :=
+⟨{ carrier := ⊥,
+   emb := (algebra.of_id K M).comp (algebra.bot_equiv K L).to_alg_hom }⟩
+
 lemma le_def : E₁ ≤ E₂ ↔ ∃ h : E₁.carrier ≤ E₂.carrier, ∀ x, E₂.emb (inclusion h x) = E₁.emb x :=
 iff.rfl
 
@@ -425,11 +447,11 @@ end subfield_with_hom
 
 open lattice
 
-def maximal_subfield_with_hom_chain (c : set (subfield_with_hom K L M hL))
-  [nonempty c]
-  (hc : chain (≤) c) :
+lemma maximal_subfield_with_hom_chain_bounded (c : set (subfield_with_hom K L M hL))
+  (hc : chain (≤) c) (hcn  : c.nonempty) :
   ∃ ub : subfield_with_hom K L M hL, ∀ N, N ∈ c → N ≤ ub :=
 let ub : subfield_with_hom K L M hL :=
+by haveI : nonempty c := set.nonempty.to_subtype hcn; exact
 { carrier := ⨆ i : c, (i : subfield_with_hom K L M hL).carrier,
   emb := subalgebra.supr_lift
     (λ i : c, (i : subfield_with_hom K L M hL).carrier)
@@ -448,17 +470,15 @@ let ub : subfield_with_hom K L M hL :=
   begin
     intro x,
     simp [ub],
-
+    refl
   end⟩⟩
-  -- ⟨le_supr (λ i : c, (i : subfield_with_hom K L M hL).carrier) ⟨N, hN⟩, begin
-
-  --end⟩⟩
 
 variables (hL M)
 
 lemma exists_maximal_subfield_with_hom : ∃ E : subfield_with_hom K L M hL,
   ∀ N, E ≤ N → N ≤ E :=
-zorn (maximal_subfield_with_hom_chain) (λ _ _ _, le_trans)
+zorn.exists_maximal_of_nonempty_chains_bounded
+  maximal_subfield_with_hom_chain_bounded (λ _ _ _, le_trans)
 
 def maximal_subfield_with_hom : subfield_with_hom K L M hL :=
 classical.some (exists_maximal_subfield_with_hom M hL)
@@ -478,42 +498,38 @@ begin
   -- { sorry },
   -- { exact { .. E.emb.hom } }
 end
-
-lemma maximal_subfield_with_hom_surj :
-  surjective (maximal_subfield_with_hom M hL).carrier.val :=
+-- N : subalgebra K L
+-- #print power_basis
+lemma maximal_subfield_with_hom_surj (x : L) :
+  x ∈ (maximal_subfield_with_hom M hL).carrier :=
 begin
-  intros x, refine ⟨⟨x, _⟩, rfl⟩,
-  replace hx := (maximal_subfield_with_hom M hL).carrier.is_integral x (hL x),
-  let p := minimal_polynomial hx,
-  have H := exists_root M (p.map (maximal_subfield_with_hom M hL).emb) _,
-  swap,
-  { calc 0 < degree p :
-    begin
-      sorry -- minimal_polynomial.degree_pos gives diamonds
-    end
-       ... = degree (p.map (maximal_subfield_with_hom M hL).emb) :
-    begin
-      symmetry,
-      -- refine @polynomial.degree_map' _ _ _ _ _ _ p _ (by exact is_ring_hom.is_semiring_hom _) _,
-      sorry,
-    end },
-  let y := classical.some H,
-  let f := algebra.adjoin_singleton_desc x hx
-    (maximal_subfield_with_hom M hL).emb y (classical.some_spec H),
-  let tmpa : subalgebra _ L := algebra.adjoin _ ({x} : set L),
-  let tmpb : _ := _,
-  let N : subfield_with_hom K L M hL :=
-  { carrier := subalgebra.under (maximal_subfield_with_hom M hL).carrier tmpa,
-    emb :=
-    { to_fun := f,
-      hom := algebra.adjoin_singleton_desc.is_ring_hom _ _ _ _ _,
-      commutes' := tmpb } },
-  have hN : x ∈ N.carrier := algebra.subset_adjoin (mem_singleton x),
-  refine subfield_with_hom.subalgebra_le_of_le (maximal_subfield_with_hom_is_maximal M hL N _) hN,
-  { refine ⟨λ l hl, ring.subset_closure (mem_union_left _ _), _⟩,
-    { rw mem_range, refine ⟨⟨l, hl⟩, rfl⟩ },
-    { sorry } },
-  { sorry }
+  let p := minpoly K x,
+  let N : subalgebra K L := (maximal_subfield_with_hom M hL).carrier,
+  letI : field N := is_field.to_field _ (subalgebra.is_field_of_algebraic N
+    (λ y, (is_algebraic_iff_is_integral K).2 (hL y))),
+  letI : algebra N M := (maximal_subfield_with_hom M hL).emb.to_ring_hom.to_algebra,
+  cases is_alg_closed.exists_root M ((minpoly N x).map (algebra_map _ _)) sorry with y hy,
+  let larger_carrier : subalgebra K L := N.under (algebra.adjoin N ({x} : set L)),
+  letI : is_scalar_tower K N L := begin apply_instance end,
+  letI : algebra K N := infer_instance,
+  let O : subalgebra N L := algebra.adjoin N {(x : L)},
+  letI : is_scalar_tower N O L := by apply_instance,
+  -- letI : module K O.to_submodule := begin dsimp [O], apply_instance end,
+  -- have larger_emb := ((adjoin_root.lift_hom (minpoly N x) y sorry).comp
+  --    (alg_equiv.adjoin_singleton_equiv_adjoin_root_minpoly N x).to_alg_hom),
+  -- let f : tmpa →ₐ[↥(maximal_subfield_with_hom M hL).carrier] M := _,
+  -- let N : subfield_with_hom K L M hL :=
+  -- { carrier := subalgebra.under (maximal_subfield_with_hom M hL).carrier tmpa,
+  --   emb :=
+  --   { to_fun := f,
+  --     hom := algebra.adjoin_singleton_desc.is_ring_hom _ _ _ _ _,
+  --     commutes' := tmpb } },
+  -- have hN : x ∈ N.carrier := algebra.subset_adjoin (mem_singleton x),
+  -- refine subfield_with_hom.subalgebra_le_of_le (maximal_subfield_with_hom_is_maximal M hL N _) hN,
+  -- { refine ⟨λ l hl, ring.subset_closure (mem_union_left _ _), _⟩,
+  --   { rw mem_range, refine ⟨⟨l, hl⟩, rfl⟩ },
+  --   { sorry } },
+  -- { sorry }
 end
 
 end lift

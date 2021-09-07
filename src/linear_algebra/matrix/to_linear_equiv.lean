@@ -157,6 +157,26 @@ begin
       { rw [mul_vec_smul, mul_eq, pi.smul_apply, pi.zero_apply, smul_zero] } } },
 end
 
+lemma exists_vec_mul_eq_zero_iff {A : Type*} [decidable_eq n] [integral_domain A]
+  {M : matrix n n A} :
+  (∃ (v ≠ 0), M.vec_mul v = 0) ↔ M.det = 0 :=
+by simpa only [← M.det_transpose, ← mul_vec_transpose] using exists_mul_vec_eq_zero_iff
+
+theorem nondegenerate_iff_det_ne_zero {A : Type*} [decidable_eq n] [integral_domain A]
+  {M : matrix n n A} :
+  nondegenerate M ↔ M.det ≠ 0 :=
+begin
+  refine iff.trans _ (not_iff_not.mpr exists_vec_mul_eq_zero_iff),
+  simp only [not_exists],
+  split,
+  { intros hM v hv hMv,
+    obtain ⟨w, hwMv⟩ := hM.exists_not_ortho_of_ne_zero hv,
+    simpa only [dot_product_mul_vec, hMv, zero_dot_product] using hwMv },
+  { intros h v hv,
+    refine not_imp_not.mp (h v) (funext $ λ i, _),
+    simpa only [dot_product_mul_vec, dot_product_single, mul_one] using hv (pi.single i 1) }
+end
+
 end nondegenerate
 
 end matrix

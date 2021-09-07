@@ -282,42 +282,16 @@ quot.mk _ ⟨is_filtered.max x.1 y.1,
 lemma mul_colimit_pre_eq_of_rel_left {x x' y : Σ j, F.obj j} (hxx' : x ~ x') :
   mul_colimit_pre F x y = mul_colimit_pre F x' y :=
 begin
-  obtain ⟨l, α, β, hαβ⟩ := hxx',
-  simp at hαβ,
-  let O : finset J := {x.1, x'.1, y.1, max' x.1 y.1, max' x'.1 y.1, l},
-  obtain ⟨x_mem, x'_mem, y_mem, k_mem, k'_mem, l_mem⟩ :
-    x.1 ∈ O ∧ x'.1 ∈ O ∧ y.1 ∈ O ∧ max' x.1 y.1 ∈ O ∧ max' x'.1 y.1 ∈ O ∧ l ∈ O,
-  { simp only [finset.mem_insert, finset.mem_singleton], tauto },
-
-  let H_type := Σ' (i j : J) (mi : i ∈ O) (mY : j ∈ O), i ⟶ j,
-  let H : finset H_type := { ⟨_, _, _, _, α⟩, ⟨_, _, _, _, β⟩,
-    ⟨_, _, _, _, left_to_max x.1 y.1⟩, ⟨_, _, _, _, right_to_max x.1 y.1⟩,
-    ⟨_, _, _, _, left_to_max x'.1 y.1⟩, ⟨_, _, _, _, right_to_max x'.1 y.1⟩ },
-
-  obtain ⟨α_mem, β_mem, f_mem, g_mem, f'_mem, g'_mem⟩ :
-    (⟨_, _, x_mem, l_mem, α⟩ : H_type) ∈ H ∧ (⟨_, _, x'_mem, l_mem, β⟩ : H_type) ∈ H ∧
-    (⟨_, _, x_mem, k_mem, left_to_max x.1 y.1⟩ : H_type) ∈ H ∧
-    (⟨_, _, y_mem, k_mem, right_to_max x.1 y.1⟩ : H_type) ∈ H ∧
-    (⟨_, _, x'_mem, k'_mem, left_to_max x'.1 y.1 ⟩ : H_type) ∈ H ∧
-    (⟨_, _, y_mem, k'_mem, right_to_max x'.1 y.1⟩ : H_type) ∈ H,
-  { simp only [finset.mem_insert, finset.mem_singleton],
-    split, left, split, refl, refl,
-    split, right, left, split, refl, refl,
-    split, right, right, left, split, refl, refl,
-    split, right, right, right, left, split, refl, refl,
-    split, right, right, right, right, left, split, refl, refl,
-    right, right, right, right, right, split, refl, refl },
-
-  obtain ⟨s, T, hT⟩ := sup_exists O H,
+  cases x with j₁ x, cases y with j₂ y, cases x' with j₃ x',
+  obtain ⟨l, f, g, hfg⟩ := hxx',
+  simp at hfg,
+  obtain ⟨s, α, β, γ, h₁, h₂, h₃⟩ := crown (left_to_max j₁ j₂) (right_to_max j₁ j₂)
+    (right_to_max j₃ j₂) (left_to_max j₃ j₂) f g,
   apply quot.eqv_gen_sound,
   apply types.filtered_colimit.eqv_gen_quot_rel_of_rel,
-  refine ⟨s, T k_mem, T k'_mem, _⟩,
+  use [s, α, γ],
   dsimp,
-  rw [monoid_hom.map_mul, monoid_hom.map_mul, ← comp_apply, ← comp_apply, ← comp_apply,
-    ← comp_apply, ← F.map_comp, ← F.map_comp, ← F.map_comp, ← F.map_comp,
-    hT x_mem k_mem f_mem, hT y_mem k_mem g_mem, hT x'_mem k'_mem f'_mem, hT y_mem k'_mem g'_mem,
-    ← hT x_mem l_mem α_mem, ← hT x'_mem l_mem β_mem, F.map_comp, F.map_comp, comp_apply,
-    comp_apply, hαβ],
+  simp_rw [monoid_hom.map_mul, ← comp_apply, ← F.map_comp, h₁, h₂, h₃, F.map_comp, comp_apply, hfg]
 end
 
 lemma mul_colimit_pre_eq_of_rel_right {x y y' : Σ j, F.obj j} (hyy' : y ~ y') :
@@ -377,32 +351,13 @@ end
 lemma mul_colimit_eq (x y : Σ j, F.obj j) (k : J) (f : x.1 ⟶ k) (g : y.1 ⟶ k) :
   mul_colimit F (quot.mk _ x) (quot.mk _ y) = quot.mk _ ⟨k, F.map f x.2 * F.map g y.2⟩ :=
 begin
-  let O : finset J := {x.1, y.1, k, max' x.1 y.1},
-  obtain ⟨x_mem, y_mem, k_mem, k'_mem⟩ : x.1 ∈ O ∧ y.1 ∈ O ∧ k ∈ O ∧ max' x.1 y.1 ∈ O,
-  { simp only [finset.mem_insert, finset.mem_singleton], tauto, },
-
-  let H_type := Σ' (i j : J) (mi : i ∈ O) (mY : j ∈ O), i ⟶ j,
-  let H : finset H_type := { ⟨_, _, _, _, f⟩, ⟨_, _, _, _, g⟩,
-    ⟨_, _, _, _, left_to_max x.1 y.1⟩, ⟨_, _, _, _, right_to_max x.1 y.1⟩ },
-  obtain ⟨f_mem, g_mem, f'_mem, g'_mem⟩ : (⟨_, _, x_mem, k_mem, f⟩ : H_type) ∈ H ∧
-    (⟨_, _, y_mem, k_mem, g⟩ : H_type) ∈ H ∧
-    (⟨_, _, x_mem, k'_mem, left_to_max x.1 y.1⟩ : H_type) ∈ H ∧
-    (⟨_, _, y_mem, k'_mem, right_to_max x.1 y.1⟩ : H_type) ∈ H,
-  { simp only [finset.mem_insert, finset.mem_singleton],
-    split, left, split, refl, refl, -- Why doesn't tauto do this?
-    split, right, left, split, refl, refl,
-    split, right, right, left, split, refl, refl,
-    right, right, right, split, refl, refl },
-
-  obtain ⟨s, T, hT⟩ := sup_exists O H,
-
+  cases x with j₁ x, cases y with j₂ y,
+  obtain ⟨s, α, β, h₁, h₂⟩ := bowtie (left_to_max j₁ j₂) f (right_to_max j₁ j₂) g,
   apply quot.eqv_gen_sound,
   apply types.filtered_colimit.eqv_gen_quot_rel_of_rel,
-  refine ⟨s, T k'_mem, T k_mem, _⟩,
+  use [s, α, β],
   dsimp,
-  rw [monoid_hom.map_mul, monoid_hom.map_mul, ← comp_apply, ← comp_apply, ← comp_apply,
-    ← comp_apply, ← F.map_comp, ← F.map_comp, ← F.map_comp, ← F.map_comp,
-    hT x_mem k_mem f_mem, hT y_mem k_mem g_mem, hT x_mem k'_mem f'_mem, hT y_mem k'_mem g'_mem],
+  simp_rw [monoid_hom.map_mul, ← comp_apply, ← F.map_comp, h₁, h₂],
 end
 
 lemma colimit_one_mul (x : types.quot (F ⋙ forget Mon)) :

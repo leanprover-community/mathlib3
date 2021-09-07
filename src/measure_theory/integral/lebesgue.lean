@@ -1463,7 +1463,7 @@ begin
   exact le_refl _,
 end
 
-lemma eventually_le_top_of_lintegral_lt_top {f : α → ℝ≥0∞} (hf : measurable f)
+lemma eventually_lt_top_of_lintegral_ne_top {f : α → ℝ≥0∞} (hf : measurable f)
   (hμf : ∫⁻ x, f x ∂μ ≠ ∞) : ∀ᵐ x ∂μ, f x < ∞ :=
 begin
   simp_rw [ae_iff, ennreal.not_lt_top],

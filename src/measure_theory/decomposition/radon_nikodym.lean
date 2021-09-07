@@ -107,7 +107,7 @@ begin
   rw [integral_to_real, ← with_density_apply _ hi,
       with_density_radon_nikodym_deriv_eq μ ν h],
   { measurability },
-  { refine eventually_le_top_of_lintegral_lt_top (μ.measurable_radon_nikodym_deriv ν)
+  { refine eventually_lt_top_of_lintegral_ne_top (μ.measurable_radon_nikodym_deriv ν)
       (lt_of_le_of_lt (lintegral_mono_set i.subset_univ) _).ne,
     rw [← with_density_apply _ measurable_set.univ,
         with_density_radon_nikodym_deriv_eq μ ν h],

@@ -1302,18 +1302,10 @@ end
 
 theorem map_eq_iff_sup_ker_eq_of_surjective {I J : ideal R} (f : R →+* S)
   (hf : function.surjective f) : map f I = map f J ↔ I ⊔ f.ker = J ⊔ f.ker :=
-begin
-  split,
-  { intro h,
-    apply_fun comap f at h,
-    rw [comap_map_of_surjective f hf, comap_map_of_surjective f hf,
-      ← ring_hom.ker_eq_comap_bot] at h,
-    exact h },
-  { intro h,
-    apply_fun map f at h,
-    rw [map_sup, map_sup, (map_eq_bot_iff_le_ker f).2 (le_refl f.ker), sup_bot_eq, sup_bot_eq] at h,
-    exact h },
-end
+by rw [← (comap_injective_of_surjective f hf).eq_iff,
+  comap_map_of_surjective f hf, comap_map_of_surjective f hf,
+  ring_hom.ker_eq_comap_bot]
+
 
 theorem map_radical_of_surjective {f : R →+* S} (hf : function.surjective f) {I : ideal R}
   (h : ring_hom.ker f ≤ I) : map f (I.radical) = (map f I).radical :=

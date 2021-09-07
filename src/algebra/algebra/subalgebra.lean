@@ -671,7 +671,7 @@ alg_hom.ext $ λ x, subtype.ext rfl
   (m : (x : A) ∈ S) : inclusion h ⟨x, m⟩ = x := subtype.ext rfl
 
 @[simp] lemma inclusion_inclusion {S T U : subalgebra R A} (hst : S ≤ T) (htu : T ≤ U)
-  (x : S) : inclusion htu (inclusion hst x) = inclusion (set.subset.trans hst htu) x :=
+  (x : S) : inclusion htu (inclusion hst x) = inclusion (le_trans hst htu) x :=
 subtype.ext rfl
 
 @[simp] lemma coe_inclusion {S T : subalgebra R A} (h : S ≤ T) (s : S) :

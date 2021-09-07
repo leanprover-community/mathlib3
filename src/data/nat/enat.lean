@@ -52,7 +52,10 @@ def enat : Type := part ℕ
 
 namespace enat
 
-/-- The computable embedding `ℕ → enat` -/
+/-- The computable embedding `ℕ → enat`.
+
+This coincides with the coercion `coe : ℕ → enat`, see `enat.some_eq_coe`.
+However, `coe` is noncomputable so `some` is preferable when computability is a concern. -/
 def some : ℕ → enat := part.some
 
 instance : has_zero enat := ⟨some 0⟩
@@ -151,7 +154,10 @@ then is_false $ λ h, hx $ dom_of_le_of_dom h hy
 else is_true ⟨λ h, (hy h).elim, λ h, (hy h).elim⟩
 
 /-- The coercion `ℕ → enat` preserves `0` and addition. -/
-def coe_hom : ℕ →+ enat := ⟨coe, nat.cast_zero, nat.cast_add⟩
+def coe_hom : ℕ →+ enat :=
+⟨some, nat.cast_zero, λ m n, by { simp only [some_eq_coe], apply nat.cast_add }⟩
+
+@[simp] lemma coe_coe_hom : ⇑coe_hom = coe := funext $ λ n, some_eq_coe n
 
 instance : partial_order enat :=
 { le          := (≤),

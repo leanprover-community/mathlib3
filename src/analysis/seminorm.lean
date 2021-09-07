@@ -398,24 +398,22 @@ begin
   let K' := f ⁻¹' (interior K),
   have : is_open K' := this.is_open_preimage _ is_open_interior,
   have one_mem : (1:ℝ) ∈ K',
-  { change _ • _ ∈ interior K,
-    simpa },
-  obtain ⟨ε, _, hε₂⟩ := (metric.nhds_basis_closed_ball.1 _).1 (is_open_iff_mem_nhds.1 this 1 ‹_›),
+  { simpa only [K', f, set.mem_preimage, one_smul] },
+  obtain ⟨ε, hε₁ , hε₂⟩ := (metric.nhds_basis_closed_ball.1 _).1 (is_open_iff_mem_nhds.1 this 1 ‹_›),
   rw closed_ball_Icc at hε₂,
+  have hε₃ : 0 < 1 + ε := lt_trans hε₁ (lt_one_add ε),
   have : (1 + ε)⁻¹ < 1,
   { rw inv_lt_one_iff,
     right,
     linarith },
   refine cInf_lt_of_lt gauge_set_bdd_below ⟨_, _⟩ ‹(1 + ε)⁻¹ < 1›,
-  { change (0:ℝ) < _,
-    rw inv_pos,
-    linarith },
+  { rwa [set.mem_Ioi, inv_pos] },
   change _ ∈ _,
-  rw mem_inv_smul_set_iff (show 1 + ε ≠ 0, by linarith),
+  rw mem_inv_smul_set_iff hε₃.ne',
   apply interior_subset,
   apply hε₂,
-  simp,
-  linarith
+  rw [set.right_mem_Icc, sub_eq_add_neg, add_le_add_iff_left],
+  exact neg_le_self hε₁.le,
 end
 
 lemma gauge_lt_one_eq_self_of_open [topological_space E] [has_continuous_smul ℝ E]
@@ -453,9 +451,7 @@ begin
     { exact monotone_mul_left_of_nonneg hθ },
     have z := map_cInf_of_continuous_at_of_monotone (continuous_mul_left θ).continuous_at
                   (monotone_mul_left_of_nonneg hθ) ‹_› ‹_›,
-    dsimp at z,
-    rw [z, ←set.image_smul],
-    refl },
+    simpa only [←set.image_smul, algebra.id.smul_eq_mul] using z },
   { rw [real.Inf_of_not_bdd_below h₁, mul_zero],
     rcases eq_or_lt_of_le hθ with (rfl | hθ),
     { rw zero_smul_set h,
@@ -487,9 +483,7 @@ gauge K (θ • x) = θ * gauge K x :=
 begin
   rcases eq_or_lt_of_le hθ with (rfl | hθ'),
   { simp },
-  rw [gauge_def', gauge_def'],
-  change Inf _ = _ * Inf _,
-  rw real.Inf_smul _ ‹0 ≤ θ›,
+  rw [gauge_def', gauge_def', real.Inf_smul _ ‹0 ≤ θ›],
   congr' 1,
   ext β,
   simp only [set.mem_smul_set, set.mem_sep_eq, smul_eq_mul, set.mem_Ioi],
@@ -508,9 +502,9 @@ lemma gauge_homogeneous (symmetric : ∀ x ∈ K, -x ∈ K)
   gauge K (θ • x) = abs θ * gauge K x :=
 begin
   rw ←gauge_mul_nonneg (abs_nonneg θ),
-  cases le_total 0 θ,
-  { rw abs_of_nonneg h },
-  { rw [abs_of_nonpos h, neg_smul, gauge_neg symmetric] }
+  cases abs_choice θ with h h,
+  { rw h },
+  { rw [h, neg_smul, gauge_neg symmetric] }
 end
 
 lemma gauge_subadditive (hK : convex K)
@@ -533,10 +527,9 @@ begin
   have := hK ha₂ hb₂ (le_of_lt ha₁) (le_of_lt hb₁) (by linarith),
   rw [smul_smul, smul_smul, mul_comm_div', mul_comm_div', ←mul_div_assoc, ←mul_div_assoc,
     mul_inv_cancel (ne_of_gt ha₁), mul_inv_cancel (ne_of_gt hb₁), ←smul_add] at this,
-  apply gauge_le_of_mem,
-  { linarith },
-  rw mem_smul_set_iff_inv_smul_mem (show a + b ≠ 0, by linarith),
-  simpa,
+  have hab : 0 < a + b := add_pos ha₁ hb₁,
+  apply gauge_le_of_mem _ hab,
+  rwa [mem_smul_set_iff_inv_smul_mem hab.ne', ←one_div],
 end
 
 /-- If `K` is symmetric, convex and absorbent, it defines a seminorm. -/

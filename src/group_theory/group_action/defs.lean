@@ -258,16 +258,16 @@ instance is_scalar_tower.left : is_scalar_tower M M α :=
 
 variables {M}
 
-/-- Note that the `smul_comm_class M α α` typeclass argument is usually satisfied by `algebra M α`.
+/-- Note that the `smul_comm_class α β β` typeclass argument is usually satisfied by `algebra α β`.
 -/
 @[to_additive]
-lemma mul_smul_comm [has_mul α] (s : M) (x y : α) [smul_comm_class M α α] :
+lemma mul_smul_comm [has_mul β] [has_scalar α β] [smul_comm_class α β β] (s : α) (x y : β) :
   x * (s • y) = s • (x * y) :=
 (smul_comm s x y).symm
 
-/-- Note that the `is_scalar_tower M α α` typeclass argument is usually satisfied by `algebra M α`.
+/-- Note that the `is_scalar_tower α β β` typeclass argument is usually satisfied by `algebra α β`.
 -/
-lemma smul_mul_assoc [has_mul α] (r : M) (x y : α) [is_scalar_tower M α α] :
+lemma smul_mul_assoc [has_mul β] [has_scalar α β] [is_scalar_tower α β β] (r : α) (x y : β)  :
   (r • x) * y = r • (x * y) :=
 smul_assoc r x y
 
@@ -378,20 +378,21 @@ See note [reducible non-instances]. -/
   smul_add := λ x, smul_add (f x),
   .. mul_action.comp_hom A f }
 
-/-- Scalar multiplication by `r` as an `add_monoid_hom`. -/
-def const_smul_hom (r : M) : A →+ A :=
-{ to_fun := (•) r,
-  map_zero' := smul_zero r,
-  map_add' := smul_add r }
+/-- Each element of the monoid defines a additive monoid homomorphism. -/
+@[simps]
+def distrib_mul_action.to_add_monoid_hom (x : M) : A →+ A :=
+{ to_fun := (•) x,
+  map_zero' := smul_zero x,
+  map_add' := smul_add x }
 
-variable {A}
+variables (M)
 
-@[simp] lemma const_smul_hom_apply (r : M) (x : A) :
-  const_smul_hom A r x = r • x := rfl
-
-@[simp] lemma const_smul_hom_one :
-  const_smul_hom A (1:M) = add_monoid_hom.id _ :=
-by { ext, rw [const_smul_hom_apply, one_smul, add_monoid_hom.id_apply] }
+/-- Each element of the monoid defines an additive monoid homomorphism. -/
+@[simps]
+def distrib_mul_action.to_add_monoid_End : M →* add_monoid.End A :=
+{ to_fun := distrib_mul_action.to_add_monoid_hom A,
+  map_one' := add_monoid_hom.ext $ one_smul M,
+  map_mul' := λ x y, add_monoid_hom.ext $ mul_smul x y }
 
 end
 
@@ -424,13 +425,47 @@ instance : inhabited (function.End α) := ⟨1⟩
 
 variable {α}
 
-/-- The tautological action by `function.End α` on `α`. -/
-instance mul_action.function_End : mul_action (function.End α) α :=
+/-- The tautological action by `function.End α` on `α`.
+
+This is generalized to bundled endomorphisms by:
+* `equiv.perm.apply_mul_action`
+* `add_monoid.End.apply_distrib_mul_action`
+* `add_aut.apply_distrib_mul_action`
+* `ring_hom.apply_distrib_mul_action`
+* `linear_equiv.apply_distrib_mul_action`
+* `linear_map.apply_module`
+* `ring_hom.apply_mul_semiring_action`
+* `alg_equiv.apply_mul_semiring_action`
+-/
+instance function.End.apply_mul_action : mul_action (function.End α) α :=
 { smul := ($),
   one_smul := λ _, rfl,
   mul_smul := λ _ _ _, rfl }
 
 @[simp] lemma function.End.smul_def (f : function.End α) (a : α) : f • a = f a := rfl
+
+/-- `function.End.apply_mul_action` is faithful. -/
+instance function.End.apply_has_faithful_scalar : has_faithful_scalar (function.End α) α :=
+⟨λ x y, funext⟩
+
+/-- The tautological action by `add_monoid.End α` on `α`.
+
+This generalizes `function.End.apply_mul_action`. -/
+instance add_monoid.End.apply_distrib_mul_action [add_monoid α] :
+  distrib_mul_action (add_monoid.End α) α :=
+{ smul := ($),
+  smul_zero := add_monoid_hom.map_zero,
+  smul_add := add_monoid_hom.map_add,
+  one_smul := λ _, rfl,
+  mul_smul := λ _ _ _, rfl }
+
+@[simp] lemma add_monoid.End.smul_def [add_monoid α] (f : add_monoid.End α) (a : α) :
+  f • a = f a := rfl
+
+/-- `add_monoid.End.apply_distrib_mul_action` is faithful. -/
+instance add_monoid.End.apply_has_faithful_scalar [add_monoid α] :
+  has_faithful_scalar (add_monoid.End α) α :=
+⟨add_monoid_hom.ext⟩
 
 /-- The monoid hom representing a monoid action.
 

@@ -60,16 +60,19 @@ def add_action.to_perm_hom (α : Type*) [add_group α] [add_action α β] :
   map_zero' := equiv.ext $ zero_vadd α,
   map_add' := λ a₁ a₂, equiv.ext $ add_vadd a₁ a₂ }
 
-/-- The tautological action by `equiv.perm α` on `α`. -/
-instance mul_action.perm (α : Type*) : mul_action (equiv.perm α) α :=
+/-- The tautological action by `equiv.perm α` on `α`.
+
+This generalizes `function.End.apply_mul_action`.-/
+instance equiv.perm.apply_mul_action (α : Type*) : mul_action (equiv.perm α) α :=
 { smul := λ f a, f a,
   one_smul := λ _, rfl,
   mul_smul := λ _ _ _, rfl }
 
-@[simp] lemma equiv.perm.smul_def {α : Type*} (f : equiv.perm α) (a : α) : f • a = f a := rfl
+@[simp] protected lemma equiv.perm.smul_def {α : Type*} (f : equiv.perm α) (a : α) : f • a = f a :=
+rfl
 
-/-- `mul_action.perm` is faithful. -/
-instance equiv.perm.has_faithful_scalar (α : Type*) : has_faithful_scalar (equiv.perm α) α :=
+/-- `equiv.perm.apply_mul_action` is faithful. -/
+instance equiv.perm.apply_has_faithful_scalar (α : Type*) : has_faithful_scalar (equiv.perm α) α :=
 ⟨λ x y, equiv.ext⟩
 
 variables {α} {β}

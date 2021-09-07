@@ -162,18 +162,6 @@ variables (H : subgroup (E ≃ₐ[F] E)) (K : intermediate_field F E)
 
 namespace intermediate_field
 
-instance subgroup_action : mul_semiring_action H E :=
-{ smul := λ h x, h x,
-  smul_zero := λ _, map_zero _,
-  smul_add := λ _, map_add _,
-  one_smul := λ _, rfl,
-  smul_one := λ _, map_one _,
-  mul_smul := λ _ _ _, rfl,
-  smul_mul := λ _, map_mul _ }
-
-instance : has_faithful_scalar H E :=
-{ eq_of_smul_eq_smul := λ x y z, subtype.ext (alg_equiv.ext z) }
-
 /-- The intermediate_field fixed by a subgroup -/
 def fixed_field : intermediate_field F E :=
 { carrier := mul_action.fixed_points H E,

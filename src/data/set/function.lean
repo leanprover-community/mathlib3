@@ -619,6 +619,22 @@ end
 
 end set
 
+/-! ### Monotone -/
+
+namespace monotone
+
+variables [preorder α] [preorder β] {f : α → β}
+
+protected lemma restrict (h : monotone f) (s : set α) : monotone (s.restrict f) :=
+λ x y hxy, h hxy
+
+protected lemma cod_restrict (h : monotone f) {s : set β} (hs : ∀ x, f x ∈ s) :
+  monotone (s.cod_restrict f hs) := h
+
+protected lemma range_factorization (h : monotone f) : monotone (set.range_factorization f) := h
+
+end monotone
+
 /-! ### Piecewise defined function -/
 
 namespace set

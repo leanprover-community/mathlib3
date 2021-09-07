@@ -121,6 +121,26 @@ by rw [finset.coe_union, finset.coe_image, algebra.adjoin_union_eq_under,
   subalgebra.res_top]⟩
 end
 
+section algebra_map_coeffs
+
+variables {R} (A) {ι M : Type*} [comm_semiring R] [semiring A] [add_comm_monoid M]
+variables [algebra R A] [module A M] [module R M] [is_scalar_tower R A M]
+variables (b : basis ι R M) (h : function.bijective (algebra_map R A))
+
+/-- If `R` and `A` have a bijective `algebra_map R A` and act identically on `M`,
+then a basis for `M` as `R`-module is also a basis for `M` as `R'`-module. -/
+@[simps]
+noncomputable def basis.algebra_map_coeffs : basis ι A M :=
+b.map_coeffs (ring_equiv.of_bijective _ h) (λ c x, by simp)
+
+lemma basis.algebra_map_coeffs_apply (i : ι) : b.algebra_map_coeffs A h i = b i :=
+b.map_coeffs_apply _ _ _
+
+@[simp] lemma basis.coe_algebra_map_coeffs : (b.algebra_map_coeffs A h : ι → M) = b :=
+b.coe_map_coeffs _ _
+
+end algebra_map_coeffs
+
 section ring
 
 open finsupp
@@ -150,10 +170,10 @@ end
 where the `(i, j)`th basis vector is `b i • c j`. -/
 noncomputable def basis.smul {ι : Type v₁} {ι' : Type w₁}
   (b : basis ι R S) (c : basis ι' S A) : basis (ι × ι') R A :=
-basis.of_repr ((c.repr.restrict_scalars R).trans $
-  (finsupp.lcongr (equiv.refl _) b.repr).trans $
-  (finsupp_prod_lequiv R).symm.trans $
-  (finsupp.lcongr (equiv.prod_comm ι' ι) (linear_equiv.refl _ _)))
+basis.of_repr ((c.repr.restrict_scalars R) ≪≫ₗ
+  ((finsupp.lcongr (equiv.refl _) b.repr) ≪≫ₗ
+  ((finsupp_prod_lequiv R).symm ≪≫ₗ
+  ((finsupp.lcongr (equiv.prod_comm ι' ι) (linear_equiv.refl _ _))))))
 
 @[simp] theorem basis.smul_repr {ι : Type v₁} {ι' : Type w₁}
   (b : basis ι R S) (c : basis ι' S A) (x ij):

@@ -63,7 +63,7 @@ theorem mod_modeq (a n) : a % n ≡ a [ZMOD n] := mod_mod _ _
 namespace modeq
 
 protected theorem modeq_of_dvd (d : m ∣ n) (h : a ≡ b [ZMOD n]) : a ≡ b [ZMOD m] :=
-modeq_iff_dvd.2 $ dvd_trans d h.dvd
+modeq_iff_dvd.2 $ d.trans h.dvd
 
 protected theorem mul_left' (hc : 0 ≤ c) (h : a ≡ b [ZMOD n]) : c * a ≡ c * b [ZMOD (c * n)] :=
 or.cases_on hc.lt_or_eq (λ hc,
@@ -141,7 +141,7 @@ end modeq
 theorem modeq_one : a ≡ b [ZMOD 1] := modeq_of_dvd (one_dvd _)
 
 lemma modeq_sub (a b : ℤ) : a ≡ b [ZMOD a - b] :=
-(modeq_of_dvd $ dvd_refl _).symm
+(modeq_of_dvd dvd_rfl).symm
 
 lemma modeq_and_modeq_iff_modeq_mul {a b m n : ℤ} (hmn : m.nat_abs.coprime n.nat_abs) :
   a ≡ b [ZMOD m] ∧ a ≡ b [ZMOD n] ↔ (a ≡ b [ZMOD m * n]) :=

@@ -161,7 +161,7 @@ if hm : m = 0 then ⟨b, begin rw [hm, gcd_zero_right] at h, split, exact h.symm
     rw [nat.gcd_eq_zero_iff, not_and],
     exact λ _, hm,
   end,
-  have hcoedvd : ∀ t, (gcd n m : ℤ) ∣ t * (b - a) := λ t, dvd_mul_of_dvd_right h.dvd _,
+  have hcoedvd : ∀ t, (gcd n m : ℤ) ∣ t * (b - a) := λ t, h.dvd.mul_left _,
   have := gcd_eq_gcd_ab n m,
   split; rw [int.mod_def, ← sub_add]; refine dvd_add _ (dvd_mul_of_dvd_left _ _); try {norm_cast},
   { rw ← sub_eq_iff_eq_add' at this,
@@ -352,5 +352,15 @@ lemma rotate_eq_self_iff_eq_repeat [hα : nonempty α] : ∀ {l : list α},
         by rw list.length_repeat; exact nat.mod_lt _ (nat.succ_pos _),
       by rw [nth_le_repeat, ← option.some_inj, ← list.nth_le_nth, nth_rotate h, list.nth_le_nth,
         nth_le_repeat]; simp * at *)⟩
+
+lemma rotate_repeat (a : α) (n : ℕ) (k : ℕ) :
+  (list.repeat a n).rotate k = list.repeat a n :=
+let h : nonempty α := ⟨a⟩ in by exactI rotate_eq_self_iff_eq_repeat.mpr ⟨a, by rw length_repeat⟩ k
+
+lemma rotate_one_eq_self_iff_eq_repeat [nonempty α] {l : list α} :
+  l.rotate 1 = l ↔ ∃ a : α, l = list.repeat a l.length :=
+⟨λ h, rotate_eq_self_iff_eq_repeat.mp (λ n, nat.rec l.rotate_zero
+  (λ n hn, by rwa [nat.succ_eq_add_one, ←l.rotate_rotate, hn]) n),
+    λ h, rotate_eq_self_iff_eq_repeat.mpr h 1⟩
 
 end list

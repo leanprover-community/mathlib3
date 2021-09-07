@@ -208,9 +208,9 @@ end vsub
 open_locale pointwise
 
 instance add_action : add_action (set G) (set P) :=
-{ vadd := set.image2 (+ᵥ),
-  zero_vadd := λ s, by simp [← singleton_zero],
-  add_vadd := λ s t p, by { apply image2_assoc, intros, apply add_vadd } }
+{ zero_vadd := λ s, by simp [has_vadd.vadd, ←singleton_zero, image2_singleton_left],
+  add_vadd := λ s t p, by { apply image2_assoc, intros, apply add_vadd },
+  ..(show has_vadd (set G) (set P), by apply_instance) }
 
 variables {s s' : set G} {t t' : set P}
 
@@ -218,9 +218,6 @@ variables {s s' : set G} {t t' : set P}
 image2_subset hs ht
 
 @[simp] lemma vadd_singleton (s : set G) (p : P) : s +ᵥ {p} = (+ᵥ p) '' s := image2_singleton_right
-
-@[simp] lemma singleton_vadd (v : G) (s : set P) : ({v} : set G) +ᵥ s = ((+ᵥ) v) '' s :=
-image2_singleton_left
 
 lemma finite.vadd (hs : finite s) (ht : finite t) : finite (s +ᵥ t) := hs.image2 _ ht
 

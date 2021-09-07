@@ -255,7 +255,7 @@ begin
     choose! y hys hyt,
     choose z hzs using λ i, (hVs i).exists,
     suffices : I.piecewise y z ∈ (⋂ i ∈ I, V i) ∩ (pi univ s),
-      from λ H, H this.1 this.2,
+    { intro H, simpa [← H] },
     refine ⟨mem_bInter $ λ i hi, htV i hi _, λ i hi', _⟩,
     { simp only [mem_preimage, piecewise_eq_of_mem _ _ _ hi, hyt i hi] },
     { by_cases hi : i ∈ I; simp * } },
@@ -399,6 +399,16 @@ filter.ext $ λ u, mem_nhds_within_subtype
 theorem nhds_within_eq_map_subtype_coe {s : set α} {a : α} (h : a ∈ s) :
   𝓝[s] a = map (coe : s → α) (𝓝 ⟨a, h⟩) :=
 by simpa only [subtype.range_coe] using (embedding_subtype_coe.map_nhds_eq ⟨a, h⟩).symm
+
+theorem mem_nhds_subtype_iff_nhds_within {s : set α} {a : s} {t : set s} :
+  t ∈ 𝓝 a ↔ coe '' t ∈ 𝓝[s] (a : α) :=
+by rw [nhds_within_eq_map_subtype_coe a.coe_prop, mem_map,
+  preimage_image_eq _ subtype.coe_injective, subtype.coe_eta]
+
+theorem preimage_coe_mem_nhds_subtype {s t : set α} {a : s} :
+  coe ⁻¹' t ∈ 𝓝 a ↔ t ∈ 𝓝[s] ↑a :=
+by simp only [mem_nhds_subtype_iff_nhds_within, subtype.image_preimage_coe, inter_mem_iff,
+  self_mem_nhds_within, and_true]
 
 theorem tendsto_nhds_within_iff_subtype {s : set α} {a : α} (h : a ∈ s) (f : α → β) (l : filter β) :
   tendsto f (𝓝[s] a) l ↔ tendsto (s.restrict f) (𝓝 ⟨a, h⟩) l :=

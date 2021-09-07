@@ -189,6 +189,18 @@ lemma norm_sum_le_of_le {β} (s : finset β) {f : β → α} {n : β → ℝ} (h
   ∥∑ b in s, f b∥ ≤ ∑ b in s, n b :=
 le_trans (norm_sum_le s f) (finset.sum_le_sum h)
 
+lemma dist_sum_sum_le_of_le {β} (s : finset β) {f g : β → α} {d : β → ℝ}
+  (h : ∀ b ∈ s, dist (f b) (g b) ≤ d b) :
+  dist (∑ b in s, f b) (∑ b in s, g b) ≤ ∑ b in s, d b :=
+begin
+  simp only [dist_eq_norm, ← finset.sum_sub_distrib] at *,
+  exact norm_sum_le_of_le s h
+end
+
+lemma dist_sum_sum_le {β} (s : finset β) (f g : β → α) :
+  dist (∑ b in s, f b) (∑ b in s, g b) ≤ ∑ b in s, dist (f b) (g b) :=
+dist_sum_sum_le_of_le s (λ _ _, le_rfl)
+
 lemma norm_sub_le (g h : α) : ∥g - h∥ ≤ ∥g∥ + ∥h∥ :=
 by simpa [dist_eq_norm] using dist_triangle g 0 h
 
@@ -2144,7 +2156,7 @@ def to_continuous_map_monoid_hom [monoid Y] [has_continuous_mul Y] :
 
 /-- The inclusion of locally-constant functions into continuous functions as an algebra map. -/
 @[simps] def to_continuous_map_alg_hom (R : Type*) [comm_semiring R] [topological_space R]
-  [semiring Y] [algebra R Y] [topological_semiring Y] [has_continuous_smul R Y] :
+  [semiring Y] [algebra R Y] [topological_ring Y] [has_continuous_smul R Y] :
   locally_constant X Y →ₐ[R] C(X, Y) :=
 { to_fun    := coe,
   map_one'  := by { ext, simp, },

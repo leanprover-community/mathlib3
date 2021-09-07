@@ -114,7 +114,7 @@ variables (R) (M)
 
 /-- `(•)` as an `add_monoid_hom`. -/
 def smul_add_hom : R →+ M →+ M :=
-{ to_fun := const_smul_hom M,
+{ to_fun := distrib_mul_action.to_add_monoid_hom M,
   map_zero' := add_monoid_hom.ext $ λ r, by simp,
   map_add' := λ x y, add_monoid_hom.ext $ λ r, by simp [add_smul] }
 
@@ -125,7 +125,7 @@ variables {R M}
 
 @[simp] lemma smul_add_hom_one {R M : Type*} [semiring R] [add_comm_monoid M] [module R M] :
   smul_add_hom R M 1 = add_monoid_hom.id _ :=
-const_smul_hom_one
+(distrib_mul_action.to_add_monoid_End R M).map_one
 
 lemma module.eq_zero_of_zero_eq_one (zero_eq_one : (0 : R) = 1) : x = 0 :=
 by rw [←one_smul R x, ←zero_eq_one, zero_smul]
@@ -145,7 +145,9 @@ end add_comm_monoid
 variables (R)
 
 /-- An `add_comm_monoid` that is a `module` over a `ring` carries a natural `add_comm_group`
-structure. -/
+structure.
+See note [reducible non-instances]. -/
+@[reducible]
 def module.add_comm_monoid_to_add_comm_group [ring R] [add_comm_monoid M] [module R M] :
   add_comm_group M :=
 { neg          := λ a, (-1 : R) • a,
@@ -250,6 +252,23 @@ instance semiring.to_opposite_module [semiring R] : module Rᵒᵖ R :=
 /-- A ring homomorphism `f : R →+* M` defines a module structure by `r • x = f r * x`. -/
 def ring_hom.to_module [semiring R] [semiring S] (f : R →+* S) : module R S :=
 module.comp_hom S f
+
+/-- The tautological action by `R →+* R` on `R`.
+
+This generalizes `function.End.apply_mul_action`. -/
+instance ring_hom.apply_distrib_mul_action [semiring R] : distrib_mul_action (R →+* R) R :=
+{ smul := ($),
+  smul_zero := ring_hom.map_zero,
+  smul_add := ring_hom.map_add,
+  one_smul := λ _, rfl,
+  mul_smul := λ _ _ _, rfl }
+
+@[simp] protected lemma ring_hom.smul_def [semiring R] (f : R →+* R) (a : R) :
+  f • a = f a := rfl
+
+/-- `ring_hom.apply_distrib_mul_action` is faithful. -/
+instance ring_hom.apply_has_faithful_scalar [semiring R] : has_faithful_scalar (R →+* R) R :=
+⟨ring_hom.ext⟩
 
 section add_comm_monoid
 

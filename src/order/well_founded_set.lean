@@ -90,13 +90,11 @@ theorem well_founded_on_iff_no_descending_seq {s : set α} {r : α → α → Pr
   s.well_founded_on r ↔ ∀ (f : ((>) : ℕ → ℕ → Prop) ↪r r), ¬ (range f) ⊆ s :=
 begin
   rw [well_founded_on_iff, rel_embedding.well_founded_iff_no_descending_seq],
-  refine ⟨λ h f con, h begin
-    use f,
-      { exact f.injective },
-      { intros a b,
-        simp only [con (mem_range_self a), con (mem_range_self b), and_true, gt_iff_lt,
-          function.embedding.coe_fn_mk, f.map_rel_iff] }
-    end, λ h con, _⟩,
+  refine ⟨λ h f con, begin
+      refine h.elim' ⟨⟨f, f.injective⟩, λ a b, _⟩,
+       simp only [con (mem_range_self a), con (mem_range_self b), and_true, gt_iff_lt,
+        function.embedding.coe_fn_mk, f.map_rel_iff]
+    end, λ h, ⟨λ con, _⟩⟩,
   rcases con with ⟨f, hf⟩,
   have hfs' : ∀ n : ℕ, f n ∈ s := λ n, (hf.2 n.lt_succ_self).2.2,
   refine h ⟨f, λ a b, _⟩ (λ n hn, _),

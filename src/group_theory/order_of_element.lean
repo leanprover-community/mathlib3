@@ -213,7 +213,7 @@ lemma add_order_of_eq_add_order_of_iff {B : Type*} [add_monoid B] {b : B} :
   add_order_of a = add_order_of b ↔ ∀ n : ℕ, n • a = 0 ↔ n • b = 0 :=
 begin
   simp_rw ← add_order_of_dvd_iff_nsmul_eq_zero,
-  exact ⟨λ h n, by rw h, λ h, nat.dvd_antisymm ((h _).mpr (dvd_refl _)) ((h _).mp (dvd_refl _))⟩,
+  exact ⟨λ h n, by rw h, λ h, nat.dvd_antisymm ((h _).mpr dvd_rfl) ((h _).mp dvd_rfl)⟩,
 end
 
 @[to_additive add_order_of_eq_add_order_of_iff]

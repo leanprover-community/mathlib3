@@ -29,7 +29,7 @@ We also provide various equivalent versions of the definitions above, prove that
 are convex, and prove Jensen's inequality.
 
 Note: To define convexity for functions `f : E → β`, we need `β` to be an ordered vector space,
-defined using the instance `ordered_module ℝ β`.
+defined using the instance `ordered_smul ℝ β`.
 
 ## Notations
 
@@ -682,7 +682,7 @@ def concave_on (s : set E) (f : E → β) : Prop :=
     a • f x + b • f y ≤ f (a • x + b • y)
 
 section
-variables [ordered_module ℝ β]
+variables [ordered_smul ℝ β]
 
 /-- A function `f` is concave iff `-f` is convex. -/
 @[simp] lemma neg_convex_on_iff {γ : Type*} [ordered_add_comm_group γ] [module ℝ γ]
@@ -902,7 +902,7 @@ lemma concave_on.add {f g : E → β} (hf : concave_on s f) (hg : concave_on s g
   concave_on s (λx, f x + g x) :=
 @convex_on.add _ _ _ _ (order_dual β) _ _ f g hf hg
 
-lemma convex_on.smul [ordered_module ℝ β] {f : E → β} {c : ℝ} (hc : 0 ≤ c)
+lemma convex_on.smul [ordered_smul ℝ β] {f : E → β} {c : ℝ} (hc : 0 ≤ c)
   (hf : convex_on s f) : convex_on s (λx, c • f x) :=
 begin
   apply and.intro hf.1,
@@ -913,13 +913,35 @@ begin
     ... = a • (c • f x) + b • (c • f y) : by simp only [smul_add, smul_comm c]
 end
 
-lemma concave_on.smul [ordered_module ℝ β] {f : E → β} {c : ℝ} (hc : 0 ≤ c)
+lemma concave_on.smul [ordered_smul ℝ β] {f : E → β} {c : ℝ} (hc : 0 ≤ c)
   (hf : concave_on s f) : concave_on s (λx, c • f x) :=
 @convex_on.smul _ _ _ _ (order_dual β) _ _ _ f c hc hf
 
 section linear_order
-variables {γ : Type*} [linear_ordered_add_comm_group γ] [module ℝ γ] [ordered_module ℝ γ]
-  {f : E → γ}
+section monoid
+
+variables {γ : Type*} [linear_ordered_add_comm_monoid γ] [module ℝ γ] [ordered_smul ℝ γ]
+  {f g : E → γ}
+
+/-- The pointwise maximum of convex functions is convex. -/
+lemma convex_on.sup (hf : convex_on s f) (hg : convex_on s g) :
+  convex_on s (f ⊔ g) :=
+begin
+   refine ⟨hf.left, λ x y hx hy a b ha hb hab, sup_le _ _⟩,
+   { calc f (a • x + b • y) ≤ a • f x + b • f y : hf.right hx hy ha hb hab
+      ...                   ≤ a • (f x ⊔ g x) + b • (f y ⊔ g y) : add_le_add
+      (smul_le_smul_of_nonneg le_sup_left ha)
+      (smul_le_smul_of_nonneg le_sup_left hb) },
+   { calc g (a • x + b • y) ≤ a • g x + b • g y : hg.right hx hy ha hb hab
+      ...                   ≤ a • (f x ⊔ g x) + b • (f y ⊔ g y) : add_le_add
+      (smul_le_smul_of_nonneg le_sup_right ha)
+      (smul_le_smul_of_nonneg le_sup_right hb) }
+end
+
+/-- The pointwise minimum of concave functions is concave. -/
+lemma concave_on.inf (hf : concave_on s f) (hg : concave_on s g) :
+  concave_on s (f ⊓ g) :=
+@convex_on.sup _ _ _ _ (order_dual γ) _ _ _ _ _ hf hg
 
 /-- A convex function on a segment is upper-bounded by the max of its endpoints. -/
 lemma convex_on.le_on_segment' (hf : convex_on s f) {x y : E} {a b : ℝ}
@@ -945,12 +967,15 @@ lemma convex_on.le_on_segment (hf : convex_on s f) {x y z : E}
 let ⟨a, b, ha, hb, hab, hz⟩ := hz in hz ▸ hf.le_on_segment' hx hy ha hb hab
 
 /-- A concave function on a segment is lower-bounded by the min of its endpoints. -/
-lemma concave_on.le_on_segment {γ : Type*}
-  [linear_ordered_add_comm_group γ] [module ℝ γ] [ordered_module ℝ γ]
-  {f : E → γ} (hf : concave_on s f) {x y z : E}
+lemma concave_on.le_on_segment {f : E → γ} (hf : concave_on s f) {x y z : E}
   (hx : x ∈ s) (hy : y ∈ s) (hz : z ∈ [x, y]) :
     min (f x) (f y) ≤ f z :=
 @convex_on.le_on_segment _ _ _ _ (order_dual γ) _ _ _ f hf x y z hx hy hz
+
+end monoid
+
+variables {γ : Type*} [linear_ordered_cancel_add_comm_monoid γ] [module ℝ γ] [ordered_smul ℝ γ]
+  {f : E → γ}
 
 -- could be shown without contradiction but yeah
 lemma convex_on.le_left_of_right_le' (hf : convex_on s f) {x y : E} {a b : ℝ}
@@ -1016,7 +1041,7 @@ lemma concave_on.le_right_of_left_le (hf : concave_on s f) {x y z : E} (hx : x �
 
 end linear_order
 
-lemma convex_on.convex_le [ordered_module ℝ β] {f : E → β} (hf : convex_on s f) (r : β) :
+lemma convex_on.convex_le [ordered_smul ℝ β] {f : E → β} (hf : convex_on s f) (r : β) :
   convex {x ∈ s | f x ≤ r} :=
 λ x y hx hy a b ha hb hab,
 begin
@@ -1028,12 +1053,12 @@ begin
                   ... ≤ r                     : by simp [←add_smul, hab]
 end
 
-lemma concave_on.concave_le [ordered_module ℝ β] {f : E → β} (hf : concave_on s f) (r : β) :
+lemma concave_on.concave_le [ordered_smul ℝ β] {f : E → β} (hf : concave_on s f) (r : β) :
   convex {x ∈ s | r ≤ f x} :=
 @convex_on.convex_le _ _ _ _ (order_dual β) _ _ _ f hf r
 
 lemma convex_on.convex_lt {γ : Type*} [ordered_cancel_add_comm_monoid γ]
-  [module ℝ γ] [ordered_module ℝ γ]
+  [module ℝ γ] [ordered_smul ℝ γ]
   {f : E → γ} (hf : convex_on s f) (r : γ) : convex {x ∈ s | f x < r} :=
 begin
   intros a b as bs xa xb hxa hxb hxaxb,
@@ -1053,12 +1078,12 @@ begin
 end
 
 lemma concave_on.convex_lt {γ : Type*} [ordered_cancel_add_comm_monoid γ]
-  [module ℝ γ] [ordered_module ℝ γ]
+  [module ℝ γ] [ordered_smul ℝ γ]
   {f : E → γ} (hf : concave_on s f) (r : γ) : convex {x ∈ s | r < f x} :=
 @convex_on.convex_lt _ _ _ _ (order_dual γ) _ _ _ f hf r
 
 lemma convex_on.convex_epigraph {γ : Type*} [ordered_add_comm_group γ]
-  [module ℝ γ] [ordered_module ℝ γ]
+  [module ℝ γ] [ordered_smul ℝ γ]
   {f : E → γ} (hf : convex_on s f) :
   convex {p : E × γ | p.1 ∈ s ∧ f p.1 ≤ p.2} :=
 begin
@@ -1070,13 +1095,13 @@ begin
 end
 
 lemma concave_on.convex_hypograph {γ : Type*} [ordered_add_comm_group γ]
-  [module ℝ γ] [ordered_module ℝ γ]
+  [module ℝ γ] [ordered_smul ℝ γ]
   {f : E → γ} (hf : concave_on s f) :
   convex {p : E × γ | p.1 ∈ s ∧ p.2 ≤ f p.1} :=
 @convex_on.convex_epigraph _ _ _ _ (order_dual γ) _ _ _ f hf
 
 lemma convex_on_iff_convex_epigraph {γ : Type*} [ordered_add_comm_group γ]
-  [module ℝ γ] [ordered_module ℝ γ]
+  [module ℝ γ] [ordered_smul ℝ γ]
   {f : E → γ} :
   convex_on s f ↔ convex {p : E × γ | p.1 ∈ s ∧ f p.1 ≤ p.2} :=
 begin
@@ -1088,7 +1113,7 @@ begin
 end
 
 lemma concave_on_iff_convex_hypograph {γ : Type*} [ordered_add_comm_group γ]
-  [module ℝ γ] [ordered_module ℝ γ]
+  [module ℝ γ] [ordered_smul ℝ γ]
   {f : E → γ} :
   concave_on s f ↔ convex {p : E × γ | p.1 ∈ s ∧ p.2 ≤ f p.1} :=
 @convex_on_iff_convex_epigraph _ _ _ _ (order_dual γ) _ _ _ f

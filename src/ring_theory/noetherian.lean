@@ -436,9 +436,10 @@ begin
       simp only [or.by_cases, dif_neg this, dif_pos h], } }
 end
 
--- This instance helps Lean in the case of non-dependent types
-instance is_noetherian_pi' {R ι : Type*} {M : Type*} [ring R]
-  [add_comm_group M] [module R M] [fintype ι]
+/-- A version of `is_noetherian_pi` for non-dependent functions. We need this instance because
+sometimes Lean fails to apply the dependent version in non-dependent settings (e.g., it fails to
+prove that `ι → ℝ` is finite dimensional over `ℝ`). -/
+instance is_noetherian_pi' {R ι M : Type*} [ring R] [add_comm_group M] [module R M] [fintype ι]
   [is_noetherian R M] : is_noetherian R (ι → M) :=
 is_noetherian_pi
 
@@ -576,7 +577,7 @@ begin
     (f.tailings_disjoint_tailing i),
   specialize w n (le_refl n),
   apply nonempty.intro,
-  refine (f.tailing_linear_equiv i n).symm.trans _,
+  refine (f.tailing_linear_equiv i n).symm ≪≫ₗ _,
   rw w,
   exact submodule.bot_equiv_punit,
 end

@@ -198,11 +198,35 @@ instance to_linear_ordered_comm_ring {R A}
 
 end
 
-instance algebra : algebra R S :=
-{ smul := λ (c:R) x, ⟨c • x.1, S.smul_mem x.2 c⟩,
-  commutes' := λ c x, subtype.eq $ algebra.commutes _ _,
+/-- Convert a `subalgebra` to `submodule` -/
+def to_submodule : submodule R A :=
+{ carrier := S,
+  zero_mem' := (0:S).2,
+  add_mem' := λ x y hx hy, (⟨x, hx⟩ + ⟨y, hy⟩ : S).2,
+  smul_mem' := λ c x hx, (algebra.smul_def c x).symm ▸
+    (⟨algebra_map R A c, S.range_le ⟨c, rfl⟩⟩ * ⟨x, hx⟩:S).2 }
+
+@[simp] lemma mem_to_submodule {x} : x ∈ S.to_submodule ↔ x ∈ S := iff.rfl
+
+@[simp] lemma coe_to_submodule (S : subalgebra R A) : (↑S.to_submodule : set A) = S := rfl
+
+theorem to_submodule_injective :
+  function.injective (to_submodule : subalgebra R A → submodule R A) :=
+λ S T h, ext $ λ x, by rw [← mem_to_submodule, ← mem_to_submodule, h]
+
+theorem to_submodule_inj {S U : subalgebra R A} : S.to_submodule = U.to_submodule ↔ S = U :=
+to_submodule_injective.eq_iff
+
+instance algebra {R' : Type*} [comm_semiring R'] [has_scalar R' R] [algebra R' A]
+  [is_scalar_tower R' R A] : algebra R' S :=
+{ commutes' := λ c x, subtype.eq $ algebra.commutes _ _,
   smul_def' := λ c x, subtype.eq $ algebra.smul_def _ _,
-  .. (algebra_map R A).cod_srestrict S.to_subsemiring $ λ x, S.range_le ⟨x, rfl⟩ }
+  .. (S.to_submodule.module'),
+  .. (algebra_map R' A).cod_srestrict S.to_subsemiring $ λ x, sorry }
+
+lemma coe_algebra_map {R' : Type*} [comm_semiring R'] [has_scalar R' R] [algebra R' A]
+  [is_scalar_tower R' R A] (r : R') :
+  ↑(algebra_map R' S r) = algebra_map R' A r := rfl
 
 instance to_algebra {R A B : Type*} [comm_semiring R] [comm_semiring A] [semiring B]
   [algebra R A] [algebra A B] (A₀ : subalgebra R A) : algebra A₀ B :=
@@ -251,25 +275,6 @@ by refine_struct { to_fun := (coe : S → A) }; intros; refl
 @[simp] lemma coe_val : (S.val : S → A) = coe := rfl
 
 lemma val_apply (x : S) : S.val x = (x : A) := rfl
-
-/-- Convert a `subalgebra` to `submodule` -/
-def to_submodule : submodule R A :=
-{ carrier := S,
-  zero_mem' := (0:S).2,
-  add_mem' := λ x y hx hy, (⟨x, hx⟩ + ⟨y, hy⟩ : S).2,
-  smul_mem' := λ c x hx, (algebra.smul_def c x).symm ▸
-    (⟨algebra_map R A c, S.range_le ⟨c, rfl⟩⟩ * ⟨x, hx⟩:S).2 }
-
-@[simp] lemma mem_to_submodule {x} : x ∈ S.to_submodule ↔ x ∈ S := iff.rfl
-
-@[simp] lemma coe_to_submodule (S : subalgebra R A) : (↑S.to_submodule : set A) = S := rfl
-
-theorem to_submodule_injective :
-  function.injective (to_submodule : subalgebra R A → submodule R A) :=
-λ S T h, ext $ λ x, by rw [← mem_to_submodule, ← mem_to_submodule, h]
-
-theorem to_submodule_inj {S U : subalgebra R A} : S.to_submodule = U.to_submodule ↔ S = U :=
-to_submodule_injective.eq_iff
 
 /-- As submodules, subalgebras are idempotent. -/
 @[simp] theorem mul_self : S.to_submodule * S.to_submodule = S.to_submodule :=

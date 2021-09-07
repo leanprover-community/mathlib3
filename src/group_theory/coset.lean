@@ -484,5 +484,3 @@ Using `has_coe` would cause looping of type-class inference. See
 <https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/remove.20all.20instances.20with.20variable.20domain>
 -/
 library_note "use has_coe_t"
-
-#lint

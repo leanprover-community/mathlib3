@@ -122,7 +122,8 @@ begin
     exact matrix.det_ne_zero_of_right_inverse this }
 end
 
-lemma exists_mul_vec_eq_zero_iff {A : Type*} [decidable_eq n] [integral_domain A] {M : matrix n n A} :
+lemma exists_mul_vec_eq_zero_iff {A : Type*} [decidable_eq n] [integral_domain A]
+  {M : matrix n n A} :
   (∃ (v ≠ 0), M.mul_vec v = 0) ↔ M.det = 0 :=
 begin
   have : (∃ (v ≠ 0), mul_vec ((algebra_map A (fraction_ring A)).map_matrix M) v = 0) ↔ _ :=

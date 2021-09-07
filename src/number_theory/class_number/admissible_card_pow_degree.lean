@@ -53,8 +53,8 @@ begin
 end
 
 /-- If `A` is a family of enough low-degree polynomials over a finite field,
-there is a pair of elements in `A` (not necessarily distinct), such that their
-difference has small degree. -/
+there is a pair of elements in `A` (with different indices but not necessarily
+distinct), such that their difference has small degree. -/
 lemma exists_approx_polynomial_aux {d : ℕ} {m : ℕ} (hm : fintype.card Fq ^ d ≤ m)
   (b : polynomial Fq) (A : fin m.succ → polynomial Fq) (hA : ∀ i, degree (A i) < degree b) :
   ∃ i₀ i₁, i₀ ≠ i₁ ∧ degree (A i₁ - A i₀) < ↑(nat_degree b - d) :=
@@ -94,8 +94,8 @@ begin
 end
 
 /-- If `A` is a family of enough low-degree polynomials over a finite field,
-there is a pair of elements in `A` (not necessarily distinct), such that the
-difference of their remainders is close together. -/
+there is a pair of elements in `A` (with different indices but not necessarily
+distinct), such that the difference of their remainders is close together. -/
 lemma exists_approx_polynomial {b : polynomial Fq} (hb : b ≠ 0)
   {ε : ℝ} (hε : 0 < ε)
   (A : fin (fintype.card Fq ^ nat_ceil (- log ε / log (fintype.card Fq))).succ → polynomial Fq) :

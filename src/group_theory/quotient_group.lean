@@ -265,7 +265,7 @@ def quotient_ker_equiv_of_right_inverse (ψ : H → G) (hφ : function.right_inv
 
 /-- The canonical isomorphism `G/⊥ ≃* G`. -/
 @[to_additive quotient_add_group.quotient_ker_equiv_of_right_inverse
-"The canonical isomorphism `G/⊥ ≃* G`.",
+"The canonical isomorphism `G/⊥ ≃+ G`.",
   simps]
 def quotient_bot : quotient (⊥ : subgroup G) ≃* G :=
 quotient_ker_equiv_of_right_inverse (monoid_hom.id G) id (λ x, rfl)

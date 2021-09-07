@@ -359,7 +359,7 @@ end
 lemma surjective_of_iterate_surjective {n : ℕ} (hn : n ≠ 0) (h : surjective ⇑(f' ^ n)) :
   surjective f' :=
 begin
-  rw [← nat.succ_pred_eq_of_pos (pos_iff_ne_zero.mpr hn), 
+  rw [← nat.succ_pred_eq_of_pos (pos_iff_ne_zero.mpr hn),
     nat.succ_eq_add_one, add_comm, pow_add] at h,
   exact surjective.of_comp h,
 end
@@ -863,7 +863,7 @@ def gi_map_comap : galois_insertion (map f) (comap f) :=
   (λ S x hx, begin
     rcases hf x with ⟨y, rfl⟩,
     simp only [mem_map, mem_comap],
-    exact ⟨y, hx, rfl⟩  
+    exact ⟨y, hx, rfl⟩
   end)
 
 lemma map_comap_eq_of_surjective (p : submodule R M₂) : (p.comap f).map f = p :=
@@ -875,7 +875,7 @@ lemma map_surjective_of_surjective : function.surjective (map f) :=
 lemma comap_injective_of_surjective : function.injective (comap f) :=
 (gi_map_comap hf).u_injective
 
-lemma map_sup_comap_of_surjective (p q : submodule R M₂) : 
+lemma map_sup_comap_of_surjective (p q : submodule R M₂) :
   (p.comap f ⊔ q.comap f).map f = p ⊔ q :=
 (gi_map_comap hf).l_sup_u _ _
 
@@ -2419,22 +2419,22 @@ end neg
 
 section ring
 
-variables [ring R] [add_comm_group M] [add_comm_group M₂]
+variables [semiring R] [add_comm_group M] [add_comm_group M₂]
 variables {module_M : module R M} {module_M₂ : module R M₂}
 variables (f : M →ₗ[R] M₂) (e : M ≃ₗ[R] M₂)
 
 /-- An `injective` linear map `f : M →ₗ[R] M₂` defines a linear equivalence
 between `M` and `f.range`. See also `linear_map.of_left_inverse`. -/
-noncomputable def of_injective (h : f.ker = ⊥) : M ≃ₗ[R] f.range :=
-of_left_inverse $ classical.some_spec (linear_map.ker_eq_bot.1 h).has_left_inverse
+noncomputable def of_injective (h : injective f) : M ≃ₗ[R] f.range :=
+of_left_inverse $ classical.some_spec h.has_left_inverse
 
-@[simp] theorem of_injective_apply {h : f.ker = ⊥} (x : M) :
+@[simp] theorem of_injective_apply {h : injective f} (x : M) :
   ↑(of_injective f h x) = f x := rfl
 
 /-- A bijective linear map is a linear equivalence. Here, bijectivity is described by saying that
 the kernel of `f` is `{0}` and the range is the universal set. -/
-noncomputable def of_bijective (hf₁ : f.ker = ⊥) (hf₂ : f.range = ⊤) : M ≃ₗ[R] M₂ :=
-(of_injective f hf₁).trans (of_top _ hf₂)
+noncomputable def of_bijective (hf₁ : injective f) (hf₂ : surjective f) : M ≃ₗ[R] M₂ :=
+(of_injective f hf₁).trans (of_top _ $ linear_map.range_eq_top.2 hf₂)
 
 @[simp] theorem of_bijective_apply {hf₁ hf₂} (x : M) :
   of_bijective f hf₁ hf₂ x = f x := rfl

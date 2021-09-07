@@ -14,11 +14,11 @@ import tactic.field_simp
 Transvections are matrices of the form `1 + c E i j`, where `E i j` is the elementary matrix with
 a `1` at position `(i, j)`. Multiplying by such a transvection on the left (resp. on the right)
 amounts to adding `c` times the `j`-th row to to the `i`-th row (resp `c` times the `i`-th column
-to the `j`-th column). Therefore, they are useful to present algorithms operating on lines and
+to the `j`-th column). Therefore, they are useful to present algorithms operating on rows and
 columns.
 
 We show that, over a field, any matrix can be written as `L ⬝ D ⬝ L'`, where `L` and `L'` are
-product of transvections and `D` is diagonal. In other words, one can reduce a matrix to diagonal
+products of transvections and `D` is diagonal. In other words, one can reduce a matrix to diagonal
 form by operations on its rows and columns, a variant of Gauss' pivot algorithm.
 
 ## Main definitions and results
@@ -487,7 +487,7 @@ begin
         { simpa only [hni.symm, not_le, or_false] using nat.lt_succ_iff_lt_or_eq.1 hi } } } }
 end
 
-/-- Multiplying by all the matrices both in `list_transvec_col M` and `list_transvec_row M` kills
+/-- Multiplying by all the matrices either in `list_transvec_col M` and `list_transvec_row M` kills
 all the coefficients in the last row but the last one. -/
 lemma list_transvec_col_mul_mul_list_transvec_row_last_col
   (hM : M (inr star) (inr star) ≠ 0) (i : fin r) :
@@ -500,7 +500,7 @@ begin
   simpa [list_transvec_col_mul_last_row] using hM
 end
 
-/-- Multiplying by all the matrices both in `list_transvec_col M` and `list_transvec_row M` kills
+/-- Multiplying by all the matrices either in `list_transvec_col M` and `list_transvec_row M` kills
 all the coefficients in the last column but the last one. -/
 lemma list_transvec_col_mul_mul_list_transvec_row_last_row
   (hM : M (inr star) (inr star) ≠ 0) (i : fin r) :
@@ -513,7 +513,7 @@ begin
   simpa [mul_list_transvec_row_last_col] using hM
 end
 
-/-- Multiplying by all the matrices both in `list_transvec_col M` and `list_transvec_row M` turns
+/-- Multiplying by all the matrices either in `list_transvec_col M` and `list_transvec_row M` turns
 the matrix in block-diagonal form. -/
 lemma is_two_block_diagonal_list_transvec_col_mul_mul_list_transvec_row
   (hM : M (inr star) (inr star) ≠ 0) :
@@ -528,7 +528,7 @@ begin
     simp [to_blocks₂₁, this, list_transvec_col_mul_mul_list_transvec_row_last_col M hM] },
 end
 
-/-- There exist two list of `transvection_struct` such that multiplying by them on the left and
+/-- There exist two lists of `transvection_struct` such that multiplying by them on the left and
 on the right makes a matrix block-diagonal, when the last coefficient is nonzero. -/
 lemma exists_is_two_block_diagonal_of_ne_zero (hM : M (inr star) (inr star) ≠ 0) :
   ∃ (L L' : list (transvection_struct (fin r ⊕ unit) 𝕜)),
@@ -547,7 +547,7 @@ begin
   exact is_two_block_diagonal_list_transvec_col_mul_mul_list_transvec_row M hM
 end
 
-/-- There exist two list of `transvection_struct` such that multiplying by them on the left and
+/-- There exist two lists of `transvection_struct` such that multiplying by them on the left and
 on the right makes a matrix block-diagonal. -/
 lemma exists_is_two_block_diagonal_list_transvec_mul_mul_list_transvec
   (M : matrix (fin r ⊕ unit) (fin r ⊕ unit) 𝕜) :
@@ -642,7 +642,7 @@ begin
   simp only [equiv.symm_symm, reindex_apply, minor_diagonal_equiv, reindex_alg_equiv_apply],
 end
 
-/-- Any matrix can be reduced to diagonal form by elementary operations. Formulated here on `Type`
+/-- Any matrix can be reduced to diagonal form by elementary operations. Formulated here on `Type 0`
 because we will make an induction using `fin r`.
 See `exists_list_transvec_mul_mul_list_transvec_eq_diagonal` for the general version (which follows
 from this one and reindexing). -/

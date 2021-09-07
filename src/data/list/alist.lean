@@ -8,7 +8,7 @@ import data.list.sigma
 /-!
 # Association Lists
 
-This file makes use of the contents of the `list.sigma` file to define association lists. These
+This file makes use of the contents of the `data.list.sigma` file to define association lists. These
 association lists are represented by the `alist` structure, which comprises a list of sigmas as a
 key-value store, as well as a proof that this has no duplicate keys.
 

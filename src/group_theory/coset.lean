@@ -383,7 +383,7 @@ variables {t : subgroup α}
 def quotient_equiv_prod_of_le' (h_le : s ≤ t)
   (f : quotient t → α) (hf : function.right_inverse f quotient_group.mk) :
   quotient s ≃ quotient t × quotient (s.subgroup_of t) :=
-{ to_fun := λ a, ⟨a.map' id (by exact λ b c h, h_le h),
+{ to_fun := λ a, ⟨a.map' id (λ b c h, h_le h),
     a.map' (λ g : α, ⟨(f (quotient.mk' g))⁻¹ * g, quotient.exact' (hf g)⟩) (λ b c h, by
     { change ((f b)⁻¹ * b)⁻¹ * ((f c)⁻¹ * c) ∈ s,
       have key : f b = f c := congr_arg f (quotient.sound' (h_le h)),

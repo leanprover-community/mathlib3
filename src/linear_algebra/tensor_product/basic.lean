@@ -114,23 +114,23 @@ is_tensor_product.add_tmul' _ _ _
 lemma tmul_add (x : M) (y₁ y₂ : N) : x ⊗[R] (y₁ + y₂) = x ⊗[R] y₁ + x ⊗[R] y₂ :=
 is_tensor_product.tmul_add' _ _ _
 
-variables (R)
+variables (R M N)
 
 /-- The `R`-linear tensor product as bilinear map. -/
 @[simps] def tmul : M →ₗ[R] N →ₗ[R] T :=
 linear_map.mk₂ R (λ x y, x ⊗[R] y) add_tmul smul_tmul tmul_add tmul_smul
 
-variables {R}
+variables {R M N}
 
 section add_con
 
 local notation `Φ` := free_add_monoid.lift (tmul' R M N T)
 
 @[simp] lemma zero_tmul (y : N) : (0:M) ⊗[R] y = (0:T) :=
-show tmul R (0:M) y = (0:T), by simp only [linear_map.map_zero, linear_map.zero_apply]
+show tmul _ _ _ (0:M) y = (0:T), by simp only [linear_map.map_zero, linear_map.zero_apply]
 
 @[simp] lemma tmul_zero (x : M) : x ⊗[R] (0:N) = (0:T) :=
-show tmul R x (0:N) = (0:T), by simp only [linear_map.map_zero]
+show tmul _ _ _ x (0:N) = (0:T), by simp only [linear_map.map_zero]
 
 end add_con
 
@@ -144,12 +144,12 @@ by { split_ifs; simp only [tmul_zero, eq_self_iff_true] }
 
 lemma sum_tmul {α : Type*} (s : finset α) (m : α → M) (n : N) :
   (∑ a in s, m a) ⊗[R] n = ∑ a in s, m a ⊗[R] n :=
-show tmul R (∑ a in s, m a) n = ∑ a in s, tmul R (m a) n,
+show tmul _ _ _ (∑ a in s, m a) n = ∑ a in s, tmul _ _ _ (m a) n,
 by simp only [finset.sum_apply, linear_map.coe_fn_sum, linear_map.map_sum]
 
 lemma tmul_sum (m : M) {α : Type*} (s : finset α) (n : α → N) :
   m ⊗[R] (∑ a in s, n a) = ∑ a in s, m ⊗[R] n a :=
-show tmul R m (∑ a in s, n a) = ∑ a in s, tmul R m (n a),
+show tmul _ _ _ m (∑ a in s, n a) = ∑ a in s, tmul _ _ _ m (n a),
 by simp only [linear_map.map_sum]
 
 end is_tensor_product

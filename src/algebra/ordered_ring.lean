@@ -997,9 +997,9 @@ calc a < -a ↔ -(-a) < -a : by rw neg_neg
 ... ↔ 0 < -a : neg_lt_self_iff
 ... ↔ a < 0 : neg_pos
 
-@[simp] lemma abs_eq_self : abs a = a ↔ 0 ≤ a := by simp [abs]
+@[simp] lemma abs_eq_self : abs a = a ↔ 0 ≤ a := by simp [abs_eq_max_neg]
 
-@[simp] lemma abs_eq_neg_self : abs a = -a ↔ a ≤ 0 := by simp [abs]
+@[simp] lemma abs_eq_neg_self : abs a = -a ↔ a ≤ 0 := by simp [abs_eq_max_neg]
 
 /-- For an element `a` of a linear ordered ring, either `abs a = a` and `0 ≤ a`,
     or `abs a = -a` and `a < 0`.

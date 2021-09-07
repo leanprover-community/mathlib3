@@ -378,7 +378,7 @@ begin
     exact λ K hK, hK ⟨f y, hd (mem_map_of_mem f hy), by simp⟩ }
 end
 
-lemma nilpotent_quotient_center_to_nilpotent
+lemma is_nilpotent_of_nilpotent_quotient_center
   (hG : is_nilpotent (quotient_group.quotient (center G))) : is_nilpotent G :=
 begin
   rw nilpotent_iff_lower_central_series at *,

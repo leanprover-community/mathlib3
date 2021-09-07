@@ -288,6 +288,26 @@ we define it as a `linear_equiv` to avoid type equalities. -/
 def to_submodule_equiv (S : subalgebra R A) : S.to_submodule ≃ₗ[R] S :=
 linear_equiv.of_eq _ _ rfl
 
+instance algebra' {P : Type*} [comm_semiring P] [algebra P R] [algebra P A]
+  [is_scalar_tower P R A] : algebra P S :=
+{ to_fun := algebra_map R S ∘ algebra_map P R,
+  map_one' := by simp,
+  map_mul' := by simp,
+  map_zero' := by simp,
+  map_add' := by simp,
+  smul_def' := λ r x, begin
+    cases x with x hx,
+    ext,
+    show r • x = algebra_map R A (algebra_map P R r) * x,
+    rw [← algebra.smul_def, algebra_map_smul]
+  end,
+  commutes' := λ r x, by rw [algebra.commutes],
+  ..S.to_submodule.module' }
+
+instance is_scalar_tower' {P : Type*} [comm_semiring P] [algebra P R] [algebra P A]
+  [is_scalar_tower P R A] : is_scalar_tower P R S :=
+{ smul_assoc := λ a y z, subtype.ext (smul_assoc _ _ _) }
+
 /-- If `S` is an `R`-subalgebra of `A` and `T` is an `S`-subalgebra of `A`,
 then `T` is an `R`-subalgebra of `A`. -/
 def under {R : Type u} {A : Type v} [comm_semiring R] [comm_semiring A]

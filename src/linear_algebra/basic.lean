@@ -2419,7 +2419,7 @@ end neg
 
 section ring
 
-variables [semiring R] [add_comm_group M] [add_comm_group M₂]
+variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂]
 variables {module_M : module R M} {module_M₂ : module R M₂}
 variables (f : M →ₗ[R] M₂) (e : M ≃ₗ[R] M₂)
 
@@ -2442,7 +2442,7 @@ noncomputable def of_bijective (hf₁ : injective f) (hf₂ : surjective f) : M 
 end ring
 
 section comm_ring
-variables [comm_ring R] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃]
+variables [comm_semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
 variables [module R M] [module R M₂] [module R M₃]
 open linear_map
 
@@ -2454,8 +2454,8 @@ of_linear ((a:R) • 1 : M →ₗ[R] M) (((a⁻¹ : units R) : R) • 1 : M →�
 
 /-- A linear isomorphism between the domains and codomains of two spaces of linear maps gives a
 linear isomorphism between the two function spaces. -/
-def arrow_congr {R M₁ M₂ M₂₁ M₂₂ : Sort*} [comm_ring R]
-  [add_comm_group M₁] [add_comm_group M₂] [add_comm_group M₂₁] [add_comm_group M₂₂]
+def arrow_congr {R M₁ M₂ M₂₁ M₂₂ : Sort*} [comm_semiring R]
+  [add_comm_monoid M₁] [add_comm_monoid M₂] [add_comm_monoid M₂₁] [add_comm_monoid M₂₂]
   [module R M₁] [module R M₂] [module R M₂₁] [module R M₂₂]
   (e₁ : M₁ ≃ₗ[R] M₂) (e₂ : M₂₁ ≃ₗ[R] M₂₂) :
   (M₁ →ₗ[R] M₂₁) ≃ₗ[R] (M₂ →ₗ[R] M₂₂) :=
@@ -2466,31 +2466,31 @@ def arrow_congr {R M₁ M₂ M₂₁ M₂₂ : Sort*} [comm_ring R]
   map_add' := λ f g, by { ext x, simp only [map_add, add_apply, coe_comp, comp_app, coe_coe] },
   map_smul' := λ c f, by { ext x, simp only [map_smul, smul_apply, coe_comp, comp_app, coe_coe] } }
 
-@[simp] lemma arrow_congr_apply {R M₁ M₂ M₂₁ M₂₂ : Sort*} [comm_ring R]
-  [add_comm_group M₁] [add_comm_group M₂] [add_comm_group M₂₁] [add_comm_group M₂₂]
+@[simp] lemma arrow_congr_apply {R M₁ M₂ M₂₁ M₂₂ : Sort*} [comm_semiring R]
+  [add_comm_monoid M₁] [add_comm_monoid M₂] [add_comm_monoid M₂₁] [add_comm_monoid M₂₂]
   [module R M₁] [module R M₂] [module R M₂₁] [module R M₂₂]
   (e₁ : M₁ ≃ₗ[R] M₂) (e₂ : M₂₁ ≃ₗ[R] M₂₂) (f : M₁ →ₗ[R] M₂₁) (x : M₂) :
   arrow_congr e₁ e₂ f x = e₂ (f (e₁.symm x)) :=
 rfl
 
-@[simp] lemma arrow_congr_symm_apply {R M₁ M₂ M₂₁ M₂₂ : Sort*} [comm_ring R]
-  [add_comm_group M₁] [add_comm_group M₂] [add_comm_group M₂₁] [add_comm_group M₂₂]
+@[simp] lemma arrow_congr_symm_apply {R M₁ M₂ M₂₁ M₂₂ : Sort*} [comm_semiring R]
+  [add_comm_monoid M₁] [add_comm_monoid M₂] [add_comm_monoid M₂₁] [add_comm_monoid M₂₂]
   [module R M₁] [module R M₂] [module R M₂₁] [module R M₂₂]
   (e₁ : M₁ ≃ₗ[R] M₂) (e₂ : M₂₁ ≃ₗ[R] M₂₂) (f : M₂ →ₗ[R] M₂₂) (x : M₁) :
   (arrow_congr e₁ e₂).symm f x = e₂.symm (f (e₁ x)) :=
 rfl
 
 lemma arrow_congr_comp {N N₂ N₃ : Sort*}
-  [add_comm_group N] [add_comm_group N₂] [add_comm_group N₃]
+  [add_comm_monoid N] [add_comm_monoid N₂] [add_comm_monoid N₃]
   [module R N] [module R N₂] [module R N₃]
   (e₁ : M ≃ₗ[R] N) (e₂ : M₂ ≃ₗ[R] N₂) (e₃ : M₃ ≃ₗ[R] N₃) (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M₃) :
   arrow_congr e₁ e₃ (g.comp f) = (arrow_congr e₂ e₃ g).comp (arrow_congr e₁ e₂ f) :=
 by { ext, simp only [symm_apply_apply, arrow_congr_apply, linear_map.comp_apply], }
 
 lemma arrow_congr_trans {M₁ M₂ M₃ N₁ N₂ N₃ : Sort*}
-  [add_comm_group M₁] [module R M₁] [add_comm_group M₂] [module R M₂]
-  [add_comm_group M₃] [module R M₃] [add_comm_group N₁] [module R N₁]
-  [add_comm_group N₂] [module R N₂] [add_comm_group N₃] [module R N₃]
+  [add_comm_monoid M₁] [module R M₁] [add_comm_monoid M₂] [module R M₂]
+  [add_comm_monoid M₃] [module R M₃] [add_comm_monoid N₁] [module R N₁]
+  [add_comm_monoid N₂] [module R N₂] [add_comm_monoid N₃] [module R N₃]
   (e₁ : M₁ ≃ₗ[R] M₂) (e₂ : N₁ ≃ₗ[R] N₂) (e₃ : M₂ ≃ₗ[R] M₃) (e₄ : N₂ ≃ₗ[R] N₃) :
   (arrow_congr e₁ e₂).trans (arrow_congr e₃ e₄) = arrow_congr (e₁.trans e₃) (e₂.trans e₄) :=
 rfl
@@ -2555,7 +2555,7 @@ end
     isomorphism.-/
 def to_span_nonzero_singleton (x : M) (h : x ≠ 0) : K ≃ₗ[K] (K ∙ x) :=
 linear_equiv.trans
-  (linear_equiv.of_injective (to_span_singleton K M x) (ker_to_span_singleton K M h))
+  (linear_equiv.of_injective (to_span_singleton K M x) (ker_eq_bot.1 $ ker_to_span_singleton K M h))
   (of_eq (to_span_singleton K M x).range (K ∙ x)
     (span_singleton_eq_range K M x).symm)
 
@@ -2763,7 +2763,7 @@ variables (f : M →ₗ[R] M₂)
 equivalent to the range of `f`. -/
 noncomputable def quot_ker_equiv_range : f.ker.quotient ≃ₗ[R] f.range :=
 (linear_equiv.of_injective (f.ker.liftq f $ le_refl _) $
-  submodule.ker_liftq_eq_bot _ _ _ (le_refl f.ker)).trans
+  ker_eq_bot.mp $ submodule.ker_liftq_eq_bot _ _ _ (le_refl f.ker)).trans
   (linear_equiv.of_eq _ _ $ submodule.range_liftq _ _ _)
 
 /-- The first isomorphism theorem for surjective linear maps. -/
@@ -2798,12 +2798,12 @@ noncomputable def quotient_inf_equiv_sup_quotient (p p' : submodule R M) :
   (comap p.subtype (p ⊓ p')).quotient ≃ₗ[R] (comap (p ⊔ p').subtype p').quotient :=
 linear_equiv.of_bijective (quotient_inf_to_sup_quotient p p')
   begin
-    rw [quotient_inf_to_sup_quotient, ker_liftq_eq_bot],
+    rw [← ker_eq_bot, quotient_inf_to_sup_quotient, ker_liftq_eq_bot],
     rw [ker_comp, ker_mkq],
     exact λ ⟨x, hx1⟩ hx2, ⟨hx1, hx2⟩
   end
   begin
-    rw [quotient_inf_to_sup_quotient, range_liftq, eq_top_iff'],
+    rw [← range_eq_top, quotient_inf_to_sup_quotient, range_liftq, eq_top_iff'],
     rintros ⟨x, hx⟩, rcases mem_sup.1 hx with ⟨y, hy, z, hz, rfl⟩,
     use [⟨y, hy⟩], apply (submodule.quotient.eq _).2,
     change y - (y + z) ∈ p',

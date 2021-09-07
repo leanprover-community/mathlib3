@@ -48,7 +48,7 @@ is_finite_measure_with_density
   $ lt_of_le_of_lt (lintegral_mono $ λ x, show ennreal.of_real (f x) ≤ ∥f x∥₊,
     by exact ennreal.of_real_le_of_le_to_real (by simpa using le_abs_self (f x))) hf.2
 
-/-- Given a measure `μ` and a integrable function `f`, `μ.with_density_signed_measure f` is
+/-- Given a measure `μ` and an integrable function `f`, `μ.with_density_signed_measure f` is
 the signed measure which maps the set `i` to `∫ᵢ f⁺ ∂μ - ∫ᵢ f⁻ ∂μ`. -/
 def with_density_signed_measure {m : measurable_space α}
   (μ : measure α) (f : α → ℝ) : signed_measure α :=

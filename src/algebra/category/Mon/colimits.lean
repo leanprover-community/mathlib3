@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import algebra.category.Mon.basic
 import category_theory.limits.has_limits
 import category_theory.limits.concrete_category
+import category_theory.limits.preserves.filtered
 
 /-!
 # The category of monoids has all colimits.
@@ -248,93 +249,215 @@ instance has_colimits_Mon : has_colimits Mon :=
 
 namespace filtered
 
+open category_theory.is_filtered (renaming max → max')
+
+local infixl `~` := types.filtered_colimit.rel (F ⋙ forget Mon)
+
+noncomputable theory
+open_locale classical
+
+set_option profiler true
+
 variables [is_filtered J]
 
 instance monoid_obj (F : J ⥤ Mon) (j) :
   monoid ((F ⋙ forget Mon).obj j) :=
 by { change monoid (F.obj j), apply_instance }
 
-noncomputable
-def one_colimit_pre : Σ j, F.obj j :=
-let j : J := nonempty.some (is_filtered.nonempty) in ⟨j, 1⟩
-
-noncomputable
 def one_colimit : types.quot (F ⋙ forget Mon) :=
-quot.mk _ (one_colimit_pre F)
+quot.mk _ ⟨is_filtered.nonempty.some, 1⟩
 
-noncomputable
+lemma one_colimit_eq (j : J) : one_colimit F = quot.mk _ ⟨j, 1⟩ :=
+begin
+  apply quot.eqv_gen_sound,
+  apply types.filtered_colimit.eqv_gen_quot_rel_of_rel,
+  refine ⟨is_filtered.max _ _, is_filtered.left_to_max _ _, is_filtered.right_to_max _ _, _⟩,
+  simp,
+end
+
 def mul_colimit_pre (x y : Σ j, F.obj j) : types.quot (F ⋙ forget Mon) :=
 quot.mk _ ⟨is_filtered.max x.1 y.1,
   F.map (is_filtered.left_to_max x.1 y.1) x.2 * F.map (is_filtered.right_to_max x.1 y.1) y.2⟩
 
-noncomputable
-def mul_colimit (x y : types.quot (F ⋙ forget Mon)) : types.quot (F ⋙ forget Mon) :=
-quot.lift₂ (mul_colimit_pre F) sorry sorry x y
+lemma mul_colimit_pre_eq_of_rel_left {x x' y : Σ j, F.obj j} (hxx' : x ~ x') :
+  mul_colimit_pre F x y = mul_colimit_pre F x' y :=
+begin
+  obtain ⟨l, α, β, hαβ⟩ := hxx',
+  simp at hαβ,
+  let O : finset J := {x.1, x'.1, y.1, max' x.1 y.1, max' x'.1 y.1, l},
+  obtain ⟨x_mem, x'_mem, y_mem, k_mem, k'_mem, l_mem⟩ :
+    x.1 ∈ O ∧ x'.1 ∈ O ∧ y.1 ∈ O ∧ max' x.1 y.1 ∈ O ∧ max' x'.1 y.1 ∈ O ∧ l ∈ O,
+  { simp only [finset.mem_insert, finset.mem_singleton], tauto },
 
-noncomputable
+  let H_type := Σ' (i j : J) (mi : i ∈ O) (mY : j ∈ O), i ⟶ j,
+  let H : finset H_type := { ⟨_, _, _, _, α⟩, ⟨_, _, _, _, β⟩,
+    ⟨_, _, _, _, left_to_max x.1 y.1⟩, ⟨_, _, _, _, right_to_max x.1 y.1⟩,
+    ⟨_, _, _, _, left_to_max x'.1 y.1⟩, ⟨_, _, _, _, right_to_max x'.1 y.1⟩ },
+
+  obtain ⟨α_mem, β_mem, f_mem, g_mem, f'_mem, g'_mem⟩ :
+    (⟨_, _, x_mem, l_mem, α⟩ : H_type) ∈ H ∧ (⟨_, _, x'_mem, l_mem, β⟩ : H_type) ∈ H ∧
+    (⟨_, _, x_mem, k_mem, left_to_max x.1 y.1⟩ : H_type) ∈ H ∧
+    (⟨_, _, y_mem, k_mem, right_to_max x.1 y.1⟩ : H_type) ∈ H ∧
+    (⟨_, _, x'_mem, k'_mem, left_to_max x'.1 y.1 ⟩ : H_type) ∈ H ∧
+    (⟨_, _, y_mem, k'_mem, right_to_max x'.1 y.1⟩ : H_type) ∈ H,
+  { simp only [finset.mem_insert, finset.mem_singleton],
+    split, left, split, refl, refl,
+    split, right, left, split, refl, refl,
+    split, right, right, left, split, refl, refl,
+    split, right, right, right, left, split, refl, refl,
+    split, right, right, right, right, left, split, refl, refl,
+    right, right, right, right, right, split, refl, refl },
+
+  obtain ⟨s, T, hT⟩ := sup_exists O H,
+  apply quot.eqv_gen_sound,
+  apply types.filtered_colimit.eqv_gen_quot_rel_of_rel,
+  refine ⟨s, T k_mem, T k'_mem, _⟩,
+  dsimp,
+  rw [monoid_hom.map_mul, monoid_hom.map_mul, ← comp_apply, ← comp_apply, ← comp_apply,
+    ← comp_apply, ← F.map_comp, ← F.map_comp, ← F.map_comp, ← F.map_comp,
+    hT x_mem k_mem f_mem, hT y_mem k_mem g_mem, hT x'_mem k'_mem f'_mem, hT y_mem k'_mem g'_mem,
+    ← hT x_mem l_mem α_mem, ← hT x'_mem l_mem β_mem, F.map_comp, F.map_comp, comp_apply,
+    comp_apply, hαβ],
+end
+
+lemma mul_colimit_pre_eq_of_rel_right {x y y' : Σ j, F.obj j} (hyy' : y ~ y') :
+  mul_colimit_pre F x y = mul_colimit_pre F x y' :=
+begin
+  obtain ⟨l, α, β, hαβ⟩ := hyy',
+  simp at hαβ,
+  let O : finset J := {x.1, y.1, y'.1, max' x.1 y.1, max' x.1 y'.1, l},
+  obtain ⟨x_mem, y_mem, y'_mem, k_mem, k'_mem, l_mem⟩ :
+    x.1 ∈ O ∧ y.1 ∈ O ∧ y'.1 ∈ O ∧ max' x.1 y.1 ∈ O ∧ max' x.1 y'.1 ∈ O ∧ l ∈ O,
+  { simp only [finset.mem_insert, finset.mem_singleton], tauto },
+
+  let H_type := Σ' (i j : J) (mi : i ∈ O) (mY : j ∈ O), i ⟶ j,
+  let H : finset H_type := { ⟨_, _, _, _, α⟩, ⟨_, _, _, _, β⟩,
+    ⟨_, _, _, _, left_to_max x.1 y.1⟩, ⟨_, _, _, _, right_to_max x.1 y.1⟩,
+    ⟨_, _, _, _, left_to_max x.1 y'.1⟩, ⟨_, _, _, _, right_to_max x.1 y'.1⟩ },
+
+  obtain ⟨α_mem, β_mem, f_mem, g_mem, f'_mem, g'_mem⟩ :
+    (⟨_, _, y_mem, l_mem, α⟩ : H_type) ∈ H ∧ (⟨_, _, y'_mem, l_mem, β⟩ : H_type) ∈ H ∧
+    (⟨_, _, x_mem, k_mem, left_to_max x.1 y.1⟩ : H_type) ∈ H ∧
+    (⟨_, _, y_mem, k_mem, right_to_max x.1 y.1⟩ : H_type) ∈ H ∧
+    (⟨_, _, x_mem, k'_mem, left_to_max x.1 y'.1 ⟩ : H_type) ∈ H ∧
+    (⟨_, _, y'_mem, k'_mem, right_to_max x.1 y'.1⟩ : H_type) ∈ H,
+  { simp only [finset.mem_insert, finset.mem_singleton],
+    split, left, split, refl, refl,
+    split, right, left, split, refl, refl,
+    split, right, right, left, split, refl, refl,
+    split, right, right, right, left, split, refl, refl,
+    split, right, right, right, right, left, split, refl, refl,
+    right, right, right, right, right, split, refl, refl },
+
+  obtain ⟨s, T, hT⟩ := sup_exists O H,
+  apply quot.eqv_gen_sound,
+  apply types.filtered_colimit.eqv_gen_quot_rel_of_rel,
+  refine ⟨s, T k_mem, T k'_mem, _⟩,
+  dsimp,
+  rw [monoid_hom.map_mul, monoid_hom.map_mul, ← comp_apply, ← comp_apply, ← comp_apply,
+    ← comp_apply, ← F.map_comp, ← F.map_comp, ← F.map_comp, ← F.map_comp,
+    hT x_mem k_mem f_mem, hT y_mem k_mem g_mem, hT x_mem k'_mem f'_mem, hT y'_mem k'_mem g'_mem,
+    ← hT y_mem l_mem α_mem, ← hT y'_mem l_mem β_mem, F.map_comp, F.map_comp, comp_apply,
+    comp_apply, hαβ],
+end
+
+def mul_colimit (x y : types.quot (F ⋙ forget Mon)) : types.quot (F ⋙ forget Mon) :=
+begin
+  refine quot.lift₂ (mul_colimit_pre F) _ _ x y,
+  { intros x y y' h,
+    apply mul_colimit_pre_eq_of_rel_right,
+    apply types.filtered_colimit.rel_of_quot_rel,
+    exact h },
+  { intros x x' y h,
+    apply mul_colimit_pre_eq_of_rel_left,
+    apply types.filtered_colimit.rel_of_quot_rel,
+    exact h },
+end
+
+lemma mul_colimit_eq (x y : Σ j, F.obj j) (k : J) (f : x.1 ⟶ k) (g : y.1 ⟶ k) :
+  mul_colimit F (quot.mk _ x) (quot.mk _ y) = quot.mk _ ⟨k, F.map f x.2 * F.map g y.2⟩ :=
+begin
+  let O : finset J := {x.1, y.1, k, max' x.1 y.1},
+  obtain ⟨x_mem, y_mem, k_mem, k'_mem⟩ : x.1 ∈ O ∧ y.1 ∈ O ∧ k ∈ O ∧ max' x.1 y.1 ∈ O,
+  { simp only [finset.mem_insert, finset.mem_singleton], tauto, },
+
+  let H_type := Σ' (i j : J) (mi : i ∈ O) (mY : j ∈ O), i ⟶ j,
+  let H : finset H_type := { ⟨_, _, _, _, f⟩, ⟨_, _, _, _, g⟩,
+    ⟨_, _, _, _, left_to_max x.1 y.1⟩, ⟨_, _, _, _, right_to_max x.1 y.1⟩ },
+  obtain ⟨f_mem, g_mem, f'_mem, g'_mem⟩ : (⟨_, _, x_mem, k_mem, f⟩ : H_type) ∈ H ∧
+    (⟨_, _, y_mem, k_mem, g⟩ : H_type) ∈ H ∧
+    (⟨_, _, x_mem, k'_mem, left_to_max x.1 y.1⟩ : H_type) ∈ H ∧
+    (⟨_, _, y_mem, k'_mem, right_to_max x.1 y.1⟩ : H_type) ∈ H,
+  { simp only [finset.mem_insert, finset.mem_singleton],
+    split, left, split, refl, refl, -- Why doesn't tauto do this?
+    split, right, left, split, refl, refl,
+    split, right, right, left, split, refl, refl,
+    right, right, right, split, refl, refl },
+
+  obtain ⟨s, T, hT⟩ := sup_exists O H,
+
+  apply quot.eqv_gen_sound,
+  apply types.filtered_colimit.eqv_gen_quot_rel_of_rel,
+  refine ⟨s, T k'_mem, T k_mem, _⟩,
+  dsimp,
+  rw [monoid_hom.map_mul, monoid_hom.map_mul, ← comp_apply, ← comp_apply, ← comp_apply,
+    ← comp_apply, ← F.map_comp, ← F.map_comp, ← F.map_comp, ← F.map_comp,
+    hT x_mem k_mem f_mem, hT y_mem k_mem g_mem, hT x_mem k'_mem f'_mem, hT y_mem k'_mem g'_mem],
+end
+
+lemma colimit_one_mul (x : types.quot (F ⋙ forget Mon)) :
+  mul_colimit F (one_colimit F) x = x :=
+begin
+  apply quot.induction_on x, clear x, intro x,
+  cases x with j x,
+  rw [one_colimit_eq F j, mul_colimit_eq F ⟨j, 1⟩ ⟨j, x⟩ j (𝟙 j) (𝟙 j)],
+  congr,
+  rw [monoid_hom.map_one, one_mul, F.map_id, id_apply],
+end
+
+lemma colimit_mul_one (x : types.quot (F ⋙ forget Mon)) :
+  mul_colimit F x (one_colimit F) = x :=
+begin
+  apply quot.induction_on x, clear x, intro x,
+  cases x with j x,
+  rw [one_colimit_eq F j, mul_colimit_eq F ⟨j, x⟩ ⟨j, 1⟩ j (𝟙 j) (𝟙 j)],
+  congr,
+  rw [monoid_hom.map_one, mul_one, F.map_id, id_apply],
+end
+
+lemma colimit_mul_assoc (x y z : types.quot (F ⋙ forget Mon)) :
+  mul_colimit F (mul_colimit F x y) z = mul_colimit F x (mul_colimit F y z) :=
+begin
+  apply quot.induction_on₃ x y z, clear x y z, intros x y z,
+  cases x with j₁ x, cases y with j₂ y, cases z with j₃ z,
+  let k := max' (max' j₁ j₂) j₃,
+  rw mul_colimit_eq F ⟨j₁, x⟩ ⟨j₂, y⟩ k (left_to_max _ _ ≫ left_to_max _ _)
+    (right_to_max _ _ ≫ left_to_max _ _),
+  rw mul_colimit_eq F ⟨k, _⟩ ⟨j₃, z⟩ k (𝟙 k) (right_to_max _ _),
+  rw mul_colimit_eq F ⟨j₂, y⟩ ⟨j₃, z⟩ k (right_to_max _ _ ≫ left_to_max _ _) (right_to_max _ _),
+  rw mul_colimit_eq F ⟨j₁, x⟩ ⟨k, _⟩ k (left_to_max _ _ ≫ left_to_max _ _) (𝟙 k),
+  dsimp,
+  congr' 1,
+  rw [F.map_id, id_apply, id_apply, mul_assoc],
+end
+
 instance colimit_monoid : monoid (types.quot (F ⋙ forget Mon)) :=
 { one := one_colimit F,
   mul := mul_colimit F,
-  one_mul := λ x, begin
-    induction x,
-    dsimp [mul_colimit, one_colimit],
-    rw @quot.lift₂_mk _ _ _ (types.quot.rel (F ⋙ forget Mon)) (types.quot.rel (F ⋙ forget Mon)),
-    apply quot.eqv_gen_sound,
-    apply types.filtered_colimit.eqv_gen_quot_rel_of_rel,
-    refine ⟨_, 𝟙 _, is_filtered.right_to_max _ _, _⟩,
-    dsimp [one_colimit_pre],
-    rw [monoid_hom.map_one, one_mul, category_theory.functor.map_id, id_apply],
-    refl,
-  end,
-  mul_one := λ x, begin
-    induction x,
-    dsimp [mul_colimit, one_colimit],
-    rw @quot.lift₂_mk _ _ _ (types.quot.rel (F ⋙ forget Mon)) (types.quot.rel (F ⋙ forget Mon)),
-    apply quot.eqv_gen_sound,
-    apply types.filtered_colimit.eqv_gen_quot_rel_of_rel,
-    refine ⟨_, 𝟙 _, is_filtered.left_to_max _ _, _⟩,
-    dsimp [one_colimit_pre],
-    rw [monoid_hom.map_one, mul_one, category_theory.functor.map_id, id_apply],
-    refl,
-  end,
-  mul_assoc := λ x y z, begin
-    induction x,
-    induction y,
-    induction z,
-    dsimp [mul_colimit],
-    rw @quot.lift₂_mk _ _ _ (types.quot.rel (F ⋙ forget Mon)) (types.quot.rel (F ⋙ forget Mon)),
-    rw @quot.lift₂_mk _ _ _ (types.quot.rel (F ⋙ forget Mon)) (types.quot.rel (F ⋙ forget Mon)),
-    dsimp [mul_colimit_pre],
-    rw @quot.lift₂_mk _ _ _ (types.quot.rel (F ⋙ forget Mon)) (types.quot.rel (F ⋙ forget Mon)),
-    rw @quot.lift₂_mk _ _ _ (types.quot.rel (F ⋙ forget Mon)) (types.quot.rel (F ⋙ forget Mon)),
-    dsimp [mul_colimit_pre],
-    apply quot.eqv_gen_sound,
-    apply types.filtered_colimit.eqv_gen_quot_rel_of_rel,
-    sorry,
-    refl,
-    refl,
-    refl,
-  end }
+  one_mul := colimit_one_mul F,
+  mul_one := colimit_mul_one F,
+  mul_assoc := colimit_mul_assoc F }
 
 /-- The bundled monoid giving the colimit of a diagram. -/
-noncomputable
 def colimit : Mon := ⟨types.quot (F ⋙ forget Mon), by apply_instance⟩
 
 /-- The monoid homomorphism from a given monoid in the diagram to the colimit monoid. -/
-noncomputable
 def cocone_morphism (j : J) : F.obj j ⟶ colimit F :=
 { to_fun := (types.colimit_cocone (F ⋙ forget Mon)).ι.app j,
-  map_one' := begin
-    apply quot.eqv_gen_sound,
-    apply types.filtered_colimit.eqv_gen_quot_rel_of_rel,
-    dsimp [one_colimit_pre],
-    refine ⟨is_filtered.max _ _, is_filtered.left_to_max _ _, is_filtered.right_to_max _ _, _⟩,
-    simp,
-  end,
+  map_one' := (one_colimit_eq F j).symm,
   map_mul' := λ x y, begin
-    apply quot.eqv_gen_sound,
-    apply types.filtered_colimit.eqv_gen_quot_rel_of_rel,
-    sorry
+    convert (mul_colimit_eq F ⟨j, x⟩ ⟨j, y⟩ j (𝟙 j) (𝟙 j)).symm,
+    rw [F.map_id, id_apply, id_apply], refl,
   end }
 
 @[simp] lemma cocone_naturality {j j' : J} (f : j ⟶ j') :
@@ -348,8 +471,29 @@ end
 noncomputable
 def colimit_cocone : cocone F :=
 { X := colimit F,
-  ι :=
-  { app := cocone_morphism F, } }.
+  ι := { app := cocone_morphism F } }.
+
+def blub : cocone F → cocone (F ⋙ forget Mon) := λ t,
+{ X := t.X, ι := { app := λ j, t.ι.app j } }
+
+def colimit_desc (t : cocone F) : colimit F ⟶ t.X :=
+{ to_fun := (types.colimit_cocone_is_colimit (F ⋙ forget Mon)).desc (blub F t),
+  map_one' := begin
+    change (types.colimit_cocone_is_colimit (F ⋙ forget Mon)).desc (blub F t) (one_colimit F) = _,
+    dsimp [types.colimit_cocone_is_colimit, one_colimit, blub],
+    rw monoid_hom.map_one,
+  end,
+  map_mul' := λ x y, begin
+    sorry
+  end }
+
+def colimit_cocone_is_colimit : is_colimit (colimit_cocone F) :=
+{ desc := colimit_desc F, fac' := sorry, uniq' := sorry }
+
+instance forget_preserves_filtered_colimits : preserves_filtered_colimits (forget Mon) :=
+{ preserves_filtered_colimits := λ J _ _, by exactI
+  { preserves_colimit := λ F, preserves_colimit_of_preserves_colimit_cocone
+      (colimit_cocone_is_colimit F) (types.colimit_cocone_is_colimit (F ⋙ forget Mon)) } }
 
 end filtered
 

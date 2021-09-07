@@ -45,7 +45,7 @@ set.ext $ λ x, mem_pimage
 /-- Rewrite `s.pimage f` in terms of `finset.filter`, `finset.attach`, and `finset.image`. -/
 lemma pimage_eq_image_filter : s.pimage f =
   (filter (λ x, (f x).dom) s).attach.image (λ x, (f x).get (mem_filter.1 x.coe_prop).2) :=
-by { ext x, simp [part.mem_eq, exists_and_index, -exists_prop] }
+by { ext x, simp [part.mem_eq, and.exists, -exists_prop] }
 
 lemma pimage_union [decidable_eq α] : (s ∪ t).pimage f = s.pimage f ∪ t.pimage f :=
 coe_inj.1 $ by simp only [coe_pimage, pfun.image_union, coe_union]

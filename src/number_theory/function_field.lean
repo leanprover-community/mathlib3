@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen, Ashvni Narayanan
 -/
 import ring_theory.algebraic
+import ring_theory.dedekind_domain
 import ring_theory.localization
 import ring_theory.integrally_closed
 
@@ -99,7 +100,9 @@ integral_closure.is_fraction_ring_of_finite_extension (fraction_ring (polynomial
 instance : is_integrally_closed (ring_of_integers Fq F) :=
 integral_closure.is_integrally_closed_of_finite_extension (fraction_ring (polynomial Fq))
 
--- TODO: show `ring_of_integers Fq F` is a Dedekind domain
+instance [is_separable (fraction_ring (polynomial Fq)) F] :
+  is_dedekind_domain (ring_of_integers Fq F) :=
+is_integral_closure.is_dedekind_domain (polynomial Fq) (fraction_ring (polynomial Fq)) F _
 
 end ring_of_integers
 

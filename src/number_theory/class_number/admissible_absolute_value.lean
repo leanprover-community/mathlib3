@@ -19,7 +19,7 @@ of the ring of integers of a global field is finite.
  * `absolute_value.is_admissible abv` states the absolute value `abv : R → ℤ`
    respects the Euclidean domain structure on `R`, and that a large enough set
    of elements of `R^n` contains a pair of elements whose remainders are
-   pointwise clase together.
+   pointwise close together.
 
 ## Main results
 

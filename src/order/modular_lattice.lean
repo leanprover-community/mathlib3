@@ -57,16 +57,13 @@ instance : is_modular_lattice (order_dual α) :=
 ⟨λ x y z xz, le_of_eq (by { rw [inf_comm, sup_comm, eq_comm, inf_comm, sup_comm],
   convert sup_inf_assoc_of_le (order_dual.of_dual y) (order_dual.dual_le.2 xz) })⟩
 
-theorem is_modular_lattice.sup_inf_sup_assoc {x y z : α} :
+variables {x y z : α}
+
+theorem is_modular_lattice.sup_inf_sup_assoc :
   (x ⊔ z) ⊓ (y ⊔ z) = ((x ⊔ z) ⊓ y) ⊔ z :=
 @is_modular_lattice.inf_sup_inf_assoc (order_dual α) _ _ _ _ _
 
-
-theorem eq_of_le_of_inf_le_of_sup_le
-  {x y z : α}
-  (hxy : x ≤ y)
-  (hinf : y ⊓ z ≤ x ⊓ z)
-  (hsup : y ⊔ z ≤ x ⊔ z) :
+theorem eq_of_le_of_inf_le_of_sup_le (hxy : x ≤ y) (hinf : y ⊓ z ≤ x ⊓ z) (hsup : y ⊔ z ≤ x ⊔ z) :
   x = y :=
 le_antisymm hxy $
   have h : y ≤ x ⊔ z,
@@ -78,21 +75,13 @@ le_antisymm hxy $
       (by rw [inf_comm, @inf_comm _ _ z]; exact hinf) _
     ... ≤ x : sup_le (le_refl _) inf_le_right
 
-theorem sup_lt_sup_of_lt_of_inf_le_inf
-  {x y z : α}
-  (hxy : x < y)
-  (hinf : y ⊓ z ≤ x ⊓ z) :
-  x ⊔ z < y ⊔ z :=
+theorem sup_lt_sup_of_lt_of_inf_le_inf (hxy : x < y) (hinf : y ⊓ z ≤ x ⊓ z) : x ⊔ z < y ⊔ z :=
 lt_of_le_of_ne
   (sup_le_sup_right (le_of_lt hxy) _)
   (λ hsup, ne_of_lt hxy $ eq_of_le_of_inf_le_of_sup_le (le_of_lt hxy) hinf
     (le_of_eq hsup.symm))
 
-theorem inf_lt_inf_of_lt_of_sup_le_sup
-  {x y z : α}
-  (hxy : x < y)
-  (hinf : y ⊔ z ≤ x ⊔ z) :
-  x ⊓ z < y ⊓ z :=
+theorem inf_lt_inf_of_lt_of_sup_le_sup (hxy : x < y) (hinf : y ⊔ z ≤ x ⊔ z) : x ⊓ z < y ⊓ z :=
 @sup_lt_sup_of_lt_of_inf_le_inf (order_dual α) _ _ _ _ _ hxy hinf
 
 /-- A generalization of the theorem that if `N` is a submodule of `M` and

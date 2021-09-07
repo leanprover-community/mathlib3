@@ -794,6 +794,15 @@ def option_is_some_equiv (α : Type*) : {x : option α // x.is_some} ≃ α :=
   left_inv := λ o, subtype.eq $ option.some_get _,
   right_inv := λ x, option.get_some _ _ }
 
+/-- The product over `option α` of `β a` is the binary product of the
+product over `α` of `β (some α)` and `β none` -/
+@[simps] def pi_option_equiv_prod {α : Type*} {β : option α → Type*} :
+  (Π a : option α, β a) ≃ (β none × Π a : α, β (some a)) :=
+{ to_fun := λ f, (f none, λ a, f (some a)),
+  inv_fun := λ x a, option.cases_on a x.fst x.snd,
+  left_inv := λ f, funext $ λ a, by cases a; refl,
+  right_inv := λ x, by simp }
+
 /-- `α ⊕ β` is equivalent to a `sigma`-type over `bool`. Note that this definition assumes `α` and
 `β` to be types from the same universe, so it cannot by used directly to transfer theorems about
 sigma types to theorems about sum types. In many cases one can use `ulift` to work around this

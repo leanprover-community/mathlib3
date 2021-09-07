@@ -20,6 +20,7 @@ In the presence of automation, this whole file may be unnecessary. On the other 
 maybe it is useful for writing automation.
 -/
 
+open function
 local attribute [instance, priority 10] classical.prop_decidable
 
 section miscellany
@@ -334,7 +335,7 @@ by { have := @imp_not_self (¬a), rwa decidable.not_not at this }
 @[simp] theorem not_imp_self : (¬a → a) ↔ a := decidable.not_imp_self
 
 theorem imp.swap : (a → b → c) ↔ (b → a → c) :=
-⟨function.swap, function.swap⟩
+⟨swap, swap⟩
 
 theorem imp_not_comm : (a → ¬b) ↔ (b → ¬a) :=
 imp.swap
@@ -793,7 +794,7 @@ lemma exists₄_congr {γ δ : Sort*} {p q : α → β → γ → δ → Prop}
 exists_congr (λ a, exists₃_congr (h a))
 
 theorem forall_swap {p : α → β → Prop} : (∀ x y, p x y) ↔ ∀ y x, p x y :=
-⟨function.swap, function.swap⟩
+⟨swap, swap⟩
 
 theorem exists_swap {p : α → β → Prop} : (∃ x y, p x y) ↔ ∃ y x, p x y :=
 ⟨λ ⟨x, y, h⟩, ⟨y, x, h⟩, λ ⟨y, x, h⟩, ⟨x, y, h⟩⟩

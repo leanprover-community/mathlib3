@@ -69,6 +69,9 @@ polynomial.splits_of_splits_id _ $ is_alg_closed.splits _
 
 namespace is_alg_closed
 
+theorem exists_root [is_alg_closed k] (p : polynomial k) (hp : p.degree ≠ 0) : ∃ x, is_root p x := 
+exists_root_of_splits _ (is_alg_closed.splits p) hp
+
 theorem of_exists_root (H : ∀ p : polynomial k, p.monic → irreducible p → ∃ x, p.eval x = 0) :
   is_alg_closed k :=
 ⟨λ p, or.inr $ λ q hq hqp,

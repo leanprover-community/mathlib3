@@ -438,8 +438,8 @@ begin
     simp only [cardinal.lift_nat_cast, cardinal.nat_cast_inj],
     -- Now we can use invariant basis number to show they have the same cardinality.
     apply card_eq_of_lequiv R,
-    exact (((finsupp.linear_equiv_fun_on_fintype R R ι).symm.trans v.repr.symm).trans
-      v'.repr).trans (finsupp.linear_equiv_fun_on_fintype R R ι'), },
+    exact (((finsupp.linear_equiv_fun_on_fintype R R ι).symm.trans v.repr.symm) ≪≫ₗ
+      v'.repr) ≪≫ₗ (finsupp.linear_equiv_fun_on_fintype R R ι'), },
   { -- `v` is an infinite basis,
     -- so by `infinite_basis_le_maximal_linear_independent`, `v'` is at least as big,
     -- and then applying `infinite_basis_le_maximal_linear_independent` again

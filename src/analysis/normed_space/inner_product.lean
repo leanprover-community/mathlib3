@@ -1428,18 +1428,14 @@ end
 /-- The sum defined in Bessel's inequality is summable. -/
 lemma orthonormal.inner_products_summable (hv : orthonormal 𝕜 v) : summable (λ i, ∥⟪v i, x⟫∥ ^ 2) :=
 begin
-  by_cases hnon : nonempty ι,
-  { use Sup (set.range (λ s : finset ι, ∑ i in s, ∥⟪v i, x⟫∥ ^ 2)),
-    apply has_sum_of_is_lub_of_nonneg,
-    { intro b,
-      simp only [norm_nonneg, pow_nonneg], },
-    { refine is_lub_cSup (set.range_nonempty _) _,
-      use ∥x∥ ^ 2,
-      rintro y ⟨s, rfl⟩,
-      exact hv.sum_inner_products_le x, }, },
-  { rw not_nonempty_iff at hnon,
-    haveI := hnon,
-    exact summable_empty, },
+  use ⨆ s : finset ι, ∑ i in s, ∥⟪v i, x⟫∥ ^ 2,
+  apply has_sum_of_is_lub_of_nonneg,
+  { intro b,
+    simp only [norm_nonneg, pow_nonneg], },
+  { refine is_lub_csupr _,
+    use ∥x∥ ^ 2,
+    rintro y ⟨s, rfl⟩,
+    exact hv.sum_inner_products_le x }
 end
 
 end bessels_inequality
@@ -1501,6 +1497,10 @@ variable {E}
 
 lemma real_inner_eq_re_inner (x y : E) :
   @has_inner.inner ℝ E (has_inner.is_R_or_C_to_real 𝕜 E) x y = re ⟪x, y⟫ := rfl
+
+lemma real_inner_I_smul_self (x : E) :
+  @has_inner.inner ℝ E (has_inner.is_R_or_C_to_real 𝕜 E) x ((I : 𝕜) • x) = 0 :=
+by simp [real_inner_eq_re_inner, inner_smul_right]
 
 omit 𝕜
 
@@ -2237,8 +2237,6 @@ begin
   exact orthogonal_projection_inner_eq_zero _ _ ha,
 end
 
-local attribute [instance] finite_dimensional_bot
-
 /-- The orthogonal projection onto the trivial submodule is the zero map. -/
 @[simp] lemma orthogonal_projection_bot : orthogonal_projection (⊥ : submodule 𝕜 E) = 0 :=
 by ext
@@ -2355,8 +2353,6 @@ lemma reflection_map {E E' : Type*} [inner_product_space 𝕜 E] [inner_product_
   (f : E ≃ₗᵢ[𝕜] E') (K : submodule 𝕜 E) [finite_dimensional 𝕜 K] :
   reflection (K.map (f.to_linear_equiv : E →ₗ[𝕜] E')) = f.symm.trans ((reflection K).trans f) :=
 linear_isometry_equiv.ext $ reflection_map_apply f K
-
-local attribute [instance] finite_dimensional_bot
 
 /-- Reflection through the trivial subspace {0} is just negation. -/
 @[simp] lemma reflection_bot : reflection (⊥ : submodule 𝕜 E) = linear_isometry_equiv.neg 𝕜 :=

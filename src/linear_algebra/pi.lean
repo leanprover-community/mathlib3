@@ -279,6 +279,14 @@ This is `equiv.Pi_congr_left` as a `linear_equiv` -/
 def Pi_congr_left (e : ι' ≃ ι) : (Π i', φ (e i')) ≃ₗ[R] (Π i, φ i) :=
 (Pi_congr_left' R φ e.symm).symm
 
+/-- This is `equiv.pi_option_equiv_prod` as a `linear_equiv` -/
+def pi_option_equiv_prod {ι : Type*} {M : option ι → Type*}
+  [Π i, add_comm_group (M i)] [Π i, module R (M i)] :
+  (Π i : option ι, M i) ≃ₗ[R] (M none × Π i : ι, M (some i)) :=
+{ map_add' := by simp [function.funext_iff],
+  map_smul' := by simp [function.funext_iff],
+  ..equiv.pi_option_equiv_prod }
+
 variables (ι R M) (S : Type*) [fintype ι] [decidable_eq ι] [semiring S]
   [add_comm_monoid M] [module R M] [module S M] [smul_comm_class R S M]
 

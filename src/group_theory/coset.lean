@@ -295,6 +295,29 @@ instance (s : subgroup α) : inhabited (quotient s) :=
 protected lemma eq {a b : α} : (a : quotient s) = b ↔ a⁻¹ * b ∈ s :=
 quotient.eq'
 
+@[to_additive quotient_add_group.eq']
+lemma eq' {a b : α} : (mk a : quotient s) = mk b ↔ a⁻¹ * b ∈ s :=
+quotient_group.eq
+
+@[to_additive quotient_add_group.out_eq']
+lemma out_eq' (a : quotient s) : mk a.out' = a :=
+quotient.out_eq' a
+
+variables (s)
+
+/- It can be useful to write `obtain ⟨h, H⟩ := mk_out'_eq_mul ...`, and then `rw [H]` or
+  `simp_rw [H]` or `simp only [H]`. In order for `simp_rw` and `simp only` to work, this lemma is
+  stated in terms of an arbitrary `h : s`, rathern that the specific `h = g⁻¹ * (mk g).out'`. -/
+@[to_additive quotient_add_group.mk_out'_eq_mul]
+lemma mk_out'_eq_mul (g : α) : ∃ h : s, (mk g : quotient s).out' = g * h :=
+⟨⟨g⁻¹ * (mk g).out', eq'.mp (mk g).out_eq'.symm⟩, by rw [s.coe_mk, mul_inv_cancel_left]⟩
+
+variables {s}
+
+@[to_additive quotient_add_group.mk_mul_of_mem]
+lemma mk_mul_of_mem (g₁ g₂ : α) (hg₂ : g₂ ∈ s) : (mk (g₁ * g₂) : quotient s) = mk g₁ :=
+by rwa [eq', mul_inv_rev, inv_mul_cancel_right, s.inv_mem_iff]
+
 @[to_additive]
 lemma eq_class_eq_left_coset (s : subgroup α) (g : α) :
   {x : α | (x : quotient s) = g} = left_coset g s :=

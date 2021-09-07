@@ -171,7 +171,7 @@ variables (𝕜 : Type*) [measurable_space 𝕜] [normed_field 𝕜] [opens_meas
 
 namespace bounded_continuous_function
 
-lemma to_Lp_dense_range [μ.weakly_regular] [finite_measure μ] :
+lemma to_Lp_dense_range [μ.weakly_regular] [is_finite_measure μ] :
   dense_range ⇑(to_Lp p μ 𝕜 : (α →ᵇ E) →L[𝕜] Lp E p μ) :=
 begin
   haveI : normed_space ℝ E := restrict_scalars.normed_space ℝ 𝕜 E,
@@ -185,7 +185,7 @@ end bounded_continuous_function
 
 namespace continuous_map
 
-lemma to_Lp_dense_range [compact_space α] [μ.weakly_regular] [finite_measure μ] :
+lemma to_Lp_dense_range [compact_space α] [μ.weakly_regular] [is_finite_measure μ] :
   dense_range ⇑(to_Lp p μ 𝕜 : C(α, E) →L[𝕜] Lp E p μ) :=
 begin
   haveI : normed_space ℝ E := restrict_scalars.normed_space ℝ 𝕜 E,

@@ -95,11 +95,11 @@ class ghas_mul [has_add ι] [Π i, add_comm_monoid (A i)] :=
 variables {A}
 
 /-- `direct_sum.ghas_one` implies a `has_one (Σ i, A i)`, although this is only used as an instance
-locally to define notation in `direct_sum.gmonoid`. -/
+locally to define notation in `direct_sum.gmonoid` and similar typeclasses. -/
 def ghas_one.to_sigma_has_one [has_zero ι] [ghas_one A] : has_one (Σ i, A i) := ⟨⟨_, ghas_one.one⟩⟩
 
 /-- `direct_sum.ghas_mul` implies a `has_mul (Σ i, A i)`, although this is only used as an instance
-locally to define notation in `direct_sum.gmonoid`. -/
+locally to define notation in `direct_sum.gmonoid` and similar typeclasses. -/
 def ghas_mul.to_sigma_has_mul [has_add ι] [Π i, add_comm_monoid (A i)] [ghas_mul A] :
   has_mul (Σ i, A i) :=
 ⟨λ (x y : Σ i, A i), ⟨_, ghas_mul.mul x.snd y.snd⟩⟩
@@ -633,6 +633,15 @@ def lift_ring_hom :
       add_monoid_hom.mk_coe,
       add_monoid_hom.comp_apply, to_semiring_coe_add_monoid_hom],
   end}
+
+/-- Two `ring_hom`s out of a direct sum are equal if they agree on the generators.
+
+See note [partially-applied ext lemmas]. -/
+@[ext]
+lemma ring_hom_ext ⦃f g : (⨁ i, A i) →+* R⦄
+  (h : ∀ i, (↑f : (⨁ i, A i) →+ R).comp (of A i) = (↑g : (⨁ i, A i) →+ R).comp (of A i)) :
+  f = g :=
+direct_sum.lift_ring_hom.symm.injective $ subtype.ext $ funext h
 
 end to_semiring
 

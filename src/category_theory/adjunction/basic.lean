@@ -169,7 +169,7 @@ end core_hom_equiv
 
 /--
 This is an auxiliary data structure useful for constructing adjunctions.
-See `adjunction.mk_of_hom_equiv`.
+See `adjunction.mk_of_unit_counit`.
 This structure won't typically be used anywhere else.
 -/
 @[nolint has_inhabited_instance]

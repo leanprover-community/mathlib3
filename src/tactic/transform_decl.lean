@@ -94,8 +94,8 @@ do transform_decl_with_prefix_fun_aux f replace_all trace ignore reorder src tgt
    ls.mmap' $ transform_decl_with_prefix_fun_aux f replace_all trace ignore reorder src tgt attrs
 
 /--
-Make a new copy of a declaration,
-replacing fragments of the names of identifiers in the type and the body using the dictionary `dict`.
+Make a new copy of a declaration, replacing fragments of the names of identifiers in the type and
+the body using the dictionary `dict`.
 This is used to implement `@[to_additive]`.
 -/
 meta def transform_decl_with_prefix_dict (dict : name_map name) (replace_all trace : bool)

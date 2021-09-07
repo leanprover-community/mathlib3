@@ -141,6 +141,8 @@ lemma single_smul {α} [monoid α] [Π i, add_monoid $ f i]
   single i (r • x) = r • single i x :=
 single_op (λ i : I, ((•) r : f i → f i)) (λ j, smul_zero _) _ _
 
+/-- A version of `pi.single_smul` for non-dependent functions. It is useful in cases Lean fails
+to apply `pi.single_smul`. -/
 lemma single_smul'' {α β} [monoid α] [add_monoid β]
   [distrib_mul_action α β] [decidable_eq I] (i : I) (r : α) (x : β) :
   single i (r • x) = r • single i x :=

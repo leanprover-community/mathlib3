@@ -80,6 +80,12 @@ lemma one_minus_nonneg (x : I) : 0 ≤ 1 - (x : ℝ) := by simpa using x.2.2
 lemma le_one (x : I) : (x : ℝ) ≤ 1 := x.2.2
 lemma one_minus_le_one (x : I) : 1 - (x : ℝ) ≤ 1 := by simpa using x.2.1
 
+lemma two_mul_mem_iff {t : ℝ} : 2 * t ∈ I ↔ t ∈ set.Icc (0 : ℝ) (1/2) :=
+by split; rintros ⟨h₁, h₂⟩; split; linarith
+
+lemma two_mul_sub_one_mem_iff {t : ℝ} : 2 * t - 1 ∈ I ↔ t ∈ set.Icc (1/2 : ℝ) 1 :=
+by split; rintros ⟨h₁, h₂⟩; split; linarith
+
 end unit_interval
 
 namespace tactic.interactive

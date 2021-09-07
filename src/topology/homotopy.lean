@@ -152,9 +152,9 @@ def trans {f₀ f₁ f₂ : X → Y} (F : homotopy f₀ f₁) (G : homotopy f₁
 
 lemma trans_apply {f₀ f₁ f₂ : X → Y} (F : homotopy f₀ f₁) (G : homotopy f₁ f₂) (x : I × X) :
   (F.trans G) x = if h : (x.1 : ℝ) ≤ 1/2 then
-    F (⟨2 * x.1, mul_nonneg zero_le_two x.1.2.1, by linarith⟩, x.2)
+    F (⟨2 * x.1, unit_interval.two_mul_mem_iff.2 ⟨x.1.2.1, h⟩⟩, x.2)
   else
-    G (⟨2 * x.1 - 1, by linarith, by { have : (x.1 : ℝ) ≤ 1 := x.1.2.2, linarith }⟩, x.2) :=
+    G (⟨2 * x.1 - 1, unit_interval.two_mul_sub_one_mem_iff.2 ⟨(not_le.1 h).le, x.1.2.2⟩⟩, x.2) :=
 begin
   change ite _ _ _ = _,
   split_ifs,

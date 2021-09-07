@@ -1069,6 +1069,11 @@ lemma set_lintegral_congr {f : α → ℝ≥0∞} {s t : set α} (h : s =ᵐ[μ]
   ∫⁻ x in s, f x ∂μ = ∫⁻ x in t, f x ∂μ :=
 by rw [restrict_congr_set h]
 
+lemma set_lintegral_congr_fun {f g : α → ℝ≥0∞} {s : set α} (hs : measurable_set s)
+  (hfg : ∀ᵐ x ∂μ, x ∈ s → f x = g x) :
+  ∫⁻ x in s, f x ∂μ = ∫⁻ x in s, g x ∂μ :=
+by { rw lintegral_congr_ae, rw eventually_eq, rwa ae_restrict_iff' hs, }
+
 /-- Monotone convergence theorem -- sometimes called Beppo-Levi convergence.
 
 See `lintegral_supr_directed` for a more general form. -/
@@ -1735,6 +1740,10 @@ begin
   { rwa pairwise_disjoint_on_bool }
 end
 
+lemma lintegral_add_compl (f : α → ℝ≥0∞) {A : set α} (hA : measurable_set A) :
+  ∫⁻ x in A, f x ∂μ + ∫⁻ x in Aᶜ, f x ∂μ = ∫⁻ x, f x ∂μ :=
+by rw [← lintegral_add_measure, measure.restrict_add_restrict_compl hA]
+
 lemma lintegral_map [measurable_space β] {f : β → ℝ≥0∞} {g : α → β}
   (hf : measurable f) (hg : measurable g) : ∫⁻ a, f a ∂(map g μ) = ∫⁻ a, f (g a) ∂μ :=
 begin
@@ -1874,8 +1883,8 @@ begin
   refl,
 end
 
-lemma finite_measure_with_density {f : α → ℝ≥0∞}
-  (hf : ∫⁻ a, f a ∂μ < ∞) : finite_measure (μ.with_density f) :=
+lemma is_finite_measure_with_density {f : α → ℝ≥0∞}
+  (hf : ∫⁻ a, f a ∂μ < ∞) : is_finite_measure (μ.with_density f) :=
 { measure_univ_lt_top :=
     by rwa [with_density_apply _ measurable_set.univ, measure.restrict_univ] }
 

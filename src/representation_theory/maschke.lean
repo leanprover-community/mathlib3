@@ -3,7 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.monoid_algebra
+import algebra.monoid_algebra.basic
 import algebra.char_p.invertible
 import algebra.regular.basic
 import linear_algebra.basis

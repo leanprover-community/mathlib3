@@ -1439,7 +1439,7 @@ begin
 end
 
 lemma affine_map.image_convex_hull (f : E →ᵃ[ℝ] F) :
-  f '' (convex_hull s) =  convex_hull (f '' s) :=
+  f '' (convex_hull s) = convex_hull (f '' s) :=
 begin
   apply set.subset.antisymm,
   { rw set.image_subset_iff,

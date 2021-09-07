@@ -6,7 +6,7 @@ Authors: Jakob von Raumer
 import category_theory.monoidal.rigid
 import linear_algebra.tensor_product_basis
 import linear_algebra.coevaluation
-import .Module.monoidal
+import algebra.category.Module.monoidal
 
 /-!
 # The category of finite dimensional vector spaces
@@ -40,6 +40,8 @@ instance finite_dimensional (V : FinVect K): finite_dimensional K V := V.prop
 
 instance : inhabited (FinVect K) := ⟨⟨Module.of K K, finite_dimensional.finite_dimensional_self K⟩⟩
 
+instance : has_coe (FinVect.{u} K) (Module.{u} K) := { coe := λ V, V.1, }
+
 protected lemma coe_comp {U V W : FinVect K} (f : U ⟶ V) (g : V ⟶ W) :
   ((f ≫ g) : U → W) = (g : V → W) ∘ (f : U → V) := rfl
 
@@ -63,16 +65,16 @@ open category_theory.monoidal_category
 
 /-- The coevaluation map is defined in `linear_algebra.coevaluation`. -/
 def FinVect_coevaluation : 𝟙_ (FinVect K) ⟶ V ⊗ (FinVect_dual K V) :=
-by { haveI := V.prop, exact coevaluation K V }
+by apply coevaluation K V
 
 lemma FinVect_coevaluation_apply_one : FinVect_coevaluation K V (1 : K) =
    ∑ (i : basis.of_vector_space_index K V),
     (basis.of_vector_space K V) i ⊗ₜ[K] (basis.of_vector_space K V).coord i :=
-by { apply coevaluation_apply_one K V }
+by apply coevaluation_apply_one K V
 
 /-- The evaluation morphism is given by the contraction map. -/
 def FinVect_evaluation : (FinVect_dual K V) ⊗ V ⟶ 𝟙_ (FinVect K) :=
-(contract_left K V : _  →ₗ[K] K)
+by apply contract_left K V
 
 lemma FinVect_evaluation_apply (f : (FinVect_dual K V)) (x : V) :
   (FinVect_evaluation K V) (f ⊗ₜ x) = f x :=

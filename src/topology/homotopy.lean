@@ -36,7 +36,7 @@ namespace continuous_map
 /--
 The type of homotopies between two functions.
 -/
-structure homotopy (f₀ f₁ : X → Y) extends C(I × X, Y) :=
+structure homotopy (f₀ f₁ : C(X, Y)) extends C(I × X, Y) :=
 (to_fun_zero : ∀ x, to_fun (0, x) = f₀ x)
 (to_fun_one : ∀ x, to_fun (1, x) = f₁ x)
 
@@ -44,7 +44,7 @@ namespace homotopy
 
 section
 
-variables {f₀ f₁ : X → Y}
+variables {f₀ f₁ : C(X, Y)}
 
 instance : has_coe_to_fun (homotopy f₀ f₁) := ⟨_, λ F, F.to_fun⟩
 
@@ -90,34 +90,30 @@ end
 /--
 Given a continuous function `f`, we can define a `homotopy f f` by `F (x, t) = f x`
 -/
-def refl {f : X → Y} (hf : continuous f) : homotopy f f :=
+def refl (f : C(X, Y)) : homotopy f f :=
 { to_fun := λ x, f x.2,
   continuous_to_fun := by continuity,
   to_fun_zero := λ _, rfl,
   to_fun_one := λ _, rfl }
 
-/--
-Given `f : C(X, Y)`, we can define a `homotopy f f` by `F (x, t) = f x`
--/
-def refl' (f : C(X, Y)) : homotopy f f := refl f.continuous
-
-instance : inhabited (homotopy (id : X → X) id) := ⟨homotopy.refl continuous_id⟩
+instance : inhabited (homotopy (continuous_map.id : C(X, X)) continuous_map.id) :=
+  ⟨homotopy.refl continuous_map.id⟩
 
 /--
 Given a `homotopy f₀ f₁`, we can define a `homotopy f₁ f₀` by reversing the homotopy.
 -/
-def symm {f₀ f₁ : X → Y} (F : homotopy f₀ f₁) : homotopy f₁ f₀ :=
+def symm {f₀ f₁ : C(X, Y)} (F : homotopy f₀ f₁) : homotopy f₁ f₀ :=
 { to_fun := λ x, F (σ x.1, x.2),
   continuous_to_fun := by continuity,
   to_fun_zero := by norm_num,
   to_fun_one := by norm_num }
 
 @[simp]
-lemma symm_apply {f₀ f₁ : X → Y} (F : homotopy f₀ f₁) (x : X) (t : I) :
+lemma symm_apply {f₀ f₁ : C(X, Y)} (F : homotopy f₀ f₁) (x : X) (t : I) :
   F.symm (t, x) = F (σ t, x) := rfl
 
 @[simp]
-lemma symm_symm {f₀ f₁ : X → Y} (F : homotopy f₀ f₁) : F.symm.symm = F :=
+lemma symm_symm {f₀ f₁ : C(X, Y)} (F : homotopy f₀ f₁) : F.symm.symm = F :=
 begin
   ext x,
   cases x,
@@ -128,7 +124,7 @@ end
 Given `homotopy f₀ f₁` and `homotopy f₁ f₂`, we can define a `homotopy f₀ f₂` by putting the first
 homotopy on `[0, 1/2]` and the second on `[1/2, 1]`.
 -/
-def trans {f₀ f₁ f₂ : X → Y} (F : homotopy f₀ f₁) (G : homotopy f₁ f₂) : homotopy f₀ f₂ :=
+def trans {f₀ f₁ f₂ : C(X, Y)} (F : homotopy f₀ f₁) (G : homotopy f₁ f₂) : homotopy f₀ f₂ :=
 { to_fun := λ x, if (x.1 : ℝ) ≤ 1/2 then F.extend (2 * x.1) x.2 else G.extend (2 * x.1 - 1) x.2,
   continuous_to_fun := begin
     refine continuous_if_le _ _ (continuous.continuous_on _) (continuous.continuous_on _) _,
@@ -150,9 +146,9 @@ def trans {f₀ f₁ f₂ : X → Y} (F : homotopy f₀ f₁) (G : homotopy f₁
   to_fun_zero := λ x, by norm_num,
   to_fun_one := λ x, by norm_num }
 
-lemma trans_apply {f₀ f₁ f₂ : X → Y} (F : homotopy f₀ f₁) (G : homotopy f₁ f₂) (x : I × X) :
+lemma trans_apply {f₀ f₁ f₂ : C(X, Y)} (F : homotopy f₀ f₁) (G : homotopy f₁ f₂) (x : I × X) :
   (F.trans G) x = if h : (x.1 : ℝ) ≤ 1/2 then
-    F (⟨2 * x.1, unit_interval.two_mul_mem_iff.2 ⟨x.1.2.1, h⟩⟩, x.2)
+    F (⟨2 * x.1, (unit_interval.mul_pos_mem_iff zero_lt_two).2 ⟨x.1.2.1, h⟩⟩, x.2)
   else
     G (⟨2 * x.1 - 1, unit_interval.two_mul_sub_one_mem_iff.2 ⟨(not_le.1 h).le, x.1.2.2⟩⟩, x.2) :=
 begin
@@ -164,7 +160,7 @@ begin
     refl }
 end
 
-lemma symm_trans {f₀ f₁ f₂ : X → Y} (F : homotopy f₀ f₁) (G : homotopy f₁ f₂) :
+lemma symm_trans {f₀ f₁ f₂ : C(X, Y)} (F : homotopy f₀ f₁) (G : homotopy f₁ f₂) :
   (F.trans G).symm = G.symm.trans F.symm :=
 begin
   ext,

@@ -471,13 +471,16 @@ by simpa only [pos_iff_ne_zero] using ennreal.pow_pos
 
 @[simp] lemma not_lt_zero : ¬ a < 0 := by simp
 
-lemma add_lt_add_iff_left : a < ∞ → (a + c < a + b ↔ c < b) :=
-with_top.add_lt_add_iff_left
+lemma add_lt_add_iff_left (ha : a ≠ ∞) : a + c < a + b ↔ c < b :=
+with_top.add_lt_add_iff_left ha
 
-lemma add_lt_add_iff_right : a < ∞ → (c + a < b + a ↔ c < b) :=
-with_top.add_lt_add_iff_right
+lemma add_lt_add_iff_right (ha : a ≠ ∞) : c + a < b + a ↔ c < b :=
+with_top.add_lt_add_iff_right ha
 
-lemma lt_add_right (ha : a < ∞) (hb : 0 < b) : a < a + b :=
+instance contravariant_class_add_lt : contravariant_class ℝ≥0∞ ℝ≥0∞ (+) (<) :=
+with_top.contravariant_class_add_lt
+
+lemma lt_add_right (ha : a ≠ ∞) (hb : 0 < b) : a < a + b :=
 by rwa [← add_lt_add_iff_left ha, add_zero] at hb
 
 lemma le_of_forall_pos_le_add : ∀{a b : ℝ≥0∞}, (∀ε:ℝ≥0, 0 < ε → b < ∞ → a ≤ b + ε) → a ≤ b
@@ -669,7 +672,7 @@ le_antisymm (Inf_le $ le_add_left h) (zero_le _)
 @[simp] lemma zero_sub : 0 - a = 0 :=
 le_antisymm (Inf_le $ zero_le $ 0 + a) (zero_le _)
 
-@[simp] lemma sub_infty : a - ∞ = 0 :=
+@[simp] lemma sub_top : a - ∞ = 0 :=
 le_antisymm (Inf_le $ by simp) (zero_le _)
 
 lemma sub_le_sub (h₁ : a ≤ b) (h₂ : d ≤ c) : a - c ≤ b - d :=

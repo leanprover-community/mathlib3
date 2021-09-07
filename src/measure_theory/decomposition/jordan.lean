@@ -428,6 +428,7 @@ begin
     rw [total_variation, measure.add_apply, h.1 hS₂, h.2 hS₂, add_zero] }
 end
 
+-- TODO: Generalize to vector measures once total variation on vector measures is defined
 lemma mutually_singular_iff (s t : signed_measure α) :
   s ⊥ᵥ t ↔ s.total_variation ⊥ₘ t.total_variation :=
 begin

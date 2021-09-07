@@ -46,7 +46,7 @@ instance nonempty_compacts_inhabited [inhabited α] : inhabited (nonempty_compac
 /-- The compact sets with nonempty interior of a topological space. See also `compacts` and
   `nonempty_compacts`. -/
 @[nolint has_inhabited_instance]
-def positive_compacts: Type* := { s : set α // is_compact s ∧ (interior s).nonempty  }
+def positive_compacts: Type* := { s : set α // is_compact s ∧ (interior s).nonempty }
 
 /-- In a nonempty compact space, `set.univ` is a member of `positive_compacts`, the compact sets
 with nonempty interior. -/

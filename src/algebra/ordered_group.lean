@@ -20,6 +20,7 @@ The reason is that we did not want to change existing names in the library.
 -/
 
 set_option old_structure_cmd true
+open function
 
 universe u
 variable {α : Type u}
@@ -31,7 +32,7 @@ group.covconv
 
 @[to_additive]
 instance group.swap.covariant_class_le.to_contravariant_class_le [group α] [has_le α]
-  [covariant_class α α (function.swap (*)) (≤)] : contravariant_class α α (function.swap (*)) (≤) :=
+  [covariant_class α α (swap (*)) (≤)] : contravariant_class α α (swap (*)) (≤) :=
 { elim := λ a b c bc, calc  b = b * a * a⁻¹ : eq_mul_inv_of_mul_eq rfl
                           ... ≤ c * a * a⁻¹ : mul_le_mul_right' bc a⁻¹
                           ... = c           : mul_inv_eq_of_eq_mul rfl }
@@ -45,7 +46,7 @@ instance group.covariant_class_lt.to_contravariant_class_lt
 
 @[to_additive]
 instance group.swap.covariant_class_lt.to_contravariant_class_lt [group α] [has_lt α]
-  [covariant_class α α (function.swap (*)) (<)] : contravariant_class α α (function.swap (*)) (<) :=
+  [covariant_class α α (swap (*)) (<)] : contravariant_class α α (swap (*)) (<) :=
 { elim := λ a b c bc, calc  b = b * a * a⁻¹ : eq_mul_inv_of_mul_eq rfl
                           ... < c * a * a⁻¹ : mul_lt_mul_right' bc a⁻¹
                           ... = c           : mul_inv_eq_of_eq_mul rfl }
@@ -73,7 +74,7 @@ instance ordered_comm_group.to_covariant_class_left_le (α : Type u) [ordered_co
 instance units.ordered_comm_group [ordered_comm_monoid α] : ordered_comm_group (units α) :=
 { mul_le_mul_left := λ a b h c, (mul_le_mul_left' (h : (a : α) ≤ b) _ :  (c : α) * a ≤ c * b),
   .. units.partial_order,
-  .. (infer_instance : comm_group (units α)) }
+  .. units.comm_group }
 
 @[priority 100, to_additive]    -- see Note [lower instance priority]
 instance ordered_comm_group.to_ordered_cancel_comm_monoid (α : Type u)
@@ -88,6 +89,15 @@ instance ordered_comm_group.has_exists_mul_of_le (α : Type u)
   [ordered_comm_group α] :
   has_exists_mul_of_le α :=
 ⟨λ a b hab, ⟨b * a⁻¹, (mul_inv_cancel_comm_assoc a b).symm⟩⟩
+
+@[to_additive] instance [h : has_inv α] : has_inv (order_dual α) := h
+@[to_additive] instance [h : has_div α] : has_div (order_dual α) := h
+@[to_additive] instance [h : div_inv_monoid α] : div_inv_monoid (order_dual α) := h
+@[to_additive] instance [h : group α] : group (order_dual α) := h
+@[to_additive] instance [h : comm_group α] : comm_group (order_dual α) := h
+
+@[to_additive] instance [ordered_comm_group α] : ordered_comm_group (order_dual α) :=
+{ .. order_dual.ordered_comm_monoid, .. order_dual.group }
 
 section group
 variables [group α]
@@ -175,7 +185,7 @@ trans (inv_mul_lt_iff_lt_mul) $ by rw mul_one
 end typeclasses_left_lt
 
 section typeclasses_right_le
-variables [has_le α] [covariant_class α α (function.swap (*)) (≤)] {a b c : α}
+variables [has_le α] [covariant_class α α (swap (*)) (≤)] {a b c : α}
 
 /--  Uses `right` co(ntra)variant. -/
 @[simp, to_additive right.neg_nonpos_iff]
@@ -220,7 +230,7 @@ trans (mul_inv_le_iff_le_mul) $ by rw one_mul
 end typeclasses_right_le
 
 section typeclasses_right_lt
-variables [has_lt α] [covariant_class α α (function.swap (*)) (<)] {a b c : α}
+variables [has_lt α] [covariant_class α α (swap (*)) (<)] {a b c : α}
 
 /--  Uses `right` co(ntra)variant. -/
 @[simp, to_additive right.neg_neg_iff]
@@ -265,7 +275,7 @@ trans (mul_inv_lt_iff_lt_mul) $ by rw one_mul
 end typeclasses_right_lt
 
 section typeclasses_left_right_le
-variables [has_le α] [covariant_class α α (*) (≤)] [covariant_class α α (function.swap (*)) (≤)]
+variables [has_le α] [covariant_class α α (*) (≤)] [covariant_class α α (swap (*)) (≤)]
   {a b c d : α}
 
 @[simp, to_additive]
@@ -290,8 +300,8 @@ end
 lemma inv_le' : a⁻¹ ≤ b ↔ b⁻¹ ≤ a :=
 (order_iso.inv α).symm_apply_le
 
-alias inv_le' ↔ inv_le_of_inv_le _
-attribute [to_additive] inv_le_of_inv_le
+alias inv_le' ↔ inv_le_of_inv_le' _
+attribute [to_additive neg_le_of_neg_le] inv_le_of_inv_le'
 
 @[to_additive le_neg]
 lemma le_inv' : a ≤ b⁻¹ ↔ b ≤ a⁻¹ :=
@@ -310,7 +320,7 @@ alias sub_le_self_iff ↔ _ sub_le_self
 end typeclasses_left_right_le
 
 section typeclasses_left_right_lt
-variables [has_lt α] [covariant_class α α (*) (<)] [covariant_class α α (function.swap (*)) (<)]
+variables [has_lt α] [covariant_class α α (*) (<)] [covariant_class α α (swap (*)) (<)]
   {a b c d : α}
 
 @[simp, to_additive]
@@ -328,8 +338,8 @@ by rw [← inv_lt_inv_iff, inv_inv]
 alias lt_inv' ↔ lt_inv_of_lt_inv _
 attribute [to_additive] lt_inv_of_lt_inv
 
-alias inv_lt' ↔ inv_lt_of_inv_lt _
-attribute [to_additive] inv_lt_of_inv_lt
+alias inv_lt' ↔ inv_lt_of_inv_lt' _
+attribute [to_additive neg_lt_of_neg_lt] inv_lt_of_inv_lt'
 
 @[to_additive]
 lemma mul_inv_lt_inv_mul_iff : a * b⁻¹ < d⁻¹ * c ↔ d * a < c * b :=
@@ -377,7 +387,7 @@ lt_trans h (left.one_lt_inv_iff.mpr h)
 end left_lt
 
 section right_le
-variables [covariant_class α α (function.swap (*)) (≤)] {a : α}
+variables [covariant_class α α (swap (*)) (≤)] {a : α}
 
 @[to_additive]
 lemma right.inv_le_self (h : 1 ≤ a) : a⁻¹ ≤ a :=
@@ -390,7 +400,7 @@ le_trans h (right.one_le_inv_iff.mpr h)
 end right_le
 
 section right_lt
-variables [covariant_class α α (function.swap (*)) (<)] {a : α}
+variables [covariant_class α α (swap (*)) (<)] {a : α}
 
 @[to_additive]
 lemma right.inv_lt_self (h : 1 < a) : a⁻¹ < a :=
@@ -535,7 +545,7 @@ section group
 variables [group α] [has_le α]
 
 section right
-variables [covariant_class α α (function.swap (*)) (≤)] {a b c d : α}
+variables [covariant_class α α (swap (*)) (≤)] {a b c d : α}
 
 @[simp, to_additive]
 lemma div_le_div_iff_right (c : α) : a / c ≤ b / c ↔ a ≤ b :=
@@ -590,7 +600,7 @@ def order_iso.mul_left (a : α) : α ≃o α :=
   (order_iso.mul_left a).symm = order_iso.mul_left a⁻¹ :=
 by { ext x, refl }
 
-variables [covariant_class α α (function.swap (*)) (≤)] {a b c : α}
+variables [covariant_class α α (swap (*)) (≤)] {a b c : α}
 
 @[simp, to_additive]
 lemma div_le_div_iff_left (a : α) : a / b ≤ a / c ↔ c ≤ b :=
@@ -666,7 +676,7 @@ section group
 variables [group α] [has_lt α]
 
 section right
-variables [covariant_class α α (function.swap (*)) (<)] {a b c d : α}
+variables [covariant_class α α (swap (*)) (<)] {a b c d : α}
 
 @[simp, to_additive]
 lemma div_lt_div_iff_right (c : α) : a / c < b / c ↔ a < b :=
@@ -705,7 +715,7 @@ alias sub_lt_iff_lt_add ↔ lt_add_of_sub_right_lt sub_right_lt_of_lt_add
 end right
 
 section left
-variables [covariant_class α α (*) (<)] [covariant_class α α (function.swap (*)) (<)] {a b c : α}
+variables [covariant_class α α (*) (<)] [covariant_class α α (swap (*)) (<)] {a b c : α}
 
 @[simp, to_additive]
 lemma div_lt_div_iff_left (a : α) : a / b < a / c ↔ c < b :=
@@ -792,7 +802,7 @@ lemma le_iff_forall_one_lt_lt_mul : a ≤ b ↔ ∀ ε, 1 < ε → a < b * ε :=
 /-  I (DT) introduced this lemma to prove (the additive version `sub_le_sub_flip` of)
 `div_le_div_flip` below.  Now I wonder what is the point of either of these lemmas... -/
 @[to_additive]
-lemma div_le_inv_mul_iff [covariant_class α α (function.swap (*)) (≤)] :
+lemma div_le_inv_mul_iff [covariant_class α α (swap (*)) (≤)] :
   a / b ≤ a⁻¹ * b ↔ a ≤ b :=
 begin
   rw [div_eq_mul_inv, mul_inv_le_inv_mul_iff],
@@ -824,11 +834,24 @@ variables [densely_ordered α] {a b c : α}
 lemma le_of_forall_one_lt_le_mul (h : ∀ ε : α, 1 < ε → a ≤ b * ε) : a ≤ b :=
 le_of_forall_le_of_dense $ λ c hc,
 calc a ≤ b * (b⁻¹ * c) : h _ (lt_inv_mul_iff_lt.mpr hc)
-   ... = c            : mul_inv_cancel_left b c
+   ... = c             : mul_inv_cancel_left b c
+
+@[to_additive]
+lemma le_of_forall_lt_one_mul_le (h : ∀ ε < 1, a * ε ≤ b) : a ≤ b :=
+@le_of_forall_one_lt_le_mul (order_dual α) _ _ _ _ _ _ h
+
+@[to_additive]
+lemma le_of_forall_one_lt_div_le (h : ∀ ε : α, 1 < ε → a / ε ≤ b) : a ≤ b :=
+le_of_forall_lt_one_mul_le $ λ ε ε1,
+  by simpa only [div_eq_mul_inv, inv_inv]  using h ε⁻¹ (left.one_lt_inv_iff.2 ε1)
 
 @[to_additive]
 lemma le_iff_forall_one_lt_le_mul : a ≤ b ↔ ∀ ε, 1 < ε → a ≤ b * ε :=
 ⟨λ h ε ε_pos, le_mul_of_le_of_one_le h ε_pos.le, le_of_forall_one_lt_le_mul⟩
+
+@[to_additive]
+lemma le_iff_forall_lt_one_mul_le : a ≤ b ↔ ∀ ε < 1, a * ε ≤ b :=
+@le_iff_forall_one_lt_le_mul (order_dual α) _ _ _ _ _ _
 
 end densely_ordered
 
@@ -857,6 +880,10 @@ commutative group with a linear order in which
 multiplication is monotone. -/
 @[protect_proj, ancestor ordered_comm_group linear_order, to_additive]
 class linear_ordered_comm_group (α : Type u) extends ordered_comm_group α, linear_order α
+
+@[to_additive] instance [linear_ordered_comm_group α] :
+  linear_ordered_comm_group (order_dual α) :=
+{ .. order_dual.ordered_comm_group, .. order_dual.linear_order α }
 
 section linear_ordered_comm_group
 variables [linear_ordered_comm_group α] {a b c : α}
@@ -954,8 +981,16 @@ section covariant_add_le
 section has_neg
 variables [has_neg α] [linear_order α] {a b: α}
 
-/-- `abs a` is the absolute value of `a`. -/
-def abs {α : Type*} [has_neg α] [linear_order α] (a : α) : α := max a (-a)
+/-- `mabs a` is the multiplicative absolute value of `a`. -/
+@[to_additive abs
+"`abs a` is the additive absolute value of `a`."
+]
+def mabs {α : Type*} [has_inv α] [lattice α] (a : α) : α := a ⊔ (a⁻¹)
+
+lemma abs_eq_max_neg {α : Type*} [has_neg α] [linear_order α] (a : α) : abs a = max a (-a) :=
+begin
+  exact rfl,
+end
 
 lemma abs_choice (x : α) : abs x = x ∨ abs x = -x := max_choice _ _
 
@@ -981,7 +1016,9 @@ section add_group
 variables [add_group α] [linear_order α]
 
 @[simp] lemma abs_neg (a : α) : abs (-a) = abs a :=
-begin unfold abs, rw [max_comm, neg_neg] end
+begin
+  rw [abs_eq_max_neg, max_comm, neg_neg, abs_eq_max_neg]
+end
 
 lemma eq_or_eq_neg_of_abs_eq {a b : α} (h : abs a = b) : a = b ∨ a = -b :=
 by simpa only [← h, eq_comm, eq_neg_iff_eq_neg] using abs_choice a
@@ -1049,7 +1086,7 @@ decidable.not_iff_not.1 $ ne_comm.trans $ (abs_nonneg a).lt_iff_ne.symm.trans ab
 @[simp] lemma abs_nonpos_iff {a : α} : abs a ≤ 0 ↔ a = 0 :=
 (abs_nonneg a).le_iff_eq.trans abs_eq_zero
 
-variable [covariant_class α α (function.swap (+)) (≤)]
+variable [covariant_class α α (swap (+)) (≤)]
 
 lemma abs_lt : abs a < b ↔ - b < a ∧ a < b :=
 max_lt_iff.trans $ and.comm.trans $ by rw [neg_lt]
@@ -1237,22 +1274,6 @@ def to_linear_ordered_add_comm_group
   ..@nonneg_add_comm_group.to_ordered_add_comm_group _ s }
 
 end nonneg_add_comm_group
-
-namespace order_dual
-
-instance [ordered_add_comm_group α] : ordered_add_comm_group (order_dual α) :=
-{ add_left_neg := λ a : α, add_left_neg a,
-  sub := λ a b, (a - b : α),
-  ..order_dual.ordered_add_comm_monoid,
-  ..show add_comm_group α, by apply_instance }
-
-instance [linear_ordered_add_comm_group α] :
-  linear_ordered_add_comm_group (order_dual α) :=
-{ add_le_add_left := λ a b h c, by exact add_le_add_left h _,
-  ..order_dual.linear_order α,
-  ..show add_comm_group α, by apply_instance }
-
-end order_dual
 
 namespace prod
 

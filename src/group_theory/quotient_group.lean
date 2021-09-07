@@ -84,6 +84,19 @@ lemma coe_mk' : (mk' N : G → quotient N) = coe := rfl
 @[to_additive, simp]
 lemma mk'_apply (x : G) : mk' N x = x := rfl
 
+/-- Two `monoid_hom`s from a quotient group are equal if their compositions with
+`quotient_group.mk'` are equal.
+
+See note [partially-applied ext lemmas]. -/
+@[to_additive /-" Two `add_monoid_hom`s from an additive quotient group are equal if their
+compositions with `add_quotient_group.mk'` are equal.
+
+See note [partially-applied ext lemmas]. "-/, ext]
+lemma monoid_hom_ext ⦃f g : quotient N →* H⦄ (h : f.comp (mk' N) = g.comp (mk' N)) : f = g :=
+monoid_hom.ext $ λ x, quotient_group.induction_on x $ (monoid_hom.congr_fun h : _)
+
+attribute [ext] quotient_add_group.add_monoid_hom_ext
+
 @[simp, to_additive quotient_add_group.eq_zero_iff]
 lemma eq_one_iff {N : subgroup G} [nN : N.normal] (x : G) : (x : quotient N) = 1 ↔ x ∈ N :=
 begin
@@ -274,6 +287,11 @@ def equiv_quotient_of_eq {M N : subgroup G} [M.normal] [N.normal] (h : M = N) :
   right_inv := λ x, x.induction_on' $ by { intro, refl },
   map_mul' := λ x y, by rw map_mul }
 
+@[simp, to_additive]
+lemma equiv_quotient_of_eq_mk {M N : subgroup G} [M.normal] [N.normal] (h : M = N) (x : G) :
+  quotient_group.equiv_quotient_of_eq h (quotient_group.mk x) = (quotient_group.mk x) :=
+rfl
+
 /-- Let `A', A, B', B` be subgroups of `G`. If `A' ≤ B'` and `A ≤ B`,
 then there is a map `A / (A' ⊓ A) →* B / (B' ⊓ B)` induced by the inclusions. -/
 @[to_additive "Let `A', A, B', B` be subgroups of `G`. If `A' ≤ B'` and `A ≤ B`,
@@ -285,8 +303,14 @@ def quotient_map_subgroup_of_of_le {A' A B' B : subgroup G}
 map _ _ (subgroup.inclusion h) $
   by simp [subgroup.subgroup_of, subgroup.comap_comap]; exact subgroup.comap_mono h'
 
+@[simp, to_additive]
+lemma quotient_map_subgroup_of_of_le_coe {A' A B' B : subgroup G}
+  [hAN : (A'.subgroup_of A).normal] [hBN : (B'.subgroup_of B).normal]
+  (h' : A' ≤ B') (h : A ≤ B) (x : A) :
+  quotient_map_subgroup_of_of_le h' h x = ↑(subgroup.inclusion h x : B) := rfl
+
 /-- Let `A', A, B', B` be subgroups of `G`.
-If `A' = B'` and `A = B`, then the quotients `A / (A' ⊓ A)` and `B / (B' ⊓ B)` are isomorphic. 
+If `A' = B'` and `A = B`, then the quotients `A / (A' ⊓ A)` and `B / (B' ⊓ B)` are isomorphic.
 
 Applying this equiv is nicer than rewriting along the equalities, since the type of
 `(A'.subgroup_of A : subgroup A)` depends on on `A`.
@@ -301,9 +325,10 @@ def equiv_quotient_subgroup_of_of_eq {A' A B' B : subgroup G}
   [hAN : (A'.subgroup_of A).normal] [hBN : (B'.subgroup_of B).normal]
   (h' : A' = B') (h : A = B) :
   quotient (A'.subgroup_of A) ≃* quotient (B'.subgroup_of B) :=
-by apply monoid_hom.to_mul_equiv
-    (quotient_map_subgroup_of_of_le h'.le h.le) (quotient_map_subgroup_of_of_le h'.ge h.ge);
-  { ext ⟨x⟩, simp [quotient_map_subgroup_of_of_le, map, lift, mk', subgroup.inclusion], refl }
+monoid_hom.to_mul_equiv
+  (quotient_map_subgroup_of_of_le h'.le h.le) (quotient_map_subgroup_of_of_le h'.ge h.ge)
+  (by { ext ⟨x, hx⟩, refl })
+  (by { ext ⟨x, hx⟩, refl })
 
 section snd_isomorphism_thm
 
@@ -372,12 +397,11 @@ quotient_group.lift_mk' _ _ x
 "**Noether's third isomorphism theorem** for additive groups: `(A / N) / (M / N) ≃ A / M`."]
 def quotient_quotient_equiv_quotient :
   quotient_group.quotient (M.map (quotient_group.mk' N)) ≃* quotient_group.quotient M :=
-{ to_fun := quotient_quotient_equiv_quotient_aux N M h,
-  inv_fun := quotient_group.map _ _ (quotient_group.mk' N) (subgroup.le_comap_map _ _),
-  left_inv := λ x, quotient_group.induction_on' x $ λ x, quotient_group.induction_on' x $
-    λ x, by simp,
-  right_inv := λ x, quotient_group.induction_on' x $ λ x, by simp,
-  map_mul' := monoid_hom.map_mul _ }
+monoid_hom.to_mul_equiv
+  (quotient_quotient_equiv_quotient_aux N M h)
+  (quotient_group.map _ _ (quotient_group.mk' N) (subgroup.le_comap_map _ _))
+  (by { ext, simp })
+  (by { ext, simp })
 
 end third_iso_thm
 

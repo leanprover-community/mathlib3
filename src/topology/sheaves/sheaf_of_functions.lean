@@ -62,8 +62,7 @@ begin
   let index : supr U → ι := λ ⟨x,mem⟩, classical.some (opens.mem_supr.mp mem),
   have index_spec : ∀ x : supr U, x.1 ∈ U (index x) := by {
       rintro ⟨x,mem⟩,
-      exact classical.some_spec (opens.mem_supr.mp mem),
-  },
+      exact classical.some_spec (opens.mem_supr.mp mem), },
   -- Using this data, we can glue our functions together to a single section
   let s : Π x : supr U, T x := λ x, sf (index x) ⟨x.1, index_spec x⟩,
   refine ⟨s,_,_⟩,

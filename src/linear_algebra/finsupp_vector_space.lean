@@ -163,7 +163,7 @@ begin
   rw [←cardinal.lift_inj.1 m.mk_eq_dim, ←cardinal.lift_inj.1 m'.mk_eq_dim] at h,
   rcases quotient.exact h with ⟨e⟩,
   let e := (equiv.ulift.symm.trans e).trans equiv.ulift,
-  exact ⟨(m.repr.trans (finsupp.dom_lcongr e)).trans m'.repr.symm⟩
+  exact ⟨(m.repr ≪≫ₗ (finsupp.dom_lcongr e)) ≪≫ₗ m'.repr.symm⟩
 end
 
 /-- Two `K`-vector spaces are equivalent if their dimension is the same. -/

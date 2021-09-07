@@ -622,6 +622,8 @@ def lsmul : 𝕜' →L[𝕜] E →L[𝕜] E :=
 ((algebra.lsmul 𝕜 E).to_linear_map : 𝕜' →ₗ[𝕜] E →ₗ[𝕜] E).mk_continuous₂ 1 $
   λ c x, by simpa only [one_mul] using (norm_smul c x).le
 
+@[simp] lemma lsmul_apply (c : 𝕜') (x : E) : lsmul 𝕜 𝕜' c x = c • x := rfl
+
 end smul_linear
 
 section restrict_scalars
@@ -1102,14 +1104,14 @@ have eq : _ := uniformly_extend_of_ind h_e h_dense f.uniform_continuous,
     refine h_dense.induction_on₂ _ _,
     { exact is_closed_eq (cont.comp continuous_add)
         ((cont.comp continuous_fst).add (cont.comp continuous_snd)) },
-    { assume x y, simp only [eq, ← e.map_add], exact f.map_add _ _  },
+    { assume x y, simp only [eq, ← e.map_add], exact f.map_add _ _ },
   end,
   map_smul' := λk,
   begin
     refine (λ b, h_dense.induction_on b _ _),
     { exact is_closed_eq (cont.comp (continuous_const.smul continuous_id))
         ((continuous_const.smul continuous_id).comp cont) },
-    { assume x, rw ← map_smul, simp only [eq], exact map_smul _ _ _  },
+    { assume x, rw ← map_smul, simp only [eq], exact map_smul _ _ _ },
   end,
   cont := cont
 }

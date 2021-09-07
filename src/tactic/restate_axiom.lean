@@ -76,8 +76,7 @@ do from_lemma ← ident,
     fail ("declaration " ++ to_string from_lemma ++ " not found"),
   do {
     new_name ← name_lemma from_lemma_fully_qualified new_name,
-    restate_axiom d new_name
-  }
+    restate_axiom d new_name }
 
 add_tactic_doc
 { name                     := "restate_axiom",

@@ -3,9 +3,9 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import data.polynomial.monomial
 import data.nat.with_bot
 import data.polynomial.induction
+import data.polynomial.monomial
 
 /-!
 # Theory of univariate polynomials
@@ -637,7 +637,7 @@ begin
   rwa coeff_mul_degree_add_degree
 end
 
-lemma degree_mul_monic (hq : monic q) : degree (p * q) = degree p + degree q :=
+lemma monic.degree_mul (hq : monic q) : degree (p * q) = degree p + degree q :=
 if hp : p = 0 then by simp [hp]
 else degree_mul' $ by rwa [hq.leading_coeff, mul_one, ne.def, leading_coeff_eq_zero]
 
@@ -655,6 +655,18 @@ begin
   rw [nat_degree_mul' h, coeff_mul_degree_add_degree],
   refl
 end
+
+lemma monomial_nat_degree_leading_coeff_eq_self (h : p.support.card ≤ 1) :
+  monomial p.nat_degree p.leading_coeff = p :=
+begin
+  rcases card_support_le_one_iff_monomial.1 h with ⟨n, a, rfl⟩,
+  by_cases ha : a = 0;
+  simp [ha]
+end
+
+lemma C_mul_X_pow_eq_self (h : p.support.card ≤ 1) :
+  C p.leading_coeff * X^p.nat_degree = p :=
+by rw [C_mul_X_pow_eq_monomial, monomial_nat_degree_leading_coeff_eq_self h]
 
 lemma leading_coeff_pow' : leading_coeff p ^ n ≠ 0 →
   leading_coeff (p ^ n) = leading_coeff p ^ n :=
@@ -799,10 +811,10 @@ theorem not_is_unit_X : ¬ is_unit (X : polynomial R) :=
 λ ⟨⟨_, g, hfg, hgf⟩, rfl⟩, @zero_ne_one R _ _ $
 by { change g * monomial 1 1 = 1 at hgf, rw [← coeff_one_zero, ← hgf], simp }
 
-@[simp] lemma degree_mul_X : degree (p * X) = degree p + 1 := by simp [degree_mul_monic monic_X]
+@[simp] lemma degree_mul_X : degree (p * X) = degree p + 1 := by simp [monic_X.degree_mul]
 
 @[simp] lemma degree_mul_X_pow : degree (p * X ^ n) = degree p + n :=
-by simp [degree_mul_monic (monic_X_pow n)]
+by simp [(monic_X_pow n).degree_mul]
 
 end nontrivial_semiring
 

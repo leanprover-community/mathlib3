@@ -20,6 +20,7 @@ In the presence of automation, this whole file may be unnecessary. On the other 
 maybe it is useful for writing automation.
 -/
 
+open function
 local attribute [instance, priority 10] classical.prop_decidable
 
 section miscellany
@@ -334,10 +335,22 @@ by { have := @imp_not_self (¬a), rwa decidable.not_not at this }
 @[simp] theorem not_imp_self : (¬a → a) ↔ a := decidable.not_imp_self
 
 theorem imp.swap : (a → b → c) ↔ (b → a → c) :=
-⟨function.swap, function.swap⟩
+⟨swap, swap⟩
 
 theorem imp_not_comm : (a → ¬b) ↔ (b → ¬a) :=
 imp.swap
+
+/-! ### Declarations about `xor` -/
+
+@[simp] theorem xor_true : xor true = not := funext $ λ a, by simp [xor]
+
+@[simp] theorem xor_false : xor false = id := funext $ λ a, by simp [xor]
+
+theorem xor_comm (a b) : xor a b = xor b a := by simp [xor, and_comm, or_comm]
+
+instance : is_commutative Prop xor := ⟨xor_comm⟩
+
+@[simp] theorem xor_self (a : Prop) : xor a a = false := by simp [xor]
 
 /-! ### Declarations about `and` -/
 
@@ -781,7 +794,7 @@ lemma exists₄_congr {γ δ : Sort*} {p q : α → β → γ → δ → Prop}
 exists_congr (λ a, exists₃_congr (h a))
 
 theorem forall_swap {p : α → β → Prop} : (∀ x y, p x y) ↔ ∀ y x, p x y :=
-⟨function.swap, function.swap⟩
+⟨swap, swap⟩
 
 theorem exists_swap {p : α → β → Prop} : (∃ x y, p x y) ↔ ∃ y x, p x y :=
 ⟨λ ⟨x, y, h⟩, ⟨y, x, h⟩, λ ⟨y, x, h⟩, ⟨x, y, h⟩⟩
@@ -1132,6 +1145,14 @@ hpq _ $ some_spec _
 noncomputable def subtype_of_exists {α : Type*} {P : α → Prop} (h : ∃ x, P x) : {x // P x} :=
 ⟨classical.some h, classical.some_spec h⟩
 
+/-- A version of `by_contradiction` that uses types instead of propositions. -/
+protected noncomputable def by_contradiction' {α : Sort*} (H : ¬ (α → false)) : α :=
+classical.choice $ peirce _ false $ λ h, (H $ λ a, h ⟨a⟩).elim
+
+/-- `classical.by_contradiction'` is equivalent to lean's axiom `classical.choice`. -/
+def choice_of_by_contradiction' {α : Sort*} (contra : ¬ (α → false) → α) : nonempty α → α :=
+λ H, contra H.elim
+
 end classical
 
 /-- This function has the same type as `exists.rec_on`, and can be used to case on an equality,
@@ -1250,6 +1271,10 @@ by by_cases p; simp *
 @[simp] lemma ite_eq_right_iff {α} {p : Prop} [decidable p] {a b : α} :
   (if p then a else b) = b ↔ (p → a = b) :=
 by by_cases p; simp *
+
+lemma ite_eq_or_eq {α} {p : Prop} [decidable p] (a b : α) :
+  ite p a b = a ∨ ite p a b = b :=
+decidable.by_cases (λ h, or.inl (if_pos h)) (λ h, or.inr (if_neg h))
 
 /-! ### Declarations about `nonempty` -/
 

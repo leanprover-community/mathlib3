@@ -31,15 +31,15 @@ open bounded_continuous_function
 
 namespace continuous_map
 
-variables (α : Type*) (β : Type*) [topological_space α] [compact_space α] [normed_group β]
+variables (α β μ : Type*) [topological_space α] [compact_space α] [normed_group β] [metric_space μ]
 
 /--
 When `α` is compact, the bounded continuous maps `α →ᵇ 𝕜` are
 equivalent to `C(α, 𝕜)`.
 -/
 @[simps]
-def equiv_bounded_of_compact : C(α, β) ≃ (α →ᵇ β) :=
-⟨mk_of_compact, forget_boundedness α β, λ f, by { ext, refl, }, λ f, by { ext, refl, }⟩
+def equiv_bounded_of_compact : C(α, μ) ≃ (α →ᵇ μ) :=
+⟨mk_of_compact, forget_boundedness α μ, λ f, by { ext, refl, }, λ f, by { ext, refl, }⟩
 
 /--
 When `α` is compact, the bounded continuous maps `α →ᵇ 𝕜` are
@@ -62,10 +62,10 @@ lemma add_equiv_bounded_of_compact_to_equiv :
   (add_equiv_bounded_of_compact α β).to_equiv = equiv_bounded_of_compact α β :=
 rfl
 
-instance : metric_space C(α,β) :=
+instance : metric_space C(α,μ) :=
 metric_space.induced
-  (equiv_bounded_of_compact α β)
-  (equiv_bounded_of_compact α β).injective
+  (equiv_bounded_of_compact α μ)
+  (equiv_bounded_of_compact α μ).injective
   (by apply_instance)
 
 section
@@ -106,9 +106,9 @@ isometric to `C(α, β)`.
 -/
 @[simps]
 def isometric_bounded_of_compact :
-  C(α, β) ≃ᵢ (α →ᵇ β) :=
+  C(α, μ) ≃ᵢ (α →ᵇ μ) :=
 { isometry_to_fun := λ x y, rfl,
-  to_equiv := equiv_bounded_of_compact α β }
+  to_equiv := equiv_bounded_of_compact α μ }
 
 -- TODO at some point we will need lemmas characterising this norm!
 -- At the moment the only way to reason about it is to transfer `f : C(α,β)` back to `α →ᵇ β`.

@@ -378,7 +378,7 @@ begin
     exact λ K hK, hK ⟨f y, hd (mem_map_of_mem f hy), by simp⟩ }
 end
 
-lemma lower_central_series_le_center_to_nilpotent (n : ℕ) (h : lower_central_series G n ≤ center G)
+lemma lower_central_series_le_center_to_nilpotent {n : ℕ} (h : lower_central_series G n ≤ center G)
   : lower_central_series G (n + 1) = ⊥ :=
 begin
   rw [lower_central_series_succ, closure_eq_bot_iff, set.subset_singleton_iff],
@@ -388,12 +388,12 @@ begin
   exact mem_center_iff.mp (h hy1) z,
 end
 
-lemma ker_le_center_to_nilpotent (G H : Type*) [group G] [group H] (f : G →* H)
+lemma ker_le_center_to_nilpotent {H : Type*} [group H] (f : G →* H)
 (hf1 : f.ker ≤ center G) (hH : is_nilpotent H) : is_nilpotent G :=
 begin
   rw nilpotent_iff_lower_central_series at *,
   rcases hH with ⟨n, hn⟩,
-  refine ⟨n + 1, lower_central_series_le_center_to_nilpotent _
+  refine ⟨n + 1, lower_central_series_le_center_to_nilpotent
     (le_trans ((map_eq_bot_iff _).mp _) hf1)⟩,
   exact eq_bot_iff.mpr (hn ▸ (lower_central_series.map f n)),
 end

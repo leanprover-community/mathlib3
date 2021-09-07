@@ -851,10 +851,6 @@ symm $ submodule.span_eq_of_le _
   (λ y ⟨x, hy, x_eq⟩, x_eq ▸ mem_map_of_mem f (subset_span hy))
   (map_le_iff_le_comap.2 $ span_le.2 $ set.image_subset_iff.1 subset_span)
 
-@[simp] lemma map_span' (f : R →+* S) (s : set R) :
-  map f (submodule.span R s) = submodule.span S (f '' s) :=
-map_span f s
-
 variables {f I J K L}
 
 lemma map_le_of_le_comap : I ≤ K.comap f → I.map f ≤ K :=

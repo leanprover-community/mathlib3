@@ -76,4 +76,10 @@ coe_inj.1 $ by simp only [coe_pimage, pfun.image_union, coe_union]
 lemma pimage_subset {t : finset β} : s.pimage f ⊆ t ↔ ∀ (x ∈ s) (y ∈ f x), y ∈ t :=
 by simp [subset_iff, @forall_swap _ β]
 
+@[mono] lemma pimage_mono (h : s ⊆ t) : s.pimage f ⊆ t.pimage f :=
+pimage_subset.2 $ λ x hx y hy, mem_pimage.2 ⟨x, h hx, hy⟩
+
+lemma pimage_inter [decidable_eq α] : (s ∩ t).pimage f ⊆ s.pimage f ∩ t.pimage f :=
+by simp only [← coe_subset, coe_pimage, coe_inter, pfun.image_inter]
+
 end finset

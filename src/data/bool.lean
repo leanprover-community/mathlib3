@@ -174,7 +174,7 @@ lemma le_iff_imp : ∀ {x y : bool}, x ≤ y ↔ (x → y) := dec_trivial
 
 lemma band_le_left : ∀ x y : bool, x && y ≤ x := dec_trivial
 
-lemma band_le_right : ∀ x y : bool,x && y ≤ y := dec_trivial
+lemma band_le_right : ∀ x y : bool, x && y ≤ y := dec_trivial
 
 lemma le_band : ∀ {x y z : bool}, x ≤ y → x ≤ z → x ≤ y && z := dec_trivial
 

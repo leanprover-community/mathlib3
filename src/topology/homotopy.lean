@@ -69,12 +69,12 @@ lemma apply_one (F : homotopy f₀ f₁) (x : X) : F (1, x) = f₁ x := F.to_fun
 lemma to_continuous_map_apply (F : homotopy f₀ f₁) (k : I × X) : F.to_continuous_map k = F k := rfl
 
 /--
-Currying a homotopy
+Currying a homotopy to a continuous function fron `I` to `C(X, Y)`.
 -/
 def curry (F : homotopy f₀ f₁) : C(I, C(X, Y)) := F.to_continuous_map.curry
 
 /--
-Extending a homotopy to a curried function.
+Continuously extending a curried homotopy to a function from `ℝ` to `C(X, Y)`.
 -/
 def extend (F : homotopy f₀ f₁) : C(ℝ, C(X, Y)) := F.curry.Icc_extend zero_le_one
 
@@ -97,7 +97,7 @@ def refl {f : X → Y} (hf : continuous f) : homotopy f f :=
   to_fun_one := λ _, rfl }
 
 /--
-Given `f : continuous_map`, we can define a `homotopy f f` by `F (x, t) = f x`
+Given `f : C(X, Y)`, we can define a `homotopy f f` by `F (x, t) = f x`
 -/
 def refl' (f : C(X, Y)) : homotopy f f := refl f.continuous
 

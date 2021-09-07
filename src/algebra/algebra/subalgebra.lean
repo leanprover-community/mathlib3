@@ -288,12 +288,12 @@ we define it as a `linear_equiv` to avoid type equalities. -/
 def to_submodule_equiv (S : subalgebra R A) : S.to_submodule ≃ₗ[R] S :=
 linear_equiv.of_eq _ _ rfl
 
-instance algebra' {P : Type*} [comm_semiring P] [algebra P R] [algebra P A]
+instance algebra' {P : Type*} [comm_semiring P] [has_scalar P R] [algebra P A]
   [is_scalar_tower P R A] : algebra P S :=
-{ to_fun := λ r, ⟨algebra_map P A r, begin
-      rw ← algebra_map_algebra_map R A r,
-      exact algebra_map_mem _ _
-    end⟩,
+{ to_fun := λ r, ⟨algebra_map P A r,
+    calc algebra_map P A r = r • 1 : algebra.algebra_map_eq_smul_one _
+    ... = (r • (1 : R)) • 1  : by rw [smul_one_smul]
+    ... ∈ S : S.smul_mem S.one_mem _⟩,
   map_one' := subtype.ext (algebra_map P A).map_one,
   map_mul' := λ _ _, subtype.ext $ (algebra_map P A).map_mul _ _,
   map_zero' := subtype.ext (algebra_map P A).map_zero,

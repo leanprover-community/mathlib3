@@ -1634,40 +1634,40 @@ namespace double_quot
 open ideal
 variables {R : Type u} [comm_ring R] (I J : ideal R)
 
-/-- define `quot_left_to_quot_sup` to be the obvious ring hom `R/I → R/(I ⊔ J)` -/
+/-- The obvious ring hom `R/I → R/(I ⊔ J)` -/
 def quot_left_to_quot_sup : I.quotient →+* (I ⊔ J).quotient :=
 ideal.quotient.factor I (I ⊔ J) le_sup_left
 
-/-- This will be used to lift `quot_left_to_quot_sup` to a map `(R/I)/J' → R/(I ⊔ J)`-/
+/-- The kernel of `quot_left_to_quot_sup` -/
 lemma ker_quot_left_to_quot_sup :
   (quot_left_to_quot_sup I J).ker = J.map (ideal.quotient.mk I) :=
 by simp only [mk_ker, sup_idem, sup_comm, quot_left_to_quot_sup, quotient.factor, ker_quotient_lift,
     map_eq_iff_sup_ker_eq_of_surjective I^.quotient.mk quotient.mk_surjective, ← sup_assoc]
 
-/-- define `double_quot_to_quot_add` to be the induced ring hom `(R/I)/J' ->R/(I ⊔ J)`,
-  where `J'` is the image of `J` in `R/I` -/
-def double_quot_to_quot_sup : (J.map (ideal.quotient.mk I)).quotient →+* (I ⊔ J).quotient :=
+/-- The ring homomorphism `(R/I)/J' ->R/(I ⊔ J)` induced by `quot_left_to_quot_sup` where `J'`
+  is the image of `J` in `R/I`-/
+def quot_quot_to_quot_sup : (J.map (ideal.quotient.mk I)).quotient →+* (I ⊔ J).quotient :=
 ideal.quotient.lift (ideal.map (ideal.quotient.mk I) J) (quot_left_to_quot_sup I J)
   (ker_quot_left_to_quot_sup I J).symm.le
 
-/-- define `double_quot_mk` to be the composite of the maps `R → (R/I) and (R/I) → (R/I)/J'` -/
-def double_quot_mk : R →+* (J.map I^.quotient.mk).quotient :=
+/-- The composite of the maps `R → (R/I) and (R/I) → (R/I)/J'` -/
+def quot_quot_mk : R →+* (J.map I^.quotient.mk).quotient :=
 ((J.map I^.quotient.mk)^.quotient.mk).comp I^.quotient.mk
 
--- Another short result for lifting map `ring_to_double_quot` to a map `R/(I ⊔ J) → (R/I)/J'`
-lemma ker_double_quot_mk : (double_quot_mk I J).ker = I ⊔ J :=
-by rw [ring_hom.ker_eq_comap_bot, double_quot_mk, ← comap_comap, ← ring_hom.ker, mk_ker,
+/-- The kernel of `quot_quot_mk` -/
+lemma ker_quot_quot_mk : (quot_quot_mk I J).ker = I ⊔ J :=
+by rw [ring_hom.ker_eq_comap_bot, quot_quot_mk, ← comap_comap, ← ring_hom.ker, mk_ker,
   comap_map_of_surjective (ideal.quotient.mk I) (quotient.mk_surjective), ← ring_hom.ker, mk_ker,
   sup_comm]
 
-/-- define `lift_add_double_quot_mk` to be the induced map `R/(I ⊔ J) → (R/I)/J' ` -/
-def lift_sup_double_quot_mk (I J : ideal R) : (I ⊔ J).quotient →+*
+/-- The ring homomorphism `R/(I ⊔ J) → (R/I)/J' `induced by `quot_quot_mk` -/
+def lift_sup_quot_quot_mk (I J : ideal R) : (I ⊔ J).quotient →+*
   (J.map (ideal.quotient.mk I)).quotient :=
-ideal.quotient.lift (I ⊔ J) (double_quot_mk I J) (ker_double_quot_mk I J).symm.le
+ideal.quotient.lift (I ⊔ J) (quot_quot_mk I J) (ker_quot_quot_mk I J).symm.le
 
-/-- Then `double_quot_to_quot_add` and `lift_add_double_qot_mk` are inverse isomorphisms -/
-def double_quot_equiv_quot_sup : (J.map (ideal.quotient.mk I)).quotient ≃+* (I ⊔ J).quotient :=
-ring_equiv.of_hom_inv (double_quot_to_quot_sup I J) (lift_sup_double_quot_mk I J)
+/-- `double_quot_to_quot_add` and `lift_add_double_qot_mk` are inverse isomorphisms -/
+def quot_quot_equiv_quot_sup : (J.map (ideal.quotient.mk I)).quotient ≃+* (I ⊔ J).quotient :=
+ring_equiv.of_hom_inv (quot_quot_to_quot_sup I J) (lift_sup_quot_quot_mk I J)
   (by { ext z, refl }) (by { ext z, refl })
 
 end double_quot

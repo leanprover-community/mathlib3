@@ -697,7 +697,7 @@ continuous_Prop.symm
 end sierpinski
 
 section infi
-variables {α : Type u} {ι : Type v}
+variables {α : Type u} {ι : Sort v}
 
 lemma generate_from_union (a₁ a₂ : set (set α)) :
   topological_space.generate_from (a₁ ∪ a₂)

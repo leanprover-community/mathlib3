@@ -50,130 +50,38 @@ variables (β)
 def uniform_on.gen (s : set α) : set (set C(α, β)) :=
 {m | ∃ (u : set β) (hu : is_open u), m = compact_open.gen s u}
 
+/-- For a fixed `s : set α`, the topology on the space of continuous maps `α → β` of "uniform
+convergence on `s`".  Not an instance because it varies with `s`. -/
 def uniform_on (s : set α) : topological_space C(α, β) :=
 topological_space.generate_from (uniform_on.gen β s)
 variables {β}
 
-private lemma is_open_gen' (s : set α) {u : set β} (hu : is_open u) :
+private lemma is_open_uniform_on_gen (s : set α) {u : set β} (hu : is_open u) :
   (uniform_on β s).is_open (compact_open.gen s u) :=
-topological_space.generate_open.basic _ (by dsimp [mem_set_of_eq]; tauto)
+topological_space.generate_open.basic _ (by dsimp [uniform_on.gen, mem_set_of_eq]; tauto)
 
-lemma bzz :
-  {m | ∃ (s : set α) (hs : is_compact s) (u : set β) (hu : is_open u), m = compact_open.gen s u}
-  = ⋃ (s : set α) (hs : is_compact s), uniform_on.gen β s :=
-begin
-  ext m,
-  simp [uniform_on.gen],
-end
-
--- The compact-open topology on the space of continuous maps α → β.
+/-- The compact-open topology on the space of continuous maps `α → β`. -/
 instance compact_open : topological_space C(α, β) :=
 topological_space.generate_from
   {m | ∃ (s : set α) (hs : is_compact s) (u : set β) (hu : is_open u), m = compact_open.gen s u}
 
-lemma foo (s : set α) (hs : is_compact s) : (⨅ (hs : is_compact s), uniform_on β s) = uniform_on β s :=
-by simp [hs]
-
-lemma foo' (s : set α) (hs : ¬ (is_compact s)) :  (⨅ (hs : is_compact s), uniform_on β s) = ⊤ :=
-by simp [hs]
-
-lemma compact_open_eq : (continuous_map.compact_open : topological_space C(α, β))
-  = ⨅ (s : set α) (hs : is_compact s), uniform_on β s :=
-begin
-
-  -- transitivity ⨅ (s : set α), topological_space.generate_from (set_of (⨅ (hs : is_compact s)))
-  -- rw ← generate_from_Union,
-  rw continuous_map.compact_open,
-  rw bzz,
-  simp only [uniform_on],
-  -- rw ← generate_from_Inter_of_generate_from_eq_self,
-  simp only [← generate_from_Union],
-  -- simp only [foo₃],
-
-  transitivity topological_space.generate_from
-    (⋃ (s : set α),
-      {s' | (topological_space.generate_from (⋃ (hs : is_compact s), uniform_on.gen β s)).is_open s'}),
-
-  simp only [generate_from_set_of_is_open, foo₃],
-  -- simp only [← generate_from_Union],
-  -- congr' 2,
-  -- -- congr' 1,
-  -- ext s,
-  -- rw mem_set_of_eq,
-
-
-  -- rw Union_set_of,
-  -- simp only [generate_from_set_of_is_open],
-  -- let T := topological_space C(α, β),
-  -- haveI : complete_lattice T := tmp_complete_lattice,
-  -- let l : set (set C(α, β)) → T := topological_space.generate_from,
-  -- let u : T → set (set C(α, β)) := λ t, {s | t.is_open s},
-  -- have gc : galois_insertion l u,
-  -- have : @galois_insertion _ _ _ _ _ _ := gi_generate_from C(α, β),
-  -- let gc : galois_connection
-  -- rw continuous_map.compact_open,
-  -- change _ = topological_space.generate_from _, --(topological_space.generate_from _),
-  rw bzz,
-  simp [uniform_on],
-  change _ = topological_space.generate_from
-    (⋃ y : set α, set_of (topological_space.is_open (topological_space.generate_from _))),
-  simp [set_of],
-  transitivity topological_space.generate_from
-    (topological_space.generate_from
-    (⋃ (y : set α),
-      (⋃ (b : topological_space C(α, β))
-      (x : is_compact y ∧ topological_space.generate_from (uniform_on.gen β y) = b), b.is_open))).is_open,
-  rw galois_insertion.l_u_eq (gi_generate_from _),
-
-
-  change _ = topological_space.generate_from (topological_space.is_open _),
-  let F : topological_space C(α, β) → set (set C(α, β)) := λ t, {s | t.is_open s},
-  have gi : galois_insertion topological_space.generate_from F,
-  convert gi_generate_from C(α, β),
-  change _ = gi.l _,
-  have : ∀ y : set α, topological_space.generate_from (⨅ h : is_compact y, {s | (f i).is_open s}) = ⨅ i, (f i) :=
-
-  have := @galois_insertion.l_infi_u  (set (set C(α, β))) (topological_space C(α, β)) topological_space.generate_from _, -- (gi_generate_from C(α, β)),
-  dsimp [set_of],
-  congr' 1,
-  ext s,
-  simp,
-  split,
-  { rintros ⟨u, hu, v, hv, rfl⟩,
-    use u,
-    convert is_open_gen' u hv,
-    exact infi_pos hu },
-  { --intros h,
-    rintros ⟨u, h⟩,
-    by_cases hu : is_compact u,
-    { rw foo u hu at h,
-      -- intros h,
-      refine ⟨u, hu, _⟩,
-
-       },
-    rw foo' u hu at h,
-    use ∅,
-    simp,
-    have : s = ∅ ∨ s = set.univ := sorry,
-    rcases this with rfl | rfl,
-    use ∅,
-    simp,
-    sorry,
-    use set.univ,
-    simp,
-    sorry,
-    -- have : (uniform_on β u).is_open s,
-    -- { convert h,
-    --   simp [hu] },
-    -- refine ⟨u, hu, _⟩,
-
-
-  }
-end
-
 private lemma is_open_gen {s : set α} (hs : is_compact s) {u : set β} (hu : is_open u) :
   is_open (compact_open.gen s u) :=
 topological_space.generate_open.basic _ (by dsimp [mem_set_of_eq]; tauto)
+
+/-- The compact-open topology is equal to the infimum, as `s` varies over the compact subsets of
+`α`, of the topologies of uniform convergence on `s`. -/
+lemma compact_open_eq_Inf_uniform_on :
+  continuous_map.compact_open = ⨅ (s : set α) (hs : is_compact s), uniform_on β s :=
+begin
+  transitivity
+    topological_space.generate_from (⋃ (s : set α) (hs : is_compact s), uniform_on.gen β s),
+  { rw continuous_map.compact_open,
+    congr' 1,
+    ext s,
+    simp [uniform_on.gen] },
+  simp [generate_from_Union, uniform_on]
+end
 
 section functorial
 

@@ -590,7 +590,7 @@ def lift (S : ideal α) (f : α →+* β) (H : ∀ (a : α), a ∈ S → f a = 0
 @[simp] lemma lift_mk (S : ideal α) (f : α →+* β) (H : ∀ (a : α), a ∈ S → f a = 0) :
   lift S f H (mk S a) = f a := rfl
 
-/-- Weaken the relation of a quotient.
+/-- The ring homomorphism from the quotient by a smaller ideal to the quotient by a larger ideal.
 
 This is the `ideal.quotient` version of `quot.factor` -/
 def factor (S T : ideal α) (H : S ≤ T) : S.quotient →+* T.quotient :=

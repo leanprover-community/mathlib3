@@ -896,49 +896,49 @@ end is_integral_closure
 section is_dedekind_domain
 
 variables {T : Type*} [integral_domain T] [is_dedekind_domain T] (I J : ideal T)
-open_locale classical 
-open multiset unique_factorization_monoid ideal 
+open_locale classical
+open multiset unique_factorization_monoid ideal
 
 lemma prod_factors_eq_ideal {I : ideal T} (hI : I ≠ ⊥) : (factors I).prod = I :=
 associated_iff_eq.1 (factors_prod hI)
 
-lemma factors_prod_factors_eq_factors {α : multiset (ideal T)} (h₁ : ⊥ ∉ α) 
-  (h₂ : ∀ p ∈ α, prime p) : factors α.prod = α := 
-by {simp_rw [← multiset.rel_eq, ← associated_eq_eq], exact prime_factors_unique (prime_of_factor) h₂ 
-  (factors_prod (prod_ne_zero h₁))}
+lemma factors_prod_factors_eq_factors {α : multiset (ideal T)} (h₁ : ⊥ ∉ α)
+  (h₂ : ∀ p ∈ α, prime p) : factors α.prod = α :=
+by {simp_rw [← multiset.rel_eq, ← associated_eq_eq], exact prime_factors_unique
+(prime_of_factor) h₂ (factors_prod (prod_ne_zero h₁))}
 
-lemma count_le_of_ideal_ge {I J : ideal T} (h : I ≤ J) (hI : I ≠ ⊥) (K : ideal T) : 
-  count K (factors J) ≤ count K (factors I) := 
-by apply le_iff_count.1 ((dvd_iff_factors_le_factors (ne_bot_of_ne_bot_le h hI) hI).1 
+lemma count_le_of_ideal_ge {I J : ideal T} (h : I ≤ J) (hI : I ≠ ⊥) (K : ideal T) :
+  count K (factors J) ≤ count K (factors I) :=
+by apply le_iff_count.1 ((dvd_iff_factors_le_factors (ne_bot_of_ne_bot_le h hI) hI).1
   (dvd_iff_le.2 h))
 
 lemma zero_not_mem_inf_factors (I J : ideal T) : ⊥ ∉ factors I ⊓ factors J :=
-begin 
+begin
   by_contra hcontra,
   rw [multiset.inf_eq_inter, mem_inter] at hcontra,
   exact false_of_ne (prime.ne_zero (prime_of_factor (0 : ideal T) hcontra.left)),
 end
 
 lemma sup_eq_prod_inf_factors (hI : I ≠ ⊥) (hJ : J ≠ ⊥) : I ⊔ J = (factors I ⊓ factors J).prod :=
-begin 
-  have H : factors (factors I ⊓ factors J).prod = factors I ⊓ factors J, 
+begin
+  have H : factors (factors I ⊓ factors J).prod = factors I ⊓ factors J,
   { apply factors_prod_factors_eq_factors (zero_not_mem_inf_factors I J),
     intros p hp,
     rw [multiset.inf_eq_inter, mem_inter] at hp,
     exact prime_of_factor p hp.left },
-  apply le_antisymm,  
+  apply le_antisymm,
   { rw [sup_le_iff, ← dvd_iff_le, ← dvd_iff_le],
-    exact ⟨by { rw [dvd_iff_factors_le_factors (prod_ne_zero (zero_not_mem_inf_factors I J)) hI, H],
-    exact inf_le_left }, by { rw [dvd_iff_factors_le_factors (prod_ne_zero 
+    exact ⟨by {rw [dvd_iff_factors_le_factors (prod_ne_zero (zero_not_mem_inf_factors I J)) hI, H],
+    exact inf_le_left }, by { rw [dvd_iff_factors_le_factors (prod_ne_zero
     (zero_not_mem_inf_factors I J)) hJ, H], exact inf_le_right }⟩ },
-  { rw [← dvd_iff_le, dvd_iff_factors_le_factors, factors_prod_factors_eq_factors 
-    (zero_not_mem_inf_factors I J) (by { intros p hp, rw [multiset.inf_eq_inter, mem_inter] at hp,
-      exact prime_of_factor p hp.left }), le_iff_count],
+  { rw [← dvd_iff_le, dvd_iff_factors_le_factors (show I ⊔ J ≠ ⊥,
+    from ne_bot_of_ne_bot_le le_sup_left hI) (prod_ne_zero (zero_not_mem_inf_factors I J)),
+    factors_prod_factors_eq_factors (zero_not_mem_inf_factors I J) (by { intros p hp,
+    rw [multiset.inf_eq_inter, mem_inter] at hp, exact prime_of_factor p hp.left }), le_iff_count],
     { intro a,
-    rw [multiset.inf_eq_inter, multiset.count_inter], 
-    exact le_min (count_le_of_ideal_ge le_sup_left hI a) (count_le_of_ideal_ge le_sup_right hJ a) },  
-    { exact ne_bot_of_ne_bot_le le_sup_left hI },
-    { exact prod_ne_zero (zero_not_mem_inf_factors I J) } },
-end 
+    rw [multiset.inf_eq_inter, multiset.count_inter],
+    exact le_min (count_le_of_ideal_ge le_sup_left hI a)
+      (count_le_of_ideal_ge le_sup_right hJ a) } },
+end
 
 end is_dedekind_domain

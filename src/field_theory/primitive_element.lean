@@ -5,6 +5,7 @@ Authors: Thomas Browning, Patrick Lutz
 -/
 
 import field_theory.adjoin
+import field_theory.algebraic_closure
 import field_theory.separable
 
 /-!
@@ -169,19 +170,18 @@ variables [algebra F E] [finite_dimensional F E] [is_separable F E]
   primitive element, i.e. there is an `α ∈ E` such that `F⟮α⟯ = (⊤ : subalgebra F E)`.-/
 theorem exists_primitive_element : ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
-  by_cases F_finite : nonempty (fintype F),
-  { exact nonempty.elim F_finite
-    (λ h, by haveI := h; exact exists_primitive_element_of_fintype_bot F E) },
+  rcases is_empty_or_nonempty (fintype F) with F_inf|⟨⟨F_finite⟩⟩,
   { let P : intermediate_field F E → Prop := λ K, ∃ α : E, F⟮α⟯ = K,
     have base : P ⊥ := ⟨0, adjoin_zero⟩,
     have ih : ∀ (K : intermediate_field F E) (x : E), P K → P ↑K⟮x⟯,
     { intros K β hK,
       cases hK with α hK,
       rw [←hK, adjoin_simple_adjoin_simple],
-      haveI : infinite F := not_nonempty_fintype.mp F_finite,
+      haveI : infinite F := is_empty_fintype.mp F_inf,
       cases primitive_element_inf_aux F α β with γ hγ,
       exact ⟨γ, hγ.symm⟩ },
     exact induction_on_adjoin P base ih ⊤ },
+  { exactI exists_primitive_element_of_fintype_bot F E }
 end
 
 /-- Alternative phrasing of primitive element theorem:
@@ -194,4 +194,17 @@ let α := (exists_primitive_element F E).some,
 have e : F⟮α⟯ = ⊤ := (exists_primitive_element F E).some_spec,
 pb.map ((intermediate_field.equiv_of_eq e).trans intermediate_field.top_equiv)
 
+/-- If `E / F` is a finite separable extension, then there are finitely many
+embeddings from `E` into `K` that fix `F`, corresponding to the number of
+conjugate roots of the primitive element generating `F`. -/
+instance {K : Type*} [field K] [algebra F K] : fintype (E →ₐ[F] K) :=
+power_basis.alg_hom.fintype (power_basis_of_finite_of_separable F E)
+
 end field
+
+@[simp] lemma alg_hom.card (F E K : Type*) [field F] [field E] [field K] [is_alg_closed K]
+  [algebra F E] [finite_dimensional F E] [is_separable F E] [algebra F K] :
+  fintype.card (E →ₐ[F] K) = finrank F E :=
+(alg_hom.card_of_power_basis (field.power_basis_of_finite_of_separable F E)
+    (is_separable.separable _ _) (is_alg_closed.splits_codomain _)).trans
+  (power_basis.finrank _).symm

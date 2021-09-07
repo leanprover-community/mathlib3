@@ -472,16 +472,15 @@ by simp only [← filter.mem_sets, supr_sets_eq, iff_self, mem_Inter]
 lemma infi_eq_generate (s : ι → filter α) : infi s = generate (⋃ i, (s i).sets) :=
 show generate _ = generate _, from congr_arg _ supr_range
 
+lemma mem_infi_of_mem {f : ι → filter α} (i : ι) : ∀ {s}, s ∈ f i → s ∈ ⨅ i, f i :=
+show (⨅ i, f i) ≤ f i, from infi_le _ _
+
 lemma mem_infi_of_Inter {ι} {s : ι → filter α} {U : set α} {I : set ι} (I_fin : finite I)
   {V : I → set α} (hV : ∀ i, V i ∈ s i) (hU : (⋂ i, V i) ⊆ U) : U ∈ ⨅ i, s i :=
 begin
-  rw [infi_eq_generate, mem_generate_iff],
-  refine ⟨range V, _, _, hU⟩,
-  { rintro _ ⟨i, rfl⟩,
-    rw mem_Union,
-    use [i, hV i] },
-  { haveI : fintype I := finite.fintype I_fin,
-    exact finite_range _ }
+  haveI := I_fin.fintype,
+  refine mem_of_superset (Inter_mem.2 $ λ i, _) hU,
+  exact mem_infi_of_mem i (hV _)
 end
 
 lemma mem_infi {ι} {s : ι → filter α} {U : set α} : (U ∈ ⨅ i, s i) ↔
@@ -582,9 +581,6 @@ lemma compl_not_mem {f : filter α} {s : set α} [ne_bot f] (h : s ∈ f) : sᶜ
 
 lemma filter_eq_bot_of_is_empty [is_empty α] (f : filter α) : f = ⊥ :=
 empty_mem_iff_bot.mp $ univ_mem' is_empty_elim
-
-lemma filter_eq_bot_of_not_nonempty (f : filter α) (ne : ¬ nonempty α) : f = ⊥ :=
-empty_mem_iff_bot.mp $ univ_mem' $ λ x, (ne ⟨x⟩).elim
 
 /-- There is exactly one filter on an empty type. --/
 -- TODO[gh-6025]: make this globally an instance once safe to do so
@@ -784,9 +780,6 @@ lemma infi_ne_bot_iff_of_directed {f : ι → filter α} [nonempty α] (hd : dir
   ne_bot (infi f) ↔ (∀ i, ne_bot (f i)) :=
 ⟨λ H i, H.mono (infi_le _ i), infi_ne_bot_of_directed hd⟩
 
-lemma mem_infi_of_mem {f : ι → filter α} (i : ι) : ∀ {s}, s ∈ f i → s ∈ ⨅ i, f i :=
-show (⨅ i, f i) ≤ f i, from infi_le _ _
-
 @[elab_as_eliminator]
 lemma infi_sets_induct {f : ι → filter α} {s : set α} (hs : s ∈ infi f) {p : set α → Prop}
   (uni : p univ)
@@ -835,6 +828,10 @@ begin
   rw [← disjoint, ← (is_compl_principal (t ∩ sᶜ)).le_right_iff, compl_inter, compl_compl],
   refl
 end
+
+lemma supr_inf_principal (f : ι → filter α) (s : set α) :
+  (⨆ i, f i ⊓ 𝓟 s) = (⨆ i, f i) ⊓ 𝓟 s :=
+by { ext, simp only [mem_supr, mem_inf_principal] }
 
 lemma inf_principal_eq_bot {f : filter α} {s : set α} : f ⊓ 𝓟 s = ⊥ ↔ sᶜ ∈ f :=
 by { rw [← empty_mem_iff_bot, mem_inf_principal], refl }
@@ -2133,9 +2130,9 @@ lemma le_map_of_right_inverse {mab : α → β} {mba : β → α} {f : filter α
   g ≤ map mab f :=
 by { rw [← @map_id _ g, ← map_congr h₁, ← map_map], exact map_mono h₂ }
 
-lemma tendsto_of_not_nonempty {f : α → β} {la : filter α} {lb : filter β} (h : ¬nonempty α) :
+lemma tendsto_of_is_empty [is_empty α] {f : α → β} {la : filter α} {lb : filter β} :
   tendsto f la lb :=
-by simp only [filter_eq_bot_of_not_nonempty la h, tendsto_bot]
+by simp only [filter_eq_bot_of_is_empty la, tendsto_bot]
 
 lemma eventually_eq_of_left_inv_of_right_inv {f : α → β} {g₁ g₂ : β → α} {fa : filter α}
   {fb : filter β} (hleft : ∀ᶠ x in fa, g₁ (f x) = x) (hright : ∀ᶠ y in fb, f (g₂ y) = y)
@@ -2256,6 +2253,10 @@ by simp only [tendsto, map_sup, sup_le_iff]
 lemma tendsto.sup {f : α → β} {x₁ x₂ : filter α} {y : filter β} :
   tendsto f x₁ y → tendsto f x₂ y → tendsto f (x₁ ⊔ x₂) y :=
 λ h₁ h₂, tendsto_sup.mpr ⟨ h₁, h₂ ⟩
+
+@[simp] lemma tendsto_supr {f : α → β} {x : ι → filter α} {y : filter β} :
+  tendsto f (⨆ i, x i) y ↔ ∀ i, tendsto f (x i) y :=
+by simp only [tendsto, map_supr, supr_le_iff]
 
 @[simp] lemma tendsto_principal {f : α → β} {l : filter α} {s : set β} :
   tendsto f l (𝓟 s) ↔ ∀ᶠ a in l, f a ∈ s :=
@@ -2448,7 +2449,7 @@ le_antisymm
 lemma prod_map_map_eq' {α₁ : Type*} {α₂ : Type*} {β₁ : Type*} {β₂ : Type*}
   (f : α₁ → α₂) (g : β₁ → β₂) (F : filter α₁) (G : filter β₁) :
   (map f F) ×ᶠ (map g G) = map (prod.map f g) (F ×ᶠ G) :=
-by { rw filter.prod_map_map_eq, refl }
+prod_map_map_eq
 
 lemma tendsto.prod_map {δ : Type*} {f : α → γ} {g : β → δ} {a : filter α} {b : filter β}
   {c : filter γ} {d : filter δ} (hf : tendsto f a c) (hg : tendsto g b d) :

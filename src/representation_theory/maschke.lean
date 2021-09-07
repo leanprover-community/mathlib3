@@ -3,7 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.monoid_algebra
+import algebra.monoid_algebra.basic
 import algebra.char_p.invertible
 import algebra.regular.basic
 import linear_algebra.basis
@@ -167,7 +167,8 @@ begin
   obtain ⟨φ, hφ⟩ := (f.restrict_scalars k).exists_left_inverse_of_injective
     (by simp only [hf, submodule.restrict_scalars_bot, linear_map.ker_restrict_scalars]),
   refine ⟨φ.equivariant_projection G, _⟩,
-  ext v,
+  apply linear_map.ext,
+  intro v,
   simp only [linear_map.id_coe, id.def, linear_map.comp_apply],
   apply linear_map.equivariant_projection_condition,
   intro v,

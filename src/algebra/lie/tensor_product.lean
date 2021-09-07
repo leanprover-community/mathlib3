@@ -33,6 +33,7 @@ variables [add_comm_group M] [module R M] [lie_ring_module L M] [lie_module R L 
 variables [add_comm_group N] [module R N] [lie_ring_module L N] [lie_module R L N]
 variables [add_comm_group P] [module R P] [lie_ring_module L P] [lie_module R L P]
 variables [add_comm_group Q] [module R Q] [lie_ring_module L Q] [lie_module R L Q]
+local attribute [ext] tensor_product.ext
 
 /-- It is useful to define the bracket via this auxiliary function so that we have a type-theoretic
 expression of the fact that `L` acts by linear endomorphisms. It simplifies the proofs in
@@ -93,8 +94,8 @@ lift.equiv_apply R M N P f m n
 Note that maps `f` of type `M →ₗ⁅R,L⁆ N →ₗ[R] P` are exactly those `R`-bilinear maps satisfying
 `⁅x, f m n⁆ = f ⁅x, m⁆ n + f m ⁅x, n⁆` for all `x, m, n` (see e.g, `lie_module_hom.map_lie₂`). -/
 def lift_lie : (M →ₗ⁅R,L⁆ N →ₗ[R] P) ≃ₗ[R] (M ⊗[R] N →ₗ⁅R,L⁆ P) :=
-(max_triv_linear_map_equiv_lie_module_hom.symm.trans
-↑(max_triv_equiv (lift R L M N P))).trans
+(max_triv_linear_map_equiv_lie_module_hom.symm ≪≫ₗ
+↑(max_triv_equiv (lift R L M N P))) ≪≫ₗ
 max_triv_linear_map_equiv_lie_module_hom
 
 @[simp] lemma coe_lift_lie_eq_lift_coe (f : M →ₗ⁅R,L⁆ N →ₗ[R] P) :

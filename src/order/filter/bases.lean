@@ -5,6 +5,7 @@ Authors: Yury Kudryashov, Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
 import order.filter.basic
 import data.set.countable
+import data.pprod
 
 /-!
 # Filter bases
@@ -71,7 +72,9 @@ with the case `p = λ _, true`.
 open set filter
 open_locale filter classical
 
-variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*} {ι' : Type*}
+section sort
+
+variables {α β γ : Type*} {ι ι' : Sort*}
 
 /-- A filter basis `B` on a type `α` is a nonempty collection of sets of `α`
 such that the intersection of two elements of this collection contains some element
@@ -111,11 +114,11 @@ namespace is_basis
 
 /-- Constructs a filter basis from an indexed family of sets satisfying `is_basis`. -/
 protected def filter_basis {p : ι → Prop} {s : ι → set α} (h : is_basis p s) : filter_basis α :=
-{ sets := s '' set_of p,
-  nonempty := let ⟨i, hi⟩ := h.nonempty in ⟨s i, mem_image_of_mem s hi⟩,
+{ sets := {t | ∃ i, p i ∧ s i = t},
+  nonempty := let ⟨i, hi⟩ := h.nonempty in ⟨s i, ⟨i, hi, rfl⟩⟩,
   inter_sets := by { rintros _ _ ⟨i, hi, rfl⟩ ⟨j, hj, rfl⟩,
                      rcases h.inter hi hj with ⟨k, hk, hk'⟩,
-                     exact ⟨_, mem_image_of_mem s hk, hk'⟩ } }
+                     exact ⟨_, ⟨k, hk, rfl⟩, hk'⟩ } }
 
 variables {p : ι → Prop} {s : ι → set α} (h : is_basis p s)
 
@@ -375,29 +378,47 @@ begin
     simpa using h },
 end
 
-lemma has_basis.inf (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
-  (l ⊓ l').has_basis (λ i : ι × ι', p i.1 ∧ p' i.2) (λ i, s i.1 ∩ s' i.2) :=
+lemma has_basis.inf' (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
+  (l ⊓ l').has_basis (λ i : pprod ι ι', p i.1 ∧ p' i.2) (λ i, s i.1 ∩ s' i.2) :=
 ⟨begin
   intro t,
   split,
   { simp only [mem_inf_iff, exists_prop, hl.mem_iff, hl'.mem_iff],
     rintros ⟨t, ⟨i, hi, ht⟩, t', ⟨i', hi', ht'⟩, rfl⟩,
-    use [(i, i'), ⟨hi, hi'⟩, inter_subset_inter ht ht'] },
+    use [⟨i, i'⟩, ⟨hi, hi'⟩, inter_subset_inter ht ht'] },
   { rintros ⟨⟨i, i'⟩, ⟨hi, hi'⟩, H⟩,
     exact mem_inf_of_inter (hl.mem_of_mem hi) (hl'.mem_of_mem hi') H }
 end⟩
 
+lemma has_basis.inf {ι ι' : Type*} {p : ι → Prop} {s : ι → set α} {p' : ι' → Prop}
+  {s' : ι' → set α} (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
+  (l ⊓ l').has_basis (λ i : ι × ι', p i.1 ∧ p' i.2) (λ i, s i.1 ∩ s' i.2) :=
+(hl.inf' hl').to_has_basis (λ i hi, ⟨⟨i.1, i.2⟩, hi, subset.rfl⟩)
+  (λ i hi, ⟨⟨i.1, i.2⟩, hi, subset.rfl⟩)
+
 lemma has_basis_principal (t : set α) : (𝓟 t).has_basis (λ i : unit, true) (λ i, t) :=
 ⟨λ U, by simp⟩
 
-lemma has_basis.sup (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
-  (l ⊔ l').has_basis (λ i : ι × ι', p i.1 ∧ p' i.2) (λ i, s i.1 ∪ s' i.2) :=
+lemma has_basis.sup' (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
+  (l ⊔ l').has_basis (λ i : pprod ι ι', p i.1 ∧ p' i.2) (λ i, s i.1 ∪ s' i.2) :=
 ⟨begin
   intros t,
-  simp only [mem_sup, hl.mem_iff, hl'.mem_iff, prod.exists, union_subset_iff, exists_prop,
+  simp only [mem_sup, hl.mem_iff, hl'.mem_iff, pprod.exists, union_subset_iff, exists_prop,
     and_assoc, exists_and_distrib_left],
   simp only [← and_assoc, exists_and_distrib_right, and_comm]
 end⟩
+
+lemma has_basis.sup {ι ι' : Type*} {p : ι → Prop} {s : ι → set α} {p' : ι' → Prop}
+  {s' : ι' → set α} (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
+  (l ⊔ l').has_basis (λ i : ι × ι', p i.1 ∧ p' i.2) (λ i, s i.1 ∪ s' i.2) :=
+(hl.sup' hl').to_has_basis (λ i hi, ⟨⟨i.1, i.2⟩, hi, subset.rfl⟩)
+  (λ i hi, ⟨⟨i.1, i.2⟩, hi, subset.rfl⟩)
+
+lemma has_basis_supr {ι : Sort*} {ι' : ι → Type*} {l : ι → filter α}
+  {p : Π i, ι' i → Prop} {s : Π i, ι' i → set α} (hl : ∀ i, (l i).has_basis (p i) (s i)) :
+  (⨆ i, l i).has_basis (λ f : Π i, ι' i, ∀ i, p i (f i)) (λ f : Π i, ι' i, ⋃ i, s i (f i)) :=
+has_basis_iff.mpr $ λ t, by simp only [has_basis_iff, (hl _).mem_iff, classical.skolem,
+  forall_and_distrib, Union_subset_iff, mem_supr]
 
 lemma has_basis.inf_principal (hl : l.has_basis p s) (s' : set α) :
   (l ⊓ 𝓟 s').has_basis p (λ i, s i ∩ s') :=
@@ -406,7 +427,7 @@ lemma has_basis.inf_principal (hl : l.has_basis p s) (s' : set α) :
 
 lemma has_basis.inf_basis_ne_bot_iff (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
   ne_bot (l ⊓ l') ↔ ∀ ⦃i⦄ (hi : p i) ⦃i'⦄ (hi' : p' i'), (s i ∩ s' i').nonempty :=
-(hl.inf hl').ne_bot_iff.trans $ by simp [@forall_swap _ ι']
+(hl.inf' hl').ne_bot_iff.trans $ by simp [@forall_swap _ ι']
 
 lemma has_basis.inf_ne_bot_iff (hl : l.has_basis p s) :
   ne_bot (l ⊓ l') ↔ ∀ ⦃i⦄ (hi : p i) ⦃s'⦄ (hs' : s' ∈ l'), (s i ∩ s').nonempty :=
@@ -483,7 +504,7 @@ end⟩
 
 /-- If `s : ι → set α` is an indexed family of sets, then finite intersections of `s i` form a basis
 of `⨅ i, 𝓟 (s i)`.  -/
-lemma has_basis_infi_principal_finite (s : ι → set α) :
+lemma has_basis_infi_principal_finite {ι : Type*} (s : ι → set α) :
   (⨅ i, 𝓟 (s i)).has_basis (λ t : set ι, finite t) (λ t, ⋂ i ∈ t, s i) :=
 begin
   refine ⟨λ U, (mem_infi_finite _).trans _⟩,
@@ -501,7 +522,7 @@ lemma has_basis_binfi_principal {s : β → set α} {S : set β} (h : directed_o
   exact λ _ _, principal_mono.2
 end⟩
 
-lemma has_basis_binfi_principal'
+lemma has_basis_binfi_principal' {ι : Type*} {p : ι → Prop} {s : ι → set α}
   (h : ∀ i, p i → ∀ j, p j → ∃ k (h : p k), s k ⊆ s i ∧ s k ⊆ s j) (ne : ∃ i, p i) :
   (⨅ i (h : p i), 𝓟 (s i)).has_basis p s :=
 filter.has_basis_binfi_principal h ne
@@ -543,7 +564,7 @@ lemma mem_prod_self_iff {s} : s ∈ l ×ᶠ l ↔ ∃ t ∈ l, set.prod t t ⊆ 
 l.basis_sets.prod_self.mem_iff
 
 lemma has_basis.sInter_sets (h : has_basis l p s) :
-  ⋂₀ l.sets = ⋂ i ∈ set_of p, s i :=
+  ⋂₀ l.sets = ⋂ i (hi : p i), s i :=
 begin
   ext x,
   suffices : (∀ t ∈ l, x ∈ t) ↔ ∀ i, p i → x ∈ s i,
@@ -556,18 +577,18 @@ begin
     exact sub (h i hi) },
 end
 
-variables [preorder ι] (l p s)
+variables {ι'' : Type*} [preorder ι''] (l) (p'' : ι'' → Prop) (s'' : ι'' → set α)
 
 /-- `is_antimono_basis p s` means the image of `s` bounded by `p` is a filter basis
 such that `s` is decreasing and `p` is increasing, ie `i ≤ j → p i → p j`. -/
-structure is_antimono_basis extends is_basis p s : Prop :=
-(decreasing : ∀ {i j}, p i → p j → i ≤ j → s j ⊆ s i)
-(mono : monotone p)
+structure is_antimono_basis extends is_basis p'' s'' : Prop :=
+(decreasing : ∀ {i j}, p'' i → p'' j → i ≤ j → s'' j ⊆ s'' i)
+(mono : monotone p'')
 
 /-- We say that a filter `l` has a antimono basis `s : ι → set α` bounded by `p : ι → Prop`,
 if `t ∈ l` if and only if `t` includes `s i` for some `i` such that `p i`,
 and `s` is decreasing and `p` is increasing, ie `i ≤ j → p i → p j`. -/
-structure has_antimono_basis [preorder ι] (l : filter α) (p : ι → Prop) (s : ι → set α)
+structure has_antimono_basis (l : filter α) (p : ι'' → Prop) (s : ι'' → set α)
   extends has_basis l p s : Prop :=
 (decreasing : ∀ {i j}, p i → p j → i ≤ j → s j ⊆ s i)
 (mono : monotone p)
@@ -604,7 +625,12 @@ lemma tendsto.basis_both (H : tendsto f la lb) (hla : la.has_basis pa sa)
   ∀ ib (hib : pb ib), ∃ ia (hia : pa ia), ∀ x ∈ sa ia, f x ∈ sb ib :=
 (hla.tendsto_iff hlb).1 H
 
-lemma has_basis.prod (hla : la.has_basis pa sa) (hlb : lb.has_basis pb sb) :
+lemma has_basis.prod'' (hla : la.has_basis pa sa) (hlb : lb.has_basis pb sb) :
+  (la ×ᶠ lb).has_basis (λ i : pprod ι ι', pa i.1 ∧ pb i.2) (λ i, (sa i.1).prod (sb i.2)) :=
+(hla.comap prod.fst).inf' (hlb.comap prod.snd)
+
+lemma has_basis.prod {ι ι' : Type*} {pa : ι → Prop} {sa : ι → set α} {pb : ι' → Prop}
+  {sb : ι' → set β} (hla : la.has_basis pa sa) (hlb : lb.has_basis pb sb) :
   (la ×ᶠ lb).has_basis (λ i : ι × ι', pa i.1 ∧ pb i.2) (λ i, (sa i.1).prod (sb i.2)) :=
 (hla.comap prod.fst).inf (hlb.comap prod.snd)
 
@@ -613,24 +639,25 @@ lemma has_basis.prod' {la : filter α} {lb : filter β} {ι : Type*} {p : ι →
   (hla : la.has_basis p sa) (hlb : lb.has_basis p sb)
   (h_dir : ∀ {i j}, p i → p j → ∃ k, p k ∧ sa k ⊆ sa i ∧ sb k ⊆ sb j) :
   (la ×ᶠ lb).has_basis p (λ i, (sa i).prod (sb i)) :=
-⟨begin
-  intros t,
-  rw mem_prod_iff,
-  split,
-  { rintros ⟨u, u_in, v, v_in, huv⟩,
-    rcases hla.mem_iff.mp u_in with ⟨i, hi, si⟩,
-    rcases hlb.mem_iff.mp v_in with ⟨j, hj, sj⟩,
+begin
+  simp only [has_basis_iff, (hla.prod hlb).mem_iff],
+  refine λ t, ⟨_, _⟩,
+  { rintros ⟨⟨i, j⟩, ⟨hi, hj⟩, hsub : (sa i).prod (sb j) ⊆ t⟩,
     rcases h_dir hi hj with ⟨k, hk, ki, kj⟩,
-    use [k, hk],
-    calc
-    (sa k).prod (sb k) ⊆ (sa i).prod (sb j) : set.prod_mono ki kj
-                   ... ⊆ u.prod v           : set.prod_mono si sj
-                   ... ⊆ t                  : huv, },
+    exact ⟨k, hk, (set.prod_mono ki kj).trans hsub⟩ },
   { rintro ⟨i, hi, h⟩,
-    exact ⟨sa i, hla.mem_of_mem hi, sb i, hlb.mem_of_mem hi, h⟩ },
-end⟩
+    exact ⟨⟨i, i⟩, ⟨hi, hi⟩, h⟩ },
+end
 
 end two_types
+
+end filter
+
+end sort
+
+namespace filter
+
+variables {α β γ ι ι' : Type*}
 
 /-- `is_countably_generated f` means `f = generate s` for some countable `s`. -/
 def is_countably_generated (f : filter α) : Prop :=

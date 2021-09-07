@@ -3,8 +3,10 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 -/
+
+import ring_theory.ideal.operations
+import algebra.algebra.basic
 import algebra.category.CommRing.basic
-import ring_theory.ideal.basic
 
 /-!
 
@@ -176,6 +178,14 @@ instance is_local_ring_hom_comp [semiring R] [semiring S] [semiring T]
   is_local_ring_hom (g.comp f) :=
 { map_nonunit := λ a, is_local_ring_hom.map_nonunit a ∘ is_local_ring_hom.map_nonunit (f a) }
 
+instance is_local_ring_hom_equiv [semiring R] [semiring S] (f : R ≃+* S) :
+  is_local_ring_hom f.to_ring_hom :=
+{ map_nonunit := λ a ha,
+  begin
+    convert f.symm.to_ring_hom.is_unit_map ha,
+    rw ring_equiv.symm_to_ring_hom_apply_to_ring_hom_apply,
+  end }
+
 @[simp] lemma is_unit_of_map_unit [semiring R] [semiring S] (f : R →+* S) [is_local_ring_hom f]
   (a) (h : is_unit (f a)) : is_unit a :=
 is_local_ring_hom.map_nonunit a h
@@ -184,6 +194,23 @@ theorem of_irreducible_map [semiring R] [semiring S] (f : R →+* S) [h : is_loc
   (hfx : irreducible (f x)) : irreducible x :=
 ⟨λ h, hfx.not_unit $ is_unit.map f.to_monoid_hom h, λ p q hx, let ⟨H⟩ := h in
 or.imp (H p) (H q) $ hfx.is_unit_or_is_unit $ f.map_mul p q ▸ congr_arg f hx⟩
+
+section
+open category_theory
+
+lemma is_local_ring_hom_of_iso {R S : CommRing} (f : R ≅ S) : is_local_ring_hom f.hom :=
+{ map_nonunit := λ a ha,
+  begin
+    convert f.inv.is_unit_map ha,
+    rw category_theory.coe_hom_inv_id,
+  end }
+
+@[priority 100] -- see Note [lower instance priority]
+instance is_local_ring_hom_of_is_iso {R S : CommRing} (f : R ⟶ S) [is_iso f] :
+  is_local_ring_hom f :=
+is_local_ring_hom_of_iso (as_iso f)
+
+end
 
 section
 open local_ring
@@ -211,7 +238,10 @@ noncomputable instance : inhabited (residue_field R) := ⟨37⟩
 def residue : R →+* (residue_field R) :=
 ideal.quotient.mk _
 
+noncomputable instance residue_field.algebra : algebra R (residue_field R) := (residue R).to_algebra
+
 namespace residue_field
+
 
 variables {R S}
 /-- The map on residue fields induced by a local homomorphism between local rings -/
@@ -225,6 +255,12 @@ begin
 end
 
 end residue_field
+
+variables {R}
+
+lemma ker_eq_maximal_ideal {K : Type*} [field K]
+  (φ : R →+* K) (hφ : function.surjective φ) : φ.ker = maximal_ideal R :=
+local_ring.eq_maximal_ideal $ φ.ker_is_maximal_of_surjective hφ
 
 end local_ring
 

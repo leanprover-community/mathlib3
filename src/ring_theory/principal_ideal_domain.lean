@@ -242,3 +242,32 @@ instance to_unique_factorization_monoid : unique_factorization_monoid R :=
 end
 
 end principal_ideal_ring
+
+section surjective
+
+open submodule
+
+variables {S N : Type*} [ring R] [add_comm_group M] [add_comm_group N] [ring S]
+variables [module R M] [module R N]
+
+lemma submodule.is_principal.of_comap (f : M →ₗ[R] N) (hf : function.surjective f)
+  (S : submodule R N) [hI : is_principal (S.comap f)] :
+  is_principal S :=
+⟨⟨f (is_principal.generator (S.comap f)),
+  by rw [← set.image_singleton, ← submodule.map_span,
+      is_principal.span_singleton_generator, submodule.map_comap_eq_of_surjective hf]⟩⟩
+
+lemma ideal.is_principal.of_comap (f : R →+* S) (hf : function.surjective f)
+  (I : ideal S) [hI : is_principal (I.comap f)] :
+  is_principal I :=
+⟨⟨f (is_principal.generator (I.comap f)),
+  by rw [← set.image_singleton, ← ideal.map_span',
+    is_principal.span_singleton_generator, ideal.map_comap_of_surjective f hf]⟩⟩
+
+/-- The surjective image of a principal ideal ring is again a principal ideal ring. -/
+lemma is_principal_ideal_ring.of_surjective [is_principal_ideal_ring R]
+  (f : R →+* S) (hf : function.surjective f) :
+  is_principal_ideal_ring S :=
+⟨λ I, ideal.is_principal.of_comap f hf I⟩
+
+end surjective

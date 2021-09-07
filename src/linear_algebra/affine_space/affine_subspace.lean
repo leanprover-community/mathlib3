@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
 import linear_algebra.affine_space.basic
-import linear_algebra.tensor_product
+import linear_algebra.bilinear_map
 import data.set.intervals.unordered_interval
 
 /-!

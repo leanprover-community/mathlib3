@@ -168,11 +168,11 @@ begin
   obtain ⟨w, hw₁, hw₂, hw₃⟩ := ht₃,
   let t' := t.filter (λ i, w i ≠ 0),
   refine ⟨t', t'.fintype_coe_sort, (coe : t' → E), w ∘ (coe : t' → E), _, _, _, _, _⟩,
-  { rw subtype.range_coe_subtype, exact (finset.filter_subset _ t).trans ht₁ },
+  { rw subtype.range_coe_subtype, exact subset.trans (finset.filter_subset _ t) ht₁ },
   { exact ht₂.comp_embedding
       ⟨_, inclusion_injective (finset.filter_subset (λ i, w i ≠ 0) t)⟩ },
   { exact λ i, (hw₁ _ (finset.mem_filter.mp i.2).1).lt_of_ne
-      (finset.mem_filter.mp i.property).2 },
+      (finset.mem_filter.mp i.property).2.symm },
   { erw [finset.sum_attach, finset.sum_filter_ne_zero, hw₂] },
   { change ∑ (i : t') in t'.attach, (λ e, w e • e) ↑i = x,
     erw [finset.sum_attach, finset.sum_filter_of_ne],

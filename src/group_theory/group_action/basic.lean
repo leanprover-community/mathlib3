@@ -5,9 +5,8 @@ Authors: Chris Hughes
 -/
 import group_theory.group_action.defs
 import group_theory.group_action.group
-import group_theory.coset
+import group_theory.quotient_group
 import data.setoid.basic
-import data.set_like.fintype
 import data.fintype.card
 
 /-!
@@ -465,3 +464,29 @@ lemma finset.smul_sum {r : α} {f : γ → β} {s : finset γ} :
 (distrib_mul_action.to_add_monoid_hom β r).map_sum f s
 
 end
+
+namespace subgroup
+
+variables {G : Type*} [group G] (H : subgroup G)
+
+lemma normal_core_eq_ker :
+  H.normal_core = (mul_action.to_perm_hom G (quotient_group.quotient H)).ker :=
+begin
+  refine le_antisymm (λ g hg, equiv.perm.ext (λ q, quotient_group.induction_on q
+    (λ g', (mul_action.quotient.smul_mk H g g').trans (quotient_group.eq.mpr _))))
+    (subgroup.normal_le_normal_core.mpr (λ g hg, _)),
+  { rw [mul_inv_rev, ←inv_inv g', inv_inv],
+    exact H.normal_core.inv_mem hg g'⁻¹ },
+  { rw [←H.inv_mem_iff, ←mul_one g⁻¹, ←quotient_group.eq, ←mul_one g],
+    exact (mul_action.quotient.smul_mk H g 1).symm.trans (equiv.perm.ext_iff.mp hg (1 : G)) },
+end
+
+noncomputable instance fintype_quotient_normal_core [fintype (quotient_group.quotient H)] :
+  fintype (quotient_group.quotient H.normal_core) :=
+begin
+  rw H.normal_core_eq_ker,
+  classical,
+  exact fintype.of_equiv _ (quotient_group.quotient_ker_equiv_range _).symm.to_equiv,
+end
+
+end subgroup

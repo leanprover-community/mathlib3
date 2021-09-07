@@ -119,7 +119,7 @@ private theorem coevaluation_evaluation :
   (𝟙 V' ⊗ (FinVect_coevaluation K V)) ≫ (α_ V' V V').inv ≫ (FinVect_evaluation K V ⊗ 𝟙 V')
   = (ρ_ V').hom ≫ (λ_ V').inv :=
 begin
-  apply tensor_product.mk_compr₂_inj,
+  apply tensor_product.ext,
   apply (basis.of_vector_space K V).dual_basis.ext, intro j, apply linear_map.ext_ring,
   rw [linear_map.compr₂_apply, linear_map.compr₂_apply],
   simp only [tensor_product.mk_apply, basis.coe_dual_basis, FinVect.coe_comp],
@@ -138,7 +138,7 @@ private theorem evaluation_coevaluation :
   ≫ (α_ V (FinVect_dual K V) V).hom ≫ (𝟙 V ⊗ FinVect_evaluation K V)
   = (λ_ V).hom ≫ (ρ_ V).inv :=
 begin
-  apply tensor_product.mk_compr₂_inj,
+  apply tensor_product.ext,
   apply linear_map.ext_ring, apply (basis.of_vector_space K V).ext, intro j,
   rw [linear_map.compr₂_apply, linear_map.compr₂_apply],
   simp only [tensor_product.mk_apply, basis.coe_dual_basis, FinVect.coe_comp],

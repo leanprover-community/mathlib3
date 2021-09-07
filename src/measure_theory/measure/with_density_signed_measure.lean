@@ -81,13 +81,16 @@ begin
 end
 
 @[simp]
-lemma with_density_signed_measure_neg (hf : integrable f μ) :
+lemma with_density_signed_measure_neg :
   μ.with_density_signed_measure (-f) = -μ.with_density_signed_measure f :=
 begin
-  ext1 i hi,
-  rw [vector_measure.neg_apply, with_density_signed_measure_apply hf hi,
-      ← integral_neg, with_density_signed_measure_apply hf.neg hi],
-  refl
+  by_cases hf : integrable f μ,
+  { ext1 i hi,
+    rw [vector_measure.neg_apply, with_density_signed_measure_apply hf hi,
+        ← integral_neg, with_density_signed_measure_apply hf.neg hi],
+    refl },
+  { rw [with_density_signed_measure, with_density_signed_measure, dif_neg hf, dif_neg, neg_zero],
+    rwa integrable_neg_iff }
 end
 
 @[simp]
@@ -109,16 +112,22 @@ lemma with_density_signed_measure_sub (hf : integrable f μ) (hg : integrable g 
   μ.with_density_signed_measure (f - g) =
   μ.with_density_signed_measure f - μ.with_density_signed_measure g :=
 by rw [sub_eq_add_neg, sub_eq_add_neg, with_density_signed_measure_add hf hg.neg,
-       with_density_signed_measure_neg hg]
+       with_density_signed_measure_neg]
 
 @[simp]
-lemma with_density_signed_measure_smul (r : ℝ) (hf : integrable f μ) :
+lemma with_density_signed_measure_smul (r : ℝ) :
   μ.with_density_signed_measure (r • f) = r • μ.with_density_signed_measure f :=
 begin
-  ext1 i hi,
-  rw [with_density_signed_measure_apply (hf.smul r) hi, vector_measure.smul_apply,
-      with_density_signed_measure_apply hf hi, ← integral_smul],
-  refl
+  by_cases hf : integrable f μ,
+  { ext1 i hi,
+    rw [with_density_signed_measure_apply (hf.smul r) hi, vector_measure.smul_apply,
+        with_density_signed_measure_apply hf hi, ← integral_smul],
+    refl },
+  { by_cases hr : r = 0,
+    { subst hr, simp },
+    { rw [with_density_signed_measure, with_density_signed_measure, dif_neg hf,
+          dif_neg, smul_zero],
+      rwa integrable_smul_iff hr f } }
 end
 
 lemma with_density_signed_measure_absolutely_continuous

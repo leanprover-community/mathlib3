@@ -8,11 +8,21 @@ import data.list.sigma
 /-!
 # Association Lists
 
-This file makes use of the contents of the `list.sigma` file to define association lists. These
-association lists are represented by the `alist` structure, which comprises a list of sigmas as a
-key-value store, as well as a proof that this has no duplicate keys.
+This file defines [association lists](https://en.wikipedia.org/wiki/Association_list). An
+association list is a list where every element consists of a key and a value, and no two entries
+have the same key. The type of the value is allowed to depend on the type of the key.
 
-The file provides ways to access, modify, and combine `alist`s.
+## Main definitions
+
+These association lists are represented by the `alist` structure. This file provides ways to
+access, modify, and combine `alist`s.
+
+* `alist.keys` returns a list of keys of the alist.
+* `alist.mem` returns membership in the set of keys.
+* `alist.erase` removes a certain key.
+* `alist.insert` adds a key-value mapping to the list.
+* `alist.union` combines two association lists.
+
 -/
 
 universes u v w

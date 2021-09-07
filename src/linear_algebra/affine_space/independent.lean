@@ -6,6 +6,7 @@ Authors: Joseph Myers
 import data.finset.sort
 import data.matrix.notation
 import linear_algebra.affine_space.combination
+import linear_algebra.affine_space.affine_equiv
 import linear_algebra.basis
 
 /-!
@@ -313,9 +314,23 @@ begin
   exact linear_independent.map' hai f.linear hf',
 end
 
+/-- Injective affine maps preserve affine independence. -/
 lemma affine_map.affine_independent_iff {p : ι → P} (f : P →ᵃ[k] P₂) (hf : function.injective f) :
   affine_independent k (f ∘ p) ↔ affine_independent k p :=
 ⟨affine_independent.of_comp f, λ hai, affine_independent.map' hai f hf⟩
+
+/-- In particular, affine equivalences preserve affine independence. -/
+lemma affine_equiv.affine_independent_iff {p : ι → P} (e : P ≃ᵃ[k] P₂) :
+  affine_independent k (e ∘ p) ↔ affine_independent k p :=
+e.to_affine_map.affine_independent_iff e.to_equiv.injective
+
+omit V₂
+
+/-- In particular, homotheties preserve affine independence (when the scale factor is a unit). -/
+lemma affine_map.homothety_affine_independent_iff {k : Type*} [comm_ring k] [module k V]
+  {p : ι → P} {q : P} {t : units k} :
+  affine_independent k ((affine_map.homothety q (t : k)) ∘ p) ↔ affine_independent k p :=
+(affine_equiv.homothety_units_mul_hom q t).affine_independent_iff
 
 end composition
 

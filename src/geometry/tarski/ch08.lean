@@ -458,12 +458,11 @@ lemma perp.cong (nAB : A ≠ B) (nAP : A ≠ P) (ABPA : perp A B P A) (ABRB : pe
   cong A R P B :=
 per.cong ABPA.per1 ABRB.left_comm.per1 nAB nAP APBR ABX PXR
 
-lemma midpoint_existence_aux (nAB : A ≠ B) (ABQB : perp A B Q B) (ABPA : perp A B P A)
-  (ABT : col A B T) (QTP : betw Q T P) (APBQ : le A P B Q) :
-  ∃ X, midpoint X A B :=
+lemma l8_24 (PAAB : perp P A A B) (QBAB : perp Q B A B) (ABT : col A B T) (PTQ : betw P T Q)
+  (BRQ : betw B R Q) (APBR : cong A P B R) :
+  ∃ X, midpoint X A B ∧ midpoint X P R :=
 begin
-  obtain ⟨R, BRQ, APBR⟩ := APBQ,
-  obtain ⟨X, TXB, RXP⟩ := inner_pasch QTP.symm BRQ,
+  obtain ⟨X, TXB, RXP⟩ := inner_pasch PTQ BRQ,
   have ABX : col A B X,
   { rcases eq_or_ne T B with rfl | nTB,
     { cases TXB.identity,
@@ -471,13 +470,13 @@ begin
     apply (ABT.symm.trans' TXB.col.right_symm nTB).left_symm },
   have nBR : B ≠ R,
   { rintro rfl,
-    apply ABPA.ne_right APBR.identity.symm },
+    apply PAAB.ne_left.symm APBR.identity },
   have ABQ : ¬ col A B Q,
   { intro h,
-    have : A = B ∨ Q = B := per.eq_or_eq_of_col ABQB.comm.per2 h,
+    have : A = B ∨ Q = B := per.eq_or_eq_of_col QBAB.symm.comm.per2 h,
     rcases this with rfl | rfl,
-    { apply nAB rfl },
-    { apply ABQB.ne_right rfl } },
+    { apply PAAB.ne_right rfl, },
+    { apply QBAB.ne_left rfl } },
   have ABR : ¬ col A B R,
   { intro h,
     apply ABQ (h.rotate.trans BRQ.col nBR).left_symm },
@@ -487,15 +486,22 @@ begin
     apply ABR ABX },
   have nAP : A ≠ P,
   { rintro rfl,
-    apply ABPA.ne_right rfl },
-  have : perp A B R B := (perp.col ABQB.symm nBR.symm BRQ.col.rotate' col_id_right).symm,
-  have ARPB : cong A R P B := perp.cong nAB nAP ABPA this APBR ABX RXP.symm,
+    apply PAAB.ne_left rfl },
+  have : perp A B R B := (perp.col QBAB nBR.symm BRQ.col.rotate' col_id_right).symm,
+  have ARPB : cong A R P B := perp.cong QBAB.ne_right nAP PAAB.symm this APBR ABX RXP.symm,
   have APB : ¬col A P B,
   { intro APB,
-    apply nAP.symm ((l8_9 ABPA.per1 APB.rotate').resolve_left nAB.symm) },
-  have : midpoint X A B ∧ midpoint X P R :=
-    l7_21 APB nPR APBR ARPB.symm.right_comm ABX.right_symm RXP.symm.col,
-  exact ⟨X, this.1⟩
+    apply nAP.symm ((PAAB.symm.per1.eq_or_eq_of_col APB.rotate').resolve_left PAAB.ne_right.symm) },
+  refine ⟨X, l7_21 APB nPR APBR ARPB.symm.right_comm ABX.right_symm RXP.symm.col⟩,
+end
+
+lemma midpoint_existence_aux (ABQB : perp A B Q B) (ABPA : perp A B P A)
+  (ABT : col A B T) (QTP : betw Q T P) (APBQ : le A P B Q) :
+  ∃ X, midpoint X A B :=
+begin
+  obtain ⟨R, BRQ, APBR⟩ := APBQ,
+  obtain ⟨X, XAB, -⟩ := l8_24 ABPA.symm ABQB.symm ABT QTP.symm BRQ APBR,
+  exact ⟨X, XAB⟩
 end
 
 lemma midpoint_existence (A B : α) : ∃ X, midpoint X A B :=
@@ -505,8 +511,8 @@ begin
   obtain ⟨Q, -, ABQA, -, - : betw A _ Q⟩ := l8_21 nAB.symm,
   obtain ⟨P, T, ABPA, ABT, QTP : betw Q T P⟩ := l8_21 nAB,
   cases le.cases A P B Q,
-  { apply midpoint_existence_aux nAB ABQA.left_comm ABPA ABT QTP h, },
-  { obtain ⟨X, h⟩ := midpoint_existence_aux nAB.symm ABPA.left_comm ABQA ABT.left_symm QTP.symm h,
+  { apply midpoint_existence_aux ABQA.left_comm ABPA ABT QTP h, },
+  { obtain ⟨X, h⟩ := midpoint_existence_aux ABPA.left_comm ABQA ABT.left_symm QTP.symm h,
     exact ⟨X, h.symm⟩ },
 end
 

@@ -25,7 +25,7 @@ begin
     { apply PBA.symm.left_cancel APC } }
 end
 
-lemma bet.out_bet (APC : betw A P C) (PAB : out P A B) :
+lemma betw.out_betw (APC : betw A P C) (PAB : out P A B) :
   betw B P C :=
 begin
   rcases eq_or_ne C P with rfl | nCP,
@@ -50,7 +50,7 @@ end
 
 lemma l6_3_2 (nAP : A ≠ P) (nBP : B ≠ P) (nCP : C ≠ P) (APC : betw A P C) (BPC : betw B P C) :
   out P A B :=
-⟨nAP, nBP, l5_2 nCP APC.symm BPC.symm⟩
+(l6_2 nAP nBP nCP APC).1 BPC
 
 lemma l6_4_1 (PAB : out P A B) : col A P B ∧ ¬ betw A P B :=
 begin
@@ -93,7 +93,7 @@ end
 -- bet_out_out_bet
 -- out2_bet_out
 
-lemma l6_11_uniqueness {R : α} (nRA : R ≠ A) (nBC : B ≠ C)
+lemma l6_11_uniqueness {R : α} (nRA : R ≠ A)
   (AXR : out A X R) (AXBC : cong A X B C) (AYR : out A Y R) (AYBC : cong A Y B C) :
   X = Y :=
 begin
@@ -133,15 +133,15 @@ begin
   { refine ⟨_, PAB.2.1, or.inl PYB⟩,
     rintro rfl,
     apply PAB.1.symm PAPY.identity },
-  cases l6_11_uniqueness PAB.2.1 PAB.1.symm this PAPY.symm PAB (cong.refl P A),
+  cases l6_11_uniqueness PAB.2.1 this PAPY.symm PAB (cong.refl P A),
   apply PYB
 end
 
-lemma l6_13_2 (PAB : out P A B) (PAB' : betw P A B) : le P A P B :=
+lemma l6_13_2 (PAB' : betw P A B) : le P A P B :=
 ⟨A, PAB', cong.refl _ _⟩
 
 lemma l6_13 (PAB : out P A B) : le P A P B ↔ betw P A B :=
-⟨l6_13_1 PAB, l6_13_2 PAB⟩
+⟨l6_13_1 PAB, l6_13_2⟩
 
 lemma l6_16_1 {P Q S X : α} (nPQ : P ≠ Q) (SPQ : col S P Q) (XPQ : col X P Q) :
   col X P S :=

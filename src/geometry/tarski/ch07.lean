@@ -73,8 +73,8 @@ begin
   exact l4_2 APX APX' AXAX (PXQA.trans PXQA'.symm) AQQ.symm.2.left_comm QXQX.comm,
 end
 
-lemma l7_15 (APP : midpoint A P P') (AQQ : midpoint A Q Q') (ARR : midpoint A R R')
-  (PQR : betw P Q R) :
+lemma betw.betw_of_midpoints (PQR : betw P Q R)
+  (APP : midpoint A P P') (AQQ : midpoint A Q Q') (ARR : midpoint A R R') :
   betw P' Q' R' :=
 PQR.betw_of_congs (l7_13 APP AQQ).symm (l7_13 APP ARR).symm (l7_13 AQQ ARR).symm
 
@@ -87,7 +87,26 @@ lemma l7_16
 lemma symmetry_preserves_midpoint
   (APP : midpoint A P P') (AQQ : midpoint A Q Q') (ARR : midpoint A R R') (QPR : midpoint Q P R) :
   midpoint Q' P' R' :=
-⟨l7_15 APP AQQ ARR QPR.1, l7_16 APP AQQ AQQ ARR QPR.2⟩
+⟨QPR.1.betw_of_midpoints APP AQQ ARR, l7_16 APP AQQ AQQ ARR QPR.2⟩
+
+lemma col.col_of_midpoints (ABC : col A B C) (MAA : midpoint M A A') (MBB : midpoint M B B')
+  (MCC : midpoint M C C') :
+  col A' B' C' :=
+begin
+  rcases ABC with ABC | BCA | CAB,
+  { apply or.inl (ABC.betw_of_midpoints MAA MBB MCC) },
+  { apply or.inr (or.inl (BCA.betw_of_midpoints MBB MCC MAA)) },
+  { apply or.inr (or.inr (CAB.betw_of_midpoints MCC MAA MBB)) },
+end
+
+lemma out.out_of_midpoints (ABC : out A B C) (MAA : midpoint M A A') (MBB : midpoint M B B')
+  (MCC : midpoint M C C') :
+  out A' B' C' :=
+begin
+  rw l6_4 at ABC ⊢,
+  refine ⟨ABC.1.col_of_midpoints MBB MAA MCC, λ k, ABC.2 _⟩,
+  apply k.betw_of_midpoints MBB.symm MAA.symm MCC.symm,
+end
 
 -- midpoints are unique
 lemma l7_17 (APP : midpoint A P P') (BPP : midpoint B P P') :
@@ -113,7 +132,7 @@ begin
   { exact (or.inr ⟨AMB', MAMB.left_comm⟩) },
   have MAB := AMB.out_of_not_betw AMB',
   left,
-  apply l6_11_uniqueness MAB.2.1 MAB.2.1.symm MAB MAMB (out.trivial MAB.2.1) (cong.refl _ _),
+  apply l6_11_uniqueness MAB.2.1 MAB MAMB (out.trivial MAB.2.1) (cong.refl _ _),
 end
 
 -- aka `l7_20_bis`

@@ -74,6 +74,7 @@ begin
   exact ⟨y, betw.right_trans hx₂ hy₁, hy₂⟩,
 end
 
+-- 3.13
 lemma two_distinct_points (α : Type*) [tarski α] : ∃ (X Y : α), X ≠ Y :=
 begin
   obtain ⟨X, Y, Z, XYZ, -, -⟩ := @lower_dim α _,
@@ -82,6 +83,7 @@ begin
   apply XYZ (betw.id_left _ _),
 end
 
+-- 3.14
 lemma point_construction_different (A B : α) : ∃ C, betw A B C ∧ B ≠ C :=
 begin
   obtain ⟨X, Y, nXY⟩ := two_distinct_points α,

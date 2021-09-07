@@ -2,7 +2,7 @@ import tactic.tauto
 import geometry.tarski.ch10
 
 variables {α : Type*} [tarski α]
-variables {A B C D E F A' B' C' D' E' F' A'' B'' C'' P Q X Y : α}
+variables {A B C D E F A' B' C' D' E' F' A'' B'' C'' P Q P' X Y : α}
 
 namespace tarski
 
@@ -117,10 +117,12 @@ l11_3_bis
   AB BC AC
 
 -- conga_refl
+-- 11.6
 lemma cong_angle.refl (nAB : A ≠ B) (nCB : C ≠ B) : cong_angle A B C A B C :=
 cong_angle_of_cong nAB nCB (cong.refl _ _) (cong.refl _ _) (cong.refl _ _)
 
 -- conga_sym
+-- 11.7
 lemma cong_angle.symm : cong_angle A B C A' B' C' → cong_angle A' B' C' A B C
 | ⟨_, _, _, _, A₀, C₀, D₀, F₀, BAA₀, AA₀BA', BCC₀, CC₀B'C', B'A'D₀, A'D₀BA, B'C'F₀, C'F₀BC, ACDF⟩ :=
   { nAB := ‹_›, nCB := ‹_›, nDE := ‹_›, nFE := ‹_›,
@@ -137,6 +139,7 @@ l11_4_2 BAA'.2.1 BCC'.2.1 EDD'.2.1 EFF'.2.1
     (BAA.trans BAA'.symm) (BCC.trans BCC'.symm) (EDD.trans EDD'.symm) (EFF.trans EFF'.symm)
     BAED BCEF)
 
+-- 11.8
 lemma cong_angle.trans (h₁ : cong_angle A B C A' B' C') (h₂ : cong_angle A' B' C' A'' B'' C'') :
   cong_angle A B C A'' B'' C'' :=
 begin
@@ -155,6 +158,7 @@ lemma cong_angle.cong_angle_of_cong
   cong_angle A' B' C' A'' B'' C'' :=
 cong_angle.trans (cong_angle_of_cong (AB.diff a.nAB) (BC.comm.diff a.nCB) AB.symm AC.symm BC.symm) a
 
+-- 11.9
 lemma cong_angle_pseudo_refl (nAB : A ≠ B) (nCB : C ≠ B) : cong_angle A B C C B A :=
 begin
   obtain ⟨C', BAC, BC⟩ := segment_construction_3 nAB.symm nCB.symm,
@@ -231,10 +235,6 @@ lemma out.cong_angle_of_out (BAC : out B A C) (EDF : out E D F) :
 (cong_angle_zero BAC.1 EDF.1).cong_angle_of_out (out.trivial BAC.1) BAC (out.trivial EDF.1) EDF
 
 def in_angle (P A B C : α) := A ≠ B ∧ C ≠ B ∧ P ≠ B ∧ ∃ X, betw A X C ∧ (X = B ∨ out B X P)
-def le_angle (A B C D E F : α) := ∃ P, in_angle P D E F ∧ cong_angle A B C D E F
-@[reducible] def ge_angle (A B C D E F : α) := le_angle D E F A B C
-def lt_angle (A B C D E F : α) := le_angle A B C D E F ∧ ¬ cong_angle A B C D E F
-@[reducible] def gt_angle (A B C D E F : α) := lt_angle D E F A B C
 
 -- l11_24
 lemma in_angle.symm : in_angle P A B C → in_angle P C B A :=
@@ -279,18 +279,55 @@ end
 -- l11_25_aux
 lemma in_angle.in_angle_of_out' (hP : in_angle P A B C) (ABC : ¬ betw A B C) (BAA : out B A' A) :
   in_angle P A' B C :=
-sorry
+begin
+  obtain ⟨X, AXC, BXP⟩ := hP.2.2.2,
+  have nXB : X ≠ B,
+  { rintro rfl,
+    apply ABC AXC },
+  replace BXP := BXP.resolve_left nXB,
+  refine ⟨BAA.1, hP.2.1, hP.2.2.1, _⟩,
+  cases BAA.2.2,
+  { obtain ⟨X', XXB, AXC⟩ := inner_pasch AXC.symm h,
+    refine ⟨X', AXC, _⟩,
+    rw or_iff_not_imp_left,
+    intro h,
+    apply (XXB.symm.out h).trans BXP },
+  obtain ⟨X', AXC, BXX⟩ := outer_pasch h.symm AXC.symm,
+  refine ⟨X', AXC, _⟩,
+  rw or_iff_not_imp_left,
+  intro h,
+  apply (BXX.out nXB).symm.trans BXP,
+end
 
----
+-- l11_25
+lemma in_angle.in_angle_of_out (hP : in_angle P A B C)
+  (BAA : out B A' A) (BCC : out B C' C) (BPP : out B P' P) :
+  in_angle P' A' B C' :=
+begin
+  refine ⟨BAA.1, BCC.1, BPP.1, _⟩,
+  by_cases betw A B C,
+  { refine ⟨B, _, or.inl rfl⟩,
+    apply ((h.out_betw BAA.symm).symm.out_betw BCC.symm).symm },
+  have hP' := hP.in_angle_of_out' h BAA,
+  obtain ⟨-, -, -, X, AXC, (rfl | BXP)⟩ :=
+    (hP'.symm.in_angle_of_out' (λ k, h (k.symm.out_betw BAA)) BCC).symm,
+  { exact ⟨X, AXC, or.inl rfl⟩ },
+  { exact ⟨X, AXC, or.inr (BXP.trans BPP.symm)⟩ }
+end
+
+def le_angle (A B C D E F : α) := ∃ P, in_angle P D E F ∧ cong_angle A B C D E P
+@[reducible] def ge_angle (A B C D E F : α) := le_angle D E F A B C
+def lt_angle (A B C D E F : α) := le_angle A B C D E F ∧ ¬ cong_angle A B C D E F
+@[reducible] def gt_angle (A B C D E F : α) := lt_angle D E F A B C
 
 lemma l11_30 (le : le_angle A B C D E F) (ABC : cong_angle A B C A' B' C')
   (DEF : cong_angle D E F D' E' F') :
   le_angle A' B' C' D' E' F' :=
 begin
-  sorry
-end
+  obtain ⟨P, PDEF, ABCDEP⟩ := le,
 
-#exit
+  -- refine ⟨_, _, _⟩,
+end
 
 lemma l11_44_2 (ABC : ¬col A B C) : lt_angle B A C B C A ↔ lt B C B A :=
 begin

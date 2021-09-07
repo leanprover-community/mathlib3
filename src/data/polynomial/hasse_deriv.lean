@@ -5,10 +5,7 @@ Authors: Johan Commelin
 -/
 
 import data.polynomial.derivative
-import data.nat.choose.dvd
 import data.nat.choose.vandermonde
-import logic.function.iterate
-import tactic.ring
 
 /-!
 # Hasse derivative of polynomials
@@ -150,7 +147,6 @@ begin
   norm_cast,
   simp only [factorial_succ, succ_eq_add_one], ring,
 end
-.
 
 lemma hasse_deriv_comp (k l : ℕ) :
   (@hasse_deriv R _ k).comp (hasse_deriv l) = (k+l).choose k • hasse_deriv (k+l) :=
@@ -179,7 +175,6 @@ begin
   { ring, },
   all_goals { apply_rules [mul_ne_zero, H] }
 end
-.
 
 section
 open add_monoid_hom

@@ -1322,7 +1322,7 @@ bot_unique $ by simp [lintegral]
 lemma lintegral_in_empty (f : α → ℝ≥0∞) : ∫⁻ x in ∅, f x ∂μ = 0 :=
 by rw [measure.restrict_empty, lintegral_zero_measure]
 
-lemma lintegral_in_univ (f : α → ℝ≥0∞) : ∫⁻ x in set.univ, f x ∂μ = ∫⁻ x, f x ∂μ :=
+lemma lintegral_in_univ (f : α → ℝ≥0∞) : ∫⁻ x in univ, f x ∂μ = ∫⁻ x, f x ∂μ :=
 by rw measure.restrict_univ
 
 lemma lintegral_in_measure_zero (s : set α) (f : α → ℝ≥0∞) (hs' : μ s = 0) :

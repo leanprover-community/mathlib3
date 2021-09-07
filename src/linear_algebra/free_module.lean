@@ -151,7 +151,7 @@ instance [nontrivial R] [module.finite R M] :
   fintype (module.free.choose_basis_index R M) :=
 begin
   classical,
-  unfreezingI { obtain ⟨h⟩ := ‹module.finite R M› },
+  obtain ⟨h⟩ := id ‹module.finite R M›,
   choose s hs using h,
   let b := module.free.choose_basis R M,
   let t := (s.image b.repr).bUnion finsupp.support,

@@ -618,6 +618,14 @@ theorem is_separable_iff {F K} [field F] [field K] [algebra F K] : is_separable 
 instance is_separable_self (F : Type*) [field F] : is_separable F F :=
 ⟨λ x, is_integral_algebra_map, λ x, by { rw minpoly.eq_X_sub_C', exact separable_X_sub_C }⟩
 
+/-- A finite field extension in characteristic 0 is separable. -/
+@[priority 100] -- See note [lower instance priority]
+instance is_separable.of_finite (F K : Type*) [field F] [field K] [algebra F K]
+  [finite_dimensional F K] [char_zero F] : is_separable F K :=
+have ∀ (x : K), is_integral F x,
+from λ x, (is_algebraic_iff_is_integral _).mp (algebra.is_algebraic_of_finite _),
+⟨this, λ x, (minpoly.irreducible (this x)).separable⟩
+
 section is_separable_tower
 variables (F K E : Type*) [field F] [field K] [field E] [algebra F K] [algebra F E]
   [algebra K E] [is_scalar_tower F K E]

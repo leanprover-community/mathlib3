@@ -1438,20 +1438,30 @@ begin
     by { rintro (rfl : y = x), exact hx hy }⟩),
 end
 
-lemma is_linear_map.image_convex_hull {f : E → F} (hf : is_linear_map ℝ f) :
-  f '' (convex_hull s) = convex_hull (f '' s) :=
+lemma affine_map.image_convex_hull (f : E →ᵃ[ℝ] F) :
+  f '' (convex_hull s) =  convex_hull (f '' s) :=
 begin
-  refine set.subset.antisymm _ _,
+  apply set.subset.antisymm,
   { rw [set.image_subset_iff],
-    exact convex_hull_min (set.image_subset_iff.1 $ subset_convex_hull $ f '' s)
-      ((convex_convex_hull (f '' s)).is_linear_preimage hf) },
-  { exact convex_hull_min (set.image_subset _ $ subset_convex_hull s)
-     ((convex_convex_hull s).is_linear_image hf) }
+    have : convex (f ⁻¹' convex_hull (f '' s)),
+    { exact convex.affine_preimage f (convex_convex_hull (⇑f '' s)), },
+    refine convex_hull_min _ this,
+    rw ← set.image_subset_iff,
+    exact subset_convex_hull (f '' s), },
+  { have : convex (f '' convex_hull s),
+    { exact convex.affine_image f (convex_convex_hull s), },
+    refine convex_hull_min _ this,
+    apply set.image_subset,
+    exact subset_convex_hull s, },
 end
 
 lemma linear_map.image_convex_hull (f : E →ₗ[ℝ] F) :
   f '' (convex_hull s) = convex_hull (f '' s) :=
-f.is_linear.image_convex_hull
+f.to_affine_map.image_convex_hull
+
+lemma is_linear_map.image_convex_hull {f : E → F} (hf : is_linear_map ℝ f) :
+  f '' (convex_hull s) = convex_hull (f '' s) :=
+(hf.mk' f).image_convex_hull
 
 lemma finset.center_mass_mem_convex_hull (t : finset ι) {w : ι → ℝ} (hw₀ : ∀ i ∈ t, 0 ≤ w i)
   (hws : 0 < ∑ i in t, w i) {z : ι → E} (hz : ∀ i ∈ t, z i ∈ s) :

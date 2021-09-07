@@ -9,7 +9,12 @@ import data.pfun
 /-!
 # Image of a `finset α` under a partially defined function
 
-In this file we defile `part.to_finset` and `
+In this file we define `part.to_finset` and `finset.pimage`. We also prove some trivial lemmas about
+these definitions.
+
+## Tags
+
+finite set, image, partial function
 -/
 
 variables {α β : Type*}
@@ -23,15 +28,24 @@ def to_finset (o : part α) [decidable o.dom] : finset α := o.to_option.to_fins
   x ∈ o.to_finset ↔ x ∈ o :=
 by simp [to_finset]
 
-@[simp] theorem to_finset_none : none.to_finset = (∅ : finset α) := rfl
+@[simp] theorem to_finset_none [decidable (none : part α).dom] :
+  none.to_finset = (∅ : finset α) :=
+by simp [to_finset]
 
-@[simp] theorem to_finset_some {a : α} : (some a).to_finset = {a} := rfl
+@[simp] theorem to_finset_some {a : α} [decidable (some a).dom] :
+  (some a).to_finset = {a} :=
+by simp [to_finset]
+
+@[simp] lemma coe_to_finset (o : part α) [decidable o.dom] :
+  (o.to_finset : set α) = {x | x ∈ o} :=
+set.ext $ λ x, mem_to_finset
 
 end part
 
 namespace finset
 
-variables [decidable_eq β] {f : α →. β} [∀ x, decidable (f x).dom] {s t : finset α} {b : β}
+variables [decidable_eq β] {f g : α →. β} [∀ x, decidable (f x).dom]
+  [∀ x, decidable (g x).dom] {s t : finset α} {b : β}
 
 /-- Image of `s : finset α` under a partially defined function `f : α →. β`. -/
 def pimage (f : α →. β) [∀ x, decidable (f x).dom] (s : finset α) : finset β :=
@@ -42,6 +56,13 @@ s.bUnion (λ x, (f x).to_finset)
 @[simp, norm_cast] lemma coe_pimage : (s.pimage f : set β) = f.image s :=
 set.ext $ λ x, mem_pimage
 
+@[simp] lemma pimage_some (s : finset α) (f : α → β) [∀ x, decidable (part.some $ f x).dom] :
+  s.pimage (λ x, part.some (f x)) = s.image f :=
+by { ext, simp [eq_comm] }
+
+lemma pimage_congr (h₁ : s = t) (h₂ : ∀ x ∈ t, f x = g x) : s.pimage f = t.pimage g :=
+by { subst s, ext y, simp [h₂] { contextual := tt } }
+
 /-- Rewrite `s.pimage f` in terms of `finset.filter`, `finset.attach`, and `finset.image`. -/
 lemma pimage_eq_image_filter : s.pimage f =
   (filter (λ x, (f x).dom) s).attach.image (λ x, (f x).get (mem_filter.1 x.coe_prop).2) :=
@@ -51,5 +72,8 @@ lemma pimage_union [decidable_eq α] : (s ∪ t).pimage f = s.pimage f ∪ t.pim
 coe_inj.1 $ by simp only [coe_pimage, pfun.image_union, coe_union]
 
 @[simp] lemma pimage_empty : pimage f ∅ = ∅ := by { ext, simp }
+
+lemma pimage_subset {t : finset β} : s.pimage f ⊆ t ↔ ∀ (x ∈ s) (y ∈ f x), y ∈ t :=
+by simp [subset_iff, @forall_swap _ β]
 
 end finset

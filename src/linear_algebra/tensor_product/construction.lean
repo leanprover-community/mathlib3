@@ -31,6 +31,8 @@ as `m ⊗[R] n` and `m ⊗[R] n` for `tensor_product.tmul R m n`.
 bilinear, tensor, tensor product
 -/
 
+open_locale tensor_product
+
 section semiring
 variables {R : Type*} [comm_semiring R]
 variables {R' : Type*} [monoid R']
@@ -76,7 +78,6 @@ def has_tmul : has_tmul R M N (M ⊗ₜ[R] N) :=
 { tmul := λ m n, add_con.mk' _ $ free_add_monoid.of (m, n) }
 
 local attribute [instance] has_tmul
-open_locale tensor_product
 
 lemma tmul_def (m : M) (n : N) : m ⊗[R] n = add_con.mk' _ (free_add_monoid.of (m, n)) := rfl
 
@@ -145,6 +146,8 @@ end⟩
 lemma smul_tmul [distrib_mul_action R' N] [compatible_smul R R' M N] (r : R') (m : M) (n : N) :
   (r • m) ⊗[R] n = m ⊗[R] (r • n) :=
 compatible_smul.smul_tmul _ _ _
+
+instance : add_monoid (M ⊗ₜ[R] N) := by { delta tensor_product, apply_instance }
 
 /-- Auxiliary function to defining scalar multiplication on tensor product. -/
 def smul.aux {R' : Type*} [has_scalar R' M] (r : R') : free_add_monoid (M × N) →+ M ⊗ₜ[R] N :=
@@ -252,6 +255,39 @@ instance left_module : module R'' (M ⊗ₜ[R] N) :=
 
 instance : module R (M ⊗ₜ[R] N) := tensor_product.left_module
 
+variables (R M N)
+
+/-- The simple (aka pure) elements span the tensor product. -/
+lemma span_tmul_eq_top :
+  submodule.span R { t : M ⊗ₜ[R] N | ∃ (m:M) (n:N), m ⊗[R] n = t } = ⊤ :=
+begin
+  ext t, simp only [submodule.mem_top, iff_true],
+  apply t.induction_on,
+  { exact submodule.zero_mem _, },
+  { intros m n, apply submodule.subset_span, use [m, n], },
+  { intros t₁ t₂ ht₁ ht₂, exact submodule.add_mem _ ht₁ ht₂, },
+end
+
+instance : is_tensor_product R M N (M ⊗ₜ[R] N) :=
+{ smul_tmul' := λ c m n, (smul_tmul' c m n).symm,
+  tmul_smul' := λ c m n, (tmul_smul c m n),
+  add_tmul' := add_tmul,
+  tmul_add' := tmul_add,
+  span_tmul := span_tmul_eq_top R M N,
+  add_con :=
+  begin
+    rw ← add_con.add_ker_mk_eq (add_con_gen (eqv R M N)),
+    suffices : ⇑(free_add_monoid.lift (tmul' R M N (M ⊗ₜ N))) =
+      (coe : free_add_monoid (M × N) → (add_con_gen (eqv R M N)).quotient),
+    { simpa only [← this] },
+    show _ = ⇑(add_con_gen (eqv R M N)).mk', congr' 1,
+    refine free_add_monoid.hom_eq _,
+    rintro ⟨m, n⟩,
+    simpa only [free_add_monoid.lift_eval_of, add_con.coe_mk', tmul'_apply]
+  end }
+
+variables {R M N}
+
 section
 
 -- Like `R'`, `R'₂` provides a `distrib_mul_action R'₂ (M ⊗ₜ[R] N)`
@@ -284,57 +320,6 @@ instances are sufficient. -/
 instance is_scalar_tower [has_scalar R' R] [is_scalar_tower R' R M] :
   is_scalar_tower R' R (M ⊗ₜ[R] N) :=
 tensor_product.is_scalar_tower_left  -- or right
-
-variables (R M N)
-/-- The canonical bilinear map `M → N → M ⊗ₜ[R] N`. -/
-def mk : M →ₗ[R] N →ₗ[R] M ⊗ₜ[R] N :=
-linear_map.mk₂ R (⊗) add_tmul (λ c m n, by rw [smul_tmul, tmul_smul]) tmul_add tmul_smul
-variables {R M N}
-
-@[simp] lemma mk_apply (m : M) (n : N) : mk R M N m n = m ⊗[R] n := rfl
-
-lemma ite_tmul (x₁ : M) (x₂ : N) (P : Prop) [decidable P] :
-  (if P then x₁ else 0) ⊗[R] x₂ = if P then x₁ ⊗[R] x₂ else 0 :=
-by { split_ifs; simp }
-
-lemma tmul_ite (x₁ : M) (x₂ : N) (P : Prop) [decidable P] :
-  x₁ ⊗[R] (if P then x₂ else 0) = if P then x₁ ⊗[R] x₂ else 0 :=
-by { split_ifs; simp }
-
-section
-open_locale big_operators
-
-lemma sum_tmul {α : Type*} (s : finset α) (m : α → M) (n : N) :
-  (∑ a in s, m a) ⊗[R] n = ∑ a in s, m a ⊗[R] n :=
-begin
-  classical,
-  induction s using finset.induction with a s has ih h,
-  { simp, },
-  { simp [finset.sum_insert has, add_tmul, ih], },
-end
-
-lemma tmul_sum (m : M) {α : Type*} (s : finset α) (n : α → N) :
-  m ⊗[R] (∑ a in s, n a) = ∑ a in s, m ⊗[R] n a :=
-begin
-  classical,
-  induction s using finset.induction with a s has ih h,
-  { simp, },
-  { simp [finset.sum_insert has, tmul_add, ih], },
-end
-end
-
-variables (R M N)
-
-/-- The simple (aka pure) elements span the tensor product. -/
-lemma span_tmul_eq_top :
-  submodule.span R { t : M ⊗ₜ[R] N | ∃ m n, m ⊗[R] n = t } = ⊤ :=
-begin
-  ext t, simp only [submodule.mem_top, iff_true],
-  apply t.induction_on,
-  { exact submodule.zero_mem _, },
-  { intros m n, apply submodule.subset_span, use [m, n], },
-  { intros t₁ t₂ ht₁ ht₂, exact submodule.add_mem _ ht₁ ht₂, },
-end
 
 end module
 
@@ -377,7 +362,7 @@ variable (f)
 /-- Constructing a linear map `M ⊗[R] N → P` given a bilinear map `M → N → P` with the property that
 its composition with the canonical bilinear map `M → N → M ⊗[R] N` is
 the given bilinear map `M → N → P`. -/
-def lift : M ⊗[R] N →ₗ[R] P :=
+def lift : M ⊗ₜ[R] N →ₗ[R] P :=
 { map_smul' := lift_aux.smul,
   .. lift_aux f }
 variable {f}

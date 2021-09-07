@@ -343,6 +343,14 @@ by convert finset.sum_eq_single i (λ j _, this j) _ using 1; simp
 have ∀ j ≠ i, v j * diagonal w j i = 0 := λ j hij, by simp [diagonal_apply_ne hij],
 by convert finset.sum_eq_single i (λ j _, this j) _ using 1; simp
 
+@[simp] lemma single_dot_product (x : α) (i : m) : dot_product (pi.single i x) v = x * v i :=
+have ∀ j ≠ i, pi.single i x j * v j = 0 := λ j hij, by simp [pi.single_eq_of_ne hij],
+by convert finset.sum_eq_single i (λ j _, this j) _ using 1; simp
+
+@[simp] lemma dot_product_single (x : α) (i : m) : dot_product v (pi.single i x) = v i * x :=
+have ∀ j ≠ i, v j * pi.single i x j = 0 := λ j hij, by simp [pi.single_eq_of_ne hij],
+by convert finset.sum_eq_single i (λ j _, this j) _ using 1; simp
+
 end non_unital_non_assoc_semiring_decidable
 
 section ring

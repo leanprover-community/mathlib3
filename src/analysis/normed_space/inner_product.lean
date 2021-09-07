@@ -2229,14 +2229,12 @@ lemma orthogonal_projection_map_apply {E E' : Type*} [inner_product_space 𝕜 E
   = f (orthogonal_projection p (f.symm x)) :=
 begin
   apply eq_orthogonal_projection_of_mem_of_inner_eq_zero,
-  { refine ⟨orthogonal_projection p (f.symm x), submodule.coe_mem _, _⟩,
-    simp },
+  { exact ⟨orthogonal_projection p (f.symm x), submodule.coe_mem _, by simp⟩, },
   rintros w ⟨a, ha, rfl⟩,
   suffices : inner (f (f.symm x - orthogonal_projection p (f.symm x))) (f a) = (0:𝕜),
   { simpa using this },
   rw f.inner_map_map,
-  apply orthogonal_projection_inner_eq_zero,
-  exact ha
+  exact orthogonal_projection_inner_eq_zero _ _ ha,
 end
 
 local attribute [instance] finite_dimensional_bot

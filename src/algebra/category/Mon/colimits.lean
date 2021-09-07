@@ -247,25 +247,32 @@ instance has_colimits_Mon : has_colimits Mon :=
     { cocone := colimit_cocone F,
       is_colimit := colimit_is_colimit F } } }
 
-namespace filtered
+end Mon.colimits
+
+namespace Mon.filtered_colimits
 
 open category_theory.is_filtered (renaming max → max')
 
+section
+
+parameters {J : Type v} [small_category J] (F : J ⥤ Mon.{v})
+
 local infixl `~` := types.filtered_colimit.rel (F ⋙ forget Mon)
+
+abbreviation M : Type v := types.quot (F ⋙ forget Mon)
+abbreviation M.mk : (Σ j, F.obj j) → M := quot.mk (types.quot.rel (F ⋙ forget Mon))
 
 noncomputable theory
 open_locale classical
 
 variables [is_filtered J]
 
-instance monoid_obj (F : J ⥤ Mon) (j) :
-  monoid ((F ⋙ forget Mon).obj j) :=
+instance monoid_obj (j) : monoid ((F ⋙ forget Mon).obj j) :=
 by { change monoid (F.obj j), apply_instance }
 
-def one_colimit : types.quot (F ⋙ forget Mon) :=
-quot.mk _ ⟨is_filtered.nonempty.some, 1⟩
+def colimit_one : M := M.mk ⟨is_filtered.nonempty.some, 1⟩
 
-lemma one_colimit_eq (j : J) : one_colimit F = quot.mk _ ⟨j, 1⟩ :=
+lemma colimit_one_eq' (j : J) : colimit_one = M.mk ⟨j, 1⟩ :=
 begin
   apply quot.eqv_gen_sound,
   apply types.filtered_colimit.eqv_gen_quot_rel_of_rel,
@@ -273,12 +280,12 @@ begin
   simp,
 end
 
-def mul_colimit_pre (x y : Σ j, F.obj j) : types.quot (F ⋙ forget Mon) :=
-quot.mk _ ⟨is_filtered.max x.1 y.1,
+def colimit_mul_aux (x y : Σ j, F.obj j) : M :=
+M.mk ⟨is_filtered.max x.1 y.1,
   F.map (is_filtered.left_to_max x.1 y.1) x.2 * F.map (is_filtered.right_to_max x.1 y.1) y.2⟩
 
-lemma mul_colimit_pre_eq_of_rel_left {x x' y : Σ j, F.obj j} (hxx' : x ~ x') :
-  mul_colimit_pre F x y = mul_colimit_pre F x' y :=
+lemma colimit_mul_aux_eq_of_rel_left {x x' y : Σ j, F.obj j} (hxx' : x ~ x') :
+  colimit_mul_aux x y = colimit_mul_aux x' y :=
 begin
   cases x with j₁ x, cases y with j₂ y, cases x' with j₃ x',
   obtain ⟨l, f, g, hfg⟩ := hxx',
@@ -292,8 +299,8 @@ begin
   simp_rw [monoid_hom.map_mul, ← comp_apply, ← F.map_comp, h₁, h₂, h₃, F.map_comp, comp_apply, hfg]
 end
 
-lemma mul_colimit_pre_eq_of_rel_right {x y y' : Σ j, F.obj j} (hyy' : y ~ y') :
-  mul_colimit_pre F x y = mul_colimit_pre F x y' :=
+lemma colimit_mul_aux_eq_of_rel_right {x y y' : Σ j, F.obj j} (hyy' : y ~ y') :
+  colimit_mul_aux x y = colimit_mul_aux x y' :=
 begin
   cases y with j₁ y, cases x with j₂ x, cases y' with j₃ y',
   obtain ⟨l, f, g, hfg⟩ := hyy',
@@ -307,21 +314,21 @@ begin
   simp_rw [monoid_hom.map_mul, ← comp_apply, ← F.map_comp, h₁, h₂, h₃, F.map_comp, comp_apply, hfg]
 end
 
-def mul_colimit (x y : types.quot (F ⋙ forget Mon)) : types.quot (F ⋙ forget Mon) :=
+def colimit_mul (x y : M) : M :=
 begin
-  refine quot.lift₂ (mul_colimit_pre F) _ _ x y,
+  refine quot.lift₂ (colimit_mul_aux F) _ _ x y,
   { intros x y y' h,
-    apply mul_colimit_pre_eq_of_rel_right,
+    apply colimit_mul_aux_eq_of_rel_right,
     apply types.filtered_colimit.rel_of_quot_rel,
     exact h },
   { intros x x' y h,
-    apply mul_colimit_pre_eq_of_rel_left,
+    apply colimit_mul_aux_eq_of_rel_left,
     apply types.filtered_colimit.rel_of_quot_rel,
     exact h },
 end
 
-lemma mul_colimit_eq (x y : Σ j, F.obj j) (k : J) (f : x.1 ⟶ k) (g : y.1 ⟶ k) :
-  mul_colimit F (quot.mk _ x) (quot.mk _ y) = quot.mk _ ⟨k, F.map f x.2 * F.map g y.2⟩ :=
+lemma colimit_mul_eq' (x y : Σ j, F.obj j) (k : J) (f : x.1 ⟶ k) (g : y.1 ⟶ k) :
+  colimit_mul (quot.mk _ x) (quot.mk _ y) = quot.mk _ ⟨k, F.map f x.2 * F.map g y.2⟩ :=
 begin
   cases x with j₁ x, cases y with j₂ y,
   obtain ⟨s, α, β, h₁, h₂⟩ := bowtie (left_to_max j₁ j₂) f (right_to_max j₁ j₂) g,
@@ -332,91 +339,101 @@ begin
   simp_rw [monoid_hom.map_mul, ← comp_apply, ← F.map_comp, h₁, h₂],
 end
 
-lemma colimit_one_mul (x : types.quot (F ⋙ forget Mon)) :
-  mul_colimit F (one_colimit F) x = x :=
+lemma colimit_one_mul (x : M) : colimit_mul colimit_one x = x :=
 begin
   apply quot.induction_on x, clear x, intro x,
   cases x with j x,
-  rw [one_colimit_eq F j, mul_colimit_eq F ⟨j, 1⟩ ⟨j, x⟩ j (𝟙 j) (𝟙 j)],
-  congr,
-  rw [monoid_hom.map_one, one_mul, F.map_id, id_apply],
+  rw [colimit_one_eq' F j, colimit_mul_eq' F ⟨j, 1⟩ ⟨j, x⟩ j (𝟙 j) (𝟙 j),
+    monoid_hom.map_one, one_mul, F.map_id, id_apply],
 end
 
 lemma colimit_mul_one (x : types.quot (F ⋙ forget Mon)) :
-  mul_colimit F x (one_colimit F) = x :=
+  colimit_mul x colimit_one = x :=
 begin
   apply quot.induction_on x, clear x, intro x,
   cases x with j x,
-  rw [one_colimit_eq F j, mul_colimit_eq F ⟨j, x⟩ ⟨j, 1⟩ j (𝟙 j) (𝟙 j)],
-  congr,
-  rw [monoid_hom.map_one, mul_one, F.map_id, id_apply],
+  rw [colimit_one_eq' F j, colimit_mul_eq' F ⟨j, x⟩ ⟨j, 1⟩ j (𝟙 j) (𝟙 j),
+    monoid_hom.map_one, mul_one, F.map_id, id_apply],
 end
 
-lemma colimit_mul_assoc (x y z : types.quot (F ⋙ forget Mon)) :
-  mul_colimit F (mul_colimit F x y) z = mul_colimit F x (mul_colimit F y z) :=
+lemma colimit_mul_assoc (x y z : M) :
+  colimit_mul (colimit_mul x y) z = colimit_mul x (colimit_mul y z) :=
 begin
   apply quot.induction_on₃ x y z, clear x y z, intros x y z,
   cases x with j₁ x, cases y with j₂ y, cases z with j₃ z,
-  rw [mul_colimit_eq F ⟨j₁, x⟩ ⟨j₂, y⟩ _ (first_to_max₃ j₁ j₂ j₃) (second_to_max₃ j₁ j₂ j₃),
-    mul_colimit_eq F ⟨max₃ j₁ j₂ j₃, _⟩ ⟨j₃, z⟩ _ (𝟙 _) (third_to_max₃ j₁ j₂ j₃),
-    mul_colimit_eq F ⟨j₂, y⟩ ⟨j₃, z⟩ _ (second_to_max₃ j₁ j₂ j₃) (third_to_max₃ j₁ j₂ j₃),
-    mul_colimit_eq F ⟨j₁, x⟩ ⟨max₃ j₁ j₂ j₃, _⟩ _ (first_to_max₃ j₁ j₂ j₃) (𝟙 _)],
+  rw [colimit_mul_eq' F ⟨j₁, x⟩ ⟨j₂, y⟩ _ (first_to_max₃ j₁ j₂ j₃) (second_to_max₃ j₁ j₂ j₃),
+    colimit_mul_eq' F ⟨max₃ j₁ j₂ j₃, _⟩ ⟨j₃, z⟩ _ (𝟙 _) (third_to_max₃ j₁ j₂ j₃),
+    colimit_mul_eq' F ⟨j₂, y⟩ ⟨j₃, z⟩ _ (second_to_max₃ j₁ j₂ j₃) (third_to_max₃ j₁ j₂ j₃),
+    colimit_mul_eq' F ⟨j₁, x⟩ ⟨max₃ j₁ j₂ j₃, _⟩ _ (first_to_max₃ j₁ j₂ j₃) (𝟙 _)],
   simp only [F.map_id, id_apply, mul_assoc],
 end
 
-instance colimit_monoid : monoid (types.quot (F ⋙ forget Mon)) :=
-{ one := one_colimit F,
-  mul := mul_colimit F,
-  one_mul := colimit_one_mul F,
-  mul_one := colimit_mul_one F,
-  mul_assoc := colimit_mul_assoc F }
+instance colimit_monoid : monoid M :=
+{ one := colimit_one,
+  mul := colimit_mul,
+  one_mul := colimit_one_mul,
+  mul_one := colimit_mul_one,
+  mul_assoc := colimit_mul_assoc }
+
+lemma colimit_one_eq (j : J) : (1 : M) = M.mk ⟨j, 1⟩ :=
+colimit_one_eq' j
+
+lemma colimit_mul_eq (x y : Σ j, F.obj j) (k : J) (f : x.1 ⟶ k) (g : y.1 ⟶ k) :
+  M.mk x * M.mk y = M.mk ⟨k, F.map f x.2 * F.map g y.2⟩ :=
+colimit_mul_eq' x y k f g
 
 /-- The bundled monoid giving the colimit of a diagram. -/
-def colimit : Mon := ⟨types.quot (F ⋙ forget Mon), by apply_instance⟩
+def colimit : Mon := ⟨M, by apply_instance⟩
 
 /-- The monoid homomorphism from a given monoid in the diagram to the colimit monoid. -/
-def cocone_morphism (j : J) : F.obj j ⟶ colimit F :=
+def cocone_morphism (j : J) : F.obj j ⟶ colimit :=
 { to_fun := (types.colimit_cocone (F ⋙ forget Mon)).ι.app j,
-  map_one' := (one_colimit_eq F j).symm,
+  map_one' := (colimit_one_eq j).symm,
   map_mul' := λ x y, begin
-    convert (mul_colimit_eq F ⟨j, x⟩ ⟨j, y⟩ j (𝟙 j) (𝟙 j)).symm,
+    convert (colimit_mul_eq F ⟨j, x⟩ ⟨j, y⟩ j (𝟙 j) (𝟙 j)).symm,
     rw [F.map_id, id_apply, id_apply], refl,
   end }
 
 @[simp] lemma cocone_naturality {j j' : J} (f : j ⟶ j') :
-  F.map f ≫ (cocone_morphism F j') = cocone_morphism F j :=
-begin
-  apply monoid_hom.coe_inj,
-  exact (types.colimit_cocone (F ⋙ forget Mon)).ι.naturality f,
-end
+  F.map f ≫ (cocone_morphism j') = cocone_morphism j :=
+monoid_hom.coe_inj ((types.colimit_cocone (F ⋙ forget Mon)).ι.naturality f)
 
 /-- The cocone over the proposed colimit monoid. -/
 def colimit_cocone : cocone F :=
-{ X := colimit F,
-  ι := { app := cocone_morphism F } }.
+{ X := colimit,
+  ι := { app := cocone_morphism } }.
 
-def blub : cocone F → cocone (F ⋙ forget Mon) := λ t,
-{ X := t.X, ι := { app := λ j, t.ι.app j } }
-
-def colimit_desc (t : cocone F) : colimit F ⟶ t.X :=
-{ to_fun := (types.colimit_cocone_is_colimit (F ⋙ forget Mon)).desc (blub F t),
+def colimit_desc (t : cocone F) : colimit ⟶ t.X :=
+{ to_fun := (types.colimit_cocone_is_colimit (F ⋙ forget Mon)).desc ((forget Mon).map_cocone t),
   map_one' := begin
-    change (types.colimit_cocone_is_colimit (F ⋙ forget Mon)).desc (blub F t) (one_colimit F) = _,
-    dsimp [types.colimit_cocone_is_colimit, one_colimit, blub],
-    rw monoid_hom.map_one,
+    rw colimit_one_eq F is_filtered.nonempty.some,
+    exact monoid_hom.map_one _,
   end,
   map_mul' := λ x y, begin
-    sorry
+    apply quot.induction_on₂ x y, clear x y, intros x y,
+    cases x with i x, cases y with j y,
+    rw colimit_mul_eq F ⟨i, x⟩ ⟨j, y⟩ (max' i j) (left_to_max i j) (right_to_max i j),
+    dsimp [types.colimit_cocone_is_colimit],
+    rw [monoid_hom.map_mul, t.w_apply, t.w_apply],
   end }
 
-def colimit_cocone_is_colimit : is_colimit (colimit_cocone F) :=
-{ desc := colimit_desc F, fac' := sorry, uniq' := sorry }
+def colimit_cocone_is_colimit : is_colimit colimit_cocone :=
+{ desc := colimit_desc,
+  fac' := λ t j, monoid_hom.coe_inj
+    ((types.colimit_cocone_is_colimit (F ⋙ forget Mon)).fac ((forget Mon).map_cocone t) j),
+  uniq' := λ t m h, begin
+    apply monoid_hom.coe_inj,
+    refine (types.colimit_cocone_is_colimit (F ⋙ forget Mon)).uniq ((forget Mon).map_cocone t) m _,
+    intro j,
+    ext x,
+    exact monoid_hom.congr_fun (h j) x,
+  end }
 
 instance forget_preserves_filtered_colimits : preserves_filtered_colimits (forget Mon) :=
 { preserves_filtered_colimits := λ J _ _, by exactI
   { preserves_colimit := λ F, preserves_colimit_of_preserves_colimit_cocone
       (colimit_cocone_is_colimit F) (types.colimit_cocone_is_colimit (F ⋙ forget Mon)) } }
 
-end filtered
+end
 
-end Mon.colimits
+end Mon.filtered_colimits

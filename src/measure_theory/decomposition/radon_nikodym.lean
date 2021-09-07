@@ -90,7 +90,7 @@ begin
   by_cases hl : have_lebesgue_decomposition μ ν,
   { haveI := hl,
     obtain ⟨-, -, hadd⟩ := have_lebesgue_decomposition_spec μ ν,
-    rw [← lintegral_univ, ← with_density_apply _ measurable_set.univ],
+    rw [← lintegral_in_univ, ← with_density_apply _ measurable_set.univ],
     refine lt_of_le_of_lt
       (le_add_left (le_refl _) : _ ≤ μ.singular_part ν set.univ +
         ν.with_density (μ.radon_nikodym_deriv ν) set.univ) _,
@@ -167,7 +167,7 @@ begin
       refine integrable_on.restrict _ measurable_set.univ,
       refine ⟨_, has_finite_integral_to_real_of_lintegral_ne_top _⟩,
       { measurability },
-      { rw lintegral_univ,
+      { rw lintegral_in_univ,
         exact (lintegral_radon_nikodym_deriv_lt_top _ _).ne } } },
   { exact equiv_measure.right_inv μ }
 end

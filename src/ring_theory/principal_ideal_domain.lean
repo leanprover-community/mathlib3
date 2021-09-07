@@ -56,7 +56,7 @@ class is_principal_ideal_ring (R : Type u) [ring R] : Prop :=
 attribute [instance] is_principal_ideal_ring.principal
 
 @[priority 100]
-instance division_ring.is_principal_idea_ring (K : Type u) [division_ring K] :
+instance division_ring.is_principal_ideal_ring (K : Type u) [division_ring K] :
   is_principal_ideal_ring K :=
 { principal := λ S, by rcases ideal.eq_bot_or_top S with (rfl|rfl); apply_instance }
 

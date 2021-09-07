@@ -399,7 +399,7 @@ def quotient_equiv_prod_of_le' (h_le : s ≤ t)
     refine quotient.ind' (λ a, _),
     refine quotient.ind' (λ b, _),
     have key : quotient.mk' (f (quotient.mk' a) * b) = quotient.mk' a :=
-    (quotient_group.mk_mul_of_mem (f a) ↑b b.2).trans (hf a),
+      (quotient_group.mk_mul_of_mem (f a) ↑b b.2).trans (hf a),
     simp_rw [quotient.map'_mk', id.def, key, inv_mul_cancel_left, subtype.coe_eta] } }
 
 /-- If `H ≤ K` then `G/H ≃ G/K × K/H`. -/

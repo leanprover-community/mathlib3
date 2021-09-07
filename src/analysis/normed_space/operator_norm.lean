@@ -184,6 +184,22 @@ by {rw mul_comm, exact norm_smul _ _}
 def to_span_singleton (x : E) : 𝕜 →L[𝕜] E :=
 of_homothety (linear_map.to_span_singleton 𝕜 E x) ∥x∥ (to_span_singleton_homothety 𝕜 x)
 
+lemma to_span_singleton_apply (x : E) (r : 𝕜) : to_span_singleton 𝕜 x r = r • x :=
+by simp [to_span_singleton, of_homothety, linear_map.to_span_singleton]
+
+lemma to_span_singleton_add (x y : E) :
+  to_span_singleton 𝕜 (x + y) = to_span_singleton 𝕜 x + to_span_singleton 𝕜 y :=
+by { ext1, simp [to_span_singleton_apply], }
+
+lemma to_span_singleton_smul' (𝕜') [nondiscrete_normed_field 𝕜'] [semi_normed_space 𝕜' E]
+  [smul_comm_class 𝕜 𝕜' E] (c : 𝕜') (x : E) :
+  to_span_singleton 𝕜 (c • x) = c • to_span_singleton 𝕜 x :=
+by { ext1, rw [to_span_singleton_apply, smul_apply, to_span_singleton_apply, smul_comm], }
+
+lemma to_span_singleton_smul (c : 𝕜) (x : E) :
+  to_span_singleton 𝕜 (c • x) = c • to_span_singleton 𝕜 x :=
+to_span_singleton_smul' 𝕜 𝕜 c x
+
 end
 
 section op_norm
@@ -626,62 +642,18 @@ lemma lsmul_apply (r : 𝕜') (x : E) : lsmul 𝕜 𝕜' r x = r • x :=
 by simp only [lsmul, alg_hom.to_linear_map_apply, linear_map.mk_continuous₂_apply,
   algebra.lsmul_coe]
 
-end smul_linear
+variables {𝕜'}
 
-section lsmul_left_right
-
-variables (𝕜)
-
-/-- Scalar product `λ (r : 𝕜), r • x` as a continuous linear map. -/
-def lsmul_left (x : E) : 𝕜 →L[𝕜] E := (@lsmul 𝕜 E _ _ _ 𝕜 _ _ _ _).flip x
-
-lemma lsmul_left_apply (x : E) (r : 𝕜) : lsmul_left 𝕜 x r = r • x :=
-by rw [lsmul_left, flip_apply, lsmul_apply]
-
-lemma lsmul_left_add (x y : E) : lsmul_left 𝕜 (x + y) = lsmul_left 𝕜 x + lsmul_left 𝕜 y :=
-(@lsmul 𝕜 E _ _ _ 𝕜 _ _ _ _).flip.map_add x y
-
-lemma lsmul_left_smul' (𝕜') [nondiscrete_normed_field 𝕜'] [semi_normed_space 𝕜' E]
-  [smul_comm_class 𝕜 𝕜' E] (c : 𝕜') (x : E) :
-  lsmul_left 𝕜 (c • x) = c • lsmul_left 𝕜 x :=
-by { ext1, rw [lsmul_left_apply, smul_apply, lsmul_left_apply, smul_comm], }
-
-lemma lsmul_left_smul (c : 𝕜) (x : E) : lsmul_left 𝕜 (c • x) = c • lsmul_left 𝕜 x :=
-lsmul_left_smul' 𝕜 𝕜 c x
-
-lemma norm_lsmul_left (x : E) : ∥lsmul_left 𝕜 x∥ = ∥x∥ :=
+lemma norm_to_span_singleton (x : E) : ∥to_span_singleton 𝕜 x∥ = ∥x∥ :=
 begin
   refine op_norm_eq_of_bounds (norm_nonneg _) (λ x, _) (λ N hN_nonneg h, _),
-  { rw [lsmul_left_apply, norm_smul, mul_comm], },
+  { rw [to_span_singleton_apply, norm_smul, mul_comm], },
   { specialize h 1,
-    rw [lsmul_left_apply, norm_smul, mul_comm] at h,
+    rw [to_span_singleton_apply, norm_smul, mul_comm] at h,
     exact (mul_le_mul_right (by simp)).mp h, },
 end
 
-variables {𝕜} (E)
-
-/-- Scalar product `λ (x : E), r • x` as a continuous linear map. -/
-def lsmul_right (r : 𝕜) : E →L[𝕜] E := lsmul 𝕜 𝕜 r
-
-lemma lsmul_right_apply (r : 𝕜) (x : E) : lsmul_right E r x = r • x :=
-by rw [lsmul_right, lsmul_apply]
-
-lemma lsmul_right_add (x y : 𝕜) : lsmul_right E (x + y) = lsmul_right E x + lsmul_right E y :=
-(lsmul 𝕜 𝕜).map_add x y
-
-lemma norm_lsmul_right_le (r : 𝕜) : ∥lsmul_right E r∥ ≤ ∥r∥ :=
-op_norm_le_bound _ (norm_nonneg _) (λ x, by rw [lsmul_right_apply, norm_smul])
-
-lemma norm_lsmul_right (r : 𝕜) {x : E} (hx : 0 < ∥x∥) : ∥lsmul_right E r∥ = ∥r∥ :=
-begin
-  refine op_norm_eq_of_bounds (norm_nonneg _) (λ x, _) (λ N hN_nonneg h, _),
-  { rw [lsmul_right_apply, norm_smul], },
-  { specialize h x,
-    rw [lsmul_right_apply, norm_smul] at h,
-    exact (mul_le_mul_right hx).mp h, },
-end
-
-end lsmul_left_right
+end smul_linear
 
 section restrict_scalars
 

@@ -152,13 +152,18 @@ begin
   erw [← image_smul, image_inter],
   exact mul_action.injective a,
 end
-lemma measure_null_of_null_right {α : Type*} [measurable_space α] {μ : measure α} (S T : set α)
-  (h : μ T = 0) : μ (S ∩ T) = 0 :=
-nonpos_iff_eq_zero.mp (h ▸ measure_mono (inter_subset_right S T))
 
-lemma measure_null_of_null_left {α : Type*} [measurable_space α] {μ : measure α} (S T : set α)
-  (h : μ S = 0) : μ (S ∩ T) = 0 :=
-nonpos_iff_eq_zero.mp (h ▸ measure_mono (inter_subset_left S T))
+lemma measure_null_of_subset_null {α : Type*} [measurable_space α] {μ : measure α} {S T : set α}
+  (hST : S ⊆ T) (h : μ T = 0) : μ S = 0 :=
+nonpos_iff_eq_zero.mp (h ▸ measure_mono hST)
+
+lemma measure_null_of_null_right {α : Type*} [measurable_space α] {μ : measure α} (S : set α)
+  {T : set α} (h : μ T = 0) : μ (S ∩ T) = 0 :=
+measure_null_of_subset_null (inter_subset_right S T) h
+
+lemma measure_null_of_null_left {α : Type*} [measurable_space α] {μ : measure α} {S : set α}
+  (T : set α) (h : μ S = 0) : μ (S ∩ T) = 0 :=
+measure_null_of_subset_null (inter_subset_left S T) h
 
 lemma measure_Union_of_null_inter {α β : Type*} [measurable_space α] {μ : measure α} [encodable β]
   {f : β → set α} (hn : pairwise ((λ S T, μ (S ∩ T) = 0) on f)) (h : ∀ i, measurable_set (f i)) :
@@ -372,22 +377,18 @@ begin
       change volume _ = 0,
       rw inter_assoc,
       apply measure_null_of_null_right,
-      rw inter_comm,
-      rw inter_assoc,
+      rw [inter_comm, inter_assoc],
       apply measure_null_of_null_right,
       rw ← h_smul_left.volume_smul y
         ((F.measurable_set_smul y⁻¹).inter (F.measurable_set_smul x⁻¹)),
       simp only [smul_set_inter, smul_inv_smul],
-      rw [smul_smul, ← nonpos_iff_eq_zero, ← F.almost_disjoint],
-      apply measure_mono,
-      refine F.domain.inter_subset_inter_right _,
-      -- TODO clean up this ugliness
-      intros a b, cases b, cases b_h, induction b_h_right, simp at *,
-        fsplit, work_on_goal 1 { fsplit, work_on_goal 0 { intros b }, work_on_goal 1
-        { fsplit, work_on_goal 1 { fsplit, work_on_goal 0 { assumption }, refl } }, simp at * },
-      apply hxy,
-      symmetry,
-      exact mul_inv_eq_one.mp b,},
+      rw [smul_smul],
+      apply measure_null_of_subset_null (F.domain.inter_subset_inter_right _) F.almost_disjoint,
+      intros t ht,
+      rw mem_Union,
+      use y * x⁻¹,
+      rw [ne.def, mul_inv_eq_one, mem_Union],
+      exact ⟨hxy.symm, ht⟩, },
     { intro l,
       exact hS.inter (F.measurable_set_smul l⁻¹), }, },
   { congr,
@@ -416,10 +417,10 @@ def map (Y X : Type*) [measurable_space X] [measure_space Y] [group X] [mul_acti
   covers := begin
     intro y,
     obtain ⟨l, hl⟩ := F.covers y,
-    obtain ⟨x, hx⟩ := quotient_group.mk_out'_eq_mul S (l⁻¹),
+    obtain ⟨x, hx⟩ := quotient_group.mk_out'_eq_mul S l⁻¹,
     use x,
     refine mem_Union.mpr _,
-    use quotient_group.mk' S l,
+    use quotient_group.mk' S (l⁻¹),
     -- rw mem_smul_set_iff_inv_smul_mem,
     -- TODO version of mem_smul_set_iff_inv_smul_mem for regular gps?
     rw mem_smul_set,

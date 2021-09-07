@@ -6,6 +6,7 @@ Authors: Kevin Buzzard
 
 import ring_theory.principal_ideal_domain
 import order.conditionally_complete_lattice
+import ring_theory.ideal.local_ring
 import ring_theory.multiplicity
 import ring_theory.valuation.basic
 
@@ -202,7 +203,7 @@ begin
     left,
     obtain ⟨m, rfl⟩ := nat.exists_eq_succ_of_ne_zero hm,
     rw pow_succ,
-    apply dvd_mul_of_dvd_left (dvd_refl _) _ },
+    apply dvd_mul_of_dvd_left dvd_rfl _ },
   { rw [multiset.prod_repeat], exact (classical.some_spec (spec.2 hx)), }
 end
 

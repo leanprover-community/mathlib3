@@ -88,7 +88,7 @@ Group Theory:
     stabilizer of a point: 'mul_action.stabilizer'
     orbit: 'mul_action.orbit'
     quotient space: 'mul_action.orbit_equiv_quotient_stabilizer'
-    class formula: ''
+    class formula: 'mul_action.self_equiv_sigma_orbits_quotient_stabilizer'
     conjugacy classes: 'conj_classes'
   Abelian group:
     cyclic group: 'is_cyclic'
@@ -532,7 +532,7 @@ Measures and integral Calculus:
 # 11.
 Probability Theory:
   Definitions of a probability space:
-    probability measure: 'measure_theory.probability_measure'
+    probability measure: 'measure_theory.is_probability_measure'
     events:
     independent events: 'probability_theory.Indep_set'
     sigma-algebra: 'measurable_space'

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker, Aaron Anderson
 -/
 
-import algebra.gcd_monoid
+import algebra.gcd_monoid.basic
 import ring_theory.integral_domain
 import ring_theory.noetherian
 
@@ -69,7 +69,7 @@ local attribute [elab_as_eliminator] well_founded.fix
 
 lemma exists_irreducible_factor {a : α} (ha : ¬ is_unit a) (ha0 : a ≠ 0) :
   ∃ i, irreducible i ∧ i ∣ a :=
-(irreducible_or_factor a ha).elim (λ hai, ⟨a, hai, dvd_refl _⟩)
+(irreducible_or_factor a ha).elim (λ hai, ⟨a, hai, dvd_rfl⟩)
   (well_founded.fix
     wf_dvd_monoid.well_founded_dvd_not_unit
     (λ a ih ha ha0 ⟨x, y, hx, hy, hxy⟩,
@@ -224,7 +224,7 @@ by haveI := classical.dec_eq α; exact
   then it is an associate of one of its prime factors. -/
 lemma prime_factors_irreducible [comm_cancel_monoid_with_zero α] {a : α} {f : multiset α}
   (ha : irreducible a) (pfa : (∀b ∈ f, prime b) ∧ f.prod ~ᵤ a) :
-  ∃ p, a ~ᵤ p ∧ f = p ::ₘ 0 :=
+  ∃ p, a ~ᵤ p ∧ f = {p} :=
 begin
   haveI := classical.dec_eq α,
   refine multiset.induction_on f (λ h, (ha.not_unit
@@ -292,7 +292,7 @@ begin
   obtain ⟨f, hf⟩ := pf p hp0,
   obtain ⟨q, hq, rfl⟩ := prime_factors_irreducible h hf,
   rw hq.prime_iff,
-  exact hf.1 q (multiset.mem_cons_self _ _)
+  exact hf.1 q (multiset.mem_singleton_self _)
 end
 
 theorem unique_factorization_monoid.of_exists_prime_factors :
@@ -402,12 +402,12 @@ begin
 end
 
 lemma factors_irreducible {a : α} (ha : irreducible a) :
-  factors a = normalize a ::ₘ 0 :=
+  factors a = {normalize a} :=
 begin
   obtain ⟨p, a_assoc, hp⟩ := prime_factors_irreducible ha
     ⟨prime_of_factor, factors_prod ha.ne_zero⟩,
   have p_mem : p ∈ factors a,
-  { rw hp, apply multiset.mem_cons_self },
+  { rw hp, exact multiset.mem_singleton_self _ },
   convert hp,
   rwa [← normalize_factor p p_mem, normalize_eq_normalize_iff, dvd_dvd_iff_associated]
 end
@@ -546,9 +546,9 @@ begin
   { rintros _ ⟨x, rfl⟩ _ a_dvd_bx,
     apply units.dvd_mul_right.mp a_dvd_bx },
   { intros c p hc hp ih no_factors a_dvd_bpc,
-    apply ih (λ q dvd_a dvd_c hq, no_factors dvd_a (dvd_mul_of_dvd_right dvd_c _) hq),
+    apply ih (λ q dvd_a dvd_c hq, no_factors dvd_a (dvd_c.mul_left _) hq),
     rw mul_left_comm at a_dvd_bpc,
-    refine or.resolve_left (left_dvd_or_dvd_right_of_dvd_prime_mul hp a_dvd_bpc) (λ h, _),
+    refine or.resolve_left (hp.left_dvd_or_dvd_right_of_dvd_mul a_dvd_bpc) (λ h, _),
     exact no_factors h (dvd_mul_right p c) hp }
 end
 
@@ -583,10 +583,10 @@ begin
     { obtain ⟨a', b', c', coprime, rfl, rfl⟩ := ih_a a_ne_zero b,
       refine ⟨p * a', b', c', _, mul_left_comm _ _ _, rfl⟩,
       intros q q_dvd_pa' q_dvd_b',
-      cases left_dvd_or_dvd_right_of_dvd_prime_mul p_prime q_dvd_pa' with p_dvd_q q_dvd_a',
+      cases p_prime.left_dvd_or_dvd_right_of_dvd_mul q_dvd_pa' with p_dvd_q q_dvd_a',
       { have : p ∣ c' * b' := dvd_mul_of_dvd_right (p_dvd_q.trans q_dvd_b') _,
         contradiction },
-      exact coprime q_dvd_a' q_dvd_b'  } }
+      exact coprime q_dvd_a' q_dvd_b' } }
 end
 
 lemma exists_reduced_factors' (a b : R) (hb : b ≠ 0) :
@@ -610,7 +610,7 @@ begin
   { rintro ⟨c, rfl⟩,
     rw [ne.def, pow_succ, mul_assoc, mul_eq_zero, decidable.not_or_iff_and_not] at hb,
     rw [pow_succ, mul_assoc, factors_mul hb.1 hb.2, repeat_succ, factors_irreducible ha,
-      cons_add, cons_le_cons_iff, zero_add, ← ih hb.2],
+      singleton_add, cons_le_cons_iff, ← ih hb.2],
     apply dvd.intro _ rfl },
   { rw [multiset.le_iff_exists_add],
     rintro ⟨u, hu⟩,
@@ -1227,3 +1227,45 @@ noncomputable def unique_factorization_monoid.to_gcd_monoid
   .. ‹normalization_monoid α› }
 
 end
+
+namespace unique_factorization_monoid
+
+/-- If `y` is a nonzero element of a unique factorization monoid with finitely
+many units (e.g. `ℤ`, `ideal (ring_of_integers K)`), it has finitely many divisors. -/
+noncomputable def fintype_subtype_dvd {M : Type*} [comm_cancel_monoid_with_zero M]
+  [unique_factorization_monoid M] [fintype (units M)]
+  (y : M) (hy : y ≠ 0) :
+  fintype {x // x ∣ y} :=
+begin
+  haveI : nontrivial M := ⟨⟨y, 0, hy⟩⟩,
+  haveI : normalization_monoid M := unique_factorization_monoid.normalization_monoid,
+  haveI := classical.dec_eq M,
+  haveI := classical.dec_eq (associates M),
+  -- We'll show `λ (u : units M) (f ⊆ factors y) → u * Π f` is injective
+  -- and has image exactly the divisors of `y`.
+  refine fintype.of_finset
+    (((factors y).powerset.to_finset.product (finset.univ : finset (units M))).image
+      (λ s, (s.snd : M) * s.fst.prod))
+    (λ x, _),
+  simp only [exists_prop, finset.mem_image, finset.mem_product, finset.mem_univ, and_true,
+    multiset.mem_to_finset, multiset.mem_powerset, exists_eq_right, multiset.mem_map],
+  split,
+  { rintros ⟨s, hs, rfl⟩,
+    have prod_s_ne : s.fst.prod ≠ 0,
+    { intro hz,
+      apply hy (eq_zero_of_zero_dvd _),
+      have hz := (@multiset.prod_eq_zero_iff M _ _ _ s.fst).mp hz,
+      rw ← (factors_prod hy).dvd_iff_dvd_right,
+      exact multiset.dvd_prod (multiset.mem_of_le hs hz) },
+    show (s.snd : M) * s.fst.prod ∣ y,
+    rw [(unit_associated_one.mul_right s.fst.prod).dvd_iff_dvd_left, one_mul,
+        ← (factors_prod hy).dvd_iff_dvd_right],
+    exact multiset.prod_dvd_prod hs },
+  { rintro (h : x ∣ y),
+    have hx : x ≠ 0, { refine mt (λ hx, _) hy, rwa [hx, zero_dvd_iff] at h },
+    obtain ⟨u, hu⟩ := factors_prod hx,
+    refine ⟨⟨factors x, u⟩, _, (mul_comm _ _).trans hu⟩,
+    exact (dvd_iff_factors_le_factors hx hy).mp h }
+end
+
+end unique_factorization_monoid

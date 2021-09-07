@@ -23,7 +23,6 @@ one, including injectivity of `finsupp.total ι M R v` and some versions with ex
 linear combinations.
 
 ## Main definitions
-
 All definitions are given for families of vectors, i.e. `v : ι → M` where `M` is the module or
 vector space and `ι : Type*` is an arbitrary indexing type.
 
@@ -897,7 +896,7 @@ end
 
 open linear_map
 
-lemma linear_independent.image_subtype {s : set M} {f : M →ₗ M'}
+lemma linear_independent.image_subtype {s : set M} {f : M →ₗ[R] M'}
   (hs : linear_independent R (λ x, x : s → M))
   (hf_inj : disjoint (span R s) f.ker) : linear_independent R (λ x, x : f '' s → M') :=
 begin
@@ -1133,7 +1132,6 @@ begin
   { ext,
     -- TODO: why doesn't simp use `fin_succ_equiv_symm_coe` here?
     rw [comp_app, comp_app, fin_succ_equiv_symm_coe, fin.cons_succ] },
-  { rw [comp_app, fin_succ_equiv_symm_none, fin.cons_zero] },
   { ext,
     rw [comp_app, comp_app, fin_succ_equiv_symm_coe, fin.cons_succ] }
 end

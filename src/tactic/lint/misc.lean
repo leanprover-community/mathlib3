@@ -16,7 +16,8 @@ This file defines several small linters:
   - `doc_blame_thm` checks that every theorem has a documentation string (not enabled by default).
   - `def_lemma` checks that a declaration is a lemma iff its type is a proposition.
   - `check_type` checks that the statement of a declaration is well-typed.
-  - `check_univs` checks that that there are no bad `max u v` universe levels.
+  - `check_univs` checks that there are no bad `max u v` universe levels.
+  - `syn_taut` checks that declarations are not syntactic tautologies.
 -/
 
 open tactic expr
@@ -309,7 +310,7 @@ meta def linter.check_univs : linter :=
 { test := check_univs,
   auto_decls := tt,
   no_errors_found :=
-    "All declaratations have good universe levels.",
+    "All declarations have good universe levels.",
   errors_found := "THE STATEMENTS OF THE FOLLOWING DECLARATIONS HAVE BAD UNIVERSE LEVELS. " ++
 "This usually means that there is a `max u v` in the declaration where neither `u` nor `v` " ++
 "occur by themselves. Solution: Find the type (or type bundled with data) that has this " ++
@@ -319,3 +320,37 @@ meta def linter.check_univs : linter :=
 Note: if the linter flags an automatically generated declaration `xyz._proof_i`, it means that
 the universe problem is with `xyz` itself (even if the linter doesn't flag `xyz`)",
   is_fast := tt }
+
+/-!
+## Linter for syntactic tautologies
+-/
+
+/--
+Checks whether a lemma is a declaration of the form `∀ a b ... z, e₁ = e₂`
+where `e₁` and `e₂` are identical exprs.
+We call declarations of this form syntactic tautologies.
+Such lemmas are (mostly) useless and sometimes introduced unintentionally when proving basic facts
+with rfl when elaboration results in a different term than the user intended.
+-/
+meta def syn_taut (d : declaration) : tactic (option string) :=
+  (do (el, er) ← d.type.pi_codomain.is_eq,
+    guardb (el =ₐ er),
+    return $ some "LHS equals RHS syntactically") <|>
+  return none
+
+/-- A linter for checking that declarations aren't syntactic tautologies. -/
+@[linter]
+meta def linter.syn_taut : linter :=
+{ test := syn_taut,
+  auto_decls := ff, -- many false positives with this enabled
+  no_errors_found :=
+    "No declarations are syntactic tautologies.",
+  errors_found := "THE FOLLOWING DECLARATIONS ARE SYNTACTIC TAUTOLOGIES. " ++
+"This usually means that they are of the form `∀ a b ... z, e₁ = e₂` where `e₁` and `e₂` are " ++
+"identical expressions. We call declarations of this form syntactic tautologies. " ++
+"Such lemmas are (mostly) useless and sometimes introduced unintentionally when proving " ++
+"basic facts using `rfl`, when elaboration results in a different term than the user intended. " ++
+"You should check that the declaration really says what you think it does.",
+  is_fast := tt }
+
+attribute [nolint syn_taut] rfl

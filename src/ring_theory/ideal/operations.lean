@@ -273,6 +273,12 @@ submodule.smul_mem_smul hr hs
 theorem mul_mem_mul_rev {r s} (hr : r ∈ I) (hs : s ∈ J) : s * r ∈ I * J :=
 mul_comm r s ▸ mul_mem_mul hr hs
 
+lemma pow_mem_pow {x : R} (hx : x ∈ I) (n : ℕ) : x ^ n ∈ I ^ n :=
+begin
+  induction n with n ih, { simp only [pow_zero, ideal.one_eq_top], },
+  simpa only [pow_succ] using mul_mem_mul hx ih,
+end
+
 theorem mul_le : I * J ≤ K ↔ ∀ (r ∈ I) (s ∈ J), r * s ∈ K :=
 submodule.smul_le
 
@@ -570,8 +576,8 @@ begin
   obtain ⟨t, rfl⟩ : ∃ t, s = b ::ₘ t,
   from ⟨s.erase b, (multiset.cons_erase hb).symm⟩,
   refine t.induction_on _ _,
-  { simp only [mul_top, exists_prop, imp_self, multiset.prod_cons, one_eq_top, exists_eq_left,
-      multiset.prod_zero, multiset.mem_singleton] },
+  { simp only [exists_prop, ←multiset.singleton_eq_cons, multiset.prod_singleton,
+      multiset.mem_singleton, exists_eq_left, imp_self] },
   intros a s ih h,
   rw [multiset.cons_swap, multiset.prod_cons, hp.mul_le] at h,
   rw multiset.cons_swap,
@@ -1247,11 +1253,28 @@ quotient_ker_equiv_of_right_inverse (classical.some_spec hf.has_right_inverse)
 
 end comm_ring
 
-/-- The kernel of a homomorphism to an integral domain is a prime ideal.-/
+/-- The kernel of a homomorphism to an integral domain is a prime ideal. -/
 lemma ker_is_prime [ring R] [integral_domain S] (f : R →+* S) :
   (ker f).is_prime :=
 ⟨by { rw [ne.def, ideal.eq_top_iff_one], exact not_one_mem_ker f },
 λ x y, by simpa only [mem_ker, f.map_mul] using @eq_zero_or_eq_zero_of_mul_eq_zero S _ _ _ _ _⟩
+
+/-- The kernel of a homomorphism to a field is a maximal ideal. -/
+lemma ker_is_maximal_of_surjective {R K : Type*} [ring R] [field K]
+  (f : R →+* K) (hf : function.surjective f) :
+  f.ker.is_maximal :=
+begin
+  refine ideal.is_maximal_iff.mpr
+    ⟨λ h1, @one_ne_zero K _ _ $ f.map_one ▸ f.mem_ker.mp h1,
+    λ J x hJ hxf hxJ, _⟩,
+  obtain ⟨y, hy⟩ := hf (f x)⁻¹,
+  have H : 1 = y * x - (y * x - 1) := (sub_sub_cancel _ _).symm,
+  rw H,
+  refine J.sub_mem (J.mul_mem_left _ hxJ) (hJ _),
+  rw f.mem_ker,
+  simp only [hy, ring_hom.map_sub, ring_hom.map_one, ring_hom.map_mul,
+    inv_mul_cancel (mt f.mem_ker.mpr hxf), sub_self],
+end
 
 end ring_hom
 

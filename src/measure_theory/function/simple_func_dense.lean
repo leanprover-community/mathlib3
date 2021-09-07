@@ -355,7 +355,8 @@ variables {μ : measure α} {p : ℝ≥0∞}
 
 A simple function `f : α →ₛ E` into a normed group `E` verifies, for a measure `μ`:
 - `mem_ℒp f 0 μ` and `mem_ℒp f ∞ μ`, since `f` is a.e.-measurable and bounded,
-- for `0 < p < ∞`, `mem_ℒp f p μ ↔ integrable f μ ↔ f.fin_meas_supp μ ↔ ∀ y ≠ 0, μ (f ⁻¹' {y}) < ∞`.
+- for `0 < p < ∞`,
+  `mem_ℒp f p μ ↔ integrable f μ ↔ f.fin_meas_supp μ ↔ ∀ y ≠ 0, μ (f ⁻¹' {y}) < ∞`.
 -/
 
 lemma exists_forall_norm_le (f : α →ₛ F) : ∃ C, ∀ x, ∥f x∥ ≤ C :=
@@ -444,13 +445,13 @@ lemma integrable_pair [measurable_space F] {f : α →ₛ E} {g : α →ₛ F} :
   integrable f μ → integrable g μ → integrable (pair f g) μ :=
 by simpa only [integrable_iff_fin_meas_supp] using fin_meas_supp.pair
 
-lemma mem_ℒp_of_finite_measure (f : α →ₛ E) (p : ℝ≥0∞) (μ : measure α) [finite_measure μ] :
+lemma mem_ℒp_of_is_finite_measure (f : α →ₛ E) (p : ℝ≥0∞) (μ : measure α) [is_finite_measure μ] :
   mem_ℒp f p μ :=
 let ⟨C, hfC⟩ := f.exists_forall_norm_le in
 mem_ℒp.of_bound f.ae_measurable C $ eventually_of_forall hfC
 
-lemma integrable_of_finite_measure [finite_measure μ] (f : α →ₛ E) : integrable f μ :=
-mem_ℒp_one_iff_integrable.mp (f.mem_ℒp_of_finite_measure 1 μ)
+lemma integrable_of_is_finite_measure [is_finite_measure μ] (f : α →ₛ E) : integrable f μ :=
+mem_ℒp_one_iff_integrable.mp (f.mem_ℒp_of_is_finite_measure 1 μ)
 
 lemma measure_preimage_lt_top_of_integrable (f : α →ₛ E) (hf : integrable f μ) {x : E}
   (hx : x ≠ 0) :
@@ -471,7 +472,8 @@ lemma measure_support_lt_top_of_mem_ℒp (f : α →ₛ E) (hf : mem_ℒp f p μ
   μ (support f) < ∞ :=
 f.measure_support_lt_top ((mem_ℒp_iff (pos_iff_ne_zero.mpr hp_ne_zero) hp_ne_top).mp hf)
 
-lemma measure_support_lt_top_of_integrable (f : α →ₛ E) (hf : integrable f μ) : μ (support f) < ∞ :=
+lemma measure_support_lt_top_of_integrable (f : α →ₛ E) (hf : integrable f μ) :
+  μ (support f) < ∞ :=
 f.measure_support_lt_top (integrable_iff.mp hf)
 
 lemma measure_lt_top_of_mem_ℒp_indicator (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) {c : E} (hc : c ≠ 0)
@@ -723,8 +725,8 @@ protected lemma induction (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) {P : Lp.simpl
   (h_ind : ∀ (c : E) {s : set α} (hs : measurable_set s) (hμs : μ s < ∞),
     P (Lp.simple_func.indicator_const p hs hμs.ne c))
   (h_add : ∀ ⦃f g : α →ₛ E⦄, ∀ hf : mem_ℒp f p μ, ∀ hg : mem_ℒp g p μ,
-    disjoint (support f) (support g) → P (Lp.simple_func.to_Lp f hf) → P (Lp.simple_func.to_Lp g hg)
-    → P (Lp.simple_func.to_Lp f hf + Lp.simple_func.to_Lp g hg))
+    disjoint (support f) (support g) → P (Lp.simple_func.to_Lp f hf)
+    → P (Lp.simple_func.to_Lp g hg) → P (Lp.simple_func.to_Lp f hf + Lp.simple_func.to_Lp g hg))
   (f : Lp.simple_func E p μ) : P f :=
 begin
   suffices : ∀ f : α →ₛ E, ∀ hf : mem_ℒp f p μ, P (to_Lp f hf),

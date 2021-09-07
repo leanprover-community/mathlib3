@@ -213,11 +213,23 @@ hf.piecewise hs measurable_const
 @[to_additive]
 lemma measurable_one [has_one α] : measurable (1 : β → α) := @measurable_const _ _ _ _ 1
 
-lemma measurable_of_not_nonempty  (h : ¬ nonempty α) (f : α → β) : measurable f :=
+lemma measurable_of_empty [is_empty α] (f : α → β) : measurable f :=
 begin
   assume s hs,
   convert measurable_set.empty,
-  exact eq_empty_of_not_nonempty h _,
+  exact eq_empty_of_is_empty _,
+end
+
+lemma measurable_of_empty_codomain [is_empty β] (f : α → β) : measurable f :=
+by { haveI := function.is_empty f, exact measurable_of_empty f }
+
+/-- A version of `measurable_const` that assumes `f x = f y` for all `x, y`. This version works
+for functions between empty types. -/
+lemma measurable_const' {f : β → α} (hf : ∀ x y, f x = f y) : measurable f :=
+begin
+  casesI is_empty_or_nonempty β,
+  { exact measurable_of_empty f },
+  { convert measurable_const, exact funext (λ x, hf x h.some) }
 end
 
 @[to_additive, measurability] lemma measurable_set_mul_support [has_one β]
@@ -934,14 +946,14 @@ instance infi_is_measurably_generated {f : ι → filter α} [∀ i, is_measurab
 begin
   refine ⟨λ s hs, _⟩,
   rw [← equiv.plift.surjective.infi_comp, mem_infi] at hs,
-  rcases hs with ⟨t, ht, ⟨V, hVf, hVs⟩⟩,
+  rcases hs with ⟨t, ht, ⟨V, hVf, rfl⟩⟩,
   choose U hUf hU using λ i, is_measurably_generated.exists_measurable_subset (hVf i),
   refine ⟨⋂ i : t, U i, _, _, _⟩,
   { rw [← equiv.plift.surjective.infi_comp, mem_infi],
-    refine ⟨t, ht, U, hUf, subset.refl _⟩ },
+    refine ⟨t, ht, U, hUf, rfl⟩ },
   { haveI := ht.countable.to_encodable,
     refine measurable_set.Inter (λ i, (hU i).1) },
-  { exact subset.trans (Inter_subset_Inter $ λ i, (hU i).2) hVs }
+  { exact Inter_subset_Inter (λ i, (hU i).2) }
 end
 
 end filter

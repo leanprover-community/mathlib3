@@ -166,14 +166,6 @@ lemma generate_from_mono {α} {g₁ g₂ : set (set α)} (h : g₁ ⊆ g₂) :
   topological_space.generate_from g₁ ≤ topological_space.generate_from g₂ :=
 (gi_generate_from _).gc.monotone_l h
 
-/-- The complete lattice of topological spaces, but built on the inclusion ordering. -/
-def tmp_complete_lattice {α : Type u} : complete_lattice (topological_space α) :=
-(gi_generate_from α).lift_complete_lattice
-
-section
-
-local attribute [instance] tmp_complete_lattice
-
 lemma generate_from_set_of_is_open (t : topological_space α) :
   topological_space.generate_from {s | t.is_open s} = t :=
 (gi_generate_from α).l_u_eq t
@@ -191,7 +183,11 @@ lemma set_of_is_open_injective :
   function.injective (λ t : topological_space α, {s | t.is_open s}) :=
 (gi_generate_from α).u_injective
 
-end
+/-- The "temporary" order `tmp_order` on `topological_space α`, i.e. the inclusion order, is a
+complete lattice.  (Note that later `topological_space α` will equipped with the dual order to
+`tmp_order`). -/
+def tmp_complete_lattice {α : Type u} : complete_lattice (topological_space α) :=
+(gi_generate_from α).lift_complete_lattice
 
 /-- The ordering on topologies on the type `α`.
   `t ≤ s` if every set open in `s` is also open in `t` (`t` is finer than `s`). -/

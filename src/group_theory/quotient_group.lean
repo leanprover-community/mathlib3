@@ -263,7 +263,7 @@ def quotient_ker_equiv_of_right_inverse (ψ : H → G) (hφ : function.right_inv
   right_inv := hφ,
   .. ker_lift φ }
 
-/-- The canonicial isomorphism `G/⊥ ≃* G`. -/
+/-- The canonical isomorphism `G/⊥ ≃* G`. -/
 @[to_additive quotient_add_group.quotient_ker_equiv_of_right_inverse
 "The canonicial isomorphism `G/⊥ ≃* G`.",
   simps]

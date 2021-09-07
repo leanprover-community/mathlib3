@@ -680,13 +680,28 @@ section nondegenerate
 
 variables {R A : Type*} [comm_ring R] [integral_domain A]
 
+/-- A matrix `M` is nondegenerate if for all `v ≠ 0`, there is a `w ≠ 0` with `w ⬝ M ⬝ v ≠ 0`. -/
+def nondegenerate (M : matrix n n R) :=
+∀ v, (∀ w, matrix.dot_product v (mul_vec M w) = 0) → v = 0
+
+/-- If `M` is nondegenerate and `w ⬝ M ⬝ v = 0` for all `w`, then `v = 0`. -/
+lemma nondegenerate.eq_zero_of_ortho {M : matrix n n R} (hM : nondegenerate M)
+  {v : n → R} (hv : ∀ w, matrix.dot_product v (mul_vec M w) = 0) : v = 0 :=
+hM v hv
+
+/-- If `M` is nondegenerate and `v ≠ 0`, then there is some `w` such that `w ⬝ M ⬝ v ≠ 0`. -/
+lemma nondegenerate.exists_not_ortho_of_ne_zero {M : matrix n n R} (hM : nondegenerate M)
+  {v : n → R} (hv : v ≠ 0) : ∃ w, matrix.dot_product v (mul_vec M w) ≠ 0 :=
+not_forall.mp (mt hM.eq_zero_of_ortho hv)
+
 /-- If `M` has a nonzero determinant, then `M` as a bilinear form on `n → A` is nondegenerate.
 
 See also `bilin_form.nondegenerate_of_det_ne_zero'` and `bilin_form.nondegenerate_of_det_ne_zero`.
 -/
-theorem nondegenerate_of_det_ne_zero {M : matrix n n A} (hM : M.det ≠ 0)
-  (v : n → A) (hv : ∀ w, matrix.dot_product v (mul_vec M w) = 0) : v = 0 :=
+theorem nondegenerate_of_det_ne_zero {M : matrix n n A} (hM : M.det ≠ 0) :
+  nondegenerate M :=
 begin
+  intros v hv,
   ext i,
   specialize hv (M.cramer (pi.single i 1)),
   refine (mul_eq_zero.mp _).resolve_right hM,
@@ -699,7 +714,8 @@ end
 
 theorem eq_zero_of_vec_mul_eq_zero {M : matrix n n A} (hM : M.det ≠ 0) {v : n → A}
   (hv : M.vec_mul v = 0) : v = 0 :=
-nondegenerate_of_det_ne_zero hM v (λ w, by rw [dot_product_mul_vec, hv, zero_dot_product])
+(nondegenerate_of_det_ne_zero hM).eq_zero_of_ortho
+  (λ w, by rw [dot_product_mul_vec, hv, zero_dot_product])
 
 theorem eq_zero_of_mul_vec_eq_zero {M : matrix n n A} (hM : M.det ≠ 0) {v : n → A}
   (hv : M.mul_vec v = 0) :

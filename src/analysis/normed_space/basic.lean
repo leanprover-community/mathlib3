@@ -3,10 +3,12 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
+import algebra.algebra.restrict_scalars
 import algebra.algebra.subalgebra
 import order.liminf_limsup
 import topology.algebra.group_completion
 import topology.instances.ennreal
+import topology.metric_space.algebra
 import topology.metric_space.completion
 import topology.sequences
 import topology.locally_constant.algebra
@@ -186,6 +188,18 @@ finset.le_sum_of_subadditive norm norm_zero norm_add_le
 lemma norm_sum_le_of_le {β} (s : finset β) {f : β → α} {n : β → ℝ} (h : ∀ b ∈ s, ∥f b∥ ≤ n b) :
   ∥∑ b in s, f b∥ ≤ ∑ b in s, n b :=
 le_trans (norm_sum_le s f) (finset.sum_le_sum h)
+
+lemma dist_sum_sum_le_of_le {β} (s : finset β) {f g : β → α} {d : β → ℝ}
+  (h : ∀ b ∈ s, dist (f b) (g b) ≤ d b) :
+  dist (∑ b in s, f b) (∑ b in s, g b) ≤ ∑ b in s, d b :=
+begin
+  simp only [dist_eq_norm, ← finset.sum_sub_distrib] at *,
+  exact norm_sum_le_of_le s h
+end
+
+lemma dist_sum_sum_le {β} (s : finset β) (f g : β → α) :
+  dist (∑ b in s, f b) (∑ b in s, g b) ≤ ∑ b in s, dist (f b) (g b) :=
+dist_sum_sum_le_of_le s (λ _ _, le_rfl)
 
 lemma norm_sub_le (g h : α) : ∥g - h∥ ≤ ∥g∥ + ∥h∥ :=
 by simpa [dist_eq_norm] using dist_triangle g 0 h
@@ -800,15 +814,16 @@ begin
   exact not_le_of_lt zero_lt_one (add_le_iff_nonpos_left.1 hy)
 end
 
+@[priority 100] -- see Note [lower instance priority]
+instance semi_normed_group.has_lipschitz_add : has_lipschitz_add α :=
+{ lipschitz_add := ⟨2, lipschitz_with.prod_fst.add lipschitz_with.prod_snd⟩ }
+
 /-- A seminormed group is a uniform additive group, i.e., addition and subtraction are uniformly
 continuous. -/
 @[priority 100] -- see Note [lower instance priority]
 instance normed_uniform_group : uniform_add_group α :=
 ⟨(lipschitz_with.prod_fst.sub lipschitz_with.prod_snd).uniform_continuous⟩
 
-@[priority 100] -- see Note [lower instance priority]
-instance normed_top_monoid : has_continuous_add α :=
-by apply_instance -- short-circuit type class inference
 @[priority 100] -- see Note [lower instance priority]
 instance normed_top_group : topological_add_group α :=
 by apply_instance -- short-circuit type class inference
@@ -1180,10 +1195,7 @@ instance semi_normed_ring_top_monoid [semi_normed_ring α] : has_continuous_mul 
 
 /-- A seminormed ring is a topological ring. -/
 @[priority 100] -- see Note [lower instance priority]
-instance semi_normed_top_ring [semi_normed_ring α] : topological_ring α :=
-⟨ continuous_iff_continuous_at.2 $ λ x, tendsto_iff_norm_tendsto_zero.2 $
-    have ∀ e : α, -e - -x = -(e - x), by intro; simp,
-    by simp only [this, norm_neg]; apply tendsto_norm_sub_self ⟩
+instance semi_normed_top_ring [semi_normed_ring α] : topological_ring α := { }
 
 /-- A normed field is a field with a norm satisfying ∥x y∥ = ∥x∥ ∥y∥. -/
 class normed_field (α : Type*) extends has_norm α, field α, metric_space α :=
@@ -1349,6 +1361,14 @@ nnreal.eq $ norm_of_nonneg hx
 lemma ennnorm_eq_of_real {x : ℝ} (hx : 0 ≤ x) : (∥x∥₊ : ℝ≥0∞) = ennreal.of_real x :=
 by { rw [← of_real_norm_eq_coe_nnnorm, norm_of_nonneg hx] }
 
+/-- If `E` is a nontrivial topological module over `ℝ`, then `E` has no isolated points.
+This is a particular case of `module.punctured_nhds_ne_bot`. -/
+instance punctured_nhds_module_ne_bot
+  {E : Type*} [add_comm_group E] [topological_space E] [has_continuous_add E] [nontrivial E]
+  [module ℝ E] [has_continuous_smul ℝ E] (x : E) :
+  ne_bot (𝓝[{x}ᶜ] x) :=
+module.punctured_nhds_ne_bot ℝ E x
+
 end real
 
 namespace nnreal
@@ -1485,6 +1505,13 @@ end prio
 
 variables [normed_field α] [semi_normed_group β]
 
+@[priority 100] -- see Note [lower instance priority]
+instance semi_normed_space.has_bounded_smul [semi_normed_space α β] : has_bounded_smul α β :=
+{ dist_smul_pair' := λ x y₁ y₂,
+    by simpa [dist_eq_norm, smul_sub] using semi_normed_space.norm_smul_le x (y₁ - y₂),
+  dist_pair_smul' := λ x₁ x₂ y,
+    by simpa [dist_eq_norm, sub_smul] using semi_normed_space.norm_smul_le (x₁ - x₂) y }
+
 instance normed_field.to_normed_space : normed_space α α :=
 { norm_smul_le := λ a b, le_of_eq (normed_field.norm_mul a b) }
 
@@ -1518,23 +1545,6 @@ lemma norm_smul_of_nonneg [semi_normed_space ℝ β] {t : ℝ} (ht : 0 ≤ t) (x
 
 variables {E : Type*} [semi_normed_group E] [semi_normed_space α E]
 variables {F : Type*} [semi_normed_group F] [semi_normed_space α F]
-
-@[priority 100] -- see Note [lower instance priority]
-instance semi_normed_space.has_continuous_smul : has_continuous_smul α E :=
-begin
-  refine { continuous_smul := continuous_iff_continuous_at.2 $
-    λ p, tendsto_iff_norm_tendsto_zero.2 _ },
-  refine squeeze_zero (λ _, norm_nonneg _) _ _,
-  { exact λ q, ∥q.1 - p.1∥ * ∥q.2∥ + ∥p.1∥ * ∥q.2 - p.2∥ },
-  { intro q,
-    rw [← sub_add_sub_cancel, ← norm_smul, ← norm_smul, smul_sub, sub_smul],
-    exact norm_add_le _ _ },
-  { conv { congr, skip, skip, congr, rw [← zero_add (0:ℝ)], congr,
-      rw [← zero_mul ∥p.2∥], skip, rw [← mul_zero ∥p.1∥] },
-    exact ((tendsto_iff_norm_tendsto_zero.1 (continuous_fst.tendsto p)).mul
-      (continuous_snd.tendsto p).norm).add
-        (tendsto_const_nhds.mul (tendsto_iff_norm_tendsto_zero.1 (continuous_snd.tendsto p))) }
-end
 
 theorem eventually_nhds_norm_smul_sub_lt (c : α) (x : E) {ε : ℝ} (h : 0 < ε) :
   ∀ᶠ y in 𝓝 x, ∥c • (y - x)∥ < ε :=
@@ -1663,21 +1673,8 @@ theorem interior_closed_ball' [normed_space ℝ E] [nontrivial E] (x : E) (r : �
   interior (closed_ball x r) = ball x r :=
 begin
   rcases lt_trichotomy r 0 with hr|rfl|hr,
-  { simp [closed_ball_eq_empty_iff_neg.2 hr, ball_eq_empty_iff_nonpos.2 (le_of_lt hr)] },
-  { suffices : x ∉ interior {x},
-    { rw [ball_zero, closed_ball_zero, ← set.subset_empty_iff],
-      intros y hy,
-      obtain rfl : y = x := set.mem_singleton_iff.1 (interior_subset hy),
-      exact this hy },
-    rw [← set.mem_compl_iff, ← closure_compl],
-    rcases exists_ne (0 : E) with ⟨z, hz⟩,
-    suffices : (λ c : ℝ, x + c • z) 0 ∈ closure ({x}ᶜ : set E),
-      by simpa only [zero_smul, add_zero] using this,
-    have : (0:ℝ) ∈ closure (set.Ioi (0:ℝ)), by simp [closure_Ioi],
-    refine (continuous_const.add (continuous_id.smul
-      continuous_const)).continuous_within_at.mem_closure this _,
-    intros c hc,
-    simp [smul_eq_zero, hz, ne_of_gt hc] },
+  { simp [closed_ball_eq_empty.2 hr, ball_eq_empty.2 hr.le] },
+  { rw [closed_ball_zero, ball_zero, interior_singleton] },
   { exact interior_closed_ball x hr }
 end
 
@@ -1831,7 +1828,7 @@ Please consider using `is_scalar_tower` instead.
 `𝕜`-normed space structure induced by a `𝕜'`-normed space structure when `𝕜'` is a
 normed algebra over `𝕜`. Not registered as an instance as `𝕜'` can not be inferred.
 
-The type synonym `module.restrict_scalars 𝕜 𝕜' E` will be endowed with this instance by default.
+The type synonym `restrict_scalars 𝕜 𝕜' E` will be endowed with this instance by default.
 -/
 def normed_space.restrict_scalars : normed_space 𝕜 E :=
 { norm_smul_le := λc x, le_of_eq $ begin
@@ -2159,7 +2156,7 @@ def to_continuous_map_monoid_hom [monoid Y] [has_continuous_mul Y] :
 
 /-- The inclusion of locally-constant functions into continuous functions as an algebra map. -/
 @[simps] def to_continuous_map_alg_hom (R : Type*) [comm_semiring R] [topological_space R]
-  [semiring Y] [algebra R Y] [topological_semiring Y] [has_continuous_smul R Y] :
+  [semiring Y] [algebra R Y] [topological_ring Y] [has_continuous_smul R Y] :
   locally_constant X Y →ₐ[R] C(X, Y) :=
 { to_fun    := coe,
   map_one'  := by { ext, simp, },

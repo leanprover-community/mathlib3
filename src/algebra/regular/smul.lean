@@ -30,6 +30,20 @@ variables {R S : Type*} (M : Type*) {a b : R} {s : S}
 injective map `M → M`. -/
 def is_smul_regular [has_scalar R M] (c : R) := function.injective ((•) c : M → M)
 
+lemma is_left_regular.is_smul_regular [has_mul R] {c : R} (h : is_left_regular c) :
+  is_smul_regular R c := h
+
+/-- Left-regular multiplication on `R` is equivalent to `R`-regularity of `R` itself. -/
+lemma is_left_regular_iff [has_mul R] {a : R} :
+  is_left_regular a ↔ is_smul_regular R a := iff.rfl
+
+lemma is_right_regular.is_smul_regular [has_mul R] {c : R} (h : is_right_regular c) :
+  is_smul_regular R (opposite.op c) := h
+
+/-- Right-regular multiplication on `R` is equivalent to `Rᵒᵖ`-regularity of `R` itself. -/
+lemma is_right_regular_iff [has_mul R] {a : R} :
+  is_right_regular a ↔ is_smul_regular R (opposite.op a) := iff.rfl
+
 namespace is_smul_regular
 
 variables {M}
@@ -56,16 +70,17 @@ is `M`-regular. -/
   is_smul_regular M (a • b) ↔ is_smul_regular M b :=
 ⟨of_smul _, ha.smul⟩
 
+lemma is_left_regular [has_mul R] {a : R} (h : is_smul_regular R a) :
+  is_left_regular a := h
+
+lemma is_right_regular [has_mul R] {a : R} (h : is_smul_regular R (opposite.op a)) :
+  is_right_regular a := h
+
 end has_scalar
 
 section monoid
 
 variables [monoid R] [mul_action R M]
-
-/-- Left-regularity in a `monoid R` is equivalent to `M`-regularity, when the
-`R`-module `M` is `R`. -/
-lemma is_left_regular_iff (a : R) : is_left_regular a ↔ is_smul_regular R a :=
-iff.rfl
 
 variable (M)
 
@@ -173,11 +188,25 @@ end comm_monoid
 
 end is_smul_regular
 
+section group
+
+variables {G : Type*} [group G]
+
+/-- An element of a group acting on a Type is regular. This relies on the availability
+of the inverse given by groups, since there is no `left_cancel_smul` typeclass. -/
+lemma is_smul_regular_of_group [mul_action G R] (g : G) : is_smul_regular R g :=
+begin
+  intros x y h,
+  convert congr_arg ((•) g⁻¹) h using 1;
+  simp [←smul_assoc]
+end
+
+end group
+
 variables [monoid_with_zero R] [has_zero M] [mul_action_with_zero R M]
 
 /-- Any element in `units R` is `M`-regular. -/
-lemma units.is_smul_regular (a : units R) : is_smul_regular M (a : R)
-:=
+lemma units.is_smul_regular (a : units R) : is_smul_regular M (a : R) :=
 is_smul_regular.of_mul_eq_one a.inv_val
 
 /-- A unit is `M`-regular. -/

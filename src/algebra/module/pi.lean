@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
 import algebra.module.basic
+import algebra.regular.smul
 import algebra.ring.pi
 
 /-!
@@ -33,6 +34,10 @@ instance has_scalar' {g : I → Type*} [Π i, has_scalar (f i) (g i)] :
 lemma smul_apply' {g : I → Type*} [∀ i, has_scalar (f i) (g i)] (s : Π i, f i) (x : Π i, g i) :
   (s • x) i = s i • x i :=
 rfl
+
+lemma _root_.is_smul_regular.pi {α : Type*} [Π i, has_scalar α $ f i] {k : α}
+  (hk : Π i, is_smul_regular (f i) k) : is_smul_regular (Π i, f i) k :=
+λ _ _ h, funext $ λ i, hk i (congr_fun h i : _)
 
 instance is_scalar_tower {α β : Type*}
   [has_scalar α β] [Π i, has_scalar β $ f i] [Π i, has_scalar α $ f i]
@@ -80,6 +85,20 @@ instance has_faithful_scalar {α : Type*}
   has_faithful_scalar α (Π i, f i) :=
 let ⟨i⟩ := ‹nonempty I› in has_faithful_scalar_at i
 
+instance smul_with_zero (α) [has_zero α]
+  [Π i, has_zero (f i)] [Π i, smul_with_zero α (f i)] :
+  smul_with_zero α (Π i, f i) :=
+{ smul_zero := λ _, funext $ λ _, smul_zero' (f _) _,
+  zero_smul := λ _, funext $ λ _, zero_smul _ _,
+  ..pi.has_scalar }
+
+instance smul_with_zero' {g : I → Type*} [Π i, has_zero (g i)]
+  [Π i, has_zero (f i)] [Π i, smul_with_zero (g i) (f i)] :
+  smul_with_zero (Π i, g i) (Π i, f i) :=
+{ smul_zero := λ _, funext $ λ _, smul_zero' (f _) _,
+  zero_smul := λ _, funext $ λ _, zero_smul _ _,
+  ..pi.has_scalar' }
+
 instance mul_action (α) {m : monoid α} [Π i, mul_action α $ f i] :
   @mul_action α (Π i : I, f i) m :=
 { smul := (•),
@@ -91,6 +110,18 @@ instance mul_action' {g : I → Type*} {m : Π i, monoid (f i)} [Π i, mul_actio
 { smul := (•),
   mul_smul := λ r s f, funext $ λ i, mul_smul _ _ _,
   one_smul := λ f, funext $ λ i, one_smul _ _ }
+
+instance mul_action_with_zero (α) [monoid_with_zero α]
+  [Π i, has_zero (f i)] [Π i, mul_action_with_zero α (f i)] :
+  mul_action_with_zero α (Π i, f i) :=
+{ ..pi.mul_action _,
+  ..pi.smul_with_zero _ }
+
+instance mul_action_with_zero' {g : I → Type*} [Π i, monoid_with_zero (g i)]
+  [Π i, has_zero (f i)] [Π i, mul_action_with_zero (g i) (f i)] :
+  mul_action_with_zero (Π i, g i) (Π i, f i) :=
+{ ..pi.mul_action',
+  ..pi.smul_with_zero' }
 
 instance distrib_mul_action (α) {m : monoid α} {n : ∀ i, add_monoid $ f i}
   [∀ i, distrib_mul_action α $ f i] :
@@ -109,6 +140,13 @@ lemma single_smul {α} [monoid α] [Π i, add_monoid $ f i]
   [Π i, distrib_mul_action α $ f i] [decidable_eq I] (i : I) (r : α) (x : f i) :
   single i (r • x) = r • single i x :=
 single_op (λ i : I, ((•) r : f i → f i)) (λ j, smul_zero _) _ _
+
+/-- A version of `pi.single_smul` for non-dependent functions. It is useful in cases Lean fails
+to apply `pi.single_smul`. -/
+lemma single_smul'' {α β} [monoid α] [add_monoid β]
+  [distrib_mul_action α β] [decidable_eq I] (i : I) (r : α) (x : β) :
+  single i (r • x) = r • single i x :=
+single_smul i r x
 
 lemma single_smul' {g : I → Type*} [Π i, monoid_with_zero (f i)] [Π i, add_monoid (g i)]
   [Π i, distrib_mul_action (f i) (g i)] [decidable_eq I] (i : I) (r : f i) (x : g i) :

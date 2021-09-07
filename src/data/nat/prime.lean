@@ -69,7 +69,7 @@ prime_def_lt'.trans $ and_congr_right $ λ p2,
 ⟨λ a m m2 l, a m m2 $ lt_of_le_of_lt l $ sqrt_lt_self p2,
  λ a, have ∀ {m k}, m ≤ k → 1 < m → p ≠ m * k, from
   λ m k mk m1 e, a m m1
-    (le_sqrt.2 (e.symm ▸ mul_le_mul_left m mk)) ⟨k, e⟩,
+    (le_sqrt.2 (e.symm ▸ nat.mul_le_mul_left m mk)) ⟨k, e⟩,
   λ m m2 l ⟨k, e⟩, begin
     cases (le_total m k) with mk km,
     { exact this mk m2 e },
@@ -77,6 +77,16 @@ prime_def_lt'.trans $ and_congr_right $ λ p2,
       refine this km (lt_of_mul_lt_mul_right _ (zero_le m)) e,
       rwa [one_mul, ← e] }
   end⟩
+
+theorem prime_of_coprime (n : ℕ) (h1 : 1 < n) (h : ∀ m < n, m ≠ 0 → n.coprime m) : prime n :=
+begin
+  refine prime_def_lt.mpr ⟨h1, λ m mlt mdvd, _⟩,
+  have hm : m ≠ 0,
+  { rintro rfl,
+    rw zero_dvd_iff at mdvd,
+    exact mlt.ne' mdvd },
+  exact (h m mlt hm).symm.eq_one_of_dvd mdvd,
+end
 
 section
 
@@ -113,7 +123,7 @@ theorem succ_pred_prime {p : ℕ} (pp : prime p) : succ (pred p) = p :=
 succ_pred_eq_of_pos pp.pos
 
 theorem dvd_prime {p m : ℕ} (pp : prime p) : m ∣ p ↔ m = 1 ∨ m = p :=
-⟨λ d, pp.2 m d, λ h, h.elim (λ e, e.symm ▸ one_dvd _) (λ e, e.symm ▸ dvd_refl _)⟩
+⟨λ d, pp.2 m d, λ h, h.elim (λ e, e.symm ▸ one_dvd _) (λ e, e.symm ▸ dvd_rfl)⟩
 
 theorem dvd_prime_two_le {p m : ℕ} (pp : prime p) (H : 2 ≤ m) : m ∣ p ↔ m = p :=
 (dvd_prime pp).trans $ or_iff_right_of_imp $ not.elim $ ne_of_gt H
@@ -177,7 +187,7 @@ theorem min_fac_aux_has_prop {n : ℕ} (n2 : 2 ≤ n) (nd2 : ¬ 2 ∣ n) :
   { have pp : prime n :=
       prime_def_le_sqrt.2 ⟨n2, λ m m2 l d,
         not_lt_of_ge l $ lt_of_lt_of_le (sqrt_lt.2 h) (a m m2 d)⟩,
-    from ⟨n2, dvd_refl _, λ m m2 d, le_of_eq
+    from ⟨n2, dvd_rfl, λ m m2 d, le_of_eq
       ((dvd_prime_two_le pp m2).1 d).symm⟩ },
   have k2 : 2 ≤ k, { subst e, exact dec_trivial },
   by_cases dk : k ∣ n; simp [dk],
@@ -212,7 +222,7 @@ if n1 : n = 1 then by simp [n1] else (min_fac_has_prop n1).2.1
 
 theorem min_fac_prime {n : ℕ} (n1 : n ≠ 1) : prime (min_fac n) :=
 let ⟨f2, fd, a⟩ := min_fac_has_prop n1 in
-prime_def_lt'.2 ⟨f2, λ m m2 l d, not_le_of_gt l (a m m2 (dvd_trans d fd))⟩
+prime_def_lt'.2 ⟨f2, λ m m2 l d, not_le_of_gt l (a m m2 (d.trans fd))⟩
 
 theorem min_fac_le_of_dvd {n : ℕ} : ∀ {m : ℕ}, 2 ≤ m → m ∣ n → min_fac n ≤ m :=
 by by_cases n1 : n = 1;
@@ -284,7 +294,7 @@ lemma min_fac_sq_le_self {n : ℕ} (w : 0 < n) (h : ¬ prime n) : (min_fac n)^2 
 have t : (min_fac n) ≤ (n/min_fac n) := min_fac_le_div w h,
 calc
 (min_fac n)^2 = (min_fac n) * (min_fac n)   : sq (min_fac n)
-          ... ≤ (n/min_fac n) * (min_fac n) : mul_le_mul_right (min_fac n) t
+          ... ≤ (n/min_fac n) * (min_fac n) : nat.mul_le_mul_right (min_fac n) t
           ... ≤ n                           : div_mul_le_self n (min_fac n)
 
 @[simp]
@@ -356,7 +366,7 @@ lemma prime.eq_two_or_odd {p : ℕ} (hp : prime p) : p = 2 ∨ p % 2 = 1 :=
 
 theorem coprime_of_dvd {m n : ℕ} (H : ∀ k, prime k → k ∣ m → ¬ k ∣ n) : coprime m n :=
 begin
-  cases eq_zero_or_pos (gcd m n) with g0 g1,
+  cases nat.eq_zero_or_pos (gcd m n) with g0 g1,
   { rw [eq_zero_of_gcd_eq_zero_left g0, eq_zero_of_gcd_eq_zero_right g0] at H,
     exfalso,
     exact H 2 prime_two (dvd_zero _) (dvd_zero _) },
@@ -428,7 +438,7 @@ lemma factors_chain : ∀ {n a}, (∀ p, prime p → p ∣ n → a ≤ p) → li
   begin
     rw factors,
     refine list.chain.cons ((le_min_fac.2 h).resolve_left dec_trivial) (factors_chain _),
-    exact λ p pp d, min_fac_le_of_dvd pp.two_le (dvd_trans d $ div_dvd_of_dvd $ min_fac_dvd _),
+    exact λ p pp d, min_fac_le_of_dvd pp.two_le (d.trans $ div_dvd_of_dvd $ min_fac_dvd _),
   end
 
 lemma factors_chain_2 (n) : list.chain (≤) 2 (factors n) := factors_chain $ λ p pp _, pp.two_le
@@ -470,8 +480,8 @@ begin
   apply iff.intro,
   { intro h,
     exact ⟨min_fac (gcd m n), min_fac_prime h,
-      (dvd.trans (min_fac_dvd (gcd m n)) (gcd_dvd_left m n)),
-      (dvd.trans (min_fac_dvd (gcd m n)) (gcd_dvd_right m n))⟩ },
+      ((min_fac_dvd (gcd m n)).trans (gcd_dvd_left m n)),
+      ((min_fac_dvd (gcd m n)).trans (gcd_dvd_right m n))⟩ },
   { intro h,
     cases h with p hp,
     apply nat.not_coprime_of_dvd_of_dvd (prime.one_lt hp.1) hp.2.1 hp.2.2 }
@@ -480,7 +490,7 @@ end
 theorem prime.dvd_mul {p m n : ℕ} (pp : prime p) : p ∣ m * n ↔ p ∣ m ∨ p ∣ n :=
 ⟨λ H, or_iff_not_imp_left.2 $ λ h,
   (pp.coprime_iff_not_dvd.2 h).dvd_of_dvd_mul_left H,
- or.rec (λ h, dvd_mul_of_dvd_left h _) (λ h, dvd_mul_of_dvd_right h _)⟩
+ or.rec (λ h : p ∣ m, h.mul_right _) (λ h : p ∣ n, h.mul_left _)⟩
 
 theorem prime.not_dvd_mul {p m n : ℕ} (pp : prime p)
   (Hm : ¬ p ∣ m) (Hn : ¬ p ∣ n) : ¬ p ∣ m * n :=
@@ -497,7 +507,7 @@ begin
   induction n with n ih,
   { simp },
   { rw [pow_succ'] at *,
-    rcases ih (dvd_trans (dvd_mul_right _ _) h) with ⟨c, rfl⟩,
+    rcases ih ((dvd_mul_right _ _).trans h) with ⟨c, rfl⟩,
     rw [mul_assoc] at h,
     rcases hp.dvd_mul.1 (nat.dvd_of_mul_dvd_mul_left (pow_pos hp.pos _) h)
       with ⟨d, rfl⟩|⟨d, rfl⟩,
@@ -516,6 +526,21 @@ lemma prime.pow_not_prime {x n : ℕ} (hn : 2 ≤ n) : ¬ (x ^ n).prime :=
   (λ hxn, lt_irrefl x $ calc x = x ^ 1 : (pow_one _).symm
      ... < x ^ n : nat.pow_right_strict_mono (hxn.symm ▸ hp.two_le) hn
      ... = x : hxn.symm)
+
+lemma prime.pow_not_prime' {x : ℕ} : ∀ {n : ℕ}, n ≠ 1 → ¬ (x ^ n).prime
+| 0     := λ _, not_prime_one
+| 1     := λ h, (h rfl).elim
+| (n+2) := λ _, prime.pow_not_prime le_add_self
+
+lemma prime.eq_one_of_pow {x n : ℕ} (h : (x ^ n).prime) : n = 1 :=
+not_imp_not.mp prime.pow_not_prime' h
+
+lemma prime.pow_eq_iff {p a k : ℕ} (hp : p.prime) : a ^ k = p ↔ a = p ∧ k = 1 :=
+begin
+  refine ⟨_, λ h, by rw [h.1, h.2, pow_one]⟩,
+  rintro rfl,
+  rw [hp.eq_one_of_pow, eq_self_iff_true, and_true, pow_one],
+end
 
 lemma prime.mul_eq_prime_sq_iff {x y p : ℕ} (hp : p.prime) (hx : x ≠ 1) (hy : y ≠ 1) :
   x * y = p ^ 2 ↔ x = p ∧ y = p :=
@@ -622,7 +647,7 @@ begin
   intros p hp,
   rw mem_factors succ_pos' at hp,
   rw mem_factors (nat.mul_pos succ_pos' (nat.pos_of_ne_zero h)),
-  exact ⟨hp.1, dvd_mul_of_dvd_left hp.2 k⟩,
+  exact ⟨hp.1, hp.2.mul_right k⟩,
 end
 
 lemma factors_subset_of_dvd {n k : ℕ} (h : n ∣ k) (h' : k ≠ 0) : n.factors ⊆ k.factors :=
@@ -663,6 +688,16 @@ have hn : 0 < n := nat.pos_of_ne_zero $ λ h, begin
       (hi (λ p hp, h₂ p (mem_cons_of_mem _ hp))) h₁ }
 end,
 perm_of_prod_eq_prod (by rwa prod_factors hn) h₂ (@prime_of_mem_factors _)
+
+lemma prime.factors_pow {p : ℕ} (hp : p.prime) (n : ℕ) :
+  (p ^ n).factors = list.repeat p n :=
+begin
+  symmetry,
+  rw ← list.repeat_perm,
+  apply nat.factors_unique (list.prod_repeat p n),
+  { intros q hq,
+    rwa eq_of_mem_repeat hq },
+end
 
 end
 

@@ -59,7 +59,7 @@ Noetherian, noetherian, Noetherian ring, Noetherian module, noetherian ring, noe
 -/
 
 open set
-open_locale big_operators
+open_locale big_operators pointwise
 
 namespace submodule
 variables {R : Type*} {M : Type*} [semiring R] [add_comm_monoid M] [module R M]
@@ -289,7 +289,7 @@ begin
   letI : algebra R S := ring_hom.to_algebra f,
   letI : algebra R A := ring_hom.to_algebra (g.comp f),
   letI : algebra S A := ring_hom.to_algebra g,
-  letI : is_scalar_tower R S A := _root_.restrict_scalars.is_scalar_tower R S A,
+  letI : is_scalar_tower R S A := is_scalar_tower.of_algebra_map_eq (λ _, rfl),
   let f₁ := algebra.linear_map R S,
   let g₁ := (is_scalar_tower.to_alg_hom R S A).to_linear_map,
   exact fg_ker_comp f₁ g₁ hf (fg_restrict_scalars g.ker hg hsur) hsur
@@ -363,6 +363,10 @@ is_noetherian_submodule.trans
 instance is_noetherian_submodule' [is_noetherian R M] (N : submodule R M) : is_noetherian R N :=
 is_noetherian_submodule.2 $ λ _ _, is_noetherian.noetherian _
 
+lemma is_noetherian_of_le {s t : submodule R M} [ht : is_noetherian R t]
+   (h : s ≤ t) : is_noetherian R s :=
+is_noetherian_submodule.mpr (λ s' hs', is_noetherian_submodule.mp ht _ (le_trans hs' h))
+
 variable (M)
 theorem is_noetherian_of_surjective (f : M →ₗ[R] P) (hf : f.range = ⊤)
   [is_noetherian R M] : is_noetherian R P :=
@@ -432,6 +436,13 @@ begin
       simp only [or.by_cases, dif_neg this, dif_pos h], } }
 end
 
+/-- A version of `is_noetherian_pi` for non-dependent functions. We need this instance because
+sometimes Lean fails to apply the dependent version in non-dependent settings (e.g., it fails to
+prove that `ι → ℝ` is finite dimensional over `ℝ`). -/
+instance is_noetherian_pi' {R ι M : Type*} [ring R] [add_comm_group M] [module R M] [fintype ι]
+  [is_noetherian R M] : is_noetherian R (ι → M) :=
+is_noetherian_pi
+
 end
 
 open is_noetherian submodule function
@@ -457,8 +468,8 @@ variables {R M}
 lemma finite_of_linear_independent [nontrivial R] [is_noetherian R M]
   {s : set M} (hs : linear_independent R (coe : s → M)) : s.finite :=
 begin
-  refine classical.by_contradiction (λ hf, rel_embedding.well_founded_iff_no_descending_seq.1
-    (well_founded_submodule_gt R M) ⟨_⟩),
+  refine classical.by_contradiction (λ hf, (rel_embedding.well_founded_iff_no_descending_seq.1
+    (well_founded_submodule_gt R M)).elim' _),
   have f : ℕ ↪ s, from @infinite.nat_embedding s ⟨λ f, hf ⟨f⟩⟩,
   have : ∀ n, (coe ∘ f) '' {m | m ≤ n} ⊆ s,
   { rintros n x ⟨y, hy₁, hy₂⟩, subst hy₂, exact (f y).2 },
@@ -566,7 +577,7 @@ begin
     (f.tailings_disjoint_tailing i),
   specialize w n (le_refl n),
   apply nonempty.intro,
-  refine (f.tailing_linear_equiv i n).symm.trans _,
+  refine (f.tailing_linear_equiv i n).symm ≪≫ₗ _,
   rw w,
   exact submodule.bot_equiv_punit,
 end
@@ -610,6 +621,16 @@ theorem is_noetherian_of_quotient_of_noetherian (R) [ring R] (M) [add_comm_group
 begin
   rw is_noetherian_iff_well_founded at h ⊢,
   exact order_embedding.well_founded (submodule.comap_mkq.order_embedding N).dual h,
+end
+
+/-- If `M / S / R` is a scalar tower, and `M / R` is Noetherian, then `M / S` is
+also noetherian. -/
+theorem is_noetherian_of_tower (R) {S M} [comm_ring R] [ring S]
+  [add_comm_group M] [algebra R S] [module S M] [module R M] [is_scalar_tower R S M]
+  (h : is_noetherian R M) : is_noetherian S M :=
+begin
+  rw is_noetherian_iff_well_founded at h ⊢,
+  refine (submodule.restrict_scalars_embedding R S M).dual.well_founded h
 end
 
 theorem is_noetherian_of_fg_of_noetherian {R M} [ring R] [add_comm_group M] [module R M]
@@ -699,8 +720,7 @@ begin
   refine is_noetherian.induction (λ (M : ideal R) hgt, _) I,
   by_cases h_prM : M.is_prime,
   { use {⟨M, h_prM⟩},
-    rw [multiset.map_singleton, multiset.singleton_eq_singleton, multiset.prod_singleton,
-        subtype.coe_mk],
+    rw [multiset.map_singleton, multiset.prod_singleton, subtype.coe_mk],
     exact le_rfl },
   by_cases htop : M = ⊤,
   { rw htop,
@@ -745,12 +765,10 @@ begin
     obtain ⟨p_id, h_nzp, h_pp⟩ : ∃ (p : ideal A), p ≠ ⊥ ∧ p.is_prime,
     { apply ring.not_is_field_iff_exists_prime.mp h_fA },
     use [({⟨p_id, h_pp⟩} : multiset (prime_spectrum A)), le_top],
-    rwa [multiset.map_singleton, multiset.singleton_eq_singleton, multiset.prod_singleton,
-         subtype.coe_mk] },
+    rwa [multiset.map_singleton, multiset.prod_singleton, subtype.coe_mk] },
   by_cases h_prM : M.is_prime,
   { use ({⟨M, h_prM⟩} : multiset (prime_spectrum A)),
-    rw [multiset.map_singleton, multiset.singleton_eq_singleton, multiset.prod_singleton,
-         subtype.coe_mk],
+    rw [multiset.map_singleton, multiset.prod_singleton, subtype.coe_mk],
     exact ⟨le_rfl, h_nzM⟩ },
   obtain ⟨x, hx, y, hy, h_xy⟩ := (ideal.not_is_prime_iff.mp h_prM).resolve_left h_topM,
   have lt_add : ∀ z ∉ M, M < M + span A {z},

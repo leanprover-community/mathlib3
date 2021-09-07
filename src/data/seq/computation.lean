@@ -8,6 +8,7 @@ Coinductive formalization of unbounded computations.
 import data.stream
 import tactic.basic
 
+open function
 universes u v w
 
 /-
@@ -187,7 +188,7 @@ end
 section bisim
   variable (R : computation α → computation α → Prop)
 
-  local infix ~ := R
+  local infix ` ~ `:50 := R
 
   def bisim_o : α ⊕ computation α → α ⊕ computation α → Prop
   | (sum.inl a) (sum.inl a') := a = a'
@@ -719,7 +720,7 @@ end
   or both loop forever. -/
 def equiv (c₁ c₂ : computation α) : Prop := ∀ a, a ∈ c₁ ↔ a ∈ c₂
 
-infix ~ := equiv
+infix ` ~ `:50 := equiv
 
 @[refl] theorem equiv.refl (s : computation α) : s ~ s := λ_, iff.rfl
 
@@ -773,7 +774,7 @@ def lift_rel (R : α → β → Prop) (ca : computation α) (cb : computation β
  ∀ {b}, b ∈ cb → ∃ {a}, a ∈ ca ∧ R a b
 
 theorem lift_rel.swap (R : α → β → Prop) (ca : computation α) (cb : computation β) :
-  lift_rel (function.swap R) cb ca ↔ lift_rel R ca cb :=
+  lift_rel (swap R) cb ca ↔ lift_rel R ca cb :=
 and_comm _ _
 
 theorem lift_eq_iff_equiv (c₁ c₂ : computation α) : lift_rel (=) c₁ c₂ ↔ c₁ ~ c₂ :=
@@ -927,7 +928,7 @@ begin
 end
 
 theorem lift_rel_aux.swap (R : α → β → Prop) (C) (a b) :
-  lift_rel_aux (function.swap R) (function.swap C) b a = lift_rel_aux R C a b :=
+  lift_rel_aux (swap R) (swap C) b a = lift_rel_aux R C a b :=
 by cases a with a ca; cases b with b cb; simp only [lift_rel_aux]
 
 @[simp] lemma lift_rel_aux.ret_right (R : α → β → Prop)
@@ -951,7 +952,7 @@ theorem lift_rel_rec {R : α → β → Prop} (C : computation α → computatio
   (ca cb) (Hc : C ca cb) : lift_rel R ca cb :=
 lift_rel_mem_cases (lift_rel_rec.lem C @H ca cb Hc) (λ b hb,
  (lift_rel.swap _ _ _).2 $
- lift_rel_rec.lem (function.swap C)
+ lift_rel_rec.lem (swap C)
    (λ cb ca h, cast (lift_rel_aux.swap _ _ _ _).symm $ H h)
    cb ca Hc b hb)
 

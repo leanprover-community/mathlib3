@@ -67,6 +67,7 @@ show category (induced_category (PresheafedSpace C) SheafedSpace.to_PresheafedSp
 by apply_instance
 
 /-- Forgetting the sheaf condition is a functor from `SheafedSpace C` to `PresheafedSpace C`. -/
+@[derive [full, faithful]]
 def forget_to_PresheafedSpace : (SheafedSpace C) ⥤ (PresheafedSpace C) :=
 induced_functor _
 
@@ -115,6 +116,16 @@ def restrict {U : Top} (X : SheafedSpace C)
     ((is_limit.postcompose_inv_equiv _ _).inv_fun (X.sheaf_condition _))
     (sheaf_condition_equalizer_products.fork.iso_of_open_embedding h 𝒰).symm,
   ..X.to_PresheafedSpace.restrict f h }
+
+/--
+The restriction of a sheafed space `X` to the top subspace is isomorphic to `X` itself.
+-/
+noncomputable
+def restrict_top_iso (X : SheafedSpace C) :
+  X.restrict (opens.inclusion ⊤) (opens.open_embedding ⊤) ≅ X :=
+@preimage_iso _ _ _ _ forget_to_PresheafedSpace _ _
+  (X.restrict (opens.inclusion ⊤) (opens.open_embedding ⊤)) _
+  X.to_PresheafedSpace.restrict_top_iso
 
 /--
 The global sections, notated Gamma.

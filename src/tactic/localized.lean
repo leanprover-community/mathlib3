@@ -23,9 +23,9 @@ open lean lean.parser interactive tactic native
 meta def localized_attr : user_attribute (rb_lmap name string) unit := {
   name := "_localized",
   descr := "(interal) attribute that flags localized commands",
+  parser := failed,
   cache_cfg := ⟨λ ns, (do dcls ← ns.mmap (λ n, mk_const n >>= eval_expr (name × string)),
-                          return $ rb_lmap.of_list dcls), []⟩
-}
+                          return $ rb_lmap.of_list dcls), []⟩ }
 
 /-- Get all commands in the given locale and return them as a list of strings -/
 meta def get_localized (ns : list name) : tactic (list string) :=

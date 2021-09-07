@@ -96,7 +96,7 @@ instance is_lt.succ (m n) [l : is_lt m n] : is_lt (succ m) (succ n) := ⟨succ_l
 /-- Use type class inference to infer the boundedness proof, so that we can directly convert a
 `nat` into a `fin2 n`. This supports notation like `&1 : fin 3`. -/
 def of_nat' : Π {n} m [is_lt m n], fin2 n
-| 0        m        ⟨h⟩ := absurd h (not_lt_zero _)
+| 0        m        ⟨h⟩ := absurd h (nat.not_lt_zero _)
 | (succ n) 0        ⟨h⟩ := fz
 | (succ n) (succ m) ⟨h⟩ := fs (@of_nat' n m ⟨lt_of_succ_lt_succ h⟩)
 

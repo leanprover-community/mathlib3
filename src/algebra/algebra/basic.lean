@@ -1429,7 +1429,8 @@ end pi
 section is_scalar_tower
 
 variables {R : Type*} [comm_semiring R]
-variables (A : Type*) [semiring A] [algebra R A]
+variables {S : Type*} [comm_semiring S] [algebra R S]
+variables (A : Type*) [semiring A] [algebra R A] [algebra S A] [is_scalar_tower R S A]
 variables {M : Type*} [add_comm_monoid M] [module A M] [module R M] [is_scalar_tower R A M]
 variables {N : Type*} [add_comm_monoid N] [module A N] [module R N] [is_scalar_tower R A N]
 
@@ -1438,6 +1439,17 @@ by rw [←(one_smul A m), ←smul_assoc, algebra.smul_def, mul_one, one_smul]
 
 @[simp] lemma algebra_map_smul (r : R) (m : M) : ((algebra_map R A) r) • m = r • m :=
 (algebra_compatible_smul A r m).symm
+
+variables (S) (A)
+
+@[simp] lemma algebra_map_algebra_map (r : R) : algebra_map S A (algebra_map R S r) =
+  algebra_map R A r :=
+by rw [algebra.algebra_map_eq_smul_one, algebra_map_smul,
+    algebra.algebra_map_eq_smul_one]
+
+@[simp] lemma algebra_map_comp_algebra_map : (algebra_map S A).comp (algebra_map R S) =
+  algebra_map R A :=
+by { ext x, exact algebra_map_algebra_map _ _ _ }
 
 variable {A}
 

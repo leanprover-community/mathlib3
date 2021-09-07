@@ -290,18 +290,16 @@ linear_equiv.of_eq _ _ rfl
 
 instance algebra' {P : Type*} [comm_semiring P] [algebra P R] [algebra P A]
   [is_scalar_tower P R A] : algebra P S :=
-{ to_fun := algebra_map R S ∘ algebra_map P R,
-  map_one' := by simp,
-  map_mul' := by simp,
-  map_zero' := by simp,
-  map_add' := by simp,
-  smul_def' := λ r x, begin
-    cases x with x hx,
-    ext,
-    show r • x = algebra_map R A (algebra_map P R r) * x,
-    rw [← algebra.smul_def, algebra_map_smul]
-  end,
-  commutes' := λ r x, by rw [algebra.commutes],
+{ to_fun := λ r, ⟨algebra_map P A r, begin
+      rw ← algebra_map_algebra_map R A r,
+      exact algebra_map_mem _ _
+    end⟩,
+  map_one' := subtype.ext (algebra_map P A).map_one,
+  map_mul' := λ _ _, subtype.ext $ (algebra_map P A).map_mul _ _,
+  map_zero' := subtype.ext (algebra_map P A).map_zero,
+  map_add' := λ _ _, subtype.ext $ (algebra_map P A).map_add _ _,
+  smul_def' := λ r x, subtype.ext $ algebra.smul_def _ _,
+  commutes' := λ r x, subtype.ext $ algebra.commutes _ _,
   ..S.to_submodule.module' }
 
 instance is_scalar_tower' {P : Type*} [comm_semiring P] [algebra P R] [algebra P A]

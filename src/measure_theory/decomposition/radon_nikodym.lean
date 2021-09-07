@@ -180,7 +180,6 @@ theorem absolutely_continuous_iff_with_density_radon_nikodym_deriv_eq
 ⟨with_density_radon_nikodym_deriv_eq s μ,
  λ h, h ▸ with_density_signed_measure_absolutely_continuous _ _⟩
 
-
 end signed_measure
 
 end measure_theory

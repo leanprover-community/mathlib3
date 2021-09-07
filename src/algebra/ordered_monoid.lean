@@ -939,18 +939,18 @@ variable [ordered_cancel_add_comm_monoid α]
 
 namespace with_top
 
-lemma add_lt_add_iff_left {a b c : with_top α} (ha : a ≠ ⊤) : a + c < a + b ↔ c < b :=
+lemma add_lt_add_iff_left {a b c : with_top α} (ha : a ≠ ⊤) : a + b < a + c ↔ b < c :=
 begin
   lift a to α using ha,
   cases b; cases c,
   { simp [none_eq_top] },
-  { simp [some_eq_coe, none_eq_top, ← coe_add, coe_lt_top] },
   { simp [some_eq_coe, none_eq_top, coe_lt_top] },
+  { simp [some_eq_coe, none_eq_top, ← coe_add, coe_lt_top] },
   { simp [some_eq_coe, ← coe_add, coe_lt_coe] }
 end
 
-lemma add_lt_add_iff_right {a b c : with_top α} : a ≠ ⊤ → (c + a < b + a ↔ c < b) :=
-by simpa [add_comm] using @with_top.add_lt_add_iff_left _ _ a b c
+lemma add_lt_add_iff_right {a b c : with_top α} (ha : a ≠ ⊤) : (c + a < b + a ↔ c < b) :=
+by simp only [← add_comm a, add_lt_add_iff_left ha]
 
 instance contravariant_class_add_lt : contravariant_class (with_top α) (with_top α) (+) (<) :=
 begin
@@ -964,31 +964,18 @@ end with_top
 
 namespace with_bot
 
-lemma add_lt_add_iff_left {a b c : with_bot α} (ha : a ≠ ⊥) : a + c < a + b ↔ c < b :=
-begin
-  lift a to α using ha,
-  cases b; cases c,
-  { simp [none_eq_bot] },
-  { simp [some_eq_coe, none_eq_bot, bot_lt_coe] },
-  { simp [some_eq_coe, none_eq_bot, ← coe_add, bot_lt_coe] },
-  { simp [some_eq_coe, ← coe_add, coe_lt_coe] }
-end
+lemma add_lt_add_iff_left {a b c : with_bot α} (ha : a ≠ ⊥) : a + b < a + c ↔ b < c :=
+@with_top.add_lt_add_iff_left (order_dual α) _ a c b ha
 
-lemma add_lt_add_iff_right {a b c : with_bot α} (ha : a ≠ ⊥) : c + a < b + a ↔ c < b :=
-by simpa only [add_comm] using @with_bot.add_lt_add_iff_left _ _ a b c ha
+lemma add_lt_add_iff_right {a b c : with_bot α} (ha : a ≠ ⊥) : b + a < c + a ↔ b < c :=
+@with_top.add_lt_add_iff_right (order_dual α) _ _ _ _ ha
 
 instance contravariant_class_add_lt : contravariant_class (with_bot α) (with_bot α) (+) (<) :=
-begin
-  refine ⟨λ a b c h, _⟩,
-  cases a,
-  { rw [none_eq_bot, bot_add, bot_add] at h, exact (lt_irrefl ⊥ h).elim },
-  { exact (add_lt_add_iff_left (coe_ne_bot _)).1 h }
-end
+@order_dual.contravariant_class_add_lt (with_top $ order_dual α) _ _ _
 
 end with_bot
 
 end ordered_cancel_add_comm_monoid
-
 
 namespace prod
 

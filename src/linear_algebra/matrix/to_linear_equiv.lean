@@ -177,6 +177,9 @@ begin
     simpa only [dot_product_mul_vec, dot_product_single, mul_one] using hv (pi.single i 1) }
 end
 
+alias nondegenerate_iff_det_ne_zero ↔
+  matrix.nondegenerate.det_ne_zero matrix.nondegenerate.of_det_ne_zero
+
 end nondegenerate
 
 end matrix

@@ -65,7 +65,7 @@ calc
       : subtype_equiv_right (λ f, by simp_rw [exists_prop, ←forall_and_distrib,
         ←iff_iff_implies_and_implies])
 
-/-- The set of permutations that fix at either `a` or nothing is equivalent to the sum of:
+/-- The set of permutations that fix either `a` or nothing is equivalent to the sum of:
     - derangements on `α`
     - derangements on `α` minus `a`. -/
 def at_most_one_fixed_point_equiv_sum_derangements [decidable_eq α] (a : α) :

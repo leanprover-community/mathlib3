@@ -131,6 +131,11 @@ variables {X : Type u} [lattice X] [jordan_hoelder_lattice X]
 instance : has_coe_to_fun (composition_series X) :=
 { F := _, coe := composition_series.series }
 
+instance [inhabited X] : inhabited (composition_series X) :=
+⟨{ length := 0,
+   series := λ _, default X,
+   step' := λ x, x.elim0 }⟩
+
 variables {X}
 
 lemma step (s : composition_series X) : ∀ i : fin s.length,

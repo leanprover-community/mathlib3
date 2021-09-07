@@ -1456,7 +1456,7 @@ lemma lintegral_eq_top_of_measure_eq_top_pos {f : α → ℝ≥0∞} (hf : measu
   (hμf : 0 < μ {x | f x = ∞}) : ∫⁻ x, f x ∂μ = ∞ :=
 begin
   have : ∫⁻ x in {x | f x = ∞}, f x ∂μ ≤ ∫⁻ x, f x ∂μ,
-  { conv_rhs { rw ← lintegral_univ },
+  { conv_rhs { rw ← lintegral_in_univ },
     exact lintegral_mono_set (set.subset_univ _) },
   refine eq_top_iff.2 (le_trans _ this),
   rw [lintegral_in_const hf, ennreal.top_mul, if_neg hμf.ne.symm],

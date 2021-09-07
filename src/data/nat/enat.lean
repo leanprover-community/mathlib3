@@ -259,14 +259,6 @@ instance : ordered_add_comm_monoid enat :=
     enat.cases_on c (by simp)
       (λ c, ⟨λ h, and.intro trivial (h₁ h.2),
         λ _, add_le_add_left (h₂ _) c⟩),
-  lt_of_add_lt_add_left := λ a b c, enat.cases_on a
-    (λ h, by simpa [lt_irrefl] using h)
-    (λ a, enat.cases_on b
-      (λ h, absurd h (not_lt_of_ge (by rw add_top; exact le_top)))
-      (λ b, enat.cases_on c
-        (λ _, coe_lt_top _)
-        (λ c h,  coe_lt_coe.2 (by rw [← coe_add, ← coe_add, coe_lt_coe] at h;
-            exact lt_of_add_lt_add_left h)))),
   ..enat.linear_order,
   ..enat.add_comm_monoid }
 

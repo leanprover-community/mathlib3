@@ -356,6 +356,14 @@ begin
   exact injective.of_comp h,
 end
 
+lemma surjective_of_iterate_surjective {n : ℕ} (hn : n ≠ 0) (h : surjective ⇑(f' ^ n)) :
+  surjective f' :=
+begin
+  rw [← nat.succ_pred_eq_of_pos (pos_iff_ne_zero.mpr hn), 
+    nat.succ_eq_add_one, add_comm, pow_add] at h,
+  exact surjective.of_comp h,
+end
+
 end
 
 section
@@ -675,6 +683,9 @@ p.subtype.cod_restrict p' $ λ ⟨x, hx⟩, h hx
   (of_le h x : M) = x := rfl
 
 theorem of_le_apply (h : p ≤ p') (x : p) : of_le h x = ⟨x, h x.2⟩ := rfl
+
+theorem of_le_injective (h : p ≤ p') : function.injective (of_le h) :=
+λ x y h, subtype.val_injective (subtype.mk.inj h)
 
 variables (p p')
 

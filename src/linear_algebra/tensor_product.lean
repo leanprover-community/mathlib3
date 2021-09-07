@@ -590,14 +590,14 @@ zero_add _
 @[simp] lemma lift.tmul' (x y) : (lift f).1 (x ⊗ₜ y) = f x y :=
 lift.tmul _ _
 
-theorem ext {g h : (M ⊗[R] N) →ₗ[R] P}
+theorem ext' {g h : (M ⊗[R] N) →ₗ[R] P}
   (H : ∀ x y, g (x ⊗ₜ y) = h (x ⊗ₜ y)) : g = h :=
 linear_map.ext $ λ z, tensor_product.induction_on z (by simp_rw linear_map.map_zero) H $
 λ x y ihx ihy, by rw [g.map_add, h.map_add, ihx, ihy]
 
 theorem lift.unique {g : (M ⊗[R] N) →ₗ[R] P} (H : ∀ x y, g (x ⊗ₜ y) = f x y) :
   g = lift f :=
-ext $ λ m n, by rw [H, lift.tmul]
+ext' $ λ m n, by rw [H, lift.tmul]
 
 theorem lift_mk : lift (mk R M N) = linear_map.id :=
 eq.symm $ lift.unique $ λ x y, rfl
@@ -609,14 +609,17 @@ theorem lift_mk_compr₂ (f : M ⊗ N →ₗ[R] P) : lift ((mk R M N).compr₂ f
 by rw [lift_compr₂ f, lift_mk, linear_map.comp_id]
 
 /--
-Using this as the `@[ext]` lemma instead of `tensor_product.ext` allows `ext` to apply lemmas
-specific to `M →ₗ _` and `N →ₗ _`.
+This used to be an `@[ext]` lemma, but it fails very slowly when the `ext` tactic tries to apply
+it in some cases, notably when one wants to show equality of two linear maps. The `@[ext]`
+attribute is now added locally where it is needed. Using this as the `@[ext]` lemma instead of
+`tensor_product.ext'` allows `ext` to apply lemmas specific to `M →ₗ _` and `N →ₗ _`.
 
 See note [partially-applied ext lemmas]. -/
-@[ext]
-theorem mk_compr₂_inj {g h : M ⊗ N →ₗ[R] P}
+theorem ext {g h : M ⊗ N →ₗ[R] P}
   (H : (mk R M N).compr₂ g = (mk R M N).compr₂ h) : g = h :=
 by rw [← lift_mk_compr₂ g, H, lift_mk_compr₂]
+
+local attribute [ext] ext
 
 example : M → N → (M → N → P) → P :=
 λ m, flip $ λ f, f m
@@ -640,7 +643,7 @@ the given bilinear map `M → N → P`. -/
 def lift.equiv : (M →ₗ[R] N →ₗ[R] P) ≃ₗ[R] (M ⊗ N →ₗ[R] P) :=
 { inv_fun := λ f, (mk R M N).compr₂ f,
   left_inv := λ f, linear_map.ext₂ $ λ m n, lift.tmul _ _,
-  right_inv := λ f, ext $ λ m n, lift.tmul _ _,
+  right_inv := λ f, ext' $ λ m n, lift.tmul _ _,
   .. uncurry R M N P }
 
 @[simp] lemma lift.equiv_apply (f : M →ₗ[R] N →ₗ[R] P) (m : M) (n : N) :
@@ -668,7 +671,7 @@ def curry (f : M ⊗ N →ₗ[R] P) : M →ₗ[R] N →ₗ[R] P := lcurry R M N 
   curry f m n = f (m ⊗ₜ n) := rfl
 
 lemma curry_injective : function.injective (curry : (M ⊗[R] N →ₗ[R] P) → (M →ₗ[R] N →ₗ[R] P)) :=
-λ g h H, mk_compr₂_inj H
+λ g h H, ext H
 
 theorem ext_threefold {g h : (M ⊗[R] N) ⊗[R] P →ₗ[R] Q}
   (H : ∀ x y z, g ((x ⊗ₜ y) ⊗ₜ z) = h ((x ⊗ₜ y) ⊗ₜ z)) : g = h :=
@@ -697,7 +700,7 @@ The base ring is a left identity for the tensor product of modules, up to linear
 protected def lid : R ⊗ M ≃ₗ[R] M :=
 linear_equiv.of_linear (lift $ linear_map.lsmul R M) (mk R R M 1)
   (linear_map.ext $ λ _, by simp)
-  (ext $ λ r m, by simp; rw [← tmul_smul, ← smul_tmul, smul_eq_mul, mul_one])
+  (ext' $ λ r m, by simp; rw [← tmul_smul, ← smul_tmul, smul_eq_mul, mul_one])
 end
 
 @[simp] theorem lid_tmul (m : M) (r : R) :
@@ -718,8 +721,8 @@ The tensor product of modules is commutative, up to linear equivalence.
 -/
 protected def comm : M ⊗ N ≃ₗ[R] N ⊗ M :=
 linear_equiv.of_linear (lift (mk R N M).flip) (lift (mk R M N).flip)
-  (ext $ λ m n, rfl)
-  (ext $ λ m n, rfl)
+  (ext' $ λ m n, rfl)
+  (ext' $ λ m n, rfl)
 
 @[simp] theorem comm_tmul (m : M) (n : N) :
   (tensor_product.comm R M N) (m ⊗ₜ n) = n ⊗ₜ m := rfl
@@ -759,8 +762,8 @@ begin
   refine linear_equiv.of_linear
     (lift $ lift $ comp (lcurry R _ _ _) $ mk _ _ _)
     (lift $ comp (uncurry R _ _ _) $ curry $ mk _ _ _)
-    (mk_compr₂_inj $ linear_map.ext $ λ m, ext $ λ n p, _)
-    (mk_compr₂_inj $ flip_inj $ linear_map.ext $ λ p, ext $ λ m n, _);
+    (ext $ linear_map.ext $ λ m, ext' $ λ n p, _)
+    (ext $ flip_inj $ linear_map.ext $ λ p, ext' $ λ m n, _);
   repeat { rw lift.tmul <|> rw compr₂_apply <|> rw comp_apply <|>
     rw mk_apply <|> rw flip_apply <|> rw lcurry_apply <|>
     rw uncurry_apply <|> rw curry_apply <|> rw id_apply }
@@ -803,11 +806,13 @@ variables [add_comm_monoid Q'] [module R Q']
 
 lemma map_comp (f₂ : P →ₗ[R] P') (f₁ : M →ₗ[R] P) (g₂ : Q →ₗ[R] Q') (g₁ : N →ₗ[R] Q) :
   map (f₂.comp f₁) (g₂.comp g₁) = (map f₂ g₂).comp (map f₁ g₁) :=
-ext $ λ _ _, by simp only [linear_map.comp_apply, map_tmul]
+ext' $ λ _ _, by simp only [linear_map.comp_apply, map_tmul]
 
 lemma lift_comp_map (i : P →ₗ[R] Q →ₗ[R] Q') (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :
   (lift i).comp (map f g) = lift ((i.comp f).compl₂ g) :=
-ext $ λ _ _, by simp only [lift.tmul, map_tmul, linear_map.compl₂_apply, linear_map.comp_apply]
+ext' $ λ _ _, by simp only [lift.tmul, map_tmul, linear_map.compl₂_apply, linear_map.comp_apply]
+
+local attribute [ext] ext
 
 @[simp] lemma map_id : map (id : M →ₗ[R] M) (id : N →ₗ[R] N) = id :=
 by { ext, simp only [mk_apply, id_coe, compr₂_apply, id.def, map_tmul], }
@@ -832,8 +837,8 @@ end
 then `M ⊗ N` and `P ⊗ Q` are linearly equivalent. -/
 def congr (f : M ≃ₗ[R] P) (g : N ≃ₗ[R] Q) : M ⊗ N ≃ₗ[R] P ⊗ Q :=
 linear_equiv.of_linear (map f g) (map f.symm g.symm)
-  (ext $ λ m n, by simp; simp only [linear_equiv.apply_symm_apply])
-  (ext $ λ m n, by simp; simp only [linear_equiv.symm_apply_apply])
+  (ext' $ λ m n, by simp; simp only [linear_equiv.apply_symm_apply])
+  (ext' $ λ m n, by simp; simp only [linear_equiv.symm_apply_apply])
 
 @[simp] theorem congr_tmul (f : M ≃ₗ[R] P) (g : N ≃ₗ[R] Q) (m : M) (n : N) :
   congr f g (m ⊗ₜ n) = f m ⊗ₜ g n :=
@@ -850,7 +855,7 @@ def left_comm : M ⊗[R] (N ⊗[R] P) ≃ₗ[R] N ⊗[R] (M ⊗[R] P) :=
 let e₁ := (tensor_product.assoc R M N P).symm,
     e₂ := congr (tensor_product.comm R M N) (1 : P ≃ₗ[R] P),
     e₃ := (tensor_product.assoc R N M P) in
-e₁.trans $ e₂.trans e₃
+e₁ ≪≫ₗ (e₂ ≪≫ₗ e₃)
 
 variables {M N P Q}
 
@@ -878,7 +883,7 @@ def tensor_tensor_tensor_comm : (M ⊗[R] N) ⊗[R] (P ⊗[R] Q) ≃ₗ[R] (M �
 let e₁ := tensor_product.assoc R M N (P ⊗[R] Q),
     e₂ := congr (1 : M ≃ₗ[R] M) (left_comm R N P Q),
     e₃ := (tensor_product.assoc R M P (N ⊗[R] Q)).symm in
-e₁.trans $ e₂.trans e₃
+e₁ ≪≫ₗ (e₂ ≪≫ₗ e₃)
 
 variables {M N P Q}
 
@@ -911,6 +916,8 @@ variables (g : P →ₗ[R] Q) (f : N →ₗ[R] P)
 @[simp] lemma rtensor_tmul (m : M) (n : N) : f.rtensor M (n ⊗ₜ m) = (f n) ⊗ₜ m := rfl
 
 open tensor_product
+
+local attribute [ext] tensor_product.ext
 
 /-- `ltensor_hom M` is the natural linear map that sends a linear map `f : N →ₗ P` to `M ⊗ f`. -/
 def ltensor_hom : (N →ₗ[R] P) →ₗ[R] (M ⊗[R] N →ₗ[R] M ⊗[R] P) :=

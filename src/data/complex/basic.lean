@@ -133,10 +133,22 @@ ext_iff.2 $ by simp
 
 /-! ### Commutative ring instance and lemmas -/
 
+/- We use a nonstandard formula for the `ℕ` and `ℤ` actions to make sure there is no
+diamond from the other actions they inherit through the `ℝ`-action on `ℂ` and action transitivity
+defined in `data.complex.module.lean`. -/
 instance : comm_ring ℂ :=
-by refine_struct { zero := (0 : ℂ), add := (+), neg := has_neg.neg, sub := has_sub.sub, one := 1,
-  mul := (*), nsmul := @nsmul_rec _ ⟨(0)⟩ ⟨(+)⟩, npow := @npow_rec _ ⟨(1)⟩ ⟨(*)⟩,
-  gsmul := @gsmul_rec _ ⟨(0)⟩ ⟨(+)⟩ ⟨has_neg.neg⟩ };
+by refine_struct
+  { zero := (0 : ℂ),
+    add := (+),
+    neg := has_neg.neg,
+    sub := has_sub.sub,
+    one := 1,
+    mul := (*),
+    zero_add := λ z, by { apply ext_iff.2, simp },
+    add_zero := λ z, by { apply ext_iff.2, simp },
+    nsmul := λ n z, ⟨n • z.re - 0 * z.im, n • z.im + 0 * z.re⟩,
+    npow := @npow_rec _ ⟨(1)⟩ ⟨(*)⟩,
+    gsmul := λ n z, ⟨n • z.re - 0 * z.im, n • z.im + 0 * z.re⟩ };
 intros; try { refl }; apply ext_iff.2; split; simp; {ring1 <|> ring_nf}
 
 /-- This shortcut instance ensures we do not find `ring` via the noncomputable `complex.field`

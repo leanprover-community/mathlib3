@@ -238,6 +238,16 @@ Union_image_left _
 lemma Union_mul_right_image [has_mul α] : (⋃ a ∈ t, (λ x, x * a) '' s) = s * t :=
 Union_image_right _
 
+@[to_additive]
+lemma Union_mul {ι : Sort*} [has_mul α] (s : ι → set α) (t : set α) :
+  (⋃ i, s i) * t = ⋃ i, (s i * t) :=
+image2_Union_left _ _ _
+
+@[to_additive]
+lemma mul_Union {ι : Sort*} [has_mul α] (t : set α) (s : ι → set α) :
+  t * (⋃ i, s i) = ⋃ i, (t * s i) :=
+image2_Union_right _ _ _
+
 @[simp, to_additive]
 lemma univ_mul_univ [monoid α] : (univ : set α) * univ = univ :=
 begin
@@ -400,64 +410,80 @@ hs.preimage $ inv_injective.inj_on _
 
 /-- The scaling of a set `(x • s : set β)` by a scalar `x ∶ α` is defined as `{x • y | y ∈ s}`
 in locale `pointwise`. -/
+@[to_additive has_vadd_set "The translation of a set `(x +ᵥ s : set β)` by a scalar `x ∶ α` is
+defined as `{x +ᵥ y | y ∈ s}` in locale `pointwise`."]
 protected def has_scalar_set [has_scalar α β] : has_scalar α (set β) :=
 ⟨λ a, image (has_scalar.smul a)⟩
 
 /-- The pointwise scalar multiplication `(s • t : set β)` by a set of scalars `s ∶ set α`
 is defined as `{x • y | x ∈ s, y ∈ t}` in locale `pointwise`. -/
+@[to_additive has_vadd "The pointwise translation `(s +ᵥ t : set β)` by a set of constants
+`s ∶ set α` is defined as `{x +ᵥ y | x ∈ s, y ∈ t}` in locale `pointwise`."]
 protected def has_scalar [has_scalar α β] : has_scalar (set α) (set β) :=
 ⟨image2 has_scalar.smul⟩
 
 localized "attribute [instance] set.has_scalar_set set.has_scalar" in pointwise
+localized "attribute [instance] set.has_vadd_set set.has_vadd" in pointwise
 
-@[simp]
+@[simp, to_additive]
 lemma image_smul [has_scalar α β] {t : set β} : (λ x, a • x) '' t = a • t := rfl
 
+@[to_additive]
 lemma mem_smul_set [has_scalar α β] {t : set β} : x ∈ a • t ↔ ∃ y, y ∈ t ∧ a • y = x := iff.rfl
 
+@[to_additive]
 lemma smul_mem_smul_set [has_scalar α β] {t : set β} (hy : y ∈ t) : a • y ∈ a • t :=
 ⟨y, hy, rfl⟩
 
+@[to_additive]
 lemma smul_set_union [has_scalar α β] {s t : set β} : a • (s ∪ t) = a • s ∪ a • t :=
 by simp only [← image_smul, image_union]
 
-@[simp]
+@[simp, to_additive]
 lemma smul_set_empty [has_scalar α β] (a : α) : a • (∅ : set β) = ∅ :=
 by rw [← image_smul, image_empty]
 
+@[to_additive]
 lemma smul_set_mono [has_scalar α β] {s t : set β} (h : s ⊆ t) : a • s ⊆ a • t :=
 by { simp only [← image_smul, image_subset, h] }
 
-@[simp]
+@[simp, to_additive]
 lemma image2_smul [has_scalar α β] {t : set β} : image2 has_scalar.smul s t = s • t := rfl
 
+@[to_additive]
 lemma mem_smul [has_scalar α β] {t : set β} : x ∈ s • t ↔ ∃ a y, a ∈ s ∧ y ∈ t ∧ a • y = x :=
 iff.rfl
 
+@[to_additive]
 lemma image_smul_prod [has_scalar α β] {t : set β} :
   (λ x : α × β, x.fst • x.snd) '' s.prod t = s • t :=
 image_prod _
 
+@[to_additive]
 theorem range_smul_range [has_scalar α β] {ι κ : Type*} (b : ι → α) (c : κ → β) :
   range b • range c = range (λ p : ι × κ, b p.1 • c p.2) :=
 ext $ λ x, ⟨λ hx, let ⟨p, q, ⟨i, hi⟩, ⟨j, hj⟩, hpq⟩ := set.mem_smul.1 hx in
   ⟨(i, j), hpq ▸ hi ▸ hj ▸ rfl⟩,
 λ ⟨⟨i, j⟩, h⟩, set.mem_smul.2 ⟨b i, c j, ⟨i, rfl⟩, ⟨j, rfl⟩, h⟩⟩
 
+@[simp, to_additive]
 lemma singleton_smul [has_scalar α β] {t : set β} : ({a} : set α) • t = a • t :=
 image2_singleton_left
 
+@[to_additive]
 instance smul_comm_class_set {γ : Type*}
   [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
   smul_comm_class α (set β) (set γ) :=
 { smul_comm := λ a T T',
     by simp only [←image2_smul, ←image_smul, image2_image_right, image_image2, smul_comm] }
 
+@[to_additive]
 instance smul_comm_class_set' {γ : Type*}
   [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
   smul_comm_class (set α) β (set γ) :=
 by haveI := smul_comm_class.symm α β γ; exact smul_comm_class.symm _ _ _
 
+@[to_additive]
 instance smul_comm_class {γ : Type*}
   [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
   smul_comm_class (set α) (set β) (set γ) :=
@@ -527,12 +553,14 @@ instance set_semiring.comm_semiring [comm_monoid α] : comm_semiring (set_semiri
 
 /-- A multiplicative action of a monoid on a type β gives also a
  multiplicative action on the subsets of β. -/
+@[to_additive "An additive action of an additive monoid on a type β gives also an additive action
+on the subsets of β."]
 protected def mul_action_set [monoid α] [mul_action α β] : mul_action α (set β) :=
 { mul_smul := by { intros, simp only [← image_smul, image_image, ← mul_smul] },
   one_smul := by { intros, simp only [← image_smul, image_eta, one_smul, image_id'] },
   ..set.has_scalar_set }
 
-localized "attribute [instance] set.mul_action_set" in pointwise
+localized "attribute [instance] set.mul_action_set set.add_action_set" in pointwise
 
 section mul_hom
 

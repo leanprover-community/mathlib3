@@ -104,15 +104,8 @@ begin
     simpa only [degree_eq_nat_degree hf, with_bot.coe_lt_coe] using h },
 end
 
-lemma dim_ne_zero [nontrivial S] (pb : power_basis R S) : pb.dim ≠ 0 :=
-λ h, one_ne_zero $
-show (1 : S) = 0,
-by { rw [← pb.basis.total_repr 1, finsupp.total_apply, finsupp.sum_fintype],
-     { refine finset.sum_eq_zero (λ x hx, _),
-       cases x with x x_lt,
-       rw h at x_lt,
-       cases x_lt },
-     { simp } }
+lemma dim_ne_zero [h : nontrivial S] (pb : power_basis R S) : pb.dim ≠ 0 :=
+λ h, not_nonempty_iff.mpr (h.symm ▸ fin.is_empty : is_empty (fin pb.dim)) pb.basis.index_nonempty
 
 lemma dim_pos [nontrivial S] (pb : power_basis R S) : 0 < pb.dim :=
 nat.pos_of_ne_zero pb.dim_ne_zero
@@ -329,6 +322,7 @@ noncomputable def lift_equiv (pb : power_basis A S) :
 
 /-- `pb.lift_equiv'` states that elements of the root set of the minimal
 polynomial of `pb.gen` correspond to maps sending `pb.gen` to that root. -/
+@[simps {fully_applied := ff}]
 noncomputable def lift_equiv' (pb : power_basis A S) :
   (S →ₐ[A] B) ≃ {y : B // y ∈ ((minpoly A pb.gen).map (algebra_map A B)).roots} :=
 pb.lift_equiv.trans ((equiv.refl _).subtype_equiv (λ x,

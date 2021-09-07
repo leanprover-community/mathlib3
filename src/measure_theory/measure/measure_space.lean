@@ -31,11 +31,11 @@ Measures on `α` form a complete lattice, and are closed under scalar multiplica
 
 We introduce the following typeclasses for measures:
 
-* `probability_measure μ`: `μ univ = 1`;
-* `finite_measure μ`: `μ univ < ∞`;
+* `is_probability_measure μ`: `μ univ = 1`;
+* `is_finite_measure μ`: `μ univ < ∞`;
 * `sigma_finite μ`: there exists a countable collection of measurable sets that cover `univ`
   where `μ` is finite;
-* `locally_finite_measure μ` : `∀ x, ∃ s ∈ 𝓝 x, μ s < ∞`;
+* `is_locally_finite_measure μ` : `∀ x, ∃ s ∈ 𝓝 x, μ s < ∞`;
 * `has_no_atoms μ` : `∀ x, μ {x} = 0`; possibly should be redefined as
   `∀ s, 0 < μ s → ∃ t ⊆ s, 0 < μ t ∧ μ t < μ s`.
 
@@ -417,8 +417,8 @@ instance [measurable_space α] : has_zero (measure α) :=
 
 @[simp, norm_cast] theorem coe_zero {m : measurable_space α} : ⇑(0 : measure α) = 0 := rfl
 
-lemma eq_zero_of_not_nonempty {m : measurable_space α} (h : ¬nonempty α) (μ : measure α) : μ = 0 :=
-ext $ λ s hs, by simp only [eq_empty_of_not_nonempty h s, measure_empty]
+lemma eq_zero_of_is_empty [is_empty α] {m : measurable_space α} (μ : measure α) : μ = 0 :=
+ext $ λ s hs, by simp only [eq_empty_of_is_empty s, measure_empty]
 
 instance [measurable_space α] : inhabited (measure α) := ⟨0⟩
 
@@ -1089,6 +1089,16 @@ ext $ λ s hs, by simp [hs, tsum_fintype]
   (sum μ).restrict s = sum (λ i, (μ i).restrict s) :=
 ext $ λ t ht, by simp only [sum_apply, restrict_apply, ht, ht.inter hs]
 
+lemma sum_congr {μ ν : ℕ → measure α} (h : ∀ n, μ n = ν n) : sum μ = sum ν :=
+by { congr, ext1 n, exact h n }
+
+lemma sum_add_sum (μ ν : ℕ → measure α) : sum μ + sum ν = sum (λ n, μ n + ν n) :=
+begin
+  ext1 s hs,
+  simp only [add_apply, sum_apply _ hs, pi.add_apply, coe_add,
+             tsum_add ennreal.summable ennreal.summable],
+end
+
 omit m0
 end sum
 
@@ -1506,56 +1516,64 @@ end
 lemma restrict_congr_set (H : s =ᵐ[μ] t) : μ.restrict s = μ.restrict t :=
 le_antisymm (restrict_mono_ae H.le) (restrict_mono_ae H.symm.le)
 
-section finite_measure
+section is_finite_measure
 
 include m0
 
 /-- A measure `μ` is called finite if `μ univ < ∞`. -/
-class finite_measure (μ : measure α) : Prop := (measure_univ_lt_top : μ univ < ∞)
+class is_finite_measure (μ : measure α) : Prop := (measure_univ_lt_top : μ univ < ∞)
 
-instance restrict.finite_measure (μ : measure α) [hs : fact (μ s < ∞)] :
-  finite_measure (μ.restrict s) :=
+instance restrict.is_finite_measure (μ : measure α) [hs : fact (μ s < ∞)] :
+  is_finite_measure (μ.restrict s) :=
 ⟨by simp [hs.elim]⟩
 
-lemma measure_lt_top (μ : measure α) [finite_measure μ] (s : set α) : μ s < ∞ :=
-(measure_mono (subset_univ s)).trans_lt finite_measure.measure_univ_lt_top
+lemma measure_lt_top (μ : measure α) [is_finite_measure μ] (s : set α) : μ s < ∞ :=
+(measure_mono (subset_univ s)).trans_lt is_finite_measure.measure_univ_lt_top
 
-lemma measure_ne_top (μ : measure α) [finite_measure μ] (s : set α) : μ s ≠ ∞ :=
+lemma measure_ne_top (μ : measure α) [is_finite_measure μ] (s : set α) : μ s ≠ ∞ :=
 ne_of_lt (measure_lt_top μ s)
 
 /-- The measure of the whole space with respect to a finite measure, considered as `ℝ≥0`. -/
 def measure_univ_nnreal (μ : measure α) : ℝ≥0 := (μ univ).to_nnreal
 
-@[simp] lemma coe_measure_univ_nnreal (μ : measure α) [finite_measure μ] :
+@[simp] lemma coe_measure_univ_nnreal (μ : measure α) [is_finite_measure μ] :
   ↑(measure_univ_nnreal μ) = μ univ :=
 ennreal.coe_to_nnreal (measure_ne_top μ univ)
 
-instance finite_measure_zero : finite_measure (0 : measure α) := ⟨by simp⟩
+instance is_finite_measure_zero : is_finite_measure (0 : measure α) := ⟨by simp⟩
+
+@[priority 100]
+instance is_finite_measure_of_is_empty [is_empty α] : is_finite_measure μ :=
+by { rw eq_zero_of_is_empty μ, apply_instance }
 
 @[simp] lemma measure_univ_nnreal_zero : measure_univ_nnreal (0 : measure α) = 0 := rfl
 
 omit m0
 
-instance finite_measure_add [finite_measure μ] [finite_measure ν] : finite_measure (μ + ν) :=
+instance is_finite_measure_add [is_finite_measure μ] [is_finite_measure ν] :
+  is_finite_measure (μ + ν) :=
 { measure_univ_lt_top :=
   begin
     rw [measure.coe_add, pi.add_apply, ennreal.add_lt_top],
     exact ⟨measure_lt_top _ _, measure_lt_top _ _⟩,
   end }
 
-instance finite_measure_smul_nnreal [finite_measure μ] {r : ℝ≥0} : finite_measure (r • μ) :=
+instance is_finite_measure_smul_nnreal [is_finite_measure μ] {r : ℝ≥0} :
+  is_finite_measure (r • μ) :=
 { measure_univ_lt_top := ennreal.mul_lt_top ennreal.coe_lt_top (measure_lt_top _ _) }
 
-lemma finite_measure_of_le (μ : measure α) [finite_measure μ] (h : ν ≤ μ) : finite_measure ν :=
+lemma is_finite_measure_of_le (μ : measure α) [is_finite_measure μ] (h : ν ≤ μ) :
+  is_finite_measure ν :=
 { measure_univ_lt_top := lt_of_le_of_lt (h set.univ measurable_set.univ) (measure_lt_top _ _) }
 
-@[simp] lemma measure_univ_nnreal_eq_zero [finite_measure μ] : measure_univ_nnreal μ = 0 ↔ μ = 0 :=
+@[simp] lemma measure_univ_nnreal_eq_zero [is_finite_measure μ] :
+  measure_univ_nnreal μ = 0 ↔ μ = 0 :=
 begin
   rw [← measure_theory.measure.measure_univ_eq_zero, ← coe_measure_univ_nnreal],
   norm_cast
 end
 
-lemma measure_univ_nnreal_pos [finite_measure μ] (hμ : μ ≠ 0) : 0 < measure_univ_nnreal μ :=
+lemma measure_univ_nnreal_pos [is_finite_measure μ] (hμ : μ ≠ 0) : 0 < measure_univ_nnreal μ :=
 begin
   contrapose! hμ,
   simpa [measure_univ_nnreal_eq_zero, le_zero_iff] using hμ
@@ -1563,10 +1581,10 @@ end
 
 /-- `le_of_add_le_add_left` is normally applicable to `ordered_cancel_add_comm_monoid`,
 but it holds for measures with the additional assumption that μ is finite. -/
-lemma measure.le_of_add_le_add_left [finite_measure μ] (A2 : μ + ν₁ ≤ μ + ν₂) : ν₁ ≤ ν₂ :=
+lemma measure.le_of_add_le_add_left [is_finite_measure μ] (A2 : μ + ν₁ ≤ μ + ν₂) : ν₁ ≤ ν₂ :=
 λ S B1, ennreal.le_of_add_le_add_left (measure_theory.measure_lt_top μ S) (A2 S B1)
 
-lemma summable_measure_to_real [hμ : finite_measure μ]
+lemma summable_measure_to_real [hμ : is_finite_measure μ]
   {f : ℕ → set α} (hf₁ : ∀ (i : ℕ), measurable_set (f i)) (hf₂ : pairwise (disjoint on f)) :
   summable (λ x, (μ (f x)).to_real) :=
 begin
@@ -1575,39 +1593,39 @@ begin
   exact ne_of_lt (measure_lt_top _ _)
 end
 
-end finite_measure
+end is_finite_measure
 
-section probability_measure
+section is_probability_measure
 
 include m0
 
 /-- A measure `μ` is called a probability measure if `μ univ = 1`. -/
-class probability_measure (μ : measure α) : Prop := (measure_univ : μ univ = 1)
+class is_probability_measure (μ : measure α) : Prop := (measure_univ : μ univ = 1)
 
-export probability_measure (measure_univ)
+export is_probability_measure (measure_univ)
 
 @[priority 100]
-instance probability_measure.to_finite_measure (μ : measure α) [probability_measure μ] :
-  finite_measure μ :=
+instance is_probability_measure.to_is_finite_measure (μ : measure α) [is_probability_measure μ] :
+  is_finite_measure μ :=
 ⟨by simp only [measure_univ, ennreal.one_lt_top]⟩
 
-lemma probability_measure.ne_zero (μ : measure α) [probability_measure μ] : μ ≠ 0 :=
+lemma is_probability_measure.ne_zero (μ : measure α) [is_probability_measure μ] : μ ≠ 0 :=
 mt measure_univ_eq_zero.2 $ by simp [measure_univ]
 
 omit m0
 
-instance measure.dirac.probability_measure [measurable_space α] {x : α} :
-  probability_measure (dirac x) :=
+instance measure.dirac.is_probability_measure [measurable_space α] {x : α} :
+  is_probability_measure (dirac x) :=
 ⟨dirac_apply_of_mem $ mem_univ x⟩
 
-lemma prob_add_prob_compl [probability_measure μ]
+lemma prob_add_prob_compl [is_probability_measure μ]
   (h : measurable_set s) : μ s + μ sᶜ = 1 :=
 (measure_add_measure_compl h).trans measure_univ
 
-lemma prob_le_one [probability_measure μ] : μ s ≤ 1 :=
+lemma prob_le_one [is_probability_measure μ] : μ s ≤ 1 :=
 (measure_mono $ set.subset_univ _).trans_eq measure_univ
 
-end probability_measure
+end is_probability_measure
 
 section no_atoms
 
@@ -1713,7 +1731,7 @@ Equivalently, it is eventually finite at `s` in `f.lift' powerset`. -/
 def finite_at_filter {m0 : measurable_space α} (μ : measure α) (f : filter α) : Prop :=
 ∃ s ∈ f, μ s < ∞
 
-lemma finite_at_filter_of_finite {m0 : measurable_space α} (μ : measure α) [finite_measure μ]
+lemma finite_at_filter_of_finite {m0 : measurable_space α} (μ : measure α) [is_finite_measure μ]
   (f : filter α) :
   μ.finite_at_filter f :=
 ⟨univ, univ_mem, measure_lt_top μ univ⟩
@@ -1824,10 +1842,6 @@ protected lemma is_countably_spanning (h : μ.finite_spanning_sets_in C) : is_co
 
 end finite_spanning_sets_in
 
-lemma sigma_finite_of_not_nonempty {m0 : measurable_space α} (μ : measure α) (hα : ¬ nonempty α) :
-  sigma_finite μ :=
-⟨⟨⟨λ _, ∅, λ n, measurable_set.empty, λ n, by simp, by simp [eq_empty_of_not_nonempty hα univ]⟩⟩⟩
-
 lemma sigma_finite_of_countable {S : set (set α)} (hc : countable S)
   (hμ : ∀ s ∈ S, μ s < ∞) (hU : ⋃₀ S = univ) :
   sigma_finite μ :=
@@ -1857,7 +1871,8 @@ include m0
 
 /-- Every finite measure is σ-finite. -/
 @[priority 100]
-instance finite_measure.to_sigma_finite (μ : measure α) [finite_measure μ] : sigma_finite μ :=
+instance is_finite_measure.to_sigma_finite (μ : measure α) [is_finite_measure μ] :
+  sigma_finite μ :=
 ⟨⟨⟨λ _, univ, λ _, measurable_set.univ, λ _, measure_lt_top μ _, Union_const _⟩⟩⟩
 
 instance restrict.sigma_finite (μ : measure α) [sigma_finite μ] (s : set α) :
@@ -1895,22 +1910,22 @@ lemma sigma_finite.of_map (μ : measure α) {f : α → β} (hf : measurable f)
    by rw [← preimage_Union, Union_spanning_sets, preimage_univ]⟩⟩⟩
 
 /-- A measure is called locally finite if it is finite in some neighborhood of each point. -/
-class locally_finite_measure [topological_space α] (μ : measure α) : Prop :=
+class is_locally_finite_measure [topological_space α] (μ : measure α) : Prop :=
 (finite_at_nhds : ∀ x, μ.finite_at_filter (𝓝 x))
 
 @[priority 100] -- see Note [lower instance priority]
-instance finite_measure.to_locally_finite_measure [topological_space α] (μ : measure α)
-  [finite_measure μ] :
-  locally_finite_measure μ :=
+instance is_finite_measure.to_is_locally_finite_measure [topological_space α] (μ : measure α)
+  [is_finite_measure μ] :
+  is_locally_finite_measure μ :=
 ⟨λ x, finite_at_filter_of_finite _ _⟩
 
 lemma measure.finite_at_nhds [topological_space α] (μ : measure α)
-  [locally_finite_measure μ] (x : α) :
+  [is_locally_finite_measure μ] (x : α) :
   μ.finite_at_filter (𝓝 x) :=
-locally_finite_measure.finite_at_nhds x
+is_locally_finite_measure.finite_at_nhds x
 
-lemma measure.smul_finite (μ : measure α) [finite_measure μ] {c : ℝ≥0∞} (hc : c < ∞) :
-  finite_measure (c • μ) :=
+lemma measure.smul_finite (μ : measure α) [is_finite_measure μ] {c : ℝ≥0∞} (hc : c < ∞) :
+  is_finite_measure (c • μ) :=
 begin
   refine ⟨_⟩,
   rw measure.smul_apply,
@@ -1918,7 +1933,7 @@ begin
 end
 
 lemma measure.exists_is_open_measure_lt_top [topological_space α] (μ : measure α)
-  [locally_finite_measure μ] (x : α) :
+  [is_locally_finite_measure μ] (x : α) :
   ∃ s : set α, x ∈ s ∧ is_open s ∧ μ s < ∞ :=
 by simpa only [exists_prop, and.assoc]
   using (μ.finite_at_nhds x).exists_mem_basis (nhds_basis_opens x)
@@ -1927,7 +1942,7 @@ omit m0
 
 @[priority 100] -- see Note [lower instance priority]
 instance sigma_finite_of_locally_finite [topological_space α]
-  [topological_space.second_countable_topology α] [locally_finite_measure μ] :
+  [topological_space.second_countable_topology α] [is_locally_finite_measure μ] :
   sigma_finite μ :=
 begin
   choose s hsx hsμ using μ.finite_at_nhds,
@@ -1939,16 +1954,16 @@ end
 /-- If two finite measures give the same mass to the whole space and coincide on a π-system made
 of measurable sets, then they coincide on all sets in the σ-algebra generated by the π-system. -/
 lemma ext_on_measurable_space_of_generate_finite {α} (m₀ : measurable_space α)
-  {μ ν : measure α} [finite_measure μ]
+  {μ ν : measure α} [is_finite_measure μ]
   (C : set (set α)) (hμν : ∀ s ∈ C, μ s = ν s) {m : measurable_space α}
   (h : m ≤ m₀) (hA : m = measurable_space.generate_from C) (hC : is_pi_system C)
   (h_univ : μ set.univ = ν set.univ) {s : set α} (hs : m.measurable_set' s) :
   μ s = ν s :=
 begin
-  haveI : finite_measure ν := begin
+  haveI : is_finite_measure ν := begin
      constructor,
      rw ← h_univ,
-     apply finite_measure.measure_univ_lt_top,
+     apply is_finite_measure.measure_univ_lt_top,
   end,
   refine induction_on_inter hA hC (by simp) hμν _ _ hs,
   { intros t h1t h2t,
@@ -1963,8 +1978,8 @@ end
 
 /-- Two finite measures are equal if they are equal on the π-system generating the σ-algebra
   (and `univ`). -/
-lemma ext_of_generate_finite (C : set (set α)) (hA : m0 = generate_from C)
-  (hC : is_pi_system C) [finite_measure μ] (hμν : ∀ s ∈ C, μ s = ν s) (h_univ : μ univ = ν univ) :
+lemma ext_of_generate_finite (C : set (set α)) (hA : m0 = generate_from C) (hC : is_pi_system C)
+  [is_finite_measure μ] (hμν : ∀ s ∈ C, μ s = ν s) (h_univ : μ univ = ν univ) :
   μ = ν :=
 measure.ext (λ s hs, ext_on_measurable_space_of_generate_finite m0 C hμν le_rfl hA hC h_univ hs)
 
@@ -2043,7 +2058,7 @@ lemma filter_sup : μ.finite_at_filter f → μ.finite_at_filter g → μ.finite
 end finite_at_filter
 
 lemma finite_at_nhds_within [topological_space α] {m0 : measurable_space α} (μ : measure α)
-  [locally_finite_measure μ] (x : α) (s : set α) :
+  [is_locally_finite_measure μ] (x : α) (s : set α) :
   μ.finite_at_filter (𝓝[s] x) :=
 (finite_at_nhds μ x).inf_of_left
 
@@ -2074,7 +2089,8 @@ end
 
 /-- This application lemma only works in special circumstances. Given knowledge of
 when `μ ≤ ν` and `ν ≤ μ`, a more general application lemma can be written. -/
-lemma sub_apply [finite_measure ν] (h₁ : measurable_set s) (h₂ : ν ≤ μ) : (μ - ν) s = μ s - ν s :=
+lemma sub_apply [is_finite_measure ν] (h₁ : measurable_set s) (h₂ : ν ≤ μ) :
+  (μ - ν) s = μ s - ν s :=
 begin
   -- We begin by defining `measure_sub`, which will be equal to `(μ - ν)`.
   let measure_sub : measure α := @measure_theory.measure.of_measurable α _
@@ -2106,7 +2122,7 @@ begin
   end
 end
 
-lemma sub_add_cancel_of_le [finite_measure ν] (h₁ : ν ≤ μ) : μ - ν + ν = μ :=
+lemma sub_add_cancel_of_le [is_finite_measure ν] (h₁ : ν ≤ μ) : μ - ν + ν = μ :=
 begin
   ext s h_s_meas,
   rw [add_apply, sub_apply h_s_meas h₁, ennreal.sub_add_cancel_of_le (h₁ s h_s_meas)],
@@ -2179,7 +2195,7 @@ begin
   repeat {simp [*]},
 end
 
-instance finite_measure_sub [finite_measure μ] : finite_measure (μ - ν) :=
+instance is_finite_measure_sub [is_finite_measure μ] : is_finite_measure (μ - ν) :=
 { measure_univ_lt_top := lt_of_le_of_lt
     (measure.sub_le set.univ measurable_set.univ) (measure_lt_top _ _) }
 
@@ -2522,7 +2538,8 @@ begin
     trim_measurable_set_eq hm (@measurable_set.inter α m t s ht hs)],
 end
 
-instance finite_measure_trim (hm : m ≤ m0) [finite_measure μ] : finite_measure (μ.trim hm) :=
+instance is_finite_measure_trim (hm : m ≤ m0) [is_finite_measure μ] :
+  is_finite_measure (μ.trim hm) :=
 { measure_univ_lt_top :=
     by { rw trim_measurable_set_eq hm (@measurable_set.univ _ m), exact measure_lt_top _ _, } }
 
@@ -2666,15 +2683,15 @@ lemma ae_measurable_of_ae_measurable_trim {α} {m m0 : measurable_space α}
 lemma ae_measurable_restrict_of_measurable_subtype {s : set α}
   (hs : measurable_set s) (hf : measurable (λ x : s, f x)) : ae_measurable f (μ.restrict s) :=
 begin
-  by_cases h : nonempty β,
-  { refine ⟨s.piecewise f (λ x, classical.choice h), _, (ae_restrict_iff' hs).mpr $ ae_of_all _
-              (λ x hx, (piecewise_eq_of_mem s _ _ hx).symm)⟩,
-    intros t ht,
-    rw piecewise_preimage,
-    refine measurable_set.union _ ((measurable_const ht).diff hs),
-    rw [← subtype.image_preimage_coe, ← preimage_comp],
-    exact hs.subtype_image (hf ht) },
-  { exact (measurable_of_not_nonempty (mt (nonempty.map f) h) f).ae_measurable }
+  casesI is_empty_or_nonempty β,
+  { exact (measurable_of_empty_codomain f).ae_measurable },
+  refine ⟨s.piecewise f (λ x, classical.choice h), _, (ae_restrict_iff' hs).mpr $ ae_of_all _
+    (λ x hx, (piecewise_eq_of_mem s _ _ hx).symm)⟩,
+  intros t ht,
+  rw piecewise_preimage,
+  refine measurable_set.union _ ((measurable_const ht).diff hs),
+  rw [← subtype.image_preimage_coe, ← preimage_comp],
+  exact hs.subtype_image (hf ht)
 end
 
 end
@@ -2683,13 +2700,13 @@ namespace is_compact
 
 variables [topological_space α] [measurable_space α] {μ : measure α} {s : set α}
 
-lemma finite_measure_of_nhds_within (hs : is_compact s) :
+lemma is_finite_measure_of_nhds_within (hs : is_compact s) :
   (∀ a ∈ s, μ.finite_at_filter (𝓝[s] a)) → μ s < ∞ :=
 by simpa only [← measure.compl_mem_cofinite, measure.finite_at_filter]
   using hs.compl_mem_sets_of_nhds_within
 
-lemma finite_measure [locally_finite_measure μ] (hs : is_compact s) : μ s < ∞ :=
-hs.finite_measure_of_nhds_within $ λ a ha, μ.finite_at_nhds_within _ _
+lemma is_finite_measure [is_locally_finite_measure μ] (hs : is_compact s) : μ s < ∞ :=
+hs.is_finite_measure_of_nhds_within $ λ a ha, μ.finite_at_nhds_within _ _
 
 lemma measure_zero_of_nhds_within (hs : is_compact s) :
   (∀ a ∈ s, ∃ t ∈ 𝓝[s] a, μ t = 0) → μ s = 0 :=
@@ -2697,12 +2714,12 @@ by simpa only [← compl_mem_ae_iff] using hs.compl_mem_sets_of_nhds_within
 
 end is_compact
 
-lemma metric.bounded.finite_measure [metric_space α] [proper_space α]
-  [measurable_space α] {μ : measure α} [locally_finite_measure μ] {s : set α}
+lemma metric.bounded.is_finite_measure [metric_space α] [proper_space α]
+  [measurable_space α] {μ : measure α} [is_locally_finite_measure μ] {s : set α}
   (hs : metric.bounded s) :
   μ s < ∞ :=
 (measure_mono subset_closure).trans_lt (metric.compact_iff_closed_bounded.2
-  ⟨is_closed_closure, metric.bounded_closure_of_bounded hs⟩).finite_measure
+  ⟨is_closed_closure, metric.bounded_closure_of_bounded hs⟩).is_finite_measure
 
 
 section piecewise

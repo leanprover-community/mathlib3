@@ -320,54 +320,54 @@ def le_angle (A B C D E F : α) := ∃ P, in_angle P D E F ∧ cong_angle A B C 
 def lt_angle (A B C D E F : α) := le_angle A B C D E F ∧ ¬ cong_angle A B C D E F
 @[reducible] def gt_angle (A B C D E F : α) := lt_angle D E F A B C
 
-lemma l11_30 (le : le_angle A B C D E F) (ABC : cong_angle A B C A' B' C')
-  (DEF : cong_angle D E F D' E' F') :
-  le_angle A' B' C' D' E' F' :=
-begin
-  obtain ⟨P, PDEF, ABCDEP⟩ := le,
+-- lemma l11_30 (le : le_angle A B C D E F) (ABC : cong_angle A B C A' B' C')
+--   (DEF : cong_angle D E F D' E' F') :
+--   le_angle A' B' C' D' E' F' :=
+-- begin
+--   obtain ⟨P, PDEF, ABCDEP⟩ := le,
 
-  -- refine ⟨_, _, _⟩,
-end
+--   -- refine ⟨_, _, _⟩,
+-- end
 
-lemma l11_44_2 (ABC : ¬col A B C) : lt_angle B A C B C A ↔ lt B C B A :=
-begin
-  sorry
-end
+-- lemma l11_44_2 (ABC : ¬col A B C) : lt_angle B A C B C A ↔ lt B C B A :=
+-- begin
+--   sorry
+-- end
 
-lemma le_angle.lt_trans {G H I : α} (le : le_angle A B C D E F) (lt : lt_angle D E F G H I) :
-  lt_angle A B C G H I :=
-sorry
+-- lemma le_angle.lt_trans {G H I : α} (le : le_angle A B C D E F) (lt : lt_angle D E F G H I) :
+--   lt_angle A B C G H I :=
+-- sorry
 
-lemma betw.le_lt (ADB : betw A D B) (nAD : A ≠ D) (nDB : D ≠ B) (ACBC : le A C B C) :
-  lt D C B C :=
-begin
-  have nBA : B ≠ A,
-  { rintro rfl,
-    apply nAD ADB.identity },
-  apply lt.comm,
-  by_cases ABC : col A B C,
-  { by_cases CDB : betw C D B,
-    { exact ⟨⟨D, CDB, cong.refl _ _⟩, λ i, nDB (CDB.cong i)⟩ },
-    have DCB : out D C B := (ADB.col.right_symm.trans' ABC nBA.symm).symm.out_of_not_betw CDB,
-    have nCD : C ≠ D := DCB.1,
-    have CDA : betw C D A := (l6_2 nDB.symm nCD nAD ADB.symm).2 DCB.symm,
-    have nAC : A ≠ C,
-    { rintro rfl,
-      apply nCD CDA.identity },
-    apply (CDA.lt_left nAD.symm).trans_le ACBC.comm },
-  have BCD : ¬col B C D := λ i, ABC (ADB.symm.col.trans i.right_symm nDB.symm).left_symm,
-  rw ←l11_44_2 BCD,
-  have nCA : C ≠ A,
-  { rintro rfl,
-    apply ABC (betw.id_left _ _).col.right_symm },
-  have : le_angle C B D C A B,
-  { apply @l11_30 _ _ C B A C A B,
-    { sorry },
-    { sorry },
-    { apply cong_angle.refl nCA nBA },
-  },
-  apply this.lt_trans,
+-- lemma betw.le_lt (ADB : betw A D B) (nAD : A ≠ D) (nDB : D ≠ B) (ACBC : le A C B C) :
+--   lt D C B C :=
+-- begin
+--   have nBA : B ≠ A,
+--   { rintro rfl,
+--     apply nAD ADB.identity },
+--   apply lt.comm,
+--   by_cases ABC : col A B C,
+--   { by_cases CDB : betw C D B,
+--     { exact ⟨⟨D, CDB, cong.refl _ _⟩, λ i, nDB (CDB.cong i)⟩ },
+--     have DCB : out D C B := (ADB.col.right_symm.trans' ABC nBA.symm).symm.out_of_not_betw CDB,
+--     have nCD : C ≠ D := DCB.1,
+--     have CDA : betw C D A := (l6_2 nDB.symm nCD nAD ADB.symm).2 DCB.symm,
+--     have nAC : A ≠ C,
+--     { rintro rfl,
+--       apply nCD CDA.identity },
+--     apply (CDA.lt_left nAD.symm).trans_le ACBC.comm },
+--   have BCD : ¬col B C D := λ i, ABC (ADB.symm.col.trans i.right_symm nDB.symm).left_symm,
+--   rw ←l11_44_2 BCD,
+--   have nCA : C ≠ A,
+--   { rintro rfl,
+--     apply ABC (betw.id_left _ _).col.right_symm },
+--   have : le_angle C B D C A B,
+--   { apply @l11_30 _ _ C B A C A B,
+--     { sorry },
+--     { sorry },
+--     { apply cong_angle.refl nCA nBA },
+--   },
+--   apply this.lt_trans,
 
-end
+-- end
 
 end tarski

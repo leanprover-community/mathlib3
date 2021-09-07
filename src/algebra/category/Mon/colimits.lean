@@ -256,8 +256,6 @@ local infixl `~` := types.filtered_colimit.rel (F ⋙ forget Mon)
 noncomputable theory
 open_locale classical
 
-set_option profiler true
-
 variables [is_filtered J]
 
 instance monoid_obj (F : J ⥤ Mon) (j) :
@@ -359,15 +357,11 @@ lemma colimit_mul_assoc (x y z : types.quot (F ⋙ forget Mon)) :
 begin
   apply quot.induction_on₃ x y z, clear x y z, intros x y z,
   cases x with j₁ x, cases y with j₂ y, cases z with j₃ z,
-  let k := max' (max' j₁ j₂) j₃,
-  rw mul_colimit_eq F ⟨j₁, x⟩ ⟨j₂, y⟩ k (left_to_max _ _ ≫ left_to_max _ _)
-    (right_to_max _ _ ≫ left_to_max _ _),
-  rw mul_colimit_eq F ⟨k, _⟩ ⟨j₃, z⟩ k (𝟙 k) (right_to_max _ _),
-  rw mul_colimit_eq F ⟨j₂, y⟩ ⟨j₃, z⟩ k (right_to_max _ _ ≫ left_to_max _ _) (right_to_max _ _),
-  rw mul_colimit_eq F ⟨j₁, x⟩ ⟨k, _⟩ k (left_to_max _ _ ≫ left_to_max _ _) (𝟙 k),
-  dsimp,
-  congr' 1,
-  rw [F.map_id, id_apply, id_apply, mul_assoc],
+  rw [mul_colimit_eq F ⟨j₁, x⟩ ⟨j₂, y⟩ _ (first_to_max₃ j₁ j₂ j₃) (second_to_max₃ j₁ j₂ j₃),
+    mul_colimit_eq F ⟨max₃ j₁ j₂ j₃, _⟩ ⟨j₃, z⟩ _ (𝟙 _) (third_to_max₃ j₁ j₂ j₃),
+    mul_colimit_eq F ⟨j₂, y⟩ ⟨j₃, z⟩ _ (second_to_max₃ j₁ j₂ j₃) (third_to_max₃ j₁ j₂ j₃),
+    mul_colimit_eq F ⟨j₁, x⟩ ⟨max₃ j₁ j₂ j₃, _⟩ _ (first_to_max₃ j₁ j₂ j₃) (𝟙 _)],
+  simp only [F.map_id, id_apply, mul_assoc],
 end
 
 instance colimit_monoid : monoid (types.quot (F ⋙ forget Mon)) :=
@@ -397,7 +391,6 @@ begin
 end
 
 /-- The cocone over the proposed colimit monoid. -/
-noncomputable
 def colimit_cocone : cocone F :=
 { X := colimit F,
   ι := { app := cocone_morphism F } }.

@@ -35,7 +35,12 @@ This formulation is often more useful in practice and is available via `sup_exis
 which takes a finset of objects, and an indexed family (indexed by source and target)
 of finsets of morphisms.
 
-We also provide all of the above API for cofiltered categories.
+Furthermore, we give special support for two diagram categories: The `bowtie` and the `crown`.
+This is because these shapes show up in the proofs that forgetful functors of algebraic categories
+(e.g. `Mon`, `CommRing`, ...) preserve filtered colimits.
+
+All of the above API, except for the `bowtie` and the `crown`, is also provided for cofiltered
+categories.
 
 ## See also
 In `category_theory.limits.filtered_colimit_commutes_finite_limit` we show that filtered colimits
@@ -278,21 +283,49 @@ of_right_adjoint h.symm.to_adjunction
 
 section special_shapes
 
+/--
+`max₃ j₁ j₂'` is an arbitrary choice of object to the right of `j₁`, `j₂` and `j₃`,
+whose existence is ensured by `is_filtered`.
+-/
 noncomputable def max₃ (j₁ j₂ j₃ : C) : C := max (max j₁ j₂) j₃
 
+/--
+`first_to_max₃ j₁ j₂ j₃` is an arbitrarily choice of morphism from `j₁` to `max₃ j₁ j₂ j₃`,
+whose existence is ensured by `is_filtered`.
+-/
 noncomputable def first_to_max₃ (j₁ j₂ j₃ : C) : j₁ ⟶ max₃ j₁ j₂ j₃ :=
 left_to_max j₁ j₂ ≫ left_to_max (max j₁ j₂) j₃
 
+/--
+`second_to_max₃ j₁ j₂ j₃` is an arbitrarily choice of morphism from `j₂` to `max₃ j₁ j₂ j₃`,
+whose existence is ensured by `is_filtered`.
+-/
 noncomputable def second_to_max₃ (j₁ j₂ j₃ : C) : j₂ ⟶ max₃ j₁ j₂ j₃ :=
 right_to_max j₁ j₂ ≫ left_to_max (max j₁ j₂) j₃
 
+/--
+`third_to_max₃ j₁ j₂ j₃` is an arbitrarily choice of morphism from `j₃` to `max₃ j₁ j₂ j₃`,
+whose existence is ensured by `is_filtered`.
+-/
 noncomputable def third_to_max₃ (j₁ j₂ j₃ : C) : j₃ ⟶ max₃ j₁ j₂ j₃ :=
 right_to_max (max j₁ j₂) j₃
 
+/--
+`coeq₃ f g h`, for morphisms `f g h : j₁ ⟶ j₂`, is an arbitrary choice of object
+which admits a morphism `coeq₃_hom f g h : j₂ ⟶ coeq₃ f g h` such that
+`coeq₃_condition₁`, `coeq₃_condition₂` and `coeq₃_condition₃` are satisfied.
+Its existence is ensured by `is_filtered`.
+-/
 noncomputable def coeq₃ {j₁ j₂ : C} (f g h : j₁ ⟶ j₂) : C :=
 coeq (coeq_hom f g ≫ left_to_max (coeq f g) (coeq g h))
   (coeq_hom g h ≫ right_to_max (coeq f g) (coeq g h))
 
+/--
+`coeq_hom f g h`, for morphisms `f g h : j₁ ⟶ j₂`, is an arbitrary choice of morphism
+`coeq_hom f g h : j₂ ⟶ coeq₃ f g h` such that
+`coeq₃_condition₁`, `coeq₃_condition₂` and `coeq₃_condition₃` are satisfied.
+Its existence is ensured by `is_filtered`.
+-/
 noncomputable def coeq₃_hom {j₁ j₂ : C} (f g h : j₁ ⟶ j₂) : j₂ ⟶ coeq₃ f g h :=
 coeq_hom f g ≫ left_to_max (coeq f g) (coeq g h) ≫
 coeq_hom (coeq_hom f g ≫ left_to_max (coeq f g) (coeq g h))
@@ -327,7 +360,7 @@ Given a "bowtie" of morphisms
  |\  /|
  | \/ |
  | /\ |
- |/  ∣
+ |/  \∣
  vv  vv
  k₁  k₂
 ```
@@ -358,6 +391,24 @@ begin
     simp only [category.assoc], }
 end
 
+/--
+Given a "crown" of morphisms
+```
+ j₁    j₂    j₃
+ |\   / \   / |
+ | \ /   \ /  |
+ |  vv    vv  |
+ \  k₁    k₂ /
+  \         /
+   \       /
+    \     /
+     \   /
+      v v
+       l
+```
+in a filtered category, we can construct an object `s` and three morphisms from `k₁`, `k₂` and `l`
+to `s`, making the resulting sqaures commute.
+-/
 lemma crown {j₁ j₂ j₃ k₁ k₂ l : C} (f₁ : j₁ ⟶ k₁) (f₂ : j₂ ⟶ k₁) (f₃ : j₂ ⟶ k₂) (f₄ : j₃ ⟶ k₂)
   (g₁ : j₁ ⟶ l) (g₂ : j₃ ⟶ l) :
   ∃ (s : C) (α : k₁ ⟶ s) (β : l ⟶ s) (γ : k₂ ⟶ s),

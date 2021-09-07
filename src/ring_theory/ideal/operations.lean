@@ -1644,13 +1644,13 @@ lemma ker_quot_left_to_quot_sup :
 by simp only [mk_ker, sup_idem, sup_comm, quot_left_to_quot_sup, quotient.factor, ker_quotient_lift,
     map_eq_iff_sup_ker_eq_of_surjective I^.quotient.mk quotient.mk_surjective, ← sup_assoc]
 
-/-- The ring homomorphism `(R/I)/J' ->R/(I ⊔ J)` induced by `quot_left_to_quot_sup` where `J'`
+/-- The ring homomorphism `(R/I)/J' -> R/(I ⊔ J)` induced by `quot_left_to_quot_sup` where `J'`
   is the image of `J` in `R/I`-/
 def quot_quot_to_quot_sup : (J.map (ideal.quotient.mk I)).quotient →+* (I ⊔ J).quotient :=
 ideal.quotient.lift (ideal.map (ideal.quotient.mk I) J) (quot_left_to_quot_sup I J)
   (ker_quot_left_to_quot_sup I J).symm.le
 
-/-- The composite of the maps `R → (R/I) and (R/I) → (R/I)/J'` -/
+/-- The composite of the maps `R → (R/I)` and `(R/I) → (R/I)/J'` -/
 def quot_quot_mk : R →+* (J.map I^.quotient.mk).quotient :=
 ((J.map I^.quotient.mk)^.quotient.mk).comp I^.quotient.mk
 

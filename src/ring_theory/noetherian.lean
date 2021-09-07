@@ -577,7 +577,7 @@ begin
     (f.tailings_disjoint_tailing i),
   specialize w n (le_refl n),
   apply nonempty.intro,
-  refine (f.tailing_linear_equiv i n).symm.trans _,
+  refine (f.tailing_linear_equiv i n).symm ≪≫ₗ _,
   rw w,
   exact submodule.bot_equiv_punit,
 end

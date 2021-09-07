@@ -74,6 +74,9 @@ theorem mem.left_unique : relator.left_unique ((∈) : α → part α → Prop) 
 theorem get_eq_of_mem {o : part α} {a} (h : a ∈ o) (h') : get o h' = a :=
 mem_unique ⟨_, rfl⟩ h
 
+protected theorem subsingleton (o : part α) : set.subsingleton {a | a ∈ o} :=
+λ a ha b hb, mem_unique ha hb
+
 @[simp] theorem get_some {a : α} (ha : (some a).dom) : get (some a) ha = a := rfl
 
 theorem mem_some (a : α) : a ∈ some a := ⟨trivial, rfl⟩

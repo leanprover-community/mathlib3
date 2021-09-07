@@ -544,7 +544,9 @@ begin
 end
 
 /-- quotient by maximal ideal is a field. def rather than instance, since users will have
-computable inverses in some applications -/
+computable inverses in some applications.
+See note [reducible non-instances]. -/
+@[reducible]
 protected noncomputable def field (I : ideal α) [hI : I.is_maximal] : field I.quotient :=
 { inv := λ a, if ha : a = 0 then 0 else classical.some (exists_inv ha),
   mul_inv_cancel := λ a (ha : a ≠ 0), show a * dite _ _ _ = _,

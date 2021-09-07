@@ -3,9 +3,9 @@ Copyright (c) 2018 . All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import group_theory.group_action.basic
-import data.fintype.card
-import data.zmod.basic
+
+import group_theory.perm.cycle_type
+
 /-!
 # p-groups
 

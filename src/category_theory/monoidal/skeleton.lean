@@ -21,7 +21,9 @@ universes v u
 
 variables {C : Type u} [category.{v} C] [monoidal_category C]
 
-/-- If `C` is monoidal and skeletal, it is a monoid. -/
+/-- If `C` is monoidal and skeletal, it is a monoid.
+See note [reducible non-instances]. -/
+@[reducible]
 def monoid_of_skeletal_monoidal (hC : skeletal C) : monoid C :=
 { mul := λ X Y, (X ⊗ Y : C),
   one := (𝟙_ C : C),

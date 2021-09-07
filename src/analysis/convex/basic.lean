@@ -1442,15 +1442,11 @@ lemma affine_map.image_convex_hull (f : E →ᵃ[ℝ] F) :
   f '' (convex_hull s) =  convex_hull (f '' s) :=
 begin
   apply set.subset.antisymm,
-  { rw [set.image_subset_iff],
-    have : convex (f ⁻¹' convex_hull (f '' s)),
-    { exact convex.affine_preimage f (convex_convex_hull (⇑f '' s)), },
-    refine convex_hull_min _ this,
+  { rw set.image_subset_iff,
+    refine convex_hull_min _ ((convex_convex_hull (⇑f '' s)).affine_preimage f),
     rw ← set.image_subset_iff,
     exact subset_convex_hull (f '' s), },
-  { have : convex (f '' convex_hull s),
-    { exact convex.affine_image f (convex_convex_hull s), },
-    refine convex_hull_min _ this,
+  { refine convex_hull_min _ ((convex_convex_hull s).affine_image f),
     apply set.image_subset,
     exact subset_convex_hull s, },
 end

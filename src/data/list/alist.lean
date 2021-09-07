@@ -10,7 +10,7 @@ import data.list.sigma
 
 This file defines [association lists](https://en.wikipedia.org/wiki/Association_list). An
 association list is a list where every element consists of a key and a value, and no two entries
-have the same key. The type of the value is allowed to depend on the type of the key.
+have the same key. The type of the value is allowed to be dependent on the type of the key.
 
 ## Main definitions
 

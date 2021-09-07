@@ -418,6 +418,13 @@ by { rw [← b.total_repr x, finsupp.total_apply, finsupp.sum],
 protected lemma span_eq : span R (range b) = ⊤ :=
 eq_top_iff.mpr $ λ x _, b.mem_span x
 
+lemma index_nonempty (b : basis ι R M) [nontrivial M] : nonempty ι :=
+begin
+  obtain ⟨x, y, ne⟩ : ∃ (x y : M), x ≠ y := nontrivial.exists_pair_ne,
+  obtain ⟨i, _⟩ := not_forall.mp (mt b.ext_elem ne),
+  exact ⟨i⟩
+end
+
 section constr
 
 variables (S : Type*) [semiring S] [module S M']

@@ -1227,3 +1227,45 @@ noncomputable def unique_factorization_monoid.to_gcd_monoid
   .. ‹normalization_monoid α› }
 
 end
+
+namespace unique_factorization_monoid
+
+/-- If `y` is a nonzero element of a unique factorization monoid with finitely
+many units (e.g. `ℤ`, `ideal (ring_of_integers K)`), it has finitely many divisors. -/
+noncomputable def fintype_subtype_dvd {M : Type*} [comm_cancel_monoid_with_zero M]
+  [unique_factorization_monoid M] [fintype (units M)]
+  (y : M) (hy : y ≠ 0) :
+  fintype {x // x ∣ y} :=
+begin
+  haveI : nontrivial M := ⟨⟨y, 0, hy⟩⟩,
+  haveI : normalization_monoid M := unique_factorization_monoid.normalization_monoid,
+  haveI := classical.dec_eq M,
+  haveI := classical.dec_eq (associates M),
+  -- We'll show `λ (u : units M) (f ⊆ factors y) → u * Π f` is injective
+  -- and has image exactly the divisors of `y`.
+  refine fintype.of_finset
+    (((factors y).powerset.to_finset.product (finset.univ : finset (units M))).image
+      (λ s, (s.snd : M) * s.fst.prod))
+    (λ x, _),
+  simp only [exists_prop, finset.mem_image, finset.mem_product, finset.mem_univ, and_true,
+    multiset.mem_to_finset, multiset.mem_powerset, exists_eq_right, multiset.mem_map],
+  split,
+  { rintros ⟨s, hs, rfl⟩,
+    have prod_s_ne : s.fst.prod ≠ 0,
+    { intro hz,
+      apply hy (eq_zero_of_zero_dvd _),
+      have hz := (@multiset.prod_eq_zero_iff M _ _ _ s.fst).mp hz,
+      rw ← (factors_prod hy).dvd_iff_dvd_right,
+      exact multiset.dvd_prod (multiset.mem_of_le hs hz) },
+    show (s.snd : M) * s.fst.prod ∣ y,
+    rw [(unit_associated_one.mul_right s.fst.prod).dvd_iff_dvd_left, one_mul,
+        ← (factors_prod hy).dvd_iff_dvd_right],
+    exact multiset.prod_dvd_prod hs },
+  { rintro (h : x ∣ y),
+    have hx : x ≠ 0, { refine mt (λ hx, _) hy, rwa [hx, zero_dvd_iff] at h },
+    obtain ⟨u, hu⟩ := factors_prod hx,
+    refine ⟨⟨factors x, u⟩, _, (mul_comm _ _).trans hu⟩,
+    exact (dvd_iff_factors_le_factors hx hy).mp h }
+end
+
+end unique_factorization_monoid

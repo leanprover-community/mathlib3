@@ -1235,7 +1235,9 @@ begin
 end
 
 /-- A `comm_ring` `S` which is the localization of an integral domain `R` at a subset of
-non-zero elements is an integral domain. -/
+non-zero elements is an integral domain.
+See note [reducible non-instances]. -/
+@[reducible]
 def integral_domain_of_le_non_zero_divisors [algebra A S] {M : submonoid A} [is_localization M S]
   (hM : M ≤ non_zero_divisors A) : integral_domain S :=
 { eq_zero_or_eq_zero_of_mul_eq_zero :=
@@ -1255,7 +1257,9 @@ def integral_domain_of_le_non_zero_divisors [algebra A S] {M : submonoid A} [is_
                      λ h, zero_ne_one (is_localization.injective S hM h)⟩,
   .. ‹comm_ring S› }
 
-/-- The localization at of an integral domain to a set of non-zero elements is an integral domain -/
+/-- The localization at of an integral domain to a set of non-zero elements is an integral domain.
+See note [reducible non-instances]. -/
+@[reducible]
 def integral_domain_localization {M : submonoid A} (hM : M ≤ non_zero_divisors A) :
   integral_domain (localization M) :=
 integral_domain_of_le_non_zero_divisors _ hM
@@ -1507,8 +1511,9 @@ show x * dite _ _ _ = 1, by rw [dif_neg hx,
     λ h0, hx $ eq_zero_of_fst_eq_zero (sec_spec (non_zero_divisors A) x) h0⟩),
   one_mul, mul_assoc, mk'_spec, ←eq_mk'_iff_mul_eq]; exact (mk'_sec _ x).symm
 
-/-- A `comm_ring` `K` which is the localization of an integral domain `R` at `R - {0}` is a
-field. -/
+/-- A `comm_ring` `K` which is the localization of an integral domain `R` at `R - {0}` is a field.
+See note [reducible non-instances]. -/
+@[reducible]
 noncomputable def to_field : field K :=
 { inv := is_fraction_ring.inv A,
   mul_inv_cancel := is_fraction_ring.mul_inv_cancel A,

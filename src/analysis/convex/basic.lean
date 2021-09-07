@@ -583,8 +583,8 @@ begin
     by_cases hab : ¬a < b,
     { exfalso; exact hab h },
     { refine ⟨(b-x) / (b-a), (x-a) / (b-a), _⟩,
-      refine ⟨div_pos (by linarith) (by linarith), div_pos (by linarith) (by linarith),_,_⟩;
-      { field_simp [show b - a ≠ 0, by linarith], ring } } },
+      refine ⟨div_pos (by linarith) (by linarith), div_pos (by linarith) (by linarith), _, _⟩;
+        field_simp [show b - a ≠ 0, by linarith]; ring } },
   { rw [mem_Ioo],
     rintros ⟨xa, xb, ⟨hxa, hxb, hxaxb, h₂⟩⟩,
     rw [←h₂],

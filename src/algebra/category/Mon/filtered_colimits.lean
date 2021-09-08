@@ -37,7 +37,7 @@ open_locale classical
 parameters {J : Type v} [small_category J] (F : J ⥤ Mon.{v})
 
 /--
-The colimit of `F` in the category of types.
+The colimit of `F ⋙ forget Mon` in the category of types.
 The task of this file is to construct a monoid structure on `M`.
 -/
 abbreviation M : Type v := types.quot (F ⋙ forget Mon)

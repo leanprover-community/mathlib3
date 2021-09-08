@@ -1,14 +1,14 @@
 /-
-Copyright (c) 2020 Scott Morrison. All rights reserved.
+Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
+Authors: Scott Morrison, Justus Springer
 -/
 import category_theory.limits.preserves.basic
 import category_theory.filtered
 import category_theory.limits.types
 
 /-!
-# Preservation of filtered colimits.
+# Preservation of filtered colimits and cofiltered limits.
 Typically forgetful functors from algebraic categories preserve filtered colimits
 (although not general colimits).
 -/
@@ -30,5 +30,12 @@ class preserves_filtered_colimits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
   preserves_colimits_of_shape J F)
 
 attribute [instance, priority 100] preserves_filtered_colimits.preserves_filtered_colimits
+
+class preserves_cofiltered_limits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
+(preserves_cofiltered_limits : Π (J : Type v) [small_category J] [is_cofiltered J],
+  preserves_limits_of_shape J F)
+
+attribute [instance, priority 100] preserves_cofiltered_limits.preserves_cofiltered_limits
+
 
 end category_theory.limits

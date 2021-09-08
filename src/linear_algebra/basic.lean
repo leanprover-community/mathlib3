@@ -2382,6 +2382,24 @@ def of_left_inverse {g : M₂ → M} (h : function.left_inverse g f) : M ≃ₗ[
   (h : function.left_inverse g f) (x : f.range) :
   (of_left_inverse h).symm x = g x := rfl
 
+variables (f)
+
+/-- An `injective` linear map `f : M →ₗ[R] M₂` defines a linear equivalence
+between `M` and `f.range`. See also `linear_map.of_left_inverse`. -/
+noncomputable def of_injective (h : injective f) : M ≃ₗ[R] f.range :=
+of_left_inverse $ classical.some_spec h.has_left_inverse
+
+@[simp] theorem of_injective_apply {h : injective f} (x : M) :
+  ↑(of_injective f h x) = f x := rfl
+
+/-- A bijective linear map is a linear equivalence. Here, bijectivity is described by saying that
+the kernel of `f` is `{0}` and the range is the universal set. -/
+noncomputable def of_bijective (hf₁ : injective f) (hf₂ : surjective f) : M ≃ₗ[R] M₂ :=
+(of_injective f hf₁).trans (of_top _ $ linear_map.range_eq_top.2 hf₂)
+
+@[simp] theorem of_bijective_apply {hf₁ hf₂} (x : M) :
+  of_bijective f hf₁ hf₂ x = f x := rfl
+
 end
 
 end add_comm_monoid
@@ -2416,30 +2434,6 @@ lemma neg_apply (x : M) : neg R x = -x := by simp
 @[simp] lemma symm_neg : (neg R : M ≃ₗ[R] M).symm = neg R := rfl
 
 end neg
-
-section semiring
-
-variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂]
-variables {module_M : module R M} {module_M₂ : module R M₂}
-variables (f : M →ₗ[R] M₂) (e : M ≃ₗ[R] M₂)
-
-/-- An `injective` linear map `f : M →ₗ[R] M₂` defines a linear equivalence
-between `M` and `f.range`. See also `linear_map.of_left_inverse`. -/
-noncomputable def of_injective (h : injective f) : M ≃ₗ[R] f.range :=
-of_left_inverse $ classical.some_spec h.has_left_inverse
-
-@[simp] theorem of_injective_apply {h : injective f} (x : M) :
-  ↑(of_injective f h x) = f x := rfl
-
-/-- A bijective linear map is a linear equivalence. Here, bijectivity is described by saying that
-the kernel of `f` is `{0}` and the range is the universal set. -/
-noncomputable def of_bijective (hf₁ : injective f) (hf₂ : surjective f) : M ≃ₗ[R] M₂ :=
-(of_injective f hf₁).trans (of_top _ $ linear_map.range_eq_top.2 hf₂)
-
-@[simp] theorem of_bijective_apply {hf₁ hf₂} (x : M) :
-  of_bijective f hf₁ hf₂ x = f x := rfl
-
-end semiring
 
 section comm_semiring
 variables [comm_semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]

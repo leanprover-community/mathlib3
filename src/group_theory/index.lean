@@ -23,6 +23,7 @@ In this file we define the index of a subgroup, and prove several divisibility p
 - `index_dvd_card` : `H.index ∣ fintype.card G`
 - `index_eq_mul_of_le` : If `H ≤ K`, then `H.index = K.index * (H.subgroup_of K).index`
 - `index_dvd_of_le` : If `H ≤ K`, then `K.index ∣ H.index`
+
 -/
 
 namespace subgroup

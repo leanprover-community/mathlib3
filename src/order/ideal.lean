@@ -6,6 +6,9 @@ Authors: David Wärn
 import order.basic
 import data.equiv.encodable.basic
 import order.atoms
+import order.bounded_lattice
+import order.complete_lattice
+import order.zorn
 
 /-!
 # Order ideals, cofinal sets, and the Rasiowa–Sikorski lemma
@@ -23,6 +26,8 @@ structure, such as a bottom element, a top element, or a join-semilattice struct
 - `order.ideal.is_maximal`: a predicate for maximal ideals.
   Dual to the notion of an ultrafilter.
 - `ideal_inter_nonempty P`: a predicate for when the intersection of any two ideals of
+  `P` is nonempty.
+- `ideal_Inter_nonempty P`: a predicate for when the intersection of all ideals of
   `P` is nonempty.
 - `order.cofinal P`: the type of subsets of `P` containing arbitrarily large elements.
   Dual to the notion of 'dense set' used in forcing.
@@ -87,7 +92,7 @@ ideal_inter_nonempty.inter_nonempty
 
 /-- A preorder `P` has the `ideal_Inter_nonempty` property if the
     intersection of all ideals is nonempty.
-    Most importantly, a `???` preorder with this property
+    Most importantly, a `semilattice_sup` preorder with this property
     satisfies that its ideal poset is a complete lattice.
 -/
 class ideal_Inter_nonempty (P) [preorder P] : Prop :=
@@ -371,17 +376,38 @@ def Inf (s : set (ideal P)) : ideal P :=
   directed := λ x hx y hy, ⟨x ⊔ y, ⟨λ S ⟨I, hS⟩,
     begin
       simp [← hS],
-      intro hI,
+      assume hI,
       rw set.mem_bInter_iff at *,
       tauto,
-    end, le_sup_left, le_sup_right⟩
-    ⟩,
-  mem_of_le := λ x y hxy hy, begin
-    rw set.mem_bInter_iff at *,
-    exact λ I hI, mem_of_le I ‹_› (hy I hI)
-  end
-}
+    end,
+    le_sup_left, le_sup_right⟩⟩,
+  mem_of_le := λ x y hxy hy,
+    begin
+      rw set.mem_bInter_iff at *,
+      exact λ I hI, mem_of_le I ‹_› (hy I hI)
+    end }
 
+instance : has_Inf (ideal P) :=
+{ Inf := ideal.Inf }
+
+variables {s : set (ideal P)}
+
+@[simp] lemma mem_Inf : x ∈ Inf s ↔ ∀ I ∈ s, x ∈ I :=
+by { change x ∈ (⋂ (I ∈ s), (I : set P)) ↔ ∀ I ∈ s, x ∈ I, simp }
+
+@[simp] lemma Inf_coe : ↑(Inf s) = ⋂ (I ∈ s), (I : set P) := rfl
+
+lemma Inf_le (hI : I ∈ s) : Inf s ≤ I :=
+λ _ hx, hx I ⟨I, by simp [hI]⟩
+
+lemma le_Inf (h : ∀ J ∈ s, I ≤ J) : I ≤ Inf s :=
+λ x hx, by { simp, tauto }
+
+lemma is_glb_Inf : is_glb s (Inf s) := ⟨assume a, Inf_le, assume a, le_Inf⟩
+
+instance : complete_lattice (ideal P) :=
+{ ..ideal.lattice,
+  ..complete_lattice_of_Inf (ideal P) (λ _, @is_glb_Inf _ _ _ _) }
 
 end semilattice_sup_ideal_Inter_nonempty
 

@@ -1025,12 +1025,7 @@ or.inl ⟨⟨0, zero_lt_one⟩, (by split; rintros ⟨⟩)⟩
 /-- The pre-game `ω`. (In fact all ordinals have game and surreal representatives.) -/
 def omega : pgame := ⟨ulift ℕ, pempty, λ n, ↑n.1, pempty.elim⟩
 
-theorem zero_lt_one : (0 : pgame) < 1 :=
-begin
-  rw lt_def,
-  left,
-  use ⟨punit.star, by split; rintro ⟨ ⟩⟩,
-end
+theorem zero_lt_one : (0 : pgame) < 1 := lt_def.mpr $ or.inl ⟨punit.star, by split; rintro ⟨ ⟩⟩
 
 /-- The pre-game `half` is defined as `{0 | 1}`. -/
 def half : pgame := ⟨punit, punit, 0, 1⟩
@@ -1041,17 +1036,13 @@ def half : pgame := ⟨punit, punit, 0, 1⟩
 
 theorem zero_lt_half : 0 < half :=
 begin
-  rw lt_def,
-  left,
-  use punit.star,
+  refine lt_def.mpr (or.inl ⟨punit.star, _⟩),
   split; rintro ⟨ ⟩,
 end
 
 theorem half_lt_one : half < 1 :=
 begin
-  rw lt_def,
-  right,
-  use punit.star,
+  refine lt_def.mpr (or.inr ⟨punit.star, _⟩),
   split; rintro ⟨ ⟩,
   exact zero_lt_one,
 end

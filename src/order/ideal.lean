@@ -87,7 +87,7 @@ class ideal_inter_nonempty (P) [preorder P] : Prop :=
 (inter_nonempty : ∀ (I J : ideal P), (I.carrier ∩ J.carrier).nonempty)
 
 lemma inter_nonempty [preorder P] [ideal_inter_nonempty P] :
-∀ (I J : ideal P), (I.carrier ∩ J.carrier).nonempty :=
+  ∀ (I J : ideal P), (I.carrier ∩ J.carrier).nonempty :=
 ideal_inter_nonempty.inter_nonempty
 
 /-- A preorder `P` has the `ideal_Inter_nonempty` property if the
@@ -99,7 +99,7 @@ class ideal_Inter_nonempty (P) [preorder P] : Prop :=
 (Inter_nonempty : (⋂ (I : ideal P), I.carrier).nonempty)
 
 lemma Inter_nonempty [preorder P] [ideal_Inter_nonempty P] :
-(⋂ (I : ideal P), I.carrier).nonempty :=
+  (⋂ (I : ideal P), (I : set P)).nonempty :=
 ideal_Inter_nonempty.Inter_nonempty
 
 namespace ideal
@@ -169,7 +169,7 @@ end⟩
 (maximal_proper : ∀ ⦃J : ideal P⦄, I < J → J.carrier = set.univ)
 
 lemma ideal_Inter_nonempty.exists_all_mem (hP : ideal_Inter_nonempty P) :
-∃ a : P, ∀ I : ideal P, a ∈ I :=
+  ∃ a : P, ∀ I : ideal P, a ∈ I :=
 begin
   change ∃ (a : P), ∀ (I : ideal P), a ∈ I.carrier,
   rw ← set.Inter_nonempty_iff,
@@ -177,11 +177,11 @@ begin
 end
 
 lemma ideal_Inter_nonempty_of_exists_all_mem (h : ∃ a : P, ∀ I : ideal P, a ∈ I) :
-ideal_Inter_nonempty P :=
+  ideal_Inter_nonempty P :=
 { Inter_nonempty := by rwa set.Inter_nonempty_iff }
 
 lemma ideal_Inter_nonempty_iff :
-ideal_Inter_nonempty P ↔ ∃ a : P, ∀ I : ideal P, a ∈ I :=
+  ideal_Inter_nonempty P ↔ ∃ a : P, ∀ I : ideal P, a ∈ I :=
 ⟨ideal_Inter_nonempty.exists_all_mem, ideal_Inter_nonempty_of_exists_all_mem⟩
 
 end preorder
@@ -351,14 +351,14 @@ instance ideal_Inter_nonempty.ideal_inter_nonempty : ideal_inter_nonempty P :=
 variables {α β γ : Type*} {ι : Sort*}
 
 lemma ideal_Inter_nonempty.ideal_Inter_nonempty {f : ι → ideal P} :
-(⋂ x, (f x : set P)).nonempty :=
+  (⋂ x, (f x : set P)).nonempty :=
 begin
   cases ideal_Inter_nonempty.exists_all_mem ‹_› with a ha,
   exact ⟨a, by simp [ha]⟩
 end
 
 lemma ideal_Inter_nonempty.ideal_bInter_nonempty {f : α → ideal P} {s : set α} :
-(⋂ x ∈ s, (f x : set P)).nonempty :=
+  (⋂ x ∈ s, (f x : set P)).nonempty :=
 begin
   cases ideal_Inter_nonempty.exists_all_mem ‹_› with a ha,
   exact ⟨a, by simp [ha]⟩

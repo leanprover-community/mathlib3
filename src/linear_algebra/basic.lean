@@ -2392,8 +2392,7 @@ of_left_inverse $ classical.some_spec h.has_left_inverse
 @[simp] theorem of_injective_apply {h : injective f} (x : M) :
   ↑(of_injective f h x) = f x := rfl
 
-/-- A bijective linear map is a linear equivalence. Here, bijectivity is described by saying that
-the kernel of `f` is `{0}` and the range is the universal set. -/
+/-- A bijective linear map is a linear equivalence. -/
 noncomputable def of_bijective (hf₁ : injective f) (hf₂ : surjective f) : M ≃ₗ[R] M₂ :=
 (of_injective f hf₁).trans (of_top _ $ linear_map.range_eq_top.2 hf₂)
 

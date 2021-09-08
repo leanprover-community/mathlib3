@@ -972,7 +972,8 @@ open_locale pointwise
 @[simp] lemma pointwise_smul_to_add_submonoid (a : α) (S : submodule R M) :
   (a • S).to_add_submonoid = a • S.to_add_submonoid := rfl
 
-@[simp] lemma pointwise_smul_to_add_subgroup {M : Type*} [add_comm_group M] [module R M]
+@[simp] lemma pointwise_smul_to_add_subgroup {R M : Type*}
+  [ring R] [add_comm_group M] [distrib_mul_action α M] [module R M] [smul_comm_class α R M]
   (a : α) (S : submodule R M) :
   (a • S).to_add_subgroup = a • S.to_add_subgroup := rfl
 

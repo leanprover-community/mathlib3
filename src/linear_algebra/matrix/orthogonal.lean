@@ -46,7 +46,7 @@ has_orthogonal_rows Aᵀ
 iff.rfl
 
 /-- `Aᵀ` has orthogonal columns iff `A` has orthogonal rows. -/
-lemma transpose_has_orthogonal_cols_iff_has_orthogonal_rows [fintype n] :
+@[simp] lemma transpose_has_orthogonal_cols_iff_has_orthogonal_rows [fintype n] :
   Aᵀ.has_orthogonal_cols ↔ A.has_orthogonal_rows :=
 iff.rfl
 

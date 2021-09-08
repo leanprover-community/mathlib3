@@ -762,19 +762,20 @@ begin
 end
 variables {𝕜 𝕜'}
 
-lemma indicator_const_Lp_eq_lsmul_left_comp_Lp [normed_space ℝ F] (hs : measurable_set s)
+lemma indicator_const_Lp_eq_to_span_singleton_comp_Lp [normed_space ℝ F] (hs : measurable_set s)
   (hμs : μ s ≠ ∞) (x : F) :
-  indicator_const_Lp 2 hs hμs x = (lsmul_left ℝ x).comp_Lp (indicator_const_Lp 2 hs hμs (1 : ℝ)) :=
+  indicator_const_Lp 2 hs hμs x =
+    (to_span_singleton ℝ x).comp_Lp (indicator_const_Lp 2 hs hμs (1 : ℝ)) :=
 begin
   ext1,
   refine indicator_const_Lp_coe_fn.trans _,
-  have h_comp_Lp := (lsmul_left ℝ x).coe_fn_comp_Lp (indicator_const_Lp 2 hs hμs (1 : ℝ)),
+  have h_comp_Lp := (to_span_singleton ℝ x).coe_fn_comp_Lp (indicator_const_Lp 2 hs hμs (1 : ℝ)),
   rw ← eventually_eq at h_comp_Lp,
   refine eventually_eq.trans _ h_comp_Lp.symm,
   refine (@indicator_const_Lp_coe_fn _ _ _ 2 μ _ _ s hs hμs (1 : ℝ) _ _).mono (λ y hy, _),
   dsimp only,
   rw hy,
-  simp_rw [lsmul_left],
+  simp_rw [to_span_singleton_apply],
   by_cases hy_mem : y ∈ s; simp [hy_mem, lsmul_apply],
 end
 
@@ -786,23 +787,23 @@ lemma condexp_L2_indicator_ae_eq_smul (hm : m ≤ m0) (hs : measurable_set s) (h
   condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs x)
     =ᵐ[μ] λ a, (condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ)) a) • x :=
 begin
-  rw indicator_const_Lp_eq_lsmul_left_comp_Lp hs hμs x,
-  have h_comp := condexp_L2_comp_continuous_linear_map ℝ 𝕜 hm (lsmul_left ℝ x)
+  rw indicator_const_Lp_eq_to_span_singleton_comp_Lp hs hμs x,
+  have h_comp := condexp_L2_comp_continuous_linear_map ℝ 𝕜 hm (to_span_singleton ℝ x)
     (indicator_const_Lp 2 hs hμs (1 : ℝ)),
   rw ← Lp_meas_coe at h_comp,
   refine h_comp.trans _,
-  exact (lsmul_left ℝ x).coe_fn_comp_Lp _,
+  exact (to_span_singleton ℝ x).coe_fn_comp_Lp _,
 end
 
-lemma condexp_L2_indicator_eq_lsmul_left_comp (hm : m ≤ m0) (hs : measurable_set s) (hμs : μ s ≠ ∞)
-  (x : E') :
+lemma condexp_L2_indicator_eq_to_span_singleton_comp (hm : m ≤ m0) (hs : measurable_set s)
+  (hμs : μ s ≠ ∞) (x : E') :
   (condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs x) : α →₂[μ] E')
-    = (lsmul_left ℝ x).comp_Lp (condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ))) :=
+    = (to_span_singleton ℝ x).comp_Lp (condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ))) :=
 begin
   ext1,
   rw ← Lp_meas_coe,
   refine (condexp_L2_indicator_ae_eq_smul 𝕜 hm hs hμs x).trans _,
-  have h_comp := (lsmul_left ℝ x).coe_fn_comp_Lp
+  have h_comp := (to_span_singleton ℝ x).coe_fn_comp_Lp
     (condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ)) : α →₂[μ] ℝ),
   rw ← eventually_eq at h_comp,
   refine eventually_eq.trans _ h_comp.symm,
@@ -861,26 +862,27 @@ variables [normed_space ℝ G] {hm : m ≤ m0}
 
 /-- Conditional expectation of the indicator of a measurable set with finite measure, in L2. -/
 def condexp_smul (hm : m ≤ m0) (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : G) : Lp G 2 μ :=
-(lsmul_left ℝ x).comp_LpL 2 μ (condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ)))
+(to_span_singleton ℝ x).comp_LpL 2 μ (condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ)))
 
 lemma condexp_smul_add (hs : measurable_set s) (hμs : μ s ≠ ∞) (x y : G) :
   condexp_smul hm hs hμs (x + y) = condexp_smul hm hs hμs x + condexp_smul hm  hs hμs y :=
-by { simp_rw [condexp_smul], rw [lsmul_left_add, add_comp_LpL, add_apply], }
+by { simp_rw [condexp_smul], rw [to_span_singleton_add, add_comp_LpL, add_apply], }
 
 lemma condexp_smul_smul (hs : measurable_set s) (hμs : μ s ≠ ∞) (c : ℝ) (x : G) :
   condexp_smul hm hs hμs (c • x) = c • condexp_smul hm hs hμs x :=
-by { simp_rw [condexp_smul], rw [lsmul_left_smul, smul_comp_LpL, smul_apply], }
+by { simp_rw [condexp_smul], rw [to_span_singleton_smul, smul_comp_LpL, smul_apply], }
 
 lemma condexp_smul_smul' [normed_space ℝ F] [smul_comm_class ℝ 𝕜 F] (hs : measurable_set s)
   (hμs : μ s ≠ ∞) (c : 𝕜) (x : F) :
   condexp_smul hm hs hμs (c • x) = c • condexp_smul hm hs hμs x :=
-by rw [condexp_smul, condexp_smul, lsmul_left_smul', (lsmul_left ℝ x).smul_comp_LpL_apply c
+by rw [condexp_smul, condexp_smul, to_span_singleton_smul',
+  (to_span_singleton ℝ x).smul_comp_LpL_apply c
   ↑(condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ)))]
 
 lemma condexp_smul_ae_eq_smul (hm : m ≤ m0) (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : G) :
   condexp_smul hm hs hμs x
     =ᵐ[μ] λ a, (condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ)) a) • x :=
-(lsmul_left ℝ x).coe_fn_comp_LpL _
+(to_span_singleton ℝ x).coe_fn_comp_LpL _
 
 lemma set_lintegral_nnnorm_condexp_smul_le (hm : m ≤ m0) (hs : measurable_set s)
   (hμs : μ s ≠ ∞) (x : G) {t : set α} (ht : @measurable_set _ m t) (hμt : μ t ≠ ∞) :
@@ -1041,7 +1043,7 @@ begin
   rw indicator_const_Lp_disjoint_union hs ht hμs hμt hst (1 : ℝ),
   rw (condexp_L2 ℝ hm).map_add,
   push_cast,
-  rw ((lsmul_left ℝ x).comp_LpL 2 μ).map_add,
+  rw ((to_span_singleton ℝ x).comp_LpL 2 μ).map_add,
   refine (Lp.coe_fn_add _ _).trans _,
   refine eventually_of_forall (λ y, _),
   refl,

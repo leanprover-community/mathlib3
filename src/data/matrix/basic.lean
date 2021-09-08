@@ -236,6 +236,13 @@ variables {n α R}
   (diagonal d).map f = diagonal (λ m, f (d m)) :=
 by { ext, simp only [diagonal, map_apply], split_ifs; simp [h], }
 
+@[simp] lemma diagonal_conj_transpose [semiring α] [star_ring α] (v : n → α) :
+  (diagonal v)ᴴ = diagonal (star v) :=
+begin
+  rw [conj_transpose, diagonal_transpose, diagonal_map (star_zero _)],
+  refl,
+end
+
 section one
 variables [has_zero α] [has_one α]
 
@@ -1159,7 +1166,7 @@ end
   (M + N)ᵀ = Mᵀ + Nᵀ  :=
 by { ext i j, simp }
 
-@[simp] lemma transpose_sub [add_group α] (M : matrix m n α) (N : matrix m n α) :
+@[simp] lemma transpose_sub [has_sub α] (M : matrix m n α) (N : matrix m n α) :
   (M - N)ᵀ = Mᵀ - Nᵀ  :=
 by { ext i j, simp }
 
@@ -1170,7 +1177,7 @@ begin
   apply dot_product_comm
 end
 
-@[simp] lemma transpose_smul [semiring α] (c : α) (M : matrix m n α) :
+@[simp] lemma transpose_smul {R : Type*} [has_scalar R α] (c : R) (M : matrix m n α) :
   (c • M)ᵀ = c • Mᵀ :=
 by { ext i j, refl }
 

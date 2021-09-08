@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
+import algebra.absolute_value
 import algebra.big_operators.basic
 
 /-!
@@ -485,3 +486,25 @@ lemma sum_lt_top_iff [ordered_add_comm_monoid M] {s : finset ι} {f : ι → wit
 by simp only [lt_top_iff_ne_top, ne.def, sum_eq_top_iff, not_exists]
 
 end with_top
+
+section absolute_value
+
+variables {S : Type*}
+
+lemma absolute_value.sum_le [semiring R] [ordered_semiring S]
+  (abv : absolute_value R S) (s : finset ι) (f : ι → R) :
+  abv (∑ i in s, f i) ≤ ∑ i in s, abv (f i) :=
+begin
+  letI := classical.dec_eq ι,
+  refine finset.induction_on s _ (λ i s hi ih, _),
+  { simp },
+  { simp only [finset.sum_insert hi],
+  exact (abv.add_le _ _).trans (add_le_add (le_refl _) ih) },
+end
+
+lemma absolute_value.map_prod [comm_semiring R] [nontrivial R] [linear_ordered_comm_ring S]
+  (abv : absolute_value R S) (f : ι → R) (s : finset ι) :
+  abv (∏ i in s, f i) = ∏ i in s, abv (f i) :=
+abv.to_monoid_hom.map_prod f s
+
+end absolute_value

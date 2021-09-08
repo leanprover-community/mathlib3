@@ -69,7 +69,7 @@ local attribute [elab_as_eliminator] well_founded.fix
 
 lemma exists_irreducible_factor {a : α} (ha : ¬ is_unit a) (ha0 : a ≠ 0) :
   ∃ i, irreducible i ∧ i ∣ a :=
-(irreducible_or_factor a ha).elim (λ hai, ⟨a, hai, dvd_refl _⟩)
+(irreducible_or_factor a ha).elim (λ hai, ⟨a, hai, dvd_rfl⟩)
   (well_founded.fix
     wf_dvd_monoid.well_founded_dvd_not_unit
     (λ a ih ha ha0 ⟨x, y, hx, hy, hxy⟩,
@@ -546,7 +546,7 @@ begin
   { rintros _ ⟨x, rfl⟩ _ a_dvd_bx,
     apply units.dvd_mul_right.mp a_dvd_bx },
   { intros c p hc hp ih no_factors a_dvd_bpc,
-    apply ih (λ q dvd_a dvd_c hq, no_factors dvd_a (dvd_mul_of_dvd_right dvd_c _) hq),
+    apply ih (λ q dvd_a dvd_c hq, no_factors dvd_a (dvd_c.mul_left _) hq),
     rw mul_left_comm at a_dvd_bpc,
     refine or.resolve_left (hp.left_dvd_or_dvd_right_of_dvd_mul a_dvd_bpc) (λ h, _),
     exact no_factors h (dvd_mul_right p c) hp }
@@ -1227,3 +1227,45 @@ noncomputable def unique_factorization_monoid.to_gcd_monoid
   .. ‹normalization_monoid α› }
 
 end
+
+namespace unique_factorization_monoid
+
+/-- If `y` is a nonzero element of a unique factorization monoid with finitely
+many units (e.g. `ℤ`, `ideal (ring_of_integers K)`), it has finitely many divisors. -/
+noncomputable def fintype_subtype_dvd {M : Type*} [comm_cancel_monoid_with_zero M]
+  [unique_factorization_monoid M] [fintype (units M)]
+  (y : M) (hy : y ≠ 0) :
+  fintype {x // x ∣ y} :=
+begin
+  haveI : nontrivial M := ⟨⟨y, 0, hy⟩⟩,
+  haveI : normalization_monoid M := unique_factorization_monoid.normalization_monoid,
+  haveI := classical.dec_eq M,
+  haveI := classical.dec_eq (associates M),
+  -- We'll show `λ (u : units M) (f ⊆ factors y) → u * Π f` is injective
+  -- and has image exactly the divisors of `y`.
+  refine fintype.of_finset
+    (((factors y).powerset.to_finset.product (finset.univ : finset (units M))).image
+      (λ s, (s.snd : M) * s.fst.prod))
+    (λ x, _),
+  simp only [exists_prop, finset.mem_image, finset.mem_product, finset.mem_univ, and_true,
+    multiset.mem_to_finset, multiset.mem_powerset, exists_eq_right, multiset.mem_map],
+  split,
+  { rintros ⟨s, hs, rfl⟩,
+    have prod_s_ne : s.fst.prod ≠ 0,
+    { intro hz,
+      apply hy (eq_zero_of_zero_dvd _),
+      have hz := (@multiset.prod_eq_zero_iff M _ _ _ s.fst).mp hz,
+      rw ← (factors_prod hy).dvd_iff_dvd_right,
+      exact multiset.dvd_prod (multiset.mem_of_le hs hz) },
+    show (s.snd : M) * s.fst.prod ∣ y,
+    rw [(unit_associated_one.mul_right s.fst.prod).dvd_iff_dvd_left, one_mul,
+        ← (factors_prod hy).dvd_iff_dvd_right],
+    exact multiset.prod_dvd_prod hs },
+  { rintro (h : x ∣ y),
+    have hx : x ≠ 0, { refine mt (λ hx, _) hy, rwa [hx, zero_dvd_iff] at h },
+    obtain ⟨u, hu⟩ := factors_prod hx,
+    refine ⟨⟨factors x, u⟩, _, (mul_comm _ _).trans hu⟩,
+    exact (dvd_iff_factors_le_factors hx hy).mp h }
+end
+
+end unique_factorization_monoid

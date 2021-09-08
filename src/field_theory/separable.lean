@@ -473,7 +473,7 @@ begin
   apply is_unit_of_self_mul_dvd_separable hsep,
   rw ← sq,
   apply multiplicity.pow_dvd_of_le_multiplicity,
-  exact_mod_cast (enat.add_one_le_of_lt hq)
+  simpa only [nat.cast_one, nat.cast_bit0] using enat.add_one_le_of_lt hq
 end
 
 lemma separable.squarefree {p : polynomial F}  (hsep : separable p) : squarefree p :=
@@ -521,7 +521,7 @@ lemma squarefree_X_pow_sub_C {n : ℕ} (a : F) (hn : (n : F) ≠ 0) (ha : a ≠ 
 lemma root_multiplicity_le_one_of_separable {p : polynomial F} (hp : p ≠ 0)
   (hsep : separable p) (x : F) : root_multiplicity x p ≤ 1 :=
 begin
-  rw [root_multiplicity_eq_multiplicity, dif_neg hp, ← enat.coe_le_coe, enat.coe_get],
+  rw [root_multiplicity_eq_multiplicity, dif_neg hp, ← enat.coe_le_coe, enat.coe_get, nat.cast_one],
   exact multiplicity_le_one_of_separable (not_unit_X_sub_C _) hsep
 end
 

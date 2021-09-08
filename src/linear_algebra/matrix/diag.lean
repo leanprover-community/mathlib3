@@ -112,10 +112,8 @@ by { intros i j h, simp [ha h, hb h] }
   (k • A).is_diag :=
 by { intros i j h, simp [ha h] }
 
-@[simp] lemma is_diag.transpose
-  [has_zero α] {A : matrix n n α} (ha : A.is_diag) :
-  Aᵀ.is_diag :=
-by { intros i j h, simp [ha h.symm] }
+@[simp] lemma is_diag.transpose [has_zero α] {A : matrix n n α} (ha : A.is_diag) : Aᵀ.is_diag :=
+λ i j h, ha h.symm
 
 @[simp] lemma is_diag.conj_transpose
   [semiring α] [star_ring α] {A : matrix n n α} (ha : A.is_diag) :

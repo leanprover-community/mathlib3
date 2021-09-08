@@ -1,14 +1,16 @@
 /-
 Copyright (c) 2020 Jalex Stark. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jalex Stark, Scott Morrison, Eric Wieser
+Authors: Jalex Stark, Scott Morrison, Eric Wieser, Oliver Nash
 -/
 import data.matrix.basic
+import linear_algebra.matrix.trace
 
 /--
 # Matrices with a single non-zero element.
 
-This file provides `matrix.std_basis_matrix`.
+This file provides `matrix.std_basis_matrix`. The matrix `matrix.std_basis_matrix i j c` has `c`
+at position `(i, j)`, and zeroes elsewhere.
 -/
 
 variables {l m n : Type*}
@@ -20,31 +22,31 @@ open_locale big_operators
 
 variables [decidable_eq l] [decidable_eq m] [decidable_eq n]
 
-variables [semiring α]
+variables [semiring R]
 
 /--
 `std_basis_matrix i j a` is the matrix with `a` in the `i`-th row, `j`-th column,
 and zeroes elsewhere.
 -/
-def std_basis_matrix (i : m) (j : n) (a : α) : matrix m n α :=
-(λ i' j', if i' = i ∧ j' = j then a else 0)
+def std_basis_matrix (i : m) (j : n) (a : R) : matrix m n R :=
+(λ i' j', if i = i' ∧ j = j' then a else 0)
 
-@[simp] lemma smul_std_basis_matrix (i : m) (j : n) (a b : α) :
+@[simp] lemma smul_std_basis_matrix (i : m) (j : n) (a b : R) :
 b • std_basis_matrix i j a = std_basis_matrix i j (b • a) :=
 by { unfold std_basis_matrix, ext, simp }
 
 @[simp] lemma std_basis_matrix_zero (i : m) (j : n) :
-std_basis_matrix i j (0 : α) = 0 :=
+std_basis_matrix i j (0 : R) = 0 :=
 by { unfold std_basis_matrix, ext, simp }
 
-lemma std_basis_matrix_add (i : m) (j : n) (a b : α) :
+lemma std_basis_matrix_add (i : m) (j : n) (a b : R) :
 std_basis_matrix i j (a + b) = std_basis_matrix i j a + std_basis_matrix i j b :=
 begin
   unfold std_basis_matrix, ext,
   split_ifs with h; simp [h],
 end
 
-lemma matrix_eq_sum_std_basis (x : matrix n m α) [fintype n] [fintype m] :
+lemma matrix_eq_sum_std_basis (x : matrix n m R) [fintype n] [fintype m] :
   x = ∑ (i : n) (j : m), std_basis_matrix i j (x i j) :=
 begin
   ext, symmetry,
@@ -52,7 +54,7 @@ begin
   convert fintype.sum_eq_single i _,
   { simp [std_basis_matrix] },
   { intros j hj,
-    simp [std_basis_matrix, hj.symm] }
+    simp [std_basis_matrix, hj], }
 end
 
 -- TODO: tie this up with the `basis` machinery of linear algebra
@@ -67,28 +69,82 @@ begin
 end
 
 -- todo: the old proof used fintypes, I don't know `finsupp` but this feels generalizable
-@[elab_as_eliminator] protected lemma induction_on' [fintype n]
-  {X : Type*} [semiring X] {M : matrix n n X → Prop} (m : matrix n n X)
-  (h_zero : M 0)
-  (h_add : ∀p q, M p → M q → M (p + q))
-  (h_std_basis : ∀ i j x, M (std_basis_matrix i j x)) :
-  M m :=
+@[elab_as_eliminator] protected lemma induction_on' [fintype m] [fintype n]
+  {P : matrix m n R → Prop} (M : matrix m n R)
+  (h_zero : P 0)
+  (h_add : ∀ p q, P p → P q → P (p + q))
+  (h_std_basis : ∀ (i : m) (j : n) (x : R), P (std_basis_matrix i j x)) :
+  P M :=
 begin
-  rw [matrix_eq_sum_std_basis m, ← finset.sum_product'],
+  rw [matrix_eq_sum_std_basis M, ← finset.sum_product'],
   apply finset.sum_induction _ _ h_add h_zero,
   { intros, apply h_std_basis, }
 end
 
-@[elab_as_eliminator] protected lemma induction_on [fintype n]
-  [nonempty n] {X : Type*} [semiring X] {M : matrix n n X → Prop} (m : matrix n n X)
-  (h_add : ∀p q, M p → M q → M (p + q))
-  (h_std_basis : ∀ i j x, M (std_basis_matrix i j x)) :
-  M m :=
-matrix.induction_on' m
+@[elab_as_eliminator] protected lemma induction_on [fintype m] [fintype n]
+  [nonempty m] [nonempty n] {P : matrix m n R → Prop} (M : matrix m n R)
+  (h_add : ∀ p q, P p → P q → P (p + q))
+  (h_std_basis : ∀ i j x, P (std_basis_matrix i j x)) :
+  P M :=
+matrix.induction_on' M
 begin
-  have i : n := classical.choice (by assumption),
-  simpa using h_std_basis i i 0,
+  inhabit m,
+  inhabit n,
+  simpa using h_std_basis (default m) (default n) 0,
 end
 h_add h_std_basis
+
+namespace std_basis_matrix
+
+variables (i j : n) (c : R) (i' j' : n)
+
+@[simp] lemma apply_one : std_basis_matrix i j c i j = c := if_pos (and.intro rfl rfl)
+
+@[simp] lemma apply_zero (h : ¬(i = i' ∧ j = j')) :
+  std_basis_matrix i j c i' j' = 0 :=
+by { simp only [std_basis_matrix, and_imp, ite_eq_right_iff], tauto }
+
+@[simp] lemma diag_zero (h : j ≠ i) : diag n R R (std_basis_matrix i j c) = 0 :=
+funext $ λ k, if_neg $ λ ⟨e₁, e₂⟩, h (e₂.trans e₁.symm)
+
+variable [fintype n]
+
+lemma trace_zero (h : j ≠ i) : trace n R R (std_basis_matrix i j c) = 0 := by simp [h]
+
+@[simp] lemma mul_left_apply (b : n) (M : matrix n n R) :
+  (std_basis_matrix i j c ⬝ M) i b = c * M j b :=
+by simp [mul_apply, std_basis_matrix]
+
+@[simp] lemma mul_right_apply (a : n) (M : matrix n n R) :
+  (M ⬝ std_basis_matrix i j c) a j = M a i * c :=
+by simp [mul_apply, std_basis_matrix, mul_comm]
+
+@[simp] lemma mul_left_apply_of_ne (a b : n) (h : a ≠ i) (M : matrix n n R) :
+  (std_basis_matrix i j c ⬝ M) a b = 0 :=
+by simp [mul_apply, h.symm]
+
+@[simp] lemma mul_right_apply_of_ne (a b : n) (hbj : b ≠ j) (M : matrix n n R) :
+  (M ⬝ std_basis_matrix i j c) a b = 0 :=
+by simp [mul_apply, hbj.symm]
+
+@[simp] lemma mul (k : n) (d : R) :
+  std_basis_matrix i j c ⬝ std_basis_matrix j k d = std_basis_matrix i k (c * d) :=
+begin
+  ext a b,
+  simp only [mul_apply, std_basis_matrix, boole_mul],
+  by_cases h₁ : i = a; by_cases h₂ : k = b;
+  simp [h₁, h₂],
+end
+
+@[simp] lemma mul_of_ne {k l : n} (h : j ≠ k) (d : R) :
+  std_basis_matrix i j c ⬝ std_basis_matrix k l d = 0 :=
+begin
+  ext a b,
+  simp only [mul_apply, dmatrix.zero_apply, boole_mul, std_basis_matrix],
+  by_cases h₁ : i = a;
+  simp [h₁, h, h.symm],
+end
+
+end std_basis_matrix
 
 end matrix

@@ -7,15 +7,19 @@ import linear_algebra.matrix.determinant
 import linear_algebra.matrix.trace
 import linear_algebra.matrix.reindex
 import tactic.field_simp
+import data.matrix.basis
 
 /-!
 # Transvections
 
-Transvections are matrices of the form `1 + c E i j`, where `E i j` is the elementary matrix with
-a `1` at position `(i, j)`. Multiplying by such a transvection on the left (resp. on the right)
-amounts to adding `c` times the `j`-th row to to the `i`-th row (resp `c` times the `i`-th column
-to the `j`-th column). Therefore, they are useful to present algorithms operating on rows and
-columns.
+Transvections are matrices of the form `1 + std_basis_matrix i j c`, where `std_basis_matrix i j c`
+is the basic matrix with a `1` at position `(i, j)`. Multiplying by such a transvection on the left
+(resp. on the right) amounts to adding `c` times the `j`-th row to to the `i`-th row
+(resp `c` times the `i`-th column to the `j`-th column). Therefore, they are useful to present
+algorithms operating on rows and columns.
+
+Transvections are a special case of *elementary matrices* (according to most references, these also
+contain the matrices exchanging rows, and the matrices multiplying a row by a constant).
 
 We show that, over a field, any matrix can be written as `L ⬝ D ⬝ L'`, where `L` and `L'` are
 products of transvections and `D` is diagonal. In other words, one can reduce a matrix to diagonal
@@ -23,8 +27,7 @@ form by operations on its rows and columns, a variant of Gauss' pivot algorithm.
 
 ## Main definitions and results
 
-* `E R i j` is the elementary matrix with a one at position `(i, j)`.
-* `transvection i j c` is the matrix equal to `1 + c • E R i j`.
+* `transvection i j c` is the matrix equal to `1 + std_basis_matrix i j c`.
 * `transvection_struct n R` is a structure containing the data of `i, j, c` and a proof that
   `i ≠ j`. These are often easier to manipulate than straight matrices, especially in inductive
   arguments.
@@ -64,59 +67,6 @@ variables (n p : Type*) (R : Type u₂) {𝕜 : Type*} [field 𝕜]
 variables [decidable_eq n] [decidable_eq p]
 variables [comm_ring R]
 
-section elementary_basis
-
-variables {n} (i j : n)
-
-/-- The elementary matrix `E i j` has a one at position `(i, j)`, and zeroes elsewhere.
-It is useful to define these matrices for explicit calculations in sl n R. -/
-@[reducible] definition E : matrix n n R := λ i' j', if i = i' ∧ j = j' then 1 else 0
-
-@[simp] lemma E_apply_one : E R i j i j = 1 := if_pos (and.intro rfl rfl)
-
-@[simp] lemma E_apply_zero (i' j' : n) (h : ¬(i = i' ∧ j = j')) : E R i j i' j' = 0 := if_neg h
-
-@[simp] lemma E_diag_zero (h : j ≠ i) : matrix.diag n R R (E R i j) = 0 :=
-funext $ λ k, if_neg $ λ ⟨e₁, e₂⟩, h (e₂.trans e₁.symm)
-
-variable [fintype n]
-
-lemma E_trace_zero (h : j ≠ i) : matrix.trace n R R (E R i j) = 0 := by simp [h]
-
-@[simp] lemma E_mul_apply (b : n) (M : matrix n n R) :
-  (E R i j ⬝ M) i b = M j b :=
-by simp [matrix.mul_apply]
-
-@[simp] lemma mul_E_apply (a : n) (M : matrix n n R) :
-  (M ⬝ E R i j) a j = M a i :=
-by simp [matrix.mul_apply]
-
-@[simp] lemma E_mul_apply_of_ne (a b : n) (h : a ≠ i) (M : matrix n n R) :
-  (E R i j ⬝ M) a b = 0 :=
-by simp [matrix.mul_apply, h.symm]
-
-@[simp] lemma mul_E_apply_of_ne (a b : n) (hbj : b ≠ j) (M : matrix n n R) :
-  (M ⬝ E R i j) a b = 0 :=
-by simp [matrix.mul_apply, hbj.symm]
-
-@[simp] lemma E_mul_E (k : n) : E R i j ⬝ E R j k = E R i k :=
-begin
-  ext a b,
-  simp only [matrix.mul_apply, boole_mul],
-  by_cases h₁ : i = a; by_cases h₂ : k = b;
-  simp [h₁, h₂],
-end
-
-@[simp] lemma E_mul_E_of_ne {k l : n} (h : j ≠ k) : E R i j ⬝ E R k l = 0 :=
-begin
-  ext a b,
-  simp only [matrix.mul_apply, dmatrix.zero_apply, boole_mul],
-  by_cases h₁ : i = a;
-  simp [h₁, h, h.symm],
-end
-
-end elementary_basis
-
 section transvection
 variables {R n} (i j : n)
 
@@ -124,7 +74,7 @@ variables {R n} (i j : n)
 `(i, j)`. Multiplying by it on the left (as in `transvection i j c ⬝ M`) corresponds to adding
 `c` times the `j`-th line of `M` to its `i`-th line. Multiplying by it on the right corresponds
 to adding `c` times the `i`-th column to the `j`-th column. -/
-def transvection (c : R) : matrix n n R := 1 + c • E R i j
+def transvection (c : R) : matrix n n R := 1 + matrix.std_basis_matrix i j c
 
 @[simp] lemma transvection_zero : transvection i j (0 : R) = 1 :=
 by simp [transvection]
@@ -132,27 +82,31 @@ by simp [transvection]
 section
 variable [fintype n]
 
+/-- A transvection matrix is obtained from the identity by adding `c` times the `j`-th row to
+the `i`-th row. -/
 lemma update_row_eq_transvection (c : R) :
   update_row (1 : matrix n n R) i (((1 : matrix n n R)) i + c • (1 : matrix n n R) j) =
     transvection i j c :=
 begin
   ext a b,
   by_cases ha : i = a; by_cases hb : j = b,
-  { simp only [update_row, transvection, ha, hb, function.update_same, E_apply_one,
-      pi.add_apply, one_apply_eq, pi.smul_apply] },
-  { simp only [update_row, transvection, ha, hb, E_apply_zero, function.update_same,
-      pi.add_apply, ne.def, not_false_iff, pi.smul_apply, and_false, one_apply_ne] },
-  { simp only [update_row, transvection, ha, ne.symm ha, E_apply_zero, add_zero,
+  { simp only [update_row, transvection, ha, hb, function.update_same, std_basis_matrix.apply_one,
+      pi.add_apply, one_apply_eq, pi.smul_apply, mul_one, algebra.id.smul_eq_mul], },
+  { simp only [update_row, transvection, ha, hb, std_basis_matrix.apply_zero, function.update_same,
+      pi.add_apply, ne.def, not_false_iff, pi.smul_apply, and_false, one_apply_ne,
+      algebra.id.smul_eq_mul, mul_zero] },
+  { simp only [update_row, transvection, ha, ne.symm ha, std_basis_matrix.apply_zero, add_zero,
       algebra.id.smul_eq_mul, function.update_noteq, ne.def, not_false_iff, dmatrix.add_apply,
       pi.smul_apply, mul_zero, false_and] },
-  { simp only [update_row, transvection, ha, hb, ne.symm ha, E_apply_zero, add_zero,
+  { simp only [update_row, transvection, ha, hb, ne.symm ha, std_basis_matrix.apply_zero, add_zero,
       algebra.id.smul_eq_mul, function.update_noteq, ne.def, not_false_iff, and_self,
       dmatrix.add_apply, pi.smul_apply, mul_zero] }
 end
 
 lemma transvection_mul_transvection (h : i ≠ j) (c d : R) :
   transvection i j c ⬝ transvection i j d = transvection i j (c + d) :=
-by simp [transvection, matrix.add_mul, matrix.mul_add, h, h.symm, add_smul, add_assoc]
+by simp [transvection, matrix.add_mul, matrix.mul_add, h, h.symm, add_smul, add_assoc,
+    std_basis_matrix_add]
 
 @[simp] lemma transvection_mul_apply (b : n) (c : R) (M : matrix n n R) :
   (transvection i j c ⬝ M) i b = M i b + c * M j b :=
@@ -160,7 +114,7 @@ by simp [transvection, matrix.add_mul]
 
 @[simp] lemma mul_transvection_apply (a : n) (c : R) (M : matrix n n R) :
   (M ⬝ transvection i j c) a j = M a j + c * M a i :=
-by simp [transvection, matrix.mul_add]
+by simp [transvection, matrix.mul_add, mul_comm]
 
 @[simp] lemma transvection_mul_apply_of_ne (a b : n) (ha : a ≠ i) (c : R) (M : matrix n n R) :
   (transvection i j c ⬝ M) a b = M a b :=
@@ -271,7 +225,7 @@ begin
   ext a b,
   cases a; cases b,
   { by_cases h : a = b;
-    simp [transvection_struct.sum_inl, transvection, h] },
+    simp [transvection_struct.sum_inl, transvection, h, std_basis_matrix], },
   { simp [transvection_struct.sum_inl, transvection] },
   { simp [transvection_struct.sum_inl, transvection] },
   { by_cases h : a = b;
@@ -318,7 +272,7 @@ begin
   simp only [reindex_equiv, transvection, mul_boole, algebra.id.smul_eq_mul, to_matrix_mk,
     minor_apply, reindex_apply, dmatrix.add_apply, pi.smul_apply, reindex_alg_equiv_apply],
   by_cases ha : e t_i = a; by_cases hb : e t_j = b; by_cases hab : a = b;
-  simp [ha, hb, hab, ←e.apply_eq_iff_eq_symm_apply]
+  simp [ha, hb, hab, ← e.apply_eq_iff_eq_symm_apply, std_basis_matrix]
 end
 
 lemma to_matrix_reindex_equiv_prod (e : n ≃ p) (L : list (transvection_struct n R)) :

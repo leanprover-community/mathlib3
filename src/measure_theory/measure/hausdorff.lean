@@ -1254,9 +1254,9 @@ dimension of sets.
 on a convex set `s`, then the Hausdorff dimension of `f '' s` is less than or equal to the Hausdorff
 dimension of `s`.
 
-TODO: do we actually need `convex s`? -/
+TODO: do we actually need `convex 𝕜 s`? -/
 lemma times_cont_diff_on.dimH_image_le {f : E → F} {s t : set E} (hf : times_cont_diff_on ℝ 1 f s)
-  (hc : convex s) (ht : t ⊆ s) :
+  (hc : convex 𝕜 s) (ht : t ⊆ s) :
   dimH (f '' t) ≤ dimH t :=
 dimH_image_le_of_locally_lipschitz_on $ λ x hx,
   let ⟨C, u, hu, hf⟩ := (hf x (ht hx)).exists_lipschitz_on_with hc
@@ -1274,7 +1274,7 @@ calc dimH (range f) = dimH (f '' univ) : by rw image_univ
 vector spaces. Suppose that `f` is `C¹` smooth on a convex set `s` of Hausdorff dimension strictly
 less than the dimension of `F`. Then the complement of the image `f '' s` is dense in `F`. -/
 lemma times_cont_diff_on.dense_compl_image_of_dimH_lt_finrank [finite_dimensional ℝ F] {f : E → F}
-  {s t : set E} (h : times_cont_diff_on ℝ 1 f s) (hc : convex s) (ht : t ⊆ s)
+  {s t : set E} (h : times_cont_diff_on ℝ 1 f s) (hc : convex 𝕜 s) (ht : t ⊆ s)
   (htF : dimH t < finrank ℝ F) :
   dense (f '' t)ᶜ :=
 dense_compl_of_dimH_lt_finrank $ (h.dimH_image_le hc ht).trans_lt htF

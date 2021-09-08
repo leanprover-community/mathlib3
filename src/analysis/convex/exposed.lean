@@ -167,7 +167,7 @@ protected lemma is_extreme (hAB : is_exposed A B) :
 begin
   refine ⟨hAB.subset, λ x₁ x₂ hx₁A hx₂A x hxB hx, _⟩,
   obtain ⟨l, rfl⟩ := hAB ⟨x, hxB⟩,
-  have hl : convex_on univ l := l.to_linear_map.convex_on convex_univ,
+  have hl : convex_on 𝕜 univ l := l.to_linear_map.convex_on convex_univ,
   have hlx₁ := hxB.2 x₁ hx₁A,
   have hlx₂ := hxB.2 x₂ hx₂A,
   refine ⟨⟨hx₁A, λ y hy, _⟩, ⟨hx₂A, λ y hy, _⟩⟩,
@@ -177,8 +177,8 @@ begin
     exact hxB.2 y hy }
 end
 
-protected lemma is_convex (hAB : is_exposed A B) (hA : convex A) :
-  convex B :=
+protected lemma is_convex (hAB : is_exposed A B) (hA : convex 𝕜 A) :
+  convex 𝕜 B :=
 begin
   obtain rfl | hB := B.eq_empty_or_nonempty,
   { exact convex_empty },

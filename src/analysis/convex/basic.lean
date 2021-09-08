@@ -132,6 +132,9 @@ begin
   exact h (mem_open_segment_of_ne_left_right k hxz hyz hz),
 end
 
+lemma convex.combo_self {x y : k} (h : x + y = 1) (a : k) : x • a + y • a = a :=
+by rw [←add_smul, h, one_smul]
+
 end ordered_semiring
 
 section ordered_ring
@@ -902,8 +905,6 @@ variables [add_comm_monoid E] [module k E] [add_comm_monoid F] [module k F] {k} 
 /-! ### Convex combinations in intervals -/
 
 variables {α : Type*} [linear_ordered_field α]
-lemma convex.combo_self {x y : k} (h : x + y = 1) (a : k) : x • a + y • a = a :=
-by rw [←add_smul, h, one_smul]
 
 
 section submodule
@@ -924,8 +925,6 @@ end sets
 section functions
 
 variables {β : Type*} [ordered_add_comm_monoid β] [module k β]
-
-local notation `[`x `, ` y `]` := segment x y
 
 /-- Convexity of functions -/
 def convex_on (s : set E) (f : E → β) : Prop :=

@@ -2719,7 +2719,7 @@ and `∥p x 1∥₊ < K`, then `f` is `K`-Lipschitz in a neighborhood of `x` wit
 lemma has_ftaylor_series_up_to_on.exists_lipschitz_on_with_of_nnnorm_lt {E F : Type*}
   [normed_group E] [normed_space ℝ E] [normed_group F] [normed_space ℝ F] {f : E → F}
   {p : E → formal_multilinear_series ℝ E F} {s : set E} {x : E}
-  (hf : has_ftaylor_series_up_to_on 1 f p (insert x s)) (hs : convex s) (K : ℝ≥0)
+  (hf : has_ftaylor_series_up_to_on 1 f p (insert x s)) (hs : convex 𝕜 s) (K : ℝ≥0)
   (hK : ∥p x 1∥₊ < K) :
   ∃ t ∈ 𝓝[s] x, lipschitz_on_with K f t :=
 begin
@@ -2739,7 +2739,7 @@ then `f` is Lipschitz in a neighborhood of `x` within `s`. -/
 lemma has_ftaylor_series_up_to_on.exists_lipschitz_on_with {E F : Type*}
   [normed_group E] [normed_space ℝ E] [normed_group F] [normed_space ℝ F] {f : E → F}
   {p : E → formal_multilinear_series ℝ E F} {s : set E} {x : E}
-  (hf : has_ftaylor_series_up_to_on 1 f p (insert x s)) (hs : convex s) :
+  (hf : has_ftaylor_series_up_to_on 1 f p (insert x s)) (hs : convex 𝕜 s) :
   ∃ K (t ∈ 𝓝[s] x), lipschitz_on_with K f t :=
 (no_top _).imp $ hf.exists_lipschitz_on_with_of_nnnorm_lt hs
 
@@ -2747,7 +2747,7 @@ lemma has_ftaylor_series_up_to_on.exists_lipschitz_on_with {E F : Type*}
 within `s`. -/
 lemma times_cont_diff_within_at.exists_lipschitz_on_with {E F : Type*} [normed_group E]
   [normed_space ℝ E] [normed_group F] [normed_space ℝ F] {f : E → F} {s : set E}
-  {x : E} (hf : times_cont_diff_within_at ℝ 1 f s x) (hs : convex s) :
+  {x : E} (hf : times_cont_diff_within_at ℝ 1 f s x) (hs : convex 𝕜 s) :
   ∃ (K : ℝ≥0) (t ∈ 𝓝[s] x), lipschitz_on_with K f t :=
 begin
   rcases hf 1 le_rfl with ⟨t, hst, p, hp⟩,

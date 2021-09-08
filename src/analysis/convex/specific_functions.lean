@@ -16,7 +16,7 @@ In this file we prove that the following functions are convex:
   is convex on $(-∞, +∞)$;
 * `convex_on_pow` : for a natural $n$, the function $f(x)=x^n$ is convex on $[0, +∞)$;
 * `convex_on_fpow` : for an integer $m$, the function $f(x)=x^m$ is convex on $(0, +∞)$.
-* `convex_on_rpow : ∀ p : ℝ, 1 ≤ p → convex_on (Ici 0) (λ x, x ^ p)`
+* `convex_on_rpow : ∀ p : ℝ, 1 ≤ p → convex_on 𝕜 (Ici 0) (λ x, x ^ p)`
 * `concave_on_log_Ioi` and `concave_on_log_Iio`: log is concave on `Ioi 0` and `Iio 0` respectively.
 -/
 
@@ -24,12 +24,12 @@ open real set
 open_locale big_operators
 
 /-- `exp` is convex on the whole real line -/
-lemma convex_on_exp : convex_on univ exp :=
+lemma convex_on_exp : convex_on 𝕜 univ exp :=
 convex_on_univ_of_deriv2_nonneg differentiable_exp (by simp)
   (assume x, (iter_deriv_exp 2).symm ▸ le_of_lt (exp_pos x))
 
 /-- `x^n`, `n : ℕ` is convex on the whole real line whenever `n` is even -/
-lemma convex_on_pow_of_even {n : ℕ} (hn : even n) : convex_on set.univ (λ x : ℝ, x^n) :=
+lemma convex_on_pow_of_even {n : ℕ} (hn : even n) : convex_on 𝕜 set.univ (λ x : ℝ, x^n) :=
 begin
   apply convex_on_univ_of_deriv2_nonneg differentiable_pow,
   { simp only [deriv_pow', differentiable.mul, differentiable_const, differentiable_pow] },
@@ -40,7 +40,7 @@ begin
 end
 
 /-- `x^n`, `n : ℕ` is convex on `[0, +∞)` for all `n` -/
-lemma convex_on_pow (n : ℕ) : convex_on (Ici 0) (λ x : ℝ, x^n) :=
+lemma convex_on_pow (n : ℕ) : convex_on 𝕜 (Ici 0) (λ x : ℝ, x^n) :=
 begin
   apply convex_on_of_deriv2_nonneg (convex_Ici _) (continuous_pow n).continuous_on
     differentiable_on_pow,
@@ -76,7 +76,7 @@ begin
 end
 
 /-- `x^m`, `m : ℤ` is convex on `(0, +∞)` for all `m` -/
-lemma convex_on_fpow (m : ℤ) : convex_on (Ioi 0) (λ x : ℝ, x^m) :=
+lemma convex_on_fpow (m : ℤ) : convex_on 𝕜 (Ioi 0) (λ x : ℝ, x^m) :=
 begin
   have : ∀ n : ℤ, differentiable_on ℝ (λ x, x ^ n) (Ioi (0 : ℝ)),
     from λ n, differentiable_on_fpow _ _ (or.inl $ lt_irrefl _),
@@ -91,7 +91,7 @@ begin
     exact int_prod_range_nonneg _ _ (nat.even_bit0 1) }
 end
 
-lemma convex_on_rpow {p : ℝ} (hp : 1 ≤ p) : convex_on (Ici 0) (λ x : ℝ, x^p) :=
+lemma convex_on_rpow {p : ℝ} (hp : 1 ≤ p) : convex_on 𝕜 (Ici 0) (λ x : ℝ, x^p) :=
 begin
   have A : deriv (λ (x : ℝ), x ^ p) = λ x, p * x^(p-1), by { ext x, simp [hp] },
   apply convex_on_of_deriv2_nonneg (convex_Ici 0),
@@ -108,7 +108,7 @@ begin
     exact mul_nonneg (sub_nonneg_of_le hp) (rpow_nonneg_of_nonneg (le_of_lt hx) _) }
 end
 
-lemma concave_on_log_Ioi : concave_on (Ioi 0) log :=
+lemma concave_on_log_Ioi : concave_on 𝕜 (Ioi 0) log :=
 begin
   have h₁ : Ioi 0 ⊆ ({0} : set ℝ)ᶜ,
   { intros x hx hx',
@@ -126,7 +126,7 @@ begin
     exact neg_nonpos.mpr (inv_nonneg.mpr (sq_nonneg x)) }
 end
 
-lemma concave_on_log_Iio : concave_on (Iio 0) log :=
+lemma concave_on_log_Iio : concave_on 𝕜 (Iio 0) log :=
 begin
   have h₁ : Iio 0 ⊆ ({0} : set ℝ)ᶜ,
   { intros x hx hx',

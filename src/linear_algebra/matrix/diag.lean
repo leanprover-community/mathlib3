@@ -139,7 +139,7 @@ end
 
 @[simp] lemma is_diag.diagonal [has_zero α] [decidable_eq n] (d : n → α) :
   (diagonal d).is_diag :=
-by { intros i j h, simp [h] }
+λ i j, matrix.diagonal_apply_ne
 
 lemma is_diag.is_symm [has_zero α] {A : matrix n n α} (h : A.is_diag) :
   A.is_symm :=

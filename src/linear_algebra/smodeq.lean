@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import linear_algebra.basic
+import ring_theory.ideal.basic
+import data.polynomial.eval
 
 /-!
 # modular equivalence for submodule
@@ -29,6 +30,9 @@ protected lemma smodeq.def : x ≡ y [SMOD U] ↔
   (submodule.quotient.mk x : U.quotient) = submodule.quotient.mk y := iff.rfl
 
 namespace smodeq
+
+lemma sub_mem : x ≡ y [SMOD U] ↔ x - y ∈ U :=
+by rw [smodeq.def, submodule.quotient.eq]
 
 @[simp] theorem top : x ≡ y [SMOD (⊤ : submodule R M)] :=
 (submodule.quotient.eq ⊤).2 mem_top
@@ -61,5 +65,14 @@ theorem map (hxy : x ≡ y [SMOD U]) (f : M →ₗ[R] N) : f x ≡ f y [SMOD U.m
 theorem comap {f : M →ₗ[R] N} (hxy : f x ≡ f y [SMOD V]) : x ≡ y [SMOD V.comap f] :=
 (submodule.quotient.eq _).2 $ show f (x - y) ∈ V,
 from (f.map_sub x y).symm ▸ (submodule.quotient.eq _).1 hxy
+
+lemma eval {R : Type*} [comm_ring R] {I : ideal R} {x y : R} (h : x ≡ y [SMOD I])
+  (f : polynomial R) : f.eval x ≡ f.eval y [SMOD I] :=
+begin
+  rw [smodeq.def] at h ⊢,
+  show ideal.quotient.mk I (f.eval x) = ideal.quotient.mk I (f.eval y),
+  change ideal.quotient.mk I x = ideal.quotient.mk I y at h,
+  rw [← polynomial.eval₂_at_apply, ← polynomial.eval₂_at_apply, h],
+end
 
 end smodeq

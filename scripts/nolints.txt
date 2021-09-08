@@ -1,6 +1,17 @@
 import .all
 run_cmd tactic.skip
 
+-- algebra/free_algebra.lean
+apply_nolint free_algebra.semiring check_reducibility
+
+-- algebra/ordered_monoid.lean
+apply_nolint with_zero.canonically_ordered_add_monoid check_reducibility
+
+-- algebra/pointwise.lean
+apply_nolint set.set_semiring.comm_semiring check_reducibility
+apply_nolint set.set_semiring.non_assoc_semiring check_reducibility
+apply_nolint set.set_semiring.non_unital_non_assoc_semiring check_reducibility
+
 -- category_theory/concrete_category/reflects_isomorphisms.lean
 apply_nolint category_theory.forget₂.category_theory.reflects_isomorphisms fails_quickly
 
@@ -238,15 +249,6 @@ apply_nolint list.sublists_aux doc_blame
 apply_nolint list.sublists_aux₁ doc_blame
 apply_nolint list.traverse doc_blame
 
--- data/list/func.lean
-apply_nolint list.func.add doc_blame
-apply_nolint list.func.equiv doc_blame
-apply_nolint list.func.get doc_blame
-apply_nolint list.func.neg doc_blame
-apply_nolint list.func.pointwise doc_blame
-apply_nolint list.func.set doc_blame
-apply_nolint list.func.sub doc_blame
-
 -- data/list/sigma.lean
 apply_nolint list.kextract doc_blame
 apply_nolint list.kreplace doc_blame
@@ -331,14 +333,6 @@ apply_nolint polynomial.binom_expansion doc_blame
 apply_nolint polynomial.eval_sub_factor doc_blame
 apply_nolint polynomial.pow_add_expansion doc_blame
 apply_nolint polynomial.pow_sub_pow_factor doc_blame
-
--- data/real/cau_seq_completion.lean
-apply_nolint cau_seq.completion.Cauchy doc_blame
-apply_nolint cau_seq.completion.field doc_blame
-apply_nolint cau_seq.completion.mk doc_blame
-apply_nolint cau_seq.completion.of_rat doc_blame
-apply_nolint cau_seq.is_complete doc_blame
-apply_nolint cau_seq.lim doc_blame
 
 -- data/seq/computation.lean
 apply_nolint computation.bind.F doc_blame
@@ -476,11 +470,18 @@ apply_nolint gaussian_int doc_blame
 apply_nolint gaussian_int.div doc_blame
 apply_nolint gaussian_int.mod doc_blame
 
+-- order/filter/pointwise.lean
+apply_nolint filter.has_add check_reducibility
+apply_nolint filter.has_mul check_reducibility
+
 -- order/fixed_points.lean
 apply_nolint fixed_points.next doc_blame
 apply_nolint fixed_points.next_fixed doc_blame
 apply_nolint fixed_points.prev doc_blame
 apply_nolint fixed_points.prev_fixed doc_blame
+
+-- ring_theory/witt_vector/basic.lean
+apply_nolint witt_vector.comm_ring check_reducibility
 
 -- set_theory/cofinality.lean
 apply_nolint strict_order.cof doc_blame
@@ -490,18 +491,6 @@ apply_nolint pgame.inv_ty has_inhabited_instance
 
 -- set_theory/lists.lean
 apply_nolint finsets doc_blame
-apply_nolint lists doc_blame
-apply_nolint lists' doc_blame
-apply_nolint lists'.cons doc_blame
-apply_nolint lists'.of_list doc_blame
-apply_nolint lists'.to_list doc_blame
-apply_nolint lists.atom doc_blame
-apply_nolint lists.induction_mut doc_blame
-apply_nolint lists.is_list doc_blame
-apply_nolint lists.mem doc_blame
-apply_nolint lists.of' doc_blame
-apply_nolint lists.of_list doc_blame
-apply_nolint lists.to_list doc_blame
 
 -- set_theory/pgame.lean
 apply_nolint pgame.left_moves has_inhabited_instance

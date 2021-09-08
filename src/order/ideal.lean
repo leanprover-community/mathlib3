@@ -203,6 +203,9 @@ begin
   assumption,
 end
 
+lemma is_proper.top_not_mem {I : ideal P} (hI : is_proper I) : ⊤ ∉ I :=
+by { by_contra, exact hI.ne_top (top_of_mem_top h) }
+
 lemma _root_.is_coatom.is_proper {I : ideal P} (hI : is_coatom I) : is_proper I :=
 is_proper_of_ne_top hI.1
 
@@ -342,6 +345,23 @@ begin
 end
 
 end distrib_lattice
+
+section boolean_algebra
+
+variables [boolean_algebra P] {x : P} {I : ideal P}
+
+lemma is_proper.not_mem_of_compl_mem (hI : is_proper I) (hxc : xᶜ ∈ I) : x ∉ I :=
+begin
+  intro hx,
+  apply hI.top_not_mem,
+  have ht : x ⊔ xᶜ ∈ I := sup_mem _ _ ‹_› ‹_›,
+  rwa sup_compl_eq_top at ht,
+end
+
+lemma is_proper.not_mem_or_compl_not_mem (hI : is_proper I) : x ∉ I ∨ xᶜ ∉ I :=
+have h : xᶜ ∈ I → x ∉ I := hI.not_mem_of_compl_mem, by tauto
+
+end boolean_algebra
 
 end ideal
 

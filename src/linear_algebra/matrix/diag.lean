@@ -118,7 +118,7 @@ by { intros i j h, simp [ha h] }
 @[simp] lemma is_diag.conj_transpose
   [semiring α] [star_ring α] {A : matrix n n α} (ha : A.is_diag) :
   Aᴴ.is_diag :=
-by { intros i j h, simp [ha h.symm] }
+ha.transpose.map (star_zero _)
 
 @[simp] lemma is_diag.minor [has_zero α]
   {A : matrix n n α} (ha : A.is_diag) {f : m → n} (hf : injective f) :

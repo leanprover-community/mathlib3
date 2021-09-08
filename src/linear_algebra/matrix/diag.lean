@@ -123,7 +123,7 @@ ha.transpose.map (star_zero _)
 @[simp] lemma is_diag.minor [has_zero α]
   {A : matrix n n α} (ha : A.is_diag) {f : m → n} (hf : injective f) :
   (A.minor f f).is_diag :=
-by { intros i j h, specialize @hf i j, simp [ha (mt hf h)] }
+λ i j h, ha (hf.ne h)
 
 /-- `(A ⊗ B).is_diag` if both `A` and `B` are diagonal. -/
 @[simp] lemma is_diag.kronecker [mul_zero_class α]

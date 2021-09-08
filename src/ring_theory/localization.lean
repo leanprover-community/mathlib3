@@ -1053,12 +1053,12 @@ lemma coe_submodule_fg
 
 @[simp]
 lemma coe_submodule_span (s : set R) :
-  coe_submodule S (submodule.span R s) = submodule.span R ((algebra_map R S) '' s) :=
-by { rw [is_localization.coe_submodule, submodule.map_span], refl }
+  coe_submodule S (ideal.span s) = submodule.span R ((algebra_map R S) '' s) :=
+by { rw [is_localization.coe_submodule, ideal.span, submodule.map_span], refl }
 
 @[simp]
 lemma coe_submodule_span_singleton (x : R) :
-  coe_submodule S (submodule.span R {x}) = submodule.span R {(algebra_map R S) x} :=
+  coe_submodule S (ideal.span {x}) = submodule.span R {(algebra_map R S) x} :=
 by rw [coe_submodule_span, set.image_singleton]
 
 variables {g : R →+* P}
@@ -1229,9 +1229,9 @@ begin
   { have x_mem : x ∈ coe_submodule S I := hx.symm ▸ submodule.mem_span_singleton_self x,
     obtain ⟨x, x_mem, rfl⟩ := (mem_coe_submodule _ _).mp x_mem,
     refine ⟨⟨x, coe_submodule_injective S h _⟩⟩,
-    rw [hx, coe_submodule_span_singleton] },
+    rw [ideal.submodule_span_eq, hx, coe_submodule_span_singleton] },
   { refine ⟨⟨algebra_map R S x, _⟩⟩,
-    rw [hx, coe_submodule_span_singleton] }
+    rw [hx, ideal.submodule_span_eq, coe_submodule_span_singleton] }
 end
 
 /-- A `comm_ring` `S` which is the localization of an integral domain `R` at a subset of

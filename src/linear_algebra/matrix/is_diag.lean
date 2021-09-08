@@ -14,10 +14,6 @@ This file contains the definition and basic results about diagonal matrices.
 
 ## Main results
 
-- `matrix.has_orthogonal_rows`:
-  `A.has_orthogonal_rows` means `A` has orthogonal (with respect to `dot_product`) rows.
-- `matrix.has_orthogonal_cols`:
-  `A.has_orthogonal_cols` means `A` has orthogonal (with respect to `dot_product`) columns.
 - `matrix.is_diag`: a proposition that stats a given square matrix `A` is diagonal
                     (i.e. `∀ m n, i ≠ j → A m n = 0`).
 

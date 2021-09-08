@@ -197,6 +197,43 @@ lemma one_le_finprod' {M : Type*} [ordered_comm_monoid M] {f : α → M} (hf : �
   1 ≤ ∏ᶠ i, f i :=
 finprod_induction _ le_rfl (λ _ _, one_le_mul) hf
 
+@[to_additive le_finsum_of_subadditive_of_finite]
+lemma le_finprod_of_submultiplicative_of_finite {N : Type*} [ordered_comm_monoid N] (f : M → N)
+  (h_one : f 1 = 1) (h_mul : ∀ x y, f (x * y) ≤ f x * f y) (g : α → M)
+  (hg : finite (mul_support $ g ∘ plift.down)) :
+  f (∏ᶠ i, g i) ≤ ∏ᶠ i, f (g i) :=
+begin
+  rw [finprod, dif_pos],
+  convert hg.to_finset.le_prod_of_submultiplicative f h_one h_mul (g ∘ plift.down),
+  apply finprod_eq_prod_plift_of_mul_support_subset, rw finite.coe_to_finset,
+  exact mul_support_comp_subset h_one _
+end
+
+@[to_additive le_finsum_of_subadditive_of_map_zero_iff]
+lemma le_finprod_of_submultiplicative_of_map_one_iff {N : Type*} [ordered_comm_monoid N] (f : M → N)
+  (h_one : ∀ x, f x = 1 ↔ x = 1) (h_mul : ∀ x y, f (x * y) ≤ f x * f y) (g : α → M) :
+  f (∏ᶠ i, g i) ≤ ∏ᶠ i, f (g i) :=
+begin
+  have h₁ : f 1 = 1, from (h_one 1).2 rfl,
+  by_cases hg : finite (mul_support $ g ∘ plift.down),
+  { exact le_finprod_of_submultiplicative_of_finite f h₁ h_mul g hg },
+  { rw [finprod, dif_neg]; [skip, exact hg],
+    rw [finprod, dif_neg, h₁],
+    refine infinite_mono _ hg,
+    exact mul_support_subset_comp (λ x, (h_one x).1) _ }
+end
+
+@[to_additive le_finsum_of_subadditive_of_nonneg]
+lemma le_finprod_of_submultiplicative_of_one_le {N : Type*} [ordered_comm_monoid N] (f : M → N)
+  (h_one : f 1 = 1) (h_mul : ∀ x y, f (x * y) ≤ f x * f y) (g : α → M) (h_le : ∀ x, 1 ≤ f (g x)) :
+  f (∏ᶠ i, g i) ≤ ∏ᶠ i, f (g i) :=
+begin
+  by_cases hg : finite (mul_support $ g ∘ plift.down),
+  { exact le_finprod_of_submultiplicative_of_finite f h_one h_mul g hg },
+  { rw [finprod, dif_neg, h_one],
+    exacts [one_le_finprod' h_le, hg] }
+end
+
 @[to_additive] lemma monoid_hom.map_finprod_plift (f : M →* N) (g : α → M)
   (h : finite (mul_support $ g ∘ plift.down)) :
   f (∏ᶠ x, g x) = ∏ᶠ x, f (g x) :=
@@ -390,9 +427,17 @@ finprod_congr $ λ i, finprod_true _
 
 variables {f g : α → M} {a b : α} {s t : set α}
 
+@[to_additive] lemma finprod_mem_congr' (h₀ : s = t) {f : Π x ∈ s, M} {g : Π x ∈ t, M}
+  (h₁ : ∀ x (hx : x ∈ t), f x (h₀.symm ▸ hx) = g x hx) :
+  ∏ᶠ i (hi : i ∈ s), f i hi = ∏ᶠ i (hi : i ∈ t), g i hi :=
+begin
+  subst s,
+  exact (finprod_congr $ λ i, finprod_congr_Prop rfl $ λ hi, by rw [← h₁ i hi])
+end
+
 @[to_additive] lemma finprod_mem_congr (h₀ : s = t) (h₁ : ∀ x ∈ t, f x = g x) :
   ∏ᶠ i ∈ s, f i = ∏ᶠ i ∈ t, g i :=
-h₀.symm ▸ (finprod_congr $ λ i, finprod_congr_Prop rfl (h₁ i))
+finprod_mem_congr' h₀ h₁
 
 /-!
 ### Distributivity w.r.t. addition, subtraction, and (scalar) multiplication
@@ -443,6 +488,11 @@ over `i ∈ s` times the product of `g i` over `i ∈ s`. -/
 @[to_additive] lemma finprod_mem_mul_distrib (hs : s.finite) :
   ∏ᶠ i ∈ s, (f i * g i) = (∏ᶠ i ∈ s, f i) * ∏ᶠ i ∈ s, g i :=
 finprod_mem_mul_distrib' (hs.inter_of_left _) (hs.inter_of_left _)
+
+@[to_additive] lemma finprod_mem_div_distrib {G : Type*} [comm_group G]
+  {f g : α → G} (hs : s.finite) :
+  ∏ᶠ i ∈ s, (f i / g i) = (∏ᶠ i ∈ s, f i) / (∏ᶠ i ∈ s, g i) :=
+by simp only [div_eq_mul_inv, finprod_mem_mul_distrib hs, finprod_inv_distrib]
 
 @[to_additive] lemma monoid_hom.map_finprod {f : α → M} (g : M →* N) (hf : (mul_support f).finite) :
   g (∏ᶠ i, f i) = ∏ᶠ i, g (f i) :=
@@ -630,6 +680,23 @@ end
   ∏ᶠ j : subtype p, f j = ∏ᶠ i (hi : p i), f i :=
 finprod_set_coe_eq_finprod_mem {i | p i}
 
+@[to_additive] lemma finprod_mem_dep (s : set α) [Π i, decidable (i ∈ s)] (f : Π i ∈ s, M) :
+  ∏ᶠ i ∈ s, f i ‹_› = ∏ᶠ i ∈ s, if h : i ∈ s then f i h else 1 :=
+finprod_congr (λ i, finprod_congr $ λ hi, (dif_pos hi).symm)
+
+/-- Dependent version of `finprod_set_coe_eq_finprod_mem`. -/
+@[to_additive] lemma finprod_set_coe_eq_finprod_mem' (s : set α) (f : Π i ∈ s, M) :
+  ∏ᶠ j : s, f j j.2 = ∏ᶠ i ∈ s, f i ‹_› :=
+begin
+  classical,
+  rw [finprod_mem_dep, ← finprod_set_coe_eq_finprod_mem],
+  exact finprod_congr (λ x, (dif_pos x.2).symm)
+end
+
+@[to_additive] lemma finprod_subtype_eq_finprod_cond' (p : α → Prop) (f : Π i, p i → M) :
+  ∏ᶠ j : subtype p, f j j.2 = ∏ᶠ i (hi : p i), f i hi :=
+finprod_set_coe_eq_finprod_mem' {i | p i} f
+
 @[to_additive] lemma finprod_mem_inter_mul_diff' (t : set α) (h : (s ∩ mul_support f).finite) :
   (∏ᶠ i ∈ s ∩ t, f i) * ∏ᶠ i ∈ s \ t, f i = ∏ᶠ i ∈ s, f i :=
 begin
@@ -680,6 +747,29 @@ begin
   haveI := hI.fintype,
   rw [← Union_subtype, finprod_mem_Union, ← finprod_set_coe_eq_finprod_mem],
   exacts [λ x y hxy, h x x.2 y y.2 (subtype.coe_injective.ne hxy), λ b, ht b b.2]
+end
+
+/-- Version of `finprod_mem_bUnion` for dependent functions. -/
+@[to_additive] lemma finprod_mem_bUnion' {I : set ι} {t : Π i, i ∈ I → set α}
+  (h : ∀ (i ∈ I) (j ∈ I), i ≠ j → disjoint (t i ‹_›) (t j ‹_›)) (hI : I.finite)
+  (ht : ∀ i ∈ I, (t i ‹_›).finite) (f : Π a ∈ (⋃ x ∈ I, t x ‹_›), M) :
+  ∏ᶠ a (ha : a ∈ ⋃ x ∈ I, t x ‹_›), f a ha =
+    ∏ᶠ i (hi : i ∈ I) j (hj : j ∈ t i ‹_›), f j (mem_Union.2 ⟨i, mem_Union.2 ⟨hi, hj⟩⟩) :=
+begin
+  classical,
+  have : (⋃ i ∈ I, t i ‹_›) = ⋃ i ∈ I, if h : i ∈ I then t i h else ∅,
+    from Union_congr id surjective_id (λ i, Union_congr id surjective_id $ λ hi, (dif_pos hi).symm),
+  refine (finprod_mem_congr' this (λ _ _, rfl)).trans _,
+  rw [finprod_mem_dep, finprod_mem_bUnion _ hI],
+  { refine finprod_mem_congr' rfl (λ i hi, finprod_mem_congr' (dif_pos hi) $ λ j hj, dif_pos $
+      mem_Union.2 ⟨i, mem_Union.2 ⟨hi, _⟩⟩),
+    rwa [dif_pos hi] },
+  { intros i hi,
+    rw dif_pos hi,
+    exact ht _ _ },
+  { intros i hi j hj hne,
+    rw [on_fun, dif_pos hi, dif_pos hj],
+    exact h i hi j hj hne }
 end
 
 /-- If `t` is a finite set of pairwise disjoint finite sets, then the product of `f a`

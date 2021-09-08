@@ -414,7 +414,8 @@ add_val_def _ u hϖ n rfl
 (add_val R).map_one
 
 @[simp] lemma add_val_uniformizer {ϖ : R} (hϖ : irreducible ϖ) : add_val R ϖ = 1 :=
-add_val_def ϖ 1 hϖ 1 (by simp)
+by simpa only [one_mul, eq_self_iff_true, units.coe_one, pow_one, forall_true_left, nat.cast_one]
+  using add_val_def ϖ 1 hϖ 1
 
 @[simp] lemma add_val_mul {a b : R} :
   add_val R (a * b) = add_val R a + add_val R b :=

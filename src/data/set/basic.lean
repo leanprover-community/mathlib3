@@ -1272,11 +1272,9 @@ lemma image_eta (f : α → β) : f '' s = (λ x, f x) '' s := rfl
 theorem mem_image_of_mem (f : α → β) {x : α} {a : set α} (h : x ∈ a) : f x ∈ f '' a :=
 ⟨_, h, rfl⟩
 
-theorem mem_image_of_injective {f : α → β} {a : α} {s : set α} (hf : injective f) :
+theorem _root_.function.injective.mem_set_image {f : α → β} (hf : injective f) {s : set α} {a : α} :
   f a ∈ f '' s ↔ a ∈ s :=
-iff.intro
-  (assume ⟨b, hb, eq⟩, (hf eq) ▸ hb)
-  (assume h, mem_image_of_mem _ h)
+⟨λ ⟨b, hb, eq⟩, (hf eq) ▸ hb, mem_image_of_mem f⟩
 
 theorem ball_image_iff {f : α → β} {s : set α} {p : β → Prop} :
   (∀ y ∈ f '' s, p y) ↔ (∀ x ∈ s, p (f x)) :=
@@ -2072,6 +2070,13 @@ set.ext $ assume a,
 ⟨assume ⟨⟨a', ha'⟩, in_s, h_eq⟩, h_eq ▸ ⟨ha', in_s⟩,
   assume ⟨ha, in_s⟩, ⟨⟨a, ha⟩, in_s, rfl⟩⟩
 
+@[simp] lemma coe_image_of_subset {s t : set α} (h : t ⊆ s) : coe '' {x : ↥s | ↑x ∈ t} = t :=
+begin
+  ext x,
+  rw set.mem_image,
+  exact ⟨λ ⟨x', hx', hx⟩, hx ▸ hx', λ hx, ⟨⟨x, h hx⟩, hx, rfl⟩⟩,
+end
+
 lemma range_coe {s : set α} :
   range (coe : s → α) = s :=
 by { rw ← set.image_univ, simp [-set.image_univ, coe_image] }
@@ -2808,5 +2813,9 @@ lemma eq_univ_of_nonempty {s : set α} : s.nonempty → s = univ :=
 @[elab_as_eliminator]
 lemma set_cases {p : set α → Prop} (h0 : p ∅) (h1 : p univ) (s) : p s :=
 s.eq_empty_or_nonempty.elim (λ h, h.symm ▸ h0) $ λ h, (eq_univ_of_nonempty h).symm ▸ h1
+
+lemma mem_iff_nonempty {α : Type*} [subsingleton α] {s : set α} {x : α} :
+  x ∈ s ↔ s.nonempty :=
+⟨λ hx, ⟨x, hx⟩, λ ⟨y, hy⟩, subsingleton.elim y x ▸ hy⟩
 
 end subsingleton

@@ -86,7 +86,7 @@ by { intros i j h, have h' := subsingleton.elim i j, contradiction }
 /-- Every identity matrix is diagonal. -/
 @[simp] lemma is_diag_one [decidable_eq n] [has_zero α] [has_one α] :
   (1 : matrix n n α).is_diag :=
-by { intros i j h, simp [h] }
+λ i j, one_apply_ne
 
 @[simp] lemma is_diag.map [has_zero α] [has_zero β]
 {A : matrix n n α} (ha : A.is_diag) {f : α → β} (hf : f 0 = 0) :

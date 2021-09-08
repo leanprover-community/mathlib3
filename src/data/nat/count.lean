@@ -693,8 +693,47 @@ lt_iff_lt_of_le_iff_le $ count_le_iff_le_nth p i
 lemma nth_le_of_le_count (a b : ℕ) (h : a ≤ count p b) : nth p a ≤ b :=
 sorry
 
+lemma lt_of_count_lt {a b : ℕ} : (count p a < count p b) → a < b :=
+begin
+  intro h,
+  rw count_eq_card_finset at h,
+  rw count_eq_card_finset at h,
+  by_contra hab,
+  rw lt_iff_not_ge at h,
+  apply h,
+  rw ge_iff_le,
+  simp at hab,
+  apply finset.card_le_of_subset,
+  rw finset.subset_iff,
+  simp only [and_imp, finset.mem_filter, finset.mem_range],
+  intros x hx hp,
+  split,
+  { refine lt_of_lt_of_le hx hab, },
+  { exact hp, },
+end
+
 lemma nth_lt_of_lt_count (n k : ℕ) (h : k < count p n) : nth p k < n :=
-sorry
+begin
+  obtain hfi | hinf := em (set.finite p),
+  { have hio: count p (nth p k) < count p n,
+    { rw count_nth_of_lt_card_finite,
+      { exact h, },
+      { apply lt_of_lt_of_le,
+        { exact h, },
+        { rw count_eq_card_finset,
+          apply finset.card_le_of_subset,
+          rw finset.subset_iff,
+          simp only [and_imp, imp_self, set.finite.mem_to_finset,
+            implies_true_iff, finset.mem_filter, set.mem_set_of_eq], }, },
+      exact hfi, },
+      apply lt_of_count_lt,
+
+   },
+  { rw ← lt_nth_iff_count_lt,
+    exact h,
+    rw set.infinite,
+    exact hinf, },
+end
 
 lemma count_nth_of_lt_card (n : ℕ) (w : (n : cardinal) < cardinal.mk (set_of p)) :
   count p (nth p n) = n :=

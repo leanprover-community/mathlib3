@@ -6,6 +6,7 @@ Authors: Joseph Myers
 import data.finset.sort
 import data.matrix.notation
 import linear_algebra.affine_space.combination
+import linear_algebra.affine_space.affine_equiv
 import linear_algebra.basis
 
 /-!
@@ -313,9 +314,23 @@ begin
   exact linear_independent.map' hai f.linear hf',
 end
 
+/-- Injective affine maps preserve affine independence. -/
 lemma affine_map.affine_independent_iff {p : ι → P} (f : P →ᵃ[k] P₂) (hf : function.injective f) :
   affine_independent k (f ∘ p) ↔ affine_independent k p :=
 ⟨affine_independent.of_comp f, λ hai, affine_independent.map' hai f hf⟩
+
+/-- In particular, affine equivalences preserve affine independence. -/
+lemma affine_equiv.affine_independent_iff {p : ι → P} (e : P ≃ᵃ[k] P₂) :
+  affine_independent k (e ∘ p) ↔ affine_independent k p :=
+e.to_affine_map.affine_independent_iff e.to_equiv.injective
+
+omit V₂
+
+/-- In particular, homotheties preserve affine independence (when the scale factor is a unit). -/
+lemma affine_map.homothety_affine_independent_iff {k : Type*} [comm_ring k] [module k V]
+  {p : ι → P} {q : P} {t : units k} :
+  affine_independent k ((affine_map.homothety q (t : k)) ∘ p) ↔ affine_independent k p :=
+(affine_equiv.homothety_units_mul_hom q t).affine_independent_iff
 
 end composition
 
@@ -380,6 +395,24 @@ lemma not_mem_affine_span_diff_of_affine_independent [nontrivial k] {p : ι → 
     (ha : affine_independent k p) (i : ι) (s : set ι) :
   p i ∉ affine_span k (p '' (s \ {i})) :=
 by simp [ha]
+
+lemma exists_nontrivial_relation_sum_zero_of_not_affine_ind
+  {t : finset V} (h : ¬ affine_independent k (coe : t → V)) :
+  ∃ f : V → k, ∑ e in t, f e • e = 0 ∧ ∑ e in t, f e = 0 ∧ ∃ x ∈ t, f x ≠ 0 :=
+begin
+  classical,
+  rw affine_independent_iff_of_fintype at h,
+  simp only [exists_prop, not_forall] at h,
+  obtain ⟨w, hw, hwt, i, hi⟩ := h,
+  simp only [finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ w (coe : t → V) hw 0,
+    vsub_eq_sub, finset.weighted_vsub_of_point_apply, sub_zero] at hwt,
+  let f : Π (x : V), x ∈ t → k := λ x hx, w ⟨x, hx⟩,
+  refine ⟨λ x, if hx : x ∈ t then f x hx else (0 : k), _, _, by { use i, simp [hi, f], }⟩,
+  suffices : ∑ (e : V) in t, dite (e ∈ t) (λ hx, (f e hx) • e) (λ hx, 0) = 0,
+  { convert this, ext, by_cases hx : x ∈ t; simp [hx], },
+  all_goals
+  { simp only [finset.sum_dite_of_true (λx h, h), subtype.val_eq_coe, finset.mk_coe, f, hwt, hw], },
+end
 
 end affine_independent
 

@@ -328,7 +328,7 @@ begin
   convert e'.to_equiv.apply_eq_iff_eq; rw ←e.hom.w; refl
 end
 
-lemma colimit_eq_iff {t : cocone F} (ht : is_colimit t) {i j : J} {xi : F.obj i} {xj : F.obj j} :
+lemma colimit_eq_iff {i j : J} {xi : F.obj i} {xj : F.obj j} :
   colimit.ι F i xi = colimit.ι F j xj ↔ ∃ k (f : i ⟶ k) (g : j ⟶ k), F.map f xi = F.map g xj :=
 is_colimit_eq_iff _ (colimit.is_colimit F)
 

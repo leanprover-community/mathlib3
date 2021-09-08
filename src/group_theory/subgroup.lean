@@ -1939,6 +1939,14 @@ two subgroups of an additive group are equal."]
 def subgroup_congr (h : H = K) : H ≃* K :=
 { map_mul' :=  λ _ _, rfl, ..equiv.set_congr $ congr_arg _ h }
 
+/-- A `mul_equiv` `φ` between two groups `G` and `G'` induces a `mul_equiv` between
+a subgroup `H ≤ G` and the subgroup `φ(H) ≤ G'`. -/
+@[to_additive "An `add_equiv` `φ` between two additive groups `G` and `G'` induces an `add_equiv`
+between a subgroup `H ≤ G` and the subgroup `φ(H) ≤ G'`. "]
+def subgroup_equiv_map {G'} [group G'] (e : G ≃* G') (H : subgroup G) :
+  H ≃* H.map e.to_monoid_hom :=
+e.submonoid_equiv_map H.to_submonoid
+
 end mul_equiv
 
 -- TODO : ↥(⊤ : subgroup H) ≃* H ?

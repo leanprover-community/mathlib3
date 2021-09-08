@@ -690,8 +690,8 @@ section infi
 variables {α : Type u} {ι : Sort v}
 
 lemma generate_from_union (a₁ a₂ : set (set α)) :
-  topological_space.generate_from (a₁ ∪ a₂)
-  = topological_space.generate_from a₁ ⊓ topological_space.generate_from a₂ :=
+  topological_space.generate_from (a₁ ∪ a₂) =
+    topological_space.generate_from a₁ ⊓ topological_space.generate_from a₂ :=
 @galois_connection.l_sup _ (order_dual (topological_space α)) a₁ a₂ _ _ _ _
   (λ g t, generate_from_le_iff_subset_is_open)
 

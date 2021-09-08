@@ -47,28 +47,11 @@ variables {R : Type*} [semiring R] (k : ℕ) (f : polynomial R)
 /-- The `k`th Hasse derivative of a polynomial `∑ a_i X^i` is `∑ (i.choose k) a_i X^(i-k)`.
 It satisfies `k! * (hasse_deriv k f) = derivative^[k] f`. -/
 def hasse_deriv (k : ℕ) : polynomial R →ₗ[R] polynomial R :=
-{ to_fun := λ f, f.sum $ λ i r, monomial (i - k) (↑(i.choose k) * r),
-  map_add' := λ f g,
-  begin
-    rw [sum_eq_of_subset _ _ _ _ support_add,
-        sum_eq_of_subset _ _ _ _ (f.support.subset_union_left g.support),
-        sum_eq_of_subset _ _ _ _ (f.support.subset_union_right g.support),
-        ← finset.sum_add_distrib, finset.sum_congr rfl],
-    { intros i hi, simp only [coeff_add, mul_add, linear_map.map_add], },
-    all_goals { simp only [forall_const, monomial_zero_right, mul_zero], },
-  end,
-  map_smul' := λ c f,
-  begin
-    rw [sum_eq_of_subset _ _ _ _ (support_smul c f), sum_def, finset.smul_sum,
-      finset.sum_congr rfl],
-    { intros i hi,
-      have := nat.cast_commute (i.choose k) c,
-      simp only [coeff_smul, smul_monomial, smul_eq_mul, ← mul_assoc, this.eq], },
-    { simp only [forall_const, monomial_zero_right, mul_zero], }
-  end }
+lsum (λ i, (monomial (i-k)) ∘ₗ distrib_mul_action.to_linear_map R R (i.choose k))
 
 lemma hasse_deriv_apply :
-  hasse_deriv k f = f.sum (λ i r, monomial (i - k) (↑(i.choose k) * r)) := rfl
+  hasse_deriv k f = f.sum (λ i r, monomial (i - k) (↑(i.choose k) * r)) :=
+by simpa only [← nsmul_eq_mul]
 
 lemma hasse_deriv_coeff (n : ℕ) :
   (hasse_deriv k f).coeff n = (n + k).choose k * f.coeff (n + k) :=

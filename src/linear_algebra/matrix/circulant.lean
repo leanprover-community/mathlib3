@@ -214,14 +214,14 @@ fin.circulant_is_sym_ext_iff.1 h i
 
 /-- The associated polynomial `(v 0) + (v 1) * X + ... + (v (n-1)) * X ^ (n-1)` to `circulant v`.-/
 noncomputable
-def circulant_poly [semiring α] (v : fin n → α) : polynomial α :=
+def circulant.poly [semiring α] (v : fin n → α) : polynomial α :=
 ∑ i : fin n, polynomial.monomial i (v i)
 
 /-- `circulant_perm n` is the cyclic permutation over `fin n`. -/
-def circulant_perm : Π n, equiv.perm (fin n) := λ n, equiv.symm (fin_rotate n)
+def circulant.perm : Π n, equiv.perm (fin n) := λ n, equiv.symm (fin_rotate n)
 
 /-- `circulant_P α n` is the cyclic permutation matrix of order `n` with entries of type `α`. -/
-def circulant_P (α) [has_zero α] [has_one α] (n : ℕ) : matrix (fin n) (fin n) α :=
-(circulant_perm n).to_pequiv.to_matrix
+def circulant.P (α) [has_zero α] [has_one α] (n : ℕ) : matrix (fin n) (fin n) α :=
+(circulant.perm n).to_pequiv.to_matrix
 
 end matrix

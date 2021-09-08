@@ -302,7 +302,7 @@ instance algebra' {P : Type*} [comm_semiring P] [has_scalar P R] [algebra P A]
   commutes' := λ r x, subtype.ext $ algebra.commutes _ _,
   ..S.to_submodule.module' }
 
-instance is_scalar_tower' {P : Type*} [comm_semiring P] [algebra P R] [algebra P A]
+instance is_scalar_tower' {P : Type*} [comm_semiring P] [has_scalar P R] [algebra P A]
   [is_scalar_tower P R A] : is_scalar_tower P R S :=
 { smul_assoc := λ a y z, subtype.ext (smul_assoc _ _ _) }
 

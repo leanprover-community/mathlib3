@@ -159,24 +159,22 @@ begin
 end
 
 section
-open add_monoid_hom
+open add_monoid_hom finset.nat
 
 lemma hasse_deriv_mul (f g : polynomial R) :
-  hasse_deriv k (f * g) =
-    ∑ ij in finset.nat.antidiagonal k, hasse_deriv ij.1 f * hasse_deriv ij.2 g :=
+  hasse_deriv k (f * g) = ∑ ij in antidiagonal k, hasse_deriv ij.1 f * hasse_deriv ij.2 g :=
 begin
   let D := λ k, (@hasse_deriv R _ k).to_add_monoid_hom,
   let Φ := @add_monoid_hom.mul (polynomial R) _,
   show (comp_hom (D k)).comp Φ f g =
-    ∑ (ij : ℕ × ℕ) in finset.nat.antidiagonal k,
-      ((comp_hom.comp ((comp_hom Φ) (D ij.1))).flip (D ij.2) f) g,
+    ∑ (ij : ℕ × ℕ) in antidiagonal k, ((comp_hom.comp ((comp_hom Φ) (D ij.1))).flip (D ij.2) f) g,
   simp only [← finset_sum_apply],
   congr' 2, clear f g,
   ext m r n s : 4,
   simp only [finset_sum_apply, coe_mul_left, coe_comp, flip_apply, comp_app,
     hasse_deriv_monomial, linear_map.to_add_monoid_hom_coe, comp_hom_apply_apply, coe_mul,
     monomial_mul_monomial],
-  have aux : ∀ (x : ℕ × ℕ), x ∈ finset.nat.antidiagonal k →
+  have aux : ∀ (x : ℕ × ℕ), x ∈ antidiagonal k →
     monomial (m - x.1 + (n - x.2)) (↑(m.choose x.1) * r * (↑(n.choose x.2) * s)) =
     monomial (m + n - k) (↑(m.choose x.1) * ↑(n.choose x.2) * (r * s)),
   { intros x hx, rw [finset.nat.mem_antidiagonal] at hx, subst hx,

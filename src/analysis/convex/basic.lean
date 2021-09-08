@@ -1710,6 +1710,19 @@ lemma linear_map.image_convex_hull (f : E →ₗ[k] F) :
   f '' (convex_hull k s) = convex_hull k (f '' s) :=
 f.is_linear.image_convex_hull
 
+lemma affine_map.image_convex_hull (f : E →ᵃ[k] F) :
+  f '' (convex_hull k s) = convex_hull k (f '' s) :=
+begin
+  apply set.subset.antisymm,
+  { rw set.image_subset_iff,
+    refine convex_hull_min _ ((convex_convex_hull (⇑f '' s)).affine_preimage f),
+    rw ← set.image_subset_iff,
+    exact subset_convex_hull (f '' s), },
+  { refine convex_hull_min _ ((convex_convex_hull s).affine_image f),
+    apply set.image_subset,
+    exact subset_convex_hull s, },
+end
+
 lemma finset.center_mass_mem_convex_hull (t : finset ι) {w : ι → k} (hw₀ : ∀ i ∈ t, 0 ≤ w i)
   (hws : 0 < ∑ i in t, w i) {z : ι → E} (hz : ∀ i ∈ t, z i ∈ s) :
   t.center_mass w z ∈ convex_hull k s :=

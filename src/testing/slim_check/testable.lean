@@ -270,7 +270,8 @@ def or_counter_example {p q : Prop} :
   test_result p →
   test_result q →
   test_result (p ∨ q)
-| (failure Hce xs n) (failure Hce' ys n') := failure (λ h, or_iff_not_and_not.1 h ⟨Hce, Hce'⟩) (xs ++ ys) (n + n')
+| (failure Hce xs n) (failure Hce' ys n') := failure (λ h, or_iff_not_and_not.1 h ⟨Hce, Hce'⟩)
+  (xs ++ ys) (n + n')
 | (success xs) _ := success $ combine (psum.inr or.inl) xs
 | _ (success ys) := success $ combine (psum.inr or.inr) ys
 | (gave_up n) (gave_up m) := gave_up $ n + m
@@ -369,8 +370,10 @@ instance dec_guard_testable (p : Prop) [printable_prop p] [decidable p] (β : p 
     if h : p
     then
       match print_prop p with
-      | none := (λ r, convert_counter_example ($ h) r (psum.inr $ λ q _, q)) <$> testable.run (β h) cfg min
-      | some str := (λ r, add_to_counter_example (sformat!"guard: {str}") ($ h) r (psum.inr $ λ q _, q)) <$> testable.run (β h) cfg min
+      | none := (λ r, convert_counter_example ($ h) r (psum.inr $ λ q _, q)) <$>
+        testable.run (β h) cfg min
+      | some str := (λ r, add_to_counter_example (sformat!"guard: {str}") ($ h) r
+        (psum.inr $ λ q _, q)) <$> testable.run (β h) cfg min
       end
     else if cfg.trace_discarded ∨ cfg.trace_success then
       match print_prop p with
@@ -484,24 +487,29 @@ candidate that falsifies a property and recursively shrinking that one.
 The process is guaranteed to terminate because `shrink x` produces
 a proof that all the values it produces are smaller (according to `sizeof`)
 than `x`. -/
-def minimize_aux [sampleable_ext α] [∀ x, testable (β x)] (cfg : slim_check_cfg) (var : string) : proxy_repr α → ℕ → option_t gen (Σ x, test_result (β (interp α x))) :=
+def minimize_aux [sampleable_ext α] [∀ x, testable (β x)] (cfg : slim_check_cfg) (var : string) :
+  proxy_repr α → ℕ → option_t gen (Σ x, test_result (β (interp α x))) :=
 well_founded.fix has_well_founded.wf $ λ x f_rec n, do
-     if cfg.trace_shrink_candidates
-       then return $ trace sformat!"candidates for {var} :=\n{repr (sampleable_ext.shrink x).to_list}\n" ()
-       else pure (),
-     ⟨y,r,⟨h₁⟩⟩ ← (sampleable_ext.shrink x).mfirst (λ ⟨a,h⟩, do
-       ⟨r⟩ ← monad_lift (uliftable.up $ testable.run (β (interp α a)) cfg tt : gen (ulift (test_result (β (interp α a))))),
-       if is_failure r
-         then pure (⟨a, r, ⟨h⟩⟩ : (Σ a, test_result (β (interp α a)) × plift (sizeof_lt a x)))
-         else failure),
-     if cfg.trace_shrink then return $
-       trace (sformat!"{var} := {repr y}" ++ format_failure' "Shrink counter-example:" r) ()
-       else pure (),
-     f_rec y h₁ (n+1) <|> pure ⟨y,add_shrinks (n+1) r⟩
+  if cfg.trace_shrink_candidates
+    then return $ trace sformat!
+      "candidates for {var} :=\n{repr (sampleable_ext.shrink x).to_list}\n" ()
+    else pure (),
+  ⟨y,r,⟨h₁⟩⟩ ← (sampleable_ext.shrink x).mfirst (λ ⟨a,h⟩, do
+    ⟨r⟩ ← monad_lift (uliftable.up $ testable.run (β (interp α a)) cfg tt
+      : gen (ulift $ test_result $ β $ interp α a)),
+    if is_failure r
+      then pure (⟨a, r, ⟨h⟩⟩ : (Σ a, test_result (β (interp α a)) × plift (sizeof_lt a x)))
+      else failure),
+  if cfg.trace_shrink then return $
+    trace (sformat!"{var} := {repr y}" ++ format_failure' "Shrink counter-example:" r) ()
+    else pure (),
+  f_rec y h₁ (n+1) <|> pure ⟨y,add_shrinks (n+1) r⟩
 
 /-- Once a property fails to hold on an example, look for smaller counter-examples
 to show the user. -/
-def minimize [sampleable_ext α] [∀ x, testable (β x)] (cfg : slim_check_cfg) (var : string) (x : proxy_repr α) (r : test_result (β (interp α x))) : gen (Σ x, test_result (β (interp α x))) := do
+def minimize [sampleable_ext α] [∀ x, testable (β x)] (cfg : slim_check_cfg) (var : string)
+  (x : proxy_repr α) (r : test_result (β (interp α x))) :
+  gen (Σ x, test_result (β (interp α x))) := do
 if cfg.trace_shrink then return $
   trace (sformat!"{var} := {repr x}" ++ format_failure' "Shrink counter-example:" r) ()
   else pure (),
@@ -518,7 +526,8 @@ instance exists_testable (p : Prop)
 
 /-- Test a universal property by creating a sample of the right type and instantiating the
 bound variable with it -/
-instance var_testable [sampleable_ext α] [∀ x, testable (β x)] : testable (named_binder var $ Π x : α, β x) :=
+instance var_testable [sampleable_ext α] [∀ x, testable (β x)] :
+  testable (named_binder var $ Π x : α, β x) :=
 ⟨ λ cfg min, do
    uliftable.adapt_down (sampleable_ext.sample α) $
    λ x, do
@@ -528,14 +537,16 @@ instance var_testable [sampleable_ext α] [∀ x, testable (β x)] : testable (n
                           else if cfg.trace_success
                           then trace (sformat!"  {var} := {repr x}") $ pure ⟨x,r⟩
                           else pure ⟨x,r⟩) $
-     λ ⟨x,r⟩, return $ trace_if_giveup cfg.trace_discarded var x r (add_var_to_counter_example var x ($ sampleable_ext.interp α x) r) ⟩
+     λ ⟨x,r⟩, return $ trace_if_giveup cfg.trace_discarded var x r (add_var_to_counter_example var x
+      ($ sampleable_ext.interp α x) r) ⟩
 
 
 /-- Test a universal property about propositions -/
 instance prop_var_testable (β : Prop → Prop) [I : ∀ b : bool, testable (β b)] :
   testable (named_binder var $ Π p : Prop, β p) :=
-⟨ λ cfg min, do
-     convert_counter_example (λ h (b : bool), h b) <$> @testable.run (named_binder var $ Π b : bool, β b) _ cfg min ⟩
+⟨λ cfg min, do
+  convert_counter_example (λ h (b : bool), h b) <$> @testable.run
+    (named_binder var $ Π b : bool, β b) _ cfg min⟩
 
 @[priority 3000]
 instance unused_var_testable (β) [inhabited α] [testable β] : testable (named_binder var $ Π x : α, β) :=
@@ -555,9 +566,11 @@ instance subtype_var_testable {p : α → Prop}
               r ← testable.run (β x.val) cfg min,
               match print_prop (p x) with
               | none := pure r
-              | some str := pure $ add_to_counter_example sformat!"guard: {str} (by construction)" id r (psum.inr id)
+              | some str := pure $ add_to_counter_example sformat!"guard: {str} (by construction)"
+                id r (psum.inr id)
               end ⟩,
-      r ← @testable.run (∀ x : subtype p, β x.val) (@slim_check.var_testable var _ _ I test) cfg min,
+      r ← @testable.run (∀ x : subtype p, β x.val) (@slim_check.var_testable var _ _ I test) cfg
+        min,
       pure $ convert_counter_example'
                  ⟨λ (h : ∀ x : subtype p, β x) x h', h ⟨x,h'⟩,
                   λ h ⟨x,h'⟩, h x h'⟩
@@ -588,22 +601,26 @@ instance lt.printable_prop {α} [has_lt α] [has_repr α] (x y : α) : printable
 instance perm.printable_prop {α} [has_repr α] (xs ys : list α) : printable_prop (xs ~ ys) :=
 ⟨ some sformat!"{repr xs} ~ {repr ys}" ⟩
 
-instance and.printable_prop (x y : Prop) [printable_prop x] [printable_prop y] : printable_prop (x ∧ y) :=
+instance and.printable_prop (x y : Prop) [printable_prop x] [printable_prop y] :
+  printable_prop (x ∧ y) :=
 ⟨ do x' ← print_prop x,
     y' ← print_prop y,
     some sformat!"({x'} ∧ {y'})" ⟩
 
-instance or.printable_prop (x y : Prop) [printable_prop x] [printable_prop y] : printable_prop (x ∨ y) :=
+instance or.printable_prop (x y : Prop) [printable_prop x] [printable_prop y] :
+  printable_prop (x ∨ y) :=
 ⟨ do x' ← print_prop x,
     y' ← print_prop y,
     some sformat!"({x'} ∨ {y'})" ⟩
 
-instance iff.printable_prop (x y : Prop) [printable_prop x] [printable_prop y] : printable_prop (x ↔ y) :=
+instance iff.printable_prop (x y : Prop) [printable_prop x] [printable_prop y] :
+  printable_prop (x ↔ y) :=
 ⟨ do x' ← print_prop x,
     y' ← print_prop y,
     some sformat!"({x'} ↔ {y'})" ⟩
 
-instance imp.printable_prop (x y : Prop) [printable_prop x] [printable_prop y] : printable_prop (x → y) :=
+instance imp.printable_prop (x y : Prop) [printable_prop x] [printable_prop y] :
+  printable_prop (x → y) :=
 ⟨ do x' ← print_prop x,
     y' ← print_prop y,
     some sformat!"({x'} → {y'})" ⟩
@@ -738,7 +755,8 @@ exact $ add_decorations p
 end tactic
 
 /-- Run a test suite for `p` and return true or false: should we believe that `p` holds? -/
-def testable.check (p : Prop) (cfg : slim_check_cfg := {}) (p' : tactic.decorations_of p . tactic.mk_decorations) [testable p'] : io punit := do
+def testable.check (p : Prop) (cfg : slim_check_cfg := {})
+  (p' : tactic.decorations_of p . tactic.mk_decorations) [testable p'] : io punit := do
 x ← match cfg.random_seed with
     | some seed := io.run_rand_with seed (testable.run_suite p' cfg)
     | none := io.run_rand (testable.run_suite p' cfg)

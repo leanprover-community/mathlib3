@@ -236,6 +236,13 @@ variables {n α R}
   (diagonal d).map f = diagonal (λ m, f (d m)) :=
 by { ext, simp only [diagonal, map_apply], split_ifs; simp [h], }
 
+@[simp] lemma diagonal_conj_transpose [semiring α] [star_ring α] (v : n → α) :
+  (diagonal v)ᴴ = diagonal (star v) :=
+begin
+  rw [conj_transpose, diagonal_transpose, diagonal_map (star_zero _)],
+  refl,
+end
+
 section one
 variables [has_zero α] [has_one α]
 

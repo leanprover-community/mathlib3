@@ -368,22 +368,18 @@ begin
   exact ⟨nat.succ_le_of_lt, nat.lt_of_succ_le⟩
 end
 
-lemma form_perm_apply_not_mem (l : list α) (x : α) (h : x ∉ l) :
-  form_perm l x = x :=
+lemma mem_of_form_perm_ne_self (l : list α) (x : α) (h : form_perm l x ≠ x) :
+  x ∈ l :=
 begin
-  contrapose! h,
   suffices : x ∈ {y | form_perm l y ≠ y},
   { rw ←mem_to_finset,
     exact support_form_perm_le' _ this },
   simpa using h
 end
 
-lemma form_perm_ne_self_imp_mem (l : list α) (x : α) (h : form_perm l x ≠ x) :
-  x ∈ l :=
-begin
-  contrapose! h,
-  exact form_perm_apply_not_mem _ _ h
-end
+lemma form_perm_eq_self_of_not_mem (l : list α) (x : α) (h : x ∉ l) :
+  form_perm l x = x :=
+by_contra (λ H, h $ mem_of_form_perm_ne_self _ _ H)
 
 lemma form_perm_eq_one_iff (hl : nodup l) :
   form_perm l = 1 ↔ l.length ≤ 1 :=

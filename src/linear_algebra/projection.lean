@@ -131,7 +131,7 @@ end
 /-- Projection to a submodule along its complement. -/
 def linear_proj_of_is_compl (h : is_compl p q) :
   E →ₗ[R] p :=
-(linear_map.fst R p q).comp $ (prod_equiv_of_is_compl p q h).symm
+(linear_map.fst R p q) ∘ₗ ↑(prod_equiv_of_is_compl p q h).symm
 
 variables {p q}
 
@@ -188,7 +188,7 @@ open submodule
 the induced linear map over the entire module. -/
 def of_is_compl {p q : submodule R E} (h : is_compl p q)
   (φ : p →ₗ[R] F) (ψ : q →ₗ[R] F) : E →ₗ[R] F :=
-(linear_map.coprod φ ψ).comp (submodule.prod_equiv_of_is_compl _ _ h).symm
+(linear_map.coprod φ ψ) ∘ₗ ↑(submodule.prod_equiv_of_is_compl _ _ h).symm
 
 variables {p q}
 

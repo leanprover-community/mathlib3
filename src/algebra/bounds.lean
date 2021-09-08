@@ -114,3 +114,42 @@ variables {ι G : Type*} [group G] [conditionally_complete_lattice G]
 end left
 
 end conditionally_complete_lattice
+
+/-! ### Scalar multiplication -/
+
+variables {α β : Type*} [ordered_semiring α] [ordered_add_comm_monoid β] [module α β]
+  [ordered_smul α β] {s : set β} {a : α}
+
+lemma smul_lower_bounds_subset_lower_bounds_smul (ha : 0 ≤ a) :
+  a • lower_bounds s ⊆ lower_bounds (a • s) :=
+begin
+  rintro _ ⟨b, hb, rfl⟩ _ ⟨x, hx, rfl⟩,
+  exact smul_le_smul_of_nonneg (hb hx) ha,
+end
+
+lemma smul_upper_bounds_subset_upper_bounds_smul {α β : Type*} [ordered_semiring α]
+  [ordered_add_comm_monoid β] [smul_with_zero α β] [ordered_smul α β] {s : set β}
+  {a : α} (ha : 0 ≤ a) :
+  a • upper_bounds s ⊆ upper_bounds (a • s) :=
+begin
+  rintro _ ⟨b, hb, rfl⟩ _ ⟨x, hx, rfl⟩,
+  exact smul_le_smul_of_nonneg (hb hx) ha,
+end
+
+lemma smul_lower_bounds_subset_upper_bounds_smul {α β : Type*} [ordered_semiring α]
+  [ordered_add_comm_monoid β] [smul_with_zero α β] [ordered_smul α β] {s : set β}
+  {a : α} (ha : a ≤ 0) :
+  a • lower_bounds s ⊆ upper_bounds (a • s) :=
+begin
+  rintro _ ⟨b, hb, rfl⟩ _ ⟨x, hx, rfl⟩,
+  exact smul_le_smul_of_nonpos (hb hx) ha,
+end
+
+lemma smul_upper_bounds_subset_lower_bounds_smul {α β : Type*} [ordered_semiring α]
+  [ordered_add_comm_monoid β] [smul_with_zero α β] [ordered_smul α β] {s : set β}
+  {a : α} (ha : a ≤ 0) :
+  a • upper_bounds s ⊆ upper_bounds (a • s) :=
+begin
+  rintro _ ⟨b, hb, rfl⟩ _ ⟨x, hx, rfl⟩,
+  exact smul_le_smul_of_nonneg (hb hx) ha,
+end

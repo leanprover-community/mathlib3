@@ -59,7 +59,7 @@ lemma fin.circulant_injective : ∀ n, injective (λ v : fin n → α, circulant
   circulant v = circulant w ↔ v = w :=
 circulant_injective.eq_iff
 
-lemma fin.circulant_inj {v w : fin n → α} :
+@[simp] lemma fin.circulant_inj {v w : fin n → α} :
   circulant v = circulant w ↔ v = w :=
 (fin.circulant_injective n).eq_iff
 

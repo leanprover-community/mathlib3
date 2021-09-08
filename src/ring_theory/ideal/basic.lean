@@ -592,6 +592,18 @@ def lift (S : ideal α) (f : α →+* β) (H : ∀ (a : α), a ∈ S → f a = 0
 @[simp] lemma lift_mk (S : ideal α) (f : α →+* β) (H : ∀ (a : α), a ∈ S → f a = 0) :
   lift S f H (mk S a) = f a := rfl
 
+/-- The ring homomorphism from the quotient by a smaller ideal to the quotient by a larger ideal.
+
+This is the `ideal.quotient` version of `quot.factor` -/
+def factor (S T : ideal α) (H : S ≤ T) : S.quotient →+* T.quotient :=
+ideal.quotient.lift S (T^.quotient.mk) (λ x hx, eq_zero_iff_mem.2 (H hx))
+
+@[simp] lemma factor_mk (S T : ideal α) (H : S ≤ T) (x : α) :
+  factor S T H (mk S x) = mk T x := rfl
+
+@[simp] lemma factor_comp_mk (S T : ideal α) (H : S ≤ T) : (factor S T H).comp (mk S) = mk T :=
+by { ext x, rw [ring_hom.comp_apply, factor_mk] }
+
 end quotient
 
 /-- Quotienting by equal ideals gives equivalent rings.

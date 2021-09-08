@@ -638,20 +638,7 @@ def lsmul : 𝕜' →L[𝕜] E →L[𝕜] E :=
 ((algebra.lsmul 𝕜 E).to_linear_map : 𝕜' →ₗ[𝕜] E →ₗ[𝕜] E).mk_continuous₂ 1 $
   λ c x, by simpa only [one_mul] using (norm_smul c x).le
 
-lemma lsmul_apply (r : 𝕜') (x : E) : lsmul 𝕜 𝕜' r x = r • x :=
-by simp only [lsmul, alg_hom.to_linear_map_apply, linear_map.mk_continuous₂_apply,
-  algebra.lsmul_coe]
-
-variables {𝕜'}
-
-lemma norm_to_span_singleton (x : E) : ∥to_span_singleton 𝕜 x∥ = ∥x∥ :=
-begin
-  refine op_norm_eq_of_bounds (norm_nonneg _) (λ x, _) (λ N hN_nonneg h, _),
-  { rw [to_span_singleton_apply, norm_smul, mul_comm], },
-  { specialize h 1,
-    rw [to_span_singleton_apply, norm_smul, mul_comm] at h,
-    exact (mul_le_mul_right (by simp)).mp h, },
-end
+@[simp] lemma lsmul_apply (c : 𝕜') (x : E) : lsmul 𝕜 𝕜' c x = c • x := rfl
 
 end smul_linear
 

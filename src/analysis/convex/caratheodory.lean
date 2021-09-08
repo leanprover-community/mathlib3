@@ -157,7 +157,7 @@ end
 
 /-- A more explicit version of `convex_hull_eq_union`. -/
 theorem eq_pos_convex_span_of_mem_convex_hull {x : E} (hx : x ∈ convex_hull s) :
-  ∃ (ι : Sort (u+1)) [fintype ι], by exactI ∃ (z : ι → E) (w : ι → ℝ)
+  ∃ (ι : Sort (u+1)) (_ : fintype ι), by exactI ∃ (z : ι → E) (w : ι → ℝ)
     (hss : set.range z ⊆ s) (hai : affine_independent ℝ z)
     (hw : ∀ i, 0 < w i), ∑ i, w i = 1 ∧ ∑ i, w i • z i = x :=
 begin

@@ -396,8 +396,6 @@ equivalence at a fixed point `p₀ : P`, is an affine equivalence. -/
 def base_at (f : V₁ ≃ₗ[k] V₁) (x : P₁) : P₁ ≃ᵃ[k] P₁ :=
 ((vadd_const k x).symm.trans f.to_affine_equiv).trans (vadd_const k x)
 
-variables {k}
-
 @[simp] lemma linear_base_at (f : V₁ ≃ₗ[k] V₁) (x : P₁) :
   (f.base_at k x).linear = f :=
 by simp [base_at, affine_equiv.trans]

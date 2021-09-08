@@ -523,13 +523,11 @@ uniformity_basis_dist.uniform_continuous_iff uniformity_basis_dist
 
 lemma uniform_continuous_on_iff [pseudo_metric_space β] {f : α → β} {s : set α} :
   uniform_continuous_on f s ↔ ∀ ε > 0, ∃ δ > 0, ∀ x y ∈ s, dist x y < δ → dist (f x) (f y) < ε :=
-begin
-  dsimp [uniform_continuous_on],
-  rw (metric.uniformity_basis_dist.inf_principal (s.prod s)).tendsto_iff
-    metric.uniformity_basis_dist,
-  simp only [and_imp, exists_prop, prod.forall, mem_inter_eq, gt_iff_lt, mem_set_of_eq, mem_prod],
-  finish,
-end
+metric.uniformity_basis_dist.uniform_continuous_on_iff metric.uniformity_basis_dist
+
+lemma uniform_continuous_on_iff_le [pseudo_metric_space β] {f : α → β} {s : set α} :
+  uniform_continuous_on f s ↔ ∀ ε > 0, ∃ δ > 0, ∀ x y ∈ s, dist x y ≤ δ → dist (f x) (f y) ≤ ε :=
+metric.uniformity_basis_dist_le.uniform_continuous_on_iff metric.uniformity_basis_dist_le
 
 theorem uniform_embedding_iff [pseudo_metric_space β] {f : α → β} :
   uniform_embedding f ↔ function.injective f ∧ uniform_continuous f ∧
@@ -562,7 +560,7 @@ theorem totally_bounded_iff {s : set α} :
 /-- A pseudometric space space is totally bounded if one can reconstruct up to any ε>0 any element
 of the space from finitely many data. -/
 lemma totally_bounded_of_finite_discretization {s : set α}
-  (H : ∀ε > (0 : ℝ), ∃ (β : Type u) [fintype β] (F : s → β),
+  (H : ∀ε > (0 : ℝ), ∃ (β : Type u) (_ : fintype β) (F : s → β),
     ∀x y, F x = F y → dist (x:α) y < ε) :
   totally_bounded s :=
 begin
@@ -1152,7 +1150,7 @@ begin
   wlog h : a ≤ b,
   { apply nnreal.coe_eq.1,
     rw [nnreal.sub_eq_zero h, max_eq_right (zero_le $ b - a), ← dist_nndist, nnreal.dist_eq,
-      nnreal.coe_sub h, abs, neg_sub],
+      nnreal.coe_sub h, abs_eq_max_neg, neg_sub],
     apply max_eq_right,
     linarith [nnreal.coe_le_coe.2 h] },
   rwa [nndist_comm, max_comm]
@@ -2112,7 +2110,7 @@ open topological_space
 /-- A metric space space is second countable if one can reconstruct up to any `ε>0` any element of
 the space from countably many data. -/
 lemma second_countable_of_countable_discretization {α : Type u} [metric_space α]
-  (H : ∀ε > (0 : ℝ), ∃ (β : Type*) [encodable β] (F : α → β), ∀x y, F x = F y → dist x y ≤ ε) :
+  (H : ∀ε > (0 : ℝ), ∃ (β : Type*) (_ : encodable β) (F : α → β), ∀x y, F x = F y → dist x y ≤ ε) :
   second_countable_topology α :=
 begin
   cases (univ : set α).eq_empty_or_nonempty with hs hs,

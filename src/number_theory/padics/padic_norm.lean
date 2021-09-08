@@ -169,7 +169,7 @@ begin
   rw @padic_val_nat_def _ prime _ nonzero,
   let one_le_mul : _ ≤ multiplicity p n :=
     @multiplicity.le_multiplicity_of_pow_dvd _ _ _ p n 1 (begin norm_num, exact div end),
-  simp only [enat.coe_one] at one_le_mul,
+  simp only [nat.cast_one] at one_le_mul,
   rcases one_le_mul with ⟨_, q⟩,
   dsimp at q,
   solve_by_elim,
@@ -422,8 +422,8 @@ lemma pow_succ_padic_val_nat_not_dvd {p n : ℕ} [hp : fact (nat.prime p)] (hn :
 begin
   { rw multiplicity.pow_dvd_iff_le_multiplicity,
     rw padic_val_nat_def (ne_of_gt hn),
-    { rw [enat.coe_add, enat.coe_get],
-      simp only [enat.coe_one, not_le],
+    { rw [nat.cast_add, enat.coe_get],
+      simp only [nat.cast_one, not_le],
       apply enat.lt_add_one (ne_top_iff_finite.2 (finite_nat_iff.2 ⟨hp.elim.ne_one, hn⟩)) },
     { apply_instance } }
 end

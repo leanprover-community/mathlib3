@@ -42,7 +42,7 @@ section
 variables [has_scalar R ℝ]
 
 /- The useless `0` multiplication in `smul` is to make sure that
-`restrict_scalars.module ℝ ℂ ℂ  = complex.module` definitionally. -/
+`restrict_scalars.module ℝ ℂ ℂ = complex.module` definitionally. -/
 instance : has_scalar R ℂ :=
 { smul := λ r x, ⟨r • x.re - 0 * x.im, r • x.im + 0 * x.re⟩ }
 
@@ -104,7 +104,7 @@ end
 section
 open_locale complex_order
 
-lemma complex_ordered_module : ordered_module ℝ ℂ :=
+lemma complex_ordered_smul : ordered_smul ℝ ℂ :=
 { smul_lt_smul_of_pos := λ z w x h₁ h₂,
   begin
     obtain ⟨y, l, rfl⟩ := lt_def.mp h₁,
@@ -127,7 +127,7 @@ lemma complex_ordered_module : ordered_module ℝ ℂ :=
       simp [mul_comm _ y, mul_assoc, h] },
   end }
 
-localized "attribute [instance] complex_ordered_module" in complex_order
+localized "attribute [instance] complex_ordered_smul" in complex_order
 
 end
 

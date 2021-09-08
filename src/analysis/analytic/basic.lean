@@ -505,7 +505,8 @@ lemma has_fpower_series_on_ball.is_O_image_sub_image_sub_deriv_principal
     (λ y, ∥y - (x, x)∥ * ∥y.1 - y.2∥) (𝓟 $ emetric.ball (x, x) r') :=
 begin
   lift r' to ℝ≥0 using ne_top_of_lt hr,
-  rcases (zero_le r').eq_or_lt with rfl|hr'0, { simp },
+  rcases (zero_le r').eq_or_lt with rfl|hr'0,
+  { simp only [is_O_bot, emetric.ball_zero, principal_empty, ennreal.coe_zero] },
   obtain ⟨a, ha, C, hC : 0 < C, hp⟩ :
     ∃ (a ∈ Ioo (0 : ℝ) 1) (C > 0), ∀ (n : ℕ), ∥p n∥ * ↑r' ^ n ≤ C * a ^ n,
     from p.norm_mul_pow_le_mul_pow_of_lt_radius (hr.trans_le hf.r_le),
@@ -519,7 +520,7 @@ begin
     { rw [emetric.ball_prod_same], exact emetric.ball_subset_ball hr.le hy' },
     set A : ℕ → F := λ n, p n (λ _, y.1 - x) - p n (λ _, y.2 - x),
     have hA : has_sum (λ n, A (n + 2)) (f y.1 - f y.2 - (p 1 (λ _, y.1 - y.2))),
-    { convert (has_sum_nat_add_iff' 2).2 ((hf.has_sum_sub hy.1).sub (hf.has_sum_sub hy.2)),
+    { convert (has_sum_nat_add_iff' 2).2 ((hf.has_sum_sub hy.1).sub (hf.has_sum_sub hy.2)) using 1,
       rw [finset.sum_range_succ, finset.sum_range_one, hf.coeff_zero, hf.coeff_zero, sub_self,
         zero_add, ← subsingleton.pi_single_eq (0 : fin 1) (y.1 - x), pi.single,
         ← subsingleton.pi_single_eq (0 : fin 1) (y.2 - x), pi.single, ← (p 1).map_sub, ← pi.single,
@@ -529,7 +530,7 @@ begin
       (C * (a / r') ^ 2) * (∥y - (x, x)∥ * ∥y.1 - y.2∥) * ((n + 2) * a ^ n),
     have hAB : ∀ n, ∥A (n + 2)∥ ≤ B n := λ n,
     calc ∥A (n + 2)∥ ≤ ∥p (n + 2)∥ * ↑(n + 2) * ∥y - (x, x)∥ ^ (n + 1) * ∥y.1 - y.2∥ :
-      by simpa [fintype.card_fin, pi_norm_const, prod.norm_def, pi.sub_def, prod.fst_sub,
+      by simpa only [fintype.card_fin, pi_norm_const, prod.norm_def, pi.sub_def, prod.fst_sub,
         prod.snd_sub, sub_sub_sub_cancel_right]
         using (p $ n + 2).norm_image_sub_le (λ _, y.1 - x) (λ _, y.2 - x)
     ... = ∥p (n + 2)∥ * ∥y - (x, x)∥ ^ n * (↑(n + 2) * ∥y - (x, x)∥ * ∥y.1 - y.2∥) :
@@ -539,7 +540,7 @@ begin
         hy'.le, norm_nonneg, pow_nonneg, div_nonneg, mul_nonneg, nat.cast_nonneg,
         hC.le, r'.coe_nonneg, ha.1.le]
     ... = B n :
-      by { field_simp [B, pow_succ, hr'0.ne'], simp [mul_assoc, mul_comm, mul_left_comm] },
+      by { field_simp [B, pow_succ, hr'0.ne'], simp only [mul_assoc, mul_comm, mul_left_comm] },
     have hBL : has_sum B (L y),
     { apply has_sum.mul_left,
       simp only [add_mul],

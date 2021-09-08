@@ -251,66 +251,6 @@ end
 
 end category_theory
 
-open category_theory
-
-/-!
-We now put a category instance on any preorder.
-
-Because we do not allow the morphisms of a category to live in `Prop`,
-unfortunately we need to use `plift` and `ulift` when defining the morphisms.
-
-As convenience functions, we provide `hom_of_le` and `le_of_hom` to wrap and unwrap inequalities.
-We also provide aliases `has_le.le.hom` and `quiver.hom.le` to use with dot notation.
--/
-namespace preorder
-
-variables (α : Type u)
-
-/--
-The category structure coming from a preorder. There is a morphism `X ⟶ Y` if and only if `X ≤ Y`.
-
-Because we don't allow morphisms to live in `Prop`,
-we have to define `X ⟶ Y` as `ulift (plift (X ≤ Y))`.
-See `category_theory.hom_of_le` and `category_theory.le_of_hom`.
-
-See https://stacks.math.columbia.edu/tag/00D3.
--/
-@[priority 100] -- see Note [lower instance priority]
-instance small_category [preorder α] : small_category α :=
-{ hom  := λ U V, ulift (plift (U ≤ V)),
-  id   := λ X, ⟨ ⟨ le_refl X ⟩ ⟩,
-  comp := λ X Y Z f g, ⟨ ⟨ le_trans _ _ _ f.down.down g.down.down ⟩ ⟩ }
-
-end preorder
-
-namespace category_theory
-
-variables {α : Type u} [preorder α]
-
-/--
-Express an inequality as a morphism in the corresponding preorder category.
--/
-def hom_of_le {U V : α} (h : U ≤ V) : U ⟶ V := ulift.up (plift.up h)
-
-alias hom_of_le ← has_le.le.hom
-
-@[simp] lemma hom_of_le_refl {U : α} : (le_refl U).hom = 𝟙 U := rfl
-@[simp] lemma hom_of_le_comp {U V W : α} (h : U ≤ V) (k : V ≤ W) :
-  h.hom ≫ k.hom = (h.trans k).hom := rfl
-
-/--
-Extract the underlying inequality from a morphism in a preorder category.
--/
-lemma le_of_hom {U V : α} (h : U ⟶ V) : U ≤ V := h.down.down
-
-alias le_of_hom ← quiver.hom.le
-
-@[simp] lemma le_of_hom_hom_of_le {a b : α} (h : a ≤ b) : h.hom.le = h := rfl
-@[simp] lemma hom_of_le_le_of_hom {a b : α} (h : a ⟶ b) : h.le.hom = h :=
-by { cases h, cases h, refl, }
-
-end category_theory
-
 /--
 Many proofs in the category theory library use the `dsimp, simp` pattern,
 which typically isn't necessary elsewhere.

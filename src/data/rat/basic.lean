@@ -156,12 +156,12 @@ begin
       have dv := @gcd_abs_dvd_left,
       have := int.eq_mul_of_div_eq_right dv ha,
       rw ← int.mul_div_assoc _ dv at this,
-      exact int.eq_mul_of_div_eq_left (dvd_mul_of_dvd_right dv _) this.symm },
+      exact int.eq_mul_of_div_eq_left (dv.mul_left _) this.symm },
     have hb, {
       have dv := λ {a b}, nat.gcd_dvd_right (int.nat_abs a) b,
       have := nat.eq_mul_of_div_eq_right dv hb,
       rw ← nat.mul_div_assoc _ dv at this,
-      exact nat.eq_mul_of_div_eq_left (dvd_mul_of_dvd_right dv _) this.symm },
+      exact nat.eq_mul_of_div_eq_left (dv.mul_left _) this.symm },
     have m0 : (a.nat_abs.gcd b * c.nat_abs.gcd d : ℤ) ≠ 0, {
       refine int.coe_nat_ne_zero.2 (ne_of_gt _),
       apply mul_pos; apply nat.gcd_pos_of_pos_right; assumption },

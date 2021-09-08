@@ -43,7 +43,7 @@ section semiring
 variables (M G : Type u) [monoid M] [group G]
 variables (A R S F : Type v) [add_monoid A] [semiring R] [comm_semiring S] [division_ring F]
 
--- note we could not use `extends` since these typeclasses are make with `old_structure_cmd`
+-- note we could not use `extends` since these typeclasses are made with `old_structure_cmd`
 @[priority 100]
 instance mul_semiring_action.to_mul_distrib_mul_action [h : mul_semiring_action M R] :
   mul_distrib_mul_action M R :=
@@ -55,7 +55,7 @@ def distrib_mul_action.to_add_equiv [distrib_mul_action G A] (x : G) : A ≃+ A 
 { .. distrib_mul_action.to_add_monoid_hom A x,
   .. mul_action.to_perm_hom G A x }
 
-/-- Each element of the group defines an multiplicative monoid isomorphism. -/
+/-- Each element of the group defines a multiplicative monoid isomorphism. -/
 @[simps]
 def mul_distrib_mul_action.to_mul_equiv [mul_distrib_mul_action G M] (x : G) : M ≃* M :=
 { .. mul_distrib_mul_action.to_monoid_hom M x,

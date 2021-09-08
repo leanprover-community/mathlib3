@@ -171,7 +171,7 @@ lemma is_diag_from_blocks_iff [has_zero α]
 begin
   split,
   { intros h,
-    repeat {split};
+    repeat { split };
     try {intros i j hij <|> ext i j},
     { have g : sum.inl i ≠ sum.inl j, {simp [hij]},
       specialize h g,

@@ -35,11 +35,11 @@ This formulation is often more useful in practice and is available via `sup_exis
 which takes a finset of objects, and an indexed family (indexed by source and target)
 of finsets of morphisms.
 
-Furthermore, we give special support for two diagram categories: The `bowtie` and the `crown`.
+Furthermore, we give special support for two diagram categories: The `bowtie` and the `tulip`.
 This is because these shapes show up in the proofs that forgetful functors of algebraic categories
 (e.g. `Mon`, `CommRing`, ...) preserve filtered colimits.
 
-All of the above API, except for the `bowtie` and the `crown`, is also provided for cofiltered
+All of the above API, except for the `bowtie` and the `tulip`, is also provided for cofiltered
 categories.
 
 ## See also
@@ -392,7 +392,7 @@ begin
 end
 
 /--
-Given a "crown" of morphisms
+Given a "tulip" of morphisms
 ```
  j₁    j₂    j₃
  |\   / \   / |
@@ -409,7 +409,7 @@ Given a "crown" of morphisms
 in a filtered category, we can construct an object `s` and three morphisms from `k₁`, `k₂` and `l`
 to `s`, making the resulting sqaures commute.
 -/
-lemma crown {j₁ j₂ j₃ k₁ k₂ l : C} (f₁ : j₁ ⟶ k₁) (f₂ : j₂ ⟶ k₁) (f₃ : j₂ ⟶ k₂) (f₄ : j₃ ⟶ k₂)
+lemma tulip {j₁ j₂ j₃ k₁ k₂ l : C} (f₁ : j₁ ⟶ k₁) (f₂ : j₂ ⟶ k₁) (f₃ : j₂ ⟶ k₂) (f₄ : j₃ ⟶ k₂)
   (g₁ : j₁ ⟶ l) (g₂ : j₃ ⟶ l) :
   ∃ (s : C) (α : k₁ ⟶ s) (β : l ⟶ s) (γ : k₂ ⟶ s),
     f₁ ≫ α = g₁ ≫ β ∧ f₂ ≫ α = f₃ ≫ γ ∧ f₄ ≫ γ = g₂ ≫ β :=
@@ -426,16 +426,16 @@ begin
   use second_to_max₃ k₁ l k₂ ≫ coeq_hom _ _ ≫ second_to_max₃ sb sc sd ≫ coeq₃_hom _ _ _,
   use third_to_max₃ k₁ l k₂ ≫ coeq_hom _ _ ≫ third_to_max₃ sb sc sd ≫ coeq₃_hom _ _ _,
   fsplit,
-  slice_lhs 1 3 { rw [← category.assoc, coeq_condition _ _] },
-  slice_lhs 3 6 { rw [← category.assoc, coeq₃_condition₁ _ _ _] },
+  slice_lhs 1 3 { rw [← category.assoc, coeq_condition] },
+  slice_lhs 3 6 { rw [← category.assoc, coeq₃_condition₁] },
   simp only [category.assoc],
   fsplit,
-  slice_lhs 3 6 { rw [← category.assoc, coeq₃_condition₁ _ _ _] },
-  slice_lhs 1 3 { rw [← category.assoc, coeq_condition _ _] },
-  slice_rhs 3 6 { rw [← category.assoc, ← coeq₃_condition₂ _ _ _] },
+  slice_lhs 3 6 { rw [← category.assoc, coeq₃_condition₁] },
+  slice_lhs 1 3 { rw [← category.assoc, coeq_condition] },
+  slice_rhs 3 6 { rw [← category.assoc, ← coeq₃_condition₂] },
   simp only [category.assoc],
-  slice_rhs 3 6 { rw [← category.assoc, coeq₃_condition₂ _ _ _] },
-  slice_rhs 1 3 { rw [← category.assoc, ← coeq_condition _ _] },
+  slice_rhs 3 6 { rw [← category.assoc, coeq₃_condition₂] },
+  slice_rhs 1 3 { rw [← category.assoc, ← coeq_condition] },
   simp only [category.assoc],
 end
 

@@ -290,7 +290,7 @@ begin
   cases x with j₁ x, cases y with j₂ y, cases x' with j₃ x',
   obtain ⟨l, f, g, hfg⟩ := hxx',
   simp at hfg,
-  obtain ⟨s, α, β, γ, h₁, h₂, h₃⟩ := crown (left_to_max j₁ j₂) (right_to_max j₁ j₂)
+  obtain ⟨s, α, β, γ, h₁, h₂, h₃⟩ := tulip (left_to_max j₁ j₂) (right_to_max j₁ j₂)
     (right_to_max j₃ j₂) (left_to_max j₃ j₂) f g,
   apply quot.eqv_gen_sound,
   apply types.filtered_colimit.eqv_gen_quot_rel_of_rel,
@@ -305,7 +305,7 @@ begin
   cases y with j₁ y, cases x with j₂ x, cases y' with j₃ y',
   obtain ⟨l, f, g, hfg⟩ := hyy',
   simp at hfg,
-  obtain ⟨s, α, β, γ, h₁, h₂, h₃⟩ := crown (right_to_max j₂ j₁) (left_to_max j₂ j₁)
+  obtain ⟨s, α, β, γ, h₁, h₂, h₃⟩ := tulip (right_to_max j₂ j₁) (left_to_max j₂ j₁)
     (left_to_max j₂ j₃) (right_to_max j₂ j₃) f g,
   apply quot.eqv_gen_sound,
   apply types.filtered_colimit.eqv_gen_quot_rel_of_rel,

@@ -6,7 +6,39 @@ Authors: Rémy Degenne
 import measure_theory.function.simple_func_dense
 
 /-!
-# TODO
+# Extension of a linear function from indicators to L1
+
+Let `T : set α → E →L[ℝ] F` be additive for measurable sets with finite measure, in the sense that
+for `s, t` two such sets, `s ∩ t = ∅ → T (s ∪ t) = T s + T t`. `T` is akin to a bilinear map on
+`set α × E`, or a linear map on indicator functions.
+
+This file constructs an extension of `T` to integrable simple functions, which are finite sums of
+indicators of measurable sets with finite measure, then to integrable functions, which are limits of
+integrable simple functions.
+
+The main result is a continuous linear map `(α →₁[μ] E) →L[ℝ] F`. This extension process is used to
+define the Bochner integral in the `bochner` file. It will also be used to define the conditional
+expectation of an integrable function (TODO).
+
+## Main Definitions
+
+- `fin_meas_additive μ T`: the property that `T` is additive on measurable sets with finite measure.
+  For two such sets, `s ∩ t = ∅ → T (s ∪ t) = T s + T t`.
+- `dominated_fin_meas_additive μ T C`: `fin_meas_additive μ T ∧ ∀ s, ∥T s∥ ≤ C * (μ s).to_real`.
+  This is the property needed to perform the extension from indicators to L1.
+- `set_to_L1 (hT : dominated_fin_meas_additive μ T C) : (α →₁[μ] E) →L[ℝ] F`: the extension of `T`
+  from indicators to L1.
+- `set_to_fun (hT : dominated_fin_meas_additive μ T C) (f : α → E) : F`: a version of the extension
+  which applies to functions (with value 0 if the function is not integrable).
+
+## Implementation notes
+
+The starting object `T : set α → E →L[ℝ] F` matters only through its restriction on measurable sets
+with finite measure. Its value on other sets is ignored.
+
+The extension step from integrable simple functions to L1 relies on a `second_countable_topology`
+assumption. Without it, we could only extend to `ae_fin_strongly_measurable` functions. (TODO: this
+might be worth doing?)
 
 -/
 

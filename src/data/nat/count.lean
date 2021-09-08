@@ -210,37 +210,6 @@ begin
     simpa using ht, },
 end
 
-lemma nth_succ_of_zero (h : p 0) (n : ℕ) (w : (n + 2 : cardinal) ≤ cardinal.mk (set_of p)) :
-  nth p (n + 1) = nth (λ i, p (i + 1)) n + 1 :=
-begin
-  revert w,
-  apply nat.strong_induction_on n,
-  intros n' ih w,
-  replace ih : ∀ m, m < n' → nth (λ i, p (i + 1)) m = nth p (m + 1) - 1,
-  { intros m hm,
-    specialize ih m hm (le_trans _ w),
-    { norm_cast,
-      exact le_of_lt (add_lt_add_right hm 2), },
-    simp [ih], },
-  rw [nth_def, nth_def],
-  simp [ih] {contextual:=tt},
-  obtain h0 | hlt := nat.eq_zero_or_pos (Inf {i | p (i + 1) ∧ ∀ k, k < n' → nth p (k + 1) - 1 < i}),
-  { rw [h0, zero_add],
-    simp at h0,
-    obtain ⟨hp, h0⟩ | h0 := h0,
-    { rw nonpos_iff_eq_zero.mp (not_lt.mp $ h0 0),
-      simp only [lt_one_iff, forall_eq, nth_zero_of_zero _ h],
-      rw Inf_def,
-      { erw nat.find_eq_iff,
-        refine ⟨by simpa, λ m hm, _⟩,
-        rw nat.lt_one_iff at hm,
-        simp [hm] },
-      { exact ⟨1, by simpa⟩ } },
-    { sorry } },
-  { rw Inf_plus hlt,
-    { sorry } }
-end
-
 lemma nth_zero_of_exists [decidable_pred p] (h : ∃ n, p n) : nth p 0 = nat.find h :=
 by { rw [nth_zero], convert nat.Inf_def h, }
 
@@ -726,8 +695,8 @@ begin
           simp only [and_imp, imp_self, set.finite.mem_to_finset,
             implies_true_iff, finset.mem_filter, set.mem_set_of_eq], }, },
       exact hfi, },
-      apply lt_of_count_lt,
-
+      -- apply lt_of_count_lt,
+      sorry,
    },
   { rw ← lt_nth_iff_count_lt,
     exact h,

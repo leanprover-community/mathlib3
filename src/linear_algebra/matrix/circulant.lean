@@ -139,7 +139,7 @@ lemma circulant_smul [has_sub I] [has_scalar R α] {k : R} {v : I → α} :
   circulant (k • v) = k • circulant v :=
 by {ext, simp [circulant]}
 
-lemma circulant_zero [has_zero α] [has_sub I]:
+@[simp] lemma circulant_zero [has_zero α] [has_sub I]:
   circulant 0 = (0 : matrix I I α) :=
 by ext; simp [circulant]
 

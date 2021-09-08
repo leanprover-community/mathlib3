@@ -2211,8 +2211,6 @@ end
 @[simp] lemma orthogonal_projection_mem_subspace_eq_self (v : K) : orthogonal_projection K v = v :=
 by { ext, apply eq_orthogonal_projection_of_mem_of_inner_eq_zero; simp }
 
-local attribute [instance] finite_dimensional_bot
-
 /-- The orthogonal projection onto the trivial submodule is the zero map. -/
 @[simp] lemma orthogonal_projection_bot : orthogonal_projection (⊥ : submodule 𝕜 E) = 0 :=
 by ext

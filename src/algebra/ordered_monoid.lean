@@ -28,24 +28,18 @@ universe u
 variable {α : Type u}
 
 /-- An ordered commutative monoid is a commutative monoid
-with a partial order such that
-  * `a ≤ b → c * a ≤ c * b` (multiplication is monotone)
-  * `a * b < a * c → b < c`.
+with a partial order such that `a ≤ b → c * a ≤ c * b` (multiplication is monotone)
 -/
 @[protect_proj, ancestor comm_monoid partial_order]
 class ordered_comm_monoid (α : Type*) extends comm_monoid α, partial_order α :=
 (mul_le_mul_left       : ∀ a b : α, a ≤ b → ∀ c : α, c * a ≤ c * b)
-(lt_of_mul_lt_mul_left : ∀ a b c : α, a * b < a * c → b < c)
 
 /-- An ordered (additive) commutative monoid is a commutative monoid
-  with a partial order such that
-  * `a ≤ b → c + a ≤ c + b` (addition is monotone)
-  * `a + b < a + c → b < c`.
+  with a partial order such that `a ≤ b → c + a ≤ c + b` (addition is monotone)
 -/
 @[protect_proj, ancestor add_comm_monoid partial_order]
 class ordered_add_comm_monoid (α : Type*) extends add_comm_monoid α, partial_order α :=
 (add_le_add_left       : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
-(lt_of_add_lt_add_left : ∀ a b c : α, a + b < a + c → b < c)
 
 attribute [to_additive] ordered_comm_monoid
 
@@ -56,26 +50,12 @@ instance ordered_comm_monoid.to_covariant_class_left (M : Type*) [ordered_comm_m
   covariant_class M M (*) (≤) :=
 { elim := λ a b c bc, ordered_comm_monoid.mul_le_mul_left _ _ bc a }
 
-@[to_additive]
-instance ordered_comm_monoid.to_contravariant_class_left (M : Type*) [ordered_comm_monoid M] :
-  contravariant_class M M (*) (<) :=
-{ elim := λ a b c, ordered_comm_monoid.lt_of_mul_lt_mul_left _ _ _ }
-
 /- This instance can be proven with `by apply_instance`.  However, `with_bot ℕ` does not
 pick up a `covariant_class M M (function.swap (*)) (≤)` instance without it (see PR #7940). -/
 @[to_additive]
 instance ordered_comm_monoid.to_covariant_class_right (M : Type*) [ordered_comm_monoid M] :
   covariant_class M M (swap (*)) (≤) :=
 covariant_swap_mul_le_of_covariant_mul_le M
-
-/- This instance can be proven with `by apply_instance`.  However, by analogy with the
-instance `ordered_comm_monoid.to_covariant_class_right` above, I imagine that without
-this instance, some Type would not have a `contravariant_class M M (function.swap (*)) (≤)`
-instance. -/
-@[to_additive]
-instance ordered_comm_monoid.to_contravariant_class_right (M : Type*) [ordered_comm_monoid M] :
-  contravariant_class M M (swap (*)) (<) :=
-contravariant_swap_mul_lt_of_contravariant_mul_lt M
 
 end ordered_instances
 
@@ -100,24 +80,12 @@ export has_exists_add_of_le (exists_add_of_le)
 /-- A linearly ordered additive commutative monoid. -/
 @[protect_proj, ancestor linear_order ordered_add_comm_monoid]
 class linear_ordered_add_comm_monoid (α : Type*)
-  extends linear_order α, ordered_add_comm_monoid α :=
-(lt_of_add_lt_add_left := λ x y z, by {
-  -- type-class inference uses `a : linear_order α` which it can't unfold, unless we provide this!
-  -- `lt_iff_le_not_le` gets filled incorrectly with `autoparam` if we don't provide that field.
-  letI : linear_order α := by refine { le := le, lt := lt, lt_iff_le_not_le := _, .. }; assumption,
-  apply lt_imp_lt_of_le_imp_le,
-  exact λ h, add_le_add_left _ _ h _ })
+  extends linear_order α, ordered_add_comm_monoid α.
 
 /-- A linearly ordered commutative monoid. -/
 @[protect_proj, ancestor linear_order ordered_comm_monoid, to_additive]
 class linear_ordered_comm_monoid (α : Type*)
-  extends linear_order α, ordered_comm_monoid α :=
-(lt_of_mul_lt_mul_left := λ x y z, by {
-  -- type-class inference uses `a : linear_order α` which it can't unfold, unless we provide this!
-  -- `lt_iff_le_not_le` gets filled incorrectly with `autoparam` if we don't provide that field.
-  letI : linear_order α := by refine { le := le, lt := lt, lt_iff_le_not_le := _, .. }; assumption,
-  apply lt_imp_lt_of_le_imp_le,
-  exact λ h, mul_le_mul_left _ _ h _ })
+  extends linear_order α, ordered_comm_monoid α.
 
 /-- A linearly ordered commutative monoid with a zero element. -/
 class linear_ordered_comm_monoid_with_zero (α : Type*)
@@ -158,8 +126,6 @@ def function.injective.ordered_comm_monoid [ordered_comm_monoid α] {β : Type*}
   ordered_comm_monoid β :=
 { mul_le_mul_left := λ a b ab c, show f (c * a) ≤ f (c * b), by
   { rw [mul, mul], apply mul_le_mul_left', exact ab },
-  lt_of_mul_lt_mul_left :=
-    λ a b c bc, show f b < f c, from lt_of_mul_lt_mul_left' (by rwa [← mul, ← mul] : (f a) * _ < _),
   ..partial_order.lift f hf,
   ..hf.comm_monoid f one mul }
 
@@ -273,7 +239,6 @@ end
 
 instance [ordered_comm_monoid α] : ordered_comm_monoid (with_zero α) :=
 { mul_le_mul_left := with_zero.mul_le_mul_left,
-  lt_of_mul_lt_mul_left := with_zero.lt_of_mul_lt_mul_left,
   ..with_zero.comm_monoid_with_zero,
   ..with_zero.partial_order }
 
@@ -295,17 +260,6 @@ begin
     add_le_add_left := this,
     ..with_zero.partial_order,
     ..with_zero.add_comm_monoid, .. },
-  { intros a b c h,
-    have h' := lt_iff_le_not_le.1 h,
-    rw lt_iff_le_not_le at ⊢,
-    refine ⟨λ b h₂, _, λ h₂, h'.2 $ this _ _ h₂ _⟩,
-    cases h₂, cases c with c,
-    { cases h'.2 (this _ _ bot_le a) },
-    { refine ⟨_, rfl, _⟩,
-      cases a with a,
-      { exact with_bot.some_le_some.1 h'.1 },
-      { exact le_of_lt (lt_of_add_lt_add_left $
-          with_bot.some_lt_some.1 h), } } },
   { intros a b h c ca h₂,
     cases b with b,
     { rw le_antisymm h bot_le at h₂,
@@ -420,15 +374,6 @@ instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (with_top α) :=
       simp only [some_eq_coe, ← coe_add, coe_le_coe] at h ⊢,
       exact add_le_add_left h c
     end,
-  lt_of_add_lt_add_left :=
-    begin
-      intros a b c h,
-      rcases lt_iff_exists_coe.1 h with ⟨ab, hab, hlt⟩,
-      rcases add_eq_coe.1 hab with ⟨a, b, rfl, rfl, rfl⟩,
-      rw coe_lt_iff,
-      rintro c rfl,
-      exact lt_of_add_lt_add_left (coe_lt_coe.1 hlt)
-    end,
   ..with_top.partial_order, ..with_top.add_comm_monoid }
 
 instance [linear_ordered_add_comm_monoid α] :
@@ -469,16 +414,6 @@ begin
     add_le_add_left := this,
     ..with_bot.partial_order,
     ..with_bot.add_comm_monoid, ..},
-  { intros a b c h,
-    have h' := h,
-    rw lt_iff_le_not_le at h' ⊢,
-    refine ⟨λ b h₂, _, λ h₂, h'.2 $ this _ _ h₂ _⟩,
-    cases h₂, cases a with a,
-    { exact (not_le_of_lt h).elim bot_le },
-    cases c with c,
-    { exact (not_le_of_lt h).elim bot_le },
-    { exact ⟨_, rfl, le_of_lt (lt_of_add_lt_add_left $
-        with_bot.some_lt_some.1 h)⟩ } },
   { intros a b h c ca h₂,
     cases c with c, {cases h₂},
     cases a with a; cases h₂,
@@ -733,12 +668,31 @@ class ordered_cancel_comm_monoid (α : Type u)
 section ordered_cancel_comm_monoid
 variables [ordered_cancel_comm_monoid α] {a b c d : α}
 
+@[to_additive]
+lemma ordered_cancel_comm_monoid.lt_of_mul_lt_mul_left : ∀ a b c : α, a * b < a * c → b < c :=
+λ a b c h, lt_of_le_not_le
+  (ordered_cancel_comm_monoid.le_of_mul_le_mul_left a b c h.le) $
+  mt (λ h, ordered_cancel_comm_monoid.mul_le_mul_left _ _ h _) (not_le_of_gt h)
+
+@[to_additive]
+instance ordered_cancel_comm_monoid.to_contravariant_class_left
+  (M : Type*) [ordered_cancel_comm_monoid M] :
+  contravariant_class M M (*) (<) :=
+{ elim := λ a b c, ordered_cancel_comm_monoid.lt_of_mul_lt_mul_left _ _ _ }
+
+/- This instance can be proven with `by apply_instance`.  However, by analogy with the
+instance `ordered_cancel_comm_monoid.to_covariant_class_right` above, I imagine that without
+this instance, some Type would not have a `contravariant_class M M (function.swap (*)) (<)`
+instance. -/
+@[to_additive]
+instance ordered_cancel_comm_monoid.to_contravariant_class_right
+  (M : Type*) [ordered_cancel_comm_monoid M] :
+  contravariant_class M M (swap (*)) (<) :=
+contravariant_swap_mul_lt_of_contravariant_mul_lt M
+
 @[priority 100, to_additive]    -- see Note [lower instance priority]
 instance ordered_cancel_comm_monoid.to_ordered_comm_monoid : ordered_comm_monoid α :=
-{ lt_of_mul_lt_mul_left := λ a b c h, lt_of_le_not_le
-      (ordered_cancel_comm_monoid.le_of_mul_le_mul_left a b c h.le) $
-      mt (λ h, ordered_cancel_comm_monoid.mul_le_mul_left _ _ h _) (not_le_of_gt h),
-  ..‹ordered_cancel_comm_monoid α› }
+{ ..‹ordered_cancel_comm_monoid α› }
 
 /-- Pullback an `ordered_cancel_comm_monoid` under an injective map.
 See note [reducible non-instances]. -/
@@ -943,7 +897,6 @@ instance covariant_class_swap_mul_lt [has_lt α] [has_mul α]
 @[to_additive]
 instance [ordered_comm_monoid α] : ordered_comm_monoid (order_dual α) :=
 { mul_le_mul_left := λ a b h c, mul_le_mul_left' h c,
-  lt_of_mul_lt_mul_left := λ a b c, lt_of_mul_lt_mul_left',
   .. order_dual.partial_order α,
   .. order_dual.comm_monoid }
 
@@ -995,13 +948,11 @@ instance : Π [linear_order α], linear_order (additive α) := id
 
 instance [ordered_add_comm_monoid α] : ordered_comm_monoid (multiplicative α) :=
 { mul_le_mul_left := @ordered_add_comm_monoid.add_le_add_left α _,
-  lt_of_mul_lt_mul_left := @ordered_add_comm_monoid.lt_of_add_lt_add_left α _,
   ..multiplicative.partial_order,
   ..multiplicative.comm_monoid }
 
 instance [ordered_comm_monoid α] : ordered_add_comm_monoid (additive α) :=
 { add_le_add_left := @ordered_comm_monoid.mul_le_mul_left α _,
-  lt_of_add_lt_add_left := @ordered_comm_monoid.lt_of_mul_lt_mul_left α _,
   ..additive.partial_order,
   ..additive.add_comm_monoid }
 

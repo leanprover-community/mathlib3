@@ -65,7 +65,7 @@ def mul_distrib_mul_action.to_mul_equiv [mul_distrib_mul_action G M] (x : G) : M
 @[simps]
 def mul_semiring_action.to_ring_hom [mul_semiring_action M R] (x : M) : R →+* R :=
 { .. mul_distrib_mul_action.to_monoid_hom R x,
-  .. distrib_mul_action.to_add_monoid_hom M R x }
+  .. distrib_mul_action.to_add_monoid_hom R x }
 
 theorem to_ring_hom_injective [mul_semiring_action M R] [has_faithful_scalar M R] :
   function.injective (mul_semiring_action.to_ring_hom M R) :=

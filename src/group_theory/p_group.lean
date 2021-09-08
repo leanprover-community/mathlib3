@@ -52,15 +52,15 @@ begin
   exact (hq1.pow_eq_iff.mp (hg.symm.trans hk).symm).1.symm,
 end
 
-variables (hG : is_p_group p G)
-
-include hG
-
 lemma to_le {H K : subgroup G} (hK : is_p_group p K) (hHK : H ≤ K) : is_p_group p H :=
 begin
   simp_rw [is_p_group, subtype.ext_iff, subgroup.coe_pow] at hK ⊢,
   exact λ h, hK ⟨h, hHK h.2⟩,
 end
+
+variables (hG : is_p_group p G)
+
+include hG
 
 lemma to_subgroup (H : subgroup G) : is_p_group p H :=
 begin

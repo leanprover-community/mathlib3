@@ -1,11 +1,8 @@
-import tactic.ring
-import tactic.choose
+
 import tactic.pi_instances
 import .modular_group
 import linear_algebra.general_linear_group
 import .modular_forms
-import ring_theory.coprime
-import ring_theory.int.basic
 import data.matrix.notation
 import data.setoid.partition
 import topology.instances.ennreal
@@ -15,6 +12,7 @@ import .holomorphic_functions
 import order.filter.archimedean
 import .Weierstrass_M_test
 import analysis.complex.upper_half_plane
+import topology.compact_open
 
 
 universes u v w
@@ -41,6 +39,12 @@ namespace Eisenstein_series
 def Eise (k: ℤ) (z : ℍ) : ℤ × ℤ →  ℂ:=
 λ x, 1/(x.1*z+x.2)^k
 
+def Eisen (k : ℤ) (x : ℤ × ℤ) : C(ℍ, ℂ) :=
+⟨λ z, 1/(x.1*z+x.2)^k, by {simp,  sorry}⟩
+
+instance : topological_space C(ℍ, ℂ) :=infer_instance
+
+
 
 def Eise' (k: ℤ) (z : ℂ) : ℤ × ℤ →  ℂ:=
 λ x, 1/(x.1*z+x.2)^k
@@ -59,6 +63,8 @@ but in order to make it an actual modular form some constraints will be needed -
 def Eisenstein_series_of_weight_ (k: ℤ) : ℍ' → ℂ:=
  λ z, ∑' (x : ℤ × ℤ), (Eise k z x)
 
+
+
 def real_Eisenstein_series_of_weight_ (k: ℤ) : ℍ' → ℝ:=
  λ z, ∑' (x : ℤ × ℤ), (real_Eise k z x)
 
@@ -67,11 +73,14 @@ def Eisenstein_deriv_weight (k: ℤ) : ℍ' → ℂ:=
 
 
 
+lemma summable2 (k : ℤ) (h: 3 ≤ k) : summable (Eisen k):=
+begin
+  sorry,
+end
 
 
-
-
-
+def Eisenstein_series_of_weight_' (k: ℤ) : C(ℍ, ℂ):=
+ ∑' (x : ℤ × ℤ), Eisen k x
 
 
 lemma ridic (a b c d : ℤ): a*d-b*c=1 → a*d-c*b=1:=

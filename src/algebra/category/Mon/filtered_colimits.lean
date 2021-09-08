@@ -45,8 +45,6 @@ abbreviation M : Type v := types.quot (F ⋙ forget Mon)
 /-- The canonical projection to the colimit. -/
 abbreviation M.mk : (Σ j, F.obj j) → M := quot.mk (types.quot.rel (F ⋙ forget Mon))
 
-variables [is_filtered J]
-
 instance monoid_obj (j) : monoid ((F ⋙ forget Mon).obj j) :=
 by { change monoid (F.obj j), apply_instance }
 
@@ -54,6 +52,8 @@ lemma M.mk_eq (x y : Σ j, F.obj j)
   (h : ∃ (k : J) (f : x.1 ⟶ k) (g : y.1 ⟶ k), F.map f x.2 = F.map g y.2) :
   M.mk x = M.mk y :=
 quot.eqv_gen_sound (types.filtered_colimit.eqv_gen_quot_rel_of_rel (F ⋙ forget Mon) x y h)
+
+variables [is_filtered J]
 
 /--
 As `J` is nonempty, we can pick an arbitrary object `j₀ : J`. We use this object to define the

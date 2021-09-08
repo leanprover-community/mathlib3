@@ -931,14 +931,17 @@ begin
     exact ⟨by {rw [dvd_iff_factors_le_factors (prod_ne_zero (zero_not_mem_inf_factors I J)) hI, H],
     exact inf_le_left }, by { rw [dvd_iff_factors_le_factors (prod_ne_zero
     (zero_not_mem_inf_factors I J)) hJ, H], exact inf_le_right }⟩ },
-  { rw [← dvd_iff_le, dvd_iff_factors_le_factors (show I ⊔ J ≠ ⊥,
-    from ne_bot_of_ne_bot_le le_sup_left hI) (prod_ne_zero (zero_not_mem_inf_factors I J)),
-    factors_prod_factors_eq_factors (zero_not_mem_inf_factors I J) (by { intros p hp,
-    rw [multiset.inf_eq_inter, mem_inter] at hp, exact prime_of_factor p hp.left }), le_iff_count],
+  { rw [← dvd_iff_le, dvd_iff_factors_le_factors, factors_prod_factors_eq_factors
+    (zero_not_mem_inf_factors I J), le_iff_count],
     { intro a,
     rw [multiset.inf_eq_inter, multiset.count_inter],
     exact le_min (count_le_of_ideal_ge le_sup_left hI a)
-      (count_le_of_ideal_ge le_sup_right hJ a) } },
+      (count_le_of_ideal_ge le_sup_right hJ a) },
+    { intros p hp,
+      rw [multiset.inf_eq_inter, mem_inter] at hp,
+      exact prime_of_factor p hp.left },
+    { exact ne_bot_of_ne_bot_le le_sup_left hI },
+    { exact prod_ne_zero (zero_not_mem_inf_factors I J) }},
 end
 
 end is_dedekind_domain

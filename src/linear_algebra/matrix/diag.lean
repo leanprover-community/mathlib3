@@ -72,7 +72,7 @@ begin
     ext,
     by_cases g : i = j;
     simp [@h i j, g] },
-  { rintros ⟨d, rfl⟩ i j h, simp [h]}
+  { rintros ⟨d, rfl⟩ i j h, simp [h] }
 end
 
 /-- Every unit matrix is diagonal. -/

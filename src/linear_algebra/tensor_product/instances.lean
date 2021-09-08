@@ -1,8 +1,36 @@
+import linear_algebra.tensor_product.lift
+
+noncomputable theory
+
+open_locale tensor_product big_operators
+
+namespace tensor_product
+
+variables {R M N T Q Q' : Type*}
+variables [comm_semiring R]
+variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid T] [add_comm_monoid Q]
+variables [add_comm_monoid Q']
+variables [module R M] [module R N] [module R T] [module R Q] [module R Q']
+variables [is_tensor_product R M N T]
 
 
 variables {M N}
 section
 variables (R M)
+
+instance lid : is_tensor_product R R M M :=
+{ smul_tmul' := smul_assoc,
+  tmul_smul' := λ r s x, smul_comm _ _ _,
+  add_tmul' := add_smul,
+  tmul_add' := smul_add,
+  span_tmul :=
+  begin
+    rw [submodule.eq_top_iff'],
+    intros x,
+    apply submodule.subset_span,
+    exact ⟨1, x, one_smul _ _⟩,
+  end,
+  add_con := sorry }
 
 /--
 The base ring is a left identity for the tensor product of modules, up to linear equivalence.

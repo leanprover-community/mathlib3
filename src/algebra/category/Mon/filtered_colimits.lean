@@ -13,7 +13,7 @@ import category_theory.limits.preserves.filtered
 Forgetful functors from algebraic categories usually don't preserve colimits. However, they tend
 to preserve _filtered_ colimits.
 
-In this file, we start with small a filtered category `J` and a functor `F : J ⥤ Mon`.
+In this file, we start with a small filtered category `J` and a functor `F : J ⥤ Mon`.
 We then construct a monoid structure on the colimit of `F ⋙ forget Mon`, thereby showing that
 the forgetful functor `forget Mon` preserves filtered colimits.
 
@@ -50,6 +50,11 @@ variables [is_filtered J]
 instance monoid_obj (j) : monoid ((F ⋙ forget Mon).obj j) :=
 by { change monoid (F.obj j), apply_instance }
 
+lemma M.mk_eq (x y : Σ j, F.obj j)
+  (h : ∃ (k : J) (f : x.1 ⟶ k) (g : y.1 ⟶ k), F.map f x.2 = F.map g y.2) :
+  M.mk x = M.mk y :=
+quot.eqv_gen_sound (types.filtered_colimit.eqv_gen_quot_rel_of_rel (F ⋙ forget Mon) x y h)
+
 /--
 As `J` is nonempty, we can pick an arbitrary object `j₀ : J`. We use this object to define the
 "one" in the colimit as the equivalence class of `⟨j₀, 1 : F.obj j₀⟩`.
@@ -62,8 +67,7 @@ lemma allows us to "unfold" the definition of `colimit_one` at a custom chosen o
 -/
 lemma colimit_one_eq' (j : J) : colimit_one = M.mk ⟨j, 1⟩ :=
 begin
-  apply quot.eqv_gen_sound,
-  apply types.filtered_colimit.eqv_gen_quot_rel_of_rel,
+  apply M.mk_eq,
   refine ⟨is_filtered.max _ _, is_filtered.left_to_max _ _, is_filtered.right_to_max _ _, _⟩,
   simp,
 end
@@ -89,8 +93,7 @@ begin
   simp at hfg,
   obtain ⟨s, α, β, γ, h₁, h₂, h₃⟩ := tulip (left_to_max j₁ j₂) (right_to_max j₁ j₂)
     (right_to_max j₃ j₂) (left_to_max j₃ j₂) f g,
-  apply quot.eqv_gen_sound,
-  apply types.filtered_colimit.eqv_gen_quot_rel_of_rel,
+  apply M.mk_eq,
   use [s, α, γ],
   dsimp,
   simp_rw [monoid_hom.map_mul, ← comp_apply, ← F.map_comp, h₁, h₂, h₃, F.map_comp, comp_apply, hfg]
@@ -108,8 +111,7 @@ begin
   simp at hfg,
   obtain ⟨s, α, β, γ, h₁, h₂, h₃⟩ := tulip (right_to_max j₂ j₁) (left_to_max j₂ j₁)
     (left_to_max j₂ j₃) (right_to_max j₂ j₃) f g,
-  apply quot.eqv_gen_sound,
-  apply types.filtered_colimit.eqv_gen_quot_rel_of_rel,
+  apply M.mk_eq,
   use [s, α, γ],
   dsimp,
   simp_rw [monoid_hom.map_mul, ← comp_apply, ← F.map_comp, h₁, h₂, h₃, F.map_comp, comp_apply, hfg]
@@ -141,8 +143,7 @@ lemma colimit_mul_eq' (x y : Σ j, F.obj j) (k : J) (f : x.1 ⟶ k) (g : y.1 ⟶
 begin
   cases x with j₁ x, cases y with j₂ y,
   obtain ⟨s, α, β, h₁, h₂⟩ := bowtie (left_to_max j₁ j₂) f (right_to_max j₁ j₂) g,
-  apply quot.eqv_gen_sound,
-  apply types.filtered_colimit.eqv_gen_quot_rel_of_rel,
+  apply M.mk_eq,
   use [s, α, β],
   dsimp,
   simp_rw [monoid_hom.map_mul, ← comp_apply, ← F.map_comp, h₁, h₂],
@@ -247,7 +248,7 @@ def colimit_cocone_is_colimit : is_colimit colimit_cocone :=
     ((types.colimit_cocone_is_colimit (F ⋙ forget Mon)).fac ((forget Mon).map_cocone t) j),
   uniq' := λ t m h, begin
     apply monoid_hom.coe_inj,
-    refine (types.colimit_cocone_is_colimit (F ⋙ forget Mon)).uniq ((forget Mon).map_cocone t) m _,
+    apply (types.colimit_cocone_is_colimit (F ⋙ forget Mon)).uniq ((forget Mon).map_cocone t) m,
     intro j,
     ext x,
     exact monoid_hom.congr_fun (h j) x,

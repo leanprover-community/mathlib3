@@ -1467,15 +1467,6 @@ eq_top_iff.mpr $
 calc ∞ = ∞ * μ {x | ∞ ≤ f x} : by simp [mul_eq_top, hμf.ne.symm]
    ... ≤ ∫⁻ x, f x ∂μ : mul_meas_ge_le_lintegral hf ∞
 
-lemma eventually_lt_top_of_lintegral_ne_top {f : α → ℝ≥0∞} (hf : measurable f)
-  (hμf : ∫⁻ x, f x ∂μ ≠ ∞) : ∀ᵐ x ∂μ, f x < ∞ :=
-begin
-  simp_rw [ae_iff, ennreal.not_lt_top],
-  by_contra h,
-  rw [← ne.def, ← pos_iff_ne_zero] at h,
-  exact hμf (lintegral_eq_top_of_measure_eq_top_pos hf h),
-end
-
 lemma meas_ge_le_lintegral_div {f : α → ℝ≥0∞} (hf : measurable f) {ε : ℝ≥0∞}
   (hε : ε ≠ 0) (hε' : ε ≠ ∞) :
   μ {x | ε ≤ f x} ≤ (∫⁻ a, f a ∂μ) / ε :=

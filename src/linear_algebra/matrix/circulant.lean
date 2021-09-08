@@ -144,12 +144,16 @@ by {ext, simp [circulant]}
   circulant 0 = (0 : matrix I I α) :=
 by ext; simp [circulant]
 
-/-- The identity matrix is a circulant matrix. -/
-lemma one_eq_circulant [has_zero α] [has_one α] [decidable_eq I] [add_group I]:
-  (1 : matrix I I α) = circulant (pi.single 0 1) :=
+@[simp] lemma circulant_single [has_zero α] [has_one α] [decidable_eq I] [add_group I]:
+  circulant (pi.single 0 1 : I → α)= (1 : matrix I I α) :=
 by { ext i j, simp only [circulant, one_apply, pi.single_apply, sub_eq_zero], congr }
 
-/-- An alternative version of `one_eq_circulant`. -/
+/-- The identity matrix is a circulant matrix. -/
+lemma one_eq_circulant [has_zero α] [has_one α] [decidable_eq I] [add_group I] :
+  (1 : matrix I I α) = circulant (λ i, ite (i = 0) 1 0) :=
+by { rw [←circulant_single], congr, ext i, simp [pi.single, update] }
+
+/-- Another version of `one_eq_circulant`. -/
 lemma one_eq_circulant' [has_zero α] [has_one α] [decidable_eq I] [add_group I] :
   (1 : matrix I I α) = circulant (λ i, (1 : matrix I I α) i 0) :=
 by { ext i j, simp only [circulant, one_apply, sub_eq_zero], congr }

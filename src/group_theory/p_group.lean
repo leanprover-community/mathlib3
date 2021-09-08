@@ -23,9 +23,7 @@ variables (p : ℕ) (G : Type*) [group G]
 /-- A p-group is a group in which every element has prime power order -/
 def is_p_group : Prop := ∀ g : G, ∃ k : ℕ, g ^ (p ^ k) = 1
 
-variables {p} {G} (hG : is_p_group p G)
-
-include hG
+variables {p} {G}
 
 namespace is_p_group
 
@@ -35,11 +33,14 @@ forall_congr (λ g, ⟨λ ⟨k, hk⟩, exists_imp_exists (by exact λ j, Exists.
   ((nat.dvd_prime_pow hp.out).mp (order_of_dvd_of_pow_eq_one hk)),
   exists_imp_exists (λ k hk, by rw [←hk, pow_order_of_eq_one])⟩)
 
+lemma of_card [fintype G] {n : ℕ} (hG : fintype.card G = p ^ n) : is_p_group p G :=
+λ g, ⟨n, by rw [←hG, pow_card_eq_one]⟩
+
 lemma iff_card [fact p.prime] [fintype G] :
   is_p_group p G ↔ ∃ n : ℕ, fintype.card G = p ^ n :=
 begin
   have hG : 0 < fintype.card G := fintype.card_pos_iff.mpr has_one.nonempty,
-  refine ⟨λ h, _, λ ⟨n, hn⟩ g, ⟨n, by rw [←hn, pow_card_eq_one]⟩⟩,
+  refine ⟨λ h, _, λ ⟨n, hn⟩, of_card hn⟩,
   suffices : ∀ q ∈ nat.factors (fintype.card G), q = p,
   { use (fintype.card G).factors.length,
     rw [←list.prod_repeat, ←list.eq_repeat_of_mem this, nat.prod_factors hG] },
@@ -50,6 +51,10 @@ begin
   obtain ⟨k, hk⟩ := (iff_order_of.mp h) g,
   exact (hq1.pow_eq_iff.mp (hg.symm.trans hk).symm).1.symm,
 end
+
+variables (hG : is_p_group p G)
+
+include hG
 
 lemma to_le {H K : subgroup G} (hK : is_p_group p K) (hHK : H ≤ K) : is_p_group p H :=
 begin
@@ -70,7 +75,11 @@ begin
   exact exists_imp_exists (λ k h, (quotient_group.coe_pow H g _).symm.trans (congr_arg coe h)),
 end
 
-lemma index [hp : fact p.prime] (H : subgroup G) [fintype (quotient_group.quotient H)] :
+variables [hp : fact p.prime]
+
+include hp
+
+lemma index (H : subgroup G) [fintype (quotient_group.quotient H)] :
   ∃ n : ℕ, H.index = p ^ n :=
 begin
   obtain ⟨n, hn⟩ := iff_card.mp (hG.to_quotient H.normal_core),
@@ -79,15 +88,13 @@ begin
   exact ⟨k, hk2⟩,
 end
 
-variables {α : Type*} [mul_action G α]
-
-lemma card_orbit (a : α) [fintype (mul_action.orbit G a)] :
+lemma card_orbit {α : Type*} [mul_action G α] (a : α) [fintype (mul_action.orbit G a)] :
   ∃ n : ℕ, fintype.card (mul_action.orbit G a) = p ^ n :=
 begin
   let ϕ := mul_action.orbit_equiv_quotient_stabilizer G a,
   haveI := fintype.of_equiv (mul_action.orbit G a) ϕ,
   rw [fintype.card_congr ϕ, ←subgroup.index_eq_card],
-  exact index (mul_action.stabilizer G a) hG,
+  exact index hG (mul_action.stabilizer G a),
 end
 
 end is_p_group
@@ -96,7 +103,10 @@ namespace mul_action
 
 open finset fintype mul_action quotient
 
-variables (α) [fintype α] [fintype (fixed_points G α)]
+variables (α : Type*) [mul_action G α] [fintype α] [fintype (fixed_points G α)]
+  (hG : is_p_group p G) [fact p.prime]
+
+include hG
 
 /-- If `G` is a `p`-group acting on a finite set `α`, then the number of fixed points
   of the action is congruent mod `p` to the cardinality of `α` -/
@@ -115,7 +125,7 @@ begin
     (λ a₁ a₂ _ _ _ _ h, subtype.eq ((mem_fixed_points' α).mp a₂.2 a₁.1 (quotient.exact' h)))
       (λ b, quotient.induction_on' b (λ b _ hb, _)) (λ a ha _, by
       { rw [key, mem_fixed_points_iff_card_orbit_eq_one.mp a.2] })),
-  obtain ⟨k, hk⟩ := card_orbit hG b,
+  obtain ⟨k, hk⟩ := hG.card_orbit b,
   have : k = 0 := nat.le_zero_iff.1 (nat.le_of_lt_succ (lt_of_not_ge (mt (pow_dvd_pow p)
     (by rwa [pow_one, ←hk, ←nat.modeq_zero_iff_dvd, ←zmod.eq_iff_modeq_nat, ←key])))),
   exact ⟨⟨b, mem_fixed_points_iff_card_orbit_eq_one.2 $ by rw [hk, this, pow_zero]⟩,
@@ -130,7 +140,7 @@ lemma nonempty_fixed_point_of_prime_not_dvd_card (hp : ¬ p ∣ fintype.card α)
 rw [←fintype.card_pos_iff, pos_iff_ne_zero],
   contrapose! hp,
   rw [←nat.modeq_zero_iff_dvd, ←hp],
-  exact card_modeq_card_fixed_points hG α,
+  exact card_modeq_card_fixed_points α hG,
 end
 
 /-- If a p-group acts on `α` and the cardinality of `α` is a multiple
@@ -139,7 +149,7 @@ lemma exists_fixed_point_of_prime_dvd_card_of_fixed_point
   (hpα : p ∣ fintype.card α) {a : α} (ha : a ∈ fixed_points G α) :
   ∃ b, b ∈ fixed_points G α ∧ a ≠ b :=
 have hpf : p ∣ fintype.card (fixed_points G α) :=
-  nat.modeq_zero_iff_dvd.mp ((card_modeq_card_fixed_points hG α).symm.trans hpα.modeq_zero_nat),
+  nat.modeq_zero_iff_dvd.mp ((card_modeq_card_fixed_points α hG).symm.trans hpα.modeq_zero_nat),
 have hα : 1 < fintype.card (fixed_points G α) :=
   (fact.out p.prime).one_lt.trans_le (nat.le_of_dvd (fintype.card_pos_iff.2 ⟨⟨a, ha⟩⟩) hpf),
 let ⟨⟨b, hb⟩, hba⟩ := fintype.exists_ne_of_one_lt_card hα ⟨a, ha⟩ in

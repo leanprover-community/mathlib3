@@ -345,8 +345,7 @@ instance ideal_Inter_nonempty.ideal_inter_nonempty : ideal_inter_nonempty P :=
 { inter_nonempty := λ _ _, begin
     cases ideal_Inter_nonempty.exists_all_mem ‹_› with a ha,
     exact ⟨a, ha _, ha _⟩
-  end
-}
+  end }
 
 variables {α β γ : Type*} {ι : Sort*}
 

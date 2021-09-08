@@ -274,7 +274,7 @@ bUnion_subset (λ Y hY, convex_hull_mono hY.1)
 
 lemma convex_hull_eq_interior_union_combi_frontier :
   convex_hull ↑X = combi_interior X ∪ combi_frontier X :=
-(sdiff_union_of_subset combi_frontier_subset_convex_hull).symm
+(diff_union_of_subset combi_frontier_subset_convex_hull).symm
 
 lemma convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior
   (hX : affine_independent ℝ (λ p, p : (X : set E) → E))

@@ -13,24 +13,6 @@ variables {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B : set E
 
 namespace affine
 
---to move to mathlib
-theorem zorn.subset_reverse {α : Type*} (S : set (set α))
-  (h : ∀c ⊆ S, zorn.chain (⊆) c → ∃lb ∈ S, ∀ s ∈ c, lb ⊆ s) :
-  ∃ m ∈ S, ∀ a ∈ S, a ⊆ m → a = m :=
-begin
-  let rev : S → S → Prop := λ X Y, Y.1 ⊆ X.1,
-  have hS : ∀ (c : set S), zorn.chain rev c → ∃ ub, ∀ a ∈ c, rev a ub,
-  { intros c hc,
-    obtain ⟨t, ht₁, ht₂⟩ := h (coe '' c) (by simp)
-      (by { rintro _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩ ne,
-            apply (hc _ hx _ hy (λ t, ne (congr_arg coe t))).symm }),
-    exact ⟨⟨_, ht₁⟩, λ a ha, ht₂ a ⟨_, ha, rfl⟩⟩ },
-  obtain ⟨m, hm₁⟩ := zorn.exists_maximal_of_chains_bounded hS _,
-  { refine ⟨m, m.prop, λ a ha ha₂, set.subset.antisymm ha₂ (hm₁ ⟨a, ha⟩ ha₂)⟩ },
-  intros x y z xy yz,
-  apply set.subset.trans yz xy
-end
-
 /--
 The Krein-Milman lemma
 -/
@@ -54,7 +36,7 @@ begin
     rw ←hBmin {z ∈ B | ∀ w ∈ B, l w ≤ l z} ⟨⟨z, hzB, hz⟩, is_exposed.is_closed ⟨l, rfl⟩ hBclos,
       hAB.trans (is_exposed.is_extreme ⟨l, rfl⟩)⟩ (λ z hz, hz.1) at hyB,
     exact not_le.2 hl (hyB.2 x hxB) },
-  apply zorn.subset_reverse,
+  apply zorn.superset,
   rintro F hFS hF,
   cases F.eq_empty_or_nonempty with hFemp hFnemp,
   { rw hFemp,

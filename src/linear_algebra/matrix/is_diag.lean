@@ -68,6 +68,10 @@ lemma is_diag.neg [add_group α] {A : matrix n n α} (ha : A.is_diag) :
   (-A).is_diag :=
 by { intros i j h, simp [ha h] }
 
+@[simp] lemma is_diag_neg_iff [add_group α] {A : matrix n n α} :
+  (-A).is_diag ↔ A.is_diag :=
+⟨ λ ha i j h, neg_eq_zero.1 (ha h), is_diag.neg ⟩
+
 @[simp] lemma is_diag.add
   [add_zero_class α] {A B : matrix n n α} (ha : A.is_diag) (hb : B.is_diag) :
   (A + B).is_diag :=

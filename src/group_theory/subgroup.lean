@@ -2311,6 +2311,10 @@ S.to_submonoid.has_faithful_scalar
 instance [add_monoid α] [distrib_mul_action G α] (S : subgroup G) : distrib_mul_action S α :=
 S.to_submonoid.distrib_mul_action
 
+/-- The action by a subgroup is the action by the underlying group. -/
+instance [monoid α] [mul_distrib_mul_action G α] (S : subgroup G) : mul_distrib_mul_action S α :=
+S.to_submonoid.mul_distrib_mul_action
+
 end subgroup
 
 end actions

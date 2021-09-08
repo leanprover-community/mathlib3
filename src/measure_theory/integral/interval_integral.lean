@@ -2290,6 +2290,8 @@ end
 Change of variables. If `f` is has continuous derivative `f'` on `[a, b]`,
 and `g` is continuous on `f '' [a, b]`, then we can substitute `u = f x` to get
 `∫ x in a..b, (g ∘ f) x * f' x = ∫ u in f a..f b, g u`.
+Compared to `interval_integral.integral_comp_mul_deriv` we only require that `g` is continuous on
+`f '' [a, b]`.
 -/
 theorem integral_comp_mul_deriv' {f f' g : ℝ → ℝ}
   (h : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)

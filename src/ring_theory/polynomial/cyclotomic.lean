@@ -446,9 +446,10 @@ end arithmetic_function
 
 /-- We have
 `cyclotomic n R = (X ^ k - 1) /ₘ (∏ i in nat.proper_divisors k, cyclotomic i K)`. -/
-lemma cyclotomic_eq_X_pow_sub_one_div {R : Type*} [comm_ring R] [nontrivial R] {n : ℕ}
+lemma cyclotomic_eq_X_pow_sub_one_div {R : Type*} [comm_ring R] {n : ℕ}
   (hpos: 0 < n) : cyclotomic n R = (X ^ n - 1) /ₘ (∏ i in nat.proper_divisors n, cyclotomic i R) :=
 begin
+  nontriviality R,
   rw [←prod_cyclotomic_eq_X_pow_sub_one hpos,
   nat.divisors_eq_proper_divisors_insert_self_of_pos hpos,
   finset.prod_insert nat.proper_divisors.not_self_mem],
@@ -497,7 +498,7 @@ begin
     obtain ⟨d, hd⟩ := (nat.mem_proper_divisors.1 hi).1,
     rw mul_comm at hd,
     exact hk i (nat.mem_proper_divisors.1 hi).2 (is_primitive_root.pow hpos hz hd) },
-  rw [@cyclotomic_eq_X_pow_sub_one_div _ _ (field.to_nontrivial K) _ hpos,
+  rw [@cyclotomic_eq_X_pow_sub_one_div _ _ _ hpos,
   cyclotomic'_eq_X_pow_sub_one_div hpos hz, finset.prod_congr (refl k.proper_divisors) h]
 end
 
@@ -510,10 +511,11 @@ begin
   rwa [← mem_primitive_roots hpos] at h,
 end
 
-lemma eq_cyclotomic_iff {R : Type*} [comm_ring R] [nontrivial R] {n : ℕ} (hpos: 0 < n)
+lemma eq_cyclotomic_iff {R : Type*} [comm_ring R] {n : ℕ} (hpos: 0 < n)
   (P : polynomial R) :
   P = cyclotomic n R ↔ P * (∏ i in nat.proper_divisors n, polynomial.cyclotomic i R) = X ^ n - 1 :=
 begin
+  nontriviality R,
   split,
   { intro hcycl,
     rw [hcycl, ← finset.prod_insert (@nat.proper_divisors.not_self_mem n),
@@ -524,7 +526,7 @@ begin
     { apply monic_prod_of_monic,
       intros i hi,
       exact cyclotomic.monic i R },
-    rw [@cyclotomic_eq_X_pow_sub_one_div R _ _ _ hpos,
+    rw [@cyclotomic_eq_X_pow_sub_one_div R _ _ hpos,
       (div_mod_by_monic_unique P 0 prod_monic _).1],
     split,
     { rwa [zero_add, mul_comm] },
@@ -534,7 +536,7 @@ begin
 end
 
 /-- If `p` is prime, then `cyclotomic p R = geom_sum X p`. -/
-lemma cyclotomic_eq_geom_sum {R : Type*} [comm_ring R] [nontrivial R] {p : ℕ}
+lemma cyclotomic_eq_geom_sum {R : Type*} [comm_ring R] {p : ℕ}
   (hp : nat.prime p) : cyclotomic p R = geom_sum X p :=
 begin
   symmetry,

@@ -640,6 +640,17 @@ def lsmul : 𝕜' →L[𝕜] E →L[𝕜] E :=
 
 @[simp] lemma lsmul_apply (c : 𝕜') (x : E) : lsmul 𝕜 𝕜' c x = c • x := rfl
 
+variables {𝕜'}
+
+lemma norm_to_span_singleton (x : E) : ∥to_span_singleton 𝕜 x∥ = ∥x∥ :=
+begin
+  refine op_norm_eq_of_bounds (norm_nonneg _) (λ x, _) (λ N hN_nonneg h, _),
+  { rw [to_span_singleton_apply, norm_smul, mul_comm], },
+  { specialize h 1,
+    rw [to_span_singleton_apply, norm_smul, mul_comm] at h,
+    exact (mul_le_mul_right (by simp)).mp h, },
+end
+
 end smul_linear
 
 section restrict_scalars

@@ -156,10 +156,10 @@ lemma is_diag.from_blocks [has_zero α]
   (A.from_blocks 0 0 D).is_diag :=
 begin
   rintros (i | i) (j | j) hij,
-  { have h' := ne_of_apply_ne (λ (i : m), sum.inl i) hij, simp [ha h'] },
-  { simp * at * },
-  { simp * at * },
-  { have h' := ne_of_apply_ne (λ (i : n), sum.inr i) hij, simp [hd h'] },
+  { exact ha (ne_of_apply_ne _ hij) },
+  { refl },
+  { refl },
+  { exact hd (ne_of_apply_ne _ hij) },
 end
 
 /-- This is the `iff` version of `matrix.is_diag.from_blocks`. -/

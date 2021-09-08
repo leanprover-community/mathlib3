@@ -91,6 +91,10 @@ begin
     use a * b, exact hh.symm }
 end⟩
 
+lemma _root_.irreducible.maximal_ideal_eq {ϖ : R} (h : irreducible ϖ) :
+  maximal_ideal R = ideal.span {ϖ} :=
+(irreducible_iff_uniformizer _).mp h
+
 variable (R)
 
 /-- Uniformisers exist in a DVR -/
@@ -204,7 +208,7 @@ begin
     left,
     obtain ⟨m, rfl⟩ := nat.exists_eq_succ_of_ne_zero hm,
     rw pow_succ,
-    apply dvd_mul_of_dvd_left (dvd_refl _) _ },
+    apply dvd_mul_of_dvd_left dvd_rfl _ },
   { rw [multiset.prod_repeat], exact (classical.some_spec (spec.2 hx)), }
 end
 
@@ -415,7 +419,8 @@ add_val_def _ u hϖ n rfl
 (add_val R).map_one
 
 @[simp] lemma add_val_uniformizer {ϖ : R} (hϖ : irreducible ϖ) : add_val R ϖ = 1 :=
-add_val_def ϖ 1 hϖ 1 (by simp)
+by simpa only [one_mul, eq_self_iff_true, units.coe_one, pow_one, forall_true_left, nat.cast_one]
+  using add_val_def ϖ 1 hϖ 1
 
 @[simp] lemma add_val_mul {a b : R} :
   add_val R (a * b) = add_val R a + add_val R b :=
@@ -423,6 +428,10 @@ add_val_def ϖ 1 hϖ 1 (by simp)
 
 lemma add_val_pow (a : R) (n : ℕ) : add_val R (a ^ n) = n • add_val R a :=
 (add_val R).map_pow _ _
+
+lemma _root_.irreducible.add_val_pow {ϖ : R} (h : irreducible ϖ) (n : ℕ) :
+  add_val R (ϖ ^ n) = n :=
+by rw [add_val_pow, add_val_uniformizer h, nsmul_one]
 
 lemma add_val_eq_top_iff {a : R} : add_val R a = ⊤ ↔ a = 0 :=
 begin
@@ -460,33 +469,15 @@ lemma add_val_add {a b : R} :
 
 end
 
--- TODO: fix this
-lemma enat.coe_eq_coe (n : ℕ) :
-  @eq enat
-    (@coe nat enat (@coe_to_lift nat enat (@nat.cast_coe enat (@add_zero_class.to_has_zero enat
-      (@add_monoid.to_add_zero_class enat
-        (@add_comm_monoid.to_add_monoid enat enat.add_comm_monoid)))
-        enat.has_one (@add_zero_class.to_has_add enat (@add_monoid.to_add_zero_class enat
-          (@add_comm_monoid.to_add_monoid enat enat.add_comm_monoid))))) n)
-    (@coe nat enat (@coe_to_lift nat enat (@coe_base nat enat enat.has_coe)) n) :=
-begin
-  induction n with n ih, { refl },
-  simp only [nat.succ_eq_add_one, enat.coe_one, enat.coe_add, nat.cast_add, nat.cast_one, ih],
-end
-
 instance (R : Type*) [integral_domain R] [discrete_valuation_ring R] :
   is_Hausdorff (maximal_ideal R) R :=
 { haus' := λ x hx,
   begin
-    simp only [← ideal.one_eq_top, smul_eq_mul, mul_one, smodeq.zero] at hx,
-    rw [← add_val_eq_top_iff, enat.eq_top_iff_forall_le],
-    intro n,
     obtain ⟨ϖ, hϖ⟩ := exists_irreducible R,
-    have : add_val R (ϖ ^ n) = n,
-    { rw [add_val_pow, add_val_uniformizer hϖ, nsmul_one, enat.coe_eq_coe], },
-    rw irreducible_iff_uniformizer at hϖ,
-    rw [← this, add_val_le_iff_dvd, ← ideal.mem_span_singleton, ← ideal.span_singleton_pow, ← hϖ],
-    exact hx n,
+    simp only [← ideal.one_eq_top, smul_eq_mul, mul_one, smodeq.zero,
+      hϖ.maximal_ideal_eq, ideal.span_singleton_pow, ideal.mem_span_singleton,
+      ← add_val_le_iff_dvd, hϖ.add_val_pow] at hx,
+    rwa [← add_val_eq_top_iff, enat.eq_top_iff_forall_le],
   end }
 
 end discrete_valuation_ring

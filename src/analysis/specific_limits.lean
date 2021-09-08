@@ -900,6 +900,28 @@ begin
   { assume n, exact le_refl _ }
 end
 
+lemma set.countable.exists_pos_has_sum_le {ι : Type*} {s : set ι} (hs : s.countable)
+  {ε : ℝ} (hε : 0 < ε) :
+  ∃ ε' : ι → ℝ, (∀ i, 0 < ε' i) ∧ ∃ c, has_sum (λ i : s, ε' i) c ∧ c ≤ ε :=
+begin
+  haveI := hs.to_encodable,
+  rcases pos_sum_of_encodable hε s with ⟨f, hf0, ⟨c, hfc, hcε⟩⟩,
+  refine ⟨λ i, if h : i ∈ s then f ⟨i, h⟩ else 1, λ i, _, ⟨c, _, hcε⟩⟩,
+  { split_ifs, exacts [hf0 _, zero_lt_one] },
+  { simpa only [subtype.coe_prop, dif_pos, subtype.coe_eta] }
+end
+
+lemma set.countable.exists_pos_forall_sum_le {ι : Type*} {s : set ι} (hs : s.countable)
+  {ε : ℝ} (hε : 0 < ε) :
+  ∃ ε' : ι → ℝ, (∀ i, 0 < ε' i) ∧ ∀ t : finset ι, ↑t ⊆ s → ∑ i in t, ε' i ≤ ε :=
+begin
+  rcases hs.exists_pos_has_sum_le hε with ⟨ε', hpos, c, hε'c, hcε⟩,
+  refine ⟨ε', hpos, λ t ht, _⟩,
+  rw [← sum_subtype_of_mem _ ht],
+  refine (sum_le_has_sum _ _ hε'c).trans hcε,
+  exact λ _ _, (hpos _).le
+end
+
 namespace nnreal
 
 theorem exists_pos_sum_of_encodable {ε : ℝ≥0} (hε : 0 < ε) (ι) [encodable ι] :

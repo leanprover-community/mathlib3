@@ -80,7 +80,7 @@ lemma restrict_scalars_curry (f : (M ⊗[R] N) →ₗ[A] P) :
   restrict_scalars R (curry f) = curry (f.restrict_scalars R) :=
 rfl
 
-/-- Just as `tensor_product.mk_compr₂_inj` is marked `ext` instead of `tensor_product.ext`, this is
+/-- Just as `tensor_product.ext` is marked `ext` instead of `tensor_product.ext'`, this is
 a better `ext` lemma than `tensor_product.algebra_tensor_module.ext` below.
 
 See note [partially-applied ext lemmas]. -/
@@ -109,7 +109,7 @@ the given bilinear map `M →[A] N →[R] P`. -/
 @[simps] def lift (f : M →ₗ[A] (N →ₗ[R] P)) : (M ⊗[R] N) →ₗ[A] P :=
 { map_smul' := λ c, show ∀ x : M ⊗[R] N, (lift (f.restrict_scalars R)).comp (lsmul R _ c) x =
       (lsmul R _ c).comp (lift (f.restrict_scalars R)) x,
-    from ext_iff.1 $ tensor_product.ext $ λ x y,
+    from ext_iff.1 $ tensor_product.ext' $ λ x y,
     by simp only [comp_apply, algebra.lsmul_coe, smul_tmul', lift.tmul, coe_restrict_scalars_eq_coe,
         f.map_smul, smul_apply],
   .. lift (f.restrict_scalars R) }
@@ -155,6 +155,8 @@ The canonical bilinear map `M →[A] N →[R] M ⊗[R] N`. -/
 @[simps] def mk : M →ₗ[A] N →ₗ[R] M ⊗[R] N :=
 { map_smul' := λ c x, rfl,
   .. mk R M N }
+
+local attribute [ext] tensor_product.ext
 
 /-- Heterobasic version of `tensor_product.assoc`:
 
@@ -278,13 +280,13 @@ as an `R`-bilinear map.
 -/
 def mul : (A ⊗[R] B) →ₗ[R] (A ⊗[R] B) →ₗ[R] (A ⊗[R] B) :=
 tensor_product.lift $ linear_map.mk₂ R mul_aux
-  (λ x₁ x₂ y, tensor_product.ext $ λ x' y',
+  (λ x₁ x₂ y, tensor_product.ext' $ λ x' y',
     by simp only [mul_aux_apply, linear_map.add_apply, add_mul, add_tmul])
-  (λ c x y, tensor_product.ext $ λ x' y',
+  (λ c x y, tensor_product.ext' $ λ x' y',
     by simp only [mul_aux_apply, linear_map.smul_apply, smul_tmul', smul_mul_assoc])
-  (λ x y₁ y₂, tensor_product.ext $ λ x' y',
+  (λ x y₁ y₂, tensor_product.ext' $ λ x' y',
     by simp only [mul_aux_apply, linear_map.add_apply, add_mul, tmul_add])
-  (λ c x y, tensor_product.ext $ λ x' y',
+  (λ c x y, tensor_product.ext' $ λ x' y',
     by simp only [mul_aux_apply, linear_map.smul_apply, smul_tmul, smul_tmul', smul_mul_assoc])
 
 @[simp]

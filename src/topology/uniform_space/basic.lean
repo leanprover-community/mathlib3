@@ -524,6 +524,7 @@ by rw mem_comap ; from iff.intro
 lemma nhds_eq_comap_uniformity {x : α} : 𝓝 x = (𝓤 α).comap (prod.mk x) :=
 by { ext s, rw [mem_nhds_uniformity_iff_right], exact nhds_eq_comap_uniformity_aux }
 
+/-- See also `is_open_iff_open_ball_subset`. -/
 lemma is_open_iff_ball_subset {s : set α} : is_open s ↔ ∀ x ∈ s, ∃ V ∈ 𝓤 α, ball x V ⊆ s :=
 begin
   simp_rw [is_open_iff_mem_nhds, nhds_eq_comap_uniformity],
@@ -803,6 +804,18 @@ lemma mem_uniformity_is_closed {s : set (α×α)} (h : s ∈ 𝓤 α) :
   ∃t ∈ 𝓤 α, is_closed t ∧ t ⊆ s :=
 let ⟨t, ⟨ht_mem, htc⟩, hts⟩ := uniformity_has_basis_closed.mem_iff.1 h in
 ⟨t, ht_mem, htc, hts⟩
+
+lemma is_open_iff_open_ball_subset {s : set α} :
+  is_open s ↔ ∀ x ∈ s, ∃ V ∈ 𝓤 α, is_open V ∧ ball x V ⊆ s :=
+begin
+  rw is_open_iff_ball_subset,
+  split; intros h x hx,
+  { obtain ⟨V, hV, hV'⟩ := h x hx,
+    exact ⟨interior V, interior_mem_uniformity hV, is_open_interior,
+      (ball_mono interior_subset x).trans hV'⟩, },
+  { obtain ⟨V, hV, -, hV'⟩ := h x hx,
+    exact ⟨V, hV, hV'⟩, },
+end
 
 /-- The uniform neighborhoods of all points of a dense set cover the whole space. -/
 lemma dense.bUnion_uniformity_ball {s : set α} {U : set (α × α)} (hs : dense s) (hU : U ∈ 𝓤 α) :
@@ -1389,6 +1402,32 @@ lemma lebesgue_number_lemma_sUnion {α : Type u} [uniform_space α] {s : set α}
   ∃ n ∈ 𝓤 α, ∀ x ∈ s, ∃ t ∈ c, ∀ y, (x, y) ∈ n → y ∈ t :=
 by rw sUnion_eq_Union at hc₂;
    simpa using lebesgue_number_lemma hs (by simpa) hc₂
+
+/-- A useful consequence of the Lebesgue number lemma: given any compact set `K` contained in an
+open set `U`, we can find an (open) entourage `V` such that the ball of size `V` about any point of
+`K` is contained in `U`. -/
+lemma lebesgue_number_of_compact_open [uniform_space α]
+  {K U : set α} (hK : is_compact K) (hU : is_open U) (hKU : K ⊆ U) :
+  ∃ V ∈ 𝓤 α, is_open V ∧ ∀ x ∈ K, uniform_space.ball x V ⊆ U :=
+begin
+  let W : K → set (α × α) := λ k, classical.some $ is_open_iff_open_ball_subset.mp hU k.1 $ hKU k.2,
+  have hW : ∀ k, W k ∈ 𝓤 α ∧ is_open (W k) ∧ uniform_space.ball k.1 (W k) ⊆ U,
+  { intros k,
+    obtain ⟨h₁, h₂, h₃⟩ := classical.some_spec (is_open_iff_open_ball_subset.mp hU k.1 (hKU k.2)),
+    exact ⟨h₁, h₂, h₃⟩, },
+  let c : K → set α := λ k, uniform_space.ball k.1 (W k),
+  have hc₁ : ∀ k, is_open (c k), { exact λ k, uniform_space.is_open_ball k.1 (hW k).2.1, },
+  have hc₂ : K ⊆ ⋃ i, c i,
+  { intros k hk,
+    simp only [mem_Union, set_coe.exists],
+    exact ⟨k, hk, uniform_space.mem_ball_self k (hW ⟨k, hk⟩).1⟩, },
+  have hc₃ : ∀ k, c k ⊆ U, { exact λ k, (hW k).2.2, },
+  obtain ⟨V, hV, hV'⟩ := lebesgue_number_lemma hK hc₁ hc₂,
+  refine ⟨interior V, interior_mem_uniformity hV, is_open_interior, _⟩,
+  intros k hk,
+  obtain ⟨k', hk'⟩ := hV' k hk,
+  exact ((ball_mono interior_subset k).trans hk').trans (hc₃ k'),
+end
 
 /-!
 ### Expressing continuity properties in uniform spaces

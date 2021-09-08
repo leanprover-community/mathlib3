@@ -1228,7 +1228,7 @@ theorem normal_closure_mono {s t : set G} (h : s ⊆ t) : normal_closure s ≤ n
 normal_closure_le_normal (set.subset.trans h subset_normal_closure)
 
 theorem normal_closure_eq_infi : normal_closure s =
-  ⨅ (N : subgroup G) [normal N] (hs : s ⊆ N), N :=
+  ⨅ (N : subgroup G) (_ : normal N) (hs : s ⊆ N), N :=
 le_antisymm
   (le_infi (λ N, le_infi (λ hN, by exactI le_infi (normal_closure_le_normal))))
   (infi_le_of_le (normal_closure s) (infi_le_of_le (by apply_instance)
@@ -1247,6 +1247,40 @@ by simp only [subset_normal_closure, closure_le]
   normal_closure ↑(closure s) = normal_closure s :=
 le_antisymm (normal_closure_le_normal closure_le_normal_closure)
   (normal_closure_mono subset_closure)
+
+/-- The normal core of a subgroup `H` is the largest normal subgroup of `G` contained in `H`,
+as shown by `subgroup.normal_core_eq_supr`. -/
+def normal_core (H : subgroup G) : subgroup G :=
+{ carrier := {a : G | ∀ b : G, b * a * b⁻¹ ∈ H},
+  one_mem' := λ a, by rw [mul_one, mul_inv_self]; exact H.one_mem,
+  inv_mem' := λ a h b, (congr_arg (∈ H) conj_inv).mp (H.inv_mem (h b)),
+  mul_mem' := λ a b ha hb c, (congr_arg (∈ H) conj_mul).mp (H.mul_mem (ha c) (hb c)) }
+
+lemma normal_core_le (H : subgroup G) : H.normal_core ≤ H :=
+λ a h, by { rw [←mul_one a, ←one_inv, ←one_mul a], exact h 1 }
+
+instance normal_core_normal (H : subgroup G) : H.normal_core.normal :=
+⟨λ a h b c, by rw [mul_assoc, mul_assoc, ←mul_inv_rev, ←mul_assoc, ←mul_assoc]; exact h (c * b)⟩
+
+lemma normal_le_normal_core {H : subgroup G} {N : subgroup G} [hN : N.normal] :
+  N ≤ H.normal_core ↔ N ≤ H :=
+⟨ge_trans H.normal_core_le, λ h_le n hn g, h_le (hN.conj_mem n hn g)⟩
+
+lemma normal_core_mono {H K : subgroup G} (h : H ≤ K) : H.normal_core ≤ K.normal_core :=
+normal_le_normal_core.mpr (H.normal_core_le.trans h)
+
+lemma normal_core_eq_supr (H : subgroup G) :
+  H.normal_core = ⨆ (N : subgroup G) (_ : normal N) (hs : N ≤ H), N :=
+le_antisymm (le_supr_of_le H.normal_core
+  (le_supr_of_le H.normal_core_normal (le_supr_of_le H.normal_core_le le_rfl)))
+  (supr_le (λ N, supr_le (λ hN, supr_le (by exactI normal_le_normal_core.mpr))))
+
+@[simp] lemma normal_core_eq_self (H : subgroup G) [H.normal] : H.normal_core = H :=
+le_antisymm H.normal_core_le (normal_le_normal_core.mpr le_rfl)
+
+@[simp] theorem normal_core_idempotent (H : subgroup G) :
+  H.normal_core.normal_core = H.normal_core :=
+H.normal_core.normal_core_eq_self
 
 end subgroup
 namespace add_subgroup

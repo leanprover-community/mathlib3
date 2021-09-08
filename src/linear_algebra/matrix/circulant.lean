@@ -55,7 +55,7 @@ lemma fin.circulant_injective : ∀ n, injective (λ v : fin n → α, circulant
 | 0     := dec_trivial
 | (n+1) := circulant_injective
 
-lemma circulant_inj [add_group I] {v w : I → α} :
+@[simp] lemma circulant_inj [add_group I] {v w : I → α} :
   circulant v = circulant w ↔ v = w :=
 circulant_injective.eq_iff
 

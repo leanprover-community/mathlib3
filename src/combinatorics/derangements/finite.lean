@@ -5,6 +5,7 @@ Authors: Henry Swanson
 -/
 import combinatorics.derangements.basic
 import data.fintype.card
+import tactic.delta_instance
 import tactic.ring
 
 /-!
@@ -34,11 +35,7 @@ variables {α : Type*} [decidable_eq α] [fintype α]
 
 instance : decidable_pred (derangements α) := λ _, fintype.decidable_forall_fintype
 
-instance : fintype (derangements α) :=
-begin
-  rw [derangements],
-  apply_instance
-end
+instance : fintype (derangements α) := by delta_instance derangements
 
 lemma card_derangements_invariant {α β : Type*} [fintype α] [decidable_eq α]
   [fintype β] [decidable_eq β] (h : card α = card β) :

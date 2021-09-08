@@ -64,9 +64,9 @@ by { intros i j h, have h' := subsingleton.elim i j, contradiction }
   (A.map f).is_diag :=
 by { intros i j h, simp [ha h, hf] }
 
-@[simp] lemma is_diag.neg [add_group α] {A : matrix n n α} (ha : A.is_diag) :
+lemma is_diag.neg [add_group α] {A : matrix n n α} (ha : A.is_diag) :
   (-A).is_diag :=
-by {intros i j h, simp [ha h]}
+by { intros i j h, simp [ha h] }
 
 @[simp] lemma is_diag.add
   [add_zero_class α] {A B : matrix n n α} (ha : A.is_diag) (hb : B.is_diag) :

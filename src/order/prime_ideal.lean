@@ -165,17 +165,11 @@ hI.mem_or_compl_mem.resolve_left hxnI
 
 lemma is_prime_of_mem_or_compl_mem [is_proper I] (h : ∀ {x : P}, x ∈ I ∨ xᶜ ∈ I) : is_prime I :=
 begin
-  rw is_prime_iff_mem_or_mem,
-  intros x y hxy,
-  rw or_iff_not_imp_left,
-  intro hxI,
-  have hxcI : xᶜ ∈ I,
-  exact h.resolve_left hxI,
-  suffices ass : (y ⊓ x) ⊔ (y ⊓ xᶜ) ∈ I,
-  rwa sup_inf_inf_compl at ass,
-  apply sup_mem,
-  rwa inf_comm,
-  exact mem_of_le I inf_le_right hxcI,
+  simp only [is_prime_iff_mem_or_mem, or_iff_not_imp_left],
+  intros x y hxy hxI,
+  have hxcI : xᶜ ∈ I := h.resolve_left hxI,
+  have ass : (x ⊓ y) ⊔ (y ⊓ xᶜ) ∈ I := sup_mem _ _ hxy (mem_of_le I inf_le_right hxcI),
+  rwa [inf_comm, sup_inf_inf_compl] at ass
 end
 
 lemma is_prime_iff_mem_or_compl_mem [is_proper I] : is_prime I ↔ ∀ {x : P}, x ∈ I ∨ xᶜ ∈ I :=
@@ -184,19 +178,13 @@ lemma is_prime_iff_mem_or_compl_mem [is_proper I] : is_prime I ↔ ∀ {x : P}, 
 @[priority 100]
 instance is_prime.is_maximal [is_prime I] : is_maximal I :=
 begin
-  rw is_maximal_iff,
-  use is_prime.to_is_proper,
-  intros J hIJ,
-  rw set.eq_univ_iff_forall,
-  intro x,
+  simp only [is_maximal_iff, set.eq_univ_iff_forall, is_prime.to_is_proper, true_and],
+  intros J hIJ x,
   rcases set.exists_of_ssubset hIJ with ⟨y, hyJ, hyI⟩,
   suffices ass : (x ⊓ y) ⊔ (x ⊓ yᶜ) ∈ J,
-  rwa sup_inf_inf_compl at ass,
-  apply sup_mem,
-  exact mem_of_le J inf_le_right hyJ,
-  have hycI := is_prime.mem_compl_of_not_mem ‹_› hyI,
-  apply mem_of_mem_of_le _ (le_of_lt hIJ),
-  exact mem_of_le I inf_le_right hycI,
+  { rwa sup_inf_inf_compl at ass },
+  exact sup_mem _ _ (J.mem_of_le inf_le_right hyJ)
+    (hIJ.le (I.mem_of_le inf_le_right (is_prime.mem_compl_of_not_mem ‹_› hyI))),
 end
 
 end boolean_algebra

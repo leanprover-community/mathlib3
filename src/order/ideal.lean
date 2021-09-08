@@ -458,15 +458,11 @@ begin
   intro hx,
   apply hI.top_not_mem,
   have ht : x ⊔ xᶜ ∈ I := sup_mem _ _ ‹_› ‹_›,
-  rw sup_compl_eq_top at ht,
-  assumption,
+  rwa sup_compl_eq_top at ht,
 end
 
 lemma is_proper.not_mem_or_compl_not_mem (hI : is_proper I) : x ∉ I ∨ xᶜ ∉ I :=
-begin
-  have h : xᶜ ∈ I → x ∉ I := hI.not_mem_of_compl_mem,
-  tauto,
-end
+have h : xᶜ ∈ I → x ∉ I := hI.not_mem_of_compl_mem, by tauto
 
 end boolean_algebra
 

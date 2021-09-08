@@ -65,7 +65,6 @@ instance [preorder α] : is_antisymm α (<) := is_asymm.is_antisymm _
 instance [preorder α] : is_antisymm α (>) := is_asymm.is_antisymm _
 instance [preorder α] : is_strict_order α (<) := {}
 instance [preorder α] : is_strict_order α (>) := {}
-instance preorder.is_total_preorder [preorder α] [is_total α (≤)] : is_total_preorder α (≤) := {}
 instance [partial_order α] : is_antisymm α (≤) := ⟨@le_antisymm _ _⟩
 instance [partial_order α] : is_antisymm α (≥) := is_antisymm.swap _
 instance [partial_order α] : is_partial_order α (≤) := {}

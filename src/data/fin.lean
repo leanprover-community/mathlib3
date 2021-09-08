@@ -94,6 +94,9 @@ variables {n m : ℕ} {a b : fin n}
 
 instance fin_to_nat (n : ℕ) : has_coe (fin n) nat := ⟨subtype.val⟩
 
+lemma pos_iff_nonempty {n : ℕ} : 0 < n ↔ nonempty (fin n) :=
+⟨λ h, ⟨⟨0, h⟩⟩, λ ⟨i⟩, lt_of_le_of_lt (nat.zero_le _) i.2⟩
+
 section coe
 
 /-!

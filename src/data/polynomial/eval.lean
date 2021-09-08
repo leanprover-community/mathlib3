@@ -302,8 +302,14 @@ begin
   { intros p q ph qh,
     simp only [mul_add, eval_add, ph, qh], },
   { intros n b,
-    simp [mul_assoc], }
+    simp only [mul_assoc, C_mul_monomial, eval_monomial], }
 end
+
+/-- `polynomial.eval` as linear map -/
+@[simps] def leval {R : Type*} [semiring R] (r : R) : polynomial R →ₗ[R] R :=
+{ to_fun := λ f, f.eval r,
+  map_add' := λ f g, eval_add,
+  map_smul' := λ c f, eval_smul f r }
 
 @[simp] lemma eval_nat_cast_mul {n : ℕ} : ((n : polynomial R) * p).eval x = n * p.eval x :=
 by rw [←C_eq_nat_cast, eval_C_mul]

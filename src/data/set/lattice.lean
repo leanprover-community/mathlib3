@@ -742,6 +742,17 @@ lemma sUnion_eq_univ_iff {c : set (set α)} :
   ⋃₀ c = univ ↔ ∀ a, ∃ b ∈ c, a ∈ b :=
 by simp only [eq_univ_iff_forall, mem_sUnion]
 
+-- classical
+lemma sInter_eq_empty_iff {c : set (set α)} :
+  ⋂₀ c = ∅ ↔ ∀ a, ∃ b ∈ c, a ∉ b :=
+by simp [set.eq_empty_iff_forall_not_mem, mem_sInter]
+
+-- classical
+@[simp] theorem sInter_nonempty_iff {c : set (set α)}:
+  (⋂₀ c).nonempty ↔ ∃ a, ∀ b ∈ c, a ∈ b :=
+by simp [← ne_empty_iff_nonempty, sInter_eq_empty_iff]
+
+-- classical
 theorem compl_sUnion (S : set (set α)) :
   (⋃₀ S)ᶜ = ⋂₀ (compl '' S) :=
 ext $ λ x, by simp
@@ -1466,6 +1477,14 @@ by simpa using h.preimage f
 lemma preimage_eq_empty_iff {f : α → β} {s : set β} : disjoint s (range f) ↔ f ⁻¹' s = ∅ :=
 ⟨preimage_eq_empty,
   λ h, by { simp [eq_empty_iff_forall_not_mem, set.disjoint_iff_inter_eq_empty] at h ⊢, finish }⟩
+
+lemma disjoint_iff_subset_compl_right :
+  disjoint s t ↔ s ⊆ tᶜ :=
+disjoint_left
+
+lemma disjoint_iff_subset_compl_left :
+  disjoint s t ↔ t ⊆ sᶜ :=
+disjoint_right
 
 end set
 

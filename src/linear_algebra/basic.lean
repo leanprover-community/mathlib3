@@ -2417,7 +2417,7 @@ lemma neg_apply (x : M) : neg R x = -x := by simp
 
 end neg
 
-section ring
+section semiring
 
 variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂]
 variables {module_M : module R M} {module_M₂ : module R M₂}
@@ -2439,9 +2439,9 @@ noncomputable def of_bijective (hf₁ : injective f) (hf₂ : surjective f) : M 
 @[simp] theorem of_bijective_apply {hf₁ hf₂} (x : M) :
   of_bijective f hf₁ hf₂ x = f x := rfl
 
-end ring
+end semiring
 
-section comm_ring
+section comm_semiring
 variables [comm_semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
 variables [module R M] [module R M₂] [module R M₃]
 open linear_map
@@ -2521,7 +2521,7 @@ by { ext f x, refl, }
 @[simp] lemma conj_id (e : M ≃ₗ[R] M₂) : e.conj linear_map.id = linear_map.id :=
 by { ext, simp [conj_apply], }
 
-end comm_ring
+end comm_semiring
 
 section field
 variables [field K] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃]

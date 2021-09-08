@@ -979,7 +979,7 @@ calc  finrank K V
 ... ≤ finrank K V₂ : submodule.finrank_le _
 
 /-- Given a linear map `f` between two vector spaces with the same dimension, if
-`ker f = ⊥` then `linear_equiv_of_ker_eq_bot` is the induced isomorphism
+`ker f = ⊥` then `linear_equiv_of_injective` is the induced isomorphism
 between the two vector spaces. -/
 noncomputable def linear_equiv_of_injective
   [finite_dimensional K V] [finite_dimensional K V₂]

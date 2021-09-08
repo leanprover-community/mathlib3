@@ -66,7 +66,6 @@ def hasse_deriv (k : ℕ) : polynomial R →ₗ[R] polynomial R :=
       simp only [coeff_smul, smul_monomial, smul_eq_mul, ← mul_assoc, this.eq], },
     { simp only [forall_const, monomial_zero_right, mul_zero], }
   end }
-.
 
 lemma hasse_deriv_apply :
   hasse_deriv k f = f.sum (λ i r, monomial (i - k) (↑(i.choose k) * r)) := rfl

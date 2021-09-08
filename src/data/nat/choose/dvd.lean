@@ -38,18 +38,16 @@ end
 
 end prime
 
-lemma cast_choose (α : Type*) [field α] [char_zero α] {a b : ℕ} (hab : a ≤ b) :
-  (b.choose a : α) = b! / (a! * (b - a)!) :=
+lemma cast_choose (K : Type*) [division_ring K] [char_zero K] {a b : ℕ} (h : a ≤ b) :
+  (b.choose a : K) = b! / (a! * (b - a)!) :=
 begin
-  rw [eq_comm, div_eq_iff],
-  norm_cast,
-  rw [←mul_assoc, choose_mul_factorial_mul_factorial hab],
-  { exact mul_ne_zero (nat.cast_ne_zero.2 $ factorial_ne_zero _)
-    (nat.cast_ne_zero.2 $ factorial_ne_zero _) }
+  have : ∀ {n : ℕ}, (n! : K) ≠ 0 := λ n, nat.cast_ne_zero.2 (factorial_ne_zero _),
+  rw [eq_div_iff_mul_eq (mul_ne_zero this this)],
+  rw_mod_cast [← mul_assoc, choose_mul_factorial_mul_factorial h],
 end
 
-lemma cast_add_choose (α : Type*) [field α] [char_zero α] {a b : ℕ} :
-  ((a + b).choose a : α) = (a + b)! / (a! * b!) :=
-by rw [cast_choose α (le_add_right le_rfl), nat.add_sub_cancel_left, mul_comm]
+lemma cast_add_choose (K : Type*) [division_ring K] [char_zero K] {a b : ℕ} :
+  ((a + b).choose a : K) = (a + b)! / (a! * b!) :=
+by rw [cast_choose K (le_add_right le_rfl), nat.add_sub_cancel_left]
 
 end nat

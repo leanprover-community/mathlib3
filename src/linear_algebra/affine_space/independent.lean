@@ -280,6 +280,45 @@ lemma affine_independent_of_affine_independent_set_of_injective {p : ι → P}
 affine_independent_embedding_of_affine_independent
   (⟨λ i, ⟨p i, set.mem_range_self _⟩, λ x y h, hi (subtype.mk_eq_mk.1 h)⟩ : ι ↪ set.range p) ha
 
+section composition
+
+variables {V₂ P₂ : Type*} [add_comm_group V₂] [module k V₂] [affine_space V₂ P₂]
+include V₂
+
+/-- If the image of a family of points in affine space under an affine transformation is affine-
+independent, then the original family of points is also affine-independent. -/
+lemma affine_independent.of_comp {p : ι → P} (f : P →ᵃ[k] P₂) (hai : affine_independent k (f ∘ p)) :
+  affine_independent k p :=
+begin
+  cases is_empty_or_nonempty ι with h h, { haveI := h, apply affine_independent_of_subsingleton, },
+  obtain ⟨i⟩ := h,
+  rw affine_independent_iff_linear_independent_vsub k p i,
+  simp_rw [affine_independent_iff_linear_independent_vsub k (f ∘ p) i, function.comp_app,
+    ← f.linear_map_vsub] at hai,
+  exact linear_independent.of_comp f.linear hai,
+end
+
+/-- The image of a family of points in affine space, under an injective affine transformation, is
+affine-independent. -/
+lemma affine_independent.map'
+  {p : ι → P} (hai : affine_independent k p) (f : P →ᵃ[k] P₂) (hf : function.injective f) :
+  affine_independent k (f ∘ p) :=
+begin
+  cases is_empty_or_nonempty ι with h h, { haveI := h, apply affine_independent_of_subsingleton, },
+  obtain ⟨i⟩ := h,
+  rw affine_independent_iff_linear_independent_vsub k p i at hai,
+  simp_rw [affine_independent_iff_linear_independent_vsub k (f ∘ p) i, function.comp_app,
+    ← f.linear_map_vsub],
+  have hf' : f.linear.ker = ⊥, { rwa [linear_map.ker_eq_bot, f.injective_iff_linear_injective], },
+  exact linear_independent.map' hai f.linear hf',
+end
+
+lemma affine_map.affine_independent_iff {p : ι → P} (f : P →ᵃ[k] P₂) (hf : function.injective f) :
+  affine_independent k (f ∘ p) ↔ affine_independent k p :=
+⟨affine_independent.of_comp f, λ hai, affine_independent.map' hai f hf⟩
+
+end composition
+
 /-- If a family is affinely independent, and the spans of points
 indexed by two subsets of the index type have a point in common, those
 subsets of the index type have an element in common, if the underlying
@@ -341,6 +380,24 @@ lemma not_mem_affine_span_diff_of_affine_independent [nontrivial k] {p : ι → 
     (ha : affine_independent k p) (i : ι) (s : set ι) :
   p i ∉ affine_span k (p '' (s \ {i})) :=
 by simp [ha]
+
+lemma exists_nontrivial_relation_sum_zero_of_not_affine_ind
+  {t : finset V} (h : ¬ affine_independent k (coe : t → V)) :
+  ∃ f : V → k, ∑ e in t, f e • e = 0 ∧ ∑ e in t, f e = 0 ∧ ∃ x ∈ t, f x ≠ 0 :=
+begin
+  classical,
+  rw affine_independent_iff_of_fintype at h,
+  simp only [exists_prop, not_forall] at h,
+  obtain ⟨w, hw, hwt, i, hi⟩ := h,
+  simp only [finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ w (coe : t → V) hw 0,
+    vsub_eq_sub, finset.weighted_vsub_of_point_apply, sub_zero] at hwt,
+  let f : Π (x : V), x ∈ t → k := λ x hx, w ⟨x, hx⟩,
+  refine ⟨λ x, if hx : x ∈ t then f x hx else (0 : k), _, _, by { use i, simp [hi, f], }⟩,
+  suffices : ∑ (e : V) in t, dite (e ∈ t) (λ hx, (f e hx) • e) (λ hx, 0) = 0,
+  { convert this, ext, by_cases hx : x ∈ t; simp [hx], },
+  all_goals
+  { simp only [finset.sum_dite_of_true (λx h, h), subtype.val_eq_coe, finset.mk_coe, f, hwt, hw], },
+end
 
 end affine_independent
 

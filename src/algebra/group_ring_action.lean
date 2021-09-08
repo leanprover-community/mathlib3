@@ -49,24 +49,11 @@ instance mul_semiring_action.to_mul_distrib_mul_action [h : mul_semiring_action 
   mul_distrib_mul_action M R :=
 { ..h }
 
-/-- Each element of the monoid defines a additive monoid homomorphism. -/
-@[simps]
-def distrib_mul_action.to_add_monoid_hom [distrib_mul_action M A] (x : M) : A →+ A :=
-{ to_fun   := (•) x,
-  map_zero' := smul_zero x,
-  map_add' := smul_add x }
-
 /-- Each element of the group defines an additive monoid isomorphism. -/
 @[simps]
 def distrib_mul_action.to_add_equiv [distrib_mul_action G A] (x : G) : A ≃+ A :=
-{ .. distrib_mul_action.to_add_monoid_hom G A x,
+{ .. distrib_mul_action.to_add_monoid_hom A x,
   .. mul_action.to_perm_hom G A x }
-
-/-- Each element of the group defines an additive monoid homomorphism. -/
-def distrib_mul_action.hom_add_monoid_hom [distrib_mul_action M A] : M →* add_monoid.End A :=
-{ to_fun := distrib_mul_action.to_add_monoid_hom M A,
-  map_one' := add_monoid_hom.ext $ λ x, one_smul M x,
-  map_mul' := λ x y, add_monoid_hom.ext $ λ z, mul_smul x y z }
 
 /-- Each element of the group defines an multiplicative monoid isomorphism. -/
 @[simps]

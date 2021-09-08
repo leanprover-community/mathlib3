@@ -6,6 +6,7 @@ Authors: Noam Atar
 import order.basic
 import order.ideal
 import order.pfilter
+import order.boolean_algebra
 
 /-!
 # Prime ideals
@@ -147,6 +148,46 @@ begin
 end
 
 end distrib_lattice
+
+section boolean_algebra
+
+variables [boolean_algebra P] {x : P} {I : ideal P}
+
+lemma is_prime.mem_or_compl_mem (hI : is_prime I) : x ∈ I ∨ xᶜ ∈ I :=
+begin
+  apply hI.mem_or_mem,
+  rw inf_compl_eq_bot,
+  exact bot_mem,
+end
+
+lemma is_prime.mem_compl_of_not_mem (hI : is_prime I) (hxnI : x ∉ I) : xᶜ ∈ I :=
+hI.mem_or_compl_mem.resolve_left hxnI
+
+lemma is_prime_of_mem_or_compl_mem [is_proper I] (h : ∀ {x : P}, x ∈ I ∨ xᶜ ∈ I) : is_prime I :=
+begin
+  simp only [is_prime_iff_mem_or_mem, or_iff_not_imp_left],
+  intros x y hxy hxI,
+  have hxcI : xᶜ ∈ I := h.resolve_left hxI,
+  have ass : (x ⊓ y) ⊔ (y ⊓ xᶜ) ∈ I := sup_mem _ _ hxy (mem_of_le I inf_le_right hxcI),
+  rwa [inf_comm, sup_inf_inf_compl] at ass
+end
+
+lemma is_prime_iff_mem_or_compl_mem [is_proper I] : is_prime I ↔ ∀ {x : P}, x ∈ I ∨ xᶜ ∈ I :=
+⟨λ h _, h.mem_or_compl_mem, is_prime_of_mem_or_compl_mem⟩
+
+@[priority 100]
+instance is_prime.is_maximal [is_prime I] : is_maximal I :=
+begin
+  simp only [is_maximal_iff, set.eq_univ_iff_forall, is_prime.to_is_proper, true_and],
+  intros J hIJ x,
+  rcases set.exists_of_ssubset hIJ with ⟨y, hyJ, hyI⟩,
+  suffices ass : (x ⊓ y) ⊔ (x ⊓ yᶜ) ∈ J,
+  { rwa sup_inf_inf_compl at ass },
+  exact sup_mem _ _ (J.mem_of_le inf_le_right hyJ)
+    (hIJ.le (I.mem_of_le inf_le_right (is_prime.mem_compl_of_not_mem ‹_› hyI))),
+end
+
+end boolean_algebra
 
 end ideal
 

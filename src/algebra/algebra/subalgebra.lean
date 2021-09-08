@@ -748,7 +748,7 @@ variables {α β : Type*}
 instance [mul_action A α] (S : subalgebra R A) : mul_action S α :=
 S.to_subsemiring.mul_action
 
-lemma smul_def [mul_action A α] {S : subalgebra R A} (g : A) (m : α) : g • m = (g : A) • m := rfl
+lemma smul_def [mul_action A α] {S : subalgebra R A} (g : S) (m : α) : g • m = (g : A) • m := rfl
 
 instance smul_comm_class_left
   [mul_action A β] [has_scalar α β] [smul_comm_class A α β] (S : subalgebra R A) :

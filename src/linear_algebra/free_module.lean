@@ -10,8 +10,6 @@ import logic.small
 import ring_theory.finiteness
 import linear_algebra.matrix.to_lin
 
-open_locale big_operators
-
 /-!
 
 # Free modules
@@ -31,7 +29,7 @@ universes u v w z
 
 variables (R : Type u) (M : Type v) (N : Type z)
 
-open_locale tensor_product direct_sum
+open_locale tensor_product direct_sum big_operators
 
 section basic
 

@@ -96,7 +96,7 @@ ideal_inter_nonempty.inter_nonempty
     satisfies that its ideal poset is a complete lattice.
 -/
 class ideal_Inter_nonempty (P) [preorder P] : Prop :=
-(Inter_nonempty : (⋂ (I : ideal P), I.carrier).nonempty)
+(Inter_nonempty : (⋂ (I : ideal P), (I : set P)).nonempty)
 
 lemma Inter_nonempty [preorder P] [ideal_Inter_nonempty P] :
   (⋂ (I : ideal P), (I : set P)).nonempty :=

@@ -966,6 +966,12 @@ lemma add [has_continuous_add M] {v₁ v₂ : vector_measure α M} {w : vector_m
   (hv₁ : v₁ ≪ w) (hv₂ : v₂ ≪ w) : v₁ + v₂ ≪ w :=
 λ s hs, by { rw [add_apply, hv₁ hs, hv₂ hs, zero_add] }
 
+lemma smul {R : Type*} [semiring R] [distrib_mul_action R M]
+  [topological_space R] [has_continuous_smul R M]
+  {r : R} {v : vector_measure α M} {w : vector_measure α N} (h : v ≪ w) :
+  r • v ≪ w :=
+λ s hs, by { rw [smul_apply, h hs, smul_zero] }
+
 lemma map [measure_space β] (h : v ≪ w) (f : α → β) :
   v.map f ≪ w.map f :=
 begin

@@ -96,10 +96,10 @@ ideal_inter_nonempty.inter_nonempty
     satisfies that its ideal poset is a complete lattice.
 -/
 class ideal_Inter_nonempty (P) [preorder P] : Prop :=
-(Inter_nonempty : (⋂ (I : ideal P), (I : set P)).nonempty)
+(Inter_nonempty : (⋂ (I : ideal P), I.carrier).nonempty)
 
 lemma Inter_nonempty [preorder P] [ideal_Inter_nonempty P] :
-  (⋂ (I : ideal P), (I : set P)).nonempty :=
+  (⋂ (I : ideal P), I.carrier).nonempty :=
 ideal_Inter_nonempty.Inter_nonempty
 
 namespace ideal
@@ -370,7 +370,7 @@ section semilattice_sup_ideal_Inter_nonempty
 variables [semilattice_sup P] [ideal_Inter_nonempty P] {x : P} {I J K : ideal P}
 
 instance : has_Inf (ideal P) :=
-{ Inf := { carrier := ⋂ (I ∈ s), (I : set P),
+{ Inf := λ s, { carrier := ⋂ (I ∈ s), (I : set P),
   nonempty := ideal_Inter_nonempty.ideal_bInter_nonempty,
   directed := λ x hx y hy, ⟨x ⊔ y, ⟨λ S ⟨I, hS⟩,
     begin

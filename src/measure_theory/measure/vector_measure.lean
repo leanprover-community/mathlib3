@@ -962,9 +962,26 @@ eq rfl
 lemma zero (v : vector_measure α N) : (0 : vector_measure α M) ≪ v :=
 λ s _, vector_measure.zero_apply s
 
+lemma neg_left {M : Type*} [add_comm_group M] [topological_space M] [topological_add_group M]
+  {v : vector_measure α M} {w : vector_measure α N} (h : v ≪ w) : -v ≪ w :=
+λ s hs, by { rw [neg_apply, h hs, neg_zero] }
+
+lemma neg_right {N : Type*} [add_comm_group N] [topological_space N] [topological_add_group N]
+  {v : vector_measure α M} {w : vector_measure α N} (h : v ≪ w) : v ≪ -w :=
+begin
+  intros s hs,
+  rw [neg_apply, neg_eq_zero] at hs,
+  exact h hs
+end
+
 lemma add [has_continuous_add M] {v₁ v₂ : vector_measure α M} {w : vector_measure α N}
   (hv₁ : v₁ ≪ w) (hv₂ : v₂ ≪ w) : v₁ + v₂ ≪ w :=
 λ s hs, by { rw [add_apply, hv₁ hs, hv₂ hs, zero_add] }
+
+lemma sub {M : Type*} [add_comm_group M] [topological_space M] [topological_add_group M]
+  {v₁ v₂ : vector_measure α M} {w : vector_measure α N} (hv₁ : v₁ ≪ w) (hv₂ : v₂ ≪ w) :
+  v₁ - v₂ ≪ w :=
+λ s hs, by { rw [sub_apply, hv₁ hs, hv₂ hs, zero_sub, neg_zero] }
 
 lemma smul {R : Type*} [semiring R] [distrib_mul_action R M]
   [topological_space R] [has_continuous_smul R M]

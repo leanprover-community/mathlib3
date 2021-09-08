@@ -89,7 +89,7 @@ calc
         { rw set.eq_empty_iff_forall_not_mem,
           refine ⟨λ h x hx, h.2 (h.1 hx ▸ hx), λ h, ⟨λ x hx, (h _ hx).elim, h _⟩⟩ }
       end
-  ... ≃ (derangements _) ⊕ derangements α
+  ... ≃ (derangements ({a}ᶜ : set α)) ⊕ derangements α
       : begin
         refine equiv.sum_congr ((derangements.subtype_equiv _).trans $ subtype_equiv_right $ λ x,
           _).symm (subtype_equiv_right $ λ f, mem_derangements_iff_fixed_points_eq_empty.symm),

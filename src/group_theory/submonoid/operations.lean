@@ -886,10 +886,33 @@ instance [mul_action M' α] [has_faithful_scalar M' α] (S : submonoid M') :
 
 end submonoid
 
-/-! ### Pointwise instances on `submonoid`s -/
+/-! ### Pointwise instances on `submonoid`s and `add_submonoid`s -/
 
 section
 variables {M' : Type*} {α β : Type*}
+
+namespace submonoid
+
+variables [monoid α] [monoid M'] [mul_distrib_mul_action α M']
+
+/-- The action on a additive submonoid corresponding to applying the action to every element.
+
+This is available as an instance in the `pointwise` locale. -/
+protected def pointwise_mul_action : mul_action α (submonoid M') :=
+{ smul := λ a S, S.map (mul_distrib_mul_action.to_monoid_End _ _ a),
+  one_smul := λ S, (congr_arg (λ f, S.map f) (monoid_hom.map_one _)).trans S.map_id,
+  mul_smul := λ a₁ a₂ S,
+    (congr_arg (λ f, S.map f) (monoid_hom.map_mul _ _ _)).trans (S.map_map _ _).symm,}
+
+localized "attribute [instance] submonoid.pointwise_mul_action" in pointwise
+open_locale pointwise
+
+@[simp] lemma coe_pointwise_smul (a : α) (S : submonoid M') : ↑(a • S) = a • (S : set M') := rfl
+
+lemma smul_mem_pointwise_smul (m : M') (a : α) (S : submonoid M') : m ∈ S → a • m ∈ a • S :=
+(set.smul_mem_smul_set : _ → _ ∈ a • (S : set M'))
+
+end submonoid
 
 namespace add_submonoid
 

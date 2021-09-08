@@ -359,7 +359,7 @@ end
 lemma surjective_of_iterate_surjective {n : ℕ} (hn : n ≠ 0) (h : surjective ⇑(f' ^ n)) :
   surjective f' :=
 begin
-  rw [← nat.succ_pred_eq_of_pos (pos_iff_ne_zero.mpr hn), 
+  rw [← nat.succ_pred_eq_of_pos (pos_iff_ne_zero.mpr hn),
     nat.succ_eq_add_one, add_comm, pow_add] at h,
   exact surjective.of_comp h,
 end
@@ -971,6 +971,10 @@ open_locale pointwise
 
 @[simp] lemma pointwise_smul_to_add_submonoid (a : α) (S : submodule R M) :
   (a • S).to_add_submonoid = a • S.to_add_submonoid := rfl
+
+@[simp] lemma pointwise_smul_to_add_subgroup {M : Type*} [add_comm_group M] [module R M]
+  (a : α) (S : submodule R M) :
+  (a • S).to_add_subgroup = a • S.to_add_subgroup := rfl
 
 lemma smul_mem_pointwise_smul (m : M) (a : α) (S : submodule R M) : m ∈ S → a • m ∈ a • S :=
 (set.smul_mem_smul_set : _ → _ ∈ a • (S : set M))

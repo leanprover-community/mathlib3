@@ -124,7 +124,7 @@ lemma compl [has_zero α] [has_one α] (h : is_adj_matrix A) :
   is_adj_matrix A.compl :=
 is_adj_matrix_compl A h.symm
 
-lemma compl_to_graph_eq [mul_zero_one_class α] [nontrivial α] (h : is_adj_matrix A) :
+lemma to_graph_compl_eq [mul_zero_one_class α] [nontrivial α] (h : is_adj_matrix A) :
   h.compl.to_graph = (h.to_graph)ᶜ :=
 begin
   ext v w,
@@ -174,6 +174,15 @@ variable (α)
 lemma is_adj_matrix_adj_matrix [has_zero α] [has_one α] :
   (G.adj_matrix α).is_adj_matrix :=
 { zero_or_one := λ i j, by by_cases G.adj i j; simp [h] }
+
+/-- The graph induced by the adjacency matrix of `G` is `G` itself. -/
+lemma to_graph_adj_matrix_eq [mul_zero_one_class α] [nontrivial α] :
+  (G.is_adj_matrix_adj_matrix α).to_graph = G :=
+begin
+  ext,
+  simp only [is_adj_matrix.to_graph_adj, adj_matrix_apply, ite_eq_left_iff, zero_ne_one],
+  apply not_not,
+end
 
 variables {α} [fintype V]
 
@@ -236,3 +245,18 @@ lemma adj_matrix_mul_vec_const_apply_of_regular [semiring α] {d : ℕ} {a : α}
 by simp [hd v]
 
 end simple_graph
+
+namespace matrix.is_adj_matrix
+variables [mul_zero_one_class α] [nontrivial α]
+variables {A : matrix V V α} (h : is_adj_matrix A)
+
+/-- If `A` is qualified as an adjacency matrix,
+    then the adjacency matrix of the graph induced by `A` is itself. -/
+lemma adj_matrix_to_graph_eq [decidable_eq α] :
+  h.to_graph.adj_matrix α = A :=
+begin
+  ext i j,
+  obtain (h'|h') := h.zero_or_one i j; simp [h'],
+end
+
+end matrix.is_adj_matrix

@@ -1,4 +1,3 @@
-src/algebra/ordered_ring.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/adjunction/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/adjunction/fully_faithful.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/adjunction/limits.lean : line 9 : ERR_MOD : Module docstring missing, or too late
@@ -39,9 +38,6 @@ src/data/array/lemmas.lean : line 9 : ERR_MOD : Module docstring missing, or too
 src/data/bitvec/basic.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/buffer/basic.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/data/dlist/instances.lean : line 12 : ERR_MOD : Module docstring missing, or too late
-src/data/list/func.lean : line 8 : ERR_MOD : Module docstring missing, or too late
-src/data/list/of_fn.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/data/list/sigma.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/data/pfunctor/multivariate/M.lean : line 43 : ERR_LIN : Line has more than 100 characters
 src/data/pfunctor/multivariate/W.lean : line 42 : ERR_LIN : Line has more than 100 characters
 src/data/pnat/intervals.lean : line 9 : ERR_MOD : Module docstring missing, or too late
@@ -58,7 +54,6 @@ src/deprecated/subfield.lean : line 8 : ERR_MOD : Module docstring missing, or t
 src/deprecated/subring.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/logic/relator.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/meta/coinductive_predicates.lean : line 8 : ERR_MOD : Module docstring missing, or too late
-src/set_theory/lists.lean : line 13 : ERR_MOD : Module docstring missing, or too late
 src/tactic/algebra.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/apply_fun.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/auto_cases.lean : line 8 : ERR_MOD : Module docstring missing, or too late

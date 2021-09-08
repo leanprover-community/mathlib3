@@ -69,7 +69,7 @@ begin
   split,
   { intros h,
     use (λ i, A i i),
-    ext,
+    ext i j,
     by_cases g : i = j;
     simp [@h i j, g] },
   { rintros ⟨d, rfl⟩ i j h, simp [h] }

@@ -855,6 +855,10 @@ lemma smul_def [mul_action M' α] {S : submonoid M'} (g : S) (m : α) : g • m 
 instance [add_monoid α] [distrib_mul_action M' α] (S : submonoid M') : distrib_mul_action S α :=
 distrib_mul_action.comp_hom _ S.subtype
 
+/-- The action by a submonoid is the action by the underlying monoid. -/
+instance [monoid α] [mul_distrib_mul_action M' α] (S : submonoid M') : mul_distrib_mul_action S α :=
+mul_distrib_mul_action.comp_hom _ S.subtype
+
 @[to_additive]
 instance smul_comm_class_left
   [mul_action M' β] [has_scalar α β] [smul_comm_class M' α β] (S : submonoid M') :

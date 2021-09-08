@@ -448,7 +448,9 @@ end
 open is_noetherian submodule function
 
 section
-variables {R M : Type*} [ring R] [add_comm_group M] [module R M]
+universe w
+variables {R M P : Type*} {N : Type w} [ring R] [add_comm_group M] [module R M]
+  [add_comm_group N] [module R N] [add_comm_group P] [module R P]
 
 theorem is_noetherian_iff_well_founded :
   is_noetherian R M ↔ well_founded ((>) : submodule R M → submodule R M → Prop) :=
@@ -502,6 +504,29 @@ by rw [is_noetherian_iff_well_founded, well_founded.monotone_chain_condition]
 lemma is_noetherian.induction [is_noetherian R M] {P : submodule R M → Prop}
   (hgt : ∀ I, (∀ J > I, P J) → P I) (I : submodule R M) : P I :=
 well_founded.recursion (well_founded_submodule_gt R M) I hgt
+
+/-- If the first and final modules in a short exact sequence are noetherian,
+  then the middle module is also noetherian. -/
+theorem is_noetherian_of_range_eq_ker
+  [is_noetherian R M] [is_noetherian R P]
+  (f : M →ₗ[R] N) (g : N →ₗ[R] P)
+  (hf : function.injective f)
+  (hg : function.surjective g)
+  (h : f.range = g.ker) :
+  is_noetherian R N :=
+is_noetherian_iff_well_founded.2 $
+well_founded_gt_exact_sequence
+  (well_founded_submodule_gt R M)
+  (well_founded_submodule_gt R P)
+  f.range
+  (submodule.map f)
+  (submodule.comap f)
+  (submodule.comap g)
+  (submodule.map g)
+  (submodule.gci_map_comap hf)
+  (submodule.gi_map_comap hg)
+  (by simp [linear_map.map_comap_eq, inf_comm])
+  (by simp [linear_map.comap_map_eq, h])
 
 /--
 For any endomorphism of a Noetherian module, there is some nontrivial iterate
@@ -562,9 +587,6 @@ begin
   exact ⟨n, (λ m p,
     eq_bot_of_disjoint_absorbs (h m) ((eq.symm (w (m + 1) (le_add_right p))).trans (w m p)))⟩
 end
-
-universe w
-variables {N : Type w} [add_comm_group N] [module R N]
 
 /--
 If `M ⊕ N` embeds into `M`, for `M` noetherian over `R`, then `N` is trivial.

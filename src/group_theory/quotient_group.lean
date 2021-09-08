@@ -263,6 +263,13 @@ def quotient_ker_equiv_of_right_inverse (ψ : H → G) (hφ : function.right_inv
   right_inv := hφ,
   .. ker_lift φ }
 
+/-- The canonical isomorphism `G/⊥ ≃* G`. -/
+@[to_additive quotient_add_group.quotient_ker_equiv_of_right_inverse
+"The canonical isomorphism `G/⊥ ≃+ G`.",
+  simps]
+def quotient_bot : quotient (⊥ : subgroup G) ≃* G :=
+quotient_ker_equiv_of_right_inverse (monoid_hom.id G) id (λ x, rfl)
+
 /-- The canonical isomorphism `G/(ker φ) ≃* H` induced by a surjection `φ : G →* H`.
 
 For a `computable` version, see `quotient_group.quotient_ker_equiv_of_right_inverse`.

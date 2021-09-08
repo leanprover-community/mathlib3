@@ -171,7 +171,7 @@ def compl₂ (g : Q →ₗ[R] N) : M →ₗ[R] Q →ₗ[R] P := (lcomp R _ g).co
 @[simp] theorem compl₂_apply (g : Q →ₗ[R] N) (m : M) (q : Q) :
   f.compl₂ g m q = f m (g q) := rfl
 
-/-- Composing a linear map `P → Q` and a bilinear map `M × N → P` to
+/-- Composing a linear map `P → Q` and a bilinear map `M → N → P` to
 form a bilinear map `M → N → Q`. -/
 def compr₂ (g : P →ₗ[R] Q) : M →ₗ[R] N →ₗ[R] Q :=
 linear_map.comp (llcomp R N P Q g) f

@@ -1228,7 +1228,7 @@ theorem normal_closure_mono {s t : set G} (h : s ⊆ t) : normal_closure s ≤ n
 normal_closure_le_normal (set.subset.trans h subset_normal_closure)
 
 theorem normal_closure_eq_infi : normal_closure s =
-  ⨅ (N : subgroup G) [normal N] (hs : s ⊆ N), N :=
+  ⨅ (N : subgroup G) (_ : normal N) (hs : s ⊆ N), N :=
 le_antisymm
   (le_infi (λ N, le_infi (λ hN, by exactI le_infi (normal_closure_le_normal))))
   (infi_le_of_le (normal_closure s) (infi_le_of_le (by apply_instance)
@@ -1270,7 +1270,7 @@ lemma normal_core_mono {H K : subgroup G} (h : H ≤ K) : H.normal_core ≤ K.no
 normal_le_normal_core.mpr (H.normal_core_le.trans h)
 
 lemma normal_core_eq_supr (H : subgroup G) :
-  H.normal_core = ⨆ (N : subgroup G) [normal N] (hs : N ≤ H), N :=
+  H.normal_core = ⨆ (N : subgroup G) (_ : normal N) (hs : N ≤ H), N :=
 le_antisymm (le_supr_of_le H.normal_core
   (le_supr_of_le H.normal_core_normal (le_supr_of_le H.normal_core_le le_rfl)))
   (supr_le (λ N, supr_le (λ hN, supr_le (by exactI normal_le_normal_core.mpr))))
@@ -2310,6 +2310,10 @@ S.to_submonoid.has_faithful_scalar
 /-- The action by a subgroup is the action by the underlying group. -/
 instance [add_monoid α] [distrib_mul_action G α] (S : subgroup G) : distrib_mul_action S α :=
 S.to_submonoid.distrib_mul_action
+
+/-- The action by a subgroup is the action by the underlying group. -/
+instance [monoid α] [mul_distrib_mul_action G α] (S : subgroup G) : mul_distrib_mul_action S α :=
+S.to_submonoid.mul_distrib_mul_action
 
 end subgroup
 

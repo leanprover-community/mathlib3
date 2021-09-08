@@ -845,6 +845,12 @@ lemma map_map {T : Type*} [ring T] {I : ideal R} (f : R →+* S)
 ((gc_map_comap f).compose _ _ _ _ (gc_map_comap g)).l_unique
   (gc_map_comap (g.comp f)) (λ _, comap_comap _ _)
 
+lemma map_span (f : R →+* S) (s : set R) :
+  map f (span s) = span (f '' s) :=
+symm $ submodule.span_eq_of_le _
+  (λ y ⟨x, hy, x_eq⟩, x_eq ▸ mem_map_of_mem f (subset_span hy))
+  (map_le_iff_le_comap.2 $ span_le.2 $ set.image_subset_iff.1 subset_span)
+
 variables {f I J K L}
 
 lemma map_le_of_le_comap : I ≤ K.comap f → I.map f ≤ K :=

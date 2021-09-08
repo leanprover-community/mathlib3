@@ -1478,6 +1478,14 @@ lemma preimage_eq_empty_iff {f : α → β} {s : set β} : disjoint s (range f) 
 ⟨preimage_eq_empty,
   λ h, by { simp [eq_empty_iff_forall_not_mem, set.disjoint_iff_inter_eq_empty] at h ⊢, finish }⟩
 
+lemma disjoint_iff_subset_compl_right :
+  disjoint s t ↔ s ⊆ tᶜ :=
+disjoint_left
+
+lemma disjoint_iff_subset_compl_left :
+  disjoint s t ↔ t ⊆ sᶜ :=
+disjoint_right
+
 end set
 
 end disjoint

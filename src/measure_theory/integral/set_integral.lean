@@ -79,7 +79,7 @@ lemma integral_union (hst : disjoint s t) (hs : measurable_set s) (ht : measurab
   ∫ x in s ∪ t, f x ∂μ = ∫ x in s, f x ∂μ + ∫ x in t, f x ∂μ :=
 by simp only [integrable_on, measure.restrict_union hst hs ht, integral_add_measure hfs hft]
 
-lemma integral_finset_bUnion {ι : Type*} (t : finset ι) {s : ι → set α}
+lemma integral_finset_bUnion {ι : Type*} {t : finset ι} {s : ι → set α}
   (hs : ∀ i ∈ t, measurable_set (s i)) (h's : pairwise_on ↑t (disjoint on s))
   (hf : integrable f μ) :
   ∫ x in (⋃ i ∈ t, s i), f x ∂ μ = ∑ i in t, ∫ x in s i, f x ∂ μ :=
@@ -105,7 +105,7 @@ lemma integral_fintype_Union {ι : Type*} [fintype ι] {s : ι → set α}
   (hf : integrable f μ) :
   ∫ x in (⋃ i, s i), f x ∂ μ = ∑ i, ∫ x in s i, f x ∂ μ :=
 begin
-  convert integral_finset_bUnion finset.univ (λ i hi, hs i) _ hf,
+  convert integral_finset_bUnion (λ i hi, hs i) _ hf,
   { simp },
   { simp [pairwise_on_univ, h's] }
 end
@@ -139,18 +139,16 @@ begin
   ... = ∫ x in s, f x ∂μ : by simp
 end
 
-lemma integral_Union {ι : Type*} [encodable ι] {s : ι → set α} {f : α → E}
+lemma has_sum_integral_Union {ι : Type*} [encodable ι] {s : ι → set α} {f : α → E}
   (hm : ∀i, measurable_set (s i)) (hd : pairwise (disjoint on s)) (hfi : integrable f μ ) :
-  (∫ a in (⋃ (n : ι), s n), f a ∂μ) = ∑' n, ∫ a in s n, f a ∂ μ  :=
+  has_sum (λ n, ∫ a in s n, f a ∂ μ) (∫ a in (⋃ (n : ι), s n), f a ∂μ) :=
 begin
-  suffices h : tendsto (λ (n : finset ι), ∑ i in n, ∫ a in s i, f a ∂μ) at_top
-    (𝓝 $ (∫ a in (⋃ n, s n), f a ∂μ)), by { rwa has_sum.tsum_eq },
   have : (λ n : finset ι, ∑ i in n, ∫ a in s i, f a ∂μ) =
            λ (n : finset ι), ∫ a, set.indicator (⋃ i ∈ n, s i) f a ∂μ,
   { funext,
-    rw [← integral_finset_bUnion n (λ i hi, hm i) (hd.pairwise_on _) hfi, integral_indicator],
+    rw [← integral_finset_bUnion (λ i hi, hm i) (hd.pairwise_on _) hfi, integral_indicator],
     exact finset.measurable_set_bUnion _ (λ i hi, hm i) },
-  rw [this, ← integral_indicator (measurable_set.Union hm)],
+  rw [has_sum, this, ← integral_indicator (measurable_set.Union hm)],
   refine tendsto_integral_filter_of_dominated_convergence (λ x, ∥f x∥)
     is_countably_generated_at_top _ _ _ _ _,
   { apply eventually_of_forall (λ n, _),
@@ -161,6 +159,11 @@ begin
   { exact hfi.norm },
   { filter_upwards [] λa, le_trans (tendsto_indicator_bUnion_finset _ _ _) (pure_le_nhds _) },
 end
+
+lemma integral_Union {ι : Type*} [encodable ι] {s : ι → set α} {f : α → E}
+  (hm : ∀i, measurable_set (s i)) (hd : pairwise (disjoint on s)) (hfi : integrable f μ ) :
+  (∫ a in (⋃ (n : ι), s n), f a ∂μ) = ∑' n, ∫ a in s n, f a ∂ μ :=
+(has_sum.tsum_eq (has_sum_integral_Union hm hd hfi)).symm
 
 lemma set_integral_eq_zero_of_forall_eq_zero {f : α → E} (hf : measurable f)
   (ht_eq : ∀ x ∈ t, f x = 0) :

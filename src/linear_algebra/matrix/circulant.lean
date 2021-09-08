@@ -51,12 +51,9 @@ begin
   rw [← circulant_col_zero_eq v, ← circulant_col_zero_eq w, h]
 end
 
-lemma fin.circulant_injective : injective (λ v : fin n → α, circulant v) :=
-begin
-  induction n with n ih,
-  { tidy },
-  exact circulant_injective
-end
+lemma fin.circulant_injective : ∀ n, injective (λ v : fin n → α, circulant v)
+| 0     := dec_trivial
+| (n+1) := circulant_injective
 
 lemma circulant_inj [add_group I] {v w : I → α} :
   circulant v = circulant w ↔ v = w :=
@@ -64,7 +61,7 @@ circulant_injective.eq_iff
 
 lemma fin.circulant_inj {v w : fin n → α} :
   circulant v = circulant w ↔ v = w :=
-fin.circulant_injective.eq_iff
+(fin.circulant_injective n).eq_iff
 
 lemma transpose_circulant [add_group I] (v : I → α) :
   (circulant v)ᵀ =  circulant (λ i, v (-i)) :=
@@ -74,19 +71,14 @@ lemma conj_transpose_circulant [has_star α] [add_group I] (v : I → α) :
   (circulant v)ᴴ = circulant (star (λ i, v (-i))) :=
 by ext; simp [circulant]
 
-lemma fin.transpose_circulant (v : fin n → α) :
-  (circulant v)ᵀ =  circulant (λ i, v (-i)) :=
-begin
-  induction n with n ih, {tidy},
-  simp [transpose_circulant]
-end
+lemma fin.transpose_circulant : ∀ {n} (v : fin n → α), (circulant v)ᵀ =  circulant (λ i, v (-i))
+| 0     := dec_trivial
+| (n+1) := transpose_circulant
 
-lemma fin.conj_transpose_circulant [has_star α] (v : fin n → α) :
-  (circulant v)ᴴ = circulant (star (λ i, v (-i))) :=
-begin
-  induction n with n ih, {tidy},
-  simp [conj_transpose_circulant]
-end
+lemma fin.conj_transpose_circulant [has_star α] :
+  ∀ {n} (v : fin n → α), (circulant v)ᴴ = circulant (star (λ i, v (-i)))
+| 0     := dec_trivial
+| (n+1) := conj_transpose_circulant
 
 lemma map_circulant [has_sub I] (v : I → α) (f : α → β) :
   (circulant v).map f = circulant (λ i, f (v i)) :=
@@ -116,12 +108,10 @@ begin
   abel
 end
 
-lemma fin.circulant_mul [semiring α] (v w : fin n → α) :
-  circulant v ⬝ circulant w = circulant (mul_vec (circulant v) w) :=
-begin
-  induction n with n ih, {refl},
-  exact circulant_mul v w,
-end
+lemma fin.circulant_mul [semiring α] :
+  ∀ {n} (v w : fin n → α), circulant v ⬝ circulant w = circulant (mul_vec (circulant v) w)
+| 0     := dec_trivial
+| (n+1) := circulant_mul
 
 /-- circulant matrices commute in multiplication under certain condations. -/
 lemma circulant_mul_comm
@@ -139,13 +129,10 @@ begin
     abel }
 end
 
-lemma fin.circulant_mul_comm
-  [comm_semigroup α] [add_comm_monoid α] (v w : fin n → α) :
-  circulant v ⬝ circulant w = circulant w ⬝ circulant v :=
-begin
-  induction n with n ih, {refl},
-  exact circulant_mul_comm v w,
-end
+lemma fin.circulant_mul_comm [comm_semigroup α] [add_comm_monoid α] :
+  ∀ {n} (v w : fin n → α), circulant v ⬝ circulant w = circulant w ⬝ circulant v
+| 0     := dec_trivial
+| (n+1) := circulant_mul_comm
 
 /-- `k • circulant v` is another circulantcluant matrix `circulant (k • v)`. -/
 lemma circulant_smul [has_sub I] [has_scalar R α] {k : R} {v : I → α} :
@@ -159,31 +146,21 @@ by ext; simp [circulant]
 /-- The identity matrix is a circulant matrix. -/
 lemma one_eq_circulant [has_zero α] [has_one α] [decidable_eq I] [add_group I]:
   (1 : matrix I I α) = circulant (pi.single 0 1) :=
-begin
-  ext,
-  simp only [circulant, one_apply, pi.single_apply],
-  congr' 1,
-  apply propext sub_eq_zero.symm,
-end
+by { ext i j, simp only [circulant, one_apply, pi.single_apply, sub_eq_zero], congr }
 
 /-- An alternative version of `one_eq_circulant`. -/
-lemma one_eq_circulant' [has_zero α] [has_one α] [decidable_eq I] [add_group I]:
+lemma one_eq_circulant' [has_zero α] [has_one α] [decidable_eq I] [add_group I] :
   (1 : matrix I I α) = circulant (λ i, (1 : matrix I I α) i 0) :=
-begin
-  convert one_eq_circulant,
-  ext,
-  simp [pi.single_apply, one_apply],
-end
+by { ext i j, simp only [circulant, one_apply, sub_eq_zero], congr }
 
 lemma fin.one_eq_circulant [has_zero α] [has_one α] :
-  (1 : matrix (fin n) (fin n) α) = circulant (λ i, ite (i.1 = 0) 1 0) :=
+  ∀ n, (1 : matrix (fin n) (fin n) α) = circulant (λ i, ite (↑i = 0) 1 0)
+| 0     := dec_trivial
+| (n+1) :=
 begin
-  induction n with n, {dec_trivial},
-  convert one_eq_circulant,
-  ext,
-  simp only [pi.single_apply],
-  congr' 1,
-  tidy
+  ext i j,
+  simp only [circulant, one_apply, ← @fin.coe_zero n, fin.coe_injective.eq_iff, sub_eq_zero],
+  congr,
 end
 
 /-- For a one-ary predicate `p`, `p` applied to every entry of `circulant v` is true
@@ -216,15 +193,10 @@ begin
   { intros h i j, convert h (i - j), simp }
 end
 
-lemma fin.circulant_is_sym_ext_iff {v : fin n → α} :
-  (circulant v).is_symm ↔ ∀ i, v (- i) = v i :=
-begin
-  induction n with n ih,
-  { rw [circulant_is_symm_ext_iff'],
-    split;
-    {intros h i, have :=i.2, simp* at *} },
-  convert circulant_is_symm_ext_iff,
-end
+lemma fin.circulant_is_sym_ext_iff :
+  ∀ {n} {v : fin n → α}, (circulant v).is_symm ↔ ∀ i, v (- i) = v i
+| 0     := λ v, by simp only [circulant_is_symm_ext_iff', is_empty.forall_iff]
+| (n+1) := λ v, circulant_is_symm_ext_iff
 
 /-- If `circulant v` is symmetric, `∀ i j : I, v (j - i) = v (i - j)`. -/
 lemma circulant_is_sym_apply' [has_sub I] {v : I → α} (h : (circulant v).is_symm) (i j : I) :

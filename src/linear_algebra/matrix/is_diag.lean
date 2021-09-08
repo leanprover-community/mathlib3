@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Lu-Ming Zhang
 -/
 import linear_algebra.matrix.symmetric
+import linear_algebra.matrix.orthogonal
 import data.matrix.kronecker
 
 /-!
@@ -31,32 +32,6 @@ variables {α β R n m : Type*}
 
 open function
 open_locale matrix kronecker
-
-/-- `A.has_orthogonal_rows` means matrix `A` has orthogonal
-    (with respect to `dot_product`) rows. -/
-def has_orthogonal_rows [fintype n] [has_mul α] [add_comm_monoid α]
-  (A : matrix m n α) : Prop :=
-∀ ⦃i₁ i₂⦄, i₁ ≠ i₂ → dot_product (A i₁) (A i₂) = 0
-
-/-- `A.has_orthogonal_cols` means matrix `A` has orthogonal
-    (with respect to `dot_product`) columns. -/
-def has_orthogonal_cols [fintype m] [has_mul α] [add_comm_monoid α]
-  (A : matrix m n α) : Prop :=
-has_orthogonal_rows Aᵀ
-
-/-- `Aᵀ` has orthogonal rows iff `A` has orthogonal columns. -/
-lemma transpose_has_orthogonal_rows_iff_has_orthogonal_cols
-  [fintype m] [has_mul α] [add_comm_monoid α] (A : matrix m n α) :
-  Aᵀ.has_orthogonal_rows ↔ A.has_orthogonal_cols :=
-iff.rfl
-
-/-- `Aᵀ` has orthogonal columns iff `A` has orthogonal rows. -/
-lemma transpose_has_orthogonal_cols_iff_has_orthogonal_rows
-  [fintype n] [has_mul α] [add_comm_monoid α] (A : matrix m n α) :
-  Aᵀ.has_orthogonal_cols ↔ A.has_orthogonal_rows :=
-iff.rfl
-
------------------------------------------------------------------------------------
 
 /-- `A.is_diag` means square matrix `A` is a dianogal matrix: `∀ i j, i ≠ j → A i j = 0`. -/
 def is_diag [has_zero α] (A : matrix n n α) : Prop := ∀ ⦃i j⦄, i ≠ j → A i j = 0

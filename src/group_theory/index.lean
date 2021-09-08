@@ -9,11 +9,16 @@ import set_theory.cardinal
 
 /-!
 # Index of a Subgroup
+
 In this file we define the index of a subgroup, and prove several divisibility properties.
+
 ## Main definitions
+
 - `H.index` : the index of `H : subgroup G` as a natural number,
   and returns 0 if the index is infinite.
+
 # Main results
+
 - `index_mul_card` : `H.index * fintype.card H = fintype.card G`
 - `index_dvd_card` : `H.index ∣ fintype.card G`
 - `index_eq_mul_of_le` : If `H ≤ K`, then `H.index = K.index * (H.subgroup_of K).index`

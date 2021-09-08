@@ -737,6 +737,26 @@ lemma min'_lt_of_mem_erase_min' [decidable_eq α] {a : α} (ha : a ∈ s.erase (
   s.min' H < a :=
 @lt_max'_of_mem_erase_max' (order_dual α) _ s H _ a ha
 
+@[simp] lemma max'_image [linear_order β]
+  {f : α → β} (hf : monotone f) (s : finset α) (h : (s.image f).nonempty) :
+  (s.image f).max' h = f (s.max' ((nonempty.image_iff f).mp h)) :=
+begin
+  refine le_antisymm (max'_le _ _ _ (λ y hy, _))
+    (le_max' _ _ (mem_image.mpr ⟨_, max'_mem _ _, rfl⟩)),
+  obtain ⟨x, hx, rfl⟩ := mem_image.mp hy,
+  exact hf (le_max' _ _ hx)
+end
+
+@[simp] lemma min'_image [linear_order β]
+  {f : α → β} (hf : monotone f) (s : finset α) (h : (s.image f).nonempty) :
+  (s.image f).min' h = f (s.min' ((nonempty.image_iff f).mp h)) :=
+begin
+  refine le_antisymm (min'_le _ _ (mem_image.mpr ⟨_, min'_mem _ _, rfl⟩))
+    (le_min' _ _ _ (λ y hy, _)),
+  obtain ⟨x, hx, rfl⟩ := mem_image.mp hy,
+  exact hf (min'_le _ _ hx)
+end
+
 /-- Induction principle for `finset`s in a linearly ordered type: a predicate is true on all
 `s : finset α` provided that:
 

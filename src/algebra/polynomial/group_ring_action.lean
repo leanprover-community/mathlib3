@@ -95,7 +95,7 @@ theorem prod_X_sub_smul.eval (x : R) : (prod_X_sub_smul G R x).eval x = 0 :=
 
 theorem prod_X_sub_smul.smul (x : R) (g : G) :
   g • prod_X_sub_smul G R x = prod_X_sub_smul G R x :=
-(smul_prod _ _ _ _ _).trans $ fintype.prod_bijective _ (mul_action.bijective g) _ _
+finset.smul_prod.trans $ fintype.prod_bijective _ (mul_action.bijective g) _ _
   (λ g', by rw [of_quotient_stabilizer_smul, smul_sub, polynomial.smul_X, polynomial.smul_C])
 
 theorem prod_X_sub_smul.coeff (x : R) (g : G) (n : ℕ) :

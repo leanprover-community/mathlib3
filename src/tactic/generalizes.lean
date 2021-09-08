@@ -114,7 +114,8 @@ meta def step3 (e : expr) (js ks eqs eq_proofs : list expr)
 focus1 $ do
   let new_target_type := (e.pis eqs).pis ks,
   type_check new_target_type <|> fail!
-    "generalizes': unable to generalize the target because the generalized target type does not type check:\n{new_target_type}",
+    ("generalizes': unable to generalize the target because the generalized target type does not" ++
+    " type check:\n{new_target_type}"),
   n ← mk_fresh_name,
   new_target ← assert n new_target_type,
   swap,

@@ -20,6 +20,7 @@ namespace tensor_product
 open_locale tensor_product
 open_locale direct_sum
 open linear_map
+local attribute [ext] tensor_product.ext
 
 variables (R : Type*) [comm_ring R]
 variables (ι₁ : Type*) (ι₂ : Type*)

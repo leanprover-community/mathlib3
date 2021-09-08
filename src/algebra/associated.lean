@@ -179,7 +179,7 @@ end
 protected lemma prime.irreducible [comm_cancel_monoid_with_zero α] {p : α} (hp : prime p) :
   irreducible p :=
 ⟨hp.not_unit, λ a b hab,
-  (show a * b ∣ a ∨ a * b ∣ b, from hab ▸ hp.dvd_or_dvd (hab ▸ (dvd_refl _))).elim
+  (show a * b ∣ a ∨ a * b ∣ b, from hab ▸ hp.dvd_or_dvd (hab ▸ dvd_rfl)).elim
     (λ ⟨x, hx⟩, or.inr (is_unit_iff_dvd_one.2
       ⟨x, mul_right_cancel' (show a ≠ 0, from λ h, by simp [*, prime] at *)
         $ by conv {to_lhs, rw hx}; simp [mul_comm, mul_assoc, mul_left_comm]⟩))
@@ -723,7 +723,7 @@ lemma le_of_mul_le_mul_left (a b c : associates α) (ha : a ≠ 0) :
 lemma one_or_eq_of_le_of_prime :
   ∀(p m : associates α), prime p → m ≤ p → (m = 1 ∨ m = p)
 | _ m ⟨hp0, hp1, h⟩ ⟨d, rfl⟩ :=
-match h m d (dvd_refl _) with
+match h m d dvd_rfl with
 | or.inl h := classical.by_cases (assume : m = 0, by simp [this]) $
   assume : m ≠ 0,
   have m * d ≤ m * 1, by simpa using h,

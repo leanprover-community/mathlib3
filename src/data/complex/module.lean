@@ -104,7 +104,7 @@ end
 section
 open_locale complex_order
 
-lemma complex_ordered_module : ordered_module ℝ ℂ :=
+lemma complex_ordered_smul : ordered_smul ℝ ℂ :=
 { smul_lt_smul_of_pos := λ z w x h₁ h₂,
   begin
     obtain ⟨y, l, rfl⟩ := lt_def.mp h₁,
@@ -127,7 +127,7 @@ lemma complex_ordered_module : ordered_module ℝ ℂ :=
       simp [mul_comm _ y, mul_assoc, h] },
   end }
 
-localized "attribute [instance] complex_ordered_module" in complex_order
+localized "attribute [instance] complex_ordered_smul" in complex_order
 
 end
 

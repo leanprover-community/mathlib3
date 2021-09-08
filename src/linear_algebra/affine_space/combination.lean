@@ -229,6 +229,30 @@ lemma affine_combination_vsub (w₁ w₂ : ι → k) (p : ι → P) :
   s.affine_combination p w₁ -ᵥ s.affine_combination p w₂ = s.weighted_vsub p (w₁ - w₂) :=
 by rw [←affine_map.linear_map_vsub, affine_combination_linear, vsub_eq_sub]
 
+lemma affine_combination_attach (s : finset P) (w : P → k) :
+  s.attach.affine_combination (coe : s → P) (w ∘ coe) = s.affine_combination id w :=
+begin
+  simp only [affine_combination, weighted_vsub_of_point_apply, id.def, vadd_right_cancel_iff,
+    function.comp_app, affine_map.coe_mk],
+  let f : s → V := λ i, w (i : P) • ((i : P) -ᵥ classical.choice S.nonempty),
+  let g : P → V := λ i, w i • (i -ᵥ classical.choice S.nonempty),
+  change univ.sum f = s.sum g,
+  have hfg : f = g ∘ (coe : s → P), { ext, simp, },
+  rw hfg,
+  exact sum_attach,
+end
+
+omit S
+
+/-- Viewing a module as an affine space modelled on itself, affine combinations are just linear
+combinations. -/
+@[simp] lemma affine_combination_module
+  (s : finset ι) (p : ι → V) (w : ι → k) (hw : ∑ i in s, w i = 1) :
+  s.affine_combination p w = ∑ i in s, w i • p i :=
+by simp [s.affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one w p hw 0]
+
+include S
+
 /-- An `affine_combination` equals a point if that point is in the set
 and has weight 1 and the other points in the set have weight 0. -/
 @[simp] lemma affine_combination_of_eq_one_of_eq_zero (w : ι → k) (p : ι → P) {i : ι}
@@ -381,6 +405,10 @@ s.affine_combination p (s.centroid_weights k)
 lemma centroid_def (p : ι → P) :
   s.centroid k p = s.affine_combination p (s.centroid_weights k) :=
 rfl
+
+lemma centroid_univ (s : finset P) :
+  univ.centroid k (coe : s → P) = s.centroid k id :=
+by { rw [centroid, centroid, ← s.affine_combination_attach], congr, ext, simp, }
 
 /-- The centroid of a single point. -/
 @[simp] lemma centroid_singleton (p : ι → P) (i : ι) :

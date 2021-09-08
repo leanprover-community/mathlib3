@@ -6,6 +6,7 @@ Authors: Alexander Bentkamp, Yury Kudriashov
 import data.complex.module
 import data.set.intervals.image_preimage
 import linear_algebra.affine_space.affine_map
+import linear_algebra.affine_space.combination
 import order.closure
 
 /-!
@@ -1463,6 +1464,27 @@ lemma finset.center_mass_mem_convex_hull (t : finset ι) {w : ι → ℝ} (hw₀
   (hws : 0 < ∑ i in t, w i) {z : ι → E} (hz : ∀ i ∈ t, z i ∈ s) :
   t.center_mass w z ∈ convex_hull s :=
 (convex_convex_hull s).center_mass_mem hw₀ hws (λ i hi, subset_convex_hull s $ hz i hi)
+
+/-- The center of mass can be regarded as a generalisation of the centroid. -/
+@[simp] lemma finset.center_mass_centroid_weights_eq (s : finset ι) (hs : s.nonempty) (p : ι → E) :
+  s.center_mass (s.centroid_weights ℝ) p = s.centroid ℝ p :=
+begin
+  have hs : (s.card : ℝ) ≠ 0, { simp [ne_of_gt (finset.card_pos.mpr hs)], },
+  have hw := s.sum_centroid_weights_eq_one_of_cast_card_ne_zero hs,
+  simp only [s.center_mass_eq_of_sum_1 _ hw, finset.centroid, s.affine_combination_module _ _ hw],
+end
+
+lemma finset.centroid_mem_convex_hull (s : finset E) (hs : s.nonempty) :
+  s.centroid ℝ id ∈ convex_hull (s : set E) :=
+begin
+  rw ← s.center_mass_centroid_weights_eq hs,
+  apply s.center_mass_mem_convex_hull,
+  { simp only [inv_nonneg, implies_true_iff, nat.cast_nonneg, finset.centroid_weights_apply], },
+  { have hs_card : (s.card : ℝ) ≠ 0, { simp [finset.nonempty_iff_ne_empty.mp hs], },
+    simp only [hs_card, finset.sum_const, nsmul_eq_mul, mul_inv_cancel, ne.def, not_false_iff,
+      finset.centroid_weights_apply, zero_lt_one], },
+  { simp only [imp_self, forall_const, id.def, finset.mem_coe], },
+end
 
 -- TODO : Do we need other versions of the next lemma?
 

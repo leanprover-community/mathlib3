@@ -165,7 +165,7 @@ lemma root_multiplicity_eq_zero {p : polynomial R} {x : R} (h : ¬ is_root p x) 
 begin
   rw root_multiplicity_eq_multiplicity,
   split_ifs, { refl },
-  rw [← enat.coe_inj, enat.coe_get, multiplicity.multiplicity_eq_zero_of_not_dvd, enat.coe_zero],
+  rw [← enat.coe_inj, enat.coe_get, multiplicity.multiplicity_eq_zero_of_not_dvd, nat.cast_zero],
   intro hdvd,
   exact h (dvd_iff_is_root.mp hdvd)
 end

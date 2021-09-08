@@ -1069,7 +1069,7 @@ end
 
 @[simp]
 lemma coe_ideal_span_singleton (x : R) :
-  (↑(span R {x} : ideal R) : fractional_ideal S P) = span_singleton S (algebra_map R P x) :=
+  (↑(ideal.span {x} : ideal R) : fractional_ideal S P) = span_singleton S (algebra_map R P x) :=
 begin
   ext y,
   refine (mem_coe_ideal S).trans (iff.trans _ (mem_span_singleton S).symm),
@@ -1184,7 +1184,8 @@ begin
   suffices : I = span_singleton R⁰ ((algebra_map R K a)⁻¹ * algebra_map R K (generator aI)),
   { exact congr_arg subtype.val this },
   conv_lhs { rw [ha, ←span_singleton_generator aI] },
-  rw [coe_ideal_span_singleton (generator aI), span_singleton_mul_span_singleton]
+  rw [ideal.submodule_span_eq, coe_ideal_span_singleton (generator aI),
+      span_singleton_mul_span_singleton]
 end
 
 include loc
@@ -1229,7 +1230,7 @@ begin
   let y' : units (fractional_ideal R₁⁰ K) := units.mk_of_mul_eq_one _ _ this,
   have coe_y' : ↑y' = span_singleton R₁⁰ (is_localization.mk' K 1 ⟨y, hy⟩) := rfl,
   refine iff.trans _ (y'.mul_right_inj.trans inj.eq_iff),
-  simp only [coe_ideal_mul, ideal.span, coe_ideal_span_singleton, ← mul_assoc, coe_y',
+  simp only [coe_ideal_mul, coe_ideal_span_singleton, ← mul_assoc, coe_y',
     span_singleton_mul_span_singleton, mul_comm, ← is_localization.mk'_eq_mul_mk'_one,
     is_localization.mk'_self, span_singleton_one, one_mul],
 end

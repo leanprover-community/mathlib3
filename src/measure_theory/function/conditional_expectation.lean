@@ -932,6 +932,28 @@ begin
   simp only [coe_fn_coe_base, submodule.coe_zero, continuous_linear_map.map_zero],
 end
 
+lemma set_integral_indicator_const_Lp (hs : measurable_set s) (ht : measurable_set t)
+  (hμt : μ t ≠ ∞) (x : G') :
+  ∫ a in s, indicator_const_Lp p ht hμt x a ∂μ = (μ (t ∩ s)).to_real • x :=
+calc ∫ a in s, indicator_const_Lp p ht hμt x a ∂μ
+    = (∫ a in s, t.indicator (λ _, x) a ∂μ) :
+  by rw set_integral_congr_ae hs (indicator_const_Lp_coe_fn.mono (λ x hx hxs, hx))
+... = (μ (t ∩ s)).to_real • x : by rw [integral_indicator_const _ ht, measure.restrict_apply ht]
+
+lemma set_integral_condexp_smul_eq (hs : measurable_set[m] s) (ht : measurable_set t) (hμs : μ s ≠ ∞)
+  (hμt : μ t ≠ ∞) (x : G') :
+  ∫ a in s, (condexp_smul hm ht hμt x) a ∂μ = (μ (t ∩ s)).to_real • x :=
+calc ∫ a in s, (condexp_smul hm ht hμt x) a ∂μ
+    = (∫ a in s, (condexp_L2 ℝ hm (indicator_const_Lp 2 ht hμt (1 : ℝ)) a • x) ∂μ) :
+  set_integral_congr_ae (hm s hs) ((condexp_smul_ae_eq_smul hm ht hμt x).mono (λ x hx hxs, hx))
+... = (∫ a in s, condexp_L2 ℝ hm (indicator_const_Lp 2 ht hμt (1 : ℝ)) a ∂μ) • x :
+  by rw integral_smul_const _ x
+... = (∫ a in s, indicator_const_Lp 2 ht hμt (1 : ℝ) a ∂μ) • x :
+  by rw @integral_condexp_L2_eq α _ ℝ _ _ _ _ _ _ _ _ _ _ _ _ _ _ hm
+    (indicator_const_Lp 2 ht hμt (1 : ℝ)) hs hμs
+... = (μ (t ∩ s)).to_real • x :
+  by rw [set_integral_indicator_const_Lp (hm s hs), smul_assoc, one_smul]
+
 end condexp_smul
 
 end condexp_L2
@@ -1190,6 +1212,24 @@ lemma condexp_ind_disjoint_union (hs : measurable_set s) (ht : measurable_set t)
   (condexp_ind hm μ (s ∪ t) : G →L[ℝ] α →₁[μ] G) = condexp_ind hm μ s + condexp_ind hm μ t :=
 by { ext1, push_cast, exact condexp_ind_disjoint_union_apply hs ht hμs hμt hst x, }
 
+variables (G)
+
+lemma dominated_fin_meas_additive_condexp_ind (hm : m ≤ m0) (μ : measure α)
+  [sigma_finite (μ.trim hm)] :
+  dominated_fin_meas_additive μ (condexp_ind hm μ : set α → G →L[ℝ] α →₁[μ] G) 1 :=
+⟨λ s t, condexp_ind_disjoint_union, λ s, norm_condexp_ind_le.trans (one_mul _).symm.le⟩
+
+variables {G}
+
+lemma set_integral_condexp_ind_eq (hs : measurable_set[m] s) (ht : measurable_set t) (hμs : μ s ≠ ∞)
+  (hμt : μ t ≠ ∞) (x : G') :
+  ∫ a in s, condexp_ind hm μ t x a ∂μ = (μ (t ∩ s)).to_real • x :=
+calc
+∫ a in s, condexp_ind hm μ t x a ∂μ = ∫ a in s, condexp_smul hm ht hμt x a ∂μ :
+  set_integral_congr_ae (hm s hs)
+    ((condexp_ind_ae_eq_condexp_smul hm ht hμt x).mono (λ x hx hxs, hx))
+... = (μ (t ∩ s)).to_real • x : set_integral_condexp_smul_eq hs ht hμs hμt x
+
 end condexp_ind
 
 section condexp_L1
@@ -1197,18 +1237,42 @@ section condexp_L1
 local attribute [instance] fact_one_le_one_ennreal
 
 variables {𝕜} {m m0 : measurable_space α} {μ : measure α} [borel_space 𝕜] [is_scalar_tower ℝ 𝕜 F']
-  {hm : m ≤ m0} [sigma_finite (μ.trim hm)] {f : α → F'}
+  {hm : m ≤ m0} [sigma_finite (μ.trim hm)] {f : α → F'} {s : set α}
 
 def condexp_L1 (hm : m ≤ m0) (μ : measure α) [sigma_finite (μ.trim hm)] :
   (α →₁[μ] F') →L[ℝ] α →₁[μ] F' :=
-L1.set_to_L1_clm (@condexp_ind α F' _ _ _ _ _ _ _ hm μ _) (λ s t, condexp_ind_disjoint_union)
-  zero_le_one (λ s, norm_condexp_ind_le.trans (one_mul _).symm.le)
+L1.set_to_L1 (dominated_fin_meas_additive_condexp_ind F' hm μ)
 
 lemma condexp_L1_smul (c : 𝕜) (f : α →₁[μ] F') : condexp_L1 hm μ (c • f) = c • condexp_L1 hm μ f :=
-map_smul (L1.set_to_L1_clm' 𝕜 (@condexp_ind α F' _ _ _ _ _ _ _ hm μ _)
-  (λ s t, condexp_ind_disjoint_union) (λ c s x, condexp_ind_smul c x) zero_le_one
-  (λ s, norm_condexp_ind_le.trans (one_mul _).symm.le))
-  c f
+L1.set_to_L1_smul (dominated_fin_meas_additive_condexp_ind F' hm μ)
+  (λ c s x, condexp_ind_smul c x) c f
+
+lemma set_integral_condexp_L1_eq (f : α →₁[μ] F') (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) :
+  ∫ x in s, condexp_L1 hm μ f x ∂μ = ∫ x in s, f x ∂μ :=
+begin
+  refine Lp.induction ennreal.one_ne_top
+    (λ f : α →₁[μ] F', ∫ x in s, condexp_L1 hm μ f x ∂μ = ∫ x in s, f x ∂μ)
+  _ _ (is_closed_eq _ _) f,
+  { intros x t ht hμt,
+    rw [Lp.simple_func.coe_indicator_const, set_integral_indicator_const_Lp (hm _ hs)],
+    have h : (condexp_L1 hm μ) (indicator_const_Lp 1 ht _ x) = condexp_ind hm μ t x,
+      from L1.set_to_L1_indicator_const_Lp_eq
+        (dominated_fin_meas_additive_condexp_ind F' hm μ) ht hμt.ne x,
+    rw h,
+    exact set_integral_condexp_ind_eq hs ht hμs hμt.ne x, },
+  { intros f g hf_Lp hg_Lp hfg_disj hf hg,
+    simp_rw (condexp_L1 hm μ).map_add,
+    rw set_integral_congr_ae (hm s hs) ((Lp.coe_fn_add (condexp_L1 hm μ (hf_Lp.to_Lp f))
+      (condexp_L1 hm μ (hg_Lp.to_Lp g))).mono (λ x hx hxs, hx)),
+    rw set_integral_congr_ae (hm s hs) ((Lp.coe_fn_add (hf_Lp.to_Lp f) (hg_Lp.to_Lp g)).mono
+      (λ x hx hxs, hx)),
+    simp_rw pi.add_apply,
+    rw [integral_add (L1.integrable_coe_fn _).integrable_on (L1.integrable_coe_fn _).integrable_on,
+      integral_add (L1.integrable_coe_fn _).integrable_on (L1.integrable_coe_fn _).integrable_on,
+      hf, hg], },
+  { exact (continuous_set_integral s).comp (condexp_L1 hm μ).continuous, },
+  { exact continuous_set_integral s, },
+end
 
 end condexp_L1
 
@@ -1216,27 +1280,33 @@ section condexp
 
 open_locale classical
 
-variables {𝕜} {m m0 : measurable_space α} {ℙ : measure α} [borel_space 𝕜] [is_scalar_tower ℝ 𝕜 F']
-  {hm : m ≤ m0} [sigma_finite (ℙ.trim hm)] {f : α → F'}
+local attribute [instance] fact_one_le_one_ennreal
 
-def condexp (hm : m ≤ m0) (ℙ : measure α) [sigma_finite (ℙ.trim hm)] (f : α → F') : α → F' :=
-if hf : integrable f ℙ then condexp_L1 hm ℙ (hf.to_L1 f) else 0
+variables {𝕜} {m m0 : measurable_space α} {ℙ : measure α} [borel_space 𝕜] [is_scalar_tower ℝ 𝕜 F']
+  {hm : m ≤ m0} [sigma_finite (ℙ.trim hm)] {f : α → F'} {s : set α}
+
+def condexp (hm : m ≤ m0) (ℙ : measure α) [sigma_finite (ℙ.trim hm)] (f : α → F') : α →₁[ℙ] F' :=
+set_to_fun (dominated_fin_meas_additive_condexp_ind F' hm ℙ) f
 
 notation  ℙ `[` f `]` := ∫ x, f x ∂ℙ
 notation  ℙ `[` f `|` hm `]` := condexp hm ℙ f
 
 lemma condexp_eq_condexp_L1_of_integrable (hf : integrable f ℙ) :
   ℙ[f | hm] = condexp_L1 hm ℙ (hf.to_L1 f) :=
-by simp only [condexp, hf, dif_pos]
+set_to_fun_eq (dominated_fin_meas_additive_condexp_ind F' hm ℙ) hf
 
 lemma condexp_eq_zero_of_not_integrable (hf : ¬ integrable f ℙ) : ℙ[f | hm] = 0 :=
-by simp only [condexp, hf, dif_neg, not_false_iff]
+set_to_fun_undef (dominated_fin_meas_additive_condexp_ind F' hm ℙ) hf
 
-lemma integrable_condexp (f : α → F') : integrable (ℙ[f | hm]) ℙ :=
+lemma integrable_condexp (f : α → F') : integrable (ℙ[f | hm]) ℙ := L1.integrable_coe_fn _
+
+lemma set_integral_condexp_eq {f : α → F'} (hf : integrable f ℙ) (hs : measurable_set[m] s)
+  (hℙs : ℙ s ≠ ∞) :
+  ∫ x in s, ℙ[f | hm] x ∂ℙ = ∫ x in s, f x ∂ℙ :=
 begin
-  by_cases hf : integrable f ℙ,
-  { rw [condexp_eq_condexp_L1_of_integrable hf, ← mem_ℒp_one_iff_integrable], exact Lp.mem_ℒp _, },
-  { rw condexp_eq_zero_of_not_integrable hf, exact integrable_zero _ _ _, },
+  simp_rw condexp_eq_condexp_L1_of_integrable hf,
+  rw set_integral_condexp_L1_eq (hf.to_L1 f) hs hℙs,
+  exact set_integral_congr_ae (hm s hs) ((hf.coe_fn_to_L1).mono (λ x hx hxs, hx)),
 end
 
 end condexp

@@ -345,6 +345,66 @@ calc ∥f.set_to_simple_func T∥
   end
 ... ≤ C * ∑ x in f.range, (μ (f ⁻¹' {x})).to_real * ∥x∥ : by simp_rw [mul_sum, ← mul_assoc]
 
+lemma simple_func.range_indicator {β} {m : measurable_space α} {s : set α} (hs : measurable_set s)
+  (hs_nonempty : s ≠ ∅) (hs_ne_univ : s ≠ univ) (x y : β) :
+  (simple_func.piecewise s hs (simple_func.const α x) (simple_func.const α y)).range = {x, y} :=
+begin
+  ext1 z,
+  rw [mem_range, set.mem_range, finset.mem_insert, finset.mem_singleton],
+  simp_rw simple_func.piecewise_apply,
+  split; intro h,
+  { obtain ⟨a, haz⟩ := h,
+    by_cases has : a ∈ s,
+    { left,
+      simp only [has, function.const_apply, if_true, coe_const] at haz,
+      exact haz.symm, },
+    { right,
+      simp only [has, function.const_apply, if_false, coe_const] at haz,
+      exact haz.symm, }, },
+  { cases h,
+    { obtain ⟨a, has⟩ : ∃ a, a ∈ s, by rwa set.ne_empty_iff_nonempty at hs_nonempty,
+      exact ⟨a, by simpa [has] using h.symm⟩, },
+    { obtain ⟨a, has⟩ : ∃ a, a ∉ s,
+      { by_contra,
+        push_neg at h,
+        refine hs_ne_univ _,
+        ext1 a,
+        simp [h a], },
+      exact ⟨a, by simpa [has] using h.symm⟩, }, },
+end
+
+lemma set_to_simple_func_indicator (T : set α → F →L[ℝ] F') (hT_empty : T ∅ = 0)
+  {m : measurable_space α} {s : set α} (hs : measurable_set s) (x : F) :
+  simple_func.set_to_simple_func T
+    (simple_func.piecewise s hs (simple_func.const α x) (simple_func.const α 0))
+  = T s x :=
+begin
+  by_cases hs_empty : s = ∅,
+  { simp only [hs_empty, hT_empty, continuous_linear_map.zero_apply, piecewise_empty, const_zero,
+    set_to_simple_func_zero_apply], },
+  by_cases hs_univ : s = univ,
+  { casesI hα : is_empty_or_nonempty α,
+    { refine absurd _ hs_empty,
+      haveI : subsingleton (set α), by { unfold set, apply_instance, },
+      exact subsingleton.elim s ∅, },
+    simp [hs_univ, set_to_simple_func], },
+  simp_rw set_to_simple_func,
+  rw simple_func.range_indicator hs hs_empty hs_univ,
+  by_cases hx0 : x = 0,
+  { simp_rw hx0, simp, },
+  rw sum_insert,
+  swap, { rw finset.mem_singleton, exact hx0, },
+  rw [sum_singleton, (T _).map_zero, add_zero],
+  congr,
+  simp only [coe_piecewise, piecewise_eq_indicator, coe_const, pi.const_zero,
+    piecewise_eq_indicator],
+  rw [indicator_preimage, preimage_const_of_mem],
+  swap, { exact set.mem_singleton x, },
+  rw [← pi.const_zero, preimage_const_of_not_mem],
+  swap, { rw set.mem_singleton_iff, exact ne.symm hx0, },
+  simp,
+end
+
 end simple_func
 
 namespace L1
@@ -439,6 +499,21 @@ begin
   exact simple_func.norm_set_to_simple_func_le_sum_mul_norm T hT_norm _,
 end
 
+lemma set_to_L1s_indicator_const_eq {T : set α → E →L[ℝ] F} {C : ℝ} {s : set α}
+  (hT : dominated_fin_meas_additive μ T C) (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : E) :
+  set_to_L1s T (simple_func.indicator_const 1 hs hμs x) = T s x :=
+begin
+  have h_zero : ∀ s (hs : measurable_set s) (hs_zero : μ s = 0), T s = 0,
+  { refine λ s hs hs0, norm_eq_zero.mp _,
+    refine le_antisymm ((hT.2 s).trans (le_of_eq _)) (norm_nonneg _),
+    rw [hs0, ennreal.zero_to_real, mul_zero], },
+  have h_empty : T ∅ = 0, from h_zero ∅ measurable_set.empty measure_empty,
+  rw set_to_L1s_eq_set_to_simple_func,
+  refine eq.trans _ (simple_func.set_to_simple_func_indicator T h_empty hs x),
+  refine simple_func.set_to_simple_func_congr T h_zero hT.1 (simple_func.integrable _) _,
+  exact Lp.simple_func.to_simple_func_indicator_const hs hμs x,
+end
+
 variables [normed_space 𝕜 F] [measurable_space 𝕜] [opens_measurable_space 𝕜]
 
 variables (α E μ 𝕜)
@@ -479,9 +554,10 @@ local attribute [instance] Lp.simple_func.normed_space
 variables (𝕜) [nondiscrete_normed_field 𝕜] [measurable_space 𝕜] [opens_measurable_space 𝕜]
   [second_countable_topology E] [borel_space E] [normed_space 𝕜 E]
   [normed_space 𝕜 F] [complete_space F]
+  {T : set α → E →L[ℝ] F} {C : ℝ} {s : set α}
 
 /-- Extend `set α → (E →L[ℝ] F)` to `(α →₁[μ] E) →L[𝕜] F`. -/
-def set_to_L1' {T : set α → E →L[ℝ] F} {C : ℝ} (hT : dominated_fin_meas_additive μ T C)
+def set_to_L1' (hT : dominated_fin_meas_additive μ T C)
   (h_smul : ∀ c : 𝕜, ∀ s x, T s (c • x) = c • T s x) :
   (α →₁[μ] E) →L[𝕜] F :=
 (set_to_L1s_clm' α E 𝕜 μ hT h_smul).extend
@@ -490,29 +566,35 @@ def set_to_L1' {T : set α → E →L[ℝ] F} {C : ℝ} (hT : dominated_fin_meas
 variables {𝕜}
 
 /-- Extend `set α → E →L[ℝ] F` to `(α →₁[μ] E) →L[ℝ] F`. -/
-def set_to_L1 {T : set α → E →L[ℝ] F} {C : ℝ} (hT : dominated_fin_meas_additive μ T C) :
+def set_to_L1 (hT : dominated_fin_meas_additive μ T C) :
   (α →₁[μ] E) →L[ℝ] F :=
 (set_to_L1s_clm α E μ hT).extend
   (coe_to_Lp α E ℝ) (simple_func.dense_range one_ne_top) simple_func.uniform_inducing
 
-lemma set_to_L1_eq_set_to_L1s_clm {T : set α → E →L[ℝ] F} {C : ℝ}
-  (hT : dominated_fin_meas_additive μ T C) (f : α →₁ₛ[μ] E) :
+lemma set_to_L1_eq_set_to_L1s_clm (hT : dominated_fin_meas_additive μ T C) (f : α →₁ₛ[μ] E) :
   set_to_L1 hT f = set_to_L1s_clm α E μ hT f :=
 uniformly_extend_of_ind simple_func.uniform_inducing (simple_func.dense_range one_ne_top)
   (set_to_L1s_clm α E μ hT).uniform_continuous _
 
-lemma set_to_L1_eq_set_to_L1' {T : set α → E →L[ℝ] F} {C : ℝ}
-  (hT : dominated_fin_meas_additive μ T C)
+lemma set_to_L1_eq_set_to_L1' (hT : dominated_fin_meas_additive μ T C)
   (h_smul : ∀ c : 𝕜, ∀ s x, T s (c • x) = c • T s x) (f : α →₁[μ] E) :
   set_to_L1 hT f = set_to_L1' 𝕜 hT h_smul f :=
 rfl
 
-lemma set_to_L1_smul {T : set α → E →L[ℝ] F} {C : ℝ} (hT : dominated_fin_meas_additive μ T C)
+lemma set_to_L1_smul (hT : dominated_fin_meas_additive μ T C)
   (h_smul : ∀ c : 𝕜, ∀ s x, T s (c • x) = c • T s x) (c : 𝕜) (f : α →₁[μ] E) :
   set_to_L1 hT (c • f) = c • set_to_L1 hT f :=
 begin
   rw [set_to_L1_eq_set_to_L1' hT h_smul, set_to_L1_eq_set_to_L1' hT h_smul],
   exact continuous_linear_map.map_smul _ _ _,
+end
+
+lemma set_to_L1_indicator_const_Lp_eq (hT : dominated_fin_meas_additive μ T C)
+  (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : E) :
+  set_to_L1 hT (indicator_const_Lp 1 hs hμs x) = T s x :=
+begin
+  rw [← Lp.simple_func.coe_indicator_const hs hμs x, set_to_L1_eq_set_to_L1s_clm],
+  exact set_to_L1s_indicator_const_eq hT hs hμs x,
 end
 
 end set_to_L1

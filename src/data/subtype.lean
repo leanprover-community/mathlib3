@@ -52,6 +52,12 @@ protected theorem forall' {q : ∀ x, p x → Prop} :
   (∃ x, q x) ↔ (∃ a b, q ⟨a, b⟩) :=
 ⟨assume ⟨⟨a, b⟩, h⟩, ⟨a, b, h⟩, assume ⟨a, b, h⟩, ⟨⟨a, b⟩, h⟩⟩
 
+/-- An alternative version of `subtype.exists`. This one is useful if Lean cannot figure out `q`
+  when using `subtype.exists` from right to left. -/
+protected theorem exists' {q : ∀x, p x → Prop} :
+  (∃ x h, q x h) ↔ (∃ x : {a // p a}, q x x.2) :=
+(@subtype.exists _ _ (λ x, q x.1 x.2)).symm
+
 @[ext] protected lemma ext : ∀ {a1 a2 : {x // p x}}, (a1 : α) = (a2 : α) → a1 = a2
 | ⟨x, h1⟩ ⟨.(x), h2⟩ rfl := rfl
 

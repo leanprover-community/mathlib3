@@ -111,8 +111,6 @@ section roots
 
 open multiset
 
-local attribute [semireducible] with_zero
-
 lemma degree_eq_zero_of_is_unit (h : is_unit p) : degree p = 0 :=
 let ⟨q, hq⟩ := is_unit_iff_dvd_one.1 h in
 have hp0 : p ≠ 0, from λ hp0, by simpa [hp0] using hq,
@@ -167,7 +165,7 @@ lemma root_multiplicity_eq_zero {p : polynomial R} {x : R} (h : ¬ is_root p x) 
 begin
   rw root_multiplicity_eq_multiplicity,
   split_ifs, { refl },
-  rw [← enat.coe_inj, enat.coe_get, multiplicity.multiplicity_eq_zero_of_not_dvd, enat.coe_zero],
+  rw [← enat.coe_inj, enat.coe_get, multiplicity.multiplicity_eq_zero_of_not_dvd, nat.cast_zero],
   intro hdvd,
   exact h (dvd_iff_is_root.mp hdvd)
 end

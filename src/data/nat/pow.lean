@@ -179,8 +179,7 @@ lemma not_pos_pow_dvd : ∀ {p k : ℕ} (hp : 1 < p) (hk : 1 < k), ¬ p^k ∣ p
   absurd this dec_trivial
 
 lemma pow_dvd_of_le_of_pow_dvd {p m n k : ℕ} (hmn : m ≤ n) (hdiv : p ^ n ∣ k) : p ^ m ∣ k :=
-have p ^ m ∣ p ^ n, from pow_dvd_pow _ hmn,
-dvd_trans this hdiv
+(pow_dvd_pow _ hmn).trans hdiv
 
 lemma dvd_of_pow_dvd {p k m : ℕ} (hk : 1 ≤ k) (hpk : p^k ∣ m) : p ∣ m :=
 by rw ←pow_one p; exact pow_dvd_of_le_of_pow_dvd hk hpk

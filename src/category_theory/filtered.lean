@@ -6,6 +6,7 @@ Authors: Reid Barton, Scott Morrison
 import category_theory.fin_category
 import category_theory.limits.cones
 import category_theory.adjunction.basic
+import category_theory.category.preorder
 import order.bounded_lattice
 
 /-!

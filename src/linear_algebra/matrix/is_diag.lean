@@ -46,7 +46,7 @@ begin
   { rintros ⟨d, rfl⟩ i j h, simp [h] }
 end
 
-/-- Every unit matrix is diagonal. -/
+/-- Every matrix indexed by a subsingleton is diagonal. -/
 @[simp] lemma is_diag_unit [has_zero α] [subsingleton n] (A : matrix n n α) : A.is_diag :=
 by { intros i j h, have h' := subsingleton.elim i j, contradiction }
 

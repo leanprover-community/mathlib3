@@ -142,7 +142,9 @@ by { convert hs.add_smul_sub_mem_interior hx hy ht, abel }
 open affine_map
 
 /-- If we dilate a convex set about a point in its interior by a scale `t > 1`, the interior of
-the result contains the original set. -/
+the result contains the original set.
+
+TODO Generalise this from convex sets to sets that are balanced / star-shaped about `x`. -/
 lemma convex.subset_interior_image_homothety_of_one_lt
   {s : set E} (hs : convex s) {x : E} (hx : x ∈ interior s) (t : ℝ) (ht : 1 < t) :
   s ⊆ interior (image (homothety x t) s) :=
@@ -165,10 +167,10 @@ begin
   rw hz₂,
   rw mem_interior at hz₁ ⊢,
   obtain ⟨U, hU₁, hU₂, hU₃⟩ := hz₁,
-  refine ⟨image (homothety x t) U,
-          image_subset ⇑(homothety x t) hU₁,
-          homothety_is_open_map x t ht' U hU₂,
-          mem_image_of_mem ⇑(homothety x t) hU₃⟩,
+  exact ⟨image (homothety x t) U,
+         image_subset ⇑(homothety x t) hU₁,
+         homothety_is_open_map x t ht' U hU₂,
+         mem_image_of_mem ⇑(homothety x t) hU₃⟩,
 end
 
 end has_continuous_smul

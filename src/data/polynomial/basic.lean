@@ -555,17 +555,6 @@ begin
   exact finsupp.sum_smul_index hf,
 end
 
-/-- `polynomial.sum` as a linear map. -/
-@[simps] def lsum {M : Type*} [add_comm_monoid M] [module R M] (f : ℕ → R →ₗ[R] M) :
-  polynomial R →ₗ[R] M :=
-{ to_fun := λ p, p.sum (λ n r, f n r),
-  map_add' := λ p q, sum_add_index p q _ (λ n, (f n).map_zero) (λ n _ _, (f n).map_add _ _),
-  map_smul' := λ c p,
-  begin
-    rw [sum_smul_index p c (λ n r, f n r) (λ n, (f n).map_zero)],
-    simp only [polynomial.sum, finset.smul_sum, ← linear_map.map_smul, smul_eq_mul],
-  end }
-
 /-- `erase p n` is the polynomial `p` in which the `X^n` term has been erased. -/
 @[irreducible] definition erase (n : ℕ) : polynomial R → polynomial R
 | ⟨p⟩ := ⟨p.erase n⟩

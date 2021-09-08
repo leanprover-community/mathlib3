@@ -369,8 +369,8 @@ section semilattice_sup_ideal_Inter_nonempty
 
 variables [semilattice_sup P] [ideal_Inter_nonempty P] {x : P} {I J K : ideal P}
 
-def Inf (s : set (ideal P)) : ideal P :=
-{ carrier := ⋂ (I ∈ s), (I : set P),
+instance : has_Inf (ideal P) :=
+{ Inf := { carrier := ⋂ (I ∈ s), (I : set P),
   nonempty := ideal_Inter_nonempty.ideal_bInter_nonempty,
   directed := λ x hx y hy, ⟨x ⊔ y, ⟨λ S ⟨I, hS⟩,
     begin
@@ -384,10 +384,7 @@ def Inf (s : set (ideal P)) : ideal P :=
     begin
       rw set.mem_bInter_iff at *,
       exact λ I hI, mem_of_le I ‹_› (hy I hI)
-    end }
-
-instance : has_Inf (ideal P) :=
-{ Inf := ideal.Inf }
+    end } }
 
 variables {s : set (ideal P)}
 

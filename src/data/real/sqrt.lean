@@ -72,7 +72,7 @@ sqrt.symm_apply_apply x
 
 @[simp] lemma sqrt_mul_self (x : ℝ≥0) : sqrt (x * x) = x := sqrt.apply_symm_apply x
 
-@[simp] lemma sq_sqrt (x : ℝ≥0) : sqrt x^2 = x :=
+@[simp] lemma sq_sqrt (x : ℝ≥0) : (sqrt x)^2 = x :=
 by rw [sq, mul_self_sqrt x]
 
 @[simp] lemma sqrt_sq (x : ℝ≥0) : sqrt (x^2) = x :=
@@ -156,7 +156,7 @@ theorem sqrt_eq_iff_mul_self_eq (hx : 0 ≤ x) (hy : 0 ≤ y) :
   sqrt x = y ↔ y * y = x :=
 ⟨λ h, by rw [← h, mul_self_sqrt hx], λ h, by rw [← h, sqrt_mul_self hy]⟩
 
-@[simp] theorem sq_sqrt (h : 0 ≤ x) : sqrt x ^ 2 = x :=
+@[simp] theorem sq_sqrt (h : 0 ≤ x) : (sqrt x)^2 = x :=
 by rw [sq, mul_self_sqrt h]
 
 @[simp] theorem sqrt_sq (h : 0 ≤ x) : sqrt (x ^ 2) = x :=

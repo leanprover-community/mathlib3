@@ -1465,7 +1465,7 @@ lemma nat_le_order (φ : power_series R) (n : ℕ) (h : ∀ i < n, coeff R i φ 
   ↑n ≤ order φ :=
 begin
   by_contra H, rw not_le at H,
-  have : (order φ).dom := enat.dom_of_le_some (le_of_lt H),
+  have : (order φ).dom := enat.dom_of_le_coe H.le,
   rw [← enat.coe_get this, enat.coe_lt_coe] at H,
   exact coeff_order _ this (h _ H)
 end
@@ -1486,7 +1486,7 @@ and the `i`th coefficient is `0` for all `i < n`.-/
 lemma order_eq_nat {φ : power_series R} {n : ℕ} :
   order φ = n ↔ (coeff R n φ ≠ 0) ∧ (∀ i, i < n → coeff R i φ = 0) :=
 begin
-  simp only [eq_some_iff, X_pow_dvd_iff], push_neg,
+  simp only [eq_coe_iff, X_pow_dvd_iff], push_neg,
   split,
   { rintros ⟨h₁, m, hm₁, hm₂⟩, refine ⟨_, h₁⟩,
     suffices : n = m, { rwa this },
@@ -1557,7 +1557,7 @@ begin
   rw not_lt at hi hj, rw finset.nat.mem_antidiagonal at hij,
   exfalso,
   apply ne_of_lt (lt_of_lt_of_le hn $ add_le_add hi hj),
-  rw [← enat.coe_add, hij]
+  rw [← nat.cast_add, hij]
 end
 
 /-- The order of the monomial `a*X^n` is infinite if `a = 0` and `n` otherwise.-/
@@ -1619,7 +1619,7 @@ by simpa using order_monomial_of_ne_zero 0 (1:R) one_ne_zero
 
 /-- The order of the formal power series `X` is `1`.-/
 @[simp] lemma order_X : order (X : power_series R) = 1 :=
-order_monomial_of_ne_zero 1 (1:R) one_ne_zero
+by simpa only [nat.cast_one] using order_monomial_of_ne_zero 1 (1:R) one_ne_zero
 
 /-- The order of the formal power series `X^n` is `n`.-/
 @[simp] lemma order_X_pow (n : ℕ) : order ((X : power_series R)^n) = n :=

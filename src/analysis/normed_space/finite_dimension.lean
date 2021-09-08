@@ -112,7 +112,7 @@ begin
         { left,
           have : finrank 𝕜 f.range = 1,
           { refine le_antisymm _ (zero_lt_iff.mpr H),
-            simpa [finrank_of_field] using f.range.finrank_le },
+            simpa [finrank_self] using f.range.finrank_le },
           rw [this, add_comm, nat.add_one] at Z,
           exact nat.succ.inj Z } },
       have : is_closed (f.ker : set E),

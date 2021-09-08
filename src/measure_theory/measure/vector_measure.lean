@@ -962,6 +962,10 @@ eq rfl
 lemma zero (v : vector_measure α N) : (0 : vector_measure α M) ≪ v :=
 λ s _, vector_measure.zero_apply s
 
+lemma add [has_continuous_add M] {v₁ v₂ : vector_measure α M} {w : vector_measure α N}
+  (hv₁ : v₁ ≪ w) (hv₂ : v₂ ≪ w) : v₁ + v₂ ≪ w :=
+λ s hs, by { rw [add_apply, hv₁ hs, hv₂ hs, zero_add] }
+
 lemma map [measure_space β] (h : v ≪ w) (f : α → β) :
   v.map f ≪ w.map f :=
 begin

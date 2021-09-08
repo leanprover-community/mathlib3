@@ -1,10 +1,11 @@
 /-
 Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yury G. Kudryashov
+Authors: Yury G. Kudryashov, Yaël Dillies
 -/
-import order.conditionally_complete_lattice
+import algebra.module.ordered
 import algebra.pointwise
+import order.conditionally_complete_lattice
 
 /-!
 # Upper/lower bounds in ordered monoids and groups
@@ -117,7 +118,8 @@ end conditionally_complete_lattice
 
 /-! ### Scalar multiplication -/
 
-variables {α β : Type*} [ordered_semiring α] [ordered_add_comm_monoid β] [module α β]
+section ordered_semiring
+variables {α β : Type*} [ordered_semiring α] [ordered_add_comm_monoid β] [smul_with_zero α β]
   [ordered_smul α β] {s : set β} {a : α}
 
 lemma smul_lower_bounds_subset_lower_bounds_smul (ha : 0 ≤ a) :
@@ -127,29 +129,141 @@ begin
   exact smul_le_smul_of_nonneg (hb hx) ha,
 end
 
-lemma smul_upper_bounds_subset_upper_bounds_smul {α β : Type*} [ordered_semiring α]
-  [ordered_add_comm_monoid β] [smul_with_zero α β] [ordered_smul α β] {s : set β}
-  {a : α} (ha : 0 ≤ a) :
+lemma smul_upper_bounds_subset_upper_bounds_smul (ha : 0 ≤ a) :
   a • upper_bounds s ⊆ upper_bounds (a • s) :=
 begin
   rintro _ ⟨b, hb, rfl⟩ _ ⟨x, hx, rfl⟩,
   exact smul_le_smul_of_nonneg (hb hx) ha,
 end
 
-lemma smul_lower_bounds_subset_upper_bounds_smul {α β : Type*} [ordered_semiring α]
-  [ordered_add_comm_monoid β] [smul_with_zero α β] [ordered_smul α β] {s : set β}
-  {a : α} (ha : a ≤ 0) :
+lemma bdd_below.smul_of_nonneg (ha : 0 ≤ a) (hs : bdd_below s) :
+  bdd_below (a • s) :=
+begin
+  obtain ⟨b, hb⟩ := hs,
+  exact ⟨a • b, smul_lower_bounds_subset_lower_bounds_smul ha (smul_mem_smul_set hb)⟩,
+end
+
+lemma bdd_above.smul_of_nonneg (ha : 0 ≤ a) (hs : bdd_above s) :
+  bdd_above (a • s) :=
+begin
+  obtain ⟨b, hb⟩ := hs,
+  exact ⟨a • b, smul_upper_bounds_subset_upper_bounds_smul ha (smul_mem_smul_set hb)⟩,
+end
+
+end ordered_semiring
+
+section ordered_ring
+variables {α β : Type*} [ordered_ring α] [ordered_add_comm_group β] [module α β]
+  [ordered_smul α β] {s : set β} {a : α}
+
+lemma smul_lower_bounds_subset_upper_bounds_smul (ha : a ≤ 0) :
   a • lower_bounds s ⊆ upper_bounds (a • s) :=
 begin
   rintro _ ⟨b, hb, rfl⟩ _ ⟨x, hx, rfl⟩,
   exact smul_le_smul_of_nonpos (hb hx) ha,
 end
 
-lemma smul_upper_bounds_subset_lower_bounds_smul {α β : Type*} [ordered_semiring α]
-  [ordered_add_comm_monoid β] [smul_with_zero α β] [ordered_smul α β] {s : set β}
-  {a : α} (ha : a ≤ 0) :
-  a • upper_bounds s ⊆ upper_bounds (a • s) :=
+lemma smul_upper_bounds_subset_lower_bounds_smul (ha : a ≤ 0) :
+  a • upper_bounds s ⊆ lower_bounds (a • s) :=
 begin
   rintro _ ⟨b, hb, rfl⟩ _ ⟨x, hx, rfl⟩,
-  exact smul_le_smul_of_nonneg (hb hx) ha,
+  exact smul_le_smul_of_nonpos (hb hx) ha,
 end
+
+lemma bdd_below.smul_of_nonpos (ha : a ≤ 0) (hs : bdd_below s) :
+  bdd_above (a • s) :=
+begin
+  obtain ⟨b, hb⟩ := hs,
+  exact ⟨a • b, smul_lower_bounds_subset_upper_bounds_smul ha (smul_mem_smul_set hb)⟩,
+end
+
+lemma bdd_above.smul_of_nonpos (ha : a ≤ 0) (hs : bdd_above s) :
+  bdd_below (a • s) :=
+begin
+  obtain ⟨b, hb⟩ := hs,
+  exact ⟨a • b, smul_upper_bounds_subset_lower_bounds_smul ha (smul_mem_smul_set hb)⟩,
+end
+
+end ordered_ring
+
+section linear_ordered_field
+variables {α β : Type*} [linear_ordered_field α] [ordered_add_comm_group β]
+
+section mul_action_with_zero
+variables [mul_action_with_zero α β] [ordered_smul α β] {s t : set β} {a : α}
+
+@[simp] lemma lower_bounds_smul_of_pos (ha : 0 < a) :
+  lower_bounds (a • s) = a • lower_bounds s :=
+begin
+  refine subset.antisymm _ (smul_lower_bounds_subset_lower_bounds_smul ha.le),
+  have h : a⁻¹ • lower_bounds (a • s) ⊆ lower_bounds (a⁻¹ • a • s) :=
+    smul_lower_bounds_subset_lower_bounds_smul (inv_nonneg.2 ha.le),
+  rwa [←subset_smul_iff' ha.ne', inv_smul_smul' ha.ne'] at h,
+end
+
+@[simp] lemma upper_bounds_smul_of_pos (ha : 0 < a) :
+  upper_bounds (a • s) = a • upper_bounds s :=
+begin
+  refine subset.antisymm _ (smul_upper_bounds_subset_upper_bounds_smul ha.le),
+  have h : a⁻¹ • upper_bounds (a • s) ⊆ upper_bounds (a⁻¹ • a • s) :=
+    smul_upper_bounds_subset_upper_bounds_smul (inv_nonneg.2 ha.le),
+  rwa [←subset_smul_iff' ha.ne', inv_smul_smul' ha.ne'] at h,
+end
+
+@[simp] lemma bdd_below_smul_iff_of_pos (ha : 0 < a) :
+  bdd_below (a • s) ↔ bdd_below s :=
+begin
+  refine ⟨λ h, _, bdd_below.smul_of_nonneg ha.le⟩,
+  rw ←inv_smul_smul' ha.ne' s,
+  exact h.smul_of_nonneg (inv_nonneg.2 ha.le),
+end
+
+@[simp] lemma bdd_above_smul_iff_of_pos (ha : 0 < a) :
+  bdd_above (a • s) ↔ bdd_above s :=
+begin
+  refine ⟨λ h, _, bdd_above.smul_of_nonneg ha.le⟩,
+  rw ←inv_smul_smul' ha.ne' s,
+  exact h.smul_of_nonneg (inv_nonneg.2 ha.le),
+end
+
+end mul_action_with_zero
+
+section module
+variables [module α β] [ordered_smul α β] {s t : set β} {a : α}
+
+@[simp] lemma lower_bounds_smul_of_neg (ha : a < 0) :
+  lower_bounds (a • s) = a • upper_bounds s :=
+begin
+  refine subset.antisymm _ (smul_upper_bounds_subset_lower_bounds_smul ha.le),
+  have h : a⁻¹ • lower_bounds (a • s) ⊆ upper_bounds (a⁻¹ • a • s) :=
+    smul_lower_bounds_subset_upper_bounds_smul (inv_nonpos.2 ha.le),
+  rwa [←subset_smul_iff' ha.ne, inv_smul_smul' ha.ne] at h,
+end
+
+@[simp] lemma upper_bounds_smul_of_neg (ha : a < 0) :
+  upper_bounds (a • s) = a • lower_bounds s :=
+begin
+  refine subset.antisymm _ (smul_lower_bounds_subset_upper_bounds_smul ha.le),
+  have h : a⁻¹ • upper_bounds (a • s) ⊆ lower_bounds (a⁻¹ • a • s) :=
+    smul_upper_bounds_subset_lower_bounds_smul (inv_nonpos.2 ha.le),
+  rwa [←subset_smul_iff' ha.ne, inv_smul_smul' ha.ne] at h,
+end
+
+@[simp] lemma bdd_below_smul_iff_of_neg (ha : a < 0) :
+  bdd_below (a • s) ↔ bdd_above s :=
+begin
+  refine ⟨λ h, _, bdd_above.smul_of_nonpos ha.le⟩,
+  rw ←inv_smul_smul' ha.ne s,
+  exact h.smul_of_nonpos (inv_nonpos.2 ha.le),
+end
+
+@[simp] lemma bdd_above_smul_iff_of_neg (ha : a < 0) :
+  bdd_above (a • s) ↔ bdd_below s :=
+begin
+  refine ⟨λ h, _, bdd_below.smul_of_nonpos ha.le⟩,
+  rw ←inv_smul_smul' ha.ne s,
+  exact h.smul_of_nonpos (inv_nonpos.2 ha.le),
+end
+
+end module
+end linear_ordered_field

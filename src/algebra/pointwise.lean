@@ -617,6 +617,46 @@ lemma preimage_smul' [group_with_zero α] [mul_action α β] {a : α} (ha : a �
   (λ x, a • x) ⁻¹' t = a⁻¹ • t :=
 preimage_smul (units.mk0 a ha) t
 
+lemma subset_smul_iff [group α] [mul_action α β] {a : α} {s t : set β} :
+  s ⊆ a • t ↔ a⁻¹ • s ⊆ t :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { rw ←inv_smul_smul a t,
+    exact smul_set_mono h },
+  { rw ←smul_inv_smul a s,
+    exact smul_set_mono h }
+end
+
+lemma subset_smul_iff' [group_with_zero α] [mul_action α β] {a : α} (ha : a ≠ 0) {s t : set β} :
+  s ⊆ a • t ↔ a⁻¹ • s ⊆ t :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { rw ←inv_smul_smul' ha t,
+    exact smul_set_mono h },
+  { rw ←smul_inv_smul' ha s,
+    exact smul_set_mono h }
+end
+
+lemma smul_subset_iff [group α] [mul_action α β] {a : α} {s t : set β} :
+  a • s ⊆ t ↔ s ⊆ a⁻¹ • t :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { rw ←inv_smul_smul a s,
+    exact smul_set_mono h },
+  { rw ←smul_inv_smul a t,
+    exact smul_set_mono h }
+end
+
+lemma smul_subset_iff' [group_with_zero α] [mul_action α β] {a : α} (ha : a ≠ 0) {s t : set β} :
+  a • s ⊆ t ↔ s ⊆ a⁻¹ • t :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { rw ←inv_smul_smul' ha s,
+    exact smul_set_mono h },
+  { rw ←smul_inv_smul' ha t,
+    exact smul_set_mono h }
+end
+
 end
 
 namespace finset

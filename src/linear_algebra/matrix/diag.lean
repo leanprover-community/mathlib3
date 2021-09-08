@@ -147,7 +147,7 @@ lemma is_diag.is_symm [has_zero α] {A : matrix n n α} (h : A.is_diag) :
   A.is_symm :=
 begin
   ext,
-  by_cases g : i = j, {rw g},
+  by_cases g : i = j, { rw g },
   simp [h g, h (ne.symm g)],
 end
 

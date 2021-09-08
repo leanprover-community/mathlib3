@@ -473,7 +473,7 @@ begin
   apply is_unit_of_self_mul_dvd_separable hsep,
   rw ← sq,
   apply multiplicity.pow_dvd_of_le_multiplicity,
-  exact_mod_cast (enat.add_one_le_of_lt hq)
+  simpa only [nat.cast_one, nat.cast_bit0] using enat.add_one_le_of_lt hq
 end
 
 lemma separable.squarefree {p : polynomial F}  (hsep : separable p) : squarefree p :=
@@ -521,7 +521,7 @@ lemma squarefree_X_pow_sub_C {n : ℕ} (a : F) (hn : (n : F) ≠ 0) (ha : a ≠ 
 lemma root_multiplicity_le_one_of_separable {p : polynomial F} (hp : p ≠ 0)
   (hsep : separable p) (x : F) : root_multiplicity x p ≤ 1 :=
 begin
-  rw [root_multiplicity_eq_multiplicity, dif_neg hp, ← enat.coe_le_coe, enat.coe_get],
+  rw [root_multiplicity_eq_multiplicity, dif_neg hp, ← enat.coe_le_coe, enat.coe_get, nat.cast_one],
   exact multiplicity_le_one_of_separable (not_unit_X_sub_C _) hsep
 end
 
@@ -617,6 +617,14 @@ theorem is_separable_iff {F K} [field F] [field K] [algebra F K] : is_separable 
 
 instance is_separable_self (F : Type*) [field F] : is_separable F F :=
 ⟨λ x, is_integral_algebra_map, λ x, by { rw minpoly.eq_X_sub_C', exact separable_X_sub_C }⟩
+
+/-- A finite field extension in characteristic 0 is separable. -/
+@[priority 100] -- See note [lower instance priority]
+instance is_separable.of_finite (F K : Type*) [field F] [field K] [algebra F K]
+  [finite_dimensional F K] [char_zero F] : is_separable F K :=
+have ∀ (x : K), is_integral F x,
+from λ x, (is_algebraic_iff_is_integral _).mp (algebra.is_algebraic_of_finite _),
+⟨this, λ x, (minpoly.irreducible (this x)).separable⟩
 
 section is_separable_tower
 variables (F K E : Type*) [field F] [field K] [field E] [algebra F K] [algebra F E]

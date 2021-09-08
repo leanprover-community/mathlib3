@@ -306,7 +306,6 @@ instance : order_bot cardinal.{u} :=
 
 instance : canonically_ordered_comm_semiring cardinal.{u} :=
 { add_le_add_left       := λ a b h c, cardinal.add_le_add_left _ h,
-  lt_of_add_lt_add_left := λ a b c, lt_imp_lt_of_le_imp_le (cardinal.add_le_add_left _),
   le_iff_exists_add     := @cardinal.le_iff_exists_add,
   eq_zero_or_eq_zero_of_mul_eq_zero := @cardinal.eq_zero_or_eq_zero_of_mul_eq_zero,
   ..cardinal.order_bot,
@@ -965,7 +964,7 @@ noncomputable def to_enat : cardinal →+ enat :=
       by_cases hy : y < omega,
       { obtain ⟨y0, rfl⟩ := lt_omega.1 hy,
         simp only [add_lt_omega hx hy, hx, hy, to_nat_cast, if_true],
-        rw [← nat.cast_add, to_nat_cast, enat.coe_add] },
+        rw [← nat.cast_add, to_nat_cast, nat.cast_add] },
       { rw [if_neg hy, if_neg, enat.add_top],
         contrapose! hy,
         apply lt_of_le_of_lt le_add_self hy } },

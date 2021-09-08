@@ -45,7 +45,7 @@ def fixed_by.subfield : subfield F :=
   neg_mem' := λ x hx, (smul_neg m x).trans $ congr_arg _ hx,
   one_mem' := smul_one m,
   mul_mem' := λ x y hx hy, (smul_mul' m x y).trans $ congr_arg2 _ hx hy,
-  inv_mem' := λ x hx, (smul_inv' F m x).trans $ congr_arg _ hx }
+  inv_mem' := λ x hx, (smul_inv'' m x).trans $ congr_arg _ hx }
 
 section invariant_subfields
 

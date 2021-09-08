@@ -24,6 +24,8 @@ fintype.of_finset (finset.Ico (l+1) (u+1)) $ λ n,
   by simp only [mem_Ioc, mem_Ico, finset.Ico.mem, nat.add_one_le_iff, nat.lt_add_one_iff,
     iff_self, implies_true_iff]
 
+lemma Ioc_ℕ_finite (l u : ℕ) : set.finite (Ioc l u) := ⟨set.Ioc_ℕ_fintype l u⟩
+
 @[simp] lemma Ico_ℕ_card (l u : ℕ) : fintype.card (Ico l u) = u - l :=
 calc fintype.card (Ico l u) = (finset.Ico l u).card : fintype.card_of_finset _ _
                         ... = u - l                 : finset.Ico.card l u
@@ -57,7 +59,6 @@ lemma Ico_ℤ_finite (l u : ℤ) : set.finite (Ico l u) := ⟨set.Ico_ℤ_fintyp
 lemma Ioo_ℤ_finite (l u : ℤ) : set.finite (Ioo l u) := ⟨set.Ioo_ℤ_fintype l u⟩
 lemma Icc_ℤ_finite (l u : ℤ) : set.finite (Icc l u) := ⟨set.Icc_ℤ_fintype l u⟩
 lemma Ioc_ℤ_finite (l u : ℤ) : set.finite (Ioc l u) := ⟨set.Ioc_ℤ_fintype l u⟩
-lemma Ioc_ℕ_finite (l u : ℕ) : set.finite (Ioc l u) := ⟨set.Ioc_ℕ_fintype l u⟩
 
 @[simp] lemma Ico_ℤ_card (l u : ℤ) : fintype.card (Ico l u) = (u - l).to_nat :=
 calc fintype.card (Ico l u) = (finset.Ico_ℤ l u).card : fintype.card_of_finset _ _

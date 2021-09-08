@@ -412,4 +412,98 @@ monoid_hom.to_mul_equiv
 
 end third_iso_thm
 
+
+section trivial
+
+
+/--The trivial relation-/
+def triv_rel (α: Sort*) : α → α → Prop :=
+λ a b, true
+
+lemma rel_triv (α: Type u) (r: α → α → Prop ) (h: quot r ≃ trunc α) : eqv_gen r = λ _ _, true :=
+begin
+  ext,
+  simp,
+  rw trunc at h,
+  have:h  (quot.mk r x) = h (quot.mk r x_1), by {apply trunc.eq,},
+  simp at this,
+  have h2:= quot.exact r this,
+  exact h2,
+end
+
+lemma eqv_gen_is_triv (α: Type u) (r: α → α → Prop )
+  (h: eqv_gen r = λ _ _, true) (h2 : equivalence r) : r = λ _ _, true:=
+begin
+  rw ← h,
+  ext,
+  simp_rw relation.eqv_gen_iff_of_equivalence h2,
+end
+
+lemma quot_by_top_is_trunc : quotient_group.quotient (⊤: subgroup G) = trunc G :=
+begin
+  rw trunc, congr',
+end
+
+lemma left_rel_triv (H :subgroup G) (h: (quotient_group.left_rel H).r = triv_rel G ) :
+  ∀ x y : G , x⁻¹ * y ∈ H:=
+begin
+  rw triv_rel at h,
+  let s:=(quotient_group.left_rel H).r,
+  have h2: ∀ x y : G, s x y ↔ x⁻¹ * y ∈ H, by {intros x y, refl,  },
+  intros x y,
+  have h3:= h2 x y,
+  rw ← h3,
+  simp_rw s,
+  rw h,
+  tauto,
+end
+
+instance G_non_empty : nonempty G := infer_instance
+
+ def subsingleton_quot_equiv_trunc [inhabited G] (H: subgroup G) (h: subsingleton (quotient_group.quotient H)):
+ trunc G ≃ quotient_group.quotient H :=
+{
+  to_fun := λ _, default ( quotient_group.quotient H ),
+  inv_fun := λ _, default (trunc G),
+  left_inv := λ _, subsingleton.elim _ _,
+  right_inv := λ _, subsingleton.elim _ _ }
+
+noncomputable lemma subsingleton_quot_equiv_trunc'  (H: subgroup G) (h: subsingleton (quotient_group.quotient H)):
+ trunc G ≃ quotient_group.quotient H :=
+begin
+have:inhabited G, by {apply classical.inhabited_of_nonempty quotient_group.G_non_empty, apply _inst_1},
+apply subsingleton_quot_equiv_trunc _,
+apply h, apply this,
+end
+
+
+lemma quot_eq_quot_by_top (H : subgroup G)
+(h: quotient_group.quotient H ≃ quotient_group.quotient (⊤: subgroup G)) : H = ⊤ :=
+begin
+  ext1,
+  simp at *,
+  rw quot_by_top_is_trunc at h,
+  rw quotient_group.quotient at h,
+  have H2:= rel_triv _ _ h,
+  let rr:= quotient_group.left_rel H,
+  simp_rw quotient_group.left_rel at h,
+  have HH:= setoid.iseqv,
+  have H3:= eqv_gen_is_triv _ _ H2 HH,
+  have H4:= left_rel_triv H H3,
+  have H5:= H4 1 x,
+  simp at H5,
+  exact H5,
+end
+
+lemma quot_is_subsingleton_then_triv  (H: subgroup G)
+ (h: subsingleton (quotient_group.quotient H)) : H = ⊤ :=
+begin
+have h2:= subsingleton_quot_equiv_trunc' H h,
+rw ← quot_by_top_is_trunc at h2,
+apply quot_eq_quot_by_top H h2.symm,
+end
+
+end trivial
+
+
 end quotient_group

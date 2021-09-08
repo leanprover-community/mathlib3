@@ -91,7 +91,7 @@ scheme as for the versions of FTC-1. They include:
 
 We then derive additional integration techniques from FTC-2:
 * `interval_integral.integral_mul_deriv_eq_deriv_mul` - integration by parts
-* `interval_integral.integral_comp_mul_deriv'` - integration by substitution
+* `interval_integral.integral_comp_mul_deriv''` - integration by substitution
 
 Many applications of these theorems can be found in the file `analysis.special_functions.integrals`.
 
@@ -2244,14 +2244,14 @@ end
 
 /--
 Change of variables, general form. If `f` is continuous on `[a, b]` and has
-continuous derivative `f'` in `(a, b)`, and `g` is continuous on `f '' [a, b]` then we can
+continuous right-derivative `f'` in `(a, b)`, and `g` is continuous on `f '' [a, b]` then we can
 substitute `u = f x` to get `∫ x in a..b, (g ∘ f) x * f' x = ∫ u in f a..f b, g u`.
 
 We could potentially slightly weaken the conditions, by not requiring that `f'` and `g` are
 continuous on the endpoints of these intervals, but in that case we need to additionally assume that
 the functions are integrable on that interval.
 -/
-theorem integral_comp_mul_deriv' {f f' g : ℝ → ℝ}
+theorem integral_comp_mul_deriv'' {f f' g : ℝ → ℝ}
   (hf : continuous_on f [a, b])
   (hff' : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_within_at f (f' x) (Ioi x) x)
   (hf' : continuous_on f' [a, b])
@@ -2287,7 +2287,19 @@ begin
 end
 
 /--
-Change of variables, most common . If `f` is has continuous derivative `f'` on `[a, b]`,
+Change of variables. If `f` is has continuous derivative `f'` on `[a, b]`,
+and `g` is continuous on `f '' [a, b]`, then we can substitute `u = f x` to get
+`∫ x in a..b, (g ∘ f) x * f' x = ∫ u in f a..f b, g u`.
+-/
+theorem integral_comp_mul_deriv' {f f' g : ℝ → ℝ}
+  (h : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
+  (h' : continuous_on f' (interval a b)) (hg : continuous_on g (f '' [a, b])) :
+  ∫ x in a..b, (g ∘ f) x * f' x = ∫ x in f a..f b, g x :=
+integral_comp_mul_deriv'' (λ x hx, (h x hx).continuous_at.continuous_within_at)
+  (λ x hx, (h x $ Ioo_subset_Icc_self hx).has_deriv_within_at) h' hg
+
+/--
+Change of variables, most common version. If `f` is has continuous derivative `f'` on `[a, b]`,
 and `g` is continuous, then we can substitute `u = f x` to get
 `∫ x in a..b, (g ∘ f) x * f' x = ∫ u in f a..f b, g u`.
 -/
@@ -2295,8 +2307,7 @@ theorem integral_comp_mul_deriv {f f' g : ℝ → ℝ}
   (h : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
   (h' : continuous_on f' (interval a b)) (hg : continuous g) :
   ∫ x in a..b, (g ∘ f) x * f' x = ∫ x in f a..f b, g x :=
-integral_comp_mul_deriv' (λ x hx, (h x hx).continuous_at.continuous_within_at)
-  (λ x hx, (h x $ Ioo_subset_Icc_self hx).has_deriv_within_at) h' hg.continuous_on
+integral_comp_mul_deriv' h h' hg.continuous_on
 
 theorem integral_deriv_comp_mul_deriv' {f f' g g' : ℝ → ℝ}
   (hf : continuous_on f [a, b])
@@ -2307,7 +2318,7 @@ theorem integral_deriv_comp_mul_deriv' {f f' g g' : ℝ → ℝ}
   (hg' : continuous_on g' (f '' [a, b])) :
   ∫ x in a..b, (g' ∘ f) x * f' x = (g ∘ f) b - (g ∘ f) a :=
 begin
-  rw [integral_comp_mul_deriv' hf hff' hf' hg',
+  rw [integral_comp_mul_deriv'' hf hff' hf' hg',
   integral_eq_sub_of_has_deriv_right hg hgg' (hg'.mono _).interval_integrable],
   exact real.interval_subset_image_interval hf left_mem_interval right_mem_interval,
 end

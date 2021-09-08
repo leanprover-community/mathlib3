@@ -863,7 +863,7 @@ def gi_map_comap : galois_insertion (map f) (comap f) :=
   (λ S x hx, begin
     rcases hf x with ⟨y, rfl⟩,
     simp only [mem_map, mem_comap],
-    exact ⟨y, hx, rfl⟩  
+    exact ⟨y, hx, rfl⟩
   end)
 
 lemma map_comap_eq_of_surjective (p : submodule R M₂) : (p.comap f).map f = p :=
@@ -875,7 +875,7 @@ lemma map_surjective_of_surjective : function.surjective (map f) :=
 lemma comap_injective_of_surjective : function.injective (comap f) :=
 (gi_map_comap hf).u_injective
 
-lemma map_sup_comap_of_surjective (p q : submodule R M₂) : 
+lemma map_sup_comap_of_surjective (p q : submodule R M₂) :
   (p.comap f ⊔ q.comap f).map f = p ⊔ q :=
 (gi_map_comap hf).l_sup_u _ _
 
@@ -2461,10 +2461,10 @@ def arrow_congr {R M₁ M₂ M₂₁ M₂₂ : Sort*} [comm_ring R]
   (M₁ →ₗ[R] M₂₁) ≃ₗ[R] (M₂ →ₗ[R] M₂₂) :=
 { to_fun := λ f, (e₂ : M₂₁ →ₗ[R] M₂₂).comp $ f.comp e₁.symm,
   inv_fun := λ f, (e₂.symm : M₂₂ →ₗ[R] M₂₁).comp $ f.comp e₁,
-  left_inv := λ f, by { ext x, simp },
-  right_inv := λ f, by { ext x, simp },
-  map_add' := λ f g, by { ext x, simp },
-  map_smul' := λ c f, by { ext x, simp } }
+  left_inv := λ f, by { ext x, simp only [symm_apply_apply, coe_comp, comp_app, coe_coe] },
+  right_inv := λ f, by { ext x, simp only [apply_symm_apply, coe_comp, comp_app, coe_coe] },
+  map_add' := λ f g, by { ext x, simp only [map_add, add_apply, coe_comp, comp_app, coe_coe] },
+  map_smul' := λ c f, by { ext x, simp only [map_smul, smul_apply, coe_comp, comp_app, coe_coe] } }
 
 @[simp] lemma arrow_congr_apply {R M₁ M₂ M₂₁ M₂₂ : Sort*} [comm_ring R]
   [add_comm_group M₁] [add_comm_group M₂] [add_comm_group M₂₁] [add_comm_group M₂₂]

@@ -192,9 +192,9 @@ Some definitions that define objects of a class cannot be instances, because the
 explicit argument that does not occur in the conclusion. An example is `preorder.lift` that has a
 function `f : α → β` as an explicit argument to lift a preorder on `β` to a preorder on `α`.
 
-If these definitions are used to define other instances *and* it is important that these other
-instances will be unfolded by type-class inference, then these definitions should be marked
-`@[reducible]`.
+If these definitions are used to define instances of this class *and* this class is an argument to
+some other type-class so that type-class inference will have to unfold these instances to check
+for definitional equality, then these definitions should be marked `@[reducible]`.
 
 For example, `preorder.lift` is used to define `units.preorder` and `partial_order.lift` is used
 to define `units.partial_order`. In some cases it is important that type-class inference can

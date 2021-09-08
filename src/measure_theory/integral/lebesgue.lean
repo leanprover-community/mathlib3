@@ -1325,7 +1325,7 @@ by rw [measure.restrict_empty, lintegral_zero_measure]
 lemma set_lintegral_univ (f : α → ℝ≥0∞) : ∫⁻ x in univ, f x ∂μ = ∫⁻ x, f x ∂μ :=
 by rw measure.restrict_univ
 
-lemma lintegral_in_measure_zero (s : set α) (f : α → ℝ≥0∞) (hs' : μ s = 0) :
+lemma set_lintegral_measure_zero (s : set α) (f : α → ℝ≥0∞) (hs' : μ s = 0) :
   ∫⁻ x in s, f x ∂μ = 0 :=
 begin
   convert lintegral_zero_measure _,
@@ -1914,7 +1914,7 @@ lemma with_density_absolutely_continuous
 begin
   refine absolutely_continuous.mk (λ s hs₁ hs₂, _),
   rw with_density_apply _ hs₁,
-  exact lintegral_in_measure_zero _ _ hs₂
+  exact set_lintegral_measure_zero _ _ hs₂
 end
 
 @[simp]

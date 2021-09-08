@@ -189,29 +189,6 @@ complete lattice.  (Note that later `topological_space α` will equipped with th
 def tmp_complete_lattice {α : Type u} : complete_lattice (topological_space α) :=
 (gi_generate_from α).lift_complete_lattice
 
-section
-
-local attribute [instance] tmp_complete_lattice
-
-lemma generate_from_set_of_is_open (t : topological_space α) :
-  topological_space.generate_from {s | t.is_open s} = t :=
-(gi_generate_from α).l_u_eq t
-
-lemma left_inverse_generate_from :
-  function.left_inverse topological_space.generate_from
-    (λ t : topological_space α, {s | t.is_open s}) :=
-(gi_generate_from α).left_inverse_l_u
-
-lemma generate_from_surjective :
-  function.surjective (topological_space.generate_from : set (set α) → topological_space α) :=
-(gi_generate_from α).l_surjective
-
-lemma set_of_is_open_injective :
-  function.injective (λ t : topological_space α, {s | t.is_open s}) :=
-(gi_generate_from α).u_injective
-
-end
-
 /-- The ordering on topologies on the type `α`.
   `t ≤ s` if every set open in `s` is also open in `t` (`t` is finer than `s`). -/
 instance : partial_order (topological_space α) :=

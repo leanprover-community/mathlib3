@@ -1300,13 +1300,40 @@ set_to_fun_undef (dominated_fin_meas_additive_condexp_ind F' hm ℙ) hf
 
 lemma integrable_condexp (f : α → F') : integrable (ℙ[f | hm]) ℙ := L1.integrable_coe_fn _
 
-lemma set_integral_condexp_eq {f : α → F'} (hf : integrable f ℙ) (hs : measurable_set[m] s)
-  (hℙs : ℙ s ≠ ∞) :
+lemma set_integral_condexp_of_measure_ne_top (hf : integrable f ℙ)
+  (hs : measurable_set[m] s) (hℙs : ℙ s ≠ ∞) :
   ∫ x in s, ℙ[f | hm] x ∂ℙ = ∫ x in s, f x ∂ℙ :=
 begin
   simp_rw condexp_eq_condexp_L1_of_integrable hf,
   rw set_integral_condexp_L1_eq (hf.to_L1 f) hs hℙs,
   exact set_integral_congr_ae (hm s hs) ((hf.coe_fn_to_L1).mono (λ x hx hxs, hx)),
+end
+
+lemma set_integral_condexp (hf : integrable f ℙ) (hs : measurable_set[m] s) :
+  ∫ x in s, ℙ[f | hm] x ∂ℙ = ∫ x in s, f x ∂ℙ :=
+begin
+  let S := spanning_sets (ℙ.trim hm),
+  have hS_meas : ∀ i, measurable_set[m] (S i) := measurable_spanning_sets (ℙ.trim hm),
+  have hS_finite : ∀ i, ℙ (S i) < ∞,
+  { intro i,
+    have hS_finite_trim := measure_spanning_sets_lt_top (ℙ.trim hm) i,
+    rwa trim_measurable_set_eq hm (hS_meas i) at hS_finite_trim, },
+  have h_eq_forall : ∀ i, ∫ (x : α) in (S i) ∩ s, ℙ[f|hm] x ∂ℙ = ∫ (x : α) in (S i) ∩ s, f x ∂ℙ,
+  { intro i,
+    refine set_integral_condexp_of_measure_ne_top hf
+      (@measurable_set.inter α m _ _ (hS_meas i) hs) (ne_of_lt _),
+    exact (measure_mono (set.inter_subset_left _ _)).trans_lt (hS_finite i), },
+  sorry,
+end
+
+lemma integral_condexp (hf : integrable f ℙ) :
+  ℙ[ℙ[f|hm]] = ℙ[f] :=
+begin
+  have h_univ := set_integral_condexp hf (@measurable_set.univ _ m),
+  swap, { exact hm, },
+  swap, { apply_instance, },
+  simp_rw integral_univ at h_univ,
+  exact h_univ,
 end
 
 end condexp

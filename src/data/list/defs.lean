@@ -421,6 +421,15 @@ def sections : list (list α) → list (list α)
 
 section permutations
 
+/-- An auxiliary function for defining `permutations`. `permutations_aux2 t ts r ys f` is equal to
+`(ys ++ ts, (insert_left ys t ts).map f ++ r)`, where `insert_left ys t ts` (not explicitly
+defined) is the list of lists of the form `insert_nth n t (ys ++ ts)` for `0 ≤ n < length ys`.
+
+    permutations_aux2 10 [4, 5, 6] [] [1, 2, 3] id =
+      ([1, 2, 3, 4, 5, 6],
+       [[10, 1, 2, 3, 4, 5, 6],
+        [1, 10, 2, 3, 4, 5, 6],
+        [1, 2, 10, 3, 4, 5, 6]]) -/
 def permutations_aux2 (t : α) (ts : list α) (r : list β) : list α → (list α → β) → list α × list β
 | []      f := (ts, r)
 | (y::ys) f := let (us, zs) := permutations_aux2 ys (λx : list α, f (y::x)) in
@@ -445,6 +454,8 @@ using_well_founded {
   dec_tac := tactic.assumption,
   rel_tac := λ _ _, `[exact ⟨(≺), @inv_image.wf _ _ _ meas (prod.lex_wf lt_wf lt_wf)⟩] }
 
+/-- An auxiliary function for defining `permutations`. `permutations_aux ts is` is the set of all
+permutations of `is ++ ts` that do not fix `ts`. -/
 def permutations_aux : list α → list α → list (list α) :=
 @@permutations_aux.rec (λ _ _, list (list α)) (λ is, [])
   (λ t ts is IH1 IH2, foldr (λy r, (permutations_aux2 t ts r y id).2) IH1 (is :: IH2))
@@ -456,6 +467,32 @@ def permutations_aux : list α → list α → list (list α) :=
         [2, 3, 1], [3, 1, 2], [1, 3, 2]] -/
 def permutations (l : list α) : list (list α) :=
 l :: permutations_aux l []
+
+/-- `permutations'_aux t ts` inserts `t` into every position in `ts`, including the last.
+This function is intended for use in specifications, so it is simpler than `permutations_aux2`,
+which plays roughly the same role in `permutations`.
+
+Note that `(permutations_aux2 t [] [] ts id).2` is similar to this function, but skips the last
+position:
+
+    permutations'_aux 10 [1, 2, 3] =
+      [[10, 1, 2, 3], [1, 10, 2, 3], [1, 2, 10, 3], [1, 2, 3, 10]]
+    (permutations_aux2 10 [] [] [1, 2, 3] id).2 =
+      [[10, 1, 2, 3], [1, 10, 2, 3], [1, 2, 10, 3]] -/
+@[simp] def permutations'_aux (t : α) : list α → list (list α)
+| []      := [[t]]
+| (y::ys) := (t :: y :: ys) :: (permutations'_aux ys).map (cons y)
+
+/-- List of all permutations of `l`. This version of `permutations` is less efficient but has
+simpler definitional equations. The permutations are in a different order,
+but are equal up to permutation, as shown by `list.permutations_perm_permutations'`.
+
+     permutations [1, 2, 3] =
+       [[1, 2, 3], [2, 1, 3], [2, 3, 1],
+        [1, 3, 2], [3, 1, 2], [3, 2, 1]] -/
+@[simp] def permutations' : list α → list (list α)
+| [] := [[]]
+| (t::ts) := (permutations' ts).bind $ permutations'_aux t
 
 end permutations
 

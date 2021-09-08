@@ -3,10 +3,7 @@ Copyright (c) 2020 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
-import algebra.group.pi
-import group_theory.group_action
 import algebra.support
-import data.finset.lattice
 
 /-!
 # Indicator function
@@ -117,6 +114,9 @@ mul_indicator_eq_self.2 $ subset_univ _
 @[simp, to_additive] lemma mul_indicator_empty (f : α → M) : mul_indicator (∅ : set α) f = λa, 1 :=
 mul_indicator_eq_one.2 $ disjoint_empty _
 
+@[to_additive] lemma mul_indicator_empty' (f : α → M) : mul_indicator (∅ : set α) f = 1 :=
+mul_indicator_empty f
+
 variable (M)
 
 @[simp, to_additive] lemma mul_indicator_one (s : set α) :
@@ -151,6 +151,10 @@ begin
   simp only [mul_indicator],
   split_ifs; simp [*]
 end
+
+@[to_additive] lemma comp_mul_indicator_const (c : M) (f : M → N) (hf : f 1 = 1) :
+  (λ x, f (s.mul_indicator (λ x, c) x)) = s.mul_indicator (λ x, f c) :=
+(mul_indicator_comp_of_one hf).symm
 
 @[to_additive] lemma mul_indicator_preimage (s : set α) (f : α → M) (B : set M) :
   (mul_indicator s f)⁻¹' B = s.ite (f ⁻¹' B) (1 ⁻¹' B) :=
@@ -465,6 +469,22 @@ mul_indicator_apply_le' hfg $ λ _, one_le _
 mul_indicator_le' hfg $ λ _ _, one_le _
 
 end canonically_ordered_monoid
+
+lemma indicator_le_indicator_nonneg {β} [linear_order β] [has_zero β] (s : set α) (f : α → β) :
+  s.indicator f ≤ {x | 0 ≤ f x}.indicator f :=
+begin
+  intro x,
+  simp_rw indicator_apply,
+  split_ifs,
+  { exact le_rfl, },
+  { exact (not_le.mp h_1).le, },
+  { exact h_1, },
+  { exact le_rfl, },
+end
+
+lemma indicator_nonpos_le_indicator {β} [linear_order β] [has_zero β] (s : set α) (f : α → β) :
+  {x | f x ≤ 0}.indicator f ≤ s.indicator f :=
+@indicator_le_indicator_nonneg α (order_dual β) _ _ s f
 
 end set
 

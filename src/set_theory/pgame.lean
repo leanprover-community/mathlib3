@@ -359,15 +359,15 @@ end
 theorem not_le {x y : pgame} : ¬ x ≤ y ↔ y < x := not_le_lt.1
 theorem not_lt {x y : pgame} : ¬ x < y ↔ y ≤ x := not_le_lt.2
 
-@[refl] theorem le_refl : ∀ x : pgame, x ≤ x
+@[refl] protected theorem le_refl : ∀ x : pgame, x ≤ x
 | ⟨l, r, L, R⟩ := by rw mk_le_mk; exact
 ⟨λ i, lt_mk_of_le (le_refl _), λ i, mk_lt_of_le (le_refl _)⟩
 
-theorem lt_irrefl (x : pgame) : ¬ x < x :=
-not_lt.2 (le_refl _)
+protected theorem lt_irrefl (x : pgame) : ¬ x < x :=
+not_lt.2 (pgame.le_refl _)
 
-theorem ne_of_lt : ∀ {x y : pgame}, x < y → x ≠ y
-| x _ h rfl := lt_irrefl x h
+protected theorem ne_of_lt : ∀ {x y : pgame}, x < y → x ≠ y
+| x _ h rfl := pgame.lt_irrefl x h
 
 theorem le_trans_aux
   {xl xr} {xL : xl → pgame} {xR : xr → pgame}
@@ -415,7 +415,7 @@ def equiv (x y : pgame) : Prop := x ≤ y ∧ y ≤ x
 
 local infix ` ≈ ` := pgame.equiv
 
-@[refl, simp] theorem equiv_refl (x) : x ≈ x := ⟨le_refl _, le_refl _⟩
+@[refl, simp] theorem equiv_refl (x) : x ≈ x := ⟨pgame.le_refl _, pgame.le_refl _⟩
 @[symm] theorem equiv_symm {x y} : x ≈ y → y ≈ x | ⟨xy, yx⟩ := ⟨yx, xy⟩
 @[trans] theorem equiv_trans {x y z} : x ≈ y → y ≈ z → x ≈ z
 | ⟨xy, yx⟩ ⟨yz, zy⟩ := ⟨le_trans xy yz, le_trans zy yx⟩
@@ -888,8 +888,7 @@ begin
       { right,
         refine ⟨(right_moves_add _ _).inv_fun (sum.inl j), _⟩,
         convert add_le_add_right jh,
-        apply add_move_right_inl },
-      },
+        apply add_move_right_inl } },
     { -- or play in z
       left,
       refine ⟨(left_moves_add _ _).inv_fun (sum.inr i), _⟩,

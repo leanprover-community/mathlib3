@@ -45,6 +45,7 @@ universes v₁ v₂ u₁ u₂
 noncomputable theory
 
 open category_theory.category
+open opposite
 
 namespace category_theory
 
@@ -194,6 +195,25 @@ lemma is_connected_of_equivalent {K : Type u₁} [category.{v₂} K]
 { is_nonempty := nonempty.map e.functor.obj (by apply_instance),
   to_is_preconnected := is_preconnected_of_equivalent e }
 
+/-- If `J` is preconnected, then `Jᵒᵖ` is preconnected as well. -/
+instance is_preconnected_op [is_preconnected J] : is_preconnected Jᵒᵖ :=
+{ iso_constant := λ α F X, ⟨
+    nat_iso.of_components
+      (λ Y, (nonempty.some $ is_preconnected.iso_constant
+        (F.right_op ⋙ (discrete.opposite α).functor) (unop X)).app (unop Y))
+      (λ Y Z f, subsingleton.elim _ _)
+  ⟩ }
+
+/-- If `J` is connected, then `Jᵒᵖ` is connected as well. -/
+instance is_connected_op [is_connected J] : is_connected Jᵒᵖ :=
+{ is_nonempty := nonempty.intro (op (classical.arbitrary J)) }
+
+lemma is_preconnected_of_is_preconnected_op [is_preconnected Jᵒᵖ] : is_preconnected J :=
+is_preconnected_of_equivalent (op_op_equivalence J)
+
+lemma is_connected_of_is_connected_op [is_connected Jᵒᵖ] : is_connected J :=
+is_connected_of_equivalent (op_op_equivalence J)
+
 /-- j₁ and j₂ are related by `zag` if there is a morphism between them. -/
 @[reducible]
 def zag (j₁ j₂ : J) : Prop := nonempty (j₁ ⟶ j₂) ∨ nonempty (j₂ ⟶ j₁)
@@ -297,7 +317,7 @@ begin
 end
 
 /-- If `discrete α` is connected, then `α` is (type-)equivalent to `punit`. -/
-def discrete_is_connected_equiv_punit {α : Type*} [is_connected (discrete α)] : α ≃ punit :=
+def discrete_is_connected_equiv_punit {α : Type u₁} [is_connected (discrete α)] : α ≃ punit :=
 discrete.equiv_of_equivalence
   { functor := functor.star α,
     inverse := discrete.functor (λ _, classical.arbitrary _),
@@ -319,16 +339,19 @@ lemma nat_trans_from_is_connected [is_preconnected J] {X Y : C}
   (λ j, α.app j)
   (λ _ _ f, (by { have := α.naturality f, erw [id_comp, comp_id] at this, exact this.symm }))
 
-instance nonempty_hom_of_connected_groupoid {G} [groupoid G] [is_connected G] (x y : G) :
-  nonempty (x ⟶ y) :=
+instance [is_connected J] : full (functor.const J : C ⥤ J ⥤ C) :=
+{ preimage := λ X Y f, f.app (classical.arbitrary J),
+  witness' := λ X Y f,
+  begin
+    ext j,
+    apply nat_trans_from_is_connected f (classical.arbitrary J) j,
+  end }
+
+instance nonempty_hom_of_connected_groupoid {G} [groupoid G] [is_connected G] :
+  ∀ (x y : G), nonempty (x ⟶ y) :=
 begin
-  have h := is_connected_zigzag x y,
-  induction h with z w _ h ih,
-  { exact ⟨𝟙 x⟩ },
-  { refine nonempty.map (λ f, f ≫ classical.choice _) ih,
-    cases h,
-    { assumption },
-    { apply nonempty.map (λ f, inv f) h } }
+  refine equiv_relation _ _ (λ j₁ j₂, nonempty.intro),
+  exact ⟨λ j, ⟨𝟙 _⟩, λ j₁ j₂, nonempty.map (λ f, inv f), λ _ _ _, nonempty.map2 (≫)⟩,
 end
 
 end category_theory

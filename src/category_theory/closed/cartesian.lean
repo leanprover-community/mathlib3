@@ -67,7 +67,7 @@ This isn't an instance because most of the time we'll prove cartesian closed for
 at once, rather than just for this one.
 -/
 def terminal_exponentiable {C : Type u} [category.{v} C] [has_finite_products C] :
-  exponentiable ⊤_C :=
+  exponentiable ⊤_ C :=
 unit_closed
 
 /--
@@ -211,7 +211,7 @@ Show that the exponential of the terminal object is isomorphic to itself, i.e. `
 
 The typeclass argument is explicit: any instance can be used.
 -/
-def exp_terminal_iso_self [exponentiable ⊤_C] : (⊤_C ⟹ X) ≅ X :=
+def exp_terminal_iso_self [exponentiable ⊤_ C] : (⊤_ C ⟹ X) ≅ X :=
 yoneda.ext (⊤_ C ⟹ X) X
   (λ Y f, (prod.left_unitor Y).inv ≫ uncurry f)
   (λ Y f, curry ((prod.left_unitor Y).hom ≫ f))
@@ -220,7 +220,7 @@ yoneda.ext (⊤_ C ⟹ X) X
   (λ Z W f g, by rw [uncurry_natural_left, prod.left_unitor_inv_naturality_assoc f] )
 
 /-- The internal element which points at the given morphism. -/
-def internalize_hom (f : A ⟶ Y) : ⊤_C ⟶ (A ⟹ Y) :=
+def internalize_hom (f : A ⟶ Y) : ⊤_ C ⟶ (A ⟹ Y) :=
 curry (limits.prod.fst ≫ f)
 
 section pre
@@ -370,8 +370,7 @@ def cartesian_closed_of_equiv (e : C ≌ D) [h : cartesian_closed C] : cartesian
         dsimp [prod_comparison],
         simp [prod.comp_lift, ← e.inverse.map_comp, ← e.inverse.map_comp_assoc],
           -- I wonder if it would be a good idea to make `map_comp` a simp lemma the other way round
-        dsimp, simp -- See note [dsimp, simp]
-        },
+        dsimp, simp }, -- See note [dsimp, simp]
       { have : is_left_adjoint (e.functor ⋙ prod.functor.obj X ⋙ e.inverse) :=
           by exactI adjunction.left_adjoint_of_nat_iso this.symm,
         have : is_left_adjoint (e.inverse ⋙ e.functor ⋙ prod.functor.obj X ⋙ e.inverse) :=

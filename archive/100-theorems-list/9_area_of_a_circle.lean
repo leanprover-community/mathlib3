@@ -3,7 +3,7 @@ Copyright (c) 2021 James Arthur, Benjamin Davidson, Andrew Souther. All rights r
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: James Arthur, Benjamin Davidson, Andrew Souther
 -/
-import measure_theory.interval_integral
+import measure_theory.integral.interval_integral
 import analysis.special_functions.sqrt
 
 /-!
@@ -71,7 +71,7 @@ end
 theorem measurable_set_disc : measurable_set (disc r) :=
 by apply measurable_set_lt; apply continuous.measurable; continuity
 
-/-- The area of a disc with radius `r` is `π * r ^ 2`. -/
+/-- **Area of a Circle**: The area of a disc with radius `r` is `π * r ^ 2`. -/
 theorem area_disc : volume (disc r) = nnreal.pi * r ^ 2 :=
 begin
   let f := λ x, sqrt (r ^ 2 - x ^ 2),
@@ -79,7 +79,7 @@ begin
   have hf : continuous f := by continuity,
   suffices : ∫ x in -r..r, 2 * f x = nnreal.pi * r ^ 2,
   { have h : integrable_on f (Ioc (-r) r) :=
-      (hf.integrable_on_compact is_compact_Icc).mono_set Ioc_subset_Icc_self,
+      hf.integrable_on_Icc.mono_set Ioc_subset_Icc_self,
     calc  volume (disc r)
         = volume (region_between (λ x, -f x) f (Ioc (-r) r)) : by rw disc_eq_region_between
     ... = ennreal.of_real (∫ x in Ioc (-r:ℝ) r, (f - has_neg.neg ∘ f) x) :
@@ -108,8 +108,8 @@ begin
                    ... = 1 : inv_mul_cancel hlt.ne' },
     { nlinarith } },
   have hcont := (by continuity : continuous F).continuous_on,
-  have hcont' := (continuous_const.mul hf).continuous_on,
   calc  ∫ x in -r..r, 2 * f x
-      = F r - F (-r) : integral_eq_sub_of_has_deriv_at'_of_le (neg_le_self r.2) hcont hderiv hcont'
+      = F r - F (-r) : integral_eq_sub_of_has_deriv_at_of_le (neg_le_self r.2)
+                         hcont hderiv (continuous_const.mul hf).continuous_on.interval_integrable
   ... = nnreal.pi * r ^ 2 : by norm_num [F, inv_mul_cancel hlt.ne', ← mul_div_assoc, mul_comm π],
 end

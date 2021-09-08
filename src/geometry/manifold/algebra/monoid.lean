@@ -145,6 +145,16 @@ by { ext, simp only [times_cont_mdiff_map.comp_apply, L_apply, mul_assoc] }
   [has_smooth_mul I G] (g h : G) : 𝑹 I (g * h) = (𝑹 I h).comp (𝑹 I g) :=
 by { ext, simp only [times_cont_mdiff_map.comp_apply, R_apply, mul_assoc] }
 
+section
+
+variables {G' : Type*} [monoid G'] [topological_space G'] [charted_space H G']
+  [has_smooth_mul I G'] (g' : G')
+
+lemma smooth_left_mul_one : (𝑳 I g') 1 = g' := mul_one g'
+lemma smooth_right_mul_one : (𝑹 I g') 1 = g' := one_mul g'
+
+end
+
 /- Instance of product -/
 @[to_additive]
 instance has_smooth_mul.prod {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
@@ -239,7 +249,7 @@ begin
   rcases hfin x with ⟨U, hxU, hUf⟩,
   have : smooth_at I' I (λ x, ∏ i in hUf.to_finset, f i x) x,
     from smooth_finset_prod (λ i hi, h i) x,
-  refine this.congr_of_eventually_eq (mem_sets_of_superset hxU $ λ y hy, _),
+  refine this.congr_of_eventually_eq (mem_of_superset hxU $ λ y hy, _),
   refine finprod_eq_prod_of_mul_support_subset _ (λ i hi, _),
   rw [hUf.coe_to_finset],
   exact ⟨y, hi, hy⟩

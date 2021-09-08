@@ -222,11 +222,11 @@ begin
   cases nat.eq_zero_or_pos k with hzero hpos,
   { use 1,
     simp only [hzero, cyclotomic'_zero, set.mem_univ, subsemiring.coe_top, eq_self_iff_true,
-    map_one, ring_hom.coe_of, and_self], },
+    coe_map_ring_hom, map_one, and_self] },
   by_cases hone : k = 1,
   { use X - 1,
     simp only [hone, cyclotomic'_one K, set.mem_univ, pnat.one_coe, subsemiring.coe_top,
-    eq_self_iff_true, map_X, map_one, ring_hom.coe_of, and_self, map_sub] },
+    eq_self_iff_true, map_X, coe_map_ring_hom, map_one, and_self, map_sub], },
   let B : polynomial K := ∏ i in nat.proper_divisors k, cyclotomic' i K,
   have Bmo : B.monic,
   { apply monic_prod_of_monic,
@@ -251,8 +251,9 @@ begin
     intro habs,
     exact (monic.ne_zero Bmo) (degree_eq_bot.1 habs) },
   replace huniq := div_mod_by_monic_unique (cyclotomic' k K) (0 : polynomial K) Bmo huniq,
-  simp only [lifts, ring_hom.coe_of, ring_hom.mem_srange],
+  simp only [lifts, ring_hom.mem_srange],
   use Q₁,
+  rw coe_map_ring_hom,
   rw [(map_div_by_monic (int.cast_ring_hom K) hB₁mo), hB₁, ← huniq.1],
   simp
 end
@@ -406,7 +407,7 @@ begin
       simp only [int.cast_injective, int.coe_cast_ring_hom] },
     apply mapinj,
     rw map_prod (int.cast_ring_hom ℂ) (λ i, cyclotomic i ℤ),
-    simp only [int_cyclotomic_spec, map_pow, nat.cast_id, map_X, map_one, ring_hom.coe_of, map_sub],
+    simp only [int_cyclotomic_spec, map_pow, nat.cast_id, map_X, map_one, map_sub],
     exact prod_cyclotomic'_eq_X_pow_sub_one hpos
     (complex.is_primitive_root_exp n (ne_of_lt hpos).symm) },
   have coerc : X ^ n - 1 = map (int.cast_ring_hom R) (X ^ n - 1),
@@ -632,7 +633,7 @@ begin
   have hdiv : map (int.cast_ring_hom (zmod p)) (X - a) ∣
     ∏ i in nat.proper_divisors n, cyclotomic i (zmod p),
   { suffices hdivm : map (int.cast_ring_hom (zmod p)) (X - a) ∣ X ^ m - 1,
-    { exact dvd_trans hdivm (X_pow_sub_one_dvd_prod_cyclotomic (zmod p) hpos
+    { exact hdivm.trans (X_pow_sub_one_dvd_prod_cyclotomic (zmod p) hpos
         (order_of_root_cyclotomic_dvd hpos hroot) hdiff) },
     rw [map_sub, map_X, map_nat_cast, ← C_eq_nat_cast, dvd_iff_is_root, is_root.def, eval_sub,
       eval_pow, eval_one, eval_X, sub_eq_zero, ← zmod.coe_unit_of_coprime a ha, ← units.coe_pow,

@@ -46,7 +46,7 @@ namespace poly_equiv_tensor
 The function underlying `A ⊗[R] polynomial R →ₐ[R] polynomial A`,
 as a bilinear function of two arguments.
 -/
-@[simps]
+@[simps apply_apply]
 def to_fun_bilinear : A →ₗ[A] polynomial R →ₗ[R] polynomial A :=
 linear_map.to_span_singleton A _ (aeval (polynomial.X : polynomial A)).to_linear_map
 

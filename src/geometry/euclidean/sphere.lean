@@ -68,9 +68,8 @@ begin
     ... = 0                         : sub_eq_zero.mpr hk.symm },
 
   have hzy : ⟪z, y⟫ = 0,
-  { rw [← eq_of_sq_eq_sq (norm_nonneg (z - y)) (norm_nonneg (z + y)),
-        norm_add_sq_real, norm_sub_sq_real] at h₂,
-    linarith },
+    by rwa [inner_eq_zero_iff_angle_eq_pi_div_two, ← norm_add_eq_norm_sub_iff_angle_eq_pi_div_two,
+      eq_comm],
 
   have hzx : ⟪z, x⟫ = 0 := by rw [hxy, inner_smul_right, hzy, mul_zero],
 
@@ -133,7 +132,7 @@ begin
   all_goals { simp },
 end
 
-/-- Intersecting Chords Theorem. -/
+/-- **Intersecting Chords Theorem**. -/
 theorem mul_dist_eq_mul_dist_of_cospherical_of_angle_eq_pi {a b c d p : P}
   (h : cospherical ({a, b, c, d} : set P))
   (hapb : ∠ a p b = π) (hcpd : ∠ c p d = π) :
@@ -144,7 +143,7 @@ begin
   exact mul_dist_eq_mul_dist_of_cospherical h ⟨k₁, (by linarith), hab⟩ ⟨k₂, (by linarith), hcd⟩,
 end
 
-/-- Intersecting Secants Theorem. -/
+/-- **Intersecting Secants Theorem**. -/
 theorem mul_dist_eq_mul_dist_of_cospherical_of_angle_eq_zero {a b c d p : P}
   (h : cospherical ({a, b, c, d} : set P))
   (hab : a ≠ b) (hcd : c ≠ d) (hapb : ∠ a p b = 0) (hcpd : ∠ c p d = 0) :
@@ -158,7 +157,7 @@ begin
   exacts [hab (vsub_left_cancel hab₁).symm, hcd (vsub_left_cancel hcd₁).symm],
 end
 
-/-- Ptolemy’s Theorem. -/
+/-- **Ptolemy’s Theorem**. -/
 theorem mul_dist_add_mul_dist_eq_mul_dist_of_cospherical {a b c d p : P}
   (h : cospherical ({a, b, c, d} : set P))
   (hapc : ∠ a p c = π) (hbpd : ∠ b p d = π) :

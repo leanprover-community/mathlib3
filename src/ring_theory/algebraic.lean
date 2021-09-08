@@ -127,19 +127,18 @@ variables {R S : Type*} [integral_domain R] [comm_ring S]
 
 lemma exists_integral_multiple [algebra R S] {z : S} (hz : is_algebraic R z)
   (inj : ∀ x, algebra_map R S x = 0 → x = 0) :
-  ∃ (x : integral_closure R S) (y ≠ (0 : integral_closure R S)),
-    z * y = x :=
+  ∃ (x : integral_closure R S) (y ≠ (0 : R)),
+    z * algebra_map R S y = x :=
 begin
   rcases hz with ⟨p, p_ne_zero, px⟩,
   set a := p.leading_coeff with a_def,
   have a_ne_zero : a ≠ 0 := mt polynomial.leading_coeff_eq_zero.mp p_ne_zero,
   have y_integral : is_integral R (algebra_map R S a) := is_integral_algebra_map,
   have x_integral : is_integral R (z * algebra_map R S a) :=
-    ⟨ p.integral_normalization,
-      monic_integral_normalization p_ne_zero,
-      integral_normalization_aeval_eq_zero px inj ⟩,
-  refine ⟨⟨_, x_integral⟩, ⟨_, y_integral⟩, _, rfl⟩,
-  exact λ h, a_ne_zero (inj _ (subtype.ext_iff_val.mp h))
+    ⟨p.integral_normalization,
+     monic_integral_normalization p_ne_zero,
+     integral_normalization_aeval_eq_zero px inj⟩,
+  exact ⟨⟨_, x_integral⟩, a, a_ne_zero, rfl⟩
 end
 section field
 

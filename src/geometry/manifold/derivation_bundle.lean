@@ -98,27 +98,35 @@ variables {I} {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
 {M' : Type*} [topological_space M'] [charted_space H' M']
 
-/-- The differential of a function interpreted in the context of derivations. -/
-def fdifferential_map (f : C^∞⟮I, M; I', M'⟯) (x : M) (v : point_derivation I x) :
-  (point_derivation I' (f x)) :=
-{ to_fun := λ g, v (g.comp f),
-  map_add' := λ g h, by rw [smooth_map.add_comp, derivation.map_add],
-  map_smul' := λ k g, by rw [smooth_map.smul_comp, derivation.map_smul],
-  leibniz' := λ g h, by { simp only [derivation.leibniz, smooth_map.mul_comp], refl} }
-
-/-- The differential is a linear map. -/
-def fdifferential (f : C^∞⟮I, M; I', M'⟯) (x : M) :
-  point_derivation I x →ₗ[𝕜] point_derivation I' (f x) :=
-{ to_fun := fdifferential_map f x,
+/-- The heterogeneous differential as a linear map. Instead of taking a function as an argument this
+differential takes `h : f x = y`. It is particularly handy to deal with situations where the points
+on where it has to be evaluated are equal but not definitionally equal. -/
+def hfdifferential {f : C^∞⟮I, M; I', M'⟯} {x : M} {y : M'} (h : f x = y) :
+  point_derivation I x →ₗ[𝕜] point_derivation I' y :=
+{ to_fun := λ v, { to_fun := λ g, v (g.comp f),
+    map_add' := λ g g', by rw [smooth_map.add_comp, derivation.map_add],
+    map_smul' := λ k g, by rw [smooth_map.smul_comp, derivation.map_smul],
+    leibniz' := λ g g', by simp only [derivation.leibniz, smooth_map.mul_comp,
+      pointed_smooth_map.smul_def, times_cont_mdiff_map.comp_apply, h] },
   map_smul' := λ k v, rfl,
   map_add' := λ v w, rfl }
+
+/-- The homogeneous differential as a linear map. -/
+def fdifferential (f : C^∞⟮I, M; I', M'⟯) (x : M) :
+  point_derivation I x →ₗ[𝕜] point_derivation I' (f x) :=
+hfdifferential (rfl : f x = f x)
 
 /- Standard notation for the differential. The abbreviation is `MId`. -/
 localized "notation `𝒅` := fdifferential" in manifold
 
-lemma apply_fdifferential (f : C^∞⟮I, M; I', M'⟯) (x : M) (v : point_derivation I x)
-  (g : C^∞⟮I', M'; 𝕜⟯) :
-  𝒅f x v g = v (g.comp f) := rfl
+/- Standard notation for the differential. The abbreviation is `MId`. -/
+localized "notation `𝒅ₕ` := hfdifferential" in manifold
+
+@[simp] lemma apply_fdifferential (f : C^∞⟮I, M; I', M'⟯) {x : M} (v : point_derivation I x)
+  (g : C^∞⟮I', M'; 𝕜⟯) : 𝒅f x v g = v (g.comp f) := rfl
+
+@[simp] lemma apply_hfdifferential {f : C^∞⟮I, M; I', M'⟯} {x : M} {y : M'} (h : f x = y)
+  (v : point_derivation I x) (g : C^∞⟮I', M'; 𝕜⟯) : 𝒅ₕh v g = 𝒅f x v g := rfl
 
 variables {E'' : Type*} [normed_group E''] [normed_space 𝕜 E'']
 {H'' : Type*} [topological_space H''] {I'' : model_with_corners 𝕜 E'' H''}

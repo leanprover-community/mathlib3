@@ -263,7 +263,7 @@ theorem dual_dim_eq [field K] [add_comm_group V] [module K V] [fintype ι] (b : 
   cardinal.lift (module.rank K V) = module.rank K (dual K V) :=
 begin
   classical,
-  have := linear_equiv.dim_eq_lift b.to_dual_equiv,
+  have := linear_equiv.lift_dim_eq b.to_dual_equiv,
   simp only [cardinal.lift_umax] at this,
   rw [this, ← cardinal.lift_umax],
   apply cardinal.lift_id,
@@ -552,7 +552,7 @@ linear_equiv.quot_equiv_of_quot_equiv $
 noncomputable def quot_equiv_annihilator (W : subspace K V) :
   W.quotient ≃ₗ[K] W.dual_annihilator :=
 begin
-  refine linear_equiv.trans _ W.quot_dual_equiv_annihilator,
+  refine _ ≪≫ₗ W.quot_dual_equiv_annihilator,
   refine linear_equiv.quot_equiv_of_equiv _ (basis.of_vector_space K V).to_dual_equiv,
   exact (basis.of_vector_space K W).to_dual_equiv.trans W.dual_equiv_dual
 end

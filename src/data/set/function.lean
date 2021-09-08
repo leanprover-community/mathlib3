@@ -13,21 +13,21 @@ import logic.function.conjugate
 
 ### Predicate
 
-* `eq_on f₁ f₂ s` : functions `f₁` and `f₂` are equal at every point of `s`;
-* `maps_to f s t` : `f` sends every point of `s` to a point of `t`;
-* `inj_on f s` : restriction of `f` to `s` is injective;
-* `surj_on f s t` : every point in `s` has a preimage in `s`;
-* `bij_on f s t` : `f` is a bijection between `s` and `t`;
-* `left_inv_on f' f s` : for every `x ∈ s` we have `f' (f x) = x`;
-* `right_inv_on f' f t` : for every `y ∈ t` we have `f (f' y) = y`;
-* `inv_on f' f s t` : `f'` is a two-side inverse of `f` on `s` and `t`, i.e.
-  we have `left_inv_on f' f s` and `right_inv_on f' f t`.
+* `set.eq_on f₁ f₂ s` : functions `f₁` and `f₂` are equal at every point of `s`;
+* `set.maps_to f s t` : `f` sends every point of `s` to a point of `t`;
+* `set.inj_on f s` : restriction of `f` to `s` is injective;
+* `set.surj_on f s t` : every point in `s` has a preimage in `s`;
+* `set.bij_on f s t` : `f` is a bijection between `s` and `t`;
+* `set.left_inv_on f' f s` : for every `x ∈ s` we have `f' (f x) = x`;
+* `set.right_inv_on f' f t` : for every `y ∈ t` we have `f (f' y) = y`;
+* `set.inv_on f' f s t` : `f'` is a two-side inverse of `f` on `s` and `t`, i.e.
+  we have `set.left_inv_on f' f s` and `set.right_inv_on f' f t`.
 
 ### Functions
 
-* `restrict f s` : restrict the domain of `f` to the set `s`;
-* `cod_restrict f s h` : given `h : ∀ x, f x ∈ s`, restrict the codomain of `f` to the set `s`;
-* `maps_to.restrict f s t h`: given `h : maps_to f s t`, restrict the domain of `f` to `s`
+* `set.restrict f s` : restrict the domain of `f` to the set `s`;
+* `set.cod_restrict f s h` : given `h : ∀ x, f x ∈ s`, restrict the codomain of `f` to the set `s`;
+* `set.maps_to.restrict f s t h`: given `h : maps_to f s t`, restrict the domain of `f` to `s`
   and the codomain to `t`.
 -/
 universes u v w x y
@@ -70,7 +70,7 @@ variables {s s₁ s₂ : set α} {t t₁ t₂ : set β} {p : set γ} {f f₁ f�
 
 /-- Two functions `f₁ f₂ : α → β` are equal on `s`
   if `f₁ x = f₂ x` for all `x ∈ a`. -/
-@[reducible] def eq_on (f₁ f₂ : α → β) (s : set α) : Prop :=
+def eq_on (f₁ f₂ : α → β) (s : set α) : Prop :=
 ∀ ⦃x⦄, x ∈ s → f₁ x = f₂ x
 
 @[simp] lemma eq_on_empty (f₁ f₂ : α → β) : eq_on f₁ f₂ ∅ := λ x, false.elim
@@ -603,7 +603,7 @@ lemma preimage_inv_fun_of_mem [n : nonempty α] {f : α → β} (hf : injective 
 begin
   ext x,
   rcases em (x ∈ range f) with ⟨a, rfl⟩|hx,
-  { simp [left_inverse_inv_fun hf _, mem_image_of_injective hf] },
+  { simp [left_inverse_inv_fun hf _, hf.mem_set_image] },
   { simp [mem_preimage, inv_fun_neg hx, h, hx] }
 end
 
@@ -612,12 +612,28 @@ lemma preimage_inv_fun_of_not_mem [n : nonempty α] {f : α → β} (hf : inject
 begin
   ext x,
   rcases em (x ∈ range f) with ⟨a, rfl⟩|hx,
-  { rw [mem_preimage, left_inverse_inv_fun hf, mem_image_of_injective hf] },
+  { rw [mem_preimage, left_inverse_inv_fun hf, hf.mem_set_image] },
   { have : x ∉ f '' s, from λ h', hx (image_subset_range _ _ h'),
     simp only [mem_preimage, inv_fun_neg hx, h, this] },
 end
 
 end set
+
+/-! ### Monotone -/
+
+namespace monotone
+
+variables [preorder α] [preorder β] {f : α → β}
+
+protected lemma restrict (h : monotone f) (s : set α) : monotone (s.restrict f) :=
+λ x y hxy, h hxy
+
+protected lemma cod_restrict (h : monotone f) {s : set β} (hs : ∀ x, f x ∈ s) :
+  monotone (s.cod_restrict f hs) := h
+
+protected lemma range_factorization (h : monotone f) : monotone (set.range_factorization f) := h
+
+end monotone
 
 /-! ### Piecewise defined function -/
 

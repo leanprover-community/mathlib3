@@ -93,7 +93,7 @@ a.hom ≫ f
 /-- Two arrows `f : X ⟶ P` and `g : Y ⟶ P` are called pseudo-equal if there is some object
     `R` and epimorphisms `p : R ⟶ X` and `q : R ⟶ Y` such that `p ≫ f = q ≫ g`. -/
 def pseudo_equal (P : C) (f g : over P) : Prop :=
-∃ (R : C) (p : R ⟶ f.1) (q : R ⟶ g.1) [epi p] [epi q], p ≫ f.hom = q ≫ g.hom
+∃ (R : C) (p : R ⟶ f.1) (q : R ⟶ g.1) (_ : epi p) (_ : epi q), p ≫ f.hom = q ≫ g.hom
 
 lemma pseudo_equal_refl {P : C} : reflexive (pseudo_equal P) :=
 λ f, ⟨f.1, 𝟙 f.1, 𝟙 f.1, by apply_instance, by apply_instance, by simp⟩
@@ -215,7 +215,7 @@ end zero
 
 /-- Morphisms map the zero pseudoelement to the zero pseudoelement -/
 @[simp] theorem apply_zero {P Q : C} (f : P ⟶ Q) : f 0 = 0 :=
-by { rw [pseudo_zero_def, pseudo_apply_mk], simp  }
+by { rw [pseudo_zero_def, pseudo_apply_mk], simp }
 
 /-- The zero morphism maps every pseudoelement to 0. -/
 @[simp] theorem zero_apply {P : C} (Q : C) (a : P) : (0 : P ⟶ Q) a = 0 :=

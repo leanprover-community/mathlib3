@@ -2,11 +2,28 @@
 Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
-
-The integers, with addition, multiplication, and subtraction.
 -/
-import data.nat.pow
 import algebra.order_functions
+import data.nat.pow
+
+/-!
+# Basic operations on the integers
+
+This file contains:
+* instances on `ℤ`. The stronger one is `int.linear_ordered_comm_ring`.
+* some basic lemmas about integers
+
+## Recursors
+
+* `int.rec`: Sign disjunction. Something is true/defined on `ℤ` if it's true/defined for nonnegative
+  and for negative values.
+* `int.bit_cases_on`: Parity disjunction. Something is true/defined on `ℤ` if it's true/defined for
+  even and for odd values.
+* `int.induction_on`: Simple growing induction on positive numbers, plus simple decreasing induction
+  on negative numbers. Note that this recursor is currently only `Prop`-valued.
+* `int.induction_on'`: Simple growing induction for numbers greater than `b`, plus simple decreasing
+  induction on numbers less than `b`.
+-/
 
 open nat
 
@@ -730,10 +747,10 @@ begin
 end
 
 theorem nat_abs_dvd {a b : ℤ} : (a.nat_abs : ℤ) ∣ b ↔ a ∣ b :=
-(nat_abs_eq a).elim (λ e, by rw ← e) (λ e, by rw [← neg_dvd_iff_dvd, ← e])
+(nat_abs_eq a).elim (λ e, by rw ← e) (λ e, by rw [← neg_dvd, ← e])
 
 theorem dvd_nat_abs {a b : ℤ} : a ∣ b.nat_abs ↔ a ∣ b :=
-(nat_abs_eq b).elim (λ e, by rw ← e) (λ e, by rw [← dvd_neg_iff_dvd, ← e])
+(nat_abs_eq b).elim (λ e, by rw ← e) (λ e, by rw [← dvd_neg, ← e])
 
 instance decidable_dvd : @decidable_rel ℤ (∣) :=
 assume a n, decidable_of_decidable_of_iff (by apply_instance) (dvd_iff_mod_eq_zero _ _).symm
@@ -1001,7 +1018,7 @@ theorem of_nat_add_neg_succ_of_nat_of_ge {m n : ℕ}
 begin
   change sub_nat_nat _ _ = _,
   have h' : n.succ - m = 0,
-  apply sub_eq_zero_of_le h,
+  apply nat.sub_eq_zero_of_le h,
   simp [*, sub_nat_nat]
 end
 
@@ -1070,6 +1087,16 @@ lemma pred_to_nat : ∀ (i : ℤ), (i - 1).to_nat = i.to_nat - 1
 @[simp]
 lemma to_nat_pred_coe_of_pos {i : ℤ} (h : 0 < i) : ((i.to_nat - 1 : ℕ) : ℤ) = i - 1 :=
 by simp [h, le_of_lt h] with push_cast
+
+@[simp] lemma to_nat_sub_to_nat_neg : ∀ (n : ℤ), ↑n.to_nat - ↑((-n).to_nat) = n
+| (0 : ℕ)   := rfl
+| (n+1 : ℕ) := show ↑(n+1) - (0:ℤ) = n+1, from sub_zero _
+| -[1+ n]   := show 0 - (n+1 : ℤ)  = _,   from zero_sub _
+
+@[simp] lemma to_nat_add_to_nat_neg_eq_nat_abs : ∀ (n : ℤ), (n.to_nat) + ((-n).to_nat) = n.nat_abs
+| (0 : ℕ)   := rfl
+| (n+1 : ℕ) := show (n+1) + 0 = n+1, from add_zero _
+| -[1+ n]   := show 0 + (n+1) = n+1, from zero_add _
 
 /-- If `n : ℕ`, then `int.to_nat' n = some n`, if `n : ℤ` is negative, then `int.to_nat' n = none`.
 -/
@@ -1235,8 +1262,7 @@ private meta def bitwise_tac : tactic unit := `[
     apply congr_arg (λ f, nat.bitwise f m n),
     funext a,
     funext b,
-    cases a; cases b; refl
-  },
+    cases a; cases b; refl },
   all_goals {unfold nat.land nat.ldiff nat.lor}
 ]
 
@@ -1359,47 +1385,6 @@ congr_arg coe (nat.one_shiftl _)
 | -[1+ n] := congr_arg coe (nat.zero_shiftr _)
 
 @[simp] lemma zero_shiftr (n) : shiftr 0 n = 0 := zero_shiftl _
-
-/-! ### Least upper bound property for integers -/
-
-/-- A computable version of `exists_least_of_bdd`: given a decidable predicate on the
-integers, with an explicit lower bound and a proof that it is somewhere true, return
-the least value for which the predicate is true. -/
-def least_of_bdd {P : ℤ → Prop} [decidable_pred P]
-  (b : ℤ) (Hb : ∀ z : ℤ, P z → b ≤ z) (Hinh : ∃ z : ℤ, P z) :
-  {lb : ℤ // P lb ∧ (∀ z : ℤ, P z → lb ≤ z)} :=
-have EX : ∃ n : ℕ, P (b + n), from
-  let ⟨elt, Helt⟩ := Hinh in
-  match elt, le.dest (Hb _ Helt), Helt with
-  | ._, ⟨n, rfl⟩, Hn := ⟨n, Hn⟩
-  end,
-⟨b + (nat.find EX : ℤ), nat.find_spec EX, λ z h,
-  match z, le.dest (Hb _ h), h with
-  | ._, ⟨n, rfl⟩, h := add_le_add_left
-    (int.coe_nat_le.2 $ nat.find_min' _ h) _
-  end⟩
-
-theorem exists_least_of_bdd {P : ℤ → Prop}
-  (Hbdd : ∃ b : ℤ, ∀ z : ℤ, P z → b ≤ z) (Hinh : ∃ z : ℤ, P z) :
-  ∃ lb : ℤ, P lb ∧ (∀ z : ℤ, P z → lb ≤ z) :=
-by classical; exact let ⟨b, Hb⟩ := Hbdd, ⟨lb, H⟩ := least_of_bdd b Hb Hinh in ⟨lb, H⟩
-
-/-- A computable version of `exists_greatest_of_bdd`: given a decidable predicate on the
-integers, with an explicit upper bound and a proof that it is somewhere true, return
-the greatest value for which the predicate is true. -/
-def greatest_of_bdd {P : ℤ → Prop} [decidable_pred P]
-  (b : ℤ) (Hb : ∀ z : ℤ, P z → z ≤ b) (Hinh : ∃ z : ℤ, P z) :
-  {ub : ℤ // P ub ∧ (∀ z : ℤ, P z → z ≤ ub)} :=
-have Hbdd' : ∀ (z : ℤ), P (-z) → -b ≤ z, from λ z h, neg_le.1 (Hb _ h),
-have Hinh' : ∃ z : ℤ, P (-z), from
-let ⟨elt, Helt⟩ := Hinh in ⟨-elt, by rw [neg_neg]; exact Helt⟩,
-let ⟨lb, Plb, al⟩ := least_of_bdd (-b) Hbdd' Hinh' in
-⟨-lb, Plb, λ z h, le_neg.1 $ al _ $ by rwa neg_neg⟩
-
-theorem exists_greatest_of_bdd {P : ℤ → Prop}
-  (Hbdd : ∃ b : ℤ, ∀ z : ℤ, P z → z ≤ b) (Hinh : ∃ z : ℤ, P z) :
-  ∃ ub : ℤ, P ub ∧ (∀ z : ℤ, P z → z ≤ ub) :=
-by classical; exact let ⟨b, Hb⟩ := Hbdd, ⟨lb, H⟩ := greatest_of_bdd b Hb Hinh in ⟨lb, H⟩
 
 end int
 

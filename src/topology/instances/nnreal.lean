@@ -16,11 +16,12 @@ The natural topology on `ℝ≥0` (the one induced from `ℝ`), and a basic API.
 Instances for the following typeclasses are defined:
 
 * `topological_space ℝ≥0`
-* `topological_semiring ℝ≥0`
+* `topological_ring ℝ≥0`
 * `second_countable_topology ℝ≥0`
 * `order_topology ℝ≥0`
 * `has_continuous_sub ℝ≥0`
 * `has_continuous_inv' ℝ≥0` (continuity of `x⁻¹` away from `0`)
+* `has_continuous_smul ℝ≥0 ℝ`
 
 Everything is inherited from the corresponding structures on the reals.
 
@@ -47,11 +48,11 @@ open set topological_space metric filter
 open_locale topological_space
 
 namespace nnreal
-open_locale nnreal big_operators
+open_locale nnreal big_operators filter
 
 instance : topological_space ℝ≥0 := infer_instance -- short-circuit type class inference
 
-instance : topological_semiring ℝ≥0 :=
+instance : topological_ring ℝ≥0 :=
 { continuous_mul := continuous_subtype_mk _ $
     (continuous_subtype_val.comp continuous_fst).mul (continuous_subtype_val.comp continuous_snd),
   continuous_add := continuous_subtype_mk _ $
@@ -94,6 +95,12 @@ lemma tendsto_of_real {f : filter α} {m : α → ℝ} {x : ℝ} (h : tendsto m 
   tendsto (λa, real.to_nnreal (m a)) f (𝓝 (real.to_nnreal x)) :=
 (continuous_of_real.tendsto _).comp h
 
+lemma nhds_zero : 𝓝 (0 : ℝ≥0) = ⨅a ≠ 0, 𝓟 (Iio a) :=
+nhds_bot_order.trans $ by simp [bot_lt_iff_ne_bot, Iio]
+
+lemma nhds_zero_basis : (𝓝 (0 : ℝ≥0)).has_basis (λ a : ℝ≥0, 0 < a) (λ a, Iio a) :=
+nhds_bot_basis
+
 instance : has_continuous_sub ℝ≥0 :=
 ⟨continuous_subtype_mk _ $
   ((continuous_coe.comp continuous_fst).sub
@@ -102,6 +109,10 @@ instance : has_continuous_sub ℝ≥0 :=
 instance : has_continuous_inv' ℝ≥0 :=
 ⟨λ x hx, tendsto_coe.1 $ (real.tendsto_inv $ nnreal.coe_ne_zero.2 hx).comp
   continuous_coe.continuous_at⟩
+
+instance : has_continuous_smul ℝ≥0 ℝ :=
+{ continuous_smul := continuous.comp real.continuous_mul $ continuous.prod_mk
+    (continuous.comp continuous_subtype_val continuous_fst) continuous_snd }
 
 @[norm_cast] lemma has_sum_coe {f : α → ℝ≥0} {r : ℝ≥0} :
   has_sum (λa, (f a : ℝ)) (r : ℝ) ↔ has_sum f r :=
@@ -123,12 +134,26 @@ begin
   exact assume ⟨a, ha⟩, ⟨a.1, has_sum_coe.2 ha⟩
 end
 
+lemma summable_coe_of_nonneg {f : α → ℝ} (hf₁ : ∀ n, 0 ≤ f n) :
+  @summable (ℝ≥0) _ _ _ (λ n, ⟨f n, hf₁ n⟩) ↔ summable f :=
+begin
+  lift f to α → ℝ≥0 using hf₁ with f rfl hf₁,
+  simp only [summable_coe, subtype.coe_eta]
+end
+
 open_locale classical
 
 @[norm_cast] lemma coe_tsum {f : α → ℝ≥0} : ↑∑'a, f a = ∑'a, (f a : ℝ) :=
 if hf : summable f
 then (eq.symm $ (has_sum_coe.2 $ hf.has_sum).tsum_eq)
 else by simp [tsum, hf, mt summable_coe.1 hf]
+
+lemma coe_tsum_of_nonneg {f : α → ℝ} (hf₁ : ∀ n, 0 ≤ f n) :
+  (⟨∑' n, f n, tsum_nonneg hf₁⟩ : ℝ≥0) = (∑' n, ⟨f n, hf₁ n⟩ : ℝ≥0) :=
+begin
+  lift f to α → ℝ≥0 using hf₁ with f rfl hf₁,
+  simp_rw [← nnreal.coe_tsum, subtype.coe_eta]
+end
 
 lemma tsum_mul_left (a : ℝ≥0) (f : α → ℝ≥0) : ∑' x, a * f x = a * ∑' x, f x :=
 nnreal.eq $ by simp only [coe_tsum, nnreal.coe_mul, tsum_mul_left]

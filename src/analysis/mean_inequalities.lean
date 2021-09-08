@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Sébastien Gouëzel, Rémy Degenne
 -/
 import analysis.convex.specific_functions
-import analysis.special_functions.pow
 import data.real.conjugate_exponents
-import tactic.nth_rewrite
 
 /-!
 # Mean value inequalities
@@ -114,7 +112,7 @@ variables {ι : Type u} (s : finset ι)
 
 namespace real
 
-/-- AM-GM inequality: the geometric mean is less than or equal to the arithmetic mean, weighted
+/-- AM-GM inequality: the **geometric mean is less than or equal to the arithmetic mean**, weighted
 version for real-valued nonnegative functions. -/
 theorem geom_mean_le_arith_mean_weighted (w z : ι → ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
   (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 ≤ z i) :
@@ -418,7 +416,7 @@ begin
         rw [mul_rpow, mul_left_comm, ← rpow_mul _ _ p, div_mul_cancel _ hpq.ne_zero, div_rpow,
           div_mul_div, mul_comm (G ^ q), mul_div_mul_right],
         { nth_rewrite 1 [← mul_one ((f i) ^ p)],
-          exact canonically_ordered_semiring.mul_le_mul (le_refl _) (div_self_le _) },
+          exact mul_le_mul_left' (div_self_le _) _ },
         { simpa [hpq.symm.ne_zero] using hG }
       end }
 end
@@ -444,8 +442,8 @@ begin
       simpa [hpq.symm.ne_zero] using hf } },
   { rintros _ ⟨g, hg, rfl⟩,
     apply le_trans (inner_le_Lp_mul_Lq s f g hpq),
-    simpa only [mul_one] using canonically_ordered_semiring.mul_le_mul (le_refl _)
-      (nnreal.rpow_le_one hg (le_of_lt hpq.symm.one_div_pos)) }
+    simpa only [mul_one] using mul_le_mul_left'
+      (nnreal.rpow_le_one hg (le_of_lt hpq.symm.one_div_pos)) _ }
 end
 
 /-- Minkowski inequality: the `L_p` seminorm of the sum of two vectors is less than or equal

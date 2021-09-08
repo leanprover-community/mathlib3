@@ -159,7 +159,7 @@ lemma fpow_even_abs (a : K) {p : ℤ} (hp : even p) :
   abs a ^ p = a ^ p :=
 begin
   cases le_or_lt a (-a) with h h;
-  simp [abs, h, max_eq_left_of_lt, fpow_even_neg _ hp]
+  simp [abs_eq_max_neg, h, max_eq_left_of_lt, fpow_even_neg _ hp]
 end
 
 @[simp] lemma fpow_bit0_abs (a : K) (p : ℤ) :

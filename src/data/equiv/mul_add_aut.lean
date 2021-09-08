@@ -3,7 +3,6 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
-import data.equiv.mul_add
 import group_theory.perm.basic
 
 /-!
@@ -73,6 +72,22 @@ mul_equiv.apply_symm_apply _ _
 def to_perm : mul_aut M →* equiv.perm M :=
 by refine_struct { to_fun := mul_equiv.to_equiv }; intros; refl
 
+/-- The tautological action by `mul_aut M` on `M`.
+
+This generalizes `function.End.apply_mul_action`. -/
+instance apply_mul_distrib_mul_action {M} [monoid M] : mul_distrib_mul_action (mul_aut M) M :=
+{ smul := ($),
+  one_smul := λ _, rfl,
+  mul_smul := λ _ _ _, rfl,
+  smul_one := mul_equiv.map_one,
+  smul_mul := mul_equiv.map_mul }
+
+@[simp] protected lemma smul_def {M} [monoid M] (f : mul_aut M) (a : M) : f • a = f a := rfl
+
+/-- `mul_aut.apply_mul_action` is faithful. -/
+instance apply_has_faithful_scalar {M} [monoid M] : has_faithful_scalar (mul_aut M) M :=
+⟨λ _ _, mul_equiv.ext⟩
+
 /-- Group conjugation, `mul_aut.conj g h = g * h * g⁻¹`, as a monoid homomorphism
 mapping multiplication in `G` into multiplication in the automorphism group `mul_aut G`. -/
 def conj [group G] : G →* mul_aut G :=
@@ -130,6 +145,22 @@ add_equiv.apply_symm_apply _ _
 /-- Monoid hom from the group of multiplicative automorphisms to the group of permutations. -/
 def to_perm : add_aut A →* equiv.perm A :=
 by refine_struct { to_fun := add_equiv.to_equiv }; intros; refl
+
+/-- The tautological action by `add_aut A` on `A`.
+
+This generalizes `function.End.apply_mul_action`. -/
+instance apply_distrib_mul_action {A} [add_monoid A] : distrib_mul_action (add_aut A) A :=
+{ smul := ($),
+  smul_zero := add_equiv.map_zero,
+  smul_add := add_equiv.map_add,
+  one_smul := λ _, rfl,
+  mul_smul := λ _ _ _, rfl }
+
+@[simp] protected lemma smul_def {A} [add_monoid A] (f : add_aut A) (a : A) : f • a = f a := rfl
+
+/-- `add_aut.apply_distrib_mul_action` is faithful. -/
+instance apply_has_faithful_scalar {A} [add_monoid A] : has_faithful_scalar (add_aut A) A :=
+⟨λ _ _, add_equiv.ext⟩
 
 /-- Additive group conjugation, `add_aut.conj g h = g + h - g`, as an additive monoid
 homomorphism mapping addition in `G` into multiplication in the automorphism group `add_aut G`

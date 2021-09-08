@@ -3,7 +3,7 @@ Copyright (c) 2021 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
-import measure_theory.set_integral
+import measure_theory.integral.set_integral
 import analysis.calculus.mean_value
 
 /-!
@@ -82,7 +82,7 @@ begin
       intros a ha,
       rw lipschitz_on_with_iff_norm_sub_le at ha,
       apply (ha x₀ x₀_in x x_in).trans,
-      rw [mul_comm, nnreal.coe_nnabs, real.norm_eq_abs],
+      rw [mul_comm, real.coe_nnabs, real.norm_eq_abs],
       rw [mem_ball, dist_eq_norm, norm_sub_rev] at x_in,
       exact mul_le_mul_of_nonneg_right (le_of_lt x_in) (abs_nonneg  _) },
     exact integrable_of_norm_sub_le (hF_meas x x_in) hF_int
@@ -98,7 +98,7 @@ begin
   have : ∀ᶠ x in 𝓝 x₀,
       ∥x - x₀∥⁻¹ * ∥∫ a, F x a ∂μ - ∫ a, F x₀ a ∂μ - (∫ a, F' a ∂μ) (x - x₀)∥ =
        ∥∫ a, ∥x - x₀∥⁻¹ • (F x a - F x₀ a  - F' a (x - x₀)) ∂μ∥,
-  { apply mem_sets_of_superset (ball_mem_nhds _ ε_pos),
+  { apply mem_of_superset (ball_mem_nhds _ ε_pos),
     intros x x_in,
     rw [set.mem_set_of_eq, ← norm_smul_of_nonneg (nneg _), integral_smul,
         integral_sub, integral_sub, ← continuous_linear_map.integral_apply hF'_int],
@@ -113,7 +113,7 @@ begin
     apply ae_measurable.const_smul,
     exact ((hF_meas _ x_in).sub (hF_meas _ x₀_in)).sub (hF'_meas.apply_continuous_linear_map _) },
   { simp [measurable_const] },
-  { apply mem_sets_of_superset h_ball,
+  { apply mem_of_superset h_ball,
     intros x hx,
     apply (h_diff.and h_lipsch).mono,
     rintros a ⟨ha_deriv, ha_bound⟩,
@@ -196,11 +196,10 @@ begin
   have : ∀ᵐ a ∂μ, lipschitz_on_with (real.nnabs (bound a)) (λ x, F x a) (ball x₀ ε),
   { apply (h_diff.and h_bound).mono,
     rintros a ⟨ha_deriv, ha_bound⟩,
-    have bound_nonneg : 0 ≤ bound a := (norm_nonneg (F' x₀ a)).trans (ha_bound x₀ x₀_in),
-    rw show real.nnabs (bound a) = real.to_nnreal (bound a), by simp [bound_nonneg],
-    apply convex.lipschitz_on_with_of_norm_has_fderiv_within_le _ ha_bound (convex_ball _ _),
-    intros x x_in,
-    exact (ha_deriv x x_in).has_fderiv_within_at, },
+    refine (convex_ball _ _).lipschitz_on_with_of_nnnorm_has_fderiv_within_le
+      (λ x x_in, (ha_deriv x x_in).has_fderiv_within_at) (λ x x_in, _),
+    rw [← nnreal.coe_le_coe, coe_nnnorm, real.coe_nnabs],
+    exact (ha_bound x x_in).trans (le_abs_self _) },
   exact (has_fderiv_at_of_dominated_loc_of_lip ε_pos hF_meas hF_int
                                                hF'_meas this bound_integrable diff_x₀).2
 end
@@ -225,11 +224,12 @@ begin
     h_diff with hF'_int key,
   replace hF'_int : integrable F' μ,
   { rw [← integrable_norm_iff hm] at hF'_int,
-    simpa only [integrable_norm_iff, hF'_meas, one_mul, continuous_linear_map.norm_id_field',
+    simpa only [integrable_norm_iff, hF'_meas, one_mul, norm_one,
                 continuous_linear_map.norm_smul_rightL_apply] using hF'_int},
   refine ⟨hF'_int, _⟩,
   simp_rw has_deriv_at_iff_has_fderiv_at at h_diff ⊢,
   rwa continuous_linear_map.integral_comp_comm _ hF'_int at key,
+  all_goals { apply_instance, },
 end
 
 /-- Derivative under integral of `x ↦ ∫ F x a` at a given point `x₀ : ℝ`, assuming
@@ -253,10 +253,10 @@ begin
   have : ∀ᵐ a ∂μ, lipschitz_on_with (real.nnabs (bound a)) (λ (x : ℝ), F x a) (ball x₀ ε),
   { apply (h_diff.and h_bound).mono,
     rintros a ⟨ha_deriv, ha_bound⟩,
-    have bound_nonneg : 0 ≤ bound a := (norm_nonneg (F' x₀ a)).trans (ha_bound x₀ x₀_in),
-    rw show real.nnabs (bound a) = real.to_nnreal (bound a), by simp [bound_nonneg],
-    apply convex.lipschitz_on_with_of_norm_has_deriv_within_le (convex_ball _ _)
-    (λ x x_in, (ha_deriv x x_in).has_deriv_within_at) ha_bound },
+    refine (convex_ball _ _).lipschitz_on_with_of_nnnorm_has_deriv_within_le
+      (λ x x_in, (ha_deriv x x_in).has_deriv_within_at) (λ x x_in, _),
+    rw [← nnreal.coe_le_coe, coe_nnnorm, real.coe_nnabs],
+    exact (ha_bound x x_in).trans (le_abs_self _) },
   exact has_deriv_at_of_dominated_loc_of_lip ε_pos hF_meas hF_int hF'_meas this
         bound_integrable diff_x₀
 end

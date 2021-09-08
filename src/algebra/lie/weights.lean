@@ -8,6 +8,7 @@ import algebra.lie.tensor_product
 import algebra.lie.character
 import algebra.lie.cartan_subalgebra
 import linear_algebra.eigenspace
+import ring_theory.tensor_product
 
 /-!
 # Weights and roots of Lie modules and Lie algebras
@@ -109,7 +110,7 @@ begin
   /- Eliminate `g` from the picture. -/
   let f₁ : module.End R (M₁ ⊗[R] M₂) := (to_endomorphism R L M₁ x - (χ₁ x) • 1).rtensor M₂,
   let f₂ : module.End R (M₁ ⊗[R] M₂) := (to_endomorphism R L M₂ x - (χ₂ x) • 1).ltensor M₁,
-  have h_comm_square : F.comp ↑g = (g : M₁ ⊗[R] M₂ →ₗ[R] M₃).comp (f₁ + f₂),
+  have h_comm_square : F ∘ₗ ↑g = (g : M₁ ⊗[R] M₂ →ₗ[R] M₃).comp (f₁ + f₂),
   { ext m₁ m₂, simp only [← g.map_lie x (m₁ ⊗ₜ m₂), add_smul, sub_tmul, tmul_sub, smul_tmul,
       lie_tmul_right, tmul_smul, to_endomorphism_apply_apply, lie_module_hom.map_smul,
       linear_map.one_apply, lie_module_hom.coe_to_linear_map, linear_map.smul_apply,

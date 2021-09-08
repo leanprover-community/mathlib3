@@ -133,7 +133,7 @@ begin
   rintros ⟨a, b⟩ ⟨c, d⟩ h,
   dsimp [kronecker_apply],
   by_cases hac: a = c,
-  { have hbd: b ≠ d, {tidy}, simp [hB hbd] },
+  { have hbd: b ≠ d, { tidy }, simp [hB hbd] },
   { simp [hA hac] },
 end
 
@@ -169,20 +169,11 @@ lemma is_diag_from_blocks_iff [has_zero α]
 begin
   split,
   { intros h,
-    repeat { split };
-    try {intros i j hij <|> ext i j},
-    { have g : sum.inl i ≠ sum.inl j, {simp [hij]},
-      specialize h g,
-      simp [from_blocks, *] at * },
-    { have g : sum.inl i ≠ sum.inr j, {simp},
-      specialize h g,
-      simp [from_blocks, *] at * },
-    { have g : sum.inr i ≠ sum.inl j, {simp},
-      specialize h g,
-      simp [from_blocks, *] at * },
-    { have g : sum.inr i ≠ sum.inr j, {simp [hij]},
-      specialize h g,
-      simp [from_blocks, *] at * } },
+    refine ⟨λ i j hij, _, ext $ λ i j, _, ext $ λ i j, _, λ i j hij, _⟩,
+    { exact h (sum.inl_injective.ne hij), },
+    { exact h sum.inl_ne_inr, },
+    { exact h sum.inr_ne_inl, },
+    { exact h (sum.inr_injective.ne hij), }, },
   { rintros ⟨ha, hb, hc, hd⟩,
     convert is_diag.from_blocks ha hd }
 end
@@ -190,13 +181,12 @@ end
 /-- A symmetric block matrix `A.from_blocks B C D` is diagonal
     if  `A` and `D` are diagonal and `B` is `0`. -/
 lemma is_diag.from_blocks_of_is_symm [has_zero α]
-  {A : matrix m m α} {B : matrix m n α} {C : matrix n m α} {D : matrix n n α}
-  (h : (A.from_blocks B C D).is_symm) (ha : A.is_diag) (hb : B = 0) (hd : D.is_diag) :
-  (A.from_blocks B C D).is_diag :=
+  {A : matrix m m α} {C : matrix n m α} {D : matrix n n α}
+  (h : (A.from_blocks 0 C D).is_symm) (ha : A.is_diag) (hd : D.is_diag) :
+  (A.from_blocks 0 C D).is_diag :=
 begin
-  convert ha.from_blocks hd,
-  obtain ⟨g1, g2, g3, g4⟩ := is_symm_from_blocks_iff.1 h,
-  simp* at *
+  rw ←(is_symm_from_blocks_iff.1 h).2.1,
+  exact ha.from_blocks hd,
 end
 
 /-- `(A ⬝ Aᵀ).is_diag` iff `A.has_orthogonal_rows`. -/

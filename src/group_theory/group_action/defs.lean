@@ -192,6 +192,17 @@ by exact {smul_comm := λ _ n, @smul_comm _ _ _ _ _ _ _ (g n) }
 
 end has_scalar
 
+section ite
+variables [has_scalar M α] (p : Prop) [decidable p]
+
+@[to_additive] lemma ite_smul (a₁ a₂ : M) (b : α) : (ite p a₁ a₂) • b = ite p (a₁ • b) (a₂ • b) :=
+by split_ifs; refl
+
+@[to_additive] lemma smul_ite (a : M) (b₁ b₂ : α) : a • (ite p b₁ b₂) = ite p (a • b₁) (a • b₂) :=
+by split_ifs; refl
+
+end ite
+
 section
 variables [monoid M] [mul_action M α]
 
@@ -222,18 +233,6 @@ protected def function.surjective.mul_action [has_scalar M β] (f : α → β) (
 { smul := (•),
   one_smul := λ y, by { rcases hf y with ⟨x, rfl⟩, rw [← smul, one_smul] },
   mul_smul := λ c₁ c₂ y, by { rcases hf y with ⟨x, rfl⟩, simp only [← smul, mul_smul] } }
-
-section ite
-
-variables (p : Prop) [decidable p]
-
-@[to_additive] lemma ite_smul (a₁ a₂ : M) (b : α) : (ite p a₁ a₂) • b = ite p (a₁ • b) (a₂ • b) :=
-by split_ifs; refl
-
-@[to_additive] lemma smul_ite (a : M) (b₁ b₂ : α) : a • (ite p b₁ b₂) = ite p (a • b₁) (a • b₂) :=
-by split_ifs; refl
-
-end ite
 
 section
 

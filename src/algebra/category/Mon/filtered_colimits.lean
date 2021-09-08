@@ -68,7 +68,7 @@ lemma allows us to "unfold" the definition of `colimit_one` at a custom chosen o
 lemma colimit_one_eq' (j : J) : colimit_one = M.mk ⟨j, 1⟩ :=
 begin
   apply M.mk_eq,
-  refine ⟨is_filtered.max _ _, is_filtered.left_to_max _ _, is_filtered.right_to_max _ _, _⟩,
+  refine ⟨max' _ j, left_to_max _ j, right_to_max _ j, _⟩,
   simp,
 end
 
@@ -78,8 +78,7 @@ The "unlifted" version of multiplication in the colimit. To multiply two depende
 and multiply them there.
 -/
 def colimit_mul_aux (x y : Σ j, F.obj j) : M :=
-M.mk ⟨is_filtered.max x.1 y.1,
-  F.map (is_filtered.left_to_max x.1 y.1) x.2 * F.map (is_filtered.right_to_max x.1 y.1) y.2⟩
+M.mk ⟨max' x.1 y.1, F.map (left_to_max x.1 y.1) x.2 * F.map (right_to_max x.1 y.1) y.2⟩
 
 /--
 Multiplication in the colimit is well-defined in the left argument.

@@ -376,12 +376,12 @@ begin
   exact (lintegral_mono_set' hst),
 end
 
-lemma tendsto_integral_on_of_monotone {α : Type*} {m : measurable_space α} {μ : measure α}
+lemma tendsto_set_integral_of_monotone {α : Type*} {m : measurable_space α} {μ : measure α}
   [measurable_space β] [normed_group β] [borel_space β] [complete_space β] [normed_space ℝ β]
   [second_countable_topology β] {s : ℕ → set α} {f : α → β} (hsm : ∀i, measurable_set (s i))
   (h_mono : monotone s) (hfi : integrable f μ) :
   tendsto (λ i, ∫ a in s i, f a ∂μ) at_top (𝓝 (∫ a in (⋃ n, s n), f a ∂μ)) :=
-let bound : α → ℝ := indicator (⋃ n, s n) (λa, ∥f a∥) in
+let bound : α → ℝ := indicator (⋃ n, s n) (λ a, ∥f a∥) in
 begin
   have h_int_eq : (λ i, ∫ a in s i, f a ∂μ) = (λ i, ∫ a, (s i).indicator f a ∂μ),
     from funext (λ i, (integral_indicator (hsm i)).symm),
@@ -396,6 +396,27 @@ begin
     exact indicator_le_indicator_of_subset (subset_Union _ _) (λ a, norm_nonneg _) _, },
   { filter_upwards [] λ a,
       le_trans (tendsto_indicator_of_monotone _ h_mono _ _) (pure_le_nhds _), },
+end
+
+lemma tendsto_set_integral_of_antimono {α : Type*} {m : measurable_space α} {μ : measure α}
+  [measurable_space β] [normed_group β] [borel_space β] [complete_space β] [normed_space ℝ β]
+  [second_countable_topology β] {s : ℕ → set α} {f : α → β} (hsm : ∀i, measurable_set (s i))
+  (h_mono : ∀ i j, i ≤ j → s j ⊆ s i) (hfi : integrable f μ) :
+  tendsto (λi, ∫ a in s i, f a ∂μ) at_top (𝓝 (∫ a in (⋂ n, s n), f a ∂μ)) :=
+let bound : α → ℝ := indicator (s 0) (λ a, ∥f a∥) in
+begin
+  have h_int_eq : (λ i, ∫ a in s i, f a ∂μ) = (λ i, ∫ a, (s i).indicator f a ∂μ),
+    from funext (λ i, (integral_indicator (hsm i)).symm),
+  rw h_int_eq,
+  rw ← integral_indicator (measurable_set.Inter hsm),
+  refine tendsto_integral_of_dominated_convergence bound _ _ _ _ _,
+  { exact λ n, hfi.1.indicator (hsm n), },
+  { exact hfi.1.indicator (measurable_set.Inter hsm), },
+  { refine integrable.indicator hfi.norm (hsm 0), },
+  { simp_rw norm_indicator_eq_indicator_norm,
+    refine λ n, eventually_of_forall (λ x, _),
+    exact indicator_le_indicator_of_subset (h_mono 0 n (zero_le n)) (λ a, norm_nonneg _) _, },
+  { filter_upwards [] λa, le_trans (tendsto_indicator_of_antimono _ h_mono _ _) (pure_le_nhds _), },
 end
 
 section continuous_set_integral
@@ -778,22 +799,6 @@ begin
   rw [this, integral_add hsm hsi htm hti],
   { exact hsm.union hs ht htm },
   { exact measurable.add hsm htm }
-end
-
-lemma tendsto_integral_on_of_antimono (s : ℕ → set α) (f : α → β) (hsm : ∀i, measurable_set (s i))
-  (h_mono : ∀i j, i ≤ j → s j ⊆ s i) (hfm : measurable_on (s 0) f) (hfi : integrable_on (s 0) f) :
-  tendsto (λi, ∫ a in (s i), f a) at_top (nhds (∫ a in (Inter s), f a)) :=
-let bound : α → ℝ := indicator (s 0) (λa, ∥f a∥) in
-begin
-  apply tendsto_integral_of_dominated_convergence,
-  { assume i, refine hfm.subset (hsm i) (h_mono _ _ (zero_le _)) },
-  { exact hfm.subset (measurable_set.Inter hsm) (Inter_subset _ _) },
-  { show integrable_on (s 0) (λa, ∥f a∥), rwa integrable_on_norm_iff },
-  { assume i, apply ae_of_all,
-    assume a,
-    rw [norm_indicator_eq_indicator_norm],
-    refine indicator_le_indicator_of_subset (h_mono _ _ (zero_le _)) (λa, norm_nonneg _) _ },
-  { filter_upwards [] λa, le_trans (tendsto_indicator_of_antimono _ h_mono _ _) (pure_le_nhds _) }
 end
 
 -- TODO : prove this for an encodable type

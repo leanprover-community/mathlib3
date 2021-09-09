@@ -388,7 +388,7 @@ begin
   exact mem_center_iff.mp (h hy1) z,
 end
 
-lemma ker_le_center_to_nilpotent {H : Type*} [group H] {f : G →* H}
+lemma is_nilpotent_of_ker_le_center {H : Type*} [group H] {f : G →* H}
 (hf1 : f.ker ≤ center G) (hH : is_nilpotent H) : is_nilpotent G :=
 begin
   rw nilpotent_iff_lower_central_series at *,

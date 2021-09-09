@@ -9,6 +9,7 @@ import linear_algebra.std_basis
 import logic.small
 import ring_theory.finiteness
 import linear_algebra.matrix.to_lin
+import linear_algebra.std_basis
 
 /-!
 
@@ -134,7 +135,7 @@ instance pi {ι : Type*} [fintype ι] {M : ι → Type*} [Π (i : ι), add_comm_
 of_basis $ pi.basis $ λ i, choose_basis R (M i)
 
 instance matrix {n : Type*} [fintype n] {m : Type*} [fintype m] :
-  module.free R (matrix ι₁ ι₂ R) :=
+  module.free R (matrix n m R) :=
 of_basis $ matrix.std_basis R n m
 
 end semiring

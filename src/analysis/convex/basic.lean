@@ -72,7 +72,7 @@ the base semiring has some element between `0` and `1`. -/
 def open_segment (x y : E) : set E :=
 {z : E | ∃ (a b : 𝕜) (ha : 0 < a) (hb : 0 < b) (hab : a + b = 1), a • x + b • y = z}
 
-notation `[`x `-[` 𝕜`]` y `]` := segment 𝕜 x y
+notation `[` x ` -[` 𝕜 `] ` y `]` := segment 𝕜 x y
 
 lemma segment_symm (x y : E) : [x -[𝕜] y] = [y -[𝕜] x] :=
 set.ext $ λ z,
@@ -234,7 +234,7 @@ section linear_ordered_field
 variables [linear_ordered_field 𝕜]
 
 section add_comm_group
-variables [add_comm_group E] [module 𝕜 E] [add_comm_group F] [module 𝕜 F]
+variables [add_comm_group E] [module 𝕜 E] [add_comm_group F] [module 𝕜 F] {𝕜}
 
 @[simp] lemma left_mem_open_segment_iff [no_zero_smul_divisors 𝕜 E] {x y : E} :
   x ∈ open_segment 𝕜 x y ↔ x = y :=

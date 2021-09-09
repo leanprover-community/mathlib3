@@ -103,7 +103,8 @@ begin
     exact pow_ne_zero _ two_ne_zero }
 end
 
-lemma mem_pos_tangent_cone_at_of_segment_subset' {s : set E} {x y : E} (h : segment ℝ x (x + y) ⊆ s) :
+lemma mem_pos_tangent_cone_at_of_segment_subset' {s : set E} {x y : E}
+  (h : segment ℝ x (x + y) ⊆ s) :
   y ∈ pos_tangent_cone_at s x :=
 by simpa only [add_sub_cancel'] using mem_pos_tangent_cone_at_of_segment_subset h
 

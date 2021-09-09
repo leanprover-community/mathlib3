@@ -153,11 +153,11 @@ begin
     rintro x₁ x₂ hx₁ hx₂ hx,
     by_contra,
     push_neg at h,
-    exact h.1 (hAx _ _ hx₁ hx₂ (mem_open_segment_of_ne_left_right h.1 h.2 hx)).1 },
+    exact h.1 (hAx _ _ hx₁ hx₂ (mem_open_segment_of_ne_left_right ℝ h.1 h.2 hx)).1 },
   rintro ⟨hxA, hAx⟩,
   use hxA,
   rintro x₁ x₂ hx₁ hx₂ hx,
-  obtain rfl | rfl := hAx x₁ x₂ hx₁ hx₂ (open_segment_subset_segment _ _ hx),
+  obtain rfl | rfl := hAx x₁ x₂ hx₁ hx₂ (open_segment_subset_segment ℝ _ _ hx),
   { exact ⟨rfl, (left_mem_open_segment_iff.1 hx).symm⟩ },
   exact ⟨right_mem_open_segment_iff.1 hx, rfl⟩,
 end

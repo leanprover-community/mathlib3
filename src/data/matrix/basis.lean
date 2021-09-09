@@ -5,7 +5,7 @@ Authors: Jalex Stark, Scott Morrison, Eric Wieser
 -/
 import data.matrix.basic
 
-/--
+/-!
 # Matrices with a single non-zero element.
 
 This file provides `matrix.std_basis_matrix`.

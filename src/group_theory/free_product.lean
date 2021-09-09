@@ -35,9 +35,9 @@ this answer is not completely satisfactory, because it's difficult to tell when 
 `x y : free_product M` are distinct since `free_product M` is defined as a quotient.
 
 The second, maximally efficient answer is given by `word M`. An element of `word M` is a word in the
-alphabet `Σ i, { m : M i // m ≠ 1 }`, where no adjacent letters can share an index `i`. Since we
-only work with reduced words, there is no need for quotienting, so it's easy to tell when two
-elements are distinct. However it's not obvious that this is even a monoid!
+alphabet `Σ i, M i`, where the letter `⟨i, 1⟩` doesn't occur and no adjacent letters share an index
+`i`. Since we only work with reduced words, there is no need for quotienting, and it is easy to tell
+when two elements are distinct. However it's not obvious that this is even a monoid!
 
 We prove that every element of `free_product M` can be represented by a unique reduced word, i.e.
 `free_product M` and `word M` are equivalent types. This means that `word M` can be given a monoid
@@ -46,7 +46,7 @@ structure, and it lets us tell when two elements of `free_product M` are distinc
 There is also a completely tautological, maximally inefficient answer given by
 `algebra.category.Mon.colimits`. Whereas `free_product M` at least ensures that (any instance of)
 associativity holds by reflexivity, in this answer associativity holds because of quotienting. Yet
-another answer, which is constructively more satisfying, can be obtained by showing that
+another answer, which is constructively more satisfying, could be obtained by showing that
 `free_product.rel` is confluent.
 
 ## References
@@ -72,7 +72,10 @@ namespace free_product
 
 /-- The type of reduced words. A reduced word cannot contain a letter `1`, and no two adjacent
 letters can come from the same summand. -/
-def word : Type* := { l : list (Σ i, { m : M i // m ≠ 1 }) // (l.map sigma.fst).chain' (≠) }
+@[ext] structure word :=
+(to_list : list (Σ i, M i))
+(ne_one : ∀ l ∈ to_list, sigma.snd l ≠ 1)
+(chain_ne : to_list.chain' (λ l l', sigma.fst l ≠ sigma.fst l'))
 
 variable {M}
 
@@ -168,116 +171,137 @@ end group
 namespace word
 
 /-- The empty reduced word. -/
-def empty : word M := ⟨[], list.chain'_nil⟩
+def empty : word M := { to_list := [], ne_one := λ _, false.elim, chain_ne := list.chain'_nil }
 
 instance : inhabited (word M) := ⟨empty⟩
 
 /-- A reduced word determines an element of the free product, given by multiplication. -/
 def prod (w : word M) : free_product M :=
-list.prod (w.val.map $ λ p, of p.snd.val)
+list.prod (w.to_list.map $ λ l, of l.snd)
 
 @[simp] lemma prod_nil : prod (empty : word M) = 1 := rfl
 
-/-- `not_head i w` says that the first letter of `w` doesn't come from `M i`. -/
-def not_head (i) (w : word M) : Prop := ∀ p ∈ (w.val.map sigma.fst).head', i ≠ p
+/-- `fst_idx w` is `some i` if the first letter of `w` is `⟨i, m⟩` with `m : M i`. If `w` is empty
+then it's `none`. -/
+def fst_idx (w : word M) : option ι := w.to_list.head'.map sigma.fst
+
+lemma fst_idx_ne_iff {w : word M} {i} :
+  fst_idx w ≠ some i ↔ ∀ l ∈ w.to_list.head', i ≠ sigma.fst l :=
+not_iff_not.mp $ by simp [fst_idx]
+
+variable (M)
+
+/-- Given an index `i : ι`, `pair M i` is the type of pairs `(head, tail)` where `head : M i` and
+`tail : word M`, subject to the constraint that first letter of `tail` can't be `⟨i, m⟩`.
+By prepending `head` to `tail`, one obtains a new word. We'll show that any word can be uniquely
+obtained in this way. -/
+@[ext] structure pair (i : ι) :=
+(head : M i)
+(tail : word M)
+(fst_idx_ne : fst_idx tail ≠ some i)
+
+instance (i : ι) : inhabited (pair M i) := ⟨⟨1, empty, by tauto⟩⟩
+
+variable {M}
 
 variables [∀ i, decidable_eq (M i)]
 
 /-- Prepend `m : M i` to `w` assuming `not_head i w`. Does nothing if `m = 1`. -/
-def rcons {i} (m : M i) (w : word M) (h : not_head i w) : word M :=
-if m_one : m = 1 then w else ⟨⟨i, m, m_one⟩ :: w.val, w.property.cons' h⟩
+def rcons {i} (p : pair M i) : word M :=
+if h : p.head = 1 then p.tail
+else { to_list  := ⟨i, p.head⟩ :: p.tail.to_list,
+       ne_one   := by { rintros l (rfl | hl), exact h, exact p.tail.ne_one l hl },
+       chain_ne := p.tail.chain_ne.cons' (fst_idx_ne_iff.mp p.fst_idx_ne) }
 
-@[simp] lemma rcons_one {i} (w : word M) (h) : rcons (1 : M i) w h = w := dif_pos rfl
+private def mk_aux {l} (ls) (h1 : ∀ l' ∈ l :: ls, sigma.snd l' ≠ 1) (h2 : (l :: ls).chain' _) :
+  word M := ⟨ls, λ l' hl, h1 _ (list.mem_cons_of_mem _ hl), h2.tail⟩
 
-lemma rcons_ne_one {i} {m : M i} (hm : m ≠ 1) {w : word M} (h) :
-  rcons m w h = ⟨⟨i, m, hm⟩ :: w.val, w.property.cons' h⟩ := dif_neg hm
+lemma cons_eq_rcons {i} {m : M i} {ls h1 h2} :
+  word.mk (⟨i, m⟩ :: ls) h1 h2 = rcons ⟨m, mk_aux ls h1 h2, fst_idx_ne_iff.mpr h2.rel_head'⟩ :=
+by { rw [rcons, dif_neg], refl, exact h1 ⟨i, m⟩ (ls.mem_cons_self _) }
 
-lemma cons_eq_rcons {i m ls hl} :
-  (⟨⟨i, m⟩ :: ls, hl⟩ : word M) = rcons m.val ⟨ls, hl.tail⟩ hl.rel_head' :=
-by { cases m with m hm, rw rcons_ne_one hm, refl, }
+@[simp] lemma prod_rcons {i} (p : pair M i) :
+  prod (rcons p) = of p.head * prod p.tail :=
+if hm : p.head = 1 then by rw [rcons, dif_pos hm, hm, monoid_hom.map_one, one_mul]
+else by rw [rcons, dif_neg hm, prod, list.map_cons, list.prod_cons, prod]
 
-@[simp] lemma prod_rcons {i} (m : M i) (w h) :
-  prod (rcons m w h) = of m * prod w :=
-if hm : m = 1 then by rw [hm, rcons_one, monoid_hom.map_one, one_mul]
-else by rw [rcons_ne_one hm, prod, list.map_cons, list.prod_cons, prod]
-
-lemma rcons_inj {i} {m m' : M i} {w w' : word M} {h : not_head i w} {h' : not_head i w'}
-  (he : rcons m w h = rcons m' w' h') : m = m' ∧ w = w' :=
+lemma rcons_inj {i} : function.injective (rcons : pair M i → word M) :=
 begin
+  rintros ⟨m, w, h⟩ ⟨m', w', h'⟩ he,
   by_cases hm : m = 1;
   by_cases hm' : m' = 1,
-  { rw [hm, hm'] at *, rw [rcons_one, rcons_one] at he, exact ⟨rfl, he⟩ },
-  { exfalso, rw [hm, rcons_one, rcons_ne_one hm'] at he, rw he at h, exact h i rfl rfl, },
-  { exfalso, rw [hm', rcons_one, rcons_ne_one hm] at he, rw ←he at h', exact h' i rfl rfl, },
-  { simp only [rcons_ne_one hm, rcons_ne_one hm', subtype.mk_eq_mk, true_and, eq_self_iff_true,
-      heq_iff_eq, ←subtype.ext_iff_val] at he, exact he, }
+  { simp only [rcons, dif_pos hm, dif_pos hm'] at he, cc, },
+  { exfalso, simp only [rcons, dif_pos hm, dif_neg hm'] at he, rw he at h, exact h rfl },
+  { exfalso, simp only [rcons, dif_pos hm', dif_neg hm] at he, rw ←he at h', exact h' rfl, },
+  { have : m = m' ∧ w.to_list = w'.to_list,
+    { simpa only [rcons, dif_neg hm, dif_neg hm', true_and, eq_self_iff_true, subtype.mk_eq_mk,
+      heq_iff_eq, ←subtype.ext_iff_val] using he },
+    rcases this with ⟨rfl, h⟩,
+    congr, exact word.ext _ _ h, }
 end
 
 variable [decidable_eq ι]
 
-/-- Given `i : ι`, any reduced word can be written as `rcons m w h` with `m : M i`. -/
-private def head_tail_aux (i) : Π w : word M,
-  Σ' (m : M i) (w' : word M) (h : not_head i w'), rcons m w' h = w
-| w@⟨[], _⟩           := ⟨1, w, by rintro _ ⟨⟩, rcons_one w _⟩
-| w@⟨⟨j, m⟩ :: ls, h⟩ := if ij : i = j then ⟨ij.symm.rec m.val, ⟨ls, h.tail⟩,
-  by cases ij; exact h.rel_head', by cases ij; exact cons_eq_rcons.symm ⟩
-else ⟨1, w, by rintro _ ⟨⟩; exact ij, rcons_one w _⟩
+/-- Given `i : ι`, any reduced word can be decomposed into a pair `p` such that `w = rcons p`. -/
+-- This definition is computable but not very nice to look at. Thankfully we don't have to inspect
+-- it, since `rcons` is known to be injective.
+private def equiv_pair_aux (i) : Π w : word M, { p : pair M i | rcons p = w }
+| w@⟨[], _, _⟩             := ⟨⟨1, w, by rintro ⟨⟩⟩, dif_pos rfl⟩
+| w@⟨⟨j, m⟩ :: ls, h1, h2⟩ := if ij : i = j then
+  { val := { head := ij.symm.rec m,
+             tail := mk_aux ls h1 h2,
+             fst_idx_ne := by cases ij; exact fst_idx_ne_iff.mpr h2.rel_head' },
+    property := by cases ij; exact cons_eq_rcons.symm }
+else ⟨⟨1, w, (option.some_injective _).ne (ne.symm ij)⟩, dif_pos rfl⟩
 
-/-- If the first letter of `w` comes from `M i`, then `head i w : M i` is that element.
-Otherwise it's `1`. -/
-def head (i w) : M i := (head_tail_aux i w).fst
-/-- `tail i w` drops the first letter of `w` if the first letter comes from `M i`.  -/
-def tail (i w) : word M := (head_tail_aux i w).snd.fst
+/-- The equivalence between words and pairs. Given a word, it decomposes it as a pair by removing
+the first letter if it comes from `M i`. Given a pair, it prepends the head to the tail. -/
+def equiv_pair (i) : word M ≃ pair M i :=
+{ to_fun := λ w, (equiv_pair_aux i w).val,
+  inv_fun := rcons,
+  left_inv := λ w, (equiv_pair_aux i w).property,
+  right_inv := λ p, rcons_inj (equiv_pair_aux i _).property }
 
-lemma not_head_tail {i} {w : word M} : not_head i (tail i w) := (head_tail_aux i w).snd.snd.fst
+lemma equiv_pair_symm (i) (p : pair M i) : (equiv_pair i).symm p = rcons p := rfl
 
-@[simp] lemma rcons_eta {i} {w : word M} : rcons (head i w) (tail i w) not_head_tail = w :=
-(head_tail_aux i w).snd.snd.snd
-
-@[simp] lemma head_rcons {i w h} {m : M i} : head i (rcons m w h) = m := (rcons_inj rcons_eta).left
-
-@[simp] lemma tail_rcons {i w h} {m : M i} : tail i (rcons m w h) = w := (rcons_inj rcons_eta).right
-
-lemma head_eq_one_of_not_head {i} {w : word M} (h : not_head i w) : head i w = 1 :=
-(rcons_inj (rcons_eta.trans (rcons_one w h).symm)).left
-
-lemma tail_eq_self_of_not_head {i} {w : word M} (h : not_head i w) : tail i w = w :=
-(rcons_inj (rcons_eta.trans (rcons_one w h).symm)).right
+lemma equiv_pair_eq_of_fst_idx_ne {i} {w : word M} (h : fst_idx w ≠ some i) :
+  equiv_pair i w = ⟨1, w, h⟩ :=
+(equiv_pair i).apply_eq_iff_eq_symm_apply.mpr $ eq.symm (dif_pos rfl)
 
 instance summand_action (i) : mul_action (M i) (word M) :=
-{ smul     := λ m w, rcons (m * head i w) (tail i w) not_head_tail,
-  one_smul := λ w, by simp only [rcons_eta, one_mul],
-  mul_smul := λ m m' w, by simp only [mul_assoc, head_rcons, tail_rcons] }
+{ smul     := λ m w, rcons { head := m * (equiv_pair i w).head, ..equiv_pair i w },
+  one_smul := λ w, by { simp_rw [one_mul], apply (equiv_pair i).symm_apply_eq.mpr, ext; refl },
+  mul_smul := λ m m' w, by simp only [mul_assoc, ←equiv_pair_symm, equiv.apply_symm_apply], }
 
 instance : mul_action (free_product M) (word M) :=
 mul_action.of_End_hom (lift (λ i, mul_action.to_End_hom))
 
-lemma of_smul_def (i w) (m : M i) : of m • w = rcons (m * head i w) (tail i w) not_head_tail := rfl
+lemma of_smul_def (i) (w : word M) (m : M i) :
+  of m • w = rcons { head := m * (equiv_pair i w).head, ..equiv_pair i w } := rfl
 
-lemma cons_eq_smul {i m ls hl} :
-  (⟨⟨i, m⟩ :: ls, hl⟩ : word M) = (of m.val • ⟨ls, hl.tail⟩ : word M) :=
-have nh : not_head i ⟨ls, hl.tail⟩ := hl.rel_head',
-by simp_rw [cons_eq_rcons, of_smul_def, head_eq_one_of_not_head nh, mul_one,
-  tail_eq_self_of_not_head nh]; refl
+lemma cons_eq_smul {i} {m : M i} {ls h1 h2} :
+  word.mk (⟨i, m⟩ :: ls) h1 h2 = of m • mk_aux ls h1 h2 :=
+by rw [cons_eq_rcons, of_smul_def, equiv_pair_eq_of_fst_idx_ne _]; simp only [mul_one]
 
 lemma smul_induction {C : word M → Prop}
   (h_empty : C empty)
   (h_smul : ∀ i (m : M i) w, C w → C (of m • w))
   (w : word M) : C w :=
 begin
-  cases w with ls hl,
-  induction ls with p ls ih,
+  cases w with ls h1 h2,
+  induction ls with l ls ih,
   { exact h_empty },
-  cases p with i m,
+  cases l with i m,
   rw cons_eq_smul,
-  exact h_smul i m.val ⟨ls, hl.tail⟩ (ih hl.tail),
+  exact h_smul _ _ _ (ih _ _),
 end
 
 @[simp] lemma prod_smul (m) : ∀ w : word M, prod (m • w) = m * prod w :=
 begin
   apply m.induction_on,
   { intro, rw [one_smul, one_mul] },
-  { intros, rw [of_smul_def, prod_rcons, of.map_mul, mul_assoc, ←prod_rcons, rcons_eta] },
+  { intros, rw [of_smul_def, prod_rcons, of.map_mul, mul_assoc, ←prod_rcons,
+      ←equiv_pair_symm, equiv.symm_apply_apply] },
   { intros x y hx hy w, rw [mul_smul, hx, hy, mul_assoc] },
 end
 
@@ -291,6 +315,9 @@ def equiv : free_product M ≃ word M :=
     { dsimp only, rw [prod_nil, one_smul], },
     { dsimp only, intros i m w ih, rw [prod_smul, mul_smul, ih], },
   end }
+
+instance : decidable_eq (word M) := function.injective.decidable_eq word.ext
+instance : decidable_eq (free_product M) := word.equiv.decidable_eq
 
 end word
 

@@ -79,6 +79,11 @@ lemma integral_union (hst : disjoint s t) (hs : measurable_set s) (ht : measurab
   ∫ x in s ∪ t, f x ∂μ = ∫ x in s, f x ∂μ + ∫ x in t, f x ∂μ :=
 by simp only [integrable_on, measure.restrict_union hst hs ht, integral_add_measure hfs hft]
 
+lemma integral_union_ae (hst : (s ∩ t) =ᵐ[μ] (∅ : set α)) (hs : measurable_set s)
+  (ht : measurable_set t) (hfs : integrable_on f s μ) (hft : integrable_on f t μ) :
+  ∫ x in s ∪ t, f x ∂μ = ∫ x in s, f x ∂μ + ∫ x in t, f x ∂μ :=
+sorry
+
 lemma integral_finset_bUnion {ι : Type*} {t : finset ι} {s : ι → set α}
   (hs : ∀ i ∈ t, measurable_set (s i)) (h's : pairwise_on ↑t (disjoint on s))
   (hf : integrable f μ) :
@@ -336,7 +341,7 @@ end normed_group
 
 section mono
 
-variables {μ : measure α} {f g : α → ℝ} {s : set α}
+variables {μ : measure α} {f g : α → ℝ} {s t : set α}
   (hf : integrable_on f s μ) (hg : integrable_on g s μ)
 
 lemma set_integral_mono_ae_restrict (h : f ≤ᵐ[μ.restrict s] g) :
@@ -361,6 +366,17 @@ omit hf hg
 lemma set_integral_mono (h : f ≤ g) :
   ∫ a in s, f a ∂μ ≤ ∫ a in s, g a ∂μ :=
 integral_mono hf hg h
+
+lemma set_integral_mono_set (hfi : integrable f μ) (hf : 0 ≤ᵐ[μ] f) (hst : s ≤ᵐ[μ] t) :
+  ∫ x in s, f x ∂μ ≤ ∫ x in t, f x ∂μ :=
+begin
+  repeat { rw integral_eq_lintegral_of_nonneg_ae (ae_restrict_of_ae hf)
+            (hfi.1.mono_measure measure.restrict_le_self) },
+  rw ennreal.to_real_le_to_real
+    (ne_of_lt $ (has_finite_integral_iff_of_real (ae_restrict_of_ae hf)).mp hfi.integrable_on.2)
+    (ne_of_lt $ (has_finite_integral_iff_of_real (ae_restrict_of_ae hf)).mp hfi.integrable_on.2),
+  exact (lintegral_mono_set' hst),
+end
 
 end mono
 
@@ -418,21 +434,13 @@ end
 
 end nonneg
 
-lemma set_integral_mono_set {α : Type*} [measurable_space α] {μ : measure α}
-  {s t : set α} {f : α → ℝ} (hfi : integrable f μ) (hf : 0 ≤ᵐ[μ] f) (hst : s ≤ᵐ[μ] t) :
-  ∫ x in s, f x ∂μ ≤ ∫ x in t, f x ∂μ :=
-begin
-  repeat { rw integral_eq_lintegral_of_nonneg_ae (ae_restrict_of_ae hf)
-            (hfi.1.mono_measure measure.restrict_le_self) },
-  rw ennreal.to_real_le_to_real
-    (ne_of_lt $ (has_finite_integral_iff_of_real (ae_restrict_of_ae hf)).mp hfi.integrable_on.2)
-    (ne_of_lt $ (has_finite_integral_iff_of_real (ae_restrict_of_ae hf)).mp hfi.integrable_on.2),
-  exact (lintegral_mono_set' hst),
-end
+section tendsto_mono
 
-lemma tendsto_set_integral_of_monotone {α : Type*} {m : measurable_space α} {μ : measure α}
-  [measurable_space β] [normed_group β] [borel_space β] [complete_space β] [normed_space ℝ β]
-  [second_countable_topology β] {s : ℕ → set α} {f : α → β} (hsm : ∀ i, measurable_set (s i))
+variables {μ : measure α}
+  [measurable_space E] [normed_group E] [borel_space E] [complete_space E] [normed_space ℝ E]
+  [second_countable_topology E] {s : ℕ → set α} {f : α → E}
+
+lemma tendsto_set_integral_of_monotone (hsm : ∀ i, measurable_set (s i))
   (h_mono : monotone s) (hfi : integrable_on f (⋃ n, s n) μ) :
   tendsto (λ i, ∫ a in s i, f a ∂μ) at_top (𝓝 (∫ a in (⋃ n, s n), f a ∂μ)) :=
 let bound : α → ℝ := indicator (⋃ n, s n) (λ a, ∥f a∥) in
@@ -456,9 +464,7 @@ begin
       le_trans (tendsto_indicator_of_monotone _ h_mono _ _) (pure_le_nhds _), },
 end
 
-lemma tendsto_set_integral_of_antimono {α : Type*} {m : measurable_space α} {μ : measure α}
-  [measurable_space β] [normed_group β] [borel_space β] [complete_space β] [normed_space ℝ β]
-  [second_countable_topology β] {s : ℕ → set α} {f : α → β} (hsm : ∀ i, measurable_set (s i))
+lemma tendsto_set_integral_of_antimono (hsm : ∀ i, measurable_set (s i))
   (h_mono : ∀ i j, i ≤ j → s j ⊆ s i) (hfi : integrable_on f (s 0) μ) :
   tendsto (λi, ∫ a in s i, f a ∂μ) at_top (𝓝 (∫ a in (⋂ n, s n), f a ∂μ)) :=
 let bound : α → ℝ := indicator (s 0) (λ a, ∥f a∥) in
@@ -480,6 +486,8 @@ begin
     exact indicator_le_indicator_of_subset (h_mono 0 n (zero_le n)) (λ a, norm_nonneg _) _, },
   { filter_upwards [] λa, le_trans (tendsto_indicator_of_antimono _ h_mono _ _) (pure_le_nhds _), },
 end
+
+end tendsto_mono
 
 section continuous_set_integral
 /-! ### Continuity of the set integral

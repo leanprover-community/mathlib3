@@ -7,6 +7,10 @@ import analysis.convex.extreme
 import combinatorics.simplicial_complex.convex_independence
 import linear_algebra.affine_space.finite_dimensional
 
+/-!
+# Extreme sets
+-/
+
 open_locale classical affine big_operators
 open set
 --TODO: generalise to LCTVS
@@ -104,24 +108,16 @@ begin
     --have := hAB.2 y (f n) hyA hfn x hxB,
     refine hyB (hAB.2 y (z n) hyA hzn x hxB ⟨1/(↑n + 1)/(1/(↑n + 1) + 1), 1/(1/(↑n + 1) + 1),
       _, _, _, _⟩).1,
-    { exact le_of_lt (div_pos nat.one_div_pos_of_nat (add_pos nat.one_div_pos_of_nat (by linarith))),
-    },
-    {
-      exact le_of_lt (one_div_pos.2 (add_pos nat.one_div_pos_of_nat (by linarith))),
-    },
-    {
-      rw [←add_div, div_self],
-      exact (ne_of_gt (add_pos nat.one_div_pos_of_nat (by linarith))),
-    },
+    { exact (div_pos nat.one_div_pos_of_nat (add_pos nat.one_div_pos_of_nat (by linarith))).le },
+    { exact le_of_lt (one_div_pos.2 (add_pos nat.one_div_pos_of_nat (by linarith))).le },
+    { rw [←add_div, div_self],
+      exact (add_pos nat.one_div_pos_of_nat (by linarith)).ne' },
     {
       sorry,
     },
-    {
-      rintro rfl,
-      exact hyB hxB,
-    },
-    {
-      rintro h,
+    { rintro rfl,
+      exact hyB hxB },
+    { rintro h,
       apply hyB,
       suffices h : x = y,
       { rw ←h, exact hxB },
@@ -129,22 +125,19 @@ begin
       { exact smul_injective (ne_of_gt nat.one_div_pos_of_nat) h },
       calc
         (1/n.succ : ℝ) • x
-            = -(1 • x) + ((1 • x + (1/n.succ : ℝ) • x) - (1/n.succ : ℝ) • y) + (1/n.succ : ℝ) • y : sorry
+            = -(1 • x) + ((1 • x + (1/n.succ : ℝ) • x) - (1/n.succ : ℝ) • y) + (1/n.succ : ℝ) • y
+            : sorry
         ... = -(1 • x) + ((1 + 1/n.succ : ℝ) • x - (1/n.succ : ℝ) • y) + (1/n.succ : ℝ) • y : sorry
         ... = -(1 • x) + z n + (1/n.succ : ℝ) • y : by refl
         ... = -(1 • x) + x + (1/n.succ : ℝ) • y : by rw h
-        ... = (1/n.succ : ℝ) • y : by simp,
-    },
-  },
+        ... = (1/n.succ : ℝ) • y : by simp } },
   rw ←sub_zero x,
   apply filter.tendsto.sub,
-  {
-    nth_rewrite 0 ←one_smul _ x,
+  { nth_rewrite 0 ←one_smul _ x,
     apply filter.tendsto.smul_const,
     nth_rewrite 0 ←add_zero (1 : ℝ), --weirdly skips the first two `1`. Might break in the future
     apply filter.tendsto.const_add,
-    sorry
-  },
+    sorry },
   rw ←zero_smul _ y,
   apply filter.tendsto.smul_const,-/
   sorry
@@ -158,8 +151,8 @@ begin
   { by_contra hxB,
     rw open_segment_symm at hz,
     exact (h.2 hy ⟨hx, hxB⟩ hz).2 hzB },
-  by_contra hyB,
-  exact (h.2 hx ⟨hy, hyB⟩ hz).2 hzB,
+  { by_contra hyB,
+    exact (h.2 hx ⟨hy, hyB⟩ hz).2 hzB }
 end
 
 /-{E : Type*} [add_comm_group E] [module ℝ E] [topological_space E]
@@ -196,7 +189,7 @@ end
 
 
 
-lemma subset_of_convex_hull_eq_convex_hull_of_convex_independent {X Y : finset E}
+lemma convex_independent.subset_of_convex_hull_eq_convex_hull {X Y : finset E}
   (hX : convex_independent (λ p, p : (X : set E) → E))
   (h : convex_hull ↑X = convex_hull (Y : set E)) :
   X ⊆ Y :=
@@ -207,14 +200,14 @@ begin
   exact_mod_cast extreme_points_convex_hull_subset hxextreme,
 end
 
-lemma eq_of_convex_hull_eq_convex_hull_of_convex_independent
+lemma convex_independent.eq_of_convex_hull_eq_convex_hull
   {X Y : finset E}
   (hX : convex_independent (λ p, p : (X : set E) → E))
   (hY : convex_independent (λ p, p : (Y : set E) → E))
   (h : convex_hull (X : set E) = convex_hull (Y : set E)) :
   X = Y :=
-(subset_of_convex_hull_eq_convex_hull_of_convex_independent hX h).antisymm
-  (subset_of_convex_hull_eq_convex_hull_of_convex_independent hY h.symm)
+(hX.subset_of_convex_hull_eq_convex_hull h).antisymm
+  (hY.subset_of_convex_hull_eq_convex_hull h.symm)
 
 /- deprecated because generalised by `eq_extreme_points_convex_hull_iff_convex_independent`
 lemma extreme_to_convex_hull_of_affine_independent {s : finset E} (hx : x ∈ s)

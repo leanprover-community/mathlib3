@@ -6,6 +6,10 @@ Authors: Yaël Dillies, Bhavik Mehta
 import combinatorics.simplicial_complex.convex_join
 import combinatorics.simplicial_complex.exposed
 
+/-!
+# Polyhedrons
+-/
+
 open set
 open_locale classical big_operators
 

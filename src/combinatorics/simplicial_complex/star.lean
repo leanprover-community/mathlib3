@@ -6,6 +6,10 @@ Authors: Yaël Dillies, Bhavik Mehta
 import combinatorics.simplicial_complex.basic
 import combinatorics.simplicial_complex.closure
 
+/-!
+# Star in a simplicial complex
+-/
+
 namespace affine
 open set
 variables {m n : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E] {S : simplicial_complex E}

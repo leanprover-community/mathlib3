@@ -6,6 +6,10 @@ Authors: Yaël Dillies, Bhavik Mehta
 import combinatorics.simplicial_complex.link
 import combinatorics.simplicial_complex.subdivision
 
+/-!
+# Boundary of a simplicial complex
+-/
+
 namespace affine
 open set
 variables {m n : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E] {S : simplicial_complex E}
@@ -289,7 +293,8 @@ begin
   split,
   sorry,
   rintro X₂ hX₂,--rintro X₂ ⟨Y₂, hY₂, hX₂Y₂, Z₂, hZ₂, hY₂Z₂, hZ₂max⟩,
-  obtain ⟨F, hF, hXF⟩ := hpartition (boundary_subset hX₂),--obtain ⟨F, hF, hXF⟩ := hpartition (S₂.down_closed hY₂ hX₂Y₂),
+  obtain ⟨F, hF, hXF⟩ := hpartition (boundary_subset hX₂),
+  --obtain ⟨F, hF, hXF⟩ := hpartition (S₂.down_closed hY₂ hX₂Y₂),
   use F,
   rw and.comm,
   use hXF,
@@ -304,7 +309,8 @@ end
 A m-simplex is on the boundary of a full dimensional complex iff it belongs to exactly one cell.
 Dull?
 -/
-lemma boundary_subcell_iff_one_surface (hS : S.full_dimensional) (hXcard : X.card = finite_dimensional.finrank ℝ E) :
+lemma boundary_subcell_iff_one_surface (hS : S.full_dimensional)
+  (hXcard : X.card = finite_dimensional.finrank ℝ E) :
   X ∈ S.boundary.faces ↔ nat.card {Y | Y ∈ S.faces ∧ X ⊂ Y} = 1 :=
   -- It's probably a bad idea to use `nat.card` since it's incredibly underdeveloped for doing
   -- actual maths in
@@ -332,7 +338,8 @@ end
 A m-simplex is not on the boundary of a full dimensional complex iff it belongs to exactly two
 cells.
 -/
-lemma not_boundary_subcell_iff_two_surfaces (hS : S.full_dimensional) (hXcard : X.card = finite_dimensional.finrank ℝ E) :
+lemma not_boundary_subcell_iff_two_surfaces (hS : S.full_dimensional)
+  (hXcard : X.card = finite_dimensional.finrank ℝ E) :
   X ∉ S.boundary.faces ↔ nat.card {Y | Y ∈ S.faces ∧ X ⊂ Y} = 2 :=
   -- It's probably a bad idea to use `nat.card` since it's incredibly underdeveloped for doing
   -- actual maths in

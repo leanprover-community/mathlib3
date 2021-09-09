@@ -6,6 +6,10 @@ Authors: Yaël Dillies, Bhavik Mehta
 import combinatorics.simplicial_complex.pure
 import combinatorics.simplicial_complex.subdivision
 
+/-!
+# Pyramid of a simplicial complex
+-/
+
 namespace affine
 
 open_locale classical affine big_operators

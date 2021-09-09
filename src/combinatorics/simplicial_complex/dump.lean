@@ -7,6 +7,10 @@ import analysis.convex.topology
 import combinatorics.simplicial_complex.to_move.default
 import data.real.basic
 import linear_algebra.affine_space.finite_dimensional
+
+/-!
+# Previous attempt of Sperner's lemma
+-/
 -- import data.nat.parity
 
 open_locale classical affine big_operators

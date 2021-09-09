@@ -7,6 +7,10 @@ import analysis.specific_limits
 import combinatorics.simplicial_complex.basic
 import set_theory.fincard
 
+/-!
+# Subdivision of simplicial complexes
+-/
+
 open affine set
 
 variables {m : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E]

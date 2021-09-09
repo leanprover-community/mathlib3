@@ -6,6 +6,10 @@ Authors: Yaël Dillies, Bhavik Mehta
 import combinatorics.simplicial_complex.closure
 import combinatorics.simplicial_complex.star
 
+/-!
+# Link in a simplicial complex
+-/
+
 namespace affine
 open set
 variables {m n k : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E]

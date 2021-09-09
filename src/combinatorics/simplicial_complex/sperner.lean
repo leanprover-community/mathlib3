@@ -6,6 +6,10 @@ Authors: Yaël Dillies, Bhavik Mehta
 import combinatorics.simplicial_complex.topology
 import data.nat.parity
 
+/-!
+# Sperner's lemma
+-/
+
 namespace affine
 
 open_locale classical affine big_operators

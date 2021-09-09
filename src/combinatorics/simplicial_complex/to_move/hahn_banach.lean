@@ -8,6 +8,10 @@ import analysis.convex.topology
 import analysis.normed_space.operator_norm
 import linear_algebra.affine_space.finite_dimensional
 
+/-!
+# To move
+-/
+
 open_locale classical affine big_operators
 open set
 --TODO: Generalise to LCTVS

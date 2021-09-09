@@ -6,6 +6,10 @@ Authors: Yaël Dillies, Bhavik Mehta
 import combinatorics.simplicial_complex.convex_independence
 import combinatorics.simplicial_complex.glued
 
+/-!
+# Polytopes
+-/
+
 open set affine
 namespace poly
 variables {m n : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E] {S : simplicial_complex E}

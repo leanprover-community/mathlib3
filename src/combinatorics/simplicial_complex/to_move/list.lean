@@ -5,6 +5,10 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import data.list.basic
 
+/-!
+# To move
+-/
+
 lemma list.exists_min {α : Type*} [semilattice_inf α] :
   ∀ {s : list α} (hs₁ : s ≠ []), ∃ z, ∀ y ∈ s, z ≤ y
 | [] h := (h rfl).elim

@@ -7,6 +7,9 @@ import analysis.convex.topology
 import topology.basic
 import order.directed
 
+/-!
+# To move
+-/
 
 variables {E : Type*} [add_comm_group E] [module ℝ E] {s X Y : set E}
 
@@ -43,9 +46,3 @@ begin
   left,
   refl,
 end
-
-lemma convex_hull_pair {a b : E} :
-  convex_hull {a, b} = (segment a b) := sorry
-
---TODO: Generalise to LCTVS
-variables [normed_group E] [normed_space ℝ E] {x : E} {A B : set E}

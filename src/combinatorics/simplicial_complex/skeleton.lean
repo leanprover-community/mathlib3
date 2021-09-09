@@ -5,6 +5,10 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import combinatorics.simplicial_complex.pure
 
+/-!
+# Skeletons of a simplicial complex
+-/
+
 namespace affine
 open set
 variables {m n k : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E]

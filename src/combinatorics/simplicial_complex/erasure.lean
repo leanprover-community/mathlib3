@@ -5,6 +5,10 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import combinatorics.simplicial_complex.link
 
+/-!
+# Link in a simplicial complex
+-/
+
 namespace affine
 open set
 variables {E : Type*} [normed_group E] [normed_space ℝ E] {S : simplicial_complex E}

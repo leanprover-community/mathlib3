@@ -9,6 +9,10 @@ import combinatorics.simplicial_complex.finite
 import combinatorics.simplicial_complex.boundary
 import combinatorics.simplicial_complex.skeleton
 
+/-!
+# Topology of simplicial complexes
+-/
+
 namespace affine
 
 open_locale classical affine big_operators

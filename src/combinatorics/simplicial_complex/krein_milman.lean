@@ -6,6 +6,10 @@ Authors: Yaël Dillies, Bhavik Mehta
 import combinatorics.simplicial_complex.exposed
 import order.order_dual
 
+/-!
+# The Krein-Milman theorem
+-/
+
 open_locale classical affine big_operators
 open set
 --TODO: Generalise to LCTVS

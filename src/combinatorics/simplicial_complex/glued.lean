@@ -6,6 +6,10 @@ Authors: Yaël Dillies, Bhavik Mehta
 import logic.relation
 import combinatorics.simplicial_complex.closure
 
+/-!
+# Transitive neighborhood relation in simplicial complexes
+-/
+
 namespace affine
 open set relation
 open_locale classical

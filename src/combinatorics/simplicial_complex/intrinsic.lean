@@ -5,6 +5,10 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import combinatorics.simplicial_complex.extreme
 
+/-!
+# Intrinsic frontier and interior
+-/
+
 open_locale classical affine big_operators
 open set
 --TODO: Generalise to LCTVS

@@ -9,6 +9,10 @@ import data.finset.sort
 import data.matrix.notation
 import linear_algebra.affine_space.independent
 
+/-!
+# Convex independence
+-/
+
 open_locale affine big_operators classical
 open finset
 

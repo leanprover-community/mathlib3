@@ -5,6 +5,10 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import combinatorics.simplicial_complex.basic
 
+/-!
+# Pure simplicial complexes
+-/
+
 namespace affine
 open set
 open_locale classical

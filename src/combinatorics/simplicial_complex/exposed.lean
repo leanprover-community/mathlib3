@@ -6,6 +6,10 @@ Authors: Yaël Dillies, Bhavik Mehta
 import analysis.convex.exposed
 import combinatorics.simplicial_complex.extreme
 
+/-!
+# Exposed sets
+-/
+
 open_locale classical affine big_operators
 open set
 --TODO: Generalise to LCTVS

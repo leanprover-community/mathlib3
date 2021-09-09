@@ -7,6 +7,10 @@ import analysis.convex.basic
 import linear_algebra.affine_space.affine_subspace
 import combinatorics.simplicial_complex.to_move.default
 
+/-!
+# Convex join
+-/
+
 open set
 
 variables {E : Type*} [add_comm_group E] [module ℝ E] {x y : E} {A B C D : set E} {c : set (set E)}

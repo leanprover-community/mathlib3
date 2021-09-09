@@ -5,6 +5,10 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import combinatorics.simplicial_complex.exposed
 
+/-!
+# Vertices of a set
+-/
+
 open_locale classical affine big_operators
 open set
 --TODO: Generalise to LCTVS
@@ -21,12 +25,3 @@ def set.vertices (A : set E) :
   set E :=
 {x | x ∈ frontier A ∧ ∀ w : E, w ≠ x → (∃ l : E →L[ℝ] ℝ, l x ≤ l w ∧ ∀ y ∈ A, l y ≤ l x) →
   ∃ l : E →L[ℝ] ℝ, l x < l w ∧ ∀ y ∈ A, l y ≤ l x}-/
-
-lemma contrapose :
-  ∀ w : E, w ≠ x → (∃ l : E →L[ℝ] ℝ, l x ≤ l w ∧ ∀ y ∈ A, l y ≤ l x) →
-  ∃ l : E →L[ℝ] ℝ, l x < l w ∧ ∀ y ∈ A, l y ≤ l x :=
-begin
-  by_contra,
-  push_neg at h,
-  sorry
-end

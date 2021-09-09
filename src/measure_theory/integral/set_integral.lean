@@ -43,12 +43,6 @@ We provide the following notations for expressing the integral of a function on 
 Note that the set notations are defined in the file `measure_theory/bochner_integration`,
 but we reference them here because all theorems about set integrals are in this file.
 
-## TODO
-
-The file ends with over a hundred lines of commented out code. This is the old contents of this file
-using the `indicator` approach to the definition of `∫ x in s, f x ∂μ`. This code should be
-migrated to the new definition.
-
 -/
 
 noncomputable theory

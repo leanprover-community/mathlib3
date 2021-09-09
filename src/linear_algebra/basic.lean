@@ -863,7 +863,7 @@ def gi_map_comap : galois_insertion (map f) (comap f) :=
   (λ S x hx, begin
     rcases hf x with ⟨y, rfl⟩,
     simp only [mem_map, mem_comap],
-    exact ⟨y, hx, rfl⟩  
+    exact ⟨y, hx, rfl⟩
   end)
 
 lemma map_comap_eq_of_surjective (p : submodule R M₂) : (p.comap f).map f = p :=
@@ -875,7 +875,7 @@ lemma map_surjective_of_surjective : function.surjective (map f) :=
 lemma comap_injective_of_surjective : function.injective (comap f) :=
 (gi_map_comap hf).u_injective
 
-lemma map_sup_comap_of_surjective (p q : submodule R M₂) : 
+lemma map_sup_comap_of_surjective (p q : submodule R M₂) :
   (p.comap f ⊔ q.comap f).map f = p ⊔ q :=
 (gi_map_comap hf).l_sup_u _ _
 

@@ -608,12 +608,11 @@ finrank_eq_zero_of_basis_imp_false (λ s b, h ⟨s, ⟨b⟩⟩)
 
 variables (K V)
 
-lemma finite_dimensional_bot : finite_dimensional K (⊥ : submodule K V) :=
+instance finite_dimensional_bot : finite_dimensional K (⊥ : submodule K V) :=
 finite_dimensional_of_dim_eq_zero $ by simp
 
 @[simp] lemma finrank_bot : finrank K (⊥ : submodule K V) = 0 :=
 begin
-  haveI := finite_dimensional_bot K V,
   convert finrank_eq_dim K (⊥ : submodule K V),
   rw dim_bot, norm_cast
 end
@@ -1426,13 +1425,12 @@ by { rw ← algebra.top_to_submodule, refl }
 lemma subalgebra.dim_top : module.rank F (⊤ : subalgebra F E) = module.rank F E :=
 by { rw subalgebra_top_dim_eq_submodule_top_dim, exact dim_top F E }
 
-lemma subalgebra.finite_dimensional_bot : finite_dimensional F (⊥ : subalgebra F E) :=
+instance subalgebra.finite_dimensional_bot : finite_dimensional F (⊥ : subalgebra F E) :=
 finite_dimensional_of_dim_eq_one subalgebra.dim_bot
 
 @[simp]
 lemma subalgebra.finrank_bot : finrank F (⊥ : subalgebra F E) = 1 :=
 begin
-  haveI : finite_dimensional F (⊥ : subalgebra F E) := subalgebra.finite_dimensional_bot,
   have : module.rank F (⊥ : subalgebra F E) = 1 := subalgebra.dim_bot,
   rw ← finrank_eq_dim at this,
   norm_cast at *,

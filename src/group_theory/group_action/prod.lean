@@ -54,4 +54,9 @@ instance {R M N : Type*} {r : monoid R} [add_monoid M] [add_monoid N]
 { smul_add  := λ a p₁ p₂, mk.inj_iff.mpr ⟨smul_add _ _ _, smul_add _ _ _⟩,
   smul_zero := λ a, mk.inj_iff.mpr ⟨smul_zero _, smul_zero _⟩ }
 
+instance {R M N : Type*} {r : monoid R} [monoid M] [monoid N]
+  [mul_distrib_mul_action R M] [mul_distrib_mul_action R N] : mul_distrib_mul_action R (M × N) :=
+{ smul_mul  := λ a p₁ p₂, mk.inj_iff.mpr ⟨smul_mul' _ _ _, smul_mul' _ _ _⟩,
+  smul_one := λ a, mk.inj_iff.mpr ⟨smul_one _, smul_one _⟩ }
+
 end prod

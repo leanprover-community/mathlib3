@@ -2787,6 +2787,7 @@ begin
     simpa only [hs, measure.restrict_add_restrict_compl] using this },
 end
 
+@[measurability]
 lemma ae_measurable.indicator (hfm : ae_measurable f μ) {s} (hs : measurable_set s) :
   ae_measurable (s.indicator f) μ :=
 (ae_measurable_indicator_iff hs).mpr hfm.restrict

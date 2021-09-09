@@ -112,20 +112,24 @@ See note [reducible non-instances]. -/
 
 variables (R) (M)
 
-/-- `(•)` as an `add_monoid_hom`. -/
+/-- `(•)` as an `add_monoid_hom`.
+
+This is a stronger version of `distrib_mul_action.to_add_monoid_End` -/
+@[simps apply_apply]
+def module.to_add_monoid_End : R →+* add_monoid.End M :=
+{ map_zero' := add_monoid_hom.ext $ λ r, by simp,
+  map_add' := λ x y, add_monoid_hom.ext $ λ r, by simp [add_smul],
+  ..distrib_mul_action.to_add_monoid_End R M }
+
+/-- A convenience alias for `module.to_add_monoid_End` as a `monoid_hom`, usually to allow the
+use of `add_monoid_hom.flip`. -/
 def smul_add_hom : R →+ M →+ M :=
-{ to_fun := distrib_mul_action.to_add_monoid_hom M,
-  map_zero' := add_monoid_hom.ext $ λ r, by simp,
-  map_add' := λ x y, add_monoid_hom.ext $ λ r, by simp [add_smul] }
+(module.to_add_monoid_End R M).to_add_monoid_hom
 
 variables {R M}
 
 @[simp] lemma smul_add_hom_apply (r : R) (x : M) :
   smul_add_hom R M r x = r • x := rfl
-
-@[simp] lemma smul_add_hom_one {R M : Type*} [semiring R] [add_comm_monoid M] [module R M] :
-  smul_add_hom R M 1 = add_monoid_hom.id _ :=
-(distrib_mul_action.to_add_monoid_End R M).map_one
 
 lemma module.eq_zero_of_zero_eq_one (zero_eq_one : (0 : R) = 1) : x = 0 :=
 by rw [←one_smul R x, ←zero_eq_one, zero_smul]
@@ -215,6 +219,9 @@ variables [ring R] [add_comm_group M] [module R M] (r s : R) (x y : M)
 
 @[simp] theorem neg_smul : -r • x = - (r • x) :=
 eq_neg_of_add_eq_zero (by rw [← add_smul, add_left_neg, zero_smul])
+
+@[simp] lemma neg_smul_neg : -r • -x = r • x :=
+by rw [neg_smul, smul_neg, neg_neg]
 
 @[simp] theorem units.neg_smul (u : units R) (x : M) : -u • x = - (u • x) :=
 by rw [units.smul_def, units.coe_neg, neg_smul, units.smul_def]

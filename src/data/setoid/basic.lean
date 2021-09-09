@@ -371,5 +371,4 @@ begin
   exact quotient.eq',
 end
 
-
 end setoid

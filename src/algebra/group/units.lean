@@ -333,10 +333,7 @@ by cases ha with a ha; rw [←ha, units.mul_left_inj]
 
 /-- The element of the group of units, corresponding to an element of a monoid which is a unit. -/
 noncomputable def is_unit.unit [monoid M] {a : M} (h : is_unit a) : units M :=
-{ val := a,
-  inv := (classical.some h).inv,
-  val_inv := by { convert (classical.some h).val_inv, exact (classical.some_spec h).symm },
-  inv_val := by { convert (classical.some h).inv_val, exact (classical.some_spec h).symm } }
+(classical.some h).copy a (classical.some_spec h).symm _ rfl
 
 lemma is_unit.unit_spec [monoid M] {a : M} (h : is_unit a) : ↑h.unit = a :=
 rfl

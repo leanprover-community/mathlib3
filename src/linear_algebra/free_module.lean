@@ -133,9 +133,9 @@ instance pi {ι : Type*} [fintype ι] {M : ι → Type*} [Π (i : ι), add_comm_
 [Π (i : ι), module R (M i)] [Π (i : ι), module.free R (M i)] : module.free R (Π i, M i) :=
 of_basis $ pi.basis $ λ i, choose_basis R (M i)
 
-instance matrix {ι₁ : Type*} [fintype ι₁] {ι₂ : Type*} [fintype ι₂] :
+instance matrix {n : Type*} [fintype n] {m : Type*} [fintype m] :
   module.free R (matrix ι₁ ι₂ R) :=
-of_basis $ pi.basis $ λ i, pi.basis_fun _ _
+of_basis $ matrix.std_basis R n m
 
 end semiring
 

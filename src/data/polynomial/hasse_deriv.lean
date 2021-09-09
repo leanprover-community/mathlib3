@@ -5,10 +5,7 @@ Authors: Johan Commelin
 -/
 
 import data.polynomial.derivative
-import data.nat.choose.dvd
 import data.nat.choose.vandermonde
-import logic.function.iterate
-import tactic.ring
 
 /-!
 # Hasse derivative of polynomials
@@ -51,29 +48,11 @@ variables {R : Type*} [semiring R] (k : ℕ) (f : polynomial R)
 /-- The `k`th Hasse derivative of a polynomial `∑ a_i X^i` is `∑ (i.choose k) a_i X^(i-k)`.
 It satisfies `k! * (hasse_deriv k f) = derivative^[k] f`. -/
 def hasse_deriv (k : ℕ) : polynomial R →ₗ[R] polynomial R :=
-{ to_fun := λ f, f.sum $ λ i r, monomial (i - k) (↑(i.choose k) * r),
-  map_add' := λ f g,
-  begin
-    rw [sum_eq_of_subset _ _ _ _ support_add,
-        sum_eq_of_subset _ _ _ _ (f.support.subset_union_left g.support),
-        sum_eq_of_subset _ _ _ _ (f.support.subset_union_right g.support),
-        ← finset.sum_add_distrib, finset.sum_congr rfl],
-    { intros i hi, simp only [coeff_add, mul_add, linear_map.map_add], },
-    all_goals { simp only [forall_const, monomial_zero_right, mul_zero], },
-  end,
-  map_smul' := λ c f,
-  begin
-    rw [sum_eq_of_subset _ _ _ _ (support_smul c f), sum_def, finset.smul_sum,
-      finset.sum_congr rfl],
-    { intros i hi,
-      have := nat.cast_commute (i.choose k) c,
-      simp only [coeff_smul, smul_monomial, smul_eq_mul, ← mul_assoc, this.eq], },
-    { simp only [forall_const, monomial_zero_right, mul_zero], }
-  end }
-.
+lsum (λ i, (monomial (i-k)) ∘ₗ distrib_mul_action.to_linear_map R R (i.choose k))
 
 lemma hasse_deriv_apply :
-  hasse_deriv k f = f.sum (λ i r, monomial (i - k) (↑(i.choose k) * r)) := rfl
+  hasse_deriv k f = f.sum (λ i r, monomial (i - k) (↑(i.choose k) * r)) :=
+by simpa only [← nsmul_eq_mul]
 
 lemma hasse_deriv_coeff (n : ℕ) :
   (hasse_deriv k f).coeff n = (n + k).choose k * f.coeff (n + k) :=
@@ -151,7 +130,6 @@ begin
   norm_cast,
   simp only [factorial_succ, succ_eq_add_one], ring,
 end
-.
 
 lemma hasse_deriv_comp (k l : ℕ) :
   (@hasse_deriv R _ k).comp (hasse_deriv l) = (k+l).choose k • hasse_deriv (k+l) :=
@@ -180,27 +158,24 @@ begin
   { ring, },
   all_goals { apply_rules [mul_ne_zero, H] }
 end
-.
 
 section
-open add_monoid_hom
+open add_monoid_hom finset.nat
 
 lemma hasse_deriv_mul (f g : polynomial R) :
-  hasse_deriv k (f * g) =
-    ∑ ij in finset.nat.antidiagonal k, hasse_deriv ij.1 f * hasse_deriv ij.2 g :=
+  hasse_deriv k (f * g) = ∑ ij in antidiagonal k, hasse_deriv ij.1 f * hasse_deriv ij.2 g :=
 begin
   let D := λ k, (@hasse_deriv R _ k).to_add_monoid_hom,
   let Φ := @add_monoid_hom.mul (polynomial R) _,
   show (comp_hom (D k)).comp Φ f g =
-    ∑ (ij : ℕ × ℕ) in finset.nat.antidiagonal k,
-      ((comp_hom.comp ((comp_hom Φ) (D ij.1))).flip (D ij.2) f) g,
+    ∑ (ij : ℕ × ℕ) in antidiagonal k, ((comp_hom.comp ((comp_hom Φ) (D ij.1))).flip (D ij.2) f) g,
   simp only [← finset_sum_apply],
   congr' 2, clear f g,
   ext m r n s : 4,
   simp only [finset_sum_apply, coe_mul_left, coe_comp, flip_apply, comp_app,
     hasse_deriv_monomial, linear_map.to_add_monoid_hom_coe, comp_hom_apply_apply, coe_mul,
     monomial_mul_monomial],
-  have aux : ∀ (x : ℕ × ℕ), x ∈ finset.nat.antidiagonal k →
+  have aux : ∀ (x : ℕ × ℕ), x ∈ antidiagonal k →
     monomial (m - x.1 + (n - x.2)) (↑(m.choose x.1) * r * (↑(n.choose x.2) * s)) =
     monomial (m + n - k) (↑(m.choose x.1) * ↑(n.choose x.2) * (r * s)),
   { intros x hx, rw [finset.nat.mem_antidiagonal] at hx, subst hx,

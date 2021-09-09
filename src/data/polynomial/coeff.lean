@@ -49,6 +49,18 @@ begin
   simp [hi]
 end
 
+/-- `polynomial.sum` as a linear map. -/
+@[simps] def lsum {R A M : Type*} [semiring R] [semiring A] [add_comm_monoid M]
+  [module R A] [module R M] (f : ℕ → A →ₗ[R] M) :
+  polynomial A →ₗ[R] M :=
+{ to_fun := λ p, p.sum (λ n r, f n r),
+  map_add' := λ p q, sum_add_index p q _ (λ n, (f n).map_zero) (λ n _ _, (f n).map_add _ _),
+  map_smul' := λ c p,
+  begin
+    rw [sum_eq_of_subset _ (λ n r, f n r) (λ n, (f n).map_zero) _ (support_smul c p)],
+    simp only [sum_def, finset.smul_sum, coeff_smul, linear_map.map_smul],
+  end }
+
 variable (R)
 /-- The nth coefficient, as a linear map. -/
 def lcoeff (n : ℕ) : polynomial R →ₗ[R] R :=

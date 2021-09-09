@@ -553,12 +553,14 @@ instance set_semiring.comm_semiring [comm_monoid α] : comm_semiring (set_semiri
 
 /-- A multiplicative action of a monoid on a type β gives also a
  multiplicative action on the subsets of β. -/
+@[to_additive "An additive action of an additive monoid on a type β gives also an additive action
+on the subsets of β."]
 protected def mul_action_set [monoid α] [mul_action α β] : mul_action α (set β) :=
 { mul_smul := by { intros, simp only [← image_smul, image_image, ← mul_smul] },
   one_smul := by { intros, simp only [← image_smul, image_eta, one_smul, image_id'] },
   ..set.has_scalar_set }
 
-localized "attribute [instance] set.mul_action_set" in pointwise
+localized "attribute [instance] set.mul_action_set set.add_action_set" in pointwise
 
 section mul_hom
 

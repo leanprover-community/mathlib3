@@ -9,7 +9,14 @@ import data.list.zip
 import logic.relation
 
 /-!
-# List permutations
+# List Permutations
+
+This file introduces the `list.perm` relation, which is true if two lists are permutations of one
+another.
+
+## Notation
+
+The notation `~` is used for permutation equivalence.
 -/
 
 open_locale nat

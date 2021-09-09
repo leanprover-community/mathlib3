@@ -17,8 +17,8 @@ We deduce basic properties of any Haar measure on a finite dimensional real vect
 
 -/
 
-open topological_space set
-open_locale ennreal pointwise
+open topological_space set filter
+open_locale ennreal pointwise topological_space
 
 /-- The interval `[0,1]` as a compact set with non-empty interior. -/
 def topological_space.positive_compacts.Icc01 : positive_compacts ℝ :=
@@ -129,7 +129,7 @@ begin
   have ecomp : (e.symm) ∘ e = id,
     by { ext x, simp only [id.def, function.comp_app, linear_equiv.symm_apply_apply] },
   rw [map_linear_map_add_haar_pi_eq_smul_add_haar hf (map e μ), linear_map.map_smul,
-    map_map Cesymm.measurable Ce.measurable, ecomp, map_id]
+    map_map Cesymm.measurable Ce.measurable, ecomp, measure.map_id]
 end
 
 @[simp] lemma haar_preimage_linear_map
@@ -172,7 +172,7 @@ variables {E : Type*} [normed_group E] [measurable_space E] [normed_space ℝ E]
   [borel_space E] (μ : measure E) [is_add_haar_measure μ]
 
 lemma map_add_haar_smul {r : ℝ} (hr : r ≠ 0) :
-  measure.map ((•) r) μ = ennreal.of_real (abs (r^(finrank ℝ E))⁻¹) • μ :=
+  measure.map ((•) r) μ = ennreal.of_real (abs (r ^ (finrank ℝ E))⁻¹) • μ :=
 begin
   let f : E →ₗ[ℝ] E := r • 1,
   change measure.map f μ = _,
@@ -185,13 +185,13 @@ begin
 end
 
 lemma add_haar_preimage_smul {r : ℝ} (hr : r ≠ 0) (s : set E) :
-  μ (((•) r) ⁻¹' s) = ennreal.of_real (abs (r^(finrank ℝ E))⁻¹) * μ s :=
+  μ (((•) r) ⁻¹' s) = ennreal.of_real (abs (r ^ (finrank ℝ E))⁻¹) * μ s :=
 calc μ (((•) r) ⁻¹' s) = measure.map ((•) r) μ s :
   ((homeomorph.smul (is_unit_iff_ne_zero.2 hr).unit).to_measurable_equiv.map_apply s).symm
 ... = ennreal.of_real (abs (r^(finrank ℝ E))⁻¹) * μ s : by { rw map_add_haar_smul μ hr, refl }
 
-lemma add_haar_smul_of_ne_zero {r : ℝ} (hr : r ≠ 0) (s : set E) :
-  μ (r • s) = ennreal.of_real (abs (r^(finrank ℝ E))) * μ s :=
+private lemma add_haar_smul_of_ne_zero {r : ℝ} (hr : r ≠ 0) (s : set E) :
+  μ (r • s) = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :=
 begin
   have : r • s = ((•) r⁻¹) ⁻¹' s,
   { ext x,
@@ -209,32 +209,8 @@ begin
   exact inv_ne_zero hr,
 end
 
-open_locale topological_space
-open filter
-
-lemma haar_singleton_zero_of_finrank_ne_zero (h : finrank ℝ E ≠ 0) : μ {(0 : E)} = 0 :=
-begin
-  have B : ∀ (r : ℝ), r ≠ 0 →
-    1 * μ {(0 : E)} = ennreal.of_real (abs (r^(finrank ℝ E))⁻¹) * μ {(0 : E)},
-  { assume r hr,
-    rw one_mul,
-    have A : ((•) r) ⁻¹' ({(0 : E)} : set E) = {(0 : E)}, by { ext y, simp [hr], },
-    have := add_haar_preimage_smul μ hr ({(0 : E)} : set E),
-    rwa A at this },
-  have : tendsto (λ (r : ℝ), ennreal.of_real (abs (r^(finrank ℝ E))⁻¹)) at_top
-    (𝓝 (ennreal.of_real (abs 0))),
-  { apply tendsto.comp,
-
-  },
-  have T := ennreal.tendsto.mul_const
-  contrapose h,
-  have Z := (ennreal.mul_eq_mul_right h (is_compact_singleton.add_haar_lt_top μ).ne).1
-    (B 2 two_ne_zero),
-  simp at Z,
-end
-
-lemma haar_smul_of_zero (s : set E) :
-  μ ((0 : ℝ) • s) = ennreal.of_real (abs ((0 : ℝ)^(finrank ℝ E))) * μ s :=
+private lemma add_haar_smul_of_zero (s : set E) :
+  μ ((0 : ℝ) • s) = ennreal.of_real (abs ((0 : ℝ) ^ (finrank ℝ E))) * μ s :=
 begin
   rcases eq_empty_or_nonempty s with rfl|hs,
   { simp only [measure_empty, mul_zero, smul_set_empty] },
@@ -245,11 +221,18 @@ begin
     { haveI : subsingleton E := finrank_zero_iff.1 h,
       simp only [h, one_mul, ennreal.of_real_one, abs_one, subsingleton.eq_univ_of_nonempty hs,
         pow_zero, subsingleton.eq_univ_of_nonempty (singleton_nonempty (0 : E))] },
-    { simp only [h, zero_mul, ennreal.of_real_zero, abs_zero, ne.def, not_false_iff, zero_pow'],
+    { haveI : nontrivial E := nontrivial_of_finrank_pos (bot_lt_iff_ne_bot.2 h),
+      simp only [h, zero_mul, ennreal.of_real_zero, abs_zero, ne.def, not_false_iff, zero_pow',
+        measure_singleton] } }
+end
 
-    }
-
-  }
+/-- Rescaling a set by a factor `r` multiplies its measure by `abs (r ^ dim)`. -/
+lemma add_haar_smul (r : ℝ) (s : set E) :
+  μ (r • s) = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :=
+begin
+  rcases eq_or_ne r 0 with rfl|h,
+  { exact add_haar_smul_of_zero μ s },
+  { exact add_haar_smul_of_ne_zero μ h s }
 end
 
 end measure_theory

@@ -361,6 +361,14 @@ lemma haar_preimage_mul [topological_group G] [borel_space G] (g : G) (A : set G
 (is_mul_left_invariant_haar μ).measure_preimage_mul _ _
 
 @[simp, to_additive]
+lemma haar_singleton [topological_group G] [borel_space G] (g : G) :
+  μ {g} = μ {(1 : G)} :=
+begin
+  convert haar_preimage_mul μ (g⁻¹) _,
+  simp only [mul_one, preimage_mul_left_singleton, inv_inv],
+end
+
+@[simp, to_additive]
 lemma haar_preimage_mul_right {G : Type*}
   [comm_group G] [measurable_space G] [topological_space G] (μ : measure G) [is_haar_measure μ]
   [topological_group G] [borel_space G] (g : G) (A : set G) :
@@ -429,6 +437,51 @@ instance is_haar_measure.sigma_finite
   set_mem := λ n, (is_compact_compact_covering G n).measurable_set,
   finite := λ n, is_compact.haar_lt_top μ $ is_compact_compact_covering G n,
   spanning := Union_compact_covering G }⟩⟩
+
+open_locale topological_space
+open filter
+
+/-- If the neutral element of a group is not isolated, then a Haar measure on this group has
+no atom. -/
+@[priority 100, to_additive]
+instance is_haar_measure.has_no_atoms
+  [t1_space G] [topological_group G] [locally_compact_space G] [borel_space G]
+  [ne_bot (𝓝[{(1 : G)}ᶜ] (1 : G))] :
+  has_no_atoms μ :=
+begin
+  suffices H : μ {(1 : G)} ≤ 0, by { constructor, simp [le_bot_iff.1 H] },
+  obtain ⟨K, K_compact, K_int⟩ : ∃ (K : set G), is_compact K ∧ (1 : G) ∈ interior K,
+  { rcases exists_compact_subset is_open_univ (mem_univ (1 : G)) with ⟨K, hK⟩,
+    exact ⟨K, hK.1, hK.2.1⟩ },
+  have K_inf : set.infinite K := infinite_of_mem_nhds (1 : G) (mem_interior_iff_mem_nhds.1 K_int),
+  have μKlt : μ K ≠ ∞ := (K_compact.haar_lt_top μ).ne,
+  have I : ∀ (n : ℕ), μ {(1 : G)} ≤ μ K / n,
+  { assume n,
+    obtain ⟨t, tK, tn⟩ : ∃ (t : finset G), ↑t ⊆ K ∧ t.card = n := K_inf.exists_subset_card_eq n,
+    have A : μ t ≤ μ K := measure_mono tK,
+    have B : μ t = n * μ {(1 : G)},
+    { rw ← bUnion_of_singleton ↑t,
+      change μ (⋃ (x ∈ t), {x}) = n * μ {1},
+      rw @measure_bUnion_finset G G _ μ t (λ i, {i}),
+      { simp only [tn, finset.sum_const, nsmul_eq_mul, haar_singleton] },
+      { assume x hx y hy xy,
+        simp only [on_fun, xy.symm, mem_singleton_iff, not_false_iff, disjoint_singleton_right] },
+      { assume b hb, exact measurable_set_singleton b } },
+    rw B at A,
+    rwa [ennreal.le_div_iff_mul_le _ (or.inr μKlt), mul_comm],
+    right,
+    apply ne_of_gt (haar_pos_of_nonempty_interior μ ⟨_, K_int⟩) },
+  have J : tendsto (λ (n : ℕ),  μ K / n) at_top (𝓝 (μ K / ∞)) :=
+    ennreal.tendsto.const_div ennreal.tendsto_nat_nhds_top (or.inr μKlt),
+  simp only [ennreal.div_top] at J,
+  exact ge_of_tendsto' J I,
+end
+
+/- The above instance applies in particular to show that an additive Haar measure on a nontrivial
+finite-dimensional real vector space has no atom. -/
+example {E : Type*} [normed_group E] [normed_space ℝ E] [nontrivial E] [finite_dimensional ℝ E]
+  [measurable_space E] [borel_space E] (μ : measure E) [is_add_haar_measure μ] :
+  has_no_atoms μ := by apply_instance
 
 end
 

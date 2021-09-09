@@ -135,6 +135,36 @@ iff.intro
         show f p ∈ A, from
           mem_of_is_closed_sequential ‹is_closed A› ‹∀ n, f (x n) ∈ A› ‹(f∘x ⟶ f p)›)
 
+/-- If a function `f : ℕ → α` converges at infinity, then its range together with the limit is a
+compact set. -/
+lemma is_compact_range_seq_union_limit (f : ℕ → α) (x : α) (hf : tendsto f at_top (𝓝 x)) :
+  is_compact (range f ∪ {x}) :=
+begin
+  classical,
+  apply is_compact_of_finite_subcover (λ ι U U_open hU, _),
+  obtain ⟨i, xi⟩ : ∃ i, x ∈ U i,
+  { have : x ∈ ⋃ i, U i,
+      { apply hU, simp only [true_or, eq_self_iff_true, mem_insert_iff, union_singleton] },
+    simpa },
+  obtain ⟨N, hN⟩ : ∃ N, ∀ n, N ≤ n → f n ∈ U i, by simpa using hf ((U_open i).mem_nhds xi),
+  have : ∀ n, ∃ j, f n ∈ U j,
+  { assume n,
+    have : f n ∈ ⋃ i, U i,
+      { apply hU, simp only [mem_range_self, mem_insert_iff, union_singleton, or_true] },
+    simpa },
+  choose I hI using this,
+  refine ⟨(finset.range N).image I ∪ {i}, union_subset _ _⟩,
+  { simp only [range_subset_iff, exists_prop, mem_Union, finset.mem_image, finset.mem_union,
+      finset.mem_singleton, finset.mem_range],
+    assume n,
+    rcases le_or_lt N n with hn|hn,
+    { exact ⟨i, by simp [hN _ hn]⟩ },
+    { exact ⟨I n, or.inl ⟨n, hn, rfl⟩, hI n⟩ } },
+  { simp only [exists_prop, mem_Union, singleton_subset_iff, finset.mem_image, finset.mem_union,
+      finset.mem_singleton, finset.mem_range],
+    exact ⟨i, by simp [xi]⟩ }
+end
+
 end topological_space
 
 namespace topological_space

@@ -7,8 +7,8 @@ import data.set.lattice
 import order.directed
 /-!
 # Union lift
-This file defines `set.Union_lift` to lift function defined on each of a collection of sets
-to the Union of those sets.
+This file defines `set.Union_lift` to glue together functions defined on each of a collection of
+sets to make a function on the Union of those sets.
 
 ## Main definitions
 
@@ -37,7 +37,7 @@ or binary functions are preserved. These lemmas are:
 
 ## Tags
 
-directed union, directed supremum
+directed union, directed supremum, glue, gluing
 -/
 
 variables {α ι β : Type*}

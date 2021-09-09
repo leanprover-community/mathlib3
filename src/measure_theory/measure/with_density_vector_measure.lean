@@ -34,7 +34,7 @@ variables {μ ν : measure α}
 variables {E : Type*} [normed_group E] [measurable_space E] [second_countable_topology E]
   [normed_space ℝ E] [complete_space E] [borel_space E]
 
-/-- Given a measure `μ` and an integrable function `f`, `μ.with_density_signed_measure f` is
+/-- Given a measure `μ` and an integrable function `f`, `μ.with_densityᵥ f` is
 the vector measure which maps the set `s` to `∫ₛ f ∂μ`. -/
 def measure.with_densityᵥ {m : measurable_space α} (μ : measure α) (f : α → E) :
   vector_measure α E :=
@@ -56,13 +56,9 @@ include m
 
 variables {f g : α → E}
 
-lemma with_densityᵥ_apply (hf : integrable f μ)
-  {s : set α} (hs : measurable_set s) :
+lemma with_densityᵥ_apply (hf : integrable f μ) {s : set α} (hs : measurable_set s) :
   μ.with_densityᵥ f s = ∫ x in s, f x ∂μ :=
-begin
-  rw [with_densityᵥ, dif_pos hf],
-  exact dif_pos hs
-end
+by { rw [with_densityᵥ, dif_pos hf], exact dif_pos hs }
 
 @[simp]
 lemma with_densityᵥ_zero : μ.with_densityᵥ (0 : α → E) = 0 :=
@@ -86,8 +82,7 @@ end
 
 @[simp]
 lemma with_densityᵥ_add (hf : integrable f μ) (hg : integrable g μ) :
-  μ.with_densityᵥ (f + g) =
-  μ.with_densityᵥ f + μ.with_densityᵥ g :=
+  μ.with_densityᵥ (f + g) = μ.with_densityᵥ f + μ.with_densityᵥ g :=
 begin
   ext1 i hi,
   rw [with_densityᵥ_apply (hf.add hg) hi, vector_measure.add_apply,
@@ -100,8 +95,7 @@ end
 
 @[simp]
 lemma with_densityᵥ_sub (hf : integrable f μ) (hg : integrable g μ) :
-  μ.with_densityᵥ (f - g) =
-  μ.with_densityᵥ f - μ.with_densityᵥ g :=
+  μ.with_densityᵥ (f - g) = μ.with_densityᵥ f - μ.with_densityᵥ g :=
 by rw [sub_eq_add_neg, sub_eq_add_neg, with_densityᵥ_add hf hg.neg,
        with_densityᵥ_neg]
 
@@ -122,8 +116,7 @@ begin
       rwa integrable_smul_iff hr f } }
 end
 
-lemma measure.with_densityᵥ_absolutely_continuous
-  (μ : measure α) (f : α → ℝ) :
+lemma measure.with_densityᵥ_absolutely_continuous (μ : measure α) (f : α → ℝ) :
   μ.with_densityᵥ f ≪ μ.to_ennreal_vector_measure :=
 begin
   by_cases hf : integrable f μ,

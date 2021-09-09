@@ -203,8 +203,7 @@ def dyadic : set surreal := set.range dyadic_map
 
 -- We conclude with some ideas for further work on surreals; these would make fun projects.
 
--- TODO define the dyadic rationals, and show they map into the surreals
--- TODO show this is a group homomorphism, and injective
+-- TODO show that the map from dyadic rationals to surreals is a group homomorphism, and injective
 
 -- TODO map the reals into the surreals, using dyadic Dedekind cuts
 -- TODO show this is a group homomorphism, and injective

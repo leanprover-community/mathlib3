@@ -69,8 +69,8 @@ open linear_map
 /-- If `q` is a complement of `p`, then `M/p ≃ q`. -/
 def quotient_equiv_of_is_compl (h : is_compl p q) : p.quotient ≃ₗ[R] q :=
 linear_equiv.symm $ linear_equiv.of_bijective (p.mkq.comp q.subtype)
-  (by simp only [ker_comp, ker_mkq, disjoint_iff_comap_eq_bot.1 h.symm.disjoint])
-  (by simp only [range_comp, range_subtype, map_mkq_eq_top, h.sup_eq_top])
+  (by simp only [← ker_eq_bot, ker_comp, ker_mkq, disjoint_iff_comap_eq_bot.1 h.symm.disjoint])
+  (by simp only [← range_eq_top, range_comp, range_subtype, map_mkq_eq_top, h.sup_eq_top])
 
 @[simp] lemma quotient_equiv_of_is_compl_symm_apply (h : is_compl p q) (x : q) :
   (quotient_equiv_of_is_compl p q h).symm x = quotient.mk x := rfl
@@ -88,14 +88,14 @@ linear map `f : E → p` such that `f x = x` for `x ∈ p` and `f x = 0` for `x 
 def prod_equiv_of_is_compl (h : is_compl p q) : (p × q) ≃ₗ[R] E :=
 begin
   apply linear_equiv.of_bijective (p.subtype.coprod q.subtype),
-  { simp only [ker_eq_bot', prod.forall, subtype_apply, prod.mk_eq_zero, coprod_apply],
+  { simp only [←ker_eq_bot, ker_eq_bot', prod.forall, subtype_apply, prod.mk_eq_zero, coprod_apply],
     -- TODO: if I add `submodule.forall`, it unfolds the outer `∀` but not the inner one.
     rintros ⟨x, hx⟩ ⟨y, hy⟩,
     simp only [coe_mk, mk_eq_zero, ← eq_neg_iff_add_eq_zero],
     rintro rfl,
     rw [neg_mem_iff] at hx,
     simp [disjoint_def.1 h.disjoint y hx hy] },
-  { rw [← sup_eq_range, h.sup_eq_top] }
+  { rw [← range_eq_top, ← sup_eq_range, h.sup_eq_top] }
 end
 
 @[simp] lemma coe_prod_equiv_of_is_compl (h : is_compl p q) :
@@ -281,8 +281,8 @@ a linear equivalence `E ≃ₗ[R] F × G`. -/
 def equiv_prod_of_surjective_of_is_compl (f : E →ₗ[R] F) (g : E →ₗ[R] G) (hf : f.range = ⊤)
   (hg : g.range = ⊤) (hfg : is_compl f.ker g.ker) :
   E ≃ₗ[R] F × G :=
-linear_equiv.of_bijective (f.prod g) (by simp [hfg.inf_eq_bot])
-  (by simp [range_prod_eq hfg.sup_eq_top, *])
+linear_equiv.of_bijective (f.prod g) (by simp [← ker_eq_bot, hfg.inf_eq_bot])
+  (by simp [← range_eq_top, range_prod_eq hfg.sup_eq_top, *])
 
 @[simp] lemma coe_equiv_prod_of_surjective_of_is_compl {f : E →ₗ[R] F} {g : E →ₗ[R] G}
   (hf : f.range = ⊤) (hg : g.range = ⊤) (hfg : is_compl f.ker g.ker) :

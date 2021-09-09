@@ -309,7 +309,8 @@ namespace continuous_linear_equiv
 to a continuous linear equivalence. -/
 noncomputable def of_bijective (f : E →L[𝕜] F) (hinj : f.ker = ⊥) (hsurj : f.range = ⊤) :
   E ≃L[𝕜] F :=
-(linear_equiv.of_bijective ↑f hinj hsurj).to_continuous_linear_equiv_of_continuous f.continuous
+(linear_equiv.of_bijective ↑f (linear_map.ker_eq_bot.mp hinj) (linear_map.range_eq_top.mp hsurj))
+.to_continuous_linear_equiv_of_continuous f.continuous
 
 @[simp] lemma coe_fn_of_bijective (f : E →L[𝕜] F) (hinj : f.ker = ⊥) (hsurj : f.range = ⊤) :
   ⇑(of_bijective f hinj hsurj) = f := rfl

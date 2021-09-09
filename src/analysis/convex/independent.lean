@@ -21,7 +21,7 @@ convex independence.
 ## Main declarations
 
 * `convex_independent p`: Convex independence of the indexed family `p : ι → E`. Every point of the
-  family only belongs to convex hulls of sets of the familty containing it.
+  family only belongs to convex hulls of sets of the family containing it.
 * `convex_independent_iff_finset`: Carathéodory's theorem allows us to only check finsets to
   conclude convex independence.
 * `convex.extreme_points_convex_independent`: Extreme points of a convex set are convex independent.
@@ -47,6 +47,7 @@ independence, convex position
 open_locale affine big_operators classical
 open finset function
 
+-- For the generalization to vector spaces
 --variables (𝕜 : Type*) {E : Type*} [ordered_semiring 𝕜] [add_comm_group E] [module 𝕜 E]
 variables {E : Type*} [add_comm_group E] [module ℝ E]
           {ι : Type*} {s t : set E}
@@ -92,7 +93,8 @@ lemma subsingleton.convex_independent [subsingleton ι] (p : ι → E) :
   rwa subsingleton.mem_iff_nonempty,
 end
 
---variables {𝕜}
+-- For the generalization to vector spaces
+-- variables {𝕜}
 
 /-- A convex independent family is injective. -/
 protected lemma convex_independent.injective {p : ι → E} (hc : convex_independent p) :
@@ -193,7 +195,8 @@ begin
     exact hs _ hxs (convex_hull_mono (set.subset_diff_singleton ht h) hxt) }
 end
 
---TODO: Finish
+--TODO: Finish. This requires some glue between `affine_combination` and `finset.center_mass` and a
+-- bit more API for `affine_combination` itself.
 -- lemma affine_independent.convex_independent {p : ι → E} (ha : affine_independent ℝ p) :
 --   convex_independent p :=
 -- begin
@@ -212,6 +215,7 @@ end
 --   sorry,
 -- end
 
+-- and we'll get this one for freec
 -- /-- Two different points are convex independent. -/
 -- lemma convex_independent_of_ne {p₁ p₂ : E} (h : p₁ ≠ p₂) : convex_independent ![p₁, p₂] :=
 -- (affine_independent_of_ne ℝ h).convex_independent

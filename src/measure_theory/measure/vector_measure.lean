@@ -368,7 +368,7 @@ include m
 
 /-- A finite measure coerced into a real function is a signed measure. -/
 @[simps]
-def to_signed_measure (μ : measure α) [hμ : finite_measure μ] : signed_measure α :=
+def to_signed_measure (μ : measure α) [hμ : is_finite_measure μ] : signed_measure α :=
 { measure_of' := λ i : set α, if measurable_set i then (μ.measure_of i).to_real else 0,
   empty' := by simp [μ.empty],
   not_measurable' := λ _ hi, if_neg hi,
@@ -390,13 +390,13 @@ def to_signed_measure (μ : measure α) [hμ : finite_measure μ] : signed_measu
       exact measure_mono (set.subset_univ _) }
   end }
 
-lemma to_signed_measure_apply_measurable {μ : measure α} [finite_measure μ]
+lemma to_signed_measure_apply_measurable {μ : measure α} [is_finite_measure μ]
   {i : set α} (hi : measurable_set i) :
   μ.to_signed_measure i = (μ i).to_real :=
 if_pos hi
 
 lemma to_signed_measure_eq_to_signed_measure_iff
-  {μ ν : measure α} [finite_measure μ] [finite_measure ν] :
+  {μ ν : measure α} [is_finite_measure μ] [is_finite_measure ν] :
   μ.to_signed_measure = ν.to_signed_measure ↔ μ = ν :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
@@ -413,7 +413,7 @@ end
   (0 : measure α).to_signed_measure = 0 :=
 by { ext i hi, simp }
 
-@[simp] lemma to_signed_measure_add (μ ν : measure α) [finite_measure μ] [finite_measure ν] :
+@[simp] lemma to_signed_measure_add (μ ν : measure α) [is_finite_measure μ] [is_finite_measure ν] :
   (μ + ν).to_signed_measure = μ.to_signed_measure + ν.to_signed_measure :=
 begin
   ext i hi,
@@ -424,7 +424,7 @@ begin
   all_goals { apply_instance }
 end
 
-@[simp] lemma to_signed_measure_smul (μ : measure α) [finite_measure μ] (r : ℝ≥0) :
+@[simp] lemma to_signed_measure_smul (μ : measure α) [is_finite_measure μ] (r : ℝ≥0) :
   (r • μ).to_signed_measure = r • μ.to_signed_measure :=
 begin
   ext i hi,
@@ -463,7 +463,7 @@ begin
       to_ennreal_vector_measure_apply_measurable hi, to_ennreal_vector_measure_apply_measurable hi]
 end
 
-lemma to_signed_measure_sub_apply {μ ν : measure α} [finite_measure μ] [finite_measure ν]
+lemma to_signed_measure_sub_apply {μ ν : measure α} [is_finite_measure μ] [is_finite_measure ν]
   {i : set α} (hi : measurable_set i) :
   (μ.to_signed_measure - ν.to_signed_measure) i = (μ i).to_real - (ν i).to_real :=
 begin
@@ -959,6 +959,36 @@ eq rfl
 @[trans] lemma trans {u : vector_measure α L} (huv : u ≪ v) (hvw : v ≪ w) : u ≪ w :=
 λ _ hs, huv $ hvw hs
 
+lemma zero (v : vector_measure α N) : (0 : vector_measure α M) ≪ v :=
+λ s _, vector_measure.zero_apply s
+
+lemma neg_left {M : Type*} [add_comm_group M] [topological_space M] [topological_add_group M]
+  {v : vector_measure α M} {w : vector_measure α N} (h : v ≪ w) : -v ≪ w :=
+λ s hs, by { rw [neg_apply, h hs, neg_zero] }
+
+lemma neg_right {N : Type*} [add_comm_group N] [topological_space N] [topological_add_group N]
+  {v : vector_measure α M} {w : vector_measure α N} (h : v ≪ w) : v ≪ -w :=
+begin
+  intros s hs,
+  rw [neg_apply, neg_eq_zero] at hs,
+  exact h hs
+end
+
+lemma add [has_continuous_add M] {v₁ v₂ : vector_measure α M} {w : vector_measure α N}
+  (hv₁ : v₁ ≪ w) (hv₂ : v₂ ≪ w) : v₁ + v₂ ≪ w :=
+λ s hs, by { rw [add_apply, hv₁ hs, hv₂ hs, zero_add] }
+
+lemma sub {M : Type*} [add_comm_group M] [topological_space M] [topological_add_group M]
+  {v₁ v₂ : vector_measure α M} {w : vector_measure α N} (hv₁ : v₁ ≪ w) (hv₂ : v₂ ≪ w) :
+  v₁ - v₂ ≪ w :=
+λ s hs, by { rw [sub_apply, hv₁ hs, hv₂ hs, zero_sub, neg_zero] }
+
+lemma smul {R : Type*} [semiring R] [distrib_mul_action R M]
+  [topological_space R] [has_continuous_smul R M]
+  {r : R} {v : vector_measure α M} {w : vector_measure α N} (h : v ≪ w) :
+  r • v ≪ w :=
+λ s hs, by { rw [smul_apply, h hs, smul_zero] }
+
 lemma map [measure_space β] (h : v ≪ w) (f : α → β) :
   v.map f ≪ w.map f :=
 begin
@@ -1057,7 +1087,7 @@ end
 
 /-- `signed_measure.to_measure_of_zero_le` is a finite measure. -/
 instance to_measure_of_zero_le_finite (hi : 0 ≤[i] s) (hi₁ : measurable_set i) :
-  finite_measure (s.to_measure_of_zero_le i hi₁ hi) :=
+  is_finite_measure (s.to_measure_of_zero_le i hi₁ hi) :=
 { measure_univ_lt_top :=
   begin
     rw [to_measure_of_zero_le_apply s hi hi₁ measurable_set.univ],
@@ -1066,7 +1096,7 @@ instance to_measure_of_zero_le_finite (hi : 0 ≤[i] s) (hi₁ : measurable_set 
 
 /-- `signed_measure.to_measure_of_le_zero` is a finite measure. -/
 instance to_measure_of_le_zero_finite (hi : s ≤[i] 0) (hi₁ : measurable_set i) :
-  finite_measure (s.to_measure_of_le_zero i hi₁ hi) :=
+  is_finite_measure (s.to_measure_of_le_zero i hi₁ hi) :=
 { measure_univ_lt_top :=
   begin
     rw [to_measure_of_le_zero_apply s hi hi₁ measurable_set.univ],
@@ -1093,7 +1123,7 @@ namespace measure
 
 open vector_measure
 
-variables (μ : measure α) [finite_measure μ]
+variables (μ : measure α) [is_finite_measure μ]
 
 lemma zero_le_to_signed_measure : 0 ≤ μ.to_signed_measure :=
 begin

@@ -8,6 +8,7 @@ import category_theory.limits.punit
 import category_theory.limits.shapes.products
 import category_theory.limits.shapes.equalizers
 import category_theory.full_subcategory
+import tactic.elementwise
 
 /-!
 # The sheaf condition in terms of an equalizer of products
@@ -67,9 +68,11 @@ are given by the restriction maps from `U j` to `U i ⊓ U j`.
 def res : F.obj (op (supr U)) ⟶ pi_opens F U :=
 pi.lift (λ i : ι, F.map (topological_space.opens.le_supr U i).op)
 
-@[simp] lemma res_π (i : ι) : res F U ≫ limit.π _ i = F.map (opens.le_supr U i).op :=
+@[simp, elementwise]
+lemma res_π (i : ι) : res F U ≫ limit.π _ i = F.map (opens.le_supr U i).op :=
 by rw [res, limit.lift_π, fan.mk_π_app]
 
+@[elementwise]
 lemma w : res F U ≫ left_res F U = res F U ≫ right_res F U :=
 begin
   dsimp [res, left_res, right_res],

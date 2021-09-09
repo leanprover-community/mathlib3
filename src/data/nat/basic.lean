@@ -969,7 +969,7 @@ lemma mod_mul_left_div_self (a b c : ℕ) : a % (c * b) / b = (a / b) % c :=
 by rw [mul_comm c, mod_mul_right_div_self]
 
 @[simp] protected theorem dvd_one {n : ℕ} : n ∣ 1 ↔ n = 1 :=
-⟨eq_one_of_dvd_one, λ e, e.symm ▸ dvd_refl _⟩
+⟨eq_one_of_dvd_one, λ e, e.symm ▸ dvd_rfl⟩
 
 protected theorem dvd_add_left {k m n : ℕ} (h : k ∣ n) : k ∣ m + n ↔ k ∣ m :=
 (nat.dvd_add_iff_left h).symm
@@ -1246,11 +1246,11 @@ end
 
 /-- Two natural numbers are equal if and only if the have the same multiples. -/
 lemma dvd_right_iff_eq {m n : ℕ} : (∀ a : ℕ, m ∣ a ↔ n ∣ a) ↔ m = n :=
-⟨λ h, dvd_antisymm ((h _).mpr (dvd_refl _)) ((h _).mp (dvd_refl _)), λ h n, by rw h⟩
+⟨λ h, dvd_antisymm ((h _).mpr dvd_rfl) ((h _).mp dvd_rfl), λ h n, by rw h⟩
 
 /-- Two natural numbers are equal if and only if the have the same divisors. -/
 lemma dvd_left_iff_eq {m n : ℕ} : (∀ a : ℕ, a ∣ m ↔ a ∣ n) ↔ m = n :=
-⟨λ h, dvd_antisymm ((h _).mp (dvd_refl _)) ((h _).mpr (dvd_refl _)), λ h n, by rw h⟩
+⟨λ h, dvd_antisymm ((h _).mp dvd_rfl) ((h _).mpr dvd_rfl), λ h n, by rw h⟩
 
 /-- `dvd` is injective in the left argument -/
 lemma dvd_left_injective : function.injective ((∣) : ℕ → ℕ → Prop) :=

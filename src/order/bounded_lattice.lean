@@ -97,6 +97,10 @@ theorem ne_top_of_le_ne_top {a b : α} (hb : b ≠ ⊤) (hab : a ≤ b) : a ≠ 
 lemma eq_top_of_maximal (h : ∀ b, ¬ a < b) : a = ⊤ :=
 or.elim (lt_or_eq_of_le le_top) (λ hlt, absurd hlt (h ⊤)) (λ he, he)
 
+lemma ne.lt_top (h : a ≠ ⊤) : a < ⊤ := lt_top_iff_ne_top.mpr h
+
+lemma ne.lt_top' (h : ⊤ ≠ a) : a < ⊤ := h.symm.lt_top
+
 end order_top
 
 lemma strict_mono.top_preimage_top' [linear_order α] [order_top β]
@@ -160,6 +164,10 @@ bot_lt_iff_ne_bot.1 $ lt_of_le_of_lt bot_le h
 
 lemma eq_bot_of_minimal (h : ∀ b, ¬ b < a) : a = ⊥ :=
 or.elim (lt_or_eq_of_le bot_le) (λ hlt, absurd hlt (h ⊥)) (λ he, he.symm)
+
+lemma ne.bot_lt (h : a ≠ ⊥) : ⊥ < a := bot_lt_iff_ne_bot.mpr h
+
+lemma ne.bot_lt' (h : ⊥ ≠ a) : ⊥ < a := h.symm.bot_lt
 
 end order_bot
 
@@ -485,6 +493,17 @@ option.rec h₁ h₂
 theorem coe_eq_coe {a b : α} : (a : with_bot α) = b ↔ a = b :=
 by rw [← option.some.inj_eq a b]; refl
 
+lemma ne_bot_iff_exists {x : with_bot α} : x ≠ ⊥ ↔ ∃ (a : α), ↑a = x :=
+option.ne_none_iff_exists
+
+/-- Deconstruct a `x : with_bot α` to the underlying value in `α`, given a proof that `x ≠ ⊥`. -/
+def unbot : Π (x : with_bot α), x ≠ ⊥ → α
+| ⊥        h := absurd rfl h
+| (some x) h := x
+
+@[simp] lemma unbot_coe (x : α) (h : (x : with_bot α) ≠ ⊥ := coe_ne_bot _) :
+  (x : with_bot α).unbot h = x := rfl
+
 @[priority 10]
 instance has_lt [has_lt α] : has_lt (with_bot α) :=
 { lt := λ o₁ o₂ : option α, ∃ b ∈ o₂, ∀ a ∈ o₁, a < b }
@@ -711,6 +730,16 @@ by rw [← option.some.inj_eq a b]; refl
 
 @[simp] theorem top_ne_coe {a : α} : ⊤ ≠ (a : with_top α) .
 @[simp] theorem coe_ne_top {a : α} : (a : with_top α) ≠ ⊤ .
+
+lemma ne_top_iff_exists {x : with_top α} : x ≠ ⊤ ↔ ∃ (a : α), ↑a = x :=
+option.ne_none_iff_exists
+
+/-- Deconstruct a `x : with_top α` to the underlying value in `α`, given a proof that `x ≠ ⊤`. -/
+def untop : Π (x : with_top α), x ≠ ⊤ → α :=
+with_bot.unbot
+
+@[simp] lemma untop_coe (x : α) (h : (x : with_top α) ≠ ⊤ := coe_ne_top) :
+  (x : with_top α).untop h = x := rfl
 
 @[priority 10]
 instance has_lt [has_lt α] : has_lt (with_top α) :=
@@ -1059,6 +1088,8 @@ by rw [disjoint, disjoint, inf_comm]
 
 @[symm] theorem disjoint.symm ⦃a b : α⦄ : disjoint a b → disjoint b a :=
 disjoint.comm.1
+
+lemma symmetric_disjoint : symmetric (disjoint : α → α → Prop) := disjoint.symm
 
 @[simp] theorem disjoint_bot_left {a : α} : disjoint ⊥ a := inf_le_left
 @[simp] theorem disjoint_bot_right {a : α} : disjoint a ⊥ := inf_le_right

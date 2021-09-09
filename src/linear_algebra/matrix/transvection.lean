@@ -90,29 +90,29 @@ lemma update_row_eq_transvection (c : R) :
 begin
   ext a b,
   by_cases ha : i = a; by_cases hb : j = b,
-  { simp only [update_row, transvection, ha, hb, function.update_same, std_basis_matrix.apply_one,
+  { simp only [update_row, transvection, ha, hb, function.update_same, std_basis_matrix.apply_same,
       pi.add_apply, one_apply_eq, pi.smul_apply, mul_one, algebra.id.smul_eq_mul], },
-  { simp only [update_row, transvection, ha, hb, std_basis_matrix.apply_zero, function.update_same,
+  { simp only [update_row, transvection, ha, hb, std_basis_matrix.apply_of_ne, function.update_same,
       pi.add_apply, ne.def, not_false_iff, pi.smul_apply, and_false, one_apply_ne,
       algebra.id.smul_eq_mul, mul_zero] },
-  { simp only [update_row, transvection, ha, ne.symm ha, std_basis_matrix.apply_zero, add_zero,
+  { simp only [update_row, transvection, ha, ne.symm ha, std_basis_matrix.apply_of_ne, add_zero,
       algebra.id.smul_eq_mul, function.update_noteq, ne.def, not_false_iff, dmatrix.add_apply,
       pi.smul_apply, mul_zero, false_and] },
-  { simp only [update_row, transvection, ha, hb, ne.symm ha, std_basis_matrix.apply_zero, add_zero,
+  { simp only [update_row, transvection, ha, hb, ne.symm ha, std_basis_matrix.apply_of_ne, add_zero,
       algebra.id.smul_eq_mul, function.update_noteq, ne.def, not_false_iff, and_self,
       dmatrix.add_apply, pi.smul_apply, mul_zero] }
 end
 
-lemma transvection_mul_transvection (h : i ≠ j) (c d : R) :
+lemma transvection_mul_transvection_same (h : i ≠ j) (c d : R) :
   transvection i j c ⬝ transvection i j d = transvection i j (c + d) :=
 by simp [transvection, matrix.add_mul, matrix.mul_add, h, h.symm, add_smul, add_assoc,
     std_basis_matrix_add]
 
-@[simp] lemma transvection_mul_apply (b : n) (c : R) (M : matrix n n R) :
+@[simp] lemma transvection_mul_apply_same (b : n) (c : R) (M : matrix n n R) :
   (transvection i j c ⬝ M) i b = M i b + c * M j b :=
 by simp [transvection, matrix.add_mul]
 
-@[simp] lemma mul_transvection_apply (a : n) (c : R) (M : matrix n n R) :
+@[simp] lemma mul_transvection_apply_same (a : n) (c : R) (M : matrix n n R) :
   (M ⬝ transvection i j c) a j = M a j + c * M a i :=
 by simp [transvection, matrix.mul_add, mul_comm]
 
@@ -134,12 +134,13 @@ variables (R n)
 /-- A structure containing all the information from which one can build a nontrivial transvection.
 This structure is easier to manipulate than transvections as one has a direct access to all the
 relevant fields. -/
+@[nolint has_inhabited_instance]
 structure transvection_struct :=
 (i j : n)
 (hij : i ≠ j)
 (c : R)
 
-noncomputable instance [nontrivial n] : inhabited (transvection_struct n R) :=
+instance [nontrivial n] : nonempty (transvection_struct n R) :=
 by { choose x y hxy using exists_pair_ne n, exact ⟨⟨x, y, hxy, 0⟩⟩ }
 
 namespace transvection_struct
@@ -166,7 +167,7 @@ end
 
 /-- The inverse of a `transvection_struct`, designed so that `t.inv.to_matrix` is the inverse of
 `t.to_matrix`. -/
-protected def inv (t : transvection_struct n R) : transvection_struct n R :=
+@[simps] protected def inv (t : transvection_struct n R) : transvection_struct n R :=
 { i := t.i,
   j := t.j,
   hij := t.hij,
@@ -177,11 +178,11 @@ variable [fintype n]
 
 lemma inv_mul (t : transvection_struct n R) :
   t.inv.to_matrix ⬝ t.to_matrix = 1 :=
-by { rcases t, simp [transvection_struct.inv, to_matrix, transvection_mul_transvection, t_hij] }
+by { rcases t, simp [to_matrix, transvection_mul_transvection_same, t_hij] }
 
 lemma mul_inv (t : transvection_struct n R) :
   t.to_matrix ⬝ t.inv.to_matrix = 1 :=
-by { rcases t, simp [transvection_struct.inv, to_matrix, transvection_mul_transvection, t_hij] }
+by { rcases t, simp [to_matrix, transvection_mul_transvection_same, t_hij] }
 
 lemma reverse_inv_prod_mul_prod (L : list (transvection_struct n R)) :
   (L.reverse.map (to_matrix ∘ transvection_struct.inv)).prod ⬝ (L.map to_matrix).prod = 1 :=
@@ -364,7 +365,7 @@ begin
     by_cases h : n' = i,
     { have hni : n = i,
       { cases i, simp only [subtype.mk_eq_mk] at h, simp [h] },
-      rw [h, transvection_mul_apply, IH, list_transvec_col_mul_last_row_drop _ _ hn, ← hni],
+      rw [h, transvection_mul_apply_same, IH, list_transvec_col_mul_last_row_drop _ _ hn, ← hni],
       field_simp [hM] },
     { have hni : n ≠ i,
       { rintros rfl, cases i, simpa using h },
@@ -428,7 +429,7 @@ begin
     { have hni : n = i,
       { cases i, simp only [subtype.mk_eq_mk] at h, simp only [h, coe_mk] },
       have : ¬ (n.succ ≤ i), by simp only [← hni, n.lt_succ_self, not_le],
-      simp only [h, mul_transvection_apply, list.take, if_false, mul_transvection_apply,
+      simp only [h, mul_transvection_apply_same, list.take, if_false,
         mul_list_transvec_row_last_col_take _ _ hnr.le, hni.le, this, if_true, IH hnr.le],
       field_simp [hM] },
     { have hni : n ≠ i,

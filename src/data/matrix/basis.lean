@@ -6,7 +6,7 @@ Authors: Jalex Stark, Scott Morrison, Eric Wieser, Oliver Nash
 import data.matrix.basic
 import linear_algebra.matrix.trace
 
-/--
+/-!
 # Matrices with a single non-zero element.
 
 This file provides `matrix.std_basis_matrix`. The matrix `matrix.std_basis_matrix i j c` has `c`
@@ -98,9 +98,9 @@ namespace std_basis_matrix
 
 variables (i j : n) (c : R) (i' j' : n)
 
-@[simp] lemma apply_one : std_basis_matrix i j c i j = c := if_pos (and.intro rfl rfl)
+@[simp] lemma apply_same : std_basis_matrix i j c i j = c := if_pos (and.intro rfl rfl)
 
-@[simp] lemma apply_zero (h : ¬(i = i' ∧ j = j')) :
+@[simp] lemma apply_of_ne (h : ¬(i = i' ∧ j = j')) :
   std_basis_matrix i j c i' j' = 0 :=
 by { simp only [std_basis_matrix, and_imp, ite_eq_right_iff], tauto }
 
@@ -111,11 +111,11 @@ variable [fintype n]
 
 lemma trace_zero (h : j ≠ i) : trace n R R (std_basis_matrix i j c) = 0 := by simp [h]
 
-@[simp] lemma mul_left_apply (b : n) (M : matrix n n R) :
+@[simp] lemma mul_left_apply_same (b : n) (M : matrix n n R) :
   (std_basis_matrix i j c ⬝ M) i b = c * M j b :=
 by simp [mul_apply, std_basis_matrix]
 
-@[simp] lemma mul_right_apply (a : n) (M : matrix n n R) :
+@[simp] lemma mul_right_apply_same (a : n) (M : matrix n n R) :
   (M ⬝ std_basis_matrix i j c) a j = M a i * c :=
 by simp [mul_apply, std_basis_matrix, mul_comm]
 
@@ -127,7 +127,7 @@ by simp [mul_apply, h.symm]
   (M ⬝ std_basis_matrix i j c) a b = 0 :=
 by simp [mul_apply, hbj.symm]
 
-@[simp] lemma mul (k : n) (d : R) :
+@[simp] lemma mul_same (k : n) (d : R) :
   std_basis_matrix i j c ⬝ std_basis_matrix j k d = std_basis_matrix i k (c * d) :=
 begin
   ext a b,

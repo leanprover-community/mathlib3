@@ -873,6 +873,10 @@ def under {R : Type u} {A : Type v} [comm_semiring R] [comm_semiring A]
 { algebra_map_mem' := λ r, T.algebra_map_mem ⟨algebra_map R A r, S.algebra_map_mem r⟩,
   .. T }
 
+@[simp] lemma mem_under {R : Type u} {A : Type v} [comm_semiring R] [comm_semiring A]
+  {i : algebra R A} {S : subalgebra R A} {T : subalgebra S A} {x : A} : 
+  x ∈ S.under T ↔ x ∈ T := iff.rfl
+
 end actions
 
 end subalgebra

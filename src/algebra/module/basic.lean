@@ -11,7 +11,7 @@ import group_theory.group_action.group
 # Modules over a ring
 
 In this file we define
-
+*
 * `module R M` : an additive commutative monoid `M` is a `module` over a
   `semiring R` if for `r : R` and `x : M` their "scalar multiplication `r • x : M` is defined, and
   the operation `•` satisfies some natural associativity and distributivity axioms similar to those
@@ -47,20 +47,11 @@ variables {R : Type u} {k : Type u'} {S : Type v} {M : Type w} {M₂ : Type x} {
   (where `r : R` and `x : M`) with some natural associativity and
   distributivity axioms similar to those on a ring. -/
 @[protect_proj] class module (R : Type u) (M : Type v) [semiring R]
-  [add_comm_monoid M] extends distrib_mul_action R M :=
-(add_smul : ∀(r s : R) (x : M), (r + s) • x = r • x + s • x)
-(zero_smul : ∀x : M, (0 : R) • x = 0)
+  [add_comm_monoid M] extends distrib_mul_action_with_zero R M :=
+(add_smul : ∀ (r s : R) (x : M), (r + s) • x = r • x + s • x)
 
 section add_comm_monoid
 variables [semiring R] [add_comm_monoid M] [module R M] (r s : R) (x y : M)
-
-/-- A module over a semiring automatically inherits a `mul_action_with_zero` structure. -/
-@[priority 100] -- see Note [lower instance priority]
-instance module.to_mul_action_with_zero :
-  mul_action_with_zero R M :=
-{ smul_zero := smul_zero,
-  zero_smul := module.zero_smul,
-  ..(infer_instance : mul_action R M) }
 
 instance add_comm_monoid.nat_module : module ℕ M :=
 { one_smul := one_nsmul,
@@ -207,7 +198,7 @@ lemma module_ext {R : Type*} [semiring R] {M : Type*} [add_comm_monoid M] (P Q :
   (w : ∀ (r : R) (m : M), by { haveI := P, exact r • m } = by { haveI := Q, exact r • m }) :
   P = Q :=
 begin
-  unfreezingI { rcases P with ⟨⟨⟨⟨P⟩⟩⟩⟩, rcases Q with ⟨⟨⟨⟨Q⟩⟩⟩⟩ },
+  unfreezingI { rcases P with ⟨⟨⟨⟨⟨P⟩⟩⟩⟩⟩, rcases Q with ⟨⟨⟨⟨⟨Q⟩⟩⟩⟩⟩ },
   congr,
   funext r m,
   exact w r m,

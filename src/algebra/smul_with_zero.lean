@@ -95,10 +95,11 @@ def smul_with_zero.comp_hom (f : zero_hom R' R) : smul_with_zero R' M :=
 end has_zero
 
 section monoid_with_zero
+variables [monoid_with_zero R] [monoid_with_zero R']
 
-variables [monoid_with_zero R] [monoid_with_zero R'] [has_zero M]
+section has_zero
+variables [has_zero M] (R M)
 
-variables (R M)
 /--  An action of a monoid with zero `R` on a Type `M`, also with `0`, extends `mul_action` and
 is compatible with `0` (both in `R` and in `M`), with `1 ∈ R`, and with associativity of
 multiplication on the monoid `M`. -/
@@ -150,4 +151,59 @@ def mul_action_with_zero.comp_hom (f : monoid_with_zero_hom R' R) :
   one_smul := λ m, by simp,
   .. smul_with_zero.comp_hom M f.to_zero_hom}
 
+end has_zero
+
+section add_monoid
+variables [add_monoid M] (R M)
+
+/--  An action of a monoid with zero `R` on a Type `M`, also with `0`, extends `distrib_mul_action`
+and is compatible with `0` (both in `R` and in `M`), with `1 ∈ R`, and with associativity of
+multiplication on the monoid `M`. -/
+class distrib_mul_action_with_zero extends distrib_mul_action R M :=
+-- this field is copied from `smul_with_zero`, as `extends` behaves poorly
+(zero_smul : ∀ m : M, (0 : R) • m = 0)
+
+@[priority 100] -- see Note [lower instance priority]
+instance distrib_mul_action_with_zero.to_mul_action_with_zero
+  [m : distrib_mul_action_with_zero R M] :
+  mul_action_with_zero R M :=
+{..m}
+
+variables {R M} [add_zero_class R] [distrib_mul_action_with_zero R M] [add_monoid M']
+  [has_scalar R M']
+
+/-- Pullback a `distrib_mul_action_with_zero` structure along an injective monoid homomorphism.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def function.injective.distrib_mul_action_with_zero
+  (f : M' →+ M) (hf : function.injective f) (smul : ∀ (a : R) b, f (a • b) = a • f b) :
+  distrib_mul_action_with_zero R M' :=
+{ ..hf.distrib_mul_action f smul, ..function.injective.mul_action_with_zero (f : zero_hom M' M)
+  (by rwa [add_monoid_hom.coe_eq_to_zero_hom, add_monoid_hom.to_zero_hom_coe]) smul }
+
+/-- Pushforward a `distrib_mul_action_with_zero` structure along a surjective monoid homomorphism.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def function.surjective.distrib_mul_action_with_zero
+  (f : M →+ M') (hf : function.surjective f) (smul : ∀ (a : R) b, f (a • b) = a • f b) :
+  distrib_mul_action_with_zero R M' :=
+{ ..hf.distrib_mul_action f smul, ..function.surjective.mul_action_with_zero (f : zero_hom M M')
+  (by rwa [add_monoid_hom.coe_eq_to_zero_hom, add_monoid_hom.to_zero_hom_coe]) smul }
+
+end add_monoid
 end monoid_with_zero
+
+section semiring
+variables (R M) [semiring R] [semiring R'] [add_monoid M] [distrib_mul_action_with_zero R M]
+  [add_monoid M'] [has_scalar R M']
+
+/-- Compose a `distrib_mul_action_with_zero` with a `ring_hom`, with action `f r' • m`. -/
+def distrib_mul_action_with_zero.comp_hom (f : R' →+* R) :
+  distrib_mul_action_with_zero R' M :=
+{ smul := (•) ∘ f,
+  mul_smul := λ r s m, by simp [mul_smul],
+  one_smul := λ m, by simp,
+  smul_add := λ r m n, by simp_rw [function.comp_app, smul_add],
+  .. smul_with_zero.comp_hom M f.to_monoid_with_zero_hom.to_zero_hom }
+
+end semiring

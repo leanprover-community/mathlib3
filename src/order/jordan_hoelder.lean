@@ -1235,5 +1235,4 @@ begin
     exact equivalent.snoc this
       (by simp [htt, iso_refl_of_is_maximal (is_maximal_erase_top_top h0s₂)]) }
 end
-#lint
 end composition_series

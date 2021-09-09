@@ -432,8 +432,8 @@ end
 
 lemma tendsto_set_integral_of_monotone {α : Type*} {m : measurable_space α} {μ : measure α}
   [measurable_space β] [normed_group β] [borel_space β] [complete_space β] [normed_space ℝ β]
-  [second_countable_topology β] {s : ℕ → set α} {f : α → β} (hsm : ∀i, measurable_set (s i))
-  (h_mono : monotone s) (hfi : integrable f μ) :
+  [second_countable_topology β] {s : ℕ → set α} {f : α → β} (hsm : ∀ i, measurable_set (s i))
+  (h_mono : monotone s) (hfi : integrable_on f (⋃ n, s n) μ) :
   tendsto (λ i, ∫ a in s i, f a ∂μ) at_top (𝓝 (∫ a in (⋃ n, s n), f a ∂μ)) :=
 let bound : α → ℝ := indicator (⋃ n, s n) (λ a, ∥f a∥) in
 begin
@@ -442,9 +442,13 @@ begin
   rw h_int_eq,
   rw ← integral_indicator (measurable_set.Union hsm),
   refine tendsto_integral_of_dominated_convergence bound _ _ _ _ _,
-  { exact λ n, hfi.1.indicator (hsm n), },
-  { exact hfi.1.indicator (measurable_set.Union hsm), },
-  { refine integrable.indicator hfi.norm (measurable_set.Union hsm), },
+  { intro n,
+    rw ae_measurable_indicator_iff (hsm n),
+    exact (integrable_on.mono_set hfi (set.subset_Union s n)).1, },
+  { rw ae_measurable_indicator_iff (measurable_set.Union hsm),
+    exact hfi.1, },
+  { rw integrable_indicator_iff (measurable_set.Union hsm),
+    exact hfi.norm, },
   { simp_rw norm_indicator_eq_indicator_norm,
     refine λ n, eventually_of_forall (λ x, _),
     exact indicator_le_indicator_of_subset (subset_Union _ _) (λ a, norm_nonneg _) _, },
@@ -454,8 +458,8 @@ end
 
 lemma tendsto_set_integral_of_antimono {α : Type*} {m : measurable_space α} {μ : measure α}
   [measurable_space β] [normed_group β] [borel_space β] [complete_space β] [normed_space ℝ β]
-  [second_countable_topology β] {s : ℕ → set α} {f : α → β} (hsm : ∀i, measurable_set (s i))
-  (h_mono : ∀ i j, i ≤ j → s j ⊆ s i) (hfi : integrable f μ) :
+  [second_countable_topology β] {s : ℕ → set α} {f : α → β} (hsm : ∀ i, measurable_set (s i))
+  (h_mono : ∀ i j, i ≤ j → s j ⊆ s i) (hfi : integrable_on f (s 0) μ) :
   tendsto (λi, ∫ a in s i, f a ∂μ) at_top (𝓝 (∫ a in (⋂ n, s n), f a ∂μ)) :=
 let bound : α → ℝ := indicator (s 0) (λ a, ∥f a∥) in
 begin
@@ -464,9 +468,13 @@ begin
   rw h_int_eq,
   rw ← integral_indicator (measurable_set.Inter hsm),
   refine tendsto_integral_of_dominated_convergence bound _ _ _ _ _,
-  { exact λ n, hfi.1.indicator (hsm n), },
-  { exact hfi.1.indicator (measurable_set.Inter hsm), },
-  { refine integrable.indicator hfi.norm (hsm 0), },
+  { intro n,
+    rw ae_measurable_indicator_iff (hsm n),
+    exact (integrable_on.mono_set hfi (h_mono 0 n (zero_le n))).1, },
+  { rw ae_measurable_indicator_iff (measurable_set.Inter hsm),
+    exact (integrable_on.mono_set hfi (set.Inter_subset s 0)).1, },
+  { rw integrable_indicator_iff (hsm 0),
+    exact hfi.norm, },
   { simp_rw norm_indicator_eq_indicator_norm,
     refine λ n, eventually_of_forall (λ x, _),
     exact indicator_le_indicator_of_subset (h_mono 0 n (zero_le n)) (λ a, norm_nonneg _) _, },

@@ -899,7 +899,7 @@ variables {T : Type*} [integral_domain T] [is_dedekind_domain T] (I J : ideal T)
 open_locale classical
 open multiset unique_factorization_monoid ideal
 
-lemma prod_factors_eq_ideal {I : ideal T} (hI : I ≠ ⊥) : (factors I).prod = I :=
+lemma prod_factors_eq_self {I : ideal T} (hI : I ≠ ⊥) : (factors I).prod = I :=
 associated_iff_eq.1 (factors_prod hI)
 
 lemma factors_prod_factors_eq_factors {α : multiset (ideal T)} (h₁ : ⊥ ∉ α)

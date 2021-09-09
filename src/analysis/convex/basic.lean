@@ -20,7 +20,6 @@ In a real vector space, we define the following objects and properties.
   points `x y ∈ s` the segment joining `(x, f x)` to `(y, f y)` is (non-strictly) above the graph
   of `f`; equivalently, `convex_on f s` means that the epigraph
   `{p : E × β | p.1 ∈ s ∧ f p.1 ≤ p.2}` is a convex set;
-* Center mass of a finite set of points with prescribed weights.
 * Convex hull of a set `s` is the minimal convex set that includes `s`.
 * Standard simplex `std_simplex ι [fintype ι]` is the intersection of the positive quadrant with
   the hyperplane `s.sum = 1` in the space `ι → ℝ`.
@@ -1315,29 +1314,5 @@ variable {ι}
 
 lemma ite_eq_mem_std_simplex (i : ι) : (λ j, ite (i = j) (1:ℝ) 0) ∈ std_simplex ι :=
 ⟨λ j, by simp only; split_ifs; norm_num, by rw [finset.sum_ite_eq, if_pos (finset.mem_univ _)]⟩
-
-variable {ι}
-
-/-- The convex hull of a finite set is the image of the standard simplex in `s → ℝ`
-under the linear map sending each function `w` to `∑ x in s, w x • x`.
-
-Since we have no sums over finite sets, we use sum over `@finset.univ _ hs.fintype`.
-The map is defined in terms of operations on `(s → ℝ) →ₗ[ℝ] ℝ` so that later we will not need
-to prove that this map is linear. -/
-lemma set.finite.convex_hull_eq_image {s : set E} (hs : finite s) :
-  convex_hull s = by haveI := hs.fintype; exact
-    (⇑(∑ x : s, (@linear_map.proj ℝ s _ (λ i, ℝ) _ _ x).smul_right x.1)) '' (std_simplex s) :=
-begin
-  rw [← convex_hull_basis_eq_std_simplex, ← linear_map.convex_hull_image, ← set.range_comp, (∘)],
-  apply congr_arg,
-  convert subtype.range_coe.symm,
-  ext x,
-  simp [linear_map.sum_apply, ite_smul, finset.filter_eq]
-end
-
-/-- All values of a function `f ∈ std_simplex ι` belong to `[0, 1]`. -/
-lemma mem_Icc_of_mem_std_simplex (hf : f ∈ std_simplex ι) (x) :
-  f x ∈ I :=
-⟨hf.1 x, hf.2 ▸ finset.single_le_sum (λ y hy, hf.1 y) (finset.mem_univ x)⟩
 
 end simplex

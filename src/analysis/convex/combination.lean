@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2019 Alexander Bentkamp. All rights reserved.
+Copyright (c) 2019 Yury Kudriashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Alexander Bentkamp, Yury Kudriashov, Yaël Dillies
+Authors: Yury Kudriashov
 -/
 import analysis.convex.basic
 
@@ -24,7 +24,7 @@ lemmas be unconditional on the sum of the weights being `1`.
 -/
 
 open set
-open_locale big_operators classical real
+open_locale big_operators classical
 
 universes u u'
 variables {E F ι ι' : Type*} [add_comm_group E] [module ℝ E] [add_comm_group F] [module ℝ F]
@@ -341,5 +341,5 @@ end
 
 /-- All values of a function `f ∈ std_simplex ι` belong to `[0, 1]`. -/
 lemma mem_Icc_of_mem_std_simplex (hf : f ∈ std_simplex ι) (x) :
-  f x ∈ I :=
+  f x ∈ Icc (0 : ℝ) 1 :=
 ⟨hf.1 x, hf.2 ▸ finset.single_le_sum (λ y hy, hf.1 y) (finset.mem_univ x)⟩

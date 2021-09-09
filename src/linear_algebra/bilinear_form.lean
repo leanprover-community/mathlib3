@@ -1350,8 +1350,11 @@ begin
   { refine λ m hm, h _ (λ x, _),
     rw [← to_lin_apply, hm], refl },
   { intros m hm, apply h,
-    ext, exact hm x }
+    ext x, exact hm x }
 end
+
+lemma nondegenerate.ker_eq_bot {B : bilin_form R₂ M₂} (h : B.nondegenerate) :
+  B.to_lin.ker = ⊥ := nondegenerate_iff_ker_eq_bot.mp h
 
 /-- The restriction of a nondegenerate bilinear form `B` onto a submodule `W` is
 nondegenerate if `disjoint W (B.orthogonal W)`. -/
@@ -1458,8 +1461,8 @@ the linear equivalence between a vector space and its dual with the underlying l
 `B.to_lin`. -/
 noncomputable def to_dual (B : bilin_form K V) (b : B.nondegenerate) :
   V ≃ₗ[K] module.dual K V :=
-B.to_lin.linear_equiv_of_ker_eq_bot
-  (nondegenerate_iff_ker_eq_bot.mp b) subspace.dual_finrank_eq.symm
+B.to_lin.linear_equiv_of_injective
+  (linear_map.ker_eq_bot.mp $ b.ker_eq_bot) subspace.dual_finrank_eq.symm
 
 lemma to_dual_def {B : bilin_form K V} (b : B.nondegenerate) {m n : V} :
   B.to_dual b m n = B m n := rfl

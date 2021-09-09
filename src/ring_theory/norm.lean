@@ -58,7 +58,7 @@ variables (R)
 noncomputable def norm : S →* R :=
 linear_map.det.comp (lmul R S).to_ring_hom.to_monoid_hom
 
-@[simp] lemma norm_apply (x : S) : norm R x = linear_map.det (lmul R S x) := rfl
+lemma norm_apply (x : S) : norm R x = linear_map.det (lmul R S x) := rfl
 
 lemma norm_eq_one_of_not_exists_basis
   (h : ¬ ∃ (s : finset S), nonempty (basis s R S)) (x : S) : norm R x = 1 :=
@@ -146,12 +146,13 @@ lemma norm_ne_zero_iff_of_basis (b : basis ι R S) {x : S} :
   algebra.norm R x ≠ 0 ↔ x ≠ 0 :=
 not_iff_not.mpr (algebra.norm_eq_zero_iff_of_basis b)
 
-/-- See `algebra.norm_eq_zero_iff'` for the simp-normal form. -/
+/-- See also `algebra.norm_eq_zero_iff'` if you already have rewritten with `algebra.norm_apply`. -/
+@[simp]
 lemma norm_eq_zero_iff [finite_dimensional K L] {x : L} :
   algebra.norm K x = 0 ↔ x = 0 :=
 algebra.norm_eq_zero_iff_of_basis (basis.of_vector_space K L)
 
-/-- simp-normal form of `algebra.norm_eq_zero_iff`. -/
+/-- This is `algebra.norm_eq_zero_iff` composed with `algebra.norm_apply`. -/
 @[simp]
 lemma norm_eq_zero_iff' [finite_dimensional K L] {x : L} :
   linear_map.det (algebra.lmul K L x) = 0 ↔ x = 0 :=

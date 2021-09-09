@@ -1586,10 +1586,14 @@ open matrix
 variables {A : Type*} [integral_domain A] [module A M₃] (B₃ : bilin_form A M₃)
 variables {ι : Type*} [decidable_eq ι] [fintype ι]
 
+theorem _root_.matrix.nondegenerate.to_bilin' {M : matrix ι ι R₃} (h : M.nondegenerate) :
+  (to_bilin' M).nondegenerate :=
+λ x hx, h.eq_zero_of_ortho (λ y,
+  by simpa only [to_bilin'_apply, dot_product, mul_vec, finset.mul_sum, mul_assoc] using hx y)
+
 theorem nondegenerate_of_det_ne_zero' (M : matrix ι ι A) (h : M.det ≠ 0) :
   (to_bilin' M).nondegenerate :=
-λ x hx, matrix.nondegenerate_of_det_ne_zero h x (λ y,
-  by simpa only [to_bilin'_apply, dot_product, mul_vec, finset.mul_sum, mul_assoc] using hx y)
+(matrix.nondegenerate_of_det_ne_zero h).to_bilin'
 
 theorem nondegenerate_of_det_ne_zero (b : basis ι A M₃) (h : (to_matrix b B₃).det ≠ 0) :
   B₃.nondegenerate :=

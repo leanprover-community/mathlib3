@@ -59,14 +59,14 @@ begin
   obtain ⟨i₀, mem, w⟩ : ∃ i₀ ∈ s, ∀ i ∈ s, f i₀ / g i₀ ≤ f i / g i,
   { apply s.exists_min_image (λ z, f z / g z),
     obtain ⟨x, hx, hgx⟩ : ∃ x ∈ t, 0 < g x := gpos,
-    exact ⟨x, mem_filter.mpr ⟨hx, hgx⟩⟩, },
+    exact ⟨x, mem_filter.mpr ⟨hx, hgx⟩⟩ },
   have hg   : 0 < g i₀ := by { rw mem_filter at mem, exact mem.2 },
   have hi₀  : i₀ ∈ t   := filter_subset _ _ mem,
   let  k    : E → ℝ    := λ z, f z - (f i₀ / g i₀) * g z,
   have hk   : k i₀ = 0 := by field_simp [k, ne_of_gt hg],
   have ksum : ∑ e in t.erase i₀, k e = 1,
   { calc ∑ e in t.erase i₀, k e = ∑ e in t, k e :
-      by conv_rhs { rw [← insert_erase hi₀, sum_insert (not_mem_erase i₀ t), hk, zero_add], }
+      by conv_rhs { rw [← insert_erase hi₀, sum_insert (not_mem_erase i₀ t), hk, zero_add] }
     ... = ∑ e in t, (f e - f i₀ / g i₀ * g e) : rfl
     ... = 1 : by rw [sum_sub_distrib, fsum, ← mul_sum, gsum, mul_zero, sub_zero] },
   refine ⟨⟨i₀, hi₀⟩, k, _, ksum, _⟩,
@@ -75,17 +75,17 @@ begin
     by_cases hes : e ∈ s,
     { have hge : 0 < g e := by { rw mem_filter at hes, exact hes.2 },
       rw ← le_div_iff hge,
-      exact w _ hes, },
+      exact w _ hes },
     { calc _ ≤ 0   : mul_nonpos_of_nonneg_of_nonpos _ _ -- prove two goals below
          ... ≤ f e : fpos e het,
       { apply div_nonneg (fpos i₀ (mem_of_subset (filter_subset _ t) mem)) (le_of_lt hg) },
-      { simpa only [mem_filter, het, true_and, not_lt] using hes }, } },
+      { simpa only [mem_filter, het, true_and, not_lt] using hes } } },
   { simp only [subtype.coe_mk, center_mass_eq_of_sum_1 _ id ksum, id],
     calc ∑ e in t.erase i₀, k e • e = ∑ e in t, k e • e : sum_erase _ (by rw [hk, zero_smul])
     ... = ∑ e in t, (f e - f i₀ / g i₀ * g e) • e : rfl
     ... = t.center_mass f id : _,
     simp only [sub_smul, mul_smul, sum_sub_distrib, ← smul_sum, gcombo, smul_zero,
-      sub_zero, center_mass, fsum, inv_one, one_smul, id.def], },
+      sub_zero, center_mass, fsum, inv_one, one_smul, id.def] }
 end
 
 variables {s : set E} {x : E} (hx : x ∈ convex_hull s)
@@ -122,7 +122,7 @@ begin
   let k := (min_card_finset_of_mem_convex_hull hx).card - 1,
   have hk : (min_card_finset_of_mem_convex_hull hx).card = k + 1,
   { exact (nat.succ_pred_eq_of_pos
-      (finset.card_pos.mpr (min_card_finset_of_mem_convex_hull_nonempty hx))).symm, },
+      (finset.card_pos.mpr (min_card_finset_of_mem_convex_hull_nonempty hx))).symm },
   classical,
   by_contra,
   obtain ⟨p, hp⟩ := mem_convex_hull_erase h (mem_min_card_finset_of_mem_convex_hull hx),
@@ -150,14 +150,14 @@ begin
     exact ⟨caratheodory.min_card_finset_of_mem_convex_hull hx,
            caratheodory.min_card_finset_of_mem_convex_hull_subseteq hx,
            caratheodory.affine_independent_min_card_finset_of_mem_convex_hull hx,
-           caratheodory.mem_min_card_finset_of_mem_convex_hull hx⟩, },
-  { iterate 3 { convert set.Union_subset _, intro, },
-    exact convex_hull_mono ‹_›, },
+           caratheodory.mem_min_card_finset_of_mem_convex_hull hx⟩ },
+  { iterate 3 { convert set.Union_subset _, intro },
+    exact convex_hull_mono ‹_› }
 end
 
 /-- A more explicit version of `convex_hull_eq_union`. -/
 theorem eq_pos_convex_span_of_mem_convex_hull {x : E} (hx : x ∈ convex_hull s) :
-  ∃ (ι : Sort (u+1)) [fintype ι], by exactI ∃ (z : ι → E) (w : ι → ℝ)
+  ∃ (ι : Sort (u+1)) (_ : fintype ι), by exactI ∃ (z : ι → E) (w : ι → ℝ)
     (hss : set.range z ⊆ s) (hai : affine_independent ℝ z)
     (hw : ∀ i, 0 < w i), ∑ i, w i = 1 ∧ ∑ i, w i • z i = x :=
 begin
@@ -168,17 +168,14 @@ begin
   obtain ⟨w, hw₁, hw₂, hw₃⟩ := ht₃,
   let t' := t.filter (λ i, w i ≠ 0),
   refine ⟨t', t'.fintype_coe_sort, (coe : t' → E), w ∘ (coe : t' → E), _, _, _, _, _⟩,
-  { rw subtype.range_coe_subtype, exact set.subset.trans (finset.filter_subset _ t) ht₁, },
-  { exact affine_independent_embedding_of_affine_independent
-      ⟨_, inclusion_injective (finset.filter_subset (λ i, w i ≠ 0) t)⟩ ht₂, },
-  { intros i, suffices : w i ≠ 0,
-    { cases this.lt_or_lt with hneg hpos,
-      { exfalso, rw ← not_le at hneg, apply hneg, exact hw₁ _ (finset.mem_filter.mp i.2).1, },
-      { exact hpos, }, },
-    exact (finset.mem_filter.mp i.property).2, },
-  { erw [finset.sum_attach, finset.sum_filter_ne_zero, hw₂], },
+  { rw subtype.range_coe_subtype, exact subset.trans (finset.filter_subset _ t) ht₁ },
+  { exact ht₂.comp_embedding
+      ⟨_, inclusion_injective (finset.filter_subset (λ i, w i ≠ 0) t)⟩ },
+  { exact λ i, (hw₁ _ (finset.mem_filter.mp i.2).1).lt_of_ne
+      (finset.mem_filter.mp i.property).2.symm },
+  { erw [finset.sum_attach, finset.sum_filter_ne_zero, hw₂] },
   { change ∑ (i : t') in t'.attach, (λ e, w e • e) ↑i = x,
     erw [finset.sum_attach, finset.sum_filter_of_ne],
-    { rw t.center_mass_eq_of_sum_1 id hw₂ at hw₃, exact hw₃, },
-    { intros e he hwe contra, apply hwe, rw [contra, zero_smul], }, },
+    { rw t.center_mass_eq_of_sum_1 id hw₂ at hw₃, exact hw₃ },
+    { intros e he hwe contra, apply hwe, rw [contra, zero_smul] } }
 end

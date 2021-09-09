@@ -19,18 +19,22 @@ variable {I : Type u}     -- The indexing type
 variable {f : I → Type v} -- The family of types already equipped with instances
 variables (x y : Π i, f i) (i : I)
 
+@[to_additive pi.has_vadd]
 instance has_scalar {α : Type*} [Π i, has_scalar α $ f i] :
   has_scalar α (Π i : I, f i) :=
 ⟨λ s x, λ i, s • (x i)⟩
 
+@[to_additive]
 lemma smul_def {α : Type*} [Π i, has_scalar α $ f i] (s : α) : s • x = λ i, s • x i := rfl
-@[simp] lemma smul_apply {α : Type*} [Π i, has_scalar α $ f i] (s : α) : (s • x) i = s • x i := rfl
+@[simp, to_additive]
+lemma smul_apply {α : Type*} [Π i, has_scalar α $ f i] (s : α) : (s • x) i = s • x i := rfl
 
+@[to_additive pi.has_vadd']
 instance has_scalar' {g : I → Type*} [Π i, has_scalar (f i) (g i)] :
   has_scalar (Π i, f i) (Π i : I, g i) :=
 ⟨λ s x, λ i, (s i) • (x i)⟩
 
-@[simp]
+@[simp, to_additive]
 lemma smul_apply' {g : I → Type*} [∀ i, has_scalar (f i) (g i)] (s : Π i, f i) (x : Π i, g i) :
   (s • x) i = s i • x i :=
 rfl
@@ -54,16 +58,19 @@ instance is_scalar_tower'' {g : I → Type*} {h : I → Type*}
   [Π i, is_scalar_tower (f i) (g i) (h i)] : is_scalar_tower (Π i, f i) (Π i, g i) (Π i, h i) :=
 ⟨λ x y z, funext $ λ i, smul_assoc (x i) (y i) (z i)⟩
 
+@[to_additive]
 instance smul_comm_class {α β : Type*}
   [Π i, has_scalar α $ f i] [Π i, has_scalar β $ f i] [∀ i, smul_comm_class α β (f i)] :
   smul_comm_class α β (Π i : I, f i) :=
 ⟨λ x y z, funext $ λ i, smul_comm x y (z i)⟩
 
+@[to_additive]
 instance smul_comm_class' {g : I → Type*} {α : Type*}
   [Π i, has_scalar α $ g i] [Π i, has_scalar (f i) (g i)] [∀ i, smul_comm_class α (f i) (g i)] :
   smul_comm_class α (Π i : I, f i) (Π i : I, g i) :=
 ⟨λ x y z, funext $ λ i, smul_comm x (y i) (z i)⟩
 
+@[to_additive]
 instance smul_comm_class'' {g : I → Type*} {h : I → Type*}
   [Π i, has_scalar (g i) (h i)] [Π i, has_scalar (f i) (h i)]
   [∀ i, smul_comm_class (f i) (g i) (h i)] : smul_comm_class (Π i, f i) (Π i, g i) (Π i, h i) :=
@@ -71,6 +78,7 @@ instance smul_comm_class'' {g : I → Type*} {h : I → Type*}
 
 /-- If `f i` has a faithful scalar action for a given `i`, then so does `Π i, f i`. This is
 not an instance as `i` cannot be inferred. -/
+@[to_additive pi.has_faithful_vadd_at]
 lemma has_faithful_scalar_at {α : Type*}
   [Π i, has_scalar α $ f i] [Π i, nonempty (f i)] (i : I) [has_faithful_scalar α (f i)] :
   has_faithful_scalar α (Π i, f i) :=
@@ -80,6 +88,7 @@ lemma has_faithful_scalar_at {α : Type*}
   simpa using this,
 end⟩
 
+@[to_additive pi.has_faithful_vadd]
 instance has_faithful_scalar {α : Type*}
   [nonempty I] [Π i, has_scalar α $ f i] [Π i, nonempty (f i)] [Π i, has_faithful_scalar α (f i)] :
   has_faithful_scalar α (Π i, f i) :=
@@ -99,12 +108,14 @@ instance smul_with_zero' {g : I → Type*} [Π i, has_zero (g i)]
   zero_smul := λ _, funext $ λ _, zero_smul _ _,
   ..pi.has_scalar' }
 
+@[to_additive]
 instance mul_action (α) {m : monoid α} [Π i, mul_action α $ f i] :
   @mul_action α (Π i : I, f i) m :=
 { smul := (•),
   mul_smul := λ r s f, funext $ λ i, mul_smul _ _ _,
   one_smul := λ f, funext $ λ i, one_smul α _ }
 
+@[to_additive]
 instance mul_action' {g : I → Type*} {m : Π i, monoid (f i)} [Π i, mul_action (f i) (g i)] :
   @mul_action (Π i, f i) (Π i : I, g i) (@pi.monoid I f m) :=
 { smul := (•),
@@ -152,6 +163,19 @@ lemma single_smul' {g : I → Type*} [Π i, monoid_with_zero (f i)] [Π i, add_m
   [Π i, distrib_mul_action (f i) (g i)] [decidable_eq I] (i : I) (r : f i) (x : g i) :
   single i (r • x) = single i r • single i x :=
 single_op₂ (λ i : I, ((•) : f i → g i → g i)) (λ j, smul_zero _) _ _ _
+
+instance mul_distrib_mul_action (α) {m : monoid α} {n : Π i, monoid $ f i}
+  [Π i, mul_distrib_mul_action α $ f i] :
+  @mul_distrib_mul_action α (Π i : I, f i) m (@pi.monoid I f n) :=
+{ smul_one := λ c, funext $ λ i, smul_one _,
+  smul_mul := λ c f g, funext $ λ i, smul_mul' _ _ _,
+  ..pi.mul_action _ }
+
+instance mul_distrib_mul_action' {g : I → Type*} {m : Π i, monoid (f i)} {n : Π i, monoid $ g i}
+  [Π i, mul_distrib_mul_action (f i) (g i)] :
+  @mul_distrib_mul_action (Π i, f i) (Π i : I, g i) (@pi.monoid I f m) (@pi.monoid I g n) :=
+{ smul_mul := by { intros, ext x, apply smul_mul' },
+  smul_one := by { intros, ext x, apply smul_one } }
 
 variables (I f)
 

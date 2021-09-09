@@ -1,12 +1,16 @@
 /-
 Copyright (c) 2020 Zhangir Azerbayev. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Eric Wieser, Zhangir Azerbayev
+Authors: Eric Wieser, Zhangir Azerbayev
 -/
 
 import linear_algebra.multilinear
 import linear_algebra.linear_independent
 import group_theory.perm.sign
+import group_theory.perm.subgroup
+import data.equiv.fin
+import linear_algebra.tensor_product
+import group_theory.quotient_group
 
 /-!
 # Alternating Maps
@@ -19,9 +23,10 @@ arguments of the same type.
 * `f.map_eq_zero_of_eq` expresses that `f` is zero when two inputs are equal.
 * `f.map_swap` expresses that `f` is negated when two inputs are swapped.
 * `f.map_perm` expresses how `f` varies by a sign change under a permutation of its inputs.
-* An `add_comm_monoid`, `add_comm_group`, and `semimodule` structure over `alternating_map`s that
+* An `add_comm_monoid`, `add_comm_group`, and `module` structure over `alternating_map`s that
   matches the definitions over `multilinear_map`s.
 * `multilinear_map.alternatization`, which makes an alternating map out of a non-alternating one.
+* `alternating_map.dom_coprod`, which behaves as a product between two alternating maps.
 
 ## Implementation notes
 `alternating_map` is defined in terms of `map_eq_zero_of_eq`, as this is easier to work with than
@@ -39,12 +44,12 @@ using `map_swap` as a definition, and does not require `has_neg N`.
 
 -- semiring / add_comm_monoid
 variables {R : Type*} [semiring R]
-variables {M : Type*} [add_comm_monoid M] [semimodule R M]
-variables {N : Type*} [add_comm_monoid N] [semimodule R N]
+variables {M : Type*} [add_comm_monoid M] [module R M]
+variables {N : Type*} [add_comm_monoid N] [module R N]
 
 -- semiring / add_comm_group
-variables {M' : Type*} [add_comm_group M'] [semimodule R M']
-variables {N' : Type*} [add_comm_group N'] [semimodule R N']
+variables {M' : Type*} [add_comm_group M'] [module R M']
+variables {N' : Type*} [add_comm_group N'] [module R N']
 
 variables {ι : Type*} [decidable_eq ι]
 
@@ -102,6 +107,10 @@ instance : has_coe (alternating_map R M N ι) (multilinear_map R (λ i : ι, M) 
 
 @[simp, norm_cast] lemma coe_multilinear_map : ⇑(f : multilinear_map R (λ i : ι, M) N) = f := rfl
 
+lemma coe_multilinear_map_injective :
+  function.injective (coe : alternating_map R M N ι → multilinear_map R (λ i : ι, M) N) :=
+λ x y h, ext $ multilinear_map.congr_fun h
+
 @[simp] lemma to_multilinear_map_eq_coe : f.to_multilinear_map = f := rfl
 
 @[simp] lemma coe_multilinear_map_mk (f : (ι → M) → N) (h₁ h₂ h₃) :
@@ -135,10 +144,19 @@ f.to_multilinear_map.map_smul' v i r x
   f v = 0 :=
 f.map_eq_zero_of_eq' v i j h hij
 
+lemma map_coord_zero {m : ι → M} (i : ι) (h : m i = 0) : f m = 0 :=
+f.to_multilinear_map.map_coord_zero i h
+
+@[simp] lemma map_update_zero (m : ι → M) (i : ι) : f (update m i 0) = 0 :=
+f.to_multilinear_map.map_update_zero m i
+
+@[simp] lemma map_zero [nonempty ι] : f 0 = 0 :=
+f.to_multilinear_map.map_zero
+
 /-!
 ### Algebraic structure inherited from `multilinear_map`
 
-`alternating_map` carries the same `add_comm_monoid`, `add_comm_group`, and `semimodule` structure
+`alternating_map` carries the same `add_comm_monoid`, `add_comm_group`, and `module` structure
 as `multilinear_map`
 -/
 
@@ -164,8 +182,16 @@ instance : has_zero (alternating_map R M N ι) :=
 instance : inhabited (alternating_map R M N ι) := ⟨0⟩
 
 instance : add_comm_monoid (alternating_map R M N ι) :=
-by refine {zero := 0, add := (+), ..};
-   intros; ext; simp [add_comm, add_left_comm]
+{ zero := 0,
+  add := (+),
+  zero_add := by intros; ext; simp [add_comm, add_left_comm],
+  add_zero := by intros; ext; simp [add_comm, add_left_comm],
+  add_comm := by intros; ext; simp [add_comm, add_left_comm],
+  add_assoc := by intros; ext; simp [add_comm, add_left_comm],
+  nsmul := λ n f, { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
+    .. ((n • f : multilinear_map R (λ i : ι, M) N)) },
+  nsmul_zero' := by { intros, ext, simp [add_smul], },
+  nsmul_succ' := by { intros, ext, simp [add_smul, nat.succ_eq_one_add], } }
 
 instance : has_neg (alternating_map R M N' ι) :=
 ⟨λ f,
@@ -181,16 +207,29 @@ instance : has_sub (alternating_map R M N' ι) :=
 ⟨λ f g,
   { map_eq_zero_of_eq' :=
       λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij, g.map_eq_zero_of_eq v h hij],
-    ..(f - g : multilinear_map R (λ i : ι, M) N')  }⟩
+    ..(f - g : multilinear_map R (λ i : ι, M) N') }⟩
 
 @[simp] lemma sub_apply (m : ι → M) : (g - g₂) m = g m - g₂ m := rfl
 
 @[norm_cast] lemma coe_sub : (↑(g - g₂) : multilinear_map R (λ i : ι, M) N') = g - g₂ := rfl
 
 instance : add_comm_group (alternating_map R M N' ι) :=
-by refine {zero := 0, add := (+), neg := has_neg.neg,
-           sub := has_sub.sub, sub_eq_add_neg := _, ..};
-   intros; ext; simp [add_comm, add_left_comm, sub_eq_add_neg]
+by refine
+{ zero := 0,
+  add := (+),
+  neg := has_neg.neg,
+  sub := has_sub.sub,
+  sub_eq_add_neg := _,
+  nsmul := λ n f, { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
+    .. ((n • f : multilinear_map R (λ i : ι, M) N')) },
+  gsmul := λ n f, { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
+    .. ((n • f : multilinear_map R (λ i : ι, M) N')) },
+  gsmul_zero' := _,
+  gsmul_succ' := _,
+  gsmul_neg' := _,
+  .. alternating_map.add_comm_monoid, .. };
+intros; ext;
+simp [add_comm, add_left_comm, sub_eq_add_neg, add_smul, nat.succ_eq_add_one, gsmul_coe_nat]
 
 section distrib_mul_action
 
@@ -215,17 +254,17 @@ instance : distrib_mul_action S (alternating_map R M N ι) :=
 
 end distrib_mul_action
 
-section semimodule
+section module
 
-variables {S : Type*} [semiring S] [semimodule S N] [smul_comm_class R S N]
+variables {S : Type*} [semiring S] [module S N] [smul_comm_class R S N]
 
 /-- The space of multilinear maps over an algebra over `R` is a module over `R`, for the pointwise
 addition and scalar multiplication. -/
-instance : semimodule S (alternating_map R M N ι) :=
+instance : module S (alternating_map R M N ι) :=
 { add_smul := λ r₁ r₂ f, ext $ λ x, add_smul _ _ _,
   zero_smul := λ f, ext $ λ x, zero_smul _ _ }
 
-end semimodule
+end module
 
 end alternating_map
 
@@ -235,7 +274,7 @@ end alternating_map
 
 namespace linear_map
 
-variables {N₂ : Type*} [add_comm_monoid N₂] [semimodule R N₂]
+variables {N₂ : Type*} [add_comm_monoid N₂] [module R N₂]
 
 /-- Composing a alternating map with a linear map gives again a alternating map. -/
 def comp_alternating_map (g : N →ₗ[R] N₂) : alternating_map R M N ι →+ alternating_map R M N₂ ι :=
@@ -310,7 +349,7 @@ lemma map_swap {i j : ι} (hij : i ≠ j) :
 eq_neg_of_add_eq_zero (g.map_swap_add v hij)
 
 lemma map_perm [fintype ι] (v : ι → M) (σ : equiv.perm ι) :
-  g (v ∘ σ) = (σ.sign : ℤ) • g v :=
+  g (v ∘ σ) = σ.sign • g v :=
 begin
   apply equiv.perm.swap_induction_on' σ,
   { simp },
@@ -319,19 +358,19 @@ begin
 end
 
 lemma map_congr_perm [fintype ι] (σ : equiv.perm ι) :
-  g v = (σ.sign : ℤ) • g (v ∘ σ) :=
+  g v = σ.sign • g (v ∘ σ) :=
 by { rw [g.map_perm, smul_smul], simp }
 
 lemma coe_dom_dom_congr [fintype ι] (σ : equiv.perm ι) :
   (g : multilinear_map R (λ _ : ι, M) N').dom_dom_congr σ
-    = (σ.sign : ℤ) • (g : multilinear_map R (λ _ : ι, M) N') :=
+    = σ.sign • (g : multilinear_map R (λ _ : ι, M) N') :=
 multilinear_map.ext $ λ v, g.map_perm v σ
 
 /-- If the arguments are linearly dependent then the result is `0`. -/
 lemma map_linear_dependent
   {K : Type*} [ring K]
-  {M : Type*} [add_comm_group M] [semimodule K M]
-  {N : Type*} [add_comm_group N] [semimodule K N] [no_zero_smul_divisors K N]
+  {M : Type*} [add_comm_group M] [module K M]
+  {N : Type*} [add_comm_group N] [module K N] [no_zero_smul_divisors K N]
   (f : alternating_map K M N ι) (v : ι → M)
   (h : ¬linear_independent K v) :
   f v = 0 :=
@@ -362,7 +401,7 @@ variables [fintype ι]
 private lemma alternization_map_eq_zero_of_eq_aux
   (m : multilinear_map R (λ i : ι, M) N')
   (v : ι → M) (i j : ι) (i_ne_j : i ≠ j) (hv : v i = v j) :
-  (∑ (σ : perm ι), (σ.sign : ℤ) • m.dom_dom_congr σ) v = 0 :=
+  (∑ (σ : perm ι), σ.sign • m.dom_dom_congr σ) v = 0 :=
 begin
   rw sum_apply,
   exact finset.sum_involution
@@ -377,9 +416,9 @@ end
 permutations. -/
 def alternatization : multilinear_map R (λ i : ι, M) N' →+ alternating_map R M N' ι :=
 { to_fun := λ m,
-  { to_fun := ⇑(∑ (σ : perm ι), (σ.sign : ℤ) • m.dom_dom_congr σ),
+  { to_fun := ⇑(∑ (σ : perm ι), σ.sign • m.dom_dom_congr σ),
     map_eq_zero_of_eq' := λ v i j hvij hij, alternization_map_eq_zero_of_eq_aux m v i j hij hvij,
-    .. (∑ (σ : perm ι), (σ.sign : ℤ) • m.dom_dom_congr σ)},
+    .. (∑ (σ : perm ι), σ.sign • m.dom_dom_congr σ)},
   map_add' := λ a b, begin
     ext,
     simp only [
@@ -394,15 +433,15 @@ def alternatization : multilinear_map R (λ i : ι, M) N' →+ alternating_map R
   end }
 
 lemma alternatization_def (m : multilinear_map R (λ i : ι, M) N') :
-  ⇑(alternatization m) = (∑ (σ : perm ι), (σ.sign : ℤ) • m.dom_dom_congr σ : _) :=
+  ⇑(alternatization m) = (∑ (σ : perm ι), σ.sign • m.dom_dom_congr σ : _) :=
 rfl
 
 lemma alternatization_coe (m : multilinear_map R (λ i : ι, M) N') :
-  ↑m.alternatization = (∑ (σ : perm ι), (σ.sign : ℤ) • m.dom_dom_congr σ : _) :=
+  ↑m.alternatization = (∑ (σ : perm ι), σ.sign • m.dom_dom_congr σ : _) :=
 coe_inj rfl
 
 lemma alternatization_apply (m : multilinear_map R (λ i : ι, M) N') (v : ι → M) :
-  alternatization m v = ∑ (σ : perm ι), (σ.sign : ℤ) • m.dom_dom_congr σ v :=
+  alternatization m v = ∑ (σ : perm ι), σ.sign • m.dom_dom_congr σ v :=
 by simp only [alternatization_def, smul_apply, sum_apply]
 
 end multilinear_map
@@ -415,17 +454,16 @@ lemma coe_alternatization [fintype ι] (a : alternating_map R M N' ι) :
   (↑a : multilinear_map R (λ ι, M) N').alternatization = nat.factorial (fintype.card ι) • a :=
 begin
   apply alternating_map.coe_inj,
-  rw multilinear_map.alternatization_def,
-  simp_rw [coe_dom_dom_congr, smul_smul, int.units_coe_mul_self, one_smul,
-    finset.sum_const, finset.card_univ, fintype.card_perm, nsmul_eq_smul],
-  rw [←coe_multilinear_map, coe_smul],
+  simp_rw [multilinear_map.alternatization_def, coe_dom_dom_congr, smul_smul,
+    int.units_mul_self, one_smul, finset.sum_const, finset.card_univ, fintype.card_perm,
+    ←coe_multilinear_map, coe_smul],
 end
 
 end alternating_map
 
 namespace linear_map
 
-variables {N'₂ : Type*} [add_comm_group N'₂] [semimodule R N'₂] [fintype ι]
+variables {N'₂ : Type*} [add_comm_group N'₂] [module R N'₂] [fintype ι]
 
 /-- Composition with a linear map before and after alternatization are equivalent. -/
 lemma comp_multilinear_map_alternatization (g : N' →ₗ[R] N'₂)
@@ -434,3 +472,280 @@ lemma comp_multilinear_map_alternatization (g : N' →ₗ[R] N'₂)
 by { ext, simp [multilinear_map.alternatization_def] }
 
 end linear_map
+
+section coprod
+
+open_locale big_operators
+open_locale tensor_product
+
+variables {ιa ιb : Type*} [decidable_eq ιa] [decidable_eq ιb] [fintype ιa] [fintype ιb]
+
+variables
+  {R' : Type*} {Mᵢ N₁ N₂ : Type*}
+  [comm_semiring R']
+  [add_comm_group N₁] [module R' N₁]
+  [add_comm_group N₂] [module R' N₂]
+  [add_comm_monoid Mᵢ] [module R' Mᵢ]
+
+namespace equiv.perm
+
+/-- Elements which are considered equivalent if they differ only by swaps within α or β  -/
+abbreviation mod_sum_congr (α β : Type*) :=
+quotient_group.quotient (equiv.perm.sum_congr_hom α β).range
+
+lemma mod_sum_congr.swap_smul_involutive {α β : Type*} [decidable_eq (α ⊕ β)] (i j : α ⊕ β) :
+  function.involutive (has_scalar.smul (equiv.swap i j) : mod_sum_congr α β → mod_sum_congr α β) :=
+λ σ, begin
+  apply σ.induction_on' (λ σ, _),
+  exact _root_.congr_arg quotient.mk' (equiv.swap_mul_involutive i j σ)
+end
+
+end equiv.perm
+
+namespace alternating_map
+open equiv
+
+/-- summand used in `alternating_map.dom_coprod` -/
+def dom_coprod.summand
+  (a : alternating_map R' Mᵢ N₁ ιa) (b : alternating_map R' Mᵢ N₂ ιb)
+  (σ : perm.mod_sum_congr ιa ιb) :
+  multilinear_map R' (λ _ : ιa ⊕ ιb, Mᵢ) (N₁ ⊗[R'] N₂) :=
+quotient.lift_on' σ
+  (λ σ,
+    σ.sign •
+      (multilinear_map.dom_coprod ↑a ↑b : multilinear_map R' (λ _, Mᵢ) (N₁ ⊗ N₂)).dom_dom_congr σ)
+  (λ σ₁ σ₂ ⟨⟨sl, sr⟩, h⟩, begin
+    ext v,
+    simp only [multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply,
+      coe_multilinear_map, multilinear_map.smul_apply],
+    replace h := inv_mul_eq_iff_eq_mul.mp h.symm,
+    have : (σ₁ * perm.sum_congr_hom _ _ (sl, sr)).sign = σ₁.sign * (sl.sign * sr.sign) :=
+      by simp,
+    rw [h, this, mul_smul, mul_smul, smul_left_cancel_iff,
+      ←tensor_product.tmul_smul, tensor_product.smul_tmul'],
+    simp only [sum.map_inr, perm.sum_congr_hom_apply, perm.sum_congr_apply, sum.map_inl,
+              function.comp_app, perm.coe_mul],
+    rw [←a.map_congr_perm (λ i, v (σ₁ _)), ←b.map_congr_perm (λ i, v (σ₁ _))],
+  end)
+
+lemma dom_coprod.summand_mk'
+  (a : alternating_map R' Mᵢ N₁ ιa) (b : alternating_map R' Mᵢ N₂ ιb)
+  (σ : equiv.perm (ιa ⊕ ιb)) :
+  dom_coprod.summand a b (quotient.mk' σ) = σ.sign •
+    (multilinear_map.dom_coprod ↑a ↑b : multilinear_map R' (λ _, Mᵢ) (N₁ ⊗ N₂)).dom_dom_congr σ :=
+rfl
+
+/-- Swapping elements in `σ` with equal values in `v` results in an addition that cancels -/
+lemma dom_coprod.summand_add_swap_smul_eq_zero
+  (a : alternating_map R' Mᵢ N₁ ιa) (b : alternating_map R' Mᵢ N₂ ιb)
+  (σ : perm.mod_sum_congr ιa ιb)
+  {v : ιa ⊕ ιb → Mᵢ} {i j : ιa ⊕ ιb} (hv : v i = v j) (hij : i ≠ j) :
+  dom_coprod.summand a b σ v + dom_coprod.summand a b (swap i j • σ) v = 0 :=
+begin
+  apply σ.induction_on' (λ σ, _),
+  dsimp only [quotient.lift_on'_mk', quotient.map'_mk', mul_action.quotient.smul_mk,
+    dom_coprod.summand],
+  rw [perm.sign_mul, perm.sign_swap hij],
+  simp only [one_mul, units.neg_mul, function.comp_app, units.neg_smul, perm.coe_mul,
+    units.coe_neg, multilinear_map.smul_apply, multilinear_map.neg_apply,
+    multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply],
+  convert add_right_neg _;
+  { ext k, rw equiv.apply_swap_eq_self hv },
+end
+
+/-- Swapping elements in `σ` with equal values in `v` result in zero if the swap has no effect
+on the quotient. -/
+lemma dom_coprod.summand_eq_zero_of_smul_invariant
+  (a : alternating_map R' Mᵢ N₁ ιa) (b : alternating_map R' Mᵢ N₂ ιb)
+  (σ : perm.mod_sum_congr ιa ιb)
+  {v : ιa ⊕ ιb → Mᵢ} {i j : ιa ⊕ ιb} (hv : v i = v j) (hij : i ≠ j) :
+  swap i j • σ = σ → dom_coprod.summand a b σ v = 0 :=
+begin
+  apply σ.induction_on' (λ σ, _),
+  dsimp only [quotient.lift_on'_mk', quotient.map'_mk', multilinear_map.smul_apply,
+    multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply, dom_coprod.summand],
+  intro hσ,
+  with_cases {
+    cases hi : σ⁻¹ i;
+      cases hj : σ⁻¹ j;
+      rw perm.inv_eq_iff_eq at hi hj;
+      substs hi hj, },
+  case [sum.inl sum.inr : i' j', sum.inr sum.inl : i' j'] {
+    -- the term pairs with and cancels another term
+    all_goals { obtain ⟨⟨sl, sr⟩, hσ⟩ := quotient.exact' hσ, },
+    work_on_goal 0 { replace hσ := equiv.congr_fun hσ (sum.inl i'), },
+    work_on_goal 1 { replace hσ := equiv.congr_fun hσ (sum.inr i'), },
+    all_goals {
+      rw [←equiv.mul_swap_eq_swap_mul, mul_inv_rev, equiv.swap_inv, inv_mul_cancel_right] at hσ,
+      simpa using hσ, }, },
+  case [sum.inr sum.inr : i' j', sum.inl sum.inl : i' j'] {
+    -- the term does not pair but is zero
+    all_goals { convert smul_zero _, },
+    work_on_goal 0 { convert tensor_product.tmul_zero _ _, },
+    work_on_goal 1 { convert tensor_product.zero_tmul _ _, },
+    all_goals { exact alternating_map.map_eq_zero_of_eq _ _ hv (λ hij', hij (hij' ▸ rfl)), } },
+end
+
+/-- Like `multilinear_map.dom_coprod`, but ensures the result is also alternating.
+
+Note that this is usually defined (for instance, as used in Proposition 22.24 in [Gallier2011Notes])
+over integer indices `ιa = fin n` and `ιb = fin m`, as
+$$
+(f \wedge g)(u_1, \ldots, u_{m+n}) =
+  \sum_{\operatorname{shuffle}(m, n)} \operatorname{sign}(\sigma)
+    f(u_{\sigma(1)}, \ldots, u_{\sigma(m)}) g(u_{\sigma(m+1)}, \ldots, u_{\sigma(m+n)}),
+$$
+where $\operatorname{shuffle}(m, n)$ consists of all permutations of $[1, m+n]$ such that
+$\sigma(1) < \cdots < \sigma(m)$ and $\sigma(m+1) < \cdots < \sigma(m+n)$.
+
+Here, we generalize this by replacing:
+* the product in the sum with a tensor product
+* the filtering of $[1, m+n]$ to shuffles with an isomorphic quotient
+* the additions in the subscripts of $\sigma$ with an index of type `sum`
+
+The specialized version can be obtained by combining this definition with `fin_sum_fin_equiv` and
+`algebra.lmul'`.
+-/
+@[simps]
+def dom_coprod
+  (a : alternating_map R' Mᵢ N₁ ιa) (b : alternating_map R' Mᵢ N₂ ιb) :
+  alternating_map R' Mᵢ (N₁ ⊗[R'] N₂) (ιa ⊕ ιb) :=
+{ to_fun := λ v, ⇑(∑ σ : perm.mod_sum_congr ιa ιb, dom_coprod.summand a b σ) v,
+  map_eq_zero_of_eq' := λ v i j hv hij, begin
+    dsimp only,
+    rw multilinear_map.sum_apply,
+    exact finset.sum_involution
+      (λ σ _, equiv.swap i j • σ)
+      (λ σ _, dom_coprod.summand_add_swap_smul_eq_zero a b σ hv hij)
+      (λ σ _, mt $ dom_coprod.summand_eq_zero_of_smul_invariant a b σ hv hij)
+      (λ σ _, finset.mem_univ _)
+      (λ σ _, equiv.perm.mod_sum_congr.swap_smul_involutive i j σ),
+  end,
+  ..(∑ σ : perm.mod_sum_congr ιa ιb, dom_coprod.summand a b σ) }
+
+lemma dom_coprod_coe (a : alternating_map R' Mᵢ N₁ ιa) (b : alternating_map R' Mᵢ N₂ ιb) :
+  (↑(a.dom_coprod b) : multilinear_map R' (λ _, Mᵢ) _) =
+    ∑ σ : perm.mod_sum_congr ιa ιb, dom_coprod.summand a b σ :=
+multilinear_map.ext $ λ _, rfl
+
+/-- A more bundled version of `alternating_map.dom_coprod` that maps
+`((ι₁ → N) → N₁) ⊗ ((ι₂ → N) → N₂)` to `(ι₁ ⊕ ι₂ → N) → N₁ ⊗ N₂`. -/
+def dom_coprod' :
+  (alternating_map R' Mᵢ N₁ ιa ⊗[R'] alternating_map R' Mᵢ N₂ ιb) →ₗ[R']
+    alternating_map R' Mᵢ (N₁ ⊗[R'] N₂) (ιa ⊕ ιb) :=
+tensor_product.lift $ by
+  refine linear_map.mk₂ R' (dom_coprod)
+    (λ m₁ m₂ n, _)
+    (λ c m n, _)
+    (λ m n₁ n₂, _)
+    (λ c m n, _);
+  { ext,
+    simp only [dom_coprod_apply, add_apply, smul_apply, ←finset.sum_add_distrib,
+      finset.smul_sum, multilinear_map.sum_apply, dom_coprod.summand],
+    congr,
+    ext σ,
+    apply σ.induction_on' (λ σ, _),
+    simp only [quotient.lift_on'_mk', coe_add, coe_smul, multilinear_map.smul_apply,
+      ←multilinear_map.dom_coprod'_apply],
+    simp only [tensor_product.add_tmul, ←tensor_product.smul_tmul',
+      tensor_product.tmul_add, tensor_product.tmul_smul, linear_map.map_add, linear_map.map_smul],
+    rw ←smul_add <|> rw smul_comm,
+    congr }
+
+@[simp]
+lemma dom_coprod'_apply
+  (a : alternating_map R' Mᵢ N₁ ιa) (b : alternating_map R' Mᵢ N₂ ιb) :
+  dom_coprod' (a ⊗ₜ[R'] b) = dom_coprod a b :=
+by simp only [dom_coprod', tensor_product.lift.tmul, linear_map.mk₂_apply]
+
+end alternating_map
+
+open equiv
+
+/-- A helper lemma for `multilinear_map.dom_coprod_alternization`. -/
+lemma multilinear_map.dom_coprod_alternization_coe
+  (a : multilinear_map R' (λ _ : ιa, Mᵢ) N₁) (b : multilinear_map R' (λ _ : ιb, Mᵢ) N₂) :
+  multilinear_map.dom_coprod ↑a.alternatization ↑b.alternatization =
+    ∑ (σa : perm ιa) (σb : perm ιb), σa.sign • σb.sign •
+      multilinear_map.dom_coprod (a.dom_dom_congr σa) (b.dom_dom_congr σb) :=
+begin
+  simp_rw [←multilinear_map.dom_coprod'_apply, multilinear_map.alternatization_coe],
+  simp_rw [tensor_product.sum_tmul, tensor_product.tmul_sum, linear_map.map_sum,
+    ←tensor_product.smul_tmul', tensor_product.tmul_smul, linear_map.map_smul_of_tower],
+end
+
+open alternating_map
+
+/-- Computing the `multilinear_map.alternatization` of the `multilinear_map.dom_coprod` is the same
+as computing the `alternating_map.dom_coprod` of the `multilinear_map.alternatization`s.
+-/
+lemma multilinear_map.dom_coprod_alternization
+  (a : multilinear_map R' (λ _ : ιa, Mᵢ) N₁) (b : multilinear_map R' (λ _ : ιb, Mᵢ) N₂) :
+  (multilinear_map.dom_coprod a b).alternatization =
+    a.alternatization.dom_coprod b.alternatization :=
+begin
+  apply coe_multilinear_map_injective,
+  rw [dom_coprod_coe, multilinear_map.alternatization_coe,
+    finset.sum_partition (quotient_group.left_rel (perm.sum_congr_hom ιa ιb).range)],
+  congr' 1,
+  ext1 σ,
+  apply σ.induction_on' (λ σ, _),
+
+  -- unfold the quotient mess left by `finset.sum_partition`
+  conv in (_ = quotient.mk' _) {
+    change quotient.mk' _ = quotient.mk' _,
+    rw quotient.eq',
+    rw [quotient_group.left_rel],
+    dsimp only [setoid.r] },
+
+  -- eliminate a multiplication
+  have : @finset.univ (perm (ιa ⊕ ιb)) _ = finset.univ.image ((*) σ) :=
+    (finset.eq_univ_iff_forall.mpr $ λ a, let ⟨a', ha'⟩ := mul_left_surjective σ a in
+      finset.mem_image.mpr ⟨a', finset.mem_univ _, ha'⟩).symm,
+  rw [this, finset.image_filter],
+  simp only [function.comp, mul_inv_rev, inv_mul_cancel_right, subgroup.inv_mem_iff],
+  simp only [monoid_hom.mem_range], -- needs to be separate from the above `simp only`
+  rw [finset.filter_congr_decidable,
+    finset.univ_filter_exists (perm.sum_congr_hom ιa ιb),
+    finset.sum_image (λ x _ y _ (h : _ = _), mul_right_injective _ h),
+    finset.sum_image (λ x _ y _ (h : _ = _), perm.sum_congr_hom_injective h)],
+  dsimp only,
+
+  -- now we're ready to clean up the RHS, pulling out the summation
+  rw [dom_coprod.summand_mk', multilinear_map.dom_coprod_alternization_coe,
+    ←finset.sum_product', finset.univ_product_univ,
+    ←multilinear_map.dom_dom_congr_equiv_apply, add_equiv.map_sum, finset.smul_sum],
+  congr' 1,
+  ext1 ⟨al, ar⟩,
+  dsimp only,
+
+  -- pull out the pair of smuls on the RHS, by rewriting to `_ →ₗ[ℤ] _` and back
+  rw [←add_equiv.coe_to_add_monoid_hom, ←add_monoid_hom.coe_to_int_linear_map,
+    linear_map.map_smul_of_tower,
+    linear_map.map_smul_of_tower,
+    add_monoid_hom.coe_to_int_linear_map, add_equiv.coe_to_add_monoid_hom,
+    multilinear_map.dom_dom_congr_equiv_apply],
+
+  -- pick up the pieces
+  rw [multilinear_map.dom_dom_congr_mul, perm.sign_mul,
+    perm.sum_congr_hom_apply, multilinear_map.dom_coprod_dom_dom_congr_sum_congr,
+    perm.sign_sum_congr, mul_smul, mul_smul],
+end
+
+/-- Taking the `multilinear_map.alternatization` of the `multilinear_map.dom_coprod` of two
+`alternating_map`s gives a scaled version of the `alternating_map.coprod` of those maps.
+-/
+lemma multilinear_map.dom_coprod_alternization_eq
+  (a : alternating_map R' Mᵢ N₁ ιa) (b : alternating_map R' Mᵢ N₂ ιb) :
+  (multilinear_map.dom_coprod a b : multilinear_map R' (λ _ : ιa ⊕ ιb, Mᵢ) (N₁ ⊗ N₂))
+    .alternatization =
+    ((fintype.card ιa).factorial * (fintype.card ιb).factorial) • a.dom_coprod b :=
+begin
+  rw [multilinear_map.dom_coprod_alternization, coe_alternatization, coe_alternatization, mul_smul,
+    ←dom_coprod'_apply, ←dom_coprod'_apply, ←tensor_product.smul_tmul', tensor_product.tmul_smul,
+    linear_map.map_smul_of_tower dom_coprod', linear_map.map_smul_of_tower dom_coprod'],
+  -- typeclass resolution is a little confused here
+  apply_instance, apply_instance,
+end
+
+end coprod

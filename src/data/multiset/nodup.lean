@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import data.multiset.powerset
 import data.multiset.range
@@ -32,7 +32,7 @@ quot.induction_on s $ λ l, nodup_cons
 theorem nodup_cons_of_nodup {a : α} {s : multiset α} (m : a ∉ s) (n : nodup s) : nodup (a ::ₘ s) :=
 nodup_cons.2 ⟨m, n⟩
 
-theorem nodup_singleton : ∀ a : α, nodup (a ::ₘ 0) := nodup_singleton
+theorem nodup_singleton : ∀ a : α, nodup ({a} : multiset α) := nodup_singleton
 
 theorem nodup_of_nodup_cons {a : α} {s : multiset α} (h : nodup (a ::ₘ s)) : nodup s :=
 (nodup_cons.1 h).2
@@ -93,6 +93,14 @@ quot.induction_on s $ λ l, nodup_map_on
 theorem nodup_map {f : α → β} {s : multiset α} (hf : function.injective f) :
   nodup s → nodup (map f s) :=
 nodup_map_on (λ x _ y _ h, hf h)
+
+theorem inj_on_of_nodup_map {f : α → β} {s : multiset α} :
+  nodup (map f s) → ∀ (x ∈ s) (y ∈ s), f x = f y → x = y :=
+quot.induction_on s $ λ l, inj_on_of_nodup_map
+
+theorem nodup_map_iff_inj_on {f : α → β} {s : multiset α} (d : nodup s) :
+  nodup (map f s) ↔ (∀ (x ∈ s) (y ∈ s), f x = f y → x = y) :=
+⟨inj_on_of_nodup_map, λ h, nodup_map_on h d⟩
 
 theorem nodup_filter (p : α → Prop) [decidable_pred p] {s} : nodup s → nodup (filter p s) :=
 quot.induction_on s $ λ l, nodup_filter p

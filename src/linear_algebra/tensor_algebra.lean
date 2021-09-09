@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Adam Topaz.
+Authors: Adam Topaz
 -/
 import algebra.free_algebra
 import algebra.ring_quot
@@ -36,7 +36,7 @@ modulo the additional relations making the inclusion of `M` into an `R`-linear m
 -/
 
 variables (R : Type*) [comm_semiring R]
-variables (M : Type*) [add_comm_monoid M] [semimodule R M]
+variables (M : Type*) [add_comm_monoid M] [module R M]
 
 namespace tensor_algebra
 
@@ -61,7 +61,7 @@ def tensor_algebra := ring_quot (tensor_algebra.rel R M)
 
 namespace tensor_algebra
 
-instance {S : Type*} [comm_ring S] [semimodule S M] : ring (tensor_algebra S M) :=
+instance {S : Type*} [comm_ring S] [module S M] : ring (tensor_algebra S M) :=
 ring_quot.ring (rel S M)
 
 variables {M}

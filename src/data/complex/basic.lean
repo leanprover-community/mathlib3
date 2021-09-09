@@ -106,10 +106,10 @@ instance : has_mul ℂ := ⟨λ z w, ⟨z.re * w.re - z.im * w.im, z.re * w.im +
 @[simp] lemma mul_im (z w : ℂ) : (z * w).im = z.re * w.im + z.im * w.re := rfl
 @[simp, norm_cast] lemma of_real_mul (r s : ℝ) : ((r * s : ℝ) : ℂ) = r * s := ext_iff.2 $ by simp
 
-lemma smul_re (r : ℝ) (z : ℂ) : (↑r * z).re = r * z.re := by simp
-lemma smul_im (r : ℝ) (z : ℂ) : (↑r * z).im = r * z.im := by simp
-lemma of_real_smul (r : ℝ) (z : ℂ) : (↑r * z) = ⟨r * z.re, r * z.im⟩ :=
-ext (smul_re _ _) (smul_im _ _)
+lemma of_real_mul_re (r : ℝ) (z : ℂ) : (↑r * z).re = r * z.re := by simp
+lemma of_real_mul_im (r : ℝ) (z : ℂ) : (↑r * z).im = r * z.im := by simp
+lemma of_real_mul' (r : ℝ) (z : ℂ) : (↑r * z) = ⟨r * z.re, r * z.im⟩ :=
+ext (of_real_mul_re _ _) (of_real_mul_im _ _)
 
 /-! ### The imaginary unit, `I` -/
 
@@ -133,16 +133,43 @@ ext_iff.2 $ by simp
 
 /-! ### Commutative ring instance and lemmas -/
 
+/- We use a nonstandard formula for the `ℕ` and `ℤ` actions to make sure there is no
+diamond from the other actions they inherit through the `ℝ`-action on `ℂ` and action transitivity
+defined in `data.complex.module.lean`. -/
 instance : comm_ring ℂ :=
-by refine { zero := 0, add := (+), neg := has_neg.neg, sub := has_sub.sub, one := 1, mul := (*),
-            sub_eq_add_neg := _, ..};
-   { intros, apply ext_iff.2; split; simp; ring }
+by refine_struct
+  { zero := (0 : ℂ),
+    add := (+),
+    neg := has_neg.neg,
+    sub := has_sub.sub,
+    one := 1,
+    mul := (*),
+    zero_add := λ z, by { apply ext_iff.2, simp },
+    add_zero := λ z, by { apply ext_iff.2, simp },
+    nsmul := λ n z, ⟨n • z.re - 0 * z.im, n • z.im + 0 * z.re⟩,
+    npow := @npow_rec _ ⟨(1)⟩ ⟨(*)⟩,
+    gsmul := λ n z, ⟨n • z.re - 0 * z.im, n • z.im + 0 * z.re⟩ };
+intros; try { refl }; apply ext_iff.2; split; simp; {ring1 <|> ring_nf}
 
-instance re.is_add_group_hom : is_add_group_hom complex.re :=
-{ map_add := complex.add_re }
+/-- This shortcut instance ensures we do not find `ring` via the noncomputable `complex.field`
+instance. -/
+instance : ring ℂ := by apply_instance
 
-instance im.is_add_group_hom : is_add_group_hom complex.im :=
-{ map_add := complex.add_im }
+/-- The "real part" map, considered as an additive group homomorphism. -/
+def re_add_group_hom : ℂ →+ ℝ :=
+{ to_fun := re,
+  map_zero' := zero_re,
+  map_add' := add_re }
+
+@[simp] lemma coe_re_add_group_hom : (re_add_group_hom : ℂ → ℝ) = re := rfl
+
+/-- The "imaginary part" map, considered as an additive group homomorphism. -/
+def im_add_group_hom : ℂ →+ ℝ :=
+{ to_fun := im,
+  map_zero' := zero_im,
+  map_add' := add_im }
+
+@[simp] lemma coe_im_add_group_hom : (im_add_group_hom : ℂ → ℝ) = im := rfl
 
 @[simp] lemma I_pow_bit0 (n : ℕ) : I ^ (bit0 n) = (-1) ^ n :=
 by rw [pow_bit0', I_mul_I]
@@ -190,6 +217,15 @@ lemma eq_conj_iff_real {z : ℂ} : conj z = z ↔ ∃ r : ℝ, z = r :=
 
 lemma eq_conj_iff_re {z : ℂ} : conj z = z ↔ (z.re : ℂ) = z :=
 eq_conj_iff_real.trans ⟨by rintro ⟨r, rfl⟩; simp, λ h, ⟨_, h.symm⟩⟩
+
+
+lemma conj_sub (z z': ℂ) : conj (z - z') = conj z - conj z' := conj.map_sub z z'
+
+lemma conj_one : conj 1 = 1 := by rw conj.map_one
+
+lemma eq_conj_iff_im {z : ℂ} : conj z = z ↔ z.im = 0 :=
+⟨λ h, add_self_eq_zero.mp (neg_eq_iff_add_eq_zero.mp (congr_arg im h)),
+  λ h, ext rfl (neg_eq_iff_add_eq_zero.mpr (add_self_eq_zero.mpr h))⟩
 
 instance : star_ring ℂ :=
 { star := λ z, conj z,
@@ -260,7 +296,7 @@ def of_real : ℝ →+* ℂ := ⟨coe, of_real_one, of_real_mul, of_real_zero, o
 
 @[simp] lemma of_real_eq_coe (r : ℝ) : of_real r = r := rfl
 
-@[simp] lemma I_sq : I ^ 2 = -1 := by rw [pow_two, I_mul_I]
+@[simp] lemma I_sq : I ^ 2 = -1 := by rw [sq, I_mul_I]
 
 @[simp] lemma sub_re (z w : ℂ) : (z - w).re = z.re - w.re := rfl
 @[simp] lemma sub_im (z w : ℂ) : (z - w).im = z.im - w.im := rfl
@@ -435,6 +471,9 @@ lemma re_le_abs (z : ℂ) : z.re ≤ abs z :=
 lemma im_le_abs (z : ℂ) : z.im ≤ abs z :=
 (abs_le.1 (abs_im_le_abs _)).2
 
+/--
+The **triangle inequality** for complex numbers.
+-/
 lemma abs_add (z w : ℂ) : abs (z + w) ≤ abs z + abs w :=
 (mul_self_le_mul_self_iff (abs_nonneg _)
   (add_nonneg (abs_nonneg _) (abs_nonneg _))).2 $
@@ -457,7 +496,7 @@ _root_.abs_of_nonneg (abs_nonneg _)
 
 @[simp] lemma abs_pos {z : ℂ} : 0 < abs z ↔ z ≠ 0 := abv_pos abs
 @[simp] lemma abs_neg : ∀ z, abs (-z) = abs z := abv_neg abs
-lemma abs_sub : ∀ z w, abs (z - w) = abs (w - z) := abv_sub abs
+lemma abs_sub_comm : ∀ z w, abs (z - w) = abs (w - z) := abv_sub abs
 lemma abs_sub_le : ∀ a b c, abs (a - c) ≤ abs (a - b) + abs (b - c) := abv_sub_le abs
 @[simp] theorem abs_inv : ∀ z, abs z⁻¹ = (abs z)⁻¹ := abv_inv abs
 @[simp] theorem abs_div : ∀ z w, abs (z / w) = abs z / abs w := abv_div abs
@@ -483,7 +522,7 @@ by rw [← of_real_nat_cast, abs_of_nonneg (nat.cast_nonneg n)]
 by rw [← of_real_int_cast, abs_of_real, int.cast_abs]
 
 lemma norm_sq_eq_abs (x : ℂ) : norm_sq x = abs x ^ 2 :=
-by rw [abs, pow_two, real.mul_self_sqrt (norm_sq_nonneg _)]
+by rw [abs, sq, real.mul_self_sqrt (norm_sq_nonneg _)]
 
 /--
 We put a partial order on ℂ so that `z ≤ w` exactly if `w - z` is real and nonnegative.
@@ -526,7 +565,7 @@ begin
   fsplit,
   { rintro ⟨⟨x, l, rfl⟩, h⟩,
     by_cases hx : x = 0,
-    { simp [hx] at h, exfalso, exact h (le_refl _), },
+    { simpa [hx] using h },
     { replace l : 0 < x := l.lt_of_ne (ne.symm hx),
       exact ⟨x, l, rfl⟩, } },
   { rintro ⟨x, l, rfl⟩,

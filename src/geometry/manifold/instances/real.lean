@@ -5,7 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import geometry.manifold.algebra.smooth_functions
 import linear_algebra.finite_dimensional
-import analysis.normed_space.inner_product
+import analysis.normed_space.pi_Lp
 
 /-!
 # Constructing examples of manifolds over ℝ
@@ -15,8 +15,8 @@ or with boundary or with corners. As a concrete example, we construct explicitly
 boundary structure on the real interval `[x, y]`.
 
 More specifically, we introduce
-* `model_with_corners ℝ (euclidean_space ℝ (fin n)) (euclidean_half_space n)` for the model space used
-  to define `n`-dimensional real manifolds with boundary
+* `model_with_corners ℝ (euclidean_space ℝ (fin n)) (euclidean_half_space n)` for the model space
+  used to define `n`-dimensional real manifolds with boundary
 * `model_with_corners ℝ (euclidean_space ℝ (fin n)) (euclidean_quadrant n)` for the model space used
   to define `n`-dimensional real manifolds with corners
 
@@ -38,7 +38,7 @@ typeclass. We provide it as `[fact (x < y)]`.
 -/
 
 noncomputable theory
-open set
+open set function
 open_locale manifold
 
 /--
@@ -76,116 +76,52 @@ by simp
 end
 
 /--
-Definition of the model with corners `(euclidean_space ℝ (fin n), euclidean_half_space n)`, used as a
-model for manifolds with boundary. In the locale `manifold`, use the shortcut `𝓡∂ n`.
+Definition of the model with corners `(euclidean_space ℝ (fin n), euclidean_half_space n)`, used as
+a model for manifolds with boundary. In the locale `manifold`, use the shortcut `𝓡∂ n`.
 -/
 def model_with_corners_euclidean_half_space (n : ℕ) [has_zero (fin n)] :
   model_with_corners ℝ (euclidean_space ℝ (fin n)) (euclidean_half_space n) :=
-{ to_fun      := λx, x.val,
-  inv_fun     := λx, ⟨λi, if h : i = 0 then max (x i) 0 else x i, by simp [le_refl]⟩,
+{ to_fun      := subtype.val,
+  inv_fun     := λx, ⟨update x 0 (max (x 0) 0), by simp [le_refl]⟩,
   source      := univ,
-  target      := range (λx : euclidean_half_space n, x.val),
-  map_source' := λx hx, by simpa only [subtype.range_val] using x.property,
+  target      := {x | 0 ≤ x 0},
+  map_source' := λx hx, x.property,
   map_target' := λx hx, mem_univ _,
-  left_inv'   := λ⟨xval, xprop⟩ hx, begin
-    rw subtype.mk_eq_mk,
-    ext1 i,
-    by_cases hi : i = 0,
-    { rw hi, simp only [xprop, dif_pos, max_eq_left] },
-    { simp only [hi, dif_neg, not_false_iff] }
+  left_inv'   := λ ⟨xval, xprop⟩ hx, begin
+    rw [subtype.mk_eq_mk, update_eq_iff],
+    exact ⟨max_eq_left xprop, λ i _, rfl⟩
   end,
-  right_inv'  := λx hx, begin
-    simp only [mem_set_of_eq, subtype.range_val_subtype] at hx,
-    ext1 i,
-    by_cases hi : i = 0,
-    { rw hi, simp only [hx, dif_pos, max_eq_left] } ,
-    { simp only [hi, dif_neg, not_false_iff] }
-  end,
+  right_inv'  := λx hx, update_eq_iff.2 ⟨max_eq_left hx, λ i _, rfl⟩,
   source_eq    := rfl,
-  unique_diff' := begin
-    /- To check that the half-space has the unique differentiability property, we use the criterion
-    `unique_diff_on_convex`: it suffices to check that it is convex and with nonempty interior. -/
-    rw range_half_space,
-    apply unique_diff_on_convex,
-    show convex {y : euclidean_space ℝ (fin n) | 0 ≤ y 0},
-    { assume x y hx hy a b ha hb hab,
-      simpa only [add_zero] using add_le_add (mul_nonneg ha hx) (mul_nonneg hb hy) },
-    show (interior {y : euclidean_space ℝ (fin n) | 0 ≤ y 0}).nonempty,
-    { use (λi, 1),
-      rw mem_interior,
-      refine ⟨(pi (univ : set (fin n)) (λi, (Ioi 0 : set ℝ))), _,
-        is_open_set_pi finite_univ (λa ha, is_open_Ioi), _⟩,
-      { assume x hx,
-        simp only [pi, forall_prop_of_true, mem_univ, mem_Ioi] at hx,
-        exact le_of_lt (hx 0) },
-      { simp only [pi, forall_prop_of_true, mem_univ, mem_Ioi],
-        assume i,
-        exact zero_lt_one } }
-  end,
+  unique_diff' :=
+    have this : unique_diff_on ℝ _ :=
+      unique_diff_on.pi (fin n) (λ _, ℝ) _ _ (λ i ∈ ({0} : set (fin n)), unique_diff_on_Ici 0),
+    by simpa only [singleton_pi] using this,
   continuous_to_fun  := continuous_subtype_val,
-  continuous_inv_fun := begin
-    apply continuous_subtype_mk,
-    apply continuous_pi,
-    assume i,
-    by_cases h : i = 0,
-    { rw h,
-      simp only [dif_pos],
-      have : continuous (λx:ℝ, max x 0) := continuous_id.max continuous_const,
-      exact this.comp (continuous_apply 0) },
-    { simp only [h, dif_neg, not_false_iff],
-      exact continuous_apply i }
-  end }
+  continuous_inv_fun := continuous_subtype_mk _ $ continuous_id.update 0 $
+    (continuous_apply 0).max continuous_const }
 
 /--
 Definition of the model with corners `(euclidean_space ℝ (fin n), euclidean_quadrant n)`, used as a
 model for manifolds with corners -/
 def model_with_corners_euclidean_quadrant (n : ℕ) :
   model_with_corners ℝ (euclidean_space ℝ (fin n)) (euclidean_quadrant n) :=
-{ to_fun      := λx, x.val,
+{ to_fun      := subtype.val,
   inv_fun     := λx, ⟨λi, max (x i) 0, λi, by simp only [le_refl, or_true, le_max_iff]⟩,
   source      := univ,
-  target      := range (λx : euclidean_quadrant n, x.val),
+  target      := {x | ∀ i, 0 ≤ x i},
   map_source' := λx hx, by simpa only [subtype.range_val] using x.property,
   map_target' := λx hx, mem_univ _,
-  left_inv'   := λ⟨xval, xprop⟩ hx, begin
-    rw subtype.mk_eq_mk,
-    ext1 i,
-    simp only [xprop i, max_eq_left]
-  end,
-  right_inv' := λx hx, begin
-    rw range_quadrant at hx,
-    ext1 i,
-    simp only [hx i, max_eq_left]
-  end,
+  left_inv'   := λ ⟨xval, xprop⟩ hx, by { ext i, simp only [subtype.coe_mk, xprop i, max_eq_left] },
+  right_inv' := λ x hx, by { ext1 i, simp only [hx i, max_eq_left] },
   source_eq    := rfl,
-  unique_diff' := begin
-    /- To check that the quadrant has the unique differentiability property, we use the criterion
-    `unique_diff_on_convex`: it suffices to check that it is convex and with nonempty interior. -/
-    rw range_quadrant,
-    apply unique_diff_on_convex,
-    show convex {y : euclidean_space ℝ (fin n) | ∀ (i : fin n), 0 ≤ y i},
-    { assume x y hx hy a b ha hb hab i,
-      simpa only [add_zero] using add_le_add (mul_nonneg ha (hx i)) (mul_nonneg hb (hy i)) },
-    show (interior {y : euclidean_space ℝ (fin n) | ∀ (i : fin n), 0 ≤ y i}).nonempty,
-    { use (λi, 1),
-      rw mem_interior,
-      refine ⟨(pi (univ : set (fin n)) (λi, (Ioi 0 : set ℝ))), _,
-        is_open_set_pi finite_univ (λa ha, is_open_Ioi), _⟩,
-      { assume x hx i,
-        simp only [pi, forall_prop_of_true, mem_univ, mem_Ioi] at hx,
-        exact le_of_lt (hx i) },
-      { simp only [pi, forall_prop_of_true, mem_univ, mem_Ioi],
-        assume i,
-        exact zero_lt_one } }
-  end,
+  unique_diff' :=
+    have this : unique_diff_on ℝ _ :=
+      unique_diff_on.univ_pi (fin n) (λ _, ℝ) _ (λ i, unique_diff_on_Ici 0),
+    by simpa only [pi_univ_Ici] using this,
   continuous_to_fun  := continuous_subtype_val,
-  continuous_inv_fun := begin
-    apply continuous_subtype_mk,
-    apply continuous_pi,
-    assume i,
-    have : continuous (λx:ℝ, max x 0) := continuous.max continuous_id continuous_const,
-    exact this.comp (continuous_apply i)
-  end }
+  continuous_inv_fun := continuous_subtype_mk _ $ continuous_pi $ λ i,
+    (continuous_id.max continuous_const).comp (continuous_apply i) }
 
 localized "notation `𝓡 `n := model_with_corners_self ℝ (euclidean_space ℝ (fin n))" in manifold
 localized "notation `𝓡∂ `n := model_with_corners_euclidean_half_space n" in manifold
@@ -199,7 +135,7 @@ def Icc_left_chart (x y : ℝ) [fact (x < y)] :
 { source      := {z : Icc x y | z.val < y},
   target      := {z : euclidean_half_space 1 | z.val 0 < y - x},
   to_fun      := λ(z : Icc x y), ⟨λi, z.val - x, sub_nonneg.mpr z.property.1⟩,
-  inv_fun     := λz, ⟨min (z.val 0 + x) y, by simp [le_refl, z.prop, le_of_lt ‹x < y›]⟩,
+  inv_fun     := λz, ⟨min (z.val 0 + x) y, by simp [le_refl, z.prop, le_of_lt (fact.out (x < y))]⟩,
   map_source' := by simp only [imp_self, sub_lt_sub_iff_right, mem_set_of_eq, forall_true_iff],
   map_target' :=
     by { simp only [min_lt_iff, mem_set_of_eq], assume z hz, left,
@@ -254,7 +190,7 @@ def Icc_right_chart (x y : ℝ) [fact (x < y)] :
   target      := {z : euclidean_half_space 1 | z.val 0 < y - x},
   to_fun      := λ(z : Icc x y), ⟨λi, y - z.val, sub_nonneg.mpr z.property.2⟩,
   inv_fun     := λz,
-    ⟨max (y - z.val 0) x, by simp [le_refl, z.prop, le_of_lt ‹x < y›, sub_eq_add_neg]⟩,
+    ⟨max (y - z.val 0) x, by simp [le_refl, z.prop, le_of_lt (fact.out (x < y)), sub_eq_add_neg]⟩,
   map_source' := by simp only [imp_self, mem_set_of_eq, sub_lt_sub_iff_left, forall_true_iff],
   map_target' :=
     by { simp only [lt_max_iff, mem_set_of_eq], assume z hz, left,
@@ -300,7 +236,8 @@ def Icc_right_chart (x y : ℝ) [fact (x < y)] :
   end }
 
 /--
-Charted space structure on `[x, y]`, using only two charts taking values in `euclidean_half_space 1`.
+Charted space structure on `[x, y]`, using only two charts taking values in
+`euclidean_half_space 1`.
 -/
 instance Icc_manifold (x y : ℝ) [fact (x < y)] : charted_space (euclidean_half_space 1) (Icc x y) :=
 { atlas := {Icc_left_chart x y, Icc_right_chart x y},
@@ -310,7 +247,7 @@ instance Icc_manifold (x y : ℝ) [fact (x < y)] : charted_space (euclidean_half
     { simp only [h', if_true],
       exact h' },
     { simp only [h', if_false],
-      apply lt_of_lt_of_le ‹x < y›,
+      apply lt_of_lt_of_le (fact.out (x < y)),
       simpa only [not_lt] using h'}
   end,
   chart_mem_atlas := λz, by { by_cases h' : z.val < y; simp [h'] } }
@@ -323,7 +260,7 @@ instance Icc_smooth_manifold (x y : ℝ) [fact (x < y)] :
 begin
   have M : times_cont_diff_on ℝ ∞ (λz : euclidean_space ℝ (fin 1), - z + (λi, y - x)) univ,
   { rw times_cont_diff_on_univ,
-    exact times_cont_diff_id.neg.add times_cont_diff_const  },
+    exact times_cont_diff_id.neg.add times_cont_diff_const },
   apply smooth_manifold_with_corners_of_times_cont_diff_on,
   assume e e' he he',
   simp only [atlas, mem_singleton_iff, mem_insert_iff] at he he',
@@ -335,29 +272,27 @@ begin
     exact (mem_groupoid_of_pregroupoid.mpr (symm_trans_mem_times_cont_diff_groupoid _ _ _)).1 },
   { -- `e = left chart`, `e' = right chart`
     apply M.congr_mono _ (subset_univ _),
-    assume z hz,
-    simp only [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, dif_pos,
-      lt_add_iff_pos_left, max_lt_iff, lt_min_iff, sub_pos, lt_max_iff, subtype.range_val]
-      with mfld_simps at hz,
-    have A : 0 ≤ z 0 := hz.2,
-    have B : z 0 + x ≤ y, by { dsimp only at hz ⊢, linarith, },
+    rintro _ ⟨⟨hz₁, hz₂⟩, ⟨⟨z, hz₀⟩, rfl⟩⟩,
+    simp only [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart,
+      update_same, max_eq_left, hz₀, lt_sub_iff_add_lt] with mfld_simps at hz₁ hz₂,
+    rw [min_eq_left hz₁.le, lt_add_iff_pos_left] at hz₂,
     ext i,
     rw subsingleton.elim i 0,
-    simp only [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, A, B,
-      pi_Lp.add_apply, dif_pos, min_eq_left, max_eq_left, pi_Lp.neg_apply] with mfld_simps,
-    ring },
+    simp only [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, *,
+      pi_Lp.add_apply, pi_Lp.neg_apply, max_eq_left, min_eq_left hz₁.le, update_same]
+      with mfld_simps,
+    abel },
   { -- `e = right chart`, `e' = left chart`
     apply M.congr_mono _ (subset_univ _),
-    assume z hz,
-    simp only [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, dif_pos,
-      max_lt_iff, sub_pos, subtype.range_val] with mfld_simps at hz,
-    have A : 0 ≤ z 0 := hz.2,
-    have B : x ≤ y - z 0, by { have := hz.1.1.1, dsimp at this, linarith },
+    rintro _ ⟨⟨hz₁, hz₂⟩, ⟨z, hz₀⟩, rfl⟩,
+    simp only [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, max_lt_iff,
+      update_same, max_eq_left hz₀] with mfld_simps at hz₁ hz₂,
+    rw lt_sub at hz₁,
     ext i,
     rw subsingleton.elim i 0,
-    simp only [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, A, B,
-      pi_Lp.add_apply, dif_pos, max_eq_left, pi_Lp.neg_apply] with mfld_simps,
-    ring },
+    simp only [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart,
+      pi_Lp.add_apply, pi_Lp.neg_apply, update_same, max_eq_left, hz₀, hz₁.le] with mfld_simps,
+    abel },
   { -- `e = right chart`, `e' = right chart`
     exact (mem_groupoid_of_pregroupoid.mpr (symm_trans_mem_times_cont_diff_groupoid _ _ _)).1 }
 end
@@ -365,7 +300,7 @@ end
 /-! Register the manifold structure on `Icc 0 1`, and also its zero and one. -/
 section
 
-lemma fact_zero_lt_one : fact ((0 : ℝ) < 1) := zero_lt_one
+lemma fact_zero_lt_one : fact ((0 : ℝ) < 1) := ⟨zero_lt_one⟩
 
 local attribute [instance] fact_zero_lt_one
 

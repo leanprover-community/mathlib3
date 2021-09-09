@@ -1,15 +1,20 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
-
-Supplementary theorems about the `string` type.
+Authors: Mario Carneiro
 -/
 import data.list.basic
 import data.char
 
+/-!
+# Strings
+
+Supplementary theorems about the `string` type.
+-/
+
 namespace string
 
+/-- `<` on string iterators. This coincides with `<` on strings as lists. -/
 def ltb : iterator → iterator → bool
 | s₁ s₂ := begin
   cases s₂.has_next, {exact ff},
@@ -102,9 +107,14 @@ open string
 lemma list.to_list_inv_as_string (l : list char) : l.as_string.to_list = l :=
 by { cases hl : l.as_string, exact string_imp.mk.inj hl.symm }
 
+@[simp] lemma list.length_as_string (l : list char) : l.as_string.length = l.length := rfl
+
 @[simp] lemma list.as_string_inj {l l' : list char} : l.as_string = l'.as_string ↔ l = l' :=
 ⟨λ h, by rw [←list.to_list_inv_as_string l, ←list.to_list_inv_as_string l', to_list_inj, h],
  λ h, h ▸ rfl⟩
+
+@[simp] lemma string.length_to_list (s : string) : s.to_list.length = s.length :=
+by rw [←string.as_string_inv_to_list s, list.to_list_inv_as_string, list.length_as_string]
 
 lemma list.as_string_eq {l : list char} {s : string} :
   l.as_string = s ↔ l = s.to_list :=

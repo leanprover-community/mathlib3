@@ -3,6 +3,7 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl, Reid Barton
 -/
+import combinatorics.quiver
 import tactic.basic
 
 /-!
@@ -22,22 +23,59 @@ local notation f ` ⊚ `:80 g:80 := category.comp g f    -- type as \oo
 ```
 -/
 
--- The order in this declaration matters: v often needs to be explicitly specified while u often
--- can be omitted
+/--
+The typeclass `category C` describes morphisms associated to objects of type `C : Type u`.
+
+The universe levels of the objects and morphisms are independent, and will often need to be
+specified explicitly, as `category.{v} C`.
+
+Typically any concrete example will either be a `small_category`, where `v = u`,
+which can be introduced as
+```
+universes u
+variables {C : Type u} [small_category C]
+```
+or a `large_category`, where `u = v+1`, which can be introduced as
+```
+universes u
+variables {C : Type (u+1)} [large_category C]
+```
+
+In order for the library to handle these cases uniformly,
+we generally work with the unconstrained `category.{v u}`,
+for which objects live in `Type u` and morphisms live in `Type v`.
+
+Because the universe parameter `u` for the objects can be inferred from `C`
+when we write `category C`, while the universe parameter `v` for the morphisms
+can not be automatically inferred, through the category theory library
+we introduce universe parameters with morphism levels listed first,
+as in
+```
+universes v u
+```
+or
+```
+universes v₁ v₂ u₁ u₂
+```
+when multiple independent universes are needed.
+
+This has the effect that we can simply write `category.{v} C`
+(that is, only specifying a single parameter) while `u` will be inferred.
+
+Often, however, it's not even necessary to include the `.{v}`.
+(Although it was in earlier versions of Lean.)
+If it is omitted a "free" universe will be used.
+-/
+library_note "category_theory universes"
+
 universes v u
 
 namespace category_theory
 
-/-- A 'notation typeclass' on the way to defining a category. -/
-class has_hom (obj : Type u) : Type (max u (v+1)) :=
-(hom : obj → obj → Type v)
-
-infixr ` ⟶ `:10 := has_hom.hom -- type as \h
-
 /-- A preliminary structure on the way to defining a category,
 containing the data, but none of the axioms. -/
 class category_struct (obj : Type u)
-extends has_hom.{v} obj : Type (max u (v+1)) :=
+extends quiver.{v+1} obj : Type (max u (v+1)) :=
 (id       : Π X : obj, hom X X)
 (comp     : Π {X Y Z : obj}, (X ⟶ Y) → (Y ⟶ Z) → (X ⟶ Z))
 
@@ -80,6 +118,9 @@ abbreviation small_category (C : Type u) : Type (u+1) := category.{u} C
 
 section
 variables {C : Type u} [category.{v} C] {X Y Z : C}
+
+initialize_simps_projections category (to_category_struct_to_quiver_hom → hom,
+  to_category_struct_comp → comp, to_category_struct_id → id, -to_category_struct)
 
 /-- postcompose an equation between morphisms by another morphism -/
 lemma eq_whisker {f g : X ⟶ Y} (w : f = g) (h : Y ⟶ Z) : f ≫ h = g ≫ h :=
@@ -207,63 +248,6 @@ instance ulift_category : category.{v} (ulift.{u'} C) :=
 -- We verify that this previous instance can lift small categories to large categories.
 example (D : Type u) [small_category D] : large_category (ulift.{u+1} D) := by apply_instance
 end
-
-end category_theory
-
-open category_theory
-
-/-!
-We now put a category instance on any preorder.
-
-Because we do not allow the morphisms of a category to live in `Prop`,
-unfortunately we need to use `plift` and `ulift` when defining the morphisms.
-
-As convenience functions, we provide `hom_of_le` and `le_of_hom` to wrap and unwrap inequalities.
--/
-namespace preorder
-
-variables (α : Type u)
-
-/--
-The category structure coming from a preorder. There is a morphism `X ⟶ Y` if and only if `X ≤ Y`.
-
-Because we don't allow morphisms to live in `Prop`,
-we have to define `X ⟶ Y` as `ulift (plift (X ≤ Y))`.
-See `category_theory.hom_of_le` and `category_theory.le_of_hom`.
-
-See https://stacks.math.columbia.edu/tag/00D3.
--/
-@[priority 100] -- see Note [lower instance priority]
-instance small_category [preorder α] : small_category α :=
-{ hom  := λ U V, ulift (plift (U ≤ V)),
-  id   := λ X, ⟨ ⟨ le_refl X ⟩ ⟩,
-  comp := λ X Y Z f g, ⟨ ⟨ le_trans _ _ _ f.down.down g.down.down ⟩ ⟩ }
-
-end preorder
-
-namespace category_theory
-
-variables {α : Type u} [preorder α]
-
-/--
-Express an inequality as a morphism in the corresponding preorder category.
--/
-def hom_of_le {U V : α} (h : U ≤ V) : U ⟶ V := ulift.up (plift.up h)
-
-@[simp] lemma hom_of_le_refl {U : α} : hom_of_le (le_refl U) = 𝟙 U := rfl
-@[simp] lemma hom_of_le_comp {U V W : α} (h : U ≤ V) (k : V ≤ W) :
-  hom_of_le h ≫ hom_of_le k = hom_of_le (h.trans k) := rfl
-
-/--
-Extract the underlying inequality from a morphism in a preorder category.
--/
-lemma le_of_hom {U V : α} (h : U ⟶ V) : U ≤ V := h.down.down
-
-@[simp] lemma le_of_hom_hom_of_le {a b : α} (h : a ≤ b) :
-  le_of_hom (hom_of_le h) = h := rfl
-@[simp] lemma hom_of_le_le_of_hom {a b : α} (h : a ⟶ b) :
-  hom_of_le (le_of_hom h) = h :=
-by { cases h, cases h, refl, }
 
 end category_theory
 

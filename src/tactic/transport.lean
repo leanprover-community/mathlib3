@@ -27,7 +27,8 @@ It's probably best not to adjust it without understanding the algorithm used by 
 
 attribute [transport_simps]
   eq_rec_constant
-  eq_mpr_rfl
+  eq_mp_eq_cast
+  cast_eq
   equiv.to_fun_as_coe
   equiv.arrow_congr'_apply
   equiv.symm_apply_apply
@@ -41,7 +42,8 @@ and an equivalence `e : α ≃ β`,
 try to produce an `S β`,
 by transporting data and axioms across `e` using `equiv_rw`.
 -/
-@[nolint unused_arguments] -- At present we don't actually use `s`; it's inferred in the `mk_app` call.
+-- At present we don't actually use `s`; it's inferred in the `mk_app` call.
+@[nolint unused_arguments]
 meta def transport (s e : expr) : tactic unit :=
 do
   (_, α, β) ← infer_type e >>= relation_lhs_rhs <|>

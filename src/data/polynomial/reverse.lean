@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 import data.polynomial.erase_lead
-import data.polynomial.degree
+import data.polynomial.eval
 
 /-!
 # Reverse of a univariate polynomial
@@ -12,7 +12,7 @@ import data.polynomial.degree
 The main definition is `reverse`.  Applying `reverse` to a polynomial `f : polynomial R` produces
 the polynomial with a reversed list of coefficients, equivalent to `X^f.nat_degree * f(1/X)`.
 
-The main result is that `reverse (f * g) = reverse (f) * reverse (g)`, provided the leading
+The main result is that `reverse (f * g) = reverse f * reverse g`, provided the leading
 coefficients of `f` and `g` do not multiply to zero.
 -/
 
@@ -80,34 +80,32 @@ In other words, the terms with exponent `[0, ..., N]` now have exponent `[N, ...
 In practice, `reflect` is only used when `N` is at least as large as the degree of `f`.
 
 Eventually, it will be used with `N` exactly equal to the degree of `f`.  -/
-noncomputable def reflect (N : ℕ) (f : polynomial R) : polynomial R :=
-finsupp.emb_domain (rev_at N) f
+noncomputable def reflect (N : ℕ) : polynomial R → polynomial R
+| ⟨f⟩ := ⟨finsupp.emb_domain (rev_at N) f⟩
 
 lemma reflect_support (N : ℕ) (f : polynomial R) :
   (reflect N f).support = image (rev_at N) f.support :=
 begin
+  rcases f,
   ext1,
-  rw [reflect, mem_image, support_emb_domain, mem_map],
+  rw [reflect, mem_image, support, support, support_emb_domain, mem_map],
 end
 
 @[simp] lemma coeff_reflect (N : ℕ) (f : polynomial R) (i : ℕ) :
   coeff (reflect N f) i = f.coeff (rev_at N i) :=
-calc finsupp.emb_domain (rev_at N) f i
-    = finsupp.emb_domain (rev_at N) f (rev_at N (rev_at N i)) : by rw rev_at_invol
-... = f.coeff (rev_at N i) : finsupp.emb_domain_apply _ _ _
+begin
+  rcases f,
+  simp only [reflect, coeff],
+  calc finsupp.emb_domain (rev_at N) f i
+      = finsupp.emb_domain (rev_at N) f (rev_at N (rev_at N i)) : by rw rev_at_invol
+  ... = f (rev_at N i) : finsupp.emb_domain_apply _ _ _
+end
 
 @[simp] lemma reflect_zero {N : ℕ} : reflect N (0 : polynomial R) = 0 := rfl
 
 @[simp] lemma reflect_eq_zero_iff {N : ℕ} {f : polynomial R} :
   reflect N (f : polynomial R) = 0 ↔ f = 0 :=
-begin
-  split,
-  { intros a,
-    injection a with f0 f1,
-    rwa [map_eq_empty, support_eq_empty] at f0, },
-  { rintro rfl,
-    refl, },
-end
+by { rcases f, simp [reflect, ← zero_to_finsupp] }
 
 @[simp] lemma reflect_add (f g : polynomial R) (N : ℕ) :
   reflect N (f + g) = reflect N f + reflect N g :=
@@ -124,7 +122,7 @@ begin
   rw [reflect_C_mul, coeff_C_mul, coeff_C_mul, coeff_X_pow, coeff_reflect],
   split_ifs with h j,
   { rw [h, rev_at_invol, coeff_X_pow_self], },
-  { rw [not_mem_support_iff_coeff_zero.mp],
+  { rw [not_mem_support_iff.mp],
     intro a,
     rw [← one_mul (X ^ n), ← C_1] at a,
     apply h,
@@ -190,15 +188,7 @@ by rw [coeff_reverse, rev_at_le (zero_le f.nat_degree), nat.sub_zero, leading_co
 @[simp] lemma reverse_zero : reverse (0 : polynomial R) = 0 := rfl
 
 @[simp] lemma reverse_eq_zero : f.reverse = 0 ↔ f = 0 :=
-begin
-  split,
-  { rw [polynomial.ext_iff, polynomial.ext_iff],
-    intros h n,
-    specialize h (rev_at f.nat_degree n),
-    rwa [coeff_zero, coeff_reverse, rev_at_invol] at h },
-  { intro h,
-    rw [h, reverse_zero] },
-end
+by simp [reverse]
 
 lemma reverse_nat_degree_le (f : polynomial R) : f.reverse.nat_degree ≤ f.nat_degree :=
 begin

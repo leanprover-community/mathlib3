@@ -97,6 +97,10 @@ lemma inducing.is_closed_iff {f : α → β} (hf : inducing f) {s : set α} :
   is_closed s ↔ ∃ t, is_closed t ∧ f ⁻¹' t = s :=
 by rw [hf.induced, is_closed_induced_iff]
 
+lemma inducing.is_open_iff {f : α → β} (hf : inducing f) {s : set α} :
+  is_open s ↔ ∃ t, is_open t ∧ f ⁻¹' t = s :=
+by rw [hf.induced, is_open_induced_iff]
+
 end inducing
 
 section embedding
@@ -142,7 +146,7 @@ hf.1.map_nhds_of_mem a h
 lemma embedding.tendsto_nhds_iff {ι : Type*}
   {f : ι → β} {g : β → γ} {a : filter ι} {b : β} (hg : embedding g) :
   tendsto f a (𝓝 b) ↔ tendsto (g ∘ f) a (𝓝 (g b)) :=
-by rw [tendsto, tendsto, hg.induced, nhds_induced, ← map_le_iff_le_comap, filter.map_map]
+hg.to_inducing.tendsto_nhds_iff
 
 lemma embedding.continuous_iff {f : α → β} {g : β → γ} (hg : embedding g) :
   continuous f ↔ continuous (g ∘ f) :=
@@ -221,15 +225,19 @@ by { rw ← image_univ, exact hf _ is_open_univ }
 
 lemma image_mem_nhds (hf : is_open_map f) {x : α} {s : set α} (hx : s ∈ 𝓝 x) :
   f '' s ∈ 𝓝 (f x) :=
-let ⟨t, hts, ht, hxt⟩ := mem_nhds_sets_iff.1 hx in
-mem_sets_of_superset (mem_nhds_sets (hf t ht) (mem_image_of_mem _ hxt)) (image_subset _ hts)
+let ⟨t, hts, ht, hxt⟩ := mem_nhds_iff.1 hx in
+mem_of_superset (is_open.mem_nhds (hf t ht) (mem_image_of_mem _ hxt)) (image_subset _ hts)
+
+lemma image_interior_subset (hf : is_open_map f) (s : set α) :
+  f '' interior s ⊆ interior (f '' s) :=
+interior_maximal (image_subset _ interior_subset) (hf _ is_open_interior)
 
 lemma nhds_le (hf : is_open_map f) (a : α) : 𝓝 (f a) ≤ (𝓝 a).map f :=
 le_map $ λ s, hf.image_mem_nhds
 
 lemma of_nhds_le (hf : ∀ a, 𝓝 (f a) ≤ map f (𝓝 a)) : is_open_map f :=
 λ s hs, is_open_iff_mem_nhds.2 $ λ b ⟨a, has, hab⟩,
-  hab ▸ hf _ (image_mem_map $ mem_nhds_sets hs has)
+  hab ▸ hf _ (image_mem_map $ is_open.mem_nhds hs has)
 
 lemma of_inverse {f : α → β} {f' : β → α}
   (h : continuous f') (l_inv : left_inverse f f') (r_inv : right_inverse f f') :
@@ -263,7 +271,7 @@ lemma is_open_map_iff_nhds_le [topological_space α] [topological_space β] {f :
 lemma inducing.is_open_map [topological_space α] [topological_space β] {f : α → β}
   (hi : inducing f) (ho : is_open (range f)) :
   is_open_map f :=
-is_open_map.of_nhds_le $ λ x, (hi.map_nhds_of_mem _ $ mem_nhds_sets ho $ mem_range_self _).ge
+is_open_map.of_nhds_le $ λ x, (hi.map_nhds_of_mem _ $ is_open.mem_nhds ho $ mem_range_self _).ge
 
 section is_closed_map
 variables [topological_space α] [topological_space β]
@@ -308,7 +316,7 @@ begin
   intros s hs,
   rcases hf.is_closed_iff.1 hs with ⟨t, ht, rfl⟩,
   rw image_preimage_eq_inter_range,
-  exact is_closed_inter ht h
+  exact is_closed.inter ht h
 end
 
 section open_embedding
@@ -323,7 +331,7 @@ hf.to_embedding.to_inducing.is_open_map hf.open_range
 
 lemma open_embedding.map_nhds_eq {f : α → β} (hf : open_embedding f) (a : α) :
   map f (𝓝 a) = 𝓝 (f a) :=
-hf.to_embedding.map_nhds_of_mem _ $ mem_nhds_sets hf.open_range $ mem_range_self _
+hf.to_embedding.map_nhds_of_mem _ $ is_open.mem_nhds hf.open_range $ mem_range_self _
 
 lemma open_embedding.open_iff_image_open {f : α → β} (hf : open_embedding f)
   {s : set α} : is_open s ↔ is_open (f '' s) :=
@@ -332,6 +340,11 @@ lemma open_embedding.open_iff_image_open {f : α → β} (hf : open_embedding f)
    convert ← h.preimage hf.to_embedding.continuous,
    apply preimage_image_eq _ hf.inj
  end⟩
+
+lemma open_embedding.tendsto_nhds_iff {ι : Type*}
+  {f : ι → β} {g : β → γ} {a : filter ι} {b : β} (hg : open_embedding g) :
+  tendsto f a (𝓝 b) ↔ tendsto (g ∘ f) a (𝓝 (g b)) :=
+hg.to_embedding.tendsto_nhds_iff
 
 lemma open_embedding.continuous {f : α → β} (hf : open_embedding f) : continuous f :=
 hf.to_embedding.continuous
@@ -377,6 +390,11 @@ structure closed_embedding (f : α → β) extends embedding f : Prop :=
 (closed_range : is_closed $ range f)
 
 variables {f : α → β}
+
+lemma closed_embedding.tendsto_nhds_iff {ι : Type*}
+  {g : ι → α} {a : filter ι} {b : α} (hf : closed_embedding f) :
+  tendsto g a (𝓝 b) ↔ tendsto (f ∘ g) a (𝓝 (f b)) :=
+hf.to_embedding.tendsto_nhds_iff
 
 lemma closed_embedding.continuous (hf : closed_embedding f) : continuous f :=
 hf.to_embedding.continuous

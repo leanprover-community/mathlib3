@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro, Scott Morrison, Ainsley Pahljina
+Authors: Mario Carneiro, Scott Morrison, Ainsley Pahljina
 -/
 import tactic.ring_exp
 import tactic.interval_cases
@@ -161,8 +161,8 @@ def lucas_lehmer_test (p : ℕ) : Prop := lucas_lehmer_residue p = 0
 /-- `q` is defined as the minimum factor of `mersenne p`, bundled as an `ℕ+`. -/
 def q (p : ℕ) : ℕ+ := ⟨nat.min_fac (mersenne p), nat.min_fac_pos (mersenne p)⟩
 
-instance fact_pnat_pos (q : ℕ+) : fact (0 < (q : ℕ)) :=
-q.2
+local attribute [instance]
+lemma fact_pnat_pos (q : ℕ+) : fact (0 < (q : ℕ)) := ⟨q.2⟩
 
 /-- We construct the ring `X q` as ℤ/qℤ + √3 ℤ/qℤ. -/
 -- It would be nice to define this as (ℤ/qℤ)[x] / (x^2 - 3),
@@ -273,7 +273,7 @@ end
 /-- There are strictly fewer than `q^2` units, since `0` is not a unit. -/
 lemma units_card (w : 1 < q) : fintype.card (units (X q)) < q^2 :=
 begin
-  haveI : fact (1 < (q : ℕ)) := w,
+  haveI : fact (1 < (q:ℕ)) := ⟨w⟩,
   convert card_units_lt (X q),
   rw X_card,
 end
@@ -403,7 +403,7 @@ begin
     simp at ω_pow,
     have h : (1 : zmod (q (p'+2))) = -1 :=
       congr_arg (prod.fst) ((ω_pow.symm).trans (ω_pow_eq_neg_one p' h)),
-    haveI : fact (2 < (q (p'+2) : ℕ)) := two_lt_q _,
+    haveI : fact (2 < (q (p'+2) : ℕ)) := ⟨two_lt_q _⟩,
     apply zmod.neg_one_ne_one h.symm, },
   { apply order_of_dvd_iff_pow_eq_one.2,
     apply units.ext,
@@ -452,7 +452,7 @@ lemma s_mod_succ {p a i b c}
   (h2 : s_mod p i = b)
   (h3 : (b * b - 2) % a = c) :
   s_mod p (i+1) = c :=
-by { dsimp [s_mod, mersenne], rw [h1, h2, pow_two, h3] }
+by { dsimp [s_mod, mersenne], rw [h1, h2, sq, h3] }
 
 /--
 Given a goal of the form `lucas_lehmer_test p`,
@@ -507,12 +507,9 @@ lemma modeq_mersenne (n k : ℕ) : k ≡ ((k / 2^n) + (k % 2^n)) [MOD 2^n - 1] :
 -- See https://leanprover.zulipchat.com/#narrow/stream/113489-new-members/topic/help.20finding.20a.20lemma/near/177698446
 begin
   conv in k { rw ← nat.div_add_mod k (2^n) },
-  refine nat.modeq.modeq_add _ (by refl),
+  refine nat.modeq.add_right _ _,
   conv { congr, skip, skip, rw ← one_mul (k/2^n) },
-  refine nat.modeq.modeq_mul _ (by refl),
-  symmetry,
-  rw [nat.modeq.modeq_iff_dvd, int.coe_nat_sub],
-  exact pow_pos (show 0 < 2, from dec_trivial) _
+  exact (nat.modeq_sub $ pow_pos (by norm_num : 0 < 2) _).mul_right _,
 end
 
 -- It's hard to know what the limiting factor for large Mersenne primes would be.

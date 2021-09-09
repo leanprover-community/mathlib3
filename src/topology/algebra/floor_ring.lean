@@ -2,12 +2,26 @@
 Copyright (c) 2020 Anatole Dedecker. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
-
-Basic topological facts (limits and continuity) about `floor`,
-`ceil` and `fract` in a `floor_ring`.
 -/
-import topology.algebra.ordered
 import algebra.floor
+import topology.algebra.ordered.basic
+
+/-!
+# Topological facts about `floor`, `ceil` and `fract`
+
+This file proves statements about limits and continuity of functions involving `floor`, `ceil` and
+`fract`.
+
+## Main declarations
+
+* `tendsto_floor_at_top`, `tendsto_floor_at_bot`, `tendsto_ceil_at_top`, `tendsto_ceil_at_bot`:
+  `floor` and `ceil` tend to +-∞ in +-∞.
+* `continuous_on_floor`: `floor` is continuous on `Ico n (n + 1)`, because constant.
+* `continuous_on_ceil`: `ceil` is continuous on `Ioc n (n + 1)`, because constant.
+* `continuous_on_fract`: `fract` is continuous on `Ico n (n + 1)`.
+* `continuous_on.comp_fract`: Precomposing a continuous function satisfying `f 0 = f 1` with `fract`
+  yields another continuous function.
+-/
 
 open set function filter
 open_locale topological_space
@@ -23,10 +37,7 @@ begin
 end
 
 lemma tendsto_floor_at_bot : tendsto (floor : α → ℤ) at_bot at_bot :=
-begin
-  refine monotone.tendsto_at_bot_at_bot (λ a b hab, floor_mono hab) (λ b, ⟨b, _⟩),
-  rw floor_coe
-end
+monotone.tendsto_at_bot_at_bot (λ a b, floor_mono) (λ b, ⟨b, (floor_coe _).le⟩)
 
 lemma tendsto_ceil_at_top : tendsto (ceil : α → ℤ) at_top at_top :=
 tendsto_neg_at_bot_at_top.comp (tendsto_floor_at_bot.comp tendsto_neg_at_top_at_bot)
@@ -203,10 +214,10 @@ begin
     rw tendsto_prod_iff,
     intros W hW,
     specialize h t ht hW,
-    rw mem_map_sets_iff at h,
+    rw mem_map_iff_exists_image at h,
     rcases h with ⟨V, hV, hVW⟩,
     rw image_subset_iff at hVW,
-    use [univ, univ_mem_sets, V, hV],
+    use [univ, univ_mem, V, hV],
     intros x y hx hy,
     exact hVW hy },
   have key : continuous (λ s, ⟨unit.star, s⟩ : α → unit × α) := by continuity,

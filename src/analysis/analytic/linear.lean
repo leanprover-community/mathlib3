@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury G. Kudryashov
+Authors: Yury G. Kudryashov
 -/
 import analysis.analytic.basic
 
@@ -84,7 +84,7 @@ protected theorem has_fpower_series_on_ball_bilinear (f : E →L[𝕜] F →L[�
     begin
       simp only [finset.sum_range_succ, finset.sum_range_one, prod.fst_add, prod.snd_add,
         f.map_add₂],
-      dsimp, simp only [add_comm, add_left_comm, sub_self, has_sum_zero]
+      dsimp, simp only [add_comm, sub_self, has_sum_zero]
     end }
 
 protected theorem has_fpower_series_at_bilinear (f : E →L[𝕜] F →L[𝕜] G) (x : E × F) :

@@ -67,7 +67,7 @@ This isn't an instance because most of the time we'll prove cartesian closed for
 at once, rather than just for this one.
 -/
 def terminal_exponentiable {C : Type u} [category.{v} C] [has_finite_products C] :
-  exponentiable ⊤_C :=
+  exponentiable ⊤_ C :=
 unit_closed
 
 /--
@@ -92,11 +92,11 @@ closed.is_adj.adj
 
 /-- The evaluation natural transformation. -/
 def ev : exp A ⋙ prod.functor.obj A ⟶ 𝟭 C :=
-closed.is_adj.adj.counit
+(exp.adjunction A).counit
 
 /-- The coevaluation natural transformation. -/
 def coev : 𝟭 C ⟶ prod.functor.obj A ⋙ exp A :=
-closed.is_adj.adj.unit
+(exp.adjunction A).unit
 
 @[simp] lemma exp_adjunction_counit : (exp.adjunction A).counit = ev A := rfl
 @[simp] lemma exp_adjunction_unit : (exp.adjunction A).unit = coev A := rfl
@@ -135,10 +135,15 @@ variables [has_finite_products C] [exponentiable A]
 
 /-- Currying in a cartesian closed category. -/
 def curry : (A ⨯ Y ⟶ X) → (Y ⟶ A ⟹ X) :=
-(closed.is_adj.adj.hom_equiv _ _).to_fun
+(exp.adjunction A).hom_equiv _ _
 /-- Uncurrying in a cartesian closed category. -/
 def uncurry : (Y ⟶ A ⟹ X) → (A ⨯ Y ⟶ X) :=
-(closed.is_adj.adj.hom_equiv _ _).inv_fun
+((exp.adjunction A).hom_equiv _ _).symm
+
+@[simp] lemma hom_equiv_apply_eq (f : A ⨯ Y ⟶ X) :
+  (exp.adjunction A).hom_equiv _ _ f = curry f := rfl
+@[simp] lemma hom_equiv_symm_apply_eq (f : Y ⟶ A ⟹ X) :
+  ((exp.adjunction A).hom_equiv _ _).symm f = uncurry f := rfl
 
 end cartesian_closed
 
@@ -206,7 +211,7 @@ Show that the exponential of the terminal object is isomorphic to itself, i.e. `
 
 The typeclass argument is explicit: any instance can be used.
 -/
-def exp_terminal_iso_self [exponentiable ⊤_C] : (⊤_C ⟹ X) ≅ X :=
+def exp_terminal_iso_self [exponentiable ⊤_ C] : (⊤_ C ⟹ X) ≅ X :=
 yoneda.ext (⊤_ C ⟹ X) X
   (λ Y f, (prod.left_unitor Y).inv ≫ uncurry f)
   (λ Y f, curry ((prod.left_unitor Y).hom ≫ f))
@@ -215,7 +220,7 @@ yoneda.ext (⊤_ C ⟹ X) X
   (λ Z W f g, by rw [uncurry_natural_left, prod.left_unitor_inv_naturality_assoc f] )
 
 /-- The internal element which points at the given morphism. -/
-def internalize_hom (f : A ⟶ Y) : ⊤_C ⟶ (A ⟹ Y) :=
+def internalize_hom (f : A ⟶ Y) : ⊤_ C ⟶ (A ⟹ Y) :=
 curry (limits.prod.fst ≫ f)
 
 section pre
@@ -316,7 +321,7 @@ i.e. any morphism to `I` is an iso.
 This actually shows a slightly stronger version: any morphism to an initial object from an
 exponentiable object is an isomorphism.
 -/
-def strict_initial {I : C} (t : is_initial I) (f : A ⟶ I) : is_iso f :=
+lemma strict_initial {I : C} (t : is_initial I) (f : A ⟶ I) : is_iso f :=
 begin
   haveI : mono (limits.prod.lift (𝟙 A) f ≫ (zero_mul t).hom) := mono_comp _ _,
   rw [zero_mul_hom, prod.lift_snd] at _inst,
@@ -365,8 +370,7 @@ def cartesian_closed_of_equiv (e : C ≌ D) [h : cartesian_closed C] : cartesian
         dsimp [prod_comparison],
         simp [prod.comp_lift, ← e.inverse.map_comp, ← e.inverse.map_comp_assoc],
           -- I wonder if it would be a good idea to make `map_comp` a simp lemma the other way round
-        dsimp, simp -- See note [dsimp, simp]
-        },
+        dsimp, simp }, -- See note [dsimp, simp]
       { have : is_left_adjoint (e.functor ⋙ prod.functor.obj X ⋙ e.inverse) :=
           by exactI adjunction.left_adjoint_of_nat_iso this.symm,
         have : is_left_adjoint (e.inverse ⋙ e.functor ⋙ prod.functor.obj X ⋙ e.inverse) :=

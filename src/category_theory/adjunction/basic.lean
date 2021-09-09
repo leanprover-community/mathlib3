@@ -169,7 +169,7 @@ end core_hom_equiv
 
 /--
 This is an auxiliary data structure useful for constructing adjunctions.
-See `adjunction.mk_of_hom_equiv`.
+See `adjunction.mk_of_unit_counit`.
 This structure won't typically be used anywhere else.
 -/
 @[nolint has_inhabited_instance]
@@ -201,7 +201,7 @@ def mk_of_hom_equiv (adj : core_hom_equiv F G) : F ⊣ G :=
     begin
       intros,
       erw [← adj.hom_equiv_naturality_left, ← adj.hom_equiv_naturality_right],
-      dsimp, simp  -- See note [dsimp, simp].
+      dsimp, simp -- See note [dsimp, simp].
     end },
   counit :=
   { app := λ Y, (adj.hom_equiv _ _).inv_fun (𝟙 (G.obj Y)),
@@ -412,6 +412,7 @@ If the unit and counit of a given adjunction are (pointwise) isomorphisms, then 
 adjunction to an equivalence.
 -/
 @[simps]
+noncomputable
 def to_equivalence (adj : F ⊣ G) [∀ X, is_iso (adj.unit.app X)] [∀ Y, is_iso (adj.counit.app Y)] :
   C ≌ D :=
 { functor := F,
@@ -424,6 +425,7 @@ If the unit and counit for the adjunction corresponding to a right adjoint funct
 isomorphisms, then the functor is an equivalence of categories.
 -/
 @[simps]
+noncomputable
 def is_right_adjoint_to_is_equivalence [is_right_adjoint G]
   [∀ X, is_iso ((adjunction.of_right_adjoint G).unit.app X)]
   [∀ Y, is_iso ((adjunction.of_right_adjoint G).counit.app Y)] :

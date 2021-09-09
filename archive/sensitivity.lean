@@ -1,8 +1,8 @@
 /-
-Copyright (c) 2019 Reid Barton, Johan Commelin, Jesse Han, Chris Hughes, Robert Y. Lewis, and
+Copyright (c) 2019 Reid Barton, Johan Commelin, Jesse Han, Chris Hughes, Robert Y. Lewis,
 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Reid Barton, Johan Commelin, Jesse Han, Chris Hughes, Robert Y. Lewis, and Patrick Massot
+Authors: Reid Barton, Johan Commelin, Jesse Han, Chris Hughes, Robert Y. Lewis, Patrick Massot
 -/
 
 import tactic.fin_cases
@@ -164,7 +164,7 @@ by { induction n ; { dunfold V, resetI, apply_instance } }
 instance : add_comm_group (V n) :=
 by { induction n ; { dunfold V, resetI, apply_instance } }
 
-instance : vector_space ℝ (V n) :=
+instance : module ℝ (V n) :=
 by { induction n ; { dunfold V, resetI, apply_instance } }
 end V
 
@@ -225,19 +225,19 @@ def dual_pair_e_ε (n : ℕ) : dual_pair (@e n) (@ε n) :=
   total := @epsilon_total _ }
 
 /-! We will now derive the dimension of `V`, first as a cardinal in `dim_V` and,
-since this cardinal is finite, as a natural number in `findim_V` -/
+since this cardinal is finite, as a natural number in `finrank_V` -/
 
-lemma dim_V : vector_space.dim ℝ (V n) = 2^n :=
-have vector_space.dim ℝ (V n) = (2^n : ℕ),
-  by { rw [dim_eq_card_basis (dual_pair_e_ε _).is_basis, Q.card]; apply_instance },
+lemma dim_V : module.rank ℝ (V n) = 2^n :=
+have module.rank ℝ (V n) = (2^n : ℕ),
+  by { rw [dim_eq_card_basis (dual_pair_e_ε _).basis, Q.card]; apply_instance },
 by assumption_mod_cast
 
 instance : finite_dimensional ℝ (V n) :=
-finite_dimensional.of_fintype_basis (dual_pair_e_ε _).is_basis
+finite_dimensional.of_fintype_basis (dual_pair_e_ε _).basis
 
-lemma findim_V : findim ℝ (V n) = 2^n :=
+lemma finrank_V : finrank ℝ (V n) = 2^n :=
 have _ := @dim_V n,
-by rw ←findim_eq_dim at this; assumption_mod_cast
+by rw ←finrank_eq_dim at this; assumption_mod_cast
 
 /-! ### The linear map -/
 
@@ -289,7 +289,7 @@ begin
   { intros p q,
     have ite_nonneg : ite (π q = π p) (1 : ℝ) 0 ≥ 0,
     { split_ifs ; norm_num },
-    have f_map_zero := (show linear_map ℝ (V (n+0)) (V n), from f n).map_zero,
+    have f_map_zero := (show (V (n+0)) →ₗ[ℝ] (V n), from f n).map_zero,
     dsimp [e, ε, f], cases hp : p 0 ; cases hq : q 0,
     all_goals
     { repeat {rw cond_tt}, repeat {rw cond_ff},
@@ -333,9 +333,9 @@ In this section, in order to enforce that `n` is positive, we write it as
 `m + 1` for some natural number `m`. -/
 
 /-! `dim X` will denote the dimension of a subspace `X` as a cardinal. -/
-notation `dim` X:70 := vector_space.dim ℝ ↥X
+notation `dim` X:70 := module.rank ℝ ↥X
 /-! `fdim X` will denote the (finite) dimension of a subspace `X` as a natural number. -/
-notation `fdim` := findim ℝ
+notation `fdim` := finrank ℝ
 
 /-! `Span S` will denote the ℝ-subspace spanned by `S`. -/
 notation `Span` := submodule.span ℝ
@@ -367,20 +367,23 @@ begin
     rw ← dim_eq_of_injective (g m) g_injective,
     apply dim_V },
   have dimW : dim W = card H,
-  { have li : linear_independent ℝ (set.restrict e H) :=
-      linear_independent.comp (dual_pair_e_ε _).is_basis.1 _ subtype.val_injective,
+  { have li : linear_independent ℝ (set.restrict e H),
+    { convert (dual_pair_e_ε _).basis.linear_independent.comp _ subtype.val_injective,
+      rw (dual_pair_e_ε _).coe_basis },
     have hdW := dim_span li,
     rw set.range_restrict at hdW,
     convert hdW,
-    rw [cardinal.mk_image_eq (dual_pair_e_ε _).is_basis.injective, cardinal.fintype_card] },
-  rw ← findim_eq_dim ℝ at ⊢ dim_le dim_add dimW,
-  rw [← findim_eq_dim ℝ, ← findim_eq_dim ℝ] at dim_add,
+    rw [← (dual_pair_e_ε _).coe_basis, cardinal.mk_image_eq (dual_pair_e_ε _).basis.injective,
+        cardinal.fintype_card] },
+  rw ← finrank_eq_dim ℝ at ⊢ dim_le dim_add dimW,
+  rw [← finrank_eq_dim ℝ, ← finrank_eq_dim ℝ] at dim_add,
   norm_cast at ⊢ dim_le dim_add dimW,
   rw pow_succ' at dim_le,
   rw set.to_finset_card at hH,
   linarith
 end
 
+/-- **Huang sensitivity theorem** also known as the **Huang degree theorem** -/
 theorem huang_degree_theorem (H : set (Q (m + 1))) (hH : Card H ≥ 2^m + 1) :
   ∃ q, q ∈ H ∧ √(m + 1) ≤ Card (H ∩ q.adjacent) :=
 begin
@@ -406,7 +409,7 @@ begin
         = |ε q (s • y)| :
       by rw [map_smul, smul_eq_mul, abs_mul, abs_of_nonneg (real.sqrt_nonneg _)]
     ... = |ε q (f (m+1) y)| : by rw [← f_image_g y (by simpa using y_mem_g)]
-    ... = |ε q (f (m+1) (lc _ (coeffs y)))| : by rw (dual_pair_e_ε _).decomposition y
+    ... = |ε q (f (m+1) (lc _ (coeffs y)))| : by rw (dual_pair_e_ε _).lc_coeffs y
     ... = |(coeffs y).sum (λ (i : Q (m + 1)) (a : ℝ), a • ((ε q) ∘ (f (m + 1)) ∘
             λ (i : Q (m + 1)), e i) i)| :
       by erw [(f $ m + 1).map_finsupp_total, (ε q).map_finsupp_total, finsupp.total_apply]

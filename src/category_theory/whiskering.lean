@@ -104,7 +104,7 @@ rfl
 
 /--
 If `α : G ≅ H` then
-`iso_whisker_right α F : (G ⋙ F) ≅ (G ⋙ F)` has components `F.map_iso (α.app X)`.
+`iso_whisker_right α F : (G ⋙ F) ≅ (H ⋙ F)` has components `F.map_iso (α.app X)`.
 -/
 def iso_whisker_right {G H : C ⥤ D} (α : G ≅ H) (F : D ⥤ E) : (G ⋙ F) ≅ (H ⋙ F) :=
 ((whiskering_right C D E).obj F).map_iso α
@@ -117,10 +117,10 @@ rfl
 
 instance is_iso_whisker_left (F : C ⥤ D) {G H : D ⥤ E} (α : G ⟶ H) [is_iso α] :
   is_iso (whisker_left F α) :=
-{ .. iso_whisker_left F (as_iso α) }
+is_iso.of_iso (iso_whisker_left F (as_iso α))
 instance is_iso_whisker_right {G H : C ⥤ D} (α : G ⟶ H) (F : D ⥤ E) [is_iso α] :
   is_iso (whisker_right α F) :=
-{ .. iso_whisker_right (as_iso α) F }
+is_iso.of_iso (iso_whisker_right (as_iso α) F)
 
 variables {B : Type u₄} [category.{v₄} B]
 

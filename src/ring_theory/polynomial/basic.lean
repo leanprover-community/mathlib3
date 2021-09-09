@@ -60,11 +60,11 @@ theorem degree_le_eq_span_X_pow {n : ℕ} :
 begin
   apply le_antisymm,
   { intros p hp, replace hp := mem_degree_le.1 hp,
-    rw [← finsupp.sum_single p, finsupp.sum],
+    rw [← polynomial.sum_monomial_eq p, polynomial.sum],
     refine submodule.sum_mem _ (λ k hk, _),
     show monomial _ _ ∈ _,
     have := with_bot.coe_le_coe.1 (finset.sup_le_iff.1 hp k hk),
-    rw [single_eq_C_mul_X, C_mul'],
+    rw [monomial_eq_C_mul_X, C_mul'],
     refine submodule.smul_mem _ _ (submodule.subset_span $ finset.mem_coe.2 $
       finset.mem_image.2 ⟨_, finset.mem_range.2 (nat.lt_succ_of_le this), rfl⟩) },
   rw [submodule.span_le, finset.coe_image, set.image_subset_iff],
@@ -76,7 +76,7 @@ end
 theorem mem_degree_lt {n : ℕ} {f : polynomial R} :
   f ∈ degree_lt R n ↔ degree f < n :=
 by { simp_rw [degree_lt, submodule.mem_infi, linear_map.mem_ker, degree,
-    finset.sup_lt_iff (with_bot.bot_lt_coe n), finsupp.mem_support_iff, with_bot.some_eq_coe,
+    finset.sup_lt_iff (with_bot.bot_lt_coe n), mem_support_iff, with_bot.some_eq_coe,
     with_bot.coe_lt_coe, lt_iff_not_ge', ne, not_imp_not], refl }
 
 @[mono] theorem degree_lt_mono {m n : ℕ} (H : m ≤ n) :
@@ -88,11 +88,11 @@ theorem degree_lt_eq_span_X_pow {n : ℕ} :
 begin
   apply le_antisymm,
   { intros p hp, replace hp := mem_degree_lt.1 hp,
-    rw [← finsupp.sum_single p, finsupp.sum],
+    rw [← polynomial.sum_monomial_eq p, polynomial.sum],
     refine submodule.sum_mem _ (λ k hk, _),
     show monomial _ _ ∈ _,
     have := with_bot.coe_lt_coe.1 ((finset.sup_lt_iff $ with_bot.bot_lt_coe n).1 hp k hk),
-    rw [single_eq_C_mul_X, C_mul'],
+    rw [monomial_eq_C_mul_X, C_mul'],
     refine submodule.smul_mem _ _ (submodule.subset_span $ finset.mem_coe.2 $
       finset.mem_image.2 ⟨_, finset.mem_range.2 this, rfl⟩) },
   rw [submodule.span_le, finset.coe_image, set.image_subset_iff],
@@ -126,37 +126,82 @@ def degree_lt_equiv (F : Type*) [field F] (n : ℕ) : degree_lt F n ≃ₗ[F] (f
     { intro h, exact (h (finset.mem_univ _)).elim }
   end }
 
-local attribute [instance] subset.ring
+/-- The finset of nonzero coefficients of a polynomial. -/
+def frange (p : polynomial R) : finset R :=
+finset.image (λ n, p.coeff n) p.support
+
+lemma frange_zero : frange (0 : polynomial R) = ∅ :=
+rfl
+
+lemma mem_frange_iff {p : polynomial R} {c : R} :
+  c ∈ p.frange ↔ ∃ n ∈ p.support, c = p.coeff n :=
+by simp [frange, eq_comm]
+
+lemma frange_one : frange (1 : polynomial R) ⊆ {1} :=
+begin
+  simp [frange, finset.image_subset_iff],
+  simp only [← C_1, coeff_C],
+  assume n hn,
+  simp only [exists_prop, ite_eq_right_iff, not_forall] at hn,
+  simp [hn],
+end
+
+lemma coeff_mem_frange (p : polynomial R) (n : ℕ) (h : p.coeff n ≠ 0) :
+  p.coeff n ∈ p.frange :=
+begin
+  simp only [frange, exists_prop, mem_support_iff, finset.mem_image, ne.def],
+  exact ⟨n, h, rfl⟩,
+end
 
 /-- Given a polynomial, return the polynomial whose coefficients are in
 the ring closure of the original coefficients. -/
-def restriction (p : polynomial R) : polynomial (ring.closure (↑p.frange : set R)) :=
-⟨p.support, λ i, ⟨p.to_fun i,
-  if H : p.to_fun i = 0 then H.symm ▸ is_add_submonoid.zero_mem
-  else ring.subset_closure $ finsupp.mem_frange.2 ⟨H, i, rfl⟩⟩,
-λ i, finsupp.mem_support_iff.trans (not_iff_not_of_iff ⟨λ H, subtype.eq H, subtype.mk.inj⟩)⟩
+def restriction (p : polynomial R) : polynomial (subring.closure (↑p.frange : set R)) :=
+∑ i in p.support, monomial i (⟨p.coeff i,
+  if H : p.coeff i = 0 then H.symm ▸ (subring.closure _).zero_mem
+  else subring.subset_closure (p.coeff_mem_frange _ H)⟩ : (subring.closure (↑p.frange : set R)))
 
 @[simp] theorem coeff_restriction {p : polynomial R} {n : ℕ} :
-  ↑(coeff (restriction p) n) = coeff p n := rfl
-
-@[simp] theorem coeff_restriction' {p : polynomial R} {n : ℕ} :
-  (coeff (restriction p) n).1 = coeff p n := rfl
-
-section
-local attribute [instance] algebra.of_is_subring subring.domain subset.comm_ring
-@[simp] theorem map_restriction (p : polynomial R) : p.restriction.map (algebra_map _ _) = p :=
-ext $ λ n, by rw [coeff_map, algebra.is_subring_algebra_map_apply, coeff_restriction]
+  ↑(coeff (restriction p) n) = coeff p n :=
+begin
+  simp only [restriction, coeff_monomial, finset_sum_coeff, mem_support_iff, finset.sum_ite_eq',
+    ne.def, ite_not],
+  split_ifs,
+  { rw h, refl },
+  { refl }
 end
 
-@[simp] theorem degree_restriction {p : polynomial R} : (restriction p).degree = p.degree := rfl
+@[simp] theorem coeff_restriction' {p : polynomial R} {n : ℕ} :
+  (coeff (restriction p) n).1 = coeff p n :=
+coeff_restriction
+
+@[simp] lemma support_restriction (p : polynomial R) :
+  support (restriction p) = support p :=
+begin
+  ext i,
+  simp only [mem_support_iff, not_iff_not, ne.def],
+  conv_rhs { rw [← coeff_restriction] },
+  exact ⟨λ H, by { rw H, refl }, λ H, subtype.coe_injective H⟩
+end
+
+@[simp] theorem map_restriction (p : polynomial R) : p.restriction.map (algebra_map _ _) = p :=
+ext $ λ n, by rw [coeff_map, algebra.algebra_map_of_subring_apply, coeff_restriction]
+
+@[simp] theorem degree_restriction {p : polynomial R} : (restriction p).degree = p.degree :=
+by simp [degree]
 
 @[simp] theorem nat_degree_restriction {p : polynomial R} :
-  (restriction p).nat_degree = p.nat_degree := rfl
+  (restriction p).nat_degree = p.nat_degree :=
+by simp [nat_degree]
 
 @[simp] theorem monic_restriction {p : polynomial R} : monic (restriction p) ↔ monic p :=
-⟨λ H, congr_arg subtype.val H, λ H, subtype.eq H⟩
+begin
+  simp only [monic, leading_coeff, nat_degree_restriction],
+  rw [←@coeff_restriction _ _ p],
+  exact ⟨λ H, by { rw H, refl }, λ H, subtype.coe_injective H⟩
+end
 
-@[simp] theorem restriction_zero : restriction (0 : polynomial R) = 0 := rfl
+@[simp] theorem restriction_zero : restriction (0 : polynomial R) = 0 :=
+by simp only [restriction, finset.sum_empty, support_zero]
 
 @[simp] theorem restriction_one : restriction (1 : polynomial R) = 1 :=
 ext $ λ i, subtype.eq $ by rw [coeff_restriction', coeff_one, coeff_one]; split_ifs; refl
@@ -164,60 +209,100 @@ ext $ λ i, subtype.eq $ by rw [coeff_restriction', coeff_one, coeff_one]; split
 variables {S : Type v} [ring S] {f : R →+* S} {x : S}
 
 theorem eval₂_restriction {p : polynomial R} :
-  eval₂ f x p = eval₂ (f.comp (is_subring.subtype _)) x p.restriction :=
-by { dsimp only [eval₂_eq_sum], refl, }
+  eval₂ f x p = eval₂ (f.comp (subring.subtype _)) x p.restriction :=
+begin
+  simp only [eval₂_eq_sum, sum, support_restriction, ←@coeff_restriction _ _ p],
+  refl,
+end
 
 section to_subring
-variables (p : polynomial R) (T : set R) [is_subring T]
+
+variables (p : polynomial R) (T : subring R)
 
 /-- Given a polynomial `p` and a subring `T` that contains the coefficients of `p`,
 return the corresponding polynomial whose coefficients are in `T. -/
-def to_subring (hp : ↑p.frange ⊆ T) : polynomial T :=
-⟨p.support, λ i, ⟨p.to_fun i,
-  if H : p.to_fun i = 0 then H.symm ▸ is_add_submonoid.zero_mem
-  else hp $ finsupp.mem_frange.2 ⟨H, i, rfl⟩⟩,
-λ i, finsupp.mem_support_iff.trans (not_iff_not_of_iff ⟨λ H, subtype.eq H, subtype.mk.inj⟩)⟩
+def to_subring (hp : (↑p.frange : set R) ⊆ T) : polynomial T :=
+∑ i in p.support, monomial i (⟨p.coeff i,
+  if H : p.coeff i = 0 then H.symm ▸ T.zero_mem
+  else hp (p.coeff_mem_frange _ H)⟩ : T)
 
-variables (hp : ↑p.frange ⊆ T)
+variables (hp : (↑p.frange : set R) ⊆ T)
 include hp
 
-@[simp] theorem coeff_to_subring {n : ℕ} : ↑(coeff (to_subring p T hp) n) = coeff p n := rfl
+@[simp] theorem coeff_to_subring {n : ℕ} : ↑(coeff (to_subring p T hp) n) = coeff p n :=
+begin
+  simp only [to_subring, coeff_monomial, finset_sum_coeff, mem_support_iff, finset.sum_ite_eq',
+    ne.def, ite_not],
+  split_ifs,
+  { rw h, refl },
+  { refl }
+end
 
-@[simp] theorem coeff_to_subring' {n : ℕ} : (coeff (to_subring p T hp) n).1 = coeff p n := rfl
+@[simp] theorem coeff_to_subring' {n : ℕ} : (coeff (to_subring p T hp) n).1 = coeff p n :=
+coeff_to_subring _ _ hp
 
-@[simp] theorem degree_to_subring : (to_subring p T hp).degree = p.degree := rfl
+@[simp] lemma support_to_subring :
+  support (to_subring p T hp) = support p :=
+begin
+  ext i,
+  simp only [mem_support_iff, not_iff_not, ne.def],
+  conv_rhs { rw [← coeff_to_subring p T hp] },
+  exact ⟨λ H, by { rw H, refl }, λ H, subtype.coe_injective H⟩
+end
 
-@[simp] theorem nat_degree_to_subring : (to_subring p T hp).nat_degree = p.nat_degree := rfl
+@[simp] theorem degree_to_subring : (to_subring p T hp).degree = p.degree :=
+by simp [degree]
+
+@[simp] theorem nat_degree_to_subring : (to_subring p T hp).nat_degree = p.nat_degree :=
+by simp [nat_degree]
 
 @[simp] theorem monic_to_subring : monic (to_subring p T hp) ↔ monic p :=
-⟨λ H, congr_arg subtype.val H, λ H, subtype.eq H⟩
+begin
+  simp_rw [monic, leading_coeff, nat_degree_to_subring, ← coeff_to_subring p T hp],
+  exact ⟨λ H, by { rw H, refl }, λ H, subtype.coe_injective H⟩
+end
 
 omit hp
 
-@[simp] theorem to_subring_zero : to_subring (0 : polynomial R) T (set.empty_subset _) = 0 := rfl
+@[simp] theorem to_subring_zero : to_subring (0 : polynomial R) T (by simp [frange_zero]) = 0 :=
+by { ext i, simp }
 
 @[simp] theorem to_subring_one : to_subring (1 : polynomial R) T
-  (set.subset.trans (finset.coe_subset.2 finsupp.frange_single)
-    (finset.singleton_subset_set_iff.2 is_submonoid.one_mem)) = 1 :=
+  (set.subset.trans frange_one $finset.singleton_subset_set_iff.2 T.one_mem) = 1 :=
 ext $ λ i, subtype.eq $ by rw [coeff_to_subring', coeff_one, coeff_one]; split_ifs; refl
 
-@[simp] theorem map_to_subring : (p.to_subring T hp).map (is_subring.subtype T) = p :=
-ext $ λ n, coeff_map _ _
+@[simp] theorem map_to_subring : (p.to_subring T hp).map (subring.subtype T) = p :=
+by { ext n, simp [coeff_map] }
 
 end to_subring
 
-variables (T : set R) [is_subring T]
+variables (T : subring R)
 
 /-- Given a polynomial whose coefficients are in some subring, return
-the corresponding polynomial whose coefificents are in the ambient ring. -/
+the corresponding polynomial whose coefficients are in the ambient ring. -/
 def of_subring (p : polynomial T) : polynomial R :=
-⟨p.support, subtype.val ∘ p.to_fun,
-λ n, finsupp.mem_support_iff.trans (not_iff_not_of_iff
-  ⟨λ h, congr_arg subtype.val h, λ h, subtype.eq h⟩)⟩
+∑ i in p.support, monomial i (p.coeff i : R)
+
+lemma coeff_of_subring (p : polynomial T) (n : ℕ) :
+  coeff (of_subring T p) n = (coeff p n : T) :=
+begin
+  simp only [of_subring, coeff_monomial, finset_sum_coeff, mem_support_iff, finset.sum_ite_eq',
+    ite_eq_right_iff, ne.def, ite_not, not_not, ite_eq_left_iff],
+  assume h,
+  rw h,
+  refl
+end
 
 @[simp] theorem frange_of_subring {p : polynomial T} :
-  ↑(p.of_subring T).frange ⊆ T :=
-λ y H, let ⟨hy, x, hx⟩ := finsupp.mem_frange.1 H in hx ▸ (p.to_fun x).2
+  (↑(p.of_subring T).frange : set R) ⊆ T :=
+begin
+  assume i hi,
+  simp only [frange, set.mem_image, mem_support_iff, ne.def, finset.mem_coe, finset.coe_image]
+    at hi,
+  rcases hi with ⟨n, hn, h'n⟩,
+  rw [← h'n, coeff_of_subring],
+  exact subtype.mem (coeff p n : T)
+end
 
 end polynomial
 
@@ -252,10 +337,10 @@ begin
       exact I.sum_mem (λ c hc, I.smul_mem (f.coeff c.fst) (hg c.snd)) } },
   { intros hf,
     rw ← sum_monomial_eq f,
-    refine (map C I : ideal (polynomial R)).sum_mem (λ n hn, _),
-    simp [single_eq_C_mul_X],
+    refine (I.map C : ideal (polynomial R)).sum_mem (λ n hn, _),
+    simp [monomial_eq_C_mul_X],
     rw mul_comm,
-    exact (map C I : ideal (polynomial R)).smul_mem _ (mem_map_of_mem (hf n)) }
+    exact (I.map C : ideal (polynomial R)).mul_mem_left _ (mem_map_of_mem _ (hf n)) }
 end
 
 lemma quotient_map_C_eq_zero {I : ideal R} :
@@ -263,7 +348,7 @@ lemma quotient_map_C_eq_zero {I : ideal R} :
 begin
   intros a ha,
   rw [ring_hom.comp_apply, quotient.eq_zero_iff_mem],
-  exact mem_map_of_mem ha,
+  exact mem_map_of_mem _ ha,
 end
 
 lemma eval₂_C_mk_eq_zero {I : ideal R} :
@@ -352,7 +437,7 @@ begin
   { obtain ⟨f, hf⟩ := mem_image_of_mem_map_of_surjective (polynomial.map_ring_hom i)
       (polynomial.map_surjective _ (((quotient.mk I).comp C).range_restrict_surjective)) this,
     refine sub_add_cancel (C y) f ▸ I.add_mem (hi' _ : (C y - f) ∈ I) hf.1,
-    rw [ring_hom.mem_ker, ring_hom.map_sub, hf.2, sub_eq_zero_iff_eq, coe_map_ring_hom, map_C] },
+    rw [ring_hom.mem_ker, ring_hom.map_sub, hf.2, sub_eq_zero, coe_map_ring_hom, map_C] },
   exact hx,
 end
 
@@ -389,7 +474,7 @@ def of_polynomial (I : ideal (polynomial R)) : submodule R (polynomial R) :=
 { carrier := I.carrier,
   zero_mem' := I.zero_mem,
   add_mem' := λ _ _, I.add_mem,
-  smul_mem' := λ c x H, by rw [← C_mul']; exact submodule.smul_mem _ _ H }
+  smul_mem' := λ c x H, by { rw [← C_mul'], exact I.mul_mem_left _ H } }
 
 variables {I : ideal (polynomial R)}
 theorem mem_of_polynomial (x) : x ∈ I.of_polynomial ↔ x ∈ I := iff.rfl
@@ -441,7 +526,7 @@ theorem leading_coeff_nth_mono {m n : ℕ} (H : m ≤ n) :
   I.leading_coeff_nth m ≤ I.leading_coeff_nth n :=
 begin
   intros r hr,
-  simp only [submodule.mem_coe, mem_leading_coeff_nth] at hr ⊢,
+  simp only [set_like.mem_coe, mem_leading_coeff_nth] at hr ⊢,
   rcases hr with ⟨p, hpI, hpdeg, rfl⟩,
   refine ⟨p * X ^ (n - m), I.mul_mem_right _ hpI, _, leading_coeff_mul_X_pow⟩,
   refine le_trans (degree_mul_le _ _) _,
@@ -527,7 +612,8 @@ from hs ▸ λ x hx, submodule.span_induction hx (λ _ hx, ideal.subset_span hx)
 ⟨s, le_antisymm
   (ideal.span_le.2 $ λ x hx, have x ∈ I.degree_le N, from hs ▸ submodule.subset_span hx, this.2) $
 begin
-  change I ≤ ideal.span ↑s,
+  have : submodule.span (polynomial R) ↑s = ideal.span ↑s, by refl,
+  rw this,
   intros p hp, generalize hn : p.nat_degree = k,
   induction k using nat.strong_induction_on with k ih generalizing p,
   cases le_or_lt k N,
@@ -585,14 +671,15 @@ theorem exists_irreducible_of_nat_degree_ne_zero {R : Type u} [integral_domain R
   {f : polynomial R} (hf : f.nat_degree ≠ 0) : ∃ g, irreducible g ∧ g ∣ f :=
 exists_irreducible_of_nat_degree_pos $ nat.pos_of_ne_zero hf
 
-lemma linear_independent_powers_iff_eval₂
+lemma linear_independent_powers_iff_aeval
   (f : M →ₗ[R] M) (v : M) :
   linear_independent R (λ n : ℕ, (f ^ n) v)
     ↔ ∀ (p : polynomial R), aeval f p v = 0 → p = 0 :=
 begin
   rw linear_independent_iff,
-  simp only [finsupp.total_apply, aeval_endomorphism],
-  refl
+  simp only [finsupp.total_apply, aeval_endomorphism, forall_iff_forall_finsupp, sum, support,
+    coeff, ← zero_to_finsupp],
+  exact iff.rfl,
 end
 
 lemma disjoint_ker_aeval_of_coprime
@@ -681,16 +768,15 @@ theorem is_noetherian_ring_fin [is_noetherian_ring R] :
 is itself a noetherian ring. -/
 instance is_noetherian_ring [fintype σ] [is_noetherian_ring R] :
   is_noetherian_ring (mv_polynomial σ R) :=
-trunc.induction_on (fintype.equiv_fin σ) $ λ e,
 @is_noetherian_ring_of_ring_equiv (mv_polynomial (fin (fintype.card σ)) R) _ _ _
-  (rename_equiv R e.symm).to_ring_equiv is_noetherian_ring_fin
+  (rename_equiv R (fintype.equiv_fin σ).symm).to_ring_equiv is_noetherian_ring_fin
 
 lemma is_integral_domain_fin_zero (R : Type u) [comm_ring R] (hR : is_integral_domain R) :
   is_integral_domain (mv_polynomial (fin 0) R) :=
 ring_equiv.is_integral_domain R hR
   ((rename_equiv R fin_zero_equiv').to_ring_equiv.trans (mv_polynomial.pempty_ring_equiv R))
 
-/-- Auxilliary lemma:
+/-- Auxiliary lemma:
 Multivariate polynomials over an integral domain
 with variables indexed by `fin n` form an integral domain.
 This fact is proven inductively,
@@ -707,12 +793,11 @@ lemma is_integral_domain_fin (R : Type u) [comm_ring R] (hR : is_integral_domain
 
 lemma is_integral_domain_fintype (R : Type u) (σ : Type v) [comm_ring R] [fintype σ]
   (hR : is_integral_domain R) : is_integral_domain (mv_polynomial σ R) :=
-trunc.induction_on (fintype.equiv_fin σ) $ λ e,
 @ring_equiv.is_integral_domain _ (mv_polynomial (fin $ fintype.card σ) R) _ _
   (mv_polynomial.is_integral_domain_fin _ hR _)
-  (rename_equiv R e).to_ring_equiv
+  (rename_equiv R (fintype.equiv_fin σ)).to_ring_equiv
 
-/-- Auxilliary definition:
+/-- Auxiliary definition:
 Multivariate polynomials in finitely many variables over an integral domain form an integral domain.
 This fact is proven by transport of structure from the `mv_polynomial.integral_domain_fin`,
 and then used to prove the general case without finiteness hypotheses.
@@ -765,7 +850,7 @@ lemma quotient_map_C_eq_zero {I : ideal R} {i : R} (hi : i ∈ I) :
   (ideal.quotient.mk (ideal.map C I : ideal (mv_polynomial σ R))).comp C i = 0 :=
 begin
   simp only [function.comp_app, ring_hom.coe_comp, ideal.quotient.eq_zero_iff_mem],
-  exact ideal.mem_map_of_mem hi
+  exact ideal.mem_map_of_mem _ hi
 end
 
 /-- If every coefficient of a polynomial is in an ideal `I`, then so is the polynomial itself,
@@ -779,7 +864,7 @@ begin
   intros m hm,
   rw [← mul_one (coeff m p), ← C_mul_monomial],
   suffices : C (coeff m p) ∈ I,
-  { exact ideal.mul_mem_right I (monomial m 1) this },
+  { exact I.mul_mem_right (monomial m 1) this },
   simpa [ideal.mem_comap] using hcoe m
 end
 
@@ -830,17 +915,17 @@ begin
   exact mem_map_C_iff.1 ha n
 end
 
-/-- If `I` is an ideal of `R`, then the ring `mv_polynomial σ I.quotient` is isomorphic to the
-quotient of `mv_polynomial σ R` by the ideal generated by `I`. -/
+/-- If `I` is an ideal of `R`, then the ring `mv_polynomial σ I.quotient` is isomorphic as an
+`R`-algebra to the quotient of `mv_polynomial σ R` by the ideal generated by `I`. -/
 def quotient_equiv_quotient_mv_polynomial (I : ideal R) :
-  mv_polynomial σ (I.quotient) ≃+* (ideal.map C I : ideal (mv_polynomial σ R)).quotient :=
+  mv_polynomial σ I.quotient ≃ₐ[R] (ideal.map C I : ideal (mv_polynomial σ R)).quotient :=
 { to_fun := eval₂_hom (ideal.quotient.lift I ((ideal.quotient.mk (ideal.map C I : ideal
     (mv_polynomial σ R))).comp C) (λ i hi, quotient_map_C_eq_zero hi))
     (λ i, ideal.quotient.mk (ideal.map C I : ideal (mv_polynomial σ R)) (X i)),
   inv_fun := ideal.quotient.lift (ideal.map C I : ideal (mv_polynomial σ R))
     (eval₂_hom (C.comp (ideal.quotient.mk I)) X) (λ a ha, eval₂_C_mk_eq_zero ha),
-  map_mul' := λ f g, by simp,
-  map_add' := λ f g, by simp,
+  map_mul' := ring_hom.map_mul _,
+  map_add' := ring_hom.map_add _,
   left_inv := begin
     intro f,
     apply induction_on f,
@@ -848,9 +933,10 @@ def quotient_equiv_quotient_mv_polynomial (I : ideal R) :
       rw [coe_eval₂_hom, eval₂_C],
       simp only [eval₂_hom_eq_bind₂, submodule.quotient.quot_mk_eq_mk, ideal.quotient.lift_mk,
         ideal.quotient.mk_eq_mk, bind₂_C_right, ring_hom.coe_comp] },
-    { simp_intros p q hp hq,
+    { simp_intros p q hp hq only [ring_hom.map_add, mv_polynomial.coe_eval₂_hom, coe_eval₂_hom,
+        mv_polynomial.eval₂_add, mv_polynomial.eval₂_hom_eq_bind₂, eval₂_hom_eq_bind₂],
       rw [hp, hq] },
-    { simp_intros p i hp,
+    { simp_intros p i hp only [eval₂_hom_eq_bind₂, coe_eval₂_hom],
       simp only [hp, eval₂_hom_eq_bind₂, coe_eval₂_hom, ideal.quotient.lift_mk, bind₂_X_right,
         eval₂_mul, ring_hom.map_mul, eval₂_X] }
   end,
@@ -860,26 +946,15 @@ def quotient_equiv_quotient_mv_polynomial (I : ideal R) :
     { intros r,
       simp only [submodule.quotient.quot_mk_eq_mk, ideal.quotient.lift_mk, ideal.quotient.mk_eq_mk,
         ring_hom.coe_comp, eval₂_hom_C] },
-    { simp_intros p q hp hq,
+    { simp_intros p q hp hq only [eval₂_hom_eq_bind₂, submodule.quotient.quot_mk_eq_mk, eval₂_add,
+        ring_hom.map_add, coe_eval₂_hom, ideal.quotient.lift_mk, ideal.quotient.mk_eq_mk],
       rw [hp, hq] },
-    { simp_intros p i hp,
+    { simp_intros p i hp only [eval₂_hom_eq_bind₂, submodule.quotient.quot_mk_eq_mk, coe_eval₂_hom,
+        ideal.quotient.lift_mk, ideal.quotient.mk_eq_mk, bind₂_X_right, eval₂_mul, ring_hom.map_mul,
+        eval₂_X],
       simp only [hp] }
   end,
-}
-
-/-- If `I` is an ideal of `R`, then the ring `mv_polynomial σ I.quotient` is isomorphic,
-as `R`-algebra, to the quotient of `mv_polynomial σ R` by the ideal generated by `I`. -/
-def quotient_alg_equiv_quotient_mv_polynomial (I : ideal R) :
-  algebra.comap R I.quotient (mv_polynomial σ (I.quotient)) ≃ₐ[R]
-  (ideal.map C I : ideal (mv_polynomial σ R)).quotient :=
-  { commutes' := begin
-    intro r,
-    change (algebra_map R (algebra.comap R I.quotient (mv_polynomial σ (I.quotient)))) r with
-      C (ideal.quotient.mk I r),
-    simpa [algebra_map, quotient_equiv_quotient_mv_polynomial],
-    end,
-    ..quotient_equiv_quotient_mv_polynomial I,
-  }
+  commutes' := λ r, eval₂_hom_C _ _ (ideal.quotient.mk I r) }
 
 end mv_polynomial
 

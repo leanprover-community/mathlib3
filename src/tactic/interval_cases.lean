@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Scott Morrison
+Authors: Scott Morrison
 
 Case bashing on variables in finite intervals.
 
@@ -243,7 +243,8 @@ do
     [hl, hu] ← [(option.get h').1, (option.get h').2].mmap get_local,
     tactic.interval_cases_using hl hu lname)
   else
-    fail "Call `interval_cases n` (specifying a variable), or `interval_cases lb ub` (specifying a lower bound and upper bound on the same variable)."
+    fail ("Call `interval_cases n` (specifying a variable), or `interval_cases lb ub`\n" ++
+      "(specifying a lower bound and upper bound on the same variable).")
 
 /--
 `interval_cases n` searches for upper and lower bounds on a variable `n`,

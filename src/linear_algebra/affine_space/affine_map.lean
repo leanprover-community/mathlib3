@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Joseph Myers.
+Authors: Joseph Myers
 -/
 import linear_algebra.affine_space.basic
 import linear_algebra.tensor_product
@@ -51,7 +51,7 @@ structure affine_map (k : Type*) {V1 : Type*} (P1 : Type*) {V2 : Type*} (P2 : Ty
     [add_comm_group V1] [module k V1] [affine_space V1 P1]
     [add_comm_group V2] [module k V2] [affine_space V2 P2] :=
 (to_fun : P1 → P2)
-(linear : linear_map k V1 V2)
+(linear : V1 →ₗ[k] V2)
 (map_vadd' : ∀ (p : P1) (v : V1), to_fun (v +ᵥ p) =  linear v +ᵥ to_fun p)
 
 notation P1 ` →ᵃ[`:25 k:25 `] `:0 P2:0 := affine_map k P1 P2
@@ -125,7 +125,7 @@ end
 
 lemma ext_iff {f g : P1 →ᵃ[k] P2} : f = g ↔ ∀ p, f p = g p := ⟨λ h p, h ▸ rfl, ext⟩
 
-lemma injective_coe_fn : function.injective (λ (f : P1 →ᵃ[k] P2) (x : P1), f x) :=
+lemma coe_fn_injective : @function.injective (P1 →ᵃ[k] P2) (P1 → P2) coe_fn :=
 λ f g H, ext $ congr_fun H
 
 protected lemma congr_arg (f : P1 →ᵃ[k] P2) {x y : P1} (h : x = y) : f x = f y :=
@@ -158,7 +158,7 @@ def mk' (f : P1 → P2) (f' : V1 →ₗ[k] V2) (p : P1) (h : ∀ p' : P1, f p' =
   P1 →ᵃ[k] P2 :=
 { to_fun := f,
   linear := f',
-  map_vadd' := λ p' v, by rw [h, h p', vadd_vsub_assoc, f'.map_add, vadd_assoc] }
+  map_vadd' := λ p' v, by rw [h, h p', vadd_vsub_assoc, f'.map_add, vadd_vadd] }
 
 @[simp] lemma coe_mk' (f : P1 → P2) (f' : V1 →ₗ[k] V2) (p h) : ⇑(mk' f f' p h) = f := rfl
 
@@ -185,9 +185,9 @@ lemma add_linear (f g : P1 →ᵃ[k] V2) : (f + g).linear = f.linear + g.linear 
 from `P1` to the vector space `V2` corresponding to `P2`. -/
 instance : affine_space (P1 →ᵃ[k] V2) (P1 →ᵃ[k] P2) :=
 { vadd := λ f g, ⟨λ p, f p +ᵥ g p, f.linear + g.linear, λ p v,
-    by simp [vadd_assoc, add_right_comm]⟩,
-  zero_vadd' := λ f, ext $ λ p, zero_vadd _ (f p),
-  vadd_assoc' := λ f₁ f₂ f₃, ext $ λ p, vadd_assoc (f₁ p) (f₂ p) (f₃ p),
+    by simp [vadd_vadd, add_right_comm]⟩,
+  zero_vadd := λ f, ext $ λ p, zero_vadd _ (f p),
+  add_vadd := λ f₁ f₂ f₃, ext $ λ p, add_vadd (f₁ p) (f₂ p) (f₃ p),
   vsub := λ f g, ⟨λ p, f p -ᵥ g p, f.linear - g.linear, λ p v,
     by simp [vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, add_sub, sub_add_eq_add_sub]⟩,
   vsub_vadd' := λ f g, ext $ λ p, vsub_vadd (f p) (g p),
@@ -285,6 +285,22 @@ instance : monoid (P1 →ᵃ[k] P1) :=
 
 @[simp] lemma coe_mul (f g : P1 →ᵃ[k] P1) : ⇑(f * g) = f ∘ g := rfl
 @[simp] lemma coe_one : ⇑(1 : P1 →ᵃ[k] P1) = _root_.id := rfl
+
+include V2
+
+@[simp] lemma injective_iff_linear_injective (f : P1 →ᵃ[k] P2) :
+  function.injective f.linear ↔ function.injective f :=
+begin
+  split; intros hf x y hxy,
+  { rw [← @vsub_eq_zero_iff_eq V1, ← @submodule.mem_bot k V1, ← linear_map.ker_eq_bot.mpr hf,
+      linear_map.mem_ker, affine_map.linear_map_vsub, hxy, vsub_self], },
+  { obtain ⟨p⟩ := (by apply_instance : nonempty P1),
+    have hxy' : (f.linear x) +ᵥ f p = (f.linear y) +ᵥ f p, { rw hxy, },
+    rw [← f.map_vadd, ← f.map_vadd] at hxy',
+    exact (vadd_right_cancel_iff _).mp (hf hxy'), },
+end
+
+omit V2
 
 /-! ### Definition of `affine_map.line_map` and lemmas about it -/
 
@@ -417,7 +433,7 @@ end
 section
 
 variables {ι : Type*} {V : Π i : ι, Type*} {P : Π i : ι, Type*} [Π i, add_comm_group (V i)]
-  [Π i, semimodule k (V i)] [Π i, add_torsor (V i) (P i)]
+  [Π i, module k (V i)] [Π i, add_torsor (V i) (P i)]
 
 include V
 
@@ -459,7 +475,7 @@ instance : module k (P1 →ᵃ[k] V2) :=
 
 @[simp] lemma coe_smul (c : k) (f : P1 →ᵃ[k] V2) : ⇑(c • f) = c • f := rfl
 
-/-- `homothety c r` is the homothety about `c` with scale factor `r`. -/
+/-- `homothety c r` is the homothety (also known as dilation) about `c` with scale factor `r`. -/
 def homothety (c : P1) (r : k) : P1 →ᵃ[k] P1 :=
 r • (id k P1 -ᵥ const k P1 c) +ᵥ const k P1 c
 
@@ -483,7 +499,7 @@ by { ext p, simp [homothety_apply] }
 
 @[simp] lemma homothety_add (c : P1) (r₁ r₂ : k) :
   homothety c (r₁ + r₂) = r₁ • (id k P1 -ᵥ const k P1 c) +ᵥ homothety c r₂ :=
-by simp only [homothety_def, add_smul, vadd_assoc]
+by simp only [homothety_def, add_smul, vadd_vadd]
 
 /-- `homothety` as a multiplicative monoid homomorphism. -/
 def homothety_hom (c : P1) : k →* P1 →ᵃ[k] P1 :=

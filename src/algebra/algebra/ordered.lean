@@ -21,7 +21,7 @@ i.e. `A ≤ B` iff `B - A = star R * R` for some `R`.
 ## Implementation
 
 Because the axioms for an ordered algebra are exactly the same as those for the underlying
-module being ordered, we don't actually introduce a new class, but just use the `ordered_semimodule`
+module being ordered, we don't actually introduce a new class, but just use the `ordered_smul`
 mixin.
 
 ## Tags
@@ -33,7 +33,7 @@ section ordered_algebra
 
 variables {R A : Type*} {a b : A} {r : R}
 
-variables [ordered_comm_ring R] [ordered_ring A] [algebra R A] [ordered_semimodule R A]
+variables [ordered_comm_ring R] [ordered_ring A] [algebra R A] [ordered_smul R A]
 
 lemma algebra_map_monotone : monotone (algebra_map R A) :=
 λ a b h,
@@ -50,7 +50,7 @@ section instances
 
 variables {R : Type*} [linear_ordered_comm_ring R]
 
-instance linear_ordered_comm_ring.to_ordered_semimodule : ordered_semimodule R R :=
+instance linear_ordered_comm_ring.to_ordered_smul : ordered_smul R R :=
 { smul_lt_smul_of_pos       := ordered_semiring.mul_lt_mul_of_pos_left,
   lt_of_smul_lt_smul_of_pos := λ a b c w₁ w₂, (mul_lt_mul_left w₂).mp w₁ }
 

@@ -1,9 +1,10 @@
 /-
 Copyright (c) 2021 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Rémy Degenne
+Authors: Rémy Degenne
 -/
-import measure_theory.measure_space
+import measure_theory.measure.measure_space
+import measure_theory.pi_system
 import algebra.big_operators.intervals
 import data.finset.intervals
 
@@ -120,7 +121,7 @@ Indep (λ x, measurable_space.comap (f x) (m x)) μ
 /-- Two functions are independent if the two measurable space structures they generate are
 independent. For a function `f` with codomain having measurable space structure `m`, the generated
 measurable space structure is `measurable_space.comap f m`. -/
-def indep_fun {α β γ} [measurable_space α] (mβ : measurable_space β) (mγ : measurable_space γ)
+def indep_fun {α β γ} [measurable_space α] [mβ : measurable_space β] [mγ : measurable_space γ]
   (f : α → β) (g : α → γ) (μ : measure α . volume_tac) : Prop :=
 indep (measurable_space.comap f mβ) (measurable_space.comap g mγ) μ
 
@@ -195,6 +196,11 @@ lemma indep_sets.Inter {α ι} [measurable_space α] {s : ι → set (set α)} {
   indep_sets (⋂ n, s n) s' μ :=
 by {intros t1 t2 ht1 ht2, cases h with n h, exact h t1 t2 (set.mem_Inter.mp ht1 n) ht2 }
 
+lemma indep_sets_singleton_iff {α} [measurable_space α] {s t : set α} {μ : measure α} :
+  indep_sets {s} {t} μ ↔ μ (s ∩ t) = μ s * μ t :=
+⟨λ h, h s t rfl rfl,
+  λ h s1 t1 hs1 ht1, by rwa [set.mem_singleton_iff.mp hs1, set.mem_singleton_iff.mp ht1]⟩
+
 end indep
 
 /-! ### Deducing `indep` from `Indep` -/
@@ -265,7 +271,7 @@ section from_pi_systems_to_measurable_spaces
 /-! ### Independence of generating π-systems implies independence of measurable space structures -/
 
 private lemma indep_sets.indep_aux {α} {m2 : measurable_space α}
-  {m : measurable_space α} {μ : measure α} [probability_measure μ] {p1 p2 : set (set α)}
+  {m : measurable_space α} {μ : measure α} [is_probability_measure μ] {p1 p2 : set (set α)}
   (h2 : m2 ≤ m) (hp2 : is_pi_system p2) (hpm2 : m2 = generate_from p2)
   (hyp : indep_sets p1 p2 μ) {t1 t2 : set α} (ht1 : t1 ∈ p1) (ht2m : m2.measurable_set' t2) :
   μ (t1 ∩ t2) = μ t1 * μ t2 :=
@@ -274,7 +280,7 @@ begin
   let ν := (μ t1) • μ,
   have h_univ : μ_inter set.univ = ν set.univ,
   by rw [measure.restrict_apply_univ, measure.smul_apply, measure_univ, mul_one],
-  haveI : finite_measure μ_inter := @restrict.finite_measure α _ t1 μ (measure_lt_top μ t1),
+  haveI : is_finite_measure μ_inter := @restrict.is_finite_measure α _ t1 μ ⟨measure_lt_top μ t1⟩,
   rw [set.inter_comm, ←@measure.restrict_apply α _ μ t1 t2 (h2 t2 ht2m)],
   refine ext_on_measurable_space_of_generate_finite m p2 (λ t ht, _) h2 hpm2 hp2 h_univ ht2m,
   have ht2 : m.measurable_set' t,
@@ -286,7 +292,7 @@ begin
 end
 
 lemma indep_sets.indep {α} {m1 m2 : measurable_space α} {m : measurable_space α}
-  {μ : measure α} [probability_measure μ] {p1 p2 : set (set α)} (h1 : m1 ≤ m) (h2 : m2 ≤ m)
+  {μ : measure α} [is_probability_measure μ] {p1 p2 : set (set α)} (h1 : m1 ≤ m) (h2 : m2 ≤ m)
   (hp1 : is_pi_system p1) (hp2 : is_pi_system p2) (hpm1 : m1 = generate_from p1)
   (hpm2 : m2 = generate_from p2) (hyp : indep_sets p1 p2 μ) :
   indep m1 m2 μ :=
@@ -296,7 +302,7 @@ begin
   let ν := (μ t2) • μ,
   have h_univ : μ_inter set.univ = ν set.univ,
   by rw [measure.restrict_apply_univ, measure.smul_apply, measure_univ, mul_one],
-  haveI : finite_measure μ_inter := @restrict.finite_measure α _ t2 μ (measure_lt_top μ t2),
+  haveI : is_finite_measure μ_inter := @restrict.is_finite_measure α _ t2 μ ⟨measure_lt_top μ t2⟩,
   rw [mul_comm, ←@measure.restrict_apply α _ μ t2 t1 (h1 t1 ht1)],
   refine ext_on_measurable_space_of_generate_finite m p1 (λ t ht, _) h1 hpm1 hp1 h_univ ht1,
   have ht1 : m.measurable_set' t,
@@ -308,5 +314,36 @@ begin
 end
 
 end from_pi_systems_to_measurable_spaces
+
+section indep_set
+/-! ### Independence of measurable sets
+
+We prove the following equivalences on `indep_set`, for measurable sets `s, t`.
+* `indep_set s t μ ↔ μ (s ∩ t) = μ s * μ t`,
+* `indep_set s t μ ↔ indep_sets {s} {t} μ`.
+-/
+
+variables {α : Type*} [measurable_space α] {s t : set α} (S T : set (set α))
+
+lemma indep_set_iff_indep_sets_singleton (hs_meas : measurable_set s) (ht_meas : measurable_set t)
+  (μ : measure α . volume_tac) [is_probability_measure μ] :
+  indep_set s t μ ↔ indep_sets {s} {t} μ :=
+⟨indep.indep_sets,  λ h, indep_sets.indep
+  (generate_from_le (λ u hu, by rwa set.mem_singleton_iff.mp hu))
+  (generate_from_le (λ u hu, by rwa set.mem_singleton_iff.mp hu)) (is_pi_system.singleton s)
+  (is_pi_system.singleton t) rfl rfl h⟩
+
+lemma indep_set_iff_measure_inter_eq_mul (hs_meas : measurable_set s) (ht_meas : measurable_set t)
+  (μ : measure α . volume_tac) [is_probability_measure μ] :
+  indep_set s t μ ↔ μ (s ∩ t) = μ s * μ t :=
+(indep_set_iff_indep_sets_singleton hs_meas ht_meas μ).trans indep_sets_singleton_iff
+
+lemma indep_sets.indep_set_of_mem (hs : s ∈ S) (ht : t ∈ T) (hs_meas : measurable_set s)
+  (ht_meas : measurable_set t) (μ : measure α . volume_tac) [is_probability_measure μ]
+  (h_indep : indep_sets S T μ) :
+  indep_set s t μ :=
+(indep_set_iff_measure_inter_eq_mul hs_meas ht_meas μ).mpr (h_indep s t hs ht)
+
+end indep_set
 
 end probability_theory

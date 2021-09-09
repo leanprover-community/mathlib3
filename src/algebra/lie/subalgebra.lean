@@ -82,6 +82,10 @@ lemma lie_mem {x y : L} (hx : x ∈ L') (hy : y ∈ L') : (⁅x, y⁆ : L) ∈ L
 
 @[simp] lemma mem_carrier {x : L} : x ∈ L'.carrier ↔ x ∈ (L' : set L) := iff.rfl
 
+@[simp] lemma mem_mk_iff (S : set L) (h₁ h₂ h₃ h₄) {x : L} :
+  x ∈ (⟨S, h₁, h₂, h₃, h₄⟩ : lie_subalgebra R L) ↔ x ∈ S :=
+iff.rfl
+
 @[simp] lemma mem_coe_submodule {x : L} : x ∈ (L' : submodule R L) ↔ x ∈ L' := iff.rfl
 
 lemma mem_coe {x : L} : x ∈ (L' : set L) ↔ x ∈ L' := iff.rfl
@@ -114,7 +118,7 @@ lemma coe_injective : function.injective (coe : lie_subalgebra R L → set L) :=
 
 lemma to_submodule_injective :
   function.injective (coe : lie_subalgebra R L → submodule R L) :=
-λ L₁' L₂' h, by { rw submodule.ext'_iff at h, rw ← coe_set_eq, exact h, }
+λ L₁' L₂' h, by { rw set_like.ext'_iff at h, rw ← coe_set_eq, exact h, }
 
 @[simp] lemma coe_to_submodule_eq_iff (L₁' L₂' : lie_subalgebra R L) :
   (L₁' : submodule R L) = (L₂' : submodule R L) ↔ L₁' = L₂' :=
@@ -123,15 +127,60 @@ to_submodule_injective.eq_iff
 @[norm_cast]
 lemma coe_to_submodule : ((L' : submodule R L) : set L) = L' := rfl
 
+section lie_module
+
+variables {M : Type w} [add_comm_group M] [lie_ring_module L M]
+variables {N : Type w₁} [add_comm_group N] [lie_ring_module L N] [module R N] [lie_module R L N]
+
+/-- Given a Lie algebra `L` containing a Lie subalgebra `L' ⊆ L`, together with a Lie ring module
+`M` of `L`, we may regard `M` as a Lie ring module of `L'` by restriction. -/
+instance : lie_ring_module L' M :=
+{ bracket     := λ x m, ⁅(x : L), m⁆,
+  add_lie     := λ x y m, add_lie x y m,
+  lie_add     := λ x y m, lie_add x y m,
+  leibniz_lie := λ x y m, leibniz_lie x y m, }
+
+@[simp] lemma coe_bracket_of_module (x : L') (m : M) : ⁅x, m⁆ = ⁅(x : L), m⁆ := rfl
+
+variables [module R M] [lie_module R L M]
+
+/-- Given a Lie algebra `L` containing a Lie subalgebra `L' ⊆ L`, together with a Lie module `M` of
+`L`, we may regard `M` as a Lie module of `L'` by restriction. -/
+instance : lie_module R L' M :=
+{ smul_lie := λ t x m, by simp only [coe_bracket_of_module, smul_lie, submodule.coe_smul_of_tower],
+  lie_smul := λ t x m, by simp only [coe_bracket_of_module, lie_smul], }
+
+/-- An `L`-equivariant map of Lie modules `M → N` is `L'`-equivariant for any Lie subalgebra
+`L' ⊆ L`. -/
+def _root_.lie_module_hom.restrict_lie (f : M →ₗ⁅R,L⁆ N) (L' : lie_subalgebra R L) : M →ₗ⁅R,L'⁆ N :=
+{ map_lie' := λ x m, f.map_lie ↑x m,
+  .. (f : M →ₗ[R] N)}
+
+@[simp] lemma _root_.lie_module_hom.coe_restrict_lie (f : M →ₗ⁅R,L⁆ N) :
+  ⇑(f.restrict_lie L') = f :=
+rfl
+
+end lie_module
+
+/-- The embedding of a Lie subalgebra into the ambient space as a morphism of Lie algebras. -/
+def incl : L' →ₗ⁅R⁆ L :=
+{ map_lie' := λ x y, by { simp only [linear_map.to_fun_eq_coe, submodule.subtype_apply], refl, },
+  .. (L' : submodule R L).subtype, }
+
+@[simp] lemma coe_incl : ⇑L'.incl = coe := rfl
+
+/-- The embedding of a Lie subalgebra into the ambient space as a morphism of Lie modules. -/
+def incl' : L' →ₗ⁅R,L'⁆ L :=
+{ map_lie' := λ x y, by simp only [coe_bracket_of_module, linear_map.to_fun_eq_coe,
+    submodule.subtype_apply, coe_bracket],
+  .. (L' : submodule R L).subtype, }
+
+@[simp] lemma coe_incl' : ⇑L'.incl' = coe := rfl
+
 end lie_subalgebra
 
 variables {R L} {L₂ : Type w} [lie_ring L₂] [lie_algebra R L₂]
 variables (f : L →ₗ⁅R⁆ L₂)
-
-/-- The embedding of a Lie subalgebra into the ambient space as a Lie morphism. -/
-def lie_subalgebra.incl (L' : lie_subalgebra R L) : L' →ₗ⁅R⁆ L :=
-{ map_lie' := λ x y, by { rw [linear_map.to_fun_eq_coe, submodule.subtype_apply], refl, },
-  ..L'.to_submodule.subtype }
 
 namespace lie_hom
 
@@ -237,6 +286,9 @@ instance : has_top (lie_subalgebra R L) :=
 
 @[simp] lemma mem_top (x : L) : x ∈ (⊤ : lie_subalgebra R L) := mem_univ x
 
+lemma _root_.lie_hom.range_eq_map : f.range = map f ⊤ :=
+by { ext, simp }
+
 instance : has_inf (lie_subalgebra R L) :=
 ⟨λ K K', { lie_mem' := λ x y hx hy, mem_inter (K.lie_mem hx.1 hy.1) (K'.lie_mem hx.2 hy.2),
             ..(K ⊓ K' : submodule R L) }⟩
@@ -263,7 +315,9 @@ end
 lemma Inf_glb (S : set (lie_subalgebra R L)) : is_glb S (Inf S) :=
 begin
   have h : ∀ (K K' : lie_subalgebra R L), (K : set L) ≤ K' ↔ K ≤ K', { intros, exact iff.rfl, },
-  simp only [is_glb.of_image h, Inf_coe, is_glb_binfi],
+  apply is_glb.of_image h,
+  simp only [Inf_coe],
+  exact is_glb_binfi
 end
 
 /-- The set of Lie subalgebras of a Lie algebra form a complete lattice.
@@ -338,7 +392,7 @@ def hom_of_le : K →ₗ⁅R⁆ K' :=
 lemma hom_of_le_apply (x : K) : hom_of_le h x = ⟨x.1, h x.2⟩ := rfl
 
 lemma hom_of_le_injective : function.injective (hom_of_le h) :=
-λ x y, by simp only [hom_of_le_apply, imp_self, subtype.mk_eq_mk, submodule.coe_eq_coe,
+λ x y, by simp only [hom_of_le_apply, imp_self, subtype.mk_eq_mk, set_like.coe_eq_coe,
   subtype.val_eq_coe]
 
 /-- Given two nested Lie subalgebras `K ⊆ K'`, we can view `K` as a Lie subalgebra of `K'`,
@@ -403,6 +457,29 @@ begin
   { intros x m hm, rw [← h, mem_coe_submodule], exact lie_mem _ (subset_lie_span hm), },
   { rw [← coe_to_submodule_mk p h, coe_to_submodule, coe_to_submodule_eq_iff, lie_span_eq], },
 end
+
+variables (R L)
+
+/-- `lie_span` forms a Galois insertion with the coercion from `lie_subalgebra` to `set`. -/
+protected def gi : galois_insertion (lie_span R L : set L → lie_subalgebra R L) coe :=
+{ choice    := λ s _, lie_span R L s,
+  gc        := λ s t, lie_span_le,
+  le_l_u    := λ s, subset_lie_span,
+  choice_eq := λ s h, rfl }
+
+@[simp] lemma span_empty : lie_span R L (∅ : set L) = ⊥ :=
+(lie_subalgebra.gi R L).gc.l_bot
+
+@[simp] lemma span_univ : lie_span R L (set.univ : set L) = ⊤ :=
+eq_top_iff.2 $ set_like.le_def.2 $ subset_lie_span
+
+variables {L}
+
+lemma span_union (s t : set L) : lie_span R L (s ∪ t) = lie_span R L s ⊔ lie_span R L t :=
+(lie_subalgebra.gi R L).gc.l_sup
+
+lemma span_Union {ι} (s : ι → set L) : lie_span R L (⋃ i, s i) = ⨆ i, lie_span R L (s i) :=
+(lie_subalgebra.gi R L).gc.l_supr
 
 end lie_span
 

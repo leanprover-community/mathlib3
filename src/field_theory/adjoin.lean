@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2020 Thomas Browning and Patrick Lutz. All rights reserved.
+Copyright (c) 2020 Thomas Browning, Patrick Lutz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Thomas Browning and Patrick Lutz
+Authors: Thomas Browning, Patrick Lutz
 -/
 
 import field_theory.intermediate_field
@@ -82,20 +82,35 @@ by { ext, rw [mem_to_subalgebra, algebra.mem_bot, mem_bot] }
 @[simp] lemma top_to_subalgebra : (⊤ : intermediate_field F E).to_subalgebra = ⊤ :=
 by { ext, rw [mem_to_subalgebra, iff_true_right algebra.mem_top], exact mem_top }
 
-/--  Construct an algebra isomorphism from an equality of subalgebras -/
-def subalgebra.equiv_of_eq {X Y : subalgebra F E} (h : X = Y) : X ≃ₐ[F] Y :=
+/--  Construct an algebra isomorphism from an equality of intermediate fields -/
+@[simps apply]
+def equiv_of_eq {S T : intermediate_field F E} (h : S = T) : S ≃ₐ[F] T :=
 by refine { to_fun := λ x, ⟨x, _⟩, inv_fun := λ x, ⟨x, _⟩, .. }; tidy
 
+@[simp] lemma equiv_of_eq_symm {S T : intermediate_field F E} (h : S = T) :
+  (equiv_of_eq h).symm = equiv_of_eq h.symm :=
+rfl
+
+@[simp] lemma equiv_of_eq_rfl (S : intermediate_field F E) :
+  equiv_of_eq (rfl : S = S) = alg_equiv.refl :=
+by { ext, refl }
+
+@[simp] lemma equiv_of_eq_trans {S T U : intermediate_field F E} (hST : S = T) (hTU : T = U) :
+  (equiv_of_eq hST).trans (equiv_of_eq hTU) = equiv_of_eq (trans hST hTU) :=
+rfl
+
+variables (F E)
 /-- The bottom intermediate_field is isomorphic to the field. -/
 noncomputable def bot_equiv : (⊥ : intermediate_field F E) ≃ₐ[F] F :=
-(subalgebra.equiv_of_eq bot_to_subalgebra).trans (algebra.bot_equiv F E)
+(subalgebra.equiv_of_eq _ _ bot_to_subalgebra).trans (algebra.bot_equiv F E)
+variables {F E}
 
 @[simp] lemma bot_equiv_def (x : F) :
-  bot_equiv (algebra_map F (⊥ : intermediate_field F E) x) = x :=
-alg_equiv.commutes bot_equiv x
+  bot_equiv F E (algebra_map F (⊥ : intermediate_field F E) x) = x :=
+alg_equiv.commutes (bot_equiv F E) x
 
 noncomputable instance algebra_over_bot : algebra (⊥ : intermediate_field F E) F :=
-  ring_hom.to_algebra intermediate_field.bot_equiv.to_alg_hom.to_ring_hom
+(intermediate_field.bot_equiv F E).to_alg_hom.to_ring_hom.to_algebra
 
 instance is_scalar_tower_over_bot : is_scalar_tower (⊥ : intermediate_field F E) F E :=
 is_scalar_tower.of_algebra_map_eq
@@ -110,7 +125,7 @@ end
 
 /-- The top intermediate_field is isomorphic to the field. -/
 noncomputable def top_equiv : (⊤ : intermediate_field F E) ≃ₐ[F] E :=
-(subalgebra.equiv_of_eq top_to_subalgebra).trans algebra.top_equiv
+(subalgebra.equiv_of_eq _ _ top_to_subalgebra).trans algebra.top_equiv
 
 @[simp] lemma top_equiv_def (x : (⊤ : intermediate_field F E)) : top_equiv x = ↑x :=
 begin
@@ -118,7 +133,7 @@ begin
   { rwa subtype.ext_iff at this },
   exact alg_equiv.apply_symm_apply (alg_equiv.of_bijective algebra.to_top
     ⟨λ _ _, subtype.mk.inj, λ x, ⟨x.val, by { ext, refl }⟩⟩ : E ≃ₐ[F] (⊤ : subalgebra F E))
-    (subalgebra.equiv_of_eq top_to_subalgebra x),
+    (subalgebra.equiv_of_eq _ _ top_to_subalgebra x),
 end
 
 @[simp] lemma coe_bot_eq_self (K : intermediate_field F E) : ↑(⊥ : intermediate_field K E) = K :=
@@ -126,7 +141,7 @@ by { ext, rw [mem_lift2, mem_bot], exact set.ext_iff.mp subtype.range_coe x }
 
 @[simp] lemma coe_top_eq_top (K : intermediate_field F E) :
   ↑(⊤ : intermediate_field K E) = (⊤ : intermediate_field F E) :=
-intermediate_field.ext'_iff.mpr (set.ext_iff.mpr (λ _, iff_of_true mem_top mem_top))
+set_like.ext_iff.mpr $ λ _, mem_lift2.trans (iff_of_true mem_top mem_top)
 
 end lattice
 
@@ -190,7 +205,7 @@ lemma adjoin_subset_adjoin_iff {F' : Type*} [field F'] [algebra F' E]
 /-- `F[S][T] = F[S ∪ T]` -/
 lemma adjoin_adjoin_left (T : set E) : ↑(adjoin (adjoin F S) T) = adjoin F (S ∪ T) :=
 begin
-  rw intermediate_field.ext'_iff,
+  rw set_like.ext'_iff,
   change ↑(adjoin (adjoin F S) T) = _,
   apply set.eq_of_subset_of_subset; rw adjoin_subset_adjoin_iff; split,
   { rintros _ ⟨⟨x, hx⟩, rfl⟩, exact adjoin.mono _ _ _ (set.subset_union_left _ _) hx },
@@ -287,6 +302,12 @@ def adjoin_simple.gen : F⟮α⟯ := ⟨α, mem_adjoin_simple_self F α⟩
 
 @[simp] lemma adjoin_simple.algebra_map_gen : algebra_map F⟮α⟯ E (adjoin_simple.gen F α) = α := rfl
 
+@[simp] lemma adjoin_simple.is_integral_gen :
+  is_integral F (adjoin_simple.gen F α) ↔ is_integral F α :=
+by { conv_rhs { rw ← adjoin_simple.algebra_map_gen F α },
+     rw is_integral_algebra_map_iff (algebra_map F⟮α⟯ E).injective,
+     apply_instance }
+
 lemma adjoin_simple_adjoin_simple (β : E) : ↑F⟮α⟯⟮β⟯ = F⟮α, β⟯ :=
 adjoin_adjoin_left _ _ _
 
@@ -314,7 +335,7 @@ begin
   rw mul_inv_cancel (mt (λ key, _) h),
   rw ← ϕ.map_zero at key,
   change ↑(⟨x, hx⟩ : algebra.adjoin F {α}) = _,
-  rw [ϕ.injective key, submodule.coe_zero]
+  rw [ϕ.injective key, subalgebra.coe_zero]
 end
 
 end adjoin_simple
@@ -342,32 +363,32 @@ adjoin_simple_eq_bot_iff.mpr (coe_int_mem ⊥ n)
 adjoin_simple_eq_bot_iff.mpr (coe_int_mem ⊥ n)
 
 section adjoin_dim
-open finite_dimensional vector_space
+open finite_dimensional module
 
 variables {K L : intermediate_field F E}
 
-@[simp] lemma dim_eq_one_iff : dim F K = 1 ↔ K = ⊥ :=
+@[simp] lemma dim_eq_one_iff : module.rank F K = 1 ↔ K = ⊥ :=
 by rw [← to_subalgebra_eq_iff, ← dim_eq_dim_subalgebra,
   subalgebra.dim_eq_one_iff, bot_to_subalgebra]
 
-@[simp] lemma findim_eq_one_iff : findim F K = 1 ↔ K = ⊥ :=
-by rw [← to_subalgebra_eq_iff, ← findim_eq_findim_subalgebra,
-  subalgebra.findim_eq_one_iff, bot_to_subalgebra]
+@[simp] lemma finrank_eq_one_iff : finrank F K = 1 ↔ K = ⊥ :=
+by rw [← to_subalgebra_eq_iff, ← finrank_eq_finrank_subalgebra,
+  subalgebra.finrank_eq_one_iff, bot_to_subalgebra]
 
-lemma dim_adjoin_eq_one_iff : dim F (adjoin F S) = 1 ↔ S ⊆ (⊥ : intermediate_field F E) :=
+lemma dim_adjoin_eq_one_iff : module.rank F (adjoin F S) = 1 ↔ S ⊆ (⊥ : intermediate_field F E) :=
 iff.trans dim_eq_one_iff adjoin_eq_bot_iff
 
-lemma dim_adjoin_simple_eq_one_iff : dim F F⟮α⟯ = 1 ↔ α ∈ (⊥ : intermediate_field F E) :=
+lemma dim_adjoin_simple_eq_one_iff : module.rank F F⟮α⟯ = 1 ↔ α ∈ (⊥ : intermediate_field F E) :=
 by { rw dim_adjoin_eq_one_iff, exact set.singleton_subset_iff }
 
-lemma findim_adjoin_eq_one_iff : findim F (adjoin F S) = 1 ↔ S ⊆ (⊥ : intermediate_field F E) :=
-iff.trans findim_eq_one_iff adjoin_eq_bot_iff
+lemma finrank_adjoin_eq_one_iff : finrank F (adjoin F S) = 1 ↔ S ⊆ (⊥ : intermediate_field F E) :=
+iff.trans finrank_eq_one_iff adjoin_eq_bot_iff
 
-lemma findim_adjoin_simple_eq_one_iff : findim F F⟮α⟯ = 1 ↔ α ∈ (⊥ : intermediate_field F E) :=
-by { rw [findim_adjoin_eq_one_iff], exact set.singleton_subset_iff }
+lemma finrank_adjoin_simple_eq_one_iff : finrank F F⟮α⟯ = 1 ↔ α ∈ (⊥ : intermediate_field F E) :=
+by { rw [finrank_adjoin_eq_one_iff], exact set.singleton_subset_iff }
 
 /-- If `F⟮x⟯` has dimension `1` over `F` for every `x ∈ E` then `F = E`. -/
-lemma bot_eq_top_of_dim_adjoin_eq_one (h : ∀ x : E, dim F F⟮x⟯ = 1) :
+lemma bot_eq_top_of_dim_adjoin_eq_one (h : ∀ x : E, module.rank F F⟮x⟯ = 1) :
   (⊥ : intermediate_field F E) = ⊤ :=
 begin
   ext,
@@ -375,42 +396,52 @@ begin
   exact dim_adjoin_simple_eq_one_iff.mp (h x),
 end
 
-lemma bot_eq_top_of_findim_adjoin_eq_one (h : ∀ x : E, findim F F⟮x⟯ = 1) :
+lemma bot_eq_top_of_finrank_adjoin_eq_one (h : ∀ x : E, finrank F F⟮x⟯ = 1) :
   (⊥ : intermediate_field F E) = ⊤ :=
 begin
   ext,
   rw iff_true_right intermediate_field.mem_top,
-  exact findim_adjoin_simple_eq_one_iff.mp (h x),
+  exact finrank_adjoin_simple_eq_one_iff.mp (h x),
 end
 
-lemma subsingleton_of_dim_adjoin_eq_one (h : ∀ x : E, dim F F⟮x⟯ = 1) :
+lemma subsingleton_of_dim_adjoin_eq_one (h : ∀ x : E, module.rank F F⟮x⟯ = 1) :
   subsingleton (intermediate_field F E) :=
 subsingleton_of_bot_eq_top (bot_eq_top_of_dim_adjoin_eq_one h)
 
-lemma subsingleton_of_findim_adjoin_eq_one (h : ∀ x : E, findim F F⟮x⟯ = 1) :
+lemma subsingleton_of_finrank_adjoin_eq_one (h : ∀ x : E, finrank F F⟮x⟯ = 1) :
   subsingleton (intermediate_field F E) :=
-subsingleton_of_bot_eq_top (bot_eq_top_of_findim_adjoin_eq_one h)
+subsingleton_of_bot_eq_top (bot_eq_top_of_finrank_adjoin_eq_one h)
 
 /-- If `F⟮x⟯` has dimension `≤1` over `F` for every `x ∈ E` then `F = E`. -/
-lemma bot_eq_top_of_findim_adjoin_le_one [finite_dimensional F E]
-  (h : ∀ x : E, findim F F⟮x⟯ ≤ 1) : (⊥ : intermediate_field F E) = ⊤ :=
+lemma bot_eq_top_of_finrank_adjoin_le_one [finite_dimensional F E]
+  (h : ∀ x : E, finrank F F⟮x⟯ ≤ 1) : (⊥ : intermediate_field F E) = ⊤ :=
 begin
-  apply bot_eq_top_of_findim_adjoin_eq_one,
-  exact λ x, by linarith [h x, show 0 < findim F F⟮x⟯, from findim_pos],
+  apply bot_eq_top_of_finrank_adjoin_eq_one,
+  exact λ x, by linarith [h x, show 0 < finrank F F⟮x⟯, from finrank_pos],
 end
 
-lemma subsingleton_of_findim_adjoin_le_one [finite_dimensional F E]
-  (h : ∀ x : E, findim F F⟮x⟯ ≤ 1) : subsingleton (intermediate_field F E) :=
-subsingleton_of_bot_eq_top (bot_eq_top_of_findim_adjoin_le_one h)
+lemma subsingleton_of_finrank_adjoin_le_one [finite_dimensional F E]
+  (h : ∀ x : E, finrank F F⟮x⟯ ≤ 1) : subsingleton (intermediate_field F E) :=
+subsingleton_of_bot_eq_top (bot_eq_top_of_finrank_adjoin_le_one h)
 
 end adjoin_dim
 end adjoin_intermediate_field_lattice
 
 section adjoin_integral_element
 
-variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] {α : E}
+variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E] {α : E}
 variables {K : Type*} [field K] [algebra F K]
 
+lemma minpoly_gen {α : E} (h : is_integral F α) :
+  minpoly F (adjoin_simple.gen F α) = minpoly F α :=
+begin
+  rw ← adjoin_simple.algebra_map_gen F α at h,
+  have inj := (algebra_map F⟮α⟯ E).injective,
+  exact minpoly.eq_of_algebra_map_eq inj ((is_integral_algebra_map_iff inj).mp h)
+    (adjoin_simple.algebra_map_gen _ _).symm
+end
+
+variables (F)
 lemma aeval_gen_minpoly (α : E) :
   aeval (adjoin_simple.gen F α) (minpoly F α) = 0 :=
 begin
@@ -427,17 +458,16 @@ alg_equiv.of_bijective (alg_hom.mk (adjoin_root.lift (algebra_map F F⟮α⟯)
   (adjoin_simple.gen F α) (aeval_gen_minpoly F α)) (ring_hom.map_one _)
   (λ x y, ring_hom.map_mul _ x y) (ring_hom.map_zero _) (λ x y, ring_hom.map_add _ x y)
   (by { exact λ _, adjoin_root.lift_of })) (begin
-    set f := adjoin_root.lift _ _ (aeval_gen_minpoly F α),
+    set f := adjoin_root.lift _ _ (aeval_gen_minpoly F α : _),
     haveI := minpoly.irreducible h,
     split,
     { exact ring_hom.injective f },
     { suffices : F⟮α⟯.to_subfield ≤ ring_hom.field_range ((F⟮α⟯.to_subfield.subtype).comp f),
-      { exact λ x, Exists.cases_on (this (subtype.mem x)) (λ y hy, ⟨y, subtype.ext hy.2⟩) },
-      exact subfield.closure_le.mpr (set.union_subset (λ x hx, Exists.cases_on hx (λ y hy, ⟨y,
-        ⟨subfield.mem_top y, by { rw [ring_hom.comp_apply, adjoin_root.lift_of], exact hy }⟩⟩))
+      { exact λ x, Exists.cases_on (this (subtype.mem x)) (λ y hy, ⟨y, subtype.ext hy⟩) },
+      exact subfield.closure_le.mpr (set.union_subset (λ x hx, Exists.cases_on hx (λ y hy,
+        ⟨y, by { rw [ring_hom.comp_apply, adjoin_root.lift_of], exact hy }⟩))
         (set.singleton_subset_iff.mpr ⟨adjoin_root.root (minpoly F α),
-        ⟨subfield.mem_top (adjoin_root.root (minpoly F α)),
-        by { rw [ring_hom.comp_apply, adjoin_root.lift_root], refl }⟩⟩)) } end)
+        by { rw [ring_hom.comp_apply, adjoin_root.lift_root], refl }⟩)) } end)
 
 lemma adjoin_root_equiv_adjoin_apply_root (h : is_integral F α) :
   adjoin_root_equiv_adjoin F h (adjoin_root.root (minpoly F α)) =
@@ -448,36 +478,61 @@ begin
   { exact aeval_gen_minpoly F α }
 end
 
+section power_basis
+
+variables {L : Type*} [field L] [algebra K L]
+
+/-- The elements `1, x, ..., x ^ (d - 1)` form a basis for `K⟮x⟯`,
+where `d` is the degree of the minimal polynomial of `x`. -/
+noncomputable def power_basis_aux {x : L} (hx : is_integral K x) :
+  basis (fin (minpoly K x).nat_degree) K K⟮x⟯ :=
+(adjoin_root.power_basis (minpoly.ne_zero hx)).basis.map
+  (adjoin_root_equiv_adjoin K hx).to_linear_equiv
+
+/-- The power basis `1, x, ..., x ^ (d - 1)` for `K⟮x⟯`,
+where `d` is the degree of the minimal polynomial of `x`. -/
+@[simps]
+noncomputable def adjoin.power_basis {x : L} (hx : is_integral K x) :
+  power_basis K K⟮x⟯ :=
+{ gen := adjoin_simple.gen K x,
+  dim := (minpoly K x).nat_degree,
+  basis := power_basis_aux hx,
+  basis_eq_pow := λ i,
+    by rw [power_basis_aux, basis.map_apply, power_basis.basis_eq_pow,
+           alg_equiv.to_linear_equiv_apply, alg_equiv.map_pow, adjoin_root.power_basis_gen,
+           adjoin_root_equiv_adjoin_apply_root] }
+
+lemma adjoin.finite_dimensional {x : L} (hx : is_integral K x) : finite_dimensional K K⟮x⟯ :=
+power_basis.finite_dimensional (adjoin.power_basis hx)
+
+lemma adjoin.finrank {x : L} (hx : is_integral K x) :
+  finite_dimensional.finrank K K⟮x⟯ = (minpoly K x).nat_degree :=
+begin
+  rw power_basis.finrank (adjoin.power_basis hx : _),
+  refl
+end
+
+end power_basis
+
 /-- Algebra homomorphism `F⟮α⟯ →ₐ[F] K` are in bijection with the set of roots
 of `minpoly α` in `K`. -/
 noncomputable def alg_hom_adjoin_integral_equiv (h : is_integral F α) :
   (F⟮α⟯ →ₐ[F] K) ≃ {x // x ∈ ((minpoly F α).map (algebra_map F K)).roots} :=
-let ϕ := adjoin_root_equiv_adjoin F h,
-  swap1 : (F⟮α⟯ →ₐ[F] K) ≃ (adjoin_root (minpoly F α) →ₐ[F] K) :=
-  { to_fun := λ f, f.comp ϕ.to_alg_hom,
-    inv_fun := λ f, f.comp ϕ.symm.to_alg_hom,
-    left_inv := λ _, by { ext, simp only [alg_equiv.coe_alg_hom,
-      alg_equiv.to_alg_hom_eq_coe, alg_hom.comp_apply, alg_equiv.apply_symm_apply]},
-    right_inv := λ _, by { ext, simp only [alg_equiv.symm_apply_apply,
-      alg_equiv.coe_alg_hom, alg_equiv.to_alg_hom_eq_coe, alg_hom.comp_apply] } },
-  swap2 := adjoin_root.equiv F K (minpoly F α) (minpoly.ne_zero h) in
-swap1.trans swap2
+(adjoin.power_basis h).lift_equiv'.trans ((equiv.refl _).subtype_equiv (λ x,
+  by rw [adjoin.power_basis_gen, minpoly_gen h, equiv.refl_apply]))
 
 /-- Fintype of algebra homomorphism `F⟮α⟯ →ₐ[F] K` -/
 noncomputable def fintype_of_alg_hom_adjoin_integral (h : is_integral F α) :
   fintype (F⟮α⟯ →ₐ[F] K) :=
-fintype.of_equiv _ (alg_hom_adjoin_integral_equiv F h).symm
+power_basis.alg_hom.fintype (adjoin.power_basis h)
 
 lemma card_alg_hom_adjoin_integral (h : is_integral F α) (h_sep : (minpoly F α).separable)
   (h_splits : (minpoly F α).splits (algebra_map F K)) :
   @fintype.card (F⟮α⟯ →ₐ[F] K) (fintype_of_alg_hom_adjoin_integral F h) =
     (minpoly F α).nat_degree :=
 begin
-  let s := ((minpoly F α).map (algebra_map F K)).roots.to_finset,
-  have H := λ x, multiset.mem_to_finset,
-  rw [fintype.card_congr (alg_hom_adjoin_integral_equiv F h), fintype.card_of_subtype s H,
-      nat_degree_eq_card_roots h_splits, multiset.to_finset_card_of_nodup],
-  exact nodup_roots ((separable_map (algebra_map F K)).mpr h_sep),
+  rw alg_hom.card_of_power_basis;
+    simp only [adjoin.power_basis_dim, adjoin.power_basis_gen, minpoly_gen h, h_sep, h_splits],
 end
 
 end adjoin_integral_element
@@ -558,7 +613,7 @@ noncomputable instance : order_bot (lifts F E K) :=
     congr,
     exact alg_hom.ext (λ s, hxy2 s s rfl),
   end,
-  bot := ⟨⊥, (algebra.of_id F K).comp bot_equiv.to_alg_hom⟩,
+  bot := ⟨⊥, (algebra.of_id F K).comp (bot_equiv F E).to_alg_hom⟩,
   bot_le := λ x, ⟨bot_le, λ s t hst,
   begin
     cases intermediate_field.mem_bot.mp s.mem with u hu,
@@ -708,48 +763,6 @@ section power_basis
 
 variables {K L : Type*} [field K] [field L] [algebra K L]
 
-namespace intermediate_field
-
-lemma power_basis_is_basis {x : L} (hx : is_integral K x) :
-  is_basis K (λ (i : fin (minpoly K x).nat_degree), (adjoin_simple.gen K x ^ (i : ℕ))) :=
-begin
-  let ϕ := (adjoin_root_equiv_adjoin K hx).to_linear_equiv,
-  have key : ϕ (adjoin_root.root (minpoly K x)) = adjoin_simple.gen K x,
-  { exact intermediate_field.adjoin_root_equiv_adjoin_apply_root K hx },
-  suffices : ϕ ∘ (λ (i : fin (minpoly K x).nat_degree),
-    adjoin_root.root (minpoly K x) ^ (i.val)) =
-      (λ (i : fin (minpoly K x).nat_degree),
-        (adjoin_simple.gen K x) ^ ↑i),
-  { rw ← this, exact linear_equiv.is_basis
-    (adjoin_root.power_basis_is_basis (minpoly.ne_zero hx)) ϕ },
-  ext y,
-  rw [function.comp_app, fin.val_eq_coe, alg_equiv.to_linear_equiv_apply, alg_equiv.map_pow],
-  rw intermediate_field.adjoin_root_equiv_adjoin_apply_root K hx,
-end
-
-/-- The power basis `1, x, ..., x ^ (d - 1)` for `K⟮x⟯`,
-where `d` is the degree of the minimal polynomial of `x`. -/
-noncomputable def adjoin.power_basis {x : L} (hx : is_integral K x) :
-  power_basis K K⟮x⟯ :=
-{ gen := adjoin_simple.gen K x,
-  dim := (minpoly K x).nat_degree,
-  is_basis := power_basis_is_basis hx }
-
-@[simp] lemma adjoin.power_basis.gen_eq {x : L} (hx : is_integral K x) :
-  (adjoin.power_basis hx).gen = adjoin_simple.gen K x := rfl
-
-lemma adjoin.finite_dimensional {x : L} (hx : is_integral K x) : finite_dimensional K K⟮x⟯ :=
-power_basis.finite_dimensional (adjoin.power_basis hx)
-
-lemma adjoin.findim {x : L} (hx : is_integral K x) :
-  finite_dimensional.findim K K⟮x⟯ = (minpoly K x).nat_degree :=
-begin
-  rw power_basis.findim (adjoin.power_basis hx),
-  refl,
-end
-
-end intermediate_field
-
 namespace power_basis
 
 open intermediate_field
@@ -760,7 +773,7 @@ noncomputable def equiv_adjoin_simple (pb : power_basis K L) :
 (adjoin.power_basis pb.is_integral_gen).equiv pb
   (minpoly.eq_of_algebra_map_eq (algebra_map K⟮pb.gen⟯ L).injective
     (adjoin.power_basis pb.is_integral_gen).is_integral_gen
-    (by rw [adjoin.power_basis.gen_eq, adjoin_simple.algebra_map_gen]))
+    (by rw [adjoin.power_basis_gen, adjoin_simple.algebra_map_gen]))
 
 @[simp]
 lemma equiv_adjoin_simple_aeval (pb : power_basis K L) (f : polynomial K) :
@@ -775,12 +788,12 @@ equiv_gen _ pb _
 @[simp]
 lemma equiv_adjoin_simple_symm_aeval (pb : power_basis K L) (f : polynomial K) :
   pb.equiv_adjoin_simple.symm (aeval pb.gen f) = aeval (adjoin_simple.gen K pb.gen) f :=
-by rw [equiv_adjoin_simple, equiv_symm, equiv_aeval, adjoin.power_basis.gen_eq]
+by rw [equiv_adjoin_simple, equiv_symm, equiv_aeval, adjoin.power_basis_gen]
 
 @[simp]
 lemma equiv_adjoin_simple_symm_gen (pb : power_basis K L) :
   pb.equiv_adjoin_simple.symm pb.gen = (adjoin_simple.gen K pb.gen) :=
-by rw [equiv_adjoin_simple, equiv_symm, equiv_gen, adjoin.power_basis.gen_eq]
+by rw [equiv_adjoin_simple, equiv_symm, equiv_gen, adjoin.power_basis_gen]
 
 end power_basis
 

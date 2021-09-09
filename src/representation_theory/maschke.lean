@@ -1,26 +1,31 @@
 /-
 Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Scott Morrison
+Authors: Scott Morrison
 -/
-import algebra.monoid_algebra
-import algebra.invertible
-import algebra.char_p.basic
+import algebra.monoid_algebra.basic
+import algebra.char_p.invertible
+import algebra.regular.basic
 import linear_algebra.basis
-import ring_theory.simple_module
 
 /-!
 # Maschke's theorem
 
-We prove Maschke's theorem for finite groups,
+We prove **Maschke's theorem** for finite groups,
 in the formulation that every submodule of a `k[G]` module has a complement,
-when `k` is a field with `¬(ring_char k ∣ fintype.card G)`.
+when `k` is a field with `invertible (fintype.card G : k)`.
 
 We do the core computation in greater generality.
 For any `[comm_ring k]` in which  `[invertible (fintype.card G : k)]`,
 and a `k[G]`-linear map `i : V → W` which admits a `k`-linear retraction `π`,
 we produce a `k[G]`-linear retraction by
 taking the average over `G` of the conjugates of `π`.
+
+## Implementation Notes
+* These results assume `invertible (fintype.card G : k)` which is equivalent to the more
+familiar `¬(ring_char k ∣ fintype.card G)`. It is possible to convert between them using
+`invertible_of_ring_char_not_dvd` and `not_ring_char_dvd_of_invertible`.
+
 
 ## Future work
 It's not so far to give the usual statement, that every finite dimensional representation
@@ -30,7 +35,7 @@ of a finite group is semisimple (i.e. a direct sum of irreducibles).
 universes u
 
 noncomputable theory
-open semimodule
+open module
 open monoid_algebra
 open_locale big_operators
 
@@ -104,8 +109,7 @@ begin
   dsimp [conjugate],
   conv_lhs {
     rw [←finset.univ_map_embedding (mul_right_embedding g⁻¹)],
-    simp only [mul_right_embedding],
-  },
+    simp only [mul_right_embedding], },
   simp only [←mul_smul, single_mul_single, mul_inv_rev, mul_one, function.embedding.coe_fn_mk,
     finset.sum_map, inv_inv, inv_mul_cancel_right],
   recover,
@@ -137,26 +141,34 @@ end
 end linear_map
 end
 
+namespace char_zero
+
+variables {k : Type u} [field k] {G : Type u} [fintype G] [group G] [char_zero k]
+
+instance : invertible (fintype.card G : k) :=
+invertible_of_ring_char_not_dvd (by simp [fintype.card_eq_zero_iff])
+
+end char_zero
+
 namespace monoid_algebra
 
--- Now we work over a `[field k]`, and replace the assumption `[invertible (fintype.card G : k)]`
--- with `¬(ring_char k ∣ fintype.card G)`.
-variables {k : Type u} [field k] {G : Type u} [fintype G] [group G]
+-- Now we work over a `[field k]`.
+variables {k : Type u} [field k] {G : Type u} [fintype G] [invertible (fintype.card G : k)]
+variables [group G]
 variables {V : Type u} [add_comm_group V] [module k V] [module (monoid_algebra k G) V]
 variables [is_scalar_tower k (monoid_algebra k G) V]
 variables {W : Type u} [add_comm_group W] [module k W] [module (monoid_algebra k G) W]
 variables [is_scalar_tower k (monoid_algebra k G) W]
 
 lemma exists_left_inverse_of_injective
-  (not_dvd : ¬(ring_char k ∣ fintype.card G)) (f : V →ₗ[monoid_algebra k G] W) (hf : f.ker = ⊥) :
+  (f : V →ₗ[monoid_algebra k G] W) (hf : f.ker = ⊥) :
   ∃ (g : W →ₗ[monoid_algebra k G] V), g.comp f = linear_map.id :=
 begin
-  haveI : invertible (fintype.card G : k) :=
-    invertible_of_ring_char_not_dvd not_dvd,
   obtain ⟨φ, hφ⟩ := (f.restrict_scalars k).exists_left_inverse_of_injective
     (by simp only [hf, submodule.restrict_scalars_bot, linear_map.ker_restrict_scalars]),
   refine ⟨φ.equivariant_projection G, _⟩,
-  ext v,
+  apply linear_map.ext,
+  intro v,
   simp only [linear_map.id_coe, id.def, linear_map.comp_apply],
   apply linear_map.equivariant_projection_condition,
   intro v,
@@ -167,18 +179,14 @@ end
 namespace submodule
 
 lemma exists_is_compl
-  (not_dvd : ¬(ring_char k ∣ fintype.card G)) (p : submodule (monoid_algebra k G) V) :
+  (p : submodule (monoid_algebra k G) V) :
   ∃ q : submodule (monoid_algebra k G) V, is_compl p q :=
-let ⟨f, hf⟩ := monoid_algebra.exists_left_inverse_of_injective not_dvd p.subtype p.ker_subtype in
+let ⟨f, hf⟩ := monoid_algebra.exists_left_inverse_of_injective p.subtype p.ker_subtype in
 ⟨f.ker, linear_map.is_compl_of_proj $ linear_map.ext_iff.1 hf⟩
 
-theorem is_complemented (not_dvd : ¬(ring_char k ∣ fintype.card G)) :
-  is_complemented (submodule (monoid_algebra k G) V) := ⟨exists_is_compl not_dvd⟩
+/-- This also implies an instance `is_semisimple_module (monoid_algebra k G) V`. -/
+instance is_complemented : is_complemented (submodule (monoid_algebra k G) V) :=
+⟨exists_is_compl⟩
 
 end submodule
-
-theorem is_semisimple_module (not_dvd : ¬(ring_char k ∣ fintype.card G)) :
-  is_semisimple_module (monoid_algebra k G) V :=
-submodule.is_complemented not_dvd
-
 end monoid_algebra

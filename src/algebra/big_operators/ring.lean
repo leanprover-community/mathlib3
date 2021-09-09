@@ -26,13 +26,23 @@ variables {s s₁ s₂ : finset α} {a : α} {b : β}  {f g : α → β}
 
 
 section semiring
-variables [semiring β]
+variables [non_unital_non_assoc_semiring β]
 
 lemma sum_mul : (∑ x in s, f x) * b = ∑ x in s, f x * b :=
-(s.sum_hom (λ x, x * b)).symm
+add_monoid_hom.map_sum (add_monoid_hom.mul_right b) _ s
 
 lemma mul_sum : b * (∑ x in s, f x) = ∑ x in s, b * f x :=
-(s.sum_hom _).symm
+add_monoid_hom.map_sum (add_monoid_hom.mul_left b) _ s
+
+lemma sum_mul_sum {ι₁ : Type*} {ι₂ : Type*} (s₁ : finset ι₁) (s₂ : finset ι₂)
+  (f₁ : ι₁ → β) (f₂ : ι₂ → β) :
+  (∑ x₁ in s₁, f₁ x₁) * (∑ x₂ in s₂, f₂ x₂) = ∑ p in s₁.product s₂, f₁ p.1 * f₂ p.2 :=
+by { rw [sum_product, sum_mul, sum_congr rfl], intros, rw mul_sum }
+
+end semiring
+
+section semiring
+variables [non_assoc_semiring β]
 
 lemma sum_mul_boole [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
   (∑ x in s, (f x * ite (a = x) 1 0)) = ite (a ∈ s) (f a) 0 :=
@@ -83,11 +93,6 @@ begin
     { simp only [mem_image], rintro ⟨⟨_, hm⟩, _, rfl⟩, exact ha hm } }
 end
 
-lemma sum_mul_sum {ι₁ : Type*} {ι₂ : Type*} (s₁ : finset ι₁) (s₂ : finset ι₂)
-  (f₁ : ι₁ → β) (f₂ : ι₂ → β) :
-  (∑ x₁ in s₁, f₁ x₁) * (∑ x₂ in s₂, f₂ x₂) = ∑ p in s₁.product s₂, f₁ p.1 * f₂ p.2 :=
-by { rw [sum_product, sum_mul, sum_congr rfl], intros, rw mul_sum }
-
 open_locale classical
 
 /-- The product of `f a + g a` over all of `s` is the sum
@@ -117,6 +122,43 @@ calc ∏ a in s, (f a + g a)
     exact ⟨s.filter (λ a : α, ∃ h : a ∈ s, f a h),
       by simp, by funext; intros; simp *⟩ }
 end
+
+/-- `∏ i, (f i + g i) = (∏ i, f i) + ∑ i, g i * (∏ j < i, f j + g j) * (∏ j > i, f j)`. -/
+lemma prod_add_ordered {ι R : Type*} [comm_semiring R] [linear_order ι] (s : finset ι)
+  (f g : ι → R) :
+  (∏ i in s, (f i + g i)) = (∏ i in s, f i) +
+    ∑ i in s, g i * (∏ j in s.filter (< i), (f j + g j)) * ∏ j in s.filter (λ j, i < j), f j :=
+begin
+  refine finset.induction_on_max s (by simp) _,
+  clear s, intros a s ha ihs,
+  have ha' : a ∉ s, from λ ha', (ha a ha').false,
+  rw [prod_insert ha', prod_insert ha', sum_insert ha', filter_insert, if_neg (lt_irrefl a),
+    filter_true_of_mem ha, ihs, add_mul, mul_add, mul_add, add_assoc],
+  congr' 1, rw add_comm, congr' 1,
+  { rw [filter_false_of_mem, prod_empty, mul_one],
+    exact (forall_mem_insert _ _ _).2 ⟨lt_irrefl a, λ i hi, (ha i hi).not_lt⟩ },
+  { rw mul_sum,
+    refine sum_congr rfl (λ i hi, _),
+    rw [filter_insert, if_neg (ha i hi).not_lt, filter_insert, if_pos (ha i hi), prod_insert,
+      mul_left_comm],
+    exact mt (λ ha, (mem_filter.1 ha).1) ha' }
+end
+
+/-- `∏ i, (f i - g i) = (∏ i, f i) - ∑ i, g i * (∏ j < i, f j - g j) * (∏ j > i, f j)`. -/
+lemma prod_sub_ordered {ι R : Type*} [comm_ring R] [linear_order ι] (s : finset ι) (f g : ι → R) :
+  (∏ i in s, (f i - g i)) = (∏ i in s, f i) -
+    ∑ i in s, g i * (∏ j in s.filter (< i), (f j - g j)) * ∏ j in s.filter (λ j, i < j), f j :=
+begin
+  simp only [sub_eq_add_neg],
+  convert prod_add_ordered s f (λ i, -g i),
+  simp,
+end
+
+/-- `∏ i, (1 - f i) = 1 - ∑ i, f i * (∏ j < i, 1 - f j)`. This formula is useful in construction of
+a partition of unity from a collection of “bump” functions.  -/
+lemma prod_one_sub_ordered {ι R : Type*} [comm_ring R] [linear_order ι] (s : finset ι) (f : ι → R) :
+  (∏ i in s, (1 - f i)) = 1 - ∑ i in s, f i * ∏ j in s.filter (< i), (1 - f j) :=
+by { rw prod_sub_ordered, simp }
 
 /--  Summing `a^s.card * b^(n-s.card)` over all finite subsets `s` of a `finset`
 gives `(a + b)^s.card`.-/
@@ -149,6 +191,22 @@ lemma prod_nat_cast (s : finset α) (f : α → ℕ) :
 
 end comm_semiring
 
+section comm_ring
+
+variables {R : Type*} [comm_ring R]
+
+lemma prod_range_cast_nat_sub (n k : ℕ) :
+  ∏ i in range k, (n - i : R) = (∏ i in range k, (n - i) : ℕ) :=
+begin
+  rw prod_nat_cast,
+  cases le_or_lt k n with hkn hnk,
+  { exact prod_congr rfl (λ i hi, (nat.cast_sub $ (mem_range.1 hi).le.trans hkn).symm) },
+  { rw ← mem_range at hnk,
+    rw [prod_eq_zero hnk, prod_eq_zero hnk]; simp }
+end
+
+end comm_ring
+
 /-- A product over all subsets of `s ∪ {x}` is obtained by multiplying the product over all subsets
 of `s`, and over all subsets of `s` to which one adds `x`. -/
 @[to_additive]
@@ -170,25 +228,12 @@ end
 
 /-- A product over `powerset s` is equal to the double product over
 sets of subsets of `s` with `card s = k`, for `k = 1, ... , card s`. -/
+@[to_additive]
 lemma prod_powerset [comm_monoid β] (s : finset α) (f : finset α → β) :
   ∏ t in powerset s, f t = ∏ j in range (card s + 1), ∏ t in powerset_len j s, f t :=
 begin
   classical,
   rw [powerset_card_bUnion, prod_bUnion],
-  intros i hi j hj hij,
-  rw [powerset_len_eq_filter, powerset_len_eq_filter, disjoint_filter],
-  intros x hx hc hnc,
-  apply hij,
-  rwa ← hc,
-end
-
-/-- A sum over `powerset s` is equal to the double sum over
-sets of subsets of `s` with `card s = k`, for `k = 1, ... , card s`. -/
-lemma sum_powerset [add_comm_monoid β] (s : finset α) (f : finset α → β) :
-  ∑ t in powerset s, f t = ∑ j in range (card s + 1), ∑ t in powerset_len j s, f t :=
-begin
-  classical,
-  rw [powerset_card_bUnion, sum_bUnion],
   intros i hi j hj hij,
   rw [powerset_len_eq_filter, powerset_len_eq_filter, disjoint_filter],
   intros x hx hc hnc,

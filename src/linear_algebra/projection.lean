@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury Kudryashov
+Authors: Yury Kudryashov
 -/
 import linear_algebra.basic
 import linear_algebra.prod
@@ -52,8 +52,8 @@ lemma is_compl_of_proj {f : E →ₗ[R] p} (hf : ∀ x : p, f x = x) :
 begin
   split,
   { rintros x ⟨hpx, hfx⟩,
-    erw [mem_coe, mem_ker, hf ⟨x, hpx⟩, mk_eq_zero] at hfx,
-    simp only [hfx, mem_coe, zero_mem] },
+    erw [set_like.mem_coe, mem_ker, hf ⟨x, hpx⟩, mk_eq_zero] at hfx,
+    simp only [hfx, set_like.mem_coe, zero_mem] },
   { intros x hx,
     rw [mem_sup'],
     refine ⟨f x, ⟨x - f x, _⟩, add_sub_cancel'_right _ _⟩,
@@ -131,7 +131,7 @@ end
 /-- Projection to a submodule along its complement. -/
 def linear_proj_of_is_compl (h : is_compl p q) :
   E →ₗ[R] p :=
-(linear_map.fst R p q).comp $ (prod_equiv_of_is_compl p q h).symm
+(linear_map.fst R p q) ∘ₗ ↑(prod_equiv_of_is_compl p q h).symm
 
 variables {p q}
 
@@ -188,7 +188,7 @@ open submodule
 the induced linear map over the entire module. -/
 def of_is_compl {p q : submodule R E} (h : is_compl p q)
   (φ : p →ₗ[R] F) (ψ : q →ₗ[R] F) : E →ₗ[R] F :=
-(linear_map.coprod φ ψ).comp (submodule.prod_equiv_of_is_compl _ _ h).symm
+(linear_map.coprod φ ψ) ∘ₗ ↑(submodule.prod_equiv_of_is_compl _ _ h).symm
 
 variables {p q}
 

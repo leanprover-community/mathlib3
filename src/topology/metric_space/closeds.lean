@@ -1,9 +1,10 @@
 /-
 Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Sébastien Gouëzel
+Authors: Sébastien Gouëzel
 -/
 import topology.metric_space.hausdorff_distance
+import topology.compacts
 import analysis.specific_limits
 
 /-!
@@ -281,16 +282,17 @@ end
 from the same statement for closed subsets -/
 instance nonempty_compacts.complete_space [complete_space α] :
   complete_space (nonempty_compacts α) :=
-(complete_space_iff_is_complete_range nonempty_compacts.to_closeds.uniform_embedding).2 $
+(complete_space_iff_is_complete_range
+  nonempty_compacts.to_closeds.uniform_embedding.to_uniform_inducing).2 $
   nonempty_compacts.is_closed_in_closeds.is_complete
 
 /-- In a compact space, the type of nonempty compact subsets is compact. This follows from
 the same statement for closed subsets -/
 instance nonempty_compacts.compact_space [compact_space α] : compact_space (nonempty_compacts α) :=
 ⟨begin
-  rw embedding.compact_iff_compact_image nonempty_compacts.to_closeds.uniform_embedding.embedding,
+  rw nonempty_compacts.to_closeds.uniform_embedding.embedding.is_compact_iff_is_compact_image,
   rw [image_univ],
-  exact nonempty_compacts.is_closed_in_closeds.compact
+  exact nonempty_compacts.is_closed_in_closeds.is_compact
 end⟩
 
 /-- In a second countable space, the type of nonempty compact subsets is second countable -/
@@ -390,7 +392,7 @@ variables {α : Type u} [metric_space α]
 edistance between two such sets is finite. -/
 instance nonempty_compacts.metric_space : metric_space (nonempty_compacts α) :=
 emetric_space.to_metric_space $ λx y, Hausdorff_edist_ne_top_of_nonempty_of_bounded x.2.1 y.2.1
-  (bounded_of_compact x.2.2) (bounded_of_compact y.2.2)
+  x.2.2.bounded y.2.2.bounded
 
 /-- The distance on `nonempty_compacts α` is the Hausdorff distance, by construction -/
 lemma nonempty_compacts.dist_eq {x y : nonempty_compacts α} :

@@ -17,7 +17,7 @@ two results for `ℤ` (and a ring `R`) and `ℚ` (and a field `R`).
 
 variables {α R : Type*}
 
-open filter
+open filter set
 
 lemma tendsto_coe_nat_at_top_iff [ordered_semiring R] [nontrivial R] [archimedean R]
   {f : α → ℕ} {l : filter α} :
@@ -45,6 +45,44 @@ lemma tendsto_coe_rat_at_top_iff [linear_ordered_field R] [archimedean R]
 tendsto_at_top_embedding (assume a₁ a₂, rat.cast_le) $
   assume r, let ⟨n, hn⟩ := exists_nat_ge r in ⟨(n:ℚ), by assumption_mod_cast⟩
 
+lemma at_top_countable_basis_of_archimedean [linear_ordered_semiring R] [archimedean R] :
+  (at_top : filter R).has_countable_basis (λ i, i ∈ range (coe : ℕ → R)) Ici :=
+{ countable := countable_range coe,
+  mem_iff' := λ t,
+  begin
+    rw at_top_basis.mem_iff' t,
+    simp only [exists_prop, mem_range, exists_exists_eq_and, exists_true_left],
+    split,
+    { rintro ⟨i, hi⟩,
+      rcases exists_nat_ge i with ⟨n, hn⟩,
+      exact ⟨n, trans (Ici_subset_Ici.mpr hn) hi⟩ },
+    { rintro ⟨n, hn⟩,
+      exact ⟨n, hn⟩ }
+  end }
+
+lemma at_bot_countable_basis_of_archimedean [linear_ordered_ring R] [archimedean R] :
+  (at_bot : filter R).has_countable_basis (λ i, i ∈ range (coe : ℤ → R)) Iic :=
+{ countable := countable_range coe,
+  mem_iff' := λ t,
+  begin
+    rw at_bot_basis.mem_iff' t,
+    simp only [exists_prop, mem_range, exists_exists_eq_and, exists_true_left],
+    split,
+    { rintro ⟨i, hi⟩,
+      rcases exists_int_lt i with ⟨n, hn⟩,
+      exact ⟨n, trans (Iic_subset_Iic.mpr hn.le) hi⟩ },
+    { rintro ⟨n, hn⟩,
+      exact ⟨n, hn⟩ }
+  end }
+
+lemma at_top_countably_generated_of_archimedean [linear_ordered_semiring R] [archimedean R] :
+  (at_top : filter R).is_countably_generated :=
+at_top_countable_basis_of_archimedean.is_countably_generated
+
+lemma at_bot_countably_generated [linear_ordered_ring R] [archimedean R] :
+  (at_bot : filter R).is_countably_generated :=
+at_bot_countable_basis_of_archimedean.is_countably_generated
+
 variables [linear_ordered_semiring R] [archimedean R]
 variables {l : filter α} {f : α → R} {r : R}
 
@@ -56,7 +94,7 @@ lemma filter.tendsto.const_mul_at_top' (hr : 0 < r) (hf : tendsto f l at_top) :
   tendsto (λx, r * f x) l at_top :=
 begin
   apply tendsto_at_top.2 (λb, _),
-  obtain ⟨n : ℕ, hn : 1 ≤ n •ℕ r⟩ := archimedean.arch 1 hr,
+  obtain ⟨n : ℕ, hn : 1 ≤ n • r⟩ := archimedean.arch 1 hr,
   rw nsmul_eq_mul' at hn,
   filter_upwards [tendsto_at_top.1 hf (n * max b 0)],
   assume x hx,
@@ -74,7 +112,7 @@ lemma filter.tendsto.at_top_mul_const' (hr : 0 < r) (hf : tendsto f l at_top) :
   tendsto (λx, f x * r) l at_top :=
 begin
   apply tendsto_at_top.2 (λb, _),
-  obtain ⟨n : ℕ, hn : 1 ≤ n •ℕ r⟩ := archimedean.arch 1 hr,
+  obtain ⟨n : ℕ, hn : 1 ≤ n • r⟩ := archimedean.arch 1 hr,
   have hn' : 1 ≤ (n : R) * r, by rwa nsmul_eq_mul at hn,
   filter_upwards [tendsto_at_top.1 hf (max b 0 * n)],
   assume x hx,

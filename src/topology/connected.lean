@@ -254,14 +254,18 @@ class connected_space (α : Type u) [topological_space α] extends preconnected_
 
 attribute [instance, priority 50] connected_space.to_nonempty -- see Note [lower instance priority]
 
+lemma is_preconnected_range [topological_space β] [preconnected_space α] {f : α → β}
+  (h : continuous f) : is_preconnected (range f) :=
+@image_univ _ _ f ▸ is_preconnected_univ.image _ h.continuous_on
+
 lemma is_connected_range [topological_space β] [connected_space α] {f : α → β} (h : continuous f) :
   is_connected (range f) :=
-begin
-  inhabit α,
-  rw ← image_univ,
-  exact ⟨⟨f (default α), mem_image_of_mem _ (mem_univ _)⟩,
-         is_preconnected.image is_preconnected_univ _ h.continuous_on⟩
-end
+⟨range_nonempty f, is_preconnected_range h⟩
+
+lemma dense_range.preconnected_space [topological_space β] [preconnected_space α] {f : α → β}
+  (hf : dense_range f) (hc : continuous f) :
+  preconnected_space β :=
+⟨hf.closure_eq ▸ (is_preconnected_range hc).closure⟩
 
 lemma connected_space_iff_connected_component :
   connected_space α ↔ ∃ x : α, connected_component x = univ :=
@@ -294,7 +298,7 @@ theorem is_clopen_iff [preconnected_space α] {s : set α} : is_clopen s ↔ s =
 ⟨λ hs, classical.by_contradiction $ λ h,
   have h1 : s ≠ ∅ ∧ sᶜ ≠ ∅, from ⟨mt or.inl h,
     mt (λ h2, or.inr $ (by rw [← compl_compl s, h2, compl_empty] : s = univ)) h⟩,
-  let ⟨_, h2, h3⟩ := nonempty_inter hs.1 hs.2 (union_compl_self s)
+  let ⟨_, h2, h3⟩ := nonempty_inter hs.1 hs.2.is_open_compl (union_compl_self s)
     (ne_empty_iff_nonempty.1 h1.1) (ne_empty_iff_nonempty.1 h1.2) in
   h3 h2,
 by rintro (rfl | rfl); [exact is_clopen_empty, exact is_clopen_univ]⟩
@@ -489,7 +493,7 @@ begin
   have H1 := H (u ∩ s) (v ∩ s),
   rw [subset_inter_iff, subset_inter_iff] at H1,
   simp only [subset.refl, and_true] at H1,
-  apply H1 (is_closed_inter hu hs) (is_closed_inter hv hs),
+  apply H1 (is_closed.inter hu hs) (is_closed.inter hv hs),
   { rw ←inter_distrib_right,
     apply subset_inter_iff.2,
     exact ⟨hss, subset.refl s⟩ },
@@ -508,7 +512,7 @@ begin
     apply nonempty.ne_empty
       (nonempty_of_mem (mem_inter (@mem_connected_component _ _ x) Z.2.2)),
     rw inter_comm,
-    exact h  },
+    exact h },
   exact h,
 end
 
@@ -591,8 +595,8 @@ begin
     { exact h } },
 
   -- Now we show T₁, T₂ are closed, cover connected_component t and are disjoint.
-  have hT₁ : is_closed T₁ := ((hcl T₁).2 (T₁_u.symm ▸ (is_closed_inter hT hu))),
-  have hT₂ : is_closed T₂ := ((hcl T₂).2 (T₂_v.symm ▸ (is_closed_inter hT hv))),
+  have hT₁ : is_closed T₁ := ((hcl T₁).2 (T₁_u.symm ▸ (is_closed.inter hT hu))),
+  have hT₂ : is_closed T₂ := ((hcl T₂).2 (T₂_v.symm ▸ (is_closed.inter hT hv))),
 
   have T_decomp : connected_component t ⊆ T₁ ∪ T₂,
   { intros t' ht',
@@ -634,44 +638,46 @@ end preconnected
 
 section totally_disconnected
 
-/-- A set is called totally disconnected if all of its connected components are singletons. -/
+/-- A set `s` is called totally disconnected if every subset `t ⊆ s` which is preconnected is
+a subsingleton, ie either empty or a singleton.-/
 def is_totally_disconnected (s : set α) : Prop :=
-∀ t, t ⊆ s → is_preconnected t → subsingleton t
+∀ t, t ⊆ s → is_preconnected t → t.subsingleton
 
 theorem is_totally_disconnected_empty : is_totally_disconnected (∅ : set α) :=
-λ t ht _, ⟨λ ⟨_, h⟩, (ht h).elim⟩
+λ _ ht _ _ x_in _ _, (ht x_in).elim
 
 theorem is_totally_disconnected_singleton {x} : is_totally_disconnected ({x} : set α) :=
-λ t ht _, ⟨λ ⟨p, hp⟩ ⟨q, hq⟩, subtype.eq $ show p = q,
-from (eq_of_mem_singleton (ht hp)).symm ▸ (eq_of_mem_singleton (ht hq)).symm⟩
+λ _ ht _, subsingleton.mono subsingleton_singleton ht
 
 /-- A space is totally disconnected if all of its connected components are singletons. -/
 class totally_disconnected_space (α : Type u) [topological_space α] : Prop :=
 (is_totally_disconnected_univ : is_totally_disconnected (univ : set α))
 
+lemma is_preconnected.subsingleton [totally_disconnected_space α]
+  {s : set α} (h : is_preconnected s) : s.subsingleton :=
+totally_disconnected_space.is_totally_disconnected_univ s (subset_univ s) h
+
 instance pi.totally_disconnected_space {α : Type*} {β : α → Type*}
   [t₂ : Πa, topological_space (β a)] [∀a, totally_disconnected_space (β a)] :
   totally_disconnected_space (Π (a : α), β a) :=
-⟨λ t h1 h2, ⟨λ a b, subtype.ext $ funext $ λ x, subtype.mk_eq_mk.1 $
-  (totally_disconnected_space.is_totally_disconnected_univ
-    ((λ (c : Π (a : α), β a), c x) '' t) (set.subset_univ _)
-    (is_preconnected.image h2 _ (continuous.continuous_on (continuous_apply _)))).cases_on
-  (λ h3, h3
-    ⟨(a.1 x), by {simp only [set.mem_image, subtype.val_eq_coe], use a, split,
-      simp only [subtype.coe_prop]}⟩
-    ⟨(b.1 x), by {simp only [set.mem_image, subtype.val_eq_coe], use b, split,
-      simp only [subtype.coe_prop]}⟩)⟩⟩
+⟨λ t h1 h2,
+  have this : ∀ a, is_preconnected ((λ x : Π a, β a, x a) '' t),
+    from λ a, h2.image (λ x, x a) (continuous_apply a).continuous_on,
+  λ x x_in y y_in, funext $ λ a, (this a).subsingleton ⟨x, x_in, rfl⟩ ⟨y, y_in, rfl⟩⟩
 
-instance subtype.totally_disconnected_space {α : Type*} {p : α → Prop} [topological_space α]
-  [totally_disconnected_space α] : totally_disconnected_space (subtype p) :=
-⟨λ s h1 h2,
-  set.subsingleton_of_image subtype.val_injective s (
-    totally_disconnected_space.is_totally_disconnected_univ (subtype.val '' s) (set.subset_univ _)
-      ((is_preconnected.image h2 _) (continuous.continuous_on (@continuous_subtype_val _ _ p))))⟩
+instance prod.totally_disconnected_space [topological_space β]
+  [totally_disconnected_space α] [totally_disconnected_space β] :
+  totally_disconnected_space (α × β) :=
+⟨λ t h1 h2,
+have H1 : is_preconnected (prod.fst '' t), from h2.image prod.fst continuous_fst.continuous_on,
+have H2 : is_preconnected (prod.snd '' t), from h2.image prod.snd continuous_snd.continuous_on,
+λ x hx y hy, prod.ext
+  (H1.subsingleton ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩)
+  (H2.subsingleton ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩)⟩
 
 /-- A space is totally disconnected iff its connected components are subsingletons. -/
 lemma totally_disconnected_space_iff_connected_component_subsingleton :
-  totally_disconnected_space α ↔ ∀ x : α, subsingleton (connected_component x) :=
+  totally_disconnected_space α ↔ ∀ x : α, (connected_component x).subsingleton :=
 begin
   split,
   { intros h x,
@@ -680,49 +686,45 @@ begin
     exact is_preconnected_connected_component },
   intro h, constructor,
   intros s s_sub hs,
-  rw subsingleton_coe,
-  by_cases s.nonempty,
-  { choose x hx using h,
-    have H := h x,
-    rw subsingleton_coe at H,
-    exact H.mono (hs.subset_connected_component hx) },
-  rw not_nonempty_iff_eq_empty at h,
-  rw h,
-  exact subsingleton_empty,
+  rcases eq_empty_or_nonempty s with rfl | ⟨x, x_in⟩,
+  { exact subsingleton_empty },
+  { exact (h x).mono (hs.subset_connected_component x_in) }
 end
 
 /-- A space is totally disconnected iff its connected components are singletons. -/
 lemma totally_disconnected_space_iff_connected_component_singleton :
   totally_disconnected_space α ↔ ∀ x : α, connected_component x = {x} :=
 begin
-  split,
-  { intros h x,
-    rw totally_disconnected_space_iff_connected_component_subsingleton at h,
-    specialize h x,
-    rw subsingleton_coe at h,
-    rw h.eq_singleton_of_mem,
-    exact mem_connected_component },
-  intro h,
   rw totally_disconnected_space_iff_connected_component_subsingleton,
-  intro x,
-  rw [h x, subsingleton_coe],
-  exact subsingleton_singleton,
+  apply forall_congr (λ x, _),
+  rw set.subsingleton_iff_singleton,
+  exact mem_connected_component
 end
 
 /-- The image of a connected component in a totally disconnected space is a singleton. -/
 @[simp] lemma continuous.image_connected_component_eq_singleton {β : Type*} [topological_space β]
   [totally_disconnected_space β] {f : α → β} (h : continuous f) (a : α) :
   f '' connected_component a = {f a} :=
-begin
-  have ha : subsingleton (f '' connected_component a),
-  { apply _inst_3.1,
-    { exact subset_univ _ },
-    apply is_preconnected_connected_component.image,
-    exact h.continuous_on },
-  rw subsingleton_coe at ha,
-  rw ha.eq_singleton_of_mem,
-  exact ⟨a, mem_connected_component, refl (f a)⟩,
-end
+(set.subsingleton_iff_singleton $ mem_image_of_mem f mem_connected_component).mp
+  (is_preconnected_connected_component.image f h.continuous_on).subsingleton
+
+lemma is_totally_disconnected_of_totally_disconnected_space [totally_disconnected_space α]
+  (s : set α) : is_totally_disconnected s :=
+λ t hts ht, totally_disconnected_space.is_totally_disconnected_univ _ t.subset_univ ht
+
+lemma is_totally_disconnected_of_image [topological_space β] {f : α → β} (hf : continuous_on f s)
+  (hf' : function.injective f) (h : is_totally_disconnected (f '' s)) : is_totally_disconnected s :=
+λ t hts ht x x_in y y_in, hf' $ h _ (image_subset f hts) (ht.image f $ hf.mono hts)
+  (mem_image_of_mem f x_in) (mem_image_of_mem f y_in)
+
+lemma embedding.is_totally_disconnected [topological_space β] {f : α → β} (hf : embedding f)
+  {s : set α} (h : is_totally_disconnected (f '' s)) : is_totally_disconnected s :=
+is_totally_disconnected_of_image hf.continuous.continuous_on hf.inj h
+
+instance subtype.totally_disconnected_space {α : Type*} {p : α → Prop} [topological_space α]
+  [totally_disconnected_space α] : totally_disconnected_space (subtype p) :=
+⟨embedding_subtype_coe.is_totally_disconnected
+  (is_totally_disconnected_of_totally_disconnected_space _)⟩
 
 end totally_disconnected
 
@@ -742,10 +744,19 @@ theorem is_totally_separated_singleton {x} : is_totally_separated ({x} : set α)
 
 theorem is_totally_disconnected_of_is_totally_separated {s : set α}
   (H : is_totally_separated s) : is_totally_disconnected s :=
-λ t hts ht, ⟨λ ⟨x, hxt⟩ ⟨y, hyt⟩, subtype.eq $ classical.by_contradiction $
-assume hxy : x ≠ y, let ⟨u, v, hu, hv, hxu, hyv, hsuv, huv⟩ := H x (hts hxt) y (hts hyt) hxy in
-let ⟨r, hrt, hruv⟩ := ht u v hu hv (subset.trans hts hsuv) ⟨x, hxt, hxu⟩ ⟨y, hyt, hyv⟩ in
-(ext_iff.1 huv r).1 hruv⟩
+begin
+  intros t hts ht x x_in y y_in,
+  by_contra h,
+  obtain ⟨u : set α, v : set α, hu : is_open u, hv : is_open v,
+          hxu : x ∈ u, hyv : y ∈ v, hs : s ⊆ u ∪ v, huv : u ∩ v = ∅⟩ :=
+    H x (hts x_in) y (hts y_in) h,
+  have : (t ∩ u).nonempty → (t ∩ v).nonempty → (t ∩ (u ∩ v)).nonempty :=
+    ht _ _ hu hv (subset.trans hts hs),
+  obtain ⟨z, hz : z ∈ t ∩ (u ∩ v)⟩ := this ⟨x, x_in, hxu⟩ ⟨y, y_in, hyv⟩,
+  simpa [huv] using hz
+end
+
+alias is_totally_disconnected_of_is_totally_separated ← is_totally_separated.is_totally_disconnected
 
 /-- A space is totally separated if any two points can be separated by two disjoint open sets
 covering the whole space. -/
@@ -762,6 +773,18 @@ instance totally_separated_space.totally_disconnected_space (α : Type u) [topol
 instance totally_separated_space.of_discrete
   (α : Type*) [topological_space α] [discrete_topology α] : totally_separated_space α :=
 ⟨λ a _ b _ h, ⟨{b}ᶜ, {b}, is_open_discrete _, is_open_discrete _, by simpa⟩⟩
+
+lemma exists_clopen_of_totally_separated {α : Type*} [topological_space α]
+  [totally_separated_space α] {x y : α} (hxy : x ≠ y) :
+  ∃ (U : set α) (hU : is_clopen U), x ∈ U ∧ y ∈ Uᶜ :=
+begin
+  obtain ⟨U, V, hU, hV, Ux, Vy, f, disj⟩ :=
+    totally_separated_space.is_totally_separated_univ α x (set.mem_univ x) y (set.mem_univ y) hxy,
+  have clopen_U := is_clopen_inter_of_disjoint_cover_clopen (is_clopen_univ) f hU hV disj,
+  rw set.univ_inter _ at clopen_U,
+  rw [←set.subset_compl_iff_disjoint, set.subset_compl_comm] at disj,
+  exact ⟨U, clopen_U, Ux, disj Vy⟩,
+end
 
 end totally_separated
 
@@ -874,7 +897,8 @@ begin
     rw ←connected_components_preimage_singleton,
     exact is_connected_connected_component },
   refine λ T, ⟨λ hT, hT.preimage continuous_quotient_mk, λ hT, _⟩,
-  rwa [←is_open_compl_iff, ←preimage_compl, quotient_map_quotient_mk.is_open_preimage] at hT,
+  rwa [← is_open_compl_iff, ← preimage_compl, quotient_map_quotient_mk.is_open_preimage,
+    is_open_compl_iff] at hT,
 end
 
 /-- Functoriality of `connected_components` -/

@@ -6,11 +6,26 @@ Authors: Mario Carneiro
 import data.int.basic
 import data.nat.cast
 
+/-!
+# Cast of integers
+
+This file defines the *canonical* homomorphism from the integers into a type `α` with `0`,
+`1`, `+` and `-` (typically a `ring`).
+
+## Main declarations
+
+* `cast`: Canonical homomorphism `ℤ → α` where `α` has a `0`, `1`, `+` and `-`.
+* `cast_add_hom`: `cast` bundled as an `add_monoid_hom`.
+* `cast_ring_hom`: `cast` bundled as a `ring_hom`.
+
+## Implementation note
+
+Setting up the coercions priorities is tricky. See Note [coercion into rings].
+-/
+
 open nat
 
 namespace int
-
-/- cast (injection into groups with one) -/
 
 @[simp, push_cast] theorem nat_cast_eq_coe_nat : ∀ n,
   @coe ℕ ℤ (@coe_to_lift _ _ nat.cast_coe) n =
@@ -109,6 +124,9 @@ def cast_ring_hom (α : Type*) [ring α] : ℤ →+* α := ⟨coe, cast_one, cas
 lemma cast_commute [ring α] (m : ℤ) (x : α) : commute ↑m x :=
 int.cases_on m (λ n, n.cast_commute x) (λ n, ((n+1).cast_commute x).neg_left)
 
+lemma cast_comm [ring α] (m : ℤ) (x : α) : (m : α) * x = x * m :=
+(cast_commute m x).eq
+
 lemma commute_cast [ring α] (x : α) (m : ℤ) : commute x m :=
 (m.cast_commute x).symm
 
@@ -169,7 +187,12 @@ monotone.map_max cast_mono
 
 @[simp, norm_cast] theorem cast_abs [linear_ordered_ring α] {q : ℤ} :
   ((abs q : ℤ) : α) = abs q :=
-by simp [abs]
+by simp [abs_eq_max_neg]
+
+lemma cast_nat_abs {R : Type*} [linear_ordered_ring R] : ∀ (n : ℤ), (n.nat_abs : R) = abs n
+| (n : ℕ) := by simp only [int.nat_abs_of_nat, int.cast_coe_nat, nat.abs_cast]
+| -[1+n]  := by simp only [int.nat_abs, int.cast_neg_succ_of_nat, abs_neg,
+                           ← nat.cast_succ, nat.abs_cast]
 
 lemma coe_int_dvd [comm_ring α] (m n : ℤ) (h : m ∣ n) :
   (m : α) ∣ (n : α) :=
@@ -178,6 +201,19 @@ ring_hom.map_dvd (int.cast_ring_hom α) h
 end cast
 
 end int
+
+namespace prod
+
+variables {α : Type*} {β : Type*} [has_zero α] [has_one α] [has_add α] [has_neg α]
+  [has_zero β] [has_one β] [has_add β] [has_neg β]
+
+@[simp] lemma fst_int_cast (n : ℤ) : (n : α × β).fst = n :=
+by induction n; simp *
+
+@[simp] lemma snd_int_cast (n : ℤ) : (n : α × β).snd = n :=
+by induction n; simp *
+
+end prod
 
 open int
 
@@ -206,15 +242,43 @@ namespace monoid_hom
 variables {M : Type*} [monoid M]
 open multiplicative
 
-theorem ext_int {f g : multiplicative ℤ →* M}
-  (h1 : f (of_add 1) = g (of_add 1)) : f = g :=
+@[ext] theorem ext_mint {f g : multiplicative ℤ →* M} (h1 : f (of_add 1) = g (of_add 1)) : f = g :=
+monoid_hom.ext $ add_monoid_hom.ext_iff.mp $
+  @add_monoid_hom.ext_int _ _ f.to_additive g.to_additive h1
+
+/-- If two `monoid_hom`s agree on `-1` and the naturals then they are equal. -/
+@[ext] theorem ext_int {f g : ℤ →* M}
+  (h_neg_one : f (-1) = g (-1))
+  (h_nat : f.comp int.of_nat_hom.to_monoid_hom = g.comp int.of_nat_hom.to_monoid_hom) :
+  f = g :=
 begin
-  ext,
-  exact add_monoid_hom.ext_iff.1
-    (@add_monoid_hom.ext_int _ _ f.to_additive g.to_additive h1) _,
+  ext (x | x),
+  { exact (monoid_hom.congr_fun h_nat x : _), },
+  { rw [int.neg_succ_of_nat_eq, ← neg_one_mul, f.map_mul, g.map_mul],
+    congr' 1,
+    exact_mod_cast (monoid_hom.congr_fun h_nat (x + 1) : _), }
 end
 
 end monoid_hom
+
+namespace monoid_with_zero_hom
+
+variables {M : Type*} [monoid_with_zero M]
+
+/-- If two `monoid_with_zero_hom`s agree on `-1` and the naturals then they are equal. -/
+@[ext] theorem ext_int {f g : monoid_with_zero_hom ℤ M}
+  (h_neg_one : f (-1) = g (-1))
+  (h_nat : f.comp int.of_nat_hom.to_monoid_with_zero_hom =
+           g.comp int.of_nat_hom.to_monoid_with_zero_hom) :
+  f = g :=
+to_monoid_hom_injective $ monoid_hom.ext_int h_neg_one $ monoid_hom.ext (congr_fun h_nat : _)
+
+/-- If two `monoid_with_zero_hom`s agree on `-1` and the _positive_ naturals then they are equal. -/
+theorem ext_int' {φ₁ φ₂ : monoid_with_zero_hom ℤ M}
+  (h_neg_one : φ₁ (-1) = φ₂ (-1)) (h_pos : ∀ n : ℕ, 0 < n → φ₁ n = φ₂ n) : φ₁ = φ₂ :=
+ext_int h_neg_one $ ext_nat h_pos
+
+end monoid_with_zero_hom
 
 namespace ring_hom
 
@@ -239,3 +303,19 @@ end ring_hom
 
 @[simp, norm_cast] theorem int.cast_id (n : ℤ) : ↑n = n :=
 ((ring_hom.id ℤ).eq_int_cast n).symm
+
+namespace pi
+
+variables {α β : Type*}
+
+lemma int_apply [has_zero β] [has_one β] [has_add β] [has_neg β] :
+  ∀ (n : ℤ) (a : α), (n : α → β) a = n
+| (n:ℕ)  a := pi.nat_apply n a
+| -[1+n] a :=
+by rw [cast_neg_succ_of_nat, cast_neg_succ_of_nat, neg_apply, add_apply, one_apply, nat_apply]
+
+@[simp] lemma coe_int [has_zero β] [has_one β] [has_add β] [has_neg β] (n : ℤ) :
+  (n : α → β) = λ _, n :=
+by { ext, rw pi.int_apply }
+
+end pi

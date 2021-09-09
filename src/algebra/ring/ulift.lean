@@ -27,14 +27,31 @@ by refine_struct { zero := (0 : ulift α), mul := (*), .. }; tactic.pi_instance_
 instance distrib [distrib α] : distrib (ulift α) :=
 by refine_struct { add := (+), mul := (*), .. }; tactic.pi_instance_derive_field
 
+instance non_unital_non_assoc_semiring [non_unital_non_assoc_semiring α] :
+  non_unital_non_assoc_semiring (ulift α) :=
+by refine_struct { zero := (0 : ulift α), add := (+), mul := (*),
+  nsmul := λ n f, ⟨nsmul n f.down⟩, };
+tactic.pi_instance_derive_field
+
+instance non_assoc_semiring [non_assoc_semiring α] : non_assoc_semiring (ulift α) :=
+by refine_struct { zero := (0 : ulift α), one := 1, add := (+), mul := (*),
+  nsmul := λ n f, ⟨nsmul n f.down⟩ };
+tactic.pi_instance_derive_field
+
+instance non_unital_semiring [non_unital_semiring α] : non_unital_semiring (ulift α) :=
+by refine_struct { zero := (0 : ulift α), add := (+), mul := (*),
+  nsmul := λ n f, ⟨nsmul n f.down⟩, };
+tactic.pi_instance_derive_field
+
 instance semiring [semiring α] : semiring (ulift α) :=
-by refine_struct { zero := (0 : ulift α), one := 1, add := (+), mul := (*), .. };
-  tactic.pi_instance_derive_field
+by refine_struct { zero := (0 : ulift α), one := 1, add := (+), mul := (*),
+  nsmul := λ n f, ⟨nsmul n f.down⟩, npow := λ n f, ⟨npow n f.down⟩ };
+tactic.pi_instance_derive_field
 
 /--
 The ring equivalence between `ulift α` and `α`.
 -/
-def ring_equiv [semiring α] : ulift α ≃+* α :=
+def ring_equiv [non_unital_non_assoc_semiring α] : ulift α ≃+* α :=
 { to_fun := ulift.down,
   inv_fun := ulift.up,
   map_mul' := λ x y, rfl,
@@ -43,15 +60,20 @@ def ring_equiv [semiring α] : ulift α ≃+* α :=
   right_inv := by tidy, }
 
 instance comm_semiring [comm_semiring α] : comm_semiring (ulift α) :=
-by refine_struct { zero := (0 : ulift α), one := 1, add := (+), mul := (*),  .. };
-  tactic.pi_instance_derive_field
+by refine_struct { zero := (0 : ulift α), one := 1, add := (+), mul := (*),
+  nsmul := λ n f, ⟨nsmul n f.down⟩, npow := λ n f, ⟨npow n f.down⟩ };
+tactic.pi_instance_derive_field
 
 instance ring [ring α] : ring (ulift α) :=
 by refine_struct { zero := (0 : ulift α), one := 1, add := (+), mul := (*), sub := has_sub.sub,
-  neg := has_neg.neg, .. }; tactic.pi_instance_derive_field
+  neg := has_neg.neg, nsmul := λ n f, ⟨nsmul n f.down⟩, npow := λ n f, ⟨npow n f.down⟩,
+  gsmul := λ n f, ⟨gsmul n f.down⟩ };
+tactic.pi_instance_derive_field
 
 instance comm_ring [comm_ring α] : comm_ring (ulift α) :=
 by refine_struct { zero := (0 : ulift α), one := 1, add := (+), mul := (*), sub := has_sub.sub,
-  neg := has_neg.neg, .. }; tactic.pi_instance_derive_field
+  neg := has_neg.neg, nsmul := λ n f, ⟨nsmul n f.down⟩, npow := λ n f, ⟨npow n f.down⟩,
+  gsmul := λ n f, ⟨gsmul n f.down⟩ };
+tactic.pi_instance_derive_field
 
 end ulift

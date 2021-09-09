@@ -6,6 +6,20 @@ Authors: Scott Morrison
 import data.list.range
 import data.list.bag_inter
 
+/-!
+# Intervals in ℕ
+
+This file defines intervals of naturals. `list.Ico m n` is the list of integers greater than `m`
+and strictly less than `n`.
+
+## TODO
+- Define `Ioo` and `Icc`, state basic lemmas about them.
+- Also do the versions for integers?
+- One could generalise even further, defining 'locally finite partial orders', for which
+  `set.Ico a b` is `[finite]`, and 'locally finite total orders', for which there is a list model.
+- Once the above is done, get rid of `data.int.range` (and maybe `list.range'`?).
+-/
+
 open nat
 
 namespace list
@@ -15,12 +29,6 @@ namespace list
 
 See also `data/set/intervals.lean` for `set.Ico`, modelling intervals in general preorders, and
 `multiset.Ico` and `finset.Ico` for `n ≤ x < m` as a multiset or as a finset.
-
-@TODO (anyone): Define `Ioo` and `Icc`, state basic lemmas about them.
-@TODO (anyone): Also do the versions for integers?
-@TODO (anyone): One could generalise even further, defining
-'locally finite partial orders', for which `set.Ico a b` is `[finite]`, and
-'locally finite total orders', for which there is a list model.
  -/
 def Ico (n m : ℕ) : list ℕ := range' n (m - n)
 

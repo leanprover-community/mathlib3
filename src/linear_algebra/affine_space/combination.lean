@@ -1,13 +1,14 @@
 /-
 Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Joseph Myers.
+Authors: Joseph Myers
 -/
 import algebra.invertible
-import data.indicator_function
+import algebra.indicator_function
 import linear_algebra.affine_space.affine_map
 import linear_algebra.affine_space.affine_subspace
 import linear_algebra.finsupp
+import tactic.fin_cases
 
 /-!
 # Affine combinations of points
@@ -43,6 +44,9 @@ open_locale big_operators classical affine
 
 namespace finset
 
+lemma univ_fin2 : (univ : finset (fin 2)) = {0, 1} :=
+by { ext x, fin_cases x; simp }
+
 variables {k : Type*} {V : Type*} {P : Type*} [ring k] [add_comm_group V] [module k V]
 variables [S : affine_space V P]
 include S
@@ -74,8 +78,7 @@ begin
     congr,
     skip,
     funext,
-    rw [←smul_sub, vsub_sub_vsub_cancel_left]
-  },
+    rw [←smul_sub, vsub_sub_vsub_cancel_left] },
   rw [←sum_smul, h, zero_smul]
 end
 
@@ -94,8 +97,7 @@ begin
     congr,
     skip,
     funext,
-    rw [←smul_sub, vsub_sub_vsub_cancel_left]
-  },
+    rw [←smul_sub, vsub_sub_vsub_cancel_left] },
   rw [←sum_smul, h, one_smul, vsub_add_vsub_cancel, vsub_self]
 end
 
@@ -190,7 +192,7 @@ def affine_combination (p : ι → P) : (ι → k) →ᵃ[k] P :=
 { to_fun := λ w,
     s.weighted_vsub_of_point p (classical.choice S.nonempty) w +ᵥ (classical.choice S.nonempty),
   linear := s.weighted_vsub p,
-  map_vadd' := λ w₁ w₂, by simp_rw [vadd_assoc, weighted_vsub, vadd_eq_add, linear_map.map_add] }
+  map_vadd' := λ w₁ w₂, by simp_rw [vadd_vadd, weighted_vsub, vadd_eq_add, linear_map.map_add] }
 
 /-- The linear map corresponding to `affine_combination` is
 `weighted_vsub`. -/
@@ -408,8 +410,7 @@ as adding a vector to the first point. -/
 lemma centroid_insert_singleton_fin [invertible (2 : k)] (p : fin 2 → P) :
   univ.centroid k p = (2 ⁻¹ : k) • (p 1 -ᵥ p 0) +ᵥ p 0 :=
 begin
-  have hu : (finset.univ : finset (fin 2)) = {0, 1}, by dec_trivial,
-  rw hu,
+  rw univ_fin2,
   convert centroid_insert_singleton k p 0 1
 end
 
@@ -531,10 +532,10 @@ lemma weighted_vsub_mem_vector_span {s : finset ι} {w : ι → k}
     (h : ∑ i in s, w i = 0) (p : ι → P) :
     s.weighted_vsub p w ∈ vector_span k (set.range p) :=
 begin
-  by_cases hn : nonempty ι,
-  { cases hn with i0,
-    rw [vector_span_range_eq_span_range_vsub_right k p i0, ←set.image_univ,
-        finsupp.mem_span_iff_total,
+  rcases is_empty_or_nonempty ι with hι|⟨⟨i0⟩⟩,
+  { resetI, simp [finset.eq_empty_of_is_empty s] },
+  { rw [vector_span_range_eq_span_range_vsub_right k p i0, ←set.image_univ,
+        finsupp.mem_span_image_iff_total,
         finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero s w p h (p i0),
         finset.weighted_vsub_of_point_apply],
     let w' := set.indicator ↑s w,
@@ -545,7 +546,6 @@ begin
       intros i hi,
       simp [w', set.indicator_apply, if_pos hi] },
     { exact λ _, zero_smul k _ } },
-  { simp [finset.eq_empty_of_not_nonempty hn s] }
 end
 
 /-- An `affine_combination` with sum of weights 1 is in the
@@ -581,10 +581,9 @@ lemma mem_vector_span_iff_eq_weighted_vsub {v : V} {p : ι → P} :
     ∃ (s : finset ι) (w : ι → k) (h : ∑ i in s, w i = 0), v = s.weighted_vsub p w :=
 begin
   split,
-  { by_cases hn : nonempty ι,
-    { cases hn with i0,
-      rw [vector_span_range_eq_span_range_vsub_right k p i0, ←set.image_univ,
-          finsupp.mem_span_iff_total],
+  { rcases is_empty_or_nonempty ι with hι|⟨⟨i0⟩⟩, swap,
+    { rw [vector_span_range_eq_span_range_vsub_right k p i0, ←set.image_univ,
+          finsupp.mem_span_image_iff_total],
       rintros ⟨l, hl, hv⟩,
       use insert i0 l.support,
       set w := (l : ι → k) -
@@ -607,10 +606,11 @@ begin
       by_cases h : i = i0,
       { simp [h] },
       { simp [hwdef, h] } },
-    { rw [set.range_eq_empty.2 hn, vector_span_empty, submodule.mem_bot],
-      intro hv,
+    { resetI,
+      rw [set.range_eq_empty, vector_span_empty, submodule.mem_bot],
+      rintro rfl,
       use [∅],
-      simp [hv] } },
+      simp } },
   { rintros ⟨s, w, hw, rfl⟩,
     exact weighted_vsub_mem_vector_span hw p }
 end

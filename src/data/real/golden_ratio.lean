@@ -65,14 +65,14 @@ lemma one_sub_gold : 1 - ψ = φ := by linarith [gold_add_gold_conj]
 begin
   rw [golden_ratio, ←sub_eq_zero],
   ring_exp,
-  rw real.sqr_sqrt; norm_num,
+  rw real.sq_sqrt; norm_num,
 end
 
 @[simp] lemma gold_conj_sq : ψ^2 = ψ + 1 :=
 begin
   rw [golden_conj, ←sub_eq_zero],
   ring_exp,
-  rw real.sqr_sqrt; norm_num,
+  rw real.sq_sqrt; norm_num,
 end
 
 lemma gold_pos : 0 < φ :=
@@ -83,7 +83,7 @@ lemma gold_ne_zero : φ ≠ 0 := ne_of_gt gold_pos
 lemma one_lt_gold : 1 < φ :=
 begin
   refine lt_of_mul_lt_mul_left _ (le_of_lt gold_pos),
-  simp [← pow_two, gold_pos, zero_lt_one]
+  simp [← sq, gold_pos, zero_lt_one]
 end
 
 lemma gold_conj_neg : ψ < 0 := by linarith [one_sub_gold_conj, one_lt_gold]
@@ -155,21 +155,20 @@ begin
   simp only,
   rw [nat.fib_succ_succ, add_comm],
   simp [finset.sum_fin_eq_sum_range, finset.sum_range_succ'],
-  refl,
 end
 
 /-- The geometric sequence `λ n, φ^n` is a solution of `fib_rec`. -/
 lemma geom_gold_is_sol_fib_rec : fib_rec.is_solution (pow φ) :=
 begin
   rw [fib_rec.geom_sol_iff_root_char_poly, fib_rec_char_poly_eq],
-  simp [sub_eq_zero_iff_eq]
+  simp [sub_eq_zero]
 end
 
 /-- The geometric sequence `λ n, ψ^n` is a solution of `fib_rec`. -/
 lemma geom_gold_conj_is_sol_fib_rec : fib_rec.is_solution (pow ψ) :=
 begin
   rw [fib_rec.geom_sol_iff_root_char_poly, fib_rec_char_poly_eq],
-  simp [sub_eq_zero_iff_eq]
+  simp [sub_eq_zero]
 end
 
 end fibrec
@@ -183,7 +182,7 @@ begin
     { simp },
     { simp only [golden_ratio, golden_conj], ring_exp, rw mul_inv_cancel; norm_num } },
   { exact fib_is_sol_fib_rec },
-  { ring,
+  { ring_nf,
     exact (@fib_rec ℝ _).sol_space.sub_mem
             (submodule.smul_mem fib_rec.sol_space (real.sqrt 5)⁻¹ geom_gold_is_sol_fib_rec)
             (submodule.smul_mem fib_rec.sol_space (real.sqrt 5)⁻¹ geom_gold_conj_is_sol_fib_rec) }

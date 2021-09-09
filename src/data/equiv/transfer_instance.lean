@@ -8,7 +8,7 @@ import algebra.field
 import algebra.module
 import algebra.algebra.basic
 import algebra.group.type_tags
-import ring_theory.ideal.basic
+import ring_theory.ideal.local_ring
 
 /-!
 # Transfer algebraic structures across `equiv`s
@@ -121,103 +121,125 @@ end
 /-- Transfer `semigroup` across an `equiv` -/
 @[to_additive "Transfer `add_semigroup` across an `equiv`"]
 protected def semigroup [semigroup β] : semigroup α :=
-{ mul_assoc := by simp [mul_def, mul_assoc],
-  ..equiv.has_mul e }
+let mul := e.has_mul in
+by resetI; apply e.injective.semigroup _; intros; exact e.apply_symm_apply _
+
+/-- Transfer `semigroup_with_zero` across an `equiv` -/
+protected def semigroup_with_zero [semigroup_with_zero β] : semigroup_with_zero α :=
+let mul := e.has_mul, zero := e.has_zero in
+by resetI; apply e.injective.semigroup_with_zero _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `comm_semigroup` across an `equiv` -/
 @[to_additive "Transfer `add_comm_semigroup` across an `equiv`"]
 protected def comm_semigroup [comm_semigroup β] : comm_semigroup α :=
-{ mul_comm := by simp [mul_def, mul_comm],
-  ..equiv.semigroup e }
+let mul := e.has_mul in
+by resetI; apply e.injective.comm_semigroup _; intros; exact e.apply_symm_apply _
+
+/-- Transfer `mul_zero_class` across an `equiv` -/
+protected def mul_zero_class [mul_zero_class β] : mul_zero_class α :=
+let zero := e.has_zero, mul := e.has_mul in
+by resetI; apply e.injective.mul_zero_class _; intros; exact e.apply_symm_apply _
+
+/-- Transfer `mul_one_class` across an `equiv` -/
+@[to_additive "Transfer `add_zero_class` across an `equiv`"]
+protected def mul_one_class [mul_one_class β] : mul_one_class α :=
+let one := e.has_one, mul := e.has_mul in
+by resetI; apply e.injective.mul_one_class _; intros; exact e.apply_symm_apply _
+
+/-- Transfer `mul_zero_one_class` across an `equiv` -/
+protected def mul_zero_one_class [mul_zero_one_class β] : mul_zero_one_class α :=
+let zero := e.has_zero, one := e.has_one,mul := e.has_mul in
+by resetI; apply e.injective.mul_zero_one_class _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `monoid` across an `equiv` -/
 @[to_additive "Transfer `add_monoid` across an `equiv`"]
 protected def monoid [monoid β] : monoid α :=
-{ one_mul := by simp [mul_def, one_def],
-  mul_one := by simp [mul_def, one_def],
-  ..equiv.semigroup e,
-  ..equiv.has_one e }
+let one := e.has_one, mul := e.has_mul in
+by resetI; apply e.injective.monoid _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `comm_monoid` across an `equiv` -/
 @[to_additive "Transfer `add_comm_monoid` across an `equiv`"]
 protected def comm_monoid [comm_monoid β] : comm_monoid α :=
-{ ..equiv.comm_semigroup e,
-  ..equiv.monoid e }
+let one := e.has_one, mul := e.has_mul in
+by resetI; apply e.injective.comm_monoid _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `group` across an `equiv` -/
 @[to_additive "Transfer `add_group` across an `equiv`"]
 protected def group [group β] : group α :=
-{ mul_left_inv := by simp [mul_def, inv_def, one_def],
-  div_eq_mul_inv := λ a b, by rw [div_def, div_eq_mul_inv, mul_def, inv_def, e.apply_symm_apply],
-  ..equiv.monoid e,
-  ..equiv.has_inv e,
-  ..equiv.has_div e }
+let one := e.has_one, mul := e.has_mul, inv := e.has_inv, div := e.has_div in
+by resetI; apply e.injective.group _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `comm_group` across an `equiv` -/
 @[to_additive "Transfer `add_comm_group` across an `equiv`"]
 protected def comm_group [comm_group β] : comm_group α :=
-{ ..equiv.group e,
-  ..equiv.comm_semigroup e }
+let one := e.has_one, mul := e.has_mul, inv := e.has_inv, div := e.has_div in
+by resetI; apply e.injective.comm_group _; intros; exact e.apply_symm_apply _
+
+/-- Transfer `non_unital_non_assoc_semiring` across an `equiv` -/
+protected def non_unital_non_assoc_semiring [non_unital_non_assoc_semiring β] :
+  non_unital_non_assoc_semiring α :=
+let zero := e.has_zero, add := e.has_add, mul := e.has_mul in
+by resetI; apply e.injective.non_unital_non_assoc_semiring _; intros; exact e.apply_symm_apply _
+
+/-- Transfer `non_unital_semiring` across an `equiv` -/
+protected def non_unital_semiring [non_unital_semiring β] :  non_unital_semiring α :=
+let zero := e.has_zero, add := e.has_add, mul := e.has_mul in
+by resetI; apply e.injective.non_unital_semiring _; intros; exact e.apply_symm_apply _
+
+/-- Transfer `non_assoc_semiring` across an `equiv` -/
+protected def non_assoc_semiring [non_assoc_semiring β] : non_assoc_semiring α :=
+let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul in
+by resetI; apply e.injective.non_assoc_semiring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `semiring` across an `equiv` -/
 protected def semiring [semiring β] : semiring α :=
-{ right_distrib := by simp [mul_def, add_def, add_mul],
-  left_distrib := by simp [mul_def, add_def, mul_add],
-  zero_mul := by simp [mul_def, zero_def],
-  mul_zero := by simp [mul_def, zero_def],
-  ..equiv.has_zero e,
-  ..equiv.has_mul e,
-  ..equiv.has_add e,
-  ..equiv.monoid e,
-  ..equiv.add_comm_monoid e }
+let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul in
+by resetI; apply e.injective.semiring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `comm_semiring` across an `equiv` -/
 protected def comm_semiring [comm_semiring β] : comm_semiring α :=
-{ ..equiv.semiring e,
-  ..equiv.comm_monoid e }
+let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul in
+by resetI; apply e.injective.comm_semiring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `ring` across an `equiv` -/
 protected def ring [ring β] : ring α :=
-{ ..equiv.semiring e,
-  ..equiv.add_comm_group e }
+let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul, neg := e.has_neg,
+  sub := e.has_sub in
+by resetI; apply e.injective.ring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `comm_ring` across an `equiv` -/
 protected def comm_ring [comm_ring β] : comm_ring α :=
-{ ..equiv.comm_monoid e,
-  ..equiv.ring e }
+let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul, neg := e.has_neg,
+  sub := e.has_sub in
+by resetI; apply e.injective.comm_ring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `nonzero` across an `equiv` -/
 protected theorem nontrivial [nontrivial β] : nontrivial α :=
-let ⟨x, y, h⟩ := exists_pair_ne β in ⟨⟨e.symm x, e.symm y, e.symm.injective.ne h⟩⟩
+e.surjective.nontrivial
 
 /-- Transfer `domain` across an `equiv` -/
 protected def domain [domain β] : domain α :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := by simp [mul_def, zero_def, equiv.eq_symm_apply],
-  ..equiv.ring e,
-  ..equiv.nontrivial e }
+let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul, neg := e.has_neg,
+  sub := e.has_sub in
+by resetI; apply e.injective.domain _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `integral_domain` across an `equiv` -/
 protected def integral_domain [integral_domain β] : integral_domain α :=
-{ ..equiv.domain e,
-  ..equiv.comm_ring e }
+let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul, neg := e.has_neg,
+  sub := e.has_sub in
+by resetI; apply e.injective.integral_domain _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `division_ring` across an `equiv` -/
 protected def division_ring [division_ring β] : division_ring α :=
-{ mul_inv_cancel := λ _,
-    by simp [mul_def, inv_def, zero_def, one_def, (equiv.symm_apply_eq _).symm];
-      exact mul_inv_cancel,
-  inv_zero := by simp [zero_def, inv_def],
-  div_eq_mul_inv := λ a b, by rw [div_def, div_eq_mul_inv, mul_def, inv_def, e.apply_symm_apply],
-  ..equiv.has_zero e,
-  ..equiv.has_one e,
-  ..equiv.has_div e,
-  ..equiv.domain e,
-  ..equiv.has_inv e }
+let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul, neg := e.has_neg,
+  sub := e.has_sub, inv := e.has_inv, div := e.has_div in
+by resetI; apply e.injective.division_ring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `field` across an `equiv` -/
 protected def field [field β] : field α :=
-{ ..equiv.integral_domain e,
-  ..equiv.division_ring e }
+let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul, neg := e.has_neg,
+  sub := e.has_sub, inv := e.has_inv, div := e.has_div in
+by resetI; apply e.injective.field _; intros; exact e.apply_symm_apply _
 
 section R
 variables (R : Type*)
@@ -252,18 +274,18 @@ end
 section
 variables [semiring R]
 
-/-- Transfer `semimodule` across an `equiv` -/
-protected def semimodule (e : α ≃ β) [add_comm_monoid β] :
+/-- Transfer `module` across an `equiv` -/
+protected def module (e : α ≃ β) [add_comm_monoid β] :
   begin
     letI := equiv.add_comm_monoid e,
-    exact Π [semimodule R β], semimodule R α
+    exact Π [module R β], module R α
   end :=
 begin
   introsI,
   exact (
   { zero_smul := by simp [zero_def, smul_def],
     add_smul := by simp [add_def, smul_def, add_smul],
-    ..equiv.distrib_mul_action R e } : semimodule R α)
+    ..equiv.distrib_mul_action R e } : module R α)
 end
 
 /--
@@ -271,10 +293,10 @@ An equivalence `e : α ≃ β` gives a linear equivalence `α ≃ₗ[R] β`
 where the `R`-module structure on `α` is
 the one obtained by transporting an `R`-module structure on `β` back along `e`.
 -/
-def linear_equiv (e : α ≃ β) [add_comm_monoid β] [semimodule R β] :
+def linear_equiv (e : α ≃ β) [add_comm_monoid β] [module R β] :
   begin
     letI := equiv.add_comm_monoid e,
-    letI := equiv.semimodule R e,
+    letI := equiv.module R e,
     exact α ≃ₗ[R] β
   end :=
 begin

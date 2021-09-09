@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 
 Automation to construct `traversable` instances
 -/
@@ -285,8 +285,8 @@ do decl ← get_decl n,
       tgt ← do {
         guard $ i < env.inductive_num_params n,
         param_cls ← mk_app cls [param],
-        pure $ expr.pi `a binder_info.inst_implicit param_cls tgt
-      } <|> pure tgt,
+        pure $ expr.pi `a binder_info.inst_implicit param_cls tgt }
+      <|> pure tgt,
       pure $ tgt.bind_pi param
    ) tgt,
    () <$ mk_instance tgt <|> do

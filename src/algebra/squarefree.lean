@@ -63,12 +63,12 @@ end
 @[simp]
 lemma prime.squarefree [comm_cancel_monoid_with_zero R] {x : R} (h : prime x) :
   squarefree x :=
-(irreducible_of_prime h).squarefree
+h.irreducible.squarefree
 
 lemma squarefree_of_dvd_of_squarefree [comm_monoid R]
   {x y : R} (hdvd : x ∣ y) (hsq : squarefree y) :
   squarefree x :=
-λ a h, hsq _ (dvd.trans h hdvd)
+λ a h, hsq _ (h.trans hdvd)
 
 namespace multiplicity
 variables [comm_monoid R] [decidable_rel (has_dvd.dvd : R → R → Prop)]
@@ -77,9 +77,9 @@ lemma squarefree_iff_multiplicity_le_one (r : R) :
   squarefree r ↔ ∀ x : R, multiplicity x r ≤ 1 ∨ is_unit x :=
 begin
   refine forall_congr (λ a, _),
-  rw [← pow_two, pow_dvd_iff_le_multiplicity, or_iff_not_imp_left, not_le, imp_congr],
+  rw [← sq, pow_dvd_iff_le_multiplicity, or_iff_not_imp_left, not_le, imp_congr],
   swap, { refl },
-  convert enat.add_one_le_iff_lt (enat.coe_ne_top _),
+  convert enat.add_one_le_iff_lt (enat.coe_ne_top 1),
   norm_cast,
 end
 
@@ -110,7 +110,7 @@ begin
     by_cases h0 : a = 0,
     { simp [h0, x0] },
     rcases wf_dvd_monoid.exists_irreducible_factor hu h0 with ⟨b, hib, hdvd⟩,
-    apply le_trans (multiplicity.multiplicity_le_multiplicity_of_dvd hdvd),
+    apply le_trans (multiplicity.multiplicity_le_multiplicity_of_dvd_left hdvd),
     rw [multiplicity_eq_count_factors hib x0],
     specialize h (normalize b),
     assumption_mod_cast }
@@ -124,7 +124,7 @@ begin
   { simp [hx, pow_eq_zero_iff (nat.pos_of_ne_zero h0)] },
   by_cases hy : y = 0,
   { simp [hy, zero_pow (nat.pos_of_ne_zero h0)] },
-  refine ⟨λ h, _, λ h, dvd_pow h h0⟩,
+  refine ⟨λ h, _, λ h, h.pow h0⟩,
   rw [dvd_iff_factors_le_factors hx (pow_ne_zero n hy), factors_pow,
     ((squarefree_iff_nodup_factors hx).1 hsq).le_nsmul_iff_le h0] at h,
   rwa dvd_iff_factors_le_factors hx hy,
@@ -173,7 +173,7 @@ begin
         intro con,
         apply not_irreducible_zero (irreducible_of_factor 0
             (multiset.mem_erase_dup.1 (multiset.mem_of_le hs con))) },
-      rw [dvd_iff_dvd_of_rel_right (factors_prod h0).symm],
+      rw (factors_prod h0).symm.dvd_iff_dvd_right,
       refine ⟨⟨multiset.prod_dvd_prod (le_trans hs (multiset.erase_dup_le _)), h0⟩, _⟩,
       have h := unique_factorization_monoid.factors_unique irreducible_of_factor
         (λ x hx, irreducible_of_factor x (multiset.mem_of_le
@@ -203,5 +203,48 @@ lemma sum_divisors_filter_squarefree {n : ℕ} (h0 : n ≠ 0)
     ∑ i in (unique_factorization_monoid.factors n).to_finset.powerset, f (i.val.prod) :=
 by rw [finset.sum_eq_multiset_sum, divisors_filter_squarefree h0, multiset.map_map,
     finset.sum_eq_multiset_sum]
+
+lemma sq_mul_squarefree_of_pos {n : ℕ} (hn : 0 < n) :
+  ∃ a b : ℕ, 0 < a ∧ 0 < b ∧ b ^ 2 * a = n ∧ squarefree a :=
+begin
+  let S := {s ∈ finset.range (n + 1) | s ∣ n ∧ ∃ x, s = x ^ 2},
+  have hSne : S.nonempty,
+  { use 1,
+    have h1 : 0 < n ∧ ∃ (x : ℕ), 1 = x ^ 2 := ⟨hn, ⟨1, (one_pow 2).symm⟩⟩,
+    simpa [S] },
+  let s := finset.max' S hSne,
+  have hs : s ∈ S := finset.max'_mem S hSne,
+  simp only [finset.sep_def, S, finset.mem_filter, finset.mem_range] at hs,
+  obtain ⟨hsn1, ⟨a, hsa⟩, ⟨b, hsb⟩⟩ := hs,
+  rw hsa at hn,
+  obtain ⟨hlts, hlta⟩ := canonically_ordered_comm_semiring.mul_pos.mp hn,
+  rw hsb at hsa hn hlts,
+  refine ⟨a, b, hlta, (pow_pos_iff zero_lt_two).mp hlts, hsa.symm, _⟩,
+  rintro x ⟨y, hy⟩,
+  rw nat.is_unit_iff,
+  by_contra hx,
+  refine lt_le_antisymm _ (finset.le_max' S ((b * x) ^ 2) _),
+  { simp_rw [S, hsa, finset.sep_def, finset.mem_filter, finset.mem_range],
+    refine ⟨lt_succ_iff.mpr (le_of_dvd hn _), _, ⟨b * x, rfl⟩⟩; use y; rw hy; ring },
+  { convert lt_mul_of_one_lt_right hlts
+      (one_lt_pow 2 x zero_lt_two (one_lt_iff_ne_zero_and_ne_one.mpr ⟨λ h, by simp * at *, hx⟩)),
+    rw mul_pow },
+end
+
+lemma sq_mul_squarefree_of_pos' {n : ℕ} (h : 0 < n) :
+  ∃ a b : ℕ, (b + 1) ^ 2 * (a + 1) = n ∧ squarefree (a + 1) :=
+begin
+  obtain ⟨a₁, b₁, ha₁, hb₁, hab₁, hab₂⟩ := sq_mul_squarefree_of_pos h,
+  refine ⟨a₁.pred, b₁.pred, _, _⟩;
+  simpa only [add_one, succ_pred_eq_of_pos, ha₁, hb₁],
+end
+
+lemma sq_mul_squarefree (n : ℕ) : ∃ a b : ℕ, b ^ 2 * a = n ∧ squarefree a :=
+begin
+  cases n,
+  { exact ⟨1, 0, (by simp), squarefree_one⟩ },
+  { obtain ⟨a, b, -, -, h₁, h₂⟩ := sq_mul_squarefree_of_pos (succ_pos n),
+    exact ⟨a, b, h₁, h₂⟩ },
+end
 
 end nat

@@ -5,8 +5,10 @@ Authors: Patrick Massot, Johannes Hölzl
 
 Completion of topological groups:
 -/
+import algebra.group.hom_instances
 import topology.uniform_space.completion
 import topology.algebra.uniform_group
+
 noncomputable theory
 
 universes u v
@@ -20,7 +22,6 @@ instance [has_neg α] : has_neg (completion α) := ⟨completion.map (λa, -a : 
 instance [has_add α] : has_add (completion α) := ⟨completion.map₂ (+)⟩
 instance [has_sub α] : has_sub (completion α) := ⟨completion.map₂ has_sub.sub⟩
 
--- TODO: switch sides once #1103 is fixed
 @[norm_cast]
 lemma uniform_space.completion.coe_zero [has_zero α] : ((0 : α) : completion α) = 0 := rfl
 end group
@@ -42,7 +43,7 @@ lemma coe_sub (a b : α) : ((a - b : α) : completion α) = a - b :=
 lemma coe_add (a b : α) : ((a + b : α) : completion α) = a + b :=
 (map₂_coe_coe a b (+) uniform_continuous_add).symm
 
-instance : sub_neg_monoid (completion α) :=
+instance : add_monoid (completion α) :=
 { zero_add     := assume a, completion.induction_on a
    (is_closed_eq (continuous_map₂ continuous_const continuous_id) continuous_id)
     (assume a, show 0 + (a : completion α) = a, by rw_mod_cast zero_add),
@@ -60,11 +61,14 @@ instance : sub_neg_monoid (completion α) :=
           (continuous_snd.comp continuous_snd))))
     (assume a b c, show (a : completion α) + b + c = a + (b + c),
       by repeat { rw_mod_cast add_assoc }),
-  sub_eq_add_neg := λ a b, completion.induction_on₂ a b
+  .. completion.has_zero, .. completion.has_neg, ..completion.has_add, .. completion.has_sub }
+
+instance : sub_neg_monoid (completion α) :=
+{ sub_eq_add_neg := λ a b, completion.induction_on₂ a b
     (is_closed_eq (continuous_map₂ continuous_fst continuous_snd)
       (continuous_map₂ continuous_fst (continuous_map.comp continuous_snd)))
    (λ a b, by exact_mod_cast congr_arg coe (sub_eq_add_neg a b)),
-  .. completion.has_zero, .. completion.has_neg, ..completion.has_add, .. completion.has_sub }
+  .. completion.add_monoid, .. completion.has_neg, .. completion.has_sub }
 
 instance : add_group (completion α) :=
 { add_left_neg := assume a, completion.induction_on a
@@ -75,25 +79,16 @@ instance : add_group (completion α) :=
 instance : uniform_add_group (completion α) :=
 ⟨uniform_continuous_map₂ has_sub.sub⟩
 
-instance is_add_group_hom_coe : is_add_group_hom (coe : α → completion α) :=
-{ map_add := coe_add }
+/-- The map from a group to its completion as a group hom. -/
+@[simps] def to_compl : α →+ completion α :=
+{ to_fun := coe,
+  map_add' := coe_add,
+  map_zero' := coe_zero }
+
+lemma continuous_to_compl : continuous (to_compl : α → completion α) :=
+continuous_coe α
 
 variables {β : Type v} [uniform_space β] [add_group β] [uniform_add_group β]
-
-lemma is_add_group_hom_extension  [complete_space β] [separated_space β] {f : α → β}
-  [is_add_group_hom f] (hf : continuous f) : is_add_group_hom (completion.extension f) :=
-have hf : uniform_continuous f, from uniform_continuous_of_continuous hf,
-{ map_add := assume a b, completion.induction_on₂ a b
-  (is_closed_eq
-    (continuous_extension.comp continuous_add)
-    ((continuous_extension.comp continuous_fst).add (continuous_extension.comp continuous_snd)))
-  (λ a b, by rw_mod_cast [extension_coe hf, extension_coe hf, extension_coe hf,
-    is_add_hom.map_add f]) }
-
-lemma is_add_group_hom_map
-  {f : α → β} [is_add_group_hom f] (hf : continuous f) : is_add_group_hom (completion.map f) :=
-@is_add_group_hom_extension _ _ _ _ _ _ _ _ _ _ _ (is_add_group_hom.comp _ _)
-  ((continuous_coe _).comp hf)
 
 instance {α : Type u} [uniform_space α] [add_comm_group α] [uniform_add_group α] :
   add_comm_group (completion α) :=
@@ -102,7 +97,73 @@ instance {α : Type u} [uniform_space α] [add_comm_group α] [uniform_add_group
       (continuous_map₂ continuous_snd continuous_fst))
     (assume x y, by { change ↑x + ↑y = ↑y + ↑x, rw [← coe_add, ← coe_add, add_comm]}),
   .. completion.add_group }
+
 end uniform_add_group
 
-
 end uniform_space.completion
+
+section add_monoid_hom
+variables {α β : Type*} [uniform_space α] [add_group α] [uniform_add_group α]
+                        [uniform_space β] [add_group β] [uniform_add_group β]
+
+open uniform_space uniform_space.completion
+
+/-- Extension to the completion of a continuous group hom. -/
+def add_monoid_hom.extension [complete_space β] [separated_space β] (f : α →+ β)
+  (hf : continuous f) : completion α →+ β :=
+have hf : uniform_continuous f, from uniform_continuous_of_continuous hf,
+{ to_fun := completion.extension f,
+  map_zero' := by rw [← coe_zero, extension_coe hf, f.map_zero],
+  map_add' := assume a b, completion.induction_on₂ a b
+  (is_closed_eq
+    (continuous_extension.comp continuous_add)
+    ((continuous_extension.comp continuous_fst).add (continuous_extension.comp continuous_snd)))
+  (λ a b, by rw_mod_cast [extension_coe hf, extension_coe hf, extension_coe hf,
+    f.map_add]) }
+
+lemma add_monoid_hom.extension_coe [complete_space β] [separated_space β] (f : α →+ β)
+  (hf : continuous f) (a : α) : f.extension hf a = f a :=
+extension_coe (uniform_continuous_of_continuous hf) a
+
+@[continuity]
+lemma add_monoid_hom.continuous_extension [complete_space β] [separated_space β] (f : α →+ β)
+  (hf : continuous f) : continuous (f.extension hf) :=
+continuous_extension
+
+/-- Completion of a continuous group hom, as a group hom. -/
+def add_monoid_hom.completion (f : α →+ β) (hf : continuous f) : completion α →+ completion β :=
+(to_compl.comp f).extension (continuous_to_compl.comp hf)
+
+@[continuity]
+lemma add_monoid_hom.continuous_completion (f : α →+ β)
+  (hf : continuous f) : continuous (f.completion hf : completion α → completion β) :=
+continuous_map
+
+lemma add_monoid_hom.completion_coe (f : α →+ β)
+  (hf : continuous f) (a : α) : f.completion hf a = f a :=
+map_coe (uniform_continuous_of_continuous hf) a
+
+lemma add_monoid_hom.completion_zero : (0 : α →+ β).completion continuous_const = 0 :=
+begin
+  ext x,
+  apply completion.induction_on x,
+  { apply is_closed_eq ((0 : α →+ β).continuous_completion continuous_const),
+    simp [continuous_const] },
+  { intro a,
+    simp [(0 : α →+ β).completion_coe continuous_const, coe_zero] }
+end
+
+lemma add_monoid_hom.completion_add {γ : Type*} [add_comm_group γ] [uniform_space γ]
+  [uniform_add_group γ] (f g : α →+ γ) (hf : continuous f) (hg : continuous g) :
+  (f + g).completion (hf.add hg) = f.completion hf + g.completion hg :=
+begin
+  have hfg := hf.add hg,
+  ext x,
+  apply completion.induction_on x,
+  { exact is_closed_eq ((f+g).continuous_completion hfg)
+    ((f.continuous_completion hf).add (g.continuous_completion hg)) },
+  { intro a,
+    simp [(f+g).completion_coe hfg, coe_add, f.completion_coe hf, g.completion_coe hg] }
+end
+
+end add_monoid_hom

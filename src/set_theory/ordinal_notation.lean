@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 
 import set_theory.ordinal_arithmetic
@@ -149,32 +149,33 @@ inductive NF_below : onote → ordinal.{0} → Prop
   ordinal notations, but to avoid complicating the algorithms
   we define everything over general ordinal notations and
   only prove correctness with normal form as an invariant. -/
-@[class, pp_nodot] def NF (o : onote) := Exists (NF_below o)
+class NF (o : onote) : Prop := (out : Exists (NF_below o))
+attribute [pp_nodot] NF
 
-instance NF.zero : NF 0 := ⟨0, NF_below.zero⟩
+instance NF.zero : NF 0 := ⟨⟨0, NF_below.zero⟩⟩
 
 theorem NF_below.oadd {e n a b} : NF e →
   NF_below a (repr e) → repr e < b → NF_below (oadd e n a) b
-| ⟨eb, h⟩ := NF_below.oadd' h
+| ⟨⟨eb, h⟩⟩ := NF_below.oadd' h
 
 theorem NF_below.fst {e n a b} (h : NF_below (oadd e n a) b) : NF e :=
-by cases h with _ _ _ _ eb _ h₁ h₂ h₃; exact ⟨_, h₁⟩
+by cases h with _ _ _ _ eb _ h₁ h₂ h₃; exact ⟨⟨_, h₁⟩⟩
 
 theorem NF.fst {e n a} : NF (oadd e n a) → NF e
-| ⟨b, h⟩ := h.fst
+| ⟨⟨b, h⟩⟩ := h.fst
 
 theorem NF_below.snd {e n a b} (h : NF_below (oadd e n a) b) : NF_below a (repr e) :=
 by cases h with _ _ _ _ eb _ h₁ h₂ h₃; exact h₂
 
 theorem NF.snd' {e n a} : NF (oadd e n a) → NF_below a (repr e)
-| ⟨b, h⟩ := h.snd
+| ⟨⟨b, h⟩⟩ := h.snd
 
 theorem NF.snd {e n a} (h : NF (oadd e n a)) : NF a :=
-⟨_, h.snd'⟩
+⟨⟨_, h.snd'⟩⟩
 
 theorem NF.oadd {e a} (h₁ : NF e) (n)
   (h₂ : NF_below a (repr e)) : NF (oadd e n a) :=
-⟨_, NF_below.oadd h₁ h₂ (ordinal.lt_succ_self _)⟩
+⟨⟨_, NF_below.oadd h₁ h₂ (ordinal.lt_succ_self _)⟩⟩
 
 instance NF.oadd_zero (e n) [h : NF e] : NF (oadd e n 0) :=
 h.oadd _ NF_below.zero
@@ -209,7 +210,7 @@ begin
 end
 
 theorem NF.below_of_lt {e n a b} (H : repr e < b) : NF (oadd e n a) → NF_below (oadd e n a) b
-| ⟨b', h⟩ := by cases h with _ _ _ _ eb _ h₁ h₂ h₃;
+| ⟨⟨b', h⟩⟩ := by cases h with _ _ _ _ eb _ h₁ h₂ h₃;
   exact NF_below.oadd' h₁ h₂ H
 
 theorem NF.below_of_lt' : ∀ {o b}, repr o < ω ^ b → NF o → NF_below o b
@@ -221,7 +222,7 @@ theorem NF_below_of_nat : ∀ n, NF_below (of_nat n) 1
 | 0            := NF_below.zero
 | (nat.succ n) := NF_below.oadd NF.zero NF_below.zero ordinal.zero_lt_one
 
-instance NF_of_nat (n) : NF (of_nat n) := ⟨_, NF_below_of_nat n⟩
+instance NF_of_nat (n) : NF (of_nat n) := ⟨⟨_, NF_below_of_nat n⟩⟩
 
 instance NF_one : NF 1 := by rw ← of_nat_one; apply_instance
 
@@ -284,7 +285,7 @@ begin
   have := mt repr_inj.1 (λ h, by injection h : oadd e n a ≠ 0),
   have L := le_of_not_lt (λ l, not_le_of_lt (h.below_of_lt l).repr_lt (le_of_dvd this d)),
   simp at d,
-  exact ⟨L, (dvd_add_iff $ dvd_mul_of_dvd_left (power_dvd_power _ L) _).1 d⟩
+  exact ⟨L, (dvd_add_iff $ (power_dvd_power _ L).mul_right _).1 d⟩
 end
 
 theorem NF.of_dvd_omega {e n a} (h : NF (oadd e n a)) :
@@ -303,9 +304,9 @@ by intros b o; cases o; delta top_below; apply_instance
 
 theorem NF_below_iff_top_below {b} [NF b] : ∀ {o},
   NF_below o (repr b) ↔ NF o ∧ top_below b o
-| 0            := ⟨λ h, ⟨⟨_, h⟩, trivial⟩, λ _, NF_below.zero⟩
+| 0            := ⟨λ h, ⟨⟨⟨_, h⟩⟩, trivial⟩, λ _, NF_below.zero⟩
 | (oadd e n a) :=
-  ⟨λ h, ⟨⟨_, h⟩, (@cmp_compares _ b h.fst _).eq_lt.2 h.lt⟩,
+  ⟨λ h, ⟨⟨⟨_, h⟩⟩, (@cmp_compares _ b h.fst _).eq_lt.2 h.lt⟩,
    λ ⟨h₁, h₂⟩, h₁.below_of_lt $ (@cmp_compares _ b h₁.fst _).eq_lt.1 h₂⟩
 
 instance decidable_NF : decidable_pred NF
@@ -362,13 +363,13 @@ theorem add_NF_below {b} : ∀ {o₁ o₂}, NF_below o₁ b → NF_below o₂ b 
   { exact h' },
   { simp at this, subst e',
     exact NF_below.oadd h'.fst h'.snd h'.lt },
-  { exact NF_below.oadd h₁.fst (NF.below_of_lt this ⟨_, h'⟩) h₁.lt }
+  { exact NF_below.oadd h₁.fst (NF.below_of_lt this ⟨⟨_, h'⟩⟩) h₁.lt }
 end
 
 instance add_NF (o₁ o₂) : ∀ [NF o₁] [NF o₂], NF (o₁ + o₂)
-| ⟨b₁, h₁⟩ ⟨b₂, h₂⟩ := (b₁.le_total b₂).elim
+| ⟨⟨b₁, h₁⟩⟩ ⟨⟨b₂, h₂⟩⟩ := ⟨(b₁.le_total b₂).elim
   (λ h, ⟨b₂, add_NF_below (h₁.mono h) h₂⟩)
-  (λ h, ⟨b₁, add_NF_below h₁ (h₂.mono h)⟩)
+  (λ h, ⟨b₁, add_NF_below h₁ (h₂.mono h)⟩)⟩
 
 @[simp] theorem repr_add : ∀ o₁ o₂ [NF o₁] [NF o₂], repr (o₁ + o₂) = repr o₁ + repr o₂
 | 0            o h₁ h₂ := by simp
@@ -409,7 +410,7 @@ theorem sub_NF_below : ∀ {o₁ o₂ b}, NF_below o₁ b → NF o₂ → NF_bel
 end
 
 instance sub_NF (o₁ o₂) : ∀ [NF o₁] [NF o₂], NF (o₁ - o₂)
-| ⟨b₁, h₁⟩ h₂ := ⟨b₁, sub_NF_below h₁ h₂⟩
+| ⟨⟨b₁, h₁⟩⟩ h₂ := ⟨⟨b₁, sub_NF_below h₁ h₂⟩⟩
 
 @[simp] theorem repr_sub : ∀ o₁ o₂ [NF o₁] [NF o₂], repr (o₁ - o₂) = repr o₁ - repr o₂
 | 0            o h₁ h₂ := by cases o; exact (ordinal.zero_sub _).symm
@@ -422,14 +423,14 @@ instance sub_NF (o₁ o₂) : ∀ [NF o₁] [NF o₂], NF (o₁ - o₂)
   conv in (_-oadd _ _ _) {simp [has_sub.sub, sub]},
   have ee := @cmp_compares _ _ h₁.fst h₂.fst,
   cases cmp e₁ e₂,
-  { rw [sub_eq_zero_iff_le.2], {refl},
+  { rw [ordinal.sub_eq_zero_iff_le.2], {refl},
     exact le_of_lt (oadd_lt_oadd_1 h₁ ee) },
   { change e₁ = e₂ at ee, substI e₂, unfold sub._match_1,
     cases mn : (n₁:ℕ) - n₂; dsimp only [sub._match_2],
     { by_cases en : n₁ = n₂,
       { simp [en], rwa [add_sub_add_cancel] },
       { simp [en, -repr],
-        exact (sub_eq_zero_iff_le.2 $ le_of_lt $ oadd_lt_oadd_2 h₁ $
+        exact (ordinal.sub_eq_zero_iff_le.2 $ le_of_lt $ oadd_lt_oadd_2 h₁ $
           lt_of_le_of_ne (nat.sub_eq_zero_iff_le.1 mn) (mt pnat.eq en)).symm } },
     { simp [nat.succ_pnat, -nat.cast_succ],
       rw [(nat.sub_eq_iff_eq_add $ le_of_lt $ nat.lt_of_sub_eq_succ mn).1 mn,
@@ -475,8 +476,8 @@ end
 
 instance mul_NF : ∀ o₁ o₂ [NF o₁] [NF o₂], NF (o₁ * o₂)
 | 0 o h₁ h₂ := by cases o; exact NF.zero
-| (oadd e n a) o ⟨b₁, hb₁⟩ ⟨b₂, hb₂⟩ :=
-  ⟨_, oadd_mul_NF_below hb₁ hb₂⟩
+| (oadd e n a) o ⟨⟨b₁, hb₁⟩⟩ ⟨⟨b₂, hb₂⟩⟩ :=
+  ⟨⟨_, oadd_mul_NF_below hb₁ hb₂⟩⟩
 
 @[simp] theorem repr_mul : ∀ o₁ o₂ [NF o₁] [NF o₂], repr (o₁ * o₂) = repr o₁ * repr o₂
 | 0               o               h₁ h₂ := by cases o; exact (ordinal.zero_mul _).symm
@@ -653,7 +654,9 @@ begin
   casesI a with a0 n a',
   { cases m with m,
     { by_cases o₂ = 0; simp [pow, power, *]; apply_instance },
-    { by_cases m = 0; simp [pow, power, -monoid.pow_eq_has_pow, *]; apply_instance } },
+    { by_cases m = 0,
+      { simp only [pow, power, *, zero_def], apply_instance },
+      { simp [pow, power, *, - npow_eq_pow], apply_instance } } },
   { simp [pow, power, e₁, e₂, split_eq_scale_split' e₂],
     have := na.fst,
     cases k with k; simp [succ_eq_add_one, power]; resetI; apply_instance }
@@ -830,7 +833,7 @@ instance : has_zero nonote := ⟨⟨0, NF.zero⟩⟩
 instance : inhabited nonote := ⟨0⟩
 
 /-- Convert a natural number to an ordinal notation -/
-def of_nat (n : ℕ) : nonote := ⟨of_nat n, _, NF_below_of_nat _⟩
+def of_nat (n : ℕ) : nonote := ⟨of_nat n, ⟨⟨_, NF_below_of_nat _⟩⟩⟩
 
 /-- Compare ordinal notations -/
 def cmp (a b : nonote) : ordering :=

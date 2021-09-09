@@ -1,11 +1,9 @@
 /-
 Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury G. Kudryashov
+Authors: Yury G. Kudryashov
 -/
-import data.real.sqrt
-import analysis.calculus.inverse
-import measure_theory.borel_space
+import analysis.calculus.times_cont_diff
 
 /-!
 # Smoothness of `real.sqrt`
@@ -32,8 +30,8 @@ noncomputable def sq_local_homeomorph : local_homeomorph ℝ ℝ :=
   target := Ioi 0,
   map_source' := λ x hx, mem_Ioi.2 (pow_pos hx _),
   map_target' := λ x hx, mem_Ioi.2 (sqrt_pos.2 hx),
-  left_inv' := λ x hx, sqrt_sqr (le_of_lt hx),
-  right_inv' := λ x hx, sqr_sqrt (le_of_lt hx),
+  left_inv' := λ x hx, sqrt_sq (le_of_lt hx),
+  right_inv' := λ x hx, sq_sqrt (le_of_lt hx),
   open_source := is_open_Ioi,
   open_target := is_open_Ioi,
   continuous_to_fun := (continuous_pow 2).continuous_on,
@@ -69,10 +67,6 @@ lemma has_deriv_at_sqrt {x : ℝ} (hx : x ≠ 0) : has_deriv_at sqrt (1 / (2 * s
 end real
 
 open real
-
-lemma measurable.sqrt {α : Type*} [measurable_space α] {f : α → ℝ} (hf : measurable f) :
-  measurable (λ x, sqrt (f x)) :=
-continuous_sqrt.measurable.comp hf
 
 section deriv
 

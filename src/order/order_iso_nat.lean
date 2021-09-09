@@ -1,20 +1,31 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
-import data.nat.basic
 import data.equiv.denumerable
-import data.set.finite
-import order.rel_iso
-import logic.function.iterate
+import order.preorder_hom
+import data.nat.lattice
 
+/-!
+# Relation embeddings from the naturals
+
+This file allows translation from monotone functions `ℕ → α` to order embeddings `ℕ ↪ α` and
+defines the limit value of an eventually-constant sequence.
+
+## Main declarations
+
+* `nat_lt`/`nat_gt`: Make an order embedding `ℕ ↪ α` from an increasing/decreasing function `ℕ → α`.
+* `monotonic_sequence_limit`: The limit of an eventually-constant monotone sequence `ℕ →ₘ α`.
+* `monotonic_sequence_limit_index`: The index of the first occurence of `monotonic_sequence_limit`
+  in the sequence.
+-/
 namespace rel_embedding
 
 variables {α : Type*} {r : α → α → Prop} [is_strict_order α r]
 
 /-- If `f` is a strictly `r`-increasing sequence, then this returns `f` as an order embedding. -/
-def nat_lt (f : ℕ → α) (H : ∀ n:ℕ, r (f n) (f (n+1))) :
+def nat_lt (f : ℕ → α) (H : ∀ n : ℕ, r (f n) (f (n + 1))) :
   ((<) : ℕ → ℕ → Prop) ↪r r :=
 of_monotone f $ λ a b h, begin
   induction b with b IH, {exact (nat.not_lt_zero _ h).elim},
@@ -24,34 +35,36 @@ of_monotone f $ λ a b h, begin
 end
 
 @[simp]
-lemma nat_lt_apply {f : ℕ → α} {H : ∀ n:ℕ, r (f n) (f (n+1))} {n : ℕ} : nat_lt f H n = f n := rfl
+lemma nat_lt_apply {f : ℕ → α} {H : ∀ n : ℕ, r (f n) (f (n + 1))} {n : ℕ} :
+  nat_lt f H n = f n :=
+rfl
 
 /-- If `f` is a strictly `r`-decreasing sequence, then this returns `f` as an order embedding. -/
-def nat_gt (f : ℕ → α) (H : ∀ n:ℕ, r (f (n+1)) (f n)) :
+def nat_gt (f : ℕ → α) (H : ∀ n : ℕ, r (f (n + 1)) (f n)) :
   ((>) : ℕ → ℕ → Prop) ↪r r :=
 by haveI := is_strict_order.swap r; exact rel_embedding.swap (nat_lt f H)
 
 theorem well_founded_iff_no_descending_seq :
-  well_founded r ↔ ¬ nonempty (((>) : ℕ → ℕ → Prop) ↪r r) :=
-⟨λ ⟨h⟩ ⟨⟨f, o⟩⟩,
+  well_founded r ↔ is_empty (((>) : ℕ → ℕ → Prop) ↪r r) :=
+⟨λ ⟨h⟩, ⟨λ ⟨f, o⟩,
   suffices ∀ a, acc r a → ∀ n, a ≠ f n, from this (f 0) (h _) 0 rfl,
   λ a ac, begin
     induction ac with a _ IH, intros n h, subst a,
     exact IH (f (n+1)) (o.2 (nat.lt_succ_self _)) _ rfl
-  end,
-λ N, ⟨λ a, classical.by_contradiction $ λ na,
+  end⟩,
+λ E, ⟨λ a, classical.by_contradiction $ λ na,
   let ⟨f, h⟩ := classical.axiom_of_choice $
     show ∀ x : {a // ¬ acc r a}, ∃ y : {a // ¬ acc r a}, r y.1 x.1,
     from λ ⟨x, h⟩, classical.by_contradiction $ λ hn, h $
       ⟨_, λ y h, classical.by_contradiction $ λ na, hn ⟨⟨y, na⟩, h⟩⟩ in
-  N ⟨nat_gt (λ n, (f^[n] ⟨a, na⟩).1) $ λ n,
-    by { rw [function.iterate_succ'], apply h }⟩⟩⟩
+  E.elim' (nat_gt (λ n, (f^[n] ⟨a, na⟩).1) $ λ n,
+    by { rw [function.iterate_succ'], apply h })⟩⟩
 
 end rel_embedding
 
 namespace nat
+variables (s : set ℕ) [decidable_pred (∈ s)] [infinite s]
 
-variables (s : set ℕ) [decidable_pred s] [infinite s]
 /-- An order embedding from `ℕ` to itself with a specified range -/
 def order_embedding_of_set : ℕ ↪o ℕ :=
 (rel_embedding.order_embedding_of_lt_embedding
@@ -84,11 +97,11 @@ begin
   ext x,
   rw [set.mem_range, nat.order_embedding_of_set],
   split; intro h,
-  { rcases h with ⟨y, rfl⟩,
+  { obtain ⟨y, rfl⟩ := h,
     simp },
   { refine ⟨(nat.subtype.order_iso_of_nat s).symm ⟨x, h⟩, _⟩,
     simp only [rel_embedding.coe_trans, rel_embedding.order_embedding_of_lt_embedding_apply,
-      rel_embedding.nat_lt_apply, function.comp_app, order_embedding.coe_subtype],
+      rel_embedding.nat_lt_apply, function.comp_app, order_embedding.subtype_apply],
     rw [← subtype.order_iso_of_nat_apply, order_iso.apply_symm_apply, subtype.coe_mk] }
 end
 
@@ -140,4 +153,50 @@ begin
     { apply is_trans.trans _ _ _ _ (hr _),
       exact ih (lt_of_lt_of_le m.lt_succ_self (nat.le_add_right _ _)) } },
   { exact ⟨g, or.intro_right _ hnr⟩ }
+end
+
+/-- The "monotone chain condition" below is sometimes a convenient form of well foundedness. -/
+lemma well_founded.monotone_chain_condition (α : Type*) [partial_order α] :
+  well_founded ((>) : α → α → Prop) ↔ ∀ (a : ℕ →ₘ α), ∃ n, ∀ m, n ≤ m → a n = a m :=
+begin
+  split; intros h,
+  { rw well_founded.well_founded_iff_has_max' at h,
+    intros a, have hne : (set.range a).nonempty, { use a 0, simp, },
+    obtain ⟨x, ⟨n, hn⟩, range_bounded⟩ := h _ hne,
+    use n, intros m hm, rw ← hn at range_bounded, symmetry,
+    apply range_bounded (a m) (set.mem_range_self _) (a.monotone hm), },
+  { rw rel_embedding.well_founded_iff_no_descending_seq, refine ⟨λ a, _⟩,
+    obtain ⟨n, hn⟩ := h (a.swap : ((<) : ℕ → ℕ → Prop) →r ((<) : α → α → Prop)).to_preorder_hom,
+    exact n.succ_ne_self.symm (rel_embedding.to_preorder_hom_injective _ (hn _ n.le_succ)), },
+end
+
+/-- Given an eventually-constant monotonic sequence `a₀ ≤ a₁ ≤ a₂ ≤ ...` in a partially-ordered
+type, `monotonic_sequence_limit_index a` is the least natural number `n` for which `aₙ` reaches the
+constant value. For sequences that are not eventually constant, `monotonic_sequence_limit_index a`
+is defined, but is a junk value. -/
+noncomputable def monotonic_sequence_limit_index {α : Type*} [partial_order α] (a : ℕ →ₘ α) : ℕ :=
+Inf { n | ∀ m, n ≤ m → a n = a m }
+
+/-- The constant value of an eventually-constant monotonic sequence `a₀ ≤ a₁ ≤ a₂ ≤ ...` in a
+partially-ordered type. -/
+noncomputable def monotonic_sequence_limit {α : Type*} [partial_order α] (a : ℕ →ₘ α) :=
+a (monotonic_sequence_limit_index a)
+
+lemma well_founded.supr_eq_monotonic_sequence_limit {α : Type*} [complete_lattice α]
+  (h : well_founded ((>) : α → α → Prop)) (a : ℕ →ₘ α) :
+  (⨆ m, a m) = monotonic_sequence_limit a :=
+begin
+  suffices : (⨆ (m : ℕ), a m) ≤ monotonic_sequence_limit a,
+  { exact le_antisymm this (le_supr a _), },
+  apply supr_le,
+  intros m,
+  by_cases hm : m ≤ monotonic_sequence_limit_index a,
+  { exact a.monotone hm, },
+  { replace hm := le_of_not_le hm,
+    let S := { n | ∀ m, n ≤ m → a n = a m },
+    have hInf : Inf S ∈ S,
+    { refine nat.Inf_mem _, rw well_founded.monotone_chain_condition at h, exact h a, },
+    change Inf S ≤ m at hm,
+    change a m ≤ a (Inf S),
+    rw hInf m hm, },
 end

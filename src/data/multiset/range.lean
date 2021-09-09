@@ -1,10 +1,12 @@
 /-
 Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import data.multiset.basic
 import data.list.range
+
+/-! # `multiset.range n` gives `{0, 1, ..., n-1}` as a multiset. -/
 
 open list nat
 

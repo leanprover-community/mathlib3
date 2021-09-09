@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors : Aaron Anderson
+Authors: Aaron Anderson
 -/
 
 import linear_algebra.basic
@@ -115,7 +115,7 @@ theorem surjective_of_ne_zero [is_simple_module R N] {f : M →ₗ[R] N} (h : f 
   function.surjective f :=
 f.surjective_or_eq_zero.resolve_right h
 
-/-- Schur's Lemma for linear maps between (possibly distinct) simple modules -/
+/-- **Schur's Lemma** for linear maps between (possibly distinct) simple modules -/
 theorem bijective_or_eq_zero [is_simple_module R M] [is_simple_module R N]
   (f : M →ₗ[R] N) :
   function.bijective f ∨ f = 0 :=

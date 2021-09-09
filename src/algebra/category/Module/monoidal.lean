@@ -32,6 +32,7 @@ namespace monoidal_category
 -- you should use that API.
 
 open_locale tensor_product
+local attribute [ext] tensor_product.ext
 
 /-- (implementation) tensor product of R-modules -/
 def tensor_obj (M N : Module R) : Module R := Module.of R (M ⊗[R] N)
@@ -64,13 +65,12 @@ open tensor_product (assoc map)
 private lemma associator_naturality_aux
   {X₁ X₂ X₃ : Type*}
   [add_comm_monoid X₁] [add_comm_monoid X₂] [add_comm_monoid X₃]
-  [semimodule R X₁] [semimodule R X₂] [semimodule R X₃]
+  [module R X₁] [module R X₂] [module R X₃]
   {Y₁ Y₂ Y₃ : Type*}
   [add_comm_monoid Y₁] [add_comm_monoid Y₂] [add_comm_monoid Y₃]
-  [semimodule R Y₁] [semimodule R Y₂] [semimodule R Y₃]
+  [module R Y₁] [module R Y₂] [module R Y₃]
   (f₁ : X₁ →ₗ[R] Y₁) (f₂ : X₂ →ₗ[R] Y₂) (f₃ : X₃ →ₗ[R] Y₃) :
-  linear_map.comp ↑(assoc R Y₁ Y₂ Y₃) (map (map f₁ f₂) f₃) =
-    (map f₁ (map f₂ f₃)).comp ↑(assoc R X₁ X₂ X₃) :=
+  (↑(assoc R Y₁ Y₂ Y₃) ∘ₗ (map (map f₁ f₂) f₃)) = ((map f₁ (map f₂ f₃)) ∘ₗ ↑(assoc R X₁ X₂ X₃)) :=
 begin
   apply tensor_product.ext_threefold,
   intros x y z,
@@ -82,7 +82,7 @@ variables (R)
 private lemma pentagon_aux
   (W X Y Z : Type*)
   [add_comm_monoid W] [add_comm_monoid X] [add_comm_monoid Y] [add_comm_monoid Z]
-  [semimodule R W] [semimodule R X] [semimodule R Y] [semimodule R Z] :
+  [module R W] [module R X] [module R Y] [module R Z] :
   ((map (1 : W →ₗ[R] W) (assoc R X Y Z).to_linear_map).comp (assoc R W (X ⊗[R] Y) Z).to_linear_map)
     .comp (map ↑(assoc R W X Y) (1 : Z →ₗ[R] Z)) =
   (assoc R W X (Y ⊗[R] Z)).to_linear_map.comp (assoc R (W ⊗[R] X) Y Z).to_linear_map :=
@@ -148,7 +148,7 @@ end monoidal_category
 
 open monoidal_category
 
-instance Module.monoidal_category : monoidal_category (Module.{u} R) :=
+instance monoidal_category : monoidal_category (Module.{u} R) :=
 { -- data
   tensor_obj   := tensor_obj,
   tensor_hom   := @tensor_hom _ _,
@@ -199,7 +199,7 @@ linear_equiv.to_Module_iso (tensor_product.comm R M N)
   (f ⊗ g) ≫ (Y₁.braiding Y₂).hom =
     (X₁.braiding X₂).hom ≫ (g ⊗ f) :=
 begin
-  apply tensor_product.ext,
+  apply tensor_product.ext',
   intros x y,
   refl
 end
@@ -223,8 +223,10 @@ begin
   refl,
 end
 
+local attribute [ext] tensor_product.ext
+
 /-- The symmetric monoidal structure on `Module R`. -/
-instance Module.symmetric_category : symmetric_category (Module.{u} R) :=
+instance symmetric_category : symmetric_category (Module.{u} R) :=
 { braiding := braiding,
   braiding_naturality' := λ X₁ X₂ Y₁ Y₂ f g, braiding_naturality f g,
   hexagon_forward' := hexagon_forward,

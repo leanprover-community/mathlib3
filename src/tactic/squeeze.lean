@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
 import control.traversable.basic
 import tactic.simpa
@@ -208,15 +208,17 @@ example {α β} (xs ys : list α) (f : α → β) :
 begin
   have : xs = ys, admit,
   squeeze_scope
-  { split; squeeze_simp, -- `squeeze_simp` is run twice, the first one requires
-                         -- `list.map_append` and the second one
-                         -- `[list.length_map, list.length_tail]`
-                         -- prints only one message and combine the suggestions:
-                         -- > Try this: simp only [list.length_map, list.length_tail, list.map_append]
-    squeeze_simp [this]  -- `squeeze_simp` is run only once
-                         -- prints:
-                         -- > Try this: simp only [this]
- },
+  { split; squeeze_simp,
+    -- `squeeze_simp` is run twice, the first one requires
+    -- `list.map_append` and the second one
+    -- `[list.length_map, list.length_tail]`
+    -- prints only one message and combine the suggestions:
+    -- > Try this: simp only [list.length_map, list.length_tail, list.map_append]
+    squeeze_simp [this]
+    -- `squeeze_simp` is run only once
+    -- prints:
+    -- > Try this: simp only [this]
+  },
 end
 ```
 

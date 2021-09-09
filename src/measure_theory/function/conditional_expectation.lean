@@ -1239,6 +1239,7 @@ local attribute [instance] fact_one_le_one_ennreal
 variables {𝕜} {m m0 : measurable_space α} {μ : measure α} [borel_space 𝕜] [is_scalar_tower ℝ 𝕜 F']
   {hm : m ≤ m0} [sigma_finite (μ.trim hm)] {f : α → F'} {s : set α}
 
+/-- Conditional expectation of a function as a linear map from `α →₁[μ] F'` to itself. -/
 def condexp_L1 (hm : m ≤ m0) (μ : measure α) [sigma_finite (μ.trim hm)] :
   (α →₁[μ] F') →L[ℝ] α →₁[μ] F' :=
 L1.set_to_L1 (dominated_fin_meas_additive_condexp_ind F' hm μ)
@@ -1285,6 +1286,7 @@ local attribute [instance] fact_one_le_one_ennreal
 variables {𝕜} {m m0 : measurable_space α} {ℙ : measure α} [borel_space 𝕜] [is_scalar_tower ℝ 𝕜 F']
   {hm : m ≤ m0} [sigma_finite (ℙ.trim hm)] {f : α → F'} {s : set α}
 
+/-- Conditional expectation of a function. It's value is 0 if the function is not integrable. -/
 def condexp (hm : m ≤ m0) (ℙ : measure α) [sigma_finite (ℙ.trim hm)] (f : α → F') : α →₁[ℙ] F' :=
 set_to_fun (dominated_fin_meas_additive_condexp_ind F' hm ℙ) f
 
@@ -1315,25 +1317,23 @@ begin
   let S := spanning_sets (ℙ.trim hm),
   have hS_meas : ∀ i, measurable_set[m] (S i) := measurable_spanning_sets (ℙ.trim hm),
   have hS_meas0 : ∀ i, measurable_set (S i) := λ i, hm _ (hS_meas i),
-  have hS_finite : ∀ i, ℙ (S i) < ∞,
-  { intro i,
-    have hS_finite_trim := measure_spanning_sets_lt_top (ℙ.trim hm) i,
-    rwa trim_measurable_set_eq hm (hS_meas i) at hS_finite_trim, },
-  have h_eq_forall :(λ i, ∫ x in (S i) ∩ s, ℙ[f|hm] x ∂ℙ) = λ i, ∫ x in (S i) ∩ s, f x ∂ℙ,
-  { ext1 i,
-    refine set_integral_condexp_of_measure_ne_top hf
-      (@measurable_set.inter α m _ _ (hS_meas i) hs) (ne_of_lt _),
-    exact (measure_mono (set.inter_subset_left _ _)).trans_lt (hS_finite i), },
-  have hs_eq : s = ⋃ i, (S i) ∩ s,
+  have hs_eq : s = ⋃ i, S i ∩ s,
   { simp_rw set.inter_comm,
     rw [← set.inter_Union, (Union_spanning_sets (ℙ.trim hm)), set.inter_univ], },
+  have hS_finite : ∀ i, ℙ (S i ∩ s) < ∞,
+  { refine λ i, (measure_mono (set.inter_subset_left _ _)).trans_lt _,
+    have hS_finite_trim := measure_spanning_sets_lt_top (ℙ.trim hm) i,
+    rwa trim_measurable_set_eq hm (hS_meas i) at hS_finite_trim, },
   have h_mono : monotone (λ i, (S i) ∩ s),
   { intros i j hij x,
     simp_rw set.mem_inter_iff,
     exact λ h, ⟨monotone_spanning_sets (ℙ.trim hm) hij h.1, h.2⟩, },
+  have h_eq_forall : (λ i, ∫ x in (S i) ∩ s, ℙ[f|hm] x ∂ℙ) = λ i, ∫ x in (S i) ∩ s, f x ∂ℙ,
+    from funext (λ i, set_integral_condexp_of_measure_ne_top hf
+      (@measurable_set.inter α m _ _ (hS_meas i) hs) (hS_finite i).ne),
   have h_right : tendsto (λ i, ∫ x in (S i) ∩ s, f x ∂ℙ) at_top (𝓝 (∫ x in s, f x ∂ℙ)),
-  { have h := tendsto_set_integral_of_monotone (λ i, (hS_meas0 i).inter (hm s hs))
-      h_mono hf.integrable_on,
+  { have h := tendsto_set_integral_of_monotone (λ i, (hS_meas0 i).inter (hm s hs)) h_mono
+      hf.integrable_on,
     rwa ← hs_eq at h, },
   have h_left : tendsto (λ i, ∫ x in (S i) ∩ s, ℙ[f|hm] x ∂ℙ) at_top (𝓝 (∫ x in s, ℙ[f|hm] x ∂ℙ)),
   { have h := tendsto_set_integral_of_monotone (λ i, (hS_meas0 i).inter (hm s hs))

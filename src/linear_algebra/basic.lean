@@ -356,6 +356,14 @@ begin
   exact injective.of_comp h,
 end
 
+lemma surjective_of_iterate_surjective {n : ℕ} (hn : n ≠ 0) (h : surjective ⇑(f' ^ n)) :
+  surjective f' :=
+begin
+  rw [← nat.succ_pred_eq_of_pos (pos_iff_ne_zero.mpr hn),
+    nat.succ_eq_add_one, add_comm, pow_add] at h,
+  exact surjective.of_comp h,
+end
+
 end
 
 section
@@ -676,6 +684,9 @@ p.subtype.cod_restrict p' $ λ ⟨x, hx⟩, h hx
 
 theorem of_le_apply (h : p ≤ p') (x : p) : of_le h x = ⟨x, h x.2⟩ := rfl
 
+theorem of_le_injective (h : p ≤ p') : function.injective (of_le h) :=
+λ x y h, subtype.val_injective (subtype.mk.inj h)
+
 variables (p p')
 
 lemma subtype_comp_of_le (p q : submodule R M) (h : p ≤ q) :
@@ -852,7 +863,7 @@ def gi_map_comap : galois_insertion (map f) (comap f) :=
   (λ S x hx, begin
     rcases hf x with ⟨y, rfl⟩,
     simp only [mem_map, mem_comap],
-    exact ⟨y, hx, rfl⟩  
+    exact ⟨y, hx, rfl⟩
   end)
 
 lemma map_comap_eq_of_surjective (p : submodule R M₂) : (p.comap f).map f = p :=
@@ -864,7 +875,7 @@ lemma map_surjective_of_surjective : function.surjective (map f) :=
 lemma comap_injective_of_surjective : function.injective (comap f) :=
 (gi_map_comap hf).u_injective
 
-lemma map_sup_comap_of_surjective (p q : submodule R M₂) : 
+lemma map_sup_comap_of_surjective (p q : submodule R M₂) :
   (p.comap f ⊔ q.comap f).map f = p ⊔ q :=
 (gi_map_comap hf).l_sup_u _ _
 
@@ -2371,6 +2382,23 @@ def of_left_inverse {g : M₂ → M} (h : function.left_inverse g f) : M ≃ₗ[
   (h : function.left_inverse g f) (x : f.range) :
   (of_left_inverse h).symm x = g x := rfl
 
+variables (f)
+
+/-- An `injective` linear map `f : M →ₗ[R] M₂` defines a linear equivalence
+between `M` and `f.range`. See also `linear_map.of_left_inverse`. -/
+noncomputable def of_injective (h : injective f) : M ≃ₗ[R] f.range :=
+of_left_inverse $ classical.some_spec h.has_left_inverse
+
+@[simp] theorem of_injective_apply {h : injective f} (x : M) :
+  ↑(of_injective f h x) = f x := rfl
+
+/-- A bijective linear map is a linear equivalence. -/
+noncomputable def of_bijective (hf₁ : injective f) (hf₂ : surjective f) : M ≃ₗ[R] M₂ :=
+(of_injective f hf₁).trans (of_top _ $ linear_map.range_eq_top.2 hf₂)
+
+@[simp] theorem of_bijective_apply {hf₁ hf₂} (x : M) :
+  of_bijective f hf₁ hf₂ x = f x := rfl
+
 end
 
 end add_comm_monoid
@@ -2406,32 +2434,8 @@ lemma neg_apply (x : M) : neg R x = -x := by simp
 
 end neg
 
-section ring
-
-variables [ring R] [add_comm_group M] [add_comm_group M₂]
-variables {module_M : module R M} {module_M₂ : module R M₂}
-variables (f : M →ₗ[R] M₂) (e : M ≃ₗ[R] M₂)
-
-/-- An `injective` linear map `f : M →ₗ[R] M₂` defines a linear equivalence
-between `M` and `f.range`. See also `linear_map.of_left_inverse`. -/
-noncomputable def of_injective (h : f.ker = ⊥) : M ≃ₗ[R] f.range :=
-of_left_inverse $ classical.some_spec (linear_map.ker_eq_bot.1 h).has_left_inverse
-
-@[simp] theorem of_injective_apply {h : f.ker = ⊥} (x : M) :
-  ↑(of_injective f h x) = f x := rfl
-
-/-- A bijective linear map is a linear equivalence. Here, bijectivity is described by saying that
-the kernel of `f` is `{0}` and the range is the universal set. -/
-noncomputable def of_bijective (hf₁ : f.ker = ⊥) (hf₂ : f.range = ⊤) : M ≃ₗ[R] M₂ :=
-(of_injective f hf₁).trans (of_top _ hf₂)
-
-@[simp] theorem of_bijective_apply {hf₁ hf₂} (x : M) :
-  of_bijective f hf₁ hf₂ x = f x := rfl
-
-end ring
-
-section comm_ring
-variables [comm_ring R] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃]
+section comm_semiring
+variables [comm_semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
 variables [module R M] [module R M₂] [module R M₃]
 open linear_map
 
@@ -2443,43 +2447,43 @@ of_linear ((a:R) • 1 : M →ₗ[R] M) (((a⁻¹ : units R) : R) • 1 : M →�
 
 /-- A linear isomorphism between the domains and codomains of two spaces of linear maps gives a
 linear isomorphism between the two function spaces. -/
-def arrow_congr {R M₁ M₂ M₂₁ M₂₂ : Sort*} [comm_ring R]
-  [add_comm_group M₁] [add_comm_group M₂] [add_comm_group M₂₁] [add_comm_group M₂₂]
+def arrow_congr {R M₁ M₂ M₂₁ M₂₂ : Sort*} [comm_semiring R]
+  [add_comm_monoid M₁] [add_comm_monoid M₂] [add_comm_monoid M₂₁] [add_comm_monoid M₂₂]
   [module R M₁] [module R M₂] [module R M₂₁] [module R M₂₂]
   (e₁ : M₁ ≃ₗ[R] M₂) (e₂ : M₂₁ ≃ₗ[R] M₂₂) :
   (M₁ →ₗ[R] M₂₁) ≃ₗ[R] (M₂ →ₗ[R] M₂₂) :=
 { to_fun := λ f, (e₂ : M₂₁ →ₗ[R] M₂₂).comp $ f.comp e₁.symm,
   inv_fun := λ f, (e₂.symm : M₂₂ →ₗ[R] M₂₁).comp $ f.comp e₁,
-  left_inv := λ f, by { ext x, simp },
-  right_inv := λ f, by { ext x, simp },
-  map_add' := λ f g, by { ext x, simp },
-  map_smul' := λ c f, by { ext x, simp } }
+  left_inv := λ f, by { ext x, simp only [symm_apply_apply, coe_comp, comp_app, coe_coe] },
+  right_inv := λ f, by { ext x, simp only [apply_symm_apply, coe_comp, comp_app, coe_coe] },
+  map_add' := λ f g, by { ext x, simp only [map_add, add_apply, coe_comp, comp_app, coe_coe] },
+  map_smul' := λ c f, by { ext x, simp only [map_smul, smul_apply, coe_comp, comp_app, coe_coe] } }
 
-@[simp] lemma arrow_congr_apply {R M₁ M₂ M₂₁ M₂₂ : Sort*} [comm_ring R]
-  [add_comm_group M₁] [add_comm_group M₂] [add_comm_group M₂₁] [add_comm_group M₂₂]
+@[simp] lemma arrow_congr_apply {R M₁ M₂ M₂₁ M₂₂ : Sort*} [comm_semiring R]
+  [add_comm_monoid M₁] [add_comm_monoid M₂] [add_comm_monoid M₂₁] [add_comm_monoid M₂₂]
   [module R M₁] [module R M₂] [module R M₂₁] [module R M₂₂]
   (e₁ : M₁ ≃ₗ[R] M₂) (e₂ : M₂₁ ≃ₗ[R] M₂₂) (f : M₁ →ₗ[R] M₂₁) (x : M₂) :
   arrow_congr e₁ e₂ f x = e₂ (f (e₁.symm x)) :=
 rfl
 
-@[simp] lemma arrow_congr_symm_apply {R M₁ M₂ M₂₁ M₂₂ : Sort*} [comm_ring R]
-  [add_comm_group M₁] [add_comm_group M₂] [add_comm_group M₂₁] [add_comm_group M₂₂]
+@[simp] lemma arrow_congr_symm_apply {R M₁ M₂ M₂₁ M₂₂ : Sort*} [comm_semiring R]
+  [add_comm_monoid M₁] [add_comm_monoid M₂] [add_comm_monoid M₂₁] [add_comm_monoid M₂₂]
   [module R M₁] [module R M₂] [module R M₂₁] [module R M₂₂]
   (e₁ : M₁ ≃ₗ[R] M₂) (e₂ : M₂₁ ≃ₗ[R] M₂₂) (f : M₂ →ₗ[R] M₂₂) (x : M₁) :
   (arrow_congr e₁ e₂).symm f x = e₂.symm (f (e₁ x)) :=
 rfl
 
 lemma arrow_congr_comp {N N₂ N₃ : Sort*}
-  [add_comm_group N] [add_comm_group N₂] [add_comm_group N₃]
+  [add_comm_monoid N] [add_comm_monoid N₂] [add_comm_monoid N₃]
   [module R N] [module R N₂] [module R N₃]
   (e₁ : M ≃ₗ[R] N) (e₂ : M₂ ≃ₗ[R] N₂) (e₃ : M₃ ≃ₗ[R] N₃) (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M₃) :
   arrow_congr e₁ e₃ (g.comp f) = (arrow_congr e₂ e₃ g).comp (arrow_congr e₁ e₂ f) :=
 by { ext, simp only [symm_apply_apply, arrow_congr_apply, linear_map.comp_apply], }
 
 lemma arrow_congr_trans {M₁ M₂ M₃ N₁ N₂ N₃ : Sort*}
-  [add_comm_group M₁] [module R M₁] [add_comm_group M₂] [module R M₂]
-  [add_comm_group M₃] [module R M₃] [add_comm_group N₁] [module R N₁]
-  [add_comm_group N₂] [module R N₂] [add_comm_group N₃] [module R N₃]
+  [add_comm_monoid M₁] [module R M₁] [add_comm_monoid M₂] [module R M₂]
+  [add_comm_monoid M₃] [module R M₃] [add_comm_monoid N₁] [module R N₁]
+  [add_comm_monoid N₂] [module R N₂] [add_comm_monoid N₃] [module R N₃]
   (e₁ : M₁ ≃ₗ[R] M₂) (e₂ : N₁ ≃ₗ[R] N₂) (e₃ : M₂ ≃ₗ[R] M₃) (e₄ : N₂ ≃ₗ[R] N₃) :
   (arrow_congr e₁ e₂).trans (arrow_congr e₃ e₄) = arrow_congr (e₁.trans e₃) (e₂.trans e₄) :=
 rfl
@@ -2510,7 +2514,7 @@ by { ext f x, refl, }
 @[simp] lemma conj_id (e : M ≃ₗ[R] M₂) : e.conj linear_map.id = linear_map.id :=
 by { ext, simp [conj_apply], }
 
-end comm_ring
+end comm_semiring
 
 section field
 variables [field K] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃]
@@ -2544,7 +2548,7 @@ end
     isomorphism.-/
 def to_span_nonzero_singleton (x : M) (h : x ≠ 0) : K ≃ₗ[K] (K ∙ x) :=
 linear_equiv.trans
-  (linear_equiv.of_injective (to_span_singleton K M x) (ker_to_span_singleton K M h))
+  (linear_equiv.of_injective (to_span_singleton K M x) (ker_eq_bot.1 $ ker_to_span_singleton K M h))
   (of_eq (to_span_singleton K M x).range (K ∙ x)
     (span_singleton_eq_range K M x).symm)
 
@@ -2752,7 +2756,7 @@ variables (f : M →ₗ[R] M₂)
 equivalent to the range of `f`. -/
 noncomputable def quot_ker_equiv_range : f.ker.quotient ≃ₗ[R] f.range :=
 (linear_equiv.of_injective (f.ker.liftq f $ le_refl _) $
-  submodule.ker_liftq_eq_bot _ _ _ (le_refl f.ker)).trans
+  ker_eq_bot.mp $ submodule.ker_liftq_eq_bot _ _ _ (le_refl f.ker)).trans
   (linear_equiv.of_eq _ _ $ submodule.range_liftq _ _ _)
 
 /-- The first isomorphism theorem for surjective linear maps. -/
@@ -2787,12 +2791,12 @@ noncomputable def quotient_inf_equiv_sup_quotient (p p' : submodule R M) :
   (comap p.subtype (p ⊓ p')).quotient ≃ₗ[R] (comap (p ⊔ p').subtype p').quotient :=
 linear_equiv.of_bijective (quotient_inf_to_sup_quotient p p')
   begin
-    rw [quotient_inf_to_sup_quotient, ker_liftq_eq_bot],
+    rw [← ker_eq_bot, quotient_inf_to_sup_quotient, ker_liftq_eq_bot],
     rw [ker_comp, ker_mkq],
     exact λ ⟨x, hx1⟩ hx2, ⟨hx1, hx2⟩
   end
   begin
-    rw [quotient_inf_to_sup_quotient, range_liftq, eq_top_iff'],
+    rw [← range_eq_top, quotient_inf_to_sup_quotient, range_liftq, eq_top_iff'],
     rintros ⟨x, hx⟩, rcases mem_sup.1 hx with ⟨y, hy, z, hz, rfl⟩,
     use [⟨y, hy⟩], apply (submodule.quotient.eq _).2,
     change y - (y + z) ∈ p',

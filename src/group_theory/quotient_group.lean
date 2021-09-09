@@ -417,29 +417,14 @@ section trivial
 
 /-These first few lemmas should maybe go somewhere else, where?-/
 
-lemma quot_triv_eqv_gen_triv {α : Type u} (r : α → α → Prop ) :
-  subsingleton (quot r) ↔ forall a b, eqv_gen r a b :=
+lemma subsingleton_quot_iff_forall {α : Type u} (r : α → α → Prop ) :
+  subsingleton (quot r) ↔ ∀ a b, eqv_gen r a b :=
 begin
-  split,
-  intro h,
-  intros a b,
-  apply quot.exact,
-  apply subsingleton.elim _ _,
-  exact h,
-  intro h,
-  apply subsingleton.intro,
-  intros a b,
-  have ha:= quot.exists_rep a ,
-  have hb:= quot.exists_rep b ,
-  have h3:= h (classical.some ha)(classical.some hb),
-  have h4:= quot.eqv_gen_sound h3,
-  have h5:= classical.some_spec ha,
-  have h6:= classical.some_spec hb,
-  rw ← h5,
-  rw ← h6,
-  exact h4,
+  rw subsingleton_iff,
+  refine (surjective_quot_mk _).forall.trans (forall_congr $ λ a, _),
+  refine (surjective_quot_mk _).forall.trans (forall_congr $ λ b, _),
+  exact quot.eq,
 end
-
 
 lemma eqv_gen_triv_rel_triv {α : Type u} (r : α → α → Prop )
   (h : eqv_gen r = λ _ _, true) (h2 : equivalence r) : r = λ _ _, true:=
@@ -449,7 +434,6 @@ begin
   simp_rw relation.eqv_gen_iff_of_equivalence h2,
 end
 
-
 lemma quot_by_top_is_subsingleton : subsingleton (quotient_group.quotient (⊤ : subgroup G)) :=
 begin
   have: quotient_group.quotient (⊤ : subgroup G) = trunc G , by {rw trunc, congr'},
@@ -457,7 +441,6 @@ begin
   apply subsingleton.intro,
   apply trunc.eq,
 end
-
 
 lemma left_rel_triv (H : subgroup G) (h : (quotient_group.left_rel H).r = λ _ _, true  ) :
   ∀ x y : G , x⁻¹ * y ∈ H :=
@@ -481,7 +464,7 @@ begin
   simp only [subgroup.mem_top, iff_true] at *,
   rw quotient_group.quotient at h,
   let r := (quotient_group.left_rel H).r,
-  have := quot_triv_eqv_gen_triv r,
+  have := subsingleton_quot_iff_forall r,
   have h2 := this.1 h,
   have h3 := setoid.iseqv,
   have h4 : eqv_gen r = λ _ _, true, by { ext, rw iff_true, apply h2 x_1 x_2, },

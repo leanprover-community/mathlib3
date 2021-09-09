@@ -434,7 +434,7 @@ begin
 end
 
 lemma eqv_gen_triv_rel_triv {α : Type u} (r : α → α → Prop )
-  (h: eqv_gen r = triv_rel) (h2 : equivalence r) : r = triv_rel:=
+  (h : eqv_gen r = triv_rel) (h2 : equivalence r) : r = triv_rel:=
 begin
   rw ← h,
   ext,
@@ -447,7 +447,7 @@ begin
 end
 
 lemma left_rel_triv (H : subgroup G) (h : (quotient_group.left_rel H).r = triv_rel  ) :
-  ∀ x y : G , x⁻¹ * y ∈ H:=
+  ∀ x y : G , x⁻¹ * y ∈ H :=
 begin
   rw triv_rel at h,
   let s := (quotient_group.left_rel H).r,
@@ -479,7 +479,7 @@ begin
 end
 
 lemma quot_eq_quot_by_top (H : subgroup G)
-(h: quotient_group.quotient H ≃ quotient_group.quotient (⊤: subgroup G)) : H = ⊤ :=
+(h: quotient_group.quotient H ≃ quotient_group.quotient (⊤ : subgroup G)) : H = ⊤ :=
 begin
   ext1,
   simp only [subgroup.mem_top, iff_true] at *,
@@ -498,7 +498,7 @@ end
 
 /--If the quotient by a subgroup gives a singleton then the subgroup is the whole group-/
 lemma quot_subsingleton_triv  (H : subgroup G)
- (h: subsingleton (quotient_group.quotient H)) : H = ⊤ :=
+ (h : subsingleton (quotient_group.quotient H)) : H = ⊤ :=
 begin
   have h2 := subsingleton_quot_equiv_trunc' H h,
   rw ← quot_by_top_is_trunc at h2,

@@ -378,8 +378,8 @@ begin
     exact λ K hK, hK ⟨f y, hd (mem_map_of_mem f hy), by simp⟩ }
 end
 
-lemma lower_central_series_le_center_to_nilpotent {n : ℕ} (h : lower_central_series G n ≤ center G)
-  : lower_central_series G (n + 1) = ⊥ :=
+lemma nilpotent_of_lower_central_series_le_center {n : ℕ} (h : lower_central_series G n ≤ center G) :
+  lower_central_series G (n + 1) = ⊥ :=
 begin
   rw [lower_central_series_succ, closure_eq_bot_iff, set.subset_singleton_iff],
   rintro x ⟨y, hy1, z, ⟨⟩, rfl⟩,

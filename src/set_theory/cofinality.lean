@@ -1,11 +1,46 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro, Floris van Doorn
 -/
 import set_theory.cardinal_ordinal
 /-!
-# Cofinality on ordinals, regular cardinals
+# Cofinality
+
+This file contains the definition of cofinality of a ordinal number and regular cardinals
+
+## Main Definitions
+
+* `ordinal.cof o` is the cofinality of the ordinal `o`.
+  If `o` is the order type of the relation `<` on `α`, then `o.cof` is the smallest cardinality of a
+  subset `s` of α that is *cofinal* in `α`, i.e. `∀ x : α, ∃ y ∈ s, ¬ y < x`.
+* `cardinal.is_limit c` means that `c` is a (weak) limit cardinal: `c ≠ 0 ∧ ∀ x < c, succ x < c`.
+* `cardinal.is_strong_limit c` means that `c` is a strong limit cardinal:
+  `c ≠ 0 ∧ ∀ x < c, 2 ^ x < c`.
+* `cardinal.is_regular c` means that `c` is a regular cardinal: `omega ≤ c ∧ c.ord.cof = c`.
+* `cardinal.is_inaccessible c` means that `c` is strongly inaccessible:
+  `omega < c ∧ is_regular c ∧ is_strong_limit c`.
+
+## Main Statements
+
+* `ordinal.infinite_pigeonhole_card`: the infinite pigeonhole principle
+* `cardinal.lt_power_cof`: A consequence of König's theorem stating that `c < c ^ c.ord.cof` for
+  `c ≥ cardinal.omega`
+* `cardinal.univ_inaccessible`: The type of ordinals in `Type u` form an inaccessible cardinal
+  (in `Type v` with `v > u`). This shows (externally) that in `Type u` there are at least `u`
+  inaccessible cardinals.
+
+## Implementation Notes
+
+* The cofinality is defined for ordinals.
+  If `c` is a cardinal number, its cofinality is `c.ord.cof`.
+
+## Tags
+
+cofinality, regular cardinals, limits cardinals, inaccessible cardinals,
+infinite pigeonhole principle
+
+
 -/
 noncomputable theory
 
@@ -42,7 +77,7 @@ begin
   intro S, cases S with S H, simp [(∘)],
   refine le_trans (min_le _ _) _,
   { exact ⟨f ⁻¹' S, λ a,
-    let ⟨b, bS, h⟩ := H (f a) in ⟨f.symm b, by simp [bS, f.map_rel_iff', h,
+    let ⟨b, bS, h⟩ := H (f a) in ⟨f.symm b, by simp [bS, ← f.map_rel_iff, h,
       -coe_fn_coe_base, -coe_fn_coe_trans, principal_seg.coe_coe_fn', initial_seg.coe_coe_fn]⟩⟩ },
   { exact lift_mk_le.{u v (max u v)}.2
     ⟨⟨λ ⟨x, h⟩, ⟨f x, h⟩, λ ⟨x, h₁⟩ ⟨y, h₂⟩ h₃,
@@ -160,9 +195,9 @@ le_antisymm (by simpa using cof_le_card 0) (cardinal.zero_le _)
 
 @[simp] theorem cof_eq_zero {o} : cof o = 0 ↔ o = 0 :=
 ⟨induction_on o $ λ α r _ z, by exactI
-  let ⟨S, hl, e⟩ := cof_eq r in type_eq_zero_iff_empty.2 $
-  λ ⟨a⟩, let ⟨b, h, _⟩ := hl a in
-  ne_zero_iff_nonempty.2 (by exact ⟨⟨_, h⟩⟩) (e.trans z),
+  let ⟨S, hl, e⟩ := cof_eq r in type_eq_zero_iff_is_empty.2 $
+  ⟨λ a, let ⟨b, h, _⟩ := hl a in
+    (eq_zero_iff_is_empty.1 (e.trans z)).elim' ⟨_, h⟩⟩,
 λ e, by simp [e]⟩
 
 @[simp] theorem cof_succ (o) : cof (succ o) = 1 :=
@@ -340,7 +375,8 @@ theorem sup_lt {ι} (f : ι → cardinal) {c : cardinal} (H1 : cardinal.mk ι < 
   (H2 : ∀ i, f i < c) : cardinal.sup.{u u} f < c :=
 by { rw [←ord_lt_ord, ←sup_ord], apply sup_lt_ord _ H1, intro i, rw ord_lt_ord, apply H2 }
 
-/-- If the union of s is unbounded and s is smaller than the cofinality, then s has an unbounded member -/
+/-- If the union of s is unbounded and s is smaller than the cofinality,
+  then s has an unbounded member -/
 theorem unbounded_of_unbounded_sUnion (r : α → α → Prop) [wo : is_well_order α r] {s : set (set α)}
   (h₁ : unbounded r $ ⋃₀ s) (h₂ : mk s < strict_order.cof r) : ∃(x ∈ s), unbounded r x :=
 begin
@@ -356,7 +392,8 @@ begin
   exact cardinal.min_le _ (subtype.mk t this)
 end
 
-/-- If the union of s is unbounded and s is smaller than the cofinality, then s has an unbounded member -/
+/-- If the union of s is unbounded and s is smaller than the cofinality,
+  then s has an unbounded member -/
 theorem unbounded_of_unbounded_Union {α β : Type u} (r : α → α → Prop) [wo : is_well_order α r]
   (s : β → set α)
   (h₁ : unbounded r $ ⋃x, s x) (h₂ : mk β < strict_order.cof r) : ∃x : β, unbounded r (s x) :=
@@ -366,7 +403,7 @@ begin
   rcases unbounded_of_unbounded_sUnion r h₁ this with ⟨_, ⟨x, rfl⟩, u⟩, exact ⟨x, u⟩
 end
 
-/-- The infinite pigeonhole principle-/
+/-- The infinite pigeonhole principle -/
 theorem infinite_pigeonhole {β α : Type u} (f : β → α) (h₁ : cardinal.omega ≤ mk β)
   (h₂ : mk α < (mk β).ord.cof) : ∃a : α, mk (f ⁻¹' {a}) = mk β :=
 begin
@@ -445,7 +482,8 @@ theorem succ_is_regular {c : cardinal.{u}} (h : omega ≤ c) : is_regular (succ 
   rw [← αe, re] at this ⊢,
   rcases cof_eq' r this with ⟨S, H, Se⟩,
   rw [← Se],
-  apply lt_imp_lt_of_le_imp_le (mul_le_mul_right c),
+  apply lt_imp_lt_of_le_imp_le
+    (λ (h : mk S ≤ c), mul_le_mul_right' h c),
   rw [mul_eq_self h, ← succ_le, ← αe, ← sum_const],
   refine le_trans _ (sum_le_sum (λ x:S, card (typein r x)) _ _),
   { simp [typein, sum_mk (λ x:S, {a//r a x})],
@@ -456,6 +494,60 @@ theorem succ_is_regular {c : cardinal.{u}} (h : omega ≤ c) : is_regular (succ 
     rw [← lt_succ, ← lt_ord, ← αe, re],
     apply typein_lt_type }
 end⟩
+
+/--
+A function whose codomain's cardinality is infinite but strictly smaller than its domain's
+has a fiber with cardinality strictly great than the codomain.
+-/
+theorem infinite_pigeonhole_card_lt {β α : Type u} (f : β → α)
+  (w : mk α < mk β) (w' : omega ≤ mk α) :
+  ∃ a : α, mk α < mk (f ⁻¹' {a}) :=
+begin
+  simp_rw [← succ_le],
+  exact ordinal.infinite_pigeonhole_card f (mk α).succ (succ_le.mpr w)
+    (w'.trans (lt_succ_self _).le)
+    ((lt_succ_self _).trans_le (succ_is_regular w').2.ge),
+end
+
+/--
+A function whose codomain's cardinality is infinite but strictly smaller than its domain's
+has an infinite fiber.
+-/
+theorem exists_infinite_fiber {β α : Type*} (f : β → α)
+  (w : mk α < mk β) (w' : _root_.infinite α) :
+  ∃ a : α, _root_.infinite (f ⁻¹' {a}) :=
+begin
+  simp_rw [cardinal.infinite_iff] at ⊢ w',
+  cases infinite_pigeonhole_card_lt f w w' with a ha,
+  exact ⟨a, w'.trans ha.le⟩,
+end
+
+/--
+If an infinite type `β` can be expressed as a union of finite sets,
+then the cardinality of the collection of those finite sets
+must be at least the cardinality of `β`.
+-/
+lemma le_range_of_union_finset_eq_top
+  {α β : Type*} [infinite β] (f : α → finset β) (w : (⋃ a, (f a : set β)) = ⊤) :
+  mk β ≤ mk (range f) :=
+begin
+  have k : _root_.infinite (range f),
+  { rw infinite_coe_iff,
+    apply mt (union_finset_finite_of_range_finite f),
+    rw w,
+    exact infinite_univ, },
+  by_contradiction h,
+  simp only [not_le] at h,
+  let u : Π b, ∃ a, b ∈ f a := λ b, by simpa using (w.ge : _) (set.mem_univ b),
+  let u' : β → range f := λ b, ⟨f (u b).some, by simp⟩,
+  have v' : ∀ a, u' ⁻¹' {⟨f a, by simp⟩} ≤ f a, begin rintros a p m,
+    simp at m,
+    rw ←m,
+    apply (λ b, (u b).some_spec),
+  end,
+  obtain ⟨⟨-, ⟨a, rfl⟩⟩, p⟩ := exists_infinite_fiber u' h k,
+  exact (@infinite.of_injective _ _ p (inclusion (v' a)) (inclusion_injective _)).false,
+end
 
 theorem sup_lt_ord_of_is_regular {ι} (f : ι → ordinal)
   {c} (hc : is_regular c) (H1 : cardinal.mk ι < c)
@@ -473,8 +565,7 @@ theorem sum_lt_of_is_regular {ι} (f : ι → cardinal)
 lt_of_le_of_lt (sum_le_sup _) $ mul_lt_of_lt hc.1 H1 $
 sup_lt_of_is_regular f hc H1 H2
 
-/-- A cardinal is inaccessible if it is an
-  uncountable regular strong limit cardinal. -/
+/-- A cardinal is inaccessible if it is an uncountable regular strong limit cardinal. -/
 def is_inaccessible (c : cardinal) :=
 omega < c ∧ is_regular c ∧ is_strong_limit c
 
@@ -484,8 +575,7 @@ theorem is_inaccessible.mk {c}
 ⟨h₁, ⟨le_of_lt h₁, le_antisymm (cof_ord_le _) h₂⟩,
   ne_of_gt (lt_trans omega_pos h₁), h₃⟩
 
-/- Lean's foundations prove the existence of ω many inaccessible
-   cardinals -/
+/- Lean's foundations prove the existence of ω many inaccessible cardinals -/
 theorem univ_inaccessible : is_inaccessible (univ.{u v}) :=
 is_inaccessible.mk
   (by simpa using lift_lt_univ' omega)
@@ -517,7 +607,7 @@ theorem lt_cof_power {a b : cardinal} (ha : omega ≤ a) (b1 : 1 < b) :
 begin
   have b0 : b ≠ 0 := ne_of_gt (lt_trans zero_lt_one b1),
   apply lt_imp_lt_of_le_imp_le (power_le_power_left $ power_ne_zero a b0),
-  rw [power_mul, mul_eq_self ha],
+  rw [← power_mul, mul_eq_self ha],
   exact lt_power_cof (le_trans ha $ le_of_lt $ cantor' _ b1),
 end
 

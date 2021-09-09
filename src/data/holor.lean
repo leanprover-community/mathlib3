@@ -36,7 +36,8 @@ open list
 
 open_locale big_operators
 
-/-- `holor_index ds` is the type of valid index tuples to identify an entry of a holor of dimensions `ds` -/
+/-- `holor_index ds` is the type of valid index tuples used to identify an entry of a holor
+of dimensions `ds`. -/
 def holor_index (ds : list ℕ) : Type := { is : list ℕ // forall₂ (<) is ds}
 
 namespace holor_index
@@ -63,7 +64,8 @@ cast (congr_arg holor_index (append_assoc ds₁ ds₂ ds₃).symm)
 lemma take_take :
   ∀ t : holor_index (ds₁ ++ ds₂ ++ ds₃),
   t.assoc_right.take = t.take.take
-| ⟨ is , h ⟩ := subtype.eq (by simp [assoc_right,take, cast_type, list.take_take, nat.le_add_right, min_eq_left])
+| ⟨ is , h ⟩ := subtype.eq $ by simp [assoc_right,take, cast_type, list.take_take,
+                                     nat.le_add_right, min_eq_left]
 
 lemma drop_take :
   ∀ t : holor_index (ds₁ ++ ds₂ ++ ds₃),
@@ -89,24 +91,36 @@ instance [has_zero α] : has_zero (holor α ds) := ⟨λ t, 0⟩
 instance [has_add α] : has_add (holor α ds) := ⟨λ x y t, x t + y t⟩
 instance [has_neg α] : has_neg (holor α ds) :=  ⟨λ a t, - a t⟩
 
-instance [add_semigroup α] : add_semigroup (holor α ds) := by pi_instance
+instance [add_semigroup α] : add_semigroup (holor α ds) :=
+by refine_struct { add := (+), .. }; tactic.pi_instance_derive_field
 
-instance [add_comm_semigroup α] : add_comm_semigroup (holor α ds) := by pi_instance
+instance [add_comm_semigroup α] : add_comm_semigroup (holor α ds) :=
+by refine_struct { add := (+), .. }; tactic.pi_instance_derive_field
 
-instance [add_monoid α] : add_monoid (holor α ds) := by pi_instance
+instance [add_monoid α] : add_monoid (holor α ds) :=
+by refine_struct { zero := (0 : holor α ds), add := (+), nsmul := λ n x i, nsmul n (x i) };
+tactic.pi_instance_derive_field
 
-instance [add_comm_monoid α] : add_comm_monoid (holor α ds) := by pi_instance
+instance [add_comm_monoid α] : add_comm_monoid (holor α ds) :=
+by refine_struct { zero := (0 : holor α ds), add := (+), nsmul := λ n x i, nsmul n (x i) };
+tactic.pi_instance_derive_field
 
-instance [add_group α] : add_group (holor α ds) := by pi_instance
+instance [add_group α] : add_group (holor α ds) :=
+by refine_struct { zero := (0 : holor α ds), add := (+), nsmul := λ n x i, nsmul n (x i),
+  gsmul := λ n x i, gsmul n (x i) };
+tactic.pi_instance_derive_field
 
-instance [add_comm_group α] : add_comm_group (holor α ds) := by pi_instance
+instance [add_comm_group α] : add_comm_group (holor α ds) :=
+by refine_struct { zero := (0 : holor α ds), add := (+), nsmul := λ n x i, nsmul n (x i),
+  gsmul := λ n x i, gsmul n (x i) };
+tactic.pi_instance_derive_field
 
 /- scalar product -/
 
 instance [has_mul α] : has_scalar α (holor α ds) :=
   ⟨λ a x, λ t, a * x t⟩
 
-instance [semiring α] : semimodule α (holor α ds) := pi.semimodule _ _ _
+instance [semiring α] : module α (holor α ds) := pi.module _ _ _
 
 /-- The tensor product of two holors. -/
 def mul [s : has_mul α] (x : holor α ds₁) (y : holor α ds₂) : holor α (ds₁ ++ ds₂) :=
@@ -149,7 +163,7 @@ funext (λt, left_distrib (x (holor_index.take t)) (y (holor_index.drop t)) (z (
 
 lemma mul_right_distrib [distrib α] (x : holor α ds₁) (y : holor α ds₁) (z : holor α ds₂) :
   (x + y) ⊗ z = x ⊗ z + y ⊗ z :=
-funext (λt, right_distrib (x (holor_index.take t)) (y (holor_index.take t)) (z (holor_index.drop t)))
+funext $ λt, add_mul (x (holor_index.take t)) (y (holor_index.take t)) (z (holor_index.drop t))
 
 @[simp] lemma zero_mul {α : Type} [ring α] (x : holor α ds₂) :
   (0 : holor α ds₁) ⊗ x = 0 :=
@@ -202,7 +216,7 @@ lemma slice_add [has_add α] (i : ℕ) (hid : i < d)  (x : holor α (d :: ds)) (
   slice x i hid + slice y i hid = slice (x + y) i hid := funext (λ t, by simp [slice,(+)])
 
 lemma slice_zero [has_zero α] (i : ℕ) (hid : i < d)  :
-  slice (0 : holor α (d :: ds)) i hid = 0 := funext (λ t, by simp [slice]; refl)
+  slice (0 : holor α (d :: ds)) i hid = 0 := rfl
 
 lemma slice_sum [add_comm_monoid α] {β : Type}
   (i : ℕ) (hid : i < d) (s : finset β) (f : β → holor α (d :: ds)) :
@@ -215,7 +229,8 @@ begin
     rw [finset.sum_insert h_not_in, ih, slice_add, finset.sum_insert h_not_in] }
 end
 
-/-- The original holor can be recovered from its slices by multiplying with unit vectors and summing up. -/
+/-- The original holor can be recovered from its slices by multiplying with unit vectors and
+summing up. -/
 @[simp] lemma sum_unit_vec_mul_slice [ring α] (x : holor α (d :: ds)) :
   ∑ i in (finset.range d).attach,
     unit_vec d i ⊗ slice x i (nat.succ_le_of_lt (finset.mem_range.1 i.prop)) = x :=
@@ -232,8 +247,7 @@ begin
     simp [hbi'] },
   { assume hid' : subtype.mk i _ ∉ finset.attach (finset.range d),
     exfalso,
-    exact absurd (finset.mem_attach _ _) hid'
-  }
+    exact absurd (finset.mem_attach _ _) hid' }
 end
 
 /- CP rank -/
@@ -298,11 +312,9 @@ exact finset.induction_on s
     rw nat.right_distrib,
     simp only [nat.one_mul, nat.add_comm],
     have ih' : cprank_max (finset.card s * n) (∑ x in s, f x),
-    {
-      apply ih,
+    { apply ih,
       assume (x : β) (h_x_in_s: x ∈ s),
-      simp only [h_cprank, finset.mem_insert_of_mem, h_x_in_s]
-    },
+      simp only [h_cprank, finset.mem_insert_of_mem, h_x_in_s] },
     exact (cprank_max_add (h_cprank x (finset.mem_insert_self x s)) ih')
   end)
 

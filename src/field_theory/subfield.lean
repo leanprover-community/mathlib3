@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors : Anne Baanen
+Authors: Anne Baanen
 -/
 
 import algebra.algebra.basic
@@ -84,14 +84,25 @@ def to_add_subgroup (s : subfield K) : add_subgroup K :=
 def to_submonoid (s : subfield K) : submonoid K :=
 { ..s.to_subring.to_submonoid }
 
-instance : has_coe (subfield K) (set K) := ⟨subfield.carrier⟩
+
+instance : set_like (subfield K) K :=
+⟨subfield.carrier, λ p q h, by cases p; cases q; congr'⟩
+
+@[simp]
+lemma mem_carrier {s : subfield K} {x : K} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
+
+/-- Two subfields are equal if they have the same elements. -/
+@[ext] theorem ext {S T : subfield K} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
+
+/-- Copy of a subfield with a new `carrier` equal to the old one. Useful to fix definitional
+equalities. -/
+protected def copy (S : subfield K) (s : set K) (hs : s = ↑S) : subfield K :=
+{ carrier := s,
+  inv_mem' := hs.symm ▸ S.inv_mem',
+  ..S.to_subring.copy s hs }
 
 @[simp] lemma coe_to_subring (s : subfield K) : (s.to_subring : set K) = s :=
 rfl
-
-instance : has_coe_to_sort (subfield K) := ⟨Type*, λ S, S.carrier⟩
-
-instance : has_mem K (subfield K) := ⟨λ m S, m ∈ (S : set K)⟩
 
 @[simp] lemma mem_mk (s : set K) (ho hm hz ha hn hi) (x : K) :
   x ∈ subfield.mk s ho hm hz ha hn hi ↔ x ∈ s := iff.rfl
@@ -101,14 +112,6 @@ instance : has_mem K (subfield K) := ⟨λ m S, m ∈ (S : set K)⟩
 
 end subfield
 
-protected lemma subfield.exists {s : subfield K} {p : s → Prop} :
-  (∃ x : s, p x) ↔ ∃ x ∈ s, p ⟨x, ‹x ∈ s›⟩ :=
-set_coe.exists
-
-protected lemma subfield.forall {s : subfield K} {p : s → Prop} :
-  (∀ x : s, p x) ↔ ∀ x ∈ s, p ⟨x, ‹x ∈ s›⟩ :=
-set_coe.forall
-
 /-- A `subring` containing inverses is a `subfield`. -/
 def subring.to_subfield (s : subring K) (hinv : ∀ x ∈ s, x⁻¹ ∈ s) : subfield K :=
 { inv_mem' := hinv
@@ -117,17 +120,6 @@ def subring.to_subfield (s : subring K) (hinv : ∀ x ∈ s, x⁻¹ ∈ s) : sub
 namespace subfield
 
 variables (s t : subfield K)
-
-/-- Two subfields are equal if the underlying subsets are equal. -/
-theorem ext' ⦃s t : subfield K⦄ (h : (s : set K) = t) : s = t :=
-by { cases s, cases t, congr' }
-
-/-- Two subfields are equal if and only if the underlying subsets are equal. -/
-protected theorem ext'_iff {s t : subfield K}  : s = t ↔ (s : set K) = t :=
-⟨λ h, h ▸ rfl, λ h, ext' h⟩
-
-/-- Two subfields are equal if they have the same elements. -/
-@[ext] theorem ext {S T : subfield K} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := ext' $ set.ext h
 
 /-- A subfield contains the ring's 1. -/
 theorem one_mem : (1 : K) ∈ s := s.one_mem'
@@ -185,22 +177,31 @@ s.to_add_subgroup.sum_mem h
 lemma pow_mem {x : K} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := s.to_submonoid.pow_mem hx n
 
 lemma gsmul_mem {x : K} (hx : x ∈ s) (n : ℤ) :
-  n •ℤ x ∈ s := s.to_add_subgroup.gsmul_mem hx n
+  n • x ∈ s := s.to_add_subgroup.gsmul_mem hx n
 
 lemma coe_int_mem (n : ℤ) : (n : K) ∈ s :=
 by simp only [← gsmul_one, gsmul_mem, one_mem]
 
+instance : ring s := s.to_subring.to_ring
+instance : has_div s := ⟨λ x y, ⟨x / y, s.div_mem x.2 y.2⟩⟩
+instance : has_inv s := ⟨λ x, ⟨x⁻¹, s.inv_mem x.2⟩⟩
+
 /-- A subfield inherits a field structure -/
 instance to_field : field s :=
-{ inv := λ x, ⟨x⁻¹, s.inv_mem x.2⟩,
-  inv_zero := subtype.ext inv_zero,
-  mul_inv_cancel := λ x hx, subtype.ext (mul_inv_cancel (mt s.to_subring.coe_eq_zero_iff.mp hx)),
-  exists_pair_ne := ⟨⟨0, s.zero_mem⟩, ⟨1, s.one_mem⟩, mt subtype.mk_eq_mk.mp zero_ne_one⟩,
-  ..subring.subring.domain s.to_subring }
+subtype.coe_injective.field coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+
+/-- A subfield of a `linear_ordered_field` is a `linear_ordered_field`. -/
+instance to_linear_ordered_field {K} [linear_ordered_field K] (s : subfield K) :
+  linear_ordered_field s :=
+subtype.coe_injective.linear_ordered_field coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
 
 @[simp, norm_cast] lemma coe_add (x y : s) : (↑(x + y) : K) = ↑x + ↑y := rfl
+@[simp, norm_cast] lemma coe_sub (x y : s) : (↑(x - y) : K) = ↑x - ↑y := rfl
 @[simp, norm_cast] lemma coe_neg (x : s) : (↑(-x) : K) = -↑x := rfl
 @[simp, norm_cast] lemma coe_mul (x y : s) : (↑(x * y) : K) = ↑x * ↑y := rfl
+@[simp, norm_cast] lemma coe_div (x y : s) : (↑(x / y) : K) = ↑x / ↑y := rfl
 @[simp, norm_cast] lemma coe_inv (x : s) : (↑(x⁻¹) : K) = (↑x)⁻¹ := rfl
 @[simp, norm_cast] lemma coe_zero : ((0 : s) : K) = 0 := rfl
 @[simp, norm_cast] lemma coe_one : ((1 : s) : K) = 1 := rfl
@@ -214,27 +215,12 @@ instance to_algebra : algebra s K := ring_hom.to_algebra s.subtype
 
 @[simp] theorem coe_subtype : ⇑s.subtype = coe := rfl
 
+lemma to_subring.subtype_eq_subtype (F : Type*) [field F] (S : subfield F) :
+  S.to_subring.subtype = S.subtype := rfl
+
 /-! # Partial order -/
 
-instance : partial_order (subfield K) :=
-{ le := λ s t, ∀ ⦃x⦄, x ∈ s → x ∈ t,
-  .. partial_order.lift (coe : subfield K → set K) ext' }
-
-variables {s t}
-
-lemma le_def : s ≤ t ↔ ∀ ⦃x : K⦄, x ∈ s → x ∈ t := iff.rfl
-
-@[simp, norm_cast] lemma coe_subset_coe : (s : set K) ⊆ t ↔ s ≤ t := iff.rfl
-
-@[simp, norm_cast] lemma coe_ssubset_coe : (s : set K) ⊂ t ↔ s < t := iff.rfl
-
-@[simp, norm_cast]
-lemma mem_coe {m : K} : m ∈ (s : set K) ↔ m ∈ s := iff.rfl
-
 variables (s t)
-
-@[simp, norm_cast]
-lemma coe_coe (s : subfield K) : ↥(s : set K) = s := rfl
 
 @[simp] lemma mem_to_submonoid {s : subfield K} {x : K} : x ∈ s.to_submonoid ↔ x ∈ s := iff.rfl
 @[simp] lemma coe_to_submonoid : (s.to_submonoid : set K) = s := rfl
@@ -286,7 +272,7 @@ def map (s : subfield K) : subfield L :=
 set.mem_image_iff_bex
 
 lemma map_map (g : L →+* M) (f : K →+* L) : (s.map f).map g = s.map (g.comp f) :=
-ext' $ set.image_image _ _ _
+set_like.ext' $ set.image_image _ _ _
 
 lemma map_le_iff_le_comap {f : K →+* L} {s : subfield K} {t : subfield L} :
   s.map f ≤ t ↔ s ≤ t.comap f :=
@@ -303,16 +289,25 @@ variables (g : L →+* M) (f : K →+* L)
 
 /-! # range -/
 
-/-- The range of a ring homomorphism, as a subfield of the target. -/
-def field_range : subfield L := (⊤ : subfield K).map f
+/-- The range of a ring homomorphism, as a subfield of the target. See Note [range copy pattern]. -/
+def field_range : subfield L :=
+((⊤ : subfield K).map f).copy (set.range f) set.image_univ.symm
 
-@[simp] lemma coe_field_range : (f.field_range : set L) = set.range f := set.image_univ
+@[simp] lemma coe_field_range : (f.field_range : set L) = set.range f := rfl
 
-@[simp] lemma mem_field_range {f : K →+* L} {y : L} : y ∈ f.range ↔ ∃ x, f x = y :=
-by simp [range]
+@[simp] lemma mem_field_range {f : K →+* L} {y : L} : y ∈ f.field_range ↔ ∃ x, f x = y := iff.rfl
+
+lemma field_range_eq_map : f.field_range = subfield.map f ⊤ :=
+by { ext, simp }
 
 lemma map_field_range : f.field_range.map g = (g.comp f).field_range :=
-(⊤ : subfield K).map_map g f
+by simpa only [field_range_eq_map] using (⊤ : subfield K).map_map g f
+
+/-- The range of a morphism of fields is a fintype, if the domain is a fintype.
+
+Note that this instance can cause a diamond with `subtype.fintype` if `L` is also a fintype.-/
+instance fintype_field_range [fintype K] [decidable_eq L] (f : K →+* L) : fintype f.field_range :=
+set.fintype_range f
 
 end ring_hom
 
@@ -372,7 +367,7 @@ end
 
 lemma is_glb_Inf (S : set (subfield K)) : is_glb S (Inf S) :=
 begin
-  refine is_glb.of_image (λ s t, show (s : set K) ≤ t ↔ s ≤ t, from coe_subset_coe) _,
+  refine is_glb.of_image (λ s t, show (s : set K) ≤ t ↔ s ≤ t, from set_like.coe_subset_coe) _,
   convert is_glb_binfi,
   exact coe_Inf _
 end
@@ -446,8 +441,8 @@ lemma closure_eq_of_le {s : set K} {t : subfield K} (h₁ : s ⊆ t) (h₂ : t �
 le_antisymm (closure_le.2 h₁) h₂
 
 /-- An induction principle for closure membership. If `p` holds for `1`, and all elements
-of `s`, and is preserved under addition, negation, and multiplication, then `p` holds for all elements
-of the closure of `s`. -/
+of `s`, and is preserved under addition, negation, and multiplication, then `p` holds for all
+elements of the closure of `s`. -/
 @[elab_as_eliminator]
 lemma closure_induction {s : set K} {p : K → Prop} {x} (h : x ∈ closure s)
   (Hs : ∀ x ∈ s, p x) (H1 : p 1)
@@ -510,7 +505,7 @@ lemma comap_infi {ι : Sort*} (f : K →+* L) (s : ι → subfield L) :
 lemma mem_supr_of_directed {ι} [hι : nonempty ι] {S : ι → subfield K} (hS : directed (≤) S)
   {x : K} : x ∈ (⨆ i, S i) ↔ ∃ i, x ∈ S i :=
 begin
-  refine ⟨_, λ ⟨i, hi⟩, (le_def.1 $ le_supr S i) hi⟩,
+  refine ⟨_, λ ⟨i, hi⟩, (set_like.le_def.1 $ le_supr S i) hi⟩,
   suffices : x ∈ closure (⋃ i, (S i : set K)) → ∃ i, x ∈ S i,
   by simpa only [closure_Union, closure_eq],
   refine λ hx, closure_induction hx (λ x, set.mem_Union.mp) _ _ _ _ _,
@@ -566,8 +561,8 @@ def restrict_field (f : K →+* L) (s : subfield K) : s →+* L := f.comp s.subt
 @[simp] lemma restrict_field_apply (f : K →+* L) (x : s) : f.restrict_field s x = f x := rfl
 
 /-- Restriction of a ring homomorphism to its range interpreted as a subfield. -/
-def range_restrict_field (f : K →+* L) : K →+* f.range :=
-f.cod_restrict' f.range $ λ x, ⟨x, subfield.mem_top x, rfl⟩
+def range_restrict_field (f : K →+* L) : K →+* f.field_range :=
+f.srange_restrict
 
 @[simp] lemma coe_range_restrict_field (f : K →+* L) (x : K) :
   (f.range_restrict_field x : L) = f x := rfl
@@ -593,7 +588,7 @@ eq_of_eq_on_subfield_top $ hs ▸ eq_on_field_closure h
 
 lemma field_closure_preimage_le (f : K →+* L) (s : set L) :
   closure (f ⁻¹' s) ≤ (closure s).comap f :=
-closure_le.2 $ λ x hx, mem_coe.2 $ mem_comap.2 $ subset_closure hx
+closure_le.2 $ λ x hx, set_like.mem_coe.2 $ mem_comap.2 $ subset_closure hx
 
 /-- The image under a ring homomorphism of the subfield generated by a set equals
 the subfield generated by the image of the set. -/
@@ -615,7 +610,7 @@ def inclusion {S T : subfield K} (h : S ≤ T) : S →+* T :=
 S.subtype.cod_restrict_field _ (λ x, h x.2)
 
 @[simp] lemma field_range_subtype (s : subfield K) : s.subtype.field_range = s :=
-ext' $ (coe_srange _).trans subtype.range_coe
+set_like.ext' $ (coe_srange _).trans subtype.range_coe
 
 end subfield
 
@@ -626,7 +621,7 @@ variables {s t : subfield K}
 /-- Makes the identity isomorphism from a proof two subfields of a multiplicative
     monoid are equal. -/
 def subfield_congr (h : s = t) : s ≃+* t :=
-{ map_mul' :=  λ _ _, rfl, map_add' := λ _ _, rfl, ..equiv.set_congr $ subfield.ext'_iff.1 h }
+{ map_mul' :=  λ _ _, rfl, map_add' := λ _ _, rfl, ..equiv.set_congr $ set_like.ext'_iff.1 h }
 
 end ring_equiv
 
@@ -636,6 +631,6 @@ variables {s : set K}
 
 lemma closure_preimage_le (f : K →+* L) (s : set L) :
   closure (f ⁻¹' s) ≤ (closure s).comap f :=
-closure_le.2 $ λ x hx, mem_coe.2 $ mem_comap.2 $ subset_closure hx
+closure_le.2 $ λ x hx, set_like.mem_coe.2 $ mem_comap.2 $ subset_closure hx
 
 end subfield

@@ -3,13 +3,13 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.limits.preserves.basic
+import category_theory.limits.preserves.limits
 
 open category_theory category_theory.category
 
 namespace category_theory.limits
 
-universes v v₂ u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v v₂ u -- morphism levels before object levels. See note [category_theory universes].
 
 variables {C : Type u} [category.{v} C]
 
@@ -37,7 +37,8 @@ def evaluation_jointly_reflects_limits {F : J ⥤ K ⥤ C} (c : cone F)
     naturality' := λ X Y f, (t Y).hom_ext $ λ j,
     begin
       rw [assoc, (t Y).fac _ j],
-      simpa using ((t X).fac_assoc ⟨s.X.obj X, whisker_right s.π ((evaluation K C).obj X)⟩ j _).symm,
+      simpa using
+        ((t X).fac_assoc ⟨s.X.obj X, whisker_right s.π ((evaluation K C).obj X)⟩ j _).symm,
     end },
   fac' := λ s j, nat_trans.ext _ _ $ funext $ λ k, (t k).fac _ j,
   uniq' := λ s m w, nat_trans.ext _ _ $ funext $ λ x, (t x).hom_ext $ λ j,
@@ -112,7 +113,8 @@ them together to give a cocone for the diagram `F`.
     naturality' := λ j₁ j₂ g, nat_trans.ext _ _ $ funext $ λ k, (c k).cocone.ι.naturality g } }
 
 /-- The stitched together cocones each project down to the original given cocones (up to iso). -/
-def evaluate_combined_cocones (F : J ⥤ K ⥤ C) (c : Π (k : K), colimit_cocone (F.flip.obj k)) (k : K) :
+def evaluate_combined_cocones
+  (F : J ⥤ K ⥤ C) (c : Π (k : K), colimit_cocone (F.flip.obj k)) (k : K) :
   ((evaluation K C).obj k).map_cocone (combine_cocones F c) ≅ (c k).cocone :=
 cocones.ext (iso.refl _) (by tidy)
 
@@ -136,11 +138,9 @@ instance functor_category_has_colimits_of_shape
   { cocone := combine_cocones _ (λ k, get_colimit_cocone _),
     is_colimit := combined_is_colimit _ _ } }
 
-instance functor_category_has_limits [has_limits C] : has_limits (K ⥤ C) :=
-{ has_limits_of_shape := λ J 𝒥, by resetI; apply_instance }
+instance functor_category_has_limits [has_limits C] : has_limits (K ⥤ C) := {}
 
-instance functor_category_has_colimits [has_colimits C] : has_colimits (K ⥤ C) :=
-{ has_colimits_of_shape := λ J 𝒥, by resetI; apply_instance }
+instance functor_category_has_colimits [has_colimits C] : has_colimits (K ⥤ C) := {}
 
 instance evaluation_preserves_limits_of_shape [has_limits_of_shape J C] (k : K) :
   preserves_limits_of_shape J ((evaluation K C).obj k) :=
@@ -155,7 +155,7 @@ then the evaluation of that limit at `k` is the limit of the evaluations of `F.o
 -/
 def limit_obj_iso_limit_comp_evaluation [has_limits_of_shape J C] (F : J ⥤ K ⥤ C) (k : K) :
   (limit F).obj k ≅ limit (F ⋙ ((evaluation K C).obj k)) :=
-preserves_limit_iso F ((evaluation K C).obj k)
+preserves_limit_iso ((evaluation K C).obj k) F
 
 @[simp, reassoc]
 lemma limit_obj_iso_limit_comp_evaluation_hom_π
@@ -163,7 +163,7 @@ lemma limit_obj_iso_limit_comp_evaluation_hom_π
   (limit_obj_iso_limit_comp_evaluation F k).hom ≫ limit.π (F ⋙ ((evaluation K C).obj k)) j =
     (limit.π F j).app k :=
 begin
-  dsimp [limit_obj_iso_limit_comp_evaluation, limits.preserves_limit_iso],
+  dsimp [limit_obj_iso_limit_comp_evaluation],
   simp,
 end
 
@@ -173,7 +173,7 @@ lemma limit_obj_iso_limit_comp_evaluation_inv_π_app
   (limit_obj_iso_limit_comp_evaluation F k).inv ≫ (limit.π F j).app k =
     limit.π (F ⋙ ((evaluation K C).obj k)) j :=
 begin
-  dsimp [limit_obj_iso_limit_comp_evaluation, limits.preserves_limit_iso],
+  dsimp [limit_obj_iso_limit_comp_evaluation],
   rw iso.inv_comp_eq,
   simp,
 end
@@ -201,7 +201,7 @@ then the evaluation of that colimit at `k` is the colimit of the evaluations of 
 -/
 def colimit_obj_iso_colimit_comp_evaluation [has_colimits_of_shape J C] (F : J ⥤ K ⥤ C) (k : K) :
   (colimit F).obj k ≅ colimit (F ⋙ ((evaluation K C).obj k)) :=
-preserves_colimit_iso F ((evaluation K C).obj k)
+preserves_colimit_iso ((evaluation K C).obj k) F
 
 @[simp, reassoc]
 lemma colimit_obj_iso_colimit_comp_evaluation_ι_inv
@@ -209,7 +209,7 @@ lemma colimit_obj_iso_colimit_comp_evaluation_ι_inv
   colimit.ι (F ⋙ ((evaluation K C).obj k)) j ≫ (colimit_obj_iso_colimit_comp_evaluation F k).inv =
     (colimit.ι F j).app k :=
 begin
-  dsimp [colimit_obj_iso_colimit_comp_evaluation, limits.preserves_colimit_iso],
+  dsimp [colimit_obj_iso_colimit_comp_evaluation],
   simp,
 end
 
@@ -219,7 +219,7 @@ lemma colimit_obj_iso_colimit_comp_evaluation_ι_app_hom
   (colimit.ι F j).app k ≫ (colimit_obj_iso_colimit_comp_evaluation F k).hom =
      colimit.ι (F ⋙ ((evaluation K C).obj k)) j :=
 begin
-  dsimp [colimit_obj_iso_colimit_comp_evaluation, limits.preserves_colimit_iso],
+  dsimp [colimit_obj_iso_colimit_comp_evaluation],
   rw ←iso.eq_comp_inv,
   simp,
 end

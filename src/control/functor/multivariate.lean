@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Jeremy Avigad, Mario Carneiro, Simon Hudon
+Authors: Jeremy Avigad, Mario Carneiro, Simon Hudon
 -/
 import data.fin2
 import data.typevec
@@ -116,41 +116,14 @@ end
 variables {F}
 
 lemma liftp_def (x : F α) : liftp' p x ↔ ∃ u : F (subtype_ p), subtype_val p <$$> u = x :=
-begin
-  dsimp only [liftp', mvfunctor.liftp],
-  apply exists_iff_exists_of_mono F (to_subtype p) (of_subtype p),
-  { clear x _inst_2 _inst_1 F, dsimp only [comp],
-    ext i x; induction i, { refl },
-    -- Lean 3.11.0 problem
-    rw [of_subtype,@to_subtype.equations._eqn_2 i_n _ p i_a,i_ih],
-    refl, },
-  { intro, rw [mvfunctor.map_map,(⊚)], congr',
-    clear x u _inst_2 _inst_1 F, ext i ⟨ x,_ ⟩,
-    induction i; dsimp only [to_subtype, subtype_val],
-    { refl }, { apply i_ih }, }
-end
+exists_iff_exists_of_mono F _ _ (to_subtype_of_subtype p) (by simp [mvfunctor.map_map])
 
 lemma liftr_def (x y : F α) :
   liftr' r x y ↔
   ∃ u : F (subtype_ r), (typevec.prod.fst ⊚ subtype_val r) <$$> u = x ∧
                         (typevec.prod.snd ⊚ subtype_val r) <$$> u = y :=
-begin
-  dsimp only [liftr', mvfunctor.liftr],
-  apply exists_iff_exists_of_mono F (to_subtype' r) (of_subtype' r),
-  { clear x y _inst_2 _inst_1 F, dsimp only [comp],
-    ext i x; induction i,
-    { dsimp only [typevec.id], cases x, refl },
-    -- Lean 3.11.0 problem
-    { rw [of_subtype',@to_subtype'.equations._eqn_2 i_n _ r i_a, i_ih], refl } },
-  { intro, rw [mvfunctor.map_map,(⊚),mvfunctor.map_map,(⊚)], congr';
-    clear x y u _inst_2 _inst_1 F,
-    { ext i ⟨ x,_ ⟩, induction i; dsimp only [subtype_val],
-      { refl },
-      apply i_ih, },
-    { ext i ⟨x,_⟩,
-      { induction i, { refl },
-        { rw i_ih (drop_fun r), refl }, } } }
-end
+exists_iff_exists_of_mono _ _ _ (to_subtype'_of_subtype' r)
+  (by simp only [map_map, comp_assoc, subtype_val_to_subtype']; simp [comp])
 
 end liftp'
 
@@ -196,13 +169,18 @@ end
 open function
 variables (rr : β → β → Prop)
 
-private def f : Π (n α), (λ (i : fin2 (n + 1)), {p_1 : _ × _ // of_repeat (rel_last' α rr i (typevec.prod.mk _ p_1.fst p_1.snd))}) ⟹
+private def f :
+  Π (n α),
+    (λ (i : fin2 (n + 1)),
+      {p_1 : _ × _ // of_repeat (rel_last' α rr i (typevec.prod.mk _ p_1.fst p_1.snd))}) ⟹
     λ (i : fin2 (n + 1)), {p_1 : (α ::: β) i × _ // rel_last α rr (p_1.fst) (p_1.snd)}
 | _ α (fin2.fs i) x := ⟨ x.val, cast (by simp only [rel_last]; erw repeat_eq_iff_eq) x.property ⟩
 | _ α fin2.fz x := ⟨ x.val, x.property ⟩
 
-private def g : Π (n α), (λ (i : fin2 (n + 1)), {p_1 : (α ::: β) i × _ // rel_last α rr (p_1.fst) (p_1.snd)}) ⟹
-    (λ (i : fin2 (n + 1)), {p_1 : _ × _ // of_repeat (rel_last' α rr i (typevec.prod.mk _ p_1.fst p_1.snd))})
+private def g :
+  Π (n α), (λ (i : fin2 (n + 1)), {p_1 : (α ::: β) i × _ // rel_last α rr (p_1.fst) (p_1.snd)}) ⟹
+    (λ (i : fin2 (n + 1)),
+      {p_1 : _ × _ // of_repeat (rel_last' α rr i (typevec.prod.mk _ p_1.1 p_1.2))})
 | _ α (fin2.fs i) x := ⟨ x.val, cast (by simp only [rel_last]; erw repeat_eq_iff_eq) x.property ⟩
 | _ α fin2.fz x := ⟨ x.val, x.property ⟩
 

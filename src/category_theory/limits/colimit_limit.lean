@@ -64,7 +64,7 @@ limit.lift ((curry.obj F) ⋙ colim)
         begin
           dsimp,
           intros k k' f,
-          simp only [functor.comp_map, curry.obj_map_app, limits.limit.map_π_assoc, swap_map,
+          simp only [functor.comp_map, curry.obj_map_app, limits.lim_map_π_assoc, swap_map,
             category.comp_id, map_id_left_eq_curry_map, colimit.w],
         end }, },
     naturality' :=

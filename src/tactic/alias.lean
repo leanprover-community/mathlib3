@@ -48,7 +48,7 @@ open lean.parser tactic interactive parser
 namespace tactic.alias
 
 @[user_attribute] meta def alias_attr : user_attribute :=
-{ name := `alias, descr := "This definition is an alias of another." }
+{ name := `alias, descr := "This definition is an alias of another.", parser := failed }
 
 meta def alias_direct (d : declaration) (doc : string) (al : name) : tactic unit :=
 do updateex_env $ λ env,

@@ -5,14 +5,20 @@ Authors: Kenny Lau
 -/
 import data.nat.sqrt
 
+/-!
+# Square root of integers
+
+This file defines the square root function on integers. `int.sqrt z` is the greatest integer `r`
+such that `r * r ≤ z`. If `z ≤ 0`, then `int.sqrt z = 0`.
+-/
+
 namespace int
 
-/-- `sqrt n` is the square root of an integer `n`. If `n` is not a
-  perfect square, and is positive, it returns the largest `k:ℤ` such
-  that `k*k ≤ n`. If it is negative, it returns 0. For example,
-  `sqrt 2 = 1` and `sqrt 1 = 1` and `sqrt (-1) = 0` -/
-@[pp_nodot] def sqrt (n : ℤ) : ℤ :=
-nat.sqrt $ int.to_nat n
+/-- `sqrt z` is the square root of an integer `z`. If `z` is positive, it returns the largest
+integer `r` such that `r * r ≤ n`. If it is negative, it returns `0`. For example, `sqrt (-1) = 0`,
+`sqrt 1 = 1`, `sqrt 2 = 1` -/
+@[pp_nodot] def sqrt (z : ℤ) : ℤ :=
+nat.sqrt $ int.to_nat z
 
 theorem sqrt_eq (n : ℤ) : sqrt (n*n) = n.nat_abs :=
 by rw [sqrt, ← nat_abs_mul_self, to_nat_coe_nat, nat.sqrt_eq]

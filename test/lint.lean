@@ -7,6 +7,8 @@ lemma foo3 (n m : ℕ) : ℕ := n - m
 lemma foo.foo (n m : ℕ) : n ≥ n := le_refl n
 instance bar.bar : has_add ℕ := by apply_instance  -- we don't check the name of instances
 lemma foo.bar (ε > 0) : ε = ε := rfl -- >/≥ is allowed in binders (and in fact, in all hypotheses)
+/-- Test exception in `def_lemma` linter. -/
+@[pattern] def my_exists_intro := @Exists.intro
 -- section
 -- local attribute [instance, priority 1001] classical.prop_decidable
 -- lemma foo4 : (if 3 = 3 then 1 else 2) = 1 := if_pos (by refl)
@@ -55,15 +57,15 @@ return $ if d.to_name.last = "foo" then some "gotcha!" else none
 meta def linter.dummy_linter : linter :=
 { test := dummy_check,
   auto_decls := ff,
-  no_errors_found := "found nothing",
-  errors_found := "found something" }
+  no_errors_found := "found nothing.",
+  errors_found := "found something:" }
 
 @[nolint dummy_linter]
 def bar.foo : (if 3 = 3 then 1 else 2) = 1 := if_pos (by refl)
 
 run_cmd do
   (_, s) ← lint tt lint_verbosity.medium [`linter.dummy_linter] tt,
-  guard $ "/- found something: -/\n#print foo.foo /- gotcha! -/\n".is_suffix_of s.to_string
+  guard $ "/- found something: -/\n#check @foo.foo /- gotcha! -/\n".is_suffix_of s.to_string
 
 def incorrect_type_class_argument_test {α : Type} (x : α) [x = x] [decidable_eq α] [group α] :
   unit := ()
@@ -87,7 +89,8 @@ local attribute [instance] dangerous_instance_test
 run_cmd do
   d ← get_decl `dangerous_instance_test,
   x ← linter.dangerous_instance.test d,
-  guard $ x = some "The following arguments become metavariables. argument 1: {α : Type}, argument 3: {γ : Type}"
+  guard $ x = some
+    "The following arguments become metavariables. argument 1: {α : Type}, argument 3: {γ : Type}"
 end
 
 section
@@ -104,6 +107,12 @@ run_cmd do
   guard $ "maximum class-instance resolution depth has been reached".is_prefix_of s
 end
 
+instance beta_redex_test {α} [monoid α] : (λ (X : Type), has_mul X) α := ⟨(*)⟩
+run_cmd do
+  d ← get_decl `beta_redex_test,
+  x ← linter.instance_priority.test d,
+  guard $ x = some "set priority below 1000"
+
 /- test of `apply_to_fresh_variables` -/
 run_cmd do
   e ← mk_const `id,
@@ -112,3 +121,9 @@ run_cmd do
   `(@id %%α %%a) ← instantiate_mvars e2,
   expr.sort (level.succ $ level.mvar u) ← infer_type α,
   skip
+
+/- Test exception in `def_lemma` linter. -/
+run_cmd do
+  d ← get_decl `my_exists_intro,
+  t ← linter.def_lemma.test d,
+  guard $ t = none

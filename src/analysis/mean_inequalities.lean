@@ -1,18 +1,17 @@
 /-
 Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yury Kudryashov, Sébastien Gouëzel
+Authors: Yury Kudryashov, Sébastien Gouëzel, Rémy Degenne
 -/
 import analysis.convex.specific_functions
-import analysis.special_functions.pow
 import data.real.conjugate_exponents
-import tactic.nth_rewrite
 
 /-!
 # Mean value inequalities
 
-In this file we prove several inequalities, including AM-GM inequality, Young's inequality,
-Hölder inequality, and Minkowski inequality.
+In this file we prove several inequalities for finite sums, including AM-GM inequality,
+Young's inequality, Hölder inequality, and Minkowski inequality. Versions for integrals of some of
+these inequalities are available in `measure_theory.mean_inequalities`.
 
 ## Main theorems
 
@@ -73,7 +72,7 @@ $$
 \sum_{i\in s} a_ib_i ≤ \sqrt[p]{\sum_{i\in s} a_i^p}\sqrt[q]{\sum_{i\in s} b_i^q}.
 $$
 
-We give versions of this result in `real`, `nnreal` and `ennreal`.
+We give versions of this result in `ℝ`, `ℝ≥0` and `ℝ≥0∞`.
 
 There are at least two short proofs of this inequality. In one proof we prenormalize both vectors,
 then apply Young's inequality to each $a_ib_i$. We use a different proof deducing this inequality
@@ -87,7 +86,7 @@ $$
 $$
 satisfies the triangle inequality $\|a+b\|_p\le \|a\|_p+\|b\|_p$.
 
-We give versions of this result in `real`, `nnreal` and `ennreal`.
+We give versions of this result in `real`, `ℝ≥0` and `ℝ≥0∞`.
 
 We deduce this inequality from Hölder's inequality. Namely, Hölder inequality implies that $\|a\|_p$
 is the maximum of the inner product $\sum_{i\in s}a_ib_i$ over `b` such that $\|b\|_q\le 1$. Now
@@ -100,22 +99,21 @@ less than or equal to the sum of the maximum values of the summands.
   is to define `strict_convex_on` functions.
 - generalized mean inequality with any `p ≤ q`, including negative numbers;
 - prove that the power mean tends to the geometric mean as the exponent tends to zero.
-- prove integral versions of these inequalities.
 
 -/
 
 universes u v
 
 open finset
-open_locale classical nnreal big_operators
+open_locale classical big_operators nnreal ennreal
 noncomputable theory
 
 variables {ι : Type u} (s : finset ι)
 
 namespace real
 
-/-- AM-GM inequality: the geometric mean is less than or equal to the arithmetic mean, weighted version
-for real-valued nonnegative functions. -/
+/-- AM-GM inequality: the **geometric mean is less than or equal to the arithmetic mean**, weighted
+version for real-valued nonnegative functions. -/
 theorem geom_mean_le_arith_mean_weighted (w z : ι → ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
   (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 ≤ z i) :
   (∏ i in s, (z i) ^ (w i)) ≤ ∑ i in s, w i * z i :=
@@ -187,15 +185,15 @@ by exact_mod_cast real.geom_mean_le_arith_mean_weighted _ _ _ (λ i _, (w i).coe
 for two `nnreal` numbers. -/
 theorem geom_mean_le_arith_mean2_weighted (w₁ w₂ p₁ p₂ : ℝ≥0) :
   w₁ + w₂ = 1 → p₁ ^ (w₁:ℝ) * p₂ ^ (w₂:ℝ) ≤ w₁ * p₁ + w₂ * p₂ :=
-by simpa only [fin.prod_univ_succ, fin.sum_univ_succ, fin.prod_univ_zero, fin.sum_univ_zero,
-  fin.cons_succ, fin.cons_zero, add_zero, mul_one]
+by simpa only [fin.prod_univ_succ, fin.sum_univ_succ, finset.prod_empty, finset.sum_empty,
+  fintype.univ_of_is_empty, fin.cons_succ, fin.cons_zero, add_zero, mul_one]
 using geom_mean_le_arith_mean_weighted (univ : finset (fin 2))
   (fin.cons w₁ $ fin.cons w₂ fin_zero_elim) (fin.cons p₁ $ fin.cons p₂ $ fin_zero_elim)
 
 theorem geom_mean_le_arith_mean3_weighted (w₁ w₂ w₃ p₁ p₂ p₃ : ℝ≥0) :
   w₁ + w₂ + w₃ = 1 → p₁ ^ (w₁:ℝ) * p₂ ^ (w₂:ℝ) * p₃ ^ (w₃:ℝ) ≤ w₁ * p₁ + w₂ * p₂ + w₃ * p₃ :=
-by simpa only  [fin.prod_univ_succ, fin.sum_univ_succ, fin.prod_univ_zero, fin.sum_univ_zero,
-  fin.cons_succ, fin.cons_zero, add_zero, mul_one, ← add_assoc, mul_assoc]
+by simpa only  [fin.prod_univ_succ, fin.sum_univ_succ, finset.prod_empty, finset.sum_empty,
+  fintype.univ_of_is_empty, fin.cons_succ, fin.cons_zero, add_zero, mul_one, ← add_assoc, mul_assoc]
 using geom_mean_le_arith_mean_weighted (univ : finset (fin 3))
   (fin.cons w₁ $ fin.cons w₂ $ fin.cons w₃ fin_zero_elim)
   (fin.cons p₁ $ fin.cons p₂ $ fin.cons p₃ fin_zero_elim)
@@ -203,8 +201,8 @@ using geom_mean_le_arith_mean_weighted (univ : finset (fin 3))
 theorem geom_mean_le_arith_mean4_weighted (w₁ w₂ w₃ w₄ p₁ p₂ p₃ p₄ : ℝ≥0) :
   w₁ + w₂ + w₃ + w₄ = 1 → p₁ ^ (w₁:ℝ) * p₂ ^ (w₂:ℝ) * p₃ ^ (w₃:ℝ)* p₄ ^ (w₄:ℝ) ≤
     w₁ * p₁ + w₂ * p₂ + w₃ * p₃ + w₄ * p₄ :=
-by simpa only  [fin.prod_univ_succ, fin.sum_univ_succ, fin.prod_univ_zero, fin.sum_univ_zero,
-  fin.cons_succ, fin.cons_zero, add_zero, mul_one, ← add_assoc, mul_assoc]
+by simpa only  [fin.prod_univ_succ, fin.sum_univ_succ, finset.prod_empty, finset.sum_empty,
+  fintype.univ_of_is_empty, fin.cons_succ, fin.cons_zero, add_zero, mul_one, ← add_assoc, mul_assoc]
 using geom_mean_le_arith_mean_weighted (univ : finset (fin 4))
   (fin.cons w₁ $ fin.cons w₂ $ fin.cons w₃ $ fin.cons w₄ fin_zero_elim)
   (fin.cons p₁ $ fin.cons p₂ $ fin.cons p₃ $ fin.cons p₄ fin_zero_elim)
@@ -224,6 +222,17 @@ theorem rpow_arith_mean_le_arith_mean_rpow (w z : ι → ℝ≥0) (hw' : ∑ i i
 by exact_mod_cast real.rpow_arith_mean_le_arith_mean_rpow s _ _ (λ i _, (w i).coe_nonneg)
   (by exact_mod_cast hw') (λ i _, (z i).coe_nonneg) hp
 
+/-- Weighted generalized mean inequality, version for two elements of `ℝ≥0` and real exponents. -/
+theorem rpow_arith_mean_le_arith_mean2_rpow (w₁ w₂ z₁ z₂ : ℝ≥0) (hw' : w₁ + w₂ = 1) {p : ℝ}
+  (hp : 1 ≤ p) :
+  (w₁ * z₁ + w₂ * z₂) ^ p ≤ w₁ * z₁ ^ p + w₂ * z₂ ^ p :=
+begin
+  have h := rpow_arith_mean_le_arith_mean_rpow (univ : finset (fin 2))
+    (fin.cons w₁ $ fin.cons w₂ fin_zero_elim) (fin.cons z₁ $ fin.cons z₂ $ fin_zero_elim) _ hp,
+  { simpa [fin.sum_univ_succ, fin.sum_univ_zero, fin.cons_succ, fin.cons_zero] using h, },
+  { simp [hw', fin.sum_univ_succ, fin.sum_univ_zero, fin.cons_succ, fin.cons_zero], },
+end
+
 /-- Weighted generalized mean inequality, version for sums over finite sets, with `ℝ≥0`-valued
 functions and real exponents. -/
 theorem arith_mean_le_rpow_mean (w z : ι → ℝ≥0) (hw' : ∑ i in s, w i = 1) {p : ℝ}
@@ -233,6 +242,75 @@ by exact_mod_cast real.arith_mean_le_rpow_mean s _ _ (λ i _, (w i).coe_nonneg)
   (by exact_mod_cast hw') (λ i _, (z i).coe_nonneg) hp
 
 end nnreal
+
+namespace ennreal
+
+/-- Weighted generalized mean inequality, version for sums over finite sets, with `ℝ≥0∞`-valued
+functions and real exponents. -/
+theorem rpow_arith_mean_le_arith_mean_rpow (w z : ι → ℝ≥0∞) (hw' : ∑ i in s, w i = 1) {p : ℝ}
+  (hp : 1 ≤ p) :
+  (∑ i in s, w i * z i) ^ p ≤ ∑ i in s, (w i * z i ^ p) :=
+begin
+  have hp_pos : 0 < p, from lt_of_lt_of_le zero_lt_one hp,
+  have hp_nonneg : 0 ≤ p, from le_of_lt hp_pos,
+  have hp_not_nonpos : ¬ p ≤ 0, by simp [hp_pos],
+  have hp_not_neg : ¬ p < 0, by simp [hp_nonneg],
+  have h_top_iff_rpow_top : ∀ (i : ι) (hi : i ∈ s), w i * z i = ⊤ ↔ w i * (z i) ^ p = ⊤,
+  by simp [hp_pos, hp_nonneg, hp_not_nonpos, hp_not_neg],
+  refine le_of_top_imp_top_of_to_nnreal_le _ _,
+  { -- first, prove `(∑ i in s, w i * z i) ^ p = ⊤ → ∑ i in s, (w i * z i ^ p) = ⊤`
+    rw [rpow_eq_top_iff, sum_eq_top_iff, sum_eq_top_iff],
+    intro h,
+    simp only [and_false, hp_not_neg, false_or] at h,
+    rcases h.left with ⟨a, H, ha⟩,
+    use [a, H],
+    rwa ←h_top_iff_rpow_top a H, },
+  { -- second, suppose both `(∑ i in s, w i * z i) ^ p ≠ ⊤` and `∑ i in s, (w i * z i ^ p) ≠ ⊤`,
+    -- and prove `((∑ i in s, w i * z i) ^ p).to_nnreal ≤ (∑ i in s, (w i * z i ^ p)).to_nnreal`,
+    -- by using `nnreal.rpow_arith_mean_le_arith_mean_rpow`.
+    intros h_top_rpow_sum _,
+    -- show hypotheses needed to put the `.to_nnreal` inside the sums.
+    have h_top : ∀ (a : ι), a ∈ s → w a * z a < ⊤,
+    { have h_top_sum : ∑ (i : ι) in s, w i * z i < ⊤,
+      { by_contra h,
+        rw [lt_top_iff_ne_top, not_not] at h,
+        rw [h, top_rpow_of_pos hp_pos] at h_top_rpow_sum,
+        exact h_top_rpow_sum rfl, },
+      rwa sum_lt_top_iff at h_top_sum, },
+    have h_top_rpow : ∀ (a : ι), a ∈ s → w a * z a ^ p < ⊤,
+    { intros i hi,
+      specialize h_top i hi,
+      rw lt_top_iff_ne_top at h_top ⊢,
+      rwa [ne.def, ←h_top_iff_rpow_top i hi], },
+    -- put the `.to_nnreal` inside the sums.
+    simp_rw [to_nnreal_sum h_top_rpow, ←to_nnreal_rpow, to_nnreal_sum h_top, to_nnreal_mul,
+      ←to_nnreal_rpow],
+    -- use corresponding nnreal result
+    refine nnreal.rpow_arith_mean_le_arith_mean_rpow s (λ i, (w i).to_nnreal) (λ i, (z i).to_nnreal)
+      _ hp,
+    -- verify the hypothesis `∑ i in s, (w i).to_nnreal = 1`, using `∑ i in s, w i = 1` .
+    have h_sum_nnreal : (∑ i in s, w i) = ↑(∑ i in s, (w i).to_nnreal),
+    { have hw_top : ∑ i in s, w i < ⊤, by { rw hw', exact one_lt_top, },
+      rw ←to_nnreal_sum,
+      { rw coe_to_nnreal,
+        rwa ←lt_top_iff_ne_top, },
+      { rwa sum_lt_top_iff at hw_top, }, },
+    rwa [←coe_eq_coe, ←h_sum_nnreal], },
+end
+
+/-- Weighted generalized mean inequality, version for two elements of `ℝ≥0∞` and real
+exponents. -/
+theorem rpow_arith_mean_le_arith_mean2_rpow (w₁ w₂ z₁ z₂ : ℝ≥0∞) (hw' : w₁ + w₂ = 1) {p : ℝ}
+  (hp : 1 ≤ p) :
+  (w₁ * z₁ + w₂ * z₂) ^ p ≤ w₁ * z₁ ^ p + w₂ * z₂ ^ p :=
+begin
+  have h := rpow_arith_mean_le_arith_mean_rpow (univ : finset (fin 2))
+    (fin.cons w₁ $ fin.cons w₂ fin_zero_elim) (fin.cons z₁ $ fin.cons z₂ $ fin_zero_elim) _ hp,
+  { simpa [fin.sum_univ_succ, fin.sum_univ_zero, fin.cons_succ, fin.cons_zero] using h, },
+  { simp [hw', fin.sum_univ_succ, fin.sum_univ_zero, fin.cons_succ, fin.cons_zero], },
+end
+
+end ennreal
 
 namespace real
 
@@ -245,8 +323,8 @@ nnreal.geom_mean_le_arith_mean2_weighted ⟨w₁, hw₁⟩ ⟨w₂, hw₂⟩ ⟨
 theorem geom_mean_le_arith_mean3_weighted {w₁ w₂ w₃ p₁ p₂ p₃ : ℝ} (hw₁ : 0 ≤ w₁) (hw₂ : 0 ≤ w₂)
   (hw₃ : 0 ≤ w₃) (hp₁ : 0 ≤ p₁) (hp₂ : 0 ≤ p₂) (hp₃ : 0 ≤ p₃) (hw : w₁ + w₂ + w₃ = 1) :
   p₁ ^ w₁ * p₂ ^ w₂ * p₃ ^ w₃ ≤ w₁ * p₁ + w₂ * p₂ + w₃ * p₃ :=
-nnreal.geom_mean_le_arith_mean3_weighted ⟨w₁, hw₁⟩ ⟨w₂, hw₂⟩ ⟨w₃, hw₃⟩ ⟨p₁, hp₁⟩ ⟨p₂, hp₂⟩ ⟨p₃, hp₃⟩ $
-  nnreal.coe_eq.1 $ by assumption
+nnreal.geom_mean_le_arith_mean3_weighted
+  ⟨w₁, hw₁⟩ ⟨w₂, hw₂⟩ ⟨w₃, hw₃⟩ ⟨p₁, hp₁⟩ ⟨p₂, hp₂⟩ ⟨p₃, hp₃⟩ $ nnreal.coe_eq.1 hw
 
 theorem geom_mean_le_arith_mean4_weighted {w₁ w₂ w₃ w₄ p₁ p₂ p₃ p₄ : ℝ} (hw₁ : 0 ≤ w₁)
   (hw₂ : 0 ≤ w₂) (hw₃ : 0 ≤ w₃) (hw₄ : 0 ≤ w₄) (hp₁ : 0 ≤ p₁) (hp₂ : 0 ≤ p₂) (hp₃ : 0 ≤ p₃)
@@ -280,6 +358,15 @@ witnesses of `0 ≤ p` and `0 ≤ q` for the denominators.  -/
 theorem young_inequality (a b : ℝ≥0) {p q : ℝ≥0} (hp : 1 < p) (hpq : 1 / p + 1 / q = 1) :
   a * b ≤ a^(p:ℝ) / p + b^(q:ℝ) / q :=
 real.young_inequality_of_nonneg a.coe_nonneg b.coe_nonneg ⟨hp, nnreal.coe_eq.2 hpq⟩
+
+/-- Young's inequality, `ℝ≥0` version with real conjugate exponents. -/
+theorem young_inequality_real (a b : ℝ≥0) {p q : ℝ} (hpq : p.is_conjugate_exponent q) :
+  a * b ≤ a ^ p / real.to_nnreal p + b ^ q / real.to_nnreal q :=
+begin
+  nth_rewrite 0 ← real.coe_to_nnreal p hpq.nonneg,
+  nth_rewrite 0 ← real.coe_to_nnreal q hpq.symm.nonneg,
+  exact young_inequality a b hpq.one_lt_nnreal hpq.inv_add_inv_conj_nnreal,
+end
 
 /-- Hölder inequality: the scalar product of two functions is bounded by the product of their
 `L^p` and `L^q` norms when `p` and `q` are conjugate exponents. Version for sums over finite sets,
@@ -329,7 +416,7 @@ begin
         rw [mul_rpow, mul_left_comm, ← rpow_mul _ _ p, div_mul_cancel _ hpq.ne_zero, div_rpow,
           div_mul_div, mul_comm (G ^ q), mul_div_mul_right],
         { nth_rewrite 1 [← mul_one ((f i) ^ p)],
-          exact canonically_ordered_semiring.mul_le_mul (le_refl _) (div_self_le _) },
+          exact mul_le_mul_left' (div_self_le _) _ },
         { simpa [hpq.symm.ne_zero] using hG }
       end }
 end
@@ -355,8 +442,8 @@ begin
       simpa [hpq.symm.ne_zero] using hf } },
   { rintros _ ⟨g, hg, rfl⟩,
     apply le_trans (inner_le_Lp_mul_Lq s f g hpq),
-    simpa only [mul_one] using canonically_ordered_semiring.mul_le_mul (le_refl _)
-      (nnreal.rpow_le_one hg (le_of_lt hpq.symm.one_div_pos)) }
+    simpa only [mul_one] using mul_le_mul_left'
+      (nnreal.rpow_le_one hg (le_of_lt hpq.symm.one_div_pos)) _ }
 end
 
 /-- Minkowski inequality: the `L_p` seminorm of the sum of two vectors is less than or equal
@@ -433,11 +520,27 @@ end real
 
 namespace ennreal
 
-variables (f g : ι → ennreal)  {p q : ℝ}
+/-- Young's inequality, `ℝ≥0∞` version with real conjugate exponents. -/
+theorem young_inequality (a b : ℝ≥0∞) {p q : ℝ} (hpq : p.is_conjugate_exponent q) :
+  a * b ≤ a ^ p / ennreal.of_real p + b ^ q / ennreal.of_real q :=
+begin
+  by_cases h : a = ⊤ ∨ b = ⊤,
+  { refine le_trans le_top (le_of_eq _),
+    repeat { rw div_eq_mul_inv },
+    cases h; rw h; simp [h, hpq.pos, hpq.symm.pos], },
+  push_neg at h, -- if a ≠ ⊤ and b ≠ ⊤, use the nnreal version: nnreal.young_inequality_real
+  rw [←coe_to_nnreal h.left, ←coe_to_nnreal h.right, ←coe_mul,
+    coe_rpow_of_nonneg _ hpq.nonneg, coe_rpow_of_nonneg _ hpq.symm.nonneg, ennreal.of_real,
+    ennreal.of_real, ←@coe_div (real.to_nnreal p) _ (by simp [hpq.pos]),
+    ←@coe_div (real.to_nnreal q) _ (by simp [hpq.symm.pos]), ←coe_add, coe_le_coe],
+  exact nnreal.young_inequality_real a.to_nnreal b.to_nnreal hpq,
+end
+
+variables (f g : ι → ℝ≥0∞)  {p q : ℝ}
 
 /-- Hölder inequality: the scalar product of two functions is bounded by the product of their
 `L^p` and `L^q` norms when `p` and `q` are conjugate exponents. Version for sums over finite sets,
-with `ennreal`-valued functions. -/
+with `ℝ≥0∞`-valued functions. -/
 theorem inner_le_Lp_mul_Lq (hpq : p.is_conjugate_exponent q) :
   (∑ i in s, f i * g i) ≤ (∑ i in s, (f i)^p) ^ (1/p) * (∑ i in s, (g i)^q) ^ (1/q) :=
 begin
@@ -466,7 +569,7 @@ begin
 end
 
 /-- Minkowski inequality: the `L_p` seminorm of the sum of two vectors is less than or equal
-to the sum of the `L_p`-seminorms of the summands. A version for `ennreal` valued nonnegative
+to the sum of the `L_p`-seminorms of the summands. A version for `ℝ≥0∞` valued nonnegative
 functions. -/
 theorem Lp_add_le (hp : 1 ≤ p) :
   (∑ i in s, (f i + g i) ^ p)^(1/p) ≤ (∑ i in s, (f i)^p) ^ (1/p) + (∑ i in s, (g i)^p) ^ (1/p) :=
@@ -483,6 +586,71 @@ begin
   convert this using 2;
   [skip, congr' 1, congr' 1];
   { apply finset.sum_congr rfl (λ i hi, _), simp [H'.1 i hi, H'.2 i hi] }
+end
+
+private lemma add_rpow_le_one_of_add_le_one {p : ℝ} (a b : ℝ≥0∞) (hab : a + b ≤ 1)
+  (hp1 : 1 ≤ p) :
+  a ^ p + b ^ p ≤ 1 :=
+begin
+  have h_le_one : ∀ x : ℝ≥0∞, x ≤ 1 → x ^ p ≤ x, from λ x hx, rpow_le_self_of_le_one hx hp1,
+  have ha : a ≤ 1, from (self_le_add_right a b).trans hab,
+  have hb : b ≤ 1, from (self_le_add_left b a).trans hab,
+  exact (add_le_add (h_le_one a ha) (h_le_one b hb)).trans hab,
+end
+
+lemma add_rpow_le_rpow_add {p : ℝ} (a b : ℝ≥0∞) (hp1 : 1 ≤ p) :
+  a ^ p + b ^ p ≤ (a + b) ^ p :=
+begin
+  have hp_pos : 0 < p := lt_of_lt_of_le zero_lt_one hp1,
+  by_cases h_top : a + b = ⊤,
+  { rw ←@ennreal.rpow_eq_top_iff_of_pos (a + b) p hp_pos at h_top,
+    rw h_top,
+    exact le_top, },
+  obtain ⟨ha_top, hb_top⟩ := add_ne_top.mp h_top,
+  by_cases h_zero : a + b = 0,
+  { simp [add_eq_zero_iff.mp h_zero, ennreal.zero_rpow_of_pos hp_pos], },
+  have h_nonzero : ¬(a = 0 ∧ b = 0), by rwa add_eq_zero_iff at h_zero,
+  have h_add : a/(a+b) + b/(a+b) = 1, by rw [div_add_div_same, div_self h_zero h_top],
+  have h := add_rpow_le_one_of_add_le_one (a/(a+b)) (b/(a+b)) h_add.le hp1,
+  rw [div_rpow_of_nonneg a (a+b) hp_pos.le, div_rpow_of_nonneg b (a+b) hp_pos.le] at h,
+  have hab_0 : (a + b)^p ≠ 0, by simp [ha_top, hb_top, hp_pos, h_nonzero],
+  have hab_top : (a + b)^p ≠ ⊤, by simp [ha_top, hb_top, hp_pos, h_nonzero],
+  have h_mul : (a + b)^p * (a ^ p / (a + b) ^ p + b ^ p / (a + b) ^ p) ≤ (a + b)^p,
+  { nth_rewrite 3 ←mul_one ((a + b)^p),
+    exact (mul_le_mul_left hab_0 hab_top).mpr h, },
+  rwa [div_eq_mul_inv, div_eq_mul_inv, mul_add, mul_comm (a^p), mul_comm (b^p), ←mul_assoc,
+    ←mul_assoc, mul_inv_cancel hab_0 hab_top, one_mul, one_mul] at h_mul,
+end
+
+lemma rpow_add_rpow_le_add {p : ℝ} (a b : ℝ≥0∞) (hp1 : 1 ≤ p) :
+  (a ^ p + b ^ p) ^ (1/p) ≤ a + b :=
+begin
+  rw ←@ennreal.le_rpow_one_div_iff _ _ (1/p) (by simp [lt_of_lt_of_le zero_lt_one hp1]),
+  rw one_div_one_div,
+  exact add_rpow_le_rpow_add _ _ hp1,
+end
+
+theorem rpow_add_rpow_le {p q : ℝ} (a b : ℝ≥0∞) (hp_pos : 0 < p) (hpq : p ≤ q) :
+  (a ^ q + b ^ q) ^ (1/q) ≤ (a ^ p + b ^ p) ^ (1/p) :=
+begin
+  have h_rpow : ∀ a : ℝ≥0∞, a^q = (a^p)^(q/p),
+    from λ a, by rw [←ennreal.rpow_mul, div_eq_inv_mul, ←mul_assoc,
+      _root_.mul_inv_cancel hp_pos.ne.symm, one_mul],
+  have h_rpow_add_rpow_le_add : ((a^p)^(q/p) + (b^p)^(q/p)) ^ (1/(q/p)) ≤ a^p + b^p,
+  { refine rpow_add_rpow_le_add (a^p) (b^p) _,
+    rwa one_le_div hp_pos, },
+  rw [h_rpow a, h_rpow b, ennreal.le_rpow_one_div_iff hp_pos, ←ennreal.rpow_mul, mul_comm,
+    mul_one_div],
+  rwa one_div_div at h_rpow_add_rpow_le_add,
+end
+
+lemma rpow_add_le_add_rpow {p : ℝ} (a b : ℝ≥0∞) (hp_pos : 0 < p) (hp1 : p ≤ 1) :
+  (a + b) ^ p ≤ a ^ p + b ^ p :=
+begin
+  have h := rpow_add_rpow_le a b hp_pos hp1,
+  rw one_div_one at h,
+  repeat { rw ennreal.rpow_one at h },
+  exact (ennreal.le_rpow_one_div_iff hp_pos).mp h,
 end
 
 end ennreal

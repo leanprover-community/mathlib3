@@ -47,7 +47,8 @@ def sheaf (X : SheafedSpace C) : sheaf C (X : Top.{v}) := ⟨X.presheaf, X.sheaf
 
 @[simp] lemma as_coe (X : SheafedSpace C) : X.carrier = (X : Top.{v}) := rfl
 @[simp] lemma mk_coe (carrier) (presheaf) (h) :
-  (({ carrier := carrier, presheaf := presheaf, sheaf_condition := h } : SheafedSpace.{v} C) : Top.{v}) = carrier :=
+  (({ carrier := carrier, presheaf := presheaf, sheaf_condition := h } : SheafedSpace.{v} C) :
+  Top.{v}) = carrier :=
 rfl
 
 instance (X : SheafedSpace.{v} C) : topological_space X := X.carrier.str
@@ -66,6 +67,7 @@ show category (induced_category (PresheafedSpace C) SheafedSpace.to_PresheafedSp
 by apply_instance
 
 /-- Forgetting the sheaf condition is a functor from `SheafedSpace C` to `PresheafedSpace C`. -/
+@[derive [full, faithful]]
 def forget_to_PresheafedSpace : (SheafedSpace C) ⥤ (PresheafedSpace C) :=
 induced_functor _
 
@@ -79,7 +81,8 @@ local attribute [simp] id comp
 
 lemma id_c (X : SheafedSpace C) :
   ((𝟙 X) : X ⟶ X).c =
-  (((functor.left_unitor _).inv) ≫ (whisker_right (nat_trans.op (opens.map_id (X.carrier)).hom) _)) := rfl
+  (((functor.left_unitor _).inv) ≫
+  (whisker_right (nat_trans.op (opens.map_id (X.carrier)).hom) _)) := rfl
 
 @[simp] lemma id_c_app (X : SheafedSpace C) (U) :
   ((𝟙 X) : X ⟶ X).c.app U = eq_to_hom (by { op_induction U, cases U, refl }) :=
@@ -113,6 +116,16 @@ def restrict {U : Top} (X : SheafedSpace C)
     ((is_limit.postcompose_inv_equiv _ _).inv_fun (X.sheaf_condition _))
     (sheaf_condition_equalizer_products.fork.iso_of_open_embedding h 𝒰).symm,
   ..X.to_PresheafedSpace.restrict f h }
+
+/--
+The restriction of a sheafed space `X` to the top subspace is isomorphic to `X` itself.
+-/
+noncomputable
+def restrict_top_iso (X : SheafedSpace C) :
+  X.restrict (opens.inclusion ⊤) (opens.open_embedding ⊤) ≅ X :=
+@preimage_iso _ _ _ _ forget_to_PresheafedSpace _ _
+  (X.restrict (opens.inclusion ⊤) (opens.open_embedding ⊤)) _
+  X.to_PresheafedSpace.restrict_top_iso
 
 /--
 The global sections, notated Gamma.

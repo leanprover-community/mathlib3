@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import category_theory.monoidal.functorial
 import category_theory.monoidal.functor_category
-import category_theory.limits.limits
+import category_theory.limits.has_limits
 
 /-!
 # `lim : (J ⥤ C) ⥤ C` is lax monoidal when `C` is a monoidal category.
@@ -52,7 +52,7 @@ instance limit_lax_monoidal : lax_monoidal (λ F : J ⥤ C, limit F) :=
   begin
     ext, dsimp,
     simp only [limit.lift_π, cones.postcompose_obj_π, monoidal.tensor_hom_app, limit.lift_map,
-      nat_trans.comp_app, category.assoc, ←tensor_comp, limit.map_π],
+      nat_trans.comp_app, category.assoc, ←tensor_comp, lim_map_π],
   end,
   associativity' := λ X Y Z,
   begin

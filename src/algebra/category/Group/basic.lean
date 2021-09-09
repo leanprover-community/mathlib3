@@ -33,7 +33,8 @@ namespace Group
 @[to_additive]
 instance : bundled_hom.parent_projection group.to_monoid := ⟨⟩
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] Group AddGroup
+attribute [derive [has_coe_to_sort, large_category, concrete_category]] Group
+attribute [to_additive] Group.has_coe_to_sort Group.large_category Group.concrete_category
 
 /-- Construct a bundled `Group` from the underlying type and typeclass. -/
 @[to_additive] def of (X : Type u) [group X] : Group := bundled.of X
@@ -53,17 +54,18 @@ instance : has_one Group := ⟨Group.of punit⟩
 instance : inhabited Group := ⟨1⟩
 
 @[to_additive]
-instance : unique (1 : Group) :=
+instance one.unique : unique (1 : Group) :=
 { default := 1,
   uniq := λ a, begin cases a, refl, end }
 
 @[simp, to_additive]
 lemma one_apply (G H : Group) (g : G) : (1 : G ⟶ H) g = 1 := rfl
 
-@[to_additive, ext]
+@[ext, to_additive]
 lemma ext (G H : Group) (f₁ f₂ : G ⟶ H) (w : ∀ x, f₁ x = f₂ x) : f₁ = f₂ :=
 by { ext1, apply w }
 
+-- should to_additive do this automatically?
 attribute [ext] AddGroup.ext
 
 @[to_additive has_forget_to_AddMon]
@@ -86,7 +88,9 @@ namespace CommGroup
 @[to_additive]
 instance : bundled_hom.parent_projection comm_group.to_group := ⟨⟩
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] CommGroup AddCommGroup
+attribute [derive [has_coe_to_sort, large_category, concrete_category]] CommGroup
+attribute [to_additive] CommGroup.has_coe_to_sort CommGroup.large_category
+  CommGroup.concrete_category
 
 /-- Construct a bundled `CommGroup` from the underlying type and typeclass. -/
 @[to_additive] def of (G : Type u) [comm_group G] : CommGroup := bundled.of G
@@ -104,7 +108,7 @@ instance comm_group_instance (G : CommGroup) : comm_group G := G.str
 @[to_additive] instance : inhabited CommGroup := ⟨1⟩
 
 @[to_additive]
-instance : unique (1 : CommGroup) :=
+instance one.unique : unique (1 : CommGroup) :=
 { default := 1,
   uniq := λ a, begin cases a, refl, end }
 
@@ -174,7 +178,7 @@ end AddCommGroup
 variables {X Y : Type u}
 
 /-- Build an isomorphism in the category `Group` from a `mul_equiv` between `group`s. -/
-@[to_additive add_equiv.to_AddGroup_iso]
+@[to_additive add_equiv.to_AddGroup_iso, simps]
 def mul_equiv.to_Group_iso [group X] [group Y] (e : X ≃* Y) : Group.of X ≅ Group.of Y :=
 { hom := e.to_monoid_hom,
   inv := e.symm.to_monoid_hom }
@@ -182,10 +186,8 @@ def mul_equiv.to_Group_iso [group X] [group Y] (e : X ≃* Y) : Group.of X ≅ G
 /-- Build an isomorphism in the category `AddGroup` from an `add_equiv` between `add_group`s. -/
 add_decl_doc add_equiv.to_AddGroup_iso
 
-attribute [simps] mul_equiv.to_Group_iso add_equiv.to_AddGroup_iso
-
 /-- Build an isomorphism in the category `CommGroup` from a `mul_equiv` between `comm_group`s. -/
-@[to_additive add_equiv.to_AddCommGroup_iso]
+@[to_additive add_equiv.to_AddCommGroup_iso, simps]
 def mul_equiv.to_CommGroup_iso [comm_group X] [comm_group Y] (e : X ≃* Y) :
   CommGroup.of X ≅ CommGroup.of Y :=
 { hom := e.to_monoid_hom,
@@ -195,25 +197,19 @@ def mul_equiv.to_CommGroup_iso [comm_group X] [comm_group Y] (e : X ≃* Y) :
 `add_comm_group`s. -/
 add_decl_doc add_equiv.to_AddCommGroup_iso
 
-attribute [simps] mul_equiv.to_CommGroup_iso add_equiv.to_AddCommGroup_iso
-
 namespace category_theory.iso
 
 /-- Build a `mul_equiv` from an isomorphism in the category `Group`. -/
 @[to_additive AddGroup_iso_to_add_equiv "Build an `add_equiv` from an isomorphism in the category
-`AddGroup`."]
+`AddGroup`.", simps]
 def Group_iso_to_mul_equiv {X Y : Group} (i : X ≅ Y) : X ≃* Y :=
 i.hom.to_mul_equiv i.inv i.hom_inv_id i.inv_hom_id
 
-attribute [simps {rhs_md := semireducible}] Group_iso_to_mul_equiv AddGroup_iso_to_add_equiv
-
 /-- Build a `mul_equiv` from an isomorphism in the category `CommGroup`. -/
 @[to_additive AddCommGroup_iso_to_add_equiv "Build an `add_equiv` from an isomorphism
-in the category `AddCommGroup`."]
+in the category `AddCommGroup`.", simps]
 def CommGroup_iso_to_mul_equiv {X Y : CommGroup} (i : X ≅ Y) : X ≃* Y :=
 i.hom.to_mul_equiv i.inv i.hom_inv_id i.inv_hom_id
-
-attribute [simps {rhs_md := semireducible}] CommGroup_iso_to_mul_equiv AddCommGroup_iso_to_add_equiv
 
 end category_theory.iso
 
@@ -257,7 +253,7 @@ instance Group.forget_reflects_isos : reflects_isomorphisms (forget Group.{u}) :
     resetI,
     let i := as_iso ((forget Group).map f),
     let e : X ≃* Y := { ..f, ..i.to_equiv },
-    exact { ..e.to_Group_iso },
+    exact ⟨(is_iso.of_iso e.to_Group_iso).1⟩,
   end }
 
 @[to_additive]
@@ -267,5 +263,5 @@ instance CommGroup.forget_reflects_isos : reflects_isomorphisms (forget CommGrou
     resetI,
     let i := as_iso ((forget CommGroup).map f),
     let e : X ≃* Y := { ..f, ..i.to_equiv },
-    exact { ..e.to_CommGroup_iso },
+    exact ⟨(is_iso.of_iso e.to_CommGroup_iso).1⟩,
   end }

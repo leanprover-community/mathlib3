@@ -3,9 +3,10 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import data.polynomial.ring_division
+import algebra.gcd_monoid.basic
 import data.polynomial.derivative
-import algebra.gcd_monoid
+import data.polynomial.ring_division
+import ring_theory.euclidean_domain
 
 /-!
 # Theory of univariate polynomials
@@ -66,9 +67,11 @@ lemma is_unit_iff_degree_eq_zero : is_unit p ↔ degree p = 0 :=
 
 lemma degree_pos_of_ne_zero_of_nonunit (hp0 : p ≠ 0) (hp : ¬is_unit p) :
   0 < degree p :=
-lt_of_not_ge (λ h, by rw [eq_C_of_degree_le_zero h] at hp0 hp;
-  exact (hp $ is_unit.map' C $
-    is_unit.mk0 (coeff p 0) (mt C_inj.2 (by simpa using hp0))))
+lt_of_not_ge (λ h, begin
+  rw [eq_C_of_degree_le_zero h] at hp0 hp,
+  exact hp (is_unit.map (C.to_monoid_hom : R →* _)
+    (is_unit.mk0 (coeff p 0) (mt C_inj.2 (by simpa using hp0)))),
+end)
 
 lemma monic_mul_leading_coeff_inv (h : p ≠ 0) :
   monic (p * C (leading_coeff p)⁻¹) :=
@@ -83,7 +86,7 @@ by rw [degree_mul, degree_C h₁, add_zero]
 
 theorem irreducible_of_monic {p : polynomial R} (hp1 : p.monic) (hp2 : p ≠ 1) :
   irreducible p ↔ (∀ f g : polynomial R, f.monic → g.monic → f * g = p → f = 1 ∨ g = 1) :=
-⟨λ hp3 f g hf hg hfg, or.cases_on (hp3.2 f g hfg.symm)
+⟨λ hp3 f g hf hg hfg, or.cases_on (hp3.is_unit_or_is_unit hfg.symm)
   (assume huf : is_unit f, or.inl $ eq_one_of_is_unit_of_monic hf huf)
   (assume hug : is_unit g, or.inr $ eq_one_of_is_unit_of_monic hg hug),
 λ hp3, ⟨mt (eq_one_of_is_unit_of_monic hp1) hp2, λ f g hp,
@@ -175,8 +178,8 @@ lemma degree_add_div (hq0 : q ≠ 0) (hpq : degree q ≤ degree p) :
 have degree (p % q) < degree (q * (p / q)) :=
   calc degree (p % q) < degree q : euclidean_domain.mod_lt _ hq0
   ... ≤ _ : degree_le_mul_left _ (mt (div_eq_zero_iff hq0).1 (not_lt_of_ge hpq)),
-by conv {to_rhs, rw [← euclidean_domain.div_add_mod p q, add_comm,
-    degree_add_eq_of_degree_lt this, degree_mul]}
+by conv_rhs { rw [← euclidean_domain.div_add_mod p q,
+    degree_add_eq_left_of_degree_lt this, degree_mul] }
 
 lemma degree_div_le (p q : polynomial R) : degree (p / q) ≤ degree p :=
 if hq : q = 0 then by simp [hq]
@@ -199,7 +202,7 @@ nat_degree_eq_of_degree_eq (degree_map _ f)
 
 @[simp] lemma leading_coeff_map [field k] (f : R →+* k) :
   leading_coeff (p.map f) = f (leading_coeff p) :=
-by simp [leading_coeff, coeff_map f]
+by simp only [← coeff_nat_degree, coeff_map f, nat_degree_map]
 
 theorem monic_map_iff [field k] {f : R →+* k} {p : polynomial R} :
   (p.map f).monic ↔ p.monic :=
@@ -214,7 +217,7 @@ lemma map_div [field k] (f : R →+* k) :
 if hq0 : q = 0 then by simp [hq0]
 else
 by rw [div_def, div_def, map_mul, map_div_by_monic f (monic_mul_leading_coeff_inv hq0)];
-  simp [f.map_inv, leading_coeff, coeff_map f]
+  simp [f.map_inv, coeff_map f]
 
 lemma map_mod [field k] (f : R →+* k) :
   (p % q).map f = p.map f % q.map f :=
@@ -224,7 +227,6 @@ else by rw [mod_def, mod_def, leading_coeff_map f, ← f.map_inv, ← map_C f,
 
 section
 open euclidean_domain
-local attribute [-instance] finsupp.finsupp.decidable_eq
 theorem gcd_map [field k] (f : R →+* k) :
   gcd (p.map f) (q.map f) = (gcd p q).map f :=
 gcd.induction p q (λ x, by simp_rw [map_zero, euclidean_domain.gcd_zero_left]) $ λ x y hx ih,
@@ -261,11 +263,11 @@ theorem is_coprime_map [field k] (f : R →+* k) :
   is_coprime (p.map f) (q.map f) ↔ is_coprime p q :=
 by rw [← gcd_is_unit_iff, ← gcd_is_unit_iff, gcd_map, is_unit_map]
 
-@[simp] lemma map_eq_zero [field k] (f : R →+* k) :
+@[simp] lemma map_eq_zero [semiring S] [nontrivial S] (f : R →+* S) :
   p.map f = 0 ↔ p = 0 :=
-by simp [polynomial.ext_iff, f.map_eq_zero, coeff_map]
+by simp only [polynomial.ext_iff, f.map_eq_zero, coeff_map, coeff_zero]
 
-lemma map_ne_zero [field k] {f : R →+* k} (hp : p ≠ 0) : p.map f ≠ 0 :=
+lemma map_ne_zero [semiring S] [nontrivial S] {f : R →+* S} (hp : p ≠ 0) : p.map f ≠ 0 :=
 mt (map_eq_zero f).1 hp
 
 lemma mem_roots_map [field k] {f : R →+* k} {x : k} (hp : p ≠ 0) :
@@ -275,6 +277,28 @@ begin
   dsimp only [is_root],
   rw polynomial.eval_map,
 end
+
+lemma mem_root_set [field k] [algebra R k] {x : k} (hp : p ≠ 0) :
+  x ∈ p.root_set k ↔ aeval x p = 0 :=
+iff.trans multiset.mem_to_finset (mem_roots_map hp)
+
+lemma root_set_C_mul_X_pow {R S : Type*} [field R] [field S] [algebra R S]
+  {n : ℕ} (hn : n ≠ 0) {a : R} (ha : a ≠ 0) : (C a * X ^ n).root_set S = {0} :=
+begin
+  ext x,
+  rw [set.mem_singleton_iff, mem_root_set, aeval_mul, aeval_C, aeval_X_pow, mul_eq_zero],
+  { simp_rw [ring_hom.map_eq_zero, pow_eq_zero_iff (nat.pos_of_ne_zero hn), or_iff_right_iff_imp],
+    exact λ ha', (ha ha').elim },
+  { exact mul_ne_zero (mt C_eq_zero.mp ha) (pow_ne_zero n X_ne_zero) },
+end
+
+lemma root_set_monomial {R S : Type*} [field R] [field S] [algebra R S]
+  {n : ℕ} (hn : n ≠ 0) {a : R} (ha : a ≠ 0) : (monomial n a).root_set S = {0} :=
+by rw [←C_mul_X_pow_eq_monomial, root_set_C_mul_X_pow hn ha]
+
+lemma root_set_X_pow {R S : Type*} [field R] [field S] [algebra R S]
+  {n : ℕ} (hn : n ≠ 0) : (X ^ n : polynomial R).root_set S = {0} :=
+by { rw [←one_mul (X ^ n : polynomial R), ←C_1, root_set_C_mul_X_pow hn], exact one_ne_zero }
 
 lemma exists_root_of_degree_eq_one (h : degree p = 1) : ∃ x, is_root p x :=
 ⟨-(p.coeff 0 / p.coeff 1),
@@ -312,7 +336,7 @@ theorem map_dvd_map' [field k] (f : R →+* k) {x y : polynomial R} : x.map f �
 if H : x = 0 then by rw [H, map_zero, zero_dvd_iff, zero_dvd_iff, map_eq_zero]
 else by rw [← normalize_dvd_iff, ← @normalize_dvd_iff (polynomial R),
     normalize_apply, normalize_apply,
-    coe_norm_unit_of_ne_zero H, coe_norm_unit_of_ne_zero (mt (map_eq_zero _).1 H),
+    coe_norm_unit_of_ne_zero H, coe_norm_unit_of_ne_zero (mt (map_eq_zero f).1 H),
     leading_coeff_map, ← f.map_inv, ← map_C, ← map_mul,
     map_dvd_map _ f.injective (monic_mul_leading_coeff_inv H)]
 
@@ -320,12 +344,12 @@ lemma degree_normalize : degree (normalize p) = degree p := by simp
 
 lemma prime_of_degree_eq_one (hp1 : degree p = 1) : prime p :=
 have prime (normalize p),
-  from prime_of_degree_eq_one_of_monic (hp1 ▸ degree_normalize)
+  from monic.prime_of_degree_eq_one (hp1 ▸ degree_normalize)
     (monic_normalize (λ hp0, absurd hp1 (hp0.symm ▸ by simp; exact dec_trivial))),
-prime_of_associated normalize_associated this
+(normalize_associated _).prime this
 
 lemma irreducible_of_degree_eq_one (hp1 : degree p = 1) : irreducible p :=
-irreducible_of_prime (prime_of_degree_eq_one hp1)
+(prime_of_degree_eq_one hp1).irreducible
 
 theorem not_irreducible_C (x : R) : ¬irreducible (C x) :=
 if H : x = 0 then by { rw [H, C_0], exact not_irreducible_zero }
@@ -398,6 +422,16 @@ begin
   have mulzero : root_multiplicity b (C a) = 0,
   { simp only [hzero, root_multiplicity_eq_zero, eval_C, is_root.def, not_false_iff] },
   simp only [mulzero, zero_add]
+end
+
+lemma roots_normalize : (normalize p).roots = p.roots :=
+begin
+  by_cases hzero : p = 0,
+  { rw [hzero, normalize_zero], },
+  { have hcoeff : p.leading_coeff ≠ 0,
+    { intro h, exact hzero (leading_coeff_eq_zero.1 h) },
+    rw [normalize_apply, mul_comm, coe_norm_unit_of_ne_zero hzero,
+      roots_C_mul _ (inv_ne_zero hcoeff)], },
 end
 
 end field

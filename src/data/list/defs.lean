@@ -15,15 +15,9 @@ proofs about these definitions, those are contained in other files in `data/list
 
 namespace list
 
-open function nat
+open function nat native (rb_map mk_rb_map rb_map.of_list)
 universes u v w x
-variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
-
-/-- Returns whether a list is []. Returns a boolean even if `l = []` is not decidable. -/
-def is_nil {α} : list α → bool
-| [] := tt
-| _  := ff
-
+variables {α β γ δ ε ζ : Type*}
 instance [decidable_eq α] : has_sdiff (list α) :=
 ⟨ list.diff ⟩
 
@@ -427,6 +421,15 @@ def sections : list (list α) → list (list α)
 
 section permutations
 
+/-- An auxiliary function for defining `permutations`. `permutations_aux2 t ts r ys f` is equal to
+`(ys ++ ts, (insert_left ys t ts).map f ++ r)`, where `insert_left ys t ts` (not explicitly
+defined) is the list of lists of the form `insert_nth n t (ys ++ ts)` for `0 ≤ n < length ys`.
+
+    permutations_aux2 10 [4, 5, 6] [] [1, 2, 3] id =
+      ([1, 2, 3, 4, 5, 6],
+       [[10, 1, 2, 3, 4, 5, 6],
+        [1, 10, 2, 3, 4, 5, 6],
+        [1, 2, 10, 3, 4, 5, 6]]) -/
 def permutations_aux2 (t : α) (ts : list α) (r : list β) : list α → (list α → β) → list α × list β
 | []      f := (ts, r)
 | (y::ys) f := let (us, zs) := permutations_aux2 ys (λx : list α, f (y::x)) in
@@ -451,6 +454,8 @@ using_well_founded {
   dec_tac := tactic.assumption,
   rel_tac := λ _ _, `[exact ⟨(≺), @inv_image.wf _ _ _ meas (prod.lex_wf lt_wf lt_wf)⟩] }
 
+/-- An auxiliary function for defining `permutations`. `permutations_aux ts is` is the set of all
+permutations of `is ++ ts` that do not fix `ts`. -/
 def permutations_aux : list α → list α → list (list α) :=
 @@permutations_aux.rec (λ _ _, list (list α)) (λ is, [])
   (λ t ts is IH1 IH2, foldr (λy r, (permutations_aux2 t ts r y id).2) IH1 (is :: IH2))
@@ -463,9 +468,35 @@ def permutations_aux : list α → list α → list (list α) :=
 def permutations (l : list α) : list (list α) :=
 l :: permutations_aux l []
 
+/-- `permutations'_aux t ts` inserts `t` into every position in `ts`, including the last.
+This function is intended for use in specifications, so it is simpler than `permutations_aux2`,
+which plays roughly the same role in `permutations`.
+
+Note that `(permutations_aux2 t [] [] ts id).2` is similar to this function, but skips the last
+position:
+
+    permutations'_aux 10 [1, 2, 3] =
+      [[10, 1, 2, 3], [1, 10, 2, 3], [1, 2, 10, 3], [1, 2, 3, 10]]
+    (permutations_aux2 10 [] [] [1, 2, 3] id).2 =
+      [[10, 1, 2, 3], [1, 10, 2, 3], [1, 2, 10, 3]] -/
+@[simp] def permutations'_aux (t : α) : list α → list (list α)
+| []      := [[t]]
+| (y::ys) := (t :: y :: ys) :: (permutations'_aux ys).map (cons y)
+
+/-- List of all permutations of `l`. This version of `permutations` is less efficient but has
+simpler definitional equations. The permutations are in a different order,
+but are equal up to permutation, as shown by `list.permutations_perm_permutations'`.
+
+     permutations [1, 2, 3] =
+       [[1, 2, 3], [2, 1, 3], [2, 3, 1],
+        [1, 3, 2], [3, 1, 2], [3, 2, 1]] -/
+@[simp] def permutations' : list α → list (list α)
+| [] := [[]]
+| (t::ts) := (permutations' ts).bind $ permutations'_aux t
+
 end permutations
 
-/-- `erase p l` removes all elements of `l` satisfying the predicate `p` -/
+/-- `erasep p l` removes the first element of `l` satisfying the predicate `p`. -/
 def erasep (p : α → Prop) [decidable_pred p] : list α → list α
 | []     := []
 | (a::l) := if p a then l else a :: erasep l
@@ -837,5 +868,132 @@ zip_right = map₂_right prod.mk
 -/
 def zip_right : list α → list β → list (option α × β) :=
 map₂_right prod.mk
+
+/--
+If all elements of `xs` are `some xᵢ`, `all_some xs` returns the `xᵢ`. Otherwise
+it returns `none`.
+
+```
+all_some [some 1, some 2] = some [1, 2]
+all_some [some 1, none  ] = none
+```
+-/
+def all_some : list (option α) → option (list α)
+| [] := some []
+| (some a :: as) := cons a <$> all_some as
+| (none :: as) := none
+
+/--
+`fill_nones xs ys` replaces the `none`s in `xs` with elements of `ys`. If there
+are not enough `ys` to replace all the `none`s, the remaining `none`s are
+dropped from `xs`.
+
+```
+fill_nones [none, some 1, none, none] [2, 3] = [2, 1, 3]
+```
+-/
+def fill_nones {α} : list (option α) → list α → list α
+| [] _ := []
+| (some a :: as) as' := a :: fill_nones as as'
+| (none :: as) [] := as.reduce_option
+| (none :: as) (a :: as') := a :: fill_nones as as'
+
+/--
+`take_list as ns` extracts successive sublists from `as`. For `ns = n₁ ... nₘ`,
+it first takes the `n₁` initial elements from `as`, then the next `n₂` ones,
+etc. It returns the sublists of `as` -- one for each `nᵢ` -- and the remaining
+elements of `as`. If `as` does not have at least as many elements as the sum of
+the `nᵢ`, the corresponding sublists will have less than `nᵢ` elements.
+
+```
+take_list ['a', 'b', 'c', 'd', 'e'] [2, 1, 1] = ([['a', 'b'], ['c'], ['d']], ['e'])
+take_list ['a', 'b'] [3, 1] = ([['a', 'b'], []], [])
+```
+-/
+def take_list {α} : list α → list ℕ → list (list α) × list α
+| xs [] := ([], xs)
+| xs (n :: ns) :=
+  let ⟨xs₁, xs₂⟩ := xs.split_at n in
+  let ⟨xss, rest⟩ := take_list xs₂ ns in
+  (xs₁ :: xss, rest)
+
+/--
+`to_rbmap as` is the map that associates each index `i` of `as` with the
+corresponding element of `as`.
+
+```
+to_rbmap ['a', 'b', 'c'] = rbmap_of [(0, 'a'), (1, 'b'), (2, 'c')]
+```
+-/
+def to_rbmap : list α → rbmap ℕ α :=
+foldl_with_index (λ i mapp a, mapp.insert i a) (mk_rbmap ℕ α)
+
+/--
+`to_rb_map as` is the map that associates each index `i` of `as` with the
+corresponding element of `as`.
+
+```
+to_rb_map ['a', 'b', 'c'] = rb_map.of_list [(0, 'a'), (1, 'b'), (2, 'c')]
+```
+-/
+meta def to_rb_map {α : Type} : list α → rb_map ℕ α :=
+foldl_with_index (λ i mapp a, mapp.insert i a) mk_rb_map
+
+
+/-- Auxliary definition used to define `to_chunks`.
+
+  `to_chunks_aux n xs i` returns `(xs.take i, (xs.drop i).to_chunks (n+1))`,
+  that is, the first `i` elements of `xs`, and the remaining elements chunked into
+  sublists of length `n+1`. -/
+def to_chunks_aux {α} (n : ℕ) : list α → ℕ → list α × list (list α)
+| [] i := ([], [])
+| (x::xs) 0 := let (l, L) := to_chunks_aux xs n in ([], (x::l)::L)
+| (x::xs) (i+1) := let (l, L) := to_chunks_aux xs i in (x::l, L)
+
+/--
+`xs.to_chunks n` splits the list into sublists of size at most `n`,
+such that `(xs.to_chunks n).join = xs`.
+
+```
+[1, 2, 3, 4, 5, 6, 7, 8].to_chunks 10 = [[1, 2, 3, 4, 5, 6, 7, 8]]
+[1, 2, 3, 4, 5, 6, 7, 8].to_chunks 3 = [[1, 2, 3], [4, 5, 6], [7, 8]]
+[1, 2, 3, 4, 5, 6, 7, 8].to_chunks 2 = [[1, 2], [3, 4], [5, 6], [7, 8]]
+[1, 2, 3, 4, 5, 6, 7, 8].to_chunks 0 = [[1, 2, 3, 4, 5, 6, 7, 8]]
+```
+-/
+def to_chunks {α} : ℕ → list α → list (list α)
+| _ [] := []
+| 0 xs := [xs]
+| (n+1) (x::xs) := let (l, L) := to_chunks_aux n xs n in (x::l)::L
+
+/--
+Asynchronous version of `list.map`.
+-/
+meta def map_async_chunked {α β} (f : α → β) (xs : list α) (chunk_size := 1024) : list β :=
+((xs.to_chunks chunk_size).map (λ xs, task.delay (λ _, list.map f xs))).bind task.get
+
+/-!
+We add some n-ary versions of `list.zip_with` for functions with more than two arguments.
+These can also be written in terms of `list.zip` or `list.zip_with`.
+For example, `zip_with3 f xs ys zs` could also be written as
+`zip_with id (zip_with f xs ys) zs`
+or as
+`(zip xs $ zip ys zs).map $ λ ⟨x, y, z⟩, f x y z`.
+-/
+
+/-- Ternary version of `list.zip_with`. -/
+def zip_with3 (f : α → β → γ → δ) : list α → list β → list γ → list δ
+| (x::xs) (y::ys) (z::zs) := f x y z :: zip_with3 xs ys zs
+| _       _       _       := []
+
+/-- Quaternary version of `list.zip_with`. -/
+def zip_with4 (f : α → β → γ → δ → ε) : list α → list β → list γ → list δ → list ε
+| (x::xs) (y::ys) (z::zs) (u::us) := f x y z u :: zip_with4 xs ys zs us
+| _       _       _       _       := []
+
+/-- Quinary version of `list.zip_with`. -/
+def zip_with5 (f : α → β → γ → δ → ε → ζ) : list α → list β → list γ → list δ → list ε → list ζ
+| (x::xs) (y::ys) (z::zs) (u::us) (v::vs) := f x y z u v :: zip_with5 xs ys zs us vs
+| _       _       _       _       _       := []
 
 end list

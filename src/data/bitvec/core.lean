@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joe Hendrix, Sebastian Ullrich
 -/
 
-import data.vector2
+import data.vector.basic
 import data.nat.basic
 
 /-!
@@ -12,7 +12,8 @@ import data.nat.basic
 
 This is a work-in-progress, and contains additions to other theories.
 
-This file was moved to mathlib from core Lean in the switch to Lean 3.20.0c. It is not fully in compliance with mathlib style standards.
+This file was moved to mathlib from core Lean in the switch to Lean 3.20.0c.
+It is not fully in compliance with mathlib style standards.
 -/
 
 /-- `bitvec n` is a `vector` of `bool` with length `n`. -/
@@ -57,10 +58,11 @@ def fill_shr (x : bitvec n) (i : ℕ) (fill : bool) : bitvec n :=
 bitvec.cong
   begin
     by_cases (i ≤ n),
-    { have h₁ := sub_le n i,
-      rw [min_eq_right h], rw [min_eq_left h₁, ← nat.add_sub_assoc h, nat.add_comm, nat.add_sub_cancel] },
+    { have h₁ := nat.sub_le n i,
+      rw [min_eq_right h],
+      rw [min_eq_left h₁, ← nat.add_sub_assoc h, nat.add_comm, nat.add_sub_cancel] },
     { have h₁ := le_of_not_ge h,
-      rw [min_eq_left h₁, sub_eq_zero_of_le h₁, zero_min, nat.add_zero] }
+      rw [min_eq_left h₁, nat.sub_eq_zero_of_le h₁, nat.zero_min, nat.add_zero] }
   end $
   repeat fill (min n i) ++ₜ take (n-i) x
 

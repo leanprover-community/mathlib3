@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl
+Authors: Johannes Hölzl
 -/
 import data.multiset.nodup
 
@@ -64,7 +64,7 @@ begin
     exact pi.cons_swap eq }
 end
 
-@[simp] lemma pi_zero (t : Πa, multiset (δ a)) : pi 0 t = pi.empty δ ::ₘ 0 := rfl
+@[simp] lemma pi_zero (t : Πa, multiset (δ a)) : pi 0 t = {pi.empty δ} := rfl
 
 @[simp] lemma pi_cons (m : multiset α) (t : Πa, multiset (δ a)) (a : α) :
   pi (a ::ₘ m) t = ((t a).bind $ λb, (pi m t).map $ pi.cons m a b) :=
@@ -106,7 +106,7 @@ lemma mem_pi (m : multiset α) (t : Πa, multiset (δ a)) :
 begin
   refine multiset.induction_on m (λ f, _) (λ a m ih f, _),
   { simpa using show f = pi.empty δ, by funext a ha; exact ha.elim },
-  simp, split,
+  simp only [mem_bind, exists_prop, mem_cons, pi_cons, mem_map], split,
   { rintro ⟨b, hb, f', hf', rfl⟩ a' ha',
     rw [ih] at hf',
     by_cases a' = a,

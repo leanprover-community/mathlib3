@@ -1,100 +1,152 @@
 /-
 Copyright (c) 2020 Frédéric Dupuis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Frédéric Dupuis
+Authors: Frédéric Dupuis, Yaël Dillies
 -/
 
-import algebra.module.basic
-import algebra.ordered_group
+import algebra.module.pi
+import algebra.module.prod
+import algebra.ordered_field
+import algebra.ordered_smul
 
 /-!
-# Ordered semimodules
+# Ordered module
 
-In this file we define
-
-* `ordered_semimodule R M` : an ordered additive commutative monoid `M` is an `ordered_semimodule`
-  over an `ordered_semiring` `R` if the scalar product respects the order relation on the
-  monoid and on the ring. There is a correspondence between this structure and convex cones,
-  which is proven in `analysis/convex/cone.lean`.
-
-## Implementation notes
-
-* We choose to define `ordered_semimodule` so that it extends `semimodule` only, as is done
-  for semimodules itself.
-* To get ordered modules and ordered vector spaces, it suffices to the replace the
-  `order_add_comm_monoid` and the `ordered_semiring` as desired.
+In this file we provide lemmas about `ordered_smul` that hold once a module structure is present.
 
 ## References
 
-* https://en.wikipedia.org/wiki/Ordered_vector_space
+* https://en.wikipedia.org/wiki/Ordered_module
 
 ## Tags
 
-ordered semimodule, ordered module, ordered vector space
+ordered module, ordered scalar, ordered smul, ordered action, ordered vector space
 -/
 
+variables {k M N : Type*}
 
-/--
-An ordered semimodule is an ordered additive commutative monoid
-with a partial order in which the scalar multiplication is compatible with the order.
--/
-@[protect_proj, ancestor semimodule]
-class ordered_semimodule (R β : Type*)
-  [ordered_semiring R] [ordered_add_comm_monoid β] extends semimodule R β :=
-(smul_lt_smul_of_pos : ∀ {a b : β}, ∀ {c : R}, a < b → 0 < c → c • a < c • b)
-(lt_of_smul_lt_smul_of_nonneg : ∀ {a b : β}, ∀ {c : R}, c • a < c • b → 0 ≤ c → a < b)
+section semiring
+variables [ordered_semiring k] [ordered_add_comm_group M] [module k M] [ordered_smul k M]
+  {a b : M} {c : k}
 
-section ordered_semimodule
-
-variables {R β : Type*} [ordered_semiring R] [ordered_add_comm_monoid β] [ordered_semimodule R β]
-  {a b : β} {c : R}
-
-lemma smul_lt_smul_of_pos : a < b → 0 < c → c • a < c • b := ordered_semimodule.smul_lt_smul_of_pos
-
-lemma smul_le_smul_of_nonneg (h₁ : a ≤ b) (h₂ : 0 ≤ c) : c • a ≤ c • b :=
+/- can be generalized from `module k M` to `distrib_mul_action_with_zero k M` once it exists.
+where `distrib_mul_action_with_zero k M`is the conjunction of `distrib_mul_action k M` and
+`smul_with_zero k M`.-/
+lemma smul_neg_iff_of_pos (hc : 0 < c) :
+  c • a < 0 ↔ a < 0 :=
 begin
-  by_cases H₁ : c = 0,
-  { simp [H₁, zero_smul] },
-  { by_cases H₂ : a = b,
-    { rw H₂ },
-    { exact le_of_lt
-        (smul_lt_smul_of_pos (lt_of_le_of_ne h₁ H₂) (lt_of_le_of_ne h₂ (ne.symm H₁))), } }
+  rw [←neg_neg a, smul_neg, neg_neg_iff_pos, neg_neg_iff_pos],
+  exact smul_pos_iff_of_pos hc,
 end
 
-end ordered_semimodule
+end semiring
 
-section instances
+section ring
+variables [ordered_ring k] [ordered_add_comm_group M] [module k M] [ordered_smul k M]
+  {a b : M} {c : k}
 
-variables {R : Type*} [linear_ordered_ring R]
+lemma smul_lt_smul_of_neg (h : a < b) (hc : c < 0) :
+  c • b < c • a :=
+begin
+  rw [←neg_neg c, neg_smul, neg_smul (-c), neg_lt_neg_iff],
+  exact smul_lt_smul_of_pos h (neg_pos_of_neg hc),
+end
 
-instance linear_ordered_ring.to_ordered_semimodule : ordered_semimodule R R :=
-{ smul_lt_smul_of_pos      := ordered_semiring.mul_lt_mul_of_pos_left,
-  lt_of_smul_lt_smul_of_nonneg  := λ _ _ _, lt_of_mul_lt_mul_left }
+lemma smul_le_smul_of_nonpos (h : a ≤ b) (hc : c ≤ 0) :
+  c • b ≤ c • a :=
+begin
+  rw [←neg_neg c, neg_smul, neg_smul (-c), neg_le_neg_iff],
+  exact smul_le_smul_of_nonneg h (neg_nonneg_of_nonpos hc),
+end
 
-end instances
+lemma eq_of_smul_eq_smul_of_neg_of_le (hab : c • a = c • b) (hc : c < 0) (h : a ≤ b) :
+  a = b :=
+begin
+  rw [←neg_neg c, neg_smul, neg_smul (-c), neg_inj] at hab,
+  exact eq_of_smul_eq_smul_of_pos_of_le hab (neg_pos_of_neg hc) h,
+end
 
-section order_dual
+lemma lt_of_smul_lt_smul_of_nonpos (h : c • a < c • b) (hc : c ≤ 0) :
+  b < a :=
+begin
+  rw [←neg_neg c, neg_smul, neg_smul (-c), neg_lt_neg_iff] at h,
+  exact lt_of_smul_lt_smul_of_nonneg h (neg_nonneg_of_nonpos hc),
+end
 
-variables {R β : Type*}
+lemma smul_lt_smul_iff_of_neg (hc : c < 0) :
+  c • a < c • b ↔ b < a :=
+begin
+  rw [←neg_neg c, neg_smul, neg_smul (-c), neg_lt_neg_iff],
+  exact smul_lt_smul_iff_of_pos (neg_pos_of_neg hc),
+end
 
-instance [semiring R] [ordered_add_comm_monoid β] [semimodule R β] : has_scalar R (order_dual β) :=
-{ smul := @has_scalar.smul R β _ }
+lemma smul_neg_iff_of_neg (hc : c < 0) :
+  c • a < 0 ↔ 0 < a :=
+begin
+  rw [←neg_neg c, neg_smul, neg_neg_iff_pos],
+  exact smul_pos_iff_of_pos (neg_pos_of_neg hc),
+end
 
-instance [semiring R] [ordered_add_comm_monoid β] [semimodule R β] : mul_action R (order_dual β) :=
-{ one_smul := @mul_action.one_smul R β _ _,
-  mul_smul := @mul_action.mul_smul R β _ _ }
+lemma smul_pos_iff_of_neg (hc : c < 0) :
+  0 < c • a ↔ a < 0 :=
+begin
+  rw [←neg_neg c, neg_smul, neg_pos],
+  exact smul_neg_iff_of_pos (neg_pos_of_neg hc),
+end
 
-instance [semiring R] [ordered_add_comm_monoid β] [semimodule R β] : distrib_mul_action R (order_dual β) :=
-{ smul_add := @distrib_mul_action.smul_add R β _ _ _,
-  smul_zero := @distrib_mul_action.smul_zero R β _ _ _ }
+end ring
 
-instance [semiring R] [ordered_add_comm_monoid β] [semimodule R β] : semimodule R (order_dual β) :=
-{ add_smul := @semimodule.add_smul R β _ _ _,
-  zero_smul := @semimodule.zero_smul R β _ _ _ }
+section field
+variables [linear_ordered_field k] [ordered_add_comm_group M] [module k M] [ordered_smul k M]
+  {a b : M} {c : k}
 
-instance [ordered_semiring R] [ordered_add_comm_monoid β] [ordered_semimodule R β] :
-  ordered_semimodule R (order_dual β) :=
-{ smul_lt_smul_of_pos := λ a b, @ordered_semimodule.smul_lt_smul_of_pos R β _ _ _ b a,
-  lt_of_smul_lt_smul_of_nonneg := λ a b, @ordered_semimodule.lt_of_smul_lt_smul_of_nonneg R β _ _ _ b a }
+lemma smul_le_smul_iff_of_neg (hc : c < 0) : c • a ≤ c • b ↔ b ≤ a :=
+begin
+  rw [←neg_neg c, neg_smul, neg_smul (-c), neg_le_neg_iff],
+  exact smul_le_smul_iff_of_pos (neg_pos_of_neg hc),
+end
+
+lemma smul_lt_iff_of_neg (hc : c < 0) : c • a < b ↔ c⁻¹ • b < a :=
+begin
+  rw [←neg_neg c, ←neg_neg a, neg_smul_neg, inv_neg, neg_smul _ b, neg_lt_neg_iff],
+  exact smul_lt_iff_of_pos (neg_pos_of_neg hc),
+end
+
+lemma lt_smul_iff_of_neg (hc : c < 0) : a < c • b ↔ b < c⁻¹ • a :=
+begin
+  rw [←neg_neg c, ←neg_neg b, neg_smul_neg, inv_neg, neg_smul _ a, neg_lt_neg_iff],
+  exact lt_smul_iff_of_pos (neg_pos_of_neg hc),
+end
+
+variables [ordered_add_comm_group N] [module k N] [ordered_smul k N]
+
+-- TODO: solve `prod.has_lt` and `prod.has_le` misalignment issue
+instance prod.ordered_smul : ordered_smul k (M × N) :=
+ordered_smul.mk' $ λ (v u : M × N) (c : k) h hc,
+  ⟨smul_le_smul_of_nonneg h.1.1 hc.le, smul_le_smul_of_nonneg h.1.2 hc.le⟩
+
+instance pi.ordered_smul {ι : Type*} {M : ι → Type*} [Π i, ordered_add_comm_group (M i)]
+  [Π i, mul_action_with_zero k (M i)] [∀ i, ordered_smul k (M i)] :
+  ordered_smul k (Π i : ι, M i) :=
+begin
+  refine (ordered_smul.mk' $ λ v u c h hc i, _),
+  change c • v i ≤ c • u i,
+  exact smul_le_smul_of_nonneg (h.le i) hc.le,
+end
+
+-- Sometimes Lean fails to apply the dependent version to non-dependent functions,
+-- so we define another instance
+instance pi.ordered_smul' {ι : Type*} {M : Type*} [ordered_add_comm_group M]
+  [mul_action_with_zero k M] [ordered_smul k M] :
+  ordered_smul k (ι → M) :=
+pi.ordered_smul
+
+end field
+
+namespace order_dual
+
+instance [semiring k] [ordered_add_comm_monoid M] [module k M] : module k (order_dual M) :=
+{ add_smul := λ r s x, order_dual.rec (add_smul _ _) x,
+  zero_smul := λ m, order_dual.rec (zero_smul _) m }
 
 end order_dual

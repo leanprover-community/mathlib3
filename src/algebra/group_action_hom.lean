@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import algebra.group_ring_action
+import group_theory.group_action
 
 /-!
 # Equivariant homomorphisms
@@ -25,10 +26,11 @@ import algebra.group_ring_action
 
 -/
 
+variables (M' : Type*)
+variables (X : Type*) [has_scalar M' X]
+variables (Y : Type*) [has_scalar M' Y]
+variables (Z : Type*) [has_scalar M' Z]
 variables (M : Type*) [monoid M]
-variables (X : Type*) [mul_action M X]
-variables (Y : Type*) [mul_action M Y]
-variables (Z : Type*) [mul_action M Z]
 variables (A : Type*) [add_monoid A] [distrib_mul_action M A]
 variables (A' : Type*) [add_group A'] [distrib_mul_action M A']
 variables (B : Type*) [add_monoid B] [distrib_mul_action M B]
@@ -47,51 +49,63 @@ set_option old_structure_cmd true
 @[nolint has_inhabited_instance]
 structure mul_action_hom :=
 (to_fun : X → Y)
-(map_smul' : ∀ (m : M) (x : X), to_fun (m • x) = m • to_fun x)
+(map_smul' : ∀ (m : M') (x : X), to_fun (m • x) = m • to_fun x)
 
 notation X ` →[`:25 M:25 `] `:0 Y:0 := mul_action_hom M X Y
 
 namespace mul_action_hom
 
-instance : has_coe_to_fun (X →[M] Y) :=
+instance : has_coe_to_fun (X →[M'] Y) :=
 ⟨_, λ c, c.to_fun⟩
 
-variables {M X Y}
+variables {M M' X Y}
 
-@[simp] lemma map_smul (f : X →[M] Y) (m : M) (x : X) : f (m • x) = m • f x :=
+@[simp] lemma map_smul (f : X →[M'] Y) (m : M') (x : X) : f (m • x) = m • f x :=
 f.map_smul' m x
 
-@[ext] theorem ext : ∀ {f g : X →[M] Y}, (∀ x, f x = g x) → f = g
+@[ext] theorem ext : ∀ {f g : X →[M'] Y}, (∀ x, f x = g x) → f = g
 | ⟨f, _⟩ ⟨g, _⟩ H := by { congr' 1 with x, exact H x }
 
-theorem ext_iff {f g : X →[M] Y} : f = g ↔ ∀ x, f x = g x :=
+theorem ext_iff {f g : X →[M'] Y} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ H x, by rw H, ext⟩
 
-variables (M) {X}
+protected lemma congr_fun {f g : X →[M'] Y} (h : f = g) (x : X) : f x = g x := h ▸ rfl
+
+variables (M M') {X}
 
 /-- The identity map as an equivariant map. -/
-protected def id : X →[M] X :=
+protected def id : X →[M'] X :=
 ⟨id, λ _ _, rfl⟩
 
-@[simp] lemma id_apply (x : X) : mul_action_hom.id M x = x := rfl
+@[simp] lemma id_apply (x : X) : mul_action_hom.id M' x = x := rfl
 
-variables {M X Y Z}
+variables {M M' X Y Z}
 
 /-- Composition of two equivariant maps. -/
-def comp (g : Y →[M] Z) (f : X →[M] Y) : X →[M] Z :=
+def comp (g : Y →[M'] Z) (f : X →[M'] Y) : X →[M'] Z :=
 ⟨g ∘ f, λ m x, calc
 g (f (m • x)) = g (m • f x) : by rw f.map_smul
           ... = m • g (f x) : g.map_smul _ _⟩
 
-@[simp] lemma comp_apply (g : Y →[M] Z) (f : X →[M] Y) (x : X) : g.comp f x = g (f x) := rfl
+@[simp] lemma comp_apply (g : Y →[M'] Z) (f : X →[M'] Y) (x : X) : g.comp f x = g (f x) := rfl
 
-@[simp] lemma id_comp (f : X →[M] Y) : (mul_action_hom.id M).comp f = f :=
+@[simp] lemma id_comp (f : X →[M'] Y) : (mul_action_hom.id M').comp f = f :=
 ext $ λ x, by rw [comp_apply, id_apply]
 
-@[simp] lemma comp_id (f : X →[M] Y) : f.comp (mul_action_hom.id M) = f :=
+@[simp] lemma comp_id (f : X →[M'] Y) : f.comp (mul_action_hom.id M') = f :=
 ext $ λ x, by rw [comp_apply, id_apply]
 
-local attribute [instance] mul_action.regular
+variables {A B}
+
+/-- The inverse of a bijective equivariant map is equivariant. -/
+@[simps] def inverse (f : A →[M] B) (g : B → A)
+  (h₁ : function.left_inverse g f) (h₂ : function.right_inverse g f) :
+  B →[M] A :=
+{ to_fun    := g,
+  map_smul' := λ m x,
+    calc g (m • x) = g (m • (f (g x))) : by rw h₂
+               ... = g (f (m • (g x))) : by rw f.map_smul
+               ... = m • g x : by rw h₁, }
 
 variables {G} (H)
 
@@ -104,7 +118,6 @@ def to_quotient : G →[G] quotient_group.quotient H :=
 end mul_action_hom
 
 /-- Equivariant additive monoid homomorphisms. -/
-@[nolint has_inhabited_instance]
 structure distrib_mul_action_hom extends A →[M] B, A →+ B.
 
 /-- Reinterpret an equivariant additive monoid homomorphism as an additive monoid homomorphism. -/
@@ -124,9 +137,11 @@ instance has_coe' : has_coe (A →+[M] B) (A →[M] B) :=
 ⟨to_mul_action_hom⟩
 
 instance : has_coe_to_fun (A →+[M] B) :=
-⟨_, λ c, c.to_fun⟩
+⟨_, to_fun⟩
 
 variables {M A B}
+
+@[simp] lemma to_fun_eq_coe (f : A →+[M] B) : f.to_fun = ⇑f := rfl
 
 @[norm_cast] lemma coe_fn_coe (f : A →+[M] B) : ((f : A →+ B) : A → B) = f := rfl
 @[norm_cast] lemma coe_fn_coe' (f : A →+[M] B) : ((f : A →[M] B) : A → B) = f := rfl
@@ -136,6 +151,16 @@ variables {M A B}
 
 theorem ext_iff {f g : A →+[M] B} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ H x, by rw H, ext⟩
+
+protected lemma congr_fun {f g : A →+[M] B} (h : f = g) (x : A) : f x = g x := h ▸ rfl
+
+lemma to_mul_action_hom_injective {f g : A →+[M] B}
+  (h : (f : A →[M] B) = (g : A →[M] B)) : f = g :=
+by { ext a, exact mul_action_hom.congr_fun h a, }
+
+lemma to_add_monoid_hom_injective {f g : A →+[M] B}
+  (h : (f : A →+ B) = (g : A →+ B)) : f = g :=
+by { ext a, exact add_monoid_hom.congr_fun h a, }
 
 @[simp] lemma map_zero (f : A →+[M] B) : f 0 = 0 :=
 f.map_zero'
@@ -162,6 +187,22 @@ protected def id : A →+[M] A :=
 
 variables {M A B C}
 
+instance : has_zero (A →+[M] B) :=
+⟨{ map_smul' := by simp,
+   .. (0 : A →+ B) }⟩
+
+instance : has_one (A →+[M] A) := ⟨distrib_mul_action_hom.id M⟩
+
+@[simp] lemma coe_zero : ((0 : A →+[M] B) : A → B) = 0 := rfl
+
+@[simp] lemma coe_one : ((1 : A →+[M] A) : A → A) = id := rfl
+
+lemma zero_apply (a : A) : (0 : A →+[M] B) a = 0 := rfl
+
+lemma one_apply (a : A) : (1 : A →+[M] A) a = a := rfl
+
+instance : inhabited (A →+[M] B) := ⟨0⟩
+
 /-- Composition of two equivariant additive monoid homomorphisms. -/
 def comp (g : B →+[M] C) (f : A →+[M] B) : A →+[M] C :=
 { .. mul_action_hom.comp (g : B →[M] C) (f : A →[M] B),
@@ -174,6 +215,27 @@ ext $ λ x, by rw [comp_apply, id_apply]
 
 @[simp] lemma comp_id (f : A →+[M] B) : f.comp (distrib_mul_action_hom.id M) = f :=
 ext $ λ x, by rw [comp_apply, id_apply]
+
+/-- The inverse of a bijective `distrib_mul_action_hom` is a `distrib_mul_action_hom`. -/
+@[simps] def inverse (f : A →+[M] B) (g : B → A)
+  (h₁ : function.left_inverse g f) (h₂ : function.right_inverse g f) :
+  B →+[M] A :=
+{ to_fun := g,
+  .. (f : A →+ B).inverse g h₁ h₂,
+  .. (f : A →[M] B).inverse g h₁ h₂ }
+
+section semiring
+
+variables {R M'} [add_monoid M'] [distrib_mul_action R M']
+
+@[ext] lemma ext_ring
+  {f g : R →+[R] M'} (h : f 1 = g 1) : f = g :=
+by { ext x, rw [← mul_one x, ← smul_eq_mul R, f.map_smul, g.map_smul, h], }
+
+lemma ext_ring_iff {f g : R →+[R] M'} : f = g ↔ f 1 = g 1 :=
+⟨λ h, h ▸ rfl, ext_ring⟩
+
+end semiring
 
 end distrib_mul_action_hom
 
@@ -255,36 +317,19 @@ ext $ λ x, by rw [comp_apply, id_apply]
 @[simp] lemma comp_id (f : R →+*[M] S) : f.comp (mul_semiring_action_hom.id M) = f :=
 ext $ λ x, by rw [comp_apply, id_apply]
 
-variables {P : Type*} [comm_semiring P] [mul_semiring_action M P]
-variables {Q : Type*} [comm_semiring Q] [mul_semiring_action M Q]
-open polynomial
-
-/-- An equivariant map induces an equivariant map on polynomials. -/
-protected noncomputable def polynomial (g : P →+*[M] Q) : polynomial P →+*[M] polynomial Q :=
-{ to_fun := map g,
-  map_smul' := λ m p, polynomial.induction_on p
-    (λ b, by rw [smul_C, map_C, coe_fn_coe, g.map_smul, map_C, coe_fn_coe, smul_C])
-    (λ p q ihp ihq, by rw [smul_add, polynomial.map_add, ihp, ihq, polynomial.map_add, smul_add])
-    (λ n b ih, by rw [smul_mul', smul_C, smul_pow, smul_X, polynomial.map_mul, map_C,
-        polynomial.map_pow, map_X, coe_fn_coe, g.map_smul, polynomial.map_mul, map_C,
-        polynomial.map_pow, map_X, smul_mul', smul_C, smul_pow, smul_X, coe_fn_coe]),
-  map_zero' := polynomial.map_zero g,
-  map_add' := λ p q, polynomial.map_add g,
-  map_one' := polynomial.map_one g,
-  map_mul' := λ p q, polynomial.map_mul g }
-
-@[simp] theorem coe_polynomial (g : P →+*[M] Q) : (g.polynomial : polynomial P → polynomial Q) = map g :=
-rfl
-
 end mul_semiring_action_hom
 
-variables (M) {R'} (U : set R') [is_subring U] [is_invariant_subring M U]
+section
+variables (M) {R'} (U : subring R') [is_invariant_subring M U]
 
 /-- The canonical inclusion from an invariant subring. -/
 def is_invariant_subring.subtype_hom : U →+*[M] R' :=
-{ map_smul' := λ m s, rfl, .. is_subring.subtype U }
+{ map_smul' := λ m s, rfl, ..U.subtype }
 
-@[simp] theorem is_invariant_subring.coe_subtype_hom : (is_invariant_subring.subtype_hom M U : U → R') = coe := rfl
+@[simp] theorem is_invariant_subring.coe_subtype_hom :
+  (is_invariant_subring.subtype_hom M U : U → R') = coe := rfl
 
 @[simp] theorem is_invariant_subring.coe_subtype_hom' :
-  (is_invariant_subring.subtype_hom M U : U →+* R') = is_subring.subtype U := rfl
+  (is_invariant_subring.subtype_hom M U : U →+* R') = U.subtype := rfl
+
+end

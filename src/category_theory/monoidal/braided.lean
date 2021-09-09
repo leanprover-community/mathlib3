@@ -87,7 +87,8 @@ by { rw [←left_unitor_tensor, left_unitor_naturality], simp, }
 lemma braiding_left_unitor_aux₂ (X : C) :
   ((β_ X (𝟙_ C)).hom ⊗ (𝟙 (𝟙_ C))) ≫ ((λ_ X).hom ⊗ (𝟙 (𝟙_ C))) = (ρ_ X).hom ⊗ (𝟙 (𝟙_ C)) :=
 calc ((β_ X (𝟙_ C)).hom ⊗ (𝟙 (𝟙_ C))) ≫ ((λ_ X).hom ⊗ (𝟙 (𝟙_ C)))
-    = ((β_ X (𝟙_ C)).hom ⊗ (𝟙 (𝟙_ C))) ≫ (α_ _ _ _).hom ≫ (α_ _ _ _).inv ≫ ((λ_ X).hom ⊗ (𝟙 (𝟙_ C)))
+    = ((β_ X (𝟙_ C)).hom ⊗ (𝟙 (𝟙_ C))) ≫ (α_ _ _ _).hom ≫ (α_ _ _ _).inv ≫
+        ((λ_ X).hom ⊗ (𝟙 (𝟙_ C)))
          : by simp
 ... = ((β_ X (𝟙_ C)).hom ⊗ (𝟙 (𝟙_ C))) ≫ (α_ _ _ _).hom ≫ (𝟙 _ ⊗ (β_ X _).hom) ≫
         (𝟙 _ ⊗ (β_ X _).inv) ≫ (α_ _ _ _).inv ≫ ((λ_ X).hom ⊗ (𝟙 (𝟙_ C)))
@@ -116,7 +117,8 @@ by { rw [←right_unitor_tensor, right_unitor_naturality], simp, }
 lemma braiding_right_unitor_aux₂ (X : C) :
   ((𝟙 (𝟙_ C)) ⊗ (β_ (𝟙_ C) X).hom) ≫ ((𝟙 (𝟙_ C)) ⊗ (ρ_ X).hom) = (𝟙 (𝟙_ C)) ⊗ (λ_ X).hom :=
 calc ((𝟙 (𝟙_ C)) ⊗ (β_ (𝟙_ C) X).hom) ≫ ((𝟙 (𝟙_ C)) ⊗ (ρ_ X).hom)
-    = ((𝟙 (𝟙_ C)) ⊗ (β_ (𝟙_ C) X).hom) ≫ (α_ _ _ _).inv ≫ (α_ _ _ _).hom ≫ ((𝟙 (𝟙_ C)) ⊗ (ρ_ X).hom)
+    = ((𝟙 (𝟙_ C)) ⊗ (β_ (𝟙_ C) X).hom) ≫ (α_ _ _ _).inv ≫ (α_ _ _ _).hom ≫
+        ((𝟙 (𝟙_ C)) ⊗ (ρ_ X).hom)
          : by simp
 ... = ((𝟙 (𝟙_ C)) ⊗ (β_ (𝟙_ C) X).hom) ≫ (α_ _ _ _).inv ≫ ((β_ _ X).hom ⊗ 𝟙 _) ≫
         ((β_ _ X).inv ⊗ 𝟙 _) ≫ (α_ _ _ _).hom ≫ ((𝟙 (𝟙_ C)) ⊗ (ρ_ X).hom)
@@ -211,10 +213,11 @@ A braided functor between braided monoidal categories is a monoidal functor
 which preserves the braiding.
 -/
 structure braided_functor extends monoidal_functor C D :=
--- Note this is stated different than for `lax_braided_functor`.
+-- Note this is stated differently than for `lax_braided_functor`.
 -- We move the `μ X Y` to the right hand side,
 -- so that this makes a good `@[simp]` lemma.
-(braided' : ∀ X Y : C, map (β_ X Y).hom = inv (μ X Y) ≫ (β_ (obj X) (obj Y)).hom ≫ μ Y X . obviously)
+(braided' :
+  ∀ X Y : C, map (β_ X Y).hom = inv (μ X Y) ≫ (β_ (obj X) (obj Y)).hom ≫ μ Y X . obviously)
 
 restate_axiom braided_functor.braided'
 attribute [simp] braided_functor.braided

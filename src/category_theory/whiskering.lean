@@ -28,7 +28,8 @@ If `α : G ⟶ H` then
 -/
 @[simps] def whisker_right {G H : C ⥤ D} (α : G ⟶ H) (F : D ⥤ E) : (G ⋙ F) ⟶ (H ⋙ F) :=
 { app := λ X, F.map (α.app X),
-  naturality' := λ X Y f, by rw [functor.comp_map, functor.comp_map, ←F.map_comp, ←F.map_comp, α.naturality] }
+  naturality' := λ X Y f,
+    by rw [functor.comp_map, functor.comp_map, ←F.map_comp, ←F.map_comp, α.naturality] }
 
 variables (C D E)
 
@@ -103,7 +104,7 @@ rfl
 
 /--
 If `α : G ≅ H` then
-`iso_whisker_right α F : (G ⋙ F) ≅ (G ⋙ F)` has components `F.map_iso (α.app X)`.
+`iso_whisker_right α F : (G ⋙ F) ≅ (H ⋙ F)` has components `F.map_iso (α.app X)`.
 -/
 def iso_whisker_right {G H : C ⥤ D} (α : G ≅ H) (F : D ⥤ E) : (G ⋙ F) ≅ (H ⋙ F) :=
 ((whiskering_right C D E).obj F).map_iso α
@@ -114,10 +115,12 @@ rfl
   (iso_whisker_right α F).inv = whisker_right α.inv F :=
 rfl
 
-instance is_iso_whisker_left (F : C ⥤ D) {G H : D ⥤ E} (α : G ⟶ H) [is_iso α] : is_iso (whisker_left F α) :=
-{ .. iso_whisker_left F (as_iso α) }
-instance is_iso_whisker_right {G H : C ⥤ D} (α : G ⟶ H) (F : D ⥤ E) [is_iso α] : is_iso (whisker_right α F) :=
-{ .. iso_whisker_right (as_iso α) F }
+instance is_iso_whisker_left (F : C ⥤ D) {G H : D ⥤ E} (α : G ⟶ H) [is_iso α] :
+  is_iso (whisker_left F α) :=
+is_iso.of_iso (iso_whisker_left F (as_iso α))
+instance is_iso_whisker_right {G H : C ⥤ D} (α : G ⟶ H) (F : D ⥤ E) [is_iso α] :
+  is_iso (whisker_right α F) :=
+is_iso.of_iso (iso_whisker_right (as_iso α) F)
 
 variables {B : Type u₄} [category.{v₄} B]
 
@@ -180,8 +183,10 @@ variables {E : Type u₅} [category.{v₅} E]
 variables (F : A ⥤ B) (G : B ⥤ C) (H : C ⥤ D) (K : D ⥤ E)
 
 lemma pentagon :
-  (whisker_right (associator F G H).hom K) ≫ (associator F (G ⋙ H) K).hom ≫ (whisker_left F (associator G H K).hom) =
-    ((associator (F ⋙ G) H K).hom ≫ (associator F G (H ⋙ K)).hom) :=
+  (whisker_right (associator F G H).hom K) ≫
+    (associator F (G ⋙ H) K).hom ≫
+    (whisker_left F (associator G H K).hom) =
+  ((associator (F ⋙ G) H K).hom ≫ (associator F G (H ⋙ K)).hom) :=
 by { ext, dsimp, simp }
 
 end functor

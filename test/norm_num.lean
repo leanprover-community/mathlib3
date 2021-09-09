@@ -7,16 +7,15 @@ Tests for norm_num
 -/
 
 import tactic.norm_num
-import data.complex.basic
 
--- constant real : Type
--- notation `ℝ` := real
--- @[instance] constant real.linear_ordered_ring : linear_ordered_field ℝ
+constant real : Type
+notation `ℝ` := real
+@[instance] constant real.linear_ordered_ring : linear_ordered_field ℝ
 
--- constant complex : Type
--- notation `ℂ` := complex
--- @[instance] constant complex.field : field ℂ
--- @[instance] constant complex.char_zero : char_zero ℂ
+constant complex : Type
+notation `ℂ` := complex
+@[instance] constant complex.field : field ℂ
+@[instance] constant complex.char_zero : char_zero ℂ
 
 example : 374 + (32 - (2 * 8123) : ℤ) - 61 * 50 = 86 + 32 * 32 - 4 * 5000
       ∧ 43 ≤ 74 + (33 : ℤ) := by norm_num
@@ -67,10 +66,17 @@ example (x : ℕ) : ℕ := begin
   exact n
 end
 
-example : nat.prime 1277 := by norm_num
-example : nat.min_fac 221 = 13 := by norm_num
+example (a : ℚ) (h : 3⁻¹ * a = a) : true :=
+begin
+  norm_num at h,
+  guard_hyp h : 1 / 3 * a = a,
+  trivial
+end
 
 example (h : (5 : ℤ) ∣ 2) : false := by norm_num at h
+example (h : false) : false := by norm_num at h
+example : true := by norm_num
+example : true ∧ true := by { split, norm_num, norm_num }
 
 example : 10 + 2 = 1 + 11 := by norm_num
 
@@ -83,6 +89,14 @@ example : 0 - 0 = 0 := by norm_num
 example : 100 - 100 = 0 := by norm_num
 example : 5 * (2 - 3) = 0 := by norm_num
 example : 10 - 5 * 5 + (7 - 3) * 6 = 27 - 3 := by norm_num
+
+def foo : ℕ := 1
+
+@[norm_num] meta def eval_foo : expr → tactic (expr × expr)
+| `(foo) := pure (`(1:ℕ), `(eq.refl 1))
+| _ := tactic.failed
+
+example : foo = 1 := by norm_num
 
 -- ordered field examples
 

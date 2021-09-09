@@ -65,7 +65,6 @@ instance [preorder α] : is_antisymm α (<) := is_asymm.is_antisymm _
 instance [preorder α] : is_antisymm α (>) := is_asymm.is_antisymm _
 instance [preorder α] : is_strict_order α (<) := {}
 instance [preorder α] : is_strict_order α (>) := {}
-instance preorder.is_total_preorder [preorder α] [is_total α (≤)] : is_total_preorder α (≤) := {}
 instance [partial_order α] : is_antisymm α (≤) := ⟨@le_antisymm _ _⟩
 instance [partial_order α] : is_antisymm α (≥) := is_antisymm.swap _
 instance [partial_order α] : is_partial_order α (≤) := {}
@@ -82,6 +81,9 @@ instance [linear_order α] : is_trichotomous α (>) := is_trichotomous.swap _
 
 instance order_dual.is_total_le [has_le α] [is_total α (≤)] : is_total (order_dual α) (≤) :=
 @is_total.swap α _ _
+
+lemma ne_of_irrefl {r} [is_irrefl α r] : ∀ {x y : α}, r x y → x ≠ y
+| _ _ h rfl := irrefl _ h
 
 lemma trans_trichotomous_left [is_trans α r] [is_trichotomous α r] {a b c : α} :
   ¬r b a → r b c → r a c :=
@@ -125,22 +127,19 @@ def partial_order_of_SO (r) [is_strict_order α r] : partial_order α :=
 @[algebra] class is_strict_total_order' (α : Type u) (lt : α → α → Prop)
   extends is_trichotomous α lt, is_strict_order α lt : Prop.
 
-/-- Construct a linear order from a `is_strict_total_order'` relation -/
-def linear_order_of_STO' (r) [is_strict_total_order' α r] : linear_order α :=
+/-- Construct a linear order from an `is_strict_total_order'` relation -/
+def linear_order_of_STO' (r) [is_strict_total_order' α r] [Π x y, decidable (¬ r x y)] :
+  linear_order α :=
 { le_total := λ x y,
     match y, trichotomous_of r x y with
     | y, or.inl h := or.inl (or.inr h)
     | _, or.inr (or.inl rfl) := or.inl (or.inl rfl)
     | _, or.inr (or.inr h) := or.inr (or.inr h)
     end,
+  decidable_le := λ x y, decidable_of_iff (¬ r y x)
+    ⟨λ h, ((trichotomous_of r y x).resolve_left h).imp eq.symm id,
+      λ h, h.elim (λ h, h ▸ irrefl_of _ _) (asymm_of r)⟩,
   ..partial_order_of_SO r }
-
-/-- Construct a decidable linear order from a `is_strict_total_order'` relation -/
-def decidable_linear_order_of_STO' (r) [is_strict_total_order' α r] [decidable_rel r] :
-  decidable_linear_order α :=
-by letI LO := linear_order_of_STO' r; exact
-{ decidable_le := λ x y, decidable_of_iff (¬ r y x) (@not_lt _ _ y x),
-  ..LO }
 
 theorem is_strict_total_order'.swap (r) [is_strict_total_order' α r] :
   is_strict_total_order' α (swap r) :=
@@ -220,9 +219,9 @@ instance is_well_order.is_asymm {α} (r : α → α → Prop) [is_well_order α 
   is_asymm α r := by apply_instance
 
 /-- Construct a decidable linear order from a well-founded linear order. -/
-noncomputable def is_well_order.decidable_linear_order (r : α → α → Prop) [is_well_order α r] :
-  decidable_linear_order α :=
-by { haveI := linear_order_of_STO' r, exact classical.DLO α }
+noncomputable def is_well_order.linear_order (r : α → α → Prop) [is_well_order α r] :
+  linear_order α :=
+by { letI := λ x y, classical.dec (¬r x y), exact linear_order_of_STO' r }
 
 instance empty_relation.is_well_order [subsingleton α] : is_well_order α empty_relation :=
 { trichotomous := λ a b, or.inr $ or.inl $ subsingleton.elim _ _,
@@ -276,3 +275,19 @@ end
 
 @[simp] lemma not_unbounded_iff {r : α → α → Prop} (s : set α) : ¬unbounded r s ↔ bounded r s :=
 by { classical, rw [not_iff_comm, not_bounded_iff] }
+
+namespace prod
+
+instance is_refl_preimage_fst {r : α → α → Prop} [h : is_refl α r] :
+  is_refl (α × α) (prod.fst ⁻¹'o r) := ⟨λ a, refl_of r a.1⟩
+
+instance is_refl_preimage_snd {r : α → α → Prop} [h : is_refl α r] :
+  is_refl (α × α) (prod.snd ⁻¹'o r) := ⟨λ a, refl_of r a.2⟩
+
+instance is_trans_preimage_fst {r : α → α → Prop} [h : is_trans α r] :
+  is_trans (α × α) (prod.fst ⁻¹'o r) := ⟨λ _ _ _, trans_of r⟩
+
+instance is_trans_preimage_snd {r : α → α → Prop} [h : is_trans α r] :
+  is_trans (α × α) (prod.snd ⁻¹'o r) := ⟨λ _ _ _, trans_of r⟩
+
+end prod

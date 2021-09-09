@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import data.multiset.nodup
 
@@ -62,7 +62,7 @@ theorem erase_dup_eq_zero {s : multiset α} : erase_dup s = 0 ↔ s = 0 :=
 ⟨λ h, eq_zero_of_subset_zero $ h ▸ subset_erase_dup _,
  λ h, h.symm ▸ erase_dup_zero⟩
 
-@[simp] theorem erase_dup_singleton {a : α} : erase_dup (a ::ₘ 0) = a ::ₘ 0 :=
+@[simp] theorem erase_dup_singleton {a : α} : erase_dup ({a} : multiset α) = {a} :=
 erase_dup_eq_self.2 $ nodup_singleton _
 
 theorem le_erase_dup {s t : multiset α} : s ≤ erase_dup t ↔ s ≤ t ∧ nodup s :=
@@ -75,4 +75,26 @@ by simp [nodup_ext]
 theorem erase_dup_map_erase_dup_eq [decidable_eq β] (f : α → β) (s : multiset α) :
   erase_dup (map f (erase_dup s)) = erase_dup (map f s) := by simp [erase_dup_ext]
 
+@[simp]
+lemma erase_dup_nsmul {s : multiset α} {n : ℕ} (h0 : n ≠ 0) :
+  (n • s).erase_dup = s.erase_dup :=
+begin
+  ext a,
+  by_cases h : a ∈ s;
+  simp [h,h0]
+end
+
+lemma nodup.le_erase_dup_iff_le {s t : multiset α} (hno : s.nodup) :
+  s ≤ t.erase_dup ↔ s ≤ t :=
+by simp [le_erase_dup, hno]
+
 end multiset
+
+lemma multiset.nodup.le_nsmul_iff_le {α : Type*} {s t : multiset α}
+  {n : ℕ} (h : s.nodup) (hn : n ≠ 0) :
+  s ≤ n • t ↔ s ≤ t :=
+begin
+  classical,
+  rw [← h.le_erase_dup_iff_le, iff.comm, ← h.le_erase_dup_iff_le],
+  simp [hn]
+end

@@ -7,6 +7,7 @@ Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston
 import data.equiv.ring
 import group_theory.monoid_localization
 import ring_theory.ideal.operations
+import ring_theory.ideal.local_ring
 import ring_theory.algebraic
 import ring_theory.integral_closure
 import ring_theory.non_zero_divisors
@@ -445,11 +446,23 @@ ring_hom.ext $ monoid_hom.ext_iff.1 $ (to_localization_map M S).lift_comp _
 ring_hom.ext $ monoid_hom.ext_iff.1 $ (to_localization_map M S).lift_of_comp j.to_monoid_hom
 
 variables (M)
+/-- See note [partially-applied ext lemmas] -/
+lemma monoid_hom_ext ⦃j k : S →* P⦄
+  (h : j.comp (algebra_map R S : R →* S) = k.comp (algebra_map R S)) : j = k :=
+submonoid.localization_map.epic_of_localization_map (to_localization_map M S) $
+  monoid_hom.congr_fun h
 
-lemma epic_of_localization_map (j k : S →+* P)
-  (h : ∀ a, j.comp (algebra_map R S) a = k.comp (algebra_map R S) a) : j = k :=
-ring_hom.ext $ monoid_hom.ext_iff.1 $ @submonoid.localization_map.epic_of_localization_map
-  _ _ _ _ _ _ _ (to_localization_map M S) j.to_monoid_hom k.to_monoid_hom h
+/-- See note [partially-applied ext lemmas] -/
+lemma ring_hom_ext ⦃j k : S →+* P⦄
+  (h : j.comp (algebra_map R S) = k.comp (algebra_map R S)) : j = k :=
+ring_hom.coe_monoid_hom_injective $ monoid_hom_ext M $ monoid_hom.ext $ ring_hom.congr_fun h
+
+/-- To show `j` and `k` agree on the whole localization, it suffices to show they agree
+on the image of the base ring, if they preserve `1` and `*`. -/
+protected lemma ext (j k : S → P) (hj1 : j 1 = 1) (hk1 : k 1 = 1)
+  (hjm : ∀ a b, j (a * b) = j a * j b) (hkm : ∀ a b, k (a * b) = k a * k b)
+  (h : ∀ a, j (algebra_map R S a) = k (algebra_map R S a)) : j = k :=
+monoid_hom.mk.inj (monoid_hom_ext M $ monoid_hom.ext h : (⟨j, hj1, hjm⟩ : S →* P) = ⟨k, hk1, hkm⟩)
 
 variables {M}
 
@@ -1040,12 +1053,12 @@ lemma coe_submodule_fg
 
 @[simp]
 lemma coe_submodule_span (s : set R) :
-  coe_submodule S (submodule.span R s) = submodule.span R ((algebra_map R S) '' s) :=
-by { rw [is_localization.coe_submodule, submodule.map_span], refl }
+  coe_submodule S (ideal.span s) = submodule.span R ((algebra_map R S) '' s) :=
+by { rw [is_localization.coe_submodule, ideal.span, submodule.map_span], refl }
 
 @[simp]
 lemma coe_submodule_span_singleton (x : R) :
-  coe_submodule S (submodule.span R {x}) = submodule.span R {(algebra_map R S) x} :=
+  coe_submodule S (ideal.span {x}) = submodule.span R {(algebra_map R S) x} :=
 by rw [coe_submodule_span, set.image_singleton]
 
 variables {g : R →+* P}
@@ -1216,13 +1229,15 @@ begin
   { have x_mem : x ∈ coe_submodule S I := hx.symm ▸ submodule.mem_span_singleton_self x,
     obtain ⟨x, x_mem, rfl⟩ := (mem_coe_submodule _ _).mp x_mem,
     refine ⟨⟨x, coe_submodule_injective S h _⟩⟩,
-    rw [hx, coe_submodule_span_singleton] },
+    rw [ideal.submodule_span_eq, hx, coe_submodule_span_singleton] },
   { refine ⟨⟨algebra_map R S x, _⟩⟩,
-    rw [hx, coe_submodule_span_singleton] }
+    rw [hx, ideal.submodule_span_eq, coe_submodule_span_singleton] }
 end
 
 /-- A `comm_ring` `S` which is the localization of an integral domain `R` at a subset of
-non-zero elements is an integral domain. -/
+non-zero elements is an integral domain.
+See note [reducible non-instances]. -/
+@[reducible]
 def integral_domain_of_le_non_zero_divisors [algebra A S] {M : submonoid A} [is_localization M S]
   (hM : M ≤ non_zero_divisors A) : integral_domain S :=
 { eq_zero_or_eq_zero_of_mul_eq_zero :=
@@ -1242,7 +1257,9 @@ def integral_domain_of_le_non_zero_divisors [algebra A S] {M : submonoid A} [is_
                      λ h, zero_ne_one (is_localization.injective S hM h)⟩,
   .. ‹comm_ring S› }
 
-/-- The localization at of an integral domain to a set of non-zero elements is an integral domain -/
+/-- The localization at of an integral domain to a set of non-zero elements is an integral domain.
+See note [reducible non-instances]. -/
+@[reducible]
 def integral_domain_localization {M : submonoid A} (hM : M ≤ non_zero_divisors A) :
   integral_domain (localization M) :=
 integral_domain_of_le_non_zero_divisors _ hM
@@ -1494,8 +1511,9 @@ show x * dite _ _ _ = 1, by rw [dif_neg hx,
     λ h0, hx $ eq_zero_of_fst_eq_zero (sec_spec (non_zero_divisors A) x) h0⟩),
   one_mul, mul_assoc, mk'_spec, ←eq_mk'_iff_mul_eq]; exact (mk'_sec _ x).symm
 
-/-- A `comm_ring` `K` which is the localization of an integral domain `R` at `R - {0}` is a
-field. -/
+/-- A `comm_ring` `K` which is the localization of an integral domain `R` at `R - {0}` is a field.
+See note [reducible non-instances]. -/
+@[reducible]
 noncomputable def to_field : field K :=
 { inv := is_fraction_ring.inv A,
   mul_inv_cancel := is_fraction_ring.mul_inv_cancel A,
@@ -1684,7 +1702,7 @@ begin
 end
 
 lemma is_unit_denom_of_num_eq_zero {x : K} (h : num A x = 0) : is_unit (denom A x : A) :=
-num_denom_reduced A x (h.symm ▸ dvd_zero _) (dvd_refl _)
+num_denom_reduced A x (h.symm ▸ dvd_zero _) dvd_rfl
 
 end num_denom
 
@@ -1796,6 +1814,43 @@ lemma is_integral_localization' {R S : Type*} [comm_ring R] [comm_ring S]
 
 end is_integral
 
+namespace is_integral_closure
+
+variables (A) {L : Type*} [field K] [field L] [algebra A K] [algebra A L] [is_fraction_ring A K]
+variables (C : Type*) [integral_domain C] [algebra C L] [is_integral_closure C A L]
+variables [algebra A C] [is_scalar_tower A C L]
+
+open algebra
+
+/-- If the field `L` is an algebraic extension of the integral domain `A`,
+the integral closure `C` of `A` in `L` has fraction field `L`. -/
+lemma is_fraction_ring_of_algebraic (alg : is_algebraic A L)
+  (inj : ∀ x, algebra_map A L x = 0 → x = 0) :
+  is_fraction_ring C L :=
+{ map_units := λ ⟨y, hy⟩,
+    is_unit.mk0 _ (show algebra_map C L y ≠ 0, from λ h, mem_non_zero_divisors_iff_ne_zero.mp hy
+      ((algebra_map C L).injective_iff.mp (algebra_map_injective C A L) _ h)),
+  surj := λ z, let ⟨x, y, hy, hxy⟩ := exists_integral_multiple (alg z) inj in
+    ⟨⟨mk' C (x : L) x.2, algebra_map _ _ y,
+        mem_non_zero_divisors_iff_ne_zero.mpr (λ h, hy (inj _
+          (by rw [is_scalar_tower.algebra_map_apply A C L, h, ring_hom.map_zero])))⟩,
+     by rw [set_like.coe_mk, algebra_map_mk', ← is_scalar_tower.algebra_map_apply A C L, hxy]⟩,
+  eq_iff_exists := λ x y, ⟨λ h, ⟨1, by simpa using algebra_map_injective C A L h⟩, λ ⟨c, hc⟩,
+    congr_arg (algebra_map _ L) (mul_right_cancel' (mem_non_zero_divisors_iff_ne_zero.mp c.2) hc)⟩ }
+
+variables (K L)
+
+/-- If the field `L` is a finite extension of the fraction field of the integral domain `A`,
+the integral closure `C` of `A` in `L` has fraction field `L`. -/
+lemma is_fraction_ring_of_finite_extension [algebra K L] [is_scalar_tower A K L]
+  [finite_dimensional K L] : is_fraction_ring C L :=
+is_fraction_ring_of_algebraic A C
+  (is_fraction_ring.comap_is_algebraic_iff.mpr (is_algebraic_of_finite : is_algebraic K L))
+  (λ x hx, is_fraction_ring.to_map_eq_zero_iff.mp ((algebra_map K L).map_eq_zero.mp $
+    (is_scalar_tower.algebra_map_apply _ _ _ _).symm.trans hx))
+
+end is_integral_closure
+
 namespace integral_closure
 
 variables {L : Type*} [field K] [field L] [algebra A K] [is_fraction_ring A K]
@@ -1807,15 +1862,7 @@ the integral closure of `A` in `L` has fraction field `L`. -/
 lemma is_fraction_ring_of_algebraic [algebra A L] (alg : is_algebraic A L)
   (inj : ∀ x, algebra_map A L x = 0 → x = 0) :
   is_fraction_ring (integral_closure A L) L :=
-⟨(λ ⟨⟨y, integral⟩, nonzero⟩,
-   have y ≠ 0 := λ h, mem_non_zero_divisors_iff_ne_zero.mp nonzero (subtype.ext_iff_val.mpr h),
-   show is_unit y, from ⟨⟨y, y⁻¹, mul_inv_cancel this, inv_mul_cancel this⟩, rfl⟩),
- (λ z, let ⟨x, y, hy, hxy⟩ := exists_integral_multiple (alg z) inj in
-   ⟨⟨x, ⟨algebra_map _ _ y, mem_non_zero_divisors_iff_ne_zero.mpr
-      (λ h, hy (inj _ ((congr_arg coe h).trans (subalgebra.coe_zero _))))⟩⟩, hxy⟩),
- (λ x y, ⟨λ (h : x.1 = y.1), ⟨1, by simpa using subtype.ext_iff_val.mpr h⟩,
-          λ ⟨c, hc⟩, congr_arg (algebra_map _ L)
-            (mul_right_cancel' (mem_non_zero_divisors_iff_ne_zero.mp c.2) hc)⟩)⟩
+is_integral_closure.is_fraction_ring_of_algebraic A (integral_closure A L) alg inj
 
 variables (K L)
 
@@ -1824,10 +1871,7 @@ the integral closure of `A` in `L` has fraction field `L`. -/
 lemma is_fraction_ring_of_finite_extension [algebra A L] [algebra K L]
   [is_scalar_tower A K L] [finite_dimensional K L] :
   is_fraction_ring (integral_closure A L) L :=
-is_fraction_ring_of_algebraic
-  (is_fraction_ring.comap_is_algebraic_iff.mpr (is_algebraic_of_finite : is_algebraic K L))
-  (λ x hx, is_fraction_ring.to_map_eq_zero_iff.mp ((algebra_map K L).map_eq_zero.mp $
-    (is_scalar_tower.algebra_map_apply _ _ _ _).symm.trans hx))
+is_integral_closure.is_fraction_ring_of_finite_extension A K L (integral_closure A L)
 
 end integral_closure
 

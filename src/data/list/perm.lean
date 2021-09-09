@@ -9,7 +9,14 @@ import data.list.zip
 import logic.relation
 
 /-!
-# List permutations
+# List Permutations
+
+This file introduces the `list.perm` relation, which is true if two lists are permutations of one
+another.
+
+## Notation
+
+The notation `~` is used for permutation equivalence.
 -/
 
 open_locale nat
@@ -341,6 +348,13 @@ h₁.perm_of_length_le h₂.length_le
 
 theorem subperm.subset {l₁ l₂ : list α} : l₁ <+~ l₂ → l₁ ⊆ l₂
 | ⟨l, p, s⟩ := subset.trans p.symm.subset s.subset
+
+lemma subperm.filter (p : α → Prop) [decidable_pred p]
+  ⦃l l' : list α⦄ (h : l <+~ l') : filter p l <+~ filter p l' :=
+begin
+  obtain ⟨xs, hp, h⟩ := h,
+  exact ⟨_, hp.filter p, h.filter p⟩
+end
 
 end subperm
 

@@ -539,6 +539,16 @@ begin
   exact λ x, ⟨x, mem_interior_iff_mem_nhds.2 (hf x)⟩
 end
 
+lemma countable_cover_nhds_within [second_countable_topology α] {f : α → set α} {s : set α}
+  (hf : ∀ x ∈ s, f x ∈ 𝓝[s] x) : ∃ t ⊆ s, countable t ∧ s ⊆ (⋃ x ∈ t, f x) :=
+begin
+  have : ∀ x : s, coe ⁻¹' (f x) ∈ 𝓝 x, from λ x, preimage_coe_mem_nhds_subtype.2 (hf x x.2),
+  rcases countable_cover_nhds this with ⟨t, htc, htU⟩,
+  refine ⟨coe '' t, subtype.coe_image_subset _ _, htc.image _, λ x hx, _⟩,
+  simp only [bUnion_image, eq_univ_iff_forall, ← preimage_Union, mem_preimage] at htU ⊢,
+  exact htU ⟨x, hx⟩
+end
+
 end topological_space
 
 open topological_space

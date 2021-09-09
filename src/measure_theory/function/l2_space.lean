@@ -195,7 +195,7 @@ section inner_continuous
 
 variables {α : Type*} [topological_space α] [measure_space α] [borel_space α] {𝕜 : Type*}
   [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
-variables (μ : measure α) [finite_measure μ]
+variables (μ : measure α) [is_finite_measure μ]
 
 open_locale bounded_continuous_function
 

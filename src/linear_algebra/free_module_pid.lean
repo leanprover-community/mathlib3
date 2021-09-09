@@ -85,7 +85,7 @@ begin
   refine b.ext_elem (λ i, _),
   rw (eq_bot_iff_generator_eq_zero _).mpr hgen at hϕ,
   rw [linear_equiv.map_zero, finsupp.zero_apply],
-  exact (submodule.eq_bot_iff _).mp (hϕ ((finsupp.lapply i).comp b.repr) bot_le) _ ⟨x, hx, rfl⟩
+  exact (submodule.eq_bot_iff _).mp (hϕ ((finsupp.lapply i) ∘ₗ ↑b.repr) bot_le) _ ⟨x, hx, rfl⟩
 end
 
 /-- `(ϕ : O →ₗ M').submodule_image N` is `ϕ(N)` as a submodule of `M'` -/
@@ -132,7 +132,7 @@ begin
   refine congr_arg coe (show (⟨x, hNO hx⟩ : O) = 0, from b.ext_elem (λ i, _)),
   rw (eq_bot_iff_generator_eq_zero _).mpr hgen at hϕ,
   rw [linear_equiv.map_zero, finsupp.zero_apply],
-  refine (submodule.eq_bot_iff _).mp (hϕ ((finsupp.lapply i).comp b.repr) bot_le) _ _,
+  refine (submodule.eq_bot_iff _).mp (hϕ ((finsupp.lapply i) ∘ₗ ↑b.repr) bot_le) _ _,
   exact (linear_map.mem_submodule_image_of_le hNO).mpr ⟨x, hx, rfl⟩
 end
 
@@ -437,9 +437,7 @@ begin
         (show (set.range (λ ψ : M →ₗ[R] R, ψ.submodule_image N)).nonempty,
          from ⟨_, set.mem_range.mpr ⟨0, rfl⟩⟩),
     obtain ⟨ϕ, rfl⟩ := set.mem_range.mp P_eq,
-    use ϕ,
-    intros ψ hψ,
-    exact P_max _ ⟨_, rfl⟩ hψ },
+    exact ⟨ϕ, λ ψ hψ, P_max _ ⟨_, rfl⟩ hψ⟩ },
   let ϕ := this.some,
   have ϕ_max := this.some_spec,
   -- Since `ϕ(N)` is a `R`-submodule of the PID `R`,

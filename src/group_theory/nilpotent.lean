@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kevin Buzzard
+Authors: Kevin Buzzard, Ines Wright
 -/
 
 import group_theory.general_commutator
@@ -265,12 +265,32 @@ lemma mem_lower_central_series_succ_iff (n : ℕ) (q : G) :
   q ∈ closure {x | ∃ (p ∈ lower_central_series G n) (q ∈ (⊤ : subgroup G)), p * q * p⁻¹ * q⁻¹ = x}
 := iff.rfl
 
+lemma lower_central_series_succ (n : ℕ) :
+  lower_central_series G (n + 1) =
+  closure {x | ∃ (p ∈ lower_central_series G n) (q ∈ (⊤ : subgroup G)), p * q * p⁻¹ * q⁻¹ = x} :=
+rfl
+
 instance (n : ℕ) : normal (lower_central_series G n) :=
 begin
   induction n with d hd,
   { simp [subgroup.top_normal] },
   { haveI := hd,
     exact general_commutator_normal (lower_central_series G d) ⊤ },
+end
+
+lemma lower_central_series_antimono {m n : ℕ} (h : n ≤ m) :
+  lower_central_series G m ≤ lower_central_series G n :=
+begin
+  refine @monotone_nat_of_le_succ (order_dual (subgroup G)) _ _ _ _ _ h,
+  intros n x hx,
+  simp only [mem_lower_central_series_succ_iff, exists_prop, mem_top, exists_true_left, true_and]
+    at hx,
+  refine closure_induction hx _ (subgroup.one_mem _) (@subgroup.mul_mem _ _ _)
+    (@subgroup.inv_mem _ _ _),
+  rintros y ⟨z, hz, a, ha⟩,
+  rw [← ha, mul_assoc, mul_assoc, ← mul_assoc a z⁻¹ a⁻¹],
+  exact mul_mem (lower_central_series G n) hz
+    (normal.conj_mem (lower_central_series.subgroup.normal n) z⁻¹ (inv_mem _ hz) a),
 end
 
 /-- The lower central series of a group is a descending central series. -/
@@ -308,6 +328,28 @@ begin
     use [lower_central_series G, lower_central_series_is_descending_central_series, h] },
 end
 
+lemma lower_central_series_map_subtype_le (H : subgroup G) (n : ℕ) :
+  (lower_central_series H n).map H.subtype ≤ lower_central_series G n :=
+begin
+  induction n with d hd,
+  { simp },
+  { rw [lower_central_series_succ, lower_central_series_succ, monoid_hom.map_closure],
+    apply subgroup.closure_mono,
+    rintros x1 ⟨x2, ⟨x3, hx3, x4, hx4, rfl⟩, rfl⟩,
+    exact ⟨x3, (hd (mem_map.mpr ⟨x3, hx3, rfl⟩)), x4, by simp⟩ }
+end
+
+instance subgroup.is_nilpotent (H : subgroup G) [hG : is_nilpotent G] :
+  is_nilpotent H :=
+begin
+  rw nilpotent_iff_lower_central_series at *,
+  rcases hG with ⟨n, hG⟩,
+  use n,
+  have := lower_central_series_map_subtype_le H n,
+  simp only [hG, set_like.le_def, mem_map, forall_apply_eq_imp_iff₂, exists_imp_distrib] at this,
+  exact eq_bot_iff.mpr (λ x hx, subtype.ext (this x hx)),
+end
+
 @[priority 100]
 instance is_nilpotent_of_subsingleton [subsingleton G] : is_nilpotent G :=
 nilpotent_iff_lower_central_series.2 ⟨0, subsingleton.elim ⊤ ⊥⟩
@@ -320,4 +362,18 @@ begin
   { rintros _ ⟨x, hx : x ∈ upper_central_series G d.succ, rfl⟩ y',
     rcases (h y') with ⟨y, rfl⟩,
     simpa using hd (mem_map_of_mem f (hx y)) }
+end
+
+lemma lower_central_series.map {H : Type*} [group H] (f : G →* H) (n : ℕ) :
+  subgroup.map f (lower_central_series G n) ≤ lower_central_series H n :=
+begin
+  induction n with d hd,
+  { simp [nat.nat_zero_eq_zero] },
+  { rintros a ⟨x, hx : x ∈ lower_central_series G d.succ, rfl⟩,
+    refine closure_induction hx _ (by simp [f.map_one, subgroup.one_mem _])
+      (λ y z hy hz, by simp [monoid_hom.map_mul, subgroup.mul_mem _ hy hz])
+      (λ y hy, by simp [f.map_inv, subgroup.inv_mem _ hy]),
+    rintros a ⟨y, hy, z, ⟨-, rfl⟩⟩,
+    apply mem_closure.mpr,
+    exact λ K hK, hK ⟨f y, hd (mem_map_of_mem f hy), by simp⟩ }
 end

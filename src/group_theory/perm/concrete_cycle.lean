@@ -44,7 +44,7 @@ begin
   { intros h x,
     by_cases hx : x ∈ l; by_cases hx' : x ∈ l',
     { exact (h hx hx').elim },
-    all_goals { have := form_perm_apply_not_mem _ _ ‹_›, tauto } }
+    all_goals { have := form_perm_eq_self_of_not_mem _ _ ‹_›, tauto } }
 end
 
 lemma is_cycle_form_perm (hl : nodup l) (hn : 2 ≤ l.length) :
@@ -58,7 +58,7 @@ begin
     split,
     { rwa form_perm_apply_mem_ne_self_iff _ hl _ (mem_cons_self _ _) },
     { intros w hw,
-      have : w ∈ (x :: y :: l) := form_perm_ne_self_imp_mem _ _ hw,
+      have : w ∈ (x :: y :: l) := mem_of_form_perm_ne_self _ _ hw,
       obtain ⟨k, hk, rfl⟩ := nth_le_of_mem this,
       use k,
       simp only [gpow_coe_nat, form_perm_pow_apply_head _ _ hl k, nat.mod_eq_of_lt hk] } }
@@ -101,87 +101,3 @@ begin
 end
 
 end list
-
-namespace cycle
-
-variables {α : Type*} [decidable_eq α] (s s' : cycle α)
-
-/--
-A cycle `s : cycle α` , given `nodup s` can be interpreted as a `equiv.perm α`
-where each element in the list is permuted to the next one, defined as `form_perm`.
--/
-def form_perm : Π (s : cycle α) (h : nodup s), equiv.perm α :=
-λ s, quot.hrec_on s (λ l h, form_perm l)
-  (λ l₁ l₂ (h : l₁ ~r l₂),
-    begin
-      ext,
-      { exact h.nodup_iff },
-      { intros h₁ h₂ _,
-        exact heq_of_eq (form_perm_eq_of_is_rotated h₁ h) }
-    end)
-
-@[simp] lemma form_perm_coe (l : list α) (hl : l.nodup) :
-  form_perm (l : cycle α) hl = l.form_perm := rfl
-
-lemma form_perm_subsingleton (s : cycle α) (h : subsingleton s) :
-  form_perm s h.nodup = 1 :=
-begin
-  induction s using quot.induction_on,
-  simp only [form_perm_coe, mk_eq_coe],
-  simp only [length_subsingleton_iff, length_coe, mk_eq_coe] at h,
-  cases s with hd tl,
-  { simp },
-  { simp only [length_eq_zero, add_le_iff_nonpos_left, list.length, nonpos_iff_eq_zero] at h,
-    simp [h] }
-end
-
-lemma is_cycle_form_perm (s : cycle α) (h : nodup s) (hn : nontrivial s) :
-  is_cycle (form_perm s h) :=
-begin
-  induction s using quot.induction_on,
-  exact list.is_cycle_form_perm h (length_nontrivial hn)
-end
-
-lemma support_form_perm [fintype α] (s : cycle α) (h : nodup s) (hn : nontrivial s) :
-  support (form_perm s h) = s.to_finset :=
-begin
-  induction s using quot.induction_on,
-  refine support_form_perm_of_nodup s h _,
-  rintro _ rfl,
-  simpa [nat.succ_le_succ_iff] using length_nontrivial hn
-end
-
-lemma form_perm_apply_not_mem (s : cycle α) (h : nodup s) (x : α) (hx : x ∉ s) :
-  form_perm s h x = x :=
-begin
-  induction s using quot.induction_on,
-  simpa using list.form_perm_apply_not_mem _ _ hx
-end
-
-lemma form_perm_apply_mem (s : cycle α) (h : nodup s) (x : α) (hx : x ∈ s) :
-  form_perm s h x = next s h x hx :=
-begin
-  induction s using quot.induction_on,
-  simpa using list.form_perm_apply_mem_eq_next h _ _
-end
-
-lemma form_perm_reverse (s : cycle α) (h : nodup s) :
-  form_perm s.reverse (nodup_reverse_iff.mpr h) = (form_perm s h)⁻¹ :=
-begin
-  induction s using quot.induction_on,
-  simpa using form_perm_reverse _ h
-end
-
-lemma form_perm_eq_form_perm_iff {α : Type*} [decidable_eq α]
-  {s s' : cycle α} {hs : s.nodup} {hs' : s'.nodup} :
-  s.form_perm hs = s'.form_perm hs' ↔ s = s' ∨ s.subsingleton ∧ s'.subsingleton :=
-begin
-  rw [cycle.length_subsingleton_iff, cycle.length_subsingleton_iff],
-  revert s s',
-  intros s s',
-  apply quotient.induction_on₂' s s',
-  intros l l',
-  simpa using form_perm_eq_form_perm_iff
-end
-
-end cycle

@@ -273,7 +273,7 @@ begin
   rw [one_div, mul_inv_cancel (ne_of_lt hq_pos).symm],
 end
 
-lemma snorm'_const' [finite_measure μ] (c : F) (hc_ne_zero : c ≠ 0) (hq_ne_zero : q ≠ 0) :
+lemma snorm'_const' [is_finite_measure μ] (c : F) (hc_ne_zero : c ≠ 0) (hq_ne_zero : q ≠ 0) :
   snorm' (λ x : α , c) q μ = (nnnorm c : ℝ≥0∞) * (μ set.univ) ^ (1/q) :=
 begin
   rw [snorm', lintegral_const, ennreal.mul_rpow_of_ne_top _ (measure_ne_top μ set.univ)],
@@ -292,7 +292,7 @@ lemma snorm_ess_sup_const (c : F) (hμ : μ ≠ 0) :
   snorm_ess_sup (λ x : α, c) μ = (nnnorm c : ℝ≥0∞) :=
 by rw [snorm_ess_sup, ess_sup_const _ hμ]
 
-lemma snorm'_const_of_probability_measure (c : F) (hq_pos : 0 < q) [probability_measure μ] :
+lemma snorm'_const_of_is_probability_measure (c : F) (hq_pos : 0 < q) [is_probability_measure μ] :
   snorm' (λ x : α , c) q μ = (nnnorm c : ℝ≥0∞) :=
 by simp [snorm'_const c hq_pos, measure_univ]
 
@@ -312,7 +312,7 @@ begin
     ennreal.to_real_pos_iff.mpr ⟨lt_of_le_of_ne (zero_le _) h0.symm, h_top⟩],
 end
 
-lemma mem_ℒp_const (c : E) [finite_measure μ] : mem_ℒp (λ a:α, c) p μ :=
+lemma mem_ℒp_const (c : E) [is_finite_measure μ] : mem_ℒp (λ a:α, c) p μ :=
 begin
   refine ⟨measurable_const.ae_measurable, _⟩,
   by_cases h0 : p = 0,
@@ -461,7 +461,7 @@ lemma mem_ℒp_top_of_bound {f : α → E} (hf : ae_measurable f μ) (C : ℝ)
   mem_ℒp f ∞ μ :=
 ⟨hf, by { rw snorm_exponent_top, exact snorm_ess_sup_lt_top_of_ae_bound hfC, }⟩
 
-lemma mem_ℒp.of_bound [finite_measure μ] {f : α → E} (hf : ae_measurable f μ)
+lemma mem_ℒp.of_bound [is_finite_measure μ] {f : α → E} (hf : ae_measurable f μ)
   (C : ℝ) (hfC : ∀ᵐ x ∂μ, ∥f x∥ ≤ C) :
   mem_ℒp f p μ :=
 (mem_ℒp_const C).of_le hf (hfC.mono (λ x hx, le_trans hx (le_abs_self _)))
@@ -697,23 +697,23 @@ begin
 end
 
 lemma snorm'_le_snorm'_of_exponent_le {m : measurable_space α} {p q : ℝ} (hp0_lt : 0 < p)
-  (hpq : p ≤ q) (μ : measure α) [probability_measure μ] {f : α → E} (hf : ae_measurable f μ) :
+  (hpq : p ≤ q) (μ : measure α) [is_probability_measure μ] {f : α → E} (hf : ae_measurable f μ) :
   snorm' f p μ ≤ snorm' f q μ :=
 begin
   have h_le_μ := snorm'_le_snorm'_mul_rpow_measure_univ hp0_lt hpq hf,
   rwa [measure_univ, ennreal.one_rpow, mul_one] at h_le_μ,
 end
 
-lemma snorm'_le_snorm_ess_sup (hq_pos : 0 < q) {f : α → F} [probability_measure μ] :
+lemma snorm'_le_snorm_ess_sup (hq_pos : 0 < q) {f : α → F} [is_probability_measure μ] :
   snorm' f q μ ≤ snorm_ess_sup f μ :=
 le_trans (snorm'_le_snorm_ess_sup_mul_rpow_measure_univ hq_pos) (le_of_eq (by simp [measure_univ]))
 
-lemma snorm_le_snorm_of_exponent_le {p q : ℝ≥0∞} (hpq : p ≤ q) [probability_measure μ]
+lemma snorm_le_snorm_of_exponent_le {p q : ℝ≥0∞} (hpq : p ≤ q) [is_probability_measure μ]
   {f : α → E} (hf : ae_measurable f μ) :
   snorm f p μ ≤ snorm f q μ :=
 (snorm_le_snorm_mul_rpow_measure_univ hpq hf).trans (le_of_eq (by simp [measure_univ]))
 
-lemma snorm'_lt_top_of_snorm'_lt_top_of_exponent_le {p q : ℝ} [finite_measure μ] {f : α → E}
+lemma snorm'_lt_top_of_snorm'_lt_top_of_exponent_le {p q : ℝ} [is_finite_measure μ] {f : α → E}
   (hf : ae_measurable f μ) (hfq_lt_top : snorm' f q μ < ∞) (hp_nonneg : 0 ≤ p) (hpq : p ≤ q) :
   snorm' f p μ < ∞ :=
 begin
@@ -732,7 +732,7 @@ begin
   end
 end
 
-lemma mem_ℒp.mem_ℒp_of_exponent_le {p q : ℝ≥0∞} [finite_measure μ] {f : α → E}
+lemma mem_ℒp.mem_ℒp_of_exponent_le {p q : ℝ≥0∞} [is_finite_measure μ] {f : α → E}
   (hfq : mem_ℒp f q μ) (hpq : p ≤ q) :
   mem_ℒp f p μ :=
 begin
@@ -1103,7 +1103,7 @@ lemma mem_Lp_iff_snorm_lt_top {f : α →ₘ[μ] E} : f ∈ Lp E p μ ↔ snorm 
 lemma mem_Lp_iff_mem_ℒp {f : α →ₘ[μ] E} : f ∈ Lp E p μ ↔ mem_ℒp f p μ :=
 by simp [mem_Lp_iff_snorm_lt_top, mem_ℒp, f.measurable.ae_measurable]
 
-lemma antimono [finite_measure μ] {p q : ℝ≥0∞} (hpq : p ≤ q) : Lp E q μ ≤ Lp E p μ :=
+lemma antimono [is_finite_measure μ] {p q : ℝ≥0∞} (hpq : p ≤ q) : Lp E q μ ≤ Lp E p μ :=
 λ f hf, (mem_ℒp.mem_ℒp_of_exponent_le ⟨f.ae_measurable, hf⟩ hpq).2
 
 @[simp] lemma coe_fn_mk {f : α →ₘ[μ] E} (hf : snorm f p μ < ∞) :
@@ -1137,7 +1137,7 @@ lemma coe_fn_add (f g : Lp E p μ) : ⇑(f + g) =ᵐ[μ] f + g := ae_eq_fun.coe_
 
 lemma coe_fn_sub (f g : Lp E p μ) : ⇑(f - g) =ᵐ[μ] f - g := ae_eq_fun.coe_fn_sub _ _
 
-lemma mem_Lp_const (α) {m : measurable_space α} (μ : measure α) (c : E) [finite_measure μ] :
+lemma mem_Lp_const (α) {m : measurable_space α} (μ : measure α) (c : E) [is_finite_measure μ] :
   @ae_eq_fun.const α _ _ μ _ c ∈ Lp E p μ :=
 (mem_ℒp_const c).snorm_mk_lt_top
 
@@ -1239,11 +1239,11 @@ lemma mem_Lp_of_ae_le [second_countable_topology F] [measurable_space F] [borel_
   {f : α →ₘ[μ] E} {g : Lp F p μ} (h : ∀ᵐ x ∂μ, ∥f x∥ ≤ ∥g x∥) : f ∈ Lp E p μ :=
 mem_Lp_iff_mem_ℒp.2 $ mem_ℒp.of_le (Lp.mem_ℒp g) f.ae_measurable h
 
-lemma mem_Lp_of_ae_bound [finite_measure μ] {f : α →ₘ[μ] E} (C : ℝ) (hfC : ∀ᵐ x ∂μ, ∥f x∥ ≤ C) :
+lemma mem_Lp_of_ae_bound [is_finite_measure μ] {f : α →ₘ[μ] E} (C : ℝ) (hfC : ∀ᵐ x ∂μ, ∥f x∥ ≤ C) :
   f ∈ Lp E p μ :=
 mem_Lp_iff_mem_ℒp.2 $ mem_ℒp.of_bound f.ae_measurable _ hfC
 
-lemma norm_le_of_ae_bound [finite_measure μ] {f : Lp E p μ} {C : ℝ} (hC : 0 ≤ C)
+lemma norm_le_of_ae_bound [is_finite_measure μ] {f : Lp E p μ} {C : ℝ} (hC : 0 ≤ C)
   (hfC : ∀ᵐ x ∂μ, ∥f x∥ ≤ C) :
   ∥f∥ ≤ (measure_univ_nnreal μ) ^ (p.to_real)⁻¹ * C :=
 begin
@@ -2147,7 +2147,7 @@ add_subgroup.mem_add_subgroup_of
 
 namespace bounded_continuous_function
 
-variables [finite_measure μ]
+variables [is_finite_measure μ]
 
 /-- A bounded continuous function on a finite-measure space is in `Lp`. -/
 lemma mem_Lp (f : α →ᵇ E) :
@@ -2230,7 +2230,7 @@ end bounded_continuous_function
 
 namespace continuous_map
 
-variables [compact_space α] [finite_measure μ]
+variables [compact_space α] [is_finite_measure μ]
 variables (𝕜 : Type*) [measurable_space 𝕜] (p μ) [fact (1 ≤ p)]
 
 /-- The bounded linear map of considering a continuous function on a compact finite-measure

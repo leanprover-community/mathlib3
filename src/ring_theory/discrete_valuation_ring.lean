@@ -9,6 +9,7 @@ import order.conditionally_complete_lattice
 import ring_theory.ideal.local_ring
 import ring_theory.multiplicity
 import ring_theory.valuation.basic
+import linear_algebra.adic_completion
 
 /-!
 # Discrete valuation rings
@@ -89,6 +90,10 @@ begin
     refine is_unit_of_dvd_one ϖ _,
     use a * b, exact hh.symm }
 end⟩
+
+lemma _root_.irreducible.maximal_ideal_eq {ϖ : R} (h : irreducible ϖ) :
+  maximal_ideal R = ideal.span {ϖ} :=
+(irreducible_iff_uniformizer _).mp h
 
 variable (R)
 
@@ -414,7 +419,8 @@ add_val_def _ u hϖ n rfl
 (add_val R).map_one
 
 @[simp] lemma add_val_uniformizer {ϖ : R} (hϖ : irreducible ϖ) : add_val R ϖ = 1 :=
-add_val_def ϖ 1 hϖ 1 (by simp)
+by simpa only [one_mul, eq_self_iff_true, units.coe_one, pow_one, forall_true_left, nat.cast_one]
+  using add_val_def ϖ 1 hϖ 1
 
 @[simp] lemma add_val_mul {a b : R} :
   add_val R (a * b) = add_val R a + add_val R b :=
@@ -422,6 +428,10 @@ add_val_def ϖ 1 hϖ 1 (by simp)
 
 lemma add_val_pow (a : R) (n : ℕ) : add_val R (a ^ n) = n • add_val R a :=
 (add_val R).map_pow _ _
+
+lemma _root_.irreducible.add_val_pow {ϖ : R} (h : irreducible ϖ) (n : ℕ) :
+  add_val R (ϖ ^ n) = n :=
+by rw [add_val_pow, add_val_uniformizer h, nsmul_one]
 
 lemma add_val_eq_top_iff {a : R} : add_val R a = ⊤ ↔ a = 0 :=
 begin
@@ -458,5 +468,16 @@ lemma add_val_add {a b : R} :
 (add_val R).map_add _ _
 
 end
+
+instance (R : Type*) [integral_domain R] [discrete_valuation_ring R] :
+  is_Hausdorff (maximal_ideal R) R :=
+{ haus' := λ x hx,
+  begin
+    obtain ⟨ϖ, hϖ⟩ := exists_irreducible R,
+    simp only [← ideal.one_eq_top, smul_eq_mul, mul_one, smodeq.zero,
+      hϖ.maximal_ideal_eq, ideal.span_singleton_pow, ideal.mem_span_singleton,
+      ← add_val_le_iff_dvd, hϖ.add_val_pow] at hx,
+    rwa [← add_val_eq_top_iff, enat.eq_top_iff_forall_le],
+  end }
 
 end discrete_valuation_ring

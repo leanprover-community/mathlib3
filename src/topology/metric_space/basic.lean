@@ -560,7 +560,7 @@ theorem totally_bounded_iff {s : set α} :
 /-- A pseudometric space space is totally bounded if one can reconstruct up to any ε>0 any element
 of the space from finitely many data. -/
 lemma totally_bounded_of_finite_discretization {s : set α}
-  (H : ∀ε > (0 : ℝ), ∃ (β : Type u) [fintype β] (F : s → β),
+  (H : ∀ε > (0 : ℝ), ∃ (β : Type u) (_ : fintype β) (F : s → β),
     ∀x y, F x = F y → dist (x:α) y < ε) :
   totally_bounded s :=
 begin
@@ -2110,7 +2110,7 @@ open topological_space
 /-- A metric space space is second countable if one can reconstruct up to any `ε>0` any element of
 the space from countably many data. -/
 lemma second_countable_of_countable_discretization {α : Type u} [metric_space α]
-  (H : ∀ε > (0 : ℝ), ∃ (β : Type*) [encodable β] (F : α → β), ∀x y, F x = F y → dist x y ≤ ε) :
+  (H : ∀ε > (0 : ℝ), ∃ (β : Type*) (_ : encodable β) (F : α → β), ∀x y, F x = F y → dist x y ≤ ε) :
   second_countable_topology α :=
 begin
   cases (univ : set α).eq_empty_or_nonempty with hs hs,

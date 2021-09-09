@@ -18,7 +18,8 @@ over a normed field:
 * `balanced`: The subset properties of being `absorbent` and `balanced`
 * `seminorm`: A function to the reals that is positive-semidefinite,
   absolutely homogeneous, and subadditive.
-* `gauge`: Aka Minkowksi functional.
+* `gauge`: Aka Minkowksi functional. `gauge s x` is the smallest (actually, an infimum) `θ` such
+  that `x ∈ θ • s`.
 
 We prove related properties.
 
@@ -52,27 +53,46 @@ nondiscrete normed field.
 open normed_field set
 open_locale pointwise topological_space
 
-lemma real.Inf_smul {θ : ℝ} (hθ : 0 ≤ θ) (s : set ℝ) :
-  Inf (θ • s) = θ * Inf s :=
+section
+variables {α : Type*} [linear_ordered_field α] [topological_space α] [module α ℝ]
+  [has_continuous_smul α ℝ] [ordered_smul α ℝ]
+
+lemma real.Inf_smul_of_nonneg {a : α} (ha : 0 ≤ a) (s : set ℝ) :
+  Inf (a • s) = a • Inf s :=
 begin
   obtain rfl | hs := s.eq_empty_or_nonempty,
-  { rw [smul_set_empty, real.Inf_empty, mul_zero] },
+  { rw [smul_set_empty, real.Inf_empty, smul_zero] },
   by_cases bdd_below s,
   { rw [←set.image_smul, eq_comm],
-    exact map_cInf_of_continuous_at_of_monotone (continuous_mul_left θ).continuous_at
-      (monotone_mul_left_of_nonneg hθ) hs h },
-  { rw [real.Inf_of_not_bdd_below h, mul_zero],
-    obtain rfl | hθ' := hθ.eq_or_lt,
+    exact map_cInf_of_continuous_at_of_monotone (continuous_id.const_smul _).continuous_at
+      (smul_mono_right ha) hs h },
+  { rw [real.Inf_of_not_bdd_below h, smul_zero],
+    obtain rfl | ha' := ha.eq_or_lt,
     { rw zero_smul_set hs,
       exact cInf_singleton 0 },
-    { refine real.Inf_of_not_bdd_below (λ H, h _),
-      rintro ⟨t, ht⟩,
-      apply h₁,
-      refine ⟨t / θ, λ z hz, _⟩,
-      rw div_le_iff hθ',
-      apply ht,
-      rw mul_comm,
-      exact ⟨_, hz, smul_eq_mul _⟩ } },
+    { sorry
+      -- exact real.Inf_of_not_bdd_below (mt (bdd_below_smul_iff_of_pos ha).2 _)
+      } }
+end
+
+lemma real.Sup_smul_of_nonneg {a : α} (ha : 0 ≤ a) (s : set ℝ) :
+  Sup (a • s) = a • Sup s :=
+begin
+  obtain rfl | hs := s.eq_empty_or_nonempty,
+  { rw [smul_set_empty, real.Sup_empty, smul_zero] },
+  by_cases bdd_above s,
+  { rw [←set.image_smul, eq_comm],
+    exact map_cSup_of_continuous_at_of_monotone (continuous_id.const_smul _).continuous_at
+      (smul_mono_right ha) hs h },
+  { rw [real.Sup_of_not_bdd_above h, smul_zero],
+    obtain rfl | ha' := ha.eq_or_lt,
+    { rw zero_smul_set hs,
+      exact cSup_singleton 0 },
+    { sorry
+     -- exact real.Inf_of_not_bdd_below (mt (bdd_above_smul_iff_of_pos ha).2 _)
+    } }
+end
+
 end
 
 section
@@ -275,6 +295,7 @@ end
 
 end seminorm
 
+section gauge
 noncomputable theory
 variables {E : Type*} [add_comm_group E] [module ℝ E]
 
@@ -336,7 +357,7 @@ end
 /-- The gauge is always nonnegative. -/
 lemma gauge_nonneg (x : E) :
   0 ≤ gauge s x :=
-real.Inf_nonneg _ (λ x hx, le_of_lt hx.1).
+real.Inf_nonneg _ (λ x hx, hx.1.le)
 
 lemma gauge_le_one_eq' (hs : convex s) (zero_mem : (0 : E) ∈ s) (absorbs : absorbent ℝ s) :
   {x | gauge s x ≤ 1} = ⋂ (θ : ℝ) (H : 1 < θ), θ • s :=
@@ -411,7 +432,7 @@ begin
   refine convex_Inter (λ i, convex_Inter (λ (hi : _ < _), convex.smul _ hs)),
 end
 
-lemma interior_subset_gauge_lt_one [topological_space E] [has_continuous_smul ℝ E] :
+lemma interior_subset_gauge_lt_one [topological_space E] [has_continuous_smul ℝ E] (s : set E) :
   interior s ⊆ {x | gauge s x < 1} :=
 begin
   intros x hx,
@@ -436,24 +457,22 @@ begin
     (hε ⟨(sub_le_self _ hε₀.le).trans ((le_add_iff_nonneg_right _).2 hε₀.le), le_rfl⟩),
 end
 
-lemma gauge_lt_one_eq_self_of_open [topological_space E] [has_continuous_smul ℝ E]
+lemma gauge_lt_one_eq_self_of_open [topological_space E] [has_continuous_smul ℝ E] {s : set E}
   (hs : convex s) (zero_mem : (0 : E) ∈ s) (hs₂ : is_open s) :
   {x | gauge s x < 1} = s :=
 begin
-  apply set.subset.antisymm,
-  { apply gauge_lt_one_subset_self hs ‹_› (absorbent_nhds_zero (hs₂.mem_nhds zero_mem)) },
-  refine set.subset.trans _ interior_subset_gauge_lt_one,
-  rw hs₂.interior_eq
+  apply (gauge_lt_one_subset_self hs ‹_› $ absorbent_nhds_zero $ hs₂.mem_nhds zero_mem).antisymm,
+  convert interior_subset_gauge_lt_one s,
+  exact hs₂.interior_eq.symm,
 end
 
-lemma gauge_lt_one_of_mem_of_open [topological_space E] [has_continuous_smul ℝ E]
+lemma gauge_lt_one_of_mem_of_open [topological_space E] [has_continuous_smul ℝ E] {s : set E}
   (hs : convex s) (zero_mem : (0 : E) ∈ s) (hs₂ : is_open s) (x : E) (hx : x ∈ s) :
   gauge s x < 1 :=
 by rwa ←gauge_lt_one_eq_self_of_open hs zero_mem hs₂ at hx
 
-lemma one_le_gauge_of_not_mem [topological_space E] [has_continuous_smul ℝ E]
-  (hs : convex s) (zero_mem : (0 : E) ∈ s)
-  (hs₂ : is_open s) (x : E) (hx : x ∉ s) :
+lemma one_le_gauge_of_not_mem [topological_space E] [has_continuous_smul ℝ E] {s : set E}
+  (hs : convex s) (zero_mem : (0 : E) ∈ s) (hs₂ : is_open s) {x : E} (hx : x ∉ s) :
   1 ≤ gauge s x :=
 begin
   rw ←gauge_lt_one_eq_self_of_open hs zero_mem hs₂ at hx,
@@ -466,34 +485,51 @@ begin
   have : ∀ x, -x ∈ s ↔ x ∈ s := λ x, ⟨λ h, by simpa using symmetric _ h, symmetric x⟩,
   rw [gauge_def', gauge_def'],
   simp_rw [smul_neg, this],
-end
+end.
 
-lemma gauge_smul {θ : ℝ} (hθ : 0 ≤ θ) (x : E) :
-  gauge s (θ • x) = θ * gauge s x :=
+variables {α : Type*} [linear_ordered_field α] [topological_space α] [module α ℝ]
+  [has_continuous_smul α ℝ] [ordered_smul α ℝ]
+
+lemma gauge_smul [mul_action_with_zero α E] [is_scalar_tower α ℝ (set E)] {s : set E} {θ : α}
+  (hθ : 0 ≤ θ)
+  (x : E) :
+  gauge s (θ • x) = θ • gauge s x :=
 begin
   obtain rfl | hθ' := hθ.eq_or_lt,
-  { rw [zero_smul, gauge_zero, zero_mul] },
-  rw [gauge_def', gauge_def', real.Inf_smul _ hθ],
+  { rw [zero_smul, gauge_zero, zero_smul] },
+  rw [gauge_def', gauge_def', ←real.Inf_smul_of_nonneg hθ],
   congr' 1,
   ext β,
   simp_rw [set.mem_smul_set, set.mem_sep_eq],
   split,
-  { rintro ⟨hβ₁, hβ₂⟩,
-    refine ⟨β * θ⁻¹, ⟨mul_pos ‹0 < β› (inv_pos.2 hθ'), _⟩, _⟩,
-    rwa [mul_inv', inv_inv', mul_smul],
-    rw [smul_eq_mul, mul_left_comm, mul_inv_cancel hθ'.ne', mul_one] },
-  { rintro ⟨β, ⟨hβ, _⟩, rfl⟩,
-    refine ⟨mul_pos hθ' hβ, _⟩,
-    rwa [smul_eq_mul, mul_inv_rev', ←mul_smul, mul_assoc, inv_mul_cancel hθ'.ne', mul_one] }
+  { rintro ⟨hβ, hx⟩,
+    simp_rw [mem_Ioi] at ⊢ hβ,
+    have := smul_pos (inv_pos.2 hθ') hβ,
+    refine ⟨θ⁻¹ • β, ⟨this, _⟩, smul_inv_smul' hθ'.ne' _⟩,
+    rw ←mem_smul_set_iff_inv_smul_mem at ⊢ hx,
+    rwa [smul_assoc, mem_smul_set_iff_inv_smul_mem (inv_ne_zero hθ'.ne'), inv_inv'],
+    { exact this.ne' },
+    { exact hβ.ne' } },
+  { rintro ⟨β, ⟨hβ, hx⟩, rfl⟩,
+    rw mem_Ioi at ⊢ hβ,
+    have := smul_pos hθ' hβ,
+    refine ⟨this, _⟩,
+    rw ←mem_smul_set_iff_inv_smul_mem at ⊢ hx,
+    rw smul_assoc,
+    exact smul_mem_smul_set hx,
+    { exact this.ne' },
+    { exact hβ.ne'} }
 end
 
-lemma gauge_homogeneous (symmetric : ∀ x ∈ s, -x ∈ s) (θ : ℝ) (x : E) :
-  gauge s (θ • x) = abs θ * gauge s x :=
+lemma gauge_homogeneous [module α E] [is_scalar_tower α ℝ (set E)] {s : set E}
+  (symmetric : ∀ x ∈ s, -x ∈ s) (θ : α) (x : E) :
+  gauge s (θ • x) = abs θ • gauge s x :=
 begin
   rw ←gauge_smul (abs_nonneg θ),
-  cases abs_choice θ with h h,
+  obtain h | h := abs_choice θ,
   { rw h },
-  { rw [h, neg_smul, gauge_neg symmetric] }
+  { rw [h, neg_smul, gauge_neg symmetric] },
+  { apply_instance }
 end
 
 lemma gauge_subadditive (hs : convex s) (absorbs : absorbent ℝ s) (x y : E) :
@@ -516,11 +552,14 @@ begin
     ←mem_smul_set_iff_inv_smul_mem hab.ne'] at this,
 end
 
-/-- If `s` is symmetric, convex and absorbent, it defines a seminorm. -/
+/-- If `s` is symmetric, convex and absorbent, its `gauge` is a seminorm. -/
 def gauge_seminorm (symmetric : ∀ x ∈ s, -x ∈ s) (hs : convex s) (hs' : absorbent ℝ s) :
   seminorm ℝ E :=
 { to_fun := gauge s,
-  smul' := λ θ x, by rw [gauge_homogeneous symmetric, real.norm_eq_abs],
+  smul' := λ θ x, by rw [gauge_homogeneous symmetric, real.norm_eq_abs, smul_eq_mul];
+    apply_instance,
   triangle' := gauge_subadditive hs hs' }
+
+end gauge
 
 -- TODO: topology induced by family of seminorms, local convexity.

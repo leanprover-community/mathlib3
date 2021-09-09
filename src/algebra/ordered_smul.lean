@@ -64,6 +64,9 @@ begin
         (smul_lt_smul_of_pos (lt_of_le_of_ne h₁ H₂) (lt_of_le_of_ne h₂ (ne.symm H₁))), } }
 end
 
+lemma smul_mono_right (hc : 0 ≤ c) : monotone (has_scalar.smul c : M → M) :=
+λ a b h, smul_le_smul_of_nonneg h hc
+
 lemma eq_of_smul_eq_smul_of_pos_of_le (h₁ : c • a = c • b) (hc : 0 < c) (hle : a ≤ b) :
   a = b :=
 hle.lt_or_eq.resolve_left $ λ hlt, (smul_lt_smul_of_pos hlt hc).ne h₁
@@ -78,6 +81,8 @@ lemma smul_lt_smul_iff_of_pos (hc : 0 < c) : c • a < c • b ↔ a < b :=
 lemma smul_pos_iff_of_pos (hc : 0 < c) : 0 < c • a ↔ 0 < a :=
 calc 0 < c • a ↔ c • 0 < c • a : by rw smul_zero'
            ... ↔ 0 < a         : smul_lt_smul_iff_of_pos hc
+
+lemma smul_pos (hc : 0 < c) (ha : 0 < a) : 0 < c • a := (smul_pos_iff_of_pos hc).2 ha
 
 end ordered_smul
 

@@ -1314,6 +1314,7 @@ lemma set_integral_condexp (hf : integrable f ℙ) (hs : measurable_set[m] s) :
 begin
   let S := spanning_sets (ℙ.trim hm),
   have hS_meas : ∀ i, measurable_set[m] (S i) := measurable_spanning_sets (ℙ.trim hm),
+  have hS_meas0 : ∀ i, measurable_set (S i) := λ i, hm _ (hS_meas i),
   have hS_finite : ∀ i, ℙ (S i) < ∞,
   { intro i,
     have hS_finite_trim := measure_spanning_sets_lt_top (ℙ.trim hm) i,
@@ -1323,10 +1324,21 @@ begin
     refine set_integral_condexp_of_measure_ne_top hf
       (@measurable_set.inter α m _ _ (hS_meas i) hs) (ne_of_lt _),
     exact (measure_mono (set.inter_subset_left _ _)).trans_lt (hS_finite i), },
+  have hs_eq : s = ⋃ i, (S i) ∩ s,
+  { simp_rw set.inter_comm,
+    rw [← set.inter_Union, (Union_spanning_sets (ℙ.trim hm)), set.inter_univ], },
+  have h_mono : monotone (λ i, (S i) ∩ s),
+  { intros i j hij x,
+    simp_rw set.mem_inter_iff,
+    exact λ h, ⟨monotone_spanning_sets (ℙ.trim hm) hij h.1, h.2⟩, },
   have h_right : tendsto (λ i, ∫ x in (S i) ∩ s, f x ∂ℙ) at_top (𝓝 (∫ x in s, f x ∂ℙ)),
-  { sorry, },
+  { have h := tendsto_set_integral_of_monotone (λ i, (hS_meas0 i).inter (hm s hs))
+      h_mono hf.integrable_on,
+    rwa ← hs_eq at h, },
   have h_left : tendsto (λ i, ∫ x in (S i) ∩ s, ℙ[f|hm] x ∂ℙ) at_top (𝓝 (∫ x in s, ℙ[f|hm] x ∂ℙ)),
-  { sorry, },
+  { have h := tendsto_set_integral_of_monotone (λ i, (hS_meas0 i).inter (hm s hs))
+      h_mono (integrable_condexp f).integrable_on,
+    rwa ← hs_eq at h, },
   rw h_eq_forall at h_left,
   exact tendsto_nhds_unique h_left h_right,
 end

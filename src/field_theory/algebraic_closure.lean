@@ -43,21 +43,6 @@ universes u v w
 noncomputable theory
 open_locale classical big_operators
 open polynomial
--- #print ideal.quotient.lift_mk
--- open ideal
-
--- @[simp] lemma ideal.quotient.lift_comp_mk {R : Type*} [comm_ring R]
---   {S : Type v} [comm_ring S] {I : ideal R} (f : R →+* S) (H : I ≤ f.ker) :
---   (ideal.quotient.lift I f H).comp I^.quotient.mk = f :=
--- by ext; simp
-
--- lemma ker_quotient_lift {R : Type} [comm_ring R]
---   {S : Type v} [comm_ring S] {I : ideal R} (f : R →+* S) (H : I ≤ f.ker) :
---   (ideal.quotient.lift I f H).ker = (f.ker).map I^.quotient.mk :=
--- by rwa [← (comap_injective_of_surjective _ quotient.mk_surjective).eq_iff,
---     ring_hom.ker_eq_comap_bot, comap_comap, ← ring_hom.ker_eq_comap_bot,
---     comap_map_of_surjective _ quotient.mk_surjective,
---     ideal.quotient.lift_comp_mk, ← ring_hom.ker_eq_comap_bot, mk_ker, left_eq_sup]
 
 variables (k : Type u) [field k]
 

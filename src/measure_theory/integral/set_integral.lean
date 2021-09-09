@@ -87,17 +87,14 @@ begin
   induction t using finset.induction_on with a t hat IH hs h's,
   { simp },
   { have : (⋃ i ∈ insert a t, s i) = s a ∪ (⋃ i ∈ t, s i), by simp,
-    rw [this, integral_union],
+    rw [this, integral_union _ _ _ hf.integrable_on hf.integrable_on],
     { simp only [hat, finset.sum_insert, not_false_iff, add_right_inj],
       exact IH (λ i hi, hs i (finset.mem_insert_of_mem hi)) (h's.mono (finset.subset_insert _ _)) },
     { simp only [disjoint_Union_right],
-      assume i hi,
-      apply h's _ (finset.mem_insert_self _ _) _ (finset.mem_insert_of_mem hi)
+      exact λ i hi, h's _ (finset.mem_insert_self _ _) _ (finset.mem_insert_of_mem hi)
         (ne_of_mem_of_not_mem hi hat).symm },
-    { apply hs _ (finset.mem_insert_self _ _) },
-    { apply finset.measurable_set_bUnion _ (λ i hi, hs i (finset.mem_insert_of_mem hi)) },
-    { apply hf.integrable_on },
-    { apply hf.integrable_on } }
+    { exact hs _ (finset.mem_insert_self _ _) },
+    { exact finset.measurable_set_bUnion _ (λ i hi, hs i (finset.mem_insert_of_mem hi)) }, }
 end
 
 lemma integral_fintype_Union {ι : Type*} [fintype ι] {s : ι → set α}
@@ -140,8 +137,8 @@ begin
 end
 
 lemma has_sum_integral_Union {ι : Type*} [encodable ι] {s : ι → set α} {f : α → E}
-  (hm : ∀i, measurable_set (s i)) (hd : pairwise (disjoint on s)) (hfi : integrable f μ ) :
-  has_sum (λ n, ∫ a in s n, f a ∂ μ) (∫ a in (⋃ (n : ι), s n), f a ∂μ) :=
+  (hm : ∀ i, measurable_set (s i)) (hd : pairwise (disjoint on s)) (hfi : integrable f μ ) :
+  has_sum (λ n, ∫ a in s n, f a ∂ μ) (∫ a in ⋃ n, s n, f a ∂μ) :=
 begin
   have : (λ n : finset ι, ∑ i in n, ∫ a in s i, f a ∂μ) =
            λ (n : finset ι), ∫ a, set.indicator (⋃ i ∈ n, s i) f a ∂μ,
@@ -161,8 +158,8 @@ begin
 end
 
 lemma integral_Union {ι : Type*} [encodable ι] {s : ι → set α} {f : α → E}
-  (hm : ∀i, measurable_set (s i)) (hd : pairwise (disjoint on s)) (hfi : integrable f μ ) :
-  (∫ a in (⋃ (n : ι), s n), f a ∂μ) = ∑' n, ∫ a in s n, f a ∂ μ :=
+  (hm : ∀ i, measurable_set (s i)) (hd : pairwise (disjoint on s)) (hfi : integrable f μ ) :
+  (∫ a in (⋃ n, s n), f a ∂μ) = ∑' n, ∫ a in s n, f a ∂ μ :=
 (has_sum.tsum_eq (has_sum_integral_Union hm hd hfi)).symm
 
 lemma set_integral_eq_zero_of_forall_eq_zero {f : α → E} (hf : measurable f)

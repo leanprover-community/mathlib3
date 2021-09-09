@@ -74,15 +74,62 @@ lemma set_integral_congr (hs : measurable_set s) (h : eq_on f g s) :
   ∫ x in s, f x ∂μ = ∫ x in s, g x ∂μ :=
 set_integral_congr_ae hs $ eventually_of_forall h
 
+lemma set_integral_congr_set_ae (hst : s =ᵐ[μ] t) :
+  ∫ x in s, f x ∂μ = ∫ x in t, f x ∂μ :=
+by rw restrict_congr_set hst
+
 lemma integral_union (hst : disjoint s t) (hs : measurable_set s) (ht : measurable_set t)
   (hfs : integrable_on f s μ) (hft : integrable_on f t μ) :
   ∫ x in s ∪ t, f x ∂μ = ∫ x in s, f x ∂μ + ∫ x in t, f x ∂μ :=
 by simp only [integrable_on, measure.restrict_union hst hs ht, integral_add_measure hfs hft]
 
-lemma integral_union_ae (hst : (s ∩ t) =ᵐ[μ] (∅ : set α)) (hs : measurable_set s)
+lemma integral_union_ae (hst : (s ∩ t : set α) =ᵐ[μ] (∅ : set α)) (hs : measurable_set s)
   (ht : measurable_set t) (hfs : integrable_on f s μ) (hft : integrable_on f t μ) :
   ∫ x in s ∪ t, f x ∂μ = ∫ x in s, f x ∂μ + ∫ x in t, f x ∂μ :=
-sorry
+begin
+  let s' := s \ (s ∩ t),
+  have hs' : measurable_set s', from hs.diff (hs.inter ht),
+  have hss' : s =ᵐ[μ] s',
+  { filter_upwards [hst],
+    intros a ha,
+    rw [← @set.mem_def _ a s, ← @set.mem_def _ a s'],
+    rw [← @set.mem_def _ a (s ∩ t), ← @set.mem_def _ a ∅] at ha,
+    rw eq_iff_iff at ⊢ ha,
+    simp_rw s',
+    simpa using ha, },
+  have hfs' : integrable_on f s' μ, from integrable_on.congr_set_ae hfs hss'.symm,
+  let t' := t \ (s ∩ t),
+  have ht' : measurable_set t', from ht.diff (hs.inter ht),
+  have htt' : t =ᵐ[μ] t',
+  { filter_upwards [hst],
+    intros a ha,
+    rw [← @set.mem_def _ a t, ← @set.mem_def _ a t'],
+    rw [← @set.mem_def _ a (s ∩ t), ← @set.mem_def _ a ∅, inter_comm] at ha,
+    rw eq_iff_iff at ⊢ ha,
+    simp_rw t',
+    simpa using ha, },
+  have hft' : integrable_on f t' μ, from integrable_on.congr_set_ae hft htt'.symm,
+  have hst' : disjoint s' t',
+  { rw set.disjoint_iff,
+    intro x,
+    simp only [s', t', and_imp, mem_empty_eq, mem_inter_eq, diff_inter_self_eq_diff, mem_diff,
+      diff_self_inter],
+    exact λ hx_in_s hx_notin_t hx_in_t hx_notin_s, hx_notin_s hx_in_s, },
+  have hst_union : (s ∪ t : set α) =ᵐ[μ] (s' ∪ t' : set α),
+  { filter_upwards [hss', htt'],
+    intros a has hat,
+    rw [← @set.mem_def _ a t, ← @set.mem_def _ a t'] at hat,
+    rw [← @set.mem_def _ a s, ← @set.mem_def _ a s'] at has,
+    rw [← @set.mem_def _ a (s ∪ t), ← @set.mem_def _ a (s' ∪ t')],
+    rw eq_iff_iff at ⊢ has hat,
+    simp only [mem_inter_eq, mem_union_eq, iff_self_and, not_and, mem_diff] at has hat ⊢,
+    by_cases ha_in_t : a ∈ t; by_cases ha_in_s : a ∈ s,
+    { simp [ha_in_t, ha_in_s, has ha_in_s ha_in_s, hat ha_in_t ha_in_s], },
+    all_goals { simp [ha_in_t, ha_in_s], }, },
+  rw [set_integral_congr_set_ae hss', set_integral_congr_set_ae htt',
+    ← integral_union hst' hs' ht' hfs' hft'],
+  exact set_integral_congr_set_ae hst_union,
+end
 
 lemma integral_finset_bUnion {ι : Type*} {t : finset ι} {s : ι → set α}
   (hs : ∀ i ∈ t, measurable_set (s i)) (h's : pairwise_on ↑t (disjoint on s))
@@ -249,10 +296,6 @@ begin
 end
 ... = ∫ x in {x | 0 ≤ f x}, f x ∂μ - ∫ x in {x | f x ≤ 0}, f x ∂μ :
 by { rw ← set_integral_neg_eq_set_integral_nonpos hf hfi, congr, ext1 x, simp, }
-
-lemma set_integral_congr_set_ae (hst : s =ᵐ[μ] t) :
-  ∫ x in s, f x ∂μ = ∫ x in t, f x ∂μ :=
-by rw restrict_congr_set hst
 
 lemma set_integral_const (c : E) : ∫ x in s, c ∂μ = (μ s).to_real • c :=
 by rw [integral_const, measure.restrict_apply_univ]
@@ -841,35 +884,3 @@ by { specialize hf_int (∫ x, f x ∂μ), rwa [integral_inner hf, inner_self_eq
 end inner
 
 end
-
-/-
-namespace integrable
-
-variables [measurable_space α] [measurable_space β] [normed_group E]
-
-protected lemma measure_mono
-
-end integrable
-
-end measure_theory
-
-section integral_on
-variables [measurable_space α]
-  [normed_group β] [second_countable_topology β] [normed_space ℝ β] [complete_space β]
-  [measurable_space β] [borel_space β]
-  {s t : set α} {f g : α → β} {μ : measure α}
-open set
-
-lemma integral_on_union_ae (hs : measurable_set s) (ht : measurable_set t) (hsm : measurable_on s f)
-  (hsi : integrable_on s f) (htm : measurable_on t f) (hti : integrable_on t f)
-  (h : ∀ᵐ a, a ∉ s ∩ t) :
-  (∫ a in (s ∪ t), f a) = (∫ a in s, f a) + (∫ a in t, f a) :=
-begin
-  have := integral_congr_ae _ _ (indicator_union_ae h f),
-  rw [this, integral_add hsm hsi htm hti],
-  { exact hsm.union hs ht htm },
-  { exact measurable.add hsm htm }
-end
-
-end integral_on
--/

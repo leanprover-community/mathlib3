@@ -59,8 +59,9 @@ variables {K : Type u} [field K] -- maybe try to relax the universe constraint
 lemma ker_diagonal_to_lin' [decidable_eq m] (w : m → K) :
   ker (diagonal w).to_lin' = (⨆i∈{i | w i = 0 }, range (std_basis K (λi, K) i)) :=
 begin
-  rw [← comap_bot, ← infi_ker_proj],
-  simp only [comap_infi, (ker_comp _ _).symm, proj_diagonal, ker_smul'],
+  rw [← comap_bot, ← infi_ker_proj, comap_infi],
+  have := λ i : m, ker_comp (to_lin' (diagonal w)) (proj i),
+  simp only [comap_infi, ← this, proj_diagonal, ker_smul'],
   have : univ ⊆ {i : m | w i = 0} ∪ {i : m | w i = 0}ᶜ, { rw set.union_compl_self },
   exact (supr_range_std_basis_eq_infi_ker_proj K (λi:m, K)
     disjoint_compl_right this (finite.of_fintype _)).symm

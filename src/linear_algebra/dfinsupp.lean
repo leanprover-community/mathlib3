@@ -115,6 +115,7 @@ def lsum [semiring S] [module S N] [smul_comm_class R S N] :
     to_fun := sum_add_hom (λ i, (F i).to_add_monoid_hom),
     map_add' := (lift_add_hom (λ i, (F i).to_add_monoid_hom)).map_add,
     map_smul' := λ c f, by {
+      dsimp,
       apply dfinsupp.induction f,
       { rw [smul_zero, add_monoid_hom.map_zero, smul_zero] },
       { intros a b f ha hb hf,

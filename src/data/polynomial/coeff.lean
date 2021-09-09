@@ -58,7 +58,7 @@ end
   map_smul' := λ c p,
   begin
     rw [sum_eq_of_subset _ (λ n r, f n r) (λ n, (f n).map_zero) _ (support_smul c p)],
-    simp only [sum_def, finset.smul_sum, coeff_smul, linear_map.map_smul],
+    simp [sum_def, finset.smul_sum, coeff_smul, linear_map.map_smul],
   end }
 
 variable (R)

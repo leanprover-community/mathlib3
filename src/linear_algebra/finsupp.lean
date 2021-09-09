@@ -743,7 +743,7 @@ This is the `linear_equiv` version of `finsupp.sum_finsupp_equiv_prod_finsupp`. 
   ((α ⊕ β) →₀ M) ≃ₗ[R] (α →₀ M) × (β →₀ M) :=
 { map_smul' :=
     by { intros, ext;
-          simp only [add_equiv.to_fun_eq_coe, prod.smul_fst, prod.smul_snd, smul_apply,
+          simp [add_equiv.to_fun_eq_coe, prod.smul_fst, prod.smul_snd, smul_apply,
               snd_sum_finsupp_add_equiv_prod_finsupp, fst_sum_finsupp_add_equiv_prod_finsupp] },
   .. sum_finsupp_add_equiv_prod_finsupp }
 

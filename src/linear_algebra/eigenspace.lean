@@ -406,8 +406,8 @@ begin
   induction k with k ih,
   { rw [pow_zero, pow_zero, linear_map.one_eq_id],
     apply (submodule.ker_subtype _).symm },
-  { erw [pow_succ', pow_succ', linear_map.ker_comp,
-      ih, ←linear_map.ker_comp, linear_map.comp_assoc], }
+  { erw [pow_succ', pow_succ', linear_map.ker_comp, linear_map.ker_comp, ih,
+      ← linear_map.ker_comp, ← linear_map.ker_comp, linear_map.comp_assoc] },
 end
 
 /-- Generalized eigenrange and generalized eigenspace for exponent `finrank K V` are disjoint. -/

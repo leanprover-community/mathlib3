@@ -155,7 +155,8 @@ points given by a subset of the index type if and only if the point's index is i
   p i ∈ convex_hull (p '' s) ↔ i ∈ s :=
 ⟨hc _ _, λ hi, subset_convex_hull  _ (set.mem_image_of_mem p hi)⟩
 
-/-- If a family is convex independent, a point in the family is not in the convex hull of the other points. See `convex_independent_set_iff_not_mem_convex_hull_diff` for the `set` version.  -/
+/-- If a family is convex independent, a point in the family is not in the convex hull of the other
+points. See `convex_independent_set_iff_not_mem_convex_hull_diff` for the `set` version.  -/
 lemma convex_independent_iff_not_mem_convex_hull_diff {p : ι → E} :
   convex_independent p ↔ ∀ i s, p i ∉ convex_hull (p '' (s \ {i})) :=
 begin

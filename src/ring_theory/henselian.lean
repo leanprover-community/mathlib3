@@ -47,6 +47,7 @@ class henselian (R : Type*) [comm_ring R] extends local_ring R : Prop :=
   (h₂ : is_unit (f.derivative.eval a₀)),
   ∃ a : R, f.is_root a ∧ (a - a₀ ∈ maximal_ideal R))
 
+@[priority 100] -- see Note [lower instance priority]
 instance field.henselian (K : Type*) [field K] : henselian K :=
 { is_henselian := λ f hf a₀ h₁ h₂,
   begin
@@ -91,6 +92,7 @@ begin
 end
 
 /-- A local ring `R` with maximal ideal `I` that is `I`-adically complete is Henselian. -/
+@[priority 100] -- see Note [lower instance priority]
 instance is_adic_complete.henselian (R : Type*)
   [comm_ring R] [local_ring R] [is_adic_complete (maximal_ideal R) R] :
   henselian R :=

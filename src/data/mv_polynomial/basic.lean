@@ -119,6 +119,8 @@ instance [monoid R] [monoid S₁][comm_semiring S₂]
 add_monoid_algebra.smul_comm_class
 instance [comm_semiring R] [comm_semiring S₁] [algebra R S₁] : algebra R (mv_polynomial σ S₁) :=
 add_monoid_algebra.algebra
+instance [comm_semiring R] [subsingleton R] : subsingleton (mv_polynomial σ R) :=
+by delta mv_polynomial; apply_instance
 
 end instances
 

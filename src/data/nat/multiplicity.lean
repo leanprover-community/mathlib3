@@ -135,7 +135,7 @@ begin
   induction n with n ih,
   { simp },
   { simp only [succ_eq_add_one, multiplicity.mul, hp, prime_iff.mp hp, ih,
-      multiplicity_factorial_mul_succ, ←add_assoc, enat.coe_one, enat.coe_add, factorial_succ],
+      multiplicity_factorial_mul_succ, ←add_assoc, nat.cast_one, nat.cast_add, factorial_succ],
     congr' 1,
     rw [add_comm, add_assoc] }
 end
@@ -199,7 +199,7 @@ else begin
     multiplicity_eq_card_pow_dvd (ne_of_gt hp.one_lt) (nat.pos_of_ne_zero hk0)
       (lt_succ_of_le (log_le_log_of_le (le_of_not_gt hkn))),
     multiplicity_eq_card_pow_dvd (ne_of_gt hp.one_lt) (nat.pos_of_ne_zero hn0) (lt_succ_self _),
-    ← enat.coe_add, enat.coe_le_coe],
+    ← nat.cast_add, enat.coe_le_coe],
   calc ((Ico 1 (log p n).succ).filter (λ i, p ^ i ∣ n)).card
       ≤ ((Ico 1 (log p n).succ).filter (λ i, p ^ i ≤ k % p ^ i + (n - k) % p ^ i) ∪
         (Ico 1 (log p n).succ).filter (λ i, p ^ i ∣ k) ).card :
@@ -226,7 +226,7 @@ le_antisymm
     rw [multiplicity_choose hp hkn (lt_succ_self _),
       multiplicity_eq_card_pow_dvd (ne_of_gt hp.one_lt) hk0
         (lt_succ_of_le (log_le_log_of_le hkn)),
-      ← enat.coe_add, enat.coe_le_coe, log_pow hp.one_lt,
+      ← nat.cast_add, enat.coe_le_coe, log_pow hp.one_lt,
       ← card_disjoint_union hdisj, filter_union_right],
     have filter_le_Ico := (Ico 1 n.succ).card_filter_le _,
     rwa Ico.card 1 n.succ at filter_le_Ico,

@@ -45,6 +45,10 @@ instance [monoid M] [add_monoid α] [distrib_mul_action M α] : distrib_mul_acti
 { smul_add := λ m, smul_add (m : M),
   smul_zero := λ m, smul_zero m, }
 
+instance [monoid M] [monoid α] [mul_distrib_mul_action M α] : mul_distrib_mul_action (units M) α :=
+{ smul_mul := λ m, smul_mul' (m : M),
+  smul_one := λ m, smul_one m, }
+
 instance smul_comm_class_left [monoid M] [has_scalar M α] [has_scalar N α]
   [smul_comm_class M N α] : smul_comm_class (units M) N α :=
 { smul_comm := λ m n, (smul_comm (m : M) n : _)}

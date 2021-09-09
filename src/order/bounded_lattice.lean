@@ -1089,6 +1089,8 @@ by rw [disjoint, disjoint, inf_comm]
 @[symm] theorem disjoint.symm ⦃a b : α⦄ : disjoint a b → disjoint b a :=
 disjoint.comm.1
 
+lemma symmetric_disjoint : symmetric (disjoint : α → α → Prop) := disjoint.symm
+
 @[simp] theorem disjoint_bot_left {a : α} : disjoint ⊥ a := inf_le_left
 @[simp] theorem disjoint_bot_right {a : α} : disjoint a ⊥ := inf_le_right
 

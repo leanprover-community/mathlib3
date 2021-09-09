@@ -427,9 +427,9 @@ begin
   rw triv_rel,
   rw trunc at h,
   have : h  (quot.mk r x) = h (quot.mk r x_1), by {apply trunc.eq,},
-  simp at this,
+  simp only [equiv.apply_eq_iff_eq] at this,
   have h2 := quot.exact r this,
-  simp,
+  simp only [iff_true],
   exact h2,
 end
 
@@ -482,7 +482,7 @@ lemma quot_eq_quot_by_top (H : subgroup G)
 (h: quotient_group.quotient H ≃ quotient_group.quotient (⊤: subgroup G)) : H = ⊤ :=
 begin
   ext1,
-  simp at *,
+  simp only [subgroup.mem_top, iff_true] at *,
   rw quot_by_top_is_trunc at h,
   rw quotient_group.quotient at h,
   have H2 :=quot_triv_eqv_gen_triv _ h,
@@ -492,7 +492,7 @@ begin
   have H3 := eqv_gen_triv_rel_triv  _ H2 HH,
   have H4 := left_rel_triv H H3,
   have H5 := H4 1 x,
-  simp at H5,
+  simp only [one_inv, one_mul] at H5,
   exact H5,
 end
 

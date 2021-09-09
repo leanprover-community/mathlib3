@@ -2,40 +2,64 @@
 Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
-
-Operations on set-valued functions, aka partial multifunctions, aka relations.
 -/
-import tactic.ext tactic.interactive data.set.lattice order.complete_lattice
+import order.galois_connection
 
-variables {α : Type*} {β : Type*} {γ : Type*}
+/-!
+# Relations
 
-def rel (α : Type*) (β : Type*):= α → β → Prop
+This file defines bundled relations. A relation between `α` and `β` is a function `α → β → Prop`.
+Relations are also known as set-valued functions, or partial multifunctions.
+
+## Main declarations
+
+* `rel α β`: Relation between `α` and `β`.
+* `rel.inv`: `r.inv` is the `rel β α` obtained by swapping the arguments of `r`.
+* `rel.dom`: Domain of a relation. `x ∈ r.dom` iff there exists `y` such that `r x y`.
+* `rel.codom`: Codomain, aka range, of a relation. `y ∈ r.codom` iff there exists `x` such that
+  `r x y`.
+* `rel.comp`: Relation composition. Note that the arguments order follows the `category_theory/`
+  one, so `r.comp s x z ↔ ∃ y, r x y ∧ s y z`.
+* `rel.image`: Image of a set under a relation. `r.image s` is the set of `f x` over all `x ∈ s`.
+* `rel.preimage`: Preimage of a set under a relation. Note that `r.preimage = r.inv.image`.
+* `rel.core`: Core of a set. For `s : set β`, `r.core s` is the set of `x : α` such that all `y`
+  related to `x` are in `s`.
+* `rel.restrict_domain`: Domain-restriction of a relation to a subtype.
+* `function.graph`: Graph of a function as a relation.
+-/
+
+variables {α β γ : Type*}
+
+/-- A relation on `α` and `β`, aka a set-valued function, aka a partial multifunction --/
+@[derive complete_lattice, derive inhabited]
+def rel (α β : Type*) := α → β → Prop
 
 namespace rel
 
 variables {δ : Type*} (r : rel α β)
 
-instance : lattice.complete_lattice (rel α β) :=
-by unfold rel; apply_instance
-
+/-- The inverse relation : `r.inv x y ↔ r y x`. Note that this is *not* a groupoid inverse. -/
 def inv : rel β α := flip r
 
 lemma inv_def (x : α) (y : β) : r.inv y x ↔ r x y := iff.rfl
 
 lemma inv_inv : inv (inv r) = r := by { ext x y, reflexivity }
 
+/-- Domain of a relation -/
 def dom := {x | ∃ y, r x y}
 
+/-- Codomain aka range of a relation -/
 def codom := {y | ∃ x, r x y}
 
 lemma codom_inv : r.inv.codom = r.dom := by { ext x y, reflexivity }
 
 lemma dom_inv : r.inv.dom = r.codom := by { ext x y, reflexivity}
 
+/-- Composition of relation; note that it follows the `category_theory/` order of arguments. -/
 def comp (r : rel α β) (s : rel β γ) : rel α γ :=
 λ x z, ∃ y, r x y ∧ s y z
 
-local infixr ` ∘ ` :=rel.comp
+local infixr ` ∘ ` := rel.comp
 
 lemma comp_assoc (r : rel α β) (s : rel β γ) (t : rel γ δ) :
   (r ∘ s) ∘ t = r ∘ s ∘ t :=
@@ -59,31 +83,24 @@ by { ext x y, split; apply eq.symm }
 lemma inv_comp (r : rel α β) (s : rel β γ) : inv (r ∘ s) = inv s ∘ inv r :=
 by { ext x z, simp [comp, inv, flip, and.comm] }
 
+/-- Image of a set under a relation -/
 def image (s : set α) : set β := {y | ∃ x ∈ s, r x y}
 
 lemma mem_image (y : β) (s : set α) : y ∈ image r s ↔ ∃ x ∈ s, r x y :=
-iff.refl _
+iff.rfl
 
-lemma image_mono {s t : set α} (h : s ⊆ t) : r.image s ⊆ r.image t :=
-assume y ⟨x, xs, rxy⟩, ⟨x, h xs, rxy⟩
+lemma image_subset : ((⊆) ⇒ (⊆)) r.image r.image :=
+λ s t h y ⟨x, xs, rxy⟩, ⟨x, h xs, rxy⟩
+
+lemma image_mono : monotone r.image := r.image_subset
 
 lemma image_inter (s t : set α) : r.image (s ∩ t) ⊆ r.image s ∩ r.image t :=
-assume y ⟨x, ⟨xs, xt⟩, rxy⟩, ⟨⟨x, xs, rxy⟩, ⟨x, xt, rxy⟩⟩
+r.image_mono.map_inf_le s t
 
 lemma image_union (s t : set α) : r.image (s ∪ t) = r.image s ∪ r.image t :=
-set.subset.antisymm
-  (λ y ⟨x, xst, rxy⟩,
-    begin
-      cases xst with xs xt,
-      { left, exact ⟨x, xs, rxy⟩ },
-      right, exact ⟨x, xt, rxy⟩
-    end)
-  (λ y ymem,
-    begin
-      rcases ymem with ⟨x, xs, rxy⟩ | ⟨x, xt, rxy⟩; existsi x,
-      { split, { left, exact xs }, exact rxy},
-      split, { right, exact xt }, exact rxy
-    end)
+le_antisymm
+  (λ y ⟨x, xst, rxy⟩, xst.elim (λ xs, or.inl ⟨x, ⟨xs, rxy⟩⟩) (λ xt, or.inr ⟨x, ⟨xt, rxy⟩⟩))
+  (r.image_mono.le_map_sup s t)
 
 @[simp]
 lemma image_id (s : set α) : image (@eq α) s = s :=
@@ -98,10 +115,11 @@ end
 
 lemma image_univ : r.image set.univ = r.codom := by { ext y, simp [mem_image, codom] }
 
-def preimage (s : set β) : set α := image (inv r) s
+/-- Preimage of a set under a relation `r`. Same as the image of `s` under `r.inv` -/
+def preimage (s : set β) : set α := r.inv.image s
 
-lemma mem_preimage (x : α) (s : set β) : x ∈ preimage r s ↔ ∃ y ∈ s, r x y :=
-iff.refl _
+lemma mem_preimage (x : α) (s : set β) : x ∈ r.preimage s ↔ ∃ y ∈ s, r x y :=
+iff.rfl
 
 lemma preimage_def (s : set β) : preimage r s = {x | ∃ y ∈ s, r x y} :=
 set.ext $ λ x, mem_preimage _ _ _
@@ -125,38 +143,38 @@ by simp only [preimage, inv_comp, image_comp]
 lemma preimage_univ : r.preimage set.univ = r.dom :=
 by { rw [preimage, image_univ, codom_inv] }
 
+/-- Core of a set `s : set β` w.r.t `r : rel α β` is the set of `x : α` that are related *only*
+to elements of `s`. Other generalization of `function.preimage`. -/
 def core (s : set β) := {x | ∀ y, r x y → y ∈ s}
 
-lemma mem_core (x : α) (s : set β) : x ∈ core r s ↔ ∀ y, r x y → y ∈ s :=
-iff.refl _
+lemma mem_core (x : α) (s : set β) : x ∈ r.core s ↔ ∀ y, r x y → y ∈ s :=
+iff.rfl
 
-lemma core_mono {s t : set β} (h : s ⊆ t) : r.core s ⊆ r.core t :=
-assume x h' y rxy, h (h' y rxy)
+lemma core_subset : ((⊆) ⇒ (⊆)) r.core r.core :=
+λ s t h x h' y rxy, h (h' y rxy)
+
+lemma core_mono : monotone r.core := r.core_subset
 
 lemma core_inter (s t : set β) : r.core (s ∩ t) = r.core s ∩ r.core t :=
 set.ext (by simp [mem_core, imp_and_distrib, forall_and_distrib])
 
-lemma core_union (s t : set β) : r.core (s ∪ t) ⊇ r.core s ∪ r.core t :=
-λ x,
-  begin
-    simp [mem_core], intro h, cases h with hs ht; intros y rxy,
-    { left, exact hs y rxy },
-    right, exact ht y rxy
-  end
+lemma core_union (s t : set β) : r.core s ∪ r.core t ⊆ r.core (s ∪ t) :=
+r.core_mono.le_map_sup s t
 
-lemma core_univ : r.core set.univ = set.univ := set.ext (by simp [mem_core])
+@[simp] lemma core_univ : r.core set.univ = set.univ := set.ext (by simp [mem_core])
 
-lemma core_id (s : set α): core (@eq α) s = s :=
+lemma core_id (s : set α) : core (@eq α) s = s :=
 by simp [core]
 
 lemma core_comp (s : rel β γ) (t : set γ) :
   core (r ∘ s) t = core r (core s t) :=
 begin
   ext x, simp [core, comp], split,
-  { intros h y rxy z syz, exact h z y rxy syz },
-  intros h z y rzy syz, exact h y rzy z syz
+  { exact λ h y rxy z, h z y rxy },
+  { exact λ h z y rzy, h y rzy z }
 end
 
+/-- Restrict the domain of a relation to a subtype. -/
 def restrict_domain (s : set α) : rel {x // x ∈ s} β :=
 λ x y, r x.val y
 
@@ -165,13 +183,14 @@ iff.intro
   (λ h x xs y rxy, h ⟨x, xs, rxy⟩)
   (λ h y ⟨x, xs, rxy⟩, h xs y rxy)
 
-theorem core_preimage_gc : galois_connection (image r) (core r) :=
+theorem image_core_gc : galois_connection r.image r.core :=
 image_subset_iff _
 
 end rel
 
 namespace function
 
+/-- The graph of a function as a relation. -/
 def graph (f : α → β) : rel α β := λ x y, f x = y
 
 end function

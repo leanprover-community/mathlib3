@@ -1,11 +1,12 @@
 /-
 Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Leonardo de Moura, Keeley Hoek
+Authors: Lucas Allen, Keeley Hoek, Leonardo de Moura
 
 Converter monad for building simplifiers.
 -/
-import tactic.basic tactic.converter.old_conv
+import tactic.core
+import tactic.converter.old_conv
 
 namespace old_conv
 meta def save_info (p : pos) : old_conv unit :=
@@ -49,16 +50,17 @@ meta def find (p : parse lean.parser.pexpr) (c : itactic) : old_conv unit :=
   pat ← tactic.pexpr_to_pattern p,
   s   ← simp_lemmas.mk_default, -- to be able to use congruence lemmas @[congr]
   (found, new_lhs, pr) ←
-     tactic.ext_simplify_core ff {zeta := ff, beta := ff, single_pass := tt, eta := ff, proj := ff} s
-       (λ u, return u)
-       (λ found s r p e, do
-         guard (not found),
-         matched ← (tactic.match_pattern pat e >> return tt) <|> return ff,
-         guard matched,
-         ⟨u, new_e, pr⟩ ← c r e,
-         return (tt, new_e, pr, ff))
-       (λ a s r p e, tactic.failed)
-       r lhs,
+    tactic.ext_simplify_core ff {zeta := ff, beta := ff, single_pass := tt, eta := ff, proj := ff}
+      s
+      (λ u, return u)
+      (λ found s r p e, do
+        guard (not found),
+        matched ← (tactic.match_pattern pat e >> return tt) <|> return ff,
+        guard matched,
+        ⟨u, new_e, pr⟩ ← c r e,
+        return (tt, new_e, pr, ff))
+      (λ a s r p e, tactic.failed)
+      r lhs,
   if not found then tactic.fail "find converter failed, pattern was not found"
   else return ⟨(), new_lhs, some pr⟩
 
@@ -88,8 +90,28 @@ namespace interactive
 open interactive
 open tactic.interactive (rw_rules)
 
+/-- The `conv` tactic provides a `conv` within a `conv`. It allows the user to return to a
+previous state of the outer conv block to continue editing an expression without having to
+start a new conv block. -/
+protected meta def conv (t : conv.interactive.itactic) : conv unit :=
+do transitivity,
+   a :: rest ← get_goals,
+   set_goals [a],
+   t,
+   all_goals reflexivity,
+   set_goals rest
+
 meta def erw (q : parse rw_rules) (cfg : rewrite_cfg := {md := semireducible}) : conv unit :=
 rw q cfg
+
+open interactive.types
+
+/--
+`guard_target t` fails if the target of the conv goal is not `t`.
+We use this tactic for writing tests.
+-/
+meta def guard_target (p : parse texpr) : conv unit :=
+do `(%%t = _) ← target, tactic.interactive.guard_expr_eq t p
 
 end interactive
 end conv

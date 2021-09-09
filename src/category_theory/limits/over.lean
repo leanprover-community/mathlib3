@@ -1,154 +1,137 @@
--- Copyright (c) 2018 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Johan Commelin, Reid Barton
+/-
+Copyright (c) 2018 Johan Commelin. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johan Commelin, Reid Barton, Bhavik Mehta
+-/
+import category_theory.over
+import category_theory.adjunction.opposites
+import category_theory.limits.preserves.basic
+import category_theory.limits.shapes.pullbacks
+import category_theory.limits.creates
+import category_theory.limits.comma
 
-import category_theory.comma
-import category_theory.limits.preserves
+/-!
+# Limits and colimits in the over and under categories
 
-universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+Show that the forgetful functor `forget X : over X ⥤ C` creates colimits, and hence `over X` has
+any colimits that `C` has (as well as the dual that `forget X : under X ⟶ C` creates limits).
+
+Note that the folder `category_theory.limits.shapes.constructions.over` further shows that
+`forget X : over X ⥤ C` creates connected limits (so `over X` has connected limits), and that
+`over X` has `J`-indexed products if `C` has `J`-indexed wide pullbacks.
+
+TODO: If `C` has binary products, then `forget X : over X ⥤ C` has a right adjoint.
+-/
+noncomputable theory
+
+universes v u -- morphism levels before object levels. See note [category_theory universes].
 
 open category_theory category_theory.limits
 
 variables {J : Type v} [small_category J]
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 variable {X : C}
-
-namespace category_theory.functor
-
-def to_cocone (F : J ⥤ over X) : cocone (F ⋙ over.forget) :=
-{ X := X,
-  ι := { app := λ j, (F.obj j).hom } }
-
-@[simp] lemma to_cocone_X (F : J ⥤ over X) : F.to_cocone.X = X := rfl
-@[simp] lemma to_cocone_ι (F : J ⥤ over X) (j : J) : F.to_cocone.ι.app j = (F.obj j).hom := rfl
-
-def to_cone (F : J ⥤ under X) : cone (F ⋙ under.forget) :=
-{ X := X,
-  π := { app := λ j, (F.obj j).hom } }
-
-@[simp] lemma to_cone_X (F : J ⥤ under X) : F.to_cone.X = X := rfl
-@[simp] lemma to_cone_π (F : J ⥤ under X) (j : J) : F.to_cone.π.app j = (F.obj j).hom := rfl
-
-end category_theory.functor
 
 namespace category_theory.over
 
-def colimit (F : J ⥤ over X) [has_colimit (F ⋙ forget)] : cocone F :=
-{ X := mk $ colimit.desc (F ⋙ forget) F.to_cocone,
-  ι :=
-  { app := λ j, hom_mk $ colimit.ι (F ⋙ forget) j,
-    naturality' :=
+instance (F : J ⥤ over X) [i : has_colimit (F ⋙ forget X)] : has_colimit F :=
+@@costructured_arrow.has_colimit _ _ _ _ i _
+
+instance [has_colimits_of_shape J C] : has_colimits_of_shape J (over X) := {}
+instance [has_colimits C] : has_colimits (over X) := {}
+
+instance creates_colimits : creates_colimits (forget X) := costructured_arrow.creates_colimits
+
+-- We can automatically infer that the forgetful functor preserves and reflects colimits.
+example [has_colimits C] : preserves_colimits (forget X) := infer_instance
+example : reflects_colimits (forget X) := infer_instance
+
+section
+variables [has_pullbacks C]
+
+open tactic
+
+/-- When `C` has pullbacks, a morphism `f : X ⟶ Y` induces a functor `over Y ⥤ over X`,
+by pulling back a morphism along `f`. -/
+@[simps]
+def pullback {X Y : C} (f : X ⟶ Y) : over Y ⥤ over X :=
+{ obj := λ g, over.mk (pullback.snd : pullback g.hom f ⟶ X),
+  map := λ g h k,
+    over.hom_mk
+      (pullback.lift (pullback.fst ≫ k.left) pullback.snd (by simp [pullback.condition]))
+      (by tidy) }
+
+/-- `over.map f` is left adjoint to `over.pullback f`. -/
+def map_pullback_adj {A B : C} (f : A ⟶ B) :
+  over.map f ⊣ pullback f :=
+adjunction.mk_of_hom_equiv
+{ hom_equiv := λ g h,
+  { to_fun := λ X, over.hom_mk (pullback.lift X.left g.hom (over.w X)) (pullback.lift_snd _ _ _),
+    inv_fun := λ Y,
     begin
-      intros j j' f,
-      have := colimit.w (F ⋙ forget) f,
-      tidy
+      refine over.hom_mk _ _,
+      refine Y.left ≫ pullback.fst,
+      dsimp,
+      rw [← over.w Y, category.assoc, pullback.condition, category.assoc], refl,
+    end,
+    left_inv := λ X, by { ext, dsimp, simp, },
+    right_inv := λ Y, begin
+      ext, dsimp,
+      simp only [pullback.lift_fst],
+      dsimp,
+      rw [pullback.lift_snd, ← over.w Y],
+      refl,
     end } }
 
-@[simp] lemma colimit_X_hom (F : J ⥤ over X) [has_colimit (F ⋙ forget)] :
-((colimit F).X).hom = colimit.desc (F ⋙ forget) F.to_cocone := rfl
-@[simp] lemma colimit_ι_app (F : J ⥤ over X) [has_colimit (F ⋙ forget)] (j : J) :
-((colimit F).ι).app j = hom_mk (colimit.ι (F ⋙ forget) j) := rfl
+/-- pullback (𝟙 A) : over A ⥤ over A is the identity functor. -/
+def pullback_id {A : C} : pullback (𝟙 A) ≅ 𝟭 _ :=
+adjunction.right_adjoint_uniq
+  (map_pullback_adj _)
+  (adjunction.id.of_nat_iso_left over.map_id.symm)
 
-def forget_colimit_is_colimit (F : J ⥤ over X) [has_colimit (F ⋙ forget)] :
-  is_colimit (forget.map_cocone (colimit F)) :=
-is_colimit.of_iso_colimit (colimit.is_colimit (F ⋙ forget)) (cocones.ext (iso.refl _) (by tidy))
+/-- pullback commutes with composition (up to natural isomorphism). -/
+def pullback_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  pullback (f ≫ g) ≅ pullback g ⋙ pullback f :=
+adjunction.right_adjoint_uniq
+  (map_pullback_adj _)
+  (((map_pullback_adj _).comp _ _ (map_pullback_adj _)).of_nat_iso_left
+    (over.map_comp _ _).symm)
 
-instance : reflects_colimits (forget : over X ⥤ C) :=
-λ J 𝒥 F, by constructor; exactI λ t ht,
-{ desc := λ s, hom_mk (ht.desc (forget.map_cocone s))
-    begin
-      apply ht.hom_ext, intro j,
-      rw [←category.assoc, ht.fac],
-      transitivity (F.obj j).hom,
-      exact w (s.ι.app j), -- TODO: How to write (s.ι.app j).w?
-      exact (w (t.ι.app j)).symm,
-    end,
-  fac' := begin
-    intros s j, ext, exact ht.fac (forget.map_cocone s) j
-    -- TODO: Ask Simon about multiple ext lemmas for defeq types (comma_morphism & over.category.hom)
-  end,
-  uniq' :=
-  begin
-    intros s m w,
-    ext1 j,
-    exact ht.uniq (forget.map_cocone s) m.left (λ j, congr_arg comma_morphism.left (w j))
-  end }
+instance pullback_is_right_adjoint {A B : C} (f : A ⟶ B) :
+  is_right_adjoint (pullback f) :=
+⟨_, map_pullback_adj f⟩
 
-instance has_colimit {F : J ⥤ over X} [has_colimit (F ⋙ forget)] : has_colimit F :=
-{ cocone := colimit F,
-  is_colimit := reflects_colimit.reflects (forget_colimit_is_colimit F) }
-
-instance has_colimits_of_shape [has_colimits_of_shape J C] :
-  has_colimits_of_shape J (over X) :=
-λ F, infer_instance
-
-instance has_colimits [has_colimits C] : has_colimits (over X) :=
-λ J 𝒥, by resetI; apply_instance
-
-instance forget_preserves_colimits [has_colimits C] {X : C} :
-  preserves_colimits (forget : over X ⥤ C) :=
-λ J 𝒥 F, by exactI
-preserves_colimit_of_preserves_colimit_cocone (colimit.is_colimit F) (forget_colimit_is_colimit F)
+end
 
 end category_theory.over
 
 namespace category_theory.under
 
-def limit (F : J ⥤ under X) [has_limit (F ⋙ forget)] : cone F :=
-{ X := mk $ limit.lift (F ⋙ forget) F.to_cone,
-  π :=
-  { app := λ j, hom_mk $ limit.π (F ⋙ forget) j,
-    naturality' :=
-    begin
-      intros j j' f,
-      have := (limit.w (F ⋙ forget) f).symm,
-      tidy
-    end } }
+instance (F : J ⥤ under X) [i : has_limit (F ⋙ forget X)] : has_limit F :=
+@@structured_arrow.has_limit _ _ _ _ i _
 
-@[simp] lemma limit_X_hom (F : J ⥤ under X) [has_limit (F ⋙ forget)] :
-((limit F).X).hom = limit.lift (F ⋙ forget) F.to_cone := rfl
-@[simp] lemma limit_π_app (F : J ⥤ under X) [has_limit (F ⋙ forget)] (j : J) :
-((limit F).π).app j = hom_mk (limit.π (F ⋙ forget) j) := rfl
+instance [has_limits_of_shape J C] : has_limits_of_shape J (under X) := {}
+instance [has_limits C] : has_limits (under X) := {}
 
-def forget_limit_is_limit (F : J ⥤ under X) [has_limit (F ⋙ forget)] :
-  is_limit (forget.map_cone (limit F)) :=
-is_limit.of_iso_limit (limit.is_limit (F ⋙ forget)) (cones.ext (iso.refl _) (by tidy))
+instance creates_limits : creates_limits (forget X) := structured_arrow.creates_limits
 
-instance : reflects_limits (forget : under X ⥤ C) :=
-λ J 𝒥 F, by constructor; exactI λ t ht,
-{ lift := λ s, hom_mk (ht.lift (forget.map_cone s))
-    begin
-      apply ht.hom_ext, intro j,
-      rw [category.assoc, ht.fac],
-      transitivity (F.obj j).hom,
-      exact w (s.π.app j),
-      exact (w (t.π.app j)).symm,
-    end,
-  fac' := begin
-    intros s j, ext, exact ht.fac (forget.map_cone s) j
-  end,
-  uniq' :=
-  begin
-    intros s m w,
-    ext1 j,
-    exact ht.uniq (forget.map_cone s) m.right (λ j, congr_arg comma_morphism.right (w j))
-  end }
+-- We can automatically infer that the forgetful functor preserves and reflects limits.
+example [has_limits C] : preserves_limits (forget X) := infer_instance
+example : reflects_limits (forget X) := infer_instance
 
-instance has_limit {F : J ⥤ under X} [has_limit (F ⋙ forget)] : has_limit F :=
-{ cone := limit F,
-  is_limit := reflects_limit.reflects (forget_limit_is_limit F) }
+section
+variables [has_pushouts C]
 
-instance has_limits_of_shape [has_limits_of_shape J C] :
-  has_limits_of_shape J (under X) :=
-λ F, infer_instance
+/-- When `C` has pushouts, a morphism `f : X ⟶ Y` induces a functor `under X ⥤ under Y`,
+by pushing a morphism forward along `f`. -/
+@[simps]
+def pushout {X Y : C} (f : X ⟶ Y) : under X ⥤ under Y :=
+{ obj := λ g, under.mk (pushout.inr : Y ⟶ pushout g.hom f),
+  map := λ g h k,
+    under.hom_mk
+      (pushout.desc (k.right ≫ pushout.inl) pushout.inr (by { simp [←pushout.condition], }))
+      (by tidy) }
 
-instance has_limits [has_limits C] : has_limits (under X) :=
-λ J 𝒥, by resetI; apply_instance
-
-instance forget_preserves_limits [has_limits C] {X : C} :
-  preserves_limits (forget : under X ⥤ C) :=
-λ J 𝒥 F, by exactI
-preserves_limit_of_preserves_limit_cone (limit.is_limit F) (forget_limit_is_limit F)
+end
 
 end category_theory.under

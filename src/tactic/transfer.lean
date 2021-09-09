@@ -1,14 +1,17 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl (CMU)
+Authors: Johannes Hölzl (CMU)
 -/
 prelude
-import init.meta.tactic init.meta.match_tactic init.meta.mk_dec_eq_instance
-import init.data.list.instances logic.relator
+import init.meta.tactic
+import init.meta.match_tactic
+import init.meta.mk_dec_eq_instance
+import init.data.list.instances
+import logic.relator
 
-namespace transfer
 open tactic expr list monad
+namespace transfer
 
 /- Transfer rules are of the shape:
 
@@ -95,19 +98,23 @@ private meta def analyse_rule (u' : list name) (pr : expr) : tactic rule_data :=
   p_data  ← return $ mark_occurences (app R p) params,
   p_vars  ← return $ list.map prod.fst (p_data.filter (λx, ↑x.2)),
   u       ← return $ collect_univ_params (app R p) ∩ u',
-  pat     ← mk_pattern (level.param <$> u) (p_vars ++ a_vars) (app R p) (level.param <$> u) (p_vars ++ a_vars),
+  pat     ← mk_pattern (level.param <$> u) (p_vars ++ a_vars) (app R p) (level.param <$> u)
+    (p_vars ++ a_vars),
   return $ rule_data.mk pr (u'.remove_all u) p_data u args pat g
 
-private meta def analyse_decls : list name → tactic (list rule_data) :=
+meta def analyse_decls : list name → tactic (list rule_data) :=
 mmap (λn, do
   d ← get_decl n,
   c ← return d.univ_params.length,
   ls ← (repeat () c).mmap (λ_, mk_fresh_name),
   analyse_rule ls (const n (ls.map level.param)))
 
-private meta def split_params_args : list (expr × bool) → list expr → list (expr × option expr) × list expr
-| ((lc, tt) :: ps) (e :: es) := let (ps', es') := split_params_args ps es in ((lc, some e) :: ps', es')
-| ((lc, ff) :: ps) es        := let (ps', es') := split_params_args ps es in ((lc, none) :: ps', es')
+private meta def split_params_args :
+  list (expr × bool) → list expr → list (expr × option expr) × list expr
+| ((lc, tt) :: ps) (e :: es) := let (ps', es') :=
+  split_params_args ps es in ((lc, some e) :: ps', es')
+| ((lc, ff) :: ps) es        := let (ps', es') :=
+  split_params_args ps es in ((lc, none) :: ps', es')
 | _ es := ([], es)
 
 private meta def param_substitutions (ctxt : list expr) :
@@ -168,7 +175,11 @@ meta def compute_transfer : list rule_data → list expr → expr → tactic (ex
   pr ← return $ app_of_list (i rd.pr) (prod.snd <$> ps ++ list.join hs),
   return (b, pr, ms ++ mss.join)
 
-meta def transfer (ds : list name) : tactic unit := do
+end transfer
+
+open transfer
+
+meta def tactic.transfer (ds : list name) : tactic unit := do
   rds ← analyse_decls ds,
   tgt ← target,
 
@@ -183,5 +194,3 @@ meta def transfer (ds : list name) : tactic unit := do
   ms ← ms.mmap (λm, (get_assignment m >> return []) <|> return [m]),
   gs ← get_goals,
   set_goals (ms.join ++ new_pr :: gs)
-
-end transfer

@@ -3,214 +3,31 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Scott Morrison
 -/
-import tactic data.set.lattice data.prod data.vector
-       tactic.rewrite data.stream.basic
-       tactic.tfae tactic.converter.interactive
-       tactic.ring tactic.ring2
 
-section tauto₀
-variables p q r : Prop
-variables h : p ∧ q ∨ p ∧ r
-include h
-example : p ∧ p :=
-by tauto
-
-end tauto₀
-
-section tauto₁
-variables α : Type
-variables p q r : α → Prop
-variables h : (∃ x, p x ∧ q x) ∨ (∃ x, p x ∧ r x)
-include h
-example : ∃ x, p x :=
-by tauto
-
-end tauto₁
-
-section tauto₂
-variables α : Type
-variables x : α
-variables p q r : α → Prop
-variables h₀ : (∀ x, p x → q x → r x) ∨ r x
-variables h₁ : p x
-variables h₂ : q x
-
-include h₀ h₁ h₂
-example : ∃ x, r x :=
-by tauto
-
-end tauto₂
-
-section tauto₃
-
-
-example (p : Prop) : p ∧ true ↔ p := by tauto
-example (p : Prop) : p ∨ false ↔ p := by tauto
-example (p q r : Prop) [decidable p] [decidable r] : p ∨ (q ∧ r) ↔ (p ∨ q) ∧ (r ∨ p ∨ r) := by tauto
-example (p q r : Prop) [decidable q] [decidable r] : p ∨ (q ∧ r) ↔ (p ∨ q) ∧ (r ∨ p ∨ r) := by tauto
-example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : ¬ p) : q := by tauto
-example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : p) : ¬ q := by tauto
-example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : q) : ¬ p := by tauto
-example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : ¬ q) : p := by tauto
-example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : ¬ q) (h'' : ¬ p) : false := by tauto
-example (p q r : Prop) [decidable q] [decidable p] (h : p ↔ q) (h' : r ↔ q) (h'' : ¬ r) : ¬ p := by tauto
-example (p q r : Prop) (h : p ↔ q) (h' : r ↔ q) : p ↔ r :=
-by tauto!
-example (p q r : Prop) (h : ¬ p = q) (h' : r = q) : p ↔ ¬ r := by tauto!
-
-section modulo_symmetry
-variables {p q r : Prop} {α : Type} {x y : α}
-variables (h : x = y)
-variables (h'' : (p ∧ q ↔ q ∨ r) ↔ (r ∧ p ↔ r ∨ q))
-include h
-include h''
-example (h' : ¬ y = x) : p ∧ q := by tauto
-example (h' : p ∧ ¬ y = x) : p ∧ q := by tauto
-example : y = x := by tauto
-example (h' : ¬ x = y) : p ∧ q := by tauto
-example : x = y := by tauto
-
-end modulo_symmetry
-
-end tauto₃
-
-section wlog
-
-example {x y : ℕ} (a : x = 1) : true :=
-begin
-  suffices : false, trivial,
-  wlog h : x = y,
-  { guard_target x = y ∨ y = x,
-    admit },
-  { guard_hyp h := x = y,
-    guard_hyp a := x = 1,
-    admit }
-end
-
-example {x y : ℕ} : true :=
-begin
-  suffices : false, trivial,
-  wlog h : x ≤ y,
-  { guard_hyp h := x ≤ y,
-    guard_target false,
-    admit }
-end
-
-example {x y z : ℕ} : true :=
-begin
-  suffices : false, trivial,
-  wlog : x ≤ y + z using x y,
-  { guard_target x ≤ y + z ∨ y ≤ x + z,
-    admit },
-  { guard_hyp case := x ≤ y + z,
-    guard_target false,
-    admit },
-end
-
-example {x : ℕ} (S₀ S₁ : set ℕ) (P : ℕ → Prop)
-  (h : x ∈ S₀ ∪ S₁) : true :=
-begin
-  suffices : false, trivial,
-  wlog h' : x ∈ S₀ using S₀ S₁,
-  { guard_target x ∈ S₀ ∨ x ∈ S₁,
-    admit },
-  { guard_hyp h  := x ∈ S₀ ∪ S₁,
-    guard_hyp h' := x ∈ S₀,
-    admit }
-end
-
-example {n m i : ℕ} {p : ℕ → ℕ → ℕ → Prop} : true :=
-begin
-  suffices : false, trivial,
-  wlog : p n m i using [n m i, n i m, i n m],
-  { guard_target p n m i ∨ p n i m ∨ p i n m,
-    admit },
-  { guard_hyp case := p n m i,
-    admit }
-end
-
-example {n m i : ℕ} {p : ℕ → Prop} : true :=
-begin
-  suffices : false, trivial,
-  wlog : p n using [n m i, m n i, i n m],
-  { guard_target p n ∨ p m ∨ p i,
-    admit },
-  { guard_hyp case := p n,
-    admit }
-end
-
-example {n m i : ℕ} {p : ℕ → ℕ → Prop} {q : ℕ → ℕ → ℕ → Prop} : true :=
-begin
-  suffices : q n m i, trivial,
-  have h : p n i ∨ p i m ∨ p m i, from sorry,
-  wlog : p n i := h using n m i,
-  { guard_hyp h := p n i,
-    guard_target q n m i,
-    admit },
-  { guard_hyp h := p i m,
-    guard_hyp this := q i m n,
-    guard_target q n m i,
-    admit },
-  { guard_hyp h := p m i,
-    guard_hyp this := q m i n,
-    guard_target q n m i,
-    admit },
-end
-
-example (X : Type) (A B C : set X) : A ∩ (B ∪ C) = (A ∩ B) ∪ (A ∩ C) :=
-begin
-  ext x,
-  split,
-  { intro hyp,
-    cases hyp,
-    wlog x_in : x ∈ B using B C,
-    { assumption },
-    { exact or.inl ⟨hyp_left, x_in⟩ } },
-  { intro hyp,
-    wlog x_in : x ∈ A ∩ B using B C,
-    { assumption },
-    { exact ⟨x_in.left, or.inl x_in.right⟩ } }
-end
-
-example (X : Type) (A B C : set X) : A ∩ (B ∪ C) = (A ∩ B) ∪ (A ∩ C) :=
-begin
-  ext x,
-  split,
-  { intro hyp,
-    wlog x_in : x ∈ B := hyp.2 using B C,
-    { exact or.inl ⟨hyp.1, x_in⟩ } },
-  { intro hyp,
-    wlog x_in : x ∈ A ∩ B := hyp using B C,
-    { exact ⟨x_in.left, or.inl x_in.right⟩ } }
-end
-
-example (X : Type) (A B C : set X) : A ∩ (B ∪ C) = (A ∩ B) ∪ (A ∩ C) :=
-begin
-  ext x,
-  split,
-  { intro hyp,
-    cases hyp,
-    wlog x_in : x ∈ B := hyp_right using B C,
-    { exact or.inl ⟨hyp_left, x_in⟩ }, },
-  { intro hyp,
-    wlog x_in : x ∈ A ∩ B := hyp using B C,
-    { exact ⟨x_in.left, or.inl x_in.right⟩ } }
-end
-
-end wlog
+import tactic.interactive
+import tactic.finish
+import tactic.ext
+import tactic.lift
+import tactic.apply
+import tactic.reassoc_axiom
+import tactic.tfae
+import tactic.elide
+import tactic.ring_exp
+import tactic.clear
+import tactic.simp_rw
 
 example (m n p q : nat) (h : m + n = p) : true :=
 begin
   have : m + n = q,
   { generalize_hyp h' : m + n = x at h,
-    guard_hyp h' := m + n = x,
-    guard_hyp h := x = p,
+    guard_hyp h' : m + n = x,
+    guard_hyp h : x = p,
     guard_target m + n = q,
     admit },
   have : m + n = q,
   { generalize_hyp h' : m + n = x at h ⊢,
-    guard_hyp h' := m + n = x,
-    guard_hyp h := x = p,
+    guard_hyp h' : m + n = x,
+    guard_hyp h : x = p,
     guard_target x = q,
     admit },
   trivial
@@ -232,274 +49,16 @@ begin
   trivial
 end
 
-section convert
-open set
-
-variables {α β : Type}
-local attribute [simp]
-private lemma singleton_inter_singleton_eq_empty {x y : α} :
-  ({x} ∩ {y} = (∅ : set α)) ↔ x ≠ y :=
-by simp [singleton_inter_eq_empty]
-
-example {f : β → α} {x y : α} (h : x ≠ y) : f ⁻¹' {x} ∩ f ⁻¹' {y} = ∅ :=
+example (x y : ℕ) (p q : Prop) (h : x = y) (h' : p ↔ q) : true :=
 begin
-  have : {x} ∩ {y} = (∅ : set α) := by simpa using h,
-  convert preimage_empty,
-  rw [←preimage_inter,this],
-end
-
-end convert
-
-section rcases
-
-universe u
-variables {α β γ : Type u}
-
-example (x : α × β × γ) : true :=
-begin
-  rcases x with ⟨a, b, c⟩,
-  { guard_hyp a := α,
-    guard_hyp b := β,
-    guard_hyp c := γ,
-    trivial }
-end
-
-example (x : α × β × γ) : true :=
-begin
-  rcases x with ⟨a, ⟨b, c⟩⟩,
-  { guard_hyp a := α,
-    guard_hyp b := β,
-    guard_hyp c := γ,
-    trivial }
-end
-
-example (x : (α × β) × γ) : true :=
-begin
-  rcases x with ⟨⟨a, b⟩, c⟩,
-  { guard_hyp a := α,
-    guard_hyp b := β,
-    guard_hyp c := γ,
-    trivial }
-end
-
-example (x : inhabited α × option β ⊕ γ) : true :=
-begin
-  rcases x with ⟨⟨a⟩, _ | b⟩ | c,
-  { guard_hyp a := α, trivial },
-  { guard_hyp a := α, guard_hyp b := β, trivial },
-  { guard_hyp c := γ, trivial }
-end
-
-example (x y : ℕ) (h : x = y) : true :=
-begin
-  rcases x with _|⟨⟩|z,
-  { guard_hyp h := nat.zero = y, trivial },
-  { guard_hyp h := nat.succ nat.zero = y, trivial },
-  { guard_hyp z := ℕ,
-    guard_hyp h := z.succ.succ = y, trivial },
-end
-
--- from equiv.sum_empty
-example (s : α ⊕ empty) : true :=
-begin
-  rcases s with _ | ⟨⟨⟩⟩,
-  { guard_hyp s := α, trivial }
-end
-
-end rcases
-
-section ext
-
-@[extensionality] lemma unit.ext (x y : unit) : x = y :=
-begin
-  cases x, cases y, refl
-end
-
-example : subsingleton unit :=
-begin
-  split, intros, ext
-end
-
-example (x y : ℕ) : true :=
-begin
-  have : x = y,
-  { ext <|> admit },
-  have : x = y,
-  { ext i <|> admit },
-  have : x = y,
-  { ext : 1 <|> admit },
+  symmetry' at h,
+  guard_hyp' h : y = x,
+  guard_hyp' h' : p ↔ q,
+  symmetry' at *,
+  guard_hyp' h : x = y,
+  guard_hyp' h' : q ↔ p,
   trivial
 end
-
-example (X Y : ℕ × ℕ)  (h : X.1 = Y.1) (h : X.2 = Y.2) : X = Y :=
-begin
-  ext; assumption
-end
-
-example (X Y : (ℕ → ℕ) × ℕ)  (h : ∀ i, X.1 i = Y.1 i) (h : X.2 = Y.2) : X = Y :=
-begin
-  ext x; solve_by_elim,
-end
-
-example (X Y : ℕ → ℕ × ℕ)  (h : ∀ i, X i = Y i) : true :=
-begin
-  have : X = Y,
-  { ext i : 1,
-    guard_target X i = Y i,
-    admit },
-  have : X = Y,
-  { ext i,
-    guard_target (X i).fst = (Y i).fst, admit,
-    guard_target (X i).snd = (Y i).snd, admit, },
-  have : X = Y,
-  { ext : 1,
-    guard_target X x = Y x,
-    admit },
-  trivial,
-end
-
-example (s₀ s₁ : set ℕ) (h : s₁ = s₀) : s₀ = s₁ :=
-by { ext1, guard_target x ∈ s₀ ↔ x ∈ s₁, simp * }
-
-example (s₀ s₁ : stream ℕ) (h : s₁ = s₀) : s₀ = s₁ :=
-by { ext1, guard_target s₀.nth n = s₁.nth n, simp * }
-
-example (s₀ s₁ : ℤ → set (ℕ × ℕ))
-        (h : ∀ i a b, (a,b) ∈ s₀ i ↔ (a,b) ∈ s₁ i) : s₀ = s₁ :=
-begin
-  ext i ⟨a,b⟩,
-  apply h
-end
-
-def my_foo {α} (x : semigroup α) (y : group α) : true := trivial
-
-example {α : Type} : true :=
-begin
-  have : true,
-  { refine_struct (@my_foo α { .. } { .. } ),
-      -- 9 goals
-    guard_tags _field mul semigroup, admit,
-      -- case semigroup, mul
-      -- α : Type
-      -- ⊢ α → α → α
-
-    guard_tags _field mul_assoc semigroup, admit,
-      -- case semigroup, mul_assoc
-      -- α : Type
-      -- ⊢ ∀ (a b c : α), a * b * c = a * (b * c)
-
-    guard_tags _field mul group, admit,
-      -- case group, mul
-      -- α : Type
-      -- ⊢ α → α → α
-
-    guard_tags _field mul_assoc group, admit,
-      -- case group, mul_assoc
-      -- α : Type
-      -- ⊢ ∀ (a b c : α), a * b * c = a * (b * c)
-
-    guard_tags _field one group, admit,
-      -- case group, one
-      -- α : Type
-      -- ⊢ α
-
-    guard_tags _field one_mul group, admit,
-      -- case group, one_mul
-      -- α : Type
-      -- ⊢ ∀ (a : α), 1 * a = a
-
-    guard_tags _field mul_one group, admit,
-      -- case group, mul_one
-      -- α : Type
-      -- ⊢ ∀ (a : α), a * 1 = a
-
-    guard_tags _field inv group, admit,
-      -- case group, inv
-      -- α : Type
-      -- ⊢ α → α
-
-    guard_tags _field mul_left_inv group, admit,
-      -- case group, mul_left_inv
-      -- α : Type
-      -- ⊢ ∀ (a : α), a⁻¹ * a = 1
-  },
-  trivial
-end
-
-def my_bar {α} (x : semigroup α) (y : group α) (i j : α) : α := i
-
-example {α : Type} : true :=
-begin
-  have : monoid α,
-  { refine_struct { mul := my_bar { .. } { .. } },
-    guard_tags _field mul semigroup, admit,
-    guard_tags _field mul_assoc semigroup, admit,
-    guard_tags _field mul group, admit,
-    guard_tags _field mul_assoc group, admit,
-    guard_tags _field one group, admit,
-    guard_tags _field one_mul group, admit,
-    guard_tags _field mul_one group, admit,
-    guard_tags _field inv group, admit,
-    guard_tags _field mul_left_inv group, admit,
-    guard_tags _field mul_assoc monoid, admit,
-    guard_tags _field one monoid, admit,
-    guard_tags _field one_mul monoid, admit,
-    guard_tags _field mul_one monoid, admit, },
-  trivial
-end
-
-structure dependent_fields :=
-(a : bool)
-(v : if a then ℕ else ℤ)
-
-@[extensionality] lemma df.ext (s t : dependent_fields) (h : s.a = t.a)
- (w : (@eq.rec _ s.a (λ b, if b then ℕ else ℤ) s.v t.a h) = t.v): s = t :=
-begin
-  cases s, cases t,
-  dsimp at *,
-  congr,
-  exact h,
-  subst h,
-  simp,
-  simp at w,
-  exact w,
-end
-
-example (s : dependent_fields) : s = s :=
-begin
-  tactic.ext1 [] {tactic.apply_cfg . new_goals := tactic.new_goals.all},
-  guard_target s.a = s.a,
-  refl,
-  refl,
-end
-
-end ext
-
-section apply_rules
-
-example {a b c d e : nat} (h1 : a ≤ b) (h2 : c ≤ d) (h3 : 0 ≤ e) :
-a + c * e + a + c + 0 ≤ b + d * e + b + d + e :=
-add_le_add (add_le_add (add_le_add (add_le_add h1 (mul_le_mul_of_nonneg_right h2 h3)) h1 ) h2) h3
-
-example {a b c d e : nat} (h1 : a ≤ b) (h2 : c ≤ d) (h3 : 0 ≤ e) :
-a + c * e + a + c + 0 ≤ b + d * e + b + d + e :=
-by apply_rules [add_le_add, mul_le_mul_of_nonneg_right]
-
-@[user_attribute]
-meta def mono_rules : user_attribute :=
-{ name := `mono_rules,
-  descr := "lemmas usable to prove monotonicity" }
-attribute [mono_rules] add_le_add mul_le_mul_of_nonneg_right
-
-example {a b c d e : nat} (h1 : a ≤ b) (h2 : c ≤ d) (h3 : 0 ≤ e) :
-a + c * e + a + c + 0 ≤ b + d * e + b + d + e :=
-by apply_rules [mono_rules]
-
-example {a b c d e : nat} (h1 : a ≤ b) (h2 : c ≤ d) (h3 : 0 ≤ e) :
-a + c * e + a + c + 0 ≤ b + d * e + b + d + e :=
-by apply_rules mono_rules
-
-end apply_rules
 
 section h_generalize
 
@@ -514,7 +73,7 @@ begin
   guard_hyp_nums 16,
   h_generalize hp : a == p with hh,
   guard_hyp_nums 19,
-  guard_hyp' hh := β = α,
+  guard_hyp' hh : β = α,
   guard_target f x y x z = f p (cast h₀ b) p (eq.mpr h₂ a),
   h_generalize hq : _ == q,
   guard_hyp_nums 21,
@@ -541,7 +100,7 @@ begin
   { guard_hyp_nums 11,
     h_generalize : a == p with _,
     guard_hyp_nums 13,
-    guard_hyp' h := β = α,
+    guard_hyp' h : β = α,
     guard_target f x x = f p (cast h₁ a),
     h_generalize! : a == q ,
     guard_hyp_nums 13,
@@ -554,157 +113,75 @@ end
 
 end h_generalize
 
-section assoc_rw
-open tactic
-example : ∀ x y z a b c : ℕ, true :=
+section tfae
+
+example (p q r s : Prop)
+  (h₀ : p ↔ q)
+  (h₁ : q ↔ r)
+  (h₂ : r ↔ s) :
+  p ↔ s :=
 begin
- intros,
- have : x + (y + z) = 3 + y, admit,
- have : a + (b + x) + y + (z + b + c) ≤ 0,
- (do this ← get_local `this,
-     tgt ← to_expr ```(a + (b + x) + y + (z + b + c)),
-     assoc ← mk_mapp ``add_monoid.add_assoc [`(ℕ),none],
-     (l,p) ← assoc_rewrite_intl assoc this tgt,
-     note `h none p  ),
- erw h,
- guard_target a + b + 3 + y + b + c ≤ 0,
- admit,
- trivial
+  scc,
 end
 
-example : ∀ x y z a b c : ℕ, true :=
+example (p' p q r r' s s' : Prop)
+  (h₀ : p' → p)
+  (h₀ : p → q)
+  (h₁ : q → r)
+  (h₁ : r' → r)
+  (h₂ : r ↔ s)
+  (h₂ : s → p)
+  (h₂ : s → s') :
+  p ↔ s :=
 begin
- intros,
- have : ∀ y, x + (y + z) = 3 + y, admit,
- have : a + (b + x) + y + (z + b + c) ≤ 0,
- (do this ← get_local `this,
-     tgt ← to_expr ```(a + (b + x) + y + (z + b + c)),
-     assoc_rewrite_target this ),
- guard_target a + b + 3 + y + b + c ≤ 0,
- admit,
- trivial
+  scc,
 end
 
-variables x y z a b c : ℕ
-variables h₀ : ∀ (y : ℕ), x + (y + z) = 3 + y
-variables h₁ : a + (b + x) + y + (z + b + a) ≤ 0
-variables h₂ : y + b + c = y + b + a
-include h₀ h₁ h₂
-example : a + (b + x) + y + (z + b + c) ≤ 0 :=
-by { assoc_rw [h₀,h₂] at *,
-     guard_hyp _inst := is_associative ℕ has_add.add,
-       -- keep a local instance of is_associative to cache
-       -- type class queries
-     exact h₁ }
-
-end assoc_rw
-
--- section tfae
-
--- example (p q r s : Prop)
---   (h₀ : p ↔ q)
---   (h₁ : q ↔ r)
---   (h₂ : r ↔ s) :
---   p ↔ s :=
--- begin
---   scc,
--- end
-
--- example (p' p q r r' s s' : Prop)
---   (h₀ : p' → p)
---   (h₀ : p → q)
---   (h₁ : q → r)
---   (h₁ : r' → r)
---   (h₂ : r ↔ s)
---   (h₂ : s → p)
---   (h₂ : s → s') :
---   p ↔ s :=
--- begin
---   scc,
--- end
-
--- example (p' p q r r' s s' : Prop)
---   (h₀ : p' → p)
---   (h₀ : p → q)
---   (h₁ : q → r)
---   (h₁ : r' → r)
---   (h₂ : r ↔ s)
---   (h₂ : s → p)
---   (h₂ : s → s') :
---   p ↔ s :=
--- begin
---   scc',
---   assumption
--- end
-
--- example : tfae [true, ∀ n : ℕ, 0 ≤ n * n, true, true] := begin
---   tfae_have : 3 → 1, { intro h, constructor },
---   tfae_have : 2 → 3, { intro h, constructor },
---   tfae_have : 2 ← 1, { intros h n, apply nat.zero_le },
---   tfae_have : 4 ↔ 2, { tauto },
---   tfae_finish,
--- end
-
--- example : tfae [] := begin
---   tfae_finish,
--- end
-
--- end tfae
-
-section conv
-
-example : 0 + 0 = 0 :=
+example (p' p q r r' s s' : Prop)
+  (h₀ : p' → p)
+  (h₀ : p → q)
+  (h₁ : q → r)
+  (h₁ : r' → r)
+  (h₂ : r ↔ s)
+  (h₂ : s → p)
+  (h₂ : s → s') :
+  p ↔ s :=
 begin
-  conv_lhs {erw [add_zero]}
+  scc',
+  assumption
 end
 
-example : 0 + 0 = 0 :=
-begin
-  conv_lhs {simp}
+example : tfae [true, ∀ n : ℕ, 0 ≤ n * n, true, true] := begin
+  tfae_have : 3 → 1, { intro h, constructor },
+  tfae_have : 2 → 3, { intro h, constructor },
+  tfae_have : 2 ← 1, { intros h n, apply nat.zero_le },
+  tfae_have : 4 ↔ 2, { tauto },
+  tfae_finish,
 end
 
-example : 0 = 0 + 0 :=
-begin
-  conv_rhs {simp}
+example : tfae [] := begin
+  tfae_finish,
 end
 
--- Example with ring discharging the goal
-example : 22 + 7 * 4 + 3 * 8 = 0 + 7 * 4 + 46 :=
+variables P Q R : Prop
+
+example (pq : P → Q) (qr : Q → R) (rp : R → P) : tfae [P, Q, R] :=
 begin
-  conv { ring, },
+  tfae_finish
 end
 
--- Example with ring failing to discharge, to normalizing the goal
-example : (22 + 7 * 4 + 3 * 8 = 0 + 7 * 4 + 47) = (74 = 75) :=
+example (pq : P ↔ Q) (qr : Q ↔ R) : tfae [P, Q, R] :=
 begin
-  conv { ring, },
+  tfae_finish -- the success or failure of this tactic is nondeterministic!
 end
 
--- Example with ring discharging the goal
-example (x : ℕ) : 22 + 7 * x + 3 * 8 = 0 + 7 * x + 46 :=
+example (p : unit → Prop) : tfae [p (), p ()] :=
 begin
-  conv { ring, },
+  tfae_have : 1 ↔ 2, from iff.rfl,
+  tfae_finish
 end
 
--- Example with ring failing to discharge, to normalizing the goal
-example (x : ℕ) : (22 + 7 * x + 3 * 8 = 0 + 7 * x + 46 + 1)
-                    = (7 * x + 46 = 7 * x + 47) :=
-begin
-  conv { ring, },
-end
-
--- norm_num examples:
-example : 22 + 7 * 4 + 3 * 8 = 74 :=
-begin
-  conv { norm_num, },
-end
-
-example (x : ℕ) : 22 + 7 * x + 3 * 8 = 7 * x + 46 :=
-begin
-  conv { norm_num, },
-end
-
-end conv
+end tfae
 
 section clear_aux_decl
 
@@ -724,19 +201,13 @@ end
 
 end clear_aux_decl
 
-section congr
+section swap
 
-example (c : Prop → Prop → Prop → Prop) (x x' y z z' : Prop)
-  (h₀ : x ↔ x')
-  (h₁ : z ↔ z') :
-  c x y z ↔ c x' y z' :=
-begin
-  congr',
-  { guard_target x = x', ext, assumption },
-  { guard_target z = z', ext, assumption },
-end
+example {α₁ α₂ α₃ : Type} : true :=
+by {have : α₁, have : α₂, have : α₃, swap, swap,
+    rotate, rotate, rotate, rotate 2, rotate 2, triv, recover}
 
-end congr
+end swap
 
 private meta def get_exception_message (t : lean.parser unit) : lean.parser string
 | s := match t s with
@@ -759,3 +230,298 @@ do
 -- a VM check error, and instead catch the error gracefully and just
 -- run and succeed silently.
 test_parser1
+
+section category_theory
+open category_theory
+variables {C : Type} [category.{1} C]
+
+example (X Y Z W : C) (x : X ⟶ Y) (y : Y ⟶ Z) (z z' : Z ⟶ W) (w : X ⟶ Z)
+  (h : x ≫ y = w)
+  (h' : y ≫ z = y ≫ z') :
+  x ≫ y ≫ z = w ≫ z' :=
+begin
+  rw [h',reassoc_of h],
+end
+
+end category_theory
+
+section is_eta_expansion
+/- test the is_eta_expansion tactic -/
+open function tactic
+structure my_equiv (α : Sort*) (β : Sort*) :=
+(to_fun    : α → β)
+(inv_fun   : β → α)
+(left_inv  : left_inverse inv_fun to_fun)
+(right_inv : right_inverse inv_fun to_fun)
+
+infix ` my≃ `:25 := my_equiv
+
+protected def my_rfl {α} : α my≃ α :=
+⟨id, λ x, x, λ x, rfl, λ x, rfl⟩
+
+def eta_expansion_test : ℕ × ℕ := ((1,0).1,(1,0).2)
+run_cmd do e ← get_env, x ← e.get `eta_expansion_test,
+  let v := (x.value.get_app_args).drop 2,
+  let nms := [`prod.fst, `prod.snd],
+  guard $ expr.is_eta_expansion_test (nms.zip v) = some `((1, 0))
+
+def eta_expansion_test2 : ℕ my≃ ℕ :=
+⟨my_rfl.to_fun, my_rfl.inv_fun, λ x, rfl, λ x, rfl⟩
+
+run_cmd do e ← get_env, x ← e.get `eta_expansion_test2,
+  let v := (x.value.get_app_args).drop 2,
+  projs ← e.structure_fields_full `my_equiv,
+  b ← expr.is_eta_expansion_aux x.value (projs.zip v),
+  guard $ b = some `(@my_rfl ℕ)
+
+run_cmd do e ← get_env, x1 ← e.get `eta_expansion_test, x2 ← e.get `eta_expansion_test2,
+  b1 ← expr.is_eta_expansion x1.value,
+  b2 ← expr.is_eta_expansion x2.value,
+  guard $ b1 = some `((1, 0)) ∧ b2 = some `(@my_rfl ℕ)
+
+structure my_str (n : ℕ) := (x y : ℕ)
+
+def dummy : my_str 3 := ⟨1, 1⟩
+def wrong_param : my_str 2 := ⟨dummy.1, dummy.2⟩
+def right_param : my_str 3 := ⟨dummy.1, dummy.2⟩
+
+run_cmd do e ← get_env,
+  x ← e.get `wrong_param, o ← x.value.is_eta_expansion,
+  guard o.is_none,
+  x ← e.get `right_param, o ← x.value.is_eta_expansion,
+  guard $ o = some `(dummy)
+
+
+end is_eta_expansion
+
+section elide
+
+variables {x y z w : ℕ}
+variables (h  : x + y + z ≤ w)
+          (h' : x ≤ y + z + w)
+include h h'
+
+example : x + y + z ≤ w :=
+begin
+  elide 0 at h,
+  elide 2 at h',
+  guard_hyp h : @hidden _ (x + y + z ≤ w),
+  guard_hyp h' : x ≤ @has_add.add (@hidden Type nat) (@hidden (has_add nat) nat.has_add)
+                                   (@hidden ℕ (y + z)) (@hidden ℕ w),
+  unelide at h,
+  unelide at h',
+  guard_hyp h' : x ≤ y + z + w,
+  exact h, -- there was a universe problem in `elide`. `exact h` lets the kernel check
+           -- the consistency of the universes
+end
+
+end elide
+
+section struct_eq
+
+@[ext]
+structure foo (α : Type*) :=
+(x y : ℕ)
+(z : {z // z < x})
+(k : α)
+(h : x < y)
+
+example {α : Type*} : Π (x y : foo α), x.x = y.x → x.y = y.y → x.z == y.z → x.k = y.k → x = y :=
+foo.ext
+
+example {α : Type*} : Π (x y : foo α), x = y ↔ x.x = y.x ∧ x.y = y.y ∧ x.z == y.z ∧ x.k = y.k :=
+foo.ext_iff
+
+example {α} (x y : foo α) (h : x = y) : y = x :=
+begin
+  ext,
+  { guard_target' y.x = x.x, rw h },
+  { guard_target' y.y = x.y, rw h },
+  { guard_target' y.z == x.z, rw h },
+  { guard_target' y.k = x.k, rw h },
+end
+
+end struct_eq
+
+section ring_exp
+  example (a b : ℤ) (n : ℕ) : (a + b)^(n + 2) = (a^2 + 2 * a * b + b^2) * (a + b)^n := by ring_exp
+end ring_exp
+
+section clear'
+
+example (a : ℕ) (b : fin a) : unit :=
+begin
+  success_if_fail { clear a b }, -- fails since `b` depends on `a`
+  success_if_fail { clear' a },  -- fails since `b` depends on `a`
+  clear' a b,
+  guard_hyp_nums 0,
+  exact ()
+end
+
+example (a : ℕ) : fin a → unit :=
+begin
+  success_if_fail { clear' a },          -- fails since the target depends on `a`
+  success_if_fail { clear_dependent a }, -- ditto
+  exact λ _, ()
+end
+
+example (a : unit) : unit :=
+begin
+  -- Check we fail with an error (but don't segfault) if hypotheses are repeated.
+  success_if_fail { clear' a a },
+  success_if_fail { clear_dependent a a },
+  exact ()
+end
+
+example (a a a : unit) : unit :=
+begin
+  -- If there are multiple hypotheses with the same name,
+  -- `clear'`/`clear_dependent` currently clears only the last.
+  clear' a,
+  clear_dependent a,
+  guard_hyp_nums 1,
+  exact ()
+end
+
+end clear'
+
+section clear_dependent
+
+example (a : ℕ) (b : fin a) : unit :=
+begin
+  success_if_fail { clear' a }, -- fails since `b` depends on `a`
+  clear_dependent a,
+  guard_hyp_nums 0,
+  exact ()
+end
+
+end clear_dependent
+
+section simp_rw
+  example {α β : Type} {f : α → β} {t : set β} :
+    (∀ s, f '' s ⊆ t) = ∀ s : set α, ∀ x ∈ s, x ∈ f ⁻¹' t :=
+  by simp_rw [set.image_subset_iff, set.subset_def]
+end simp_rw
+
+section local_definitions
+/- Some tactics about local definitions.
+  Testing revert_deps, revert_after, generalize', clear_value. -/
+open tactic
+example {A : ℕ → Type} {n : ℕ} : let k := n + 3, l := k + n, f : A k → A k := id in
+  ∀(x : A k) (y : A (n + k)) (z : A n) (h : k = n + n), unit :=
+begin
+  intros, guard_target unit,
+  do { e ← get_local `k, e1 ← tactic.local_def_value e, e2 ← to_expr ```(n + 3), guard $ e1 = e2 },
+  do { e ← get_local `n, success_if_fail_with_msg (tactic.local_def_value e)
+    "Variable n is not a local definition." },
+  do { success_if_fail_with_msg (tactic.local_def_value `(1 + 2))
+    "No such hypothesis 1 + 2." },
+  revert_deps k, tactic.intron 5, guard_target unit,
+  revert_after n, tactic.intron 7, guard_target unit,
+  do {
+    e ← get_local `k,
+    tactic.revert_reverse_dependencies_of_hyp e,
+    l ← local_context,
+    guard $ e ∈ l,
+    intros },
+  exact unit.star
+end
+
+example {A : ℕ → Type} {n : ℕ} : let k := n + 3, l := k + n, f : A k → A (n+3) := id in
+  ∀(x : A k) (y : A (n + k)) (z : A n) (h : k = n + n), unit :=
+begin
+  intros,
+  success_if_fail_with_msg {generalize : n + k = x}
+    "generalize tactic failed, failed to find expression in the target",
+  generalize' : n + k = x,
+  generalize' h : n + k = y,
+  exact unit.star
+end
+
+example {A : ℕ → Type} {n : ℕ} : let k := n + 3, l := k + n, f : A k → A (n+3) := id in
+  ∀(x : A k) (y : A (n + k)) (z : A n) (h : k = n + n), unit :=
+begin
+  intros,
+  tactic.to_expr ```(n + n) >>= λ e, tactic.generalize' e `xxx,
+  success_if_fail_with_msg {clear_value n}
+    "Cannot clear the body of n. It is not a local definition.",
+  success_if_fail_with_msg {clear_value k}
+    "Cannot clear the body of k. The resulting goal is not type correct.",
+  clear_value k f,
+  get_local `k, -- test that `k` is not renamed.
+  exact unit.star
+end
+
+example {A : ℕ → Type} {n : ℕ} : let k := n + 3, l := k + n, f : A k → A k := id in
+  ∀(x : A k) (y : A (n + k)) (z : A n) (h : k = n + n), unit :=
+begin
+  intros,
+  clear_value k f,
+  exact unit.star
+end
+
+/-- test `clear_value` and the preservation of naming -/
+example : ∀ x y : ℤ, let z := x + y in x = z - y → x = y - z → true :=
+begin
+  introv h h,
+  guard_hyp x : ℤ,
+  guard_hyp y : ℤ,
+  guard_hyp z : ℤ := x + y,
+  guard_hyp h : x = y - z,
+  suffices : true, -- test the type of the second assumption named `h`
+  { clear h,
+    guard_hyp h : x = z - y,
+    assumption },
+  do { to_expr ```(z) >>= is_local_def },
+  clear_value z,
+  guard_hyp z : ℤ,
+  success_if_fail { do { to_expr ```(z) >>= is_local_def } },
+  guard_hyp h : x = y - z,
+  suffices : true,
+  { clear h,
+    guard_hyp h : x = z - y,
+    assumption },
+  trivial
+end
+
+/- Test whether generalize' always uses the exact name stated by the user, even if that name already
+  exists. -/
+example (n : Type) (k : ℕ) : k = 5 → unit :=
+begin
+  generalize' : 5 = n,
+  guard_target (k = n → unit),
+  intro, constructor
+end
+
+/- Test that `generalize'` works correctly with argument `h`, when the expression occurs in the
+  target -/
+example (n : Type) (k : ℕ) : k = 5 → unit :=
+begin
+  generalize' h : 5 = n,
+  guard_target (k = n → unit),
+  intro, constructor
+end
+
+end local_definitions
+
+section set_attribute
+
+open tactic
+
+@[user_attribute] meta def my_user_attribute : user_attribute unit bool :=
+{ name := `my_attr,
+  descr := "",
+  parser := return ff }
+
+run_cmd do nm ← get_user_attribute_name `library_note, guard $ nm = `library_note_attr
+run_cmd do nm ← get_user_attribute_name `higher_order, guard $ nm = `tactic.higher_order_attr
+run_cmd do success_if_fail $ get_user_attribute_name `zxy.xzy
+
+run_cmd set_attribute `norm `prod.map tt
+run_cmd set_attribute `my_attr `prod.map
+run_cmd set_attribute `to_additive `has_mul
+run_cmd success_if_fail $ set_attribute `higher_order `prod.map tt
+run_cmd success_if_fail $ set_attribute `norm `xyz.zxy
+run_cmd success_if_fail $ set_attribute `zxy.xyz `prod.map
+
+end set_attribute

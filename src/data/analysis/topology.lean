@@ -5,9 +5,11 @@ Authors: Mario Carneiro
 
 Computational realization of topological spaces (experimental).
 -/
-import topology.bases data.analysis.filter
+import topology.bases
+import data.analysis.filter
 open set
 open filter (hiding realizer)
+open_locale topological_space
 
 /-- A `ctop α σ` is a realization of a topology (basis) on `α`,
   represented by a type `σ` together with operations for the top element and
@@ -45,18 +47,20 @@ def of_equiv (E : σ ≃ τ) : ctop α σ → ctop α τ
 
 end
 
-instance to_topsp (F : ctop α σ) : topological_space α :=
+/-- Every `ctop` is a topological space. -/
+def to_topsp (F : ctop α σ) : topological_space α :=
 topological_space.generate_from (set.range F.f)
 
 theorem to_topsp_is_topological_basis (F : ctop α σ) :
   @topological_space.is_topological_basis _ F.to_topsp (set.range F.f) :=
+by letI := F.to_topsp; exact
 ⟨λ u ⟨a, e₁⟩ v ⟨b, e₂⟩, e₁ ▸ e₂ ▸
    λ x h, ⟨_, ⟨_, rfl⟩, F.inter_mem a b x h, F.inter_sub a b x h⟩,
 eq_univ_iff_forall.2 $ λ x, ⟨_, ⟨_, rfl⟩, F.top_mem x⟩, rfl⟩
 
 @[simp] theorem mem_nhds_to_topsp (F : ctop α σ) {s : set α} {a : α} :
   s ∈ @nhds _ F.to_topsp a ↔ ∃ b, a ∈ F b ∧ F b ⊆ s :=
-(@topological_space.mem_nhds_of_is_topological_basis
+(@topological_space.is_topological_basis.mem_nhds_iff
   _ F.to_topsp _ _ _ F.to_topsp_is_topological_basis).trans $
 ⟨λ ⟨_, ⟨x, rfl⟩, h⟩, ⟨x, h⟩, λ ⟨x, h⟩, ⟨_, ⟨x, rfl⟩, h⟩⟩
 
@@ -80,7 +84,7 @@ protected theorem is_basis [T : topological_space α] (F : realizer α) :
 by have := to_topsp_is_topological_basis F.F; rwa F.eq at this
 
 protected theorem mem_nhds [T : topological_space α] (F : realizer α) {s : set α} {a : α} :
-  s ∈ nhds a ↔ ∃ b, a ∈ F.F b ∧ F.F b ⊆ s :=
+  s ∈ 𝓝 a ↔ ∃ b, a ∈ F.F b ∧ F.F b ⊆ s :=
 by have := mem_nhds_to_topsp F.F; rwa F.eq at this
 
 theorem is_open_iff [topological_space α] (F : realizer α) {s : set α} :
@@ -89,7 +93,7 @@ is_open_iff_mem_nhds.trans $ ball_congr $ λ a h, F.mem_nhds
 
 theorem is_closed_iff [topological_space α] (F : realizer α) {s : set α} :
   is_closed s ↔ ∀ a, (∀ b, a ∈ F.F b → ∃ z, z ∈ F.F b ∩ s) → a ∈ s :=
-F.is_open_iff.trans $ forall_congr $ λ a,
+is_open_compl_iff.symm.trans $ F.is_open_iff.trans $ forall_congr $ λ a,
 show (a ∉ s → (∃ (b : F.σ), a ∈ F.F b ∧ ∀ z ∈ F.F b, z ∉ s)) ↔ _,
 by haveI := classical.prop_decidable; rw [not_imp_comm];
    simp [not_exists, not_and, not_forall, and_comm]
@@ -102,21 +106,19 @@ protected theorem is_open [topological_space α] (F : realizer α) (s : F.σ) : 
 is_open_iff_nhds.2 $ λ a m, by simpa using F.mem_nhds.2 ⟨s, m, subset.refl _⟩
 
 theorem ext' [T : topological_space α] {σ : Type*} {F : ctop α σ}
-  (H : ∀ a s, s ∈ nhds a ↔ ∃ b, a ∈ F b ∧ F b ⊆ s) :
+  (H : ∀ a s, s ∈ 𝓝 a ↔ ∃ b, a ∈ F b ∧ F b ⊆ s) :
   F.to_topsp = T :=
-topological_space_eq $ funext $ λ s, begin
-  have : ∀ T s, @topological_space.is_open _ T s ↔ _ := @is_open_iff_mem_nhds α,
-  rw [this, this],
-  apply congr_arg (λ f : α → filter α, ∀ a ∈ s, s ∈ f a),
-  funext a, apply filter_eq, apply set.ext, intro x,
+begin
+  refine eq_of_nhds_eq_nhds (λ x, _),
+  ext s,
   rw [mem_nhds_to_topsp, H]
 end
 
 theorem ext [T : topological_space α] {σ : Type*} {F : ctop α σ}
   (H₁ : ∀ a, is_open (F a))
-  (H₂ : ∀ a s, s ∈ nhds a → ∃ b, a ∈ F b ∧ F b ⊆ s) :
+  (H₂ : ∀ a s, s ∈ 𝓝 a → ∃ b, a ∈ F b ∧ F b ⊆ s) :
   F.to_topsp = T :=
-ext' $ λ a s, ⟨H₂ a s, λ ⟨b, h₁, h₂⟩, mem_nhds_sets_iff.2 ⟨_, h₂, H₁ _, h₁⟩⟩
+ext' $ λ a s, ⟨H₂ a s, λ ⟨b, h₁, h₂⟩, mem_nhds_iff.2 ⟨_, h₂, H₁ _, h₁⟩⟩
 
 variable [topological_space α]
 
@@ -124,11 +126,11 @@ protected def id : realizer α := ⟨{x:set α // is_open x},
 { f            := subtype.val,
   top          := λ _, ⟨univ, is_open_univ⟩,
   top_mem      := mem_univ,
-  inter        := λ ⟨x, h₁⟩ ⟨y, h₂⟩ a h₃, ⟨_, is_open_inter h₁ h₂⟩,
+  inter        := λ ⟨x, h₁⟩ ⟨y, h₂⟩ a h₃, ⟨_, h₁.inter h₂⟩,
   inter_mem    := λ ⟨x, h₁⟩ ⟨y, h₂⟩ a, id,
   inter_sub    := λ ⟨x, h₁⟩ ⟨y, h₂⟩ a h₃, subset.refl _ },
 ext subtype.property $ λ x s h,
-  let ⟨t, h, o, m⟩ := mem_nhds_sets_iff.1 h in ⟨⟨t, o⟩, m, h⟩⟩
+  let ⟨t, h, o, m⟩ := mem_nhds_iff.1 h in ⟨⟨t, o⟩, m, h⟩⟩
 
 def of_equiv (F : realizer α) (E : F.σ ≃ τ) : realizer α :=
 ⟨τ, F.F.of_equiv E, ext' (λ a s, F.mem_nhds.trans $
@@ -138,7 +140,7 @@ def of_equiv (F : realizer α) (E : F.σ ≃ τ) : realizer α :=
 @[simp] theorem of_equiv_F (F : realizer α) (E : F.σ ≃ τ) (s : τ) :
   (F.of_equiv E).F s = F.F (E.symm s) := by delta of_equiv; simp
 
-protected def nhds (F : realizer α) (a : α) : (nhds a).realizer :=
+protected def nhds (F : realizer α) (a : α) : (𝓝 a).realizer :=
 ⟨{s : F.σ // a ∈ F.F s},
 { f            := λ s, F.F s.1,
   pt           := ⟨_, F.F.top_mem a⟩,
@@ -146,7 +148,7 @@ protected def nhds (F : realizer α) (a : α) : (nhds a).realizer :=
   inf_le_left  := λ ⟨x, h₁⟩ ⟨y, h₂⟩ z h, (F.F.inter_sub x y a ⟨h₁, h₂⟩ h).1,
   inf_le_right := λ ⟨x, h₁⟩ ⟨y, h₂⟩ z h, (F.F.inter_sub x y a ⟨h₁, h₂⟩ h).2 },
 filter_eq $ set.ext $ λ x,
-⟨λ ⟨⟨s, as⟩, h⟩, mem_nhds_sets_iff.2 ⟨_, h, F.is_open _, as⟩,
+⟨λ ⟨⟨s, as⟩, h⟩, mem_nhds_iff.2 ⟨_, h, F.is_open _, as⟩,
  λ h, let ⟨s, h, as⟩ := F.mem_nhds.1 h in ⟨⟨s, h⟩, as⟩⟩⟩
 
 @[simp] theorem nhds_σ (m : α → β) (F : realizer α) (a : α) :
@@ -155,14 +157,14 @@ filter_eq $ set.ext $ λ x,
   (F.nhds a).F s = F.F s.1 := rfl
 
 theorem tendsto_nhds_iff {m : β → α} {f : filter β} (F : f.realizer) (R : realizer α) {a : α} :
-  tendsto m f (nhds a) ↔ ∀ t, a ∈ R.F t → ∃ s, ∀ x ∈ F.F s, m x ∈ R.F t :=
+  tendsto m f (𝓝 a) ↔ ∀ t, a ∈ R.F t → ∃ s, ∀ x ∈ F.F s, m x ∈ R.F t :=
 (F.tendsto_iff _ (R.nhds a)).trans subtype.forall
 
 end ctop.realizer
 
 structure locally_finite.realizer [topological_space α] (F : realizer α) (f : β → set α) :=
 (bas : ∀ a, {s // a ∈ F.F s})
-(sets : ∀ x:α, fintype {i | f i ∩ F.F (bas x) ≠ ∅})
+(sets : ∀ x:α, fintype {i | (f i ∩ F.F (bas x)).nonempty})
 
 theorem locally_finite.realizer.to_locally_finite [topological_space α]
   {F : realizer α} {f : β → set α} (R : locally_finite.realizer F f) :
@@ -177,10 +179,10 @@ theorem locally_finite_iff_exists_realizer [topological_space α]
        show ∃ (b : F.σ), x ∈ (F.F) b ∧ (F.F) b ⊆ g x, from
        let ⟨h, h'⟩ := h₁ x in F.mem_nhds.1 h) in
   ⟨⟨λ x, ⟨g₂ x, (h₂ x).1⟩, λ x, finite.fintype $
-    let ⟨h, h'⟩ := h₁ x in finite_subset h' $ λ i,
-    subset_ne_empty (inter_subset_inter_right _ (h₂ x).2)⟩⟩,
+    let ⟨h, h'⟩ := h₁ x in h'.subset $ λ i hi,
+    hi.mono (inter_subset_inter_right _ (h₂ x).2)⟩⟩,
  λ ⟨R⟩, R.to_locally_finite⟩
 
 def compact.realizer [topological_space α] (R : realizer α) (s : set α) :=
 ∀ {f : filter α} (F : f.realizer) (x : F.σ), f ≠ ⊥ →
-  F.F x ⊆ s → {a // a∈s ∧ nhds a ⊓ f ≠ ⊥}
+  F.F x ⊆ s → {a // a∈s ∧ 𝓝 a ⊓ f ≠ ⊥}

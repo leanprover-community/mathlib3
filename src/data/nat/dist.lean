@@ -1,31 +1,33 @@
 /-
 Copyright (c) 2014 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-
 Authors: Floris van Doorn, Jeremy Avigad
-Distance function on the natural numbers.
 -/
 import data.nat.basic
 
-namespace nat
+/-!
+#  Distance function on ℕ
 
-/- distance -/
+This file defines a simple distance function on naturals from truncated substraction.
+-/
+
+namespace nat
 
 /-- Distance (absolute value of difference) between natural numbers. -/
 def dist (n m : ℕ) := (n - m) + (m - n)
 
 theorem dist.def (n m : ℕ) : dist n m = (n - m) + (m - n) := rfl
 
-@[simp] theorem dist_comm (n m : ℕ) : dist n m = dist m n :=
-by simp [dist.def]
+theorem dist_comm (n m : ℕ) : dist n m = dist m n :=
+by simp [dist.def, add_comm]
 
 @[simp] theorem dist_self (n : ℕ) : dist n n = 0 :=
 by simp [dist.def, nat.sub_self]
 
 theorem eq_of_dist_eq_zero {n m : ℕ} (h : dist n m = 0) : n = m :=
-have n - m = 0, from eq_zero_of_add_eq_zero_right h,
+have n - m = 0, from nat.eq_zero_of_add_eq_zero_right h,
 have n ≤ m, from nat.le_of_sub_eq_zero this,
-have m - n = 0, from eq_zero_of_add_eq_zero_left h,
+have m - n = 0, from nat.eq_zero_of_add_eq_zero_left h,
 have m ≤ n, from nat.le_of_sub_eq_zero this,
 le_antisymm ‹n ≤ m› ‹m ≤ n›
 
@@ -33,13 +35,25 @@ theorem dist_eq_zero {n m : ℕ} (h : n = m) : dist n m = 0 :=
 begin rw [h, dist_self] end
 
 theorem dist_eq_sub_of_le {n m : ℕ} (h : n ≤ m) : dist n m = m - n :=
-begin rw [dist.def, sub_eq_zero_of_le h, zero_add] end
+begin rw [dist.def, nat.sub_eq_zero_of_le h, zero_add] end
 
-theorem dist_eq_sub_of_ge {n m : ℕ} (h : n ≥ m) : dist n m = n - m :=
+theorem dist_eq_sub_of_le_right {n m : ℕ} (h : m ≤ n) : dist n m = n - m :=
 begin rw [dist_comm], apply dist_eq_sub_of_le h end
 
+theorem dist_tri_left (n m : ℕ) : m ≤ dist n m + n :=
+le_trans (nat.le_sub_add _ _) (add_le_add_right (nat.le_add_left _ _) _)
+
+theorem dist_tri_right (n m : ℕ) : m ≤ n + dist n m :=
+by rw add_comm; apply dist_tri_left
+
+theorem dist_tri_left' (n m : ℕ) : n ≤ dist n m + m :=
+by rw dist_comm; apply dist_tri_left
+
+theorem dist_tri_right' (n m : ℕ) : n ≤ m + dist n m :=
+by rw dist_comm; apply dist_tri_right
+
 theorem dist_zero_right (n : ℕ) : dist n 0 = n :=
-eq.trans (dist_eq_sub_of_ge (zero_le n)) (nat.sub_zero n)
+eq.trans (dist_eq_sub_of_le_right (zero_le n)) (nat.sub_zero n)
 
 theorem dist_zero_left (n : ℕ) : dist 0 n = n :=
 eq.trans (dist_eq_sub_of_le (zero_le n)) (nat.sub_zero n)
@@ -64,10 +78,11 @@ or.elim (le_total k m)
   (assume : k ≤ m,
     begin rw ←nat.add_sub_assoc this, apply nat.sub_le_sub_right, apply nat.le_sub_add end)
   (assume : k ≥ m,
-    begin rw [sub_eq_zero_of_le this, add_zero], apply nat.sub_le_sub_left, exact this end)
+    begin rw [nat.sub_eq_zero_of_le this, add_zero], apply nat.sub_le_sub_left, exact this end)
 
 theorem dist.triangle_inequality (n m k : ℕ) : dist n k ≤ dist n m + dist m k :=
-have dist n m + dist m k = (n - m) + (m - k) + ((k - m) + (m - n)), by simp [dist.def],
+have dist n m + dist m k = (n - m) + (m - k) + ((k - m) + (m - n)),
+  by simp [dist.def, add_comm, add_left_comm],
 begin
   rw [this, dist.def], apply add_le_add, repeat { apply nat.sub_lt_sub_add_sub }
 end
@@ -86,18 +101,18 @@ or.elim (lt_or_ge i j)
   (assume : i < j,
     by rw [max_eq_right_of_lt this, min_eq_left_of_lt this, dist_eq_sub_of_lt this])
   (assume : i ≥ j,
-    by rw [max_eq_left this , min_eq_right this, dist_eq_sub_of_ge this])
+    by rw [max_eq_left this , min_eq_right this, dist_eq_sub_of_le_right this])
 -/
 
 theorem dist_succ_succ {i j : nat} : dist (succ i) (succ j) = dist i j :=
 by simp [dist.def, succ_sub_succ]
 
-theorem dist_pos_of_ne {i j : nat} : i ≠ j → dist i j > 0 :=
+theorem dist_pos_of_ne {i j : nat} : i ≠ j → 0 < dist i j :=
 assume hne, nat.lt_by_cases
   (assume : i < j,
      begin rw [dist_eq_sub_of_le (le_of_lt this)], apply nat.sub_pos_of_lt this end)
   (assume : i = j, by contradiction)
   (assume : i > j,
-     begin rw [dist_eq_sub_of_ge (le_of_lt this)], apply nat.sub_pos_of_lt this end)
+     begin rw [dist_eq_sub_of_le_right (le_of_lt this)], apply nat.sub_pos_of_lt this end)
 
 end nat

@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Binder elimination
 -/
-import order tactic.converter.old_conv
+import order
 
 namespace old_conv
 open tactic monad
@@ -28,7 +28,9 @@ meta def head_beta : old_conv unit :=
 meta def congr_arg : old_conv unit → old_conv unit := congr_core (return ())
 meta def congr_fun : old_conv unit → old_conv unit := λc, congr_core c (return ())
 
-meta def congr_rule (congr : expr) (cs : list (list expr → old_conv unit)) : old_conv unit := λr lhs, do
+meta def congr_rule (congr : expr) (cs : list (list expr → old_conv unit)) :
+  old_conv unit :=
+λr lhs, do
   meta_rhs ← infer_type lhs >>= mk_meta_var, -- is maybe overly restricted for `heq`
   t ← mk_app r [lhs, meta_rhs],
   ((), meta_pr) ← solve_aux t (do
@@ -137,10 +139,6 @@ meta def binder_eq_elim.old_conv (b : binder_eq_elim) : old_conv unit := do
   b.check x (bd.instantiate_var x),
   b.adapt_rel b.push
 
-theorem {u v} exists_comm {α : Sort u} {β : Sort v} (p : α → β → Prop) :
-  (∃a b, p a b) ↔ (∃b a, p a b) :=
-⟨λ⟨a, ⟨b, h⟩⟩, ⟨b, ⟨a, h⟩⟩, λ⟨a, ⟨b, h⟩⟩, ⟨b, ⟨a, h⟩⟩⟩
-
 theorem {u v} exists_elim_eq_left {α : Sort u} (a : α) (p : Π(a':α), a' = a → Prop) :
   (∃(a':α)(h : a' = a), p a' h) ↔ p a rfl :=
 ⟨λ⟨a', ⟨h, p_h⟩⟩, match a', h, p_h with ._, rfl, h := h end, λh, ⟨a, rfl, h⟩⟩
@@ -176,36 +174,33 @@ meta def forall_eq_elim : binder_eq_elim :=
   apply_elim_eq := apply' ``forall_elim_eq_left <|> apply' ``forall_elim_eq_right }
 
 meta def supr_eq_elim : binder_eq_elim :=
-{ match_binder  := λe, (do `(@lattice.supr %%α %%β %%cl %%f) ← return e, return (β, f)),
+{ match_binder  := λe, (do `(@supr %%α %%cl %%β %%f) ← return e, return (β, f)),
   adapt_rel     := λc, (do r ← current_relation, guard (r = `eq), c),
-  apply_comm    := applyc ``lattice.supr_comm,
+  apply_comm    := applyc ``supr_comm,
   apply_congr   := congr_arg ∘ funext',
-  apply_elim_eq := applyc ``lattice.supr_supr_eq_left <|> applyc ``lattice.supr_supr_eq_right }
+  apply_elim_eq := applyc ``supr_supr_eq_left <|> applyc ``supr_supr_eq_right }
 
 meta def infi_eq_elim : binder_eq_elim :=
-{ match_binder  := λe, (do `(@lattice.infi %%α %%β %%cl %%f) ← return e, return (β, f)),
+{ match_binder  := λe, (do `(@infi %%α %%cl %%β %%f) ← return e, return (β, f)),
   adapt_rel     := λc, (do r ← current_relation, guard (r = `eq), c),
-  apply_comm    := applyc ``lattice.infi_comm,
+  apply_comm    := applyc ``infi_comm,
   apply_congr   := congr_arg ∘ funext',
-  apply_elim_eq := applyc ``lattice.infi_infi_eq_left <|> applyc ``lattice.infi_infi_eq_right }
+  apply_elim_eq := applyc ``infi_infi_eq_left <|> applyc ``infi_infi_eq_right }
 
 
 universes u v w w₂
 variables {α : Type u} {β : Type v} {ι : Sort w} {ι₂ : Sort w₂} {s t : set α} {a : α}
 
-@[simp] theorem mem_image {f : α → β} {b : β} : b ∈ set.image f s = ∃a, a ∈ s ∧ f a = b := rfl
-
 section
-open lattice
 variables [complete_lattice α]
 
-theorem Inf_image {s : set β} {f : β → α} : Inf (set.image f s) = (⨅ a ∈ s, f a) :=
+example {s : set β} {f : β → α} : Inf (set.image f s) = (⨅ a ∈ s, f a) :=
 begin
   simp [Inf_eq_infi, infi_and],
   conversion infi_eq_elim.old_conv,
 end
 
-theorem Sup_image {s : set β} {f : β → α} : Sup (set.image f s) = (⨆ a ∈ s, f a) :=
+example {s : set β} {f : β → α} : Sup (set.image f s) = (⨆ a ∈ s, f a) :=
 begin
   simp [Sup_eq_supr, supr_and],
   conversion supr_eq_elim.old_conv,

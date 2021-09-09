@@ -1,23 +1,26 @@
-
-import tactic.basic
-import category.basic
-import algebra.order_functions
-import algebra.order
-import meta.rb_map
+/-
+Copyright (c) 2019 Simon Hudon. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Simon Hudon
+-/
+import order.bounded_lattice
 
 namespace tactic.interactive
 open tactic list
-open lean lean.parser  interactive
+open lean lean.parser interactive
 open interactive.types
 
+@[derive inhabited]
 structure mono_cfg :=
   (unify := ff)
 
-@[derive [decidable_eq,has_reflect]]
+@[derive [decidable_eq, has_reflect, inhabited]]
 inductive mono_selection : Type
 | left : mono_selection
 | right : mono_selection
 | both : mono_selection
+
+declare_trace mono.relation
 
 section compare
 
@@ -68,7 +71,7 @@ let fn₀ := e₀.get_app_fn,
 meta def get_operator (e : expr) : option name :=
 guard (¬ e.is_pi) >> pure e.get_app_fn.const_name
 
-meta def monotoncity.check_rel (xs : list expr) (l r : expr) : tactic (option name) :=
+meta def monotonicity.check_rel (l r : expr) : tactic (option name) :=
 do guard (same_operator l r) <|>
      do { fail format!"{l} and {r} should be the f x and f y for some f" },
    if l.is_pi then pure none
@@ -80,22 +83,28 @@ def mono_key := (with_bot name × with_bot name)
 open nat
 
 meta def mono_head_candidates : ℕ → list expr → expr → tactic mono_key
-| 0 _ h := failed
+| 0 _ h := fail!"Cannot find relation in {h}"
 | (succ n) xs h :=
   do { (rel,l,r) ← if h.is_arrow
            then pure (none,h.binding_domain,h.binding_body)
            else guard h.get_app_fn.is_constant >>
                 prod.mk (some h.get_app_fn.const_name) <$> last_two h.get_app_args,
-       prod.mk <$> monotoncity.check_rel xs.reverse l r <*> pure rel } <|>
+       prod.mk <$> monotonicity.check_rel l r <*> pure rel } <|>
          match xs with
          | [] := fail format!"oh? {h}"
          | (x::xs) := mono_head_candidates n xs (h.pis [x])
          end
 
-meta def monotoncity.check (lm_n : name) (prio : ℕ) (persistent : bool) : tactic mono_key :=
+meta def monotonicity.check (lm_n : name) : tactic mono_key :=
 do lm ← mk_const lm_n,
-   lm_t ← infer_type lm,
-   (xs,h) ← mk_local_pis lm_t,
+   lm_t ← infer_type lm >>= instantiate_mvars,
+   when_tracing `mono.relation trace!"[mono] Looking for relation in {lm_t}",
+   let s := simp_lemmas.mk,
+   s ← s.add_simp ``monotone,
+   s ← s.add_simp ``strict_mono,
+   lm_t ← s.dsimplify [] lm_t { fail_if_unchanged := ff },
+   when_tracing `mono.relation trace!"[mono] Looking for relation in {lm_t} (after unfolding)",
+   (xs,h) ← open_pis lm_t,
    mono_head_candidates 3 xs.reverse h
 
 meta instance : has_to_format mono_selection :=
@@ -105,7 +114,7 @@ meta instance : has_to_format mono_selection :=
 | mono_selection.both := "both"
 end ⟩
 
-meta def side : parser mono_selection :=
+meta def side : lean.parser mono_selection :=
 with_desc "expecting 'left', 'right' or 'both' (default)" $
 do some n ← optional ident | pure mono_selection.both,
    if n = `left then pure $ mono_selection.left
@@ -118,7 +127,7 @@ open function
 
 @[user_attribute]
 meta def monotonicity.attr : user_attribute
-  (native.rb_map mono_key (list name))
+  (native.rb_lmap mono_key (name))
   (option mono_key × mono_selection) :=
 { name  := `mono
 , descr := "monotonicity of function `f` wrt relations `R₀` and `R₁`: R₀ x y → R₁ (f x) (f y)"
@@ -128,11 +137,11 @@ meta def monotonicity.attr : user_attribute
     do ps ← ls.mmap monotonicity.attr.get_param,
        let ps := ps.filter_map prod.fst,
        pure $ (ps.zip ls).foldl
-         (flip $ uncurry native.rb_map.insert_cons)
-         (native.rb_map.mk mono_key _)  }
+         (flip $ uncurry (λ k n m, m.insert k n))
+         (native.rb_lmap.mk mono_key _) }
 , after_set := some $ λ n prio p,
   do { (none,v) ← monotonicity.attr.get_param n | pure (),
-       k ← monotoncity.check n prio p,
+       k ← monotonicity.check n,
        monotonicity.attr.set n (some k,v) p }
 , parser := prod.mk none <$> side }
 
@@ -154,11 +163,3 @@ do ns  ← monotonicity.attr.get_cache,
                else pure ns'
 
 end tactic.interactive
-
-attribute [mono] add_le_add mul_le_mul neg_le_neg
-         mul_lt_mul_of_pos_left mul_lt_mul_of_pos_right
-         imp_imp_imp le_implies_le_of_le_of_le
-         sub_le_sub abs_le_abs
-attribute [mono left] add_lt_add_of_le_of_lt mul_lt_mul'
-attribute [mono right] add_lt_add_of_lt_of_le mul_lt_mul
-open tactic.interactive

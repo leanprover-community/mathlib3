@@ -32,9 +32,8 @@ defined using the instance `ordered_smul 𝕜 β`.
 
 ## Notations
 
-We define the following notations:
+We provide the following notation:
 * `[x -[𝕜] y] = segment 𝕜 x y` in locale `convex`
-* `[x, y] = segment ℝ x y` in locale `real`
 
 ## Implementation notes
 
@@ -68,8 +67,6 @@ def open_segment [add_comm_monoid E] [ordered_semiring 𝕜] [has_scalar 𝕜 E]
 {z : E | ∃ (a b : 𝕜) (ha : 0 < a) (hb : 0 < b) (hab : a + b = 1), a • x + b • y = z}
 
 localized "notation `[` x ` -[` 𝕜 `] ` y `]` := segment 𝕜 x y" in convex
-
-localized "notation `[` x `, ` y `]` := segment ℝ x y" in real
 
 section ordered_semiring
 variables [add_comm_monoid E] [ordered_semiring 𝕜] [module 𝕜 E]

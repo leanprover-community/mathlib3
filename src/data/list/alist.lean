@@ -8,9 +8,11 @@ import data.list.sigma
 /-!
 # Association Lists
 
-This file defines [association lists](https://en.wikipedia.org/wiki/Association_list). An
+This file defines association lists. An
 association list is a list where every element consists of a key and a value, and no two entries
 have the same key. The type of the value is allowed to be dependent on the type of the key.
+
+These are impmented using `data.list.sigma`. The elements of the list are of type `sigma β`, for some type index `β`.
 
 ## Main definitions
 
@@ -22,6 +24,10 @@ access, modify, and combine `alist`s.
 * `alist.erase` removes a certain key.
 * `alist.insert` adds a key-value mapping to the list.
 * `alist.union` combines two association lists.
+
+## References
+
+* <https://en.wikipedia.org/wiki/Association_list>
 
 -/
 

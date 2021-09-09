@@ -658,7 +658,7 @@ Proof follows from "The trace Cayley-Hamilton theorem" by Darij Grinberg, Sectio
 -/
 lemma adjugate_mul_distrib (A B : matrix n n α) : adjugate (A ⬝ B) = adjugate B ⬝ adjugate A :=
 begin
-  casesI (subsingleton_or_nontrivial α),
+  casesI subsingleton_or_nontrivial α,
   { simp },
   let g : matrix n n α → matrix n n (polynomial α) :=
     λ M, M.map polynomial.C + (polynomial.X : polynomial α) • 1,
@@ -667,9 +667,6 @@ begin
   { intro,
     ext,
     simp [f', g], },
-  have f'_det : ∀ (M : matrix n n α), polynomial.eval_ring_hom 0 (det (g M)) = det M,
-  { intro,
-    rw [ring_hom.map_det, f'_inv] },
   have f'_adj : ∀ (M : matrix n n α), f' (adjugate (g M)) = adjugate M,
   { intro,
     rw [ring_hom.map_adjugate, f'_inv] },
@@ -678,10 +675,8 @@ begin
     rw [←mul_eq_mul, ring_hom.map_mul, f'_inv, f'_inv, mul_eq_mul] },
   have hu : ∀ (M : matrix n n α), is_regular (g M).det,
   { intros M,
-    suffices : polynomial.monic (g M).det,
-    { exact this.is_regular },
-    simp only [g, polynomial.monic.def],
-    simp [←polynomial.leading_coeff_det_X_one_add_C M, add_comm] },
+    refine polynomial.monic.is_regular _,
+    simp only [g, polynomial.monic.def, ←polynomial.leading_coeff_det_X_one_add_C M, add_comm] },
   rw [←f'_adj, ←f'_adj, ←f'_adj, ←mul_eq_mul (f' (adjugate (g B))), ←f'.map_mul, mul_eq_mul,
       ←adjugate_mul_distrib_aux _ _ (hu A).left (hu B).left, ring_hom.map_adjugate,
       ring_hom.map_adjugate, f'_inv, f'_g_mul]

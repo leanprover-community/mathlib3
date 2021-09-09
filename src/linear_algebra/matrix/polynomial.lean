@@ -37,26 +37,27 @@ lemma nat_degree_det_X_add_C_le (A B : matrix n n α) :
 begin
   rw det_apply,
   refine (nat_degree_sum_le _ _).trans _,
-  refine (multiset.max_le_of_forall_le _ _ _),
-  { simp only [forall_apply_eq_imp_iff', true_and, function.comp_app, multiset.map_map,
+  refine (multiset.max_nat_le_of_forall_le _ _ _),
+  simp only [forall_apply_eq_imp_iff', true_and, function.comp_app, multiset.map_map,
                multiset.mem_map, exists_imp_distrib, finset.mem_univ_val],
-    intros g,
-    suffices : (∏ (i : n), (X • A.map C + B.map C) (g i) i).nat_degree ≤
-      fintype.card n,
-    { cases int.units_eq_one_or (sign g) with sg sg,
-      { rw [sg, one_smul],
-        exact this },
-      { rw [sg, units.neg_smul, one_smul, nat_degree_neg],
-        exact this } },
-    refine (nat_degree_multiset_prod_le _).trans _,
-    refine (multiset.sum_le_of_forall_le _ 1 _).trans _,
-    { simp only [forall_apply_eq_imp_iff', true_and, algebra.id.smul_eq_mul, function.comp_app,
-                 ring_hom.map_matrix_apply, multiset.map_map, map_apply, multiset.mem_map,
-                 dmatrix.add_apply, pi.smul_apply, exists_imp_distrib, finset.mem_univ_val],
-      intro,
-      refine (nat_degree_add_le _ _).trans _,
-      simpa using (nat_degree_mul_C_le _ _).trans nat_degree_X_le },
-    { simpa [fintype.card] } }
+  intro g,
+  calc  nat_degree (sign g • ∏ (i : n), (X • A.map C + B.map C) (g i) i)
+      ≤ nat_degree (∏ (i : n), (X • A.map C + B.map C) (g i) i) : by {
+      cases int.units_eq_one_or (sign g) with sg sg,
+        { rw [sg, one_smul] },
+        { rw [sg, units.neg_smul, one_smul, nat_degree_neg] } }
+  ... ≤ ∑ (i : n), nat_degree (((X : polynomial α) • A.map C + B.map C) (g i) i) :
+    nat_degree_prod_le (finset.univ : finset n) (λ (i : n), (X • A.map C + B.map C) (g i) i)
+  ... ≤ finset.univ.card • 1 : finset.sum_le_of_forall_le _ _ 1 (λ (i : n) _, _)
+  ... ≤ fintype.card n : by simpa,
+  calc  nat_degree (((X : polynomial α) • A.map C + B.map C) (g i) i)
+      = nat_degree ((X : polynomial α) * C (A (g i) i) + C (B (g i) i)) : by simp
+  ... ≤ max (nat_degree ((X : polynomial α) * C (A (g i) i))) (nat_degree (C (B (g i) i))) :
+    nat_degree_add_le _ _
+  ... = nat_degree ((X : polynomial α) * C (A (g i) i)) :
+    max_eq_left ((nat_degree_C _).le.trans (zero_le _))
+  ... ≤ nat_degree (X : polynomial α) : nat_degree_mul_C_le _ _
+  ... ≤ 1 : nat_degree_X_le
 end
 
 lemma coeff_det_X_add_C_zero (A B : matrix n n α) :

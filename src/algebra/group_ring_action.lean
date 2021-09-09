@@ -166,21 +166,6 @@ end subring
 
 end pointwise
 
-section prod
-variables [mul_semiring_action M R] [mul_semiring_action M S]
-
-lemma list.smul_prod (g : M) (L : list R) : g • L.prod = (L.map $ (•) g).prod :=
-(mul_semiring_action.to_ring_hom M R g).map_list_prod L
-
-lemma multiset.smul_prod (g : M) (m : multiset S) : g • m.prod = (m.map $ (•) g).prod :=
-(mul_semiring_action.to_ring_hom M S g).map_multiset_prod m
-
-lemma smul_prod (g : M) {ι : Type*} (f : ι → S) (s : finset ι) :
-  g • ∏ i in s, f i = ∏ i in s, g • f i :=
-(mul_semiring_action.to_ring_hom M S g).map_prod f s
-
-end prod
-
 section simp_lemmas
 
 variables {M G A R F}

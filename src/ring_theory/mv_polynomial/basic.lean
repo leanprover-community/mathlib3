@@ -117,7 +117,7 @@ rfl
 
 lemma linear_independent_X : linear_independent R (X : σ → mv_polynomial σ R) :=
 (basis_monomials σ R).linear_independent.comp
-  (λ s : σ, finsupp.single s 1) (λ _ _, by simp [finsupp.single_eq_single_iff])
+  (λ s : σ, finsupp.single s 1) (finsupp.single_left_injective one_ne_zero)
 
 end degree
 

@@ -456,7 +456,7 @@ begin
   have h2 := this.1 h,
   have h3 := setoid.iseqv,
   have h4 : eqv_gen r = λ _ _, true, by { ext, rw iff_true, apply h2 x_1 x_2, },
-  rw relation.eqv_gen_eq_of_equivalence r h3 at h4,
+  rw relation.eqv_gen_eq_of_equivalence h3 at h4,
   have h5 := left_rel_triv H h4,
   have h6 := h5 1 x,
   rw [one_inv, one_mul] at h6,

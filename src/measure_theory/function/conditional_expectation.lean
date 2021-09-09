@@ -1318,12 +1318,17 @@ begin
   { intro i,
     have hS_finite_trim := measure_spanning_sets_lt_top (ℙ.trim hm) i,
     rwa trim_measurable_set_eq hm (hS_meas i) at hS_finite_trim, },
-  have h_eq_forall : ∀ i, ∫ (x : α) in (S i) ∩ s, ℙ[f|hm] x ∂ℙ = ∫ (x : α) in (S i) ∩ s, f x ∂ℙ,
-  { intro i,
+  have h_eq_forall :(λ i, ∫ x in (S i) ∩ s, ℙ[f|hm] x ∂ℙ) = λ i, ∫ x in (S i) ∩ s, f x ∂ℙ,
+  { ext1 i,
     refine set_integral_condexp_of_measure_ne_top hf
       (@measurable_set.inter α m _ _ (hS_meas i) hs) (ne_of_lt _),
     exact (measure_mono (set.inter_subset_left _ _)).trans_lt (hS_finite i), },
-  sorry,
+  have h_right : tendsto (λ i, ∫ x in (S i) ∩ s, f x ∂ℙ) at_top (𝓝 (∫ x in s, f x ∂ℙ)),
+  { sorry, },
+  have h_left : tendsto (λ i, ∫ x in (S i) ∩ s, ℙ[f|hm] x ∂ℙ) at_top (𝓝 (∫ x in s, ℙ[f|hm] x ∂ℙ)),
+  { sorry, },
+  rw h_eq_forall at h_left,
+  exact tendsto_nhds_unique h_left h_right,
 end
 
 lemma integral_condexp (hf : integrable f ℙ) :

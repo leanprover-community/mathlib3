@@ -573,10 +573,7 @@ inv_eq_left_inv (by simp [h, smul_smul])
 
 lemma _root_.is_unit.coe_inv_mul {α : Type*} [monoid α] {a : α} (h : is_unit a) :
   ↑(h.unit)⁻¹ * a = 1 :=
-begin
-  convert units.mul_inv _,
-  simp [h.unit_spec]
-end
+units.mul_inv _
 
 lemma _root_.is_unit.mul_coe_inv {α : Type*} [monoid α] {a : α} (h : is_unit a) :
   a * ↑(h.unit)⁻¹ = 1 :=

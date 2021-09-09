@@ -204,6 +204,14 @@ eval₂_X _ _ _
 lemma iter_to_sum_C_X (c : S₂) : iter_to_sum R S₁ S₂ (C (X c)) = X (sum.inr c) :=
 eq.trans (eval₂_C _ _ (X c)) (eval₂_X _ _ _)
 
+/-- The ring, `mv_polynomial σ R` is isomorphic to `R` when `σ` is empty. -/
+def empty_equiv [he : is_empty σ] : mv_polynomial σ R ≃ₐ[R] R :=
+alg_equiv.of_alg_hom
+  (aeval (is_empty.elim he))
+  (algebra.of_id _ _)
+  (by { ext, simp [algebra.of_id_apply, algebra_map_eq] })
+  (by { ext i m, exact is_empty.elim' he i })
+
 /-- A helper function for `sum_ring_equiv`. -/
 @[simps]
 def mv_polynomial_equiv_mv_polynomial [comm_semiring S₃]

@@ -229,7 +229,7 @@ lemma pow_right_injective_iff_pow_injective {n : M} :
 subtype.coe_injective.of_comp_iff (pow n)
 
 theorem log_pow_eq_self [decidable_eq M] {n : M} (h : function.injective (λ m : ℕ, n ^ m)) (m : ℕ) :
-  log (pow n m) = m :=
+  log (pow n m) = m := 
 pow_right_injective_iff_pow_injective.mp h $ pow_log_eq_self _
 
 theorem log_pow_int_eq_self {x : ℤ} (h : 1 < x.nat_abs) (m : ℕ) : log (pow x m) = m :=

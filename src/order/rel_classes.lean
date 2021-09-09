@@ -100,7 +100,7 @@ begin
 end
 
 /-- Construct a partial order from a `is_strict_order` relation -/
-def partial_order_of_SO (r) [is_strict_order α r] : partial_order α :=
+@[reducible] def partial_order_of_SO (r) [is_strict_order α r] : partial_order α :=
 { le := λ x y, x = y ∨ r x y,
   lt := r,
   le_refl := λ x, or.inl rfl,
@@ -122,8 +122,8 @@ def partial_order_of_SO (r) [is_strict_order α r] : partial_order α :=
       (asymm h)⟩,
     λ ⟨h₁, h₂⟩, h₁.resolve_left (λ e, h₂ $ e ▸ or.inl rfl)⟩ }
 
-/-- This is basically the same as `is_strict_total_order`, but that definition is
-  in Type (probably by mistake) and also has redundant assumptions. -/
+/-- This is basically the same as `is_strict_total_order`, but that definition has a redundant
+assumption `is_incomp_trans α lt`. -/
 @[algebra] class is_strict_total_order' (α : Type u) (lt : α → α → Prop)
   extends is_trichotomous α lt, is_strict_order α lt : Prop.
 

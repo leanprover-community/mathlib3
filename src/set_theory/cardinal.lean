@@ -826,6 +826,9 @@ lemma add_lt_omega_iff {a b : cardinal} : a + b < omega ↔ a < omega ∧ b < om
 ⟨λ h, ⟨lt_of_le_of_lt (self_le_add_right _ _) h, lt_of_le_of_lt (self_le_add_left _ _) h⟩,
   λ⟨h1, h2⟩, add_lt_omega h1 h2⟩
 
+lemma omega_le_add_iff {a b : cardinal} : omega ≤ a + b ↔ omega ≤ a ∨ omega ≤ b :=
+by simp only [← not_lt, add_lt_omega_iff, not_and_distrib]
+
 theorem mul_lt_omega {a b : cardinal} (ha : a < omega) (hb : b < omega) : a * b < omega :=
 match a, b, lt_omega.1 ha, lt_omega.1 hb with
 | _, _, ⟨m, rfl⟩, ⟨n, rfl⟩ := by rw [← nat.cast_mul]; apply nat_lt_omega
@@ -1204,6 +1207,10 @@ lemma mk_union_le {α : Type u} (S T : set α) : mk (S ∪ T : set α) ≤ mk S 
 theorem mk_union_of_disjoint {α : Type u} {S T : set α} (H : disjoint S T) :
   mk (S ∪ T : set α) = mk S + mk T :=
 quot.sound ⟨equiv.set.union H⟩
+
+theorem mk_insert {α : Type u} {s : set α} {a : α} (h : a ∉ s) :
+  #(insert a s : set α) = #s + 1 :=
+by { rw [← union_singleton, mk_union_of_disjoint, mk_singleton], simpa }
 
 lemma mk_sum_compl {α} (s : set α) : #s + #(sᶜ : set α) = #α :=
 quotient.sound ⟨equiv.set.sum_compl s⟩

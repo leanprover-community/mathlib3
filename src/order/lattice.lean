@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 -/
 import order.rel_classes
 import tactic.simps
+import logic.nontrivial
 
 /-!
 # (Semi-)lattices
@@ -262,6 +263,13 @@ begin
   injection this; congr'
 end
 
+theorem exists_lt_of_sup (α : Type*) [semilattice_sup α] [nontrivial α] : ∃ a b : α, a < b :=
+begin
+  rcases exists_pair_ne α with ⟨a, b, hne⟩,
+  rcases forall_le_or_exists_lt_sup b with (hb|⟨c, hc⟩),
+  exacts [⟨a, b, (hb a).lt_of_ne hne⟩, ⟨b, c, hc⟩]
+end
+
 end semilattice_sup
 
 /-!
@@ -409,6 +417,10 @@ end
 theorem semilattice_inf.dual_dual (α : Type*) [H : semilattice_inf α] :
   order_dual.semilattice_inf (order_dual α) = H :=
 semilattice_inf.ext $ λ _ _, iff.rfl
+
+theorem exists_lt_of_inf (α : Type*) [semilattice_inf α] [nontrivial α] :
+  ∃ a b : α, a < b :=
+let ⟨a, b, h⟩ := exists_lt_of_sup (order_dual α) in _
 
 end semilattice_inf
 

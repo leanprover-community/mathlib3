@@ -269,8 +269,7 @@ begin
     rw [list.nth_le_of_fn'] }
 end
 
-@[simp] lemma of_list_to_list' (s : composition_series X) (hs : s.to_list ≠ [])
-  (hc : list.chain' is_maximal s.to_list) :
+@[simp] lemma of_list_to_list' (s : composition_series X) (hc : list.chain' is_maximal s.to_list) :
   of_list s.to_list s.to_list_ne_nil s.chain'_to_list = s :=
 of_list_to_list s
 
@@ -610,7 +609,6 @@ end
 
 lemma append_cast_add_aux
   {s₁ s₂ : composition_series X}
-  (h : s₁ (fin.last _) = s₂ 0)
   (i : fin s₁.length) :
   fin.append (nat.add_succ _ _).symm (s₁ ∘ fin.cast_succ) s₂
   (fin.cast_add s₂.length i).cast_succ = s₁ i.cast_succ :=
@@ -618,8 +616,8 @@ by { cases i, simp [fin.append, *] }
 
 lemma append_succ_cast_add_aux
   {s₁ s₂ : composition_series X}
-  (h : s₁ (fin.last _) = s₂ 0)
-  (i : fin s₁.length) :
+  (i : fin s₁.length)
+  (h : s₁ (fin.last _) = s₂ 0) :
   fin.append (nat.add_succ _ _).symm (s₁ ∘ fin.cast_succ) s₂
   (fin.cast_add s₂.length i).succ = s₁ i.succ :=
 begin
@@ -637,7 +635,6 @@ end
 
 lemma append_cast_add_right_aux
   {s₁ s₂ : composition_series X}
-  (h : s₁ (fin.last _) = s₂ 0)
   (i : fin s₂.length) :
   fin.append (nat.add_succ _ _).symm (s₁ ∘ fin.cast_succ) s₂
   (fin.cast_add_right s₁.length i).cast_succ = s₂ i.cast_succ :=
@@ -645,7 +642,6 @@ by { cases i, simp [fin.append, *] }
 
 lemma append_succ_cast_add_right_aux
   {s₁ s₂ : composition_series X}
-  (h : s₁ (fin.last _) = s₂ 0)
   (i : fin s₂.length) :
   fin.append (nat.add_succ _ _).symm (s₁ ∘ fin.cast_succ) s₂
   (fin.cast_add_right s₁.length i).succ = s₂ i.succ :=
@@ -664,10 +660,10 @@ the least element of `s₁` is the maximum element of `s₂`. -/
   step' := λ i, begin
     refine fin.add_cases  _ _ i,
     { intro i,
-      rw [append_succ_cast_add_aux h, append_cast_add_aux h],
+      rw [append_succ_cast_add_aux _ h, append_cast_add_aux],
       exact s₁.step i },
     { intro i,
-      rw [append_cast_add_right_aux h, append_succ_cast_add_right_aux h],
+      rw [append_cast_add_right_aux, append_succ_cast_add_right_aux],
       exact s₂.step i }
   end }
 
@@ -676,28 +672,28 @@ the least element of `s₁` is the maximum element of `s₂`. -/
   (h : s₁.top = s₂.bot)
   (i : fin s₁.length) :
   append s₁ s₂ h (fin.cast_add s₂.length i).cast_succ = s₁ i.cast_succ :=
-append_cast_add_aux h i
+append_cast_add_aux i
 
 @[simp] lemma append_succ_cast_add
   {s₁ s₂ : composition_series X}
   (h : s₁.top = s₂.bot)
   (i : fin s₁.length) :
   append s₁ s₂ h (fin.cast_add s₂.length i).succ = s₁ i.succ :=
-append_succ_cast_add_aux h i
+append_succ_cast_add_aux i h
 
 @[simp] lemma append_cast_add_right
   {s₁ s₂ : composition_series X}
   (h : s₁.top = s₂.bot)
   (i : fin s₂.length) :
   append s₁ s₂ h (fin.cast_add_right s₁.length i).cast_succ = s₂ i.cast_succ :=
-append_cast_add_right_aux h i
+append_cast_add_right_aux i
 
 @[simp] lemma append_succ_cast_add_right
   {s₁ s₂ : composition_series X}
   (h : s₁.top = s₂.bot)
   (i : fin s₂.length) :
   append s₁ s₂ h (fin.cast_add_right s₁.length i).succ = s₂ i.succ :=
-append_succ_cast_add_right_aux h i
+append_succ_cast_add_right_aux i
 
 @[simp] lemma top_append
   {s₁ s₂ : composition_series X}
@@ -1239,5 +1235,5 @@ begin
     exact equivalent.snoc this
       (by simp [htt, iso_refl_of_is_maximal (is_maximal_erase_top_top h0s₂)]) }
 end
-
+#lint
 end composition_series

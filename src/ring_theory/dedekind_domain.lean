@@ -902,10 +902,15 @@ open multiset unique_factorization_monoid ideal
 lemma prod_factors_eq_self {I : ideal T} (hI : I ≠ ⊥) : (factors I).prod = I :=
 associated_iff_eq.1 (factors_prod hI)
 
-lemma factors_prod_factors_eq_factors {α : multiset (ideal T)} (h₁ : ⊥ ∉ α)
-  (h₂ : ∀ p ∈ α, prime p) : factors α.prod = α :=
-by {simp_rw [← multiset.rel_eq, ← associated_eq_eq], exact prime_factors_unique
-(prime_of_factor) h₂ (factors_prod (prod_ne_zero h₁))}
+-- Can be moved to `algebra/associated.lean`:
+lemma multiset.prod_ne_zero_of_prime {M : Type*} [comm_cancel_monoid_with_zero M] [nontrivial M]
+  (s : multiset M) (h : ∀ x ∈ s, prime x) : s.prod ≠ 0 :=
+prod_ne_zero (λ h0, prime.ne_zero (h 0 h0) rfl)
+
+lemma factors_prod_factors_eq_factors {α : multiset (ideal T)}
+  (h : ∀ p ∈ α, prime p) : factors α.prod = α :=
+by { simp_rw [← multiset.rel_eq, ← associated_eq_eq],
+     exact prime_factors_unique (prime_of_factor) h (factors_prod (α.prod_ne_zero_of_prime h)) }
 
 lemma count_le_of_ideal_ge {I J : ideal T} (h : I ≤ J) (hI : I ≠ ⊥) (K : ideal T) :
   count K (factors J) ≤ count K (factors I) :=

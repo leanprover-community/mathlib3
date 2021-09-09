@@ -172,13 +172,13 @@ lemma ideal_Inter_nonempty.exists_all_mem (hP : ideal_Inter_nonempty P) :
   ∃ a : P, ∀ I : ideal P, a ∈ I :=
 begin
   change ∃ (a : P), ∀ (I : ideal P), a ∈ I.carrier,
-  rw ← set.Inter_nonempty_iff,
+  rw ← set.nonempty_Inter,
   exact Inter_nonempty,
 end
 
 lemma ideal_Inter_nonempty_of_exists_all_mem (h : ∃ a : P, ∀ I : ideal P, a ∈ I) :
   ideal_Inter_nonempty P :=
-{ Inter_nonempty := by rwa set.Inter_nonempty_iff }
+{ Inter_nonempty := by rwa set.nonempty_Inter }
 
 lemma ideal_Inter_nonempty_iff :
   ideal_Inter_nonempty P ↔ ∃ a : P, ∀ I : ideal P, a ∈ I :=
@@ -349,14 +349,14 @@ instance ideal_Inter_nonempty.ideal_inter_nonempty : ideal_inter_nonempty P :=
 
 variables {α β γ : Type*} {ι : Sort*}
 
-lemma ideal_Inter_nonempty.ideal_Inter_nonempty {f : ι → ideal P} :
+lemma ideal_Inter_nonempty.all_Inter_nonempty {f : ι → ideal P} :
   (⋂ x, (f x : set P)).nonempty :=
 begin
   cases ideal_Inter_nonempty.exists_all_mem ‹_› with a ha,
   exact ⟨a, by simp [ha]⟩
 end
 
-lemma ideal_Inter_nonempty.ideal_bInter_nonempty {f : α → ideal P} {s : set α} :
+lemma ideal_Inter_nonempty.all_bInter_nonempty {f : α → ideal P} {s : set α} :
   (⋂ x ∈ s, (f x : set P)).nonempty :=
 begin
   cases ideal_Inter_nonempty.exists_all_mem ‹_› with a ha,
@@ -371,7 +371,7 @@ variables [semilattice_sup P] [ideal_Inter_nonempty P] {x : P} {I J K : ideal P}
 
 instance : has_Inf (ideal P) :=
 { Inf := λ s, { carrier := ⋂ (I ∈ s), (I : set P),
-  nonempty := ideal_Inter_nonempty.ideal_bInter_nonempty,
+  nonempty := ideal_Inter_nonempty.all_bInter_nonempty,
   directed := λ x hx y hy, ⟨x ⊔ y, ⟨λ S ⟨I, hS⟩,
     begin
       simp [← hS],
@@ -397,7 +397,7 @@ lemma Inf_le (hI : I ∈ s) : Inf s ≤ I :=
 λ _ hx, hx I ⟨I, by simp [hI]⟩
 
 lemma le_Inf (h : ∀ J ∈ s, I ≤ J) : I ≤ Inf s :=
-λ x hx, by { simp, tauto }
+λ _ _, by { simp, tauto }
 
 lemma is_glb_Inf : is_glb s (Inf s) := ⟨assume a, Inf_le, assume a, le_Inf⟩
 

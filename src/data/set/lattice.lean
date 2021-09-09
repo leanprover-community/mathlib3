@@ -757,16 +757,16 @@ lemma sInter_eq_empty_iff {c : set (set α)} :
 by simp [set.eq_empty_iff_forall_not_mem]
 
 -- classical
-@[simp] theorem Inter_nonempty_iff {f : ι → set α} : (⋂ i, f i).nonempty ↔ ∃ x, ∀ i, x ∈ f i :=
+@[simp] theorem nonempty_Inter {f : ι → set α} : (⋂ i, f i).nonempty ↔ ∃ x, ∀ i, x ∈ f i :=
 by simp [← ne_empty_iff_nonempty, Inter_eq_empty_iff]
 
 -- classical
-@[simp] theorem bInter_nonempty_iff {f : α → set β} {s : set α} :
+@[simp] theorem nonempty_bInter {f : α → set β} {s : set α} :
   (⋂ x ∈ s, f x).nonempty ↔ ∃ y, ∀ x ∈ s, y ∈ f x :=
 by simp [← ne_empty_iff_nonempty, Inter_eq_empty_iff]
 
 -- classical
-@[simp] theorem sInter_nonempty_iff {c : set (set α)}:
+@[simp] theorem nonempty_sInter {c : set (set α)}:
   (⋂₀ c).nonempty ↔ ∃ a, ∀ b ∈ c, a ∈ b :=
 by simp [← ne_empty_iff_nonempty, sInter_eq_empty_iff]
 

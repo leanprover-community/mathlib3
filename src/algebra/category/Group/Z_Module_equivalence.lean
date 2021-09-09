@@ -19,17 +19,22 @@ open category_theory.equivalence
 
 universes u
 
+namespace Module
+
 /-- The forgetful functor from `ℤ` modules to `AddCommGroup` is full. -/
-instance : full (forget₂ (Module ℤ) AddCommGroup.{u}) :=
+instance forget₂_AddCommGroup_full : full (forget₂ (Module ℤ) AddCommGroup.{u}) :=
 { preimage := λ A B f,
   -- TODO: why `add_monoid_hom.to_int_linear_map` doesn't work here?
   { to_fun := f,
     map_add' := add_monoid_hom.map_add f,
-    map_smul' := λ n x, by convert add_monoid_hom.map_int_module_smul f n x } }
+    map_smul' := λ n x, by simp [int_smul_eq_gsmul] } }
 
 /-- The forgetful functor from `ℤ` modules to `AddCommGroup` is essentially surjective. -/
-instance : ess_surj (forget₂ (Module ℤ) AddCommGroup.{u}) :=
+instance forget₂_AddCommGroup_ess_surj : ess_surj (forget₂ (Module ℤ) AddCommGroup.{u}) :=
 { mem_ess_image := λ A, ⟨Module.of ℤ A, ⟨{ hom := 𝟙 A, inv := 𝟙 A }⟩⟩}
 
-noncomputable instance : is_equivalence (forget₂ (Module ℤ) AddCommGroup.{u}) :=
-equivalence_of_fully_faithfully_ess_surj (forget₂ (Module ℤ) AddCommGroup)
+noncomputable instance forget₂_AddCommGroup_is_equivalence :
+  is_equivalence (forget₂ (Module ℤ) AddCommGroup.{u}) :=
+equivalence.of_fully_faithfully_ess_surj (forget₂ (Module ℤ) AddCommGroup)
+
+end Module

@@ -222,6 +222,12 @@ theorem aleph'_is_normal : is_normal (ord ∘ aleph') :=
 theorem aleph_is_normal : is_normal (ord ∘ aleph) :=
 aleph'_is_normal.trans $ add_is_normal ordinal.omega
 
+lemma countable_iff_lt_aleph_one {α : Type*} (s : set α) : countable s ↔ #s < aleph 1 :=
+begin
+  have : aleph 1 = (aleph 0).succ, by simp only [← aleph_succ, ordinal.succ_zero],
+  rw [countable_iff, ← aleph_zero, this, lt_succ],
+end
+
 /-! ### Properties of `mul` -/
 
 /-- If `α` is an infinite type, then `α × α` and `α` have the same cardinality. -/
@@ -229,7 +235,7 @@ theorem mul_eq_self {c : cardinal} (h : omega ≤ c) : c * c = c :=
 begin
   refine le_antisymm _
     (by simpa only [mul_one] using
-      canonically_ordered_semiring.mul_le_mul_left' (one_lt_omega.le.trans h) c),
+      mul_le_mul_left' (one_lt_omega.le.trans h) c),
   -- the only nontrivial part is `c * c ≤ c`. We prove it inductively.
   refine acc.rec_on (cardinal.wf.apply c) (λ c _,
     quotient.induction_on c $ λ α IH ol, _) h,
@@ -280,23 +286,23 @@ of the cardinalities of `α` and `β`. -/
 theorem mul_eq_max {a b : cardinal} (ha : omega ≤ a) (hb : omega ≤ b) : a * b = max a b :=
 le_antisymm
   (mul_eq_self (le_trans ha (le_max_left a b)) ▸
-    canonically_ordered_semiring.mul_le_mul (le_max_left _ _) (le_max_right _ _)) $
+    mul_le_mul' (le_max_left _ _) (le_max_right _ _)) $
 max_le
   (by simpa only [mul_one] using
-    canonically_ordered_semiring.mul_le_mul_left' (one_lt_omega.le.trans hb) a)
+    mul_le_mul_left' (one_lt_omega.le.trans hb) a)
   (by simpa only [one_mul] using
-    canonically_ordered_semiring.mul_le_mul_right' (one_lt_omega.le.trans ha) b)
+    mul_le_mul_right' (one_lt_omega.le.trans ha) b)
 
 theorem mul_lt_of_lt {a b c : cardinal} (hc : omega ≤ c)
   (h1 : a < c) (h2 : b < c) : a * b < c :=
-lt_of_le_of_lt (canonically_ordered_semiring.mul_le_mul (le_max_left a b) (le_max_right a b)) $
+lt_of_le_of_lt (mul_le_mul' (le_max_left a b) (le_max_right a b)) $
 (lt_or_le (max a b) omega).elim
   (λ h, lt_of_lt_of_le (mul_lt_omega h h) hc)
   (λ h, by rw mul_eq_self h; exact max_lt h1 h2)
 
 lemma mul_le_max_of_omega_le_left {a b : cardinal} (h : omega ≤ a) : a * b ≤ max a b :=
 begin
-  convert canonically_ordered_semiring.mul_le_mul (le_max_left a b) (le_max_right a b),
+  convert mul_le_mul' (le_max_left a b) (le_max_right a b),
   rw [mul_eq_self],
   refine le_trans h (le_max_left a b)
 end
@@ -307,7 +313,7 @@ begin
   cases le_or_gt omega b with hb hb, rw [mul_eq_max h hb],
   have : b ≤ a, exact le_trans (le_of_lt hb) h,
   rw [max_eq_left this],
-  convert canonically_ordered_semiring.mul_le_mul_left' (one_le_iff_ne_zero.mpr h') _, rw [mul_one],
+  convert mul_le_mul_left' (one_le_iff_ne_zero.mpr h') _, rw [mul_one],
 end
 
 lemma mul_eq_left {a b : cardinal} (ha : omega ≤ a) (hb : b ≤ a) (hb' : b ≠ 0) : a * b = a :=
@@ -317,7 +323,7 @@ lemma mul_eq_right {a b : cardinal} (hb : omega ≤ b) (ha : a ≤ b) (ha' : a �
 by { rw [mul_comm, mul_eq_left hb ha ha'] }
 
 lemma le_mul_left {a b : cardinal} (h : b ≠ 0) : a ≤ b * a :=
-by { convert canonically_ordered_semiring.mul_le_mul_right' (one_le_iff_ne_zero.mpr h) _,
+by { convert mul_le_mul_right' (one_le_iff_ne_zero.mpr h) _,
   rw [one_mul] }
 
 lemma le_mul_right {a b : cardinal} (h : b ≠ 0) : a ≤ a * b :=
@@ -351,7 +357,7 @@ end
 theorem add_eq_self {c : cardinal} (h : omega ≤ c) : c + c = c :=
 le_antisymm
   (by simpa only [nat.cast_bit0, nat.cast_one, mul_eq_self h, two_mul] using
-     canonically_ordered_semiring.mul_le_mul_right' ((nat_lt_omega 2).le.trans h) c)
+     mul_le_mul_right' ((nat_lt_omega 2).le.trans h) c)
   (self_le_add_left c c)
 
 /-- If `α` is an infinite type, then the cardinality of `α ⊕ β` is the maximum
@@ -433,13 +439,13 @@ H3.symm ▸ (quotient.induction_on κ (λ α H1, nat.rec_on n
     from one_lt_omega) H1)
   (λ n ih, trans_rel_left _
     (by { rw [nat.cast_succ, power_add, power_one];
-      exact canonically_ordered_semiring.mul_le_mul_right' ih _ })
+      exact mul_le_mul_right' ih _ })
     (mul_eq_self H1))) H1)
 
 lemma power_self_eq {c : cardinal} (h : omega ≤ c) : c ^ c = 2 ^ c :=
 begin
   apply le_antisymm,
-  { apply le_trans (power_le_power_right $ le_of_lt $ cantor c), rw [power_mul, mul_eq_self h] },
+  { apply le_trans (power_le_power_right $ le_of_lt $ cantor c), rw [← power_mul, mul_eq_self h] },
   { convert power_le_power_right (le_trans (le_of_lt $ nat_lt_omega 2) h), apply nat.cast_two.symm }
 end
 
@@ -569,7 +575,7 @@ theorem extend_function {α β : Type*} {s : set α} (f : s ↪ β)
 begin
   intros, have := h, cases this with g,
   let h : α ≃ β := (set.sum_compl (s : set α)).symm.trans
-    ((sum_congr (equiv.set.range f f.2) g).trans
+    ((sum_congr (equiv.of_injective f f.2) g).trans
     (set.sum_compl (range f))),
   refine ⟨h, _⟩, rintro ⟨x, hx⟩, simp [set.sum_compl_symm_apply_of_mem, hx]
 end

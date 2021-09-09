@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov
 -/
 import algebra.module.submodule
+import algebra.punit_instances
 
 /-!
 # The lattice structure on `submodule`s
@@ -22,32 +23,14 @@ to unify the APIs where possible.
 
 -/
 
-variables {R : Type*} {M : Type*}
+variables {R S M : Type*}
 
 section add_comm_monoid
-variables [semiring R] [add_comm_monoid M] [semimodule R M]
+variables [semiring R] [semiring S] [add_comm_monoid M] [module R M] [module S M]
+variables [has_scalar S R] [is_scalar_tower S R M]
 variables {p q : submodule R M}
 
 namespace submodule
-
-instance : partial_order (submodule R M) :=
-{ le := λ p q, ∀ ⦃x⦄, x ∈ p → x ∈ q,
-  ..partial_order.lift (coe : submodule R M → set M) coe_injective }
-
-lemma le_def : p ≤ q ↔ (p : set M) ⊆ q := iff.rfl
-
-@[simp, norm_cast] lemma coe_subset_coe : (p : set M) ⊆ q ↔ p ≤ q := iff.rfl
-
-lemma le_def' : p ≤ q ↔ ∀ x ∈ p, x ∈ q := iff.rfl
-
-lemma lt_def : p < q ↔ (p : set M) ⊂ q := iff.rfl
-
-lemma not_le_iff_exists : ¬ (p ≤ q) ↔ ∃ x ∈ p, x ∉ q := set.not_subset
-
-lemma exists_of_lt {p q : submodule R M} : p < q → ∃ x ∈ q, x ∉ p := set.exists_of_ssubset
-
-lemma lt_iff_le_and_exists : p < q ↔ p ≤ q ∧ ∃ x ∈ q, x ∉ p :=
-by rw [lt_iff_le_not_le, not_le_iff_exists]
 
 /-- The set `{0}` is the bottom element of the lattice of submodules. -/
 instance : has_bot (submodule R M) :=
@@ -60,6 +43,8 @@ instance inhabited' : inhabited (submodule R M) := ⟨⊥⟩
 
 section
 variables (R)
+@[simp] lemma restrict_scalars_bot : restrict_scalars S (⊥ : submodule R M) = ⊥ := rfl
+
 @[simp] lemma mem_bot {x : M} : x ∈ (⊥ : submodule R M) ↔ x = 0 := set.mem_singleton_iff
 end
 
@@ -68,21 +53,37 @@ instance unique_bot : unique (⊥ : submodule R M) :=
 
 lemma nonzero_mem_of_bot_lt {I : submodule R M} (bot_lt : ⊥ < I) : ∃ a : I, a ≠ 0 :=
 begin
-  have h := (submodule.lt_iff_le_and_exists.1 bot_lt).2,
+  have h := (set_like.lt_iff_le_and_exists.1 bot_lt).2,
   tidy,
 end
 
 instance : order_bot (submodule R M) :=
 { bot := ⊥,
   bot_le := λ p x, by simp {contextual := tt},
-  ..submodule.partial_order }
+  ..set_like.partial_order }
 
 protected lemma eq_bot_iff (p : submodule R M) : p = ⊥ ↔ ∀ x ∈ p, x = (0 : M) :=
 ⟨ λ h, h.symm ▸ λ x hx, (mem_bot R).mp hx,
   λ h, eq_bot_iff.mpr (λ x hx, (mem_bot R).mpr (h x hx)) ⟩
 
+@[ext] protected lemma bot_ext (x y : (⊥ : submodule R M)) : x = y :=
+begin
+  rcases x with ⟨x, xm⟩, rcases y with ⟨y, ym⟩, congr,
+  rw (submodule.eq_bot_iff _).mp rfl x xm,
+  rw (submodule.eq_bot_iff _).mp rfl y ym,
+end
+
 protected lemma ne_bot_iff (p : submodule R M) : p ≠ ⊥ ↔ ∃ x ∈ p, x ≠ (0 : M) :=
 by { haveI := classical.prop_decidable, simp_rw [ne.def, p.eq_bot_iff, not_forall] }
+
+/-- The bottom submodule is linearly equivalent to punit as an `R`-module. -/
+@[simps] def bot_equiv_punit : (⊥ : submodule R M) ≃ₗ[R] punit :=
+{ to_fun := λ x, punit.star,
+  inv_fun := λ x, 0,
+  map_add' := by { intros, ext, },
+  map_smul' := by { intros, ext, },
+  left_inv := by { intro x, ext, },
+  right_inv := by { intro x, ext, }, }
 
 /-- The universal set is the top element of the lattice of submodules. -/
 instance : has_top (submodule R M) :=
@@ -94,13 +95,27 @@ instance : has_top (submodule R M) :=
 
 @[simp] lemma mem_top {x : M} : x ∈ (⊤ : submodule R M) := trivial
 
+section
+variables (R)
+@[simp] lemma restrict_scalars_top : restrict_scalars S (⊤ : submodule R M) = ⊤ := rfl
+end
+
 instance : order_top (submodule R M) :=
 { top := ⊤,
   le_top := λ p x _, trivial,
-  ..submodule.partial_order }
+  ..set_like.partial_order }
 
 lemma eq_top_iff' {p : submodule R M} : p = ⊤ ↔ ∀ x, x ∈ p :=
 eq_top_iff.trans ⟨λ h x, h trivial, λ h x _, h x⟩
+
+/-- The top submodule is linearly equivalent to the module. -/
+@[simps] def top_equiv_self : (⊤ : submodule R M) ≃ₗ[R] M :=
+{ to_fun := λ x, x,
+  inv_fun := λ x, ⟨x, by simp⟩,
+  map_add' := by { intros, refl, },
+  map_smul' := by { intros, refl, },
+  left_inv := by { intro x, ext, refl, },
+  right_inv := by { intro x, refl, }, }
 
 instance : has_Inf (submodule R M) :=
 ⟨λ S, {
@@ -157,7 +172,7 @@ set.mem_bInter_iff
 
 @[simp] theorem mem_infi {ι} (p : ι → submodule R M) {x} :
   x ∈ (⨅ i, p i) ↔ ∀ i, x ∈ p i :=
-by rw [← mem_coe, infi_coe, set.mem_Inter]; refl
+by rw [← set_like.mem_coe, infi_coe, set.mem_Inter]; refl
 
 lemma mem_sup_left {S T : submodule R M} : ∀ {x : M}, x ∈ S → x ∈ S ⊔ T :=
 show S ≤ S ⊔ T, from le_sup_left
@@ -165,10 +180,25 @@ show S ≤ S ⊔ T, from le_sup_left
 lemma mem_sup_right {S T : submodule R M} : ∀ {x : M}, x ∈ T → x ∈ S ⊔ T :=
 show T ≤ S ⊔ T, from le_sup_right
 
+lemma add_mem_sup {S T : submodule R M} {s t : M} (hs : s ∈ S) (ht : t ∈ T) : s + t ∈ S ⊔ T :=
+add_mem _ (mem_sup_left hs) (mem_sup_right ht)
+
 lemma mem_supr_of_mem {ι : Sort*} {b : M} {p : ι → submodule R M} (i : ι) (h : b ∈ p i) :
   b ∈ (⨆i, p i) :=
 have p i ≤ (⨆i, p i) := le_supr p i,
 @this b h
+
+open_locale big_operators
+
+lemma sum_mem_supr {ι : Type*} [fintype ι] {f : ι → M} {p : ι → submodule R M}
+  (h : ∀ i, f i ∈ p i) :
+  ∑ i, f i ∈ ⨆ i, p i :=
+sum_mem _ $ λ i hi, mem_supr_of_mem i (h i)
+
+lemma sum_mem_bsupr {ι : Type*} {s : finset ι} {f : ι → M} {p : ι → submodule R M}
+  (h : ∀ i ∈ s, f i ∈ p i) :
+  ∑ i in s, f i ∈ ⨆ i ∈ s, p i :=
+sum_mem _ $ λ i hi, mem_supr_of_mem i $ mem_supr_of_mem hi (h i hi)
 
 /-! Note that `submodule.mem_supr` is provided in `linear_algebra/basic.lean`. -/
 
@@ -177,5 +207,36 @@ lemma mem_Sup_of_mem {S : set (submodule R M)} {s : submodule R M}
 show s ≤ Sup S, from le_Sup hs
 
 end submodule
+
+section nat_submodule
+
+/-- An additive submonoid is equivalent to a ℕ-submodule. -/
+def add_submonoid.to_nat_submodule : add_submonoid M ≃o submodule ℕ M :=
+{ to_fun := λ S,
+  { smul_mem' := λ r s hs, S.nsmul_mem hs _, ..S },
+  inv_fun := submodule.to_add_submonoid,
+  left_inv := λ ⟨S, _, _⟩, rfl,
+  right_inv := λ ⟨S, _, _, _⟩, rfl,
+  map_rel_iff' := λ a b, iff.rfl }
+
+@[simp]
+lemma add_submonoid.to_nat_submodule_symm :
+  ⇑(add_submonoid.to_nat_submodule.symm : _ ≃o add_submonoid M) = submodule.to_add_submonoid := rfl
+
+@[simp]
+lemma add_submonoid.coe_to_nat_submodule (S : add_submonoid M) :
+  (S.to_nat_submodule : set M) = S := rfl
+
+@[simp]
+lemma add_submonoid.to_nat_submodule_to_add_submonoid (S : add_submonoid M) :
+  S.to_nat_submodule.to_add_submonoid = S :=
+add_submonoid.to_nat_submodule.symm_apply_apply S
+
+@[simp]
+lemma submodule.to_add_submonoid_to_nat_submodule (S : submodule ℕ M) :
+  S.to_add_submonoid.to_nat_submodule = S :=
+add_submonoid.to_nat_submodule.apply_symm_apply S
+
+end nat_submodule
 
 end add_comm_monoid

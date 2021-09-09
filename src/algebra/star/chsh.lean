@@ -98,7 +98,7 @@ Given a CHSH tuple (A₀, A₁, B₀, B₁) in a *commutative* ordered `*`-algeb
 (We could work over ℤ[⅟2] if we wanted to!)
 -/
 lemma CHSH_inequality_of_comm
-  [ordered_comm_ring R] [star_ordered_ring R] [algebra ℝ R] [ordered_semimodule ℝ R]
+  [ordered_comm_ring R] [star_ordered_ring R] [algebra ℝ R] [ordered_smul ℝ R]
   (A₀ A₁ B₀ B₁ : R) (T : is_CHSH_tuple A₀ A₁ B₀ B₁) :
   A₀ * B₀ + A₀ * B₁ + A₁ * B₀ - A₁ * B₁ ≤ 2 :=
 begin
@@ -110,22 +110,22 @@ begin
       dsimp [P],
       simp only [add_mul, mul_add, sub_mul, mul_sub, mul_comm, mul_assoc, add_assoc],
       repeat { conv in (B₀ * (A₀ * B₀))
-      { rw [T.A₀B₀_commutes, ←mul_assoc B₀ B₀ A₀, ←pow_two, T.B₀_inv, one_mul], } },
+      { rw [T.A₀B₀_commutes, ←mul_assoc B₀ B₀ A₀, ←sq, T.B₀_inv, one_mul], } },
       repeat { conv in (B₀ * (A₁ * B₀))
-      { rw [T.A₁B₀_commutes, ←mul_assoc B₀ B₀ A₁, ←pow_two, T.B₀_inv, one_mul], } },
+      { rw [T.A₁B₀_commutes, ←mul_assoc B₀ B₀ A₁, ←sq, T.B₀_inv, one_mul], } },
       repeat { conv in (B₁ * (A₀ * B₁))
-      { rw [T.A₀B₁_commutes, ←mul_assoc B₁ B₁ A₀, ←pow_two, T.B₁_inv, one_mul], } },
+      { rw [T.A₀B₁_commutes, ←mul_assoc B₁ B₁ A₀, ←sq, T.B₁_inv, one_mul], } },
       repeat { conv in (B₁ * (A₁ * B₁))
-      { rw [T.A₁B₁_commutes, ←mul_assoc B₁ B₁ A₁, ←pow_two, T.B₁_inv, one_mul], } },
+      { rw [T.A₁B₁_commutes, ←mul_assoc B₁ B₁ A₁, ←sq, T.B₁_inv, one_mul], } },
       conv in (A₀ * (B₀ * (A₀ * B₁)))
-      { rw [←mul_assoc, T.A₀B₀_commutes, mul_assoc, ←mul_assoc A₀, ←pow_two, T.A₀_inv, one_mul], },
+      { rw [←mul_assoc, T.A₀B₀_commutes, mul_assoc, ←mul_assoc A₀, ←sq, T.A₀_inv, one_mul], },
       conv in (A₀ * (B₁ * (A₀ * B₀)))
-      { rw [←mul_assoc, T.A₀B₁_commutes, mul_assoc, ←mul_assoc A₀, ←pow_two, T.A₀_inv, one_mul], },
+      { rw [←mul_assoc, T.A₀B₁_commutes, mul_assoc, ←mul_assoc A₀, ←sq, T.A₀_inv, one_mul], },
       conv in (A₁ * (B₀ * (A₁ * B₁)))
-      { rw [←mul_assoc, T.A₁B₀_commutes, mul_assoc, ←mul_assoc A₁, ←pow_two, T.A₁_inv, one_mul], },
+      { rw [←mul_assoc, T.A₁B₀_commutes, mul_assoc, ←mul_assoc A₁, ←sq, T.A₁_inv, one_mul], },
       conv in (A₁ * (B₁ * (A₁ * B₀)))
-      { rw [←mul_assoc, T.A₁B₁_commutes, mul_assoc, ←mul_assoc A₁, ←pow_two, T.A₁_inv, one_mul], },
-      simp only [←pow_two, T.A₀_inv, T.A₁_inv],
+      { rw [←mul_assoc, T.A₁B₁_commutes, mul_assoc, ←mul_assoc A₁, ←sq, T.A₁_inv, one_mul], },
+      simp only [←sq, T.A₀_inv, T.A₁_inv],
       simp only [mul_comm A₁ A₀, mul_comm B₁ B₀, mul_left_comm A₁ A₀, mul_left_comm B₁ B₀,
         mul_left_comm B₀ A₀, mul_left_comm B₀ A₁, mul_left_comm B₁ A₀, mul_left_comm B₁ A₁],
       norm_num,
@@ -162,28 +162,6 @@ local notation `√2` := (real.sqrt 2 : ℝ)
 
 namespace tsirelson_inequality
 
-/-!
-We next need some lemmas about numerals in modules and algebras.
-The awkward appearance of both `•ℤ` and `•` seems unavoidable because later calculations by `abel`
-will introduce `•ℤ`.
-If anyone sees how to obtain these from general statements, please improve this!
--/
-
-lemma two_gsmul_half_smul {α : Type*} [add_comm_group α] [module ℝ α] {X : α} :
-  2 •ℤ (2⁻¹ : ℝ) • X = X :=
-by { rw [gsmul_eq_smul_cast ℝ, ←mul_smul]; norm_num, }
-
-lemma neg_two_gsmul_half_smul {α : Type*} [add_comm_group α] [module ℝ α] {X : α} :
-  (-2) •ℤ (2⁻¹ : ℝ) • X = - X :=
-by { rw [gsmul_eq_smul_cast ℝ, ←mul_smul]; norm_num, }
-
-lemma smul_two {α : Type*} [ring α] [algebra ℝ α] {x : ℝ} :
-  x • (2 : α) = (2 * x) • 1 :=
-by { rw [mul_comm 2 x, mul_smul], simp, }
-
-lemma smul_four {α : Type*} [ring α] [algebra ℝ α] {x : ℝ} :
-  x • (4 : α) = (4 * x) • 1 :=
-by { rw [mul_comm 4 x, mul_smul], simp, }
 
 /-!
 Before proving Tsirelson's bound,
@@ -221,31 +199,31 @@ of the difference.
 -/
 lemma tsirelson_inequality
   [ordered_ring R] [star_ordered_ring R]
-  [algebra ℝ R] [ordered_semimodule ℝ R] [star_algebra ℝ R]
+  [algebra ℝ R] [ordered_smul ℝ R] [star_algebra ℝ R]
   (A₀ A₁ B₀ B₁ : R) (T : is_CHSH_tuple A₀ A₁ B₀ B₁) :
   A₀ * B₀ + A₀ * B₁ + A₁ * B₀ - A₁ * B₁ ≤ √2^3 • 1 :=
 begin
+  -- abel will create `ℤ` multiplication. We will `simp` them away to `ℝ` multiplication.
+  have M : ∀ (m : ℤ) (a : ℝ) (x : R), m • a • x = ((m : ℝ) * a) • x :=
+    λ m a x, by rw [gsmul_eq_smul_cast ℝ, ← mul_smul],
   let P := √2⁻¹ • (A₁ + A₀) - B₀,
   let Q := √2⁻¹ • (A₁ - A₀) + B₁,
   have w : √2^3 • 1 - A₀ * B₀ - A₀ * B₁ - A₁ * B₀ + A₁ * B₁ = √2⁻¹ • (P^2 + Q^2),
   { dsimp [P, Q],
     -- distribute out all the powers and products appearing on the RHS
-    simp only [pow_two, sub_mul, mul_sub, add_mul, mul_add, smul_add, smul_sub],
+    simp only [sq, sub_mul, mul_sub, add_mul, mul_add, smul_add, smul_sub],
     -- pull all coefficients out to the front, and combine `√2`s where possible
     simp only [algebra.mul_smul_comm, algebra.smul_mul_assoc, ←mul_smul, sqrt_two_inv_mul_self],
     -- replace Aᵢ * Aᵢ = 1 and Bᵢ * Bᵢ = 1
-    simp only [←pow_two, T.A₀_inv, T.A₁_inv, T.B₀_inv, T.B₁_inv],
+    simp only [←sq, T.A₀_inv, T.A₁_inv, T.B₀_inv, T.B₁_inv],
     -- move Aᵢ to the left of Bᵢ
     simp only [←T.A₀B₀_commutes, ←T.A₀B₁_commutes, ←T.A₁B₀_commutes, ←T.A₁B₁_commutes],
     -- collect terms, simplify coefficients, and collect terms again:
     abel,
-    simp only [two_gsmul_half_smul, neg_two_gsmul_half_smul],
-    abel,
-    -- these are identical, except the `_ • 1` terms don't quite match up
-    congr,
-    -- collect terms by hand, as we don't have an analogue of `abel` for modules
-    simp only [mul_one, int.cast_bit0, algebra.mul_smul_comm, int.cast_one, gsmul_eq_mul],
-    rw [smul_two, smul_four, ←add_smul],
+    -- all terms coincide, but the last one. Simplify all other terms
+    simp only [M],
+    simp only [neg_mul_eq_neg_mul_symm, int.cast_bit0, one_mul, mul_inv_cancel_of_invertible,
+      int.cast_one, one_smul, int.cast_neg, add_right_inj, neg_smul, ← add_smul],
     -- just look at the coefficients now:
     congr,
     exact mul_left_cancel' (by norm_num) tsirelson_inequality_aux, },
@@ -259,11 +237,11 @@ begin
       simp only [star_smul, star_add, star_sub, star_id_of_comm,
         T.A₀_sa, T.A₁_sa, T.B₀_sa, T.B₁_sa], },
     have P2_nonneg : 0 ≤ P^2,
-    { rw [pow_two],
+    { rw [sq],
       conv { congr, skip, congr, rw ←P_sa, },
       convert (star_mul_self_nonneg : 0 ≤ star P * P), },
     have Q2_nonneg : 0 ≤ Q^2,
-    { rw [pow_two],
+    { rw [sq],
       conv { congr, skip, congr, rw ←Q_sa, },
       convert (star_mul_self_nonneg : 0 ≤ star Q * Q), },
     convert smul_le_smul_of_nonneg (add_nonneg P2_nonneg Q2_nonneg)

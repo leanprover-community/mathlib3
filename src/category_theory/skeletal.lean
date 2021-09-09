@@ -3,6 +3,7 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
+import category_theory.category.preorder
 import category_theory.isomorphism_classes
 import category_theory.thin
 
@@ -75,17 +76,39 @@ instance : ess_surj (from_skeleton C) :=
 { mem_ess_image := λ X, ⟨quotient.mk X, quotient.mk_out X⟩ }
 
 noncomputable instance : is_equivalence (from_skeleton C) :=
-equivalence.equivalence_of_fully_faithfully_ess_surj (from_skeleton C)
+equivalence.of_fully_faithfully_ess_surj (from_skeleton C)
+
+/-- The equivalence between the skeleton and the category itself. -/
+noncomputable def skeleton_equivalence : skeleton C ≌ C :=
+(from_skeleton C).as_equivalence
+
+lemma skeleton_skeletal : skeletal (skeleton C) :=
+begin
+  rintro X Y ⟨h⟩,
+  have : X.out ≈ Y.out := ⟨(from_skeleton C).map_iso h⟩,
+  simpa using quotient.sound this,
+end
 
 /-- The `skeleton` of `C` given by choice is a skeleton of `C`. -/
 noncomputable def skeleton_is_skeleton : is_skeleton_of C (skeleton C) (from_skeleton C) :=
-{ skel :=
-  begin
-    rintro X Y ⟨h⟩,
-    have : X.out ≈ Y.out := ⟨(from_skeleton C).map_iso h⟩,
-    simpa using quotient.sound this,
-  end,
+{ skel := skeleton_skeletal C,
   eqv := from_skeleton.is_equivalence C }
+
+section
+variables {C D}
+
+/--
+Two categories which are categorically equivalent have skeletons with equivalent objects.
+-/
+noncomputable
+def equivalence.skeleton_equiv (e : C ≌ D) : skeleton C ≃ skeleton D :=
+let f := ((skeleton_equivalence C).trans e).trans (skeleton_equivalence D).symm in
+{ to_fun := f.functor.obj,
+  inv_fun := f.inverse.obj,
+  left_inv := λ X, skeleton_skeletal C ⟨(f.unit_iso.app X).symm⟩,
+  right_inv := λ Y, skeleton_skeletal D ⟨(f.counit_iso.app Y)⟩, }
+
+end
 
 /--
 Construct the skeleton category by taking the quotient of objects. This construction gives a
@@ -134,7 +157,7 @@ variables {C} {D}
 def map (F : C ⥤ D) : thin_skeleton C ⥤ thin_skeleton D :=
 { obj := quotient.map F.obj $ λ X₁ X₂ ⟨hX⟩, ⟨F.map_iso hX⟩,
   map := λ X Y, quotient.rec_on_subsingleton₂ X Y $
-           λ x y k, hom_of_le ((le_of_hom k).elim (λ t, ⟨F.map t⟩)) }
+           λ x y k, hom_of_le (k.le.elim (λ t, ⟨F.map t⟩)) }
 
 lemma comp_to_thin_skeleton (F : C ⥤ D) : F ⋙ to_thin_skeleton D = to_thin_skeleton C ⋙ map F :=
 rfl
@@ -154,11 +177,11 @@ def map₂ (F : C ⥤ D ⥤ E) :
                 (λ X₁ X₂ ⟨hX⟩ Y₁ Y₂ ⟨hY⟩, ⟨(F.obj X₁).map_iso hY ≪≫ (F.map_iso hX).app Y₂⟩) x y,
     map := λ y₁ y₂, quotient.rec_on_subsingleton x $
             λ X, quotient.rec_on_subsingleton₂ y₁ y₂ $
-              λ Y₁ Y₂ hY, hom_of_le ((le_of_hom hY).elim (λ g, ⟨(F.obj X).map g⟩)) },
+              λ Y₁ Y₂ hY, hom_of_le (hY.le.elim (λ g, ⟨(F.obj X).map g⟩)) },
   map := λ x₁ x₂, quotient.rec_on_subsingleton₂ x₁ x₂ $
            λ X₁ X₂ f,
            { app := λ y, quotient.rec_on_subsingleton y
-              (λ Y, hom_of_le ((le_of_hom f).elim (λ f', ⟨(F.map f').app Y⟩))) } }
+              (λ Y, hom_of_le (f.le.elim (λ f', ⟨(F.map f').app Y⟩))) } }
 
 variables (C)
 
@@ -174,7 +197,7 @@ noncomputable def from_thin_skeleton : thin_skeleton C ⥤ C :=
   map := λ x y, quotient.rec_on_subsingleton₂ x y $
     λ X Y f,
             (nonempty.some (quotient.mk_out X)).hom
-          ≫ (le_of_hom f).some
+          ≫ f.le.some
           ≫ (nonempty.some (quotient.mk_out Y)).inv }
 
 noncomputable instance from_thin_skeleton_equivalence : is_equivalence (from_thin_skeleton C) :=
@@ -185,6 +208,10 @@ noncomputable instance from_thin_skeleton_equivalence : is_equivalence (from_thi
       (λ x, quotient.rec_on_subsingleton x
         (λ X, eq_to_iso (quotient.sound ⟨(nonempty.some (quotient.mk_out X)).symm⟩)))
       (by tidy) }
+
+/-- The equivalence between the thin skeleton and the category itself. -/
+noncomputable def equivalence : thin_skeleton C ≌ C :=
+(from_thin_skeleton C).as_equivalence
 
 variables {C}
 
@@ -200,7 +227,7 @@ instance thin_skeleton_partial_order : partial_order (thin_skeleton C) :=
   ..category_theory.thin_skeleton.preorder C }
 
 lemma skeletal : skeletal (thin_skeleton C) :=
-λ X Y, quotient.induction_on₂ X Y $ λ x y h, h.elim $ λ i, (le_of_hom i.1).antisymm (le_of_hom i.2)
+λ X Y, quotient.induction_on₂ X Y $ λ x y h, h.elim $ λ i, i.1.le.antisymm i.2.le
 
 lemma map_comp_eq (F : E ⥤ D) (G : D ⥤ C) : map (F ⋙ G) = map F ⋙ map G :=
 functor.eq_of_iso skeletal $
@@ -247,5 +274,21 @@ adjunction.mk_of_unit_counit
     end } }
 
 end thin_skeleton
+
+open thin_skeleton
+
+section
+variables {C} {α : Type*} [partial_order α]
+
+/--
+When `e : C ≌ α` is a categorical equivalence from a thin category `C` to some partial order `α`,
+the `thin_skeleton C` is order isomorphic to `α`.
+-/
+noncomputable
+def equivalence.thin_skeleton_order_iso
+  [∀ X Y : C, subsingleton (X ⟶ Y)] (e : C ≌ α) : thin_skeleton C ≃o α :=
+((thin_skeleton.equivalence C).trans e).to_order_iso
+
+end
 
 end category_theory

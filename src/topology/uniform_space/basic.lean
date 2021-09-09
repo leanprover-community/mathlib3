@@ -211,7 +211,7 @@ def uniform_space.core.mk' {α : Type u} (U : filter (α × α))
 def uniform_space.core.to_topological_space {α : Type u} (u : uniform_space.core α) :
   topological_space α :=
 { is_open        := λs, ∀x∈s, { p : α × α | p.1 = x → p.2 ∈ s } ∈ u.uniformity,
-  is_open_univ   := by simp; intro; exact univ_mem_sets,
+  is_open_univ   := by simp; intro; exact univ_mem,
   is_open_inter  :=
     assume s t hs ht x ⟨xs, xt⟩, by filter_upwards [hs x xs, ht x xt]; simp {contextual := tt},
   is_open_sUnion :=
@@ -221,56 +221,8 @@ lemma uniform_space.core_eq :
   ∀{u₁ u₂ : uniform_space.core α}, u₁.uniformity = u₂.uniformity → u₁ = u₂
 | ⟨u₁, _, _, _⟩  ⟨u₂, _, _, _⟩ h := by { congr, exact h }
 
-/-- Suppose that one can put two mathematical structures on a type, a rich one `R` and a poor one
-`P`, and that one can deduce the poor structure from the rich structure through a map `F` (called a
-forgetful functor) (think `R = metric_space` and `P = topological_space`). A possible
-implementation would be to have a type class `rich` containing a field `R`, a type class `poor`
-containing a field `P`, and an instance from `rich` to `poor`. However, this creates diamond
-problems, and a better approach is to let `rich` extend `poor` and have a field saying that
-`F R = P`.
-
-To illustrate this, consider the pair `metric_space` / `topological_space`. Consider the topology
-on a product of two metric spaces. With the first approach, it could be obtained by going first from
-each metric space to its topology, and then taking the product topology. But it could also be
-obtained by considering the product metric space (with its sup distance) and then the topology
-coming from this distance. These would be the same topology, but not definitionally, which means
-that from the point of view of Lean's kernel, there would be two different `topological_space`
-instances on the product. This is not compatible with the way instances are designed and used:
-there should be at most one instance of a kind on each type. This approach has created an instance
-diamond that does not commute definitionally.
-
-The second approach solves this issue. Now, a metric space contains both a distance, a topology, and
-a proof that the topology coincides with the one coming from the distance. When one defines the
-product of two metric spaces, one uses the sup distance and the product topology, and one has to
-give the proof that the sup distance induces the product topology. Following both sides of the
-instance diamond then gives rise (definitionally) to the product topology on the product space.
-
-Another approach would be to have the rich type class take the poor type class as an instance
-parameter. It would solve the diamond problem, but it would lead to a blow up of the number
-of type classes one would need to declare to work with complicated classes, say a real inner
-product space, and would create exponential complexity when working with products of
-such complicated spaces, that are avoided by bundling things carefully as above.
-
-Note that this description of this specific case of the product of metric spaces is oversimplified
-compared to mathlib, as there is an intermediate typeclass between `metric_space` and
-`topological_space` called `uniform_space`. The above scheme is used at both levels, embedding a
-topology in the uniform space structure, and a uniform structure in the metric space structure.
-
-Note also that, when `P` is a proposition, there is no such issue as any two proofs of `P` are
-definitionally equivalent in Lean.
-
-To avoid boilerplate, there are some designs that can automatically fill the poor fields when
-creating a rich structure if one doesn't want to do something special about them. For instance,
-in the definition of metric spaces, default tactics fill the uniform space fields if they are
-not given explicitly. One can also have a helper function creating the rich structure from a
-structure with less fields, where the helper function fills the remaining fields. See for instance
-`uniform_space.of_core` or `real_inner_product.of_core`.
-
-For more details on this question, called the forgetful inheritance pattern, see [Competing
-inheritance paths in dependent type theory: a case study in functional
-analysis](https://hal.inria.fr/hal-02463336).
--/
-library_note "forgetful inheritance"
+-- the topological structure is embedded in the uniform structure
+-- to avoid instance diamond issues. See Note [forgetful inheritance].
 
 /-- A uniform space is a generalization of the "uniform" topological aspects of a
   metric space. It consists of a filter on `α × α` called the "uniformity", which
@@ -375,7 +327,7 @@ tendsto_swap_uniformity.comp h
 /-- Relation `λ f g, tendsto (λ x, (f x, g x)) l (𝓤 α)` is reflexive. -/
 lemma tendsto_diag_uniformity (f : β → α) (l : filter β) :
   tendsto (λ x, (f x, f x)) l (𝓤 α) :=
-assume s hs, mem_map.2 $ univ_mem_sets' $ λ x, refl_mem_uniformity hs
+assume s hs, mem_map.2 $ univ_mem' $ λ x, refl_mem_uniformity hs
 
 lemma tendsto_const_uniformity {a : α} {f : filter β} : tendsto (λ _, (a, a)) f (𝓤 α) :=
 tendsto_diag_uniformity (λ _, a) f
@@ -383,7 +335,7 @@ tendsto_diag_uniformity (λ _, a) f
 lemma symm_of_uniformity {s : set (α × α)} (hs : s ∈ 𝓤 α) :
   ∃ t ∈ 𝓤 α, (∀a b, (a, b) ∈ t → (b, a) ∈ t) ∧ t ⊆ s :=
 have preimage prod.swap s ∈ 𝓤 α, from symm_le_uniformity hs,
-⟨s ∩ preimage prod.swap s, inter_mem_sets hs this, λ a b ⟨h₁, h₂⟩, ⟨h₂, h₁⟩, inter_subset_left _ _⟩
+⟨s ∩ preimage prod.swap s, inter_mem hs this, λ a b ⟨h₁, h₂⟩, ⟨h₂, h₁⟩, inter_subset_left _ _⟩
 
 lemma comp_symm_of_uniformity {s : set (α × α)} (hs : s ∈ 𝓤 α) :
   ∃ t ∈ 𝓤 α, (∀{a b}, (a, b) ∈ t → (b, a) ∈ t) ∧ t ○ t ⊆ s :=
@@ -495,6 +447,12 @@ lemma ball_subset_of_comp_subset {V W : set (β × β)} {x y} (h : x ∈ ball y 
 lemma ball_mono {V W : set (β × β)} (h : V ⊆ W) (x : β) : ball x V ⊆ ball x W :=
 by tauto
 
+lemma ball_inter_left (x : β) (V W : set (β × β)) : ball x (V ∩ W) ⊆ ball x V :=
+ball_mono (inter_subset_left V W) x
+
+lemma ball_inter_right (x : β) (V W : set (β × β)) : ball x (V ∩ W) ⊆ ball x W :=
+ball_mono (inter_subset_right V W) x
+
 lemma mem_ball_symmetry {V : set (β × β)} (hV : symmetric_rel V) {x y} :
   x ∈ ball y V ↔ y ∈ ball x V :=
 show (x, y) ∈ prod.swap ⁻¹' V ↔ (x, y) ∈ V, by { unfold symmetric_rel at hV, rw hV }
@@ -533,12 +491,12 @@ end
 lemma mem_nhds_uniformity_iff_right {x : α} {s : set α} :
   s ∈ 𝓝 x ↔ {p : α × α | p.1 = x → p.2 ∈ s} ∈ 𝓤 α :=
 ⟨ begin
-    simp only [mem_nhds_sets_iff, is_open_uniformity, and_imp, exists_imp_distrib],
+    simp only [mem_nhds_iff, is_open_uniformity, and_imp, exists_imp_distrib],
     exact assume t ts ht xt, by filter_upwards [ht x xt] assume ⟨x', y⟩ h eq, ts $ h eq
   end,
 
   assume hs,
-  mem_nhds_sets_iff.mpr ⟨{x | {p : α × α | p.1 = x → p.2 ∈ s} ∈ 𝓤 α},
+  mem_nhds_iff.mpr ⟨{x | {p : α × α | p.1 = x → p.2 ∈ s} ∈ 𝓤 α},
     assume x' hx', refl_mem_uniformity hx' rfl,
     is_open_uniformity.mpr $ assume x' hx',
       let ⟨t, ht, tr⟩ := comp_mem_uniformity_sets hx' in
@@ -557,7 +515,7 @@ by { rw [uniformity_eq_symm, mem_nhds_uniformity_iff_right], refl }
 
 lemma nhds_eq_comap_uniformity_aux  {α : Type u} {x : α} {s : set α} {F : filter (α × α)} :
   {p : α × α | p.fst = x → p.snd ∈ s} ∈ F ↔ s ∈ comap (prod.mk x) F :=
-by rw mem_comap_sets ; from iff.intro
+by rw mem_comap ; from iff.intro
   (assume hs, ⟨_, hs, assume x hx, hx rfl⟩)
   (assume ⟨t, h, ht⟩, F.sets_of_superset h $
     assume ⟨p₁, p₂⟩ hp (h : p₁ = x), ht $ by simp [h.symm, hp])
@@ -566,6 +524,7 @@ by rw mem_comap_sets ; from iff.intro
 lemma nhds_eq_comap_uniformity {x : α} : 𝓝 x = (𝓤 α).comap (prod.mk x) :=
 by { ext s, rw [mem_nhds_uniformity_iff_right], exact nhds_eq_comap_uniformity_aux }
 
+/-- See also `is_open_iff_open_ball_subset`. -/
 lemma is_open_iff_ball_subset {s : set α} : is_open s ↔ ∀ x ∈ s, ∃ V ∈ 𝓤 α, ball x V ⊆ s :=
 begin
   simp_rw [is_open_iff_mem_nhds, nhds_eq_comap_uniformity],
@@ -587,7 +546,7 @@ end
 
 lemma uniform_space.mem_nhds_iff {x : α} {s : set α} : s ∈ 𝓝 x ↔ ∃ V ∈ 𝓤 α, ball x V ⊆ s :=
 begin
-  rw [nhds_eq_comap_uniformity, mem_comap_sets],
+  rw [nhds_eq_comap_uniformity, mem_comap],
   exact iff.rfl,
 end
 
@@ -615,6 +574,24 @@ lemma uniform_space.has_basis_nhds (x : α) :
 
 open uniform_space
 
+lemma uniform_space.mem_closure_iff_symm_ball {s : set α} {x} :
+  x ∈ closure s ↔ ∀ {V}, V ∈ 𝓤 α → symmetric_rel V → (s ∩ ball x V).nonempty :=
+begin
+  simp [mem_closure_iff_nhds_basis (has_basis_nhds x)],
+  tauto,
+end
+
+lemma uniform_space.mem_closure_iff_ball {s : set α} {x} :
+  x ∈ closure s ↔ ∀ {V}, V ∈ 𝓤 α → (ball x V ∩ s).nonempty :=
+begin
+  simp_rw [mem_closure_iff_nhds, uniform_space.mem_nhds_iff],
+  split,
+  { intros h V V_in,
+    exact h (ball x V) ⟨V, V_in, subset.refl _⟩ },
+  { rintros h t ⟨V, V_in, Vt⟩,
+    exact nonempty.mono (inter_subset_inter_left s Vt) (h V_in) },
+end
+
 lemma uniform_space.has_basis_nhds_prod (x y : α) :
   has_basis (𝓝 (x, y)) (λ s, s ∈ 𝓤 α ∧ symmetric_rel s) $ λ s, (ball x s).prod (ball y s) :=
 begin
@@ -622,7 +599,7 @@ begin
   apply (has_basis_nhds x).prod' (has_basis_nhds y),
   rintro U V ⟨U_in, U_symm⟩ ⟨V_in, V_symm⟩,
   exact ⟨U ∩ V, ⟨(𝓤 α).inter_sets U_in V_in, symmetric_rel_inter U_symm V_symm⟩,
-         ball_mono (inter_subset_left U V) x, ball_mono (inter_subset_right U V) y⟩,
+         ball_inter_left x U V, ball_inter_right y U V⟩,
 end
 
 lemma nhds_eq_uniformity {x : α} : 𝓝 x = (𝓤 α).lift' (ball x) :=
@@ -689,7 +666,7 @@ lemma nhdset_of_mem_uniformity {d : set (α×α)} (s : set (α×α)) (hd : d ∈
   ∃(t : set (α×α)), is_open t ∧ s ⊆ t ∧ t ⊆ {p | ∃x y, (p.1, x) ∈ d ∧ (x, y) ∈ s ∧ (y, p.2) ∈ d} :=
 let cl_d := {p:α×α | ∃x y, (p.1, x) ∈ d ∧ (x, y) ∈ s ∧ (y, p.2) ∈ d} in
 have ∀p ∈ s, ∃t ⊆ cl_d, is_open t ∧ p ∈ t, from
-  assume ⟨x, y⟩ hp, mem_nhds_sets_iff.mp $
+  assume ⟨x, y⟩ hp, _root_.mem_nhds_iff.mp $
   show cl_d ∈ 𝓝 (x, y),
   begin
     rw [nhds_eq_uniformity_prod, mem_lift'_sets],
@@ -715,7 +692,7 @@ begin
   have : (ball x w).prod (ball x w) ∈ 𝓝 (x, x),
   { rw nhds_prod_eq,
     exact prod_mem_prod (ball_mem_nhds x w_in) (ball_mem_nhds x w_in) },
-  apply mem_sets_of_superset this,
+  apply mem_of_superset this,
   rintros ⟨u, v⟩ ⟨u_in, v_in⟩,
   exact w_sub (mem_comp_of_mem_ball w_symm u_in v_in)
 end
@@ -746,7 +723,7 @@ lemma uniformity_has_basis_closed : has_basis (𝓤 α) (λ V : set (α × α), 
 begin
   refine filter.has_basis_self.2 (λ t h, _),
   rcases comp_comp_symm_mem_uniformity_sets h with ⟨w, w_in, w_symm, r⟩,
-  refine ⟨closure w, mem_sets_of_superset w_in subset_closure, is_closed_closure, _⟩,
+  refine ⟨closure w, mem_of_superset w_in subset_closure, is_closed_closure, _⟩,
   refine subset.trans _ r,
   rw closure_eq_uniformity,
   apply Inter_subset_of_subset,
@@ -766,7 +743,7 @@ lemma uniformity_has_basis_closure : has_basis (𝓤 α) (λ V : set (α × α),
     rw r_closed.closure_eq,
     refl },
   { rintros ⟨r, r_in, r_sub⟩,
-    exact ⟨closure r, ⟨mem_sets_of_superset r_in subset_closure, is_closed_closure⟩, r_sub⟩ }
+    exact ⟨closure r, ⟨mem_of_superset r_in subset_closure, is_closed_closure⟩, r_sub⟩ }
 end⟩
 
 lemma closure_eq_inter_uniformity {t : set (α×α)} :
@@ -828,6 +805,18 @@ lemma mem_uniformity_is_closed {s : set (α×α)} (h : s ∈ 𝓤 α) :
 let ⟨t, ⟨ht_mem, htc⟩, hts⟩ := uniformity_has_basis_closed.mem_iff.1 h in
 ⟨t, ht_mem, htc, hts⟩
 
+lemma is_open_iff_open_ball_subset {s : set α} :
+  is_open s ↔ ∀ x ∈ s, ∃ V ∈ 𝓤 α, is_open V ∧ ball x V ⊆ s :=
+begin
+  rw is_open_iff_ball_subset,
+  split; intros h x hx,
+  { obtain ⟨V, hV, hV'⟩ := h x hx,
+    exact ⟨interior V, interior_mem_uniformity hV, is_open_interior,
+      (ball_mono interior_subset x).trans hV'⟩, },
+  { obtain ⟨V, hV, -, hV'⟩ := h x hx,
+    exact ⟨V, hV, hV'⟩, },
+end
+
 /-- The uniform neighborhoods of all points of a dense set cover the whole space. -/
 lemma dense.bUnion_uniformity_ball {s : set α} {U : set (α × α)} (hs : dense s) (hU : U ∈ 𝓤 α) :
   (⋃ x ∈ s, ball x U) = univ :=
@@ -864,7 +853,7 @@ lemma uniformity_has_basis_open_symmetric :
 begin
   simp only [← and_assoc],
   refine uniformity_has_basis_open.restrict (λ s hs, ⟨symmetrize_rel s, _⟩),
-  exact ⟨⟨symmetrize_mem_uniformity hs.1, is_open_inter hs.2 (hs.2.preimage continuous_swap)⟩,
+  exact ⟨⟨symmetrize_mem_uniformity hs.1, is_open.inter hs.2 (hs.2.preimage continuous_swap)⟩,
     symmetric_symmetrize_rel s, symmetrize_rel_subset_self s⟩
 end
 
@@ -896,11 +885,15 @@ theorem uniform_continuous_iff_eventually [uniform_space β] {f : α → β} :
   uniform_continuous f ↔ ∀ r ∈ 𝓤 β, ∀ᶠ (x : α × α) in 𝓤 α, (f x.1, f x.2) ∈ r :=
 iff.rfl
 
+theorem uniform_continuous_on_univ [uniform_space β] {f : α → β} :
+  uniform_continuous_on f univ ↔ uniform_continuous f :=
+by rw [uniform_continuous_on, uniform_continuous, univ_prod_univ, principal_univ, inf_top_eq]
+
 lemma uniform_continuous_of_const [uniform_space β] {c : α → β} (h : ∀a b, c a = c b) :
   uniform_continuous c :=
 have (λ (x : α × α), (c (x.fst), c (x.snd))) ⁻¹' id_rel = univ, from
   eq_univ_iff_forall.2 $ assume ⟨a, b⟩, h a b,
-le_trans (map_le_iff_le_comap.2 $ by simp [comap_principal, this, univ_mem_sets]) refl_le_uniformity
+le_trans (map_le_iff_le_comap.2 $ by simp [comap_principal, this, univ_mem]) refl_le_uniformity
 
 lemma uniform_continuous_id : uniform_continuous (@id α) :=
 by simp [uniform_continuous]; exact tendsto_id
@@ -1065,10 +1058,14 @@ lemma uniform_continuous_comap' {f : γ → β} {g : α → γ} [v : uniform_spa
   (h : uniform_continuous (f ∘ g)) : @uniform_continuous α γ u (uniform_space.comap f v) g :=
 tendsto_comap_iff.2 h
 
+lemma to_nhds_mono {u₁ u₂ : uniform_space α} (h : u₁ ≤ u₂) (a : α) :
+  @nhds _ (@uniform_space.to_topological_space _ u₁) a ≤
+    @nhds _ (@uniform_space.to_topological_space _ u₂) a :=
+by rw [@nhds_eq_uniformity α u₁ a, @nhds_eq_uniformity α u₂ a]; exact (lift'_mono h le_rfl)
+
 lemma to_topological_space_mono {u₁ u₂ : uniform_space α} (h : u₁ ≤ u₂) :
   @uniform_space.to_topological_space _ u₁ ≤ @uniform_space.to_topological_space _ u₂ :=
-le_of_nhds_le_nhds $ assume a,
-  by rw [@nhds_eq_uniformity α u₁ a, @nhds_eq_uniformity α u₂ a]; exact (lift'_mono h $ le_refl _)
+le_of_nhds_le_nhds $ to_nhds_mono h
 
 lemma uniform_continuous.continuous [uniform_space α] [uniform_space β] {f : α → β}
   (hf : uniform_continuous f) : continuous f :=
@@ -1086,15 +1083,14 @@ top_unique $ assume s hs, s.eq_empty_or_nonempty.elim
 lemma to_topological_space_infi {ι : Sort*} {u : ι → uniform_space α} :
   (infi u).to_topological_space = ⨅i, (u i).to_topological_space :=
 begin
-  by_cases h : nonempty ι,
-  { resetI,
-    refine (eq_of_nhds_eq_nhds $ assume a, _),
+  casesI is_empty_or_nonempty ι,
+  { rw [infi_of_empty, infi_of_empty, to_topological_space_top] },
+  { refine (eq_of_nhds_eq_nhds $ assume a, _),
     rw [nhds_infi, nhds_eq_uniformity],
     change (infi u).uniformity.lift' (preimage $ prod.mk a) = _,
     rw [infi_uniformity, lift'_infi],
     { simp only [nhds_eq_uniformity], refl },
     { exact assume a b, rfl } },
-  { rw [infi_of_empty h, infi_of_empty h, to_topological_space_top] }
 end
 
 lemma to_topological_space_Inf {s : set (uniform_space α)} :
@@ -1109,7 +1105,7 @@ lemma to_topological_space_inf {u v : uniform_space α} :
 by rw [to_topological_space_Inf, infi_pair]
 
 instance : uniform_space empty := ⊥
-instance : uniform_space unit := ⊥
+instance : uniform_space punit := ⊥
 instance : uniform_space bool := ⊥
 instance : uniform_space ℕ := ⊥
 instance : uniform_space ℤ := ⊥
@@ -1146,7 +1142,7 @@ lemma tendsto_of_uniform_continuous_subtype
   [uniform_space α] [uniform_space β] {f : α → β} {s : set α} {a : α}
   (hf : uniform_continuous (λx:s, f x.val)) (ha : s ∈ 𝓝 a) :
   tendsto f (𝓝 a) (𝓝 (f a)) :=
-by rw [(@map_nhds_subtype_coe_eq α _ s a (mem_of_nhds ha) ha).symm]; exact
+by rw [(@map_nhds_subtype_coe_eq α _ s a (mem_of_mem_nhds ha) ha).symm]; exact
 tendsto_map' (continuous_iff_continuous_at.mp hf.continuous _)
 
 lemma uniform_continuous_on.continuous_on [uniform_space α] [uniform_space β] {f : α → β}
@@ -1183,16 +1179,16 @@ have map (λp:(α×α)×(β×β), ((p.1.1, p.2.1), (p.1.2, p.2.2))) =
     (funext $ assume ⟨⟨_, _⟩, ⟨_, _⟩⟩, rfl) (funext $ assume ⟨⟨_, _⟩, ⟨_, _⟩⟩, rfl),
 by rw [this, uniformity_prod, filter.prod, comap_inf, comap_comap, comap_comap]
 
-lemma mem_map_sets_iff' {α : Type*} {β : Type*} {f : filter α} {m : α → β} {t : set β} :
+lemma mem_map_iff_exists_image' {α : Type*} {β : Type*} {f : filter α} {m : α → β} {t : set β} :
   t ∈ (map m f).sets ↔ (∃s∈f, m '' s ⊆ t) :=
-mem_map_sets_iff
+mem_map_iff_exists_image
 
 lemma mem_uniformity_of_uniform_continuous_invariant [uniform_space α] {s:set (α×α)} {f : α → α → α}
   (hf : uniform_continuous (λp:α×α, f p.1 p.2)) (hs : s ∈ 𝓤 α) :
   ∃u∈𝓤 α, ∀a b c, (a, b) ∈ u → (f a c, f b c) ∈ s :=
 begin
   rw [uniform_continuous, uniformity_prod_eq_prod, tendsto_map'_iff, (∘)] at hf,
-  rcases mem_map_sets_iff'.1 (hf hs) with ⟨t, ht, hts⟩, clear hf,
+  rcases mem_map_iff_exists_image'.1 (hf hs) with ⟨t, ht, hts⟩, clear hf,
   rcases mem_prod_iff.1 ht with ⟨u, hu, v, hv, huvt⟩, clear ht,
   refine ⟨u, hu, assume a b c hab, hts $ (mem_image _ _ _).2 ⟨⟨⟨a, b⟩, ⟨c, c⟩⟩, huvt ⟨_, _⟩, _⟩⟩,
   exact hab,
@@ -1203,7 +1199,7 @@ end
 lemma mem_uniform_prod [t₁ : uniform_space α] [t₂ : uniform_space β] {a : set (α × α)}
   {b : set (β × β)} (ha : a ∈ 𝓤 α) (hb : b ∈ 𝓤 β) :
   {p:(α×β)×(α×β) | (p.1.1, p.2.1) ∈ a ∧ (p.1.2, p.2.2) ∈ b } ∈ (@uniformity (α × β) _) :=
-by rw [uniformity_prod]; exact inter_mem_inf_sets (preimage_mem_comap ha) (preimage_mem_comap hb)
+by rw [uniformity_prod]; exact inter_mem_inf (preimage_mem_comap ha) (preimage_mem_comap hb)
 
 lemma tendsto_prod_uniformity_fst [uniform_space α] [uniform_space β] :
   tendsto (λp:(α×β)×(α×β), (p.1.1, p.2.1)) (𝓤 (α × β)) (𝓤 α) :=
@@ -1299,8 +1295,8 @@ uniform_space.core.mk'
     rcases comp_mem_uniformity_sets Hrα with ⟨tα, htα, Htα⟩,
     rcases comp_mem_uniformity_sets Hrβ with ⟨tβ, htβ, Htβ⟩,
     refine ⟨_,
-      ⟨mem_map_sets_iff.2 ⟨tα, htα, subset_union_left _ _⟩,
-       mem_map_sets_iff.2 ⟨tβ, htβ, subset_union_right _ _⟩⟩, _⟩,
+      ⟨mem_map_iff_exists_image.2 ⟨tα, htα, subset_union_left _ _⟩,
+       mem_map_iff_exists_image.2 ⟨tβ, htβ, subset_union_right _ _⟩⟩, _⟩,
     rintros ⟨_, _⟩ ⟨z, ⟨⟨a, b⟩, hab, ⟨⟩⟩ | ⟨⟨a, b⟩, hab, ⟨⟩⟩,
                        ⟨⟨_, c⟩, hbc, ⟨⟩⟩ | ⟨⟨_, c⟩, hbc, ⟨⟩⟩⟩,
     { have A : (a, c) ∈ tα ○ tα := ⟨b, hab, hbc⟩,
@@ -1315,8 +1311,8 @@ lemma union_mem_uniformity_sum
   {a : set (α × α)} (ha : a ∈ 𝓤 α) {b : set (β × β)} (hb : b ∈ 𝓤 β) :
   ((λ p : (α × α), (inl p.1, inl p.2)) '' a ∪ (λ p : (β × β), (inr p.1, inr p.2)) '' b) ∈
     (@uniform_space.core.sum α β _ _).uniformity :=
-⟨mem_map_sets_iff.2 ⟨_, ha, subset_union_left _ _⟩,
-  mem_map_sets_iff.2 ⟨_, hb, subset_union_right _ _⟩⟩
+⟨mem_map_iff_exists_image.2 ⟨_, ha, subset_union_left _ _⟩,
+  mem_map_iff_exists_image.2 ⟨_, hb, subset_union_right _ _⟩⟩
 
 /- To prove that the topology defined by the uniform structure on the disjoint union coincides with
 the disjoint union topology, we need two lemmas saying that open sets can be characterized by
@@ -1325,15 +1321,15 @@ lemma uniformity_sum_of_open_aux {s : set (α ⊕ β)} (hs : is_open s) {x : α 
   { p : ((α ⊕ β) × (α ⊕ β)) | p.1 = x → p.2 ∈ s } ∈ (@uniform_space.core.sum α β _ _).uniformity :=
 begin
   cases x,
-  { refine mem_sets_of_superset
-      (union_mem_uniformity_sum (mem_nhds_uniformity_iff_right.1 (mem_nhds_sets hs.1 xs))
-        univ_mem_sets)
+  { refine mem_of_superset
+      (union_mem_uniformity_sum (mem_nhds_uniformity_iff_right.1 (is_open.mem_nhds hs.1 xs))
+        univ_mem)
       (union_subset _ _);
     rintro _ ⟨⟨_, b⟩, h, ⟨⟩⟩ ⟨⟩,
     exact h rfl },
-  { refine mem_sets_of_superset
-      (union_mem_uniformity_sum univ_mem_sets (mem_nhds_uniformity_iff_right.1
-        (mem_nhds_sets hs.2 xs)))
+  { refine mem_of_superset
+      (union_mem_uniformity_sum univ_mem (mem_nhds_uniformity_iff_right.1
+        (is_open.mem_nhds hs.2 xs)))
       (union_subset _ _);
     rintro _ ⟨⟨a, _⟩, h, ⟨⟩⟩ ⟨⟩,
     exact h rfl },
@@ -1346,12 +1342,12 @@ lemma open_of_uniformity_sum_aux {s : set (α ⊕ β)}
 begin
   split,
   { refine (@is_open_iff_mem_nhds α _ _).2 (λ a ha, mem_nhds_uniformity_iff_right.2 _),
-    rcases mem_map_sets_iff.1 (hs _ ha).1 with ⟨t, ht, st⟩,
-    refine mem_sets_of_superset ht _,
+    rcases mem_map_iff_exists_image.1 (hs _ ha).1 with ⟨t, ht, st⟩,
+    refine mem_of_superset ht _,
     rintro p pt rfl, exact st ⟨_, pt, rfl⟩ rfl },
   { refine (@is_open_iff_mem_nhds β _ _).2 (λ b hb, mem_nhds_uniformity_iff_right.2 _),
-    rcases mem_map_sets_iff.1 (hs _ hb).2 with ⟨t, ht, st⟩,
-    refine mem_sets_of_superset ht _,
+    rcases mem_map_iff_exists_image.1 (hs _ hb).2 with ⟨t, ht, st⟩,
+    refine mem_of_superset ht _,
     rintro p pt rfl, exact st ⟨_, pt, rfl⟩ rfl }
 end
 
@@ -1393,7 +1389,7 @@ begin
     rcases comp_mem_uniformity_sets (is_open_uniformity.1 (hc₁ i) x h) with ⟨m', hm', mm'⟩,
     exact mem_bUnion hm' ⟨i, _, hm', λ y hy, mm' hy rfl⟩ },
   rcases hs.elim_finite_subcover_image hu₁ hu₂ with ⟨b, bu, b_fin, b_cover⟩,
-  refine ⟨_, (bInter_mem_sets b_fin).2 bu, λ x hx, _⟩,
+  refine ⟨_, (bInter_mem b_fin).2 bu, λ x hx, _⟩,
   rcases mem_bUnion_iff.1 (b_cover hx) with ⟨n, bn, i, m, hm, h⟩,
   refine ⟨i, λ y hy, h _⟩,
   exact prod_mk_mem_comp_rel (refl_mem_uniformity hm) (bInter_subset_of_mem bn hy)
@@ -1406,6 +1402,32 @@ lemma lebesgue_number_lemma_sUnion {α : Type u} [uniform_space α] {s : set α}
   ∃ n ∈ 𝓤 α, ∀ x ∈ s, ∃ t ∈ c, ∀ y, (x, y) ∈ n → y ∈ t :=
 by rw sUnion_eq_Union at hc₂;
    simpa using lebesgue_number_lemma hs (by simpa) hc₂
+
+/-- A useful consequence of the Lebesgue number lemma: given any compact set `K` contained in an
+open set `U`, we can find an (open) entourage `V` such that the ball of size `V` about any point of
+`K` is contained in `U`. -/
+lemma lebesgue_number_of_compact_open [uniform_space α]
+  {K U : set α} (hK : is_compact K) (hU : is_open U) (hKU : K ⊆ U) :
+  ∃ V ∈ 𝓤 α, is_open V ∧ ∀ x ∈ K, uniform_space.ball x V ⊆ U :=
+begin
+  let W : K → set (α × α) := λ k, classical.some $ is_open_iff_open_ball_subset.mp hU k.1 $ hKU k.2,
+  have hW : ∀ k, W k ∈ 𝓤 α ∧ is_open (W k) ∧ uniform_space.ball k.1 (W k) ⊆ U,
+  { intros k,
+    obtain ⟨h₁, h₂, h₃⟩ := classical.some_spec (is_open_iff_open_ball_subset.mp hU k.1 (hKU k.2)),
+    exact ⟨h₁, h₂, h₃⟩, },
+  let c : K → set α := λ k, uniform_space.ball k.1 (W k),
+  have hc₁ : ∀ k, is_open (c k), { exact λ k, uniform_space.is_open_ball k.1 (hW k).2.1, },
+  have hc₂ : K ⊆ ⋃ i, c i,
+  { intros k hk,
+    simp only [mem_Union, set_coe.exists],
+    exact ⟨k, hk, uniform_space.mem_ball_self k (hW ⟨k, hk⟩).1⟩, },
+  have hc₃ : ∀ k, c k ⊆ U, { exact λ k, (hW k).2.2, },
+  obtain ⟨V, hV, hV'⟩ := lebesgue_number_lemma hK hc₁ hc₂,
+  refine ⟨interior V, interior_mem_uniformity hV, is_open_interior, _⟩,
+  intros k hk,
+  obtain ⟨k', hk'⟩ := hV' k hk,
+  exact ((ball_mono interior_subset k).trans hk').trans (hc₃ k'),
+end
 
 /-!
 ### Expressing continuity properties in uniform spaces
@@ -1429,12 +1451,12 @@ variables [uniform_space α]
 theorem tendsto_nhds_right {f : filter β} {u : β → α} {a : α} :
   tendsto u f (𝓝 a) ↔ tendsto (λ x, (a, u x)) f (𝓤 α)  :=
 ⟨λ H, tendsto_left_nhds_uniformity.comp H,
-λ H s hs, by simpa [mem_of_nhds hs] using H (mem_nhds_uniformity_iff_right.1 hs)⟩
+λ H s hs, by simpa [mem_of_mem_nhds hs] using H (mem_nhds_uniformity_iff_right.1 hs)⟩
 
 theorem tendsto_nhds_left {f : filter β} {u : β → α} {a : α} :
   tendsto u f (𝓝 a) ↔ tendsto (λ x, (u x, a)) f (𝓤 α)  :=
 ⟨λ H, tendsto_right_nhds_uniformity.comp H,
-λ H s hs, by simpa [mem_of_nhds hs] using H (mem_nhds_uniformity_iff_left.1 hs)⟩
+λ H s hs, by simpa [mem_of_mem_nhds hs] using H (mem_nhds_uniformity_iff_left.1 hs)⟩
 
 theorem continuous_at_iff'_right [topological_space β] {f : β → α} {b : β} :
   continuous_at f b ↔ tendsto (λ x, (f b, f x)) (𝓝 b) (𝓤 α) :=

@@ -13,7 +13,7 @@ This file defines instances for module, mul_action and related structures on `ul
 
 (Recall `ulift α` is just a "copy" of a type `α` in a higher universe.)
 
-We also provide `ulift.semimodule_equiv : ulift M ≃ₗ[R] M`.
+We also provide `ulift.module_equiv : ulift M ≃ₗ[R] M`.
 
 -/
 
@@ -74,21 +74,33 @@ instance distrib_mul_action' [monoid R] [add_monoid M] [distrib_mul_action R M] 
   smul_add := λ c f g, by { ext, simp [smul_add], },
   ..ulift.mul_action' }
 
-instance semimodule [semiring R] [add_comm_monoid M] [semimodule R M] :
-  semimodule (ulift R) M :=
+instance mul_distrib_mul_action [monoid R] [monoid M] [mul_distrib_mul_action R M] :
+  mul_distrib_mul_action (ulift R) M :=
+{ smul_one := λ c, by { cases c, simp [smul_one], },
+  smul_mul := λ c f g, by { cases c, simp [smul_mul'], },
+  ..ulift.mul_action }
+
+instance mul_distrib_mul_action' [monoid R] [monoid M] [mul_distrib_mul_action R M] :
+  mul_distrib_mul_action R (ulift M) :=
+{ smul_one := λ c, by { ext, simp [smul_one], },
+  smul_mul := λ c f g, by { ext, simp [smul_mul'], },
+  ..ulift.mul_action' }
+
+instance module [semiring R] [add_comm_monoid M] [module R M] :
+  module (ulift R) M :=
 { add_smul := λ c f g, by { cases c, simp [add_smul], },
   zero_smul := λ f, by { simp [zero_smul], },
   ..ulift.distrib_mul_action }
 
-instance semimodule' [semiring R] [add_comm_monoid M] [semimodule R M] :
-  semimodule R (ulift M) :=
+instance module' [semiring R] [add_comm_monoid M] [module R M] :
+  module R (ulift M) :=
 { add_smul := by { intros, ext1, apply add_smul },
   zero_smul := by { intros, ext1, apply zero_smul } }
 
 /--
 The `R`-linear equivalence between `ulift M` and `M`.
 -/
-def semimodule_equiv [semiring R] [add_comm_monoid M] [semimodule R M] : ulift M ≃ₗ[R] M :=
+def module_equiv [semiring R] [add_comm_monoid M] [module R M] : ulift M ≃ₗ[R] M :=
 { to_fun := ulift.down,
   inv_fun := ulift.up,
   map_smul' := λ r x, rfl,

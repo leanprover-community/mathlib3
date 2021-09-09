@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import topology.category.Top.basic
 import category_theory.eq_to_hom
+import category_theory.category.preorder
 
 /-!
 # The category of open sets in a topological space.
@@ -44,7 +45,7 @@ the morphisms `U ⟶ V` are not just proofs `U ≤ V`, but rather
 
 instance opens_hom_has_coe_to_fun {U V : opens X} : has_coe_to_fun (U ⟶ V) :=
 { F := λ f, U → V,
-  coe := λ f x, ⟨x, (le_of_hom f) x.2⟩ }
+  coe := λ f x, ⟨x, f.le x.2⟩ }
 
 /-!
 We now construct as morphisms various inclusions of open sets.
@@ -54,32 +55,27 @@ We now construct as morphisms various inclusions of open sets.
 /--
 The inclusion `U ⊓ V ⟶ U` as a morphism in the category of open sets.
 -/
-def inf_le_left (U V : opens X) : U ⊓ V ⟶ U :=
-hom_of_le inf_le_left
+def inf_le_left (U V : opens X) : U ⊓ V ⟶ U := inf_le_left.hom
 
 /--
 The inclusion `U ⊓ V ⟶ V` as a morphism in the category of open sets.
 -/
-def inf_le_right (U V : opens X) : U ⊓ V ⟶ V :=
-hom_of_le inf_le_right
+def inf_le_right (U V : opens X) : U ⊓ V ⟶ V := inf_le_right.hom
 
 /--
 The inclusion `U i ⟶ supr U` as a morphism in the category of open sets.
 -/
-def le_supr {ι : Type*} (U : ι → opens X) (i : ι) : U i ⟶ supr U :=
-hom_of_le (le_supr U i)
+def le_supr {ι : Type*} (U : ι → opens X) (i : ι) : U i ⟶ supr U := (le_supr U i).hom
 
 /--
 The inclusion `⊥ ⟶ U` as a morphism in the category of open sets.
 -/
-def bot_le (U : opens X) : ⊥ ⟶ U :=
-hom_of_le bot_le
+def bot_le (U : opens X) : ⊥ ⟶ U := bot_le.hom
 
 /--
 The inclusion `U ⟶ ⊤` as a morphism in the category of open sets.
 -/
-def le_top (U : opens X) : U ⟶ ⊤ :=
-hom_of_le le_top
+def le_top (U : opens X) : U ⟶ ⊤ := le_top.hom
 
 -- We do not mark this as a simp lemma because it breaks open `x`.
 -- Nevertheless, it is useful in `sheaf_of_functions`.
@@ -103,12 +99,12 @@ realising each open set as a topological space itself.
 -/
 def to_Top (X : Top.{u}) : opens X ⥤ Top :=
 { obj := λ U, ⟨U.val, infer_instance⟩,
-  map := λ U V i, ⟨λ x, ⟨x.1, (le_of_hom i) x.2⟩,
+  map := λ U V i, ⟨λ x, ⟨x.1, i.le x.2⟩,
     (embedding.continuous_iff embedding_subtype_coe).2 continuous_induced_dom⟩ }
 
 @[simp]
 lemma to_Top_map (X : Top.{u}) {U V : opens X} {f : U ⟶ V} {x} {h} :
-  ((to_Top X).map f) ⟨x, h⟩ = ⟨x, (le_of_hom f) h⟩ :=
+  ((to_Top X).map f) ⟨x, h⟩ = ⟨x, f.le h⟩ :=
 rfl
 
 /--
@@ -119,14 +115,14 @@ def inclusion {X : Top.{u}} (U : opens X) : (to_Top X).obj U ⟶ X :=
 { to_fun := _,
   continuous_to_fun := continuous_subtype_coe }
 
-lemma inclusion_open_embedding {X : Top.{u}} (U : opens X) : open_embedding (inclusion U) :=
+lemma open_embedding {X : Top.{u}} (U : opens X) : open_embedding (inclusion U) :=
 is_open.open_embedding_subtype_coe U.2
 
 /-- `opens.map f` gives the functor from open sets in Y to open set in X,
     given by taking preimages under f. -/
 def map (f : X ⟶ Y) : opens Y ⥤ opens X :=
 { obj := λ U, ⟨ f ⁻¹' U.val, U.property.preimage f.continuous ⟩,
-  map := λ U V i, ⟨ ⟨ λ a b, (le_of_hom i) b ⟩ ⟩ }.
+  map := λ U V i, ⟨ ⟨ λ a b, i.le b ⟩ ⟩ }.
 
 @[simp] lemma map_obj (f : X ⟶ Y) (U) (p) :
   (map f).obj ⟨U, p⟩ = ⟨f ⁻¹' U, p.preimage f.continuous⟩ := rfl

@@ -5,14 +5,15 @@ Authors: Luke Kershaw
 -/
 import category_theory.additive.basic
 import category_theory.shift
-import category_theory.abelian.additive_functor
+import category_theory.preadditive.additive_functor
 
 /-!
-# Triangulated Categories
+# Triangles
 
-This file contains the definition of triangulated categories.
+This file contains the definition of triangles in an additive category with an additive shift.
+It also defines morphisms between these triangles.
 
-TODO: generalise this to n-angulated categories as in https://arxiv.org/abs/1006.4592
+TODO: generalise this to n-angles in n-angulated categories as in https://arxiv.org/abs/1006.4592
 -/
 
 noncomputable theory
@@ -26,18 +27,17 @@ universes v v₀ v₁ v₂ u u₀ u₁ u₂
 namespace category_theory.triangulated
 open category_theory.category
 
-/--
-We work in an additive category C equipped with an additive shift.
+/-
+We work in a category `C` equipped with a shift.
 -/
-variables (C : Type u) [category.{v} C] [additive_category C]
-  [has_shift C] [functor.additive (shift C).functor]
+variables (C : Type u) [category.{v} C] [has_shift C]
 
 /--
-A triangle in C is a sextuple (X,Y,Z,f,g,h) where X,Y,Z are objects of C,
-and f : X ⟶ Y, g : Y ⟶ Z, h : Z ⟶ X⟦1⟧ are morphisms in C.
+A triangle in `C` is a sextuple `(X,Y,Z,f,g,h)` where `X,Y,Z` are objects of `C`,
+and `f : X ⟶ Y`, `g : Y ⟶ Z`, `h : Z ⟶ X⟦1⟧` are morphisms in `C`.
 See https://stacks.math.columbia.edu/tag/0144.
 -/
-structure triangle :=
+structure triangle := mk' ::
 (obj₁ : C)
 (obj₂ : C)
 (obj₃ : C)
@@ -45,9 +45,33 @@ structure triangle :=
 (mor₂ : obj₂ ⟶ obj₃)
 (mor₃ : obj₃ ⟶ obj₁⟦1⟧)
 
-local attribute [instance] has_zero_object.has_zero
-instance [has_zero_object C] : inhabited (triangle C) :=
+/--
+A triangle `(X,Y,Z,f,g,h)` in `C` is defined by the morphisms `f : X ⟶ Y`, `g : Y ⟶ Z`
+and `h : Z ⟶ X⟦1⟧`.
+-/
+@[simps]
+def triangle.mk {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (h : Z ⟶ X⟦1⟧) : triangle C :=
+{ obj₁ := X,
+  obj₂ := Y,
+  obj₃ := Z,
+  mor₁ := f,
+  mor₂ := g,
+  mor₃ := h }
+
+section
+variables [has_zero_object C] [has_zero_morphisms C]
+open_locale zero_object
+
+instance : inhabited (triangle C) :=
 ⟨⟨0,0,0,0,0,0⟩⟩
+
+/--
+For each object in `C`, there is a triangle of the form `(X,X,0,𝟙 X,0,0)`
+-/
+@[simps]
+def contractible_triangle (X : C) : triangle C := triangle.mk C (𝟙 X) (0 : X ⟶ 0) 0
+
+end
 
 variable {C}
 
@@ -56,14 +80,15 @@ A morphism of triangles `(X,Y,Z,f,g,h) ⟶ (X',Y',Z',f',g',h')` in `C` is a trip
 `a : X ⟶ X'`, `b : Y ⟶ Y'`, `c : Z ⟶ Z'` such that
 `a ≫ f' = f ≫ b`, `b ≫ g' = g ≫ c`, and `a⟦1⟧' ≫ h = h' ≫ c`.
 In other words, we have a commutative diagram:
+```
      f      g      h
-  X  --> Y  --> Z  --> X⟦1⟧
-  |      |      |       |
-  |a     |b     |c      |a⟦1⟧'
-  V      V      V       V
-  X' --> Y' --> Z' --> X'⟦1⟧
+  X  ───> Y  ───> Z  ───> X⟦1⟧
+  │       │       │        │
+  │a      │b      │c       │a⟦1⟧'
+  V       V       V        V
+  X' ───> Y' ───> Z' ───> X'⟦1⟧
      f'     g'     h'
-
+```
 See https://stacks.math.columbia.edu/tag/0144.
 -/
 @[ext]

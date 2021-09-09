@@ -141,7 +141,7 @@ lemma is_O.is_O_with {f : α → E} {g : α → F} {l : filter α} :
   is_O f g l → ∃ c : ℝ, is_O_with c f g l := is_O_iff_is_O_with.1
 
 theorem is_O_with.weaken (h : is_O_with c f g' l) (hc : c ≤ c') : is_O_with c' f g' l :=
-is_O_with.of_bound $ mem_sets_of_superset h.bound $ λ x hx,
+is_O_with.of_bound $ mem_of_superset h.bound $ λ x hx,
 calc ∥f x∥ ≤ c * ∥g' x∥ : hx
 ... ≤ _ : mul_le_mul_of_nonneg_right hc (norm_nonneg _)
 
@@ -199,7 +199,7 @@ theorem is_O_with.congr' {c₁ c₂} {f₁ f₂ : α → E} {g₁ g₂ : α → 
 theorem is_O_with.congr {c₁ c₂} {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
   (hc : c₁ = c₂) (hf : ∀ x, f₁ x = f₂ x) (hg : ∀ x, g₁ x = g₂ x) :
   is_O_with c₁ f₁ g₁ l → is_O_with c₂ f₂ g₂ l :=
-λ h, h.congr' hc (univ_mem_sets' hf) (univ_mem_sets' hg)
+λ h, h.congr' hc (univ_mem' hf) (univ_mem' hg)
 
 theorem is_O_with.congr_left {f₁ f₂ : α → E} {l : filter α} (hf : ∀ x, f₁ x = f₂ x) :
   is_O_with c f₁ g l → is_O_with c f₂ g l :=
@@ -226,7 +226,7 @@ theorem is_O.congr' {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α
 theorem is_O.congr {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
     (hf : ∀ x, f₁ x = f₂ x) (hg : ∀ x, g₁ x = g₂ x) :
   is_O f₁ g₁ l → is_O f₂ g₂ l :=
-λ h, h.congr' (univ_mem_sets' hf) (univ_mem_sets' hg)
+λ h, h.congr' (univ_mem' hf) (univ_mem' hg)
 
 theorem is_O.congr_left {f₁ f₂ : α → E} {l : filter α} (hf : ∀ x, f₁ x = f₂ x) :
   is_O f₁ g l → is_O f₂ g l :=
@@ -249,7 +249,7 @@ theorem is_o.congr' {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α
 theorem is_o.congr {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
     (hf : ∀ x, f₁ x = f₂ x) (hg : ∀ x, g₁ x = g₂ x) :
   is_o f₁ g₁ l → is_o f₂ g₂ l :=
-λ h, h.congr' (univ_mem_sets' hf) (univ_mem_sets' hg)
+λ h, h.congr' (univ_mem' hf) (univ_mem' hg)
 
 theorem is_o.congr_left {f₁ f₂ : α → E} {l : filter α} (hf : ∀ x, f₁ x = f₂ x) :
   is_o f₁ g l → is_o f₂ g l :=
@@ -345,7 +345,7 @@ section
 variable (l)
 
 theorem is_O_with_of_le' (hfg : ∀ x, ∥f x∥ ≤ c * ∥g x∥) : is_O_with c f g l :=
-is_O_with.of_bound $ univ_mem_sets' hfg
+is_O_with.of_bound $ univ_mem' hfg
 
 theorem is_O_with_of_le (hfg : ∀ x, ∥f x∥ ≤ ∥g x∥) : is_O_with 1 f g l :=
 is_O_with_of_le' l $ λ x, by { rw one_mul, exact hfg x }
@@ -389,12 +389,12 @@ end bot
 
 theorem is_O_with.join (h : is_O_with c f g l) (h' : is_O_with c f g l') :
   is_O_with c f g (l ⊔ l') :=
-is_O_with.of_bound $ mem_sup_sets.2 ⟨h.bound, h'.bound⟩
+is_O_with.of_bound $ mem_sup.2 ⟨h.bound, h'.bound⟩
 
 theorem is_O_with.join' (h : is_O_with c f g' l) (h' : is_O_with c' f g' l') :
   is_O_with (max c c') f g' (l ⊔ l') :=
 is_O_with.of_bound $
-mem_sup_sets.2 ⟨(h.weaken $ le_max_left c c').bound, (h'.weaken $ le_max_right c c').bound⟩
+mem_sup.2 ⟨(h.weaken $ le_max_left c c').bound, (h'.weaken $ le_max_right c c').bound⟩
 
 theorem is_O.join (h : is_O f g' l) (h' : is_O f g' l') : is_O f g' (l ⊔ l') :=
 let ⟨c, hc⟩ := h.is_O_with, ⟨c', hc'⟩ := h'.is_O_with in (hc.join' hc').is_O
@@ -697,14 +697,14 @@ section zero_const
 variables (g g' l)
 
 theorem is_o_zero : is_o (λ x, (0 : E')) g' l :=
-is_o.of_bound $ λ c hc, univ_mem_sets' $ λ x,
+is_o.of_bound $ λ c hc, univ_mem' $ λ x,
 by simpa using mul_nonneg (le_of_lt hc) (norm_nonneg $ g' x)
 
 theorem is_O_with_zero (hc : 0 ≤ c) : is_O_with c (λ x, (0 : E')) g' l :=
-is_O_with.of_bound $ univ_mem_sets' $ λ x, by simpa using mul_nonneg hc (norm_nonneg $ g' x)
+is_O_with.of_bound $ univ_mem' $ λ x, by simpa using mul_nonneg hc (norm_nonneg $ g' x)
 
 theorem is_O_with_zero' : is_O_with 0 (λ x, (0 : E')) g l :=
-is_O_with.of_bound $ univ_mem_sets' $ λ x, by simp
+is_O_with.of_bound $ univ_mem' $ λ x, by simp
 
 theorem is_O_zero : is_O (λ x, (0 : E')) g l :=
 is_O_iff_is_O_with.2 ⟨0, is_O_with_zero' _ _⟩
@@ -734,7 +734,7 @@ theorem is_O_with_const_const (c : E) {c' : F'} (hc' : c' ≠ 0) (l : filter α)
   is_O_with (∥c∥ / ∥c'∥) (λ x : α, c) (λ x, c') l :=
 begin
   unfold is_O_with,
-  apply univ_mem_sets',
+  apply univ_mem',
   intro x,
   rw [mem_set_of_eq, div_mul_cancel],
   rwa [ne.def, norm_eq_zero]
@@ -796,6 +796,15 @@ begin
   clear hc c,
   simp only [is_o, is_O_with, norm_one, mul_one, metric.nhds_basis_closed_ball.tendsto_right_iff,
     metric.mem_closed_ball, dist_zero_right]
+end
+
+theorem is_o_const_const_iff [ne_bot l] {d : E'} {c : F'} (hc : c ≠ 0) :
+  is_o (λ x, d) (λ x, c) l ↔ d = 0 :=
+begin
+  rw is_o_const_iff hc,
+  refine ⟨λ h, tendsto_nhds_unique tendsto_const_nhds h, _⟩,
+  rintros rfl,
+  exact tendsto_const_nhds,
 end
 
 lemma is_o_id_const {c : F'} (hc : c ≠ 0) :
@@ -1013,7 +1022,7 @@ theorem is_o.pow {f : α → R} {g : α → 𝕜} (h : is_o f g l) {n : ℕ} (hn
 begin
   cases n, exact hn.false.elim, clear hn,
   induction n with n ihn, { simpa only [pow_one] },
-  exact h.mul ihn
+  convert h.mul ihn; simp [pow_succ]
 end
 
 /-! ### Scalar multiplication -/
@@ -1138,7 +1147,7 @@ end sum
 theorem is_o.tendsto_0 {f g : α → 𝕜} {l : filter α} (h : is_o f g l) :
   tendsto (λ x, f x / (g x)) l (𝓝 0) :=
 have eq₁ : is_o (λ x, f x / g x) (λ x, g x / g x) l,
-  from h.mul_is_O (is_O_refl _ _),
+  by simpa only [div_eq_mul_inv] using h.mul_is_O (is_O_refl _ _),
 have eq₂ : is_O (λ x, g x / g x) (λ x, (1 : 𝕜)) l,
   from is_O_of_le _ (λ x, by by_cases h : ∥g x∥ = 0; simp [h, zero_le_one]),
 (is_o_one_iff 𝕜).mp (eq₁.trans_is_O eq₂)
@@ -1247,6 +1256,39 @@ end exists_mul_eq
 
 /-! ### Miscellanous lemmas -/
 
+theorem div_is_bounded_under_of_is_O {α : Type*} {l : filter α}
+  {f g : α → 𝕜} (h : is_O f g l) :
+  is_bounded_under (≤) l (λ x, ∥f x / g x∥) :=
+begin
+  obtain ⟨c, hc⟩ := is_O_iff.mp h,
+  refine ⟨max c 0, eventually_map.2 (filter.mem_of_superset hc (λ x hx, _))⟩,
+  simp only [mem_set_of_eq, normed_field.norm_div] at ⊢ hx,
+  by_cases hgx : g x = 0,
+  { rw [hgx, norm_zero, div_zero, le_max_iff],
+    exact or.inr le_rfl },
+  { exact le_max_iff.2 (or.inl ((div_le_iff (norm_pos_iff.2 hgx)).2 hx)) }
+end
+
+theorem is_O_iff_div_is_bounded_under {α : Type*} {l : filter α}
+  {f g : α → 𝕜} (hgf : ∀ᶠ x in l, g x = 0 → f x = 0) :
+  is_O f g l ↔ is_bounded_under (≤) l (λ x, ∥f x / g x∥) :=
+begin
+  refine ⟨div_is_bounded_under_of_is_O, λ h, _⟩,
+  obtain ⟨c, hc⟩ := h,
+  rw filter.eventually_iff at hgf hc,
+  simp only [mem_set_of_eq, mem_map, normed_field.norm_div] at hc,
+  refine is_O_iff.2 ⟨c, filter.eventually_of_mem (inter_mem hgf hc) (λ x hx, _)⟩,
+  by_cases hgx : g x = 0,
+  { simp [hx.1 hgx, hgx] },
+  { refine (div_le_iff (norm_pos_iff.2 hgx)).mp hx.2 },
+end
+
+theorem is_O_of_div_tendsto_nhds {α : Type*} {l : filter α}
+  {f g : α → 𝕜} (hgf : ∀ᶠ x in l, g x = 0 → f x = 0)
+  (c : 𝕜) (H : filter.tendsto (f / g) l (𝓝 c)) :
+  is_O f g l :=
+(is_O_iff_div_is_bounded_under hgf).2 $ is_bounded_under_of_tendsto H
+
 lemma is_o.tendsto_zero_of_tendsto {α E 𝕜 : Type*} [normed_group E] [normed_field 𝕜] {u : α → E}
   {v : α → 𝕜} {l : filter α} {y : 𝕜} (huv : is_o u v l) (hv : tendsto v l (𝓝 y)) :
   tendsto u l (𝓝 0) :=
@@ -1282,7 +1324,7 @@ by simpa only [pow_one, is_o_norm_right] using @is_o_norm_pow_norm_pow E' _ _ _ 
 
 theorem is_O_with.right_le_sub_of_lt_1 {f₁ f₂ : α → E'} (h : is_O_with c f₁ f₂ l) (hc : c < 1) :
   is_O_with (1 / (1 - c)) f₂ (λx, f₂ x - f₁ x) l :=
-is_O_with.of_bound $ mem_sets_of_superset h.bound $ λ x hx,
+is_O_with.of_bound $ mem_of_superset h.bound $ λ x hx,
 begin
   simp only [mem_set_of_eq] at hx ⊢,
   rw [mul_comm, one_div, ← div_eq_mul_inv, le_div_iff, mul_sub, mul_one, mul_comm],
@@ -1362,14 +1404,14 @@ end asymptotics
 
 open asymptotics
 
-lemma summable_of_is_O {ι E} [normed_group E] [complete_space E] {f : ι → E} (g : ι → ℝ)
+lemma summable_of_is_O {ι E} [normed_group E] [complete_space E] {f : ι → E} {g : ι → ℝ}
   (hg : summable g) (h : is_O f g cofinite) : summable f :=
 let ⟨C, hC⟩ := h.is_O_with in
 summable_of_norm_bounded_eventually (λ x, C * ∥g x∥) (hg.abs.mul_left _) hC.bound
 
-lemma summable_of_is_O_nat {E} [normed_group E] [complete_space E] {f : ℕ → E} (g : ℕ → ℝ)
+lemma summable_of_is_O_nat {E} [normed_group E] [complete_space E] {f : ℕ → E} {g : ℕ → ℝ}
   (hg : summable g) (h : is_O f g at_top) : summable f :=
-summable_of_is_O g hg $ nat.cofinite_eq_at_top.symm ▸ h
+summable_of_is_O hg $ nat.cofinite_eq_at_top.symm ▸ h
 
 namespace local_homeomorph
 

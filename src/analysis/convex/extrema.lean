@@ -3,9 +3,9 @@ Copyright (c) 2020 Frédéric Dupuis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis
 -/
-
-import analysis.calculus.local_extr
+import analysis.convex.basic
 import topology.algebra.affine
+import topology.local_extr
 
 /-!
 # Minima and maxima of convex functions
@@ -15,8 +15,8 @@ a global minimum, and likewise for concave functions.
 -/
 
 variables {E β: Type*} [add_comm_group E] [topological_space E]
-  [module ℝ E] [topological_add_group E] [topological_vector_space ℝ E]
-  [linear_ordered_add_comm_group β] [semimodule ℝ β] [ordered_semimodule ℝ β]
+  [module ℝ E] [topological_add_group E] [has_continuous_smul ℝ E]
+  [linear_ordered_add_comm_group β] [module ℝ β] [ordered_smul ℝ β]
   {s : set E}
 
 open set filter

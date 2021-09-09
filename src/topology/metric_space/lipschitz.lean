@@ -33,7 +33,7 @@ uniformly continuous.
 
 The parameter `K` has type `ℝ≥0`. This way we avoid conjuction in the definition and have
 coercions both to `ℝ` and `ℝ≥0∞`. Constructors whose names end with `'` take `K : ℝ` as an
-argument, and return `lipschitz_with (nnreal.of_real K) f`.
+argument, and return `lipschitz_with (real.to_nnreal K) f`.
 -/
 
 universes u v w x
@@ -91,6 +91,9 @@ section emetric
 variables [pseudo_emetric_space α] [pseudo_emetric_space β] [pseudo_emetric_space γ]
 variables {K : ℝ≥0} {f : α → β}
 
+protected lemma lipschitz_on_with (h : lipschitz_with K f) (s : set α) : lipschitz_on_with K f s :=
+λ x _ y _, h x y
+
 lemma edist_le_mul (h : lipschitz_with K f) (x y : α) : edist (f x) (f y) ≤ K * edist x y := h x y
 
 lemma edist_lt_top (hf : lipschitz_with K f) {x y : α} (h : edist x y < ⊤) :
@@ -100,10 +103,8 @@ lt_of_le_of_lt (hf x y) $ ennreal.mul_lt_top ennreal.coe_lt_top h
 lemma mul_edist_le (h : lipschitz_with K f) (x y : α) :
   (K⁻¹ : ℝ≥0∞) * edist (f x) (f y) ≤ edist x y :=
 begin
-  have := h x y,
-  rw [mul_comm] at this,
-  replace := ennreal.div_le_of_le_mul this,
-  rwa [div_eq_mul_inv, mul_comm] at this
+  rw [mul_comm, ← div_eq_mul_inv],
+  exact ennreal.div_le_of_le_mul' (h x y)
 end
 
 protected lemma of_edist_le (h : ∀ x y, edist (f x) (f y) ≤ edist x y) :
@@ -117,7 +118,7 @@ assume x y, le_trans (hf x y) $ ennreal.mul_right_mono (ennreal.coe_le_coe.2 h)
 lemma ediam_image_le (hf : lipschitz_with K f) (s : set α) :
   emetric.diam (f '' s) ≤ K * emetric.diam s :=
 begin
-  apply emetric.diam_le_of_forall_edist_le,
+  apply emetric.diam_le,
   rintros _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩,
   calc edist (f x) (f y) ≤ ↑K * edist x y : hf.edist_le_mul x y
                      ... ≤ ↑K * emetric.diam s :
@@ -129,7 +130,7 @@ protected lemma uniform_continuous (hf : lipschitz_with K f) :
   uniform_continuous f :=
 begin
   refine emetric.uniform_continuous_iff.2 (λε εpos, _),
-  use [ε/K, canonically_ordered_semiring.mul_pos.2 ⟨εpos, ennreal.inv_pos.2 $ ennreal.coe_ne_top⟩],
+  use [ε / K, ennreal.div_pos_iff.2 ⟨ne_of_gt εpos, ennreal.coe_ne_top⟩],
   assume x y Dxy,
   apply lt_of_le_of_lt (hf.edist_le_mul x y),
   rw [mul_comm],
@@ -152,6 +153,10 @@ lipschitz_with.of_edist_le $ assume x y, le_refl _
 
 protected lemma subtype_coe (s : set α) : lipschitz_with 1 (coe : s → α) :=
 lipschitz_with.subtype_val s
+
+protected lemma eval {α : ι → Type u} [Π i, pseudo_emetric_space (α i)] [fintype ι] (i : ι) :
+  lipschitz_with 1 (function.eval i : (Π i, α i) → α i) :=
+lipschitz_with.of_edist_le $ λ f g, by convert edist_le_pi_edist f g i
 
 protected lemma restrict (hf : lipschitz_with K f) (s : set α) :
   lipschitz_with K (s.restrict f) :=
@@ -218,7 +223,7 @@ protected lemma list_prod (f : ι → End α) (K : ι → ℝ≥0) (h : ∀ i, l
 protected lemma pow {f : End α} {K} (h : lipschitz_with K f) :
   ∀ n : ℕ, lipschitz_with (K^n) (f^n : End α)
 | 0       := lipschitz_with.id
-| (n + 1) := h.mul (pow n)
+| (n + 1) := by { rw [pow_succ, pow_succ], exact h.mul (pow n) }
 
 end emetric
 
@@ -227,9 +232,9 @@ section metric
 variables [pseudo_metric_space α] [pseudo_metric_space β] [pseudo_metric_space γ] {K : ℝ≥0}
 
 protected lemma of_dist_le' {f : α → β} {K : ℝ} (h : ∀ x y, dist (f x) (f y) ≤ K * dist x y) :
-  lipschitz_with (nnreal.of_real K) f :=
+  lipschitz_with (real.to_nnreal K) f :=
 of_dist_le_mul $ λ x y, le_trans (h x y) $
-  mul_le_mul_of_nonneg_right (nnreal.le_coe_of_real K) dist_nonneg
+  mul_le_mul_of_nonneg_right (real.le_coe_to_nnreal K) dist_nonneg
 
 protected lemma mk_one {f : α → β} (h : ∀ x y, dist (f x) (f y) ≤ dist x y) :
   lipschitz_with 1 f :=
@@ -238,7 +243,7 @@ of_dist_le_mul $ by simpa only [nnreal.coe_one, one_mul] using h
 /-- For functions to `ℝ`, it suffices to prove `f x ≤ f y + K * dist x y`; this version
 doesn't assume `0≤K`. -/
 protected lemma of_le_add_mul' {f : α → ℝ} (K : ℝ) (h : ∀x y, f x ≤ f y + K * dist x y) :
-  lipschitz_with (nnreal.of_real K) f :=
+  lipschitz_with (real.to_nnreal K) f :=
 have I : ∀ x y, f x - f y ≤ K * dist x y,
   from assume x y, sub_le_iff_le_add'.2 (h x y),
 lipschitz_with.of_dist_le' $
@@ -249,7 +254,7 @@ abs_sub_le_iff.2 ⟨I x y, dist_comm y x ▸ I y x⟩
 assumes `0≤K`. -/
 protected lemma of_le_add_mul {f : α → ℝ} (K : ℝ≥0) (h : ∀x y, f x ≤ f y + K * dist x y) :
   lipschitz_with K f :=
-by simpa only [nnreal.of_real_coe] using lipschitz_with.of_le_add_mul' K h
+by simpa only [real.to_nnreal_coe] using lipschitz_with.of_le_add_mul' K h
 
 protected lemma of_le_add {f : α → ℝ} (h : ∀ x y, f x ≤ f y + dist x y) :
   lipschitz_with 1 f :=

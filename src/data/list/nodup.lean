@@ -76,6 +76,37 @@ pairwise_iff_nth_le.trans
   .resolve_right (λ h', H _ _ h₁ h' h.symm),
  λ H i j h₁ h₂ h, ne_of_lt h₂ (H _ _ _ _ h)⟩
 
+theorem nodup.nth_le_inj_iff {α : Type*} {l : list α} (h : nodup l)
+  {i j : ℕ} (hi : i < l.length) (hj : j < l.length) :
+  l.nth_le i hi = l.nth_le j hj ↔ i = j :=
+⟨nodup_iff_nth_le_inj.mp h _ _ _ _, by simp {contextual := tt}⟩
+
+lemma nodup.ne_singleton_iff {l : list α} (h : nodup l) (x : α) :
+  l ≠ [x] ↔ l = [] ∨ ∃ y ∈ l, y ≠ x :=
+begin
+  induction l with hd tl hl,
+  { simp },
+  { specialize hl (nodup_of_nodup_cons h),
+    by_cases hx : tl = [x],
+    { simpa [hx, and.comm, and_or_distrib_left] using h },
+    { rw [←ne.def, hl] at hx,
+      rcases hx with rfl | ⟨y, hy, hx⟩,
+      { simp },
+      { have : tl ≠ [] := ne_nil_of_mem hy,
+        suffices : ∃ (y : α) (H : y ∈ hd :: tl), y ≠ x,
+          { simpa [ne_nil_of_mem hy] },
+        exact ⟨y, mem_cons_of_mem _ hy, hx⟩ } } }
+end
+
+lemma nth_le_eq_of_ne_imp_not_nodup (xs : list α) (n m : ℕ) (hn : n < xs.length)
+  (hm : m < xs.length) (h : xs.nth_le n hn = xs.nth_le m hm) (hne : n ≠ m) :
+  ¬ nodup xs :=
+begin
+  rw nodup_iff_nth_le_inj,
+  simp only [exists_prop, exists_and_distrib_right, not_forall],
+  exact ⟨n, m, ⟨hn, hm, h⟩, hne⟩
+end
+
 @[simp] theorem nth_le_index_of [decidable_eq α] {l : list α} (H : nodup l) (n h) :
   index_of (nth_le l n h) l = n :=
 nodup_iff_nth_le_inj.1 H _ _ _ h $
@@ -90,8 +121,8 @@ theorem nodup_repeat (a : α) : ∀ {n : ℕ}, nodup (repeat a n) ↔ n ≤ 1
 | 0 := by simp [nat.zero_le]
 | 1 := by simp
 | (n+2) := iff_of_false
-  (λ H, nodup_iff_sublist.1 H a ((repeat_sublist_repeat _).2 (le_add_left 2 n)))
-  (not_le_of_lt $ le_add_left 2 n)
+  (λ H, nodup_iff_sublist.1 H a ((repeat_sublist_repeat _).2 (nat.le_add_left 2 n)))
+  (not_le_of_lt $ nat.le_add_left 2 n)
 
 @[simp] theorem count_eq_one_of_mem [decidable_eq α] {a : α} {l : list α}
   (d : nodup l) (h : a ∈ l) : count a l = 1 :=
@@ -126,6 +157,23 @@ pairwise_of_pairwise_map f $ λ a b, mt $ congr_arg f
 theorem nodup_map_on {f : α → β} {l : list α} (H : ∀x∈l, ∀y∈l, f x = f y → x = y)
   (d : nodup l) : nodup (map f l) :=
 pairwise_map_of_pairwise _ (by exact λ a b ⟨ma, mb, n⟩ e, n (H a ma b mb e)) (pairwise.and_mem.1 d)
+
+theorem inj_on_of_nodup_map {f : α → β} {l : list α} (d : nodup (map f l)) :
+  ∀ ⦃x⦄, x ∈ l → ∀ ⦃y⦄, y ∈ l → f x = f y → x = y :=
+begin
+  induction l with hd tl ih,
+  { simp },
+  { simp only [map, nodup_cons, mem_map, not_exists, not_and, ←ne.def] at d,
+    rintro _ (rfl | h₁) _ (rfl | h₂) h₃,
+    { refl },
+    { apply (d.1 _ h₂ h₃.symm).elim },
+    { apply (d.1 _ h₁ h₃).elim },
+    { apply ih d.2 h₁ h₂ h₃ } }
+end
+
+theorem nodup_map_iff_inj_on {f : α → β} {l : list α} (d : nodup l) :
+  nodup (map f l) ↔ (∀ (x ∈ l) (y ∈ l), f x = f y → x = y) :=
+⟨inj_on_of_nodup_map, λ h, nodup_map_on h d⟩
 
 theorem nodup_map {f : α → β} {l : list α} (hf : injective f) : nodup l → nodup (map f l) :=
 nodup_map_on (assume x _ y _ h, hf h)
@@ -278,6 +326,20 @@ begin
     simp [update_nth, hl.1] },
   { simp [ne.symm H, H, update_nth, ← apply_ite (cons (f hd))] }
 end
+
+lemma nodup.pairwise_of_forall_ne {l : list α} {r : α → α → Prop}
+  (hl : l.nodup) (h : ∀ (a ∈ l) (b ∈ l), a ≠ b → r a b) : l.pairwise r :=
+begin
+  classical,
+  refine pairwise_of_reflexive_on_dupl_of_forall_ne _ h,
+  intros x hx,
+  rw nodup_iff_count_le_one at hl,
+  exact absurd (hl x) hx.not_le
+end
+
+lemma nodup.pairwise_of_set_pairwise_on {l : list α} {r : α → α → Prop}
+  (hl : l.nodup) (h : {x | x ∈ l}.pairwise_on r) : l.pairwise r :=
+hl.pairwise_of_forall_ne h
 
 end list
 

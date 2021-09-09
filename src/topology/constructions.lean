@@ -64,6 +64,10 @@ instance Pi.topological_space {β : α → Type v} [t₂ : Πa, topological_spac
 instance ulift.topological_space [t : topological_space α] : topological_space (ulift.{v u} α) :=
 t.induced ulift.down
 
+lemma quotient.preimage_mem_nhds [topological_space α] [s : setoid α]
+  {V : set $ quotient s} {a : α} (hs : V ∈ 𝓝 (quotient.mk a)) : quotient.mk ⁻¹' V ∈ 𝓝 a :=
+preimage_nhds_coinduced hs
+
 /-- The image of a dense set under `quotient.mk` is a dense set. -/
 lemma dense.quotient [setoid α] [topological_space α] {s : set α} (H : dense s) :
   dense (quotient.mk '' s) :=
@@ -127,6 +131,9 @@ continuous_snd.continuous_at
   (hf : continuous f) (hg : continuous g) : continuous (λx, (f x, g x)) :=
 continuous_inf_rng (continuous_induced_rng hf) (continuous_induced_rng hg)
 
+@[continuity] lemma continuous.prod.mk (a : α) : continuous (prod.mk a : β → α × β) :=
+continuous_const.prod_mk continuous_id'
+
 lemma continuous.prod_map {f : γ → α} {g : δ → β} (hf : continuous f) (hg : continuous g) :
   continuous (λ x : γ × δ, (f x.1, g x.2)) :=
 (hf.comp continuous_fst).prod_mk (hg.comp continuous_snd)
@@ -161,7 +168,7 @@ show continuous (g ∘ (λ b, (a, b))), from h.comp (by continuity)
 
 lemma is_open.prod {s : set α} {t : set β} (hs : is_open s) (ht : is_open t) :
   is_open (set.prod s t) :=
-is_open_inter (hs.preimage continuous_fst) (ht.preimage continuous_snd)
+is_open.inter (hs.preimage continuous_fst) (ht.preimage continuous_snd)
 
 lemma nhds_prod_eq {a : α} {b : β} : 𝓝 (a, b) = 𝓝 a ×ᶠ 𝓝 b :=
 by rw [filter.prod, prod.topological_space, nhds_inf, nhds_induced, nhds_induced]
@@ -169,6 +176,19 @@ by rw [filter.prod, prod.topological_space, nhds_inf, nhds_induced, nhds_induced
 lemma mem_nhds_prod_iff {a : α} {b : β} {s : set (α × β)} :
   s ∈ 𝓝 (a, b) ↔ ∃ (u ∈ 𝓝 a) (v ∈ 𝓝 b), set.prod u v ⊆ s :=
 by rw [nhds_prod_eq, mem_prod_iff]
+
+lemma mem_nhds_prod_iff' {a : α} {b : β} {s : set (α × β)} :
+  s ∈ 𝓝 (a, b) ↔ ∃ u v, is_open u ∧ a ∈ u ∧ is_open v ∧ b ∈ v ∧ set.prod u v ⊆ s :=
+begin
+  rw mem_nhds_prod_iff,
+  split,
+  { rintros ⟨u, Hu, v, Hv, h⟩,
+    rcases mem_nhds_iff.1 Hu with ⟨u', u'u, u'_open, Hu'⟩,
+    rcases mem_nhds_iff.1 Hv with ⟨v', v'v, v'_open, Hv'⟩,
+    exact ⟨u', v', u'_open, Hu', v'_open, Hv', (set.prod_mono u'u v'v).trans h⟩ },
+  { rintros ⟨u, v, u_open, au, v_open, bv, huv⟩,
+    exact ⟨u, u_open.mem_nhds au, v, v_open.mem_nhds bv, huv⟩ }
+end
 
 lemma filter.has_basis.prod_nhds {ιa ιb : Type*} {pa : ιa → Prop} {pb : ιb → Prop}
   {sa : ιa → set α} {sb : ιb → set β} {a : α} {b : β} (ha : (𝓝 a).has_basis pa sa)
@@ -190,7 +210,7 @@ lemma prod_mem_nhds_iff {s : set α} {t : set β} {a : α} {b : β} :
   s.prod t ∈ 𝓝 (a, b) ↔ s ∈ 𝓝 a ∧ t ∈ 𝓝 b :=
 by rw [nhds_prod_eq, prod_mem_prod_iff]
 
-lemma prod_mem_nhds_sets {s : set α} {t : set β} {a : α} {b : β}
+lemma prod_is_open.mem_nhds {s : set α} {t : set β} {a : α} {b : β}
   (ha : s ∈ 𝓝 a) (hb : t ∈ 𝓝 b) : set.prod s t ∈ 𝓝 (a, b) :=
 prod_mem_nhds_iff.2 ⟨ha, hb⟩
 
@@ -267,6 +287,21 @@ begin
   simp only [and_assoc, and.left_comm]
 end
 
+/-- A product of induced topologies is induced by the product map -/
+lemma prod_induced_induced {α γ : Type*} (f : α → β) (g : γ → δ) :
+  @prod.topological_space α γ (induced f ‹_›) (induced g ‹_›) =
+  induced (λ p, (f p.1, g p.2)) prod.topological_space :=
+begin
+  set fxg := (λ p : α × γ, (f p.1, g p.2)),
+  have key1 : f ∘ (prod.fst : α × γ → α) = (prod.fst : β × δ → β) ∘ fxg, from rfl,
+  have key2 : g ∘ (prod.snd : α × γ → γ) = (prod.snd : β × δ → δ) ∘ fxg, from rfl,
+  unfold prod.topological_space,
+  conv_lhs {
+    rw [induced_compose, induced_compose, key1, key2],
+    congr, rw ← induced_compose, skip, rw ← induced_compose, },
+  rw induced_inf
+end
+
 lemma continuous_uncurry_of_discrete_topology_left [discrete_topology α]
   {f : α → β → γ} (h : ∀ a, continuous (f a)) : continuous (function.uncurry f) :=
 continuous_iff_continuous_at.2 $ λ ⟨a, b⟩,
@@ -288,7 +323,7 @@ begin
   rw [mem_map, nhds_within, mem_inf_principal, mem_nhds_prod_iff] at hs,
   rcases hs with ⟨u, hu, v, hv, H⟩,
   simp only [prod_subset_iff, mem_singleton_iff, mem_set_of_eq, mem_preimage] at H,
-  exact mem_sets_of_superset hu (λ z hz, H _ hz _ (mem_of_nhds hv) rfl)
+  exact mem_of_superset hu (λ z hz, H _ hz _ (mem_of_mem_nhds hv) rfl)
 end
 
 @[simp] lemma map_fst_nhds (x : α × β) : map prod.fst (𝓝 x) = 𝓝 x.1 :=
@@ -307,7 +342,7 @@ begin
   rw [mem_map, nhds_within, mem_inf_principal, mem_nhds_prod_iff] at hs,
   rcases hs with ⟨u, hu, v, hv, H⟩,
   simp only [prod_subset_iff, mem_singleton_iff, mem_set_of_eq, mem_preimage] at H,
-  exact mem_sets_of_superset hv (λ z hz, H _ (mem_of_nhds hu) _ hz rfl)
+  exact mem_of_superset hv (λ z hz, H _ (mem_of_mem_nhds hu) _ hz rfl)
 end
 
 @[simp] lemma map_snd_nhds (x : α × β) : map prod.snd (𝓝 x) = 𝓝 x.2 :=
@@ -445,7 +480,7 @@ begin
   have : u = inl '' (inl ⁻¹' u) ∪ inr '' (inr ⁻¹' u),
   { ext (_|_); simp },
   rw [this, set.image_union, set.image_image, set.image_image],
-  exact is_open_union (h₁ _ hu₁) (h₂ _ hu₂)
+  exact is_open.union (h₁ _ hu₁) (h₂ _ hu₂)
 end
 
 lemma embedding_inl : embedding (@inl α β) :=
@@ -565,7 +600,7 @@ lemma continuous_subtype_nhds_cover {ι : Sort*} {f : α → β} {c : ι → α 
   continuous f :=
 continuous_iff_continuous_at.mpr $ assume x,
   let ⟨i, (c_sets : {x | c i x} ∈ 𝓝 x)⟩ := c_cover x in
-  let x' : subtype (c i) := ⟨x, mem_of_nhds c_sets⟩ in
+  let x' : subtype (c i) := ⟨x, mem_of_mem_nhds c_sets⟩ in
   calc map f (𝓝 x) = map f (map coe (𝓝 x')) :
       congr_arg (map f) (map_nhds_subtype_coe_eq _ $ c_sets).symm
     ... = map (λx:subtype (c i), f x) (𝓝 x') : rfl
@@ -641,22 +676,18 @@ lemma continuous_apply [∀i, topological_space (π i)] (i : ι) :
   continuous (λp:Πi, π i, p i) :=
 continuous_infi_dom continuous_induced_dom
 
+lemma continuous_at_apply [∀i, topological_space (π i)] (i : ι) (x : Π i, π i) :
+  continuous_at (λ p : Π i, π i, p i) x :=
+(continuous_apply i).continuous_at
+
+lemma filter.tendsto.apply [∀i, topological_space (π i)] {l : filter α} {f : α → Π i, π i}
+  {x : Π i, π i} (h : tendsto f l (𝓝 x)) (i : ι) :
+  tendsto (λ a, f a i) l (𝓝 $ x i) :=
+(continuous_at_apply i _).tendsto.comp h
+
 lemma continuous_pi_iff [topological_space α] [∀ i, topological_space (π i)] {f : α → Π i, π i} :
   continuous f ↔ ∀ i, continuous (λ y, f y i) :=
 iff.intro (λ h i, (continuous_apply i).comp h) continuous_pi
-
-/-- Embedding a factor into a product space (by fixing arbitrarily all the other coordinates) is
-continuous. -/
-@[continuity]
-lemma continuous_update [decidable_eq ι] [∀i, topological_space (π i)] {i : ι} {f : Πi:ι, π i} :
-  continuous (λ x : π i, function.update f i x) :=
-begin
-  refine continuous_pi (λj, _),
-  by_cases h : j = i,
-  { rw h,
-    simpa using continuous_id },
-  { simpa [h] using continuous_const }
-end
 
 lemma nhds_pi [t : ∀i, topological_space (π i)] {a : Πi, π i} :
   𝓝 a = (⨅i, comap (λx, x i) (𝓝 (a i))) :=
@@ -672,6 +703,28 @@ lemma continuous_at_pi [∀ i, topological_space (π i)] [topological_space α] 
   continuous_at f x ↔ ∀ i, continuous_at (λ y, f y i) x :=
 tendsto_pi
 
+lemma filter.tendsto.update [∀i, topological_space (π i)] [decidable_eq ι]
+  {l : filter α} {f : α → Π i, π i} {x : Π i, π i} (hf : tendsto f l (𝓝 x)) (i : ι)
+  {g : α → π i} {xi : π i} (hg : tendsto g l (𝓝 xi)) :
+  tendsto (λ a, function.update (f a) i (g a)) l (𝓝 $ function.update x i xi) :=
+tendsto_pi.2 $ λ j, by { rcases em (j = i) with rfl|hj; simp [*, hf.apply] }
+
+lemma continuous_at.update [∀i, topological_space (π i)] [topological_space α] [decidable_eq ι]
+  {f : α → Π i, π i} {a : α} (hf : continuous_at f a) (i : ι) {g : α → π i}
+  (hg : continuous_at g a) :
+  continuous_at (λ a, function.update (f a) i (g a)) a :=
+hf.update i hg
+
+lemma continuous.update [∀i, topological_space (π i)] [topological_space α] [decidable_eq ι]
+  {f : α → Π i, π i} (hf : continuous f) (i : ι) {g : α → π i} (hg : continuous g) :
+  continuous (λ a, function.update (f a) i (g a)) :=
+continuous_iff_continuous_at.2 $ λ x, hf.continuous_at.update i hg.continuous_at
+
+/-- `function.update f i x` is continuous in `(f, x)`. -/
+@[continuity] lemma continuous_update [∀i, topological_space (π i)] [decidable_eq ι] (i : ι) :
+  continuous (λ f : (Π j, π j) × π i, function.update f.1 i f.2) :=
+continuous_fst.update i continuous_snd
+
 lemma is_open_set_pi [∀a, topological_space (π a)] {i : set ι} {s : Πa, set (π a)}
   (hi : finite i) (hs : ∀a∈i, is_open (s a)) : is_open (pi i s) :=
 by rw [pi_def]; exact (is_open_bInter hi $ assume a ha, (hs _ ha).preimage (continuous_apply _))
@@ -681,10 +734,41 @@ lemma is_closed_set_pi [∀a, topological_space (π a)] {i : set ι} {s : Πa, s
 by rw [pi_def];
   exact (is_closed_Inter $ λ a, is_closed_Inter $ λ ha, (hs _ ha).preimage (continuous_apply _))
 
+lemma mem_nhds_pi {ι : Type*} {α : ι → Type*} [Π (i : ι), topological_space (α i)]
+  {I : set ι} {s : Π i, set (α i)} (a : Π i, α i) (hs : I.pi s ∈ 𝓝 a) {i : ι} (hi : i ∈ I) :
+  s i ∈ 𝓝 (a i) :=
+begin
+  set p := λ i, λ (x : Π (i : ι), α i), x i,
+  rw [nhds_pi, pi_def] at hs,
+  obtain ⟨t : ι → set (Π i, α i),
+          ht : ∀ i, t i ∈ comap (p i) (𝓝 (a i)), ht' : (⋂ i ∈ I, p i ⁻¹' s i) = ⋂ (i : ι), t i⟩ :=
+    exists_Inter_of_mem_infi hs,
+  simp only [exists_prop, mem_comap] at ht,
+  choose v hv hv' using ht,
+  apply mem_of_superset (hv i),
+  have := calc (⋂ i, p i ⁻¹' v i) ⊆ (⋂ i, t i) : Inter_subset_Inter hv'
+  ... = ⋂ i ∈ I, p i ⁻¹' s i : by simp_rw ht'
+  ... ⊆ p i ⁻¹' s i : bInter_subset_of_mem hi,
+  rwa [← image_subset_iff, image_projection_prod] at this,
+  use a,
+  rw [mem_univ_pi],
+  exact λ j, mem_of_mem_nhds (hv j)
+end
+
 lemma set_pi_mem_nhds [Π a, topological_space (π a)] {i : set ι} {s : Π a, set (π a)}
   {x : Π a, π a} (hi : finite i) (hs : ∀ a ∈ i, s a ∈ 𝓝 (x a)) :
   pi i s ∈ 𝓝 x :=
-by { rw [pi_def, bInter_mem_sets hi], exact λ a ha, (continuous_apply a).continuous_at (hs a ha) }
+by { rw [pi_def, bInter_mem hi], exact λ a ha, (continuous_apply a).continuous_at (hs a ha) }
+
+lemma set_pi_mem_nhds_iff [fintype ι] {α : ι → Type*} [Π (i : ι), topological_space (α i)]
+  {I : set ι} {s : Π i, set (α i)} (a : Π i, α i) :
+  I.pi s ∈ 𝓝 a ↔ ∀ (i : ι), i ∈ I → s i ∈ 𝓝 (a i) :=
+⟨by apply mem_nhds_pi, set_pi_mem_nhds $ finite.of_fintype I⟩
+
+lemma interior_pi_set [fintype ι] {α : ι → Type*} [Π i, topological_space (α i)]
+  {I : set ι} {s : Π i, set (α i)} :
+  interior (pi I s) = I.pi (λ i, interior (s i)) :=
+by { ext a, simp only [mem_pi, mem_interior_iff_mem_nhds, set_pi_mem_nhds_iff] }
 
 lemma pi_eq_generate_from [∀a, topological_space (π a)] :
   Pi.topological_space =
@@ -728,6 +812,21 @@ begin
       by_cases a ∈ i; simp [*, pi] at * },
     { have : f ∈ pi {a | a ∉ i} c, { simp [*, pi] at * },
       simpa [pi_if, hf] } }
+end
+
+/-- Suppose `π i` is a family of topological spaces indexed by `i : ι`, and `X` is a type
+endowed with a family of maps `f i : X → π i` for every `i : ι`, hence inducing a
+map `g : X → Π i, π i`. This lemma shows that infimum of the topologies on `X` induced by
+the `f i` as `i : ι` varies is simply the topology on `X` induced by `g : X → Π i, π i`
+where `Π i, π i` is endowed with the usual product topology. -/
+lemma inducing_infi_to_pi {X : Type*} [∀ i, topological_space (π i)] (f : Π i, X → π i) :
+  @inducing X (Π i, π i) (⨅ i, induced (f i) infer_instance) _ (λ x i, f i x) :=
+begin
+  constructor,
+  erw induced_infi,
+  congr' 1,
+  funext,
+  erw induced_compose,
 end
 
 variables [fintype ι] [∀ i, topological_space (π i)] [∀ i, discrete_topology (π i)]

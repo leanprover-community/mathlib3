@@ -3,7 +3,7 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import topology.topological_fiber_bundle
+import topology.fiber_bundle
 import geometry.manifold.smooth_manifold_with_corners
 
 /-!
@@ -106,7 +106,6 @@ structure basic_smooth_bundle_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜
   times_cont_diff_on 𝕜 ∞ (λp : E × F, coord_change i j (I.symm p.1) p.2)
   ((I '' (i.1.symm.trans j.1).source).prod (univ : set F)))
 
-
 /-- The trivial basic smooth bundle core, in which all the changes of coordinates are the
 identity. -/
 def trivial_basic_smooth_bundle_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
@@ -169,12 +168,12 @@ def to_topological_fiber_bundle_core : topological_fiber_bundle_core (atlas H M)
   end }
 
 @[simp, mfld_simps] lemma base_set (i : atlas H M) :
-  Z.to_topological_fiber_bundle_core.base_set i = i.1.source := rfl
+  (Z.to_topological_fiber_bundle_core.local_triv i).base_set = i.1.source := rfl
 
 /-- Local chart for the total space of a basic smooth bundle -/
 def chart {e : local_homeomorph M H} (he : e ∈ atlas H M) :
   local_homeomorph (Z.to_topological_fiber_bundle_core.total_space) (model_prod H F) :=
-(Z.to_topological_fiber_bundle_core.local_triv ⟨e, he⟩).trans
+(Z.to_topological_fiber_bundle_core.local_triv ⟨e, he⟩).to_local_homeomorph.trans
   (local_homeomorph.prod e (local_homeomorph.refl F))
 
 @[simp, mfld_simps] lemma chart_source (e : local_homeomorph M H) (he : e ∈ atlas H M) :
@@ -317,7 +316,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
     { assume x hx,
       have N : I.symm ⁻¹' (i.1.symm.trans j.1).source ∈ nhds x :=
         I.continuous_symm.continuous_at.preimage_mem_nhds
-          (mem_nhds_sets (local_homeomorph.open_source _) hx.1),
+          (is_open.mem_nhds (local_homeomorph.open_source _) hx.1),
       symmetry,
       rw inter_comm,
       exact fderiv_within_inter N (I.unique_diff _ hx.2) },
@@ -339,7 +338,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
     { rw inter_comm,
       apply inter_mem_nhds_within,
       apply I.continuous_symm.continuous_at.preimage_mem_nhds
-        (mem_nhds_sets (local_homeomorph.open_source _) _),
+        (is_open.mem_nhds (local_homeomorph.open_source _) _),
       simp only [hx, i.1.map_target] with mfld_simps },
     have B : ∀ᶠ y in 𝓝[range I] (I x),
       (I ∘ i.1 ∘ i.1.symm ∘ I.symm) y = (id : E → E) y,
@@ -435,7 +434,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
     { rw inter_comm,
       apply fderiv_within_inter _ I.unique_diff_at_image,
       apply I.continuous_symm.continuous_at.preimage_mem_nhds
-        (mem_nhds_sets (local_homeomorph.open_source _) _),
+        (is_open.mem_nhds (local_homeomorph.open_source _) _),
       simpa only [model_with_corners.left_inv] using hx },
     have D : fderiv_within 𝕜 (I ∘ u.1 ∘ j.1.symm ∘ I.symm)
       (I.symm ⁻¹' (j.1.symm.trans u.1).source ∩ range I) ((I ∘ j.1 ∘ i.1.symm ∘ I.symm) (I x)) =
@@ -443,7 +442,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
     { rw inter_comm,
       apply fderiv_within_inter _ I.unique_diff_at_image,
       apply I.continuous_symm.continuous_at.preimage_mem_nhds
-        (mem_nhds_sets (local_homeomorph.open_source _) _),
+        (is_open.mem_nhds (local_homeomorph.open_source _) _),
       rw [local_homeomorph.trans_source] at hx,
       simp only with mfld_simps,
       exact hx.2 },
@@ -454,7 +453,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
     { rw inter_comm,
       apply fderiv_within_inter _ I.unique_diff_at_image,
       apply I.continuous_symm.continuous_at.preimage_mem_nhds
-        (mem_nhds_sets (local_homeomorph.open_source _) _),
+        (is_open.mem_nhds (local_homeomorph.open_source _) _),
       simpa only [model_with_corners.left_inv] using hx },
     rw [B, C, D, E] at A,
     simp only [A, continuous_linear_map.coe_comp'] with mfld_simps
@@ -481,7 +480,7 @@ tangent bundle gives a second component in the tangent space. -/
 def tangent_bundle := Σ (x : M), tangent_space I x
 
 /-- The projection from the tangent bundle of a smooth manifold to the manifold. As the tangent
-bundle is represented internally as a product type, the notation `p.1` also works for the projection
+bundle is represented internally as a sigma type, the notation `p.1` also works for the projection
 of the point `p`. -/
 def tangent_bundle.proj : tangent_bundle I M → M :=
 λ p, p.1
@@ -500,7 +499,7 @@ them, noting in particular that the tangent bundle is a smooth manifold. -/
 variable (M)
 
 instance : topological_space (tangent_bundle I M) :=
-(tangent_bundle_core I M).to_topological_fiber_bundle_core.to_topological_space
+(tangent_bundle_core I M).to_topological_fiber_bundle_core.to_topological_space (atlas H M)
 
 instance : charted_space (model_prod H E) (tangent_bundle I M) :=
 (tangent_bundle_core I M).to_charted_space
@@ -511,11 +510,11 @@ instance : smooth_manifold_with_corners I.tangent (tangent_bundle I M) :=
 local attribute [reducible] tangent_space
 variables {M} (x : M)
 
-instance : topological_module 𝕜 (tangent_space I x) := by apply_instance
+instance : has_continuous_smul 𝕜 (tangent_space I x) := by apply_instance
 instance : topological_space (tangent_space I x) := by apply_instance
 instance : add_comm_group (tangent_space I x) := by apply_instance
 instance : topological_add_group (tangent_space I x) := by apply_instance
-instance : vector_space 𝕜 (tangent_space I x) := by apply_instance
+instance : module 𝕜 (tangent_space I x) := by apply_instance
 instance : inhabited (tangent_space I x) := ⟨0⟩
 
 end tangent_bundle_instances
@@ -554,7 +553,7 @@ begin
   { rintros ⟨x_fst, x_snd⟩,
     simp only [chart_at, basic_smooth_bundle_core.chart, tangent_bundle_core,
       continuous_linear_map.coe_id', basic_smooth_bundle_core.to_topological_fiber_bundle_core, A]
-      with mfld_simps},
+      with mfld_simps },
   show ((chart_at (model_prod H E) p).to_local_equiv).source = univ,
     by simp only [chart_at] with mfld_simps,
 end

@@ -215,7 +215,7 @@ by simp [h₂.symm, h₃.symm, h₁.symm, horner, pow_add, mul_add, mul_comm, mu
 theorem horner_add_horner_eq {α} [comm_semiring α] (a₁ x n b₁ a₂ b₂ a' b' t)
   (h₁ : a₁ + a₂ = a') (h₂ : b₁ + b₂ = b') (h₃ : horner a' x n b' = t) :
   @horner α _ a₁ x n b₁ + horner a₂ x n b₂ = t :=
-by simp [h₃.symm, h₂.symm, h₁.symm, horner, add_mul, mul_comm]; cc
+by simp [h₃.symm, h₂.symm, h₁.symm, horner, add_mul, mul_comm (x ^ n)]; cc
 
 /-- Evaluate `a + b` where `a` and `b` are already in normal form. -/
 meta def eval_add : horner_expr → horner_expr → ring_m (horner_expr × expr)
@@ -518,7 +518,8 @@ by simp [mul_assoc]
 theorem pow_add_rev {α} [monoid α] (a : α) (m n : ℕ) : a ^ m * a ^ n = a ^ (m + n) :=
 by simp [pow_add]
 
-theorem pow_add_rev_right {α} [monoid α] (a b : α) (m n : ℕ) : b * a ^ m * a ^ n = b * a ^ (m + n) :=
+theorem pow_add_rev_right {α} [monoid α] (a b : α) (m n : ℕ) :
+  b * a ^ m * a ^ n = b * a ^ (m + n) :=
 by simp [pow_add, mul_assoc]
 
 theorem add_neg_eq_sub {α} [add_group α] (a b : α) : a + -b = a - b := (sub_eq_add_neg a b).symm
@@ -618,7 +619,8 @@ which rewrites all ring expressions into a normal form. When writing a normal fo
 `ring_nf SOP` will use sum-of-products form instead of horner form.
 `ring_nf!` will use a more aggressive reducibility setting to identify atoms.
 -/
-meta def ring_nf (red : parse (tk "!")?) (SOP : parse ring.mode) (loc : parse location) : tactic unit :=
+meta def ring_nf (red : parse (tk "!")?) (SOP : parse ring.mode) (loc : parse location) :
+  tactic unit :=
 do ns ← loc.get_locals,
    let transp := if red.is_some then semireducible else reducible,
    tt ← tactic.replace_at (normalize transp SOP) ns loc.include_goal

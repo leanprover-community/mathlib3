@@ -206,7 +206,7 @@ def to_order_iso : units circle_deg1_lift →* ℝ ≃o ℝ :=
   ⇑(to_order_iso f)⁻¹ = (f⁻¹ : units circle_deg1_lift) := rfl
 
 lemma is_unit_iff_bijective {f : circle_deg1_lift} : is_unit f ↔ bijective f :=
-⟨λ ⟨u, h⟩, h ▸ (to_order_iso u).bijective, λ h, is_unit_unit
+⟨λ ⟨u, h⟩, h ▸ (to_order_iso u).bijective, λ h, units.is_unit
   { val := f,
     inv := { to_fun := (equiv.of_bijective f h).symm,
              monotone' := λ x y hxy, (f.strict_mono_iff_injective.2 h.1).le_iff_le.1
@@ -412,7 +412,8 @@ lemma dist_map_zero_lt_of_semiconj {f g₁ g₂ : circle_deg1_lift} (h : functio
   dist (g₁ 0) (g₂ 0) < 2 :=
 calc dist (g₁ 0) (g₂ 0) ≤ dist (g₁ 0) (f (g₁ 0) - f 0) + dist _ (g₂ 0) : dist_triangle _ _ _
 ... = dist (f 0 + g₁ 0) (f (g₁ 0)) + dist (g₂ 0 + f 0) (g₂ (f 0)) :
-  by simp only [h.eq, real.dist_eq, sub_sub, add_comm (f 0), sub_sub_assoc_swap, abs_sub (g₂ (f 0))]
+  by simp only [h.eq, real.dist_eq, sub_sub, add_comm (f 0), sub_sub_assoc_swap, abs_sub_comm
+    (g₂ (f 0))]
 ... < 2 : add_lt_add (f.dist_map_map_zero_lt g₁) (g₂.dist_map_map_zero_lt f)
 
 lemma dist_map_zero_lt_of_semiconj_by {f g₁ g₂ : circle_deg1_lift} (h : semiconj_by f g₁ g₂) :
@@ -539,7 +540,7 @@ begin
   simp_rw [transnum_aux_seq, real.dist_eq],
   rw [← abs_div, sub_div, pow_succ', pow_succ, ← two_mul,
     mul_div_mul_left _ _ (@two_ne_zero ℝ _ _),
-    pow_mul, pow_two, mul_apply]
+    pow_mul, sq, mul_apply]
 end
 
 lemma tendsto_translation_number_aux : tendsto f.transnum_aux_seq at_top (𝓝 $ τ f) :=
@@ -746,7 +747,7 @@ lemma translation_number_lt_of_forall_lt_add (hf : continuous f) {z : ℝ}
   (hz : ∀ x, f x < x + z) : τ f < z :=
 begin
   obtain ⟨x, xmem, hx⟩ : ∃ x ∈ Icc (0:ℝ) 1, ∀ y ∈ Icc (0:ℝ) 1, f y - y ≤ f x - x,
-    from compact_Icc.exists_forall_ge (nonempty_Icc.2 zero_le_one)
+    from is_compact_Icc.exists_forall_ge (nonempty_Icc.2 zero_le_one)
       (hf.sub continuous_id).continuous_on,
   refine lt_of_le_of_lt _ (sub_lt_iff_lt_add'.2 $ hz x),
   apply translation_number_le_of_le_add,
@@ -758,7 +759,7 @@ lemma lt_translation_number_of_forall_add_lt (hf : continuous f) {z : ℝ}
   (hz : ∀ x, x + z < f x) : z < τ f :=
 begin
   obtain ⟨x, xmem, hx⟩ : ∃ x ∈ Icc (0:ℝ) 1, ∀ y ∈ Icc (0:ℝ) 1, f x - x ≤ f y - y,
-    from compact_Icc.exists_forall_le (nonempty_Icc.2 zero_le_one)
+    from is_compact_Icc.exists_forall_le (nonempty_Icc.2 zero_le_one)
       (hf.sub continuous_id).continuous_on,
   refine lt_of_lt_of_le (lt_sub_iff_add_lt'.2 $ hz x) _,
   apply le_translation_number_of_add_le,

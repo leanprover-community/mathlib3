@@ -95,8 +95,7 @@ meta def congr : expr_lens → expr → tactic expr
 | entire e_eq        := pure e_eq
 | (app_fun l f) x_eq := do fx_eq ← try_core $ do {
                              mk_congr_arg f x_eq
-                             <|> mk_congr_arg_using_dsimp f x_eq [`has_coe_to_fun.F]
-                           },
+                             <|> mk_congr_arg_using_dsimp f x_eq [`has_coe_to_fun.F] },
                            match fx_eq with
                            | (some fx_eq) := l.congr fx_eq
                            | none         := trace_congr_error f x_eq >> failed
@@ -127,10 +126,12 @@ private meta def app_map_aux {α} (F : expr_lens → expr → tactic (list α)) 
   ] <|> pure []
 | none := pure []
 
-/-- `app_map F e` maps a function `F` which understands `expr_lens`es over the given `e : expr` in the natural way;
-that is, make holes in `e` everywhere where that is possible (generating `expr_lens`es in the
-process), and at each stage call the function `F` passing both the `expr_lens` generated and the
-`expr` which was removed to make the hole.
+/-- `app_map F e` maps a function `F` which understands `expr_lens`es
+over the given `e : expr` in the natural way;
+that is, make holes in `e` everywhere where that is possible
+(generating `expr_lens`es in the process),
+and at each stage call the function `F` passing
+both the `expr_lens` generated and the `expr` which was removed to make the hole.
 
 At each stage `F` returns a list of some type, and `app_map` collects these lists together and
 returns a concatenation of them all. -/

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import topology.sheaves.presheaf
-import category_theory.limits.cofinal
+import category_theory.limits.final
 import topology.sheaves.sheaf_condition.pairwise_intersections
 
 /-!
@@ -67,7 +67,7 @@ def index (V : opens_le_cover U) : ι := V.property.some
 The morphism from `V` to `U i` for some `i`.
 -/
 def hom_to_index (V : opens_le_cover U) : V.val ⟶ U (index V) :=
-hom_of_le (V.property.some_spec)
+(V.property.some_spec).hom
 
 end opens_le_cover
 
@@ -134,7 +134,7 @@ def pairwise_to_opens_le_cover : pairwise ι ⥤ opens_le_cover U :=
   map := λ V W i, pairwise_to_opens_le_cover_map U i, }
 
 instance (V : opens_le_cover U) :
-  nonempty (comma (functor.from_punit V) (pairwise_to_opens_le_cover U)) :=
+  nonempty (structured_arrow V (pairwise_to_opens_le_cover U)) :=
 ⟨{ right := single (V.index), hom := V.hom_to_index }⟩
 
 /--
@@ -143,43 +143,42 @@ of all opens contained in some `U i`.
 -/
 -- This is a case bash: for each pair of types of objects in `pairwise ι`,
 -- we have to explicitly construct a zigzag.
-instance : cofinal (pairwise_to_opens_le_cover U) :=
+instance : functor.final (pairwise_to_opens_le_cover U) :=
 ⟨λ V, is_connected_of_zigzag $ λ A B, begin
   rcases A with ⟨⟨⟩, ⟨i⟩|⟨i,j⟩, a⟩;
   rcases B with ⟨⟨⟩, ⟨i'⟩|⟨i',j'⟩, b⟩;
   dsimp at *,
   { refine ⟨[
     { left := punit.star, right := pair i i',
-      hom := hom_of_le (le_inf (le_of_hom a) (le_of_hom b)), }, _], _, rfl⟩,
+      hom := (le_inf a.le b.le).hom, }, _], _, rfl⟩,
     exact
       list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := left i i', }⟩)
         (list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := right i i', }⟩) list.chain.nil) },
   { refine ⟨[
     { left := punit.star, right := pair i' i,
-      hom := hom_of_le (le_inf ((le_of_hom b).trans inf_le_left) (le_of_hom a)), },
+      hom := (le_inf (b.le.trans inf_le_left) a.le).hom, },
     { left := punit.star, right := single i',
-      hom := hom_of_le ((le_of_hom b).trans inf_le_left), }, _], _, rfl⟩,
+      hom := (b.le.trans inf_le_left).hom, }, _], _, rfl⟩,
     exact
       list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := right i' i, }⟩)
         (list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := left i' i, }⟩)
           (list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := left i' j', }⟩) list.chain.nil)) },
   { refine ⟨[
     { left := punit.star, right := single i,
-      hom := hom_of_le ((le_of_hom a).trans inf_le_left), },
+      hom := (a.le.trans inf_le_left).hom, },
     { left := punit.star, right := pair i i', hom :=
-      hom_of_le (le_inf ((le_of_hom a).trans inf_le_left) (le_of_hom b)), }, _], _, rfl⟩,
+      (le_inf (a.le.trans inf_le_left) b.le).hom, }, _], _, rfl⟩,
     exact
       list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := left i j, }⟩)
         (list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := left i i', }⟩)
           (list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := right i i', }⟩) list.chain.nil)) },
   { refine ⟨[
     { left := punit.star, right := single i,
-      hom := hom_of_le ((le_of_hom a).trans inf_le_left), },
+      hom := (a.le.trans inf_le_left).hom, },
     { left := punit.star, right := pair i i',
-      hom :=
-        hom_of_le (le_inf ((le_of_hom a).trans inf_le_left) ((le_of_hom b).trans inf_le_left)), },
+      hom := (le_inf (a.le.trans inf_le_left) (b.le.trans inf_le_left)).hom, },
     { left := punit.star, right := single i',
-      hom := hom_of_le ((le_of_hom b).trans inf_le_left), }, _], _, rfl⟩,
+      hom := (b.le.trans inf_le_left).hom, }, _], _, rfl⟩,
     exact
       list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := left i j, }⟩)
       (list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := left i i', }⟩)
@@ -223,7 +222,7 @@ def sheaf_condition_opens_le_cover_equiv_sheaf_condition_pairwise_intersections 
 equiv.Pi_congr_right $ λ ι, equiv.Pi_congr_right $ λ U,
 calc is_limit (F.map_cone (opens_le_cover_cocone U).op)
     ≃ is_limit ((F.map_cone (opens_le_cover_cocone U).op).whisker (pairwise_to_opens_le_cover U).op)
-        : (cofinal.is_limit_whisker_equiv (pairwise_to_opens_le_cover U) _).symm
+        : (functor.initial.is_limit_whisker_equiv (pairwise_to_opens_le_cover U).op _).symm
 ... ≃ is_limit (F.map_cone ((opens_le_cover_cocone U).op.whisker (pairwise_to_opens_le_cover U).op))
         : is_limit.equiv_iso_limit F.map_cone_whisker.symm
 ... ≃ is_limit ((cones.postcompose_equivalence _).functor.obj

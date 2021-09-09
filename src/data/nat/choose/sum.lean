@@ -8,6 +8,8 @@ import tactic.linarith
 import algebra.big_operators.ring
 import algebra.big_operators.intervals
 import algebra.big_operators.order
+import algebra.big_operators.nat_antidiagonal
+
 /-!
 # Sums of binomial coefficients
 
@@ -21,46 +23,61 @@ open finset
 
 open_locale big_operators
 
-variables {α : Type*}
+variables {R : Type*}
 
-/-- A version of the binomial theorem for noncommutative semirings. -/
-theorem commute.add_pow [semiring α] {x y : α} (h : commute x y) (n : ℕ) :
+namespace commute
+
+variables [semiring R] {x y : R} (h : commute x y) (n : ℕ)
+
+include h
+
+/-- A version of the **binomial theorem** for noncommutative semirings. -/
+theorem add_pow :
   (x + y) ^ n = ∑ m in range (n + 1), x ^ m * y ^ (n - m) * choose n m :=
 begin
-  let t : ℕ → ℕ → α := λ n m, x ^ m * (y ^ (n - m)) * (choose n m),
+  let t : ℕ → ℕ → R := λ n m, x ^ m * (y ^ (n - m)) * (choose n m),
   change (x + y) ^ n = ∑ m in range (n + 1), t n m,
   have h_first : ∀ n, t n 0 = y ^ n :=
-    λ n, by { dsimp [t], rw[choose_zero_right, nat.cast_one, mul_one, one_mul] },
+    λ n, by { dsimp [t], rw [choose_zero_right, pow_zero, nat.cast_one, mul_one, one_mul] },
   have h_last : ∀ n, t n n.succ = 0 :=
     λ n, by { dsimp [t], rw [choose_succ_self, nat.cast_zero, mul_zero] },
-  have h_middle : ∀ (n i : ℕ), (i ∈ finset.range n.succ) →
+  have h_middle : ∀ (n i : ℕ), (i ∈ range n.succ) →
    ((t n.succ) ∘ nat.succ) i = x * (t n i) + y * (t n i.succ) :=
   begin
     intros n i h_mem,
-    have h_le : i ≤ n := nat.le_of_lt_succ (finset.mem_range.mp h_mem),
+    have h_le : i ≤ n := nat.le_of_lt_succ (mem_range.mp h_mem),
     dsimp [t],
     rw [choose_succ_succ, nat.cast_add, mul_add],
     congr' 1,
-    { rw[pow_succ x, succ_sub_succ, mul_assoc, mul_assoc, mul_assoc] },
-    { rw[← mul_assoc y, ← mul_assoc y, (h.symm.pow_right i.succ).eq],
+    { rw [pow_succ x, succ_sub_succ, mul_assoc, mul_assoc, mul_assoc] },
+    { rw [← mul_assoc y, ← mul_assoc y, (h.symm.pow_right i.succ).eq],
       by_cases h_eq : i = n,
       { rw [h_eq, choose_succ_self, nat.cast_zero, mul_zero, mul_zero] },
-      { rw[succ_sub (lt_of_le_of_ne h_le h_eq)],
-        rw[pow_succ y, mul_assoc, mul_assoc, mul_assoc, mul_assoc] } }
+      { rw [succ_sub (lt_of_le_of_ne h_le h_eq)],
+        rw [pow_succ y, mul_assoc, mul_assoc, mul_assoc, mul_assoc] } }
   end,
   induction n with n ih,
-  { rw [pow_zero, sum_range_succ, range_zero, sum_empty, add_zero],
-    dsimp [t], rw [choose_self, nat.cast_one, mul_one, mul_one] },
-  { rw[sum_range_succ', h_first],
-    rw[finset.sum_congr rfl (h_middle n), finset.sum_add_distrib, add_assoc],
-    rw[pow_succ (x + y), ih, add_mul, finset.mul_sum, finset.mul_sum],
+  { rw [pow_zero, sum_range_succ, range_zero, sum_empty, zero_add],
+    dsimp [t], rw [pow_zero, pow_zero, choose_self, nat.cast_one, mul_one, mul_one] },
+  { rw [sum_range_succ', h_first],
+    rw [sum_congr rfl (h_middle n), sum_add_distrib, add_assoc],
+    rw [pow_succ (x + y), ih, add_mul, mul_sum, mul_sum],
     congr' 1,
-    rw[finset.sum_range_succ', finset.sum_range_succ, h_first, h_last,
-       mul_zero, zero_add, pow_succ] }
+    rw [sum_range_succ', sum_range_succ, h_first, h_last,
+       mul_zero, add_zero, pow_succ] }
 end
 
-/-- The binomial theorem -/
-theorem add_pow [comm_semiring α] (x y : α) (n : ℕ) :
+/-- A version of `commute.add_pow` that avoids ℕ-subtraction by summing over the antidiagonal and
+also with the binomial coefficient applied via scalar action of ℕ. -/
+lemma add_pow' :
+  (x + y) ^ n = ∑ m in nat.antidiagonal n, choose n m.fst • (x ^ m.fst * y ^ m.snd) :=
+by simp_rw [finset.nat.sum_antidiagonal_eq_sum_range_succ (λ m p, choose n m • (x^m * y^p)),
+  _root_.nsmul_eq_mul, cast_comm, h.add_pow]
+
+end commute
+
+/-- The **binomial theorem** -/
+theorem add_pow [comm_semiring R] (x y : R) (n : ℕ) :
   (x + y) ^ n = ∑ m in range (n + 1), x ^ m * y ^ (n - m) * choose n m :=
 (commute.all x y).add_pow n
 
@@ -103,6 +120,14 @@ begin
   simpa [sum_range_choose_halfway n] using t
 end
 
+lemma four_pow_le_two_mul_add_one_mul_central_binom (n : ℕ) :
+  4 ^ n ≤ (2 * n + 1) * choose (2 * n) n :=
+calc 4 ^ n = (1 + 1) ^ (2 * n) : by norm_num [pow_mul]
+...        = ∑ m in range (2 * n + 1), choose (2 * n) m : by simp [add_pow]
+...        ≤ ∑ m in range (2 * n + 1), choose (2 * n) (2 * n / 2) :
+  sum_le_sum (λ i hi, choose_le_middle i (2 * n))
+...        = (2 * n + 1) * choose (2 * n) n : by simp
+
 end nat
 
 theorem int.alternating_sum_range_choose {n : ℕ} :
@@ -121,20 +146,18 @@ by rw [int.alternating_sum_range_choose, if_neg h0]
 namespace finset
 
 theorem sum_powerset_apply_card {α β : Type*} [add_comm_monoid α] (f : ℕ → α) {x : finset β} :
-  ∑ m in x.powerset, f m.card = ∑ m in range (x.card + 1), (x.card.choose m) •ℕ f m :=
+  ∑ m in x.powerset, f m.card = ∑ m in range (x.card + 1), (x.card.choose m) • f m :=
 begin
   transitivity ∑ m in range (x.card + 1), ∑ j in x.powerset.filter (λ z, z.card = m), f j.card,
-  rw sum_fiberwise_of_maps_to,
-  { intros y hy,
+  { refine (sum_fiberwise_of_maps_to _ _).symm,
+    intros y hy,
     rw [mem_range, nat.lt_succ_iff],
     rw mem_powerset at hy,
     exact card_le_of_subset hy },
-  apply sum_congr rfl,
-  intros y hy,
-  rw [← card_powerset_len, ← sum_const],
-  apply sum_congr powerset_len_eq_filter.symm,
-  intros z hz,
-  rw (mem_powerset_len.1 hz).2,
+  { refine sum_congr rfl (λ y hy, _),
+    rw [← card_powerset_len, ← sum_const],
+    refine sum_congr powerset_len_eq_filter.symm (λ z hz, _),
+    rw (mem_powerset_len.1 hz).2 }
 end
 
 theorem sum_powerset_neg_one_pow_card {α : Type*} [decidable_eq α] {x : finset α} :

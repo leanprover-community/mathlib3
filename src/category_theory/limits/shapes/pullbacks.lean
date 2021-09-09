@@ -37,11 +37,11 @@ The type of objects for the diagram indexing a pullback, defined as a special ca
 abbreviation walking_cospan : Type v := wide_pullback_shape walking_pair
 
 /-- The left point of the walking cospan. -/
-abbreviation walking_cospan.left : walking_cospan := some walking_pair.left
+@[pattern] abbreviation walking_cospan.left : walking_cospan := some walking_pair.left
 /-- The right point of the walking cospan. -/
-abbreviation walking_cospan.right : walking_cospan := some walking_pair.right
+@[pattern] abbreviation walking_cospan.right : walking_cospan := some walking_pair.right
 /-- The central point of the walking cospan. -/
-abbreviation walking_cospan.one : walking_cospan := none
+@[pattern] abbreviation walking_cospan.one : walking_cospan := none
 
 /--
 The type of objects for the diagram indexing a pushout, defined as a special case of
@@ -50,11 +50,11 @@ The type of objects for the diagram indexing a pushout, defined as a special cas
 abbreviation walking_span : Type v := wide_pushout_shape walking_pair
 
 /-- The left point of the walking span. -/
-abbreviation walking_span.left : walking_span := some walking_pair.left
+@[pattern] abbreviation walking_span.left : walking_span := some walking_pair.left
 /-- The right point of the walking span. -/
-abbreviation walking_span.right : walking_span := some walking_pair.right
+@[pattern] abbreviation walking_span.right : walking_span := some walking_pair.right
 /-- The central point of the walking span. -/
-abbreviation walking_span.zero : walking_span := none
+@[pattern] abbreviation walking_span.zero : walking_span := none
 
 namespace walking_cospan
 
@@ -62,11 +62,11 @@ namespace walking_cospan
 abbreviation hom : walking_cospan → walking_cospan → Type v := wide_pullback_shape.hom
 
 /-- The left arrow of the walking cospan. -/
-abbreviation hom.inl : left ⟶ one := wide_pullback_shape.hom.term _
+@[pattern] abbreviation hom.inl : left ⟶ one := wide_pullback_shape.hom.term _
 /-- The right arrow of the walking cospan. -/
-abbreviation hom.inr : right ⟶ one := wide_pullback_shape.hom.term _
+@[pattern] abbreviation hom.inr : right ⟶ one := wide_pullback_shape.hom.term _
 /-- The identity arrows of the walking cospan. -/
-abbreviation hom.id (X : walking_cospan) : X ⟶ X := wide_pullback_shape.hom.id X
+@[pattern] abbreviation hom.id (X : walking_cospan) : X ⟶ X := wide_pullback_shape.hom.id X
 
 instance (X Y : walking_cospan) : subsingleton (X ⟶ Y) := by tidy
 
@@ -78,11 +78,11 @@ namespace walking_span
 abbreviation hom : walking_span → walking_span → Type v := wide_pushout_shape.hom
 
 /-- The left arrow of the walking span. -/
-abbreviation hom.fst : zero ⟶ left := wide_pushout_shape.hom.init _
+@[pattern] abbreviation hom.fst : zero ⟶ left := wide_pushout_shape.hom.init _
 /-- The right arrow of the walking span. -/
-abbreviation hom.snd : zero ⟶ right := wide_pushout_shape.hom.init _
+@[pattern] abbreviation hom.snd : zero ⟶ right := wide_pushout_shape.hom.init _
 /-- The identity arrows of the walking span. -/
-abbreviation hom.id (X : walking_span) : X ⟶ X := wide_pushout_shape.hom.id X
+@[pattern] abbreviation hom.id (X : walking_span) : X ⟶ X := wide_pushout_shape.hom.id X
 
 instance (X Y : walking_span) : subsingleton (X ⟶ Y) := by tidy
 
@@ -144,7 +144,7 @@ def diagram_iso_span (F : walking_span ⥤ C) :
   F ≅ span (F.map fst) (F.map snd) :=
 nat_iso.of_components (λ j, eq_to_iso (by tidy)) (by tidy)
 
-variables {X Y Z : C}
+variables {W X Y Z : C}
 
 /-- A pullback cone is just a cone on the cospan formed by two morphisms `f : X ⟶ Z` and
     `g : Y ⟶ Z`.-/
@@ -161,7 +161,7 @@ abbreviation snd (t : pullback_cone f g) : t.X ⟶ Y := t.π.app walking_cospan.
 
 /-- This is a slightly more convenient method to verify that a pullback cone is a limit cone. It
     only asks for a proof of facts that carry any mathematical content -/
-def is_limit_aux (t : pullback_cone f g) (lift : Π (s : cone (cospan f g)), s.X ⟶ t.X)
+def is_limit_aux (t : pullback_cone f g) (lift : Π (s : pullback_cone f g), s.X ⟶ t.X)
   (fac_left : ∀ (s : pullback_cone f g), lift s ≫ t.fst = s.fst)
   (fac_right : ∀ (s : pullback_cone f g), lift s ≫ t.snd = s.snd)
   (uniq : ∀ (s : pullback_cone f g) (m : s.X ⟶ t.X)
@@ -222,6 +222,14 @@ lemma is_limit.hom_ext {t : pullback_cone f g} (ht : is_limit t) {W : C} {k l : 
   (h₀ : k ≫ fst t = l ≫ fst t) (h₁ : k ≫ snd t = l ≫ snd t) : k = l :=
 ht.hom_ext $ equalizer_ext _ h₀ h₁
 
+lemma mono_snd_of_is_pullback_of_mono {t : pullback_cone f g} (ht : is_limit t) [mono f] :
+  mono t.snd :=
+⟨λ W h k i, is_limit.hom_ext ht (by simp [←cancel_mono f, t.condition, reassoc_of i]) i⟩
+
+lemma mono_fst_of_is_pullback_of_mono {t : pullback_cone f g} (ht : is_limit t) [mono g] :
+  mono t.fst :=
+⟨λ W h k i, is_limit.hom_ext ht i (by simp [←cancel_mono g, ←t.condition, reassoc_of i])⟩
+
 /-- If `t` is a limit pullback cone over `f` and `g` and `h : W ⟶ X` and `k : W ⟶ Y` are such that
     `h ≫ f = k ≫ g`, then we have `l : W ⟶ t.X` satisfying `l ≫ fst t = h` and `l ≫ snd t = k`.
     -/
@@ -277,6 +285,25 @@ lemma mono_of_is_limit_mk_id_id (f : X ⟶ Y)
   (t : is_limit (mk (𝟙 X) (𝟙 X) rfl : pullback_cone f f)) :
   mono f :=
 ⟨λ Z g h eq, by { rcases pullback_cone.is_limit.lift' t _ _ eq with ⟨_, rfl, rfl⟩, refl } ⟩
+
+/-- Suppose `f` and `g` are two morphisms with a common codomain and `s` is a limit cone over the
+    diagram formed by `f` and `g`. Suppose `f` and `g` both factor through a monomorphism `h` via
+    `x` and `y`, respectively.  Then `s` is also a limit cone over the diagram formed by `x` and
+    `y`.  -/
+def is_limit_of_factors (f : X ⟶ Z) (g : Y ⟶ Z) (h : W ⟶ Z) [mono h]
+  (x : X ⟶ W) (y : Y ⟶ W) (hxh : x ≫ h = f) (hyh : y ≫ h = g) (s : pullback_cone f g)
+  (hs : is_limit s) : is_limit (pullback_cone.mk _ _ (show s.fst ≫ x = s.snd ≫ y,
+    from (cancel_mono h).1 $ by simp only [category.assoc, hxh, hyh, s.condition])) :=
+pullback_cone.is_limit_aux' _ $ λ t,
+  ⟨hs.lift (pullback_cone.mk t.fst t.snd $ by rw [←hxh, ←hyh, reassoc_of t.condition]),
+  ⟨hs.fac _ walking_cospan.left, hs.fac _ walking_cospan.right, λ r hr hr',
+  begin
+    apply pullback_cone.is_limit.hom_ext hs;
+    simp only [pullback_cone.mk_fst, pullback_cone.mk_snd] at ⊢ hr hr';
+    simp only [hr, hr'];
+    symmetry,
+    exacts [hs.fac _ walking_cospan.left, hs.fac _ walking_cospan.right]
+  end⟩⟩
 
 end pullback_cone
 
@@ -363,6 +390,14 @@ def is_colimit.desc' {t : pushout_cocone f g} (ht : is_colimit t) {W : C} (h : Y
   (w : f ≫ h = g ≫ k) : {l : t.X ⟶ W // inl t ≫ l = h ∧ inr t ≫ l = k } :=
 ⟨ht.desc $ pushout_cocone.mk _ _ w, ht.fac _ _, ht.fac _ _⟩
 
+lemma epi_inr_of_is_pushout_of_epi {t : pushout_cocone f g} (ht : is_colimit t) [epi f] :
+  epi t.inr :=
+⟨λ W h k i, is_colimit.hom_ext ht (by simp [←cancel_epi f, t.condition_assoc, i]) i⟩
+
+lemma epi_inl_of_is_pushout_of_epi {t : pushout_cocone f g} (ht : is_colimit t) [epi g] :
+  epi t.inl :=
+⟨λ W h k i, is_colimit.hom_ext ht i (by simp [←cancel_epi g, ←t.condition_assoc, i])⟩
+
 /--
 This is a more convenient formulation to show that a `pushout_cocone` constructed using
 `pushout_cocone.mk` is a colimit cocone.
@@ -390,6 +425,26 @@ begin
   { rwa (is_colimit.desc' t _ _ _).2.1 },
   { rwa (is_colimit.desc' t _ _ _).2.2 },
 end
+
+/-- Suppose `f` and `g` are two morphisms with a common domain and `s` is a colimit cocone over the
+    diagram formed by `f` and `g`. Suppose `f` and `g` both factor through an epimorphism `h` via
+    `x` and `y`, respectively. Then `s` is also a colimit cocone over the diagram formed by `x` and
+    `y`.  -/
+def is_colimit_of_factors (f : X ⟶ Y) (g : X ⟶ Z) (h : X ⟶ W) [epi h]
+  (x : W ⟶ Y) (y : W ⟶ Z) (hhx : h ≫ x = f) (hhy : h ≫ y = g) (s : pushout_cocone f g)
+  (hs : is_colimit s) : is_colimit (pushout_cocone.mk _ _ (show x ≫ s.inl = y ≫ s.inr,
+    from (cancel_epi h).1 $ by rw [reassoc_of hhx, reassoc_of hhy, s.condition])) :=
+pushout_cocone.is_colimit_aux' _ $ λ t,
+  ⟨hs.desc (pushout_cocone.mk t.inl t.inr $
+    by rw [←hhx, ←hhy, category.assoc, category.assoc, t.condition]),
+  ⟨hs.fac _ walking_span.left, hs.fac _ walking_span.right, λ r hr hr',
+  begin
+    apply pushout_cocone.is_colimit.hom_ext hs;
+    simp only [pushout_cocone.mk_inl, pushout_cocone.mk_inr] at ⊢ hr hr';
+    simp only [hr, hr'];
+    symmetry,
+    exacts [hs.fac _ walking_span.left, hs.fac _ walking_span.right]
+  end⟩⟩
 
 end pushout_cocone
 
@@ -545,12 +600,12 @@ pullback_cone.is_limit.mk _ (λ s, pullback.lift s.fst s.snd s.condition)
 /-- The pullback of a monomorphism is a monomorphism -/
 instance pullback.fst_of_mono {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_pullback f g]
   [mono g] : mono (pullback.fst : pullback f g ⟶ X) :=
-⟨λ W u v h, pullback.hom_ext h $ (cancel_mono g).1 $ by simp [← pullback.condition, reassoc_of h]⟩
+pullback_cone.mono_fst_of_is_pullback_of_mono (limit.is_limit _)
 
 /-- The pullback of a monomorphism is a monomorphism -/
 instance pullback.snd_of_mono {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_pullback f g]
   [mono f] : mono (pullback.snd : pullback f g ⟶ Y) :=
-⟨λ W u v h, pullback.hom_ext ((cancel_mono f).1 $ by simp [pullback.condition, reassoc_of h]) h⟩
+pullback_cone.mono_snd_of_is_pullback_of_mono (limit.is_limit _)
 
 /-- Two morphisms out of a pushout are equal if their compositions with the pushout morphisms are
     equal -/
@@ -562,12 +617,12 @@ colimit.hom_ext $ pushout_cocone.coequalizer_ext _ h₀ h₁
 /-- The pushout of an epimorphism is an epimorphism -/
 instance pushout.inl_of_epi {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_pushout f g] [epi g] :
   epi (pushout.inl : Y ⟶ pushout f g) :=
-⟨λ W u v h, pushout.hom_ext h $ (cancel_epi g).1 $ by simp [← pushout.condition_assoc, h] ⟩
+pushout_cocone.epi_inl_of_is_pushout_of_epi (colimit.is_colimit _)
 
 /-- The pushout of an epimorphism is an epimorphism -/
 instance pushout.inr_of_epi {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_pushout f g] [epi f] :
   epi (pushout.inr : Z ⟶ pushout f g) :=
-⟨λ W u v h, pushout.hom_ext ((cancel_epi f).1 $ by simp [pushout.condition_assoc, h]) h⟩
+pushout_cocone.epi_inr_of_is_pushout_of_epi (colimit.is_colimit _)
 
 section
 

@@ -3,7 +3,7 @@ Copyright (c) 2020 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
-import topology.instances.real
+import topology.unit_interval
 import topology.algebra.ordered.proj_Icc
 
 /-!
@@ -58,46 +58,10 @@ on `(-∞, 0]` and to `y` on `[1, +∞)`.
 -/
 
 noncomputable theory
-open_locale classical topological_space filter
-open filter set function
+open_locale classical topological_space filter unit_interval
+open filter set function unit_interval
 
 variables {X : Type*} [topological_space X] {x y z : X} {ι : Type*}
-
-/-! ### The unit interval -/
-
-local notation `I` := Icc (0 : ℝ) 1
-
-lemma Icc_zero_one_symm {t : ℝ} : t ∈ I ↔ 1 - t ∈ I :=
-begin
-  rw [mem_Icc, mem_Icc],
-  split ; intro ; split ; linarith
-end
-
-instance I_has_zero : has_zero I := ⟨⟨0, by split ; norm_num⟩⟩
-
-@[simp, norm_cast] lemma coe_I_zero : ((0 : I) : ℝ) = 0 := rfl
-
-instance I_has_one : has_one I := ⟨⟨1, by split ; norm_num⟩⟩
-
-@[simp, norm_cast] lemma coe_I_one : ((1 : I) : ℝ) = 1 := rfl
-
-/-- Unit interval central symmetry. -/
-def I_symm : I → I := λ t, ⟨1 - t.val, Icc_zero_one_symm.mp t.property⟩
-
-local notation `σ` := I_symm
-
-@[simp] lemma I_symm_zero : σ 0 = 1 :=
-subtype.ext $ by simp [I_symm]
-
-@[simp] lemma I_symm_one : σ 1 = 0 :=
-subtype.ext $ by simp [I_symm]
-
-@[continuity]
-lemma continuous_I_symm : continuous σ :=
-by continuity!
-
-instance : connected_space I :=
-subtype.connected_space ⟨nonempty_Icc.mpr zero_le_one, is_preconnected_Icc⟩
 
 /-! ### Paths -/
 
@@ -162,9 +126,9 @@ by { ext, refl }
   range γ.symm = range γ :=
 begin
   ext x,
-  simp only [ mem_range, path.symm, has_coe_to_fun.coe, coe_fn, I_symm, set_coe.exists, comp_app,
-              subtype.coe_mk, subtype.val_eq_coe ],
-  split; rintros ⟨y, hy, hxy⟩; refine ⟨1-y, Icc_zero_one_symm.mp hy, _⟩; convert hxy,
+  simp only [mem_range, path.symm, has_coe_to_fun.coe, coe_fn, unit_interval.symm, set_coe.exists,
+    comp_app, subtype.coe_mk, subtype.val_eq_coe],
+  split; rintros ⟨y, hy, hxy⟩; refine ⟨1-y, mem_iff_one_sub_mem.mp hy, _⟩; convert hxy,
   simp
 end
 
@@ -174,15 +138,15 @@ def extend : ℝ → X := Icc_extend zero_le_one γ
 lemma continuous_extend : continuous γ.extend :=
 γ.continuous.Icc_extend
 
-@[simp] lemma extend_zero : γ.extend 0 = x :=
-(Icc_extend_left _ _).trans γ.source
-
-@[simp] lemma extend_one : γ.extend 1 = y :=
-(Icc_extend_right _ _).trans γ.target
-
 @[simp] lemma extend_extends {X : Type*} [topological_space X] {a b : X}
   (γ : path a b) {t : ℝ} (ht : t ∈ (Icc 0 1 : set ℝ)) : γ.extend t = γ ⟨t, ht⟩ :=
 Icc_extend_of_mem _ γ ht
+
+lemma extend_zero : γ.extend 0 = x :=
+by simp
+
+lemma extend_one : γ.extend 1 = y :=
+by simp
 
 @[simp] lemma extend_extends' {X : Type*} [topological_space X] {a b : X}
   (γ : path a b) (t : (Icc 0 1 : set ℝ)) : γ.extend t = γ t :=
@@ -316,7 +280,7 @@ rfl
 lemma symm_continuous_family {X ι : Type*} [topological_space X] [topological_space ι]
   {a b : ι → X} (γ : Π (t : ι), path (a t) (b t)) (h : continuous ↿γ) :
   continuous ↿(λ t, (γ t).symm) :=
-h.comp (continuous_id.prod_map continuous_I_symm)
+h.comp (continuous_id.prod_map continuous_symm)
 
 lemma continuous_uncurry_extend_of_continuous_family {X ι : Type*} [topological_space X]
   [topological_space ι] {a b : ι → X}  (γ : Π (t : ι), path (a t) (b t)) (h : continuous ↿γ) :
@@ -844,19 +808,19 @@ begin
     { rw is_open_iff_mem_nhds,
       intros y y_in,
       rcases (path_connected_basis y).ex_mem with ⟨U, ⟨U_in, hU⟩⟩,
-      apply mem_sets_of_superset U_in,
+      apply mem_of_superset U_in,
       rw ← path_component_congr y_in,
-      exact hU.subset_path_component (mem_of_nhds U_in) },
+      exact hU.subset_path_component (mem_of_mem_nhds U_in) },
     { rw is_closed_iff_nhds,
       intros y H,
       rcases (path_connected_basis y).ex_mem with ⟨U, ⟨U_in, hU⟩⟩,
       rcases H U U_in with ⟨z, hz, hz'⟩,
-      exact ((hU.joined_in z y hz $ mem_of_nhds U_in).joined.mem_path_component hz') } },
+      exact ((hU.joined_in z y hz $ mem_of_mem_nhds U_in).joined.mem_path_component hz') } },
 end
 
 lemma path_connected_subset_basis [loc_path_connected_space X] {U : set X} (h : is_open U)
   (hx : x ∈ U) : (𝓝 x).has_basis (λ s : set X, s ∈ 𝓝 x ∧ is_path_connected s ∧ s ⊆ U) id :=
-(path_connected_basis x).has_basis_self_subset (mem_nhds_sets h hx)
+(path_connected_basis x).has_basis_self_subset (is_open.mem_nhds h hx)
 
 lemma loc_path_connected_of_is_open [loc_path_connected_space X] {U : set X} (h : is_open U) :
   loc_path_connected_space U :=
@@ -870,7 +834,7 @@ lemma loc_path_connected_of_is_open [loc_path_connected_space X] {U : set X} (h 
   { rintros ⟨W, ⟨W_in, hW, hWU⟩, hWV⟩,
     exact ⟨coe ⁻¹' W, ⟨⟨preimage_mem_comap W_in, hW.preimage_coe hWU⟩, hWV⟩⟩ },
   { rintros ⟨W, ⟨W_in, hW⟩, hWV⟩,
-    refine ⟨coe '' W, ⟨filter.image_coe_mem_sets (mem_nhds_sets h x_in) W_in,
+    refine ⟨coe '' W, ⟨filter.image_coe_mem_of_mem_comap (is_open.mem_nhds h x_in) W_in,
                        hW.image continuous_subtype_coe, subtype.coe_image_subset U W⟩, _⟩,
     rintros x ⟨y, ⟨y_in, hy⟩⟩,
     rw ← subtype.coe_injective hy,

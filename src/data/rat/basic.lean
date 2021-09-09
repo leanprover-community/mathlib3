@@ -156,12 +156,12 @@ begin
       have dv := @gcd_abs_dvd_left,
       have := int.eq_mul_of_div_eq_right dv ha,
       rw ← int.mul_div_assoc _ dv at this,
-      exact int.eq_mul_of_div_eq_left (dvd_mul_of_dvd_right dv _) this.symm },
+      exact int.eq_mul_of_div_eq_left (dv.mul_left _) this.symm },
     have hb, {
       have dv := λ {a b}, nat.gcd_dvd_right (int.nat_abs a) b,
       have := nat.eq_mul_of_div_eq_right dv hb,
       rw ← nat.mul_div_assoc _ dv at this,
-      exact nat.eq_mul_of_div_eq_left (dvd_mul_of_dvd_right dv _) this.symm },
+      exact nat.eq_mul_of_div_eq_left (dv.mul_left _) this.symm },
     have m0 : (a.nat_abs.gcd b * c.nat_abs.gcd d : ℤ) ≠ 0, {
       refine int.coe_nat_ne_zero.2 (ne_of_gt _),
       apply mul_pos; apply nat.gcd_pos_of_pos_right; assumption },
@@ -373,13 +373,22 @@ protected theorem add_left_neg : -a + a = 0 :=
 num_denom_cases_on' a $ λ n d h,
 by simp [h]
 
+@[simp] lemma mk_zero_one : 0 /. 1 = 0 :=
+show mk_pnat _ _ = _, by { rw mk_pnat, simp, refl }
+
+@[simp] lemma mk_one_one : 1 /. 1 = 1 :=
+show mk_pnat _ _ = _, by { rw mk_pnat, simp, refl }
+
+@[simp] lemma mk_neg_one_one : (-1) /. 1 = -1 :=
+show mk_pnat _ _ = _, by { rw mk_pnat, simp, refl }
+
 protected theorem mul_one : a * 1 = a :=
 num_denom_cases_on' a $ λ n d h,
-by change (1:ℚ) with 1 /. 1; simp [h]
+by { rw ← mk_one_one, simp [h, -mk_one_one] }
 
 protected theorem one_mul : 1 * a = a :=
 num_denom_cases_on' a $ λ n d h,
-by change (1:ℚ) with 1 /. 1; simp [h]
+by { rw ← mk_one_one, simp [h, -mk_one_one] }
 
 protected theorem mul_comm : a * b = b * a :=
 num_denom_cases_on' a $ λ n₁ d₁ h₁,
@@ -404,13 +413,13 @@ protected theorem mul_add : a * (b + c) = a * b + a * c :=
 by rw [rat.mul_comm, rat.add_mul, rat.mul_comm, rat.mul_comm c a]
 
 protected theorem zero_ne_one : 0 ≠ (1:ℚ) :=
-mt (λ (h : 0 = 1 /. 1), (mk_eq_zero one_ne_zero).1 h.symm) one_ne_zero
+suffices (1:ℚ) = 0 → false, by cc,
+by { rw [← mk_one_one, mk_eq_zero one_ne_zero], exact one_ne_zero }
 
 protected theorem mul_inv_cancel : a ≠ 0 → a * a⁻¹ = 1 :=
 num_denom_cases_on' a $ λ n d h a0,
 have n0 : n ≠ 0, from mt (by intro e; subst e; simp) a0,
-by simp [h, n0, mul_comm]; exact
-eq.trans (by simp) (@div_mk_div_cancel_left 1 1 _ n0)
+by simpa [h, n0, mul_comm] using @div_mk_div_cancel_left 1 1 _ n0
 
 protected theorem inv_mul_cancel (h : a ≠ 0) : a⁻¹ * a = 1 :=
 eq.trans (rat.mul_comm _ _) (rat.mul_inv_cancel _ h)
@@ -593,14 +602,18 @@ by conv_lhs { rw [←@num_denom q, ←@num_denom r, rat.add_def hqd hrd] };
 
 section casts
 
+protected lemma add_mk (a b c : ℤ) : (a + b) /. c = a /. c + b /. c :=
+if h : c = 0 then by simp [h] else
+by { rw [add_def h h, mk_eq h (mul_ne_zero h h)], simp [add_mul, mul_assoc] }
+
 theorem coe_int_eq_mk : ∀ (z : ℤ), ↑z = z /. 1
 | (n : ℕ) := show (n:ℚ) = n /. 1,
-  by induction n with n IH n; simp [*, show (1:ℚ) = 1 /. 1, from rfl]
+  by induction n with n IH n; simp [*, rat.add_mk]
 | -[1+ n] := show (-(n + 1) : ℚ) = -[1+ n] /. 1, begin
-  induction n with n IH, {refl},
+  induction n with n IH, { rw ← of_int_eq_mk, simp, refl },
   show -(n + 1 + 1 : ℚ) = -[1+ n.succ] /. 1,
-  rw [neg_add, IH],
-  simp [show -1 = (-1) /. 1, from rfl],
+  rw [neg_add, IH, ← mk_neg_one_one],
+  simp [-mk_neg_one_one]
 end
 
 theorem mk_eq_div (n d : ℤ) : n /. d = ((n : ℚ) / d) :=
@@ -609,6 +622,7 @@ begin
   simp [division_def, coe_int_eq_mk, mul_def one_ne_zero d0]
 end
 
+@[simp]
 theorem num_div_denom (r : ℚ) : (r.num / r.denom : ℚ) = r :=
 by rw [← int.cast_coe_nat, ← mk_eq_div, num_denom]
 
@@ -729,6 +743,28 @@ begin
   simp only [mul_comm b, nat.mul_div_assoc c (dvd_refl b), nat.cast_mul, mul_div_assoc,
     coe_nat_div_self]
 end
+
+lemma inv_coe_int_num {a : ℤ} (ha0 : 0 < a) : (a : ℚ)⁻¹.num = 1 :=
+begin
+  rw [rat.inv_def', rat.coe_int_num, rat.coe_int_denom, nat.cast_one, ←int.cast_one],
+  apply num_div_eq_of_coprime ha0,
+  rw int.nat_abs_one,
+  exact nat.coprime_one_left _,
+end
+
+lemma inv_coe_nat_num {a : ℕ} (ha0 : 0 < a) : (a : ℚ)⁻¹.num = 1 :=
+inv_coe_int_num (by exact_mod_cast ha0 : 0 < (a : ℤ))
+
+lemma inv_coe_int_denom {a : ℤ} (ha0 : 0 < a) : ((a : ℚ)⁻¹.denom : ℤ) = a :=
+begin
+  rw [rat.inv_def', rat.coe_int_num, rat.coe_int_denom, nat.cast_one, ←int.cast_one],
+  apply denom_div_eq_of_coprime ha0,
+  rw int.nat_abs_one,
+  exact nat.coprime_one_left _,
+end
+
+lemma inv_coe_nat_denom {a : ℕ} (ha0 : 0 < a) : (a : ℚ)⁻¹.denom = a :=
+by exact_mod_cast inv_coe_int_denom (by exact_mod_cast ha0 : 0 < (a : ℤ))
 
 protected lemma «forall» {p : ℚ → Prop} : (∀ r, p r) ↔ ∀ a b : ℤ, p (a / b) :=
 ⟨λ h _ _, h _,

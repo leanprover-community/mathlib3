@@ -106,15 +106,15 @@ def cone_equiv_functor_obj (F : presheaf C X)
       { ext ⟨i, j⟩, dsimp [sheaf_condition_equalizer_products.left_res],
         simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app,
           category.assoc],
-        have h := c.π.naturality (has_hom.hom.op (hom.left i j)),
+        have h := c.π.naturality (quiver.hom.op (hom.left i j)),
         dsimp at h,
         simpa using h, },
       { ext ⟨i, j⟩, dsimp [sheaf_condition_equalizer_products.right_res],
         simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app,
           category.assoc],
-        have h := c.π.naturality (has_hom.hom.op (hom.right i j)),
+        have h := c.π.naturality (quiver.hom.op (hom.right i j)),
         dsimp at h,
-        simpa using h,  },
+        simpa using h, },
       { ext i, dsimp,
         simp only [limit.lift_π, category.id_comp, fan.mk_π_app, category_theory.functor.map_id,
           category.assoc],
@@ -232,13 +232,11 @@ def cone_equiv_unit_iso_app (F : presheaf C X) ⦃ι : Type v⦄ (U : ι → ope
     end },
   hom_inv_id' := begin
     ext,
-    simp only [category.comp_id, limits.cone.category_to_category_struct_comp_hom,
-      limits.cone.category_to_category_struct_id_hom],
+    simp only [category.comp_id, limits.cone.category_comp_hom, limits.cone.category_id_hom],
   end,
   inv_hom_id' := begin
     ext,
-    simp only [category.comp_id, limits.cone.category_to_category_struct_comp_hom,
-      limits.cone.category_to_category_struct_id_hom],
+    simp only [category.comp_id, limits.cone.category_comp_hom, limits.cone.category_id_hom],
   end, }
 
 /-- Implementation of `sheaf_condition_pairwise_intersections.cone_equiv`. -/

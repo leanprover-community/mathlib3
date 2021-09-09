@@ -2,11 +2,15 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Robert Y. Lewis
-
-Generalizes the Cauchy completion of (ℚ, abs) to the completion of a
-commutative ring with absolute value.
 -/
 import data.real.cau_seq
+
+/-!
+# Cauchy completion
+
+This file generalizes the Cauchy completion of `(ℚ, abs)` to the completion of a commutative ring
+with absolute value.
+-/
 
 namespace cau_seq.completion
 open cau_seq
@@ -15,14 +19,17 @@ section
 parameters {α : Type*} [linear_ordered_field α]
 parameters {β : Type*} [comm_ring β] {abv : β → α} [is_absolute_value abv]
 
+/-- The Cauchy completion of a commutative ring with absolute value. -/
 def Cauchy := @quotient (cau_seq _ abv) cau_seq.equiv
 
+/-- The map from Cauchy sequences into the Cauchy completion. -/
 def mk : cau_seq _ abv → Cauchy := quotient.mk
 
 @[simp] theorem mk_eq_mk (f) : @eq Cauchy ⟦f⟧ (mk f) := rfl
 
 theorem mk_eq {f g} : mk f = mk g ↔ f ≈ g := quotient.eq
 
+/-- The map from the original ring into the Cauchy completion. -/
 def of_rat (x : β) : Cauchy := mk (const abv x)
 
 instance : has_zero Cauchy := ⟨of_rat 0⟩
@@ -81,9 +88,10 @@ private lemma one_def : 1 = mk 1 := rfl
 
 instance : comm_ring Cauchy :=
 by refine { neg := has_neg.neg, sub := has_sub.sub, sub_eq_add_neg := _,
-    add := (+), zero := 0, mul := (*), one := 1, .. };
-  { repeat {refine λ a, quotient.induction_on a (λ _, _)},
-    simp [zero_def, one_def, mul_left_comm, mul_comm, mul_add, add_comm, add_left_comm,
+    add := (+), zero := (0 : Cauchy), mul := (*), one := 1, nsmul := nsmul_rec, npow := npow_rec,
+    gsmul := gsmul_rec, .. }; try { intros; refl };
+{ repeat {refine λ a, quotient.induction_on a (λ _, _)},
+  simp [zero_def, one_def, mul_left_comm, mul_comm, mul_add, add_comm, add_left_comm,
           sub_eq_add_neg] }
 
 theorem of_rat_sub (x y : β) : of_rat (x - y) = of_rat x - of_rat y :=
@@ -134,6 +142,9 @@ quotient.induction_on x $ λ f hf, begin
   exact quotient.sound (cau_seq.inv_mul_cancel hf)
 end
 
+/-- The Cauchy completion forms a field.
+See note [reducible non-instances]. -/
+@[reducible]
 noncomputable def field : field Cauchy :=
 { inv              := has_inv.inv,
   mul_inv_cancel   := λ x x0, by rw [mul_comm, cau_seq.completion.inv_mul_cancel x0],
@@ -144,7 +155,7 @@ noncomputable def field : field Cauchy :=
 local attribute [instance] field
 
 theorem of_rat_inv (x : β) : of_rat (x⁻¹) = ((of_rat x)⁻¹ : Cauchy) :=
-congr_arg mk $ by split_ifs with h; try {simp [const_lim_zero.1 h]}; refl
+congr_arg mk $ by split_ifs with h; [simp [const_lim_zero.1 h], refl]
 
 theorem of_rat_div (x y : β) : of_rat (x / y) = (of_rat x / of_rat y : Cauchy) :=
 by simp only [div_eq_inv_mul, of_rat_inv, of_rat_mul]
@@ -158,6 +169,8 @@ section
 
 variables (β : Type*) [ring β] (abv : β → α) [is_absolute_value abv]
 
+/-- A class stating that a ring with an absolute value is complete, i.e. every Cauchy
+sequence has a limit. -/
 class is_complete :=
 (is_complete : ∀ s : cau_seq β abv, ∃ b : β, s ≈ const abv b)
 end
@@ -170,7 +183,9 @@ variable [is_complete β abv]
 lemma complete : ∀ s : cau_seq β abv, ∃ b : β, s ≈ const abv b :=
 is_complete.is_complete
 
-noncomputable def lim (s : cau_seq β abv) := classical.some (complete s)
+/-- The limit of a Cauchy sequence in a complete ring. Chosen non-computably. -/
+noncomputable def lim (s : cau_seq β abv) : β :=
+classical.some (complete s)
 
 lemma equiv_lim (s : cau_seq β abv) : s ≈ const abv (lim s) :=
 classical.some_spec (complete s)

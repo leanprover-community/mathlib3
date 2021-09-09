@@ -48,25 +48,25 @@ begin
 end
 
 lemma fpow_nonneg {a : K} (ha : 0 ≤ a) : ∀ (z : ℤ), 0 ≤ a ^ z
-| (of_nat n) := pow_nonneg ha _
-| -[1+n]     := inv_nonneg.2 $ pow_nonneg ha _
+| (n : ℕ) := by { rw gpow_coe_nat, exact pow_nonneg ha _ }
+| -[1+n]  := by { rw gpow_neg_succ_of_nat, exact inv_nonneg.2 (pow_nonneg ha _) }
 
 lemma fpow_pos_of_pos {a : K} (ha : 0 < a) : ∀ (z : ℤ), 0 < a ^ z
-| (of_nat n) := pow_pos ha _
-| -[1+n]     := inv_pos.2 $ pow_pos ha _
+| (n : ℕ) := by { rw gpow_coe_nat, exact pow_pos ha _ }
+| -[1+n]  := by { rw gpow_neg_succ_of_nat, exact inv_pos.2 (pow_pos ha _) }
 
 lemma fpow_le_of_le {x : K} (hx : 1 ≤ x) {a b : ℤ} (h : a ≤ b) : x ^ a ≤ x ^ b :=
 begin
   induction a with a a; induction b with b b,
-  { simp only [fpow_of_nat, of_nat_eq_coe],
+  { simp only [of_nat_eq_coe, gpow_coe_nat],
     apply pow_le_pow hx,
     apply le_of_coe_nat_le_coe_nat h },
   { apply absurd h,
     apply not_le_of_gt,
     exact lt_of_lt_of_le (neg_succ_lt_zero _) (of_nat_nonneg _) },
-  { simp only [fpow_neg_succ_of_nat, one_div],
+  { simp only [gpow_neg_succ_of_nat, one_div, of_nat_eq_coe, gpow_coe_nat],
     apply le_trans (inv_le_one _); apply one_le_pow_of_one_le hx },
-  { simp only [fpow_neg_succ_of_nat],
+  { simp only [gpow_neg_succ_of_nat],
     apply (inv_le_inv _ _).2,
     { apply pow_le_pow hx,
       have : -(↑(a+1) : ℤ) ≤ -(↑(b+1) : ℤ), from h,
@@ -159,7 +159,7 @@ lemma fpow_even_abs (a : K) {p : ℤ} (hp : even p) :
   abs a ^ p = a ^ p :=
 begin
   cases le_or_lt a (-a) with h h;
-  simp [abs, h, max_eq_left_of_lt, fpow_even_neg _ hp]
+  simp [abs_eq_max_neg, h, max_eq_left_of_lt, fpow_even_neg _ hp]
 end
 
 @[simp] lemma fpow_bit0_abs (a : K) (p : ℤ) :
@@ -183,7 +183,7 @@ lemma one_lt_pow {K} [linear_ordered_semiring K] {p : K} (hp : 1 < p) : ∀ {n :
 | 1 h := by simp; assumption
 | (k+2) h :=
   begin
-    rw ←one_mul (1 : K),
+    rw [←one_mul (1 : K), pow_succ],
     apply mul_lt_mul,
     { assumption },
     { apply le_of_lt, simpa using one_lt_pow (nat.le_add_left 1 k)},
@@ -195,7 +195,8 @@ section
 local attribute [semireducible] int.nonneg
 lemma one_lt_fpow {K}  [linear_ordered_field K] {p : K} (hp : 1 < p) :
   ∀ z : ℤ, 0 < z → 1 < p ^ z
-| (int.of_nat n) h := one_lt_pow hp (nat.succ_le_of_lt (int.lt_of_coe_nat_lt_coe_nat h))
+| (n : ℕ) h := by { rw [gpow_coe_nat],
+    exact one_lt_pow hp (nat.succ_le_of_lt (int.lt_of_coe_nat_lt_coe_nat h)) }
 end
 
 section ordered
@@ -211,8 +212,8 @@ lemma fpow_strict_mono {x : K} (hx : 1 < x) :
   strict_mono (λ n:ℤ, x ^ n) :=
 λ m n h, show x ^ m < x ^ n,
 begin
-  have xpos : 0 < x := by linarith,
-  have h₀ : x ≠ 0 := by linarith,
+  have xpos : 0 < x := zero_lt_one.trans hx,
+  have h₀ : x ≠ 0 := xpos.ne',
   have hxm : 0 < x^m := fpow_pos_of_pos xpos m,
   have hxm₀ : x^m ≠ 0 := ne_of_gt hxm,
   suffices : 1 < x^(n-m),

@@ -93,7 +93,7 @@ a.hom ≫ f
 /-- Two arrows `f : X ⟶ P` and `g : Y ⟶ P` are called pseudo-equal if there is some object
     `R` and epimorphisms `p : R ⟶ X` and `q : R ⟶ Y` such that `p ≫ f = q ≫ g`. -/
 def pseudo_equal (P : C) (f g : over P) : Prop :=
-∃ (R : C) (p : R ⟶ f.1) (q : R ⟶ g.1) [epi p] [epi q], p ≫ f.hom = q ≫ g.hom
+∃ (R : C) (p : R ⟶ f.1) (q : R ⟶ g.1) (_ : epi p) (_ : epi q), p ≫ f.hom = q ≫ g.hom
 
 lemma pseudo_equal_refl {P : C} : reflexive (pseudo_equal P) :=
 λ f, ⟨f.1, 𝟙 f.1, 𝟙 f.1, by apply_instance, by apply_instance, by simp⟩
@@ -104,7 +104,6 @@ lemma pseudo_equal_symm {P : C} : symmetric (pseudo_equal P) :=
 variables [abelian.{v} C]
 
 section
-local attribute [instance] has_pullbacks
 
 /-- Pseudoequality is transitive: Just take the pullback. The pullback morphisms will
     be epimorphisms since in an abelian category, pullbacks of epimorphisms are epimorphisms. -/
@@ -216,7 +215,7 @@ end zero
 
 /-- Morphisms map the zero pseudoelement to the zero pseudoelement -/
 @[simp] theorem apply_zero {P Q : C} (f : P ⟶ Q) : f 0 = 0 :=
-by { rw [pseudo_zero_def, pseudo_apply_mk], simp  }
+by { rw [pseudo_zero_def, pseudo_apply_mk], simp }
 
 /-- The zero morphism maps every pseudoelement to 0. -/
 @[simp] theorem zero_apply {P : C} (Q : C) (a : P) : (0 : P ⟶ Q) a = 0 :=
@@ -251,7 +250,6 @@ theorem mono_of_zero_of_map_zero {P Q : C} (f : P ⟶ Q) : (∀ a, f a = 0 → a
   show f g = 0, from (pseudo_zero_iff (g ≫ f : over Q)).2 hg
 
 section
-local attribute [instance] has_pullbacks
 
 /-- An epimorphism is surjective on pseudoelements. -/
 theorem pseudo_surjective_of_epi {P Q : C} (f : P ⟶ Q) [epi f] : function.surjective f :=
@@ -274,8 +272,6 @@ theorem epi_of_pseudo_surjective {P Q : C} (f : P ⟶ Q) : function.surjective f
 end
 
 section
-local attribute [instance] preadditive.has_equalizers_of_has_kernels
-local attribute [instance] has_pullbacks
 
 /-- Two morphisms in an exact sequence are exact on pseudoelements. -/
 theorem pseudo_exact_of_exact {P Q R : C} {f : P ⟶ Q} {g : Q ⟶ R} [exact f g] :
@@ -315,8 +311,6 @@ lemma apply_eq_zero_of_comp_eq_zero {P Q R : C} (f : Q ⟶ R) (a : P ⟶ Q) : a 
 λ h, by simp [over_coe_def, pseudo_apply_mk, over.coe_hom, h]
 
 section
-local attribute [instance] preadditive.has_equalizers_of_has_kernels
-local attribute [instance] has_pullbacks
 
 /-- If two morphisms are exact on pseudoelements, they are exact. -/
 theorem exact_of_pseudo_exact {P Q R : C} (f : P ⟶ Q) (g : Q ⟶ R) :

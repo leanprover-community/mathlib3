@@ -736,8 +736,7 @@ section supr_lift
 variables {ι : Type*}
 
 lemma coe_supr_of_directed [nonempty ι] {S : ι → subalgebra R A}
-  (dir : directed (≤) S) :
-  ((supr S : subalgebra R A) : set A) = ⋃ i, (S i : set A) :=
+  (dir : directed (≤) S) : ↑(supr S) = ⋃ i, (S i : set A) :=
 let K : subalgebra R A :=
   { carrier := ⋃ i, (S i),
     mul_mem' := λ x y hx hy,
@@ -765,7 +764,7 @@ noncomputable def supr_lift [nonempty ι]
   (dir : directed (≤) K)
   (f : Π i, K i →ₐ[R] B)
   (hf : ∀ (i j : ι) (h : K i ≤ K j), f i = (f j).comp (inclusion h)) :
-  (supr K : subalgebra R A) →ₐ[R] B :=
+  ↥(supr K) →ₐ[R] B :=
 { to_fun := set.lift_of_eq_Union (λ i, ↑(K i)) (λ i x, f i x)
     (λ i j x hxi hxj,
       let ⟨k, hik, hjk⟩ := dir i j in

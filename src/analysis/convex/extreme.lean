@@ -3,9 +3,7 @@ Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
-import linear_algebra.affine_space.independent
-import algebra.big_operators.basic
-import analysis.convex.topology
+import analysis.convex.basic
 
 /-!
 # Extreme sets

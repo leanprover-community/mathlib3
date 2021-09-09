@@ -398,7 +398,7 @@ begin
     rw [hab₁, hab'₁, dist_comm b' c', dist_comm b c, hcb] },
   { have h1 : 0 ≤ r * dist a b, { rw ← hab, exact dist_nonneg },
     have h2 : 0 ≤ r := nonneg_of_mul_nonneg_right h1 (dist_pos.mpr hab₁),
-    exact (eq_of_sq_eq_sq dist_nonneg (mul_nonneg h2 dist_nonneg)).mp h' },
+    exact (sq_eq_sq dist_nonneg (mul_nonneg h2 dist_nonneg)).mp h' },
 end
 
 end euclidean_geometry

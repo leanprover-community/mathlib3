@@ -3,11 +3,10 @@ Copyright (c) 2020 Alexander Bentkamp, Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Sébastien Gouëzel, Eric Wieser
 -/
+import algebra.module.ordered
 import data.complex.basic
-import algebra.algebra.ordered
 import data.matrix.notation
 import field_theory.tower
-import linear_algebra.finite_dimensional
 
 /-!
 # Complex number as a vector space over `ℝ`
@@ -43,7 +42,7 @@ section
 variables [has_scalar R ℝ]
 
 /- The useless `0` multiplication in `smul` is to make sure that
-`restrict_scalars.module ℝ ℂ ℂ  = complex.module` definitionally. -/
+`restrict_scalars.module ℝ ℂ ℂ = complex.module` definitionally. -/
 instance : has_scalar R ℂ :=
 { smul := λ r x, ⟨r • x.re - 0 * x.im, r • x.im + 0 * x.re⟩ }
 
@@ -64,7 +63,7 @@ instance [has_scalar R S] [has_scalar R ℝ] [has_scalar S ℝ] [is_scalar_tower
 
 instance [monoid R] [mul_action R ℝ] : mul_action R ℂ :=
 { one_smul := λ x, by ext; simp [smul_re, smul_im, one_smul],
-  mul_smul := λ r s x, by ext; simp  [smul_re, smul_im, mul_smul] }
+  mul_smul := λ r s x, by ext; simp [smul_re, smul_im, mul_smul] }
 
 instance [semiring R] [distrib_mul_action R ℝ] : distrib_mul_action R ℂ :=
 { smul_add := λ r x y, by ext; simp [smul_re, smul_im, smul_add],
@@ -105,7 +104,7 @@ end
 section
 open_locale complex_order
 
-lemma complex_ordered_module : ordered_module ℝ ℂ :=
+lemma complex_ordered_smul : ordered_smul ℝ ℂ :=
 { smul_lt_smul_of_pos := λ z w x h₁ h₂,
   begin
     obtain ⟨y, l, rfl⟩ := lt_def.mp h₁,
@@ -125,11 +124,10 @@ lemma complex_ordered_module : ordered_module ℝ ℂ :=
       convert e,
       simp only [div_eq_iff_mul_eq, h, of_real_eq_zero, of_real_div, ne.def, not_false_iff],
       norm_cast,
-      simp [mul_comm _ y, mul_assoc, h],
-    },
+      simp [mul_comm _ y, mul_assoc, h] },
   end }
 
-localized "attribute [instance] complex_ordered_module" in complex_order
+localized "attribute [instance] complex_ordered_smul" in complex_order
 
 end
 

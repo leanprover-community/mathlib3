@@ -15,6 +15,8 @@ import logic.small
 We introduce a class `module.free R M`, for `R` a `semiring` and `M` an `R`-module and we provide
 several basic instances for this class.
 
+Use `finsupp.total_id_surjective` to prove that any module is the quotient of a free module.
+
 ## Main definition
 
 * `module.free R M` : the class of free `R`-modules.

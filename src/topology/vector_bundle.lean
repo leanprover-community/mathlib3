@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolò Cavalleri, Sebastien Gouezel
 -/
 
-import topology.topological_fiber_bundle
+import topology.fiber_bundle
 import topology.algebra.module
 
 /-!
@@ -49,6 +49,9 @@ with a topology and a topological vector bundle structure.
 Similar constructions can be done for tensor products of topological vector bundles, exterior
 algebras, and so on, where the topology can be defined using a norm on the fiber model if this
 helps.
+
+## Tags
+Vector bundle
 -/
 
 noncomputable theory
@@ -64,30 +67,30 @@ section
 
 /-- Local trivialization for vector bundles. -/
 @[nolint has_inhabited_instance]
-structure topological_vector_bundle.trivialization extends bundle_trivialization F (proj E) :=
+structure topological_vector_bundle.trivialization extends to_fiber_bundle_trivialization :
+  topological_fiber_bundle.trivialization F (proj E) :=
 (linear : ∀ x ∈ base_set, is_linear_map R (λ y : (E x), (to_fun y).2))
 
-instance : has_coe_to_fun (topological_vector_bundle.trivialization R F E) :=
-⟨λ _, (total_space E → B × F), λ e, e.to_bundle_trivialization⟩
+open topological_vector_bundle
 
-instance : has_coe (topological_vector_bundle.trivialization R F E)
-  (bundle_trivialization F (proj E)) :=
-⟨topological_vector_bundle.trivialization.to_bundle_trivialization⟩
+instance : has_coe_to_fun (trivialization R F E) := ⟨_, λ e, e.to_fun⟩
+
+instance : has_coe (trivialization R F E) (topological_fiber_bundle.trivialization F (proj E)) :=
+⟨topological_vector_bundle.trivialization.to_fiber_bundle_trivialization⟩
 
 namespace topological_vector_bundle
 
 variables {R F E}
 
 lemma trivialization.mem_source (e : trivialization R F E)
-  {x : total_space E} : x ∈ e.source ↔ proj E x ∈ e.base_set := bundle_trivialization.mem_source e
+  {x : total_space E} : x ∈ e.source ↔ proj E x ∈ e.base_set :=
+topological_fiber_bundle.trivialization.mem_source e
 
 @[simp, mfld_simps] lemma trivialization.coe_coe (e : trivialization R F E) :
   ⇑e.to_local_homeomorph = e := rfl
 
-@[simp, mfld_simps] lemma trivialization.coe_fst
-  (e : trivialization R F E) {x : total_space E} (ex : x ∈ e.source) :
-  (e x).1 = (proj E) x :=
-e.proj_to_fun x ex
+@[simp, mfld_simps] lemma trivialization.coe_fst (e : trivialization R F E) {x : total_space E}
+  (ex : x ∈ e.source) : (e x).1 = (proj E) x := e.proj_to_fun x ex
 
 end topological_vector_bundle
 
@@ -110,26 +113,28 @@ namespace topological_vector_bundle
 /-- `trivialization_at R F E b` is some choice of trivialization of a vector bundle whose base set
 contains a given point `b`. -/
 def trivialization_at : Π b : B, trivialization R F E :=
-λ b, classical.some (topological_vector_bundle.locally_trivial R F E b)
+λ b, classical.some (locally_trivial R F E b)
 
 @[simp, mfld_simps] lemma mem_base_set_trivialization_at (b : B) :
   b ∈ (trivialization_at R F E b).base_set :=
-classical.some_spec (topological_vector_bundle.locally_trivial R F E b)
+classical.some_spec (locally_trivial R F E b)
 
 @[simp, mfld_simps] lemma mem_source_trivialization_at (z : total_space E) :
   z ∈ (trivialization_at R F E z.1).source :=
-by { rw bundle_trivialization.mem_source, apply mem_base_set_trivialization_at }
+by { rw topological_fiber_bundle.trivialization.mem_source, apply mem_base_set_trivialization_at }
 
 variables {R F E}
 
+namespace trivialization
+
 /-- In a topological vector bundle, a trivialization in the fiber (which is a priori only linear)
 is in fact a continuous linear equiv between the fibers and the model fiber. -/
-def trivialization.continuous_linear_equiv_at (e : trivialization R F E) (b : B)
+def continuous_linear_equiv_at (e : trivialization R F E) (b : B)
   (hb : b ∈ e.base_set) : E b ≃L[R] F :=
 { to_fun := λ y, (e ⟨b, y⟩).2,
   inv_fun := λ z, begin
     have : ((e.to_local_homeomorph.symm) (b, z)).fst = b :=
-      bundle_trivialization.proj_symm_apply' _ hb,
+      topological_fiber_bundle.trivialization.proj_symm_apply' _ hb,
     have C : E ((e.to_local_homeomorph.symm) (b, z)).fst = E b, by rw this,
     exact cast C (e.to_local_homeomorph.symm (b, z)).2
   end,
@@ -140,10 +145,10 @@ def trivialization.continuous_linear_equiv_at (e : trivialization R F E) (b : B)
     have A : (b, (e ⟨b, v⟩).snd) = e ⟨b, v⟩,
     { refine prod.ext _ rfl,
       symmetry,
-      exact bundle_trivialization.coe_fst' _ hb },
+      exact topological_fiber_bundle.trivialization.coe_fst' _ hb },
     have B : e.to_local_homeomorph.symm (e ⟨b, v⟩) = ⟨b, v⟩,
     { apply local_homeomorph.left_inv_on,
-      rw bundle_trivialization.mem_source,
+      rw topological_fiber_bundle.trivialization.mem_source,
       exact hb },
     rw [A, B],
   end,
@@ -151,14 +156,14 @@ def trivialization.continuous_linear_equiv_at (e : trivialization R F E) (b : B)
     assume v,
     have B : e (e.to_local_homeomorph.symm (b, v)) = (b, v),
     { apply local_homeomorph.right_inv_on,
-      rw bundle_trivialization.mem_target,
+      rw topological_fiber_bundle.trivialization.mem_target,
       exact hb },
     have C : (e (e.to_local_homeomorph.symm (b, v))).2 = v, by rw [B],
     conv_rhs { rw ← C },
     dsimp,
     congr,
     ext,
-    { exact (bundle_trivialization.proj_symm_apply' _ hb).symm },
+    { exact (topological_fiber_bundle.trivialization.proj_symm_apply' _ hb).symm },
     { exact (cast_heq _ _).trans (by refl) },
   end,
   map_add' := λ v w, (e.linear _ hb).map_add v w,
@@ -167,30 +172,31 @@ def trivialization.continuous_linear_equiv_at (e : trivialization R F E) (b : B)
     refine continuous_snd.comp _,
     apply continuous_on.comp_continuous e.to_local_homeomorph.continuous_on
       (topological_vector_bundle.inducing R F E b).continuous (λ x, _),
-    rw bundle_trivialization.mem_source,
+    rw topological_fiber_bundle.trivialization.mem_source,
     exact hb,
   end,
   continuous_inv_fun := begin
     rw (topological_vector_bundle.inducing R F E b).continuous_iff,
     dsimp,
-    have : continuous (λ (z : F), (e.to_bundle_trivialization.to_local_homeomorph.symm) (b, z)),
+    have : continuous (λ (z : F), e.to_fiber_bundle_trivialization.to_local_homeomorph.symm (b, z)),
     { apply e.to_local_homeomorph.symm.continuous_on.comp_continuous
         (continuous_const.prod_mk continuous_id') (λ z, _),
-      simp only [bundle_trivialization.mem_target, hb, local_equiv.symm_source,
+      simp only [topological_fiber_bundle.trivialization.mem_target, hb, local_equiv.symm_source,
         local_homeomorph.symm_to_local_equiv] },
     convert this,
     ext z,
-    { exact (bundle_trivialization.proj_symm_apply' _ hb).symm },
+    { exact (topological_fiber_bundle.trivialization.proj_symm_apply' _ hb).symm },
     { exact cast_heq _ _ },
   end }
 
-@[simp] lemma trivialization.continuous_linear_equiv_at_apply (e : trivialization R F E) (b : B)
+@[simp] lemma continuous_linear_equiv_at_apply (e : trivialization R F E) (b : B)
   (hb : b ∈ e.base_set) (y : E b) : e.continuous_linear_equiv_at b hb y = (e ⟨b, y⟩).2 := rfl
 
-@[simp] lemma trivialization.continuous_linear_equiv_at_apply' (e : trivialization R F E)
+@[simp] lemma continuous_linear_equiv_at_apply' (e : trivialization R F E)
   (x : total_space E) (hx : x ∈ e.source) :
-  e.continuous_linear_equiv_at (proj E x) (e.mem_source.1 hx) x.2 = (e x).2 :=
-by { cases x, refl }
+  e.continuous_linear_equiv_at (proj E x) (e.mem_source.1 hx) x.2 = (e x).2 := by { cases x, refl }
+
+end trivialization
 
 section
 local attribute [reducible] bundle.trivial
@@ -208,7 +214,7 @@ end
 
 variables (R B F)
 /-- Local trivialization for trivial bundle. -/
-def trivial_bundle_trivialization : trivialization R F (bundle.trivial B F) :=
+def trivial_topological_vector_bundle.trivialization : trivialization R F (bundle.trivial B F) :=
 { to_fun := λ x, (x.fst, x.snd),
   inv_fun := λ y, ⟨y.fst, y.snd⟩,
   source := univ,
@@ -233,7 +239,7 @@ def trivial_bundle_trivialization : trivialization R F (bundle.trivial B F) :=
 
 instance trivial_bundle.topological_vector_bundle :
   topological_vector_bundle R F (bundle.trivial B F) :=
-{ locally_trivial := λ x, ⟨trivial_bundle_trivialization R B F, mem_univ x⟩,
+{ locally_trivial := λ x, ⟨trivial_topological_vector_bundle.trivialization R B F, mem_univ x⟩,
   inducing := λ b, ⟨begin
     have : (λ (x : trivial B F b), x) = @id F, by { ext x, refl },
     simp only [total_space.topological_space, induced_inf, induced_compose, function.comp, proj,
@@ -246,7 +252,8 @@ variables {R B F}
 /- Not registered as an instance because of a metavariable. -/
 lemma is_topological_vector_bundle_is_topological_fiber_bundle :
   is_topological_fiber_bundle F (proj E) :=
-λ x, ⟨(trivialization_at R F E x).to_bundle_trivialization, mem_base_set_trivialization_at R F E x⟩
+λ x, ⟨(trivialization_at R F E x).to_fiber_bundle_trivialization,
+  mem_base_set_trivialization_at R F E x⟩
 
 end topological_vector_bundle
 
@@ -338,13 +345,10 @@ variables {ι} (b : B) (a : F)
 /-- Extended version of the local trivialization of a fiber bundle constructed from core,
 registering additionally in its type that it is a local bundle trivialization. -/
 def local_triv (i : ι) : topological_vector_bundle.trivialization R F Z.fiber :=
-{ linear := λ x hx, { map_add := λ v w, by simp only [topological_fiber_bundle_core.local_triv_ext,
-      local_homeomorph.to_fun_eq_coe, coe_fst, coe_snd_map_apply,
-      topological_fiber_bundle_core.local_triv_apply, linear_map.map_add, coe_cord_change],
-  map_smul := λ r v, by simp only [topological_fiber_bundle_core.local_triv_ext, coe_fst,
-    local_homeomorph.to_fun_eq_coe, topological_fiber_bundle_core.local_triv_apply, coe_cord_change,
-    coe_snd_map_smul, linear_map.map_smul] },
-  ..topological_fiber_bundle_core.local_triv_ext ↑Z i }
+{ linear := λ x hx,
+  { map_add := λ v w, by simp only [linear_map.map_add] with mfld_simps,
+    map_smul := λ r v, by simp only [linear_map.map_smul] with mfld_simps},
+  ..topological_fiber_bundle_core.local_triv ↑Z i }
 
 @[simp, mfld_simps] lemma mem_local_triv_source (i : ι) (p : total_space Z.fiber) :
   p ∈ (Z.local_triv i).source ↔ p.1 ∈ Z.base_set i :=

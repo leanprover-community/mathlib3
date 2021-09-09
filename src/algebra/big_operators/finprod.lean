@@ -3,11 +3,9 @@ Copyright (c) 2020 Kexing Ying and Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying, Kevin Buzzard, Yury Kudryashov
 -/
-
-import data.set.finite
-import data.set.disjointed
-import algebra.big_operators
+import algebra.big_operators.order
 import algebra.indicator_function
+import data.set.pairwise
 
 /-!
 # Finite products and sums over types and sets
@@ -137,14 +135,17 @@ by { rw ← finprod_one, congr }
 @[simp, to_additive] lemma finprod_false (f : false → M) : ∏ᶠ i, f i = 1 :=
 finprod_of_is_empty _
 
-@[to_additive] lemma finprod_unique [unique α] (f : α → M) : ∏ᶠ i, f i = f (default α) :=
+@[to_additive] lemma finprod_eq_single (f : α → M) (a : α) (ha : ∀ x ≠ a, f x = 1) :
+  ∏ᶠ x, f x = f a :=
 begin
-  have : mul_support (f ∘ plift.down) ⊆ (finset.univ : finset (plift α)),
-    from λ x _, finset.mem_univ x,
-  rw [finprod_eq_prod_plift_of_mul_support_subset this, univ_unique,
-    finset.prod_singleton],
-  exact congr_arg f (plift.down_up _)
+  have : mul_support (f ∘ plift.down) ⊆ ({plift.up a} : finset (plift α)),
+  { intro x, contrapose,
+    simpa [plift.eq_up_iff_down_eq] using ha x.down },
+  rw [finprod_eq_prod_plift_of_mul_support_subset this, finset.prod_singleton],
 end
+
+@[to_additive] lemma finprod_unique [unique α] (f : α → M) : ∏ᶠ i, f i = f (default α) :=
+finprod_eq_single f (default α) $ λ x hx, (hx $ unique.eq_default _).elim
 
 @[simp, to_additive] lemma finprod_true (f : true → M) : ∏ᶠ i, f i = f trivial :=
 @finprod_unique M true _ ⟨⟨trivial⟩, λ _, rfl⟩ f
@@ -172,14 +173,29 @@ by { subst q, exact finprod_congr hfg }
 
 attribute [congr] finsum_congr_Prop
 
-lemma finprod_nonneg {R : Type*} [ordered_comm_semiring R] {f : α → R} (hf : ∀ x, 0 ≤ f x) :
-  0 ≤ ∏ᶠ x, f x :=
+/-- To prove a property of a finite product, it suffices to prove that the property is
+multiplicative and holds on multipliers. -/
+@[to_additive] lemma finprod_induction {f : α → M} (p : M → Prop) (hp₀ : p 1)
+  (hp₁ : ∀ x y, p x → p y → p (x * y)) (hp₂ : ∀ i, p (f i)) :
+  p (∏ᶠ i, f i) :=
 begin
   rw finprod,
   split_ifs,
-  { exact finset.prod_nonneg (λ x _, hf _) },
-  { exact zero_le_one }
+  exacts [finset.prod_induction _ _ hp₁ hp₀ (λ i hi, hp₂ _), hp₀]
 end
+
+/-- To prove a property of a finite sum, it suffices to prove that the property is
+additive and holds on summands. -/
+add_decl_doc finsum_induction
+
+lemma finprod_nonneg {R : Type*} [ordered_comm_semiring R] {f : α → R} (hf : ∀ x, 0 ≤ f x) :
+  0 ≤ ∏ᶠ x, f x :=
+finprod_induction (λ x, 0 ≤ x) zero_le_one (λ x y, mul_nonneg) hf
+
+@[to_additive finsum_nonneg]
+lemma one_le_finprod' {M : Type*} [ordered_comm_monoid M] {f : α → M} (hf : ∀ i, 1 ≤ f i) :
+  1 ≤ ∏ᶠ i, f i :=
+finprod_induction _ le_rfl (λ _ _, one_le_mul) hf
 
 @[to_additive] lemma monoid_hom.map_finprod_plift (f : M →* N) (g : α → M)
   (h : finite (mul_support $ g ∘ plift.down)) :
@@ -194,6 +210,44 @@ end
 @[to_additive] lemma monoid_hom.map_finprod_Prop {p : Prop} (f : M →* N) (g : p → M) :
   f (∏ᶠ x, g x) = ∏ᶠ x, f (g x) :=
 f.map_finprod_plift g (finite.of_fintype _)
+
+@[to_additive] lemma monoid_hom.map_finprod_of_preimage_one (f : M →* N)
+  (hf : ∀ x, f x = 1 → x = 1) (g : α → M) :
+  f (∏ᶠ i, g i) = ∏ᶠ i, f (g i) :=
+begin
+  by_cases hg : (mul_support $ g ∘ plift.down).finite, { exact f.map_finprod_plift g hg },
+  rw [finprod, dif_neg, f.map_one, finprod, dif_neg],
+  exacts [infinite_mono (λ x hx, mt (hf (g x.down)) hx) hg, hg]
+end
+
+@[to_additive] lemma monoid_hom.map_finprod_of_injective (g : M →* N) (hg : injective g)
+  (f : α → M) :
+  g (∏ᶠ i, f i) = ∏ᶠ i, g (f i) :=
+g.map_finprod_of_preimage_one (λ x, (hg.eq_iff' g.map_one).mp) f
+
+@[to_additive] lemma mul_equiv.map_finprod (g : M ≃* N) (f : α → M) :
+  g (∏ᶠ i, f i) = ∏ᶠ i, g (f i) :=
+g.to_monoid_hom.map_finprod_of_injective g.injective f
+
+lemma finsum_smul {R M : Type*} [ring R] [add_comm_group M] [module R M]
+  [no_zero_smul_divisors R M] (f : ι → R) (x : M) :
+  (∑ᶠ i, f i) • x = (∑ᶠ i, (f i) • x) :=
+begin
+  rcases eq_or_ne x 0 with rfl|hx, { simp },
+  exact ((smul_add_hom R M).flip x).map_finsum_of_injective (smul_left_injective R hx) _
+end
+
+lemma smul_finsum {R M : Type*} [ring R] [add_comm_group M] [module R M]
+  [no_zero_smul_divisors R M] (c : R) (f : ι → M) :
+  c • (∑ᶠ i, f i) = (∑ᶠ i, c • f i) :=
+begin
+  rcases eq_or_ne c 0 with rfl|hc, { simp },
+  exact (smul_add_hom R M c).map_finsum_of_injective (smul_right_injective M hc) _
+end
+
+@[to_additive] lemma finprod_inv_distrib {G : Type*} [comm_group G] (f : α → G) :
+  ∏ᶠ x, (f x)⁻¹ = (∏ᶠ x, f x)⁻¹ :=
+((mul_equiv.inv G).map_finprod f).symm
 
 end sort
 
@@ -651,18 +705,22 @@ multiplicative and holds on multipliers. -/
 @[to_additive] lemma finprod_mem_induction (p : M → Prop) (hp₀ : p 1)
   (hp₁ : ∀ x y, p x → p y → p (x * y)) (hp₂ : ∀ x ∈ s, p $ f x) :
   p (∏ᶠ i ∈ s, f i) :=
-begin
-  by_cases hs : (s ∩ mul_support f).finite,
-  { rw [finprod_mem_eq_prod _ hs],
-    refine finset.prod_induction _ p hp₁ hp₀ (λ x hx, hp₂ x _),
-    rw hs.mem_to_finset at hx, exact hx.1 },
-  { exact (finprod_mem_eq_one_of_infinite hs).symm ▸ hp₀ }
-end
+finprod_induction _ hp₀ hp₁ $ λ x, finprod_induction _ hp₀ hp₁ $ hp₂ x
 
 lemma finprod_cond_nonneg {R : Type*} [ordered_comm_semiring R] {p : α → Prop} {f : α → R}
   (hf : ∀ x, p x → 0 ≤ f x) :
   0 ≤ ∏ᶠ x (h : p x), f x :=
 finprod_nonneg $ λ x, finprod_nonneg $ hf x
+
+@[to_additive]
+lemma single_le_finprod {M : Type*} [ordered_comm_monoid M] (i : α) {f : α → M}
+  (hf : finite (mul_support f)) (h : ∀ j, 1 ≤ f j) :
+  f i ≤ ∏ᶠ j, f j :=
+by classical;
+calc f i ≤ ∏ j in insert i hf.to_finset, f j :
+  finset.single_le_prod' (λ j hj, h j) (finset.mem_insert_self _ _)
+     ... = ∏ᶠ j, f j                :
+  (finprod_eq_prod_of_mul_support_to_finset_subset _ hf (finset.subset_insert _ _)).symm
 
 lemma finprod_eq_zero {M₀ : Type*} [comm_monoid_with_zero M₀] (f : α → M₀) (x : α)
   (hx : f x = 0) (hf : finite (mul_support f)) :

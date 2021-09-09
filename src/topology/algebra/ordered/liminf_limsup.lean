@@ -65,7 +65,7 @@ variables [conditionally_complete_linear_order α]
 theorem lt_mem_sets_of_Limsup_lt {f : filter α} {b} (h : f.is_bounded (≤)) (l : f.Limsup < b) :
   ∀ᶠ a in f, a < b :=
 let ⟨c, (h : ∀ᶠ a in f, a ≤ c), hcb⟩ := exists_lt_of_cInf_lt h l in
-mem_sets_of_superset h $ assume a hac, lt_of_le_of_lt hac hcb
+mem_of_superset h $ assume a hac, lt_of_le_of_lt hac hcb
 
 theorem gt_mem_sets_of_Liminf_gt : ∀ {f : filter α} {b}, f.is_bounded (≥) → b < f.Liminf →
   ∀ᶠ a in f, b < a :=

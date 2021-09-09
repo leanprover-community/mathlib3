@@ -8,3 +8,4 @@ all.lean
 /src/.noisy_files
 *~
 .DS_Store
+*.lock

@@ -51,7 +51,7 @@ structure affine_map (k : Type*) {V1 : Type*} (P1 : Type*) {V2 : Type*} (P2 : Ty
     [add_comm_group V1] [module k V1] [affine_space V1 P1]
     [add_comm_group V2] [module k V2] [affine_space V2 P2] :=
 (to_fun : P1 → P2)
-(linear : linear_map k V1 V2)
+(linear : V1 →ₗ[k] V2)
 (map_vadd' : ∀ (p : P1) (v : V1), to_fun (v +ᵥ p) =  linear v +ᵥ to_fun p)
 
 notation P1 ` →ᵃ[`:25 k:25 `] `:0 P2:0 := affine_map k P1 P2
@@ -125,7 +125,7 @@ end
 
 lemma ext_iff {f g : P1 →ᵃ[k] P2} : f = g ↔ ∀ p, f p = g p := ⟨λ h p, h ▸ rfl, ext⟩
 
-lemma coe_fn_injective : function.injective (λ (f : P1 →ᵃ[k] P2) (x : P1), f x) :=
+lemma coe_fn_injective : @function.injective (P1 →ᵃ[k] P2) (P1 → P2) coe_fn :=
 λ f g H, ext $ congr_fun H
 
 protected lemma congr_arg (f : P1 →ᵃ[k] P2) {x y : P1} (h : x = y) : f x = f y :=
@@ -285,6 +285,22 @@ instance : monoid (P1 →ᵃ[k] P1) :=
 
 @[simp] lemma coe_mul (f g : P1 →ᵃ[k] P1) : ⇑(f * g) = f ∘ g := rfl
 @[simp] lemma coe_one : ⇑(1 : P1 →ᵃ[k] P1) = _root_.id := rfl
+
+include V2
+
+@[simp] lemma injective_iff_linear_injective (f : P1 →ᵃ[k] P2) :
+  function.injective f.linear ↔ function.injective f :=
+begin
+  split; intros hf x y hxy,
+  { rw [← @vsub_eq_zero_iff_eq V1, ← @submodule.mem_bot k V1, ← linear_map.ker_eq_bot.mpr hf,
+      linear_map.mem_ker, affine_map.linear_map_vsub, hxy, vsub_self], },
+  { obtain ⟨p⟩ := (by apply_instance : nonempty P1),
+    have hxy' : (f.linear x) +ᵥ f p = (f.linear y) +ᵥ f p, { rw hxy, },
+    rw [← f.map_vadd, ← f.map_vadd] at hxy',
+    exact (vadd_right_cancel_iff _).mp (hf hxy'), },
+end
+
+omit V2
 
 /-! ### Definition of `affine_map.line_map` and lemmas about it -/
 
@@ -459,7 +475,7 @@ instance : module k (P1 →ᵃ[k] V2) :=
 
 @[simp] lemma coe_smul (c : k) (f : P1 →ᵃ[k] V2) : ⇑(c • f) = c • f := rfl
 
-/-- `homothety c r` is the homothety about `c` with scale factor `r`. -/
+/-- `homothety c r` is the homothety (also known as dilation) about `c` with scale factor `r`. -/
 def homothety (c : P1) (r : k) : P1 →ᵃ[k] P1 :=
 r • (id k P1 -ᵥ const k P1 c) +ᵥ const k P1 c
 

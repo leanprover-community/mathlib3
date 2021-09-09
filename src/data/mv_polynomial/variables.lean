@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 -/
 import algebra.big_operators.order
 import data.mv_polynomial.monad
-import data.set.disjointed
+import data.set.pairwise
 
 /-!
 # Degrees and variables of polynomials

@@ -497,7 +497,7 @@ begin
 end
 
 /--If the quotient by a subgroup gives a singleton then the subgroup is the whole group-/
-lemma quot_is_subsingleton_then_triv  (H : subgroup G)
+lemma quot_subsingleton_triv  (H : subgroup G)
  (h: subsingleton (quotient_group.quotient H)) : H = ⊤ :=
 begin
   have h2 := subsingleton_quot_equiv_trunc' H h,

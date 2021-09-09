@@ -5,6 +5,7 @@ Authors: Patrick Massot, Johannes Hölzl
 -/
 import algebra.algebra.restrict_scalars
 import algebra.algebra.subalgebra
+import data.matrix.basic
 import order.liminf_limsup
 import topology.algebra.group_completion
 import topology.instances.ennreal
@@ -1159,6 +1160,16 @@ instance prod.semi_normed_ring [semi_normed_ring β] : semi_normed_ring (α × �
         ... = (∥x∥*∥y∥) : rfl,
   ..prod.semi_normed_group }
 
+/-- seminormed group instance on a matrix with values in a seminormed group,
+using the sup norm -/
+instance {n m : Type*} [fintype n] [fintype m] : semi_normed_group (matrix n m α) :=
+pi.semi_normed_group
+
+lemma semi_norm_matrix_le_iff {n m : Type*} [fintype n] [fintype m] {r : ℝ} (hr : 0 ≤ r)
+  {A : matrix n m α} :
+  ∥A∥ ≤ r ↔ ∀ i j, ∥A i j∥ ≤ r :=
+by simp [pi_semi_norm_le_iff hr]
+
 end semi_normed_ring
 
 section normed_ring
@@ -1172,6 +1183,9 @@ norm_pos_iff.mpr (units.ne_zero x)
 instance prod.normed_ring [normed_ring β] : normed_ring (α × β) :=
 { norm_mul := norm_mul_le,
   ..prod.semi_normed_group }
+
+instance {n m : Type*} [fintype n] [fintype m] : normed_group (matrix n m α) :=
+pi.normed_group
 
 end normed_ring
 
@@ -1698,6 +1712,10 @@ instance : normed_space α (E × F) := { ..prod.semi_normed_space }
 instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, normed_group (E i)]
   [∀i, normed_space α (E i)] : normed_space α (Πi, E i) :=
 { ..pi.semi_normed_space }
+
+instance {α : Type*} [normed_field α] {n m : Type*} [fintype n] [fintype m] :
+  normed_space α (matrix n m α) :=
+pi.normed_space
 
 /-- A subspace of a normed space is also a normed space, with the restriction of the norm. -/
 instance submodule.normed_space {𝕜 R : Type*} [has_scalar 𝕜 R] [normed_field 𝕜] [ring R]

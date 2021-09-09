@@ -515,7 +515,7 @@ begin
 end
 
 lemma eqv_gen_eq_of_equivalence (h : equivalence r) : eqv_gen r = r :=
-funext $ λ _, funext $ λ _, propext $ relation.eqv_gen_iff_of_equivalence h
+funext $ λ _, funext $ λ _, propext $ eqv_gen_iff_of_equivalence h
 
 end eqv_gen
 

@@ -137,6 +137,14 @@ instance complete_lattice : complete_lattice (setoid α) :=
   .. complete_lattice_of_Inf (setoid α) $ assume s,
     ⟨λ r hr x y h, h _ hr, λ r hr x y h r' hr', hr hr' h⟩ }
 
+@[simp]
+lemma setoid.top_def  : (⊤ : setoid α).rel = ⊤ := rfl
+
+@[simp]
+lemma setoid.bot_def  : (⊥ : setoid α).rel = (=) := rfl
+
+
+
 /-- The inductively defined equivalence closure of a binary relation r is the infimum
     of the set of all equivalence relations containing r. -/
 theorem eqv_gen_eq (r : α → α → Prop) :
@@ -359,13 +367,11 @@ def correspondence (r : setoid α) : {s // r ≤ s} ≃o setoid (quotient r) :=
       t.1.trans' (t.1.symm' $ t.2 $ eq_rel.1 hx) $ t.1.trans' ht $ t.2 $ eq_rel.1 hy,
       λ h x y hs, let ⟨a, b, hx, hy, Hs⟩ := hs in ⟨a, b, hx, hy, h Hs⟩⟩ }
 
-@[simp]
-lemma setoid.rel_top  : (⊤ : setoid α).rel = ⊤ := rfl
 
 lemma subsingleton_quotient_iff_eq_top  {s : setoid α} :
-  subsingleton (_root_.quotient s) ↔ s = ⊤ :=
+  subsingleton (quotient s) ↔ s = ⊤ :=
 begin
-  simp only [subsingleton_iff, eq_top_iff, setoid.le_def, setoid.rel_top, top_apply, forall_const],
+  simp only [subsingleton_iff, eq_top_iff, setoid.le_def, setoid.top_def, top_apply, forall_const],
   refine (surjective_quotient_mk _).forall.trans (forall_congr $ λ a, _),
   refine (surjective_quotient_mk _).forall.trans (forall_congr $ λ b, _),
   exact quotient.eq',

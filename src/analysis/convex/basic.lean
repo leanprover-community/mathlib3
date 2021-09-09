@@ -35,15 +35,12 @@ defined using the instance `ordered_smul 𝕜 β`.
 We define the following notations:
 * `[x -[𝕜] y] = segment 𝕜 x y` in locale `convex`
 * `[x, y] = segment ℝ x y` in locale `real`
-* `I = Icc (0 : ℝ) 1` in locale `real`
-
-The second one is defined using `local notation`, so it is not available outside of this file.
 
 ## Implementation notes
 
 `convex_hull` is defined as a closure operator. This gives access to the `closure_operator` API
-while the impact on writing code is minimal as `convex_hull 𝕜 s` is automatically elaborated as
-`⇑convex_hull 𝕜 s`.
+while the impact on writing code is minimal as `convex_hull s` is automatically elaborated as
+`⇑convex_hull s`.
 
 ## TODO
 
@@ -73,8 +70,6 @@ def open_segment [add_comm_monoid E] [ordered_semiring 𝕜] [has_scalar 𝕜 E]
 localized "notation `[` x ` -[` 𝕜 `] ` y `]` := segment 𝕜 x y" in convex
 
 localized "notation `[` x `, ` y `]` := segment ℝ x y" in real
-
-localized "notation `I` := Icc (0 : ℝ) 1" in real
 
 section ordered_semiring
 variables [add_comm_monoid E] [ordered_semiring 𝕜] [module 𝕜 E]
@@ -449,7 +444,7 @@ lemma convex.open_segment_subset (h : convex s) {x y : E} (hx : x ∈ s) (hy : y
 convex_iff_open_segment_subset.1 h hx hy
 
 lemma convex.add_smul_sub_mem (h : convex s) {x y : E} (hx : x ∈ s) (hy : y ∈ s)
-  {t : ℝ} (ht : t ∈ I) : x + t • (y - x) ∈ s :=
+  {t : ℝ} (ht : t ∈ Icc (0 : ℝ) 1) : x + t • (y - x) ∈ s :=
 begin
   apply h.segment_subset hx hy,
   rw segment_eq_image',
@@ -458,11 +453,11 @@ begin
 end
 
 lemma convex.add_smul_mem (h : convex s) {x y : E} (hx : x ∈ s) (hy : x + y ∈ s)
-  {t : ℝ} (ht : t ∈ I) : x + t • y ∈ s :=
+  {t : ℝ} (ht : t ∈ Icc (0 : ℝ) 1) : x + t • y ∈ s :=
 by { convert h.add_smul_sub_mem hx hy ht, abel }
 
 lemma convex.smul_mem_of_zero_mem (h : convex s) {x : E} (zero_mem : (0:E) ∈ s) (hx : x ∈ s)
-  {t : ℝ} (ht : t ∈ I) : t • x ∈ s :=
+  {t : ℝ} (ht : t ∈ Icc (0 : ℝ) 1) : t • x ∈ s :=
 by simpa using h.add_smul_mem zero_mem (by simpa using hx) ht
 
 lemma convex.mem_smul_of_zero_mem (h : convex s) {x : E} (zero_mem : (0:E) ∈ s) (hx : x ∈ s)
@@ -1726,7 +1721,7 @@ end
 
 /-- All values of a function `f ∈ std_simplex ι` belong to `[0, 1]`. -/
 lemma mem_Icc_of_mem_std_simplex (hf : f ∈ std_simplex ι) (x) :
-  f x ∈ I :=
+  f x ∈ Icc (0 : ℝ) 1 :=
 ⟨hf.1 x, hf.2 ▸ finset.single_le_sum (λ y hy, hf.1 y) (finset.mem_univ x)⟩
 
 end simplex

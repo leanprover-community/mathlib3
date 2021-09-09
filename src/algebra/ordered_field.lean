@@ -695,7 +695,7 @@ lemma abs_inv (a : α) : abs a⁻¹ = (abs a)⁻¹ :=
 (abs_hom : monoid_with_zero_hom α α).map_inv' a
 
 -- TODO: add lemmas with `a⁻¹`.
-lemma one_div_strict_mono_decr_on : strict_mono_decr_on (λ x : α, 1 / x) (set.Ioi 0) :=
+lemma one_div_strict_anti_on : strict_anti_on (λ x : α, 1 / x) (set.Ioi 0) :=
 λ x x1 y y1 xy, (one_div_lt_one_div (set.mem_Ioi.mp y1) (set.mem_Ioi.mp x1)).mpr xy
 
 lemma one_div_pow_le_one_div_pow_of_le (a1 : 1 ≤ a) {m n : ℕ} (mn : m ≤ n) :

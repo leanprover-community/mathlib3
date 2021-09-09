@@ -258,11 +258,11 @@ lemma mul_self_lt_mul_self (h1 : 0 ≤ a) (h2 : a < b) : a * a < b * b :=
 mul_lt_mul' h2.le h2 h1 $ h1.trans_lt h2
 
 -- See Note [decidable namespace]
-protected lemma decidable.strict_mono_incr_on_mul_self [@decidable_rel α (≤)] :
-  strict_mono_incr_on (λ x : α, x * x) (set.Ici 0) :=
+protected lemma decidable.strict_mono_on_mul_self [@decidable_rel α (≤)] :
+  strict_mono_on (λ x : α, x * x) (set.Ici 0) :=
 λ x hx y hy hxy, decidable.mul_self_lt_mul_self hx hxy
 
-lemma strict_mono_incr_on_mul_self : strict_mono_incr_on (λ x : α, x * x) (set.Ici 0) :=
+lemma strict_mono_on_mul_self : strict_mono_on (λ x : α, x * x) (set.Ici 0) :=
 λ x hx y hy hxy, mul_self_lt_mul_self hx hxy
 
 -- See Note [decidable namespace]
@@ -1121,11 +1121,11 @@ by haveI := @linear_order.decidable_le α _; exact
 
 lemma mul_self_lt_mul_self_iff {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a < b ↔ a * a < b * b :=
 by haveI := @linear_order.decidable_le α _; exact
-((@decidable.strict_mono_incr_on_mul_self α _ _).lt_iff_lt h1 h2).symm
+((@decidable.strict_mono_on_mul_self α _ _).lt_iff_lt h1 h2).symm
 
 lemma mul_self_inj {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a * a = b * b ↔ a = b :=
 by haveI := @linear_order.decidable_le α _; exact
-(@decidable.strict_mono_incr_on_mul_self α _ _).inj_on.eq_iff h1 h2
+(@decidable.strict_mono_on_mul_self α _ _).inj_on.eq_iff h1 h2
 
 @[simp] lemma mul_le_mul_left_of_neg {a b c : α} (h : c < 0) : c * a ≤ c * b ↔ b ≤ a :=
 by haveI := @linear_order.decidable_le α _; exact

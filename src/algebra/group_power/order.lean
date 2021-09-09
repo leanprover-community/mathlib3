@@ -161,8 +161,8 @@ begin
   { rw [←h, zero_pow Hnpos], apply pow_pos (by rwa ←h at Hxy : 0 < y),}
 end
 
-theorem strict_mono_incr_on_pow {n : ℕ} (hn : 0 < n) :
-  strict_mono_incr_on (λ x : R, x ^ n) (set.Ici 0) :=
+theorem strict_mono_on_pow {n : ℕ} (hn : 0 < n) :
+  strict_mono_on (λ x : R, x ^ n) (set.Ici 0) :=
 λ x hx y hy h, pow_lt_pow_of_lt_left h hx hn
 
 theorem one_le_pow_of_one_le {a : R} (H : 1 ≤ a) : ∀ (n : ℕ), 1 ≤ a ^ n
@@ -200,7 +200,7 @@ variable [linear_ordered_semiring R]
 
 @[simp] theorem pow_left_inj {x y : R} {n : ℕ} (Hxpos : 0 ≤ x) (Hypos : 0 ≤ y) (Hnpos : 0 < n) :
   x ^ n = y ^ n ↔ x = y :=
-(@strict_mono_incr_on_pow R _ _ Hnpos).inj_on.eq_iff Hxpos Hypos
+(@strict_mono_on_pow R _ _ Hnpos).inj_on.eq_iff Hxpos Hypos
 
 lemma lt_of_pow_lt_pow {a b : R} (n : ℕ) (hb : 0 ≤ b) (h : a ^ n < b ^ n) : a < b :=
 lt_of_not_ge $ λ hn, not_lt_of_ge (pow_le_pow_of_le_left hb hn _) h

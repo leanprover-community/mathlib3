@@ -159,3 +159,8 @@ lemma filter.tendsto.exists_forall_ge {α β : Type*} [nonempty α] [linear_orde
   {f : α → β} (hf : tendsto f cofinite at_bot) :
   ∃ a₀, ∀ a, f a ≤ f a₀ :=
 @filter.tendsto.exists_forall_le _ (order_dual β) _ _ _ hf
+
+/-- For an injective function `f`, inverse images of finite sets are finite. -/
+lemma function.injective.tendsto_cofinite {α β : Type*} {f : α → β} (hf : function.injective f) :
+  tendsto f cofinite cofinite :=
+λ s h, h.preimage (hf.inj_on _)

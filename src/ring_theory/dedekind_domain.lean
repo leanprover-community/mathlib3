@@ -7,6 +7,7 @@ import ring_theory.discrete_valuation_ring
 import ring_theory.fractional_ideal
 import ring_theory.ideal.over
 import ring_theory.integrally_closed
+import ring_theory.polynomial.rational_root
 import ring_theory.trace
 
 /-!
@@ -106,6 +107,13 @@ lemma is_dedekind_domain_iff (K : Type*) [field K] [algebra A K] [is_fraction_ri
     (∀ {x : K}, is_integral A x → ∃ y, algebra_map A K y = x) :=
 ⟨λ ⟨hr, hd, hi⟩, ⟨hr, hd, λ x, (is_integrally_closed_iff K).mp hi⟩,
  λ ⟨hr, hd, hi⟩, ⟨hr, hd, (is_integrally_closed_iff K).mpr @hi⟩⟩
+
+@[priority 100] -- See library note [lower instance priority]
+instance is_principal_ideal_ring.is_dedekind_domain [is_principal_ideal_ring A] :
+  is_dedekind_domain A :=
+⟨principal_ideal_ring.is_noetherian_ring,
+ ring.dimension_le_one.principal_ideal_ring A,
+ unique_factorization_monoid.is_integrally_closed⟩
 
 /--
 A Dedekind domain is an integral domain that is Noetherian, and the

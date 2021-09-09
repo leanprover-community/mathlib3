@@ -267,8 +267,6 @@ instance : order_bot ℝ≥0 :=
 instance : canonically_linear_ordered_add_monoid ℝ≥0 :=
 { add_le_add_left       := assume a b h c,
     nnreal.coe_le_coe.mp $ (add_le_add_left (nnreal.coe_le_coe.mpr h) c),
-  lt_of_add_lt_add_left := assume a b c bc,
-    nnreal.coe_lt_coe.mp $ lt_of_add_lt_add_left (nnreal.coe_lt_coe.mpr bc),
   le_iff_exists_add     := assume ⟨a, ha⟩ ⟨b, hb⟩,
     iff.intro
       (assume h : a ≤ b,

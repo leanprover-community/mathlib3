@@ -977,6 +977,9 @@ by simp [@eq_comm _ a']
 theorem exists_comm {p : α → β → Prop} : (∃ a b, p a b) ↔ ∃ b a, p a b :=
 ⟨λ ⟨a, b, h⟩, ⟨b, a, h⟩, λ ⟨b, a, h⟩, ⟨a, b, h⟩⟩
 
+theorem and.exists {p q : Prop} {f : p ∧ q → Prop} : (∃ h, f h) ↔ ∃ hp hq, f ⟨hp, hq⟩ :=
+⟨λ ⟨h, H⟩, ⟨h.1, h.2, H⟩, λ ⟨hp, hq, H⟩, ⟨⟨hp, hq⟩, H⟩⟩
+
 theorem forall_or_of_or_forall (h : b ∨ ∀x, p x) (x) : b ∨ p x :=
 h.imp_right $ λ h₂, h₂ x
 

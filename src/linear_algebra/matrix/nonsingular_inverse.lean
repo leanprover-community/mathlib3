@@ -470,6 +470,12 @@ lemma is_unit_det_of_left_inverse (h : B ⬝ A = 1) : is_unit A.det :=
 lemma is_unit_det_of_right_inverse (h : A ⬝ B = 1) : is_unit A.det :=
 @is_unit_of_invertible _ _ _ (det_invertible_of_right_inverse _ _ h)
 
+lemma det_ne_zero_of_left_inverse [nontrivial α] (h : B ⬝ A = 1) : A.det ≠ 0 :=
+is_unit.ne_zero (matrix.is_unit_det_of_left_inverse h)
+
+lemma det_ne_zero_of_right_inverse [nontrivial α] (h : A ⬝ B = 1) : A.det ≠ 0 :=
+is_unit.ne_zero (matrix.is_unit_det_of_right_inverse h)
+
 lemma nonsing_inv_left_right (h : A ⬝ B = 1) : B ⬝ A = 1 :=
 begin
   have h' : is_unit B.det := is_unit_det_of_left_inverse h,
@@ -670,14 +676,32 @@ divides `b`. -/
   A.mul_vec (cramer A b) = A.det • b :=
 by rw [cramer_eq_adjugate_mul_vec, mul_vec_mul_vec, mul_adjugate, smul_mul_vec_assoc, one_mul_vec]
 
+section nondegenerate
+
+variables {m R A : Type*} [fintype m] [comm_ring R] [integral_domain A]
+
+/-- A matrix `M` is nondegenerate if for all `v ≠ 0`, there is a `w ≠ 0` with `w ⬝ M ⬝ v ≠ 0`. -/
+def nondegenerate (M : matrix m m R) :=
+∀ v, (∀ w, matrix.dot_product v (mul_vec M w) = 0) → v = 0
+
+/-- If `M` is nondegenerate and `w ⬝ M ⬝ v = 0` for all `w`, then `v = 0`. -/
+lemma nondegenerate.eq_zero_of_ortho {M : matrix m m R} (hM : nondegenerate M)
+  {v : m → R} (hv : ∀ w, matrix.dot_product v (mul_vec M w) = 0) : v = 0 :=
+hM v hv
+
+/-- If `M` is nondegenerate and `v ≠ 0`, then there is some `w` such that `w ⬝ M ⬝ v ≠ 0`. -/
+lemma nondegenerate.exists_not_ortho_of_ne_zero {M : matrix m m R} (hM : nondegenerate M)
+  {v : m → R} (hv : v ≠ 0) : ∃ w, matrix.dot_product v (mul_vec M w) ≠ 0 :=
+not_forall.mp (mt hM.eq_zero_of_ortho hv)
+
 /-- If `M` has a nonzero determinant, then `M` as a bilinear form on `n → A` is nondegenerate.
 
 See also `bilin_form.nondegenerate_of_det_ne_zero'` and `bilin_form.nondegenerate_of_det_ne_zero`.
 -/
-theorem nondegenerate_of_det_ne_zero {A : Type*} [integral_domain A]
-  {M : matrix n n A} (hM : M.det ≠ 0)
-  (v : n → A) (hv : ∀ w, matrix.dot_product v (mul_vec M w) = 0) : v = 0 :=
+theorem nondegenerate_of_det_ne_zero {M : matrix n n A} (hM : M.det ≠ 0) :
+  nondegenerate M :=
 begin
+  intros v hv,
   ext i,
   specialize hv (M.cramer (pi.single i 1)),
   refine (mul_eq_zero.mp _).resolve_right hM,
@@ -687,5 +711,17 @@ begin
   { intros j _ hj, simp [hj] },
   { intros, have := finset.mem_univ i, contradiction }
 end
+
+theorem eq_zero_of_vec_mul_eq_zero {M : matrix n n A} (hM : M.det ≠ 0) {v : n → A}
+  (hv : M.vec_mul v = 0) : v = 0 :=
+(nondegenerate_of_det_ne_zero hM).eq_zero_of_ortho
+  (λ w, by rw [dot_product_mul_vec, hv, zero_dot_product])
+
+theorem eq_zero_of_mul_vec_eq_zero {M : matrix n n A} (hM : M.det ≠ 0) {v : n → A}
+  (hv : M.mul_vec v = 0) :
+  v = 0 :=
+eq_zero_of_vec_mul_eq_zero (by rwa det_transpose) ((vec_mul_transpose M v).trans hv)
+
+end nondegenerate
 
 end matrix

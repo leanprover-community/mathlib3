@@ -416,40 +416,52 @@ end third_iso_thm
 section trivial
 
 /-These first few lemmas should maybe go somewhere else, where?-/
-/--The trivial relation-/
-def triv_rel {α: Sort*} : α → α → Prop :=
-λ a b, true
 
-lemma quot_triv_eqv_gen_triv {α : Type u} (r : α → α → Prop ) (h : quot r ≃ trunc α) :
-  eqv_gen r = triv_rel :=
+lemma quot_triv_eqv_gen_triv {α : Type u} (r : α → α → Prop ) :
+  subsingleton (quot r) ↔ forall a b, eqv_gen r a b :=
 begin
-  ext,
-  rw triv_rel,
-  rw trunc at h,
-  have : h  (quot.mk r x) = h (quot.mk r x_1), by {apply trunc.eq,},
-  simp only [equiv.apply_eq_iff_eq] at this,
-  have h2 := quot.exact r this,
-  simp only [iff_true],
-  exact h2,
+  split,
+  intro h,
+  intros a b,
+  apply quot.exact,
+  apply subsingleton.elim _ _,
+  exact h,
+  intro h,
+  apply subsingleton.intro,
+  intros a b,
+  have ha:= quot.exists_rep a ,
+  have hb:= quot.exists_rep b ,
+  have h3:= h (classical.some ha)(classical.some hb),
+  have h4:= quot.eqv_gen_sound h3,
+  have h5:= classical.some_spec ha,
+  have h6:= classical.some_spec hb,
+  rw ← h5,
+  rw ← h6,
+  exact h4,
 end
 
+
 lemma eqv_gen_triv_rel_triv {α : Type u} (r : α → α → Prop )
-  (h : eqv_gen r = triv_rel) (h2 : equivalence r) : r = triv_rel:=
+  (h : eqv_gen r = λ _ _, true) (h2 : equivalence r) : r = λ _ _, true:=
 begin
   rw ← h,
   ext,
   simp_rw relation.eqv_gen_iff_of_equivalence h2,
 end
 
-lemma quot_by_top_is_trunc : quotient_group.quotient (⊤ : subgroup G) = trunc G :=
+
+lemma quot_by_top_is_subsingleton : subsingleton (quotient_group.quotient (⊤ : subgroup G)) :=
 begin
-  rw trunc, congr',
+  have: quotient_group.quotient (⊤ : subgroup G) = trunc G , by {rw trunc, congr'},
+  rw this,
+  apply subsingleton.intro,
+  apply trunc.eq,
 end
 
-lemma left_rel_triv (H : subgroup G) (h : (quotient_group.left_rel H).r = triv_rel  ) :
+
+lemma left_rel_triv (H : subgroup G) (h : (quotient_group.left_rel H).r = λ _ _, true  ) :
   ∀ x y : G , x⁻¹ * y ∈ H :=
 begin
-  rw triv_rel at h,
   let s := (quotient_group.left_rel H).r,
   have h2 : ∀ x y : G, s x y ↔ x⁻¹ * y ∈ H, by {intros x y, refl},
   intros x y,
@@ -460,49 +472,24 @@ begin
   tauto,
 end
 
-def subsingleton_quot_equiv_trunc [inhabited G] (H : subgroup G)
-  (h : subsingleton (quotient_group.quotient H)): trunc G ≃ quotient_group.quotient H :=
-{
-  to_fun := λ _, default ( quotient_group.quotient H ),
-  inv_fun := λ _, default (trunc G),
-  left_inv := λ _, subsingleton.elim _ _,
-  right_inv := λ _, subsingleton.elim _ _ }
-
-noncomputable lemma subsingleton_quot_equiv_trunc'  (H : subgroup G)
-  (h : subsingleton (quotient_group.quotient H)) : trunc G ≃ quotient_group.quotient H :=
-begin
-  have : inhabited G,
-    by {have hy: nonempty G, by {apply_instance,}, apply classical.inhabited_of_nonempty hy,},
-  apply subsingleton_quot_equiv_trunc _,
-  apply h,
-  apply this,
-end
-
-lemma quot_eq_quot_by_top (H : subgroup G)
-(h: quotient_group.quotient H ≃ quotient_group.quotient (⊤ : subgroup G)) : H = ⊤ :=
-begin
-  ext1,
-  simp only [subgroup.mem_top, iff_true] at *,
-  rw quot_by_top_is_trunc at h,
-  rw quotient_group.quotient at h,
-  have H2 :=quot_triv_eqv_gen_triv _ h,
-  let rr := quotient_group.left_rel H,
-  simp_rw quotient_group.left_rel at h,
-  have HH := setoid.iseqv,
-  have H3 := eqv_gen_triv_rel_triv  _ H2 HH,
-  have H4 := left_rel_triv H H3,
-  have H5 := H4 1 x,
-  simp only [one_inv, one_mul] at H5,
-  exact H5,
-end
-
 /--If the quotient by a subgroup gives a singleton then the subgroup is the whole group-/
+
 lemma quot_subsingleton_triv  (H : subgroup G)
  (h : subsingleton (quotient_group.quotient H)) : H = ⊤ :=
 begin
-  have h2 := subsingleton_quot_equiv_trunc' H h,
-  rw ← quot_by_top_is_trunc at h2,
-  apply quot_eq_quot_by_top H h2.symm,
+  ext1,
+  simp only [subgroup.mem_top, iff_true] at *,
+  rw quotient_group.quotient at h,
+  let r := (quotient_group.left_rel H).r,
+  have := quot_triv_eqv_gen_triv r,
+  have h2 := this.1 h,
+  have h3 := setoid.iseqv,
+  have h4 : eqv_gen r = λ _ _, true, by { ext, rw iff_true, apply h2 x_1 x_2, },
+  have h5 := eqv_gen_triv_rel_triv r h4 h3,
+  have h6 := left_rel_triv H h5,
+  have h7 := h6 1 x,
+  rw [one_inv, one_mul] at h7,
+  exact h7,
 end
 
 end trivial

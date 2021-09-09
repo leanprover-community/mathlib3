@@ -40,7 +40,7 @@ We provide the following notations for expressing the integral of a function on 
 * `∫ a in s, f a ∂μ` is `measure_theory.integral (μ.restrict s) f`
 * `∫ a in s, f a` is `∫ a in s, f a ∂volume`
 
-Note that the set notations are defined in the file `measure_theory/bochner_integration`,
+Note that the set notations are defined in the file `measure_theory/integral/bochner`,
 but we reference them here because all theorems about set integrals are in this file.
 
 -/

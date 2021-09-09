@@ -26,9 +26,12 @@ polynomial in `k` splits.
   out by a maximal ideal containing every `f(x_f)`, and then repeating this step countably
   many times. See Exercise 1.13 in Atiyah--Macdonald.
 
+- `is_alg_closed.lift` is a map from an algebraic extension `L` of `K`, into any algebraically
+  closed extension of `K`.
+
 ## TODO
 
-Show that any algebraic extension embeds into any algebraically closed extension (via Zorn's lemma).
+Show that any two algebraic closures are isomorphic
 
 ## Tags
 

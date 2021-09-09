@@ -417,8 +417,9 @@ section trivial
 
 /-These first few lemmas should maybe go somewhere else, where?-/
 
-lemma subsingleton_quot_iff_forall {α : Type u} (r : α → α → Prop ) :
-  subsingleton (quot r) ↔ ∀ a b, eqv_gen r a b :=
+variables {α : Type u} (r : α → α → Prop )
+
+lemma subsingleton_quot_iff_forall : subsingleton (quot r) ↔ ∀ a b, eqv_gen r a b :=
 begin
   rw subsingleton_iff,
   refine (surjective_quot_mk _).forall.trans (forall_congr $ λ a, _),
@@ -426,21 +427,8 @@ begin
   exact quot.eq,
 end
 
-lemma eqv_gen_triv_rel_triv {α : Type u} (r : α → α → Prop )
-  (h : eqv_gen r = λ _ _, true) (h2 : equivalence r) : r = λ _ _, true:=
-begin
-  rw ← h,
-  ext,
-  simp_rw relation.eqv_gen_iff_of_equivalence h2,
-end
-
 lemma quot_by_top_is_subsingleton : subsingleton (quotient_group.quotient (⊤ : subgroup G)) :=
-begin
-  have: quotient_group.quotient (⊤ : subgroup G) = trunc G , by {rw trunc, congr'},
-  rw this,
-  apply subsingleton.intro,
-  apply trunc.eq,
-end
+trunc.subsingleton
 
 lemma left_rel_triv (H : subgroup G) (h : (quotient_group.left_rel H).r = λ _ _, true  ) :
   ∀ x y : G , x⁻¹ * y ∈ H :=
@@ -468,11 +456,11 @@ begin
   have h2 := this.1 h,
   have h3 := setoid.iseqv,
   have h4 : eqv_gen r = λ _ _, true, by { ext, rw iff_true, apply h2 x_1 x_2, },
-  have h5 := eqv_gen_triv_rel_triv r h4 h3,
-  have h6 := left_rel_triv H h5,
-  have h7 := h6 1 x,
-  rw [one_inv, one_mul] at h7,
-  exact h7,
+  rw relation.eqv_gen_eq_of_equivalence r h3 at h4,
+  have h5 := left_rel_triv H h4,
+  have h6 := h5 1 x,
+  rw [one_inv, one_mul] at h6,
+  exact h6,
 end
 
 end trivial

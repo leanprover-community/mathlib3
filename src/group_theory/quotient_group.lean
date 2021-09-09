@@ -460,10 +460,7 @@ begin
   tauto,
 end
 
-/-Can this be removed? I just want an inhabited instance for G later on-/
-instance G_non_empty : nonempty G := infer_instance
-
- def subsingleton_quot_equiv_trunc [inhabited G] (H : subgroup G)
+def subsingleton_quot_equiv_trunc [inhabited G] (H : subgroup G)
   (h : subsingleton (quotient_group.quotient H)): trunc G ≃ quotient_group.quotient H :=
 {
   to_fun := λ _, default ( quotient_group.quotient H ),
@@ -475,7 +472,7 @@ noncomputable lemma subsingleton_quot_equiv_trunc'  (H : subgroup G)
   (h : subsingleton (quotient_group.quotient H)) : trunc G ≃ quotient_group.quotient H :=
 begin
   have : inhabited G,
-    by {apply classical.inhabited_of_nonempty quotient_group.G_non_empty, apply _inst_1},
+    by {have hy: nonempty G, by {apply_instance,}, apply classical.inhabited_of_nonempty hy,},
   apply subsingleton_quot_equiv_trunc _,
   apply h,
   apply this,

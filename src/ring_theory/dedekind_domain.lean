@@ -916,38 +916,37 @@ lemma count_le_of_ideal_ge {I J : ideal T} (h : I ≤ J) (hI : I ≠ ⊥) (K : i
   count K (factors J) ≤ count K (factors I) :=
 le_iff_count.1 ((dvd_iff_factors_le_factors (ne_bot_of_ne_bot_le h hI) hI).1 (dvd_iff_le.2 h)) _
 
-lemma zero_not_mem_inf_factors (I J : ideal T) : ⊥ ∉ factors I ⊓ factors J :=
-begin
-  by_contra hcontra,
-  rw [multiset.inf_eq_inter, mem_inter] at hcontra,
-  exact false_of_ne (prime.ne_zero (prime_of_factor (0 : ideal T) hcontra.left)),
-end
+-- can be moved to ring_theory/unique_factorization_monoid.lean
+lemma zero_not_mem_factors {M : Type*} [comm_cancel_monoid_with_zero M] [nontrivial M]
+  [normalization_monoid M] [unique_factorization_monoid M] (x : M) : (0 : M) ∉ factors x :=
+λ h, prime.ne_zero (prime_of_factor _ h) rfl
 
-lemma sup_eq_prod_inf_factors (hI : I ≠ ⊥) (hJ : J ≠ ⊥) : I ⊔ J = (factors I ⊓ factors J).prod :=
+lemma sup_eq_prod_inf_factors (hI : I ≠ ⊥) (hJ : J ≠ ⊥) : I ⊔ J = (factors I ∩ factors J).prod :=
 begin
-  have H : factors (factors I ⊓ factors J).prod = factors I ⊓ factors J,
-  { apply factors_prod_factors_eq_factors (zero_not_mem_inf_factors I J),
+  have H : factors (factors I ∩ factors J).prod = factors I ∩ factors J,
+  { apply factors_prod_factors_eq_factors,
     intros p hp,
-    rw [multiset.inf_eq_inter, mem_inter] at hp,
+    rw mem_inter at hp,
     exact prime_of_factor p hp.left },
+  have := ((factors I ∩ factors J).prod_ne_zero_of_prime
+    (λ _ h, prime_of_factor _ (multiset.mem_inter.1 h).1)),
   apply le_antisymm,
   { rw [sup_le_iff, ← dvd_iff_le, ← dvd_iff_le],
     split,
-    {rw [dvd_iff_factors_le_factors (prod_ne_zero (zero_not_mem_inf_factors I J)) hI, H],
+    { rw [dvd_iff_factors_le_factors this hI, H],
       exact inf_le_left },
-    { rw [dvd_iff_factors_le_factors (prod_ne_zero (zero_not_mem_inf_factors I J)) hJ, H],
+    { rw [dvd_iff_factors_le_factors this hJ, H],
       exact inf_le_right } },
-  { rw [← dvd_iff_le, dvd_iff_factors_le_factors, factors_prod_factors_eq_factors
-    (zero_not_mem_inf_factors I J), le_iff_count],
+  { rw [← dvd_iff_le, dvd_iff_factors_le_factors, factors_prod_factors_eq_factors, le_iff_count],
     { intro a,
-    rw [multiset.inf_eq_inter, multiset.count_inter],
-    exact le_min (count_le_of_ideal_ge le_sup_left hI a)
-      (count_le_of_ideal_ge le_sup_right hJ a) },
+      rw multiset.count_inter,
+      exact le_min (count_le_of_ideal_ge le_sup_left hI a)
+        (count_le_of_ideal_ge le_sup_right hJ a) },
     { intros p hp,
-      rw [multiset.inf_eq_inter, mem_inter] at hp,
+      rw mem_inter at hp,
       exact prime_of_factor p hp.left },
     { exact ne_bot_of_ne_bot_le le_sup_left hI },
-    { exact prod_ne_zero (zero_not_mem_inf_factors I J) } },
+    { exact this } },
 end
 
 end is_dedekind_domain

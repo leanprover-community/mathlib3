@@ -909,8 +909,7 @@ by {simp_rw [← multiset.rel_eq, ← associated_eq_eq], exact prime_factors_uni
 
 lemma count_le_of_ideal_ge {I J : ideal T} (h : I ≤ J) (hI : I ≠ ⊥) (K : ideal T) :
   count K (factors J) ≤ count K (factors I) :=
-by apply le_iff_count.1 ((dvd_iff_factors_le_factors (ne_bot_of_ne_bot_le h hI) hI).1
-  (dvd_iff_le.2 h))
+le_iff_count.1 ((dvd_iff_factors_le_factors (ne_bot_of_ne_bot_le h hI) hI).1 (dvd_iff_le.2 h)) _
 
 lemma zero_not_mem_inf_factors (I J : ideal T) : ⊥ ∉ factors I ⊓ factors J :=
 begin

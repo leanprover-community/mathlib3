@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
 import measure_theory.decomposition.lebesgue
-import measure_theory.measure.with_density_signed_measure
+import measure_theory.measure.with_density_vector_measure
 
 /-!
 # Radon-Nikodym theorem
@@ -124,7 +124,7 @@ open measure vector_measure
 
 /-- The Radon-Nikodym derivative between a signed measure and a positive measure.
 
-`radon_nikodym_deriv s μ` satisfies `μ.with_density_signed_measure (s.radon_nikodym_deriv μ) = s`
+`radon_nikodym_deriv s μ` satisfies `μ.with_densityᵥ (s.radon_nikodym_deriv μ) = s`
 if and only if `s` is absolutely continuous with respect to `μ` and this fact is known as
 `measure_theory.signed_measure.absolutely_continuous_iff_with_density_radon_nikodym_deriv_eq`. -/
 def radon_nikodym_deriv (s : signed_measure α) (μ : measure α) : α → ℝ := λ x,
@@ -148,16 +148,16 @@ begin
       (lintegral_radon_nikodym_deriv_lt_top _ μ).ne }
 end
 
-theorem with_density_radon_nikodym_deriv_eq
+theorem with_densityᵥ_radon_nikodym_deriv_eq
   (s : signed_measure α) (μ : measure α) [sigma_finite μ]
   (h : s ≪ μ.to_ennreal_vector_measure) :
-  μ.with_density_signed_measure (s.radon_nikodym_deriv μ) = s :=
+  μ.with_densityᵥ (s.radon_nikodym_deriv μ) = s :=
 begin
   rw [absolutely_continuous_ennreal_iff,
       (_ : μ.to_ennreal_vector_measure.ennreal_to_measure = μ),
       total_variation_absolutely_continuous_iff] at h,
   { ext1 i hi,
-    rw [with_density_signed_measure_apply (integrable_radon_nikodym_deriv _ _) hi,
+    rw [with_densityᵥ_apply (integrable_radon_nikodym_deriv _ _) hi,
         radon_nikodym_deriv, integral_sub,
         with_density_radon_nikodym_deriv_to_real_eq h.1 hi,
         with_density_radon_nikodym_deriv_to_real_eq h.2 hi],
@@ -177,9 +177,9 @@ end
 theorem absolutely_continuous_iff_with_density_radon_nikodym_deriv_eq
   (s : signed_measure α) (μ : measure α) [sigma_finite μ] :
   s ≪ μ.to_ennreal_vector_measure ↔
-  μ.with_density_signed_measure (s.radon_nikodym_deriv μ) = s :=
-⟨with_density_radon_nikodym_deriv_eq s μ,
- λ h, h ▸ with_density_signed_measure_absolutely_continuous _ _⟩
+  μ.with_densityᵥ (s.radon_nikodym_deriv μ) = s :=
+⟨with_densityᵥ_radon_nikodym_deriv_eq s μ,
+ λ h, h ▸ with_densityᵥ_absolutely_continuous _ _⟩
 
 end signed_measure
 

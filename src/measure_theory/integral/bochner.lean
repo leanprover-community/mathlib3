@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Zhouhang Zhou, Yury Kudryashov, Sébastien Gouëzel
+Authors: Zhouhang Zhou, Yury Kudryashov, Sébastien Gouëzel, Rémy Degenne
 -/
 import measure_theory.integral.set_to_l1
 import measure_theory.group.basic
@@ -17,24 +17,31 @@ extending the integral on simple functions.
 
 ## Main definitions
 
-The Bochner integral is defined following these steps:
+The Bochner integral is defined through the extension process described in the file `set_to_L1`,
+which follows these steps:
 
-1. Define the integral on simple functions of the type `simple_func α E` (notation : `α →ₛ E`)
-  where `E` is a real normed space.
+1. Define the integral of the indicator of a set. This is `weighted_smul μ s x = (μ s).to_real * x`.
+  `weighted_smul μ` is shown to be linear in the value `x` and `dominated_fin_meas_additive`
+  (defined in the file `set_to_L1`) with respect to the set `s`.
 
-  (See `simple_func.bintegral` and section `bintegral` for details. Also see `simple_func.integral`
-  for the integral on simple functions of the type `simple_func α ℝ≥0∞`.)
+2. Define the integral on simple functions of the type `simple_func α E` (notation : `α →ₛ E`)
+  where `E` is a real normed space. (See `simple_func.integral` for details.)
 
-2. Transfer this definition to define the integral on `L1.simple_func α E` (notation :
+3. Transfer this definition to define the integral on `L1.simple_func α E` (notation :
   `α →₁ₛ[μ] E`), see `L1.simple_func.integral`. Show that this integral is a continuous linear
   map from `α →₁ₛ[μ] E` to `E`.
 
-3. Define the Bochner integral on L1 functions by extending the integral on integrable simple
+4. Define the Bochner integral on L1 functions by extending the integral on integrable simple
   functions `α →₁ₛ[μ] E` using `continuous_linear_map.extend` and the fact that the embedding of
   `α →₁ₛ[μ] E` into `α →₁[μ] E` is dense.
 
-4. Define the Bochner integral on functions as the Bochner integral of its equivalence class in L1
+5. Define the Bochner integral on functions as the Bochner integral of its equivalence class in L1
   space, if it is in L1, and 0 otherwise.
+
+The result of that construction is `∫ a, f a ∂μ`, which is definitionally equal to
+`set_to_fun (dominated_fin_meas_additive_weighted_smul μ) f`. Some basic properties of the integral
+(like linearity) are particular cases of the properties of `set_to_fun` (which are described in the
+file `set_to_L1`).
 
 ## Main statements
 
@@ -79,8 +86,9 @@ The Bochner integral is defined following these steps:
 Some tips on how to prove a proposition if the API for the Bochner integral is not enough so that
 you need to unfold the definition of the Bochner integral and go back to simple functions.
 
-One method is to use the theorem `integrable.induction` in the file `simple_func_dense`, which
-allows you to prove something for an arbitrary measurable + integrable function.
+One method is to use the theorem `integrable.induction` in the file `simple_func_dense` (or one of
+the related results, like `Lp.induction` for functions in `Lp`), which allows you to prove something
+for an arbitrary measurable + integrable function.
 
 Another method is using the following steps.
 See `integral_eq_lintegral_max_sub_lintegral_min` for a complicated example, which proves that
@@ -121,13 +129,12 @@ Use `is_closed_property` or `dense_range.induction_on` for this argument.
 * `α →₁ₛ[μ] E` : simple functions in L1 space, i.e., equivalence classes of integrable simple
                  functions (defined in `measure_theory/simple_func_dense`)
 * `∫ a, f a ∂μ` : integral of `f` with respect to a measure `μ`
-* `∫ a, f a` : integral of `f` with respect to `volume`, the default measure on the
-                    ambient type
+* `∫ a, f a` : integral of `f` with respect to `volume`, the default measure on the ambient type
 
 We also define notations for integral on a set, which are described in the file
 `measure_theory/set_integral`.
 
-Note : `ₛ` is typed using `\_s`. Sometimes it shows as a box if font is missing.
+Note : `ₛ` is typed using `\_s`. Sometimes it shows as a box if the font is missing.
 
 ## Tags
 
@@ -201,15 +208,12 @@ lemma weighted_smul_smul [normed_field 𝕜] [normed_space 𝕜 F] [smul_comm_cl
   weighted_smul μ s (c • x) = c • weighted_smul μ s x :=
 by { simp_rw [weighted_smul_apply, smul_comm], }
 
-/-- TODO: move this. -/
-lemma norm_smul_id_le [semi_normed_group E] [nondiscrete_normed_field 𝕜] [semi_normed_space 𝕜 E]
-  (r : 𝕜) :
-  ∥r • (continuous_linear_map.id 𝕜 E)∥ ≤ ∥r∥ :=
-(norm_smul _ _).le.trans
-  ((mul_le_mul_of_nonneg_left norm_id_le (norm_nonneg _)).trans (mul_one _).le)
-
 lemma norm_weighted_smul_le (s : set α) : ∥(weighted_smul μ s : F →L[ℝ] F)∥ ≤ (μ s).to_real :=
-(norm_smul_id_le _).trans ((real.norm_eq_abs _).trans (abs_eq_self.mpr ennreal.to_real_nonneg)).le
+calc ∥(weighted_smul μ s : F →L[ℝ] F)∥ = ∥(μ s).to_real∥ * ∥continuous_linear_map.id ℝ F∥ :
+  norm_smul _ _
+... ≤ ∥(μ s).to_real∥ : (mul_le_mul_of_nonneg_left norm_id_le (norm_nonneg _)).trans (mul_one _).le
+... = abs (μ s).to_real : real.norm_eq_abs _
+... = (μ s).to_real : abs_eq_self.mpr ennreal.to_real_nonneg
 
 lemma dominated_fin_meas_additive_weighted_smul {m : measurable_space α} (μ : measure α) :
   dominated_fin_meas_additive μ (weighted_smul μ : set α → F →L[ℝ] F) 1 :=
@@ -1105,7 +1109,7 @@ end
 
 lemma simple_func.integral_eq_sum (f : α →ₛ E) (hfi : integrable f μ) :
   ∫ x, f x ∂μ = ∑ x in f.range, (ennreal.to_real (μ (f ⁻¹' {x}))) • x :=
-by {rw [← f.integral_eq_integral hfi, simple_func.integral, ← simple_func.integral_eq], refl, }
+by { rw [← f.integral_eq_integral hfi, simple_func.integral, ← simple_func.integral_eq], refl, }
 
 @[simp] lemma integral_const (c : E) : ∫ x : α, c ∂μ = (μ univ).to_real • c :=
 begin

@@ -3,7 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import data.matrix.basic
+import data.matrix.basis
 import ring_theory.tensor_product
 
 /-!
@@ -177,7 +177,7 @@ rfl
   matrix_equiv_tensor R A n (std_basis_matrix i j x) =
     x ⊗ₜ (std_basis_matrix i j 1) :=
 begin
-  have t : ∀ (p : n × n), (p.1 = i ∧ p.2 = j) ↔ (p = (i, j)) := by tidy,
+  have t : ∀ (p : n × n), (i = p.1 ∧ j = p.2) ↔ (p = (i, j)) := by tidy,
   simp [ite_tmul, t, std_basis_matrix],
 end
 

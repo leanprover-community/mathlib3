@@ -189,6 +189,18 @@ lemma norm_sum_le_of_le {β} (s : finset β) {f : β → α} {n : β → ℝ} (h
   ∥∑ b in s, f b∥ ≤ ∑ b in s, n b :=
 le_trans (norm_sum_le s f) (finset.sum_le_sum h)
 
+lemma dist_sum_sum_le_of_le {β} (s : finset β) {f g : β → α} {d : β → ℝ}
+  (h : ∀ b ∈ s, dist (f b) (g b) ≤ d b) :
+  dist (∑ b in s, f b) (∑ b in s, g b) ≤ ∑ b in s, d b :=
+begin
+  simp only [dist_eq_norm, ← finset.sum_sub_distrib] at *,
+  exact norm_sum_le_of_le s h
+end
+
+lemma dist_sum_sum_le {β} (s : finset β) (f g : β → α) :
+  dist (∑ b in s, f b) (∑ b in s, g b) ≤ ∑ b in s, dist (f b) (g b) :=
+dist_sum_sum_le_of_le s (λ _ _, le_rfl)
+
 lemma norm_sub_le (g h : α) : ∥g - h∥ ≤ ∥g∥ + ∥h∥ :=
 by simpa [dist_eq_norm] using dist_triangle g 0 h
 
@@ -1349,6 +1361,14 @@ nnreal.eq $ norm_of_nonneg hx
 lemma ennnorm_eq_of_real {x : ℝ} (hx : 0 ≤ x) : (∥x∥₊ : ℝ≥0∞) = ennreal.of_real x :=
 by { rw [← of_real_norm_eq_coe_nnnorm, norm_of_nonneg hx] }
 
+/-- If `E` is a nontrivial topological module over `ℝ`, then `E` has no isolated points.
+This is a particular case of `module.punctured_nhds_ne_bot`. -/
+instance punctured_nhds_module_ne_bot
+  {E : Type*} [add_comm_group E] [topological_space E] [has_continuous_add E] [nontrivial E]
+  [module ℝ E] [has_continuous_smul ℝ E] (x : E) :
+  ne_bot (𝓝[{x}ᶜ] x) :=
+module.punctured_nhds_ne_bot ℝ E x
+
 end real
 
 namespace nnreal
@@ -1653,21 +1673,8 @@ theorem interior_closed_ball' [normed_space ℝ E] [nontrivial E] (x : E) (r : �
   interior (closed_ball x r) = ball x r :=
 begin
   rcases lt_trichotomy r 0 with hr|rfl|hr,
-  { simp [closed_ball_eq_empty_iff_neg.2 hr, ball_eq_empty_iff_nonpos.2 (le_of_lt hr)] },
-  { suffices : x ∉ interior {x},
-    { rw [ball_zero, closed_ball_zero, ← set.subset_empty_iff],
-      intros y hy,
-      obtain rfl : y = x := set.mem_singleton_iff.1 (interior_subset hy),
-      exact this hy },
-    rw [← set.mem_compl_iff, ← closure_compl],
-    rcases exists_ne (0 : E) with ⟨z, hz⟩,
-    suffices : (λ c : ℝ, x + c • z) 0 ∈ closure ({x}ᶜ : set E),
-      by simpa only [zero_smul, add_zero] using this,
-    have : (0:ℝ) ∈ closure (set.Ioi (0:ℝ)), by simp [closure_Ioi],
-    refine (continuous_const.add (continuous_id.smul
-      continuous_const)).continuous_within_at.mem_closure this _,
-    intros c hc,
-    simp [smul_eq_zero, hz, ne_of_gt hc] },
+  { simp [closed_ball_eq_empty.2 hr, ball_eq_empty.2 hr.le] },
+  { rw [closed_ball_zero, ball_zero, interior_singleton] },
   { exact interior_closed_ball x hr }
 end
 
@@ -2149,7 +2156,7 @@ def to_continuous_map_monoid_hom [monoid Y] [has_continuous_mul Y] :
 
 /-- The inclusion of locally-constant functions into continuous functions as an algebra map. -/
 @[simps] def to_continuous_map_alg_hom (R : Type*) [comm_semiring R] [topological_space R]
-  [semiring Y] [algebra R Y] [topological_semiring Y] [has_continuous_smul R Y] :
+  [semiring Y] [algebra R Y] [topological_ring Y] [has_continuous_smul R Y] :
   locally_constant X Y →ₐ[R] C(X, Y) :=
 { to_fun    := coe,
   map_one'  := by { ext, simp, },

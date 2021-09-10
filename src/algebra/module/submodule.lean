@@ -224,6 +224,14 @@ instance restrict_scalars.orig_module (p : submodule R M) :
 instance (p : submodule R M) : is_scalar_tower S R (p.restrict_scalars S) :=
 { smul_assoc := λ r s x, subtype.ext $ smul_assoc r s (x : M) }
 
+/-- `restrict_scalars S` is an embedding of the lattice of `R`-submodules into
+the lattice of `S`-submodules. -/
+@[simps]
+def restrict_scalars_embedding : submodule R M ↪o submodule S M :=
+{ to_fun := restrict_scalars S,
+  inj' := restrict_scalars_injective S R M,
+  map_rel_iff' := λ p q, by simp [set_like.le_def] }
+
 /-- Turning `p : submodule R M` into an `S`-submodule gives the same module structure
 as turning it into a type and adding a module structure. -/
 @[simps {simp_rhs := tt}]

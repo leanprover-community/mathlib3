@@ -201,7 +201,7 @@ end
 variables (M R)
 
 /-- Interpret `finsupp.filter s` as a linear map from `α →₀ M` to `supported M R s`. -/
-def restrict_dom (s : set α) : (α →₀ M) →ₗ supported M R s :=
+def restrict_dom (s : set α) : (α →₀ M) →ₗ[R] supported M R s :=
 linear_map.cod_restrict _
   { to_fun := filter (∈ s),
     map_add' := λ l₁ l₂, filter_add,
@@ -212,7 +212,7 @@ variables {M R}
 
 section
 @[simp] theorem restrict_dom_apply (s : set α) (l : α →₀ M) :
-  ((restrict_dom M R s : (α →₀ M) →ₗ supported M R s) l : α →₀ M) = finsupp.filter (∈ s) l := rfl
+  ((restrict_dom M R s : (α →₀ M) →ₗ[R] supported M R s) l : α →₀ M) = finsupp.filter (∈ s) l := rfl
 end
 
 theorem restrict_dom_comp_subtype (s : set α) :
@@ -383,7 +383,7 @@ begin
     le_trans (supported_mono $ set.subset_preimage_image _ _)
        (supported_comap_lmap_domain _ _ _ _)) _,
   intros l hl,
-  refine ⟨(lmap_domain M R (function.inv_fun_on f s) : (α' →₀ M) →ₗ α →₀ M) l, λ x hx, _, _⟩,
+  refine ⟨(lmap_domain M R (function.inv_fun_on f s) : (α' →₀ M) →ₗ[R] α →₀ M) l, λ x hx, _, _⟩,
   { rcases finset.mem_image.1 (map_domain_support hx) with ⟨c, hc, rfl⟩,
     exact function.inv_fun_on_mem (by simpa using hl hc) },
   { rw [← linear_map.comp_apply, ← lmap_domain_comp],
@@ -635,8 +635,8 @@ noncomputable def congr {α' : Type*} (s : set α) (t : set α') (e : s ≃ t) :
 begin
   haveI := classical.dec_pred (λ x, x ∈ s),
   haveI := classical.dec_pred (λ x, x ∈ t),
-  refine linear_equiv.trans (finsupp.supported_equiv_finsupp s)
-      (linear_equiv.trans _ (finsupp.supported_equiv_finsupp t).symm),
+  refine (finsupp.supported_equiv_finsupp s) ≪≫ₗ
+      (_ ≪≫ₗ (finsupp.supported_equiv_finsupp t).symm),
   exact finsupp.dom_lcongr e
 end
 
@@ -677,7 +677,7 @@ lemma map_range.linear_equiv_refl :
 linear_equiv.ext map_range_id
 
 lemma map_range.linear_equiv_trans (f : M ≃ₗ[R] N) (f₂ : N ≃ₗ[R] P) :
-  (map_range.linear_equiv (f.trans f₂) : linear_equiv R (α →₀ _) _) =
+  (map_range.linear_equiv (f.trans f₂) : (α →₀ _) ≃ₗ[R] _) =
     (map_range.linear_equiv f).trans (map_range.linear_equiv f₂) :=
 linear_equiv.ext $ map_range_comp _ _ _ _ _
 

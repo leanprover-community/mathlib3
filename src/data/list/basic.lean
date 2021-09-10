@@ -2604,6 +2604,23 @@ lemma length_pos_of_sum_pos [ordered_cancel_add_comm_monoid α] (L : list α) (h
   0 < L.length :=
 length_pos_of_sum_ne_zero L (ne_of_gt h)
 
+-- TODO: develop theory of tropical rings
+lemma sum_le_foldr_max [add_monoid α] [add_monoid β] [linear_order β] (f : α → β)
+  (h0 : f 0 ≤ 0) (hadd : ∀ x y, f (x + y) ≤ max (f x) (f y)) (l : list α) :
+  f l.sum ≤ (l.map f).foldr max 0 :=
+begin
+  induction l with hd tl IH,
+  { simpa using h0 },
+  { simp only [list.sum_cons, list.foldr_map, le_max_iff, list.foldr] at IH ⊢,
+    cases le_or_lt (f tl.sum) (f hd),
+    { left,
+      refine (hadd _ _).trans _,
+      simpa using h },
+    { right,
+      refine (hadd _ _).trans _,
+      simp only [IH, max_le_iff, and_true, h.le.trans IH] } }
+end
+
 @[simp, to_additive]
 theorem prod_erase [decidable_eq α] [comm_monoid α] {a} :
   Π {l : list α}, a ∈ l → a * (l.erase a).prod = l.prod
@@ -3429,6 +3446,14 @@ theorem mem_filter_of_mem {a : α} : ∀ {l}, a ∈ l → p a → a ∈ filter p
 @[simp] theorem mem_filter {a : α} {l} : a ∈ filter p l ↔ a ∈ l ∧ p a :=
 ⟨λ h, ⟨mem_of_mem_filter h, of_mem_filter h⟩, λ ⟨h₁, h₂⟩, mem_filter_of_mem h₁ h₂⟩
 
+lemma monotone_filter_left (p : α → Prop) [decidable_pred p]
+  ⦃l l' : list α⦄ (h : l ⊆ l') : filter p l ⊆ filter p l' :=
+begin
+  intros x hx,
+  rw [mem_filter] at hx ⊢,
+  exact ⟨h hx.left, hx.right⟩
+end
+
 theorem filter_eq_self {l} : filter p l = l ↔ ∀ a ∈ l, p a :=
 begin
   induction l with a l ih,
@@ -3445,8 +3470,24 @@ theorem filter_eq_nil {l} : filter p l = [] ↔ ∀ a ∈ l, ¬p a :=
 by simp only [eq_nil_iff_forall_not_mem, mem_filter, not_and]
 
 variable (p)
-theorem filter_sublist_filter {l₁ l₂} (s : l₁ <+ l₂) : filter p l₁ <+ filter p l₂ :=
+theorem sublist.filter {l₁ l₂} (s : l₁ <+ l₂) : filter p l₁ <+ filter p l₂ :=
 filter_map_eq_filter p ▸ s.filter_map _
+
+lemma monotone_filter_right (l : list α) ⦃p q : α → Prop⦄ [decidable_pred p] [decidable_pred q]
+  (h : p ≤ q) : l.filter p <+ l.filter q :=
+begin
+  induction l with hd tl IH,
+  { refl },
+  { by_cases hp : p hd,
+    { rw [filter_cons_of_pos _ hp, filter_cons_of_pos _ (h _ hp)],
+      exact cons_sublist_cons hd IH },
+    { rw filter_cons_of_neg _ hp,
+      by_cases hq : q hd,
+      { rw filter_cons_of_pos _ hq,
+        exact sublist_cons_of_sublist hd IH },
+      { rw filter_cons_of_neg _ hq,
+        exact IH } } }
+end
 
 theorem map_filter (f : β → α) (l : list β) :
   filter p (map f l) = map f (filter (p ∘ f) l) :=
@@ -3500,7 +3541,7 @@ theorem countp_pos {l} : 0 < countp p l ↔ ∃ a ∈ l, p a :=
 by simp only [countp_eq_length_filter, length_pos_iff_exists_mem, mem_filter, exists_prop]
 
 theorem countp_le_of_sublist {l₁ l₂} (s : l₁ <+ l₂) : countp p l₁ ≤ countp p l₂ :=
-by simpa only [countp_eq_length_filter] using length_le_of_sublist (filter_sublist_filter p s)
+by simpa only [countp_eq_length_filter] using length_le_of_sublist (s.filter p)
 
 @[simp] theorem countp_filter {q} [decidable_pred q] (l : list α) :
   countp p (filter q l) = countp (λ a, p a ∧ q a) l :=
@@ -3857,6 +3898,30 @@ end
 lemma is_prefix.reduce_option {l l' : list (option α)} (h : l <+: l') :
   l.reduce_option <+: l'.reduce_option :=
 h.filter_map id
+
+lemma is_prefix.filter (p : α → Prop) [decidable_pred p]
+  ⦃l l' : list α⦄ (h : l <+: l') : filter p l <+: filter p l' :=
+begin
+  obtain ⟨xs, rfl⟩ := h,
+  rw filter_append,
+  exact prefix_append _ _
+end
+
+lemma is_suffix.filter (p : α → Prop) [decidable_pred p]
+  ⦃l l' : list α⦄ (h : l <:+ l') : filter p l <:+ filter p l' :=
+begin
+  obtain ⟨xs, rfl⟩ := h,
+  rw filter_append,
+  exact suffix_append _ _
+end
+
+lemma is_infix.filter (p : α → Prop) [decidable_pred p]
+  ⦃l l' : list α⦄ (h : l <:+: l') : filter p l <:+: filter p l' :=
+begin
+  obtain ⟨xs, ys, rfl⟩ := h,
+  rw [filter_append, filter_append],
+  exact infix_append _ _ _
+end
 
 @[simp] theorem mem_inits : ∀ (s t : list α), s ∈ inits t ↔ s <+: t
 | s []     := suffices s = nil ↔ s <+: nil, by simpa only [inits, mem_singleton],

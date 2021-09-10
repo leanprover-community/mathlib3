@@ -60,7 +60,6 @@ add_decl_doc linear_map.to_add_hom
 /-- The `mul_action_hom` underlying a `linear_map`. -/
 add_decl_doc linear_map.to_mul_action_hom
 
-infixr ` →ₗ `:25 := linear_map _
 notation M ` →ₗ[`:25 R:25 `] `:0 M₂:0 := linear_map R M M₂
 
 namespace linear_map
@@ -225,6 +224,8 @@ variables (f : M₂ →ₗ[R] M₃) (g : M →ₗ[R] M₂)
 def comp : M →ₗ[R] M₃ :=
 { to_fun := f ∘ g, .. f.to_distrib_mul_action_hom.comp g.to_distrib_mul_action_hom }
 
+infixr ` ∘ₗ `:80 := linear_map.comp
+
 lemma comp_apply (x : M) : f.comp g x = f (g x) := rfl
 
 @[simp, norm_cast] lemma coe_comp : (f.comp g : M → M₃) = f ∘ g := rfl
@@ -323,7 +324,7 @@ variables [module R M] [module R M₂]
 include R
 
 /-- Convert an `is_linear_map` predicate to a `linear_map` -/
-def mk' (f : M → M₂) (H : is_linear_map R f) : M →ₗ M₂ :=
+def mk' (f : M → M₂) (H : is_linear_map R f) : M →ₗ[R] M₂ :=
 { to_fun := f, map_add' := H.1, map_smul' := H.2 }
 
 @[simp] theorem mk'_apply {f : M → M₂} (H : is_linear_map R f) (x : M) :
@@ -426,7 +427,6 @@ end
 attribute [nolint doc_blame] linear_equiv.to_linear_map
 attribute [nolint doc_blame] linear_equiv.to_add_equiv
 
-infix ` ≃ₗ ` := linear_equiv _
 notation M ` ≃ₗ[`:50 R `] ` M₂ := linear_equiv R M M₂
 
 namespace linear_equiv
@@ -527,6 +527,8 @@ variables {module_M₃ : module R M₃} (e₁ : M ≃ₗ[R] M₂) (e₂ : M₂ �
 def trans : M ≃ₗ[R] M₃ :=
 { .. e₂.to_linear_map.comp e₁.to_linear_map,
   .. e₁.to_equiv.trans e₂.to_equiv }
+
+infixl ` ≪≫ₗ `:80 := linear_equiv.trans
 
 @[simp] lemma coe_to_add_equiv : ⇑(e.to_add_equiv) = e := rfl
 
@@ -664,3 +666,36 @@ by exact {
   ..g }
 
 end module
+
+namespace distrib_mul_action
+
+variables (R M) [semiring R] [add_comm_monoid M] [module R M]
+
+section
+variables [monoid S] [distrib_mul_action S M] [smul_comm_class S R M]
+
+/-- Each element of the monoid defines a linear map.
+
+This is a stronger version of `distrib_mul_action.to_add_monoid_hom`. -/
+@[simps]
+def to_linear_map (s : S) : M →ₗ[R] M :=
+{ to_fun := has_scalar.smul s,
+  map_add' := smul_add s,
+  map_smul' := λ a b, smul_comm _ _ _ }
+
+end
+
+section
+variables [group S] [distrib_mul_action S M] [smul_comm_class S R M]
+
+/-- Each element of the group defines a linear equivalence.
+
+This is a stronger version of `distrib_mul_action.to_add_equiv`. -/
+@[simps]
+def to_linear_equiv (s : S) : M ≃ₗ[R] M :=
+{ ..to_add_equiv _ _ s,
+  ..to_linear_map R M s }
+
+end
+
+end distrib_mul_action

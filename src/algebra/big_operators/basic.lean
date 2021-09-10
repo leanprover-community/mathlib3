@@ -98,8 +98,8 @@ theorem prod_eq_fold [comm_monoid β] (s : finset α) (f : α → β) :
 rfl
 
 @[simp] lemma sum_multiset_singleton (s : finset α) :
-  s.sum (λ x, x ::ₘ 0) = s.val :=
-by simp [sum_eq_multiset_sum]
+  s.sum (λ x, {x}) = s.val :=
+by simp only [sum_eq_multiset_sum, multiset.sum_map_singleton]
 
 end finset
 
@@ -715,6 +715,20 @@ calc (∏ x in s, f x) = ∏ x in (s.filter $ λ x, f x ≠ 1), f x : prod_filte
         let ⟨a, ha₁, ha₂, eq⟩ := i_surj b h₁ h₂ in ⟨a, mem_filter.mpr ⟨ha₁, ha₂⟩, eq⟩)
   ... = (∏ x in t, g x) : prod_filter_ne_one
 
+@[to_additive] lemma prod_dite_of_false {p : α → Prop} {hp : decidable_pred p}
+  (h : ∀ x ∈ s, ¬ p x) (f : Π (x : α), p x → β) (g : Π (x : α), ¬p x → β) :
+  (∏ x in s, if hx : p x then f x hx else g x hx) =
+  ∏ (x : s), g x.val (h x.val x.property) :=
+prod_bij (λ x hx, ⟨x,hx⟩) (λ x hx, by simp) (λ a ha, by { dsimp, rw dif_neg })
+  (λ a₁ a₂ h₁ h₂ hh, congr_arg coe hh) (λ b hb, ⟨b.1, b.2, by simp⟩)
+
+@[to_additive] lemma prod_dite_of_true {p : α → Prop} {hp : decidable_pred p}
+  (h : ∀ x ∈ s, p x) (f : Π (x : α), p x → β) (g : Π (x : α), ¬p x → β) :
+  (∏ x in s, if hx : p x then f x hx else g x hx) =
+  ∏ (x : s), f x.val (h x.val x.property) :=
+prod_bij (λ x hx, ⟨x,hx⟩) (λ x hx, by simp) (λ a ha, by { dsimp, rw dif_pos })
+  (λ a₁ a₂ h₁ h₂ hh, congr_arg coe hh) (λ b hb, ⟨b.1, b.2, by simp⟩)
+
 @[to_additive]
 lemma nonempty_of_prod_ne_one (h : (∏ x in s, f x) ≠ 1) : s.nonempty :=
 s.eq_empty_or_nonempty.elim (λ H, false.elim $ h $ H.symm ▸ prod_empty) id
@@ -773,6 +787,12 @@ begin
   { simp },
   { rw [nat.add_succ, prod_range_succ, hm, prod_range_succ, mul_assoc], },
 end
+
+@[to_additive]
+lemma prod_range_add_div_prod_range {α : Type*} [comm_group α] (f : ℕ → α) (n m : ℕ) :
+  (∏ k in range (n + m), f k) / (∏ k in range n, f k) = ∏ k in finset.range m, f (n + k) :=
+div_eq_of_eq_mul' (prod_range_add f n m)
+
 
 @[to_additive]
 lemma prod_range_zero (f : ℕ → β) :
@@ -1375,10 +1395,6 @@ end list
 
 namespace multiset
 
-lemma abs_sum_le_sum_abs [linear_ordered_add_comm_group α] {s : multiset α} :
-  abs s.sum ≤ (s.map abs).sum :=
-le_sum_of_subadditive _ abs_zero abs_add s
-
 variables [decidable_eq α]
 
 @[simp] lemma to_finset_sum_count_eq (s : multiset α) :
@@ -1408,12 +1424,12 @@ lemma count_sum' {s : finset β} {a : α} {f : β → multiset α} :
 by { dunfold finset.sum, rw count_sum }
 
 @[simp] lemma to_finset_sum_count_nsmul_eq (s : multiset α) :
-  (∑ a in s.to_finset, s.count a • (a ::ₘ 0)) = s :=
+  (∑ a in s.to_finset, s.count a • {a}) = s :=
 begin
   apply ext', intro b,
   rw count_sum',
-  have h : count b s = count b (count b s • (b ::ₘ 0)),
-  { rw [singleton_coe, count_nsmul, ← singleton_coe, count_singleton, mul_one] },
+  have h : count b s = count b (count b s • {b}),
+  { rw [count_nsmul, count_singleton_self, mul_one] },
   rw h, clear h,
   apply finset.sum_eq_single b,
   { intros c h hcb, rw count_nsmul, convert mul_zero (count c s),
@@ -1425,9 +1441,9 @@ theorem exists_smul_of_dvd_count (s : multiset α) {k : ℕ}
   (h : ∀ (a : α), a ∈ s → k ∣ multiset.count a s) :
   ∃ (u : multiset α), s = k • u :=
 begin
-  use ∑ a in s.to_finset, (s.count a / k) • (a ::ₘ 0),
-  have h₂ : ∑ (x : α) in s.to_finset, k • (count x s / k) • (x ::ₘ 0) =
-    ∑ (x : α) in s.to_finset, count x s • (x ::ₘ 0),
+  use ∑ a in s.to_finset, (s.count a / k) • {a},
+  have h₂ : ∑ (x : α) in s.to_finset, k • (count x s / k) • ({x} : multiset α) =
+    ∑ (x : α) in s.to_finset, count x s • {x},
   { apply finset.sum_congr rfl,
     intros x hx,
     rw [← mul_nsmul, nat.mul_div_cancel' (h x (mem_to_finset.mp hx))] },

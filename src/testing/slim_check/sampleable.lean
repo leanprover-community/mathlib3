@@ -7,6 +7,7 @@ import data.lazy_list.basic
 import data.tree
 import data.int.basic
 import control.bifunctor
+import control.ulift
 import tactic.linarith
 import testing.slim_check.gen
 

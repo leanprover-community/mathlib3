@@ -3,7 +3,7 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker
 -/
-import data.multiset.basic
+import algebra.big_operators.basic
 import algebra.divisibility
 import algebra.invertible
 
@@ -56,14 +56,18 @@ p ≠ 0 ∧ ¬ is_unit p ∧ (∀a b, p ∣ a * b → p ∣ a ∨ p ∣ b)
 
 namespace prime
 variables {p : α} (hp : prime p)
+include hp
 
-lemma ne_zero (hp : prime p) : p ≠ 0 :=
+lemma ne_zero : p ≠ 0 :=
 hp.1
 
-lemma not_unit (hp : prime p) : ¬ is_unit p :=
+lemma not_unit : ¬ is_unit p :=
 hp.2.1
 
-lemma ne_one (hp : prime p) : p ≠ 1 :=
+lemma not_dvd_one : ¬ p ∣ 1 :=
+mt (is_unit_of_dvd_one _) hp.not_unit
+
+lemma ne_one : p ≠ 1 :=
 λ h, hp.2.1 (h.symm ▸ is_unit_one)
 
 lemma dvd_or_dvd (hp : prime p) {a b : α} (h : p ∣ a * b) :
@@ -84,6 +88,25 @@ begin
   exact ih dvd_pow
 end
 
+lemma exists_mem_multiset_dvd {s : multiset α} :
+  p ∣ s.prod → ∃ a ∈ s, p ∣ a :=
+multiset.induction_on s (λ h, (hp.not_dvd_one h).elim) $
+λ a s ih h,
+  have p ∣ a * s.prod, by simpa using h,
+  match hp.dvd_or_dvd this with
+  | or.inl h := ⟨a, multiset.mem_cons_self a s, h⟩
+  | or.inr h := let ⟨a, has, h⟩ := ih h in ⟨a, multiset.mem_cons_of_mem has, h⟩
+  end
+
+lemma exists_mem_multiset_map_dvd {s : multiset β} {f : β → α} :
+  p ∣ (s.map f).prod → ∃ a ∈ s, p ∣ f a :=
+λ h, by simpa only [exists_prop, multiset.mem_map, exists_exists_and_eq_and]
+  using hp.exists_mem_multiset_dvd h
+
+lemma exists_mem_finset_dvd {s : finset β} {f : β → α} :
+  p ∣ s.prod f → ∃ i ∈ s, p ∣ f i :=
+hp.exists_mem_multiset_map_dvd
+
 end prime
 
 @[simp] lemma not_prime_zero : ¬ prime (0 : α) :=
@@ -92,22 +115,12 @@ end prime
 @[simp] lemma not_prime_one : ¬ prime (1 : α) :=
 λ h, h.not_unit is_unit_one
 
-lemma exists_mem_multiset_dvd_of_prime {s : multiset α} {p : α} (hp : prime p) :
-  p ∣ s.prod → ∃a∈s, p ∣ a :=
-multiset.induction_on s (assume h, (hp.not_unit $ is_unit_of_dvd_one _ h).elim) $
-assume a s ih h,
-  have p ∣ a * s.prod, by simpa using h,
-  match hp.dvd_or_dvd this with
-  | or.inl h := ⟨a, multiset.mem_cons_self a s, h⟩
-  | or.inr h := let ⟨a, has, h⟩ := ih h in ⟨a, multiset.mem_cons_of_mem has, h⟩
-  end
-
 end prime
 
-lemma left_dvd_or_dvd_right_of_dvd_prime_mul [comm_cancel_monoid_with_zero α] {a : α} :
-  ∀ {b p : α}, prime p → a ∣ p * b → p ∣ a ∨ a ∣ b :=
+lemma prime.left_dvd_or_dvd_right_of_dvd_mul [comm_cancel_monoid_with_zero α] {p : α}
+  (hp : prime p) {a b : α} : a ∣ p * b → p ∣ a ∨ a ∣ b :=
 begin
-  rintros b p hp ⟨c, hc⟩,
+  rintro ⟨c, hc⟩,
   rcases hp.2.2 a c (hc ▸ dvd_mul_right _ _) with h | ⟨x, rfl⟩,
   { exact or.inl h },
   { rw [mul_left_comm, mul_right_inj' hp.ne_zero] at hc,
@@ -166,7 +179,7 @@ end
 protected lemma prime.irreducible [comm_cancel_monoid_with_zero α] {p : α} (hp : prime p) :
   irreducible p :=
 ⟨hp.not_unit, λ a b hab,
-  (show a * b ∣ a ∨ a * b ∣ b, from hab ▸ hp.dvd_or_dvd (hab ▸ (dvd_refl _))).elim
+  (show a * b ∣ a ∨ a * b ∣ b, from hab ▸ hp.dvd_or_dvd (hab ▸ dvd_rfl)).elim
     (λ ⟨x, hx⟩, or.inr (is_unit_iff_dvd_one.2
       ⟨x, mul_right_cancel' (show a ≠ 0, from λ h, by simp [*, prime] at *)
         $ by conv {to_lhs, rw hx}; simp [mul_comm, mul_assoc, mul_left_comm]⟩))
@@ -710,7 +723,7 @@ lemma le_of_mul_le_mul_left (a b c : associates α) (ha : a ≠ 0) :
 lemma one_or_eq_of_le_of_prime :
   ∀(p m : associates α), prime p → m ≤ p → (m = 1 ∨ m = p)
 | _ m ⟨hp0, hp1, h⟩ ⟨d, rfl⟩ :=
-match h m d (dvd_refl _) with
+match h m d dvd_rfl with
 | or.inl h := classical.by_cases (assume : m = 0, by simp [this]) $
   assume : m ≠ 0,
   have m * d ≤ m * 1, by simpa using h,

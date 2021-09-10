@@ -3,9 +3,9 @@ Copyright (c) 2018 . All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import group_theory.group_action.basic
-import data.fintype.card
-import data.zmod.basic
+
+import group_theory.perm.cycle_type
+
 /-!
 # p-groups
 
@@ -78,7 +78,7 @@ have hpf : p ∣ fintype.card (fixed_points G α),
   from nat.modeq_zero_iff_dvd.1 ((card_modeq_card_fixed_points α hG).symm.trans hpα.modeq_zero_nat),
 have hα : 1 < fintype.card (fixed_points G α),
   from (fact.out p.prime).one_lt.trans_le (nat.le_of_dvd (fintype.card_pos_iff.2 ⟨⟨a, ha⟩⟩) hpf),
-let ⟨⟨b, hb⟩, hba⟩ := exists_ne_of_one_lt_card hα ⟨a, ha⟩ in
+let ⟨⟨b, hb⟩, hba⟩ := fintype.exists_ne_of_one_lt_card hα ⟨a, ha⟩ in
 ⟨b, hb, λ hab, hba $ by simp [hab]⟩
 
 end mul_action

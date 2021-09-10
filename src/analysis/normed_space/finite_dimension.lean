@@ -3,7 +3,7 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import analysis.normed_space.add_torsor
+import analysis.normed_space.affine_isometry
 import analysis.normed_space.operator_norm
 import analysis.asymptotics.asymptotic_equivalent
 import linear_algebra.finite_dimensional
@@ -112,7 +112,7 @@ begin
         { left,
           have : finrank 𝕜 f.range = 1,
           { refine le_antisymm _ (zero_lt_iff.mpr H),
-            simpa [finrank_of_field] using f.range.finrank_le },
+            simpa [finrank_self] using f.range.finrank_le },
           rw [this, add_comm, nat.add_one] at Z,
           exact nat.succ.inj Z } },
       have : is_closed (f.ker : set E),
@@ -126,7 +126,7 @@ begin
     -- basis decomposition, deduce that all such coefficients are controlled in terms of the norm
     have : ∀i:ι, ∃C, 0 ≤ C ∧ ∀(x:E), ∥ξ.equiv_fun x i∥ ≤ C * ∥x∥,
     { assume i,
-      let f : E →ₗ[𝕜] 𝕜 := (linear_map.proj i).comp ξ.equiv_fun,
+      let f : E →ₗ[𝕜] 𝕜 := (linear_map.proj i) ∘ₗ ↑ξ.equiv_fun,
       let f' : E →L[𝕜] 𝕜 := { cont := H₂ f, ..f },
       exact ⟨∥f'∥, norm_nonneg _, λx, continuous_linear_map.le_op_norm f' x⟩ },
     -- fourth step: combine the bound on each coefficient to get a global bound and the continuity
@@ -204,7 +204,8 @@ lemma linear_map.exists_antilipschitz_with [finite_dimensional 𝕜 E] (f : E �
 begin
   cases subsingleton_or_nontrivial E; resetI,
   { exact ⟨1, zero_lt_one, antilipschitz_with.of_subsingleton⟩ },
-  { let e : E ≃L[𝕜] f.range := (linear_equiv.of_injective f hf).to_continuous_linear_equiv,
+  { rw linear_map.ker_eq_bot at hf,
+    let e : E ≃L[𝕜] f.range := (linear_equiv.of_injective f hf).to_continuous_linear_equiv,
     exact ⟨_, e.nnnorm_symm_pos, e.antilipschitz⟩ }
 end
 

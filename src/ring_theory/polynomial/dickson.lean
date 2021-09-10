@@ -182,7 +182,7 @@ begin
   -- Since `X ^ p` also satisfies this property in characteristic `p`,
   -- we can use a variant on `polynomial.funext` to conclude that these polynomials are equal.
   -- For this argument, we need an arbitrary infinite field of characteristic `p`.
-  obtain ⟨K, _, _, H⟩ : ∃ (K : Type) [field K], by exactI ∃ [char_p K p], infinite K,
+  obtain ⟨K, _, _, H⟩ : ∃ (K : Type) (_ : field K), by exactI ∃ (_ : char_p K p), infinite K,
   { let K := fraction_ring (polynomial (zmod p)),
     let f : zmod p →+* K := (algebra_map _ (fraction_ring _)).comp C,
     haveI : char_p K p, { rw ← f.char_p_iff_char_p, apply_instance },
@@ -225,7 +225,7 @@ begin
       ext1 y,
       simp only [multiset.mem_to_finset, set.mem_set_of_eq, finset.mem_coe, multiset.mem_union,
         mem_roots hφ, is_root, eval_add, eval_sub, eval_pow, eval_mul, eval_X, eval_C, eval_one,
-        multiset.mem_singleton, multiset.singleton_eq_singleton],
+        multiset.mem_singleton],
       by_cases hy : y = 0,
       { simp only [hy, eq_self_iff_true, or_true] },
       apply or_congr _ iff.rfl,

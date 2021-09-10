@@ -372,7 +372,7 @@ begin
       have : A i₀ = B i₀ ∪ C i₀,
       { simp only [B, C, function.update_same, finset.sdiff_union_self_eq_union],
         symmetry,
-        simp only [hj₂, finset.singleton_subset_iff, union_eq_left_iff_subset] },
+        simp only [hj₂, finset.singleton_subset_iff, finset.union_eq_left_iff_subset] },
       rw this,
       apply finset.sum_union,
       apply finset.disjoint_right.2 (λ j hj, _),

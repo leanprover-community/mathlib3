@@ -79,7 +79,7 @@ begin
   refine forall_congr (λ a, _),
   rw [← sq, pow_dvd_iff_le_multiplicity, or_iff_not_imp_left, not_le, imp_congr],
   swap, { refl },
-  convert enat.add_one_le_iff_lt (enat.coe_ne_top _),
+  convert enat.add_one_le_iff_lt (enat.coe_ne_top 1),
   norm_cast,
 end
 

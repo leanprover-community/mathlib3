@@ -960,6 +960,10 @@ S.to_subsemiring.has_faithful_scalar
 instance [add_monoid α] [distrib_mul_action R α] (S : subring R) : distrib_mul_action S α :=
 S.to_subsemiring.distrib_mul_action
 
+/-- The action by a subsemiring is the action by the underlying semiring. -/
+instance [monoid α] [mul_distrib_mul_action R α] (S : subring R) : mul_distrib_mul_action S α :=
+S.to_subsemiring.mul_distrib_mul_action
+
 /-- The action by a subring is the action by the underlying ring. -/
 instance [add_comm_monoid α] [module R α] (S : subring R) : module S α :=
 S.to_subsemiring.module

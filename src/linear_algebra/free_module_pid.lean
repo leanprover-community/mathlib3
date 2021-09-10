@@ -636,7 +636,7 @@ begin
   let φ : M →ₗ[R] M := linear_map.lsmul R M A,
   have : φ.ker = ⊥,
     from linear_map.ker_lsmul hA,
-  let ψ : M ≃ₗ[R] φ.range := linear_equiv.of_injective φ this,
+  let ψ : M ≃ₗ[R] φ.range := linear_equiv.of_injective φ (linear_map.ker_eq_bot.mp this),
   have : φ.range ≤ N, -- as announced, `A • M ⊆ N`
   { suffices : ∀ i, φ (s i) ∈ N,
     { rw [linear_map.range_eq_map, ← hs, φ.map_span_le],

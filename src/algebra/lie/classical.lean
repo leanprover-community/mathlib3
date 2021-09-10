@@ -8,6 +8,7 @@ import algebra.lie.skew_adjoint
 import algebra.lie.abelian
 import linear_algebra.matrix.trace
 import linear_algebra.matrix.transvection
+import data.matrix.basis
 
 /-!
 # Classical Lie algebras
@@ -95,9 +96,11 @@ variables {n} [fintype n] (i j : n)
 /-- When j ≠ i, the elementary matrices are elements of sl n R, in fact they are part of a natural
 basis of sl n R. -/
 def Eb (h : j ≠ i) : sl n R :=
-⟨E R i j, show E R i j ∈ linear_map.ker (matrix.trace n R R), from E_trace_zero R i j h⟩
+⟨matrix.std_basis_matrix i j (1 : R),
+  show matrix.std_basis_matrix i j (1 : R) ∈ linear_map.ker (matrix.trace n R R),
+  from matrix.std_basis_matrix.trace_zero i j (1 : R) h⟩
 
-@[simp] lemma Eb_val (h : j ≠ i) : (Eb R i j h).val = E R i j := rfl
+@[simp] lemma Eb_val (h : j ≠ i) : (Eb R i j h).val = matrix.std_basis_matrix i j 1 := rfl
 
 end elementary_basis
 
@@ -109,8 +112,7 @@ begin
   let B := Eb R j i hij.symm,
   intros c,
   have c' : A.val ⬝ B.val = B.val ⬝ A.val, by { rw [← sub_eq_zero, ← sl_bracket, c.trivial], refl },
-  have : (1 : R) = 0 := by simpa [matrix.mul_apply, hij] using (congr_fun (congr_fun c' i) i),
-  exact one_ne_zero this,
+  simpa [std_basis_matrix, matrix.mul_apply, hij] using   congr_fun (congr_fun c' i) i,
 end
 
 end special_linear

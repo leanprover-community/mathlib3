@@ -116,9 +116,8 @@ instance linear_ordered_semiring.to_ordered_smul {R : Type*} [linear_ordered_sem
 
 section field
 
-variables {k M N : Type*} [linear_ordered_field k]
+variables {k M : Type*} [linear_ordered_field k]
   [ordered_add_comm_group M] [mul_action_with_zero k M] [ordered_smul k M]
-  [ordered_add_comm_group N] [smul_with_zero k N] [ordered_smul k N]
   {a b : M} {c : k}
 
 lemma smul_le_smul_iff_of_pos (hc : 0 < c) : c • a ≤ c • b ↔ a ≤ b :=
@@ -129,6 +128,10 @@ lemma smul_le_smul_iff_of_pos (hc : 0 < c) : c • a ≤ c • b ↔ a ≤ b :=
 lemma smul_lt_iff_of_pos (hc : 0 < c) : c • a < b ↔ a < c⁻¹ • b :=
 calc c • a < b ↔ c • a < c • c⁻¹ • b : by rw [smul_inv_smul' hc.ne']
 ... ↔ a < c⁻¹ • b : smul_lt_smul_iff_of_pos hc
+
+lemma lt_smul_iff_of_pos (hc : 0 < c) : a < c • b ↔ c⁻¹ • a < b :=
+calc a < c • b ↔ c • c⁻¹ • a < c • b : by rw [smul_inv_smul' hc.ne']
+... ↔ c⁻¹ • a < b : smul_lt_smul_iff_of_pos hc
 
 lemma smul_le_iff_of_pos (hc : 0 < c) : c • a ≤ b ↔ a ≤ c⁻¹ • b :=
 calc c • a ≤ b ↔ c • a ≤ c • c⁻¹ • b : by rw [smul_inv_smul' hc.ne']

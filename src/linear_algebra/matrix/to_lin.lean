@@ -152,6 +152,10 @@ lemma linear_map.to_matrix'_mul [fintype m] [decidable_eq m]
   (f * g).to_matrix' = f.to_matrix' ⬝ g.to_matrix' :=
 linear_map.to_matrix'_comp f g
 
+lemma matrix.ker_to_lin'_eq_bot_iff {M : matrix n n R} :
+  M.to_lin'.ker = ⊥ ↔ ∀ v, M.mul_vec v = 0 → v = 0 :=
+by simp only [submodule.eq_bot_iff, linear_map.mem_ker, matrix.to_lin'_apply]
+
 /-- If `M` and `M'` are each other's inverse matrices, they provide an equivalence between `m → A`
 and `n → A` corresponding to `M.mul_vec` and `M'.mul_vec`. -/
 @[simps]

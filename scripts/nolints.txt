@@ -2,11 +2,7 @@ import .all
 run_cmd tactic.skip
 
 -- algebra/free_algebra.lean
-apply_nolint free_algebra.ring check_reducibility
 apply_nolint free_algebra.semiring check_reducibility
-
--- algebra/free_non_unital_non_assoc_algebra.lean
-apply_nolint free_non_unital_non_assoc_algebra.add_comm_group check_reducibility
 
 -- algebra/ordered_monoid.lean
 apply_nolint with_zero.canonically_ordered_add_monoid check_reducibility
@@ -16,8 +12,23 @@ apply_nolint set.set_semiring.comm_semiring check_reducibility
 apply_nolint set.set_semiring.non_assoc_semiring check_reducibility
 apply_nolint set.set_semiring.non_unital_non_assoc_semiring check_reducibility
 
--- category_theory/monoidal/skeleton.lean
-apply_nolint category_theory.skeleton.monoid check_reducibility
+-- category_theory/concrete_category/reflects_isomorphisms.lean
+apply_nolint category_theory.forget₂.category_theory.reflects_isomorphisms fails_quickly
+
+-- category_theory/limits/comma.lean
+apply_nolint category_theory.arrow.has_colimit fails_quickly
+apply_nolint category_theory.arrow.has_limit fails_quickly
+apply_nolint category_theory.costructured_arrow.creates_colimit fails_quickly
+apply_nolint category_theory.costructured_arrow.has_colimit fails_quickly
+apply_nolint category_theory.structured_arrow.creates_limit fails_quickly
+apply_nolint category_theory.structured_arrow.has_limit fails_quickly
+
+-- category_theory/limits/filtered_colimit_commutes_finite_limit.lean
+apply_nolint category_theory.limits.colimit_limit_to_limit_colimit_is_iso fails_quickly
+
+-- category_theory/limits/over.lean
+apply_nolint category_theory.over.category_theory.limits.has_colimit fails_quickly
+apply_nolint category_theory.under.category_theory.limits.has_limit fails_quickly
 
 -- computability/partrec.lean
 apply_nolint computable doc_blame
@@ -238,15 +249,6 @@ apply_nolint list.sublists_aux doc_blame
 apply_nolint list.sublists_aux₁ doc_blame
 apply_nolint list.traverse doc_blame
 
--- data/list/func.lean
-apply_nolint list.func.add doc_blame
-apply_nolint list.func.equiv doc_blame
-apply_nolint list.func.get doc_blame
-apply_nolint list.func.neg doc_blame
-apply_nolint list.func.pointwise doc_blame
-apply_nolint list.func.set doc_blame
-apply_nolint list.func.sub doc_blame
-
 -- data/list/sigma.lean
 apply_nolint list.kextract doc_blame
 apply_nolint list.kreplace doc_blame
@@ -280,6 +282,9 @@ apply_nolint multiset.sum doc_blame
 
 -- data/multiset/functor.lean
 apply_nolint multiset.traverse doc_blame
+
+-- data/nat/basic.lean
+apply_nolint nat.subtype.semilattice_sup_bot fails_quickly
 
 -- data/num/bitwise.lean
 apply_nolint snum.cadd doc_blame
@@ -386,21 +391,21 @@ apply_nolint is_subfield doc_blame
 -- deprecated/subring.lean
 apply_nolint ring.closure doc_blame
 
--- field_theory/algebraic_closure.lean
-apply_nolint algebraic_closure.adjoin_monic.field check_reducibility
-apply_nolint algebraic_closure.field check_reducibility
-
 -- field_theory/finite/polynomial.lean
 apply_nolint mv_polynomial.R doc_blame unused_arguments
 apply_nolint mv_polynomial.evalᵢ doc_blame
 apply_nolint mv_polynomial.evalₗ doc_blame unused_arguments
 apply_nolint mv_polynomial.indicator doc_blame
 
+-- group_theory/group_action/sub_mul_action.lean
+apply_nolint sub_mul_action.has_zero fails_quickly
+
 -- group_theory/sylow.lean
 apply_nolint sylow.fixed_points_mul_left_cosets_equiv_quotient doc_blame
 
--- linear_algebra/pi_tensor_product.lean
-apply_nolint pi_tensor_product.add_comm_group check_reducibility
+-- linear_algebra/affine_space/affine_subspace.lean
+apply_nolint affine_span.nonempty fails_quickly
+apply_nolint affine_subspace.to_add_torsor fails_quickly
 
 -- logic/embedding.lean
 apply_nolint function.embedding.Pi_congr_right doc_blame
@@ -419,6 +424,9 @@ apply_nolint relator.left_unique doc_blame
 apply_nolint relator.lift_fun doc_blame
 apply_nolint relator.right_total doc_blame
 apply_nolint relator.right_unique doc_blame
+
+-- measure_theory/function/conditional_expectation.lean
+apply_nolint measure_theory.Lp_meas.complete_space fails_quickly
 
 -- meta/coinductive_predicates.lean
 apply_nolint monotonicity doc_blame
@@ -448,9 +456,6 @@ apply_nolint tactic.mono doc_blame
 -- number_theory/dioph.lean
 apply_nolint poly has_inhabited_instance
 
--- number_theory/padics/padic_numbers.lean
-apply_nolint padic.field check_reducibility
-
 -- number_theory/pell.lean
 apply_nolint pell.az unused_arguments
 apply_nolint pell.x_sub_y_dvd_pow_lem unused_arguments
@@ -475,15 +480,8 @@ apply_nolint fixed_points.next_fixed doc_blame
 apply_nolint fixed_points.prev doc_blame
 apply_nolint fixed_points.prev_fixed doc_blame
 
--- ring_theory/adjoin_root.lean
-apply_nolint adjoin_root.field check_reducibility
-
--- ring_theory/ideal/local_ring.lean
-apply_nolint local_ring.residue_field.field check_reducibility
-
--- ring_theory/localization.lean
-apply_nolint fraction_ring.field check_reducibility
-apply_nolint is_localization.integral_domain_of_local_at_prime check_reducibility
+-- order/prime_ideal.lean
+apply_nolint order.ideal.is_prime.is_maximal fails_quickly
 
 -- ring_theory/witt_vector/basic.lean
 apply_nolint witt_vector.comm_ring check_reducibility
@@ -496,18 +494,6 @@ apply_nolint pgame.inv_ty has_inhabited_instance
 
 -- set_theory/lists.lean
 apply_nolint finsets doc_blame
-apply_nolint lists doc_blame
-apply_nolint lists' doc_blame
-apply_nolint lists'.cons doc_blame
-apply_nolint lists'.of_list doc_blame
-apply_nolint lists'.to_list doc_blame
-apply_nolint lists.atom doc_blame
-apply_nolint lists.induction_mut doc_blame
-apply_nolint lists.is_list doc_blame
-apply_nolint lists.mem doc_blame
-apply_nolint lists.of' doc_blame
-apply_nolint lists.of_list doc_blame
-apply_nolint lists.to_list doc_blame
 
 -- set_theory/pgame.lean
 apply_nolint pgame.left_moves has_inhabited_instance

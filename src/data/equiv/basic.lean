@@ -1435,6 +1435,20 @@ calc (Σ y : subtype q, {x : α // f x = y}) ≃
 
    ... ≃ subtype p : sigma_preimage_equiv (λ x : subtype p, (⟨f x, (h x).1 x.property⟩ : subtype q))
 
+/-- A sigma type over an `option` is equivalent to the sigma set over the original type,
+if the fiber is empty at none. -/
+def sigma_option_equiv_of_some {α : Type u} (p : option α → Type v) (h : p none → false) :
+  (Σ x : option α, p x) ≃ (Σ x : α, p (some x)) :=
+begin
+  have h' : ∀ x, p x → x.is_some,
+  { intro x,
+    cases x,
+    { intro n, exfalso, exact h n },
+    { intro s, exact rfl } },
+  exact (sigma_subtype_equiv_of_subset _ _ h').symm.trans
+    (sigma_congr_left' (option_is_some_equiv α)),
+end
+
 /-- The `pi`-type `Π i, π i` is equivalent to the type of sections `f : ι → Σ i, π i` of the
 `sigma` type such that for all `i` we have `(f i).fst = i`. -/
 def pi_equiv_subtype_sigma (ι : Type*) (π : ι → Type*) :

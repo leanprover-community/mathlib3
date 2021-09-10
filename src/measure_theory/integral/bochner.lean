@@ -17,24 +17,31 @@ extending the integral on simple functions.
 
 ## Main definitions
 
-The Bochner integral is defined following these steps:
+The Bochner integral is defined through the extension process described in the file `set_to_L1`,
+which follows these steps:
 
-1. Define the integral on simple functions of the type `simple_func α E` (notation : `α →ₛ E`)
-  where `E` is a real normed space.
+1. Define the integral of the indicator of a set. This is `weighted_smul μ s x = (μ s).to_real * x`.
+  `weighted_smul μ` is shown to be linear in the value `x` and `dominated_fin_meas_additive`
+  (defined in the file `set_to_L1`) with respect to the set `s`.
 
-  (See `simple_func.bintegral` and section `bintegral` for details. Also see `simple_func.integral`
-  for the integral on simple functions of the type `simple_func α ℝ≥0∞`.)
+2. Define the integral on simple functions of the type `simple_func α E` (notation : `α →ₛ E`)
+  where `E` is a real normed space. (See `simple_func.integral` for details.)
 
-2. Transfer this definition to define the integral on `L1.simple_func α E` (notation :
+3. Transfer this definition to define the integral on `L1.simple_func α E` (notation :
   `α →₁ₛ[μ] E`), see `L1.simple_func.integral`. Show that this integral is a continuous linear
   map from `α →₁ₛ[μ] E` to `E`.
 
-3. Define the Bochner integral on L1 functions by extending the integral on integrable simple
+4. Define the Bochner integral on L1 functions by extending the integral on integrable simple
   functions `α →₁ₛ[μ] E` using `continuous_linear_map.extend` and the fact that the embedding of
   `α →₁ₛ[μ] E` into `α →₁[μ] E` is dense.
 
-4. Define the Bochner integral on functions as the Bochner integral of its equivalence class in L1
+5. Define the Bochner integral on functions as the Bochner integral of its equivalence class in L1
   space, if it is in L1, and 0 otherwise.
+
+The result of that construction is `∫ a, f a ∂μ`, which is definitionally equal to
+`set_to_fun (dominated_fin_meas_additive_weighted_smul μ) f`. Some basic properties of the integral
+(like linearity) are particular cases of the properties of `set_to_fun` (which are described in the
+file `set_to_L1`).
 
 ## Main statements
 
@@ -79,8 +86,9 @@ The Bochner integral is defined following these steps:
 Some tips on how to prove a proposition if the API for the Bochner integral is not enough so that
 you need to unfold the definition of the Bochner integral and go back to simple functions.
 
-One method is to use the theorem `integrable.induction` in the file `simple_func_dense`, which
-allows you to prove something for an arbitrary measurable + integrable function.
+One method is to use the theorem `integrable.induction` in the file `simple_func_dense` (or one of
+the related results, like `Lp.induction` for functions in `Lp`), which allows you to prove something
+for an arbitrary measurable + integrable function.
 
 Another method is using the following steps.
 See `integral_eq_lintegral_max_sub_lintegral_min` for a complicated example, which proves that
@@ -121,13 +129,12 @@ Use `is_closed_property` or `dense_range.induction_on` for this argument.
 * `α →₁ₛ[μ] E` : simple functions in L1 space, i.e., equivalence classes of integrable simple
                  functions (defined in `measure_theory/simple_func_dense`)
 * `∫ a, f a ∂μ` : integral of `f` with respect to a measure `μ`
-* `∫ a, f a` : integral of `f` with respect to `volume`, the default measure on the
-                    ambient type
+* `∫ a, f a` : integral of `f` with respect to `volume`, the default measure on the ambient type
 
 We also define notations for integral on a set, which are described in the file
 `measure_theory/set_integral`.
 
-Note : `ₛ` is typed using `\_s`. Sometimes it shows as a box if font is missing.
+Note : `ₛ` is typed using `\_s`. Sometimes it shows as a box if the font is missing.
 
 ## Tags
 

@@ -482,6 +482,17 @@ begin
     apply multiset.prod_dvd_prod }
 end
 
+lemma zero_not_mem_factors (x : α) : (0 : α) ∉ factors x :=
+λ h, prime.ne_zero (prime_of_factor _ h) rfl
+
+lemma dvd_of_mem_factors {a p : α} (H : p ∈ factors a) : p ∣ a :=
+begin
+  by_cases hcases : a = 0,
+  { rw hcases,
+    exact dvd_zero p },
+  { exact dvd_trans (multiset.dvd_prod H) (associated.dvd (factors_prod hcases)) },
+end
+
 end unique_factorization_monoid
 
 namespace unique_factorization_monoid

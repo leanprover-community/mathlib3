@@ -340,6 +340,31 @@ begin
 end
 
 end maximal
+#print finsupp.supported
+lemma algebraic_independent_Union_of_directed (S : ι → set A)
+  (dir : directed (≤) S) (h : ∀ i, algebraic_independent R (coe : S i → A)) :
+  algebraic_independent R (coe : Union S → A) :=
+begin
+  intros p q,
+
+end
+
+
+lemma exists_maximal_algebraic_independent (h : injective (algebra_map R A)) :
+  ∃ s : set A, algebraic_independent R (coe : s → A) ∧ ∀ t : set A, s ⊆ t →
+  algebraic_independent R (coe : t → A) → s = t :=
+begin
+  have := zorn.zorn_subset { s : set A | algebraic_independent R (coe : s → A) }
+    (λ c hc chainc, ⟨⋃₀ c, begin
+      split,
+      dsimp,
+
+
+    end⟩)
+
+end
+
+
 #exit
 section subtype
 /-! The following lemmas use the subtype defined by a set in `A` as the index set `ι`. -/

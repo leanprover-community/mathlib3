@@ -26,12 +26,9 @@ ordered module, ordered scalar, ordered smul, ordered action, ordered vector spa
 variables {k M N : Type*}
 
 section semiring
-variables [ordered_semiring k] [ordered_add_comm_group M] [module k M] [ordered_smul k M]
-  {a b : M} {c : k}
+variables [ordered_semiring k] [ordered_add_comm_group M] [distrib_mul_action_with_zero k M]
+  [ordered_smul k M] {a b : M} {c : k}
 
-/- can be generalized from `module k M` to `distrib_mul_action_with_zero k M` once it exists.
-where `distrib_mul_action_with_zero k M`is the conjunction of `distrib_mul_action k M` and
-`smul_with_zero k M`.-/
 lemma smul_neg_iff_of_pos (hc : 0 < c) :
   c • a < 0 ↔ a < 0 :=
 begin
@@ -42,8 +39,8 @@ end
 end semiring
 
 section ring
-variables [ordered_ring k] [ordered_add_comm_group M] [module k M] [ordered_smul k M]
-  {a b : M} {c : k}
+variables [ordered_ring k] [ordered_add_comm_group M] [distrib_mul_action_with_zero k M]
+  [ordered_smul k M] {a b : M} {c : k}
 
 lemma smul_lt_smul_of_neg (h : a < b) (hc : c < 0) :
   c • b < c • a :=

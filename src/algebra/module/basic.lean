@@ -86,8 +86,7 @@ protected def function.surjective.module [add_comm_monoid M₂] [has_scalar R M�
 { smul := (•),
   add_smul := λ c₁ c₂ x, by { rcases hf x with ⟨x, rfl⟩,
     simp only [add_smul, ← smul, ← f.map_add] },
-  zero_smul := λ x, by { rcases hf x with ⟨x, rfl⟩, simp only [← f.map_zero, ← smul, zero_smul] },
-  .. hf.distrib_mul_action f smul }
+  .. hf.distrib_mul_action_with_zero f smul }
 
 variables {R} (M)
 
@@ -98,8 +97,7 @@ See note [reducible non-instances]. -/
   module S M :=
 { smul := has_scalar.comp.smul f,
   add_smul := λ r s x, by simp [add_smul],
-  .. mul_action_with_zero.comp_hom M f.to_monoid_with_zero_hom,
-  .. distrib_mul_action.comp_hom M (f : S →* R) }
+  .. distrib_mul_action_with_zero.comp_hom M f }
 
 variables (R) (M)
 
@@ -241,6 +239,7 @@ instance semiring.to_module [semiring R] : module R R :=
   zero_smul := zero_mul,
   smul_zero := mul_zero }
 
+/-- Like `semiring.to_module`, but multiplies on the right. -/
 @[priority 910] -- see Note [lower instance priority]
 instance semiring.to_opposite_module [semiring R] : module Rᵒᵖ R :=
 { smul_add := λ r x y, add_mul _ _ _,

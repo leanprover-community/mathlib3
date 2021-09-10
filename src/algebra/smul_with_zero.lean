@@ -118,7 +118,8 @@ instance monoid_with_zero.to_mul_action_with_zero : mul_action_with_zero R R :=
 { ..mul_zero_class.to_smul_with_zero R,
   ..monoid.to_mul_action R }
 
-/-- See also `semiring.to_opposite_module` -/
+/-- Like `monoid_with_zero.to_mul_action_with_zero`, but multiplies on the right. See also
+`semiring.to_opposite_module` -/
 instance monoid_with_zero.to_opposite_mul_action_with_zero : mul_action_with_zero Rᵒᵖ R :=
 { ..mul_zero_class.to_opposite_smul_with_zero R,
   ..monoid.to_opposite_mul_action R }

@@ -170,6 +170,10 @@ instance [semiring R] [ordered_add_comm_monoid M] [distrib_mul_action R M] :
 { smul_add := λ k a, order_dual.rec (λ a' b, order_dual.rec (smul_add _ _) b) a,
   smul_zero := λ r, order_dual.rec smul_zero r }
 
+instance [semiring R] [ordered_add_comm_monoid M] [distrib_mul_action_with_zero R M] :
+  distrib_mul_action_with_zero R (order_dual M) :=
+{ ..order_dual.distrib_mul_action, ..order_dual.mul_action_with_zero }
+
 instance [ordered_semiring R] [ordered_add_comm_monoid M] [smul_with_zero R M]
   [ordered_smul R M] :
   ordered_smul R (order_dual M) :=

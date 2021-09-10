@@ -164,6 +164,17 @@ lemma single_smul' {g : I → Type*} [Π i, monoid_with_zero (f i)] [Π i, add_m
   single i (r • x) = single i r • single i x :=
 single_op₂ (λ i : I, ((•) : f i → g i → g i)) (λ j, smul_zero _) _ _ _
 
+instance distrib_mul_action_with_zero (α) {m : monoid_with_zero α} {n : ∀ i, add_monoid $ f i}
+  [∀ i, distrib_mul_action α $ f i] :
+  @distrib_mul_action_with_zero α (Π i : I, f i) m (@pi.add_monoid I f n) :=
+{ ..pi.distrib_mul_action _, ..pi.mul_action_with_zero _ }
+
+instance distrib_mul_action_with_zero' {g : I → Type*} {m : Π i, monoid_with_zero (f i)}
+  {n : Π i, add_monoid $ g i} [Π i, distrib_mul_action_with_zero (f i) (g i)] :
+  @distrib_mul_action_with_zero (Π i, f i) (Π i : I, g i) (@pi.monoid_with_zero I f m)
+  (@pi.add_monoid I g n) :=
+{ ..pi.distrib_mul_action', ..pi.mul_action_with_zero' }
+
 instance mul_distrib_mul_action (α) {m : monoid α} {n : Π i, monoid $ f i}
   [Π i, mul_distrib_mul_action α $ f i] :
   @mul_distrib_mul_action α (Π i : I, f i) m (@pi.monoid I f n) :=
@@ -183,16 +194,14 @@ instance module (α) {r : semiring α} {m : ∀ i, add_comm_monoid $ f i}
   [∀ i, module α $ f i] :
   @module α (Π i : I, f i) r (@pi.add_comm_monoid I f m) :=
 { add_smul := λ c f g, funext $ λ i, add_smul _ _ _,
-  zero_smul := λ f, funext $ λ i, zero_smul α _,
-  ..pi.distrib_mul_action _ }
+  ..pi.distrib_mul_action_with_zero _ }
 
 variables {I f}
 
 instance module' {g : I → Type*} {r : Π i, semiring (f i)} {m : Π i, add_comm_monoid (g i)}
   [Π i, module (f i) (g i)] :
   module (Π i, f i) (Π i, g i) :=
-{ add_smul := by { intros, ext1, apply add_smul },
-  zero_smul := by { intros, ext1, apply zero_smul } }
+{ add_smul := by { intros, ext1, apply add_smul } }
 
 instance (α) {r : semiring α} {m : Π i, add_comm_monoid $ f i}
   [Π i, module α $ f i] [∀ i, no_zero_smul_divisors α $ f i] :

@@ -506,6 +506,8 @@ by simp
 
 @[simp] lemma sub_sub_cancel (a b : G) : a - (a - b) = b := sub_sub_self a b
 
+@[simp] lemma sub_sub_cancel_left (a b : G) : a - b - a = -b := by simp
+
 lemma sub_eq_neg_add (a b : G) : a - b = -b + a :=
 by rw [sub_eq_add_neg, add_comm _ _]
 

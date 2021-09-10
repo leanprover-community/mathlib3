@@ -174,7 +174,8 @@ end
 
 variables {R M}
 
-lemma _root_.module.finite.of_basis {ι : Type*} [fintype ι] (b : basis ι R M) : module.finite R M :=
+lemma _root_.module.finite.of_basis {R : Type*} {M : Type*} {ι : Type*} [comm_ring R]
+  [add_comm_group M] [module R M] [fintype ι] (b : basis ι R M) : module.finite R M :=
 begin
   classical,
   refine ⟨⟨finset.univ.image b, _⟩⟩,

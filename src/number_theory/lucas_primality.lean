@@ -71,26 +71,26 @@ begin
     exact Exists.intro r (id ⟨sub_pos_iff_lt.mpr hr, ha⟩), },
 end
 
-example (p : ℕ) (hp : 0 < p) (hn : ¬ p = 1) : 1 < p :=
-begin
-  exact (ne.symm hn).le_iff_lt.mp hp,
-end
-
 /--
 If `a^(p-1) = 1 mod p`, but `a^((p-1)/q) ≠ 1 mod p` for all prime factors `q` of `p-1`, then `p`
 is prime. This is true because `a` has order `p-1` in the multiplicative group mod `p`, so this
 group must itself have order `p-1`, which only happens when `p` is prime.
 -/
 theorem lucas_primality (a : zmod p)
-  (hp : 0 < p) (ha : a^(p-1) = 1)
+  (ha : a^(p-1) = 1)
   (hd : ∀ q : ℕ, q.prime → q ∣ (p-1) → a^((p-1)/q) ≠ 1) : p.prime :=
 begin
+  by_cases h0 : p = 0,
+    { by_contra,
+      refine hd 2 nat.prime_two _ _,
+      rw h0, simp,
+      simp [h0], },
   by_cases h1 : p = 1,
     { by_contra,
       refine hd 2 nat.prime_two _ _,
       simp only [h1, nat.sub_self, dvd_zero],
       simp [h1], },
-  have hp1 : 1 < p, from (ne.symm h1).le_iff_lt.mp hp,
+  have hp1 : 1 < p := lt_of_le_of_ne (nat.succ_le_iff.mpr (zero_lt_iff.mpr h0)) (ne.symm h1),
   have order_of_a : order_of a = p-1,
     { apply order_from_pows p (p - 1) a _ ha hd,
       exact sub_pos_iff_lt.mpr hp1, },

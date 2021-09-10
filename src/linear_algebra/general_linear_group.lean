@@ -104,10 +104,6 @@ begin
   exact inv_eq_nonsing_inv_of_invertible (↑A : matrix n n R),
 end
 
-
-@[simp] lemma to_lin'_one : to_lin' (1 : GL n R).1 = linear_map.id :=
-matrix.to_lin'_one
-
 end coe_lemmas
 
 end general_linear_group

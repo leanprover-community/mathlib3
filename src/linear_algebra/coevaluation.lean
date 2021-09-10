@@ -56,12 +56,13 @@ open tensor_product
 
 /-- This lemma corresponds to one of the coherence laws for duals in rigid categories, see
   `category_theory.monoidal.rigid`. -/
-lemma contract_left_assoc_coevaluation [decidable_eq ↥(basis.of_vector_space_index K V)] :
+lemma contract_left_assoc_coevaluation :
   ((contract_left K V).rtensor _)
    ∘ₗ (tensor_product.assoc K _ _ _).symm.to_linear_map
    ∘ₗ ((coevaluation K V).ltensor (module.dual K V))
   = (tensor_product.lid K _).symm.to_linear_map ∘ₗ (tensor_product.rid K _).to_linear_map :=
 begin
+  letI := classical.dec_eq (basis.of_vector_space_index K V),
   apply tensor_product.ext,
   apply (basis.of_vector_space K V).dual_basis.ext, intro j, apply linear_map.ext_ring,
   rw [linear_map.compr₂_apply, linear_map.compr₂_apply, tensor_product.mk_apply],
@@ -77,12 +78,13 @@ end
 
 /-- This lemma corresponds to one of the coherence laws for duals in rigid categories, see
   `category_theory.monoidal.rigid`. -/
-lemma contract_left_assoc_coevaluation' [decidable_eq ↥(basis.of_vector_space_index K V)] :
+lemma contract_left_assoc_coevaluation' :
   ((contract_left K V).ltensor _)
    ∘ₗ (tensor_product.assoc K _ _ _).to_linear_map
    ∘ₗ ((coevaluation K V).rtensor V)
   = (tensor_product.rid K _).symm.to_linear_map ∘ₗ (tensor_product.lid K _).to_linear_map :=
 begin
+  letI := classical.dec_eq (basis.of_vector_space_index K V),
   apply tensor_product.ext,
   apply linear_map.ext_ring, apply (basis.of_vector_space K V).ext, intro j,
   rw [linear_map.compr₂_apply, linear_map.compr₂_apply, tensor_product.mk_apply],

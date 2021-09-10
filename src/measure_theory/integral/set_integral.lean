@@ -795,23 +795,23 @@ begin
     assume a,
     rw [norm_indicator_eq_indicator_norm],
     exact indicator_le_indicator_of_subset (subset_Union _ _) (λa, norm_nonneg _) _ },
-  { filter_upwards [] λa, le_trans (tendsto_indicator_of_monotone _ h_mono _ _) (pure_le_nhds _) }
+  { filter_upwards [] λa, le_trans (h_mono.tendsto_indicator _ _ _) (pure_le_nhds _) }
 end
 
-lemma tendsto_integral_on_of_antitone (s : ℕ → set α) (f : α → β) (hsm : ∀i, measurable_set (s i))
-  (h_mono : ∀i j, i ≤ j → s j ⊆ s i) (hfm : measurable_on (s 0) f) (hfi : integrable_on (s 0) f) :
+lemma antitone.tendsto_integral_on (s : ℕ → set α) (f : α → β) (hsm : ∀i, measurable_set (s i))
+  (h_anti : ∀i j, i ≤ j → s j ⊆ s i) (hfm : measurable_on (s 0) f) (hfi : integrable_on (s 0) f) :
   tendsto (λi, ∫ a in (s i), f a) at_top (nhds (∫ a in (Inter s), f a)) :=
 let bound : α → ℝ := indicator (s 0) (λa, ∥f a∥) in
 begin
   apply tendsto_integral_of_dominated_convergence,
-  { assume i, refine hfm.subset (hsm i) (h_mono _ _ (zero_le _)) },
+  { assume i, refine hfm.subset (hsm i) (h_anti _ _ (zero_le _)) },
   { exact hfm.subset (measurable_set.Inter hsm) (Inter_subset _ _) },
   { show integrable_on (s 0) (λa, ∥f a∥), rwa integrable_on_norm_iff },
   { assume i, apply ae_of_all,
     assume a,
     rw [norm_indicator_eq_indicator_norm],
-    refine indicator_le_indicator_of_subset (h_mono _ _ (zero_le _)) (λa, norm_nonneg _) _ },
-  { filter_upwards [] λa, le_trans (antitone.tendsto_indicator _ h_mono _ _) (pure_le_nhds _) }
+    refine indicator_le_indicator_of_subset (h_anti _ _ (zero_le _)) (λa, norm_nonneg _) _ },
+  { filter_upwards [] λa, le_trans (h_anti.tendsto_indicator _ _ _) (pure_le_nhds _) }
 end
 
 -- TODO : prove this for an encodable type

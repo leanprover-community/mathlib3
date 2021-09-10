@@ -461,7 +461,7 @@ integrable_on_compact_of_monotone_on hs (λ x y _ _ hxy, hmono hxy)
 
 alias integrable_on_compact_of_monotone ← monotone.integrable_on_compact
 
-lemma antitone.integrable_on_compact (hanti : antitone f) :
+lemma integrable_on_compact_of_antitone (hanti : antitone f) :
   integrable_on f s μ :=
 @integrable_on_compact_of_monotone α (order_dual E) _ _ ‹_› _ _ ‹_› _ _ _ _ ‹_› _ _ _ hs _
   hanti

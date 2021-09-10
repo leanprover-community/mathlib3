@@ -53,32 +53,29 @@ it on each component, and proving that it agrees on the intersections. -/
 noncomputable def Union_lift (S : ι → set α)
   (f : Π i (x : S i), β)
   (hf : ∀ i j (x : α) (hxi : x ∈ S i) (hxj : x ∈ S j), f i ⟨x, hxi⟩ = f j ⟨x, hxj⟩)
-  (x : Union S) : β :=
-let i := classical.indefinite_description _ (mem_Union.1 x.2) in
+  (T : set α) (hT : T ⊆ Union S) (x : T) : β :=
+let i := classical.indefinite_description _ (mem_Union.1 (hT x.prop)) in
 f i ⟨x, i.prop⟩
 
-@[simp] lemma Union_lift_inclusion {S : ι → set α}
+variables
+  {S : ι → set α}
   {f : Π i (x : S i), β}
-  {hf : ∀ i j (x : α) (hxi : x ∈ S i) (hxj : x ∈ S j), f i ⟨x, hxi⟩ = f j ⟨x, hxj⟩ }
-  {i : ι} (x : S i) (h : S i ⊆ Union S := set.subset_Union S i) :
-  Union_lift S f hf (set.inclusion h x) = f i x :=
-let j := classical.indefinite_description _ (mem_Union.1 (h x.2)) in
-by cases x with x hx; exact hf j i x j.2 hx
+  {hf : ∀ i j (x : α) (hxi : x ∈ S i) (hxj : x ∈ S j), f i ⟨x, hxi⟩ = f j ⟨x, hxj⟩}
+  {T : set α} {hT : T ⊆ Union S}
 
 @[simp] lemma Union_lift_mk
-  {S : ι → set α}
-  {f : Π i (x : S i), β}
-  {hf : ∀ i j (x : α) (hxi : x ∈ S i) (hxj : x ∈ S j), f i ⟨x, hxi⟩ = f j ⟨x, hxj⟩ }
-  {i : ι} (x : S i) (hx : (x : α) ∈ Union S := set.subset_Union S i x.2) :
-  Union_lift S f hf ⟨x, hx⟩ = f i x :=
-Union_lift_inclusion x
+  {i : ι} (x : S i) (hx : (x : α) ∈ T) :
+  Union_lift S f hf T hT ⟨x, hx⟩ = f i x :=
+let j := classical.indefinite_description _ (mem_Union.1 (hT hx)) in
+by cases x with x hx; exact hf j i x j.2 _
+
+@[simp] lemma Union_lift_inclusion {i : ι} (x : S i)
+  (h : S i ⊆ T) : Union_lift S f hf T hT (set.inclusion h x) = f i x :=
+Union_lift_mk x _
 
 lemma Union_lift_of_mem
-  {S : ι → set α}
-  {f : Π i (x : S i), β}
-  {hf : ∀ i j (x : α) (hxi : x ∈ S i) (hxj : x ∈ S j), f i ⟨x, hxi⟩ = f j ⟨x, hxj⟩ }
-  (x : Union S) {i : ι} (hx : (x : α) ∈ S i) :
-  Union_lift S f hf x = f i ⟨x, hx⟩ :=
+  (x : T) {i : ι} (hx : (x : α) ∈ S i) :
+  Union_lift S f hf T hT x = f i ⟨x, hx⟩ :=
 by cases x with x hx; exact hf _ _ _ _ _
 
 /-- `Union_lift_const` is useful for proving that `Union_lift` is a homomorphism
@@ -87,16 +84,13 @@ by cases x with x hx; exact hf _ _ _ _ _
   of group homomorphisms on a union of subgroups preserves `1`. See also
   `lift_of_eq_Union_const` -/
 lemma Union_lift_const
-  {S : ι → set α}
-  {f : Π i (x : S i), β}
-  {hf : ∀ i j (x : α) (hxi : x ∈ S i) (hxj : x ∈ S j), f i ⟨x, hxi⟩ = f j ⟨x, hxj⟩}
-  (c : Union S)
+  (c : T)
   (ci : Π i, S i)
   (hci : ∀ i, (ci i : α) = c)
   (cβ : β)
   (h : ∀ i, f i (ci i) = cβ) :
-  Union_lift S f hf c = cβ :=
-let ⟨i, hi⟩ := set.mem_Union.1 c.prop in
+  Union_lift S f hf T hT c = cβ :=
+let ⟨i, hi⟩ := set.mem_Union.1 (hT c.prop) in
 have (ci i) = ⟨c, hi⟩, from subtype.ext (hci i),
 by rw [Union_lift_of_mem _ hi, ← this, h]
 
@@ -106,17 +100,14 @@ by rw [Union_lift_of_mem _ hi, ← this, h]
   of linear_maps on a union of submodules preserves scalar multiplication. See also
   `lift_of_eq_Union_unary` -/
 lemma Union_lift_unary
-  {S : ι → set α}
-  {f : Π i (x : S i), β}
-  {hf : ∀ i j (x : α) (hxi : x ∈ S i) (hxj : x ∈ S j), f i ⟨x, hxi⟩ = f j ⟨x, hxj⟩}
-  (u : (Union S) → (Union S))
+  (u : T → T)
   (ui : Π i, S i → S i)
-  (hui : ∀ i x, set.inclusion (set.subset_Union S i) (ui i x) =
-    u (set.inclusion (set.subset_Union S i) x))
+  (hui : ∀ i x (hx : ↑x ∈ T), set.inclusion (set.subset_Union S i) (ui i x) =
+    u ⟨x, hx⟩)
   (uβ : β → β)
   (h : ∀ i (x : S i), (f i (ui i x)) = uβ (f i x))
   (x : Union S) :
-  Union_lift S f hf (u x) = uβ (Union_lift S f hf x) :=
+  Union_lift S f hf T hT (u x) = uβ (Union_lift S f hf T hT x) :=
 begin
   cases set.mem_Union.1 x.prop with i hi,
   rw [Union_lift_of_mem x hi, ← h i],

@@ -1109,7 +1109,7 @@ end
 
 lemma simple_func.integral_eq_sum (f : α →ₛ E) (hfi : integrable f μ) :
   ∫ x, f x ∂μ = ∑ x in f.range, (ennreal.to_real (μ (f ⁻¹' {x}))) • x :=
-by {rw [← f.integral_eq_integral hfi, simple_func.integral, ← simple_func.integral_eq], refl, }
+by { rw [← f.integral_eq_integral hfi, simple_func.integral, ← simple_func.integral_eq], refl, }
 
 @[simp] lemma integral_const (c : E) : ∫ x : α, c ∂μ = (μ univ).to_real • c :=
 begin

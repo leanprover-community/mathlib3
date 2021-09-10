@@ -48,7 +48,7 @@ calc totient n ≤ ((range n).filter (≠ 0)).card :
   end
 ... = n - 1 : by simp only [filter_ne' (range n) 0, card_erase_of_mem, n.pred_eq_sub_one,
                 card_range, pos_of_gt hn, mem_range]
-... < n : buffer.lt_aux_2 (pos_of_gt hn)
+... < n : nat.pred_lt (pos_of_gt hn).ne'
 
 lemma totient_pos : ∀ {n : ℕ}, 0 < n → 0 < φ n
 | 0 := dec_trivial

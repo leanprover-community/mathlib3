@@ -38,7 +38,7 @@ begin
     suffices : (eval₂_hom (ring_hom.id _) pempty.elim) (rename fin_zero_equiv' p) =
       (eval fin_zero_elim : mv_polynomial (fin 0) R →+* R) p,
     { rw [← this],
-      simp only [coe_eval₂_hom, pempty_ring_equiv_apply,
+      simp only [coe_eval₂_hom, is_empty_ring_equiv_apply,
         ring_equiv.trans_apply],
       erw alg_equiv.coe_ring_equiv, },
     rw [eval₂_hom_rename],

@@ -72,7 +72,7 @@ by rw [←apply_ne_one_iff h, not_not]
 def to_graph [mul_zero_one_class α] [nontrivial α] (h : is_adj_matrix A) :
   simple_graph V :=
 { adj := λ i j, A i j = 1,
-  sym := λ i j hij, by rwa h.symm.apply i j,
+  symm := λ i j hij, by rwa h.symm.apply i j,
   loopless := λ i, by simp [h] }
 
 instance [mul_zero_one_class α] [nontrivial α] [decidable_eq α] (h : is_adj_matrix A) :

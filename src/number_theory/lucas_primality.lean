@@ -13,9 +13,10 @@ import group_theory.order_of_element
 # The Lucas test for primes.
 
 This file implements the Lucas test for primes (not to be confused with the Lucas-Lehmer test for
-Mersenne primes). A number `a` witnesses that `n` is prime if `a` has order `n-1` in the multiplicative
-group of integers mod `n`. This is checked by verifying that `a^(n-1) = 1 (mod n)` and `a^d ≠ 1 (mod n)`
-for any divisor `d | n`. This test is the basis of the Pratt primality certificate.
+Mersenne primes). A number `a` witnesses that `n` is prime if `a` has order `n-1` in the
+multiplicative group of integers mod `n`. This is checked by verifying that `a^(n-1) = 1 (mod n)`
+and `a^d ≠ 1 (mod n)` for any divisor `d | n`. This test is the basis of the Pratt primality
+certificate.
 
 ## TODO
 
@@ -43,17 +44,17 @@ Note that Mario also remarked this could be made computable.
 variables (p : ℕ) [fact (0 < p)]
 
 /--
-If a^r = 1 mod p, but a^(r/q) ≠ 1 mod p for all prime factors q of r, then a has order r in the
-multiplicative group mod p.
+If `a^r = 1 (mod p)`, but `a^(r/q) ≠ 1 (mod p)` for all prime factors `q` of `r`, then `a` has
+order `r` in the multiplicative group mod `p`.
 -/
 theorem order_from_pows (n r : ℕ) (a : zmod n)
   (hr : 0 < r) (ha : a^r = 1) (hd : (∀ q : ℕ, (nat.prime q) -> (q ∣ r) -> a^(r/q) ≠ 1)) :
   order_of a = r :=
 begin
-  -- Let b be r/(order_of a), and show b = 1
+  -- Let `b` be `r/(order_of a)`, and show `b = 1`
   cases exists_eq_mul_right_of_dvd (order_of_dvd_of_pow_eq_one ha) with b hb,
   suffices : b = 1, by simp [this, hb],
-  -- Assume b is not one...
+  -- Assume `b` is not one...
   by_contra,
   have b_min_fac_dvd_p_sub_one : b.min_fac ∣ r,
     { have c_dvd_factor : ∃ (c : ℕ), b = c * b.min_fac,
@@ -61,7 +62,7 @@ begin
       cases c_dvd_factor with c hc,
       rw [hc, ←mul_assoc] at hb,
       exact dvd.intro_left (order_of a * c) (eq.symm hb), },
-  -- Use the minimum prime factor of b as q.
+  -- Use the minimum prime factor of `b` as `q`.
   refine hd b.min_fac (nat.min_fac_prime h) b_min_fac_dvd_p_sub_one _,
   rw [←order_of_dvd_iff_pow_eq_one, nat.dvd_div_iff (b_min_fac_dvd_p_sub_one),
       hb, mul_comm, nat.mul_dvd_mul_iff_left (order_of_pos' _)],
@@ -71,9 +72,9 @@ begin
 end
 
 /--
-If a^(p-1) = 1 mod p, but a^((p-1)/q) ≠ 1 mod p for all prime factors q of p-1, then p is prime.
-This is true because a has order p-1 in the multiplicative group mod p, so this group must itself
-have order p-1, which only happens when p is prime.
+If `a^(p-1) = 1 mod p`, but `a^((p-1)/q) ≠ 1 mod p` for all prime factors `q` of `p-1`, then `p`
+is prime. This is true because `a` has order `p-1` in the multiplicative group mod `p`, so this
+group must itself have order `p-1`, which only happens when `p` is prime.
 -/
 theorem lucas_primality (a : zmod p)
   (hp : 1 < p) (ha : a^(p-1) = 1)
@@ -83,7 +84,7 @@ begin
     { apply order_from_pows p (p - 1) a _ ha hd,
       exact sub_pos_iff_lt.mpr hp, },
   rw nat.prime_iff_card_units,
-  -- Prove cardinality of units of zmod p are le and ge p-1
+  -- Prove cardinality of `units` of `zmod p` is both `≤ p-1` and `≥ p-1`
   rw le_antisymm_iff,
   split,
     { exact nat.card_units_zmod_lt_sub_one hp, },

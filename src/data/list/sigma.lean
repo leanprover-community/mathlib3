@@ -9,6 +9,22 @@ import data.list.perm
 import data.list.range
 import data.sigma
 
+/-!
+# Utilities for lists of sigmas
+
+This file includes several ways of interacting with `list (sigma β)`, treated as a key-value store.
+
+## Main Definitions
+
+- `list.keys` extracts the list of keys.
+- `list.nodupkeys` determines if the store has duplicate keys.
+- `list.lookup`/`lookup_all` accesses the value(s) of a particular key.
+- `list.kreplace` modifies a value.
+- `list.kerase` removes a value.
+- `list.kinsert` inserts a value.
+- `list.kunion` computes the union of two stores.
+-/
+
 universes u v
 
 namespace list

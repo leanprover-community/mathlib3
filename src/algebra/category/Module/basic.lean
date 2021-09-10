@@ -76,7 +76,10 @@ instance : has_coe_to_sort (Module.{v} R) :=
 instance Module_category : category (Module.{v} R) :=
 { hom   := λ M N, M →ₗ[R] N,
   id    := λ M, 1,
-  comp  := λ A B C f g, g.comp f }
+  comp  := λ A B C f g, g.comp f,
+  id_comp' := λ X Y f, linear_map.id_comp _,
+  comp_id' := λ X Y f, linear_map.comp_id _,
+  assoc' := λ W X Y Z f g h, linear_map.comp_assoc _ _ _ }
 
 instance Module_concrete_category : concrete_category.{v} (Module.{v} R) :=
 { forget := { obj := λ R, R, map := λ R S f, (f : R → S) },

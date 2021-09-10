@@ -1069,6 +1069,11 @@ lemma set_lintegral_congr {f : α → ℝ≥0∞} {s t : set α} (h : s =ᵐ[μ]
   ∫⁻ x in s, f x ∂μ = ∫⁻ x in t, f x ∂μ :=
 by rw [restrict_congr_set h]
 
+lemma set_lintegral_congr_fun {f g : α → ℝ≥0∞} {s : set α} (hs : measurable_set s)
+  (hfg : ∀ᵐ x ∂μ, x ∈ s → f x = g x) :
+  ∫⁻ x in s, f x ∂μ = ∫⁻ x in s, g x ∂μ :=
+by { rw lintegral_congr_ae, rw eventually_eq, rwa ae_restrict_iff' hs, }
+
 /-- Monotone convergence theorem -- sometimes called Beppo-Levi convergence.
 
 See `lintegral_supr_directed` for a more general form. -/
@@ -1314,7 +1319,13 @@ by simpa [tsum_fintype] using lintegral_sum_measure f (λ b, cond b μ ν)
   ∫⁻ a, f a ∂(0 : measure α) = 0 :=
 bot_unique $ by simp [lintegral]
 
-lemma lintegral_in_measure_zero (s : set α) (f : α → ℝ≥0∞) (hs' : μ s = 0) :
+lemma set_lintegral_empty (f : α → ℝ≥0∞) : ∫⁻ x in ∅, f x ∂μ = 0 :=
+by rw [measure.restrict_empty, lintegral_zero_measure]
+
+lemma set_lintegral_univ (f : α → ℝ≥0∞) : ∫⁻ x in univ, f x ∂μ = ∫⁻ x, f x ∂μ :=
+by rw measure.restrict_univ
+
+lemma set_lintegral_measure_zero (s : set α) (f : α → ℝ≥0∞) (hs' : μ s = 0) :
   ∫⁻ x in s, f x ∂μ = 0 :=
 begin
   convert lintegral_zero_measure _,
@@ -1430,6 +1441,15 @@ begin
     simp [hφ x, hs, indicator_le_indicator] }
 end
 
+lemma set_lintegral_eq_const {f : α → ℝ≥0∞} (hf : measurable f) (r : ℝ≥0∞) :
+  ∫⁻ x in {x | f x = r}, f x ∂μ = r * μ {x | f x = r} :=
+begin
+  have : ∀ᵐ x ∂μ, x ∈ {x | f x = r} → f x = r := ae_of_all μ (λ _ hx, hx),
+  erw [set_lintegral_congr_fun _ this, lintegral_const,
+       measure.restrict_apply measurable_set.univ, set.univ_inter],
+  exact hf (measurable_set_singleton r)
+end
+
 /-- **Chebyshev's inequality** -/
 lemma mul_meas_ge_le_lintegral {f : α → ℝ≥0∞} (hf : measurable f) (ε : ℝ≥0∞) :
   ε * μ {x | ε ≤ f x} ≤ ∫⁻ a, f a ∂μ :=
@@ -1440,6 +1460,12 @@ begin
   simp only [restrict_apply _ this],
   exact indicator_apply_le id
 end
+
+lemma lintegral_eq_top_of_measure_eq_top_pos {f : α → ℝ≥0∞} (hf : measurable f)
+  (hμf : 0 < μ {x | f x = ∞}) : ∫⁻ x, f x ∂μ = ∞ :=
+eq_top_iff.mpr $
+calc ∞ = ∞ * μ {x | ∞ ≤ f x} : by simp [mul_eq_top, hμf.ne.symm]
+   ... ≤ ∫⁻ x, f x ∂μ : mul_meas_ge_le_lintegral hf ∞
 
 lemma meas_ge_le_lintegral_div {f : α → ℝ≥0∞} (hf : measurable f) {ε : ℝ≥0∞}
   (hε : ε ≠ 0) (hε' : ε ≠ ∞) :
@@ -1735,6 +1761,10 @@ begin
   { rwa pairwise_disjoint_on_bool }
 end
 
+lemma lintegral_add_compl (f : α → ℝ≥0∞) {A : set α} (hA : measurable_set A) :
+  ∫⁻ x in A, f x ∂μ + ∫⁻ x in Aᶜ, f x ∂μ = ∫⁻ x, f x ∂μ :=
+by rw [← lintegral_add_measure, measure.restrict_add_restrict_compl hA]
+
 lemma lintegral_map [measurable_space β] {f : β → ℝ≥0∞} {g : α → β}
   (hf : measurable f) (hg : measurable g) : ∫⁻ a, f a ∂(map g μ) = ∫⁻ a, f (g a) ∂μ :=
 begin
@@ -1874,8 +1904,8 @@ begin
   refl,
 end
 
-lemma finite_measure_with_density {f : α → ℝ≥0∞}
-  (hf : ∫⁻ a, f a ∂μ < ∞) : finite_measure (μ.with_density f) :=
+lemma is_finite_measure_with_density {f : α → ℝ≥0∞}
+  (hf : ∫⁻ a, f a ∂μ < ∞) : is_finite_measure (μ.with_density f) :=
 { measure_univ_lt_top :=
     by rwa [with_density_apply _ measurable_set.univ, measure.restrict_univ] }
 
@@ -1884,7 +1914,7 @@ lemma with_density_absolutely_continuous
 begin
   refine absolutely_continuous.mk (λ s hs₁ hs₂, _),
   rw with_density_apply _ hs₁,
-  exact lintegral_in_measure_zero _ _ hs₂
+  exact set_lintegral_measure_zero _ _ hs₂
 end
 
 @[simp]
@@ -1892,6 +1922,24 @@ lemma with_density_zero : μ.with_density 0 = 0 :=
 begin
   ext1 s hs,
   simp [with_density_apply _ hs],
+end
+
+lemma with_density_tsum {f : ℕ → α → ℝ≥0∞} (h : ∀ i, measurable (f i)) :
+  μ.with_density (∑' n, f n) = sum (λ n, μ.with_density (f n)) :=
+begin
+  ext1 s hs,
+  simp_rw [sum_apply _ hs, with_density_apply _ hs],
+  change ∫⁻ x in s, (∑' n, f n) x ∂μ = ∑' (i : ℕ), ∫⁻ x, f i x ∂(μ.restrict s),
+  rw ← lintegral_tsum h,
+  refine lintegral_congr (λ x, tsum_apply (pi.summable.2 (λ _, ennreal.summable))),
+end
+
+lemma with_density_indicator {s : set α} (hs : measurable_set s) (f : α → ℝ≥0∞) :
+  μ.with_density (s.indicator f) = (μ.restrict s).with_density f :=
+begin
+  ext1 t ht,
+  rw [with_density_apply _ ht, lintegral_indicator _ hs,
+      restrict_comm hs ht, ← with_density_apply _ ht]
 end
 
 end lintegral

@@ -703,10 +703,10 @@ variables (hv : linear_independent R v)
 begin
 apply linear_equiv.of_bijective
   (linear_map.cod_restrict (span R (range v)) (finsupp.total ι M R v) _),
-{ rw linear_map.ker_cod_restrict,
+{ rw [← linear_map.ker_eq_bot, linear_map.ker_cod_restrict],
   apply hv },
-{ rw [linear_map.range_eq_map, linear_map.map_cod_restrict, ← linear_map.range_le_iff_comap,
-    range_subtype, map_top],
+{ rw [← linear_map.range_eq_top, linear_map.range_eq_map, linear_map.map_cod_restrict,
+    ← linear_map.range_le_iff_comap, range_subtype, map_top],
   rw finsupp.range_total,
   apply le_refl (span R (range v)) },
 { intro l,

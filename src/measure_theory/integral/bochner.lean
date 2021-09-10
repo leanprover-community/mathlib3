@@ -775,7 +775,7 @@ begin
     ennreal.coe_zero],
   exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds
     (tendsto_set_lintegral_zero hf hs) (λ i, zero_le _)
-    (λ i, nnnorm_integral_le_lintegral_nnnorm _)
+    (λ i, ennnorm_integral_le_lintegral_ennnorm _)
 end
 
 /-- If `f` is integrable, then `∫ x in s, f x ∂μ` is absolutely continuous in `s`: it tends

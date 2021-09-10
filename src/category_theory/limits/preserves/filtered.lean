@@ -26,6 +26,10 @@ variables {E : Type u₃} [category.{v} E]
 
 variables {J : Type v} [small_category J] {K : J ⥤ C}
 
+/--
+A functor is said to preserve filtered colimits, if it preserves all colimits of shape `J`, where
+`J` is a filtered category.
+-/
 class preserves_filtered_colimits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
 (preserves_filtered_colimits : Π (J : Type v) [small_category J] [is_filtered J],
   preserves_colimits_of_shape J F)
@@ -42,6 +46,10 @@ instance comp_preserves_filtered_colimits (F : C ⥤ D) (G : D ⥤ E)
   preserves_filtered_colimits (F ⋙ G) :=
 { preserves_filtered_colimits := λ J _ _, by exactI infer_instance }
 
+/--
+A functor is said to preserve cofiltered limits, if it preserves all limits of shape `J`, where
+`J` is a cofiltered category.
+-/
 class preserves_cofiltered_limits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
 (preserves_cofiltered_limits : Π (J : Type v) [small_category J] [is_cofiltered J],
   preserves_limits_of_shape J F)

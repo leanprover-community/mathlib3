@@ -38,7 +38,7 @@ parameters {J : Type v} [small_category J] (F : J ⥤ Mon.{v})
 
 /--
 The colimit of `F ⋙ forget Mon` in the category of types.
-The task of this file is to construct a monoid structure on `M`.
+In the following, we will construct a monoid structure on `M`.
 -/
 @[to_additive]
 abbreviation M : Type v := types.quot (F ⋙ forget Mon)
@@ -290,8 +290,14 @@ namespace CommMon.filtered_colimits
 
 section
 
+-- We use parameters here, mainly so we can have the abbreviations `M` and `M.mk` below, without
+-- passing around `F` all the time.
 parameters {J : Type v} [small_category J] [is_filtered J] (F : J ⥤ CommMon.{v})
 
+/--
+The colimit of `F ⋙ forget₂ CommMon Mon` in the category `Mon`.
+In the following, we will construct a _commutative_ monoid structure on `M`.
+-/
 @[to_additive]
 abbreviation M := Mon.filtered_colimits.colimit (F ⋙ forget₂ CommMon Mon.{v})
 
@@ -309,9 +315,11 @@ instance : comm_monoid M :=
  end
   ..M.monoid }
 
+/-- The bundled commutative monoid giving the filtered colimit of a diagram. -/
 @[to_additive]
 def colimit : CommMon := ⟨M, by apply_instance⟩
 
+/-- The cocone over the proposed colimit commutative monoid. -/
 @[to_additive]
 def colimit_cocone : cocone F :=
 { X := colimit,
@@ -320,6 +328,7 @@ def colimit_cocone : cocone F :=
     naturality' := λ X Y,
       Mon.filtered_colimits.cocone_naturality (F ⋙ forget₂ CommMon Mon.{v}) } }
 
+/-- The proposed colimit cocone is a colimit in `CommMon`. -/
 @[to_additive]
 def colimit_cocone_is_colimit : is_colimit colimit_cocone :=
 { desc := λ t, Mon.filtered_colimits.colimit_desc (F ⋙ forget₂ CommMon Mon.{v})

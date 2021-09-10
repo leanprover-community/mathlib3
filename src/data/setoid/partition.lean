@@ -191,23 +191,24 @@ instance partition.partial_order : partial_order (subtype (@is_partition α)) :=
 
 variables (α)
 
-/-- The order-preserving bijection between equivalence relations and partitions of sets. -/
-def partition.rel_iso :
-  setoid α ≃o subtype (@is_partition α) :=
+/-- The order-preserving bijection between equivalence relations on a type `α`, and
+  partitions of `α` into subsets. -/
+protected def partition.order_iso :
+  setoid α ≃o {C : set (set α) // is_partition C} :=
 { to_fun := λ r, ⟨r.classes, empty_not_mem_classes, classes_eqv_classes⟩,
-  inv_fun := λ x, mk_classes x.1 x.2.2,
+  inv_fun := λ C, mk_classes C.1 C.2.2,
   left_inv := mk_classes_classes,
-  right_inv := λ x, by rw [subtype.ext_iff_val, ←classes_mk_classes x.1 x.2],
-  map_rel_iff' := λ x y,
-    by { conv_rhs { rw [←mk_classes_classes x, ←mk_classes_classes y] }, refl } }
+  right_inv := λ C, by rw [subtype.ext_iff_val, ←classes_mk_classes C.1 C.2],
+  map_rel_iff' := λ r s,
+    by { conv_rhs { rw [←mk_classes_classes r, ←mk_classes_classes s] }, refl } }
 
 variables {α}
 
 /-- A complete lattice instance for partitions; there is more infrastructure for the
     equivalent complete lattice on equivalence relations. -/
 instance partition.complete_lattice : complete_lattice (subtype (@is_partition α)) :=
-galois_insertion.lift_complete_lattice $ @rel_iso.to_galois_insertion
-_ (subtype (@is_partition α)) _ (partial_order.to_preorder _) $ partition.rel_iso α
+galois_insertion.lift_complete_lattice $ @order_iso.to_galois_insertion
+_ (subtype (@is_partition α)) _ (partial_order.to_preorder _) $ partition.order_iso α
 
 end partition
 

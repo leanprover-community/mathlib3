@@ -17,6 +17,8 @@ open nat
 
 namespace equiv
 
+variables {α : Type*}
+
 /--
 An equivalence between `ℕ × ℕ` and `ℕ`, using the `mkpair` and `unpair` functions in
 `data.nat.pairing`.
@@ -52,7 +54,7 @@ int_equiv_nat_sum_nat.trans nat_sum_nat_equiv_nat
 /--
 An equivalence between `α × α` and `α`, given that there is an equivalence between `α` and `ℕ`.
 -/
-def prod_equiv_of_equiv_nat {α : Sort*} (e : α ≃ ℕ) : α × α ≃ α :=
+def prod_equiv_of_equiv_nat (e : α ≃ ℕ) : α × α ≃ α :=
 calc α × α ≃ ℕ × ℕ : prod_congr e e
       ...  ≃ ℕ     : nat_prod_nat_equiv_nat
       ...  ≃ α     : e.symm

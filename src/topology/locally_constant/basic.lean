@@ -250,6 +250,8 @@ def const (X : Type*) {Y : Type*} [topological_space X] (y : Y) :
   locally_constant X Y :=
 ⟨function.const X y, is_locally_constant.const _⟩
 
+@[simp] lemma coe_const (y : Y) : (const X y : X → Y) = function.const X y := rfl
+
 /-- The locally constant function to `fin 2` associated to a clopen set. -/
 def of_clopen {X : Type*} [topological_space X] {U : set X} [∀ x, decidable (x ∈ U)]
   (hU : is_clopen U) : locally_constant X (fin 2) :=

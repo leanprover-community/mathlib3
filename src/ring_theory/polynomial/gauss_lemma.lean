@@ -23,7 +23,7 @@ Gauss's Lemma is one of a few results pertaining to irreducibility of primitive 
 
 -/
 
-local notation R`⁰`:9000 := non_zero_divisors R
+open_locale non_zero_divisors
 
 variables {R : Type*} [integral_domain R]
 
@@ -39,7 +39,7 @@ include hinj hf
 lemma is_primitive.is_unit_iff_is_unit_map_of_injective :
   is_unit f ↔ is_unit (map φ f) :=
 begin
-  refine ⟨(ring_hom.of (map φ)).is_unit_map, λ h, _⟩,
+  refine ⟨(map_ring_hom φ).is_unit_map, λ h, _⟩,
   rcases is_unit_iff.1 h with ⟨_, ⟨u, rfl⟩, hu⟩,
   have hdeg := degree_C u.ne_zero,
   rw [hu, degree_map' hinj] at hdeg,
@@ -51,7 +51,7 @@ end
 lemma is_primitive.irreducible_of_irreducible_map_of_injective (h_irr : irreducible (map φ f)) :
   irreducible f :=
 begin
-  refine ⟨λ h, h_irr.not_unit (is_unit.map (monoid_hom.of (map φ)) h), _⟩,
+  refine ⟨λ h, h_irr.not_unit (is_unit.map ((map_ring_hom φ).to_monoid_hom) h), _⟩,
   intros a b h,
   rcases h_irr.is_unit_or_is_unit (by rw [h, map_mul]) with hu | hu,
   { left,
@@ -145,12 +145,13 @@ begin
     apply map_injective (algebra_map R K) (is_fraction_ring.injective _ _),
     rw [map_mul, map_mul, hs, hr, mul_assoc, mul_comm r],
     simp },
-  rw [← hp.dvd_prim_part_iff_dvd, prim_part_mul, hq.prim_part_eq, dvd_iff_dvd_of_rel_right] at h,
+  rw [← hp.dvd_prim_part_iff_dvd, prim_part_mul, hq.prim_part_eq,
+      associated.dvd_iff_dvd_right] at h,
   { exact h },
   { symmetry,
     rcases is_unit_prim_part_C s with ⟨u, hu⟩,
     use u,
-    simp [hu], },
+    rw hu },
   iterate 2 { apply mul_ne_zero hq.ne_zero,
     rw [ne.def, C_eq_zero],
     contrapose! s0,

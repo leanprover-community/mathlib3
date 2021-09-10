@@ -133,21 +133,43 @@ ext_iff.2 $ by simp
 
 /-! ### Commutative ring instance and lemmas -/
 
+/- We use a nonstandard formula for the `ℕ` and `ℤ` actions to make sure there is no
+diamond from the other actions they inherit through the `ℝ`-action on `ℂ` and action transitivity
+defined in `data.complex.module.lean`. -/
 instance : comm_ring ℂ :=
-by refine_struct { zero := (0 : ℂ), add := (+), neg := has_neg.neg, sub := has_sub.sub, one := 1,
-  mul := (*), nsmul := @nsmul_rec _ ⟨(0)⟩ ⟨(+)⟩, npow := @npow_rec _ ⟨(1)⟩ ⟨(*)⟩,
-  gsmul := @gsmul_rec _ ⟨(0)⟩ ⟨(+)⟩ ⟨has_neg.neg⟩ };
+by refine_struct
+  { zero := (0 : ℂ),
+    add := (+),
+    neg := has_neg.neg,
+    sub := has_sub.sub,
+    one := 1,
+    mul := (*),
+    zero_add := λ z, by { apply ext_iff.2, simp },
+    add_zero := λ z, by { apply ext_iff.2, simp },
+    nsmul := λ n z, ⟨n • z.re - 0 * z.im, n • z.im + 0 * z.re⟩,
+    npow := @npow_rec _ ⟨(1)⟩ ⟨(*)⟩,
+    gsmul := λ n z, ⟨n • z.re - 0 * z.im, n • z.im + 0 * z.re⟩ };
 intros; try { refl }; apply ext_iff.2; split; simp; {ring1 <|> ring_nf}
 
 /-- This shortcut instance ensures we do not find `ring` via the noncomputable `complex.field`
 instance. -/
 instance : ring ℂ := by apply_instance
 
-instance re.is_add_group_hom : is_add_group_hom complex.re :=
-{ map_add := complex.add_re }
+/-- The "real part" map, considered as an additive group homomorphism. -/
+def re_add_group_hom : ℂ →+ ℝ :=
+{ to_fun := re,
+  map_zero' := zero_re,
+  map_add' := add_re }
 
-instance im.is_add_group_hom : is_add_group_hom complex.im :=
-{ map_add := complex.add_im }
+@[simp] lemma coe_re_add_group_hom : (re_add_group_hom : ℂ → ℝ) = re := rfl
+
+/-- The "imaginary part" map, considered as an additive group homomorphism. -/
+def im_add_group_hom : ℂ →+ ℝ :=
+{ to_fun := im,
+  map_zero' := zero_im,
+  map_add' := add_im }
+
+@[simp] lemma coe_im_add_group_hom : (im_add_group_hom : ℂ → ℝ) = im := rfl
 
 @[simp] lemma I_pow_bit0 (n : ℕ) : I ^ (bit0 n) = (-1) ^ n :=
 by rw [pow_bit0', I_mul_I]

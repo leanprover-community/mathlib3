@@ -28,6 +28,7 @@ order of an element
 -/
 
 open function nat
+open_locale pointwise
 
 universes u v
 
@@ -212,7 +213,7 @@ lemma add_order_of_eq_add_order_of_iff {B : Type*} [add_monoid B] {b : B} :
   add_order_of a = add_order_of b ↔ ∀ n : ℕ, n • a = 0 ↔ n • b = 0 :=
 begin
   simp_rw ← add_order_of_dvd_iff_nsmul_eq_zero,
-  exact ⟨λ h n, by rw h, λ h, nat.dvd_antisymm ((h _).mpr (dvd_refl _)) ((h _).mp (dvd_refl _))⟩,
+  exact ⟨λ h n, by rw h, λ h, nat.dvd_antisymm ((h _).mpr dvd_rfl) ((h _).mp dvd_rfl)⟩,
 end
 
 @[to_additive add_order_of_eq_add_order_of_iff]
@@ -354,6 +355,15 @@ end cancel_monoid
 
 section group
 variables [group G] [add_group A] {x a} {i : ℤ}
+
+@[to_additive add_order_of_dvd_iff_gsmul_eq_zero]
+lemma order_of_dvd_iff_gpow_eq_one : (order_of x : ℤ) ∣ i ↔ x ^ i = 1 :=
+begin
+  rcases int.eq_coe_or_neg i with ⟨i, rfl|rfl⟩,
+  { rw [int.coe_nat_dvd, order_of_dvd_iff_pow_eq_one, gpow_coe_nat] },
+  { rw [dvd_neg, int.coe_nat_dvd, gpow_neg, inv_eq_one, gpow_coe_nat,
+      order_of_dvd_iff_pow_eq_one] }
+end
 
 @[simp, norm_cast, to_additive] lemma order_of_subgroup {H : subgroup G}
   (y: H) : order_of (y : G) = order_of y :=
@@ -645,7 +655,7 @@ lemma mem_multiples_iff_mem_gmultiples :
   b ∈ add_submonoid.multiples a ↔ b ∈ add_subgroup.gmultiples a :=
 ⟨λ ⟨n, hn⟩, ⟨n, by simp * at *⟩, λ ⟨i, hi⟩, ⟨(i % add_order_of a).nat_abs,
   by { simp only [nsmul_eq_smul] at hi ⊢,
-       rwa  [← gsmul_coe_nat,
+       rwa [← gsmul_coe_nat,
        int.nat_abs_of_nonneg (int.mod_nonneg _ (int.coe_nat_ne_zero_iff_pos.2
           (add_order_of_pos a))), ← gsmul_eq_mod_add_order_of] } ⟩⟩
 

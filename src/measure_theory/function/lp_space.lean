@@ -1727,6 +1727,25 @@ linear_map.mk_continuous_norm_le _ (norm_nonneg _) _
 end continuous_linear_map
 
 namespace measure_theory
+
+lemma indicator_const_Lp_eq_to_span_singleton_comp_Lp {s : set α} [normed_space ℝ F]
+  (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : F) :
+  indicator_const_Lp 2 hs hμs x =
+    (continuous_linear_map.to_span_singleton ℝ x).comp_Lp (indicator_const_Lp 2 hs hμs (1 : ℝ)) :=
+begin
+  ext1,
+  refine indicator_const_Lp_coe_fn.trans _,
+  have h_comp_Lp := (continuous_linear_map.to_span_singleton ℝ x).coe_fn_comp_Lp
+    (indicator_const_Lp 2 hs hμs (1 : ℝ)),
+  rw ← eventually_eq at h_comp_Lp,
+  refine eventually_eq.trans _ h_comp_Lp.symm,
+  refine (@indicator_const_Lp_coe_fn _ _ _ 2 μ _ _ s hs hμs (1 : ℝ) _ _).mono (λ y hy, _),
+  dsimp only,
+  rw hy,
+  simp_rw [continuous_linear_map.to_span_singleton_apply],
+  by_cases hy_mem : y ∈ s; simp [hy_mem, continuous_linear_map.lsmul_apply],
+end
+
 namespace Lp
 section pos_part
 

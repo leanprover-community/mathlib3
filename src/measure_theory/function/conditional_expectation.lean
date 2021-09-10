@@ -762,23 +762,6 @@ begin
 end
 variables {𝕜 𝕜'}
 
-lemma indicator_const_Lp_eq_to_span_singleton_comp_Lp [normed_space ℝ F] (hs : measurable_set s)
-  (hμs : μ s ≠ ∞) (x : F) :
-  indicator_const_Lp 2 hs hμs x =
-    (to_span_singleton ℝ x).comp_Lp (indicator_const_Lp 2 hs hμs (1 : ℝ)) :=
-begin
-  ext1,
-  refine indicator_const_Lp_coe_fn.trans _,
-  have h_comp_Lp := (to_span_singleton ℝ x).coe_fn_comp_Lp (indicator_const_Lp 2 hs hμs (1 : ℝ)),
-  rw ← eventually_eq at h_comp_Lp,
-  refine eventually_eq.trans _ h_comp_Lp.symm,
-  refine (@indicator_const_Lp_coe_fn _ _ _ 2 μ _ _ s hs hμs (1 : ℝ) _ _).mono (λ y hy, _),
-  dsimp only,
-  rw hy,
-  simp_rw [to_span_singleton_apply],
-  by_cases hy_mem : y ∈ s; simp [hy_mem, lsmul_apply],
-end
-
 section condexp_L2_indicator
 
 variables (𝕜)

@@ -214,7 +214,8 @@ end
 
 ---------------------------- POISSON SUMMATION ---------------
 
-@[derive add_comm_group] def real.angle' := quotient_add_group.quotient (add_subgroup.gmultiples (1:ℝ))
+--@[derive [add_comm_group, topological_space]]
+notation `ℝmodℤ` := quotient_add_group.quotient (add_subgroup.gmultiples (1:ℝ))
 
 --open_locale tsum
 
@@ -245,7 +246,7 @@ def automorphic_point_pair_invariant' : Schwarz → (ℝ → ℂ ) :=
  λ f, λ x, ∑' (m:ℤ), f (x+m)
 
 /--  x:ℝ/ℤ   ↦ F(x):= ∑ f ( x + m  )-/
-def auto_descend' : Schwarz → (real.angle' → ℂ )  :=
+def auto_descend' : Schwarz → (ℝmodℤ → ℂ )  :=
 λ f, @quotient.lift _ _ (quotient_add_group.left_rel _) (automorphic_point_pair_invariant' f)
 --(add_subgroup.gmultiples (2*real.pi))
 begin
@@ -269,24 +270,24 @@ begin
 end
 
 /--  x,y:ℝ/ℤ   ↦ K(x,y):= ∑ f ( x + m -y  )-/
-def auto_descend : Schwarz → (real.angle' × real.angle' → ℂ )  := λ f, λ ⟨x, y⟩ ,
+def auto_descend : Schwarz → (ℝmodℤ × ℝmodℤ → ℂ )  := λ f, λ ⟨x, y⟩ ,
 (auto_descend' f) (x-y)
 
 
 /--  y : ℝ/ℤ   ↦ θ : circle -/
-def expm : real.angle' ≃ circle := sorry
+def expm : ℝmodℤ ≃ circle := sorry
 
 
-def auto_descend'' : Schwarz → real.angle' → circle → ℂ   := λ f, λ x, λ  y,
+def auto_descend'' : Schwarz → ℝmodℤ → circle → ℂ   := λ f, λ x, λ  y,
 (auto_descend f) ⟨ x, expm.symm y⟩
 
 /--  θ:circle , y : ℝ/ℤ   ↦ K(θ ,y):= ∑ f ( θ  + m -y  )-/
-def auto_descend''' : Schwarz → real.angle' → Lp ℂ 2 haar_circle   :=  sorry
+def auto_descend''' : Schwarz → ℝmodℤ → Lp ℂ 2 haar_circle   :=  sorry
 --λ f, λ x, λ  y,
 --(auto_descend f) ⟨ x,y⟩
 
 /--  given K, y:ℝ/ℤ , m:ℤ , get: ⟨K(θ ,y), e_m(θ)⟩ -/
-def cof : Schwarz → real.angle' → ℤ → ℂ := λ f, λ θ, λ m,
+def cof : Schwarz → ℝmodℤ → ℤ → ℂ := λ f, λ θ, λ m,
   inner (fourier_Lp 2 m) (auto_descend''' f θ)
 
 open_locale big_operators
@@ -304,6 +305,135 @@ begin
     simp, },
   -- ALEX homework
   sorry,
+end
+
+instance : compact_space ℝmodℤ := sorry
+
+instance : t2_space ℝmodℤ := sorry
+
+#check (quotient_add_group.mk : (ℝ → ℝmodℤ))
+
+variables [measurable_space ℝmodℤ] [borel_space ℝmodℤ]
+
+
+notation `μ_ℝmodℤ`:=measure_theory.measure.add_haar_measure positive_compacts_univ
+
+lemma something  (μ : measure ℝ) (h : ∀ f : bounded_continuous_function ℝ ℝ ,
+∑' (n : ℤ),∫ (t:ℝ), f(t+n) ∂ μ =  ∫ (t : ℝ), f (t)) :
+measure.map (quotient_add_group.mk : (ℝ → ℝmodℤ)) μ =
+ μ_ℝmodℤ :=
+begin
+  sorry,
+end
+
+lemma something1 (S : set ℝ ) (hS : measurable_set S) (h : ∀ t, ∃! x∈ S , ∃n:ℤ, t=x+n ) :
+measure.map (quotient_add_group.mk : (ℝ → ℝmodℤ)) (measure.restrict volume S) =
+ μ_ℝmodℤ :=
+begin
+
+  sorry,
+end
+
+lemma integral_Union {ι : Type*} [encodable ι] {s : ι → set ℝ } (f : ℝ  → ℂ )
+  (hm : ∀ i, measurable_set (s i)) (hd : pairwise (disjoint on s)) (hfi : integrable f  ) :
+  (∫ a in (⋃ n, s n), f a ) = ∑' n, ∫ a in s n, f a  :=
+sorry
+
+lemma real_to_haar2 (f : Schwarz) (g : ℝmodℤ → ℂ) (F: ℝmodℤ→ℂ)
+(hFf : ∀ (x:ℝ) , F (x:ℝmodℤ) = ∑' (n:ℤ), f(x+n)) :
+∫ (x : ℝ), f x * g (x:ℝmodℤ) = ∫ (x : ℝmodℤ), F(x) * g(x) ∂ μ_ℝmodℤ :=
+begin
+  rw ← something1 (Ioc (0:ℝ) (1:ℝ)),
+  {
+    rw integral_map,
+    {
+      rw (_ :
+      ∫ (x : ℝ) in Ioc 0 1, F (quotient_add_group.mk x) * g (quotient_add_group.mk x)
+      =
+      ∫ (x : ℝ) in Ioc 0 1, (∑' (n:ℤ ), f ( x + n)) * g (quotient_add_group.mk x)
+      ),
+      {
+        rw (_ :
+        ∫ (x : ℝ) in Ioc 0 1, (∑' (n : ℤ), f (x + ↑n)) * g (quotient_add_group.mk x)
+        =
+        ∑' (n : ℤ), ∫ (x : ℝ) in Ioc 0 1,  f (x + ↑n) * g (quotient_add_group.mk x)
+        ),
+        {
+          rw (_ : ∑' (n : ℤ),
+          ∫ (x : ℝ) in Ioc 0 1, f (x + n) * g (quotient_add_group.mk x)
+          =∑' (n : ℤ),
+          ∫ (x : ℝ) in Ioc (n:ℝ) (n+1), f (x) * g (quotient_add_group.mk x)
+          ),
+          {
+            rw (_ :
+            ∫ (x : ℝ), f x * g ↑x =
+            ∫ (x : ℝ) in ⋃ (n : ℤ), Ioc (n:ℝ) (n+1), f x * g ↑x),
+            {
+              refine  integral_Union (λ x, f x * g x) _ _ _,
+              {
+                intros n,
+                exact measurable_set_Ioc,
+              },
+              {
+                intros i j ineqj,
+                intros x hx,
+                --- ALEX HOMEWORK
+                sorry,
+              },
+              {
+                sorry,
+              },
+            },
+            {
+              congr' 1,
+              convert measure.restrict_univ.symm using 2,
+              rw set.eq_univ_iff_forall ,
+              intros x,
+              sorry,
+              --- ALEX HOEMWORK
+            },
+
+          },
+          {
+            congr' 1,
+            ext1 n,
+            --- left translates , int _0 ^1 f(x+n) = int_n^n+1 f(x)
+            --- maybe use n+ Ioc 0 1 instead of Ioc n n+1
+            sorry,
+          },
+        },
+        {
+          -- dominated convergence, need to reverse sum (n:ℤ ) int_0^1
+          sorry,
+        },
+
+      },
+      {
+        congr' 1,
+        --- use hF f,
+        -- ALEX HOMEWORK
+        sorry,
+      },
+    },
+    {
+      -- measurable quotient_add_group.mk
+      -- continuous by definition. no content
+      sorry,
+    },
+    {
+      -- ae_measurable, no content
+      sorry,
+    },
+  },
+
+  {
+    exact measurable_set_Ioc,
+  },
+
+  {
+    -- ALEX HOEMWOWRK
+    sorry,
+  },
 end
 
 

@@ -143,8 +143,6 @@ lemma top_def  : (⊤ : setoid α).rel = ⊤ := rfl
 @[simp]
 lemma bot_def  : (⊥ : setoid α).rel = (=) := rfl
 
-
-
 /-- The inductively defined equivalence closure of a binary relation r is the infimum
     of the set of all equivalence relations containing r. -/
 theorem eqv_gen_eq (r : α → α → Prop) :
@@ -366,7 +364,6 @@ def correspondence (r : setoid α) : {s // r ≤ s} ≃o setoid (quotient r) :=
   map_rel_iff' := λ s t, ⟨λ h x y hs, let ⟨a, b, hx, hy, ht⟩ := h ⟨x, y, rfl, rfl, hs⟩ in
       t.1.trans' (t.1.symm' $ t.2 $ eq_rel.1 hx) $ t.1.trans' ht $ t.2 $ eq_rel.1 hy,
       λ h x y hs, let ⟨a, b, hx, hy, Hs⟩ := hs in ⟨a, b, hx, hy, h Hs⟩⟩ }
-
 
 lemma subsingleton_quotient_iff_eq_top  {s : setoid α} :
   subsingleton (quotient s) ↔ s = ⊤ :=

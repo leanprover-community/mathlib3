@@ -417,16 +417,6 @@ section trivial
 
 /-These first few lemmas should maybe go somewhere else, where?-/
 
-variables {α : Type u} (r : α → α → Prop )
-
-lemma subsingleton_quot_iff_forall : subsingleton (quot r) ↔ ∀ a b, eqv_gen r a b :=
-begin
-  rw subsingleton_iff,
-  refine (surjective_quot_mk _).forall.trans (forall_congr $ λ a, _),
-  refine (surjective_quot_mk _).forall.trans (forall_congr $ λ b, _),
-  exact quot.eq,
-end
-
 lemma quot_by_top_is_subsingleton : subsingleton (quotient_group.quotient (⊤ : subgroup G)) :=
 trunc.subsingleton
 
@@ -453,6 +443,7 @@ begin
   rw quotient_group.quotient at h,
   let r := (quotient_group.left_rel H).r,
   have := subsingleton_quot_iff_forall r,
+  have ht:= setoid.subsingleton_quotient_iff_eq_top r,
   have h2 := this.1 h,
   have h3 := setoid.iseqv,
   have h4 : eqv_gen r = λ _ _, true, by { ext, rw iff_true, apply h2 x_1 x_2, },

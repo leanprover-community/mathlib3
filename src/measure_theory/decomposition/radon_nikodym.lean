@@ -85,7 +85,7 @@ end
 
 lemma lintegral_radon_nikodym_deriv_lt_top
   (μ ν : measure α) [is_finite_measure μ] :
-  ∫⁻ x, μ.radon_nikodym_deriv ν x ∂ν < ⊤ :=
+  ∫⁻ x, μ.radon_nikodym_deriv ν x ∂ν < ∞ :=
 begin
   by_cases hl : have_lebesgue_decomposition μ ν,
   { haveI := hl,

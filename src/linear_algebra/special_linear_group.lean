@@ -146,7 +146,7 @@ lemma to_lin'_symm_to_linear_map (A : special_linear_group n R) :
   ↑(A.to_lin'.symm) = matrix.to_lin' ↑ₘ(A⁻¹) := rfl
 
 lemma to_lin'_injective :
-  function.injective ⇑(to_lin' : special_linear_group n R →* (n → R) ≃ₗ[R] (n → R)) :=
+  function.injective (to_lin' : special_linear_group n R → (n → R) ≃ₗ[R] (n → R)) :=
 λ A B h, subtype.coe_injective $ matrix.to_lin'.injective $
   linear_equiv.to_linear_map_injective.eq_iff.mpr h
 

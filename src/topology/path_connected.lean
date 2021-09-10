@@ -66,8 +66,6 @@ variables {X : Type*} [topological_space X] {x y z : X} {ι : Type*}
 
 /-! ### Paths -/
 
-set_option old_structure_cmd true
-
 /-- Continuous path connecting two points `x` and `y` in a topological space -/
 @[nolint has_inhabited_instance]
 structure path (x y : X) extends C(I, X) :=
@@ -78,11 +76,11 @@ instance : has_coe_to_fun (path x y) := ⟨_, λ p, p.to_fun⟩
 
 @[ext] protected lemma path.ext {X : Type*} [topological_space X] {x y : X} :
   ∀ {γ₁ γ₂ : path x y}, (γ₁ : I → X) = γ₂ → γ₁ = γ₂
-| ⟨x, h11, h12, h13⟩ ⟨.(x), h21, h22, h23⟩ rfl := rfl
+| ⟨⟨x, h11⟩, h12, h13⟩ ⟨⟨.(x), h21⟩, h22, h23⟩ rfl := rfl
 
 namespace path
 
-@[simp] lemma coe_mk (f : I → X) (h₁ h₂ h₃) : ⇑(mk f h₁ h₂ h₃ : path x y) = f := rfl
+@[simp] lemma coe_mk (f : I → X) (h₁ h₂ h₃) : ⇑(mk ⟨f, h₁⟩ h₂ h₃ : path x y) = f := rfl
 
 variable (γ : path x y)
 
@@ -319,6 +317,7 @@ def truncate {X : Type*} [topological_space X] {a b : X}
   source' :=
   begin
     unfold min max,
+    dsimp only,
     norm_cast,
     split_ifs with h₁ h₂ h₃ h₄,
     { simp [γ.extend_of_le_zero h₁] },
@@ -330,6 +329,7 @@ def truncate {X : Type*} [topological_space X] {a b : X}
   target' :=
   begin
     unfold min max,
+    dsimp only,
     norm_cast,
     split_ifs with h₁ h₂ h₃,
     { simp [γ.extend_of_one_le h₂] },

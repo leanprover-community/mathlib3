@@ -205,7 +205,8 @@ begin
   rwa [succ_le_iff, pos_iff_ne_zero],
 end
 
-lemma card_units_zmod_lt_sub_one {p : ℕ} (hp : 1 < p) [fact (0 < p)] :
+lemma card_units_zmod_lt_sub_one {p : ℕ} (hp : 1 < p)
+  (hp' : fact (0 < p) := ⟨zero_lt_one.trans hp⟩) :
   fintype.card (units (zmod p)) ≤ p - 1 :=
 by { rw zmod.card_units_eq_totient p, exact nat.le_pred_of_lt (nat.totient_lt p hp), }
 

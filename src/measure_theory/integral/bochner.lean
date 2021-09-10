@@ -201,15 +201,12 @@ lemma weighted_smul_smul [normed_field 𝕜] [normed_space 𝕜 F] [smul_comm_cl
   weighted_smul μ s (c • x) = c • weighted_smul μ s x :=
 by { simp_rw [weighted_smul_apply, smul_comm], }
 
-/-- TODO: move this. -/
-lemma norm_smul_id_le [semi_normed_group E] [nondiscrete_normed_field 𝕜] [semi_normed_space 𝕜 E]
-  (r : 𝕜) :
-  ∥r • (continuous_linear_map.id 𝕜 E)∥ ≤ ∥r∥ :=
-(norm_smul _ _).le.trans
-  ((mul_le_mul_of_nonneg_left norm_id_le (norm_nonneg _)).trans (mul_one _).le)
-
 lemma norm_weighted_smul_le (s : set α) : ∥(weighted_smul μ s : F →L[ℝ] F)∥ ≤ (μ s).to_real :=
-(norm_smul_id_le _).trans ((real.norm_eq_abs _).trans (abs_eq_self.mpr ennreal.to_real_nonneg)).le
+calc ∥(weighted_smul μ s : F →L[ℝ] F)∥ = ∥(μ s).to_real∥ * ∥continuous_linear_map.id ℝ F∥ :
+  norm_smul _ _
+... ≤ ∥(μ s).to_real∥ : (mul_le_mul_of_nonneg_left norm_id_le (norm_nonneg _)).trans (mul_one _).le
+... = abs (μ s).to_real : real.norm_eq_abs _
+... = (μ s).to_real : abs_eq_self.mpr ennreal.to_real_nonneg
 
 lemma dominated_fin_meas_additive_weighted_smul {m : measurable_space α} (μ : measure α) :
   dominated_fin_meas_additive μ (weighted_smul μ : set α → F →L[ℝ] F) 1 :=

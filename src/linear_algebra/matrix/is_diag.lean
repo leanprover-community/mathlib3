@@ -115,8 +115,8 @@ lemma is_diag.kronecker [mul_zero_class α]
 begin
   rintros ⟨a, b⟩ ⟨c, d⟩ h,
   dsimp [kronecker_apply],
-  by_cases hac: a = c,
-  { have hbd: b ≠ d, { tidy }, simp [hB hbd] },
+  by_cases hac : a = c,
+  { have hbd : b ≠ d, { tidy }, simp [hB hbd] },
   { simp [hA hac] },
 end
 

@@ -138,10 +138,10 @@ instance complete_lattice : complete_lattice (setoid α) :=
     ⟨λ r hr x y h, h _ hr, λ r hr x y h r' hr', hr hr' h⟩ }
 
 @[simp]
-lemma setoid.top_def  : (⊤ : setoid α).rel = ⊤ := rfl
+lemma top_def  : (⊤ : setoid α).rel = ⊤ := rfl
 
 @[simp]
-lemma setoid.bot_def  : (⊥ : setoid α).rel = (=) := rfl
+lemma bot_def  : (⊥ : setoid α).rel = (=) := rfl
 
 
 

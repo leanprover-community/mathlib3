@@ -47,7 +47,7 @@ begin
 end
 
 /-- Every unit matrix is diagonal. -/
-@[simp] lemma is_diag_unit [has_zero α] [subsingleton n] (A : matrix n n α) : A.is_diag :=
+lemma is_diag_of_subsingleton [has_zero α] [subsingleton n] (A : matrix n n α) : A.is_diag :=
 by { intros i j h, have h' := subsingleton.elim i j, contradiction }
 
 /-- Every zero matrix is diagonal. -/
@@ -72,12 +72,12 @@ by { intros i j h, simp [ha h] }
   (-A).is_diag ↔ A.is_diag :=
 ⟨ λ ha i j h, neg_eq_zero.1 (ha h), is_diag.neg ⟩
 
-@[simp] lemma is_diag.add
+lemma is_diag.add
   [add_zero_class α] {A B : matrix n n α} (ha : A.is_diag) (hb : B.is_diag) :
   (A + B).is_diag :=
 by { intros i j h, simp [ha h, hb h] }
 
-@[simp] lemma is_diag.sub [add_group α]
+lemma is_diag.sub [add_group α]
   {A B : matrix n n α} (ha : A.is_diag) (hb : B.is_diag) :
   (A - B).is_diag :=
 by { intros i j h, simp [ha h, hb h] }
@@ -87,21 +87,29 @@ by { intros i j h, simp [ha h, hb h] }
   (k • A).is_diag :=
 by { intros i j h, simp [ha h] }
 
-@[simp] lemma is_diag.transpose [has_zero α] {A : matrix n n α} (ha : A.is_diag) : Aᵀ.is_diag :=
+lemma is_diag.transpose [has_zero α] {A : matrix n n α} (ha : A.is_diag) : Aᵀ.is_diag :=
 λ i j h, ha h.symm
 
-@[simp] lemma is_diag.conj_transpose
+@[simp] lemma is_diag_transpose_iff [has_zero α] {A : matrix n n α} :
+  Aᵀ.is_diag ↔ A.is_diag :=
+⟨ is_diag.transpose, is_diag.transpose ⟩
+
+lemma is_diag.conj_transpose
   [semiring α] [star_ring α] {A : matrix n n α} (ha : A.is_diag) :
   Aᴴ.is_diag :=
 ha.transpose.map (star_zero _)
 
-@[simp] lemma is_diag.minor [has_zero α]
+@[simp] lemma is_diag_conj_transpose_iff [semiring α] [star_ring α] {A : matrix n n α} :
+  Aᴴ.is_diag ↔ A.is_diag :=
+⟨ λ ha, by {convert ha.conj_transpose, simp}, is_diag.conj_transpose ⟩
+
+lemma is_diag.minor [has_zero α]
   {A : matrix n n α} (ha : A.is_diag) {f : m → n} (hf : injective f) :
   (A.minor f f).is_diag :=
 λ i j h, ha (hf.ne h)
 
 /-- `(A ⊗ B).is_diag` if both `A` and `B` are diagonal. -/
-@[simp] lemma is_diag.kronecker [mul_zero_class α]
+lemma is_diag.kronecker [mul_zero_class α]
   {A : matrix m m α} {B : matrix n n α} (hA: A.is_diag) (hB: B.is_diag) :
   (A ⊗ₖ B).is_diag :=
 begin

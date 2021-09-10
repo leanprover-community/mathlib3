@@ -88,7 +88,7 @@ begin
   by_cases h1 : p = 1,
     { by_contra,
       refine hd 2 nat.prime_two _ _,
-      rw h1, simp only [nat.sub_self, dvd_zero],
+      simp only [h1, nat.sub_self, dvd_zero],
       simp [h1], },
   have hp1 : 1 < p, exact (ne.symm h1).le_iff_lt.mp hp,
   have order_of_a : order_of a = p-1,

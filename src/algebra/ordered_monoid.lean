@@ -407,34 +407,32 @@ lemma coe_neg [has_neg α] (x : α) : ((-x : α) : with_top α) = -x := rfl
 @[simp] lemma neg_eq_top [has_neg α] (x : with_top α) : - x = ⊤ ↔ x = ⊤ :=
 by { induction x using with_top.rec_top_coe; simp [neg_coe] }
 
-/-- A `with_top α` can have a subtraction if `[has_sub α]`. However, this might
-not be the subtraction that is preferred, for example `ennreal.has_sub`. -/
-instance [has_sub α] : has_sub (with_top α) :=
-⟨λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a - b))⟩
+variables [sub_neg_monoid α]
 
-lemma coe_sub [has_sub α] (x y : α) : ((x - y : α) : with_top α) = x - y := rfl
-@[simp] lemma top_sub [has_sub α] (x : with_top α) : (⊤ : with_top α) - x = ⊤ := rfl
-@[simp] lemma sub_top [has_sub α] (x : with_top α) : x - ⊤ = ⊤ :=
+instance : sub_neg_monoid (with_top α) :=
+{ sub := λ x y, x.bind (λ a, y.map (λ b, a - b)),
+  sub_eq_add_neg := λ a b, begin
+    induction a using with_top.rec_top_coe,
+    { refl },
+    induction b using with_top.rec_top_coe,
+    { refl },
+    { rw [neg_coe, ←coe_add, ←sub_eq_add_neg a b],
+      refl }
+  end,
+  ..with_top.has_neg,
+  ..with_top.add_monoid }
+
+lemma coe_sub (x y : α) : ((x - y : α) : with_top α) = x - y := rfl
+@[simp] lemma top_sub (x : with_top α) : (⊤ : with_top α) - x = ⊤ := rfl
+@[simp] lemma sub_top (x : with_top α) : x - ⊤ = ⊤ :=
 rec_top_coe rfl (λ _, rfl) x
 
-lemma sub_eq_top_iff [has_sub α] {a b : with_top α} : a - b = ⊤ ↔ a = ⊤ ∨ b = ⊤ :=
+lemma sub_eq_top_iff {a b : with_top α} : a - b = ⊤ ↔ a = ⊤ ∨ b = ⊤ :=
 begin
   induction a using with_top.rec_top_coe;
   induction b using with_top.rec_top_coe;
   simp [←with_top.coe_sub]
 end
-
-instance [sub_neg_monoid α] : sub_neg_monoid (with_top α) :=
-{ sub_eq_add_neg := λ a b, begin
-    induction a using with_top.rec_top_coe,
-    { refl },
-    induction b using with_top.rec_top_coe,
-    { refl },
-    { rw [neg_coe, ←coe_add, ←sub_eq_add_neg a b, ←coe_sub] }
-  end,
-  ..with_top.has_neg,
-  ..with_top.has_sub,
-  ..with_top.add_monoid }
 
 end sub_neg
 

@@ -198,12 +198,8 @@ noncomputable def submodule_is_internal.to_equiv
   {R : Type u} {M : Type w} [ring R] [add_comm_group M] [module R M]
   (A : ι → submodule R M) (hA : submodule_is_internal A) :
   (⨁ i, A i) ≃ₗ[R] M :=
-begin
-  letI : add_comm_group (⨁ (i : ι), (A i)) := direct_sum.add_comm_group (λ i, A i),
-  exact linear_equiv.of_bijective (direct_sum.to_module R ι M (λ i, (A i).subtype))
-    (linear_map.ker_eq_bot_of_injective hA.injective)
-    (linear_map.range_eq_top.mpr hA.surjective),
-end
+linear_equiv.of_bijective (direct_sum.to_module R ι M (λ i, (A i).subtype))
+  hA.injective hA.surjective
 
 @[simp] lemma submodule_is_internal.to_equiv_apply
   {R M : Type*} [ring R] [add_comm_group M] [module R M]
@@ -211,23 +207,23 @@ end
   submodule_is_internal.to_equiv A hA x = to_module R ι M (λ i, (A i).subtype) x :=
 rfl
 
+lemma submodule_is_internal.to_equiv_symm_single_apply_coe
+  {R M : Type*} [ring R] [add_comm_group M] [module R M]
+  {A : ι → submodule R M} [Π i (x : A i), decidable (x ≠ 0)]
+  (hA : submodule_is_internal A) (i : ι) (x : A i) :
+  (submodule_is_internal.to_equiv A hA).symm x = direct_sum.of _ i x :=
+begin
+  rw linear_equiv.symm_apply_eq,
+  convert (to_module_lof R i x).symm,
+  refl,
+end
+
 lemma submodule_is_internal.to_equiv_symm_single_apply
   {R M : Type*} [ring R] [add_comm_group M] [module R M]
-  (A : ι → submodule R M) [Π i (x : A i), decidable (x ≠ 0)]
+  {A : ι → submodule R M} [Π i (x : A i), decidable (x ≠ 0)]
   (hA : submodule_is_internal A) (i : ι) (x : M) (hx : x ∈ A i) :
-  (submodule_is_internal.to_equiv A hA).symm x = dfinsupp.single i ⟨x, hx⟩ :=
-begin
-  apply_fun submodule_is_internal.to_equiv A hA using linear_equiv.injective _,
-  rw linear_equiv.apply_symm_apply, dsimp, rw submodule_is_internal.apply,
-  by_cases h : x = 0,
-  { rw dfinsupp.support_single_eq_zero,
-    rwa finset.sum_empty,
-    rwa ← submodule.coe_eq_zero },
-  rw [dfinsupp.support_single_ne_zero, finset.sum_singleton,
-    dfinsupp.single_eq_same, submodule.coe_mk],
-  refine λ h', h _,
-  rw [← submodule.coe_eq_zero.mpr h', submodule.coe_mk]
-end
+  (submodule_is_internal.to_equiv A hA).symm x = direct_sum.of (λ i, A i) i ⟨x, hx⟩ :=
+hA.to_equiv_symm_single_apply_coe i ⟨x, hx⟩
 
 lemma submodule_is_internal.supr_eq_top {R M : Type*}
   [semiring R] [add_comm_monoid M] [module R M] (A : ι → submodule R M)
@@ -251,15 +247,17 @@ begin
   simp only [forall_eq, not_not] at hzero,
   apply_fun (submodule_is_internal.to_equiv A hA).symm at hsum,
   rw linear_equiv.map_sum at hsum,
-  have key := λ i, submodule_is_internal.to_equiv_symm_single_apply A hA i (v i) (hv i),
+  have key := λ i, hA.to_equiv_symm_single_apply i (v i) (hv i),
   simp only [key] at hsum,
   -- do casework on `i = j`
   ext j, by_cases h : i = j,
   { rw [← h, ← hsum, direct_sum.zero_apply, submodule.coe_zero, submodule.coe_eq_zero,
       dfinsupp.finset_sum_apply],
-    simp only [dfinsupp.single_apply, finset.sum_dite_eq', finsupp.mem_support_iff, ne.def,
-      submodule.mk_eq_zero, not_imp_self, ite_eq_right_iff, hzero], },
-  rw [submodule_is_internal.to_equiv_symm_single_apply A hA i x hi, dfinsupp.single_eq_of_ne],
+    simp only [direct_sum.of, dfinsupp.single_add_hom_apply, dfinsupp.single_apply,
+      finset.sum_dite_eq', finsupp.mem_support_iff,
+      ne.def, submodule.mk_eq_zero, not_imp_self, ite_eq_right_iff, hzero], },
+  rw [hA.to_equiv_symm_single_apply i x hi, direct_sum.of, dfinsupp.single_add_hom_apply,
+    dfinsupp.single_eq_of_ne],
   refl,
   exact h
 end

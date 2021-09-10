@@ -477,19 +477,6 @@ le_antisymm
 lemma Sup_eq_supr' {α} [has_Sup α] (s : set α) : Sup s = ⨆ x : s, (x : α) :=
 by rw [supr, subtype.range_coe]
 
--- Unfortunately `ι : Sort u_4` doesn't work with `set ι`
-theorem bsupr_eq_supr {ι : Type*} {s : ι → α}
-  {p : set ι} : (⨆ i (H : p i), s i) = ⨆ (i : p), s i :=
-begin
-  refine le_antisymm (bsupr_le (λ i hi, _)) _,
-  { change s (⟨i, hi⟩ : p) ≤ supr (λ (i : p), s i),
-    apply le_supr (λ (i : p), s i) _, },
-  simp only [supr_le_iff, set_coe.forall],
-  intros i hi,
-  rw subtype.coe_mk,
-  exact le_bsupr i hi,
-end
-
 lemma Sup_sUnion {s : set (set α)} :
   Sup (⋃₀ s) = ⨆ (t ∈ s), Sup t :=
 begin

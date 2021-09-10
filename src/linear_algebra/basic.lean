@@ -1131,19 +1131,12 @@ begin
   { exact λ a x i hi, ⟨i, smul_mem _ a hi⟩ },
 end
 
--- this is weirdly hard to prove
 lemma sum_erase_mem_bsupr {ι : Type*} [fintype ι] [decidable_eq ι]
   (x : ι → M) {p : ι → submodule R M} (j : ι) (hx : ∀ i, x i ∈ p i) :
   ∑ (i : ι) in finset.univ.erase j, (x i) ∈ ⨆ (k : ι) (H : k ≠ j), p k :=
 begin
-  let p' := λ i (h : i ≠ j), p i,
-  have : (⨆ (k : ι) (H : k ≠ j), p k) = ⨆ (k : ι) (H : k ≠ j), p' k H,
-  { congr, },
-  rw this,
-  refine submodule.sum_mem _ (λ c hc, _),
-  rw finset.mem_erase at hc,
-  have almost : p' c hc.1 ≤ ⨆ i (H : i ≠ j), p' i H := le_bsupr _ _,
-  exact almost (hx c),
+  convert sum_mem_bsupr (λ i hi, hx i),
+  simp,
 end
 
 @[simp] theorem mem_supr_of_directed {ι} [nonempty ι]
@@ -1370,7 +1363,7 @@ begin
   simp only [span_singleton_le_iff_mem],
 end
 
--- pretty atrocious but hey it works
+/-- TODO: prove this from `submodule.mem_supr_iff_exists_dfinsupp`. -/
 lemma mem_supr'
   {ι : Type w} (p : ι → submodule R M) {x : M} :
   x ∈ supr p ↔ ∃ v : ι →₀ M, (∀ i, v i ∈ p i) ∧ ∑ i in v.support, v i = x :=
@@ -1401,8 +1394,8 @@ begin
     use v + w,
     refine ⟨λ i, submodule.add_mem _ (hv i) (hw i), _⟩,
     rw [← hvs, ← hws],
-    simp only [finsupp.add_apply],
-    convert finsupp.sum_add_add v w, },
+    change (v + w).sum (λ i, id) = v.sum (λ i, id) + w.sum (λ i, id),
+    exact finsupp.sum_add_index (λ _, rfl) (λ _ _ _, rfl), },
   { intros r x hx,
     rcases hx with ⟨v, hv, hvs⟩,
     use r • v,
@@ -1425,7 +1418,7 @@ begin
   classical,
   change set ι at p,
   refine ⟨λ h, _, λ h, _⟩,
-  { rw bsupr_eq_supr at h,
+  { rw supr_subtype' at h,
     rcases (mem_supr' _).mp h with ⟨v', hv', hsum⟩,
     change p →₀ M at v',
     -- define `v = v'` where `p i` is true and zero otherwise

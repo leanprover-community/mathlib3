@@ -665,13 +665,6 @@ lemma support_subset_iff {s : set ι} {f : Π₀ i, β i} :
 by simp [set.subset_def];
    exact forall_congr (assume i, not_imp_comm)
 
-lemma support_single_eq_zero {i : ι} {b : β i} (hb : b = 0) : (single i b).support = ∅ :=
-begin
-  ext j, by_cases h : i = j,
-  { cases h, simp [hb], },
-  simp [ne.symm h, h],
-end
-
 lemma support_single_ne_zero {i : ι} {b : β i} (hb : b ≠ 0) : (single i b).support = {i} :=
 begin
   ext j, by_cases h : i = j,

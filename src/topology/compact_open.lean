@@ -105,7 +105,9 @@ end ev
 
 section Inf_induced
 
--- not a very conceptual proof!
+/-- The compact-open topology on `C(α, β)` is equal to the infimum of the compact-open topologies
+on `C(s, β)` for `s` a compact subset of `α`.  The key point of the proof is that the union of the
+compact subsets of `α` is equal to the union of compact subsets of the compact subsets of `α`. -/
 lemma compact_open_eq_Inf_induced :
   (continuous_map.compact_open : topological_space C(α, β))
   = ⨅ (s : set α) (hs : is_compact s),

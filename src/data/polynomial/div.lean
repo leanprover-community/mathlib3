@@ -471,7 +471,7 @@ begin
     (multiplicity_finite_of_degree_pos_of_monic
     (show (0 : with_bot ℕ) < degree (X - C a),
       by rw degree_X_sub_C; exact dec_trivial) (monic_X_sub_C _) hp)
-    (nat.lt_succ_self _) (dvd_of_mul_right_eq _ this)
+    (lt_succ _) (dvd_of_mul_right_eq _ this)
 end
 
 end multiplicity

@@ -158,5 +158,5 @@ begin
   -- To get our contradiction, it suffices to prove `n ≤ r * s`
   apply not_le_of_lt hn,
   -- Which follows from considering the cardinalities of the subset above, since `ab` is injective.
-  simpa [nat.succ_injective, card_image_of_injective, ‹injective ab›] using card_le_of_subset this,
+  simpa [succ_injective, card_image_of_injective, ‹injective ab›] using card_le_of_subset this,
 end

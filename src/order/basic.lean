@@ -316,7 +316,7 @@ nat.rec_on n strict_mono_id (λ n ihn, ihn.comp hf)
 
 lemma id_le {φ : ℕ → ℕ} (h : strict_mono φ) : ∀ n, n ≤ φ n :=
 λ n, nat.rec_on n (nat.zero_le _)
-  (λ n hn, nat.succ_le_of_lt (lt_of_le_of_lt hn $ h $ nat.lt_succ_self n))
+  (λ n hn, nat.succ_le_of_lt (hn.trans_lt $ h $ lt_succ n))
 
 protected lemma ite' [preorder α] [has_lt β] {f g : α → β} (hf : strict_mono f) (hg : strict_mono g)
   {p : α → Prop} [decidable_pred p] (hp : ∀ ⦃x y⦄, x < y → p y → p x)

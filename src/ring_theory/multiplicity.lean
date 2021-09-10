@@ -277,7 +277,7 @@ begin
     cases enat.ne_top_iff.mp (enat.ne_top_of_lt h) with k hk,
     rw [hk], rw_mod_cast [multiplicity_lt_iff_neg_dvd], intro h_dvd,
     rw [← dvd_add_iff_right] at h_dvd,
-    apply multiplicity.is_greatest _ h_dvd, rw [hk], apply_mod_cast nat.lt_succ_self,
+    apply multiplicity.is_greatest _ h_dvd, rw [hk], apply_mod_cast lt_succ,
     rw [pow_dvd_iff_le_multiplicity, nat.cast_add, ← hk, nat.cast_one],
     exact enat.add_one_le_of_lt h },
   { convert min_le_multiplicity_add, rw [min_eq_right (le_of_lt h)] }

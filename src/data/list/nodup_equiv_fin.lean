@@ -94,7 +94,7 @@ begin
     simp [list.nth_drop, nat.add_sub_of_le, nat.succ_le_iff, ←hf] },
   rw [←list.take_append_drop (f 0 + 1) l', ←list.singleton_append],
   apply list.sublist.append _ (IH _ this),
-  rw [list.singleton_sublist, ←h, l'.nth_le_take _ (nat.lt_succ_self _)],
+  rw [list.singleton_sublist, ←h, l'.nth_le_take _ (lt_succ _)],
   apply list.nth_le_mem
 end
 
@@ -117,7 +117,7 @@ begin
       refine ⟨order_embedding.of_map_le_iff
         (λ (ix : ℕ), if ix = 0 then 0 else (f ix.pred).succ) _, _⟩,
       { rintro ⟨_|a⟩ ⟨_|b⟩;
-        simp [nat.succ_le_succ_iff] },
+        simp [succ_le_succ_iff] },
       { rintro ⟨_|i⟩,
         { simp },
         { simpa using hf _ } } } },
@@ -191,7 +191,7 @@ begin
       { simp },
       { simp [hnm] },
       { simp },
-      { simp only [nat.lt_succ_iff, nat.succ_le_succ_iff, repeat, length, nonpos_iff_eq_zero]
+      { simp only [nat.lt_succ_iff, succ_le_succ_iff, repeat, length, nonpos_iff_eq_zero]
           at hi hj,
         simp [hi, hj] } },
     { rintros ⟨⟨_|i⟩, hi⟩,

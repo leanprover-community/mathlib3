@@ -100,7 +100,7 @@ lemma get_eq_default_of_le :
 | (k+1) (a::as) h1 :=
   begin
     apply get_eq_default_of_le k,
-    rw ← nat.succ_le_succ_iff, apply h1,
+    rw ← succ_le_succ_iff, apply h1,
   end
 
 @[simp] lemma get_set {a : α} :
@@ -287,7 +287,7 @@ lemma length_pointwise {f : α → β → γ} :
   by simp only [pointwise, length, length_map,
      max_eq_left (nat.zero_le (length as + 1))]
 | (a::as) (b::bs) :=
-  by simp only [pointwise, length, max_succ_succ, @length_pointwise as bs]
+  by simp only [pointwise, length, ←nat.succ_eq_add_one, max_succ_succ, @length_pointwise as bs]
 
 end func
 

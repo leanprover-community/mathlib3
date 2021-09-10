@@ -62,7 +62,7 @@ theorem mem_rev_list_aux : ∀ {i} (h : i ≤ n),
   λ m, begin
     simp [d_array.iterate_aux, list.mem] at m,
     cases m with e m',
-    exact ⟨⟨i, h⟩, nat.lt_succ_self _, eq.symm e⟩,
+    exact ⟨⟨i, h⟩, lt_succ _, eq.symm e⟩,
     exact let ⟨j, ji, e⟩ := IH.2 m' in
     ⟨j, nat.le_succ_of_le ji, e⟩
   end⟩

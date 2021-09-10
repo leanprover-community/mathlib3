@@ -596,7 +596,7 @@ theorem nat_strong_rec
 suffices computable₂ (λ a n, (list.range n).map (f a)), from
   option_some_iff.1 $
   (list_nth.comp (this.comp fst (succ.comp snd)) snd).to₂.of_eq $
-  λ a, by simp [list.nth_range (nat.lt_succ_self a.2)]; refl,
+  λ a, by simp [list.nth_range (lt_succ a.2)]; refl,
 option_some_iff.1 $
 (nat_elim snd (const (option.some [])) (to₂ $
   option_bind (snd.comp snd) $ to₂ $
@@ -682,7 +682,7 @@ begin
       exact IH _ am₂ (pfun.mem_fix_iff.2 (or.inr ⟨_, fa₂, ba⟩)) },
     cases n; simp [F] at h₂, {cases h₂},
     rcases h₂ with h₂ | ⟨a', am', fa'⟩,
-    { cases h₁ (nat.lt_succ_self _) with a' h,
+    { cases h₁ (lt_succ _) with a' h,
       injection mem_unique h h₂ },
     { exact this _ _ am' (pfun.mem_fix_iff.2 (or.inl fa')) } },
   { suffices : ∀ a' (_: b ∈ pfun.fix f a') k (_: sum.inr a' ∈ F a k),

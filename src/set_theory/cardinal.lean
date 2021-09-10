@@ -735,7 +735,7 @@ by simp [lt_iff_le_not_le, -not_le]
 by simp [le_antisymm_iff]
 
 @[simp, norm_cast, priority 900] theorem nat_succ (n : ℕ) : (n.succ : cardinal) = succ n :=
-le_antisymm (add_one_le_succ _) (succ_le.2 $ nat_cast_lt.2 $ nat.lt_succ_self _)
+le_antisymm (add_one_le_succ _) (succ_le.2 $ nat_cast_lt.2 $ lt_succ _)
 
 @[simp] theorem succ_zero : succ 0 = 1 :=
 by norm_cast
@@ -801,7 +801,7 @@ theorem omega_le {c : cardinal.{u}} : omega ≤ c ↔ ∀ n : ℕ, (n:cardinal) 
 ⟨λ h n, le_trans (le_of_lt (nat_lt_omega _)) h,
  λ h, le_of_not_lt $ λ hn, begin
   rcases lt_omega.1 hn with ⟨n, rfl⟩,
-  exact not_le_of_lt (nat.lt_succ_self _) (nat_cast_le.1 (h (n+1)))
+  exact (lt_succ _).not_le (nat_cast_le.1 (h (n+1)))
 end⟩
 
 theorem lt_omega_iff_fintype {α : Type u} : mk α < omega ↔ nonempty (fintype α) :=

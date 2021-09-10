@@ -78,7 +78,7 @@ theorem exists_nat_gt [ordered_semiring α] [nontrivial α] [archimedean α]
   (x : α) : ∃ n : ℕ, x < n :=
 let ⟨n, h⟩ := archimedean.arch x zero_lt_one in
 ⟨n+1, lt_of_le_of_lt (by rwa ← nsmul_one)
-  (nat.cast_lt.2 (nat.lt_succ_self _))⟩
+  (nat.cast_lt.2 (lt_succ _))⟩
 
 theorem exists_nat_ge [ordered_semiring α] [archimedean α] (x : α) :
   ∃ n : ℕ, x ≤ n :=

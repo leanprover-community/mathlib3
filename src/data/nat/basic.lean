@@ -277,9 +277,10 @@ eq_one_of_mul_eq_one_right (by rwa mul_comm)
 
 /-! ### `succ` -/
 
-instance : add_succ_order ℕ :=
+@[reducible] -- so that Lean reads `nat.succ` through `succ_order.succ`
+instance : succ_pred_order ℕ :=
 { succ := succ,
-  succ_eq_add_one := λ a, rfl,
+  pred := pred,
   ..succ_order_of_lt_iff_succ_le succ (λ a b, iff.rfl) }
 
 lemma succ_eq_one_add (n : ℕ) : n.succ = 1 + n :=
@@ -296,26 +297,11 @@ theorem one_add (n : ℕ) : 1 + n = succ n := by simp [add_comm]
 
 @[simp] lemma succ_pos' {n : ℕ} : 0 < succ n := succ_pos n
 
-theorem succ_inj' {n m : ℕ} : succ n = succ m ↔ n = m :=
-⟨succ.inj, congr_arg _⟩
-
-theorem succ_injective : function.injective nat.succ := λ x y, succ.inj
-
-lemma succ_ne_succ {n m : ℕ} : succ n ≠ succ m ↔ n ≠ m :=
-succ_injective.ne_iff
-
 @[simp] lemma succ_succ_ne_one (n : ℕ) : n.succ.succ ≠ 1 :=
 succ_ne_succ.mpr n.succ_ne_zero
 
 @[simp] lemma one_lt_succ_succ (n : ℕ) : 1 < n.succ.succ :=
 succ_lt_succ $ succ_pos n
-
-theorem succ_le_succ_iff {m n : ℕ} : succ m ≤ succ n ↔ m ≤ n :=
-⟨le_of_succ_le_succ, succ_le_succ⟩
-
-theorem max_succ_succ {m n : ℕ} :
-  max (succ m) (succ n) = succ (max m n) :=
-max_succ_succ
 
 lemma not_succ_lt_self {n : ℕ} : ¬succ n < n :=
 not_lt_of_ge (nat.le_succ _)
@@ -330,7 +316,7 @@ iff.rfl
 lemma lt_iff_add_one_le {m n : ℕ} : m < n ↔ m + 1 ≤ n :=
 iff.rfl
 
--- Just a restatement of `nat.lt_succ_iff` using `+1`.
+-- Just a restatement of `lt_succ_iff` using `+1`.
 lemma lt_add_one_iff {a b : ℕ} : a < b + 1 ↔ a ≤ b :=
 lt_succ_iff
 
@@ -348,9 +334,6 @@ by simp only [add_comm, add_one_le_iff]
 
 theorem of_le_succ {n m : ℕ} (H : n ≤ m.succ) : n ≤ m ∨ n = m.succ :=
 H.lt_or_eq_dec.imp le_of_lt_succ id
-
-lemma succ_lt_succ_iff {m n : ℕ} : succ m < succ n ↔ m < n :=
-⟨lt_of_succ_lt_succ, succ_lt_succ⟩
 
 @[simp] lemma lt_one_iff {n : ℕ} : n < 1 ↔ n = 0 :=
 lt_succ_iff.trans le_zero_iff
@@ -415,7 +398,7 @@ lemma add_eq_one_iff : ∀ {a b : ℕ}, a + b = 1 ↔ (a = 0 ∧ b = 1) ∨ (a =
 | 1     0     := dec_trivial
 | 1     1     := dec_trivial
 | (a+2) _     := by rw add_right_comm; exact dec_trivial
-| _     (b+2) := by rw [← add_assoc]; simp only [nat.succ_inj', nat.succ_ne_zero]; simp
+| _     (b+2) := by rw [← add_assoc]; simp only [succ_eq_succ_iff, nat.succ_ne_zero]; simp
 
 theorem le_add_one_iff {i j : ℕ} : i ≤ j + 1 ↔ (i ≤ j ∨ i = j + 1) :=
 ⟨assume h,
@@ -667,7 +650,7 @@ lemma mul_eq_one_iff : ∀ {a b : ℕ}, a * b = 1 ↔ a = 1 ∧ b = 1
 | 0     (b+2) := by simp
 | (a+1) (b+1) := ⟨
   λ h, by simp only [add_mul, mul_add, mul_add, one_mul, mul_one,
-    (add_assoc _ _ _).symm, nat.succ_inj', add_eq_zero_iff] at h; simp [h.1.2, h.2],
+    (add_assoc _ _ _).symm, succ_eq_succ_iff, add_eq_zero_iff] at h; simp [h.1.2, h.2],
   λ h, by simp only [h, mul_one]⟩
 
 protected theorem mul_left_inj {a b c : ℕ} (ha : 0 < a) : b * a = c * a ↔ b = c :=
@@ -694,9 +677,6 @@ nat.mul_right_inj ha
 
 lemma mul_left_eq_self_iff {a b : ℕ} (hb : 0 < b) : a * b = b ↔ a = 1 :=
 by rw [mul_comm, nat.mul_right_eq_self_iff hb]
-
-lemma lt_succ_iff_lt_or_eq {n i : ℕ} : n < i.succ ↔ (n < i ∨ n = i) :=
-lt_succ_iff.trans decidable.le_iff_lt_or_eq
 
 theorem mul_self_inj {n m : ℕ} : n * n = m * m ↔ n = m :=
 le_antisymm_iff.trans (le_antisymm_iff.trans
@@ -1040,7 +1020,7 @@ lemma succ_div : ∀ (a b : ℕ), (a + 1) / b =
       nat.add_sub_add_right],
     simp [dvd_iff, succ_eq_add_one, add_comm 1, add_assoc] },
   { have hba : ¬ b ≤ a,
-      from not_le_of_gt (lt_trans (lt_succ_self a) (lt_of_not_ge hb_le_a1)),
+      from ((lt_succ a).trans hb_le_a1.ne').not_lt,
     have hb_dvd_a : ¬ b + 1 ∣ a + 2,
       from λ h, hb_le_a1 (le_of_succ_le_succ (le_of_dvd (succ_pos _) h)),
     simp [hba, hb_le_a1, hb_dvd_a], }
@@ -1222,7 +1202,7 @@ end
 lemma lt_mul_div_succ (m : ℕ) {n : ℕ} (n0 : 0 < n) : m < n * ((m / n) + 1) :=
 begin
   rw [mul_comm, ← nat.div_lt_iff_lt_mul' n0],
-  exact lt_succ_self _
+  exact lt_succ _
 end
 
 @[simp] lemma mod_div_self (m n : ℕ) : m % n / n = 0 :=
@@ -1297,7 +1277,7 @@ lemma find_comp_succ (h₁ : ∃ n, p n) (h₂ : ∃ n, p (n + 1)) (h0 : ¬ p 0)
 begin
   refine (find_eq_iff _).2 ⟨nat.find_spec h₂, λ n hn, _⟩,
   cases n with n,
-  exacts [h0, @nat.find_min (λ n, p (n + 1)) _ h₂ _ (succ_lt_succ_iff.1 hn)]
+  exacts [h0, @nat.find_min (λ n, p (n + 1)) _ h₂ _ (lt_of_succ_lt_succ hn)]
 end
 
 end find
@@ -1437,8 +1417,8 @@ theorem bit_lt_bit (a b) {n m : ℕ} (h : n < m) : bit a n < bit b m :=
 lt_of_lt_of_le (bit_lt_bit0 _ h) (bit0_le_bit _ (le_refl _))
 
 @[simp] lemma bit0_le_bit1_iff : bit0 k ≤ bit1 n ↔ k ≤ n :=
-⟨λ h, by rwa [← nat.lt_succ_iff, n.bit1_eq_succ_bit0, ← n.bit0_succ_eq,
-  bit0_lt_bit0, nat.lt_succ_iff] at h, λ h, le_of_lt (nat.bit0_lt_bit1 h)⟩
+⟨λ h, by rwa [← lt_succ_iff, n.bit1_eq_succ_bit0, ← n.bit0_succ_eq,
+  bit0_lt_bit0, lt_succ_iff] at h, λ h, le_of_lt (nat.bit0_lt_bit1 h)⟩
 
 @[simp] lemma bit0_lt_bit1_iff : bit0 k < bit1 n ↔ k ≤ n :=
 ⟨λ h, bit0_le_bit1_iff.1 (le_of_lt h), nat.bit0_lt_bit1⟩
@@ -1489,7 +1469,7 @@ begin
   { exact is_true (λ n, dec_trivial) },
   cases IH (λ k h, P k (lt_succ_of_lt h)) with h,
   { refine is_false (mt _ h), intros hn k h, apply hn },
-  by_cases p : P n (lt_succ_self n),
+  by_cases p : P n (lt_succ n),
   { exact is_true (λ k h',
      (le_of_lt_succ h').lt_or_eq_dec.elim (h _)
        (λ e, match k, e, h' with _, rfl, h := p end)) },

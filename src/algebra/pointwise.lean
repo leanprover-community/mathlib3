@@ -734,7 +734,7 @@ begin
     suffices : ∀ n : ℕ, n ≤ B + 1 → n ≤ f n,
     { exact ⟨B + 1, this (B + 1) (le_refl (B + 1))⟩ },
     exact λ n, nat.rec (λ h, nat.zero_le (f 0)) (λ n ih h, lt_of_le_of_lt (ih (n.le_succ.trans h))
-      (lt_of_le_of_ne (h1 n.le_succ) (h2 n (nat.succ_le_succ_iff.mp h)))) n },
+      (lt_of_le_of_ne (h1 n.le_succ) (h2 n $ le_of_succ_le_succ h))) n },
   { obtain ⟨n, hn1, hn2⟩ := key,
     replace key : ∀ k : ℕ, f (n + k) = f (n + k + 1) ∧ f (n + k) = f n :=
     λ k, nat.rec ⟨hn2, rfl⟩ (λ k ih, ⟨h3 _ ih.1, ih.1.symm.trans ih.2⟩) k,

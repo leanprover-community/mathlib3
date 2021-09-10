@@ -79,8 +79,8 @@ by rw [bit1, eval₂_add, eval₂_bit0, eval₂_one, bit1]
 @[simp] lemma eval₂_smul (g : R →+* S) (p : polynomial R) (x : S) {s : R} :
   eval₂ g x (s • p) = g s * eval₂ g x p :=
 begin
-  have A : p.nat_degree < p.nat_degree.succ := nat.lt_succ_self _,
-  have B : (s • p).nat_degree < p.nat_degree.succ := (nat_degree_smul_le _ _).trans_lt A,
+  have A : p.nat_degree < p.nat_degree.succ := lt_succ _,
+  have B : (s • p).nat_degree < p.nat_degree.succ := lt_succ_of_le (nat_degree_smul_le _ _),
   rw [eval₂_eq_sum, eval₂_eq_sum, sum_over_range' _ _ _ A, sum_over_range' _ _ _ B];
   simp [mul_sum, mul_assoc],
 end
@@ -604,8 +604,7 @@ mem_map_srange f
 lemma eval₂_map [semiring T] (g : S →+* T) (x : T) :
   (p.map f).eval₂ g x = p.eval₂ (g.comp f) x :=
 begin
-  have A : nat_degree (p.map f) < p.nat_degree.succ :=
-    (nat_degree_map_le _ _).trans_lt (nat.lt_succ_self _),
+  have A : nat_degree (p.map f) < p.nat_degree.succ := lt_succ_of_le (nat_degree_map_le _ _),
   conv_lhs { rw [eval₂_eq_sum], },
   rw [sum_over_range' _ _ _ A],
   { simp only [coeff_map, eval₂_eq_sum, sum_over_range, forall_const, zero_mul, ring_hom.map_zero,

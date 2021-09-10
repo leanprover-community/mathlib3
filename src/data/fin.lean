@@ -308,7 +308,7 @@ begin
   split,
   { assume H i hi,
     apply H,
-    exact nat.lt_succ_self _ },
+    exact lt_succ _ },
   { assume H,
     have A : ∀ i j (h : i < j) (h' : j < n), f ⟨i, lt_trans h h'⟩ < f ⟨j, h'⟩,
     { assume i j h h',
@@ -577,7 +577,7 @@ begin
 end
 
 @[simp] lemma cast_le_succ {m n : ℕ} (h : (m + 1) ≤ (n + 1)) (i : fin m) :
-  cast_le h i.succ = (cast_le (nat.succ_le_succ_iff.mp h) i).succ :=
+  cast_le h i.succ = (cast_le (succ_le_succ_iff.mp h) i).succ :=
 by simp [fin.eq_iff_veq]
 
 /-- `cast eq i` embeds `i` into a equal `fin` type. -/
@@ -637,10 +637,10 @@ def cast_succ : fin n ↪o fin (n + 1) := cast_add 1
 @[simp] lemma cast_succ_mk (n i : ℕ) (h : i < n) : cast_succ ⟨i, h⟩ = ⟨i, nat.lt.step h⟩ := rfl
 
 lemma cast_succ_lt_succ (i : fin n) : i.cast_succ < i.succ :=
-lt_iff_coe_lt_coe.2 $ by simp only [coe_cast_succ, coe_succ, nat.lt_succ_self]
+lt_iff_coe_lt_coe.2 $ by simp only [coe_cast_succ, coe_succ, lt_succ]
 
 lemma le_cast_succ_iff {i : fin (n + 1)} {j : fin n} : i ≤ j.cast_succ ↔ i < j.succ :=
-by simpa [lt_iff_coe_lt_coe, le_iff_coe_le_coe] using nat.succ_le_succ_iff.symm
+by simpa [lt_iff_coe_lt_coe, le_iff_coe_le_coe] using succ_le_succ_iff.symm
 
 @[simp] lemma succ_last (n : ℕ) : (last n).succ = last (n.succ) := rfl
 

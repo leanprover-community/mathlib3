@@ -1016,7 +1016,7 @@ begin
   { exact iff_of_true rfl (not_mem_nil _) },
   simp only [length, mem_cons_iff, index_of_cons], split_ifs,
   { exact iff_of_false (by rintro ⟨⟩) (λ H, H $ or.inl h) },
-  { simp only [h, false_or], rw ← ih, exact succ_inj' }
+  { simp only [h, false_or], rw ← ih, exact succ_eq_succ_iff }
 end
 
 @[simp, priority 980]
@@ -1385,7 +1385,7 @@ lemma update_nth_comm (a b : α) : Π {n m : ℕ} (l : list α) (h : n ≠ m),
 | (n + 1) 0 (x :: t) h := by simp [list.update_nth]
 | 0 (m + 1) (x :: t) h := by simp [list.update_nth]
 | (n + 1) (m + 1) (x :: t) h := by { simp only [update_nth, true_and, eq_self_iff_true],
-  exact update_nth_comm t (λ h', h $ nat.succ_inj'.mpr h'), }
+  exact update_nth_comm t (λ h', h $ congr_arg _ h'), }
 
 @[simp] lemma nth_le_update_nth_eq (l : list α) (i : ℕ) (a : α)
   (h : i < (l.update_nth i a).length) : (l.update_nth i a).nth_le i h = a :=
@@ -1479,10 +1479,9 @@ begin
     { simpa [hx.left] using h },
     { simpa [ne.symm hx.left] using h },
     { simp only [true_and, eq_self_iff_true, insert_nth_succ_cons] at h,
-      rw nat.succ_inj',
-      refine IH hx.right _ _ h,
-      { simpa [nat.succ_le_succ_iff] using hn },
-      { simpa [nat.succ_le_succ_iff] using hm } } }
+      refine congr_arg succ (IH hx.right _ _ h),
+      { simpa [succ_le_succ_iff] using hn },
+      { simpa [succ_le_succ_iff] using hm } } }
 end
 
 lemma insert_nth_of_length_lt (l : list α) (x : α) (n : ℕ) (h : l.length < n) :
@@ -1494,7 +1493,7 @@ begin
     { simp } },
   { cases n,
     { simpa using h },
-    { simp only [nat.succ_lt_succ_iff, length] at h,
+    { simp only [succ_le_succ_iff, length] at h,
       simpa using IH _ h } }
 end
 
@@ -1511,7 +1510,7 @@ lemma length_le_length_insert_nth (l : list α) (x : α) (n : ℕ) :
 begin
   cases le_or_lt n l.length with hn hn,
   { rw length_insert_nth _ _ hn,
-    exact (nat.lt_succ_self _).le },
+    exact le_rfl },
   { rw insert_nth_of_length_lt _ _ _ hn }
 end
 
@@ -1521,7 +1520,7 @@ begin
   cases le_or_lt n l.length with hn hn,
   { rw length_insert_nth _ _ hn },
   { rw insert_nth_of_length_lt _ _ _ hn,
-    exact (nat.lt_succ_self _).le }
+    exact le_rfl }
 end
 
 lemma nth_le_insert_nth_of_lt (l : list α) (x : α) (n k : ℕ) (hn : k < n)
@@ -1535,8 +1534,7 @@ begin
     { simp },
     { cases k,
       { simp },
-      { rw nat.succ_lt_succ_iff at hn,
-        simpa using IH _ _ hn _ } } }
+      { simpa using IH _ _ (le_of_succ_le_succ hn) _ } } }
 end
 
 @[simp] lemma nth_le_insert_nth_self (l : list α) (x : α) (n : ℕ)
@@ -1549,14 +1547,14 @@ begin
     simp [hn] },
   { cases n,
     { simp },
-    { simp only [nat.succ_le_succ_iff, length] at hn,
+    { simp only [succ_le_succ_iff, length] at hn,
       simpa using IH _ hn } }
 end
 
 lemma nth_le_insert_nth_add_succ (l : list α) (x : α) (n k : ℕ)
   (hk' : n + k < l.length)
   (hk : n + k + 1 < (insert_nth n x l).length :=
-    by rwa [length_insert_nth _ _ (le_self_add.trans hk'.le), nat.succ_lt_succ_iff]) :
+    by rwa [length_insert_nth _ _ (le_self_add.trans hk'.le), succ_le_succ_iff]) :
   (insert_nth n x l).nth_le (n + k + 1) hk = nth_le l (n + k) hk' :=
 begin
   induction l with hd tl IH generalizing n k,
@@ -1766,7 +1764,7 @@ end
 
 @[simp] lemma nth_take_of_succ {l : list α} {n : ℕ} :
   (l.take (n + 1)).nth n = l.nth n :=
-nth_take (nat.lt_succ_self n)
+nth_take (lt_succ n)
 
 lemma take_succ {l : list α} {n : ℕ} :
   l.take (n + 1) = l.take n ++ (l.nth n).to_list :=
@@ -1809,7 +1807,7 @@ begin
   { cases l,
     { simp },
     { simp only [drop] at h,
-      simpa [nat.succ_le_succ_iff] using hk h } }
+      simpa [succ_le_succ_iff] using hk h } }
 end
 
 lemma tail_drop (l : list α) (n : ℕ) : (l.drop n).tail = l.drop (n + 1) :=
@@ -1828,7 +1826,7 @@ begin
   { exact absurd n.zero_le (not_le_of_lt (by simpa using hn)) },
   { cases n,
     { simp },
-    { simp only [nat.succ_lt_succ_iff, list.length] at hn,
+    { simp only [succ_le_succ_iff, list.length] at hn,
       simpa [list.nth_le, list.drop] using hl hn } }
 end
 
@@ -3363,7 +3361,7 @@ begin
       intro H,
       have := reduce_option_length_le tl,
       rw H at this,
-      exact absurd (nat.lt_succ_self _) (not_lt_of_le this) },
+      exact (lt_succ _).not_le this },
     { simp only [hl, true_and, mem_cons_iff, forall_eq_or_imp, add_left_inj,
                  bool.coe_sort_tt, length, option.is_some_some, reduce_option_cons_of_some] } }
 end

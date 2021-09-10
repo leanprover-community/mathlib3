@@ -700,7 +700,7 @@ def composition_as_set_equiv (n : ℕ) : composition_as_set n ≃ finset (fin (n
         by { rw add_comm, exact nat.succ_pred_eq_of_pos (pos_iff_ne_zero.mpr i_ne_zero) },
       refine ⟨⟨i - 1, _⟩, _, _⟩,
       { have : (i : ℕ) < n + 1 := i.2,
-        simp [nat.lt_succ_iff_lt_or_eq, i_ne_last] at this,
+        simp [lt_succ_iff_lt_or_eq, i_ne_last] at this,
         exact nat.pred_lt_pred i_ne_zero this },
       { convert i_mem,
         rw fin.ext_iff,
@@ -782,7 +782,7 @@ def blocks_fun (i : fin c.length) : ℕ :=
 lemma blocks_fun_pos (i : fin c.length) : 0 < c.blocks_fun i :=
 begin
   have : (⟨i, c.lt_length' i⟩ : fin c.boundaries.card) < ⟨i + 1, c.lt_length i⟩ :=
-    nat.lt_succ_self _,
+    lt_succ _,
   exact nat.lt_sub_left_of_add_lt ((c.boundaries.order_emb_of_fin rfl).strict_mono this)
 end
 

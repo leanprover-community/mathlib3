@@ -341,7 +341,7 @@ begin
     rw prod_take_succ _ _ this,
     have A : ((finset.univ : finset (fin n)).filter (λ j, j.val < i + 1))
       = ((finset.univ : finset (fin n)).filter (λ j, j.val < i)) ∪ {(⟨i, h⟩ : fin n)},
-        by { ext j, simp [nat.lt_succ_iff_lt_or_eq, fin.ext_iff, - add_comm] },
+        by { ext j, simp [lt_succ_iff_lt_or_eq, fin.ext_iff, - add_comm] },
     have B : _root_.disjoint (finset.filter (λ (j : fin n), j.val < i) finset.univ)
       (singleton (⟨i, h⟩ : fin n)), by simp,
     rw [A, finset.prod_union B, IH],
@@ -353,7 +353,7 @@ begin
     have B : ∀ (j : fin n), ((j : ℕ) < i.succ) = ((j : ℕ) < i),
     { assume j,
       have : (j : ℕ) < i := lt_of_lt_of_le j.2 (not_lt.mp h),
-      simp [this, lt_trans this (nat.lt_succ_self _)] },
+      simp [this, lt_trans this (lt_succ _)] },
     simp [← A, B, IH] }
 end
 

@@ -254,7 +254,7 @@ nat.strong_induction_on m
         have : m'' < m'' + 2 := lt_add_of_pos_right m'' zero_lt_two,
         have m''th_conts_aux_eq := IH m'' this (le_trans this.le m_le_n),
         have : (squash_gcf g (n' + 1)).s.nth m'' = g.s.nth m'', from
-          squash_gcf_nth_of_lt (nat.succ_lt_succ_iff.mp m'_lt_n),
+          squash_gcf_nth_of_lt (lt_of_succ_lt_succ m'_lt_n),
         simp [continuants_aux, succ_m''th_conts_aux_eq, m''th_conts_aux_eq, this] } } }
 end)
 

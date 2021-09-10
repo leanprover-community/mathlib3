@@ -272,7 +272,7 @@ have hNMK : max N M + 1 < K,
   from lt_of_lt_of_le (by rw two_mul; exact lt_add_of_pos_left _ (nat.succ_pos _)) hK,
 have hKN : N < K,
   from calc N ≤ max N M : le_max_left _ _
-  ... < max N M + 1 : nat.lt_succ_self _
+  ... < max N M + 1 : lt_succ _
   ... < K : hNMK,
 have hsumlesum : ∑ i in range (max N M + 1), abv (a i) *
       abv (∑ k in range (K - i), b k - ∑ k in range K, b k) ≤

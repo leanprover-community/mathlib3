@@ -83,7 +83,7 @@ begin
     rw [support_form_perm_of_nodup _ hl, card_to_finset, erase_dup_eq_self.mpr hl],
     { simpa },
     { intros x h,
-      simpa [h, nat.succ_le_succ_iff] using hn } },
+      simpa [h, succ_le_succ_iff] using hn } },
   { simp },
   { simpa using is_cycle_form_perm hl hn },
   { simp }

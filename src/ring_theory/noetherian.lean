@@ -581,7 +581,7 @@ begin
     rintros (_|m) p,
     { cases p, },
     { apply w,
-      exact nat.succ_le_succ_iff.mp p }, },
+      exact le_of_succ_le_succ p }, },
 
   obtain ⟨n, w⟩ := monotone_stabilizes_iff_noetherian.mpr I (partial_sups f),
   exact ⟨n, (λ m p,

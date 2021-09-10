@@ -705,7 +705,7 @@ def of_asc_list_aux₁ : ∀ l : list α, ℕ → ordnode α × {l' : list α //
 | [] := λ s, (nil, ⟨[], le_refl _⟩)
 | (x :: xs) := λ s,
   if s = 1 then (ι x, ⟨xs, nat.le_succ _⟩) else
-  have _, from nat.lt_succ_self xs.length,
+  have _, from lt_succ xs.length,
   match of_asc_list_aux₁ xs (s.shiftl 1) with
   | (t, ⟨[], h⟩) := (t, ⟨[], nat.zero_le _⟩)
   | (l, ⟨y :: ys, h⟩) :=
@@ -721,7 +721,7 @@ using_well_founded
 def of_asc_list_aux₂ : list α → ordnode α → ℕ → ordnode α
 | [] := λ t s, t
 | (x :: xs) := λ l s,
-  have _, from nat.lt_succ_self xs.length,
+  have _, from lt_succ xs.length,
   match of_asc_list_aux₁ xs s with
   | (r, ⟨ys, h⟩) :=
     have _, from nat.lt_succ_of_le h,

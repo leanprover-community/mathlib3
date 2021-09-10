@@ -766,9 +766,9 @@ begin
   -- to reconstruct it up to `ε`, namely the (discretized) distances between elements of `s p`.
   let M := (floor (ε⁻¹ * max C 0)).to_nat,
   let F : GH_space → (Σk:fin ((K n).succ), (fin k → fin k → fin (M.succ))) :=
-    λ p, ⟨⟨N p, lt_of_le_of_lt (hN p) (nat.lt_succ_self _)⟩,
+    λ p, ⟨⟨N p, lt_of_le_of_lt (hN p) (lt_succ _)⟩,
          λ a b, ⟨min M (floor (ε⁻¹ * dist ((E p).symm a) ((E p).symm b))).to_nat,
-                lt_of_le_of_lt ( min_le_left _ _) (nat.lt_succ_self _) ⟩ ⟩,
+                lt_of_le_of_lt ( min_le_left _ _) (lt_succ _) ⟩ ⟩,
   refine ⟨_, by apply_instance, (λ p, F p), _⟩,
   -- It remains to show that if `F p = F q`, then `p` and `q` are `ε`-close
   rintros ⟨p, pt⟩ ⟨q, qt⟩ hpq,

@@ -21,7 +21,7 @@ def ltb : iterator → iterator → bool
   cases h₁ : s₁.has_next, {exact tt},
   exact if s₁.curr = s₂.curr then
     have s₁.next.2.length < s₁.2.length, from
-    match s₁, h₁ with ⟨_, a::l⟩, h := nat.lt_succ_self _ end,
+    match s₁, h₁ with ⟨_, a::l⟩, h := lt_succ _ end,
     ltb s₁.next s₂.next
   else s₁.curr < s₂.curr,
 end

@@ -132,7 +132,7 @@ lemma supp_subset_range (h : nat_degree p < m) : p.support ⊆ finset.range m :=
 λ n hn, mem_range.2 $ (le_nat_degree_of_mem_supp _ hn).trans_lt h
 
 lemma supp_subset_range_nat_degree_succ : p.support ⊆ finset.range (nat_degree p + 1) :=
-supp_subset_range (nat.lt_succ_self _)
+supp_subset_range (lt_succ _)
 
 lemma degree_le_degree (h : coeff q (nat_degree p) ≠ 0) : degree p ≤ degree q :=
 begin
@@ -277,7 +277,7 @@ ext (λ n, nat.cases_on n (by simp)
   (λ n, nat.cases_on n (by simp [coeff_C])
     (λ m, have degree p < m.succ.succ, from lt_of_le_of_lt h dec_trivial,
       by simp [coeff_eq_zero_of_degree_lt this, coeff_C, nat.succ_ne_zero, coeff_X,
-        nat.succ_inj', @eq_comm ℕ 0])))
+        succ_eq_succ_iff, @eq_comm ℕ 0])))
 
 lemma eq_X_add_C_of_degree_eq_one (h : degree p = 1) :
   p = C (p.leading_coeff) * X + C (p.coeff 0) :=
@@ -776,7 +776,7 @@ by haveI := nontrivial.of_polynomial_ne hp; exact
 have leading_coeff p * leading_coeff X ≠ 0, by simpa,
 by erw [degree_mul' this, degree_eq_nat_degree hp,
     degree_X, ← with_bot.coe_one, ← with_bot.coe_add, with_bot.coe_lt_coe];
-  exact nat.lt_succ_self _
+  exact lt_succ _
 
 lemma nat_degree_pos_iff_degree_pos :
   0 < nat_degree p ↔ 0 < degree p :=

@@ -188,11 +188,11 @@ show x.1 ≤ y.1 + nat.find hx + 1,
 from le_of_not_gt $ λ hxy,
 (h ⟨_, nat.find_spec hx⟩ hxy).not_lt $
   calc y.1 ≤ y.1 + nat.find hx : le_add_of_nonneg_right (nat.zero_le _)
-  ... < y.1 + nat.find hx + 1 : nat.lt_succ_self _
+  ... < y.1 + nat.find hx + 1 : lt_succ _
 
 lemma lt_succ_self (x : s) : x < succ x :=
 calc x.1 ≤ x.1 + _ : le_self_add
-... < succ x : nat.lt_succ_self (x.1 + _)
+... < succ x : lt_succ (x.1 + _)
 
 lemma lt_succ_iff_le {x y : s} : x < succ y ↔ x ≤ y :=
 ⟨λ h, le_of_not_gt (λ h', not_le_of_gt h (succ_le_of_lt h')),

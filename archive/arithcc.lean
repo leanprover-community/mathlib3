@@ -61,11 +61,11 @@ def register := ℕ
 
 lemma register.lt_succ_self :
   ∀ (r : register), r < r + 1 :=
-nat.lt_succ_self
+lt_succ
 
 lemma register.le_of_lt_succ {r₁ r₂ : register} :
   r₁ < r₂ + 1 → r₁ ≤ r₂ :=
-nat.le_of_succ_le_succ
+le_of_lt_succ
 
 end types
 

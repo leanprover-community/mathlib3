@@ -113,13 +113,13 @@ theorem cmp_to_nat : ∀ (m n), (ordering.cases_on (cmp m n) ((m:ℕ) < n) (m = 
 | (bit0 a) (bit1 b) := begin dsimp [cmp],
     have := cmp_to_nat a b, revert this, cases cmp a b; dsimp; intro,
     { exact nat.le_succ_of_le (add_lt_add this this) },
-    { rw this, apply nat.lt_succ_self },
+    { rw this, apply lt_succ },
     { exact cmp_to_nat_lemma this }
   end
 | (bit1 a) (bit0 b) := begin dsimp [cmp],
     have := cmp_to_nat a b, revert this, cases cmp a b; dsimp; intro,
     { exact cmp_to_nat_lemma this },
-    { rw this, apply nat.lt_succ_self },
+    { rw this, apply lt_succ },
     { exact nat.le_succ_of_le (add_lt_add this this) },
   end
 | (bit1 a) (bit1 b) := begin

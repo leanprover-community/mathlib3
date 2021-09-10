@@ -95,7 +95,7 @@ lemma content_X_mul {p : polynomial R} : content (X * p) = content p :=
 begin
   rw [content, content, finset.gcd_def, finset.gcd_def],
   refine congr rfl _,
-  have h : (X * p).support = p.support.map ⟨nat.succ, nat.succ_injective⟩,
+  have h : (X * p).support = p.support.map ⟨nat.succ, succ_injective⟩,
   { ext a,
     simp only [exists_prop, finset.mem_map, function.embedding.coe_fn_mk, ne.def,
       mem_support_iff],
@@ -107,7 +107,7 @@ begin
       use a,
       simp [h] },
     { rintros ⟨b, ⟨h1, h2⟩⟩,
-      rw ← nat.succ_injective h2,
+      rw ← succ_injective h2,
       apply h1 } },
   rw h,
   simp only [finset.map_val, function.comp_app, function.embedding.coe_fn_mk, multiset.map_map],
@@ -171,7 +171,7 @@ end
 
 lemma content_eq_gcd_range_succ (p : polynomial R) :
   p.content = (finset.range p.nat_degree.succ).gcd p.coeff :=
-content_eq_gcd_range_of_lt _ _ (nat.lt_succ_self _)
+content_eq_gcd_range_of_lt _ _ (lt_succ _)
 
 lemma content_eq_gcd_leading_coeff_content_erase_lead (p : polynomial R) :
   p.content = gcd_monoid.gcd p.leading_coeff (erase_lead p).content :=
@@ -280,9 +280,9 @@ lemma gcd_content_eq_of_dvd_sub {a : R} {p q : polynomial R} (h : C a ∣ p - q)
   gcd_monoid.gcd a p.content = gcd_monoid.gcd a q.content :=
 begin
   rw content_eq_gcd_range_of_lt p (max p.nat_degree q.nat_degree).succ
-    (lt_of_le_of_lt (le_max_left _ _) (nat.lt_succ_self _)),
+    (lt_succ_of_le (le_max_left _ _)),
   rw content_eq_gcd_range_of_lt q (max p.nat_degree q.nat_degree).succ
-    (lt_of_le_of_lt (le_max_right _ _) (nat.lt_succ_self _)),
+    (lt_succ_of_le (le_max_right _ _)),
   apply finset.gcd_eq_of_dvd_sub,
   intros x hx,
   cases h with w hw,
@@ -308,7 +308,7 @@ begin
   suffices h : ∀ (n : ℕ) (p q : polynomial R), ((p * q).degree < n) →
     (p * q).content = p.content * q.content,
   { apply h,
-    apply (lt_of_le_of_lt degree_le_nat_degree (with_bot.coe_lt_coe.2 (nat.lt_succ_self _))) },
+    apply (degree_le_nat_degree.trans_lt (with_bot.coe_lt_coe.2 (lt_succ _))) },
   intro n,
   induction n with n ih,
   { intros p q hpq,
@@ -317,7 +317,7 @@ begin
   intros p q hpq,
   by_cases p0 : p = 0, { simp [p0] },
   by_cases q0 : q = 0, { simp [q0] },
-  rw [degree_eq_nat_degree (mul_ne_zero p0 q0), with_bot.coe_lt_coe, nat.lt_succ_iff_lt_or_eq,
+  rw [degree_eq_nat_degree (mul_ne_zero p0 q0), with_bot.coe_lt_coe, lt_succ_iff_lt_or_eq,
     ← with_bot.coe_lt_coe, ← degree_eq_nat_degree (mul_ne_zero p0 q0), nat_degree_mul p0 q0] at hpq,
   rcases hpq with hlt | heq, { apply ih _ _ hlt },
   rw [← p.nat_degree_prim_part, ← q.nat_degree_prim_part, ← with_bot.coe_eq_coe, with_bot.coe_add,

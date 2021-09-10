@@ -258,7 +258,7 @@ begin
   { refl, },
   { cases x,
     { exfalso, exact hm (mem_cons_self M xs), }, -- case `x = M` gives a contradiction.
-    { rw [count_cons, if_pos (rfl), length, succ_eq_add_one, succ_inj'], -- case `x = I`
+    { rw [count_cons, if_pos (rfl), length, succ_eq_add_one, succ_eq_succ_iff], -- case `x = I`
       apply hxs,
       { simpa only [count], },
       { simp only [mem_cons_iff,false_or] at hm, exact hm, }, },

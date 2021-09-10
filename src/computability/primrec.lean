@@ -992,7 +992,7 @@ theorem nat_strong_rec
 suffices primrec₂ (λ a n, (list.range n).map (f a)), from
   primrec₂.option_some_iff.1 $
   (list_nth.comp (this.comp fst (succ.comp snd)) snd).to₂.of_eq $
-  λ a n, by simp [list.nth_range (nat.lt_succ_self n)]; refl,
+  λ a n, by simp [list.nth_range (lt_succ n)]; refl,
 primrec₂.option_some_iff.1 $
 (nat_elim (const (some [])) (to₂ $
   option_bind (snd.comp snd) $ to₂ $

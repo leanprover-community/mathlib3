@@ -163,7 +163,7 @@ begin
   { simp },
 
   have : j = (fin.cast_le (nat.succ_le_of_lt i.is_lt)).to_embedding
-    ⟨j, lt_of_le_of_lt h (nat.lt_succ_self i)⟩,
+    ⟨j, lt_succ_of_le h⟩,
   { simp },
 
   ext,

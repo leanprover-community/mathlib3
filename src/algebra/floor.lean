@@ -391,7 +391,7 @@ end
 theorem nat_ceil_lt_add_one {a : α} (a_nonneg : 0 ≤ a) : (⌈a⌉₊ : α) < a + 1 :=
 lt_nat_ceil.1 $ by rw (
   show ⌈a + 1⌉₊ = ⌈a⌉₊ + 1, by exact_mod_cast (nat_ceil_add_nat a_nonneg 1));
-  apply nat.lt_succ_self
+  apply lt_succ
 
 lemma lt_of_nat_ceil_lt {x : α} {n : ℕ} (h : ⌈x⌉₊ < n) : x < n :=
 lt_of_le_of_lt (le_nat_ceil x) (by exact_mod_cast h)

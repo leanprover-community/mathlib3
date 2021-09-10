@@ -110,7 +110,7 @@ section
 variables {α : Type*} [complete_lattice α]
 
 lemma supr_lt_succ (u : ℕ → α) (n : ℕ) : (⨆ k < n + 1, u k) = (⨆ k < n, u k) ⊔ u n :=
-by simp [nat.lt_succ_iff_lt_or_eq, supr_or, supr_sup_eq]
+by simp [lt_succ_iff_lt_or_eq, supr_or, supr_sup_eq]
 
 lemma supr_lt_succ' (u : ℕ → α) (n : ℕ) : (⨆ k < n + 1, u k) = u 0 ⊔ (⨆ k < n, u (k + 1)) :=
 by { rw ← sup_supr_nat_succ, simp }

@@ -319,7 +319,7 @@ def insert_nth (a : α) (i : fin (n+1)) (v : vector α n) : vector α (n+1) :=
 ⟨v.1.insert_nth i a,
   begin
     rw [list.length_insert_nth, v.2],
-    rw [v.2, ← nat.succ_le_succ_iff],
+    rw [v.2, ← succ_le_succ_iff],
     exact i.2
   end⟩
 

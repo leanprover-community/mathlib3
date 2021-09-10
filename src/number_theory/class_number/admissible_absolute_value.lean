@@ -89,7 +89,7 @@ begin
     -- Since the `M` subsets contain more than `M * M^n` elements total,
     -- there must be a subset that contains more than `M^n` elements.
     obtain ⟨s, hs⟩ := @fintype.exists_lt_card_fiber_of_mul_lt_card _ _ _ _ _ t (M ^ n)
-      (by simpa only [fintype.card_fin, pow_succ] using nat.lt_succ_self (M ^ n.succ) ),
+      (by simpa only [fintype.card_fin, pow_succ] using lt_succ (M ^ n.succ) ),
     refine ⟨λ i, (finset.univ.filter (λ x, t x = s)).to_list.nth_le i _, _, λ i₀ i₁, ht _ _ _⟩,
     { refine i.2.trans_le _, rwa finset.length_to_list },
     { intros i j h, ext, exact list.nodup_iff_nth_le_inj.mp (finset.nodup_to_list _) _ _ _ _ h },

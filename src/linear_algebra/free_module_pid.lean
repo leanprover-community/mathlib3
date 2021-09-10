@@ -190,7 +190,7 @@ begin
   intros N' N'_le x x_mem x_ortho,
   apply rank_ih,
   intros m v hli,
-  refine nat.succ_le_succ_iff.mp (rank_le (fin.cons ⟨x, x_mem⟩ (λ i, ⟨v i, N'_le (v i).2⟩)) _),
+  refine le_of_succ_le_succ (rank_le (fin.cons ⟨x, x_mem⟩ (λ i, ⟨v i, N'_le (v i).2⟩)) _),
   convert hli.fin_cons' x _ _,
   { ext i, refine fin.cases _ _ i; simp },
   { intros c y hcy,

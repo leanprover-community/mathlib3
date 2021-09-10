@@ -166,7 +166,7 @@ begin
 end
 
 lemma form_perm_apply_lt (xs : list α) (h : nodup xs) (n : ℕ) (hn : n + 1 < xs.length) :
-  form_perm xs (xs.nth_le n ((nat.lt_succ_self n).trans hn)) = xs.nth_le (n + 1) hn :=
+  form_perm xs (xs.nth_le n ((lt_succ n).trans hn)) = xs.nth_le (n + 1) hn :=
 begin
   induction n with n IH generalizing xs,
   { simpa using form_perm_apply_nth_le_zero _ h _ },
@@ -174,7 +174,7 @@ begin
     { simp },
     { simp },
     { specialize IH (y :: l) (nodup_of_nodup_cons h) _,
-      { simpa [nat.succ_lt_succ_iff] using hn },
+      { simpa [succ_lt_succ_iff] using hn },
       simp only [swap_apply_eq_iff, coe_mul, form_perm_cons_cons, nth_le],
       generalize_proofs at IH,
       rw [IH, swap_apply_of_ne_of_ne, nth_le];
@@ -356,8 +356,8 @@ begin
   { exact absurd k.zero_le (hk.trans_le hn.le).not_le },
   { rw hn at hk,
     cases (nat.le_of_lt_succ hk).eq_or_lt with hk' hk',
-    { simp [←hk', nat.succ_le_succ_iff, eq_comm] },
-    { simpa [nat.mod_eq_of_lt (nat.succ_lt_succ hk'), nat.succ_lt_succ_iff]
+    { simp [←hk', succ_le_succ_iff, eq_comm] },
+    { simpa [nat.mod_eq_of_lt (nat.succ_lt_succ hk'), succ_le_succ_iff]
         using k.zero_le.trans_lt hk' } }
 end
 

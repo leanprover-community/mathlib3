@@ -308,7 +308,7 @@ begin
       has_sum.summable (s.m_Union (λ _, restrict_nonpos_seq_measurable_set _)
         restrict_nonpos_seq_disjoint),
     refine summable_of_nonneg_of_le (λ n, _) (λ n, _)
-      (summable.comp_injective this nat.succ_injective),
+      (summable.comp_injective this succ_injective),
     { exact le_of_lt nat.one_div_pos_of_nat },
     { exact le_of_lt (restrict_nonpos_seq_lt n (hn' n)) } },
   have h₃ : tendsto (λ n, (bdd n : ℝ) + 1) at_top at_top,

@@ -1349,7 +1349,7 @@ le_antisymm
       apply nat.div_mul_le_self)
   (by rw [div_le n0', succ, ← nat.cast_succ, ← nat_cast_mul,
           nat_cast_lt, mul_comm, ← nat.div_lt_iff_lt_mul _ _ (nat.pos_of_ne_zero n0)];
-      apply nat.lt_succ_self)
+      apply lt_succ)
 
 @[simp] theorem nat_cast_mod {m n : ℕ} : ((m % n : ℕ) : ordinal) = m % n :=
 by rw [← add_left_cancel (n*(m/n)), div_add_mod, ← nat_cast_div, ← nat_cast_mul, ← nat.cast_add,

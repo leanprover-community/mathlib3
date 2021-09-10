@@ -24,18 +24,20 @@ Maximal elements don't have a sensible successor. Thus the naïve typeclass
 ```lean
 class naive_succ_order (α : Type*) [preorder α] :=
 (succ : α → α)
-(succ_le_iff_lt : ∀ {a b}, a < b ↔ succ a ≤ b)
-(lt_succ_iff_le : ∀ {a b}, a < succ b ↔ a ≤ b)
+(succ_le_iff : ∀ {a b}, succ a ≤ b ↔ a < b)
+(lt_succ_iff : ∀ {a b}, a < succ b ↔ a ≤ b)
 ```
-can't apply to an `order_top` because plugging in `a = b = ⊤` into either of `succ_le_iff_lt` and
-`lt_succ_iff_le` yields `⊤ < ⊤`.
+can't apply to an `order_top` because plugging in `a = b = ⊤` into either of `succ_le_iff` and
+`lt_succ_iff` yields `⊤ < ⊤` (or more generally `m < m` for a maximal element `m`).
 The solution taken here is to remove the implications `≤ → <` and instead require that `a < succ a`
 for all non maximal elements (enforced by the combination of `le_succ` and the contrapositive of
 `maximal_of_succ_le`).
 The stricter condition of every element having a sensible successor can be obtained through the
 combination of `succ_order α` and `no_top_order α`.
 
-The previous discussion also applies to `preorder`s with a maximal element.
+## TODO
+
+In a `succ_pred_order`, prove `galois_connection pred succ`.
 -/
 
 /-! ### Successor order -/
@@ -56,19 +58,19 @@ section preorder
 variables [preorder α]
 
 /-- A constructor for `succ_order α` usable when `α` has no maximal element. -/
-def succ_order_of_lt_iff_succ_le_of_succ_le_succ (succ : α → α)
-  (hlt_iff_succ_le : ∀ {a b}, a < b ↔ succ a ≤ b)
+def succ_order_of_succ_le_iff_of_succ_le_succ (succ : α → α)
+  (hsucc_le_iff : ∀ {a b}, succ a ≤ b ↔ a < b)
   (hle_of_lt_succ : ∀ {a b}, a < succ b → a ≤ b) :
   succ_order α :=
 { succ := succ,
-  le_succ := λ a, (hlt_iff_succ_le.2 le_rfl).le,
-  maximal_of_succ_le := λ a ha, (lt_irrefl a (hlt_iff_succ_le.2 ha)).elim,
-  succ_le_of_lt := λ a b, hlt_iff_succ_le.1,
+  le_succ := λ a, (hsucc_le_iff.2 le_rfl).le,
+  maximal_of_succ_le := λ a ha, (lt_irrefl a (hsucc_le_iff.2 ha)).elim,
+  succ_le_of_lt := λ a b, hsucc_le_iff.1,
   le_of_lt_succ := λ a b, hle_of_lt_succ }
 
 variables [succ_order α]
 
-@[simp] lemma succ_mono {a b : α} (h : a ≤ b) :
+@[simp] lemma succ_le_succ {a b : α} (h : a ≤ b) :
   succ a ≤ succ b :=
 begin
   by_cases ha : ∀ ⦃c⦄, ¬a < c,
@@ -83,6 +85,8 @@ begin
     maximal_of_succ_le (hba.trans h) (((le_succ b).trans hba).trans_lt hc)),
 end
 
+lemma succ_mono : monotone succ := λ a b, succ_le_succ
+
 section no_top_order
 variables [no_top_order α]
 
@@ -90,21 +94,27 @@ lemma lt_succ (a : α) :
   a < succ a :=
 (le_succ a).lt_of_not_le (λ h, not_exists.2 (maximal_of_succ_le h) (no_top a))
 
-lemma lt_succ_iff_le {a b : α} :
+lemma lt_succ_iff {a b : α} :
   a < succ b ↔ a ≤ b :=
 ⟨le_of_lt_succ, λ h, h.trans_lt $ lt_succ b⟩
 
-lemma lt_iff_succ_le {a b : α} :
-  a < b ↔ succ a ≤ b :=
+lemma succ_le_iff {a b : α} :
+  succ a ≤ b ↔ a < b :=
 ⟨succ_le_of_lt, (lt_succ a).trans_le⟩
 
 @[simp] lemma succ_le_succ_iff {a b : α} :
   succ a ≤ succ b ↔ a ≤ b :=
 ⟨λ h, le_of_lt_succ $ (lt_succ a).trans_le h, λ h, succ_le_of_lt $ h.trans_lt $ lt_succ b⟩
 
+alias succ_le_succ_iff ↔ le_of_succ_le_succ _
+
 @[simp] lemma succ_lt_succ_iff {a b : α} :
   succ a < succ b ↔ a < b :=
 by simp_rw [lt_iff_le_not_le, succ_le_succ_iff]
+
+alias succ_le_succ_iff ↔ lt_of_succ_lt_succ succ_lt_succ
+
+lemma succ_strict_mono : strict_mono succ := λ a b, succ_lt_succ
 
 end no_top_order
 
@@ -113,6 +123,7 @@ end preorder
 section partial_order
 variables [partial_order α]
 
+/-- There is at most one way to define the successors in a `partial_order`. -/
 instance : subsingleton (succ_order α) :=
 begin
   refine subsingleton.intro (λ h₀ h₁, _),
@@ -228,6 +239,10 @@ begin
   exact maximal_of_succ_le h.le (bot_lt_iff_ne_bot.2 hb),
 end
 
+lemma succ_ne_bot [nontrivial α] (a : α) :
+  succ a ≠ ⊥ :=
+(bot_lt_succ a).ne'
+
 instance : succ_order (with_bot α) :=
 { succ := λ a, match a with
     | ⊥        := some ⊥
@@ -240,9 +255,9 @@ instance : succ_order (with_bot α) :=
   maximal_of_succ_le := begin
     rintro a ha b h,
     cases a,
-    exact (with_bot.bot_lt_some (⊥ : α)).not_le ha,
+    { exact (with_bot.bot_lt_some (⊥ : α)).not_le ha },
     cases b,
-    exact h.not_le bot_le,
+    { exact h.not_le bot_le },
     exact maximal_of_succ_le (with_bot.some_le_some.1 ha) (with_bot.some_lt_some.1 h),
   end,
   succ_le_of_lt := begin
@@ -268,16 +283,22 @@ section linear_order
 variables [linear_order α]
 
 /-- A constructor for `succ_order α` usable when `α` is a linear order with no maximal element. -/
-def succ_order_of_lt_iff_succ_le (succ : α → α)
-  (hlt_iff_succ_le : ∀ {a b}, a < b ↔ succ a ≤ b) :
+def succ_order_of_succ_le_iff (succ : α → α)
+  (hsucc_le_iff : ∀ {a b}, succ a ≤ b ↔ a < b) :
   succ_order α :=
 { succ := succ,
-  le_succ := λ a, (hlt_iff_succ_le.2 le_rfl).le,
-  maximal_of_succ_le := λ a ha, (lt_irrefl a (hlt_iff_succ_le.2 ha)).elim,
-  succ_le_of_lt := λ a b, hlt_iff_succ_le.1,
-  le_of_lt_succ := λ a b h, le_of_not_lt ((not_congr hlt_iff_succ_le).2 h.not_le) }
+  le_succ := λ a, (hsucc_le_iff.2 le_rfl).le,
+  maximal_of_succ_le := λ a ha, (lt_irrefl a (hsucc_le_iff.2 ha)).elim,
+  succ_le_of_lt := λ a b, hsucc_le_iff.1,
+  le_of_lt_succ := λ a b h, le_of_not_lt ((not_congr hsucc_le_iff).2 h.not_le) }
 
 variables [succ_order α]
+
+lemma lt_succ_iff_lt_or_eq {a b : α} : a < succ b ↔ (a < b ∨ a = b) :=
+lt_succ_iff.trans decidable.le_iff_lt_or_eq
+
+lemma le_succ_iff_lt_or_eq {a b : α} : a ≤ succ b ↔ (a ≤ b ∨ a = succ b) :=
+lt_succ_iff.trans decidable.le_iff_lt_or_eq
 
 @[simp] lemma max_succ_succ {a b : α} :
   max (succ a) (succ b) = succ (max a b) :=
@@ -320,12 +341,12 @@ class add_succ_order (α : Type*) [preorder α] [has_add α] [has_one α] extend
 lemma lt_iff_add_one_le [preorder α] [no_top_order α] [has_add α] [has_one α]
   [add_succ_order α] {a b : α} :
   a < b ↔ a + 1 ≤ b :=
-by { rw ←add_succ_order.succ_eq_add_one, exact lt_iff_succ_le }
+by { rw ←add_succ_order.succ_eq_add_one, exact succ_le_iff }
 
 lemma lt_add_one_iff_le [preorder α] [no_top_order α] [has_add α] [has_one α]
   [add_succ_order α] {a b : α} :
   a < b + 1 ↔ a ≤ b :=
-by { rw ←add_succ_order.succ_eq_add_one, exact lt_succ_iff_le }
+by { rw ←add_succ_order.succ_eq_add_one, exact lt_succ_iff }
 
 /-! ### Predecessor order -/
 
@@ -340,3 +361,26 @@ by { rw ←add_succ_order.succ_eq_add_one, exact lt_succ_iff_le }
 open pred_order
 
 /-! ### Successor-predecessor order -/
+
+class succ_pred_order (α : Type*) [preorder α] extends succ_order α, pred_order α
+
+/-! ### Dual order-/
+
+variables [preorder α]
+
+instance [pred_order α] : succ_order (order_dual α) :=
+{ succ := pred,
+  le_succ := pred_le,
+  maximal_of_succ_le := minimal_of_le_pred,
+  succ_le_of_lt := le_pred_of_lt,
+  le_of_lt_succ := le_of_pred_lt }
+
+instance [succ_order α] : pred_order (order_dual α) :=
+{ pred := succ,
+  pred_le := le_succ,
+  minimal_of_le_pred := maximal_of_succ_le,
+  le_pred_of_lt := succ_le_of_lt,
+  le_of_pred_lt := le_of_lt_succ }
+
+instance [succ_pred_order α] : succ_pred_order (order_dual α) :=
+{ ..order_dual.succ_order, ..order_dual.pred_order }

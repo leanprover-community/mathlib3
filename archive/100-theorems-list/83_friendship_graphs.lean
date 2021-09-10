@@ -333,6 +333,6 @@ begin
   by_contradiction npG,
   rcases hG.is_regular_of_not_exists_politician npG with ⟨d, dreg⟩,
   cases lt_or_le d 3 with dle2 dge3,
-  { exact npG (hG.exists_politician_of_degree_le_two dreg (nat.lt_succ_iff.mp dle2)) },
+  { exact npG (hG.exists_politician_of_degree_le_two dreg (le_of_lt_succ dle2)) },
   { exact hG.false_of_three_le_degree dreg dge3 },
 end

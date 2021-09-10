@@ -63,7 +63,7 @@ def fixed_points_equiv' :
     {σx : α × perm α | σx.2 σx.1 = σx.1} :=
 { to_fun := λ p, ⟨⟨p.2.2, p.2.1⟩, p.2.2.2⟩,
   inv_fun := λ p,
-    ⟨⟨card (fixed_points p.1.2), (card_subtype_le _).trans_lt (nat.lt_succ_self _)⟩,
+    ⟨⟨card (fixed_points p.1.2), (card_subtype_le _).trans_lt (lt_succ _)⟩,
      ⟨p.1.2, rfl⟩, ⟨p.1.1, p.2⟩⟩,
   left_inv := λ ⟨⟨k, hk⟩, ⟨σ, hσ⟩, ⟨x, hx⟩⟩, by { simp only [mem_fiber, subtype.coe_mk] at hσ,
     subst k, refl },

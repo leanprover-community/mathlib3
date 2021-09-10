@@ -330,7 +330,7 @@ have h₃ : m < list.length (l ++ [a]), by simpa using hml,
   have h₁ : (m + (n + 1)) % (l.length + 1) = 0,
     from calc (m + (n + 1)) % (l.length + 1) = (l.length + 1) % (l.length + 1) :
       add_assoc m n 1 ▸ nat.modeq.add_right 1
-        (hml'.trans (nat.mod_eq_of_lt (nat.lt_succ_self _)).symm)
+        (hml'.trans (nat.mod_eq_of_lt (lt_succ _)).symm)
     ... = 0 : by simp,
   by rw [list.length, list.rotate_cons_succ, nth_rotate h₃, list.length_append,
     list.length_cons, list.length, zero_add, hml', h₁, list.nth_concat_length]; refl)

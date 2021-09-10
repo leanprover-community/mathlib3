@@ -69,7 +69,7 @@ begin
   use [(multiplicity 2 n).get h, m],
   refine ⟨hm, _⟩,
   rw even_iff_two_dvd,
-  have hg := multiplicity.is_greatest' h (nat.lt_succ_self _),
+  have hg := multiplicity.is_greatest' h (lt_succ _),
   contrapose! hg,
   rcases hg with ⟨k, rfl⟩,
   apply dvd.intro k,
@@ -109,7 +109,7 @@ begin
         exact ev },
       apply ne_of_lt _ jcon2,
       rw [mersenne, ← nat.pred_eq_sub_one, lt_pred_iff, ← pow_one (nat.succ 1)],
-      apply pow_lt_pow (nat.lt_succ_self 1) (nat.succ_lt_succ (nat.succ_pos k)) },
+      apply pow_lt_pow (lt_succ 1) (nat.succ_lt_succ (nat.succ_pos k)) },
     contrapose! hm,
     simp [hm] }
 end

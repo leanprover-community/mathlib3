@@ -67,7 +67,7 @@ def augment (C : chain_complex V ℕ) {X : V} (f : C.X 0 ⟶ X) (w : C.d 1 0 ≫
     simp at s,
     rcases i with _|_|i; cases j; unfold_aux; try { simp },
     { simpa using s, },
-    { rw [C.shape], simpa [← ne.def, nat.succ_ne_succ] using s },
+    { rw [C.shape], simpa [← ne.def, succ_ne_succ] using s },
   end,
   d_comp_d' := λ i j k hij hjk, begin
     rcases i with _|_|i; rcases j with _|_|j; cases k; unfold_aux; try { simp },

@@ -327,7 +327,7 @@ lemma coe_fin_rotate_of_ne_last {n : ℕ} {i : fin n.succ} (h : i ≠ fin.last n
   (fin_rotate n.succ i : ℕ) = i + 1 :=
 begin
   rw fin_rotate_succ_apply,
-  have : (i : ℕ) < n := lt_of_le_of_ne (nat.succ_le_succ_iff.mp i.2) (fin.coe_injective.ne h),
+  have : (i : ℕ) < n := (le_of_succ_le_succ i.2).lt_of_ne (fin.coe_injective.ne h),
   exact fin.coe_add_one_of_lt this
 end
 

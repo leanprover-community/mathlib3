@@ -29,7 +29,7 @@ def nat_lt (f : ℕ → α) (H : ∀ n : ℕ, r (f n) (f (n + 1))) :
   ((<) : ℕ → ℕ → Prop) ↪r r :=
 of_monotone f $ λ a b h, begin
   induction b with b IH, {exact (nat.not_lt_zero _ h).elim},
-  cases nat.lt_succ_iff_lt_or_eq.1 h with h e,
+  cases lt_succ_iff_lt_or_eq.1 h with h e,
   { exact trans (IH h) (H _) },
   { subst b, apply H }
 end
@@ -50,7 +50,7 @@ theorem well_founded_iff_no_descending_seq :
   suffices ∀ a, acc r a → ∀ n, a ≠ f n, from this (f 0) (h _) 0 rfl,
   λ a ac, begin
     induction ac with a _ IH, intros n h, subst a,
-    exact IH (f (n+1)) (o.2 (nat.lt_succ_self _)) _ rfl
+    exact IH (f (n+1)) (o.2 (lt_succ _)) _ rfl
   end⟩,
 λ E, ⟨λ a, classical.by_contradiction $ λ na,
   let ⟨f, h⟩ := classical.axiom_of_choice $

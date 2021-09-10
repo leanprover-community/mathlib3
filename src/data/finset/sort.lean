@@ -196,7 +196,7 @@ begin
     ((s.sort (≤)).nth_le (i + 1) (h1 i))
     ((finset.mem_sort (≤)).mp (list.nth_le_mem _ _ (h0 i)))
     ((finset.mem_sort (≤)).mp (list.nth_le_mem _ _ (h1 i)))
-    (s.sort_sorted_lt.rel_nth_le_of_lt (h0 i) (h1 i) (nat.lt_succ_self i)),
+    (s.sort_sorted_lt.rel_nth_le_of_lt (h0 i) (h1 i) (lt_succ i)),
   let f : fin (s.card - 1) → t :=
   λ i, ⟨classical.some (p i), (exists_prop.mp (classical.some_spec (p i))).1⟩,
   have hf : ∀ i j : fin (s.card - 1), i < j → f i < f j :=

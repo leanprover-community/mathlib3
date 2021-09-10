@@ -79,11 +79,10 @@ lemma derived_series_of_ideal_le {I J : lie_ideal R L} {k l : ℕ} (h₁ : I ≤
 begin
   revert l, induction k with k ih; intros l h₂,
   { rw nat.le_zero_iff at h₂, rw [h₂, derived_series_of_ideal_zero], exact h₁, },
-  { have h : l = k.succ ∨ l ≤ k, by rwa [le_iff_eq_or_lt, nat.lt_succ_iff] at h₂,
-    cases h,
+  { cases le_succ_iff_lt_or_eq.1 h,
+    { rw derived_series_of_ideal_succ, exact le_trans (lie_submodule.lie_le_left _ _) (ih h) },
     { rw [h, derived_series_of_ideal_succ, derived_series_of_ideal_succ],
-      exact lie_submodule.mono_lie _ _ _ _ (ih (le_refl k)) (ih (le_refl k)), },
-    { rw derived_series_of_ideal_succ, exact le_trans (lie_submodule.lie_le_left _ _) (ih h), }, },
+      exact lie_submodule.mono_lie _ _ _ _ (ih (le_refl k)) (ih (le_refl k)) } }
 end
 
 lemma derived_series_of_ideal_succ_le (k : ℕ) : D (k + 1) I ≤ D k I :=

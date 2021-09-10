@@ -37,7 +37,7 @@ begin
   -- In other words, the following map is not injective:
   set f : fin m.succ → (fin d → Fq) := λ i j, (A i).coeff j,
   have : fintype.card (fin d → Fq) < fintype.card (fin m.succ),
-  { simpa using lt_of_le_of_lt hm (nat.lt_succ_self m) },
+  { simpa using lt_succ_of_le hm },
   -- Therefore, the differences have all coefficients higher than `deg b - d` equal.
   obtain ⟨i₀, i₁, i_ne, i_eq⟩ := fintype.exists_ne_map_eq_of_card_lt f this,
   use [i₀, i₁, i_ne],
@@ -70,7 +70,7 @@ begin
   -- In other words, the following map is not injective:
   set f : fin m.succ → (fin d → Fq) := λ i j, (A i).coeff (nat_degree b - j.succ),
   have : fintype.card (fin d → Fq) < fintype.card (fin m.succ),
-  { simpa using lt_of_le_of_lt hm (nat.lt_succ_self m) },
+  { simpa using lt_succ_of_le hm },
   -- Therefore, the differences have all coefficients higher than `deg b - d` equal.
   obtain ⟨i₀, i₁, i_ne, i_eq⟩ := fintype.exists_ne_map_eq_of_card_lt f this,
   use [i₀, i₁, i_ne],
@@ -86,7 +86,7 @@ begin
   { by_cases hd : nat_degree b < d,
     { exact lt_of_le_of_lt (nat.sub_le_self _ _) hd },
     { rw not_lt at hd,
-      have := lt_of_le_of_lt hj (nat.lt_succ_self j),
+      have := lt_succ_of_le hj,
       rwa [nat.sub_lt_iff hd hbj] at this } },
   have : j = b.nat_degree - (nat_degree b - j.succ).succ,
   { rw [← nat.succ_sub hbj, nat.succ_sub_succ, nat.sub_sub_self hbj.le] },

@@ -76,7 +76,7 @@ decidable.by_cases
     by rwa [monic, leading_coeff, nat_degree, (lt_or_eq_of_le H1).resolve_left H])
 
 theorem monic_X_pow_add {n : ℕ} (H : degree p ≤ n) : monic (X ^ (n+1) + p) :=
-have H1 : degree p < n+1, from lt_of_le_of_lt H (with_bot.coe_lt_coe.2 (nat.lt_succ_self n)),
+have H1 : degree p < n+1, from H.trans_lt (with_bot.coe_lt_coe.2 (lt_succ n)),
 monic_of_degree_le (n+1)
   (le_trans (degree_add_le _ _) (max_le (degree_X_pow_le _) (le_of_lt H1)))
   (by rw [coeff_add, coeff_X_pow, if_pos rfl, coeff_eq_zero_of_degree_lt H1, add_zero])

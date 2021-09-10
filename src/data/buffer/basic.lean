@@ -150,7 +150,7 @@ begin
     cases i,
     { convert read_append_list_left _ _ _;
       simp },
-    { rw [list.length, nat.succ_lt_succ_iff] at h,
+    { rw [list.length, succ_lt_succ_iff] at h,
       have : b.size + i.succ = (b.push_back hd).size + i,
         { simp [add_comm, add_left_comm, nat.succ_eq_add_one] },
       convert hl (b.push_back hd) h using 1,

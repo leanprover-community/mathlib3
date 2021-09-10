@@ -148,7 +148,7 @@ begin
   { change 1 + (n + 1)! ≤ (1 + n + 1) * (1 + n)!,
     rw [add_mul, one_mul, add_comm 1 n],
     exact (add_le_add_iff_right _).mpr (one_le_mul (nat.le_add_left 1 n) (n + 1).factorial_pos) },
-  rw [nat.le_zero_iff.mp (nat.succ_le_succ_iff.mp i0), zero_add, zero_add]
+  rw [nat.le_zero_iff.mp (le_of_succ_le_succ i0), zero_add, zero_add]
 end
 
 lemma add_factorial_le_factorial_add (i : ℕ) {n : ℕ} (n1 : 1 ≤ n) :
@@ -322,7 +322,7 @@ theorem factorial_mul_desc_factorial : ∀ {n k : ℕ}, k ≤ n → (n - k)! * n
 | n        0        := λ _, by rw [desc_factorial_zero, mul_one, nat.sub_zero]
 | 0        (succ k) := λ h, by { exfalso, exact not_succ_le_zero k h }
 | (succ n) (succ k) := λ h, by rw [succ_desc_factorial_succ, succ_sub_succ, ←mul_assoc,
-  mul_comm (n - k)!, mul_assoc, factorial_mul_desc_factorial (nat.succ_le_succ_iff.1 h),
+  mul_comm (n - k)!, mul_assoc, factorial_mul_desc_factorial (le_of_succ_le_succ h),
     factorial_succ]
 
 /-- Avoid in favor of `nat.factorial_mul_desc_factorial` if you can. ℕ-division isn't worth it. -/

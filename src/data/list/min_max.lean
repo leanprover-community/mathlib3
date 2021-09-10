@@ -160,7 +160,7 @@ theorem index_of_argmax [decidable_eq α] {f : α → β} : Π {l : list α} {m 
       { subst hm, contradiction } },
     { have := index_of_argmax h hatl, clear index_of_argmax,
       split_ifs at *;
-      refl <|> exact nat.zero_le _ <|> simp [*, nat.succ_le_succ_iff, -not_le] at * } }
+      refl <|> exact nat.zero_le _ <|> simp [*, succ_le_succ_iff, -not_le] at * } }
 end
 
 theorem index_of_argmin [decidable_eq α] {f : α → β} : Π {l : list α} {m : α}, m ∈ argmin f l →

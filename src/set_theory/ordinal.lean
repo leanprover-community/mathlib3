@@ -1181,7 +1181,7 @@ le_antisymm (ord_le.2 $ by simp only [card_nat]) $ begin
   induction n with n IH,
   { apply ordinal.zero_le },
   { exact (@ordinal.succ_le n _).2 (lt_of_le_of_lt IH $
-    ord_lt_ord.2 $ nat_cast_lt.2 (nat.lt_succ_self n)) }
+    ord_lt_ord.2 $ nat_cast_lt.2 (lt_succ n)) }
 end
 
 @[simp] theorem lift_ord (c) : (ord c).lift = ord (lift c) :=

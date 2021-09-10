@@ -411,7 +411,7 @@ begin
       { simp },
       { rw [digits_add_two_add_one, digits_add_two_add_one],
         by_cases hdvd : (b.succ.succ) ∣ (n.succ+1),
-        { rw [nat.succ_div_of_dvd hdvd, list.length_cons, list.length_cons, nat.succ_le_succ_iff],
+        { rw [nat.succ_div_of_dvd hdvd, list.length_cons, list.length_cons, succ_le_succ_iff],
           apply IH,
           exact nat.div_lt_self (by linarith) (by linarith) },
         { rw nat.succ_div_of_not_dvd hdvd,

@@ -151,9 +151,10 @@ def succ (a : ℤ) := a + 1
 /-- Immediate predecessor of an integer: `pred n = n - 1` -/
 def pred (a : ℤ) := a - 1
 
-instance : add_succ_order ℤ :=
+@[reducible] -- so that Lean reads `int.succ` through `succ_order.succ`
+instance : succ_pred_order ℤ :=
 { succ := succ,
-  succ_eq_add_one := λ a, rfl,
+  pred := pred,
   ..succ_order_of_lt_iff_succ_le succ (λ a b, iff.rfl) }
 
 theorem nat_succ_eq_int_succ (n : ℕ) : (nat.succ n : ℤ) = int.succ n := rfl
@@ -664,7 +665,7 @@ end,
       rw [mul_left_comm],
       apply nat.mul_le_mul_left,
       apply (nat.div_lt_iff_lt_mul _ _ k.succ_pos).1,
-      apply nat.lt_succ_self }
+      exact lt_succ _ }
   end
 end
 

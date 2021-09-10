@@ -149,7 +149,7 @@ int.coe_nat_inj (by rw int.coe_nat_sub hl; exact h)
 
 instance dnsq : zsqrtd.nonsquare d := ⟨λn h,
   have n*n + 1 = a*a, by rw ← h; exact nat.succ_pred_eq_of_pos (asq_pos a1),
-  have na : n < a, from nat.mul_self_lt_mul_self_iff.2 (by rw ← this; exact nat.lt_succ_self _),
+  have na : n < a, from nat.mul_self_lt_mul_self_iff.2 (by rw ← this; exact lt_succ _),
   have (n+1)*(n+1) ≤ n*n + 1, by rw this; exact nat.mul_self_le_mul_self na,
   have n+n ≤ 0, from @nat.le_of_add_le_add_right (n*n + 1) _ _ (by ring_nf at this ⊢; assumption),
   ne_of_gt d_pos $ by rwa nat.eq_zero_of_le_zero ((nat.le_add_left _ _).trans this) at h⟩
@@ -278,7 +278,7 @@ theorem x_increasing {m} : Π {n}, m < n → xn m < xn n
 
 theorem yn_ge_n : Π n, n ≤ yn n
 | 0 := nat.zero_le _
-| (n+1) := show n < yn (n+1), from lt_of_le_of_lt (yn_ge_n n) (y_increasing $ nat.lt_succ_self n)
+| (n+1) := show n < yn (n+1), from lt_of_le_of_lt (yn_ge_n n) (y_increasing $ lt_succ n)
 
 theorem y_mul_dvd (n) : ∀k, yn n ∣ yn (n * k)
 | 0     := dvd_zero _
@@ -452,7 +452,7 @@ theorem eq_of_xn_modeq_lem1 {i n} : Π {j}, i < j → j < n → xn i % xn n < xn
       (λh, by rw h; exact this),
   by rw [nat.mod_eq_of_lt (x_increasing _ (nat.lt_of_succ_lt jn)),
           nat.mod_eq_of_lt (x_increasing _ jn)];
-      exact x_increasing _ (nat.lt_succ_self _)
+      exact x_increasing _ (lt_succ _)
 
 theorem eq_of_xn_modeq_lem2 {n} (h : 2 * xn n = xn (n + 1)) : a = 2 ∧ n = 0 :=
 by rw [xn_succ, mul_comm] at h; exact
@@ -482,7 +482,7 @@ theorem eq_of_xn_modeq_lem3 {i n} (npos : 0 < n) :
   (λ (jn : j = n), by {
     cases jn,
     apply int.lt_of_coe_nat_lt_coe_nat,
-    rw [lem2 (n+1) (nat.lt_succ_self _) j2n,
+    rw [lem2 (n+1) (lt_succ _) j2n,
         show 2 * n - (n + 1) = n - 1, by rw[two_mul, ← nat.sub_sub, nat.add_sub_cancel]],
     refine lt_sub_left_of_add_lt (int.coe_nat_lt_coe_nat_of_lt _),
     cases (lt_or_eq_of_le $ nat.le_of_succ_le_succ ij) with lin ein,

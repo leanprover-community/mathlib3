@@ -1896,7 +1896,7 @@ variables {α β : Type} {p q : parser α} {msgs : thunk (list string)} {msg : t
 
 @[priority 100] -- see Note [lower instance priority]
 instance of_step [step p] : prog p :=
-⟨λ _ _ _ _ h, by { rw step.of_done h, exact nat.lt_succ_self _ }⟩
+⟨λ _ _ _ _ h, by { rw step.of_done h, exact lt_succ _ }⟩
 
 lemma pure (a : α) : ¬ prog (pure a) :=
 begin

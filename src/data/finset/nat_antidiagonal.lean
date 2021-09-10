@@ -41,7 +41,7 @@ rfl
 
 lemma antidiagonal_succ {n : ℕ} :
   antidiagonal (n + 1) = insert (0, n + 1) ((antidiagonal n).map
-  (function.embedding.prod_map ⟨nat.succ, nat.succ_injective⟩ (function.embedding.refl _))) :=
+  (function.embedding.prod_map ⟨nat.succ, succ_injective⟩ (function.embedding.refl _))) :=
 begin
   apply eq_of_veq,
   rw [insert_val_of_not_mem, map_val],

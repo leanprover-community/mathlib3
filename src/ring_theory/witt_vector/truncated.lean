@@ -372,7 +372,7 @@ begin
   intros x hx,
   ext,
   simp only [witt_vector.mem_ker_truncate, ideal.mem_infi, witt_vector.zero_coeff] at hx ⊢,
-  exact hx _ _ (nat.lt_succ_self _)
+  exact hx _ _ (lt_succ _)
 end
 
 end truncated_witt_vector

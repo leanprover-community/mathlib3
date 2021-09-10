@@ -1448,7 +1448,7 @@ variables {x : hahn_series Γ R} (hx : 0 < add_val Γ R x)
 @[simp] lemma coe_powers : ⇑(powers x hx) = pow x := rfl
 
 lemma emb_domain_succ_smul_powers :
-  (x • powers x hx).emb_domain ⟨nat.succ, nat.succ_injective⟩ =
+  (x • powers x hx).emb_domain ⟨nat.succ, succ_injective⟩ =
     powers x hx - of_finsupp (finsupp.single 0 1) :=
 begin
   apply summable_family.ext (λ n, _),
@@ -1457,7 +1457,7 @@ begin
       finsupp.single_eq_same, sub_self],
     rw [set.mem_range, not_exists],
     exact nat.succ_ne_zero },
-  { refine eq.trans (emb_domain_image _ ⟨nat.succ, nat.succ_injective⟩) _,
+  { refine eq.trans (emb_domain_image _ ⟨nat.succ, succ_injective⟩) _,
     simp only [pow_succ, coe_powers, coe_sub, smul_apply, coe_of_finsupp, pi.sub_apply],
     rw [finsupp.single_eq_of_ne (n.succ_ne_zero).symm, sub_zero] }
 end
@@ -1466,7 +1466,7 @@ lemma one_sub_self_mul_hsum_powers :
   (1 - x) * (powers x hx).hsum = 1 :=
 begin
   rw [← hsum_smul, sub_smul, one_smul, hsum_sub,
-    ← hsum_emb_domain (x • powers x hx) ⟨nat.succ, nat.succ_injective⟩,
+    ← hsum_emb_domain (x • powers x hx) ⟨nat.succ, succ_injective⟩,
     emb_domain_succ_smul_powers],
   simp,
 end

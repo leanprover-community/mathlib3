@@ -432,7 +432,7 @@ prints the list,
 
 ```lean
 Try this: exact nat.lt.base n
-Try this: exact nat.lt_succ_self n
+Try this: exact lt_succ n
 Try this: refine not_le.mp _
 Try this: refine gt_iff_lt.mp _
 Try this: refine nat.lt.step _

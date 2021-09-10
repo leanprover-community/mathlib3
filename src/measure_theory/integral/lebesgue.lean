@@ -492,7 +492,7 @@ begin
     exact bot_le },
   { refine le_supr_of_le (k+1) _,
     rw [approx_apply a hf],
-    have : k ∈ finset.range (k+1) := finset.mem_range.2 (nat.lt_succ_self _),
+    have : k ∈ finset.range (k+1) := finset.mem_range.2 (lt_succ _),
     refine le_trans (le_of_eq _) (finset.le_sup this),
     rw [if_pos hk] }
 end

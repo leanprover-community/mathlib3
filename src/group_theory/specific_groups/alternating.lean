@@ -144,10 +144,10 @@ closure_eq_of_le _ (λ σ hσ, mem_alternating_group.2 hσ.sign) $ λ σ hσ, be
   { simp [list.length_eq_zero.1 hn, one_mem] },
   rw [nat.mul_succ] at hn,
   obtain ⟨a, l, rfl⟩ := l.exists_of_length_succ hn,
-  rw [list.length_cons, nat.succ_inj'] at hn,
+  rw [list.length_cons, succ_eq_succ_iff] at hn,
   obtain ⟨b, l, rfl⟩ := l.exists_of_length_succ hn,
   rw [list.prod_cons, list.prod_cons, ← mul_assoc],
-  rw [list.length_cons, nat.succ_inj'] at hn,
+  rw [list.length_cons, succ_eq_succ_iff] at hn,
   exact mul_mem _ (is_swap.mul_mem_closure_three_cycles (hl a (list.mem_cons_self a _))
     (hl b (list.mem_cons_of_mem a (l.mem_cons_self b))))
     (ih _ (λ g hg, hl g (list.mem_cons_of_mem _ (list.mem_cons_of_mem _ hg))) hn),

@@ -58,7 +58,7 @@ def zero : nat.upto p := ⟨0, λ j h, false.elim (nat.not_lt_zero _ h)⟩
 /-- The successor of `n` is in `nat.upto p` provided that `n` doesn't satisfy `p`. -/
 def succ (x : nat.upto p) (h : ¬ p x.val) : nat.upto p :=
 ⟨x.val.succ, λ j h', begin
-  rcases nat.lt_succ_iff_lt_or_eq.1 h' with h' | rfl;
+  rcases lt_succ_iff_lt_or_eq.1 h' with h' | rfl;
   [exact x.2 _ h', exact h]
 end⟩
 

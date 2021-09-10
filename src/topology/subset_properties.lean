@@ -1080,7 +1080,7 @@ nat.find_comp_succ _ _ (not_mem_empty _)
 
 lemma mem_diff_shiftr_find (x : α) : x ∈ K.shiftr (K.find x + 1) \ K.shiftr (K.find x) :=
 ⟨K.mem_find _, mt K.shiftr.mem_iff_find_le.1 $
-  by simp only [find_shiftr, not_le, nat.lt_succ_self]⟩
+  by simp only [find_shiftr, not_le, lt_succ]⟩
 
 /-- A choice of an
 [exhaustion by compact sets](https://en.wikipedia.org/wiki/Exhaustion_by_compact_sets)

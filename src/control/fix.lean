@@ -50,7 +50,7 @@ def fix_aux {p : ℕ → Prop} (i : nat.upto p)
   (g : Π j : nat.upto p, i < j → Π a, part $ β a) : Π a, part $ β a :=
 f $ λ x : α,
 assert (¬p (i.val)) $ λ h : ¬ p (i.val),
-g (i.succ h) (nat.lt_succ_self _) x
+g (i.succ h) (lt_succ _) x
 
 /-- The least fixed point of `f`.
 

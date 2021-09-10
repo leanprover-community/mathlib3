@@ -92,7 +92,7 @@ begin
   have z := geom_sum_mul_add 1 k,
   rw [geom_sum, mul_one, one_add_one_eq_two] at z,
   rw ← z,
-  apply nat.lt_succ_self,
+  apply lt_succ,
 end
 
 namespace colex

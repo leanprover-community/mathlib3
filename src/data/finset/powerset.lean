@@ -183,7 +183,7 @@ begin
   simp only [mem_powerset, mem_filter, function.comp_app, and.congr_right_iff],
   intro ht,
   have : x ∉ t := λ H, h (ht H),
-  simp [card_insert_of_not_mem this, nat.succ_inj']
+  simp [card_insert_of_not_mem this, succ_eq_succ_iff]
 end
 
 lemma powerset_len_nonempty {n : ℕ} {s : finset α} (h : n < s.card) :
@@ -194,7 +194,7 @@ begin
   { simpa using h },
   { cases n,
     { simp },
-    { rw [card_insert_of_not_mem hx, nat.succ_lt_succ_iff] at h,
+    { rw [card_insert_of_not_mem hx, succ_le_succ_iff] at h,
       rw powerset_len_succ_insert hx,
       refine nonempty.mono _ ((IH h).image (insert x)),
       convert (subset_union_right _ _) } }

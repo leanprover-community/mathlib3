@@ -323,7 +323,7 @@ begin
     ite_eq_left_iff],
   assume hn,
   apply (coeff_eq_zero_of_nat_degree_lt _).symm,
-  calc f.nat_degree < f.nat_degree + 1 : nat.lt_succ_self _
+  calc f.nat_degree < f.nat_degree + 1 : lt_succ _
     ... ≤ n * 1 : by simpa only [mul_one] using hn
     ... ≤ n * p : mul_le_mul_of_nonneg_left (@nat.prime.one_lt p (fact.out _)).le (zero_le n)
 end

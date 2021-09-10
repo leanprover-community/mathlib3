@@ -376,7 +376,8 @@ if H : f.derivative = 0 then or.inr
   ⟨by rw [separable_iff_derivative_ne_zero hf, not_not, H],
   contract p f,
   by haveI := is_local_ring_hom_expand F hp.1.pos; exact
-    of_irreducible_map ↑(expand F p) (by rwa ← expand_contract p H at hf),
+    of_irreducible_map (expand F p : polynomial F →+* polynomial F)
+      (by rwa ← expand_contract p H at hf),
   expand_contract p H⟩
 else or.inl $ (separable_iff_derivative_ne_zero hf).2 H
 

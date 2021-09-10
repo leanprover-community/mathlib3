@@ -16,7 +16,7 @@ In any decidable linear order `α`, we define the set of elements lying between 
 interval as defined in this file is always the set of things lying between `a` and `b`, regardless
 of the relative order of `a` and `b`.
 
-For real numbers, `Icc (min a b) (max a b)` is the same as `segment a b`.
+For real numbers, `Icc (min a b) (max a b)` is the same as `segment ℝ a b`.
 
 ## Notation
 

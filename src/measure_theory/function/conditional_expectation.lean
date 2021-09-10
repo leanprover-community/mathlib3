@@ -1154,7 +1154,7 @@ begin
   refl,
 end
 
-lemma condexp_ind_smul [normed_space ℝ F] [smul_comm_class ℝ 𝕜 F] (c : 𝕜) (x : F) :
+lemma condexp_ind_smul' [normed_space ℝ F] [smul_comm_class ℝ 𝕜 F] (c : 𝕜) (x : F) :
   condexp_ind hm μ s (c • x) = c • condexp_ind hm μ s x :=
 condexp_ind_L1_smul' c x
 

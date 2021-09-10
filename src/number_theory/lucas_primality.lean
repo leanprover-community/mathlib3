@@ -90,7 +90,7 @@ begin
       refine hd 2 nat.prime_two _ _,
       simp only [h1, nat.sub_self, dvd_zero],
       simp [h1], },
-  have hp1 : 1 < p, exact (ne.symm h1).le_iff_lt.mp hp,
+  have hp1 : 1 < p, from (ne.symm h1).le_iff_lt.mp hp,
   have order_of_a : order_of a = p-1,
     { apply order_from_pows p (p - 1) a _ ha hd,
       exact sub_pos_iff_lt.mpr hp1, },

@@ -18,10 +18,11 @@ open category_theory.functor
 
 namespace category_theory.limits
 
-universes v u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 variables {C : Type u₁} [category.{v} C]
 variables {D : Type u₂} [category.{v} D]
+variables {E : Type u₃} [category.{v} E]
 
 variables {J : Type v} [small_category J] {K : J ⥤ C}
 
@@ -31,11 +32,31 @@ class preserves_filtered_colimits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
 
 attribute [instance, priority 100] preserves_filtered_colimits.preserves_filtered_colimits
 
+@[priority 100]
+instance preserves_colimits.preserves_filtered_colimits (F : C ⥤ D) [preserves_colimits F] :
+  preserves_filtered_colimits F :=
+{ preserves_filtered_colimits := infer_instance }
+
+instance comp_preserves_filtered_colimits (F : C ⥤ D) (G : D ⥤ E)
+  [preserves_filtered_colimits F] [preserves_filtered_colimits G] :
+  preserves_filtered_colimits (F ⋙ G) :=
+{ preserves_filtered_colimits := λ J _ _, by exactI infer_instance }
+
 class preserves_cofiltered_limits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
 (preserves_cofiltered_limits : Π (J : Type v) [small_category J] [is_cofiltered J],
   preserves_limits_of_shape J F)
 
 attribute [instance, priority 100] preserves_cofiltered_limits.preserves_cofiltered_limits
+
+@[priority 100]
+instance preserves_limits.preserves_cofiltered_limits (F : C ⥤ D) [preserves_limits F] :
+  preserves_cofiltered_limits F :=
+{ preserves_cofiltered_limits := infer_instance }
+
+instance comp_preserves_cofiltered_limits (F : C ⥤ D) (G : D ⥤ E)
+  [preserves_cofiltered_limits F] [preserves_cofiltered_limits G] :
+  preserves_cofiltered_limits (F ⋙ G) :=
+{ preserves_cofiltered_limits := λ J _ _, by exactI infer_instance }
 
 
 end category_theory.limits

@@ -110,7 +110,7 @@ begin
     exact has hi, },
 end
 
-/-- A `fin_meas_additive` set function whose norm on every set is less than a the measure of the
+/-- A `fin_meas_additive` set function whose norm on every set is less than the measure of the
 set (up to a multiplicative constant). -/
 def dominated_fin_meas_additive {β} [normed_group β] {m : measurable_space α}
   (μ : measure α) (T : set α → β) (C : ℝ) : Prop :=

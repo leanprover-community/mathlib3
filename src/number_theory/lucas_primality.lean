@@ -78,7 +78,7 @@ group must itself have order `p-1`, which only happens when `p` is prime.
 -/
 theorem lucas_primality (a : zmod p)
   (hp : 1 < p) (ha : a^(p-1) = 1)
-  (hd : (∀ q : ℕ, (nat.prime q) -> (q ∣ (p-1)) -> a^((p-1)/q) ≠ 1)) : p.prime :=
+  (hd : ∀ q : ℕ, q.prime → q ∣ (p-1) → a^((p-1)/q) ≠ 1) : p.prime :=
 begin
   have order_of_a : order_of a = p-1,
     { apply order_from_pows p (p - 1) a _ ha hd,

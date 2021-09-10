@@ -60,20 +60,20 @@ instance is_scalar_tower'' {g : I → Type*} {h : I → Type*}
 
 @[to_additive]
 instance smul_comm_class {α β : Type*}
-  [Π i, has_scalar α $ f i] [Π i, has_scalar β $ f i] [Π i, smul_comm_class α β (f i)] :
+  [Π i, has_scalar α $ f i] [Π i, has_scalar β $ f i] [∀ i, smul_comm_class α β (f i)] :
   smul_comm_class α β (Π i : I, f i) :=
 ⟨λ x y z, funext $ λ i, smul_comm x y (z i)⟩
 
 @[to_additive]
 instance smul_comm_class' {g : I → Type*} {α : Type*}
-  [Π i, has_scalar α $ g i] [Π i, has_scalar (f i) (g i)] [Π i, smul_comm_class α (f i) (g i)] :
+  [Π i, has_scalar α $ g i] [Π i, has_scalar (f i) (g i)] [∀ i, smul_comm_class α (f i) (g i)] :
   smul_comm_class α (Π i : I, f i) (Π i : I, g i) :=
 ⟨λ x y z, funext $ λ i, smul_comm x (y i) (z i)⟩
 
 @[to_additive]
 instance smul_comm_class'' {g : I → Type*} {h : I → Type*}
   [Π i, has_scalar (g i) (h i)] [Π i, has_scalar (f i) (h i)]
-  [Π i, smul_comm_class (f i) (g i) (h i)] : smul_comm_class (Π i, f i) (Π i, g i) (Π i, h i) :=
+  [∀ i, smul_comm_class (f i) (g i) (h i)] : smul_comm_class (Π i, f i) (Π i, g i) (Π i, h i) :=
 ⟨λ x y z, funext $ λ i, smul_comm (x i) (y i) (z i)⟩
 
 /-- If `f i` has a faithful scalar action for a given `i`, then so does `Π i, f i`. This is

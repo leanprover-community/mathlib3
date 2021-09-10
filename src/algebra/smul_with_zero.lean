@@ -178,8 +178,7 @@ See note [reducible non-instances]. -/
 protected def function.injective.distrib_mul_action_with_zero
   (f : M' →+ M) (hf : function.injective f) (smul : ∀ (a : R) b, f (a • b) = a • f b) :
   distrib_mul_action_with_zero R M' :=
-{ ..hf.distrib_mul_action f smul, ..function.injective.mul_action_with_zero (f : zero_hom M' M)
-  (by rwa [add_monoid_hom.coe_eq_to_zero_hom, add_monoid_hom.to_zero_hom_coe]) smul }
+{ ..hf.distrib_mul_action f smul, ..hf.mul_action_with_zero (f : zero_hom M' M) smul }
 
 /-- Pushforward a `distrib_mul_action_with_zero` structure along a surjective monoid homomorphism.
 See note [reducible non-instances]. -/

@@ -245,7 +245,7 @@ variable [decidable_eq ι]
 /-- Given `i : ι`, any reduced word can be decomposed into a pair `p` such that `w = rcons p`. -/
 -- This definition is computable but not very nice to look at. Thankfully we don't have to inspect
 -- it, since `rcons` is known to be injective.
-private def equiv_pair_aux (i) : Π w : word M, { p : pair M i | rcons p = w }
+private def equiv_pair_aux (i) : Π w : word M, { p : pair M i // rcons p = w }
 | w@⟨[], _, _⟩             := ⟨⟨1, w, by rintro ⟨⟩⟩, dif_pos rfl⟩
 | w@⟨⟨j, m⟩ :: ls, h1, h2⟩ := if ij : i = j then
   { val := { head := ij.symm.rec m,

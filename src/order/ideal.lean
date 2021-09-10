@@ -78,30 +78,6 @@ structure ideal (P) [preorder P] :=
 def is_ideal.to_ideal [preorder P] {I : set P} (h : is_ideal I) : ideal P :=
 ⟨I, h.1, h.2, h.3⟩
 
-/-- A preorder `P` has the `ideal_inter_nonempty` property if the
-    intersection of any two ideals is nonempty.
-    Most importantly, a `semilattice_sup` preorder with this property
-    satisfies that its ideal poset is a lattice.
--/
-class ideal_inter_nonempty (P) [preorder P] : Prop :=
-(inter_nonempty : ∀ (I J : ideal P), (I.carrier ∩ J.carrier).nonempty)
-
-lemma inter_nonempty [preorder P] [ideal_inter_nonempty P] :
-  ∀ (I J : ideal P), (I.carrier ∩ J.carrier).nonempty :=
-ideal_inter_nonempty.inter_nonempty
-
-/-- A preorder `P` has the `ideal_Inter_nonempty` property if the
-    intersection of all ideals is nonempty.
-    Most importantly, a `semilattice_sup` preorder with this property
-    satisfies that its ideal poset is a complete lattice.
--/
-class ideal_Inter_nonempty (P) [preorder P] : Prop :=
-(Inter_nonempty : (⋂ (I : ideal P), I.carrier).nonempty)
-
-lemma Inter_nonempty [preorder P] [ideal_Inter_nonempty P] :
-  (⋂ (I : ideal P), I.carrier).nonempty :=
-ideal_Inter_nonempty.Inter_nonempty
-
 namespace ideal
 
 section preorder
@@ -166,12 +142,36 @@ end⟩
   Note that we cannot use the `is_coatom` class because `P` might not have a `top` element.
 -/
 @[mk_iff] class is_maximal (I : ideal P) extends is_proper I : Prop :=
-(maximal_proper : ∀ ⦃J : ideal P⦄, I < J → J.carrier = set.univ)
+(maximal_proper : ∀ ⦃J : ideal P⦄, I < J → (J : set P) = set.univ)
 
-lemma ideal_Inter_nonempty.exists_all_mem (hP : ideal_Inter_nonempty P) :
+/-- A preorder `P` has the `ideal_inter_nonempty` property if the
+    intersection of any two ideals is nonempty.
+    Most importantly, a `semilattice_sup` preorder with this property
+    satisfies that its ideal poset is a lattice.
+-/
+class ideal_inter_nonempty (P) [preorder P] : Prop :=
+(inter_nonempty : ∀ (I J : ideal P), ((I : set P) ∩ (J : set P)).nonempty)
+
+lemma inter_nonempty [preorder P] [ideal_inter_nonempty P] :
+  ∀ (I J : ideal P), ((I : set P) ∩ (J : set P)).nonempty :=
+ideal_inter_nonempty.inter_nonempty
+
+/-- A preorder `P` has the `ideal_Inter_nonempty` property if the
+    intersection of all ideals is nonempty.
+    Most importantly, a `semilattice_sup` preorder with this property
+    satisfies that its ideal poset is a complete lattice.
+-/
+class ideal_Inter_nonempty (P) [preorder P] : Prop :=
+(Inter_nonempty : (⋂ (I : ideal P), (I : set P)).nonempty)
+
+lemma Inter_nonempty [preorder P] [ideal_Inter_nonempty P] :
+  (⋂ (I : ideal P), (I : set P)).nonempty :=
+ideal_Inter_nonempty.Inter_nonempty
+
+lemma ideal_Inter_nonempty.exists_all_mem [ideal_Inter_nonempty P] :
   ∃ a : P, ∀ I : ideal P, a ∈ I :=
 begin
-  change ∃ (a : P), ∀ (I : ideal P), a ∈ I.carrier,
+  change ∃ (a : P), ∀ (I : ideal P), a ∈ (I : set P),
   rw ← set.nonempty_Inter,
   exact Inter_nonempty,
 end
@@ -182,7 +182,7 @@ lemma ideal_Inter_nonempty_of_exists_all_mem (h : ∃ a : P, ∀ I : ideal P, a 
 
 lemma ideal_Inter_nonempty_iff :
   ideal_Inter_nonempty P ↔ ∃ a : P, ∀ I : ideal P, a ∈ I :=
-⟨ideal_Inter_nonempty.exists_all_mem, ideal_Inter_nonempty_of_exists_all_mem⟩
+⟨λ _, by exactI ideal_Inter_nonempty.exists_all_mem, ideal_Inter_nonempty_of_exists_all_mem⟩
 
 end preorder
 
@@ -215,17 +215,17 @@ instance : order_top (ideal P) :=
   le_top := λ I x h, le_top,
   .. ideal.partial_order }
 
-@[simp] lemma top_carrier : (⊤ : ideal P).carrier = set.univ :=
+@[simp] lemma top_eq_univ : ((⊤ : ideal P) : set P) = set.univ :=
 set.univ_subset_iff.1 (λ p _, le_top)
 
-@[simp] lemma top_coe : ((⊤ : ideal P) : set P) = set.univ := top_carrier
+@[simp] lemma top_coe : ((⊤ : ideal P) : set P) = set.univ := top_eq_univ
 
 lemma top_of_mem_top {I : ideal P} (mem_top : ⊤ ∈ I) : I = ⊤ :=
 begin
   ext,
-  change x ∈ I.carrier ↔ x ∈ (⊤ : ideal P).carrier,
+  change x ∈ I ↔ x ∈ ((⊤ : ideal P) : set P),
   split,
-  { simp [top_carrier] },
+  { simp [top_eq_univ] },
   { exact λ _, I.mem_of_le le_top mem_top }
 end
 
@@ -343,7 +343,7 @@ variables [preorder P] [ideal_Inter_nonempty P]
 @[priority 100]
 instance ideal_Inter_nonempty.ideal_inter_nonempty : ideal_inter_nonempty P :=
 { inter_nonempty := λ _ _, begin
-    cases ideal_Inter_nonempty.exists_all_mem ‹_› with a ha,
+    obtain ⟨a, ha⟩ : ∃ a : P, ∀ I : ideal P, a ∈ I := ideal_Inter_nonempty.exists_all_mem,
     exact ⟨a, ha _, ha _⟩
   end }
 
@@ -352,14 +352,14 @@ variables {α β γ : Type*} {ι : Sort*}
 lemma ideal_Inter_nonempty.all_Inter_nonempty {f : ι → ideal P} :
   (⋂ x, (f x : set P)).nonempty :=
 begin
-  cases ideal_Inter_nonempty.exists_all_mem ‹_› with a ha,
+  obtain ⟨a, ha⟩ : ∃ a : P, ∀ I : ideal P, a ∈ I := ideal_Inter_nonempty.exists_all_mem,
   exact ⟨a, by simp [ha]⟩
 end
 
 lemma ideal_Inter_nonempty.all_bInter_nonempty {f : α → ideal P} {s : set α} :
   (⋂ x ∈ s, (f x : set P)).nonempty :=
 begin
-  cases ideal_Inter_nonempty.exists_all_mem ‹_› with a ha,
+  obtain ⟨a, ha⟩ : ∃ a : P, ∀ I : ideal P, a ∈ I := ideal_Inter_nonempty.exists_all_mem,
   exact ⟨a, by simp [ha]⟩
 end
 

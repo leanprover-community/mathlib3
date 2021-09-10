@@ -114,8 +114,8 @@ lemma alg_hom.algebraic_independent_iff (f : A →ₐ[R] A') (hf : injective f) 
 ⟨λ h, h.of_comp f, λ h, h.map (inj_on_of_injective hf _)⟩
 
 -- TODO uncomment when required instance is added to master
--- @[nontriviality]
--- lemma algebraic_independent_of_subsingleton [subsingleton R] : algebraic_independent R v :=
+@[nontriviality]
+lemma algebraic_independent_of_subsingleton [subsingleton R] : algebraic_independent R v := sorry
 -- algebraic_independent_iff.2 (λ l hl, subsingleton.elim _ _)
 
 theorem algebraic_independent_equiv (e : ι ≃ ι') {f : ι' → A} :
@@ -225,10 +225,31 @@ hv.linear_independent.injective
 
 theorem algebraic_independent.to_subtype_range {ι} {f : ι → A} (hf : algebraic_independent R f) :
   algebraic_independent R (coe : range f → A) :=
-
+if hι : nonempty ι
+then if hR : nontrivial R
+then
+have by exactI (aeval (coe : range f → A) : mv_polynomial (range f) R →ₐ[R] A).to_ring_hom =
+    (aeval f).to_ring_hom.comp (mv_polynomial.rename
+      (equiv.of_injective f hf.injective).symm).to_ring_hom,
+  begin
+    resetI,
+    ext,
+    { simp },
+    { intro _,
+      simp only [rename_X, alg_hom.coe_to_ring_hom, aeval_X, comp_app, ring_hom.coe_comp,
+        alg_hom.to_ring_hom_eq_coe, equiv.apply_of_injective_symm f] }
+  end,
 begin
-  have := injective.of_comp_iff hf,
+  resetI,
+  show injective (aeval coe).to_ring_hom,
+  rw [this],
+  exact injective.comp hf (mv_polynomial.rename_injective _ (equiv.injective _))
 end
+else by { haveI : subsingleton R := not_nontrivial_iff_subsingleton.1 hR,
+  exact algebraic_independent_of_subsingleton }
+else by { haveI hι : is_empty ι := not_nonempty_iff.1 hι,
+  haveI : is_empty (range f) := ⟨λ ⟨_, ⟨x, _⟩⟩, is_empty.elim' hι x⟩,
+  simp * at * }
 
 theorem algebraic_independent.to_subtype_range' {ι} {f : ι → A} (hf : algebraic_independent R f)
   {t} (ht : range f = t) :
@@ -248,37 +269,39 @@ theorem algebraic_independent.image {ι} {s : set ι} {f : ι → A}
   (hs : algebraic_independent R (λ x : s, f x)) : algebraic_independent R (λ x : f '' s, (x : A)) :=
 by convert algebraic_independent.image_of_comp s f id hs
 
-lemma algebraic_independent.group_smul
-  {G : Type*} [hG : group G] [distrib_mul_action G R] [distrib_mul_action G A]
-  [is_scalar_tower G R A] [smul_comm_class G R A] {v : ι → A} (hv : algebraic_independent R v)
-  (w : ι → G) : algebraic_independent R (w • v) :=
-begin
-  rw algebraic_independent_iff'' at hv ⊢,
-  intros s g hgs hsum i,
-  refine (smul_eq_zero_iff_eq (w i)).1 _,
-  refine hv s (λ i, w i • g i) (λ i hi, _) _ i,
-  { dsimp only,
-    exact (hgs i hi).symm ▸ smul_zero _ },
-  { rw [← hsum, finset.sum_congr rfl _],
-    intros, erw [pi.smul_apply, smul_assoc, smul_comm] },
-end
 
--- This lemma cannot be proved with `algebraic_independent.group_smul` since the action of
--- `units R` on `R` is not commutative.
-lemma algebraic_independent.units_smul {v : ι → A} (hv : algebraic_independent R v)
-  (w : ι → units R) : algebraic_independent R (w • v) :=
-begin
-  rw algebraic_independent_iff'' at hv ⊢,
-  intros s g hgs hsum i,
-  rw ← (w i).mul_left_eq_zero,
-  refine hv s (λ i, g i • w i) (λ i hi, _) _ i,
-  { dsimp only,
-    exact (hgs i hi).symm ▸ zero_smul _ _ },
-  { rw [← hsum, finset.sum_congr rfl _],
-    intros,
-    erw [pi.smul_apply, smul_assoc],
-    refl }
-end
+-- lemma algebraic_independent.group_smul
+--   {G : Type*} [hG : group G] [mul_semiring_action G R] [mul_semiring_action G A]
+--   [is_scalar_tower G R A] [smul_comm_class G R A] {v : ι → A} (hv : algebraic_independent R v)
+--   (w : ι → G) : algebraic_independent R (w • v) :=
+-- begin
+--   show algebraic_independent R (λ i, w i • v i),
+--   rw [algebraic_independent_iff] at *,
+--   intros p hp,
+--   induction p using mv_polynomial.induction_on with a
+--     p q ihp ihq,
+--   { apply hv (C a),
+--     simpa [mv_polynomial.algebra_map_eq] using hp },
+--   {  }
+
+-- end
+
+-- -- This lemma cannot be proved with `algebraic_independent.group_smul` since the action of
+-- -- `units R` on `R` is not commutative.
+-- lemma algebraic_independent.units_smul {v : ι → A} (hv : algebraic_independent R v)
+--   (w : ι → units R) : algebraic_independent R (w • v) :=
+-- begin
+--   rw algebraic_independent_iff'' at hv ⊢,
+--   intros s g hgs hsum i,
+--   rw ← (w i).mul_left_eq_zero,
+--   refine hv s (λ i, g i • w i) (λ i hi, _) _ i,
+--   { dsimp only,
+--     exact (hgs i hi).symm ▸ zero_smul _ _ },
+--   { rw [← hsum, finset.sum_congr rfl _],
+--     intros,
+--     erw [pi.smul_apply, smul_assoc],
+--     refl }
+-- end
 
 
 section maximal
@@ -288,16 +311,16 @@ universes v w
 A algebraicly independent family is maximal if there is no strictly larger algebraicly independent family.
 -/
 @[nolint unused_arguments]
-def algebraic_independent.maximal {ι : Type w} {R : Type u} [semiring R]
-  {A : Type v} [add_comm_monoid A] [module R A] {v : ι → A} (i : algebraic_independent R v) : Prop :=
+def algebraic_independent.maximal {ι : Type w} {R : Type u} [comm_ring R]
+  {A : Type v} [comm_ring A] [algebra R A] {v : ι → A} (i : algebraic_independent R v) : Prop :=
 ∀ (s : set A) (i' : algebraic_independent R (coe : s → A)) (h : range v ≤ s), range v = s
 
 /--
 An alternative characterization of a maximal algebraicly independent family,
 quantifying over types (in the same universe as `A`) into which the indexing family injects.
 -/
-lemma algebraic_independent.maximal_iff {ι : Type w} {R : Type u} [ring R] [nontrivial R]
-  {A : Type v} [add_comm_group A] [module R A] {v : ι → A} (i : algebraic_independent R v) :
+lemma algebraic_independent.maximal_iff {ι : Type w} {R : Type u} [comm_ring R] [nontrivial R]
+  {A : Type v} [comm_ring A] [algebra R A] {v : ι → A} (i : algebraic_independent R v) :
   i.maximal ↔ ∀ (κ : Type v) (w : κ → A) (i' : algebraic_independent R w)
     (j : ι → κ) (h : w ∘ j = v), surjective j :=
 begin
@@ -317,41 +340,28 @@ begin
 end
 
 end maximal
-
-/-- Linear independent families are injective, even if you multiply either side. -/
-lemma algebraic_independent.eq_of_smul_apply_eq_smul_apply {A : Type*} [add_comm_group A] [module R A]
-  {v : ι → A} (li : algebraic_independent R v) (c d : R) (i j : ι)
-  (hc : c ≠ 0) (h : c • v i = d • v j) : i = j :=
-begin
-  let l : ι →₀ R := finsupp.single i c - finsupp.single j d,
-  have h_total : finsupp.total ι A R v l = 0,
-  { simp_rw [algebraic_map.map_sub, finsupp.total_apply],
-    simp [h] },
-  have h_single_eq : finsupp.single i c = finsupp.single j d,
-  { rw algebraic_independent_iff at li,
-    simp [eq_add_of_sub_eq' (li l h_total)] },
-  rcases (finsupp.single_eq_single_iff _ _ _ _).mp h_single_eq with ⟨this, _⟩ | ⟨hc, _⟩,
-  { exact this },
-  { contradiction },
-end
-
+#exit
 section subtype
 /-! The following lemmas use the subtype defined by a set in `A` as the index set `ι`. -/
 
-lemma algebraic_independent.disjoint_span_image (hv : algebraic_independent R v) {s t : set ι}
-  (hs : disjoint s t) :
-  disjoint (submodule.span R $ v '' s) (submodule.span R $ v '' t) :=
+lemma algebraic_independent.disjoint_adjoin_image (hv : algebraic_independent R v) {s t : set ι}
+  (hs : disjoint s t) : disjoint (algebra.adjoin R $ v '' s) (algebra.adjoin R $ v '' t) :=
 begin
-  simp only [disjoint_def, finsupp.mem_span_image_iff_total],
-  rintros _ ⟨l₁, hl₁, rfl⟩ ⟨l₂, hl₂, H⟩,
-  rw [hv.injective_total.eq_iff] at H, subst l₂,
-  have : l₁ = 0 := finsupp.disjoint_supported_supported hs (submodule.mem_inf.2 ⟨hl₁, hl₂⟩),
-  simp [this]
+  rw [disjoint_iff, eq_bot_iff],
+  rintros x ⟨hxs, hxt⟩,
+  rw [set_like.mem_coe, adjoin_eq_range] at hxs hxt,
+  rcases hxs with ⟨p, rfl⟩,
+  rcases hxt with ⟨q, hpq⟩,
+  rw [← algebraic_independent_subtype_range] at hv,
+  have := @hv (mv_polynomial.rename (set.inclusion (image_subset_range v s)) p)
+              (mv_polynomial.rename (set.inclusion (image_subset_range v t)) q),
+  simp only [aeval_rename, aeval_rename, function.comp, set.coe_inclusion] at this,
+  have := this hpq.symm,
+
 end
 
 lemma algebraic_independent.not_mem_span_image [nontrivial R] (hv : algebraic_independent R v) {s : set ι}
-  {x : ι} (h : x ∉ s) :
-  v x ∉ submodule.span R (v '' s) :=
+  {x : ι} (h : x ∉ s) : v x ∉ submodule.span R (v '' s) :=
 begin
   have h' : v x ∈ submodule.span R (v '' {x}),
   { rw set.image_singleton,

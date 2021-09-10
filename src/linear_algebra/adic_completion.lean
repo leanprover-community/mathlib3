@@ -6,6 +6,7 @@ Authors: Kenny Lau
 
 import linear_algebra.smodeq
 import ring_theory.ideal.operations
+import ring_theory.jacobson_ideal
 
 /-!
 # Completion of a module with respect to an ideal.
@@ -209,5 +210,60 @@ protected theorem subsingleton (h : is_adic_complete (⊤ : ideal R) M) : subsin
 h.1.subsingleton
 
 @[priority 100] instance of_subsingleton [subsingleton M] : is_adic_complete I M := {}
+
+open_locale big_operators
+
+lemma le_jacobson_bot [is_adic_complete I R] : I ≤ (⊥ : ideal R).jacobson :=
+begin
+  intros x hx,
+  rw [← ideal.neg_mem_iff, ideal.mem_jacobson_bot],
+  intros y,
+  rw add_comm,
+  let f : ℕ → R := λ n, ∑ i in finset.range n, (x * y)^i,
+  obtain ⟨L,hL⟩ := @is_precomplete.prec R _ I R _ _ to_is_precomplete f _,
+  { rw is_unit_iff_exists_inv,
+    use L,
+    rw [← sub_eq_zero, neg_mul_eq_neg_mul_symm],
+    apply is_Hausdorff.haus (to_is_Hausdorff : is_Hausdorff I R),
+    intros n,
+    specialize hL n,
+    rw [smodeq.sub_mem, algebra.id.smul_eq_mul, ideal.mul_top] at ⊢ hL,
+    rw sub_zero,
+    suffices : (1 - x * y) * (f n) - 1 ∈ I ^ n,
+    { convert (ideal.sub_mem _ this (ideal.mul_mem_left _ (1 + - (x * y)) hL)) using 1,
+      ring },
+    dsimp [f],
+    rw [sub_mul, one_mul, finset.mul_sum],
+    cases n,
+    { simp },
+    { nth_rewrite 1 finset.sum_range_succ,
+      rw finset.sum_range_succ',
+      have : -(x * y)^(n+1) ∈ I^(n+1),
+      { rw [ideal.neg_mem_iff, mul_pow],
+        apply (I^(n+1)).mul_mem_right (y^(n+1)),
+        exact ideal.pow_mem_pow hx (n+1) },
+      convert this,
+      simp only [pow_zero],
+      ring_nf,
+      simp_rw [← add_sub_assoc, sub_eq_add_neg],
+      rw [(show (x * y)^n * y * x = (y * x)^(n+1), by rw [pow_succ, mul_comm x y]; ring),
+        add_left_eq_self, ← finset.sum_neg_distrib, ← finset.sum_add_distrib],
+      apply finset.sum_eq_zero,
+      rintros n -,
+      rw pow_succ,
+      ring } },
+  { intros m n h,
+    dsimp [f],
+    let k := n-m,
+    have : n = m+k := (nat.add_sub_cancel' h).symm,
+    rw [this, finset.sum_range_add, smodeq.sub_mem, sub_eq_neg_add, add_comm, ideal.mul_top],
+    simp only [neg_mem_iff, neg_add_rev, add_neg_cancel_comm_assoc],
+    apply submodule.sum_mem,
+    intros n hn,
+    rw mul_pow,
+    apply ideal.mul_mem_right,
+    rw pow_add,
+    exact ideal.mul_mem_right (x ^ n) (I ^ m) (ideal.pow_mem_pow hx m) }
+end
 
 end is_adic_complete

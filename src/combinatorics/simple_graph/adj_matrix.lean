@@ -64,7 +64,7 @@ by { obtain (h|h) := h.zero_or_one i j; simp [h] }
 @[simp]
 lemma apply_ne_zero_iff [mul_zero_one_class α] [nontrivial α] (h : is_adj_matrix A) (i j : V) :
   ¬ A i j = 0 ↔ A i j = 1 :=
-by { rw [←apply_ne_one_iff h], simp }
+by rw [←apply_ne_one_iff h, not_not]
 
 /-- For `A : matrix V V α` and `h : is_adj_matrix A`,
     `h.to_graph` is the simple graph whose adjacency matrix is `A`. -/

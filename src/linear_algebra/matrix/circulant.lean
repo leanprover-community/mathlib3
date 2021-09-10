@@ -148,7 +148,7 @@ by ext; simp [circulant]
   circulant (pi.single 0 1 : I → α)= (1 : matrix I I α) :=
 by { ext i j, simp only [circulant, one_apply, pi.single_apply, sub_eq_zero], congr }
 
-/-- The identity matrix is a circulant matrix. -/
+/-- Any identity matrix is a circulant matrix. -/
 lemma one_eq_circulant [has_zero α] [has_one α] [decidable_eq I] [add_group I] :
   (1 : matrix I I α) = circulant (λ i, ite (i = 0) 1 0) :=
 by { rw [←circulant_single], congr, ext i, simp [pi.single, update] }
@@ -198,24 +198,24 @@ begin
   { intros h i j, convert h (i - j), simp }
 end
 
-lemma fin.circulant_is_sym_ext_iff :
+lemma fin.circulant_is_symm_ext_iff :
   ∀ {n} {v : fin n → α}, (circulant v).is_symm ↔ ∀ i, v (- i) = v i
 | 0     := λ v, by simp only [circulant_is_symm_ext_iff', is_empty.forall_iff]
 | (n+1) := λ v, circulant_is_symm_ext_iff
 
 /-- If `circulant v` is symmetric, `∀ i j : I, v (j - i) = v (i - j)`. -/
-lemma circulant_is_sym_apply' [has_sub I] {v : I → α} (h : (circulant v).is_symm) (i j : I) :
+lemma circulant_is_symm_apply' [has_sub I] {v : I → α} (h : (circulant v).is_symm) (i j : I) :
   v (j - i) = v (i - j) :=
 circulant_is_symm_ext_iff'.1 h i j
 
 /-- If `circulant v` is symmetric, `∀ i j : I, v (- i) = v i`. -/
-lemma circulant_is_sym_apply [add_group I] {v : I → α} (h : (circulant v).is_symm) (i : I) :
+lemma circulant_is_symm_apply [add_group I] {v : I → α} (h : (circulant v).is_symm) (i : I) :
   v (-i) = v i :=
 circulant_is_symm_ext_iff.1 h i
 
-lemma fin.circulant_is_sym_apply {v : fin n → α} (h : (circulant v).is_symm) (i : fin n) :
+lemma fin.circulant_is_symm_apply {v : fin n → α} (h : (circulant v).is_symm) (i : fin n) :
   v (-i) = v i :=
-fin.circulant_is_sym_ext_iff.1 h i
+fin.circulant_is_symm_ext_iff.1 h i
 
 /-- The associated polynomial `(v 0) + (v 1) * X + ... + (v (n-1)) * X ^ (n-1)` to `circulant v`.-/
 noncomputable

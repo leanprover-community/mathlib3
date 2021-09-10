@@ -161,7 +161,7 @@ variables [add_monoid M] (R M)
 and is compatible with `0` (both in `R` and in `M`), with `1 ∈ R`, and with associativity of
 multiplication on the monoid `M`. -/
 class distrib_mul_action_with_zero extends distrib_mul_action R M :=
--- this field is copied from `smul_with_zero`, as `extends` behaves poorly
+-- this field is copied from `mul_action_with_zero`, as `extends` behaves poorly
 (zero_smul : ∀ m : M, (0 : R) • m = 0)
 
 @[priority 100] -- see Note [lower instance priority]

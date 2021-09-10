@@ -440,6 +440,9 @@ by { unfold deriv_within, rw fderiv_within_congr hs hL hx }
 lemma filter.eventually_eq.deriv_eq (hL : f₁ =ᶠ[𝓝 x] f) : deriv f₁ x = deriv f x :=
 by { unfold deriv, rwa filter.eventually_eq.fderiv_eq }
 
+protected lemma filter.eventually_eq.deriv (h : f₁ =ᶠ[𝓝 x] f) : deriv f₁ =ᶠ[𝓝 x] deriv f :=
+h.eventually_eq_nhds.mono $ λ x h, h.deriv_eq
+
 end congr
 
 section id

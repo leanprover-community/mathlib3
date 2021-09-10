@@ -24,7 +24,7 @@ def rie (k : ℝ): ℕ → ℝ :=
 λ x, 1/((x: ℝ)^k)
 
 
-/--The `Riemann zeta function` defined on the real numbers. 
+/--The `Riemann zeta function` defined on the real numbers.
 It is defined as the infinite sum of the reciprocals of the naturals to the power `k`. We check it is summable at the end for real `k` greater than 1.-/
 
 def Riemann_zeta (k : ℝ): ℝ :=
@@ -43,7 +43,19 @@ begin
 apply Riemann_zeta_is_summmable, norm_cast, exact h,
 end
 
-
+lemma Riemann_zeta_pos (k : ℝ) (h: 1 < k) : 0 < Riemann_zeta k :=
+begin
+  rw Riemann_zeta,
+  apply tsum_pos (Riemann_zeta_is_summmable k h) _ 1,
+  rw rie,
+  simp,
+  intro b,
+  simp_rw rie,
+  simp,
+  apply real.rpow_nonneg_of_nonneg,
+  norm_cast,
+  linarith,
+end
 
 
 #lint

@@ -308,6 +308,10 @@ theorem has_deriv_at.has_deriv_within_at
   (h : has_deriv_at f f' x) : has_deriv_within_at f f' s x :=
 has_fderiv_at.has_fderiv_within_at h
 
+theorem has_deriv_at.has_deriv_within_at' (s : set 𝕜)
+  (h : has_deriv_at f f' x) : has_deriv_within_at f f' s x :=
+has_fderiv_at.has_fderiv_within_at h
+
 lemma has_deriv_within_at.differentiable_within_at (h : has_deriv_within_at f f' s x) :
   differentiable_within_at 𝕜 f s x :=
 has_fderiv_within_at.differentiable_within_at h

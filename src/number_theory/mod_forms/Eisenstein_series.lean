@@ -933,8 +933,8 @@ apply riesum',
 end
 
 
-lemma Real_Eisenstein_bound (k : ℕ) (z : ℍ) (h : 3 ≤ k): (real_Eisenstein_series_of_weight_ k z) ≤ (8/(rfunct z)^k)*Riemann_zeta (k-1):=
-
+lemma Real_Eisenstein_bound (k : ℕ) (z : ℍ) (h : 3 ≤ k):
+    (real_Eisenstein_series_of_weight_ k z) ≤ (8/(rfunct z)^k)*Riemann_zeta (k-1):=
 begin
 rw real_Eisenstein_series_of_weight_,rw Riemann_zeta,
   rw ← tsum_mul_left, let In:=Square,
@@ -1011,6 +1011,12 @@ have h1: 0 ≤a^2/b^2, by  {apply div_nonneg, nlinarith, nlinarith, },
 linarith,
 end
 
+lemma aux6 (a b : ℝ) (h: 0 ≤  a) (h2: 0 ≤ b) : a ≤ b → a^2 ≤ b^2 :=
+begin
+intro hab,
+nlinarith,
+end
+
 lemma rfunct_lower_bound_on_slice (A B : ℝ) (h: 0 < B) (z : upper_half_space_slice A B) :
 rfunct (lbpoint A B h) ≤   rfunct(z.1) :=
 begin
@@ -1021,8 +1027,31 @@ norm_cast at h1, rw sq_abs at h1, simp [h1],
 nlinarith,
 
 simp_rw lb, rw real.sqrt_le, rw real.sqrt_le, rw aux4,  rw aux4, simp, rw inv_le_inv, simp,
-have i1: (((z_val_val.im)^2)⁻¹ : ℝ)≤ ((B^2)⁻¹ : ℝ) , by { sorry,},
-have i2: ((z_val_val.re)^2 : ℝ )≤ (A^2 : ℝ), by {sorry,},
+have i1: (((z_val_val.im)^2)⁻¹ : ℝ)≤ ((B^2)⁻¹ : ℝ) ,
+  by {rw inv_le_inv,
+  have h' : 0 ≤ B , by {linarith,},
+  have z_prop' : 0 ≤ z_val_val.im, by {linarith,},
+  apply aux6 _ _ h' z_prop',
+      have : z_val_val.im = complex.abs (z_val_val.im),
+          by  {norm_cast, have:= abs_of_pos z_val_property, exact this.symm,},
+      norm_cast at this,
+      rw this,
+      exact z_property_right,
+      apply pow_two_pos_of_ne_zero,
+      linarith,
+      apply pow_two_pos_of_ne_zero, linarith,},
+have i2: ((z_val_val.re)^2 : ℝ )≤ (A^2 : ℝ),
+  by {have : (complex.abs (z_val_val.re))^2 = z_val_val.re^2,
+      by {norm_cast, rw ← abs_pow, have he: even (2: ℤ), by {simp,},
+          exact abs_fpow_even z_val_val.re he,},
+  norm_cast at this,
+  rw ← this,
+  have v2: 0 ≤ complex.abs (z_val_val.re), by {apply complex.abs_nonneg,},
+  norm_cast at v2,
+  have v1: 0 ≤ A, by {apply le_trans v2 z_property_left,},
+  apply aux6 _ _ v2 v1,
+  exact z_property_left,
+  },
 ring_nf, simp at *,
 have i3:= mul_le_mul i1 i2,
 have i4: 0 ≤ (z_val_val.re)^2, by {nlinarith,},
@@ -1038,6 +1067,33 @@ end
 
 
 
+lemma Real_Eisenstein_bound_unifomly_on_stip (k : ℕ) (z : ℍ) (h : 3 ≤ k) (A B : ℝ) (hb : 0 < B)
+  (z : upper_half_space_slice A B) :
+    (real_Eisenstein_series_of_weight_ k z.1) ≤ (8/(rfunct (lbpoint A B hb) )^k)*Riemann_zeta (k-1):=
+begin
+have : (8/(rfunct z)^k)*Riemann_zeta (k-1)  ≤ (8/(rfunct (lbpoint A B hb) )^k)*Riemann_zeta (k-1),
+by {have h1:= rfunct_lower_bound_on_slice A B hb z,
+    simp at h1,
+    have v1: 0 ≤ rfunct z, by {have:= rfunct_pos z, linarith, },
+    have v2: 0 ≤ rfunct (lbpoint A B hb), by {have:= rfunct_pos (lbpoint A B hb), linarith, },
+    have h2:= le_of_pow'  (rfunct (lbpoint A B hb) ) (rfunct z) k v2 v1 h1,
+    ring_nf,
+    rw ← inv_le_inv at h2,
+    have h3: 0 ≤  Riemann_zeta (k-1), by {have hk: 1 < (k-1 : ℤ), by { linarith,},
+             have hkk: 1 < ((k-1 : ℤ) : ℝ), by {norm_cast, exact hk,},
+             simp at hkk,
+             have:= Riemann_zeta_pos (k-1) hkk, linarith,},
+    nlinarith,
+    apply pow_pos,
+    apply rfunct_pos,
+     apply pow_pos,
+    apply rfunct_pos,},
+apply le_trans (Real_Eisenstein_bound k z h) this,
+end
+
+
+
+
 lemma Eisen_partial_tends_to_uniformly (k: ℤ):
 tendsto_uniformly (Eisen_partial_sums k) (Eisenstein_series_of_weight_ k) filter.at_top:=
 begin
@@ -1045,15 +1101,117 @@ rw metric.tendsto_uniformly_iff, intros ε hε, tidy, use 0,
 sorry,
 end
 
+example (x : ℤ × ℤ) (k : ℤ) (y : ℂ) : deriv (λ (z : ℂ ), 1/((x.1 : ℂ)*z+x.2)^k) y = (-k*x.1)/(x.1*y+x.2)^(k+1)   :=
+by { simp, ring, norm_cast, sorry,}
 
+def powfun  (k : ℤ) : ℂ → ℂ :=
+λ x, x^k
 
-lemma Eise'_has_deriv_within_at (k : ℤ) (y: ℤ × ℤ) : is_holomorphic_on (λ (z : ℍ'), Eise k z y):=
+def trans (a b : ℤ) : ℂ → ℂ :=
+λ x, a*x+b
+
+def ein (a b k : ℤ): ℂ → ℂ :=
+λ x, (a*x+b)^k
+
+lemma com (a b k : ℤ): (ein a b k) = (powfun k) ∘ trans a b :=
 begin
-rw is_holomorphic_on, intro z, use Eise_deriv k z y, simp_rw Eise, simp_rw Eise_deriv, simp,simp_rw extend_by_zero,
-simp [ ext_by_zero_apply], rw has_deriv_within_at_iff_tendsto, simp, rw metric.tendsto_nhds_within_nhds,
-intros ε hε, use ε, simp [hε],intros x hx hd, dsimp at *, rw ← dite_eq_ite, rw dif_pos hx,
---has_deriv_within_at_fpow
-sorry,
+refl,
+end
+
+
+lemma d1 (k: ℤ) (x : ℂ): deriv (λ x, x^k) x = k*x^(k-1) :=
+by {simp only [deriv_fpow'], }
+
+lemma d2 (a b k: ℤ) (x : ℂ) (h : (a: ℂ)*x+b ≠ 0) : deriv (ein a b k) x = k*a*(a*x+b)^(k-1):=
+begin
+rw com,
+rw deriv.comp,
+rw powfun,
+rw trans,
+simp,
+ring,
+rw powfun,
+rw trans, simp, simp_rw differentiable_at_fpow ,
+simp [h],
+rw trans,
+simp only [differentiable_at_const, differentiable_at_add_const_iff, differentiable_at_id', differentiable_at.mul],
+end
+
+lemma neg_inv_pow (x : ℂ) (k : ℤ) : (x^k)⁻¹= x^-k :=
+begin
+exact (fpow_neg x k).symm,
+end
+
+lemma aux8 (a b k: ℤ ) (x : ℂ): (((a : ℂ)*x+b)^k)⁻¹ =  ((a : ℂ)*x+b)^-k:=
+begin
+apply neg_inv_pow,
+end
+
+lemma dd2 (a b k: ℤ) (x : ℂ) (h : (a: ℂ)*x+b ≠ 0) : has_deriv_at (ein a b k)  (k*(a*x+b)^(k-1)*(a) : ℂ) x:=
+begin
+rw com,
+
+apply has_deriv_at.comp,
+rw powfun,
+rw trans,
+simp,
+apply has_deriv_at_fpow,
+simp [h],
+rw trans,
+apply has_deriv_at.add_const,
+have:= has_deriv_at.const_mul (a: ℂ) (has_deriv_at_id x) , simp at *,
+exact this,
+end
+
+lemma H_member (z : ℂ)  : z ∈ upper_half_space ↔ 0 < z.im:=iff.rfl
+
+lemma Eise'_has_deriv_within_at (k : ℤ) (y: ℤ × ℤ) (hkn: k ≠ 0) : is_holomorphic_on (λ (z : ℍ'), Eise k z y):=
+begin
+
+
+rw is_holomorphic_on, intro z,
+by_cases hy: (y.1 : ℂ)*z.1 + y.2 ≠ 0,
+
+simp_rw Eise, ring_nf,
+have:= aux8 y.1 y.2 k z.1, simp only [subtype.val_eq_coe] at this,
+
+have nz: (y.1 : ℂ)*z.1 + y.2 ≠ 0 , by {apply hy,},
+have hdd:= dd2 y.1 y.2 (-k) z nz,
+rw ein at hdd,
+have H:= has_deriv_at.has_deriv_within_at' upper_half_space hdd, simp at H,
+let fx:=(-k*((y.1:ℂ)*z.1+y.2)^(-k-1)*(y.1) : ℂ),
+use fx,
+rw has_deriv_within_at_iff_tendsto at *, simp at *, rw metric.tendsto_nhds_within_nhds at *,
+intros ε hε,
+have HH:= H ε hε,
+use classical.some HH,
+have:= classical.some_spec HH, simp at this,
+have hg:= this.1,
+simp [hg] at *,
+
+intros x hx hd, dsimp at *, simp_rw extend_by_zero,
+simp [ ext_by_zero_apply],
+ rw ← dite_eq_ite, rw dif_pos hx,
+have H3:= this_1 hx hd,
+simp_rw fx,
+convert H3,
+ring,
+
+simp at hy,
+have hz: y.1 =0 ∧ y.2 = 0, by {by_contra, simp  at h, cases z, cases y, dsimp at *, injections_and_clear,
+     dsimp at *, simp at *, cases h_2, rw h_2 at h_1, simp at *,
+   have:= h h_2, rw h_1 at this, simp at this, exact this, simp [H_member] at z_property, rw h_2 at z_property,
+   simp at z_property, exact z_property,},
+simp_rw Eise, rw [hz.1, hz.2], simp,
+have zhol:= zero_hol ℍ' ,
+rw is_holomorphic_on at zhol,
+have zhol':= zhol z,
+simp at zhol',
+have zk: ((0: ℂ)^k)⁻¹ =0, by {simp, apply zero_fpow, apply hkn,},
+rw zk,
+exact zhol',
+
+
 end
 
 

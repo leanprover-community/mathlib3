@@ -5,6 +5,7 @@ Authors: Markus Himmel, Scott Morrison
 -/
 import ring_theory.principal_ideal_domain
 import ring_theory.ideal.basic
+import linear_algebra.free_module
 
 /-!
 # Invariant basis number property
@@ -94,6 +95,24 @@ begin
   let Q := (finsupp.linear_equiv_fun_on_fintype R R α).symm,
   exact card_le_of_injective R ((P.to_linear_map.comp f).comp Q.to_linear_map)
     ((P.injective.comp i).comp Q.injective)
+end
+
+/-- A ring satisfies the strong rank condition if and only if, for all `n : ℕ`, there are no
+injective linear maps `(fin (n + 1) → R) →ₗ[R] (fin n → R)`. -/
+lemma strong_rank_condition_iff : strong_rank_condition R ↔
+  ∀ (n : ℕ), ¬∃ f : (fin (n + 1) → R) →ₗ[R] (fin n → R), function.injective f :=
+begin
+  refine ⟨λ h n, _, λ h, ⟨λ n m f hf, _⟩⟩,
+  { rintros ⟨f, hf⟩,
+    letI : strong_rank_condition R := h,
+    exact nat.not_succ_le_self n (le_of_fin_injective R f hf) },
+  { by_contra H,
+    obtain ⟨k, hk⟩ := nat.le.dest (nat.succ_le_iff.mpr (not_le.1 H)),
+    exact h m ⟨f.comp ((linear_equiv.Pi_congr_left' R (λ (i' : fin (m + 1 + k)), R)
+      (fin_congr hk)).to_linear_map.comp (ext_zero_fin R (m + 1) k)), function.injective.comp hf
+      (function.injective.comp (function.injective.comp ((equiv.Pi_congr_left'
+      (λ (i' : fin (m + 1 + k)), R) (fin_congr hk)).injective) (ext_zero_fin.injective R (m + 1) k))
+      function.injective_id)⟩ }
 end
 
 /-- We say that `R` satisfies the rank condition if `(fin n → R) →ₗ[R] (fin m → R)` surjective

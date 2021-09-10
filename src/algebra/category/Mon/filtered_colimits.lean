@@ -299,10 +299,10 @@ The colimit of `F ⋙ forget₂ CommMon Mon` in the category `Mon`.
 In the following, we will construct a _commutative_ monoid structure on `M`.
 -/
 @[to_additive]
-abbreviation M := Mon.filtered_colimits.colimit (F ⋙ forget₂ CommMon Mon.{v})
+abbreviation M : Mon := Mon.filtered_colimits.colimit (F ⋙ forget₂ CommMon Mon.{v})
 
 @[to_additive]
-instance : comm_monoid M :=
+instance colimit_comm_monoid : comm_monoid M :=
 { mul_comm := λ x y, begin
     apply quot.induction_on₂ x y, clear x y, intros x y,
     let k := max' x.1 y.1,
@@ -323,16 +323,13 @@ def colimit : CommMon := ⟨M, by apply_instance⟩
 @[to_additive]
 def colimit_cocone : cocone F :=
 { X := colimit,
-  ι :=
-  { app := Mon.filtered_colimits.cocone_morphism (F ⋙ forget₂ CommMon Mon.{v}),
-    naturality' := λ X Y,
-      Mon.filtered_colimits.cocone_naturality (F ⋙ forget₂ CommMon Mon.{v}) } }
+  ι := { ..(Mon.filtered_colimits.colimit_cocone (F ⋙ forget₂ CommMon Mon.{v})).ι } }
 
 /-- The proposed colimit cocone is a colimit in `CommMon`. -/
 @[to_additive]
 def colimit_cocone_is_colimit : is_colimit colimit_cocone :=
 { desc := λ t, Mon.filtered_colimits.colimit_desc (F ⋙ forget₂ CommMon Mon.{v})
-    (functor.map_cocone (forget₂ CommMon Mon.{v}) t),
+    ((forget₂ CommMon Mon.{v}).map_cocone t),
   fac' := λ t,
   (Mon.filtered_colimits.colimit_cocone_is_colimit (F ⋙ forget₂ CommMon Mon.{v})).fac
     (functor.map_cocone (forget₂ CommMon Mon.{v}) t),

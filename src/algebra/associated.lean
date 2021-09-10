@@ -751,7 +751,7 @@ end associates
 
 namespace multiset
 
-lemma multiset.prod_ne_zero_of_prime [comm_cancel_monoid_with_zero α ][nontrivial α]
+lemma prod_ne_zero_of_prime [comm_cancel_monoid_with_zero α] [nontrivial α]
  (s : multiset α) (h : ∀ x ∈ s, prime x) : s.prod ≠ 0 :=
 multiset.prod_ne_zero (λ h0, prime.ne_zero (h 0 h0) rfl)
 

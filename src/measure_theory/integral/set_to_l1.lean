@@ -524,7 +524,8 @@ section function
 variables [second_countable_topology E] [borel_space E] [complete_space F]
   {T : set α → E →L[ℝ] F} {C : ℝ} {f g : α → E}
 
-/-- Extedend `T : set α → E →L[ℝ] F` to `(α → E) → F` (for integrable functions `α → E`). -/
+/-- Extend `T : set α → E →L[ℝ] F` to `(α → E) → F` (for integrable functions `α → E`). We set it to
+0 if the function is not integrable. -/
 def set_to_fun (hT : dominated_fin_meas_additive μ T C) (f : α → E) : F :=
 if hf : integrable f μ then L1.set_to_L1 hT (hf.to_L1 f) else 0
 

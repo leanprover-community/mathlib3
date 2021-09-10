@@ -1141,7 +1141,7 @@ end
 
 end condexp_ind_L1
 
-/-- Conditional expectation of the indicator of a set, as a linear map from `E'` to L1. -/
+/-- Conditional expectation of the indicator of a set, as a linear map from `G` to L1. -/
 def condexp_ind {m m0 : measurable_space α} (hm : m ≤ m0) (μ : measure α) [sigma_finite (μ.trim hm)]
   (s : set α) : G →L[ℝ] α →₁[μ] G :=
 { to_fun    := condexp_ind_L1 hm μ s,

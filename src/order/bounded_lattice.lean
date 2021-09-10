@@ -753,6 +753,11 @@ instance has_le [has_le α] : has_le (with_top α) :=
   @has_lt.lt (with_top α) _ (some a) (some b) ↔ a < b :=
 by simp [(<)]
 
+lemma some_lt_top [has_lt α] (a : α) : (some a : with_top α) < ⊤ :=
+⟨a, rfl, λ b hb, (option.not_mem_none _ hb).elim⟩
+
+lemma coe_lt_top [has_lt α] (a : α) : (a : with_top α) < ⊤ := some_lt_top a
+
 @[simp] theorem some_le_some [has_le α] {a b : α} :
   @has_le.le (with_top α) _ (some a) (some b) ↔ a ≤ b :=
 by simp [(≤)]

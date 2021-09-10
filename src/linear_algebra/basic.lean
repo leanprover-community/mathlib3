@@ -1026,7 +1026,8 @@ protected def pointwise_distrib_mul_action : distrib_mul_action α (submodule R 
   one_smul := λ S,
     (congr_arg (λ f, S.map f) (linear_map.ext $ by exact one_smul α)).trans S.map_id,
   mul_smul := λ a₁ a₂ S,
-    (congr_arg (λ f, S.map f) (linear_map.ext $ by exact mul_smul _ _)).trans (S.map_comp _ _),
+    (congr_arg (λ f : M →ₗ[R] M, S.map f) (linear_map.ext $ by exact mul_smul _ _)).trans
+      (S.map_comp _ _),
   smul_zero := λ a, map_bot _,
   smul_add := λ a S₁ S₂, map_sup _ _ _ }
 
@@ -1066,7 +1067,8 @@ This is a stronger version of `submodule.pointwise_distrib_mul_action`. Note tha
 not hold so this cannot be stated as a `module`. -/
 protected def pointwise_mul_action_with_zero : mul_action_with_zero α (submodule R M) :=
 { zero_smul := λ S,
-    (congr_arg (λ f, S.map f) (linear_map.ext $ by exact zero_smul α)).trans S.map_zero,
+    (congr_arg (λ f : M →ₗ[R] M, S.map f) (linear_map.ext $ by exact zero_smul α)).trans
+    S.map_zero,
   .. submodule.pointwise_distrib_mul_action }
 
 localized "attribute [instance] submodule.pointwise_mul_action_with_zero" in pointwise
@@ -2635,18 +2637,20 @@ variables (f)
 
 /-- An `injective` linear map `f : M →ₗ[R] M₂` defines a linear equivalence
 between `M` and `f.range`. See also `linear_map.of_left_inverse`. -/
-noncomputable def of_injective (h : injective f) : M ≃ₛₗ[σ₁₂] f.range :=
+noncomputable def of_injective [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
+  (h : injective f) : M ≃ₛₗ[σ₁₂] f.range :=
 of_left_inverse $ classical.some_spec h.has_left_inverse
 
-@[simp] theorem of_injective_apply {h : injective f} (x : M) :
-  ↑(of_injective f h x) = f x := rfl
+@[simp] theorem of_injective_apply [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
+  {h : injective f} (x : M) : ↑(of_injective f h x) = f x := rfl
 
 /-- A bijective linear map is a linear equivalence. -/
-noncomputable def of_bijective (hf₁ : injective f) (hf₂ : surjective f) : M ≃ₛₗ[σ₁₂] M₂ :=
+noncomputable def of_bijective [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
+  (hf₁ : injective f) (hf₂ : surjective f) : M ≃ₛₗ[σ₁₂] M₂ :=
 (of_injective f hf₁).trans (of_top _ $ linear_map.range_eq_top.2 hf₂)
 
-@[simp] theorem of_bijective_apply {hf₁ hf₂} (x : M) :
-  of_bijective f hf₁ hf₂ x = f x := rfl
+@[simp] theorem of_bijective_apply [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
+  {hf₁ hf₂} (x : M) : of_bijective f hf₁ hf₂ x = f x := rfl
 
 end
 

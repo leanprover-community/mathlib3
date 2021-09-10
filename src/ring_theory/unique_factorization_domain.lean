@@ -485,6 +485,14 @@ end
 lemma zero_not_mem_factors (x : α) : (0 : α) ∉ factors x :=
 λ h, prime.ne_zero (prime_of_factor _ h) rfl
 
+lemma dvd_of_mem_factors {a p : α} (H : p ∈ factors a) : p ∣ a :=
+begin
+  by_cases hcases : a = 0,
+  { rw hcases,
+    exact dvd_zero p },
+  { exact dvd_trans (multiset.dvd_prod H) (associated.dvd (factors_prod hcases)) },
+end
+
 end unique_factorization_monoid
 
 namespace unique_factorization_monoid
@@ -626,7 +634,7 @@ lemma multiplicity_eq_count_factors {a b : R} (ha : irreducible a) (hb : b ≠ 0
 begin
   apply le_antisymm,
   { apply enat.le_of_lt_add_one,
-    rw [← enat.coe_one, ← enat.coe_add, lt_iff_not_ge, ge_iff_le,
+    rw [← nat.cast_one, ← nat.cast_add, lt_iff_not_ge, ge_iff_le,
       le_multiplicity_iff_repeat_le_factors ha hb, ← le_count_iff_repeat_le],
     simp },
   rw [le_multiplicity_iff_repeat_le_factors ha hb, ← le_count_iff_repeat_le],

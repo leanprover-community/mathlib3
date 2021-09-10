@@ -1227,7 +1227,7 @@ theorem dimH_univ_eq_finrank : dimH (univ : set E) = finrank ℝ E :=
 dimH_of_mem_nhds (@univ_mem _ (𝓝 0))
 
 theorem dimH_univ : dimH (univ : set ℝ) = 1 :=
-by rw [dimH_univ_eq_finrank ℝ, finite_dimensional.finrank_of_field, nat.cast_one]
+by rw [dimH_univ_eq_finrank ℝ, finite_dimensional.finrank_self, nat.cast_one]
 
 end real
 

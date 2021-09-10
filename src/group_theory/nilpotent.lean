@@ -393,7 +393,7 @@ lemma is_nilpotent_of_ker_le_center {H : Type*} [group H] {f : G →* H}
 begin
   rw nilpotent_iff_lower_central_series at *,
   rcases hH with ⟨n, hn⟩,
-  refine ⟨n + 1, lower_central_series_le_center_to_nilpotent
+  refine ⟨n + 1, lower_central_series_succ_eq_bot
     (le_trans ((map_eq_bot_iff _).mp _) hf1)⟩,
   exact eq_bot_iff.mpr (hn ▸ (lower_central_series.map f n)),
 end

@@ -482,6 +482,9 @@ begin
     apply multiset.prod_dvd_prod }
 end
 
+lemma zero_not_mem_factors (x : α) : (0 : α) ∉ factors x :=
+λ h, prime.ne_zero (prime_of_factor _ h) rfl
+
 end unique_factorization_monoid
 
 namespace unique_factorization_monoid

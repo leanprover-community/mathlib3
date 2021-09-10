@@ -8,6 +8,7 @@ import ring_theory.fractional_ideal
 import ring_theory.ideal.over
 import ring_theory.integrally_closed
 import ring_theory.trace
+import algebra.associated
 
 
 /-!
@@ -902,24 +903,15 @@ open multiset unique_factorization_monoid ideal
 lemma prod_factors_eq_self {I : ideal T} (hI : I ≠ ⊥) : (factors I).prod = I :=
 associated_iff_eq.1 (factors_prod hI)
 
--- Can be moved to `algebra/associated.lean`:
-lemma multiset.prod_ne_zero_of_prime {M : Type*} [comm_cancel_monoid_with_zero M] [nontrivial M]
-  (s : multiset M) (h : ∀ x ∈ s, prime x) : s.prod ≠ 0 :=
-prod_ne_zero (λ h0, prime.ne_zero (h 0 h0) rfl)
-
 lemma factors_prod_factors_eq_factors {α : multiset (ideal T)}
   (h : ∀ p ∈ α, prime p) : factors α.prod = α :=
 by { simp_rw [← multiset.rel_eq, ← associated_eq_eq],
-     exact prime_factors_unique (prime_of_factor) h (factors_prod (α.prod_ne_zero_of_prime h)) }
+     exact prime_factors_unique (prime_of_factor) h (factors_prod
+     (multiset.prod_ne_zero_of_prime α h)) }
 
 lemma count_le_of_ideal_ge {I J : ideal T} (h : I ≤ J) (hI : I ≠ ⊥) (K : ideal T) :
   count K (factors J) ≤ count K (factors I) :=
-le_iff_count.1 ((dvd_iff_factors_le_factors (ne_bot_of_ne_bot_le h hI) hI).1 (dvd_iff_le.2 h)) _
-
--- can be moved to ring_theory/unique_factorization_monoid.lean
-lemma zero_not_mem_factors {M : Type*} [comm_cancel_monoid_with_zero M] [nontrivial M]
-  [normalization_monoid M] [unique_factorization_monoid M] (x : M) : (0 : M) ∉ factors x :=
-λ h, prime.ne_zero (prime_of_factor _ h) rfl
+le_iff_count.1 ((dvd_iff_factors_le_factors (ne_bot_of_le_ne_bot hI h) hI).1 (dvd_iff_le.2 h)) _
 
 lemma sup_eq_prod_inf_factors (hI : I ≠ ⊥) (hJ : J ≠ ⊥) : I ⊔ J = (factors I ∩ factors J).prod :=
 begin
@@ -928,8 +920,8 @@ begin
     intros p hp,
     rw mem_inter at hp,
     exact prime_of_factor p hp.left },
-  have := ((factors I ∩ factors J).prod_ne_zero_of_prime
-    (λ _ h, prime_of_factor _ (multiset.mem_inter.1 h).1)),
+  have := (multiset.prod_ne_zero_of_prime (factors I ∩ factors J)
+      (λ _ h, prime_of_factor _ (multiset.mem_inter.1 h).1)),
   apply le_antisymm,
   { rw [sup_le_iff, ← dvd_iff_le, ← dvd_iff_le],
     split,
@@ -945,7 +937,7 @@ begin
     { intros p hp,
       rw mem_inter at hp,
       exact prime_of_factor p hp.left },
-    { exact ne_bot_of_ne_bot_le le_sup_left hI },
+    { exact ne_bot_of_le_ne_bot hI le_sup_left },
     { exact this } },
 end
 

@@ -359,7 +359,7 @@ def nat_ceil (a : α) : ℕ := int.to_nat ⌈a⌉
 
 notation `⌈` x `⌉₊` := nat_ceil x
 
-theorem nat_ceil_le : ⌈a⌉₊ ≤ n ↔ a ≤ n :=
+@[simp] theorem nat_ceil_le : ⌈a⌉₊ ≤ n ↔ a ≤ n :=
 by rw [nat_ceil, int.to_nat_le, ceil_le]; refl
 
 theorem lt_nat_ceil : n < ⌈a⌉₊ ↔ (n : α) < a :=
@@ -374,6 +374,9 @@ nat_ceil_le.2 (le_trans h (le_nat_ceil _))
 show (⌈((n : ℤ) : α)⌉).to_nat = n, by rw [ceil_coe]; refl
 
 @[simp] theorem nat_ceil_zero : ⌈(0 : α)⌉₊ = 0 := nat_ceil_coe 0
+
+@[simp] theorem nat_ceil_eq_zero : ⌈a⌉₊ = 0 ↔ a ≤ 0 :=
+by simp [← nonpos_iff_eq_zero]
 
 theorem nat_ceil_add_nat {a : α} (a_nonneg : 0 ≤ a) (n : ℕ) : ⌈a + n⌉₊ = ⌈a⌉₊ + n :=
 begin

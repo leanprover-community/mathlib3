@@ -190,6 +190,8 @@ protected def function.surjective.distrib_mul_action_with_zero
 { ..hf.distrib_mul_action f smul, ..function.surjective.mul_action_with_zero (f : zero_hom M M')
   (by rwa [add_monoid_hom.coe_eq_to_zero_hom, add_monoid_hom.to_zero_hom_coe]) smul }
 
+variables (M)
+
 /-- Compose a `distrib_mul_action_with_zero` with a `monoid_with_zero_hom`, with action
 `f r' • m`. -/
 def distrib_mul_action_with_zero.comp_hom (f : monoid_with_zero_hom R' R) :

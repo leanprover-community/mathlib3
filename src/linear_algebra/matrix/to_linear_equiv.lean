@@ -112,8 +112,8 @@ begin
     exact eq_zero_of_mul_vec_eq_zero hv mul_eq },
   { contrapose!,
     intros h,
-    have : M.to_lin'.ker = ⊥,
-    { simpa only [ker_to_lin'_eq_bot_iff, not_imp_not] using h },
+    have : function.injective M.to_lin',
+    { simpa only [← linear_map.ker_eq_bot, ker_to_lin'_eq_bot_iff, not_imp_not] using h },
     have : M ⬝ linear_map.to_matrix'
       ((linear_equiv.of_injective_endo M.to_lin' this).symm : (n → K) →ₗ[K] (n → K)) = 1,
     { refine matrix.to_lin'.injective (linear_map.ext $ λ v, _),

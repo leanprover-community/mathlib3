@@ -5,7 +5,7 @@ Authors: Tim Baanen, Lu-Ming Zhang
 -/
 import algebra.associated
 import algebra.regular.smul
-import linear_algebra.matrix.determinant
+import linear_algebra.matrix.polynomial
 import tactic.linarith
 import tactic.ring_exp
 
@@ -654,6 +654,43 @@ begin
   refine (is_regular_of_is_left_regular_det hAB).left _,
   rw [mul_eq_mul, mul_adjugate, mul_eq_mul, matrix.mul_assoc, ←matrix.mul_assoc B, mul_adjugate,
       smul_mul, matrix.one_mul, mul_smul, mul_adjugate, smul_smul, mul_comm, ←det_mul]
+end
+
+/--
+Proof follows from "The trace Cayley-Hamilton theorem" by Darij Grinberg, Section 5.3
+-/
+lemma adjugate_mul_distrib (A B : matrix n n α) : adjugate (A ⬝ B) = adjugate B ⬝ adjugate A :=
+begin
+  casesI subsingleton_or_nontrivial α,
+  { simp },
+  let g : matrix n n α → matrix n n (polynomial α) :=
+    λ M, M.map polynomial.C + (polynomial.X : polynomial α) • 1,
+  let f' : matrix n n (polynomial α) →+* matrix n n α := (polynomial.eval_ring_hom 0).map_matrix,
+  have f'_inv : ∀ M, f' (g M) = M,
+  { intro,
+    ext,
+    simp [f', g], },
+  have f'_adj : ∀ (M : matrix n n α), f' (adjugate (g M)) = adjugate M,
+  { intro,
+    rw [ring_hom.map_adjugate, f'_inv] },
+  have f'_g_mul : ∀ (M N : matrix n n α), f' (g M ⬝ g N) = M ⬝ N,
+  { intros,
+    rw [←mul_eq_mul, ring_hom.map_mul, f'_inv, f'_inv, mul_eq_mul] },
+  have hu : ∀ (M : matrix n n α), is_regular (g M).det,
+  { intros M,
+    refine polynomial.monic.is_regular _,
+    simp only [g, polynomial.monic.def, ←polynomial.leading_coeff_det_X_one_add_C M, add_comm] },
+  rw [←f'_adj, ←f'_adj, ←f'_adj, ←mul_eq_mul (f' (adjugate (g B))), ←f'.map_mul, mul_eq_mul,
+      ←adjugate_mul_distrib_aux _ _ (hu A).left (hu B).left, ring_hom.map_adjugate,
+      ring_hom.map_adjugate, f'_inv, f'_g_mul]
+end
+
+@[simp] lemma adjugate_pow (A : matrix n n α) (k : ℕ) :
+  adjugate (A ^ k) = (adjugate A) ^ k :=
+begin
+  induction k with k IH,
+  { simp },
+  { rw [pow_succ', mul_eq_mul, adjugate_mul_distrib, IH, ←mul_eq_mul, pow_succ] }
 end
 
 end inv

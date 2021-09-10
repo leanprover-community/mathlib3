@@ -1319,7 +1319,13 @@ by simpa [tsum_fintype] using lintegral_sum_measure f (λ b, cond b μ ν)
   ∫⁻ a, f a ∂(0 : measure α) = 0 :=
 bot_unique $ by simp [lintegral]
 
-lemma lintegral_in_measure_zero (s : set α) (f : α → ℝ≥0∞) (hs' : μ s = 0) :
+lemma set_lintegral_empty (f : α → ℝ≥0∞) : ∫⁻ x in ∅, f x ∂μ = 0 :=
+by rw [measure.restrict_empty, lintegral_zero_measure]
+
+lemma set_lintegral_univ (f : α → ℝ≥0∞) : ∫⁻ x in univ, f x ∂μ = ∫⁻ x, f x ∂μ :=
+by rw measure.restrict_univ
+
+lemma set_lintegral_measure_zero (s : set α) (f : α → ℝ≥0∞) (hs' : μ s = 0) :
   ∫⁻ x in s, f x ∂μ = 0 :=
 begin
   convert lintegral_zero_measure _,
@@ -1435,6 +1441,15 @@ begin
     simp [hφ x, hs, indicator_le_indicator] }
 end
 
+lemma set_lintegral_eq_const {f : α → ℝ≥0∞} (hf : measurable f) (r : ℝ≥0∞) :
+  ∫⁻ x in {x | f x = r}, f x ∂μ = r * μ {x | f x = r} :=
+begin
+  have : ∀ᵐ x ∂μ, x ∈ {x | f x = r} → f x = r := ae_of_all μ (λ _ hx, hx),
+  erw [set_lintegral_congr_fun _ this, lintegral_const,
+       measure.restrict_apply measurable_set.univ, set.univ_inter],
+  exact hf (measurable_set_singleton r)
+end
+
 /-- **Chebyshev's inequality** -/
 lemma mul_meas_ge_le_lintegral {f : α → ℝ≥0∞} (hf : measurable f) (ε : ℝ≥0∞) :
   ε * μ {x | ε ≤ f x} ≤ ∫⁻ a, f a ∂μ :=
@@ -1445,6 +1460,12 @@ begin
   simp only [restrict_apply _ this],
   exact indicator_apply_le id
 end
+
+lemma lintegral_eq_top_of_measure_eq_top_pos {f : α → ℝ≥0∞} (hf : measurable f)
+  (hμf : 0 < μ {x | f x = ∞}) : ∫⁻ x, f x ∂μ = ∞ :=
+eq_top_iff.mpr $
+calc ∞ = ∞ * μ {x | ∞ ≤ f x} : by simp [mul_eq_top, hμf.ne.symm]
+   ... ≤ ∫⁻ x, f x ∂μ : mul_meas_ge_le_lintegral hf ∞
 
 lemma meas_ge_le_lintegral_div {f : α → ℝ≥0∞} (hf : measurable f) {ε : ℝ≥0∞}
   (hε : ε ≠ 0) (hε' : ε ≠ ∞) :
@@ -1893,7 +1914,7 @@ lemma with_density_absolutely_continuous
 begin
   refine absolutely_continuous.mk (λ s hs₁ hs₂, _),
   rw with_density_apply _ hs₁,
-  exact lintegral_in_measure_zero _ _ hs₂
+  exact set_lintegral_measure_zero _ _ hs₂
 end
 
 @[simp]

@@ -964,7 +964,7 @@ noncomputable def to_enat : cardinal →+ enat :=
       by_cases hy : y < omega,
       { obtain ⟨y0, rfl⟩ := lt_omega.1 hy,
         simp only [add_lt_omega hx hy, hx, hy, to_nat_cast, if_true],
-        rw [← nat.cast_add, to_nat_cast, enat.coe_add] },
+        rw [← nat.cast_add, to_nat_cast, nat.cast_add] },
       { rw [if_neg hy, if_neg, enat.add_top],
         contrapose! hy,
         apply lt_of_le_of_lt le_add_self hy } },

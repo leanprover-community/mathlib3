@@ -156,7 +156,7 @@ else is_true ⟨λ h, (hy h).elim, λ h, (hy h).elim⟩
 /-- The coercion `ℕ → enat` preserves `0` and addition. -/
 def coe_hom : ℕ →+ enat := ⟨coe, nat.cast_zero, nat.cast_add⟩
 
-@[simp] lemma coe_coe_hom : ⇑coe_hom = coe := rfl
+@[simp] lemma coe_coe_hom : (coe_hom : ℕ → enat) = coe := rfl
 
 instance : partial_order enat :=
 { le          := (≤),

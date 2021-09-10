@@ -45,15 +45,11 @@ namespace matrix
 structure is_adj_matrix [has_zero α] [has_one α] (A : matrix V V α) : Prop :=
 (zero_or_one : ∀ i j, (A i j) = 0 ∨ (A i j) = 1 . obviously)
 (symm : A.is_symm . obviously)
-(loopless : ∀ i, A i i = 0 . obviously)
+(apply_diag : ∀ i, A i i = 0 . obviously)
 
 namespace is_adj_matrix
 
 variables {A : matrix V V α}
-
-lemma apply_diag [has_zero α] [has_one α] (h : is_adj_matrix A) (i : V) :
-  A i i = 0 :=
-by simp [h.loopless]
 
 @[simp]
 lemma apply_diag_ne [mul_zero_one_class α] [nontrivial α] (h : is_adj_matrix A) (i : V) :
@@ -68,7 +64,7 @@ by { obtain (h|h) := h.zero_or_one i j; simp [h] }
 @[simp]
 lemma apply_ne_zero_iff [mul_zero_one_class α] [nontrivial α] (h : is_adj_matrix A) (i j : V) :
   ¬ A i j = 0 ↔ A i j = 1 :=
-by rw [←apply_ne_one_iff h, not_not]
+by { rw [←apply_ne_one_iff h], simp }
 
 /-- For `A : matrix V V α` and `h : is_adj_matrix A`,
     `h.to_graph` is the simple graph whose adjacency matrix is `A`. -/

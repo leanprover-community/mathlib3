@@ -87,9 +87,9 @@ begin
     exact h, rw [h], norm_num },
   all_goals { exfalso, norm_num [prod_range_succ] at h, norm_cast at h, },
   /- n = 3 -/
-  { refine monotone_factorial.ne_of_lt_of_lt_nat 5 _ _ h _; norm_num },
+  { refine monotone_factorial.ne_of_lt_of_lt_nat 5 _ _ _ h; norm_num },
   /- n = 4 -/
-  { refine monotone_factorial.ne_of_lt_of_lt_nat 7 _ _ h _; norm_num },
+  { refine monotone_factorial.ne_of_lt_of_lt_nat 7 _ _ _ h; norm_num },
   /- n = 5 -/
-  { refine monotone_factorial.ne_of_lt_of_lt_nat 10 _ _ h _; norm_num },
+  { refine monotone_factorial.ne_of_lt_of_lt_nat 10 _ _ _ h; norm_num },
 end

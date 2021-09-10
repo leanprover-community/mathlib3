@@ -285,3 +285,64 @@ instance forget_preserves_filtered_colimits : preserves_filtered_colimits (forge
 end
 
 end Mon.filtered_colimits
+
+namespace CommMon.filtered_colimits
+
+section
+
+parameters {J : Type v} [small_category J] [is_filtered J] (F : J ⥤ CommMon.{v})
+
+@[to_additive]
+abbreviation M := Mon.filtered_colimits.colimit (F ⋙ forget₂ CommMon Mon.{v})
+
+@[to_additive]
+instance : comm_monoid M :=
+{ mul_comm := λ x y, begin
+    apply quot.induction_on₂ x y, clear x y, intros x y,
+    let k := max' x.1 y.1,
+    let f := left_to_max x.1 y.1,
+    let g := right_to_max x.1 y.1,
+    rw [Mon.filtered_colimits.colimit_mul_eq _ x y k f g,
+      Mon.filtered_colimits.colimit_mul_eq _ y x k g f],
+    dsimp,
+    rw mul_comm,
+ end
+  ..M.monoid }
+
+@[to_additive]
+def colimit : CommMon := ⟨M, by apply_instance⟩
+
+@[to_additive]
+def colimit_cocone : cocone F :=
+{ X := colimit,
+  ι :=
+  { app := Mon.filtered_colimits.cocone_morphism (F ⋙ forget₂ CommMon Mon.{v}),
+    naturality' := λ X Y,
+      Mon.filtered_colimits.cocone_naturality (F ⋙ forget₂ CommMon Mon.{v}) } }
+
+@[to_additive]
+def colimit_cocone_is_colimit : is_colimit colimit_cocone :=
+{ desc := λ t, Mon.filtered_colimits.colimit_desc (F ⋙ forget₂ CommMon Mon.{v})
+    (functor.map_cocone (forget₂ CommMon Mon.{v}) t),
+  fac' := λ t,
+  (Mon.filtered_colimits.colimit_cocone_is_colimit (F ⋙ forget₂ CommMon Mon.{v})).fac
+    (functor.map_cocone (forget₂ CommMon Mon.{v}) t),
+  uniq' := λ t,
+  (Mon.filtered_colimits.colimit_cocone_is_colimit (F ⋙ forget₂ CommMon Mon.{v})).uniq
+      (functor.map_cocone (forget₂ CommMon Mon.{v}) t) }
+
+@[to_additive]
+instance forget₂_Mon_preserves_filtered_colimits :
+  preserves_filtered_colimits (forget₂ CommMon Mon.{v}) :=
+{ preserves_filtered_colimits := λ J _ _, by exactI
+  { preserves_colimit := λ F, preserves_colimit_of_preserves_colimit_cocone
+      (colimit_cocone_is_colimit F)
+      (Mon.filtered_colimits.colimit_cocone_is_colimit (F ⋙ forget₂ CommMon Mon.{v})) } }
+
+@[to_additive]
+instance forget_preserves_filtered_colimits : preserves_filtered_colimits (forget CommMon) :=
+limits.comp_preserves_filtered_colimits (forget₂ CommMon Mon) (forget Mon)
+
+end
+
+end CommMon.filtered_colimits

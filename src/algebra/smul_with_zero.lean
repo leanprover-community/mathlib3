@@ -170,8 +170,7 @@ instance distrib_mul_action_with_zero.to_mul_action_with_zero
   mul_action_with_zero R M :=
 {..m}
 
-variables {R M} [add_zero_class R] [distrib_mul_action_with_zero R M] [add_monoid M']
-  [has_scalar R M']
+variables {R M} [distrib_mul_action_with_zero R M] [add_monoid M'] [has_scalar R M']
 
 /-- Pullback a `distrib_mul_action_with_zero` structure along an injective monoid homomorphism.
 See note [reducible non-instances]. -/
@@ -191,20 +190,11 @@ protected def function.surjective.distrib_mul_action_with_zero
 { ..hf.distrib_mul_action f smul, ..function.surjective.mul_action_with_zero (f : zero_hom M M')
   (by rwa [add_monoid_hom.coe_eq_to_zero_hom, add_monoid_hom.to_zero_hom_coe]) smul }
 
+/-- Compose a `distrib_mul_action_with_zero` with a `monoid_with_zero_hom`, with action
+`f r' • m`. -/
+def distrib_mul_action_with_zero.comp_hom (f : monoid_with_zero_hom R' R) :
+  distrib_mul_action_with_zero R' M :=
+{ ..distrib_mul_action.comp_hom M f.to_monoid_hom, ..mul_action_with_zero.comp_hom M f }
+
 end add_monoid
 end monoid_with_zero
-
-section semiring
-variables (R M) [semiring R] [semiring R'] [add_monoid M] [distrib_mul_action_with_zero R M]
-  [add_monoid M'] [has_scalar R M']
-
-/-- Compose a `distrib_mul_action_with_zero` with a `ring_hom`, with action `f r' • m`. -/
-def distrib_mul_action_with_zero.comp_hom (f : R' →+* R) :
-  distrib_mul_action_with_zero R' M :=
-{ smul := (•) ∘ f,
-  mul_smul := λ r s m, by simp [mul_smul],
-  one_smul := λ m, by simp,
-  smul_add := λ r m n, by simp_rw [function.comp_app, smul_add],
-  .. smul_with_zero.comp_hom M f.to_monoid_with_zero_hom.to_zero_hom }
-
-end semiring

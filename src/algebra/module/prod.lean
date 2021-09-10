@@ -28,7 +28,7 @@ instance mul_action_with_zero [monoid_with_zero R] [has_zero M] [has_zero N]
   zero_smul := λ ⟨m, n⟩, prod.ext (zero_smul _ _) (zero_smul _ _),
   ..prod.mul_action }
 
-instance distrib_mul_action_with_zero [semiring R] [add_monoid M] [add_monoid N]
+instance distrib_mul_action_with_zero [monoid_with_zero R] [add_monoid M] [add_monoid N]
   [distrib_mul_action_with_zero R M] [distrib_mul_action_with_zero R N] :
   distrib_mul_action_with_zero R (M × N) :=
 { ..prod.distrib_mul_action, ..prod.mul_action_with_zero }

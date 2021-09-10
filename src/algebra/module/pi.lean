@@ -35,7 +35,7 @@ instance has_scalar' {g : I → Type*} [Π i, has_scalar (f i) (g i)] :
 ⟨λ s x, λ i, (s i) • (x i)⟩
 
 @[simp, to_additive]
-lemma smul_apply' {g : I → Type*} [∀ i, has_scalar (f i) (g i)] (s : Π i, f i) (x : Π i, g i) :
+lemma smul_apply' {g : I → Type*} [Π i, has_scalar (f i) (g i)] (s : Π i, f i) (x : Π i, g i) :
   (s • x) i = s i • x i :=
 rfl
 
@@ -60,20 +60,20 @@ instance is_scalar_tower'' {g : I → Type*} {h : I → Type*}
 
 @[to_additive]
 instance smul_comm_class {α β : Type*}
-  [Π i, has_scalar α $ f i] [Π i, has_scalar β $ f i] [∀ i, smul_comm_class α β (f i)] :
+  [Π i, has_scalar α $ f i] [Π i, has_scalar β $ f i] [Π i, smul_comm_class α β (f i)] :
   smul_comm_class α β (Π i : I, f i) :=
 ⟨λ x y z, funext $ λ i, smul_comm x y (z i)⟩
 
 @[to_additive]
 instance smul_comm_class' {g : I → Type*} {α : Type*}
-  [Π i, has_scalar α $ g i] [Π i, has_scalar (f i) (g i)] [∀ i, smul_comm_class α (f i) (g i)] :
+  [Π i, has_scalar α $ g i] [Π i, has_scalar (f i) (g i)] [Π i, smul_comm_class α (f i) (g i)] :
   smul_comm_class α (Π i : I, f i) (Π i : I, g i) :=
 ⟨λ x y z, funext $ λ i, smul_comm x (y i) (z i)⟩
 
 @[to_additive]
 instance smul_comm_class'' {g : I → Type*} {h : I → Type*}
   [Π i, has_scalar (g i) (h i)] [Π i, has_scalar (f i) (h i)]
-  [∀ i, smul_comm_class (f i) (g i) (h i)] : smul_comm_class (Π i, f i) (Π i, g i) (Π i, h i) :=
+  [Π i, smul_comm_class (f i) (g i) (h i)] : smul_comm_class (Π i, f i) (Π i, g i) (Π i, h i) :=
 ⟨λ x y z, funext $ λ i, smul_comm (x i) (y i) (z i)⟩
 
 /-- If `f i` has a faithful scalar action for a given `i`, then so does `Π i, f i`. This is
@@ -134,8 +134,8 @@ instance mul_action_with_zero' {g : I → Type*} [Π i, monoid_with_zero (g i)]
 { ..pi.mul_action',
   ..pi.smul_with_zero' }
 
-instance distrib_mul_action (α) {m : monoid α} {n : ∀ i, add_monoid $ f i}
-  [∀ i, distrib_mul_action α $ f i] :
+instance distrib_mul_action (α) {m : monoid α} {n : Π i, add_monoid $ f i}
+  [Π i, distrib_mul_action α $ f i] :
   @distrib_mul_action α (Π i : I, f i) m (@pi.add_monoid I f n) :=
 { smul_zero := λ c, funext $ λ i, smul_zero _,
   smul_add := λ c f g, funext $ λ i, smul_add _ _ _,
@@ -164,8 +164,8 @@ lemma single_smul' {g : I → Type*} [Π i, monoid_with_zero (f i)] [Π i, add_m
   single i (r • x) = single i r • single i x :=
 single_op₂ (λ i : I, ((•) : f i → g i → g i)) (λ j, smul_zero _) _ _ _
 
-instance distrib_mul_action_with_zero (α) {m : monoid_with_zero α} {n : ∀ i, add_monoid $ f i}
-  [∀ i, distrib_mul_action α $ f i] :
+instance distrib_mul_action_with_zero (α) {m : monoid_with_zero α} {n : Π i, add_monoid $ f i}
+  [Π i, distrib_mul_action_with_zero α $ f i] :
   @distrib_mul_action_with_zero α (Π i : I, f i) m (@pi.add_monoid I f n) :=
 { ..pi.distrib_mul_action _, ..pi.mul_action_with_zero _ }
 
@@ -190,8 +190,8 @@ instance mul_distrib_mul_action' {g : I → Type*} {m : Π i, monoid (f i)} {n :
 
 variables (I f)
 
-instance module (α) {r : semiring α} {m : ∀ i, add_comm_monoid $ f i}
-  [∀ i, module α $ f i] :
+instance module (α) {r : semiring α} {m : Π i, add_comm_monoid $ f i}
+  [Π i, module α $ f i] :
   @module α (Π i : I, f i) r (@pi.add_comm_monoid I f m) :=
 { add_smul := λ c f g, funext $ λ i, add_smul _ _ _,
   ..pi.distrib_mul_action_with_zero _ }
@@ -204,7 +204,7 @@ instance module' {g : I → Type*} {r : Π i, semiring (f i)} {m : Π i, add_com
 { add_smul := by { intros, ext1, apply add_smul } }
 
 instance (α) {r : semiring α} {m : Π i, add_comm_monoid $ f i}
-  [Π i, module α $ f i] [∀ i, no_zero_smul_divisors α $ f i] :
+  [Π i, module α $ f i] [Π i, no_zero_smul_divisors α $ f i] :
   no_zero_smul_divisors α (Π i : I, f i) :=
 ⟨λ c x h, or_iff_not_imp_left.mpr (λ hc, funext
   (λ i, (smul_eq_zero.mp (congr_fun h i)).resolve_left hc))⟩

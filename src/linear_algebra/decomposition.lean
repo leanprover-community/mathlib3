@@ -48,13 +48,13 @@ Given an `ι`-indexed collection of submodules, build the map of their direct su
 -/
 def to_direct_sum_map [dec_ι : decidable_eq ι] (p : ι → submodule R M) :
   (⨁ i, p i) →ₗ[R] (supr p : submodule R M) :=
-(direct_sum.to_module R ι _ (λ i, submodule.of_le (le_supr p i : p i ≤ supr p)))
+direct_sum.to_module R ι _ (λ i, submodule.of_le (le_supr p i : p i ≤ supr p))
 
 @[simp] lemma to_direct_sum_map_apply (p : ι → submodule R M) (x : ⨁ (i : ι), (p i)) :
-  to_direct_sum_map p x = ∑ i in x.support, ⟨(x i).1, (le_supr p i : p i ≤ supr p) (x i).2⟩ :=
+  to_direct_sum_map p x = ∑ i in x.support, ⟨x i, (le_supr p i : p i ≤ supr p) (x i).2⟩ :=
 begin
   simp only [to_direct_sum_map, direct_sum.to_module, sum_add_hom_apply, to_add_monoid_hom_coe,
-    linear_map.coe_mk, dfinsupp.lsum_apply_apply, subtype.val_eq_coe],
+    linear_map.coe_mk, dfinsupp.lsum_apply_apply],
   refine finset.sum_congr rfl (λ i hi, _),
   congr,
 end
@@ -93,27 +93,24 @@ begin
   ext i,
   simp only [to_direct_sum_map_apply, ← set_like.coe_eq_coe,
     submodule.coe_sum, submodule.coe_mk] at hx,
-  revert i,
-  by_contra,
-  push_neg at h,
-  cases h with j hj,
-  have : j ∈ dfinsupp.support x, { rw dfinsupp.mem_support_iff, exact_mod_cast hj },
+  by_contra hi,
+  have : i ∈ dfinsupp.support x, { rw dfinsupp.mem_support_iff, exact_mod_cast hi },
   rw ← finset.sum_erase_add _ _ this at hx,
-  simp only [submodule.coe_zero, subtype.val_eq_coe, ← neg_eq_iff_add_eq_zero] at hx,
-  simp only [← hx, pi.zero_apply, submodule.coe_zero] at hj,
-  have := submodule.disjoint_def.mp (complete_lattice.independent_def.mp h j) (x j) (x j).2,
-  have h2 : ∑ (k : ι) in (dfinsupp.support x).erase j,
-    ↑(x k) ∈ ⨆ (k : ι) (H : k ∈ (dfinsupp.support x).erase j), p k,
+  simp only [submodule.coe_zero, ← neg_eq_iff_add_eq_zero] at hx,
+  simp only [← hx, pi.zero_apply, submodule.coe_zero] at hi,
+  have := submodule.disjoint_def.mp (complete_lattice.independent_def.mp h i) (x i) (x i).2,
+  have h2 : ∑ (k : ι) in (dfinsupp.support x).erase i,
+    ↑(x k) ∈ ⨆ (k : ι) (H : k ∈ (dfinsupp.support x).erase i), p k,
   { apply submodule.sum_mem_bsupr,
     intros c hc,
     exact (x c).2, },
-  have h3 : (⨆ (k : ι) (H : k ∈ (dfinsupp.support x).erase j), p k : submodule R M) ≤
-    ⨆ (k : ι) (H : k ≠ j), p k,
+  have h3 : (⨆ (k : ι) (H : k ∈ (dfinsupp.support x).erase i), p k : submodule R M) ≤
+    ⨆ (k : ι) (H : k ≠ i), p k,
     { refine bsupr_le_bsupr' (λ i hi, finset.ne_of_mem_erase hi), },
   have h4 := h3 h2,
   rw ← submodule.neg_mem_iff at h4,
   rw hx at h4,
-  rw hx at hj,
+  rw hx at hi,
   have h5 := this h4,
   contradiction,
 end
@@ -124,11 +121,11 @@ begin
   cases x with x hx,
   simp only [linear_map.coe_fn_sum, submodule.mem_top, mem_range,
     linear_map.lsum_apply, coe_proj, function.comp_app, function.eval_apply,
-    iff_true, coe_comp, subtype.val_eq_coe],
+    iff_true, coe_comp],
   rw submodule.mem_supr' at hx,
   rcases hx with ⟨v, hv, hvs⟩,
   use direct_sum.mk (λ i, p i) v.support (λ i, ⟨v i, hv i⟩),
-  simp only [to_direct_sum_map_apply, subtype.val_eq_coe],
+  simp only [to_direct_sum_map_apply],
   rw support_mk_support,
   rw [← set_like.coe_eq_coe, set_like.coe_mk, ← hvs],
   rw submodule.coe_sum,
@@ -149,12 +146,10 @@ noncomputable def direct_sum_equiv_of_independent
   (⨁ i, p i) ≃ₗ[R] (supr p : submodule R M) :=
 begin
   letI : add_comm_group (⨁ (i : ι), (p i)) := direct_sum.add_comm_group (λ i, p i),
-  convert @linear_equiv.of_bijective R (⨁ i, p i) (supr p : submodule R M) _ _ _ _ _ _ _ _,
-  convert to_direct_sum_map p,
-  dsimp,
-  convert to_direct_sum_map_ker p h,
-  dsimp,
-  convert to_direct_sum_map_range p,
+  refine @linear_equiv.of_bijective R (⨁ i, p i) (supr p : submodule R M) _ _ _ _ _ _ _ _,
+  exact to_direct_sum_map p,
+  exact ker_eq_bot.1 (to_direct_sum_map_ker p h),
+  exact range_eq_top.1 (to_direct_sum_map_range p),
 end
 
 @[simp] lemma direct_sum_equiv_of_independent_apply
@@ -172,31 +167,16 @@ submodule_is_internal.to_equiv _ D.is_internal
 
 lemma to_equiv_apply (D : decomposition ι R M) (x : ⨁ i, D.factors i) :
   D.to_equiv x = ∑ i in x.support, x i :=
-begin
-  rw [to_equiv, submodule_is_internal.to_equiv_apply, submodule_is_internal.apply],
-end
+submodule_is_internal.apply _ _
 
 lemma to_equiv_apply' (D : decomposition ι R M) (x : ⨁ i, D.factors i) :
   D.to_equiv x = direct_sum.to_module R ι M (λ i, (D.factors i).subtype) x :=
-begin
-  rw to_equiv_apply,
-  rw submodule_is_internal.apply,
-end
+rfl
 
 lemma to_equiv_symm_single_apply
   (D : decomposition ι R M) (i : ι) (x : M) (hx : x ∈ D.factors i) :
   D.to_equiv.symm x = single i ⟨x, hx⟩ :=
-begin
-  apply_fun D.to_equiv using linear_equiv.injective _,
-  rw [linear_equiv.apply_symm_apply],
-  rw to_equiv_apply,
-  by_cases h : x = 0,
-  { have h₀ : subtype.mk x hx = 0, { rwa ← submodule.coe_eq_zero },
-    rwa [h₀, single_zero, support_zero, finset.sum_empty] },
-  rw [support_single_ne_zero, finset.sum_singleton, single_eq_same, submodule.coe_mk],
-  refine λ h', h _,
-  rw [← submodule.coe_eq_zero.mpr h', submodule.coe_mk]
-end
+submodule_is_internal.to_equiv_symm_single_apply _ _ _ _
 
 lemma injective_of_independent (p : ι → submodule R M) (h_ind : complete_lattice.independent p) :
   function.injective ⇑(to_module R ι M (λ (i : ι), (p i).subtype)) :=
@@ -208,23 +188,19 @@ begin
   ext i,
   rw [submodule_is_internal.apply] at hx,
   rw [dfinsupp.zero_apply, coe_zero, coe_eq_zero],
-  revert i,
-  by_contra,
-  push_neg at h,
-  cases h with j hj,
-  have : j ∈ dfinsupp.support x, { rw dfinsupp.mem_support_iff, exact_mod_cast hj },
+  by_contra hi,
+  have : i ∈ dfinsupp.support x, { rw dfinsupp.mem_support_iff, exact_mod_cast hi },
   rw ← finset.sum_erase_add _ _ this at hx,
-  simp only [submodule.coe_zero, subtype.val_eq_coe, ← neg_eq_iff_add_eq_zero] at hx,
-  simp only [← hx, pi.zero_apply, submodule.coe_zero] at hj,
-  have := submodule.disjoint_def.mp (complete_lattice.independent_def.mp h_ind j) (x j) (x j).2,
-  have h2 : ∑ (k : ι) in (dfinsupp.support x).erase j,
-    ↑(x k) ∈ ⨆ (k : ι) (H : k ∈ (dfinsupp.support x).erase j), p k,
+  simp only [submodule.coe_zero, ← neg_eq_iff_add_eq_zero] at hx,
+  simp only [← hx, pi.zero_apply, submodule.coe_zero] at hi,
+  have := submodule.disjoint_def.mp (complete_lattice.independent_def.mp h_ind i) (x i) (x i).2,
+  have h2 : ∑ (k : ι) in (dfinsupp.support x).erase i,
+    ↑(x k) ∈ ⨆ (k : ι) (H : k ∈ (dfinsupp.support x).erase i), p k,
   { apply submodule.sum_mem_bsupr,
     intros c hc,
     exact (x c).2, },
-  have h3 : (⨆ (k : ι) (H : k ∈ (dfinsupp.support x).erase j), p k : submodule R M) ≤
-    ⨆ (k : ι) (H : k ≠ j), p k,
-    { refine bsupr_le_bsupr' (λ i hi, finset.ne_of_mem_erase hi), },
+  have h3 : (⨆ (k : ι) (H : k ∈ (dfinsupp.support x).erase i), p k : submodule R M) ≤
+    ⨆ (k : ι) (H : k ≠ i), p k := bsupr_le_bsupr' (λ i, finset.ne_of_mem_erase),
   have h4 := h3 h2,
   rw ← submodule.neg_mem_iff at h4,
   rw hx at h4,

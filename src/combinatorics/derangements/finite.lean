@@ -87,12 +87,12 @@ end
 lemma card_derangements_fin_eq_num_derangements {n : ℕ} :
   card (derangements (fin n)) = num_derangements n :=
 begin
-  apply nat.strong_induction_on n, clear n, -- to avoid confusion with the n in the hypothesis
-  rintros (_|_|n) hyp, { refl }, { refl },  -- knock out cases 0 and 1
+  induction n using nat.strong_induction_on with n hyp,
+  obtain (_|_|n) := n, { refl }, { refl },  -- knock out cases 0 and 1
   -- now we have n ≥ 2. rewrite everything in terms of card_derangements, so that we can use
   -- `card_derangements_fin_add_two`
-  rw [num_derangements_add_two, card_derangements_fin_add_two, mul_add, hyp, hyp _ (lt_add_one _)],
-  exact nat.lt_add_of_pos_right zero_lt_two,
+  rw [num_derangements_add_two, card_derangements_fin_add_two, mul_add,
+    hyp _ (nat.lt_add_of_pos_right zero_lt_two), hyp _ (lt_add_one _)],
 end
 
 lemma card_derangements_eq_num_derangements (α : Type*) [fintype α] [decidable_eq α] :

@@ -120,6 +120,7 @@ add_monoid_algebra.smul_comm_class
 instance [comm_semiring R] [comm_semiring S₁] [algebra R S₁] : algebra R (mv_polynomial σ S₁) :=
 add_monoid_algebra.algebra
 -- TODO[gh-6025]: make this an instance once safe to do so
+/-- If `R` is a subsingleton, then `mv_polynomial σ R` has a unique element -/
 protected def unique [comm_semiring R] [subsingleton R] : unique (mv_polynomial σ R) :=
 add_monoid_algebra.unique
 

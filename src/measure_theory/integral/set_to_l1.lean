@@ -191,8 +191,6 @@ begin
     exact absurd rfl hij, },
 end
 
-variables [normed_field 𝕜] [normed_space 𝕜 E] [smul_comm_class ℝ 𝕜 E]
-
 lemma set_to_simple_func_congr' (T : set α → E →L[ℝ] F) (h_add : fin_meas_additive μ T)
   {f g : α →ₛ E} (hf : integrable f μ) (hg : integrable g μ)
   (h : ∀ x y, x ≠ y → T ((f ⁻¹' {x}) ∩ (g ⁻¹' {y})) = 0) :
@@ -310,9 +308,9 @@ calc set_to_simple_func T (c • f) = ∑ x in f.range, T (f ⁻¹' {x}) (c • 
 ... = c • set_to_simple_func T f :
 by simp only [set_to_simple_func, smul_sum, smul_smul, mul_comm]
 
-lemma set_to_simple_func_smul  {E} [measurable_space E] [normed_group E] [normed_space 𝕜 E]
-  [normed_space ℝ E] [normed_space 𝕜 F] (T : set α → E →L[ℝ] F) (h_add : fin_meas_additive μ T)
-  (h_smul : ∀ c : 𝕜, ∀ s x, T s (c • x) = c • T s x)
+lemma set_to_simple_func_smul {E} [measurable_space E] [normed_group E] [normed_field 𝕜]
+  [normed_space 𝕜 E] [normed_space ℝ E] [normed_space 𝕜 F] (T : set α → E →L[ℝ] F)
+  (h_add : fin_meas_additive μ T) (h_smul : ∀ c : 𝕜, ∀ s x, T s (c • x) = c • T s x)
   (c : 𝕜) {f : α →ₛ E} (hf : integrable f μ) :
   set_to_simple_func T (c • f) = c • set_to_simple_func T f :=
 calc set_to_simple_func T (c • f) = ∑ x in f.range, T (f ⁻¹' {x}) (c • x) :

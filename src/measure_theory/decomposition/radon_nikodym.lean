@@ -90,7 +90,7 @@ begin
   by_cases hl : have_lebesgue_decomposition μ ν,
   { haveI := hl,
     obtain ⟨-, -, hadd⟩ := have_lebesgue_decomposition_spec μ ν,
-    rw [← lintegral_in_univ, ← with_density_apply _ measurable_set.univ],
+    rw [← set_lintegral_univ, ← with_density_apply _ measurable_set.univ],
     refine lt_of_le_of_lt
       (le_add_left (le_refl _) : _ ≤ μ.singular_part ν set.univ +
         ν.with_density (μ.radon_nikodym_deriv ν) set.univ) _,
@@ -107,8 +107,8 @@ begin
   rw [integral_to_real, ← with_density_apply _ hi,
       with_density_radon_nikodym_deriv_eq μ ν h],
   { measurability },
-  { refine eventually_lt_top_of_lintegral_ne_top (μ.measurable_radon_nikodym_deriv ν)
-      (lt_of_le_of_lt (lintegral_mono_set i.subset_univ) _).ne,
+  { refine ae_lt_top (μ.measurable_radon_nikodym_deriv ν)
+      (lt_of_le_of_lt (lintegral_mono_set i.subset_univ) _),
     rw [← with_density_apply _ measurable_set.univ,
         with_density_radon_nikodym_deriv_eq μ ν h],
     exact measure_lt_top _ _ },
@@ -153,7 +153,8 @@ theorem with_density_radon_nikodym_deriv_eq
   (h : s ≪ μ.to_ennreal_vector_measure) :
   μ.with_density_signed_measure (s.radon_nikodym_deriv μ) = s :=
 begin
-  rw [absolutely_continuous_iff, (_ : μ.to_ennreal_vector_measure.ennreal_to_measure = μ),
+  rw [absolutely_continuous_ennreal_iff,
+      (_ : μ.to_ennreal_vector_measure.ennreal_to_measure = μ),
       total_variation_absolutely_continuous_iff] at h,
   { ext1 i hi,
     rw [with_density_signed_measure_apply (integrable_radon_nikodym_deriv _ _) hi,
@@ -167,7 +168,7 @@ begin
       refine integrable_on.restrict _ measurable_set.univ,
       refine ⟨_, has_finite_integral_to_real_of_lintegral_ne_top _⟩,
       { measurability },
-      { rw lintegral_in_univ,
+      { rw set_lintegral_univ,
         exact (lintegral_radon_nikodym_deriv_lt_top _ _).ne } } },
   { exact equiv_measure.right_inv μ }
 end

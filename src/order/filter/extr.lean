@@ -235,7 +235,7 @@ lemma is_min_filter.comp_antitone (hf : is_min_filter f l a) {g : β → γ}
   is_max_filter (g ∘ f) l a :=
 hf.dual.comp_mono (λ x y h, hg h)
 
-lemma is_max_filter.comp_antitone g (hf : is_max_filter f l a) {g : β → γ}
+lemma is_max_filter.comp_antitone (hf : is_max_filter f l a) {g : β → γ}
   (hg : antitone g) :
   is_min_filter (g ∘ f) l a :=
 hf.dual.comp_mono (λ x y h, hg h)
@@ -262,15 +262,15 @@ lemma is_min_on.comp_antitone (hf : is_min_on f s a) {g : β → γ}
   is_max_on (g ∘ f) s a :=
 hf.comp_antitone hg
 
-lemma is_max_on.comp_antitone g (hf : is_max_on f s a) {g : β → γ}
+lemma is_max_on.comp_antitone (hf : is_max_on f s a) {g : β → γ}
   (hg : antitone g) :
   is_min_on (g ∘ f) s a :=
-hf.comp_antitone g hg
+hf.comp_antitone hg
 
-lemma is_extr_on.comp_antitone g (hf : is_extr_on f s a) {g : β → γ}
+lemma is_extr_on.comp_antitone (hf : is_extr_on f s a) {g : β → γ}
   (hg : antitone g) :
   is_extr_on (g ∘ f) s a :=
-hf.comp_antitone g hg
+hf.comp_antitone hg
 
 lemma is_min_filter.bicomp_mono [preorder δ] {op : β → γ → δ} (hop : ((≤) ⇒ (≤) ⇒ (≤)) op op)
   (hf : is_min_filter f l a) {g : α → γ} (hg : is_min_filter g l a) :
@@ -357,19 +357,19 @@ section ordered_add_comm_group
 variables [ordered_add_comm_group β] {f g : α → β} {a : α} {s : set α} {l : filter α}
 
 lemma is_min_filter.neg (hf : is_min_filter f l a) : is_max_filter (λ x, -f x) l a :=
-hf.comp_antitone g (λ x y hx, neg_le_neg hx)
+hf.comp_antitone (λ x y hx, neg_le_neg hx)
 
 lemma is_max_filter.neg (hf : is_max_filter f l a) : is_min_filter (λ x, -f x) l a :=
-hf.comp_antitone g (λ x y hx, neg_le_neg hx)
+hf.comp_antitone (λ x y hx, neg_le_neg hx)
 
 lemma is_extr_filter.neg (hf : is_extr_filter f l a) : is_extr_filter (λ x, -f x) l a :=
 hf.elim (λ hf, hf.neg.is_extr) (λ hf, hf.neg.is_extr)
 
 lemma is_min_on.neg (hf : is_min_on f s a) : is_max_on (λ x, -f x) s a :=
-hf.comp_antitone g (λ x y hx, neg_le_neg hx)
+hf.comp_antitone (λ x y hx, neg_le_neg hx)
 
 lemma is_max_on.neg (hf : is_max_on f s a) : is_min_on (λ x, -f x) s a :=
-hf.comp_antitone g (λ x y hx, neg_le_neg hx)
+hf.comp_antitone (λ x y hx, neg_le_neg hx)
 
 lemma is_extr_on.neg (hf : is_extr_on f s a) : is_extr_on (λ x, -f x) s a :=
 hf.elim (λ hf, hf.neg.is_extr) (λ hf, hf.neg.is_extr)

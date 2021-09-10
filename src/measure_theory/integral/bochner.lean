@@ -758,7 +758,7 @@ begin
   { rw [integral_undef hf, norm_zero], exact to_real_nonneg }
 end
 
-lemma nnnorm_integral_le_lintegral_nnnorm (f : α → E) :
+lemma ennnorm_integral_le_lintegral_ennnorm (f : α → E) :
   (nnnorm (∫ a, f a ∂μ) : ℝ≥0∞) ≤ ∫⁻ a, (nnnorm (f a)) ∂μ :=
 by { simp_rw [← of_real_norm_eq_coe_nnnorm], apply ennreal.of_real_le_of_le_to_real,
   exact norm_integral_le_lintegral_norm f }

@@ -155,3 +155,49 @@ of_basis (basis.of_vector_space R M)
 end division_ring
 
 end module.free
+
+/-! ### Standard inclusions
+We define in this section the standard inclusion `fin n → R →ₗ[R] (fin (n + m) → R)`.
+-/
+
+variables (ι : Type v) (η : Type w)
+
+/-- For any type `R` with `0`, we extend any `f : ι → R` to `(ι ⊕ η) → R`. -/
+def ext_zero [has_zero R] : (ι → R) → ((ι ⊕ η) → R) := λ f i, sum.cases_on i (λ j, f j) (λ j, 0)
+
+/-- Taking the extension by `0` is an injective function. -/
+lemma ext_zero.injective [has_zero R] : function.injective (ext_zero R ι η) :=
+begin
+  intros f g hfg,
+  ext x,
+  simpa [ext_zero] using congr_fun hfg (sum.inl x),
+end
+
+@[simp]
+lemma zero_of_ext_zero [has_zero R] (x : η) (f : (ι → R)) : ext_zero R ι η f (sum.inr x) = 0 := rfl
+
+/-- Extension by `0` as an additive construction. -/
+def ext_zero_add [add_zero_class R] : (ι → R) →+ ((ι ⊕ η) → R) :=
+{ to_fun := λ f, ext_zero R ι η f,
+  map_add' := λ f g, by ext x; cases x; repeat { simp [ext_zero] },
+  map_zero' := by ext x; cases x; repeat { simp [ext_zero] } }
+
+/-- Extension by `0` as a linear construction. -/
+def ext_zero_linear [semiring R] : (ι → R) →ₗ[R] ((ι ⊕ η) → R) :=
+{ to_fun := λ f, ext_zero R ι η f,
+  map_smul' := λ f r, by ext x; cases x; repeat { simp [ext_zero] },
+  ..ext_zero_add R ι η }
+
+variables (n m : ℕ) [semiring R]
+
+/-- The natural map `(fin n → R) →ₗ[R] (fin (n + m) → R)`. -/
+def ext_zero_fin : (fin n → R) →ₗ[R] (fin (n + m) → R) :=
+(linear_equiv.fun_congr_left R R fin_sum_fin_equiv.symm).to_linear_map.comp $ ext_zero_linear _ _ _
+
+lemma ext_zero_fin.injective : function.injective (ext_zero_fin R n m) :=
+function.injective.comp ((linear_equiv.fun_congr_left R R fin_sum_fin_equiv.symm).injective)
+  (ext_zero.injective R (fin n) (fin m))
+
+lemma zero_of_ext_zero_fin (f : fin n → R) (hm : 0 < m) :
+  ext_zero_fin R n m f ⟨n, lt_add_of_pos_right n hm⟩ = 0 :=
+by simp [ext_zero_fin, ext_zero_linear]

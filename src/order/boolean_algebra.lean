@@ -330,7 +330,7 @@ begin
   rw [←h, inf_eq_right.mpr hx],
 end
 
--- cf. `is_compl.antimono`
+-- cf. `is_compl.antitone`
 lemma sdiff_le_sdiff_self (h : z ≤ x) : w \ x ≤ w \ z :=
 le_of_inf_le_sup_le
   (calc (w \ x) ⊓ (w ⊓ z) ≤ (w \ x) ⊓ (w ⊓ x) : inf_le_inf le_rfl (inf_le_inf le_rfl h)
@@ -611,7 +611,7 @@ is_compl_top_bot.compl_eq_iff
 (is_compl_compl.sup_inf is_compl_compl).compl_eq
 
 theorem compl_le_compl (h : y ≤ x) : xᶜ ≤ yᶜ :=
-is_compl_compl.antimono is_compl_compl h
+is_compl_compl.antitone is_compl_compl h
 
 @[simp] theorem compl_le_compl_iff_le : yᶜ ≤ xᶜ ↔ x ≤ y :=
 ⟨assume h, by have h := compl_le_compl h; simp at h; assumption,

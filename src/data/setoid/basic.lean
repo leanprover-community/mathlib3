@@ -197,7 +197,7 @@ theorem eqv_gen_le {r : α → α → Prop} {s : setoid α} (h : ∀ x y, r x y 
   eqv_gen.setoid r ≤ s :=
 by rw eqv_gen_eq; exact Inf_le h
 
-/-- Equivalence closure of binary relations is monotonic. -/
+/-- Equivalence closure of binary relations is monotone. -/
 theorem eqv_gen_mono {r s : α → α → Prop} (h : ∀ x y, r x y → s x y) :
   eqv_gen.setoid r ≤ eqv_gen.setoid s :=
 eqv_gen_le $ λ _ _ hr, eqv_gen.rel _ _ $ h _ _ hr

@@ -450,10 +450,10 @@ begin
     exact integrable_on_empty }
 end
 
-lemma integrable_on_compact_of_antimono_on (hmono : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f y ≤ f x) :
+lemma integrable_on_compact_of_antitone_on (hanti : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f y ≤ f x) :
   integrable_on f s μ :=
 @integrable_on_compact_of_monotone_on α (order_dual E) _ _ ‹_› _ _ ‹_› _ _ _ _ ‹_› _ _ _ hs _
-  hmono
+  hanti
 
 lemma integrable_on_compact_of_monotone (hmono : monotone f) :
   integrable_on f s μ :=
@@ -461,9 +461,11 @@ integrable_on_compact_of_monotone_on hs (λ x y _ _ hxy, hmono hxy)
 
 alias integrable_on_compact_of_monotone ← monotone.integrable_on_compact
 
-lemma integrable_on_compact_of_antimono (hmono : ∀ ⦃x y⦄, x ≤ y → f y ≤ f x) :
+lemma antitone.integrable_on_compact (hanti : antitone f) :
   integrable_on f s μ :=
 @integrable_on_compact_of_monotone α (order_dual E) _ _ ‹_› _ _ ‹_› _ _ _ _ ‹_› _ _ _ hs _
-  hmono
+  hanti
+
+alias integrable_on_compact_of_antitone ← antitone.integrable_on_compact
 
 end monotone

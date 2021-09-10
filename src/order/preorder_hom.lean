@@ -198,8 +198,8 @@ namespace rel_hom
 
 variables (f : ((<) : α → α → Prop) →r ((<) : β → β → Prop))
 
-/-- A bundled expression of the fact that a map between partial orders that is strictly monotonic
-is weakly monotonic. -/
+/-- A bundled expression of the fact that a map between partial orders that is strictly monotone
+is weakly monotone. -/
 @[simps {fully_applied := ff}]
 def to_preorder_hom : α →ₘ β :=
 { to_fun    := f,

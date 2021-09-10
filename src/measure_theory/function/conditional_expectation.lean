@@ -865,7 +865,7 @@ def condexp_smul (hm : m ≤ m0) (hs : measurable_set s) (hμs : μ s ≠ ∞) (
 (to_span_singleton ℝ x).comp_LpL 2 μ (condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ)))
 
 lemma condexp_smul_add (hs : measurable_set s) (hμs : μ s ≠ ∞) (x y : G) :
-  condexp_smul hm hs hμs (x + y) = condexp_smul hm hs hμs x + condexp_smul hm  hs hμs y :=
+  condexp_smul hm hs hμs (x + y) = condexp_smul hm hs hμs x + condexp_smul hm hs hμs y :=
 by { simp_rw [condexp_smul], rw [to_span_singleton_add, add_comp_LpL, add_apply], }
 
 lemma condexp_smul_smul (hs : measurable_set s) (hμs : μ s ≠ ∞) (c : ℝ) (x : G) :

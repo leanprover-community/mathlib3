@@ -425,7 +425,7 @@ has_basis_iff.mpr $ λ t, by simp only [has_basis_iff, (hl _).mem_iff, classical
 
 lemma has_basis.sup_principal (hl : l.has_basis p s) (t : set α) :
   (l ⊔ 𝓟 t).has_basis p (λ i, s i ∪ t) :=
-⟨λ u, by simp only [(hl.sup (has_basis_principal t)).mem_iff, prod.exists, exists_prop, and_true,
+⟨λ u, by simp only [(hl.sup' (has_basis_principal t)).mem_iff, pprod.exists, exists_prop, and_true,
   unique.exists_iff]⟩
 
 lemma has_basis.sup_pure (hl : l.has_basis p s) (x : α) :

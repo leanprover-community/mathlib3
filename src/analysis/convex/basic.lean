@@ -740,7 +740,6 @@ convex_halfspace_gt (is_linear_map.mk complex.add_im complex.smul_im) _
 lemma convex_halfspace_im_lge (r : ℝ) : convex {c : ℂ | r ≤ c.im} :=
 convex_halfspace_ge (is_linear_map.mk complex.add_im complex.smul_im) _
 
-
 section submodule
 open submodule
 

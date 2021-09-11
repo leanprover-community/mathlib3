@@ -59,7 +59,7 @@ instance : inhabited (alexandroff X) := ⟨∞⟩
 lemma coe_injective : function.injective (coe : X → alexandroff X) :=
 option.some_injective X
 
-@[simp, norm_cast] lemma coe_eq_coe {x y : X} : (x : alexandroff X) = y ↔ x = y :=
+@[norm_cast] lemma coe_eq_coe {x y : X} : (x : alexandroff X) = y ↔ x = y :=
 coe_injective.eq_iff
 
 @[simp] lemma coe_ne_infty (x : X) : (x : alexandroff X) ≠ ∞  .

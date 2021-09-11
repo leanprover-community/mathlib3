@@ -1065,13 +1065,12 @@ lemma single_zero_mul_apply [add_zero_class G] (f : add_monoid_algebra k G) (r :
   (single 0 r * f : add_monoid_algebra k G) x = r * f x :=
 f.single_mul_apply_aux r _ _ _ $ λ a, by rw [zero_add]
 
-@[simp]
 lemma mul_single_apply [add_group G] (f : add_monoid_algebra k G) (r : k) (x y : G) :
   (f * single x r) y = f (y - x) * r :=
 (sub_eq_add_neg y x).symm ▸
   @monoid_algebra.mul_single_apply k (multiplicative G) _ _ _ _ _ _
 
-@[simp] lemma single_mul_apply [add_group G] (r : k) (x : G) (f : add_monoid_algebra k G) (y : G) :
+lemma single_mul_apply [add_group G] (r : k) (x : G) (f : add_monoid_algebra k G) (y : G) :
   (single x r * f : add_monoid_algebra k G) y = r * f (- x + y) :=
 @monoid_algebra.single_mul_apply k (multiplicative G) _ _ _ _ _ _
 

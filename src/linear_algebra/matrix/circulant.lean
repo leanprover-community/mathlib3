@@ -146,7 +146,7 @@ by {ext, simp [circulant]}
 by ext; simp [circulant]
 
 @[simp] lemma circulant_single [has_zero α] [has_one α] [decidable_eq I] [add_group I]:
-  circulant (pi.single 0 1 : I → α)= (1 : matrix I I α) :=
+  circulant (pi.single 0 1 : I → α) = (1 : matrix I I α) :=
 by { ext i j, simp only [circulant, one_apply, pi.single_apply, sub_eq_zero], congr }
 
 /-- Any identity matrix is a circulant matrix. -/

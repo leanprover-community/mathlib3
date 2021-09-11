@@ -197,7 +197,7 @@ by { haveI := classical.dec_eq M,
 
 @[simp] lemma det_to_matrix' {ι : Type*} [fintype ι] [decidable_eq ι]
   (f : (ι → A) →ₗ[A] (ι → A)) :
-  det (f.to_matrix') = f.det :=
+  det f.to_matrix' = f.det :=
 by simp [← to_matrix_eq_to_matrix']
 
 /-- To show `P f.det` it suffices to consider `P (to_matrix _ _ f).det` and `P 1`. -/

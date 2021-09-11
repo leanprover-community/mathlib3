@@ -252,7 +252,7 @@ equivalence between linear maps `M₁ →ₗ M₂` and matrices over `R` indexed
 def linear_map.to_matrix : (M₁ →ₗ[R] M₂) ≃ₗ[R] matrix m n R :=
 linear_equiv.trans (linear_equiv.arrow_congr v₁.equiv_fun v₂.equiv_fun) linear_map.to_matrix'
 
-/-- `linear_map.to_lin'` is a particular case of `linear_map.to_lin`, for the standard basis
+/-- `linear_map.to_matrix'` is a particular case of `linear_map.to_matrix`, for the standard basis
 `pi.basis_fun R n`. -/
 lemma linear_map.to_matrix_eq_to_matrix' :
   linear_map.to_matrix (pi.basis_fun R n) (pi.basis_fun R n) = linear_map.to_matrix' :=

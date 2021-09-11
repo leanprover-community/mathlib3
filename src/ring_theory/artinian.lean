@@ -13,6 +13,7 @@ import algebra.algebra.basic
 import ring_theory.noetherian
 import ring_theory.jacobson_ideal
 import ring_theory.nilpotent
+import ring_theory.nakayama
 
 /-!
 # Artinian rings and modules
@@ -406,17 +407,27 @@ begin
         (lt_of_le_of_ne le_sup_left (λ h, hx.2 (h.symm ▸ mem_sup_right (subset_span
           (mem_singleton x)))))
         (sup_le (le_of_lt hJJ') (span_le.2 (singleton_subset_iff.2 hx.1))),
-    have : I * J' ≤ J, --Need version 10 of Nakayamas lemma on Stacks
-    { subst hxJ',
-      rw [ideal.mul_sup],
-      refine sup_le (mul_le.2 (λ _ _ _, ideal.mul_mem_left _ _)) _,
-      dsimp [J],  },
-    -- subst J',
-    -- dsimp at *,
-    -- have
-       }
-
+    have : I * ideal.span {x} ≤ J, --Need version 4 of Nakayamas lemma on Stacks
+    { subst J',
+      refine classical.by_contradiction (λ hIJ : ¬ I * ideal.span {x} ≤ J, _),
+      have : J ⊔ I • ideal.span {x} ≤ J ⊔ ideal.span {x},
+        from sup_le_sup_left (smul_le.2 (λ _ _ _, submodule.smul_mem _ _)) _,
+      refine hIJ (smul_sup_le_of_le_smul_of_le_jacobson_bot
+        (fg_span_singleton _) (le_refl _)
+        (le_of_eq (hJ' _ _ this).symm)),
+      exact lt_of_le_of_ne le_sup_left (λ h, hIJ $ h.symm ▸ le_sup_right) },
+      subst J',
+      have : ideal.span {x} * I ^ (n + 1) ≤ ⊥,
+        calc ideal.span {x} * I ^ (n + 1) = ideal.span {x} * I * I ^ n :
+          by rw [pow_succ, ← mul_assoc]
+        ... ≤ J * I ^ n : mul_le_mul (by rwa mul_comm) (le_refl _)
+        ... = _ : by simp [J],
+      refine hx.2 (mem_annihilator.2 (λ y hy, (mem_bot R).1 _)),
+      refine this (mul_mem_mul (mem_span_singleton_self x) _),
+      rwa [← hn (n + 1) (nat.le_succ _)] },
+  refine ⟨n, _⟩,
+  rw [← one_smul (ideal R) ((⊥ : ideal R).jacobson ^ n), ideal.one_eq_top, ← hJ],
+  simp [J]
 end
-
 
 end is_artinian_ring

@@ -113,6 +113,12 @@ smul_mono h (le_refl N)
 theorem smul_mono_right (h : N ≤ P) : I • N ≤ I • P :=
 smul_mono (le_refl I) h
 
+@[simp] theorem annihilator_smul (N : submodule R M) : annihilator N • N = ⊥ :=
+eq_bot_iff.2 (smul_le.2 (λ r, mem_annihilator.1))
+
+@[simp] theorem annihilator_mul (I : ideal R) : annihilator I * I = ⊥ :=
+annihilator_smul I
+
 variables (I J N P)
 @[simp] theorem smul_bot : I • (⊥ : submodule R M) = ⊥ :=
 eq_bot_iff.2 $ smul_le.2 $ λ r hri s hsb,

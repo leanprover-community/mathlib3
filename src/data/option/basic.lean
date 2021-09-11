@@ -447,4 +447,10 @@ end
 
 end
 
+@[simp] lemma to_list_some (a : α) : (a : option α).to_list = [a] :=
+rfl
+
+@[simp] lemma to_list_none (α : Type*) : (none : option α).to_list = [] :=
+rfl
+
 end option

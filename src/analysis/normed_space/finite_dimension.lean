@@ -204,7 +204,8 @@ lemma linear_map.exists_antilipschitz_with [finite_dimensional 𝕜 E] (f : E �
 begin
   cases subsingleton_or_nontrivial E; resetI,
   { exact ⟨1, zero_lt_one, antilipschitz_with.of_subsingleton⟩ },
-  { let e : E ≃L[𝕜] f.range := (linear_equiv.of_injective f hf).to_continuous_linear_equiv,
+  { rw linear_map.ker_eq_bot at hf,
+    let e : E ≃L[𝕜] f.range := (linear_equiv.of_injective f hf).to_continuous_linear_equiv,
     exact ⟨_, e.nnnorm_symm_pos, e.antilipschitz⟩ }
 end
 

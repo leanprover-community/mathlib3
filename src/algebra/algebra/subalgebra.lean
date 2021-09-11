@@ -30,8 +30,9 @@ add_decl_doc subalgebra.to_subsemiring
 
 namespace subalgebra
 
-variables {R' : Type u'} {R : Type u} {A : Type v} {B : Type w}
-variables [comm_semiring R] [semiring A] [algebra R A] [semiring B] [algebra R B]
+variables {R' : Type u'} {R : Type u} {A : Type v} {B : Type w} {C : Type w}
+variables [comm_semiring R]
+variables [semiring A] [algebra R A] [semiring B] [algebra R B] [semiring C] [algebra R C]
 include R
 
 instance : set_like (subalgebra R A) A :=
@@ -319,6 +320,13 @@ set.image_subset f
 lemma map_injective {S₁ S₂ : subalgebra R A} (f : A →ₐ[R] B)
   (hf : function.injective f) (ih : S₁.map f = S₂.map f) : S₁ = S₂ :=
 ext $ set.ext_iff.1 $ set.image_injective.2 hf $ set.ext $ set_like.ext_iff.mp ih
+
+@[simp] lemma map_id (S : subalgebra R A) : S.map (alg_hom.id R A) = S :=
+set_like.coe_injective $ set.image_id _
+
+lemma map_map (S : subalgebra R A) (g : B →ₐ[R] C) (f : A →ₐ[R] B) :
+  (S.map f).map g = S.map (g.comp f) :=
+set_like.coe_injective $ set.image_image _ _ _
 
 lemma mem_map {S : subalgebra R A} {f : A →ₐ[R] B} {y : B} :
   y ∈ map S f ↔ ∃ x ∈ S, f x = y :=
@@ -798,7 +806,44 @@ def under {R : Type u} {A : Type v} [comm_semiring R] [comm_semiring A]
 { algebra_map_mem' := λ r, T.algebra_map_mem ⟨algebra_map R A r, S.algebra_map_mem r⟩,
   .. T }
 
+@[simp] lemma mem_under {R : Type u} {A : Type v} [comm_semiring R] [comm_semiring A]
+  {i : algebra R A} {S : subalgebra R A} {T : subalgebra S A} {x : A} : 
+  x ∈ S.under T ↔ x ∈ T := iff.rfl
+
 end actions
+
+section pointwise
+variables {R' : Type*} [semiring R'] [mul_semiring_action R' A] [smul_comm_class R' R A]
+
+/-- The action on a subalgebra corresponding to applying the action to every element.
+
+This is available as an instance in the `pointwise` locale. -/
+protected def pointwise_mul_action : mul_action R' (subalgebra R A) :=
+{ smul := λ a S, S.map (mul_semiring_action.to_alg_hom _ _ a),
+  one_smul := λ S,
+    (congr_arg (λ f, S.map f) (alg_hom.ext $ by exact one_smul R')).trans S.map_id,
+  mul_smul := λ a₁ a₂ S,
+    (congr_arg (λ f, S.map f) (alg_hom.ext $ by exact mul_smul _ _)).trans (S.map_map _ _).symm }
+
+localized "attribute [instance] subalgebra.pointwise_mul_action" in pointwise
+open_locale pointwise
+
+@[simp] lemma coe_pointwise_smul (m : R') (S : subalgebra R A) : ↑(m • S) = m • (S : set A) := rfl
+
+@[simp] lemma pointwise_smul_to_subsemiring (m : R') (S : subalgebra R A) :
+  (m • S).to_subsemiring = m • S.to_subsemiring := rfl
+
+@[simp] lemma pointwise_smul_to_submodule (m : R') (S : subalgebra R A) :
+  (m • S).to_submodule = m • S.to_submodule := rfl
+
+@[simp] lemma pointwise_smul_to_subring {R' R A : Type*} [semiring R'] [comm_ring R] [ring A]
+  [mul_semiring_action R' A] [algebra R A] [smul_comm_class R' R A] (m : R') (S : subalgebra R A) :
+  (m • S).to_subring = m • S.to_subring := rfl
+
+lemma smul_mem_pointwise_smul (m : R') (r : A) (S : subalgebra R A) : r ∈ S → m • r ∈ m • S :=
+(set.smul_mem_smul_set : _ → _ ∈ m • (S : set A))
+
+end pointwise
 
 end subalgebra
 

@@ -27,17 +27,10 @@ certificate.
 
 ## Implementation notes
 
-It was a challenge to avoid diamonds when writing this file. Ultimately, I settled on introducing
-an instance of `fact (0 < p)` rather than making an instance of `fintype` on `units (zmod n)` as
-Mario showed how to do:
-
-```
-noncomputable instance units_zmod.fintype : Π n, fintype (units (zmod n))
-| 0     := units_int.fintype
-| (n+1) := units.fintype
-```
-
-Note that Mario also remarked this could be made computable.
+Note that the proof for `lucas_primality` relies on analyzing the multiplicative group
+modulo `p`. Despite this, the theorem still holds vacuously for `p = 0` and `p = 1`: In these
+cases, we can take `q` to be any prime and see that `hd` does not hold, since `a^((p-1)/q)` reduces
+to `1`.
 
 -/
 

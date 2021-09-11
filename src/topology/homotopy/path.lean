@@ -104,10 +104,8 @@ def symm {p₀ p₁ : path x₀ x₁} (F : homotopy p₀ p₁) : homotopy p₁ p
   ..F.to_homotopy.symm }
 
 /--
-/--
 Given `homotopy p₀ p₁` and `homotopy p₁ p₂`, we can define a `homotopy p₀ p₂` by putting the first
 homotopy on `[0, 1/2]` and the second on `[1/2, 1]`.
--/
 -/
 def trans {p₀ p₁ p₂ : path x₀ x₁} (h₀ : homotopy p₀ p₁) (h₁ : homotopy p₁ p₂) : homotopy p₀ p₂ :=
 { source' := λ t, by simp [continuous_map.homotopy.trans_apply],

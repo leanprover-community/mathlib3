@@ -74,8 +74,7 @@ If `a^(p-1) = 1 mod p`, but `a^((p-1)/q) ≠ 1 mod p` for all prime factors `q` 
 is prime. This is true because `a` has order `p-1` in the multiplicative group mod `p`, so this
 group must itself have order `p-1`, which only happens when `p` is prime.
 -/
-theorem lucas_primality (a : zmod p)
-  (ha : a^(p-1) = 1)
+theorem lucas_primality (p : ℕ) (a : zmod p) (ha : a^(p-1) = 1)
   (hd : ∀ q : ℕ, q.prime → q ∣ (p-1) → a^((p-1)/q) ≠ 1) : p.prime :=
 begin
   by_cases h0 : p = 0,

@@ -244,7 +244,7 @@ end
 def to_preorder (S : convex_cone E) (h₁ : pointed S) : preorder E :=
 { le := λ x y, y - x ∈ S,
   le_refl := λ x, by change x - x ∈ S; rw [sub_self x]; exact h₁,
-  le_trans := λ x y z xy zy, by simp [(show z - x = z - y + (y - x), by abel), add_mem S zy xy] }
+  le_trans := λ x y z xy zy, by simpa using add_mem S zy xy }
 
 /-- A pointed and salient cone defines a partial order. -/
 def to_partial_order (S : convex_cone E) (h₁ : pointed S) (h₂ : salient S) : partial_order E :=

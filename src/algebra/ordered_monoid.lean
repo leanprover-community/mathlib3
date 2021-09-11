@@ -9,6 +9,8 @@ import algebra.group.prod
 import algebra.order_functions
 import order.bounded_lattice
 import algebra.ordered_monoid_lemmas
+import order.rel_iso
+
 /-!
 # Ordered monoids
 
@@ -975,3 +977,20 @@ instance [linear_ordered_comm_monoid α] : linear_ordered_add_comm_monoid (addit
   ..additive.ordered_add_comm_monoid }
 
 end type_tags
+
+/-- The order embedding sending `b` to `a * b`, for some fixed `a`.
+See also `order_iso.mul_left` when working in an ordered group. -/
+@[to_additive "The order embedding sending `b` to `a + b`, for some fixed `a`.
+  See also `order_iso.add_left` when working in an additive ordered group.", simps]
+def order_embedding.mul_left
+  {α : Type*} [has_mul α] [linear_order α] [covariant_class α α (*) (<)] (m : α) : α ↪o α :=
+order_embedding.of_strict_mono (λ n, m * n) (λ a b w, mul_lt_mul_left' w m)
+
+/-- The order embedding sending `b` to `b * a`, for some fixed `a`.
+See also `order_iso.mul_right` when working in an ordered group. -/
+@[to_additive "The order embedding sending `b` to `b + a`, for some fixed `a`.
+  See also `order_iso.add_right` when working in an additive ordered group.", simps]
+def order_embedding.mul_right
+  {α : Type*} [has_mul α] [linear_order α] [covariant_class α α (swap (*)) (<)] (m : α) :
+  α ↪o α :=
+order_embedding.of_strict_mono (λ n, n * m) (λ a b w, mul_lt_mul_right' w m)

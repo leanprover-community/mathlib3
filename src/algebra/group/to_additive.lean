@@ -352,7 +352,7 @@ Examples:
 The reasoning behind the heuristic is that the first argument is the type which is "additivized",
 and this usually doesn't make sense if this is on a fixed type.
 
-There are some exceptions in this heuristic:
+There are some exceptions to this heuristic:
 
 * Identifiers that have the `@[to_additive]` attribute are ignored.
   For example, multiplication in `↥Semigroup` is replaced by addition in `↥AddSemigroup`.

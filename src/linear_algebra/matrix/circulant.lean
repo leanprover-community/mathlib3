@@ -220,7 +220,7 @@ def circulant.poly [semiring α] (v : fin n → α) : polynomial α :=
 ∑ i : fin n, polynomial.monomial i (v i)
 
 /-- `circulant_perm n` is the cyclic permutation over `fin n`. -/
-def circulant.perm : Π n, equiv.perm (fin n) := λ n, equiv.symm (fin_rotate n)
+def circulant.perm (n : ℕ) : equiv.perm (fin n) := (fin_rotate n).symm
 
 /-- `circulant_P α n` is the cyclic permutation matrix of order `n` with entries of type `α`. -/
 def circulant.P (α) [has_zero α] [has_one α] (n : ℕ) : matrix (fin n) (fin n) α :=

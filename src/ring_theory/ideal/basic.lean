@@ -638,12 +638,9 @@ variables (ι : Type v)
 instance module_pi : module (I.quotient) (I.pi ι).quotient :=
 { smul := λ c m, quotient.lift_on₂' c m (λ r m, submodule.quotient.mk $ r • m) begin
     intros c₁ m₁ c₂ m₂ hc hm,
-    change c₁ - c₂ ∈ I at hc,
     apply ideal.quotient.eq.2,
     intro i,
-    change c₁ * (m₁ i) - c₂ * (m₂ i) ∈ I,
-    have hm : m₁ i - m₂ i ∈ I := hm i,
-    exact mul_sub_mul_mem hc hm,
+    exact mul_sub_mul_mem hc (hm i),
   end,
   one_smul := begin
     rintro ⟨a⟩,

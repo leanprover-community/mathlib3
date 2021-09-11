@@ -1236,17 +1236,17 @@ variables {𝕜' 𝔸 : Type*} [normed_field 𝕜'] [normed_ring 𝔸] [normed_a
 
 theorem has_deriv_within_at.mul
   (hc : has_deriv_within_at c c' s x) (hd : has_deriv_within_at d d' s x) :
-  has_deriv_within_at (λ y, c y * d y) (c x * d' + c' * d x) s x :=
+  has_deriv_within_at (λ y, c y * d y) (c' * d x + c x * d') s x :=
 begin
   have := (has_fderiv_within_at.mul' hc hd).has_deriv_within_at,
   rwa [continuous_linear_map.add_apply, continuous_linear_map.smul_apply,
       continuous_linear_map.smul_right_apply, continuous_linear_map.smul_right_apply,
       continuous_linear_map.smul_right_apply, continuous_linear_map.one_apply,
-      one_smul, one_smul] at this,
+      one_smul, one_smul, add_comm] at this,
 end
 
 theorem has_deriv_at.mul (hc : has_deriv_at c c' x) (hd : has_deriv_at d d' x) :
-  has_deriv_at (λ y, c y * d y) (c x * d' + c' * d x) x :=
+  has_deriv_at (λ y, c y * d y) (c' * d x + c x * d') x :=
 begin
   rw [← has_deriv_within_at_univ] at *,
   exact hc.mul hd
@@ -1254,29 +1254,29 @@ end
 
 theorem has_strict_deriv_at.mul
   (hc : has_strict_deriv_at c c' x) (hd : has_strict_deriv_at d d' x) :
-  has_strict_deriv_at (λ y, c y * d y) (c x * d' + c' * d x) x :=
+  has_strict_deriv_at (λ y, c y * d y) (c' * d x + c x * d') x :=
 begin
   have := (has_strict_fderiv_at.mul' hc hd).has_strict_deriv_at,
   rwa [continuous_linear_map.add_apply, continuous_linear_map.smul_apply,
       continuous_linear_map.smul_right_apply, continuous_linear_map.smul_right_apply,
       continuous_linear_map.smul_right_apply, continuous_linear_map.one_apply,
-      one_smul, one_smul] at this,
+      one_smul, one_smul, add_comm] at this,
 end
 
 lemma deriv_within_mul (hxs : unique_diff_within_at 𝕜 s x)
   (hc : differentiable_within_at 𝕜 c s x) (hd : differentiable_within_at 𝕜 d s x) :
-  deriv_within (λ y, c y * d y) s x = c x * deriv_within d s x + deriv_within c s x * d x :=
+  deriv_within (λ y, c y * d y) s x = deriv_within c s x * d x + c x * deriv_within d s x :=
 (hc.has_deriv_within_at.mul hd.has_deriv_within_at).deriv_within hxs
 
 @[simp] lemma deriv_mul (hc : differentiable_at 𝕜 c x) (hd : differentiable_at 𝕜 d x) :
-  deriv (λ y, c y * d y) x = c x * deriv d x + deriv c x * d x :=
+  deriv (λ y, c y * d y) x = deriv c x * d x + c x * deriv d x :=
 (hc.has_deriv_at.mul hd.has_deriv_at).deriv
 
 theorem has_deriv_within_at.mul_const (hc : has_deriv_within_at c c' s x) (d : 𝔸) :
   has_deriv_within_at (λ y, c y * d) (c' * d) s x :=
 begin
   convert hc.mul (has_deriv_within_at_const x s d),
-  rw [mul_zero, zero_add]
+  rw [mul_zero, add_zero]
 end
 
 theorem has_deriv_at.mul_const (hc : has_deriv_at c c' x) (d : 𝔸) :
@@ -1290,7 +1290,7 @@ theorem has_strict_deriv_at.mul_const (hc : has_strict_deriv_at c c' x) (d : �
   has_strict_deriv_at (λ y, c y * d) (c' * d) x :=
 begin
   convert hc.mul (has_strict_deriv_at_const x d),
-  rw [mul_zero, zero_add]
+  rw [mul_zero, add_zero]
 end
 
 lemma deriv_within_mul_const (hxs : unique_diff_within_at 𝕜 s x)
@@ -1321,7 +1321,7 @@ theorem has_deriv_within_at.const_mul (c : 𝔸) (hd : has_deriv_within_at d d' 
   has_deriv_within_at (λ y, c * d y) (c * d') s x :=
 begin
   convert (has_deriv_within_at_const x s c).mul hd,
-  rw [zero_mul, add_zero]
+  rw [zero_mul, zero_add]
 end
 
 theorem has_deriv_at.const_mul (c : 𝔸) (hd : has_deriv_at d d' x) :
@@ -1335,7 +1335,7 @@ theorem has_strict_deriv_at.const_mul (c : 𝔸) (hd : has_strict_deriv_at d d' 
   has_strict_deriv_at (λ y, c * d y) (c * d') x :=
 begin
   convert (has_strict_deriv_at_const _ _).mul hd,
-  rw [zero_mul, add_zero]
+  rw [zero_mul, zero_add]
 end
 
 lemma deriv_within_const_mul (hxs : unique_diff_within_at 𝕜 s x)

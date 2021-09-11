@@ -144,27 +144,32 @@ end⟩
 @[mk_iff] class is_maximal (I : ideal P) extends is_proper I : Prop :=
 (maximal_proper : ∀ ⦃J : ideal P⦄, I < J → (J : set P) = set.univ)
 
+variable (P)
+
 /-- A preorder `P` has the `ideal_inter_nonempty` property if the
     intersection of any two ideals is nonempty.
     Most importantly, a `semilattice_sup` preorder with this property
     satisfies that its ideal poset is a lattice.
 -/
-class ideal_inter_nonempty (P) [preorder P] : Prop :=
+class ideal_inter_nonempty : Prop :=
 (inter_nonempty : ∀ (I J : ideal P), ((I : set P) ∩ (J : set P)).nonempty)
-
-lemma inter_nonempty [preorder P] [ideal_inter_nonempty P] :
-  ∀ (I J : ideal P), ((I : set P) ∩ (J : set P)).nonempty :=
-ideal_inter_nonempty.inter_nonempty
 
 /-- A preorder `P` has the `ideal_Inter_nonempty` property if the
     intersection of all ideals is nonempty.
     Most importantly, a `semilattice_sup` preorder with this property
     satisfies that its ideal poset is a complete lattice.
 -/
-class ideal_Inter_nonempty (P) [preorder P] : Prop :=
+class ideal_Inter_nonempty : Prop :=
 (Inter_nonempty : (⋂ (I : ideal P), (I : set P)).nonempty)
 
-lemma Inter_nonempty [preorder P] [ideal_Inter_nonempty P] :
+variable {P}
+
+lemma inter_nonempty [ideal_inter_nonempty P] :
+  ∀ (I J : ideal P), ((I : set P) ∩ (J : set P)).nonempty :=
+ideal_inter_nonempty.inter_nonempty
+
+
+lemma Inter_nonempty [ideal_Inter_nonempty P] :
   (⋂ (I : ideal P), (I : set P)).nonempty :=
 ideal_Inter_nonempty.Inter_nonempty
 
@@ -215,17 +220,15 @@ instance : order_top (ideal P) :=
   le_top := λ I x h, le_top,
   .. ideal.partial_order }
 
-@[simp] lemma top_eq_univ : ((⊤ : ideal P) : set P) = set.univ :=
+@[simp] lemma top_coe : ((⊤ : ideal P) : set P) = set.univ :=
 set.univ_subset_iff.1 (λ p _, le_top)
-
-@[simp] lemma top_coe : ((⊤ : ideal P) : set P) = set.univ := top_eq_univ
 
 lemma top_of_mem_top {I : ideal P} (mem_top : ⊤ ∈ I) : I = ⊤ :=
 begin
   ext,
   change x ∈ I ↔ x ∈ ((⊤ : ideal P) : set P),
   split,
-  { simp [top_eq_univ] },
+  { simp [top_coe] },
   { exact λ _, I.mem_of_le le_top mem_top }
 end
 

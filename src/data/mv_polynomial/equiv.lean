@@ -53,24 +53,6 @@ section equiv
 
 variables (R) [comm_semiring R]
 
-/-- The algebra isomorphism between multivariable polynomials in no variables
-and the ground ring. -/
-@[simps]
-def pempty_alg_equiv : mv_polynomial pempty R ≃ₐ[R] R :=
-{ to_fun    := mv_polynomial.eval₂ (ring_hom.id _) $ pempty.elim,
-  inv_fun   := C,
-  left_inv  := is_id (C.comp (eval₂_hom (ring_hom.id _) pempty.elim))
-    (assume a : R, by { dsimp, rw [eval₂_C], refl }) (assume a, a.elim),
-  right_inv := λ r, eval₂_C _ _ _,
-  map_mul'  := λ _ _, eval₂_mul _ _,
-  map_add'  := λ _ _, eval₂_add _ _,
-  commutes' := λ _, by rw [mv_polynomial.algebra_map_eq]; simp }
-
-/-- The ring isomorphism between multivariable polynomials in no variables and the ground ring. -/
-@[simps]
-def pempty_ring_equiv : mv_polynomial pempty R ≃+* R :=
-(pempty_alg_equiv R).to_ring_equiv
-
 /--
 The ring isomorphism between multivariable polynomials in a single variable and
 polynomials over the ground ring.
@@ -203,6 +185,24 @@ eval₂_X _ _ _
 
 lemma iter_to_sum_C_X (c : S₂) : iter_to_sum R S₁ S₂ (C (X c)) = X (sum.inr c) :=
 eq.trans (eval₂_C _ _ (X c)) (eval₂_X _ _ _)
+
+variable (σ)
+
+/-- The algebra isomorphism between multivariable polynomials in no variables
+and the ground ring. -/
+@[simps] def is_empty_alg_equiv [he : is_empty σ] : mv_polynomial σ R ≃ₐ[R] R :=
+alg_equiv.of_alg_hom
+  (aeval (is_empty.elim he))
+  (algebra.of_id _ _)
+  (by { ext, simp [algebra.of_id_apply, algebra_map_eq] })
+  (by { ext i m, exact is_empty.elim' he i })
+
+/-- The ring isomorphism between multivariable polynomials in no variables
+and the ground ring. -/
+@[simps] def is_empty_ring_equiv [he : is_empty σ] : mv_polynomial σ R ≃+* R :=
+(is_empty_alg_equiv R σ).to_ring_equiv
+
+variable {σ}
 
 /-- A helper function for `sum_ring_equiv`. -/
 @[simps]

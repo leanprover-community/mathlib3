@@ -70,17 +70,15 @@ lemma source (F : homotopy p₀ p₁) {t : I} : F (t, 0) = x₀ := F.source' t
 @[simp]
 lemma target (F : homotopy p₀ p₁) {t : I} : F (t, 1) = x₁ := F.target' t
 
-@[ext]
-lemma ext {F G : homotopy p₀ p₁} (h : ∀ t, F t = G t) : F = G :=
+lemma coe_fn_injective : @function.injective (homotopy p₀ p₁) (I × I → X) coe_fn :=
 begin
-  cases F, cases G,
-  congr' 1,
-  ext x,
-  exact h x,
+  rintros ⟨⟨⟨F, _⟩, _⟩, _⟩ ⟨⟨⟨G, _⟩, _⟩, _⟩ h,
+  congr' 3,
 end
 
-lemma coe_fn_injective : @function.injective (homotopy p₀ p₁) (I × I → X) coe_fn :=
-λ F G h, ext $ congr_fun h
+@[ext]
+lemma ext {F G : homotopy p₀ p₁} (h : ∀ t, F t = G t) : F = G :=
+coe_fn_injective $ funext h
 
 @[simp]
 lemma apply_zero (F : homotopy p₀ p₁) (x : I) : F (0, x) = p₀ x := F.to_fun_zero x

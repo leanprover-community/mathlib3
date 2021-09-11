@@ -48,17 +48,15 @@ variables {f₀ f₁ : C(X, Y)}
 
 instance : has_coe_to_fun (homotopy f₀ f₁) := ⟨_, λ F, F.to_fun⟩
 
-@[ext]
-lemma ext {F G : homotopy f₀ f₁} (h : ∀ x, F x = G x) : F = G :=
+lemma coe_fn_injective : @function.injective (homotopy f₀ f₁) (I × X → Y) coe_fn :=
 begin
-  cases F, cases G,
-  congr' 1,
-  ext x,
-  exact h x,
+  rintros ⟨⟨F, _⟩, _, _⟩ ⟨⟨G, _⟩, _, _⟩ h,
+  congr' 2,
 end
 
-lemma coe_fn_injective : @function.injective (homotopy f₀ f₁) (I × X → Y) coe_fn :=
-λ F G h, ext $ congr_fun h
+@[ext]
+lemma ext {F G : homotopy f₀ f₁} (h : ∀ x, F x = G x) : F = G :=
+coe_fn_injective $ funext h
 
 @[continuity]
 protected lemma continuous (F : homotopy f₀ f₁) : continuous F := F.continuous_to_fun

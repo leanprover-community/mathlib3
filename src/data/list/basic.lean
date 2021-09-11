@@ -2835,7 +2835,7 @@ begin
 end
 
 /-! ### intersperse -/
-@[simp] lemma intersperse_nil {α : Type u} (a b : α) : intersperse a [] = [] := rfl
+@[simp] lemma intersperse_nil {α : Type u} (a : α) : intersperse a [] = [] := rfl
 
 @[simp] lemma intersperse_singleton {α : Type u} (a b : α) : intersperse a [b] = [b] := rfl
 

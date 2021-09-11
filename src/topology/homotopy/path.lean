@@ -79,6 +79,9 @@ begin
   exact h x,
 end
 
+lemma coe_fn_inj : @function.injective (homotopy p₀ p₁) (I × I → X) coe_fn :=
+λ F G h, ext $ congr_fun h
+
 @[simp]
 lemma apply_zero (F : homotopy p₀ p₁) (x : I) : F (0, x) = p₀ x := F.to_fun_zero x
 

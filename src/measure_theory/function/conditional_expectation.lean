@@ -1197,10 +1197,10 @@ lemma set_integral_condexp_ind_eq (hs : measurable_set[m] s) (ht : measurable_se
   (hμt : μ t ≠ ∞) (x : G') :
   ∫ a in s, condexp_ind hm μ t x a ∂μ = (μ (t ∩ s)).to_real • x :=
 calc
-∫ a in s, condexp_ind hm μ t x a ∂μ = ∫ a in s, condexp_smul hm ht hμt x a ∂μ :
+∫ a in s, condexp_ind hm μ t x a ∂μ = ∫ a in s, condexp_ind_smul hm ht hμt x a ∂μ :
   set_integral_congr_ae (hm s hs)
-    ((condexp_ind_ae_eq_condexp_smul hm ht hμt x).mono (λ x hx hxs, hx))
-... = (μ (t ∩ s)).to_real • x : set_integral_condexp_smul_eq hs ht hμs hμt x
+    ((condexp_ind_ae_eq_condexp_ind_smul hm ht hμt x).mono (λ x hx hxs, hx))
+... = (μ (t ∩ s)).to_real • x : set_integral_condexp_ind_smul_eq hs ht hμs hμt x
 
 end condexp_ind
 

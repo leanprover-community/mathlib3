@@ -5,7 +5,7 @@ Authors: Chris Hughes
 -/
 import ring_theory.noetherian
 import ring_theory.jacobson
-/-
+/-!
 # Nakayama's lemma
 
 This file contains some alternative statements of Nakayama's Lemma as found in

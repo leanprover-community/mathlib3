@@ -169,6 +169,18 @@ begin
   congr,
 end
 
+lemma scalar_eq_circluant [semiring α] (I) [decidable_eq I] [add_group I] [fintype I] (a : α) :
+  scalar I a = circulant (λ i, ite (i = 0) a 0) :=
+begin
+  ext i j,
+  simp [circulant, one_apply, sub_eq_zero]
+end
+
+lemma fin.scalar_eq_circluant [semiring α] (a : α) :
+  ∀ n, scalar (fin n) a = circulant (λ i, ite (↑i = 0) a 0)
+| 0     := dec_trivial
+| (n+1) := by simp [scalar_eq_circluant (fin (n + 1)) a, fin.ext_iff]
+
 /-- For a one-ary predicate `p`, `p` applied to every entry of `circulant v` is true
     if `p` applied to every entry of `v` is true. -/
 lemma pred_circulant_entry_of_pred_vec_entry [has_sub I]

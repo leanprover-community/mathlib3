@@ -870,7 +870,7 @@ by simpa using infi_principal_finset finset.univ f
 lemma infi_principal_finite {ι : Type w} {s : set ι} (hs : finite s) (f : ι → set α) :
   (⨅ i ∈ s, 𝓟 (f i)) = 𝓟 (⋂ i ∈ s, f i) :=
 begin
-  unfreezingI { lift s to finset ι using hs }, -- TODO: why `unfreezingI` is needed?
+  lift s to finset ι using hs,
   exact_mod_cast infi_principal_finset s f
 end
 

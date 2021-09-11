@@ -383,8 +383,8 @@ else or.inl $ (separable_iff_derivative_ne_zero hf).2 H
 theorem exists_separable_of_irreducible {f : polynomial F} (hf : irreducible f) (hf0 : f ≠ 0) :
   ∃ (n : ℕ) (g : polynomial F), g.separable ∧ expand F (p ^ n) g = f :=
 begin
-  generalize hn : f.nat_degree = N, unfreezingI { revert f },
-  apply nat.strong_induction_on N, intros N ih f hf hf0 hn,
+  unfreezingI {
+    induction hn : f.nat_degree using nat.strong_induction_on with N ih generalizing f },
   rcases separable_or p hf with h | ⟨h1, g, hg, hgf⟩,
   { refine ⟨0, f, h, _⟩, rw [pow_zero, expand_one] },
   { cases N with N,

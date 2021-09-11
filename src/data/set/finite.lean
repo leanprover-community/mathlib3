@@ -21,7 +21,8 @@ namespace set
 
 /-- A set is finite if the subtype is a fintype, i.e. there is a
   list that enumerates its members. -/
-def finite (s : set α) : Prop := nonempty (fintype s)
+inductive finite (s : set α) : Prop
+| intro : fintype s → finite
 
 /-- A set is infinite if it is not finite. -/
 def infinite (s : set α) : Prop := ¬ finite s
@@ -30,7 +31,7 @@ def infinite (s : set α) : Prop := ¬ finite s
 that because `finite` isn't a typeclass, this will not fire if it
 is made into an instance -/
 noncomputable def finite.fintype {s : set α} (h : finite s) : fintype s :=
-classical.choice h
+classical.choice $ let ⟨h'⟩ := h in ⟨h'⟩
 
 /-- Get a finset from a finite set -/
 noncomputable def finite.to_finset {s : set α} (h : finite s) : finset α :=
@@ -243,7 +244,7 @@ theorem infinite_univ [h : _root_.infinite α] : infinite (@univ α) :=
 infinite_univ_iff.2 h
 
 theorem infinite_coe_iff {s : set α} : _root_.infinite s ↔ infinite s :=
-⟨λ ⟨h₁⟩ h₂, h₁ h₂.some, λ h₁, ⟨λ h₂, h₁ ⟨h₂⟩⟩⟩
+⟨λ ⟨h₁⟩ h₂, h₁ h₂.fintype, λ h₁, ⟨λ h₂, h₁ ⟨h₂⟩⟩⟩
 
 theorem infinite.to_subtype {s : set α} (h : infinite s) : _root_.infinite s :=
 infinite_coe_iff.2 h
@@ -387,7 +388,7 @@ theorem infinite.exists_ne_map_eq_of_maps_to {s : set α} {t : set β} {f : α �
   (hs : infinite s) (hf : maps_to f s t) (ht : finite t) :
   ∃ (x ∈ s) (y ∈ s), x ≠ y ∧ f x = f y :=
 begin
-  unfreezingI { contrapose! ht },
+  contrapose! ht,
   exact infinite_of_inj_on_maps_to (λ x hx y hy, not_imp_not.1 (ht x hx y hy)) hf hs
 end
 

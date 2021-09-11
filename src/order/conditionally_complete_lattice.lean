@@ -513,7 +513,7 @@ lemma finset.nonempty.cInf_mem {s : finset α} (h : s.nonempty) : Inf (s : set �
 @finset.nonempty.cSup_mem (order_dual α) _ _ h
 
 lemma set.nonempty.cSup_mem (h : s.nonempty) (hs : finite s) : Sup s ∈ s :=
-by { unfreezingI { lift s to finset α using hs }, exact finset.nonempty.cSup_mem h }
+by { lift s to finset α using hs, exact finset.nonempty.cSup_mem h }
 
 lemma set.nonempty.cInf_mem (h : s.nonempty) (hs : finite s) : Inf s ∈ s :=
 @set.nonempty.cSup_mem (order_dual α) _ _ h hs

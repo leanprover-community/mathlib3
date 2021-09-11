@@ -216,7 +216,7 @@ end
 --   sorry,
 -- end
 
--- and we'll get this one for freec
+-- and we'll get this one for free
 -- /-- Two different points are convex independent. -/
 -- lemma convex_independent_of_ne {p₁ p₂ : E} (h : p₁ ≠ p₂) : convex_independent ![p₁, p₂] :=
 -- (affine_independent_of_ne ℝ h).convex_independent

@@ -95,9 +95,10 @@ end
 [Stacks 00DV](https://stacks.math.columbia.edu/tag/00DV).
 See also `smul_sup_eq_smul_sup_of_le_smul_of_le_jacobson` for a generalisation
 to the `jacobson` of any ideal -/
-lemma smul_sup_eq_of_le_smul_of_le_jacobson_bot {I : ideal R}
+lemma smul_sup_le_of_le_smul_of_le_jacobson_bot {I : ideal R}
   {N N' : submodule R M} (hN' : N'.fg) (hIJ : I ≤ jacobson ⊥)
-  (hNN : N ⊔ N' ≤ N ⊔ I • N') : N ⊔ I • N' = N :=
-by rw [smul_sup_eq_smul_sup_of_le_smul_of_le_jacobson hN' hIJ hNN, bot_smul, sup_bot_eq]
+  (hNN : N ⊔ N' ≤ N ⊔ I • N') : I • N' ≤ N :=
+by rw [← sup_eq_left, smul_sup_eq_smul_sup_of_le_smul_of_le_jacobson hN' hIJ hNN,
+  bot_smul, sup_bot_eq]
 
 end submodule

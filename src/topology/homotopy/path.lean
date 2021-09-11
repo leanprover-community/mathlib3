@@ -142,23 +142,22 @@ equivalent if there is a `homotopy` between them.
 -/
 protected def setoid (x₀ x₁ : X) : setoid (path x₀ x₁) := ⟨homotopic, equivalence⟩
 
-local attribute [instance] homotopic.setoid
-
 /--
 The quotient on `path x₀ x₁` by the equivalence relation `path.homotopic`.
 -/
 protected def quotient (x₀ x₁ : X) := quotient (homotopic.setoid x₀ x₁)
 
-instance : inhabited (homotopic.quotient () ()) := ⟨⟦path.refl ()⟧⟩
-
-end homotopic
-
-end path
+instance : inhabited (homotopic.quotient () ()) :=
+⟨@quotient.mk _ (homotopic.setoid _ _) $ path.refl ()⟩
 
 /--
 The quotient on `path x₀ x₀` by the equivalence relation `path.homotopic`. That is, the fundamental
 group of `X` based at `x₀`.
 -/
-def first_homotopy (x₀ : X) := path.homotopic.quotient x₀ x₀
+def _root_.first_homotopy (x₀ : X) := path.homotopic.quotient x₀ x₀
 
-instance : inhabited (first_homotopy ()) := ⟨⟦path.refl ()⟧⟩
+instance : inhabited (first_homotopy ()) := homotopic.quotient.inhabited
+
+end homotopic
+
+end path

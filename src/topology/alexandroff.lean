@@ -232,7 +232,7 @@ lemma comap_coe_nhds (x : X) : comap (coe : X → alexandroff X) (𝓝 x) = 𝓝
 of `alexandroff X`. -/
 instance nhds_within_compl_coe_ne_bot (x : X) [h : ne_bot (𝓝[{x}ᶜ] x)] :
   ne_bot (𝓝[{x}ᶜ] (x : alexandroff X)) :=
-by simpa [nhds_within_coe, preimage] using h.map coe
+by simpa [nhds_within_coe, preimage, coe_eq_coe] using h.map coe
 
 lemma nhds_within_compl_infty_eq : 𝓝[{∞}ᶜ] (∞ : alexandroff X) = map coe (coclosed_compact X) :=
 begin

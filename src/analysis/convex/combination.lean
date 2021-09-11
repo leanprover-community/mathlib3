@@ -19,8 +19,8 @@ inequality. The integral version can be found in `analysis.convex.integral`.
 ## Implementation notes
 
 We divide by the sum of the weights in the definition of `finset.center_mass` because of the way
-mathematical arguments go: one doesn't change weights, but merely adds some. This also lets a few
-lemmas be unconditional on the sum of the weights being `1`.
+mathematical arguments go: one doesn't change weights, but merely adds some. This also makes a few
+lemmas unconditional on the sum of the weights being `1`.
 -/
 
 open set

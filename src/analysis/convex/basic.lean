@@ -24,7 +24,7 @@ In a 𝕜-vector space, we define the following objects and properties.
   the hyperplane `s.sum = 1` in the space `ι → ℝ`.
 
 We also provide various equivalent versions of the definitions above, prove that some specific sets
-are convex, and prove Jensen's inequality.
+are convex.
 
 Note: To define convexity for functions `f : E → β`, we need `β` to be an ordered vector space,
 defined using the instance `ordered_smul 𝕜 β`.

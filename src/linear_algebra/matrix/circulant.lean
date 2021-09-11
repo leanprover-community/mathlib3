@@ -46,7 +46,7 @@ lemma circulant_col_zero_eq [add_group I] (v : I → α) :
   (λ i, (circulant v) i 0) = v :=
 by ext; simp [circulant]
 
-lemma circulant_injective [add_group I] : injective (λ v : I → α, circulant v) :=
+lemma circulant_injective [add_group I] : injective (circulant : (I → α) → matrix I I α) :=
 begin
   intros v w h,
   dsimp at h,

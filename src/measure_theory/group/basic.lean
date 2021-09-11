@@ -275,7 +275,6 @@ begin
   refine indicator_le (λ y, le_of_lt),
 end
 
-
 end group
 
 section integration
@@ -320,7 +319,7 @@ sets and positive mass to open sets. -/
 class is_haar_measure {G : Type*} [group G] [topological_space G] [measurable_space G]
   (μ : measure G) : Prop :=
 (left_invariant : is_mul_left_invariant μ)
-(compact_lt_top : ∀ (K : set G), is_compact K → μ K < ⊤)
+(compact_lt_top : ∀ (K : set G), is_compact K → μ K < ∞)
 (open_pos : ∀ (U : set G), is_open U → U.nonempty → 0 < μ U)
 
 /-- A measure on an additive group is an additive Haar measure if it is left-invariant, and gives
@@ -328,7 +327,7 @@ finite mass to compact sets and positive mass to open sets. -/
 class is_add_haar_measure {G : Type*} [add_group G] [topological_space G] [measurable_space G]
   (μ : measure G) : Prop :=
 (add_left_invariant : is_add_left_invariant μ)
-(compact_lt_top : ∀ (K : set G), is_compact K → μ K < ⊤)
+(compact_lt_top : ∀ (K : set G), is_compact K → μ K < ∞)
 (open_pos : ∀ (U : set G), is_open U → U.nonempty → 0 < μ U)
 
 attribute [to_additive] is_haar_measure
@@ -339,7 +338,7 @@ variables [group G] [measurable_space G] [topological_space G] (μ : measure G) 
 
 @[to_additive]
 lemma _root_.is_compact.haar_lt_top {K : set G} (hK : is_compact K) :
-  μ K < ⊤ :=
+  μ K < ∞ :=
 is_haar_measure.compact_lt_top K hK
 
 @[to_additive]

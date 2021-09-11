@@ -49,8 +49,8 @@ namespace measure_theory
 finite measures. -/
 @[ext] structure jordan_decomposition (α : Type*) [measurable_space α] :=
 (pos_part neg_part : measure α)
-[pos_part_finite : finite_measure pos_part]
-[neg_part_finite : finite_measure neg_part]
+[pos_part_finite : is_finite_measure pos_part]
+[neg_part_finite : is_finite_measure neg_part]
 (mutually_singular : pos_part ⊥ₘ neg_part)
 
 attribute [instance] jordan_decomposition.pos_part_finite
@@ -121,7 +121,7 @@ namespace signed_measure
 
 open measure vector_measure jordan_decomposition classical
 
-variables {s : signed_measure α} {μ ν : measure α} [finite_measure μ] [finite_measure ν]
+variables {s : signed_measure α} {μ ν : measure α} [is_finite_measure μ] [is_finite_measure ν]
 
 /-- Given a signed measure `s`, `s.to_jordan_decomposition` is the Jordan decomposition `j`,
 such that `s = j.to_signed_measure`. This property is known as the Jordan decomposition
@@ -374,6 +374,99 @@ lemma to_jordan_decomposition_neg (s : signed_measure α) :
 begin
   apply to_signed_measure_injective,
   simp [to_signed_measure_neg],
+end
+
+/-- The total variation of a signed measure. -/
+def total_variation (s : signed_measure α) : measure α :=
+s.to_jordan_decomposition.pos_part + s.to_jordan_decomposition.neg_part
+
+lemma total_variation_zero : (0 : signed_measure α).total_variation = 0 :=
+by simp [total_variation, to_jordan_decomposition_zero]
+
+lemma total_variation_neg (s : signed_measure α) : (-s).total_variation = s.total_variation :=
+by simp [total_variation, to_jordan_decomposition_neg, add_comm]
+
+lemma null_of_total_variation_zero (s : signed_measure α) {i : set α}
+  (hs : s.total_variation i = 0) : s i = 0 :=
+begin
+  rw [total_variation, measure.coe_add, pi.add_apply, add_eq_zero_iff] at hs,
+  rw [← to_signed_measure_to_jordan_decomposition s, to_signed_measure, vector_measure.coe_sub,
+      pi.sub_apply, measure.to_signed_measure_apply, measure.to_signed_measure_apply],
+  by_cases hi : measurable_set i,
+  { rw [if_pos hi, if_pos hi], simp [hs.1, hs.2] },
+  { simp [if_neg hi] }
+end
+
+lemma absolutely_continuous_ennreal_iff (s : signed_measure α) (μ : vector_measure α ℝ≥0∞) :
+  s ≪ μ ↔ s.total_variation ≪ μ.ennreal_to_measure :=
+begin
+  split; intro h,
+  { refine measure.absolutely_continuous.mk (λ S hS₁ hS₂, _),
+    obtain ⟨i, hi₁, hi₂, hi₃, hpos, hneg⟩ := s.to_jordan_decomposition_spec,
+    rw [total_variation, measure.add_apply, hpos, hneg,
+        to_measure_of_zero_le_apply _ _ _ hS₁, to_measure_of_le_zero_apply _ _ _ hS₁],
+    rw ← vector_measure.absolutely_continuous.ennreal_to_measure at h,
+    simp [h (measure_mono_null (i.inter_subset_right S) hS₂),
+          h (measure_mono_null (iᶜ.inter_subset_right S) hS₂)],
+    refl },
+  { refine vector_measure.absolutely_continuous.mk (λ S hS₁ hS₂, _),
+    rw ← vector_measure.ennreal_to_measure_apply hS₁ at hS₂,
+    exact null_of_total_variation_zero s (h hS₂) }
+end
+
+lemma total_variation_absolutely_continuous_iff (s : signed_measure α) (μ : measure α) :
+  s.total_variation ≪ μ ↔
+  s.to_jordan_decomposition.pos_part ≪ μ ∧ s.to_jordan_decomposition.neg_part ≪ μ :=
+begin
+  split; intro h,
+  { split, all_goals
+    { refine measure.absolutely_continuous.mk (λ S hS₁ hS₂, _),
+      have := h hS₂,
+      rw [total_variation, measure.add_apply, add_eq_zero_iff] at this },
+    exacts [this.1, this.2] },
+  { refine measure.absolutely_continuous.mk (λ S hS₁ hS₂, _),
+    rw [total_variation, measure.add_apply, h.1 hS₂, h.2 hS₂, add_zero] }
+end
+
+-- TODO: Generalize to vector measures once total variation on vector measures is defined
+lemma mutually_singular_iff (s t : signed_measure α) :
+  s ⊥ᵥ t ↔ s.total_variation ⊥ₘ t.total_variation :=
+begin
+  split,
+  { rintro ⟨u, hmeas, hu₁, hu₂⟩,
+    obtain ⟨i, hi₁, hi₂, hi₃, hipos, hineg⟩ := s.to_jordan_decomposition_spec,
+    obtain ⟨j, hj₁, hj₂, hj₃, hjpos, hjneg⟩ := t.to_jordan_decomposition_spec,
+    refine ⟨u, hmeas, _, _⟩,
+    { rw [total_variation, measure.add_apply, hipos, hineg,
+      to_measure_of_zero_le_apply _ _ _ hmeas, to_measure_of_le_zero_apply _ _ _ hmeas],
+      simpa [hu₁ _ (set.inter_subset_right _ _)] },
+    { rw [total_variation, measure.add_apply, hjpos, hjneg,
+          to_measure_of_zero_le_apply _ _ _ hmeas.compl,
+          to_measure_of_le_zero_apply _ _ _ hmeas.compl],
+      simpa [hu₂ _ (set.inter_subset_right _ _)] } },
+  { rintro ⟨u, hmeas, hu₁, hu₂⟩,
+    exact ⟨u, hmeas,
+      (λ t htu, null_of_total_variation_zero _ (measure_mono_null htu hu₁)),
+      (λ t htv, null_of_total_variation_zero _ (measure_mono_null htv hu₂))⟩ }
+end
+
+lemma mutually_singular_ennreal_iff (s : signed_measure α) (μ : vector_measure α ℝ≥0∞) :
+  s ⊥ᵥ μ ↔ s.total_variation ⊥ₘ μ.ennreal_to_measure :=
+begin
+  split,
+  { rintro ⟨u, hmeas, hu₁, hu₂⟩,
+    obtain ⟨i, hi₁, hi₂, hi₃, hpos, hneg⟩ := s.to_jordan_decomposition_spec,
+    refine ⟨u, hmeas, _, _⟩,
+    { rw [total_variation, measure.add_apply, hpos, hneg,
+          to_measure_of_zero_le_apply _ _ _ hmeas, to_measure_of_le_zero_apply _ _ _ hmeas],
+      simpa [hu₁ _ (set.inter_subset_right _ _)] },
+    { rw vector_measure.ennreal_to_measure_apply hmeas.compl,
+      exact hu₂ _ (set.subset.refl _) } },
+  { rintro ⟨u, hmeas, hu₁, hu₂⟩,
+    refine vector_measure.mutually_singular.mk u hmeas
+      (λ t htu _, null_of_total_variation_zero _ (measure_mono_null htu hu₁)) (λ t htv hmt, _),
+    rw ← vector_measure.ennreal_to_measure_apply hmt,
+    exact measure_mono_null htv hu₂ }
 end
 
 end signed_measure

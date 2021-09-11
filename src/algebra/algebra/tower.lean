@@ -168,7 +168,7 @@ def subalgebra.restrict_scalars (iSB : subalgebra S A) :
     rw is_scalar_tower.algebra_map_eq R S,
     exact iSB.algebra_map_mem' _,
   end,
-  .. iSB.to_submodule.restrict_scalars R  }
+  .. iSB.to_submodule.restrict_scalars R }
 
 namespace alg_hom
 

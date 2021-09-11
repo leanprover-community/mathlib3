@@ -3,7 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import data.matrix.basic
+import data.matrix.basis
 import ring_theory.tensor_product
 
 /-!
@@ -21,7 +21,7 @@ open matrix
 
 variables {R : Type u} [comm_semiring R]
 variables {A : Type v} [semiring A] [algebra R A]
-variables {n : Type w} [fintype n]
+variables {n : Type w}
 
 
 variables (R A n)
@@ -68,7 +68,7 @@ as an `R`-linear map.
 def to_fun_linear : A ⊗[R] matrix n n R →ₗ[R] matrix n n A :=
 tensor_product.lift (to_fun_bilinear R A n)
 
-variables [decidable_eq n]
+variables [decidable_eq n] [fintype n]
 
 /--
 The function `(A ⊗[R] matrix n n R) →ₐ[R] matrix n n A`, as an algebra homomorphism.
@@ -158,7 +158,7 @@ def equiv : (A ⊗[R] matrix n n R) ≃ matrix n n A :=
 
 end matrix_equiv_tensor
 
-variables [decidable_eq n]
+variables [fintype n] [decidable_eq n]
 
 /--
 The `R`-algebra isomorphism `matrix n n A ≃ₐ[R] (A ⊗[R] matrix n n R)`.
@@ -177,7 +177,7 @@ rfl
   matrix_equiv_tensor R A n (std_basis_matrix i j x) =
     x ⊗ₜ (std_basis_matrix i j 1) :=
 begin
-  have t : ∀ (p : n × n), (p.1 = i ∧ p.2 = j) ↔ (p = (i, j)) := by tidy,
+  have t : ∀ (p : n × n), (i = p.1 ∧ j = p.2) ↔ (p = (i, j)) := by tidy,
   simp [ite_tmul, t, std_basis_matrix],
 end
 

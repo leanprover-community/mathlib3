@@ -605,7 +605,7 @@ lemma preimage_inv_fun_of_mem [n : nonempty α] {f : α → β} (hf : injective 
 begin
   ext x,
   rcases em (x ∈ range f) with ⟨a, rfl⟩|hx,
-  { simp [left_inverse_inv_fun hf _, mem_image_of_injective hf] },
+  { simp [left_inverse_inv_fun hf _, hf.mem_set_image] },
   { simp [mem_preimage, inv_fun_neg hx, h, hx] }
 end
 
@@ -614,12 +614,28 @@ lemma preimage_inv_fun_of_not_mem [n : nonempty α] {f : α → β} (hf : inject
 begin
   ext x,
   rcases em (x ∈ range f) with ⟨a, rfl⟩|hx,
-  { rw [mem_preimage, left_inverse_inv_fun hf, mem_image_of_injective hf] },
+  { rw [mem_preimage, left_inverse_inv_fun hf, hf.mem_set_image] },
   { have : x ∉ f '' s, from λ h', hx (image_subset_range _ _ h'),
     simp only [mem_preimage, inv_fun_neg hx, h, this] },
 end
 
 end set
+
+/-! ### Monotone -/
+
+namespace monotone
+
+variables [preorder α] [preorder β] {f : α → β}
+
+protected lemma restrict (h : monotone f) (s : set α) : monotone (s.restrict f) :=
+λ x y hxy, h hxy
+
+protected lemma cod_restrict (h : monotone f) {s : set β} (hs : ∀ x, f x ∈ s) :
+  monotone (s.cod_restrict f hs) := h
+
+protected lemma range_factorization (h : monotone f) : monotone (set.range_factorization f) := h
+
+end monotone
 
 /-! ### Piecewise defined function -/
 

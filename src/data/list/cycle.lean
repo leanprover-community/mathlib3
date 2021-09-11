@@ -588,6 +588,22 @@ The lift of `list.map`.
 def map {β : Type*} (f : α → β) : cycle α → cycle β :=
 quotient.map' (list.map f) $ λ l₁ l₂ h, h.map _
 
+/--
+The `multiset` of lists that can make the cycle.
+-/
+def lists (s : cycle α) : multiset (list α) :=
+quotient.lift_on' s
+  (λ l, (l.cyclic_permutations : multiset (list α))) $
+  λ l₁ l₂ (h : l₁ ~r l₂), by simpa using h.cyclic_permutations.perm
+
+@[simp] lemma mem_lists_iff_coe_eq {s : cycle α} {l : list α} :
+  l ∈ s.lists ↔ (l : cycle α) = s :=
+begin
+  induction s using quotient.induction_on',
+  rw [lists, quotient.lift_on'_mk'],
+  simp
+end
+
 section decidable
 
 variable [decidable_eq α]
@@ -622,22 +638,6 @@ instance fintype_nodup_nontrivial_cycle [fintype α] :
 fintype.subtype (((finset.univ : finset {s : cycle α // s.nodup}).map
   (function.embedding.subtype _)).filter cycle.nontrivial)
   (by simp)
-
-/--
-The `multiset` of lists that can make the cycle.
--/
-def lists (s : cycle α) : multiset (list α) :=
-quotient.lift_on' s
-  (λ l, (l.permutations.filter (λ (l' : list α), (l' : cycle α) = s) : multiset (list α))) $
-  λ l₁ l₂ (h : l₁ ~r l₂), by simpa using perm.filter _ h.perm.permutations
-
-@[simp] lemma mem_lists_iff_coe_eq {s : cycle α} {l : list α} :
-  l ∈ s.lists ↔ (l : cycle α) = s :=
-begin
-  induction s using quotient.induction_on',
-  rw [lists, quotient.lift_on'_mk'],
-  simpa using is_rotated.perm
-end
 
 /--
 The `s : cycle α` as a `finset α`.

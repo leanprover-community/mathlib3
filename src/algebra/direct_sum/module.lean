@@ -5,7 +5,7 @@ Authors: Kenny Lau
 
 Direct sum of modules over commutative rings, indexed by a discrete type.
 -/
-import algebra.direct_sum
+import algebra.direct_sum.basic
 import linear_algebra.dfinsupp
 
 /-!
@@ -56,6 +56,9 @@ dfinsupp.lmk
 /-- Inclusion of each component into the direct sum. -/
 def lof : Π i : ι, M i →ₗ[R] (⨁ i, M i) :=
 dfinsupp.lsingle
+
+lemma lof_eq_of (i : ι) (b : M i) : lof R ι M i b = of M i b := rfl
+
 variables {ι M}
 
 lemma single_eq_lof (i : ι) (b : M i) :
@@ -103,16 +106,20 @@ to_add_monoid.unique ψ.to_add_monoid_hom f
 
 variables {ψ} {ψ' : (⨁ i, M i) →ₗ[R] N}
 
-theorem to_module.ext (H : ∀ i, ψ.comp (lof R ι M i) = ψ'.comp (lof R ι M i)) (f : ⨁ i, M i) :
-  ψ f = ψ' f :=
-by rw dfinsupp.lhom_ext' H
+/-- Two `linear_map`s out of a direct sum are equal if they agree on the generators.
+
+See note [partially-applied ext lemmas]. -/
+@[ext]
+theorem linear_map_ext ⦃ψ ψ' : (⨁ i, M i) →ₗ[R] N⦄
+  (H : ∀ i, ψ.comp (lof R ι M i) = ψ'.comp (lof R ι M i)) : ψ = ψ' :=
+dfinsupp.lhom_ext' H
 
 /--
 The inclusion of a subset of the direct summands
 into a larger subset of the direct summands, as a linear map.
 -/
 def lset_to_set (S T : set ι) (H : S ⊆ T) :
-  (⨁ (i : S), M i) →ₗ (⨁ (i : T), M i) :=
+  (⨁ (i : S), M i) →ₗ[R] (⨁ (i : T), M i) :=
 to_module R _ _ $ λ i, lof R T (λ (i : subtype T), M i) ⟨i, H i.prop⟩
 
 omit dec_ι
@@ -120,7 +127,7 @@ omit dec_ι
 /-- The natural linear equivalence between `⨁ _ : ι, M` and `M` when `unique ι`. -/
 protected def lid (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [module R M]
   [unique ι] :
-  (⨁ (_ : ι), M) ≃ₗ M :=
+  (⨁ (_ : ι), M) ≃ₗ[R] M :=
 { .. direct_sum.id M ι,
   .. to_module R ι M (λ i, linear_map.id) }
 

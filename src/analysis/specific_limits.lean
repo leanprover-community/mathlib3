@@ -404,10 +404,8 @@ begin
   { rw [ennreal.sub_eq_zero_of_le hr, ennreal.inv_zero, ennreal.tsum_eq_supr_nat, supr_eq_top],
     refine λ a ha, (ennreal.exists_nat_gt (lt_top_iff_ne_top.1 ha)).imp
       (λ n hn, lt_of_lt_of_le hn _),
-    have : ∀ k:ℕ, 1 ≤ r^k,
-      by simpa using canonically_ordered_comm_semiring.pow_le_pow_of_le_left hr,
-    calc (n:ℝ≥0∞) = (∑ i in range n, 1) : by rw [sum_const, nsmul_one, card_range]
-    ... ≤ ∑ i in range n, r ^ i : sum_le_sum (λ k _, this k) }
+    calc (n:ℝ≥0∞) = ∑ i in range n, 1     : by rw [sum_const, nsmul_one, card_range]
+              ... ≤ ∑ i in range n, r ^ i : sum_le_sum (λ k _, one_le_pow_of_one_le' hr k) }
 end
 
 variables {K : Type*} [normed_field K] {ξ : K}
@@ -900,6 +898,28 @@ begin
   refine ⟨c, hg, has_sum_le_inj _ (@encodable.encode_injective ι _) _ _ hg hf⟩,
   { assume i _, exact le_of_lt (f0 _) },
   { assume n, exact le_refl _ }
+end
+
+lemma set.countable.exists_pos_has_sum_le {ι : Type*} {s : set ι} (hs : s.countable)
+  {ε : ℝ} (hε : 0 < ε) :
+  ∃ ε' : ι → ℝ, (∀ i, 0 < ε' i) ∧ ∃ c, has_sum (λ i : s, ε' i) c ∧ c ≤ ε :=
+begin
+  haveI := hs.to_encodable,
+  rcases pos_sum_of_encodable hε s with ⟨f, hf0, ⟨c, hfc, hcε⟩⟩,
+  refine ⟨λ i, if h : i ∈ s then f ⟨i, h⟩ else 1, λ i, _, ⟨c, _, hcε⟩⟩,
+  { split_ifs, exacts [hf0 _, zero_lt_one] },
+  { simpa only [subtype.coe_prop, dif_pos, subtype.coe_eta] }
+end
+
+lemma set.countable.exists_pos_forall_sum_le {ι : Type*} {s : set ι} (hs : s.countable)
+  {ε : ℝ} (hε : 0 < ε) :
+  ∃ ε' : ι → ℝ, (∀ i, 0 < ε' i) ∧ ∀ t : finset ι, ↑t ⊆ s → ∑ i in t, ε' i ≤ ε :=
+begin
+  rcases hs.exists_pos_has_sum_le hε with ⟨ε', hpos, c, hε'c, hcε⟩,
+  refine ⟨ε', hpos, λ t ht, _⟩,
+  rw [← sum_subtype_of_mem _ ht],
+  refine (sum_le_has_sum _ _ hε'c).trans hcε,
+  exact λ _ _, (hpos _).le
 end
 
 namespace nnreal

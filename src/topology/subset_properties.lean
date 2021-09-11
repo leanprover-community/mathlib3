@@ -420,7 +420,7 @@ begin
     { intros i j,
       rcases hV i j with ⟨k, hki, hkj⟩,
       use k,
-      split ; intro x ; simp only [and_imp, mem_inter_eq, mem_compl_eq] ; tauto  } },
+      split ; intro x ; simp only [and_imp, mem_inter_eq, mem_compl_eq] ; tauto } },
   have : ¬ (⋂ (i : ι), V i) ⊆ W,
     by simpa [← Inter_inter, inter_compl_nonempty_iff],
   contradiction

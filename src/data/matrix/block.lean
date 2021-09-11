@@ -17,9 +17,7 @@ import data.matrix.basic
 * `matrix.block_diagonal'`: block diagonal of unequally sized blocks
 -/
 
-variables {l m n o : Type*} [fintype l] [fintype m] [fintype n] [fintype o]
-variables {m' : o → Type*} [∀ i, fintype (m' i)]
-variables {n' : o → Type*} [∀ i, fintype (n' i)]
+variables {l m n o : Type*} {m' : o → Type*} {n' : o → Type*}
 variables {R : Type*} {S : Type*} {α : Type*} {β : Type*}
 
 open_locale matrix
@@ -122,14 +120,17 @@ begin
   simp only [conj_transpose, from_blocks_transpose, from_blocks_map]
 end
 
+/-- A 2x2 block matrix is block diagonal if the blocks outside of the diagonal vanish -/
+def is_two_block_diagonal [has_zero α] (A : matrix (n ⊕ o) (l ⊕ m) α) : Prop :=
+to_blocks₁₂ A = 0 ∧ to_blocks₂₁ A = 0
+
 /-- Let `p` pick out certain rows and `q` pick out certain columns of a matrix `M`. Then
   `to_block M p q` is the corresponding block matrix. -/
-def to_block (M : matrix m n α) (p : m → Prop) [decidable_pred p]
-  (q : n → Prop) [decidable_pred q] : matrix {a // p a} {a // q a} α := M.minor coe coe
+def to_block (M : matrix m n α) (p : m → Prop) (q : n → Prop) :
+  matrix {a // p a} {a // q a} α := M.minor coe coe
 
-@[simp] lemma to_block_apply (M : matrix m n α) (p : m → Prop) [decidable_pred p]
-  (q : n → Prop) [decidable_pred q] (i : {a // p a}) (j : {a // q a}) :
-  to_block M p q i j = M ↑i ↑j := rfl
+@[simp] lemma to_block_apply (M : matrix m n α) (p : m → Prop) (q : n → Prop)
+  (i : {a // p a}) (j : {a // q a}) : to_block M p q i j = M ↑i ↑j := rfl
 
 /-- Let `b` map rows and columns of a square matrix `M` to blocks. Then
   `to_square_block M b k` is the block `k` matrix. -/
@@ -149,10 +150,10 @@ def to_square_block' (M : matrix m m α) (b : m → nat) (k : nat) :
 
 /-- Let `p` pick out certain rows and columns of a square matrix `M`. Then
   `to_square_block_prop M p` is the corresponding block matrix. -/
-def to_square_block_prop (M : matrix m m α) (p : m → Prop) [decidable_pred p] :
+def to_square_block_prop (M : matrix m m α) (p : m → Prop) :
   matrix {a // p a} {a // p a} α := M.minor coe coe
 
-@[simp] lemma to_square_block_prop_def (M : matrix m m α) (p : m → Prop) [decidable_pred p] :
+@[simp] lemma to_square_block_prop_def (M : matrix m m α) (p : m → Prop) :
   to_square_block_prop M p = λ i j, M ↑i ↑j := rfl
 
 variables [semiring α]
@@ -174,7 +175,7 @@ begin
   ext i j, rcases i; rcases j; refl,
 end
 
-lemma from_blocks_multiply {p q : Type*} [fintype p] [fintype q]
+lemma from_blocks_multiply {p q : Type*} [fintype l] [fintype m]
   (A  : matrix n l α) (B  : matrix n m α) (C  : matrix o l α) (D  : matrix o m α)
   (A' : matrix l p α) (B' : matrix l q α) (C' : matrix m p α) (D' : matrix m q α) :
   (from_blocks A B C D) ⬝ (from_blocks A' B' C' D') =
@@ -294,7 +295,8 @@ end
   block_diagonal (M - N) = block_diagonal M - block_diagonal N :=
 by simp [sub_eq_add_neg]
 
-@[simp] lemma block_diagonal_mul {p : Type*} [fintype p] [semiring α] (N : o → matrix n p α) :
+@[simp] lemma block_diagonal_mul {p : Type*} [fintype n] [fintype o] [semiring α]
+  (N : o → matrix n p α) :
   block_diagonal (λ k, M k ⬝ N k) = block_diagonal M ⬝ block_diagonal N :=
 begin
   ext ⟨i, k⟩ ⟨j, k'⟩,
@@ -415,7 +417,7 @@ end
   block_diagonal' (M - N) = block_diagonal' M - block_diagonal' N :=
 by simp [sub_eq_add_neg]
 
-@[simp] lemma block_diagonal'_mul {p : o → Type*} [Π i, fintype (p i)] [semiring α]
+@[simp] lemma block_diagonal'_mul {p : o → Type*} [semiring α] [Π i, fintype (n' i)] [fintype o]
   (N : Π i, matrix (n' i) (p i) α) :
     block_diagonal' (λ k, M k ⬝ N k) = block_diagonal' M ⬝ block_diagonal' N :=
 begin

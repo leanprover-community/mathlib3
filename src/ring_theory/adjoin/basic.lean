@@ -71,6 +71,9 @@ variables (R A)
 @[simp] theorem adjoin_empty : adjoin R (∅ : set A) = ⊥ :=
 show adjoin R ⊥ = ⊥, by { apply galois_connection.l_bot, exact algebra.gc }
 
+@[simp] theorem adjoin_univ : adjoin R (set.univ : set A) = ⊤ :=
+eq_top_iff.2 $ λ x, subset_adjoin $ set.mem_univ _
+
 variables (R) {A} (s)
 
 theorem adjoin_eq_span : (adjoin R s).to_submodule = span R (submonoid.closure s) :=

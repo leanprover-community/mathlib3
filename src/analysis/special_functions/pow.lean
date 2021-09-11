@@ -923,14 +923,14 @@ times_cont_diff_at.has_strict_deriv_at'
 
 section sqrt
 
-lemma sqrt_eq_rpow : sqrt = λx:ℝ, x ^ (1/(2:ℝ)) :=
+lemma sqrt_eq_rpow (x : ℝ) : sqrt x = x ^ (1/(2:ℝ)) :=
 begin
-  funext, by_cases h : 0 ≤ x,
-  { rw [← mul_self_inj_of_nonneg, mul_self_sqrt h, ← sq, ← rpow_nat_cast, ← rpow_mul h],
-    norm_num, exact sqrt_nonneg _, exact rpow_nonneg_of_nonneg h _ },
-  { replace h : x < 0 := lt_of_not_ge h,
-    have : 1 / (2:ℝ) * π = π / (2:ℝ), ring,
-    rw [sqrt_eq_zero_of_nonpos (le_of_lt h), rpow_def_of_neg h, this, cos_pi_div_two, mul_zero] }
+  obtain h | h := le_or_lt 0 x,
+  { rw [← mul_self_inj_of_nonneg (sqrt_nonneg _) (rpow_nonneg_of_nonneg h _), mul_self_sqrt h,
+      ← sq, ← rpow_nat_cast, ← rpow_mul h],
+    norm_num },
+  { have : 1 / (2:ℝ) * π = π / (2:ℝ), ring,
+    rw [sqrt_eq_zero_of_nonpos h.le, rpow_def_of_neg h, this, cos_pi_div_two, mul_zero] }
 end
 
 end sqrt
@@ -1250,6 +1250,13 @@ nnreal.eq $ real.inv_rpow x.2 y
 
 lemma div_rpow (x y : ℝ≥0) (z : ℝ) : (x / y) ^ z = x ^ z / y ^ z :=
 nnreal.eq $ real.div_rpow x.2 y.2 z
+
+lemma sqrt_eq_rpow (x : ℝ≥0) : sqrt x = x ^ (1/(2:ℝ)) :=
+begin
+  refine nnreal.eq _,
+  push_cast,
+  exact real.sqrt_eq_rpow x.1,
+end
 
 @[simp, norm_cast] lemma rpow_nat_cast (x : ℝ≥0) (n : ℕ) : x ^ (n : ℝ) = x ^ n :=
 nnreal.eq $ by simpa only [coe_rpow, coe_pow] using real.rpow_nat_cast x n

@@ -145,7 +145,7 @@ is_pi_system_measurable_set.prod is_pi_system_measurable_set
 
 /-- If `ν` is a finite measure, and `s ⊆ α × β` is measurable, then `x ↦ ν { y | (x, y) ∈ s }` is
   a measurable function. `measurable_measure_prod_mk_left` is strictly more general. -/
-lemma measurable_measure_prod_mk_left_finite [finite_measure ν] {s : set (α × β)}
+lemma measurable_measure_prod_mk_left_finite [is_finite_measure ν] {s : set (α × β)}
   (hs : measurable_set s) : measurable (λ x, ν (prod.mk x ⁻¹' s)) :=
 begin
   refine induction_on_inter generate_from_prod.symm is_pi_system_prod _ _ _ _ hs,

@@ -192,9 +192,9 @@ ext' $ preimage_comp.symm
 Constructs an ordered module given an `ordered_add_comm_group`, a cone, and a proof that
 the order relation is the one defined by the cone.
 -/
-lemma to_ordered_module {M : Type*} [ordered_add_comm_group M] [module ℝ M]
-  (S : convex_cone M) (h : ∀ x y : M, x ≤ y ↔ y - x ∈ S) : ordered_module ℝ M :=
-ordered_module.mk'
+lemma to_ordered_smul {M : Type*} [ordered_add_comm_group M] [module ℝ M]
+  (S : convex_cone M) (h : ∀ x y : M, x ≤ y ↔ y - x ∈ S) : ordered_smul ℝ M :=
+ordered_smul.mk'
 begin
   intros x y z xy hz,
   rw [h (z • x) (z • y), ←smul_sub z y x],
@@ -275,7 +275,7 @@ def to_ordered_add_comm_group (S : convex_cone E) (h₁ : pointed S) (h₂ : sal
 /-! ### Positive cone of an ordered module -/
 section positive_cone
 
-variables (M : Type*) [ordered_add_comm_group M] [module ℝ M] [ordered_module ℝ M]
+variables (M : Type*) [ordered_add_comm_group M] [module ℝ M] [ordered_smul ℝ M]
 
 /--
 The positive cone is the convex cone formed by the set of nonnegative elements in an ordered
@@ -487,7 +487,7 @@ theorem riesz_extension (s : convex_cone E) (f : linear_pmap ℝ E ℝ)
 begin
   rcases riesz_extension.exists_top s f nonneg dense with ⟨⟨g_dom, g⟩, ⟨hpg, hfg⟩, htop, hgs⟩,
   clear hpg,
-  refine ⟨g.comp (linear_equiv.of_top _ htop).symm, _, _⟩;
+  refine ⟨g ∘ₗ ↑(linear_equiv.of_top _ htop).symm, _, _⟩;
     simp only [comp_apply, linear_equiv.coe_coe, linear_equiv.of_top_symm_apply],
   { exact λ x, (hfg (submodule.coe_mk _ _).symm).symm },
   { exact λ x hx, hgs ⟨x, _⟩ hx }
@@ -517,7 +517,7 @@ begin
   { intros x y,
     simpa only [subtype.coe_mk, subtype.coe_eta] using g_eq ⟨(x, y), ⟨x.2, trivial⟩⟩ },
   { refine ⟨-g.comp (inl ℝ E ℝ), _, _⟩; simp only [neg_apply, inl_apply, comp_apply],
-    { intro x, simp  [g_eq x 0] },
+    { intro x, simp [g_eq x 0] },
     { intro x,
       have A : (x, N x) = (x, 0) + (0, N x), by simp,
       have B := g_nonneg ⟨x, N x⟩ (le_refl (N x)),

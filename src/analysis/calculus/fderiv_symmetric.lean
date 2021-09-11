@@ -52,7 +52,7 @@ open_locale topological_space
 
 variables {E F : Type*} [normed_group E] [normed_space ℝ E]
 [normed_group F] [normed_space ℝ F]
-{s : set E} (s_conv : convex 𝕜 s)
+{s : set E} (s_conv : convex ℝ s)
 {f : E → F} {f' : E → (E →L[ℝ] F)} {f'' : E →L[ℝ] (E →L[ℝ] F)}
 (hf : ∀ x ∈ interior s, has_fderiv_at f (f' x) x)
 {x : E} (xs : x ∈ s) (hx : has_fderiv_within_at f' f'' (interior s) x)
@@ -283,7 +283,7 @@ omit s_conv xs hx hf
 /-- If a function is differentiable inside a convex set with nonempty interior, and has a second
 derivative at a point of this convex set, then this second derivative is symmetric. -/
 theorem convex.second_derivative_within_at_symmetric
-  {s : set E} (s_conv : convex 𝕜 s) (hne : (interior s).nonempty)
+  {s : set E} (s_conv : convex ℝ s) (hne : (interior s).nonempty)
   {f : E → F} {f' : E → (E →L[ℝ] F)} {f'' : E →L[ℝ] (E →L[ℝ] F)}
   (hf : ∀ x ∈ interior s, has_fderiv_at f (f' x) x)
   {x : E} (xs : x ∈ s) (hx : has_fderiv_within_at f' f'' (interior s) x) (v w : E) :

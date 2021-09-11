@@ -73,9 +73,9 @@ let ⟨c, cmem, hc⟩ := exists_has_deriv_within_at_eq_of_gt_of_lt hab (λ x hx,
 in ⟨c, cmem, neg_injective hc⟩
 
 /-- **Darboux's theorem**: the image of a convex set under `f'` is a convex set. -/
-theorem convex_image_has_deriv_at {s : set ℝ} (hs : convex 𝕜 s)
+theorem convex_image_has_deriv_at {s : set ℝ} (hs : convex ℝ s)
   (hf : ∀ x ∈ s, has_deriv_at f (f' x) x) :
-  convex 𝕜 (f' '' s) :=
+  convex ℝ (f' '' s) :=
 begin
   refine ord_connected.convex _,
   rintros _ ⟨a, ha, rfl⟩ _ ⟨b, hb, rfl⟩ m ⟨hma, hmb⟩,
@@ -98,7 +98,7 @@ end
 
 /-- If the derivative of a function is never equal to `m`, then either
 it is always greater than `m`, or it is always less than `m`. -/
-theorem deriv_forall_lt_or_forall_gt_of_forall_ne {s : set ℝ} (hs : convex 𝕜 s)
+theorem deriv_forall_lt_or_forall_gt_of_forall_ne {s : set ℝ} (hs : convex ℝ s)
   (hf : ∀ x ∈ s, has_deriv_at f (f' x) x) {m : ℝ} (hf' : ∀ x ∈ s, f' x ≠ m) :
   (∀ x ∈ s, f' x < m) ∨ (∀ x ∈ s, m < f' x) :=
 begin

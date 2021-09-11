@@ -41,11 +41,11 @@ import data.prod
 
 - `monotone_nat_of_le_succ`: If `f : ℕ → α` and `f n ≤ f (n + 1)` for all `n`, then `f` is
   monotone.
-- `antitone_nat_of_le_succ`: If `f : ℕ → α` and `f (n + 1) ≤ f n` for all `n`, then `f` is
+- `antitone_nat_of_succ_le`: If `f : ℕ → α` and `f (n + 1) ≤ f n` for all `n`, then `f` is
   antitone.
 - `strict_mono_nat_of_lt_succ`: If `f : ℕ → α` and `f n < f (n + 1)` for all `n`, then `f` is
   strictly monotone.
-- `strict_anti_nat_of_lt_succ`: If `f : ℕ → α` and `f (n + 1) < f n` for all `n`, then `f` is
+- `strict_anti_nat_of_succ_lt`: If `f : ℕ → α` and `f (n + 1) < f n` for all `n`, then `f` is
   strictly antitone.
 
 ## TODO
@@ -449,7 +449,6 @@ protected lemma strict_anti_on [has_lt α] [has_lt β] {f : α → β} (hf : str
   (s : set α) :
   strict_anti_on f s :=
 λ x hx y hy hxy, hf hxy
-
 
 lemma comp [has_lt α] [has_lt β] [has_lt γ] {g : β → γ} {f : α → β}
   (hg : strict_anti g) (hf : strict_anti f) :

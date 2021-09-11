@@ -948,7 +948,7 @@ by simpa only [zero_mul, sub_lt_zero] using hD.image_sub_lt_mul_sub_of_deriv_lt 
 `f` is a strictly monotonically decreasing function. -/
 theorem strict_anti_of_deriv_neg {f : ℝ → ℝ} (hf : differentiable ℝ f)
   (hf' : ∀ x, deriv f x < 0) :
-  strict_anti f y < f x :=
+  strict_anti f :=
 λ x y hxy, convex_univ.strict_anti_on_of_deriv_neg hf.continuous.continuous_on hf.differentiable_on
   (λ x _, hf' x) x y trivial trivial hxy
 

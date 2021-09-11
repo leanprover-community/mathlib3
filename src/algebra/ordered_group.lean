@@ -576,8 +576,9 @@ alias le_sub_iff_add_le ↔ add_le_of_le_sub_right le_sub_right_of_add_le
 lemma div_le_iff_le_mul : a / c ≤ b ↔ a ≤ b * c :=
 by rw [← mul_le_mul_iff_right c, div_eq_mul_inv, inv_mul_cancel_right]
 
-/-- `equiv.mul_right` as an `order_iso`. -/
-@[to_additive "`equiv.add_right` as an `order_iso`.", simps to_equiv apply {simp_rhs := tt}]
+/-- `equiv.mul_right` as an `order_iso`. See also `order_embedding.mul_right`. -/
+@[to_additive "`equiv.add_right` as an `order_iso`. See also `order_embedding.add_right`.",
+  simps to_equiv apply {simp_rhs := tt}]
 def order_iso.mul_right (a : α) : α ≃o α :=
 { map_rel_iff' := λ _ _, mul_le_mul_iff_right a, to_equiv := equiv.mul_right a }
 
@@ -590,8 +591,9 @@ end right
 section left
 variables [covariant_class α α (*) (≤)]
 
-/-- `equiv.mul_left` as an `order_iso`. -/
-@[to_additive "`equiv.add_left` as an `order_iso`.", simps to_equiv apply  {simp_rhs := tt}]
+/-- `equiv.mul_left` as an `order_iso`. See also `order_embedding.mul_left`. -/
+@[to_additive "`equiv.add_left` as an `order_iso`. See also `order_embedding.add_left`.",
+  simps to_equiv apply  {simp_rhs := tt}]
 def order_iso.mul_left (a : α) : α ≃o α :=
 { map_rel_iff' := λ _ _, mul_le_mul_iff_left a, to_equiv := equiv.mul_left a }
 

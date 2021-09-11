@@ -395,10 +395,10 @@ sub_right_injective.eq_iff
 @[simp] lemma sub_left_inj : b - a = c - a ↔ b = c :=
 by { rw [sub_eq_add_neg, sub_eq_add_neg], exact add_left_inj _ }
 
-lemma sub_add_sub_cancel (a b c : G) : (a - b) + (b - c) = a - c :=
+@[simp] lemma sub_add_sub_cancel (a b c : G) : (a - b) + (b - c) = a - c :=
 by rw [← add_sub_assoc, sub_add_cancel]
 
-lemma sub_sub_sub_cancel_right (a b c : G) : (a - c) - (b - c) = a - b :=
+@[simp] lemma sub_sub_sub_cancel_right (a b c : G) : (a - c) - (b - c) = a - b :=
 by rw [← neg_sub c b, sub_neg_eq_add, sub_add_sub_cancel]
 
 theorem sub_sub_assoc_swap : a - (b - c) = a + c - b :=
@@ -505,6 +505,8 @@ lemma neg_neg_sub_neg (a b : G) : - (-a - -b) = a - b :=
 by simp
 
 @[simp] lemma sub_sub_cancel (a b : G) : a - (a - b) = b := sub_sub_self a b
+
+@[simp] lemma sub_sub_cancel_left (a b : G) : a - b - a = -b := by simp
 
 lemma sub_eq_neg_add (a b : G) : a - b = -b + a :=
 by rw [sub_eq_add_neg, add_comm _ _]

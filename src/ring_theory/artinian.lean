@@ -187,7 +187,7 @@ end
 
 /-- A module is Artinian iff every nonempty set of submodules has a minimal submodule among them.
 -/
-theorem set_has_minimal_iff_artinrian :
+theorem set_has_minimal_iff_artinian :
   (∀ a : set $ submodule R M, a.nonempty → ∃ M' ∈ a, ∀ I ∈ a, I ≤ M' → I = M') ↔
   is_artinian R M :=
 by rw [is_artinian_iff_well_founded, well_founded.well_founded_iff_has_min']

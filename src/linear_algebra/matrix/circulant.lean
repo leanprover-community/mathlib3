@@ -171,18 +171,14 @@ end
 
 /-- For a one-ary predicate `p`, `p` applied to every entry of `circulant v` is true
     if `p` applied to every entry of `v` is true. -/
-lemma pred_circulant_entry_of_pred_vec_entry [has_sub I] {p : α → Prop} {v : I → α} :
-  (∀ k, p (v k)) → ∀ i j, p ((circulant v) i j) :=
-begin
-  intros h i j,
-  simp [circulant],
-  exact h (i - j),
-end
+lemma pred_circulant_entry_of_pred_vec_entry [has_sub I]
+  {p : α → Prop} {v : I → α} (h : ∀ k, p (v k)) (i j : I) :
+  p ((circulant v) i j) := h (i - j)
 
 /-- Given a set `S`, every entry of `circulant v` is in `S` if every entry of `v` is in `S`. -/
-lemma circulant_entry_in_of_vec_entry_in [has_sub I] {S : set α} {v : I → α} :
-  (∀ k, v k ∈ S) → ∀ i j, (circulant v) i j ∈ S :=
-@pred_circulant_entry_of_pred_vec_entry α I _ (∈ S) v
+lemma circulant_entry_in_of_vec_entry_in [has_sub I]
+  {S : set α} {v : I → α} (h : ∀ k, v k ∈ S) (i j : I) :
+  (circulant v) i j ∈ S := h (i - j)
 
 /-- The circulant matrix `circulant v` is symmetric iff `∀ i j, v (j - i) = v (i - j)`. -/
 lemma circulant_is_symm_ext_iff' [has_sub I] {v : I → α} :

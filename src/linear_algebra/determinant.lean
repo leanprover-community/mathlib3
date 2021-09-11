@@ -246,10 +246,7 @@ by { haveI := classical.dec_eq ι,
 and `0` otherwise. -/
 @[simp] lemma det_zero {𝕜 : Type*} [field 𝕜] {M : Type*} [add_comm_group M] [module 𝕜 M] :
   linear_map.det (0 : M →ₗ[𝕜] M) = (0 : 𝕜) ^ (finite_dimensional.finrank 𝕜 M) :=
-begin
-  have : (0 : M →ₗ[𝕜] M) = ((0 : 𝕜) • (1 : M →ₗ[𝕜] M)), by { ext x, simp, },
-  simp only [this, det_smul, mul_one, monoid_hom.map_one]
-end
+by simp only [← zero_smul 𝕜 (1 : M →ₗ[𝕜] M), det_smul, mul_one, monoid_hom.map_one]
 
 /-- Conjugating a linear map by a linear equiv does not change its determinant. -/
 @[simp] lemma det_conj {N : Type*} [add_comm_group N] [module A N]

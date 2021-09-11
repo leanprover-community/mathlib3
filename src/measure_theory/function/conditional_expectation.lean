@@ -947,6 +947,7 @@ calc ∫ a in s, (condexp_ind_smul hm ht hμt x) a ∂μ
     (indicator_const_Lp 2 ht hμt (1 : ℝ)) hs hμs
 ... = (μ (t ∩ s)).to_real • x :
   by rw [set_integral_indicator_const_Lp (hm s hs), smul_assoc, one_smul]
+
 end condexp_ind_smul
 
 end condexp_L2

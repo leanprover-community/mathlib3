@@ -16,11 +16,11 @@ In this file, we define a `homotopy` between two functions `f₀` and `f₁`.
 
 ## Definitions
 
-* `homotopy f₀ f₁` is the type of homotopies between `f₀` and `f₁`
-* `homotopy.refl f₀` is the constant homotopy between `f₀` and `f₀`
-* `homotopy.symm f₀ f₁` is a `homotopy f₁ f₀` defined by reversing the homotopy
-* `homotopy.trans F G`, where `F : homotopy f₀ f₁`, `G : homotopy f₁ f₂` is a `homotopy f₀ f₂`
-  defined by putting the first homotopy on `[0, 1/2]` and the second on `[1/2, 1]`.
+* `continuous_map.homotopy f₀ f₁` is the type of homotopies between `f₀` and `f₁`
+* `continuous_map.homotopy.refl f₀` is the constant homotopy between `f₀` and `f₀`
+* `continuous_map.homotopy.symm` is the `homotopy f₁ f₀` defined by reversing the homotopy
+* `continuous_map.homotopy.trans F G`, where `F : homotopy f₀ f₁`, `G : homotopy f₁ f₂` is the
+  `homotopy f₀ f₂` defined by putting the first homotopy on `[0, 1/2]` and the second on `[1/2, 1]`.
 -/
 
 noncomputable theory
@@ -62,6 +62,7 @@ protected lemma continuous (F : homotopy f₀ f₁) : continuous F := F.continuo
 
 @[simp]
 lemma apply_zero (F : homotopy f₀ f₁) (x : X) : F (0, x) = f₀ x := F.to_fun_zero x
+
 @[simp]
 lemma apply_one (F : homotopy f₀ f₁) (x : X) : F (1, x) = f₁ x := F.to_fun_one x
 
@@ -88,7 +89,7 @@ lemma extend_apply_one (F : homotopy f₀ f₁) (x : X) : F.extend 1 x = f₁ x 
 end
 
 /--
-Given a continuous function `f`, we can define a `homotopy f f` by `F (x, t) = f x`
+Given a continuous function `f`, we can define a `homotopy f f` by `F (t, x) = f x`
 -/
 def refl (f : C(X, Y)) : homotopy f f :=
 { to_fun := λ x, f x.2,
@@ -98,6 +99,9 @@ def refl (f : C(X, Y)) : homotopy f f :=
 
 instance : inhabited (homotopy (continuous_map.id : C(X, X)) continuous_map.id) :=
   ⟨homotopy.refl continuous_map.id⟩
+
+@[simp]
+lemma refl_apply {f : C(X, Y)} (x : X) (t : I) : homotopy.refl f (t, x) = f x := rfl
 
 /--
 Given a `homotopy f₀ f₁`, we can define a `homotopy f₁ f₀` by reversing the homotopy.

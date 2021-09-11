@@ -223,10 +223,18 @@ linear_map.det.map_one
 
 /-- Multiplying a map by a scalar `c` multiplies its determinant by `c ^ dim M`. -/
 @[simp] lemma det_smul {𝕜 : Type*} [field 𝕜] {M : Type*} [add_comm_group M] [module 𝕜 M]
-  [finite_dimensional 𝕜 M] (c : 𝕜) (f : M →ₗ[𝕜] M) :
+  (c : 𝕜) (f : M →ₗ[𝕜] M) :
   linear_map.det (c • f) = c ^ (finite_dimensional.finrank 𝕜 M) * linear_map.det f :=
-by simp only [← det_to_matrix (finite_dimensional.fin_basis 𝕜 M), linear_equiv.map_smul,
-              fintype.card_fin, det_smul]
+begin
+  by_cases H : ∃ (s : finset M), nonempty (basis s 𝕜 M),
+  { haveI : finite_dimensional 𝕜 M,
+    { rcases H with ⟨s, ⟨hs⟩⟩, exact finite_dimensional.of_finset_basis hs },
+    simp only [← det_to_matrix (finite_dimensional.fin_basis 𝕜 M), linear_equiv.map_smul,
+              fintype.card_fin, det_smul] },
+  { classical,
+    have : finite_dimensional.finrank 𝕜 M = 0 := finrank_eq_zero_of_not_exists_basis H,
+    simp [coe_det, H, this] }
+end
 
 lemma det_zero' {ι : Type*} [fintype ι] [nonempty ι] (b : basis ι A M) :
   linear_map.det (0 : M →ₗ[A] M) = 0 :=
@@ -236,8 +244,7 @@ by { haveI := classical.dec_eq ι,
 
 /-- In a finite-dimensional vector space, the zero map has determinant `1` in dimension `0`,
 and `0` otherwise. -/
-@[simp] lemma det_zero {𝕜 : Type*} [field 𝕜] {M : Type*} [add_comm_group M] [module 𝕜 M]
-  [finite_dimensional 𝕜 M] :
+@[simp] lemma det_zero {𝕜 : Type*} [field 𝕜] {M : Type*} [add_comm_group M] [module 𝕜 M] :
   linear_map.det (0 : M →ₗ[𝕜] M) = (0 : 𝕜) ^ (finite_dimensional.finrank 𝕜 M) :=
 begin
   have : (0 : M →ₗ[𝕜] M) = ((0 : 𝕜) • (1 : M →ₗ[𝕜] M)), by { ext x, simp, },

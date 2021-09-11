@@ -188,7 +188,8 @@ eq.trans (eval₂_C _ _ (X c)) (eval₂_X _ _ _)
 
 variable (σ)
 
-/-- The ring, `mv_polynomial σ R` is isomorphic to `R` when `σ` is empty. -/
+/-- The algebra isomorphism between multivariable polynomials in no variables
+and the ground ring. -/
 @[simps] def is_empty_alg_equiv [he : is_empty σ] : mv_polynomial σ R ≃ₐ[R] R :=
 alg_equiv.of_alg_hom
   (aeval (is_empty.elim he))

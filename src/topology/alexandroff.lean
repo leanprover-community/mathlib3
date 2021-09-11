@@ -12,18 +12,19 @@ import topology.opens
 We construct the Alexandroff compactification (the one-point compactification) of an arbitrary
 topological space `X` and prove some properties inherited from `X`.
 
-## Main defintion
+## Main defintions
 
 * `alexandroff`: the Alexandroff compactification, we use coercion for the canonical embedding
   `X → alexandroff X`;
 * `alexandroff.infty`: the extra point
 
 ## Main results
+
 * The topological structure of `alexandroff X`
 * The connectedness of `alexandroff X` for a noncompact, preconnected `X`
 * `alexandroff X` is `T₀` for a T₀ space `X`
 * `alexandroff X` is `T₁` for a T₁ space `X`
-* `alexandroff X` is normal if `X` is locally compact and Hausdorff
+* `alexandroff X` is normal if `X` is a locally compact Hausdorff space
 
 ## Tags
 
@@ -218,21 +219,45 @@ lemma nhds_coe_eq (x : X) : 𝓝 ↑x = map (coe : X → alexandroff X) (𝓝 x)
 
 lemma nhds_within_coe_image (s : set X) (x : X) :
   𝓝[coe '' s] (x : alexandroff X) = map coe (𝓝[s] x) :=
-by rw [nhds_within, nhds_within, map_inf coe_injective, nhds_coe_eq, map_principal]
+(open_embedding_coe.to_embedding.map_nhds_within_eq _ _).symm
+
+lemma nhds_within_coe (s : set (alexandroff X)) (x : X) :
+  𝓝[s] ↑x = map coe (𝓝[coe ⁻¹' s] x) :=
+(open_embedding_coe.map_nhds_within_preimage_eq _ _).symm
 
 lemma comap_coe_nhds (x : X) : comap (coe : X → alexandroff X) (𝓝 x) = 𝓝 x :=
 (open_embedding_coe.to_inducing.nhds_eq_comap x).symm
 
-lemma nhds_infty_eq : 𝓝 (∞ : alexandroff X) = map coe (coclosed_compact X) ⊔ pure ∞ :=
+/-- If `x` is not an isolated point of `X`, then `x : alexandroff X` is not an isolated point
+of `alexandroff X`. -/
+instance nhds_within_compl_coe_ne_bot (x : X) [h : ne_bot (𝓝[{x}ᶜ] x)] :
+  ne_bot (𝓝[{x}ᶜ] (x : alexandroff X)) :=
+by simpa [nhds_within_coe, preimage] using h.map coe
+
+lemma nhds_within_compl_infty_eq : 𝓝[{∞}ᶜ] (∞ : alexandroff X) = map coe (coclosed_compact X) :=
 begin
-  refine (nhds_basis_opens ∞).ext ((has_basis_coclosed_compact.map _).sup_pure _) _ _,
+  refine (nhds_within_basis_open ∞ _).ext (has_basis_coclosed_compact.map _) _ _,
   { rintro s ⟨hs, hso⟩,
     refine ⟨_, (is_open_iff_of_mem hs).mp hso, _⟩,
-    simp [insert_subset, hs] },
+    simp },
   { rintro s ⟨h₁, h₂⟩,
     refine ⟨_, ⟨mem_compl infty_not_mem_image_coe, is_open_compl_image_coe.2 ⟨h₁, h₂⟩⟩, _⟩,
-    rw compl_image_coe }
+    simp [compl_image_coe, ← diff_eq, subset_preimage_image] }
 end
+
+/-- If `X` is a non-compact space, then `∞` is not an isolated point of `alexandroff X`. -/
+instance nhds_within_compl_infty_ne_bot [ne_bot (cocompact X)] :
+  ne_bot (𝓝[{∞}ᶜ] (∞ : alexandroff X)) :=
+by { rw nhds_within_compl_infty_eq, apply_instance }
+
+@[priority 900]
+instance nhds_within_compl_ne_bot [∀ x : X, ne_bot (𝓝[{x}ᶜ] x)] [ne_bot (cocompact X)]
+  (x : alexandroff X) : ne_bot (𝓝[{x}ᶜ] x) :=
+alexandroff.rec _ alexandroff.nhds_within_compl_infty_ne_bot
+  (λ y, alexandroff.nhds_within_compl_coe_ne_bot y) x
+
+lemma nhds_infty_eq : 𝓝 (∞ : alexandroff X) = map coe (coclosed_compact X) ⊔ pure ∞ :=
+by rw [← nhds_within_compl_infty_eq, nhds_within_compl_singleton_sup_pure]
 
 lemma has_basis_nhds_infty :
   (𝓝 (∞ : alexandroff X)).has_basis (λ s : set X, is_closed s ∧ is_compact s)
@@ -254,18 +279,25 @@ lemma ultrafilter_le_nhds_infty {f : ultrafilter (alexandroff X)} :
 by simp only [le_nhds_infty, ← compl_image_coe, ultrafilter.mem_coe,
   ultrafilter.compl_mem_iff_not_mem]
 
+lemma tendsto_nhds_infty' {α : Type*} {f : alexandroff X → α} {l : filter α} :
+  tendsto f (𝓝 ∞) l ↔ tendsto f (pure ∞) l ∧ tendsto (f ∘ coe) (coclosed_compact X) l :=
+by simp [nhds_infty_eq, and_comm]
+
 lemma tendsto_nhds_infty {α : Type*} {f : alexandroff X → α} {l : filter α} :
   tendsto f (𝓝 ∞) l ↔
     ∀ s ∈ l, f ∞ ∈ s ∧ ∃ t : set X, is_closed t ∧ is_compact t ∧ maps_to (f ∘ coe) tᶜ s :=
-has_basis_nhds_infty.tendsto_left_iff.trans $ forall_congr $ λ s, forall_congr $ λ hs,
-  by simp only [← exists_and_distrib_left, exists_prop, maps_to_union, maps_image_to,
-    maps_to_singleton, and_comm, and_assoc, and.left_comm]
+tendsto_nhds_infty'.trans $ by simp only [tendsto_pure_left,
+  has_basis_coclosed_compact.tendsto_left_iff, forall_and_distrib, and_assoc, exists_prop]
+
+lemma continuous_at_infty' {Y : Type*} [topological_space Y] {f : alexandroff X → Y} :
+  continuous_at f ∞ ↔ tendsto (f ∘ coe) (coclosed_compact X) (𝓝 (f ∞)) :=
+tendsto_nhds_infty'.trans $ and_iff_right (tendsto_pure_nhds _ _)
 
 lemma continuous_at_infty {Y : Type*} [topological_space Y] {f : alexandroff X → Y} :
   continuous_at f ∞ ↔
     ∀ s ∈ 𝓝 (f ∞), ∃ t : set X, is_closed t ∧ is_compact t ∧ maps_to (f ∘ coe) tᶜ s :=
-tendsto_nhds_infty.trans $ forall_congr $ λ s, forall_congr $ λ hs,
-  and_iff_right $ mem_of_mem_nhds hs
+continuous_at_infty'.trans $
+  by simp only [has_basis_coclosed_compact.tendsto_left_iff, exists_prop, and_assoc]
 
 lemma continuous_at_coe {Y : Type*} [topological_space Y] {f : alexandroff X → Y} {x : X} :
   continuous_at f x ↔ continuous_at (f ∘ coe) x :=
@@ -273,17 +305,16 @@ by rw [continuous_at, nhds_coe_eq, tendsto_map'_iff, continuous_at]
 
 /-- If `X` is not a compact space, then the natural embedding `X → alexandroff X` has dense range.
 -/
-lemma dense_range_coe (h : ¬ is_compact (univ : set X)) :
+lemma dense_range_coe [ne_bot (cocompact X)] :
   dense_range (coe : X → alexandroff X) :=
 begin
-  rw [dense_range, ← compl_infty, dense_compl_singleton, is_open_iff_of_mem (mem_singleton _),
-    coe_preimage_infty, compl_empty],
-  exact mt and.right h
+  rw [dense_range, ← compl_infty],
+  exact dense_compl_singleton _
 end
 
-lemma dense_embedding_coe (h : ¬is_compact (univ : set X)) :
+lemma dense_embedding_coe [ne_bot (cocompact X)] :
   dense_embedding (coe : X → alexandroff X) :=
-{ dense := dense_range_coe h, .. open_embedding_coe }
+{ dense := dense_range_coe, .. open_embedding_coe }
 
 /-!
 ### Compactness and separation properties
@@ -293,8 +324,7 @@ the original space satisfies the same separation axiom. If the original space is
 Hausdorff space, then `alexandroff X` is a normal (hence, regular and Hausdorff) space.
 
 Finally, if the original space `X` is *not* compact and is a preconnected space, then
-`alexandroff X` is a connected space. This statement cannot be an `instance` because it needs a
-non-class argument `¬is_compact (univ : set X)`.
+`alexandroff X` is a connected space.
 -/
 
 /-- For any topological space `X`, its one point compactification is a compact space. -/
@@ -307,7 +337,7 @@ instance : compact_space (alexandroff X) :=
     { simp only [ultrafilter_le_nhds_infty, not_forall, not_not] at hf,
       rcases hf with ⟨s, h₁, h₂, hsf⟩,
       have hf : range (coe : X → alexandroff X) ∈ f,
-        from mem_sets_of_superset hsf (image_subset_range _ _),
+        from mem_of_superset hsf (image_subset_range _ _),
       have hsf' : s ∈ f.comap coe_injective hf, from (f.mem_comap _ _).2 hsf,
       rcases h₂.ultrafilter_le_nhds _ (le_principal_iff.2 hsf') with ⟨a, has, hle⟩,
       rw [ultrafilter.coe_comap, ← comap_coe_nhds, comap_le_comap_iff hf] at hle,
@@ -359,11 +389,9 @@ begin
   { exact separated_by_open_embedding open_embedding_coe (mt coe_eq_coe.mpr hxy) }
 end
 
-/-- If `X` is not a compact space, then `alexandroff X` is a connected space. This statement cannot
-be an `instance` because it needs a non-class argument `¬is_compact (univ : set X)`. -/
-lemma connected_space_alexandroff [preconnected_space X] (h : ¬ is_compact (univ : set X)) :
-  connected_space (alexandroff X) :=
-{ to_preconnected_space := (dense_embedding_coe h).to_dense_inducing.preconnected_space,
+/-- If `X` is not a compact space, then `alexandroff X` is a connected space. -/
+instance [preconnected_space X] [ne_bot (cocompact X)] : connected_space (alexandroff X) :=
+{ to_preconnected_space := dense_embedding_coe.to_dense_inducing.preconnected_space,
   to_nonempty := infer_instance }
 
 end alexandroff

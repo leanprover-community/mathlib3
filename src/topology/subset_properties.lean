@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 import topology.bases
 import data.finset.order
 import data.set.accumulate
+import tactic.tfae
 
 /-!
 # Properties of subsets of topological spaces
@@ -468,6 +469,9 @@ by simp [has_basis_coclosed_compact.mem_iff, and_assoc]
 lemma mem_coclosed_compact' : s ∈ coclosed_compact α ↔ ∃ t, is_closed t ∧ is_compact t ∧ sᶜ ⊆ t :=
 by simp only [mem_coclosed_compact, compl_subset_comm]
 
+lemma cocompact_le_coclosed_compact : cocompact α ≤ coclosed_compact α :=
+infi_le_infi $ λ s, le_infi $ λ _, le_rfl
+
 end filter
 
 section tube_lemma
@@ -547,6 +551,8 @@ class compact_space (α : Type*) [topological_space α] : Prop :=
 instance subsingleton.compact_space [subsingleton α] : compact_space α :=
 ⟨subsingleton_univ.is_compact⟩
 
+lemma is_compact_univ_iff : is_compact (univ : set α) ↔ compact_space α := ⟨λ h, ⟨h⟩, λ h, h.1⟩
+
 lemma compact_univ [h : compact_space α] : is_compact (univ : set α) := h.compact_univ
 
 lemma cluster_point_of_compact [compact_space α] (f : filter α) [ne_bot f] :
@@ -575,6 +581,28 @@ theorem compact_space_of_finite_subfamily_closed {α : Type u} [topological_spac
 lemma is_closed.is_compact [compact_space α] {s : set α} (h : is_closed s) :
   is_compact s :=
 compact_of_is_closed_subset compact_univ h (subset_univ _)
+
+lemma filter.cocompact_ne_bot_tfae (α : Type*) [topological_space α] :
+  tfae [ne_bot (filter.cocompact α),
+    ne_bot (filter.coclosed_compact α),
+    ¬is_compact (univ : set α),
+    ¬compact_space α] :=
+begin
+  tfae_have : 1 → 2, from λ h, h.mono filter.cocompact_le_coclosed_compact,
+  tfae_have : 3 ↔ 4, from not_congr is_compact_univ_iff,
+  tfae_have : 2 → 3, from λ h₁ h₂, (filter.has_basis_coclosed_compact.ne_bot_iff.1 h₁
+    ⟨is_closed_univ, h₂⟩).ne_empty compl_univ,
+  tfae_have : 3 → 1,
+  { refine λ h₁, filter.has_basis_cocompact.ne_bot_iff.2 (λ s hs, _),
+    contrapose! h₁, rw [not_nonempty_iff_eq_empty, compl_empty_iff] at h₁,
+    rwa ← h₁ },
+  tfae_finish
+end
+
+/-- `ne_bot (cocompact α)` is the canonical way to say that `α` is not a compact space using
+typeclasses. -/
+instance [ne_bot (filter.cocompact α)] : ne_bot (filter.coclosed_compact α) :=
+((filter.cocompact_ne_bot_tfae α).out 0 1).mp ‹_›
 
 /-- A compact discrete space is finite. -/
 noncomputable

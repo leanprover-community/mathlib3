@@ -17,6 +17,7 @@ We build the conditional expectation with respect to a sub-sigma-algebra `m` in 
   map. That linear map sends `x ∈ E` to the conditional expectation of the indicator of the set
   with value `x`.
 * Extend that map to `(α →₁[μ] E) →L[𝕜] (α →₁[μ] E)`. This is done using the same construction as
+<<<<<<< HEAD
   the Bochner integral (see the file `measure_theory/integral/set_to_L1`).
 
 ## Main results
@@ -28,6 +29,9 @@ We build the conditional expectation with respect to a sub-sigma-algebra `m` in 
   set `s`.
 
 ## References
+=======
+  the Bochner integral. TODO.
+>>>>>>> origin/master
 
 -/
 

@@ -67,7 +67,7 @@ d.is_adj
 
 /-- The dart with reversed orientation from a given dart. -/
 def dart.rev (d : G.dart) : G.dart :=
-⟨d.snd, d.fst, G.sym d.is_adj⟩
+⟨d.snd, d.fst, G.symm d.is_adj⟩
 
 @[simp] lemma dart.rev_edge (d : G.dart) : d.rev.edge = d.edge :=
 sym2.eq_swap

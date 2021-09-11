@@ -77,32 +77,6 @@ lemma integral_union (hst : disjoint s t) (hs : measurable_set s) (ht : measurab
   ∫ x in s ∪ t, f x ∂μ = ∫ x in s, f x ∂μ + ∫ x in t, f x ∂μ :=
 by simp only [integrable_on, measure.restrict_union hst hs ht, integral_add_measure hfs hft]
 
-lemma integral_union_ae (hst : (s ∩ t : set α) =ᵐ[μ] (∅ : set α)) (hs : measurable_set s)
-  (ht : measurable_set t) (hfs : integrable_on f s μ) (hft : integrable_on f t μ) :
-  ∫ x in s ∪ t, f x ∂μ = ∫ x in s, f x ∂μ + ∫ x in t, f x ∂μ :=
-begin
-  let s' := s \ (s ∩ t),
-  have hs' : measurable_set s', from hs.diff (hs.inter ht),
-  have hss' : s =ᵐ[μ] s',
-    by { rw ← @diff_empty _ s, exact eventually_eq.diff eventually_eq.rfl hst.symm, },
-  have hfs' : integrable_on f s' μ, from integrable_on.congr_set_ae hfs hss'.symm,
-  let t' := t \ (s ∩ t),
-  have ht' : measurable_set t', from ht.diff (hs.inter ht),
-  have htt' : t =ᵐ[μ] t',
-    by { rw ← @diff_empty _ t, exact eventually_eq.diff eventually_eq.rfl hst.symm, },
-  have hft' : integrable_on f t' μ, from integrable_on.congr_set_ae hft htt'.symm,
-  have hst' : disjoint s' t',
-  { rw set.disjoint_iff,
-    intro x,
-    simp only [s', t', and_imp, mem_empty_eq, mem_inter_eq, diff_inter_self_eq_diff, mem_diff,
-      diff_self_inter],
-    exact λ hx_in_s _ _ hx_notin_s, hx_notin_s hx_in_s, },
-  have hst_union : (s ∪ t : set α) =ᵐ[μ] (s' ∪ t' : set α), from hss'.union htt',
-  rw [set_integral_congr_set_ae hss', set_integral_congr_set_ae htt',
-    ← integral_union hst' hs' ht' hfs' hft'],
-  exact set_integral_congr_set_ae hst_union,
-end
-
 lemma integral_finset_bUnion {ι : Type*} {t : finset ι} {s : ι → set α}
   (hs : ∀ i ∈ t, measurable_set (s i)) (h's : pairwise_on ↑t (disjoint on s))
   (hf : integrable f μ) :
@@ -268,6 +242,10 @@ begin
 end
 ... = ∫ x in {x | 0 ≤ f x}, f x ∂μ - ∫ x in {x | f x ≤ 0}, f x ∂μ :
 by { rw ← set_integral_neg_eq_set_integral_nonpos hf hfi, congr, ext1 x, simp, }
+
+lemma set_integral_congr_set_ae (hst : s =ᵐ[μ] t) :
+  ∫ x in s, f x ∂μ = ∫ x in t, f x ∂μ :=
+by rw restrict_congr_set hst
 
 lemma set_integral_const (c : E) : ∫ x in s, c ∂μ = (μ s).to_real • c :=
 by rw [integral_const, measure.restrict_apply_univ]

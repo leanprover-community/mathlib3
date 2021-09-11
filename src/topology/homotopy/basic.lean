@@ -57,7 +57,7 @@ begin
   exact h x,
 end
 
-lemma coe_fn_inj : @function.injective (homotopy f₀ f₁) (I × X → Y) coe_fn :=
+lemma coe_fn_injective : @function.injective (homotopy f₀ f₁) (I × X → Y) coe_fn :=
 λ F G h, ext $ congr_fun h
 
 @[continuity]

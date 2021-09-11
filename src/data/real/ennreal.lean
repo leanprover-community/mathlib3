@@ -471,13 +471,16 @@ by simpa only [pos_iff_ne_zero] using ennreal.pow_pos
 
 @[simp] lemma not_lt_zero : ¬ a < 0 := by simp
 
-lemma add_lt_add_iff_left : a < ∞ → (a + c < a + b ↔ c < b) :=
-with_top.add_lt_add_iff_left
+lemma add_lt_add_iff_left (ha : a ≠ ∞) : a + c < a + b ↔ c < b :=
+with_top.add_lt_add_iff_left ha
 
-lemma add_lt_add_iff_right : a < ∞ → (c + a < b + a ↔ c < b) :=
-with_top.add_lt_add_iff_right
+lemma add_lt_add_iff_right (ha : a ≠ ∞) : c + a < b + a ↔ c < b :=
+with_top.add_lt_add_iff_right ha
 
-lemma lt_add_right (ha : a < ∞) (hb : 0 < b) : a < a + b :=
+instance contravariant_class_add_lt : contravariant_class ℝ≥0∞ ℝ≥0∞ (+) (<) :=
+with_top.contravariant_class_add_lt
+
+lemma lt_add_right (ha : a ≠ ∞) (hb : 0 < b) : a < a + b :=
 by rwa [← add_lt_add_iff_left ha, add_zero] at hb
 
 lemma le_of_forall_pos_le_add : ∀{a b : ℝ≥0∞}, (∀ε:ℝ≥0, 0 < ε → b < ∞ → a ≤ b + ε) → a ≤ b
@@ -669,7 +672,7 @@ le_antisymm (Inf_le $ le_add_left h) (zero_le _)
 @[simp] lemma zero_sub : 0 - a = 0 :=
 le_antisymm (Inf_le $ zero_le $ 0 + a) (zero_le _)
 
-@[simp] lemma sub_infty : a - ∞ = 0 :=
+@[simp] lemma sub_top : a - ∞ = 0 :=
 le_antisymm (Inf_le $ by simp) (zero_le _)
 
 lemma sub_le_sub (h₁ : a ≤ b) (h₂ : d ≤ c) : a - c ≤ b - d :=
@@ -731,7 +734,7 @@ ennreal.sub_le_iff_le_add.2 $ by { rw add_comm, exact ennreal.sub_le_iff_le_add.
 protected lemma sub_lt_self : a ≠ ∞ → a ≠ 0 → 0 < b → a - b < a :=
 match a, b with
 | none, _ := by { have := none_eq_top, assume h, contradiction }
-| (some a), none := by {intros, simp only [none_eq_top, sub_infty, pos_iff_ne_zero], assumption}
+| (some a), none := by {intros, simp only [none_eq_top, sub_top, pos_iff_ne_zero], assumption}
 | (some a), (some b) :=
   begin
     simp only [some_eq_coe, coe_sub.symm, coe_pos, coe_eq_zero, coe_lt_coe, ne.def],
@@ -870,14 +873,13 @@ ext $ assume a, iff.intro
   (assume hx, ⟨zero_le _, hx⟩)
 
 lemma mem_Iio_self_add : x ≠ ∞ → 0 < ε → x ∈ Iio (x + ε) :=
-assume xt ε0, lt_add_right (by rwa lt_top_iff_ne_top) ε0
+assume xt ε0, lt_add_right xt ε0
 
 lemma not_mem_Ioo_self_sub : x = 0 → x ∉ Ioo (x - ε) y :=
 assume x0, by simp [x0]
 
 lemma mem_Ioo_self_sub_add : x ≠ ∞ → x ≠ 0 → 0 < ε₁ → 0 < ε₂ → x ∈ Ioo (x - ε₁) (x + ε₂) :=
-assume xt x0 ε0 ε0',
-  ⟨ennreal.sub_lt_self xt x0 ε0, lt_add_right (by rwa [lt_top_iff_ne_top]) ε0'⟩
+assume xt x0 ε0 ε0', ⟨ennreal.sub_lt_self xt x0 ε0, lt_add_right xt ε0'⟩
 
 end interval
 

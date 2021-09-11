@@ -61,8 +61,7 @@ variables {p₀ p₁ : path x₀ x₁}
 instance : has_coe_to_fun (homotopy p₀ p₁) := ⟨_, λ p, p.to_fun⟩
 
 @[simp]
-lemma to_homotopy_apply (h : homotopy p₀ p₁) {t : I × I} :
-  h.to_homotopy t = h t := rfl
+lemma coe_to_homotopy (h : homotopy p₀ p₁) : ⇑h.to_homotopy = h := rfl
 
 @[simp]
 lemma source (F : homotopy p₀ p₁) {t : I} : F (t, 0) = x₀ := F.source' t

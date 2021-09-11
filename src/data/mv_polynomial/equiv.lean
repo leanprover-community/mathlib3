@@ -197,6 +197,8 @@ alg_equiv.of_alg_hom
   (by { ext, simp [algebra.of_id_apply, algebra_map_eq] })
   (by { ext i m, exact is_empty.elim' he i })
 
+/-- The ring isomorphism between multivariable polynomials in no variables
+and the ground ring. -/
 @[simps] def is_empty_ring_equiv [he : is_empty σ] : mv_polynomial σ R ≃+* R :=
 (is_empty_alg_equiv R σ).to_ring_equiv
 

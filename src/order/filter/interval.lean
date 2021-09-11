@@ -42,13 +42,15 @@ that need topology are defined in `topology/algebra/ordered`.
 
 variables {α β : Type*}
 
-open_locale classical filter
+open_locale classical filter interval
 
 open set function
 
-variables [preorder α]
-
 namespace filter
+
+section preorder
+
+variables [preorder α]
 
 /-- A pair of filters `l₁`, `l₂` has `tendsto_Ixx_class Ixx` property if `Ixx a b` tends to
 `l₂.lift' powerset` as `a` and `b` tend to `l₁`. In all instances `Ixx` is one of `Icc`, `Ico`,
@@ -172,18 +174,43 @@ tendsto_Ixx_class_of_subset (λ _ _, Ioo_subset_Ioc_self)
 instance tendsto_Ioo_Iio_Iio {a : α} : tendsto_Ixx_class Ioo (𝓟 (Iio a)) (𝓟 (Iio a)) :=
 tendsto_Ixx_class_of_subset (λ _ _, Ioo_subset_Ioc_self)
 
-variable [partial_order β]
+instance tendsto_Icc_Icc_icc {a b : α} :
+  tendsto_Ixx_class Icc (𝓟 (Icc a b)) (𝓟 (Icc a b)) :=
+tendsto_Ixx_class_principal.mpr $ λ x hx y hy, Icc_subset_Icc hx.1 hy.2
 
-instance tendsto_Icc_pure_pure {a : β} : tendsto_Ixx_class Icc (pure a) (pure a : filter β) :=
+instance tendsto_Ioc_Icc_Icc {a b : α} : tendsto_Ixx_class Ioc (𝓟 (Icc a b)) (𝓟 (Icc a b)) :=
+tendsto_Ixx_class_of_subset $ λ _ _, Ioc_subset_Icc_self
+
+end preorder
+
+section partial_order
+
+variable [partial_order α]
+
+instance tendsto_Icc_pure_pure {a : α} : tendsto_Ixx_class Icc (pure a) (pure a : filter α) :=
 by { rw ← principal_singleton, exact tendsto_Ixx_class_principal.2 ord_connected_singleton.out }
 
-instance tendsto_Ico_pure_bot {a : β} : tendsto_Ixx_class Ico (pure a) ⊥ :=
+instance tendsto_Ico_pure_bot {a : α} : tendsto_Ixx_class Ico (pure a) ⊥ :=
 ⟨by simp [lift'_bot monotone_powerset]⟩
 
-instance tendsto_Ioc_pure_bot {a : β} : tendsto_Ixx_class Ioc (pure a) ⊥ :=
+instance tendsto_Ioc_pure_bot {a : α} : tendsto_Ixx_class Ioc (pure a) ⊥ :=
 ⟨by simp [lift'_bot monotone_powerset]⟩
 
-instance tendsto_Ioo_pure_bot {a : β} : tendsto_Ixx_class Ioo (pure a) ⊥ :=
+instance tendsto_Ioo_pure_bot {a : α} : tendsto_Ixx_class Ioo (pure a) ⊥ :=
 tendsto_Ixx_class_of_subset (λ _ _, Ioo_subset_Ioc_self)
+
+end partial_order
+
+section linear_order
+
+variables [linear_order α]
+
+instance tendsto_Icc_interval_interval {a b : α} : tendsto_Ixx_class Icc (𝓟 [a, b]) (𝓟 [a, b]) :=
+filter.tendsto_Icc_Icc_icc
+
+instance tendsto_Ioc_interval_interval {a b : α} : tendsto_Ixx_class Ioc (𝓟 [a, b]) (𝓟 [a, b]) :=
+tendsto_Ixx_class_of_subset $ λ _ _, Ioc_subset_Icc_self
+
+end linear_order
 
 end filter

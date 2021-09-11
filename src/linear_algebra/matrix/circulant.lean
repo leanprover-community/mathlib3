@@ -182,7 +182,7 @@ end
 /-- Given a set `S`, every entry of `circulant v` is in `S` if every entry of `v` is in `S`. -/
 lemma circulant_entry_in_of_vec_entry_in [has_sub I] {S : set α} {v : I → α} :
   (∀ k, v k ∈ S) → ∀ i j, (circulant v) i j ∈ S :=
-@pred_circulant_entry_of_pred_vec_entry α I _ S v
+@pred_circulant_entry_of_pred_vec_entry α I _ (∈ S) v
 
 /-- The circulant matrix `circulant v` is symmetric iff `∀ i j, v (j - i) = v (i - j)`. -/
 lemma circulant_is_symm_ext_iff' [has_sub I] {v : I → α} :

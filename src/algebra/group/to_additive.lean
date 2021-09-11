@@ -384,7 +384,7 @@ mismatch error.
     should have automatically added the attribute `@[to_additive_relevant_args]` to the declaration.
     You can test this by running the following (where `d` is the full name of the declaration):
     ```
-      run_cmd do to_additive.relevant_args_attr.get_param `d >>= trace
+      run_cmd to_additive.relevant_args_attr.get_param `d >>= tactic.trace
     ```
     The expected output is `[n]` where the `n`-th argument of `d` is a type (family) with a
     multiplicative structure on it. If you get a different output (or a failure), you could add

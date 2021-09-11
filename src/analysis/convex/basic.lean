@@ -486,7 +486,8 @@ lemma convex_sInter {S : set (set E)} (h : ∀ s ∈ S, convex 𝕜 s) : convex 
 assume x y hx hy a b ha hb hab s hs,
 h s hs (hx s hs) (hy s hs) ha hb hab
 
-lemma convex_Inter {ι : Sort*} {s : ι → set E} (h : ∀ i : ι, convex 𝕜 (s i)) : convex 𝕜 (⋂ i, s i) :=
+lemma convex_Inter {ι : Sort*} {s : ι → set E} (h : ∀ i : ι, convex 𝕜 (s i)) :
+  convex 𝕜 (⋂ i, s i) :=
 (sInter_range s) ▸ convex_sInter $ forall_range_iff.2 h
 
 lemma convex.prod {s : set E} {t : set F} (hs : convex 𝕜 s) (ht : convex 𝕜 t) :
@@ -554,7 +555,7 @@ begin
   rw [smul_add, smul_add, add_add_add_comm, ←add_smul, hab, one_smul],
 end
 
-/-- The translation of a convex ℝ set is also convex. -/
+/-- The translation of a convex set is also convex. -/
 lemma convex.translate_preimage_right (hs : convex 𝕜 s) (z : E) : convex 𝕜 ((λ x, z + x) ⁻¹' s) :=
 begin
   intros x y hx hy a b ha hb hab,
@@ -562,7 +563,7 @@ begin
   rwa [smul_add, smul_add, add_add_add_comm, ←add_smul, hab, one_smul] at h,
 end
 
-/-- The translation of a convex ℝ set is also convex. -/
+/-- The translation of a convex set is also convex. -/
 lemma convex.translate_preimage_left (hs : convex 𝕜 s) (z : E) : convex 𝕜 ((λ x, x + z) ⁻¹' s) :=
 by simpa only [add_comm] using hs.translate_preimage_right z
 
@@ -576,7 +577,8 @@ begin
   rw mem_Iio at hx hy,
   calc
     a * x + b * y
-        < a * r + b * r : add_lt_add_of_lt_of_le (mul_lt_mul_of_pos_left hx ha') (mul_le_mul_of_nonneg_left hy.le hb)
+        < a * r + b * r : add_lt_add_of_lt_of_le (mul_lt_mul_of_pos_left hx ha')
+          (mul_le_mul_of_nonneg_left hy.le hb)
   ... = r : by rw [←add_mul, hab, one_mul]
 end
 
@@ -590,7 +592,8 @@ begin
   rw mem_Ioi at hx hy,
   calc
     r   = a * r + b * r : by rw [←add_mul, hab, one_mul]
-    ... < a * x + b * y : add_lt_add_of_lt_of_le (mul_lt_mul_of_pos_left hx ha') (mul_le_mul_of_nonneg_left hy.le hb),
+    ... < a * x + b * y : add_lt_add_of_lt_of_le (mul_lt_mul_of_pos_left hx ha')
+          (mul_le_mul_of_nonneg_left hy.le hb),
 end
 
 lemma convex_Iic (r : 𝕜) : convex 𝕜 (Iic r) :=
@@ -756,7 +759,7 @@ begin
   exact f.apply_line_map _ _ _,
 end
 
-/-- The preimage of a convex ℝ set under an affine map is convex. -/
+/-- The preimage of a convex set under an affine map is convex. -/
 lemma convex.affine_preimage (f : E →ᵃ[𝕜]  F) {s : set F} (hs : convex 𝕜 s) :
   convex 𝕜 (f ⁻¹' s) :=
 begin
@@ -765,7 +768,7 @@ begin
   exact hs xs ys ha hb hab,
 end
 
-/-- The image of a convex ℝ set under an affine map is convex. -/
+/-- The image of a convex set under an affine map is convex. -/
 lemma convex.affine_image (f : E →ᵃ[𝕜]  F) {s : set E} (hs : convex 𝕜 s) :
   convex 𝕜 (f '' s) :=
 begin
@@ -932,7 +935,7 @@ variables [ordered_semiring 𝕜]
 section add_comm_monoid
 variables [add_comm_monoid E] [module 𝕜 E] [add_comm_monoid F] [module 𝕜 F]
 
-/-- The convex hull of a set `s` is the minimal convex ℝ set that includes `s`. -/
+/-- The convex hull of a set `s` is the minimal convex set that includes `s`. -/
 def convex_hull : closure_operator (set E) :=
 closure_operator.mk₃
   (λ s, ⋂ (t : set E) (hst : s ⊆ t) (ht : convex 𝕜 t), t)
@@ -1135,7 +1138,7 @@ lemma concave_on_iff_div {f : E → β} :
   → (a/(a+b)) • f x + (b/(a+b)) • f y ≤ f ((a/(a+b)) • x + (b/(a+b)) • y) :=
 @convex_on_iff_div _ _ _ _ (order_dual β) _ _ _
 
-/-- For a function on a convex ℝ set in a linear ordered space, in order to prove that it is convex
+/-- For a function on a convex set in a linear ordered space, in order to prove that it is convex
 it suffices to verify the inequality `f (a • x + b • y) ≤ a • f x + b • f y` only for `x < y`
 and positive `a`, `b`. The main use case is `E = ℝ` however one can apply it, e.g., to `ℝ^n` with
 lexicographic order. -/
@@ -1156,7 +1159,7 @@ begin
     exact hf hx hy hxy ha hb hab }
 end
 
-/-- For a function on a convex ℝ set in a linear ordered space, in order to prove that it is concave
+/-- For a function on a convex set in a linear ordered space, in order to prove that it is concave
 it suffices to verify the inequality `a • f x + b • f y ≤ f (a • x + b • y)` only for `x < y`
 and positive `a`, `b`. The main use case is `E = ℝ` however one can apply it, e.g., to `ℝ^n` with
 lexicographic order. -/
@@ -1165,7 +1168,7 @@ lemma linear_order.concave_on_of_lt {f : E → β} [linear_order E] (hs : convex
      a • f x + b • f y ≤ f (a • x + b • y)) : concave_on s f :=
 @linear_order.convex_on_of_lt _ _ _ _ (order_dual β) _ _ f _ hs hf
 
-/-- For a function `f` defined on a convex ℝ subset `D` of `ℝ`, if for any three points `x<y<z`
+/-- For a function `f` defined on a convex subset `D` of `ℝ`, if for any three points `x < y < z`
 the slope of the secant line of `f` on `[x, y]` is less than or equal to the slope
 of the secant line of `f` on `[x, z]`, then `f` is convex on `D`. This way of proving convexity
 of a function is used in the proof of convexity of a function with a monotone derivative. -/
@@ -1195,8 +1198,8 @@ begin
 end
 
 /-- For a function `f` defined on a subset `D` of `ℝ`, if `f` is convex on `D`, then for any three
-points `x<y<z`, the slope of the secant line of `f` on `[x, y]` is less than or equal to the slope
-of the secant line of `f` on `[x, z]`. -/
+points `x < y < z`, the slope of the secant line of `f` on `[x, y]` is less than or equal to the
+slope of the secant line of `f` on `[x, z]`. -/
 lemma convex_on.slope_mono_adjacent {s : set ℝ} {f : ℝ → ℝ} (hf : convex_on s f)
   {x y z : ℝ} (hx : x ∈ s) (hz : z ∈ s) (hxy : x < y) (hyz : y < z) :
   (f y - f x) / (y - x) ≤ (f z - f y) / (z - y) :=
@@ -1209,29 +1212,29 @@ begin
   set a := (z - y) / (z - x),
   set b := (y - x) / (z - x),
   have heqz : a • x + b • z = y, by { field_simp, rw div_eq_iff; [ring, linarith], },
-  have 𝕜ey, from
+  have key, from
     hf.2 hx hz
       (show 0 ≤ a, by apply div_nonneg; linarith)
       (show 0 ≤ b, by apply div_nonneg; linarith)
       (show a + b = 1, by { field_simp, rw div_eq_iff; [ring, linarith], }),
-  rw heqz at 𝕜ey,
-  replace 𝕜ey := mul_le_mul_of_nonneg_left 𝕜ey (le_of_lt h₃),
-  field_simp [ne_of_gt h₁, ne_of_gt h₂, ne_of_gt h₃, mul_comm (z - x) _] at 𝕜ey ⊢,
+  rw heqz at key,
+  replace key := mul_le_mul_of_nonneg_left key (le_of_lt h₃),
+  field_simp [ne_of_gt h₁, ne_of_gt h₂, ne_of_gt h₃, mul_comm (z - x) _] at key ⊢,
   rw div_le_div_right,
   { linarith, },
   { nlinarith, },
 end
 
-/-- For a function `f` defined on a convex ℝ subset `D` of `ℝ`, `f` is convex on `D` iff for any three
-points `x<y<z` the slope of the secant line of `f` on `[x, y]` is less than or equal to the slope
-of the secant line of `f` on `[x, z]`. -/
+/-- For a function `f` defined on a convex subset `D` of `ℝ`, `f` is convex on `D` iff, for any
+three points `x < y < z` the slope of the secant line of `f` on `[x, y]` is less than or equal to
+the slope,of the secant line of `f` on `[x, z]`. -/
 lemma convex_on_real_iff_slope_mono_adjacent {s : set ℝ} (hs : convex ℝ s) {f : ℝ → ℝ} :
   convex_on s f ↔
   (∀ {x y z : ℝ}, x ∈ s → z ∈ s → x < y → y < z →
     (f y - f x) / (y - x) ≤ (f z - f y) / (z - y)) :=
 ⟨convex_on.slope_mono_adjacent, convex_on_real_of_slope_mono_adjacent hs⟩
 
-/-- For a function `f` defined on a convex ℝ subset `D` of `ℝ`, if for any three points `x<y<z`
+/-- For a function `f` defined on a convex subset `D` of `ℝ`, if for any three points `x < y < z`
 the slope of the secant line of `f` on `[x, y]` is greater than or equal to the slope
 of the secant line of `f` on `[x, z]`, then `f` is concave on `D`. -/
 lemma concave_on_real_of_slope_mono_adjacent {s : set ℝ} (hs : convex ℝ s) {f : ℝ → ℝ}
@@ -1246,7 +1249,7 @@ begin
 end
 
 /-- For a function `f` defined on a subset `D` of `ℝ`, if `f` is concave on `D`, then for any three
-points `x<y<z`, the slope of the secant line of `f` on `[x, y]` is greater than or equal to the
+points `x < y < z`, the slope of the secant line of `f` on `[x, y]` is greater than or equal to the
 slope of the secant line of `f` on `[x, z]`. -/
 lemma concave_on.slope_mono_adjacent {s : set ℝ} {f : ℝ → ℝ} (hf : concave_on s f)
   {x y z : ℝ} (hx : x ∈ s) (hz : z ∈ s) (hxy : x < y) (hyz : y < z) :
@@ -1259,8 +1262,8 @@ begin
   apply convex_on.slope_mono_adjacent hf; assumption,
 end
 
-/-- For a function `f` defined on a convex ℝ subset `D` of `ℝ`, `f` is concave on `D` iff for any
-three points `x<y<z` the slope of the secant line of `f` on `[x, y]` is greater than or equal to
+/-- For a function `f` defined on a convex subset `D` of `ℝ`, `f` is concave on `D` iff for any
+three points `x < y < z` the slope of the secant line of `f` on `[x, y]` is greater than or equal to
 the slope of the secant line of `f` on `[x, z]`. -/
 lemma concave_on_real_iff_slope_mono_adjacent {s : set ℝ} (hs : convex ℝ s) {f : ℝ → ℝ} :
   concave_on s f ↔

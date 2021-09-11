@@ -926,6 +926,27 @@ begin
   simp only [coe_fn_coe_base, submodule.coe_zero, continuous_linear_map.map_zero],
 end
 
+lemma set_integral_indicator_const_Lp (hs : measurable_set s) (ht : measurable_set t)
+  (hμt : μ t ≠ ∞) (x : G') :
+  ∫ a in s, indicator_const_Lp p ht hμt x a ∂μ = (μ (t ∩ s)).to_real • x :=
+calc ∫ a in s, indicator_const_Lp p ht hμt x a ∂μ
+    = (∫ a in s, t.indicator (λ _, x) a ∂μ) :
+  by rw set_integral_congr_ae hs (indicator_const_Lp_coe_fn.mono (λ x hx hxs, hx))
+... = (μ (t ∩ s)).to_real • x : by rw [integral_indicator_const _ ht, measure.restrict_apply ht]
+
+lemma set_integral_condexp_ind_smul_eq (hs : measurable_set[m] s) (ht : measurable_set t)
+  (hμs : μ s ≠ ∞) (hμt : μ t ≠ ∞) (x : G') :
+  ∫ a in s, (condexp_ind_smul hm ht hμt x) a ∂μ = (μ (t ∩ s)).to_real • x :=
+calc ∫ a in s, (condexp_ind_smul hm ht hμt x) a ∂μ
+    = (∫ a in s, (condexp_L2 ℝ hm (indicator_const_Lp 2 ht hμt (1 : ℝ)) a • x) ∂μ) :
+  set_integral_congr_ae (hm s hs) ((condexp_ind_smul_ae_eq_smul hm ht hμt x).mono (λ x hx hxs, hx))
+... = (∫ a in s, condexp_L2 ℝ hm (indicator_const_Lp 2 ht hμt (1 : ℝ)) a ∂μ) • x :
+  by rw integral_smul_const _ x
+... = (∫ a in s, indicator_const_Lp 2 ht hμt (1 : ℝ) a ∂μ) • x :
+  by rw @integral_condexp_L2_eq α _ ℝ _ _ _ _ _ _ _ _ _ _ _ _ _ _ hm
+    (indicator_const_Lp 2 ht hμt (1 : ℝ)) hs hμs
+... = (μ (t ∩ s)).to_real • x :
+  by rw [set_integral_indicator_const_Lp (hm s hs), smul_assoc, one_smul]
 end condexp_ind_smul
 
 end condexp_L2

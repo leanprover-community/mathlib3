@@ -15,14 +15,16 @@ import data.prod
 
 ### Predicates on functions
 
-- `monotone f`: A function between two types equipped with `≤` is monotone if `a ≤ b` implies
+* `monotone f`: A function between two types equipped with `≤` is monotone if `a ≤ b` implies
   `f a ≤ f b`.
-- `antitone f`: A function between two types equipped with `≤` is antitone if `a ≤ b` implies
+* `antitone f`: A function between two types equipped with `≤` is antitone if `a ≤ b` implies
   `f b ≤ f a`.
-- `strict_mono f` : A function between two types equipped with `<` is strictly monotone if
+* `strict_mono f` : A function between two types equipped with `<` is strictly monotone if
   `a < b` implies `f a < f b`.
-- `strict_anti f` : A function between two types equipped with `<` is strictly antitone if
+* `strict_anti f` : A function between two types equipped with `<` is strictly antitone if
   `a < b` implies `f b < f a`.
+* `strict_mono_on f s`: Same as `strict_mono f`, but for all `a, b ∈ s`.
+* `strict_anti_on f s`: Same as `strict_anti f`, but for all `a, b ∈ s`.
 
 ### Transfering orders
 
@@ -163,7 +165,7 @@ begin
   { transitivity, assumption, exact hf _ }
 end
 
-lemma antitone_nat_of_le_succ {f : ℕ → α} (hf : ∀ n, f (n + 1) ≤ f n) :
+lemma antitone_nat_of_succ_le {f : ℕ → α} (hf : ∀ n, f (n + 1) ≤ f n) :
   antitone f | n m h :=
 begin
   induction h,

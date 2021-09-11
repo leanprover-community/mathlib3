@@ -11,6 +11,8 @@ import analysis.complex.circle
 import topology.metric_space.emetric_paracompact
 import topology.continuous_function.stone_weierstrass
 
+-- ALEX ADDED
+import algebra.floor
 /-!
 
 # Fourier analysis on the circle
@@ -303,7 +305,6 @@ begin
     },
     rw this,
     simp, },
-  -- ALEX homework
   sorry,
 end
 
@@ -311,10 +312,7 @@ instance : compact_space ℝmodℤ := sorry
 
 instance : t2_space ℝmodℤ := sorry
 
-#check (quotient_add_group.mk : (ℝ → ℝmodℤ))
-
 variables [measurable_space ℝmodℤ] [borel_space ℝmodℤ]
-
 
 notation `μ_ℝmodℤ`:=measure_theory.measure.add_haar_measure positive_compacts_univ
 
@@ -326,7 +324,7 @@ begin
   sorry,
 end
 
-lemma something1 (S : set ℝ ) (hS : measurable_set S) (h : ∀ t, ∃! x∈ S , ∃n:ℤ, t=x+n ) :
+lemma something1 (S : set ℝ ) (hS : measurable_set S) (h : ∀ t, ∃! x:ℝ ,  ∃n:ℤ, x∈ S ∧  t=x+n ) :
 measure.map (quotient_add_group.mk : (ℝ → ℝmodℤ)) (measure.restrict volume S) =
  μ_ℝmodℤ :=
 begin
@@ -339,84 +337,95 @@ lemma integral_Union {ι : Type*} [encodable ι] {s : ι → set ℝ } (f : ℝ 
   (∫ a in (⋃ n, s n), f a ) = ∑' n, ∫ a in s n, f a  :=
 sorry
 
+/-- Move somewhere ??? algebra.floor? -/
+lemma RmodZuniqueRep :
+∀ (t : ℝ), ∃! (x : ℝ), ∃ (n : ℤ), x ∈ Ico (0:ℝ) 1 ∧ t = x + n :=
+begin
+  intro t,
+  let n := floor t,
+  let x := t-n,
+  use x,
+  use n,
+  split,
+  { split,
+    { dsimp only [x, n],
+      have := floor_le t,
+      linarith, },
+    { dsimp only [x, n],
+      have := lt_floor_add_one t,
+      linarith, }, },
+  { dsimp only [x, n],
+    ring, },
+  { intros y hy,
+    obtain ⟨nn, hny, hnt⟩ := hy,
+    have : (nn:ℝ) = floor t,
+    { have : (nn:ℝ) ≤ y+nn ∧ y+nn < nn + 1 ,
+      { have := hny.1,
+        have := hny.2,
+        split; linarith, },
+      rw [(floor_eq_iff.mpr this).symm, hnt], },
+    dsimp only [x, n],
+    rw [← this, hnt],
+    ring, },
+end
+
+theorem floor_eq_on_Ico'' (n : ℤ) (x : ℝ)
+(H : floor x = n ) :
+x ∈ Ico (n:ℝ) (n + 1) :=
+begin
+  rw floor_eq_iff at H,
+  exact H,
+end
+
 lemma real_to_haar2 (f : Schwarz) (g : ℝmodℤ → ℂ) (F: ℝmodℤ→ℂ)
 (hFf : ∀ (x:ℝ) , F (x:ℝmodℤ) = ∑' (n:ℤ), f(x+n)) :
 ∫ (x : ℝ), f x * g (x:ℝmodℤ) = ∫ (x : ℝmodℤ), F(x) * g(x) ∂ μ_ℝmodℤ :=
 begin
-  rw ← something1 (Ioc (0:ℝ) (1:ℝ)),
+  rw ← something1 (Ico (0:ℝ) (1:ℝ)),
   {
     rw integral_map,
     {
-      rw (_ :
-      ∫ (x : ℝ) in Ioc 0 1, F (quotient_add_group.mk x) * g (quotient_add_group.mk x)
-      =
-      ∫ (x : ℝ) in Ioc 0 1, (∑' (n:ℤ ), f ( x + n)) * g (quotient_add_group.mk x)
-      ),
-      {
-        rw (_ :
-        ∫ (x : ℝ) in Ioc 0 1, (∑' (n : ℤ), f (x + ↑n)) * g (quotient_add_group.mk x)
-        =
-        ∑' (n : ℤ), ∫ (x : ℝ) in Ioc 0 1,  f (x + ↑n) * g (quotient_add_group.mk x)
-        ),
-        {
-          rw (_ : ∑' (n : ℤ),
-          ∫ (x : ℝ) in Ioc 0 1, f (x + n) * g (quotient_add_group.mk x)
-          =∑' (n : ℤ),
-          ∫ (x : ℝ) in Ioc (n:ℝ) (n+1), f (x) * g (quotient_add_group.mk x)
-          ),
-          {
-            rw (_ :
-            ∫ (x : ℝ), f x * g ↑x =
-            ∫ (x : ℝ) in ⋃ (n : ℤ), Ioc (n:ℝ) (n+1), f x * g ↑x),
-            {
-              refine  integral_Union (λ x, f x * g x) _ _ _,
-              {
-                intros n,
-                exact measurable_set_Ioc,
-              },
-              {
-                intros i j ineqj,
-                intros x hx,
-                --- ALEX HOMEWORK
-                sorry,
-              },
-              {
-                sorry,
-              },
-            },
-            {
-              congr' 1,
-              convert measure.restrict_univ.symm using 2,
-              rw set.eq_univ_iff_forall ,
-              intros x,
-              sorry,
-              --- ALEX HOEMWORK
-            },
+      symmetry,
+      calc
+      ∫ (x : ℝ) in Ico 0 1, F (quotient_add_group.mk x) * g (quotient_add_group.mk x)
+      = ∫ (x : ℝ) in Ico 0 1, (∑' (n:ℤ ), f ( x + n)) * g (quotient_add_group.mk x) : _
+      ... = ∑' (n : ℤ), ∫ (x : ℝ) in Ico 0 1,  f (x + ↑n) * g (quotient_add_group.mk x) : _
+      ... = ∑' (n : ℤ), ∫ (x : ℝ) in Ico (n:ℝ) (n+1), f (x) * g (quotient_add_group.mk x) : _
+      ... = ∫ (x : ℝ) in ⋃ (n : ℤ), Ico (n:ℝ) (n+1), f x * g x : _
+      ... = ∫ (x : ℝ), f x * g x : _,
 
-          },
-          {
-            congr' 1,
-            ext1 n,
-            --- left translates , int _0 ^1 f(x+n) = int_n^n+1 f(x)
-            --- maybe use n+ Ioc 0 1 instead of Ioc n n+1
-            sorry,
-          },
-        },
-        {
-          -- dominated convergence, need to reverse sum (n:ℤ ) int_0^1
-          sorry,
-        },
-
-      },
-      {
-        congr' 1,
-        --- use hF f,
-        -- ALEX HOMEWORK
-        sorry,
-      },
-    },
-    {
-      -- measurable quotient_add_group.mk
+      { congr' 1,
+        ext1,
+        rw (_ : F (quotient_add_group.mk x) = (∑' (n : ℤ), f (x + ↑n))),
+        convert hFf x, },
+      { -- dominated convergence, need to reverse sum (n:ℤ ) int_0^1
+        sorry, },
+      { congr' 1,
+        ext1 n,
+        --- left translates , int _0 ^1 f(x+n) = int_n^n+1 f(x)
+        --- maybe use n+ Ico 0 1 instead of Ico n n+1
+        sorry, },
+      { symmetry,
+        refine integral_Union (λ x, f x * g x) _ _ _,
+        { intros n,
+          exact measurable_set_Ico, },
+        { intros i j ineqj x hx,
+          have := (mem_inter_iff _ _ _).mp hx,
+          exact ineqj ((rfl.congr (floor_eq_on_Ico _ _ this.2)).mp
+            (eq.symm (floor_eq_on_Ico _ _ this.1))), },
+        { --  integrable volume
+          sorry, }, },
+      { congr' 1,
+        convert measure.restrict_univ using 2,
+        rw set.eq_univ_iff_forall ,
+        intros x,
+        rw set.mem_Union,
+        let n := floor x,
+        use n,
+        refine floor_eq_on_Ico'' _ _ _,
+        dsimp only [n],
+        refl, }, },
+    { -- measurable quotient_add_group.mk
       -- continuous by definition. no content
       sorry,
     },
@@ -425,15 +434,8 @@ begin
       sorry,
     },
   },
-
-  {
-    exact measurable_set_Ioc,
-  },
-
-  {
-    -- ALEX HOEMWOWRK
-    sorry,
-  },
+  { exact measurable_set_Ico, },
+  { exact RmodZuniqueRep, },
 end
 
 

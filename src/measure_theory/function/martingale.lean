@@ -10,6 +10,7 @@ import measure_theory.function.conditional_expectation
 
 -/
 
+open topological_space
 open_locale nnreal ennreal measure_theory
 
 namespace measure_theory
@@ -22,9 +23,16 @@ def ae_adapted (f : ι → α → E) (ℱ : ι → measurable_space α) {m0 : me
   (μ : measure α) : Prop :=
 ∀ i, ae_measurable' (ℱ i) (f i) μ
 
-def sigma_finite_filtration (ℱ : ι → measurable_space α) {m0 : measurable_space α}
-  (h_le : ∀ i, ℱ i ≤ m0) (μ : measure α) :
+def sigma_finite_filtration {ℱ_map : ι → measurable_space α} {m0 : measurable_space α}
+  (ℱ : ∀ i, ℱ_map i ≤ m0) (μ : measure α) :
   Prop :=
-∀ i, sigma_finite (μ.trim (h_le i))
+∀ i, sigma_finite (μ.trim (ℱ i))
+
+variables [preorder ι] [normed_group E] [normed_space ℝ E] [complete_space E] [borel_space E]
+  [second_countable_topology E]
+
+def martingale {ℱ_map : ι → measurable_space α} {m0 : measurable_space α} {μ : measure α}
+  (f : ι → α → E) (ℱ : ∀ i, ℱ_map i ≤ m0) (h_sf : sigma_finite_filtration ℱ μ) : Prop :=
+∀ i j, i ≤ j → by { haveI : sigma_finite (μ.trim (ℱ i)) := h_sf i, exact μ[f j | ℱ i] =ᵐ[μ] f i }
 
 end measure_theory

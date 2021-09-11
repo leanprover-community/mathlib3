@@ -942,7 +942,8 @@ theorem convex.strict_anti_on_of_deriv_neg {D : set ℝ} (hD : convex D) {f : �
   (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
   (hf'_neg : ∀ x ∈ interior D, deriv f x < 0) :
   strict_anti_on f D :=
-by simpa only [zero_mul, sub_lt_zero] using hD.image_sub_lt_mul_sub_of_deriv_lt hf hf' hf'_neg
+λ x hx y, by simpa only [zero_mul, sub_lt_zero]
+  using hD.image_sub_lt_mul_sub_of_deriv_lt hf hf' hf'_neg x y hx
 
 /-- Let `f : ℝ → ℝ` be a differentiable function. If `f'` is negative, then
 `f` is a strictly monotonically decreasing function. -/
@@ -950,7 +951,7 @@ theorem strict_anti_of_deriv_neg {f : ℝ → ℝ} (hf : differentiable ℝ f)
   (hf' : ∀ x, deriv f x < 0) :
   strict_anti f :=
 λ x y hxy, convex_univ.strict_anti_on_of_deriv_neg hf.continuous.continuous_on hf.differentiable_on
-  (λ x _, hf' x) x y trivial trivial hxy
+  (λ x _, hf' x) trivial trivial hxy
 
 /-- Let `f` be a function continuous on a convex (or, equivalently, connected) subset `D`
 of the real line. If `f` is differentiable on the interior of `D` and `f'` is nonpositive, then

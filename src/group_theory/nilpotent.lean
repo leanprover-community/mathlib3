@@ -281,8 +281,7 @@ end
 lemma lower_central_series_antitone :
   antitone (lower_central_series G) :=
 begin
-  refine @monotone_nat_of_le_succ (order_dual (subgroup G)) _ _ _ _ _ h,
-  intros n x hx,
+  refine antitone_nat_of_succ_le (λ n x hx, _),
   simp only [mem_lower_central_series_succ_iff, exists_prop, mem_top, exists_true_left, true_and]
     at hx,
   refine closure_induction hx _ (subgroup.one_mem _) (@subgroup.mul_mem _ _ _)

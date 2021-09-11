@@ -166,7 +166,7 @@ lemma fin.one_eq_circulant (α) [has_zero α] [has_one α] :
 | (n+1) := by simp [one_eq_circulant α (fin (n + 1)), fin.ext_iff]
 
 lemma scalar_eq_circluant [semiring α] (I) [decidable_eq I] [add_group I] [fintype I] (a : α) :
-  scalar I a = circulant (λ i, ite (i = 0) a 0) :=
+  circulant (pi.single 0 a) = scalar I a :=
 begin
   ext i j,
   simp [one_apply, sub_eq_zero]

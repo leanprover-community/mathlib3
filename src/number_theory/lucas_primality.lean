@@ -41,8 +41,6 @@ Note that Mario also remarked this could be made computable.
 
 -/
 
-variables (p : ℕ) [fact (0 < p)]
-
 /--
 If `a^r = 1 (mod p)`, but `a^(r/q) ≠ 1 (mod p)` for all prime factors `q` of `r`, then `a` has
 order `r` in the multiplicative group mod `p`.
@@ -90,6 +88,7 @@ begin
   have order_of_a : order_of a = p-1,
     { apply order_from_pows p (p - 1) a _ ha hd,
       exact sub_pos_iff_lt.mpr hp1, },
+  haveI fhp0 : fact (0 < p) := {out := zero_lt_iff.mpr h0},
   rw nat.prime_iff_card_units,
   -- Prove cardinality of `units` of `zmod p` is both `≤ p-1` and `≥ p-1`
   rw le_antisymm_iff,

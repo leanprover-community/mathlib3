@@ -46,7 +46,7 @@ lemma circulant_col_zero_eq [add_group I] (v : I → α) :
   (λ i, (circulant v) i 0) = v :=
 by ext; simp [circulant]
 
-lemma circulant_injective [add_group I] : injective (λ v : I → α, circulant v) :=
+lemma circulant_injective [add_group I] : injective (circulant : (I → α) → matrix I I α) :=
 begin
   intros v w h,
   dsimp at h,
@@ -198,7 +198,7 @@ lemma circulant_is_symm_ext_iff' [has_sub I] {v : I → α} :
 by simp [is_symm.ext_iff, circulant]
 
 /-- The circulant matrix `circulant v` is symmetric iff `v (- i) = v i` if `[add_group I]`. -/
-lemma circulant_is_symm_ext_iff [add_group I] {v : I → α} :
+lemma circulant_is_symm_iff [add_group I] {v : I → α} :
   (circulant v).is_symm ↔ ∀ i, v (- i) = v i :=
 begin
   rw [circulant_is_symm_ext_iff'],
@@ -232,7 +232,7 @@ def circulant.poly [semiring α] (v : fin n → α) : polynomial α :=
 ∑ i : fin n, polynomial.monomial i (v i)
 
 /-- `circulant_perm n` is the cyclic permutation over `fin n`. -/
-def circulant.perm : Π n, equiv.perm (fin n) := λ n, equiv.symm (fin_rotate n)
+def circulant.perm (n : ℕ) : equiv.perm (fin n) := (fin_rotate n).symm
 
 /-- `circulant_P α n` is the cyclic permutation matrix of order `n` with entries of type `α`. -/
 def circulant.P (α) [has_zero α] [has_one α] (n : ℕ) : matrix (fin n) (fin n) α :=

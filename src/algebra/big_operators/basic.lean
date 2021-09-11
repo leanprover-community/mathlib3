@@ -540,7 +540,7 @@ calc (∏ x in s, f x) = ∏ x in s, 1 : finset.prod_congr rfl h
   ... = 1 : finset.prod_const_one
 
 @[to_additive] lemma prod_apply_dite {s : finset α} {p : α → Prop} {hp : decidable_pred p}
-  {hp' : decidable_pred (λ x, ¬ p x)} (f : Π (x : α), p x → γ) (g : Π (x : α), ¬p x → γ)
+  [decidable_pred (λ x, ¬ p x)] (f : Π (x : α), p x → γ) (g : Π (x : α), ¬p x → γ)
   (h : γ → β) :
   (∏ x in s, h (if hx : p x then f x hx else g x hx)) =
   (∏ x in (s.filter p).attach, h (f x.1 (mem_filter.mp x.2).2)) *

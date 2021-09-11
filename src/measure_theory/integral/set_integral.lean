@@ -243,10 +243,6 @@ end
 ... = ∫ x in {x | 0 ≤ f x}, f x ∂μ - ∫ x in {x | f x ≤ 0}, f x ∂μ :
 by { rw ← set_integral_neg_eq_set_integral_nonpos hf hfi, congr, ext1 x, simp, }
 
-lemma set_integral_congr_set_ae (hst : s =ᵐ[μ] t) :
-  ∫ x in s, f x ∂μ = ∫ x in t, f x ∂μ :=
-by rw restrict_congr_set hst
-
 lemma set_integral_const (c : E) : ∫ x in s, c ∂μ = (μ s).to_real • c :=
 by rw [integral_const, measure.restrict_apply_univ]
 

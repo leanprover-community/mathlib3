@@ -871,6 +871,9 @@ protected meta def eta_expand (env : environment) (dict : name_map $ list ℕ) :
 (inductive type, defined function etc) in an expression, unless
 * The identifier occurs in an application with first argument `arg`; and
 * `test arg` is false.
+However, if `f` is in the dictionary `relevant`, then the arguments in `relevant.find f`
+are tested, instead of the first argument.
+
 Reorder contains the information about what arguments to reorder:
 e.g. `g x₁ x₂ x₃ ... xₙ` becomes `g x₂ x₁ x₃ ... xₙ` if `reorder.find g = some [1]`.
 We assume that all functions where we want to reorder arguments are fully applied.

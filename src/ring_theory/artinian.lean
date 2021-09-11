@@ -11,6 +11,8 @@ import linear_algebra.linear_independent
 import tactic.linarith
 import algebra.algebra.basic
 import ring_theory.noetherian
+import ring_theory.jacobson_ideal
+import ring_theory.nilpotent
 
 /-!
 # Artinian rings and modules
@@ -187,7 +189,7 @@ end
 
 /-- A module is Artinian iff every nonempty set of submodules has a minimal submodule among them.
 -/
-theorem set_has_minimal_iff_artinrian :
+theorem set_has_minimal_iff_artinian :
   (∀ a : set $ submodule R M, a.nonempty → ∃ M' ∈ a, ∀ I ∈ a, I ≤ M' → I = M') ↔
   is_artinian R M :=
 by rw [is_artinian_iff_well_founded, well_founded.well_founded_iff_has_min']
@@ -378,3 +380,43 @@ is_artinian_ring_of_surjective R f.range f.range_restrict
 theorem is_artinian_ring_of_ring_equiv (R) [comm_ring R] {S} [comm_ring S]
   (f : R ≃+* S) [is_artinian_ring R] : is_artinian_ring S :=
 is_artinian_ring_of_surjective R S f.to_ring_hom f.to_equiv.surjective
+
+namespace is_artinian_ring
+
+open is_artinian
+
+variables {R : Type*} [comm_ring R] [is_artinian_ring R]
+
+lemma is_nilpotent_jacobson : is_nilpotent (ideal.jacobson (⊥ : ideal R)) :=
+begin
+  let I := ideal.jacobson (⊥ : ideal R),
+  let f : ℕ →ₘ order_dual (ideal R) := ⟨λ n, I ^ n, λ _ _ h, ideal.pow_le_pow h⟩,
+  cases monotone_stabilizes_iff_artinian.2 (is_artinian_ring_iff.1 ‹is_artinian_ring R›) f
+    with n hn,
+  change ∀ m, n ≤ m → I ^ n = I ^ m at hn,
+  let J : ideal R := annihilator (I ^ n),
+  have hJ : J = ⊤,
+  { by_contradiction hJ,
+    rcases set_has_minimal_iff_artinian.2 (is_artinian_ring_iff.1 ‹is_artinian_ring R›)
+      {J' | J < J'} ⟨⊤, lt_top_iff_ne_top.2 hJ⟩ with ⟨J', hJJ', hJ'⟩,
+    cases not_forall.1 (mt set_like.le_def.2 (lt_iff_le_not_le.1 hJJ').2) with x hx,
+    rw [not_imp] at hx,
+    have hxJ' : J ⊔ ideal.span {x} = J',
+      from hJ' (J ⊔ ideal.span {x})
+        (lt_of_le_of_ne le_sup_left (λ h, hx.2 (h.symm ▸ mem_sup_right (subset_span
+          (mem_singleton x)))))
+        (sup_le (le_of_lt hJJ') (span_le.2 (singleton_subset_iff.2 hx.1))),
+    have : I * J' ≤ J, --Need version 10 of Nakayamas lemma on Stacks
+    { subst hxJ',
+      rw [ideal.mul_sup],
+      refine sup_le (mul_le.2 (λ _ _ _, ideal.mul_mem_left _ _)) _,
+      dsimp [J],  },
+    -- subst J',
+    -- dsimp at *,
+    -- have
+       }
+
+end
+
+
+end is_artinian_ring

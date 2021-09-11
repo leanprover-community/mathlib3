@@ -49,7 +49,6 @@ by ext; simp [circulant]
 lemma circulant_injective [add_group I] : injective (circulant : (I → α) → matrix I I α) :=
 begin
   intros v w h,
-  dsimp at h,
   rw [← circulant_col_zero_eq v, ← circulant_col_zero_eq w, h]
 end
 
@@ -193,7 +192,7 @@ lemma circulant_entry_in_of_vec_entry_in [has_sub I]
   (circulant v) i j ∈ S := h (i - j)
 
 /-- The circulant matrix `circulant v` is symmetric iff `∀ i j, v (j - i) = v (i - j)`. -/
-lemma circulant_is_symm_ext_iff' [has_sub I] {v : I → α} :
+lemma circulant_is_symm_iff' [has_sub I] {v : I → α} :
   (circulant v).is_symm ↔ ∀ i j, v (j - i) = v (i - j) :=
 by simp [is_symm.ext_iff, circulant]
 
@@ -201,30 +200,30 @@ by simp [is_symm.ext_iff, circulant]
 lemma circulant_is_symm_iff [add_group I] {v : I → α} :
   (circulant v).is_symm ↔ ∀ i, v (- i) = v i :=
 begin
-  rw [circulant_is_symm_ext_iff'],
+  rw [circulant_is_symm_iff'],
   split,
   { intros h i, convert h i 0; simp },
   { intros h i j, convert h (i - j), simp }
 end
 
-lemma fin.circulant_is_symm_ext_iff :
+lemma fin.circulant_is_symm_iff :
   ∀ {n} {v : fin n → α}, (circulant v).is_symm ↔ ∀ i, v (- i) = v i
-| 0     := λ v, by simp only [circulant_is_symm_ext_iff', is_empty.forall_iff]
-| (n+1) := λ v, circulant_is_symm_ext_iff
+| 0     := λ v, by simp only [circulant_is_symm_iff', is_empty.forall_iff]
+| (n+1) := λ v, circulant_is_symm_iff
 
 /-- If `circulant v` is symmetric, `∀ i j : I, v (j - i) = v (i - j)`. -/
 lemma circulant_is_symm_apply' [has_sub I] {v : I → α} (h : (circulant v).is_symm) (i j : I) :
   v (j - i) = v (i - j) :=
-circulant_is_symm_ext_iff'.1 h i j
+circulant_is_symm_iff'.1 h i j
 
 /-- If `circulant v` is symmetric, `∀ i j : I, v (- i) = v i`. -/
 lemma circulant_is_symm_apply [add_group I] {v : I → α} (h : (circulant v).is_symm) (i : I) :
   v (-i) = v i :=
-circulant_is_symm_ext_iff.1 h i
+circulant_is_symm_iff.1 h i
 
 lemma fin.circulant_is_symm_apply {v : fin n → α} (h : (circulant v).is_symm) (i : fin n) :
   v (-i) = v i :=
-fin.circulant_is_symm_ext_iff.1 h i
+fin.circulant_is_symm_iff.1 h i
 
 /-- The associated polynomial `(v 0) + (v 1) * X + ... + (v (n-1)) * X ^ (n-1)` to `circulant v`.-/
 noncomputable

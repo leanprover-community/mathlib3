@@ -13,20 +13,28 @@ This file contains some alternative statements of Nakayama's Lemma as found in
 
 ## Main statements
 
-* `eq_smul_of_le_smul_of_le_jacobson` - A version of (2) in
+* `submodule.eq_smul_of_le_smul_of_le_jacobson` - A version of (2) in
   [Stacks: Nakayama's Lemma](https://stacks.math.columbia.edu/tag/00DV).,
   generalising to the Jacobson of any ideal.
-* `eq_bot_of_le_smul_of_le_jacobson_bot` - Statement (2) in
+* `submodule.eq_bot_of_le_smul_of_le_jacobson_bot` - Statement (2) in
   [Stacks: Nakayama's Lemma](https://stacks.math.columbia.edu/tag/00DV).
 
-* `smul_sup_eq_smul_sup_of_le_smul_of_le_jacobson` - A version of (4) in
+* `submodule.smul_sup_eq_smul_sup_of_le_smul_of_le_jacobson` - A version of (4) in
   [Stacks: Nakayama's Lemma](https://stacks.math.columbia.edu/tag/00DV).,
   generalising to the Jacobson of any ideal.
-* `smul_sup_eq_of_le_smul_of_le_jacobson_bot` - Statement (4) in
+* `submodule.smul_sup_eq_of_le_smul_of_le_jacobson_bot` - Statement (4) in
   [Stacks: Nakayama's Lemma](https://stacks.math.columbia.edu/tag/00DV).
+
+Note that a version of Statement (1) in
+[Stacks: Nakayama's Lemma](https://stacks.math.columbia.edu/tag/00DV) can be found in
+`ring_theory/noetherian` under the name
+`submodule.exists_sub_one_mem_and_smul_eq_zero_of_fg_of_le_smul`
 
 ## References
 * [Stacks: Nakayama's Lemma](https://stacks.math.columbia.edu/tag/00DV)
+
+## Tags
+Nakayama, Jacobson
 -/
 variables {R M : Type*} [comm_ring R] [add_comm_group M] [module R M]
 

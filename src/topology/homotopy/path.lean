@@ -142,10 +142,17 @@ equivalent if there is a `homotopy` between them.
 -/
 protected def setoid (x₀ x₁ : X) : setoid (path x₀ x₁) := ⟨homotopic, equivalence⟩
 
+/--
+The quotient on `path x₀ x₁` by the equivalence relation `path.homotopic`.
+-/
 protected def quotient (x₀ x₁ : X) := quotient (homotopic.setoid x₀ x₁)
 
 end homotopic
 
 end path
 
+/--
+The quotient on `path x₀ x₀` by the equivalence relation `path.homotopic`. That is, the fundamental
+group of `X` based at `x₀`.
+-/
 def first_homotopy (x₀ : X) := path.homotopic.quotient x₀ x₀

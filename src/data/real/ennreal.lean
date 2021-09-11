@@ -1475,6 +1475,22 @@ lemma to_nnreal_prod {ι : Type*} {s : finset ι} {f : ι → ℝ≥0∞} :
   (∏ i in s, f i).to_nnreal = ∏ i in s, (f i).to_nnreal :=
 to_nnreal_hom.map_prod _ _
 
+lemma to_nnreal_inv (a : ℝ≥0∞) : (a⁻¹).to_nnreal = (a.to_nnreal)⁻¹ :=
+begin
+  by_cases ha_zero : a = 0,
+  { simp [ha_zero], },
+  by_cases ha_top : a = ∞,
+  { simp [ha_top], },
+  have ha_eq : a = a.to_nnreal, from (coe_to_nnreal ha_top).symm,
+  nth_rewrite 0 ha_eq,
+  rw ← coe_inv,
+  { norm_cast, },
+  { rw [ne.def, to_nnreal_eq_zero_iff], push_neg, exact ⟨ha_zero, ha_top⟩, },
+end
+
+lemma to_nnreal_div (a b : ℝ≥0∞) : (a / b).to_nnreal = a.to_nnreal / b.to_nnreal :=
+by rw [div_eq_mul_inv, to_nnreal_mul, to_nnreal_inv, div_eq_mul_inv]
+
 /-- `ennreal.to_real` as a `monoid_hom`. -/
 def to_real_hom : ℝ≥0∞ →* ℝ :=
 (nnreal.to_real_hom : ℝ≥0 →* ℝ).comp to_nnreal_hom
@@ -1488,6 +1504,12 @@ to_real_hom.map_pow a n
 lemma to_real_prod {ι : Type*} {s : finset ι} {f : ι → ℝ≥0∞} :
   (∏ i in s, f i).to_real = ∏ i in s, (f i).to_real :=
 to_real_hom.map_prod _ _
+
+lemma to_real_inv (a : ℝ≥0∞) : (a⁻¹).to_real = (a.to_real)⁻¹ :=
+by { simp_rw ennreal.to_real, norm_cast, exact to_nnreal_inv a, }
+
+lemma to_real_div (a b : ℝ≥0∞) : (a / b).to_real = a.to_real / b.to_real :=
+by rw [div_eq_mul_inv, to_real_mul, to_real_inv, div_eq_mul_inv]
 
 lemma of_real_prod_of_nonneg {s : finset α} {f : α → ℝ} (hf : ∀ i, i ∈ s → 0 ≤ f i) :
   ennreal.of_real (∏ i in s, f i) = ∏ i in s, ennreal.of_real (f i) :=

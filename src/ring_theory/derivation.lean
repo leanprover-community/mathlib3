@@ -73,6 +73,9 @@ lemma coe_injective : @function.injective (derivation R A M) (A → M) coe_fn :=
 @[ext] theorem ext (H : ∀ a, D1 a = D2 a) : D1 = D2 :=
 coe_injective $ funext H
 
+lemma to_linear_map_injective (h : (D1 : A →ₗ[R] M) = D2) : D1 = D2 :=
+ext $ linear_map.congr_fun h
+
 lemma congr_fun (h : D1 = D2) (a : A) : D1 a = D2 a := congr_fun (congr_arg coe_fn h) a
 
 @[simp] lemma map_add : D (a + b) = D a + D b := linear_map.map_add D a b
@@ -89,6 +92,15 @@ end
 @[simp] lemma map_algebra_map : D (algebra_map R A r) = 0 :=
 by rw [←mul_one r, ring_hom.map_mul, ring_hom.map_one, ←smul_def, map_smul, map_one_eq_zero,
   smul_zero]
+
+@[simp] lemma leibniz_pow (n : ℕ) : D (a ^ n) = n • a ^ (n - 1) • D a :=
+begin
+  induction n with n ihn,
+  { simp },
+  { rcases (zero_le n).eq_or_lt with (rfl|hpos), { simp },
+    have : a * a ^ (n - 1) = a ^ n, by rw [← pow_succ, nat.sub_add_cancel hpos],
+    simp [pow_succ, leibniz, ihn, smul_comm a n, smul_smul a, add_smul, this, nat.succ_eq_add_one] }
+end
 
 /- Data typeclasses -/
 

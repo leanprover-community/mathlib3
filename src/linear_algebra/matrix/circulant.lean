@@ -186,7 +186,7 @@ lemma circulant_is_symm_ext_iff' [has_sub I] {v : I → α} :
 by simp [is_symm.ext_iff, circulant]
 
 /-- The circulant matrix `circulant v` is symmetric iff `v (- i) = v i` if `[add_group I]`. -/
-lemma circulant_is_symm_ext_iff [add_group I] {v : I → α} :
+lemma circulant_is_symm_iff [add_group I] {v : I → α} :
   (circulant v).is_symm ↔ ∀ i, v (- i) = v i :=
 begin
   rw [circulant_is_symm_ext_iff'],

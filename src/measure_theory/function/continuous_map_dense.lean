@@ -97,7 +97,7 @@ begin
   -- subset
   obtain ⟨u, u_open, su, μu⟩ : ∃ u, is_open u ∧ s ⊆ u ∧ μ u < μ s + ↑η,
   { refine hs.exists_is_open_lt_of_lt _ _,
-    simpa using (ennreal.add_lt_add_iff_left hsμ).2 hη_pos' },
+    simpa using (ennreal.add_lt_add_iff_left hsμ.ne).2 hη_pos' },
   obtain ⟨F, F_closed, Fs, μF⟩ : ∃ F, is_closed F ∧ F ⊆ s ∧ μ s < μ F + ↑η :=
     hs.exists_lt_is_closed_of_lt_top_of_pos hsμ hη_pos',
   have : disjoint uᶜ F,
@@ -108,7 +108,7 @@ begin
     refine ennreal.le_of_add_le_add_left hFμ _,
     have : μ u < μ F + ↑η + ↑η,
     { refine μu.trans _,
-      rwa ennreal.add_lt_add_iff_right (ennreal.coe_lt_top : ↑η < ⊤) },
+      rwa ennreal.add_lt_add_iff_right (ennreal.coe_ne_top : ↑η ≠ ⊤) },
     convert this.le using 1,
     { rw [add_comm, ← measure_union, set.diff_union_of_subset (Fs.trans su)],
       { exact disjoint_sdiff_self_left },

@@ -1250,7 +1250,7 @@ begin
   { intros x t ht hμt,
     rw [Lp.simple_func.coe_indicator_const, set_integral_indicator_const_Lp (hm _ hs)],
     have h : (condexp_L1 hm μ) (indicator_const_Lp 1 ht _ x) = condexp_ind hm μ t x,
-      from L1.set_to_L1_indicator_const_Lp_eq
+      from L1.set_to_L1_indicator_const_Lp
         (dominated_fin_meas_additive_condexp_ind F' hm μ) ht hμt.ne x,
     rw h,
     exact set_integral_condexp_ind_eq hs ht hμs hμt.ne x, },

@@ -68,7 +68,7 @@ lemma apply_zero (F : homotopy f₀ f₁) (x : X) : F (0, x) = f₀ x := F.to_fu
 lemma apply_one (F : homotopy f₀ f₁) (x : X) : F (1, x) = f₁ x := F.to_fun_one x
 
 @[simp]
-lemma to_continuous_map_apply (F : homotopy f₀ f₁) (k : I × X) : F.to_continuous_map k = F k := rfl
+lemma coe_to_continuous_map (F : homotopy f₀ f₁) : ⇑F.to_continuous_map = F := rfl
 
 /--
 Currying a homotopy to a continuous function fron `I` to `C(X, Y)`.

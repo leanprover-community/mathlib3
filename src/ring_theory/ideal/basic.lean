@@ -429,7 +429,7 @@ section comm_ring
 
 namespace ideal
 
-theorem mul_sub_mul_mem {R : Type*} [comm_ring R] {I : ideal R} {a b c d : R}
+theorem mul_sub_mul_mem {R : Type*} [comm_ring R] (I : ideal R) {a b c d : R}
   (h1 : a - b ∈ I) (h2 : c - d ∈ I) : a * c - b * d ∈ I :=
 begin
   rw (show a * c - b * d = (a - b) * c + b * (c - d), by {rw [sub_mul, mul_sub], abel}),
@@ -640,7 +640,7 @@ instance module_pi : module (I.quotient) (I.pi ι).quotient :=
     intros c₁ m₁ c₂ m₂ hc hm,
     apply ideal.quotient.eq.2,
     intro i,
-    exact mul_sub_mul_mem hc (hm i),
+    exact I.mul_sub_mul_mem hc (hm i),
   end,
   one_smul := begin
     rintro ⟨a⟩,

@@ -762,7 +762,7 @@ begin
   { rw [integral_undef hf, norm_zero], exact to_real_nonneg }
 end
 
-lemma ennnorm_integral_le_lintegral_ennnorm (f : α → E) :
+lemma nnnorm_integral_le_lintegral_nnnorm (f : α → E) :
   (nnnorm (∫ a, f a ∂μ) : ℝ≥0∞) ≤ ∫⁻ a, (nnnorm (f a)) ∂μ :=
 by { simp_rw [← of_real_norm_eq_coe_nnnorm], apply ennreal.of_real_le_of_le_to_real,
   exact norm_integral_le_lintegral_norm f }
@@ -782,7 +782,7 @@ begin
     ennreal.coe_zero],
   exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds
     (tendsto_set_lintegral_zero hf hs) (λ i, zero_le _)
-    (λ i, ennnorm_integral_le_lintegral_ennnorm _)
+    (λ i, nnnorm_integral_le_lintegral_nnnorm _)
 end
 
 /-- If `f` is integrable, then `∫ x in s, f x ∂μ` is absolutely continuous in `s`: it tends

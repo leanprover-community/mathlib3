@@ -96,6 +96,8 @@ def refl (p : path x₀ x₁) : homotopy p p :=
   target' := λ t, by simp,
   ..continuous_map.homotopy.refl p.to_continuous_map }
 
+instance : inhabited (homotopy (path.refl ()) (path.refl ())) := ⟨homotopy.refl _⟩
+
 /--
 Given a `homotopy p₀ p₁`, we can define a `homotopy p₁ p₀` by reversing the homotopy.
 -/
@@ -140,10 +142,14 @@ equivalent if there is a `homotopy` between them.
 -/
 protected def setoid (x₀ x₁ : X) : setoid (path x₀ x₁) := ⟨homotopic, equivalence⟩
 
+local attribute [instance] homotopic.setoid
+
 /--
 The quotient on `path x₀ x₁` by the equivalence relation `path.homotopic`.
 -/
 protected def quotient (x₀ x₁ : X) := quotient (homotopic.setoid x₀ x₁)
+
+instance : inhabited (homotopic.quotient () ()) := ⟨⟦path.refl ()⟧⟩
 
 end homotopic
 
@@ -154,3 +160,5 @@ The quotient on `path x₀ x₀` by the equivalence relation `path.homotopic`. T
 group of `X` based at `x₀`.
 -/
 def first_homotopy (x₀ : X) := path.homotopic.quotient x₀ x₀
+
+instance : inhabited (first_homotopy ()) := ⟨⟦path.refl ()⟧⟩

@@ -894,7 +894,7 @@ protected meta def apply_replacement_fun (f : name → name) (test : expr → bo
     -- interchange `x` and the last argument of `g`
     some $ apply_replacement_fun g.app_fn (apply_replacement_fun x) $
       apply_replacement_fun g.app_arg else
-    if n_args ∈ (relevant.find nm).lhoare [0] ∧ ¬ test x then
+    if n_args ∈ (relevant.find nm).lhoare [0] ∧ f.is_constant ∧ ¬ test x then
       some $ (f.mk_app $ g.get_app_args.map apply_replacement_fun) (apply_replacement_fun x) else
       none
   | _ := none

@@ -73,14 +73,18 @@ The declaration {pre} depends on the declaration {src} which is in the namespace
   let decl :=
     decl.update_with_fun env (name.map_prefix f) (additive_test f replace_all ignore)
       relevant reorder tgt,
+  -- o ← get_options, set_options $ o.set_bool `pp.all tt, -- print with pp.all (for debugging)
   pp_decl ← pp decl,
   when trace $ trace!"[to_additive] > generating\n{pp_decl}",
   decorate_error (format!"@[to_additive] failed. Type mismatch in additive declaration.
 For help, see the docstring of `to_additive.attr`, section `Troubleshooting`.
 Failed to add declaration\n{pp_decl}
 
-Nested error message:\n").to_string $ -- the empty line is intentional
+Nested error message:\n").to_string $ do {
     if env.is_protected src then add_protected_decl decl else add_decl decl,
+    -- we test that the declaration value type-checks, so that we get the decorated error message
+    -- without this line, the type-checking might fail outside the `decorate_error`.
+    decorate_error "proof doesn't type-check. " $ type_check decl.value },
   attrs.mmap' $ λ n, copy_attribute n src tgt
 
 /--

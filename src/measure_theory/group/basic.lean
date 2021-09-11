@@ -375,22 +375,18 @@ lemma haar_preimage_mul_right {G : Type*}
   μ ((λ h, h * g) ⁻¹' A) = μ A :=
 by simp_rw [mul_comm, haar_preimage_mul μ g A]
 
+@[to_additive measure_theory.measure.is_add_haar_measure.smul]
 lemma is_haar_measure.smul {c : ℝ≥0∞} (cpos : c ≠ 0) (ctop : c ≠ ∞) :
   is_haar_measure (c • μ) :=
 { left_invariant := (is_mul_left_invariant_haar μ).smul _,
-  compact_lt_top := λ K hK, by simp [lt_top_iff_ne_top, (hK.haar_lt_top μ).ne, cpos, ctop],
-  open_pos := λ U U_open U_ne, bot_lt_iff_ne_bot.2 $ by simp [cpos, (U_open.haar_pos μ U_ne).ne'] }
-
-lemma is_add_haar_measure.smul
-  {G : Type*} [add_group G] [measurable_space G] [topological_space G] (μ : measure G) [μ.is_add_haar_measure]
-  {c : ℝ≥0∞} (cpos : c ≠ 0) (ctop : c ≠ ∞) :
-  is_add_haar_measure (c • μ) :=
-{ add_left_invariant := (is_add_left_invariant_add_haar μ).smul _,
-  compact_lt_top := λ K hK, by simp [lt_top_iff_ne_top, (hK.add_haar_lt_top μ).ne, cpos, ctop],
-  open_pos := λ U U_open U_ne, bot_lt_iff_ne_bot.2 $
-    by simp [cpos, (U_open.add_haar_pos μ U_ne).ne'] }
-
-attribute [to_additive measure_theory.measure.is_add_haar_measure.smul] is_haar_measure.smul
+  compact_lt_top := λ K hK, begin
+    change c * μ K < ∞,
+    simp [lt_top_iff_ne_top, (hK.haar_lt_top μ).ne, cpos, ctop],
+  end,
+  open_pos := λ U U_open U_ne, bot_lt_iff_ne_bot.2 $ begin
+    change c * μ U ≠ 0,
+    simp [cpos, (_root_.is_open.haar_pos μ U_open U_ne).ne'],
+  end }
 
 /-- If a left-invariant measure gives positive mass to some compact set with nonempty interior, then
 it is a Haar measure -/

@@ -510,24 +510,12 @@ scaled so that `add_haar_measure K₀ K₀ = 1`."]
 def haar_measure (K₀ : positive_compacts G) : measure G :=
 ((haar_content K₀).outer_measure K₀.1)⁻¹ • (haar_content K₀).measure
 
--- Unfortunately we have to manually give the additive version here
-lemma add_haar_measure_apply {G : Type*} [add_group G] [topological_space G] [t2_space G]
-  [topological_add_group G] [measurable_space G] [borel_space G] {K₀ : positive_compacts G}
-  {s : set G} (hs : measurable_set s) : add_haar_measure K₀ s =
-  (add_haar_content K₀).outer_measure s / (add_haar_content K₀).outer_measure K₀.1 :=
-begin
-  delta add_haar_measure,
-  simp only [hs, div_eq_mul_inv, mul_comm, content.measure_apply, algebra.id.smul_eq_mul,
-    coe_smul, pi.smul_apply],
-end
-
 @[to_additive]
 lemma haar_measure_apply {K₀ : positive_compacts G} {s : set G} (hs : measurable_set s) :
   haar_measure K₀ s = (haar_content K₀).outer_measure s / (haar_content K₀).outer_measure K₀.1 :=
 begin
-  delta haar_measure,
-  simp only [hs, div_eq_mul_inv, mul_comm, content.measure_apply, algebra.id.smul_eq_mul,
-    coe_smul, pi.smul_apply],
+  change (((haar_content K₀).outer_measure) K₀.val)⁻¹ * (haar_content K₀).measure s = _,
+  simp only [hs, div_eq_mul_inv, mul_comm, content.measure_apply],
 end
 
 @[to_additive]
@@ -616,7 +604,7 @@ end
 
 end unique
 
-@[to_additive]
+@[to_additive is_add_haar_measure_eq_smul_is_add_haar_measure]
 theorem is_haar_measure_eq_smul_is_haar_measure
   [locally_compact_space G] [second_countable_topology G]
   (μ ν : measure G) [is_haar_measure μ] [is_haar_measure ν] :
@@ -661,7 +649,9 @@ begin
   have K : positive_compacts G := classical.choice (topological_space.nonempty_positive_compacts G),
   have : c^2 * μ K.1 = 1^2 * μ K.1,
     by { conv_rhs { rw μeq },
-         simp only [one_pow, algebra.id.smul_eq_mul, one_mul, coe_smul, pi.smul_apply] },
+         -- use `change` instead of `simp` to avoid `to_additive` issues
+         change c ^ 2 * μ K.1 = 1 ^ 2 * (c ^ 2 * μ K.1),
+         rw [one_pow, one_mul] },
   have : c^2 = 1^2 :=
     (ennreal.mul_eq_mul_right (haar_pos_of_nonempty_interior _ K.2.2).ne'
       (is_compact.haar_lt_top _ K.2.1).ne).1 this,

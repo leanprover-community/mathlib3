@@ -453,7 +453,8 @@ instance [measurable_space α] : has_scalar ℝ≥0∞ (measure α) :=
   (c • μ).to_outer_measure = c • μ.to_outer_measure :=
 rfl
 
-@[simp, norm_cast] theorem coe_smul {m : measurable_space α} (c : ℝ≥0∞) (μ : measure α) :
+@[simp, norm_cast]
+theorem coe_smul (c : ℝ≥0∞) {α : Type*} {m : measurable_space α} (μ : measure α) :
   ⇑(c • μ) = c • μ :=
 rfl
 

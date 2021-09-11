@@ -316,7 +316,7 @@ begin
   { cases t,
     ext f k,
     simp only [linear_equiv.map_smul, dite_eq_ite, linear_map.id_coe, p, ite_not,
-      algebra.id.smul_eq_mul, one_mul, dot_product,
+      algebra.id.smul_eq_mul, one_mul, dot_product, std_basis_matrix,
       equiv.pi_equiv_pi_subtype_prod_symm_apply, id.def, transvection,
       pi.add_apply, zero_mul, linear_map.smul_apply, function.comp_app,
       equiv.pi_equiv_pi_subtype_prod_apply, matrix.transvection_struct.to_matrix_mk,

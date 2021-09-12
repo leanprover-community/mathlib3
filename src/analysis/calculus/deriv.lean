@@ -270,6 +270,13 @@ lemma has_deriv_at_iff_tendsto_slope :
     tendsto (λ y, (y - x)⁻¹ • (f y - f x)) (𝓝[{x}ᶜ] x) (𝓝 f') :=
 has_deriv_at_filter_iff_tendsto_slope
 
+theorem has_deriv_within_at_congr_set {s t u : set 𝕜}
+  (hu : u ∈ 𝓝 x) (h : s ∩ u = t ∩ u) :
+    has_deriv_within_at f f' s x ↔ has_deriv_within_at f f' t x :=
+by simp_rw [has_deriv_within_at, nhds_within_eq_nhds_within' hu h]
+
+alias has_deriv_within_at_congr_set ↔ has_deriv_within_at.congr_set _
+
 @[simp] lemma has_deriv_within_at_diff_singleton :
   has_deriv_within_at f f' (s \ {x}) x ↔ has_deriv_within_at f f' s x :=
 by simp only [has_deriv_within_at_iff_tendsto_slope, sdiff_idem]
@@ -287,6 +294,15 @@ by rw [← Iic_diff_right, has_deriv_within_at_diff_singleton]
 
 alias has_deriv_within_at_Iio_iff_Iic ↔
   has_deriv_within_at.Iic_of_Iio has_deriv_within_at.Iio_of_Iic
+
+theorem has_deriv_within_at.Ioi_iff_Ioo [linear_order 𝕜] [order_closed_topology 𝕜] {x y : 𝕜}
+  (h : x < y) :
+  has_deriv_within_at f f' (Ioo x y) x ↔ has_deriv_within_at f f' (Ioi x) x :=
+has_deriv_within_at_congr_set (is_open_Iio.mem_nhds h) $
+  by { rw [Ioi_inter_Iio, inter_eq_left_iff_subset], exact Ioo_subset_Iio_self }
+
+alias has_deriv_within_at.Ioi_iff_Ioo ↔
+  has_deriv_within_at.Ioi_of_Ioo has_deriv_within_at.Ioo_of_Ioi
 
 theorem has_deriv_at_iff_is_o_nhds_zero : has_deriv_at f f' x ↔
   is_o (λh, f (x + h) - f x - h • f') (λh, h) (𝓝 0) :=
@@ -439,6 +455,9 @@ by { unfold deriv_within, rw fderiv_within_congr hs hL hx }
 
 lemma filter.eventually_eq.deriv_eq (hL : f₁ =ᶠ[𝓝 x] f) : deriv f₁ x = deriv f x :=
 by { unfold deriv, rwa filter.eventually_eq.fderiv_eq }
+
+protected lemma filter.eventually_eq.deriv (h : f₁ =ᶠ[𝓝 x] f) : deriv f₁ =ᶠ[𝓝 x] deriv f :=
+h.eventually_eq_nhds.mono $ λ x h, h.deriv_eq
 
 end congr
 

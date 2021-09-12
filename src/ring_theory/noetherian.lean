@@ -98,7 +98,7 @@ begin
 end
 
 /-- **Nakayama's Lemma**. Atiyah-Macdonald 2.5, Eisenbud 4.7, Matsumura 2.2,
-[Stacks 00DV](https://stacks.math.columbia.edu/tag/00VL) -/
+[Stacks 00DV](https://stacks.math.columbia.edu/tag/00DV) -/
 theorem exists_sub_one_mem_and_smul_eq_zero_of_fg_of_le_smul {R : Type*} [comm_ring R]
   {M : Type*} [add_comm_group M] [module R M]
   (I : ideal R) (N : submodule R M) (hn : N.fg) (hin : N ≤ I • N) :
@@ -380,7 +380,7 @@ is_noetherian_of_surjective _ f.to_linear_map f.range
 
 lemma is_noetherian_of_injective [is_noetherian R P] (f : M →ₗ[R] P) (hf : f.ker = ⊥) :
   is_noetherian R M :=
-is_noetherian_of_linear_equiv (linear_equiv.of_injective f hf).symm
+is_noetherian_of_linear_equiv (linear_equiv.of_injective f $ linear_map.ker_eq_bot.mp hf).symm
 
 lemma fg_of_injective [is_noetherian R P] {N : submodule R M} (f : M →ₗ[R] P) (hf : f.ker = ⊥) :
   N.fg :=

@@ -87,17 +87,14 @@ begin
   induction t using finset.induction_on with a t hat IH hs h's,
   { simp },
   { have : (⋃ i ∈ insert a t, s i) = s a ∪ (⋃ i ∈ t, s i), by simp,
-    rw [this, integral_union],
+    rw [this, integral_union _ _ _ hf.integrable_on hf.integrable_on],
     { simp only [hat, finset.sum_insert, not_false_iff, add_right_inj],
       exact IH (λ i hi, hs i (finset.mem_insert_of_mem hi)) (h's.mono (finset.subset_insert _ _)) },
     { simp only [disjoint_Union_right],
-      assume i hi,
-      apply h's _ (finset.mem_insert_self _ _) _ (finset.mem_insert_of_mem hi)
+      exact λ i hi, h's _ (finset.mem_insert_self _ _) _ (finset.mem_insert_of_mem hi)
         (ne_of_mem_of_not_mem hi hat).symm },
-    { apply hs _ (finset.mem_insert_self _ _) },
-    { apply finset.measurable_set_bUnion _ (λ i hi, hs i (finset.mem_insert_of_mem hi)) },
-    { apply hf.integrable_on },
-    { apply hf.integrable_on } }
+    { exact hs _ (finset.mem_insert_self _ _) },
+    { exact finset.measurable_set_bUnion _ (λ i hi, hs i (finset.mem_insert_of_mem hi)) }, }
 end
 
 lemma integral_fintype_Union {ι : Type*} [fintype ι] {s : ι → set α}
@@ -140,8 +137,8 @@ begin
 end
 
 lemma has_sum_integral_Union {ι : Type*} [encodable ι] {s : ι → set α} {f : α → E}
-  (hm : ∀i, measurable_set (s i)) (hd : pairwise (disjoint on s)) (hfi : integrable f μ ) :
-  has_sum (λ n, ∫ a in s n, f a ∂ μ) (∫ a in (⋃ (n : ι), s n), f a ∂μ) :=
+  (hm : ∀ i, measurable_set (s i)) (hd : pairwise (disjoint on s)) (hfi : integrable f μ ) :
+  has_sum (λ n, ∫ a in s n, f a ∂ μ) (∫ a in ⋃ n, s n, f a ∂μ) :=
 begin
   have : (λ n : finset ι, ∑ i in n, ∫ a in s i, f a ∂μ) =
            λ (n : finset ι), ∫ a, set.indicator (⋃ i ∈ n, s i) f a ∂μ,
@@ -161,8 +158,8 @@ begin
 end
 
 lemma integral_Union {ι : Type*} [encodable ι] {s : ι → set α} {f : α → E}
-  (hm : ∀i, measurable_set (s i)) (hd : pairwise (disjoint on s)) (hfi : integrable f μ ) :
-  (∫ a in (⋃ (n : ι), s n), f a ∂μ) = ∑' n, ∫ a in s n, f a ∂ μ :=
+  (hm : ∀ i, measurable_set (s i)) (hd : pairwise (disjoint on s)) (hfi : integrable f μ ) :
+  (∫ a in (⋃ n, s n), f a ∂μ) = ∑' n, ∫ a in s n, f a ∂ μ :=
 (has_sum.tsum_eq (has_sum_integral_Union hm hd hfi)).symm
 
 lemma set_integral_eq_zero_of_forall_eq_zero {f : α → E} (hf : measurable f)
@@ -593,6 +590,15 @@ lemma continuous_at.measurable_at_filter
   ∀ x ∈ s, measurable_at_filter f (𝓝 x) μ :=
 continuous_on.measurable_at_filter hs $ continuous_at.continuous_on hf
 
+/-- If a function is continuous on a measurable set `s`, then it is measurable at the filter
+  `𝓝[s] x` for all `x`. -/
+lemma continuous_on.measurable_at_filter_nhds_within {α E : Type*} [measurable_space α]
+  [measurable_space E] [normed_group E] [topological_space α] [opens_measurable_space α]
+  [borel_space E] {f : α → E} {s : set α} {μ : measure α}
+  (hf : continuous_on f s) (hs : measurable_set s) (x : α) :
+  measurable_at_filter f (𝓝[s] x) μ :=
+⟨s, self_mem_nhds_within, hf.ae_measurable hs⟩
+
 /-- Fundamental theorem of calculus for set integrals, `nhds_within` version: if `μ` is a locally
 finite measure, `f` is continuous on a measurable set `t`, and `a ∈ t`, then `∫ x in (s i), f x ∂μ =
 μ (s i) • f a + o(μ (s i))` at `li` provided that `s i` tends to `(𝓝[t] a).lift' powerset` along
@@ -638,6 +644,10 @@ variables [second_countable_topology F] [complete_space F]
 lemma integral_comp_Lp (L : E →L[𝕜] F) (φ : Lp E p μ) :
   ∫ a, (L.comp_Lp φ) a ∂μ = ∫ a, L (φ a) ∂μ :=
 integral_congr_ae $ coe_fn_comp_Lp _ _
+
+lemma set_integral_comp_Lp (L : E →L[𝕜] F) (φ : Lp E p μ) {s : set α} (hs : measurable_set s) :
+  ∫ a in s, (L.comp_Lp φ) a ∂μ = ∫ a in s, L (φ a) ∂μ :=
+set_integral_congr_ae hs ((L.coe_fn_comp_Lp φ).mono (λ x hx hx2, hx))
 
 lemma continuous_integral_comp_L1 [measurable_space 𝕜] [opens_measurable_space 𝕜] (L : E →L[𝕜] F) :
   continuous (λ (φ : α →₁[μ] E), ∫ (a : α), L (φ a) ∂μ) :=

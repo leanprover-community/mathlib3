@@ -207,6 +207,17 @@ end inf'
 
 end lattice
 
+section restrict
+
+variables (s : set α)
+
+/-- The restriction of a continuous function `α → β` to a subset `s` of `α`. -/
+def restrict (f : C(α, β)) : C(s, β) := ⟨f ∘ coe⟩
+
+@[simp] lemma coe_restrict (f : C(α, β)) : ⇑(f.restrict s) = f ∘ coe := rfl
+
+end restrict
+
 section extend
 
 variables [linear_order α] [order_topology α] {a b : α} (h : a ≤ b)

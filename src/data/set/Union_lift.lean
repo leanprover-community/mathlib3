@@ -58,7 +58,7 @@ variables
   {S : ι → set α}
   {f : Π i (x : S i), β}
   {hf : ∀ i j (x : α) (hxi : x ∈ S i) (hxj : x ∈ S j), f i ⟨x, hxi⟩ = f j ⟨x, hxj⟩}
-  {T : set α} {hT : T ⊆ Union S} {hT' : T = Union S}
+  {T : set α} {hT : T ⊆ Union S} (hT' : T = Union S)
 
 @[simp] lemma Union_lift_mk
   {i : ι} (x : S i) (hx : (x : α) ∈ T) :

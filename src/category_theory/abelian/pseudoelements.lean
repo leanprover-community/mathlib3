@@ -200,6 +200,11 @@ quotient.sound $ (pseudo_zero_aux R _).2 rfl
 /-- The zero pseudoelement is the class of a zero morphism -/
 def pseudo_zero {P : C} : P := ⟦(0 : P ⟶ P)⟧
 
+/--
+We can not use `pseudo_zero` as a global `has_zero` instance,
+as it would trigger on any type class search for `has_zero` applied to a `coe_sort`.
+This would be too expensive.
+-/
 def has_zero {P : C} : has_zero P := ⟨pseudo_zero⟩
 localized "attribute [instance] category_theory.abelian.pseudoelement.has_zero" in pseudoelement
 

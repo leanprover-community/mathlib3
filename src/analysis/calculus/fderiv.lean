@@ -2136,10 +2136,7 @@ h.continuous.comp (continuous_const.prod_mk continuous_id)
 end bilinear_map
 
 section clm_comp_apply
-
-/-!
-### TODO
--/
+/-! ### Derivative of the pointwise composition/application of continuous linear maps -/
 
 variables {H : Type*} [normed_group H] [normed_space 𝕜 H] {c : E → G →L[𝕜] H}
   {c' : E →L[𝕜] G →L[𝕜] H} {d : E → F →L[𝕜] G} {d' : E →L[𝕜] F →L[𝕜] G} {u : E → G}

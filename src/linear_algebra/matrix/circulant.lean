@@ -137,22 +137,29 @@ lemma fin.circulant_mul_comm [comm_semigroup α] [add_comm_monoid α] :
 | (n+1) := circulant_mul_comm
 
 /-- `k • circulant v` is another circulantcluant matrix `circulant (k • v)`. -/
-lemma circulant_smul [has_sub I] [has_scalar R α] {k : R} {v : I → α} :
+lemma circulant_smul [has_sub I] [has_scalar R α] (k : R) (v : I → α) :
   circulant (k • v) = k • circulant v :=
 by ext; simp
 
-@[simp] lemma circulant_zero [has_zero α] [has_sub I] :
+@[simp] lemma circulant_zero (α I) [has_zero α] [has_sub I] :
   circulant 0 = (0 : matrix I I α) :=
 by ext; simp
 
-@[simp] lemma circulant_single_one [has_zero α] [has_one α] [decidable_eq I] [add_group I] :
+@[simp] lemma circulant_single_one (α I) [has_zero α] [has_one α] [decidable_eq I] [add_group I] :
   circulant (pi.single 0 1 : I → α) = (1 : matrix I I α) :=
 by { ext i j, simp only [circulant, one_apply, pi.single_apply, sub_eq_zero], congr }
+
+lemma circulant_single [semiring α] (I) [decidable_eq I] [add_group I] [fintype I] (a : α) :
+  circulant (pi.single 0 a : I → α) = scalar I a :=
+begin
+  ext i j,
+  simp [pi.single_apply, one_apply, sub_eq_zero],
+end
 
 /-- Any identity matrix is a circulant matrix. -/
 lemma one_eq_circulant (α I) [has_zero α] [has_one α] [decidable_eq I] [add_group I] :
   (1 : matrix I I α) = circulant (λ i, ite (i = 0) 1 0) :=
-by { rw [←circulant_single], congr, ext i, simp [pi.single, update] }
+by { rw [←circulant_single_one], congr, ext i, simp [pi.single, update] }
 
 /-- Another version of `one_eq_circulant`. -/
 lemma one_eq_circulant' (α I) [has_zero α] [has_one α] [decidable_eq I] [add_group I] :
@@ -163,18 +170,6 @@ lemma fin.one_eq_circulant (α) [has_zero α] [has_one α] :
   ∀ n, (1 : matrix (fin n) (fin n) α) = circulant (λ i, ite (↑i = 0) 1 0)
 | 0     := dec_trivial
 | (n+1) := by simp [one_eq_circulant α (fin (n + 1)), fin.ext_iff]
-
-lemma scalar_eq_circluant [semiring α] (I) [decidable_eq I] [add_group I] [fintype I] (a : α) :
-  scalar I a = circulant (λ i, ite (i = 0) a 0) :=
-begin
-  ext i j,
-  simp [one_apply, sub_eq_zero]
-end
-
-lemma fin.scalar_eq_circluant [semiring α] (a : α) :
-  ∀ n, scalar (fin n) a = circulant (λ i, ite (↑i = 0) a 0)
-| 0     := dec_trivial
-| (n+1) := by simp [scalar_eq_circluant (fin (n + 1)) a, fin.ext_iff]
 
 /-- For a one-ary predicate `p`, `p` applied to every entry of `circulant v` is true
     if `p` applied to every entry of `v` is true. -/

@@ -1795,7 +1795,7 @@ lemma _root_.submodule.map_comap_eq (f : M →ₗ[R] M₂) (q : submodule R M₂
 le_antisymm (le_inf map_le_range (map_comap_le _ _)) $
 by rintro _ ⟨⟨x, _, rfl⟩, hx⟩; exact ⟨x, hx, rfl⟩
 
-lemma map_comap_eq_self {f : M →ₗ[R] M₂} {q : submodule R M₂} (h : q ≤ range f) :
+lemma _root_.submodule.map_comap_eq_self {f : M →ₗ[R] M₂} {q : submodule R M₂} (h : q ≤ range f) :
   map f (comap f q) = q :=
 by rwa [submodule.map_comap_eq, inf_eq_right]
 
@@ -1861,7 +1861,7 @@ begin
   exact mem_sup.2 ⟨y, hy, x - y, by simpa using sub_eq_zero.2 e.symm, by simp⟩
 end
 
-lemma comap_map_eq_self {f : M →ₗ[R] M₂} {p : submodule R M} (h : ker f ≤ p) :
+lemma _root_.submodule.comap_map_eq_self {f : M →ₗ[R] M₂} {p : submodule R M} (h : ker f ≤ p) :
   comap f (map f p) = p :=
 by rw [submodule.comap_map_eq, sup_of_le_left h]
 

@@ -777,19 +777,19 @@ noncomputable def supr_lift [nonempty ι]
   (f : Π i, K i →ₐ[R] B)
   (hf : ∀ (i j : ι) (h : K i ≤ K j), f i = (f j).comp (inclusion h)) :
   ↥(supr K) →ₐ[R] B :=
-{ to_fun := set.lift_of_eq_Union (λ i, ↑(K i)) (λ i x, f i x)
+{ to_fun := set.Union_lift (λ i, ↑(K i)) (λ i x, f i x)
     (λ i j x hxi hxj,
       let ⟨k, hik, hjk⟩ := dir i j in
       begin
         rw [hf i k hik, hf j k hjk],
         refl
       end) _
-    (by exactI coe_supr_of_directed dir),
-  map_one' := set.lift_of_eq_Union_const _ (λ _, 1) (λ _, rfl) _ (by simp),
-  map_zero' := set.lift_of_eq_Union_const _ (λ _, 0) (λ _, rfl) _ (by simp),
-  map_mul' := set.lift_of_eq_Union_binary dir _ (λ _, (*)) (λ _ _ _, rfl) _ (by simp),
-  map_add' := set.lift_of_eq_Union_binary dir _ (λ _, (+)) (λ _ _ _, rfl) _ (by simp),
-  commutes' := λ r, set.lift_of_eq_Union_const _ (λ _, algebra_map _ _ r)
+    (le_of_eq $ by exactI coe_supr_of_directed dir),
+  map_one' := set.Union_lift_const _ (λ _, 1) (λ _, rfl) _ (by simp),
+  map_zero' := set.Union_lift_const _ (λ _, 0) (λ _, rfl) _ (by simp),
+  map_mul' := set.Union_lift_binary dir _ (λ _, (*)) (λ _ _ _, rfl) _ (by simp),
+  map_add' := set.Union_lift_binary dir _ (λ _, (+)) (λ _ _ _, rfl) _ (by simp),
+  commutes' := λ r, set.Union_lift_const _ (λ _, algebra_map _ _ r)
     (λ _, rfl) _ (λ i, by erw [alg_hom.commutes (f i)]) }
 
 variables [nonempty ι] {K : ι → subalgebra R A} {dir : directed (≤) K}
@@ -881,7 +881,7 @@ def under {R : Type u} {A : Type v} [comm_semiring R] [comm_semiring A]
   .. T }
 
 @[simp] lemma mem_under {R : Type u} {A : Type v} [comm_semiring R] [comm_semiring A]
-  {i : algebra R A} {S : subalgebra R A} {T : subalgebra S A} {x : A} : 
+  {i : algebra R A} {S : subalgebra R A} {T : subalgebra S A} {x : A} :
   x ∈ S.under T ↔ x ∈ T := iff.rfl
 
 end actions

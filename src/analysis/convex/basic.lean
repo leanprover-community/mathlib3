@@ -902,7 +902,7 @@ end
 lemma set.ord_connected.convex [linear_ordered_add_comm_monoid E] [ordered_semiring 𝕜]
   [module 𝕜 E] [ordered_smul 𝕜 E] {s : set E} (hs : s.ord_connected) :
   convex 𝕜 s :=
-hs.convex_of_chain chain_univ
+hs.convex_of_chain (chain_of_trichotomous univ)
 
 lemma convex_iff_ord_connected [linear_ordered_field 𝕜] {s : set 𝕜} :
   convex 𝕜 s ↔ s.ord_connected :=

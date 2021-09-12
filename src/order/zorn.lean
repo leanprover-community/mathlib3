@@ -92,8 +92,8 @@ lemma chain.mono {c c'} :
   c' ⊆ c → chain c → chain c' :=
 pairwise_on.mono
 
-lemma chain_univ [is_trichotomous α r] :
-  chain (univ : set α) :=
+lemma chain_of_trichotomous [is_trichotomous α r] (s : set α) :
+  chain s :=
 begin
   intros a _ b _ hab,
   obtain h | h | h := @trichotomous _ r _ a b,
@@ -105,7 +105,7 @@ end
 lemma chain_univ_iff :
   chain (univ : set α) ↔ is_trichotomous α r :=
 begin
-  refine ⟨λ h, ⟨λ a b , _⟩, @chain_univ _ _⟩,
+  refine ⟨λ h, ⟨λ a b , _⟩, @chain_of_trichotomous _ _ univ⟩,
   rw [or.left_comm, or_iff_not_imp_left],
   exact h a trivial b trivial,
 end

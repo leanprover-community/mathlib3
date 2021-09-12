@@ -857,7 +857,10 @@ variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β] [measurable_
   [opens_measurable_space 𝕜]
 
 lemma to_L1_smul (f : α → β) (hf : integrable f μ) (k : 𝕜) :
-  to_L1 (λa, k • f a) (hf.smul k) = k • to_L1 f hf := rfl
+  to_L1 (λ a, k • f a) (hf.smul k) = k • to_L1 f hf := rfl
+
+lemma to_L1_smul' (f : α → β) (hf : integrable f μ) (k : 𝕜) :
+  to_L1 (k • f) (hf.smul k) = k • to_L1 f hf := rfl
 
 end integrable
 

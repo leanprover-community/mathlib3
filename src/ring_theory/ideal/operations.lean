@@ -24,7 +24,7 @@ variables [comm_ring R] [add_comm_group M] [module R M]
 open_locale pointwise
 
 instance has_scalar' : has_scalar (ideal R) (submodule R M) :=
-⟨λ I N, ⨆ r : I, r • N⟩
+⟨λ I N, ⨆ r : I, (r : R) • N⟩
 
 /-- `N.annihilator` is the ideal of all elements `r : R` such that `r • N = 0`. -/
 def annihilator (N : submodule R M) : ideal R :=

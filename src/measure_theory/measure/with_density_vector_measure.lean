@@ -60,12 +60,10 @@ lemma with_densityᵥ_apply (hf : integrable f μ) {s : set α} (hs : measurable
   μ.with_densityᵥ f s = ∫ x in s, f x ∂μ :=
 by { rw [with_densityᵥ, dif_pos hf], exact dif_pos hs }
 
-@[simp]
-lemma with_densityᵥ_zero : μ.with_densityᵥ (0 : α → E) = 0 :=
+@[simp] lemma with_densityᵥ_zero : μ.with_densityᵥ (0 : α → E) = 0 :=
 by { ext1 s hs, erw [with_densityᵥ_apply (integrable_zero α E μ) hs], simp, }
 
-@[simp]
-lemma with_densityᵥ_neg : μ.with_densityᵥ (-f) = -μ.with_densityᵥ f :=
+@[simp] lemma with_densityᵥ_neg : μ.with_densityᵥ (-f) = -μ.with_densityᵥ f :=
 begin
   by_cases hf : integrable f μ,
   { ext1 i hi,
@@ -76,8 +74,7 @@ begin
     rwa integrable_neg_iff }
 end
 
-@[simp]
-lemma with_densityᵥ_add (hf : integrable f μ) (hg : integrable g μ) :
+@[simp] lemma with_densityᵥ_add (hf : integrable f μ) (hg : integrable g μ) :
   μ.with_densityᵥ (f + g) = μ.with_densityᵥ f + μ.with_densityᵥ g :=
 begin
   ext1 i hi,
@@ -89,8 +86,7 @@ begin
   { exact hg.integrable_on.restrict measurable_set.univ }
 end
 
-@[simp]
-lemma with_densityᵥ_sub (hf : integrable f μ) (hg : integrable g μ) :
+@[simp] lemma with_densityᵥ_sub (hf : integrable f μ) (hg : integrable g μ) :
   μ.with_densityᵥ (f - g) = μ.with_densityᵥ f - μ.with_densityᵥ g :=
 by rw [sub_eq_add_neg, sub_eq_add_neg, with_densityᵥ_add hf hg.neg, with_densityᵥ_neg]
 

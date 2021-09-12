@@ -590,6 +590,15 @@ lemma continuous_at.measurable_at_filter
   ∀ x ∈ s, measurable_at_filter f (𝓝 x) μ :=
 continuous_on.measurable_at_filter hs $ continuous_at.continuous_on hf
 
+/-- If a function is continuous on a measurable set `s`, then it is measurable at the filter
+  `𝓝[s] x` for all `x`. -/
+lemma continuous_on.measurable_at_filter_nhds_within {α E : Type*} [measurable_space α]
+  [measurable_space E] [normed_group E] [topological_space α] [opens_measurable_space α]
+  [borel_space E] {f : α → E} {s : set α} {μ : measure α}
+  (hf : continuous_on f s) (hs : measurable_set s) (x : α) :
+  measurable_at_filter f (𝓝[s] x) μ :=
+⟨s, self_mem_nhds_within, hf.ae_measurable hs⟩
+
 /-- Fundamental theorem of calculus for set integrals, `nhds_within` version: if `μ` is a locally
 finite measure, `f` is continuous on a measurable set `t`, and `a ∈ t`, then `∫ x in (s i), f x ∂μ =
 μ (s i) • f a + o(μ (s i))` at `li` provided that `s i` tends to `(𝓝[t] a).lift' powerset` along
@@ -635,6 +644,10 @@ variables [second_countable_topology F] [complete_space F]
 lemma integral_comp_Lp (L : E →L[𝕜] F) (φ : Lp E p μ) :
   ∫ a, (L.comp_Lp φ) a ∂μ = ∫ a, L (φ a) ∂μ :=
 integral_congr_ae $ coe_fn_comp_Lp _ _
+
+lemma set_integral_comp_Lp (L : E →L[𝕜] F) (φ : Lp E p μ) {s : set α} (hs : measurable_set s) :
+  ∫ a in s, (L.comp_Lp φ) a ∂μ = ∫ a in s, L (φ a) ∂μ :=
+set_integral_congr_ae hs ((L.coe_fn_comp_Lp φ).mono (λ x hx hx2, hx))
 
 lemma continuous_integral_comp_L1 [measurable_space 𝕜] [opens_measurable_space 𝕜] (L : E →L[𝕜] F) :
   continuous (λ (φ : α →₁[μ] E), ∫ (a : α), L (φ a) ∂μ) :=

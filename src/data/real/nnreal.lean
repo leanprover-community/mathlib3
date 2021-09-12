@@ -397,11 +397,11 @@ by simp only [div_eq_inv_mul, mul_finset_sup]
 
 @[simp, norm_cast] lemma coe_max (x y : ℝ≥0) :
   ((max x y : ℝ≥0) : ℝ) = max (x : ℝ) (y : ℝ) :=
-by { delta max, split_ifs; refl }
+nnreal.coe_mono.map_max
 
 @[simp, norm_cast] lemma coe_min (x y : ℝ≥0) :
   ((min x y : ℝ≥0) : ℝ) = min (x : ℝ) (y : ℝ) :=
-by { delta min, split_ifs; refl }
+nnreal.coe_mono.map_min
 
 @[simp] lemma zero_le_coe {q : ℝ≥0} : 0 ≤ (q : ℝ) := q.2
 

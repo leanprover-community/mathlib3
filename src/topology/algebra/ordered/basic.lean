@@ -671,7 +671,7 @@ continuous_if_le hf hg hf'.continuous_on hg'.continuous_on hfg
 
 @[continuity] lemma continuous.min (hf : continuous f) (hg : continuous g) :
   continuous (λb, min (f b) (g b)) :=
-hf.if_le hg hf hg (λ x, id)
+by { simp only [min_def], exact hf.if_le hg hf hg (λ x, id) }
 
 @[continuity] lemma continuous.max (hf : continuous f) (hg : continuous g) :
   continuous (λb, max (f b) (g b)) :=

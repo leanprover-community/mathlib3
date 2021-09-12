@@ -93,7 +93,7 @@ begin
   refine ennreal.le_of_forall_pos_le_add (λε εpos h, _),
   have εpos' : (0 : ℝ≥0∞) < ε := by simpa,
   have : inf_edist x (closure s) < inf_edist x (closure s) + ε/2 :=
-    ennreal.lt_add_right h (ennreal.half_pos εpos'),
+    ennreal.lt_add_right h.ne (ennreal.half_pos εpos'),
   rcases exists_edist_lt_of_inf_edist_lt this with ⟨y, ycs, hy⟩,
   -- y : α,  ycs : y ∈ closure s,  hy : edist x y < inf_edist x (closure s) + ↑ε / 2
   rcases emetric.mem_closure_iff.1 ycs (ε/2) (ennreal.half_pos εpos') with ⟨z, zs, dyz⟩,
@@ -229,11 +229,11 @@ lemma inf_edist_le_inf_edist_add_Hausdorff_edist :
 ennreal.le_of_forall_pos_le_add $ λε εpos h, begin
   have εpos' : (0 : ℝ≥0∞) < ε := by simpa,
   have : inf_edist x s < inf_edist x s + ε/2 :=
-    ennreal.lt_add_right (ennreal.add_lt_top.1 h).1 (ennreal.half_pos εpos'),
+    ennreal.lt_add_right (ennreal.add_lt_top.1 h).1.ne (ennreal.half_pos εpos'),
   rcases exists_edist_lt_of_inf_edist_lt this with ⟨y, ys, dxy⟩,
   -- y : α,  ys : y ∈ s,  dxy : edist x y < inf_edist x s + ↑ε / 2
   have : Hausdorff_edist s t < Hausdorff_edist s t + ε/2 :=
-    ennreal.lt_add_right (ennreal.add_lt_top.1 h).2 (ennreal.half_pos εpos'),
+    ennreal.lt_add_right (ennreal.add_lt_top.1 h).2.ne (ennreal.half_pos εpos'),
   rcases exists_edist_lt_of_Hausdorff_edist_lt ys this with ⟨z, zt, dyz⟩,
   -- z : α,  zt : z ∈ t,  dyz : edist y z < Hausdorff_edist s t + ↑ε / 2
   calc inf_edist x t ≤ edist x z : inf_edist_le_edist_of_mem zt

@@ -468,9 +468,14 @@ variable {A}
 @[simp] lemma mul_distrib_mul_action.to_monoid_hom_apply (r : M) (x : A) :
   mul_distrib_mul_action.to_monoid_hom A r x = r • x := rfl
 
-@[simp] lemma mul_distrib_mul_action.to_monoid_hom_one :
-  mul_distrib_mul_action.to_monoid_hom A (1:M) = monoid_hom.id _ :=
-by { ext, rw [mul_distrib_mul_action.to_monoid_hom_apply, one_smul, monoid_hom.id_apply] }
+variables (M A)
+
+/-- Each element of the monoid defines a monoid homomorphism. -/
+@[simps]
+def mul_distrib_mul_action.to_monoid_End : M →* monoid.End A :=
+{ to_fun := mul_distrib_mul_action.to_monoid_hom A,
+  map_one' := monoid_hom.ext $ one_smul M,
+  map_mul' := λ x y, monoid_hom.ext $ mul_smul x y }
 
 end
 

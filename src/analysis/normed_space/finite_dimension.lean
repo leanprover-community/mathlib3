@@ -411,7 +411,7 @@ section riesz
 with norm at most `R` which is at distance at least `1` of all these points. -/
 theorem exists_norm_le_le_norm_sub_of_finset {c : 𝕜} (hc : 1 < ∥c∥) {R : ℝ} (hR : ∥c∥ < R)
   (h : ¬ (finite_dimensional 𝕜 E)) (s : finset E) :
-  ∃ (x : E), ∥x∥ ≤ R ∧ ∀ y ∈ s, 1 ≤ ∥x - y∥ :=
+  ∃ (x : E), ∥x∥ ≤ R ∧ ∀ y ∈ s, 1 ≤ ∥y - x∥ :=
 begin
   let F := submodule.span 𝕜 (s : set E),
   haveI : finite_dimensional 𝕜 F,
@@ -420,21 +420,14 @@ begin
   have : ∃ x, x ∉ F,
   { contrapose! h,
     have : (⊤ : submodule 𝕜 E) = F, by { ext x, simp [h] },
-    haveI : finite_dimensional 𝕜 (⊤ : submodule 𝕜 E), by rwa this,
-    exact is_noetherian_of_linear_equiv (linear_equiv.of_top (⊤ : submodule 𝕜 E) rfl) },
+    have : finite_dimensional 𝕜 (⊤ : submodule 𝕜 E), by rwa this,
+    exact is_noetherian_top_iff.1 this },
   obtain ⟨x, xR, hx⟩ : ∃ (x : E), ∥x∥ ≤ R ∧ ∀ (y : E), y ∈ F → 1 ≤ ∥x - y∥ :=
     riesz_lemma_of_norm_lt hc hR Fclosed this,
-  exact ⟨x, xR, λ y hy, hx _ (submodule.subset_span hy)⟩,
+  have hx' : ∀ (y : E), y ∈ F → 1 ≤ ∥y - x∥,
+  { assume y hy, rw ← norm_neg, simpa using hx y hy },
+  exact ⟨x, xR, λ y hy, hx' _ (submodule.subset_span hy)⟩,
 end
-
-/-- A sequence of points in an infinite-dimensional space, which are all bounded by `R` and at
-distance at least `1`. Use `exists_seq_norm_le_le_norm_sub` instead. -/
-noncomputable def exists_seq_norm_le_one_le_norm_sub_aux
-  {c : 𝕜} (hc : 1 < ∥c∥) {R : ℝ} (hR : ∥c∥ < R) (h : ¬ (finite_dimensional 𝕜 E)) : ℕ → E
-| n := classical.some $ exists_norm_le_le_norm_sub_of_finset hc hR h
-        (finset.image (λ (i : fin n), exists_seq_norm_le_one_le_norm_sub_aux i)
-        (finset.univ : finset (fin n)))
-using_well_founded {dec_tac := `[exact i.2]}
 
 /-- In an infinite-dimensional normed space, there exists a sequence of points which are all
 bounded by `R` and at distance at least `1`. For a version not assuming `c` and `R`, see
@@ -443,25 +436,14 @@ theorem exists_seq_norm_le_one_le_norm_sub' {c : 𝕜} (hc : 1 < ∥c∥) {R : �
   (h : ¬ (finite_dimensional 𝕜 E)) :
   ∃ f : ℕ → E, (∀ n, ∥f n∥ ≤ R) ∧ (∀ m n, m ≠ n → 1 ≤ ∥f m - f n∥) :=
 begin
-  refine ⟨exists_seq_norm_le_one_le_norm_sub_aux hc hR h, _, _⟩,
-  { assume n,
-    rw exists_seq_norm_le_one_le_norm_sub_aux,
-    exact (classical.some_spec (exists_norm_le_le_norm_sub_of_finset hc hR h _)).1 },
-  { assume m n hmn,
-    wlog hle : n ≤ m := le_total n m using [m n, n m] tactic.skip,
-    { rw exists_seq_norm_le_one_le_norm_sub_aux,
-      have A : exists_seq_norm_le_one_le_norm_sub_aux hc hR h n ∈
-        (finset.image (λ (i : fin m), exists_seq_norm_le_one_le_norm_sub_aux hc hR h i)
-        (finset.univ : finset (fin m))),
-      { simp only [finset.mem_univ, finset.mem_image, exists_true_left],
-        refine ⟨⟨n, lt_of_le_of_ne hle hmn.symm⟩, _⟩,
-        simp },
-      have := (classical.some_spec (exists_norm_le_le_norm_sub_of_finset hc hR h _)).2,
-      exact this _ A },
-    { assume hmn,
-      rw ← norm_neg,
-      convert this hmn.symm,
-      abel } }
+  haveI : is_symm E (λ (x y : E), 1 ≤ ∥x - y∥),
+  { constructor,
+    assume x y hxy,
+    rw ← norm_neg,
+    simpa },
+  apply exists_seq_of_forall_finset_exists' (λ (x : E), ∥x∥ ≤ R) (λ (x : E) (y : E), 1 ≤ ∥x - y∥),
+  assume s hs,
+  exact exists_norm_le_le_norm_sub_of_finset hc hR h s,
 end
 
 theorem exists_seq_norm_le_one_le_norm_sub (h : ¬ (finite_dimensional 𝕜 E)) :

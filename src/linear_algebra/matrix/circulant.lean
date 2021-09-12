@@ -115,7 +115,7 @@ lemma fin.circulant_mul [semiring α] :
 | 0     := dec_trivial
 | (n+1) := circulant_mul
 
-/-- circulant matrices commute in multiplication under certain condations. -/
+/-- multiplication of circulant matrices commutes when the elements do. -/
 lemma circulant_mul_comm
   [comm_semigroup α] [add_comm_monoid α] [fintype I] [add_comm_group I] (v w : I → α) :
   circulant v ⬝ circulant w = circulant w ⬝ circulant v :=

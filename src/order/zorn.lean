@@ -110,8 +110,6 @@ begin
   exact h a trivial b trivial,
 end
 
-alias chain_univ_iff ↔ _ chain_uni
-
 lemma chain.directed_on [is_refl α r] {c} (H : chain c) :
   directed_on (≺) c :=
 λ x hx y hy,

@@ -25,7 +25,9 @@ variables (D : Type (u+1)) [category D] [concrete_category.{u} D]
 A `forget₂ C D` forgetful functor between concrete categories `C` and `D`
 where `forget C` reflects isomorphisms, itself reflects isomorphisms.
 -/
-def reflects_isomorphisms_forget₂ [has_forget₂ C D] [reflects_isomorphisms (forget C)] :
+-- This should not be an instance, as it causes a typeclass loop
+-- with `category_theory.has_forget_to_Type`
+lemma reflects_isomorphisms_forget₂ [has_forget₂ C D] [reflects_isomorphisms (forget C)] :
   reflects_isomorphisms (forget₂ C D) :=
 { reflects := λ X Y f i,
   begin

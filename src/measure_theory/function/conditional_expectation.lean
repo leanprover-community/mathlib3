@@ -1423,10 +1423,13 @@ ae_measurable'_condexp_L1.mk (condexp_L1 hm μ f)
 
 notation  μ `[` f `|` hm `]` := condexp hm μ f
 
-lemma measurable_condexp : measurable[m] (μ[f | hm]) := ae_measurable'.measurable_mk _
-
 lemma condexp_ae_eq_condexp_L1 (f : α → F') : μ[f | hm] =ᵐ[μ] condexp_L1 hm μ f :=
 (ae_measurable'.ae_eq_mk ae_measurable'_condexp_L1).symm
+
+lemma measurable_condexp : measurable[m] (μ[f | hm]) := ae_measurable'.measurable_mk _
+
+lemma integrable_condexp : integrable (μ[f | hm]) μ :=
+(integrable_condexp_L1 f).congr (condexp_ae_eq_condexp_L1 f).symm
 
 lemma condexp_ae_eq_condexp_L1_clm (hf : integrable f μ) :
   μ[f | hm] =ᵐ[μ] condexp_L1_clm hm μ (hf.to_L1 f) :=

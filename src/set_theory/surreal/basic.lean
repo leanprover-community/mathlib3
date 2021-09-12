@@ -29,8 +29,15 @@ We show that the surreals form a linear ordered commutative group.
 
 One can also map all the ordinals into the surreals!
 
+### Multiplication of surreal numbers
+The definition of multiplication for surreal numbers is surprisingly difficult and is currently
+missing in the library. A sample proof can be found in Theorem 3.8 in the secord reference below.
+The difficulty lies in the length of the proof and the number of theorems that need to proven
+simultaneously. This will make for a fun and challenging project.
+
 ## References
 * [Conway, *On numbers and games*][conway2001]
+* [Schleicher, Stoll, *An introduction to Conway's games and numbers*][schleicher_stoll]
 -/
 
 universes u

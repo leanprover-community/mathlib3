@@ -354,7 +354,7 @@ begin
   { use {∞}ᶜ, simp [is_closed_infty] },
   { rcases t0_space.t0 x y (mt coe_eq_coe.mpr hxy) with ⟨U, hUo, hU⟩,
     refine ⟨coe '' U, is_open_image_coe.2 hUo, _⟩,
-    simpa }
+    simpa [coe_eq_coe] }
 end
 
 /-- The one point compactification of a `t1_space` space is a `t1_space`. -/

@@ -1280,7 +1280,7 @@ local attribute [instance] fact_one_le_one_ennreal
 variables {𝕜} {m m0 : measurable_space α} {ℙ : measure α} [borel_space 𝕜] [is_scalar_tower ℝ 𝕜 F']
   {hm : m ≤ m0} [sigma_finite (ℙ.trim hm)] {f : α → F'} {s : set α}
 
-/-- Conditional expectation of a function. It's value is 0 if the function is not integrable. -/
+/-- Conditional expectation of a function. Its value is 0 if the function is not integrable. -/
 def condexp (hm : m ≤ m0) (ℙ : measure α) [sigma_finite (ℙ.trim hm)] (f : α → F') : α →₁[ℙ] F' :=
 set_to_fun (dominated_fin_meas_additive_condexp_ind F' hm ℙ) f
 

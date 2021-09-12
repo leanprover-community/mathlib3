@@ -105,7 +105,7 @@ end
 lemma chain_univ_iff :
   chain (univ : set α) ↔ is_trichotomous α r :=
 begin
-  refine ⟨λ h, ⟨λ a b , _⟩, @chain_of_trichotomous _ _ univ⟩,
+  refine ⟨λ h, ⟨λ a b , _⟩, λ h, @chain_of_trichotomous _ _ h univ⟩,
   rw [or.left_comm, or_iff_not_imp_left],
   exact h a trivial b trivial,
 end

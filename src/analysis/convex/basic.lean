@@ -873,10 +873,10 @@ Relates `convex` and `ord_connected`.
 -/
 
 section
-variables {𝕜} [ordered_add_comm_monoid E]
+variables {𝕜}
 
-lemma set.ord_connected.convex_of_chain [ordered_semiring 𝕜] [module 𝕜 E] [ordered_smul 𝕜 E]
-  {s : set E} (hs : s.ord_connected) (h : zorn.chain (≤) s) :
+lemma set.ord_connected.convex_of_chain [ordered_add_comm_monoid E] [ordered_semiring 𝕜]
+  [module 𝕜 E] [ordered_smul 𝕜 E] {s : set E} (hs : s.ord_connected) (h : zorn.chain (≤) s) :
   convex 𝕜 s :=
 begin
   intros x y hx hy a b ha hb hab,
@@ -898,6 +898,11 @@ begin
           ≤ a • x + b • x : add_le_add_left (smul_le_smul_of_nonneg hyx hb) _
       ... = x : by rw [←add_smul, hab, one_smul] }
 end
+
+lemma set.ord_connected.convex [linear_ordered_add_comm_monoid E] [ordered_semiring 𝕜]
+  [module 𝕜 E] [ordered_smul 𝕜 E] {s : set E} (hs : s.ord_connected) :
+  convex 𝕜 s :=
+hs.convex_of_chain chain_univ
 
 lemma convex_iff_ord_connected [linear_ordered_field 𝕜] {s : set 𝕜} :
   convex 𝕜 s ↔ s.ord_connected :=

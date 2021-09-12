@@ -262,7 +262,7 @@ instance : succ_order (with_bot α) :=
   maximal_of_succ_le := begin
     rintro a ha b h,
     cases a,
-    { exact (with_bot.bot_lt_some (⊥ : α)).not_le ha },
+    { exact (with_bot.none_lt_some (⊥ : α)).not_le ha },
     cases b,
     { exact h.not_le bot_le },
     exact maximal_of_succ_le (with_bot.some_le_some.1 ha) (with_bot.some_lt_some.1 h),
@@ -552,7 +552,7 @@ instance : pred_order (with_top α) :=
   minimal_of_le_pred := begin
     rintro a ha b h,
     cases b,
-    { exact (with_top.some_lt_top (⊤ : α)).not_le ha },
+    { exact (with_top.some_lt_none (⊤ : α)).not_le ha },
     cases b,
     { exact h.not_le top_le },
     exact minimal_of_le_pred (with_top.some_le_some.1 ha) (with_top.some_lt_some.1 h),

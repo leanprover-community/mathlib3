@@ -512,10 +512,10 @@ instance has_lt [has_lt α] : has_lt (with_bot α) :=
   @has_lt.lt (with_bot α) _ (some a) (some b) ↔ a < b :=
 by simp [(<)]
 
-lemma bot_lt_some [has_lt α] (a : α) : (⊥ : with_bot α) < some a :=
+lemma none_lt_some [has_lt α] (a : α) : (⊥ : with_bot α) < some a :=
 ⟨a, rfl, λ b hb, (option.not_mem_none _ hb).elim⟩
 
-lemma bot_lt_coe [has_lt α] (a : α) : (⊥ : with_bot α) < a := bot_lt_some a
+lemma bot_lt_coe [has_lt α] (a : α) : (⊥ : with_bot α) < a := none_lt_some a
 
 instance : can_lift (with_bot α) α :=
 { coe := coe,
@@ -752,11 +752,6 @@ instance has_le [has_le α] : has_le (with_top α) :=
 @[simp] theorem some_lt_some [has_lt α] {a b : α} :
   @has_lt.lt (with_top α) _ (some a) (some b) ↔ a < b :=
 by simp [(<)]
-
-lemma some_lt_top [has_lt α] (a : α) : (some a : with_top α) < ⊤ :=
-⟨a, rfl, λ b hb, (option.not_mem_none _ hb).elim⟩
-
-lemma coe_lt_top [has_lt α] (a : α) : (a : with_top α) < ⊤ := some_lt_top a
 
 @[simp] theorem some_le_some [has_le α] {a b : α} :
   @has_le.le (with_top α) _ (some a) (some b) ↔ a ≤ b :=

@@ -360,7 +360,7 @@ end single
 
 section update
 
-variables [decidable_eq α] [has_zero M] (f : α →₀ M) (a : α) (b : M) [decidable (b = 0)] (i : α)
+variables [has_zero M] (f : α →₀ M) (a : α) (b : M) (i : α)
 
 /-- Replace the value of a `α →₀ M` at a given point `a : α` by a given value `b : M`.
 If `b = 0`, this amounts to removing `a` from the `finsupp.support`.

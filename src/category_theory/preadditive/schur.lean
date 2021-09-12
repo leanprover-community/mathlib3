@@ -87,7 +87,7 @@ variables [is_alg_closed 𝕜] [linear 𝕜 C]
 -- To get around this, we use `convert I`,
 -- then check the various instances agree field-by-field,
 -- using `ext` equipped with the following extra lemmas:
-local attribute [ext] module distrib_mul_action mul_action has_scalar
+local attribute [ext] module distrib_mul_action_with_zero distrib_mul_action mul_action has_scalar
 
 /--
 An auxiliary lemma for Schur's lemma.

@@ -166,7 +166,7 @@ lemma countable.insert {s : set α} (a : α) (h : countable s) : countable (inse
 by { rw [set.insert_eq], exact (countable_singleton _).union h }
 
 lemma finite.countable {s : set α} : finite s → countable s
-| ⟨h⟩ := nonempty_of_trunc (by exactI trunc_encodable_of_fintype s)
+| ⟨h⟩ := trunc.nonempty (by exactI trunc_encodable_of_fintype s)
 
 /-- The set of finite subsets of a countable set is countable. -/
 lemma countable_set_of_finite_subset {s : set α} : countable s →
@@ -197,7 +197,7 @@ protected lemma countable.prod {s : set α} {t : set β} (hs : countable s) (ht 
 begin
   haveI : encodable s := hs.to_encodable,
   haveI : encodable t := ht.to_encodable,
-  haveI : encodable (s × t) := by apply_instance,
+  haveI : encodable (s × t), { apply_instance },
   have : range (prod.map coe coe : s × t → α × β) = set.prod s t,
     by rw [range_prod_map, subtype.range_coe, subtype.range_coe],
   rw ← this,

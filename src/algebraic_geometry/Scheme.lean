@@ -16,6 +16,8 @@ A morphism of schemes is just a morphism of the underlying locally ringed spaces
 
 -/
 
+noncomputable theory
+
 open topological_space
 open category_theory
 open Top
@@ -26,28 +28,13 @@ namespace algebraic_geometry
 /--
 We define `Scheme` as a `X : LocallyRingedSpace`,
 along with a proof that every point has an open neighbourhood `U`
-so that that the restriction of `X` to `U` is isomorphic, as a space with a presheaf of commutative
-rings, to `Spec.PresheafedSpace R` for some `R : CommRing`.
-
-(Note we're not asking in the definition that this is an isomorphism as locally ringed spaces,
-although that is a consequence.)
+so that that the restriction of `X` to `U` is isomorphic,
+as a locally ringed space, to `Spec.to_LocallyRingedSpace.obj (op R)`
+for some `R : CommRing`.
 -/
 structure Scheme extends X : LocallyRingedSpace :=
-(local_affine : ∀ x : carrier, ∃ (U : opens carrier) (m : x ∈ U) (R : CommRing)
-  (i : X.to_SheafedSpace.to_PresheafedSpace.restrict _ (opens.inclusion_open_embedding U) ≅
-    Spec.PresheafedSpace R), true)
-
--- PROJECT
--- In fact, we can make the isomorphism `i` above an isomorphism in `LocallyRingedSpace`.
--- However this is a consequence of the above definition, and not necessary for defining schemes.
--- We haven't done this yet because we haven't shown that you can restrict a `LocallyRingedSpace`
--- along an open embedding.
--- We can do this already for `SheafedSpace` (as above), but we need to know that
--- the stalks of the restriction are still local rings, which we follow if we knew that
--- the stalks didn't change.
--- This will follow if we define cofinal functors, and show precomposing with a cofinal functor
--- doesn't change colimits, because open neighbourhoods of `x` within `U` are cofinal in
--- all open neighbourhoods of `x`.
+(local_affine : ∀ x : X, ∃ (U : open_nhds x) (R : CommRing),
+  nonempty (X.restrict _ U.open_embedding ≅ Spec.to_LocallyRingedSpace.obj (op R)))
 
 namespace Scheme
 
@@ -59,31 +46,55 @@ Every `Scheme` is a `LocallyRingedSpace`.
 def to_LocallyRingedSpace (S : Scheme) : LocallyRingedSpace := { ..S }
 
 /--
-`Spec R` as a `Scheme`.
--/
-noncomputable
-def Spec (R : CommRing) : Scheme :=
-{ local_affine := λ x, ⟨⊤, trivial, R, (Spec.PresheafedSpace R).restrict_top_iso, trivial⟩,
-  .. Spec.LocallyRingedSpace R }
-
-/--
-The empty scheme, as `Spec 0`.
--/
-noncomputable
-def empty : Scheme :=
-Spec (CommRing.of punit)
-
-noncomputable
-instance : has_emptyc Scheme := ⟨empty⟩
-
-noncomputable
-instance : inhabited Scheme := ⟨∅⟩
-
-/--
 Schemes are a full subcategory of locally ringed spaces.
 -/
 instance : category Scheme :=
 induced_category.category Scheme.to_LocallyRingedSpace
+
+/--
+The spectrum of a commutative ring, as a scheme.
+-/
+def Spec_obj (R : CommRing) : Scheme :=
+{ local_affine := λ x,
+  ⟨⟨⊤, trivial⟩, R, ⟨(Spec.to_LocallyRingedSpace.obj (op R)).restrict_top_iso⟩⟩,
+  .. Spec.LocallyRingedSpace_obj R }
+
+@[simp] lemma Spec_obj_to_LocallyRingedSpace (R : CommRing) :
+  (Spec_obj R).to_LocallyRingedSpace = Spec.LocallyRingedSpace_obj R := rfl
+
+/--
+The induced map of a ring homomorphism on the ring spectra, as a morphism of schemes.
+-/
+def Spec_map {R S : CommRing} (f : R ⟶ S) :
+  Spec_obj S ⟶ Spec_obj R :=
+(Spec.LocallyRingedSpace_map f : Spec.LocallyRingedSpace_obj S ⟶ Spec.LocallyRingedSpace_obj R)
+
+@[simp] lemma Spec_map_id (R : CommRing) :
+  Spec_map (𝟙 R) = 𝟙 (Spec_obj R) :=
+Spec.LocallyRingedSpace_map_id R
+
+lemma Spec_map_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T) :
+  Spec_map (f ≫ g) = Spec_map g ≫ Spec_map f :=
+Spec.LocallyRingedSpace_map_comp f g
+
+/--
+The spectrum, as a contravariant functor from commutative rings to schemes.
+-/
+@[simps] def Spec : CommRingᵒᵖ ⥤ Scheme :=
+{ obj := λ R, Spec_obj (unop R),
+  map := λ R S f, Spec_map f.unop,
+  map_id' := λ R, by rw [unop_id, Spec_map_id],
+  map_comp' := λ R S T f g, by rw [unop_comp, Spec_map_comp] }
+
+/--
+The empty scheme, as `Spec 0`.
+-/
+def empty : Scheme :=
+Spec_obj (CommRing.of punit)
+
+instance : has_emptyc Scheme := ⟨empty⟩
+
+instance : inhabited Scheme := ⟨∅⟩
 
 /--
 The global sections, notated Gamma.
@@ -104,9 +115,8 @@ lemma Γ_map_op {X Y : Scheme} (f : X ⟶ Y) :
   Γ.map f.op = f.1.c.app (op ⊤) ≫ X.presheaf.map (opens.le_map_top _ _).op := rfl
 
 -- PROJECTS:
--- 1. Make `Spec` a functor.
--- 2. Construct `Spec ≫ Γ ≅ functor.id _`.
--- 3. Adjunction between `Γ` and `Spec`.
+-- 1. Construct `Spec ≫ Γ ≅ functor.id _`.
+-- 2. Adjunction between `Γ` and `Spec`.
 --
 
 end Scheme

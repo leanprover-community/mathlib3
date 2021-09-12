@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import topology.metric_space.isometry
 import topology.instances.ennreal
+import analysis.specific_limits
 
 /-!
 # Hausdorff distance
@@ -25,7 +26,7 @@ This files introduces:
 `Hausdorff_dist`.
 -/
 noncomputable theory
-open_locale classical nnreal ennreal
+open_locale classical nnreal ennreal topological_space
 universes u v w
 
 open classical set function topological_space filter
@@ -34,8 +35,8 @@ namespace emetric
 
 section inf_edist
 
-variables {α : Type u} {β : Type v} [emetric_space α] [emetric_space β] {x y : α} {s t : set α}
-  {Φ : α → β}
+variables {α : Type u} {β : Type v} [pseudo_emetric_space α] [pseudo_emetric_space β] {x y : α}
+{s t : set α} {Φ : α → β}
 
 /-! ### Distance of a point to a set as a function into `ℝ≥0∞`. -/
 
@@ -80,6 +81,7 @@ calc (⨅ z ∈ s, edist x z) ≤ ⨅ z ∈ s, edist y z + edist x y :
 ... = (⨅ z ∈ s, edist y z) + edist x y : by simp only [ennreal.infi_add]
 
 /-- The edist to a set depends continuously on the point -/
+@[continuity]
 lemma continuous_inf_edist : continuous (λx, inf_edist x s) :=
 continuous_of_le_add_edist 1 (by simp) $
   by simp only [one_mul, inf_edist_le_inf_edist_add_edist, forall_2_true_iff]
@@ -108,7 +110,7 @@ lemma mem_closure_iff_inf_edist_zero : x ∈ closure s ↔ inf_edist x s = 0 :=
 λh, emetric.mem_closure_iff.2 $ λε εpos, exists_edist_lt_of_inf_edist_lt (by rwa h)⟩
 
 /-- Given a closed set `s`, a point belongs to `s` iff its infimum edistance to this set vanishes -/
-lemma mem_iff_ind_edist_zero_of_closed (h : is_closed s) : x ∈ s ↔ inf_edist x s = 0 :=
+lemma mem_iff_inf_edist_zero_of_closed (h : is_closed s) : x ∈ s ↔ inf_edist x s = 0 :=
 begin
   convert ← mem_closure_iff_inf_edist_zero,
   exact h.closure_eq
@@ -119,22 +121,52 @@ lemma inf_edist_image (hΦ : isometry Φ) :
   inf_edist (Φ x) (Φ '' t) = inf_edist x t :=
 by simp only [inf_edist, infi_image, hΦ.edist_eq]
 
+lemma _root_.is_open.exists_Union_is_closed {U : set α} (hU : is_open U) :
+  ∃ F : ℕ → set α, (∀ n, is_closed (F n)) ∧ (∀ n, F n ⊆ U) ∧ ((⋃ n, F n) = U) ∧ (monotone F) :=
+begin
+  obtain ⟨a, a_pos, a_lt_one⟩ : ∃ (a : ℝ≥0∞), 0 < a ∧ a < 1 := exists_between (ennreal.zero_lt_one),
+  let F := λ (n : ℕ), (λ x, inf_edist x Uᶜ) ⁻¹' (Ici (a^n)),
+  have F_subset : ∀ n, F n ⊆ U,
+  { assume n x hx,
+    by_contra h,
+    rw [← mem_compl_iff,
+      mem_iff_inf_edist_zero_of_closed (is_open.is_closed_compl hU)] at h,
+    have : 0 < inf_edist x Uᶜ := lt_of_lt_of_le (ennreal.pow_pos a_pos _) hx,
+    rw h at this,
+    exact lt_irrefl _ this },
+  refine ⟨F, λ n, is_closed.preimage continuous_inf_edist is_closed_Ici, F_subset, _, _⟩,
+  show monotone F,
+  { assume m n hmn x hx,
+    simp only [mem_Ici, mem_preimage] at hx ⊢,
+    apply le_trans (ennreal.pow_le_pow_of_le_one a_lt_one.le hmn) hx },
+  show (⋃ n, F n) = U,
+  { refine subset.antisymm (by simp only [Union_subset_iff, F_subset, forall_const]) (λ x hx, _),
+    have : ¬(x ∈ Uᶜ), by simpa using hx,
+    rw mem_iff_inf_edist_zero_of_closed (is_open.is_closed_compl hU) at this,
+    have B : 0 < inf_edist x Uᶜ, by simpa [pos_iff_ne_zero] using this,
+    have : filter.tendsto (λ n, a^n) at_top (𝓝 0) :=
+      ennreal.tendsto_pow_at_top_nhds_0_of_lt_1 a_lt_one,
+    rcases ((tendsto_order.1 this).2 _ B).exists with ⟨n, hn⟩,
+    simp only [mem_Union, mem_Ici, mem_preimage],
+    exact ⟨n, hn.le⟩ },
+end
+
 end inf_edist --section
 
 /-! ### The Hausdorff distance as a function into `ℝ≥0∞`. -/
 
 /-- The Hausdorff edistance between two sets is the smallest `r` such that each set
 is contained in the `r`-neighborhood of the other one -/
-@[irreducible] def Hausdorff_edist {α : Type u} [emetric_space α] (s t : set α) : ℝ≥0∞ :=
+@[irreducible] def Hausdorff_edist {α : Type u} [pseudo_emetric_space α] (s t : set α) : ℝ≥0∞ :=
 (⨆ x ∈ s, inf_edist x t) ⊔ (⨆ y ∈ t, inf_edist y s)
 
-lemma Hausdorff_edist_def {α : Type u} [emetric_space α] (s t : set α) :
+lemma Hausdorff_edist_def {α : Type u} [pseudo_emetric_space α] (s t : set α) :
   Hausdorff_edist s t = (⨆ x ∈ s, inf_edist x t) ⊔ (⨆ y ∈ t, inf_edist y s) :=
 by rw Hausdorff_edist
 
 section Hausdorff_edist
 
-variables {α : Type u} {β : Type v} [emetric_space α] [emetric_space β]
+variables {α : Type u} {β : Type v} [pseudo_emetric_space α] [pseudo_emetric_space β]
           {x y : α} {s t u : set α} {Φ : α → β}
 
 /-- The Hausdorff edistance of a set to itself vanishes -/
@@ -323,7 +355,7 @@ modulo some tedious rewriting of inequalities from one to the other. -/
 
 namespace metric
 section
-variables {α : Type u} {β : Type v} [metric_space α] [metric_space β]
+variables {α : Type u} {β : Type v} [pseudo_metric_space α] [pseudo_metric_space β]
   {s t u : set α} {x y : α} {Φ : α → β}
 open emetric
 
@@ -413,6 +445,7 @@ lemma uniform_continuous_inf_dist_pt :
 (lipschitz_inf_dist_pt s).uniform_continuous
 
 /-- The minimal distance to a set is continuous in point -/
+@[continuity]
 lemma continuous_inf_dist_pt : continuous (λx, inf_dist x s) :=
 (uniform_continuous_inf_dist_pt s).continuous
 
@@ -631,7 +664,7 @@ begin
   { have Dtu : Hausdorff_edist t u < ⊤ := calc
       Hausdorff_edist t u ≤ Hausdorff_edist t s + Hausdorff_edist s u : Hausdorff_edist_triangle
       ... = Hausdorff_edist s t + Hausdorff_edist s u : by simp [Hausdorff_edist_comm]
-      ... < ⊤ : by simp  [ennreal.add_lt_top]; simp [ennreal.lt_top_iff_ne_top, h, fin],
+      ... < ⊤ : by simp [ennreal.add_lt_top]; simp [ennreal.lt_top_iff_ne_top, h, fin],
     rw [Hausdorff_dist, Hausdorff_dist, Hausdorff_dist,
         ← ennreal.to_real_add fin (lt_top_iff_ne_top.1 Dtu), ennreal.to_real_le_to_real h],
     { exact Hausdorff_edist_triangle },

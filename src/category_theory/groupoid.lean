@@ -3,7 +3,7 @@ Copyright (c) 2018 Reid Barton All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Scott Morrison, David Wärn
 -/
-import category_theory.epi_mono
+import category_theory.full_subcategory
 
 namespace category_theory
 
@@ -58,20 +58,6 @@ variables {C : Type u} [category.{v} C]
 noncomputable
 def groupoid.of_is_iso (all_is_iso : ∀ {X Y : C} (f : X ⟶ Y), is_iso f) : groupoid.{v} C :=
 { inv := λ X Y f, inv f }
-
-/-- A category where every morphism has a `trunc` retraction is computably a groupoid. -/
--- FIXME this has unnecessarily become noncomputable!
-noncomputable
-def groupoid.of_trunc_split_mono
-  (all_split_mono : ∀ {X Y : C} (f : X ⟶ Y), trunc (split_mono f)) :
-  groupoid.{v} C :=
-begin
-  apply groupoid.of_is_iso,
-  intros X Y f,
-  trunc_cases all_split_mono f,
-  trunc_cases all_split_mono (retraction f),
-  apply is_iso.of_mono_retraction,
-end
 
 end
 

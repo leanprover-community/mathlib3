@@ -17,6 +17,7 @@ lemmas about preimages and images of all intervals. We also prove a few lemmas a
 -/
 
 universe u
+open_locale pointwise
 
 namespace set
 
@@ -259,22 +260,22 @@ by simp [add_comm]
 ### Images under `x ↦ x + a`
 -/
 
-@[simp] lemma image_add_const_Ici : (λ x, x + a) '' Ici b = Ici (a + b) := by simp [add_comm]
-@[simp] lemma image_add_const_Iic : (λ x, x + a) '' Iic b = Iic (a + b) := by simp [add_comm]
-@[simp] lemma image_add_const_Iio : (λ x, x + a) '' Iio b = Iio (a + b) := by simp [add_comm]
-@[simp] lemma image_add_const_Ioi : (λ x, x + a) '' Ioi b = Ioi (a + b) := by simp [add_comm]
+@[simp] lemma image_add_const_Ici : (λ x, x + a) '' Ici b = Ici (b + a) := by simp
+@[simp] lemma image_add_const_Iic : (λ x, x + a) '' Iic b = Iic (b + a) := by simp
+@[simp] lemma image_add_const_Iio : (λ x, x + a) '' Iio b = Iio (b + a) := by simp
+@[simp] lemma image_add_const_Ioi : (λ x, x + a) '' Ioi b = Ioi (b + a) := by simp
 
-@[simp] lemma image_add_const_Icc : (λ x, x + a) '' Icc b c = Icc (a + b) (a + c) :=
-by simp [add_comm]
+@[simp] lemma image_add_const_Icc : (λ x, x + a) '' Icc b c = Icc (b + a) (c + a) :=
+by simp
 
-@[simp] lemma image_add_const_Ico : (λ x, x + a) '' Ico b c = Ico (a + b) (a + c) :=
-by simp [add_comm]
+@[simp] lemma image_add_const_Ico : (λ x, x + a) '' Ico b c = Ico (b + a) (c + a) :=
+by simp
 
-@[simp] lemma image_add_const_Ioc : (λ x, x + a) '' Ioc b c = Ioc (a + b) (a + c) :=
-by simp [add_comm]
+@[simp] lemma image_add_const_Ioc : (λ x, x + a) '' Ioc b c = Ioc (b + a) (c + a) :=
+by simp
 
-@[simp] lemma image_add_const_Ioo : (λ x, x + a) '' Ioo b c = Ioo (a + b) (a + c) :=
-by simp [add_comm]
+@[simp] lemma image_add_const_Ioo : (λ x, x + a) '' Ioo b c = Ioo (b + a) (c + a) :=
+by simp
 
 /-!
 ### Images under `x ↦ -x`
@@ -494,10 +495,7 @@ by simpa only [mul_comm] using preimage_mul_const_Icc_of_neg a b h
 
 lemma image_mul_right_Icc' (a b : k) {c : k} (h : 0 < c) :
   (λ x, x * c) '' Icc a b = Icc (a * c) (b * c) :=
-begin
-  refine ((units.mk0 c (ne_of_gt h)).mul_right.image_eq_preimage _).trans _,
-  simp [h, division_def]
-end
+((units.mk0 c h.ne').mul_right.image_eq_preimage _).trans (by simp [h, division_def])
 
 lemma image_mul_right_Icc {a b c : k} (hab : a ≤ b) (hc : 0 ≤ c) :
   (λ x, x * c) '' Icc a b = Icc (a * c) (b * c) :=
@@ -516,16 +514,33 @@ lemma image_mul_left_Icc {a b c : k} (ha : 0 ≤ a) (hbc : b ≤ c) :
   ((*) a) '' Icc b c = Icc (a * b) (a * c) :=
 by { convert image_mul_right_Icc hbc ha using 1; simp only [mul_comm _ a] }
 
+lemma image_mul_right_Ioo (a b : k) {c : k} (h : 0 < c) :
+  (λ x, x * c) '' Ioo a b = Ioo (a * c) (b * c) :=
+((units.mk0 c h.ne').mul_right.image_eq_preimage _).trans (by simp [h, division_def])
+
+lemma image_mul_left_Ioo {a : k} (h : 0 < a) (b c : k) :
+  ((*) a) '' Ioo b c = Ioo (a * b) (a * c) :=
+by { convert image_mul_right_Ioo b c h using 1; simp only [mul_comm _ a] }
+
 /-- The image under `inv` of `Ioo 0 a` is `Ioi a⁻¹`. -/
 lemma image_inv_Ioo_0_left {a : k} (ha : 0 < a) : has_inv.inv '' Ioo 0 a = Ioi a⁻¹ :=
 begin
   ext x,
-  split,
-  { rintros ⟨y, ⟨hy0, hya⟩, hyx⟩,
-    exact hyx ▸ (inv_lt_inv ha hy0).2 hya },
-  { exact λ h, ⟨x⁻¹, ⟨inv_pos.2 (lt_trans (inv_pos.2 ha) h),
-                      (inv_lt ha (lt_trans (inv_pos.2 ha) h)).1 h⟩,
-                     inv_inv' x⟩ }
+  exact ⟨λ ⟨y, ⟨hy0, hya⟩, hyx⟩, hyx ▸ (inv_lt_inv ha hy0).2 hya, λ h, ⟨x⁻¹, ⟨inv_pos.2 (lt_trans
+    (inv_pos.2 ha) h), (inv_lt ha (lt_trans (inv_pos.2 ha) h)).1 h⟩, inv_inv' x⟩⟩,
+end
+
+
+/-!
+### Images under `x ↦ a * x + b`
+-/
+
+@[simp] lemma image_affine_Icc' {a : k} (h : 0 < a) (b c d : k) :
+  (λ x, a * x + b) '' Icc c d = Icc (a * c + b) (a * d + b) :=
+begin
+  suffices : (λ x, x + b) '' ((λ x, a * x) '' Icc c d) = Icc (a * c + b) (a * d + b),
+  { rwa set.image_image at this, },
+  rw [image_mul_left_Icc' h, image_add_const_Icc],
 end
 
 end linear_ordered_field

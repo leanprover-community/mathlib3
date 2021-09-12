@@ -3,7 +3,7 @@ Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-
+import algebra.algebra.restrict_scalars
 import algebra.algebra.tower
 import algebra.invertible
 import linear_algebra.basis
@@ -27,6 +27,7 @@ of `A`, then `{bi cj | i ∈ I, j ∈ J}` is an `R`-basis of `A`. This statement
 base rings to be a field, so we also generalize the lemma to rings in this file.
 -/
 
+open_locale pointwise
 universes u v w u₁
 
 variables (R : Type u) (S : Type v) (A : Type w) (B : Type u₁)
@@ -67,7 +68,8 @@ namespace algebra
 
 theorem adjoin_algebra_map' {R : Type u} {S : Type v} {A : Type w}
   [comm_ring R] [comm_ring S] [comm_ring A] [algebra R S] [algebra S A] (s : set S) :
-  adjoin R (algebra_map S (comap R S A) '' s) = subalgebra.map (adjoin R s) (to_comap R S A) :=
+  adjoin R (algebra_map S (restrict_scalars R S A) '' s) = (adjoin R s).map
+  ((algebra.of_id S (restrict_scalars R S A)).restrict_scalars R) :=
 le_antisymm (adjoin_le $ set.image_subset_iff.2 $ λ y hy, ⟨y, subset_adjoin hy, rfl⟩)
   (subalgebra.map_le.2 $ adjoin_le $ λ y hy, subset_adjoin ⟨y, hy, rfl⟩)
 
@@ -103,7 +105,7 @@ lemma adjoin_res_eq_adjoin_res (C D E F : Type*) [comm_semiring C] [comm_semirin
   (algebra.adjoin D (algebra_map E F '' T)).res C :=
 by { rw [adjoin_res, adjoin_res, ←hS, ←hT, ←algebra.adjoin_image, ←algebra.adjoin_image,
   ←alg_hom.coe_to_ring_hom, ←alg_hom.coe_to_ring_hom, is_scalar_tower.coe_to_alg_hom,
-  is_scalar_tower.coe_to_alg_hom, ←algebra.adjoin_union, ←algebra.adjoin_union, set.union_comm] }
+  is_scalar_tower.coe_to_alg_hom, ←adjoin_union_eq_under, ←adjoin_union_eq_under, set.union_comm] }
 
 end algebra
 
@@ -114,9 +116,30 @@ lemma algebra.fg_trans' {R S A : Type*} [comm_ring R] [comm_ring S] [comm_ring A
   (hRS : (⊤ : subalgebra R S).fg) (hSA : (⊤ : subalgebra S A).fg) :
   (⊤ : subalgebra R A).fg :=
 let ⟨s, hs⟩ := hRS, ⟨t, ht⟩ := hSA in ⟨s.image (algebra_map S A) ∪ t,
-by rw [finset.coe_union, finset.coe_image, algebra.adjoin_union, algebra.adjoin_algebra_map, hs,
-    algebra.map_top, is_scalar_tower.range_under_adjoin, ht, subalgebra.res_top]⟩
+by rw [finset.coe_union, finset.coe_image, algebra.adjoin_union_eq_under,
+  algebra.adjoin_algebra_map, hs, algebra.map_top, is_scalar_tower.range_under_adjoin, ht,
+  subalgebra.res_top]⟩
 end
+
+section algebra_map_coeffs
+
+variables {R} (A) {ι M : Type*} [comm_semiring R] [semiring A] [add_comm_monoid M]
+variables [algebra R A] [module A M] [module R M] [is_scalar_tower R A M]
+variables (b : basis ι R M) (h : function.bijective (algebra_map R A))
+
+/-- If `R` and `A` have a bijective `algebra_map R A` and act identically on `M`,
+then a basis for `M` as `R`-module is also a basis for `M` as `R'`-module. -/
+@[simps]
+noncomputable def basis.algebra_map_coeffs : basis ι A M :=
+b.map_coeffs (ring_equiv.of_bijective _ h) (λ c x, by simp)
+
+lemma basis.algebra_map_coeffs_apply (i : ι) : b.algebra_map_coeffs A h i = b i :=
+b.map_coeffs_apply _ _ _
+
+@[simp] lemma basis.coe_algebra_map_coeffs : (b.algebra_map_coeffs A h : ι → M) = b :=
+b.coe_map_coeffs _ _
+
+end algebra_map_coeffs
 
 section ring
 
@@ -143,38 +166,45 @@ begin
   exact hg _ hik
 end
 
-theorem is_basis.smul {ι : Type v₁} {b : ι → S} {ι' : Type w₁} {c : ι' → A}
-  (hb : is_basis R b) (hc : is_basis S c) : is_basis R (λ p : ι × ι', b p.1 • c p.2) :=
-⟨linear_independent_smul hb.1 hc.1,
-by rw [← set.range_smul_range, submodule.span_smul hb.2, ← submodule.restrict_scalars_top R S A,
-    submodule.restrict_scalars_inj, hc.2]⟩
+/-- `basis.smul (b : basis ι R S) (c : basis ι S A)` is the `R`-basis on `A`
+where the `(i, j)`th basis vector is `b i • c j`. -/
+noncomputable def basis.smul {ι : Type v₁} {ι' : Type w₁}
+  (b : basis ι R S) (c : basis ι' S A) : basis (ι × ι') R A :=
+basis.of_repr ((c.repr.restrict_scalars R) ≪≫ₗ
+  ((finsupp.lcongr (equiv.refl _) b.repr) ≪≫ₗ
+  ((finsupp_prod_lequiv R).symm ≪≫ₗ
+  ((finsupp.lcongr (equiv.prod_comm ι' ι) (linear_equiv.refl _ _))))))
 
-theorem is_basis.smul_repr
-  {ι ι' : Type*} {b : ι → S} {c : ι' → A}
-  (hb : is_basis R b) (hc : is_basis S c) (x : A) (ij : ι × ι') :
-  (hb.smul hc).repr x ij = hb.repr (hc.repr x ij.2) ij.1 :=
+@[simp] theorem basis.smul_repr {ι : Type v₁} {ι' : Type w₁}
+  (b : basis ι R S) (c : basis ι' S A) (x ij):
+  (b.smul c).repr x ij = b.repr (c.repr x ij.2) ij.1 :=
+by simp [basis.smul]
+
+theorem basis.smul_repr_mk {ι : Type v₁} {ι' : Type w₁}
+  (b : basis ι R S) (c : basis ι' S A) (x i j):
+  (b.smul c).repr x (i, j) = b.repr (c.repr x j) i :=
+b.smul_repr c x (i, j)
+
+@[simp] theorem basis.smul_apply {ι : Type v₁} {ι' : Type w₁}
+  (b : basis ι R S) (c : basis ι' S A) (ij) :
+  (b.smul c) ij = b ij.1 • c ij.2 :=
 begin
-  apply (hb.smul hc).repr_apply_eq,
-  { intros x y, ext, simp only [linear_map.map_add, add_apply, pi.add_apply] },
-  { intros c x, ext,
-    simp only [← is_scalar_tower.algebra_map_smul S c x, linear_map.map_smul, smul_eq_mul,
-               ← algebra.smul_def, smul_apply, pi.smul_apply] },
-  rintros ij,
-  ext ij',
-  rw single_apply,
-  split_ifs with hij,
-  { simp [hij] },
-  rw [linear_map.map_smul, smul_apply, hc.repr_self_apply],
-  split_ifs with hj,
-  { simp [hj, show ¬ (ij.1 = ij'.1), from λ hi, hij (prod.ext hi hj)] },
-  simp
+  obtain ⟨i, j⟩ := ij,
+  rw basis.apply_eq_iff,
+  ext ⟨i', j'⟩,
+  rw [basis.smul_repr, linear_equiv.map_smul, basis.repr_self, finsupp.smul_apply,
+      finsupp.single_apply],
+  dsimp only,
+  split_ifs with hi,
+  { simp [hi, finsupp.single_apply] },
+  { simp [hi] },
 end
 
-theorem is_basis.smul_repr_mk
-  {ι ι' : Type*} {b : ι → S} {c : ι' → A}
-  (hb : is_basis R b) (hc : is_basis S c) (x : A) (i : ι) (j : ι') :
-  (hb.smul hc).repr x (i, j) = hb.repr (hc.repr x j) i :=
-by simp [is_basis.smul_repr]
+lemma basis.algebra_map_injective {ι : Type v₁} [no_zero_divisors R] [nontrivial S]
+  (b : basis ι R S) :
+  function.injective (algebra_map R S) :=
+have no_zero_smul_divisors R S := b.no_zero_smul_divisors,
+by exactI no_zero_smul_divisors.algebra_map_injective R S
 
 end ring
 
@@ -219,9 +249,10 @@ begin
         (subset_span $ set.mem_insert_of_mem _ hyk : yk ∈ _)) } },
   refine ⟨algebra.adjoin A (↑s : set B), subalgebra.fg_adjoin_finset _, insert 1 y, _⟩,
   refine restrict_scalars_injective A _ _ _,
-  rw [restrict_scalars_top, eq_top_iff, ← algebra.coe_top, ← hx, algebra.adjoin_eq_span, span_le],
-  refine λ r hr, monoid.in_closure.rec_on hr hxy (subset_span $ mem_insert_self _ _)
-      (λ p q _ _ hp hq, hyy $ submodule.mul_mem_mul hp hq)
+  rw [restrict_scalars_top, eq_top_iff, ← algebra.top_to_submodule, ← hx,
+    algebra.adjoin_eq_span, span_le],
+  refine λ r hr, submonoid.closure_induction hr (λ c hc, hxy c hc)
+    (subset_span $ mem_insert_self _ _) (λ p q hp hq, hyy $ submodule.mul_mem_mul hp hq)
 end
 
 /-- Artin--Tate lemma: if A ⊆ B ⊆ C is a chain of subrings of commutative rings, and

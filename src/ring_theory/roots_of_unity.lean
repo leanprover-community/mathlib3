@@ -6,7 +6,7 @@ Authors: Johan Commelin
 
 import data.nat.parity
 import data.polynomial.ring_division
-import group_theory.order_of_element
+import group_theory.specific_groups.cyclic
 import ring_theory.integral_domain
 import number_theory.divisors
 import data.zmod.basic
@@ -336,9 +336,10 @@ end comm_monoid
 
 section comm_group
 
-variables {ζ : G} (h : is_primitive_root ζ k)
+variables {ζ : G}
 
-lemma gpow_eq_one : ζ ^ (k : ℤ) = 1 := h.pow_eq_one
+lemma gpow_eq_one (h : is_primitive_root ζ k) : ζ ^ (k : ℤ) = 1 :=
+by { rw gpow_coe_nat, exact h.pow_eq_one }
 
 lemma gpow_eq_one_iff_dvd (h : is_primitive_root ζ k) (l : ℤ) :
   ζ ^ l = 1 ↔ (k : ℤ) ∣ l :=
@@ -368,10 +369,12 @@ lemma gpow_of_gcd_eq_one (h : is_primitive_root ζ k) (i : ℤ) (hi : i.gcd k = 
   is_primitive_root (ζ ^ i) k :=
 begin
   by_cases h0 : 0 ≤ i,
-  { lift i to ℕ using h0, exact h.pow_of_coprime i hi },
+  { lift i to ℕ using h0,
+    rw gpow_coe_nat,
+    exact h.pow_of_coprime i hi },
   have : 0 ≤ -i, { simp only [not_le, neg_nonneg] at h0 ⊢, exact le_of_lt h0 },
   lift -i to ℕ using this with i' hi',
-  rw [← inv_iff, ← gpow_neg, ← hi'],
+  rw [← inv_iff, ← gpow_neg, ← hi', gpow_coe_nat],
   apply h.pow_of_coprime,
   rw [int.gcd, ← int.nat_abs_neg, ← hi'] at hi,
   exact hi
@@ -385,20 +388,21 @@ end comm_group
 
 section comm_group_with_zero
 
-variables {ζ : G₀} (h : is_primitive_root ζ k)
+variables {ζ : G₀}
 
-lemma fpow_eq_one : ζ ^ (k : ℤ) = 1 := h.pow_eq_one
+lemma fpow_eq_one (h : is_primitive_root ζ k) : ζ ^ (k : ℤ) = 1 :=
+by { rw gpow_coe_nat, exact h.pow_eq_one }
 
 lemma fpow_eq_one_iff_dvd (h : is_primitive_root ζ k) (l : ℤ) :
   ζ ^ l = 1 ↔ (k : ℤ) ∣ l :=
 begin
   by_cases h0 : 0 ≤ l,
-  { lift l to ℕ using h0, rw [fpow_coe_nat], norm_cast, exact h.pow_eq_one_iff_dvd l },
+  { lift l to ℕ using h0, rw [gpow_coe_nat], norm_cast, exact h.pow_eq_one_iff_dvd l },
   { have : 0 ≤ -l, { simp only [not_le, neg_nonneg] at h0 ⊢, exact le_of_lt h0 },
     lift -l to ℕ using this with l' hl',
     rw [← dvd_neg, ← hl'],
     norm_cast,
-    rw [← h.pow_eq_one_iff_dvd, ← inv_inj', ← fpow_neg, ← hl', fpow_coe_nat, inv_one] }
+    rw [← h.pow_eq_one_iff_dvd, ← inv_inj', ← fpow_neg, ← hl', gpow_coe_nat, inv_one] }
 end
 
 lemma inv' (h : is_primitive_root ζ k) : is_primitive_root ζ⁻¹ k :=
@@ -417,10 +421,12 @@ lemma fpow_of_gcd_eq_one (h : is_primitive_root ζ k) (i : ℤ) (hi : i.gcd k = 
   is_primitive_root (ζ ^ i) k :=
 begin
   by_cases h0 : 0 ≤ i,
-  { lift i to ℕ using h0, exact h.pow_of_coprime i hi },
+  { lift i to ℕ using h0,
+    rw gpow_coe_nat,
+    exact h.pow_of_coprime i hi },
   have : 0 ≤ -i, { simp only [not_le, neg_nonneg] at h0 ⊢, exact le_of_lt h0 },
   lift -i to ℕ using this with i' hi',
-  rw [← inv_iff', ← fpow_neg, ← hi'],
+  rw [← inv_iff', ← fpow_neg, ← hi', gpow_coe_nat],
   apply h.pow_of_coprime,
   rw [int.gcd, ← int.nat_abs_neg, ← hi'] at hi,
   exact hi
@@ -451,7 +457,7 @@ begin
 end
 
 lemma neg_one (p : ℕ) [char_p R p] (hp : p ≠ 2) : is_primitive_root (-1 : R) 2 :=
-mk_of_lt (-1 : R) dec_trivial (by simp only [one_pow, neg_square]) $
+mk_of_lt (-1 : R) dec_trivial (by simp only [one_pow, neg_sq]) $
 begin
   intros l hl0 hl2,
   obtain rfl : l = 1,
@@ -469,7 +475,7 @@ end
 
 lemma eq_neg_one_of_two_right (h : is_primitive_root ζ 2) : ζ = -1 :=
 begin
-  apply (eq_or_eq_neg_of_pow_two_eq_pow_two ζ 1 _).resolve_left,
+  apply (eq_or_eq_neg_of_sq_eq_sq ζ 1 _).resolve_left,
   { rw [← pow_one ζ], apply h.pow_ne_one_of_pos_of_lt; dec_trivial },
   { simp only [h.pow_eq_one, one_pow] }
 end
@@ -788,8 +794,8 @@ variables [char_zero K]
 /--The minimal polynomial of a root of unity `μ` divides `X ^ n - 1`. -/
 lemma minpoly_dvd_X_pow_sub_one : minpoly ℤ μ ∣ X ^ n - 1 :=
 begin
-  apply integer_dvd (is_integral h hpos) (polynomial.monic.is_primitive
-  (monic_X_pow_sub_C 1 (ne_of_lt hpos).symm)),
+  apply minpoly.gcd_domain_dvd ℚ (is_integral h hpos) (polynomial.monic.is_primitive
+    (monic_X_pow_sub_C 1 (ne_of_lt hpos).symm)),
   simp only [((is_primitive_root.iff_def μ n).mp h).left, aeval_X_pow, ring_hom.eq_int_cast,
   int.cast_one, aeval_one, alg_hom.map_sub, sub_self]
 end
@@ -800,8 +806,8 @@ lemma separable_minpoly_mod {p : ℕ} [fact p.prime] (hdiv : ¬p ∣ n) :
 begin
   have hdvd : (map (int.cast_ring_hom (zmod p))
     (minpoly ℤ μ)) ∣ X ^ n - 1,
-  { simpa [map_pow, map_X, map_one, ring_hom.coe_of, map_sub] using
-      ring_hom.map_dvd (ring_hom.of (map (int.cast_ring_hom (zmod p))))
+  { simpa [map_pow, map_X, map_one, map_sub] using
+      ring_hom.map_dvd (map_ring_hom (int.cast_ring_hom (zmod p)))
         (minpoly_dvd_X_pow_sub_one h hpos) },
   refine separable.of_dvd (separable_X_pow_sub_C 1 _ one_ne_zero) hdvd,
   by_contra hzero,
@@ -819,7 +825,7 @@ lemma minpoly_dvd_expand {p : ℕ} (hprime : nat.prime p) (hdiv : ¬ p ∣ n) :
   minpoly ℤ μ ∣
   expand ℤ p (minpoly ℤ (μ ^ p)) :=
 begin
-  apply minpoly.integer_dvd (h.is_integral hpos),
+  apply minpoly.gcd_domain_dvd ℚ (h.is_integral hpos),
   { apply monic.is_primitive,
     rw [polynomial.monic, leading_coeff, nat_degree_expand, mul_comm, coeff_expand_mul'
         (nat.prime.pos hprime), ← leading_coeff, ← polynomial.monic],
@@ -840,7 +846,7 @@ begin
     map (int.cast_ring_hom (zmod p)) (expand ℤ p Q),
   by rw [← zmod.expand_card, map_expand hprime.1.pos],
   rw [hfrob],
-  apply ring_hom.map_dvd (ring_hom.of (map (int.cast_ring_hom (zmod p)))),
+  apply ring_hom.map_dvd (map_ring_hom (int.cast_ring_hom (zmod p))),
   exact minpoly_dvd_expand h hpos hprime.1 hdiv
 end
 
@@ -868,24 +874,23 @@ begin
     minpoly.irreducible ((h.pow_of_prime hprime.1 hdiv).is_integral hpos),
   have PQprim : is_primitive (P * Q) := Pmonic.is_primitive.mul Qmonic.is_primitive,
   have prod : P * Q ∣ X ^ n - 1,
-  { apply (is_primitive.int.dvd_iff_map_cast_dvd_map_cast (P * Q) (X ^ n - 1) PQprim
-      ((monic_X_pow_sub_C 1 (ne_of_lt hpos).symm).is_primitive)).2,
-    rw [map_mul],
+  { rw [(is_primitive.int.dvd_iff_map_cast_dvd_map_cast (P * Q) (X ^ n - 1) PQprim
+      (monic_X_pow_sub_C (1 : ℤ) (ne_of_gt hpos)).is_primitive), map_mul],
     refine is_coprime.mul_dvd _ _ _,
     { have aux := is_primitive.int.irreducible_iff_irreducible_map_cast Pmonic.is_primitive,
       refine (dvd_or_coprime _ _ (aux.1 Pirr)).resolve_left _,
       rw map_dvd_map (int.cast_ring_hom ℚ) int.cast_injective Pmonic,
       intro hdiv,
       refine hdiff (eq_of_monic_of_associated Pmonic Qmonic _),
-      exact associated_of_dvd_dvd hdiv (dvd_symm_of_irreducible Pirr Qirr hdiv) },
+      exact associated_of_dvd_dvd hdiv (Pirr.dvd_symm Qirr hdiv) },
     { apply (map_dvd_map (int.cast_ring_hom ℚ) int.cast_injective Pmonic).2,
       exact minpoly_dvd_X_pow_sub_one h hpos },
     { apply (map_dvd_map (int.cast_ring_hom ℚ) int.cast_injective Qmonic).2,
       exact minpoly_dvd_X_pow_sub_one (pow_of_prime h hprime.1 hdiv) hpos } },
-  replace prod := ring_hom.map_dvd (ring_hom.of (map (int.cast_ring_hom (zmod p)))) prod,
-  rw [ring_hom.coe_of, map_mul, map_sub, map_one, map_pow, map_X] at prod,
+  replace prod := ring_hom.map_dvd ((map_ring_hom (int.cast_ring_hom (zmod p)))) prod,
+  rw [coe_map_ring_hom, map_mul, map_sub, map_one, map_pow, map_X] at prod,
   obtain ⟨R, hR⟩ := minpoly_dvd_mod_p h hpos hdiv,
-  rw [hR, ← mul_assoc, ← map_mul, ← pow_two, map_pow] at prod,
+  rw [hR, ← mul_assoc, ← map_mul, ← sq, map_pow] at prod,
   have habs : map (int.cast_ring_hom (zmod p)) P ^ 2 ∣ map (int.cast_ring_hom (zmod p)) P ^ 2 * R,
   { use R },
   replace habs := lt_of_lt_of_le (enat.coe_lt_coe.2 one_lt_two)
@@ -896,12 +901,12 @@ begin
     exact hdiv ((zmod.nat_coe_zmod_eq_zero_iff_dvd n p).1 (not_not.1 hzero)) },
   cases (multiplicity.squarefree_iff_multiplicity_le_one (X ^ n - 1)).1 hfree
     (map (int.cast_ring_hom (zmod p)) P) with hle hunit,
-  { exact not_lt_of_le hle habs },
+  { rw nat.cast_one at habs, exact hle.not_lt habs },
   { replace hunit := degree_eq_zero_of_is_unit hunit,
-    rw degree_map_eq_of_leading_coeff_ne_zero _ _ at hunit,
-    { exact (ne_of_lt (minpoly.degree_pos (is_integral h hpos))).symm hunit },
+    rw degree_map_eq_of_leading_coeff_ne_zero (int.cast_ring_hom (zmod p)) _ at hunit,
+    { exact (minpoly.degree_pos (is_integral h hpos)).ne' hunit },
     simp only [Pmonic, ring_hom.eq_int_cast, monic.leading_coeff, int.cast_one, ne.def,
-      not_false_iff, one_ne_zero] },
+      not_false_iff, one_ne_zero] }
 end
 
 /-- If `m : ℕ` is coprime with `n`,
@@ -920,7 +925,7 @@ begin
     simp [nat.is_unit_iff.mp hunit] },
   { intros a p ha hprime hind n hcop h hpos,
     rw hind (nat.coprime.coprime_mul_left hcop) h hpos, clear hind,
-    replace hprime := nat.prime_iff_prime.2 hprime,
+    replace hprime := nat.prime_iff.2 hprime,
     have hdiv := (nat.prime.coprime_iff_not_dvd hprime).1 (nat.coprime.coprime_mul_right hcop),
     haveI := fact.mk hprime,
     rw [minpoly_eq_pow
@@ -959,7 +964,7 @@ n.totient = (primitive_roots n K).card : (h.card_primitive_roots hpos).symm
 ... ≤ P_K.roots.card : multiset.to_finset_card_le _
 ... ≤ P_K.nat_degree : (card_roots' $ map_monic_ne_zero
         (minpoly.monic $ is_integral h hpos))
-... ≤ P.nat_degree : nat_degree_map_le _
+... ≤ P.nat_degree : nat_degree_map_le _ _
 
 end minpoly
 

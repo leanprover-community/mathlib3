@@ -6,12 +6,14 @@ Authors: Johan Commelin, Scott Morrison, Adam Topaz
 import algebraic_topology.simplicial_object
 import category_theory.yoneda
 import category_theory.limits.types
+import category_theory.limits.presheaf
+import algebraic_topology.topological_simplex
 
 /-!
 A simplicial set is just a simplicial object in `Type`,
 i.e. a `Type`-valued presheaf on the simplex category.
 
-(One might be tempted to all these "simplicial types" when working in type-theoretic foundations,
+(One might be tempted to call these "simplicial types" when working in type-theoretic foundations,
 but this would be unnecessarily confusing given the existing notion of a simplicial type in
 homotopy type theory.)
 
@@ -117,3 +119,21 @@ def sk (n : ℕ) : sSet ⥤ sSet.truncated n := simplicial_object.sk n
 instance {n} : inhabited (sSet.truncated n) := ⟨(sk n).obj $ Δ[0]⟩
 
 end sSet
+
+/-- The functor associating the singular simplicial set to a topological space. -/
+noncomputable def Top.to_sSet : Top ⥤ sSet :=
+colimit_adj.restricted_yoneda simplex_category.to_Top
+
+/-- The geometric realization functor. -/
+noncomputable def sSet.to_Top : sSet ⥤ Top :=
+colimit_adj.extend_along_yoneda simplex_category.to_Top
+
+/-- Geometric realization is left adjoint to the singular simplicial set construction. -/
+noncomputable def sSet_Top_adj : sSet.to_Top ⊣ Top.to_sSet :=
+colimit_adj.yoneda_adjunction _
+
+/-- The geometric realization of the representable simplicial sets agree
+  with the usual topological simplices. -/
+noncomputable def sSet.to_Top_simplex :
+  (yoneda : simplex_category ⥤ _) ⋙ sSet.to_Top ≅ simplex_category.to_Top :=
+colimit_adj.is_extension_along_yoneda _

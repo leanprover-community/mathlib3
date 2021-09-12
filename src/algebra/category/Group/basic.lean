@@ -33,7 +33,7 @@ namespace Group
 @[to_additive]
 instance : bundled_hom.parent_projection group.to_monoid := ⟨⟩
 
-attribute [derive [large_category, concrete_category]] Group AddGroup
+attribute [derive [large_category, concrete_category]] Group
 attribute [to_additive] Group.large_category Group.concrete_category
 
 @[to_additive] instance : has_coe_to_sort Group Type* := bundled.has_coe_to_sort
@@ -90,7 +90,7 @@ namespace CommGroup
 @[to_additive]
 instance : bundled_hom.parent_projection comm_group.to_group := ⟨⟩
 
-attribute [derive [large_category, concrete_category]] CommGroup AddCommGroup
+attribute [derive [large_category, concrete_category]] CommGroup
 attribute [to_additive] CommGroup.large_category CommGroup.concrete_category
 
 @[to_additive] instance : has_coe_to_sort CommGroup Type* := bundled.has_coe_to_sort

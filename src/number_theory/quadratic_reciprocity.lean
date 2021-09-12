@@ -15,12 +15,12 @@ This file contains results about quadratic residues modulo a prime number.
 
 The main results are the law of quadratic reciprocity, `quadratic_reciprocity`, as well as the
 interpretations in terms of existence of square roots depending on the congruence mod 4,
-`exists_pow_two_eq_prime_iff_of_mod_four_eq_one`, and
-`exists_pow_two_eq_prime_iff_of_mod_four_eq_three`.
+`exists_sq_eq_prime_iff_of_mod_four_eq_one`, and
+`exists_sq_eq_prime_iff_of_mod_four_eq_three`.
 
 Also proven are conditions for `-1` and `2` to be a square modulo a prime,
-`exists_pow_two_eq_neg_one_iff_mod_four_ne_three` and
-`exists_pow_two_eq_two_iff`
+`exists_sq_eq_neg_one_iff_mod_four_ne_three` and
+`exists_sq_eq_two_iff`
 
 ## Implementation notes
 
@@ -39,7 +39,7 @@ lemma euler_criterion_units (x : units (zmod p)) :
   (∃ y : units (zmod p), y ^ 2 = x) ↔ x ^ (p / 2) = 1 :=
 begin
   cases nat.prime.eq_two_or_odd (fact.out p.prime) with hp2 hp_odd,
-  { substI p, refine iff_of_true ⟨1, _⟩ _; apply subsingleton.elim  },
+  { substI p, refine iff_of_true ⟨1, _⟩ _; apply subsingleton.elim },
   obtain ⟨g, hg⟩ := is_cyclic.exists_generator (units (zmod p)),
   obtain ⟨n, hn⟩ : x ∈ submonoid.powers g, { rw mem_powers_iff_mem_gpowers, apply hg },
   split,
@@ -60,14 +60,14 @@ lemma euler_criterion {a : zmod p} (ha : a ≠ 0) :
   (∃ y : zmod p, y ^ 2 = a) ↔ a ^ (p / 2) = 1 :=
 begin
   apply (iff_congr _ (by simp [units.ext_iff])).mp (euler_criterion_units p (units.mk0 a ha)),
-  simp only [units.ext_iff, pow_two, units.coe_mk0, units.coe_mul],
+  simp only [units.ext_iff, sq, units.coe_mk0, units.coe_mul],
   split, { rintro ⟨y, hy⟩, exact ⟨y, hy⟩ },
   { rintro ⟨y, rfl⟩,
     have hy : y ≠ 0, { rintro rfl, simpa [zero_pow] using ha, },
     refine ⟨units.mk0 y hy, _⟩, simp, }
 end
 
-lemma exists_pow_two_eq_neg_one_iff_mod_four_ne_three :
+lemma exists_sq_eq_neg_one_iff_mod_four_ne_three :
   (∃ y : zmod p, y ^ 2 = -1) ↔ p % 4 ≠ 3 :=
 begin
   cases nat.prime.eq_two_or_odd (fact.out p.prime) with hp2 hp_odd,
@@ -98,16 +98,16 @@ begin
   exact pow_card_sub_one_eq_one ha
 end
 
-/-- Wilson's Lemma: the product of `1`, ..., `p-1` is `-1` modulo `p`. -/
+/-- **Wilson's Lemma**: the product of `1`, ..., `p-1` is `-1` modulo `p`. -/
 @[simp] lemma wilsons_lemma : ((p - 1)! : zmod p) = -1 :=
 begin
   refine
   calc ((p - 1)! : zmod p) = (∏ x in Ico 1 (succ (p - 1)), x) :
     by rw [← finset.prod_Ico_id_eq_factorial, prod_nat_cast]
                                ... = (∏ x : units (zmod p), x) : _
-                               ... = -1 :
-    by rw [prod_hom _ (coe : units (zmod p) → zmod p),
-           prod_univ_units_id_eq_neg_one, units.coe_neg, units.coe_one],
+                               ... = -1 : by simp_rw [← units.coe_hom_apply,
+    ← (units.coe_hom (zmod p)).map_prod, prod_univ_units_id_eq_neg_one, units.coe_hom_apply,
+    units.coe_neg, units.coe_one],
   have hp : 0 < p := (fact.out p.prime).pos,
   symmetry,
   refine prod_bij (λ a _, (a : zmod p).val) _ _ _ _,
@@ -234,21 +234,21 @@ calc ((∑ x in Ico 1 (p / 2).succ, a * x : ℕ) : zmod 2)
 ... = (∑ x in Ico 1 (p / 2).succ, ((a * x : ℕ) : zmod p).val : ℕ) +
     (∑ x in Ico 1 (p / 2).succ, (a * x) / p : ℕ) :
   by simp only [val_nat_cast];
-    simp [sum_add_distrib, mul_sum.symm, nat.cast_add, nat.cast_mul, sum_nat_cast, hp2]
+    simp [sum_add_distrib, mul_sum.symm, nat.cast_add, nat.cast_mul, nat.cast_sum, hp2]
 ... = _ : congr_arg2 (+)
   (calc ((∑ x in Ico 1 (p / 2).succ, ((a * x : ℕ) : zmod p).val : ℕ) : zmod 2)
       = ∑ x in Ico 1 (p / 2).succ,
           ((((a * x : zmod p).val_min_abs +
             (if (a * x : zmod p).val ≤ p / 2 then 0 else p)) : ℤ) : zmod 2) :
-        by simp only [(val_eq_ite_val_min_abs _).symm]; simp [sum_nat_cast]
+        by simp only [(val_eq_ite_val_min_abs _).symm]; simp [nat.cast_sum]
   ... = ((Ico 1 (p / 2).succ).filter
         (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card +
       ((∑ x in Ico 1 (p / 2).succ, (a * x : zmod p).val_min_abs.nat_abs) : ℕ) :
-    by { simp [ite_cast, add_comm, sum_add_distrib, finset.sum_ite, hp2, sum_nat_cast], }
+    by { simp [ite_cast, add_comm, sum_add_distrib, finset.sum_ite, hp2, nat.cast_sum], }
   ... = _ : by rw [finset.sum_eq_multiset_sum,
       Ico_map_val_min_abs_nat_abs_eq_Ico_map_id p a hap,
       ← finset.sum_eq_multiset_sum];
-    simp [sum_nat_cast]) rfl
+    simp [nat.cast_sum]) rfl
 
 private lemma eisenstein_lemma_aux₂ (p : ℕ) [fact p.prime] [fact (p % 2 = 1)]
   {a : ℕ} (ha2 : a % 2 = 1) (hap : (a : zmod p) ≠ 0) :
@@ -257,7 +257,7 @@ private lemma eisenstein_lemma_aux₂ (p : ℕ) [fact p.prime] [fact (p % 2 = 1)
   ≡ ∑ x in Ico 1 (p / 2).succ, (x * a) / p [MOD 2] :=
 have ha2 : (a : zmod 2) = (1 : ℕ), from (eq_iff_modeq_nat _).2 ha2,
 (eq_iff_modeq_nat 2).1 $ sub_eq_zero.1 $
-  by simpa [add_left_comm, sub_eq_add_neg, finset.mul_sum.symm, mul_comm, ha2, sum_nat_cast,
+  by simpa [add_left_comm, sub_eq_add_neg, finset.mul_sum.symm, mul_comm, ha2, nat.cast_sum,
             add_neg_eq_iff_eq_add.symm, neg_eq_self_mod_two, add_assoc]
     using eq.symm (eisenstein_lemma_aux₁ p hap)
 
@@ -421,6 +421,7 @@ lemma eisenstein_lemma [fact (p % 2 = 1)] {a : ℕ} (ha1 : a % 2 = 1) (ha0 : (a 
 by rw [neg_one_pow_eq_pow_mod_two, gauss_lemma p ha0, neg_one_pow_eq_pow_mod_two,
     show _ = _, from eisenstein_lemma_aux₂ p ha1 ha0]
 
+/-- **Quadratic reciprocity theorem** -/
 theorem quadratic_reciprocity [hp1 : fact (p % 2 = 1)] [hq1 : fact (q % 2 = 1)] (hpq : p ≠ q) :
   legendre_sym p q * legendre_sym q p = (-1) ^ ((p / 2) * (q / 2)) :=
 have hpq0 : (p : zmod q) ≠ 0, from prime_ne_zero q p hpq.symm,
@@ -465,7 +466,7 @@ begin
     ← nat.cast_add, ← card_disjoint_union hdisj, hunion, hcard]
 end
 
-lemma exists_pow_two_eq_two_iff [hp1 : fact (p % 2 = 1)] :
+lemma exists_sq_eq_two_iff [hp1 : fact (p % 2 = 1)] :
   (∃ a : zmod p, a ^ 2 = 2) ↔ p % 8 = 1 ∨ p % 8 = 7 :=
 have hp2 : ((2 : ℕ) : zmod p) ≠ 0,
   from prime_ne_zero p 2 (λ h, by simpa [h] using hp1.1),
@@ -483,7 +484,7 @@ begin
   dec_trivial!,
 end
 
-lemma exists_pow_two_eq_prime_iff_of_mod_four_eq_one (hp1 : p % 4 = 1) [hq1 : fact (q % 2 = 1)] :
+lemma exists_sq_eq_prime_iff_of_mod_four_eq_one (hp1 : p % 4 = 1) [hq1 : fact (q % 2 = 1)] :
   (∃ a : zmod p, a ^ 2 = q) ↔ ∃ b : zmod q, b ^ 2 = p :=
 if hpq : p = q then by substI hpq else
 have h1 : ((p / 2) * (q / 2)) % 2 = 0,
@@ -501,7 +502,7 @@ begin
   split_ifs at this; simp *; contradiction,
 end
 
-lemma exists_pow_two_eq_prime_iff_of_mod_four_eq_three (hp3 : p % 4 = 3)
+lemma exists_sq_eq_prime_iff_of_mod_four_eq_three (hp3 : p % 4 = 3)
   (hq3 : q % 4 = 3) (hpq : p ≠ q) : (∃ a : zmod p, a ^ 2 = q) ↔ ¬∃ b : zmod q, b ^ 2 = p :=
 have h1 : ((p / 2) * (q / 2)) % 2 = 1,
   from nat.odd_mul_odd

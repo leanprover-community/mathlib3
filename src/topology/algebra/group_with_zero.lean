@@ -6,6 +6,7 @@ Authors: Yury G. Kudryashov
 import topology.algebra.monoid
 import algebra.group.pi
 import algebra.group_with_zero.power
+import topology.homeomorph
 
 /-!
 # Topological group with zero
@@ -24,6 +25,9 @@ and `continuous`. As a special case, we provide `*.div_const` operations that re
 All lemmas about `(⁻¹)` use `inv'` in their names because lemmas without `'` are used for
 `topological_group`s. We also use `'` in the typeclass name `has_continuous_inv'` for the sake of
 consistency of notation.
+
+On a `group_with_zero` with continuous multiplication, we also define left and right multiplication
+as homeomorphisms.
 -/
 
 open_locale topological_space
@@ -164,49 +168,77 @@ continuous_on_fst.div continuous_on_snd $ λ _, id
 
 end div
 
+/-! ### Left and right multiplication as homeomorphisms -/
+
+namespace homeomorph
+
+variables [topological_space α] [group_with_zero α] [has_continuous_mul α]
+
+/-- Left multiplication by a nonzero element in a `group_with_zero` with continuous multiplication
+is a homeomorphism of the underlying type. -/
+protected def mul_left' (c : α) (hc : c ≠ 0) : α ≃ₜ α :=
+{ continuous_to_fun := continuous_mul_left _,
+  continuous_inv_fun := continuous_mul_left _,
+  .. equiv.mul_left' c hc }
+
+/-- Right multiplication by a nonzero element in a `group_with_zero` with continuous multiplication
+is a homeomorphism of the underlying type. -/
+protected def mul_right' (c : α) (hc : c ≠ 0) : α ≃ₜ α :=
+{ continuous_to_fun := continuous_mul_right _,
+  continuous_inv_fun := continuous_mul_right _,
+  .. equiv.mul_right' c hc }
+
+@[simp] lemma coe_mul_left' (c : α) (hc : c ≠ 0) : ⇑(homeomorph.mul_left' c hc) = (*) c := rfl
+
+@[simp] lemma mul_left'_symm_apply (c : α) (hc : c ≠ 0) :
+  ((homeomorph.mul_left' c hc).symm : α → α) = (*) c⁻¹ := rfl
+
+@[simp] lemma coe_mul_right' (c : α) (hc : c ≠ 0) :
+  ⇑(homeomorph.mul_right' c hc) = λ x, x * c := rfl
+
+@[simp] lemma mul_right'_symm_apply (c : α) (hc : c ≠ 0) :
+  ((homeomorph.mul_right' c hc).symm : α → α) = λ x, x * c⁻¹ := rfl
+
+end homeomorph
+
 section fpow
 
 variables [group_with_zero G₀] [topological_space G₀] [has_continuous_inv' G₀]
   [has_continuous_mul G₀]
 
-lemma tendsto_fpow {x : G₀} (hx : x ≠ 0) (m : ℤ) : tendsto (λ x, x ^ m) (𝓝 x) (𝓝 (x ^ m)) :=
+lemma continuous_at_fpow (x : G₀) (m : ℤ) (h : x ≠ 0 ∨ 0 ≤ m) : continuous_at (λ x, x ^ m) x :=
 begin
-  have : ∀ y : G₀, ∀ m : ℤ, 0 < m → tendsto (λ x, x ^ m) (𝓝 y) (𝓝 (y ^ m)),
-  { assume y m hm,
-    lift m to ℕ using (le_of_lt hm) with k,
-    simp only [fpow_coe_nat],
-    exact (continuous_pow k).continuous_at.tendsto },
-  rcases lt_trichotomy m 0 with hm | hm | hm,
-  { have hm' : 0 < - m := by rwa neg_pos,
-    convert (this _ (-m) hm').comp (tendsto_inv' hx) using 1,
-    { ext y,
-      simp },
-    { congr' 1,
-      simp } },
-  { simpa [hm] using tendsto_const_nhds },
-  { exact this _ m hm }
+  cases m,
+  { simpa only [gpow_of_nat] using continuous_at_pow x m },
+  { simp only [gpow_neg_succ_of_nat],
+    have hx : x ≠ 0, from h.resolve_right (int.neg_succ_of_nat_lt_zero m).not_le,
+    exact (continuous_at_pow x (m + 1)).inv' (pow_ne_zero _ hx) }
 end
 
-lemma continuous_at_fpow {x : G₀} (hx : x ≠ 0) (m : ℤ) : continuous_at (λ x, x ^ m) x :=
-tendsto_fpow hx m
-
 lemma continuous_on_fpow (m : ℤ) : continuous_on (λ x : G₀, x ^ m) {0}ᶜ :=
-λ x hx, (continuous_at_fpow hx m).continuous_within_at
+λ x hx, (continuous_at_fpow _ _ (or.inl hx)).continuous_within_at
 
-variables {f : α → G₀}
-
-lemma filter.tendsto.fpow {l : filter α} {a : G₀} (hf : tendsto f l (𝓝 a)) (ha : a ≠ 0) (m : ℤ) :
+lemma filter.tendsto.fpow {f : α → G₀} {l : filter α} {a : G₀} (hf : tendsto f l (𝓝 a)) (m : ℤ)
+  (h : a ≠ 0 ∨ 0 ≤ m) :
   tendsto (λ x, (f x) ^ m) l (𝓝 (a ^ m)) :=
-(tendsto_fpow ha m).comp hf
+(continuous_at_fpow _ m h).tendsto.comp hf
 
-variables [topological_space α] {a : α}
+variables {X : Type*} [topological_space X] {a : X} {s : set X} {f : X → G₀}
 
-lemma continuous_at.fpow (hf : continuous_at f a) (ha : f a ≠ 0) (m : ℤ) :
+lemma continuous_at.fpow (hf : continuous_at f a) (m : ℤ) (h : f a ≠ 0 ∨ 0 ≤ m) :
   continuous_at (λ x, (f x) ^ m) a :=
-(continuous_at_fpow ha m).comp hf
+hf.fpow m h
 
-@[continuity] lemma continuous.fpow (hf : continuous f) (h0 : ∀ a, f a ≠ 0) (m : ℤ) :
+lemma continuous_within_at.fpow (hf : continuous_within_at f s a) (m : ℤ) (h : f a ≠ 0 ∨ 0 ≤ m) :
+  continuous_within_at (λ x, f x ^ m) s a :=
+hf.fpow m h
+
+lemma continuous_on.fpow (hf : continuous_on f s) (m : ℤ) (h : ∀ a ∈ s, f a ≠ 0 ∨ 0 ≤ m) :
+  continuous_on (λ x, f x ^ m) s :=
+λ a ha, (hf a ha).fpow m (h a ha)
+
+@[continuity] lemma continuous.fpow (hf : continuous f) (m : ℤ) (h0 : ∀ a, f a ≠ 0 ∨ 0 ≤ m) :
   continuous (λ x, (f x) ^ m) :=
-continuous_iff_continuous_at.2 $ λ x, (hf.tendsto x).fpow (h0 x) m
+continuous_iff_continuous_at.2 $ λ x, (hf.tendsto x).fpow m (h0 x)
 
 end fpow

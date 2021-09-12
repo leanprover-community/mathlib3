@@ -3,9 +3,10 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import data.polynomial.ring_division
+import algebra.gcd_monoid.basic
 import data.polynomial.derivative
-import algebra.gcd_monoid
+import data.polynomial.ring_division
+import ring_theory.euclidean_domain
 
 /-!
 # Theory of univariate polynomials
@@ -66,9 +67,11 @@ lemma is_unit_iff_degree_eq_zero : is_unit p ↔ degree p = 0 :=
 
 lemma degree_pos_of_ne_zero_of_nonunit (hp0 : p ≠ 0) (hp : ¬is_unit p) :
   0 < degree p :=
-lt_of_not_ge (λ h, by rw [eq_C_of_degree_le_zero h] at hp0 hp;
-  exact (hp $ is_unit.map' C $
-    is_unit.mk0 (coeff p 0) (mt C_inj.2 (by simpa using hp0))))
+lt_of_not_ge (λ h, begin
+  rw [eq_C_of_degree_le_zero h] at hp0 hp,
+  exact hp (is_unit.map (C.to_monoid_hom : R →* _)
+    (is_unit.mk0 (coeff p 0) (mt C_inj.2 (by simpa using hp0)))),
+end)
 
 lemma monic_mul_leading_coeff_inv (h : p ≠ 0) :
   monic (p * C (leading_coeff p)⁻¹) :=
@@ -224,7 +227,6 @@ else by rw [mod_def, mod_def, leading_coeff_map f, ← f.map_inv, ← map_C f,
 
 section
 open euclidean_domain
-local attribute [-instance] finsupp.finsupp.decidable_eq
 theorem gcd_map [field k] (f : R →+* k) :
   gcd (p.map f) (q.map f) = (gcd p q).map f :=
 gcd.induction p q (λ x, by simp_rw [map_zero, euclidean_domain.gcd_zero_left]) $ λ x y hx ih,
@@ -280,6 +282,24 @@ lemma mem_root_set [field k] [algebra R k] {x : k} (hp : p ≠ 0) :
   x ∈ p.root_set k ↔ aeval x p = 0 :=
 iff.trans multiset.mem_to_finset (mem_roots_map hp)
 
+lemma root_set_C_mul_X_pow {R S : Type*} [field R] [field S] [algebra R S]
+  {n : ℕ} (hn : n ≠ 0) {a : R} (ha : a ≠ 0) : (C a * X ^ n).root_set S = {0} :=
+begin
+  ext x,
+  rw [set.mem_singleton_iff, mem_root_set, aeval_mul, aeval_C, aeval_X_pow, mul_eq_zero],
+  { simp_rw [ring_hom.map_eq_zero, pow_eq_zero_iff (nat.pos_of_ne_zero hn), or_iff_right_iff_imp],
+    exact λ ha', (ha ha').elim },
+  { exact mul_ne_zero (mt C_eq_zero.mp ha) (pow_ne_zero n X_ne_zero) },
+end
+
+lemma root_set_monomial {R S : Type*} [field R] [field S] [algebra R S]
+  {n : ℕ} (hn : n ≠ 0) {a : R} (ha : a ≠ 0) : (monomial n a).root_set S = {0} :=
+by rw [←C_mul_X_pow_eq_monomial, root_set_C_mul_X_pow hn ha]
+
+lemma root_set_X_pow {R S : Type*} [field R] [field S] [algebra R S]
+  {n : ℕ} (hn : n ≠ 0) : (X ^ n : polynomial R).root_set S = {0} :=
+by { rw [←one_mul (X ^ n : polynomial R), ←C_1, root_set_C_mul_X_pow hn], exact one_ne_zero }
+
 lemma exists_root_of_degree_eq_one (h : degree p = 1) : ∃ x, is_root p x :=
 ⟨-(p.coeff 0 / p.coeff 1),
   have p.coeff 1 ≠ 0,
@@ -324,12 +344,12 @@ lemma degree_normalize : degree (normalize p) = degree p := by simp
 
 lemma prime_of_degree_eq_one (hp1 : degree p = 1) : prime p :=
 have prime (normalize p),
-  from prime_of_degree_eq_one_of_monic (hp1 ▸ degree_normalize)
+  from monic.prime_of_degree_eq_one (hp1 ▸ degree_normalize)
     (monic_normalize (λ hp0, absurd hp1 (hp0.symm ▸ by simp; exact dec_trivial))),
-prime_of_associated normalize_associated this
+(normalize_associated _).prime this
 
 lemma irreducible_of_degree_eq_one (hp1 : degree p = 1) : irreducible p :=
-irreducible_of_prime (prime_of_degree_eq_one hp1)
+(prime_of_degree_eq_one hp1).irreducible
 
 theorem not_irreducible_C (x : R) : ¬irreducible (C x) :=
 if H : x = 0 then by { rw [H, C_0], exact not_irreducible_zero }

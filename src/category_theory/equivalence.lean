@@ -44,7 +44,7 @@ if it is full, faithful and essentially surjective.
 ## Main results
 
 * `equivalence.mk`: upgrade an equivalence to a (half-)adjoint equivalence
-* `equivalence_of_fully_faithfully_ess_surj`: a fully faithful essentially surjective functor is an
+* `equivalence.of_fully_faithfully_ess_surj`: a fully faithful essentially surjective functor is an
   equivalence.
 
 ## Notations
@@ -356,13 +356,16 @@ section
 -- but let's not encourage using it.
 -- The power structure is nevertheless useful.
 
-/-- Powers of an auto-equivalence. -/
+/-- Natural number powers of an auto-equivalence.  Use `(^)` instead. -/
+def pow_nat (e : C ≌ C) : ℕ → (C ≌ C)
+| 0 := equivalence.refl
+| 1 := e
+| (n+2) := e.trans (pow_nat (n+1))
+
+/-- Powers of an auto-equivalence.  Use `(^)` instead. -/
 def pow (e : C ≌ C) : ℤ → (C ≌ C)
-| (int.of_nat 0) := equivalence.refl
-| (int.of_nat 1) := e
-| (int.of_nat (n+2)) := e.trans (pow (int.of_nat (n+1)))
-| (int.neg_succ_of_nat 0) := e.symm
-| (int.neg_succ_of_nat (n+1)) := e.symm.trans (pow (int.neg_succ_of_nat n))
+| (int.of_nat n) := e.pow_nat n
+| (int.neg_succ_of_nat n) := e.symm.pow_nat (n+1)
 
 instance : has_pow (C ≌ C) ℤ := ⟨pow⟩
 
@@ -523,7 +526,7 @@ A functor which is full, faithful, and essentially surjective is an equivalence.
 
 See https://stacks.math.columbia.edu/tag/02C3.
 -/
-noncomputable def equivalence_of_fully_faithfully_ess_surj
+noncomputable def of_fully_faithfully_ess_surj
   (F : C ⥤ D) [full F] [faithful F] [ess_surj F] : is_equivalence F :=
 is_equivalence.mk (equivalence_inverse F)
   (nat_iso.of_components
@@ -544,7 +547,7 @@ instance ess_surj_induced_functor {C' : Type*} (e : C' ≃ D) : ess_surj (induce
 
 noncomputable
 instance induced_functor_of_equiv {C' : Type*} (e : C' ≃ D) : is_equivalence (induced_functor e) :=
-equivalence_of_fully_faithfully_ess_surj _
+equivalence.of_fully_faithfully_ess_surj _
 
 end equivalence
 

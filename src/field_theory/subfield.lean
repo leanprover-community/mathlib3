@@ -94,6 +94,12 @@ lemma mem_carrier {s : subfield K} {x : K} : x ∈ s.carrier ↔ x ∈ s := iff.
 /-- Two subfields are equal if they have the same elements. -/
 @[ext] theorem ext {S T : subfield K} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
 
+/-- Copy of a subfield with a new `carrier` equal to the old one. Useful to fix definitional
+equalities. -/
+protected def copy (S : subfield K) (s : set K) (hs : s = ↑S) : subfield K :=
+{ carrier := s,
+  inv_mem' := hs.symm ▸ S.inv_mem',
+  ..S.to_subring.copy s hs }
 
 @[simp] lemma coe_to_subring (s : subfield K) : (s.to_subring : set K) = s :=
 rfl
@@ -171,7 +177,7 @@ s.to_add_subgroup.sum_mem h
 lemma pow_mem {x : K} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := s.to_submonoid.pow_mem hx n
 
 lemma gsmul_mem {x : K} (hx : x ∈ s) (n : ℤ) :
-  n •ℤ x ∈ s := s.to_add_subgroup.gsmul_mem hx n
+  n • x ∈ s := s.to_add_subgroup.gsmul_mem hx n
 
 lemma coe_int_mem (n : ℤ) : (n : K) ∈ s :=
 by simp only [← gsmul_one, gsmul_mem, one_mem]
@@ -208,6 +214,9 @@ def subtype (s : subfield K) : s →+* K :=
 instance to_algebra : algebra s K := ring_hom.to_algebra s.subtype
 
 @[simp] theorem coe_subtype : ⇑s.subtype = coe := rfl
+
+lemma to_subring.subtype_eq_subtype (F : Type*) [field F] (S : subfield F) :
+  S.to_subring.subtype = S.subtype := rfl
 
 /-! # Partial order -/
 
@@ -280,16 +289,25 @@ variables (g : L →+* M) (f : K →+* L)
 
 /-! # range -/
 
-/-- The range of a ring homomorphism, as a subfield of the target. -/
-def field_range : subfield L := (⊤ : subfield K).map f
+/-- The range of a ring homomorphism, as a subfield of the target. See Note [range copy pattern]. -/
+def field_range : subfield L :=
+((⊤ : subfield K).map f).copy (set.range f) set.image_univ.symm
 
-@[simp] lemma coe_field_range : (f.field_range : set L) = set.range f := set.image_univ
+@[simp] lemma coe_field_range : (f.field_range : set L) = set.range f := rfl
 
-@[simp] lemma mem_field_range {f : K →+* L} {y : L} : y ∈ f.range ↔ ∃ x, f x = y :=
-by simp [range]
+@[simp] lemma mem_field_range {f : K →+* L} {y : L} : y ∈ f.field_range ↔ ∃ x, f x = y := iff.rfl
+
+lemma field_range_eq_map : f.field_range = subfield.map f ⊤ :=
+by { ext, simp }
 
 lemma map_field_range : f.field_range.map g = (g.comp f).field_range :=
-(⊤ : subfield K).map_map g f
+by simpa only [field_range_eq_map] using (⊤ : subfield K).map_map g f
+
+/-- The range of a morphism of fields is a fintype, if the domain is a fintype.
+
+Note that this instance can cause a diamond with `subtype.fintype` if `L` is also a fintype.-/
+instance fintype_field_range [fintype K] [decidable_eq L] (f : K →+* L) : fintype f.field_range :=
+set.fintype_range f
 
 end ring_hom
 
@@ -543,8 +561,8 @@ def restrict_field (f : K →+* L) (s : subfield K) : s →+* L := f.comp s.subt
 @[simp] lemma restrict_field_apply (f : K →+* L) (x : s) : f.restrict_field s x = f x := rfl
 
 /-- Restriction of a ring homomorphism to its range interpreted as a subfield. -/
-def range_restrict_field (f : K →+* L) : K →+* f.range :=
-f.cod_restrict' f.range $ λ x, ⟨x, subfield.mem_top x, rfl⟩
+def range_restrict_field (f : K →+* L) : K →+* f.field_range :=
+f.srange_restrict
 
 @[simp] lemma coe_range_restrict_field (f : K →+* L) (x : K) :
   (f.range_restrict_field x : L) = f x := rfl

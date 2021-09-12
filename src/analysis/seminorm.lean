@@ -42,10 +42,10 @@ section
 
 variables
 (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-{E : Type*} [add_comm_group E] [vector_space 𝕜 E]
+{E : Type*} [add_comm_group E] [module 𝕜 E]
 
 open set normed_field
-open_locale topological_space
+open_locale topological_space pointwise
 
 /-- A set `A` absorbs another set `B` if `B` is contained in scaling
 `A` by elements of sufficiently large norms. -/
@@ -72,6 +72,42 @@ begin
   { rw ←norm_pos_iff, calc 0 < 1 : zero_lt_one ... ≤ ∥a∥ : ha, }
 end
 
+lemma balanced.univ : balanced 𝕜 (univ : set E) :=
+λ a ha, subset_univ _
+
+lemma balanced.union {A₁ A₂ : set E} (hA₁ : balanced 𝕜 A₁) (hA₂ : balanced 𝕜 A₂) :
+  balanced 𝕜 (A₁ ∪ A₂) :=
+begin
+  intros a ha t ht,
+  rw [smul_set_union] at ht,
+  exact ht.imp (λ x, hA₁ _ ha x) (λ x, hA₂ _ ha x),
+end
+
+lemma balanced.inter {A₁ A₂ : set E} (hA₁ : balanced 𝕜 A₁) (hA₂ : balanced 𝕜 A₂) :
+  balanced 𝕜 (A₁ ∩ A₂) :=
+begin
+  rintro a ha _ ⟨x, ⟨hx₁, hx₂⟩, rfl⟩,
+  exact ⟨hA₁ _ ha ⟨_, hx₁, rfl⟩, hA₂ _ ha ⟨_, hx₂, rfl⟩⟩,
+end
+
+lemma balanced.add {A₁ A₂ : set E} (hA₁ : balanced 𝕜 A₁) (hA₂ : balanced 𝕜 A₂) :
+  balanced 𝕜 (A₁ + A₂) :=
+begin
+  rintro a ha _ ⟨_, ⟨x, y, hx, hy, rfl⟩, rfl⟩,
+  rw smul_add,
+  exact ⟨_, _, hA₁ _ ha ⟨_, hx, rfl⟩, hA₂ _ ha ⟨_, hy, rfl⟩, rfl⟩,
+end
+
+lemma balanced.smul (hA : balanced 𝕜 A) : balanced 𝕜 (a • A) :=
+begin
+  rintro b hb _ ⟨_, ⟨x, hx, rfl⟩, rfl⟩,
+  exact ⟨b • x, hA _ hb ⟨_, hx, rfl⟩, smul_comm _ _ _⟩,
+end
+
+lemma absorbent_iff_forall_absorbs_singleton :
+  absorbent 𝕜 A ↔ ∀ x, absorbs 𝕜 A {x} :=
+by simp [absorbs, absorbent]
+
 /-!
 Properties of balanced and absorbing sets in a topological vector space:
 -/
@@ -81,20 +117,19 @@ variables [topological_space E] [has_continuous_smul 𝕜 E]
 lemma absorbent_nhds_zero (hA : A ∈ 𝓝 (0 : E)) : absorbent 𝕜 A :=
 begin
   intro x,
-  rcases mem_nhds_sets_iff.mp hA with ⟨w, hw₁, hw₂, hw₃⟩,
+  rcases mem_nhds_iff.mp hA with ⟨w, hw₁, hw₂, hw₃⟩,
   have hc : continuous (λ t : 𝕜, t • x), from continuous_id.smul continuous_const,
   rcases metric.is_open_iff.mp (hw₂.preimage hc) 0 (by rwa [mem_preimage, zero_smul])
     with ⟨r, hr₁, hr₂⟩,
   have hr₃, from inv_pos.mpr (half_pos hr₁),
   use [(r/2)⁻¹, hr₃],
   intros a ha₁,
-  have ha₂ : 0 < ∥a∥, from calc 0 < _ : hr₃ ... ≤ _ : ha₁,
-  have ha₃ : a ⁻¹ • x ∈ w, begin
-    apply hr₂,
-    rw [metric.mem_ball, dist_eq_norm, sub_zero, norm_inv],
+  have ha₂ : 0 < ∥a∥ := hr₃.trans_le ha₁,
+  have ha₃ : a ⁻¹ • x ∈ w,
+  { apply hr₂,
+    rw [metric.mem_ball, dist_zero_right, norm_inv],
     calc ∥a∥⁻¹ ≤ r/2 : (inv_le (half_pos hr₁) ha₂).mp ha₁
-    ...       < r : half_lt_self hr₁,
-  end,
+    ...       < r : half_lt_self hr₁ },
   rw [mem_smul_set_iff_inv_smul_mem (norm_pos_iff.mp ha₂)],
   exact hw₁ ha₃,
 end
@@ -139,14 +174,14 @@ end
 the reals that is positive semidefinite, positive homogeneous, and
 subadditive. -/
 structure seminorm (𝕜 : Type*) (E : Type*)
-  [normed_field 𝕜] [add_comm_group E] [vector_space 𝕜 E] :=
+  [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] :=
 (to_fun    : E → ℝ)
 (smul'     : ∀ (a : 𝕜) (x : E), to_fun (a • x) = ∥a∥ * to_fun x)
 (triangle' : ∀ x y : E, to_fun (x + y) ≤ to_fun x + to_fun y)
 
 variables
 {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [add_comm_group E] [vector_space 𝕜 E]
+{E : Type*} [add_comm_group E] [module 𝕜 E]
 
 instance : inhabited (seminorm 𝕜 E) :=
 ⟨{ to_fun     := λ _, 0,

@@ -35,24 +35,24 @@ lemma sinh_injective : function.injective sinh := sinh_strict_mono.injective
 private lemma aux_lemma (x : ℝ) : 1 / (x + sqrt (1 + x ^ 2)) = -x + sqrt (1 + x ^ 2) :=
 begin
   refine (eq_one_div_of_mul_eq_one _).symm,
-  have : 0 ≤ 1 + x ^ 2 := add_nonneg zero_le_one (pow_two_nonneg x),
+  have : 0 ≤ 1 + x ^ 2 := add_nonneg zero_le_one (sq_nonneg x),
   rw [add_comm, ← sub_eq_neg_add, ← mul_self_sub_mul_self,
-      mul_self_sqrt this, pow_two, add_sub_cancel]
+      mul_self_sqrt this, sq, add_sub_cancel]
 end
 
 private lemma b_lt_sqrt_b_one_add_sq (b : ℝ) : b < sqrt (1 + b ^ 2) :=
 calc  b
-    ≤ sqrt (b ^ 2)     : le_sqrt_of_sqr_le $ le_refl _
-... < sqrt (1 + b ^ 2) : (sqrt_lt (pow_two_nonneg _)).2 (lt_one_add _)
+    ≤ sqrt (b ^ 2)     : le_sqrt_of_sq_le le_rfl
+... < sqrt (1 + b ^ 2) : sqrt_lt_sqrt (sq_nonneg _) (lt_one_add _)
 
-private lemma add_sqrt_one_add_pow_two_pos (b : ℝ) : 0 < b + sqrt (1 + b ^ 2) :=
-by { rw [← neg_neg b, ← sub_eq_neg_add, sub_pos, pow_two, neg_mul_neg, ← pow_two],
+private lemma add_sqrt_one_add_sq_pos (b : ℝ) : 0 < b + sqrt (1 + b ^ 2) :=
+by { rw [← neg_neg b, ← sub_eq_neg_add, sub_pos, sq, neg_mul_neg, ← sq],
   exact b_lt_sqrt_b_one_add_sq (-b) }
 
 /-- `arsinh` is the right inverse of `sinh`. -/
 lemma sinh_arsinh (x : ℝ) : sinh (arsinh x) = x :=
-by rw [sinh_eq, arsinh, ← log_inv, exp_log (add_sqrt_one_add_pow_two_pos x),
-      exp_log (inv_pos.2 (add_sqrt_one_add_pow_two_pos x)),
+by rw [sinh_eq, arsinh, ← log_inv, exp_log (add_sqrt_one_add_sq_pos x),
+      exp_log (inv_pos.2 (add_sqrt_one_add_sq_pos x)),
       inv_eq_one_div, aux_lemma x, sub_eq_add_neg, neg_add, neg_neg, ← sub_eq_add_neg,
       add_add_sub_cancel, add_self_div_two]
 
@@ -69,7 +69,7 @@ begin
   have H := real.cosh_sq_sub_sinh_sq x,
   have G : cosh x ^ 2 - sinh x ^ 2 + sinh x ^ 2 = 1 + sinh x ^ 2 := by rw H,
   rw sub_add_cancel at G,
-  rw [←G, sqrt_sqr],
+  rw [←G, sqrt_sq],
   exact le_of_lt (cosh_pos x),
 end
 

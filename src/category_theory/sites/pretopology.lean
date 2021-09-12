@@ -38,42 +38,6 @@ open category_theory category limits presieve
 
 variables {C : Type u} [category.{v} C] [has_pullbacks C]
 
-/--
-Pullback a set of arrows with given codomain along a fixed map, by taking the pullback in the
-category.
-This is not the same as the arrow set of `sieve.pullback`, but there is a relation between them
-in `pullback_arrows_comm`.
--/
-inductive pullback_arrows {X Y : C} (f : Y ⟶ X) (S : presieve X) :
-  presieve Y
-| mk (Z : C) (h : Z ⟶ X) : S h → pullback_arrows (pullback.snd : pullback h f ⟶ Y)
-
-lemma pullback_arrows_comm {X Y : C} (f : Y ⟶ X)
-  (R : presieve X) :
-  sieve.generate (pullback_arrows f R) = (sieve.generate R).pullback f :=
-begin
-  ext Z g,
-  split,
-  { rintro ⟨_, h, k, hk, rfl⟩,
-    cases hk with W g hg,
-    change (sieve.generate R).pullback f (h ≫ pullback.snd),
-    rw [sieve.pullback_apply, assoc, ← pullback.condition, ← assoc],
-    exact sieve.downward_closed _ (sieve.le_generate R W hg) (h ≫ pullback.fst)},
-  { rintro ⟨W, h, k, hk, comm⟩,
-    exact ⟨_, _, _, pullback_arrows.mk _ _ hk, pullback.lift_snd _ _ comm⟩ },
-end
-
-lemma pullback_singleton {X Y Z : C} (f : Y ⟶ X) (g : Z ⟶ X) :
- pullback_arrows f (singleton g) = singleton (pullback.snd : pullback g f ⟶ _) :=
-begin
-  ext W h,
-  split,
-  { rintro ⟨W, _, _, _⟩,
-    exact singleton.mk },
-  { rintro ⟨_⟩,
-    exact pullback_arrows.mk Z g singleton.mk }
-end
-
 variables (C)
 
 /--
@@ -136,7 +100,7 @@ def to_grothendieck (K : pretopology C) : grothendieck_topology C :=
   begin
     rintro ⟨R, hR, RS⟩,
     refine ⟨_, K.pullbacks g _ hR, _⟩,
-    rw [← sieve.sets_iff_generate, pullback_arrows_comm],
+    rw [← sieve.sets_iff_generate, sieve.pullback_arrows_comm],
     apply sieve.pullback_monotone,
     rwa sieve.gi_generate.gc,
   end,
@@ -163,7 +127,7 @@ def of_grothendieck (J : grothendieck_topology C) : pretopology C :=
   has_isos := λ X Y f i, by exactI J.covering_of_eq_top (by simp),
   pullbacks := λ X Y f R hR,
   begin
-    rw [set.mem_def, pullback_arrows_comm],
+    rw [set.mem_def, sieve.pullback_arrows_comm],
     apply J.pullback_stable f hR,
   end,
   transitive := λ X S Ti hS hTi,

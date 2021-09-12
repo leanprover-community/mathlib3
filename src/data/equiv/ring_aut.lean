@@ -3,8 +3,8 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
-import data.equiv.ring
 import data.equiv.mul_add_aut
+import data.equiv.ring
 
 /-!
 # Ring automorphisms
@@ -41,7 +41,9 @@ by refine_struct
 { mul := λ g h, ring_equiv.trans h g,
   one := ring_equiv.refl R,
   inv := ring_equiv.symm,
-  div := _ };
+  div := _,
+  npow := @npow_rec _ ⟨ring_equiv.refl R⟩ ⟨λ g h, ring_equiv.trans h g⟩,
+  gpow := @gpow_rec _ ⟨ring_equiv.refl R⟩ ⟨λ g h, ring_equiv.trans h g⟩ ⟨ring_equiv.symm⟩ };
 intros; ext; try { refl }; apply equiv.left_inv
 
 instance : inhabited (ring_aut R) := ⟨1⟩

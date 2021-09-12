@@ -24,6 +24,8 @@ namespace set
 inductive finite (s : set α) : Prop
 | intro : fintype s → finite
 
+lemma finite_def {s : set α} : finite s ↔ nonempty (fintype s) := ⟨λ ⟨h⟩, ⟨h⟩, λ ⟨h⟩, ⟨h⟩⟩
+
 /-- A set is infinite if it is not finite. -/
 def infinite (s : set α) : Prop := ¬ finite s
 
@@ -31,7 +33,7 @@ def infinite (s : set α) : Prop := ¬ finite s
 that because `finite` isn't a typeclass, this will not fire if it
 is made into an instance -/
 noncomputable def finite.fintype {s : set α} (h : finite s) : fintype s :=
-classical.choice $ let ⟨h'⟩ := h in ⟨h'⟩
+classical.choice $ finite_def.1 h
 
 /-- Get a finset from a finite set -/
 noncomputable def finite.to_finset {s : set α} (h : finite s) : finset α :=

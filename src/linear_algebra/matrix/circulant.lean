@@ -21,7 +21,7 @@ Given a vector `v : I → α` indexed by a type that is endowed with subtraction
 
 ## Implementation notes
 
-`fin.foo` is the `fin n` version of `foo`.
+`matrix.fin.foo` is the `fin n` version of `matrix.foo`.
 Namely, the index type of the circulant matrices in discussion is `fin n`.
 
 ## Tags

@@ -125,4 +125,21 @@ begin
   rw [← with_densityᵥ_apply hf hi, hfg, with_densityᵥ_apply hg hi]
 end
 
+lemma with_densityᵥ_eq.congr_ae {f g : α → E} (h : f =ᵐ[μ] g) :
+  μ.with_densityᵥ f = μ.with_densityᵥ g :=
+begin
+  by_cases hf : integrable f μ,
+  { ext i hi,
+    rw [with_densityᵥ_apply hf hi, with_densityᵥ_apply (hf.congr h) hi],
+    exact integral_congr_ae (ae_restrict_of_ae h) },
+  { have hg : ¬ integrable g μ,
+    { intro hg, exact hf (hg.congr h.symm) },
+    rw [with_densityᵥ, with_densityᵥ, dif_neg hf, dif_neg hg] }
+end
+
+lemma integrable.ae_eq_of_with_densityᵥ_iff {f g : α → E}
+  (hf : integrable f μ) (hg : integrable g μ) :
+  μ.with_densityᵥ f = μ.with_densityᵥ g ↔ f =ᵐ[μ] g :=
+⟨λ hfg, hf.ae_eq_of_with_densityᵥ_eq hg hfg, λ h, with_densityᵥ_eq.congr_ae h⟩
+
 end measure_theory

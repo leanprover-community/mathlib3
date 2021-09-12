@@ -126,10 +126,11 @@ instance : has_scalar ℝ≥0 (finite_measure α) :=
 
 @[simp, norm_cast] lemma coe_add (μ ν : finite_measure α) : ↑(μ + ν) = (↑μ + ↑ν : measure α) := rfl
 
-@[simp, norm_cast] lemma coe_smul (c : ℝ≥0) (μ : finite_measure α) : ↑(c • μ) = (c • ↑μ : measure α) := rfl
+@[simp, norm_cast] lemma coe_smul (c : ℝ≥0) (μ : finite_measure α) :
+  ↑(c • μ) = (c • ↑μ : measure α) := rfl
 
-@[simp, norm_cast] lemma coe_fn_zero : (⇑(0 : finite_measure α) : set α → ℝ≥0) = (0 : set α → ℝ≥0) :=
-by { funext, refl, }
+@[simp, norm_cast] lemma coe_fn_zero :
+  (⇑(0 : finite_measure α) : set α → ℝ≥0) = (0 : set α → ℝ≥0) := by { funext, refl, }
 
 @[simp, norm_cast] lemma coe_fn_add (μ ν : finite_measure α) :
   (⇑(μ + ν) : set α → ℝ≥0) = (⇑μ + ⇑ν : set α → ℝ≥0) :=

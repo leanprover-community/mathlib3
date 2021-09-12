@@ -361,15 +361,15 @@ hs.to_cone_is_least.is_glb.Inf_eq.symm
 end convex
 
 lemma convex_hull_to_cone_is_least (s : set E) :
-  is_least {t : convex_cone E | s ⊆ t} ((convex_convex_hull 𝕜 s).to_cone _) :=
+  is_least {t : convex_cone E | s ⊆ t} ((convex_convex_hull ℝ s).to_cone _) :=
 begin
-  convert (convex_convex_hull 𝕜 s).to_cone_is_least,
+  convert (convex_convex_hull ℝ s).to_cone_is_least,
   ext t,
-  exact ⟨λ h, convex_hull_min h t.convex, λ h, subset.trans (subset_convex_hull s) h⟩
+  exact ⟨λ h, convex_hull_min h t.convex, λ h, subset.trans (subset_convex_hull ℝ s) h⟩
 end
 
 lemma convex_hull_to_cone_eq_Inf (s : set E) :
-  (convex_convex_hull 𝕜 s).to_cone _ = Inf {t : convex_cone E | s ⊆ t} :=
+  (convex_convex_hull ℝ s).to_cone _ = Inf {t : convex_cone E | s ⊆ t} :=
 (convex_hull_to_cone_is_least s).is_glb.Inf_eq.symm
 
 /-!

@@ -188,7 +188,7 @@ end
 @[simp] lemma convex_hull_ediam (s : set E) :
   emetric.diam (convex_hull ℝ s) = emetric.diam s :=
 begin
-  refine (emetric.diam_le $ λ x hx y hy, _).antisymm (emetric.diam_mono $ subset_convex_hull s),
+  refine (emetric.diam_le $ λ x hx y hy, _).antisymm (emetric.diam_mono $ subset_convex_hull ℝ s),
   rcases convex_hull_exists_dist_ge2 hx hy with ⟨x', hx', y', hy', H⟩,
   rw edist_dist,
   apply le_trans (ennreal.of_real_le_of_real H),

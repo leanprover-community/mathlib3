@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import algebra.order.monoid
 import order.order_dual
+import algebra.abs
 
 /-!
 # Ordered groups
@@ -980,15 +981,14 @@ end linear_ordered_comm_group
 section covariant_add_le
 
 section has_neg
+
+/-- `abs a` is the absolute value of `a`. -/
+@[to_additive, priority 100] -- see Note [lower instance priority]
+instance has_inv_lattice_has_abs [has_inv α] [lattice α] : has_abs (α)  := ⟨λa, a ⊔ (a⁻¹)⟩
+
 variables [has_neg α] [linear_order α] {a b: α}
 
-/-- `mabs a` is the multiplicative absolute value of `a`. -/
-@[to_additive abs
-"`abs a` is the additive absolute value of `a`."
-]
-def mabs {α : Type*} [has_inv α] [lattice α] (a : α) : α := a ⊔ (a⁻¹)
-
-lemma abs_eq_max_neg {α : Type*} [has_neg α] [linear_order α] (a : α) : abs a = max a (-a) :=
+lemma abs_eq_max_neg (a : α) : abs a = max a (-a) :=
 begin
   exact rfl,
 end

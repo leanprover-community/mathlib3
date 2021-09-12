@@ -15,7 +15,7 @@ hyperbolic sine, hyperbolic cosine, and hyperbolic tangent functions.
 
 -/
 
-local notation `abs'` := _root_.abs
+local notation `abs'` := has_abs.abs
 open is_absolute_value
 open_locale classical big_operators nat
 
@@ -330,7 +330,7 @@ open cau_seq
 
 namespace complex
 
-lemma is_cau_abs_exp (z : ℂ) : is_cau_seq _root_.abs
+lemma is_cau_abs_exp (z : ℂ) : is_cau_seq has_abs.abs
   (λ n, ∑ m in range n, abs (z ^ m / m!)) :=
 let ⟨n, hn⟩ := exists_nat_gt (abs z) in
 have hn0 : (0 : ℝ) < n, from lt_of_le_of_lt (abs_nonneg _) hn,

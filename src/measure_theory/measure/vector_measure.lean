@@ -1092,6 +1092,8 @@ end mutually_singular
 
 section trim
 
+omit m
+
 /-- Restriction of a vector measure onto a sub-σ-algebra. -/
 @[simps] def trim {m n : measurable_space α} (v : vector_measure α M) (hle : m ≤ n) :
   @vector_measure α m M _ _ :=

@@ -137,7 +137,7 @@ begin
     rw [with_densityᵥ, with_densityᵥ, dif_neg hf, dif_neg hg] }
 end
 
-lemma integrable.ae_eq_of_with_densityᵥ_iff {f g : α → E}
+lemma integrable.with_densityᵥ_eq_iff {f g : α → E}
   (hf : integrable f μ) (hg : integrable g μ) :
   μ.with_densityᵥ f = μ.with_densityᵥ g ↔ f =ᵐ[μ] g :=
 ⟨λ hfg, hf.ae_eq_of_with_densityᵥ_eq hg hfg, λ h, with_densityᵥ_eq.congr_ae h⟩

@@ -563,7 +563,7 @@ theorem have_lebesgue_decomposition_of_finite_measure
       refine not_lt.2 this _,
       rw [hξ₁, lintegral_add hξm (measurable.indicator (measurable_const) hE₁),
           lintegral_indicator _ hE₁, set_lintegral_const],
-      refine ennreal.lt_add_right _ (ennreal.mul_pos.2 ⟨ennreal.coe_pos.2 hε₁, hE₂⟩),
+      refine ennreal.lt_add_right _ (ennreal.mul_pos_iff.2 ⟨ennreal.coe_pos.2 hε₁, hE₂⟩).ne',
       have := measure_ne_top (ν.with_density ξ) set.univ,
       rwa [with_density_apply _ measurable_set.univ, measure.restrict_univ] at this },
   -- since `ν.with_density ξ ≤ μ`, it is clear that `μ = μ₁ + ν.with_density ξ`

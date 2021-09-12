@@ -205,6 +205,8 @@ lemma coe_mono : monotone (coe : ℝ≥0 → ℝ≥0∞) := λ _ _, coe_le_coe.2
 @[simp, norm_cast] lemma one_eq_coe : 1 = (↑r : ℝ≥0∞) ↔ 1 = r := coe_eq_coe
 @[simp, norm_cast] lemma coe_nonneg : 0 ≤ (↑r : ℝ≥0∞) ↔ 0 ≤ r := coe_le_coe
 @[simp, norm_cast] lemma coe_pos : 0 < (↑r : ℝ≥0∞) ↔ 0 < r := coe_lt_coe
+lemma coe_ne_zero : (r : ℝ≥0∞) ≠ 0 ↔ r ≠ 0 := not_congr coe_eq_coe
+
 
 @[simp, norm_cast] lemma coe_add : ↑(r + p) = (r + p : ℝ≥0∞) := with_top.coe_add
 @[simp, norm_cast] lemma coe_mul : ↑(r * p) = (r * p : ℝ≥0∞) := with_top.coe_mul
@@ -368,7 +370,10 @@ end
 lemma mul_self_lt_top_iff {a : ℝ≥0∞} : a * a < ⊤ ↔ a < ⊤ :=
 by { rw [ennreal.mul_lt_top_iff, and_self, or_self, or_iff_left_iff_imp], rintro rfl, norm_num }
 
-lemma mul_pos : 0 < a * b ↔ 0 < a ∧ 0 < b := canonically_ordered_comm_semiring.mul_pos
+lemma mul_pos_iff : 0 < a * b ↔ 0 < a ∧ 0 < b := canonically_ordered_comm_semiring.mul_pos
+
+lemma mul_pos (ha : a ≠ 0) (hb : b ≠ 0) : 0 < a * b :=
+mul_pos_iff.2 ⟨pos_iff_ne_zero.2 ha, pos_iff_ne_zero.2 hb⟩
 
 @[simp] lemma pow_eq_top_iff {n : ℕ} : a ^ n = ∞ ↔ a = ∞ ∧ n ≠ 0 :=
 begin
@@ -402,7 +407,6 @@ section order
 
 @[simp] lemma coe_lt_top : coe r < ∞ := with_top.coe_lt_top r
 @[simp] lemma not_top_le_coe : ¬ ∞ ≤ ↑r := with_top.not_top_le_coe r
-lemma zero_lt_coe_iff : 0 < (↑p : ℝ≥0∞) ↔ 0 < p := coe_lt_coe
 @[simp, norm_cast] lemma one_le_coe_iff : (1:ℝ≥0∞) ≤ ↑r ↔ 1 ≤ r := coe_le_coe
 @[simp, norm_cast] lemma coe_le_one_iff : ↑r ≤ (1:ℝ≥0∞) ↔ r ≤ 1 := coe_le_coe
 @[simp, norm_cast] lemma coe_lt_one_iff : (↑p : ℝ≥0∞) < 1 ↔ p < 1 := coe_lt_coe

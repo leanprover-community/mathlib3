@@ -1016,19 +1016,19 @@ begin
     simp only [hx, le_top] }
 end
 
-lemma exists_simple_func_forall_lintegral_sub_lt_of_pos {f : α → ℝ≥0∞} (h : ∫⁻ x, f x ∂μ < ∞)
-  {ε : ℝ≥0∞} (hε : 0 < ε) :
+lemma exists_simple_func_forall_lintegral_sub_lt_of_pos {f : α → ℝ≥0∞} (h : ∫⁻ x, f x ∂μ ≠ ∞)
+  {ε : ℝ≥0∞} (hε : ε ≠ 0) :
   ∃ φ : α →ₛ ℝ≥0, (∀ x, ↑(φ x) ≤ f x) ∧ ∀ ψ : α →ₛ ℝ≥0, (∀ x, ↑(ψ x) ≤ f x) →
     (map coe (ψ - φ)).lintegral μ < ε :=
 begin
   rw lintegral_eq_nnreal at h,
-  have := ennreal.lt_add_right h.ne hε,
+  have := ennreal.lt_add_right h hε,
   erw ennreal.bsupr_add at this; [skip, exact ⟨0, λ x, by simp⟩],
   simp_rw [lt_supr_iff, supr_lt_iff, supr_le_iff] at this,
   rcases this with ⟨φ, hle : ∀ x, ↑(φ x) ≤ f x, b, hbφ, hb⟩,
   refine ⟨φ, hle, λ ψ hψ, _⟩,
-  have : (map coe φ).lintegral μ < ∞, from (le_bsupr φ hle).trans_lt h,
-  rw [← add_lt_add_iff_left this.ne, ← add_lintegral, ← map_add @ennreal.coe_add],
+  have : (map coe φ).lintegral μ ≠ ∞, from ne_top_of_le_ne_top h (le_bsupr φ hle),
+  rw [← add_lt_add_iff_left this, ← add_lintegral, ← map_add @ennreal.coe_add],
   refine (hb _ (λ x, le_trans _ (max_le (hle x) (hψ x)))).trans_lt hbφ,
   norm_cast,
   simp only [add_apply, sub_apply, nnreal.add_sub_eq_max]

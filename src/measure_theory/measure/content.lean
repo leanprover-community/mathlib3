@@ -135,13 +135,13 @@ lemma inner_content_mono ⦃U V : set G⦄ (hU : is_open U) (hV : is_open V)
 supr_le_supr $ λ K, supr_le_supr_const $ λ hK, subset.trans hK h2
 
 lemma inner_content_exists_compact {U : opens G}
-  (hU : μ.inner_content U < ∞) {ε : ℝ≥0} (hε : 0 < ε) :
+  (hU : μ.inner_content U < ∞) {ε : ℝ≥0} (hε : ε ≠ 0) :
   ∃ K : compacts G, K.1 ⊆ U ∧ μ.inner_content U ≤ μ K + ε :=
 begin
   have h'ε := ennreal.zero_lt_coe_iff.2 hε,
   cases le_or_lt (μ.inner_content U) ε,
   { exact ⟨⊥, empty_subset _, le_trans h (le_add_of_nonneg_left (zero_le _))⟩ },
-  have := ennreal.sub_lt_self (ne_of_lt hU) (ne_of_gt $ lt_trans h'ε h) h'ε,
+  have := ennreal.sub_lt_self hU.ne (h'ε.trans h).ne' h'ε.ne',
   conv at this {to_rhs, rw inner_content }, simp only [lt_supr_iff] at this,
   rcases this with ⟨U, h1U, h2U⟩, refine ⟨U, h1U, _⟩,
   rw [← ennreal.sub_le_iff_le_add], exact le_of_lt h2U

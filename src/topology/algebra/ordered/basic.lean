@@ -2166,7 +2166,7 @@ begin
     { exact h },
     { exact (not_mem hl).elim } },
   obtain ⟨s, hs⟩ : ∃ s : ℕ → set α, (𝓝 x).has_basis (λ (_x : ℕ), true) s :=
-    let ⟨s, hs⟩ := hx.exists_antimono_basis in ⟨s, hs.to_has_basis⟩,
+    let ⟨s, hs⟩ := hx.exists_antitone_basis in ⟨s, hs.to_has_basis⟩,
   have : ∀ n k, k < x → ∃ y, Icc y x ⊆ s n ∧ k < y ∧ y < x ∧ y ∈ t,
   { assume n k hk,
     obtain ⟨L, hL, h⟩ : ∃ (L : α) (hL : L ∈ Ico k x), Ioc L x ⊆ s n :=
@@ -2267,12 +2267,12 @@ lemma is_glb.exists_seq_monotone_tendsto [first_countable_topology α]
                         tendsto u at_top (𝓝 x) ∧ (∀ n, u n ∈ t) :=
 htx.exists_seq_monotone_tendsto' ht (is_countably_generated_nhds x)
 
-lemma exists_seq_strict_antimono_tendsto' [densely_ordered α]
+lemma exists_seq_strict_antitone_tendsto' [densely_ordered α]
   [first_countable_topology α] {x y : α} (hy : x < y) :
   ∃ u : ℕ → α, (∀ m n, m < n → u n < u m) ∧ (∀ n, x < u n) ∧ tendsto u at_top (𝓝 x) :=
 @exists_seq_strict_mono_tendsto' (order_dual α) _ _ _ _ _ x y hy
 
-lemma exists_seq_strict_antimono_tendsto [densely_ordered α] [no_top_order α]
+lemma exists_seq_strict_antitone_tendsto [densely_ordered α] [no_top_order α]
   [first_countable_topology α] (x : α) :
   ∃ u : ℕ → α, (∀ m n, m < n → u n < u m) ∧ (∀ n, x < u n) ∧ tendsto u at_top (𝓝 x) :=
 @exists_seq_strict_mono_tendsto (order_dual α) _ _ _ _ _ _ x
@@ -3600,8 +3600,8 @@ continuous at `a` from the right.
 The assumption `hfs : ∀ b > f a, ∃ c ∈ s, f c ∈ Ioc (f a) b` is required because otherwise the
 function `f : ℝ → ℝ` given by `f x = if x ≤ 0 then x else x + 1` would be a counter-example at
 `a = 0`. -/
-lemma strict_mono_incr_on.continuous_at_right_of_exists_between {f : α → β} {s : set α} {a : α}
-  (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝[Ici a] a)
+lemma strict_mono_on.continuous_at_right_of_exists_between {f : α → β} {s : set α} {a : α}
+  (h_mono : strict_mono_on f s) (hs : s ∈ 𝓝[Ici a] a)
   (hfs : ∀ b > f a, ∃ c ∈ s, f c ∈ Ioc (f a) b) :
   continuous_within_at f (Ici a) a :=
 begin
@@ -3672,8 +3672,8 @@ continuous_at_right_of_mono_incr_on_of_closure_image_mem_nhds_within h_mono hs $
 /-- If a function `f` with a densely ordered codomain is strictly monotonically increasing on a
 right neighborhood of `a` and the closure of the image of this neighborhood under `f` is a right
 neighborhood of `f a`, then `f` is continuous at `a` from the right. -/
-lemma strict_mono_incr_on.continuous_at_right_of_closure_image_mem_nhds_within [densely_ordered β]
-  {f : α → β} {s : set α} {a : α} (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝[Ici a] a)
+lemma strict_mono_on.continuous_at_right_of_closure_image_mem_nhds_within [densely_ordered β]
+  {f : α → β} {s : set α} {a : α} (h_mono : strict_mono_on f s) (hs : s ∈ 𝓝[Ici a] a)
   (hfs : closure (f '' s) ∈ 𝓝[Ici (f a)] (f a)) :
   continuous_within_at f (Ici a) a :=
 continuous_at_right_of_mono_incr_on_of_closure_image_mem_nhds_within
@@ -3682,8 +3682,8 @@ continuous_at_right_of_mono_incr_on_of_closure_image_mem_nhds_within
 /-- If a function `f` with a densely ordered codomain is strictly monotonically increasing on a
 right neighborhood of `a` and the image of this neighborhood under `f` is a right neighborhood of
 `f a`, then `f` is continuous at `a` from the right. -/
-lemma strict_mono_incr_on.continuous_at_right_of_image_mem_nhds_within [densely_ordered β]
-  {f : α → β} {s : set α} {a : α} (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝[Ici a] a)
+lemma strict_mono_on.continuous_at_right_of_image_mem_nhds_within [densely_ordered β]
+  {f : α → β} {s : set α} {a : α} (h_mono : strict_mono_on f s) (hs : s ∈ 𝓝[Ici a] a)
   (hfs : f '' s ∈ 𝓝[Ici (f a)] (f a)) :
   continuous_within_at f (Ici a) a :=
 h_mono.continuous_at_right_of_closure_image_mem_nhds_within hs
@@ -3692,8 +3692,8 @@ h_mono.continuous_at_right_of_closure_image_mem_nhds_within hs
 /-- If a function `f` is strictly monotonically increasing on a right neighborhood of `a` and the
 image of this neighborhood under `f` includes `Ioi (f a)`, then `f` is continuous at `a` from the
 right. -/
-lemma strict_mono_incr_on.continuous_at_right_of_surj_on {f : α → β} {s : set α} {a : α}
-  (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝[Ici a] a) (hfs : surj_on f s (Ioi (f a))) :
+lemma strict_mono_on.continuous_at_right_of_surj_on {f : α → β} {s : set α} {a : α}
+  (h_mono : strict_mono_on f s) (hs : s ∈ 𝓝[Ici a] a) (hfs : surj_on f s (Ioi (f a))) :
   continuous_within_at f (Ici a) a :=
 h_mono.continuous_at_right_of_exists_between hs $ λ b hb, let ⟨c, hcs, hcb⟩ := hfs hb in
 ⟨c, hcs, hcb.symm ▸ hb, hcb.le⟩
@@ -3705,8 +3705,8 @@ continuous at `a` from the left.
 The assumption `hfs : ∀ b < f a, ∃ c ∈ s, f c ∈ Ico b (f a)` is required because otherwise the
 function `f : ℝ → ℝ` given by `f x = if x < 0 then x else x + 1` would be a counter-example at
 `a = 0`. -/
-lemma strict_mono_incr_on.continuous_at_left_of_exists_between {f : α → β} {s : set α} {a : α}
-  (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝[Iic a] a)
+lemma strict_mono_on.continuous_at_left_of_exists_between {f : α → β} {s : set α} {a : α}
+  (h_mono : strict_mono_on f s) (hs : s ∈ 𝓝[Iic a] a)
   (hfs : ∀ b < f a, ∃ c ∈ s, f c ∈ Ico b (f a)) :
   continuous_within_at f (Iic a) a :=
 h_mono.dual.continuous_at_right_of_exists_between hs $
@@ -3750,8 +3750,8 @@ continuous_at_left_of_mono_incr_on_of_closure_image_mem_nhds_within h_mono hs
 /-- If a function `f` with a densely ordered codomain is strictly monotonically increasing on a
 left neighborhood of `a` and the closure of the image of this neighborhood under `f` is a left
 neighborhood of `f a`, then `f` is continuous at `a` from the left. -/
-lemma strict_mono_incr_on.continuous_at_left_of_closure_image_mem_nhds_within [densely_ordered β]
-  {f : α → β} {s : set α} {a : α} (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝[Iic a] a)
+lemma strict_mono_on.continuous_at_left_of_closure_image_mem_nhds_within [densely_ordered β]
+  {f : α → β} {s : set α} {a : α} (h_mono : strict_mono_on f s) (hs : s ∈ 𝓝[Iic a] a)
   (hfs : closure (f '' s) ∈ 𝓝[Iic (f a)] (f a)) :
   continuous_within_at f (Iic a) a :=
 h_mono.dual.continuous_at_right_of_closure_image_mem_nhds_within hs hfs
@@ -3759,8 +3759,8 @@ h_mono.dual.continuous_at_right_of_closure_image_mem_nhds_within hs hfs
 /-- If a function `f` with a densely ordered codomain is strictly monotonically increasing on a
 left neighborhood of `a` and the image of this neighborhood under `f` is a left neighborhood of
 `f a`, then `f` is continuous at `a` from the left. -/
-lemma strict_mono_incr_on.continuous_at_left_of_image_mem_nhds_within [densely_ordered β]
-  {f : α → β} {s : set α} {a : α} (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝[Iic a] a)
+lemma strict_mono_on.continuous_at_left_of_image_mem_nhds_within [densely_ordered β]
+  {f : α → β} {s : set α} {a : α} (h_mono : strict_mono_on f s) (hs : s ∈ 𝓝[Iic a] a)
   (hfs : f '' s ∈ 𝓝[Iic (f a)] (f a)) :
   continuous_within_at f (Iic a) a :=
 h_mono.dual.continuous_at_right_of_image_mem_nhds_within hs hfs
@@ -3768,16 +3768,16 @@ h_mono.dual.continuous_at_right_of_image_mem_nhds_within hs hfs
 /-- If a function `f` is strictly monotonically increasing on a left neighborhood of `a` and the
 image of this neighborhood under `f` includes `Iio (f a)`, then `f` is continuous at `a` from the
 left. -/
-lemma strict_mono_incr_on.continuous_at_left_of_surj_on {f : α → β} {s : set α} {a : α}
-  (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝[Iic a] a) (hfs : surj_on f s (Iio (f a))) :
+lemma strict_mono_on.continuous_at_left_of_surj_on {f : α → β} {s : set α} {a : α}
+  (h_mono : strict_mono_on f s) (hs : s ∈ 𝓝[Iic a] a) (hfs : surj_on f s (Iio (f a))) :
   continuous_within_at f (Iic a) a :=
 h_mono.dual.continuous_at_right_of_surj_on hs hfs
 
 /-- If a function `f` is strictly monotonically increasing on a neighborhood of `a` and the image of
 this neighborhood under `f` meets every interval `[b, f a)`, `b < f a`, and every interval
 `(f a, b]`, `b > f a`, then `f` is continuous at `a`. -/
-lemma strict_mono_incr_on.continuous_at_of_exists_between {f : α → β} {s : set α} {a : α}
-  (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝 a)
+lemma strict_mono_on.continuous_at_of_exists_between {f : α → β} {s : set α} {a : α}
+  (h_mono : strict_mono_on f s) (hs : s ∈ 𝓝 a)
   (hfs_l : ∀ b < f a, ∃ c ∈ s, f c ∈ Ico b (f a)) (hfs_r : ∀ b > f a, ∃ c ∈ s, f c ∈ Ioc (f a) b) :
   continuous_at f a :=
 continuous_at_iff_continuous_left_right.2
@@ -3787,8 +3787,8 @@ continuous_at_iff_continuous_left_right.2
 /-- If a function `f` with a densely ordered codomain is strictly monotonically increasing on a
 neighborhood of `a` and the closure of the image of this neighborhood under `f` is a neighborhood of
 `f a`, then `f` is continuous at `a`. -/
-lemma strict_mono_incr_on.continuous_at_of_closure_image_mem_nhds [densely_ordered β] {f : α → β}
-  {s : set α} {a : α} (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝 a)
+lemma strict_mono_on.continuous_at_of_closure_image_mem_nhds [densely_ordered β] {f : α → β}
+  {s : set α} {a : α} (h_mono : strict_mono_on f s) (hs : s ∈ 𝓝 a)
   (hfs : closure (f '' s) ∈ 𝓝 (f a)) :
   continuous_at f a :=
 continuous_at_iff_continuous_left_right.2
@@ -3800,8 +3800,8 @@ continuous_at_iff_continuous_left_right.2
 /-- If a function `f` with a densely ordered codomain is strictly monotonically increasing on a
 neighborhood of `a` and the image of this set under `f` is a neighborhood of `f a`, then `f` is
 continuous at `a`. -/
-lemma strict_mono_incr_on.continuous_at_of_image_mem_nhds [densely_ordered β] {f : α → β}
-  {s : set α} {a : α} (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝 a) (hfs : f '' s ∈ 𝓝 (f a)) :
+lemma strict_mono_on.continuous_at_of_image_mem_nhds [densely_ordered β] {f : α → β}
+  {s : set α} {a : α} (h_mono : strict_mono_on f s) (hs : s ∈ 𝓝 a) (hfs : f '' s ∈ 𝓝 (f a)) :
   continuous_at f a :=
 h_mono.continuous_at_of_closure_image_mem_nhds hs (mem_of_superset hfs subset_closure)
 

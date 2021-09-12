@@ -69,7 +69,7 @@ lemma monotone.directed_le [semilattice_sup α] [preorder β] {f : α → β} :
   monotone f → directed (≤) f :=
 directed_of_sup
 
-/-- An antimonotone function on an inf-semilattice is directed. -/
+/-- An antitone function on an inf-semilattice is directed. -/
 lemma directed_of_inf [semilattice_inf α] {r : β → β → Prop} {f : α → β}
   (hf : ∀ a₁ a₂, a₁ ≤ a₂ → r (f a₂) (f a₁)) : directed r f :=
 λ x y, ⟨x ⊓ y, hf _ _ inf_le_left, hf _ _ inf_le_right⟩

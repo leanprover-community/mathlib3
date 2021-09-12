@@ -60,7 +60,7 @@ lemma proj_Icc_surjective : surjective (proj_Icc a b h) :=
 lemma monotone_proj_Icc : monotone (proj_Icc a b h) :=
 λ x y hxy, max_le_max le_rfl $ min_le_min le_rfl hxy
 
-lemma strict_mono_incr_on_proj_Icc : strict_mono_incr_on (proj_Icc a b h) (Icc a b) :=
+lemma strict_mono_on_proj_Icc : strict_mono_on (proj_Icc a b h) (Icc a b) :=
 λ x hx y hy hxy, by simpa only [proj_Icc_of_mem, hx, hy]
 
 /-- Extend a function `[a, b] → β` to a map `α → β`. -/
@@ -104,6 +104,6 @@ variables [preorder β] {a b : α} (h : a ≤ b) {f : Icc a b → β}
 lemma monotone.Icc_extend (hf : monotone f) : monotone (Icc_extend h f) :=
 hf.comp $ monotone_proj_Icc h
 
-lemma strict_mono.strict_mono_incr_on_Icc_extend (hf : strict_mono f) :
-  strict_mono_incr_on (Icc_extend h f) (Icc a b) :=
-hf.comp_strict_mono_incr_on (strict_mono_incr_on_proj_Icc h)
+lemma strict_mono.strict_mono_on_Icc_extend (hf : strict_mono f) :
+  strict_mono_on (Icc_extend h f) (Icc a b) :=
+hf.comp_strict_mono_on (strict_mono_on_proj_Icc h)

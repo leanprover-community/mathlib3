@@ -98,7 +98,7 @@ begin
 end
 
 /-- **Nakayama's Lemma**. Atiyah-Macdonald 2.5, Eisenbud 4.7, Matsumura 2.2,
-[Stacks 00DV](https://stacks.math.columbia.edu/tag/00VL) -/
+[Stacks 00DV](https://stacks.math.columbia.edu/tag/00DV) -/
 theorem exists_sub_one_mem_and_smul_eq_zero_of_fg_of_le_smul {R : Type*} [comm_ring R]
   {M : Type*} [add_comm_group M] [module R M]
   (I : ideal R) (N : submodule R M) (hn : N.fg) (hin : N ≤ I • N) :

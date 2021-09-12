@@ -287,6 +287,28 @@ equiv.ext $ λ ⟨x, hx⟩, by { dsimp [subtype_perm, of_subtype],
 
 @[simp] lemma default_perm {n : Type*} : default (equiv.perm n) = 1 := rfl
 
+/-- Permutations on a subtype are equivalent to permutations on the original type that fix pointwise
+the rest. -/
+@[simps] protected def subtype_equiv_subtype_perm (p : α → Prop) [decidable_pred p] :
+  perm (subtype p) ≃ {f : perm α // ∀ a, ¬p a → f a = a} :=
+{ to_fun := λ f, ⟨f.of_subtype, λ a, f.of_subtype_apply_of_not_mem⟩,
+  inv_fun := λ f, (f : perm α).subtype_perm
+    (λ a, ⟨decidable.not_imp_not.1 $ λ hfa, (f.val.injective (f.prop _ hfa) ▸ hfa),
+    decidable.not_imp_not.1 $ λ ha hfa, ha $ f.prop a ha ▸ hfa⟩),
+  left_inv := equiv.perm.subtype_perm_of_subtype,
+  right_inv := λ f,
+    subtype.ext (equiv.perm.of_subtype_subtype_perm _ $ λ a, not.decidable_imp_symm $ f.prop a) }
+
+lemma subtype_equiv_subtype_perm_apply_of_mem {α : Type*} {p : α → Prop}
+  [decidable_pred p] (f : perm (subtype p)) {a : α} (h : p a) :
+  perm.subtype_equiv_subtype_perm p f a = f ⟨a, h⟩ :=
+f.of_subtype_apply_of_mem h
+
+lemma subtype_equiv_subtype_perm_apply_of_not_mem {α : Type*} {p : α → Prop}
+  [decidable_pred p] (f : perm (subtype p)) {a : α} (h : ¬ p a) :
+  perm.subtype_equiv_subtype_perm p f a = a :=
+f.of_subtype_apply_of_not_mem h
+
 variables (e : perm α) (ι : α ↪ β)
 
 open_locale classical

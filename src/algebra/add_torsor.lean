@@ -335,11 +335,6 @@ instance [T : ∀ i, add_torsor (fg i) (fp i)] : add_torsor (Π i, fg i) (Π i, 
   vsub_vadd' := λ p₁ p₂, funext $ λ i, vsub_vadd (p₁ i) (p₂ i),
   vadd_vsub' := λ g p, funext $ λ i, vadd_vsub (g i) (p i) }
 
-/-- Addition in a product of `add_torsor`s. -/
-@[simp] lemma vadd_apply [T : ∀ i, add_torsor (fg i) (fp i)] (x : Π i, fg i) (y : Π i, fp i)
-  {i : I} : (x +ᵥ y) i = x i +ᵥ y i
-:= rfl
-
 end pi
 
 namespace equiv

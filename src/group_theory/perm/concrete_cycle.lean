@@ -158,7 +158,7 @@ begin
   simpa using list.form_perm_eq_self_of_not_mem _ _ hx
 end
 
-lemma form_perm_apply_mem (s : cycle α) (h : nodup s) (x : α) (hx : x ∈ s) :
+lemma form_perm_apply_mem_eq_next (s : cycle α) (h : nodup s) (x : α) (hx : x ∈ s) :
   form_perm s h x = next s h x hx :=
 begin
   induction s using quot.induction_on,

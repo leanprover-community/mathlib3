@@ -85,7 +85,15 @@ lemma partial_order.to_preorder_injective {α : Type*} :
 @[ext]
 lemma linear_order.to_partial_order_injective {α : Type*} :
   function.injective (@linear_order.to_partial_order α) :=
-λ A B h, by { cases A, cases B, injection h, congr' }
+begin
+  intros A B h,
+  cases A, cases B, injection h,
+  obtain rfl : A_le = B_le := ‹_›, obtain rfl : A_lt = B_lt := ‹_›,
+  obtain rfl : A_decidable_le = B_decidable_le := subsingleton.elim _ _,
+  obtain rfl : A_max = B_max := A_max_def.trans B_max_def.symm,
+  obtain rfl : A_min = B_min := A_min_def.trans B_min_def.symm,
+  congr
+end
 
 theorem preorder.ext {α} {A B : preorder α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=

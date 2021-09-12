@@ -356,7 +356,7 @@ There are some exceptions to this heuristic:
 
 * Identifiers that have the `@[to_additive]` attribute are ignored.
   For example, multiplication in `↥Semigroup` is replaced by addition in `↥AddSemigroup`.
-* If an identifier `d` is has attribute `@[to_additive_relevant_args n1 n2 ...]` then the arguments
+* If an identifier `d` has attribute `@[to_additive_relevant_args n1 n2 ...]` then the arguments
   in positions `n1`, `n2`, ... are checked for a fixed type, instead of checking the first argument.
   `@[to_additive]` will automatically add the attribute `@[to_additive_relevant_args n]` to a
   declaration when the first argument has no multiplicative type-class, but argument `n` does.

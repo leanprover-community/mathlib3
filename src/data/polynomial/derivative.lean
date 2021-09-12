@@ -243,7 +243,7 @@ show p.derivative.coeff n = 0, by rw [coeff_derivative, h1, zero_mul]
 
 theorem degree_derivative_lt {p : polynomial R} (hp : p ≠ 0) : p.derivative.degree < p.degree :=
 (finset.sup_lt_iff $ bot_lt_iff_ne_bot.2 $ mt degree_eq_bot.1 hp).2 $ λ n hp, lt_of_lt_of_le
-(with_bot.some_lt_some.2 n.lt_succ_self) $ finset.le_sup $ of_mem_support_derivative hp
+(with_bot.some_lt_some.2 (lt_succ n)) $ finset.le_sup $ of_mem_support_derivative hp
 
 theorem nat_degree_derivative_lt {p : polynomial R} (hp : p.derivative ≠ 0) :
   p.derivative.nat_degree < p.nat_degree :=

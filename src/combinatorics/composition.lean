@@ -869,7 +869,7 @@ begin
     from eq_of_sum_take_eq length_eq H,
   assume i hi,
   have i_lt : i < d.boundaries.card,
-  { convert nat.lt_succ_iff.2 hi,
+  { convert lt_succ_of_le hi,
     convert d.card_boundaries_eq_succ_length,
     exact length_of_fn _ },
   have i_lt' : i < c.boundaries.card := i_lt,

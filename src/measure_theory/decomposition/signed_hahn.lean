@@ -161,7 +161,7 @@ For each `n : ℕ`,`s (restrict_nonpos_seq s i n)` is close to maximal among all
 private def restrict_nonpos_seq (s : signed_measure α) (i : set α) : ℕ → set α
 | 0 := some_exists_one_div_lt s (i \ ∅) -- I used `i \ ∅` instead of `i` to simplify some proofs
 | (n + 1) := some_exists_one_div_lt s (i \ ⋃ k ≤ n,
-  have k < n + 1 := nat.lt_succ_iff.mpr H,
+  have k < n + 1 := lt_succ_of_le H,
   restrict_nonpos_seq k)
 
 private lemma restrict_nonpos_seq_succ (n : ℕ) :
@@ -218,7 +218,7 @@ begin
   cases m, { linarith },
   { rw restrict_nonpos_seq at hx₂,
     exact (some_exists_one_div_lt_subset hx₂).2
-      (set.mem_Union.2 ⟨n, set.mem_Union.2 ⟨nat.lt_succ_iff.mp h, hx₁⟩⟩) }
+      (set.mem_Union.2 ⟨n, set.mem_Union.2 ⟨le_of_lt_succ h, hx₁⟩⟩) }
 end
 
 private lemma restrict_nonpos_seq_disjoint : pairwise (disjoint on (restrict_nonpos_seq s i)) :=

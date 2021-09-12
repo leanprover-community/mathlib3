@@ -62,7 +62,7 @@ theorem chain_succ_range' : ∀ s n : ℕ, chain (λ a b, b = succ a) s (range' 
 | s (n+1) := (chain_succ_range' (s+1) n).cons rfl
 
 theorem chain_lt_range' (s n : ℕ) : chain (<) s (range' (s+1) n) :=
-(chain_succ_range' s n).imp (λ a b e, e.symm ▸ lt_succ_self _)
+(chain_succ_range' s n).imp (λ a b e, e.symm ▸ lt_succ _)
 
 theorem pairwise_lt_range' : ∀ s n : ℕ, pairwise (<) (range' s n)
 | s 0     := pairwise.nil

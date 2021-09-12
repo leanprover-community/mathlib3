@@ -31,7 +31,7 @@ theorem pow_lt_pow_of_lt_right {x : ℕ} (H : 1 < x) {i j : ℕ} (h : i < j) : x
 pow_lt_pow H h
 
 lemma pow_lt_pow_succ {p : ℕ} (h : 1 < p) (n : ℕ) : p^n < p^(n+1) :=
-pow_lt_pow_of_lt_right h n.lt_succ_self
+pow_lt_pow_of_lt_right h (lt_succ n)
 
 lemma lt_pow_self {p : ℕ} (h : 1 < p) : ∀ n : ℕ, n < p ^ n
 | 0 := by simp [zero_lt_one]
@@ -89,7 +89,7 @@ lemma mul_lt_mul_pow_succ {n a q : ℕ} (a0 : 0 < a) (q1 : 1 < q) :
   n * q < a * q ^ (n + 1) :=
 begin
   rw [pow_succ', ← mul_assoc, mul_lt_mul_right (zero_lt_one.trans q1)],
-  exact lt_mul_of_one_le_of_lt (nat.succ_le_iff.mpr a0) (nat.lt_pow_self q1 n),
+  exact lt_mul_of_one_le_of_lt (succ_le_of_lt a0) (nat.lt_pow_self q1 n),
 end
 
 end nat
@@ -305,7 +305,7 @@ by have := @size_pos n; simp [pos_iff_ne_zero] at this;
 
 theorem size_pow {n : ℕ} : size (2^n) = n+1 :=
 le_antisymm
-  (size_le.2 $ pow_lt_pow_of_lt_right dec_trivial (lt_succ_self _))
+  (size_le.2 $ pow_lt_pow_of_lt_right dec_trivial (lt_succ _))
   (lt_size.2 $ le_refl _)
 
 theorem size_le_size {m n : ℕ} (h : m ≤ n) : size m ≤ size n :=

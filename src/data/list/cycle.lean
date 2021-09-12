@@ -295,7 +295,7 @@ begin
   induction l with y l hl generalizing n x,
   { simp },
   { rcases n with _|_|n,
-    { simpa [last_eq_nth_le, nat.mod_eq_of_lt (nat.succ_lt_succ l.length.lt_succ_self)] },
+    { simpa [last_eq_nth_le, nat.mod_eq_of_lt ((lt_succ $ l.length + 1)] },
     { simp only [mem_cons_iff, nodup_cons] at h,
       push_neg at h,
       simp [add_comm, prev_cons_cons_of_ne, h.left.left.symm] },

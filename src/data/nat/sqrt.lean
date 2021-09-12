@@ -133,7 +133,7 @@ begin
     apply this,
     rw [← pow_add, ← mul_two], apply size_le.1,
     rw e, apply (@div_lt_iff_lt_mul _ _ 2 dec_trivial).1,
-    rw [div2_val], apply lt_succ_self }
+    rw [div2_val], apply lt_succ }
 end
 
 theorem sqrt_le (n : ℕ) : sqrt n * sqrt n ≤ n :=

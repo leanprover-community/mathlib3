@@ -119,7 +119,7 @@ begin
       congr' 1,
       refine finset.sum_congr rfl (λ i' hi', _),
       rw [mul_left_comm (v 0), nat.succ_sub, pow_succ],
-      exact nat.lt_succ_iff.mp (finset.mem_range.mp hi') } }
+      exact le_of_lt_succ (finset.mem_range.mp hi') } }
 end
 
 end matrix

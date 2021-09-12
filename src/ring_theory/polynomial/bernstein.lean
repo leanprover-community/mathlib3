@@ -231,7 +231,7 @@ begin
   { simp, },
   { congr,
     norm_cast,
-    rw [nat.sub_sub, nat.sub_sub_self (nat.succ_le_iff.mpr h')] },
+    rw [nat.sub_sub, nat.sub_sub_self (succ_le_of_lt h')] },
 end
 
 lemma iterate_derivative_at_1_ne_zero [char_zero R] (n ν : ℕ) (h : ν ≤ n) :

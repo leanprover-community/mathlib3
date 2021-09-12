@@ -215,7 +215,7 @@ begin
   have hU1 : (U:ℝ) ≤ 1,
   { by_cases hk : k = 0,
     { simpa only [U, hk] using zero_rpow_le_one _ },
-    { exact rpow_le_one_of_one_le_of_nonpos (by { norm_cast, exact nat.succ_le_iff.mpr
+    { exact rpow_le_one_of_one_le_of_nonpos (by { norm_cast, exact succ_le_of_lt
         (nat.pos_of_ne_zero hk) }) (le_of_lt (@div_neg_of_neg_of_pos _ _ (-(1:ℝ)) (2*k+1)
           (neg_neg_iff_pos.mpr zero_lt_one) (by { norm_cast, exact nat.succ_pos' }))) } },
   have hU2 := nnreal.coe_nonneg U,

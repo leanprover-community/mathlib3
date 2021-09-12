@@ -201,7 +201,7 @@ begin
   λ i, ⟨classical.some (p i), (exists_prop.mp (classical.some_spec (p i))).1⟩,
   have hf : ∀ i j : fin (s.card - 1), i < j → f i < f j :=
   λ i j hij, subtype.coe_lt_coe.mp ((exists_prop.mp (classical.some_spec (p i))).2.2.trans
-    (lt_of_le_of_lt ((s.sort_sorted (≤)).rel_nth_le_of_le (h1 i) (h0 j) (nat.succ_le_iff.mpr hij))
+    (lt_of_le_of_lt ((s.sort_sorted (≤)).rel_nth_le_of_le (h1 i) (h0 j) (succ_le_of_lt hij))
     (exists_prop.mp (classical.some_spec (p j))).2.1)),
   have key := fintype.card_le_of_embedding (function.embedding.mk f (λ i j hij, le_antisymm
     (not_lt.mp (mt (hf j i) (not_lt.mpr (le_of_eq hij))))

@@ -966,7 +966,7 @@ theorem repeat_sublist_repeat (a : α) {m n} : repeat a m <+ repeat a n ↔ m �
 theorem eq_of_sublist_of_length_eq : ∀ {l₁ l₂ : list α}, l₁ <+ l₂ → length l₁ = length l₂ → l₁ = l₂
 | ._ ._ sublist.slnil             h := rfl
 | ._ ._ (sublist.cons  l₁ l₂ a s) h :=
-  absurd (length_le_of_sublist s) $ not_le_of_gt $ by rw h; apply lt_succ_self
+  absurd (length_le_of_sublist s) $ not_le_of_gt $ by rw h; apply lt_succ
 | ._ ._ (sublist.cons2 l₁ l₂ a s) h :=
   by rw [length, length] at h; injection h with h; rw eq_of_sublist_of_length_eq s h
 
@@ -1166,7 +1166,7 @@ lemma nth_le_append_right : ∀ {l₁ l₂ : list α} {n : ℕ} (h₁ : l₁.len
   begin
     dsimp,
     conv { to_rhs, congr, skip, rw [←nat.sub_sub, nat.sub.right_comm, nat.add_sub_cancel], },
-    rw nth_le_append_right (nat.lt_succ_iff.mp h₁),
+    rw nth_le_append_right (le_of_lt_succ h₁),
   end
 
 @[simp] lemma nth_le_repeat (a : α) {n m : ℕ} (h : m < (list.repeat a n).length) :
@@ -1282,7 +1282,7 @@ begin
   refine ext_le (by convert h) (λ n h₁ h₂, _),
   simp only [nth_le_singleton],
   congr,
-  exact eq_bot_iff.mpr (nat.lt_succ_iff.mp h₂)
+  exact eq_bot_iff.mpr (le_of_lt_succ h₂)
 end
 
 lemma modify_nth_tail_modify_nth_tail {f g : list α → list α} (m : ℕ) :
@@ -3461,7 +3461,7 @@ begin
   { rw [filter_cons_of_neg _ h],
     refine iff_of_false _ (mt and.left h), intro e,
     have := filter_sublist l, rw e at this,
-    exact not_lt_of_ge (length_le_of_sublist this) (lt_succ_self _) }
+    exact (length_le_of_sublist this).not_le (lt_succ _) }
 end
 
 theorem filter_eq_nil {l} : filter p l = [] ↔ ∀ a ∈ l, ¬p a :=

@@ -50,10 +50,10 @@ lemma choose_eq_zero_of_lt : ∀ {n k}, n < k → choose n k = 0
   by rw [choose_succ_succ, choose_eq_zero_of_lt hnk, choose_eq_zero_of_lt hnk1]
 
 @[simp] lemma choose_self (n : ℕ) : choose n n = 1 :=
-by induction n; simp [*, choose, choose_eq_zero_of_lt (lt_succ_self _)]
+by induction n; simp [*, choose, choose_eq_zero_of_lt (lt_succ _)]
 
 @[simp] lemma choose_succ_self (n : ℕ) : choose n (succ n) = 0 :=
-choose_eq_zero_of_lt (lt_succ_self _)
+choose_eq_zero_of_lt (lt_succ _)
 
 @[simp] lemma choose_one_right (n : ℕ) : choose n 1 = n :=
 by induction n; simp [*, choose, add_comm]
@@ -185,7 +185,7 @@ begin
   obtain hk | hk := le_or_lt (k + 1) (n + 1),
   { rw [choose_succ_succ, add_mul, succ_sub_succ, ←choose_succ_right_eq, ←succ_sub_succ,
       nat.mul_sub_left_distrib, nat.add_sub_cancel' (nat.mul_le_mul_left _ hk)] },
-  rw [choose_eq_zero_of_lt hk, choose_eq_zero_of_lt (n.lt_succ_self.trans hk), zero_mul, zero_mul],
+  rw [choose_eq_zero_of_lt hk, choose_eq_zero_of_lt ((lt_succ n).trans hk), zero_mul, zero_mul],
 end
 
 lemma asc_factorial_eq_factorial_mul_choose (n k : ℕ) :

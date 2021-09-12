@@ -85,7 +85,7 @@ lemma lt_pow_succ_log_self {b : ℕ} (hb : 1 < b) {x : ℕ} (hx : 0 < x) :
   x < b ^ (log b x).succ :=
 begin
   rw [←not_le, pow_le_iff_le_log hb hx, not_le],
-  exact lt_succ_self _,
+  exact lt_succ _,
 end
 
 lemma pow_log_le_self {b : ℕ} (hb : 1 < b) {x : ℕ} (hx : 0 < x) : b ^ log b x ≤ x :=

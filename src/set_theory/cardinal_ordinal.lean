@@ -103,7 +103,7 @@ def aleph_idx.rel_iso : @rel_iso cardinal.{u} ordinal.{u} (<) (<) :=
   have : ∀ c, aleph_idx c < o := λ c, (e _).2 ⟨_, rfl⟩,
   refine ordinal.induction_on o _ this, introsI α r _ h,
   let s := sup.{u u} (λ a:α, inv_fun aleph_idx (ordinal.typein r a)),
-  apply not_le_of_gt (lt_succ_self s),
+  apply (lt_succ s).not_le,
   have I : injective aleph_idx := aleph_idx.initial_seg.to_embedding.injective,
   simpa only [typein_enum, left_inverse_inv_fun I (succ s)] using
     le_sup.{u u} (λ a, inv_fun aleph_idx (ordinal.typein r a))

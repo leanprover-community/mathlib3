@@ -1314,9 +1314,9 @@ begin
   induction n with n IH, {simp},
   dsimp, rw IH, split_ifs,
   { exact le_antisymm (nat.sqrt_le_sqrt (nat.le_succ _))
-      (nat.lt_succ_iff.1 $ nat.sqrt_lt.2 h) },
+      (le_of_lt_succ $ nat.sqrt_lt.2 h) },
   { exact nat.eq_sqrt.2 ⟨not_lt.1 h, nat.sqrt_lt.1 $
-      nat.lt_succ_iff.2 $ nat.sqrt_succ_le_succ_sqrt _⟩ },
+      lt_succ_of_le $ nat.sqrt_succ_le_succ_sqrt _⟩ },
 end
 
 theorem unpair₁ {n f} (hf : @primrec' n f) :

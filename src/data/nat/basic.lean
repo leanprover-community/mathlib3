@@ -305,12 +305,6 @@ succ_lt_succ $ succ_pos n
 lemma not_succ_lt_self {n : ℕ} : ¬succ n < n :=
 not_lt_of_ge (nat.le_succ _)
 
-theorem lt_succ_iff {m n : ℕ} : m < succ n ↔ m ≤ n :=
-⟨le_of_lt_succ, lt_succ_of_le⟩
-
-lemma succ_le_iff {m n : ℕ} : succ m ≤ n ↔ m < n :=
-iff.rfl
-
 lemma lt_iff_add_one_le {m n : ℕ} : m < n ↔ m + 1 ≤ n :=
 iff.rfl
 

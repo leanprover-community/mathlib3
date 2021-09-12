@@ -263,7 +263,7 @@ end
 
 lemma eq_top_iff_forall_le (x : enat) : x = ⊤ ↔ ∀ n : ℕ, (n : enat) ≤ x :=
 (eq_top_iff_forall_lt x).trans
-⟨λ h n, (h n).le, λ h n, lt_of_lt_of_le (coe_lt_coe.mpr n.lt_succ_self) (h (n + 1))⟩
+⟨λ h n, (h n).le, λ h n, lt_of_lt_of_le (coe_lt_coe.mpr (lt_succ n)) (h (n + 1))⟩
 
 lemma pos_iff_one_le {x : enat} : 0 < x ↔ 1 ≤ x :=
 enat.cases_on x (by simp only [iff_true, le_top, coe_lt_top, ← @nat.cast_zero enat]) $

@@ -457,8 +457,8 @@ begin
   suffices : ∀ m : ℕ, 2 ∣ m → 1 ≤ m → m ≤ 3 → m = 2,
   { exact this n hn p_roots1 p_roots2 },
   rintros m ⟨k, rfl⟩ h2 h3,
-  exact le_antisymm (nat.lt_succ_iff.mp (lt_of_le_of_ne h3 (show 2 * k ≠ 2 * 1 + 1,
-    from nat.two_mul_ne_two_mul_add_one))) (nat.succ_le_iff.mpr (lt_of_le_of_ne h2
+  exact le_antisymm (le_of_lt_succ (lt_of_le_of_ne h3 (show 2 * k ≠ 2 * 1 + 1,
+    from nat.two_mul_ne_two_mul_add_one))) (succ_le_of_lt (lt_of_le_of_ne h2
     (show 2 * 0 + 1 ≠ 2 * k, from nat.two_mul_ne_two_mul_add_one.symm))),
 end
 

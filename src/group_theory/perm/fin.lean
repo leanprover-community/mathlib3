@@ -113,8 +113,8 @@ begin
   cases x with x hx,
   rw [coe_coe, gpow_coe_nat, fin.ext_iff, fin.coe_mk],
   induction x with x ih, { refl },
-  rw [pow_succ, perm.mul_apply, coe_fin_rotate_of_ne_last, ih (lt_trans x.lt_succ_self hx)],
-  rw [ne.def, fin.ext_iff, ih (lt_trans x.lt_succ_self hx), fin.coe_last],
+  rw [pow_succ, perm.mul_apply, coe_fin_rotate_of_ne_last, ih ((lt_succ x).trans hx)],
+  rw [ne.def, fin.ext_iff, ih ((lt_succ x).trans hx), fin.coe_last],
   exact ne_of_lt (nat.lt_of_succ_lt_succ hx),
 end
 
@@ -183,7 +183,7 @@ lemma coe_cycle_range_of_le {n : ℕ} {i j : fin n.succ} (h : j ≤ i) :
 by { rw [cycle_range_of_le h],
      split_ifs with h', { refl },
      exact coe_add_one_of_lt (calc (j : ℕ) < i : fin.lt_iff_coe_lt_coe.mp (lt_of_le_of_ne h h')
-                                       ... ≤ n : nat.lt_succ_iff.mp i.2) }
+                                       ... ≤ n : le_of_lt_succ i.2) }
 
 lemma cycle_range_of_lt {n : ℕ} {i j : fin n.succ} (h : j < i) :
   cycle_range i j = j + 1 :=

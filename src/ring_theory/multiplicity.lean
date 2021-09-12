@@ -115,7 +115,7 @@ begin
   rw [← enat.some_eq_coe],
   exact ⟨λ h, let ⟨h₁, h₂⟩ := eq_some_iff.1 h in
       h₂ ▸ ⟨pow_multiplicity_dvd _, is_greatest
-        (by { rw [enat.lt_coe_iff], exact ⟨h₁, lt_succ_self _⟩ })⟩,
+        (by { rw [enat.lt_coe_iff], exact ⟨h₁, lt_succ _⟩ })⟩,
     λ h, eq_some_iff.2 ⟨⟨n, h.2⟩, eq.symm $ unique' h.1 h.2⟩⟩
 end
 
@@ -267,7 +267,7 @@ open_locale classical
 part.ext' (by simp only [multiplicity, enat.find, dvd_neg])
   (λ h₁ h₂, enat.coe_inj.1 (by rw [enat.coe_get]; exact
     eq.symm (unique ((dvd_neg _ _).2 (pow_multiplicity_dvd _))
-      (mt (dvd_neg _ _).1 (is_greatest' _ (lt_succ_self _))))))
+      (mt (dvd_neg _ _).1 (is_greatest' _ (lt_succ _))))))
 
 lemma multiplicity_add_of_gt {p a b : α} (h : multiplicity p b < multiplicity p a) :
   multiplicity p (a + b) = multiplicity p b :=
@@ -382,7 +382,7 @@ have hdiv : p ^ (get (multiplicity p a) ((finite_mul_iff hp).1 h).1 +
   by rw [hpoweq]; apply mul_dvd_mul; assumption,
 have hsucc : ¬p ^ ((get (multiplicity p a) ((finite_mul_iff hp).1 h).1 +
     get (multiplicity p b) ((finite_mul_iff hp).1 h).2) + 1) ∣ a * b,
-  from λ h, not_or (is_greatest' _ (lt_succ_self _)) (is_greatest' _ (lt_succ_self _))
+  from λ h, not_or (is_greatest' _ (lt_succ _)) (is_greatest' _ (lt_succ _))
     (by exact succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul hp hdiva hdivb h),
 by rw [← enat.coe_inj, enat.coe_get, eq_coe_iff];
   exact ⟨hdiv, hsucc⟩

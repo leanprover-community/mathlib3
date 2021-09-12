@@ -497,7 +497,7 @@ begin
   use [-C (a⁻¹), (C ((a⁻¹) * (↑n)⁻¹) *  X)],
   have mul_pow_sub : X * X ^ (n - 1) = X ^ n,
   { nth_rewrite 0 [←pow_one X],
-    rw pow_mul_pow_sub X (nat.succ_le_iff.mpr hpos) },
+    rw pow_mul_pow_sub X (succ_le_of_lt hpos) },
   rw [derivative_sub, derivative_C, sub_zero, derivative_pow X n, derivative_X, mul_one],
   have hcalc : C (a⁻¹ * (↑n)⁻¹) * (↑n * (X ^ n)) = C a⁻¹ * (X ^ n),
   { calc C (a⁻¹ * (↑n)⁻¹) * (↑n * (X ^ n))

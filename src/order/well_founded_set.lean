@@ -96,7 +96,7 @@ begin
         function.embedding.coe_fn_mk, f.map_rel_iff]
     end, λ h, ⟨λ con, _⟩⟩,
   rcases con with ⟨f, hf⟩,
-  have hfs' : ∀ n : ℕ, f n ∈ s := λ n, (hf.2 n.lt_succ_self).2.2,
+  have hfs' : ∀ n : ℕ, f n ∈ s := λ n, (hf.2 (lt_succ n)).2.2,
   refine h ⟨f, λ a b, _⟩ (λ n hn, _),
   { rw ← hf,
     exact ⟨λ h, ⟨h, hfs' _, hfs' _⟩, λ h, h.1⟩ },
@@ -334,7 +334,7 @@ theorem is_wf.is_pwo [linear_order α] {s : set α}
   have hrange : (range f).nonempty := ⟨f 0, mem_range_self 0⟩,
   let a := hs.min (range f) hrange,
   obtain ⟨m, hm⟩ := hs.min_mem (range f) hrange,
-  refine ⟨m, m.succ, m.lt_succ_self, le_of_not_lt (λ con, _)⟩,
+  refine ⟨m, m.succ, (lt_succ m), le_of_not_lt (λ con, _)⟩,
   rw hm at con,
   apply hs.not_lt_min (range f) hrange (mem_range_self m.succ)
     ⟨con, hf (mem_range_self m.succ), hf _⟩,
@@ -574,7 +574,7 @@ begin
     induction k with k ih,
     { refl },
     rw [ih, ((min_bad_seq_of_bad_seq r rk s (m + k).succ (fs (m + k)).1 (fs (m + k)).2.1).2.1 m
-        (nat.lt_succ_iff.2 (nat.add_le_add_left k.zero_le m)))],
+        (lt_succ_of_le (nat.add_le_add_left k.zero_le m)))],
     refl },
   refine ⟨λ n, (fs n).1 n, ⟨set.range_subset_iff.2 (λ n, ((fs n).2).1.1 (mem_range_self n)),
     λ m n mn, _⟩, λ n g hg1 hg2, _⟩,
@@ -613,7 +613,7 @@ begin
   rw [iff_not_exists_is_min_bad_seq (list.length)],
   rintro ⟨f, hf1, hf2⟩,
   have hnil : ∀ n, f n ≠ list.nil :=
-    λ n con, (hf1).2 n n.succ n.lt_succ_self (con.symm ▸ list.sublist_forall₂.nil),
+    λ n con, (hf1).2 n n.succ (lt_succ n) (con.symm ▸ list.sublist_forall₂.nil),
   obtain ⟨g, hg⟩ := h.exists_monotone_subseq (list.head ∘ f) _,
   swap, { simp only [set.range_subset_iff, function.comp_apply],
     exact λ n, hf1.1 (set.mem_range_self n) _ (list.head_mem_self (hnil n)) },

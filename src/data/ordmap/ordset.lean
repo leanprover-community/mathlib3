@@ -1119,7 +1119,7 @@ begin
     { rw rl0 at hb₂, cases not_le_of_gt rr0 hb₂ },
     cases eq_or_lt_of_le (show 1 ≤ size rr, from rr0) with rr1 rr1,
     { rw [← rr1] at h H2 ⊢,
-      have : size rl = 1 := le_antisymm (nat.lt_succ_iff.1 h) rl0,
+      have : size rl = 1 := (le_of_lt_succ h).antisymm rl0,
       rw this at H2,
       exact absurd (le_trans (nat.mul_le_mul_left _ l0) H2) dec_trivial },
     refine ⟨or.inr ⟨_, _⟩, or.inr ⟨_, _⟩⟩,

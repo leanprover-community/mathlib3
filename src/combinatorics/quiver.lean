@@ -265,7 +265,7 @@ noncomputable def arborescence_mk {V : Type u} [quiver V] (r : V)
       { exact false.elim (nat.not_lt_zero _ hn) },
       rcases root_or_arrow b with ⟨⟨⟩⟩ | ⟨a, ⟨e⟩⟩,
       { exact ⟨path.nil⟩ },
-      { rcases ih a (lt_of_lt_of_le (height_lt e) (nat.lt_succ_iff.mp hn)) with ⟨p⟩,
+      { rcases ih a (lt_of_lt_of_le (height_lt e) (le_of_lt_succ hn)) with ⟨p⟩,
         exact ⟨p.cons e⟩ }
     end,
     begin

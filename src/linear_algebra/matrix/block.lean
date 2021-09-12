@@ -160,7 +160,7 @@ begin
           block_triangular_matrix (M.to_square_block_prop (λ (i : m), ¬b i = n)) b',
         { intros i j, apply h ↑i ↑j },
         have hni : ∀ (i : {a // ¬b a = n}), b' i < n,
-        { exact λ i, (ne.le_iff_lt i.property).mp (nat.lt_succ_iff.mp (hn ↑i)) },
+        { exact λ i, (ne.le_iff_lt i.property).mp (le_of_lt_succ (hn ↑i)) },
         have h1 := hi (M.to_square_block_prop (λ (i : m), ¬b i = n)) b' h' hni,
         rw ←fin.prod_univ_eq_prod_range at h1 ⊢,
         convert h1,
@@ -178,7 +178,7 @@ begin
     { intros i hi j hj,
       apply (h i), simp only [not_not] at hi,
       rw hi,
-      exact (ne.le_iff_lt hj).mp (nat.lt_succ_iff.mp (hn j)) }}
+      exact (ne.le_iff_lt hj).mp (le_of_lt_succ (hn j)) }}
 end
 
 lemma det_of_block_triangular_matrix'' (M : matrix m m R) (b : m → ℕ)
@@ -190,7 +190,7 @@ begin
   { have hbi : ∀ i, b i ∈ finset.image b finset.univ, { simp },
     intro i,
     dsimp only [n],
-    apply nat.lt_succ_iff.mpr,
+    apply lt_succ_of_le,
     exact le_cSup (finset.bdd_above _) (hbi i) },
   rw det_of_block_triangular_matrix M b h n hn,
   refine (finset.prod_subset _ _).symm,

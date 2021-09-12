@@ -240,7 +240,7 @@ begin
   cases n,
   { exact absurd (list.mem_range.mp hi) i.not_lt_zero },
   { rw [nat.sub_add_eq_add_sub (nat.le_pred_of_lt (list.mem_range.mp hi)),
-        nat.sub_add_cancel (nat.succ_le_iff.mpr n.succ_pos)] },
+        nat.sub_add_cancel (succ_le_of_lt n.succ_pos)] },
 end
 
 theorem geom_sum₂_succ_eq {α : Type u} [comm_ring α] (x y : α)  {n : ℕ} :

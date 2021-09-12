@@ -207,7 +207,7 @@ unless we declare the `has_well_founded` instance:
 ```lean
 def factorial {n : ℕ} : fin n → ℕ
 | ⟨0, _⟩ := 1
-| ⟨i + 1, hi⟩ := (i + 1) * factorial ⟨i, i.lt_succ_self.trans hi⟩
+| ⟨i + 1, hi⟩ := (i + 1) * factorial ⟨i, (lt_succ i).trans hi⟩
 ```
 -/
 instance {n : ℕ} : has_well_founded (fin n) :=
@@ -235,7 +235,7 @@ begin
 end
 
 /-- The greatest value of `fin (n+1)` -/
-def last (n : ℕ) : fin (n+1) := ⟨_, n.lt_succ_self⟩
+def last (n : ℕ) : fin (n+1) := ⟨_, lt_succ n⟩
 
 @[simp, norm_cast] lemma coe_last (n : ℕ) : (last n : ℕ) = n := rfl
 
@@ -408,7 +408,7 @@ eq_of_veq (nat.mod_eq_of_lt h).symm
 
 @[simp] lemma mk_bit1 {m n : ℕ} (h : bit1 m < n + 1) :
   (⟨bit1 m, h⟩ : fin (n + 1)) = (bit1 ⟨m, (nat.le_add_right m m).trans_lt
-    ((m + m).lt_succ_self.trans h)⟩ : fin _) :=
+    ((lt_succ (m + m)).trans h)⟩ : fin _) :=
 begin
   ext,
   simp only [bit1, bit0] at h,
@@ -460,7 +460,7 @@ value. -/
 coe_val_eq_self a
 
 lemma coe_nat_eq_last (n) : (n : fin (n + 1)) = fin.last n :=
-by { rw [←fin.of_nat_eq_coe, fin.of_nat, fin.last], simp only [nat.mod_eq_of_lt n.lt_succ_self] }
+by { rw [←fin.of_nat_eq_coe, fin.of_nat, fin.last], simp only [nat.mod_eq_of_lt (lt_succ n)] }
 
 lemma le_coe_last (i : fin (n + 1)) : i ≤ n :=
 by { rw fin.coe_nat_eq_last, exact fin.le_last i }
@@ -1407,7 +1407,7 @@ end pred_above
 def clamp (n m : ℕ) : fin (m + 1) := of_nat $ min n m
 
 @[simp] lemma coe_clamp (n m : ℕ) : (clamp n m : ℕ) = min n m :=
-nat.mod_eq_of_lt $ nat.lt_succ_iff.mpr $ min_le_right _ _
+nat.mod_eq_of_lt $ lt_succ_of_le $ min_le_right _ _
 
 section tuple
 /-!

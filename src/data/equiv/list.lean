@@ -285,13 +285,13 @@ lemma raise_lower' : ∀ {l n}, (∀ m ∈ l, n ≤ m) → list.sorted (<) l →
 lemma raise'_chain : ∀ l {m n}, m < n → list.chain (<) m (raise' l n)
 | []       m n h := list.chain.nil
 | (a :: l) m n h := list.chain.cons
-  (lt_of_lt_of_le h (nat.le_add_left _ _)) (raise'_chain _ (lt_succ_self _))
+  (lt_of_lt_of_le h (nat.le_add_left _ _)) (raise'_chain _ (lt_succ _))
 
 /-- `raise' l n` is a strictly increasing sequence. -/
 lemma raise'_sorted : ∀ l n, list.sorted (<) (raise' l n)
 | []       n := list.sorted_nil
 | (m :: l) n := (list.chain_iff_pairwise (@lt_trans _ _)).1
-  (raise'_chain _ (lt_succ_self _))
+  (raise'_chain _ (lt_succ _))
 
 /-- Makes `raise' l n` into a finset. Elements are distinct thanks to `raise'_sorted`. -/
 def raise'_finset (l : list ℕ) (n : ℕ) : finset ℕ :=

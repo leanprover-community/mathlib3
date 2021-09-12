@@ -283,7 +283,7 @@ begin
       generalize_hyp : (n.succ :: v.1 : list ℕ) = w at this ⊢, clear hn,
       induction n with n IH, {exact this},
       refine IH (λ m h', hm (nat.lt_succ_of_lt h')) (pfun.mem_fix_iff.2 (or.inr ⟨_, _, this⟩)),
-      simp only [hf, hm n.lt_succ_self, part.bind_some, list.head, eq_self_iff_true,
+      simp only [hf, hm (lt_succ n), part.bind_some, list.head, eq_self_iff_true,
         if_false, part.mem_some_iff, and_self, list.tail_cons] } }
 end
 

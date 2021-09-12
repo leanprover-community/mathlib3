@@ -75,7 +75,7 @@ theorem floor_nonneg {x : α} : 0 ≤ ⌊x⌋ ↔ 0 ≤ x :=
 by rw [le_floor]; refl
 
 theorem lt_succ_floor (x : α) : x < ⌊x⌋.succ :=
-floor_lt.1 $ int.lt_succ_self _
+floor_lt.1 $ lt_succ _
 
 theorem lt_floor_add_one (x : α) : x < ⌊x⌋ + 1 :=
 by simpa only [int.succ, int.cast_add, int.cast_one] using lt_succ_floor x

@@ -255,7 +255,7 @@ lemma trans_iterate {a : ℕ → α} {n : ℕ} (hint : ∀ k < n, interval_integ
 begin
   induction n with n hn,
   { simp },
-  { exact (hn (λ k hk, hint k (hk.trans n.lt_succ_self))).trans (hint n n.lt_succ_self) }
+  { exact (hn (λ k hk, hint k (hk.trans (lt_succ n)))).trans (hint n (lt_succ n)) }
 end
 
 lemma neg [borel_space E] (h : interval_integrable f μ a b) : interval_integrable (-f) μ a b :=
@@ -780,10 +780,10 @@ lemma sum_integral_adjacent_intervals {a : ℕ → α} {n : ℕ}
 begin
   induction n with n hn,
   { simp },
-  { rw [finset.sum_range_succ, hn (λ k hk, hint k (hk.trans n.lt_succ_self))],
+  { rw [finset.sum_range_succ, hn (λ k hk, hint k (hk.trans (lt_succ n)))],
     exact integral_add_adjacent_intervals
-      (interval_integrable.trans_iterate $ λ k hk, hint k (hk.trans n.lt_succ_self))
-      (hint n n.lt_succ_self) }
+      (interval_integrable.trans_iterate $ λ k hk, hint k (hk.trans (lt_succ n)))
+      (hint n (lt_succ n)) }
 end
 
 lemma integral_interval_sub_left (hab : interval_integrable f μ a b)

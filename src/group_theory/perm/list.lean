@@ -340,8 +340,8 @@ begin
     { have : k.succ = (k + 1) % (x' :: y' :: l').length,
       { rw [←nat.succ_eq_add_one, nat.mod_eq_of_lt hk'] },
       simp_rw this,
-      rw [←form_perm_apply_nth_le _ hd' k (k.lt_succ_self.trans hk'),
-          ←IH (k.lt_succ_self.trans hk), ←h, form_perm_apply_nth_le _ hd],
+      rw [←form_perm_apply_nth_le _ hd' k ((lt_succ k).trans hk'),
+          ←IH ((lt_succ k).trans hk), ←h, form_perm_apply_nth_le _ hd],
       congr' 1,
       have h1 : 1 = 1 % (x' :: y' :: l').length := by simp,
       rw [hl, nat.mod_eq_of_lt hk', h1, ←nat.add_mod, nat.succ_add] } }

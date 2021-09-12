@@ -872,7 +872,7 @@ primrec.nat_strong_rec _ (hG.comp snd).to₂ $
       rw hg (nat.mkpair_lt_mkpair_right _ lf),
       cases n.unpair.2, {refl},
       simp,
-      rw hg (nat.mkpair_lt_mkpair_left _ k'.lt_succ_self),
+      rw hg (nat.mkpair_lt_mkpair_left _ (lt_succ k')),
       cases evaln k' _ _, {refl},
       simp [hg (nat.mkpair_lt_mkpair_right _ lg)] },
     { have lf := encode_lt_rfind' cf,
@@ -880,7 +880,7 @@ primrec.nat_strong_rec _ (hG.comp snd).to₂ $
       cases evaln k cf n with x, {refl},
       simp,
       cases x; simp [nat.succ_ne_zero],
-      rw hg (nat.mkpair_lt_mkpair_left _ k'.lt_succ_self) }
+      rw hg (nat.mkpair_lt_mkpair_left _ (lt_succ k')) }
   end,
 (option_bind (list_nth.comp
   (this.comp (const ()) (encode_iff.2 fst)) snd)

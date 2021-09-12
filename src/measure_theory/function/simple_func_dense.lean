@@ -104,11 +104,11 @@ begin
   { simp only [nearest_pt, nearest_pt_ind_succ, map_apply],
     split_ifs,
     { rcases hk.eq_or_lt with rfl|hk,
-      exacts [le_rfl, (h k (nat.lt_succ_iff.1 hk)).le] },
+      exacts [le_rfl, (h k (le_of_lt_succ hk)).le] },
     { push_neg at h,
       rcases h with ⟨l, hlN, hxl⟩,
       rcases hk.eq_or_lt with rfl|hk,
-      exacts [(ihN hlN).trans hxl, ihN (nat.lt_succ_iff.1 hk)] } }
+      exacts [(ihN hlN).trans hxl, ihN (le_of_lt_succ hk)] } }
 end
 
 lemma tendsto_nearest_pt {e : ℕ → α} {x : α} (hx : x ∈ closure (range e)) :

@@ -113,7 +113,7 @@ begin
   congr' 1,
   convert composition.single_embedding hn ⟨i, hi2⟩,
   cases j,
-  have : j_val = 0 := le_bot_iff.1 (nat.lt_succ_iff.1 j_property),
+  have : j_val = 0 := le_bot_iff.1 (le_of_lt_succ j_property),
   unfold_coes,
   congr; try { assumption <|> simp },
 end

@@ -149,7 +149,7 @@ by rw [← enat.coe_le_coe, ← hp.multiplicity_factorial hbn, ← pow_dvd_iff_l
 lemma multiplicity_factorial_le_div_pred {p : ℕ} (hp : p.prime) (n : ℕ) :
   multiplicity p n! ≤ (n/(p - 1) : ℕ) :=
 begin
-  rw [hp.multiplicity_factorial (lt_succ_self _), enat.coe_le_coe],
+  rw [hp.multiplicity_factorial (lt_succ _), enat.coe_le_coe],
   exact nat.geom_sum_Ico_le hp.two_le _ _,
 end
 
@@ -195,10 +195,10 @@ if hkn : n < k then by simp [choose_eq_zero_of_lt hkn]
 else if hk0 : k = 0 then by simp [hk0]
 else if hn0 : n = 0 then by cases k; simp [hn0, *] at *
 else begin
-  rw [multiplicity_choose hp (le_of_not_gt hkn) (lt_succ_self _),
+  rw [multiplicity_choose hp (le_of_not_gt hkn) (lt_succ _),
     multiplicity_eq_card_pow_dvd (ne_of_gt hp.one_lt) (nat.pos_of_ne_zero hk0)
       (lt_succ_of_le (log_le_log_of_le (le_of_not_gt hkn))),
-    multiplicity_eq_card_pow_dvd (ne_of_gt hp.one_lt) (nat.pos_of_ne_zero hn0) (lt_succ_self _),
+    multiplicity_eq_card_pow_dvd (ne_of_gt hp.one_lt) (nat.pos_of_ne_zero hn0) (lt_succ _),
     ← nat.cast_add, enat.coe_le_coe],
   calc ((Ico 1 (log p n).succ).filter (λ i, p ^ i ∣ n)).card
       ≤ ((Ico 1 (log p n).succ).filter (λ i, p ^ i ≤ k % p ^ i + (n - k) % p ^ i) ∪
@@ -223,7 +223,7 @@ le_antisymm
     by simp [disjoint_right, *, dvd_iff_mod_eq_zero, nat.mod_lt _ (pow_pos hp.pos _)]
         {contextual := tt},
   begin
-    rw [multiplicity_choose hp hkn (lt_succ_self _),
+    rw [multiplicity_choose hp hkn (lt_succ _),
       multiplicity_eq_card_pow_dvd (ne_of_gt hp.one_lt) hk0
         (lt_succ_of_le (log_le_log_of_le hkn)),
       ← nat.cast_add, enat.coe_le_coe, log_pow hp.one_lt,
@@ -254,7 +254,7 @@ begin
       { simpa [succ_eq_add_one, multiplicity.mul, h2, prime_two, nat.bit1_eq_succ_bit0,
           bit0_eq_two_mul n] },
       rw [multiplicity_eq_zero_of_not_dvd (two_not_dvd_two_mul_add_one n), zero_add],
-      refine this.trans _, exact_mod_cast lt_succ_self _ }}
+      refine this.trans _, exact_mod_cast lt_succ _ }}
 end
 
 end nat

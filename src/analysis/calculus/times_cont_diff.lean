@@ -348,7 +348,7 @@ begin
     { assume x hx, refl },
     { assume m (hm : (m : with_top ℕ) < n) x (hx : x ∈ s),
       have A : (m.succ : with_top ℕ) < n.succ,
-        by { rw with_top.coe_lt_coe at ⊢ hm, exact nat.lt_succ_iff.mpr hm },
+        by { rw with_top.coe_lt_coe at ⊢ hm, exact lt_succ_of_le hm },
       change has_fderiv_within_at
         ((continuous_multilinear_curry_right_equiv' 𝕜 m E F).symm
            ∘ (λ (y : E), p y m.succ))
@@ -389,7 +389,7 @@ begin
           λ x hx, (Hfderiv_zero x hx).differentiable_within_at,
         exact this.continuous_on },
       { have A : (m : with_top ℕ) ≤ n,
-          by { rw with_top.coe_le_coe at hm ⊢, exact nat.lt_succ_iff.mp hm },
+          by { rw with_top.coe_le_coe at hm ⊢, exact le_of_lt_succ hm },
         have : continuous_on ((continuous_multilinear_curry_right_equiv' 𝕜 m E F).symm
            ∘ (λ (y : E), p y m.succ)) s :=
         Htaylor.cont _ A,

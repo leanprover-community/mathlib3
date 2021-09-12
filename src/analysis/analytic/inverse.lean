@@ -376,7 +376,7 @@ begin
   have : c ≠ composition.single k (zero_lt_two.trans_le hd.1.1),
     by simp [composition.eq_single_iff_length, ne_of_gt hd.2],
   rw composition.ne_single_iff at this,
-  exact (this j).trans_le (nat.lt_succ_iff.mp hd.1.2)
+  exact (this j).trans_le (le_of_lt_succ hd.1.2)
 end
 ... = ∑ e in comp_partial_sum_source 2 (n+1) n, ∏ (j : fin e.1), r * (a ^ e.2 j * p (e.2 j)) :
 begin

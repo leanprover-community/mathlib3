@@ -312,7 +312,7 @@ quot.induction_on s $ λ l,
 suffices l <+~ a :: l ∧ (¬l ~ a :: l),
   by simpa [lt_iff_le_and_ne],
 ⟨(sublist_cons _ _).subperm,
- λ p, ne_of_lt (lt_succ_self (length l)) p.length_eq⟩
+ λ p, ne_of_lt (lt_succ (length l)) p.length_eq⟩
 
 theorem le_cons_self (s : multiset α) (a : α) : s ≤ a ::ₘ s :=
 le_of_lt $ lt_cons_self _ _

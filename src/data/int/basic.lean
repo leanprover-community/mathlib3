@@ -187,9 +187,6 @@ theorem neg_nat_succ (n : ℕ) : -(nat.succ n : ℤ) = pred (-n) := neg_succ n
 
 theorem succ_neg_nat_succ (n : ℕ) : succ (-nat.succ n) = -n := succ_neg_succ n
 
-theorem lt_succ_self (a : ℤ) : a < succ a :=
-lt_add_of_pos_right _ zero_lt_one
-
 theorem pred_self_lt (a : ℤ) : pred a < a :=
 sub_lt_self _ zero_lt_one
 

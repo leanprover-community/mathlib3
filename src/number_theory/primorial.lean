@@ -147,7 +147,7 @@ lemma primorial_le_4_pow : ∀ (n : ℕ), n# ≤ 4 ^ n
                     simp only [finset.Ico.mem] at size,
                     rcases size with ⟨ a_big , a_small ⟩,
                     exact dvd_choose_of_middling_prime a is_prime m a_big
-                      (nat.lt_succ_iff.mp a_small), }, },
+                      (le_of_lt_succ a_small), }, },
                 have r : ∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2)),
                   i ≤ choose (2 * m + 1) (m + 1),
                 { refine @nat.le_of_dvd _ _ _ s,

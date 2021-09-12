@@ -650,7 +650,7 @@ begin
         exact hγ₁ } } },
   have hpp' : ∀ k < n+1, p k = p' k,
   { intros k hk, simp only [p', hk, dif_pos], congr, ext, rw fin.coe_coe_of_lt hk, norm_cast },
-  use γ.cast (hpp' 0 n.zero_lt_succ) (hpp' n n.lt_succ_self),
+  use γ.cast (hpp' 0 n.zero_lt_succ) (hpp' n (lt_succ n)),
   simp only [γ.cast_coe],
   refine and.intro hγ.2 _,
   rintros ⟨i, hi⟩,

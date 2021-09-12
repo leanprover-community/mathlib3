@@ -28,9 +28,9 @@ lemma seq_le_seq (hf : monotone f) (n : ℕ) (h₀ : x 0 ≤ y 0)
 begin
   induction n with n ihn,
   { exact h₀ },
-  { refine (hx _ n.lt_succ_self).trans ((hf $ ihn _ _).trans (hy _ n.lt_succ_self)),
-    exact λ k hk, hx _ (hk.trans n.lt_succ_self),
-    exact λ k hk, hy _ (hk.trans n.lt_succ_self) }
+  { refine (hx _ (lt_succ n)).trans ((hf $ ihn _ _).trans (hy _ (lt_succ n))),
+    exact λ k hk, hx _ (hk.trans (lt_succ n)),
+    exact λ k hk, hy _ (hk.trans (lt_succ n)) }
 end
 
 lemma seq_pos_lt_seq_of_lt_of_le (hf : monotone f) {n : ℕ} (hn : 0 < n) (h₀ : x 0 ≤ y 0)
@@ -39,10 +39,10 @@ lemma seq_pos_lt_seq_of_lt_of_le (hf : monotone f) {n : ℕ} (hn : 0 < n) (h₀ 
 begin
   induction n with n ihn, { exact hn.false.elim },
   suffices : x n ≤ y n,
-    from (hx n n.lt_succ_self).trans_le ((hf this).trans $ hy n n.lt_succ_self),
+    from (hx n (lt_succ n)).trans_le ((hf this).trans $ hy n (lt_succ n)),
   cases n, { exact h₀ },
   refine (ihn n.zero_lt_succ (λ k hk, hx _ _) (λ k hk, hy _ _)).le;
-    exact hk.trans n.succ.lt_succ_self
+    exact hk.trans (lt_succ n.succ)
 end
 
 lemma seq_pos_lt_seq_of_le_of_lt (hf : monotone f) {n : ℕ} (hn : 0 < n) (h₀ : x 0 ≤ y 0)

@@ -66,7 +66,7 @@ circulant_injective.eq_iff
 (fin.circulant_injective n).eq_iff
 
 lemma transpose_circulant [add_group I] (v : I → α) :
-  (circulant v)ᵀ =  circulant (λ i, v (-i)) :=
+  (circulant v)ᵀ = circulant (λ i, v (-i)) :=
 by ext; simp
 
 lemma conj_transpose_circulant [has_star α] [add_group I] (v : I → α) :

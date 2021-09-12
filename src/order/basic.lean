@@ -157,6 +157,42 @@ theorem antitone.comp_monotone {g : β → γ} {f : α → β} (m_g : antitone g
 protected theorem monotone.iterate {f : α → α} (hf : monotone f) (n : ℕ) : monotone (f^[n]) :=
 nat.rec_on n monotone_id (λ n ihn, ihn.comp hf)
 
+protected lemma monotone.max {α β : Type*} [linear_order α] [linear_order β] {f : α → β}
+  (hf : monotone f) (a b : α) :
+  f (max a b) = max (f a) (f b) :=
+begin
+  cases le_total a b,
+  { rw [max_eq_right h, max_eq_right (hf h)] },
+  { rw [max_eq_left h, max_eq_left (hf h)] }
+end
+
+protected lemma antitone.max {α β : Type*} [linear_order α] [linear_order β] {f : α → β}
+  (hf : antitone f) (a b : α) :
+  f (max a b) = min (f a) (f b) :=
+begin
+  cases le_total a b,
+  { rw [max_eq_right h, min_eq_right (hf h)] },
+  { rw [max_eq_left h, min_eq_left (hf h)] }
+end
+
+protected lemma monotone.min {α β : Type*} [linear_order α] [linear_order β] {f : α → β}
+  (hf : monotone f) (a b : α) :
+  f (min a b) = min (f a) (f b) :=
+begin
+  cases le_total a b,
+  { rw [min_eq_left h, min_eq_left (hf h)] },
+  { rw [min_eq_right h, min_eq_right (hf h)] }
+end
+
+protected lemma antitone.min {α β : Type*} [linear_order α] [linear_order β] {f : α → β}
+  (hf : antitone f) (a b : α) :
+  f (min a b) = max (f a) (f b) :=
+begin
+  cases le_total a b,
+  { rw [min_eq_left h, max_eq_left (hf h)] },
+  { rw [min_eq_right h, max_eq_right (hf h)] }
+end
+
 lemma monotone_nat_of_le_succ {f : ℕ → α} (hf : ∀ n, f n ≤ f (n + 1)) :
   monotone f | n m h :=
 begin

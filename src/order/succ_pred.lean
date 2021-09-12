@@ -303,19 +303,11 @@ variables [succ_order α]
 
 @[simp] lemma max_succ_succ {a b : α} :
   max (succ a) (succ b) = succ (max a b) :=
-begin
-  obtain h | h := le_total a b,
-  { rw [max_eq_right h, max_eq_right (succ_mono h)] },
-  { rw [max_eq_left h, max_eq_left (succ_mono h)] }
-end
+succ_mono.max.symm
 
 @[simp] lemma min_succ_succ {a b : α} :
   min (succ a) (succ b) = succ (min a b) :=
-begin
-  obtain h | h := le_total a b,
-  { rw [min_eq_left h, min_eq_left (succ_mono h)] },
-  { rw [min_eq_right h, min_eq_right (succ_mono h)] }
-end
+succ_mono.min.symm
 
 end linear_order
 
@@ -551,27 +543,27 @@ instance : pred_order (with_top α) :=
   end,
   minimal_of_le_pred := begin
     rintro a ha b h,
+    cases a,
+    { exact (with_top.coe_lt_top (⊤ : α)).not_le ha },
     cases b,
-    { exact (with_top.some_lt_none (⊤ : α)).not_le ha },
-    cases b,
-    { exact h.not_le top_le },
-    exact minimal_of_le_pred (with_top.some_le_some.1 ha) (with_top.some_lt_some.1 h),
+    { exact h.not_le le_top },
+    { exact minimal_of_le_pred (with_top.some_le_some.1 ha) (with_top.some_lt_some.1 h) }
   end,
   le_pred_of_lt := begin
     rintro a b h,
-    cases b,
-    exact (top_le.not_lt h).elim,
     cases a,
-    exact with_top.some_le_some.2 top_le,
+    { exact ((le_top).not_lt h).elim },
+    cases b,
+    { exact with_top.some_le_some.2 le_top },
     exact with_top.some_le_some.2 (le_pred_of_lt $ with_top.some_lt_some.1 h),
   end,
   le_of_pred_lt := begin
     rintro a b h,
-    cases a,
-    exact top_le,
     cases b,
-    exact (top_le.not_lt $ with_top.some_lt_some.1 h).elim,
-    exact with_top.some_le_some.2 (le_of_pred_lt $ with_top.some_lt_some.1 h),
+    { exact le_top },
+    cases a,
+    { exact (le_top.not_lt $ with_top.some_lt_some.1 h).elim },
+    { exact with_top.some_le_some.2 (le_of_pred_lt $ with_top.some_lt_some.1 h) }
   end }
 
 end order_top
@@ -593,19 +585,11 @@ variables [pred_order α]
 
 @[simp] lemma max_pred_pred {a b : α} :
   max (pred a) (pred b) = pred (max a b) :=
-begin
-  obtain h | h := le_total a b,
-  { rw [max_eq_right h, max_eq_right (pred_anti h)] },
-  { rw [max_eq_left h, max_eq_left (pred_anti h)] }
-end
+pred_mono.max.symm
 
 @[simp] lemma min_pred_pred {a b : α} :
   min (pred a) (pred b) = pred (min a b) :=
-begin
-  obtain h | h := le_total a b,
-  { rw [min_eq_left h, min_eq_left (pred_anti h)] },
-  { rw [min_eq_right h, min_eq_right (pred_anti h)] }
-end
+pred_mono.min.symm
 
 end linear_order
 

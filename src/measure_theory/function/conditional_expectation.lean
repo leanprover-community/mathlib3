@@ -1421,7 +1421,6 @@ variables {𝕜} {m m0 : measurable_space α} {μ : measure α} [borel_space �
 def condexp (hm : m ≤ m0) (μ : measure α) [sigma_finite (μ.trim hm)] (f : α → F') : α → F' :=
 ae_measurable'_condexp_L1.mk (condexp_L1 hm μ f)
 
-notation  μ `[` f `]` := ∫ x, f x ∂μ
 notation  μ `[` f `|` hm `]` := condexp hm μ f
 
 lemma measurable_condexp : measurable[m] (μ[f | hm]) := ae_measurable'.measurable_mk _
@@ -1443,14 +1442,11 @@ begin
   exact set_integral_condexp_L1 hf hs,
 end
 
-lemma integral_condexp (hf : integrable f μ) :
-  μ[μ[f|hm]] = μ[f] :=
+lemma integral_condexp (hf : integrable f μ) : ∫ x, μ[f|hm] x ∂μ = ∫ x, f x ∂μ :=
 begin
-  have h_univ := set_integral_condexp hf (@measurable_set.univ _ m),
-  swap, { exact hm, },
-  swap, { apply_instance, },
-  simp_rw integral_univ at h_univ,
-  exact h_univ,
+  suffices : ∫ x in set.univ, μ[f|hm] x ∂μ = ∫ x in set.univ, f x ∂μ,
+    by { simp_rw integral_univ at this, exact this, },
+  exact set_integral_condexp hf (@measurable_set.univ _ m),
 end
 
 end condexp

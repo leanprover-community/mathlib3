@@ -185,27 +185,22 @@ begin
   rw ← ker_eq_bot,
   rw ker_eq_bot',
   intros x hx,
-  ext i,
-  rw [submodule_is_internal.apply] at hx,
-  rw [dfinsupp.zero_apply, coe_zero, coe_eq_zero],
+  ext1 i,
+  rw [dfinsupp.zero_apply],
   by_contra hi,
-  have : i ∈ dfinsupp.support x, { rw dfinsupp.mem_support_iff, exact_mod_cast hi },
-  rw ← finset.sum_erase_add _ _ this at hx,
-  simp only [submodule.coe_zero, ← neg_eq_iff_add_eq_zero] at hx,
-  simp only [← hx, pi.zero_apply, submodule.coe_zero] at hi,
-  have := submodule.disjoint_def.mp (complete_lattice.independent_def.mp h_ind i) (x i) (x i).2,
-  have h2 : ∑ (k : ι) in (dfinsupp.support x).erase i,
-    ↑(x k) ∈ ⨆ (k : ι) (H : k ∈ (dfinsupp.support x).erase i), p k,
-  { apply submodule.sum_mem_bsupr,
-    intros c hc,
-    exact (x c).2, },
-  have h3 : (⨆ (k : ι) (H : k ∈ (dfinsupp.support x).erase i), p k : submodule R M) ≤
-    ⨆ (k : ι) (H : k ≠ i), p k := bsupr_le_bsupr' (λ i, finset.ne_of_mem_erase),
-  have h4 := h3 h2,
-  rw ← submodule.neg_mem_iff at h4,
-  rw hx at h4,
-  have h5 := submodule.coe_eq_zero.1 (this h4),
-  contradiction
+  have hs : i ∈ dfinsupp.support x, { rw dfinsupp.mem_support_iff, exact_mod_cast hi },
+  apply hi,
+  apply submodule.coe_eq_zero.1,
+  apply submodule.disjoint_def.mp (h_ind i) (x i) (x i).2,
+  have h_mem : ∑ (k : ι) in (dfinsupp.support x).erase i,
+    ↑(x k) ∈ ⨆ (k : ι) (H : k ∈ (dfinsupp.support x).erase i), p k :=
+      submodule.sum_mem_bsupr (λ c hc, (x c).prop),
+  have h_le : (⨆ k ∈ (dfinsupp.support x).erase i, p k : submodule R M) ≤
+    ⨆ k ≠ i, p k := bsupr_le_bsupr' (λ i, finset.ne_of_mem_erase),
+  have h4 := h_le h_mem,
+  rw [submodule_is_internal.apply, ← finset.sum_erase_add _ _ hs, ← neg_eq_iff_add_eq_zero] at hx,
+  rw [← submodule.neg_mem_iff, hx] at h4,
+  exact h4,
 end
 
 lemma surjective_of_supr_eq_top (p : ι → submodule R M) (h_supr : supr p = ⊤) :

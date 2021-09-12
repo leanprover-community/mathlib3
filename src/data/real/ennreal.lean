@@ -386,12 +386,19 @@ lemma mul_self_lt_top_iff {a : ℝ≥0∞} : a * a < ⊤ ↔ a < ⊤ :=
 by { rw [ennreal.mul_lt_top_iff, and_self, or_self, or_iff_left_iff_imp], rintro rfl, norm_num }
 
 @[simp] lemma mul_pos : 0 < a * b ↔ 0 < a ∧ 0 < b :=
-by simp only [pos_iff_ne_zero, ne.def, mul_eq_zero, not_or_distrib]
+canonically_ordered_comm_semiring.mul_pos
 
-lemma pow_eq_top : ∀ n:ℕ, a^n=∞ → a=∞
-| 0 := by simp
-| (n+1) := λ o, by { rw pow_succ at o,
-                     exact (mul_eq_top.1 o).elim (λ h, pow_eq_top n h.2) and.left }
+@[simp] lemma pow_eq_top_iff {n : ℕ} : a ^ n = ∞ ↔ a = ∞ ∧ n ≠ 0 :=
+begin
+  induction n with n ihn, { simp },
+  rw [pow_succ, mul_eq_top, ihn],
+  fsplit,
+  { rintro (⟨-,rfl,h0⟩|⟨rfl,h0⟩); exact ⟨rfl, n.succ_ne_zero⟩ },
+  { rintro ⟨rfl, -⟩, exact or.inr ⟨rfl, pow_ne_zero n top_ne_zero⟩ }
+end
+
+lemma pow_eq_top (n : ℕ) (h : a ^ n = ∞) : a = ∞ :=
+(pow_eq_top_iff.1 h).1
 
 lemma pow_ne_top (h : a ≠ ∞) {n:ℕ} : a^n ≠ ∞ :=
 mt (pow_eq_top n) h
@@ -681,19 +688,19 @@ Inf_le_Inf $ assume e (h : b ≤ e + d),
     ... ≤ e + d : h
     ... ≤ e + c : add_le_add (le_refl _) h₂
 
-@[simp] lemma add_sub_self : ∀{a b : ℝ≥0∞}, b < ∞ → (a + b) - b = a
+@[simp] lemma add_sub_self : ∀{a b : ℝ≥0∞}, b ≠ ∞ → (a + b) - b = a
 | a        none     := by simp [none_eq_top]
 | none     (some b) := by simp [none_eq_top, some_eq_coe]
 | (some a) (some b) :=
   by simp [some_eq_coe]; rw [← coe_add, ← coe_sub, coe_eq_coe, nnreal.add_sub_cancel]
 
-@[simp] lemma add_sub_self' (h : a < ∞) : (a + b) - a = b :=
+@[simp] lemma add_sub_self' (h : a ≠ ∞) : (a + b) - a = b :=
 by rw [add_comm, add_sub_self h]
 
-lemma add_right_inj (h : a < ∞) : a + b = a + c ↔ b = c :=
+lemma add_right_inj (h : a ≠ ∞) : a + b = a + c ↔ b = c :=
 ⟨λ e, by simpa [h] using congr_arg (λ x, x - a) e, congr_arg _⟩
 
-lemma add_left_inj (h : a < ∞) : b + a = c + a ↔ b = c :=
+lemma add_left_inj (h : a ≠ ∞) : b + a = c + a ↔ b = c :=
 by rw [add_comm, add_comm c, add_right_inj h]
 
 @[simp] lemma sub_add_cancel_of_le : ∀{a b : ℝ≥0∞}, b ≤ a → (a - b) + b = a :=
@@ -726,21 +733,35 @@ protected lemma sub_le_iff_le_add' : a - b ≤ c ↔ a ≤ b + c :=
 add_comm c b ▸ ennreal.sub_le_iff_le_add
 
 lemma sub_eq_of_add_eq : b ≠ ∞ → a + b = c → c - b = a :=
-λ hb hc, hc ▸ add_sub_self (lt_top_iff_ne_top.2 hb)
+λ hb hc, hc ▸ add_sub_self hb
 
 protected lemma sub_le_of_sub_le (h : a - b ≤ c) : a - c ≤ b :=
-ennreal.sub_le_iff_le_add.2 $ by { rw add_comm, exact ennreal.sub_le_iff_le_add.1 h }
+ennreal.sub_le_iff_le_add.2 $ ennreal.sub_le_iff_le_add'.1 h
 
-protected lemma sub_lt_self : a ≠ ∞ → a ≠ 0 → 0 < b → a - b < a :=
-match a, b with
-| none, _ := by { have := none_eq_top, assume h, contradiction }
-| (some a), none := by {intros, simp only [none_eq_top, sub_top, pos_iff_ne_zero], assumption}
-| (some a), (some b) :=
-  begin
-    simp only [some_eq_coe, coe_sub.symm, coe_pos, coe_eq_zero, coe_lt_coe, ne.def],
-    assume h₁ h₂, apply nnreal.sub_lt_self, exact pos_iff_ne_zero.2 h₂
-  end
+protected lemma lt_add_of_sub_lt (ht : a ≠ ∞ ∨ b ≠ ∞) (h : a - b < c) : a < c + b :=
+begin
+  rcases eq_or_ne b ∞ with rfl|hb,
+  { rw [add_top, lt_top_iff_ne_top], exact ht.resolve_right (not_not.2 rfl) },
+  { calc a ≤ (a - b) + b : le_sub_add_self
+     ... < c + b : (add_lt_add_iff_right hb).2 h }
 end
+
+protected lemma sub_lt_of_lt_add (hac : c ≤ a) (h : a < b + c) : a - c < b :=
+begin
+  lift c to ℝ≥0 using (ne_top_of_lt $ hac.trans_lt h),
+  lift a to ℝ≥0 using (ne_top_of_lt h),
+  rw coe_le_coe at hac,
+  rw [← coe_sub],
+  cases b, { exact coe_lt_top },
+  rwa [some_eq_coe, coe_lt_coe, nnreal.sub_lt_iff_lt_add hac, ← coe_lt_coe, coe_add, add_comm]
+end
+
+protected lemma sub_lt_iff_lt_add (hb : b ≠ ∞) (hab : b ≤ a) : a - b < c ↔ a < c + b :=
+⟨ennreal.lt_add_of_sub_lt (or.inr hb), ennreal.sub_lt_of_lt_add hab⟩
+
+protected lemma sub_lt_self (hat : a ≠ ∞) (h0 : a ≠ 0) (hb : 0 < b) : a - b < a :=
+(le_total b a).elim (λ hba, ennreal.sub_lt_of_lt_add hba (lt_add_right hat hb))
+(λ hab, by rwa [sub_eq_zero_of_le hab, ennreal.bot_lt_iff_ne_bot])
 
 @[simp] protected lemma sub_eq_zero_iff_le : a - b = 0 ↔ a ≤ b :=
 by simpa [-ennreal.sub_le_iff_le_add] using @ennreal.sub_le_iff_le_add a b 0
@@ -764,6 +785,9 @@ ennreal.sub_le_iff_le_add.2 $ le_self_add
 @[simp] lemma sub_zero : a - 0 = a :=
 eq.trans (add_zero (a - 0)).symm $ by simp
 
+lemma sub_lt_of_sub_lt (h₂ : c ≤ a) (h₃ : a ≠ ∞ ∨ b ≠ ∞) (h₁ : a - b < c) : a - c < b :=
+ennreal.sub_lt_of_lt_add h₂ (add_comm c b ▸ ennreal.lt_add_of_sub_lt h₃ h₁)
+
 /-- A version of triangle inequality for difference as a "distance". -/
 lemma sub_le_sub_add_sub : a - c ≤ a - b + (b - c) :=
 ennreal.sub_le_iff_le_add.2 $
@@ -771,11 +795,11 @@ calc a ≤ a - b + b : le_sub_add_self
 ... ≤ a - b + ((b - c) + c) : add_le_add_left le_sub_add_self _
 ... = a - b + (b - c) + c : (add_assoc _ _ _).symm
 
-lemma sub_sub_cancel (h : a < ∞) (h2 : b ≤ a) : a - (a - b) = b :=
-by rw [← add_left_inj (lt_of_le_of_lt (sub_le_self _ _) h),
+lemma sub_sub_cancel (h : a ≠ ∞) (h2 : b ≤ a) : a - (a - b) = b :=
+by rw [← add_left_inj (ne_top_of_le_ne_top h (sub_le_self _ _)),
   sub_add_cancel_of_le (sub_le_self _ _), add_sub_cancel_of_le h2]
 
-lemma sub_right_inj {a b c : ℝ≥0∞} (ha : a < ∞) (hb : b ≤ a) (hc : c ≤ a) :
+lemma sub_right_inj {a b c : ℝ≥0∞} (ha : a ≠ ∞) (hb : b ≤ a) (hc : c ≤ a) :
   a - b = a - c ↔ b = c :=
 iff.intro
   begin
@@ -947,6 +971,8 @@ by rw [coe_inv (ne_of_gt _root_.zero_lt_two), coe_two]
 
 @[simp, norm_cast] lemma coe_div (hr : r ≠ 0) : (↑(p / r) : ℝ≥0∞) = p / r :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, coe_mul, coe_inv hr]
+
+lemma div_zero (h : a ≠ 0) : a / 0 = ∞ := by simp [div_eq_mul_inv, h]
 
 @[simp] lemma inv_one : (1:ℝ≥0∞)⁻¹ = 1 :=
 by simpa only [coe_inv one_ne_zero, coe_one] using coe_eq_coe.2 inv_one
@@ -1283,6 +1309,12 @@ begin
   lift b to ℝ≥0 using ne_top_of_le_ne_top ha h,
   lift a to ℝ≥0 using ha,
   simp only [← ennreal.coe_sub, ennreal.coe_to_real, nnreal.coe_sub (ennreal.coe_le_coe.mp h)],
+end
+
+lemma le_to_real_sub {a b : ℝ≥0∞} (hb : b ≠ ∞) : a.to_real - b.to_real ≤ (a - b).to_real :=
+begin
+  lift b to ℝ≥0 using hb,
+  cases a; simp [none_eq_top, some_eq_coe, ← coe_sub, nnreal.sub_def] at *
 end
 
 lemma to_real_add_le : (a+b).to_real ≤ a.to_real + b.to_real :=

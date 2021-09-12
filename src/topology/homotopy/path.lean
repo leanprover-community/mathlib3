@@ -11,7 +11,7 @@ import topology.path_connected
 # Homotopy between paths
 
 In this file, we define a `homotopy` between two `path`s. In addition, we define a relation
-`homotopic` on `path`s`, and prove that it is an equivalence relation. Finally, we also define
+`homotopic` on `path`s, and prove that it is an equivalence relation. Finally, we also define
 (but do not yet prove that is a group) the fundamental group of a space.
 
 ## Definitions

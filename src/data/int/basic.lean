@@ -152,10 +152,17 @@ def succ (a : ℤ) := a + 1
 def pred (a : ℤ) := a - 1
 
 @[reducible] -- so that Lean reads `int.succ` through `succ_order.succ`
-instance : succ_pred_order ℤ :=
+instance : succ_order ℤ :=
 { succ := succ,
-  pred := pred,
-  ..succ_order_of_lt_iff_succ_le succ (λ a b, iff.rfl) }
+  ..succ_order_of_succ_le_iff succ (λ a b, iff.rfl) }
+
+@[reducible] -- so that Lean reads `int.pred` through `pred_order.pred`
+instance : pred_order ℤ :=
+{ pred := pred,
+  pred_le := λ a, (sub_one_le_of_lt le_rfl).le, -- this lemma should be called `sub_one_lt_of_le`
+  minimal_of_le_pred := λ a ha, ((sub_one_le_of_lt le_rfl).not_le ha).elim,
+  le_pred_of_lt := λ a b, le_sub_one_of_lt,
+  le_of_pred_lt := λ a b, lt_of_sub_one_le } -- this lemma should be called `le_of_sub_one_lt`
 
 theorem nat_succ_eq_int_succ (n : ℕ) : (nat.succ n : ℤ) = int.succ n := rfl
 
@@ -256,7 +263,7 @@ begin
     intros i n e,
     { subst e, rw [add_comm _ i, add_assoc],
       exact nat.le_add_right i (b.succ + b).succ },
-    { apply succ_le_succ,
+    { apply nat.succ_le_succ,
       rw [← succ.inj e, ← add_assoc, add_comm],
       apply nat.le_add_right } },
   cases a; cases b with b b; simp [nat_abs, nat.succ_add];
@@ -665,7 +672,7 @@ end,
       rw [mul_left_comm],
       apply nat.mul_le_mul_left,
       apply (nat.div_lt_iff_lt_mul _ _ k.succ_pos).1,
-      exact lt_succ _ }
+      exact lt_add_one _ }
   end
 end
 

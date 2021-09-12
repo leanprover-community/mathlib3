@@ -278,10 +278,9 @@ eq_one_of_mul_eq_one_right (by rwa mul_comm)
 /-! ### `succ` -/
 
 @[reducible] -- so that Lean reads `nat.succ` through `succ_order.succ`
-instance : succ_pred_order ℕ :=
+instance : succ_order ℕ :=
 { succ := succ,
-  pred := pred,
-  ..succ_order_of_lt_iff_succ_le succ (λ a b, iff.rfl) }
+  ..succ_order_of_succ_le_iff succ (λ a b, iff.rfl) }
 
 lemma succ_eq_one_add (n : ℕ) : n.succ = 1 + n :=
 by rw [nat.succ_eq_add_one, nat.add_comm]
@@ -298,7 +297,7 @@ theorem one_add (n : ℕ) : 1 + n = succ n := by simp [add_comm]
 @[simp] lemma succ_pos' {n : ℕ} : 0 < succ n := succ_pos n
 
 @[simp] lemma succ_succ_ne_one (n : ℕ) : n.succ.succ ≠ 1 :=
-succ_ne_succ.mpr n.succ_ne_zero
+succ_ne_succ n.succ_ne_zero
 
 @[simp] lemma one_lt_succ_succ (n : ℕ) : 1 < n.succ.succ :=
 succ_lt_succ $ succ_pos n
@@ -312,7 +311,6 @@ theorem lt_succ_iff {m n : ℕ} : m < succ n ↔ m ≤ n :=
 lemma succ_le_iff {m n : ℕ} : succ m ≤ n ↔ m < n :=
 iff.rfl
 
--- just for linarith. Feel free to remove it if you manage to make linarith look up the instance
 lemma lt_iff_add_one_le {m n : ℕ} : m < n ↔ m + 1 ≤ n :=
 iff.rfl
 
@@ -327,7 +325,7 @@ by simp only [add_comm, lt_succ_iff]
 -- This is true reflexively, by the definition of `≤` on ℕ,
 -- but it's still useful to have, to convince Lean to change the syntactic type.
 lemma add_one_le_iff {a b : ℕ} : a + 1 ≤ b ↔ a < b :=
-iff.refl _
+iff.rfl
 
 lemma one_add_le_iff {a b : ℕ} : 1 + a ≤ b ↔ a < b :=
 by simp only [add_comm, add_one_le_iff]
@@ -422,6 +420,26 @@ lemma le_of_add_le_right {a b c : ℕ} (h : a + b ≤ c) : b ≤ c :=
 by { refine le_trans _ h, simp }
 
 /-! ### `pred` -/
+
+@[reducible] -- so that Lean reads `nat.pred` through `pred_order.pred`
+instance : pred_order ℕ :=
+{ pred := pred,
+  pred_le := pred_le,
+  minimal_of_le_pred := λ a ha b h, begin
+    cases a,
+    { exact b.not_lt_zero h },
+    { exact nat.lt_irrefl a ha }
+  end,
+  le_pred_of_lt := λ a b h, begin
+    cases b,
+    { exact (a.not_lt_zero h).elim },
+    { exact le_of_succ_le_succ h }
+  end,
+  le_of_pred_lt := λ a b h, begin
+    cases a,
+    { exact b.zero_le },
+    { exact h }
+  end }
 
 @[simp]
 lemma add_succ_sub_one (n m : ℕ) : (n + succ m) - 1 = n + m :=
@@ -1002,28 +1020,25 @@ lemma succ_div : ∀ (a b : ℕ), (a + 1) / b =
   by simp [ne_of_gt hb2, div_eq_of_lt hb2]
 | (a+1) (b+1) := begin
   rw [nat.div_def], conv_rhs { rw nat.div_def },
-  by_cases hb_eq_a : b = a + 1,
-  { simp [hb_eq_a, le_refl] },
-  by_cases hb_le_a1 : b ≤ a + 1,
-  { have hb_le_a : b ≤ a, from le_of_lt_succ (lt_of_le_of_ne hb_le_a1 hb_eq_a),
-    have h₁ : (0 < b + 1 ∧ b + 1 ≤ a + 1 + 1),
-      from ⟨succ_pos _, (add_le_add_iff_right _).2 hb_le_a1⟩,
-    have h₂ : (0 < b + 1 ∧ b + 1 ≤ a + 1),
-      from ⟨succ_pos _, (add_le_add_iff_right _).2 hb_le_a⟩,
+  obtain hab | hba := lt_or_le a b,
+  cases lt_succ_iff_lt_or_eq.1 (succ_lt_succ hab),
+  { have hb_dvd_a : ¬ b + 1 ∣ a + 2,
+    { exact λ hdvd, (succ_lt_succ h).not_le (le_of_dvd (succ_pos _) hdvd) },
+    simp [h.not_le, ((lt_succ a).trans h).not_le, hb_dvd_a] },
+  { simp [←h, le_refl, (lt_succ a).not_le] },
+  { have h₁ : 0 < b + 1 ∧ b + 1 ≤ a + 1 + 1,
+      from ⟨succ_pos _, (succ_le_succ hba).trans (le_succ _)⟩,
+    have h₂ : 0 < b + 1 ∧ b + 1 ≤ a + 1,
+      from ⟨succ_pos _, succ_le_succ hba⟩,
     have dvd_iff : b + 1 ∣ a - b + 1 ↔  b + 1 ∣ a + 1 + 1,
     { rw [nat.dvd_add_iff_left (dvd_refl (b + 1)),
         ← nat.add_sub_add_right a 1 b, add_comm (_ - _), add_assoc,
-        nat.sub_add_cancel (succ_le_succ hb_le_a), add_comm 1] },
+        nat.sub_add_cancel (succ_le_succ hba), add_comm 1] },
     have wf : a - b < a + 1, from lt_succ_of_le (nat.sub_le_self _ _),
-    rw [if_pos h₁, if_pos h₂, nat.add_sub_add_right, nat.sub_add_comm hb_le_a,
+    rw [if_pos h₁, if_pos h₂, nat.add_sub_add_right, nat.sub_add_comm hba,
       by exact have _ := wf, succ_div (a - b),
       nat.add_sub_add_right],
-    simp [dvd_iff, succ_eq_add_one, add_comm 1, add_assoc] },
-  { have hba : ¬ b ≤ a,
-      from ((lt_succ a).trans hb_le_a1.ne').not_lt,
-    have hb_dvd_a : ¬ b + 1 ∣ a + 2,
-      from λ h, hb_le_a1 (le_of_succ_le_succ (le_of_dvd (succ_pos _) h)),
-    simp [hba, hb_le_a1, hb_dvd_a], }
+    simp [dvd_iff, succ_eq_add_one, add_comm 1, add_assoc] }
 end
 
 lemma succ_div_of_dvd {a b : ℕ} (hba : b ∣ a + 1) :

@@ -176,6 +176,8 @@ lemma succ_ne_succ_iff {a b : α} :
   succ a ≠ succ b ↔ a ≠ b :=
 succ_injective.ne_iff
 
+alias succ_ne_succ_iff ↔ ne_of_succ_ne_succ succ_ne_succ
+
 lemma lt_succ_iff_lt_or_eq {a b : α} : a < succ b ↔ (a < b ∨ a = b) :=
 lt_succ_iff.trans le_iff_lt_or_eq
 

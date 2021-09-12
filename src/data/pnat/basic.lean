@@ -129,10 +129,10 @@ instance : order_bot ℕ+ :=
 
 @[simp] lemma bot_eq_one : (⊥ : ℕ+) = 1 := rfl
 
-instance : add_succ_order ℕ+ :=
-{ succ := λ a, a + 1,
-  succ_eq_add_one := λ a, rfl,
-  ..succ_order_of_lt_iff_succ_le (λ a : ℕ+, a + 1) (λ a b, iff.rfl) }
+@[reducible] -- so that Lean reads `n + 1` through `succ_order.succ`
+instance : succ_order ℕ+ :=
+{ succ := λ n, n + 1,
+  ..succ_order_of_succ_le_iff (λ n : ℕ+, n + 1) (λ a b, add_one_le_iff) }
 
 instance : inhabited ℕ+ := ⟨1⟩
 
@@ -231,7 +231,7 @@ begin
   { exact (lt_irrefl 0 kprop).elim },
   cases k with k,
   { exact hz },
-  exact hi ⟨k.succ, nat.succ_pos _⟩ (λ m hm, hk _ (lt_succ_iff.2 hm)),
+  exact hi ⟨k.succ, nat.succ_pos _⟩ (λ m hm, hk _ (lt_succ_of_le hm)),
 end
 
 /-- An induction principle for `ℕ+`: it takes values in `Sort*`, so it applies also to Types,

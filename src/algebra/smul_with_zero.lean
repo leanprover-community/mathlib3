@@ -45,6 +45,7 @@ instance mul_zero_class.to_smul_with_zero [mul_zero_class R] : smul_with_zero R 
   smul_zero := mul_zero,
   zero_smul := zero_mul }
 
+/-- Like `mul_zero_class.to_smul_with_zero`, but multiplies on the right. -/
 instance mul_zero_class.to_opposite_smul_with_zero [mul_zero_class R] : smul_with_zero Rᵒᵖ R :=
 { smul := (•),
   smul_zero := λ r, zero_mul _,

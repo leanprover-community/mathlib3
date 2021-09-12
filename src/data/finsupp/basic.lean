@@ -987,6 +987,8 @@ end
 
 @[simp] lemma nat_zero_sub (f : α →₀ ℕ) : 0 - f = 0 := ext $ λ x, nat.zero_sub _
 
+@[simp] lemma nat_sub_self (f : α →₀ ℕ) : f - f = 0 := ext $ λ x, nat.sub_self _
+
 end nat_sub
 
 instance [add_comm_monoid M] : add_comm_monoid (α →₀ M) :=
@@ -2580,14 +2582,23 @@ instance [ordered_cancel_add_comm_monoid M] : ordered_cancel_add_comm_monoid (α
 
 lemma le_def [preorder M] [has_zero M] {f g : α →₀ M} : f ≤ g ↔ ∀ x, f x ≤ g x := iff.rfl
 
+lemma le_iff' [canonically_ordered_add_monoid M] (f g : α →₀ M)
+  {t : finset α} (hf : f.support ⊆ t) :
+  f ≤ g ↔ ∀ s ∈ t, f s ≤ g s :=
+⟨λ h s hs, h s,
+λ h s, if H : s ∈ f.support then h s (hf H) else (not_mem_support_iff.1 H).symm ▸ zero_le (g s)⟩
+
 lemma le_iff [canonically_ordered_add_monoid M] (f g : α →₀ M) :
   f ≤ g ↔ ∀ s ∈ f.support, f s ≤ g s :=
-⟨λ h s hs, h s,
-λ h s, if H : s ∈ f.support then h s H else (not_mem_support_iff.1 H).symm ▸ zero_le (g s)⟩
+le_iff' f g (subset.refl _)
 
 instance decidable_le [canonically_ordered_add_monoid M] [decidable_rel (@has_le.le M _)] :
   decidable_rel (@has_le.le (α →₀ M) _) :=
 λ f g, decidable_of_iff _ (le_iff f g).symm
+
+@[simp] lemma single_le_iff [canonically_ordered_add_monoid M] {i : α} {x : M} {f : α →₀ M} :
+  single i x ≤ f ↔ x ≤ f i :=
+(le_iff' _ _ support_single_subset).trans $ by simp
 
 @[simp] lemma add_eq_zero_iff [canonically_ordered_add_monoid M] (f g : α →₀ M) :
   f + g = 0 ↔ f = 0 ∧ g = 0 :=
@@ -2633,6 +2644,10 @@ ext $ λ a, nat.add_sub_of_le (h a)
 
 lemma nat_sub_add_cancel {f g : α →₀ ℕ} (h : f ≤ g) : g - f + f = g :=
 ext $ λ a, nat.sub_add_cancel (h a)
+
+lemma nat_add_sub_assoc {f₁ f₂ : α →₀ ℕ} (h : f₁ ≤ f₂) (f₃ : α →₀ ℕ) :
+  f₃ + f₂ - f₁ = f₃ + (f₂ - f₁) :=
+ext $ λ a, nat.add_sub_assoc (h _) _
 
 instance : canonically_ordered_add_monoid (α →₀ ℕ) :=
 { bot := 0,

@@ -206,13 +206,16 @@ variable {M}
 
 variables [∀ i, decidable_eq (M i)]
 
-/-- Prepend `m : M i` to `w` assuming `not_head i w`. Does nothing if `m = 1`. -/
+/-- Given a pair `(head, tail)`, we can form a word by prepending `head` to `tail`, except if `head`
+is `1 : M i` then we have to just return `word` since we need the result to be reduced. -/
 def rcons {i} (p : pair M i) : word M :=
 if h : p.head = 1 then p.tail
 else { to_list  := ⟨i, p.head⟩ :: p.tail.to_list,
        ne_one   := by { rintros l (rfl | hl), exact h, exact p.tail.ne_one l hl },
        chain_ne := p.tail.chain_ne.cons' (fst_idx_ne_iff.mp p.fst_idx_ne) }
 
+/-- Given a word of the form `⟨l :: ls, h1, h2⟩`, we can form a word of the form `⟨ls, _, _⟩`,
+dropping the first letter. -/
 private def mk_aux {l} (ls) (h1 : ∀ l' ∈ l :: ls, sigma.snd l' ≠ 1) (h2 : (l :: ls).chain' _) :
   word M := ⟨ls, λ l' hl, h1 _ (list.mem_cons_of_mem _ hl), h2.tail⟩
 

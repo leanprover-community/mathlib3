@@ -46,9 +46,6 @@ independence, convex position
 
 open_locale affine big_operators classical
 open finset function
-
--- For the generalization to vector spaces
---variables (𝕜 : Type*) {E : Type*} [ordered_semiring 𝕜] [add_comm_group E] [module 𝕜 E]
 variables {E : Type*} [add_comm_group E] [module ℝ E]
           {ι : Type*} {s t : set E}
 
@@ -92,9 +89,6 @@ lemma subsingleton.convex_independent [subsingleton ι] (p : ι → E) :
   rw [convex_hull_nonempty_iff, set.nonempty_image_iff] at this,
   rwa subsingleton.mem_iff_nonempty,
 end
-
--- For the generalization to vector spaces
--- variables {𝕜}
 
 /-- A convex independent family is injective. -/
 protected lemma convex_independent.injective {p : ι → E} (hc : convex_independent p) :
@@ -195,31 +189,6 @@ begin
     by_contra h,
     exact hs _ hxs (convex_hull_mono (set.subset_diff_singleton ht h) hxt) }
 end
-
---TODO: Finish. This requires some glue between `affine_combination` and `finset.center_mass` and a
--- bit more API for `affine_combination` itself.
--- lemma affine_independent.convex_independent {p : ι → E} (ha : affine_independent ℝ p) :
---   convex_independent p :=
--- begin
---   rw convex_independent_iff_finset,
---   intros s x hx,
---   rw finset.convex_hull_eq at hx,
---   obtain ⟨w, _, hw, hx⟩ := hx,
---   rw ←finset.mem_coe,
---   suffices h : (s : set ι).indicator (w ∘ p) x ≠ 0,
---   { exact set.mem_of_indicator_ne_zero h },
---   --rw ←ha.injective.mem_finset_image_iff,
---   rw finset.sum_image (ha.injective.inj_on _) at hw,
---   rw [ha.indicator_eq_of_affine_combination_eq s {x} (w ∘ p) 1 hw finset.sum_singleton _,
---     finset.coe_singleton, set.indicator_of_mem (set.mem_singleton _)],
---   exact one_ne_zero,
---   sorry,
--- end
-
--- and we'll get this one for free
--- /-- Two different points are convex independent. -/
--- lemma convex_independent_of_ne {p₁ p₂ : E} (h : p₁ ≠ p₂) : convex_independent ![p₁, p₂] :=
--- (affine_independent_of_ne ℝ h).convex_independent
 
 /-! ### Extreme points -/
 

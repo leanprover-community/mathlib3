@@ -136,7 +136,7 @@ begin
   simp [h g, h (ne.symm g)],
 end
 
-/-- The block matrix `A.from_blocks 0 0 D` is diagonal if  `A` and `D` are diagonal. -/
+/-- The block matrix `A.from_blocks 0 0 D` is diagonal if `A` and `D` are diagonal. -/
 lemma is_diag.from_blocks [has_zero α]
   {A : matrix m m α} {D : matrix n n α}
   (ha : A.is_diag) (hd : D.is_diag) :

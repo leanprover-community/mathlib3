@@ -747,6 +747,10 @@ begin
   exact hL.fderiv_within_eq unique_diff_within_at_univ A
 end
 
+protected lemma filter.eventually_eq.fderiv (h : f₁ =ᶠ[𝓝 x] f) :
+  fderiv 𝕜 f₁ =ᶠ[𝓝 x] fderiv 𝕜 f :=
+h.eventually_eq_nhds.mono $ λ x h, h.fderiv_eq
+
 end congr
 
 section id

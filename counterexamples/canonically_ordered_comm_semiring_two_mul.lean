@@ -222,9 +222,6 @@ instance order_bot : order_bot L :=
   bot_le := bot_le,
   ..(infer_instance : partial_order L) }
 
-lemma lt_of_add_lt_add_left : ∀ (a b c : L), a + b < a + c → b < c :=
-λ (a : L) {b c : L}, (add_lt_add_iff_left a).mp
-
 lemma le_iff_exists_add : ∀ (a b : L), a ≤ b ↔ ∃ (c : L), b = a + c :=
 begin
   rintros ⟨⟨an, a2⟩, ha⟩ ⟨⟨bn, b2⟩, hb⟩,
@@ -271,8 +268,7 @@ begin
 end
 
 instance can : canonically_ordered_comm_semiring L :=
-{ lt_of_add_lt_add_left := lt_of_add_lt_add_left,
-  le_iff_exists_add := le_iff_exists_add,
+{ le_iff_exists_add := le_iff_exists_add,
   eq_zero_or_eq_zero_of_mul_eq_zero := eq_zero_or_eq_zero_of_mul_eq_zero,
   ..(infer_instance : order_bot L),
   ..(infer_instance : ordered_comm_semiring L) }

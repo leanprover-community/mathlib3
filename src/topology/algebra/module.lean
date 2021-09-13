@@ -778,8 +778,8 @@ variables
 section
 variables (f g : M →SL[σ₁₂] M₂) (x y : M)
 
-@[simp] lemma map_neg  : f (-x) = - (f x) := (to_linear_map _).map_neg _
-@[simp] lemma map_sub  : f (x - y) = f x - f y := (to_linear_map _).map_sub _ _
+@[simp] protected lemma map_neg  : f (-x) = - (f x) := (to_linear_map _).map_neg _
+@[simp] protected lemma map_sub  : f (x - y) = f x - f y := (to_linear_map _).map_sub _ _
 @[simp] lemma sub_apply' (x : M) : ((f : M →ₛₗ[σ₁₂] M₂) - g) x = f x - g x := rfl
 end
 

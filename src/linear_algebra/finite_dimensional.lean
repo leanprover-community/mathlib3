@@ -899,18 +899,17 @@ open finite_dimensional
 variables [finite_dimensional K V]
 
 /-- The linear equivalence corresponging to an injective endomorphism. -/
-noncomputable def of_injective_endo (f : V →ₗ[K] V) (h_inj : f.ker = ⊥) : V ≃ₗ[K] V :=
-(linear_equiv.of_injective f h_inj).trans
-  (linear_equiv.of_top _ (linear_map.ker_eq_bot_iff_range_eq_top.1 h_inj))
+noncomputable def of_injective_endo (f : V →ₗ[K] V) (h_inj : injective f) : V ≃ₗ[K] V :=
+linear_equiv.of_bijective f h_inj $ linear_map.injective_iff_surjective.mp h_inj
 
-@[simp] lemma coe_of_injective_endo (f : V →ₗ[K] V) (h_inj : f.ker = ⊥) :
+@[simp] lemma coe_of_injective_endo (f : V →ₗ[K] V) (h_inj : injective f) :
   ⇑(of_injective_endo f h_inj) = f := rfl
 
-@[simp] lemma of_injective_endo_right_inv (f : V →ₗ[K] V) (h_inj : f.ker = ⊥) :
+@[simp] lemma of_injective_endo_right_inv (f : V →ₗ[K] V) (h_inj : injective f) :
   f * (of_injective_endo f h_inj).symm = 1 :=
 linear_map.ext $ (of_injective_endo f h_inj).apply_symm_apply
 
-@[simp] lemma of_injective_endo_left_inv (f : V →ₗ[K] V) (h_inj : f.ker = ⊥) :
+@[simp] lemma of_injective_endo_left_inv (f : V →ₗ[K] V) (h_inj : injective f) :
   ((of_injective_endo f h_inj).symm : V →ₗ[K] V) * f = 1 :=
 linear_map.ext $ (of_injective_endo f h_inj).symm_apply_apply
 
@@ -923,7 +922,7 @@ begin
   split,
   { rintro ⟨u, rfl⟩,
     exact linear_map.ker_eq_bot_of_inverse u.inv_mul },
-  { intro h_inj,
+  { intro h_inj, rw ker_eq_bot at h_inj,
     exact ⟨⟨f, (linear_equiv.of_injective_endo f h_inj).symm.to_linear_map,
       linear_equiv.of_injective_endo_right_inv f h_inj,
       linear_equiv.of_injective_endo_left_inv f h_inj⟩, rfl⟩ }
@@ -979,18 +978,18 @@ calc  finrank K V
 ... ≤ finrank K V₂ : submodule.finrank_le _
 
 /-- Given a linear map `f` between two vector spaces with the same dimension, if
-`ker f = ⊥` then `linear_equiv_of_ker_eq_bot` is the induced isomorphism
+`ker f = ⊥` then `linear_equiv_of_injective` is the induced isomorphism
 between the two vector spaces. -/
-noncomputable def linear_equiv_of_ker_eq_bot
+noncomputable def linear_equiv_of_injective
   [finite_dimensional K V] [finite_dimensional K V₂]
-  (f : V →ₗ[K] V₂) (hf : f.ker = ⊥) (hdim : finrank K V = finrank K V₂) : V ≃ₗ[K] V₂ :=
-linear_equiv.of_bijective f hf (linear_map.range_eq_top.2 $
-  (linear_map.injective_iff_surjective_of_finrank_eq_finrank hdim).1 (linear_map.ker_eq_bot.1 hf))
+  (f : V →ₗ[K] V₂) (hf : injective f) (hdim : finrank K V = finrank K V₂) : V ≃ₗ[K] V₂ :=
+linear_equiv.of_bijective f hf $
+  (linear_map.injective_iff_surjective_of_finrank_eq_finrank hdim).mp hf
 
-@[simp] lemma linear_equiv_of_ker_eq_bot_apply
+@[simp] lemma linear_equiv_of_injective_apply
   [finite_dimensional K V] [finite_dimensional K V₂]
-  {f : V →ₗ[K] V₂} (hf : f.ker = ⊥) (hdim : finrank K V = finrank K V₂) (x : V) :
-  f.linear_equiv_of_ker_eq_bot hf hdim x = f x := rfl
+  {f : V →ₗ[K] V₂} (hf : injective f) (hdim : finrank K V = finrank K V₂) (x : V) :
+  f.linear_equiv_of_injective hf hdim x = f x := rfl
 
 end linear_map
 

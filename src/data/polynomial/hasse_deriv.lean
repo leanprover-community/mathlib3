@@ -27,7 +27,8 @@ In the following, we write `D k` for the `k`-th Hasse derivative `hasse_deriv k`
 * `polynomial.hasse_deriv_mul`:
   the "Leibniz rule" `D k (f * g) = ∑ ij in antidiagonal k, D ij.1 f * D ij.2 g`
 
-TODO: Prove the identity principle: a polynomial is 0 iff all its Hasse derivatives are zero.
+For the identity principle, see `polynomial.eq_zero_of_hasse_deriv_eq_zero`
+in `data/polynomial/taylor.lean`.
 
 ## Reference
 

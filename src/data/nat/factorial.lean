@@ -54,7 +54,7 @@ begin
   { have := nat.eq_zero_of_le_zero h, subst m, simp },
   obtain he | hl := h.eq_or_lt,
   { subst m, simp },
-  exact dvd_mul_of_dvd_right (IH (le_of_lt_succ hl)) _,
+  exact (IH (le_of_lt_succ hl)).mul_left _,
 end
 
 theorem dvd_factorial : ∀ {m n}, 0 < m → m ≤ n → m ∣ n!

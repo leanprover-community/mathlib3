@@ -77,7 +77,7 @@ theorem convex_image_has_deriv_at {s : set ℝ} (hs : convex ℝ s)
   (hf : ∀ x ∈ s, has_deriv_at f (f' x) x) :
   convex ℝ (f' '' s) :=
 begin
-  refine ord_connected.convex _,
+  refine ord_connected.convex ⟨_⟩,
   rintros _ ⟨a, ha, rfl⟩ _ ⟨b, hb, rfl⟩ m ⟨hma, hmb⟩,
   cases eq_or_lt_of_le hma with hma hma,
     by exact hma ▸ mem_image_of_mem f' ha,

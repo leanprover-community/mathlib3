@@ -2172,7 +2172,7 @@ lemma differentiable_within_at.clm_comp
   differentiable_within_at 𝕜 (λ y, (c y).comp (d y)) s x :=
 (hc.has_fderiv_within_at.clm_comp hd.has_fderiv_within_at).differentiable_within_at
 
-@[simp] lemma differentiable_at.clm_comp (hc : differentiable_at 𝕜 c x)
+lemma differentiable_at.clm_comp (hc : differentiable_at 𝕜 c x)
   (hd : differentiable_at 𝕜 d x) : differentiable_at 𝕜 (λ y, (c y).comp (d y)) x :=
 (hc.has_fderiv_at.clm_comp hd.has_fderiv_at).differentiable_at
 
@@ -2180,7 +2180,7 @@ lemma differentiable_on.clm_comp (hc : differentiable_on 𝕜 c s) (hd : differe
   differentiable_on 𝕜 (λ y, (c y).comp (d y)) s :=
 λx hx, (hc x hx).clm_comp (hd x hx)
 
-@[simp] lemma differentiable.clm_comp (hc : differentiable 𝕜 c) (hd : differentiable 𝕜 d) :
+lemma differentiable.clm_comp (hc : differentiable 𝕜 c) (hd : differentiable 𝕜 d) :
   differentiable 𝕜 (λ y, (c y).comp (d y)) :=
 λx, (hc x).clm_comp (hd x)
 
@@ -2216,7 +2216,7 @@ lemma differentiable_within_at.clm_apply
   differentiable_within_at 𝕜 (λ y, (c y) (u y)) s x :=
 (hc.has_fderiv_within_at.clm_apply hu.has_fderiv_within_at).differentiable_within_at
 
-@[simp] lemma differentiable_at.clm_apply (hc : differentiable_at 𝕜 c x)
+lemma differentiable_at.clm_apply (hc : differentiable_at 𝕜 c x)
   (hu : differentiable_at 𝕜 u x) : differentiable_at 𝕜 (λ y, (c y) (u y)) x :=
 (hc.has_fderiv_at.clm_apply hu.has_fderiv_at).differentiable_at
 
@@ -2224,7 +2224,7 @@ lemma differentiable_on.clm_apply (hc : differentiable_on 𝕜 c s) (hu : differ
   differentiable_on 𝕜 (λ y, (c y) (u y)) s :=
 λx hx, (hc x hx).clm_apply (hu x hx)
 
-@[simp] lemma differentiable.clm_apply (hc : differentiable 𝕜 c) (hu : differentiable 𝕜 u) :
+lemma differentiable.clm_apply (hc : differentiable 𝕜 c) (hu : differentiable 𝕜 u) :
   differentiable 𝕜 (λ y, (c y) (u y)) :=
 λx, (hc x).clm_apply (hu x)
 

@@ -246,8 +246,8 @@ omit S
 
 /-- Viewing a module as an affine space modelled on itself, affine combinations are just linear
 combinations. -/
-@[simp] lemma affine_combination_module
-  (s : finset ι) (p : ι → V) (w : ι → k) (hw : ∑ i in s, w i = 1) :
+@[simp] lemma affine_combination_eq_linear_combination (s : finset ι) (p : ι → V) (w : ι → k)
+  (hw : ∑ i in s, w i = 1) :
   s.affine_combination p w = ∑ i in s, w i • p i :=
 by simp [s.affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one w p hw 0]
 

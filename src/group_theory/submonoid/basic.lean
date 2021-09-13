@@ -397,7 +397,7 @@ of `f (x + y) = f x + f y` only for `y ∈ s`. -/
 add_decl_doc add_monoid_hom.of_mdense
 
 @[simp, norm_cast, to_additive] lemma coe_of_mdense (f : M → N) (hs : closure s = ⊤) (h1 hmul) :
-  ⇑(of_mdense f hs h1 hmul) = f := rfl
+  (of_mdense f hs h1 hmul : M → N) = f := rfl
 
 end monoid_hom
 

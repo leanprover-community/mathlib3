@@ -20,7 +20,7 @@ namespace category_theory.limits
 
 attribute [elementwise] cone.w limit.lift_π limit.w cocone.w colimit.ι_desc colimit.w
 
-local attribute [instance] concrete_category.has_coe_to_fun concrete_category.has_coe_to_sort
+local attribute [instance] concrete_category.to_fun concrete_category.has_coe_to_sort
 
 section limits
 

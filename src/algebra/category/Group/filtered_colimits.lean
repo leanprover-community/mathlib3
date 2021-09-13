@@ -33,7 +33,7 @@ section
 noncomputable theory
 open_locale classical
 
-open Mon.filtered_colimits
+open Mon.filtered_colimits (colimit_mul colimit_one colimit_mul_eq' colimit_one_eq')
 
 parameters {J : Type v} [small_category J] [is_filtered J] (F : J ⥤ Group.{v})
 
@@ -96,7 +96,7 @@ begin
 end
 
 @[to_additive]
-instance : group G :=
+instance colimit_group : group G :=
 { inv := colimit_inv,
   mul_left_inv := colimit_mul_left_inv,
   .. G.monoid }
@@ -110,9 +110,7 @@ lemma colimit_inv_eq (x : Σ j, F.obj j) : (G.mk x) ⁻¹ = G.mk ⟨x.1, x.2 ⁻
 @[to_additive]
 def colimit_cocone : cocone F :=
 { X := colimit,
-  ι :=
-  { app := Mon.filtered_colimits.cocone_morphism (F ⋙ forget₂ Group Mon),
-    naturality' := λ X Y, Mon.filtered_colimits.cocone_naturality (F ⋙ forget₂ Group Mon) } }
+  ι := { ..(Mon.filtered_colimits.colimit_cocone (F ⋙ forget₂ Group Mon)).ι } }
 
 @[to_additive]
 def colimit_cocone_is_colimit : is_colimit colimit_cocone :=

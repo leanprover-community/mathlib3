@@ -268,13 +268,9 @@ def colimit_cocone_is_colimit : is_colimit colimit_cocone :=
 { desc := colimit_desc,
   fac' := λ t j, monoid_hom.coe_inj
     ((types.colimit_cocone_is_colimit (F ⋙ forget Mon)).fac ((forget Mon).map_cocone t) j),
-  uniq' := λ t m h, begin
-    apply monoid_hom.coe_inj,
-    apply (types.colimit_cocone_is_colimit (F ⋙ forget Mon)).uniq ((forget Mon).map_cocone t) m,
-    intro j,
-    ext x,
-    exact monoid_hom.congr_fun (h j) x,
-  end }
+  uniq' := λ t m h, monoid_hom.coe_inj $
+    (types.colimit_cocone_is_colimit (F ⋙ forget Mon)).uniq ((forget Mon).map_cocone t) m
+      (λ j, funext $ λ x, monoid_hom.congr_fun (h j) x) }
 
 @[to_additive]
 instance forget_preserves_filtered_colimits : preserves_filtered_colimits (forget Mon) :=

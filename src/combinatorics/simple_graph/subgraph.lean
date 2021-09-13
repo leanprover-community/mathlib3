@@ -82,8 +82,8 @@ G'.adj_sub h
 /-- A subgraph is called a *spanning subgraph* if it contains all the vertices of `G`. --/
 def is_spanning (G' : subgraph G) : Prop := ∀ (v : V), v ∈ G'.verts
 
-lemma adj_sub' (G' : subgraph G) {u v : G'.verts} (h : ¬G.adj u v) : ¬G'.adj u v :=
-by { apply mt, apply G'.adj_sub, exact h }
+lemma adj_sub_mt (G' : subgraph G) {u v : G'.verts} (h : ¬G.adj u v) : ¬G'.adj u v :=
+λ h', h (G'.adj_sub h')
 
 /-- Coercion from `subgraph G` to `simple_graph V`.  If `G'` is a spanning
 subgraph, then `G'.spanning_coe` yields an isomorphic graph.

@@ -5,6 +5,7 @@ Authors: Patrick Massot
 -/
 import topology.unit_interval
 import topology.algebra.ordered.proj_Icc
+import topology.continuous_function.basic
 
 /-!
 # Path connectedness
@@ -67,27 +68,25 @@ variables {X : Type*} [topological_space X] {x y z : X} {ι : Type*}
 
 /-- Continuous path connecting two points `x` and `y` in a topological space -/
 @[nolint has_inhabited_instance]
-structure path (x y : X) :=
-(to_fun : I → X)
-(continuous' : continuous to_fun)
+structure path (x y : X) extends C(I, X) :=
 (source' : to_fun 0 = x)
 (target' : to_fun 1 = y)
 
-instance : has_coe_to_fun (path x y) := ⟨_, path.to_fun⟩
+instance : has_coe_to_fun (path x y) := ⟨_, λ p, p.to_fun⟩
 
 @[ext] protected lemma path.ext {X : Type*} [topological_space X] {x y : X} :
   ∀ {γ₁ γ₂ : path x y}, (γ₁ : I → X) = γ₂ → γ₁ = γ₂
-| ⟨x, h11, h12, h13⟩ ⟨.(x), h21, h22, h23⟩ rfl := rfl
+| ⟨⟨x, h11⟩, h12, h13⟩ ⟨⟨.(x), h21⟩, h22, h23⟩ rfl := rfl
 
 namespace path
 
-@[simp] lemma coe_mk (f : I → X) (h₁ h₂ h₃) : ⇑(mk f h₁ h₂ h₃ : path x y) = f := rfl
+@[simp] lemma coe_mk (f : I → X) (h₁ h₂ h₃) : ⇑(mk ⟨f, h₁⟩ h₂ h₃ : path x y) = f := rfl
 
 variable (γ : path x y)
 
 @[continuity]
 protected lemma continuous : continuous γ :=
-γ.continuous'
+γ.continuous_to_fun
 
 @[simp] protected lemma source : γ 0 = x :=
 γ.source'
@@ -103,7 +102,7 @@ instance has_uncurry_path {X α : Type*} [topological_space X] {x y : α → X} 
 /-- The constant path from a point to itself -/
 @[refl] def refl (x : X) : path x x :=
 { to_fun := λ t, x,
-  continuous' := continuous_const,
+  continuous_to_fun := continuous_const,
   source' := rfl,
   target' := rfl }
 
@@ -114,7 +113,7 @@ by simp [path.refl, has_coe_to_fun.coe, coe_fn]
 /-- The reverse of a path from `x` to `y`, as a path from `y` to `x` -/
 @[symm] def symm (γ : path x y) : path y x :=
 { to_fun      := γ ∘ σ,
-  continuous' := by continuity,
+  continuous_to_fun := by continuity,
   source'       := by simpa [-path.target] using γ.target,
   target'      := by simpa [-path.source] using γ.source }
 
@@ -170,7 +169,7 @@ lemma extend_of_one_le {X : Type*} [topological_space X] {a b : X}
 /-- The path obtained from a map defined on `ℝ` by restriction to the unit interval. -/
 def of_line {f : ℝ → X} (hf : continuous_on f I) (h₀ : f 0 = x) (h₁ : f 1 = y) : path x y :=
 { to_fun := f ∘ coe,
-  continuous' := hf.comp_continuous continuous_subtype_coe subtype.prop,
+  continuous_to_fun := hf.comp_continuous continuous_subtype_coe subtype.prop,
   source' := h₀,
   target' := h₁ }
 
@@ -184,7 +183,7 @@ local attribute [simp] Iic_def
 path on `[0, 1/2]` and the second one on `[1/2, 1]`. -/
 @[trans] def trans (γ : path x y) (γ' : path y z) : path x z :=
 { to_fun := (λ t : ℝ, if t ≤ 1/2 then γ.extend (2*t) else γ'.extend (2*t-1)) ∘ coe,
-  continuous' :=
+  continuous_to_fun :=
   begin
     refine (continuous.if_le _ _ continuous_id continuous_const (by norm_num)).comp
       continuous_subtype_coe,
@@ -249,7 +248,7 @@ end
 def map (γ : path x y) {Y : Type*} [topological_space Y]
   {f : X → Y} (h : continuous f) : path (f x) (f y) :=
 { to_fun := f ∘ γ,
-  continuous' := by continuity,
+  continuous_to_fun := by continuity,
   source' := by simp,
   target' := by simp }
 
@@ -261,7 +260,7 @@ by { ext t, refl }
 /-- Casting a path from `x` to `y` to a path from `x'` to `y'` when `x' = x` and `y' = y` -/
 def cast (γ : path x y) {x' y'} (hx : x' = x) (hy : y' = y) : path x' y' :=
 { to_fun := γ,
-  continuous' := γ.continuous,
+  continuous_to_fun := γ.continuous,
   source' := by simp [hx],
   target' := by simp [hy] }
 
@@ -313,11 +312,12 @@ end
 def truncate {X : Type*} [topological_space X] {a b : X}
   (γ : path a b) (t₀ t₁ : ℝ) : path (γ.extend $ min t₀ t₁) (γ.extend t₁) :=
 { to_fun := λ s, γ.extend (min (max s t₀) t₁),
-  continuous' := γ.continuous_extend.comp
+  continuous_to_fun := γ.continuous_extend.comp
     ((continuous_subtype_coe.max continuous_const).min continuous_const),
   source' :=
   begin
     unfold min max,
+    dsimp only,
     norm_cast,
     split_ifs with h₁ h₂ h₃ h₄,
     { simp [γ.extend_of_le_zero h₁] },
@@ -329,6 +329,7 @@ def truncate {X : Type*} [topological_space X] {a b : X}
   target' :=
   begin
     unfold min max,
+    dsimp only,
     norm_cast,
     split_ifs with h₁ h₂ h₃,
     { simp [γ.extend_of_one_le h₂] },
@@ -469,7 +470,7 @@ classical.some_spec h t
 lemma joined_in.joined_subtype (h : joined_in F x y) :
   joined (⟨x, h.source_mem⟩ : F) (⟨y, h.target_mem⟩ : F) :=
 ⟨{ to_fun := λ t, ⟨h.some_path t, h.some_path_mem t⟩,
-   continuous' := by continuity,
+   continuous_to_fun := by continuity,
    source' := by simp,
    target' := by simp }⟩
 
@@ -623,8 +624,7 @@ begin
     clear_value p',
     clear hp p,
     induction n with n hn,
-    { use (λ _, p' 0),
-      { continuity },
+    { use path.refl (p' 0),
       { split,
         { rintros i hi, rw nat.le_zero_iff.mp hi, exact ⟨0, rfl⟩ },
         { rw range_subset_iff, rintros x, exact hp' 0 (le_refl _) } } },

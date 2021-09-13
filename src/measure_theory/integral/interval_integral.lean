@@ -91,7 +91,7 @@ scheme as for the versions of FTC-1. They include:
 
 We then derive additional integration techniques from FTC-2:
 * `interval_integral.integral_mul_deriv_eq_deriv_mul` - integration by parts
-* `interval_integral.integral_comp_mul_deriv'` - integration by substitution
+* `interval_integral.integral_comp_mul_deriv''` - integration by substitution
 
 Many applications of these theorems can be found in the file `analysis.special_functions.integrals`.
 
@@ -139,17 +139,28 @@ assumptions:
 - if `u n` and `v n` tend to `l`, then for any `s ∈ l'`, `Ioc (u n) (v n)` is eventually included
   in `s`.
 
-This typeclass has exactly four “real” instances: `(a, pure a, ⊥)`, `(a, 𝓝[Ici a] a, 𝓝[Ioi a] a)`,
-`(a, 𝓝[Iic a] a, 𝓝[Iic a] a)`, `(a, 𝓝 a, 𝓝 a)`, and two instances that are equal to the first and
-last “real” instances: `(a, 𝓝[{a}] a, ⊥)` and `(a, 𝓝[univ] a, 𝓝[univ] a)`. While the difference
-between `Ici a` and `Ioi a` doesn't matter for theorems about Lebesgue measure, it becomes important
-in the versions of FTC about any locally finite measure if this measure has an atom at one of the
-endpoints.
+This typeclass has the following “real” instances: `(a, pure a, ⊥)`, `(a, 𝓝[Ici a] a, 𝓝[Ioi a] a)`,
+`(a, 𝓝[Iic a] a, 𝓝[Iic a] a)`, `(a, 𝓝 a, 𝓝 a)`.
+Furthermore, we have the following instances that are equal to the previously mentioned instances:
+`(a, 𝓝[{a}] a, ⊥)` and `(a, 𝓝[univ] a, 𝓝[univ] a)`.
+While the difference between `Ici a` and `Ioi a` doesn't matter for theorems about Lebesgue measure,
+it becomes important in the versions of FTC about any locally finite measure if this measure has an
+atom at one of the endpoints.
+
+### Combining one-sided and two-sided derivatives
+
+There are some `FTC_filter` instances where the fact that it is one-sided or
+two-sided depends on the point, namely `(x, 𝓝[Icc a b] x, 𝓝[Icc a b] x)`
+(resp. `(x, 𝓝[[a, b]] x, 𝓝[[a, b]] x)`, where `[a, b] = set.interval a b`),
+with `x ∈ Icc a b` (resp. `x ∈ [a, b]`).
+This results in a two-sided derivatives for `x ∈ Ioo a b` and one-sided derivatives for
+`x ∈ {a, b}`. Other instances could be added when needed (in that case, one also needs to add
+instances for `filter.is_measurably_generated` and `filter.tendsto_Ixx_class`).
 
 ## Tags
 
-integral, fundamental theorem of calculus
- -/
+integral, fundamental theorem of calculus, FTC-1, FTC-2, change of variables in integrals
+-/
 
 noncomputable theory
 open topological_space (second_countable_topology)
@@ -1042,14 +1053,21 @@ begin
   exact continuous_on_primitive h_int
 end
 
+/-- Note: this assumes that `f` is `interval_integrable`, in contrast to some other lemmas here. -/
+lemma continuous_on_primitive_interval' {f : α → E} {a b₁ b₂ : α} [has_no_atoms μ]
+  (h_int : interval_integrable f μ b₁ b₂) (ha : a ∈ [b₁, b₂]) :
+  continuous_on (λ b, ∫ x in a..b, f x ∂ μ) [b₁, b₂] :=
+begin
+  intros b₀ hb₀,
+  refine continuous_within_at_primitive (measure_singleton _) _,
+  rw [min_eq_right ha.1, max_eq_right ha.2],
+  simpa [interval_integrable_iff] using h_int,
+end
+
 lemma continuous_on_primitive_interval {f : α → E} {a b : α} [has_no_atoms μ]
   (h_int : integrable_on f (interval a b) μ) :
   continuous_on (λ x, ∫ t in a..x, f t ∂ μ) (interval a b) :=
-begin
-  assume x hx,
-  refine continuous_within_at_primitive (measure_singleton _) _,
-  simpa [interval_integrable_iff] using h_int.interval_integrable,
-end
+continuous_on_primitive_interval' h_int.interval_integrable left_mem_interval
 
 lemma continuous_on_primitive_interval_left {f : α → E} {a b : α} [has_no_atoms μ]
   (h_int : integrable_on f (interval a b) μ) :
@@ -1214,9 +1232,7 @@ In the next subsection we apply this theorem to prove various theorems about dif
 of the integral w.r.t. Lebesgue measure. -/
 
 /-- An auxiliary typeclass for the Fundamental theorem of calculus, part 1. It is used to formulate
-theorems that work simultaneously for left and right one-sided derivatives of `∫ x in u..v, f x`.
-There are four instances: `(a, pure a, ⊥)`, `(a, 𝓝[Ici a], 𝓝[Ioi a])`,
-`(a, 𝓝[Iic a], 𝓝[Iic a])`, and `(a, 𝓝 a, 𝓝 a)`. -/
+theorems that work simultaneously for left and right one-sided derivatives of `∫ x in u..v, f x`. -/
 class FTC_filter {β : Type*} [linear_order β] [measurable_space β] [topological_space β]
   (a : out_param β) (outer : filter β) (inner : out_param $ filter β)
   extends tendsto_Ixx_class Ioc outer inner : Prop :=
@@ -1261,6 +1277,15 @@ instance nhds_left (a : β) : FTC_filter a (𝓝[Iic a] a) (𝓝[Iic a] a) :=
 instance nhds_right (a : β) : FTC_filter a (𝓝[Ici a] a) (𝓝[Ioi a] a) :=
 { pure_le := pure_le_nhds_within left_mem_Ici,
   le_nhds := inf_le_left }
+
+instance nhds_Icc {x a b : β} [h : fact (x ∈ Icc a b)] :
+  FTC_filter x (𝓝[Icc a b] x) (𝓝[Icc a b] x) :=
+{ pure_le := pure_le_nhds_within h.out,
+  le_nhds := inf_le_left }
+
+instance nhds_interval {x a b : β} [h : fact (x ∈ [a, b])] :
+  FTC_filter x (𝓝[[a, b]] x) (𝓝[[a, b]] x) :=
+by { haveI : fact (x ∈ set.Icc (min a b) (max a b)) := h, exact FTC_filter.nhds_Icc }
 
 end FTC_filter
 
@@ -2217,49 +2242,95 @@ end
 ### Integration by substitution / Change of variables
 -/
 
-theorem integral_comp_mul_deriv' {f f' g : ℝ → ℝ}
-  (hf : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
-  (hf' : continuous_on f' (interval a b))
-  (hg : ∀ x ∈ f '' (interval a b), continuous_at g x)
-  (hgm : ∀ x ∈ f '' (interval a b), measurable_at_filter g (𝓝 x)) :
-  -- TODO: prove that the integral of any integrable function is continuous and use here to remove
-  -- assumption `hgm`
-  ∫ x in a..b, (g ∘ f) x * f' x = ∫ x in f a..f b, g x :=
+/--
+Change of variables, general form. If `f` is continuous on `[a, b]` and has
+continuous right-derivative `f'` in `(a, b)`, and `g` is continuous on `f '' [a, b]` then we can
+substitute `u = f x` to get `∫ x in a..b, (g ∘ f) x * f' x = ∫ u in f a..f b, g u`.
+
+We could potentially slightly weaken the conditions, by not requiring that `f'` and `g` are
+continuous on the endpoints of these intervals, but in that case we need to additionally assume that
+the functions are integrable on that interval.
+-/
+theorem integral_comp_mul_deriv'' {f f' g : ℝ → ℝ}
+  (hf : continuous_on f [a, b])
+  (hff' : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_within_at f (f' x) (Ioi x) x)
+  (hf' : continuous_on f' [a, b])
+  (hg : continuous_on g (f '' [a, b])) :
+  ∫ x in a..b, (g ∘ f) x * f' x = ∫ u in f a..f b, g u :=
 begin
-  have hg' := continuous_at.continuous_on hg,
-  have h : ∀ x ∈ interval a b, has_deriv_at (λ u, ∫ t in f a..f u, g t) ((g ∘ f) x * f' x) x,
+  have h_cont : continuous_on (λ u, ∫ t in f a..f u, g t) [a, b],
+  { rw [real.image_interval hf] at hg,
+    refine (continuous_on_primitive_interval' hg.interval_integrable _).comp hf _,
+    { rw [← real.image_interval hf], exact mem_image_of_mem f left_mem_interval },
+    { rw [← image_subset_iff], exact (real.image_interval hf).subset } },
+  have h_der : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_within_at
+    (λ u, ∫ t in f a..f u, g t) ((g ∘ f) x * f' x) (Ioi x) x,
   { intros x hx,
-    have hs := interval_subset_interval_left hx,
-    exact (integral_has_deriv_at_right (hg'.mono $ trans (intermediate_value_interval $
-      has_deriv_at.continuous_on $ λ y hy, hf y $ hs hy) $ image_subset f hs).interval_integrable
-        (hgm (f x) ⟨x, hx, rfl⟩) $ hg (f x) ⟨x, hx, rfl⟩).comp _ (hf x hx) },
-  simp_rw [integral_eq_sub_of_has_deriv_at h $ ((hg'.comp (has_deriv_at.continuous_on hf) $
-    subset_preimage_image f _).mul hf').interval_integrable, integral_same, sub_zero]
+    let I := [Inf (f '' [a, b]), Sup (f '' [a, b])],
+    have hI : f '' [a, b] = I := real.image_interval hf,
+    have h2x : f x ∈ I, { rw [← hI], exact mem_image_of_mem f (Ioo_subset_Icc_self hx) },
+    have h2g : interval_integrable g volume (f a) (f x),
+    { refine (hg.mono $ _).interval_integrable,
+      exact real.interval_subset_image_interval hf left_mem_interval (Ioo_subset_Icc_self hx) },
+    rw [hI] at hg,
+    have h3g : measurable_at_filter g (𝓝[I] f x) volume :=
+    hg.measurable_at_filter_nhds_within measurable_set_Icc (f x),
+    haveI : fact (f x ∈ I) := ⟨h2x⟩,
+    have : has_deriv_within_at (λ u, ∫ x in f a..u, g x) (g (f x)) I (f x) :=
+    integral_has_deriv_within_at_right h2g h3g (hg (f x) h2x),
+    refine (this.comp x ((hff' x hx).Ioo_of_Ioi hx.2) _).Ioi_of_Ioo hx.2,
+    dsimp only [I], rw [← image_subset_iff, ← real.image_interval hf],
+    refine image_subset f (Ioo_subset_Icc_self.trans $ Icc_subset_Icc_left hx.1.le) },
+  have h_int : interval_integrable (λ (x : ℝ), (g ∘ f) x * f' x) volume a b :=
+  ((hg.comp hf $ subset_preimage_image f _).mul hf').interval_integrable,
+  simp_rw [integral_eq_sub_of_has_deriv_right h_cont h_der h_int, integral_same, sub_zero],
 end
 
+/--
+Change of variables. If `f` is has continuous derivative `f'` on `[a, b]`,
+and `g` is continuous on `f '' [a, b]`, then we can substitute `u = f x` to get
+`∫ x in a..b, (g ∘ f) x * f' x = ∫ u in f a..f b, g u`.
+Compared to `interval_integral.integral_comp_mul_deriv` we only require that `g` is continuous on
+`f '' [a, b]`.
+-/
+theorem integral_comp_mul_deriv' {f f' g : ℝ → ℝ}
+  (h : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
+  (h' : continuous_on f' (interval a b)) (hg : continuous_on g (f '' [a, b])) :
+  ∫ x in a..b, (g ∘ f) x * f' x = ∫ x in f a..f b, g x :=
+integral_comp_mul_deriv'' (λ x hx, (h x hx).continuous_at.continuous_within_at)
+  (λ x hx, (h x $ Ioo_subset_Icc_self hx).has_deriv_within_at) h' hg
+
+/--
+Change of variables, most common version. If `f` is has continuous derivative `f'` on `[a, b]`,
+and `g` is continuous, then we can substitute `u = f x` to get
+`∫ x in a..b, (g ∘ f) x * f' x = ∫ u in f a..f b, g u`.
+-/
 theorem integral_comp_mul_deriv {f f' g : ℝ → ℝ}
   (h : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
   (h' : continuous_on f' (interval a b)) (hg : continuous g) :
   ∫ x in a..b, (g ∘ f) x * f' x = ∫ x in f a..f b, g x :=
-integral_comp_mul_deriv' h h' (λ x h, hg.continuous_at) (λ x h, hg.measurable.measurable_at_filter)
+integral_comp_mul_deriv' h h' hg.continuous_on
 
 theorem integral_deriv_comp_mul_deriv' {f f' g g' : ℝ → ℝ}
-  (hf : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
-  (hg : ∀ x ∈ interval (f a) (f b), has_deriv_at g (g' x) x)
-  (hf' : continuous_on f' (interval a b))
-  (hg1 : continuous_on g' (interval (f a) (f b)))
-  (hg2 : ∀ x ∈ f '' (interval a b), continuous_at g' x)
-  (hgm : ∀ x ∈ f '' (interval a b), measurable_at_filter g' (𝓝 x)) :
+  (hf : continuous_on f [a, b])
+  (hff' : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_within_at f (f' x) (Ioi x) x)
+  (hf' : continuous_on f' [a, b])
+  (hg : continuous_on g [f a, f b])
+  (hgg' : ∀ x ∈ Ioo (min (f a) (f b)) (max (f a) (f b)), has_deriv_within_at g (g' x) (Ioi x) x)
+  (hg' : continuous_on g' (f '' [a, b])) :
   ∫ x in a..b, (g' ∘ f) x * f' x = (g ∘ f) b - (g ∘ f) a :=
-by rw [integral_comp_mul_deriv' hf hf' hg2 hgm,
-  integral_eq_sub_of_has_deriv_at hg hg1.interval_integrable]
+begin
+  rw [integral_comp_mul_deriv'' hf hff' hf' hg',
+  integral_eq_sub_of_has_deriv_right hg hgg' (hg'.mono _).interval_integrable],
+  exact real.interval_subset_image_interval hf left_mem_interval right_mem_interval,
+end
 
 theorem integral_deriv_comp_mul_deriv {f f' g g' : ℝ → ℝ}
   (hf : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
   (hg : ∀ x ∈ interval a b, has_deriv_at g (g' (f x)) (f x))
   (hf' : continuous_on f' (interval a b)) (hg' : continuous g') :
   ∫ x in a..b, (g' ∘ f) x * f' x = (g ∘ f) b - (g ∘ f) a :=
-integral_eq_sub_of_has_deriv_at (λ x hx, (hg x hx).comp x $ hf x hx) $
+integral_eq_sub_of_has_deriv_at (λ x hx, (hg x hx).comp x $ hf x hx)
   ((hg'.comp_continuous_on $ has_deriv_at.continuous_on hf).mul hf').interval_integrable
 
 end interval_integral

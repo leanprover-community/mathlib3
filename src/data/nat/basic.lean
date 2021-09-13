@@ -403,7 +403,7 @@ theorem le_add_one_iff {i j : ℕ} : i ≤ j + 1 ↔ (i ≤ j ∨ i = j + 1) :=
 lemma add_succ_lt_add {a b c d : ℕ} (hab : a < b) (hcd : c < d) : a + c + 1 < b + d :=
 begin
   rw add_assoc,
-  exact add_lt_add_of_lt_of_le hab (nat.succ_le_iff.2 hcd)
+  exact add_lt_add_of_lt_of_le hab hcd
 end
 
 -- TODO: generalize to some ordered add_monoids, based on #6145
@@ -1426,8 +1426,7 @@ theorem bit_lt_bit (a b) {n m : ℕ} (h : n < m) : bit a n < bit b m :=
 lt_of_lt_of_le (bit_lt_bit0 _ h) (bit0_le_bit _ (le_refl _))
 
 @[simp] lemma bit0_le_bit1_iff : bit0 k ≤ bit1 n ↔ k ≤ n :=
-⟨λ h, by rwa [← lt_succ_iff, n.bit1_eq_succ_bit0, ← n.bit0_succ_eq,
-  bit0_lt_bit0, lt_succ_iff] at h, λ h, le_of_lt (nat.bit0_lt_bit1 h)⟩
+by rw [←lt_succ_iff, ←lt_succ_iff, nat.bit1_eq_succ_bit0, iff.comm, ←bit0_lt_bit0, nat.bit0_succ_eq]
 
 @[simp] lemma bit0_lt_bit1_iff : bit0 k < bit1 n ↔ k ≤ n :=
 ⟨λ h, bit0_le_bit1_iff.1 (le_of_lt h), nat.bit0_lt_bit1⟩

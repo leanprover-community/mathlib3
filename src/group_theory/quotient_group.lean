@@ -421,7 +421,7 @@ section trivial
 lemma quot_by_top_is_subsingleton : subsingleton (quotient_group.quotient (⊤ : subgroup G)) :=
 trunc.subsingleton
 
-lemma left_rel_triv (H : subgroup G) (h : (quotient_group.left_rel H).r = λ _ _, true  ) :
+lemma left_rel_triv (H : subgroup G) (h : quotient_group.left_rel H = ⊤ ) :
   ∀ x y : G , x⁻¹ * y ∈ H :=
 begin
   let s := (quotient_group.left_rel H).r,
@@ -434,17 +434,15 @@ begin
   tauto,
 end
 
-/--If the quotient by a subgroup gives a singleton then the subgroup is the whole group-/
-
-lemma quot_subsingleton_triv  (H : subgroup G)
- (h : subsingleton (quotient_group.quotient H)) : H = ⊤ :=
+/-- If the quotient by a subgroup gives a singleton then the subgroup is the whole group. -/
+lemma subgroup_eq_top_of_subsingleton (H : subgroup G) (h : subsingleton
+  (quotient_group.quotient H)) :
+  H = ⊤ :=
 begin
   ext1,
   simp only [subgroup.mem_top, iff_true] at *,
   rw quotient_group.quotient at h,
-  let r := (quotient_group.left_rel H).r,
-  have h2 := (setoid.subsingleton_quot_iff r).1 h,
-  rw [relation.eqv_gen_eq_of_equivalence setoid.iseqv] at h2,
+  have h2 := (setoid.subsingleton_quotient_iff_eq_top).1 h,
   have h3 := left_rel_triv H h2,
   have h4 := h3 1 x,
   rw [one_inv, one_mul] at h4,

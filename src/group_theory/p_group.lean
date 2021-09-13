@@ -36,6 +36,9 @@ forall_congr (λ g, ⟨λ ⟨k, hk⟩, exists_imp_exists (by exact λ j, Exists.
 lemma of_card [fintype G] {n : ℕ} (hG : fintype.card G = p ^ n) : is_p_group p G :=
 λ g, ⟨n, by rw [←hG, pow_card_eq_one]⟩
 
+lemma of_bot : is_p_group p (⊥ : subgroup G) :=
+of_card (subgroup.card_bot.trans (pow_zero p).symm)
+
 lemma iff_card [fact p.prime] [fintype G] :
   is_p_group p G ↔ ∃ n : ℕ, fintype.card G = p ^ n :=
 begin

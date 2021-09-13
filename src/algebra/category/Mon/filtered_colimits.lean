@@ -21,6 +21,9 @@ the forgetful functor `forget Mon` preserves filtered colimits.
 
 universe v
 
+noncomputable theory
+open_locale classical
+
 open category_theory
 open category_theory.limits
 open category_theory.is_filtered (renaming max → max') -- avoid name collision with `_root_.max`.
@@ -28,9 +31,6 @@ open category_theory.is_filtered (renaming max → max') -- avoid name collision
 namespace Mon.filtered_colimits
 
 section
-
-noncomputable theory
-open_locale classical
 
 -- We use parameters here, mainly so we can have the abbreviations `M` and `M.mk` below, without
 -- passing around `F` all the time.

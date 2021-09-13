@@ -22,6 +22,9 @@ the forgetful functor `forget Group` preserves filtered colimits.
 
 universe v
 
+noncomputable theory
+open_locale classical
+
 open category_theory
 open category_theory.limits
 open category_theory.is_filtered (renaming max → max') -- avoid name collision with `_root_.max`.
@@ -29,9 +32,6 @@ open category_theory.is_filtered (renaming max → max') -- avoid name collision
 namespace Group.filtered_colimits
 
 section
-
-noncomputable theory
-open_locale classical
 
 open Mon.filtered_colimits (colimit_mul colimit_one colimit_mul_eq' colimit_one_eq')
 

@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura
 -/
 import tactic.doc_commands
 import tactic.reserved_notation
+import tactic.cache
 
 /-!
 # Basic logic properties
@@ -63,6 +64,9 @@ instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) :=
 @[simp] lemma eq_iff_true_of_subsingleton {α : Sort*} [subsingleton α] (x y : α) :
   x = y ↔ true :=
 by cc
+
+lemma subsingleton_iff : subsingleton α ↔ ∀ (x y : α), x = y :=
+⟨by { introI h, exact subsingleton.elim }, λ h, ⟨h⟩⟩
 
 /-- If all points are equal to a given point `x`, then `α` is a subsingleton. -/
 lemma subsingleton_of_forall_eq {α : Sort*} (x : α) (h : ∀ y, y = x) : subsingleton α :=

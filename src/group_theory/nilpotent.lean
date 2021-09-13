@@ -377,3 +377,23 @@ begin
     apply mem_closure.mpr,
     exact λ K hK, hK ⟨f y, hd (mem_map_of_mem f hy), by simp⟩ }
 end
+
+lemma lower_central_series_succ_eq_bot {n : ℕ} (h : lower_central_series G n ≤ center G) :
+  lower_central_series G (n + 1) = ⊥ :=
+begin
+  rw [lower_central_series_succ, closure_eq_bot_iff, set.subset_singleton_iff],
+  rintro x ⟨y, hy1, z, ⟨⟩, rfl⟩,
+  symmetry,
+  rw [eq_mul_inv_iff_mul_eq, eq_mul_inv_iff_mul_eq, one_mul],
+  exact mem_center_iff.mp (h hy1) z,
+end
+
+lemma is_nilpotent_of_ker_le_center {H : Type*} [group H] {f : G →* H}
+  (hf1 : f.ker ≤ center G) (hH : is_nilpotent H) : is_nilpotent G :=
+begin
+  rw nilpotent_iff_lower_central_series at *,
+  rcases hH with ⟨n, hn⟩,
+  refine ⟨n + 1, lower_central_series_succ_eq_bot
+    (le_trans ((map_eq_bot_iff _).mp _) hf1)⟩,
+  exact eq_bot_iff.mpr (hn ▸ (lower_central_series.map f n)),
+end

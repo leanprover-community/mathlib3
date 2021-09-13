@@ -147,7 +147,7 @@ ext $ λ _ _, rfl
   circulant (pi.single 0 1 : I → α) = (1 : matrix I I α) :=
 by { ext i j, simp only [circulant, one_apply, pi.single_apply, sub_eq_zero], congr }
 
-lemma circulant_single [semiring α] (I) [decidable_eq I] [add_group I] [fintype I] (a : α) :
+@[simp] lemma circulant_single [semiring α] (I) [decidable_eq I] [add_group I] [fintype I] (a : α) :
   circulant (pi.single 0 a : I → α) = scalar I a :=
 begin
   ext i j,

@@ -268,6 +268,18 @@ instance [has_le β] : has_le (α →ₛ β) := ⟨λf g, ∀a, f a ≤ g a⟩
 @[simp] lemma range_zero [nonempty α] [has_zero β] : (0 : α →ₛ β).range = {0} :=
 finset.ext $ λ x, by simp [eq_comm]
 
+@[simp] lemma range_eq_empty_of_is_empty {β} [hα : is_empty α] (f : α →ₛ β) :
+  f.range = ∅ :=
+begin
+  rw ← finset.not_nonempty_iff_eq_empty,
+  by_contra,
+  obtain ⟨y, hy_mem⟩ := h,
+  rw [simple_func.mem_range, set.mem_range] at hy_mem,
+  obtain ⟨x, hxy⟩ := hy_mem,
+  rw is_empty_iff at hα,
+  exact hα x,
+end
+
 lemma eq_zero_of_mem_range_zero [has_zero β] : ∀ {y : β}, y ∈ (0 : α →ₛ β).range → y = 0 :=
 forall_range_iff.2 $ λ x, rfl
 
@@ -1010,13 +1022,13 @@ lemma exists_simple_func_forall_lintegral_sub_lt_of_pos {f : α → ℝ≥0∞} 
     (map coe (ψ - φ)).lintegral μ < ε :=
 begin
   rw lintegral_eq_nnreal at h,
-  have := ennreal.lt_add_right h hε,
+  have := ennreal.lt_add_right h.ne hε,
   erw ennreal.bsupr_add at this; [skip, exact ⟨0, λ x, by simp⟩],
   simp_rw [lt_supr_iff, supr_lt_iff, supr_le_iff] at this,
   rcases this with ⟨φ, hle : ∀ x, ↑(φ x) ≤ f x, b, hbφ, hb⟩,
   refine ⟨φ, hle, λ ψ hψ, _⟩,
   have : (map coe φ).lintegral μ < ∞, from (le_bsupr φ hle).trans_lt h,
-  rw [← add_lt_add_iff_left this, ← add_lintegral, ← map_add @ennreal.coe_add],
+  rw [← add_lt_add_iff_left this.ne, ← add_lintegral, ← map_add @ennreal.coe_add],
   refine (hb _ (λ x, le_trans _ (max_le (hle x) (hψ x)))).trans_lt hbφ,
   norm_cast,
   simp only [add_apply, sub_apply, nnreal.add_sub_eq_max]

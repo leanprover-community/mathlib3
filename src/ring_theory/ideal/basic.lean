@@ -429,6 +429,13 @@ section comm_ring
 
 namespace ideal
 
+theorem mul_sub_mul_mem {R : Type*} [comm_ring R] (I : ideal R) {a b c d : R}
+  (h1 : a - b ∈ I) (h2 : c - d ∈ I) : a * c - b * d ∈ I :=
+begin
+  rw (show a * c - b * d = (a - b) * c + b * (c - d), by {rw [sub_mul, mul_sub], abel}),
+  exact I.add_mem (I.mul_mem_right _ h1) (I.mul_mem_left _ h2),
+end
+
 variables [comm_ring α] (I : ideal α) {a b : α}
 
 /-- The quotient `R/I` of a ring `R` by an ideal `I`.
@@ -629,27 +636,43 @@ variables (ι : Type v)
 
 /-- `R^n/I^n` is a `R/I`-module. -/
 instance module_pi : module (I.quotient) (I.pi ι).quotient :=
-begin
-  refine { smul := λ c m, quotient.lift_on₂' c m (λ r m, submodule.quotient.mk $ r • m) _, .. },
-  { intros c₁ m₁ c₂ m₂ hc hm,
-    change c₁ - c₂ ∈ I at hc,
-    change m₁ - m₂ ∈ (I.pi ι) at hm,
+{ smul := λ c m, quotient.lift_on₂' c m (λ r m, submodule.quotient.mk $ r • m) begin
+    intros c₁ m₁ c₂ m₂ hc hm,
     apply ideal.quotient.eq.2,
-    have : c₁ • (m₂ - m₁) ∈ I.pi ι,
-    { rw ideal.mem_pi,
-      intro i,
-      simp only [smul_eq_mul, pi.smul_apply, pi.sub_apply],
-      apply ideal.mul_mem_left,
-      rw ←ideal.neg_mem_iff,
-      simpa only [neg_sub] using hm i },
-    rw [←ideal.add_mem_iff_left (I.pi ι) this, sub_eq_add_neg, add_comm, ←add_assoc, ←smul_add,
-      sub_add_cancel, ←sub_eq_add_neg, ←sub_smul, ideal.mem_pi],
-    exact λ i, I.mul_mem_right _ hc },
-  all_goals { rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ <|> rintro ⟨a⟩,
-    simp only [(•), submodule.quotient.quot_mk_eq_mk, ideal.quotient.mk_eq_mk],
+    intro i,
+    exact I.mul_sub_mul_mem hc (hm i),
+  end,
+  one_smul := begin
+    rintro ⟨a⟩,
     change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
-    congr' with i, simp [mul_assoc, mul_add, add_mul] }
-end
+    congr' with i, exact one_mul (a i),
+  end,
+  mul_smul := begin
+    rintro ⟨a⟩ ⟨b⟩ ⟨c⟩,
+    change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
+    simp only [(•)],
+    congr' with i, exact mul_assoc a b (c i),
+  end,
+  smul_add := begin
+    rintro ⟨a⟩ ⟨b⟩ ⟨c⟩,
+    change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
+    congr' with i, exact mul_add a (b i) (c i),
+  end,
+  smul_zero := begin
+    rintro ⟨a⟩,
+    change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
+    congr' with i, exact mul_zero a,
+  end,
+  add_smul := begin
+    rintro ⟨a⟩ ⟨b⟩ ⟨c⟩,
+    change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
+    congr' with i, exact add_mul a b (c i),
+  end,
+  zero_smul := begin
+    rintro ⟨a⟩,
+    change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
+    congr' with i, exact zero_mul (a i),
+  end, }
 
 /-- `R^n/I^n` is isomorphic to `(R/I)^n` as an `R/I`-module. -/
 noncomputable def pi_quot_equiv : (I.pi ι).quotient ≃ₗ[I.quotient] (ι → I.quotient) :=

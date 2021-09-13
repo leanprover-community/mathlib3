@@ -60,16 +60,10 @@ lemma with_densityᵥ_apply (hf : integrable f μ) {s : set α} (hs : measurable
   μ.with_densityᵥ f s = ∫ x in s, f x ∂μ :=
 by { rw [with_densityᵥ, dif_pos hf], exact dif_pos hs }
 
-@[simp]
-lemma with_densityᵥ_zero : μ.with_densityᵥ (0 : α → E) = 0 :=
-begin
-  ext1 s hs,
-  erw [with_densityᵥ_apply (integrable_zero α E μ) hs],
-  simp,
-end
+@[simp] lemma with_densityᵥ_zero : μ.with_densityᵥ (0 : α → E) = 0 :=
+by { ext1 s hs, erw [with_densityᵥ_apply (integrable_zero α E μ) hs], simp, }
 
-@[simp]
-lemma with_densityᵥ_neg : μ.with_densityᵥ (-f) = -μ.with_densityᵥ f :=
+@[simp] lemma with_densityᵥ_neg : μ.with_densityᵥ (-f) = -μ.with_densityᵥ f :=
 begin
   by_cases hf : integrable f μ,
   { ext1 i hi,
@@ -80,8 +74,7 @@ begin
     rwa integrable_neg_iff }
 end
 
-@[simp]
-lemma with_densityᵥ_add (hf : integrable f μ) (hg : integrable g μ) :
+@[simp] lemma with_densityᵥ_add (hf : integrable f μ) (hg : integrable g μ) :
   μ.with_densityᵥ (f + g) = μ.with_densityᵥ f + μ.with_densityᵥ g :=
 begin
   ext1 i hi,
@@ -93,16 +86,13 @@ begin
   { exact hg.integrable_on.restrict measurable_set.univ }
 end
 
-@[simp]
-lemma with_densityᵥ_sub (hf : integrable f μ) (hg : integrable g μ) :
+@[simp] lemma with_densityᵥ_sub (hf : integrable f μ) (hg : integrable g μ) :
   μ.with_densityᵥ (f - g) = μ.with_densityᵥ f - μ.with_densityᵥ g :=
-by rw [sub_eq_add_neg, sub_eq_add_neg, with_densityᵥ_add hf hg.neg,
-       with_densityᵥ_neg]
+by rw [sub_eq_add_neg, sub_eq_add_neg, with_densityᵥ_add hf hg.neg, with_densityᵥ_neg]
 
-@[simp]
-lemma with_densityᵥ_smul {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-  [normed_space 𝕜 E] [smul_comm_class ℝ 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜]
-  (r : 𝕜) : μ.with_densityᵥ (r • f) = r • μ.with_densityᵥ f :=
+@[simp] lemma with_densityᵥ_smul {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]
+  [smul_comm_class ℝ 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜] (r : 𝕜) :
+  μ.with_densityᵥ (r • f) = r • μ.with_densityᵥ f :=
 begin
   by_cases hf : integrable f μ,
   { ext1 i hi,
@@ -110,9 +100,8 @@ begin
         with_densityᵥ_apply hf hi, ← integral_smul r f],
     refl },
   { by_cases hr : r = 0,
-    { subst hr, rw [zero_smul, zero_smul, with_densityᵥ_zero] },
-    { rw [with_densityᵥ, with_densityᵥ, dif_neg hf,
-          dif_neg, smul_zero],
+    { rw [hr, zero_smul, zero_smul, with_densityᵥ_zero] },
+    { rw [with_densityᵥ, with_densityᵥ, dif_neg hf, dif_neg, smul_zero],
       rwa integrable_smul_iff hr f } }
 end
 
@@ -122,19 +111,35 @@ begin
   by_cases hf : integrable f μ,
   { refine vector_measure.absolutely_continuous.mk (λ i hi₁ hi₂, _),
     rw to_ennreal_vector_measure_apply_measurable hi₁ at hi₂,
-    rw [with_densityᵥ_apply hf hi₁, measure.restrict_zero_set hi₂,
-        integral_zero_measure] },
+    rw [with_densityᵥ_apply hf hi₁, measure.restrict_zero_set hi₂, integral_zero_measure] },
   { rw [with_densityᵥ, dif_neg hf],
     exact vector_measure.absolutely_continuous.zero _ }
 end
 
 /-- Having the same density implies the underlying functions are equal almost everywhere. -/
-lemma integrable.ae_eq_of_with_densityᵥ_eq {f g : α → E}
-  (hf : integrable f μ) (hg : integrable g μ)
-  (hfg : μ.with_densityᵥ f = μ.with_densityᵥ g) : f =ᵐ[μ] g :=
+lemma integrable.ae_eq_of_with_densityᵥ_eq {f g : α → E} (hf : integrable f μ) (hg : integrable g μ)
+  (hfg : μ.with_densityᵥ f = μ.with_densityᵥ g) :
+  f =ᵐ[μ] g :=
 begin
   refine hf.ae_eq_of_forall_set_integral_eq f g hg (λ i hi _, _),
   rw [← with_densityᵥ_apply hf hi, hfg, with_densityᵥ_apply hg hi]
 end
+
+lemma with_densityᵥ_eq.congr_ae {f g : α → E} (h : f =ᵐ[μ] g) :
+  μ.with_densityᵥ f = μ.with_densityᵥ g :=
+begin
+  by_cases hf : integrable f μ,
+  { ext i hi,
+    rw [with_densityᵥ_apply hf hi, with_densityᵥ_apply (hf.congr h) hi],
+    exact integral_congr_ae (ae_restrict_of_ae h) },
+  { have hg : ¬ integrable g μ,
+    { intro hg, exact hf (hg.congr h.symm) },
+    rw [with_densityᵥ, with_densityᵥ, dif_neg hf, dif_neg hg] }
+end
+
+lemma integrable.with_densityᵥ_eq_iff {f g : α → E}
+  (hf : integrable f μ) (hg : integrable g μ) :
+  μ.with_densityᵥ f = μ.with_densityᵥ g ↔ f =ᵐ[μ] g :=
+⟨λ hfg, hf.ae_eq_of_with_densityᵥ_eq hg hfg, λ h, with_densityᵥ_eq.congr_ae h⟩
 
 end measure_theory

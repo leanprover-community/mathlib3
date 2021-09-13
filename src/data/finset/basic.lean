@@ -1016,6 +1016,7 @@ lemma erase_ssubset {a : α} {s : finset α} (h : a ∈ s) : s.erase a ⊂ s :=
 calc s.erase a ⊂ insert a (s.erase a) : ssubset_insert $ not_mem_erase _ _
   ... = _ : insert_erase h
 
+@[simp]
 theorem erase_eq_of_not_mem {a : α} {s : finset α} (h : a ∉ s) : erase s a = s :=
 eq_of_veq $ erase_of_not_mem h
 
@@ -2241,6 +2242,7 @@ begin
   { simp [finset.singleton_inter_of_mem h] },
 end
 
+@[simp]
 theorem card_erase_of_mem [decidable_eq α] {a : α} {s : finset α} :
   a ∈ s → card (erase s a) = pred (card s) := card_erase_of_mem
 
@@ -2258,7 +2260,6 @@ begin
   { rw [erase_eq_of_not_mem h], apply nat.sub_le }
 end
 
--- TODO should this be @[simp]?
 theorem card_erase [decidable_eq α] {a : α} {s : finset α} :
   card (erase s a) = if a ∈ s then pred (card s) else card s
   :=

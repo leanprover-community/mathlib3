@@ -48,7 +48,7 @@ end
 /-- `matrix.is_diag.exists_diagonal` as an iff. -/
 lemma is_diag_iff_exists_diagonal [has_zero α] [decidable_eq n] (A : matrix n n α) :
   A.is_diag ↔ (∃ d, diagonal d = A) :=
-⟨is_diag.exists_diagonal, λ ⟨d, hd⟩, hd ▸ is_diag.diagonal d⟩
+⟨is_diag.exists_diagonal, λ ⟨d, hd⟩, hd ▸ is_diag_diagonal d⟩
 
 /-- Every matrix indexed by a subsingleton is diagonal. -/
 lemma is_diag_of_subsingleton [has_zero α] [subsingleton n] (A : matrix n n α) : A.is_diag :=
@@ -176,22 +176,12 @@ end
 lemma mul_transpose_self_is_diag_iff_has_orthogonal_rows
   [fintype n] [has_mul α] [add_comm_monoid α] {A : matrix m n α} :
   (A ⬝ Aᵀ).is_diag ↔ A.has_orthogonal_rows :=
-begin
-  split,
-  any_goals
-  { rintros h i₁ i₂ hi,
-    have h' := h hi,
-    simp [dot_product, mul_apply, *] at * },
-end
+iff.rfl
 
 /-- `(Aᵀ ⬝ A).is_diag` iff `A.has_orthogonal_cols`. -/
 lemma transpose_mul_self_is_diag_iff_has_orthogonal_cols
   [fintype m] [has_mul α] [add_comm_monoid α] {A : matrix m n α} :
   (Aᵀ ⬝ A).is_diag ↔ A.has_orthogonal_cols :=
-begin
-  rw [←transpose_has_orthogonal_rows_iff_has_orthogonal_cols],
-  convert mul_transpose_self_is_diag_iff_has_orthogonal_rows,
-  simp,
-end
+iff.rfl
 
 end matrix

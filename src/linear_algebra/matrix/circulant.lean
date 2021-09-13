@@ -10,7 +10,7 @@ import linear_algebra.matrix.symmetric
 
 This file contains the definition and basic results about circulant matrices.
 Given a vector `v : I → α` indexed by a type that is endowed with subtraction,
-`circulant v` is the matrix whose `(i,j)`th entry is `v (i = j)`.
+`matrix.circulant v` is the matrix whose `(i, j)`th entry is `v (i - j)`.
 
 ## Main results
 

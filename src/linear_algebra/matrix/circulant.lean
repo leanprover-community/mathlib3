@@ -201,13 +201,11 @@ lemma circulant_is_symm_apply'
 circulant_is_symm_iff'.1 h i j
 
 /-- If `circulant v` is symmetric, `∀ i j : I, v (- i) = v i`. -/
-lemma circulant_is_symm_apply
-  [add_group n] {v : n → α} (h : (circulant v).is_symm) (i : n) :
+lemma circulant_is_symm_apply [add_group n] {v : n → α} (h : (circulant v).is_symm) (i : n) :
   v (-i) = v i :=
 circulant_is_symm_iff.1 h i
 
-lemma fin.circulant_is_symm_apply
-  {n} {v : fin n → α} (h : (circulant v).is_symm) (i : fin n) :
+lemma fin.circulant_is_symm_apply {n} {v : fin n → α} (h : (circulant v).is_symm) (i : fin n) :
   v (-i) = v i :=
 fin.circulant_is_symm_iff.1 h i
 

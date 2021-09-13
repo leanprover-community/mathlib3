@@ -8,7 +8,7 @@ import data.matrix.basic
 /-!
 # Orthogonal
 
-This file contains definitions and properties concerning "orthogonal".
+This file contains definitions and properties concerning orthogonality of rows and columns.
 
 ## Main results
 

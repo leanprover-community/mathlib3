@@ -28,7 +28,7 @@ variables {α β R n m : Type*}
 open function
 open_locale matrix kronecker
 
-/-- `A.is_diag` means square matrix `A` is a diagoal matrix. -/
+/-- `A.is_diag` means square matrix `A` is a diagonal matrix. -/
 def is_diag [has_zero α] (A : matrix n n α) : Prop := ∀ ⦃i j⦄, i ≠ j → A i j = 0
 
 @[simp] lemma is_diag_diagonal [has_zero α] [decidable_eq n] (d : n → α) :

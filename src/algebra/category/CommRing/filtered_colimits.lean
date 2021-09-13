@@ -9,7 +9,16 @@ import category_theory.limits.concrete_category
 import category_theory.limits.preserves.filtered
 
 /-!
-# The forgetful functor `Ring ⥤ Type` preserves filtered colimits.
+# The forgetful functor from (commutative) (semi-) rings preserves filtered colimits.
+
+Forgetful functors from algebraic categories usually don't preserve colimits. However, they tend
+to preserve _filtered_ colimits.
+
+In this file, we start with a small filtered category `J` and a functor `F : J ⥤ SemiRing`.
+We show that the colimit of `F ⋙ forget₂ SemiRing Mon` (in `Mon`) carries the structure of a
+semiring, thereby showing that the forgetful functor `forget₂ SemiRing Mon` preserves filtered
+colimits. In particular, this implies that `forget SemiRing` preserves colimits.
+Similarly for `CommSemiRing`, `Ring` and `CommRing`.
 
 -/
 
@@ -34,19 +43,18 @@ namespace SemiRing.filtered_colimits
 
 section
 
+-- We use parameters here, mainly so we can have the abbreviations `R` and `R.mk` below, without
+-- passing around `F` all the time.
 parameters {J : Type v} [small_category J] [is_filtered J] (F : J ⥤ SemiRing.{v})
 
+/--
+The colimit of `F ⋙ forget₂ SemiRing Mon` in the category `Mon`.
+In the following, we will show that this has the structure of a semiring.
+-/
 abbreviation R : Mon := Mon.filtered_colimits.colimit (F ⋙ forget₂ SemiRing Mon)
-
-abbreviation R.mk : (Σ j, F.obj j) → R := quot.mk (types.quot.rel (F ⋙ forget SemiRing))
 
 instance semiring_obj (j : J) : semiring (((F ⋙ forget₂ SemiRing Mon.{v}) ⋙ forget Mon).obj j) :=
 begin change semiring (F.obj j), apply_instance end
-
-lemma R.mk_eq (x y : Σ j, F.obj j)
-  (h : ∃ (k : J) (f : x.1 ⟶ k) (g : y.1 ⟶ k), F.map f x.2 = F.map g y.2) :
-  R.mk x = R.mk y :=
-quot.eqv_gen_sound (types.filtered_colimit.eqv_gen_quot_rel_of_rel (F ⋙ forget SemiRing) x y h)
 
 instance colimit_semiring : semiring R :=
 { mul_zero := λ x, begin
@@ -94,8 +102,10 @@ instance colimit_semiring : semiring R :=
   ..R.monoid,
   ..AddCommMon.filtered_colimits.colimit_add_comm_monoid (F ⋙ forget₂ SemiRing AddCommMon) }
 
+/-- The bundled semiring giving the filtered colimit of a diagram. -/
 def colimit : SemiRing := ⟨R, by apply_instance⟩
 
+/-- The cocone over the proposed colimit semiring. -/
 def colimit_cocone : cocone F :=
 { X := colimit,
   ι :=
@@ -105,6 +115,7 @@ def colimit_cocone : cocone F :=
     naturality' := λ j j' f,
       (ring_hom.coe_inj ((types.colimit_cocone (F ⋙ forget SemiRing)).ι.naturality f)) } }
 
+/-- The proposed colimit cocone is a colimit in `SemiRing`. -/
 def colimit_cocone_is_colimit : is_colimit colimit_cocone :=
 { desc := λ t,
   { .. (Mon.filtered_colimits.colimit_cocone_is_colimit
@@ -136,32 +147,34 @@ namespace CommSemiRing.filtered_colimits
 
 section
 
+-- We use parameters here, mainly so we can have the abbreviations `R` and `R.mk` below, without
+-- passing around `F` all the time.
 parameters {J : Type v} [small_category J] [is_filtered J] (F : J ⥤ CommSemiRing.{v})
 
+/--
+The colimit of `F ⋙ forget₂ CommSemiRing SemiRing` in the category `SemiRing`.
+In the following, we will show that this has the structure of a _commutative_ semiring.
+-/
 abbreviation R : SemiRing :=
 SemiRing.filtered_colimits.colimit (F ⋙ forget₂ CommSemiRing SemiRing)
 
-abbreviation R.mk : (Σ j, F.obj j) → R := quot.mk (types.quot.rel (F ⋙ forget CommSemiRing))
-
-instance semiring_obj (j : J) : comm_semiring
+instance comm_semiring_obj (j : J) : comm_semiring
 (((F ⋙ forget₂ CommSemiRing SemiRing.{v}) ⋙ forget SemiRing).obj j) :=
 begin change comm_semiring (F.obj j), apply_instance end
-
-lemma R.mk_eq (x y : Σ j, F.obj j)
-  (h : ∃ (k : J) (f : x.1 ⟶ k) (g : y.1 ⟶ k), F.map f x.2 = F.map g y.2) :
-  R.mk x = R.mk y :=
-quot.eqv_gen_sound (types.filtered_colimit.eqv_gen_quot_rel_of_rel (F ⋙ forget CommSemiRing) x y h)
 
 instance colimit_comm_semiring : comm_semiring R :=
 { ..R.semiring,
   ..CommMon.filtered_colimits.colimit_comm_monoid (F ⋙ forget₂ CommSemiRing CommMon) }
 
+/-- The bundled commutative semiring giving the filtered colimit of a diagram. -/
 def colimit : CommSemiRing := ⟨R, by apply_instance⟩
 
+/-- The cocone over the proposed colimit commutative semiring. -/
 def colimit_cocone : cocone F :=
 { X := colimit,
   ι := { ..(SemiRing.filtered_colimits.colimit_cocone (F ⋙ forget₂ CommSemiRing SemiRing)).ι } }
 
+/-- The proposed colimit cocone is a colimit in `CommSemiRing`. -/
 def colimit_cocone_is_colimit : is_colimit colimit_cocone :=
 { desc := λ t,
   (SemiRing.filtered_colimits.colimit_cocone_is_colimit (F ⋙ forget₂ CommSemiRing SemiRing)).desc
@@ -192,32 +205,34 @@ namespace Ring.filtered_colimits
 
 section
 
+-- We use parameters here, mainly so we can have the abbreviations `R` and `R.mk` below, without
+-- passing around `F` all the time.
 parameters {J : Type v} [small_category J] [is_filtered J] (F : J ⥤ Ring.{v})
 
+/--
+The colimit of `F ⋙ forget₂ Ring SemiRing` in the category `SemiRing`.
+In the following, we will show that this has the structure of a ring.
+-/
 abbreviation R : SemiRing :=
 SemiRing.filtered_colimits.colimit (F ⋙ forget₂ Ring SemiRing)
-
-abbreviation R.mk : (Σ j, F.obj j) → R := quot.mk (types.quot.rel (F ⋙ forget Ring))
 
 instance ring_obj (j : J) : ring
 (((F ⋙ forget₂ Ring SemiRing.{v}) ⋙ forget SemiRing).obj j) :=
 begin change ring (F.obj j), apply_instance end
 
-lemma R.mk_eq (x y : Σ j, F.obj j)
-  (h : ∃ (k : J) (f : x.1 ⟶ k) (g : y.1 ⟶ k), F.map f x.2 = F.map g y.2) :
-  R.mk x = R.mk y :=
-quot.eqv_gen_sound (types.filtered_colimit.eqv_gen_quot_rel_of_rel (F ⋙ forget Ring) x y h)
-
 instance colimit_ring : ring R :=
 { ..R.semiring,
   ..AddCommGroup.filtered_colimits.colimit_add_comm_group (F ⋙ forget₂ Ring AddCommGroup) }
 
+/-- The bundled ring giving the filtered colimit of a diagram. -/
 def colimit : Ring := ⟨R, by apply_instance⟩
 
+/-- The cocone over the proposed colimit ring. -/
 def colimit_cocone : cocone F :=
 { X := colimit,
   ι := { ..(SemiRing.filtered_colimits.colimit_cocone (F ⋙ forget₂ Ring SemiRing)).ι } }
 
+/-- The proposed colimit cocone is a colimit in `Ring`. -/
 def colimit_cocone_is_colimit : is_colimit colimit_cocone :=
 { desc := λ t,
   (SemiRing.filtered_colimits.colimit_cocone_is_colimit (F ⋙ forget₂ Ring SemiRing)).desc
@@ -247,32 +262,34 @@ namespace CommRing.filtered_colimits
 
 section
 
+-- We use parameters here, mainly so we can have the abbreviations `R` and `R.mk` below, without
+-- passing around `F` all the time.
 parameters {J : Type v} [small_category J] [is_filtered J] (F : J ⥤ CommRing.{v})
 
+/--
+The colimit of `F ⋙ forget₂ CommRing Ring` in the category `Ring`.
+In the following, we will show that this has the structure of a _commutative_ ring.
+-/
 abbreviation R : Ring :=
 Ring.filtered_colimits.colimit (F ⋙ forget₂ CommRing Ring)
-
-abbreviation R.mk : (Σ j, F.obj j) → R := quot.mk (types.quot.rel (F ⋙ forget CommRing))
 
 instance semiring_obj (j : J) : comm_ring
 (((F ⋙ forget₂ CommRing Ring.{v}) ⋙ forget Ring).obj j) :=
 begin change comm_ring (F.obj j), apply_instance end
 
-lemma R.mk_eq (x y : Σ j, F.obj j)
-  (h : ∃ (k : J) (f : x.1 ⟶ k) (g : y.1 ⟶ k), F.map f x.2 = F.map g y.2) :
-  R.mk x = R.mk y :=
-quot.eqv_gen_sound (types.filtered_colimit.eqv_gen_quot_rel_of_rel (F ⋙ forget CommRing) x y h)
-
 instance colimit_comm_semiring : comm_ring R :=
 { ..R.ring,
   ..CommSemiRing.filtered_colimits.colimit_comm_semiring (F ⋙ forget₂ CommRing CommSemiRing) }
 
+/-- The bundled commutative ring giving the filtered colimit of a diagram. -/
 def colimit : CommRing := ⟨R, by apply_instance⟩
 
+/-- The cocone over the proposed colimit commutative ring. -/
 def colimit_cocone : cocone F :=
 { X := colimit,
   ι := { ..(Ring.filtered_colimits.colimit_cocone (F ⋙ forget₂ CommRing Ring)).ι } }
 
+/-- The proposed colimit cocone is a colimit in `CommRing`. -/
 def colimit_cocone_is_colimit : is_colimit colimit_cocone :=
 { desc := λ t,
   (Ring.filtered_colimits.colimit_cocone_is_colimit (F ⋙ forget₂ CommRing Ring)).desc

@@ -8,14 +8,15 @@ import category_theory.limits.concrete_category
 import category_theory.limits.preserves.filtered
 
 /-!
-# The forgetful functor `Mon ⥤ Type` preserves filtered colimits.
+# The forgetful functor from (commutative) (additive) monoids preserves filtered colimits.
 
 Forgetful functors from algebraic categories usually don't preserve colimits. However, they tend
 to preserve _filtered_ colimits.
 
 In this file, we start with a small filtered category `J` and a functor `F : J ⥤ Mon`.
 We then construct a monoid structure on the colimit of `F ⋙ forget Mon`, thereby showing that
-the forgetful functor `forget Mon` preserves filtered colimits.
+the forgetful functor `forget Mon` preserves filtered colimits. Similarly for `AddMon`, `CommMon`
+and `AddCommMon`.
 
 -/
 
@@ -43,7 +44,7 @@ In the following, we will construct a monoid structure on `M`.
 @[to_additive]
 abbreviation M : Type v := types.quot (F ⋙ forget Mon)
 
-/-- The canonical projection to the colimit. -/
+/-- The canonical projection into the colimit, as a quotient type. -/
 @[to_additive]
 abbreviation M.mk : (Σ j, F.obj j) → M := quot.mk (types.quot.rel (F ⋙ forget Mon))
 
@@ -87,9 +88,7 @@ and multiply them there.
 def colimit_mul_aux (x y : Σ j, F.obj j) : M :=
 M.mk ⟨max' x.1 y.1, F.map (left_to_max x.1 y.1) x.2 * F.map (right_to_max x.1 y.1) y.2⟩
 
-/--
-Multiplication in the colimit is well-defined in the left argument.
--/
+/-- Multiplication in the colimit is well-defined in the left argument. -/
 @[to_additive]
 lemma colimit_mul_aux_eq_of_rel_left {x x' y : Σ j, F.obj j}
   (hxx' : types.filtered_colimit.rel (F ⋙ forget Mon) x x') :
@@ -106,9 +105,7 @@ begin
   simp_rw [monoid_hom.map_mul, ← comp_apply, ← F.map_comp, h₁, h₂, h₃, F.map_comp, comp_apply, hfg]
 end
 
-/--
-Multiplication in the colimit is well-defined in the right argument.
--/
+/-- Multiplication in the colimit is well-defined in the right argument. -/
 @[to_additive]
 lemma colimit_mul_aux_eq_of_rel_right {x y y' : Σ j, F.obj j}
   (hyy' : types.filtered_colimit.rel (F ⋙ forget Mon) y y') :
@@ -125,9 +122,7 @@ begin
   simp_rw [monoid_hom.map_mul, ← comp_apply, ← F.map_comp, h₁, h₂, h₃, F.map_comp, comp_apply, hfg]
 end
 
-/--
-Multiplication in the colimit. See also `colimit_mul_aux`.
--/
+/-- Multiplication in the colimit. See also `colimit_mul_aux`. -/
 @[to_additive]
 def colimit_mul (x y : M) : M :=
 begin
@@ -282,6 +277,7 @@ end
 
 end Mon.filtered_colimits
 
+
 namespace CommMon.filtered_colimits
 
 open Mon.filtered_colimits (colimit_mul colimit_mul_eq)
@@ -294,7 +290,7 @@ parameters {J : Type v} [small_category J] [is_filtered J] (F : J ⥤ CommMon.{v
 
 /--
 The colimit of `F ⋙ forget₂ CommMon Mon` in the category `Mon`.
-In the following, we will construct a _commutative_ monoid structure on `M`.
+In the following, we will show that this has the structure of a _commutative_ monoid.
 -/
 @[to_additive]
 abbreviation M : Mon := Mon.filtered_colimits.colimit (F ⋙ forget₂ CommMon Mon.{v})

@@ -140,17 +140,17 @@ section has_neg
 variables {n : Type u} {R : Type v} [decidable_eq n] [fintype n] [linear_ordered_comm_ring R ]
 [fact (even (fintype.card n))]
 
-/-- Formal operation of negation on special linear group on even cardinality `n` given by negating
+/-- Formal operation of negation on general linear group on even cardinality `n` given by negating
 each element. -/
 instance : has_neg (GL_pos n R) :=
 ⟨λ g,
-  ⟨- g, by {simp,
+  ⟨- g, by {simp only [mem_GL_pos, general_linear_group.coe_det_apply, units.coe_neg],
   have:= det_smul g (-1),
-  simp at this,
+  simp only [general_linear_group.coe_fn_eq_coe, one_smul, coe_fn_coe_base, neg_smul] at this,
   rw this,
   simp [nat.neg_one_pow_of_even (fact.out (even (fintype.card n)))],
   have gdet:=g.property,
-  simp at gdet,
+  simp only [mem_GL_pos, general_linear_group.coe_det_apply, subtype.val_eq_coe] at gdet,
   exact gdet,}⟩⟩
 
 @[simp] lemma GL_pos_coe_neg (g : GL_pos n R) : ↑(- g) = - (↑g : matrix n n R) :=
@@ -177,19 +177,10 @@ instance : has_coe (special_linear_group n R) (GL_pos n R) := ⟨to_GL_pos⟩
 
 lemma coe_eq_to_GL_pos : (coe : special_linear_group n R → GL_pos n R) = to_GL_pos := rfl
 
-lemma to_GL_pos_is_injective:
-function.injective (to_GL_pos : special_linear_group n R → GL_pos n R):=
-begin
-  intros a₁ a₂ ha,
-  cases a₂,
-  cases a₁,
-  simp at *,
-  ext1,
-  injections_and_clear,
-  injections_and_clear,
-  dsimp at *,
-  rw h_2,
-end
+lemma to_GL_pos_injective :
+  function.injective (to_GL_pos : special_linear_group n R → GL_pos n R) :=
+(show function.injective ((coe : GL_pos n R → matrix n n R) ∘ to_GL_pos),
+ from subtype.coe_injective).of_comp
 
 end special_linear_group
 end matrix

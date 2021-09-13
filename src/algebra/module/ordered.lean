@@ -8,7 +8,7 @@ import algebra.module.pi
 import algebra.order.pi
 import algebra.module.prod
 import algebra.order.field
-import algebra.ordered_smul
+import algebra.order.smul
 
 /-!
 # Ordered module

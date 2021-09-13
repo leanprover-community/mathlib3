@@ -5,7 +5,7 @@ Authors: Chris Hughes
 -/
 import ring_theory.adjoin.basic
 import data.mv_polynomial.variables
-import linear_algebra.finsupp
+
 /-!
 # Polynomials supported by a set of variables
 
@@ -70,14 +70,6 @@ by simp [algebra.eq_top_iff, mem_supported]
 
 @[simp] lemma supported_empty : supported R (∅ : set σ) = ⊥ :=
 by simp [supported_eq_adjoin_X]
-
-@[simp] lemma supported_eq_top_of_subsingleton [subsingleton R] : supported R s = ⊤ :=
-begin
-  ext p,
-  haveI := (@mv_polynomial.unique R σ _),
-  rw [subsingleton.elim p 0],
-  simp [subalgebra.zero_mem],
-end
 
 variables {s}
 

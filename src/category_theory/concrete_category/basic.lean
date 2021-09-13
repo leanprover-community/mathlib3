@@ -141,8 +141,8 @@ lemma concrete_category.epi_of_surjective {X Y : C} (f : X ⟶ Y) (s : function.
   epi f :=
 faithful_reflects_epi (forget C) ((epi_iff_surjective f).2 s)
 
-@[simp] lemma concrete_category.has_coe_to_fun_Type {X Y : Type u} (f : X ⟶ Y) :
-  coe_fn f = f :=
+@[simp] lemma concrete_category.to_fun_Type {X Y : Type u} (f : X ⟶ Y) :
+  (@coe_fn _ _ (concrete_category.has_coe_to_fun) f) = f :=
 rfl
 
 end

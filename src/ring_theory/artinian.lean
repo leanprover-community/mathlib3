@@ -105,8 +105,8 @@ theorem is_artinian_of_range_eq_ker
   (submodule.map g)
   (submodule.gci_map_comap hf)
   (submodule.gi_map_comap hg)
-  (by simp [linear_map.map_comap_eq, inf_comm])
-  (by simp [linear_map.comap_map_eq, h])⟩
+  (by simp [submodule.map_comap_eq, inf_comm])
+  (by simp [submodule.comap_map_eq, h])⟩
 
 instance is_artinian_prod [is_artinian R M]
   [is_artinian R P] : is_artinian R (M × P) :=
@@ -187,7 +187,7 @@ end
 
 /-- A module is Artinian iff every nonempty set of submodules has a minimal submodule among them.
 -/
-theorem set_has_minimal_iff_artinrian :
+theorem set_has_minimal_iff_artinian :
   (∀ a : set $ submodule R M, a.nonempty → ∃ M' ∈ a, ∀ I ∈ a, I ≤ M' → I = M') ↔
   is_artinian R M :=
 by rw [is_artinian_iff_well_founded, well_founded.well_founded_iff_has_min']

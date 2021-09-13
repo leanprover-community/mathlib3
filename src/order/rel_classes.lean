@@ -99,7 +99,9 @@ begin
   exact trans h₁ h₃, rw ←h₃, exact h₁, exfalso, exact h₂ h₃
 end
 
-/-- Construct a partial order from a `is_strict_order` relation -/
+/-- Construct a partial order from a `is_strict_order` relation.
+
+See note [reducible non-instances]. -/
 @[reducible] def partial_order_of_SO (r) [is_strict_order α r] : partial_order α :=
 { le := λ x y, x = y ∨ r x y,
   lt := r,

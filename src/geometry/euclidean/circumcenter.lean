@@ -191,7 +191,7 @@ end
 /-- Given a finite nonempty affinely independent family of points,
 there is a unique (circumcenter, circumradius) pair for those points
 in the affine subspace they span. -/
-lemma exists_unique_dist_eq_of_affine_independent {ι : Type*} [hne : nonempty ι] [fintype ι]
+lemma _root_.affine_independent.exists_unique_dist_eq {ι : Type*} [hne : nonempty ι] [fintype ι]
     {p : ι → P} (ha : affine_independent ℝ p) :
   ∃! cccr : (P × ℝ), cccr.fst ∈ affine_span ℝ (set.range p) ∧
     ∀ i, dist (p i) cccr.fst = cccr.snd :=
@@ -233,8 +233,7 @@ begin
           simp },
         { simp } },
       haveI : nonempty ι2 := fintype.card_pos_iff.1 (hc.symm ▸ nat.zero_lt_succ _),
-      have ha2 : affine_independent ℝ (λ i2 : ι2, p i2) :=
-        affine_independent_subtype_of_affine_independent ha _,
+      have ha2 : affine_independent ℝ (λ i2 : ι2, p i2) := ha.subtype _,
       replace hm := hm ha2 hc,
       have hr : set.range p = insert (p i) (set.range (λ i2 : ι2, p i2)),
       { change _ = insert _ (set.range (λ i2 : {x | x ≠ i}, p i2)),
@@ -253,7 +252,7 @@ begin
         (subset_span_points ℝ _)
         _
         hm,
-      convert not_mem_affine_span_diff_of_affine_independent ha i set.univ,
+      convert ha.not_mem_affine_span_diff i set.univ,
       change set.range (λ i2 : {x | x ≠ i}, p i2) = _,
       rw ←set.image_eq_range,
       congr' with j, simp, refl } }
@@ -273,7 +272,7 @@ include V
 
 /-- The pair (circumcenter, circumradius) of a simplex. -/
 def circumcenter_circumradius {n : ℕ} (s : simplex ℝ P n) : (P × ℝ) :=
-(exists_unique_dist_eq_of_affine_independent s.independent).some
+s.independent.exists_unique_dist_eq.some
 
 /-- The property satisfied by the (circumcenter, circumradius) pair. -/
 lemma circumcenter_circumradius_unique_dist_eq {n : ℕ} (s : simplex ℝ P n) :
@@ -281,7 +280,7 @@ lemma circumcenter_circumradius_unique_dist_eq {n : ℕ} (s : simplex ℝ P n) :
     ∀ i, dist (s.points i) s.circumcenter_circumradius.fst = s.circumcenter_circumradius.snd) ∧
   (∀ cccr : (P × ℝ), (cccr.fst ∈ affine_span ℝ (set.range s.points) ∧
     ∀ i, dist (s.points i) cccr.fst = cccr.snd) → cccr = s.circumcenter_circumradius) :=
-(exists_unique_dist_eq_of_affine_independent s.independent).some_spec
+s.independent.exists_unique_dist_eq.some_spec
 
 /-- The circumcenter of a simplex. -/
 def circumcenter {n : ℕ} (s : simplex ℝ P n) : P :=
@@ -346,8 +345,7 @@ begin
   intro h,
   have hr := s.dist_circumcenter_eq_circumradius,
   simp_rw [←h, dist_eq_zero] at hr,
-  have h01 := (injective_of_affine_independent s.independent).ne
-    (dec_trivial : (0 : fin (n + 2)) ≠ 1),
+  have h01 := s.independent.injective.ne (dec_trivial : (0 : fin (n + 2)) ≠ 1),
   simpa [hr] using h01
 end
 
@@ -703,8 +701,8 @@ begin
   use r,
   intros sx hsxps,
   have hsx : affine_span ℝ (set.range sx.points) = s,
-  { refine affine_span_eq_of_le_of_affine_independent_of_card_eq_finrank_add_one sx.independent
-      (span_points_subset_coe_of_subset_coe (set.subset.trans hsxps h)) _,
+  { refine sx.independent.affine_span_eq_of_le_of_card_eq_finrank_add_one
+      (span_points_subset_coe_of_subset_coe (hsxps.trans h)) _,
     simp [hd] },
   have hc : c ∈ affine_span ℝ (set.range sx.points) := hsx.symm ▸ hc,
   exact (sx.eq_circumradius_of_dist_eq
@@ -759,8 +757,8 @@ begin
   use c,
   intros sx hsxps,
   have hsx : affine_span ℝ (set.range sx.points) = s,
-  { refine affine_span_eq_of_le_of_affine_independent_of_card_eq_finrank_add_one sx.independent
-      (span_points_subset_coe_of_subset_coe (set.subset.trans hsxps h)) _,
+  { refine sx.independent.affine_span_eq_of_le_of_card_eq_finrank_add_one
+      (span_points_subset_coe_of_subset_coe (hsxps.trans h)) _,
     simp [hd] },
   have hc : c ∈ affine_span ℝ (set.range sx.points) := hsx.symm ▸ hc,
   exact (sx.eq_circumcenter_of_dist_eq

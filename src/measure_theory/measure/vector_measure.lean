@@ -962,6 +962,33 @@ eq rfl
 lemma zero (v : vector_measure α N) : (0 : vector_measure α M) ≪ v :=
 λ s _, vector_measure.zero_apply s
 
+lemma neg_left {M : Type*} [add_comm_group M] [topological_space M] [topological_add_group M]
+  {v : vector_measure α M} {w : vector_measure α N} (h : v ≪ w) : -v ≪ w :=
+λ s hs, by { rw [neg_apply, h hs, neg_zero] }
+
+lemma neg_right {N : Type*} [add_comm_group N] [topological_space N] [topological_add_group N]
+  {v : vector_measure α M} {w : vector_measure α N} (h : v ≪ w) : v ≪ -w :=
+begin
+  intros s hs,
+  rw [neg_apply, neg_eq_zero] at hs,
+  exact h hs
+end
+
+lemma add [has_continuous_add M] {v₁ v₂ : vector_measure α M} {w : vector_measure α N}
+  (hv₁ : v₁ ≪ w) (hv₂ : v₂ ≪ w) : v₁ + v₂ ≪ w :=
+λ s hs, by { rw [add_apply, hv₁ hs, hv₂ hs, zero_add] }
+
+lemma sub {M : Type*} [add_comm_group M] [topological_space M] [topological_add_group M]
+  {v₁ v₂ : vector_measure α M} {w : vector_measure α N} (hv₁ : v₁ ≪ w) (hv₂ : v₂ ≪ w) :
+  v₁ - v₂ ≪ w :=
+λ s hs, by { rw [sub_apply, hv₁ hs, hv₂ hs, zero_sub, neg_zero] }
+
+lemma smul {R : Type*} [semiring R] [distrib_mul_action R M]
+  [topological_space R] [has_continuous_smul R M]
+  {r : R} {v : vector_measure α M} {w : vector_measure α N} (h : v ≪ w) :
+  r • v ≪ w :=
+λ s hs, by { rw [smul_apply, h hs, smul_zero] }
+
 lemma map [measure_space β] (h : v ≪ w) (f : α → β) :
   v.map f ≪ w.map f :=
 begin
@@ -987,6 +1014,81 @@ begin
 end
 
 end absolutely_continuous
+
+/-- Two vector measures `v` and `w` are said to be mutually singular if there exists a measurable
+set `s`, such that for all `t ⊆ s`, `v t = 0` and for all `t ⊆ sᶜ`, `w t = 0`.
+
+We note that we do not require the measurability of `t` in the definition since this makes it easier
+to use. This is equivalent to the definition which requires measurability. To prove
+`mutually_singular` with the measurability condition, use
+`measure_theory.vector_measure.mutually_singular.mk`. -/
+def mutually_singular (v : vector_measure α M) (w : vector_measure α N) : Prop :=
+∃ (s : set α), measurable_set s ∧ (∀ t ⊆ s, v t = 0) ∧ (∀ t ⊆ sᶜ, w t = 0)
+
+localized "infix ` ⊥ᵥ `:60 := measure_theory.vector_measure.mutually_singular" in measure_theory
+
+namespace mutually_singular
+
+variables {v v₁ v₂ : vector_measure α M} {w w₁ w₂ : vector_measure α N}
+
+lemma mk (s : set α) (hs : measurable_set s)
+  (h₁ : ∀ t ⊆ s, measurable_set t → v t = 0)
+  (h₂ : ∀ t ⊆ sᶜ, measurable_set t → w t = 0) : v ⊥ᵥ w :=
+begin
+  refine ⟨s, hs, λ t hst, _, λ t hst, _⟩;
+  by_cases ht : measurable_set t,
+  { exact h₁ t hst ht },
+  { exact not_measurable v ht },
+  { exact h₂ t hst ht },
+  { exact not_measurable w ht }
+end
+
+lemma symm (h : v ⊥ᵥ w) : w ⊥ᵥ v :=
+let ⟨s, hmeas, hs₁, hs₂⟩ := h in
+  ⟨sᶜ, hmeas.compl, hs₂, λ t ht, hs₁ _ (compl_compl s ▸ ht : t ⊆ s)⟩
+
+lemma zero_right : v ⊥ᵥ (0 : vector_measure α N) :=
+⟨∅, measurable_set.empty, λ t ht, (subset_empty_iff.1 ht).symm ▸ v.empty, λ _ _, zero_apply _⟩
+
+lemma zero_left : (0 : vector_measure α M) ⊥ᵥ w :=
+zero_right.symm
+
+lemma add_left [t2_space N] [has_continuous_add M] (h₁ : v₁ ⊥ᵥ w) (h₂ : v₂ ⊥ᵥ w) : v₁ + v₂ ⊥ᵥ w :=
+begin
+  obtain ⟨u, hmu, hu₁, hu₂⟩ := h₁,
+  obtain ⟨v, hmv, hv₁, hv₂⟩ := h₂,
+  refine mk (u ∩ v) (hmu.inter hmv) (λ t ht hmt, _) (λ t ht hmt, _),
+  { rw [add_apply, hu₁ _ (subset_inter_iff.1 ht).1, hv₁ _ (subset_inter_iff.1 ht).2, zero_add] },
+  { rw compl_inter at ht,
+    rw [(_ : t = (uᶜ ∩ t) ∪ (vᶜ \ uᶜ ∩ t)),
+        of_union _ (hmu.compl.inter hmt) ((hmv.compl.diff hmu.compl).inter hmt),
+        hu₂, hv₂, add_zero],
+    { exact subset.trans (inter_subset_left _ _) (diff_subset _ _) },
+    { exact inter_subset_left _ _ },
+    { apply_instance },
+    { exact disjoint.mono (inter_subset_left _ _) (inter_subset_left _ _) disjoint_diff },
+    { apply subset.antisymm;
+      intros x hx,
+      { by_cases hxu' : x ∈ uᶜ,
+        { exact or.inl ⟨hxu', hx⟩ },
+        rcases ht hx with (hxu | hxv),
+        exacts [false.elim (hxu' hxu), or.inr ⟨⟨hxv, hxu'⟩, hx⟩] },
+      { rcases hx; exact hx.2 } } },
+end
+
+lemma add_right [t2_space M] [has_continuous_add N] (h₁ : v ⊥ᵥ w₁) (h₂ : v ⊥ᵥ w₂) : v ⊥ᵥ w₁ + w₂ :=
+(add_left h₁.symm h₂.symm).symm
+
+lemma smul_right {R : Type*} [semiring R] [distrib_mul_action R N] [topological_space R]
+  [has_continuous_smul R N] (r : R) (h : v ⊥ᵥ w) : v ⊥ᵥ r • w :=
+let ⟨s, hmeas, hs₁, hs₂⟩ := h in
+  ⟨s, hmeas, hs₁, λ t ht, by simp only [coe_smul, pi.smul_apply, hs₂ t ht, smul_zero]⟩
+
+lemma smul_left {R : Type*} [semiring R] [distrib_mul_action R M] [topological_space R]
+  [has_continuous_smul R M] (r : R) (h : v ⊥ᵥ w) : r • v ⊥ᵥ w :=
+(smul_right r h.symm).symm
+
+end mutually_singular
 
 end
 

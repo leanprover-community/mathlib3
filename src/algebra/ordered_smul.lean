@@ -116,9 +116,8 @@ instance linear_ordered_semiring.to_ordered_smul {R : Type*} [linear_ordered_sem
 
 section field
 
-variables {k M N : Type*} [linear_ordered_field k]
+variables {k M : Type*} [linear_ordered_field k]
   [ordered_add_comm_group M] [mul_action_with_zero k M] [ordered_smul k M]
-  [ordered_add_comm_group N] [smul_with_zero k N] [ordered_smul k N]
   {a b : M} {c : k}
 
 lemma smul_le_smul_iff_of_pos (hc : 0 < c) : c • a ≤ c • b ↔ a ≤ b :=
@@ -129,6 +128,10 @@ lemma smul_le_smul_iff_of_pos (hc : 0 < c) : c • a ≤ c • b ↔ a ≤ b :=
 lemma smul_lt_iff_of_pos (hc : 0 < c) : c • a < b ↔ a < c⁻¹ • b :=
 calc c • a < b ↔ c • a < c • c⁻¹ • b : by rw [smul_inv_smul' hc.ne']
 ... ↔ a < c⁻¹ • b : smul_lt_smul_iff_of_pos hc
+
+lemma lt_smul_iff_of_pos (hc : 0 < c) : a < c • b ↔ c⁻¹ • a < b :=
+calc a < c • b ↔ c • c⁻¹ • a < c • b : by rw [smul_inv_smul' hc.ne']
+... ↔ c⁻¹ • a < b : smul_lt_smul_iff_of_pos hc
 
 lemma smul_le_iff_of_pos (hc : 0 < c) : c • a ≤ b ↔ a ≤ c⁻¹ • b :=
 calc c • a ≤ b ↔ c • a ≤ c • c⁻¹ • b : by rw [smul_inv_smul' hc.ne']
@@ -147,22 +150,22 @@ variables {R M : Type*}
 instance [has_scalar R M] : has_scalar R (order_dual M) :=
 { smul := λ k x, order_dual.rec (λ x', (k • x' : M)) x }
 
-instance [semiring R] [ordered_add_comm_monoid M] [h : smul_with_zero R M] :
+instance [has_zero R] [add_zero_class M] [h : smul_with_zero R M] :
   smul_with_zero R (order_dual M) :=
 { zero_smul := λ m, order_dual.rec (zero_smul _) m,
   smul_zero := λ r, order_dual.rec (smul_zero' _) r,
   ..order_dual.has_scalar }
 
-instance [semiring R] [mul_action R M] : mul_action R (order_dual M) :=
+instance [monoid R] [mul_action R M] : mul_action R (order_dual M) :=
 { one_smul := λ m, order_dual.rec (one_smul _) m,
   mul_smul := λ r, order_dual.rec mul_smul r,
   ..order_dual.has_scalar }
 
-instance [semiring R] [ordered_add_comm_monoid M] [mul_action_with_zero R M] :
+instance [monoid_with_zero R] [add_monoid M] [mul_action_with_zero R M] :
   mul_action_with_zero R (order_dual M) :=
 { ..order_dual.mul_action, ..order_dual.smul_with_zero }
 
-instance [semiring R] [ordered_add_comm_monoid M] [distrib_mul_action R M] :
+instance [monoid_with_zero R] [add_monoid M] [distrib_mul_action R M] :
   distrib_mul_action R (order_dual M) :=
 { smul_add := λ k a, order_dual.rec (λ a' b, order_dual.rec (smul_add _ _) b) a,
   smul_zero := λ r, order_dual.rec smul_zero r }

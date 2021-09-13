@@ -5,7 +5,7 @@ Authors: Tim Baanen, Lu-Ming Zhang
 -/
 import algebra.associated
 import algebra.regular.smul
-import linear_algebra.matrix.determinant
+import linear_algebra.matrix.polynomial
 import tactic.linarith
 import tactic.ring_exp
 
@@ -470,6 +470,12 @@ lemma is_unit_det_of_left_inverse (h : B ⬝ A = 1) : is_unit A.det :=
 lemma is_unit_det_of_right_inverse (h : A ⬝ B = 1) : is_unit A.det :=
 @is_unit_of_invertible _ _ _ (det_invertible_of_right_inverse _ _ h)
 
+lemma det_ne_zero_of_left_inverse [nontrivial α] (h : B ⬝ A = 1) : A.det ≠ 0 :=
+is_unit.ne_zero (matrix.is_unit_det_of_left_inverse h)
+
+lemma det_ne_zero_of_right_inverse [nontrivial α] (h : A ⬝ B = 1) : A.det ≠ 0 :=
+is_unit.ne_zero (matrix.is_unit_det_of_right_inverse h)
+
 lemma nonsing_inv_left_right (h : A ⬝ B = 1) : B ⬝ A = 1 :=
 begin
   have h' : is_unit B.det := is_unit_det_of_left_inverse h,
@@ -567,10 +573,7 @@ inv_eq_left_inv (by simp [h, smul_smul])
 
 lemma _root_.is_unit.coe_inv_mul {α : Type*} [monoid α] {a : α} (h : is_unit a) :
   ↑(h.unit)⁻¹ * a = 1 :=
-begin
-  convert units.mul_inv _,
-  simp [h.unit_spec]
-end
+units.mul_inv _
 
 lemma _root_.is_unit.mul_coe_inv {α : Type*} [monoid α] {a : α} (h : is_unit a) :
   a * ↑(h.unit)⁻¹ = 1 :=
@@ -653,6 +656,43 @@ begin
       smul_mul, matrix.one_mul, mul_smul, mul_adjugate, smul_smul, mul_comm, ←det_mul]
 end
 
+/--
+Proof follows from "The trace Cayley-Hamilton theorem" by Darij Grinberg, Section 5.3
+-/
+lemma adjugate_mul_distrib (A B : matrix n n α) : adjugate (A ⬝ B) = adjugate B ⬝ adjugate A :=
+begin
+  casesI subsingleton_or_nontrivial α,
+  { simp },
+  let g : matrix n n α → matrix n n (polynomial α) :=
+    λ M, M.map polynomial.C + (polynomial.X : polynomial α) • 1,
+  let f' : matrix n n (polynomial α) →+* matrix n n α := (polynomial.eval_ring_hom 0).map_matrix,
+  have f'_inv : ∀ M, f' (g M) = M,
+  { intro,
+    ext,
+    simp [f', g], },
+  have f'_adj : ∀ (M : matrix n n α), f' (adjugate (g M)) = adjugate M,
+  { intro,
+    rw [ring_hom.map_adjugate, f'_inv] },
+  have f'_g_mul : ∀ (M N : matrix n n α), f' (g M ⬝ g N) = M ⬝ N,
+  { intros,
+    rw [←mul_eq_mul, ring_hom.map_mul, f'_inv, f'_inv, mul_eq_mul] },
+  have hu : ∀ (M : matrix n n α), is_regular (g M).det,
+  { intros M,
+    refine polynomial.monic.is_regular _,
+    simp only [g, polynomial.monic.def, ←polynomial.leading_coeff_det_X_one_add_C M, add_comm] },
+  rw [←f'_adj, ←f'_adj, ←f'_adj, ←mul_eq_mul (f' (adjugate (g B))), ←f'.map_mul, mul_eq_mul,
+      ←adjugate_mul_distrib_aux _ _ (hu A).left (hu B).left, ring_hom.map_adjugate,
+      ring_hom.map_adjugate, f'_inv, f'_g_mul]
+end
+
+@[simp] lemma adjugate_pow (A : matrix n n α) (k : ℕ) :
+  adjugate (A ^ k) = (adjugate A) ^ k :=
+begin
+  induction k with k IH,
+  { simp },
+  { rw [pow_succ', mul_eq_mul, adjugate_mul_distrib, IH, ←mul_eq_mul, pow_succ] }
+end
+
 end inv
 
 /-- One form of Cramer's rule -/
@@ -670,14 +710,32 @@ divides `b`. -/
   A.mul_vec (cramer A b) = A.det • b :=
 by rw [cramer_eq_adjugate_mul_vec, mul_vec_mul_vec, mul_adjugate, smul_mul_vec_assoc, one_mul_vec]
 
+section nondegenerate
+
+variables {m R A : Type*} [fintype m] [comm_ring R] [integral_domain A]
+
+/-- A matrix `M` is nondegenerate if for all `v ≠ 0`, there is a `w ≠ 0` with `w ⬝ M ⬝ v ≠ 0`. -/
+def nondegenerate (M : matrix m m R) :=
+∀ v, (∀ w, matrix.dot_product v (mul_vec M w) = 0) → v = 0
+
+/-- If `M` is nondegenerate and `w ⬝ M ⬝ v = 0` for all `w`, then `v = 0`. -/
+lemma nondegenerate.eq_zero_of_ortho {M : matrix m m R} (hM : nondegenerate M)
+  {v : m → R} (hv : ∀ w, matrix.dot_product v (mul_vec M w) = 0) : v = 0 :=
+hM v hv
+
+/-- If `M` is nondegenerate and `v ≠ 0`, then there is some `w` such that `w ⬝ M ⬝ v ≠ 0`. -/
+lemma nondegenerate.exists_not_ortho_of_ne_zero {M : matrix m m R} (hM : nondegenerate M)
+  {v : m → R} (hv : v ≠ 0) : ∃ w, matrix.dot_product v (mul_vec M w) ≠ 0 :=
+not_forall.mp (mt hM.eq_zero_of_ortho hv)
+
 /-- If `M` has a nonzero determinant, then `M` as a bilinear form on `n → A` is nondegenerate.
 
 See also `bilin_form.nondegenerate_of_det_ne_zero'` and `bilin_form.nondegenerate_of_det_ne_zero`.
 -/
-theorem nondegenerate_of_det_ne_zero {A : Type*} [integral_domain A]
-  {M : matrix n n A} (hM : M.det ≠ 0)
-  (v : n → A) (hv : ∀ w, matrix.dot_product v (mul_vec M w) = 0) : v = 0 :=
+theorem nondegenerate_of_det_ne_zero {M : matrix n n A} (hM : M.det ≠ 0) :
+  nondegenerate M :=
 begin
+  intros v hv,
   ext i,
   specialize hv (M.cramer (pi.single i 1)),
   refine (mul_eq_zero.mp _).resolve_right hM,
@@ -687,5 +745,17 @@ begin
   { intros j _ hj, simp [hj] },
   { intros, have := finset.mem_univ i, contradiction }
 end
+
+theorem eq_zero_of_vec_mul_eq_zero {M : matrix n n A} (hM : M.det ≠ 0) {v : n → A}
+  (hv : M.vec_mul v = 0) : v = 0 :=
+(nondegenerate_of_det_ne_zero hM).eq_zero_of_ortho
+  (λ w, by rw [dot_product_mul_vec, hv, zero_dot_product])
+
+theorem eq_zero_of_mul_vec_eq_zero {M : matrix n n A} (hM : M.det ≠ 0) {v : n → A}
+  (hv : M.mul_vec v = 0) :
+  v = 0 :=
+eq_zero_of_vec_mul_eq_zero (by rwa det_transpose) ((vec_mul_transpose M v).trans hv)
+
+end nondegenerate
 
 end matrix

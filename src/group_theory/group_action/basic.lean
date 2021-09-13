@@ -453,6 +453,23 @@ end
 end
 
 section
+variables [monoid α] [monoid β] [mul_distrib_mul_action α β]
+
+@[simp] lemma smul_pow (x : α) (m : β) (n : ℕ) :
+  x • m ^ n = (x • m) ^ n :=
+begin
+  induction n with n ih,
+  { rw [pow_zero, pow_zero], exact smul_one x },
+  { rw [pow_succ, pow_succ], exact (smul_mul' x m (m ^ n)).trans (congr_arg _ ih) }
+end
+
+lemma list.smul_prod {r : α} {l : list β} :
+  r • l.prod = (l.map ((•) r)).prod :=
+(mul_distrib_mul_action.to_monoid_hom β r).map_list_prod l
+
+end
+
+section
 variables [monoid α] [add_comm_monoid β] [distrib_mul_action α β]
 
 lemma multiset.smul_sum {r : α} {s : multiset β} :
@@ -462,6 +479,19 @@ lemma multiset.smul_sum {r : α} {s : multiset β} :
 lemma finset.smul_sum {r : α} {f : γ → β} {s : finset γ} :
   r • ∑ x in s, f x = ∑ x in s, r • f x :=
 (distrib_mul_action.to_add_monoid_hom β r).map_sum f s
+
+end
+
+section
+variables [monoid α] [comm_monoid β] [mul_distrib_mul_action α β]
+
+lemma multiset.smul_prod {r : α} {s : multiset β} :
+  r • s.prod = (s.map ((•) r)).prod :=
+(mul_distrib_mul_action.to_monoid_hom β r).map_multiset_prod s
+
+lemma finset.smul_prod {r : α} {f : γ → β} {s : finset γ} :
+  r • ∏ x in s, f x = ∏ x in s, r • f x :=
+(mul_distrib_mul_action.to_monoid_hom β r).map_prod f s
 
 end
 

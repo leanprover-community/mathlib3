@@ -9,6 +9,8 @@ import algebra.group.prod
 import algebra.order_functions
 import order.bounded_lattice
 import algebra.ordered_monoid_lemmas
+import order.rel_iso
+
 /-!
 # Ordered monoids
 
@@ -710,44 +712,6 @@ def function.injective.ordered_cancel_comm_monoid {β : Type*}
 
 end ordered_cancel_comm_monoid
 
-section ordered_cancel_add_comm_monoid
-
-variable [ordered_cancel_add_comm_monoid α]
-
-lemma with_top.add_lt_add_iff_left :
-  ∀{a b c : with_top α}, a < ⊤ → (a + c < a + b ↔ c < b)
-| none := assume b c h, (lt_irrefl ⊤ h).elim
-| (some a) :=
-  begin
-    assume b c h,
-    cases b; cases c;
-      simp [with_top.none_eq_top, with_top.some_eq_coe, with_top.coe_lt_top, with_top.coe_lt_coe],
-    { norm_cast, exact with_top.coe_lt_top _ },
-    { norm_cast, exact add_lt_add_iff_left _ }
-  end
-
-lemma with_bot.add_lt_add_iff_left :
-  ∀{a b c : with_bot α}, ⊥ < a → (a + c < a + b ↔ c < b)
-| none := assume b c h, (lt_irrefl ⊥ h).elim
-| (some a) :=
-  begin
-    assume b c h,
-    cases b; cases c;
-      simp [with_bot.none_eq_bot, with_bot.some_eq_coe, with_bot.bot_lt_coe, with_bot.coe_lt_coe],
-    { norm_cast, exact with_bot.bot_lt_coe _ },
-    { norm_cast, exact add_lt_add_iff_left _ }
-  end
-
-lemma with_top.add_lt_add_iff_right
-  {a b c : with_top α} : a < ⊤ → (c + a < b + a ↔ c < b) :=
-by simpa [add_comm] using @with_top.add_lt_add_iff_left _ _ a b c
-
-lemma with_bot.add_lt_add_iff_right
-  {a b c : with_bot α} : ⊥ < a → (c + a < b + a ↔ c < b) :=
-by simpa [add_comm] using @with_bot.add_lt_add_iff_left _ _ a b c
-
-end ordered_cancel_add_comm_monoid
-
 /-! Some lemmas about types that have an ordering and a binary operation, with no
   rules relating them. -/
 @[to_additive]
@@ -924,6 +888,50 @@ instance [linear_ordered_comm_monoid α] :
 
 end order_dual
 
+section ordered_cancel_add_comm_monoid
+
+variable [ordered_cancel_add_comm_monoid α]
+
+namespace with_top
+
+lemma add_lt_add_iff_left {a b c : with_top α} (ha : a ≠ ⊤) : a + b < a + c ↔ b < c :=
+begin
+  lift a to α using ha,
+  cases b; cases c,
+  { simp [none_eq_top] },
+  { simp [some_eq_coe, none_eq_top, coe_lt_top] },
+  { simp [some_eq_coe, none_eq_top, ← coe_add, coe_lt_top] },
+  { simp [some_eq_coe, ← coe_add, coe_lt_coe] }
+end
+
+lemma add_lt_add_iff_right {a b c : with_top α} (ha : a ≠ ⊤) : (c + a < b + a ↔ c < b) :=
+by simp only [← add_comm a, add_lt_add_iff_left ha]
+
+instance contravariant_class_add_lt : contravariant_class (with_top α) (with_top α) (+) (<) :=
+begin
+  refine ⟨λ a b c h, _⟩,
+  cases a,
+  { rw [none_eq_top, top_add, top_add] at h, exact (lt_irrefl ⊤ h).elim },
+  { exact (add_lt_add_iff_left coe_ne_top).1 h }
+end
+
+end with_top
+
+namespace with_bot
+
+lemma add_lt_add_iff_left {a b c : with_bot α} (ha : a ≠ ⊥) : a + b < a + c ↔ b < c :=
+@with_top.add_lt_add_iff_left (order_dual α) _ a c b ha
+
+lemma add_lt_add_iff_right {a b c : with_bot α} (ha : a ≠ ⊥) : b + a < c + a ↔ b < c :=
+@with_top.add_lt_add_iff_right (order_dual α) _ _ _ _ ha
+
+instance contravariant_class_add_lt : contravariant_class (with_bot α) (with_bot α) (+) (<) :=
+@order_dual.contravariant_class_add_lt (with_top $ order_dual α) _ _ _
+
+end with_bot
+
+end ordered_cancel_add_comm_monoid
+
 namespace prod
 
 variables {M N : Type*}
@@ -975,3 +983,20 @@ instance [linear_ordered_comm_monoid α] : linear_ordered_add_comm_monoid (addit
   ..additive.ordered_add_comm_monoid }
 
 end type_tags
+
+/-- The order embedding sending `b` to `a * b`, for some fixed `a`.
+See also `order_iso.mul_left` when working in an ordered group. -/
+@[to_additive "The order embedding sending `b` to `a + b`, for some fixed `a`.
+  See also `order_iso.add_left` when working in an additive ordered group.", simps]
+def order_embedding.mul_left
+  {α : Type*} [has_mul α] [linear_order α] [covariant_class α α (*) (<)] (m : α) : α ↪o α :=
+order_embedding.of_strict_mono (λ n, m * n) (λ a b w, mul_lt_mul_left' w m)
+
+/-- The order embedding sending `b` to `b * a`, for some fixed `a`.
+See also `order_iso.mul_right` when working in an ordered group. -/
+@[to_additive "The order embedding sending `b` to `b + a`, for some fixed `a`.
+  See also `order_iso.add_right` when working in an additive ordered group.", simps]
+def order_embedding.mul_right
+  {α : Type*} [has_mul α] [linear_order α] [covariant_class α α (swap (*)) (<)] (m : α) :
+  α ↪o α :=
+order_embedding.of_strict_mono (λ n, n * m) (λ a b w, mul_lt_mul_right' w m)

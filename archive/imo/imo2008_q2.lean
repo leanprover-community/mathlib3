@@ -31,53 +31,28 @@ lemma subst_abc {x y z : ℝ} (h : x*y*z = 1) :
   ∃ a b c : ℝ, a ≠ 0 ∧ b ≠ 0 ∧ c ≠ 0 ∧ x = a/b ∧ y = b/c ∧ z = c /a :=
 begin
   use [x, 1, 1/y],
-  have h₁ : x ≠ 0 := left_ne_zero_of_mul (left_ne_zero_of_mul_eq_one h),
-  have h₂ : (1 : ℝ) ≠ (0 : ℝ) := one_ne_zero,
-  have hy_ne_zero : y ≠ 0 := right_ne_zero_of_mul (left_ne_zero_of_mul_eq_one h),
-  have h₃ : 1/y ≠ 0 := one_div_ne_zero hy_ne_zero,
-  have h₄ : x = x / 1 := (div_one x).symm,
-  have h₅ : y = 1 / (1 / y) := (one_div_one_div y).symm,
-  have h₆ : z = 1 / y / x, { field_simp, linarith [h] },
-  exact ⟨h₁, h₂, h₃, h₄, h₅, h₆⟩,
+  obtain ⟨⟨hx, hy⟩, hz⟩ : (x ≠ 0 ∧ y ≠ 0) ∧ z ≠ 0,
+    by simpa [not_or_distrib] using trans_rel_right (≠) h one_ne_zero,
+  have : z * (y * x) = 1, by { rw ← h, ac_refl },
+  field_simp *
 end
 
 theorem imo2008_q2a (x y z : ℝ) (h : x*y*z = 1) (hx : x ≠ 1) (hy : y ≠ 1) (hz : z ≠ 1) :
   x^2 / (x-1)^2 + y^2 / (y-1)^2 + z^2 / (z-1)^2 ≥ 1 :=
 begin
-  obtain ⟨a, b, c, ha, hb, hc, hx₂, hy₂, hz₂⟩ := subst_abc h,
-
-  set m := c-b with hm_abc,
-  set n := b-a with hn_abc,
-  have ha_cmn : a = c - m - n,      { linarith },
-  have hb_cmn : b = c - m,          { linarith },
-  have hab_mn : (a-b)^2 = n^2,      { rw [ha_cmn, hb_cmn], ring },
-  have hbc_mn : (b-c)^2 = m^2,      { rw hb_cmn, ring },
-  have hca_mn : (c-a)^2 = (m+n)^2,  { rw ha_cmn, ring },
-
+  obtain ⟨a, b, c, ha, hb, hc, rfl, rfl, rfl⟩ := subst_abc h,
+  obtain ⟨m, n, rfl, rfl⟩ : ∃ m n, b = c - m ∧ a = c - m - n,
+  { use [c - b, b - a], simp },
   have hm_ne_zero : m ≠ 0,
-  { rw hm_abc, rw hy₂ at hy, intro p, apply hy, field_simp, linarith },
-
+  { contrapose! hy, field_simp, assumption },
   have hn_ne_zero : n ≠ 0,
-  { rw hn_abc, rw hx₂ at hx, intro p, apply hx, field_simp, linarith },
-
+  { contrapose! hx, field_simp, assumption },
   have hmn_ne_zero : m + n ≠ 0,
-  { rw hm_abc, rw hn_abc, rw hz₂ at hz, intro p, apply hz, field_simp, linarith },
-
-  have key : x^2 / (x-1)^2 + y^2 / (y-1)^2 + z^2 / (z-1)^2 - 1 ≥ 0,
-  { calc  x^2 / (x-1)^2 + y^2 / (y-1)^2 + z^2 / (z-1)^2 - 1
-        = (a/b)^2 / (a/b-1)^2 + (b/c)^2 / (b/c-1)^2 + (c/a)^2 / (c/a-1)^2 - 1 :
-          by rw [hx₂, hy₂, hz₂]
-    ... = a^2/(a-b)^2 + b^2/(b-c)^2 + c^2/(c-a)^2 - 1 :
-          by field_simp [div_sub_one hb, div_sub_one hc, div_sub_one ha]
-    ... = (c-m-n)^2/n^2 + (c-m)^2/m^2 + c^2/(m+n)^2 - 1 :
-          by rw [hab_mn, hbc_mn, hca_mn, ha_cmn, hb_cmn]
-    ... = ( (c*(m^2+n^2+m*n) - m*(m+n)^2) / (m*n*(m+n)) )^2 :
-          by { ring_nf, field_simp, ring }
-    ... ≥ 0 :
-          sq_nonneg _ },
-
-
-  linarith [key],
+  { contrapose! hz, field_simp, linarith },
+  have hc_sub_sub : c - (c - m - n) = m + n, by abel,
+  rw [ge_iff_le, ← sub_nonneg],
+  convert sq_nonneg ((c*(m^2+n^2+m*n) - m*(m+n)^2) / (m*n*(m+n)) ),
+  field_simp *, ring
 end
 
 def rational_solutions := { s : ℚ×ℚ×ℚ | ∃ (x y z : ℚ), s = (x, y, z) ∧

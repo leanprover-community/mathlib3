@@ -141,7 +141,7 @@ by ext; simp
 
 @[simp] lemma circulant_zero (α I) [has_zero α] [has_sub I] :
   circulant 0 = (0 : matrix I I α) :=
-by ext; simp
+ext $ λ _ _, rfl
 
 @[simp] lemma circulant_single_one (α I) [has_zero α] [has_one α] [decidable_eq I] [add_group I] :
   circulant (pi.single 0 1 : I → α) = (1 : matrix I I α) :=

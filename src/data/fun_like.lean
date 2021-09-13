@@ -56,15 +56,15 @@ injective coercion to functions from `α` to `β`.
 This typeclass is used in the definition of the homomorphism typeclasses,
 such as `zero_hom_class`, `mul_hom_class`, `monoid_hom_class`, ....
 -/
-class fun_like (F : Type*) (α β : out_param Type*) :=
+class fun_like (F : Sort*) (α β : out_param Sort*) :=
 (coe : F → (α → β))
 (coe_injective' : function.injective coe)
 
-variables {F α β : Type*}
+variables (F α β : Sort*)
 
 namespace fun_like
 
-variables [i : fun_like F α β]
+variables {F α β} [i : fun_like F α β]
 
 include i
 

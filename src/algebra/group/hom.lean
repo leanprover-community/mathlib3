@@ -395,16 +395,16 @@ lemma monoid_with_zero_hom.to_fun_eq_coe [mul_zero_one_class M] [mul_zero_one_cl
 
 @[simp, to_additive]
 lemma one_hom.coe_mk [has_one M] [has_one N]
-  (f : M → N) (h1) : ⇑(one_hom.mk f h1) = f := rfl
+  (f : M → N) (h1) : (one_hom.mk f h1 : M → N) = f := rfl
 @[simp, to_additive]
 lemma mul_hom.coe_mk [has_mul M] [has_mul N]
-  (f : M → N) (hmul) : ⇑(mul_hom.mk f hmul) = f := rfl
+  (f : M → N) (hmul) : (mul_hom.mk f hmul : M → N) = f := rfl
 @[simp, to_additive]
 lemma monoid_hom.coe_mk [mul_one_class M] [mul_one_class N]
-  (f : M → N) (h1 hmul) : ⇑(monoid_hom.mk f h1 hmul) = f := rfl
+  (f : M → N) (h1 hmul) : (monoid_hom.mk f h1 hmul : M → N) = f := rfl
 @[simp]
 lemma monoid_with_zero_hom.coe_mk [mul_zero_one_class M] [mul_zero_one_class N]
-  (f : M → N) (h0 h1 hmul) : ⇑(monoid_with_zero_hom.mk f h0 h1 hmul) = f := rfl
+  (f : M → N) (h0 h1 hmul) : (monoid_with_zero_hom.mk f h0 h1 hmul : M → N) = f := rfl
 
 @[simp, to_additive]
 lemma monoid_hom.to_one_hom_coe [mul_one_class M] [mul_one_class N] (f : M →* N) :
@@ -634,17 +634,17 @@ add_decl_doc add_monoid_hom.comp
 
 @[simp, to_additive] lemma one_hom.coe_comp [has_one M] [has_one N] [has_one P]
   (g : one_hom N P) (f : one_hom M N) :
-  ⇑(g.comp f) = g ∘ f := rfl
+  (g.comp f : M → P) = g ∘ f := rfl
 @[simp, to_additive] lemma mul_hom.coe_comp [has_mul M] [has_mul N] [has_mul P]
   (g : mul_hom N P) (f : mul_hom M N) :
-  ⇑(g.comp f) = g ∘ f := rfl
+  (g.comp f : M → P) = g ∘ f := rfl
 @[simp, to_additive] lemma monoid_hom.coe_comp [mul_one_class M] [mul_one_class N] [mul_one_class P]
   (g : N →* P) (f : M →* N) :
-  ⇑(g.comp f) = g ∘ f := rfl
+  (g.comp f : M → P) = g ∘ f := rfl
 @[simp] lemma monoid_with_zero_hom.coe_comp [mul_zero_one_class M] [mul_zero_one_class N]
   [mul_zero_one_class P]
   (g : monoid_with_zero_hom N P) (f : monoid_with_zero_hom M N) :
-  ⇑(g.comp f) = g ∘ f := rfl
+  (g.comp f : M → P) = g ∘ f := rfl
 
 @[to_additive] lemma one_hom.comp_apply [has_one M] [has_one N] [has_one P]
   (g : one_hom N P) (f : one_hom M N) (x : M) :

@@ -43,17 +43,15 @@ set.ext $ λ _, mem_supported
 @[simp] lemma mem_supported_vars (p : mv_polynomial σ R) : p ∈ supported R (↑p.vars : set σ) :=
 by rw [mem_supported]
 
-@[simp] lemma supported_univ : supported R (set.univ : set σ) = ⊤ :=
-by simp [algebra.eq_top_iff, mem_supported]
-
 variable (s)
 
 lemma supported_eq_adjoin_X : supported R s = algebra.adjoin R (X '' s) := rfl
 
-variables {s}
+@[simp] lemma supported_univ : supported R (set.univ : set σ) = ⊤ :=
+by simp [algebra.eq_top_iff, mem_supported]
 
-lemma supported_mono (st : s ⊆ t) : supported R s ≤ supported R t :=
-algebra.adjoin_mono (set.image_subset _ st)
+@[simp] lemma supported_empty : supported R (∅ : set σ) = ⊥ :=
+by simp [supported_eq_adjoin_X]
 
 @[simp] lemma supported_eq_top_of_subsingleton [subsingleton R] : supported R s = ⊤ :=
 begin
@@ -63,25 +61,26 @@ begin
   simp [subalgebra.zero_mem],
 end
 
-@[simp] lemma supported_le_supported_iff [nontrivial R] :
-  supported R s ≤ supported R t ↔ s ⊆ t :=
-begin
-  split,
-  { rw [← set_like.coe_subset_coe, supported_eq_vars_subset, supported_eq_vars_subset],
-    intros h i his,
-    simpa using @h (X i) (by simpa) },
-  { exact supported_mono }
-end
+variables {s}
+
+lemma supported_mono (st : s ⊆ t) : supported R s ≤ supported R t :=
+algebra.adjoin_mono (set.image_subset _ st)
 
 @[simp] lemma X_mem_supported [nontrivial R] {i : σ} : (X i) ∈ supported R s ↔ i ∈ s :=
 by simp [mem_supported]
 
+@[simp] lemma supported_le_supported_iff [nontrivial R] :
+  supported R s ≤ supported R t ↔ s ⊆ t :=
+begin
+  split,
+  { intros h i,
+    simpa using @h (X i) },
+  { exact supported_mono }
+end
+
 lemma supported_strict_mono [nontrivial R] :
   strict_mono (supported R : set σ → subalgebra R (mv_polynomial σ R)) :=
 strict_mono_of_le_iff_le (λ _ _, supported_le_supported_iff.symm)
-
-@[simp] lemma supported_empty : supported R (∅ : set σ) = ⊥ :=
-by simp [supported_eq_adjoin_X]
 
 end comm_semiring
 

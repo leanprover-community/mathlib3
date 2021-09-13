@@ -27,8 +27,7 @@ section
 
 variable (R)
 
-def mk_derivationₗ (f : σ → A) :
-  mv_polynomial σ R →ₗ[R] A :=
+def mk_derivationₗ (f : σ → A) : mv_polynomial σ R →ₗ[R] A :=
 finsupp.lsum R $ λ xs : σ →₀ ℕ, (linear_map.ring_lmap_equiv_self R _ R).symm $
   xs.sum $ λ i k, monomial (xs - finsupp.single i 1) (k : R) • f i
 

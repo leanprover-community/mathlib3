@@ -1,7 +1,24 @@
+/-
+Copyright (c) 2021 Chris Hughes. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Chris Hughes
+-/
 import ring_theory.adjoin.basic
 import data.mv_polynomial.variables
 import linear_algebra.finsupp
+/-!
+# Polynomials supported by a set of variables
 
+This file contains the definition and lemmas about `mv_polynomial.supported`.
+
+## Main definitions
+
+* `mv_polynomial.supported` : Given a set `s : set σ`, `supported R s` is the subalgebra of
+  `mv_polynomial σ R` consisting of polynomials whose set of variables is contained in `s`.
+
+## Tags
+variables, polynomial, vars
+-/
 universes u v w
 
 namespace mv_polynomial
@@ -12,6 +29,7 @@ variables [comm_semiring R] {p q : mv_polynomial σ R}
 
 variables (R)
 
+/-- The set of polynomials whose variables are contained in `s` as a `subalgebra` over `R`. -/
 noncomputable def supported (s : set σ) : subalgebra R (mv_polynomial σ R) :=
 algebra.adjoin R (X '' s)
 

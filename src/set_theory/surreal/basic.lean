@@ -31,7 +31,7 @@ One can also map all the ordinals into the surreals!
 
 ### Multiplication of surreal numbers
 The definition of multiplication for surreal numbers is surprisingly difficult and is currently
-missing in the library. A sample proof can be found in Theorem 3.8 in the secord reference below.
+missing in the library. A sample proof can be found in Theorem 3.8 in the second reference below.
 The difficulty lies in the length of the proof and the number of theorems that need to proven
 simultaneously. This will make for a fun and challenging project.
 

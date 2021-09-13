@@ -10,7 +10,7 @@ import linear_algebra.affine_space.finite_dimensional
 # To move
 -/
 
-variables {m n : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E]
+variables {m n : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E] {ι : Type*}
 open_locale big_operators
 open finset
 
@@ -31,6 +31,37 @@ begin
   rw affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one _ w _ hw₂ (0 : E),
   simp only [vsub_eq_sub, add_zero, finset.weighted_vsub_of_point_apply, vadd_eq_add, sub_zero],
   rw center_mass_eq_of_sum_1 _ _ hw₂,
+end
+
+-- TODO (Bhavik): move these two, and use them to prove the old versions
+lemma nontrivial_sum_of_affine_independent' {p : ι → E} {X : finset ι}
+  (hX : affine_independent ℝ p) (w : ι → ℝ)
+  (hw₀ : ∑ i in X, w i = 0) (hw₁ : ∑ i in X, w i • p i = 0) :
+∀ i ∈ X, w i = 0 :=
+begin
+  specialize hX _ _ hw₀ _,
+  { rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ hw₀ (0 : E),
+    rw finset.weighted_vsub_of_point_apply,
+    simpa only [vsub_eq_sub, sub_zero, sum_finset_coe (λ i, w i • p i)] },
+  intros i hi,
+  apply hX _ hi
+end
+
+lemma unique_combination' {p : ι → E} (X : finset ι)
+  (hX : affine_independent ℝ p)
+  (w₁ w₂ : ι → ℝ) (hw₁ : ∑ i in X, w₁ i = 1) (hw₂ : ∑ i in X, w₂ i = 1)
+  (same : ∑ i in X, w₁ i • p i = ∑ i in X, w₂ i • p i) :
+  ∀ i ∈ X, w₁ i = w₂ i :=
+begin
+  let w := w₁ - w₂,
+  suffices : ∀ i ∈ X, w i = 0,
+  { intros i hi,
+    apply eq_of_sub_eq_zero (this i hi) },
+  apply nontrivial_sum_of_affine_independent' hX,
+  { change ∑ i in X, (w₁ i - w₂ i) = _,
+    rw [finset.sum_sub_distrib, hw₁, hw₂, sub_self] },
+  { change ∑ i in X, (w₁ i - w₂ i) • p i = _,
+    simp_rw [sub_smul, finset.sum_sub_distrib, same, sub_self] }
 end
 
 lemma nontrivial_sum_of_affine_independent {X : finset E}

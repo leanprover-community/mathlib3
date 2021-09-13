@@ -447,7 +447,7 @@ local infix ` ≺ `:50 := inv_image (prod.lex (<) (<)) meas
   have h1 : ⟨ts, t :: is⟩ ≺ ⟨t :: ts, is⟩, from
     show prod.lex _ _ (succ (length ts + length is), length ts) (succ (length ts) + length is,
       length (t :: ts)),
-    by rw nat.succ_add; exact prod.lex.right _ (lt_succ _),
+    by rw nat.succ_add; exact prod.lex.right _ (lt_succ_self _),
   have h2 : ⟨is, []⟩ ≺ ⟨t :: ts, is⟩, from prod.lex.left _ _ (nat.lt_add_of_pos_left (succ_pos _)),
   H1 t ts is (permutations_aux.rec ts (t::is)) (permutations_aux.rec is [])
 using_well_founded {

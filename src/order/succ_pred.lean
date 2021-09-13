@@ -58,6 +58,8 @@ variables {α : Type*}
 (succ_le_of_lt : ∀ {a b}, a < b → succ a ≤ b)
 (le_of_lt_succ : ∀ {a b}, a < succ b → a ≤ b)
 
+export succ_order (maximal_of_succ_le) (succ_le_of_lt) (le_of_lt_succ)
+
 open function succ_order
 
 section preorder
@@ -92,6 +94,10 @@ begin
 end
 
 lemma succ_mono : monotone (succ : α → α) := λ a b, succ_le_succ
+
+lemma lt_succ_of_not_maximal {a b : α} (h : a < b) :
+  a < succ a :=
+(le_succ a).lt_of_not_le (λ ha, maximal_of_succ_le ha h)
 
 section no_top_order
 variables [no_top_order α]
@@ -275,6 +281,8 @@ end complete_lattice
 (le_pred_of_lt : ∀ {a b}, a < b → a ≤ pred b)
 (le_of_pred_lt : ∀ {a b}, pred a < b → a ≤ b)
 
+export pred_order (minimal_of_le_pred) (le_pred_of_lt) (le_of_pred_lt)
+
 open pred_order
 
 section preorder
@@ -309,6 +317,10 @@ begin
 end
 
 lemma pred_mono : monotone (pred : α → α) := λ a b, pred_le_pred
+
+lemma pred_lt_of_not_minimal {a b : α} (h : b < a) :
+  pred a < a :=
+(pred_le a).lt_of_not_le (λ ha, minimal_of_le_pred ha h)
 
 section no_bot_order
 variables [no_bot_order α]

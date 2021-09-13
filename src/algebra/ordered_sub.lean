@@ -133,7 +133,7 @@ end
 
 end cov
 
-/-! Lemmas that assume that an element is `add_le_cancellable`. -/
+/-! ### Lemmas that assume that an element is `add_le_cancellable`. -/
 namespace add_le_cancellable
 
 protected lemma le_add_sub_swap (hb : add_le_cancellable b) : a ≤ b + a - b :=
@@ -181,7 +181,7 @@ end
 
 end add_le_cancellable
 
-/-! Lemmas where addition is order-reflecting. -/
+/-! ### Lemmas where addition is order-reflecting. -/
 
 section contra
 variable [contravariant_class α α (+) (≤)]
@@ -240,7 +240,7 @@ end both
 
 end ordered_add_comm_monoid
 
-/-! Lemmas in a linearly ordered monoid. -/
+/-! ### Lemmas in a linearly ordered monoid. -/
 section linear_order
 variables {a b c d : α} [linear_order α] [add_comm_monoid α] [has_sub α] [has_ordered_sub α]
 
@@ -259,7 +259,7 @@ end cov
 
 end linear_order
 
-/-! Lemmas in a canonically ordered monoid. -/
+/-! ### Lemmas in a canonically ordered monoid. -/
 
 section canonically_ordered_add_monoid
 variables [canonically_ordered_add_monoid α] [has_sub α] [has_ordered_sub α] {a b c d : α}
@@ -332,7 +332,7 @@ end
 lemma sub_sub_sub_cancel_right' (h : c ≤ b) : (a - c) - (b - c) = a - b :=
 by rw [sub_sub', add_sub_cancel_of_le h]
 
-/-! Lemmas that assume that an element is `add_le_cancellable`. -/
+/-! ### Lemmas that assume that an element is `add_le_cancellable`. -/
 
 namespace add_le_cancellable
 protected lemma eq_sub_iff_add_eq_of_le (hc : add_le_cancellable c) (h : c ≤ b) :
@@ -462,7 +462,7 @@ by rw [hba.sub_eq_iff_eq_add_of_le sub_le_self', add_sub_cancel_of_le h]
 end add_le_cancellable
 
 section contra
-/-! Lemmas where addition is order-reflecting. -/
+/-! ### Lemmas where addition is order-reflecting. -/
 variable [contravariant_class α α (+) (≤)]
 
 lemma eq_sub_iff_add_eq_of_le (h : c ≤ b) : a = b - c ↔ a + c = b :=
@@ -551,7 +551,7 @@ end contra
 
 end canonically_ordered_add_monoid
 
-/-! Lemmas in a linearly canonically ordered monoid. -/
+/-! ### Lemmas in a linearly canonically ordered monoid. -/
 
 section canonically_linear_ordered_add_monoid
 variables [canonically_linear_ordered_add_monoid α] [has_sub α] [has_ordered_sub α] {a b c d : α}
@@ -643,7 +643,7 @@ contravariant.add_le_cancellable.sub_lt_sub_iff_left_of_le contravariant.add_le_
 
 end contra
 
-/-! Lemmas about `max` and `min`. -/
+/-! ### Lemmas about `max` and `min`. -/
 
 lemma sub_add_eq_max : a - b + b = max a b :=
 begin

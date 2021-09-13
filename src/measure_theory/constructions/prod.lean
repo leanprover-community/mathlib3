@@ -320,6 +320,10 @@ instance prod.measure_space {α β} [measure_space α] [measure_space β] : meas
 
 variables {μ ν} [sigma_finite ν]
 
+lemma volume_eq_prod (α β) [measure_space α] [measure_space β] :
+  (volume : measure (α × β)) = (volume : measure α).prod (volume : measure β) :=
+rfl
+
 lemma prod_apply {s : set (α × β)} (hs : measurable_set s) :
   μ.prod ν s = ∫⁻ x, ν (prod.mk x ⁻¹' s) ∂μ :=
 by simp_rw [measure.prod, bind_apply hs measurable.map_prod_mk_left,

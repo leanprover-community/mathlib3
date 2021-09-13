@@ -129,17 +129,12 @@ lemma extend_by_one_apply [has_one R] {s : ι → η} (f : ι → R) (hs : funct
 @[to_additive]
 lemma extend_by_one_apply' [has_one R] (s : ι → η) (f : ι → R) (x : η) (hi : ¬∃ i, s i = x) :
   extend_by_one R s f x = 1 :=
-by { classical, simp [extend_by_one, function.extend_def, hi] }
+function.extend_apply' f 1 x hi
 
 @[to_additive]
 lemma extend_by_one_injective [has_one R] {s : ι → η} (hs : function.injective s) :
   function.injective (extend_by_one R s) :=
-begin
-  intros f g hfg,
-  ext,
-  replace hfg := congr_fun hfg (s x),
-  rwa [extend_by_one_apply R f hs, extend_by_one_apply R g hs] at hfg
-end
+λ f g hfg, function.extend_injective hs f 1 hfg
 
 end extend
 

@@ -139,7 +139,7 @@ begin
   by_cases hx : ∃ i, s i = x,
   { obtain ⟨i, hi⟩ := hx,
     simp [← hi, hs] },
-  {  simp [extend_by_one_apply' R s 1 x hx] }
+  { simp [extend_by_one_apply' R s 1 x hx] }
 end
 
 @[to_additive]

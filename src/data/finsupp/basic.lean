@@ -374,16 +374,9 @@ def update : α →₀ M :=
     simp [ha, hb]
   end⟩
 
-@[simp] lemma update_apply : f.update a b i = function.update f a b i := rfl
-@[simp] lemma update_apply_same : f.update a b a = b := function.update_same a _ _
+@[simp] lemma coe_update : (f.update a b : α → M) = function.update f a b := rfl
 @[simp] lemma update_self : f.update a (f a) = f :=
 by { ext, simp }
-
-variables {a i}
-
-lemma update_apply_ne (h : i ≠ a) : f.update a b i = f i := function.update_noteq h _ _
-
-variables (a i)
 
 lemma support_update : support (f.update a b) =
   if b = 0 then f.support.erase a else insert a f.support := rfl

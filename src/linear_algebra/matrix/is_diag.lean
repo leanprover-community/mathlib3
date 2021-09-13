@@ -176,13 +176,11 @@ begin
   exact ha.from_blocks hd,
 end
 
-/-- `(A ⬝ Aᵀ).is_diag` iff `A.has_orthogonal_rows`. -/
 lemma mul_transpose_self_is_diag_iff_has_orthogonal_rows
   [fintype n] [has_mul α] [add_comm_monoid α] {A : matrix m n α} :
   (A ⬝ Aᵀ).is_diag ↔ A.has_orthogonal_rows :=
 iff.rfl
 
-/-- `(Aᵀ ⬝ A).is_diag` iff `A.has_orthogonal_cols`. -/
 lemma transpose_mul_self_is_diag_iff_has_orthogonal_cols
   [fintype m] [has_mul α] [add_comm_monoid α] {A : matrix m n α} :
   (Aᵀ ⬝ A).is_diag ↔ A.has_orthogonal_cols :=

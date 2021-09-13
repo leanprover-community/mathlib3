@@ -145,19 +145,22 @@ lemma circulant_smul [has_sub I] [has_scalar R α] (k : R) (v : I → α) :
   circulant (k • v) = k • circulant v :=
 by ext; simp
 
-@[simp] lemma circulant_single_one (α I) [has_zero α] [has_one α] [decidable_eq I] [add_group I] :
+@[simp] lemma circulant_single_one
+  (α I) [has_zero α] [has_one α] [decidable_eq I] [add_group I] :
   circulant (pi.single 0 1 : I → α) = (1 : matrix I I α) :=
 by { ext i j, simp only [circulant, one_apply, pi.single_apply, sub_eq_zero], congr }
 
-@[simp] lemma circulant_single [semiring α] (I) [decidable_eq I] [add_group I] [fintype I] (a : α) :
+@[simp] lemma circulant_single
+  [semiring α] (I) [decidable_eq I] [add_group I] [fintype I] (a : α) :
   circulant (pi.single 0 a : I → α) = scalar I a :=
 begin
   ext i j,
   simp [pi.single_apply, one_apply, sub_eq_zero],
 end
 
-/-- Note we use `↑i = 0` instead of `i = 0` as `fin 0` has no `0`. This means that we cannot state this with
-`pi.single` as we did with `matrix.circulant_single`. -/
+/-- Note we use `↑i = 0` instead of `i = 0` as `fin 0` has no `0`.
+    This means that we cannot state this with `pi.single`
+    as we did with `matrix.circulant_single`. -/
 lemma fin.circulant_ite (α) [has_zero α] [has_one α] :
   ∀ n, circulant (λ i, ite (↑i = 0) 1 0 : fin n → α) = 1
 | 0     := dec_trivial

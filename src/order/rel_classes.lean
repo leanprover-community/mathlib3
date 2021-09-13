@@ -129,7 +129,10 @@ assumption `is_incomp_trans α lt`. -/
 @[algebra] class is_strict_total_order' (α : Type u) (lt : α → α → Prop)
   extends is_trichotomous α lt, is_strict_order α lt : Prop.
 
-/-- Construct a linear order from an `is_strict_total_order'` relation -/
+/-- Construct a linear order from an `is_strict_total_order'` relation.
+
+See note [reducible non-instances]. -/
+@[reducible]
 def linear_order_of_STO' (r) [is_strict_total_order' α r] [Π x y, decidable (¬ r x y)] :
   linear_order α :=
 { le_total := λ x y,

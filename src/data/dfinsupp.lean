@@ -492,11 +492,6 @@ begin
   { simp [hi.symm] }
 end
 
-variables {i j}
-
-lemma update_apply_ne (h : i ≠ j) : f.update i b j = f j :=
-by simp [function.update_noteq h.symm]
-
 end update
 
 end basic
@@ -772,20 +767,23 @@ by { ext j, by_cases h1 : j = i; by_cases h2 : f j ≠ 0; simp at h2; simp [h1, 
   (f.erase i).support = f.support.erase i :=
 by { ext j, by_cases h1 : j = i; by_cases h2 : f j ≠ 0; simp at h2; simp [h1, h2] }
 
+lemma support_update_ne_zero (f : Π₀ i, β i) (i : ι) {b : β i} [decidable (b = 0)] (h : b ≠ 0) :
+  support (f.update i b) = insert i f.support :=
+begin
+  ext j,
+  rcases eq_or_ne i j with rfl|hi,
+  { simp [h] },
+  { simp [hi.symm] }
+end
+
 lemma support_update (f : Π₀ i, β i) (i : ι) (b : β i) [decidable (b = 0)] :
   support (f.update i b) = if b = 0 then support (f.erase i) else insert i f.support :=
 begin
   ext j,
   split_ifs with hb,
   { simp only [hb, update_eq_erase, support_erase] },
-  { rcases eq_or_ne i j with rfl|hi,
-    { simp [hb] },
-    { simp [hi.symm] } }
+  { rw [support_update_ne_zero f _ hb] }
 end
-
-lemma support_update_ne_zero (f : Π₀ i, β i) (i : ι) {b : β i} [decidable (b = 0)] (h : b ≠ 0) :
-  support (f.update i b) = insert i f.support :=
-by rw [support_update, if_neg h]
 
 section filter_and_subtype_domain
 

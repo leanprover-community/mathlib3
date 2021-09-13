@@ -389,7 +389,7 @@ begin
 end
 
 lemma is_nilpotent_of_ker_le_center {H : Type*} [group H] {f : G →* H}
-(hf1 : f.ker ≤ center G) (hH : is_nilpotent H) : is_nilpotent G :=
+  (hf1 : f.ker ≤ center G) (hH : is_nilpotent H) : is_nilpotent G :=
 begin
   rw nilpotent_iff_lower_central_series at *,
   rcases hH with ⟨n, hn⟩,

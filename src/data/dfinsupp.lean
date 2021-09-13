@@ -460,42 +460,41 @@ variables (f : Π₀ i, β i) (i : ι) (b : β i) [decidable (b = 0)]
 If `b = 0`, this amounts to removing `i` from the support.
 Otherwise, if `i` was not in the support, it is added to it.  -/
 def update : Π₀ i, β i :=
-if hb : b = 0 then f.erase i else
-quotient.lift_on f
-  (λ x, ⟦(⟨function.update x.to_fun i b, i ::ₘ x.pre_support, λ j,
+quotient.map (λ (x : pre _ _), ⟨function.update x.to_fun i b,
+  if b = 0 then x.pre_support.erase i else i ::ₘ x.pre_support,
   begin
-    cases x.zero j with hj hj,
-    { exact or.inl (multiset.mem_cons_of_mem hj), },
-    { rcases eq_or_ne i j with rfl|hi,
-      { exact or.inl (multiset.mem_cons_self _ _) },
+    intro j,
+    rcases eq_or_ne i j with rfl|hi,
+    { split_ifs with hb,
+      { simp [hb] },
+      { simp } },
+    { cases x.zero j with hj hj,
+      { split_ifs;
+        simp [multiset.mem_erase_of_ne hi.symm, hj] },
       { simp [function.update_noteq hi.symm, hj] } }
-  end⟩ : pre ι β)⟧)
+  end⟩)
   begin
-    rintro ⟨x, hx, hx'⟩ ⟨y, hy, hy'⟩ h,
-    have : x = y,
-    { ext j,
-      simpa using h j },
-    subst y,
-    ext,
-    simp
-  end
-
-@[simp] lemma update_eq_erase [decidable ((0 : β i) = 0)]: f.update i 0 = f.erase i := dif_pos rfl
+    intros x y h j,
+    rcases eq_or_ne i j with rfl|hi,
+    { simp [h i] },
+    { simp [function.update_noteq hi.symm, h j] }
+  end f
 
 variables (j : ι)
 
 @[simp] lemma update_apply : f.update i b j = function.update f i b j :=
-begin
-  unfreezingI { rcases eq_or_ne b 0 with rfl|hb },
-  { rcases eq_or_ne i j with rfl|hi,
-    { simp },
-    { simp [hi.symm] } },
-  { induction f using quotient.induction_on,
-    simpa [update, hb] },
-end
+quotient.induction_on f (λ _, rfl)
 @[simp] lemma update_apply_same : f.update i b i = b := by simp
 @[simp] lemma update_self [decidable (f i = 0)]: f.update i (f i) = f :=
 by { ext, simp }
+
+@[simp] lemma update_eq_erase [decidable ((0 : β i) = 0)]: f.update i 0 = f.erase i :=
+begin
+  ext j,
+  rcases eq_or_ne i j with rfl|hi,
+  { simp },
+  { simp [hi.symm] }
+end
 
 variables {i j}
 

@@ -379,12 +379,12 @@ begin
 end
 
 lemma is_cycle.exists_unique_cycle {f : perm α} (hf : is_cycle f) :
-  ∃! (s : {s : cycle α // s.nodup}), (s : cycle α).form_perm s.prop = f :=
+  ∃! (s : cycle α), ∃ (h : s.nodup), s.form_perm h = f :=
 begin
   obtain ⟨x, hx, hy⟩ := id hf,
-  refine ⟨⟨f.to_list x, nodup_to_list f x⟩, _, _⟩,
+  refine ⟨f.to_list x, ⟨nodup_to_list f x, _⟩, _⟩,
   { simp [form_perm_to_list, hf.cycle_of_eq hx] },
-  { rintro ⟨⟨l⟩, hn⟩ rfl,
+  { rintro ⟨l⟩ ⟨hn, rfl⟩,
     simp only [cycle.mk_eq_coe, cycle.coe_eq_coe, subtype.coe_mk, cycle.form_perm_coe],
     refine (to_list_form_perm_is_rotated_self _ _ hn _ _).symm,
     { contrapose! hx,
@@ -395,6 +395,15 @@ begin
     { rw ←mem_to_finset,
       refine support_form_perm_le l _,
       simpa using hx } }
+end
+
+lemma is_cycle.exists_unique_cycle_subtype {f : perm α} (hf : is_cycle f) :
+  ∃! (s : {s : cycle α // s.nodup}), (s : cycle α).form_perm s.prop = f :=
+begin
+  obtain ⟨s, ⟨hs, rfl⟩, hs'⟩ := hf.exists_unique_cycle,
+  refine ⟨⟨s, hs⟩, rfl, _⟩,
+  rintro ⟨t, ht⟩ ht',
+  simpa using hs' _ ⟨ht, ht'⟩
 end
 
 end equiv.perm

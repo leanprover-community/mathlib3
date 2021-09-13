@@ -43,13 +43,13 @@ open_locale matrix big_operators
 def circulant [has_sub I] (v : I → α) : matrix I I α
 | i j := v (i - j)
 
-lemma circulant_col_zero_eq [add_group I] (v : I → α) :
-  (λ i, (circulant v) i 0) = v :=
-by ext; simp
+lemma circulant_col_zero_eq [add_group I] (v : I → α) (i : I) : circulant v i 0 = v i :=
+congr_arg v (sub_zero _)
 
 lemma circulant_injective [add_group I] : injective (circulant : (I → α) → matrix I I α) :=
 begin
   intros v w h,
+  ext k,
   rw [← circulant_col_zero_eq v, ← circulant_col_zero_eq w, h]
 end
 

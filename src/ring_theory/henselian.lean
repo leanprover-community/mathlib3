@@ -60,8 +60,9 @@ open_locale big_operators
 
 open local_ring polynomial function
 
-lemma local_map_of_le_jacobson {R : Type*} [comm_ring R] {I : ideal R}
-  (h : I ≤ ideal.jacobson ⊥) : is_local_ring_hom (ideal.quotient.mk I) :=
+lemma is_local_ring_hom_of_le_jacobson_bot {R : Type*} [comm_ring R]
+  (I : ideal R) (h : I ≤ ideal.jacobson ⊥) :
+  is_local_ring_hom (ideal.quotient.mk I) :=
 begin
   constructor,
   intros a h,
@@ -161,12 +162,12 @@ instance (R : Type*) [comm_ring R] [hR : henselian_local_ring R] :
     exact not_is_unit_zero
   end }
 
-/-- A local ring `R` with maximal ideal `I` that is `I`-adically complete is Henselian. -/
+/-- A ring `R` that is `I`-adically complete is Henselian at `I`. -/
 @[priority 100] -- see Note [lower instance priority]
 instance is_adic_complete.henselian_ring
   (R : Type*) [comm_ring R] (I : ideal R) [is_adic_complete I R] :
   henselian_ring R I :=
-{ jac := le_jacobson_bot _,
+{ jac := is_adic_complete.le_jacobson_bot _,
   is_henselian :=
   begin
     intros f hf a₀ h₁ h₂,
@@ -194,9 +195,11 @@ instance is_adic_complete.henselian_ring
       rw [← smodeq.zero] at h₁ ⊢,
       exact (ih.eval f).trans h₁, },
     have hfc : ∀ n, is_unit (f'.eval (c n)),
-    { intro n, contrapose! h₂,
-      rw [← mem_nonunits_iff, ← local_ring.mem_maximal_ideal, ← smodeq.zero] at h₂ ⊢,
-      exact ((hc' n).symm.eval _).trans h₂, },
+    { intro n,
+      haveI := is_local_ring_hom_of_le_jacobson_bot I (is_adic_complete.le_jacobson_bot I),
+      apply is_unit_of_map_unit (ideal.quotient.mk I),
+      convert h₂ using 1,
+      exact smodeq.def.mp ((hc' n).eval _), },
     have Hc : ∀ n, f.eval (c n) ∈ I ^ (n+1),
     { intro n,
       induction n with n ih, { simpa only [pow_one] },
@@ -238,7 +241,7 @@ instance is_adic_complete.henselian_ring
       refine (ha.symm.eval f).trans _,
       rw [smodeq.zero],
       exact ideal.pow_le_pow le_self_add (Hc _), },
-    { show a - a₀ ∈ maximal_ideal R,
+    { show a - a₀ ∈ I,
       specialize ha 1,
       rw [hc, pow_one, ← ideal.one_eq_top, algebra.id.smul_eq_mul, mul_one, sub_eq_add_neg] at ha,
       rw [← smodeq.sub_mem, ← add_zero a₀],

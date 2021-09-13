@@ -92,13 +92,13 @@ end
 
 variables {α : Type*} [mul_action G α]
 
-lemma card_orbit (a : α) [fintype (mul_action.orbit G a)] :
-  ∃ n : ℕ, card (mul_action.orbit G a) = p ^ n :=
+lemma card_orbit (a : α) [fintype (orbit G a)] :
+  ∃ n : ℕ, card (orbit G a) = p ^ n :=
 begin
-  let ϕ := mul_action.orbit_equiv_quotient_stabilizer G a,
-  haveI := of_equiv (mul_action.orbit G a) ϕ,
+  let ϕ := orbit_equiv_quotient_stabilizer G a,
+  haveI := of_equiv (orbit G a) ϕ,
   rw [card_congr ϕ, ←subgroup.index_eq_card],
-  exact hG.index (mul_action.stabilizer G a),
+  exact hG.index (stabilizer G a),
 end
 
 variables (α) [fintype α] [fintype (fixed_points G α)]

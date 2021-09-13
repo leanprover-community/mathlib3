@@ -2258,7 +2258,7 @@ begin
   { rw [erase_eq_of_not_mem h], apply nat.sub_le }
 end
 
-@[simp]
+-- TODO should this be @[simp]?
 theorem card_erase [decidable_eq α] {a : α} {s : finset α} :
   card (erase s a) = if a ∈ s then pred (card s) else card s
   :=

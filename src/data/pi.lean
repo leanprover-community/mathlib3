@@ -132,6 +132,17 @@ lemma extend_by_one_apply' [has_one R] (s : ι → η) (f : ι → R) (x : η) (
 function.extend_apply' f 1 x hi
 
 @[to_additive]
+lemma extend_by_one_of_one [has_one R] {s : ι → η} (hs : function.injective s) :
+  extend_by_one R s 1 = 1 :=
+begin
+  refine funext (λ x, _),
+  by_cases hx : ∃ i, s i = x,
+  { obtain ⟨i, hi⟩ := hx,
+    simp [← hi, hs] },
+  {  simp [extend_by_one_apply' R s 1 x hx] }
+end
+
+@[to_additive]
 lemma extend_by_one_injective [has_one R] {s : ι → η} (hs : function.injective s) :
   function.injective (extend_by_one R s) :=
 λ f g hfg, function.extend_injective hs f 1 hfg

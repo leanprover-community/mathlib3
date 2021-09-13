@@ -166,7 +166,7 @@ variables (ι : Type v) (η : Type w)
 def ext_zero [has_zero R] (f : ι → R) : ι ⊕ η → R := sum.elim f 0
 
 /-- Taking the extension by `0` is an injective function. -/
-lemma ext_zero.injective [has_zero R] : function.injective (ext_zero R ι η) :=
+lemma ext_zero_injective [has_zero R] : function.injective (ext_zero R ι η) :=
 λ f g hfg, funext $ λ x, (congr_fun hfg (sum.inl x) : _)
 
 @[simp]

@@ -379,23 +379,19 @@ begin
 end
 
 lemma is_cycle.exists_unique_cycle {f : perm α} (hf : is_cycle f) :
-  ∃! (s : {s : cycle α // s.nodup ∧ s.nontrivial}), (s : cycle α).form_perm s.prop.left = f :=
+  ∃! (s : {s : cycle α // s.nodup}), (s : cycle α).form_perm s.prop = f :=
 begin
   obtain ⟨x, hx, hy⟩ := id hf,
-  refine ⟨⟨(f.to_list x), nodup_to_list f x, _⟩, _, _⟩,
-  { refine ⟨f x, x, hx, _, _⟩,
-    { rw cycle.mem_coe_iff,
-      convert_to (f ^ 1) x ∈ f.to_list x,
-      rwa [pow_apply_mem_to_list_iff_mem_support, mem_support] },
-    { rw cycle.mem_coe_iff,
-      convert_to (f ^ 0) x ∈ f.to_list x,
-      rwa [pow_apply_mem_to_list_iff_mem_support, mem_support] } },
+  refine ⟨⟨f.to_list x, nodup_to_list f x⟩, _, _⟩,
   { simp [form_perm_to_list, hf.cycle_of_eq hx] },
-  { rintro ⟨⟨l⟩, hn, ht⟩ rfl,
-    simp only [subtype.coe_mk, cycle.mk_eq_coe, cycle.coe_eq_coe, cycle.form_perm_coe],
-    refine (to_list_form_perm_is_rotated_self _ _ _ _ _).symm,
-    { simpa using cycle.length_nontrivial ht },
-    { simpa using hn },
+  { rintro ⟨⟨l⟩, hn⟩ rfl,
+    simp only [cycle.mk_eq_coe, cycle.coe_eq_coe, subtype.coe_mk, cycle.form_perm_coe],
+    refine (to_list_form_perm_is_rotated_self _ _ hn _ _).symm,
+    { contrapose! hx,
+      suffices : form_perm l = 1,
+      { simp [this] },
+      rw form_perm_eq_one_iff _ hn,
+      exact nat.le_of_lt_succ hx },
     { rw ←mem_to_finset,
       refine support_form_perm_le l _,
       simpa using hx } }

@@ -273,7 +273,8 @@ noncomputable def extend_by_one_mul [mul_one_class R] : (ι → R) →* (η → 
     by_cases hx : ∃ i, s i = x,
     { obtain ⟨i, hi⟩ := hx,
       simp [← hi, hs] },
-    { simp [extend_by_one_apply' R s 1 x hx] }
+    { simp [pi.extend_by_one_apply' R s f x hx, pi.extend_by_one_apply' R s g x hx,
+        pi.extend_by_one_apply' R s (f * g) x hx] }
   end }
 
 end extend

@@ -216,6 +216,15 @@ lemma finset.center_mass_mem_convex_hull (t : finset ι) {w : ι → ℝ} (hw₀
   t.center_mass w z ∈ convex_hull s :=
 (convex_convex_hull s).center_mass_mem hw₀ hws (λ i hi, subset_convex_hull s $ hz i hi)
 
+lemma affine_combination_eq_center_mass {ι : Type*} {t : finset ι} {p : ι → E} {w : ι → ℝ}
+  (hw₂ : ∑ i in t, w i = 1) :
+  affine_combination t p w = center_mass t w p :=
+begin
+  rw affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one _ w _ hw₂ (0 : E),
+  simp only [vsub_eq_sub, add_zero, finset.weighted_vsub_of_point_apply, vadd_eq_add, sub_zero],
+  rw center_mass_eq_of_sum_1 _ _ hw₂,
+end
+
 /-- The center of mass can be regarded as a generalisation of the centroid. -/
 @[simp] lemma finset.center_mass_centroid_weights_eq (s : finset ι) (hs : s.nonempty) (p : ι → E) :
   s.center_mass (s.centroid_weights ℝ) p = s.centroid ℝ p :=

@@ -86,7 +86,7 @@ lemma is_diag.sub [add_group α]
   (A - B).is_diag :=
 by { intros i j h, simp [ha h, hb h] }
 
-@[simp] lemma is_diag.smul [monoid R] [add_monoid α] [distrib_mul_action R α]
+lemma is_diag.smul [monoid R] [add_monoid α] [distrib_mul_action R α]
   (k : R) {A : matrix n n α} (ha : A.is_diag) :
   (k • A).is_diag :=
 by { intros i j h, simp [ha h] }

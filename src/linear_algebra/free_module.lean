@@ -163,7 +163,7 @@ We define in this section the standard inclusion `fin n → R →ₗ[R] (fin (n 
 variables (ι : Type v) (η : Type w)
 
 /-- For any type `R` with `0`, we extend any `f : ι → R` to `(ι ⊕ η) → R`. -/
-def ext_zero [has_zero R] : (ι → R) → ((ι ⊕ η) → R) := λ f i, sum.cases_on i (λ j, f j) (λ j, 0)
+def ext_zero [has_zero R] (f : ι → R) : ι ⊕ η → R := sum.elim f 0
 
 /-- Taking the extension by `0` is an injective function. -/
 lemma ext_zero.injective [has_zero R] : function.injective (ext_zero R ι η) :=

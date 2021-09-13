@@ -1571,7 +1571,6 @@ lemma measure.is_finite_measure_map [measurable_space α] -- why do we need this
   is_finite_measure (map f μ) :=
 ⟨by { rw [map_apply hf measurable_set.univ, set.preimage_univ], exact measure_lt_top μ _ }⟩
 
-
 @[simp] lemma measure_univ_nnreal_eq_zero [is_finite_measure μ] :
   measure_univ_nnreal μ = 0 ↔ μ = 0 :=
 begin

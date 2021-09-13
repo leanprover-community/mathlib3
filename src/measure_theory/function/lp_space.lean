@@ -995,15 +995,16 @@ lemma mem_ℒp.add {f g : α → E} (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ
 lemma mem_ℒp.sub {f g : α → E} (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ) : mem_ℒp (f - g) p μ :=
 by { rw sub_eq_add_neg, exact hf.add hg.neg }
 
-lemma mem_ℒp_finset_sum {ι} (s : finset ι) {f : ι → α → E} (hf : ∀ i, mem_ℒp (f i) p μ) :
+lemma mem_ℒp_finset_sum {ι} (s : finset ι) {f : ι → α → E} (hf : ∀ i ∈ s, mem_ℒp (f i) p μ) :
   mem_ℒp (λ a, ∑ i in s, f i a) p μ :=
 begin
   haveI : decidable_eq ι := classical.dec_eq _,
+  revert hf,
   refine finset.induction_on s _ _,
-  { simp only [finset.sum_empty, zero_mem_ℒp'], },
-  { intros i s his ih,
+  { simp only [zero_mem_ℒp', finset.sum_empty, implies_true_iff], },
+  { intros i s his ih hf,
     simp only [his, finset.sum_insert, not_false_iff],
-    exact (hf _).add ih, },
+    exact (hf i (s.mem_insert_self i)).add (ih (λ j hj, hf j (finset.mem_insert_of_mem hj))), },
 end
 
 end second_countable_topology

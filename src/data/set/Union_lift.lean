@@ -151,6 +151,8 @@ variables
   {hf : ∀ i j (x : α) (hxi : x ∈ S i) (hxj : x ∈ S j), f i ⟨x, hxi⟩ = f j ⟨x, hxj⟩}
   {hS : Union S = univ}
 
+/-- Glue together functions defined on each of a collection `S` of sets that cover a type. See
+  also `set.Union_lift`.   -/
 noncomputable def lift_cover
   (S : ι → set α)
   (f : Π i (x : S i), β)

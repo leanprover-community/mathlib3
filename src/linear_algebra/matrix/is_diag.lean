@@ -14,8 +14,7 @@ This file contains the definition and basic results about diagonal matrices.
 
 ## Main results
 
-- `matrix.is_diag`: a proposition that stats a given square matrix `A` is diagonal
-                    (i.e. `∀ m n, i ≠ j → A m n = 0`).
+- `matrix.is_diag`: a proposition that states a given square matrix `A` is diagonal.
 
 ## Tags
 

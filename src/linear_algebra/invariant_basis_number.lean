@@ -100,7 +100,7 @@ end
 /-- A ring satisfies the strong rank condition if and only if, for all `n : ℕ`, there are no
 injective linear maps `(fin (n + 1) → R) →ₗ[R] (fin n → R)`. -/
 lemma strong_rank_condition_iff : strong_rank_condition R ↔
-  ∀ (n : ℕ), ¬∃ f : (fin (n + 1) → R) →ₗ[R] (fin n → R), function.injective f :=
+  ∀ (n : ℕ) (f : (fin (n + 1) → R) →ₗ[R] (fin n → R)), ¬function.injective f :=
 begin
   refine ⟨λ h n, _, λ h, ⟨λ n m f hf, _⟩⟩,
   { rintros ⟨f, hf⟩,

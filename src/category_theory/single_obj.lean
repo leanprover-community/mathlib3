@@ -97,7 +97,7 @@ def map_hom (α : Type u) (β : Type v) [monoid α] [monoid β] :
   (α →* β) ≃ (single_obj α) ⥤ (single_obj β) :=
 { to_fun := λ f,
   { obj := id,
-    map := λ _ _, ⇑f,
+    map := λ x y, (f : α → β),
     map_id' := λ _, f.map_one,
     map_comp' := λ _ _ _ x y, f.map_mul y x },
   inv_fun := λ f,

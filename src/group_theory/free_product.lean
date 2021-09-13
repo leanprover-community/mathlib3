@@ -140,7 +140,7 @@ lemma of_left_inverse [decidable_eq ι] (i : ι) :
   function.left_inverse (lift $ function.update 1 i (monoid_hom.id (M i))) of :=
 λ x, by simp only [lift_of, function.update_same, monoid_hom.id_apply]
 
-lemma of_injective (i : ι) : function.injective ⇑(of : M i →* _) :=
+lemma of_injective (i : ι) : function.injective (of : M i → free_product M) :=
 by { classical, exact (of_left_inverse i).injective }
 
 section group

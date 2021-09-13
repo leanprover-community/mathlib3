@@ -98,16 +98,14 @@ lemma circulant_sub [has_sub α] [has_sub I] (v w : I → α) :
   circulant (v - w) = circulant v - circulant w :=
 ext $ λ _ _, rfl
 
-lemma circulant_mul [semiring α] [fintype I] [add_comm_group I] (v w : I → α) :
+lemma circulant_mul [semiring α] [fintype I] [add_group I] (v w : I → α) :
   circulant v ⬝ circulant w = circulant (mul_vec (circulant v) w) :=
 begin
   ext i j,
   simp only [mul_apply, mul_vec, circulant, dot_product],
   refine fintype.sum_equiv (equiv.sub_right j) _ _ _,
   intro x,
-  simp only [equiv.sub_right_apply],
-  congr' 2,
-  abel
+  simp only [equiv.sub_right_apply, sub_sub_sub_cancel_right],
 end
 
 lemma fin.circulant_mul [semiring α] :

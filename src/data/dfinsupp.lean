@@ -662,7 +662,7 @@ def mk_add_group_hom [Π i, add_group (β i)] (s : finset ι) :
 section
 variables [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)]
 
-@[simp] lemma mk_smul {s : finset ι} (c : γ) (x : Π i : (↑s : set ι), β i.1) :
+@[simp] lemma mk_smul {s : finset ι} (c : γ) (x : Π i : (↑s : set ι), β (i : ι)) :
   mk s (c • x) = c • mk s x :=
 ext $ λ i, by simp only [smul_apply, mk_apply]; split_ifs; [refl, rw smul_zero]
 

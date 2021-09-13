@@ -466,15 +466,7 @@ protected lemma ite' [preorder α] [has_lt β] {f g : α → β} (hf : strict_an
   {p : α → Prop} [decidable_pred p] (hp : ∀ ⦃x y⦄, x < y → p y → p x)
   (hfg : ∀ ⦃x y⦄, p x → ¬p y → x < y → g y < f x) :
   strict_anti (λ x, if p x then f x else g x) :=
-begin
-  intros x y h,
-  by_cases hy : p y,
-  { have hx : p x := hp h hy,
-    simpa [hx, hy] using hf h },
-  by_cases hx : p x,
-  { simpa [hx, hy] using hfg hx hy h },
-  { simpa [hx, hy] using hg h }
-end
+@strict_mono.ite' α (order_dual β) _ _ f g hf hg p _ hp hfg
 
 protected lemma ite [preorder α] [preorder β] {f g : α → β} (hf : strict_anti f)
   (hg : strict_anti g) {p : α → Prop} [decidable_pred p] (hp : ∀ ⦃x y⦄, x < y → p y → p x)

@@ -284,6 +284,8 @@ end Mon.filtered_colimits
 
 namespace CommMon.filtered_colimits
 
+open Mon.filtered_colimits (colimit_mul colimit_mul_eq)
+
 section
 
 -- We use parameters here, mainly so we can have the abbreviations `M` and `M.mk` below, without
@@ -304,8 +306,7 @@ instance colimit_comm_monoid : comm_monoid M :=
     let k := max' x.1 y.1,
     let f := left_to_max x.1 y.1,
     let g := right_to_max x.1 y.1,
-    rw [Mon.filtered_colimits.colimit_mul_eq _ x y k f g,
-      Mon.filtered_colimits.colimit_mul_eq _ y x k g f],
+    rw [colimit_mul_eq _ x y k f g, colimit_mul_eq _ y x k g f],
     dsimp,
     rw mul_comm,
  end
@@ -326,12 +327,11 @@ def colimit_cocone : cocone F :=
 def colimit_cocone_is_colimit : is_colimit colimit_cocone :=
 { desc := λ t, Mon.filtered_colimits.colimit_desc (F ⋙ forget₂ CommMon Mon.{v})
     ((forget₂ CommMon Mon.{v}).map_cocone t),
-  fac' := λ t,
-  (Mon.filtered_colimits.colimit_cocone_is_colimit (F ⋙ forget₂ CommMon Mon.{v})).fac
-    (functor.map_cocone (forget₂ CommMon Mon.{v}) t),
-  uniq' := λ t,
-  (Mon.filtered_colimits.colimit_cocone_is_colimit (F ⋙ forget₂ CommMon Mon.{v})).uniq
-      (functor.map_cocone (forget₂ CommMon Mon.{v}) t) }
+  fac' := λ t j, monoid_hom.coe_inj $
+    (types.colimit_cocone_is_colimit (F ⋙ forget CommMon)).fac ((forget CommMon).map_cocone t) j,
+  uniq' := λ t m h, monoid_hom.coe_inj $
+    (types.colimit_cocone_is_colimit (F ⋙ forget CommMon)).uniq ((forget CommMon).map_cocone t) m
+    ((λ j, funext $ λ x, monoid_hom.congr_fun (h j) x)) }
 
 @[to_additive]
 instance forget₂_Mon_preserves_filtered_colimits :

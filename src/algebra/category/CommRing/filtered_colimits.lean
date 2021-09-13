@@ -36,13 +36,11 @@ open_locale classical
 
 parameters {J : Type v} [small_category J] [is_filtered J] (F : J ⥤ SemiRing.{v})
 
-abbreviation R : AddCommMon :=
-AddCommMon.filtered_colimits.colimit (F ⋙ forget₂ SemiRing AddCommMon)
+abbreviation R : Mon := Mon.filtered_colimits.colimit (F ⋙ forget₂ SemiRing Mon)
 
 abbreviation R.mk : (Σ j, F.obj j) → R := quot.mk (types.quot.rel (F ⋙ forget SemiRing))
 
-instance semiring_obj (j : J) : semiring
-  ((((F ⋙ forget₂ SemiRing AddCommMon.{v}) ⋙ forget₂ AddCommMon AddMon.{v}) ⋙ forget AddMon).obj j) :=
+instance semiring_obj (j : J) : semiring (((F ⋙ forget₂ SemiRing Mon.{v}) ⋙ forget Mon).obj j) :=
 begin change semiring (F.obj j), apply_instance end
 
 lemma R.mk_eq (x y : Σ j, F.obj j)
@@ -93,8 +91,8 @@ instance colimit_semiring : semiring R :=
     erw right_distrib (F.map f x) (F.map g y) (F.map h z),
     refl,
   end,
-  ..R.add_comm_monoid,
-  ..Mon.filtered_colimits.colimit_monoid (F ⋙ forget₂ SemiRing Mon) }
+  ..R.monoid,
+  ..AddCommMon.filtered_colimits.colimit_add_comm_monoid (F ⋙ forget₂ SemiRing AddCommMon) }
 
 def colimit : SemiRing := ⟨R, by apply_instance⟩
 
@@ -102,21 +100,21 @@ def colimit_cocone : cocone F :=
 { X := colimit,
   ι :=
   { app := λ j,
-    { ..(AddCommMon.filtered_colimits.colimit_cocone (F ⋙ forget₂ SemiRing AddCommMon)).ι.app j,
-      ..(Mon.filtered_colimits.colimit_cocone (F ⋙ forget₂ SemiRing Mon)).ι.app j },
+    { ..(Mon.filtered_colimits.colimit_cocone (F ⋙ forget₂ SemiRing Mon)).ι.app j,
+      ..(AddCommMon.filtered_colimits.colimit_cocone (F ⋙ forget₂ SemiRing AddCommMon)).ι.app j },
     naturality' := λ j j' f,
       (ring_hom.coe_inj ((types.colimit_cocone (F ⋙ forget SemiRing)).ι.naturality f)) } }
 
 def colimit_cocone_is_colimit : is_colimit colimit_cocone :=
 { desc := λ t,
-  { .. (AddCommMon.filtered_colimits.colimit_cocone_is_colimit
-    (F ⋙ forget₂ SemiRing AddCommMon)).desc ((forget₂ SemiRing AddCommMon).map_cocone t),
-    .. (Mon.filtered_colimits.colimit_cocone_is_colimit
-    (F ⋙ forget₂ SemiRing Mon)).desc ((forget₂ SemiRing Mon).map_cocone t) },
+  { .. (Mon.filtered_colimits.colimit_cocone_is_colimit
+    (F ⋙ forget₂ SemiRing Mon)).desc ((forget₂ SemiRing Mon).map_cocone t),
+    .. (AddCommMon.filtered_colimits.colimit_cocone_is_colimit
+    (F ⋙ forget₂ SemiRing AddCommMon)).desc ((forget₂ SemiRing AddCommMon).map_cocone t), },
   fac' := λ t j, ring_hom.coe_inj $
   (types.colimit_cocone_is_colimit (F ⋙ forget SemiRing)).fac ((forget SemiRing).map_cocone t) j,
   uniq' := λ t m h, ring_hom.coe_inj $
-    (types.colimit_cocone_is_colimit (F ⋙ forget SemiRing)).uniq ((forget SemiRing).map_cocone t) m
+  (types.colimit_cocone_is_colimit (F ⋙ forget SemiRing)).uniq ((forget SemiRing).map_cocone t) m
     (λ j, funext $ λ x, ring_hom.congr_fun (h j) x) }
 
 instance forget₂_Mon_preserves_filtered_colimits :

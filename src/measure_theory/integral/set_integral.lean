@@ -458,8 +458,8 @@ variables {μ : measure α}
 lemma tendsto_set_integral_of_monotone (hsm : ∀ i, measurable_set (s i))
   (h_mono : monotone s) (hfi : integrable_on f (⋃ n, s n) μ) :
   tendsto (λ i, ∫ a in s i, f a ∂μ) at_top (𝓝 (∫ a in (⋃ n, s n), f a ∂μ)) :=
-let bound : α → ℝ := indicator (⋃ n, s n) (λ a, ∥f a∥) in
 begin
+  let bound : α → ℝ := indicator (⋃ n, s n) (λ a, ∥f a∥),
   have h_int_eq : (λ i, ∫ a in s i, f a ∂μ) = (λ i, ∫ a, (s i).indicator f a ∂μ),
     from funext (λ i, (integral_indicator (hsm i)).symm),
   rw h_int_eq,
@@ -482,8 +482,8 @@ end
 lemma tendsto_set_integral_of_antimono (hsm : ∀ i, measurable_set (s i))
   (h_mono : ∀ i j, i ≤ j → s j ⊆ s i) (hfi : integrable_on f (s 0) μ) :
   tendsto (λi, ∫ a in s i, f a ∂μ) at_top (𝓝 (∫ a in (⋂ n, s n), f a ∂μ)) :=
-let bound : α → ℝ := indicator (s 0) (λ a, ∥f a∥) in
 begin
+  let bound : α → ℝ := indicator (s 0) (λ a, ∥f a∥),
   have h_int_eq : (λ i, ∫ a in s i, f a ∂μ) = (λ i, ∫ a, (s i).indicator f a ∂μ),
     from funext (λ i, (integral_indicator (hsm i)).symm),
   rw h_int_eq,

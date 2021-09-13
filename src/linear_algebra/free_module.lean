@@ -167,11 +167,7 @@ def ext_zero [has_zero R] (f : ι → R) : ι ⊕ η → R := sum.elim f 0
 
 /-- Taking the extension by `0` is an injective function. -/
 lemma ext_zero.injective [has_zero R] : function.injective (ext_zero R ι η) :=
-begin
-  intros f g hfg,
-  ext x,
-  simpa [ext_zero] using congr_fun hfg (sum.inl x),
-end
+λ f g hfg, funext $ λ x, (congr_fun hfg (sum.inl x) : _)
 
 @[simp]
 lemma zero_of_ext_zero [has_zero R] (x : η) (f : (ι → R)) : ext_zero R ι η f (sum.inr x) = 0 := rfl

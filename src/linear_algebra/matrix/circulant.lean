@@ -171,24 +171,14 @@ begin
   congr
 end
 
-/-- The circulant matrix `circulant v` is symmetric iff `∀ i j, v (j - i) = v (i - j)`. -/
-lemma circulant_is_symm_iff' [has_sub n] {v : n → α} :
-  (circulant v).is_symm ↔ ∀ i j, v (j - i) = v (i - j) :=
-by simp [is_symm.ext_iff]
-
-/-- The circulant matrix `circulant v` is symmetric iff `v (- i) = v i` if `[add_group n]`. -/
+/-- A circulant of `v` is symmetric iff `v` equals its reverse. -/
 lemma circulant_is_symm_iff [add_group n] {v : n → α} :
   (circulant v).is_symm ↔ ∀ i, v (- i) = v i :=
-begin
-  rw [circulant_is_symm_iff'],
-  split,
-  { intros h i, convert h i 0; simp },
-  { intros h i j, convert h (i - j), simp }
-end
+by rw [is_symm, transpose_circulant, circulant_inj, funext_iff]
 
 lemma fin.circulant_is_symm_iff :
   ∀ {n} {v : fin n → α}, (circulant v).is_symm ↔ ∀ i, v (- i) = v i
-| 0     := λ v, by simp [circulant_is_symm_iff', is_empty.forall_iff]
+| 0     := λ v, by simp [is_symm.ext_iff, is_empty.forall_iff]
 | (n+1) := λ v, circulant_is_symm_iff
 
 /-- If `circulant v` is symmetric, `∀ i j : I, v (- i) = v i`. -/

@@ -52,7 +52,7 @@ lemma is_diag_iff_exists_diagonal [has_zero α] [decidable_eq n] (A : matrix n n
 
 /-- Every matrix indexed by a subsingleton is diagonal. -/
 lemma is_diag_of_subsingleton [has_zero α] [subsingleton n] (A : matrix n n α) : A.is_diag :=
-by { intros i j h, have h' := subsingleton.elim i j, contradiction }
+λ i j h, (h $ subsingleton.elim i j).elim
 
 /-- Every zero matrix is diagonal. -/
 @[simp] lemma is_diag_zero [has_zero α] : (0 : matrix n n α).is_diag :=

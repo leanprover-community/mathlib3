@@ -599,6 +599,17 @@ begin
   exact insert_eq_of_mem hy
 end
 
+protected lemma times_cont_diff_within_at.eventually {n : ℕ}
+  (h : times_cont_diff_within_at 𝕜 n f s x) :
+  ∀ᶠ y in 𝓝[insert x s] x, times_cont_diff_within_at 𝕜 n f s y :=
+begin
+  rcases h.times_cont_diff_on le_rfl with ⟨u, hu, hu_sub, hd⟩,
+  have : ∀ᶠ (y : E) in 𝓝[insert x s] x, u ∈ 𝓝[insert x s] y ∧ y ∈ u,
+    from (eventually_nhds_within_nhds_within.2 hu).and hu,
+  refine this.mono (λ y hy, (hd y hy.2).mono_of_mem _),
+  exact nhds_within_mono y (subset_insert _ _) hy.1
+end
+
 lemma times_cont_diff_on.of_le {m n : with_top ℕ}
   (h : times_cont_diff_on 𝕜 n f s) (hmn : m ≤ n) :
   times_cont_diff_on 𝕜 m f s :=
@@ -1250,6 +1261,10 @@ begin
     intros x hxu,
     exact (h_fderiv x hxu).has_fderiv_within_at }
 end
+
+protected theorem times_cont_diff_at.eventually {n : ℕ} (h : times_cont_diff_at 𝕜 n f x) :
+  ∀ᶠ y in 𝓝 x, times_cont_diff_at 𝕜 n f y :=
+by simpa [nhds_within_univ] using h.eventually
 
 /-! ### Smooth functions -/
 

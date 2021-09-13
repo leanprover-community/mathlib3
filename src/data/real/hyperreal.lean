@@ -45,7 +45,12 @@ germ.const_inj
 @[simp, norm_cast] lemma coe_pos {x : ℝ} : 0 < (x : ℝ*) ↔ 0 < x :=
 coe_lt_coe
 @[simp, norm_cast] lemma coe_le_coe {x y : ℝ} : (x : ℝ*) ≤ y ↔ x ≤ y := germ.const_le_iff
-@[simp, norm_cast] lemma coe_abs (x : ℝ) : ((abs x : ℝ) : ℝ*) = abs x := germ.const_abs _
+
+@[simp, norm_cast] lemma coe_abs (x : ℝ) : ((abs x : ℝ) : ℝ*) = abs x :=
+begin
+  convert const_abs x,
+  apply lattice_of_linear_order_eq_filter_germ_lattice,
+end
 @[simp, norm_cast] lemma coe_max (x y : ℝ) : ((max x y : ℝ) : ℝ*) = max x y := germ.const_max _ _
 @[simp, norm_cast] lemma coe_min (x y : ℝ) : ((min x y : ℝ) : ℝ*) = min x y := germ.const_min _ _
 
@@ -161,18 +166,18 @@ let R : _ := Sup S in
 have hnile : _ := not_forall.mp (not_or_distrib.mp hni).1,
 have hnige : _ := not_forall.mp (not_or_distrib.mp hni).2,
 Exists.dcases_on hnile $ Exists.dcases_on hnige $ λ r₁ hr₁ r₂ hr₂,
-have HR₁ : ∃ y : ℝ, y ∈ S :=
+have HR₁ : S.nonempty :=
   ⟨r₁ - 1, lt_of_lt_of_le (coe_lt_coe.2 $ sub_one_lt _) (not_lt.mp hr₁) ⟩,
-have HR₂ : ∃ z : ℝ, ∀ y ∈ S, y ≤ z :=
+have HR₂ : bdd_above S :=
   ⟨ r₂, λ y hy, le_of_lt (coe_lt_coe.1 (lt_of_lt_of_le hy (not_lt.mp hr₂))) ⟩,
 λ δ hδ,
   ⟨ lt_of_not_ge' $ λ c,
       have hc : ∀ y ∈ S, y ≤ R - δ := λ y hy, coe_le_coe.1 $ le_of_lt $ lt_of_lt_of_le hy c,
-      not_lt_of_le ((real.Sup_le _ HR₁ HR₂).mpr hc) $ sub_lt_self R hδ,
+      not_lt_of_le (cSup_le HR₁ hc) $ sub_lt_self R hδ,
     lt_of_not_ge' $ λ c,
       have hc : ↑(R + δ / 2) < x :=
         lt_of_lt_of_le (add_lt_add_left (coe_lt_coe.2 (half_lt_self hδ)) R) c,
-      not_lt_of_le (real.le_Sup _ HR₂ hc) $ (lt_add_iff_pos_right _).mpr $ half_pos hδ⟩
+      not_lt_of_le (le_cSup HR₂ hc) $ (lt_add_iff_pos_right _).mpr $ half_pos hδ⟩
 
 theorem exists_st_of_not_infinite {x : ℝ*} (hni : ¬ infinite x) : ∃ r : ℝ, is_st x r :=
 ⟨Sup {y : ℝ | (y : ℝ*) < x}, is_st_Sup hni⟩
@@ -183,10 +188,10 @@ unfold st, split_ifs,
 { exact is_st_unique (classical.some_spec h) (is_st_Sup (not_infinite_of_exists_st h)) },
 { cases not_imp_comm.mp exists_st_of_not_infinite h with H H,
   { rw (set.ext (λ i, ⟨λ hi, set.mem_univ i, λ hi, H i⟩) : {y : ℝ | (y : ℝ*) < x} = set.univ),
-    exact (real.Sup_univ).symm },
+    exact real.Sup_univ.symm },
   { rw (set.ext (λ i, ⟨λ hi, false.elim (not_lt_of_lt (H i) hi),
     λ hi, false.elim (set.not_mem_empty i hi)⟩) : {y : ℝ | (y : ℝ*) < x} = ∅),
-    exact (real.Sup_empty).symm } }
+    exact real.Sup_empty.symm } }
 end
 
 theorem exists_st_iff_not_infinite {x : ℝ*} : (∃ r : ℝ, is_st x r) ↔ ¬ infinite x :=
@@ -246,8 +251,7 @@ eq.trans (eq_of_is_st_real h1) (eq_of_is_st_real h2).symm
 
 lemma is_st_iff_abs_sub_lt_delta {x : ℝ*} {r : ℝ} :
   is_st x r ↔ ∀ (δ : ℝ), 0 < δ → abs (x - r) < δ :=
-by simp only [abs_sub_lt_iff, @sub_lt _ _ (r : ℝ*) x _,
-    @sub_lt_iff_lt_add' _ _ x (r : ℝ*) _, and_comm]; refl
+by simp only [abs_sub_lt_iff, sub_lt_iff_lt_add, is_st, and_comm, add_comm]
 
 lemma is_st_add {x y : ℝ*} {r s : ℝ} : is_st x r → is_st y s → is_st (x + y) (r + s) :=
 λ hxr hys d hd,
@@ -257,7 +261,7 @@ have hys' : _ := hys (d / 2) (half_pos hd),
  by convert add_lt_add hxr'.2 hys'.2 using 1; norm_cast; linarith⟩
 
 lemma is_st_neg {x : ℝ*} {r : ℝ} (hxr : is_st x r) : is_st (-x) (-r) :=
-λ d hd, by show -(r : ℝ*) - d < -x ∧ -x < -r + d; cases (hxr d hd); split; linarith
+λ d hd, show -(r : ℝ*) - d < -x ∧ -x < -r + d, by cases (hxr d hd); split; linarith
 
 lemma is_st_sub {x y : ℝ*} {r s : ℝ} : is_st x r → is_st y s → is_st (x - y) (r - s) :=
 λ hxr hys, by rw [sub_eq_add_neg, sub_eq_add_neg]; exact is_st_add hxr (is_st_neg hys)

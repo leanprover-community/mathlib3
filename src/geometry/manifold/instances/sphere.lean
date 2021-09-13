@@ -58,7 +58,7 @@ noncomputable theory
 open metric finite_dimensional
 open_locale manifold
 
-local attribute [instance] finite_dimensional_of_finrank_eq_succ
+local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
 
 section stereographic_projection
 variables (v : E)
@@ -412,7 +412,7 @@ instance : lie_group (𝓡 1) circle :=
       exact ⟨continuous_mul, λ x y, (times_cont_diff_mul.restrict_scalars ℝ).times_cont_diff_on⟩ },
     exact (h₂.comp h₁).cod_restrict_sphere _,
   end,
-  smooth_inv := (complex.conj_clm.times_cont_diff.times_cont_mdiff.comp
+  smooth_inv := (complex.conj_cle.times_cont_diff.times_cont_mdiff.comp
     times_cont_mdiff_coe_sphere).cod_restrict_sphere _,
   .. metric.sphere.smooth_manifold_with_corners }
 

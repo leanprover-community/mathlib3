@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
+import algebra.absolute_value
 import algebra.big_operators.basic
 
 /-!
@@ -219,6 +220,16 @@ theorem mul_card_image_le_card {f : α → β} (s : finset α)
   n * (s.image f).card ≤ s.card :=
 mul_card_image_le_card_of_maps_to (λ x, mem_image_of_mem _) n hn
 
+@[to_additive]
+lemma prod_le_of_forall_le {α β : Type*} [ordered_comm_monoid β] (s : finset α) (f : α → β)
+  (n : β) (h : ∀ (x ∈ s), f x ≤ n) :
+  s.prod f ≤ n ^ s.card :=
+begin
+  refine (multiset.prod_le_of_forall_le (s.val.map f) n _).trans _,
+  { simpa using h },
+  { simpa }
+end
+
 end pigeonhole
 
 section canonically_ordered_monoid
@@ -244,7 +255,7 @@ by classical;
 calc ∏ x in s, f x = (∏ x in s.filter (λ x, f x = 1), f x) * ∏ x in s.filter (λ x, f x ≠ 1), f x :
     by rw [← prod_union, filter_union_filter_neg_eq];
        exact disjoint_filter.2 (assume _ _ h n_h, n_h h)
-  ... ≤ (∏ x in t, f x) : mul_le_of_le_one_of_le'
+  ... ≤ (∏ x in t, f x) : mul_le_of_le_one_of_le
       (prod_le_one' $ by simp only [mem_filter, and_imp]; exact λ _ _, le_of_eq)
       (prod_le_prod_of_subset' $ by simpa only [subset_iff, mem_filter, and_imp])
 
@@ -405,7 +416,7 @@ begin
   induction s using finset.induction with a s has ih h,
   { simp },
   { rw [finset.prod_insert has, finset.prod_insert has],
-    apply canonically_ordered_semiring.mul_le_mul,
+    apply mul_le_mul',
     { exact h _ (finset.mem_insert_self a s) },
     { exact ih (λ i hi, h _ (finset.mem_insert_of_mem hi)) } }
 end
@@ -418,9 +429,9 @@ lemma prod_add_prod_le' (hi : i ∈ s) (h2i : g i + h i ≤ f i)
   ∏ i in s, g i + ∏ i in s, h i ≤ ∏ i in s, f i :=
 begin
   classical, simp_rw [prod_eq_mul_prod_diff_singleton hi],
-  refine le_trans _ (canonically_ordered_semiring.mul_le_mul_right' h2i _),
+  refine le_trans _ (mul_le_mul_right' h2i _),
   rw [right_distrib],
-  apply add_le_add; apply canonically_ordered_semiring.mul_le_mul_left'; apply prod_le_prod';
+  apply add_le_add; apply mul_le_mul_left'; apply prod_le_prod';
   simp only [and_imp, mem_sdiff, mem_singleton]; intros; apply_assumption; assumption
 end
 
@@ -475,3 +486,25 @@ lemma sum_lt_top_iff [ordered_add_comm_monoid M] {s : finset ι} {f : ι → wit
 by simp only [lt_top_iff_ne_top, ne.def, sum_eq_top_iff, not_exists]
 
 end with_top
+
+section absolute_value
+
+variables {S : Type*}
+
+lemma absolute_value.sum_le [semiring R] [ordered_semiring S]
+  (abv : absolute_value R S) (s : finset ι) (f : ι → R) :
+  abv (∑ i in s, f i) ≤ ∑ i in s, abv (f i) :=
+begin
+  letI := classical.dec_eq ι,
+  refine finset.induction_on s _ (λ i s hi ih, _),
+  { simp },
+  { simp only [finset.sum_insert hi],
+  exact (abv.add_le _ _).trans (add_le_add (le_refl _) ih) },
+end
+
+lemma absolute_value.map_prod [comm_semiring R] [nontrivial R] [linear_ordered_comm_ring S]
+  (abv : absolute_value R S) (f : ι → R) (s : finset ι) :
+  abv (∏ i in s, f i) = ∏ i in s, abv (f i) :=
+abv.to_monoid_hom.map_prod f s
+
+end absolute_value

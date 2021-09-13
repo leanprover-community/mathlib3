@@ -44,7 +44,7 @@ Given these parameters, there are a few common structures for the model that ari
   from `c`. Because of the type of `step`, these models are all deterministic by construction.
 * `init : input → cfg` sets up the initial state. The type `input` depends on the model;
   in most cases it is `list Γ`.
-* `eval : machine → input → roption output`, given a machine `M` and input `i`, starts from
+* `eval : machine → input → part output`, given a machine `M` and input `i`, starts from
   `init i`, runs `step` until it reaches an output, and then applies a function `cfg → output` to
   the final state to obtain the result. The type `output` depends on the model.
 * `supports : machine → finset Λ → Prop` asserts that a machine `M` starts in `S : finset Λ`, and
@@ -584,9 +584,9 @@ theorem tape.map_mk₁ {Γ Γ'} [inhabited Γ] [inhabited Γ'] (f : pointed_map 
 
 /-- Run a state transition function `σ → option σ` "to completion". The return value is the last
 state returned before a `none` result. If the state transition function always returns `some`,
-then the computation diverges, returning `roption.none`. -/
-def eval {σ} (f : σ → option σ) : σ → roption σ :=
-pfun.fix (λ s, roption.some $ (f s).elim (sum.inl s) sum.inr)
+then the computation diverges, returning `part.none`. -/
+def eval {σ} (f : σ → option σ) : σ → part σ :=
+pfun.fix (λ s, part.some $ (f s).elim (sum.inl s) sum.inr)
 
 /-- The reflexive transitive closure of a state transition function. `reaches f a b` means
 there is a finite sequence of steps `f a = some a₁`, `f a₁ = some a₂`, ... such that `aₙ = b`.
@@ -666,27 +666,27 @@ holds of any point where `eval f a` evaluates to `b`. This formalizes the notion
   (H : ∀ a, b ∈ eval f a →
     (∀ a', b ∈ eval f a' → f a = some a' → C a') → C a) : C a :=
 pfun.fix_induction h (λ a' ha' h', H _ ha' $ λ b' hb' e, h' _ hb' $
-  roption.mem_some_iff.2 $ by rw e; refl)
+  part.mem_some_iff.2 $ by rw e; refl)
 
 theorem mem_eval {σ} {f : σ → option σ} {a b} :
   b ∈ eval f a ↔ reaches f a b ∧ f b = none :=
 ⟨λ h, begin
   refine eval_induction h (λ a h IH, _),
   cases e : f a with a',
-  { rw roption.mem_unique h (pfun.mem_fix_iff.2 $ or.inl $
-      roption.mem_some_iff.2 $ by rw e; refl),
+  { rw part.mem_unique h (pfun.mem_fix_iff.2 $ or.inl $
+      part.mem_some_iff.2 $ by rw e; refl),
     exact ⟨refl_trans_gen.refl, e⟩ },
   { rcases pfun.mem_fix_iff.1 h with h | ⟨_, h, h'⟩;
-      rw e at h; cases roption.mem_some_iff.1 h,
+      rw e at h; cases part.mem_some_iff.1 h,
     cases IH a' h' (by rwa e) with h₁ h₂,
     exact ⟨refl_trans_gen.head e h₁, h₂⟩ }
 end, λ ⟨h₁, h₂⟩, begin
   refine refl_trans_gen.head_induction_on h₁ _ (λ a a' h _ IH, _),
   { refine pfun.mem_fix_iff.2 (or.inl _),
-    rw h₂, apply roption.mem_some },
+    rw h₂, apply part.mem_some },
   { refine pfun.mem_fix_iff.2 (or.inr ⟨_, _, IH⟩),
     rw show f a = _, from h,
-    apply roption.mem_some }
+    apply part.mem_some }
 end⟩
 
 theorem eval_maximal₁ {σ} {f : σ → option σ} {a b}
@@ -701,7 +701,7 @@ refl_trans_gen_iff_eq $ λ b' h', by cases b0.symm.trans h'
 
 theorem reaches_eval {σ} {f : σ → option σ} {a b}
   (ab : reaches f a b) : eval f a = eval f b :=
-roption.ext $ λ c,
+part.ext $ λ c,
  ⟨λ h, let ⟨ac, c0⟩ := mem_eval.1 h in
     mem_eval.2 ⟨(or_iff_left_of_imp $ by exact
       λ cb, (eval_maximal h).1 cb ▸ refl_trans_gen.refl).1
@@ -812,11 +812,11 @@ theorem tr_eval' {σ₁ σ₂}
   (f₁ : σ₁ → option σ₁) (f₂ : σ₂ → option σ₂) (tr : σ₁ → σ₂)
   (H : respects f₁ f₂ (λ a b, tr a = b))
   (a₁) : eval f₂ (tr a₁) = tr <$> eval f₁ a₁ :=
-roption.ext $ λ b₂,
+part.ext $ λ b₂,
  ⟨λ h, let ⟨b₁, bb, hb⟩ := tr_eval_rev H rfl h in
-    (roption.mem_map_iff _).2 ⟨b₁, hb, bb⟩,
+    (part.mem_map_iff _).2 ⟨b₁, hb, bb⟩,
   λ h, begin
-    rcases (roption.mem_map_iff _).1 h with ⟨b₁, ab, bb⟩,
+    rcases (part.mem_map_iff _).1 h with ⟨b₁, ab, bb⟩,
     rcases tr_eval H rfl ab with ⟨_, rfl, h⟩,
     rwa bb at h
   end⟩
@@ -904,7 +904,7 @@ def init (l : list Γ) : cfg :=
 
 /-- Evaluate a Turing machine on initial input to a final state,
   if it terminates. -/
-def eval (M : machine) (l : list Γ) : roption (list_blank Γ) :=
+def eval (M : machine) (l : list Γ) : part (list_blank Γ) :=
 (eval (step M) (init l)).map (λ c, c.tape.right₀)
 
 /-- The raw definition of a Turing machine does not require that
@@ -1183,7 +1183,7 @@ def init (l : list Γ) : cfg :=
 
 /-- Evaluate a TM to completion, resulting in an output list on the tape (with an indeterminate
 number of blanks on the end). -/
-def eval (M : Λ → stmt) (l : list Γ) : roption (list_blank Γ) :=
+def eval (M : Λ → stmt) (l : list Γ) : part (list_blank Γ) :=
 (eval (step M) (init l)).map (λ c, c.tape.right₀)
 
 end
@@ -1278,7 +1278,7 @@ end
 
 theorem tr_eval (l : list Γ) : TM0.eval tr l = TM1.eval M l :=
 (congr_arg _ (tr_eval' _ _ _ tr_respects ⟨some _, _, _⟩)).trans begin
-  rw [roption.map_eq_map, roption.map_map, TM1.eval],
+  rw [part.map_eq_map, part.map_map, TM1.eval],
   congr' with ⟨⟩, refl
 end
 
@@ -1951,7 +1951,7 @@ def init (k) (L : list (Γ k)) : cfg :=
 ⟨some (default _), default _, update (λ _, []) k L⟩
 
 /-- Evaluates a TM2 program to completion, with the output on the same stack as the input. -/
-def eval (M : Λ → stmt) (k) (L : list (Γ k)) : roption (list (Γ k)) :=
+def eval (M : Λ → stmt) (k) (L : list (Γ k)) : part (list (Γ k)) :=
 (eval (step M) (init k L)).map $ λ c, c.stk k
 
 end
@@ -2380,10 +2380,10 @@ theorem tr_eval (k) (L : list (Γ k)) {L₁ L₂}
     (∀ k, L'.map (proj k) = list_blank.mk ((S k).map some).reverse) ∧
     S k = L₂ :=
 begin
-  obtain ⟨c₁, h₁, rfl⟩ := (roption.mem_map_iff _).1 H₁,
-  obtain ⟨c₂, h₂, rfl⟩ := (roption.mem_map_iff _).1 H₂,
+  obtain ⟨c₁, h₁, rfl⟩ := (part.mem_map_iff _).1 H₁,
+  obtain ⟨c₂, h₂, rfl⟩ := (part.mem_map_iff _).1 H₂,
   obtain ⟨_, ⟨q, v, S, L', hT⟩, h₃⟩ := tr_eval (tr_respects M) (tr_cfg_init M k L) h₂,
-  cases roption.mem_unique h₁ h₃,
+  cases part.mem_unique h₁ h₃,
   exact ⟨S, L', by simp only [tape.mk'_right₀], hT, rfl⟩
 end
 

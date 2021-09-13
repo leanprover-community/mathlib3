@@ -145,8 +145,8 @@ lemma disjoint.order_of {σ τ : perm α} (hστ : disjoint σ τ) :
   order_of (σ * τ) = nat.lcm (order_of σ) (order_of τ) :=
 begin
   have h : ∀ n : ℕ, (σ * τ) ^ n = 1 ↔ σ ^ n = 1 ∧ τ ^ n = 1 :=
-  λ n, by rw [commute.mul_pow hστ.mul_comm, disjoint.mul_eq_one_iff (hστ.pow_disjoint_pow n n)],
-  exact nat.dvd_antisymm (commute.order_of_mul_dvd_lcm hστ.mul_comm) (nat.lcm_dvd
+  λ n, by rw [hστ.commute.mul_pow, disjoint.mul_eq_one_iff (hστ.pow_disjoint_pow n n)],
+  exact nat.dvd_antisymm hστ.commute.order_of_mul_dvd_lcm (nat.lcm_dvd
     (order_of_dvd_of_pow_eq_one ((h (order_of (σ * τ))).mp (pow_order_of_eq_one (σ * τ))).1)
     (order_of_dvd_of_pow_eq_one ((h (order_of (σ * τ))).mp (pow_order_of_eq_one (σ * τ))).2)),
 end
@@ -272,7 +272,7 @@ def sign_aux {n : ℕ} (a : perm (fin n)) : units ℤ :=
 @[simp] lemma sign_aux_one (n : ℕ) : sign_aux (1 : perm (fin n)) = 1 :=
 begin
   unfold sign_aux,
-  conv { to_rhs, rw ← @finset.prod_const_one _ (units ℤ)
+  conv { to_rhs, rw ← @finset.prod_const_one (units ℤ) _
     (fin_pairs_lt n) },
   exact finset.prod_congr rfl (λ a ha, if_neg (mem_fin_pairs_lt.1 ha).not_le)
 end
@@ -534,7 +534,7 @@ have ∀ {f}, is_swap f → s f = -1 :=
   λ f ⟨x, y, hxy, hxy'⟩, hxy'.symm ▸ by_contradiction (λ h,
     have ∀ f, is_swap f → s f = 1 := λ f ⟨a, b, hab, hab'⟩,
       by { rw [← is_conj_iff_eq, ← or.resolve_right (int.units_eq_one_or _) h, hab'],
-        exact (monoid_hom.of s).map_is_conj (is_conj_swap hab hxy) },
+        exact s.map_is_conj (is_conj_swap hab hxy) },
   let ⟨g, hg⟩ := hs (-1) in
   let ⟨l, hl⟩ := (trunc_swap_factors g).out in
   have ∀ a ∈ l.map s, a = (1 : units ℤ) := λ a ha,

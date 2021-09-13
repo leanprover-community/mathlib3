@@ -159,9 +159,9 @@ open filter set
 open_locale classical big_operators topological_space
 local notation `|`x`|` := abs x
 
-/-- This theorem establishes Leibniz's series for `π`: The alternating sum of the reciprocals of the
-  odd numbers is `π/4`. Note that this is a conditionally rather than absolutely convergent series.
-  The main tool that this proof uses is the Mean Value Theorem (specifically avoiding the
+/-- This theorem establishes **Leibniz's series for `π`**: The alternating sum of the reciprocals
+  of the odd numbers is `π/4`. Note that this is a conditionally rather than absolutely convergent
+  series. The main tool that this proof uses is the Mean Value Theorem (specifically avoiding the
   Fundamental Theorem of Calculus).
 
   Intuitively, the theorem holds because Leibniz's series is the Taylor series of `arctan x`
@@ -301,13 +301,13 @@ begin
       by { rw div_eq_iff (integral_sin_pow_pos (2 * n + 1)).ne',
            convert integral_sin_pow (2 * n + 1), simp with field_simps, norm_cast } },
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le _ _ (λ n, (h₄ n).le) (λ n, (h₃ n)),
-  { refine metric.tendsto_at_top.mpr (λ ε hε, ⟨nat_ceil (1 / ε), λ n hn, _⟩),
+  { refine metric.tendsto_at_top.mpr (λ ε hε, ⟨⌈1 / ε⌉₊, λ n hn, _⟩),
     have h : (2:ℝ) * n / (2 * n + 1) - 1 = -1 / (2 * n + 1),
     { conv_lhs { congr, skip, rw ← @div_self _ _ ((2:ℝ) * n + 1) (by { norm_cast, linarith }), },
       rw [← sub_div, ← sub_sub, sub_self, zero_sub] },
     have hpos : (0:ℝ) < 2 * n + 1, { norm_cast, norm_num },
     rw [dist_eq, h, abs_div, abs_neg, abs_one, abs_of_pos hpos, one_div_lt hpos hε],
-    calc 1 / ε ≤ nat_ceil (1 / ε) : le_nat_ceil _
+    calc 1 / ε ≤ ⌈1 / ε⌉₊ : le_nat_ceil _
           ... ≤ n : by exact_mod_cast hn.le
           ... < 2 * n + 1 : by { norm_cast, linarith } },
   { exact tendsto_const_nhds },

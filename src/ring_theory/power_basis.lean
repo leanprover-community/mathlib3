@@ -104,15 +104,8 @@ begin
     simpa only [degree_eq_nat_degree hf, with_bot.coe_lt_coe] using h },
 end
 
-lemma dim_ne_zero [nontrivial S] (pb : power_basis R S) : pb.dim ≠ 0 :=
-λ h, one_ne_zero $
-show (1 : S) = 0,
-by { rw [← pb.basis.total_repr 1, finsupp.total_apply, finsupp.sum_fintype],
-     { refine finset.sum_eq_zero (λ x hx, _),
-       cases x with x x_lt,
-       rw h at x_lt,
-       cases x_lt },
-     { simp } }
+lemma dim_ne_zero [h : nontrivial S] (pb : power_basis R S) : pb.dim ≠ 0 :=
+λ h, not_nonempty_iff.mpr (h.symm ▸ fin.is_empty : is_empty (fin pb.dim)) pb.basis.index_nonempty
 
 lemma dim_pos [nontrivial S] (pb : power_basis R S) : 0 < pb.dim :=
 nat.pos_of_ne_zero pb.dim_ne_zero
@@ -120,6 +113,23 @@ nat.pos_of_ne_zero pb.dim_ne_zero
 lemma exists_eq_aeval [nontrivial S] (pb : power_basis R S) (y : S) :
   ∃ f : polynomial R, f.nat_degree < pb.dim ∧ y = aeval pb.gen f :=
 (mem_span_pow pb.dim_ne_zero).mp (by simpa using pb.basis.mem_span y)
+
+lemma exists_eq_aeval' (pb : power_basis R S) (y : S) :
+  ∃ f : polynomial R, y = aeval pb.gen f :=
+begin
+  nontriviality S,
+  obtain ⟨f, _, hf⟩ := exists_eq_aeval pb y,
+  exact ⟨f, hf⟩
+end
+
+lemma alg_hom_ext {S' : Type*} [semiring S'] [algebra R S']
+  (pb : power_basis R S) ⦃f g : S →ₐ[R] S'⦄ (h : f pb.gen = g pb.gen) :
+  f = g :=
+begin
+  ext x,
+  obtain ⟨f, rfl⟩ := pb.exists_eq_aeval' x,
+  rw [← polynomial.aeval_alg_hom_apply, ← polynomial.aeval_alg_hom_apply, h]
+end
 
 section minpoly
 
@@ -137,14 +147,18 @@ X ^ pb.dim -
   ∑ (i : fin pb.dim), C (pb.basis.repr (pb.gen ^ pb.dim) i) * X ^ (i : ℕ)
 
 @[simp]
-lemma nat_degree_minpoly_gen (pb : power_basis A S) :
-  nat_degree (minpoly_gen pb) = pb.dim :=
+lemma degree_minpoly_gen (pb : power_basis A S) :
+  degree (minpoly_gen pb) = pb.dim :=
 begin
   unfold minpoly_gen,
-  apply nat_degree_eq_of_degree_eq_some,
   rw degree_sub_eq_left_of_degree_lt; rw degree_X_pow,
   apply degree_sum_fin_lt
 end
+
+@[simp]
+lemma nat_degree_minpoly_gen (pb : power_basis A S) :
+  nat_degree (minpoly_gen pb) = pb.dim :=
+nat_degree_eq_of_degree_eq_some pb.degree_minpoly_gen
 
 lemma minpoly_gen_monic (pb : power_basis A S) : monic (minpoly_gen pb) :=
 begin
@@ -189,6 +203,12 @@ begin
         zero_smul] }
 end
 
+lemma dim_le_degree_of_root (h : power_basis A S) {p : polynomial A}
+  (ne_zero : p ≠ 0) (root : aeval h.gen p = 0) :
+  ↑h.dim ≤ p.degree :=
+by { rw [degree_eq_nat_degree ne_zero, with_bot.coe_le_coe],
+     exact h.dim_le_nat_degree_of_root ne_zero root }
+
 @[simp]
 lemma nat_degree_minpoly (pb : power_basis A S) :
   (minpoly A pb.gen).nat_degree = pb.dim :=
@@ -200,6 +220,12 @@ begin
   rw ← degree_eq_nat_degree (minpoly_gen_monic pb).ne_zero,
   exact minpoly.min _ _ (minpoly_gen_monic pb) (aeval_minpoly_gen pb)
 end
+
+@[simp]
+lemma minpoly_gen_eq [algebra K S] (pb : power_basis K S) :
+  pb.minpoly_gen = minpoly K pb.gen :=
+minpoly.unique K pb.gen pb.minpoly_gen_monic pb.aeval_minpoly_gen (λ p p_monic p_root,
+  pb.degree_minpoly_gen.symm ▸ pb.dim_le_degree_of_root p_monic.ne_zero p_root)
 
 end minpoly
 
@@ -245,19 +271,22 @@ lemma constr_pow_algebra_map (pb : power_basis A S) {y : S'}
   pb.basis.constr A (λ i, y ^ (i : ℕ)) (algebra_map A S x) = algebra_map A S' x :=
 by { convert pb.constr_pow_aeval hy (C x); rw aeval_C }
 
-lemma constr_pow_mul [nontrivial S] (pb : power_basis A S) {y : S'}
+lemma constr_pow_mul (pb : power_basis A S) {y : S'}
   (hy : aeval y (minpoly A pb.gen) = 0) (x x' : S) :
   pb.basis.constr A (λ i, y ^ (i : ℕ)) (x * x') =
     pb.basis.constr A (λ i, y ^ (i : ℕ)) x * pb.basis.constr A (λ i, y ^ (i : ℕ)) x' :=
 begin
-  obtain ⟨f, hf, rfl⟩ := pb.exists_eq_aeval x,
-  obtain ⟨g, hg, rfl⟩ := pb.exists_eq_aeval x',
+  obtain ⟨f, rfl⟩ := pb.exists_eq_aeval' x,
+  obtain ⟨g, rfl⟩ := pb.exists_eq_aeval' x',
   simp only [← aeval_mul, pb.constr_pow_aeval hy]
 end
 
 /-- `pb.lift y hy` is the algebra map sending `pb.gen` to `y`,
-where `hy` states the higher powers of `y` are the same as the higher powers of `pb.gen`. -/
-noncomputable def lift [nontrivial S] (pb : power_basis A S) (y : S')
+where `hy` states the higher powers of `y` are the same as the higher powers of `pb.gen`.
+
+See `power_basis.lift_equiv` for a bundled equiv sending `⟨y, hy⟩` to the algebra map.
+-/
+noncomputable def lift (pb : power_basis A S) (y : S')
   (hy : aeval y (minpoly A pb.gen) = 0) :
   S →ₐ[A] S' :=
 { map_one' := by { convert pb.constr_pow_algebra_map hy 1 using 2; rw ring_hom.map_one },
@@ -266,29 +295,62 @@ noncomputable def lift [nontrivial S] (pb : power_basis A S) (y : S')
   commutes' := pb.constr_pow_algebra_map hy,
   .. pb.basis.constr A (λ i, y ^ (i : ℕ)) }
 
-@[simp] lemma lift_gen [nontrivial S] (pb : power_basis A S) (y : S')
+@[simp] lemma lift_gen (pb : power_basis A S) (y : S')
   (hy : aeval y (minpoly A pb.gen) = 0) :
   pb.lift y hy pb.gen = y :=
 pb.constr_pow_gen hy
 
-@[simp] lemma lift_aeval [nontrivial S] (pb : power_basis A S) (y : S')
+@[simp] lemma lift_aeval (pb : power_basis A S) (y : S')
   (hy : aeval y (minpoly A pb.gen) = 0) (f : polynomial A) :
   pb.lift y hy (aeval pb.gen f) = aeval y f :=
 pb.constr_pow_aeval hy f
 
+/-- `pb.lift_equiv` states that roots of the minimal polynomial of `pb.gen` correspond to
+maps sending `pb.gen` to that root.
+
+This is the bundled equiv version of `power_basis.lift`.
+If the codomain of the `alg_hom`s is an integral domain, then the roots form a multiset,
+see `lift_equiv'` for the corresponding statement.
+-/
+@[simps]
+noncomputable def lift_equiv (pb : power_basis A S) :
+  (S →ₐ[A] S') ≃ {y : S' // aeval y (minpoly A pb.gen) = 0} :=
+{ to_fun := λ f, ⟨f pb.gen, by rw [aeval_alg_hom_apply, minpoly.aeval, f.map_zero]⟩,
+  inv_fun := λ y, pb.lift y y.2,
+  left_inv := λ f, pb.alg_hom_ext $ lift_gen _ _ _,
+  right_inv := λ y, subtype.ext $ lift_gen _ _ y.prop }
+
+/-- `pb.lift_equiv'` states that elements of the root set of the minimal
+polynomial of `pb.gen` correspond to maps sending `pb.gen` to that root. -/
+@[simps {fully_applied := ff}]
+noncomputable def lift_equiv' (pb : power_basis A S) :
+  (S →ₐ[A] B) ≃ {y : B // y ∈ ((minpoly A pb.gen).map (algebra_map A B)).roots} :=
+pb.lift_equiv.trans ((equiv.refl _).subtype_equiv (λ x,
+  begin
+    rw [mem_roots, is_root.def, equiv.refl_apply, ← eval₂_eq_eval_map, ← aeval_def],
+    exact map_monic_ne_zero (minpoly.monic pb.is_integral_gen)
+  end))
+
+/-- There are finitely many algebra homomorphisms `S →ₐ[A] B` if `S` is of the form `A[x]`
+and `B` is an integral domain. -/
+noncomputable def alg_hom.fintype (pb : power_basis A S) :
+  fintype (S →ₐ[A] B) :=
+by letI := classical.dec_eq B; exact
+fintype.of_equiv _ pb.lift_equiv'.symm
+
 /-- `pb.equiv pb' h` is an equivalence of algebras with the same power basis. -/
-noncomputable def equiv [nontrivial S] [nontrivial S']
+noncomputable def equiv
   (pb : power_basis A S) (pb' : power_basis A S')
   (h : minpoly A pb.gen = minpoly A pb'.gen) :
   S ≃ₐ[A] S' :=
 alg_equiv.of_alg_hom
   (pb.lift pb'.gen (h.symm ▸ minpoly.aeval A pb'.gen))
   (pb'.lift pb.gen (h ▸ minpoly.aeval A pb.gen))
-  (by { ext x, obtain ⟨f, hf, rfl⟩ := pb'.exists_eq_aeval x, simp })
-  (by { ext x, obtain ⟨f, hf, rfl⟩ := pb.exists_eq_aeval x, simp })
+  (by { ext x, obtain ⟨f, hf, rfl⟩ := pb'.exists_eq_aeval' x, simp })
+  (by { ext x, obtain ⟨f, hf, rfl⟩ := pb.exists_eq_aeval' x, simp })
 
 @[simp]
-lemma equiv_aeval [nontrivial S] [nontrivial S']
+lemma equiv_aeval
   (pb : power_basis A S) (pb' : power_basis A S')
   (h : minpoly A pb.gen = minpoly A pb'.gen)
   (f : polynomial A) :
@@ -296,7 +358,7 @@ lemma equiv_aeval [nontrivial S] [nontrivial S']
 pb.lift_aeval _ (h.symm ▸ minpoly.aeval A _) _
 
 @[simp]
-lemma equiv_gen [nontrivial S] [nontrivial S']
+lemma equiv_gen
   (pb : power_basis A S) (pb' : power_basis A S')
   (h : minpoly A pb.gen = minpoly A pb'.gen) :
   pb.equiv pb' h pb.gen = pb'.gen :=
@@ -305,7 +367,7 @@ pb.lift_gen _ (h.symm ▸ minpoly.aeval A _)
 local attribute [irreducible] power_basis.lift
 
 @[simp]
-lemma equiv_symm [nontrivial S] [nontrivial S']
+lemma equiv_symm
   (pb : power_basis A S) (pb' : power_basis A S')
   (h : minpoly A pb.gen = minpoly A pb'.gen) :
   (pb.equiv pb' h).symm = pb'.equiv pb h.symm :=
@@ -378,3 +440,38 @@ begin
   conv_lhs { rw ← mod_by_monic_add_div f this },
   simp only [add_zero, zero_mul, minpoly.aeval, aeval_add, alg_hom.map_mul]
 end
+
+namespace power_basis
+
+section map
+
+variables {S' : Type*} [comm_ring S'] [algebra R S']
+
+/-- `power_basis.map pb (e : S ≃ₐ[R] S')` is the power basis for `S'` generated by `e pb.gen`. -/
+@[simps]
+noncomputable def map (pb : power_basis R S) (e : S ≃ₐ[R] S') : power_basis R S' :=
+{ dim := pb.dim,
+  basis := pb.basis.map e.to_linear_equiv,
+  gen := e pb.gen,
+  basis_eq_pow :=
+    λ i, by rw [basis.map_apply, pb.basis_eq_pow, e.to_linear_equiv_apply, e.map_pow] }
+
+variables [algebra A S] [algebra A S']
+
+@[simp]
+lemma minpoly_gen_map (pb : power_basis A S) (e : S ≃ₐ[A] S') :
+  (pb.map e).minpoly_gen = pb.minpoly_gen :=
+by { dsimp only [minpoly_gen, map_dim], -- Turn `fin (pb.map e).dim` into `fin pb.dim`
+     simp only [linear_equiv.trans_apply, map_basis, basis.map_repr,
+        map_gen, alg_equiv.to_linear_equiv_apply, e.to_linear_equiv_symm, alg_equiv.map_pow,
+        alg_equiv.symm_apply_apply, sub_right_inj] }
+
+@[simp]
+lemma equiv_map (pb : power_basis A S) (e : S ≃ₐ[A] S')
+  (h : minpoly A pb.gen = minpoly A (pb.map e).gen) :
+  pb.equiv (pb.map e) h = e :=
+by { ext x, obtain ⟨f, rfl⟩ := pb.exists_eq_aeval' x, simp [aeval_alg_equiv] }
+
+end map
+
+end power_basis

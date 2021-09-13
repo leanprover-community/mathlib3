@@ -168,13 +168,14 @@ lemma bijective.of_comp_iff' {f : α → β} (hf : bijective f) (g : γ → α) 
   function.bijective (f ∘ g) ↔ function.bijective g :=
 and_congr (injective.of_comp_iff hf.injective _) (surjective.of_comp_iff' hf _)
 
-/-- Cantor's diagonal argument implies that there are no surjective functions from `α`
+/-- **Cantor's diagonal argument** implies that there are no surjective functions from `α`
 to `set α`. -/
 theorem cantor_surjective {α} (f : α → set α) : ¬ function.surjective f | h :=
 let ⟨D, e⟩ := h (λ a, ¬ f a a) in
 (iff_not_self (f D D)).1 $ iff_of_eq (congr_fun e D)
 
-/-- Cantor's diagonal argument implies that there are no injective functions from `set α` to `α`. -/
+/-- **Cantor's diagonal argument** implies that there are no injective functions from `set α`
+to `α`. -/
 theorem cantor_injective {α : Type*} (f : (set α) → α) :
   ¬ function.injective f | i :=
 cantor_surjective (λ a b, ∀ U, a = f U → U b) $
@@ -389,10 +390,7 @@ dif_neg h
 
 lemma forall_update_iff (f : Π a, β a) {a : α} {b : β a} (p : Π a, β a → Prop) :
   (∀ x, p x (update f a b x)) ↔ p a b ∧ ∀ x ≠ a, p x (f x) :=
-calc (∀ x, p x (update f a b x)) ↔ ∀ x, (x = a ∨ x ≠ a) → p x (update f a b x) :
-  by simp only [ne.def, classical.em, forall_prop_of_true]
-... ↔ p a b ∧ ∀ x ≠ a, p x (f x) :
-  by simp [or_imp_distrib, forall_and_distrib] { contextual := tt }
+by { rw [← and_forall_ne a, update_same], simp { contextual := tt } }
 
 lemma update_eq_iff {a : α} {b : β a} {f g : Π a, β a} :
   update f a b = g ↔ b = g a ∧ ∀ x ≠ a, f x = g x :=

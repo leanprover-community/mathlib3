@@ -48,6 +48,19 @@ lemma min_le_max : min a b ≤ max a b := le_trans (min_le_left a b) (le_max_lef
 @[simp] lemma max_eq_left_iff : max a b = a ↔ b ≤ a := sup_eq_left
 @[simp] lemma max_eq_right_iff : max a b = b ↔ a ≤ b := sup_eq_right
 
+lemma min_eq_iff : min a b = c ↔ a = c ∧ a ≤ b ∨ b = c ∧ b ≤ a :=
+begin
+  split,
+  { intro h,
+    refine or.imp (λ h', _) (λ h', _) (le_total a b);
+    exact ⟨by simpa [h'] using h, h'⟩ },
+  { rintro (⟨rfl, h⟩|⟨rfl, h⟩);
+    simp [h] }
+end
+
+lemma max_eq_iff : max a b = c ↔ a = c ∧ b ≤ a ∨ b = c ∧ a ≤ b :=
+@min_eq_iff (order_dual α) _ a b c
+
 /-- An instance asserting that `max a a = a` -/
 instance max_idem : is_idempotent α max := by apply_instance -- short-circuit type class inference
 
@@ -104,5 +117,23 @@ le_trans (le_max_left _ _) h
 
 lemma le_of_max_le_right {a b c : α} (h : max a b ≤ c) : b ≤ c :=
 le_trans (le_max_right _ _) h
+
+lemma max_commutative : commutative (max : α → α → α) :=
+max_comm
+
+lemma max_associative : associative (max : α → α → α) :=
+max_assoc
+
+lemma max_left_commutative : left_commutative (max : α → α → α) :=
+max_left_comm
+
+lemma min_commutative : commutative (min : α → α → α) :=
+min_comm
+
+lemma min_associative : associative (min : α → α → α) :=
+min_assoc
+
+lemma min_left_commutative : left_commutative (min : α → α → α) :=
+min_left_comm
 
 end

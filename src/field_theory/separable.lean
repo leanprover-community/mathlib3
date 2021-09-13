@@ -48,6 +48,12 @@ lemma separable_def' (f : polynomial R) :
   f.separable ↔ ∃ a b : polynomial R, a * f + b * f.derivative = 1 :=
 iff.rfl
 
+lemma not_separable_zero [nontrivial R] : ¬ separable (0 : polynomial R) :=
+begin
+  rintro ⟨x, y, h⟩,
+  simpa only [derivative_zero, mul_zero, add_zero, zero_ne_one] using h,
+end
+
 lemma separable_one : (1 : polynomial R).separable :=
 is_coprime_one_left
 
@@ -467,7 +473,7 @@ begin
   apply is_unit_of_self_mul_dvd_separable hsep,
   rw ← sq,
   apply multiplicity.pow_dvd_of_le_multiplicity,
-  exact_mod_cast (enat.add_one_le_of_lt hq)
+  simpa only [nat.cast_one, nat.cast_bit0] using enat.add_one_le_of_lt hq
 end
 
 lemma separable.squarefree {p : polynomial F}  (hsep : separable p) : squarefree p :=
@@ -515,7 +521,7 @@ lemma squarefree_X_pow_sub_C {n : ℕ} (a : F) (hn : (n : F) ≠ 0) (ha : a ≠ 
 lemma root_multiplicity_le_one_of_separable {p : polynomial F} (hp : p ≠ 0)
   (hsep : separable p) (x : F) : root_multiplicity x p ≤ 1 :=
 begin
-  rw [root_multiplicity_eq_multiplicity, dif_neg hp, ← enat.coe_le_coe, enat.coe_get],
+  rw [root_multiplicity_eq_multiplicity, dif_neg hp, ← enat.coe_le_coe, enat.coe_get, nat.cast_one],
   exact multiplicity_le_one_of_separable (not_unit_X_sub_C _) hsep
 end
 
@@ -557,6 +563,21 @@ begin
   { exact nodup_roots (separable.map h_sep) },
 end
 
+lemma exists_finset_of_splits
+  (i : F →+* K) {f : polynomial F} (sep : separable f) (sp : splits i f) :
+  ∃ (s : finset K), f.map i =
+    C (i f.leading_coeff) * (s.prod (λ a : K, (X : polynomial K) - C a)) :=
+begin
+  classical,
+  obtain ⟨s, h⟩ := exists_multiset_of_splits i sp,
+  use s.to_finset,
+  rw [h, finset.prod_eq_multiset_prod, ←multiset.to_finset_eq],
+  apply nodup_of_separable_prod,
+  apply separable.of_mul_right,
+  rw ←h,
+  exact sep.map,
+end
+
 end splits
 
 end field
@@ -583,26 +604,35 @@ class is_separable (F K : Sort*) [field F] [field K] [algebra F K] : Prop :=
 (is_integral' (x : K) : is_integral F x)
 (separable' (x : K) : (minpoly F x).separable)
 
-theorem is_separable.is_integral {F K} [field F] [field K] [algebra F K] (h : is_separable F K) :
+theorem is_separable.is_integral (F) {K} [field F] [field K] [algebra F K] [is_separable F K] :
   ∀ x : K, is_integral F x := is_separable.is_integral'
 
-theorem is_separable.separable {F K} [field F] [field K] [algebra F K] (h : is_separable F K) :
+theorem is_separable.separable (F) {K} [field F] [field K] [algebra F K] [is_separable F K] :
   ∀ x : K, (minpoly F x).separable := is_separable.separable'
 
 theorem is_separable_iff {F K} [field F] [field K] [algebra F K] : is_separable F K ↔
   ∀ x : K, is_integral F x ∧ (minpoly F x).separable :=
-⟨λ h x, ⟨h.is_integral x, h.separable x⟩, λ h, ⟨λ x, (h x).1, λ x, (h x).2⟩⟩
+⟨λ h x, ⟨@@is_separable.is_integral F _ _ _ h x, @@is_separable.separable F _ _ _ h x⟩,
+ λ h, ⟨λ x, (h x).1, λ x, (h x).2⟩⟩
 
 instance is_separable_self (F : Type*) [field F] : is_separable F F :=
 ⟨λ x, is_integral_algebra_map, λ x, by { rw minpoly.eq_X_sub_C', exact separable_X_sub_C }⟩
+
+/-- A finite field extension in characteristic 0 is separable. -/
+@[priority 100] -- See note [lower instance priority]
+instance is_separable.of_finite (F K : Type*) [field F] [field K] [algebra F K]
+  [finite_dimensional F K] [char_zero F] : is_separable F K :=
+have ∀ (x : K), is_integral F x,
+from λ x, (is_algebraic_iff_is_integral _).mp (algebra.is_algebraic_of_finite _),
+⟨this, λ x, (minpoly.irreducible (this x)).separable⟩
 
 section is_separable_tower
 variables (F K E : Type*) [field F] [field K] [field E] [algebra F K] [algebra F E]
   [algebra K E] [is_scalar_tower F K E]
 
-lemma is_separable_tower_top_of_is_separable [h : is_separable F E] : is_separable K E :=
-⟨λ x, is_integral_of_is_scalar_tower x (h.is_integral x),
- λ x, (h.separable x).map.of_dvd (minpoly.dvd_map_of_is_scalar_tower _ _ _)⟩
+lemma is_separable_tower_top_of_is_separable [is_separable F E] : is_separable K E :=
+⟨λ x, is_integral_of_is_scalar_tower x (is_separable.is_integral F x),
+ λ x, (is_separable.separable F x).map.of_dvd (minpoly.dvd_map_of_is_scalar_tower _ _ _)⟩
 
 lemma is_separable_tower_bot_of_is_separable [h : is_separable F E] : is_separable F K :=
 is_separable_iff.2 $ λ x, begin
@@ -626,3 +656,22 @@ begin
 end
 
 end is_separable_tower
+
+section card_alg_hom
+
+variables {R S T : Type*} [comm_ring S]
+variables {K L F : Type*} [field K] [field L] [field F]
+variables [algebra K S] [algebra K L]
+
+lemma alg_hom.card_of_power_basis (pb : power_basis K S) (h_sep : (minpoly K pb.gen).separable)
+  (h_splits : (minpoly K pb.gen).splits (algebra_map K L)) :
+  @fintype.card (S →ₐ[K] L) (power_basis.alg_hom.fintype pb) = pb.dim :=
+begin
+  let s := ((minpoly K pb.gen).map (algebra_map K L)).roots.to_finset,
+  have H := λ x, multiset.mem_to_finset,
+  rw [fintype.card_congr pb.lift_equiv', fintype.card_of_subtype s H,
+      ← pb.nat_degree_minpoly, nat_degree_eq_card_roots h_splits, multiset.to_finset_card_of_nodup],
+  exact nodup_roots ((separable_map (algebra_map K L)).mpr h_sep)
+end
+
+end card_alg_hom

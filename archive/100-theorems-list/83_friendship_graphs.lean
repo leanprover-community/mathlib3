@@ -85,7 +85,7 @@ end
 lemma adj_matrix_pow_three_of_not_adj {v w : V} (non_adj : ¬ G.adj v w) :
   ((G.adj_matrix R) ^ 3) v w = degree G v :=
 begin
-  rw [pow_succ, mul_eq_mul, adj_matrix_mul_apply, degree, card_eq_sum_ones, sum_nat_cast],
+  rw [pow_succ, mul_eq_mul, adj_matrix_mul_apply, degree, card_eq_sum_ones, nat.cast_sum],
   apply sum_congr rfl,
   intros x hx,
   rw [adj_matrix_sq_of_ne _ hG, nat.cast_one],
@@ -106,7 +106,7 @@ lemma degree_eq_of_not_adj {v w : V} (hvw : ¬ G.adj v w) :
 begin
   rw [← nat.cast_id (G.degree v), ← nat.cast_id (G.degree w),
       ← adj_matrix_pow_three_of_not_adj ℕ hG hvw,
-      ← adj_matrix_pow_three_of_not_adj ℕ hG (λ h, hvw (G.sym h))],
+      ← adj_matrix_pow_three_of_not_adj ℕ hG (λ h, hvw (G.symm h))],
   conv_lhs {rw ← transpose_adj_matrix},
   simp only [pow_succ, sq, mul_eq_mul, ← transpose_mul, transpose_apply],
   simp only [← mul_eq_mul, mul_assoc],
@@ -163,8 +163,8 @@ begin
     rw [h, mem_singleton] at h',
     injection h', },
   apply hxy',
-  rw [key ((mem_common_neighbors G).mpr ⟨hvx, G.sym hxw⟩),
-      key ((mem_common_neighbors G).mpr ⟨hvy, G.sym hcontra⟩)],
+  rw [key ((mem_common_neighbors G).mpr ⟨hvx, G.symm hxw⟩),
+      key ((mem_common_neighbors G).mpr ⟨hvy, G.symm hcontra⟩)],
 end
 
 /-- Let `A` be the adjacency matrix of a `d`-regular friendship graph, and let `v` be a vector
@@ -322,8 +322,8 @@ end
 
 end friendship
 
-/-- We wish to show that a friendship graph has a politician (a vertex adjacent to all others).
-  We proceed by contradiction, and assume the graph has no politician.
+/-- **Friendship theorem**: We wish to show that a friendship graph has a politician (a vertex
+  adjacent to all others). We proceed by contradiction, and assume the graph has no politician.
   We have already proven that a friendship graph with no politician is `d`-regular for some `d`,
   and now we do casework on `d`.
   If the degree is at most 2, we observe by casework that it has a politician anyway.

@@ -13,84 +13,113 @@ Note that some lemmas are in `algebra/group_power/lemmas.lean` as they import fi
 depend on this file.
 -/
 
-variables {A R : Type*}
+variables {A G M R : Type*}
 
-section add_monoid
-variable [ordered_add_comm_monoid A]
+section preorder
 
-theorem nsmul_nonneg {a : A} (H : 0 ≤ a) : ∀ n : ℕ, 0 ≤ n • a
-| 0     := by rw [zero_nsmul]
-| (n+1) := by { rw succ_nsmul, exact add_nonneg H (nsmul_nonneg n) }
+variables [monoid M] [preorder M] [covariant_class M M (*) (≤)]
 
-lemma nsmul_pos {a : A} (ha : 0 < a) {k : ℕ} (hk : 0 < k) : 0 < k • a :=
+@[mono, to_additive nsmul_le_nsmul_of_le_right]
+lemma pow_le_pow_of_le_left' [covariant_class M M (function.swap (*)) (≤)]
+  {a b : M} (hab : a ≤ b) : ∀ i : ℕ, a ^ i ≤ b ^ i
+| 0     := by simp
+| (k+1) := by { rw [pow_succ, pow_succ],
+    exact mul_le_mul' hab (pow_le_pow_of_le_left' k) }
+
+@[to_additive nsmul_nonneg]
+theorem one_le_pow_of_one_le' {a : M} (H : 1 ≤ a) : ∀ n : ℕ, 1 ≤ a ^ n
+| 0       := by simp
+| (k + 1) := by { rw pow_succ, exact one_le_mul H (one_le_pow_of_one_le' k) }
+
+@[to_additive nsmul_nonpos]
+theorem pow_le_one' {a : M} (H : a ≤ 1) (n : ℕ) : a ^ n ≤ 1 :=
+@one_le_pow_of_one_le' (order_dual M) _ _ _ _ H n
+
+@[to_additive nsmul_le_nsmul]
+theorem pow_le_pow' {a : M} {n m : ℕ} (ha : 1 ≤ a) (h : n ≤ m) : a ^ n ≤ a ^ m :=
+let ⟨k, hk⟩ := nat.le.dest h in
+calc a ^ n ≤ a ^ n * a ^ k : le_mul_of_one_le_right' (one_le_pow_of_one_le' ha _)
+       ... = a ^ m         : by rw [← hk, pow_add]
+
+@[to_additive nsmul_le_nsmul_of_nonpos]
+theorem pow_le_pow_of_le_one' {a : M} {n m : ℕ} (ha : a ≤ 1) (h : n ≤ m) : a ^ m ≤ a ^ n :=
+@pow_le_pow' (order_dual M) _ _ _ _ _ _  ha h
+
+@[to_additive nsmul_pos]
+theorem one_lt_pow' {a : M} (ha : 1 < a) {k : ℕ} (hk : k ≠ 0) : 1 < a ^ k :=
 begin
-  rcases nat.exists_eq_succ_of_ne_zero (ne_of_gt hk) with ⟨l, rfl⟩,
+  rcases nat.exists_eq_succ_of_ne_zero hk with ⟨l, rfl⟩,
   clear hk,
   induction l with l IH,
   { simpa using ha },
-  { rw succ_nsmul,
-    exact add_pos ha IH }
+  { rw pow_succ,
+    exact one_lt_mul' ha IH }
 end
 
-theorem nsmul_le_nsmul {a : A} {n m : ℕ} (ha : 0 ≤ a) (h : n ≤ m) : n • a ≤ m • a :=
-let ⟨k, hk⟩ := nat.le.dest h in
-calc n • a = n • a + 0 : (add_zero _).symm
-  ... ≤ n • a + k • a : add_le_add_left (nsmul_nonneg ha _) _
-  ... = m • a : by rw [← hk, add_nsmul]
+@[to_additive nsmul_neg]
+theorem pow_lt_one' {a : M} (ha : a < 1) {k : ℕ} (hk : k ≠ 0) : a ^ k < 1 :=
+@one_lt_pow' (order_dual M) _ _ _ _ ha k hk
 
-lemma nsmul_le_nsmul_of_le_right {a b : A} (hab : a ≤ b) : ∀ i : ℕ, i • a ≤ i • b
-| 0 := by simp [zero_nsmul]
-| (k+1) := by { rw [succ_nsmul, succ_nsmul], exact add_le_add hab (nsmul_le_nsmul_of_le_right _) }
+@[to_additive nsmul_lt_nsmul]
+theorem pow_lt_pow'' [covariant_class M M (*) (<)] {a : M} {n m : ℕ} (ha : 1 < a) (h : n < m) :
+  a ^ n < a ^ m :=
+begin
+  rcases nat.le.dest h with ⟨k, rfl⟩, clear h,
+  rw [pow_add, pow_succ', mul_assoc, ← pow_succ],
+  exact lt_mul_of_one_lt_right' _ (one_lt_pow' ha k.succ_ne_zero)
+end
 
-end add_monoid
+end preorder
 
-section add_group
-variable [ordered_add_comm_group A]
+section linear_order
 
-theorem gsmul_nonneg {a : A} (H : 0 ≤ a) {n : ℤ} (hn : 0 ≤ n) :
-  0 ≤ n • a :=
+variables [monoid M] [linear_order M] [covariant_class M M (*) (≤)]
+
+@[to_additive nsmul_nonneg_iff]
+lemma one_le_pow_iff {x : M} {n : ℕ} (hn : n ≠ 0) : 1 ≤ x ^ n ↔ 1 ≤ x :=
+⟨le_imp_le_of_lt_imp_lt $ λ h, pow_lt_one' h hn, λ h, one_le_pow_of_one_le' h n⟩
+
+@[to_additive nsmul_nonpos_iff]
+lemma pow_le_one_iff {x : M} {n : ℕ} (hn : n ≠ 0) : x ^ n ≤ 1 ↔ x ≤ 1 :=
+@one_le_pow_iff (order_dual M) _ _ _ _ _ hn
+
+@[to_additive nsmul_pos_iff]
+lemma one_lt_pow_iff {x : M} {n : ℕ} (hn : n ≠ 0) : 1 < x ^ n ↔ 1 < x :=
+lt_iff_lt_of_le_iff_le (pow_le_one_iff hn)
+
+@[to_additive nsmul_neg_iff]
+lemma pow_lt_one_iff {x : M} {n : ℕ} (hn : n ≠ 0) : x ^ n < 1 ↔ x < 1 :=
+lt_iff_lt_of_le_iff_le (one_le_pow_iff hn)
+
+@[to_additive nsmul_eq_zero_iff]
+lemma pow_eq_one_iff {x : M} {n : ℕ} (hn : n ≠ 0) : x ^ n = 1 ↔ x = 1 :=
+by simp only [le_antisymm_iff, pow_le_one_iff hn, one_le_pow_iff hn]
+
+end linear_order
+
+section group
+
+variables [group G] [preorder G] [covariant_class G G (*) (≤)]
+
+@[to_additive gsmul_nonneg]
+theorem one_le_gpow {x : G} (H : 1 ≤ x) {n : ℤ} (hn : 0 ≤ n) :
+  1 ≤ x ^ n :=
 begin
   lift n to ℕ using hn,
-  rw gsmul_coe_nat,
-  apply nsmul_nonneg H,
+  rw gpow_coe_nat,
+  apply one_le_pow_of_one_le' H,
 end
 
-end add_group
+end group
 
-section cancel_add_monoid
-variable [ordered_cancel_add_comm_monoid A]
+namespace canonically_ordered_comm_semiring
 
-theorem nsmul_lt_nsmul {a : A} {n m : ℕ} (ha : 0 < a) (h : n < m) :
-  n • a < m • a :=
-let ⟨k, hk⟩ := nat.le.dest h in
-begin
-  have succ_swap : n.succ + k = n + k.succ := nat.succ_add n k,
-  calc n • a = (n • a : A) + (0 : A) : (add_zero _).symm
-    ... < n • a + (k.succ • a : A) : add_lt_add_left (nsmul_pos ha (nat.succ_pos k)) _
-    ... = m • a : by rw [← hk, succ_swap, add_nsmul]
-end
+variables [canonically_ordered_comm_semiring R]
 
-end cancel_add_monoid
+theorem pow_pos {a : R} (H : 0 < a) (n : ℕ) : 0 < a ^ n :=
+pos_iff_ne_zero.2 $ pow_ne_zero _ H.ne'
 
-namespace canonically_ordered_semiring
-variable [canonically_ordered_comm_semiring R]
-
-theorem pow_pos {a : R} (H : 0 < a) : ∀ n : ℕ, 0 < a ^ n
-| 0     := by { nontriviality, rw pow_zero, exact canonically_ordered_semiring.zero_lt_one }
-| (n+1) := by { rw pow_succ, exact canonically_ordered_semiring.mul_pos.2 ⟨H, pow_pos n⟩ }
-
-@[mono] lemma pow_le_pow_of_le_left {a b : R} (hab : a ≤ b) : ∀ i : ℕ, a^i ≤ b^i
-| 0     := by simp
-| (k+1) := by { rw [pow_succ, pow_succ],
-    exact canonically_ordered_semiring.mul_le_mul hab (pow_le_pow_of_le_left k) }
-
-theorem one_le_pow_of_one_le {a : R} (H : 1 ≤ a) (n : ℕ) : 1 ≤ a ^ n :=
-by simpa only [one_pow] using pow_le_pow_of_le_left H n
-
-theorem pow_le_one {a : R} (H : a ≤ 1) (n : ℕ) : a ^ n ≤ 1:=
-by simpa only [one_pow] using pow_le_pow_of_le_left H n
-
-end canonically_ordered_semiring
+end canonically_ordered_comm_semiring
 
 section ordered_semiring
 variable [ordered_semiring R]
@@ -142,7 +171,7 @@ theorem one_le_pow_of_one_le {a : R} (H : 1 ≤ a) : ∀ (n : ℕ), 1 ≤ a ^ n
     zero_le_one (le_trans zero_le_one H) }
 
 lemma pow_mono {a : R} (h : 1 ≤ a) : monotone (λ n : ℕ, a ^ n) :=
-monotone_of_monotone_nat $ λ n,
+monotone_nat_of_le_succ $ λ n,
   by { rw pow_succ, exact le_mul_of_one_le_left (pow_nonneg (zero_le_one.trans h) _) h }
 
 theorem pow_le_pow {a : R} {n m : ℕ} (ha : 1 ≤ a) (h : n ≤ m) : a ^ n ≤ a ^ m :=
@@ -150,7 +179,7 @@ pow_mono ha h
 
 lemma strict_mono_pow {a : R} (h : 1 < a) : strict_mono (λ n : ℕ, a ^ n) :=
 have 0 < a := zero_le_one.trans_lt h,
-strict_mono.nat $ λ n, by simpa only [one_mul, pow_succ]
+strict_mono_nat_of_lt_succ $ λ n, by simpa only [one_mul, pow_succ]
   using mul_lt_mul h (le_refl (a ^ n)) (pow_pos this _) this.le
 
 lemma pow_lt_pow {a : R} {n m : ℕ} (h : 1 < a) (h2 : n < m) : a ^ n < a ^ m :=
@@ -169,15 +198,18 @@ end ordered_semiring
 section linear_ordered_semiring
 variable [linear_ordered_semiring R]
 
-theorem pow_left_inj {x y : R} {n : ℕ} (Hxpos : 0 ≤ x) (Hypos : 0 ≤ y) (Hnpos : 0 < n)
-  (Hxyn : x ^ n = y ^ n) : x = y :=
-(@strict_mono_incr_on_pow R _ _ Hnpos).inj_on Hxpos Hypos Hxyn
+@[simp] theorem pow_left_inj {x y : R} {n : ℕ} (Hxpos : 0 ≤ x) (Hypos : 0 ≤ y) (Hnpos : 0 < n) :
+  x ^ n = y ^ n ↔ x = y :=
+(@strict_mono_incr_on_pow R _ _ Hnpos).inj_on.eq_iff Hxpos Hypos
 
 lemma lt_of_pow_lt_pow {a b : R} (n : ℕ) (hb : 0 ≤ b) (h : a ^ n < b ^ n) : a < b :=
 lt_of_not_ge $ λ hn, not_lt_of_ge (pow_le_pow_of_le_left hb hn _) h
 
 lemma le_of_pow_le_pow {a b : R} (n : ℕ) (hb : 0 ≤ b) (hn : 0 < n) (h : a ^ n ≤ b ^ n) : a ≤ b :=
 le_of_not_lt $ λ h1, not_le_of_lt (pow_lt_pow_of_lt_left h1 hb hn) h
+
+@[simp] lemma sq_eq_sq {a b : R} (ha : 0 ≤ a) (hb : 0 ≤ b) : a ^ 2 = b ^ 2 ↔ a = b :=
+pow_left_inj ha hb dec_trivial
 
 end linear_ordered_semiring
 
@@ -255,16 +287,6 @@ end linear_ordered_ring
 
 section linear_ordered_comm_ring
 variables [linear_ordered_comm_ring R]
-
-@[simp] lemma eq_of_sq_eq_sq {a b : R} (ha : 0 ≤ a) (hb : 0 ≤ b) : a ^ 2 = b ^ 2 ↔ a = b :=
-begin
-  refine ⟨_, congr_arg _⟩,
-  intros h,
-  refine (eq_or_eq_neg_of_sq_eq_sq _ _ h).elim id _,
-  rintros rfl,
-  rw le_antisymm (neg_nonneg.mp ha) hb,
-  exact neg_zero
-end
 
 /-- Arithmetic mean-geometric mean (AM-GM) inequality for linearly ordered commutative rings. -/
 lemma two_mul_le_add_sq (a b : R) : 2 * a * b ≤ a ^ 2 + b ^ 2 :=

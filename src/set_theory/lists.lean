@@ -2,22 +2,60 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
-
-A computable model of hereditarily finite sets with atoms
-(ZFA without infinity). This is useful for calculations in naive
-set theory.
 -/
 import data.list.basic
-import data.sigma
+
+/-!
+# A computable model of ZFA without infinity
+
+In this file we define finite hereditary lists. This is useful for calculations in naive set theory.
+
+We distinguish two kinds of ZFA lists:
+* Atoms. Directly correspond to an element of the original type.
+* Proper ZFA lists. Can thought of (but aren't implemented) as a list of ZFA lists (not necessarily
+  proper).
+
+For example, `lists ℕ` contains stuff like `23`, `[]`, `[37]`, `[1, [[2], 3], 4]`.
+
+## Implementation note
+
+As we want to be able to append both atoms and proper ZFA lists to proper ZFA lists, it's handy that
+atoms and proper ZFA lists belong to the same type, even though atoms of `α` could be modelled as
+`α` directly. But we don't want to be able to append anything to atoms.
+
+This calls for a two-steps definition of ZFA lists:
+* First, define ZFA prelists as atoms and proper ZFA prelists. Those proper ZFA prelists are defined
+  by inductive appending of (not necessarily proper) ZFA lists.
+* Second, define ZFA lists by rubbing out the distinction between atoms and proper lists.
+
+## Main declarations
+
+* `lists' α ff`: Atoms as ZFA prelists. Basically a copy of `α`.
+* `lists' α tt`: Proper ZFA prelists. Defined inductively from the empty ZFA prelist (`lists'.nil`)
+  and from appending a ZFA prelist to a proper ZFA prelist (`lists'.cons a l`).
+* `lists α`: ZFA lists. Sum of the atoms and proper ZFA prelists.
+
+## TODO
+
+The next step is to define ZFA sets as lists quotiented by `lists.equiv`.
+(-/
 
 variables {α : Type*}
 
+/-- Prelists, helper type to define `lists`. `lists' α ff` are the "atoms", a copy of `α`.
+`lists' α tt` are the "proper" ZFA prelists, inductively defined from the empty ZFA prelist and from
+appending a ZFA prelist to a proper ZFA prelist. It is made so that you can't append anything to an
+atom while having only one appending function for appending both atoms and proper ZFC prelists to a
+proper ZFA prelist. -/
 @[derive decidable_eq]
 inductive {u} lists' (α : Type u) : bool → Type u
 | atom : α → lists' ff
 | nil : lists' tt
 | cons' {b} : lists' b → lists' tt → lists' tt
 
+/-- Hereditarily finite list, aka ZFA list. A ZFA list is either an "atom" (`b = ff`), corresponding
+to an element of `α`, or a "proper" ZFA list, inductively defined from the empty ZFA list and from
+appending a ZFA list to a proper ZFA list. -/
 def lists (α : Type*) := Σ b, lists' α b
 
 namespace lists'
@@ -26,9 +64,11 @@ instance [inhabited α] : ∀ b, inhabited (lists' α b)
 | tt := ⟨nil⟩
 | ff := ⟨atom (default _)⟩
 
+/-- Appending a ZFA list to a proper ZFA prelist. -/
 def cons : lists α → lists' α tt → lists' α tt
 | ⟨b, a⟩ l := cons' a l
 
+/-- Converts a ZFA prelist to a `list` of ZFA lists. Atoms are sent to `[]`. -/
 @[simp] def to_list : ∀ {b}, lists' α b → list (lists α)
 | _ (atom a)    := []
 | _ nil         := []
@@ -38,6 +78,7 @@ def cons : lists α → lists' α tt → lists' α tt
   to_list (cons a l) = a :: l.to_list :=
 by cases a; simp [cons]
 
+/-- Converts a `list` of ZFA lists to a proper ZFA prelist. -/
 @[simp] def of_list : list (lists α) → lists' α tt
 | []       := nil
 | (a :: l) := cons a (of_list l)
@@ -67,12 +108,20 @@ with lists'.subset : lists' α tt → lists' α tt → Prop
 | nil {l} : lists'.subset lists'.nil l
 | cons {a a' l l'} : lists.equiv a a' → a' ∈ lists'.to_list l' →
   lists'.subset l l' → lists'.subset (lists'.cons a l) l'
-local infix ~ := lists.equiv
+local infix ` ~ `:50 := lists.equiv
+
+/-- Equivalence of ZFA lists. Defined inductively. -/
+add_decl_doc lists.equiv
+
+/-- Subset relation for ZFA lists. Defined inductively. -/
+add_decl_doc lists'.subset
 
 namespace lists'
 
 instance : has_subset (lists' α tt) := ⟨lists'.subset⟩
 
+/-- ZFA prelist membership. A ZFA list is in a ZFA prelist if some element of this ZFA prelist is
+equivalent as a ZFA list to this ZFA list. -/
 instance {b} : has_mem (lists α) (lists' α b) :=
 ⟨λ a l, ∃ a' ∈ l.to_list, a ~ a'⟩
 
@@ -132,15 +181,20 @@ end lists'
 
 namespace lists
 
+/-- Sends `a : α` to the corresponding atom in `lists α`. -/
 @[pattern] def atom (a : α) : lists α := ⟨_, lists'.atom a⟩
 
+/-- Converts a proper ZFA prelist to a ZFA list. -/
 @[pattern] def of' (l : lists' α tt) : lists α := ⟨_, l⟩
 
+/-- Converts a ZFA list to a `list` of ZFA lists. Atoms are sent to `[]`. -/
 @[simp] def to_list : lists α → list (lists α)
 | ⟨b, l⟩ := l.to_list
 
+/-- Predicate stating that a ZFA list is proper. -/
 def is_list (l : lists α) : Prop := l.1
 
+/-- Converts a `list` of ZFA lists to a ZFA list. -/
 def of_list (l : list (lists α)) : lists α := of' (lists'.of_list l)
 
 theorem is_list_to_list (l : list (lists α)) : is_list (of_list l) :=
@@ -161,6 +215,7 @@ by unfold lists; apply_instance
 instance [has_sizeof α] : has_sizeof (lists α) :=
 by unfold lists; apply_instance
 
+/-- A recursion principle for pairs of ZFA lists and proper ZFA prelists. -/
 def induction_mut (C : lists α → Sort*) (D : lists' α tt → Sort*)
   (C0 : ∀ a, C (atom a)) (C1 : ∀ l, D l → C (of' l))
   (D0 : D lists'.nil) (D1 : ∀ a l, C a → D l → D (lists'.cons a l)) :
@@ -179,6 +234,8 @@ begin
     exact D1 ⟨_, _⟩ _ IH₁.1 IH₂.2 }
 end
 
+/-- Membership of ZFA list. A ZFA list belongs to a proper ZFA list if it belongs to the latter as a
+proper ZFA prelist. An atom has no members. -/
 def mem (a : lists α) : lists α → Prop
 | ⟨ff, l⟩ := false
 | ⟨tt, l⟩ := a ∈ l

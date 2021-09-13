@@ -518,8 +518,8 @@ begin
   rw [val_aux_eq hm, val_aux_eq hn, val_aux_eq hk, ring_hom.map_add],
   cases le_max_iff.1
     (mod_p.pre_val_add (coeff _ _ (max (max m n) k) f) (coeff _ _ (max (max m n) k) g)) with h h,
-  { exact le_max_of_le_left (canonically_ordered_semiring.pow_le_pow_of_le_left h _) },
-  { exact le_max_of_le_right (canonically_ordered_semiring.pow_le_pow_of_le_left h _) }
+  { exact le_max_of_le_left (pow_le_pow_of_le_left' h _) },
+  { exact le_max_of_le_right (pow_le_pow_of_le_left' h _) }
 end
 
 variables (K v O hv p)

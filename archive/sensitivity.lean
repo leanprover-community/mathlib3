@@ -289,7 +289,7 @@ begin
   { intros p q,
     have ite_nonneg : ite (π q = π p) (1 : ℝ) 0 ≥ 0,
     { split_ifs ; norm_num },
-    have f_map_zero := (show linear_map ℝ (V (n+0)) (V n), from f n).map_zero,
+    have f_map_zero := (show (V (n+0)) →ₗ[ℝ] (V n), from f n).map_zero,
     dsimp [e, ε, f], cases hp : p 0 ; cases hq : q 0,
     all_goals
     { repeat {rw cond_tt}, repeat {rw cond_ff},
@@ -383,6 +383,7 @@ begin
   linarith
 end
 
+/-- **Huang sensitivity theorem** also known as the **Huang degree theorem** -/
 theorem huang_degree_theorem (H : set (Q (m + 1))) (hH : Card H ≥ 2^m + 1) :
   ∃ q, q ∈ H ∧ √(m + 1) ≤ Card (H ∩ q.adjacent) :=
 begin

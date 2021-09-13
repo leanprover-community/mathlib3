@@ -3,12 +3,9 @@ Copyright (c) 2019 Jan-David Salchow. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo
 -/
-import linear_algebra.finite_dimensional
+import algebra.algebra.tower
 import analysis.normed_space.linear_isometry
 import analysis.normed_space.riesz_lemma
-import analysis.normed_space.normed_group_hom
-import analysis.asymptotics.asymptotics
-import algebra.algebra.tower
 import data.equiv.transfer_instance
 
 /-!
@@ -43,7 +40,11 @@ variables [normed_field 𝕜] [semi_normed_space 𝕜 E] [semi_normed_space 𝕜
 
 lemma linear_map.lipschitz_of_bound (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   lipschitz_with (real.to_nnreal C) f :=
-lipschitz_with.of_dist_le' $ λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
+f.to_add_monoid_hom.lipschitz_of_bound C h
+
+lemma linear_map.lipschitz_of_bound_nnnorm (C : ℝ≥0) (h : ∀ x, ∥f x∥₊ ≤ C * ∥x∥₊) :
+  lipschitz_with C f :=
+f.to_add_monoid_hom.lipschitz_of_bound_nnnorm C h
 
 theorem linear_map.antilipschitz_of_bound {K : ℝ≥0} (h : ∀ x, ∥x∥ ≤ K * ∥f x∥) :
   antilipschitz_with K f :=
@@ -84,7 +85,8 @@ def linear_map.mk_continuous_of_exists_bound (h : ∃C, ∀x, ∥f x∥ ≤ C * 
 lemma continuous_of_linear_of_bound {f : E → F} (h_add : ∀ x y, f (x + y) = f x + f y)
   (h_smul : ∀ (c : 𝕜) x, f (c • x) = c • f x) {C : ℝ} (h_bound : ∀ x, ∥f x∥ ≤ C*∥x∥) :
   continuous f :=
-let φ : E →ₗ[𝕜] F := ⟨f, h_add, h_smul⟩ in φ.continuous_of_bound C h_bound
+let φ : E →ₗ[𝕜] F := { to_fun := f, map_add' := h_add, map_smul' := h_smul } in
+φ.continuous_of_bound C h_bound
 
 @[simp, norm_cast] lemma linear_map.mk_continuous_coe (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   ((f.mk_continuous C h) : E →ₗ[𝕜] F) = f := rfl
@@ -161,18 +163,7 @@ theorem bound : ∃ C, 0 < C ∧ (∀ x : E, ∥f x∥ ≤ C * ∥x∥) :=
 f.to_linear_map.bound_of_continuous f.2
 
 section
-open asymptotics filter
-
-theorem is_O_id (l : filter E) : is_O f (λ x, x) l :=
-let ⟨M, hMp, hM⟩ := f.bound in is_O_of_le' l hM
-
-theorem is_O_comp {α : Type*} (g : F →L[𝕜] G) (f : α → F) (l : filter α) :
-  is_O (λ x', g (f x')) f l :=
-(g.is_O_id ⊤).comp_tendsto le_top
-
-theorem is_O_sub (f : E →L[𝕜] F) (l : filter E) (x : E) :
-  is_O (λ x', f (x' - x)) (λ x', x' - x) l :=
-f.is_O_comp _ l
+open filter
 
 /-- A linear map which is a homothety is a continuous linear map.
     Since the field `𝕜` need not have `ℝ` as a subfield, this theorem is not directly deducible from
@@ -193,6 +184,22 @@ by {rw mul_comm, exact norm_smul _ _}
 def to_span_singleton (x : E) : 𝕜 →L[𝕜] E :=
 of_homothety (linear_map.to_span_singleton 𝕜 E x) ∥x∥ (to_span_singleton_homothety 𝕜 x)
 
+lemma to_span_singleton_apply (x : E) (r : 𝕜) : to_span_singleton 𝕜 x r = r • x :=
+by simp [to_span_singleton, of_homothety, linear_map.to_span_singleton]
+
+lemma to_span_singleton_add (x y : E) :
+  to_span_singleton 𝕜 (x + y) = to_span_singleton 𝕜 x + to_span_singleton 𝕜 y :=
+by { ext1, simp [to_span_singleton_apply], }
+
+lemma to_span_singleton_smul' (𝕜') [nondiscrete_normed_field 𝕜'] [semi_normed_space 𝕜' E]
+  [smul_comm_class 𝕜 𝕜' E] (c : 𝕜') (x : E) :
+  to_span_singleton 𝕜 (c • x) = c • to_span_singleton 𝕜 x :=
+by { ext1, rw [to_span_singleton_apply, smul_apply, to_span_singleton_apply, smul_comm], }
+
+lemma to_span_singleton_smul (c : 𝕜) (x : E) :
+  to_span_singleton 𝕜 (c • x) = c • to_span_singleton 𝕜 x :=
+to_span_singleton_smul' 𝕜 𝕜 c x
+
 end
 
 section op_norm
@@ -204,7 +211,7 @@ instance has_op_norm : has_norm (E →L[𝕜] F) := ⟨op_norm⟩
 
 lemma norm_def : ∥f∥ = Inf {c | 0 ≤ c ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥} := rfl
 
--- So that invocations of `real.Inf_le` make sense: we show that the set of
+-- So that invocations of `le_cInf` make sense: we show that the set of
 -- bounds is nonempty and bounded below.
 lemma bounds_nonempty {f : E →L[𝕜] F} :
   ∃ c, c ∈ { c | 0 ≤ c ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ } :=
@@ -215,7 +222,7 @@ lemma bounds_bdd_below {f : E →L[𝕜] F} :
 ⟨0, λ _ ⟨hn, _⟩, hn⟩
 
 lemma op_norm_nonneg : 0 ≤ ∥f∥ :=
-lb_le_Inf _ bounds_nonempty (λ _ ⟨hx, _⟩, hx)
+le_cInf bounds_nonempty (λ _ ⟨hx, _⟩, hx)
 
 /-- The fundamental property of the operator norm: `∥f x∥ ≤ ∥f∥ * ∥x∥`. -/
 theorem le_op_norm : ∥f x∥ ≤ ∥f∥ * ∥x∥ :=
@@ -225,7 +232,7 @@ begin
   by_cases h : ∥x∥ = 0,
   { rwa [h, mul_zero] at ⊢ hC },
   have hlt : 0 < ∥x∥ := lt_of_le_of_ne (norm_nonneg x) (ne.symm h),
-  exact  (div_le_iff hlt).mp ((real.le_Inf _ bounds_nonempty bounds_bdd_below).2 (λ c ⟨_, hc⟩,
+  exact  (div_le_iff hlt).mp (le_cInf bounds_nonempty (λ c ⟨_, hc⟩,
     (div_le_iff hlt).mpr $ by { apply hc })),
 end
 
@@ -234,11 +241,6 @@ le_trans (f.le_op_norm x) (mul_le_mul_of_nonneg_left h f.op_norm_nonneg)
 
 theorem le_of_op_norm_le {c : ℝ} (h : ∥f∥ ≤ c) (x : E) : ∥f x∥ ≤ c * ∥x∥ :=
 (f.le_op_norm x).trans (mul_le_mul_of_nonneg_right h (norm_nonneg x))
-
-/-- continuous linear maps are Lipschitz continuous. -/
-theorem lipschitz : lipschitz_with ⟨∥f∥, op_norm_nonneg f⟩ f :=
-lipschitz_with.of_dist_le_mul $ λ x y,
-  by { rw [dist_eq_norm, dist_eq_norm, ←map_sub], apply le_op_norm }
 
 lemma ratio_le_op_norm : ∥f x∥ / ∥x∥ ≤ ∥f∥ :=
 div_le_of_nonneg_of_le_mul (norm_nonneg _) f.op_norm_nonneg (le_op_norm _ _)
@@ -250,7 +252,7 @@ mul_one ∥f∥ ▸ f.le_op_norm_of_le
 /-- If one controls the norm of every `A x`, then one controls the norm of `A`. -/
 lemma op_norm_le_bound {M : ℝ} (hMp: 0 ≤ M) (hM : ∀ x, ∥f x∥ ≤ M * ∥x∥) :
   ∥f∥ ≤ M :=
-Inf_le _ bounds_bdd_below ⟨hMp, hM⟩
+cInf_le bounds_bdd_below ⟨hMp, hM⟩
 
 theorem op_norm_le_of_lipschitz {f : E →L[𝕜] F} {K : ℝ≥0} (hf : lipschitz_with K f) :
   ∥f∥ ≤ K :=
@@ -302,12 +304,12 @@ le_antisymm (φ.op_norm_le_bound M_nonneg h_above)
 
 /-- The operator norm satisfies the triangle inequality. -/
 theorem op_norm_add_le : ∥f + g∥ ≤ ∥f∥ + ∥g∥ :=
-show ∥f + g∥ ≤ (coe : ℝ≥0 → ℝ) (⟨_, f.op_norm_nonneg⟩ + ⟨_, g.op_norm_nonneg⟩),
-from op_norm_le_of_lipschitz (f.lipschitz.add g.lipschitz)
+(f + g).op_norm_le_bound (add_nonneg f.op_norm_nonneg g.op_norm_nonneg) $
+  λ x, (norm_add_le_of_le (f.le_op_norm x) (g.le_op_norm x)).trans_eq (add_mul _ _ _).symm
 
 /-- The norm of the `0` operator is `0`. -/
 theorem op_norm_zero : ∥(0 : E →L[𝕜] F)∥ = 0 :=
-le_antisymm (real.Inf_le _ bounds_bdd_below
+le_antisymm (cInf_le bounds_bdd_below
     ⟨ge_of_eq rfl, λ _, le_of_eq (by { rw [zero_mul], exact norm_zero })⟩)
     (op_norm_nonneg _)
 
@@ -318,7 +320,7 @@ op_norm_le_bound _ zero_le_one (λx, by simp)
 
 /-- If there is an element with norm different from `0`, then the norm of the identity equals `1`.
 (Since we are working with seminorms supposing that the space is non-trivial is not enough.) -/
-lemma norm_id_of_nontrivial_seminorm (h : ∃ (x : E), ∥x∥ ≠ 0 ) : ∥id 𝕜 E∥ = 1 :=
+lemma norm_id_of_nontrivial_seminorm (h : ∃ (x : E), ∥x∥ ≠ 0) : ∥id 𝕜 E∥ = 1 :=
 le_antisymm norm_id_le $ let ⟨x, hx⟩ := h in
 have _ := (id 𝕜 E).ratio_le_op_norm x,
 by rwa [id_apply, div_self hx] at this
@@ -345,7 +347,7 @@ instance to_semi_normed_space {𝕜' : Type*} [normed_field 𝕜'] [semi_normed_
 
 /-- The operator norm is submultiplicative. -/
 lemma op_norm_comp_le (f : E →L[𝕜] F) : ∥h.comp f∥ ≤ ∥h∥ * ∥f∥ :=
-(Inf_le _ bounds_bdd_below
+(cInf_le bounds_bdd_below
   ⟨mul_nonneg (op_norm_nonneg _) (op_norm_nonneg _), λ x,
     by { rw mul_assoc, exact h.le_op_norm_of_le (f.le_op_norm x) } ⟩)
 
@@ -353,6 +355,12 @@ lemma op_norm_comp_le (f : E →L[𝕜] F) : ∥h.comp f∥ ≤ ∥h∥ * ∥f�
 instance to_semi_normed_ring : semi_normed_ring (E →L[𝕜] E) :=
 { norm_mul := op_norm_comp_le,
   .. continuous_linear_map.to_semi_normed_group }
+
+theorem le_op_nnnorm : ∥f x∥₊ ≤ ∥f∥₊ * ∥x∥₊ := f.le_op_norm x
+
+/-- continuous linear maps are Lipschitz continuous. -/
+theorem lipschitz : lipschitz_with ∥f∥₊ f :=
+(f : E →ₗ[𝕜] F).lipschitz_of_bound_nnnorm _ f.le_op_nnnorm
 
 theorem le_op_norm₂ (f : E →L[𝕜] F →L[𝕜] G) (x : E) (y : F) :
   ∥f x y∥ ≤ ∥f∥ * ∥x∥ * ∥y∥ :=
@@ -397,6 +405,34 @@ lemma isometry_iff_norm : isometry f ↔ ∀x, ∥f x∥ = ∥x∥ :=
 f.to_linear_map.to_add_monoid_hom.isometry_iff_norm
 
 end op_norm
+
+section is_O
+
+open asymptotics
+
+theorem is_O_with_id (l : filter E) : is_O_with ∥f∥ f (λ x, x) l :=
+is_O_with_of_le' _ f.le_op_norm
+
+theorem is_O_id (l : filter E) : is_O f (λ x, x) l :=
+(f.is_O_with_id l).is_O
+
+theorem is_O_with_comp {α : Type*} (g : F →L[𝕜] G) (f : α → F) (l : filter α) :
+  is_O_with ∥g∥ (λ x', g (f x')) f l :=
+(g.is_O_with_id ⊤).comp_tendsto le_top
+
+theorem is_O_comp {α : Type*} (g : F →L[𝕜] G) (f : α → F) (l : filter α) :
+  is_O (λ x', g (f x')) f l :=
+(g.is_O_with_comp f l).is_O
+
+theorem is_O_with_sub (f : E →L[𝕜] F) (l : filter E) (x : E) :
+  is_O_with ∥f∥ (λ x', f (x' - x)) (λ x', x' - x) l :=
+f.is_O_with_comp _ l
+
+theorem is_O_sub (f : E →L[𝕜] F) (l : filter E) (x : E) :
+  is_O (λ x', f (x' - x)) (λ x', x' - x) l :=
+f.is_O_comp _ l
+
+end is_O
 
 end continuous_linear_map
 
@@ -602,6 +638,19 @@ def lsmul : 𝕜' →L[𝕜] E →L[𝕜] E :=
 ((algebra.lsmul 𝕜 E).to_linear_map : 𝕜' →ₗ[𝕜] E →ₗ[𝕜] E).mk_continuous₂ 1 $
   λ c x, by simpa only [one_mul] using (norm_smul c x).le
 
+@[simp] lemma lsmul_apply (c : 𝕜') (x : E) : lsmul 𝕜 𝕜' c x = c • x := rfl
+
+variables {𝕜'}
+
+lemma norm_to_span_singleton (x : E) : ∥to_span_singleton 𝕜 x∥ = ∥x∥ :=
+begin
+  refine op_norm_eq_of_bounds (norm_nonneg _) (λ x, _) (λ N hN_nonneg h, _),
+  { rw [to_span_singleton_apply, norm_smul, mul_comm], },
+  { specialize h 1,
+    rw [to_span_singleton_apply, norm_smul, mul_comm] at h,
+    exact (mul_le_mul_right (by simp)).mp h, },
+end
+
 end smul_linear
 
 section restrict_scalars
@@ -718,7 +767,7 @@ namespace continuous_linear_equiv
 
 variables (e : E ≃L[𝕜] F)
 
-protected lemma lipschitz : lipschitz_with (nnnorm (e : E →L[𝕜] F)) e :=
+protected lemma lipschitz : lipschitz_with (∥(e : E →L[𝕜] F)∥₊) e :=
 (e : E →L[𝕜] F).lipschitz
 
 theorem is_O_comp {α : Type*} (f : α → E) (l : filter α) :
@@ -895,23 +944,19 @@ iff.intro
   (λ hn, continuous_linear_map.ext (λ x, norm_le_zero_iff.1
     (calc _ ≤ ∥f∥ * ∥x∥ : le_op_norm _ _
      ...     = _ : by rw [hn, zero_mul])))
-  (λ hf, le_antisymm (Inf_le _ bounds_bdd_below
-    ⟨ge_of_eq rfl, λ _, le_of_eq (by { rw [zero_mul, hf], exact norm_zero })⟩)
+  (λ hf, le_antisymm (cInf_le bounds_bdd_below
+    ⟨le_rfl, λ _, le_of_eq (by { rw [zero_mul, hf], exact norm_zero })⟩)
     (op_norm_nonneg _))
 
 /-- If a normed space is non-trivial, then the norm of the identity equals `1`. -/
-lemma norm_id [nontrivial E] : ∥id 𝕜 E∥ = 1 :=
+@[simp] lemma norm_id [nontrivial E] : ∥id 𝕜 E∥ = 1 :=
 begin
   refine norm_id_of_nontrivial_seminorm _,
   obtain ⟨x, hx⟩ := exists_ne (0 : E),
   exact ⟨x, ne_of_gt (norm_pos_iff.2 hx)⟩,
 end
 
-@[simp] lemma norm_id_field : ∥id 𝕜 𝕜∥ = 1 :=
-norm_id
-
-@[simp] lemma norm_id_field' : ∥(1 : 𝕜 →L[𝕜] 𝕜)∥ = 1 :=
-norm_id_field
+instance norm_one_class [nontrivial E] : norm_one_class (E →L[𝕜] E) := ⟨norm_id⟩
 
 /-- Continuous linear maps themselves form a normed space with respect to
     the operator norm. -/
@@ -1086,14 +1131,14 @@ have eq : _ := uniformly_extend_of_ind h_e h_dense f.uniform_continuous,
     refine h_dense.induction_on₂ _ _,
     { exact is_closed_eq (cont.comp continuous_add)
         ((cont.comp continuous_fst).add (cont.comp continuous_snd)) },
-    { assume x y, simp only [eq, ← e.map_add], exact f.map_add _ _  },
+    { assume x y, simp only [eq, ← e.map_add], exact f.map_add _ _ },
   end,
   map_smul' := λk,
   begin
     refine (λ b, h_dense.induction_on b _ _),
     { exact is_closed_eq (cont.comp (continuous_const.smul continuous_id))
         ((continuous_const.smul continuous_id).comp cont) },
-    { assume x, rw ← map_smul, simp only [eq], exact map_smul _ _ _  },
+    { assume x, rw ← map_smul, simp only [eq], exact map_smul _ _ _ },
   end,
   cont := cont
 }
@@ -1197,6 +1242,12 @@ begin
       ... = ∥smul_right c f x∥ : rfl
       ... ≤ ∥smul_right c f∥ * ∥x∥ : le_op_norm _ _ } },
 end
+
+/-- The non-negative norm of the tensor product of a scalar linear map and of an element of a normed
+space is the product of the non-negative norms. -/
+@[simp] lemma nnnorm_smul_right_apply (c : E →L[𝕜] 𝕜) (f : F) :
+  ∥smul_right c f∥₊ = ∥c∥₊ * ∥f∥₊ :=
+nnreal.eq $ c.norm_smul_right_apply f
 
 variables (𝕜 E F)
 

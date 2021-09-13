@@ -11,6 +11,14 @@ import ring_theory.power_series.basic
 
 /-!
 # Hahn Series
+If `Γ` is ordered and `R` has zero, then `hahn_series Γ R` consists of formal series over `Γ` with
+coefficients in `R`, whose supports are partially well-ordered. With further structure on `R` and
+`Γ`, we can add further structure on `hahn_series Γ R`, with the most studied case being when `Γ` is
+a linearly ordered abelian group and `R` is a field, in which case `hahn_series Γ R` is a
+valued field, with value group `Γ`.
+
+These generalize Laurent series (with value group `ℤ`), and Laurent series are implemented that way
+in the file `ring_theory/laurent_series`.
 
 ## Main Definitions
   * If `Γ` is ordered and `R` has zero, then `hahn_series Γ R` consists of
@@ -26,16 +34,20 @@ import ring_theory.power_series.basic
   topology, because there are topologically summable families that do not satisfy the axioms of
   `hahn_series.summable_family`, and formally summable families whose sums do not converge
   topologically.
+  * Laurent series over `R` are implemented as `hahn_series ℤ R` in the file
+    `ring_theory/laurent_series`.
 
 ## TODO
-  * Given `[linear_ordered_add_comm_group Γ]` and `[field R]`, define `field (hahn_series Γ R)`.
-  * Build an API for the variable `X`
-  * Define Laurent series
+  * Build an API for the variable `X` (defined to be `single 1 1 : hahn_series Γ R`) in analogy to
+    `X : polynomial R` and `X : power_series R`
+
+## References
+- [J. van der Hoeven, *Operators on Generalized Power Series*][van_der_hoeven]
 
 -/
 
 open finset
-open_locale big_operators classical
+open_locale big_operators classical pointwise
 noncomputable theory
 
 /-- If `Γ` is linearly ordered and `R` has zero, then `hahn_series Γ R` consists of
@@ -432,7 +444,7 @@ end
 
 /-- Extending the domain of Hahn series is a linear map. -/
 @[simps] def emb_domain_linear_map (f : Γ ↪o Γ') : hahn_series Γ R →ₗ[R] hahn_series Γ' R :=
-⟨emb_domain f, emb_domain_add f, emb_domain_smul f⟩
+{ to_fun := emb_domain f, map_add' := emb_domain_add f, map_smul' := emb_domain_smul f }
 
 end domain
 
@@ -1297,7 +1309,7 @@ end
 
 /-- The summation of a `summable_family` as a `linear_map`. -/
 @[simps] def lsum : (summable_family Γ R α) →ₗ[hahn_series Γ R] (hahn_series Γ R) :=
-⟨hsum, λ _ _, hsum_add, λ _ _, hsum_smul⟩
+{ to_fun := hsum, map_add' := λ _ _, hsum_add, map_smul' := λ _ _, hsum_smul }
 
 @[simp]
 lemma hsum_sub {R : Type*} [ring R] {s t : summable_family Γ R α} :

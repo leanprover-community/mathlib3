@@ -176,7 +176,7 @@ end
 
 /-- An algebra is finitely generated if and only if it is a quotient
 of a polynomial ring whose variables are indexed by a fintype. -/
-lemma iff_quotient_mv_polynomial' : (finite_type R A) ↔ ∃ (ι : Type u_2) [fintype ι]
+lemma iff_quotient_mv_polynomial' : (finite_type R A) ↔ ∃ (ι : Type u_2) (_ : fintype ι)
   (f : (mv_polynomial ι R) →ₐ[R] A), (surjective f) :=
 begin
   split,
@@ -272,7 +272,7 @@ end
 
 /-- `R` is finitely presented as `R`-algebra. -/
 lemma self : finite_presentation R R :=
-equiv (mv_polynomial R pempty) (mv_polynomial.pempty_alg_equiv R)
+equiv (mv_polynomial R pempty) (mv_polynomial.is_empty_alg_equiv R pempty)
 
 variable {R}
 
@@ -285,7 +285,7 @@ begin
   refine ⟨n, (ideal.quotient.mkₐ R I).comp f, _, _⟩,
   { exact (ideal.quotient.mkₐ_surjective R I).comp hf.1 },
   { refine submodule.fg_ker_ring_hom_comp _ _ hf.2 _ hf.1,
-    rwa ideal.quotient.mkₐ_ker R I }
+    simp [h] }
 end
 
 /-- If `f : A →ₐ[R] B` is surjective with finitely generated kernel and `A` is finitely presented,
@@ -306,7 +306,7 @@ end
 
 /-- An algebra is finitely presented if and only if it is a quotient of a polynomial ring whose
 variables are indexed by a fintype by a finitely generated ideal. -/
-lemma iff_quotient_mv_polynomial' : finite_presentation R A ↔ ∃ (ι : Type u_2) [fintype ι]
+lemma iff_quotient_mv_polynomial' : finite_presentation R A ↔ ∃ (ι : Type u_2) (_ : fintype ι)
   (f : (_root_.mv_polynomial ι R) →ₐ[R] A), (surjective f) ∧ f.to_ring_hom.ker.fg :=
 begin
   split,

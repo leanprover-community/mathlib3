@@ -8,7 +8,9 @@ import topology.instances.real
 import topology.algebra.module
 import algebra.indicator_function
 import data.equiv.encodable.lattice
+import data.fintype.card
 import data.nat.parity
+import algebra.big_operators.nat_antidiagonal
 import order.filter.at_top_bot
 
 /-!
@@ -71,10 +73,23 @@ lemma has_sum.summable (h : has_sum f a) : summable f := ⟨a, h⟩
 lemma has_sum_zero : has_sum (λb, 0 : β → α) 0 :=
 by simp [has_sum, tendsto_const_nhds]
 
+lemma has_sum_empty [is_empty β] : has_sum f 0 :=
+by convert has_sum_zero
+
 lemma summable_zero : summable (λb, 0 : β → α) := has_sum_zero.summable
+
+lemma summable_empty [is_empty β] : summable f := has_sum_empty.summable
 
 lemma tsum_eq_zero_of_not_summable (h : ¬ summable f) : ∑'b, f b = 0 :=
 by simp [tsum, h]
+
+lemma summable_congr (hfg : ∀b, f b = g b) :
+  summable f ↔ summable g :=
+iff_of_eq (congr_arg summable $ funext hfg)
+
+lemma summable.congr (hf : summable f) (hfg : ∀b, f b = g b) :
+  summable g :=
+(summable_congr hfg).mp hf
 
 lemma has_sum.has_sum_of_sum_eq {g : γ → α}
   (h_eq : ∀u:finset γ, ∃v:finset β, ∀v', v ⊆ v' → ∃u', u ⊆ u' ∧ ∑ x in u', g x = ∑ b in v', f b)
@@ -337,6 +352,8 @@ iff.intro has_sum.tsum_eq (assume eq, eq ▸ h.has_sum)
 
 @[simp] lemma tsum_zero : ∑'b:β, (0:α) = 0 := has_sum_zero.tsum_eq
 
+@[simp] lemma tsum_empty [is_empty β] : ∑'b, f b = 0 := has_sum_empty.tsum_eq
+
 lemma tsum_eq_sum {f : β → α} {s : finset β} (hf : ∀b∉s, f b = 0)  :
   ∑' b, f b = ∑ b in s, f b :=
 (has_sum_sum_of_ne_finset_zero hf).tsum_eq
@@ -347,6 +364,9 @@ congr_arg tsum (funext hfg)
 
 lemma tsum_fintype [fintype β] (f : β → α) : ∑'b, f b = ∑ b, f b :=
 (has_sum_fintype f).tsum_eq
+
+lemma tsum_bool (f : bool → α) : ∑' i : bool, f i = f false + f true :=
+by { rw [tsum_fintype, finset.sum_eq_add]; simp }
 
 @[simp] lemma finset.tsum_subtype (s : finset β) (f : β → α) :
   ∑' x : {x // x ∈ s}, f x = ∑ x in s, f x :=
@@ -558,6 +578,14 @@ by { simp only [sub_eq_add_neg], exact hf.add hg.neg }
 lemma summable.sub (hf : summable f) (hg : summable g) : summable (λb, f b - g b) :=
 (hf.has_sum.sub hg.has_sum).summable
 
+lemma summable.trans_sub (hg : summable g) (hfg : summable (λb, f b - g b)) :
+  summable f :=
+by simpa only [sub_add_cancel] using hfg.add hg
+
+lemma summable_iff_of_summable_sub (hfg : summable (λb, f b - g b)) :
+  summable f ↔ summable g :=
+⟨λ hf, hf.trans_sub $ by simpa only [neg_sub] using hfg.neg, λ hg, hg.trans_sub hfg⟩
+
 lemma has_sum.update (hf : has_sum f a₁) (b : β) [decidable_eq β] (a : α) :
   has_sum (update f b a) (a - f b + a₁) :=
 begin
@@ -607,6 +635,14 @@ lemma set.finite.summable_compl_iff {s : set β} (hs : s.finite) :
   summable (f ∘ coe : sᶜ → α) ↔ summable f :=
 (hs.summable f).summable_compl_iff
 
+lemma has_sum_ite_eq_extract [decidable_eq β] (hf : has_sum f a) (b : β) :
+  has_sum (λ n, ite (n = b) 0 (f n)) (a - f b) :=
+begin
+  convert hf.update b 0 using 1,
+  { ext n, rw function.update_apply, },
+  { rw [sub_add_eq_add_sub, zero_add], },
+end
+
 section tsum
 variables [t2_space α]
 
@@ -619,6 +655,16 @@ lemma tsum_sub (hf : summable f) (hg : summable g) : ∑'b, (f b - g b) = ∑'b,
 lemma sum_add_tsum_compl {s : finset β} (hf : summable f) :
   (∑ x in s, f x) + (∑' x : (↑s : set β)ᶜ, f x) = ∑' x, f x :=
 ((s.has_sum f).add_compl (s.summable_compl_iff.2 hf).has_sum).tsum_eq.symm
+
+/-- Let `f : β → α` be a sequence with summable series and let `b ∈ β` be an index.
+Lemma `tsum_ite_eq_extract` writes `Σ f n` as the sum of `f b` plus the series of the
+remaining terms. -/
+lemma tsum_ite_eq_extract [decidable_eq β] (hf : summable f) (b : β) :
+  ∑' n, f n = f b + ∑' n, ite (n = b) 0 (f n) :=
+begin
+  rw (has_sum_ite_eq_extract hf.has_sum b).tsum_eq,
+  exact (add_sub_cancel'_right _ _).symm,
+end
 
 end tsum
 
@@ -677,8 +723,8 @@ end subtype
 
 end topological_group
 
-section topological_semiring
-variables [semiring α] [topological_space α] [topological_semiring α]
+section topological_ring
+variables [semiring α] [topological_space α] [topological_ring α]
 variables {f g : β → α} {a a₁ a₂ : α}
 lemma has_sum.mul_left (a₂) (h : has_sum f a₁) : has_sum (λb, a₂ * f b) (a₂ * a₁) :=
 by simpa only using h.map (add_monoid_hom.mul_left a₂) (continuous_const.mul continuous_id)
@@ -703,17 +749,17 @@ lemma summable.tsum_mul_right (a) (hf : summable f) : (∑'b, f b * a) = (∑'b,
 
 end tsum
 
-end topological_semiring
+end topological_ring
 
 section has_continuous_smul
 variables {R : Type*}
-[semiring R] [topological_space R]
+[monoid R] [topological_space R]
 [topological_space α] [add_comm_monoid α]
-[module R α] [has_continuous_smul R α]
+[distrib_mul_action R α] [has_continuous_smul R α]
 {f : β → α}
 
 lemma has_sum.smul {a : α} {r : R} (hf : has_sum f a) : has_sum (λ z, r • f z) (r • a) :=
-hf.map (const_smul_hom α r) (continuous_const.smul continuous_id)
+hf.map (distrib_mul_action.to_add_monoid_hom α r) (continuous_const.smul continuous_id)
 
 lemma summable.smul {r : R} (hf : summable f) : summable (λ z, r • f z) :=
 hf.has_sum.smul.summable
@@ -725,11 +771,14 @@ end has_continuous_smul
 
 section division_ring
 
-variables [division_ring α] [topological_space α] [topological_semiring α]
+variables [division_ring α] [topological_space α] [topological_ring α]
 {f g : β → α} {a a₁ a₂ : α}
 
 lemma has_sum.div_const (h : has_sum f a) (b : α) : has_sum (λ x, f x / b) (a / b) :=
 by simp only [div_eq_mul_inv, h.mul_right b⁻¹]
+
+lemma summable.div_const (h : summable f) (b : α) : summable (λ x, f x / b) :=
+(h.has_sum.div_const b).summable
 
 lemma has_sum_mul_left_iff (h : a₂ ≠ 0) : has_sum f a₁ ↔ has_sum (λb, a₂ * f b) (a₂ * a₁) :=
 ⟨has_sum.mul_left _, λ H, by simpa only [inv_mul_cancel_left' h] using H.mul_left a₂⁻¹⟩
@@ -1030,20 +1079,6 @@ lemma tsum_comm [regular_space α] {f : β → γ → α} (h : summable (functio
   ∑' c b, f b c = ∑' b c, f b c :=
 tsum_comm' h h.prod_factor h.prod_symm.prod_factor
 
-/-- Let `f : ℕ → ℝ` be a sequence with summable series and let `i ∈ ℕ` be an index.
-Lemma `tsum_ite_eq_extract` writes `Σ f n` as the sum of `f i` plus the series of the
-remaining terms.
-
-TODO: generalize this to `f : β → α` with appropriate typeclass assumptions
--/
-lemma tsum_ite_eq_extract {f : ℕ → ℝ} (hf : summable f) (i : ℕ) :
-  ∑' n, f n = f i + ∑' n, ite (n = i) 0 (f n) :=
-begin
-  refine ((tsum_congr _).trans $ tsum_add (hf.summable_of_eq_zero_or_self _) $
-    hf.summable_of_eq_zero_or_self _).trans (add_right_cancel_iff.mpr (tsum_ite_eq i (f i)));
-  exact λ j, by { by_cases ji : j = i; simp [ji] }
-end
-
 end uniform_group
 
 section topological_group
@@ -1073,6 +1108,20 @@ end
 
 lemma summable.tendsto_at_top_zero {f : ℕ → G} (hf : summable f) : tendsto f at_top (𝓝 0) :=
 by { rw ←nat.cofinite_eq_at_top, exact hf.tendsto_cofinite_zero }
+
+lemma summable.tendsto_top_of_pos {α : Type*}
+  [linear_ordered_field α] [topological_space α] [order_topology α] {f : ℕ → α}
+  (hf : summable f⁻¹) (hf' : ∀ n, 0 < f n) : tendsto f at_top at_top :=
+begin
+  rw [show f = f⁻¹⁻¹, by { ext, simp }],
+  apply filter.tendsto.inv_tendsto_zero,
+  apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _
+    (summable.tendsto_at_top_zero hf),
+  rw eventually_iff_exists_mem,
+  refine ⟨set.Ioi 0, Ioi_mem_at_top _, λ _ _, _⟩,
+  rw [set.mem_Ioi, inv_eq_one_div, one_div, pi.inv_apply, _root_.inv_pos],
+  exact hf' _,
+end
 
 end topological_group
 
@@ -1190,3 +1239,119 @@ lemma dist_le_tsum_dist_of_tendsto₀ [pseudo_metric_space α] {f : ℕ → α}
 by simpa only [zero_add] using dist_le_tsum_dist_of_tendsto h ha 0
 
 end cauchy_seq
+
+/-! ## Multipliying two infinite sums
+
+In this section, we prove various results about `(∑' x : β, f x) * (∑' y : γ, g y)`. Not that we
+always assume that the family `λ x : β × γ, f x.1 * g x.2` is summable, since there is no way to
+deduce this from the summmabilities of `f` and `g` in general, but if you are working in a normed
+space, you may want to use the analogous lemmas in `analysis/normed_space/basic`
+(e.g `tsum_mul_tsum_of_summable_norm`).
+
+We first establish results about arbitrary index types, `β` and `γ`, and then we specialize to
+`β = γ = ℕ` to prove the Cauchy product formula (see `tsum_mul_tsum_eq_tsum_sum_antidiagonal`).
+
+### Arbitrary index types
+-/
+
+section tsum_mul_tsum
+
+variables [topological_space α] [regular_space α] [semiring α] [topological_ring α]
+  {f : β → α} {g : γ → α} {s t u : α}
+
+lemma has_sum.mul_eq (hf : has_sum f s) (hg : has_sum g t)
+  (hfg : has_sum (λ (x : β × γ), f x.1 * g x.2) u) :
+  s * t = u :=
+have key₁ : has_sum (λ b, f b * t) (s * t),
+  from hf.mul_right t,
+have this : ∀ b : β, has_sum (λ c : γ, f b * g c) (f b * t),
+  from λ b, hg.mul_left (f b),
+have key₂ : has_sum (λ b, f b * t) u,
+  from has_sum.prod_fiberwise hfg this,
+key₁.unique key₂
+
+lemma has_sum.mul (hf : has_sum f s) (hg : has_sum g t)
+  (hfg : summable (λ (x : β × γ), f x.1 * g x.2)) :
+  has_sum (λ (x : β × γ), f x.1 * g x.2) (s * t) :=
+let ⟨u, hu⟩ := hfg in
+(hf.mul_eq hg hu).symm ▸ hu
+
+/-- Product of two infinites sums indexed by arbitrary types.
+    See also `tsum_mul_tsum_of_summable_norm` if `f` and `g` are abolutely summable. -/
+lemma tsum_mul_tsum (hf : summable f) (hg : summable g)
+  (hfg : summable (λ (x : β × γ), f x.1 * g x.2)) :
+  (∑' x, f x) * (∑' y, g y) = (∑' z : β × γ, f z.1 * g z.2) :=
+hf.has_sum.mul_eq hg.has_sum hfg.has_sum
+
+end tsum_mul_tsum
+
+section cauchy_product
+
+/-! ### `ℕ`-indexed families (Cauchy product)
+
+We prove two versions of the Cauchy product formula. The first one is
+`tsum_mul_tsum_eq_tsum_sum_range`, where the `n`-th term is a sum over `finset.range (n+1)`
+involving `nat` substraction.
+In order to avoid `nat` substraction, we also provide `tsum_mul_tsum_eq_tsum_sum_antidiagonal`,
+where the `n`-th term is a sum over all pairs `(k, l)` such that `k+l=n`, which corresponds to the
+`finset` `finset.nat.antidiagonal n` -/
+
+variables {f : ℕ → α} {g : ℕ → α}
+
+open finset
+
+variables [topological_space α] [semiring α]
+
+/- The family `(k, l) : ℕ × ℕ ↦ f k * g l` is summable if and only if the family
+`(n, k, l) : Σ (n : ℕ), nat.antidiagonal n ↦ f k * g l` is summable. -/
+lemma summable_mul_prod_iff_summable_mul_sigma_antidiagonal {f g : ℕ → α} :
+  summable (λ x : ℕ × ℕ, f x.1 * g x.2) ↔
+  summable (λ x : (Σ (n : ℕ), nat.antidiagonal n), f (x.2 : ℕ × ℕ).1 * g (x.2 : ℕ × ℕ).2) :=
+nat.sigma_antidiagonal_equiv_prod.summable_iff.symm
+
+variables [regular_space α] [topological_ring α]
+
+lemma summable_sum_mul_antidiagonal_of_summable_mul {f g : ℕ → α}
+  (h : summable (λ x : ℕ × ℕ, f x.1 * g x.2)) :
+  summable (λ n, ∑ kl in nat.antidiagonal n, f kl.1 * g kl.2) :=
+begin
+  rw summable_mul_prod_iff_summable_mul_sigma_antidiagonal at h,
+  conv {congr, funext, rw [← finset.sum_finset_coe, ← tsum_fintype]},
+  exact h.sigma' (λ n, (has_sum_fintype _).summable),
+end
+
+/-- The Cauchy product formula for the product of two infinites sums indexed by `ℕ`,
+    expressed by summing on `finset.nat.antidiagonal`.
+    See also `tsum_mul_tsum_eq_tsum_sum_antidiagonal_of_summable_norm`
+    if `f` and `g` are absolutely summable. -/
+lemma tsum_mul_tsum_eq_tsum_sum_antidiagonal (hf : summable f) (hg : summable g)
+  (hfg : summable (λ (x : ℕ × ℕ), f x.1 * g x.2)) :
+  (∑' n, f n) * (∑' n, g n) = (∑' n, ∑ kl in nat.antidiagonal n, f kl.1 * g kl.2) :=
+begin
+  conv_rhs {congr, funext, rw [← finset.sum_finset_coe, ← tsum_fintype]},
+  rw [tsum_mul_tsum hf hg hfg, ← nat.sigma_antidiagonal_equiv_prod.tsum_eq (_ : ℕ × ℕ → α)],
+  exact tsum_sigma' (λ n, (has_sum_fintype _).summable)
+    (summable_mul_prod_iff_summable_mul_sigma_antidiagonal.mp hfg)
+end
+
+lemma summable_sum_mul_range_of_summable_mul {f g : ℕ → α}
+  (h : summable (λ x : ℕ × ℕ, f x.1 * g x.2)) :
+  summable (λ n, ∑ k in range (n+1), f k * g (n - k)) :=
+begin
+  simp_rw ← nat.sum_antidiagonal_eq_sum_range_succ (λ k l, f k * g l),
+  exact summable_sum_mul_antidiagonal_of_summable_mul h
+end
+
+/-- The Cauchy product formula for the product of two infinites sums indexed by `ℕ`,
+    expressed by summing on `finset.range`.
+    See also `tsum_mul_tsum_eq_tsum_sum_range_of_summable_norm`
+    if `f` and `g` are absolutely summable. -/
+lemma tsum_mul_tsum_eq_tsum_sum_range (hf : summable f) (hg : summable g)
+  (hfg : summable (λ (x : ℕ × ℕ), f x.1 * g x.2)) :
+  (∑' n, f n) * (∑' n, g n) = (∑' n, ∑ k in range (n+1), f k * g (n - k)) :=
+begin
+  simp_rw ← nat.sum_antidiagonal_eq_sum_range_succ (λ k l, f k * g l),
+  exact tsum_mul_tsum_eq_tsum_sum_antidiagonal hf hg hfg
+end
+
+end cauchy_product

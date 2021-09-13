@@ -5,7 +5,7 @@ Authors: Chris Hughes, Patrick Stevens
 -/
 import data.nat.choose.basic
 import data.nat.prime
-import data.rat.floor
+
 /-!
 # Divisibility properties of binomial coefficients
 -/
@@ -32,28 +32,22 @@ begin
   have r : k + (p - k) = p,
     by rw [← nat.add_sub_assoc (nat.le_of_lt hkp) k, nat.add_sub_cancel_left],
   have e : p ∣ choose (k + (p - k)) k,
-    by exact dvd_choose_add hkp (sub_lt (hk.trans hkp) hk) (by rw r) hp,
+    by exact dvd_choose_add hkp (nat.sub_lt (hk.trans hkp) hk) (by rw r) hp,
   rwa r at e,
 end
 
 end prime
 
-lemma choose_eq_factorial_div_factorial' {a b : ℕ}
-  (hab : a ≤ b) : (b.choose a : ℚ) = b! / (a! * (b - a)!) :=
+lemma cast_choose (K : Type*) [division_ring K] [char_zero K] {a b : ℕ} (h : a ≤ b) :
+  (b.choose a : K) = b! / (a! * (b - a)!) :=
 begin
-  field_simp [mul_ne_zero, factorial_ne_zero], norm_cast,
-  rw ← choose_mul_factorial_mul_factorial hab, ring,
+  have : ∀ {n : ℕ}, (n! : K) ≠ 0 := λ n, nat.cast_ne_zero.2 (factorial_ne_zero _),
+  rw [eq_div_iff_mul_eq (mul_ne_zero this this)],
+  rw_mod_cast [← mul_assoc, choose_mul_factorial_mul_factorial h],
 end
 
-lemma choose_mul {n k s : ℕ} (hn : k ≤ n) (hs : s ≤ k) :
-  (n.choose k : ℚ) * k.choose s = n.choose s * (n - s).choose (k - s) :=
-begin
-  rw [choose_eq_factorial_div_factorial' hn, choose_eq_factorial_div_factorial' hs,
-      choose_eq_factorial_div_factorial' (le_trans hs hn), choose_eq_factorial_div_factorial' ],
-  swap,
-  { exact nat.sub_le_sub_right hn s, },
-  { field_simp [mul_ne_zero, factorial_ne_zero],
-    rw sub_sub_sub_cancel_right hs, ring, },
-end
+lemma cast_add_choose (K : Type*) [division_ring K] [char_zero K] {a b : ℕ} :
+  ((a + b).choose a : K) = (a + b)! / (a! * b!) :=
+by rw [cast_choose K (le_add_right le_rfl), nat.add_sub_cancel_left]
 
 end nat

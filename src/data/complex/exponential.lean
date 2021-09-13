@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir
 -/
 import algebra.geom_sum
-import data.nat.choose.sum
 import data.complex.basic
+import data.nat.choose.sum
+
 /-!
 # Exponential, trigonometric and hyperbolic trigonometric functions
 
@@ -13,6 +14,7 @@ This file contains the definitions of the real and complex exponential, sine, co
 hyperbolic sine, hyperbolic cosine, and hyperbolic tangent functions.
 
 -/
+
 local notation `abs'` := _root_.abs
 open is_absolute_value
 open_locale classical big_operators nat
@@ -208,6 +210,7 @@ by rw [sum_sigma', sum_sigma']; exact sum_bij
     mem_range.2 (nat.lt_succ_of_le (nat.le_add_left _ _))⟩,
   sigma.mk.inj_iff.2 ⟨rfl, heq_of_eq (nat.add_sub_cancel _ _).symm⟩⟩⟩)
 
+-- TODO move to src/algebra/big_operators/basic.lean, rewrite with comm_group, and make to_additive
 lemma sum_range_sub_sum_range {α : Type*} [add_comm_group α] {f : ℕ → α}
   {n m : ℕ} (hnm : n ≤ m) : ∑ k in range m, f k - ∑ k in range n, f k =
   ∑ k in (range m).filter (λ k, n ≤ k), f k :=
@@ -455,7 +458,7 @@ lemma exp_multiset_sum (s : multiset ℂ) : exp s.sum = (s.map exp).prod :=
 @monoid_hom.map_multiset_prod (multiplicative ℂ) ℂ _ _ ⟨exp, exp_zero, exp_add⟩ s
 
 lemma exp_sum {α : Type*} (s : finset α) (f : α → ℂ) : exp (∑ x in s, f x) = ∏ x in s, exp (f x) :=
-@monoid_hom.map_prod α (multiplicative ℂ) ℂ _ _ ⟨exp, exp_zero, exp_add⟩ f s
+@monoid_hom.map_prod (multiplicative ℂ) α ℂ _ _ ⟨exp, exp_zero, exp_add⟩ f s
 
 lemma exp_nat_mul (x : ℂ) : ∀ n : ℕ, exp(n*x) = (exp x)^n
 | 0 := by rw [nat.cast_zero, zero_mul, exp_zero, pow_zero]
@@ -889,7 +892,7 @@ by { rw [exp_eq_exp_re_mul_sin_add_cos], simp [exp_of_real_re, cos_of_real_re] }
 lemma exp_im : (exp x).im = real.exp x.re * real.sin x.im :=
 by { rw [exp_eq_exp_re_mul_sin_add_cos], simp [exp_of_real_re, sin_of_real_re] }
 
-/-- De Moivre's formula -/
+/-- **De Moivre's formula** -/
 theorem cos_add_sin_mul_I_pow (n : ℕ) (z : ℂ) :
   (cos z + sin z * I) ^ n = cos (↑n * z) + sin (↑n * z) * I :=
 begin
@@ -920,7 +923,7 @@ lemma exp_multiset_sum (s : multiset ℝ) : exp s.sum = (s.map exp).prod :=
 @monoid_hom.map_multiset_prod (multiplicative ℝ) ℝ _ _ ⟨exp, exp_zero, exp_add⟩ s
 
 lemma exp_sum {α : Type*} (s : finset α) (f : α → ℝ) : exp (∑ x in s, f x) = ∏ x in s, exp (f x) :=
-@monoid_hom.map_prod α (multiplicative ℝ) ℝ _ _ ⟨exp, exp_zero, exp_add⟩ f s
+@monoid_hom.map_prod (multiplicative ℝ) α ℝ _ _ ⟨exp, exp_zero, exp_add⟩ f s
 
 lemma exp_nat_mul (x : ℝ) : ∀ n : ℕ, exp(n*x) = (exp x)^n
 | 0 := by rw [nat.cast_zero, zero_mul, exp_zero, pow_zero]
@@ -1151,8 +1154,7 @@ calc x + 1 ≤ lim (⟨(λ n : ℕ, ((exp' x) n).re), is_cau_seq_re (exp' x)⟩ 
       begin
         rw [← nat.sub_add_cancel hj, sum_range_succ', sum_range_succ',
           add_re, add_re, h₁, h₂, add_assoc,
-          ← @sum_hom _ _ _ _ _ _ _ complex.re
-            (is_add_group_hom.to_is_add_monoid_hom _)],
+          ← coe_re_add_group_hom, (re_add_group_hom).map_sum, coe_re_add_group_hom ],
         refine le_add_of_nonneg_of_le (sum_nonneg (λ m hm, _)) (le_refl _),
         rw [← of_real_pow, ← of_real_nat_cast, ← of_real_div, of_real_re],
         exact div_nonneg (pow_nonneg hx _) (nat.cast_nonneg _),
@@ -1278,15 +1280,50 @@ begin
       refine sum_le_sum (λ m hm, _),
       rw [abs_mul, abv_pow abs, abs_div, abs_cast_nat],
       refine mul_le_mul_of_nonneg_left ((div_le_div_right _).2 _) _,
-      exact nat.cast_pos.2 (nat.factorial_pos _),
-      rw abv_pow abs,
-      exact (pow_le_one _ (abs_nonneg _) hx),
-      exact pow_nonneg (abs_nonneg _) _
+      { exact nat.cast_pos.2 (nat.factorial_pos _), },
+      { rw abv_pow abs,
+        exact (pow_le_one _ (abs_nonneg _) hx), },
+      { exact pow_nonneg (abs_nonneg _) _ },
     end
   ... = abs x ^ n * (∑ m in (range j).filter (λ k, n ≤ k), (1 / m! : ℝ)) :
     by simp [abs_mul, abv_pow abs, abs_div, mul_sum.symm]
   ... ≤ abs x ^ n * (n.succ * (n! * n)⁻¹) :
     mul_le_mul_of_nonneg_left (sum_div_factorial_le _ _ hn) (pow_nonneg (abs_nonneg _) _)
+end
+
+lemma exp_bound' {x : ℂ} {n : ℕ} (hx : abs x / (n.succ) ≤ 1 / 2) :
+  abs (exp x - ∑ m in range n, x ^ m / m!) ≤ abs x ^ n / (n!) * 2 :=
+begin
+  rw [← lim_const (∑ m in range n, _), exp, sub_eq_add_neg, ← lim_neg, lim_add, ← lim_abs],
+  refine lim_le (cau_seq.le_of_exists ⟨n, λ j hj, _⟩),
+  simp_rw [←sub_eq_add_neg],
+  show abs (∑ m in range j, x ^ m / m! - ∑ m in range n, x ^ m / m!) ≤ abs x ^ n / (n!) * 2,
+  let k := j - n,
+  have hj : j = n + k := (nat.add_sub_of_le hj).symm,
+  rw [hj, sum_range_add_sub_sum_range],
+  calc abs (∑ (i : ℕ) in range k, x ^ (n + i) / ((n + i)! : ℂ))
+      ≤ ∑ (i : ℕ) in range k, abs (x ^ (n + i) / ((n + i)! : ℂ)) : abv_sum_le_sum_abv _ _
+  ... ≤ ∑ (i : ℕ) in range k, (abs x) ^ (n + i) / (n + i)! :
+        by simp only [complex.abs_cast_nat, complex.abs_div, abv_pow abs]
+  ... ≤ ∑ (i : ℕ) in range k, (abs x) ^ (n + i) / (n! * n.succ ^ i) : _
+  ... = ∑ (i : ℕ) in range k, (abs x) ^ (n) / (n!) * ((abs x)^i / n.succ ^ i) : _
+  ... ≤ abs x ^ n / (↑n!) * 2 : _,
+  { refine sum_le_sum (λ m hm, div_le_div (pow_nonneg (abs_nonneg x) (n + m)) (le_refl _) _ _),
+    { exact_mod_cast mul_pos n.factorial_pos (pow_pos n.succ_pos _), },
+    { exact_mod_cast (nat.factorial_mul_pow_le_factorial), }, },
+  { refine finset.sum_congr rfl (λ _ _, _),
+    simp only [pow_add, div_eq_inv_mul, mul_inv', mul_left_comm, mul_assoc], },
+  { rw [←mul_sum],
+    apply mul_le_mul_of_nonneg_left,
+    { simp_rw [←div_pow],
+      rw [←geom_sum_def, geom_sum_eq, div_le_iff_of_neg],
+      { transitivity (-1 : ℝ),
+        { linarith },
+        { simp only [neg_le_sub_iff_le_add, div_pow, nat.cast_succ, le_add_iff_nonneg_left],
+          exact div_nonneg (pow_nonneg (abs_nonneg x) k) (pow_nonneg (n+1).cast_nonneg k) } },
+      { linarith },
+      { linarith }, },
+    { exact div_nonneg (pow_nonneg (abs_nonneg x) n) (nat.cast_nonneg (n!)), }, },
 end
 
 lemma abs_exp_sub_one_le {x : ℂ} (hx : abs x ≤ 1) :

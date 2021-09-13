@@ -52,42 +52,28 @@ variables (E : Type*) [semi_normed_group E] [semi_normed_space 𝕜 E]
 variables (F : Type*) [normed_group F] [normed_space 𝕜 F]
 
 /-- The topological dual of a seminormed space `E`. -/
-@[derive [has_coe_to_fun, semi_normed_group, semi_normed_space 𝕜]] def dual := E →L[𝕜] 𝕜
-
-instance : inhabited (dual 𝕜 E) := ⟨0⟩
+@[derive [inhabited, has_coe_to_fun, semi_normed_group, semi_normed_space 𝕜]] def dual := E →L[𝕜] 𝕜
 
 instance : normed_group (dual 𝕜 F) := continuous_linear_map.to_normed_group
 
 instance : normed_space 𝕜 (dual 𝕜 F) := continuous_linear_map.to_normed_space
 
-/-- The inclusion of a normed space in its double (topological) dual. -/
-def inclusion_in_double_dual' (x : E) : (dual 𝕜 (dual 𝕜 E)) :=
-linear_map.mk_continuous
-  { to_fun := λ f, f x,
-    map_add'    := by simp,
-    map_smul'   := by simp }
-  ∥x∥
-  (λ f, by { rw mul_comm, exact f.le_op_norm x } )
-
-@[simp] lemma dual_def (x : E) (f : dual 𝕜 E) :
-  ((inclusion_in_double_dual' 𝕜 E) x) f = f x := rfl
-
-lemma double_dual_bound (x : E) : ∥(inclusion_in_double_dual' 𝕜 E) x∥ ≤ ∥x∥ :=
-begin
-  apply continuous_linear_map.op_norm_le_bound,
-  { simp },
-  { intros f, rw mul_comm, exact f.le_op_norm x, }
-end
-
 /-- The inclusion of a normed space in its double (topological) dual, considered
    as a bounded linear map. -/
 def inclusion_in_double_dual : E →L[𝕜] (dual 𝕜 (dual 𝕜 E)) :=
-linear_map.mk_continuous
-  { to_fun := λ (x : E), (inclusion_in_double_dual' 𝕜 E) x,
-    map_add'    := λ x y, by { ext, simp },
-    map_smul'   := λ (c : 𝕜) x, by { ext, simp } }
-  1
-  (λ x, by { convert double_dual_bound _ _ _, simp } )
+continuous_linear_map.apply 𝕜 𝕜
+
+@[simp] lemma dual_def (x : E) (f : dual 𝕜 E) : inclusion_in_double_dual 𝕜 E x f = f x := rfl
+
+lemma inclusion_in_double_dual_norm_eq :
+  ∥inclusion_in_double_dual 𝕜 E∥ = ∥(continuous_linear_map.id 𝕜 (dual 𝕜 E))∥ :=
+continuous_linear_map.op_norm_flip _
+
+lemma inclusion_in_double_dual_norm_le : ∥inclusion_in_double_dual 𝕜 E∥ ≤ 1 :=
+by { rw inclusion_in_double_dual_norm_eq, exact continuous_linear_map.norm_id_le }
+
+lemma double_dual_bound (x : E) : ∥(inclusion_in_double_dual 𝕜 E) x∥ ≤ ∥x∥ :=
+by simpa using continuous_linear_map.le_of_op_norm_le _ (inclusion_in_double_dual_norm_le 𝕜 E) x
 
 end general
 
@@ -130,7 +116,7 @@ begin
   apply le_antisymm,
   { exact double_dual_bound 𝕜 E x },
   { rw continuous_linear_map.norm_def,
-    apply real.lb_le_Inf _ continuous_linear_map.bounds_nonempty,
+    apply le_cInf continuous_linear_map.bounds_nonempty,
     rintros c ⟨hc1, hc2⟩,
     exact norm_le_dual_bound 𝕜 x hc1 hc2 },
 end

@@ -32,13 +32,13 @@ section
 
 variables {R : Type*} {M : Type*}
 [ring R] [topological_space R]
-[topological_space M] [add_comm_group M]
+[topological_space M] [add_comm_group M] [has_continuous_add M]
 [module R M] [has_continuous_smul R M]
 
 /-- If `M` is a topological module over `R` and `0` is a limit of invertible elements of `R`, then
 `⊤` is the only submodule of `M` with a nonempty interior.
 This is the case, e.g., if `R` is a nondiscrete normed field. -/
-lemma submodule.eq_top_of_nonempty_interior' [has_continuous_add M]
+lemma submodule.eq_top_of_nonempty_interior'
   [ne_bot (𝓝[{x : R | is_unit x}] 0)]
   (s : submodule R M) (hs : (interior (s:set M)).nonempty) :
   s = ⊤ :=
@@ -50,10 +50,34 @@ begin
     from tendsto_const_nhds.add ((tendsto_nhds_within_of_tendsto_nhds tendsto_id).smul
       tendsto_const_nhds),
   rw [zero_smul, add_zero] at this,
-  rcases nonempty_of_mem_sets (inter_mem_sets (mem_map.1 (this hy)) self_mem_nhds_within)
+  rcases nonempty_of_mem (inter_mem (mem_map.1 (this hy)) self_mem_nhds_within)
     with ⟨_, hu, u, rfl⟩,
   have hy' : y ∈ ↑s := mem_of_mem_nhds hy,
   exact (s.smul_mem_iff' _).1 ((s.add_mem_iff_right hy').1 hu)
+end
+
+variables (R M)
+
+/-- Let `R` be a topological ring such that zero is not an isolated point (e.g., a nondiscrete
+normed field, see `normed_field.punctured_nhds_ne_bot`). Let `M` be a nontrivial module over `R`
+such that `c • x = 0` implies `c = 0 ∨ x = 0`. Then `M` has no isolated points. We formulate this
+using `ne_bot (𝓝[{x}ᶜ] x)`.
+
+This lemma is not an instance because Lean would need to find `[has_continuous_smul ?m_1 M]` with
+unknown `?m_1`. We register this as an instance for `R = ℝ` in `real.punctured_nhds_module_ne_bot`.
+One can also use `haveI := module.punctured_nhds_ne_bot R M` in a proof.
+-/
+lemma module.punctured_nhds_ne_bot [nontrivial M] [ne_bot (𝓝[{0}ᶜ] (0 : R))]
+  [no_zero_smul_divisors R M] (x : M) :
+  ne_bot (𝓝[{x}ᶜ] x) :=
+begin
+  rcases exists_ne (0 : M) with ⟨y, hy⟩,
+  suffices : tendsto (λ c : R, x + c • y) (𝓝[{0}ᶜ] 0) (𝓝[{x}ᶜ] x), from this.ne_bot,
+  refine tendsto.inf _ (tendsto_principal_principal.2 $ _),
+  { convert tendsto_const_nhds.add ((@tendsto_id R _).smul_const y),
+    rw [zero_smul, add_zero] },
+  { intros c hc,
+    simpa [hy] using hc }
 end
 
 end
@@ -122,6 +146,11 @@ lemma submodule.topological_closure_minimal
   s.topological_closure ≤ t :=
 closure_minimal h ht
 
+lemma submodule.topological_closure_mono {s : submodule R M} {t : submodule R M} (h : s ≤ t) :
+  s.topological_closure ≤ t.topological_closure :=
+s.topological_closure_minimal (h.trans t.submodule_topological_closure)
+  t.is_closed_topological_closure
+
 end closure
 
 /-- Continuous linear maps between modules. We only put the type classes that are necessary for the
@@ -132,7 +161,7 @@ structure continuous_linear_map
   (M : Type*) [topological_space M] [add_comm_monoid M]
   (M₂ : Type*) [topological_space M₂] [add_comm_monoid M₂]
   [module R M] [module R M₂]
-  extends linear_map R M M₂ :=
+  extends M →ₗ[R] M₂ :=
 (cont : continuous to_fun . tactic.interactive.continuity')
 
 notation M ` →L[`:25 R `] ` M₂ := continuous_linear_map R M M₂
@@ -146,7 +175,7 @@ structure continuous_linear_equiv
   (M : Type*) [topological_space M] [add_comm_monoid M]
   (M₂ : Type*) [topological_space M₂] [add_comm_monoid M₂]
   [module R M] [module R M₂]
-  extends linear_equiv R M M₂ :=
+  extends M ≃ₗ[R] M₂ :=
 (continuous_to_fun  : continuous to_fun . tactic.interactive.continuity')
 (continuous_inv_fun : continuous inv_fun . tactic.interactive.continuity')
 
@@ -170,6 +199,9 @@ variables
 /-- Coerce continuous linear maps to linear maps. -/
 instance : has_coe (M →L[R] M₂) (M →ₗ[R] M₂) := ⟨to_linear_map⟩
 
+-- make the coercion the preferred form
+@[simp] lemma to_linear_map_eq_coe (f : M →L[R] M₂) : f.to_linear_map = f := rfl
+
 /-- Coerce continuous linear maps to functions. -/
 -- see Note [function coercion]
 instance to_fun : has_coe_to_fun $ M →L[R] M₂ := ⟨λ _, M → M₂, λ f, f⟩
@@ -187,7 +219,7 @@ by { intros f g H, cases f, cases g, congr' }
   (f : M →ₗ[R] M₂) = g ↔ f = g :=
 coe_injective.eq_iff
 
-theorem coe_fn_injective : function.injective (λ f : M →L[R] M₂, show M → M₂, from f) :=
+theorem coe_fn_injective : @function.injective (M →L[R] M₂) (M → M₂) coe_fn :=
 linear_map.coe_injective.comp coe_injective
 
 @[ext] theorem ext {f g : M →L[R] M₂} (h : ∀ x, f x = g x) : f = g :=
@@ -234,8 +266,30 @@ lemma ext_on [t2_space M₂] {s : set M} (hs : dense (submodule.span R s : set M
   f = g :=
 ext $ λ x, eq_on_closure_span h (hs x)
 
+/-- Under a continuous linear map, the image of the `topological_closure` of a submodule is
+contained in the `topological_closure` of its image. -/
+lemma _root_.submodule.topological_closure_map [topological_space R] [has_continuous_smul R M]
+  [has_continuous_add M] [has_continuous_smul R M₂] [has_continuous_add M₂] (f : M →L[R] M₂)
+  (s : submodule R M) :
+  (s.topological_closure.map ↑f) ≤ (s.map (f : M →ₗ[R] M₂)).topological_closure :=
+image_closure_subset_closure_image f.continuous
+
+/-- Under a dense continuous linear map, a submodule whose `topological_closure` is `⊤` is sent to
+another such submodule.  That is, the image of a dense set under a map with dense range is dense.
+-/
+lemma _root_.dense_range.topological_closure_map_submodule [topological_space R]
+  [has_continuous_smul R M] [has_continuous_add M] [has_continuous_smul R M₂]
+  [has_continuous_add M₂] {f : M →L[R] M₂} (hf' : dense_range f) {s : submodule R M}
+  (hs : s.topological_closure = ⊤) :
+  (s.map (f : M →ₗ[R] M₂)).topological_closure = ⊤ :=
+begin
+  rw set_like.ext'_iff at hs ⊢,
+  simp only [submodule.topological_closure_coe, submodule.top_coe, ← dense_iff_closure_eq] at hs ⊢,
+  exact hf'.dense_image f.continuous hs
+end
+
 /-- The continuous map that is constantly zero. -/
-instance: has_zero (M →L[R] M₂) := ⟨⟨0, continuous_const⟩⟩
+instance: has_zero (M →L[R] M₂) := ⟨⟨0, continuous_zero⟩⟩
 instance : inhabited (M →L[R] M₂) := ⟨0⟩
 
 @[simp] lemma default_def : default (M →L[R] M₂) = 0 := rfl
@@ -327,9 +381,9 @@ end add
 
 /-- Composition of bounded linear maps. -/
 def comp (g : M₂ →L[R] M₃) (f : M →L[R] M₂) : M →L[R] M₃ :=
-⟨(g : M₂ →ₗ[R] M₃).comp f, g.2.comp f.2⟩
+⟨(g : M₂ →ₗ[R] M₃) ∘ₗ ↑f, g.2.comp f.2⟩
 
-@[simp, norm_cast] lemma coe_comp : ((h.comp f) : (M →ₗ[R] M₃)) = (h : M₂ →ₗ[R] M₃).comp f := rfl
+@[simp, norm_cast] lemma coe_comp : ((h.comp f) : (M →ₗ[R] M₃)) = (h : M₂ →ₗ[R] M₃) ∘ₗ ↑f := rfl
 @[simp, norm_cast] lemma coe_comp' : ((h.comp f) : (M → M₃)) = (h : M₂ → M₃) ∘ f := rfl
 
 @[simp] theorem comp_id : f.comp (id R M) = f :=
@@ -615,7 +669,7 @@ def infi_ker_proj_equiv {I J : set ι} [decidable_pred (λi, i ∈ I)]
     exact this
   end),
   continuous_subtype_mk _ (continuous_pi (λ i, begin
-    dsimp, split_ifs; [apply continuous_apply, exact continuous_const]
+    dsimp, split_ifs; [apply continuous_apply, exact continuous_zero]
   end)) ⟩
 
 end pi
@@ -742,14 +796,14 @@ end ring
 
 section smul
 
-variables {R S : Type*} [ring R] [ring S] [topological_space S]
-  {M : Type*} [topological_space M] [add_comm_group M] [module R M]
-  {M₂ : Type*} [topological_space M₂] [add_comm_group M₂] [module R M₂]
-  {M₃ : Type*} [topological_space M₃] [add_comm_group M₃] [module R M₃]
+variables {R S : Type*} [semiring R] [semiring S] [topological_space S]
+  {M : Type*} [topological_space M] [add_comm_monoid M] [module R M]
+  {M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂] [module R M₂]
+  {M₃ : Type*} [topological_space M₃] [add_comm_monoid M₃] [module R M₃]
   [module S M₃] [smul_comm_class R S M₃] [has_continuous_smul S M₃]
 
 instance : has_scalar S (M →L[R] M₃) :=
-⟨λ c f, ⟨c • f, continuous_const.smul f.2⟩⟩
+⟨λ c f, ⟨c • f, (continuous_const.smul f.2 : continuous (λ x, c • f x))⟩⟩
 
 variables (c : S) (h : M₂ →L[R] M₃) (f g : M →L[R] M₂) (x y z : M)
 
@@ -878,7 +932,9 @@ variables (A M M₂ R S) [topological_add_group M₂]
 /-- `continuous_linear_map.restrict_scalars` as a `linear_map`. See also
 `continuous_linear_map.restrict_scalarsL`. -/
 def restrict_scalarsₗ : (M →L[A] M₂) →ₗ[S] (M →L[R] M₂) :=
-⟨restrict_scalars R, λ _ _, rfl, λ _ _, rfl⟩
+{ to_fun := restrict_scalars R,
+  map_add' := restrict_scalars_add,
+  map_smul' := restrict_scalars_smul }
 
 variables {A M M₂ R S}
 
@@ -1047,8 +1103,8 @@ theorem surjective (e : M ≃L[R] M₂) : function.surjective e := e.to_linear_e
 @[simp] theorem trans_apply (e₁ : M ≃L[R] M₂) (e₂ : M₂ ≃L[R] M₃) (c : M) :
   (e₁.trans e₂) c = e₂ (e₁ c) :=
 rfl
-@[simp] theorem apply_symm_apply (e : M ≃L[R] M₂) (c : M₂) : e (e.symm c) = c := e.1.6 c
-@[simp] theorem symm_apply_apply (e : M ≃L[R] M₂) (b : M) : e.symm (e b) = b := e.1.5 b
+@[simp] theorem apply_symm_apply (e : M ≃L[R] M₂) (c : M₂) : e (e.symm c) = c := e.1.right_inv c
+@[simp] theorem symm_apply_apply (e : M ≃L[R] M₂) (b : M) : e.symm (e b) = b := e.1.left_inv b
 @[simp] theorem symm_trans_apply (e₁ : M₂ ≃L[R] M) (e₂ : M₃ ≃L[R] M₂) (c : M) :
   (e₂.trans e₁).symm c = e₂.symm (e₁.symm c) :=
 rfl
@@ -1156,7 +1212,7 @@ def skew_prod (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) (f : M →L[R] M₄)
   continuous_inv_fun := (e.continuous_inv_fun.comp continuous_fst).prod_mk
     (e'.continuous_inv_fun.comp $ continuous_snd.sub $ f.continuous.comp $
       e.continuous_inv_fun.comp continuous_fst),
-.. e.to_linear_equiv.skew_prod e'.to_linear_equiv ↑f  }
+.. e.to_linear_equiv.skew_prod e'.to_linear_equiv ↑f }
 @[simp] lemma skew_prod_apply (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) (f : M →L[R] M₄) (x) :
   e.skew_prod e' f x = (e x.1, e' x.2 + f x.1) := rfl
 

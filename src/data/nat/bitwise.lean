@@ -30,6 +30,8 @@ should be connected.
 bitwise, and, or, xor
 -/
 
+open function
+
 namespace nat
 
 @[simp] lemma bit_ff : bit ff = bit0 := rfl
@@ -131,9 +133,9 @@ end
     commutative. -/
 lemma bitwise_comm {f : bool → bool → bool} (hf : ∀ b b', f b b' = f b' b)
   (hf' : f ff ff = ff) (n m : ℕ) : bitwise f n m = bitwise f m n :=
-suffices bitwise f = function.swap (bitwise f), by conv_lhs { rw this },
-calc bitwise f = bitwise (function.swap f) : congr_arg _ $ funext $ λ _, funext $ hf _
-     ...       = function.swap (bitwise f) : bitwise_swap hf'
+suffices bitwise f = swap (bitwise f), by conv_lhs { rw this },
+calc bitwise f = bitwise (swap f) : congr_arg _ $ funext $ λ _, funext $ hf _
+     ...       = swap (bitwise f) : bitwise_swap hf'
 
 lemma lor_comm (n m : ℕ) : lor n m = lor m n := bitwise_comm bool.bor_comm rfl n m
 lemma land_comm (n m : ℕ) : land n m = land m n := bitwise_comm bool.band_comm rfl n m
@@ -173,7 +175,7 @@ lemma lxor_left_inj {n n' m : ℕ} (h : lxor n m = lxor n' m) : n = n' :=
 by { rw [lxor_comm n m, lxor_comm n' m] at h, exact lxor_right_inj h }
 
 lemma lxor_eq_zero {n m : ℕ} : lxor n m = 0 ↔ n = m :=
-⟨by { rw ←lxor_self m, exact lxor_left_inj  }, by { rintro rfl, exact lxor_self _ }⟩
+⟨by { rw ←lxor_self m, exact lxor_left_inj }, by { rintro rfl, exact lxor_self _ }⟩
 
 lemma lxor_trichotomy {a b c : ℕ} (h : lxor a (lxor b c) ≠ 0) :
   lxor b c < a ∨ lxor a c < b ∨ lxor a b < c :=

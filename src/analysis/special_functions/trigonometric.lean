@@ -3,12 +3,10 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
 -/
+import algebra.quadratic_discriminant
 import analysis.special_functions.exp_log
 import data.set.intervals.infinite
-import algebra.quadratic_discriminant
 import ring_theory.polynomial.chebyshev
-import analysis.calculus.times_cont_diff
-import algebra.periodic
 
 /-!
 # Trigonometric functions
@@ -75,8 +73,6 @@ differentiable_sin.continuous
 
 lemma continuous_on_sin {s : set ℂ} : continuous_on sin s := continuous_sin.continuous_on
 
-lemma measurable_sin : measurable sin := continuous_sin.measurable
-
 /-- The complex cosine function is everywhere strictly differentiable, with the derivative
 `-sin x`. -/
 lemma has_strict_deriv_at_cos (x : ℂ) : has_strict_deriv_at cos (-sin x) x :=
@@ -114,8 +110,6 @@ differentiable_cos.continuous
 
 lemma continuous_on_cos {s : set ℂ} : continuous_on cos s := continuous_cos.continuous_on
 
-lemma measurable_cos : measurable cos := continuous_cos.measurable
-
 /-- The complex hyperbolic sine function is everywhere strictly differentiable, with the derivative
 `cosh x`. -/
 lemma has_strict_deriv_at_sinh (x : ℂ) : has_strict_deriv_at sinh (cosh x) x :=
@@ -145,8 +139,6 @@ funext $ λ x, (has_deriv_at_sinh x).deriv
 @[continuity]
 lemma continuous_sinh : continuous sinh :=
 differentiable_sinh.continuous
-
-lemma measurable_sinh : measurable sinh := continuous_sinh.measurable
 
 /-- The complex hyperbolic cosine function is everywhere strictly differentiable, with the
 derivative `sinh x`. -/
@@ -178,8 +170,6 @@ funext $ λ x, (has_deriv_at_cosh x).deriv
 lemma continuous_cosh : continuous cosh :=
 differentiable_cosh.continuous
 
-lemma measurable_cosh : measurable cosh := continuous_cosh.measurable
-
 end complex
 
 section
@@ -188,10 +178,6 @@ section
 variables {f : ℂ → ℂ} {f' x : ℂ} {s : set ℂ}
 
 /-! #### `complex.cos` -/
-
-lemma measurable.ccos {α : Type*} [measurable_space α] {f : α → ℂ} (hf : measurable f) :
-  measurable (λ x, complex.cos (f x)) :=
-complex.measurable_cos.comp hf
 
 lemma has_strict_deriv_at.ccos (hf : has_strict_deriv_at f f' x) :
   has_strict_deriv_at (λ x, complex.cos (f x)) (- complex.sin (f x) * f') x :=
@@ -216,10 +202,6 @@ hc.has_deriv_at.ccos.deriv
 
 /-! #### `complex.sin` -/
 
-lemma measurable.csin {α : Type*} [measurable_space α] {f : α → ℂ} (hf : measurable f) :
-  measurable (λ x, complex.sin (f x)) :=
-complex.measurable_sin.comp hf
-
 lemma has_strict_deriv_at.csin (hf : has_strict_deriv_at f f' x) :
   has_strict_deriv_at (λ x, complex.sin (f x)) (complex.cos (f x) * f') x :=
 (complex.has_strict_deriv_at_sin (f x)).comp x hf
@@ -243,10 +225,6 @@ hc.has_deriv_at.csin.deriv
 
 /-! #### `complex.cosh` -/
 
-lemma measurable.ccosh {α : Type*} [measurable_space α] {f : α → ℂ} (hf : measurable f) :
-  measurable (λ x, complex.cosh (f x)) :=
-complex.measurable_cosh.comp hf
-
 lemma has_strict_deriv_at.ccosh (hf : has_strict_deriv_at f f' x) :
   has_strict_deriv_at (λ x, complex.cosh (f x)) (complex.sinh (f x) * f') x :=
 (complex.has_strict_deriv_at_cosh (f x)).comp x hf
@@ -269,10 +247,6 @@ hf.has_deriv_within_at.ccosh.deriv_within hxs
 hc.has_deriv_at.ccosh.deriv
 
 /-! #### `complex.sinh` -/
-
-lemma measurable.csinh {α : Type*} [measurable_space α] {f : α → ℂ} (hf : measurable f) :
-  measurable (λ x, complex.sinh (f x)) :=
-complex.measurable_sinh.comp hf
 
 lemma has_strict_deriv_at.csinh (hf : has_strict_deriv_at f f' x) :
   has_strict_deriv_at (λ x, complex.sinh (f x)) (complex.cosh (f x) * f') x :=
@@ -554,8 +528,6 @@ differentiable_sin.continuous
 lemma continuous_on_sin {s} : continuous_on sin s :=
 continuous_sin.continuous_on
 
-lemma measurable_sin : measurable sin := continuous_sin.measurable
-
 lemma has_strict_deriv_at_cos (x : ℝ) : has_strict_deriv_at cos (-sin x) x :=
 (complex.has_strict_deriv_at_cos x).real_of_complex
 
@@ -583,8 +555,6 @@ differentiable_cos.continuous
 
 lemma continuous_on_cos {s} : continuous_on cos s := continuous_cos.continuous_on
 
-lemma measurable_cos : measurable cos := continuous_cos.measurable
-
 lemma has_strict_deriv_at_sinh (x : ℝ) : has_strict_deriv_at sinh (cosh x) x :=
 (complex.has_strict_deriv_at_sinh x).real_of_complex
 
@@ -606,8 +576,6 @@ funext $ λ x, (has_deriv_at_sinh x).deriv
 @[continuity]
 lemma continuous_sinh : continuous sinh :=
 differentiable_sinh.continuous
-
-lemma measurable_sinh : measurable sinh := continuous_sinh.measurable
 
 lemma has_strict_deriv_at_cosh (x : ℝ) : has_strict_deriv_at cosh (sinh x) x :=
 (complex.has_strict_deriv_at_cosh x).real_of_complex
@@ -631,8 +599,6 @@ funext $ λ x, (has_deriv_at_cosh x).deriv
 lemma continuous_cosh : continuous cosh :=
 differentiable_cosh.continuous
 
-lemma measurable_cosh : measurable cosh := continuous_cosh.measurable
-
 /-- `sinh` is strictly monotone. -/
 lemma sinh_strict_mono : strict_mono sinh :=
 strict_mono_of_deriv_pos differentiable_sinh (by { rw [real.deriv_sinh], exact cosh_pos })
@@ -645,10 +611,6 @@ section
 variables {f : ℝ → ℝ} {f' x : ℝ} {s : set ℝ}
 
 /-! #### `real.cos` -/
-
-lemma measurable.cos {α : Type*} [measurable_space α] {f : α → ℝ}  (hf : measurable f) :
-  measurable (λ x, real.cos (f x)) :=
-real.measurable_cos.comp hf
 
 lemma has_strict_deriv_at.cos (hf : has_strict_deriv_at f f' x) :
   has_strict_deriv_at (λ x, real.cos (f x)) (- real.sin (f x) * f') x :=
@@ -673,10 +635,6 @@ hc.has_deriv_at.cos.deriv
 
 /-! #### `real.sin` -/
 
-lemma measurable.sin {α : Type*} [measurable_space α] {f : α → ℝ}  (hf : measurable f) :
-  measurable (λ x, real.sin (f x)) :=
-real.measurable_sin.comp hf
-
 lemma has_strict_deriv_at.sin (hf : has_strict_deriv_at f f' x) :
   has_strict_deriv_at (λ x, real.sin (f x)) (real.cos (f x) * f') x :=
 (real.has_strict_deriv_at_sin (f x)).comp x hf
@@ -700,10 +658,6 @@ hc.has_deriv_at.sin.deriv
 
 /-! #### `real.cosh` -/
 
-lemma measurable.cosh {α : Type*} [measurable_space α] {f : α → ℝ}  (hf : measurable f) :
-  measurable (λ x, real.cosh (f x)) :=
-real.measurable_cosh.comp hf
-
 lemma has_strict_deriv_at.cosh (hf : has_strict_deriv_at f f' x) :
   has_strict_deriv_at (λ x, real.cosh (f x)) (real.sinh (f x) * f') x :=
 (real.has_strict_deriv_at_cosh (f x)).comp x hf
@@ -726,10 +680,6 @@ hf.has_deriv_within_at.cosh.deriv_within hxs
 hc.has_deriv_at.cosh.deriv
 
 /-! #### `real.sinh` -/
-
-lemma measurable.sinh {α : Type*} [measurable_space α] {f : α → ℝ}  (hf : measurable f) :
-  measurable (λ x, real.sinh (f x)) :=
-real.measurable_sinh.comp hf
 
 lemma has_strict_deriv_at.sinh (hf : has_strict_deriv_at f f' x) :
   has_strict_deriv_at (λ x, real.sinh (f x)) (real.cosh (f x) * f') x :=
@@ -1443,8 +1393,8 @@ lemma sqrt_two_add_series_lt_two : ∀(n : ℕ), sqrt_two_add_series 0 n < 2
 | 0     := by norm_num
 | (n+1) :=
   begin
-    refine lt_of_lt_of_le _ (le_of_eq $ sqrt_sq $ le_of_lt zero_lt_two),
-    rw [sqrt_two_add_series, sqrt_lt, ← lt_sub_iff_add_lt'],
+    refine lt_of_lt_of_le _ (sqrt_sq zero_lt_two.le).le,
+    rw [sqrt_two_add_series, sqrt_lt_sqrt_iff, ← lt_sub_iff_add_lt'],
     { refine (sqrt_two_add_series_lt_two n).trans_le _, norm_num },
     { exact add_nonneg zero_le_two (sqrt_two_add_series_zero_nonneg n) }
   end
@@ -2023,8 +1973,6 @@ lemma times_cont_diff_at_arcsin_iff {x : ℝ} {n : with_top ℕ} :
   λ h, h.elim (λ hn, hn.symm ▸ (times_cont_diff_zero.2 continuous_arcsin).times_cont_diff_at) $
     λ hx, times_cont_diff_at_arcsin hx.1 hx.2⟩
 
-lemma measurable_arcsin : measurable arcsin := continuous_arcsin.measurable
-
 /-- Inverse of the `cos` function, returns values in the range `0 ≤ arccos x` and `arccos x ≤ π`.
   If the argument is not between `-1` and `1` it defaults to `π / 2` -/
 @[pp_nodot] noncomputable def arccos (x : ℝ) : ℝ :=
@@ -2127,8 +2075,6 @@ lemma times_cont_diff_at_arccos_iff {x : ℝ} {n : with_top ℕ} :
 by refine iff.trans ⟨λ h, _, λ h, _⟩ times_cont_diff_at_arcsin_iff;
   simpa [arccos] using (@times_cont_diff_at_const _ _ _ _ _ _ _ _ _ _ (π / 2)).sub h
 
-lemma measurable_arccos : measurable arccos := continuous_arccos.measurable
-
 @[simp] lemma tan_pi_div_four : tan (π / 4) = 1 :=
 begin
   rw [tan_eq_sin_div_cos, cos_pi_div_four, sin_pi_div_four],
@@ -2208,15 +2154,6 @@ then real.arcsin (x.im / x.abs)
 else if 0 ≤ x.im
 then real.arcsin ((-x).im / x.abs) + π
 else real.arcsin ((-x).im / x.abs) - π
-
-lemma measurable_arg : measurable arg :=
-have A : measurable (λ x : ℂ, real.arcsin (x.im / x.abs)),
-  from real.measurable_arcsin.comp (measurable_im.div measurable_norm),
-have B : measurable (λ x : ℂ, real.arcsin ((-x).im / x.abs)),
-  from real.measurable_arcsin.comp ((measurable_im.comp measurable_neg).div measurable_norm),
-measurable.ite (is_closed_le continuous_const continuous_re).measurable_set A $
-  measurable.ite (is_closed_le continuous_const continuous_im).measurable_set
-    (B.add_const _) (B.sub_const _)
 
 lemma arg_le_pi (x : ℂ) : arg x ≤ π :=
 if hx₁ : 0 ≤ x.re
@@ -2426,10 +2363,6 @@ arg_eq_pi_iff.2 ⟨hx, rfl⟩
 /-- Inverse of the `exp` function. Returns values such that `(log x).im > - π` and `(log x).im ≤ π`.
   `log 0 = 0`-/
 @[pp_nodot] noncomputable def log (x : ℂ) : ℂ := x.abs.log + arg x * I
-
-lemma measurable_log : measurable log :=
-(measurable_of_real.comp $ real.measurable_log.comp measurable_norm).add $
-  (measurable_of_real.comp measurable_arg).mul_const I
 
 lemma log_re (x : ℂ) : x.log.re = x.abs.log := by simp [log]
 
@@ -2987,14 +2920,6 @@ open complex
 
 variables {α : Type*}
 
-lemma measurable.carg [measurable_space α] {f : α → ℂ} (h : measurable f) :
-  measurable (λ x, arg (f x)) :=
-measurable_arg.comp h
-
-lemma measurable.clog [measurable_space α] {f : α → ℂ} (h : measurable f) :
-  measurable (λ x, log (f x)) :=
-measurable_log.comp h
-
 lemma filter.tendsto.clog {l : filter α} {f : α → ℂ} {x : ℂ} (h : tendsto f l (𝓝 x))
   (hx : 0 < x.re ∨ x.im ≠ 0) :
   tendsto (λ t, log (f t)) l (𝓝 $ log x) :=
@@ -3418,8 +3343,6 @@ have cos (arctan x) ≠ 0 := (cos_arctan_pos x).ne',
 tan_local_homeomorph.times_cont_diff_at_symm_deriv (by simpa) trivial (has_deriv_at_tan this)
   (times_cont_diff_at_tan.2 this)
 
-lemma measurable_arctan : measurable arctan := continuous_arctan.measurable
-
 end real
 
 section
@@ -3430,10 +3353,6 @@ In this section we register lemmas for the derivatives of the composition of `re
 differentiable function, for standalone use and use with `simp`. -/
 
 open real
-
-lemma measurable.arctan {α : Type*} [measurable_space α] {f : α → ℝ} (hf : measurable f) :
-  measurable (λ x, arctan (f x)) :=
-measurable_arctan.comp hf
 
 section deriv
 

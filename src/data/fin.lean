@@ -849,7 +849,7 @@ else
   have wf : n + 1 - j.succ < n + 1 - i, begin
     cases i,
     rw [nat.sub_lt_sub_left_iff];
-    simp [*, nat.succ_le_iff],
+    simp [*, succ_le_iff],
   end,
   have hi : i = fin.cast_succ j, from fin.ext rfl,
 _root_.cast (by rw hi) (hs _ (reverse_induction j.succ))

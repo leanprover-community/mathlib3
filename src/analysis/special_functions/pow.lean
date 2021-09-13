@@ -103,7 +103,7 @@ begin
     exact_mod_cast hn.ne' },
   rw [mul_comm, ← of_real_nat_cast, ← of_real_inv, of_real_mul_im, ← div_eq_inv_mul],
   have hn' : 0 < (n : ℝ), by assumption_mod_cast,
-  have hn1 : 1 ≤ (n : ℝ), by exact_mod_cast (nat.succ_le_iff.2 hn),
+  have hn1 : 1 ≤ (n : ℝ), by exact_mod_cast (succ_le_of_lt hn),
   split,
   { rw lt_div_iff hn',
     calc -π * n ≤ -π * 1 : mul_le_mul_of_nonpos_left hn1 (neg_nonpos.2 real.pi_pos.le)

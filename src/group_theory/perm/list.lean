@@ -279,7 +279,7 @@ begin
     rw [form_perm_apply_nth_le l.reverse (nodup_reverse.mpr h),
         nth_le_reverse', form_perm_apply_nth_le _ h, nth_le_reverse'],
     { congr,
-      rw [length_reverse, ←nat.succ_le_iff, nat.succ_eq_add_one] at hk,
+      rw [length_reverse, ←succ_le_iff, nat.succ_eq_add_one] at hk,
       cases hk.eq_or_lt with hk' hk',
       { simp [←hk'] },
       { rw [length_reverse, nat.mod_eq_of_lt hk', ←nat.sub_add_comm (nat.le_pred_of_lt hk'),

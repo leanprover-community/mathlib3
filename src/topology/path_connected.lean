@@ -639,7 +639,7 @@ begin
         { rw range_eq,
           left,
           exact hγ₀.1 i hi' },
-        { rw [not_le, ← nat.succ_le_iff] at hi',
+        { rw [not_le, ← succ_le_iff] at hi',
           have : i = n.succ := by linarith,
           rw this,
           use 1,

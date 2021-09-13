@@ -147,7 +147,7 @@ lemma iterate_derivative_at_0_eq_zero_of_lt (n : ℕ) {ν k : ℕ} :
 begin
   cases ν,
   { rintro ⟨⟩, },
-  { rw nat.lt_succ_iff,
+  { rw lt_succ_iff,
     induction k with k ih generalizing n ν,
     { simp [eval_at_0], },
     { simp only [derivative_succ, int.coe_nat_eq_zero, int.nat_cast_eq_coe_nat, mul_eq_zero,
@@ -185,7 +185,7 @@ begin
       obtain rfl | h'' := ν.eq_zero_or_pos,
       { simp },
       { have : n - 1 - (ν - 1) = n - ν,
-        { rw ←nat.succ_le_iff at h'',
+        { rw ←succ_le_iff at h'',
           rw [nat.sub_sub, add_comm, nat.sub_add_cancel h''] },
         rw [this, pochhammer_eval_succ],
         rw_mod_cast nat.sub_add_cancel (h'.trans n.pred_le) } } },

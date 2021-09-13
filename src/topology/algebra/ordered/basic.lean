@@ -1961,17 +1961,12 @@ lemma tendsto_const_mul_pow_nhds_iff {n : ℕ} {c d : α} (hc : c ≠ 0) :
   tendsto (λ x : α, c * x ^ n) at_top (𝓝 d) ↔ n = 0 ∧ c = d :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
-  { have hn : n = 0,
-    { by_contradiction hn,
-      have hn : 1 ≤ n := nat.succ_le_iff.2 (lt_of_le_of_ne (zero_le _) (ne.symm hn)),
-      by_cases hc' : 0 < c,
-      { have := (tendsto_const_mul_pow_at_top_iff c n).2 ⟨hn, hc'⟩,
-        exact not_tendsto_nhds_of_tendsto_at_top this d h },
-      { have := (tendsto_neg_const_mul_pow_at_top_iff c n).2 ⟨hn, lt_of_le_of_ne (not_lt.1 hc') hc⟩,
-        exact not_tendsto_nhds_of_tendsto_at_bot this d h } },
-    have : (λ x : α, c * x ^ n) = (λ x : α, c), by simp [hn],
-    rw [this, tendsto_const_nhds_iff] at h,
-    exact ⟨hn, h⟩ },
+  { obtain rfl | hn :=  n.eq_zero_or_pos,
+    { have : (λ x : α, c * x ^ 0) = (λ x : α, c), by simp,
+      rw [this, tendsto_const_nhds_iff] at h,
+      exact ⟨rfl, h⟩ },
+    { exact not_tendsto_nhds_of_tendsto_at_top ((tendsto_const_mul_pow_at_top_iff c n).2
+      ⟨hn, nat.pos_of_ne_zero hc⟩) d h } },
   { obtain ⟨hn, hcd⟩ := h,
     simpa [hn, hcd] using tendsto_const_nhds }
 end

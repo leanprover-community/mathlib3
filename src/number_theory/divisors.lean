@@ -86,7 +86,7 @@ begin
     rintro rfl,
     apply nat.succ_ne_zero,
     rwa zero_dvd_iff at hdvd },
-  { rw nat.lt_succ_iff,
+  { rw lt_succ_iff,
     apply nat.le_of_dvd (nat.succ_pos m) hdvd }
 end
 
@@ -274,7 +274,7 @@ by rw [← erase_insert (proper_divisors.not_self_mem),
 
 lemma divisors_prime_pow {p : ℕ} (pp : p.prime) (k : ℕ) :
   divisors (p ^ k) = (finset.range (k + 1)).map ⟨pow p, pow_right_injective pp.two_le⟩ :=
-by { ext, simp [mem_divisors_prime_pow, pp, nat.lt_succ_iff, @eq_comm _ a] }
+by { ext, simp [mem_divisors_prime_pow, pp, lt_succ_iff, @eq_comm _ a] }
 
 lemma eq_proper_divisors_of_subset_of_sum_eq_sum {s : finset ℕ} (hsub : s ⊆ n.proper_divisors) :
   ∑ x in s, x = ∑ x in n.proper_divisors, x → s = n.proper_divisors :=

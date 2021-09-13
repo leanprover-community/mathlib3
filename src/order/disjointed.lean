@@ -144,7 +144,7 @@ begin
   simp_rw [disjointed_succ, partial_sups_eq_bsupr, sdiff_eq, compl_supr],
   congr,
   ext i,
-  rw nat.lt_succ_iff,
+  rw lt_succ_iff,
 end
 
 end complete_boolean_algebra

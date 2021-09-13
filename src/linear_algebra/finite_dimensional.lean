@@ -1128,7 +1128,7 @@ lemma finrank_span_singleton {v : V} (hv : v ≠ 0) : finrank K (K ∙ v) = 1 :=
 begin
   apply le_antisymm,
   { exact finrank_span_le_card ({v} : set V) },
-  { rw [nat.succ_le_iff, finrank_pos_iff],
+  { rw [succ_le_iff, finrank_pos_iff],
     use [⟨v, mem_span_singleton_self v⟩, 0],
     simp [hv] }
 end

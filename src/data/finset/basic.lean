@@ -1579,7 +1579,7 @@ range_succ
 theorem range_mono : monotone range := λ _ _, range_subset.2
 
 lemma mem_range_succ_iff {a b : ℕ} : a ∈ finset.range b.succ ↔ a ≤ b :=
-finset.mem_range.trans nat.lt_succ_iff
+finset.mem_range.trans lt_succ_iff
 
 lemma mem_range_le {n x : ℕ} (hx : x ∈ range n) : x ≤ n :=
 (mem_range.1 hx).le

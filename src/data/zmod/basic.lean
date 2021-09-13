@@ -656,7 +656,7 @@ begin
   { rw [nat.sub_lt_iff x.val_le le_rfl, nat.sub_self],
     rw ← zmod.nat_cast_zmod_val x at hx0,
     exact nat.pos_of_ne_zero (λ h, by simpa [h] using hx0) },
-  by conv {to_rhs, rw [← nat.succ_le_iff, nat.succ_eq_add_one, ← hn2', ← zero_add (- x),
+  by conv {to_rhs, rw [← succ_le_iff, nat.succ_eq_add_one, ← hn2', ← zero_add (- x),
     ← zmod.nat_cast_self, ← sub_eq_add_neg, ← zmod.nat_cast_zmod_val x,
     ← nat.cast_sub x.val_le,
     zmod.val_nat_cast, nat.mod_eq_of_lt hxn, nat.sub_le_sub_left_iff x.val_le] }
@@ -801,7 +801,7 @@ begin
       rw [char_p.cast_eq_zero_iff (zmod (n+1)) (n+1)],
       rw [← two_mul, ← zero_add (2 * _), ← hn0, nat.mod_add_div] },
     { rw [hn0, zero_add], exact le_of_lt } },
-  { rw [hn1, add_comm, nat.succ_le_iff] }
+  { rw [hn1, add_comm, succ_le_iff] }
 end
 
 lemma val_eq_ite_val_min_abs {n : ℕ} [fact (0 < n)] (a : zmod n) :

@@ -151,7 +151,7 @@ begin
   transitivity ∑ m in range (x.card + 1), ∑ j in x.powerset.filter (λ z, z.card = m), f j.card,
   { refine (sum_fiberwise_of_maps_to _ _).symm,
     intros y hy,
-    rw [mem_range, nat.lt_succ_iff],
+    rw [mem_range, lt_succ_iff],
     rw mem_powerset at hy,
     exact card_le_of_subset hy },
   { refine sum_congr rfl (λ y hy, _),

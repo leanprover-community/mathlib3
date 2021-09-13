@@ -716,7 +716,7 @@ begin
   { apply normed_group.cauchy_series_of_le_geometric'' (by norm_num) one_half_lt_one,
     rintro n (hn : n ≥ 1),
     calc ∥u n∥ ≤ C*∥v n∥ : hnorm_u n
-    ... ≤ C * b n : mul_le_mul_of_nonneg_left (hv _ $ nat.succ_le_iff.mp hn).le hC.le
+    ... ≤ C * b n : mul_le_mul_of_nonneg_left (hv _ hn).le hC.le
     ... = (1/2)^n * (ε * ∥h∥/2) : by simp [b, mul_div_cancel' _ hC.ne.symm]
     ... = (ε * ∥h∥/2) * (1/2)^n : mul_comm _ _ },
   /- We now show that the limit `g` of `s` is the desired preimage. -/

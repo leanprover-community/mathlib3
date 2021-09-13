@@ -848,7 +848,7 @@ primrec.nat_strong_rec _ (hG.comp snd).to₂ $
     intro nk,
     cases k with k', {simp [evaln]},
     let k := k'+1, change k'.succ with k,
-    simp [nat.lt_succ_iff] at nk,
+    simp [lt_succ_iff] at nk,
     have hg : ∀ {k' c' n},
       mkpair k' (encode c') < mkpair k (encode c) →
       lup ((list.range (mkpair k (encode c))).map (λ n,

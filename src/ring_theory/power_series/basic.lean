@@ -1114,7 +1114,7 @@ def trunc (n : ℕ) (φ : power_series R) : polynomial R :=
 
 lemma coeff_trunc (m) (n) (φ : power_series R) :
   (trunc n φ).coeff m = if m ≤ n then coeff R m φ else 0 :=
-by simp [trunc, polynomial.coeff_sum, polynomial.coeff_monomial, nat.lt_succ_iff]
+by simp [trunc, polynomial.coeff_sum, polynomial.coeff_monomial, lt_succ_iff]
 
 @[simp] lemma trunc_zero (n) : trunc n (0 : power_series R) = 0 :=
 polynomial.ext $ λ m,

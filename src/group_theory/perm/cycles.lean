@@ -679,7 +679,7 @@ end
 @[simp] lemma card_support_cycle_of_pos_iff [fintype α] {f : perm α} {x : α} :
   0 < card (cycle_of f x).support ↔ f x ≠ x :=
 begin
-  rw [←two_le_card_support_cycle_of_iff, ←nat.succ_le_iff],
+  rw [←two_le_card_support_cycle_of_iff, ←succ_le_iff],
   exact ⟨λ h, or.resolve_left h.eq_or_lt (card_support_ne_one _).symm, zero_lt_two.trans_le⟩
 end
 

@@ -573,7 +573,7 @@ begin
   rw length_subsingleton_iff,
   induction s using quotient.induction_on',
   simp only [mk'_eq_coe, nodup_coe_iff] at h,
-  simp [h, nat.succ_le_iff]
+  simp [h, succ_le_iff]
 end
 
 /--

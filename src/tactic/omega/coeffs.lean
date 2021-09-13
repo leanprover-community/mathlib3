@@ -51,7 +51,7 @@ lemma val_between_eq_of_le {as : list int} {l : nat} :
     rw le_iff_eq_or_lt at h1, cases h1,
     { rw [h1, add_comm l, nat.add_sub_cancel] },
     have h2 :  list.length as ≤ l + m,
-    { rw ← nat.lt_succ_iff, apply h1 },
+    { rw ← lt_succ_iff, apply h1 },
     simpa [ get_eq_default_of_le _ h2, zero_mul, add_zero,
       val_between ] using val_between_eq_of_le _ h2
   end
@@ -91,7 +91,7 @@ lemma val_between_set {a : int} {l n : nat} :
   begin exfalso, apply lt_irrefl l (lt_of_le_of_lt h1 h2) end
 | (m+1) h1 h2 :=
   begin
-    rw [← add_assoc, nat.lt_succ_iff, le_iff_eq_or_lt] at h2,
+    rw [← add_assoc, lt_succ_iff, le_iff_eq_or_lt] at h2,
     cases h2; unfold val_between,
     { have h3 : val_between v ([] {l + m ↦ a}) l m = 0,
       { apply @eq.trans _ _ (val_between v [] l m),

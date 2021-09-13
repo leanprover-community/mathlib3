@@ -157,7 +157,7 @@ begin
   { intros j ij, change (λ j, abv (f j)) j ≤ R,
     apply finset.single_le_sum,
     { intros, apply abv_nonneg abv },
-    { rwa [finset.mem_range, nat.lt_succ_iff] } },
+    { rwa [finset.mem_range, lt_succ_iff] } },
   refine ⟨R + 1, λ j, _⟩,
   cases lt_or_le j i with ij ij,
   { exact lt_of_le_of_lt (this _ (le_of_lt ij)) (lt_add_one _) },

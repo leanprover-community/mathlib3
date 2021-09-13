@@ -448,7 +448,7 @@ instance fintype_lt_nat (n : ℕ) : fintype {i | i < n} :=
 fintype.of_finset (finset.range n) $ by simp
 
 instance fintype_le_nat (n : ℕ) : fintype {i | i ≤ n} :=
-by simpa [nat.lt_succ_iff] using set.fintype_lt_nat (n+1)
+by simpa [lt_succ_iff] using set.fintype_lt_nat (n+1)
 
 lemma finite_le_nat (n : ℕ) : finite {i | i ≤ n} := ⟨set.fintype_le_nat _⟩
 
@@ -649,7 +649,7 @@ lemma finite_range_const {c : β} : finite (range (λ x : α, c)) :=
 
 lemma range_find_greatest_subset {P : α → ℕ → Prop} [∀ x, decidable_pred (P x)] {b : ℕ}:
   range (λ x, nat.find_greatest (P x) b) ⊆ ↑(finset.range (b + 1)) :=
-by { rw range_subset_iff, assume x, simp [nat.lt_succ_iff, nat.find_greatest_le] }
+by { rw range_subset_iff, assume x, simp [lt_succ_iff, nat.find_greatest_le] }
 
 lemma finite_range_find_greatest {P : α → ℕ → Prop} [∀ x, decidable_pred (P x)] {b : ℕ} :
   finite (range (λ x, nat.find_greatest (P x) b)) :=

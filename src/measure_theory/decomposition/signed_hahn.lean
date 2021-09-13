@@ -195,9 +195,9 @@ begin
     exact (lt_trans nat.one_div_pos_of_nat h) },
   { rw restrict_nonpos_seq_succ,
     have h₁ : ¬ s ≤[i \ ⋃ (k : ℕ) (H : k ≤ n), restrict_nonpos_seq s i k] 0,
-    { refine mt (restrict_le_zero_subset _ _ (by simp [nat.lt_succ_iff])) hn,
+    { refine mt (restrict_le_zero_subset _ _ (by simp [lt_succ_iff])) hn,
       convert measurable_of_not_restrict_le_zero _ hn,
-      exact funext (λ x, by rw nat.lt_succ_iff) },
+      exact funext (λ x, by rw lt_succ_iff) },
     rcases some_exists_one_div_lt_spec h₁ with ⟨_, _, h⟩,
     exact (lt_trans nat.one_div_pos_of_nat h) }
 end
@@ -293,7 +293,7 @@ begin
     convert hn (n + 1);
     { ext l,
       simp only [exists_prop, set.mem_Union, and.congr_left_iff],
-      exact λ _, nat.lt_succ_iff.symm } },
+      exact λ _, lt_succ_iff.symm } },
   have h₁ : s i = s A + ∑' l, s (restrict_nonpos_seq s i l),
   { rw [hA, ← s.of_disjoint_Union_nat, add_comm, of_add_of_diff],
     exact measurable_set.Union (λ _, restrict_nonpos_seq_measurable_set _),

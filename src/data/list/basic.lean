@@ -1028,7 +1028,7 @@ begin
   induction l with b l ih, {refl},
   simp only [length, index_of_cons],
   by_cases h : a = b, {rw if_pos h, exact nat.zero_le _},
-  rw if_neg h, exact succ_le_succ ih
+  rw if_neg h, exact nat.succ_le_succ ih
 end
 
 theorem index_of_lt_length {a} {l : list α} : index_of a l < length l ↔ a ∈ l :=
@@ -1042,7 +1042,7 @@ end index_of
 theorem nth_le_of_mem : ∀ {a} {l : list α}, a ∈ l → ∃ n h, nth_le l n h = a
 | a (_ :: l) (or.inl rfl) := ⟨0, succ_pos _, rfl⟩
 | a (b :: l) (or.inr m)   :=
-  let ⟨n, h, e⟩ := nth_le_of_mem m in ⟨n+1, succ_lt_succ h, e⟩
+  let ⟨n, h, e⟩ := nth_le_of_mem m in ⟨n+1, nat.succ_lt_succ h, e⟩
 
 theorem nth_le_nth : ∀ {l : list α} {n} h, nth l n = some (nth_le l n h)
 | (a :: l) 0     h := rfl
@@ -1050,7 +1050,7 @@ theorem nth_le_nth : ∀ {l : list α} {n} h, nth l n = some (nth_le l n h)
 
 theorem nth_len_le : ∀ {l : list α} {n}, length l ≤ n → nth l n = none
 | []       n     h := rfl
-| (a :: l) (n+1) h := nth_len_le (le_of_succ_le_succ h)
+| (a :: l) (n+1) h := nth_len_le (nat.le_of_succ_le_succ h)
 
 theorem nth_eq_some {l : list α} {n a} : nth l n = some a ↔ ∃ h, nth_le l n h = a :=
 ⟨λ e,
@@ -1101,7 +1101,7 @@ begin
     case nat.succ nat.succ
     { congr, cases h₁,
       apply xs_ih;
-      solve_by_elim [lt_of_succ_lt_succ] },
+      solve_by_elim [nat.lt_of_succ_lt_succ] },
     iterate 2
     { dsimp at h₂,
       cases h₁ with _ _ h h',
@@ -1236,7 +1236,7 @@ theorem nth_le_reverse_aux1 :
 | []       r i := λh1 h2, rfl
 | (a :: l) r i :=
   by rw (show i + length (a :: l) = i + 1 + length l, from add_right_comm i (length l) 1);
-    exact λh1 h2, nth_le_reverse_aux1 l (a :: r) (i+1) h1 (succ_lt_succ h2)
+    exact λh1 h2, nth_le_reverse_aux1 l (a :: r) (i+1) h1 (nat.succ_lt_succ h2)
 
 lemma index_of_inj [decidable_eq α] {l : list α} {x y : α}
   (hx : x ∈ l) (hy : y ∈ l) : index_of x l = index_of y l ↔ x = y :=
@@ -1385,7 +1385,7 @@ lemma update_nth_comm (a b : α) : Π {n m : ℕ} (l : list α) (h : n ≠ m),
 | (n + 1) 0 (x :: t) h := by simp [list.update_nth]
 | 0 (m + 1) (x :: t) h := by simp [list.update_nth]
 | (n + 1) (m + 1) (x :: t) h := by { simp only [update_nth, true_and, eq_self_iff_true],
-  exact update_nth_comm t (λ h', h $ congr_arg _ h'), }
+  exact update_nth_comm t (ne_of_succ_ne_succ h) }
 
 @[simp] lemma nth_le_update_nth_eq (l : list α) (i : ℕ) (a : α)
   (h : i < (l.update_nth i a).length) : (l.update_nth i a).nth_le i h = a :=
@@ -1493,7 +1493,7 @@ begin
     { simp } },
   { cases n,
     { simpa using h },
-    { simp only [succ_le_succ_iff, length] at h,
+    { simp only [succ_lt_succ_iff, length] at h,
       simpa using IH _ h } }
 end
 
@@ -1510,7 +1510,7 @@ lemma length_le_length_insert_nth (l : list α) (x : α) (n : ℕ) :
 begin
   cases le_or_lt n l.length with hn hn,
   { rw length_insert_nth _ _ hn,
-    exact le_rfl },
+    exact le_succ _ },
   { rw insert_nth_of_length_lt _ _ _ hn }
 end
 
@@ -1520,7 +1520,7 @@ begin
   cases le_or_lt n l.length with hn hn,
   { rw length_insert_nth _ _ hn },
   { rw insert_nth_of_length_lt _ _ _ hn,
-    exact le_rfl }
+    exact le_succ _ }
 end
 
 lemma nth_le_insert_nth_of_lt (l : list α) (x : α) (n k : ℕ) (hn : k < n)
@@ -1539,7 +1539,7 @@ end
 
 @[simp] lemma nth_le_insert_nth_self (l : list α) (x : α) (n : ℕ)
   (hn : n ≤ l.length) (hn' : n < (insert_nth n x l).length :=
-    by rwa [length_insert_nth _ _ hn, nat.lt_succ_iff]) :
+    by rwa [length_insert_nth _ _ hn, lt_succ_iff]) :
   (insert_nth n x l).nth_le n hn' = x :=
 begin
   induction l with hd tl IH generalizing n,
@@ -1554,7 +1554,7 @@ end
 lemma nth_le_insert_nth_add_succ (l : list α) (x : α) (n k : ℕ)
   (hk' : n + k < l.length)
   (hk : n + k + 1 < (insert_nth n x l).length :=
-    by rwa [length_insert_nth _ _ (le_self_add.trans hk'.le), succ_le_succ_iff]) :
+    by rwa [length_insert_nth _ _ (le_self_add.trans hk'.le), succ_lt_succ_iff]) :
   (insert_nth n x l).nth_le (n + k + 1) hk = nth_le l (n + k) hk' :=
 begin
   induction l with hd tl IH generalizing n k,
@@ -1691,7 +1691,7 @@ theorem take_all_of_le : ∀ {n} {l : list α}, length l ≤ n → take n l = l
 | (n+1) (a::l) h :=
   begin
     change a :: take n l = a :: l,
-    rw [take_all_of_le (le_of_succ_le_succ h)]
+    rw [take_all_of_le (nat.le_of_succ_le_succ h)]
   end
 
 @[simp] theorem take_left : ∀ l₁ l₂ : list α, take (length l₁) (l₁ ++ l₂) = l₁
@@ -1724,7 +1724,7 @@ lemma take_append_of_le_length : ∀ {l₁ l₂ : list α} {n : ℕ},
 | l₁      l₂ 0     hn := by simp
 | []      l₂ (n+1) hn := absurd hn dec_trivial
 | (a::l₁) l₂ (n+1) hn :=
-by rw [list.take, list.cons_append, list.take, take_append_of_le_length (le_of_succ_le_succ hn)]
+by rw [list.take, list.cons_append, list.take, take_append_of_le_length (nat.le_of_succ_le_succ hn)]
 
 /-- Taking the first `l₁.length + i` elements in `l₁ ++ l₂` is the same as appending the first
 `i` elements of `l₂` to `l₁`. -/
@@ -1826,7 +1826,7 @@ begin
   { exact absurd n.zero_le (not_le_of_lt (by simpa using hn)) },
   { cases n,
     { simp },
-    { simp only [succ_le_succ_iff, list.length] at hn,
+    { simp only [succ_lt_succ_iff, list.length] at hn,
       simpa [list.nth_le, list.drop] using hl hn } }
 end
 
@@ -1877,7 +1877,7 @@ lemma drop_append_of_le_length : ∀ {l₁ l₂ : list α} {n : ℕ}, n ≤ l₁
 | l₁      l₂ 0     hn := by simp
 | []      l₂ (n+1) hn := absurd hn dec_trivial
 | (a::l₁) l₂ (n+1) hn :=
-by rw [drop, cons_append, drop, drop_append_of_le_length (le_of_succ_le_succ hn)]
+by rw [drop, cons_append, drop, drop_append_of_le_length (nat.le_of_succ_le_succ hn)]
 
 /-- Dropping the elements up to `l₁.length + i` in `l₁ + l₂` is the same as dropping the elements
 up to `i` in `l₂`. -/
@@ -1996,7 +1996,7 @@ theorem take'_eq_take : ∀ {n} {l : list α},
   n ≤ length l → take' n l = take n l
 | 0     l      h := rfl
 | (n+1) (a::l) h := congr_arg (cons _) $
-  take'_eq_take $ le_of_succ_le_succ h
+  take'_eq_take $ nat.le_of_succ_le_succ h
 
 @[simp] theorem take'_left (l₁ l₂ : list α) : take' (length l₁) (l₁ ++ l₂) = l₁ :=
 (take'_eq_take (by simp only [length_append, nat.le_add_right])).trans (take_left _ _)
@@ -2778,10 +2778,7 @@ begin
   induction L generalizing i,
   { simp only [length] at hi, exact (nat.not_succ_le_zero i hi).elim },
   cases i, { simp },
-  have : i < L_tl.length,
-  { simp at hi,
-    exact nat.lt_of_succ_lt_succ hi },
-  simp [L_ih this],
+  simp [L_ih (nat.lt_of_succ_lt_succ hi)],
   refl
 end
 
@@ -2945,7 +2942,7 @@ theorem _root_.decidable.list.lex.ne_iff [decidable_eq α]
   { exact (not_lt_of_ge H).elim (succ_pos _) },
   { by_cases ab : a = b,
     { subst b, apply cons,
-      exact IH (le_of_succ_le_succ H) (mt (congr_arg _) h) },
+      exact IH (nat.le_of_succ_le_succ H) (mt (congr_arg _) h) },
     { exact rel ab } }
 end⟩
 
@@ -3461,7 +3458,7 @@ begin
   { rw [filter_cons_of_neg _ h],
     refine iff_of_false _ (mt and.left h), intro e,
     have := filter_sublist l, rw e at this,
-    exact (length_le_of_sublist this).not_le (lt_succ _) }
+    exact (length_le_of_sublist this).not_lt (lt_succ _) }
 end
 
 theorem filter_eq_nil {l} : filter p l = [] ↔ ∀ a ∈ l, ¬p a :=
@@ -3745,7 +3742,7 @@ theorem prefix_of_prefix_length_le : ∀ {l₁ l₂ l₃ : list α},
 | (a::l₁) (b::l₂) _ ⟨r₁, rfl⟩ ⟨r₂, e⟩ ll := begin
   injection e with _ e', subst b,
   rcases prefix_of_prefix_length_le ⟨_, rfl⟩ ⟨_, e'⟩
-    (le_of_succ_le_succ ll) with ⟨r₃, rfl⟩,
+    (nat.le_of_succ_le_succ ll) with ⟨r₃, rfl⟩,
   exact ⟨r₃, rfl⟩
 end
 
@@ -4721,7 +4718,7 @@ begin
     { cases h },
     cases hl with _ _ h₀ h₁, split,
     { intro h, exact h₀ _ (mem_of_mem_drop h) rfl, },
-    solve_by_elim [le_of_succ_le_succ] { max_depth := 4 } },
+    solve_by_elim [nat.le_of_succ_le_succ] { max_depth := 4 } },
 end
 
 end disjoint
@@ -5184,7 +5181,7 @@ begin
           simp }, },
       unfold_wf, apply zero_lt_one_add, },
     { unfold_wf, apply xs_ih _ _ h,
-      apply lt_of_succ_lt_succ hi, } },
+      apply nat.lt_of_succ_lt_succ hi } }
 end
 
 end list

@@ -163,7 +163,7 @@ begin
     apply content_dvd_coeff _ },
   { apply finset.gcd_mono,
     intro i,
-    simp only [nat.lt_succ_iff, mem_support_iff, ne.def, finset.mem_range],
+    simp only [lt_succ_iff, mem_support_iff, ne.def, finset.mem_range],
     contrapose!,
     intro h1,
     apply coeff_eq_zero_of_nat_degree_lt (lt_of_lt_of_le h h1), }

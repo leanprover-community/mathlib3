@@ -87,7 +87,7 @@ lemma length_set : ∀ {m : ℕ} {as : list α},
 | 0 []          := rfl
 | 0 (a::as)     := by {rw max_eq_left, refl, simp [nat.le_add_right]}
 | (m+1) []      := by simp only [set, nat.zero_max, length, @length_set m]
-| (m+1) (a::as) := by simp only [set, nat.max_succ_succ, length, @length_set m]
+| (m+1) (a::as) := by simp only [set, max_succ_succ, length, @length_set m]
 
 @[simp] lemma get_nil {k : ℕ} : get k [] = default α :=
 by {cases k; refl}
@@ -165,13 +165,7 @@ lemma get_map {f : α → β} : ∀ {n : ℕ} {as : list α}, n < as.length →
   get n (as.map f) = f (get n as)
 | _ [] h := by cases h
 | 0 (a::as) h := rfl
-| (n+1) (a::as) h1 :=
-  begin
-    have h2 : n < length as,
-    { rw [← nat.succ_le_iff, ← nat.lt_succ_iff],
-      apply h1 },
-    apply get_map h2,
-  end
+| (n+1) (a::as) h1 := get_map (lt_of_succ_lt_succ h1)
 
 lemma get_map' {f : α → β} {n : ℕ} {as : list α} :
   f (default α) = (default β) →

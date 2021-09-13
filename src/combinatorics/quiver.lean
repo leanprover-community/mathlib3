@@ -307,7 +307,7 @@ def geodesic_subtree : wide_subquiver V :=
 noncomputable instance geodesic_arborescence : arborescence (geodesic_subtree r) :=
 arborescence_mk r (λ a, (shortest_path r a).length)
 (by { rintros a b ⟨e, p, h⟩,
-  rw [h, path.length_cons, nat.lt_succ_iff], apply shortest_path_spec })
+  rw [h, path.length_cons, lt_succ_iff], apply shortest_path_spec })
 (by { rintros a b c ⟨e, p, h⟩ ⟨f, q, j⟩, cases h.symm.trans j, split; refl })
 (by { intro b, have : ∃ p, shortest_path r b = p := ⟨_, rfl⟩,
   rcases this with ⟨p, hp⟩, cases p with a _ p e,

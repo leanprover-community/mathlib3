@@ -428,7 +428,7 @@ begin
 
   rw [hM, M_k, det_update_row_add_smul_self M' k_ne_succ.symm, ih (function.update c k 0)],
   { intros i hi,
-    rw [fin.lt_iff_coe_lt_coe, fin.coe_cast_succ, fin.coe_succ, nat.lt_succ_iff] at hi,
+    rw [fin.lt_iff_coe_lt_coe, fin.coe_cast_succ, fin.coe_succ, lt_succ_iff] at hi,
     rw function.update_apply,
     split_ifs with hik, { refl },
     exact hc _ (fin.succ_lt_succ_iff.mpr (lt_of_le_of_ne hi (ne.symm hik))) },
@@ -442,7 +442,7 @@ begin
   { simp [hc i (fin.succ_lt_succ_iff.mpr hik2)] },
   rw update_row_ne,
   apply ne_of_lt,
-  rwa [fin.lt_iff_coe_lt_coe, fin.coe_cast_succ, fin.coe_succ, nat.lt_succ_iff, ← not_lt]
+  rwa [fin.lt_iff_coe_lt_coe, fin.coe_cast_succ, fin.coe_succ, lt_succ_iff, ← not_lt]
 end
 
 /-- If you add multiples of previous rows to the next row, the determinant doesn't change. -/

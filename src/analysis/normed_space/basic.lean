@@ -1132,7 +1132,7 @@ lemma norm_pow_le [norm_one_class α] (a : α) : ∀ (n : ℕ), ∥a^n∥ ≤ �
 | (n+1) := norm_pow_le' a n.zero_lt_succ
 
 lemma eventually_norm_pow_le (a : α) : ∀ᶠ (n:ℕ) in at_top, ∥a ^ n∥ ≤ ∥a∥ ^ n :=
-eventually_at_top.mpr ⟨1, λ b h, norm_pow_le' a (nat.succ_le_iff.mp h)⟩
+eventually_at_top.mpr ⟨1, λ b h, norm_pow_le' a (lt_of_succ_le h)⟩
 
 /-- In a seminormed ring, the left-multiplication `add_monoid_hom` is bounded. -/
 lemma mul_left_bound (x : α) :

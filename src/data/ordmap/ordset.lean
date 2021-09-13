@@ -623,7 +623,7 @@ begin
       { split_ifs,
         { have rd : delta ≤ size rl + size rr,
           { have := lt_of_le_of_lt (nat.mul_le_mul_left _ sl.pos) h,
-            rwa [sr.1, nat.lt_succ_iff] at this },
+            rwa [sr.1, lt_succ_iff] at this },
           cases rl with rls rll rlx rlr,
           { rw [size, zero_add] at rd,
             exact absurd (le_trans rd (balanced_sz_zero.1 hr.1.symm)) dec_trivial },
@@ -634,7 +634,7 @@ begin
           { simp [node4_l, node', sr.1, sr.2.1.1, add_comm, add_left_comm] } },
         { have ld : delta ≤ size ll + size lr,
           { have := lt_of_le_of_lt (nat.mul_le_mul_left _ sr.pos) h_1,
-            rwa [sl.1, nat.lt_succ_iff] at this },
+            rwa [sl.1, lt_succ_iff] at this },
           cases ll with lls lll llx llr,
           { rw [size, zero_add] at ld,
             exact absurd (le_trans ld (balanced_sz_zero.1 hl.1.symm)) dec_trivial },
@@ -1055,7 +1055,7 @@ begin
       exact (mul_le_mul_left dec_trivial).1 this },
     refine ⟨or.inr ⟨_, _⟩, or.inr ⟨_, _⟩, or.inr ⟨_, _⟩⟩,
     { refine (mul_le_mul_left dec_trivial).1 (le_trans this _),
-      rw [two_mul, nat.succ_le_iff],
+      rw [two_mul, succ_le_iff],
       refine add_lt_add_of_lt_of_le _ mm₂,
       simpa using (mul_lt_mul_right ml0).2 (dec_trivial:1<3) },
     { exact nat.le_of_lt_succ (valid'.node4_l_lemma₁ lr₂ mr₂ mm₁) },
@@ -1084,7 +1084,7 @@ theorem valid'.rotate_l {l x r o₁ o₂} (hl : valid' o₁ l ↑x) (hr : valid'
   valid' o₁ (@rotate_l α l x r) o₂ :=
 begin
   cases r with rs rl rx rr, {cases H2},
-  rw [hr.2.size_eq, nat.lt_succ_iff] at H2,
+  rw [hr.2.size_eq, lt_succ_iff] at H2,
   rw [hr.2.size_eq] at H3,
   replace H3 : 2 * (size rl + size rr) ≤ 9 * size l + 3 ∨ size rl + size rr ≤ 2 :=
     H3.imp (@nat.le_of_add_le_add_right 2 _ _) nat.le_of_succ_le_succ,

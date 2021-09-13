@@ -134,7 +134,7 @@ begin
     by rw [add_assoc, nat.sub_add_cancel hnj],
   refine or.inr (mem_Union.2 ⟨j - (n + 1), _, hlt _ _⟩),
   { rwa this },
-  { rw [← nat.succ_le_iff, nat.succ_eq_add_one, this] }
+  { rw [← succ_le_iff, nat.succ_eq_add_one, this] }
 end
 
 lemma le_inter_add_diff {m : outer_measure α} {t : set α} (s : set α) :

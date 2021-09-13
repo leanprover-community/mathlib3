@@ -265,7 +265,7 @@ begin
   { have : coeff f 1 = 0 := coeff_eq_zero_of_nat_degree_lt (by simp only [hf, zero_lt_one]),
     simp [*, rev_at] },
   { rw rev_at_le,
-    exact nat.succ_le_iff.2 (pos_iff_ne_zero.2 hf) }
+    exact succ_le_of_lt (pos_iff_ne_zero.2 hf) }
 end
 
 end semiring

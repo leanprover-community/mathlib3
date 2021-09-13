@@ -191,7 +191,7 @@ begin
     (hσ.2 n (dvd_of_mem_cycle_type hn)) (ne_of_gt (one_lt_of_mem_cycle_type hn))),
   use σ.cycle_type.card - 1,
   rw nat.sub_add_cancel,
-  rw [nat.succ_le_iff, pos_iff_ne_zero, ne, card_cycle_type_eq_zero],
+  rw [succ_le_iff, pos_iff_ne_zero, ne, card_cycle_type_eq_zero],
   rintro rfl,
   rw order_of_one at hσ,
   exact hσ.ne_one rfl,
@@ -202,7 +202,7 @@ lemma is_cycle_of_prime_order {σ : perm α} (h1 : (order_of σ).prime)
 begin
   obtain ⟨n, hn⟩ := cycle_type_prime_order h1,
   rw [←σ.sum_cycle_type, hn, multiset.sum_repeat, nsmul_eq_mul, nat.cast_id, mul_lt_mul_right
-      (order_of_pos σ), succ_lt_succ_iff, nat.lt_succ_iff, nat.le_zero_iff] at h2,
+      (order_of_pos σ), succ_lt_succ_iff, lt_succ_iff, nat.le_zero_iff] at h2,
   rw [←card_cycle_type_eq_one, hn, card_repeat, h2],
 end
 

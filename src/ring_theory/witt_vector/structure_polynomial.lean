@@ -241,7 +241,7 @@ begin
   rw key, clear key IH,
   rw [bind₁, aeval_witt_polynomial, ring_hom.map_sum, ring_hom.map_sum, finset.sum_congr rfl],
   intros k hk,
-  rw [finset.mem_range, nat.lt_succ_iff] at hk,
+  rw [finset.mem_range, lt_succ_iff] at hk,
   simp only [← sub_eq_zero, ← ring_hom.map_sub, ← C_dvd_iff_zmod, C_eq_coe_nat, ← mul_sub,
     ← int.nat_cast_eq_coe_nat, ← nat.cast_pow],
   rw show p ^ (n + 1) = p ^ k * p ^ (n - k + 1),

@@ -142,7 +142,7 @@ begin
   rw [partial_sups_eq_sup_range, finset.sup_eq_supr],
   congr,
   ext a,
-  exact supr_congr_Prop (by rw [finset.mem_range, nat.lt_succ_iff]) (λ _, rfl),
+  exact supr_congr_Prop (by rw [finset.mem_range, lt_succ_iff]) (λ _, rfl),
 end
 
 @[simp] lemma supr_partial_sups_eq (f : ℕ → α) :

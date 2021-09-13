@@ -200,7 +200,7 @@ begin
   haveI := fintype.one_lt_card_iff_nontrivial.1 (lt_trans dec_trivial h3),
   rw ← fintype.one_lt_card_iff_nontrivial,
   refine lt_of_mul_lt_mul_left _ (le_of_lt nat.prime_two.pos),
-  rw [two_mul_card_alternating_group, card_perm, ← nat.succ_le_iff],
+  rw [two_mul_card_alternating_group, card_perm, ← succ_le_iff],
   exact le_trans h3 (card α).self_le_factorial,
 end
 

@@ -444,7 +444,7 @@ calc ∑ m in (finset.range n.succ).filter (∣ n),
 ... = _ : congr_arg finset.card (finset.ext (begin
   assume a,
   suffices : add_order_of a ≤ n ∧ add_order_of a ∣ n ↔ n • a = 0,
-  { simpa [nat.lt_succ_iff], },
+  { simpa [lt_succ_iff], },
   exact ⟨λ h, let ⟨m, hm⟩ := h.2 in
                 by rw [hm, mul_comm, mul_nsmul, add_order_of_nsmul_eq_zero, nsmul_zero],
     λ h, ⟨add_order_of_le_of_nsmul_eq_zero hn h, add_order_of_dvd_of_nsmul_eq_zero h⟩⟩
@@ -459,7 +459,7 @@ calc ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ x : 
 ... = _ : congr_arg finset.card (finset.ext (begin
   assume x,
   suffices : order_of x ≤ n ∧ order_of x ∣ n ↔ x ^ n = 1,
-  { simpa [nat.lt_succ_iff], },
+  { simpa [lt_succ_iff], },
   exact ⟨λ h, let ⟨m, hm⟩ := h.2 in by rw [hm, pow_mul, pow_order_of_eq_one, one_pow],
     λ h, ⟨order_of_le_of_pow_eq_one hn h, order_of_dvd_of_pow_eq_one h⟩⟩
 end))

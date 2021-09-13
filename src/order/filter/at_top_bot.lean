@@ -718,7 +718,7 @@ begin
   have : 0 < c := let ⟨x, hx⟩ := h 1 in
     pos_of_mul_pos_right (lt_of_lt_of_le zero_lt_one (hx (max x 1) (le_max_left x 1)))
     (pow_nonneg (le_trans zero_le_one (le_max_right x 1)) n),
-  refine ⟨nat.succ_le_iff.mp (lt_of_le_of_ne (zero_le n) (ne.symm (λ hn, _))), this⟩,
+  refine ⟨nat.pos_of_ne_zero (λ hn, _), this⟩,
   obtain ⟨x, hx⟩ := h (c + 1),
   specialize hx x le_rfl,
   rw [hn, pow_zero, mul_one, add_le_iff_nonpos_right] at hx,
@@ -737,7 +737,7 @@ begin
   have : c < 0 := let ⟨x, hx⟩ := h (-1) in
     neg_of_mul_neg_right (lt_of_le_of_lt (hx (max x 1) (le_max_left x 1)) (by simp [zero_lt_one]))
     (pow_nonneg (le_trans zero_le_one (le_max_right x 1)) n),
-  refine ⟨nat.succ_le_iff.mp (lt_of_le_of_ne (zero_le n) (ne.symm (λ hn, _))), this⟩,
+  refine ⟨nat.pos_of_ne_zero (λ hn, _), this⟩,
   obtain ⟨x, hx⟩ := h (c - 1),
   specialize hx x le_rfl,
   rw [hn, pow_zero, mul_one, le_sub, sub_self] at hx,
@@ -1104,14 +1104,14 @@ lemma map_div_at_top_eq_nat (k : ℕ) (hk : 0 < k) : map (λa, a / k) at_top = a
 map_at_top_eq_of_gc (λb, b * k + (k - 1)) 1
   (assume a b h, nat.div_le_div_right h)
   (assume a b _,
-    calc a / k ≤ b ↔ a / k < b + 1 : by rw [← nat.succ_eq_add_one, nat.lt_succ_iff]
+    calc a / k ≤ b ↔ a / k < b + 1 : by rw [← nat.succ_eq_add_one, lt_succ_iff]
       ... ↔ a < (b + 1) * k : nat.div_lt_iff_lt_mul _ _ hk
       ... ↔ _ :
       begin
         cases k,
         exact (lt_irrefl _ hk).elim,
         rw [add_mul, one_mul, nat.succ_sub_succ_eq_sub,
-          nat.sub_zero, nat.add_succ, nat.lt_succ_iff],
+          nat.sub_zero, nat.add_succ, lt_succ_iff],
       end)
   (assume b _,
     calc b = (b * k) / k : by rw [nat.mul_div_cancel b hk]

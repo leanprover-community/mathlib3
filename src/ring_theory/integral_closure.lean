@@ -180,7 +180,7 @@ begin
   rw [eval₂_mul, eval₂_C, eval₂_pow, eval₂_X, ← algebra.smul_def],
   refine smul_mem _ _ (subset_span _),
   rw finset.mem_coe, refine finset.mem_image.2 ⟨_, _, rfl⟩,
-  rw [finset.mem_range, nat.lt_succ_iff], refine le_of_not_lt (λ hk, _),
+  rw [finset.mem_range, lt_succ_iff], refine le_of_not_lt (λ hk, _),
   rw [degree_le_iff_coeff_zero] at this,
   rw [mem_support_iff] at hkq, apply hkq, apply this,
   exact lt_of_le_of_lt degree_le_nat_degree (with_bot.coe_lt_coe.2 hk)

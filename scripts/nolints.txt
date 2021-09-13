@@ -12,6 +12,9 @@ apply_nolint set.set_semiring.comm_semiring check_reducibility
 apply_nolint set.set_semiring.non_assoc_semiring check_reducibility
 apply_nolint set.set_semiring.non_unital_non_assoc_semiring check_reducibility
 
+-- category_theory/limits/filtered_colimit_commutes_finite_limit.lean
+apply_nolint category_theory.limits.colimit_limit_to_limit_colimit_is_iso fails_quickly
+
 -- computability/partrec.lean
 apply_nolint computable doc_blame
 apply_nolint computable₂ doc_blame
@@ -265,6 +268,9 @@ apply_nolint multiset.sum doc_blame
 -- data/multiset/functor.lean
 apply_nolint multiset.traverse doc_blame
 
+-- data/nat/basic.lean
+apply_nolint nat.subtype.semilattice_sup_bot fails_quickly
+
 -- data/num/bitwise.lean
 apply_nolint snum.cadd doc_blame
 
@@ -376,8 +382,15 @@ apply_nolint mv_polynomial.evalᵢ doc_blame
 apply_nolint mv_polynomial.evalₗ doc_blame unused_arguments
 apply_nolint mv_polynomial.indicator doc_blame
 
+-- group_theory/group_action/sub_mul_action.lean
+apply_nolint sub_mul_action.has_zero fails_quickly
+
 -- group_theory/sylow.lean
 apply_nolint sylow.fixed_points_mul_left_cosets_equiv_quotient doc_blame
+
+-- linear_algebra/affine_space/affine_subspace.lean
+apply_nolint affine_span.nonempty fails_quickly
+apply_nolint affine_subspace.to_add_torsor fails_quickly
 
 -- logic/embedding.lean
 apply_nolint function.embedding.Pi_congr_right doc_blame
@@ -396,6 +409,9 @@ apply_nolint relator.left_unique doc_blame
 apply_nolint relator.lift_fun doc_blame
 apply_nolint relator.right_total doc_blame
 apply_nolint relator.right_unique doc_blame
+
+-- measure_theory/function/conditional_expectation.lean
+apply_nolint measure_theory.Lp_meas.complete_space fails_quickly
 
 -- meta/coinductive_predicates.lean
 apply_nolint monotonicity doc_blame
@@ -448,6 +464,9 @@ apply_nolint fixed_points.next doc_blame
 apply_nolint fixed_points.next_fixed doc_blame
 apply_nolint fixed_points.prev doc_blame
 apply_nolint fixed_points.prev_fixed doc_blame
+
+-- order/prime_ideal.lean
+apply_nolint order.ideal.is_prime.is_maximal fails_quickly
 
 -- ring_theory/witt_vector/basic.lean
 apply_nolint witt_vector.comm_ring check_reducibility

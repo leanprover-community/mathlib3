@@ -977,6 +977,21 @@ begin
   exact h
 end
 
+lemma _root_.add_submonoid.dfinsupp_filter_mem_supr (p : ι → Prop) [decidable_pred p]
+  [add_comm_monoid γ] (S : ι → add_submonoid γ) (f : Π₀ i, S i) (i : ι) :
+  (f.filter p i : γ) ∈ ⨆ (h : p i), S i :=
+begin
+  by_cases hs : p i,
+  { simp [hs], },
+  { simp [hs] },
+end
+
+lemma _root_.add_submonoid.dfinsupp_sum_add_hom_mem_filter_mem_bsupr (p : ι → Prop)
+  [decidable_pred p] [add_comm_monoid γ] (S : ι → add_submonoid γ) (f : Π₀ i, S i) :
+  dfinsupp.sum_add_hom (λ i, (S i).subtype) (f.filter p) ∈ ⨆ i (h : p i), S i :=
+add_submonoid.dfinsupp_sum_add_hom_mem _ _ _ $ λ i hi,
+  add_submonoid.mem_supr_of_mem i $ _root_.add_submonoid.dfinsupp_filter_mem_supr _ _ _ _
+
 /-- The supremum of a family of commutative additive submonoids is equal to the range of
 `finsupp.sum_add_hom`; that is, every element in the `supr` can be produced from taking a finite
 number of non-zero elements of `p i`, coercing them to `γ`, and summing them. -/
@@ -1005,6 +1020,13 @@ begin
   simp_rw sum_add_hom_apply,
   congr',
 end
+
+lemma _root_.add_submonoid.mem_bsupr_iff_exists_dfinsupp (p : ι → Prop)
+  [decidable_pred p] [add_comm_monoid γ]
+  (S : ι → add_submonoid γ) (x : γ) :
+  x ∈ (⨆ i (h : p i), S i) ↔
+    ∃ f : Π₀ i, S i, dfinsupp.sum_add_hom (λ i, (S i).subtype) (f.filter p) = x :=
+set_like.ext_iff.mp (add_submonoid.supr_eq_mrange_dfinsupp_sum_add_hom S) x
 
 omit dec
 lemma sum_add_hom_comm {ι₁ ι₂ : Sort*} {β₁ : ι₁ → Type*} {β₂ : ι₂ → Type*} {γ : Type*}

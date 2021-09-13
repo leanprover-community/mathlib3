@@ -98,7 +98,7 @@ begin
 end
 
 /-- **Nakayama's Lemma**. Atiyah-Macdonald 2.5, Eisenbud 4.7, Matsumura 2.2,
-[Stacks 00DV](https://stacks.math.columbia.edu/tag/00VL) -/
+[Stacks 00DV](https://stacks.math.columbia.edu/tag/00DV) -/
 theorem exists_sub_one_mem_and_smul_eq_zero_of_fg_of_le_smul {R : Type*} [comm_ring R]
   {M : Type*} [add_comm_group M] [module R M]
   (I : ideal R) (N : submodule R M) (hn : N.fg) (hin : N ≤ I • N) :
@@ -269,7 +269,7 @@ lemma fg_ker_comp {R M N P : Type*} [ring R] [add_comm_group M] [module R M]
 begin
   rw linear_map.ker_comp,
   apply fg_of_fg_map_of_fg_inf_ker f,
-  { rwa [linear_map.map_comap_eq, linear_map.range_eq_top.2 hsur, top_inf_eq] },
+  { rwa [submodule.map_comap_eq, linear_map.range_eq_top.2 hsur, top_inf_eq] },
   { rwa [inf_of_le_right (show f.ker ≤ (comap f g.ker), from comap_mono (@bot_le _ _ g.ker))] }
 end
 
@@ -346,7 +346,7 @@ lemma is_noetherian_def : is_noetherian R M ↔ ∀ (s : submodule R M), s.fg :=
 theorem is_noetherian_submodule {N : submodule R M} :
   is_noetherian R N ↔ ∀ s : submodule R M, s ≤ N → s.fg :=
 ⟨λ ⟨hn⟩, λ s hs, have s ≤ N.subtype.range, from (N.range_subtype).symm ▸ hs,
-  linear_map.map_comap_eq_self this ▸ submodule.fg_map (hn _),
+  submodule.map_comap_eq_self this ▸ submodule.fg_map (hn _),
 λ h, ⟨λ s, submodule.fg_of_fg_map_of_fg_inf_ker N.subtype (h _ $ submodule.map_subtype_le _ _) $
   by rw [submodule.ker_subtype, inf_bot_eq]; exact submodule.fg_bot⟩⟩
 
@@ -370,7 +370,7 @@ is_noetherian_submodule.mpr (λ s' hs', is_noetherian_submodule.mp ht _ (le_tran
 variable (M)
 theorem is_noetherian_of_surjective (f : M →ₗ[R] P) (hf : f.range = ⊤)
   [is_noetherian R M] : is_noetherian R P :=
-⟨λ s, have (s.comap f).map f = s, from linear_map.map_comap_eq_self $ hf.symm ▸ le_top,
+⟨λ s, have (s.comap f).map f = s, from submodule.map_comap_eq_self $ hf.symm ▸ le_top,
 this ▸ submodule.fg_map $ noetherian _⟩
 variable {M}
 
@@ -380,7 +380,7 @@ is_noetherian_of_surjective _ f.to_linear_map f.range
 
 lemma is_noetherian_of_injective [is_noetherian R P] (f : M →ₗ[R] P) (hf : f.ker = ⊥) :
   is_noetherian R M :=
-is_noetherian_of_linear_equiv (linear_equiv.of_injective f hf).symm
+is_noetherian_of_linear_equiv (linear_equiv.of_injective f $ linear_map.ker_eq_bot.mp hf).symm
 
 lemma fg_of_injective [is_noetherian R P] {N : submodule R M} (f : M →ₗ[R] P) (hf : f.ker = ⊥) :
   N.fg :=
@@ -391,7 +391,7 @@ instance is_noetherian_prod [is_noetherian R M]
 ⟨λ s, submodule.fg_of_fg_map_of_fg_inf_ker (linear_map.snd R M P) (noetherian _) $
 have s ⊓ linear_map.ker (linear_map.snd R M P) ≤ linear_map.range (linear_map.inl R M P),
 from λ x ⟨hx1, hx2⟩, ⟨x.1, prod.ext rfl $ eq.symm $ linear_map.mem_ker.1 hx2⟩,
-linear_map.map_comap_eq_self this ▸ submodule.fg_map (noetherian _)⟩
+submodule.map_comap_eq_self this ▸ submodule.fg_map (noetherian _)⟩
 
 instance is_noetherian_pi {R ι : Type*} {M : ι → Type*} [ring R]
   [Π i, add_comm_group (M i)] [Π i, module R (M i)] [fintype ι]
@@ -525,8 +525,8 @@ well_founded_gt_exact_sequence
   (submodule.map g)
   (submodule.gci_map_comap hf)
   (submodule.gi_map_comap hg)
-  (by simp [linear_map.map_comap_eq, inf_comm])
-  (by simp [linear_map.comap_map_eq, h])
+  (by simp [submodule.map_comap_eq, inf_comm])
+  (by simp [submodule.comap_map_eq, h])
 
 /--
 For any endomorphism of a Noetherian module, there is some nontrivial iterate

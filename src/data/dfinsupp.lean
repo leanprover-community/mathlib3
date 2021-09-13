@@ -452,6 +452,19 @@ by simp
 lemma erase_ne {i i' : ι} {f : Π₀ i, β i} (h : i' ≠ i) : (f.erase i) i' = f i' :=
 by simp [h]
 
+@[simp] lemma filter_ne_eq_erase (f : Π₀ i, β i) (i : ι) : f.filter (≠ i) = f.erase i :=
+begin
+  ext1 j,
+  simp only [dfinsupp.filter_apply, dfinsupp.erase_apply, ite_not],
+end
+
+@[simp] lemma filter_ne_eq_erase' (f : Π₀ i, β i) (i : ι) : f.filter ((≠) i) = f.erase i :=
+begin
+  rw ←filter_ne_eq_erase f i,
+  congr' with j,
+  exact ne_comm,
+end
+
 end basic
 
 section add_monoid

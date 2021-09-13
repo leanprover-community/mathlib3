@@ -48,7 +48,7 @@ Coercions into `ℤ_p` are set up to work with the `norm_cast` tactic.
 p-adic, p adic, padic, p-adic integer
 -/
 
-open nat padic metric local_ring
+open padic metric local_ring
 noncomputable theory
 open_locale classical
 
@@ -157,7 +157,7 @@ def inv : ℤ_[p] → ℤ_[p]
 
 instance : char_zero ℤ_[p] :=
 { cast_injective :=
-  λ m n h, cast_injective $
+  λ m n h, nat.cast_injective $
   show (m:ℚ_[p]) = n, by { rw subtype.ext_iff at h, norm_cast at h, exact h } }
 
 @[simp, norm_cast] lemma coe_int_eq (z1 z2 : ℤ) : (z1 : ℤ_[p]) = z2 ↔ z1 = z2 :=
@@ -478,7 +478,7 @@ begin
   have aux : ∀ n : ℕ, 0 < (p ^ n : ℝ),
   { apply pow_pos, exact_mod_cast hp_prime.1.pos },
   rw [inv_le_inv (aux _) (aux _)],
-  have : p ^ n ≤ p ^ k ↔ n ≤ k := (pow_right_strict_mono hp_prime.1.two_le).le_iff_le,
+  have : p ^ n ≤ p ^ k ↔ n ≤ k := (strict_mono_pow hp_prime.1.one_lt).le_iff_le,
   rw [← this],
   norm_cast,
 end
@@ -589,7 +589,7 @@ instance : is_adic_complete (maximal_ideal ℤ_[p]) ℤ_[p] :=
     { intros ε hε, obtain ⟨m, hm⟩ := exists_pow_neg_lt p hε,
       refine ⟨m, λ n hn, lt_of_le_of_lt _ hm⟩, rw [← neg_sub, norm_neg], exact hx hn },
     { refine ⟨x'.lim, λ n, _⟩,
-      have : (0:ℝ) < p ^ (-n : ℤ), { apply _root_.fpow_pos_of_pos, exact_mod_cast hp_prime.1.pos },
+      have : (0:ℝ) < p ^ (-n : ℤ), { apply fpow_pos_of_pos, exact_mod_cast hp_prime.1.pos },
       obtain ⟨i, hi⟩ := equiv_def₃ (equiv_lim x') this,
       by_cases hin : i ≤ n,
       { exact (hi i le_rfl n hin).le, },

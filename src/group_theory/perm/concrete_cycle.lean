@@ -246,7 +246,7 @@ begin
 end
 
 lemma nodup_to_list (p : perm α) (x : α) :
-  nodup (to_list p x)  :=
+  nodup (to_list p x) :=
 begin
   by_cases hx : p x = x,
   { rw [←not_mem_support, ←to_list_eq_nil_iff] at hx,

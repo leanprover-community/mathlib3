@@ -5,11 +5,10 @@ Authors: Riccardo Brasca
 -/
 
 import linear_algebra.direct_sum.finsupp
+import linear_algebra.matrix.to_lin
 import linear_algebra.std_basis
 import logic.small
 import ring_theory.finiteness
-import linear_algebra.matrix.to_lin
-import linear_algebra.std_basis
 
 /-!
 

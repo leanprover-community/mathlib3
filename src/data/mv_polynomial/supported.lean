@@ -22,7 +22,7 @@ open algebra
 
 lemma supported_eq_range_rename (s : set σ) :
   supported R s = (rename (coe : s → σ)).range :=
-by rw [supported, set.image_eq_range, ← range_aeval, rename]
+by rw [supported, set.image_eq_range, adjoin_range_eq_range_aeval, rename]
 
 variables {s t : set σ}
 

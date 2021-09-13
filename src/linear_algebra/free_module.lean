@@ -192,7 +192,7 @@ def ext_zero_fin : (fin n → R) →ₗ[R] (fin (n + m) → R) :=
 
 lemma ext_zero_fin.injective : function.injective (ext_zero_fin R n m) :=
 function.injective.comp ((linear_equiv.fun_congr_left R R fin_sum_fin_equiv.symm).injective)
-  (ext_zero.injective R (fin n) (fin m))
+  (ext_zero_injective R (fin n) (fin m))
 
 lemma zero_of_ext_zero_fin (f : fin n → R) (hm : 0 < m) :
   ext_zero_fin R n m f ⟨n, lt_add_of_pos_right n hm⟩ = 0 :=

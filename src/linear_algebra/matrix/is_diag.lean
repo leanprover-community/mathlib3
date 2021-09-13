@@ -109,7 +109,7 @@ lemma is_diag.minor [has_zero α]
 
 /-- `(A ⊗ B).is_diag` if both `A` and `B` are diagonal. -/
 lemma is_diag.kronecker [mul_zero_class α]
-  {A : matrix m m α} {B : matrix n n α} (hA: A.is_diag) (hB: B.is_diag) :
+  {A : matrix m m α} {B : matrix n n α} (hA : A.is_diag) (hB : B.is_diag) :
   (A ⊗ₖ B).is_diag :=
 begin
   rintros ⟨a, b⟩ ⟨c, d⟩ h,

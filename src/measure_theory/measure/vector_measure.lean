@@ -41,7 +41,7 @@ vector measure, signed measure, complex measure
 
 noncomputable theory
 
-open_locale classical big_operators nnreal ennreal
+open_locale classical big_operators nnreal ennreal measure_theory
 
 namespace measure_theory
 
@@ -1089,6 +1089,53 @@ lemma smul_left {R : Type*} [semiring R] [distrib_mul_action R M] [topological_s
 (smul_right r h.symm).symm
 
 end mutually_singular
+
+section trim
+
+omit m
+
+/-- Restriction of a vector measure onto a sub-σ-algebra. -/
+@[simps] def trim {m n : measurable_space α} (v : vector_measure α M) (hle : m ≤ n) :
+  @vector_measure α m M _ _ :=
+{ measure_of' := λ i, if measurable_set[m] i then v i else 0,
+  empty' := by rw [if_pos measurable_set.empty, v.empty],
+  not_measurable' := λ i hi, by rw if_neg hi,
+  m_Union' := λ f hf₁ hf₂,
+  begin
+    have hf₁' : ∀ k, measurable_set[n] (f k) := λ k, hle _ (hf₁ k),
+    convert v.m_Union hf₁' hf₂,
+    { ext n, rw if_pos (hf₁ n) },
+    { rw if_pos (@measurable_set.Union _ _ m _ _ hf₁) }
+  end }
+
+variables {n : measurable_space α} {v : vector_measure α M}
+
+lemma trim_eq_self : v.trim le_rfl = v :=
+begin
+  ext1 i hi,
+  exact if_pos hi,
+end
+
+@[simp] lemma zero_trim (hle : m ≤ n) :
+  (0 : vector_measure α M).trim hle = 0 :=
+begin
+  ext1 i hi,
+  exact if_pos hi,
+end
+
+lemma trim_measurable_set_eq (hle : m ≤ n) {i : set α} (hi : measurable_set[m] i) :
+  v.trim hle i = v i :=
+if_pos hi
+
+lemma restrict_trim (hle : m ≤ n) {i : set α} (hi : measurable_set[m] i) :
+  @vector_measure.restrict α m M _ _ (v.trim hle) i = (v.restrict i).trim hle :=
+begin
+  ext j hj,
+  rw [restrict_apply, trim_measurable_set_eq hle hj, restrict_apply, trim_measurable_set_eq],
+  all_goals { measurability }
+end
+
+end trim
 
 end
 

@@ -4,9 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Lu-Ming Zhang
 -/
 import linear_algebra.matrix.symmetric
-import data.polynomial.monomial
-import data.matrix.pequiv
-import data.equiv.fin
 
 /-!
 # Circulant matrices
@@ -90,6 +87,10 @@ lemma circulant_neg [has_neg α] [has_sub I] (v : I → α) :
   circulant (- v) = - circulant v :=
 ext $ λ _ _, rfl
 
+@[simp] lemma circulant_zero (α I) [has_zero α] [has_sub I] :
+  circulant 0 = (0 : matrix I I α) :=
+ext $ λ _ _, rfl
+
 lemma circulant_add [has_add α] [has_sub I] (v w : I → α) :
   circulant (v + w) = circulant v + circulant w :=
 ext $ λ _ _, rfl
@@ -139,10 +140,6 @@ lemma circulant_smul [has_sub I] [has_scalar R α] (k : R) (v : I → α) :
   circulant (k • v) = k • circulant v :=
 by ext; simp
 
-@[simp] lemma circulant_zero (α I) [has_zero α] [has_sub I] :
-  circulant 0 = (0 : matrix I I α) :=
-ext $ λ _ _, rfl
-
 @[simp] lemma circulant_single_one (α I) [has_zero α] [has_one α] [decidable_eq I] [add_group I] :
   circulant (pi.single 0 1 : I → α) = (1 : matrix I I α) :=
 by { ext i j, simp only [circulant, one_apply, pi.single_apply, sub_eq_zero], congr }
@@ -159,18 +156,13 @@ end
 lemma fin.circulant_ite (α) [has_zero α] [has_one α] :
   ∀ n, circulant (λ i, ite (↑i = 0) 1 0 : fin n → α) = 1
 | 0     := dec_trivial
-| (n+1) := begin
-  simp_rw [fin.coe_eq_zero, ←circulant_single_one],
+| (n+1) :=
+begin
+  rw [←circulant_single_one],
   congr' with j,
-  rw pi.single_apply,
-  congr,
+  simp only [pi.single_apply, fin.ext_iff],
+  congr
 end
-
-/-- For a one-ary predicate `p`, `p` applied to every entry of `circulant v` is true
-    if `p` applied to every entry of `v` is true. -/
-lemma pred_circulant_entry_of_pred_vec_entry [has_sub I]
-  {p : α → Prop} {v : I → α} (h : ∀ k, p (v k)) (i j : I) :
-  p ((circulant v) i j) := h (i - j)
 
 /-- Given a set `S`, every entry of `circulant v` is in `S` if every entry of `v` is in `S`. -/
 lemma circulant_entry_in_of_vec_entry_in [has_sub I]

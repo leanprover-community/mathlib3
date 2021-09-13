@@ -1116,7 +1116,7 @@ begin
   exact if_pos hi,
 end
 
-lemma zero_trim (hle : m ≤ n) :
+@[simp] lemma zero_trim (hle : m ≤ n) :
   (0 : vector_measure α M).trim hle = 0 :=
 begin
   ext1 i hi,

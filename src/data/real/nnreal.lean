@@ -537,9 +537,9 @@ section sub
 /-!
 ### Lemmas about subtraction
 
-In this section we provide a few lemmas about definition, the instance `nnreal.has_ordered_sub`, and
-a few lemmas about subtraction, multiplication, and division. For lemmas about subtraction and
-addition see lemmas about `has_ordered_sub` in the file `algebra/ordered_sub`. -/
+In this section we provide the instance `nnreal.has_ordered_sub` and a few lemmas about subtraction
+that do not fit well into any other typeclass. For lemmas about subtraction and addition see lemmas
+about `has_ordered_sub` in the file `algebra/ordered_sub`. See also `mul_sub'` and `sub_mul'`. -/
 
 lemma sub_def {r p : ℝ≥0} : r - p = real.to_nnreal (r - p) := rfl
 
@@ -549,15 +549,8 @@ instance : has_ordered_sub ℝ≥0 :=
 ⟨λ a b c, by simp only [← nnreal.coe_le_coe, nnreal.coe_add, coe_sub_def, max_le_iff, c.coe_nonneg,
   and_true, sub_le_iff_le_add]⟩
 
-lemma mul_sub (a b c : ℝ≥0) : a * (b - c) = a * b - a * c :=
-nnreal.eq $ by simp only [coe_sub_def, nnreal.coe_mul, mul_max_of_nonneg _ _ a.coe_nonneg,
-  mul_sub, mul_zero]
-
-lemma sub_mul (a b c : ℝ≥0) : (a - b) * c = a * c - b * c :=
-by simp only [← mul_comm c, mul_sub]
-
 lemma sub_div (a b c : ℝ≥0) : (a - b) / c = a / c - b / c :=
-by simp only [div_eq_mul_inv, sub_mul]
+by simp only [div_eq_mul_inv, sub_mul']
 
 end sub
 

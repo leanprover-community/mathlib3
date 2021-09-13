@@ -1593,6 +1593,11 @@ begin
   exact ne_of_lt (measure_lt_top _ _)
 end
 
+lemma measure.is_finite_measure.map
+  [is_finite_measure μ] {f : α → β} (hf : measurable f) :
+  is_finite_measure (map f μ) :=
+⟨by { rw [map_apply hf measurable_set.univ, set.preimage_univ], exact measure_lt_top μ _ }⟩
+
 end is_finite_measure
 
 section is_probability_measure

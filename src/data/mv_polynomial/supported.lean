@@ -63,7 +63,7 @@ begin
   simp [subalgebra.zero_mem],
 end
 
-lemma supported_le_supported_iff [nontrivial R] :
+@[simp] lemma supported_le_supported_iff [nontrivial R] :
   supported R s ≤ supported R t ↔ s ⊆ t :=
 begin
   split,

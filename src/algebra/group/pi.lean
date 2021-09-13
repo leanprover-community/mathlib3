@@ -257,3 +257,23 @@ lemma pi.piecewise_div [Π i, has_div (f i)] (s : set I) [Π i, decidable (i ∈
 s.piecewise_op₂ _ _ _ _ (λ _, (/))
 
 end piecewise
+
+section extend
+
+variables {ι : Type u} {η : Type v} (R : Type w) {s : ι → η} (hs : function.injective s)
+
+/-- `extend_by_one` as a bundled hom. -/
+@[to_additive "`extend_by_zero` as a bundled hom."]
+noncomputable def extend_by_one_mul [mul_one_class R] : (ι → R) →* (η → R) :=
+{ to_fun := λ f, pi.extend_by_one R s f,
+  map_one' := pi.extend_by_one_of_one R hs,
+  map_mul' := λ f g,
+  begin
+    ext,
+    by_cases hx : ∃ i, s i = x,
+    { obtain ⟨i, hi⟩ := hx,
+      simp [← hi, hs] },
+    { simp [extend_by_one_apply' R s 1 x hx] }
+  end }
+
+end extend

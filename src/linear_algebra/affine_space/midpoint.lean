@@ -187,6 +187,6 @@ def of_map_midpoint (f : E → F) (h0 : f 0 = 0)
 
 @[simp] lemma coe_of_map_midpoint (f : E → F) (h0 : f 0 = 0)
   (hm : ∀ x y, f (midpoint R x y) = midpoint R' (f x) (f y)) :
-  ⇑(of_map_midpoint R R' f h0 hm) = f := rfl
+  (of_map_midpoint R R' f h0 hm : E → F) = f := rfl
 
 end add_monoid_hom

@@ -140,7 +140,7 @@ lemma fin.circulant_mul_comm [comm_semigroup α] [add_comm_monoid α] :
 | 0     := dec_trivial
 | (n+1) := circulant_mul_comm
 
-/-- `k • circulant v` is another circulantcluant matrix `circulant (k • v)`. -/
+/-- `k • circulant v` is another circulant matrix `circulant (k • v)`. -/
 lemma circulant_smul [has_sub n] [has_scalar R α] (k : R) (v : n → α) :
   circulant (k • v) = k • circulant v :=
 by ext; simp
@@ -159,8 +159,7 @@ begin
 end
 
 /-- Note we use `↑i = 0` instead of `i = 0` as `fin 0` has no `0`.
-    This means that we cannot state this with `pi.single`
-    as we did with `matrix.circulant_single`. -/
+This means that we cannot state this with `pi.single` as we did with `matrix.circulant_single`. -/
 lemma fin.circulant_ite (α) [has_zero α] [has_one α] :
   ∀ n, circulant (λ i, ite (↑i = 0) 1 0 : fin n → α) = 1
 | 0     := dec_trivial
@@ -172,14 +171,12 @@ begin
   congr
 end
 
-/-- The circulant matrix `circulant v` is symmetric iff
-    `∀ i j, v (j - i) = v (i - j)`. -/
+/-- The circulant matrix `circulant v` is symmetric iff `∀ i j, v (j - i) = v (i - j)`. -/
 lemma circulant_is_symm_iff' [has_sub n] {v : n → α} :
   (circulant v).is_symm ↔ ∀ i j, v (j - i) = v (i - j) :=
-by simp [is_symm.ext_iff, circulant]
+by simp [is_symm.ext_iff]
 
-/-- The circulant matrix `circulant v` is symmetric iff
-    `v (- i) = v i` if `[add_group n]`. -/
+/-- The circulant matrix `circulant v` is symmetric iff `v (- i) = v i` if `[add_group n]`. -/
 lemma circulant_is_symm_iff [add_group n] {v : n → α} :
   (circulant v).is_symm ↔ ∀ i, v (- i) = v i :=
 begin
@@ -191,14 +188,8 @@ end
 
 lemma fin.circulant_is_symm_iff :
   ∀ {n} {v : fin n → α}, (circulant v).is_symm ↔ ∀ i, v (- i) = v i
-| 0     := λ v, by simp only [circulant_is_symm_iff', is_empty.forall_iff]
+| 0     := λ v, by simp [circulant_is_symm_iff', is_empty.forall_iff]
 | (n+1) := λ v, circulant_is_symm_iff
-
-/-- If `circulant v` is symmetric, `∀ i j : I, v (j - i) = v (i - j)`. -/
-lemma circulant_is_symm_apply'
-  [has_sub n] {v : n → α} (h : (circulant v).is_symm) (i j : n) :
-  v (j - i) = v (i - j) :=
-circulant_is_symm_iff'.1 h i j
 
 /-- If `circulant v` is symmetric, `∀ i j : I, v (- i) = v i`. -/
 lemma circulant_is_symm_apply [add_group n] {v : n → α} (h : (circulant v).is_symm) (i : n) :

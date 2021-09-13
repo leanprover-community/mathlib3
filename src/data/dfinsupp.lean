@@ -485,10 +485,10 @@ variables (j : ι)
 @[simp] lemma update_apply : f.update i b j = function.update f i b j :=
 quotient.induction_on f (λ _, rfl)
 @[simp] lemma update_apply_same : f.update i b i = b := by simp
-@[simp] lemma update_self [decidable (f i = 0)]: f.update i (f i) = f :=
+@[simp] lemma update_self [decidable (f i = 0)] : f.update i (f i) = f :=
 by { ext, simp }
 
-@[simp] lemma update_eq_erase [decidable ((0 : β i) = 0)]: f.update i 0 = f.erase i :=
+@[simp] lemma update_eq_erase [decidable ((0 : β i) = 0)] : f.update i 0 = f.erase i :=
 begin
   ext j,
   rcases eq_or_ne i j with rfl|hi,

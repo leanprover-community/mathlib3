@@ -421,33 +421,16 @@ section trivial
 lemma quot_by_top_is_subsingleton : subsingleton (quotient_group.quotient (⊤ : subgroup G)) :=
 trunc.subsingleton
 
-lemma left_rel_triv (H : subgroup G) (h : quotient_group.left_rel H = ⊤ ) :
-  ∀ x y : G , x⁻¹ * y ∈ H :=
-begin
-  let s := (quotient_group.left_rel H).r,
-  have h2 : ∀ x y : G, s x y ↔ x⁻¹ * y ∈ H, by {intros x y, refl},
-  intros x y,
-  have h3 := h2 x y,
-  rw ← h3,
-  simp_rw s,
-  rw h,
-  tauto,
-end
+lemma setoid.eq_top_iff {α : Type*} {s : setoid α} : s = (⊤ : setoid α) ↔ ∀ x y : α, s.rel x y :=
+by simp [eq_top_iff, setoid.le_def, setoid.top_def, top_apply]
 
 /-- If the quotient by a subgroup gives a singleton then the subgroup is the whole group. -/
 lemma subgroup_eq_top_of_subsingleton (H : subgroup G) (h : subsingleton
   (quotient_group.quotient H)) :
   H = ⊤ :=
-begin
-  ext1,
-  simp only [subgroup.mem_top, iff_true] at *,
-  rw quotient_group.quotient at h,
-  have h2 := (setoid.subsingleton_quotient_iff_eq_top).1 h,
-  have h3 := left_rel_triv H h2,
-  have h4 := h3 1 x,
-  rw [one_inv, one_mul] at h4,
-  exact h4,
-end
+top_unique $ λ x _,
+  have this : 1⁻¹ * x ∈ H := quotient_group.eq.1 (subsingleton.elim _ _),
+  by rwa [one_inv, one_mul] at this
 
 end trivial
 

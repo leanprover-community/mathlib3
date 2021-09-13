@@ -2260,13 +2260,9 @@ begin
   { rw [erase_eq_of_not_mem h], apply nat.sub_le }
 end
 
-theorem card_erase [decidable_eq α] {a : α} {s : finset α} :
-  card (erase s a) = if a ∈ s then pred (card s) else card s :=
-begin
-  by_cases h : a ∈ s,
-  { rw [card_erase_of_mem h, if_pos], assumption },
-  { rw [erase_eq_of_not_mem h, if_neg], assumption }
-end
+/-- If `a ∈ s` is known, see also `finset.card_erase_of_mem` and `finset.erase_eq_of_not_mem`. -/
+theorem card_erase_eq_ite [decidable_eq α] {a : α} {s : finset α} :
+  card (erase s a) = if a ∈ s then pred (card s) else card s := card_erase_eq_ite
 
 @[simp] theorem card_range (n : ℕ) : card (range n) = n := card_range n
 

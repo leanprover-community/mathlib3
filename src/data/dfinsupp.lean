@@ -458,7 +458,9 @@ variables (f : Π₀ i, β i) (i : ι) (b : β i) [decidable (b = 0)]
 
 /-- Replace the value of a `Π₀ i, β i` at a given point `i : ι` by a given value `b : β i`.
 If `b = 0`, this amounts to removing `i` from the support.
-Otherwise, if `i` was not in the support, it is added to it.  -/
+Otherwise, `i` is added to it.
+
+This is the (dependent) finitely-supported version of `function.update`. -/
 def update : Π₀ i, β i :=
 quotient.map (λ (x : pre _ _), ⟨function.update x.to_fun i b,
   if b = 0 then x.pre_support.erase i else i ::ₘ x.pre_support,

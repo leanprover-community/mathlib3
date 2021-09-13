@@ -160,7 +160,7 @@ def finite_subspace : subspace 𝕜 V :=
   add_mem'  := λ x y hx hy, lt_of_le_of_lt (e.map_add_le x y) (ennreal.add_lt_top.2 ⟨hx, hy⟩),
   smul_mem' := λ c x hx,
     calc e (c • x) = nnnorm c * e x : e.map_smul c x
-               ... < ⊤              : ennreal.mul_lt_top ennreal.coe_lt_top hx }
+               ... < ⊤              : ennreal.mul_lt_top ennreal.coe_ne_top hx.ne }
 
 /-- Metric space structure on `e.finite_subspace`. We use `emetric_space.to_metric_space_of_dist`
 to ensure that this definition agrees with `e.emetric_space`. -/

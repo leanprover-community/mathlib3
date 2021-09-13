@@ -192,6 +192,12 @@ lemma is_mul_left_invariant.measure_ne_zero_iff_nonempty [regular μ]
   μ s ≠ 0 ↔ s.nonempty :=
 by simp_rw [← ne_empty_iff_nonempty, ne.def, h2μ.null_iff_empty h3μ hs]
 
+@[to_additive]
+lemma is_mul_left_invariant.measure_pos_iff_nonempty [regular μ]
+  (h2μ : is_mul_left_invariant μ) (h3μ : μ ≠ 0) {s : set G} (hs : is_open s) :
+  0 < μ s ↔ s.nonempty :=
+pos_iff_ne_zero.trans $ h2μ.measure_ne_zero_iff_nonempty h3μ hs
+
 /-- For nonzero regular left invariant measures, the integral of a continuous nonnegative function
   `f` is 0 iff `f` is 0. -/
 @[to_additive]
@@ -208,10 +214,8 @@ begin
   let s := Ioi r,
   rw [← ne.def, ← pos_iff_ne_zero],
   have : 0 < r * μ (f ⁻¹' Ioi r),
-  { rw ennreal.mul_pos,
-    refine ⟨h1r, _⟩,
-    rw [pos_iff_ne_zero, h2μ.measure_ne_zero_iff_nonempty h3μ h3r],
-    exact ⟨x, h2r⟩ },
+  { have : (f ⁻¹' Ioi r).nonempty, from ⟨x, h2r⟩,
+    simpa [h1r.ne', h2μ.measure_pos_iff_nonempty h3μ h3r, h1r] },
   refine this.trans_le _,
   rw [← set_lintegral_const, ← lintegral_indicator _ h3r.measurable_set],
   apply lintegral_mono,

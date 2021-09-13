@@ -405,7 +405,7 @@ begin
     { rw h },
     rwa [to_signed_measure_apply_measurable hi, to_signed_measure_apply_measurable hi,
         ennreal.to_real_eq_to_real] at this;
-    { exact measure_lt_top _ _ } },
+    { exact measure_ne_top _ _ } },
   { congr, assumption }
 end
 

@@ -563,8 +563,8 @@ instance regular_haar_measure [locally_compact_space G] {K₀ : positive_compact
   (haar_measure K₀).regular :=
 begin
   apply regular.smul,
-  rw ennreal.inv_lt_top,
-  exact haar_content_outer_measure_self_pos,
+  rw ennreal.inv_ne_top,
+  exact haar_content_outer_measure_self_pos.ne'
 end
 
 section unique
@@ -584,7 +584,7 @@ end
 
 @[to_additive]
 theorem regular_of_is_mul_left_invariant (hμ : is_mul_left_invariant μ) {K} (hK : is_compact K)
-  (h2K : (interior K).nonempty) (hμK : μ K < ∞) : regular μ :=
+  (h2K : (interior K).nonempty) (hμK : μ K ≠ ∞) : regular μ :=
 begin
   rw [haar_measure_unique hμ ⟨K, hK, h2K⟩],
   exact regular.smul hμK

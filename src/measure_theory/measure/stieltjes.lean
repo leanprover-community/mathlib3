@@ -243,7 +243,7 @@ begin
   refine le_infi (λ t, le_infi $ λ ht,
     ennreal.le_of_forall_pos_le_add $ λ ε ε0 h, _),
   rcases ennreal.exists_pos_sum_of_encodable
-    (ennreal.zero_lt_coe_iff.2 ε0).ne' ℕ with ⟨ε', ε'0, hε⟩,
+    (ennreal.coe_pos.2 ε0).ne' ℕ with ⟨ε', ε'0, hε⟩,
   refine le_trans _ (add_le_add_left (le_of_lt hε) _),
   rw ← ennreal.tsum_add,
   choose g hg using show
@@ -251,7 +251,7 @@ begin
       f.outer s ≤ f.length (t i) + of_real (ε' i),
   { intro i,
     have := (ennreal.lt_add_right ((ennreal.le_tsum i).trans_lt h).ne
-        (ennreal.zero_lt_coe_iff.2 (ε'0 i)).ne'),
+        (ennreal.coe_pos.2 (ε'0 i)).ne'),
     conv at this {to_lhs, rw length},
     simp only [infi_lt_iff] at this,
     rcases this with ⟨a, b, h₁, h₂⟩,

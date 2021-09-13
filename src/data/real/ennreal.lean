@@ -846,6 +846,10 @@ lemma sum_eq_top_iff {s : finset α} {f : α → ℝ≥0∞} :
   (∑ x in s, f x) = ∞ ↔ (∃ a ∈ s, f a = ∞) :=
 with_top.sum_eq_top_iff
 
+lemma lt_top_of_sum_ne_top {s : finset α} {f : α → ℝ≥0∞} (h : (∑ x in s, f x) ≠ ∞) {a : α}
+  (ha : a ∈ s) : f a < ∞ :=
+sum_lt_top_iff.1 h.lt_top a ha
+
 /-- seeing `ℝ≥0∞` as `ℝ≥0` does not change their sum, unless one of the `ℝ≥0∞` is
 infinity -/
 lemma to_nnreal_sum {s : finset α} {f : α → ℝ≥0∞} (hf : ∀a∈s, f a ≠ ∞) :

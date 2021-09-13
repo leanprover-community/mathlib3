@@ -6,7 +6,7 @@ Authors: Kevin Buzzard, Patrick Massot
 This file is to a certain extent based on `quotient_module.lean` by Johannes Hölzl.
 -/
 import group_theory.coset
-import data.quot
+import data.setoid.basic
 
 /-!
 # Quotients of groups by normal subgroups
@@ -443,16 +443,12 @@ begin
   simp only [subgroup.mem_top, iff_true] at *,
   rw quotient_group.quotient at h,
   let r := (quotient_group.left_rel H).r,
-  have := subsingleton_quot_iff_forall r,
-  have ht:= setoid.subsingleton_quotient_iff_eq_top r,
-  have h2 := this.1 h,
-  have h3 := setoid.iseqv,
-  have h4 : eqv_gen r = λ _ _, true, by { ext, rw iff_true, apply h2 x_1 x_2, },
-  rw relation.eqv_gen_eq_of_equivalence h3 at h4,
-  have h5 := left_rel_triv H h4,
-  have h6 := h5 1 x,
-  rw [one_inv, one_mul] at h6,
-  exact h6,
+  have h2 := (setoid.subsingleton_quot_iff_forall r).1 h,
+  rw [relation.eqv_gen_eq_of_equivalence setoid.iseqv, setoid.top_rel_eq_triv_rel] at h2,
+  have h3 := left_rel_triv H h2,
+  have h4 := h3 1 x,
+  rw [one_inv, one_mul] at h4,
+  exact h4,
 end
 
 end trivial

@@ -29,7 +29,7 @@ variables {α β R n m : Type*}
 open function
 open_locale matrix kronecker
 
-/-- `A.is_diag` means square matrix `A` is a dianogal matrix: `∀ i j, i ≠ j → A i j = 0`. -/
+/-- `A.is_diag` means square matrix `A` is a diagoal matrix. -/
 def is_diag [has_zero α] (A : matrix n n α) : Prop := ∀ ⦃i j⦄, i ≠ j → A i j = 0
 
 /-- Matrix `A` is diagonal iff there is a vector `d`

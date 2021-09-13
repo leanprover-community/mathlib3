@@ -443,7 +443,7 @@ begin
   simp only [subgroup.mem_top, iff_true] at *,
   rw quotient_group.quotient at h,
   let r := (quotient_group.left_rel H).r,
-  have h2 := (setoid.subsingleton_quot_iff_forall r).1 h,
+  have h2 := (setoid.subsingleton_quot_iff r).1 h,
   rw [relation.eqv_gen_eq_of_equivalence setoid.iseqv, setoid.top_rel_eq_triv_rel] at h2,
   have h3 := left_rel_triv H h2,
   have h4 := h3 1 x,

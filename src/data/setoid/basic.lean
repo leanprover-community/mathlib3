@@ -138,10 +138,10 @@ instance complete_lattice : complete_lattice (setoid α) :=
     ⟨λ r hr x y h, h _ hr, λ r hr x y h r' hr', hr hr' h⟩ }
 
 @[simp]
-lemma top_def  : (⊤ : setoid α).rel = ⊤ := rfl
+lemma top_def : (⊤ : setoid α).rel = ⊤ := rfl
 
 @[simp]
-lemma bot_def  : (⊥ : setoid α).rel = (=) := rfl
+lemma bot_def : (⊥ : setoid α).rel = (=) := rfl
 
 /-- The inductively defined equivalence closure of a binary relation r is the infimum
     of the set of all equivalence relations containing r. -/
@@ -377,9 +377,9 @@ end
 @[simp]
 lemma top_rel_eq_triv_rel : (⊤ : α → α → Prop) = λ _ _, true := by {refl}
 
-lemma subsingleton_quot_iff_forall (r: α → α → Prop) : subsingleton (quot r) ↔ eqv_gen r = ⊤ :=
+lemma subsingleton_quot_iff (r: α → α → Prop) : subsingleton (quot r) ↔ eqv_gen r = ⊤ :=
 begin
-  simp only [subsingleton_iff, eq_top_iff, setoid.le_def, setoid.top_def, top_apply, forall_const],
+  simp only [subsingleton_iff, eq_top_iff, setoid.le_def, top_apply, forall_const],
   refine (surjective_quot_mk _).forall.trans (forall_congr $ λ a, _),
   refine (surjective_quot_mk _).forall.trans (forall_congr $ λ b, _),
   rw quot.eq,

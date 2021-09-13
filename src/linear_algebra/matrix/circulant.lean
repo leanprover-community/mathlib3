@@ -84,19 +84,19 @@ lemma fin.conj_transpose_circulant [has_star α] :
 
 lemma map_circulant [has_sub I] (v : I → α) (f : α → β) :
   (circulant v).map f = circulant (λ i, f (v i)) :=
-by ext; simp
+ext $ λ _ _, rfl
 
 lemma circulant_neg [has_neg α] [has_sub I] (v : I → α) :
   circulant (- v) = - circulant v :=
-by ext; simp
+ext $ λ _ _, rfl
 
 lemma circulant_add [has_add α] [has_sub I] (v w : I → α) :
   circulant (v + w) = circulant v + circulant w :=
-by ext; simp
+ext $ λ _ _, rfl
 
 lemma circulant_sub [has_sub α] [has_sub I] (v w : I → α) :
   circulant (v - w) = circulant v - circulant w :=
-by ext; simp
+ext $ λ _ _, rfl
 
 lemma circulant_mul [semiring α] [fintype I] [add_comm_group I] (v w : I → α) :
   circulant v ⬝ circulant w = circulant (mul_vec (circulant v) w) :=

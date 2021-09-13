@@ -374,4 +374,14 @@ begin
   exact quotient.eq',
 end
 
+lemma subsingleton_quot_iff_forall (r: α → α → Prop) : subsingleton (quot r) ↔ eqv_gen r = ⊤ :=
+begin
+  simp only [subsingleton_iff, eq_top_iff, setoid.le_def, setoid.top_def, top_apply, forall_const],
+  refine (surjective_quot_mk _).forall.trans (forall_congr $ λ a, _),
+  refine (surjective_quot_mk _).forall.trans (forall_congr $ λ b, _),
+  rw quot.eq,
+  have : (⊤ : α → α → Prop) = λ _ _, true, {by refl,},
+  simp only [this, le_Prop_eq, forall_true_left],
+end
+
 end setoid

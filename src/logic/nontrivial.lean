@@ -86,6 +86,8 @@ if h : nontrivial α then psum.inl h else psum.inr
     use [x, default α]
   end }
 
+lemma subsingleton_iff : subsingleton α ↔ ∀ (x y : α), x = y :=
+⟨by { introsI h, exact subsingleton.elim }, λ h, ⟨h⟩⟩
 
 lemma not_nontrivial_iff_subsingleton : ¬(nontrivial α) ↔ subsingleton α :=
 by { rw [nontrivial_iff, subsingleton_iff], push_neg, refl }

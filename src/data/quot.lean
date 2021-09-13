@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import logic.relator
-import logic.basic
-
 
 /-!
 # Quotient types
@@ -497,15 +495,5 @@ noncomputable def out' (a : quotient s₁) : α := quotient.out a
 
 theorem mk_out' (a : α) : @setoid.r α s₁ (quotient.mk' a : quotient s₁).out' a :=
 quotient.exact (quotient.out_eq _)
-
-variables {α' : Type*} (r : α' → α' → Prop )
-
-lemma subsingleton_quot_iff_forall : subsingleton (quot r) ↔ ∀ a b, eqv_gen r a b :=
-begin
-  rw subsingleton_iff,
-  refine (surjective_quot_mk _).forall.trans (forall_congr $ λ a, _),
-  refine (surjective_quot_mk _).forall.trans (forall_congr $ λ b, _),
-  exact quot.eq,
-end
 
 end quotient

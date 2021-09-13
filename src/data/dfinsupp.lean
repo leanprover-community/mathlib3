@@ -482,9 +482,8 @@ quotient.map (λ (x : pre _ _), ⟨function.update x.to_fun i b,
 
 variables (j : ι)
 
-@[simp] lemma update_apply : f.update i b j = function.update f i b j :=
+@[simp] lemma coe_update : (f.update i b : Π (i : ι), β i) = function.update f i b :=
 quotient.induction_on f (λ _, rfl)
-@[simp] lemma update_apply_same : f.update i b i = b := by simp
 @[simp] lemma update_self [decidable (f i = 0)] : f.update i (f i) = f :=
 by { ext, simp }
 

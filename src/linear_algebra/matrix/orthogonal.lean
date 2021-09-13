@@ -30,13 +30,13 @@ variables (A : matrix m n α)
 
 open_locale matrix
 
-/-- `A.has_orthogonal_rows` means matrix `A` has orthogonal
-    (with respect to `dot_product`) rows. -/
+/-- `A.has_orthogonal_rows` means matrix `A` has orthogonal rows (with respect to
+`matrix.dot_product`). -/
 def has_orthogonal_rows [fintype n] : Prop :=
 ∀ ⦃i₁ i₂⦄, i₁ ≠ i₂ → dot_product (A i₁) (A i₂) = 0
 
-/-- `A.has_orthogonal_cols` means matrix `A` has orthogonal
-    (with respect to `dot_product`) columns. -/
+/-- `A.has_orthogonal_rows` means matrix `A` has orthogonal columns (with respect to
+`matrix.dot_product`). -/
 def has_orthogonal_cols [fintype m] : Prop :=
 has_orthogonal_rows Aᵀ
 

@@ -473,12 +473,9 @@ quotient.map (λ (x : pre _ _), ⟨function.update x.to_fun i b,
         simp [multiset.mem_erase_of_ne hi.symm, hj] },
       { simp [function.update_noteq hi.symm, hj] } }
   end⟩)
-  begin
-    intros x y h j,
-    rcases eq_or_ne i j with rfl|hi,
-    { simp [h i] },
-    { simp [function.update_noteq hi.symm, h j] }
-  end f
+  (λ x y h j,
+    show function.update x.to_fun i b j = function.update y.to_fun i b j,
+    by rw (funext h : x.to_fun = y.to_fun)) f
 
 variables (j : ι)
 

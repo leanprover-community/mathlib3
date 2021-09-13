@@ -118,10 +118,10 @@ lemma is_diag.kronecker [mul_zero_class α]
   (A ⊗ₖ B).is_diag :=
 begin
   rintros ⟨a, b⟩ ⟨c, d⟩ h,
-  dsimp [kronecker_apply],
-  by_cases hac : a = c,
-  { have hbd : b ≠ d, { tidy }, simp [hB hbd] },
+  simp only [prod.mk.inj_iff, ne.def, not_and_distrib] at h,
+  cases h with hac hbd,
   { simp [hA hac] },
+  { simp [hB hbd] },
 end
 
 @[simp] lemma is_diag.diagonal [has_zero α] [decidable_eq n] (d : n → α) :

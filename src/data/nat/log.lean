@@ -106,9 +106,9 @@ lemma log_mono {b : ℕ} : monotone (λ n : ℕ, log b n) :=
 
 private lemma add_pred_div_lt {b n : ℕ} (hb : 1 < b) (hn : 2 ≤ n) : (n + b - 1)/b < n :=
 begin
-  rw [div_lt_iff_lt_mul _ _ (zero_lt_one.trans hb), ←succ_le_iff, ←pred_eq_sub_one,
-    succ_pred_eq_of_pos (add_pos (zero_lt_one.trans hn) (zero_lt_one.trans hb))],
-  exact add_le_mul hn hb,
+  rw [div_lt_iff_lt_mul _ _ (zero_lt_one.trans hb), ←pred_eq_sub_one],
+  exact (pred_lt_of_not_minimal $ add_pos_right _ $ zero_lt_one.trans hb).trans_le
+    (add_le_mul hn hb),
 end
 
 /-! ### Ceil logarithm -/
@@ -151,8 +151,9 @@ lemma clog_eq_one {b n : ℕ} (hn : 2 ≤ n) (h : n ≤ b) : clog b n = 1 :=
 begin
   rw [clog_of_two_le (hn.trans h) hn, clog_of_right_le_one],
   have n_pos : 0 < n := zero_lt_two.trans_le hn,
-  rw [←lt_succ_iff, nat.div_lt_iff_lt_mul _ _ (n_pos.trans_le h), ←succ_le_iff,
-    ←pred_eq_sub_one, succ_pred_eq_of_pos (add_pos n_pos (n_pos.trans_le h)), succ_mul, one_mul],
+  rw [←lt_succ_iff, nat.div_lt_iff_lt_mul _ _ (n_pos.trans_le h)],
+  refine (pred_lt_of_not_minimal $ add_pos_left (zero_lt_one.trans hn) _).trans_le _,
+  rw [succ_mul, one_mul],
   exact add_le_add_right h _,
 end
 

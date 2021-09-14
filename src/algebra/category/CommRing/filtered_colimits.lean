@@ -41,7 +41,7 @@ namespace SemiRing.filtered_colimits
 
 section
 
--- We use parameters here, mainly so we can have the abbreviation `R` below, without
+-- We use parameters here, mainly so we can have the abbreviations `R` and `R.mk` below, without
 -- passing around `F` all the time.
 parameters {J : Type v} [small_category J] (F : J ⥤ SemiRing.{v})
 
@@ -147,7 +147,7 @@ namespace CommSemiRing.filtered_colimits
 
 section
 
--- We use parameters here, mainly so we can have the abbreviation `R` below, without
+-- We use parameters here, mainly so we can have the abbreviations `R` and `R.mk` below, without
 -- passing around `F` all the time.
 parameters {J : Type v} [small_category J] (F : J ⥤ CommSemiRing.{v})
 
@@ -208,7 +208,7 @@ namespace Ring.filtered_colimits
 
 section
 
--- We use parameters here, mainly so we can have the abbreviation `R` below, without
+-- We use parameters here, mainly so we can have the abbreviations `R` and `R.mk` below, without
 -- passing around `F` all the time.
 parameters {J : Type v} [small_category J] (F : J ⥤ Ring.{v})
 
@@ -267,7 +267,7 @@ namespace CommRing.filtered_colimits
 
 section
 
--- We use parameters here, mainly so we can have the abbreviation `R` below, without
+-- We use parameters here, mainly so we can have the abbreviations `R` and `R.mk` below, without
 -- passing around `F` all the time.
 parameters {J : Type v} [small_category J]  (F : J ⥤ CommRing.{v})
 

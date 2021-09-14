@@ -653,6 +653,15 @@ begin
     rw [set_to_fun_undef hT hfi, set_to_fun_undef hT hgi] },
 end
 
+lemma set_to_fun_indicator_const (hT : dominated_fin_meas_additive μ T C) {s : set α}
+  (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : E) :
+  set_to_fun hT (s.indicator (λ _, x)) = T s x :=
+begin
+  rw set_to_fun_congr_ae hT (@indicator_const_Lp_coe_fn _ _ _ 1 _ _ _ _ hs hμs x _ _).symm,
+  rw L1.set_to_fun_eq_set_to_L1 hT,
+  exact L1.set_to_L1_indicator_const_Lp hT hs hμs x,
+end
+
 end function
 
 end measure_theory

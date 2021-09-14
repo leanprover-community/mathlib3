@@ -343,34 +343,6 @@ calc ∥f.set_to_simple_func T∥
   end
 ... ≤ C * ∑ x in f.range, (μ (f ⁻¹' {x})).to_real * ∥x∥ : by simp_rw [mul_sum, ← mul_assoc]
 
-lemma simple_func.range_indicator {β} {m : measurable_space α} {s : set α} (hs : measurable_set s)
-  (hs_nonempty : s ≠ ∅) (hs_ne_univ : s ≠ univ) (x y : β) :
-  (simple_func.piecewise s hs (simple_func.const α x) (simple_func.const α y)).range = {x, y} :=
-begin
-  ext1 z,
-  rw [mem_range, set.mem_range, finset.mem_insert, finset.mem_singleton],
-  simp_rw simple_func.piecewise_apply,
-  split; intro h,
-  { obtain ⟨a, haz⟩ := h,
-    by_cases has : a ∈ s,
-    { left,
-      simp only [has, function.const_apply, if_true, coe_const] at haz,
-      exact haz.symm, },
-    { right,
-      simp only [has, function.const_apply, if_false, coe_const] at haz,
-      exact haz.symm, }, },
-  { cases h,
-    { obtain ⟨a, has⟩ : ∃ a, a ∈ s, by rwa set.ne_empty_iff_nonempty at hs_nonempty,
-      exact ⟨a, by simpa [has] using h.symm⟩, },
-    { obtain ⟨a, has⟩ : ∃ a, a ∉ s,
-      { by_contra,
-        push_neg at h,
-        refine hs_ne_univ _,
-        ext1 a,
-        simp [h a], },
-      exact ⟨a, by simpa [has] using h.symm⟩, }, },
-end
-
 lemma set_to_simple_func_indicator (T : set α → F →L[ℝ] F') (hT_empty : T ∅ = 0)
   {m : measurable_space α} {s : set α} (hs : measurable_set s) (x : F) :
   simple_func.set_to_simple_func T
@@ -387,7 +359,7 @@ begin
       exact subsingleton.elim s ∅, },
     simp [hs_univ, set_to_simple_func], },
   simp_rw set_to_simple_func,
-  rw simple_func.range_indicator hs hs_empty hs_univ,
+  rw range_indicator hs hs_empty hs_univ,
   by_cases hx0 : x = 0,
   { simp_rw hx0, simp, },
   rw sum_insert,

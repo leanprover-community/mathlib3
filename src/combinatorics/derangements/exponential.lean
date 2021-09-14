@@ -3,10 +3,9 @@ Copyright (c) 2021 Henry Swanson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Henry Swanson, Patrick Massot
 -/
+import analysis.normed_space.exponential
 import combinatorics.derangements.finite
-import analysis.complex.basic
-import data.complex.exponential
-import topology.metric_space.cau_seq_filter
+import order.filter.basic
 
 /-!
 # Derangement exponential series
@@ -15,29 +14,9 @@ This file proves that the probability of a permutation on n elements being a der
 The specific lemma is `num_derangements_tendsto_inv_e`.
 -/
 open filter
-open finset
 
 open_locale big_operators
 open_locale topological_space
-
-lemma complex.tendsto_iff_real (u : ℕ → ℝ) (x : ℝ) :
-  tendsto (λ n, u n) at_top (𝓝 x) ↔
-  tendsto (λ n, (u n : ℂ)) at_top (𝓝 (x : ℂ)) :=
-  ⟨(complex.continuous_of_real.tendsto x).comp, (complex.continuous_re.tendsto x).comp⟩
-
-lemma complex.tendsto_exp_series (z : ℂ) :
-  tendsto (λ n, ∑ k in range n, z^k / k.factorial) at_top (𝓝 z.exp) :=
-begin
-  convert z.exp'.tendsto_limit,
-  unfold complex.exp,
-end
-
-lemma real.tendsto_exp_series (x : ℝ) :
-  tendsto (λ n, ∑ k in range n, x^k / k.factorial) at_top (𝓝 x.exp) :=
-begin
-  rw complex.tendsto_iff_real,
-  convert complex.tendsto_exp_series x; simp,
-end
 
 theorem num_derangements_tendsto_inv_e :
   tendsto (λ n, (num_derangements n : ℝ) / n.factorial) at_top
@@ -49,9 +28,14 @@ begin
   let s : ℕ → ℝ := λ n, ∑ k in finset.range n, (-1 : ℝ)^k / k.factorial,
   suffices : ∀ n : ℕ, (num_derangements n : ℝ) / n.factorial = s(n+1),
   { simp_rw this,
-    -- shift the function by 1, and use the power series lemma
+    -- shift the function by 1, and then use the fact that the partial sums
+    -- converge to the infinite sum
     rw tendsto_add_at_top_iff_nat 1,
-    exact real.tendsto_exp_series (-1) },
+    apply has_sum.tendsto_sum_nat,
+    -- there's no specific lemma for ℝ that ∑ x^k/k! sums to exp(x), but it's
+    -- true in more general fields, so use that lemma
+    rw real.exp_eq_exp_ℝ_ℝ,
+    exact exp_series_field_has_sum_exp (-1 : ℝ) },
   intro n,
   rw [← int.cast_coe_nat, num_derangements_sum],
   push_cast,

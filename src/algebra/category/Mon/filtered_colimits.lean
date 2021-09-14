@@ -204,7 +204,7 @@ instance colimit_monoid : monoid M :=
 
 /-- The bundled monoid giving the filtered colimit of a diagram. -/
 @[to_additive "The bundled additive monoid giving the filtered colimit of a diagram."]
-def colimit : Mon := ⟨M, by apply_instance⟩
+def colimit : Mon := Mon.of M
 
 @[to_additive]
 lemma colimit_one_eq (j : J) : (1 : M) = M.mk ⟨j, 1⟩ :=
@@ -313,7 +313,7 @@ instance colimit_comm_monoid : comm_monoid M :=
 
 /-- The bundled commutative monoid giving the filtered colimit of a diagram. -/
 @[to_additive "The bundled additive commutative monoid giving the filtered colimit of a diagram."]
-def colimit : CommMon := ⟨M, by apply_instance⟩
+def colimit : CommMon := CommMon.of M
 
 /-- The cocone over the proposed colimit commutative monoid. -/
 @[to_additive "The cocone over the proposed colimit additive commutative monoid."]

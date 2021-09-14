@@ -103,7 +103,7 @@ instance colimit_semiring : semiring R :=
   ..AddCommMon.filtered_colimits.colimit_add_comm_monoid (F ⋙ forget₂ SemiRing AddCommMon) }
 
 /-- The bundled semiring giving the filtered colimit of a diagram. -/
-def colimit : SemiRing := ⟨R, by apply_instance⟩
+def colimit : SemiRing := SemiRing.of R
 
 /-- The cocone over the proposed colimit semiring. -/
 def colimit_cocone : cocone F :=
@@ -169,7 +169,7 @@ instance colimit_comm_semiring : comm_semiring R :=
   ..CommMon.filtered_colimits.colimit_comm_monoid (F ⋙ forget₂ CommSemiRing CommMon) }
 
 /-- The bundled commutative semiring giving the filtered colimit of a diagram. -/
-def colimit : CommSemiRing := ⟨R, by apply_instance⟩
+def colimit : CommSemiRing := CommSemiRing.of R
 
 /-- The cocone over the proposed colimit commutative semiring. -/
 def colimit_cocone : cocone F :=
@@ -230,7 +230,7 @@ instance colimit_ring : ring R :=
   ..AddCommGroup.filtered_colimits.colimit_add_comm_group (F ⋙ forget₂ Ring AddCommGroup) }
 
 /-- The bundled ring giving the filtered colimit of a diagram. -/
-def colimit : Ring := ⟨R, by apply_instance⟩
+def colimit : Ring := Ring.of R
 
 /-- The cocone over the proposed colimit ring. -/
 def colimit_cocone : cocone F :=
@@ -289,7 +289,7 @@ instance colimit_comm_semiring : comm_ring R :=
   ..CommSemiRing.filtered_colimits.colimit_comm_semiring (F ⋙ forget₂ CommRing CommSemiRing) }
 
 /-- The bundled commutative ring giving the filtered colimit of a diagram. -/
-def colimit : CommRing := ⟨R, by apply_instance⟩
+def colimit : CommRing := CommRing.of R
 
 /-- The cocone over the proposed colimit commutative ring. -/
 def colimit_cocone : cocone F :=

@@ -115,7 +115,7 @@ instance colimit_group : group G :=
 
 /-- The bundled group giving the filtered colimit of a diagram. -/
 @[to_additive "The bundled additive group giving the filtered colimit of a diagram."]
-def colimit : Group := ⟨G, by apply_instance⟩
+def colimit : Group := Group.of G
 
 @[to_additive, simp]
 lemma colimit_mk_inv (x : Σ j, F.obj j) : (G.mk x) ⁻¹ = G.mk ⟨x.1, x.2 ⁻¹⟩ := rfl
@@ -176,7 +176,7 @@ instance colimit_comm_group : comm_group G :=
 
 /-- The bundled commutative group giving the filtered colimit of a diagram. -/
 @[to_additive "The bundled additive commutative group giving the filtered colimit of a diagram."]
-def colimit : CommGroup := ⟨G, by apply_instance⟩
+def colimit : CommGroup := CommGroup.of G
 
 /-- The cocone over the proposed colimit commutative group. -/
 @[to_additive "The cocone over the proposed colimit additive commutative group."]

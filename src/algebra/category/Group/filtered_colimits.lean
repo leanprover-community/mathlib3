@@ -157,7 +157,7 @@ namespace CommGroup.filtered_colimits
 
 section
 
--- We use parameters here, mainly so we can have the abbreviations `G` and `G.mk` below, without
+-- We use parameters here, mainly so we can have the abbreviation `G` below, without
 -- passing around `F` all the time.
 parameters {J : Type v} [small_category J] [is_filtered J] (F : J ⥤ CommGroup.{v})
 

@@ -15,7 +15,7 @@ import group_theory.order_of_element
 This file implements the Lucas test for primes (not to be confused with the Lucas-Lehmer test for
 Mersenne primes). A number `a` witnesses that `n` is prime if `a` has order `n-1` in the
 multiplicative group of integers mod `n`. This is checked by verifying that `a^(n-1) = 1 (mod n)`
-and `a^d ≠ 1 (mod n)` for any divisor `d | n`. This test is the basis of the Pratt primality
+and `a^d ≠ 1 (mod n)` for any divisor `d | n - 1`. This test is the basis of the Pratt primality
 certificate.
 
 ## TODO

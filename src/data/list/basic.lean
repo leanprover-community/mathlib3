@@ -2851,7 +2851,11 @@ end
 
 @[simp] lemma split_on_nil {α : Type u} [decidable_eq α] (a : α) : [].split_on a = [[]] := rfl
 
-/-- An auxiliary definition for proving a specification lemma for `split_on_p`. -/
+/-- An auxiliary definition for proving a specification lemma for `split_on_p`.
+
+`split_on_p_aux' P xs ys` splits the list `ys ++ xs` at every element satisfying `P`,
+where `ys` is an accumulating parameter for the initial segment of elements not satisfying `P`.
+-/
 def split_on_p_aux' {α : Type u} (P : α → Prop) [decidable_pred P] : list α → list α → list (list α)
 | [] xs       := [xs]
 | (h :: t) xs :=
@@ -2863,7 +2867,7 @@ lemma split_on_p_aux_eq {α : Type u} (P : α → Prop) [decidable_pred P] (xs y
 begin
   induction xs with a t ih generalizing ys; simp! only [append_nil, eq_self_iff_true, and_self],
   split_ifs; rw ih,
-  { refine ⟨rfl,rfl⟩ },
+  { refine ⟨rfl, rfl⟩ },
   { congr, ext, simp }
 end
 
@@ -2874,7 +2878,7 @@ by { rw split_on_p_aux_eq, refl }
 /-- The original list `L` can be recovered by joining the lists produced by `split_on_p p L`,
 interspersed with the elements `L.filter p`. -/
 lemma split_on_p_spec {α : Type u} (p : α → Prop) [decidable_pred p] (as : list α) :
-  join (zip_with (++) (split_on_p p as) ((as.filter p).map(λ x, [x]) ++ [[]])) = as :=
+  join (zip_with (++) (split_on_p p as) ((as.filter p).map (λ x, [x]) ++ [[]])) = as :=
 begin
   rw [split_on_p, split_on_p_aux_nil],
   suffices : ∀ xs,

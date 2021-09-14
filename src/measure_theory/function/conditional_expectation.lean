@@ -1317,7 +1317,8 @@ lemma condexp_L1_clm_indicator_const (hs : measurable_set s) (hμs : μ s ≠ �
   (condexp_L1_clm hm μ) ↑(simple_func.indicator_const 1 hs hμs x) = condexp_ind hm μ s x :=
 by { rw Lp.simple_func.coe_indicator_const, exact condexp_L1_clm_indicator_const_Lp hs hμs x, }
 
-lemma set_integral_condexp_L1_clm (f : α →₁[μ] F') (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) :
+lemma set_integral_condexp_L1_clm_of_measure_ne_top (f : α →₁[μ] F') (hs : measurable_set[m] s)
+  (hμs : μ s ≠ ∞) :
   ∫ x in s, condexp_L1_clm hm μ f x ∂μ = ∫ x in s, f x ∂μ :=
 begin
   refine Lp.induction ennreal.one_ne_top
@@ -1339,6 +1340,40 @@ begin
       hf, hg], },
   { exact (continuous_set_integral s).comp (condexp_L1_clm hm μ).continuous, },
   { exact continuous_set_integral s, },
+end
+
+lemma set_integral_condexp_L1_clm (f : α →₁[μ] F') (hs : measurable_set[m] s) :
+  ∫ x in s, condexp_L1_clm hm μ f x ∂μ = ∫ x in s, f x ∂μ :=
+begin
+  let S := spanning_sets (μ.trim hm),
+  have hS_meas : ∀ i, measurable_set[m] (S i) := measurable_spanning_sets (μ.trim hm),
+  have hS_meas0 : ∀ i, measurable_set (S i) := λ i, hm _ (hS_meas i),
+  have hs_eq : s = ⋃ i, S i ∩ s,
+  { simp_rw set.inter_comm,
+    rw [← set.inter_Union, (Union_spanning_sets (μ.trim hm)), set.inter_univ], },
+  have hS_finite : ∀ i, μ (S i ∩ s) < ∞,
+  { refine λ i, (measure_mono (set.inter_subset_left _ _)).trans_lt _,
+    have hS_finite_trim := measure_spanning_sets_lt_top (μ.trim hm) i,
+    rwa trim_measurable_set_eq hm (hS_meas i) at hS_finite_trim, },
+  have h_mono : monotone (λ i, (S i) ∩ s),
+  { intros i j hij x,
+    simp_rw set.mem_inter_iff,
+    exact λ h, ⟨monotone_spanning_sets (μ.trim hm) hij h.1, h.2⟩, },
+  have h_eq_forall : (λ i, ∫ x in (S i) ∩ s, condexp_L1_clm hm μ f x ∂μ)
+      = λ i, ∫ x in (S i) ∩ s, f x ∂μ,
+    from funext (λ i, set_integral_condexp_L1_clm_of_measure_ne_top f
+      (@measurable_set.inter α m _ _ (hS_meas i) hs) (hS_finite i).ne),
+  have h_right : tendsto (λ i, ∫ x in (S i) ∩ s, f x ∂μ) at_top (𝓝 (∫ x in s, f x ∂μ)),
+  { have h := tendsto_set_integral_of_monotone (λ i, (hS_meas0 i).inter (hm s hs)) h_mono
+      (L1.integrable_coe_fn f).integrable_on,
+    rwa ← hs_eq at h, },
+  have h_left : tendsto (λ i, ∫ x in (S i) ∩ s, condexp_L1_clm hm μ f x ∂μ) at_top
+    (𝓝 (∫ x in s, condexp_L1_clm hm μ f x ∂μ)),
+  { have h := tendsto_set_integral_of_monotone (λ i, (hS_meas0 i).inter (hm s hs))
+      h_mono (L1.integrable_coe_fn (condexp_L1_clm hm μ f)).integrable_on,
+    rwa ← hs_eq at h, },
+  rw h_eq_forall at h_left,
+  exact tendsto_nhds_unique h_left h_right,
 end
 
 lemma ae_measurable'_condexp_L1_clm (f : α →₁[μ] F') : ae_measurable' m (condexp_L1_clm hm μ f) μ :=
@@ -1386,47 +1421,12 @@ end
 lemma integrable_condexp_L1 (f : α → F') : integrable (condexp_L1 hm μ f) μ :=
 L1.integrable_coe_fn _
 
-lemma set_integral_condexp_L1_of_measure_ne_top (hf : integrable f μ)
-  (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) :
-  ∫ x in s, condexp_L1 hm μ f x ∂μ = ∫ x in s, f x ∂μ :=
-begin
-  simp_rw condexp_L1_eq_condexp_L1_clm_of_integrable hf,
-  rw set_integral_condexp_L1_clm (hf.to_L1 f) hs hμs,
-  exact set_integral_congr_ae (hm s hs) ((hf.coe_fn_to_L1).mono (λ x hx hxs, hx)),
-end
-
 lemma set_integral_condexp_L1 (hf : integrable f μ) (hs : measurable_set[m] s) :
   ∫ x in s, condexp_L1 hm μ f x ∂μ = ∫ x in s, f x ∂μ :=
 begin
-  let S := spanning_sets (μ.trim hm),
-  have hS_meas : ∀ i, measurable_set[m] (S i) := measurable_spanning_sets (μ.trim hm),
-  have hS_meas0 : ∀ i, measurable_set (S i) := λ i, hm _ (hS_meas i),
-  have hs_eq : s = ⋃ i, S i ∩ s,
-  { simp_rw set.inter_comm,
-    rw [← set.inter_Union, (Union_spanning_sets (μ.trim hm)), set.inter_univ], },
-  have hS_finite : ∀ i, μ (S i ∩ s) < ∞,
-  { refine λ i, (measure_mono (set.inter_subset_left _ _)).trans_lt _,
-    have hS_finite_trim := measure_spanning_sets_lt_top (μ.trim hm) i,
-    rwa trim_measurable_set_eq hm (hS_meas i) at hS_finite_trim, },
-  have h_mono : monotone (λ i, (S i) ∩ s),
-  { intros i j hij x,
-    simp_rw set.mem_inter_iff,
-    exact λ h, ⟨monotone_spanning_sets (μ.trim hm) hij h.1, h.2⟩, },
-  have h_eq_forall : (λ i, ∫ x in (S i) ∩ s, condexp_L1 hm μ f x ∂μ)
-      = λ i, ∫ x in (S i) ∩ s, f x ∂μ,
-    from funext (λ i, set_integral_condexp_L1_of_measure_ne_top hf
-      (@measurable_set.inter α m _ _ (hS_meas i) hs) (hS_finite i).ne),
-  have h_right : tendsto (λ i, ∫ x in (S i) ∩ s, f x ∂μ) at_top (𝓝 (∫ x in s, f x ∂μ)),
-  { have h := tendsto_set_integral_of_monotone (λ i, (hS_meas0 i).inter (hm s hs)) h_mono
-      hf.integrable_on,
-    rwa ← hs_eq at h, },
-  have h_left : tendsto (λ i, ∫ x in (S i) ∩ s, condexp_L1 hm μ f x ∂μ) at_top
-    (𝓝 (∫ x in s, condexp_L1 hm μ f x ∂μ)),
-  { have h := tendsto_set_integral_of_monotone (λ i, (hS_meas0 i).inter (hm s hs))
-      h_mono (integrable_condexp_L1 f).integrable_on,
-    rwa ← hs_eq at h, },
-  rw h_eq_forall at h_left,
-  exact tendsto_nhds_unique h_left h_right,
+  simp_rw condexp_L1_eq_condexp_L1_clm_of_integrable hf,
+  rw set_integral_condexp_L1_clm (hf.to_L1 f) hs,
+  exact set_integral_congr_ae (hm s hs) ((hf.coe_fn_to_L1).mono (λ x hx hxs, hx)),
 end
 
 end condexp_L1
@@ -1440,7 +1440,7 @@ open_locale classical
 local attribute [instance] fact_one_le_one_ennreal
 
 variables {𝕜} {m m0 : measurable_space α} {μ : measure α} [borel_space 𝕜] [is_scalar_tower ℝ 𝕜 F']
-  {hm : m ≤ m0} [sigma_finite (μ.trim hm)] {f : α → F'} {s : set α}
+  {hm : m ≤ m0} [sigma_finite (μ.trim hm)] {f g : α → F'} {s : set α}
 
 /-- Conditional expectation of a function. Its value is 0 if the function is not integrable. -/
 def condexp (hm : m ≤ m0) (μ : measure α) [sigma_finite (μ.trim hm)] (f : α → F') : α → F' :=
@@ -1456,13 +1456,6 @@ lemma measurable_condexp : measurable[m] (μ[f|hm]) := ae_measurable'.measurable
 lemma integrable_condexp : integrable (μ[f|hm]) μ :=
 (integrable_condexp_L1 f).congr (condexp_ae_eq_condexp_L1 f).symm
 
-lemma condexp_ae_eq_condexp_L1_clm (hf : integrable f μ) :
-  μ[f|hm] =ᵐ[μ] condexp_L1_clm hm μ (hf.to_L1 f) :=
-begin
-  refine (condexp_ae_eq_condexp_L1 f).trans (eventually_of_forall (λ x, _)),
-  rw condexp_L1_eq_condexp_L1_clm_of_integrable hf,
-end
-
 lemma set_integral_condexp (hf : integrable f μ) (hs : measurable_set[m] s) :
   ∫ x in s, μ[f|hm] x ∂μ = ∫ x in s, f x ∂μ :=
 begin
@@ -1475,6 +1468,23 @@ begin
   suffices : ∫ x in set.univ, μ[f|hm] x ∂μ = ∫ x in set.univ, f x ∂μ,
     by { simp_rw integral_univ at this, exact this, },
   exact set_integral_condexp hf (@measurable_set.univ _ m),
+end
+
+lemma condexp_ae_eq_condexp_L1_clm (hf : integrable f μ) :
+  μ[f|hm] =ᵐ[μ] condexp_L1_clm hm μ (hf.to_L1 f) :=
+begin
+  refine (condexp_ae_eq_condexp_L1 f).trans (eventually_of_forall (λ x, _)),
+  rw condexp_L1_eq_condexp_L1_clm_of_integrable hf,
+end
+
+lemma condexp_add (hf : integrable f μ) (hg : integrable g μ) :
+  μ[f + g | hm] =ᵐ[μ] μ[f|hm] + μ[g|hm] :=
+begin
+  refine (condexp_ae_eq_condexp_L1_clm (hf.add hg)).trans _,
+  rw [integrable.to_L1_add _ _ hf hg, (condexp_L1_clm hm μ).map_add],
+  refine eventually_eq.trans _ (eventually_eq.add (condexp_ae_eq_condexp_L1_clm hf).symm
+    (condexp_ae_eq_condexp_L1_clm hg).symm),
+  exact coe_fn_add _ _,
 end
 
 end condexp

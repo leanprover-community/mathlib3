@@ -2191,14 +2191,14 @@ lemma tendsto_map' {f : β → γ} {g : α → β} {x : filter α} {y : filter �
   (h : tendsto (f ∘ g) x y) : tendsto f (map g x) y :=
 by rwa [tendsto, map_map]
 
-lemma tendsto_map'_iff {f : β → γ} {g : α → β} {x : filter α} {y : filter γ} :
+@[simp] lemma tendsto_map'_iff {f : β → γ} {g : α → β} {x : filter α} {y : filter γ} :
   tendsto f (map g x) y ↔ tendsto (f ∘ g) x y :=
 by { rw [tendsto, map_map], refl }
 
 lemma tendsto_comap {f : α → β} {x : filter β} : tendsto f (comap f x) x :=
 map_comap_le
 
-lemma tendsto_comap_iff {f : α → β} {g : β → γ} {a : filter α} {c : filter γ} :
+@[simp] lemma tendsto_comap_iff {f : α → β} {g : β → γ} {a : filter α} {c : filter γ} :
   tendsto f a (c.comap g) ↔ tendsto (g ∘ f) a c :=
 ⟨λ h, tendsto_comap.comp h, λ h, map_le_iff_le_comap.mp $ by rwa [map_map]⟩
 
@@ -2246,7 +2246,7 @@ lemma tendsto_infi' {f : α → β} {x : ι → filter α} {y : filter β} (i : 
   tendsto f (⨅ i, x i) y :=
 hi.mono_left $ infi_le _ _
 
-lemma tendsto_sup {f : α → β} {x₁ x₂ : filter α} {y : filter β} :
+@[simp] lemma tendsto_sup {f : α → β} {x₁ x₂ : filter α} {y : filter β} :
   tendsto f (x₁ ⊔ x₂) y ↔ tendsto f x₁ y ∧ tendsto f x₂ y :=
 by simp only [tendsto, map_sup, sup_le_iff]
 

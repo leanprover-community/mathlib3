@@ -77,6 +77,32 @@ lemma integral_union (hst : disjoint s t) (hs : measurable_set s) (ht : measurab
   ∫ x in s ∪ t, f x ∂μ = ∫ x in s, f x ∂μ + ∫ x in t, f x ∂μ :=
 by simp only [integrable_on, measure.restrict_union hst hs ht, integral_add_measure hfs hft]
 
+lemma integral_union_ae (hst : (s ∩ t : set α) =ᵐ[μ] (∅ : set α)) (hs : measurable_set s)
+  (ht : measurable_set t) (hfs : integrable_on f s μ) (hft : integrable_on f t μ) :
+  ∫ x in s ∪ t, f x ∂μ = ∫ x in s, f x ∂μ + ∫ x in t, f x ∂μ :=
+begin
+  let s' := s \ (s ∩ t),
+  have hs' : measurable_set s', from hs.diff (hs.inter ht),
+  have hss' : s =ᵐ[μ] s',
+    by { rw ← @diff_empty _ s, exact eventually_eq.diff eventually_eq.rfl hst.symm, },
+  have hfs' : integrable_on f s' μ, from integrable_on.congr_set_ae hfs hss'.symm,
+  let t' := t \ (s ∩ t),
+  have ht' : measurable_set t', from ht.diff (hs.inter ht),
+  have htt' : t =ᵐ[μ] t',
+    by { rw ← @diff_empty _ t, exact eventually_eq.diff eventually_eq.rfl hst.symm, },
+  have hft' : integrable_on f t' μ, from integrable_on.congr_set_ae hft htt'.symm,
+  have hst' : disjoint s' t',
+  { rw set.disjoint_iff,
+    intro x,
+    simp only [s', t', and_imp, mem_empty_eq, mem_inter_eq, diff_inter_self_eq_diff, mem_diff,
+      diff_self_inter],
+    exact λ hx_in_s _ _ hx_notin_s, hx_notin_s hx_in_s, },
+  have hst_union : (s ∪ t : set α) =ᵐ[μ] (s' ∪ t' : set α), from hss'.union htt',
+  rw [set_integral_congr_set_ae hss', set_integral_congr_set_ae htt',
+    ← integral_union hst' hs' ht' hfs' hft'],
+  exact set_integral_congr_set_ae hst_union,
+end
+
 lemma integral_finset_bUnion {ι : Type*} {t : finset ι} {s : ι → set α}
   (hs : ∀ i ∈ t, measurable_set (s i)) (h's : pairwise_on ↑t (disjoint on s))
   (hf : integrable f μ) :
@@ -447,8 +473,8 @@ variables {μ : measure α}
 lemma tendsto_set_integral_of_monotone (hsm : ∀ i, measurable_set (s i))
   (h_mono : monotone s) (hfi : integrable_on f (⋃ n, s n) μ) :
   tendsto (λ i, ∫ a in s i, f a ∂μ) at_top (𝓝 (∫ a in (⋃ n, s n), f a ∂μ)) :=
-let bound : α → ℝ := indicator (⋃ n, s n) (λ a, ∥f a∥) in
 begin
+  let bound : α → ℝ := indicator (⋃ n, s n) (λ a, ∥f a∥),
   have h_int_eq : (λ i, ∫ a in s i, f a ∂μ) = (λ i, ∫ a, (s i).indicator f a ∂μ),
     from funext (λ i, (integral_indicator (hsm i)).symm),
   rw h_int_eq,
@@ -471,8 +497,8 @@ end
 lemma tendsto_set_integral_of_antimono (hsm : ∀ i, measurable_set (s i))
   (h_mono : ∀ i j, i ≤ j → s j ⊆ s i) (hfi : integrable_on f (s 0) μ) :
   tendsto (λi, ∫ a in s i, f a ∂μ) at_top (𝓝 (∫ a in (⋂ n, s n), f a ∂μ)) :=
-let bound : α → ℝ := indicator (s 0) (λ a, ∥f a∥) in
 begin
+  let bound : α → ℝ := indicator (s 0) (λ a, ∥f a∥),
   have h_int_eq : (λ i, ∫ a in s i, f a ∂μ) = (λ i, ∫ a, (s i).indicator f a ∂μ),
     from funext (λ i, (integral_indicator (hsm i)).symm),
   rw h_int_eq,
@@ -676,6 +702,15 @@ lemma continuous_at.measurable_at_filter
   {f : α → E} {s : set α} {μ : measure α} (hs : is_open s) (hf : ∀ x ∈ s, continuous_at f x) :
   ∀ x ∈ s, measurable_at_filter f (𝓝 x) μ :=
 continuous_on.measurable_at_filter hs $ continuous_at.continuous_on hf
+
+/-- If a function is continuous on a measurable set `s`, then it is measurable at the filter
+  `𝓝[s] x` for all `x`. -/
+lemma continuous_on.measurable_at_filter_nhds_within {α E : Type*} [measurable_space α]
+  [measurable_space E] [normed_group E] [topological_space α] [opens_measurable_space α]
+  [borel_space E] {f : α → E} {s : set α} {μ : measure α}
+  (hf : continuous_on f s) (hs : measurable_set s) (x : α) :
+  measurable_at_filter f (𝓝[s] x) μ :=
+⟨s, self_mem_nhds_within, hf.ae_measurable hs⟩
 
 /-- Fundamental theorem of calculus for set integrals, `nhds_within` version: if `μ` is a locally
 finite measure, `f` is continuous on a measurable set `t`, and `a ∈ t`, then `∫ x in (s i), f x ∂μ =

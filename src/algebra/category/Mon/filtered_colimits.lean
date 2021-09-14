@@ -286,7 +286,7 @@ open Mon.filtered_colimits (colimit_mul colimit_mul_mk_eq)
 
 section
 
--- We use parameters here, mainly so we can have the abbreviations `M` and `M.mk` below, without
+-- We use parameters here, mainly so we can have the abbreviation `M` below, without
 -- passing around `F` all the time.
 parameters {J : Type v} [small_category J] [is_filtered J] (F : J ⥤ CommMon.{v})
 

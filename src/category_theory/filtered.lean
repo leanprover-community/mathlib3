@@ -284,7 +284,7 @@ of_right_adjoint h.symm.to_adjunction
 section special_shapes
 
 /--
-`max₃ j₁ j₂'` is an arbitrary choice of object to the right of `j₁`, `j₂` and `j₃`,
+`max₃ j₁ j₂ j₃` is an arbitrary choice of object to the right of `j₁`, `j₂` and `j₃`,
 whose existence is ensured by `is_filtered`.
 -/
 noncomputable def max₃ (j₁ j₂ j₃ : C) : C := max (max j₁ j₂) j₃
@@ -321,10 +321,9 @@ coeq (coeq_hom f g ≫ left_to_max (coeq f g) (coeq g h))
   (coeq_hom g h ≫ right_to_max (coeq f g) (coeq g h))
 
 /--
-`coeq_hom f g h`, for morphisms `f g h : j₁ ⟶ j₂`, is an arbitrary choice of morphism
-`coeq_hom f g h : j₂ ⟶ coeq₃ f g h` such that
-`coeq₃_condition₁`, `coeq₃_condition₂` and `coeq₃_condition₃` are satisfied.
-Its existence is ensured by `is_filtered`.
+`coeq₃_hom f g h`, for morphisms `f g h : j₁ ⟶ j₂`, is an arbitrary choice of morphism
+`j₂ ⟶ coeq₃ f g h` such that `coeq₃_condition₁`, `coeq₃_condition₂` and `coeq₃_condition₃`
+are satisfied. Its existence is ensured by `is_filtered`.
 -/
 noncomputable def coeq₃_hom {j₁ j₂ : C} (f g h : j₁ ⟶ j₂) : j₂ ⟶ coeq₃ f g h :=
 coeq_hom f g ≫ left_to_max (coeq f g) (coeq g h) ≫

@@ -55,7 +55,7 @@ calc
 ... = ↑((finset.Ico 1 b).filter (λ i, m ^ i ∣ n)).card
     : congr_arg coe $ congr_arg card $ finset.ext $ λ i,
       begin
-        rw [mem_filter, Ico.mem, Ico.mem, lt_succ_iff, ←@enat.coe_le_coe i, enat.coe_get,
+        rw [mem_filter, mem_Ico, mem_Ico, lt_succ_iff, ←@enat.coe_le_coe i, enat.coe_get,
           ←pow_dvd_iff_le_multiplicity, and.right_comm],
         refine (and_iff_left_of_imp (λ h, _)).symm,
         cases m,

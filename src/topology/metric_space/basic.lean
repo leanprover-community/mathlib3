@@ -6,7 +6,7 @@ Authors: Jeremy Avigad, Robert Y. Lewis, Johannes Hölzl, Mario Carneiro, Sébas
 
 import topology.metric_space.emetric_space
 import topology.algebra.ordered.basic
-import data.fintype.intervals
+import data.nat.intervals
 
 /-!
 # Metric spaces

@@ -81,7 +81,7 @@ begin
     (λ (x : Σ (i : ℕ), ℕ) _, (⟨x.2, x.1⟩ : Σ (i : ℕ), ℕ)) _ (λ _ _, rfl)
     (λ (x : Σ (i : ℕ), ℕ) _, (⟨x.2, x.1⟩ : Σ (i : ℕ), ℕ)) _
     (by rintro ⟨⟩ _; refl) (by rintro ⟨⟩ _; refl);
-  simp only [finset.Ico.mem, sigma.forall, finset.mem_sigma];
+  simp only [finset.mem_Ico, sigma.forall, finset.mem_sigma];
   rintros a b ⟨⟨h₁,h₂⟩, ⟨h₃, h₄⟩⟩; refine ⟨⟨_, _⟩, ⟨_, _⟩⟩; linarith
 end
 
@@ -104,7 +104,7 @@ begin
   cases lt_or_le k m with hkm hkm,
   { rw [← finset.Ico.image_const_sub (this _ hkm)],
     refine (prod_image _).symm,
-    simp only [Ico.mem],
+    simp only [mem_Ico],
     rintros i ⟨ki, im⟩ j ⟨kj, jm⟩ Hij,
     rw [← nat.sub_sub_self (this _ im), Hij, nat.sub_sub_self (this _ jm)] },
   { simp [Ico.eq_empty_of_le, nat.sub_le_sub_left, hkm] }

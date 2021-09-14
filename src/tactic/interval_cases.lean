@@ -26,8 +26,8 @@ The hypotheses should be in the form `hl : a ≤ n` and `hu : n < b`,
 in which case `interval_cases` calls `fin_cases` on the resulting fact `n ∈ set.Ico a b`.
 
 -/
+import data.nat.intervals
 import tactic.fin_cases
-import data.fintype.intervals
 
 open set
 

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import data.int.basic
-import order.locally_finite
+import data.nat.intervals
 
 /-!
 # Intervals of integers
@@ -16,53 +16,79 @@ intervals as finsets and fintypes.
 open finset int
 
 instance : locally_finite_order ℤ :=
-{ finset_Icc := λ a b, (Iio (b + 1 - a).to_nat).map ⟨λ n, n + a, λ _, by simp only
-  [imp_self, forall_const, add_left_inj, int.coe_nat_inj']⟩,
+have hinj : ∀ a : ℤ, function.injective (λ n : ℕ, (n : ℤ) + a),
+from λ a m n, by { rw [add_left_inj, coe_nat_inj'], exact id },
+{ finset_Icc := λ a b, (finset.range (b + 1 - a).to_nat).map
+    ⟨λ n, n + a, hinj a⟩,
+  finset_Ico := λ a b, (finset.range (b - a).to_nat).map
+    ⟨λ n, n + a, hinj a⟩,
+  finset_Ioc := λ a b, (finset.range (b - a).to_nat).map
+    ⟨λ n, n + (a + 1), hinj (a + 1)⟩,
+  finset_Ioo := λ a b, (finset.range (b - a - 1).to_nat).map
+    ⟨λ n, n + (a + 1), hinj (a + 1)⟩,
   finset_mem_Icc := λ a b x, begin
-    rw [mem_map, set.mem_Icc, function.embedding.coe_fn_mk],
+    simp only [int.lt_to_nat, exists_prop, mem_range, add_comm, function.embedding.coe_fn_mk,
+      mem_map],
     split,
-    { rintro ⟨n, hn, hx⟩,
-      rw [←hx, le_add_iff_nonneg_left],
-      rw [mem_Iio_iff, int.lt_to_nat, lt_sub_iff_add_lt, int.lt_add_one_iff] at hn,
-      exact ⟨int.coe_nat_nonneg _, hn⟩ },
-    rintro h,
-    refine ⟨(x - a).to_nat, _, by rw [int.to_nat_sub_of_le h.1, int.sub_add_cancel]⟩,
-    rw mem_Iio_iff,
-    have hb := int.lt_add_one_of_le h.2,
-    exact (int.to_nat_lt_to_nat (sub_pos.2 (h.1.trans_lt hb))).2 (sub_lt_sub_right hb _),
+    { rintro ⟨a, h, rfl⟩,
+      rw [lt_sub_iff_add_lt, int.lt_add_one_iff, add_comm] at h,
+      refine ⟨int.le.intro rfl, h⟩ },
+    { rintro ⟨ha, hb⟩,
+      use (x - a).to_nat,
+      rw to_nat_sub_of_le ha,
+      rw ←lt_add_one_iff at hb,
+      exact ⟨sub_lt_sub_right hb _, add_sub_cancel'_right _ _⟩ }
+  end,
+  finset_mem_Ico := λ a b x, begin
+    simp only [int.lt_to_nat, exists_prop, mem_range, add_comm, function.embedding.coe_fn_mk,
+      mem_map],
+    split,
+    { rintro ⟨a, h, rfl⟩,
+      exact ⟨int.le.intro rfl, lt_sub_iff_add_lt'.mp h⟩ },
+    { rintro ⟨ha, hb⟩,
+      use (x - a).to_nat,
+      rw to_nat_sub_of_le ha,
+      exact ⟨sub_lt_sub_right hb _, add_sub_cancel'_right _ _⟩ }
+  end,
+  finset_mem_Ioc := λ a b x, begin
+    simp only [int.lt_to_nat, exists_prop, mem_range, add_comm, function.embedding.coe_fn_mk,
+      mem_map],
+    split,
+    { rintro ⟨a, h, rfl⟩,
+      refine ⟨int.le.intro rfl, _⟩,
+      rwa [←add_one_le_iff, le_sub_iff_add_le', add_comm _ (1 : ℤ), ←add_assoc] at h },
+    { rintro ⟨ha, hb⟩,
+      use (x - (a + 1)).to_nat,
+      rw [to_nat_sub_of_le ha, ←add_one_le_iff, sub_add, add_sub_cancel],
+      exact ⟨sub_le_sub_right hb _, add_sub_cancel'_right _ _⟩ }
+  end,
+  finset_mem_Ioo := λ a b x, begin
+    simp only [int.lt_to_nat, exists_prop, mem_range, add_comm, function.embedding.coe_fn_mk,
+      mem_map],
+    split,
+    { rintro ⟨a, h, rfl⟩,
+      refine ⟨int.le.intro rfl, _⟩,
+      rwa [sub_sub, lt_sub_iff_add_lt'] at h },
+    { rintro ⟨ha, hb⟩,
+      use (x - (a + 1)).to_nat,
+      rw [to_nat_sub_of_le ha, sub_sub],
+      exact ⟨sub_lt_sub_right hb _, add_sub_cancel'_right _ _⟩ }
   end }
 
 namespace int
-variables (a b : ℤ)
+variables (a b : ℤ).
 
-/-- `int_Ico a b` is the set of integers `b ≤ k < a`. -/
-def int_Ico (a b : ℤ) : finset ℤ :=
-(finset.range (b - a).to_nat).map
-  { to_fun := λ n, n + b,
-    inj' := λ n m h, by simpa using h }
+@[simp] lemma card_finset_Icc : (Icc a b).card = (b + 1 - a).to_nat :=
+by { change (finset.map _ _).card = _, rw [finset.card_map, finset.card_range] }
 
-@[simp] lemma int_Ico.mem {n m l : ℤ} : l ∈ int_Ico n m ↔ n ≤ l ∧ l < m :=
-begin
-  dsimp [int_Ico],
-  simp only [int.lt_to_nat, exists_prop, mem_range, add_comm, function.embedding.coe_fn_mk,
-    mem_map],
-  split,
-  { rintro ⟨a, ⟨h, rfl⟩⟩,
-    exact ⟨int.le.intro rfl, lt_sub_iff_add_lt'.mp h⟩ },
-  { rintro ⟨h₁, h₂⟩,
-    use (l - n).to_nat,
-    split; simp [h₁, h₂], }
-end
+@[simp] lemma card_finset_Ico : (Ico a b).card = (b - a).to_nat :=
+by { change (finset.map _ _).card = _, rw [finset.card_map, finset.card_range] }
 
-@[simp] lemma int_Ico.card (a b : ℤ) : (int_Ico a b).card = (b - a).to_nat := by simp [int_Ico]
+@[simp] lemma card_finset_Ioc : (Ioc a b).card = (b - a).to_nat :=
+by { change (finset.map _ _).card = _, rw [finset.card_map, finset.card_range] }
 
-@[simp] lemma card_finset_Icc : (Icc a b).card = (b + 1 - a).to_nat := sorry
-
-@[simp] lemma card_finset_Ico : (Ico a b).card = (b - a).to_nat := sorry
-
-@[simp] lemma card_finset_Ioc : (Ioc a b).card = (b - a).to_nat := sorry
-
-@[simp] lemma card_finset_Ioo : (Ioo a b).card = (b - a - 1).to_nat := sorry
+@[simp] lemma card_finset_Ioo : (Ioo a b).card = (b - a - 1).to_nat :=
+by { change (finset.map _ _).card = _, rw [finset.card_map, finset.card_range] }
 
 @[simp] lemma card_fintype_Icc : fintype.card (set.Icc a b) = (b + 1 - a).to_nat :=
 by rw [←card_finset_Icc, fintype.card_of_finset]

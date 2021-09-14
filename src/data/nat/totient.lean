@@ -187,10 +187,10 @@ begin
   have hempty : finset.filter p.coprime {0} = ∅,
   { simp only [finset.filter_singleton, nat.coprime_zero_right, hp.ne', if_false] },
   rw [totient_eq_card_coprime, hsplit, finset.filter_union, hempty, finset.empty_union,
-    ←finset.Ico.card 1 p] at h,
+    ←nat.card_finset_Ico 1 p] at h,
   refine p.prime_of_coprime hp (λ n hn hnz, _),
   apply finset.filter_card_eq h n,
-  refine finset.Ico.mem.mpr ⟨_, hn⟩,
+  refine finset.mem_Ico.mpr ⟨_, hn⟩,
   rwa [succ_le_iff, pos_iff_ne_zero],
 end
 

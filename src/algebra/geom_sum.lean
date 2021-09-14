@@ -361,7 +361,7 @@ begin
         = a/b^0 + ∑ (i : ℕ) in Ico 1 n.succ, a/b^i : by rw [pow_zero, nat.div_one]
     ... = ∑ i in range n.succ, a/b^i : begin
           rw [range_eq_Ico, ←finset.Ico.insert_succ_bot (nat.succ_pos _), sum_insert],
-          exact λ h, zero_lt_one.not_le (Ico.mem.1 h).1,
+          exact λ h, zero_lt_one.not_le (mem_Ico.1 h).1,
         end
     ... ≤ a * b/(b - 1) : nat.geom_sum_le hb a _
     ... = (a * 1 + a * (b - 1))/(b - 1)

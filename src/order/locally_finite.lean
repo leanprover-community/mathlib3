@@ -3,9 +3,7 @@ Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import data.finset.lattice
 import data.finset.preimage
-import data.finset.sort
 import data.set.finite
 import data.set.intervals.basic
 
@@ -46,17 +44,24 @@ When it's also an `order_bot`,
 ## Instances
 
 We provide a `locally_finite_order` instance for
-* ℕ, see `nat.locally_finite_order`
-* ℤ, see `int.locally_finite_order`
 * a subtype of a locally finite order
 * any fintype (but it is noncomputable), see `fintype.locally_finite_order`
 
+Instances for concrete types are proved in their respective files:
+* `data.nat.intervals` for `ℕ`
+* `data.int.intervals` for `ℤ`
+* `data.pnat.intervals` for `ℕ+`
+Along, you will find lemmas about the cardinality of those finite intervals.
+
 ## TODO
 
-TODO: All the API in `set.intervals.basic` could be copied here. But this is unfortunately labor-
-and maintenance-intensive.
+Provide the `locally_finite_order` instance for `lex α β`.z
 
-TODO: Once we have the `succ_order` (any non-top element has a least greater element) typeclass, we
+From `linear_order α`, `no_top_order α`, `locally_finite_order α`, we can also define an
+order isomorphism `α ≃ ℕ` or `α ≃ ℤ`, depending on whether we have `order_bot α` or
+`no_bot_order α` and `nonempty α`. When `order_bot α`, we can match `a : α` to `(Iio a).card`.
+
+Once we have the `succ_order` typeclass (any non-top element has a least greater element), we
 can provide `succ_order α` from `linear_order α` and `locally_finite_order α` using
 
 ```lean
@@ -75,37 +80,18 @@ begin -- very non golfed
   exact (finset.min'_le _ _ (finset.mem_Ioc_iff.2 ⟨hx, le_rfl⟩)).trans hy,
 end
 ```
-
 Note that the converse is not true. Consider `{-2^z | z : ℤ} ∪ {2^z | z : ℤ}`. Any element has a
-successor, so it is a `succ_order`, but it's not locally finite as `Icc (-1) 1` is infinite.
-
-TODO: From `linear_order α`, `no_top_order α`, `locally_finite_order α`, we can also define an
-order isomorphism `α ≃ ℕ` or `α ≃ ℤ`, depending on whether we have `order_bot α` or
-`no_bot_order α` and `nonempty α`. When `order_bot α`, we can match `a : α` to `(Iio a).card`.
+successor (and actually a predecessor as well), so it is a `succ_order`, but it's not locally finite
+as `Icc (-1) 1` is infinite.
 -/
 
 lemma and_and_and_comm (a b c d : Prop) : (a ∧ b) ∧ c ∧ d ↔ (a ∧ c) ∧ b ∧ d :=
 by rw [←and_assoc, @and.right_comm a, and_assoc]
 
-section tactic
-open tactic
-
-meta def finset_Ico_laws_tac : tactic unit :=
-whnf_target >> intros >> to_expr``(begin
-  unfold finset_Ico,
-  rw [finset.mem_filter, finset_mem_Icc, and_assoc, lt_iff_le_not_le]
-end) >>= exact
-
-meta def finset_Ioc_laws_tac : tactic unit :=
-whnf_target >> intros >> to_expr``(by { unfold locally_finite_order.finset_Ioc,
-  rw [finset.mem_filter, finset_mem_Icc, and.right_comm, lt_iff_le_not_le] }) >>= exact
-
-meta def finset_Ioo_laws_tac : tactic unit :=
-whnf_target >> intros >> to_expr``(by { unfold locally_finite_order.finset_Ioo,
-  rw [finset.mem_filter, finset_mem_Icc, and_and_and_comm, lt_iff_le_not_le, lt_iff_le_not_le] })
-  >>= exact
-
-end tactic
+@[simp] protected lemma list.nodup.erase_dup {α : Type*} [decidable_eq α] {l : list α}
+  (h : l.nodup) :
+  l.erase_dup = l :=
+list.erase_dup_eq_self.2 h
 
 open finset
 
@@ -115,9 +101,9 @@ class locally_finite_order (α : Type*) [preorder α] [decidable_rel ((≤) : α
 (finset_Ioc : α → α → finset α := λ a b, (finset_Icc a b).filter (λ x, ¬x ≤ a))
 (finset_Ioo : α → α → finset α := λ a b, (finset_Icc a b).filter (λ x, ¬x ≤ a ∧ ¬b ≤ x))
 (finset_mem_Icc : ∀ a b x : α, x ∈ finset_Icc a b ↔ a ≤ x ∧ x ≤ b)
-(finset_mem_Ico : ∀ a b x : α, x ∈ finset_Ico a b ↔ a ≤ x ∧ x < b . finset_Ico_laws_tac)
-(finset_mem_Ioc : ∀ a b x : α, x ∈ finset_Ioc a b ↔ a < x ∧ x ≤ b . finset_Ioc_laws_tac)
-(finset_mem_Ioo : ∀ a b x : α, x ∈ finset_Ioo a b ↔ a < x ∧ x < b . finset_Ioo_laws_tac)
+(finset_mem_Ico : ∀ a b x : α, x ∈ finset_Ico a b ↔ a ≤ x ∧ x < b)
+(finset_mem_Ioc : ∀ a b x : α, x ∈ finset_Ioc a b ↔ a < x ∧ x ≤ b)
+(finset_mem_Ioo : ∀ a b x : α, x ∈ finset_Ioo a b ↔ a < x ∧ x < b)
 
 variables {α β : Type*}
 
@@ -381,53 +367,62 @@ end set
 
 /-! ### Instances -/
 
-section
+open finset
+
+section preorder
 variables [preorder α] [decidable_rel ((≤) : α → α → Prop)]
 
 noncomputable def locally_finite_order_of_finite_Icc
   (h : ∀ a b : α, (set.Icc a b).finite) :
   locally_finite_order α :=
 { finset_Icc := λ a b, (h a b).to_finset,
+  finset_Ico := λ a b, ((h a b).subset set.Ico_subset_Icc_self).to_finset,
+  finset_Ioc := λ a b, ((h a b).subset set.Ioc_subset_Icc_self).to_finset,
+  finset_Ioo := λ a b, ((h a b).subset set.Ioo_subset_Icc_self).to_finset,
   finset_mem_Icc := λ a b x, by rw [set.finite.mem_to_finset, set.mem_Icc],
-  finset_mem_Ico := λ a b x, begin
-    rw [finset.mem_filter, finset_mem_Icc, and_assoc, lt_iff_le_not_le],
-  end }
+  finset_mem_Ico := λ a b x, by rw [set.finite.mem_to_finset, set.mem_Ico],
+  finset_mem_Ioc := λ a b x, by rw [set.finite.mem_to_finset, set.mem_Ioc],
+  finset_mem_Ioo := λ a b x, by rw [set.finite.mem_to_finset, set.mem_Ioo] }
 
-@[priority 900]
-noncomputable instance fintype.locally_finite_order [fintype α] :
+noncomputable def fintype.to_locally_finite_order [fintype α] :
   locally_finite_order α :=
 { finset_Icc := λ a b, (set.finite.of_fintype (set.Icc a b)).to_finset,
-  finset_mem_Icc := λ a b x, by rw [set.finite.mem_to_finset, set.mem_Icc] }
+  finset_Ico := λ a b, (set.finite.of_fintype (set.Ico a b)).to_finset,
+  finset_Ioc := λ a b, (set.finite.of_fintype (set.Ioc a b)).to_finset,
+  finset_Ioo := λ a b, (set.finite.of_fintype (set.Ioo a b)).to_finset,
+  finset_mem_Icc := λ a b x, by rw [set.finite.mem_to_finset, set.mem_Icc],
+  finset_mem_Ico := λ a b x, by rw [set.finite.mem_to_finset, set.mem_Ico],
+  finset_mem_Ioc := λ a b x, by rw [set.finite.mem_to_finset, set.mem_Ioc],
+  finset_mem_Ioo := λ a b x, by rw [set.finite.mem_to_finset, set.mem_Ioo] }
 
--- Should this be called `order_embedding.locally_finite_order`?
+instance [locally_finite_order α] (p : α → Prop) [decidable_pred p] :
+  locally_finite_order (subtype p) :=
+{ finset_Icc := λ a b, (Icc a.val b.val).subtype p,
+  finset_Ico := λ a b, (Ico a.val b.val).subtype p,
+  finset_Ioc := λ a b, (Ioc a.val b.val).subtype p,
+  finset_Ioo := λ a b, (Ioo a.val b.val).subtype p,
+  finset_mem_Icc := λ a b x, by simp_rw [finset.mem_subtype, mem_Icc, subtype.val_eq_coe,
+    subtype.coe_le_coe],
+  finset_mem_Ico := λ a b x, by simp_rw [finset.mem_subtype, mem_Ico, subtype.val_eq_coe,
+    subtype.coe_le_coe, subtype.coe_lt_coe],
+  finset_mem_Ioc := λ a b x, by simp_rw [finset.mem_subtype, mem_Ioc, subtype.val_eq_coe,
+    subtype.coe_le_coe, subtype.coe_lt_coe],
+  finset_mem_Ioo := λ a b x, by simp_rw [finset.mem_subtype, mem_Ioo, subtype.val_eq_coe,
+    subtype.coe_lt_coe] }
+
+variables [preorder β] [decidable_rel ((≤) : β → β → Prop)] [locally_finite_order β]
+
+-- Should this be called `locally_finite_order.lift`?
 /-- Given an order embedding `α ↪o β`, pulls back the `locally_finite_order` on `β` to `α`. -/
-noncomputable def locally_finite_order.lift {β : Type*} [partial_order β] [locally_finite_order β]
-  [decidable_eq β] [partial_order α] [decidable_eq α] (f : α ↪o β) :
+noncomputable def order_embedding.locally_finite_order (f : α ↪o β) :
   locally_finite_order α :=
 { finset_Icc := λ a b, (Icc (f a) (f b)).preimage f (f.to_embedding.injective.inj_on _),
-  finset_mem_Icc := λ a b x, by rw [mem_preimage, mem_Icc, f.le_iff_le, f.le_iff_le] }
+  finset_Ico := λ a b, (Ico (f a) (f b)).preimage f (f.to_embedding.injective.inj_on _),
+  finset_Ioc := λ a b, (Ioc (f a) (f b)).preimage f (f.to_embedding.injective.inj_on _),
+  finset_Ioo := λ a b, (Ioo (f a) (f b)).preimage f (f.to_embedding.injective.inj_on _),
+  finset_mem_Icc := λ a b x, by rw [mem_preimage, mem_Icc, f.le_iff_le, f.le_iff_le],
+  finset_mem_Ico := λ a b x, by rw [mem_preimage, mem_Ico, f.le_iff_le, f.lt_iff_lt],
+  finset_mem_Ioc := λ a b x, by rw [mem_preimage, mem_Ioc, f.lt_iff_lt, f.le_iff_le],
+  finset_mem_Ioo := λ a b x, by rw [mem_preimage, mem_Ioo, f.lt_iff_lt, f.lt_iff_lt] }
 
-instance subtype.locally_finite_order [locally_finite_order α] {p : α → Prop} [decidable_pred p] :
-  locally_finite_order (subtype p) :=
-begin
-  haveI : preorder (subtype p) := by apply_instance,
-  haveI : decidable_rel ((≤) : subtype p → subtype p → Prop) := by apply_instance,
-  exact
-  { finset_Icc := λ a b, finset.subtype p (Icc a.val b.val),
-    finset_mem_Icc := λ a b x, begin
-      rw [finset.subtype, mem_map, set.mem_image, set.mem_Icc],
-      dsimp,
-      split,
-      { rintro ⟨⟨y, hy⟩, -, h⟩,
-        rw [←h, ←subtype.coe_le_coe, ←subtype.coe_le_coe],
-        rw [mem_filter, mem_Icc_iff] at hy,
-        exact hy.1 },
-      rintro hx,
-      refine ⟨⟨x, _⟩, mem_coe.2 (mem_attach _ _), _⟩,
-      { rw [mem_filter, mem_Icc_iff, subtype.coe_le_coe, subtype.coe_le_coe],
-        exact ⟨hx, x.2⟩ },
-      simp only [subtype.coe_eta, subtype.coe_mk],
-    end },
-end
-
-end
+end preorder

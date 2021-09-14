@@ -115,37 +115,16 @@ section extend
 
 variables {ι : Type u} {η : Type v₁} (R : Type v₂)
 
-/-- For any type `R` with `1`, we extend any `f : ι → R` to `η → R` along a function
-`s : ι → η`. -/
-@[to_additive "For any type `R` with `0`, we extend any `f : ι → R` to `η → R`
-along a function `s : ι → η`."]
-noncomputable def extend_by_one [has_one R] (s : ι → η) (f : ι → R) : η → R :=
-function.extend s f 1
-
-@[simp, to_additive]
-lemma extend_by_one_apply [has_one R] {s : ι → η} (f : ι → R) (hs : function.injective s) (i : ι) :
-  extend_by_one R s f (s i) = f i := function.extend_apply hs _ _ _
-
-@[to_additive]
-lemma extend_by_one_apply' [has_one R] (s : ι → η) (f : ι → R) (x : η) (hi : ¬∃ i, s i = x) :
-  extend_by_one R s f x = 1 :=
-function.extend_apply' f 1 x hi
-
 @[to_additive]
 lemma extend_by_one_of_one [has_one R] {s : ι → η} (hs : function.injective s) :
-  extend_by_one R s 1 = 1 :=
+  function.extend s (1 : ι → R) 1 = 1 :=
 begin
   refine funext (λ x, _),
   by_cases hx : ∃ i, s i = x,
   { obtain ⟨i, hi⟩ := hx,
     simp [← hi, hs] },
-  { simp [extend_by_one_apply' R s 1 x hx] }
+  { simp [function.extend_apply' 1 1 x hx] }
 end
-
-@[to_additive]
-lemma extend_by_one_injective [has_one R] {s : ι → η} (hs : function.injective s) :
-  function.injective (extend_by_one R s) :=
-λ f g hfg, function.extend_injective hs f 1 hfg
 
 end extend
 

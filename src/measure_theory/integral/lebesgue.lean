@@ -176,7 +176,7 @@ lemma support_indicator [has_zero β] {s : set α} (hs : measurable_set s) (f : 
   function.support (f.piecewise s hs (simple_func.const α 0)) = s ∩ function.support f :=
 set.support_indicator
 
-lemma range_indicator {m : measurable_space α} {s : set α} (hs : measurable_set s)
+lemma range_indicator {s : set α} (hs : measurable_set s)
   (hs_nonempty : s ≠ ∅) (hs_ne_univ : s ≠ univ) (x y : β) :
   (piecewise s hs (const α x) (const α y)).range = {x, y} :=
 begin

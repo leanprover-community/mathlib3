@@ -151,8 +151,8 @@ using a custom object `k` and morphisms `f : x.1 ⟶ k` and `g : y.1 ⟶ k`.
 @[to_additive "Addition in the colimit is independent of the chosen \"maximum\" in the filtered
 category. In particular, this lemma allows us to \"unfold\" the definition of the addition of `x`
 and `y`, using a custom object `k` and morphisms `f : x.1 ⟶ k` and `g : y.1 ⟶ k`."]
-lemma colimit_mul_eq' (x y : Σ j, F.obj j) (k : J) (f : x.1 ⟶ k) (g : y.1 ⟶ k) :
-  colimit_mul (quot.mk _ x) (quot.mk _ y) = quot.mk _ ⟨k, F.map f x.2 * F.map g y.2⟩ :=
+lemma colimit_mul_mk_eq' (x y : Σ j, F.obj j) (k : J) (f : x.1 ⟶ k) (g : y.1 ⟶ k) :
+  colimit_mul (M.mk x) (M.mk y) = M.mk ⟨k, F.map f x.2 * F.map g y.2⟩ :=
 begin
   cases x with j₁ x, cases y with j₂ y,
   obtain ⟨s, α, β, h₁, h₂⟩ := bowtie (left_to_max j₁ j₂) f (right_to_max j₁ j₂) g,
@@ -167,7 +167,7 @@ lemma colimit_one_mul (x : M) : colimit_mul colimit_one x = x :=
 begin
   apply quot.induction_on x, clear x, intro x,
   cases x with j x,
-  rw [colimit_one_eq' F j, colimit_mul_eq' F ⟨j, 1⟩ ⟨j, x⟩ j (𝟙 j) (𝟙 j),
+  rw [colimit_one_eq' F j, colimit_mul_mk_eq' F ⟨j, 1⟩ ⟨j, x⟩ j (𝟙 j) (𝟙 j),
     monoid_hom.map_one, one_mul, F.map_id, id_apply],
 end
 
@@ -177,7 +177,7 @@ lemma colimit_mul_one (x : types.quot (F ⋙ forget Mon)) :
 begin
   apply quot.induction_on x, clear x, intro x,
   cases x with j x,
-  rw [colimit_one_eq' F j, colimit_mul_eq' F ⟨j, x⟩ ⟨j, 1⟩ j (𝟙 j) (𝟙 j),
+  rw [colimit_one_eq' F j, colimit_mul_mk_eq' F ⟨j, x⟩ ⟨j, 1⟩ j (𝟙 j) (𝟙 j),
     monoid_hom.map_one, mul_one, F.map_id, id_apply],
 end
 
@@ -187,10 +187,10 @@ lemma colimit_mul_assoc (x y z : M) :
 begin
   apply quot.induction_on₃ x y z, clear x y z, intros x y z,
   cases x with j₁ x, cases y with j₂ y, cases z with j₃ z,
-  rw [colimit_mul_eq' F ⟨j₁, x⟩ ⟨j₂, y⟩ _ (first_to_max₃ j₁ j₂ j₃) (second_to_max₃ j₁ j₂ j₃),
-    colimit_mul_eq' F ⟨max₃ j₁ j₂ j₃, _⟩ ⟨j₃, z⟩ _ (𝟙 _) (third_to_max₃ j₁ j₂ j₃),
-    colimit_mul_eq' F ⟨j₂, y⟩ ⟨j₃, z⟩ _ (second_to_max₃ j₁ j₂ j₃) (third_to_max₃ j₁ j₂ j₃),
-    colimit_mul_eq' F ⟨j₁, x⟩ ⟨max₃ j₁ j₂ j₃, _⟩ _ (first_to_max₃ j₁ j₂ j₃) (𝟙 _)],
+  rw [colimit_mul_mk_eq' F ⟨j₁, x⟩ ⟨j₂, y⟩ _ (first_to_max₃ j₁ j₂ j₃) (second_to_max₃ j₁ j₂ j₃),
+    colimit_mul_mk_eq' F ⟨max₃ j₁ j₂ j₃, _⟩ ⟨j₃, z⟩ _ (𝟙 _) (third_to_max₃ j₁ j₂ j₃),
+    colimit_mul_mk_eq' F ⟨j₂, y⟩ ⟨j₃, z⟩ _ (second_to_max₃ j₁ j₂ j₃) (third_to_max₃ j₁ j₂ j₃),
+    colimit_mul_mk_eq' F ⟨j₁, x⟩ ⟨max₃ j₁ j₂ j₃, _⟩ _ (first_to_max₃ j₁ j₂ j₃) (𝟙 _)],
   simp only [F.map_id, id_apply, mul_assoc],
 end
 
@@ -211,9 +211,9 @@ lemma colimit_one_eq (j : J) : (1 : M) = M.mk ⟨j, 1⟩ :=
 colimit_one_eq' j
 
 @[to_additive]
-lemma colimit_mul_eq (x y : Σ j, F.obj j) (k : J) (f : x.1 ⟶ k) (g : y.1 ⟶ k) :
+lemma colimit_mul_mk_eq (x y : Σ j, F.obj j) (k : J) (f : x.1 ⟶ k) (g : y.1 ⟶ k) :
   M.mk x * M.mk y = M.mk ⟨k, F.map f x.2 * F.map g y.2⟩ :=
-colimit_mul_eq' x y k f g
+colimit_mul_mk_eq' x y k f g
 
 /-- The monoid homomorphism from a given monoid in the diagram to the colimit monoid. -/
 @[to_additive "The additive monoid homomorphism from a given additive monoid in the diagram to the
@@ -222,7 +222,7 @@ def cocone_morphism (j : J) : F.obj j ⟶ colimit :=
 { to_fun := (types.colimit_cocone (F ⋙ forget Mon)).ι.app j,
   map_one' := (colimit_one_eq j).symm,
   map_mul' := λ x y, begin
-    convert (colimit_mul_eq F ⟨j, x⟩ ⟨j, y⟩ j (𝟙 j) (𝟙 j)).symm,
+    convert (colimit_mul_mk_eq F ⟨j, x⟩ ⟨j, y⟩ j (𝟙 j) (𝟙 j)).symm,
     rw [F.map_id, id_apply, id_apply], refl,
   end }
 
@@ -254,7 +254,7 @@ def colimit_desc (t : cocone F) : colimit ⟶ t.X :=
   map_mul' := λ x y, begin
     apply quot.induction_on₂ x y, clear x y, intros x y,
     cases x with i x, cases y with j y,
-    rw colimit_mul_eq F ⟨i, x⟩ ⟨j, y⟩ (max' i j) (left_to_max i j) (right_to_max i j),
+    rw colimit_mul_mk_eq F ⟨i, x⟩ ⟨j, y⟩ (max' i j) (left_to_max i j) (right_to_max i j),
     dsimp [types.colimit_cocone_is_colimit],
     rw [monoid_hom.map_mul, t.w_apply, t.w_apply],
   end }
@@ -282,7 +282,7 @@ end Mon.filtered_colimits
 
 namespace CommMon.filtered_colimits
 
-open Mon.filtered_colimits (colimit_mul colimit_mul_eq)
+open Mon.filtered_colimits (colimit_mul colimit_mul_mk_eq)
 
 section
 
@@ -305,7 +305,7 @@ instance colimit_comm_monoid : comm_monoid M :=
     let k := max' x.1 y.1,
     let f := left_to_max x.1 y.1,
     let g := right_to_max x.1 y.1,
-    rw [colimit_mul_eq _ x y k f g, colimit_mul_eq _ y x k g f],
+    rw [colimit_mul_mk_eq _ x y k f g, colimit_mul_mk_eq _ y x k g f],
     dsimp,
     rw mul_comm,
  end

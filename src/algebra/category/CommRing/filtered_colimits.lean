@@ -34,8 +34,8 @@ namespace AddMon.filtered_colimits
 
 end AddMon.filtered_colimits
 
-open AddMon.filtered_colimits (colimit_zero colimit_zero_eq colimit_add colimit_add_eq)
-open Mon.filtered_colimits (colimit_one colimit_one_eq colimit_mul colimit_mul_eq)
+open AddMon.filtered_colimits (colimit_zero colimit_zero_eq colimit_add colimit_add_mk_eq)
+open Mon.filtered_colimits (colimit_one colimit_one_eq colimit_mul colimit_mul_mk_eq)
 
 namespace SemiRing.filtered_colimits
 
@@ -60,14 +60,14 @@ instance colimit_semiring : semiring R :=
 { mul_zero := λ x, begin
     apply quot.induction_on x, clear x, intro x,
     cases x with j x,
-    erw [colimit_zero_eq _ j, colimit_mul_eq _ ⟨j, _⟩ ⟨j, _⟩ j (𝟙 j) (𝟙 j)],
+    erw [colimit_zero_eq _ j, colimit_mul_mk_eq _ ⟨j, _⟩ ⟨j, _⟩ j (𝟙 j) (𝟙 j)],
     rw [category_theory.functor.map_id, id_apply, id_apply, mul_zero x],
     refl,
   end,
   zero_mul := λ x, begin
     apply quot.induction_on x, clear x, intro x,
     cases x with j x,
-    erw [colimit_zero_eq _ j, colimit_mul_eq _ ⟨j, _⟩ ⟨j, _⟩ j (𝟙 j) (𝟙 j)],
+    erw [colimit_zero_eq _ j, colimit_mul_mk_eq _ ⟨j, _⟩ ⟨j, _⟩ j (𝟙 j) (𝟙 j)],
     rw [category_theory.functor.map_id, id_apply, id_apply, zero_mul x],
     refl,
   end,
@@ -78,9 +78,9 @@ instance colimit_semiring : semiring R :=
     let f := first_to_max₃ j₁ j₂ j₃,
     let g := second_to_max₃ j₁ j₂ j₃,
     let h := third_to_max₃ j₁ j₂ j₃,
-    erw [colimit_add_eq _ ⟨j₂, _⟩ ⟨j₃, _⟩ k g h, colimit_mul_eq _ ⟨j₁, _⟩ ⟨k, _⟩ k f (𝟙 k),
-      colimit_mul_eq _ ⟨j₁, _⟩ ⟨j₂, _⟩ k f g, colimit_mul_eq _ ⟨j₁, _⟩ ⟨j₃, _⟩ k f h,
-      colimit_add_eq _ ⟨k, _⟩ ⟨k, _⟩ k (𝟙 k) (𝟙 k)],
+    erw [colimit_add_mk_eq _ ⟨j₂, _⟩ ⟨j₃, _⟩ k g h, colimit_mul_mk_eq _ ⟨j₁, _⟩ ⟨k, _⟩ k f (𝟙 k),
+      colimit_mul_mk_eq _ ⟨j₁, _⟩ ⟨j₂, _⟩ k f g, colimit_mul_mk_eq _ ⟨j₁, _⟩ ⟨j₃, _⟩ k f h,
+      colimit_add_mk_eq _ ⟨k, _⟩ ⟨k, _⟩ k (𝟙 k) (𝟙 k)],
     simp only [category_theory.functor.map_id, id_apply],
     erw left_distrib (F.map f x) (F.map g y) (F.map h z),
     refl,
@@ -92,9 +92,9 @@ instance colimit_semiring : semiring R :=
     let f := first_to_max₃ j₁ j₂ j₃,
     let g := second_to_max₃ j₁ j₂ j₃,
     let h := third_to_max₃ j₁ j₂ j₃,
-    erw [colimit_add_eq _ ⟨j₁, _⟩ ⟨j₂, _⟩ k f g, colimit_mul_eq _ ⟨k, _⟩ ⟨j₃, _⟩ k (𝟙 k) h,
-      colimit_mul_eq _ ⟨j₁, _⟩ ⟨j₃, _⟩ k f h, colimit_mul_eq _ ⟨j₂, _⟩ ⟨j₃, _⟩ k g h,
-      colimit_add_eq _ ⟨k, _⟩ ⟨k, _⟩ k (𝟙 k) (𝟙 k)],
+    erw [colimit_add_mk_eq _ ⟨j₁, _⟩ ⟨j₂, _⟩ k f g, colimit_mul_mk_eq _ ⟨k, _⟩ ⟨j₃, _⟩ k (𝟙 k) h,
+      colimit_mul_mk_eq _ ⟨j₁, _⟩ ⟨j₃, _⟩ k f h, colimit_mul_mk_eq _ ⟨j₂, _⟩ ⟨j₃, _⟩ k g h,
+      colimit_add_mk_eq _ ⟨k, _⟩ ⟨k, _⟩ k (𝟙 k) (𝟙 k)],
     simp only [category_theory.functor.map_id, id_apply],
     erw right_distrib (F.map f x) (F.map g y) (F.map h z),
     refl,

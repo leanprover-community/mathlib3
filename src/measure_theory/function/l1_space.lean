@@ -568,10 +568,18 @@ begin
   simp [real.norm_eq_abs, ennreal.of_real_le_of_real, abs_le, abs_nonneg, le_abs_self],
 end
 
+lemma mem_ℒ1_to_real_of_lintegral_ne_top
+  {f : α → ℝ≥0∞} (hfm : ae_measurable f μ) (hfi : ∫⁻ x, f x ∂μ ≠ ∞) :
+  mem_ℒp (λ x, (f x).to_real) 1 μ :=
+begin
+  rw [mem_ℒp, snorm_one_eq_lintegral_nnnorm],
+  exact ⟨ae_measurable.ennreal_to_real hfm, has_finite_integral_to_real_of_lintegral_ne_top hfi⟩
+end
+
 lemma integrable_to_real_of_lintegral_ne_top
   {f : α → ℝ≥0∞} (hfm : ae_measurable f μ) (hfi : ∫⁻ x, f x ∂μ ≠ ∞) :
   integrable (λ x, (f x).to_real) μ :=
-⟨ae_measurable.ennreal_to_real hfm, has_finite_integral_to_real_of_lintegral_ne_top hfi⟩
+mem_ℒp_one_iff_integrable.1 $ mem_ℒ1_to_real_of_lintegral_ne_top hfm hfi
 
 section pos_part
 /-! ### Lemmas used for defining the positive part of a `L¹` function -/

@@ -345,8 +345,7 @@ noncomputable def pi.extend_by_zero.linear_map  : (ι → R) →ₗ[R] (η → R
     by_cases hx : ∃ i, s i = x,
     { obtain ⟨i, hi⟩ := hx,
       simp [← hi, hs] },
-    { simp [pi.extend_by_zero_apply' R s f x hx,
-        pi.extend_by_zero_apply' R s (r • f) x hx] }
+    { simp [pi.extend_by_zero_apply' R s f x hx, pi.extend_by_zero_apply' R s (r • f) x hx] }
   end,
   ..pi.extend_by_zero.add_hom R hs }
 

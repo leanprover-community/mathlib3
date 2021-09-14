@@ -10,7 +10,8 @@ import data.equiv.basic
 
 This file defines `part α`, the partial values of a type.
 
-`o : part α` carries a proposition `o.dom`, its domain, along with a function `get : dom → α`, its value. The rule is then that every partial value has a value but, to access it, you need to provide
+`o : part α` carries a proposition `o.dom`, its domain, along with a function `get : dom → α`, its
+value. The rule is then that every partial value has a value but, to access it, you need to provide
 a proof of the domain.
 
 `part α` behaves the same as `option α` except that `o : option α` is decidably `none` or `some a`

@@ -3,7 +3,6 @@ Copyright (c) 2020 Bolton Bailey. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bolton Bailey
 -/
-
 import data.zmod.basic
 import data.fintype.basic
 import field_theory.finite.basic
@@ -31,7 +30,6 @@ Note that the proof for `lucas_primality` relies on analyzing the multiplicative
 modulo `p`. Despite this, the theorem still holds vacuously for `p = 0` and `p = 1`: In these
 cases, we can take `q` to be any prime and see that `hd` does not hold, since `a^((p-1)/q)` reduces
 to `1`.
-
 -/
 
 /--

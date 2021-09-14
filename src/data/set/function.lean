@@ -121,6 +121,8 @@ lemma maps_to_iff_exists_map_subtype : maps_to f s t ↔ ∃ g : s → t, ∀ x 
 theorem maps_to' : maps_to f s t ↔ f '' s ⊆ t :=
 image_subset_iff.symm
 
+@[simp] theorem maps_to_singleton {x : α} : maps_to f {x} t ↔ f x ∈ t := singleton_subset_iff
+
 theorem maps_to_empty (f : α → β) (t : set β) : maps_to f ∅ t := empty_subset _
 
 theorem maps_to.image_subset (h : maps_to f s t) : f '' s ⊆ t :=
@@ -603,7 +605,7 @@ lemma preimage_inv_fun_of_mem [n : nonempty α] {f : α → β} (hf : injective 
 begin
   ext x,
   rcases em (x ∈ range f) with ⟨a, rfl⟩|hx,
-  { simp [left_inverse_inv_fun hf _, mem_image_of_injective hf] },
+  { simp [left_inverse_inv_fun hf _, hf.mem_set_image] },
   { simp [mem_preimage, inv_fun_neg hx, h, hx] }
 end
 
@@ -612,7 +614,7 @@ lemma preimage_inv_fun_of_not_mem [n : nonempty α] {f : α → β} (hf : inject
 begin
   ext x,
   rcases em (x ∈ range f) with ⟨a, rfl⟩|hx,
-  { rw [mem_preimage, left_inverse_inv_fun hf, mem_image_of_injective hf] },
+  { rw [mem_preimage, left_inverse_inv_fun hf, hf.mem_set_image] },
   { have : x ∉ f '' s, from λ h', hx (image_subset_range _ _ h'),
     simp only [mem_preimage, inv_fun_neg hx, h, this] },
 end

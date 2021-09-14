@@ -268,6 +268,18 @@ instance [has_le β] : has_le (α →ₛ β) := ⟨λf g, ∀a, f a ≤ g a⟩
 @[simp] lemma range_zero [nonempty α] [has_zero β] : (0 : α →ₛ β).range = {0} :=
 finset.ext $ λ x, by simp [eq_comm]
 
+@[simp] lemma range_eq_empty_of_is_empty {β} [hα : is_empty α] (f : α →ₛ β) :
+  f.range = ∅ :=
+begin
+  rw ← finset.not_nonempty_iff_eq_empty,
+  by_contra,
+  obtain ⟨y, hy_mem⟩ := h,
+  rw [simple_func.mem_range, set.mem_range] at hy_mem,
+  obtain ⟨x, hxy⟩ := hy_mem,
+  rw is_empty_iff at hα,
+  exact hα x,
+end
+
 lemma eq_zero_of_mem_range_zero [has_zero β] : ∀ {y : β}, y ∈ (0 : α →ₛ β).range → y = 0 :=
 forall_range_iff.2 $ λ x, rfl
 
@@ -1010,13 +1022,13 @@ lemma exists_simple_func_forall_lintegral_sub_lt_of_pos {f : α → ℝ≥0∞} 
     (map coe (ψ - φ)).lintegral μ < ε :=
 begin
   rw lintegral_eq_nnreal at h,
-  have := ennreal.lt_add_right h hε,
+  have := ennreal.lt_add_right h.ne hε,
   erw ennreal.bsupr_add at this; [skip, exact ⟨0, λ x, by simp⟩],
   simp_rw [lt_supr_iff, supr_lt_iff, supr_le_iff] at this,
   rcases this with ⟨φ, hle : ∀ x, ↑(φ x) ≤ f x, b, hbφ, hb⟩,
   refine ⟨φ, hle, λ ψ hψ, _⟩,
   have : (map coe φ).lintegral μ < ∞, from (le_bsupr φ hle).trans_lt h,
-  rw [← add_lt_add_iff_left this, ← add_lintegral, ← map_add @ennreal.coe_add],
+  rw [← add_lt_add_iff_left this.ne, ← add_lintegral, ← map_add @ennreal.coe_add],
   refine (hb _ (λ x, le_trans _ (max_le (hle x) (hψ x)))).trans_lt hbφ,
   norm_cast,
   simp only [add_apply, sub_apply, nnreal.add_sub_eq_max]
@@ -1319,7 +1331,13 @@ by simpa [tsum_fintype] using lintegral_sum_measure f (λ b, cond b μ ν)
   ∫⁻ a, f a ∂(0 : measure α) = 0 :=
 bot_unique $ by simp [lintegral]
 
-lemma lintegral_in_measure_zero (s : set α) (f : α → ℝ≥0∞) (hs' : μ s = 0) :
+lemma set_lintegral_empty (f : α → ℝ≥0∞) : ∫⁻ x in ∅, f x ∂μ = 0 :=
+by rw [measure.restrict_empty, lintegral_zero_measure]
+
+lemma set_lintegral_univ (f : α → ℝ≥0∞) : ∫⁻ x in univ, f x ∂μ = ∫⁻ x, f x ∂μ :=
+by rw measure.restrict_univ
+
+lemma set_lintegral_measure_zero (s : set α) (f : α → ℝ≥0∞) (hs' : μ s = 0) :
   ∫⁻ x in s, f x ∂μ = 0 :=
 begin
   convert lintegral_zero_measure _,
@@ -1435,6 +1453,15 @@ begin
     simp [hφ x, hs, indicator_le_indicator] }
 end
 
+lemma set_lintegral_eq_const {f : α → ℝ≥0∞} (hf : measurable f) (r : ℝ≥0∞) :
+  ∫⁻ x in {x | f x = r}, f x ∂μ = r * μ {x | f x = r} :=
+begin
+  have : ∀ᵐ x ∂μ, x ∈ {x | f x = r} → f x = r := ae_of_all μ (λ _ hx, hx),
+  erw [set_lintegral_congr_fun _ this, lintegral_const,
+       measure.restrict_apply measurable_set.univ, set.univ_inter],
+  exact hf (measurable_set_singleton r)
+end
+
 /-- **Chebyshev's inequality** -/
 lemma mul_meas_ge_le_lintegral {f : α → ℝ≥0∞} (hf : measurable f) (ε : ℝ≥0∞) :
   ε * μ {x | ε ≤ f x} ≤ ∫⁻ a, f a ∂μ :=
@@ -1445,6 +1472,12 @@ begin
   simp only [restrict_apply _ this],
   exact indicator_apply_le id
 end
+
+lemma lintegral_eq_top_of_measure_eq_top_pos {f : α → ℝ≥0∞} (hf : measurable f)
+  (hμf : 0 < μ {x | f x = ∞}) : ∫⁻ x, f x ∂μ = ∞ :=
+eq_top_iff.mpr $
+calc ∞ = ∞ * μ {x | ∞ ≤ f x} : by simp [mul_eq_top, hμf.ne.symm]
+   ... ≤ ∫⁻ x, f x ∂μ : mul_meas_ge_le_lintegral hf ∞
 
 lemma meas_ge_le_lintegral_div {f : α → ℝ≥0∞} (hf : measurable f) {ε : ℝ≥0∞}
   (hε : ε ≠ 0) (hε' : ε ≠ ∞) :
@@ -1812,6 +1845,15 @@ lemma lintegral_dirac [measurable_singleton_class α] (a : α) (f : α → ℝ�
   ∫⁻ a, f a ∂(dirac a) = f a :=
 by simp [lintegral_congr_ae (ae_eq_dirac f)]
 
+lemma lintegral_encodable {α : Type*} {m : measurable_space α} [encodable α]
+  [measurable_singleton_class α] (f : α → ℝ≥0∞) (μ : measure α) :
+  ∫⁻ a, f a ∂μ = ∑' a, f a * μ {a} :=
+begin
+  conv_lhs { rw [← sum_smul_dirac μ, lintegral_sum_measure] },
+  congr' 1 with a : 1,
+  rw [lintegral_smul_measure, lintegral_dirac, mul_comm],
+end
+
 lemma lintegral_count' {f : α → ℝ≥0∞} (hf : measurable f) :
   ∫⁻ a, f a ∂count = ∑' a, f a :=
 begin
@@ -1893,7 +1935,7 @@ lemma with_density_absolutely_continuous
 begin
   refine absolutely_continuous.mk (λ s hs₁ hs₂, _),
   rw with_density_apply _ hs₁,
-  exact lintegral_in_measure_zero _ _ hs₂
+  exact set_lintegral_measure_zero _ _ hs₂
 end
 
 @[simp]

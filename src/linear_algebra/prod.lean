@@ -57,6 +57,9 @@ end
 @[simp] theorem fst_apply (x : M × M₂) : fst R M M₂ x = x.1 := rfl
 @[simp] theorem snd_apply (x : M × M₂) : snd R M M₂ x = x.2 := rfl
 
+theorem fst_surjective : function.surjective (fst R M M₂) := λ x, ⟨(x, 0), rfl⟩
+theorem snd_surjective : function.surjective (snd R M M₂) := λ x, ⟨(0, x), rfl⟩
+
 /-- The prod of two linear maps is a linear map. -/
 @[simps] def prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) : (M →ₗ[R] M₂ × M₃) :=
 { to_fun    := λ x, (f x, g x),
@@ -95,6 +98,30 @@ def inl : M →ₗ[R] M × M₂ := prod linear_map.id 0
 
 /-- The right injection into a product is a linear map. -/
 def inr : M₂ →ₗ[R] M × M₂ := prod 0 linear_map.id
+
+theorem range_inl : range (inl R M M₂) = ker (snd R M M₂) :=
+begin
+  ext x,
+  simp only [mem_ker, mem_range],
+  split,
+  { rintros ⟨y, rfl⟩, refl },
+  { intro h, exact ⟨x.fst, prod.ext rfl h.symm⟩ }
+end
+
+theorem ker_snd : ker (snd R M M₂) = range (inl R M M₂) :=
+eq.symm $ range_inl R M M₂
+
+theorem range_inr : range (inr R M M₂) = ker (fst R M M₂) :=
+begin
+  ext x,
+  simp only [mem_ker, mem_range],
+  split,
+  { rintros ⟨y, rfl⟩, refl },
+  { intro h, exact ⟨x.snd, prod.ext h.symm rfl⟩ }
+end
+
+theorem ker_fst : ker (fst R M M₂) = range (inr R M M₂) :=
+eq.symm $ range_inr R M M₂
 
 end
 

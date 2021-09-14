@@ -266,6 +266,9 @@ def map (f : R →+* S) (s : subsemiring R) : subsemiring S :=
   y ∈ s.map f ↔ ∃ x ∈ s, f x = y :=
 set.mem_image_iff_bex
 
+@[simp] lemma map_id : s.map (ring_hom.id R) = s :=
+set_like.coe_injective $ set.image_id _
+
 lemma map_map (g : S →+* T) (f : R →+* S) : (s.map f).map g = s.map (g.comp f) :=
 set_like.coe_injective $ set.image_image _ _ _
 
@@ -815,6 +818,11 @@ S.to_submonoid.has_faithful_scalar
 /-- The action by a subsemiring is the action by the underlying semiring. -/
 instance [add_monoid α] [distrib_mul_action R' α] (S : subsemiring R') : distrib_mul_action S α :=
 S.to_submonoid.distrib_mul_action
+
+/-- The action by a subsemiring is the action by the underlying semiring. -/
+instance [monoid α] [mul_distrib_mul_action R' α] (S : subsemiring R') :
+  mul_distrib_mul_action S α :=
+S.to_submonoid.mul_distrib_mul_action
 
 /-- The action by a subsemiring is the action by the underlying semiring. -/
 instance [add_comm_monoid α] [module R' α] (S : subsemiring R') : module S α :=

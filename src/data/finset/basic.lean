@@ -1476,7 +1476,8 @@ theorem filter_union_filter_neg_eq [decidable_pred (λ a, ¬ p a)]
   (s : finset α) : s.filter p ∪ s.filter (λa, ¬ p a) = s :=
 by simp only [filter_not, union_sdiff_of_subset (filter_subset p s)]
 
-theorem filter_inter_filter_neg_eq (s : finset α) : s.filter p ∩ s.filter (λa, ¬ p a) = ∅ :=
+theorem filter_inter_filter_neg_eq [decidable_pred (λ a, ¬ p a)]
+  (s : finset α) : s.filter p ∩ s.filter (λa, ¬ p a) = ∅ :=
 by simp only [filter_not, inter_sdiff_self]
 
 lemma subset_union_elim {s : finset α} {t₁ t₂ : set α} (h : ↑s ⊆ t₁ ∪ t₂) :
@@ -1905,6 +1906,15 @@ by simp only [mem_def, image_val, mem_erase_dup, multiset.mem_map, exists_prop]
 
 theorem mem_image_of_mem (f : α → β) {a} {s : finset α} (h : a ∈ s) : f a ∈ s.image f :=
 mem_image.2 ⟨_, h, rfl⟩
+
+lemma _root_.function.injective.mem_finset_image {f : α → β} (hf : function.injective f)
+  {s : finset α} {x : α} :
+  f x ∈ s.image f ↔ x ∈ s :=
+begin
+  refine ⟨λ h, _, finset.mem_image_of_mem f⟩,
+  obtain ⟨y, hy, heq⟩ := mem_image.1 h,
+  exact hf heq ▸ hy,
+end
 
 lemma filter_mem_image_eq_image (f : α → β) (s : finset α) (t : finset β) (h : ∀ x ∈ s, f x ∈ t) :
   t.filter (λ y, y ∈ s.image f) = s.image f :=

@@ -493,6 +493,9 @@ option.rec h₁ h₂
 theorem coe_eq_coe {a b : α} : (a : with_bot α) = b ↔ a = b :=
 by rw [← option.some.inj_eq a b]; refl
 
+lemma ne_bot_iff_exists {x : with_bot α} : x ≠ ⊥ ↔ ∃ (a : α), ↑a = x :=
+option.ne_none_iff_exists
+
 /-- Deconstruct a `x : with_bot α` to the underlying value in `α`, given a proof that `x ≠ ⊥`. -/
 def unbot : Π (x : with_bot α), x ≠ ⊥ → α
 | ⊥        h := absurd rfl h
@@ -509,10 +512,11 @@ instance has_lt [has_lt α] : has_lt (with_bot α) :=
   @has_lt.lt (with_bot α) _ (some a) (some b) ↔ a < b :=
 by simp [(<)]
 
-lemma bot_lt_some [has_lt α] (a : α) : (⊥ : with_bot α) < some a :=
+lemma none_lt_some [has_lt α] (a : α) :
+  @has_lt.lt (with_bot α) _ none (some a) :=
 ⟨a, rfl, λ b hb, (option.not_mem_none _ hb).elim⟩
 
-lemma bot_lt_coe [has_lt α] (a : α) : (⊥ : with_bot α) < a := bot_lt_some a
+lemma bot_lt_coe [has_lt α] (a : α) : (⊥ : with_bot α) < a := none_lt_some a
 
 instance : can_lift (with_bot α) α :=
 { coe := coe,
@@ -728,6 +732,9 @@ by rw [← option.some.inj_eq a b]; refl
 @[simp] theorem top_ne_coe {a : α} : ⊤ ≠ (a : with_top α) .
 @[simp] theorem coe_ne_top {a : α} : (a : with_top α) ≠ ⊤ .
 
+lemma ne_top_iff_exists {x : with_top α} : x ≠ ⊤ ↔ ∃ (a : α), ↑a = x :=
+option.ne_none_iff_exists
+
 /-- Deconstruct a `x : with_top α` to the underlying value in `α`, given a proof that `x ≠ ⊤`. -/
 def untop : Π (x : with_top α), x ≠ ⊤ → α :=
 with_bot.unbot
@@ -755,7 +762,7 @@ by simp [(≤)]
   @has_le.le (with_top α) _ a none :=
 by simp [(≤)]
 
-@[simp] theorem some_lt_none [has_lt α] {a : α} :
+@[simp] theorem some_lt_none [has_lt α] (a : α) :
   @has_lt.lt (with_top α) _ (some a) none :=
 by simp [(<)]; existsi a; refl
 
@@ -815,7 +822,7 @@ theorem lt_iff_exists_coe [partial_order α] : ∀{a b : with_top α}, a < b ↔
 @[norm_cast]
 lemma coe_lt_coe [partial_order α] {a b : α} : (a : with_top α) < b ↔ a < b := some_lt_some
 
-lemma coe_lt_top [partial_order α] (a : α) : (a : with_top α) < ⊤ := some_lt_none
+lemma coe_lt_top [partial_order α] (a : α) : (a : with_top α) < ⊤ := some_lt_none a
 
 theorem coe_lt_iff [partial_order α] {a : α} : ∀{x : with_top α}, ↑a < x ↔ (∀b:α, x = ↑b → a < b)
 | (some b) := by simp [some_eq_coe, coe_eq_coe, coe_lt_coe]
@@ -1082,6 +1089,8 @@ by rw [disjoint, disjoint, inf_comm]
 
 @[symm] theorem disjoint.symm ⦃a b : α⦄ : disjoint a b → disjoint b a :=
 disjoint.comm.1
+
+lemma symmetric_disjoint : symmetric (disjoint : α → α → Prop) := disjoint.symm
 
 @[simp] theorem disjoint_bot_left {a : α} : disjoint ⊥ a := inf_le_left
 @[simp] theorem disjoint_bot_right {a : α} : disjoint a ⊥ := inf_le_right

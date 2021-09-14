@@ -486,7 +486,7 @@ apply_nolint pgame.relabelling has_inhabited_instance
 apply_nolint pgame.restricted has_inhabited_instance
 apply_nolint pgame.right_moves has_inhabited_instance
 
--- set_theory/surreal.lean
+-- set_theory/surreal/basic.lean
 apply_nolint pgame.add_lt_add unused_arguments
 apply_nolint pgame.numeric.lt_move_right unused_arguments
 apply_nolint pgame.numeric.move_left_lt unused_arguments

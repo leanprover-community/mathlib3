@@ -126,7 +126,7 @@ begin
       (λ p hp, cpow_def_of_ne_zero hp _),
   rw [cpow_sub _ _ A, cpow_one, mul_div_comm, mul_smul, mul_smul, ← smul_add],
   refine has_strict_fderiv_at.congr_of_eventually_eq _ this.symm,
-  simpa only [cpow_def_of_ne_zero A, div_eq_mul_inv, smul_smul, add_comm]
+  simpa only [cpow_def_of_ne_zero A, div_eq_mul_inv, mul_smul, add_comm]
     using ((has_strict_fderiv_at_fst.clog hp).mul has_strict_fderiv_at_snd).cexp
 end
 

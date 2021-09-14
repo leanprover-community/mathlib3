@@ -17,7 +17,7 @@ to the function `x ↦ x`. We obtain as a consequence Lebesgue measure on `ℝ�
 are translation invariant.
 
 We show that, on `ℝⁿ`, a linear map acts on Lebesgue measure by rescaling it through the absolute
-value of its determinant, in `map_linear_map_volume_pi_eq_smul_volume_pi`.
+value of its determinant, in `real.map_linear_map_volume_pi_eq_smul_volume_pi`.
 -/
 
 noncomputable theory
@@ -295,7 +295,9 @@ calc volume (((+) a) ⁻¹' s) = measure.map ((+) a) volume s :
 
 open matrix
 
-/-- A diagonal matrix rescales Lebesgue according to its determinant. -/
+/-- A diagonal matrix rescales Lebesgue according to its determinant. This is a special case of
+`real.map_matrix_volume_pi_eq_smul_volume_pi`, that one should use instead (and whose proof
+uses this particular case). -/
 lemma smul_map_diagonal_volume_pi [decidable_eq ι] {D : ι → ℝ} (h : det (diagonal D) ≠ 0) :
   ennreal.of_real (abs (det (diagonal D))) • measure.map ((diagonal D).to_lin') volume = volume :=
 begin
@@ -549,3 +551,7 @@ sorry
 
 end vitali
 -/
+
+#check real.map_linear_map_volume_pi_eq_smul_volume_pi
+
+#check real.map_matrix_volume_pi_eq_smul_volume_pi

@@ -16,8 +16,9 @@ In this file we define and prove properties about finite products of measures
 * `measure_theory.measure.pi`: The product of finitely many σ-finite measures.
   Given `μ : Π i : ι, measure (α i)` for `[fintype ι]` it has type `measure (Π i : ι, α i)`.
 
-To apply Fubini along some subset of the variables, use `map_pi_equiv_pi_subtype_prod_symm` to
-reduce to the situation of a product of two measures.
+To apply Fubini along some subset of the variables, use
+`measure_theory.measure.map_pi_equiv_pi_subtype_prod` to reduce to the situation of a product
+of two measures.
 
 ## Implementation Notes
 
@@ -501,9 +502,9 @@ end
 
 variable (μ)
 
-/-- Separating the coordinates into those that satisfy a predicate `p` and those that don't maps
+/-- Separating the indices into those that satisfy a predicate `p` and those that don't maps
 a product measure to a product of product measures. This is useful to apply Fubini to some subset
-of the variables. The converse is `map_pi_equiv_pi_subtype_prod` -/
+of the variables. The converse is `measure_theory.measure.map_pi_equiv_pi_subtype_prod`. -/
 lemma map_pi_equiv_pi_subtype_prod_symm (p : ι → Prop) [decidable_pred p] :
   map (equiv.pi_equiv_pi_subtype_prod p α).symm
     (measure.prod (measure.pi (λ i, μ i)) (measure.pi (λ i, μ i))) = measure.pi μ :=
@@ -565,3 +566,5 @@ lemma volume_pi_closed_ball [Π i, measure_space (α i)] [∀ i, sigma_finite (v
 measure.pi_closed_ball _ _ hr
 
 end measure_theory
+
+#check

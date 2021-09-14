@@ -260,7 +260,7 @@ end piecewise
 
 section extend
 
-variables {ι : Type u} {η : Type v} (R : Type w) {s : ι → η} (hs : function.injective s)
+variables {ι : Type u} {η : Type v} (R : Type w) (s : ι → η)
 
 /-- `function.extend s f 1` as a bundled hom. -/
 @[to_additive function.extend_by_zero.add_hom "`function.extend s f 0` as a bundled hom."]

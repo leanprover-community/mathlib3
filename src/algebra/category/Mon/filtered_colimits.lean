@@ -14,9 +14,9 @@ Forgetful functors from algebraic categories usually don't preserve colimits. Ho
 to preserve _filtered_ colimits.
 
 In this file, we start with a small filtered category `J` and a functor `F : J ⥤ Mon`.
-We then construct a monoid structure on the colimit of `F ⋙ forget Mon`, thereby showing that
-the forgetful functor `forget Mon` preserves filtered colimits. Similarly for `AddMon`, `CommMon`
-and `AddCommMon`.
+We then construct a monoid structure on the colimit of `F ⋙ forget Mon` (in `Type`), thereby
+showing that the forgetful functor `forget Mon` preserves filtered colimits. Similarly for `AddMon`,
+`CommMon` and `AddCommMon`.
 
 -/
 
@@ -67,16 +67,18 @@ As `J` is nonempty, we can pick an arbitrary object `j₀ : J`. We use this obje
 -/
 @[to_additive "As `J` is nonempty, we can pick an arbitrary object `j₀ : J`. We use this object to
 define the \"zero\" in the colimit as the equivalence class of `⟨j₀, 0 : F.obj j₀⟩`."]
-def colimit_one : M := M.mk ⟨is_filtered.nonempty.some, 1⟩
+instance colimit_has_one : has_one M :=
+{ one := M.mk ⟨is_filtered.nonempty.some, 1⟩ }
 
 /--
-The definition of `colimit_one` is independent of the chosen object of `J`. In particular, this
-lemma allows us to "unfold" the definition of `colimit_one` at a custom chosen object `j`.
+The definition of the "one" in the colimit is independent of the chosen object of `J`.
+In particular, this lemma allows us to "unfold" the definition of `colimit_one` at a custom chosen
+object `j`.
 -/
-@[to_additive "The definition of `colimit_zero` is independent of the chosen object of `J`. In
-particular, this lemma allows us to \"unfold\" the definition of `colimit_zero` at a custom chosen
-object `j`."]
-lemma colimit_one_eq' (j : J) : colimit_one = M.mk ⟨j, 1⟩ :=
+@[to_additive "The definition of the \"zero\" in the colimit is independent of the chosen object
+of `J`. In particular, this lemma allows us to \"unfold\" the definition of `colimit_zero` at a
+custom chosen object `j`."]
+lemma colimit_one_eq (j : J) : (1 : M) = M.mk ⟨j, 1⟩ :=
 begin
   apply M.mk_eq,
   refine ⟨max' _ j, left_to_max _ j, right_to_max _ j, _⟩,
@@ -130,9 +132,9 @@ end
 
 /-- Multiplication in the colimit. See also `colimit_mul_aux`. -/
 @[to_additive "Addition in the colimit. See also `colimit_add_aux`."]
-def colimit_mul (x y : M) : M :=
-begin
-  refine quot.lift₂ (colimit_mul_aux F) _ _ x y,
+instance colimit_has_mul : has_mul M :=
+{ mul := λ x y, begin
+    refine quot.lift₂ (colimit_mul_aux F) _ _ x y,
   { intros x y y' h,
     apply colimit_mul_aux_eq_of_rel_right,
     apply types.filtered_colimit.rel_of_quot_rel,
@@ -141,7 +143,7 @@ begin
     apply colimit_mul_aux_eq_of_rel_left,
     apply types.filtered_colimit.rel_of_quot_rel,
     exact h },
-end
+  end }
 
 /--
 Multiplication in the colimit is independent of the chosen "maximum" in the filtered category.
@@ -151,8 +153,8 @@ using a custom object `k` and morphisms `f : x.1 ⟶ k` and `g : y.1 ⟶ k`.
 @[to_additive "Addition in the colimit is independent of the chosen \"maximum\" in the filtered
 category. In particular, this lemma allows us to \"unfold\" the definition of the addition of `x`
 and `y`, using a custom object `k` and morphisms `f : x.1 ⟶ k` and `g : y.1 ⟶ k`."]
-lemma colimit_mul_mk_eq' (x y : Σ j, F.obj j) (k : J) (f : x.1 ⟶ k) (g : y.1 ⟶ k) :
-  colimit_mul (M.mk x) (M.mk y) = M.mk ⟨k, F.map f x.2 * F.map g y.2⟩ :=
+lemma colimit_mul_mk_eq (x y : Σ j, F.obj j) (k : J) (f : x.1 ⟶ k) (g : y.1 ⟶ k) :
+  (M.mk x) * (M.mk y) = M.mk ⟨k, F.map f x.2 * F.map g y.2⟩ :=
 begin
   cases x with j₁ x, cases y with j₂ y,
   obtain ⟨s, α, β, h₁, h₂⟩ := bowtie (left_to_max j₁ j₂) f (right_to_max j₁ j₂) g,
@@ -163,57 +165,32 @@ begin
 end
 
 @[to_additive]
-lemma colimit_one_mul (x : M) : colimit_mul colimit_one x = x :=
-begin
-  apply quot.induction_on x, clear x, intro x,
-  cases x with j x,
-  rw [colimit_one_eq' F j, colimit_mul_mk_eq' F ⟨j, 1⟩ ⟨j, x⟩ j (𝟙 j) (𝟙 j),
-    monoid_hom.map_one, one_mul, F.map_id, id_apply],
-end
-
-@[to_additive]
-lemma colimit_mul_one (x : types.quot (F ⋙ forget Mon)) :
-  colimit_mul x colimit_one = x :=
-begin
-  apply quot.induction_on x, clear x, intro x,
-  cases x with j x,
-  rw [colimit_one_eq' F j, colimit_mul_mk_eq' F ⟨j, x⟩ ⟨j, 1⟩ j (𝟙 j) (𝟙 j),
-    monoid_hom.map_one, mul_one, F.map_id, id_apply],
-end
-
-@[to_additive]
-lemma colimit_mul_assoc (x y z : M) :
-  colimit_mul (colimit_mul x y) z = colimit_mul x (colimit_mul y z) :=
-begin
-  apply quot.induction_on₃ x y z, clear x y z, intros x y z,
-  cases x with j₁ x, cases y with j₂ y, cases z with j₃ z,
-  rw [colimit_mul_mk_eq' F ⟨j₁, x⟩ ⟨j₂, y⟩ _ (first_to_max₃ j₁ j₂ j₃) (second_to_max₃ j₁ j₂ j₃),
-    colimit_mul_mk_eq' F ⟨max₃ j₁ j₂ j₃, _⟩ ⟨j₃, z⟩ _ (𝟙 _) (third_to_max₃ j₁ j₂ j₃),
-    colimit_mul_mk_eq' F ⟨j₂, y⟩ ⟨j₃, z⟩ _ (second_to_max₃ j₁ j₂ j₃) (third_to_max₃ j₁ j₂ j₃),
-    colimit_mul_mk_eq' F ⟨j₁, x⟩ ⟨max₃ j₁ j₂ j₃, _⟩ _ (first_to_max₃ j₁ j₂ j₃) (𝟙 _)],
-  simp only [F.map_id, id_apply, mul_assoc],
-end
-
-@[to_additive]
 instance colimit_monoid : monoid M :=
-{ one := colimit_one,
-  mul := colimit_mul,
-  one_mul := colimit_one_mul,
-  mul_one := colimit_mul_one,
-  mul_assoc := colimit_mul_assoc }
+{ one_mul := λ x, begin
+    apply quot.induction_on x, clear x, intro x, cases x with j x,
+    rw [colimit_one_eq F j, colimit_mul_mk_eq F ⟨j, 1⟩ ⟨j, x⟩ j (𝟙 j) (𝟙 j),
+      monoid_hom.map_one, one_mul, F.map_id, id_apply],
+  end,
+  mul_one := λ x, begin
+    apply quot.induction_on x, clear x, intro x, cases x with j x,
+    rw [colimit_one_eq F j, colimit_mul_mk_eq F ⟨j, x⟩ ⟨j, 1⟩ j (𝟙 j) (𝟙 j),
+      monoid_hom.map_one, mul_one, F.map_id, id_apply],
+  end,
+  mul_assoc := λ x y z, begin
+    apply quot.induction_on₃ x y z, clear x y z, intros x y z,
+    cases x with j₁ x, cases y with j₂ y, cases z with j₃ z,
+    rw [colimit_mul_mk_eq F ⟨j₁, x⟩ ⟨j₂, y⟩ _ (first_to_max₃ j₁ j₂ j₃) (second_to_max₃ j₁ j₂ j₃),
+      colimit_mul_mk_eq F ⟨max₃ j₁ j₂ j₃, _⟩ ⟨j₃, z⟩ _ (𝟙 _) (third_to_max₃ j₁ j₂ j₃),
+      colimit_mul_mk_eq F ⟨j₂, y⟩ ⟨j₃, z⟩ _ (second_to_max₃ j₁ j₂ j₃) (third_to_max₃ j₁ j₂ j₃),
+      colimit_mul_mk_eq F ⟨j₁, x⟩ ⟨max₃ j₁ j₂ j₃, _⟩ _ (first_to_max₃ j₁ j₂ j₃) (𝟙 _)],
+    simp only [F.map_id, id_apply, mul_assoc],
+  end,
+  ..colimit_has_one,
+  ..colimit_has_mul }
 
 /-- The bundled monoid giving the filtered colimit of a diagram. -/
 @[to_additive "The bundled additive monoid giving the filtered colimit of a diagram."]
 def colimit : Mon := Mon.of M
-
-@[to_additive]
-lemma colimit_one_eq (j : J) : (1 : M) = M.mk ⟨j, 1⟩ :=
-colimit_one_eq' j
-
-@[to_additive]
-lemma colimit_mul_mk_eq (x y : Σ j, F.obj j) (k : J) (f : x.1 ⟶ k) (g : y.1 ⟶ k) :
-  M.mk x * M.mk y = M.mk ⟨k, F.map f x.2 * F.map g y.2⟩ :=
-colimit_mul_mk_eq' x y k f g
 
 /-- The monoid homomorphism from a given monoid in the diagram to the colimit monoid. -/
 @[to_additive "The additive monoid homomorphism from a given additive monoid in the diagram to the
@@ -282,7 +259,7 @@ end Mon.filtered_colimits
 
 namespace CommMon.filtered_colimits
 
-open Mon.filtered_colimits (colimit_mul colimit_mul_mk_eq)
+open Mon.filtered_colimits (colimit_mul_mk_eq)
 
 section
 

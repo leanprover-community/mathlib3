@@ -33,7 +33,7 @@ namespace Group.filtered_colimits
 
 section
 
-open Mon.filtered_colimits (colimit_mul colimit_one colimit_mul_mk_eq' colimit_one_eq')
+open Mon.filtered_colimits (colimit_one_eq colimit_mul_mk_eq)
 
 -- We use parameters here, mainly so we can have the abbreviations `G` and `G.mk` below, without
 -- passing around `F` all the time.
@@ -49,8 +49,8 @@ variables [is_filtered J]
 The colimit of `F ⋙ forget₂ Group Mon` in the category `Mon`.
 In the following, we will show that this has the structure of a group.
 -/
-@[to_additive "The colimit of `F ⋙ forget₂ Group Mon` in the category `Mon`.
-In the following, we will show that this has the structure of a group."]
+@[to_additive "The colimit of `F ⋙ forget₂ AddGroup AddMon` in the category `AddMon`.
+In the following, we will show that this has the structure of an additive group."]
 abbreviation G : Mon := Mon.filtered_colimits.colimit (F ⋙ forget₂ Group Mon)
 
 /-- The canonical projection into the colimit, as a quotient type. -/
@@ -82,43 +82,34 @@ end
 
 /-- Taking inverses in the colimit. See also `colimit_inv_aux`. -/
 @[to_additive "Negation in the colimit. See also `colimit_neg_aux`."]
-def colimit_inv (x : G) : G :=
-begin
-  refine quot.lift (colimit_inv_aux F) _ x,
+instance colimit_has_inv : has_inv G :=
+{ inv := λ x, begin
+   refine quot.lift (colimit_inv_aux F) _ x,
   intros x y h,
   apply colimit_inv_aux_eq_of_rel,
   apply types.filtered_colimit.rel_of_quot_rel,
   exact h,
-end
+end }
 
-@[to_additive, simp]
-lemma colimit_inv_mk_eq' (x : Σ j, F.obj j) : colimit_inv (G.mk x) = G.mk ⟨x.1, x.2 ⁻¹⟩ := rfl
-
-@[to_additive]
-lemma colimit_mul_left_inv (x : G) :
-  colimit_mul (F ⋙ forget₂ Group Mon) (colimit_inv x) x =
-  colimit_one (F ⋙ forget₂ Group Mon) :=
-begin
-  apply quot.induction_on x, clear x, intro x,
-  cases x with j x,
-  erw [colimit_inv_mk_eq', colimit_mul_mk_eq' (F ⋙ forget₂ Group Mon) ⟨j, _⟩ ⟨j, _⟩ j (𝟙 j) (𝟙 j),
-    colimit_one_eq' (F ⋙ forget₂ Group Mon) j],
-  dsimp,
-  simp only [category_theory.functor.map_id, id_apply, mul_left_inv],
-end
+@[simp, to_additive]
+lemma colimit_inv_mk_eq (x : Σ j, F.obj j) : (G.mk x) ⁻¹ = G.mk ⟨x.1, x.2 ⁻¹⟩ := rfl
 
 @[to_additive]
 instance colimit_group : group G :=
-{ inv := colimit_inv,
-  mul_left_inv := colimit_mul_left_inv,
-  .. G.monoid }
+{ mul_left_inv := λ x, begin
+    apply quot.induction_on x, clear x, intro x,
+    cases x with j x,
+    erw [colimit_inv_mk_eq, colimit_mul_mk_eq (F ⋙ forget₂ Group Mon) ⟨j, _⟩ ⟨j, _⟩ j (𝟙 j) (𝟙 j),
+      colimit_one_eq (F ⋙ forget₂ Group Mon) j],
+    dsimp,
+    simp only [category_theory.functor.map_id, id_apply, mul_left_inv],
+  end,
+  .. G.monoid,
+  .. colimit_has_inv }
 
 /-- The bundled group giving the filtered colimit of a diagram. -/
 @[to_additive "The bundled additive group giving the filtered colimit of a diagram."]
 def colimit : Group := Group.of G
-
-@[to_additive, simp]
-lemma colimit_mk_inv (x : Σ j, F.obj j) : (G.mk x) ⁻¹ = G.mk ⟨x.1, x.2 ⁻¹⟩ := rfl
 
 /-- The cocone over the proposed colimit group. -/
 @[to_additive "The cocone over the proposed colimit additive group."]
@@ -157,7 +148,7 @@ namespace CommGroup.filtered_colimits
 
 section
 
--- We use parameters here, mainly so we can have the abbreviations `G` and `G.mk` below, without
+-- We use parameters here, mainly so we can have the abbreviation `G` below, without
 -- passing around `F` all the time.
 parameters {J : Type v} [small_category J] [is_filtered J] (F : J ⥤ CommGroup.{v})
 

@@ -15,8 +15,8 @@ to preserve _filtered_ colimits.
 In this file, we start with a ring `R`, a small filtered category `J` and a functor
 `F : J ⥤ Module R`. We show that the colimit of `F ⋙ forget₂ (Module R) AddCommGroup`
 (in `AddCommGroup`) carries the structure of an `R`-module, thereby showing that the forgetful
-functor `forget₂ (Module R) AddCommGroup` preserves filtered colimits. In particular, this implies that
-`forget (Module R)` preserves colimits.
+functor `forget₂ (Module R) AddCommGroup` preserves filtered colimits. In particular, this implies
+that `forget (Module R)` preserves colimits.
 
 -/
 
@@ -29,7 +29,7 @@ open category_theory
 open category_theory.limits
 open category_theory.is_filtered (renaming max → max') -- avoid name collision with `_root_.max`.
 
-open AddMon.filtered_colimits (colimit_zero colimit_zero_eq colimit_add colimit_add_mk_eq)
+open AddMon.filtered_colimits (colimit_zero_eq colimit_add_mk_eq)
 
 namespace Module.filtered_colimits
 
@@ -82,17 +82,14 @@ begin
 end
 
 /-- Scalar multiplication in the colimit. See also `colimit_smul_aux`. -/
-def colimit_smul (r : R) (x : M) : M :=
-begin
-  refine quot.lift (colimit_smul_aux F r) _ x,
-  intros x y h,
-  apply colimit_smul_aux_eq_of_rel,
-  apply types.filtered_colimit.rel_of_quot_rel,
-  exact h,
-end
-
 instance colimit_has_scalar : has_scalar R M :=
-{ smul := colimit_smul }
+{ smul := λ r x, begin
+    refine quot.lift (colimit_smul_aux F r) _ x,
+    intros x y h,
+    apply colimit_smul_aux_eq_of_rel,
+    apply types.filtered_colimit.rel_of_quot_rel,
+    exact h,
+  end }
 
 @[simp]
 lemma colimit_smul_mk_eq (r : R) (x : Σ j, F.obj j) : r • M.mk x = M.mk ⟨x.1, r • x.2⟩ := rfl

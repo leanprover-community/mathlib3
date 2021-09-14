@@ -315,7 +315,9 @@ end
 lemma Inf_glb (S : set (lie_subalgebra R L)) : is_glb S (Inf S) :=
 begin
   have h : ∀ (K K' : lie_subalgebra R L), (K : set L) ≤ K' ↔ K ≤ K', { intros, exact iff.rfl, },
-  simp only [is_glb.of_image h, Inf_coe, is_glb_binfi],
+  apply is_glb.of_image h,
+  simp only [Inf_coe],
+  exact is_glb_binfi
 end
 
 /-- The set of Lie subalgebras of a Lie algebra form a complete lattice.
@@ -493,9 +495,8 @@ variables [comm_ring R] [lie_ring L₁] [lie_ring L₂] [lie_algebra R L₁] [li
 /-- An injective Lie algebra morphism is an equivalence onto its range. -/
 noncomputable def of_injective (f : L₁ →ₗ⁅R⁆ L₂) (h : function.injective f) :
   L₁ ≃ₗ⁅R⁆ f.range :=
-have h' : (f : L₁ →ₗ[R] L₂).ker = ⊥ := linear_map.ker_eq_bot_of_injective h,
 { map_lie' := λ x y, by { apply set_coe.ext, simpa, },
-..(linear_equiv.of_injective ↑f h')}
+..(linear_equiv.of_injective ↑f $ by rwa [lie_hom.coe_to_linear_map])}
 
 @[simp] lemma of_injective_apply (f : L₁ →ₗ⁅R⁆ L₂) (h : function.injective f) (x : L₁) :
   ↑(of_injective f h x) = f x := rfl

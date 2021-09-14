@@ -104,11 +104,18 @@ lemma det_unique {n : Type*} [unique n] [decidable_eq n] [fintype n] (A : matrix
   det A = A (default n) (default n) :=
 by simp [det_apply, univ_unique]
 
+lemma det_eq_elem_of_subsingleton [subsingleton n] (A : matrix n n R) (k : n) :
+  det A = A k k :=
+begin
+  convert det_unique _,
+  exact unique_of_subsingleton k
+end
+
 lemma det_eq_elem_of_card_eq_one {A : matrix n n R} (h : fintype.card n = 1) (k : n) :
   det A = A k k :=
 begin
-  casesI fintype.card_eq_one_iff_nonempty_unique.mp h,
-  convert det_unique A,
+  haveI : subsingleton n := fintype.card_le_one_iff_subsingleton.mp h.le,
+  exact det_eq_elem_of_subsingleton _ _
 end
 
 lemma det_mul_aux {M N : matrix n n R} {p : n → n} (H : ¬bijective p) :
@@ -155,9 +162,13 @@ calc det (M ⬝ N) = ∑ p : n → n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) 
       by { simp_rw [equiv.coe_mul_right, h], simp only [this] }))
 ... = det M * det N : by simp only [det_apply', finset.mul_sum, mul_comm, mul_left_comm]
 
-instance : is_monoid_hom (det : matrix n n R → R) :=
-{ map_one := det_one,
-  map_mul := det_mul }
+/-- The determinant of a matrix, as a monoid homomorphism. -/
+def det_monoid_hom : matrix n n R →* R :=
+{ to_fun := det,
+  map_one' := det_one,
+  map_mul' := det_mul }
+
+@[simp] lemma coe_det_monoid_hom : (det_monoid_hom : matrix n n R → R) = det := rfl
 
 /-- On square matrices, `mul_comm` applies under `det`. -/
 lemma det_mul_comm (M N : matrix m m R) : det (M ⬝ N) = det (N ⬝ M) :=
@@ -227,7 +238,7 @@ det_minor_equiv_self e.symm A
 by rw [←matrix.mul_one (σ.to_pequiv.to_matrix : matrix n n R), pequiv.to_pequiv_mul_matrix,
   det_permute, det_one, mul_one]
 
-@[simp] lemma det_smul {A : matrix n n R} {c : R} : det (c • A) = c ^ fintype.card n * det A :=
+@[simp] lemma det_smul (A : matrix n n R) (c : R) : det (c • A) = c ^ fintype.card n * det A :=
 calc det (c • A) = det (matrix.mul (diagonal (λ _, c)) A) : by rw [smul_eq_diagonal_mul]
              ... = det (diagonal (λ _, c)) * det A        : det_mul _ _
              ... = c ^ fintype.card n * det A             : by simp [card_univ]
@@ -244,6 +255,9 @@ the product of the `v`s. -/
 lemma det_mul_column (v : n → R) (A : matrix n n R) :
   det (λ i j, v i * A i j) = (∏ i, v i) * det A :=
 multilinear_map.map_smul_univ _ v A
+
+@[simp] lemma det_pow (M : matrix m m R) (n : ℕ) : det (M ^ n) = (det M) ^ n :=
+(det_monoid_hom : matrix m m R →* R).map_pow M n
 
 section hom_map
 
@@ -649,5 +663,30 @@ lemma det_succ_column {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) R) (j : fi
 by { rw [← det_transpose, det_succ_row _ j],
      refine finset.sum_congr rfl (λ i _, _),
      rw [add_comm, ← det_transpose, transpose_apply, transpose_minor, transpose_transpose] }
+
+
+/-- Determinant of 0x0 matrix -/
+@[simp] lemma det_fin_zero {A : matrix (fin 0) (fin 0) R} : det A = 1 :=
+det_is_empty
+
+/-- Determinant of 1x1 matrix -/
+lemma det_fin_one (A : matrix (fin 1) (fin 1) R) : det A = A 0 0  := det_unique A
+
+/-- Determinant of 2x2 matrix -/
+lemma det_fin_two (A : matrix (fin 2) (fin 2) R) :
+  det A = A 0 0 * A 1 1 - A 0 1 * A 1 0 :=
+begin
+  simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
+  ring
+end
+
+/-- Determinant of 3x3 matrix -/
+lemma det_fin_three (A : matrix (fin 3) (fin 3) R) :
+  det A = A 0 0 * A 1 1 * A 2 2 - A 0 0 * A 1 2 * A 2 1 - A 0 1 * A 1 0 * A 2 2
+  + A 0 1 * A 1 2 * A 2 0 + A 0 2 * A 1 0 * A 2 1 - A 0 2 * A 1 1 * A 2 0 :=
+begin
+  simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
+  ring
+end
 
 end matrix

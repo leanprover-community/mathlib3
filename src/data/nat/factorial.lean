@@ -51,10 +51,10 @@ theorem factorial_ne_zero (n : ℕ) : n! ≠ 0 := ne_of_gt (factorial_pos _)
 theorem factorial_dvd_factorial {m n} (h : m ≤ n) : m! ∣ n! :=
 begin
   induction n with n IH; simp,
-  { have := eq_zero_of_le_zero h, subst m, simp },
+  { have := nat.eq_zero_of_le_zero h, subst m, simp },
   obtain he | hl := h.eq_or_lt,
   { subst m, simp },
-  exact dvd_mul_of_dvd_right (IH (le_of_lt_succ hl)) _,
+  exact (IH (le_of_lt_succ hl)).mul_left _,
 end
 
 theorem dvd_factorial : ∀ {m n}, 0 < m → m ≤ n → m ∣ n!
@@ -158,6 +158,18 @@ begin
   { exact self_le_factorial _ },
   exact add_factorial_succ_le_factorial_add_succ i h,
 end
+
+lemma factorial_mul_pow_sub_le_factorial {n m : ℕ} (hnm : n ≤ m) : n! * n ^ (m - n) ≤ m! :=
+begin
+  suffices : n! * (n + 1) ^ (m - n) ≤ m!,
+  { apply trans _ this,
+    rw mul_le_mul_left,
+    apply pow_le_pow_of_le_left (zero_le n) (le_succ n),
+    exact factorial_pos n,},
+  convert nat.factorial_mul_pow_le_factorial,
+  exact (nat.add_sub_of_le hnm).symm,
+end
+
 
 end factorial
 
@@ -291,7 +303,7 @@ lemma desc_factorial_self : ∀ n : ℕ, n.desc_factorial n = n!
 | (succ n) := by rw [succ_desc_factorial_succ, desc_factorial_self, factorial_succ]
 
 @[simp] lemma desc_factorial_eq_zero_iff_lt {n : ℕ} : ∀ {k : ℕ}, n.desc_factorial k = 0 ↔ n < k
-| 0        := by simp only [desc_factorial_zero, nat.one_ne_zero, not_lt_zero]
+| 0        := by simp only [desc_factorial_zero, nat.one_ne_zero, nat.not_lt_zero]
 | (succ k) := begin
   rw [desc_factorial_succ, mul_eq_zero, desc_factorial_eq_zero_iff_lt, lt_succ_iff,
     nat.sub_eq_zero_iff_le, lt_iff_le_and_ne, or_iff_left_iff_imp, and_imp],
@@ -318,7 +330,7 @@ lemma desc_factorial_eq_div {n k : ℕ} (h : k ≤ n) : n.desc_factorial k = n! 
 begin
   apply mul_left_cancel' (factorial_ne_zero (n - k)),
   rw factorial_mul_desc_factorial h,
-  exact (nat.mul_div_cancel' $ factorial_dvd_factorial $ sub_le n k).symm,
+  exact (nat.mul_div_cancel' $ factorial_dvd_factorial $ nat.sub_le n k).symm,
 end
 
 lemma pow_sub_le_desc_factorial (n : ℕ) : ∀ (k : ℕ), (n + 1 - k)^k ≤ n.desc_factorial k
@@ -354,7 +366,7 @@ lemma desc_factorial_le_pow (n : ℕ) : ∀ (k : ℕ), n.desc_factorial k ≤ n^
 | 0 := by rw [desc_factorial_zero, pow_zero]
 | (k + 1) := begin
   rw [desc_factorial_succ, pow_succ],
-  exact nat.mul_le_mul (sub_le _ _) (desc_factorial_le_pow k),
+  exact nat.mul_le_mul (nat.sub_le _ _) (desc_factorial_le_pow k),
 end
 
 lemma desc_factorial_lt_pow {n : ℕ} (hn : 1 ≤ n) : ∀ {k : ℕ}, 2 ≤ k → n.desc_factorial k < n^k

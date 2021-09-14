@@ -28,6 +28,7 @@ order of an element
 -/
 
 open function nat
+open_locale pointwise
 
 universes u v
 
@@ -212,7 +213,7 @@ lemma add_order_of_eq_add_order_of_iff {B : Type*} [add_monoid B] {b : B} :
   add_order_of a = add_order_of b ↔ ∀ n : ℕ, n • a = 0 ↔ n • b = 0 :=
 begin
   simp_rw ← add_order_of_dvd_iff_nsmul_eq_zero,
-  exact ⟨λ h n, by rw h, λ h, nat.dvd_antisymm ((h _).mpr (dvd_refl _)) ((h _).mp (dvd_refl _))⟩,
+  exact ⟨λ h n, by rw h, λ h, nat.dvd_antisymm ((h _).mpr dvd_rfl) ((h _).mp dvd_rfl)⟩,
 end
 
 @[to_additive add_order_of_eq_add_order_of_iff]
@@ -355,6 +356,15 @@ end cancel_monoid
 section group
 variables [group G] [add_group A] {x a} {i : ℤ}
 
+@[to_additive add_order_of_dvd_iff_gsmul_eq_zero]
+lemma order_of_dvd_iff_gpow_eq_one : (order_of x : ℤ) ∣ i ↔ x ^ i = 1 :=
+begin
+  rcases int.eq_coe_or_neg i with ⟨i, rfl|rfl⟩,
+  { rw [int.coe_nat_dvd, order_of_dvd_iff_pow_eq_one, gpow_coe_nat] },
+  { rw [dvd_neg, int.coe_nat_dvd, gpow_neg, inv_eq_one, gpow_coe_nat,
+      order_of_dvd_iff_pow_eq_one] }
+end
+
 @[simp, norm_cast, to_additive] lemma order_of_subgroup {H : subgroup G}
   (y: H) : order_of (y : G) = order_of y :=
 order_of_injective H.subtype subtype.coe_injective y
@@ -372,6 +382,49 @@ begin
 end
 
 attribute [to_additive gsmul_eq_mod_add_order_of] gpow_eq_mod_order_of
+
+@[to_additive add_order_of_eq_zero_iff] lemma order_of_eq_zero_iff :
+  order_of x = 0 ↔ ¬ is_of_fin_order x :=
+⟨λ h H, (order_of_pos' H).ne' h, order_of_eq_zero⟩
+
+@[to_additive nsmul_inj_iff_of_add_order_of_eq_zero]
+lemma pow_inj_iff_of_order_of_eq_zero (h : order_of x = 0) {n m : ℕ} :
+  x ^ n = x ^ m ↔ n = m :=
+begin
+  by_cases hx : x = 1,
+  { rw [←order_of_eq_one_iff, h] at hx,
+    contradiction },
+  rw [order_of_eq_zero_iff, is_of_fin_order_iff_pow_eq_one] at h,
+  push_neg at h,
+  induction n with n IH generalizing m,
+  { cases m,
+    { simp },
+    { simpa [eq_comm] using h m.succ m.zero_lt_succ } },
+  { cases m,
+    { simpa using h n.succ n.zero_lt_succ },
+    { simp [pow_succ, IH] } }
+end
+
+lemma pow_inj_mod {n m : ℕ} :
+  x ^ n = x ^ m ↔ n % order_of x = m % order_of x :=
+begin
+  cases (order_of x).zero_le.eq_or_lt with hx hx,
+  { simp [pow_inj_iff_of_order_of_eq_zero, hx.symm] },
+  rw [pow_eq_mod_order_of, @pow_eq_mod_order_of _ _ _ m],
+  exact ⟨pow_injective_of_lt_order_of _ (nat.mod_lt _ hx) (nat.mod_lt _ hx), λ h, congr_arg _ h⟩
+end
+
+lemma nsmul_inj_mod {n m : ℕ} :
+  n • a = m • a ↔ n % add_order_of a = m % add_order_of a :=
+begin
+  cases (add_order_of a).zero_le.eq_or_lt with hx hx,
+  { simp [nsmul_inj_iff_of_add_order_of_eq_zero, hx.symm] },
+  rw [nsmul_eq_mod_add_order_of, @nsmul_eq_mod_add_order_of _ _ _ m],
+  refine ⟨nsmul_injective_of_lt_add_order_of a (nat.mod_lt n hx) (nat.mod_lt m hx), λ h, _⟩,
+  rw h
+end
+
+attribute [to_additive nsmul_inj_mod] pow_inj_mod
 
 end group
 
@@ -602,7 +655,7 @@ lemma mem_multiples_iff_mem_gmultiples :
   b ∈ add_submonoid.multiples a ↔ b ∈ add_subgroup.gmultiples a :=
 ⟨λ ⟨n, hn⟩, ⟨n, by simp * at *⟩, λ ⟨i, hi⟩, ⟨(i % add_order_of a).nat_abs,
   by { simp only [nsmul_eq_smul] at hi ⊢,
-       rwa  [← gsmul_coe_nat,
+       rwa [← gsmul_coe_nat,
        int.nat_abs_of_nonneg (int.mod_nonneg _ (int.coe_nat_ne_zero_iff_pos.2
           (add_order_of_pos a))), ← gsmul_eq_mod_add_order_of] } ⟩⟩
 

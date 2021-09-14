@@ -170,6 +170,20 @@ namespace bool
 
 @[simp] lemma ff_lt_tt : ff < tt := lt_of_le_of_ne ff_le ff_ne_tt
 
+lemma le_iff_imp : ∀ {x y : bool}, x ≤ y ↔ (x → y) := dec_trivial
+
+lemma band_le_left : ∀ x y : bool, x && y ≤ x := dec_trivial
+
+lemma band_le_right : ∀ x y : bool, x && y ≤ y := dec_trivial
+
+lemma le_band : ∀ {x y z : bool}, x ≤ y → x ≤ z → x ≤ y && z := dec_trivial
+
+lemma left_le_bor : ∀ x y : bool, x ≤ x || y := dec_trivial
+
+lemma right_le_bor : ∀ x y : bool, y ≤ x || y := dec_trivial
+
+lemma bor_le : ∀ {x y z}, x ≤ z → y ≤ z → x || y ≤ z := dec_trivial
+
 /-- convert a `bool` to a `ℕ`, `false -> 0`, `true -> 1` -/
 def to_nat (b : bool) : ℕ :=
 cond b 1 0
@@ -194,5 +208,9 @@ by cases h; subst h; [cases b₁, cases b₀]; simp [to_nat,nat.zero_le]
 
 lemma of_nat_to_nat (b : bool) : of_nat (to_nat b) = b :=
 by cases b; simp only [of_nat,to_nat]; exact dec_trivial
+
+@[simp] lemma injective_iff {α : Sort*} {f : bool → α} : function.injective f ↔ f ff ≠ f tt :=
+⟨λ Hinj Heq, ff_ne_tt (Hinj Heq),
+  λ H x y hxy, by { cases x; cases y, exacts [rfl, (H hxy).elim, (H hxy.symm).elim, rfl] }⟩
 
 end bool

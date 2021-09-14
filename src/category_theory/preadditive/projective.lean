@@ -96,7 +96,7 @@ instance (X : Type u) : projective X :=
   ⟨λ x, ((epi_iff_surjective _).mp epi (f x)).some,
   by { ext x, exact ((epi_iff_surjective _).mp epi (f x)).some_spec, }⟩ }
 
-instance Type_enough_projectives : enough_projectives (Type u) :=
+instance Type.enough_projectives : enough_projectives (Type u) :=
 { presentation := λ X, ⟨{ P := X, f := 𝟙 X, }⟩, }
 
 instance {P Q : C} [has_binary_coproduct P Q] [projective P] [projective Q] :

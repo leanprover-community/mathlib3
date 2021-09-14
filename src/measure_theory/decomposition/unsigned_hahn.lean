@@ -3,7 +3,7 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import measure_theory.measure_space
+import measure_theory.measure.measure_space
 
 /-!
 # Unsigned Hahn decomposition theorem
@@ -34,7 +34,7 @@ private lemma aux {m : ℕ} {γ d : ℝ} (h : γ - (1 / 2) ^ m < d) :
 by linarith
 
 /-- **Hahn decomposition theorem** -/
-lemma hahn_decomposition [finite_measure μ] [finite_measure ν] :
+lemma hahn_decomposition [is_finite_measure μ] [is_finite_measure ν] :
   ∃s, measurable_set s ∧
     (∀t, measurable_set t → t ⊆ s → ν t ≤ μ t) ∧
     (∀t, measurable_set t → t ⊆ sᶜ → μ t ≤ ν t) :=

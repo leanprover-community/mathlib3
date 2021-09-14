@@ -15,7 +15,8 @@ topological space `X` and prove some properties inherited from `X`.
 ## Main definitions
 
 * `alexandroff`: the Alexandroff compactification, we use coercion for the canonical embedding
-  `X → alexandroff X`;
+  `X → alexandroff X`; when `X` is already compact, the compactification adds an isolated point
+  to the space.
 * `alexandroff.infty`: the extra point
 
 ## Main results

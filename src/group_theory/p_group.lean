@@ -75,18 +75,29 @@ variables (hG : is_p_group p G)
 
 include hG
 
-lemma to_subgroup (H : subgroup G) : is_p_group p H :=
+lemma to_injective {H : Type*} [group H] (ϕ : H →* G) (hϕ : function.injective ϕ) :
+  is_p_group p H :=
 begin
-  simp_rw [is_p_group, subtype.ext_iff, subgroup.coe_pow],
-  exact λ h, hG h,
+  simp_rw [is_p_group, ←hϕ.eq_iff, ϕ.map_pow, ϕ.map_one],
+  exact λ h, hG (ϕ h),
+end
+
+lemma to_subgroup (H : subgroup G) : is_p_group p H :=
+hG.to_injective H.subtype subtype.coe_injective
+
+lemma to_surjective {H : Type*} [group H] (ϕ : G →* H) (hϕ : function.surjective ϕ) :
+  is_p_group p H :=
+begin
+  refine λ h, exists.elim (hϕ h) (λ g hg, exists_imp_exists (λ k hk, _) (hG g)),
+  rw [←hg, ←ϕ.map_pow, hk, ϕ.map_one],
 end
 
 lemma to_quotient (H : subgroup G) [H.normal] :
   is_p_group p (quotient_group.quotient H) :=
-begin
-  refine quotient.ind' (forall_imp (λ g, _) hG),
-  exact exists_imp_exists (λ k h, (quotient_group.coe_pow H g _).symm.trans (congr_arg coe h)),
-end
+hG.to_surjective (quotient_group.mk' H) quotient.surjective_quotient_mk'
+
+lemma to_equiv {H : Type*} [group H] (ϕ : G ≃* H) : is_p_group p H :=
+hG.to_surjective ϕ.to_monoid_hom ϕ.surjective
 
 variables [hp : fact p.prime]
 

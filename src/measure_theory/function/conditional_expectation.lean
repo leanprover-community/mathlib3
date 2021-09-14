@@ -995,15 +995,7 @@ begin
   simp only [coe_fn_coe_base, submodule.coe_zero, continuous_linear_map.map_zero],
 end
 
-lemma set_integral_indicator_const_Lp (hs : measurable_set s) (ht : measurable_set t)
-  (hμt : μ t ≠ ∞) (x : G') :
-  ∫ a in s, indicator_const_Lp p ht hμt x a ∂μ = (μ (t ∩ s)).to_real • x :=
-calc ∫ a in s, indicator_const_Lp p ht hμt x a ∂μ
-    = (∫ a in s, t.indicator (λ _, x) a ∂μ) :
-  by rw set_integral_congr_ae hs (indicator_const_Lp_coe_fn.mono (λ x hx hxs, hx))
-... = (μ (t ∩ s)).to_real • x : by rw [integral_indicator_const _ ht, measure.restrict_apply ht]
-
-lemma set_integral_condexp_ind_smul_eq (hs : measurable_set[m] s) (ht : measurable_set t)
+lemma set_integral_condexp_ind_smul (hs : measurable_set[m] s) (ht : measurable_set t)
   (hμs : μ s ≠ ∞) (hμt : μ t ≠ ∞) (x : G') :
   ∫ a in s, (condexp_ind_smul hm ht hμt x) a ∂μ = (μ (t ∩ s)).to_real • x :=
 calc ∫ a in s, (condexp_ind_smul hm ht hμt x) a ∂μ
@@ -1289,14 +1281,14 @@ lemma dominated_fin_meas_additive_condexp_ind (hm : m ≤ m0) (μ : measure α)
 
 variables {G}
 
-lemma set_integral_condexp_ind_eq (hs : measurable_set[m] s) (ht : measurable_set t) (hμs : μ s ≠ ∞)
+lemma set_integral_condexp_ind (hs : measurable_set[m] s) (ht : measurable_set t) (hμs : μ s ≠ ∞)
   (hμt : μ t ≠ ∞) (x : G') :
   ∫ a in s, condexp_ind hm μ t x a ∂μ = (μ (t ∩ s)).to_real • x :=
 calc
 ∫ a in s, condexp_ind hm μ t x a ∂μ = ∫ a in s, condexp_ind_smul hm ht hμt x a ∂μ :
   set_integral_congr_ae (hm s hs)
     ((condexp_ind_ae_eq_condexp_ind_smul hm ht hμt x).mono (λ x hx hxs, hx))
-... = (μ (t ∩ s)).to_real • x : set_integral_condexp_ind_smul_eq hs ht hμs hμt x
+... = (μ (t ∩ s)).to_real • x : set_integral_condexp_ind_smul hs ht hμs hμt x
 
 end condexp_ind
 
@@ -1334,7 +1326,7 @@ begin
   { intros x t ht hμt,
     simp_rw condexp_L1_clm_indicator_const ht hμt.ne x,
     rw [Lp.simple_func.coe_indicator_const, set_integral_indicator_const_Lp (hm _ hs)],
-    exact set_integral_condexp_ind_eq hs ht hμs hμt.ne x, },
+    exact set_integral_condexp_ind hs ht hμs hμt.ne x, },
   { intros f g hf_Lp hg_Lp hfg_disj hf hg,
     simp_rw (condexp_L1_clm hm μ).map_add,
     rw set_integral_congr_ae (hm s hs) ((Lp.coe_fn_add (condexp_L1_clm hm μ (hf_Lp.to_Lp f))

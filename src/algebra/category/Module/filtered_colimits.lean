@@ -37,19 +37,8 @@ section
 
 -- We use parameters here, mainly so we can have the abbreviations `M` and `M.mk` below, without
 -- passing around `F` all the time.
-parameters {R : Type u} [ring R] {J : Type v} [small_category J] (F : J ⥤ Module.{v} R)
-
-instance add_comm_group_obj (j : J) : add_comm_group
-  (((((F ⋙ forget₂ (Module R) AddCommGroup.{v}) ⋙ forget₂ AddCommGroup AddGroup.{v})
-    ⋙ forget₂ AddGroup AddMon.{v}) ⋙ forget AddMon).obj j) :=
-show add_comm_group (F.obj j), by apply_instance
-
-instance module_obj (j : J) : module R
-  (((((F ⋙ forget₂ (Module R) AddCommGroup.{v}) ⋙ forget₂ AddCommGroup AddGroup.{v})
-    ⋙ forget₂ AddGroup AddMon.{v}) ⋙ forget AddMon).obj j) :=
-show module R (F.obj j), by apply_instance
-
-variables [is_filtered J]
+parameters {R : Type u} [ring R] {J : Type v} [small_category J] [is_filtered J]
+parameters (F : J ⥤ Module.{v} R)
 
 /--
 The colimit of `F ⋙ forget₂ (Module R) AddCommGroup` in the category `AddCommGroup`.

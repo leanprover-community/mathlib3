@@ -37,13 +37,7 @@ open Mon.filtered_colimits (colimit_one_eq colimit_mul_mk_eq)
 
 -- We use parameters here, mainly so we can have the abbreviations `G` and `G.mk` below, without
 -- passing around `F` all the time.
-parameters {J : Type v} [small_category J] (F : J ⥤ Group.{v})
-
-@[to_additive]
-instance group_obj (j) : group (((F ⋙ forget₂ Group Mon.{v}) ⋙ forget Mon).obj j) :=
-by { change group (F.obj j), apply_instance }
-
-variables [is_filtered J]
+parameters {J : Type v} [small_category J] [is_filtered J] (F : J ⥤ Group.{v})
 
 /--
 The colimit of `F ⋙ forget₂ Group Mon` in the category `Mon`.
@@ -143,6 +137,7 @@ limits.comp_preserves_filtered_colimits (forget₂ Group Mon) (forget Mon)
 end
 
 end Group.filtered_colimits
+
 
 namespace CommGroup.filtered_colimits
 

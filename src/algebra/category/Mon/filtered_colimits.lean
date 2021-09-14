@@ -50,10 +50,6 @@ abbreviation M : Type v := types.quot (F ⋙ forget Mon)
 abbreviation M.mk : (Σ j, F.obj j) → M := quot.mk (types.quot.rel (F ⋙ forget Mon))
 
 @[to_additive]
-instance monoid_obj (j) : monoid ((F ⋙ forget Mon).obj j) :=
-by { change monoid (F.obj j), apply_instance }
-
-@[to_additive]
 lemma M.mk_eq (x y : Σ j, F.obj j)
   (h : ∃ (k : J) (f : x.1 ⟶ k) (g : y.1 ⟶ k), F.map f x.2 = F.map g y.2) :
   M.mk x = M.mk y :=

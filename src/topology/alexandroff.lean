@@ -12,7 +12,7 @@ import topology.opens
 We construct the Alexandroff compactification (the one-point compactification) of an arbitrary
 topological space `X` and prove some properties inherited from `X`.
 
-## Main defintions
+## Main definitions
 
 * `alexandroff`: the Alexandroff compactification, we use coercion for the canonical embedding
   `X → alexandroff X`;

@@ -1096,14 +1096,14 @@ begin
 end
 
 lemma _root_.add_submonoid.mem_supr_iff_exists_dfinsupp [add_comm_monoid γ]
-  (p : ι → add_submonoid γ) (x : γ) :
-  x ∈ supr p ↔ ∃ f : Π₀ i, p i, dfinsupp.sum_add_hom (λ i, (p i).subtype) f = x :=
-set_like.ext_iff.mp (add_submonoid.supr_eq_mrange_dfinsupp_sum_add_hom p) x
+  (S : ι → add_submonoid γ) (x : γ) :
+  x ∈ supr S ↔ ∃ f : Π₀ i, S i, dfinsupp.sum_add_hom (λ i, (S i).subtype) f = x :=
+set_like.ext_iff.mp (add_submonoid.supr_eq_mrange_dfinsupp_sum_add_hom S) x
 
 /-- A variant of `add_submonoid.mem_supr_iff_exists_dfinsupp` with the RHS fully unfolded. -/
 lemma _root_.add_submonoid.mem_supr_iff_exists_dfinsupp' [add_comm_monoid γ]
-  (p : ι → add_submonoid γ) [Π i (x : p i), decidable (x ≠ 0)] (x : γ) :
-  x ∈ supr p ↔ ∃ f : Π₀ i, p i, f.sum (λ i xi, ↑xi) = x :=
+  (S : ι → add_submonoid γ) [Π i (x : S i), decidable (x ≠ 0)] (x : γ) :
+  x ∈ supr S ↔ ∃ f : Π₀ i, S i, f.sum (λ i xi, ↑xi) = x :=
 begin
   rw add_submonoid.mem_supr_iff_exists_dfinsupp,
   simp_rw sum_add_hom_apply,
@@ -1111,8 +1111,7 @@ begin
 end
 
 lemma _root_.add_submonoid.mem_bsupr_iff_exists_dfinsupp (p : ι → Prop)
-  [decidable_pred p] [add_comm_monoid γ]
-  (S : ι → add_submonoid γ) (x : γ) :
+  [decidable_pred p] [add_comm_monoid γ] (S : ι → add_submonoid γ) (x : γ) :
   x ∈ (⨆ i (h : p i), S i) ↔
     ∃ f : Π₀ i, S i, dfinsupp.sum_add_hom (λ i, (S i).subtype) (f.filter p) = x :=
 set_like.ext_iff.mp (add_submonoid.bsupr_eq_mrange_dfinsupp_sum_add_hom p S) x

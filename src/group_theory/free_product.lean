@@ -216,8 +216,9 @@ else { to_list  := ⟨i, p.head⟩ :: p.tail.to_list,
 
 /-- Given a word of the form `⟨l :: ls, h1, h2⟩`, we can form a word of the form `⟨ls, _, _⟩`,
 dropping the first letter. -/
-private def mk_aux {l} (ls) (h1 : ∀ l' ∈ l :: ls, sigma.snd l' ≠ 1) (h2 : (l :: ls).chain' _) :
-  word M := ⟨ls, λ l' hl, h1 _ (list.mem_cons_of_mem _ hl), h2.tail⟩
+private def mk_aux {l} (ls : list (Σ i, M i)) (h1 : ∀ l' ∈ l :: ls, sigma.snd l' ≠ 1)
+  (h2 : (l :: ls).chain' _) : word M :=
+⟨ls, λ l' hl, h1 _ (list.mem_cons_of_mem _ hl), h2.tail⟩
 
 lemma cons_eq_rcons {i} {m : M i} {ls h1 h2} :
   word.mk (⟨i, m⟩ :: ls) h1 h2 = rcons ⟨m, mk_aux ls h1 h2, fst_idx_ne_iff.mpr h2.rel_head'⟩ :=

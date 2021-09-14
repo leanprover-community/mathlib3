@@ -5,6 +5,7 @@ import set_theory.fincard
 import data.nat.lattice
 import data.finset.intervals
 import order.order_iso_nat
+import data.nat.prime
 
 /-!
 
@@ -659,12 +660,8 @@ lemma lt_nth_iff_count_lt (i : (set_of p).infinite) {a b : ℕ} :
   a < count p b ↔ nth p a < b :=
 lt_iff_lt_of_le_iff_le $ count_le_iff_le_nth p i
 
-lemma nth_le_of_le_count (a b : ℕ) (h : a ≤ count p b) : nth p a ≤ b :=
-sorry
-
-lemma lt_of_count_lt {a b : ℕ} : (count p a < count p b) → a < b :=
+lemma lt_of_count_lt {a b : ℕ} (h: count p a < count p b): a < b :=
 begin
-  intro h,
   rw count_eq_card_finset at h,
   rw count_eq_card_finset at h,
   by_contra hab,
@@ -695,9 +692,7 @@ begin
           simp only [and_imp, imp_self, set.finite.mem_to_finset,
             implies_true_iff, finset.mem_filter, set.mem_set_of_eq], }, },
       exact hfi, },
-      -- apply lt_of_count_lt,
-      sorry,
-   },
+      apply lt_of_count_lt p hio, },
   { rw ← lt_nth_iff_count_lt,
     exact h,
     rw set.infinite,

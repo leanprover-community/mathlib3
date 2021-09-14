@@ -699,6 +699,16 @@ begin
     exact hinf, },
 end
 
+lemma le_nth_of_count_le (n k : ℕ) (h: n ≤ nth p k) : count p n ≤ k :=
+begin
+  by_contra hc,
+  have hn: ¬ nth p k < n := not_lt.mpr h,
+  apply hn,
+  apply nth_lt_of_lt_count,
+  simp only [not_le] at hc,
+  exact hc,
+end
+
 lemma count_nth_of_lt_card (n : ℕ) (w : (n : cardinal) < cardinal.mk (set_of p)) :
   count p (nth p n) = n :=
 begin

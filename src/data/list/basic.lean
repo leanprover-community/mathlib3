@@ -375,11 +375,6 @@ begin
         exists_and_distrib_left] } }
 end
 
-@[simp] theorem split_at_eq_take_drop : ∀ (n : ℕ) (l : list α), split_at n l = (take n l, drop n l)
-| 0        a         := rfl
-| (succ n) []        := rfl
-| (succ n) (x :: xs) := by simp only [split_at, split_at_eq_take_drop n xs, take, drop]
-
 @[simp] theorem take_append_drop : ∀ (n : ℕ) (l : list α), take n l ++ drop n l = l
 | 0        a         := rfl
 | (succ n) []        := rfl
@@ -2732,6 +2727,8 @@ end
 
 attribute [simp] join
 
+@[simp] lemma join_nil {α : Type u} : [([] : list α)].join = [] := rfl
+
 @[simp] theorem join_eq_nil : ∀ {L : list (list α)}, join L = [] ↔ ∀ l ∈ L, l = []
 | []     := iff_of_true rfl (forall_mem_nil _)
 | (l::L) := by simp only [join, append_eq_nil, join_eq_nil, forall_mem_cons]
@@ -2835,6 +2832,60 @@ begin
     simpa using this },
   { assume n h₁ h₂,
     rw [← drop_take_succ_join_eq_nth_le, ← drop_take_succ_join_eq_nth_le, join_eq, length_eq] }
+end
+
+/-! ### intersperse -/
+@[simp] lemma intersperse_nil {α : Type u} (a : α) : intersperse a [] = [] := rfl
+
+@[simp] lemma intersperse_singleton {α : Type u} (a b : α) : intersperse a [b] = [b] := rfl
+
+@[simp] lemma intersperse_cons_cons {α : Type u} (a b c : α) (tl : list α) :
+  intersperse a (b :: c :: tl) = b :: a :: intersperse a (c :: tl) := rfl
+
+/-! ### split_at and split_on -/
+
+@[simp] theorem split_at_eq_take_drop : ∀ (n : ℕ) (l : list α), split_at n l = (take n l, drop n l)
+| 0        a         := rfl
+| (succ n) []        := rfl
+| (succ n) (x :: xs) := by simp only [split_at, split_at_eq_take_drop n xs, take, drop]
+
+@[simp] lemma split_on_nil {α : Type u} [decidable_eq α] (a : α) : [].split_on a = [[]] := rfl
+
+/-- An auxiliary definition for proving a specification lemma for `split_on_p`.
+
+`split_on_p_aux' P xs ys` splits the list `ys ++ xs` at every element satisfying `P`,
+where `ys` is an accumulating parameter for the initial segment of elements not satisfying `P`.
+-/
+def split_on_p_aux' {α : Type u} (P : α → Prop) [decidable_pred P] : list α → list α → list (list α)
+| [] xs       := [xs]
+| (h :: t) xs :=
+  if P h then xs :: split_on_p_aux' t []
+  else split_on_p_aux' t (xs ++ [h])
+
+lemma split_on_p_aux_eq {α : Type u} (P : α → Prop) [decidable_pred P] (xs ys : list α) :
+  split_on_p_aux' P xs ys = split_on_p_aux P xs ((++) ys) :=
+begin
+  induction xs with a t ih generalizing ys; simp! only [append_nil, eq_self_iff_true, and_self],
+  split_ifs; rw ih,
+  { refine ⟨rfl, rfl⟩ },
+  { congr, ext, simp }
+end
+
+lemma split_on_p_aux_nil {α : Type u} (P : α → Prop) [decidable_pred P] (xs : list α) :
+  split_on_p_aux P xs id = split_on_p_aux' P xs [] :=
+by { rw split_on_p_aux_eq, refl }
+
+/-- The original list `L` can be recovered by joining the lists produced by `split_on_p p L`,
+interspersed with the elements `L.filter p`. -/
+lemma split_on_p_spec {α : Type u} (p : α → Prop) [decidable_pred p] (as : list α) :
+  join (zip_with (++) (split_on_p p as) ((as.filter p).map (λ x, [x]) ++ [[]])) = as :=
+begin
+  rw [split_on_p, split_on_p_aux_nil],
+  suffices : ∀ xs,
+    join (zip_with (++) (split_on_p_aux' p as xs) ((as.filter p).map(λ x, [x]) ++ [[]])) = xs ++ as,
+  { rw this, refl },
+  induction as; intro; simp! only [split_on_p_aux', append_nil],
+  split_ifs; simp [zip_with, join, *],
 end
 
 /-! ### lexicographic ordering -/

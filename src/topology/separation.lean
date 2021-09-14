@@ -717,6 +717,10 @@ is_open_compl_iff.1 $ is_open_iff_forall_mem_open.mpr $ assume x hx,
     subset_compl_comm.mp (subset.trans su (subset_compl_iff_disjoint.mpr uv)),
 ⟨v, this, vo, by simpa using xv⟩
 
+@[simp] lemma filter.coclosed_compact_eq_cocompact [t2_space α] :
+  coclosed_compact α = cocompact α :=
+by simp [coclosed_compact, cocompact, infi_and', and_iff_right_of_imp is_compact.is_closed]
+
 /-- If `V : ι → set α` is a decreasing family of compact sets then any neighborhood of
 `⋂ i, V i` contains some `V i`. This is a version of `exists_subset_nhd_of_compact'` where we
 don't need to assume each `V i` closed because it follows from compactness since `α` is

@@ -113,6 +113,15 @@ smul_mono h (le_refl N)
 theorem smul_mono_right (h : N ≤ P) : I • N ≤ I • P :=
 smul_mono (le_refl I) h
 
+@[simp] theorem annihilator_smul (N : submodule R M) : annihilator N • N = ⊥ :=
+eq_bot_iff.2 (smul_le.2 (λ r, mem_annihilator.1))
+
+@[simp] theorem annihilator_mul (I : ideal R) : annihilator I * I = ⊥ :=
+annihilator_smul I
+
+@[simp] theorem mul_annihilator (I : ideal R) : I * annihilator I = ⊥ :=
+by rw [mul_comm, annihilator_mul]
+
 variables (I J N P)
 @[simp] theorem smul_bot : I • (⊥ : submodule R M) = ⊥ :=
 eq_bot_iff.2 $ smul_le.2 $ λ r hri s hsb,
@@ -844,6 +853,12 @@ lemma map_map {T : Type*} [ring T] {I : ideal R} (f : R →+* S)
   (g : S →+*T) : (I.map f).map g = I.map (g.comp f) :=
 ((gc_map_comap f).compose _ _ _ _ (gc_map_comap g)).l_unique
   (gc_map_comap (g.comp f)) (λ _, comap_comap _ _)
+
+lemma map_span (f : R →+* S) (s : set R) :
+  map f (span s) = span (f '' s) :=
+symm $ submodule.span_eq_of_le _
+  (λ y ⟨x, hy, x_eq⟩, x_eq ▸ mem_map_of_mem f (subset_span hy))
+  (map_le_iff_le_comap.2 $ span_le.2 $ set.image_subset_iff.1 subset_span)
 
 variables {f I J K L}
 

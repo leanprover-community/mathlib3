@@ -310,16 +310,23 @@ lemma high_scores [linear_order β] [no_top_order β] {u : ℕ → β}
   (hu : tendsto u at_top at_top) : ∀ N, ∃ n ≥ N, ∀ k < n, u k < u n :=
 begin
   intros N,
-  obtain ⟨k, hkn, hku⟩ : ∃ k ≤ N, ∀ l ≤ N, u l ≤ u k,
+  obtain ⟨k : ℕ, hkn : k ≤ N, hku : ∀ l ≤ N, u l ≤ u k⟩ : ∃ k ≤ N, ∀ l ≤ N, u l ≤ u k,
     from exists_max_image _ u (finite_le_nat N) ⟨N, le_refl N⟩,
   have ex : ∃ n ≥ N, u k < u n,
     from exists_lt_of_tendsto_at_top hu _ _,
-  obtain ⟨M, hMN, hMk, hM_min⟩ : ∃ M ≥ N, u k < u M ∧ ∀ m, m < M → N ≤ m → u m ≤ u k,
-  { rcases nat.find_x ex with ⟨M, ⟨hMN, hMk⟩, hM_min⟩,
-    push_neg at hM_min,
-    exact ⟨M, hMN, hMk, hM_min⟩ },
-  refine ⟨M, hMN, λ l hl, lt_of_le_of_lt _ hMk⟩,
-  exact (le_total l N).elim (hku _) (hM_min l hl)
+  obtain ⟨n : ℕ, hnN : n ≥ N, hnk : u k < u n, hn_min : ∀ m, m < n → N ≤ m → u m ≤ u k⟩ :
+    ∃ n ≥ N, u k < u n ∧ ∀ m, m < n → N ≤ m → u m ≤ u k,
+  { rcases nat.find_x ex with ⟨n, ⟨hnN, hnk⟩, hn_min⟩,
+    push_neg at hn_min,
+    exact ⟨n, hnN, hnk, hn_min⟩ },
+  use [n, hnN],
+  rintros (l : ℕ) (hl : l < n),
+  have hlk : u l ≤ u k,
+  { cases (le_total l N : l ≤ N ∨ N ≤ l) with H H,
+    { exact hku l H },
+    { exact hn_min l hl H } },
+  calc u l ≤ u k : hlk
+       ... < u n : hnk
 end
 
 /--

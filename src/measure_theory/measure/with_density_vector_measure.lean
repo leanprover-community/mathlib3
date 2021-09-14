@@ -142,4 +142,39 @@ lemma integrable.with_densityᵥ_eq_iff {f g : α → E}
   μ.with_densityᵥ f = μ.with_densityᵥ g ↔ f =ᵐ[μ] g :=
 ⟨λ hfg, hf.ae_eq_of_with_densityᵥ_eq hg hfg, λ h, with_densityᵥ_eq.congr_ae h⟩
 
+section signed_measure
+
+lemma with_densityᵥ_sub_eq_with_density {f g : α → ℝ≥0∞}
+  (hfm : ae_measurable f μ) (hgm : ae_measurable g μ)
+  (hf : ∫⁻ x, f x ∂μ ≠ ∞) (hg : ∫⁻ x, g x ∂μ ≠ ∞) :
+  μ.with_densityᵥ (λ x, (f x).to_real - (g x).to_real) =
+  @to_signed_measure α _ (μ.with_density f)
+    (is_finite_measure_with_density (lt_top_iff_ne_top.2 hf)) -
+  @to_signed_measure α _ (μ.with_density g)
+    (is_finite_measure_with_density (lt_top_iff_ne_top.2 hg)) :=
+begin
+  have hfi := integrable_to_real_of_lintegral_ne_top hfm hf,
+  have hgi := integrable_to_real_of_lintegral_ne_top hgm hg,
+  ext i hi,
+  rw [with_densityᵥ_apply _ hi, vector_measure.sub_apply,
+      to_signed_measure_apply_measurable hi, to_signed_measure_apply_measurable hi,
+      with_density_apply _ hi, with_density_apply _ hi, integral_sub,
+      integral_to_real hfm.restrict, integral_to_real hgm.restrict],
+  { refine ae_lt_top' hgm.restrict (lt_of_le_of_lt _ (lt_top_iff_ne_top.2 hg)),
+    conv_rhs { rw ← set_lintegral_univ },
+    exact lintegral_mono_set (set.subset_univ _) },
+  { refine ae_lt_top' hfm.restrict (lt_of_le_of_lt _ (lt_top_iff_ne_top.2 hf)),
+    conv_rhs { rw ← set_lintegral_univ },
+    exact lintegral_mono_set (set.subset_univ _) },
+  { rw ← integrable_on,
+    rw ← integrable_on_univ at hfi,
+    exact integrable_on.mono hfi (set.subset_univ _) (le_refl _) },
+  { rw ← integrable_on,
+    rw ← integrable_on_univ at hgi,
+    exact integrable_on.mono hgi (set.subset_univ _) (le_refl _) },
+  { exact hfi.sub hgi }
+end
+
+end signed_measure
+
 end measure_theory

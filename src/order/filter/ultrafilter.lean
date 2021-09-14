@@ -133,6 +133,14 @@ def comap {m : α → β} (u : ultrafilter β) (inj : injective m)
   le_of_le := λ g hg hgu, by { resetI,
     simp only [← u.unique (map_le_iff_le_comap.2 hgu), comap_map inj, le_rfl] } }
 
+@[simp] lemma mem_comap {m : α → β} (u : ultrafilter β) (inj : injective m)
+  (large : set.range m ∈ u) {s : set α} :
+  s ∈ u.comap inj large ↔ m '' s ∈ u :=
+mem_comap_iff inj large
+
+@[simp] lemma coe_comap {m : α → β} (u : ultrafilter β) (inj : injective m)
+  (large : set.range m ∈ u) : (u.comap inj large : filter α) = filter.comap m u := rfl
+
 /-- The principal ultrafilter associated to a point `x`. -/
 instance : has_pure ultrafilter :=
 ⟨λ α a, of_compl_not_mem_iff (pure a) $ λ s, by simp⟩

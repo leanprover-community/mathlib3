@@ -460,7 +460,7 @@ alg_equiv.symm $ alg_equiv.of_bijective
     adjoin_root.induction_on _ p $ λ p hp, ideal.quotient.eq_zero_iff_mem.2 $
     ideal.mem_span_singleton.2 $ minpoly.dvd F x hp,
   λ y,
-    let ⟨p, hp⟩ := (set_like.ext_iff.1 (algebra.adjoin_singleton_eq_range F x) (y : R)).1 y.2 in
+    let ⟨p, hp⟩ := (set_like.ext_iff.1 (algebra.adjoin_singleton_eq_range_aeval F x) (y : R)).1 y.2 in
     ⟨adjoin_root.mk _ p, subtype.eq hp⟩⟩
 
 open finset

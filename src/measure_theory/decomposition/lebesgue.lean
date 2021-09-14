@@ -720,8 +720,9 @@ namespace signed_measure
 
 open measure
 
-/-- Given a signed measure `s` and a measure `μ`, `singular_part s μ` is the signed measure
-such that ... -/
+/-- Given a signed measure `s` and a measure `μ`, `s.singular_part μ` is the signed measure
+such that `s.singular_part μ + μ.with_densityᵥ (s.radon_nikodym_deriv μ) = s` and
+`s.singular_part μ` is mutually singular with respect to `μ`. -/
 def singular_part (s : signed_measure α) (μ : measure α) : signed_measure α :=
 (s.to_jordan_decomposition.pos_part.singular_part μ).to_signed_measure -
 (s.to_jordan_decomposition.neg_part.singular_part μ).to_signed_measure

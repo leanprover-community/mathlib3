@@ -123,6 +123,16 @@ lemma _root_.function.extend_mul {α β γ} [has_mul γ] (f : α → β) (g₁ g
   function.extend f (g₁ * g₂) (e₁ * e₂) = function.extend f g₁ e₁ * function.extend f g₂ e₂ :=
 funext $ λ _, by convert (apply_dite2 (*) _ _ _ _ _).symm
 
+@[to_additive]
+lemma _root_.function.extend_inv {α β γ} [has_inv γ] (f : α → β) (g : α → γ) (e : β → γ) :
+  function.extend f (g⁻¹) (e⁻¹) = (function.extend f g e)⁻¹ :=
+funext $ λ _, by convert (apply_dite has_inv.inv _ _ _).symm
+
+@[to_additive]
+lemma _root_.function.extend_div {α β γ} [has_div γ] (f : α → β) (g₁ g₂ : α → γ) (e₁ e₂ : β → γ) :
+  function.extend f (g₁ / g₂) (e₁ / e₂) = function.extend f g₁ e₁ / function.extend f g₂ e₂ :=
+funext $ λ _, by convert (apply_dite2 (/) _ _ _ _ _).symm
+
 end extend
 
 end

@@ -1099,6 +1099,22 @@ begin
              tsum_add ennreal.summable ennreal.summable],
 end
 
+/-- If `f` is a map with encodable codomain, then `map f μ` is the sum of Dirac measures -/
+lemma map_eq_sum [encodable β] [measurable_singleton_class β]
+  (μ : measure α) (f : α → β) (hf : measurable f) :
+  map f μ = sum (λ b : β, μ (f ⁻¹' {b}) • dirac b) :=
+begin
+  ext1 s hs,
+  have : ∀ y ∈ s, measurable_set (f ⁻¹' {y}), from λ y _, hf (measurable_set_singleton _),
+  simp [← tsum_measure_preimage_singleton (countable_encodable s) this, *,
+    tsum_subtype s (λ b, μ (f ⁻¹' {b})), ← indicator_mul_right s (λ b, μ (f ⁻¹' {b}))]
+end
+
+/-- A measure on an encodable type is a sum of dirac measures. -/
+@[simp] lemma sum_smul_dirac [encodable α] [measurable_singleton_class α] (μ : measure α) :
+  sum (λ a, μ {a} • dirac a) = μ :=
+by simpa using (map_eq_sum μ id measurable_id).symm
+
 omit m0
 end sum
 
@@ -1565,6 +1581,11 @@ instance is_finite_measure_smul_nnreal [is_finite_measure μ] {r : ℝ≥0} :
 lemma is_finite_measure_of_le (μ : measure α) [is_finite_measure μ] (h : ν ≤ μ) :
   is_finite_measure ν :=
 { measure_univ_lt_top := lt_of_le_of_lt (h set.univ measurable_set.univ) (measure_lt_top _ _) }
+
+lemma measure.is_finite_measure_map {m : measurable_space α}
+  (μ : measure α) [is_finite_measure μ] {f : α → β} (hf : measurable f) :
+  is_finite_measure (map f μ) :=
+⟨by { rw map_apply hf measurable_set.univ, exact measure_lt_top μ _ }⟩
 
 @[simp] lemma measure_univ_nnreal_eq_zero [is_finite_measure μ] :
   measure_univ_nnreal μ = 0 ↔ μ = 0 :=
@@ -2787,6 +2808,7 @@ begin
     simpa only [hs, measure.restrict_add_restrict_compl] using this },
 end
 
+@[measurability]
 lemma ae_measurable.indicator (hfm : ae_measurable f μ) {s} (hs : measurable_set s) :
   ae_measurable (s.indicator f) μ :=
 (ae_measurable_indicator_iff hs).mpr hfm.restrict

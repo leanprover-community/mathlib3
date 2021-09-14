@@ -2,13 +2,14 @@ import ring_theory.adjoin.basic
 import linear_algebra.linear_independent
 import ring_theory.mv_polynomial.basic
 import data.mv_polynomial.supported
+import ring_theory.algebraic
 
 noncomputable theory
 
 open function set subalgebra mv_polynomial algebra
 open_locale classical big_operators
 
-universes u
+universes u v w
 
 variables {ι : Type*} {ι' : Type*} (R : Type*) {K : Type*}
 variables {A : Type*} {A' A'' : Type*} {V : Type u} {V' : Type*}
@@ -293,42 +294,34 @@ theorem algebraic_independent.image {ι} {s : set ι} {f : ι → A}
   (hs : algebraic_independent R (λ x : s, f x)) : algebraic_independent R (λ x : f '' s, (x : A)) :=
 by convert algebraic_independent.image_of_comp s f id hs
 
-section maximal
-universes v w
+-- section maximal
+-- universes v w
 
-/--
-A algebraicly independent family is maximal if there is no strictly larger algebraicly independent family.
--/
-@[nolint unused_arguments]
-def algebraic_independent.maximal {ι : Type w} {R : Type u} [comm_ring R]
-  {A : Type v} [comm_ring A] [algebra R A] {v : ι → A} (i : algebraic_independent R v) : Prop :=
-∀ (s : set A) (i' : algebraic_independent R (coe : s → A)) (h : range v ≤ s), range v = s
+-- /--
+-- An alternative characterization of a maximal algebraically independent family,
+-- quantifying over types (in the same universe as `A`) into which the indexing family injects.
+-- -/
+-- lemma algebraic_independent.maximal_iff {ι : Type w} {R : Type u} [comm_ring R] [nontrivial R]
+--   {A : Type v} [comm_ring A] [algebra R A] {v : ι → A} (i : algebraic_independent R v) :
+--   i.maximal ↔ ∀ (κ : Type v) (w : κ → A) (i' : algebraic_independent R w)
+--     (j : ι → κ) (h : w ∘ j = v), surjective j :=
+-- begin
+--   fsplit,
+--   { rintros p κ w i' j rfl,
+--     specialize p (range w) i'.coe_range (range_comp_subset_range _ _),
+--     rw [range_comp, ←@image_univ _ _ w] at p,
+--     exact range_iff_surjective.mp (image_injective.mpr i'.injective p), },
+--   { intros p w i' h,
+--     specialize p w (coe : w → A) i'
+--       (λ i, ⟨v i, range_subset_iff.mp h i⟩)
+--       (by { ext, simp, }),
+--     have q := congr_arg (λ s, (coe : w → A) '' s) p.range_eq,
+--     dsimp at q,
+--     rw [←image_univ, image_image] at q,
+--     simpa using q, },
+-- end
 
-/--
-An alternative characterization of a maximal algebraically independent family,
-quantifying over types (in the same universe as `A`) into which the indexing family injects.
--/
-lemma algebraic_independent.maximal_iff {ι : Type w} {R : Type u} [comm_ring R] [nontrivial R]
-  {A : Type v} [comm_ring A] [algebra R A] {v : ι → A} (i : algebraic_independent R v) :
-  i.maximal ↔ ∀ (κ : Type v) (w : κ → A) (i' : algebraic_independent R w)
-    (j : ι → κ) (h : w ∘ j = v), surjective j :=
-begin
-  fsplit,
-  { rintros p κ w i' j rfl,
-    specialize p (range w) i'.coe_range (range_comp_subset_range _ _),
-    rw [range_comp, ←@image_univ _ _ w] at p,
-    exact range_iff_surjective.mp (image_injective.mpr i'.injective p), },
-  { intros p w i' h,
-    specialize p w (coe : w → A) i'
-      (λ i, ⟨v i, range_subset_iff.mp h i⟩)
-      (by { ext, simp, }),
-    have q := congr_arg (λ s, (coe : w → A) '' s) p.range_eq,
-    dsimp at q,
-    rw [←image_univ, image_image] at q,
-    simpa using q, },
-end
-
-end maximal
+-- end maximal
 
 lemma algebraic_independent_Union_of_directed {η : Type*} [nonempty η]
   {s : η → set A} (hs : directed (⊆) s)
@@ -351,7 +344,7 @@ by letI : nonempty s := nonempty.to_subtype hsn;
 rw sUnion_eq_Union; exact
 algebraic_independent_Union_of_directed hs.directed_coe (by simpa using h)
 
-lemma exists_maximal_algebraic_independent (h : injective (algebra_map R A))
+lemma exists_maximal_algebraic_independent
   (s t : set A) (hst : s ⊆ t)
   (hs : algebraic_independent R (coe : s → A)) :
   ∃ u : set A, algebraic_independent R (coe : u → A) ∧ s ⊆ u ∧ u ⊆ t ∧
@@ -375,7 +368,6 @@ begin
   intros v hvai huv hvt,
   exact hv _ ⟨hvai, trans hsu huv, hvt⟩ huv,
 end
-
 
 section repr
 variables (hv : algebraic_independent R v)
@@ -401,84 +393,69 @@ begin
       simp } }
 end
 
-/-- Linear combination representing a vector in the span of linearly independent vectors.
+def algebraic_independent.repr (hv : algebraic_independent R v) :
+  algebra.adjoin R (range v) →ₐ[R] mv_polynomial ι R := hv.aeval_equiv.symm
 
-Given a family of linearly independent vectors, we can represent any vector in their span as
-a linear combination of these vectors. These are provided by this linear map.
-It is simply one direction of `linear_independent.total_equiv`. -/
-def linear_independent.repr (hv : linear_independent R v) :
-  span R (range v) →ₗ[R] ι →₀ R := hv.total_equiv.symm
+@[simp] lemma algebraic_independent.aeval_repr (x) : aeval v (hv.repr x) = x :=
+subtype.ext_iff.1 (alg_equiv.apply_symm_apply hv.aeval_equiv x)
 
-@[simp] lemma linear_independent.total_repr (x) : finsupp.total ι M R v (hv.repr x) = x :=
-subtype.ext_iff.1 (linear_equiv.apply_symm_apply hv.total_equiv x)
+lemma algebraic_independent.aeval_comp_repr :
+  (aeval v).comp hv.repr = subalgebra.val _ :=
+alg_hom.ext $ hv.aeval_repr
 
-lemma linear_independent.total_comp_repr :
-  (finsupp.total ι M R v).comp hv.repr = submodule.subtype _ :=
-linear_map.ext $ hv.total_repr
-
-lemma linear_independent.repr_ker : hv.repr.ker = ⊥ :=
-by rw [linear_independent.repr, linear_equiv.ker]
-
-lemma linear_independent.repr_range : hv.repr.range = ⊤ :=
-by rw [linear_independent.repr, linear_equiv.range]
-
-lemma linear_independent.repr_eq
-  {l : ι →₀ R} {x} (eq : finsupp.total ι M R v l = ↑x) :
-  hv.repr x = l :=
-begin
-  have : ↑((linear_independent.total_equiv hv : (ι →₀ R) →ₗ[R] span R (range v)) l)
-      = finsupp.total ι M R v l := rfl,
-  have : (linear_independent.total_equiv hv : (ι →₀ R) →ₗ[R] span R (range v)) l = x,
-  { rw eq at this,
-    exact subtype.ext_iff.2 this },
-  rw ←linear_equiv.symm_apply_apply hv.total_equiv l,
-  rw ←this,
-  refl,
-end
-
-lemma linear_independent.repr_eq_single (i) (x) (hx : ↑x = v i) :
-  hv.repr x = finsupp.single i 1 :=
-begin
-  apply hv.repr_eq,
-  simp [finsupp.total_single, hx]
-end
-
-lemma linear_independent.span_repr_eq [nontrivial R] (x) :
-  span.repr R (set.range v) x = (hv.repr x).equiv_map_domain (equiv.of_injective _ hv.injective) :=
-begin
-  have p : (span.repr R (set.range v) x).equiv_map_domain (equiv.of_injective _ hv.injective).symm =
-    hv.repr x,
-  { apply (linear_independent.total_equiv hv).injective,
-    ext,
-    simp, },
-  ext ⟨_, ⟨i, rfl⟩⟩,
-  simp [←p],
-end
-
--- TODO: why is this so slow?
-lemma linear_independent_iff_not_smul_mem_span :
-  linear_independent R v ↔ (∀ (i : ι) (a : R), a • (v i) ∈ span R (v '' (univ \ {i})) → a = 0) :=
-⟨ λ hv i a ha, begin
-  rw [finsupp.span_image_eq_map_total, mem_map] at ha,
-  rcases ha with ⟨l, hl, e⟩,
-  rw sub_eq_zero.1 (linear_independent_iff.1 hv (l - finsupp.single i a) (by simp [e])) at hl,
-  by_contra hn,
-  exact (not_mem_of_mem_diff (hl $ by simp [hn])) (mem_singleton _),
-end, λ H, linear_independent_iff.2 $ λ l hl, begin
-  ext i, simp only [finsupp.zero_apply],
-  by_contra hn,
-  refine hn (H i _ _),
-  refine (finsupp.mem_span_image_iff_total _).2 ⟨finsupp.single i (l i) - l, _, _⟩,
-  { rw finsupp.mem_supported',
-    intros j hj,
-    have hij : j = i :=
-      not_not.1
-          (λ hij : j ≠ i, hj ((mem_diff _).2 ⟨mem_univ _, λ h, hij (eq_of_mem_singleton h)⟩)),
-    simp [hij] },
-  { simp [hl] }
-end⟩
+lemma algebraic_independent.repr_ker :
+  (hv.repr : adjoin R (range v) →+* mv_polynomial ι R).ker = ⊥ :=
+(ring_hom.injective_iff_ker_eq_bot _).1 (alg_equiv.injective _)
 
 end repr
+
+variable (R)
+/--
+  A family is a transcendence basis if it is a maximal algebraically independent subset.
+-/
+def is_transcendence_basis (v : ι → A) : Prop :=
+algebraic_independent R v ∧
+  ∀ (s : set A) (i' : algebraic_independent R (coe : s → A)) (h : range v ≤ s), range v = s
+
+variable {R}
+lemma algebraic_independent.is_transcendence_basis_iff
+  {ι : Type w} {R : Type u} [comm_ring R] [nontrivial R]
+  {A : Type v} [comm_ring A] [algebra R A] {v : ι → A} (i : algebraic_independent R v) :
+  is_transcendence_basis R v ↔ ∀ (κ : Type v) (w : κ → A) (i' : algebraic_independent R w)
+    (j : ι → κ) (h : w ∘ j = v), surjective j :=
+begin
+  fsplit,
+  { rintros p κ w i' j rfl,
+    have p := p.2 (range w) i'.coe_range (range_comp_subset_range _ _),
+    rw [range_comp, ←@image_univ _ _ w] at p,
+    exact range_iff_surjective.mp (image_injective.mpr i'.injective p) },
+  { intros p,
+    use i,
+    intros w i' h,
+    specialize p w (coe : w → A) i'
+      (λ i, ⟨v i, range_subset_iff.mp h i⟩)
+      (by { ext, simp, }),
+    have q := congr_arg (λ s, (coe : w → A) '' s) p.range_eq,
+    dsimp at q,
+    rw [←image_univ, image_image] at q,
+    simpa using q, },
+end
+
+lemma algebraic_independent.is_transcendence_basis_iff_algebraic
+  {ι : Type w} {R : Type u} [comm_ring R] [nontrivial R]
+  {A : Type v} [comm_ring A] [algebra R A] {v : ι → A} (i : algebraic_independent R v) :
+  is_transcendence_basis R v ↔ algebraic :=
+
+lemma exists_is_transcendence_basis (h : function.injective (algebra_map R A)) :
+  ∃ s : set A, is_transcendence_basis R (coe : s → A) :=
+begin
+  rcases exists_maximal_algebraic_independent ∅ set.univ (set.empty_subset _)
+    ((algebraic_independent_empty_iff _ _).2 h) with ⟨u, huai, -, -, hu⟩,
+  use [u, huai],
+  intros v hvai hv,
+  rw hu v hvai (by simpa using hv) (set.subset_univ _),
+  simp
+end
 
 #exit
 section subtype

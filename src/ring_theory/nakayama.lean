@@ -79,14 +79,14 @@ begin
   have : (I • N').map N.mkq = N'.map N.mkq,
   { rw ← (submodule.comap_injective_of_surjective
         (linear_map.range_eq_top.1 (submodule.range_mkq N))).eq_iff,
-    simpa [linear_map.comap_map_eq, sup_comm, eq_comm] using hNN' },
+    simpa [comap_map_eq, sup_comm, eq_comm] using hNN' },
   have := @submodule.eq_smul_of_le_smul_of_le_jacobson _ _ _ _ _ I J
     (N'.map N.mkq) (fg_map hN')
     (by rw [← map_smul'', this]; exact le_refl _)
     hIJ,
   rw [← map_smul'', ← (submodule.comap_injective_of_surjective
         (linear_map.range_eq_top.1 (submodule.range_mkq N))).eq_iff,
-        linear_map.comap_map_eq, linear_map.comap_map_eq, submodule.ker_mkq, sup_comm,
+        comap_map_eq, comap_map_eq, submodule.ker_mkq, sup_comm,
         hNN'] at this,
   rw [this, sup_comm]
 end

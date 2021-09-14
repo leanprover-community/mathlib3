@@ -10,7 +10,7 @@ import data.fin
 # Lists from functions
 
 Theorems and lemmas for dealing with `list.of_fn`, which converts a function on `fin n` to a list
-of length n.
+of length `n`.
 
 ## Main Definitions
 

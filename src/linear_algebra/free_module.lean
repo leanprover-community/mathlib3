@@ -5,8 +5,10 @@ Authors: Riccardo Brasca
 -/
 
 import linear_algebra.direct_sum.finsupp
+import linear_algebra.matrix.to_lin
 import linear_algebra.std_basis
 import logic.small
+import ring_theory.finiteness
 
 /-!
 
@@ -27,7 +29,7 @@ universes u v w z
 
 variables (R : Type u) (M : Type v) (N : Type z)
 
-open_locale tensor_product direct_sum
+open_locale tensor_product direct_sum big_operators
 
 section basic
 
@@ -131,16 +133,43 @@ instance pi {ι : Type*} [fintype ι] {M : ι → Type*} [Π (i : ι), add_comm_
 [Π (i : ι), module R (M i)] [Π (i : ι), module.free R (M i)] : module.free R (Π i, M i) :=
 of_basis $ pi.basis $ λ i, choose_basis R (M i)
 
+instance matrix {n : Type*} [fintype n] {m : Type*} [fintype m] :
+  module.free R (matrix n m R) :=
+of_basis $ matrix.std_basis R n m
+
 end semiring
+
+section ring
+
+variables [ring R] [add_comm_group M] [module R M] [module.free R M]
+
+/-- If a free module is finite, then any basis is finite. -/
+noncomputable
+instance [nontrivial R] [module.finite R M] :
+  fintype (module.free.choose_basis_index R M) :=
+begin
+  obtain ⟨h⟩ := id ‹module.finite R M›,
+  choose s hs using h,
+  exact basis_fintype_of_finite_spans ↑s hs (choose_basis _ _),
+end
+
+end ring
 
 section comm_ring
 
-variables [comm_ring R] [add_comm_group M] [module R M]
-variables [add_comm_group N] [module R N]
+variables [comm_ring R] [add_comm_group M] [module R M] [module.free R M]
+variables [add_comm_group N] [module R N] [module.free R N]
 
-instance tensor [module.free R M] [module.free R N] : module.free R (M ⊗[R] N) :=
+instance tensor : module.free R (M ⊗[R] N) :=
 of_equiv' (of_equiv' (finsupp.free R) (finsupp_tensor_finsupp' R _ _).symm)
   (tensor_product.congr (choose_basis R M).repr (choose_basis R N).repr).symm
+
+instance [nontrivial R] [module.finite R M] [module.finite R N] : module.free R (M →ₗ[R] N) :=
+begin
+  classical,
+  exact of_equiv
+    (linear_map.to_matrix (module.free.choose_basis R M) (module.free.choose_basis R N)).symm,
+end
 
 end comm_ring
 

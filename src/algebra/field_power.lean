@@ -27,7 +27,7 @@ lemma fpow_even_neg {K : Type*} [division_ring K] (a : K) {n : ℤ} (h : even n)
   (-a) ^ n = a ^ n :=
 begin
   obtain ⟨k, rfl⟩ := h,
-  simp [←bit0_eq_two_mul]
+  rw [←bit0_eq_two_mul, fpow_bit0_neg],
 end
 
 @[simp] lemma fpow_bit1_neg {K : Type*} [division_ring K] (x : K) (n : ℤ) :
@@ -158,8 +158,8 @@ by cases hn with k hk; simpa only [hk, two_mul] using fpow_bit1_neg_iff.mpr ha
 lemma fpow_even_abs (a : K) {p : ℤ} (hp : even p) :
   abs a ^ p = a ^ p :=
 begin
-  cases le_or_lt a (-a) with h h;
-  simp [abs_eq_max_neg, h, max_eq_left_of_lt, fpow_even_neg _ hp]
+  cases abs_choice a with h h;
+  simp only [h, fpow_even_neg _ hp],
 end
 
 @[simp] lemma fpow_bit0_abs (a : K) (p : ℤ) :
@@ -169,7 +169,7 @@ fpow_even_abs _ (even_bit0 _)
 lemma abs_fpow_even (a : K) {p : ℤ} (hp : even p) :
   abs (a ^ p) = a ^ p :=
 begin
-  rw [←fpow_even_abs _ hp, abs_eq_self],
+  rw [abs_eq_self],
   exact fpow_even_nonneg _ hp
 end
 
@@ -191,13 +191,11 @@ lemma one_lt_pow {K} [linear_ordered_semiring K] {p : K} (hp : 1 < p) : ∀ {n :
     { apply le_of_lt (lt_trans zero_lt_one hp) }
   end
 
-section
-local attribute [semireducible] int.nonneg
 lemma one_lt_fpow {K}  [linear_ordered_field K] {p : K} (hp : 1 < p) :
   ∀ z : ℤ, 0 < z → 1 < p ^ z
 | (n : ℕ) h := by { rw [gpow_coe_nat],
     exact one_lt_pow hp (nat.succ_le_of_lt (int.lt_of_coe_nat_lt_coe_nat h)) }
-end
+| -[1+ n] h := ((int.neg_succ_not_pos _).mp h).elim
 
 section ordered
 variables  {K : Type*} [linear_ordered_field K]
@@ -215,12 +213,9 @@ begin
   have xpos : 0 < x := zero_lt_one.trans hx,
   have h₀ : x ≠ 0 := xpos.ne',
   have hxm : 0 < x^m := fpow_pos_of_pos xpos m,
-  have hxm₀ : x^m ≠ 0 := ne_of_gt hxm,
-  suffices : 1 < x^(n-m),
-  { replace := mul_lt_mul_of_pos_right this hxm,
-    simp [sub_eq_add_neg] at this,
-    simpa [*, fpow_add, mul_assoc, fpow_neg, inv_mul_cancel], },
-  apply one_lt_fpow hx, linarith,
+  have h : 1 < x ^ (n - m) := one_lt_fpow hx _ (sub_pos_of_lt h),
+  replace h := mul_lt_mul_of_pos_right h hxm,
+  rwa [sub_eq_add_neg, fpow_add h₀, mul_assoc, fpow_neg_mul_fpow_self _ h₀, one_mul, mul_one] at h,
 end
 
 @[simp] lemma fpow_lt_iff_lt {x : K} (hx : 1 < x) {m n : ℤ} :
@@ -243,12 +238,11 @@ lemma fpow_injective {x : K} (h₀ : 0 < x) (h₁ : x ≠ 1) :
   function.injective ((^) x : ℤ → K) :=
 begin
   intros m n h,
-  rcases lt_trichotomy x 1 with H|rfl|H,
+  rcases h₁.lt_or_lt with H|H,
   { apply (fpow_strict_mono (one_lt_inv h₀ H)).injective,
     show x⁻¹ ^ m = x⁻¹ ^ n,
     rw [← fpow_neg_one, ← fpow_mul, ← fpow_mul, mul_comm _ m, mul_comm _ n, fpow_mul, fpow_mul,
       h], },
-  { contradiction },
   { exact (fpow_strict_mono H).injective h, },
 end
 

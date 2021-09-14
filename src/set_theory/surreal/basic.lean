@@ -25,19 +25,19 @@ Surreal numbers inherit the relations `≤` and `<` from games, and these relati
 of a partial order (recall that `x < y ↔ x ≤ y ∧ ¬ y ≤ x` did not hold for games).
 
 ## Algebraic operations
-At this point, we have defined addition and negation (from pregames), and shown that surreals form
-an additive semigroup. It would be very little work to finish showing that the surreals form an
-ordered commutative group.
-
-## Embeddings
-It would be nice projects to define the group homomorphism `surreal → game`, and also `ℤ → surreal`,
-and then the homomorphic inclusion of the dyadic rationals into surreals, and finally
-via dyadic Dedekind cuts the homomorphic inclusion of the reals into the surreals.
+We show that the surreals form a linear ordered commutative group.
 
 One can also map all the ordinals into the surreals!
 
+### Multiplication of surreal numbers
+The definition of multiplication for surreal numbers is surprisingly difficult and is currently
+missing in the library. A sample proof can be found in Theorem 3.8 in the second reference below.
+The difficulty lies in the length of the proof and the number of theorems that need to proven
+simultaneously. This will make for a fun and challenging project.
+
 ## References
 * [Conway, *On numbers and games*][conway2001]
+* [Schleicher, Stoll, *An introduction to Conway's games and numbers*][schleicher_stoll]
 -/
 
 universes u
@@ -198,6 +198,47 @@ theorem numeric_nat : Π (n : ℕ), numeric n
 theorem numeric_omega : numeric omega :=
 ⟨by rintros ⟨⟩ ⟨⟩, λ i, numeric_nat i.down, by rintros ⟨⟩⟩
 
+/-- The pre-game `half` is numeric. -/
+theorem numeric_half : numeric half :=
+begin
+  split,
+  { rintros ⟨ ⟩ ⟨ ⟩,
+    exact zero_lt_one },
+  split; rintro ⟨ ⟩,
+  { exact numeric_zero },
+  { exact numeric_one }
+end
+
+theorem half_add_half_equiv_one : half + half ≈ 1 :=
+begin
+  split; rw le_def; split,
+  { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩),
+    { right,
+      use (sum.inr punit.star),
+      calc ((half + half).move_left (sum.inl punit.star)).move_right (sum.inr punit.star)
+          = (half.move_left punit.star + half).move_right (sum.inr punit.star) : by fsplit
+      ... = (0 + half).move_right (sum.inr punit.star) : by fsplit
+      ... ≈ 1 : zero_add_equiv 1
+      ... ≤ 1 : pgame.le_refl 1 },
+    { right,
+      use (sum.inl punit.star),
+      calc ((half + half).move_left (sum.inr punit.star)).move_right (sum.inl punit.star)
+          = (half + half.move_left punit.star).move_right (sum.inl punit.star) : by fsplit
+      ... = (half + 0).move_right (sum.inl punit.star) : by fsplit
+      ... ≈ 1 : add_zero_equiv 1
+      ... ≤ 1 : pgame.le_refl 1 } },
+  { rintro ⟨ ⟩ },
+  { rintro ⟨ ⟩,
+    left,
+    use (sum.inl punit.star),
+    calc 0 ≤ half : le_of_lt numeric_zero numeric_half zero_lt_half
+    ... ≈ 0 + half : (zero_add_equiv half).symm
+    ... = (half + half).move_left (sum.inl punit.star) : by fsplit },
+  { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩); left,
+    { exact ⟨sum.inr punit.star, le_of_le_of_equiv (pgame.le_refl _) (add_zero_equiv _).symm⟩ },
+    { exact ⟨sum.inl punit.star, le_of_le_of_equiv (pgame.le_refl _) (zero_add_equiv _).symm⟩ } }
+end
+
 end pgame
 
 /-- The equivalence on numeric pre-games. -/
@@ -295,16 +336,6 @@ noncomputable instance : linear_ordered_add_comm_group surreal :=
 -- We conclude with some ideas for further work on surreals; these would make fun projects.
 
 -- TODO define the inclusion of groups `surreal → game`
-
--- TODO define the dyadic rationals, and show they map into the surreals via the formula
---   m / 2^n ↦ { (m-1) / 2^n | (m+1) / 2^n }
--- TODO show this is a group homomorphism, and injective
-
--- TODO map the reals into the surreals, using dyadic Dedekind cuts
--- TODO show this is a group homomorphism, and injective
-
 -- TODO define the field structure on the surreals
--- TODO show the maps from the dyadic rationals and from the reals
--- into the surreals are multiplicative
 
 end surreal

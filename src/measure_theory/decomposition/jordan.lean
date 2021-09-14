@@ -39,7 +39,7 @@ Jordan decomposition theorem
 -/
 
 noncomputable theory
-open_locale classical measure_theory ennreal
+open_locale classical measure_theory ennreal nnreal
 
 variables {α β : Type*} [measurable_space α]
 
@@ -71,11 +71,18 @@ instance : inhabited (jordan_decomposition α) :=
 instance : has_neg (jordan_decomposition α) :=
 { neg := λ j, ⟨j.neg_part, j.pos_part, j.mutually_singular.symm⟩ }
 
+instance : has_scalar ℝ≥0 (jordan_decomposition α) :=
+{ smul := λ r j, ⟨r • j.pos_part, r • j.neg_part,
+    mutually_singular.smul _ (mutually_singular.smul _ j.mutually_singular.symm).symm⟩ }
+
 @[simp] lemma zero_pos_part : (0 : jordan_decomposition α).pos_part = 0 := rfl
 @[simp] lemma zero_neg_part : (0 : jordan_decomposition α).neg_part = 0 := rfl
 
 @[simp] lemma neg_pos_part : (-j).pos_part = j.neg_part := rfl
 @[simp] lemma neg_neg_part : (-j).neg_part = j.pos_part := rfl
+
+@[simp] lemma smul_pos_part (r : ℝ≥0) : (r • j).pos_part = r • j.pos_part := rfl
+@[simp] lemma smul_neg_part (r : ℝ≥0) : (r • j).neg_part = r • j.neg_part := rfl
 
 /-- The signed measure associated with a Jordan decomposition. -/
 def to_signed_measure : signed_measure α :=
@@ -93,6 +100,15 @@ begin
   rw [neg_apply, to_signed_measure, to_signed_measure,
       to_signed_measure_sub_apply hi, to_signed_measure_sub_apply hi, neg_sub],
   refl,
+end
+
+lemma to_signed_measure_smul (r : ℝ≥0) : (r • j).to_signed_measure = r • j.to_signed_measure :=
+begin
+  ext1 i hi,
+  rw [vector_measure.smul_apply, to_signed_measure, to_signed_measure,
+      to_signed_measure_sub_apply hi, to_signed_measure_sub_apply hi, smul_sub,
+      smul_pos_part, smul_neg_part, ← ennreal.to_real_smul, ← ennreal.to_real_smul],
+  refl
 end
 
 /-- A Jordan decomposition provides a Hahn decomposition. -/
@@ -374,6 +390,13 @@ lemma to_jordan_decomposition_neg (s : signed_measure α) :
 begin
   apply to_signed_measure_injective,
   simp [to_signed_measure_neg],
+end
+
+lemma to_jordan_decomposition_smul (s : signed_measure α) (r : ℝ≥0) :
+  (r • s).to_jordan_decomposition = r • s.to_jordan_decomposition :=
+begin
+  apply to_signed_measure_injective,
+  simp [to_signed_measure_smul],
 end
 
 /-- The total variation of a signed measure. -/

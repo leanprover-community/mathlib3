@@ -739,12 +739,6 @@ begin
   rw [singular_part, singular_part, neg_sub, h₁, h₂],
 end
 
-lemma singular_part_add (s t : signed_measure α) (μ : measure α) :
-  (s + t).singular_part μ = s.singular_part μ + t.singular_part μ :=
-begin
-  sorry
-end
-
 lemma singular_part_mutually_singular :
   s.to_jordan_decomposition.pos_part.singular_part μ ⊥ₘ
   s.to_jordan_decomposition.neg_part.singular_part μ :=

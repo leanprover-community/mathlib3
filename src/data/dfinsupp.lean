@@ -526,7 +526,7 @@ end
 lemma update_eq_sub_add_single {β : ι → Type*} [Π i, add_group (β i)] (f : Π₀ i, β i) (i : ι)
   (b : β i) [decidable (b = 0)] :
   f.update i b = f - single i (f i) + single i b :=
-by rw [update_eq_erase_add_single f i b, erase_eq_sub_single f i (f i)]
+by rw [update_eq_erase_add_single f i b, erase_eq_sub_single f i]
 
 end update
 

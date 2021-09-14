@@ -156,7 +156,7 @@ lemma radon_nikodym_deriv_smul (s : signed_measure α) (μ : measure α) [sigma_
 begin
   refine integrable.ae_eq_of_with_densityᵥ_eq
     (integrable_radon_nikodym_deriv _ _) ((integrable_radon_nikodym_deriv _ _).smul r) _,
-  rw [@with_densityᵥ_smul _ _ μ _ _ _ _ _ _ _ (s.radon_nikodym_deriv μ) _ _ _ _ _ _ r,
+  rw [with_densityᵥ_smul (s.radon_nikodym_deriv μ) r,
       with_densityᵥ_radon_nikodym_deriv_eq _ _ hs,
       with_densityᵥ_radon_nikodym_deriv_eq _ _ hs.smul],
 end

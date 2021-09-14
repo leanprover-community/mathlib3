@@ -214,6 +214,16 @@ begin
   { measurability }
 end
 
+lemma singular_part_smul (μ ν : measure α) [have_lebesgue_decomposition μ ν] (r : ℝ≥0) :
+  (r • μ).singular_part ν = r • (μ.singular_part ν) :=
+begin
+  refine (eq_singular_part ((measurable_radon_nikodym_deriv μ ν).const_smul (r : ℝ≥0∞))
+    (mutually_singular.smul r (have_lebesgue_decomposition_spec _ _).2.1) _).symm,
+  rw with_density_smul _ (measurable_radon_nikodym_deriv _ _),
+  change _ = _ + r • _,
+  rw [← smul_add, ← have_lebesgue_decomposition_add μ ν]
+end
+
 /-- Given measures `μ` and `ν`, if `s` is a measure mutually singular to `ν` and `f` is a
 measurable function such that `μ = s + fν`, then `f = radon_nikodym_deriv μ ν`.
 
@@ -739,6 +749,15 @@ begin
   rw [singular_part, singular_part, neg_sub, h₁, h₂],
 end
 
+lemma singular_part_smul_nnreal (s : signed_measure α) (μ : measure α) [sigma_finite μ] (r : ℝ≥0) :
+  (r • s).singular_part μ = r • s.singular_part μ:=
+begin
+  rw [singular_part, singular_part, smul_sub, ← to_signed_measure_smul, ← to_signed_measure_smul],
+  congr,
+  { rw [← singular_part_smul, to_jordan_decomposition_smul, jordan_decomposition.smul_pos_part] },
+  { rw [← singular_part_smul, to_jordan_decomposition_smul, jordan_decomposition.smul_neg_part] },
+end
+
 lemma singular_part_mutually_singular :
   s.to_jordan_decomposition.pos_part.singular_part μ ⊥ₘ
   s.to_jordan_decomposition.neg_part.singular_part μ :=
@@ -835,6 +854,20 @@ begin
   rw [with_densityᵥ_neg, ← add_right_inj ((-s).singular_part μ),
       singular_part_add_with_density_radon_nikodym_deriv_eq, singular_part_neg, ← neg_add,
       singular_part_add_with_density_radon_nikodym_deriv_eq]
+end
+
+lemma radon_nikodym_deriv_smul_nnreal
+  (s : signed_measure α) (μ : measure α) [sigma_finite μ] (r : ℝ≥0) :
+  (r • s).radon_nikodym_deriv μ =ᵐ[μ] r • s.radon_nikodym_deriv μ :=
+begin
+  refine integrable.ae_eq_of_with_densityᵥ_eq
+    (integrable_radon_nikodym_deriv _ _) ((integrable_radon_nikodym_deriv _ _).smul r) _,
+  change _ = μ.with_densityᵥ ((r : ℝ) • s.radon_nikodym_deriv μ),
+  rw [with_densityᵥ_smul (radon_nikodym_deriv s μ) (r : ℝ),
+      ← add_right_inj ((r • s).singular_part μ),
+      singular_part_add_with_density_radon_nikodym_deriv_eq, singular_part_smul_nnreal],
+  change _ = _ + r • _,
+  rw [← smul_add, singular_part_add_with_density_radon_nikodym_deriv_eq],
 end
 
 end signed_measure

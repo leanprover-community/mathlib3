@@ -1,21 +1,21 @@
 /-
-Copyright (c) 2020 Scott Morrison. All rights reserved.
+Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison, Yaël Dillies
+Authors: Yaël Dillies
 -/
-import data.pnat.basic
+import data.nat.basic
 import order.locally_finite
 
 /-!
-# Intervals of positive naturals
+# Intervals of naturals
 
-This file proves that `ℕ+` is a `locally_finite_order` and calculates the cardinality of its
+This file proves that `ℕ` is a `locally_finite_order` and calculates the cardinality of its
 intervals as finsets and fintypes.
 -/
 
-open finset pnat
+open finset nat
 
-instance : locally_finite_order ℕ+ :=
+instance : locally_finite_order ℕ :=
 { finset_Icc := λ a b, (list.range' a (b + 1 - a)).to_finset,
   finset_mem_Icc := λ a b x, begin
     rw [list.mem_to_finset, list.mem_range'],
@@ -25,18 +25,8 @@ instance : locally_finite_order ℕ+ :=
       exact iff_of_false (λ hx, hx.2.not_le hx.1) (λ hx, h.not_le (hx.1.trans hx.2)) }
 end }
 
-namespace pnat
-variables (a b : ℕ+)
-
-/-- `Ico a b` is the set of positive natural numbers `b ≤ k < a`. -/
-def pnat_Ico (a b : ℕ+) : finset ℕ+ :=
-(finset.Ico a b).attach.map
-  { to_fun := λ n, ⟨(n : ℕ), lt_of_lt_of_le a.2 (finset.Ico.mem.1 n.2).1⟩,
-    -- why can't we do this directly?
-    inj' := λ n m h, subtype.eq (by { replace h := congr_arg subtype.val h, exact h }) }
-
-@[simp] lemma pnat_Ico.mem : ∀ {n m l : ℕ+}, l ∈ pnat_Ico n m ↔ n ≤ l ∧ l < m :=
-by { rintro ⟨n, hn⟩ ⟨m, hm⟩ ⟨l, hl⟩, simp [pnat_Ico] }
+namespace nat
+variables (a b : ℕ)
 
 @[simp] lemma card_finset_Icc : (Icc a b).card = b + 1 - a := sorry
 
@@ -58,4 +48,4 @@ by rw [←card_finset_Ioc, fintype.card_of_finset]
 @[simp] lemma card_fintype_Ioo : fintype.card (set.Ioo a b) = b - a - 1 :=
 by rw [←card_finset_Ioo, fintype.card_of_finset]
 
-end pnat
+end nat

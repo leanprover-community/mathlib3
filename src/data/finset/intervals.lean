@@ -3,7 +3,7 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.ordered_monoid
+import algebra.ordered_sub
 import data.finset.basic
 import data.multiset.intervals
 import order.locally_finite
@@ -11,134 +11,14 @@ import order.locally_finite
 /-!
 # Intervals as finsets
 
-For now this only covers `Ico a b`, the "closed-open" interval containing `[n, ..., m-1]`.
+For now this only covers `Ico a b`, the "closed-open" interval containing `[a, ..., b - 1]`.
 -/
 
-open multiset nat
-
-/-! ### Intervals as finsets -/
-
-namespace finset
-section preorder
-variables {α : Type*} [decidable_eq α] [preorder α] [locally_finite_order α]
-
-/-- The finset of elements `x` such that `a ≤ x ∧ x ≤ b`. Basically `set.Icc a b` as a finset. -/
-def Icc (a b : α) : finset α :=
-locally_finite_order.finset_Icc a b
-
-/- `Icc` is treated separately from `Ico`, `Ioc`, `Ioo` because defining it doesn't require
-`decidable_rel (≤)`. Useful in simple constructions, like `subtype.locally_finite_order`. -/
-@[simp, norm_cast] lemma coe_Icc (a b : α) : (Icc a b : set α) = set.Icc a b :=
-locally_finite_order.coe_finset_Icc a b
-
-@[simp] lemma mem_Icc {a b x : α} : x ∈ Icc a b ↔ a ≤ x ∧ x ≤ b :=
-by rw [←set.mem_Icc, ←coe_Icc, mem_coe]
-
-variable [decidable_rel ((≤) : α → α → Prop)]
-
-/-- The finset of elements `x` such that `a ≤ x ∧ x < b`. Basically `set.Ico a b` as a finset. -/
-def Ico (a b : α) : finset α :=
-(Icc a b).filter (λ x, ¬b ≤ x)
-
-/-- The finset of elements `x` such that `a < x ∧ x ≤ b`. Basically `set.Ioc a b` as a finset. -/
-def Ioc (a b : α) : finset α :=
-(Icc a b).filter (λ x, ¬x ≤ a)
-
-/-- The finset of elements `x` such that `a < x ∧ x < b`. Basically `set.Ioo a b` as a finset. -/
-def Ioo (a b : α) : finset α :=
-(Ico a b).filter (λ x, ¬x ≤ a)
-
-@[simp, norm_cast] lemma coe_Ico (a b : α) : (Ico a b : set α) = set.Ico a b :=
-by { ext x, rw [mem_coe, Ico, mem_filter, mem_Icc, and_assoc, ←lt_iff_le_not_le, set.mem_Ico] }
-
-@[simp] lemma mem_Ico {a b x : α} : x ∈ Ico a b ↔ a ≤ x ∧ x < b :=
-by rw [←set.mem_Ico, ←coe_Ico, mem_coe]
-
-@[simp, norm_cast] lemma coe_Ioc (a b : α) : (Ioc a b : set α) = set.Ioc a b :=
-by { ext x, rw [mem_coe, Ioc, mem_filter, mem_Icc, and.right_comm, ←lt_iff_le_not_le, set.mem_Ioc] }
-
-@[simp] lemma mem_Ioc {a b x : α} : x ∈ Ioc a b ↔ a < x ∧ x ≤ b :=
-by rw [←set.mem_Ioc, ←coe_Ioc, mem_coe]
-
-@[simp, norm_cast] lemma coe_Ioo (a b : α) : (Ioo a b : set α) = set.Ioo a b :=
-by { ext x, rw [mem_coe, Ioo, mem_filter, mem_Ico, and.right_comm, ←lt_iff_le_not_le, set.mem_Ioo] }
-
-@[simp] lemma mem_Ioo {a b x : α} : x ∈ Ioo a b ↔ a < x ∧ x < b :=
-by rw [←set.mem_Ioo, ←coe_Ioo, mem_coe]
-
-theorem Ico_subset_Ico {a₁ b₁ a₂ b₂ : α} (ha : a₂ ≤ a₁) (hb : b₁ ≤ b₂) :
-  Ico a₁ b₁ ⊆ Ico a₂ b₂ :=
-begin
-  rintro x hx,
-  rw mem_Ico at ⊢ hx,
-  exact ⟨ha.trans hx.1, hx.2.trans_le hb⟩,
-end
-
-end preorder
-
-section partial_order
-variables {α : Type*} [decidable_eq α] [partial_order α] [decidable_rel ((≤) : α → α → Prop)]
-  [locally_finite_order α]
-
-end partial_order
-
-section order_top
-variables {α : Type*} [decidable_eq α] [order_top α] [locally_finite_order α]
-
-/-- The finset of elements `x` such that `a ≤ x`. Basically `set.Ici a` as a finset. -/
-def Ici (a : α) : finset α :=
-Icc a ⊤
-
-@[simp, norm_cast] lemma coe_Ici (a : α) : (Ici a : set α) = set.Ici a :=
-by rw [Ici, coe_Icc, set.Icc_top]
-
-@[simp] lemma mem_Ici {a x : α} : x ∈ Ici a ↔ a ≤ x :=
-by rw [←set.mem_Ici, ←coe_Ici, mem_coe]
-
-variable [decidable_rel ((≤) : α → α → Prop)]
-
-/-- The finset of elements `x` such that `a < x`. Basically `set.Ioi a` as a finset. -/
-def Ioi (a : α) : finset α :=
-Ioc a ⊤
-
-@[simp, norm_cast] lemma coe_Ioi (a : α) : (Ioi a : set α) = set.Ioi a :=
-by rw [Ioi, coe_Ioc, set.Ioc_top]
-
-@[simp] lemma mem_Ioi {a x : α} : x ∈ Ioi a ↔ a < x :=
-by rw [←set.mem_Ioi, ←coe_Ioi, mem_coe]
-
-end order_top
-
-section order_bot
-variables {α : Type*} [decidable_eq α] [order_bot α] [locally_finite_order α]
-
-/-- The finset of elements `x` such that `x ≤ b`. Basically `set.Iic b` as a finset. -/
-def Iic (b : α) : finset α :=
-Icc ⊥ b
-
-@[simp, norm_cast] lemma coe_Iic (b : α) : (Iic b : set α) = set.Iic b :=
-by rw [Iic, coe_Icc, set.Icc_bot]
-
-@[simp] lemma mem_Iic {b x : α} : x ∈ Iic b ↔ x ≤ b :=
-by rw [←set.mem_Iic, ←coe_Iic, mem_coe]
-
-variable [decidable_rel ((≤) : α → α → Prop)]
-
-/-- The finset of elements `x` such that `x < b`. Basically `set.Iio b` as a finset. -/
-def Iio (b : α) : finset α :=
-Ico ⊥ b
-
-@[simp, norm_cast] lemma coe_Iio (b : α) : (Iio b : set α) = set.Iio b :=
-by rw [Iio, coe_Ico, set.Ico_bot]
-
-@[simp] lemma mem_Iio {b x : α} : x ∈ Iio b ↔ x < b :=
-by rw [←set.mem_Iio, ←coe_Iio, mem_coe]
-
-end order_bot
+open finset nat
 
 section ordered_cancel_add_comm_monoid
-variables {α : Type*} [decidable_eq α] [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α]
-  [locally_finite_order α]
+variables {α : Type*} [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α] [has_sub α]
+   [has_ordered_sub α] [decidable_rel ((≤) : α → α → Prop)] [locally_finite_order α]
 
 lemma image_add_const_Icc (a b c : α) : (Icc a b).image ((+) c) = Icc (a + c) (b + c) :=
 begin
@@ -155,8 +35,6 @@ begin
   rw [eq_comm, add_right_comm, add_comm] at hy,
   exact ⟨a + y, mem_Icc.2 ⟨le_of_add_le_add_right hx.1, le_of_add_le_add_right hx.2⟩, hy⟩,
 end
-
-variable [decidable_rel ((≤) : α → α → Prop)]
 
 lemma image_add_const_Ico (a b c : α) : (Ico a b).image ((+) c) = Ico (a + c) (b + c) :=
 begin
@@ -390,28 +268,5 @@ begin
   { simp },
   { simp [range_eq_Ico, Ico.image_const_sub] }
 end
-
--- TODO We don't yet attempt to reproduce the entire interface for `Ico` for `Ico_ℤ`.
-
-/-- `Ico_ℤ l u` is the set of integers `l ≤ k < u`. -/
-def Ico_ℤ (l u : ℤ) : finset ℤ :=
-(finset.range (u - l).to_nat).map
-  { to_fun := λ n, n + l,
-    inj' := λ n m h, by simpa using h }
-
-@[simp] lemma Ico_ℤ.mem {n m l : ℤ} : l ∈ Ico_ℤ n m ↔ n ≤ l ∧ l < m :=
-begin
-  dsimp [Ico_ℤ],
-  simp only [int.lt_to_nat, exists_prop, mem_range, add_comm, function.embedding.coe_fn_mk,
-    mem_map],
-  split,
-  { rintro ⟨a, ⟨h, rfl⟩⟩,
-    exact ⟨int.le.intro rfl, lt_sub_iff_add_lt'.mp h⟩ },
-  { rintro ⟨h₁, h₂⟩,
-    use (l - n).to_nat,
-    split; simp [h₁, h₂], }
-end
-
-@[simp] lemma Ico_ℤ.card (l u : ℤ) : (Ico_ℤ l u).card = (u - l).to_nat := by simp [Ico_ℤ]
 
 end finset

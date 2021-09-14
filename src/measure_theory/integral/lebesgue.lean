@@ -178,11 +178,11 @@ set.support_indicator
 
 lemma range_indicator {m : measurable_space α} {s : set α} (hs : measurable_set s)
   (hs_nonempty : s ≠ ∅) (hs_ne_univ : s ≠ univ) (x y : β) :
-  (simple_func.piecewise s hs (simple_func.const α x) (simple_func.const α y)).range = {x, y} :=
+  (piecewise s hs (const α x) (const α y)).range = {x, y} :=
 begin
   ext1 z,
   rw [mem_range, set.mem_range, finset.mem_insert, finset.mem_singleton],
-  simp_rw simple_func.piecewise_apply,
+  simp_rw piecewise_apply,
   split; intro h,
   { obtain ⟨a, haz⟩ := h,
     by_cases has : a ∈ s,

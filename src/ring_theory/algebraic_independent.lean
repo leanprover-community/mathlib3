@@ -1,6 +1,7 @@
 import ring_theory.adjoin.basic
 import linear_algebra.linear_independent
 import ring_theory.mv_polynomial.basic
+import data.mv_polynomial.supported
 
 noncomputable theory
 
@@ -40,10 +41,11 @@ iff.rfl
 
 @[simp] lemma algebraic_independent_empty_type_iff [is_empty ι] :
   algebraic_independent R v ↔ injective (algebra_map R A) :=
-have aeval v = (algebra.of_id R A).comp (@is_empty_equiv R ι _ _).to_alg_hom,
+have aeval v = (algebra.of_id R A).comp (@is_empty_alg_equiv R ι _ _).to_alg_hom,
   by { ext i, exact is_empty.elim' ‹is_empty ι› i },
 begin
-  rw [algebraic_independent, this, ← injective.of_comp_iff' _ (@is_empty_equiv R ι _ _).bijective],
+  rw [algebraic_independent, this,
+    ← injective.of_comp_iff' _ (@is_empty_alg_equiv R ι _ _).bijective],
   refl
 end
 
@@ -256,6 +258,28 @@ theorem algebraic_independent.to_subtype_range' {ι} {f : ι → A} (hf : algebr
   algebraic_independent R (coe : t → A) :=
 ht ▸ hf.to_subtype_range
 
+theorem algebraic_independent_comp_subtype {s : set ι} :
+  algebraic_independent R (v ∘ coe : s → A) ↔
+  ∀ p ∈ (mv_polynomial.supported R s), aeval v p = 0 → p = 0 :=
+have (aeval (v ∘ coe : s → A) : _ →ₐ[R] _) =
+  (aeval v).comp (rename coe), by ext; simp,
+have ∀ p : mv_polynomial s R, rename (coe : s → ι) p = 0 ↔ p = 0,
+  from (ring_hom.injective_iff' (rename (coe : s → ι) : mv_polynomial s R →ₐ[R] _).to_ring_hom).1
+    (rename_injective _ subtype.val_injective),
+by simp [algebraic_independent_iff, supported_eq_range_rename, *]
+
+theorem algebraic_independent_subtype {s : set A} :
+  algebraic_independent R (λ x, x : s → A) ↔
+  ∀ (p : mv_polynomial A R), p ∈ mv_polynomial.supported R s → aeval id p = 0 → p = 0 :=
+by apply @algebraic_independent_comp_subtype _ _ _ id
+
+lemma algebraic_independent_of_finite (s : set A)
+  (H : ∀ t ⊆ s, finite t → algebraic_independent R (λ x, x : t → A)) :
+  algebraic_independent R (λ x, x : s → A) :=
+algebraic_independent_subtype.2 $
+  λ p hp, algebraic_independent_subtype.1 (H _ (mem_supported.1 hp) (finset.finite_to_set _)) _
+    (by simp)
+
 theorem algebraic_independent.image_of_comp {ι ι'} (s : set ι) (f : ι → ι') (g : ι' → A)
   (hs : algebraic_independent R (λ x : s, g (f x))) :
   algebraic_independent R (λ x : f '' s, g x) :=
@@ -268,41 +292,6 @@ end
 theorem algebraic_independent.image {ι} {s : set ι} {f : ι → A}
   (hs : algebraic_independent R (λ x : s, f x)) : algebraic_independent R (λ x : f '' s, (x : A)) :=
 by convert algebraic_independent.image_of_comp s f id hs
-
-
--- lemma algebraic_independent.group_smul
---   {G : Type*} [hG : group G] [mul_semiring_action G R] [mul_semiring_action G A]
---   [is_scalar_tower G R A] [smul_comm_class G R A] {v : ι → A} (hv : algebraic_independent R v)
---   (w : ι → G) : algebraic_independent R (w • v) :=
--- begin
---   show algebraic_independent R (λ i, w i • v i),
---   rw [algebraic_independent_iff] at *,
---   intros p hp,
---   induction p using mv_polynomial.induction_on with a
---     p q ihp ihq,
---   { apply hv (C a),
---     simpa [mv_polynomial.algebra_map_eq] using hp },
---   {  }
-
--- end
-
--- -- This lemma cannot be proved with `algebraic_independent.group_smul` since the action of
--- -- `units R` on `R` is not commutative.
--- lemma algebraic_independent.units_smul {v : ι → A} (hv : algebraic_independent R v)
---   (w : ι → units R) : algebraic_independent R (w • v) :=
--- begin
---   rw algebraic_independent_iff'' at hv ⊢,
---   intros s g hgs hsum i,
---   rw ← (w i).mul_left_eq_zero,
---   refine hv s (λ i, g i • w i) (λ i hi, _) _ i,
---   { dsimp only,
---     exact (hgs i hi).symm ▸ zero_smul _ _ },
---   { rw [← hsum, finset.sum_congr rfl _],
---     intros,
---     erw [pi.smul_apply, smul_assoc],
---     refl }
--- end
-
 
 section maximal
 universes v w
@@ -340,22 +329,25 @@ begin
 end
 
 end maximal
-#print finsupp.supported
-lemma algebraic_independent_Union_of_directed (S : ι → set A)
-  (dir : directed (≤) S) (h : ∀ i, algebraic_independent R (coe : S i → A)) :
-  algebraic_independent R (coe : Union S → A) :=
+
+lemma algebraic_independent_Union_of_directed {η : Type*} [nonempty η]
+  {s : η → set A} (hs : directed (⊆) s)
+  (h : ∀ i, algebraic_independent R (λ x, x : s i → A)) :
+  algebraic_independent R (λ x, x : (⋃ i, s i) → A) :=
 begin
-  intros p q,
-
+  refine algebraic_independent_of_finite (⋃ i, s i) (λ t ht ft, _),
+  rcases finite_subset_Union ft ht with ⟨I, fi, hI⟩,
+  rcases hs.finset_le fi.to_finset with ⟨i, hi⟩,
+  exact (h i).mono (subset.trans hI $ bUnion_subset $
+    λ j hj, hi j (fi.mem_to_finset.2 hj))
 end
-
 
 lemma exists_maximal_algebraic_independent (h : injective (algebra_map R A)) :
   ∃ s : set A, algebraic_independent R (coe : s → A) ∧ ∀ t : set A, s ⊆ t →
   algebraic_independent R (coe : t → A) → s = t :=
 begin
-  have := zorn.zorn_subset { s : set A | algebraic_independent R (coe : s → A) }
-    (λ c hc chainc, ⟨⋃₀ c, begin
+  have := zorn.zorn_subset_nonempty { s : set A | algebraic_independent R (coe : s → A) }
+    (λ c hc chainc hcn, ⟨⋃₀ c, begin
       split,
       dsimp,
 

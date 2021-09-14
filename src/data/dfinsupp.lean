@@ -499,6 +499,26 @@ lemma single_eq_of_sigma_eq
   dfinsupp.single i xi = dfinsupp.single j xj :=
 by { cases h, refl }
 
+lemma filter_single {p : ι → Prop} [decidable_pred p] (i : ι) (x : β i) :
+  (single i x).filter p = if p i then single i x else 0 :=
+begin
+  ext j,
+  have := apply_ite (λ x : Π₀ i, β i, x j) (p i) (single i x) 0,
+  dsimp at this,
+  rw [filter_apply, this],
+  obtain rfl | hij := decidable.eq_or_ne i j,
+  { refl, },
+  { rw [single_eq_of_ne hij, if_t_t, if_t_t], },
+end
+
+@[simp] lemma filter_single_pos {p : ι → Prop} [decidable_pred p] (i : ι) (x : β i) (h : p i) :
+  (single i x).filter p = single i x :=
+by rw [filter_single, if_pos h]
+
+@[simp] lemma filter_single_neg {p : ι → Prop} [decidable_pred p] (i : ι) (x : β i) (h : ¬p i) :
+  (single i x).filter p = 0 :=
+by rw [filter_single, if_neg h]
+
 /-- Redefine `f i` to be `0`. -/
 def erase (i : ι) (f : Π₀ i, β i) : Π₀ i, β i :=
 quotient.lift_on f (λ x, ⟦(⟨λ j, if j = i then 0 else x.1 j, x.2,
@@ -1038,33 +1058,41 @@ begin
   exact h
 end
 
-lemma _root_.add_submonoid.dfinsupp_filter_mem_supr (p : ι → Prop) [decidable_pred p]
-  [add_comm_monoid γ] (S : ι → add_submonoid γ) (f : Π₀ i, S i) (i : ι) :
-  (f.filter p i : γ) ∈ ⨆ (h : p i), S i :=
-begin
-  by_cases hs : p i,
-  { simp [hs], },
-  { simp [hs] },
-end
-
-lemma _root_.add_submonoid.dfinsupp_sum_add_hom_mem_filter_mem_bsupr (p : ι → Prop)
-  [decidable_pred p] [add_comm_monoid γ] (S : ι → add_submonoid γ) (f : Π₀ i, S i) :
-  dfinsupp.sum_add_hom (λ i, (S i).subtype) (f.filter p) ∈ ⨆ i (h : p i), S i :=
-add_submonoid.dfinsupp_sum_add_hom_mem _ _ _ $ λ i hi,
-  add_submonoid.mem_supr_of_mem i $ _root_.add_submonoid.dfinsupp_filter_mem_supr _ _ _ _
-
 /-- The supremum of a family of commutative additive submonoids is equal to the range of
-`finsupp.sum_add_hom`; that is, every element in the `supr` can be produced from taking a finite
-number of non-zero elements of `p i`, coercing them to `γ`, and summing them. -/
+`dfinsupp.sum_add_hom`; that is, every element in the `supr` can be produced from taking a finite
+number of non-zero elements of `S i`, coercing them to `γ`, and summing them. -/
 lemma _root_.add_submonoid.supr_eq_mrange_dfinsupp_sum_add_hom [add_comm_monoid γ]
-  (p : ι → add_submonoid γ) : supr p = (dfinsupp.sum_add_hom (λ i, (p i).subtype)).mrange :=
+  (S : ι → add_submonoid γ) : supr S = (dfinsupp.sum_add_hom (λ i, (S i).subtype)).mrange :=
 begin
   apply le_antisymm,
   { apply supr_le _,
     intros i y hy,
     exact ⟨dfinsupp.single i ⟨y, hy⟩, dfinsupp.sum_add_hom_single _ _ _⟩, },
   { rintros x ⟨v, rfl⟩,
-    exact add_submonoid.dfinsupp_sum_add_hom_mem _ v _ (λ i _, (le_supr p i : p i ≤ _) (v i).prop) }
+    exact add_submonoid.dfinsupp_sum_add_hom_mem _ v _ (λ i _, (le_supr S i : S i ≤ _) (v i).prop) }
+end
+
+/-- The bounded supremum of a family of commutative additive submonoids is equal to the range of
+`dfinsupp.sum_add_hom` composed with `dfinsupp.filter_add_monoid_hom`; that is, every element in the
+bounded `supr` can be produced from taking a finite number of non-zero elements from the `S i` that
+satisfy `p i`, coercing them to `γ`, and summing them. -/
+lemma _root_.add_submonoid.bsupr_eq_mrange_dfinsupp_sum_add_hom (p : ι → Prop)
+  [decidable_pred p] [add_comm_monoid γ] (S : ι → add_submonoid γ) :
+  (⨆ i (h : p i), S i) =
+    ((sum_add_hom (λ i, (S i).subtype)).comp (filter_add_monoid_hom _ p)).mrange :=
+begin
+  apply le_antisymm,
+  { apply bsupr_le _,
+    intros i hi y hy,
+    refine ⟨dfinsupp.single i ⟨y, hy⟩, _⟩,
+    rw [add_monoid_hom.comp_apply, filter_add_monoid_hom_apply, filter_single_pos _ _ hi,
+      sum_add_hom_single, add_submonoid.subtype_apply, subtype.coe_mk], },
+  { rintros x ⟨v, rfl⟩,
+    refine add_submonoid.dfinsupp_sum_add_hom_mem _ _ _ (λ i hi, _),
+    refine add_submonoid.mem_supr_of_mem i _,
+    by_cases hp : p i,
+    { simp [hp], },
+    { simp [hp] }, }
 end
 
 lemma _root_.add_submonoid.mem_supr_iff_exists_dfinsupp [add_comm_monoid γ]
@@ -1087,7 +1115,7 @@ lemma _root_.add_submonoid.mem_bsupr_iff_exists_dfinsupp (p : ι → Prop)
   (S : ι → add_submonoid γ) (x : γ) :
   x ∈ (⨆ i (h : p i), S i) ↔
     ∃ f : Π₀ i, S i, dfinsupp.sum_add_hom (λ i, (S i).subtype) (f.filter p) = x :=
-set_like.ext_iff.mp (add_submonoid.supr_eq_mrange_dfinsupp_sum_add_hom S) x
+set_like.ext_iff.mp (add_submonoid.bsupr_eq_mrange_dfinsupp_sum_add_hom p S) x
 
 omit dec
 lemma sum_add_hom_comm {ι₁ ι₂ : Sort*} {β₁ : ι₁ → Type*} {β₂ : ι₂ → Type*} {γ : Type*}

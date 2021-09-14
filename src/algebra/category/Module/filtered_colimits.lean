@@ -7,7 +7,7 @@ import algebra.category.Module.basic
 import algebra.category.CommRing.filtered_colimits
 
 /-!
-# The forgetful functor from (commutative) (semi-) rings preserves filtered colimits.
+# The forgetful functor from `R`-modules preserves filtered colimits.
 
 Forgetful functors from algebraic categories usually don't preserve colimits. However, they tend
 to preserve _filtered_ colimits.

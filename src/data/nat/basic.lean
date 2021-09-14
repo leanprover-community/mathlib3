@@ -108,7 +108,7 @@ instance nat.subtype.semilattice_sup_bot (s : set ℕ) [decidable_pred (∈ s)] 
 { bot := ⟨nat.find (nonempty_subtype.1 h), nat.find_spec (nonempty_subtype.1 h)⟩,
   bot_le := λ x, nat.find_min' _ x.2,
   ..subtype.linear_order s,
-  ..lattice_of_linear_order }
+  ..linear_order.to_lattice }
 
 theorem nat.nsmul_eq_mul (m n : ℕ) : m • n = m * n :=
 rfl

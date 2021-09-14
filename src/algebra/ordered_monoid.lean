@@ -617,7 +617,7 @@ variables [canonically_linear_ordered_monoid α]
 
 @[priority 100, to_additive]  -- see Note [lower instance priority]
 instance canonically_linear_ordered_monoid.semilattice_sup_bot : semilattice_sup_bot α :=
-{ ..lattice_of_linear_order, ..canonically_ordered_monoid.to_order_bot α }
+{ ..linear_order.to_lattice, ..canonically_ordered_monoid.to_order_bot α }
 
 instance with_top.canonically_linear_ordered_add_monoid
   (α : Type*) [canonically_linear_ordered_add_monoid α] :

@@ -649,7 +649,7 @@ instance lattice [lattice α] : lattice (with_bot α) :=
 { ..with_bot.semilattice_sup, ..with_bot.semilattice_inf }
 
 theorem lattice_eq_DLO [linear_order α] :
-  lattice_of_linear_order = @with_bot.lattice α _ :=
+  linear_order.to_lattice = @with_bot.lattice α _ :=
 lattice.ext $ λ x y, iff.rfl
 
 theorem sup_eq_max [linear_order α] (x y : with_bot α) : x ⊔ y = max x y :=
@@ -896,7 +896,7 @@ instance lattice [lattice α] : lattice (with_top α) :=
 { ..with_top.semilattice_sup, ..with_top.semilattice_inf }
 
 theorem lattice_eq_DLO [linear_order α] :
-  lattice_of_linear_order = @with_top.lattice α _ :=
+  linear_order.to_lattice = @with_top.lattice α _ :=
 lattice.ext $ λ x y, iff.rfl
 
 theorem sup_eq_max [linear_order α] (x y : with_top α) : x ⊔ y = max x y :=

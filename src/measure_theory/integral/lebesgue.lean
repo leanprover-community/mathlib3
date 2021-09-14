@@ -1845,6 +1845,15 @@ lemma lintegral_dirac [measurable_singleton_class α] (a : α) (f : α → ℝ�
   ∫⁻ a, f a ∂(dirac a) = f a :=
 by simp [lintegral_congr_ae (ae_eq_dirac f)]
 
+lemma lintegral_encodable {α : Type*} {m : measurable_space α} [encodable α]
+  [measurable_singleton_class α] (f : α → ℝ≥0∞) (μ : measure α) :
+  ∫⁻ a, f a ∂μ = ∑' a, f a * μ {a} :=
+begin
+  conv_lhs { rw [← sum_smul_dirac μ, lintegral_sum_measure] },
+  congr' 1 with a : 1,
+  rw [lintegral_smul_measure, lintegral_dirac, mul_comm],
+end
+
 lemma lintegral_count' {f : α → ℝ≥0∞} (hf : measurable f) :
   ∫⁻ a, f a ∂count = ∑' a, f a :=
 begin

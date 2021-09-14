@@ -1099,6 +1099,22 @@ begin
              tsum_add ennreal.summable ennreal.summable],
 end
 
+/-- If `f` is a map with encodable codomain, then `map f μ` is the sum of Dirac measures -/
+lemma map_eq_sum [encodable β] [measurable_singleton_class β]
+  (μ : measure α) (f : α → β) (hf : measurable f) :
+  map f μ = sum (λ b : β, μ (f ⁻¹' {b}) • dirac b) :=
+begin
+  ext1 s hs,
+  have : ∀ y ∈ s, measurable_set (f ⁻¹' {y}), from λ y _, hf (measurable_set_singleton _),
+  simp [← tsum_measure_preimage_singleton (countable_encodable s) this, *,
+    tsum_subtype s (λ b, μ (f ⁻¹' {b})), ← indicator_mul_right s (λ b, μ (f ⁻¹' {b}))]
+end
+
+/-- A measure on an encodable type is a sum of dirac measures. -/
+@[simp] lemma sum_smul_dirac [encodable α] [measurable_singleton_class α] (μ : measure α) :
+  sum (λ a, μ {a} • dirac a) = μ :=
+by simpa using (map_eq_sum μ id measurable_id).symm
+
 omit m0
 end sum
 

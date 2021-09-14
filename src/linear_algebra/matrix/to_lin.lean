@@ -152,6 +152,10 @@ lemma linear_map.to_matrix'_mul [fintype m] [decidable_eq m]
   (f * g).to_matrix' = f.to_matrix' ⬝ g.to_matrix' :=
 linear_map.to_matrix'_comp f g
 
+lemma matrix.ker_to_lin'_eq_bot_iff {M : matrix n n R} :
+  M.to_lin'.ker = ⊥ ↔ ∀ v, M.mul_vec v = 0 → v = 0 :=
+by simp only [submodule.eq_bot_iff, linear_map.mem_ker, matrix.to_lin'_apply]
+
 /-- If `M` and `M'` are each other's inverse matrices, they provide an equivalence between `m → A`
 and `n → A` corresponding to `M.mul_vec` and `M'.mul_vec`. -/
 @[simps]
@@ -248,10 +252,22 @@ equivalence between linear maps `M₁ →ₗ M₂` and matrices over `R` indexed
 def linear_map.to_matrix : (M₁ →ₗ[R] M₂) ≃ₗ[R] matrix m n R :=
 linear_equiv.trans (linear_equiv.arrow_congr v₁.equiv_fun v₂.equiv_fun) linear_map.to_matrix'
 
+/-- `linear_map.to_matrix'` is a particular case of `linear_map.to_matrix`, for the standard basis
+`pi.basis_fun R n`. -/
+lemma linear_map.to_matrix_eq_to_matrix' :
+  linear_map.to_matrix (pi.basis_fun R n) (pi.basis_fun R n) = linear_map.to_matrix' :=
+rfl
+
 /-- Given bases of two modules `M₁` and `M₂` over a commutative ring `R`, we get a linear
 equivalence between matrices over `R` indexed by the bases and linear maps `M₁ →ₗ M₂`. -/
 def matrix.to_lin : matrix m n R ≃ₗ[R] (M₁ →ₗ[R] M₂) :=
 (linear_map.to_matrix v₁ v₂).symm
+
+/-- `matrix.to_lin'` is a particular case of `matrix.to_lin`, for the standard basis
+`pi.basis_fun R n`. -/
+lemma matrix.to_lin_eq_to_lin' :
+  matrix.to_lin (pi.basis_fun R n) (pi.basis_fun R n) = matrix.to_lin' :=
+rfl
 
 @[simp] lemma linear_map.to_matrix_symm :
   (linear_map.to_matrix v₁ v₂).symm = matrix.to_lin v₁ v₂ :=

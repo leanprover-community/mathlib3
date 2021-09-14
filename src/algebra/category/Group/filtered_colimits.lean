@@ -5,8 +5,6 @@ Authors: Justus Springer
 -/
 import algebra.category.Group.basic
 import algebra.category.Mon.filtered_colimits
-import category_theory.limits.concrete_category
-import category_theory.limits.preserves.filtered
 
 /-!
 # The forgetful functor from (commutative) (additive) groups preserves filtered colimits.

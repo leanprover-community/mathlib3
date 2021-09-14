@@ -5,8 +5,6 @@ Authors: Justus Springer
 -/
 import algebra.category.CommRing.basic
 import algebra.category.Group.filtered_colimits
-import category_theory.limits.concrete_category
-import category_theory.limits.preserves.filtered
 
 /-!
 # The forgetful functor from (commutative) (semi-) rings preserves filtered colimits.

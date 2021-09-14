@@ -2019,7 +2019,7 @@ end
 /-- In a sigma-finite measure space, there exists an integrable function which is
 positive everywhere (and with an arbitrarily small integral). -/
 lemma exists_integrable_pos_of_sigma_finite
-  {α} [measurable_space α] (μ : measure α) [sigma_finite μ] {ε : ℝ≥0∞} (ε0 : 0 < ε) :
+  {α} [measurable_space α] (μ : measure α) [sigma_finite μ] {ε : ℝ≥0} (εpos : 0 < ε) :
   ∃ g : α → ℝ≥0, (∀ x, 0 < g x) ∧ measurable g ∧ (∫⁻ x, g x ∂μ < ε) :=
 begin
   /- Let `s` be a covering of `α` by pairwise disjoint measurable sets of finite measure. Let
@@ -2029,7 +2029,7 @@ begin
   have : ∀ n, μ (s n) < ∞,
     from λ n, (measure_mono $ disjointed_subset _ _).trans_lt (measure_spanning_sets_lt_top μ n),
   obtain ⟨δ, δpos, δsum⟩ : ∃ δ : ℕ → ℝ≥0, (∀ i, 0 < δ i) ∧ ∑' i, μ (s i) * δ i < ε,
-    from ennreal.exists_pos_tsum_mul_lt_of_encodable ε0 _ (λ n, (this n).ne),
+    from ennreal.exists_pos_tsum_mul_lt_of_encodable (ennreal.coe_pos.2 εpos) _ (λ n, (this n).ne),
   set N : α → ℕ := spanning_sets_index μ,
   have hN_meas : measurable N := measurable_spanning_sets_index μ,
   have hNs : ∀ n, N ⁻¹' {n} = s n := preimage_spanning_sets_index_singleton μ,

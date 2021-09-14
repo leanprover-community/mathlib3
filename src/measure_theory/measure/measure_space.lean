@@ -1100,7 +1100,7 @@ begin
 end
 
 /-- If `f` is a map with encodable codomain, then `map f μ` is the sum of Dirac measures -/
-lemma map_eq_sum {mb : measurable_space β} [encodable β] [measurable_singleton_class β]
+lemma map_eq_sum [encodable β] [measurable_singleton_class β]
   (μ : measure α) (f : α → β) (hf : measurable f) :
   map f μ = sum (λ b : β, μ (f ⁻¹' {b}) • dirac b) :=
 begin

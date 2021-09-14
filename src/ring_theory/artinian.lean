@@ -105,8 +105,8 @@ theorem is_artinian_of_range_eq_ker
   (submodule.map g)
   (submodule.gci_map_comap hf)
   (submodule.gi_map_comap hg)
-  (by simp [linear_map.map_comap_eq, inf_comm])
-  (by simp [linear_map.comap_map_eq, h])⟩
+  (by simp [submodule.map_comap_eq, inf_comm])
+  (by simp [submodule.comap_map_eq, h])⟩
 
 instance is_artinian_prod [is_artinian R M]
   [is_artinian R P] : is_artinian R (M × P) :=

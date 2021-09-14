@@ -371,7 +371,7 @@ begin
   obtain ⟨fs, fs_le_f, int_fs⟩ : ∃ (fs : α →ₛ ℝ≥0), (∀ x, fs x ≤ f x) ∧
     (∫⁻ x, f x ∂μ ≤ ∫⁻ x, fs x ∂μ + ε/2) :=
   begin
-    have := ennreal.lt_add_right int_f (ennreal.half_pos εpos),
+    have := ennreal.lt_add_right int_f.ne (ennreal.half_pos εpos),
     conv_rhs at this { rw lintegral_eq_nnreal (λ x, (f x : ℝ≥0∞)) μ },
     erw ennreal.bsupr_add at this; [skip, exact ⟨0, λ x, by simp⟩],
     simp only [lt_supr_iff] at this,

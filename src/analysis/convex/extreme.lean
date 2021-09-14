@@ -49,7 +49,7 @@ variables {E : Type*} [add_comm_group E] [module ℝ E] {x : E} {A B C : set E}
 /-- A set `B` is an extreme subset of `A` if `B ⊆ A` and all points of `B` only belong to open
 segments whose ends are in `B`. -/
 def is_extreme (A B : set E) : Prop :=
-B ⊆ A ∧ ∀ x₁ x₂ ∈ A, ∀ x ∈ B, x ∈ open_segment x₁ x₂ → x₁ ∈ B ∧ x₂ ∈ B
+B ⊆ A ∧ ∀ x₁ x₂ ∈ A, ∀ x ∈ B, x ∈ open_segment ℝ x₁ x₂ → x₁ ∈ B ∧ x₂ ∈ B
 
 namespace is_extreme
 
@@ -136,16 +136,16 @@ end is_extreme
 /-- A point `x` is an extreme point of a set `A` if `x` belongs to no open segment with ends in
 `A`, except for the obvious `open_segment x x`. -/
 def set.extreme_points (A : set E) : set E :=
-{x ∈ A | ∀ (x₁ x₂ ∈ A), x ∈ open_segment x₁ x₂ → x₁ = x ∧ x₂ = x}
+{x ∈ A | ∀ (x₁ x₂ ∈ A), x ∈ open_segment ℝ x₁ x₂ → x₁ = x ∧ x₂ = x}
 
 lemma extreme_points_def :
-  x ∈ A.extreme_points ↔ x ∈ A ∧ ∀ (x₁ x₂ ∈ A), x ∈ open_segment x₁ x₂ → x₁ = x ∧ x₂ = x :=
+  x ∈ A.extreme_points ↔ x ∈ A ∧ ∀ (x₁ x₂ ∈ A), x ∈ open_segment ℝ x₁ x₂ → x₁ = x ∧ x₂ = x :=
 iff.rfl
 
 /-- A useful restatement using `segment`: `x` is an extreme point iff the only (closed) segments
 that contain it are those with `x` as one of their endpoints. -/
 lemma mem_extreme_points_iff_forall_segment :
-  x ∈ A.extreme_points ↔ x ∈ A ∧ ∀ (x₁ x₂ ∈ A), x ∈ segment x₁ x₂ → x₁ = x ∨ x₂ = x :=
+  x ∈ A.extreme_points ↔ x ∈ A ∧ ∀ (x₁ x₂ ∈ A), x ∈ segment ℝ x₁ x₂ → x₁ = x ∨ x₂ = x :=
 begin
   split,
   { rintro ⟨hxA, hAx⟩,
@@ -153,11 +153,11 @@ begin
     rintro x₁ x₂ hx₁ hx₂ hx,
     by_contra,
     push_neg at h,
-    exact h.1 (hAx _ _ hx₁ hx₂ (mem_open_segment_of_ne_left_right h.1 h.2 hx)).1 },
+    exact h.1 (hAx _ _ hx₁ hx₂ (mem_open_segment_of_ne_left_right ℝ h.1 h.2 hx)).1 },
   rintro ⟨hxA, hAx⟩,
   use hxA,
   rintro x₁ x₂ hx₁ hx₂ hx,
-  obtain rfl | rfl := hAx x₁ x₂ hx₁ hx₂ (open_segment_subset_segment _ _ hx),
+  obtain rfl | rfl := hAx x₁ x₂ hx₁ hx₂ (open_segment_subset_segment ℝ _ _ hx),
   { exact ⟨rfl, (left_mem_open_segment_iff.1 hx).symm⟩ },
   exact ⟨right_mem_open_segment_iff.1 hx, rfl⟩,
 end

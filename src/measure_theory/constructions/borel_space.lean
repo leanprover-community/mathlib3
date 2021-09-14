@@ -39,7 +39,7 @@ import topology.instances.ereal
 noncomputable theory
 
 open classical set filter measure_theory
-open_locale classical big_operators topological_space nnreal ennreal
+open_locale classical big_operators topological_space nnreal ennreal interval
 
 universes u v w x y
 variables {α β γ γ₂ δ : Type*} {ι : Sort y} {s t u : set α}
@@ -315,7 +315,7 @@ lemma meas_closure_of_null_bdry {μ : measure α'} {s : set α'}
   interior_subset subset_closure h_nullbdry).symm
 
 section preorder
-variables [preorder α] [order_closed_topology α] {a b : α}
+variables [preorder α] [order_closed_topology α] {a b x : α}
 
 @[simp, measurability]
 lemma measurable_set_Ici : measurable_set (Ici a) := is_closed_Ici.measurable_set
@@ -331,6 +331,10 @@ measurable_set_Ici.nhds_within_is_measurably_generated _
 instance nhds_within_Iic_is_measurably_generated :
   (𝓝[Iic b] a).is_measurably_generated :=
 measurable_set_Iic.nhds_within_is_measurably_generated _
+
+instance nhds_within_Icc_is_measurably_generated :
+  is_measurably_generated (𝓝[Icc a b] x) :=
+by { rw [← Ici_inter_Iic, nhds_within_inter], apply_instance }
 
 instance at_top_is_measurably_generated : (filter.at_top : filter α).is_measurably_generated :=
 @filter.infi_is_measurably_generated _ _ _ _ $
@@ -358,7 +362,7 @@ hf.prod_mk hg measurable_set_le'
 end partial_order
 
 section linear_order
-variables [linear_order α] [order_closed_topology α] {a b : α}
+variables [linear_order α] [order_closed_topology α] {a b x : α}
 
 @[simp, measurability]
 lemma measurable_set_Iio : measurable_set (Iio a) := is_open_Iio.measurable_set
@@ -380,6 +384,10 @@ measurable_set_Ioi.nhds_within_is_measurably_generated _
 instance nhds_within_Iio_is_measurably_generated :
   (𝓝[Iio b] a).is_measurably_generated :=
 measurable_set_Iio.nhds_within_is_measurably_generated _
+
+instance nhds_within_interval_is_measurably_generated :
+  is_measurably_generated (𝓝[[a, b]] x) :=
+nhds_within_Icc_is_measurably_generated
 
 @[measurability]
 lemma measurable_set_lt' [second_countable_topology α] : measurable_set {p : α × α | p.1 < p.2} :=

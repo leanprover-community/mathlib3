@@ -224,6 +224,21 @@ lemma has_finite_integral_norm_iff (f : α → β) :
   has_finite_integral (λa, ∥f a∥) μ ↔ has_finite_integral f μ :=
 has_finite_integral_congr' $ eventually_of_forall $ λ x, norm_norm (f x)
 
+lemma has_finite_integral_to_real_of_lintegral_ne_top
+  {f : α → ℝ≥0∞} (hf : ∫⁻ x, f x ∂μ ≠ ∞) :
+  has_finite_integral (λ x, (f x).to_real) μ :=
+begin
+  have : ∀ x, (∥(f x).to_real∥₊ : ℝ≥0∞) =
+    @coe ℝ≥0 ℝ≥0∞ _ (⟨(f x).to_real, ennreal.to_real_nonneg⟩ : ℝ≥0),
+  { intro x, rw real.nnnorm_of_nonneg },
+  simp_rw [has_finite_integral, this],
+  refine lt_of_le_of_lt (lintegral_mono (λ x, _)) (lt_top_iff_ne_top.2 hf),
+  by_cases hfx : f x = ∞,
+  { simp [hfx] },
+  { lift f x to ℝ≥0 using hfx with fx,
+    simp [← h] }
+end
+
 section dominated_convergence
 
 variables {F : ℕ → α → β} {f : α → β} {bound : α → ℝ}
@@ -368,6 +383,7 @@ lemma has_finite_integral.const_mul {f : α → ℝ} (h : has_finite_integral f 
 lemma has_finite_integral.mul_const {f : α → ℝ} (h : has_finite_integral f μ) (c : ℝ) :
   has_finite_integral (λ x, f x * c) μ :=
 by simp_rw [mul_comm, h.const_mul _]
+
 end normed_space
 
 /-! ### The predicate `integrable` -/
@@ -551,6 +567,11 @@ begin
   assume x,
   simp [real.norm_eq_abs, ennreal.of_real_le_of_real, abs_le, abs_nonneg, le_abs_self],
 end
+
+lemma integrable_to_real_of_lintegral_ne_top
+  {f : α → ℝ≥0∞} (hfm : ae_measurable f μ) (hfi : ∫⁻ x, f x ∂μ ≠ ∞) :
+  integrable (λ x, (f x).to_real) μ :=
+⟨ae_measurable.ennreal_to_real hfm, has_finite_integral_to_real_of_lintegral_ne_top hfi⟩
 
 section pos_part
 /-! ### Lemmas used for defining the positive part of a `L¹` function -/

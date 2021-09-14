@@ -51,9 +51,14 @@ show module R (F.obj j), by apply_instance
 
 variables [is_filtered J]
 
+/--
+The colimit of `F ⋙ forget₂ (Module R) AddCommGroup` in the category `AddCommGroup`.
+In the following, we will show that this has the structure of an `R`-module.
+-/
 abbreviation M : AddCommGroup :=
 AddCommGroup.filtered_colimits.colimit (F ⋙ forget₂ (Module R) AddCommGroup)
 
+/-- The canonical projection into the colimit, as a quotient type. -/
 abbreviation M.mk : (Σ j, F.obj j) → M := quot.mk (types.quot.rel (F ⋙ forget (Module R)))
 
 lemma M.mk_eq (x y : Σ j, F.obj j)
@@ -61,6 +66,7 @@ lemma M.mk_eq (x y : Σ j, F.obj j)
   M.mk x = M.mk y :=
 quot.eqv_gen_sound (types.filtered_colimit.eqv_gen_quot_rel_of_rel (F ⋙ forget (Module R)) x y h)
 
+/-- The "unlifted" version of scalar multiplication in the colimit. -/
 def colimit_smul_aux (r : R) (x : Σ j, F.obj j) : M :=
 M.mk ⟨x.1, r • x.2⟩
 
@@ -75,6 +81,7 @@ begin
   rw [linear_map.map_smul, linear_map.map_smul, hfg],
 end
 
+/-- Scalar multiplication in the colimit. See also `colimit_smul_aux`. -/
 def colimit_smul (r : R) (x : M) : M :=
 begin
   refine quot.lift (colimit_smul_aux F r) _ x,
@@ -129,7 +136,7 @@ instance colimit_module : module R M :=
 /-- The bundled `R`-module giving the filtered colimit of a diagram. -/
 def colimit : Module R := Module.of R M
 
-/-- The linear from a given `R`-module in the diagram to the colimit module. -/
+/-- The linear map from a given `R`-module in the diagram to the colimit module. -/
 def cocone_morphism (j : J) : F.obj j ⟶ colimit :=
 { map_smul' := λ r x, begin erw colimit_smul_mk_eq F r ⟨j, x⟩, refl, end,
 .. (AddCommGroup.filtered_colimits.colimit_cocone (F ⋙ forget₂ (Module R) AddCommGroup)).ι.app j }
@@ -142,6 +149,11 @@ def colimit_cocone : cocone F :=
     naturality' := λ j j' f,
       linear_map.coe_injective ((types.colimit_cocone (F ⋙ forget (Module R))).ι.naturality f) } }
 
+/--
+Given a cocone `t` of `F`, the induced monoid linear map from the colimit to the cocone point.
+We already know that this is a morphism between additive groups. The only thing left to see is that
+it is a linear map, i.e. preserves scalar multiplication.
+-/
 def colimit_desc (t : cocone F) : colimit ⟶ t.X :=
 { map_smul' := λ r x, begin
     apply quot.induction_on x, clear x, intro x, cases x with j x,

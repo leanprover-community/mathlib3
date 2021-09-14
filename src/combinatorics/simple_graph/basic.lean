@@ -64,10 +64,10 @@ finitely many vertices.
 * Upgrade `simple_graph.boolean_algebra` to a `complete_boolean_algebra`.
 
 * This is the simplest notion of an unoriented graph.  This should
-eventually fit into a more complete combinatorics hierarchy which
-includes multigraphs and directed graphs.  We begin with simple graphs
-in order to start learning what the combinatorics hierarchy should
-look like.
+  eventually fit into a more complete combinatorics hierarchy which
+  includes multigraphs and directed graphs.  We begin with simple graphs
+  in order to start learning what the combinatorics hierarchy should
+  look like.
 -/
 open finset
 universes u v w

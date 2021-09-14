@@ -9,25 +9,54 @@ import measure_theory.function.ae_eq_of_integral
 
 /-! # Conditional expectation
 
-We build the conditional expectation with respect to a sub-sigma-algebra `m` in three steps:
+We build the conditional expectation of a function `f` with value in a Banach space with respect to
+a measure `μ` (defined on a measurable space structure `m0`) and a measurable space structure `m`
+with `hm : m ≤ m0` (a sub-sigma-algebra). This is an `m`-measurable function `μ[f|hm]` which is
+integrable and verifies `∫ x in s, μ[f|hm] x ∂μ = ∫ x in s, f x ∂μ` for any `m`-measurable sets `s`.
+It is unique as an element of `L¹`.
+
+The construction is done in four steps:
 * Define the conditional expectation of an `L²` function, as an element of `L²`. This is the
   orthogonal projection on the subspace of almost everywhere `m`-measurable functions.
 * Show that the conditional expectation of the indicator of a measurable set with finite measure
   is integrable and define a map `set α → (E →L[ℝ] (α →₁[μ] E))` which to a set associates a linear
   map. That linear map sends `x ∈ E` to the conditional expectation of the indicator of the set
   with value `x`.
-* Extend that map to `(α →₁[μ] E) →L[𝕜] (α →₁[μ] E)`. This is done using the same construction as
-  the Bochner integral (see the file `measure_theory/integral/set_to_L1`).
+* Extend that map to `condexp_L1_clm : (α →₁[μ] E) →L[ℝ] (α →₁[μ] E)`. This is done using the same
+  construction as the Bochner integral (see the file `measure_theory/integral/set_to_L1`).
+* Define the conditional expectation of a function `f : α → E`, which is an integrable function
+  `α → E` equal to 0 if `f` is not integrable, and equal to an `m`-measurable representative of
+  `condexp_L1_clm` applied to `[f]`, the equivalence class of `f` in `L¹`.
 
 ## Main results
 
+The conditional expectation and its properties
+
 * `condexp (hm : m ≤ m0) (μ : measure α) (f : α → E)`: conditional expectation of `f` with respect
   to `m`.
+* `integrable_condexp` : `condexp` is integrable.
+* `measurable_condexp` : `condexp` is `m`-measurable.
 * `set_integral_condexp (hf : integrable f μ) (hs : measurable_set[m] s)` : the conditional
   expectation verifies `∫ x in s, condexp hm μ f x ∂μ = ∫ x in s, f x ∂μ` for any `m`-measurable
   set `s`.
 
-## References
+Uniqueness of the conditional expectation
+
+* `Lp.ae_eq_of_forall_set_integral_eq'`: two `Lp` functions verifying the equality of integrals
+  defining the conditional expectation are equal everywhere.
+* `ae_eq_of_forall_set_integral_eq_of_sigma_finite'`: two functions verifying the equality of
+  integrals defining the conditional expectation are equal everywhere.
+  Requires `[sigma_finite (μ.trim hm)]`.
+
+## Notations
+
+For a measure `μ` defined on a measurable space structure `m0`, another measurable space structure
+`m` with `hm : m ≤ m0` (a sub-sigma-algebra) and a function `f`, we define the notation
+* `μ[f|hm] = condexp hm μ f`.
+
+## Tags
+
+conditional expectation, conditional expected value
 
 -/
 
@@ -164,6 +193,8 @@ variables {α β γ E E' F F' G G' H 𝕜 : Type*} {p : ℝ≥0∞}
   [measurable_space H] [normed_group H]
 
 section Lp_meas
+
+/-! ## The subset `Lp_meas` of `Lp` functions a.e. measurable with respect to a sub-sigma-algebra -/
 
 variables (F 𝕜)
 /-- `Lp_meas F 𝕜 m p μ` is the subspace of `Lp F p μ` containing functions `f` verifying
@@ -1410,6 +1441,8 @@ end condexp_L1
 
 section condexp
 
+/-! # Conditional expectation of a function -/
+
 open_locale classical
 
 local attribute [instance] fact_one_le_one_ennreal
@@ -1423,16 +1456,16 @@ ae_measurable'_condexp_L1.mk (condexp_L1 hm μ f)
 
 notation  μ `[` f `|` hm `]` := condexp hm μ f
 
-lemma condexp_ae_eq_condexp_L1 (f : α → F') : μ[f | hm] =ᵐ[μ] condexp_L1 hm μ f :=
+lemma condexp_ae_eq_condexp_L1 (f : α → F') : μ[f|hm] =ᵐ[μ] condexp_L1 hm μ f :=
 (ae_measurable'.ae_eq_mk ae_measurable'_condexp_L1).symm
 
-lemma measurable_condexp : measurable[m] (μ[f | hm]) := ae_measurable'.measurable_mk _
+lemma measurable_condexp : measurable[m] (μ[f|hm]) := ae_measurable'.measurable_mk _
 
-lemma integrable_condexp : integrable (μ[f | hm]) μ :=
+lemma integrable_condexp : integrable (μ[f|hm]) μ :=
 (integrable_condexp_L1 f).congr (condexp_ae_eq_condexp_L1 f).symm
 
 lemma condexp_ae_eq_condexp_L1_clm (hf : integrable f μ) :
-  μ[f | hm] =ᵐ[μ] condexp_L1_clm hm μ (hf.to_L1 f) :=
+  μ[f|hm] =ᵐ[μ] condexp_L1_clm hm μ (hf.to_L1 f) :=
 begin
   refine (condexp_ae_eq_condexp_L1 f).trans (eventually_of_forall (λ x, _)),
   rw condexp_L1_eq_condexp_L1_clm_of_integrable hf,

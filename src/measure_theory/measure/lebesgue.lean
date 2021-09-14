@@ -5,6 +5,9 @@ Authors: Johannes Hölzl, Yury Kudryashov
 -/
 import measure_theory.constructions.pi
 import measure_theory.measure.stieltjes
+import linear_algebra.matrix.transvection
+import dynamics.ergodic.measure_preserving
+import linear_algebra.determinant
 
 /-!
 # Lebesgue measure on the real line and on `ℝⁿ`
@@ -219,8 +222,10 @@ calc volume (((+) a) ⁻¹' s) = measure.map ((+) a) volume s :
 lemma map_volume_add_right (a : ℝ) : measure.map (+ a) volume = volume :=
 by simpa only [add_comm] using real.map_volume_add_left a
 
-@[simp] lemma volume_preimage_add_left (a : ℝ) (s : set ℝ) : volume ((+ a) ⁻¹' s) = volume s :=
-sorry
+@[simp] lemma volume_preimage_add_right (a : ℝ) (s : set ℝ) : volume ((+ a) ⁻¹' s) = volume s :=
+calc volume ((+ a) ⁻¹' s) = measure.map (+ a) volume s :
+  ((homeomorph.add_right a).to_measurable_equiv.map_apply s).symm
+... = volume s : by rw map_volume_add_right
 
 lemma smul_map_volume_mul_left {a : ℝ} (h : a ≠ 0) :
   ennreal.of_real (abs a) • measure.map ((*) a) volume = volume :=
@@ -258,7 +263,9 @@ by simpa only [mul_comm] using real.map_volume_mul_left h
 
 @[simp] lemma volume_preimage_mul_right {a : ℝ} (h : a ≠ 0) (s : set ℝ) :
   volume ((* a) ⁻¹' s) = ennreal.of_real (abs a⁻¹) * volume s :=
-sorry
+calc volume ((* a) ⁻¹' s) = measure.map (* a) volume s :
+  ((homeomorph.mul_right' a h).to_measurable_equiv.map_apply s).symm
+... = ennreal.of_real (abs a⁻¹) * volume s : by { rw map_volume_mul_right h, refl }
 
 @[simp] lemma map_volume_neg : measure.map has_neg.neg (volume : measure ℝ) = volume :=
 eq.symm $ real.measure_ext_Ioo_rat $ λ p q,
@@ -318,6 +325,9 @@ end
 lemma map_transvection_volume_pi [decidable_eq ι] (t : transvection_struct ι ℝ) :
   measure.map (t.to_matrix.to_lin') volume = volume :=
 begin
+  /- We separate the coordinate along which there is a shearing from the other ones, and apply
+  Fubini. Along this coordinate (and when all the other coordinates are fixed), it acts like a
+  translation, and therefore preserves Lebesgue. -/
   suffices H : measure_preserving t.to_matrix.to_lin' volume volume, by exact H.2,
   let p : ι → Prop := λ i, i ≠ t.i,
   let α : Type* := {x // p x},

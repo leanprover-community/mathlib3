@@ -977,7 +977,8 @@ mem_erase_iff_of_nodup s.2
 
 theorem not_mem_erase (a : α) (s : finset α) : a ∉ erase s a := mem_erase_of_nodup s.2
 
-@[simp] theorem erase_empty (a : α) : erase ∅ a = ∅ := rfl
+-- while this can be solved by `simp`, this lemma is elegible for `dsimp`
+@[nolint simp_nf, simp] theorem erase_empty (a : α) : erase ∅ a = ∅ := rfl
 
 theorem ne_of_mem_erase {a b : α} {s : finset α} : b ∈ erase s a → b ≠ a :=
 by simp only [mem_erase]; exact and.left

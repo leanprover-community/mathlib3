@@ -15,7 +15,7 @@ to preserve _filtered_ colimits.
 In this file, we start with a small filtered category `J` and a functor `F : J ⥤ Group`.
 We show that the colimit of `F ⋙ forget₂ Group Mon` (in `Mon`) carries the structure of a group,
 thereby showing that the forgetful functor `forget₂ Group Mon` preserves filtered colimits. In
-particular, this implies that `forget Group` preserves colimits. Similarly for `AddGroup`,
+particular, this implies that `forget Group` preserves filtered colimits. Similarly for `AddGroup`,
 `CommGroup` and `AddCommGroup`.
 
 -/

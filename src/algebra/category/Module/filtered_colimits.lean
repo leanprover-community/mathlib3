@@ -16,7 +16,7 @@ In this file, we start with a ring `R`, a small filtered category `J` and a func
 `F : J ⥤ Module R`. We show that the colimit of `F ⋙ forget₂ (Module R) AddCommGroup`
 (in `AddCommGroup`) carries the structure of an `R`-module, thereby showing that the forgetful
 functor `forget₂ (Module R) AddCommGroup` preserves filtered colimits. In particular, this implies
-that `forget (Module R)` preserves colimits.
+that `forget (Module R)` preserves filtered colimits.
 
 -/
 

@@ -15,7 +15,7 @@ to preserve _filtered_ colimits.
 In this file, we start with a small filtered category `J` and a functor `F : J ⥤ SemiRing`.
 We show that the colimit of `F ⋙ forget₂ SemiRing Mon` (in `Mon`) carries the structure of a
 semiring, thereby showing that the forgetful functor `forget₂ SemiRing Mon` preserves filtered
-colimits. In particular, this implies that `forget SemiRing` preserves colimits.
+colimits. In particular, this implies that `forget SemiRing` preserves filtered colimits.
 Similarly for `CommSemiRing`, `Ring` and `CommRing`.
 
 -/

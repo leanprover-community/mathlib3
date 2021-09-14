@@ -107,11 +107,9 @@ begin
     letI : strong_rank_condition R := h,
     exact nat.not_succ_le_self n (le_of_fin_injective R f hf) },
   { by_contra H,
-    obtain ⟨k, hk⟩ := nat.le.dest (nat.succ_le_iff.mpr (not_le.1 H)),
-    exact h m
-      (f.comp $ (linear_equiv.Pi_congr_left' R (λ (i' : fin (m + 1 + k)), R) (fin_congr hk)
-        ).to_linear_map.comp $ ext_zero_fin R (m + 1) k)
-      (hf.comp $ (equiv.Pi_congr_left' _ _).injective.comp $ ext_zero_fin.injective R (m + 1) k) }
+    exact h m (f.comp (pi.extend_by_zero.linear_map R (rel_embedding.injective
+      (fin.cast_le (not_le.1 H))))) (function.injective.comp hf
+      (pi.extend_by_zero_injective R (rel_embedding.injective (fin.cast_le (not_le.1 H))))) }
 end
 
 /-- We say that `R` satisfies the rank condition if `(fin n → R) →ₗ[R] (fin m → R)` surjective

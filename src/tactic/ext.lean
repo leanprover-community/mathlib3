@@ -460,7 +460,7 @@ named automatically, as per `intro`. Placing a `?` after `ext1`
 applications that can replace the call to `ext1`.
 -/
 meta def interactive.ext1 (trace : parse (tk "?")?)
-  (xs : parse (rcases_patt_parse tt)*) : tactic unit :=
+  (xs : parse rcases_patt_parse_hi*) : tactic unit :=
 ext1 xs {} trace.is_some $> ()
 
 /--
@@ -524,7 +524,7 @@ Try this: apply funext, rintro ⟨a, b⟩
 A maximum depth can be provided with `ext x y z : 3`.
 -/
 meta def interactive.ext :
-  (parse $ (tk "?")?) → parse (rcases_patt_parse tt)* → parse (tk ":" *> small_nat)? → tactic unit
+  (parse $ (tk "?")?) → parse rcases_patt_parse_hi* → parse (tk ":" *> small_nat)? → tactic unit
  | trace [] (some n)  := iterate_range 1 n (ext1 [] {} trace.is_some $> ())
  | trace [] none      := repeat1 (ext1 [] {} trace.is_some $> ())
  | trace xs n         := ext xs n {} trace.is_some $> ()

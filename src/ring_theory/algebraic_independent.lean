@@ -442,13 +442,17 @@ begin
     simpa using q, },
 end
 
--- example {R A ι : Type*} [comm_ring R] [comm_ring A] [algebra R A]
---   (f : mv_polynomial (option ι) R ≃ₐ[R] polynomial (mv_polynomial ι R))
---   (p : mv_polynomial (option ι) R) :
---   (option_equiv_left R ι) p = ((option_equiv_left R ι :
---     mv_polynomial (option ι) R →ₐ[R] polynomial (mv_polynomial ι R))
---     : mv_polynomial (option ι) R →+* polynomial (mv_polynomial ι R)) p :=
---   rfl
+example {R S A : Type} [comm_ring R] [comm_ring S] [comm_ring A]
+  [algebra R A] [algebra R S] (f : S →ₐ[R] A) (x : A) : polynomial S →ₐ[R] A :=
+sorry
+
+example {R A ι : Type*} [comm_ring R] [comm_ring A] [algebra R A]
+  (f : mv_polynomial (option ι) R ≃ₐ[R] polynomial (mv_polynomial ι R))
+  (p : mv_polynomial (option ι) R) :
+  (option_equiv_left R ι) p = ((option_equiv_left R ι :
+    mv_polynomial (option ι) R →ₐ[R] polynomial (mv_polynomial ι R))
+    : mv_polynomial (option ι) R →+* polynomial (mv_polynomial ι R)) p :=
+by simp
 
 lemma is_trancendence_basis.is_algebraic_aux
   {ι : Type v} {R : Type u} [comm_ring R] [nontrivial R]
@@ -474,9 +478,8 @@ begin
         ((polynomial.map_ring_hom ↑ai.aeval_equiv.to_alg_hom).comp
           ↑(mv_polynomial.option_equiv_left R ι).to_alg_hom),
     { admit },
-    { rw ← hpx,
-      show _ = ((aeval (λ o : option ι, o.elim x v) :
-        mv_polynomial (option ι) R →ₐ[R] A) : mv_polynomial (option ι) R →+* A) p,
+    { conv_rhs { rw [← hpx, ← alg_hom.coe_to_ring_hom (aeval (λ o : option ι, o.elim x v) :
+        mv_polynomial (option ι) R →ₐ[R] A)] },
       rw [this],
       simp,
       rw [alg_equiv.coe_to_alg_hom], } }

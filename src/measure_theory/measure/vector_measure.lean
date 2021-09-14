@@ -395,6 +395,12 @@ lemma to_signed_measure_apply_measurable {μ : measure α} [is_finite_measure μ
   μ.to_signed_measure i = (μ i).to_real :=
 if_pos hi
 
+-- Without this lemma, `singular_part_neg` in `measure_theory.decomposition.lebesgue` is
+-- extremely slow
+lemma to_signed_measure_congr {μ ν : measure α} [is_finite_measure μ] [is_finite_measure ν]
+  (h : μ = ν) : μ.to_signed_measure = ν.to_signed_measure :=
+by { congr, exact h }
+
 lemma to_signed_measure_eq_to_signed_measure_iff
   {μ ν : measure α} [is_finite_measure μ] [is_finite_measure ν] :
   μ.to_signed_measure = ν.to_signed_measure ↔ μ = ν :=

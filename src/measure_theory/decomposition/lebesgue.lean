@@ -731,11 +731,6 @@ section
 
 variables (s : signed_measure α) (μ : measure α) [sigma_finite μ]
 
--- Without this lemma, `singular_part_neg` is extremely slow -- move?
-lemma to_signed_measure_congr {μ ν : measure α} [is_finite_measure μ] [is_finite_measure ν]
-  (h : μ = ν) : μ.to_signed_measure = ν.to_signed_measure :=
-by { congr, exact h }
-
 lemma singular_part_neg (s : signed_measure α) (μ : measure α) :
   (-s).singular_part μ = - s.singular_part μ :=
 begin

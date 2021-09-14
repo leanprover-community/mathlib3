@@ -45,16 +45,18 @@ section
 
 -- We use parameters here, mainly so we can have the abbreviations `R` and `R.mk` below, without
 -- passing around `F` all the time.
-parameters {J : Type v} [small_category J] [is_filtered J] (F : J ⥤ SemiRing.{v})
+parameters {J : Type v} [small_category J] (F : J ⥤ SemiRing.{v})
+
+instance semiring_obj (j : J) : semiring (((F ⋙ forget₂ SemiRing Mon.{v}) ⋙ forget Mon).obj j) :=
+begin change semiring (F.obj j), apply_instance end
+
+variables [is_filtered J]
 
 /--
 The colimit of `F ⋙ forget₂ SemiRing Mon` in the category `Mon`.
 In the following, we will show that this has the structure of a semiring.
 -/
 abbreviation R : Mon := Mon.filtered_colimits.colimit (F ⋙ forget₂ SemiRing Mon)
-
-instance semiring_obj (j : J) : semiring (((F ⋙ forget₂ SemiRing Mon.{v}) ⋙ forget Mon).obj j) :=
-begin change semiring (F.obj j), apply_instance end
 
 instance colimit_semiring : semiring R :=
 { mul_zero := λ x, begin
@@ -149,7 +151,13 @@ section
 
 -- We use parameters here, mainly so we can have the abbreviations `R` and `R.mk` below, without
 -- passing around `F` all the time.
-parameters {J : Type v} [small_category J] [is_filtered J] (F : J ⥤ CommSemiRing.{v})
+parameters {J : Type v} [small_category J] (F : J ⥤ CommSemiRing.{v})
+
+instance comm_semiring_obj (j : J) : comm_semiring
+(((F ⋙ forget₂ CommSemiRing SemiRing.{v}) ⋙ forget SemiRing).obj j) :=
+begin change comm_semiring (F.obj j), apply_instance end
+
+variables [is_filtered J]
 
 /--
 The colimit of `F ⋙ forget₂ CommSemiRing SemiRing` in the category `SemiRing`.
@@ -157,10 +165,6 @@ In the following, we will show that this has the structure of a _commutative_ se
 -/
 abbreviation R : SemiRing :=
 SemiRing.filtered_colimits.colimit (F ⋙ forget₂ CommSemiRing SemiRing)
-
-instance comm_semiring_obj (j : J) : comm_semiring
-(((F ⋙ forget₂ CommSemiRing SemiRing.{v}) ⋙ forget SemiRing).obj j) :=
-begin change comm_semiring (F.obj j), apply_instance end
 
 instance colimit_comm_semiring : comm_semiring R :=
 { ..R.semiring,
@@ -191,7 +195,8 @@ instance forget₂_SemiRing_preserves_filtered_colimits :
 { preserves_filtered_colimits := λ J _ _, by exactI
   { preserves_colimit := λ F, preserves_colimit_of_preserves_colimit_cocone
       (colimit_cocone_is_colimit F)
-      (SemiRing.filtered_colimits.colimit_cocone_is_colimit (F ⋙ forget₂ CommSemiRing SemiRing.{v})) } }
+      (SemiRing.filtered_colimits.colimit_cocone_is_colimit
+        (F ⋙ forget₂ CommSemiRing SemiRing.{v})) } }
 
 instance forget_preserves_filtered_colimits : preserves_filtered_colimits (forget CommSemiRing) :=
 limits.comp_preserves_filtered_colimits (forget₂ CommSemiRing SemiRing) (forget SemiRing)
@@ -207,7 +212,13 @@ section
 
 -- We use parameters here, mainly so we can have the abbreviations `R` and `R.mk` below, without
 -- passing around `F` all the time.
-parameters {J : Type v} [small_category J] [is_filtered J] (F : J ⥤ Ring.{v})
+parameters {J : Type v} [small_category J] (F : J ⥤ Ring.{v})
+
+instance ring_obj (j : J) : ring
+(((F ⋙ forget₂ Ring SemiRing.{v}) ⋙ forget SemiRing).obj j) :=
+begin change ring (F.obj j), apply_instance end
+
+variables [is_filtered J]
 
 /--
 The colimit of `F ⋙ forget₂ Ring SemiRing` in the category `SemiRing`.
@@ -215,10 +226,6 @@ In the following, we will show that this has the structure of a ring.
 -/
 abbreviation R : SemiRing :=
 SemiRing.filtered_colimits.colimit (F ⋙ forget₂ Ring SemiRing)
-
-instance ring_obj (j : J) : ring
-(((F ⋙ forget₂ Ring SemiRing.{v}) ⋙ forget SemiRing).obj j) :=
-begin change ring (F.obj j), apply_instance end
 
 instance colimit_ring : ring R :=
 { ..R.semiring,
@@ -264,7 +271,13 @@ section
 
 -- We use parameters here, mainly so we can have the abbreviations `R` and `R.mk` below, without
 -- passing around `F` all the time.
-parameters {J : Type v} [small_category J] [is_filtered J] (F : J ⥤ CommRing.{v})
+parameters {J : Type v} [small_category J]  (F : J ⥤ CommRing.{v})
+
+instance comm_ring_obj (j : J) : comm_ring
+(((F ⋙ forget₂ CommRing Ring.{v}) ⋙ forget Ring).obj j) :=
+begin change comm_ring (F.obj j), apply_instance end
+
+variables [is_filtered J]
 
 /--
 The colimit of `F ⋙ forget₂ CommRing Ring` in the category `Ring`.
@@ -272,10 +285,6 @@ In the following, we will show that this has the structure of a _commutative_ ri
 -/
 abbreviation R : Ring :=
 Ring.filtered_colimits.colimit (F ⋙ forget₂ CommRing Ring)
-
-instance semiring_obj (j : J) : comm_ring
-(((F ⋙ forget₂ CommRing Ring.{v}) ⋙ forget Ring).obj j) :=
-begin change comm_ring (F.obj j), apply_instance end
 
 instance colimit_comm_semiring : comm_ring R :=
 { ..R.ring,

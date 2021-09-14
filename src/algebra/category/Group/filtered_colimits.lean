@@ -39,22 +39,25 @@ open Mon.filtered_colimits (colimit_mul colimit_one colimit_mul_eq' colimit_one_
 
 -- We use parameters here, mainly so we can have the abbreviations `G` and `G.mk` below, without
 -- passing around `F` all the time.
-parameters {J : Type v} [small_category J] [is_filtered J] (F : J ⥤ Group.{v})
+parameters {J : Type v} [small_category J] (F : J ⥤ Group.{v})
+
+@[to_additive]
+instance group_obj (j) : group (((F ⋙ forget₂ Group Mon.{v}) ⋙ forget Mon).obj j) :=
+by { change group (F.obj j), apply_instance }
+
+variables [is_filtered J]
 
 /--
 The colimit of `F ⋙ forget₂ Group Mon` in the category `Mon`.
 In the following, we will show that this has the structure of a group.
 -/
-@[to_additive]
+@[to_additive "The colimit of `F ⋙ forget₂ Group Mon` in the category `Mon`.
+In the following, we will show that this has the structure of a group."]
 abbreviation G : Mon := Mon.filtered_colimits.colimit (F ⋙ forget₂ Group Mon)
 
 /-- The canonical projection into the colimit, as a quotient type. -/
-@[to_additive]
+@[to_additive "The canonical projection into the colimit, as a quotient type."]
 abbreviation G.mk : (Σ j, F.obj j) → G := quot.mk (types.quot.rel (F ⋙ forget Group))
-
-@[to_additive]
-instance group_obj (j) : group (((F ⋙ forget₂ Group Mon.{v}) ⋙ forget Mon).obj j) :=
-by { change group (F.obj j), apply_instance }
 
 @[to_additive]
 lemma G.mk_eq (x y : Σ j, F.obj j)
@@ -63,7 +66,7 @@ lemma G.mk_eq (x y : Σ j, F.obj j)
 quot.eqv_gen_sound (types.filtered_colimit.eqv_gen_quot_rel_of_rel (F ⋙ forget Group) x y h)
 
 /-- The "unlifted" version of taking inverses in the colimit. -/
-@[to_additive]
+@[to_additive "The \"unlifted\" version of negation in the colimit."]
 def colimit_inv_aux (x : Σ j, F.obj j) : G :=
 G.mk ⟨x.1, x.2 ⁻¹⟩
 
@@ -80,7 +83,7 @@ begin
 end
 
 /-- Taking inverses in the colimit. See also `colimit_inv_aux`. -/
-@[to_additive]
+@[to_additive "Negation in the colimit. See also `colimit_neg_aux`."]
 def colimit_inv (x : G) : G :=
 begin
   refine quot.lift (colimit_inv_aux F) _ x,
@@ -113,20 +116,20 @@ instance colimit_group : group G :=
   .. G.monoid }
 
 /-- The bundled group giving the filtered colimit of a diagram. -/
-@[to_additive]
+@[to_additive "The bundled additive group giving the filtered colimit of a diagram."]
 def colimit : Group := ⟨G, by apply_instance⟩
 
 @[to_additive]
 lemma colimit_inv_eq (x : Σ j, F.obj j) : (G.mk x) ⁻¹ = G.mk ⟨x.1, x.2 ⁻¹⟩ := rfl
 
 /-- The cocone over the proposed colimit group. -/
-@[to_additive]
+@[to_additive "The cocone over the proposed colimit additive group."]
 def colimit_cocone : cocone F :=
 { X := colimit,
   ι := { ..(Mon.filtered_colimits.colimit_cocone (F ⋙ forget₂ Group Mon)).ι } }
 
 /-- The proposed colimit cocone is a colimit in `Group`. -/
-@[to_additive]
+@[to_additive "The proposed colimit cocone is a colimit in `AddGroup`."]
 def colimit_cocone_is_colimit : is_colimit colimit_cocone :=
 { desc := λ t, Mon.filtered_colimits.colimit_desc (F ⋙ forget₂ Group Mon)
     ((forget₂ Group Mon).map_cocone t),
@@ -136,7 +139,7 @@ def colimit_cocone_is_colimit : is_colimit colimit_cocone :=
     (types.colimit_cocone_is_colimit (F ⋙ forget Group)).uniq ((forget Group).map_cocone t) m
     ((λ j, funext $ λ x, monoid_hom.congr_fun (h j) x)) }
 
-@[to_additive]
+@[to_additive forget₂_AddMon_preserves_filtered_colimits]
 instance forget₂_Mon_preserves_filtered_colimits :
   preserves_filtered_colimits (forget₂ Group Mon.{v}) :=
 { preserves_filtered_colimits := λ J _ _, by exactI
@@ -164,7 +167,8 @@ parameters {J : Type v} [small_category J] [is_filtered J] (F : J ⥤ CommGroup.
 The colimit of `F ⋙ forget₂ CommGroup Group` in the category `Group`.
 In the following, we will show that this has the structure of a _commutative_ group.
 -/
-@[to_additive]
+@[to_additive "The colimit of `F ⋙ forget₂ AddCommGroup AddGroup` in the category `AddGroup`.
+In the following, we will show that this has the structure of a _commutative_ additive group."]
 abbreviation G : Group := Group.filtered_colimits.colimit (F ⋙ forget₂ CommGroup Group.{v})
 
 @[to_additive]
@@ -173,17 +177,17 @@ instance colimit_comm_group : comm_group G :=
   ..CommMon.filtered_colimits.colimit_comm_monoid (F ⋙ forget₂ CommGroup CommMon.{v}) }
 
 /-- The bundled commutative group giving the filtered colimit of a diagram. -/
-@[to_additive]
+@[to_additive "The bundled additive commutative group giving the filtered colimit of a diagram."]
 def colimit : CommGroup := ⟨G, by apply_instance⟩
 
 /-- The cocone over the proposed colimit commutative group. -/
-@[to_additive]
+@[to_additive "The cocone over the proposed colimit additive commutative group."]
 def colimit_cocone : cocone F :=
 { X := colimit,
   ι := { ..(Group.filtered_colimits.colimit_cocone (F ⋙ forget₂ CommGroup Group)).ι } }
 
 /-- The proposed colimit cocone is a colimit in `CommGroup`. -/
-@[to_additive]
+@[to_additive "The proposed colimit cocone is a colimit in `AddCommGroup`."]
 def colimit_cocone_is_colimit : is_colimit colimit_cocone :=
 { desc := λ t,
   (Group.filtered_colimits.colimit_cocone_is_colimit (F ⋙ forget₂ CommGroup Group.{v})).desc
@@ -195,7 +199,7 @@ def colimit_cocone_is_colimit : is_colimit colimit_cocone :=
     (types.colimit_cocone_is_colimit (F ⋙ forget CommGroup)).uniq
     ((forget CommGroup).map_cocone t) m ((λ j, funext $ λ x, monoid_hom.congr_fun (h j) x)) }
 
-@[to_additive]
+@[to_additive forget₂_AddGroup_preserves_filtered_colimits]
 instance forget₂_Group_preserves_filtered_colimits :
   preserves_filtered_colimits (forget₂ CommGroup Group.{v}) :=
 { preserves_filtered_colimits := λ J _ _, by exactI

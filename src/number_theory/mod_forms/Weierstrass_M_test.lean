@@ -52,7 +52,7 @@ end
 
 
 
-lemma M_test_uniform [nonempty α] (F : ℕ → α → ℂ) (M : ℕ → ℝ)
+lemma M_test_uniform (h : nonempty α) (F : ℕ → α → ℂ) (M : ℕ → ℝ)
   (h1 : ∀ (n : ℕ), ∀ (a : α), (complex.abs (F n a)) ≤ (M n))
   (h2 : summable M) :
   tendsto_uniformly (λ (n : ℕ), (λ (a : α), ∑ i in (finset.range n), F i a))
@@ -63,7 +63,7 @@ begin
     have := h1 n,
     have t1 : ∀ (a : α), 0 ≤  complex.abs(F n a), by {intro a, apply complex.abs_nonneg,},
     apply le_trans (t1 _) (this _),
-    have ne := exists_true_iff_nonempty.2 _inst_1,
+    have ne := exists_true_iff_nonempty.2 h,
     use classical.some ne,},
   rw metric.tendsto_uniformly_iff,
   intros ε hε,

@@ -689,7 +689,7 @@ split,
 {
 rw rfunct, rw complex.abs, rw norm_sq, simp only [add_zero, of_real_im, monoid_with_zero_hom.coe_mk, of_real_re, add_re, add_im, min_le_iff, subtype.val_eq_coe],
 have H1: real.sqrt (((z: ℂ).im)^2) ≤ real.sqrt (((z: ℂ).re + δ) * ((z: ℂ).re + δ) + (z: ℂ).im * (z: ℂ).im), by {
-  rw real.sqrt_le, nlinarith,nlinarith,
+  rw real.sqrt_le_sqrt_iff, nlinarith,nlinarith,
 },
 simp_rw H1, simp,
 
@@ -698,7 +698,7 @@ simp_rw H1, simp,
 {
   rw rfunct, rw complex.abs, rw norm_sq, simp,
  have H1:  real.sqrt (lb z) ≤ real.sqrt ((δ*(z: ℂ).re  + 1) * (δ*(z: ℂ).re  + 1) + δ*(z: ℂ).im *  (δ*(z: ℂ).im )), by {
-   rw lb, rw real.sqrt_le, have:= lowbound z δ, rw ← pow_two, rw ← pow_two,  simp at *, apply this,nlinarith,}, simp at H1,
+   rw lb, rw real.sqrt_le_sqrt_iff,have:= lowbound z δ, rw ← pow_two, rw ← pow_two,  simp at *, apply this,nlinarith,}, simp at H1,
   simp_rw H1, simp,
   },
 
@@ -1021,12 +1021,12 @@ lemma rfunct_lower_bound_on_slice (A B : ℝ) (h: 0 < B) (z : upper_half_space_s
 rfunct (lbpoint A B h) ≤   rfunct(z.1) :=
 begin
 simp at *, simp_rw rfunct, simp_rw lbpoint, simp only [ min_le_iff, le_min_iff,subtype.val_eq_coe],
-tidy, simp_rw lb, rw real.sqrt_le,
+tidy, simp_rw lb, rw real.sqrt_le_sqrt_iff,
 have h1: B^2 ≤ complex.abs (z_val_val.im)^2, by {norm_cast, nlinarith, },
 norm_cast at h1, rw sq_abs at h1, simp [h1],
 nlinarith,
 
-simp_rw lb, rw real.sqrt_le, rw real.sqrt_le, rw aux4,  rw aux4, simp, rw inv_le_inv, simp,
+simp_rw lb, rw real.sqrt_le_sqrt_iff,rw real.sqrt_le_sqrt_iff,rw aux4,  rw aux4, simp, rw inv_le_inv, simp,
 have i1: (((z_val_val.im)^2)⁻¹ : ℝ)≤ ((B^2)⁻¹ : ℝ) ,
   by {rw inv_le_inv,
   have h' : 0 ≤ B , by {linarith,},

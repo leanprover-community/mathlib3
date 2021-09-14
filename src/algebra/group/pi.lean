@@ -265,7 +265,7 @@ variables {ι : Type u} {η : Type v} (R : Type w) {s : ι → η} (hs : functio
 /-- `extend_by_one` as a bundled hom. -/
 @[to_additive "`extend_by_zero` as a bundled hom."]
 noncomputable def pi.extend_by_one.mul_hom [mul_one_class R] : (ι → R) →* (η → R) :=
-{ to_fun := λ f, pi.extend_by_one R s f,
+{ to_fun := λ f, function.extend s f 1,
   map_one' := pi.extend_by_one_of_one R hs,
   map_mul' := λ f g,
   begin
@@ -273,8 +273,8 @@ noncomputable def pi.extend_by_one.mul_hom [mul_one_class R] : (ι → R) →* (
     by_cases hx : ∃ i, s i = x,
     { obtain ⟨i, hi⟩ := hx,
       simp [← hi, hs] },
-    { simp [pi.extend_by_one_apply' R s f x hx, pi.extend_by_one_apply' R s g x hx,
-        pi.extend_by_one_apply' R s (f * g) x hx] }
+    { simp [function.extend_apply' f 1 x hx, function.extend_apply' g 1 x hx,
+        function.extend_apply' (f * g) 1 x hx] }
   end }
 
 end extend

@@ -1297,7 +1297,7 @@ section condexp_L1
 local attribute [instance] fact_one_le_one_ennreal
 
 variables {m m0 : measurable_space α} {μ : measure α} [borel_space 𝕜] [is_scalar_tower ℝ 𝕜 F']
-  {hm : m ≤ m0} [sigma_finite (μ.trim hm)] {f : α → F'} {s : set α}
+  {hm : m ≤ m0} [sigma_finite (μ.trim hm)] {f g : α → F'} {s : set α}
 
 /-- Conditional expectation of a function as a linear map from `α →₁[μ] F'` to itself. -/
 def condexp_L1_clm (hm : m ≤ m0) (μ : measure α) [sigma_finite (μ.trim hm)] :
@@ -1401,12 +1401,22 @@ integrable. -/
 def condexp_L1 (hm : m ≤ m0) (μ : measure α) [sigma_finite (μ.trim hm)] (f : α → F') : α →₁[μ] F' :=
 set_to_fun (dominated_fin_meas_additive_condexp_ind F' hm μ) f
 
+lemma condexp_L1_undef (hf : ¬ integrable f μ) : condexp_L1 hm μ f = 0 :=
+set_to_fun_undef (dominated_fin_meas_additive_condexp_ind F' hm μ) hf
+
 lemma condexp_L1_eq_condexp_L1_clm_of_integrable (hf : integrable f μ) :
   condexp_L1 hm μ f = condexp_L1_clm hm μ (hf.to_L1 f) :=
 set_to_fun_eq (dominated_fin_meas_additive_condexp_ind F' hm μ) hf
 
 lemma condexp_L1_eq_zero_of_not_integrable (hf : ¬ integrable f μ) : condexp_L1 hm μ f = 0 :=
 set_to_fun_undef (dominated_fin_meas_additive_condexp_ind F' hm μ) hf
+
+lemma condexp_L1_zero : condexp_L1 hm μ (0 : α → F') = 0 :=
+begin
+  refine (condexp_L1_eq_condexp_L1_clm_of_integrable (integrable_zero _ _ _)).trans _,
+  change (condexp_L1_clm hm μ) (integrable.to_L1 0 _) = 0,
+  rw [integrable.to_L1_zero, continuous_linear_map.map_zero],
+end
 
 lemma ae_measurable'_condexp_L1 {f : α → F'} : ae_measurable' m (condexp_L1 hm μ f) μ :=
 begin
@@ -1429,6 +1439,47 @@ begin
   exact set_integral_congr_ae (hm s hs) ((hf.coe_fn_to_L1).mono (λ x hx hxs, hx)),
 end
 
+lemma condexp_L1_add (hf : integrable f μ) (hg : integrable g μ) :
+  condexp_L1 hm μ (f + g) = condexp_L1 hm μ f + condexp_L1 hm μ g :=
+calc condexp_L1 hm μ (f + g) = condexp_L1_clm hm μ ((hf.add hg).to_L1 (f + g)) :
+  condexp_L1_eq_condexp_L1_clm_of_integrable (hf.add hg)
+... = condexp_L1_clm hm μ (hf.to_L1 f + hg.to_L1 g) : by rw integrable.to_L1_add _ _ hf hg
+... = condexp_L1_clm hm μ (hf.to_L1 f) + condexp_L1_clm hm μ (hg.to_L1 g) :
+  (condexp_L1_clm hm μ).map_add _ _
+... = condexp_L1 hm μ f + condexp_L1 hm μ g :
+  by rw [condexp_L1_eq_condexp_L1_clm_of_integrable hf,
+    condexp_L1_eq_condexp_L1_clm_of_integrable hg]
+
+lemma condexp_L1_neg (f : α → F') :
+  condexp_L1 hm μ (-f) = - condexp_L1 hm μ f :=
+begin
+  by_cases hf : integrable f μ,
+  { calc condexp_L1 hm μ (-f) = condexp_L1_clm hm μ (hf.neg.to_L1 (-f)) :
+      condexp_L1_eq_condexp_L1_clm_of_integrable hf.neg
+    ... = condexp_L1_clm hm μ (- hf.to_L1 f) : by rw integrable.to_L1_neg _ hf
+    ... = - condexp_L1_clm hm μ (hf.to_L1 f) : (condexp_L1_clm hm μ).map_neg _
+    ... = - condexp_L1 hm μ f : by rw condexp_L1_eq_condexp_L1_clm_of_integrable hf, },
+  { rw [condexp_L1_undef hf, condexp_L1_undef (mt integrable_neg_iff.mp hf), neg_zero], },
+end
+
+lemma condexp_L1_smul (c : 𝕜) (f : α → F') :
+  condexp_L1 hm μ (c • f) = c • condexp_L1 hm μ f :=
+begin
+  by_cases hf : integrable f μ,
+  { calc condexp_L1 hm μ (c • f) = condexp_L1_clm hm μ ((hf.smul c).to_L1 (c • f)) :
+      condexp_L1_eq_condexp_L1_clm_of_integrable (hf.smul c)
+    ... = condexp_L1_clm hm μ (c • hf.to_L1 f) : by rw integrable.to_L1_smul' _ hf c
+    ... = c • condexp_L1_clm hm μ (hf.to_L1 f) : condexp_L1_clm_smul c (hf.to_L1 f)
+    ... = c • condexp_L1 hm μ f : by rw condexp_L1_eq_condexp_L1_clm_of_integrable hf, },
+  { by_cases hc : c = 0,
+    { rw [hc, zero_smul, zero_smul, condexp_L1_zero], },
+    rw [condexp_L1_undef hf, condexp_L1_undef (mt (integrable_smul_iff hc f).mp hf), smul_zero], },
+end
+
+lemma condexp_L1_sub (hf : integrable f μ) (hg : integrable g μ) :
+  condexp_L1 hm μ (f - g) = condexp_L1 hm μ f - condexp_L1 hm μ g :=
+by rw [sub_eq_add_neg, sub_eq_add_neg, condexp_L1_add hf hg.neg, condexp_L1_neg g]
+
 end condexp_L1
 
 section condexp
@@ -1450,6 +1501,18 @@ notation  μ `[` f `|` hm `]` := condexp hm μ f
 
 lemma condexp_ae_eq_condexp_L1 (f : α → F') : μ[f|hm] =ᵐ[μ] condexp_L1 hm μ f :=
 (ae_measurable'.ae_eq_mk ae_measurable'_condexp_L1).symm
+
+lemma condexp_undef (hf : ¬ integrable f μ) : μ[f|hm] =ᵐ[μ] 0 :=
+begin
+  refine (condexp_ae_eq_condexp_L1 f).trans (eventually_eq.trans _ (coe_fn_zero _ 1 _)),
+  rw condexp_L1_undef hf,
+end
+
+lemma condexp_zero : μ[(0 : α → F')|hm] =ᵐ[μ] 0 :=
+begin
+  refine (condexp_ae_eq_condexp_L1 _).trans (eventually_eq.trans _ (coe_fn_zero _ 1 _)),
+  rw condexp_L1_zero,
+end
 
 lemma measurable_condexp : measurable[m] (μ[f|hm]) := ae_measurable'.measurable_mk _
 
@@ -1480,11 +1543,46 @@ end
 lemma condexp_add (hf : integrable f μ) (hg : integrable g μ) :
   μ[f + g | hm] =ᵐ[μ] μ[f|hm] + μ[g|hm] :=
 begin
-  refine (condexp_ae_eq_condexp_L1_clm (hf.add hg)).trans _,
-  rw [integrable.to_L1_add _ _ hf hg, (condexp_L1_clm hm μ).map_add],
-  refine eventually_eq.trans _ (eventually_eq.add (condexp_ae_eq_condexp_L1_clm hf).symm
-    (condexp_ae_eq_condexp_L1_clm hg).symm),
-  exact coe_fn_add _ _,
+  refine (condexp_ae_eq_condexp_L1 _).trans _,
+  rw condexp_L1_add hf hg,
+  exact (coe_fn_add _ _).trans
+    ((condexp_ae_eq_condexp_L1 _).symm.add (condexp_ae_eq_condexp_L1 _).symm),
+end
+
+lemma condexp_neg (f : α → F') : μ[-f|hm] =ᵐ[μ] - μ[f|hm] :=
+begin
+  by_cases hf : integrable f μ,
+  { refine (condexp_ae_eq_condexp_L1 (-f)).trans _,
+    rw condexp_L1_neg f,
+    refine (coe_fn_neg _).trans _,
+    refine (@condexp_ae_eq_condexp_L1 _ _ _ _ _ _ _ _ m _ _ hm _ f).mono (λ x hx, _),
+    rw [pi.neg_apply, ← hx, pi.neg_apply],
+    },
+  { refine (condexp_undef (mt integrable_neg_iff.mp hf)).trans _,
+    refine (@condexp_undef _ _ _ _ _ _ _ _ _ _ _ hm _ _ hf).mono (λ x hx, _),
+    rw [pi.neg_apply, hx, pi.zero_apply, neg_zero], },
+end
+
+lemma condexp_smul (c : 𝕜) (f : α → F') : μ[c • f | hm] =ᵐ[μ] c • μ[f|hm] :=
+begin
+  by_cases hf : integrable f μ,
+  { refine (condexp_ae_eq_condexp_L1 _).trans _,
+    rw condexp_L1_smul c f,
+    refine (@condexp_ae_eq_condexp_L1 _ _ _ _ _ _ _ _ m _ _ hm _ f).mp _,
+    refine (coe_fn_smul c (condexp_L1 hm μ f)).mono (λ x hx1 hx2, _),
+    rw [hx1, pi.smul_apply, pi.smul_apply, hx2], },
+  { by_cases hc : c = 0,
+    { rw [hc, zero_smul, zero_smul], exact condexp_zero, },
+    refine (condexp_undef (mt (integrable_smul_iff hc f).mp hf)).trans _,
+    refine (@condexp_undef _ _ _ _ _ _ _ _ _ _ _ hm _ _ hf).mono (λ x hx, _),
+    rw [pi.zero_apply, pi.smul_apply, hx, pi.zero_apply, smul_zero], },
+end
+
+lemma condexp_sub (hf : integrable f μ) (hg : integrable g μ) :
+  μ[f - g | hm] =ᵐ[μ] μ[f|hm] - μ[g|hm] :=
+begin
+  simp_rw sub_eq_add_neg,
+  exact (condexp_add hf hg.neg).trans (eventually_eq.rfl.add (condexp_neg g)),
 end
 
 end condexp

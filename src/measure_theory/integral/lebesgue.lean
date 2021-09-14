@@ -1022,13 +1022,13 @@ lemma exists_simple_func_forall_lintegral_sub_lt_of_pos {f : α → ℝ≥0∞} 
     (map coe (ψ - φ)).lintegral μ < ε :=
 begin
   rw lintegral_eq_nnreal at h,
-  have := ennreal.lt_add_right h hε,
+  have := ennreal.lt_add_right h.ne hε,
   erw ennreal.bsupr_add at this; [skip, exact ⟨0, λ x, by simp⟩],
   simp_rw [lt_supr_iff, supr_lt_iff, supr_le_iff] at this,
   rcases this with ⟨φ, hle : ∀ x, ↑(φ x) ≤ f x, b, hbφ, hb⟩,
   refine ⟨φ, hle, λ ψ hψ, _⟩,
   have : (map coe φ).lintegral μ < ∞, from (le_bsupr φ hle).trans_lt h,
-  rw [← add_lt_add_iff_left this, ← add_lintegral, ← map_add @ennreal.coe_add],
+  rw [← add_lt_add_iff_left this.ne, ← add_lintegral, ← map_add @ennreal.coe_add],
   refine (hb _ (λ x, le_trans _ (max_le (hle x) (hψ x)))).trans_lt hbφ,
   norm_cast,
   simp only [add_apply, sub_apply, nnreal.add_sub_eq_max]
@@ -1844,6 +1844,15 @@ by simp [lintegral_congr_ae (ae_eq_dirac' hf)]
 lemma lintegral_dirac [measurable_singleton_class α] (a : α) (f : α → ℝ≥0∞) :
   ∫⁻ a, f a ∂(dirac a) = f a :=
 by simp [lintegral_congr_ae (ae_eq_dirac f)]
+
+lemma lintegral_encodable {α : Type*} {m : measurable_space α} [encodable α]
+  [measurable_singleton_class α] (f : α → ℝ≥0∞) (μ : measure α) :
+  ∫⁻ a, f a ∂μ = ∑' a, f a * μ {a} :=
+begin
+  conv_lhs { rw [← sum_smul_dirac μ, lintegral_sum_measure] },
+  congr' 1 with a : 1,
+  rw [lintegral_smul_measure, lintegral_dirac, mul_comm],
+end
 
 lemma lintegral_count' {f : α → ℝ≥0∞} (hf : measurable f) :
   ∫⁻ a, f a ∂count = ∑' a, f a :=

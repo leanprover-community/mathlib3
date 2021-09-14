@@ -63,6 +63,14 @@ begin
   exact λ h, hK ⟨h, hHK h.2⟩,
 end
 
+lemma to_inf_left {H : subgroup G} (hH : is_p_group p H) (K : subgroup G) :
+  is_p_group p (H ⊓ K : subgroup G) :=
+hH.to_le inf_le_left
+
+lemma to_inf_right {K : subgroup G} (hK : is_p_group p K) (H : subgroup G) :
+  is_p_group p (H ⊓ K : subgroup G) :=
+hK.to_le inf_le_right
+
 variables (hG : is_p_group p G)
 
 include hG

@@ -113,18 +113,15 @@ function.update_injective _ i
 
 section extend
 
-variables {ι : Type u} {η : Type v₁} (R : Type v₂)
+@[to_additive]
+lemma _root_.function.extend_one {α β γ} [has_one γ] (f : α → β) :
+  function.extend f (1 : α → γ) (1 : β → γ) = 1 :=
+funext $ λ _, by apply if_t_t _ _
 
 @[to_additive]
-lemma extend_by_one_of_one [has_one R] {s : ι → η} (hs : function.injective s) :
-  function.extend s (1 : ι → R) 1 = 1 :=
-begin
-  refine funext (λ x, _),
-  by_cases hx : ∃ i, s i = x,
-  { obtain ⟨i, hi⟩ := hx,
-    simp [← hi, hs] },
-  { simp [function.extend_apply' 1 1 x hx] }
-end
+lemma _root_.function.extend_mul {α β γ} [has_mul γ] (f : α → β) (g₁ g₂ : α → γ) (e₁ e₂ : β → γ) :
+  function.extend f (g₁ * g₂) (e₁ * e₂) = function.extend f g₁ e₁ * function.extend f g₂ e₂ :=
+funext $ λ _, by convert (apply_dite2 (*) _ _ _ _ _).symm
 
 end extend
 

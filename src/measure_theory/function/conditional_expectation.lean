@@ -1317,7 +1317,7 @@ lemma condexp_L1_clm_indicator_const (hs : measurable_set s) (hμs : μ s ≠ �
   (condexp_L1_clm hm μ) ↑(simple_func.indicator_const 1 hs hμs x) = condexp_ind hm μ s x :=
 by { rw Lp.simple_func.coe_indicator_const, exact condexp_L1_clm_indicator_const_Lp hs hμs x, }
 
-lemma set_integral_condexp_L1_clm_eq (f : α →₁[μ] F') (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) :
+lemma set_integral_condexp_L1_clm (f : α →₁[μ] F') (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) :
   ∫ x in s, condexp_L1_clm hm μ f x ∂μ = ∫ x in s, f x ∂μ :=
 begin
   refine Lp.induction ennreal.one_ne_top
@@ -1391,7 +1391,7 @@ lemma set_integral_condexp_L1_of_measure_ne_top (hf : integrable f μ)
   ∫ x in s, condexp_L1 hm μ f x ∂μ = ∫ x in s, f x ∂μ :=
 begin
   simp_rw condexp_L1_eq_condexp_L1_clm_of_integrable hf,
-  rw set_integral_condexp_L1_clm_eq (hf.to_L1 f) hs hμs,
+  rw set_integral_condexp_L1_clm (hf.to_L1 f) hs hμs,
   exact set_integral_congr_ae (hm s hs) ((hf.coe_fn_to_L1).mono (λ x hx hxs, hx)),
 end
 

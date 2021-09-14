@@ -3,13 +3,14 @@ import linear_algebra.linear_independent
 import ring_theory.mv_polynomial.basic
 import data.mv_polynomial.supported
 import ring_theory.algebraic
+import data.mv_polynomial.equiv
 
 noncomputable theory
 
 open function set subalgebra mv_polynomial algebra
 open_locale classical big_operators
 
-universes u v w
+universes u v w x
 
 variables {ι : Type*} {ι' : Type*} (R : Type*) {K : Type*}
 variables {A : Type*} {A' A'' : Type*} {V : Type u} {V' : Type*}
@@ -441,10 +442,45 @@ begin
     simpa using q, },
 end
 
-lemma algebraic_independent.is_transcendence_basis_iff_algebraic
-  {ι : Type w} {R : Type u} [comm_ring R] [nontrivial R]
-  {A : Type v} [comm_ring A] [algebra R A] {v : ι → A} (i : algebraic_independent R v) :
-  is_transcendence_basis R v ↔ algebraic :=
+-- example {R A ι : Type*} [comm_ring R] [comm_ring A] [algebra R A]
+--   (f : mv_polynomial (option ι) R ≃ₐ[R] polynomial (mv_polynomial ι R))
+--   (p : mv_polynomial (option ι) R) :
+--   (option_equiv_left R ι) p = ((option_equiv_left R ι :
+--     mv_polynomial (option ι) R →ₐ[R] polynomial (mv_polynomial ι R))
+--     : mv_polynomial (option ι) R →+* polynomial (mv_polynomial ι R)) p :=
+--   rfl
+
+lemma is_trancendence_basis.is_algebraic_aux
+  {ι : Type v} {R : Type u} [comm_ring R] [nontrivial R]
+  {A : Type v} [comm_ring A] [algebra R A] {v : ι → A}
+  (h : is_transcendence_basis R v) : is_algebraic (adjoin R (range v)) A :=
+begin
+  have ai : algebraic_independent R v := h.1,
+  --rw ai.is_transcendence_basis_iff.{w w u} at h,
+  intros x,
+  have : ¬ algebraic_independent R (λ o : option ι, o.elim x v),
+  { have := not_imp_not.2 (ai.is_transcendence_basis_iff.1 h (option ι)
+      (λ o, option.elim o x v)),
+    simp only [not_exists, and_imp, exists_prop, forall_exists_index, not_forall] at this,
+    exact this some rfl none (by simp) },
+  simp only [algebraic_independent_iff, not_forall, exists_prop] at this,
+  rcases this with ⟨p, hpx, hp0⟩,
+  use (mv_polynomial.option_equiv_left R ι p).map ai.aeval_equiv.to_alg_hom,
+  split,
+  { admit },
+  { have : ((aeval (λ o : option ι, o.elim x v) :
+      mv_polynomial (option ι) R →ₐ[R] A) : mv_polynomial (option ι) R →+* A)  =
+      ring_hom.comp ((polynomial.aeval x : polynomial R →ₐ[R] A) : polynomial R →+* A)
+        ((polynomial.map_ring_hom ↑ai.aeval_equiv.to_alg_hom).comp
+          ↑(mv_polynomial.option_equiv_left R ι).to_alg_hom),
+    { admit },
+    { rw ← hpx,
+      show _ = ((aeval (λ o : option ι, o.elim x v) :
+        mv_polynomial (option ι) R →ₐ[R] A) : mv_polynomial (option ι) R →+* A) p,
+      rw [this],
+      simp,
+      rw [alg_equiv.coe_to_alg_hom], } }
+end
 
 lemma exists_is_transcendence_basis (h : function.injective (algebra_map R A)) :
   ∃ s : set A, is_transcendence_basis R (coe : s → A) :=

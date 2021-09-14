@@ -147,7 +147,7 @@ begin
   { intros x hxU,
     rw [subtype.val_eq_coe, opens.mem_coe, opens.mem_supr],
     exact ⟨⟨x, hxU⟩, m ⟨x, hxU⟩⟩ },
-  { intro x,
+  { intro x, dsimp,
     rw [heq, subsingleton.elim (i₁ x) (i₂ x)] }
 end
 
@@ -218,6 +218,7 @@ begin
     { use s,
       apply G.eq_of_locally_eq' V U iVU V_cover,
       intro x,
+      dsimp at ⊢ s_spec,
       rw [← functor_to_types.naturality, s_spec, heq] },
     { intros x y,
       -- What's left to show here is that the secions `sf` are compatible, i.e. they agree on
@@ -227,6 +228,7 @@ begin
       -- Here, we need to use injectivity of the stalk maps.
       apply (h z).1,
       erw [stalk_functor_map_germ_apply, stalk_functor_map_germ_apply],
+      dsimp,
       rw [functor_to_types.naturality, functor_to_types.naturality, heq, heq,
         ← functor_to_types.map_comp_apply, ← functor_to_types.map_comp_apply],
       refl } },

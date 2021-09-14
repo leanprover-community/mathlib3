@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import algebra.ordered_monoid
-import order.rel_iso
 import order.order_dual
 
 /-!
@@ -577,8 +576,9 @@ alias le_sub_iff_add_le ↔ add_le_of_le_sub_right le_sub_right_of_add_le
 lemma div_le_iff_le_mul : a / c ≤ b ↔ a ≤ b * c :=
 by rw [← mul_le_mul_iff_right c, div_eq_mul_inv, inv_mul_cancel_right]
 
-/-- `equiv.mul_right` as an `order_iso`. -/
-@[to_additive "`equiv.add_right` as an `order_iso`.", simps to_equiv apply {simp_rhs := tt}]
+/-- `equiv.mul_right` as an `order_iso`. See also `order_embedding.mul_right`. -/
+@[to_additive "`equiv.add_right` as an `order_iso`. See also `order_embedding.add_right`.",
+  simps to_equiv apply {simp_rhs := tt}]
 def order_iso.mul_right (a : α) : α ≃o α :=
 { map_rel_iff' := λ _ _, mul_le_mul_iff_right a, to_equiv := equiv.mul_right a }
 
@@ -591,8 +591,9 @@ end right
 section left
 variables [covariant_class α α (*) (≤)]
 
-/-- `equiv.mul_left` as an `order_iso`. -/
-@[to_additive "`equiv.add_left` as an `order_iso`.", simps to_equiv apply  {simp_rhs := tt}]
+/-- `equiv.mul_left` as an `order_iso`. See also `order_embedding.mul_left`. -/
+@[to_additive "`equiv.add_left` as an `order_iso`. See also `order_embedding.add_left`.",
+  simps to_equiv apply  {simp_rhs := tt}]
 def order_iso.mul_left (a : α) : α ≃o α :=
 { map_rel_iff' := λ _ _, mul_le_mul_iff_left a, to_equiv := equiv.mul_left a }
 
@@ -981,8 +982,16 @@ section covariant_add_le
 section has_neg
 variables [has_neg α] [linear_order α] {a b: α}
 
-/-- `abs a` is the absolute value of `a`. -/
-def abs {α : Type*} [has_neg α] [linear_order α] (a : α) : α := max a (-a)
+/-- `mabs a` is the multiplicative absolute value of `a`. -/
+@[to_additive abs
+"`abs a` is the additive absolute value of `a`."
+]
+def mabs {α : Type*} [has_inv α] [lattice α] (a : α) : α := a ⊔ (a⁻¹)
+
+lemma abs_eq_max_neg {α : Type*} [has_neg α] [linear_order α] (a : α) : abs a = max a (-a) :=
+begin
+  exact rfl,
+end
 
 lemma abs_choice (x : α) : abs x = x ∨ abs x = -x := max_choice _ _
 
@@ -1008,7 +1017,9 @@ section add_group
 variables [add_group α] [linear_order α]
 
 @[simp] lemma abs_neg (a : α) : abs (-a) = abs a :=
-begin unfold abs, rw [max_comm, neg_neg] end
+begin
+  rw [abs_eq_max_neg, max_comm, neg_neg, abs_eq_max_neg]
+end
 
 lemma eq_or_eq_neg_of_abs_eq {a b : α} (h : abs a = b) : a = b ∨ a = -b :=
 by simpa only [← h, eq_comm, eq_neg_iff_eq_neg] using abs_choice a

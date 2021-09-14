@@ -452,6 +452,50 @@ by simp
 lemma erase_ne {i i' : ι} {f : Π₀ i, β i} (h : i' ≠ i) : (f.erase i) i' = f i' :=
 by simp [h]
 
+section update
+
+variables (f : Π₀ i, β i) (i : ι) (b : β i) [decidable (b = 0)]
+
+/-- Replace the value of a `Π₀ i, β i` at a given point `i : ι` by a given value `b : β i`.
+If `b = 0`, this amounts to removing `i` from the support.
+Otherwise, `i` is added to it.
+
+This is the (dependent) finitely-supported version of `function.update`. -/
+def update : Π₀ i, β i :=
+quotient.map (λ (x : pre _ _), ⟨function.update x.to_fun i b,
+  if b = 0 then x.pre_support.erase i else i ::ₘ x.pre_support,
+  begin
+    intro j,
+    rcases eq_or_ne i j with rfl|hi,
+    { split_ifs with hb,
+      { simp [hb] },
+      { simp } },
+    { cases x.zero j with hj hj,
+      { split_ifs;
+        simp [multiset.mem_erase_of_ne hi.symm, hj] },
+      { simp [function.update_noteq hi.symm, hj] } }
+  end⟩)
+  (λ x y h j,
+    show function.update x.to_fun i b j = function.update y.to_fun i b j,
+    by rw (funext h : x.to_fun = y.to_fun)) f
+
+variables (j : ι)
+
+@[simp] lemma coe_update : (f.update i b : Π (i : ι), β i) = function.update f i b :=
+quotient.induction_on f (λ _, rfl)
+@[simp] lemma update_self [decidable (f i = 0)] : f.update i (f i) = f :=
+by { ext, simp }
+
+@[simp] lemma update_eq_erase [decidable ((0 : β i) = 0)] : f.update i 0 = f.erase i :=
+begin
+  ext j,
+  rcases eq_or_ne i j with rfl|hi,
+  { simp },
+  { simp [hi.symm] }
+end
+
+end update
+
 end basic
 
 section add_monoid
@@ -724,6 +768,24 @@ by { ext j, by_cases h1 : j = i; by_cases h2 : f j ≠ 0; simp at h2; simp [h1, 
 @[simp] lemma support_erase (i : ι) (f : Π₀ i, β i) :
   (f.erase i).support = f.support.erase i :=
 by { ext j, by_cases h1 : j = i; by_cases h2 : f j ≠ 0; simp at h2; simp [h1, h2] }
+
+lemma support_update_ne_zero (f : Π₀ i, β i) (i : ι) {b : β i} [decidable (b = 0)] (h : b ≠ 0) :
+  support (f.update i b) = insert i f.support :=
+begin
+  ext j,
+  rcases eq_or_ne i j with rfl|hi,
+  { simp [h] },
+  { simp [hi.symm] }
+end
+
+lemma support_update (f : Π₀ i, β i) (i : ι) (b : β i) [decidable (b = 0)] :
+  support (f.update i b) = if b = 0 then support (f.erase i) else insert i f.support :=
+begin
+  ext j,
+  split_ifs with hb,
+  { simp only [hb, update_eq_erase, support_erase] },
+  { rw [support_update_ne_zero f _ hb] }
+end
 
 section filter_and_subtype_domain
 

@@ -35,7 +35,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: install Python
-        if: ${{ ! 1 }}
+        if: ${{ 'self-hosted' == 'ubuntu-latest' }}
         uses: actions/setup-python@v2
         with:
           python-version: 3.8

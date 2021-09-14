@@ -2013,7 +2013,7 @@ end
 
 /-- In a sigma-finite measure space, there exists an integrable function which is
 positive everywhere (and with an arbitrarily small integral). -/
-lemma exists_integrable_pos_of_sigma_finite
+lemma exists_pos_lintegral_lt_of_sigma_finite
   {α} [measurable_space α] (μ : measure α) [sigma_finite μ] {ε : ℝ≥0∞} (ε0 : ε ≠ 0) :
   ∃ g : α → ℝ≥0, (∀ x, 0 < g x) ∧ measurable g ∧ (∫⁻ x, g x ∂μ < ε) :=
 begin

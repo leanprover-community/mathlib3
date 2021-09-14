@@ -554,7 +554,7 @@ begin
   refine ⟨_, ne_of_lt $ content.outer_measure_lt_top_of_is_compact _ K₀.2.1⟩,
   rw [← pos_iff_ne_zero],
   exact content.outer_measure_pos_of_is_mul_left_invariant _ is_left_invariant_haar_content
-    ⟨K₀.1, K₀.2.1⟩ (by simp only [haar_content_self, ennreal.zero_lt_one]) hU h2U
+    ⟨K₀.1, K₀.2.1⟩ (by simpa only [haar_content_self] using one_ne_zero) hU h2U
 end
 
 /-- The Haar measure is regular. -/

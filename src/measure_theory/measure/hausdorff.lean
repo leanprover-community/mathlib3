@@ -256,7 +256,7 @@ begin
   have : inf_edist y t < (↑(2 * j + r))⁻¹, from not_le.1 (λ hle, hy.2 ⟨hy.1, hle⟩),
   rcases exists_edist_lt_of_inf_edist_lt this with ⟨z, hzt, hyz⟩,
   have hxz : (↑(2 * i + 1 + r))⁻¹ ≤ edist x z, from le_inf_edist.1 hx.2 _ hzt,
-  apply ennreal.le_of_add_le_add_right (hyz.trans_le le_top),
+  apply ennreal.le_of_add_le_add_right hyz.ne_top,
   refine le_trans _ (edist_triangle _ _ _),
   refine (add_le_add le_rfl hyz.le).trans (eq.trans_le _ hxz),
   rw [ennreal.sub_add_cancel_of_le A.le]

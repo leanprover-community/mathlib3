@@ -161,6 +161,9 @@ lemma ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨ne.symm, ne.symm⟩
   (∀ {c}, a = c ↔ b = c) ↔ (a = b) :=
 ⟨λ h, by rw h, λ h a, by rw h⟩
 
+/-- Annotation identity function to force Lean to see `a` in the type of the goal. -/
+abbreviation id_annotate {α} (a : α) {β} (b : β) := b
+
 /-- Wrapper for adding elementary propositions to the type class systems.
 Warning: this can easily be abused. See the rest of this docstring for details.
 
@@ -382,6 +385,9 @@ and.imp id h
 
 lemma and.right_comm : (a ∧ b) ∧ c ↔ (a ∧ c) ∧ b :=
 by simp only [and.left_comm, and.comm]
+
+lemma and_and_and_comm (a b c d : Prop) : (a ∧ b) ∧ c ∧ d ↔ (a ∧ c) ∧ b ∧ d :=
+by rw [←and_assoc, @and.right_comm a, and_assoc]
 
 lemma and.rotate : a ∧ b ∧ c ↔ b ∧ c ∧ a :=
 by simp only [and.left_comm, and.comm]

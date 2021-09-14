@@ -55,7 +55,7 @@ Along, you will find lemmas about the cardinality of those finite intervals.
 
 ## TODO
 
-Provide the `locally_finite_order` instance for `lex α β`.z
+Provide the `locally_finite_order` instance for `lex α β`.
 
 From `linear_order α`, `no_top_order α`, `locally_finite_order α`, we can also define an
 order isomorphism `α ≃ ℕ` or `α ≃ ℤ`, depending on whether we have `order_bot α` or
@@ -85,13 +85,66 @@ successor (and actually a predecessor as well), so it is a `succ_order`, but it'
 as `Icc (-1) 1` is infinite.
 -/
 
-lemma and_and_and_comm (a b c d : Prop) : (a ∧ b) ∧ c ∧ d ↔ (a ∧ c) ∧ b ∧ d :=
-by rw [←and_assoc, @and.right_comm a, and_assoc]
+/-!
+### Arguments autofilling tactics
 
-@[simp] protected lemma list.nodup.erase_dup {α : Type*} [decidable_eq α] {l : list α}
-  (h : l.nodup) :
-  l.erase_dup = l :=
-list.erase_dup_eq_self.2 h
+`locally_finite_order` has fields for all of `Icc`, `Ico`, `Ioc`, `Ioo` to let control over
+definitional equality. But all fields can be recovered from `Icc` (or any other actually, but we had
+to make a choice here). Hence we provide default values for `locally_finite_order.finset_Ico`,
+`locally_finite_order.finset_Ioc`, `locally_finite_order.finset_Ioo` and three corresponding tactics
+to fill in the three corresponding proofs.
+
+This is analogous to the default definition of `(<)` in terms of `(≤)`. There, the default proof of
+`lt_iff_le_not_le` is provided by `order_laws_tac`, which just tries to call `refl`. Here, the
+situation is more complicated, as we need to call an hypothesis (namely
+`locally_finite_order.mem_finset_Icc`) that doesn't appear a priori in the type of the proof. Whence
+our use of `id_annotate` to force it to appear there.
+-/
+
+section tactic
+open tactic
+
+variables {α : Type*} [preorder α] [decidable_rel ((≤) : α → α → Prop)]
+  {finset_Icc : α → α → finset α} (finset_mem_Icc : ∀ a b x : α, x ∈ finset_Icc a b ↔ a ≤ x ∧ x ≤ b)
+
+/-- Auxiliary lemma to provide `locally_finite_order.mem_finset_Ico` when
+`locally_finite_order.finset_Ico` is the default value. -/
+lemma locally_finite_order.mem_Ico_of_mem_Icc :
+  id_annotate finset_mem_Icc
+    (∀ a b x : α, x ∈ (finset_Icc a b).filter (λ x, ¬b ≤ x) ↔ a ≤ x ∧ x < b) :=
+λ a b x, by rw [finset.mem_filter, finset_mem_Icc, and_assoc, lt_iff_le_not_le]
+
+/-- Auxiliary lemma to provide `locally_finite_order.mem_finset_Ioc` when
+`locally_finite_order.finset_Ioc` is the default value. -/
+lemma locally_finite_order.mem_Ioc_of_mem_Icc :
+  id_annotate finset_mem_Icc
+    (∀ a b x : α, x ∈ (finset_Icc a b).filter (λ x, ¬x ≤ a) ↔ a < x ∧ x ≤ b) :=
+λ a b x, by rw [finset.mem_filter, finset_mem_Icc, and.right_comm, lt_iff_le_not_le]
+
+/-- Auxiliary lemma to provide `locally_finite_order.mem_finset_Ioo` when
+`locally_finite_order.finset_Ico` is the default value. -/
+lemma locally_finite_order.mem_Ioo_of_mem_Icc :
+  id_annotate finset_mem_Icc
+    (∀ a b x : α, x ∈ (finset_Icc a b).filter (λ x, ¬x ≤ a ∧ ¬b ≤ x) ↔ a < x ∧ x < b) :=
+λ a b x, by rw [finset.mem_filter, finset_mem_Icc, and_and_and_comm, lt_iff_le_not_le,
+  lt_iff_le_not_le]
+
+/-- Here to make `locally_finite_order.finset_Ico` an optional field. Tries to prove
+`locally_finite_order.mem_finset_Ico` -/
+meta def finset_Ico_laws_tac : tactic unit :=
+`[exact locally_finite_order.mem_Ico_of_mem_Icc _]
+
+/-- Here to make `locally_finite_order.finset_Ioc` an optional field. Tries to prove
+`locally_finite_order.mem_finset_Ioc` -/
+meta def finset_Ioc_laws_tac : tactic unit :=
+`[exact locally_finite_order.mem_Ioc_of_mem_Icc _]
+
+/-- Here to make `locally_finite_order.finset_Ioo` an optional field. Tries to prove
+`locally_finite_order.mem_finset_Ioo` -/
+meta def finset_Ioo_laws_tac : tactic unit :=
+`[exact locally_finite_order.mem_Ioo_of_mem_Icc _]
+
+end tactic
 
 open finset
 
@@ -101,9 +154,12 @@ class locally_finite_order (α : Type*) [preorder α] [decidable_rel ((≤) : α
 (finset_Ioc : α → α → finset α := λ a b, (finset_Icc a b).filter (λ x, ¬x ≤ a))
 (finset_Ioo : α → α → finset α := λ a b, (finset_Icc a b).filter (λ x, ¬x ≤ a ∧ ¬b ≤ x))
 (finset_mem_Icc : ∀ a b x : α, x ∈ finset_Icc a b ↔ a ≤ x ∧ x ≤ b)
-(finset_mem_Ico : ∀ a b x : α, x ∈ finset_Ico a b ↔ a ≤ x ∧ x < b)
-(finset_mem_Ioc : ∀ a b x : α, x ∈ finset_Ioc a b ↔ a < x ∧ x ≤ b)
-(finset_mem_Ioo : ∀ a b x : α, x ∈ finset_Ioo a b ↔ a < x ∧ x < b)
+(finset_mem_Ico : id_annotate finset_mem_Icc (∀ a b x : α, x ∈ finset_Ico a b ↔ a ≤ x ∧ x < b)
+  . finset_Ico_laws_tac)
+(finset_mem_Ioc : id_annotate finset_mem_Icc (∀ a b x : α, x ∈ finset_Ioc a b ↔ a < x ∧ x ≤ b)
+  . finset_Ioc_laws_tac)
+(finset_mem_Ioo : id_annotate finset_mem_Icc (∀ a b x : α, x ∈ finset_Ioo a b ↔ a < x ∧ x < b)
+  . finset_Ioo_laws_tac)
 
 variables {α β : Type*}
 
@@ -376,13 +432,7 @@ noncomputable def locally_finite_order_of_finite_Icc
   (h : ∀ a b : α, (set.Icc a b).finite) :
   locally_finite_order α :=
 { finset_Icc := λ a b, (h a b).to_finset,
-  finset_Ico := λ a b, ((h a b).subset set.Ico_subset_Icc_self).to_finset,
-  finset_Ioc := λ a b, ((h a b).subset set.Ioc_subset_Icc_self).to_finset,
-  finset_Ioo := λ a b, ((h a b).subset set.Ioo_subset_Icc_self).to_finset,
-  finset_mem_Icc := λ a b x, by rw [set.finite.mem_to_finset, set.mem_Icc],
-  finset_mem_Ico := λ a b x, by rw [set.finite.mem_to_finset, set.mem_Ico],
-  finset_mem_Ioc := λ a b x, by rw [set.finite.mem_to_finset, set.mem_Ioc],
-  finset_mem_Ioo := λ a b x, by rw [set.finite.mem_to_finset, set.mem_Ioo] }
+  finset_mem_Icc := λ a b x, by rw [set.finite.mem_to_finset, set.mem_Icc] }
 
 noncomputable def fintype.to_locally_finite_order [fintype α] :
   locally_finite_order α :=
@@ -424,5 +474,11 @@ noncomputable def order_embedding.locally_finite_order (f : α ↪o β) :
   finset_mem_Ico := λ a b x, by rw [mem_preimage, mem_Ico, f.le_iff_le, f.lt_iff_lt],
   finset_mem_Ioc := λ a b x, by rw [mem_preimage, mem_Ioc, f.lt_iff_lt, f.le_iff_le],
   finset_mem_Ioo := λ a b x, by rw [mem_preimage, mem_Ioo, f.lt_iff_lt, f.lt_iff_lt] }
+
+variables [locally_finite_order α]
+
+instance : locally_finite_order (α × β) :=
+{ finset_Icc := λ a b, (Icc a.fst b.fst).product (Icc a.snd b.snd),
+  finset_mem_Icc := λ a b x, by { rw [mem_product, mem_Icc, mem_Icc, and_and_and_comm], refl } }
 
 end preorder

@@ -263,7 +263,7 @@ section extend
 variables {ι : Type u} {η : Type v} (R : Type w) {s : ι → η} (hs : function.injective s)
 
 /-- `function.extend s f 1` as a bundled hom. -/
-@[to_additive "`function.extend s f 0` as a bundled hom."]
+@[to_additive function.extend_by_zero.add_hom "`function.extend s f 0` as a bundled hom."]
 noncomputable def function.extend_by_one.mul_hom [mul_one_class R] : (ι → R) →* (η → R) :=
 { to_fun := λ f, function.extend s f 1,
   map_one' := function.extend_one s,

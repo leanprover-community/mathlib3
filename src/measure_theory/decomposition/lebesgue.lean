@@ -769,63 +769,6 @@ def radon_nikodym_deriv (s : signed_measure α) (μ : measure α) : α → ℝ :
 
 variables {s : signed_measure α} {μ : measure α} [sigma_finite μ]
 
-section move
-
-lemma has_finite_integral_to_real_of_lintegral_ne_top
-  {μ : measure α} {f : α → ℝ≥0∞} (hf : ∫⁻ x, f x ∂μ ≠ ∞) :
-  has_finite_integral (λ x, (f x).to_real) μ :=
-begin
-  have : ∀ x, (∥(f x).to_real∥₊ : ℝ≥0∞) =
-    @coe ℝ≥0 ℝ≥0∞ _ (⟨(f x).to_real, ennreal.to_real_nonneg⟩ : ℝ≥0),
-  { intro x, rw real.nnnorm_of_nonneg },
-  simp_rw [has_finite_integral, this],
-  refine lt_of_le_of_lt (lintegral_mono (λ x, _)) (lt_top_iff_ne_top.2 hf),
-  by_cases hfx : f x = ∞,
-  { simp [hfx] },
-  { lift f x to ℝ≥0 using hfx with fx,
-    simp [← h] }
-end
-
-lemma is_finite_measure_with_density {f : α → ℝ≥0∞} (hf : ∫⁻ x, f x ∂μ ≠ ∞) :
-  is_finite_measure (μ.with_density f) :=
-⟨by { rwa [with_density_apply f measurable_set.univ, set_lintegral_univ, lt_top_iff_ne_top] }⟩
-
-lemma integrable_to_real_of_lintegral_ne_top
-  {μ : measure α} {f : α → ℝ≥0∞} (hfm : ae_measurable f μ) (hfi : ∫⁻ x, f x ∂μ ≠ ∞) :
-  integrable (λ x, (f x).to_real) μ :=
-⟨ae_measurable.ennreal_to_real hfm, has_finite_integral_to_real_of_lintegral_ne_top hfi⟩
-
-lemma with_densityᵥ_sub_eq_with_density {f g : α → ℝ≥0∞}
-  (hfm : ae_measurable f μ) (hgm : ae_measurable g μ)
-  (hf : ∫⁻ x, f x ∂μ ≠ ∞) (hg : ∫⁻ x, g x ∂μ ≠ ∞) :
-  μ.with_densityᵥ (λ x, (f x).to_real - (g x).to_real) =
-  @to_signed_measure α _ (μ.with_density f) (is_finite_measure_with_density hf) -
-  @to_signed_measure α _ (μ.with_density g) (is_finite_measure_with_density hg) :=
-begin
-  have hfi := integrable_to_real_of_lintegral_ne_top hfm hf,
-  have hgi := integrable_to_real_of_lintegral_ne_top hgm hg,
-  ext i hi,
-  rw [with_densityᵥ_apply _ hi, vector_measure.sub_apply,
-      to_signed_measure_apply_measurable hi, to_signed_measure_apply_measurable hi,
-      with_density_apply _ hi, with_density_apply _ hi, integral_sub,
-      integral_to_real hfm.restrict, integral_to_real hgm.restrict],
-  { refine ae_lt_top' hgm.restrict (lt_of_le_of_lt _ (lt_top_iff_ne_top.2 hg)),
-    conv_rhs { rw ← set_lintegral_univ },
-    exact lintegral_mono_set (set.subset_univ _) },
-  { refine ae_lt_top' hfm.restrict (lt_of_le_of_lt _ (lt_top_iff_ne_top.2 hf)),
-    conv_rhs { rw ← set_lintegral_univ },
-    exact lintegral_mono_set (set.subset_univ _) },
-  { rw ← integrable_on,
-    rw ← integrable_on_univ at hfi,
-    exact integrable_on.mono hfi (set.subset_univ _) (le_refl _) },
-  { rw ← integrable_on,
-    rw ← integrable_on_univ at hgi,
-    exact integrable_on.mono hgi (set.subset_univ _) (le_refl _) },
-  { exact hfi.sub hgi }
-end
-
-end move
-
 @[measurability]
 lemma measurable_radon_nikodym_deriv (s : signed_measure α) (μ : measure α) :
   measurable (radon_nikodym_deriv s μ) :=

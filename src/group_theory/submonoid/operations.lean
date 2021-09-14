@@ -418,7 +418,7 @@ instance to_linear_ordered_cancel_comm_monoid {M} [linear_ordered_cancel_comm_mo
 subtype.coe_injective.linear_ordered_cancel_comm_monoid coe rfl (λ _ _, rfl)
 
 /-- The natural monoid hom from a submonoid of monoid `M` to `M`. -/
-@[to_additive "The natural monoid hom from an `add_submonoid` of `add_monoid` `M` to `M`.", , simps]
+@[to_additive "The natural monoid hom from an `add_submonoid` of `add_monoid` `M` to `M`.", simps]
 def subtype : S →* M := ⟨coe, rfl, λ _ _, rfl⟩
 
 @[simp, to_additive] theorem coe_subtype : ⇑S.subtype = coe := rfl

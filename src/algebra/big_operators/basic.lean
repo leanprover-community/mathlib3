@@ -230,6 +230,15 @@ lemma prod_union [decidable_eq α] (h : disjoint s₁ s₂) :
   (∏ x in (s₁ ∪ s₂), f x) = (∏ x in s₁, f x) * (∏ x in s₂, f x) :=
 by rw [←prod_union_inter, (disjoint_iff_inter_eq_empty.mp h)]; exact (mul_one _).symm
 
+@[to_additive]
+lemma prod_filter_mul_prod_filter_not (s : finset α) (p : α → Prop) [decidable_pred p]
+  [decidable_pred (λ x, ¬p x)] (f : α → β) :
+  (∏ x in s.filter p, f x) * (∏ x in s.filter (λ x, ¬p x), f x) = ∏ x in s, f x :=
+begin
+  haveI := classical.dec_eq α,
+  rw [← prod_union (filter_inter_filter_neg_eq p s).le, filter_union_filter_neg_eq]
+end
+
 end comm_monoid
 
 end finset
@@ -531,17 +540,15 @@ calc (∏ x in s, f x) = ∏ x in s, 1 : finset.prod_congr rfl h
   ... = 1 : finset.prod_const_one
 
 @[to_additive] lemma prod_apply_dite {s : finset α} {p : α → Prop} {hp : decidable_pred p}
-  (f : Π (x : α), p x → γ) (g : Π (x : α), ¬p x → γ) (h : γ → β) :
+  [decidable_pred (λ x, ¬ p x)] (f : Π (x : α), p x → γ) (g : Π (x : α), ¬p x → γ)
+  (h : γ → β) :
   (∏ x in s, h (if hx : p x then f x hx else g x hx)) =
   (∏ x in (s.filter p).attach, h (f x.1 (mem_filter.mp x.2).2)) *
     (∏ x in (s.filter (λ x, ¬ p x)).attach, h (g x.1 (mem_filter.mp x.2).2)) :=
-by letI := classical.dec_eq α; exact
 calc ∏ x in s, h (if hx : p x then f x hx else g x hx)
-    = ∏ x in s.filter p ∪ s.filter (λ x, ¬ p x), h (if hx : p x then f x hx else g x hx) :
-  by rw [filter_union_filter_neg_eq]
-... = (∏ x in s.filter p, h (if hx : p x then f x hx else g x hx)) *
+    = (∏ x in s.filter p, h (if hx : p x then f x hx else g x hx)) *
     (∏ x in s.filter (λ x, ¬ p x), h (if hx : p x then f x hx else g x hx)) :
-  prod_union (by simp [disjoint_right] {contextual := tt})
+  (prod_filter_mul_prod_filter_not s p _).symm
 ... = (∏ x in (s.filter p).attach, h (if hx : p x.1 then f x.1 hx else g x.1 hx)) *
     (∏ x in (s.filter (λ x, ¬ p x)).attach, h (if hx : p x.1 then f x.1 hx else g x.1 hx)) :
   congr_arg2 _ prod_attach.symm prod_attach.symm

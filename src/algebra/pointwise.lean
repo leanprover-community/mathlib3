@@ -406,6 +406,9 @@ by { rw [← inv_subset_inv, set.inv_inv] }
 @[to_additive] lemma finite.inv [group α] {s : set α} (hs : finite s) : finite s⁻¹ :=
 hs.preimage $ inv_injective.inj_on _
 
+@[to_additive] lemma inv_singleton {β : Type*} [group β] (x : β) : ({x} : set β)⁻¹ = {x⁻¹} :=
+by { ext1 y, rw [mem_inv, mem_singleton_iff, mem_singleton_iff, inv_eq_iff_inv_eq, eq_comm], }
+
 /-! ### Properties about scalar multiplication -/
 
 /-- The scaling of a set `(x • s : set β)` by a scalar `x ∶ α` is defined as `{x • y | y ∈ s}`

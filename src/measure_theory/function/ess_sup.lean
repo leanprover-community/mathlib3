@@ -118,6 +118,16 @@ begin
   all_goals { is_bounded_default, },
 end
 
+lemma ess_sup_smul_measure {f : α → β} {c : ℝ≥0∞} (hc : c ≠ 0) :
+  ess_sup f (c • μ) = ess_sup f μ :=
+begin
+  simp_rw ess_sup,
+  suffices h_smul : (c • μ).ae = μ.ae, by rw h_smul,
+  ext1,
+  simp_rw mem_ae_iff,
+  simp [hc],
+end
+
 end complete_lattice
 
 section complete_linear_order

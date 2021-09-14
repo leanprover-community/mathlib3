@@ -853,7 +853,11 @@ begin
       ≤ finset.univ.fold (⊔) ⊥ (λ i, (C (f i) * X ^ (i : ℕ)).degree) : degree_sum_le _ _
   ... = finset.univ.fold max ⊥ (λ i, (C (f i) * X ^ (i : ℕ)).degree) :
     (@finset.fold_hom _ _ _ (⊔) _ _ _ ⊥ finset.univ _ _ _ id (with_bot.sup_eq_max)).symm
+<<<<<<< HEAD
   ... < n : (finset.fold_max_lt (n : with_bot ℕ)).mpr ⟨with_bot.none_lt_some _, _⟩,
+=======
+  ... < n : (finset.fold_max_lt (n : with_bot ℕ)).mpr ⟨with_bot.bot_lt_coe _, _⟩,
+>>>>>>> origin
 
   rintros ⟨i, hi⟩ -,
   calc (C (f ⟨i, hi⟩) * X ^ i).degree

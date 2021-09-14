@@ -188,7 +188,7 @@ begin
   have : ∀ i, ∃ p:ℝ×ℝ, s i ⊆ Ioo p.1 p.2 ∧
                         (of_real (f p.2 - f p.1) : ℝ≥0∞) < f.length (s i) + ε' i,
   { intro i,
-    have := (ennreal.lt_add_right (lt_of_le_of_lt (ennreal.le_tsum i) h)
+    have := (ennreal.lt_add_right ((ennreal.le_tsum i).trans_lt h).ne
         (ennreal.zero_lt_coe_iff.2 (ε'0 i))),
     conv at this { to_lhs, rw length },
     simp only [infi_lt_iff, exists_prop] at this,
@@ -251,7 +251,7 @@ begin
     ∀ i, ∃ s, t i ⊆ s ∧ measurable_set s ∧
       f.outer s ≤ f.length (t i) + of_real (ε' i),
   { intro i,
-    have := (ennreal.lt_add_right (lt_of_le_of_lt (ennreal.le_tsum i) h)
+    have := (ennreal.lt_add_right ((ennreal.le_tsum i).trans_lt h).ne
         (ennreal.zero_lt_coe_iff.2 (ε'0 i))),
     conv at this {to_lhs, rw length},
     simp only [infi_lt_iff] at this,

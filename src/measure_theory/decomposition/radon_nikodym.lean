@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
 import measure_theory.decomposition.lebesgue
-import measure_theory.measure.with_density_vector_measure
 
 /-!
 # Radon-Nikodym theorem
@@ -122,16 +121,6 @@ theorem absolutely_continuous_iff_with_densityᵥ_radon_nikodym_deriv_eq
   μ.with_densityᵥ (s.radon_nikodym_deriv μ) = s :=
 ⟨with_densityᵥ_radon_nikodym_deriv_eq s μ,
  λ h, h ▸ with_densityᵥ_absolutely_continuous _ _⟩
-
-lemma radon_nikodym_deriv_neg (s : signed_measure α) (μ : measure α) [sigma_finite μ]
-  (hs : s ≪ μ.to_ennreal_vector_measure) :
-  (-s).radon_nikodym_deriv μ =ᵐ[μ] - s.radon_nikodym_deriv μ :=
-begin
-  refine integrable.ae_eq_of_with_densityᵥ_eq
-    (integrable_radon_nikodym_deriv _ _) (integrable_radon_nikodym_deriv _ _).neg _,
-  rw [with_densityᵥ_neg, with_densityᵥ_radon_nikodym_deriv_eq s μ hs,
-      with_densityᵥ_radon_nikodym_deriv_eq _ _ hs.neg_left]
-end
 
 lemma radon_nikodym_deriv_add (s t : signed_measure α) (μ : measure α) [sigma_finite μ]
   (hs : s ≪ μ.to_ennreal_vector_measure) (ht : t ≪ μ.to_ennreal_vector_measure) :

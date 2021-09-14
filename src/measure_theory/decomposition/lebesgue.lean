@@ -720,6 +720,31 @@ section
 
 variables (s : signed_measure α) (μ : measure α) [sigma_finite μ]
 
+-- Without this lemma, `singular_part_neg` is extremely slow -- move?
+lemma to_signed_measure_congr {μ ν : measure α} [is_finite_measure μ] [is_finite_measure ν]
+  (h : μ = ν) : μ.to_signed_measure = ν.to_signed_measure :=
+by { congr, exact h }
+
+lemma singular_part_neg (s : signed_measure α) (μ : measure α) :
+  (-s).singular_part μ = - s.singular_part μ :=
+begin
+  have h₁ : ((-s).to_jordan_decomposition.pos_part.singular_part μ).to_signed_measure =
+    (s.to_jordan_decomposition.neg_part.singular_part μ).to_signed_measure,
+  { refine to_signed_measure_congr _,
+    rw [to_jordan_decomposition_neg, jordan_decomposition.neg_pos_part] },
+  have h₂ : ((-s).to_jordan_decomposition.neg_part.singular_part μ).to_signed_measure =
+    (s.to_jordan_decomposition.pos_part.singular_part μ).to_signed_measure,
+  { refine to_signed_measure_congr _,
+    rw [to_jordan_decomposition_neg, jordan_decomposition.neg_neg_part] },
+  rw [singular_part, singular_part, neg_sub, h₁, h₂],
+end
+
+lemma singular_part_add (s t : signed_measure α) (μ : measure α) :
+  (s + t).singular_part μ = s.singular_part μ + t.singular_part μ :=
+begin
+  sorry
+end
+
 lemma singular_part_mutually_singular :
   s.to_jordan_decomposition.pos_part.singular_part μ ⊥ₘ
   s.to_jordan_decomposition.neg_part.singular_part μ :=
@@ -806,6 +831,16 @@ begin
   { exact ((to_jordan_decomposition s).neg_part.measurable_radon_nikodym_deriv μ).ae_measurable },
   { exact (lintegral_radon_nikodym_deriv_lt_top _ _).ne },
   { exact (lintegral_radon_nikodym_deriv_lt_top _ _).ne },
+end
+
+lemma radon_nikodym_deriv_neg (s : signed_measure α) (μ : measure α) [sigma_finite μ] :
+  (-s).radon_nikodym_deriv μ =ᵐ[μ] - s.radon_nikodym_deriv μ :=
+begin
+  refine integrable.ae_eq_of_with_densityᵥ_eq
+    (integrable_radon_nikodym_deriv _ _) (integrable_radon_nikodym_deriv _ _).neg _,
+  rw [with_densityᵥ_neg, ← add_right_inj ((-s).singular_part μ),
+      singular_part_add_with_density_radon_nikodym_deriv_eq, singular_part_neg, ← neg_add,
+      singular_part_add_with_density_radon_nikodym_deriv_eq]
 end
 
 end signed_measure

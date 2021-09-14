@@ -8,11 +8,18 @@ import data.equiv.basic
 /-!
 # Partial values of a type
 
-What to do when you only want to provide a term of `α` against the proof of your favorite
-proposition? Use partial values™!
-"But we already have `option α`..." I hear. Que nenni! What if your proposition isn't decidable
-because you don't believe in the excluded middle? Use partial values™!
-Ask for partial values at your local mathlib® distribution. To be found under reference `part α`.
+This file defines `part α`, the partial values of a type.
+
+`o : part α` carries a proposition `o.dom`, its domain, along with a function `get : dom → α`, its value. The rule is then that every partial value has a value but, to access it, you need to provide
+a proof of the domain.
+
+`part α` behaves the same as `option α` except that `o : option α` is decidably `none` or `some a`
+for some `a : α`, while the domain of `o : part α` doesn't have to be decidable. That means you can
+translate back and forth between a partial value with a decidable domain and an option, and
+`option α` and `part α` are classically equivalent. In general, `part α` is bigger than `option α`.
+
+In current mathlib, `part ℕ`, aka `enat`, is used to move decidability of the order to decidability
+of `enat.find` (which is the smallest natural satisfying a predicate, or `∞` if there's none).
 
 ## Main declarations
 

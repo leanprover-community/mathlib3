@@ -91,7 +91,7 @@ lemma is_diag.smul [monoid R] [add_monoid α] [distrib_mul_action R α]
   (k • A).is_diag :=
 by { intros i j h, simp [ha h] }
 
-@[simp] lemma is_diag_smul_one (n) [semiring α] [decidable_eq n] [fintype n] (k : α) :
+@[simp] lemma is_diag_smul_one (n) [semiring α] [decidable_eq n] (k : α) :
   (k • (1 : matrix n n α)).is_diag :=
 is_diag_one.smul k
 

@@ -108,7 +108,8 @@ instance [monoid R] [comm_semiring S₁] [distrib_mul_action R S₁] [has_faithf
   has_faithful_scalar R (mv_polynomial σ S₁) :=
 add_monoid_algebra.has_faithful_scalar
 instance [semiring R] [comm_semiring S₁] [module R S₁] : module R (mv_polynomial σ S₁) :=
-add_monoid_algebra.module
+{ smul := (•),
+  ..add_monoid_algebra.module }
 instance [monoid R] [monoid S₁] [comm_semiring S₂]
   [has_scalar R S₁] [distrib_mul_action R S₂] [distrib_mul_action S₁ S₂] [is_scalar_tower R S₁ S₂] :
   is_scalar_tower R S₁ (mv_polynomial σ S₂) :=
@@ -118,7 +119,8 @@ instance [monoid R] [monoid S₁][comm_semiring S₂]
   smul_comm_class R S₁ (mv_polynomial σ S₂) :=
 add_monoid_algebra.smul_comm_class
 instance [comm_semiring R] [comm_semiring S₁] [algebra R S₁] : algebra R (mv_polynomial σ S₁) :=
-add_monoid_algebra.algebra
+{ smul := (•),
+  ..add_monoid_algebra.algebra }
 -- TODO[gh-6025]: make this an instance once safe to do so
 /-- If `R` is a subsingleton, then `mv_polynomial σ R` has a unique element -/
 protected def unique [comm_semiring R] [subsingleton R] : unique (mv_polynomial σ R) :=
@@ -431,7 +433,7 @@ add_monoid_algebra.mul_apply_antidiagonal p q _ _ $ λ p, mem_antidiagonal
 
 @[simp] lemma support_mul_X (s : σ) (p : mv_polynomial σ R) :
   (p * X s).support = p.support.map (add_right_embedding (single s 1)) :=
-add_monoid_algebra.support_mul_single p _ (by simp) _ 
+add_monoid_algebra.support_mul_single p _ (by simp) _
 
 lemma coeff_mul_X' [decidable_eq σ] (m) (s : σ) (p : mv_polynomial σ R) :
   coeff m (p * X s) = if s ∈ m.support then coeff (m - single s 1) p else 0 :=

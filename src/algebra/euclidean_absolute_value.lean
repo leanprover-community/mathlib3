@@ -23,6 +23,8 @@ local infix ` ≺ `:50 := euclidean_domain.r
 
 namespace absolute_value
 
+section ordered_semiring
+
 variables {R S : Type*} [euclidean_domain R] [ordered_semiring S]
 variables (abv : absolute_value R S)
 
@@ -47,6 +49,8 @@ lemma sub_mod_lt (h : abv.is_euclidean) (a : R) {b : R} (hb : b ≠ 0) :
 h.map_lt_map_iff.mpr (euclidean_domain.mod_lt a hb)
 
 end is_euclidean
+
+end ordered_semiring
 
 section int
 

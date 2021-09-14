@@ -1083,12 +1083,12 @@ concave_on_open_of_deriv2_nonpos convex_univ is_open_univ hf'.differentiable_on
 theorem domain_mvt
   {f : E → ℝ} {s : set E} {x y : E} {f' : E → (E →L[ℝ] ℝ)}
   (hf : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hs : convex s) (xs : x ∈ s) (ys : y ∈ s) :
-  ∃ z ∈ segment x y, f y - f x = f' z (y - x) :=
+  ∃ z ∈ segment ℝ x y, f y - f x = f' z (y - x) :=
 begin
   have hIccIoo := @Ioo_subset_Icc_self ℝ _ 0 1,
 -- parametrize segment
   set g : ℝ → E := λ t, x + t • (y - x),
-  have hseg : ∀ t ∈ Icc (0:ℝ) 1, g t ∈ segment x y,
+  have hseg : ∀ t ∈ Icc (0:ℝ) 1, g t ∈ segment ℝ x y,
   { rw segment_eq_image',
     simp only [mem_image, and_imp, add_right_inj],
     intros t ht, exact ⟨t, ht, rfl⟩ },

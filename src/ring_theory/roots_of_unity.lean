@@ -901,7 +901,7 @@ begin
     exact hdiv ((zmod.nat_coe_zmod_eq_zero_iff_dvd n p).1 (not_not.1 hzero)) },
   cases (multiplicity.squarefree_iff_multiplicity_le_one (X ^ n - 1)).1 hfree
     (map (int.cast_ring_hom (zmod p)) P) with hle hunit,
-  { exact not_lt_of_le hle habs },
+  { rw nat.cast_one at habs, exact hle.not_lt habs },
   { replace hunit := degree_eq_zero_of_is_unit hunit,
     rw degree_map_eq_of_leading_coeff_ne_zero (int.cast_ring_hom (zmod p)) _ at hunit,
     { exact (minpoly.degree_pos (is_integral h hpos)).ne' hunit },

@@ -566,5 +566,3 @@ lemma volume_pi_closed_ball [Π i, measure_space (α i)] [∀ i, sigma_finite (v
 measure.pi_closed_ball _ _ hr
 
 end measure_theory
-
-#check

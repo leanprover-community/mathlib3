@@ -551,7 +551,3 @@ sorry
 
 end vitali
 -/
-
-#check real.map_linear_map_volume_pi_eq_smul_volume_pi
-
-#check real.map_matrix_volume_pi_eq_smul_volume_pi

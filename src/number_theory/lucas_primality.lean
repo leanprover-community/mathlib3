@@ -20,7 +20,7 @@ certificate.
 ## TODO
 
 - Bonus: Show the reverse implication i.e. if a number is prime then it has a Lucas witness.
-  See [this stackexchange](https://math.stackexchange.com/a/59911/165144) answer for proof.
+  Use `units.is_cyclic` from `ring_theory/integral_domain` to show the group is cyclic.
 - Write a tactic that uses this theorem to generate Pratt primality certificates
 - Integrate this into the norm_num primality verifier
 

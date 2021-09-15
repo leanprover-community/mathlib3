@@ -335,10 +335,10 @@ the same as summing the original function over the original
 add_decl_doc sum_indicator_subset
 
 @[to_additive] lemma _root_.finset.prod_mul_indicator_eq_prod_filter
-  (s : finset α) (f : α → β → M) (t : set β) (g : α → β) :
-  ∏ x in s, mul_indicator t (f x) (g x) = ∏ x in s.filter (λ x, g x ∈ t), f x (g x) :=
+  (s : finset ι) (f : ι → α → M) (t : ι → set α) (g : ι → α) :
+  ∏ i in s, mul_indicator (t i) (f i) (g i) = ∏ i in s.filter (λ i, g i ∈ t i), f i (g i) :=
 begin
-  refine (finset.prod_filter_mul_prod_filter_not s (λ x, g x ∈ t) _).symm.trans _,
+  refine (finset.prod_filter_mul_prod_filter_not s (λ i, g i ∈ t i) _).symm.trans _,
   refine eq.trans _ (mul_one _),
   exact congr_arg2 (*)
     (finset.prod_congr rfl $ λ x hx, mul_indicator_of_mem (finset.mem_filter.1 hx).2 _)

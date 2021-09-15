@@ -793,7 +793,7 @@ def radon_nikodym_deriv (s : signed_measure α) (μ : measure α) : α → ℝ :
 (s.to_jordan_decomposition.pos_part.radon_nikodym_deriv μ x).to_real -
 (s.to_jordan_decomposition.neg_part.radon_nikodym_deriv μ x).to_real
 
-variables {s : signed_measure α} {μ : measure α} [sigma_finite μ]
+variables {s : signed_measure α} {μ : measure α}
 
 @[measurability]
 lemma measurable_radon_nikodym_deriv (s : signed_measure α) (μ : measure α) :
@@ -817,7 +817,7 @@ Given a signed measure `s` and a σ-finite measure `μ`, there exist a signed me
 measurable and integrable function `f`, such that `t` is mutually singular with respect to `μ`
 and `s = t + μ.with_densityᵥ f`. In this case `t = s.singular_part μ` and
 `f = s.radon_nikodym_deriv μ`. -/
-theorem singular_part_add_with_density_radon_nikodym_deriv_eq :
+theorem singular_part_add_with_density_radon_nikodym_deriv_eq [sigma_finite μ] :
   s.singular_part μ + μ.with_densityᵥ (s.radon_nikodym_deriv μ) = s :=
 begin
   conv_rhs { rw [← to_signed_measure_to_jordan_decomposition s,
@@ -836,29 +836,6 @@ begin
   { exact ((to_jordan_decomposition s).neg_part.measurable_radon_nikodym_deriv μ).ae_measurable },
   { exact (lintegral_radon_nikodym_deriv_lt_top _ _).ne },
   { exact (lintegral_radon_nikodym_deriv_lt_top _ _).ne },
-end
-
--- move
-lemma with_density_of_real_mutually_singular
-  {f : α → ℝ} (hf : measurable f) :
-  μ.with_density (λ x, ennreal.of_real $ f x) ⊥ₘ μ.with_density (λ x, ennreal.of_real $ -f x) :=
-begin
-  set S : set α := { x | f x < 0 } with hSdef,
-  have hS : measurable_set S := measurable_set_lt hf measurable_const,
-  refine ⟨S, hS, _, _⟩,
-  { rw [with_density_apply _ hS, hSdef],
-    have hf0 : ∀ᵐ x ∂μ, x ∈ S → ennreal.of_real (f x) = 0,
-    { refine ae_of_all _ (λ _ hx, _),
-      rw [ennreal.of_real_eq_zero.2 (le_of_lt hx)] },
-    rw set_lintegral_congr_fun hS hf0,
-    exact lintegral_zero },
-  { rw [with_density_apply _ hS.compl, hSdef],
-    have hf0 : ∀ᵐ x ∂μ, x ∈ Sᶜ → ennreal.of_real (-f x) = 0,
-    { refine ae_of_all _ (λ x hx, _),
-      rw ennreal.of_real_eq_zero.2,
-      rwa [neg_le, neg_zero, ← not_lt] },
-    rw set_lintegral_congr_fun hS.compl hf0,
-    exact lintegral_zero },
 end
 
 /-- Given a measure `μ`, signed measures `s` and `t`, and a function `f` such that `t` is

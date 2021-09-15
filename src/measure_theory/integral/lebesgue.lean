@@ -1963,6 +1963,27 @@ begin
       restrict_comm hs ht, ← with_density_apply _ ht]
 end
 
+lemma with_density_of_real_mutually_singular {f : α → ℝ} (hf : measurable f) :
+  μ.with_density (λ x, ennreal.of_real $ f x) ⊥ₘ μ.with_density (λ x, ennreal.of_real $ -f x) :=
+begin
+  set S : set α := { x | f x < 0 } with hSdef,
+  have hS : measurable_set S := measurable_set_lt hf measurable_const,
+  refine ⟨S, hS, _, _⟩,
+  { rw [with_density_apply _ hS, hSdef],
+    have hf0 : ∀ᵐ x ∂μ, x ∈ S → ennreal.of_real (f x) = 0,
+    { refine ae_of_all _ (λ _ hx, _),
+      rw [ennreal.of_real_eq_zero.2 (le_of_lt hx)] },
+    rw set_lintegral_congr_fun hS hf0,
+    exact lintegral_zero },
+  { rw [with_density_apply _ hS.compl, hSdef],
+    have hf0 : ∀ᵐ x ∂μ, x ∈ Sᶜ → ennreal.of_real (-f x) = 0,
+    { refine ae_of_all _ (λ x hx, _),
+      rw ennreal.of_real_eq_zero.2,
+      rwa [neg_le, neg_zero, ← not_lt] },
+    rw set_lintegral_congr_fun hS.compl hf0,
+    exact lintegral_zero },
+end
+
 end lintegral
 
 end measure_theory

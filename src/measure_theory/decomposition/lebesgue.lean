@@ -838,6 +838,48 @@ begin
   { exact (lintegral_radon_nikodym_deriv_lt_top _ _).ne },
 end
 
+lemma jordan_decomposition_add_with_density_mutually_singular
+  {t : signed_measure α} {f : α → ℝ} (hf : measurable f) (htμ : t ⊥ᵥ μ.to_ennreal_vector_measure) :
+  t.to_jordan_decomposition.pos_part + μ.with_density (λ (x : α), ennreal.of_real (f x)) ⊥ₘ
+  t.to_jordan_decomposition.neg_part + μ.with_density (λ (x : α), ennreal.of_real (-f x)) :=
+begin
+  rw [mutually_singular_ennreal_iff, total_variation_mutually_singular_iff] at htμ,
+  change _ ⊥ₘ vector_measure.equiv_measure.to_fun (vector_measure.equiv_measure.inv_fun μ) ∧
+         _ ⊥ₘ vector_measure.equiv_measure.to_fun (vector_measure.equiv_measure.inv_fun μ) at htμ,
+  rw [vector_measure.equiv_measure.right_inv] at htμ,
+  exact ((jordan_decomposition.mutually_singular _).symm.add
+    (htμ.1.symm.of_absolutely_continuous (with_density_absolutely_continuous _ _))).symm.add
+    ((htμ.2.symm.of_absolutely_continuous (with_density_absolutely_continuous _ _)).symm.add
+      (with_density_of_real_mutually_singular hf).symm).symm
+end
+
+lemma to_jordan_decomposition_eq_of_eq_add_with_density
+  {t : signed_measure α} {f : α → ℝ} (hf : measurable f) (hfi : integrable f μ)
+  (htμ : t ⊥ᵥ μ.to_ennreal_vector_measure) (hadd : s = t + μ.with_densityᵥ f) :
+  s.to_jordan_decomposition = @jordan_decomposition.mk α _
+    (t.to_jordan_decomposition.pos_part + μ.with_density (λ x, ennreal.of_real (f x)))
+    (t.to_jordan_decomposition.neg_part + μ.with_density (λ x, ennreal.of_real (- f x)))
+    (by { haveI := is_finite_measure_of_real hfi, apply_instance })
+    (by { haveI := is_finite_measure_of_real hfi.neg, apply_instance })
+    (jordan_decomposition_add_with_density_mutually_singular hf htμ) :=
+begin
+  haveI := is_finite_measure_of_real hfi,
+  haveI := is_finite_measure_of_real hfi.neg,
+  refine to_jordan_decomposition_eq _,
+  simp_rw [jordan_decomposition.to_signed_measure, hadd],
+  ext i hi,
+  rw [vector_measure.sub_apply, to_signed_measure_apply_measurable hi,
+      to_signed_measure_apply_measurable hi, add_apply, add_apply,
+      ennreal.to_real_add, ennreal.to_real_add, add_sub_comm,
+      ← to_signed_measure_apply_measurable hi, ← to_signed_measure_apply_measurable hi,
+      ← vector_measure.sub_apply, ← jordan_decomposition.to_signed_measure,
+      to_signed_measure_to_jordan_decomposition, vector_measure.add_apply,
+      ← to_signed_measure_apply_measurable hi, ← to_signed_measure_apply_measurable hi,
+      with_densityᵥ_eq_with_density_pos_part_sub_with_density_neg_part hfi,
+      vector_measure.sub_apply];
+  exact (measure_lt_top _ _).ne
+end
+
 /-- Given a measure `μ`, signed measures `s` and `t`, and a function `f` such that `t` is
 mutually singular with respect to `μ` and `s = t + μ.with_densityᵥ f`, we have
 `t = singular_part s μ`, i.e. `t` is the singular part of the Lebesgue decomposition between
@@ -847,41 +889,20 @@ theorem eq_singular_part
   (htμ : t ⊥ᵥ μ.to_ennreal_vector_measure) (hadd : s = t + μ.with_densityᵥ f) :
   t = s.singular_part μ :=
 begin
-  haveI := is_finite_measure_of_real hfi,
-  haveI := is_finite_measure_of_real hfi.neg,
+  have htμ' := htμ,
   rw [mutually_singular_ennreal_iff, total_variation_mutually_singular_iff] at htμ,
   change _ ⊥ₘ vector_measure.equiv_measure.to_fun (vector_measure.equiv_measure.inv_fun μ) ∧
          _ ⊥ₘ vector_measure.equiv_measure.to_fun (vector_measure.equiv_measure.inv_fun μ) at htμ,
   rw [vector_measure.equiv_measure.right_inv] at htμ,
-  have hs : s.to_jordan_decomposition =
-    ⟨t.to_jordan_decomposition.pos_part + μ.with_density (λ x, ennreal.of_real (f x)),
-     t.to_jordan_decomposition.neg_part + μ.with_density (λ x, ennreal.of_real (- f x)),
-     ((jordan_decomposition.mutually_singular _).symm.add
-      (htμ.1.symm.of_absolutely_continuous (with_density_absolutely_continuous _ _))).symm.add
-      ((htμ.2.symm.of_absolutely_continuous (with_density_absolutely_continuous _ _)).symm.add
-        (with_density_of_real_mutually_singular hf).symm).symm⟩,
-  { refine to_jordan_decomposition_eq _,
-    rw [jordan_decomposition.to_signed_measure, hadd],
-    ext i hi,
-    rw [vector_measure.sub_apply, to_signed_measure_apply_measurable hi,
-        to_signed_measure_apply_measurable hi, add_apply, add_apply,
-        ennreal.to_real_add, ennreal.to_real_add, add_sub_comm,
-        ← to_signed_measure_apply_measurable hi, ← to_signed_measure_apply_measurable hi,
-        ← vector_measure.sub_apply, ← jordan_decomposition.to_signed_measure,
-        to_signed_measure_to_jordan_decomposition, vector_measure.add_apply,
-        ← to_signed_measure_apply_measurable hi, ← to_signed_measure_apply_measurable hi,
-        with_densityᵥ_eq_with_density_pos_part_sub_with_density_neg_part hfi,
-        vector_measure.sub_apply];
-    exact (measure_lt_top _ _).ne },
   { rw [singular_part, ← t.to_signed_measure_to_jordan_decomposition,
         jordan_decomposition.to_signed_measure],
     congr,
     { have hfpos : measurable (λ x, ennreal.of_real (f x)), { measurability },
       refine eq_singular_part hfpos htμ.1 _,
-      rw hs },
+      rw to_jordan_decomposition_eq_of_eq_add_with_density hf hfi htμ' hadd },
     { have hfneg : measurable (λ x, ennreal.of_real (-f x)), { measurability },
       refine eq_singular_part hfneg htμ.2 _,
-      rw hs } },
+      rw to_jordan_decomposition_eq_of_eq_add_with_density hf hfi htμ' hadd } },
 end
 
 -- We note that the following lemma does not require `μ` to be σ-finite as it is true even if
@@ -926,6 +947,19 @@ end
 lemma singular_part_sub (s t : signed_measure α) (μ : measure α) [sigma_finite μ] :
   (s - t).singular_part μ = s.singular_part μ - t.singular_part μ :=
 by { rw [sub_eq_add_neg, sub_eq_add_neg, singular_part_add, singular_part_neg] }
+
+/-- Given a measure `μ`, signed measures `s` and `t`, and a function `f` such that `t` is
+mutually singular with respect to `μ` and `s = t + μ.with_densityᵥ f`, we have
+`f = radon_nikodym_deriv s μ`, i.e. `f` is the Radon-Nikodym derivative of `s` and `μ`. -/
+theorem eq_radon_nikodym_deriv [sigma_finite μ]
+  {t : signed_measure α} {f : α → ℝ} (hf : measurable f) (hfi : integrable f μ)
+  (htμ : t ⊥ᵥ μ.to_ennreal_vector_measure) (hadd : s = t + μ.with_densityᵥ f) :
+  f =ᵐ[μ] s.radon_nikodym_deriv μ :=
+begin
+  refine (integrable.ae_eq_of_with_densityᵥ_eq (integrable_radon_nikodym_deriv _ _) hfi _).symm,
+  rw [← add_right_inj t, ← hadd, eq_singular_part hf hfi htμ hadd,
+      singular_part_add_with_density_radon_nikodym_deriv_eq],
+end
 
 lemma radon_nikodym_deriv_neg (s : signed_measure α) (μ : measure α) [sigma_finite μ] :
   (-s).radon_nikodym_deriv μ =ᵐ[μ] - s.radon_nikodym_deriv μ :=

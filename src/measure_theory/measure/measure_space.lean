@@ -33,7 +33,7 @@ We introduce the following typeclasses for measures:
 
 * `is_probability_measure μ`: `μ univ = 1`;
 * `is_finite_measure μ`: `μ univ < ∞`;
-* `sigma_finite μ`: there exists a countable collection of measurable sets that cover `univ`
+* `sigma_finite μ`: there exists a countable collection of sets that cover `univ`
   where `μ` is finite;
 * `is_locally_finite_measure μ` : `∀ x, ∃ s ∈ 𝓝 x, μ s < ∞`;
 * `has_no_atoms μ` : `∀ x, μ {x} = 0`; possibly should be redefined as
@@ -1781,23 +1781,27 @@ end measure
 open measure
 
 /-- A measure `μ` is called σ-finite if there is a countable collection of sets
-  `{ A i | i ∈ ℕ }` such that `μ (A i) < ∞` and `⋃ i, A i = s`. -/
+ `{ A i | i ∈ ℕ }` such that `μ (A i) < ∞` and `⋃ i, A i = s`. -/
 class sigma_finite {m0 : measurable_space α} (μ : measure α) : Prop :=
-(out' : nonempty (μ.finite_spanning_sets_in {s | measurable_set s}))
+(out' : nonempty (μ.finite_spanning_sets_in univ))
 
 theorem sigma_finite_iff :
-  sigma_finite μ ↔ nonempty (μ.finite_spanning_sets_in {s | measurable_set s}) :=
+  sigma_finite μ ↔ nonempty (μ.finite_spanning_sets_in univ) :=
 ⟨λ h, h.1, λ h, ⟨h⟩⟩
 
 theorem sigma_finite.out (h : sigma_finite μ) :
-  nonempty (μ.finite_spanning_sets_in {s | measurable_set s}) := h.1
+  nonempty (μ.finite_spanning_sets_in univ) := h.1
 
 include m0
 
 /-- If `μ` is σ-finite it has finite spanning sets in the collection of all measurable sets. -/
 def measure.to_finite_spanning_sets_in (μ : measure α) [h : sigma_finite μ] :
   μ.finite_spanning_sets_in {s | measurable_set s} :=
-classical.choice h.out
+{ set := λ n, to_measurable μ (h.out.some.set n),
+  set_mem := λ n, measurable_set_to_measurable _ _,
+  finite := λ n, by { rw measure_to_measurable, exact h.out.some.finite n },
+  spanning := eq_univ_of_subset (Union_subset_Union $ λ n, subset_to_measurable _ _)
+    h.out.some.spanning }
 
 /-- A noncomputable way to get a monotone collection of sets that span `univ` and have finite
   measure using `classical.some`. This definition satisfies monotonicity in addition to all other
@@ -1826,6 +1830,30 @@ lemma is_countably_spanning_spanning_sets (μ : measure α) [sigma_finite μ] :
   is_countably_spanning (range (spanning_sets μ)) :=
 ⟨spanning_sets μ, mem_range_self, Union_spanning_sets μ⟩
 
+/-- `spanning_sets_index μ x` is the least `n : ℕ` such that `x ∈ spanning_sets μ n`. -/
+def spanning_sets_index (μ : measure α) [sigma_finite μ] (x : α) : ℕ :=
+nat.find $ Union_eq_univ_iff.1 (Union_spanning_sets μ) x
+
+lemma measurable_spanning_sets_index (μ : measure α) [sigma_finite μ] :
+  measurable (spanning_sets_index μ) :=
+measurable_find _ $ measurable_spanning_sets μ
+
+lemma preimage_spanning_sets_index_singleton (μ : measure α) [sigma_finite μ] (n : ℕ) :
+  spanning_sets_index μ ⁻¹' {n} = disjointed (spanning_sets μ) n :=
+preimage_find_eq_disjointed _ _ _
+
+lemma spanning_sets_index_eq_iff (μ : measure α) [sigma_finite μ] {x : α} {n : ℕ} :
+  spanning_sets_index μ x = n ↔ x ∈ disjointed (spanning_sets μ) n :=
+by convert set.ext_iff.1 (preimage_spanning_sets_index_singleton μ n) x
+
+lemma mem_disjointed_spanning_sets_index (μ : measure α) [sigma_finite μ] (x : α) :
+  x ∈ disjointed (spanning_sets μ) (spanning_sets_index μ x) :=
+(spanning_sets_index_eq_iff μ).1 rfl
+
+lemma mem_spanning_sets_index (μ : measure α) [sigma_finite μ] (x : α) :
+  x ∈ spanning_sets μ (spanning_sets_index μ x) :=
+disjointed_subset _ _ (mem_disjointed_spanning_sets_index μ x)
+
 omit m0
 
 namespace measure
@@ -1848,9 +1876,9 @@ protected def mono (h : μ.finite_spanning_sets_in C) (hC : C ⊆ D) : μ.finite
 
 /-- If `μ` has finite spanning sets in the collection of measurable sets `C`, then `μ` is σ-finite.
 -/
-protected lemma sigma_finite (h : μ.finite_spanning_sets_in C) (hC : ∀ s ∈ C, measurable_set s) :
+protected lemma sigma_finite (h : μ.finite_spanning_sets_in C) :
   sigma_finite μ :=
-⟨⟨h.mono hC⟩⟩
+⟨⟨h.mono $ subset_univ C⟩⟩
 
 /-- An extensionality for measures. It is `ext_of_generate_from_of_Union` formulated in terms of
 `finite_spanning_sets_in`. -/
@@ -1869,8 +1897,7 @@ lemma sigma_finite_of_countable {S : set (set α)} (hc : countable S)
 begin
   obtain ⟨s, hμ, hs⟩ : ∃ s : ℕ → set α, (∀ n, μ (s n) < ∞) ∧ (⋃ n, s n) = univ,
     from (exists_seq_cover_iff_countable ⟨∅, by simp⟩).2 ⟨S, hc, hμ, hU⟩,
-  refine ⟨⟨⟨λ n, to_measurable μ (s n), λ n, measurable_set_to_measurable _ _, by simpa, _⟩⟩⟩,
-  exact eq_univ_of_subset (Union_subset_Union $ λ n, subset_to_measurable μ (s n)) hs
+  exact ⟨⟨⟨λ n, s n, λ n, trivial, hμ, hs⟩⟩⟩,
 end
 
 /-- Given measures `μ`, `ν` where `ν ≤ μ`, `finite_spanning_sets_in.of_le` provides the induced
@@ -1894,12 +1921,12 @@ include m0
 @[priority 100]
 instance is_finite_measure.to_sigma_finite (μ : measure α) [is_finite_measure μ] :
   sigma_finite μ :=
-⟨⟨⟨λ _, univ, λ _, measurable_set.univ, λ _, measure_lt_top μ _, Union_const _⟩⟩⟩
+⟨⟨⟨λ _, univ, λ _, trivial, λ _, measure_lt_top μ _, Union_const _⟩⟩⟩
 
 instance restrict.sigma_finite (μ : measure α) [sigma_finite μ] (s : set α) :
   sigma_finite (μ.restrict s) :=
 begin
-  refine ⟨⟨⟨spanning_sets μ, measurable_spanning_sets μ, λ i, _, Union_spanning_sets μ⟩⟩⟩,
+  refine ⟨⟨⟨spanning_sets μ, λ _, trivial, λ i, _, Union_spanning_sets μ⟩⟩⟩,
   rw [restrict_apply (measurable_spanning_sets μ i)],
   exact (measure_mono $ inter_subset_left _ _).trans_lt (measure_spanning_sets_lt_top μ i)
 end
@@ -1910,7 +1937,7 @@ begin
   haveI : encodable ι := fintype.encodable ι,
   have : ∀ n, measurable_set (⋂ (i : ι), spanning_sets (μ i) n) :=
     λ n, measurable_set.Inter (λ i, measurable_spanning_sets (μ i) n),
-  refine ⟨⟨⟨λ n, ⋂ i, spanning_sets (μ i) n, this, λ n, _, _⟩⟩⟩,
+  refine ⟨⟨⟨λ n, ⋂ i, spanning_sets (μ i) n, λ _, trivial, λ n, _, _⟩⟩⟩,
   { rw [sum_apply _ (this n), tsum_fintype, ennreal.sum_lt_top_iff],
     rintro i -,
     exact (measure_mono $ Inter_subset _ i).trans_lt (measure_spanning_sets_lt_top (μ i) n) },
@@ -1926,7 +1953,7 @@ lemma sigma_finite.of_map (μ : measure α) {f : α → β} (hf : measurable f)
   (h : sigma_finite (map f μ)) :
   sigma_finite μ :=
 ⟨⟨⟨λ n, f ⁻¹' (spanning_sets (map f μ) n),
-   λ n, hf $ measurable_spanning_sets _ _,
+   λ n, trivial,
    λ n, by simp only [← map_apply hf, measurable_spanning_sets, measure_spanning_sets_lt_top],
    by rw [← preimage_Union, Union_spanning_sets, preimage_univ]⟩⟩⟩
 

@@ -434,7 +434,7 @@ variables [second_countable_topology α]
 @[measurability]
 lemma measurable.max {f g : δ → α} (hf : measurable f) (hg : measurable g) :
   measurable (λ a, max (f a) (g a)) :=
-hf.piecewise (measurable_set_le hg hf) hg
+by simpa only [max_def] using hf.piecewise (measurable_set_le hg hf) hg
 
 @[measurability]
 lemma ae_measurable.max {f g : δ → α} {μ : measure δ}
@@ -445,7 +445,7 @@ lemma ae_measurable.max {f g : δ → α} {μ : measure δ}
 @[measurability]
 lemma measurable.min {f g : δ → α} (hf : measurable f) (hg : measurable g) :
   measurable (λ a, min (f a) (g a)) :=
-hf.piecewise (measurable_set_le hf hg) hg
+by simpa only [min_def] using hf.piecewise (measurable_set_le hf hg) hg
 
 @[measurability]
 lemma ae_measurable.min {f g : δ → α} {μ : measure δ}

@@ -896,6 +896,16 @@ ext $ λ x, and_iff_right_of_imp (λ _, x.prop)
 lemma comap_subtype_inf_right {H K : subgroup G} : comap K.subtype (H ⊓ K) = comap K.subtype H :=
 ext $ λ x, and_iff_left_of_imp (λ _, x.prop)
 
+/-- If `H ≤ K`, then `H` as a subgroup of `K` is isomorphic to `H`. -/
+@[to_additive "If `H ≤ K`, then `H` as a subgroup of `K` is isomorphic to `H`.", simps]
+def comap_subtype_equiv_of_le {G : Type*} [group G] {H K : subgroup G} (h : H ≤ K) :
+  H.comap K.subtype ≃* H :=
+{ to_fun := λ g, ⟨g.1, g.2⟩,
+  inv_fun := λ g, ⟨⟨g.1, h g.2⟩, g.2⟩,
+  left_inv := λ g, subtype.ext (subtype.ext rfl),
+  right_inv := λ g, subtype.ext rfl,
+  map_mul' := λ g h, rfl }
+
 /-- For any subgroups `H` and `K`, view `H ⊓ K` as a subgroup of `K`. -/
 @[to_additive "For any subgroups `H` and `K`, view `H ⊓ K` as a subgroup of `K`."]
 def subgroup_of (H K : subgroup G) : subgroup K := H.comap K.subtype

@@ -950,6 +950,20 @@ theorem exists_pos_sum_of_encodable' {ε : ℝ≥0∞} (hε : 0 < ε) (ι) [enco
 let ⟨δ, δpos, hδ⟩ := exists_pos_sum_of_encodable hε ι in
   ⟨λ i, δ i, λ i, ennreal.coe_pos.2 (δpos i), hδ⟩
 
+theorem exists_pos_tsum_mul_lt_of_encodable {ε : ℝ≥0∞} (hε : 0 < ε) {ι} [encodable ι]
+  (w : ι → ℝ≥0∞) (hw : ∀ i, w i ≠ ∞) :
+  ∃ δ : ι → ℝ≥0, (∀ i, 0 < δ i) ∧ ∑' i, (w i * δ i : ℝ≥0∞) < ε :=
+begin
+  lift w to ι → ℝ≥0 using hw,
+  rcases exists_pos_sum_of_encodable hε ι with ⟨δ', Hpos, Hsum⟩,
+  have : ∀ i, 0 < max 1 (w i), from λ i, zero_lt_one.trans_le (le_max_left _ _),
+  refine ⟨λ i, δ' i / max 1 (w i), λ i, nnreal.div_pos (Hpos _) (this i), _⟩,
+  refine lt_of_le_of_lt (ennreal.tsum_le_tsum $ λ i, _) Hsum,
+  rw [coe_div (this i).ne'],
+  refine mul_le_of_le_div' (ennreal.mul_le_mul le_rfl $ ennreal.inv_le_inv.2 _),
+  exact coe_le_coe.2 (le_max_right _ _)
+end
+
 end ennreal
 
 /-!

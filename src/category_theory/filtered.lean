@@ -361,7 +361,7 @@ Given a "bowtie" of morphisms
  vv  vv
  k₁  k₂
 ```
-in a filtered category, we can construct an object `s` and two morphisms from `k₁` and `k₁` to `s`,
+in a filtered category, we can construct an object `s` and two morphisms from `k₁` and `k₂` to `s`,
 making the resulting squares commute.
 -/
 lemma bowtie {j₁ j₂ k₁ k₂ : C}

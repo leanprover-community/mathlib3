@@ -72,6 +72,7 @@ variables (R : Type u) [ring R]
 
 /-- We say that `R` satisfies the strong rank condition if `(fin n → R) →ₗ[R] (fin m → R)` injective
     implies `n ≤ m`. -/
+@[mk_iff]
 class strong_rank_condition : Prop :=
 (le_of_fin_injective : ∀ {n m : ℕ} (f : (fin n → R) →ₗ[R] (fin m → R)), injective f → n ≤ m)
 

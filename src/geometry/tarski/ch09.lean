@@ -215,16 +215,16 @@ begin
   obtain ⟨D, MAD⟩ := symmetric_point_construction M A,
   have ZDC : out Z D C,
   { rw ←l9_4_1 PQAC PQX.rotate' PQAX PQZ.rotate' PQCZ MXZ MAD,
-    apply out.trivial PQAX.ne_right },
+    apply PQAX.ne_right.out },
   have PQAD : two_sides P Q A D :=
-    l9_4_2 PQAC PQX.rotate' PQAX PQZ.rotate' PQCZ (out.trivial PQAX.ne_right) ZDC,
+    l9_4_2 PQAC PQX.rotate' PQAX PQZ.rotate' PQCZ PQAX.ne_right.out ZDC,
   have PQBD : two_sides P Q B D,
   { apply l9_3 PQAD _ MAD RPQ RAB,
     rcases eq_or_ne X Z with rfl | nXZ,
     { cases MXZ.id'',
       apply PQX.rotate' },
     { apply PQX.rotate'.of_col PQZ.rotate' MXZ.1.col.right_symm nXZ } },
-  apply l9_4_2 PQBD PQY.rotate' PQBY PQZ.rotate' _ (out.trivial PQBY.ne_right) ZDC.symm,
+  apply l9_4_2 PQBD PQY.rotate' PQBY PQZ.rotate' _ PQBY.ne_right.out ZDC.symm,
   apply (PQCZ.symm.col ZDC.1 ZDC.col.rotate' col_id_right).symm,
 end
 
@@ -259,16 +259,38 @@ begin
   apply XTP.symm
 end
 
+lemma two_sides.col (h : two_sides A B P Q) (nCD : C ≠ D) (CAB : col C A B) (DAB : col D A B) :
+  two_sides C D P Q :=
+begin
+  obtain ⟨PAB, QAB, T, TAB, PTQ⟩ := h,
+  refine ⟨_, _, T, _, PTQ⟩,
+  { intro PCD,
+    apply PAB (CAB.of_col DAB PCD.rotate nCD) },
+  { intro QCD,
+    apply QAB (CAB.of_col DAB QCD.rotate nCD) },
+  apply col3 (ne23_of_not_col PAB) TAB.rotate CAB.rotate DAB.rotate,
+end
+
 def one_side (P Q A B : α) := ∃ C, two_sides P Q A C ∧ two_sides P Q B C
 
 -- 9.12
 lemma one_side.right_symm : one_side P Q A B → one_side P Q B A
 | ⟨_, h⟩ := ⟨_, h.symm⟩
 
+lemma one_side.left_symm : one_side P Q A B → one_side Q P A B
+| ⟨C, h₁, h₂⟩ := ⟨C, h₁.left_symm, h₂.left_symm⟩
+
 lemma one_side.not_col_left : one_side P Q A B → ¬ col A P Q
 | ⟨_, ⟨h, _⟩, _⟩ := h
 lemma one_side.not_col_right (h : one_side P Q A B) : ¬ col B P Q :=
 h.right_symm.not_col_left
+
+lemma one_side.col (h : one_side A B P Q) (nCD : C ≠ D) (CAB : col C A B) (DAB : col D A B) :
+  one_side C D P Q :=
+begin
+  obtain ⟨X, ABPX, ABQX⟩ := h,
+  exact ⟨X, ABPX.col nCD CAB DAB, ABQX.col nCD CAB DAB⟩,
+end
 
 -- 9.8
 lemma l9_8 (PQAC : two_sides P Q A C) :
@@ -318,7 +340,6 @@ begin
   obtain ⟨C, PQAC⟩ := l9_10 nAPQ,
   exact ⟨C, PQAC, PQAC⟩,
 end
-
 
 lemma one_side.trans (PQAB : one_side P Q A B) (PQBC : one_side P Q B C) :
   one_side P Q A C :=
@@ -398,6 +419,13 @@ begin
   intro h,
   exact ⟨nBXY, nCXY⟩,
 end
+
+lemma out.one_side (PAB : out P A B) (PXY : col P X Y) (nAXY : ¬ col A X Y) :
+  one_side X Y A B :=
+(l9_19 PXY PAB.col.rotate).2 ⟨PAB, nAXY⟩
+
+-- lemma l9_19 (PXY : col P X Y) (ABP : col A B P) :
+--   one_side X Y A B ↔ out P A B ∧ ¬ col A X Y :=
 
 -- lemma l9_31 (PQRS : one_side P Q R S) (PRQS : one_side P R Q S) :
 --   two_sides P S Q R :=

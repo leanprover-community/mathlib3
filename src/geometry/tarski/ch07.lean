@@ -51,6 +51,7 @@ begin
     (cong.pseudo_refl _ _) AB nAB.symm).comm,
 end
 
+-- l7_13
 lemma l7_13 (APP : midpoint A P' P) (AQQ : midpoint A Q' Q) :
   cong P Q P' Q' :=
 begin
@@ -132,7 +133,7 @@ begin
   { exact (or.inr ⟨AMB', MAMB.left_comm⟩) },
   have MAB := AMB.out_of_not_betw AMB',
   left,
-  apply l6_11_uniqueness MAB.2.1 MAB MAMB (out.trivial MAB.2.1) (cong.refl _ _),
+  apply l6_11_uniqueness MAB.2.1 MAB MAMB MAB.2.1.out (cong.refl _ _),
 end
 
 -- aka `l7_20_bis`

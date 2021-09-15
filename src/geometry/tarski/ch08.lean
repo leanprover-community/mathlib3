@@ -99,6 +99,13 @@ lemma per.of_col_of_col (AXC : per A X C) (nAX : A ≠ X) (nCX : C ≠ X)
   per U X V :=
 ((AXC.of_col UAX.symm nAX).symm.of_col VCX.symm nCX).symm
 
+lemma per.cong_of_midpoint (ABC : per A B C) (hC : midpoint B C C') : cong A C A C' :=
+begin
+  obtain ⟨C'', BCC, AC⟩ := ABC,
+  cases symmetric_point_uniqueness hC BCC,
+  apply AC
+end
+
 def perp_at (X A B C D : α) :=
 A ≠ B ∧ C ≠ D ∧ col X A B ∧ col X C D ∧ (∀ U V, col U A B → col V C D → per U X V)
 
@@ -208,6 +215,10 @@ begin
   refine ⟨T, nXY, nCD, col3 nAB TAB.rotate ABX ABY, TCD, λ U V UAB VCD, h _ _ _ VCD⟩,
   apply (col3 nXY (ABX.trans ABY nAB).rotate (ABX.trans' ABY nAB).rotate UAB.rotate).rotate',
 end
+
+lemma perp.col' (h : perp C D A B) (nXY : X ≠ Y) (ABX : col A B X) (ABY : col A B Y) :
+  perp C D X Y :=
+(h.symm.col nXY ABX ABY).symm
 
 -- lemma perp_col1 (nCX : C ≠ X) (ABCD : perp A B C D) (CDX : col C D X) :
 --   perp A B C X :=

@@ -75,7 +75,27 @@ end
 lemma l6_4 : out P A B ↔ col A P B ∧ ¬ betw A P B :=
 ⟨λ h, l6_4_1 h, λ ⟨h₁, h₂⟩, h₁.out_of_not_betw h₂⟩
 
-lemma out.trivial (nAP : A ≠ P) : out P A A :=
+-- not_out_bet
+lemma col.betw_of_not_out (ABC : col A B C) (BAC : ¬out B A C) : betw A B C :=
+by_contradiction (λ i, BAC (ABC.out_of_not_betw i))
+
+lemma out.betw_of_out (ABC : out A B C) (CAB : out C A B) : betw A B C :=
+((third_point (out.col ABC)).resolve_left (λ i, (l6_4_1 ABC).2 i.symm)).resolve_left (l6_4_1 CAB).2
+
+-- useful for angles later: ABC is 0, 180 or inbetween
+lemma betw_or_out_or_not_col (A B C : α) : betw A B C ∨ out B A C ∨ ¬ col A B C :=
+begin
+  by_cases h₁ : col A B C,
+  { by_cases h₂ : out B A C,
+    { apply or.inr (or.inl h₂) },
+    { apply or.inl (h₁.betw_of_not_out h₂) } },
+  { apply or.inr (or.inr h₁) },
+end
+
+lemma col.betw_or_out (ABC : col A B C) : betw A B C ∨ out B A C :=
+by simp [l6_4, ABC, em]
+
+lemma _root_.ne.out (nAP : A ≠ P) : out P A A :=
 ⟨nAP, nAP, or.inl (betw.id_right _ _)⟩
 
 -- l6_7
@@ -202,15 +222,8 @@ begin
   exact ⟨_, ABx₀⟩,
 end
 
-lemma out.betw_of_out (ABC : out A B C) (CAB : out C A B) : betw A B C :=
-((third_point (out.col ABC)).resolve_left (λ i, (l6_4_1 ABC).2 i.symm)).resolve_left (l6_4_1 CAB).2
-
 lemma bet2_le2_le1346 : betw A B C → betw A' B' C' → le A B A' B' → le B C B' C' → le A C A' C' :=
 λ h₁ h₂ h₃, betw.le_le h₁ h₂ h₃.comm
-
--- not_out_bet
-lemma col.betw_of_not_out (ABC : col A B C) (BAC : ¬out B A C) : betw A B C :=
-by_contradiction (λ i, BAC (ABC.out_of_not_betw i))
 
 -- cong_preserves_bet
 lemma betw.betw_of_out_cong {A₀ D₀} (BA'A₀ : betw B A' A₀) (ED'D₀ : out E D' D₀)

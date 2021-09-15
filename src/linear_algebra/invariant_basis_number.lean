@@ -109,7 +109,7 @@ begin
   { by_contra H,
     exact h m (f.comp (pi.extend_by_zero.linear_map R (fin.cast_le (not_le.1 H))))
       (function.injective.comp hf (function.extend_injective
-      (rel_embedding.injective (fin.cast_le (not_le.mp H))) 0 _)) }
+      (rel_embedding.injective (fin.cast_le (not_le.mp H))) 0)) }
 end
 
 /-- We say that `R` satisfies the rank condition if `(fin n → R) →ₗ[R] (fin m → R)` surjective

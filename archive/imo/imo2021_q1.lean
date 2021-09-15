@@ -40,8 +40,8 @@ finishes the proof.
 
 open real
 
-lemma lower_bound (n l : ℕ) (hl : 2 + sqrt (4 + 2 * n) ≤ 2 * (l : ℝ)) :
-  (n : ℕ) + 4 * l ≤ 2 * l * l :=
+lemma lower_bound (n l : ℕ) (hl : 2 + sqrt (4 + 2 * n) ≤ 2 * l) :
+  n + 4 * l ≤ 2 * l * l :=
 begin
   have h₁ : sqrt (4 + 2 * n) ≤ 2 * l - 2 := le_sub_iff_add_le'.mpr hl,
   replace h₁ := (sqrt_le_iff.1 h₁).2,
@@ -91,8 +91,8 @@ begin
       all_goals { norm_cast, linarith } },
 end
 
-/- We will later make use of the fact that there exists (l : ℕ) such that
-n ≤ 2 * l * l - 4 * l and 2 * l * l + 4 * l ≤ 2 * n for n ≥ 107. -/
+-- We will later make use of the fact that there exists (l : ℕ) such that
+-- n ≤ 2 * l * l - 4 * l and 2 * l * l + 4 * l ≤ 2 * n for n ≥ 107.
 lemma exists_numbers_in_interval (n : ℕ) (hn : 107 ≤ n): ∃ (l : ℕ),
   (n + 4 * l ≤ 2 * l * l ∧ 2 * l * l + 4 * l ≤ 2 * n) :=
 begin
@@ -123,8 +123,8 @@ begin
     exact radical_inequality hn },
   { rw hx,
     exact floor_le _ },
-  { rw [floor_nonneg, le_sub, sub_zero, le_sqrt],
-    all_goals { norm_cast, linarith } },
+  { rw [floor_nonneg, le_sub, sub_zero, le_sqrt];
+    { norm_cast, linarith } },
 end
 
 lemma exists_triplet_summing_to_squares (n : ℕ) (hn : 100 ≤ n):
@@ -151,69 +151,158 @@ begin
   { refine ⟨126, 163, 198, _, _, _, _,⟨17, _⟩, ⟨18, _⟩, 19, _⟩; linarith },
 end
 
--- We will need a lemma, stating that if a given number a ∈ [n, 2n]
--- does not belong to A ⊆ [n, 2n], then it belongs to [n, 2n] \ A.
-lemma finset.Ico.mem_compl_iff_nmem_subset {a n : ℕ} (A : finset ℕ)
-  (h : a ∈ finset.Ico n (2 * n + 1)) : a ∉ A ↔ a ∈ finset.Ico n (2 * n + 1) \ A :=
+-- Since it will be more convenient to work with sets later on, we will translate the above claim
+-- to state that there always exists a set B ⊆ [n, 2n] of cardinality at least 3, such that each
+-- pair of pairwise unequal elements of B sums to a perfect square.
+lemma exists_finset_of_3_leq_card_with_pairs_summing_to_squares (n : ℕ) (hn : 100 ≤ n) :
+  ∃ (B : finset ℕ), 2 * 1 + 1 ≤ B.card ∧ (∀ (a b ∈ B), a ≠ b →
+  ∃ (k : ℕ), a + b = k * k) ∧ ∀ (c ∈  B), n ≤ c ∧ (c : ℕ) ≤ 2 * n :=
 begin
-  rw finset.mem_sdiff,
-  split,
-  { intro ha,
-    exact ⟨h, ha⟩ },
-  { intro ha,
-    exact ha.2 },
+  have h := exists_triplet_summing_to_squares n hn,
+  rcases h with ⟨a, b, c, hna, hab, hbc, hcn, h₁, h₂, h₃⟩,
+  use {a, b, c},
+  refine ⟨_,_,_⟩,
+  { suffices : ({a, b, c} : finset ℕ).card = 3,
+    { linarith },
+    rw [finset.card_insert_of_not_mem, finset.card_insert_of_not_mem, finset.card_singleton],
+    { rw finset.mem_singleton,
+      exact hbc.ne },
+    { simp only [finset.mem_insert, finset.mem_singleton],
+      push_neg,
+      refine ⟨hab.ne, (hab.trans hbc).ne⟩ }},
+  { intros x y hx hy hxy,
+    simp only [finset.mem_insert, finset.mem_singleton] at hx,
+    simp only [finset.mem_insert, finset.mem_singleton] at hy,
+    rcases hx with (hxa | hxb | hxc),
+    { rcases hy with (hya | hyb | hyc),
+      { rw ← hya at hxa,
+        contradiction },
+      { convert h₁,
+        rw [hxa, hyb] },
+      { convert h₂,
+        rw [hxa, hyc, add_comm] }},
+    { rcases hy with (hya | hyb | hyc),
+      { convert h₁,
+        rw [hxb, hya, add_comm] },
+      { rw ← hyb at hxb,
+        contradiction },
+      { convert h₃,
+        rw [hxb, hyc] }},
+    { rcases hy with (hya | hyb | hyc),
+      { convert h₂,
+        rw [hxc, hya] },
+      { convert h₃,
+        rw [hxc, hyb, add_comm] },
+      { rw ← hyc at hxc,
+        contradiction }}},
+  { intros d hd,
+    simp only [finset.mem_insert, finset.mem_singleton] at hd,
+    split,
+    { rcases hd with (hd | hd | hd);
+      { linarith }},
+    { rcases hd with (hd | hd | hd);
+      { linarith }}},
 end
+
+-- If for n ∈ ℕ, and finite sets B, X, Y such that B ⊆ X ∪ Y and B has cardinality at least
+-- 2 * n + 1, then there exists a subset C ⊆ A of cardinality at least n + 1, which is entirely
+-- contained in X or Y. For our result, we will apply this lemma with n = 1 and any X such that
+-- X ⊆ [n, 2n] and Y = [n, 2n] \ X, while we'll let B ⊆ [n, 2n] be the subset such that each
+-- pairwise unequal pair of B sums to a perfect square.
+lemma finset_subset_or_complement_cardinality {α : Type*} [decidable_eq α] (B X Y : finset α)
+(h : B ⊆ X ∪ Y) {n : ℕ} (hB : 2 * n + 1 ≤ B.card) :
+  (∃ C, C ⊆ B ∧ C ⊆ X ∧ n + 1 ≤ C.card) ∨ (∃ C, C ⊆ B ∧ C ⊆ Y ∧ n + 1 ≤ C.card) :=
+begin
+  by_contra h,
+  push_neg at h,
+  cases h with h₁ h₂,
+  have h₃: B \ (Y \ X) ⊆ B := finset.sdiff_subset B (Y \ X),
+  have h₄: B \ (Y \ X) ⊆ X,
+  { have : B \ (Y \ X) ⊆ (X ∪ Y) \ (Y \ X) := finset.sdiff_subset_sdiff h (finset.subset.refl (Y \ X)),
+    apply finset.subset.trans this,
+    intros i hi,
+    simp only [not_and, not_not, finset.mem_sdiff, finset.mem_union] at hi,
+    cases hi with hi₁ hi₂,
+    cases hi₁,
+    { exact hi₁ },
+    { exact hi₂ hi₁ }},
+  have h₅ : B \ (X \ Y) ⊆ B := finset.sdiff_subset B (X \ Y),
+  have h₆: B \ (X \ Y) ⊆ Y,
+  { have : B \ (X \ Y) ⊆ (X ∪ Y) \ (X \ Y) := finset.sdiff_subset_sdiff h (finset.subset.refl (X \ Y)),
+    apply finset.subset.trans this,
+    intros i hi,
+    simp only [not_and, not_not, finset.mem_sdiff, finset.mem_union] at hi,
+    cases hi with hi₁ hi₂,
+    cases hi₁,
+    { exact hi₂ hi₁ },
+    { exact hi₁ }},
+  specialize h₁ (B \ (Y \ X)) h₃ h₄,
+  specialize h₂ (B \ (X \ Y)) h₅ h₆,
+  have h₇ : B ⊆ B \ (Y \ X) ∪ B \ (X \ Y),
+  { intros i hi,
+    simp only [not_and, not_not, finset.mem_sdiff, finset.mem_union],
+    have h₈ : i ∈ X ∨ i ∈ Y := finset.mem_union.mp (h hi),
+    cases h₈,
+    { left,
+      refine ⟨hi,_⟩,
+      { intro,
+        exact h₈ } },
+    { right,
+      refine ⟨hi,_⟩,
+      { intro,
+        exact h₈ }}},
+  replace h₇ := finset.card_le_of_subset h₇,
+  have h₉ : B.card ≤  2 * n,
+  { apply le_trans h₇ _,
+    apply le_trans ((B \ (Y \ X)).card_union_le (B \ (X \ Y))) _,
+    linarith },
+  linarith,
+end
+
+lemma finset_two_le_card_exists_pair_neq (C : finset ℕ) (hC : 2 ≤ C.card) :
+  ∃ (a b ∈ C), a ≠ b :=
+begin
+  by_contra hab,
+  push_neg at hab,
+  rw ← finset.card_le_one_iff at hab,
+  linarith,
+end
+
 
 theorem IMO_2021_Q1 : ∀ (n : ℕ), 100 ≤ n → ∀ (A ⊆ finset.Ico n (2 * n + 1)),
   (∃ (a b ∈ A), a ≠ b ∧ ∃ (k : ℕ), a + b = k * k) ∨
   (∃ (a b ∈ finset.Ico n (2 * n + 1) \ A), a ≠ b ∧ ∃ (k : ℕ), a + b = k * k) :=
 begin
   intros n hn A hA,
-  -- There exists a pairwise unequal triplet a, b, c ∈ ℕ
-  -- such that all pairwise sums are perfect squares.
-  have p := exists_triplet_summing_to_squares n hn,
-  rcases p with ⟨a, b, c, hna, hab, hbc, hcn, p⟩,
-  -- Now, we will show that indeed a, b, c ∈ [n, 2n]
-  have ha : a ∈ finset.Ico n (2 * n + 1),
-  { rw finset.Ico.mem,
-    split;
-    linarith },
-  have hb : b ∈ finset.Ico n (2 * n + 1),
-  { rw finset.Ico.mem,
-    split;
-    linarith },
-  have hc : c ∈ finset.Ico n (2 * n + 1),
-  { rw finset.Ico.mem,
-    split;
-    linarith },
-  -- Consider by cases based on whether each of {a, b, c} belongs to the 'first pile' A or not.
-  -- In each case, we can find two members of the triplet in the same pile, as required.
-  by_cases h₁: a ∈ A,
-  { by_cases h₂: b ∈ A,
-    { left,
-      refine ⟨a, b, h₁, h₂, _, p.1⟩,
-      exact ne_of_lt hab },
-    { by_cases h₃ : c ∈ A,
-      { left,
-        refine ⟨c, a, h₃, h₁, _, p.2.1⟩,
-        linarith },
-      { rw finset.Ico.mem_compl_iff_nmem_subset A hb at h₂,
-        rw finset.Ico.mem_compl_iff_nmem_subset A hc at h₃,
-        right,
-        refine ⟨b, c, h₂, h₃, _, p.2.2⟩,
-        exact ne_of_lt hbc }}},
-  { rw finset.Ico.mem_compl_iff_nmem_subset A ha at h₁,
-    by_cases h₂ : b ∈ A,
-    { by_cases h₃ : c ∈ A,
-      { left,
-        refine ⟨b, c, h₂, h₃, _, p.2.2⟩,
-        linarith },
-      { rw finset.Ico.mem_compl_iff_nmem_subset A hc at h₃,
-        right,
-        refine ⟨c, a, h₃, h₁, _, p.2.1⟩,
-        linarith }},
-      { rw finset.Ico.mem_compl_iff_nmem_subset A hb at h₂,
-        right,
-        refine ⟨a, b, h₁, h₂, _, p.1⟩,
-        linarith }},
+  -- For each n ∈ ℕ such that 100 ≤ n, there exists a pairwise unequal triplet {a, b, c} ⊆ [n, 2n]
+  -- such that all pairwise sums are perfect squares. In practice, it will be easier to use
+  -- a finite set B ⊆ [n, 2n] such that all pairwise unequal pairs of B sum to a perfect square
+  -- noting that B has cardinality greater or equal to 3, by the explicit construction of the
+  -- triplet {a, b, c} before.
+  have hp₁ := exists_finset_of_3_leq_card_with_pairs_summing_to_squares n hn,
+  rcases hp₁ with ⟨B,⟨hB,h₁, h₂⟩⟩,
+  have hBA : B ⊆ (finset.Ico n (2 * n + 1) \ A) ∪ A,
+  { rw finset.sdiff_union_of_subset hA,
+    intros c hc,
+    simp only [finset.Ico.mem],
+    refine ⟨(h₂ c hc).1, _⟩,
+    { replace h₂ := (h₂ c hc).2,
+      exact nat.lt_succ_iff.mpr h₂ }},
+  -- Since B has cardinality greater or equal to 3, there must exist a subset C ⊆ B such that
+  -- for any A ⊆ [n, 2n], either C ⊆ A or C ⊆ [n, 2n] \ A and C has cardinality greater
+  -- or equal to 2.
+  have hp₂ := finset_subset_or_complement_cardinality B (finset.Ico n (2 * n + 1) \ A) A hBA hB,
+  rcases hp₂ with (⟨C, hCB, hCA, hC⟩ | ⟨C, hCB, hCA, hC⟩),
+  -- First, we deal with the case when C ⊆ [n, 2n] \ A.
+  { right,
+    norm_num at hC,
+    have hab := finset_two_le_card_exists_pair_neq C hC,
+    rcases hab with ⟨a, b, ha, hb, hab⟩,
+    refine ⟨a, b, hCA ha, hCA hb, hab, h₁ a b (hCB ha) (hCB hb) hab⟩ },
+  -- Then, we finish the proof in the case when C ⊆ A.
+  { left,
+    norm_num at hC,
+    have hab := finset_two_le_card_exists_pair_neq C hC,
+    rcases hab with ⟨a, b, ha, hb, hab⟩,
+    refine ⟨a, b, hCA ha, hCA hb, hab, h₁ a b (hCB ha) (hCB hb) hab⟩ },
 end

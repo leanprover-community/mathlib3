@@ -383,6 +383,23 @@ begin
   exact lt_trans (lt_add_one _) hlt,
 end
 
+lemma le_nth_of_lt_nth_succ_infinite {k a : ℕ} (i : (set_of p).infinite)
+  (h : a < nth p k.succ) (hp : p a) :
+  a ≤ (nth p) k :=
+begin
+  by_contra hak,
+  push_neg at hak,
+  refine lt_le_antisymm h _,
+  rw nth,
+  apply nat.Inf_le,
+  rw set.mem_set_of_eq,
+  refine ⟨hp, _⟩,
+  intros n hn,
+  refine lt_of_le_of_lt _ hak,
+  apply nth_monotone_of_infinite p i,
+  exact lt_succ_iff.mp hn,
+end
+
 section count
 variables [decidable_pred p]
 
@@ -734,6 +751,7 @@ When `p` is true infinitely often, `nth` agrees with `nat.subtype.order_iso_of_n
 lemma nth_eq_order_iso_of_nat [decidable_pred p] (i : infinite (set_of p)) (n : ℕ) :
   nth p n = nat.subtype.order_iso_of_nat (set_of p) n :=
 begin
+  have hi: (set_of p).infinite := set.infinite_coe_iff.mp i,
   induction n with k;
   simp [subtype.order_iso_of_nat_apply, subtype.of_nat],
   { rw [subtype.semilattice_sup_bot_bot_apply, nth_zero_of_exists] },
@@ -744,8 +762,22 @@ begin
     have hb: p (↑(subtype.of_nat (set_of p) k) + b + 1),
     { rw defb,
       rw ← n_ih,
-      sorry,
-    },
+      rw sub_right_comm',
+      have hn11: nth p k.succ - 1 + 1 = nth p k.succ,
+      { rw sub_add_cancel_iff_le,
+        apply succ_le_of_lt,
+        apply pos_of_gt,
+        apply nth_strict_mono_of_infinite p hi,
+        exact lt_add_one k, },
+      rw add_sub_cancel_of_le,
+      { rw hn11,
+        apply nth_mem_of_infinite p hi, },
+      { rw ← lt_succ_iff,
+        rw ← nat.add_one,
+        rw hn11,
+        apply nth_strict_mono_of_infinite p hi,
+        exact lt_add_one k,
+      }, },
     have H: (∃ n: ℕ , p (↑(subtype.of_nat (set_of p) k) + n + 1)),
     { use b,
       exact hb, },
@@ -754,6 +786,9 @@ begin
     rw ← ht,
     erw nat.find_eq_iff at ht,
     cases ht with hp hmin,
+    rw ← ht' at hp hmin,
+    rw ← n_ih at hp hmin,
+    rw ← n_ih,
     rw nth,
     rw Inf_def,
     erw nat.find_eq_iff,
@@ -761,22 +796,46 @@ begin
     { simp,
       split,
       { convert hp using 1, },
-      { intros k hk,
-        sorry,
-      }, },
+      { intros r hr,
+        rw lt_succ_iff,
+        rw lt_succ_iff at hr,
+        apply le_trans,
+        { apply nth_monotone_of_infinite p hi hr, },
+        simp only [forall_false_left, nat.not_lt_zero, forall_const, le_add_iff_nonneg_right,
+        le_find_iff], }, },
     intros n hn,
     simp,
     intros hpn,
     use k,
     split,
     { exact lt_add_one k},
-    { sorry, },
+    { by_contra hlt,
+      simp at hlt,
+      apply hmin,
+      have hnlt: n - nth p k - 1 < t,
+      { rw sub_lt_iff_left,
+        { rw sub_lt_iff_left,
+          { rw add_assoc at hn,
+            convert hn using 2,
+            rw add_comm, },
+          apply le_of_lt hlt, },
+        apply add_le_cancellable.le_sub_of_add_le_left,
+        { exact contravariant.add_le_cancellable,},
+        { exact hlt, }, },
+      apply hnlt,
+      convert hpn,
+      rw sub_right_comm',
+      have hn11:  n - 1 + 1 = n,
+      { rw sub_add_cancel_iff_le,
+        have hpos: 0 < n := pos_of_gt hlt,
+        exact hpos, },
+      rw add_sub_cancel_of_le,
+      { exact hn11, },
+      { rw ← hn11 at hlt,
+        exact lt_succ_iff.mp hlt, }, },
     use nth p k.succ,
     apply nth_mem_of_infinite_aux,
-    convert i,
-    simp,
-    sorry,
-  }
+    apply hi, },
 end
 
 end count

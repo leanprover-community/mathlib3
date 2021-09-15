@@ -33,6 +33,14 @@ structure add_units (α : Type u) [add_monoid α] :=
 
 attribute [to_additive add_units] units
 
+section has_elem
+
+@[to_additive] lemma unique_has_one {α : Type*} [unique α] [has_one α] :
+  default α = 1 :=
+unique.default_eq 1
+
+end has_elem
+
 namespace units
 
 variables [monoid α]
@@ -325,10 +333,10 @@ by cases ha with a ha; rw [←ha, units.mul_left_inj]
 
 /-- The element of the group of units, corresponding to an element of a monoid which is a unit. -/
 noncomputable def is_unit.unit [monoid M] {a : M} (h : is_unit a) : units M :=
-classical.some h
+(classical.some h).copy a (classical.some_spec h).symm _ rfl
 
 lemma is_unit.unit_spec [monoid M] {a : M} (h : is_unit a) : ↑h.unit = a :=
-classical.some_spec h
+rfl
 
 end is_unit
 

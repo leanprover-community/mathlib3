@@ -213,11 +213,23 @@ hf.piecewise hs measurable_const
 @[to_additive]
 lemma measurable_one [has_one α] : measurable (1 : β → α) := @measurable_const _ _ _ _ 1
 
-lemma measurable_of_not_nonempty  (h : ¬ nonempty α) (f : α → β) : measurable f :=
+lemma measurable_of_empty [is_empty α] (f : α → β) : measurable f :=
 begin
   assume s hs,
   convert measurable_set.empty,
-  exact eq_empty_of_not_nonempty h _,
+  exact eq_empty_of_is_empty _,
+end
+
+lemma measurable_of_empty_codomain [is_empty β] (f : α → β) : measurable f :=
+by { haveI := function.is_empty f, exact measurable_of_empty f }
+
+/-- A version of `measurable_const` that assumes `f x = f y` for all `x, y`. This version works
+for functions between empty types. -/
+lemma measurable_const' {f : β → α} (hf : ∀ x y, f x = f y) : measurable f :=
+begin
+  casesI is_empty_or_nonempty β,
+  { exact measurable_of_empty f },
+  { convert measurable_const, exact funext (λ x, hf x h.some) }
 end
 
 @[to_additive, measurability] lemma measurable_set_mul_support [has_one β]
@@ -887,10 +899,10 @@ class is_measurably_generated (f : filter α) : Prop :=
 (exists_measurable_subset : ∀ ⦃s⦄, s ∈ f → ∃ t ∈ f, measurable_set t ∧ t ⊆ s)
 
 instance is_measurably_generated_bot : is_measurably_generated (⊥ : filter α) :=
-⟨λ _ _, ⟨∅, mem_bot_sets, measurable_set.empty, empty_subset _⟩⟩
+⟨λ _ _, ⟨∅, mem_bot, measurable_set.empty, empty_subset _⟩⟩
 
 instance is_measurably_generated_top : is_measurably_generated (⊤ : filter α) :=
-⟨λ s hs, ⟨univ, univ_mem_sets, measurable_set.univ, λ x _, hs x⟩⟩
+⟨λ s hs, ⟨univ, univ_mem, measurable_set.univ, λ x _, hs x⟩⟩
 
 lemma eventually.exists_measurable_mem {f : filter α} [is_measurably_generated f]
   {p : α → Prop} (h : ∀ᶠ x in f, p x) :
@@ -909,11 +921,11 @@ instance inf_is_measurably_generated (f g : filter α) [is_measurably_generated 
   is_measurably_generated (f ⊓ g) :=
 begin
   refine ⟨_⟩,
-  rintros t ⟨sf, hsf, sg, hsg, ht⟩,
+  rintros t ⟨sf, hsf, sg, hsg, rfl⟩,
   rcases is_measurably_generated.exists_measurable_subset hsf with ⟨s'f, hs'f, hmf, hs'sf⟩,
   rcases is_measurably_generated.exists_measurable_subset hsg with ⟨s'g, hs'g, hmg, hs'sg⟩,
-  refine ⟨s'f ∩ s'g, inter_mem_inf_sets hs'f hs'g, hmf.inter hmg, _⟩,
-  exact subset.trans (inter_subset_inter hs'sf hs'sg) ht
+  refine ⟨s'f ∩ s'g, inter_mem_inf hs'f hs'g, hmf.inter hmg, _⟩,
+  exact inter_subset_inter hs'sf hs'sg
 end
 
 lemma principal_is_measurably_generated_iff {s : set α} :
@@ -933,15 +945,15 @@ instance infi_is_measurably_generated {f : ι → filter α} [∀ i, is_measurab
   is_measurably_generated (⨅ i, f i) :=
 begin
   refine ⟨λ s hs, _⟩,
-  rw [← equiv.plift.surjective.infi_comp, mem_infi_iff] at hs,
-  rcases hs with ⟨t, ht, ⟨V, hVf, hVs⟩⟩,
+  rw [← equiv.plift.surjective.infi_comp, mem_infi] at hs,
+  rcases hs with ⟨t, ht, ⟨V, hVf, rfl⟩⟩,
   choose U hUf hU using λ i, is_measurably_generated.exists_measurable_subset (hVf i),
   refine ⟨⋂ i : t, U i, _, _, _⟩,
-  { rw [← equiv.plift.surjective.infi_comp, mem_infi_iff],
-    refine ⟨t, ht, U, hUf, subset.refl _⟩ },
+  { rw [← equiv.plift.surjective.infi_comp, mem_infi],
+    refine ⟨t, ht, U, hUf, rfl⟩ },
   { haveI := ht.countable.to_encodable,
     refine measurable_set.Inter (λ i, (hU i).1) },
-  { exact subset.trans (Inter_subset_Inter $ λ i, (hU i).2) hVs }
+  { exact Inter_subset_Inter (λ i, (hU i).2) }
 end
 
 end filter

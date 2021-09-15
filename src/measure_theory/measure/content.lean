@@ -260,7 +260,7 @@ end
 lemma outer_measure_exists_open {A : set G} (hA : μ.outer_measure A < ∞) {ε : ℝ≥0} (hε : 0 < ε) :
   ∃ U : opens G, A ⊆ U ∧ μ.outer_measure U ≤ μ.outer_measure A + ε :=
 begin
-  rcases induced_outer_measure_exists_set _ _ μ.inner_content_mono hA hε with ⟨U, hU, h2U, h3U⟩,
+  rcases induced_outer_measure_exists_set _ _ μ.inner_content_mono hA.ne hε with ⟨U, hU, h2U, h3U⟩,
   exact ⟨⟨U, hU⟩, h2U, h3U⟩, swap, exact μ.inner_content_Union_nat
 end
 

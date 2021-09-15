@@ -198,8 +198,20 @@ def as_exterior : clifford_algebra (0 : quadratic_form R M) ≃ₐ[R] exterior_a
 alg_equiv.of_alg_hom
   (clifford_algebra.lift 0 ⟨(exterior_algebra.ι R), by simp⟩)
   (exterior_algebra.lift R ⟨(ι (0 : quadratic_form R M)), by simp⟩)
-  (by { ext, simp, })
-  (by { ext, simp, })
+  (exterior_algebra.hom_ext $ linear_map.ext $ by simp)
+  (clifford_algebra.hom_ext $ linear_map.ext $ by simp)
+
+/-- The symmetric product of vectors is a scalar -/
+lemma ι_mul_ι_add_swap (a b : M) :
+  ι Q a * ι Q b + ι Q b * ι Q a = algebra_map R _ (quadratic_form.polar Q a b) :=
+calc  ι Q a * ι Q b + ι Q b * ι Q a
+    = ι Q (a + b) * ι Q (a + b) - ι Q a * ι Q a - ι Q b * ι Q b :
+        by { rw [(ι Q).map_add, mul_add, add_mul, add_mul], abel, }
+... = algebra_map R _ (Q (a + b)) - algebra_map R _ (Q a) - algebra_map R _ (Q b) :
+        by rw [ι_sq_scalar, ι_sq_scalar, ι_sq_scalar]
+... = algebra_map R _ (Q (a + b) - Q a - Q b) :
+        by rw [←ring_hom.map_sub, ←ring_hom.map_sub]
+... = algebra_map R _ (quadratic_form.polar Q a b) : rfl
 
 section map
 

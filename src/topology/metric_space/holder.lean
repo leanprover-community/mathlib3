@@ -56,7 +56,7 @@ def holder_on_with (C r : ℝ≥0) (f : X → Y) (s : set X) : Prop :=
 λ x hx, hx.elim
 
 @[simp] lemma holder_on_with_singleton (C r : ℝ≥0) (f : X → Y) (x : X) : holder_on_with C r f {x} :=
-by { rintro a (rfl : a = x) b (rfl : b = a), rw edist_self, exact zero_le _  }
+by { rintro a (rfl : a = x) b (rfl : b = a), rw edist_self, exact zero_le _ }
 
 lemma set.subsingleton.holder_on_with {s : set X} (hs : s.subsingleton) (C r : ℝ≥0) (f : X → Y) :
   holder_on_with C r f s :=

@@ -3,7 +3,7 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Yury Kudriashov
 -/
-import analysis.convex.basic
+import analysis.convex.combination
 import analysis.normed_space.finite_dimension
 import topology.path_connected
 
@@ -28,6 +28,7 @@ We prove the following facts:
 variables {ι : Type*} {E : Type*}
 
 open set
+open_locale pointwise
 
 lemma real.convex_iff_is_preconnected {s : set ℝ} : convex s ↔ is_preconnected s :=
 real.convex_iff_ord_connected.trans is_preconnected_iff_ord_connected.symm

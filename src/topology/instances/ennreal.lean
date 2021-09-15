@@ -209,14 +209,14 @@ begin
     have xb_pos : x - b > 0 := zero_lt_sub_iff_lt.2 bx,
     have xxb : x - (x - b) = b := sub_sub_cancel (by rwa lt_top_iff_ne_top) (le_of_lt bx),
     refine infi_le_of_le (x - b) (infi_le_of_le xb_pos _),
-    simp only [mem_principal_sets, le_principal_iff],
+    simp only [mem_principal, le_principal_iff],
     assume y, rintros ⟨h₁, h₂⟩, rw xxb at h₁, calc a < b : ab ... ≤ y : h₁ },
   { rw ha at *,
     rcases exists_between xs with ⟨b, ⟨xb, ba⟩⟩,
     have bx_pos : b - x > 0 := zero_lt_sub_iff_lt.2 xb,
     have xbx : x + (b - x) = b := add_sub_cancel_of_le (le_of_lt xb),
     refine infi_le_of_le (b - x) (infi_le_of_le bx_pos _),
-    simp only [mem_principal_sets, le_principal_iff],
+    simp only [mem_principal, le_principal_iff],
     assume y, rintros ⟨h₁, h₂⟩, rw xbx at h₂, calc y ≤ b : h₂ ... < a : ba },
 end
 
@@ -334,12 +334,11 @@ begin
     rw [H.2, mul_zero, ← bot_eq_zero, infi_eq_bot],
     exact λ b hb, ⟨i, by rwa [hi, mul_zero, ← bot_eq_zero]⟩ },
   { rw not_and_distrib at H,
-    by_cases hι : nonempty ι,
-    { resetI,
-      exact (map_infi_of_continuous_at_of_monotone' (ennreal.continuous_at_const_mul H)
-        ennreal.mul_left_mono).symm },
-    { rw [infi_of_empty hι, infi_of_empty hι, mul_top, if_neg],
-      exact mt h0 hι } }
+    casesI is_empty_or_nonempty ι,
+    { rw [infi_of_empty, infi_of_empty, mul_top, if_neg],
+      exact mt h0 (not_nonempty_iff.2 ‹_›) },
+    { exact (map_infi_of_continuous_at_of_monotone' (ennreal.continuous_at_const_mul H)
+        ennreal.mul_left_mono).symm } }
 end
 
 lemma infi_mul_left {ι} [nonempty ι] {f : ι → ℝ≥0∞} {a : ℝ≥0∞}
@@ -479,7 +478,7 @@ begin
   { simp [@nhds_coe a, tendsto_map'_iff, (∘), tendsto_coe, coe_sub.symm],
     exact tendsto_const_nhds.sub tendsto_id },
   simp,
-  exact (tendsto.congr' (mem_sets_of_superset (lt_mem_nhds $ @coe_lt_top r) $
+  exact (tendsto.congr' (mem_of_superset (lt_mem_nhds $ @coe_lt_top r) $
     by simp [le_of_lt] {contextual := tt})) tendsto_const_nhds
 end
 
@@ -871,21 +870,20 @@ end ennreal
 lemma tsum_comp_le_tsum_of_inj {β : Type*} {f : α → ℝ} (hf : summable f) (hn : ∀ a, 0 ≤ f a)
   {i : β → α} (hi : function.injective i) : tsum (f ∘ i) ≤ tsum f :=
 begin
-  let g : α → ℝ≥0 := λ a, ⟨f a, hn a⟩,
-  have hg : summable g, by rwa ← nnreal.summable_coe,
-  convert nnreal.coe_le_coe.2 (nnreal.tsum_comp_le_tsum_of_inj hg hi);
-  { rw nnreal.coe_tsum, congr }
+  lift f to α → ℝ≥0 using hn,
+  rw nnreal.summable_coe at hf,
+  simpa only [(∘), ← nnreal.coe_tsum] using nnreal.tsum_comp_le_tsum_of_inj hf hi
 end
 
 /-- Comparison test of convergence of series of non-negative real numbers. -/
 lemma summable_of_nonneg_of_le {f g : β → ℝ}
   (hg : ∀b, 0 ≤ g b) (hgf : ∀b, g b ≤ f b) (hf : summable f) : summable g :=
-let f' (b : β) : ℝ≥0 := ⟨f b, le_trans (hg b) (hgf b)⟩ in
-let g' (b : β) : ℝ≥0 := ⟨g b, hg b⟩ in
-have summable f', from nnreal.summable_coe.1 hf,
-have summable g', from
-  nnreal.summable_of_le (assume b, (@nnreal.coe_le_coe (g' b) (f' b)).2 $ hgf b) this,
-show summable (λb, g' b : β → ℝ), from nnreal.summable_coe.2 this
+begin
+  lift f to β → ℝ≥0 using λ b, (hg b).trans (hgf b),
+  lift g to β → ℝ≥0 using hg,
+  rw nnreal.summable_coe at hf ⊢,
+  exact nnreal.summable_of_le (λ b, nnreal.coe_le_coe.1 (hgf b)) hf
+end
 
 /-- A series of non-negative real numbers converges to `r` in the sense of `has_sum` if and only if
 the sequence of partial sum converges to `r`. -/
@@ -1027,7 +1025,7 @@ begin
   show ∀e, e < f x → ∀ᶠ y in 𝓝 x, e < f y,
   { assume e he,
     let ε := min (f x - e) 1,
-    have : ε < ⊤ := lt_of_le_of_lt (min_le_right _ _) (by simp [lt_top_iff_ne_top]),
+    have : ε ≠ ⊤ := ne_top_of_le_ne_top ennreal.coe_ne_top (min_le_right _ _),
     have : 0 < ε := by simp [ε, hC, he, ennreal.zero_lt_one],
     have : 0 < C⁻¹ * (ε/2) := bot_lt_iff_ne_bot.2 (by simp [hC, (ne_of_lt this).symm, mul_eq_zero]),
     have I : C * (C⁻¹ * (ε/2)) < ε,
@@ -1035,7 +1033,7 @@ begin
       { simp [C_zero, ‹0 < ε›] },
       { calc C * (C⁻¹ * (ε/2)) = (C * C⁻¹) * (ε/2) : by simp [mul_assoc]
         ... = ε/2 : by simp [ennreal.mul_inv_cancel C_zero hC]
-        ... < ε : ennreal.half_lt_self (‹0 < ε›.ne') (‹ε < ⊤›.ne) }},
+        ... < ε : ennreal.half_lt_self (‹0 < ε›.ne') (‹ε ≠ ⊤›) }},
     have : ball x (C⁻¹ * (ε/2)) ⊆ {y : α | e < f y},
     { rintros y hy,
       by_cases htop : f y = ⊤,
@@ -1048,10 +1046,9 @@ begin
           ... = f y + C * edist y x : by simp [edist_comm]
           ... ≤ f y + C * (C⁻¹ * (ε/2)) :
             add_le_add_left (mul_le_mul_left' (le_of_lt hy) _) _
-          ... < f y + ε : (ennreal.add_lt_add_iff_left (lt_top_iff_ne_top.2 htop)).2 I,
-        show e < f y, from
-          (ennreal.add_lt_add_iff_right ‹ε < ⊤›).1 this }},
-    apply filter.mem_sets_of_superset (ball_mem_nhds _ (‹0 < C⁻¹ * (ε/2)›)) this },
+          ... < f y + ε : (ennreal.add_lt_add_iff_left htop).2 I,
+        show e < f y, from (ennreal.add_lt_add_iff_right ‹ε ≠ ⊤›).1 this }},
+    apply filter.mem_of_superset (ball_mem_nhds _ (‹0 < C⁻¹ * (ε/2)›)) this },
   show ∀e, f x < e → ∀ᶠ y in 𝓝 x, f y < e,
   { assume e he,
     let ε := min (e - f x) 1,
@@ -1071,10 +1068,10 @@ begin
         f y ≤ f x + C * edist y x : h y x
         ... ≤ f x + C * (C⁻¹ * (ε/2)) :
             add_le_add_left (mul_le_mul_left' (le_of_lt hy) _) _
-        ... < f x + ε : (ennreal.add_lt_add_iff_left (lt_top_iff_ne_top.2 htop)).2 I
+        ... < f x + ε : (ennreal.add_lt_add_iff_left htop).2 I
         ... ≤ f x + (e - f x) : add_le_add_left (min_le_left _ _) _
         ... = e : by simp [le_of_lt he] },
-    apply filter.mem_sets_of_superset (ball_mem_nhds _ (‹0 < C⁻¹ * (ε/2)›)) this },
+    apply filter.mem_of_superset (ball_mem_nhds _ (‹0 < C⁻¹ * (ε/2)›)) this },
 end
 
 theorem continuous_edist : continuous (λp:α×α, edist p.1 p.2) :=

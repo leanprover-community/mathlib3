@@ -1826,6 +1826,30 @@ lemma is_countably_spanning_spanning_sets (μ : measure α) [sigma_finite μ] :
   is_countably_spanning (range (spanning_sets μ)) :=
 ⟨spanning_sets μ, mem_range_self, Union_spanning_sets μ⟩
 
+/-- `spanning_sets_index μ x` is the least `n : ℕ` such that `x ∈ spanning_sets μ n`. -/
+def spanning_sets_index (μ : measure α) [sigma_finite μ] (x : α) : ℕ :=
+nat.find $ Union_eq_univ_iff.1 (Union_spanning_sets μ) x
+
+lemma measurable_spanning_sets_index (μ : measure α) [sigma_finite μ] :
+  measurable (spanning_sets_index μ) :=
+measurable_find _ $ measurable_spanning_sets μ
+
+lemma preimage_spanning_sets_index_singleton (μ : measure α) [sigma_finite μ] (n : ℕ) :
+  spanning_sets_index μ ⁻¹' {n} = disjointed (spanning_sets μ) n :=
+preimage_find_eq_disjointed _ _ _
+
+lemma spanning_sets_index_eq_iff (μ : measure α) [sigma_finite μ] {x : α} {n : ℕ} :
+  spanning_sets_index μ x = n ↔ x ∈ disjointed (spanning_sets μ) n :=
+by convert set.ext_iff.1 (preimage_spanning_sets_index_singleton μ n) x
+
+lemma mem_disjointed_spanning_sets_index (μ : measure α) [sigma_finite μ] (x : α) :
+  x ∈ disjointed (spanning_sets μ) (spanning_sets_index μ x) :=
+(spanning_sets_index_eq_iff μ).1 rfl
+
+lemma mem_spanning_sets_index (μ : measure α) [sigma_finite μ] (x : α) :
+  x ∈ spanning_sets μ (spanning_sets_index μ x) :=
+disjointed_subset _ _ (mem_disjointed_spanning_sets_index μ x)
+
 omit m0
 
 namespace measure

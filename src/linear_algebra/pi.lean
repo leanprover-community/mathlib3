@@ -337,7 +337,8 @@ section extend
 variables (R) {η : Type x} [semiring R] (s : ι → η)
 
 /-- `function.extend s f 0` as a bundled linear map. -/
-noncomputable def pi.extend_by_zero.linear_map  : (ι → R) →ₗ[R] (η → R) :=
+@[simps]
+noncomputable def pi.extend_by_zero.linear_map : (ι → R) →ₗ[R] (η → R) :=
 { to_fun := λ f, function.extend s f 0,
   map_smul' := λ r f, by { simpa using function.extend_smul r s f 0 },
   ..function.extend_by_zero.add_hom R s }

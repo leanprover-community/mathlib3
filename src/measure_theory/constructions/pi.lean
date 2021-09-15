@@ -328,7 +328,7 @@ def finite_spanning_sets_in.pi {C : Π i, set (set (α i))}
   (hμ : ∀ i, (μ i).finite_spanning_sets_in (C i)) (hC : ∀ i (s ∈ C i), measurable_set s) :
   (measure.pi μ).finite_spanning_sets_in (pi univ '' pi univ C) :=
 begin
-  haveI := λ i, (hμ i).sigma_finite (hC i),
+  haveI := λ i, (hμ i).sigma_finite,
   haveI := fintype.encodable ι,
   let e : ℕ → (ι → ℕ) := λ n, (decode (ι → ℕ) n).iget,
   refine ⟨λ n, pi univ (λ i, (hμ i).set (e n i)), λ n, _, λ n, _, _⟩,
@@ -356,7 +356,7 @@ begin
     (is_pi_system.pi h2C) _,
   rintro _ ⟨s, hs, rfl⟩,
   rw [mem_univ_pi] at hs,
-  haveI := λ i, (h3C i).sigma_finite (h4C i),
+  haveI := λ i, (h3C i).sigma_finite,
   simp_rw [h₁ s hs, pi_pi μ s (λ i, h4C i _ (hs i))]
 end
 
@@ -374,8 +374,7 @@ pi_eq_generate_from (λ i, generate_from_measurable_set)
 variable (μ)
 
 instance pi.sigma_finite : sigma_finite (measure.pi μ) :=
-⟨⟨(finite_spanning_sets_in.pi (λ i, (μ i).to_finite_spanning_sets_in) (λ _ _, id)).mono $
-  by { rintro _ ⟨s, hs, rfl⟩, exact measurable_set.pi_fintype hs }⟩⟩
+(finite_spanning_sets_in.pi (λ i, (μ i).to_finite_spanning_sets_in) (λ _ _, id)).sigma_finite
 
 lemma pi_eval_preimage_null {i : ι} {s : set (α i)} (hs : μ i s = 0) :
   measure.pi μ (eval i ⁻¹' s) = 0 :=

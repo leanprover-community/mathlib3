@@ -221,10 +221,9 @@ end
 
 /-- A regular measure in a σ-compact space is σ-finite. -/
 @[priority 100] -- see Note [lower instance priority]
-instance sigma_finite [opens_measurable_space α] [t2_space α] [sigma_compact_space α]
-  [regular μ] : sigma_finite μ :=
+instance sigma_finite [sigma_compact_space α] [regular μ] : sigma_finite μ :=
 ⟨⟨{ set := compact_covering α,
-  set_mem := λ n, (is_compact_compact_covering α n).measurable_set,
+  set_mem := λ n, trivial,
   finite := λ n, regular.lt_top_of_is_compact $ is_compact_compact_covering α n,
   spanning := Union_compact_covering α }⟩⟩
 

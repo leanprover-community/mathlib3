@@ -33,7 +33,7 @@ We introduce the following typeclasses for measures:
 
 * `is_probability_measure μ`: `μ univ = 1`;
 * `is_finite_measure μ`: `μ univ < ∞`;
-* `sigma_finite μ`: there exists a countable collection of measurable sets that cover `univ`
+* `sigma_finite μ`: there exists a countable collection of sets that cover `univ`
   where `μ` is finite;
 * `is_locally_finite_measure μ` : `∀ x, ∃ s ∈ 𝓝 x, μ s < ∞`;
 * `has_no_atoms μ` : `∀ x, μ {x} = 0`; possibly should be redefined as
@@ -1100,7 +1100,7 @@ begin
 end
 
 /-- If `f` is a map with encodable codomain, then `map f μ` is the sum of Dirac measures -/
-lemma map_eq_sum {mb : measurable_space β} [encodable β] [measurable_singleton_class β]
+lemma map_eq_sum [encodable β] [measurable_singleton_class β]
   (μ : measure α) (f : α → β) (hf : measurable f) :
   map f μ = sum (λ b : β, μ (f ⁻¹' {b}) • dirac b) :=
 begin
@@ -1582,6 +1582,11 @@ lemma is_finite_measure_of_le (μ : measure α) [is_finite_measure μ] (h : ν �
   is_finite_measure ν :=
 { measure_univ_lt_top := lt_of_le_of_lt (h set.univ measurable_set.univ) (measure_lt_top _ _) }
 
+lemma measure.is_finite_measure_map {m : measurable_space α}
+  (μ : measure α) [is_finite_measure μ] {f : α → β} (hf : measurable f) :
+  is_finite_measure (map f μ) :=
+⟨by { rw map_apply hf measurable_set.univ, exact measure_lt_top μ _ }⟩
+
 @[simp] lemma measure_univ_nnreal_eq_zero [is_finite_measure μ] :
   measure_univ_nnreal μ = 0 ↔ μ = 0 :=
 begin
@@ -1776,23 +1781,27 @@ end measure
 open measure
 
 /-- A measure `μ` is called σ-finite if there is a countable collection of sets
-  `{ A i | i ∈ ℕ }` such that `μ (A i) < ∞` and `⋃ i, A i = s`. -/
+ `{ A i | i ∈ ℕ }` such that `μ (A i) < ∞` and `⋃ i, A i = s`. -/
 class sigma_finite {m0 : measurable_space α} (μ : measure α) : Prop :=
-(out' : nonempty (μ.finite_spanning_sets_in {s | measurable_set s}))
+(out' : nonempty (μ.finite_spanning_sets_in univ))
 
 theorem sigma_finite_iff :
-  sigma_finite μ ↔ nonempty (μ.finite_spanning_sets_in {s | measurable_set s}) :=
+  sigma_finite μ ↔ nonempty (μ.finite_spanning_sets_in univ) :=
 ⟨λ h, h.1, λ h, ⟨h⟩⟩
 
 theorem sigma_finite.out (h : sigma_finite μ) :
-  nonempty (μ.finite_spanning_sets_in {s | measurable_set s}) := h.1
+  nonempty (μ.finite_spanning_sets_in univ) := h.1
 
 include m0
 
 /-- If `μ` is σ-finite it has finite spanning sets in the collection of all measurable sets. -/
 def measure.to_finite_spanning_sets_in (μ : measure α) [h : sigma_finite μ] :
   μ.finite_spanning_sets_in {s | measurable_set s} :=
-classical.choice h.out
+{ set := λ n, to_measurable μ (h.out.some.set n),
+  set_mem := λ n, measurable_set_to_measurable _ _,
+  finite := λ n, by { rw measure_to_measurable, exact h.out.some.finite n },
+  spanning := eq_univ_of_subset (Union_subset_Union $ λ n, subset_to_measurable _ _)
+    h.out.some.spanning }
 
 /-- A noncomputable way to get a monotone collection of sets that span `univ` and have finite
   measure using `classical.some`. This definition satisfies monotonicity in addition to all other
@@ -1867,9 +1876,9 @@ protected def mono (h : μ.finite_spanning_sets_in C) (hC : C ⊆ D) : μ.finite
 
 /-- If `μ` has finite spanning sets in the collection of measurable sets `C`, then `μ` is σ-finite.
 -/
-protected lemma sigma_finite (h : μ.finite_spanning_sets_in C) (hC : ∀ s ∈ C, measurable_set s) :
+protected lemma sigma_finite (h : μ.finite_spanning_sets_in C) :
   sigma_finite μ :=
-⟨⟨h.mono hC⟩⟩
+⟨⟨h.mono $ subset_univ C⟩⟩
 
 /-- An extensionality for measures. It is `ext_of_generate_from_of_Union` formulated in terms of
 `finite_spanning_sets_in`. -/
@@ -1888,8 +1897,7 @@ lemma sigma_finite_of_countable {S : set (set α)} (hc : countable S)
 begin
   obtain ⟨s, hμ, hs⟩ : ∃ s : ℕ → set α, (∀ n, μ (s n) < ∞) ∧ (⋃ n, s n) = univ,
     from (exists_seq_cover_iff_countable ⟨∅, by simp⟩).2 ⟨S, hc, hμ, hU⟩,
-  refine ⟨⟨⟨λ n, to_measurable μ (s n), λ n, measurable_set_to_measurable _ _, by simpa, _⟩⟩⟩,
-  exact eq_univ_of_subset (Union_subset_Union $ λ n, subset_to_measurable μ (s n)) hs
+  exact ⟨⟨⟨λ n, s n, λ n, trivial, hμ, hs⟩⟩⟩,
 end
 
 /-- Given measures `μ`, `ν` where `ν ≤ μ`, `finite_spanning_sets_in.of_le` provides the induced
@@ -1913,12 +1921,12 @@ include m0
 @[priority 100]
 instance is_finite_measure.to_sigma_finite (μ : measure α) [is_finite_measure μ] :
   sigma_finite μ :=
-⟨⟨⟨λ _, univ, λ _, measurable_set.univ, λ _, measure_lt_top μ _, Union_const _⟩⟩⟩
+⟨⟨⟨λ _, univ, λ _, trivial, λ _, measure_lt_top μ _, Union_const _⟩⟩⟩
 
 instance restrict.sigma_finite (μ : measure α) [sigma_finite μ] (s : set α) :
   sigma_finite (μ.restrict s) :=
 begin
-  refine ⟨⟨⟨spanning_sets μ, measurable_spanning_sets μ, λ i, _, Union_spanning_sets μ⟩⟩⟩,
+  refine ⟨⟨⟨spanning_sets μ, λ _, trivial, λ i, _, Union_spanning_sets μ⟩⟩⟩,
   rw [restrict_apply (measurable_spanning_sets μ i)],
   exact (measure_mono $ inter_subset_left _ _).trans_lt (measure_spanning_sets_lt_top μ i)
 end
@@ -1929,7 +1937,7 @@ begin
   haveI : encodable ι := fintype.encodable ι,
   have : ∀ n, measurable_set (⋂ (i : ι), spanning_sets (μ i) n) :=
     λ n, measurable_set.Inter (λ i, measurable_spanning_sets (μ i) n),
-  refine ⟨⟨⟨λ n, ⋂ i, spanning_sets (μ i) n, this, λ n, _, _⟩⟩⟩,
+  refine ⟨⟨⟨λ n, ⋂ i, spanning_sets (μ i) n, λ _, trivial, λ n, _, _⟩⟩⟩,
   { rw [sum_apply _ (this n), tsum_fintype, ennreal.sum_lt_top_iff],
     rintro i -,
     exact (measure_mono $ Inter_subset _ i).trans_lt (measure_spanning_sets_lt_top (μ i) n) },
@@ -1945,7 +1953,7 @@ lemma sigma_finite.of_map (μ : measure α) {f : α → β} (hf : measurable f)
   (h : sigma_finite (map f μ)) :
   sigma_finite μ :=
 ⟨⟨⟨λ n, f ⁻¹' (spanning_sets (map f μ) n),
-   λ n, hf $ measurable_spanning_sets _ _,
+   λ n, trivial,
    λ n, by simp only [← map_apply hf, measurable_spanning_sets, measure_spanning_sets_lt_top],
    by rw [← preimage_Union, Union_spanning_sets, preimage_univ]⟩⟩⟩
 
@@ -2826,6 +2834,7 @@ begin
     simpa only [hs, measure.restrict_add_restrict_compl] using this },
 end
 
+@[measurability]
 lemma ae_measurable.indicator (hfm : ae_measurable f μ) {s} (hs : measurable_set s) :
   ae_measurable (s.indicator f) μ :=
 (ae_measurable_indicator_iff hs).mpr hfm.restrict

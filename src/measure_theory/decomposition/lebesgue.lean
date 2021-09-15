@@ -859,12 +859,12 @@ lemma to_jordan_decomposition_eq_of_eq_add_with_density
   s.to_jordan_decomposition = @jordan_decomposition.mk α _
     (t.to_jordan_decomposition.pos_part + μ.with_density (λ x, ennreal.of_real (f x)))
     (t.to_jordan_decomposition.neg_part + μ.with_density (λ x, ennreal.of_real (- f x)))
-    (by { haveI := is_finite_measure_of_real hfi, apply_instance })
-    (by { haveI := is_finite_measure_of_real hfi.neg, apply_instance })
+    (by { haveI := is_finite_measure_with_density_of_real hfi.2, apply_instance })
+    (by { haveI := is_finite_measure_with_density_of_real hfi.neg.2, apply_instance })
     (jordan_decomposition_add_with_density_mutually_singular hf htμ) :=
 begin
-  haveI := is_finite_measure_of_real hfi,
-  haveI := is_finite_measure_of_real hfi.neg,
+  haveI := is_finite_measure_with_density_of_real hfi.2,
+  haveI := is_finite_measure_with_density_of_real hfi.neg.2,
   refine to_jordan_decomposition_eq _,
   simp_rw [jordan_decomposition.to_signed_measure, hadd],
   ext i hi,

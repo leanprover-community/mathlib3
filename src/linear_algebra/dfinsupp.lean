@@ -236,7 +236,7 @@ end
 `dfinsupp.sum_add_hom` composed with `dfinsupp.filter_add_monoid_hom`; that is, every element in the
 bounded `supr` can be produced from taking a finite number of non-zero elements from the `S i` that
 satisfy `p i`, coercing them to `γ`, and summing them. -/
-lemma bsupr_eq_mrange_dfinsupp_sum_add_hom (p : ι → Prop)
+lemma bsupr_eq_mrange_dfinsupp_lsum (p : ι → Prop)
   [decidable_pred p] (S : ι → submodule R N) :
   (⨆ i (h : p i), S i) =
     ((dfinsupp.lsum ℕ (λ i, (S i).subtype)).comp (dfinsupp.filter_linear_map R _ p)).range :=
@@ -273,6 +273,6 @@ lemma mem_bsupr_iff_exists_dfinsupp (p : ι → Prop) [decidable_pred p] (S : ι
   (x : N) :
   x ∈ (⨆ i (h : p i), S i) ↔
     ∃ f : Π₀ i, S i, dfinsupp.lsum ℕ (λ i, (S i).subtype) (f.filter p) = x :=
-set_like.ext_iff.mp (bsupr_eq_mrange_dfinsupp_sum_add_hom p S) x
+set_like.ext_iff.mp (bsupr_eq_mrange_dfinsupp_lsum p S) x
 
 end submodule

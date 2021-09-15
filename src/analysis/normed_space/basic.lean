@@ -1371,6 +1371,18 @@ module.punctured_nhds_ne_bot ℝ E x
 
 end real
 
+namespace ennreal
+
+lemma of_real_le_ennnorm (r : ℝ) : ennreal.of_real r ≤ ∥r∥₊ :=
+begin
+  by_cases hr : 0 ≤ r,
+  { rw real.ennnorm_eq_of_real hr, refl' },
+  { rw [ennreal.of_real_eq_zero.2 (le_of_lt (not_le.1 hr))],
+    exact bot_le }
+end
+
+end ennreal
+
 namespace nnreal
 
 open_locale nnreal

@@ -94,7 +94,7 @@ end
 
 lemma to_quotient (H : subgroup G) [H.normal] :
   is_p_group p (quotient_group.quotient H) :=
-hG.to_surjective (quotient_group.mk' H) quotient.surjective_quotient_mk'
+hG.of_surjective (quotient_group.mk' H) quotient.surjective_quotient_mk'
 
 lemma of_equiv {H : Type*} [group H] (ϕ : G ≃* H) : is_p_group p H :=
 hG.to_surjective ϕ.to_monoid_hom ϕ.surjective

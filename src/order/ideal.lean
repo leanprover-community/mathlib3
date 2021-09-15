@@ -3,12 +3,8 @@ Copyright (c) 2020 David Wärn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Wärn
 -/
-import order.basic
 import data.equiv.encodable.basic
 import order.atoms
-import order.bounded_lattice
-import order.complete_lattice
-import order.zorn
 
 /-!
 # Order ideals, cofinal sets, and the Rasiowa–Sikorski lemma
@@ -394,7 +390,7 @@ variables {s : set (ideal P)}
 @[simp] lemma mem_Inf : x ∈ Inf s ↔ ∀ I ∈ s, x ∈ I :=
 by { change x ∈ (⋂ (I ∈ s), (I : set P)) ↔ ∀ I ∈ s, x ∈ I, simp }
 
-@[simp] lemma Inf_coe : ↑(Inf s) = ⋂ (I ∈ s), (I : set P) := rfl
+@[simp] lemma coe_Inf : ↑(Inf s) = ⋂ (I ∈ s), (I : set P) := rfl
 
 lemma Inf_le (hI : I ∈ s) : Inf s ≤ I :=
 λ _ hx, hx I ⟨I, by simp [hI]⟩

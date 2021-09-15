@@ -445,7 +445,7 @@ lemma separable_prod_X_sub_C_iff' {ι : Sort*} {f : ι → F} {s : finset ι} :
 
 lemma separable_prod_X_sub_C_iff {ι : Sort*} [fintype ι] {f : ι → F} :
   (∏ i, (X - C (f i))).separable ↔ function.injective f :=
-separable_prod_X_sub_C_iff'.trans $ by simp_rw [mem_univ, true_implies_iff]
+separable_prod_X_sub_C_iff'.trans $ by simp_rw [mem_univ, true_implies_iff, function.injective]
 
 section splits
 

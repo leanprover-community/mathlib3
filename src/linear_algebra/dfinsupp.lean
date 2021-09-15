@@ -276,3 +276,92 @@ lemma mem_bsupr_iff_exists_dfinsupp (p : ι → Prop) [decidable_pred p] (S : ι
 set_like.ext_iff.mp (bsupr_eq_mrange_dfinsupp_lsum p S) x
 
 end submodule
+
+namespace dfinsupp
+
+-- PR 9182
+@[simp] lemma filter_ne_eq_erase {β : ι → Type*} [Π i, has_zero (β i)]
+  (f : Π₀ i, β i) (i : ι) : f.filter (≠ i) = f.erase i :=
+begin
+  ext1 j,
+  simp only [dfinsupp.filter_apply, dfinsupp.erase_apply, ite_not],
+end
+
+@[simp] lemma filter_ne_eq_erase' {β : ι → Type*} [Π i, has_zero (β i)]
+  (f : Π₀ i, β i) (i : ι) : f.filter ((≠) i) = f.erase i :=
+begin
+  rw ←filter_ne_eq_erase f i,
+  congr' with j,
+  exact ne_comm,
+end
+
+end dfinsupp
+
+/- Old proof:
+
+/-- If a family of submodules are independent, then `dfinsupp.lsum` applied with
+`submodule.subtype` is injective. -/
+lemma lsum_ker_of_independent {R M : Type*} [ring R]
+  [add_comm_group M] [module R M] (p : ι → submodule R M) (h_ind : complete_lattice.independent p) :
+  (lsum ℕ (λ (i : ι), (p i).subtype)).ker = ⊥ :=
+begin
+  -- Lean can't find this without our help
+  letI : add_comm_group (Π₀ i, p i) := @dfinsupp.add_comm_group _ (λ i, p i) _,
+  rw linear_map.ker_eq_bot',
+  intros x hx,
+  ext1 i,
+  -- extract `x i` from the sum
+  replace hx : lsum ℕ (λ (i : ι), (p i).subtype) (x.filter (≠ i)) + x i = 0,
+  { rw [←erase_add_single i x, ←filter_ne_eq_erase, linear_map.map_add] at hx,
+    convert hx using 2,
+    rw [lsum_apply_apply, dfinsupp.sum_add_hom_single],
+    refl, },
+  rw [zero_apply, ←submodule.mem_right_iff_eq_zero_of_disjoint (h_ind i),
+    submodule.bsupr_eq_mrange_dfinsupp_lsum],
+  refine ⟨-x, _⟩,
+  rw [linear_map.map_neg, neg_eq_iff_add_eq_zero],
+  exact hx,
+end
+
+-/
+
+namespace complete_lattice
+
+open dfinsupp
+
+/-- A family of submodules over an additive group are independent if and only iff `dfinsupp.lsum`
+applied with `submodule.subtype` is injective. -/
+lemma independent_iff_dfinsupp_lsum_ker {R M : Type*}
+  [ring R] [add_comm_group M] [module R M] (p : ι → submodule R M) :
+  independent p ↔ (lsum ℕ (λ i, (p i).subtype)).ker = ⊥ :=
+begin
+  -- Lean can't find this without our help
+  letI : add_comm_group (Π₀ i, p i) := @dfinsupp.add_comm_group _ (λ i, p i) _,
+  -- simplify everything down to binders over equalities in `M`
+  rw [linear_map.ker_eq_bot', complete_lattice.independent_def],
+  simp_rw [submodule.disjoint_def, submodule.bsupr_eq_mrange_dfinsupp_lsum,
+    linear_map.mem_range, dfinsupp.ext_iff, zero_apply, ←submodule.coe_eq_zero,
+    exists_imp_distrib, linear_map.comp_apply, filter_linear_map_apply],
+  -- we can't seem to rewrite the iff with this, but we use it in both directions.
+  have h_lsum : ∀ (m : Π₀ i, p i) {i} {x} (hx : x ∈ p i),
+    lsum ℕ (λ i, (p i).subtype) (filter (≠ i) m) = x ↔
+      lsum ℕ (λ i, (p i).subtype) (filter (≠ i) m - single i ⟨x, hx⟩) = 0,
+  { intros m i x hx,
+    simp only [add_monoid_hom.map_sub, lsum_apply_apply, sum_add_hom_single, sub_eq_zero],
+    refl },
+  split,
+  { intros h m hm i,
+    refine h i (m i) (m i).prop (-m) _,
+    rw h_lsum (-m) (m i).prop,
+    rw [@filter_neg _ (λ i, p i) _ _ _ m, ←neg_add', linear_map.map_neg, filter_ne_eq_erase,
+      subtype.coe_eta, erase_add_single, hm, neg_zero], },
+  { intros h i x hx m hm,
+    rw h_lsum m hx at hm,
+    have := h _ hm i,
+    rw [sub_eq_add_neg, add_apply, filter_ne_eq_erase, erase_same, zero_add] at this,
+    change (-(single i (⟨x, hx⟩ : p i) i) : M) = 0 at this, -- `neg_apply` doesn't work :(
+    rw [neg_eq_zero, single_eq_same] at this,
+    exact this, },
+end
+
+end complete_lattice

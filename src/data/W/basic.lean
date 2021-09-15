@@ -86,6 +86,9 @@ lemma to_type_injective (γ : Type*) (fγ : (Σ a : α, β a → γ) → γ)
   exact to_type_injective (h x)
 end
 
+instance [hα : is_empty α] : is_empty (W_type β) :=
+⟨λ w, W_type.rec_on w (is_empty.elim hα)⟩
+
 lemma infinite_of_nonempty_of_is_empty (a b : α) [ha : nonempty (β a)]
   [he : is_empty (β b)] : infinite (W_type β) :=
 ⟨begin

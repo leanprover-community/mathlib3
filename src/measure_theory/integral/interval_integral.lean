@@ -381,29 +381,26 @@ variables {ι : Type*} [topological_space ι] [conditionally_complete_linear_ord
   [is_locally_finite_measure μ] [conditionally_complete_linear_order E] [order_topology E]
   [second_countable_topology E] [borel_space E]
 
-lemma interval_integrable_of_monotone_on {u : ι → E} {a b : ι}
-  (hu : ∀ ⦃x y⦄, x ∈ interval a b → y ∈ interval a b → x ≤ y → u x ≤ u y) :
+lemma monotone_on.interval_integrable {u : ι → E} {a b : ι} (hu : monotone_on u (interval a b)) :
   interval_integrable u μ a b :=
 begin
   rw interval_integrable_iff,
   exact (integrable_on_compact_of_monotone_on is_compact_interval hu).mono_set Ioc_subset_Icc_self,
 end
 
-lemma interval_integrable_of_antitone_on {u : ι → E} {a b : ι}
-  (hu : ∀ ⦃x y⦄, x ∈ interval a b → y ∈ interval a b → x ≤ y → u y ≤ u x) :
+lemma antitone_on.interval_integrable {u : ι → E} {a b : ι} (hu : antitone_on u (interval a b)) :
   interval_integrable u μ a b :=
-@interval_integrable_of_monotone_on (order_dual E) _ ‹_› ι _ _ _ _ _ _ _ _ _ ‹_› ‹_› u a b hu
+@monotone_on.interval_integrable (order_dual E) _ ‹_› ι _ _ _ _ _ _ _ _ _ ‹_› ‹_› u a b hu
 
 lemma interval_integrable_of_monotone {u : ι → E} {a b : ι} (hu : monotone u) :
   interval_integrable u μ a b :=
-interval_integrable_of_monotone_on (λ x y _ _ hxy, hu hxy)
+hu.monotone_on.interval_integrable
 
 alias interval_integrable_of_monotone ← monotone.interval_integrable
 
-lemma interval_integrable_of_antitone {u : ι → E} {a b : ι}
-  (hu : antitone u) :
+lemma interval_integrable_of_antitone {u : ι → E} {a b : ι} (hu : antitone u) :
   interval_integrable u μ a b :=
-@interval_integrable_of_monotone (order_dual E) _ ‹_› ι _ _ _ _ _ _ _ _ _ ‹_› ‹_› u a b hu
+hu.antitone_on.interval_integrable
 
 alias interval_integrable_of_antitone ← antitone.interval_integrable
 

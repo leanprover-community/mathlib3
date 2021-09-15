@@ -431,7 +431,7 @@ variables
 
 include hs
 
-lemma integrable_on_compact_of_monotone_on (hmono : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f x ≤ f y) :
+lemma integrable_on_compact_of_monotone_on (hmono : monotone_on f s) :
   integrable_on f s μ :=
 begin
   by_cases h : s.nonempty,
@@ -450,7 +450,7 @@ begin
     exact integrable_on_empty }
 end
 
-lemma integrable_on_compact_of_antitone_on (hanti : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f y ≤ f x) :
+lemma integrable_on_compact_of_antitone_on (hanti : antitone_on f s) :
   integrable_on f s μ :=
 @integrable_on_compact_of_monotone_on α (order_dual E) _ _ ‹_› _ _ ‹_› _ _ _ _ ‹_› _ _ _ hs _
   hanti

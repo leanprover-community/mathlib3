@@ -745,6 +745,19 @@ lemma strict_anti_nat_of_succ_lt [preorder β] {f : ℕ → β} (hf : ∀ n, f (
   strict_anti f :=
 by { intros n m hnm, induction hnm with m' hnm' ih, apply hf, exact (hf _).trans ih }
 
+lemma forall_ge_le_of_forall_le_succ {α : Type*} [preorder α] (f : ℕ → α) {m : ℕ}
+  (h : ∀ n ≥ m, f n.succ ≤ f n) : ∀ {l}, ∀ k ≥ m, k ≤ l → f l ≤ f k :=
+begin
+  assume l k hkm hkl,
+  generalize hp : l - k = p,
+  have : l = k + p := add_comm p k ▸ (nat.sub_eq_iff_eq_add hkl).1 hp,
+  subst this,
+  clear hkl hp,
+  induction p with p ih,
+  { simp },
+  { exact le_trans (h _ (le_trans hkm (nat.le_add_right _ _))) ih }
+end
+
 -- TODO@Yael: Generalize the following four to succ orders
 /-- If `f` is a monotone function from `ℕ` to a preorder such that `x` lies between `f n` and
   `f (n + 1)`, then `x` doesn't lie in the range of `f`. -/

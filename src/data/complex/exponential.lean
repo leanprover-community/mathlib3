@@ -22,19 +22,6 @@ open_locale classical big_operators nat
 section
 open real is_absolute_value finset
 
-lemma forall_ge_le_of_forall_le_succ {α : Type*} [preorder α] (f : ℕ → α) {m : ℕ}
-  (h : ∀ n ≥ m, f n.succ ≤ f n) : ∀ {l}, ∀ k ≥ m, k ≤ l → f l ≤ f k :=
-begin
-  assume l k hkm hkl,
-  generalize hp : l - k = p,
-  have : l = k + p := add_comm p k ▸ (nat.sub_eq_iff_eq_add hkl).1 hp,
-  subst this,
-  clear hkl hp,
-  induction p with p ih,
-  { simp },
-  { exact le_trans (h _ (le_trans hkm (nat.le_add_right _ _))) ih }
-end
-
 section
 variables {α : Type*} {β : Type*} [ring β]
   [linear_ordered_field α] [archimedean α] {abv : β → α} [is_absolute_value abv]

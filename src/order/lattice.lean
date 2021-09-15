@@ -238,11 +238,10 @@ suffices (∃b, ¬b ≤ a) → (∃b, a < b),
 assume ⟨b, hb⟩,
 ⟨a ⊔ b, lt_of_le_of_ne le_sup_left $ mt left_eq_sup.1 hb⟩
 
-/-- If `f` is a monotonically increasing sequence, `g` is a monotonically decreasing
-sequence, and `f n ≤ g n` for all `n`, then for all `m`, `n` we have `f m ≤ g n`. -/
-theorem forall_le_of_monotone_of_mono_decr {β : Type*} [preorder β]
-  {f g : α → β} (hf : monotone f) (hg : ∀ ⦃m n⦄, m ≤ n → g n ≤ g m)
-  (h : ∀ n, f n ≤ g n) (m n : α) : f m ≤ g n :=
+/-- If `f` is monotone, `g` is antitone, and `f a ≤ g a` for all `a`, then for all `a`, `b` we have `f a ≤ g b`. -/
+theorem monotone.forall_le_of_antitone {β : Type*} [preorder β] {f g : α → β}
+  (hf : monotone f) (hg : antitone g) (h : ∀ n, f n ≤ g n) (m n : α) :
+  f m ≤ g n :=
 calc f m ≤ f (m ⊔ n) : hf le_sup_left
      ... ≤ g (m ⊔ n) : h _
      ... ≤ g n       : hg le_sup_right
@@ -647,7 +646,7 @@ le_inf (h inf_le_left) (h inf_le_right)
 lemma map_inf [semilattice_inf α] [is_total α (≤)] [semilattice_inf β] {f : α → β}
   (hf : monotone f) (x y : α) :
   f (x ⊓ y) = f x ⊓ f y :=
-@monotone.map_sup (order_dual α) _ _ _ _ _ hf.order_dual x y
+@monotone.map_sup (order_dual α) _ _ _ _ _ hf.dual x y
 
 end monotone
 

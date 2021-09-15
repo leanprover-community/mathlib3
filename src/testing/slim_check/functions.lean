@@ -426,4 +426,9 @@ instance monotone.testable [preorder α] [preorder β] (f : α → β)
     ∀ x : α, named_binder "y" $ ∀ y : α, named_binder "H" $ x ≤ y → f x ≤ f y)] :
   testable (monotone f) := I
 
+instance antitone.testable [preorder α] [preorder β] (f : α → β)
+  [I : testable (named_binder "x" $
+    ∀ x : α, named_binder "y" $ ∀ y : α, named_binder "H" $ x ≤ y → f y ≤ f x)] :
+  testable (antitone f) := I
+
 end slim_check

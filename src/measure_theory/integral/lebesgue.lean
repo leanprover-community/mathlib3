@@ -1593,9 +1593,9 @@ calc
 /-- Monotone convergence theorem for nonincreasing sequences of functions -/
 lemma lintegral_infi
   {f : ℕ → α → ℝ≥0∞} (h_meas : ∀n, measurable (f n))
-  (h_mono : ∀ ⦃m n⦄, m ≤ n → f n ≤ f m) (h_fin : ∫⁻ a, f 0 a ∂μ < ∞) :
+  (h_anti : antitone f) (h_fin : ∫⁻ a, f 0 a ∂μ < ∞) :
   ∫⁻ a, ⨅n, f n a ∂μ = ⨅n, ∫⁻ a, f n a ∂μ :=
-lintegral_infi_ae h_meas (λ n, ae_of_all _ $ h_mono $ le_of_lt n.lt_succ_self) h_fin
+lintegral_infi_ae h_meas (λ n, ae_of_all _ $ h_anti n.le_succ) h_fin
 
 /-- Known as Fatou's lemma, version with `ae_measurable` functions -/
 lemma lintegral_liminf_le' {f : ℕ → α → ℝ≥0∞} (h_meas : ∀n, ae_measurable (f n) μ) :

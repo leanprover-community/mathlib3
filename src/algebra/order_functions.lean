@@ -104,7 +104,13 @@ lemma monotone.map_max (hf : monotone f) : f (max a b) = max (f a) (f b) :=
 by cases le_total a b; simp [h, hf h]
 
 lemma monotone.map_min (hf : monotone f) : f (min a b) = min (f a) (f b) :=
-hf.order_dual.map_max
+hf.dual.map_max
+
+lemma antitone.map_max (hf : antitone f) : f (max a b) = min (f a) (f b) :=
+by cases le_total a b; simp [h, hf h]
+
+lemma antitone.map_min (hf : antitone f) : f (min a b) = max (f a) (f b) :=
+hf.dual.map_max
 
 theorem min_choice (a b : α) : min a b = a ∨ min a b = b :=
 by cases le_total a b; simp *

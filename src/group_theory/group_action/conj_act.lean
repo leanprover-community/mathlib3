@@ -50,8 +50,10 @@ def to_conj_act : G ≃* conj_act G := of_conj_act.symm
 @[simp] lemma of_conj_act_mul (x y : conj_act G) : of_conj_act (x * y) = of_conj_act x * of_conj_act y := rfl
 @[simp] lemma to_conj_act_mul (x y : G) : to_conj_act (x * y) = to_conj_act x * to_conj_act y := rfl
 
-instance : mul_action (conj_act G) G :=
+instance : mul_distrib_mul_action (conj_act G) G :=
 { smul := λ g h, of_conj_act g * h * (of_conj_act g)⁻¹,
+  smul_mul := by simp [mul_assoc],
+  smul_one := by simp,
   one_smul := by simp,
   mul_smul := by simp [mul_assoc] }
 

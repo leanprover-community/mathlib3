@@ -12,23 +12,8 @@ apply_nolint set.set_semiring.comm_semiring check_reducibility
 apply_nolint set.set_semiring.non_assoc_semiring check_reducibility
 apply_nolint set.set_semiring.non_unital_non_assoc_semiring check_reducibility
 
--- category_theory/concrete_category/reflects_isomorphisms.lean
-apply_nolint category_theory.forget₂.category_theory.reflects_isomorphisms fails_quickly
-
--- category_theory/limits/comma.lean
-apply_nolint category_theory.arrow.has_colimit fails_quickly
-apply_nolint category_theory.arrow.has_limit fails_quickly
-apply_nolint category_theory.costructured_arrow.creates_colimit fails_quickly
-apply_nolint category_theory.costructured_arrow.has_colimit fails_quickly
-apply_nolint category_theory.structured_arrow.creates_limit fails_quickly
-apply_nolint category_theory.structured_arrow.has_limit fails_quickly
-
 -- category_theory/limits/filtered_colimit_commutes_finite_limit.lean
 apply_nolint category_theory.limits.colimit_limit_to_limit_colimit_is_iso fails_quickly
-
--- category_theory/limits/over.lean
-apply_nolint category_theory.over.category_theory.limits.has_colimit fails_quickly
-apply_nolint category_theory.under.category_theory.limits.has_limit fails_quickly
 
 -- computability/partrec.lean
 apply_nolint computable doc_blame
@@ -501,7 +486,7 @@ apply_nolint pgame.relabelling has_inhabited_instance
 apply_nolint pgame.restricted has_inhabited_instance
 apply_nolint pgame.right_moves has_inhabited_instance
 
--- set_theory/surreal.lean
+-- set_theory/surreal/basic.lean
 apply_nolint pgame.add_lt_add unused_arguments
 apply_nolint pgame.numeric.lt_move_right unused_arguments
 apply_nolint pgame.numeric.move_left_lt unused_arguments

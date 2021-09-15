@@ -258,7 +258,7 @@ basis.reindex (pi.basis (λ (i : n), pi.basis_fun R m)) (equiv.sigma_equiv_prod 
 
 lemma matrix.std_basis_eq_std_basis_matrix {n : Type*} {m : Type*} (i : n) (j : m)
   [fintype n] [fintype m] [decidable_eq n] [decidable_eq m] :
-  matrix.std_basis R n m (i,j) = matrix.std_basis_matrix i j (1 : R) :=
+  matrix.std_basis R n m (i, j) = matrix.std_basis_matrix i j (1 : R) :=
 begin
   ext a b,
   by_cases hi : i = a; by_cases hj : j = b,

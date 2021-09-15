@@ -126,17 +126,6 @@ instance mul_action' : mul_action S p :=
 
 instance : mul_action R p := p.mul_action'
 
-/-- The action of a group on an orbit. -/
-def on_orbit {α : Type*} [group α] {β : Type*} [mul_action α β] {b : β} :
-  sub_mul_action α β :=
-{ carrier := mul_action.orbit α b,
-  smul_mem' := λ a b' hb', mul_action.orbit_eq_iff.mp (eq.trans (mul_action.orbit_eq_iff.mpr
-    (mul_action.mem_orbit b' a)) (mul_action.orbit_eq_iff.mpr hb')) }
-
-instance {α : Type*} [group α] {β : Type*} [mul_action α β] {b : β} :
-  mul_action α (mul_action.orbit α b) :=
-sub_mul_action.mul_action' on_orbit
-
 end mul_action
 
 section module

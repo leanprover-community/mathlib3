@@ -75,7 +75,7 @@ variables (hG : is_p_group p G)
 
 include hG
 
-lemma to_injective {H : Type*} [group H] (ϕ : H →* G) (hϕ : function.injective ϕ) :
+lemma of_injective {H : Type*} [group H] (ϕ : H →* G) (hϕ : function.injective ϕ) :
   is_p_group p H :=
 begin
   simp_rw [is_p_group, ←hϕ.eq_iff, ϕ.map_pow, ϕ.map_one],

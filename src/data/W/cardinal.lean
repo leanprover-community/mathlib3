@@ -31,16 +31,18 @@ open cardinal
 
 namespace W_type
 
-lemma cardinal_mk_eq_sum : cardinal.mk (W_type β) =
-  cardinal.sum (λ a : α, cardinal.mk (W_type β) ^ cardinal.mk (β a)) :=
+open_locale cardinal
+
+lemma cardinal_mk_eq_sum : #(W_type β) =
+  cardinal.sum (λ a : α, #(W_type β) ^ #(β a)) :=
 begin
   simp only [cardinal.lift_mk, cardinal.power_def, cardinal.sum_mk],
   exact cardinal.eq.2 ⟨equiv_sigma β⟩
 end
 
 lemma cardinal_mk_le_of_le {κ : cardinal.{u}}
-  (hκ : cardinal.sum (λ a : α, κ ^ cardinal.mk (β a)) ≤ κ) :
-  cardinal.mk (W_type β) ≤ κ :=
+  (hκ : cardinal.sum (λ a : α, κ ^ #(β a)) ≤ κ) :
+  #(W_type β) ≤ κ :=
 begin
   conv_rhs { rw ← cardinal.mk_out κ},
   rw [← cardinal.mk_out κ] at hκ,
@@ -51,8 +53,8 @@ end
 
 /-- If, for any `a : α`, `β a` is finite, then the cardinality of `W_type β`
   is at most the maximum of the cardinality of `α` and `omega`  -/
-lemma cardinal_mk_le_max_omega_of_fintype [Π a, fintype (β a)] : cardinal.mk (W_type β) ≤
-  max (cardinal.mk α) omega :=
+lemma cardinal_mk_le_max_omega_of_fintype [Π a, fintype (β a)] : #(W_type β) ≤
+  max (#α) omega :=
 (is_empty_or_nonempty α).elim
   (begin
     introI h,
@@ -60,14 +62,14 @@ lemma cardinal_mk_le_max_omega_of_fintype [Π a, fintype (β a)] : cardinal.mk (
     exact zero_le _
   end) $
 λ hn,
-let m := max (cardinal.mk α) omega in
+let m := max (#α) omega in
 cardinal_mk_le_of_le $
-calc cardinal.sum (λ a : α, m ^ cardinal.mk.{u} (β a))
-    ≤ cardinal.mk α * cardinal.sup.{u u}
-      (λ a : α, m ^ cardinal.mk.{u} (β a)) :
+calc cardinal.sum (λ a : α, m ^ #(β a))
+    ≤ #α * cardinal.sup.{u u}
+      (λ a : α, m ^ cardinal.mk (β a)) :
   cardinal.sum_le_sup _
 ... ≤ m * cardinal.sup.{u u}
-      (λ a : α, m ^ cardinal.mk.{u} (β a)) :
+      (λ a : α, m ^ #(β a)) :
   mul_le_mul' (le_max_left _ _) (le_refl _)
 ... = m : mul_eq_left.{u} (le_max_right _ _)
   (cardinal.sup_le.2 (λ i, begin

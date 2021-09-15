@@ -85,7 +85,7 @@ end
 lemma to_subgroup (H : subgroup G) : is_p_group p H :=
 hG.to_injective H.subtype subtype.coe_injective
 
-lemma to_surjective {H : Type*} [group H] (ϕ : G →* H) (hϕ : function.surjective ϕ) :
+lemma of_surjective {H : Type*} [group H] (ϕ : G →* H) (hϕ : function.surjective ϕ) :
   is_p_group p H :=
 begin
   refine λ h, exists.elim (hϕ h) (λ g hg, exists_imp_exists (λ k hk, _) (hG g)),

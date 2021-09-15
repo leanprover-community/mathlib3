@@ -523,13 +523,13 @@ begin
   have ad : a < d,
   { rw of_real_eq_coe_nnreal c_nonneg at ac,
     exact coe_lt_coe.1 ac },
-  refine ⟨d-a, nnreal.sub_pos.2 ad, _⟩,
+  refine ⟨d-a, sub_pos_iff_lt.2 ad, _⟩,
   rw [some_eq_coe, ← coe_add],
   convert cb,
   have : real.to_nnreal c = d,
     by { rw [← nnreal.coe_eq, real.coe_to_nnreal _ c_nonneg], refl },
   rw [add_comm, this],
-  exact nnreal.sub_add_cancel_of_le (le_of_lt ad)
+  exact sub_add_cancel_of_le ad.le
 end
 
 lemma coe_nat_lt_coe {n : ℕ} : (n : ℝ≥0∞) < r ↔ ↑n < r := ennreal.coe_nat n ▸ coe_lt_coe
@@ -657,9 +657,9 @@ instance : has_sub ℝ≥0∞ := ⟨λa b, Inf {d | a ≤ d + b}⟩
 @[norm_cast] lemma coe_sub : ↑(p - r) = (↑p:ℝ≥0∞) - r :=
 le_antisymm
   (le_Inf $ assume b (hb : ↑p ≤ b + r), coe_le_iff.2 $
-    by rintros d rfl; rwa [← coe_add, coe_le_coe, ← nnreal.sub_le_iff_le_add] at hb)
+    by rintros d rfl; rwa [← coe_add, coe_le_coe, ← sub_le_iff_right] at hb)
   (Inf_le $ show (↑p : ℝ≥0∞) ≤ ↑(p - r) + ↑r,
-    by rw [← coe_add, coe_le_coe, ← nnreal.sub_le_iff_le_add])
+    by rw [← coe_add, coe_le_coe, ← sub_le_iff_right])
 
 @[simp] lemma top_sub_coe : ∞ - ↑r = ∞ :=
 top_unique $ le_Inf $ by simp [add_eq_top]
@@ -685,7 +685,7 @@ Inf_le_Inf $ assume e (h : b ≤ e + d),
 | a        none     := by simp [none_eq_top]
 | none     (some b) := by simp [none_eq_top, some_eq_coe]
 | (some a) (some b) :=
-  by simp [some_eq_coe]; rw [← coe_add, ← coe_sub, coe_eq_coe, nnreal.add_sub_cancel]
+  by simp [some_eq_coe]; rw [← coe_add, ← coe_sub, coe_eq_coe, add_sub_cancel_right]
 
 @[simp] lemma add_sub_self' (h : a < ∞) : (a + b) - a = b :=
 by rw [add_comm, add_sub_self h]
@@ -700,7 +700,7 @@ by rw [add_comm, add_comm c, add_right_inj h]
 begin
   simp [forall_ennreal, le_coe_iff, -add_comm] {contextual := tt},
   rintros r p x rfl h,
-  rw [← coe_sub, ← coe_add, nnreal.sub_add_cancel_of_le h]
+  rw [← coe_sub, ← coe_add, sub_add_cancel_of_le h]
 end
 
 @[simp] lemma add_sub_cancel_of_le (h : b ≤ a) : b + (a - b) = a :=
@@ -738,7 +738,7 @@ match a, b with
 | (some a), (some b) :=
   begin
     simp only [some_eq_coe, coe_sub.symm, coe_pos, coe_eq_zero, coe_lt_coe, ne.def],
-    assume h₁ h₂, apply nnreal.sub_lt_self, exact pos_iff_ne_zero.2 h₂
+    assume h₁ h₂, apply sub_lt_self', exact pos_iff_ne_zero.2 h₂
   end
 end
 
@@ -755,7 +755,7 @@ begin
   cases c, { simp },
   cases b, { simp only [true_iff, coe_lt_top, some_eq_coe, top_sub_coe, none_eq_top, ← coe_add] },
   simp only [some_eq_coe],
-  rw [← coe_add, ← coe_sub, coe_lt_coe, coe_lt_coe, nnreal.lt_sub_iff_add_lt],
+  rw [← coe_add, ← coe_sub, coe_lt_coe, coe_lt_coe, lt_sub_iff_right],
 end
 
 lemma sub_le_self (a b : ℝ≥0∞) : a - b ≤ a :=

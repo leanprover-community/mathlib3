@@ -7,6 +7,8 @@ import algebra.invertible
 import algebra.lie.skew_adjoint
 import algebra.lie.abelian
 import linear_algebra.matrix.trace
+import linear_algebra.matrix.transvection
+import data.matrix.basis
 
 /-!
 # Classical Lie algebras
@@ -64,6 +66,7 @@ classical lie algebra, special linear, symplectic, orthogonal
 universes u₁ u₂
 
 namespace lie_algebra
+open matrix
 open_locale matrix
 
 variables (n p q l : Type*) (R : Type u₂)
@@ -88,28 +91,16 @@ lemma sl_bracket [fintype n] (A B : sl n R) : ⁅A, B⁆.val = A.val ⬝ B.val -
 
 section elementary_basis
 
-variables {n} (i j : n)
-
-/-- It is useful to define these matrices for explicit calculations in sl n R. -/
-abbreviation E : matrix n n R := λ i' j', if i = i' ∧ j = j' then 1 else 0
-
-@[simp] lemma E_apply_one : E R i j i j = 1 := if_pos (and.intro rfl rfl)
-
-@[simp] lemma E_apply_zero (i' j' : n) (h : ¬(i = i' ∧ j = j')) : E R i j i' j' = 0 := if_neg h
-
-@[simp] lemma E_diag_zero (h : j ≠ i) : matrix.diag n R R (E R i j) = 0 :=
-funext $ λ k, if_neg $ λ ⟨e₁, e₂⟩, h (e₂.trans e₁.symm)
-
-variable [fintype n]
-
-lemma E_trace_zero (h : j ≠ i) : matrix.trace n R R (E R i j) = 0 := by simp [h]
+variables {n} [fintype n] (i j : n)
 
 /-- When j ≠ i, the elementary matrices are elements of sl n R, in fact they are part of a natural
 basis of sl n R. -/
 def Eb (h : j ≠ i) : sl n R :=
-⟨E R i j, show E R i j ∈ linear_map.ker (matrix.trace n R R), from E_trace_zero R i j h⟩
+⟨matrix.std_basis_matrix i j (1 : R),
+  show matrix.std_basis_matrix i j (1 : R) ∈ linear_map.ker (matrix.trace n R R),
+  from matrix.std_basis_matrix.trace_zero i j (1 : R) h⟩
 
-@[simp] lemma Eb_val (h : j ≠ i) : (Eb R i j h).val = E R i j := rfl
+@[simp] lemma Eb_val (h : j ≠ i) : (Eb R i j h).val = matrix.std_basis_matrix i j 1 := rfl
 
 end elementary_basis
 
@@ -121,8 +112,7 @@ begin
   let B := Eb R j i hij.symm,
   intros c,
   have c' : A.val ⬝ B.val = B.val ⬝ A.val, by { rw [← sub_eq_zero, ← sl_bracket, c.trivial], refl },
-  have : (1 : R) = 0 := by simpa [matrix.mul_apply, hij] using (congr_fun (congr_fun c' i) i),
-  exact one_ne_zero this,
+  simpa [std_basis_matrix, matrix.mul_apply, hij] using   congr_fun (congr_fun c' i) i,
 end
 
 end special_linear

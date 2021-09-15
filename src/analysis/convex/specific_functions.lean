@@ -44,7 +44,7 @@ lemma convex_on_pow (n : ℕ) : convex_on (Ici 0) (λ x : ℝ, x^n) :=
 begin
   apply convex_on_of_deriv2_nonneg (convex_Ici _) (continuous_pow n).continuous_on
     differentiable_on_pow,
-  { simp only [deriv_pow'], exact differentiable_on_pow.const_mul _ },
+  { simp only [deriv_pow'], exact (@differentiable_on_pow ℝ _ _ _).const_mul (n : ℝ) },
   { intros x hx,
     rw [iter_deriv_pow, finset.prod_range_cast_nat_sub],
     exact mul_nonneg (nat.cast_nonneg _) (pow_nonneg (interior_subset hx) _) }

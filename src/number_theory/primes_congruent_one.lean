@@ -61,7 +61,7 @@ begin
       (zmod.unit_of_coprime b (coprime_of_root_cyclotomic hpos hroot))),
     have : ¬p ∣ k := hprime.1.coprime_iff_not_dvd.1
       (coprime_of_root_cyclotomic hpos hroot).symm.coprime_mul_left_right.coprime_mul_right_right,
-    rw [order_of_root_cyclotomic hpos this hroot] at hdiv,
+    rw [order_of_root_cyclotomic_eq hpos this hroot] at hdiv,
     exact ((modeq_iff_dvd' hprime.1.pos).2 hdiv).symm }
 end
 

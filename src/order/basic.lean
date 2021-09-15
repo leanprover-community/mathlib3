@@ -745,17 +745,13 @@ lemma strict_anti_nat_of_succ_lt [preorder β] {f : ℕ → β} (hf : ∀ n, f (
   strict_anti f :=
 by { intros n m hnm, induction hnm with m' hnm' ih, apply hf, exact (hf _).trans ih }
 
-lemma forall_ge_le_of_forall_le_succ {α : Type*} [preorder α] (f : ℕ → α) {m : ℕ}
-  (h : ∀ n ≥ m, f n.succ ≤ f n) : ∀ {l}, ∀ k ≥ m, k ≤ l → f l ≤ f k :=
+lemma forall_ge_le_of_forall_le_succ (f : ℕ → α) {a : ℕ} (h : ∀ n, a ≤ n → f n.succ ≤ f n) {b c : ℕ}
+  (hab : a ≤ b) (hbc : b ≤ c) :
+  f c ≤ f b :=
 begin
-  assume l k hkm hkl,
-  generalize hp : l - k = p,
-  have : l = k + p := add_comm p k ▸ (nat.sub_eq_iff_eq_add hkl).1 hp,
-  subst this,
-  clear hkl hp,
-  induction p with p ih,
-  { simp },
-  { exact le_trans (h _ (le_trans hkm (nat.le_add_right _ _))) ih }
+  induction hbc with k hbk hkb,
+  { exact le_rfl },
+  { exact (h _ $ hab.trans hbk).trans hkb }
 end
 
 -- TODO@Yael: Generalize the following four to succ orders

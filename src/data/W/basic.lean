@@ -117,8 +117,6 @@ lemma depth_lt_depth_mk (a : α) (f : β a → W_type β) (i : β a) :
   depth (f i) < depth ⟨a, f⟩ :=
 nat.lt_succ_of_le (finset.le_sup (finset.mem_univ i))
 
-
-
 end W_type
 
 /-

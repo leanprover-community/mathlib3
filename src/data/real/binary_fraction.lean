@@ -292,6 +292,30 @@ lemma le_mk_Ioc {a b : α} (h : a < b) :
   (2 : cardinal.{u}) ^ omega.{u} ≤ #(Ioc a b) :=
 (le_mk_Ioo h).trans (mk_le_mk_of_subset Ioo_subset_Ioc_self)
 
+lemma le_mk_Ioi' {a : α} (h : (Ioi a).nonempty) : (2 : cardinal.{u}) ^ omega.{u} ≤ #(Ioi a) :=
+exists.elim h $ λ b hb, (le_mk_Ioo hb).trans $ mk_le_mk_of_subset Ioo_subset_Ioi_self
+
+lemma le_mk_Ioi [no_top_order α] (a : α) : (2 : cardinal.{u}) ^ omega.{u} ≤ #(Ioi a) :=
+le_mk_Ioi' (no_top a)
+
+lemma le_mk_Ici' {a : α} (h : (Ioi a).nonempty) : (2 : cardinal.{u}) ^ omega.{u} ≤ #(Ici a) :=
+(le_mk_Ioi' h).trans $ mk_le_mk_of_subset Ioi_subset_Ici_self
+
+lemma le_mk_Ici [no_top_order α] (a : α) : (2 : cardinal.{u}) ^ omega.{u} ≤ #(Ici a) :=
+le_mk_Ici' (no_top a)
+
+lemma le_mk_Iio' {a : α} (h : (Iio a).nonempty) : (2 : cardinal.{u}) ^ omega.{u} ≤ #(Iio a) :=
+@le_mk_Ioi' (order_dual α) _ _ a h
+
+lemma le_mk_Iio [no_bot_order α] (a : α) : (2 : cardinal.{u}) ^ omega.{u} ≤ #(Iio a) :=
+@le_mk_Ioi (order_dual α) _ _ _ a
+
+lemma le_mk_Iic' {a : α} (h : (Iio a).nonempty) : (2 : cardinal.{u}) ^ omega.{u} ≤ #(Iic a) :=
+@le_mk_Ici' (order_dual α) _ _ a h
+
+lemma le_mk_Iic [no_bot_order α] (a : α) : (2 : cardinal.{u}) ^ omega.{u} ≤ #(Iic a) :=
+@le_mk_Ici (order_dual α) _ _ _ a
+
 variable (α)
 
 lemma le_mk_of_conditionally_complete_lattice [nontrivial α] :

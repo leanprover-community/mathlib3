@@ -880,6 +880,9 @@ begin
   rintro ⟨f'⟩, cases embedding.trans f' equiv.ulift.to_embedding with f hf, exact ⟨f, hf⟩
 end
 
+lemma not_countable_of_two_pow_omega_le_mk (s : set α) (hs : 2 ^ omega ≤ #s) : ¬countable s :=
+by { rw [countable_iff, not_le], exact (cantor _).trans_le hs }
+
 /-- This function sends finite cardinals to the corresponding natural, and infinite cardinals
   to 0. -/
 noncomputable def to_nat : zero_hom cardinal ℕ :=
@@ -1120,7 +1123,7 @@ begin
   { intro, convert mk_emptyc _ }
 end
 
-theorem mk_univ {α : Type u} : mk (@univ α) = mk α :=
+@[simp] theorem mk_univ {α : Type u} : mk (@univ α) = mk α :=
 quotient.sound ⟨equiv.set.univ α⟩
 
 theorem mk_image_le {α β : Type u} {f : α → β} {s : set α} : mk (f '' s) ≤ mk s :=

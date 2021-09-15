@@ -812,7 +812,11 @@ begin
       (lintegral_radon_nikodym_deriv_lt_top _ μ).ne }
 end
 
-/-- The Lebesgue Decomposition theorem between a signed measure and a σ-finite positive measure. -/
+/-- **The Lebesgue Decomposition theorem between a signed measure and a measure**:
+Given a signed measure `s` and a σ-finite measure `μ`, there exist a signed measure `t` and a
+measurable and integrable function `f`, such that `t` is mutually singular with respect to `μ`
+and `s = t + μ.with_densityᵥ f`. In this case `t = s.singular_part μ` and
+`f = s.radon_nikodym_deriv μ`. -/
 theorem singular_part_add_with_density_radon_nikodym_deriv_eq :
   s.singular_part μ + μ.with_densityᵥ (s.radon_nikodym_deriv μ) = s :=
 begin
@@ -857,7 +861,10 @@ begin
     exact lintegral_zero },
 end
 
-/-- The singular part is unique (add better doc string) -/
+/-- Given a measure `μ`, signed measures `s` and `t`, and a function `f` such that `t` is
+mutually singular with respect to `μ` and `s = t + μ.with_densityᵥ f`, we have
+`t = singular_part s μ`, i.e. `t` is the singular part of the Lebesgue decomposition between
+`s` and `μ`. -/
 theorem eq_singular_part
   {t : signed_measure α} {f : α → ℝ} (hf : measurable f) (hfi : integrable f μ)
   (htμ : t ⊥ᵥ μ.to_ennreal_vector_measure) (hadd : s = t + μ.with_densityᵥ f) :
@@ -901,7 +908,8 @@ begin
 end
 
 -- We note that the following lemma does not require `μ` to be σ-finite as it is true even if
--- the underlying measures do not have Lebesgue decomposition
+-- the underlying measures do not have Lebesgue decomposition. This is because this statement is
+-- actually a statement about Jordan decompositions.
 lemma singular_part_neg (s : signed_measure α) (μ : measure α) :
   (-s).singular_part μ = - s.singular_part μ :=
 begin

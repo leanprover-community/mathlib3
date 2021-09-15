@@ -95,6 +95,9 @@ decidable_of_decidable_of_iff or.decidable exists_bool.symm
   cond (to_bool p) t e = if p then t else e :=
 by by_cases p; simp *
 
+@[simp] theorem cond_bnot {α} (b : bool) (t e : α) : cond (!b) t e = cond b e t :=
+by cases b; refl
+
 theorem coe_bool_iff : ∀ {a b : bool}, (a ↔ b) ↔ a = b := dec_trivial
 
 theorem eq_tt_of_ne_ff : ∀ {a : bool}, a ≠ ff → a = tt := dec_trivial

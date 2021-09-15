@@ -713,14 +713,14 @@ def typein.principal_seg {α : Type u} (r : α → α → Prop) [is_well_order �
 /-- The cardinal of an ordinal is the cardinal of any
   set with that order type. -/
 def card (o : ordinal) : cardinal :=
-quot.lift_on o (λ ⟨α, r, _⟩, mk α) $
+quot.lift_on o (λ ⟨α, r, _⟩, #α) $
 λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨e⟩, quotient.sound ⟨e.to_equiv⟩
 
 @[simp] theorem card_type (r : α → α → Prop) [is_well_order α r] :
-  card (type r) = mk α := rfl
+  card (type r) = #α := rfl
 
 lemma card_typein {r : α → α → Prop} [wo : is_well_order α r] (x : α) :
-  mk {y // r y x} = (typein r x).card := rfl
+  #{y // r y x} = (typein r x).card := rfl
 
 theorem card_le_card {o₁ o₂ : ordinal} : o₁ ≤ o₂ → card o₁ ≤ card o₂ :=
 induction_on o₁ $ λ α r _, induction_on o₂ $ λ β s _ ⟨⟨⟨f, _⟩, _⟩⟩, ⟨f⟩
@@ -843,7 +843,7 @@ theorem lift_down' {a : cardinal.{u}} {b : ordinal.{max u v}}
 let ⟨c, e⟩ := cardinal.lift_down h in
 quotient.induction_on c (λ α, induction_on b $ λ β s _ e', begin
   resetI,
-  rw [mk_def, card_type, ← cardinal.lift_id'.{(max u v) u} (mk β),
+  rw [mk_def, card_type, ← cardinal.lift_id'.{(max u v) u} (#β),
       ← cardinal.lift_umax.{u v}, lift_mk_eq.{u (max u v) (max u v)}] at e',
   cases e' with f,
   have g := rel_iso.preimage f s,
@@ -1127,18 +1127,18 @@ begin
   exact ordinal.min_le (λ i:ι α, ⟦⟨α, i.1, i.2⟩⟧) ⟨_, _⟩
 end
 
-lemma ord_eq_min (α : Type u) : ord (mk α) =
+lemma ord_eq_min (α : Type u) : ord (#α) =
   @ordinal.min {r // is_well_order α r} ⟨⟨well_ordering_rel, by apply_instance⟩⟩
     (λ i, ⟦⟨α, i.1, i.2⟩⟧) := rfl
 
 theorem ord_eq (α) : ∃ (r : α → α → Prop) [wo : is_well_order α r],
-  ord (mk α) = @type α r wo :=
+  ord (#α) = @type α r wo :=
 let ⟨⟨r, wo⟩, h⟩ := @ordinal.min_eq {r // is_well_order α r}
   ⟨⟨well_ordering_rel, by apply_instance⟩⟩
   (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) in
 ⟨r, wo, h⟩
 
-theorem ord_le_type (r : α → α → Prop) [is_well_order α r] : ord (mk α) ≤ ordinal.type r :=
+theorem ord_le_type (r : α → α → Prop) [is_well_order α r] : ord (#α) ≤ ordinal.type r :=
 @ordinal.min_le {r // is_well_order α r}
   ⟨⟨well_ordering_rel, by apply_instance⟩⟩
   (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) ⟨r, _⟩
@@ -1195,11 +1195,11 @@ eq_of_forall_ge_iff $ λ o, le_iff_le_iff_lt_iff_lt.2 $ begin
     rwa [ordinal.lift_lt, lt_ord] }
 end
 
-lemma mk_ord_out (c : cardinal) : mk c.ord.out.α = c :=
+lemma mk_ord_out (c : cardinal) : #c.ord.out.α = c :=
 by rw [←card_type c.ord.out.r, type_out, card_ord]
 
 lemma card_typein_lt (r : α → α → Prop) [is_well_order α r] (x : α)
-  (h : ord (mk α) = type r) : card (typein r x) < mk α :=
+  (h : ord (#α) = type r) : card (typein r x) < #α :=
 by { rw [←ord_lt_ord, h], refine lt_of_le_of_lt (ord_card_le _) (typein_lt_type r x) }
 
 lemma card_typein_out_lt (c : cardinal) (x : c.ord.out.α) : card (typein c.ord.out.r x) < c :=
@@ -1221,9 +1221,9 @@ rel_embedding.order_embedding_of_lt_embedding
 /-- The cardinal `univ` is the cardinality of ordinal `univ`, or
   equivalently the cardinal of `ordinal.{u}`, or `cardinal.{u}`,
   as an element of `cardinal.{v}` (when `u < v`). -/
-def univ := lift.{(u+1) v} (mk ordinal)
+def univ := lift.{(u+1) v} (#ordinal)
 
-theorem univ_id : univ.{u (u+1)} = mk ordinal := lift_id _
+theorem univ_id : univ.{u (u+1)} = #ordinal := lift_id _
 
 @[simp] theorem lift_univ : lift.{_ w} univ.{u v} = univ.{u (max v w)} := lift_lift _
 

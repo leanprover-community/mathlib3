@@ -214,17 +214,6 @@ end
 lemma nth_zero_of_exists [decidable_pred p] (h : ∃ n, p n) : nth p 0 = nat.find h :=
 by { rw [nth_zero], convert nat.Inf_def h, }
 
-/--
-When `p` is true infinitely often, `nth` agrees with `nat.subtype.order_iso_of_nat`.
--/
-lemma nth_eq_order_iso_of_nat [decidable_pred p] (i : infinite (set_of p)) (n : ℕ) :
-  nth p n = nat.subtype.order_iso_of_nat (set_of p) n :=
-begin
-  cases n; simp [subtype.order_iso_of_nat_apply, subtype.of_nat],
-  { rw [subtype.semilattice_sup_bot_bot_apply, nth_zero_of_exists] },
-  sorry
-end
-
 lemma nth_set_card_aux {n : ℕ}
   (hf : (set_of p).finite)
   (hf' : {i : ℕ | p i ∧ ∀ k < n, nth p k < i}.finite)
@@ -354,26 +343,6 @@ lemma nth_strict_mono_of_infinite (i : (set_of p).infinite) : strict_mono (nth p
 
 lemma nth_monotone_of_infinite (i : (set_of p).infinite) : monotone (nth p) :=
 (nth_strict_mono_of_infinite p i).monotone
-
-lemma nth_nonzero_of_ge_nonzero (h : ¬p 0) (k : ℕ) (h : nth p k ≠ 0) : ∀ a ≤ k, nth p a ≠ 0 :=
-sorry
-
-lemma nth_of_not_zero (h : ¬ p 0) (k : ℕ) (h : nth p k ≠ 0) :
-  nth p k = nth (λ i, p (i + 1)) k + 1 :=
-begin
-  revert h,
-  apply nat.strong_induction_on k,
-  clear k,
-  intros a b ha,
-  rw [nth_def, nth_def],
-  have w' : ∀ m, m < a → nth (λ i, p (i+1)) m = nth p m - 1,
-  { intros m hm,
-    specialize b m hm (nth_nonzero_of_ge_nonzero _ h a ha m hm.le),
-    rw b,
-    simp },
-  simp [w'] {contextual := tt},
-  sorry --- easy from here.
-end
 
 lemma nth_strict_mono_finite {m n : ℕ} (hf : (set_of p).finite)
   (hlt : n < hf.to_finset.card) (hmn : m < n) :
@@ -731,6 +700,43 @@ begin
     assumption_mod_cast },
   { apply nth_mem_of_infinite,
     rwa set.infinite_coe_iff at hi }
+end
+
+lemma nth_nonzero_of_ge_nonzero (h : ¬p 0) (a k : ℕ) (ha: a ≤ k) (h : nth p k ≠ 0) :
+  nth p a ≠ 0 :=
+begin
+  intro h0,
+  apply h,
+  rw nth,
+  rw Inf_eq_zero,
+  right,
+  rw nth at h0,
+  rw Inf_eq_zero at h0,
+  cases h0,
+  { simp only [nat.not_lt_zero, set.mem_set_of_eq] at h0,
+    cases h0,
+    tauto, },
+  { apply set.eq_empty_of_subset_empty,
+    rw ← h0,
+    intro x,
+    simp only [and_imp, set.mem_set_of_eq],
+    intros hp hk,
+    split,
+    { exact hp, },
+    { intros m hm,
+      apply hk,
+      exact lt_of_lt_of_le hm ha, }, },
+end
+
+/--
+When `p` is true infinitely often, `nth` agrees with `nat.subtype.order_iso_of_nat`.
+-/
+lemma nth_eq_order_iso_of_nat [decidable_pred p] (i : infinite (set_of p)) (n : ℕ) :
+  nth p n = nat.subtype.order_iso_of_nat (set_of p) n :=
+begin
+  cases n; simp [subtype.order_iso_of_nat_apply, subtype.of_nat],
+  { rw [subtype.semilattice_sup_bot_bot_apply, nth_zero_of_exists] },
+  sorry
 end
 
 end count

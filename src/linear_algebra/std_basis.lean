@@ -6,7 +6,7 @@ Authors: Johannes Hölzl
 import linear_algebra.basic
 import linear_algebra.basis
 import linear_algebra.pi
-import data.matrix.basic
+import data.matrix.basis
 
 /-!
 # The standard basis
@@ -253,8 +253,20 @@ by simp [basis_fun]
 
 /-- The standard basis on `matrix n m R`. -/
 noncomputable def _root_.matrix.std_basis (n : Type*) (m : Type*) [fintype m] [fintype n] :
-  basis (Σ (j : n), (λ (i : n), m) j) R (matrix n m R) :=
-pi.basis (λ (i : n), pi.basis_fun R m)
+  basis (n × m) R (matrix n m R) :=
+basis.reindex (pi.basis (λ (i : n), pi.basis_fun R m)) (equiv.sigma_equiv_prod _ _)
+
+lemma matrix.std_basis_eq_std_basis_matrix {n : Type*} {m : Type*} (i : n) (j : m)
+  [fintype n] [fintype m] [decidable_eq n] [decidable_eq m] :
+  matrix.std_basis R n m (i,j) = matrix.std_basis_matrix i j (1 : R) :=
+begin
+  ext a b,
+  by_cases hi : i = a; by_cases hj : j = b,
+  { simp [matrix.std_basis, hi, hj] },
+  { simp [matrix.std_basis, hi, hj, ne.symm hj, linear_map.std_basis_ne] },
+  { simp [matrix.std_basis, hi, hj, ne.symm hi, linear_map.std_basis_ne] },
+  { simp [matrix.std_basis, hi, hj, ne.symm hj, ne.symm hi, linear_map.std_basis_ne] }
+end
 
 end
 

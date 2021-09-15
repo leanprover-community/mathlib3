@@ -55,6 +55,7 @@ welcomed.
 * Mario Carneiro (@digama0): all
 * Bryan Gin-ge Chen (@bryangingechen): documentation, infrastructure
 * Johan Commelin (@jcommelin): algebra
+* Rémy Degenne (@RemyDegenne): probability, measure theory, analysis
 * Floris van Doorn (@fpvandoorn): all
 * Gabriel Ebner (@gebner): all
 * Sébastien Gouëzel (@sgouezel): topology, calculus

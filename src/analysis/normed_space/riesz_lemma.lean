@@ -9,7 +9,7 @@ import topology.metric_space.hausdorff_distance
 # Riesz's lemma
 
 Riesz's lemma, stated for a normed space over a normed field: for any
-closed proper subspace F of E, there is a nonzero `x` such that `∥x - F∥`
+closed proper subspace `F` of `E`, there is a nonzero `x` such that `∥x - F∥`
 is at least `r * ∥x∥` for any `r < 1`. This is `riesz_lemma`.
 
 In a nondiscrete normed field (with an element `c` of norm `> 1`) and any `R > ∥c∥`, one can
@@ -60,7 +60,12 @@ end
 A version of Riesz lemma: given a strict closed subspace `F`, one may find an element of norm `≤ R`
 which is at distance  at least `1` of every element of `F`. Here, `R` is any given constant
 strictly larger than the norm of an element of norm `> 1`. For a version without an `R`, see
-`riesz_lemma`. -/
+`riesz_lemma`.
+
+Since we are considering a general nondiscrete normed field, there may be a gap in possible norms
+(for instance no element of norm in `(1,2)`). Hence, we can not allow `R` arbitrarily close to `1`,
+and require `R > ∥c∥` for some `c : 𝕜` with norm `> 1`.
+-/
 lemma riesz_lemma_of_norm_lt
   {c : 𝕜} (hc : 1 < ∥c∥) {R : ℝ} (hR : ∥c∥ < R)
   {F : subspace 𝕜 E} (hFc : is_closed (F : set E)) (hF : ∃ x : E, x ∉ F) :

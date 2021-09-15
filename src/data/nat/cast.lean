@@ -204,11 +204,11 @@ end
 
 @[simp, norm_cast] theorem cast_min [linear_ordered_semiring α] {a b : ℕ} :
   (↑(min a b) : α) = min a b :=
-by by_cases a ≤ b; simp [h, min]
+(@mono_cast α _).map_min
 
 @[simp, norm_cast] theorem cast_max [linear_ordered_semiring α] {a b : ℕ} :
   (↑(max a b) : α) = max a b :=
-by by_cases a ≤ b; simp [h, max]
+(@mono_cast α _).map_max
 
 @[simp, norm_cast] theorem abs_cast [linear_ordered_ring α] (a : ℕ) :
   abs (a : α) = a :=

@@ -133,12 +133,6 @@ variables {α} {β}
       conv {to_rhs, rw [← hy, ← mul_one y, ← inv_mul_self x, ← mul_assoc,
         mul_action.mul_smul, hx]}⟩⟩)⟩
 
-@[to_additive] instance {b : β} : mul_action α (mul_action.orbit α b) :=
-{ smul := λ a b', ⟨a • b', mul_action.orbit_eq_iff.mp (eq.trans (mul_action.orbit_eq_iff.mpr
-    (mul_action.mem_orbit b' a)) (mul_action.orbit_eq_iff.mpr b'.2))⟩,
-  one_smul := λ a, subtype.ext (one_smul α a),
-  mul_smul := λ a a' b', subtype.ext (mul_smul a a' b') }
-
 @[to_additive] lemma mem_fixed_points_iff_card_orbit_eq_one {a : β}
   [fintype (orbit α a)] : a ∈ fixed_points α β ↔ fintype.card (orbit α a) = 1 :=
 begin

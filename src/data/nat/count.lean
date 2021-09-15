@@ -734,9 +734,49 @@ When `p` is true infinitely often, `nth` agrees with `nat.subtype.order_iso_of_n
 lemma nth_eq_order_iso_of_nat [decidable_pred p] (i : infinite (set_of p)) (n : ℕ) :
   nth p n = nat.subtype.order_iso_of_nat (set_of p) n :=
 begin
-  cases n; simp [subtype.order_iso_of_nat_apply, subtype.of_nat],
+  induction n with k;
+  simp [subtype.order_iso_of_nat_apply, subtype.of_nat],
   { rw [subtype.semilattice_sup_bot_bot_apply, nth_zero_of_exists] },
-  sorry
+  { rw nat.subtype.succ,
+    simp only [set.mem_set_of_eq, subtype.coe_mk, subtype.val_eq_coe],
+    simp [subtype.order_iso_of_nat_apply] at n_ih,
+    set b := nth p k.succ - nth p k - 1 with defb,
+    have hb: p (↑(subtype.of_nat (set_of p) k) + b + 1),
+    { rw defb,
+      rw ← n_ih,
+      sorry,
+    },
+    have H: (∃ n: ℕ , p (↑(subtype.of_nat (set_of p) k) + n + 1)),
+    { use b,
+      exact hb, },
+    set t := nat.find H with ht,
+    have ht' := ht,
+    rw ← ht,
+    erw nat.find_eq_iff at ht,
+    cases ht with hp hmin,
+    rw nth,
+    rw Inf_def,
+    erw nat.find_eq_iff,
+    split,
+    { simp,
+      split,
+      { convert hp using 1, },
+      { intros k hk,
+        sorry,
+      }, },
+    intros n hn,
+    simp,
+    intros hpn,
+    use k,
+    split,
+    { exact lt_add_one k},
+    { sorry, },
+    use nth p k.succ,
+    apply nth_mem_of_infinite_aux,
+    convert i,
+    simp,
+    sorry,
+  }
 end
 
 end count

@@ -1947,6 +1947,8 @@ multiset.erase_dup_eq_self.2 (nodup_map_on H s.2)
 theorem image_id [decidable_eq α] : s.image id = s :=
 ext $ λ _, by simp only [mem_image, exists_prop, id, exists_eq_right]
 
+@[simp] theorem image_id' [decidable_eq α] : s.image (λ x, x) = s := image_id
+
 theorem image_image [decidable_eq γ] {g : β → γ} : (s.image f).image g = s.image (g ∘ f) :=
 eq_of_veq $ by simp only [image_val, erase_dup_map_erase_dup_eq, multiset.map_map]
 
@@ -2665,6 +2667,13 @@ bUnion_filter_eq_of_maps_to (λ x, mem_image_of_mem g)
 lemma erase_bUnion (f : α → finset β) (s : finset α) (b : β) :
   (s.bUnion f).erase b = s.bUnion (λ x, (f x).erase b) :=
 by { ext, simp only [finset.mem_bUnion, iff_self, exists_and_distrib_left, finset.mem_erase] }
+
+@[simp] lemma bUnion_nonempty : (s.bUnion t).nonempty ↔ ∃ x ∈ s, (t x).nonempty :=
+by simp [finset.nonempty, ← exists_and_distrib_left, @exists_swap α]
+
+lemma nonempty.bUnion (hs : s.nonempty) (ht : ∀ x ∈ s, (t x).nonempty) :
+  (s.bUnion t).nonempty :=
+bUnion_nonempty.2 $ hs.imp $ λ x hx, ⟨hx, ht x hx⟩
 
 end bUnion
 

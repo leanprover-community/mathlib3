@@ -62,6 +62,10 @@ begin
   exact ⟨λ k b hb, k _ _ hb rfl, λ k a' b hb h, h ▸ k _ hb⟩,
 end
 
+@[simp] lemma sup_bUnion [decidable_eq β] (s : finset γ) (t : γ → finset β) :
+  (s.bUnion t).sup f = s.sup (λ x, (t x).sup f) :=
+eq_of_forall_ge_iff $ λ c, by simp [@forall_swap _ β]
+
 lemma sup_const {s : finset β} (h : s.nonempty) (c : α) : s.sup (λ _, c) = c :=
 eq_of_forall_ge_iff $ λ b, sup_le_iff.trans h.forall_const
 
@@ -337,6 +341,11 @@ begin
   exact bex_congr (λ b hb, with_bot.coe_lt_coe),
 end
 
+lemma sup'_bUnion [decidable_eq β] {s : finset γ} (Hs : s.nonempty) {t : γ → finset β}
+  (Ht : ∀ b, (t b).nonempty) :
+  (s.bUnion t).sup' (Hs.bUnion (λ b _, Ht b)) f = s.sup' Hs (λ b, (t b).sup' (Ht b) f) :=
+eq_of_forall_ge_iff $ λ c, by simp [@forall_swap _ β]
+
 lemma comp_sup'_eq_sup'_comp [semilattice_sup γ] {s : finset β} (H : s.nonempty)
   {f : β → α} (g : α → γ) (g_sup : ∀ x y, g (x ⊔ y) = g x ⊔ g y) :
   g (s.sup' H f) = s.sup' H (g ∘ f) :=
@@ -383,6 +392,14 @@ lemma sup'_mem
   {ι : Type*} (t : finset ι) (H : t.nonempty) (p : ι → α) (h : ∀ i ∈ t, p i ∈ s) :
   t.sup' H p ∈ s :=
 sup'_induction H p w h
+
+@[congr] lemma sup'_congr {t : finset β} {f g : β → α} (h₁ : s = t) (h₂ : ∀ x ∈ s, f x = g x) :
+  s.sup' H f = t.sup' (h₁ ▸ H) g :=
+begin
+  subst s,
+  refine eq_of_forall_ge_iff (λ c, _),
+  simp only [sup'_le_iff, h₂] { contextual := tt }
+end
 
 end sup'
 

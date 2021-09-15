@@ -565,6 +565,23 @@ def gsmul_rec {M : Type*} [has_zero M] [has_add M] [has_neg M]: ℤ → M → M
 
 attribute [to_additive] gpow_rec
 
+/--
+A `div_monoid` is a `monoid` with operation `/`,
+which must give "the reasonable answer" when available, i.e. we have
+`div_eq : ∀ a b c : G, c * b = a → a / b = c`.
+
+Otherwise, `/` may give garbage values.
+-/
+@[protect_proj, ancestor monoid has_div]
+class div_monoid (G : Type u) extends monoid G, has_div G :=
+(div_eq : ∀ a b c : G, c * b = a → a / b = c)
+
+@[protect_proj, ancestor add_monoid has_sub]
+class sub_add_monoid (G : Type u) extends add_monoid G, has_sub G :=
+(sub_eq : ∀ a b c : G, c + b = a → a - b = c)
+
+attribute [to_additive] div_monoid
+
 /-- A `div_inv_monoid` is a `monoid` with operations `/` and `⁻¹` satisfying
 `div_eq_mul_inv : ∀ a b, a / b = a * b⁻¹`.
 
@@ -584,8 +601,8 @@ In the same way, adding a `gpow` field makes it possible to avoid definitional f
 in diamonds. See the definition of `monoid` and Note [forgetful inheritance] for more
 explanations on this.
 -/
-@[protect_proj, ancestor monoid has_inv has_div]
-class div_inv_monoid (G : Type u) extends monoid G, has_inv G, has_div G :=
+@[protect_proj, ancestor div_monoid has_inv]
+class div_inv_monoid (G : Type u) extends div_monoid G, has_inv G :=
 (div := λ a b, a * b⁻¹)
 (div_eq_mul_inv : ∀ a b : G, a / b = a * b⁻¹ . try_refl_tac)
 (gpow : ℤ → G → G := gpow_rec)
@@ -614,8 +631,8 @@ In the same way, adding a `gsmul` field makes it possible to avoid definitional 
 in diamonds. See the definition of `add_monoid` and Note [forgetful inheritance] for more
 explanations on this.
 -/
-@[protect_proj, ancestor add_monoid has_neg has_sub]
-class sub_neg_monoid (G : Type u) extends add_monoid G, has_neg G, has_sub G :=
+@[protect_proj, ancestor sub_add_monoid has_neg]
+class sub_neg_monoid (G : Type u) extends sub_add_monoid G, has_neg G :=
 (sub := λ a b, a + -b)
 (sub_eq_add_neg : ∀ a b : G, a - b = a + -b . try_refl_tac)
 (gsmul : ℤ → G → G := gsmul_rec)
@@ -635,9 +652,9 @@ lemma div_inv_monoid.ext {M : Type*} ⦃m₁ m₂ : div_inv_monoid M⦄ (h_mul :
 begin
   let iM : div_inv_monoid M := m₁,
   unfreezingI {
-    cases m₁ with mul₁ _ one₁ one_mul₁ mul_one₁ npow₁ npow_zero₁ npow_succ₁ inv₁ div₁
+    cases m₁ with mul₁ _ one₁ one_mul₁ mul_one₁ npow₁ npow_zero₁ npow_succ₁ div₁ div_eq₁ inv₁
       div_eq_mul_inv₁ gpow₁ gpow_zero'₁ gpow_succ'₁ gpow_neg'₁,
-    cases m₂ with mul₂ _ one₂ one_mul₂ mul_one₂ npow₂ npow_zero₂ npow_succ₂ inv₂ div₂
+    cases m₂ with mul₂ _ one₂ one_mul₂ mul_one₂ npow₂ npow_zero₂ npow_succ₂ div₂ div_eq₂ inv₂
       div_eq_mul_inv₂ gpow₂ gpow_zero'₂ gpow_succ'₂ gpow_neg'₂ },
   change mul₁ = mul₂ at h_mul,
   subst h_mul,
@@ -691,6 +708,13 @@ with a default so that `a / b = a * b⁻¹` holds by definition.
 @[protect_proj, ancestor div_inv_monoid]
 class group (G : Type u) extends div_inv_monoid G :=
 (mul_left_inv : ∀ a : G, a⁻¹ * a = 1)
+(div_eq := λ x y z h, begin
+    -- We are now stuck.
+    -- The hypothesis `h` uses the multiplication from `mul`.
+    -- The hypothese `mul_left_inv` uses the multiplication from `a`.
+    -- In the present context these are unrelated!?
+    sorry,
+  end)
 
 /-- An `add_group` is an `add_monoid` with a unary `-` satisfying `-a + a = 0`.
 
@@ -700,22 +724,25 @@ with a default so that `a - b = a + -b` holds by definition.
 @[protect_proj, ancestor sub_neg_monoid]
 class add_group (A : Type u) extends sub_neg_monoid A :=
 (add_left_neg : ∀ a : A, -a + a = 0)
+(sub_eq := sorry)
 
 attribute [to_additive] group
 
-/-- Abbreviation for `@div_inv_monoid.to_monoid _ (@group.to_div_inv_monoid _ _)`.
+/-- Abbreviation for
+`@div_monoid.to_monoid _ (@div_inv_monoid.to_div_monoid _ (@group.to_div_inv_monoid _ _))`.
 
 Useful because it corresponds to the fact that `Grp` is a subcategory of `Mon`.
-Not an instance since it duplicates `@div_inv_monoid.to_monoid _ (@group.to_div_inv_monoid _ _)`.
+Not an instance since it duplicates
+`@div_monoid.to_monoid _ (@div_inv_monoid.to_div_monoid _ (@group.to_div_inv_monoid _ _))`.
 See note [reducible non-instances]. -/
 @[reducible, to_additive
-"Abbreviation for `@sub_neg_monoid.to_add_monoid _ (@add_group.to_sub_neg_monoid _ _)`.
+"Abbreviation for `@sub_add_monoid.to_add_monoid _ (@sub_neg_monoid.to_sub_add_monoid _ (@add_group.to_sub_neg_monoid _ _))`.
 
 Useful because it corresponds to the fact that `AddGroup` is a subcategory of `AddMon`.
 Not an instance since it duplicates
-`@sub_neg_monoid.to_add_monoid _ (@add_group.to_sub_neg_monoid _ _)`."]
+`@sub_add_monoid.to_add_monoid _ (@sub_neg_monoid.to_sub_add_monoid _ (@add_group.to_sub_neg_monoid _ _))`."]
 def group.to_monoid (G : Type u) [group G] : monoid G :=
-@div_inv_monoid.to_monoid _ (@group.to_div_inv_monoid _ _)
+@div_monoid.to_monoid _ (@div_inv_monoid.to_div_monoid _ (@group.to_div_inv_monoid _ _))
 
 section group
 variables {G : Type u} [group G] {a b c : G}
@@ -774,9 +801,9 @@ group.to_div_inv_monoid_injective $ div_inv_monoid.ext h_mul
 begin
   let iG : group G := g₁,
   unfreezingI {
-    cases g₁ with mul₁ _ one₁ one_mul₁ mul_one₁ npow₁ npow_zero'₁ npow_succ'₁ inv₁ div₁
+    cases g₁ with mul₁ _ one₁ one_mul₁ mul_one₁ npow₁ npow_zero'₁ npow_succ'₁ div₁ div_eq₁ inv₁
       div_eq_mul_inv₁ gpow₁ gpow_zero'₁ gpow_succ'₁ gpow_neg'₁ mul_left_inv₁,
-    cases g₂ with mul₂ _ one₂ one_mul₂ mul_one₂ npow₂ npow_zero'₂ npow_succ'₂ inv₂ div₂
+    cases g₂ with mul₂ _ one₂ one_mul₂ mul_one₂ npow₂ npow_zero'₂ npow_succ'₂ div₂ div_eq₂ inv₂
       div_eq_mul_inv₂ gpow₂ gpow_zero'₂ gpow_succ'₂ gpow_neg'₂ mul_left_inv₂, },
   change mul₁ = mul₂ at h_mul,
   subst h_mul,

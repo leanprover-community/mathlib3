@@ -144,6 +144,20 @@ protected def cancel_comm_monoid [cancel_comm_monoid M₂] (f : M₁ → M₂) (
 
 variables [has_inv M₁] [has_div M₁]
 
+/-- A type endowed with `1`, `*`, and `/` is a `div_monoid`
+if it admits an injective map that preserves `1`, `*`, and `/` to a `div_monoid`.
+See note [reducible non-instances]. -/
+@[reducible, to_additive
+"A type endowed with `0`, `+`, and binary `-` is a `sub_add_monoid`
+if it admits an injective map that preserves `0`, `+`, and binary `-` to
+a `sub_add_monoid`."]
+protected def div_monoid [div_monoid M₂] (f : M₁ → M₂) (hf : injective f)
+  (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y)
+  (div : ∀ x y, f (x / y) = f x / f y) :
+  div_monoid M₁ :=
+{ div_eq := λ x y z h, hf $ by { rw div, apply div_monoid.div_eq, rw ←mul, exact congr_arg f h, },
+  .. hf.monoid f one mul, .. ‹has_inv M₁›, .. ‹has_div M₁› }
+
 /-- A type endowed with `1`, `*`, `⁻¹`, and `/` is a `div_inv_monoid`
 if it admits an injective map that preserves `1`, `*`, `⁻¹`, and `/` to a `div_inv_monoid`.
 See note [reducible non-instances]. -/
@@ -156,7 +170,7 @@ protected def div_inv_monoid [div_inv_monoid M₂] (f : M₁ → M₂) (hf : inj
   (div : ∀ x y, f (x / y) = f x / f y) :
   div_inv_monoid M₁ :=
 { div_eq_mul_inv := λ x y, hf $ by erw [div, mul, inv, div_eq_mul_inv],
-  .. hf.monoid f one mul, .. ‹has_inv M₁›, .. ‹has_div M₁› }
+  .. hf.div_monoid f one mul div, .. ‹has_inv M₁›, .. ‹has_div M₁› }
 
 /-- A type endowed with `1`, `*` and `⁻¹` is a group,
 if it admits an injective map that preserves `1`, `*` and `⁻¹` to a group.
@@ -255,18 +269,8 @@ protected def comm_monoid [comm_monoid M₁] (f : M₁ → M₂) (hf : surjectiv
 
 variables [has_inv M₂] [has_div M₂]
 
-/-- A type endowed with `1`, `*`, `⁻¹`, and `/` is a `div_inv_monoid`,
-if it admits a surjective map that preserves `1`, `*`, `⁻¹`, and `/` from a `div_inv_monoid`
-See note [reducible non-instances]. -/
-@[reducible, to_additive
-"A type endowed with `0`, `+`, and `-` (unary and binary) is an additive group,
-if it admits a surjective map that preserves `0`, `+`, and `-` from a `sub_neg_monoid`"]
-protected def div_inv_monoid [div_inv_monoid M₁] (f : M₁ → M₂) (hf : surjective f)
-  (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f (x⁻¹) = (f x)⁻¹)
-  (div : ∀ x y, f (x / y) = f x / f y) :
-  div_inv_monoid M₂ :=
-{ div_eq_mul_inv := hf.forall₂.2 $ λ x y, by erw [← inv, ← mul, ← div, div_eq_mul_inv],
-  .. hf.monoid f one mul, .. ‹has_div M₂›, .. ‹has_inv M₂› }
+-- Note that we cannot construct `div_monoid` or `div_inv_monoid` instances
+-- from a surjective morphism: `div_eq` may not hold.
 
 /-- A type endowed with `1`, `*`, `⁻¹`, and `/` is a group,
 if it admits a surjective map that preserves `1`, `*`, `⁻¹`, and `/` from a group.
@@ -278,8 +282,9 @@ protected def group [group M₁] (f : M₁ → M₂) (hf : surjective f)
   (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f (x⁻¹) = (f x)⁻¹)
   (div : ∀ x y, f (x / y) = f x / f y) :
   group M₂ :=
-{ mul_left_inv := hf.forall.2 $ λ x, by erw [← inv, ← mul, mul_left_inv, one]; refl,
-  .. hf.div_inv_monoid f one mul inv div }
+{ div_eq_mul_inv := hf.forall₂.2 $ λ x y, by erw [← inv, ← mul, ← div, div_eq_mul_inv],
+  mul_left_inv := hf.forall.2 $ λ x, by erw [← inv, ← mul, mul_left_inv, one]; refl,
+  .. hf.monoid f one mul, .. ‹has_div M₂›, .. ‹has_inv M₂› }
 
 /-- A type endowed with `1`, `*`, `⁻¹`, and `/` is a commutative group,
 if it admits a surjective map that preserves `1`, `*`, `⁻¹`, and `/` from a commutative group.

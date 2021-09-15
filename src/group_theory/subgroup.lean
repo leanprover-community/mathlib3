@@ -1698,8 +1698,8 @@ map_injective_of_ker_le f ((ker_le_comap f H).trans le_sup_left) (ker_le_comap f
 comap_sup_eq_of_le_range f (le_top.trans (ge_of_eq (f.range_top_of_surjective hf)))
   (le_top.trans (ge_of_eq (f.range_top_of_surjective hf)))
 
-@[to_additive] lemma comap_subtype_sup_eq {H K L : subgroup G} (hH : H ≤ L) (hK : K ≤ L) :
-  H.comap L.subtype ⊔ K.comap L.subtype = (H ⊔ K).comap L.subtype :=
+@[to_additive] lemma sup_subgroup_of_eq {H K L : subgroup G} (hH : H ≤ L) (hK : K ≤ L) :
+  H.subgroup_of L ⊔ K.subgroup_of L = (H ⊔ K).subgroup_of L :=
 comap_sup_eq_of_le_range L.subtype (hH.trans (ge_of_eq L.subtype_range))
   (hK.trans (ge_of_eq L.subtype_range))
 

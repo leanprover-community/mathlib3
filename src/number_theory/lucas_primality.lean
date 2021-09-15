@@ -68,12 +68,10 @@ group must itself have order `p-1`, which only happens when `p` is prime.
 theorem lucas_primality (p : ℕ) (a : zmod p) (ha : a^(p-1) = 1)
   (hd : ∀ q : ℕ, q.prime → q ∣ (p-1) → a^((p-1)/q) ≠ 1) : p.prime :=
 begin
-  by_cases h0 : p = 0,
-    { exfalso,
-      exact hd 2 nat.prime_two (by simp only [h0, zero_sub', dvd_zero]) (by simp [h0]), },
-  by_cases h1 : p = 1,
-    { exfalso,
-      exact hd 2 nat.prime_two (by simp only [h1, nat.sub_self, dvd_zero]) (by simp [h1]), },
+  have h0 : p ≠ 0,
+  { exact λ h0, hd 2 nat.prime_two (by simp only [h0, zero_sub', dvd_zero]) (by simp [h0]) },
+  have h1 : p ≠ 1,
+  { exact λ h1, hd 2 nat.prime_two (by simp only [h1, nat.sub_self, dvd_zero]) (by simp [h1]) },
   have hp1 : 1 < p := lt_of_le_of_ne (nat.succ_le_iff.mpr (zero_lt_iff.mpr h0)) (ne.symm h1),
   have order_of_a : order_of a = p-1,
     { apply order_from_pows p (p - 1) a _ ha hd,

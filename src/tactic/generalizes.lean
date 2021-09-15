@@ -71,8 +71,7 @@ meta def step1 (md : transparency) (unify : bool)
           k ← mk_local' n binder_info.default J,
           e ← kreplace e j k md unify,
           ks ← ks.mmap $ λ k', kreplace k' j k md unify,
-          pure (e, k :: ks)
-        },
+          pure (e, k :: ks) },
   to_generalize.mfoldr go (e, [])
 
 /--
@@ -115,7 +114,8 @@ meta def step3 (e : expr) (js ks eqs eq_proofs : list expr)
 focus1 $ do
   let new_target_type := (e.pis eqs).pis ks,
   type_check new_target_type <|> fail!
-    "generalizes': unable to generalize the target because the generalized target type does not type check:\n{new_target_type}",
+    ("generalizes': unable to generalize the target because the generalized target type does not" ++
+    " type check:\n{new_target_type}"),
   n ← mk_fresh_name,
   new_target ← assert n new_target_type,
   swap,
@@ -242,8 +242,7 @@ meta def generalizes (args : parse generalizes_args_parser) : tactic unit :=
 propagate_tags $ do
   args ← args.mmap $ λ ⟨arg_name, hyp_name, arg⟩, do {
     arg ← to_expr arg,
-    pure (arg_name, hyp_name, arg)
-  },
+    pure (arg_name, hyp_name, arg) },
   generalizes_intro args,
   pure ()
 

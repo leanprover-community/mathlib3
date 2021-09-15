@@ -50,6 +50,39 @@ by simp [volume_val]
 @[simp] lemma volume_singleton {a : ℝ} : volume ({a} : set ℝ) = 0 :=
 by simp [volume_val]
 
+@[simp] lemma volume_univ : volume (univ : set ℝ) = ∞ :=
+ennreal.eq_top_of_forall_nnreal_le $ λ r,
+  calc (r : ℝ≥0∞) = volume (Icc (0 : ℝ) r) : by simp
+              ... ≤ volume univ            : measure_mono (subset_univ _)
+
+@[simp] lemma volume_ball (a r : ℝ) :
+  volume (metric.ball a r) = of_real (2 * r) :=
+by rw [ball_eq, volume_Ioo, ← sub_add, add_sub_cancel', two_mul]
+
+@[simp] lemma volume_closed_ball (a r : ℝ) :
+  volume (metric.closed_ball a r) = of_real (2 * r) :=
+by rw [closed_ball_eq, volume_Icc, ← sub_add, add_sub_cancel', two_mul]
+
+@[simp] lemma volume_emetric_ball (a : ℝ) (r : ℝ≥0∞) :
+  volume (emetric.ball a r) = 2 * r :=
+begin
+  rcases eq_or_ne r ∞ with rfl|hr,
+  { rw [metric.emetric_ball_top, volume_univ, two_mul, ennreal.top_add] },
+  { lift r to ℝ≥0 using hr,
+    rw [metric.emetric_ball_nnreal, volume_ball, two_mul, ← nnreal.coe_add,
+      ennreal.of_real_coe_nnreal, ennreal.coe_add, two_mul] }
+end
+
+@[simp] lemma volume_emetric_closed_ball (a : ℝ) (r : ℝ≥0∞) :
+  volume (emetric.closed_ball a r) = 2 * r :=
+begin
+  rcases eq_or_ne r ∞ with rfl|hr,
+  { rw [emetric.closed_ball_top, volume_univ, two_mul, ennreal.top_add] },
+  { lift r to ℝ≥0 using hr,
+    rw [metric.emetric_closed_ball_nnreal, volume_closed_ball, two_mul, ← nnreal.coe_add,
+      ennreal.of_real_coe_nnreal, ennreal.coe_add, two_mul] }
+end
+
 instance has_no_atoms_volume : has_no_atoms (volume : measure ℝ) :=
 ⟨λ x, volume_singleton⟩
 
@@ -72,21 +105,21 @@ calc (n : ℝ≥0∞) = volume (Ioo (a - n) a) : by simp
 @[simp] lemma volume_Iic {a : ℝ} : volume (Iic a) = ∞ :=
 by simp [← measure_congr Iio_ae_eq_Iic]
 
-instance locally_finite_volume : locally_finite_measure (volume : measure ℝ) :=
+instance locally_finite_volume : is_locally_finite_measure (volume : measure ℝ) :=
 ⟨λ x, ⟨Ioo (x - 1) (x + 1),
   is_open.mem_nhds is_open_Ioo ⟨sub_lt_self _ zero_lt_one, lt_add_of_pos_right _ zero_lt_one⟩,
   by simp only [real.volume_Ioo, ennreal.of_real_lt_top]⟩⟩
 
-instance finite_measure_restrict_Icc (x y : ℝ) : finite_measure (volume.restrict (Icc x y)) :=
+instance is_finite_measure_restrict_Icc (x y : ℝ) : is_finite_measure (volume.restrict (Icc x y)) :=
 ⟨by simp⟩
 
-instance finite_measure_restrict_Ico (x y : ℝ) : finite_measure (volume.restrict (Ico x y)) :=
+instance is_finite_measure_restrict_Ico (x y : ℝ) : is_finite_measure (volume.restrict (Ico x y)) :=
 ⟨by simp⟩
 
-instance finite_measure_restrict_Ioc (x y : ℝ) : finite_measure (volume.restrict (Ioc x y)) :=
+instance is_finite_measure_restrict_Ioc (x y : ℝ) : is_finite_measure (volume.restrict (Ioc x y)) :=
  ⟨by simp⟩
 
-instance finite_measure_restrict_Ioo (x y : ℝ) : finite_measure (volume.restrict (Ioo x y)) :=
+instance is_finite_measure_restrict_Ioo (x y : ℝ) : is_finite_measure (volume.restrict (Ioo x y)) :=
 ⟨by simp⟩
 
 /-!
@@ -127,6 +160,20 @@ lemma volume_pi_Ico {a b : ι → ℝ} :
 @[simp] lemma volume_pi_Ico_to_real {a b : ι → ℝ} (h : a ≤ b) :
   (volume (pi univ (λ i, Ico (a i) (b i)))).to_real = ∏ i, (b i - a i) :=
 by simp only [volume_pi_Ico, ennreal.to_real_prod, ennreal.to_real_of_real (sub_nonneg.2 (h _))]
+
+@[simp] lemma volume_pi_ball (a : ι → ℝ) {r : ℝ} (hr : 0 < r) :
+  volume (metric.ball a r) = ennreal.of_real ((2 * r) ^ fintype.card ι) :=
+begin
+  simp only [volume_pi_ball a hr, volume_ball, finset.prod_const],
+  exact (ennreal.of_real_pow (mul_nonneg zero_le_two hr.le) _).symm
+end
+
+@[simp] lemma volume_pi_closed_ball (a : ι → ℝ) {r : ℝ} (hr : 0 ≤ r) :
+  volume (metric.closed_ball a r) = ennreal.of_real ((2 * r) ^ fintype.card ι) :=
+begin
+  simp only [volume_pi_closed_ball a hr, volume_closed_ball, finset.prod_const],
+  exact (ennreal.of_real_pow (mul_nonneg zero_le_two hr) _).symm
+end
 
 lemma volume_le_diam (s : set ℝ) : volume s ≤ emetric.diam s :=
 begin
@@ -266,16 +313,16 @@ begin
   have h₁ : (λ y, ennreal.of_real ((g - f) y))
           =ᵐ[μ.restrict s]
               λ y, ennreal.of_real ((ae_measurable.mk g hg - ae_measurable.mk f hf) y) :=
-    eventually_eq.fun_comp (eventually_eq.sub hg.ae_eq_mk hf.ae_eq_mk) _,
+    (hg.ae_eq_mk.sub hf.ae_eq_mk).fun_comp _,
   have h₂ : (μ.restrict s).prod volume (region_between f g s) =
     (μ.restrict s).prod volume (region_between (ae_measurable.mk f hf) (ae_measurable.mk g hg) s),
   { apply measure_congr,
-    apply eventually_eq.inter, { refl },
-    exact eventually_eq.inter
-            (eventually_eq.comp₂ (ae_eq_comp' measurable_fst hf.ae_eq_mk
-              measure.prod_fst_absolutely_continuous) _ eventually_eq.rfl)
-            (eventually_eq.comp₂ eventually_eq.rfl _
-              (ae_eq_comp' measurable_fst hg.ae_eq_mk measure.prod_fst_absolutely_continuous)) },
+    apply eventually_eq.rfl.inter,
+    exact
+      ((ae_eq_comp' measurable_fst hf.ae_eq_mk measure.prod_fst_absolutely_continuous).comp₂ _
+        eventually_eq.rfl).inter
+      (eventually_eq.rfl.comp₂ _
+        (ae_eq_comp' measurable_fst hg.ae_eq_mk measure.prod_fst_absolutely_continuous)) },
   rw [lintegral_congr_ae h₁,
       ← volume_region_between_eq_lintegral' hf.measurable_mk hg.measurable_mk hs],
   convert h₂ using 1,
@@ -294,11 +341,7 @@ theorem volume_region_between_eq_integral' [sigma_finite μ]
   μ.prod volume (region_between f g s) = ennreal.of_real (∫ y in s, (g - f) y ∂μ) :=
 begin
   have h : g - f =ᵐ[μ.restrict s] (λ x, real.to_nnreal (g x - f x)),
-  { apply hfg.mono,
-    simp only [real.to_nnreal, max, sub_nonneg, pi.sub_apply],
-    intros x hx,
-    split_ifs,
-    refl },
+    from hfg.mono (λ x hx, (real.coe_to_nnreal _ $ sub_nonneg.2 hx).symm),
   rw [volume_region_between_eq_lintegral f_int.ae_measurable g_int.ae_measurable hs,
     integral_congr_ae h, lintegral_congr_ae,
     lintegral_coe_eq_integral _ ((integrable_congr h).mp (g_int.sub f_int))],

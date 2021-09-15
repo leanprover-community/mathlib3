@@ -43,7 +43,7 @@ theorem uniformity_dist_of_mem_uniformity [linear_order β] {U : filter (α × �
 le_antisymm
   (le_infi $ λ ε, le_infi $ λ ε0, le_principal_iff.2 $ (H _).2 ⟨ε, ε0, λ a b, id⟩)
   (λ r ur, let ⟨ε, ε0, h⟩ := (H _).1 ur in
-    mem_infi_sets ε $ mem_infi_sets ε0 $ mem_principal_sets.2 $ λ ⟨a, b⟩, h)
+    mem_infi_of_mem ε $ mem_infi_of_mem ε0 $ mem_principal.2 $ λ ⟨a, b⟩, h)
 
 /-- `has_edist α` means that `α` is equipped with an extended distance. -/
 class has_edist (α : Type*) := (edist : α → α → ℝ≥0∞)
@@ -65,7 +65,7 @@ uniform_space.of_core {
     have A : 0 < ε / 2 := ennreal.div_pos_iff.2
       ⟨ne_of_gt h, by { convert ennreal.nat_ne_top 2 }⟩,
     lift'_le
-    (mem_infi_sets (ε / 2) $ mem_infi_sets A (subset.refl _)) $
+    (mem_infi_of_mem (ε / 2) $ mem_infi_of_mem A (subset.refl _)) $
     have ∀ (a b c : α), edist a c < ε / 2 → edist c b < ε / 2 → edist a b < ε,
       from assume a b c hac hcb,
       calc edist a b ≤ edist a c + edist c b : edist_triangle _ _ _
@@ -380,7 +380,7 @@ def pseudo_emetric_space.induced {α β} (f : α → β)
   to_uniform_space    := uniform_space.comap f m.to_uniform_space,
   uniformity_edist    := begin
     apply @uniformity_dist_of_mem_uniformity _ _ _ _ _ (λ x y, edist (f x) (f y)),
-    refine λ s, mem_comap_sets.trans _,
+    refine λ s, mem_comap.trans _,
     split; intro H,
     { rcases H with ⟨r, ru, rs⟩,
       rcases mem_uniformity_edist.1 ru with ⟨ε, ε0, hε⟩,
@@ -482,8 +482,11 @@ def closed_ball (x : α) (ε : ℝ≥0∞) := {y | edist y x ≤ ε}
 
 @[simp] theorem mem_closed_ball : y ∈ closed_ball x ε ↔ edist y x ≤ ε := iff.rfl
 
+@[simp] theorem closed_ball_top (x : α) : closed_ball x ∞ = univ :=
+eq_univ_of_forall $ λ y, @le_top _ _ (edist y x)
+
 theorem ball_subset_closed_ball : ball x ε ⊆ closed_ball x ε :=
-assume y, by simp; intros h; apply le_of_lt h
+assume y hy, le_of_lt hy
 
 theorem pos_of_mem_ball (hy : y ∈ ball x ε) : 0 < ε :=
 lt_of_le_of_lt (zero_le _) hy
@@ -509,7 +512,7 @@ eq_empty_iff_forall_not_mem.2 $ λ z ⟨h₁, h₂⟩,
 not_lt_of_le (edist_triangle_left x y z)
   (lt_of_lt_of_le (ennreal.add_lt_add h₁ h₂) h)
 
-theorem ball_subset (h : edist x y + ε₁ ≤ ε₂) (h' : edist x y < ⊤) : ball x ε₁ ⊆ ball y ε₂ :=
+theorem ball_subset (h : edist x y + ε₁ ≤ ε₂) (h' : edist x y ≠ ∞) : ball x ε₁ ⊆ ball y ε₂ :=
 λ z zx, calc
   edist z y ≤ edist z x + edist x y : edist_triangle _ _ _
   ... = edist x y + edist z x : add_comm _ _
@@ -519,9 +522,9 @@ theorem ball_subset (h : edist x y + ε₁ ≤ ε₂) (h' : edist x y < ⊤) : b
 theorem exists_ball_subset_ball (h : y ∈ ball x ε) : ∃ ε' > 0, ball y ε' ⊆ ball x ε :=
 begin
   have : 0 < ε - edist y x := by simpa using h,
-  refine ⟨ε - edist y x, this, ball_subset _ _⟩,
-  { rw ennreal.add_sub_cancel_of_le (le_of_lt h), apply le_refl _},
-  { have : edist y x ≠ ⊤ := ne_top_of_lt h, apply lt_top_iff_ne_top.2 this }
+  refine ⟨ε - edist y x, this, ball_subset _ (ne_top_of_lt h)⟩,
+  rw ennreal.add_sub_cancel_of_le (le_of_lt h),
+  exact le_refl ε
 end
 
 theorem ball_eq_empty_iff : ball x ε = ∅ ↔ ε = 0 :=
@@ -561,7 +564,10 @@ is_open_compl_iff.1 $ is_open_iff.2 $ λ y hy, ⟨⊤, ennreal.coe_lt_top, subse
   ball_disjoint $ by { rw ennreal.top_add, exact le_of_not_lt hy }⟩
 
 theorem ball_mem_nhds (x : α) {ε : ℝ≥0∞} (ε0 : 0 < ε) : ball x ε ∈ 𝓝 x :=
-is_open.mem_nhds is_open_ball (mem_ball_self ε0)
+is_open_ball.mem_nhds (mem_ball_self ε0)
+
+theorem closed_ball_mem_nhds (x : α) {ε : ℝ≥0∞} (ε0 : 0 < ε) : closed_ball x ε ∈ 𝓝 x :=
+mem_of_superset (ball_mem_nhds x ε0) ball_subset_closed_ball
 
 theorem ball_prod_same [pseudo_emetric_space β] (x : α) (y : β) (r : ℝ≥0∞) :
   (ball x r).prod (ball y r) = ball (x, y) r :=
@@ -749,6 +755,10 @@ diam_subsingleton subsingleton_empty
 @[simp] lemma diam_singleton : diam ({x} : set α) = 0 :=
 diam_subsingleton subsingleton_singleton
 
+lemma diam_Union_mem_option {ι : Type*} (o : option ι) (s : ι → set α) :
+  diam (⋃ i ∈ o, s i) = ⨆ i ∈ o, diam (s i) :=
+by cases o; simp
+
 lemma diam_insert : diam (insert x s) = max (⨆ y ∈ s, edist x y) (diam s) :=
 eq_of_forall_ge_iff $ λ d, by simp only [diam_le_iff, ball_insert_iff,
   edist_self, edist_comm x, max_le_iff, supr_le_iff, zero_le, true_and,
@@ -908,7 +918,7 @@ def emetric_space.induced {γ β} (f : γ → β) (hf : function.injective f)
   to_uniform_space    := uniform_space.comap f m.to_uniform_space,
   uniformity_edist    := begin
     apply @uniformity_dist_of_mem_uniformity _ _ _ _ _ (λ x y, edist (f x) (f y)),
-    refine λ s, mem_comap_sets.trans _,
+    refine λ s, mem_comap.trans _,
     split; intro H,
     { rcases H with ⟨r, ru, rs⟩,
       rcases mem_uniformity_edist.1 ru with ⟨ε, ε0, hε⟩,

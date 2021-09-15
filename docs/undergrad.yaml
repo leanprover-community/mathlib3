@@ -88,7 +88,7 @@ Group Theory:
     stabilizer of a point: 'mul_action.stabilizer'
     orbit: 'mul_action.orbit'
     quotient space: 'mul_action.orbit_equiv_quotient_stabilizer'
-    class formula: ''
+    class formula: 'mul_action.self_equiv_sigma_orbits_quotient_stabilizer'
     conjugacy classes: 'conj_classes'
   Abelian group:
     cyclic group: 'is_cyclic'
@@ -255,8 +255,8 @@ Affine and Euclidean Geometry:
     convex hull of a subset of an affine real space: 'convex_hull'
     extreme point: 'set.extreme_points'
   Euclidean affine spaces:
-    isometries of a Euclidean affine space:
-    group of isometries of a Euclidean affine space:
+    isometries of a Euclidean affine space: 'affine_isometry_equiv'
+    group of isometries of a Euclidean affine space: 'affine_isometry_equiv.group'
     isometries that do and do not preserve orientation:
     direct and opposite similarities of the plane:
     classification of isometries in two and three dimensions:
@@ -412,7 +412,7 @@ Topology:
     complete metric spaces: 'metric.complete_of_cauchy_seq_tendsto'
     contraction mapping theorem: 'contracting_with.exists_fixed_point'
   Normed vector spaces on $\R$ and $\C$:
-    topology on a normed vector space: 'semi_normed_space.has_continuous_smul'
+    topology on a normed vector space: 'semi_normed_space.has_bounded_smul'
     equivalent norms:
     Banach open mapping theorem: 'open_mapping'
     equivalence of norms in finite dimension: 'linear_equiv.to_continuous_linear_equiv'
@@ -424,7 +424,7 @@ Topology:
     normed space of bounded continuous functions: 'bounded_continuous_function.normed_space'
     its completeness: 'bounded_continuous_function.complete_space'
     Heine-Borel theorem (closed bounded subsets are compact in finite dimension): 'finite_dimensional.proper'
-    Riesz' lemma (unit-ball characterization of finite dimension):
+    Riesz' lemma (unit-ball characterization of finite dimension): 'finite_dimensional_of_is_compact_closed_ball'
     Arzela-Ascoli theorem: 'bounded_continuous_function.arzela_ascoli'
   Hilbert spaces:
     Hilbert projection theorem: 'exists_norm_eq_infi_of_complete_convex'
@@ -456,7 +456,7 @@ Multivariable calculus:
     differentiable functions: 'differentiable'
     $k$-times continuously differentiable functions: 'times_cont_diff'
     $k$-th order partial derivatives:
-    partial derivatives commute:
+    partial derivatives commute: 'second_derivative_symmetric'
     Taylor's theorem with little-o remainder:
     Taylor's theorem with integral form for remainder:
     local extrema: 'is_local_min.fderiv_eq_zero'
@@ -532,7 +532,7 @@ Measures and integral Calculus:
 # 11.
 Probability Theory:
   Definitions of a probability space:
-    probability measure: 'measure_theory.probability_measure'
+    probability measure: 'measure_theory.is_probability_measure'
     events:
     independent events: 'probability_theory.Indep_set'
     sigma-algebra: 'measurable_space'

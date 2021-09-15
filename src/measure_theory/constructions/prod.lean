@@ -145,7 +145,7 @@ is_pi_system_measurable_set.prod is_pi_system_measurable_set
 
 /-- If `ν` is a finite measure, and `s ⊆ α × β` is measurable, then `x ↦ ν { y | (x, y) ∈ s }` is
   a measurable function. `measurable_measure_prod_mk_left` is strictly more general. -/
-lemma measurable_measure_prod_mk_left_finite [finite_measure ν] {s : set (α × β)}
+lemma measurable_measure_prod_mk_left_finite [is_finite_measure ν] {s : set (α × β)}
   (hs : measurable_set s) : measurable (λ x, ν (prod.mk x ⁻¹' s)) :=
 begin
   refine induction_on_inter generate_from_prod.symm is_pi_system_prod _ _ _ _ hs,
@@ -406,7 +406,7 @@ def finite_spanning_sets_in.prod {ν : measure β} {C : set (set α)} {D : set (
   (hC : ∀ s ∈ C, measurable_set s) (hD : ∀ t ∈ D, measurable_set t) :
   (μ.prod ν).finite_spanning_sets_in (image2 set.prod C D) :=
 begin
-  haveI := hν.sigma_finite hD,
+  haveI := hν.sigma_finite,
   refine ⟨λ n, (hμ.set n.unpair.1).prod (hν.set n.unpair.2),
     λ n, mem_image2_of_mem (hμ.set_mem _) (hν.set_mem _), λ n, _, _⟩,
   { simp_rw [prod_prod (hC _ (hμ.set_mem _)) (hD _ (hν.set_mem _))],
@@ -431,8 +431,7 @@ end
 variables [sigma_finite μ]
 
 instance prod.sigma_finite : sigma_finite (μ.prod ν) :=
-⟨⟨(μ.to_finite_spanning_sets_in.prod ν.to_finite_spanning_sets_in (λ _, id) (λ _, id)).mono $
- by { rintro _ ⟨s, t, hs, ht, rfl⟩, exact hs.prod ht }⟩⟩
+(μ.to_finite_spanning_sets_in.prod ν.to_finite_spanning_sets_in (λ _, id) (λ _, id)).sigma_finite
 
 /-- A measure on a product space equals the product measure if they are equal on rectangles
   with as sides sets that generate the corresponding σ-algebras. -/
@@ -450,7 +449,7 @@ begin
   refine (h3C.prod h3D h4C h4D).ext
     (generate_from_eq_prod hC hD h3C.is_countably_spanning h3D.is_countably_spanning).symm
     (h2C.prod h2D) _,
-  { rintro _ ⟨s, t, hs, ht, rfl⟩, haveI := h3D.sigma_finite h4D,
+  { rintro _ ⟨s, t, hs, ht, rfl⟩, haveI := h3D.sigma_finite,
     simp_rw [h₁ s hs t ht, prod_prod (h4C s hs) (h4D t ht)] }
 end
 

@@ -93,7 +93,7 @@ a.hom ≫ f
 /-- Two arrows `f : X ⟶ P` and `g : Y ⟶ P` are called pseudo-equal if there is some object
     `R` and epimorphisms `p : R ⟶ X` and `q : R ⟶ Y` such that `p ≫ f = q ≫ g`. -/
 def pseudo_equal (P : C) (f g : over P) : Prop :=
-∃ (R : C) (p : R ⟶ f.1) (q : R ⟶ g.1) [epi p] [epi q], p ≫ f.hom = q ≫ g.hom
+∃ (R : C) (p : R ⟶ f.1) (q : R ⟶ g.1) (_ : epi p) (_ : epi q), p ≫ f.hom = q ≫ g.hom
 
 lemma pseudo_equal_refl {P : C} : reflexive (pseudo_equal P) :=
 λ f, ⟨f.1, 𝟙 f.1, 𝟙 f.1, by apply_instance, by apply_instance, by simp⟩
@@ -200,7 +200,14 @@ quotient.sound $ (pseudo_zero_aux R _).2 rfl
 /-- The zero pseudoelement is the class of a zero morphism -/
 def pseudo_zero {P : C} : P := ⟦(0 : P ⟶ P)⟧
 
-instance {P : C} : has_zero P := ⟨pseudo_zero⟩
+/--
+We can not use `pseudo_zero` as a global `has_zero` instance,
+as it would trigger on any type class search for `has_zero` applied to a `coe_sort`.
+This would be too expensive.
+-/
+def has_zero {P : C} : has_zero P := ⟨pseudo_zero⟩
+localized "attribute [instance] category_theory.abelian.pseudoelement.has_zero" in pseudoelement
+
 instance {P : C} : inhabited (pseudoelement P) := ⟨0⟩
 
 lemma pseudo_zero_def {P : C} : (0 : pseudoelement P) = ⟦(0 : P ⟶ P)⟧ := rfl
@@ -213,9 +220,11 @@ by { rw ←pseudo_zero_aux P a, exact quotient.eq }
 
 end zero
 
+open_locale pseudoelement
+
 /-- Morphisms map the zero pseudoelement to the zero pseudoelement -/
 @[simp] theorem apply_zero {P Q : C} (f : P ⟶ Q) : f 0 = 0 :=
-by { rw [pseudo_zero_def, pseudo_apply_mk], simp  }
+by { rw [pseudo_zero_def, pseudo_apply_mk], simp }
 
 /-- The zero morphism maps every pseudoelement to 0. -/
 @[simp] theorem zero_apply {P : C} (Q : C) (a : P) : (0 : P ⟶ Q) a = 0 :=

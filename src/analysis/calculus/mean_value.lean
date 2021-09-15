@@ -101,7 +101,7 @@ begin
   rintros x ⟨hxB : f x ≤ B x, xab⟩ y hy,
   cases hxB.lt_or_eq with hxB hxB,
   { -- If `f x < B x`, then all we need is continuity of both sides
-    refine nonempty_of_mem_sets (inter_mem_sets _ (Ioc_mem_nhds_within_Ioi ⟨le_rfl, hy⟩)),
+    refine nonempty_of_mem (inter_mem _ (Ioc_mem_nhds_within_Ioi ⟨le_rfl, hy⟩)),
     have : ∀ᶠ x in 𝓝[Icc a b] x, f x < B x,
       from A x (Ico_subset_Icc_self xab)
         (is_open.mem_nhds (is_open_lt continuous_fst continuous_snd) hxB),
@@ -1083,12 +1083,12 @@ concave_on_open_of_deriv2_nonpos convex_univ is_open_univ hf'.differentiable_on
 theorem domain_mvt
   {f : E → ℝ} {s : set E} {x y : E} {f' : E → (E →L[ℝ] ℝ)}
   (hf : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hs : convex s) (xs : x ∈ s) (ys : y ∈ s) :
-  ∃ z ∈ segment x y, f y - f x = f' z (y - x) :=
+  ∃ z ∈ segment ℝ x y, f y - f x = f' z (y - x) :=
 begin
   have hIccIoo := @Ioo_subset_Icc_self ℝ _ 0 1,
 -- parametrize segment
   set g : ℝ → E := λ t, x + t • (y - x),
-  have hseg : ∀ t ∈ Icc (0:ℝ) 1, g t ∈ segment x y,
+  have hseg : ∀ t ∈ Icc (0:ℝ) 1, g t ∈ segment ℝ x y,
   { rw segment_eq_image',
     simp only [mem_image, and_imp, add_right_inj],
     intros t ht, exact ⟨t, ht, rfl⟩ },
@@ -1145,7 +1145,7 @@ begin
 -- turn little-o definition of strict_fderiv into an epsilon-delta statement
   refine is_o_iff.mpr (λ c hc, metric.eventually_nhds_iff_ball.mpr _),
 -- the correct ε is the modulus of continuity of f'
-  rcases metric.mem_nhds_iff.mp (inter_mem_sets hder (hcont $ ball_mem_nhds _ hc)) with ⟨ε, ε0, hε⟩,
+  rcases metric.mem_nhds_iff.mp (inter_mem hder (hcont $ ball_mem_nhds _ hc)) with ⟨ε, ε0, hε⟩,
   refine ⟨ε, ε0, _⟩,
 -- simplify formulas involving the product E × E
   rintros ⟨a, b⟩ h,

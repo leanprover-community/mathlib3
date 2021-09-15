@@ -204,26 +204,34 @@ lemma not_summable_norm_of_radius_lt_nnnorm (p : formal_multilinear_series 𝕜 
   (h : p.radius < ∥x∥₊) : ¬ summable (λ n, ∥p n∥ * ∥x∥^n) :=
 λ hs, not_le_of_lt h (p.le_radius_of_summable_norm hs)
 
-lemma summable_norm_of_lt_radius (p : formal_multilinear_series 𝕜 E F)
-  (h : ↑r < p.radius) : summable (λ n, ∥p n∥ * r^n) :=
+lemma summable_norm_mul_pow (p : formal_multilinear_series 𝕜 E F)
+  {r : ℝ≥0} (h : ↑r < p.radius) :
+  summable (λ n : ℕ, ∥p n∥ * r ^ n) :=
 begin
-  obtain ⟨a, ha : a ∈ Ioo (0 : ℝ) 1, C, hC : 0 < C, hp⟩ :=
-    p.norm_mul_pow_le_mul_pow_of_lt_radius h,
-  refine (summable_of_norm_bounded (λ n, (C : ℝ) * a ^ n)
-    ((summable_geometric_of_lt_1 ha.1.le ha.2).mul_left _) (λ n, _)),
-  specialize hp n,
-  rwa real.norm_of_nonneg (mul_nonneg (norm_nonneg _) (pow_nonneg r.coe_nonneg n))
+  obtain ⟨a, ha : a ∈ Ioo (0 : ℝ) 1, C, hC : 0 < C, hp⟩ := p.norm_mul_pow_le_mul_pow_of_lt_radius h,
+  exact summable_of_nonneg_of_le (λ n, mul_nonneg (norm_nonneg _) (pow_nonneg r.coe_nonneg _)) hp
+    ((summable_geometric_of_lt_1 ha.1.le ha.2).mul_left _),
 end
 
-lemma summable_of_nnnorm_lt_radius (p : formal_multilinear_series 𝕜 E F) [complete_space F]
-  {x : E} (h : (∥x∥₊ : ℝ≥0∞) < p.radius) : summable (λ n, p n (λ i, x)) :=
+lemma summable_norm_apply (p : formal_multilinear_series 𝕜 E F)
+  {x : E} (hx : x ∈ emetric.ball (0 : E) p.radius) :
+  summable (λ n : ℕ, ∥p n (λ _, x)∥) :=
 begin
-  refine summable_of_norm_bounded (λ n, ∥p n∥ * ∥x∥₊^n) (p.summable_norm_of_lt_radius h) _,
-  intros n,
-  calc ∥(p n) (λ (i : fin n), x)∥
-      ≤ ∥p n∥ * (∏ i : fin n, ∥x∥) : continuous_multilinear_map.le_op_norm _ _
-      ... = ∥p n∥ * ∥x∥₊^n : by simp
+  rw mem_emetric_ball_0_iff at hx,
+  refine summable_of_nonneg_of_le (λ _, norm_nonneg _) (λ n, ((p n).le_op_norm _).trans_eq _)
+    (p.summable_norm_mul_pow hx),
+  simp
 end
+
+lemma summable_nnnorm_mul_pow (p : formal_multilinear_series 𝕜 E F)
+  {r : ℝ≥0} (h : ↑r < p.radius) :
+  summable (λ n : ℕ, ∥p n∥₊ * r ^ n) :=
+by { rw ← nnreal.summable_coe, push_cast, exact p.summable_norm_mul_pow h }
+
+protected lemma summable [complete_space F]
+  (p : formal_multilinear_series 𝕜 E F) {x : E} (hx : x ∈ emetric.ball (0 : E) p.radius) :
+  summable (λ n : ℕ, p n (λ _, x)) :=
+summable_of_summable_norm (p.summable_norm_apply hx)
 
 lemma radius_eq_top_of_summable_norm (p : formal_multilinear_series 𝕜 E F)
   (hs : ∀ r : ℝ≥0, summable (λ n, ∥p n∥ * r^n)) : p.radius = ∞ :=
@@ -274,6 +282,11 @@ by simp [radius]
 /-- Given a formal multilinear series `p` and a vector `x`, then `p.sum x` is the sum `Σ pₙ xⁿ`. A
 priori, it only behaves well when `∥x∥ < p.radius`. -/
 protected def sum (p : formal_multilinear_series 𝕜 E F) (x : E) : F := ∑' n : ℕ , p n (λ i, x)
+
+protected lemma has_sum [complete_space F]
+  (p : formal_multilinear_series 𝕜 E F) {x : E} (hx : x ∈ emetric.ball (0 : E) p.radius) :
+  has_sum (λ n : ℕ, p n (λ _, x)) (p.sum x) :=
+(p.summable hx).has_sum
 
 /-- Given a formal multilinear series `p` and a vector `x`, then `p.partial_sum n x` is the sum
 `Σ pₖ xᵏ` for `k ∈ {0,..., n-1}`. -/
@@ -346,7 +359,7 @@ lemma has_fpower_series_on_ball.mono
 protected lemma has_fpower_series_at.eventually (hf : has_fpower_series_at f p x) :
   ∀ᶠ r : ℝ≥0∞ in 𝓝[Ioi 0] 0, has_fpower_series_on_ball f p x r :=
 let ⟨r, hr⟩ := hf in
-mem_sets_of_superset (Ioo_mem_nhds_within_Ioi (left_mem_Ico.2 hr.r_pos)) $
+mem_of_superset (Ioo_mem_nhds_within_Ioi (left_mem_Ico.2 hr.r_pos)) $
   λ r' hr', hr.mono hr'.1 hr'.2.le
 
 lemma has_fpower_series_on_ball.add
@@ -492,7 +505,8 @@ lemma has_fpower_series_on_ball.is_O_image_sub_image_sub_deriv_principal
     (λ y, ∥y - (x, x)∥ * ∥y.1 - y.2∥) (𝓟 $ emetric.ball (x, x) r') :=
 begin
   lift r' to ℝ≥0 using ne_top_of_lt hr,
-  rcases (zero_le r').eq_or_lt with rfl|hr'0, { simp },
+  rcases (zero_le r').eq_or_lt with rfl|hr'0,
+  { simp only [is_O_bot, emetric.ball_zero, principal_empty, ennreal.coe_zero] },
   obtain ⟨a, ha, C, hC : 0 < C, hp⟩ :
     ∃ (a ∈ Ioo (0 : ℝ) 1) (C > 0), ∀ (n : ℕ), ∥p n∥ * ↑r' ^ n ≤ C * a ^ n,
     from p.norm_mul_pow_le_mul_pow_of_lt_radius (hr.trans_le hf.r_le),
@@ -506,7 +520,7 @@ begin
     { rw [emetric.ball_prod_same], exact emetric.ball_subset_ball hr.le hy' },
     set A : ℕ → F := λ n, p n (λ _, y.1 - x) - p n (λ _, y.2 - x),
     have hA : has_sum (λ n, A (n + 2)) (f y.1 - f y.2 - (p 1 (λ _, y.1 - y.2))),
-    { convert (has_sum_nat_add_iff' 2).2 ((hf.has_sum_sub hy.1).sub (hf.has_sum_sub hy.2)),
+    { convert (has_sum_nat_add_iff' 2).2 ((hf.has_sum_sub hy.1).sub (hf.has_sum_sub hy.2)) using 1,
       rw [finset.sum_range_succ, finset.sum_range_one, hf.coeff_zero, hf.coeff_zero, sub_self,
         zero_add, ← subsingleton.pi_single_eq (0 : fin 1) (y.1 - x), pi.single,
         ← subsingleton.pi_single_eq (0 : fin 1) (y.2 - x), pi.single, ← (p 1).map_sub, ← pi.single,
@@ -516,7 +530,7 @@ begin
       (C * (a / r') ^ 2) * (∥y - (x, x)∥ * ∥y.1 - y.2∥) * ((n + 2) * a ^ n),
     have hAB : ∀ n, ∥A (n + 2)∥ ≤ B n := λ n,
     calc ∥A (n + 2)∥ ≤ ∥p (n + 2)∥ * ↑(n + 2) * ∥y - (x, x)∥ ^ (n + 1) * ∥y.1 - y.2∥ :
-      by simpa [fintype.card_fin, pi_norm_const, prod.norm_def, pi.sub_def, prod.fst_sub,
+      by simpa only [fintype.card_fin, pi_norm_const, prod.norm_def, pi.sub_def, prod.fst_sub,
         prod.snd_sub, sub_sub_sub_cancel_right]
         using (p $ n + 2).norm_image_sub_le (λ _, y.1 - x) (λ _, y.2 - x)
     ... = ∥p (n + 2)∥ * ∥y - (x, x)∥ ^ n * (↑(n + 2) * ∥y - (x, x)∥ * ∥y.1 - y.2∥) :
@@ -526,7 +540,7 @@ begin
         hy'.le, norm_nonneg, pow_nonneg, div_nonneg, mul_nonneg, nat.cast_nonneg,
         hC.le, r'.coe_nonneg, ha.1.le]
     ... = B n :
-      by { field_simp [B, pow_succ, hr'0.ne'], simp [mul_assoc, mul_comm, mul_left_comm] },
+      by { field_simp [B, pow_succ, hr'0.ne'], simp only [mul_assoc, mul_comm, mul_left_comm] },
     have hBL : has_sum B (L y),
     { apply has_sum.mul_left,
       simp only [add_mul],
@@ -639,35 +653,6 @@ let ⟨r, hr⟩ := hf in hr.continuous_on.continuous_at (emetric.ball_mem_nhds x
 
 lemma analytic_at.continuous_at (hf : analytic_at 𝕜 f x) : continuous_at f x :=
 let ⟨p, hp⟩ := hf in hp.continuous_at
-
-lemma formal_multilinear_series.summable_norm_mul_pow (p : formal_multilinear_series 𝕜 E F)
-  {r : ℝ≥0} (h : ↑r < p.radius) :
-  summable (λ n : ℕ, ∥p n∥ * r ^ n) :=
-begin
-  obtain ⟨a, ha : a ∈ Ioo (0 : ℝ) 1, C, hC : 0 < C, hp⟩ := p.norm_mul_pow_le_mul_pow_of_lt_radius h,
-  exact summable_of_nonneg_of_le (λ n, mul_nonneg (norm_nonneg _) (pow_nonneg r.coe_nonneg _)) hp
-    ((summable_geometric_of_lt_1 ha.1.le ha.2).mul_left _),
-end
-
-lemma formal_multilinear_series.summable_nnnorm_mul_pow (p : formal_multilinear_series 𝕜 E F)
-  {r : ℝ≥0} (h : ↑r < p.radius) :
-  summable (λ n : ℕ, ∥p n∥₊ * r ^ n) :=
-by { rw ← nnreal.summable_coe, push_cast, exact p.summable_norm_mul_pow h }
-
-protected lemma formal_multilinear_series.summable [complete_space F]
-  (p : formal_multilinear_series 𝕜 E F) {x : E} (hx : x ∈ emetric.ball (0 : E) p.radius) :
-  summable (λ n : ℕ, p n (λ _, x)) :=
-begin
-  rw mem_emetric_ball_0_iff at hx,
-  refine summable_of_norm_bounded _ (p.summable_norm_mul_pow hx)
-    (λ n, ((p n).le_op_norm _).trans_eq _),
-  simp
-end
-
-protected lemma formal_multilinear_series.has_sum [complete_space F]
-  (p : formal_multilinear_series 𝕜 E F) {x : E} (hx : x ∈ emetric.ball (0 : E) p.radius) :
-  has_sum (λ n : ℕ, p n (λ _, x)) (p.sum x) :=
-(p.summable hx).has_sum
 
 /-- In a complete space, the sum of a converging power series `p` admits `p` as a power series.
 This is not totally obvious as we need to check the convergence of the series. -/
@@ -997,7 +982,7 @@ lemma is_open_analytic_at : is_open {x | analytic_at 𝕜 f x} :=
 begin
   rw is_open_iff_mem_nhds,
   rintro x ⟨p, r, hr⟩,
-  exact mem_sets_of_superset (emetric.ball_mem_nhds _ hr.r_pos) (λ y hy, hr.analytic_at_of_mem hy)
+  exact mem_of_superset (emetric.ball_mem_nhds _ hr.r_pos) (λ y hy, hr.analytic_at_of_mem hy)
 end
 
 end

@@ -2,11 +2,28 @@
 Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
-
-The integers, with addition, multiplication, and subtraction.
 -/
-import data.nat.pow
 import algebra.order_functions
+import data.nat.pow
+
+/-!
+# Basic operations on the integers
+
+This file contains:
+* instances on `ℤ`. The stronger one is `int.linear_ordered_comm_ring`.
+* some basic lemmas about integers
+
+## Recursors
+
+* `int.rec`: Sign disjunction. Something is true/defined on `ℤ` if it's true/defined for nonnegative
+  and for negative values.
+* `int.bit_cases_on`: Parity disjunction. Something is true/defined on `ℤ` if it's true/defined for
+  even and for odd values.
+* `int.induction_on`: Simple growing induction on positive numbers, plus simple decreasing induction
+  on negative numbers. Note that this recursor is currently only `Prop`-valued.
+* `int.induction_on'`: Simple growing induction for numbers greater than `b`, plus simple decreasing
+  induction on numbers less than `b`.
+-/
 
 open nat
 
@@ -1245,8 +1262,7 @@ private meta def bitwise_tac : tactic unit := `[
     apply congr_arg (λ f, nat.bitwise f m n),
     funext a,
     funext b,
-    cases a; cases b; refl
-  },
+    cases a; cases b; refl },
   all_goals {unfold nat.land nat.ldiff nat.lor}
 ]
 

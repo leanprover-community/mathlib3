@@ -40,8 +40,8 @@ def normal_mono (hf : mono f) : normal_mono f :=
         ```
       -/
       (linear_equiv.to_Module_iso'
-        (linear_equiv.trans (submodule.quot_equiv_of_eq_bot _ (ker_eq_bot_of_mono _)).symm
-          (linear_equiv.trans (linear_map.quot_ker_equiv_range f)
+        ((submodule.quot_equiv_of_eq_bot _ (ker_eq_bot_of_mono _)).symm ≪≫ₗ
+          ((linear_map.quot_ker_equiv_range f) ≪≫ₗ
             (linear_equiv.of_eq _ _ (submodule.ker_mkq _).symm)))) $
       by { ext, refl } }
 
@@ -61,9 +61,9 @@ def normal_epi (hf : epi f) : normal_epi f :=
         ... ≃ₗ[R] N              : linear_equiv.of_top _ (range_eq_top_of_epi _)
         ```
       -/
-        (linear_equiv.trans
-          (linear_equiv.trans (submodule.quot_equiv_of_eq _ _ (submodule.range_subtype _))
-            (linear_map.quot_ker_equiv_range f)) (linear_equiv.of_top _ (range_eq_top_of_epi _)))) $
+        (((submodule.quot_equiv_of_eq _ _ (submodule.range_subtype _)) ≪≫ₗ
+          (linear_map.quot_ker_equiv_range f)) ≪≫ₗ
+          (linear_equiv.of_top _ (range_eq_top_of_epi _)))) $
       by { ext, refl } }
 
 /-- The category of R-modules is abelian. -/

@@ -28,6 +28,7 @@ order of an element
 -/
 
 open function nat
+open_locale pointwise
 
 universes u v
 
@@ -212,7 +213,7 @@ lemma add_order_of_eq_add_order_of_iff {B : Type*} [add_monoid B] {b : B} :
   add_order_of a = add_order_of b ↔ ∀ n : ℕ, n • a = 0 ↔ n • b = 0 :=
 begin
   simp_rw ← add_order_of_dvd_iff_nsmul_eq_zero,
-  exact ⟨λ h n, by rw h, λ h, nat.dvd_antisymm ((h _).mpr (dvd_refl _)) ((h _).mp (dvd_refl _))⟩,
+  exact ⟨λ h n, by rw h, λ h, nat.dvd_antisymm ((h _).mpr dvd_rfl) ((h _).mp dvd_rfl)⟩,
 end
 
 @[to_additive add_order_of_eq_add_order_of_iff]
@@ -474,7 +475,8 @@ lemma exists_pow_eq_one (x : G) : is_of_fin_order x :=
 begin
   refine (is_of_fin_order_iff_pow_eq_one _).mpr _,
   obtain ⟨i, j, a_eq, ne⟩ : ∃(i j : ℕ), x ^ i = x ^ j ∧ i ≠ j :=
-    by simpa only [not_forall, exists_prop] using (not_injective_infinite_fintype (λi:ℕ, x^i)),
+    by simpa only [not_forall, exists_prop, injective]
+      using (not_injective_infinite_fintype (λi:ℕ, x^i)),
   wlog h'' : j ≤ i,
   refine ⟨i - j, nat.sub_pos_of_lt (lt_of_le_of_ne h'' ne.symm), mul_right_injective (x^j) _⟩,
   rw [mul_one, ← pow_add, ← a_eq, nat.add_sub_cancel' h''],
@@ -654,7 +656,7 @@ lemma mem_multiples_iff_mem_gmultiples :
   b ∈ add_submonoid.multiples a ↔ b ∈ add_subgroup.gmultiples a :=
 ⟨λ ⟨n, hn⟩, ⟨n, by simp * at *⟩, λ ⟨i, hi⟩, ⟨(i % add_order_of a).nat_abs,
   by { simp only [nsmul_eq_smul] at hi ⊢,
-       rwa  [← gsmul_coe_nat,
+       rwa [← gsmul_coe_nat,
        int.nat_abs_of_nonneg (int.mod_nonneg _ (int.coe_nat_ne_zero_iff_pos.2
           (add_order_of_pos a))), ← gsmul_eq_mod_add_order_of] } ⟩⟩
 

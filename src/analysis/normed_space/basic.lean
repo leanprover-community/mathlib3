@@ -1632,7 +1632,7 @@ instance submodule.semi_normed_space {𝕜 R : Type*} [has_scalar 𝕜 R] [norme
   semi_normed_space 𝕜 s :=
 { norm_smul_le := λc x, le_of_eq $ norm_smul c (x : E) }
 
-/-- If there is a scalar `c` with `∥c∥>1`, then any element of with norm different from `0` can be
+/-- If there is a scalar `c` with `∥c∥>1`, then any element with nonzero norm can be
 moved by scalar multiplication to any shell of width `∥c∥`. Also recap information on the norm of
 the rescaling element that shows up in applications. -/
 lemma rescale_to_shell_semi_normed {c : α} (hc : 1 < ∥c∥) {ε : ℝ} (εpos : 0 < ε) {x : E}

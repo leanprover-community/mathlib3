@@ -518,7 +518,7 @@ end
 theorem cannot_cube_a_cube :
   ∀{n : ℕ}, n ≥ 3 →                              -- In ℝ^n for n ≥ 3
   ∀{ι : Type} [fintype ι] {cs : ι → cube n},     -- given a finite collection of (hyper)cubes
-  2 ≤ #ι            →                            -- containing at least two elements
+  2 ≤ #ι →                                       -- containing at least two elements
   pairwise (disjoint on (cube.to_set ∘ cs)) →    -- which is pairwise disjoint
   (⋃(i : ι), (cs i).to_set) = unit_cube.to_set → -- whose union is the unit cube
   injective (cube.w ∘ cs) →                      -- such that the widths of all cubes are different

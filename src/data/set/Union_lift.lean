@@ -89,9 +89,7 @@ by rw [Union_lift_of_mem _ hi, ← this, h]
   of algebraic structures when defined on the Union of algebraic subobjects.
   For example, it could be used to prove that the lift of a collection
   of linear_maps on a union of submodules preserves scalar multiplication. -/
-lemma Union_lift_unary
-  (u : T → T)
-  (ui : Π i, S i → S i)
+lemma Union_lift_unary (u : T → T) (ui : Π i, S i → S i)
   (hui : ∀ i (x : S i), u (set.inclusion (show S i ⊆ T, from hT'.symm ▸ set.subset_Union S i) x)
     = set.inclusion (show S i ⊆ T, from hT'.symm ▸ set.subset_Union S i) (ui i x))
   (uβ : β → β)

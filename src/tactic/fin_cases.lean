@@ -54,7 +54,7 @@ private meta def fin_cases_at_aux : Π (with_list : list expr) (e : expr), tacti
         -- because it's helpful for the `interval_cases` tactic.
         | _ := try $ tactic.interactive.conv (some sn) none $
                to_rhs >> conv.interactive.norm_num
-                 [simp_arg_type.expr ``(max), simp_arg_type.expr ``(min)]
+                 [simp_arg_type.expr ``(max_def), simp_arg_type.expr ``(min_def)]
         end,
         s ← get_local sn,
         try `[subst %%s],

@@ -1845,6 +1845,15 @@ lemma lintegral_dirac [measurable_singleton_class α] (a : α) (f : α → ℝ�
   ∫⁻ a, f a ∂(dirac a) = f a :=
 by simp [lintegral_congr_ae (ae_eq_dirac f)]
 
+lemma lintegral_encodable {α : Type*} {m : measurable_space α} [encodable α]
+  [measurable_singleton_class α] (f : α → ℝ≥0∞) (μ : measure α) :
+  ∫⁻ a, f a ∂μ = ∑' a, f a * μ {a} :=
+begin
+  conv_lhs { rw [← sum_smul_dirac μ, lintegral_sum_measure] },
+  congr' 1 with a : 1,
+  rw [lintegral_smul_measure, lintegral_dirac, mul_comm],
+end
+
 lemma lintegral_count' {f : α → ℝ≥0∞} (hf : measurable f) :
   ∫⁻ a, f a ∂count = ∑' a, f a :=
 begin
@@ -2013,54 +2022,20 @@ lemma exists_integrable_pos_of_sigma_finite
   {α} [measurable_space α] (μ : measure α) [sigma_finite μ] {ε : ℝ≥0} (εpos : 0 < ε) :
   ∃ g : α → ℝ≥0, (∀ x, 0 < g x) ∧ measurable g ∧ (∫⁻ x, g x ∂μ < ε) :=
 begin
-  /- The desired function is almost `∑' n, indicator (s n) * δ n / μ (s n)` where `s n` is any
-    sequence of finite measure sets covering the whole space, which exists by sigma-finiteness,
-    and `δ n` is any summable sequence with sum at most `ε`.
-    The only problem with this definition is that `μ (s n)` might be small, so it is not guaranteed
-    that this series converges everywhere (although it does almost everywhere, as its integral is
-    `∑ n, δ n`). We solve this by using instead `∑' n, indicator (s n) * δ n / max (1, μ (s n))` -/
-  obtain ⟨δ, δpos, ⟨cδ, δsum, c_lt⟩⟩ :
-    ∃ δ : ℕ → ℝ≥0, (∀ i, 0 < δ i) ∧ ∃ (c : ℝ≥0), has_sum δ c ∧ c < ε :=
-    nnreal.exists_pos_sum_of_encodable εpos ℕ,
-  set s := spanning_sets μ with hs,
-  have I : ∀ n, 0 < max 1 (μ (s n)).to_nnreal := λ n, zero_lt_one.trans_le (le_max_left _ _),
-  let ρ := λ n, δ n / max 1 (μ (s n)).to_nnreal,
-  let g := λ x, ∑' n, ((s n).indicator (λ x, ρ n) x),
-  have A : summable ρ,
-  { apply nnreal.summable_of_le (λ n, _) δsum.summable,
-    rw nnreal.div_le_iff (I n).ne',
-    conv_lhs { rw ← mul_one (δ n) },
-    exact mul_le_mul (le_refl _) (le_max_left _ _) bot_le bot_le },
-  have B : ∀ x, summable (λ n, (s n).indicator (λ x, ρ n) x),
-  { assume x,
-    apply nnreal.summable_of_le (λ n, _) A,
-    simp only [set.indicator],
-    split_ifs,
-    { exact le_refl _ },
-    { exact bot_le } },
-  have M : ∀ n, measurable ((s n).indicator (λ x, ρ n)) :=
-    λ n, measurable_const.indicator (measurable_spanning_sets μ n),
-  refine ⟨g, λ x, _, measurable.nnreal_tsum M, _⟩,
-  { have : x ∈ (⋃ n, s n), by { rw [hs, Union_spanning_sets], exact set.mem_univ _ },
-    rcases set.mem_Union.1 this with ⟨n, hn⟩,
-    simp only [nnreal.tsum_pos (B x) n, hn, set.indicator_of_mem, nnreal.div_pos (δpos n) (I n)] },
-  { calc ∫⁻ (x : α), (g x) ∂μ
-        = ∫⁻ x, ∑' n, (((s n).indicator (λ x, ρ n) x : ℝ≥0) : ℝ≥0∞) ∂μ :
-      by { apply lintegral_congr (λ x, _), simp_rw [g, ennreal.coe_tsum (B x)] }
-    ... = ∑' n, ∫⁻ x, (((s n).indicator (λ x, ρ n) x : ℝ≥0) : ℝ≥0∞) ∂μ :
-      lintegral_tsum (λ n, (M n).coe_nnreal_ennreal)
-    ... = ∑' n, μ (s n) * ρ n :
-      by simp only [measurable_spanning_sets μ, lintegral_const, measurable_set.univ, mul_comm,
-                    lintegral_indicator, univ_inter, coe_indicator, measure.restrict_apply]
-    ... ≤ ∑' n, δ n :
-      begin
-        apply ennreal.tsum_le_tsum (λ n, _),
-        rw [ennreal.coe_div (I n).ne', ← mul_div_assoc, mul_comm, ennreal.coe_max],
-        apply ennreal.div_le_of_le_mul (ennreal.mul_le_mul (le_refl _) _),
-        convert le_max_right _ _,
-        exact ennreal.coe_to_nnreal (measure_spanning_sets_lt_top μ n).ne
-      end
-    ... < ε : by rwa [← ennreal.coe_tsum δsum.summable, ennreal.coe_lt_coe, δsum.tsum_eq] }
+  /- Let `s` be a covering of `α` by pairwise disjoint measurable sets of finite measure. Let
+  `δ : ℕ → ℝ≥0` be a positive function such that `∑' i, μ (s i) * δ i < ε`. Then the function that
+   is equal to `δ n` on `s n` is a positive function with integral less than `ε`. -/
+  set s : ℕ → set α := disjointed (spanning_sets μ),
+  have : ∀ n, μ (s n) < ∞,
+    from λ n, (measure_mono $ disjointed_subset _ _).trans_lt (measure_spanning_sets_lt_top μ n),
+  obtain ⟨δ, δpos, δsum⟩ : ∃ δ : ℕ → ℝ≥0, (∀ i, 0 < δ i) ∧ ∑' i, μ (s i) * δ i < ε,
+    from ennreal.exists_pos_tsum_mul_lt_of_encodable (ennreal.coe_pos.2 εpos) _ (λ n, (this n).ne),
+  set N : α → ℕ := spanning_sets_index μ,
+  have hN_meas : measurable N := measurable_spanning_sets_index μ,
+  have hNs : ∀ n, N ⁻¹' {n} = s n := preimage_spanning_sets_index_singleton μ,
+  refine ⟨δ ∘ N, λ x, δpos _, measurable_from_nat.comp hN_meas, _⟩,
+  simpa [lintegral_comp measurable_from_nat.coe_nnreal_ennreal hN_meas, hNs,
+    lintegral_encodable, measurable_spanning_sets_index, mul_comm] using δsum,
 end
 
 lemma lintegral_trim {α : Type*} {m m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0)

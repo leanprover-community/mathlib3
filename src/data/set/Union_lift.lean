@@ -58,7 +58,7 @@ variables
   {S : ι → set α}
   {f : Π i (x : S i), β}
   {hf : ∀ i j (x : α) (hxi : x ∈ S i) (hxj : x ∈ S j), f i ⟨x, hxi⟩ = f j ⟨x, hxj⟩}
-  {T : set α} {hT : T ⊆ Union S} {hT' : T = Union S}
+  {T : set α} {hT : T ⊆ Union S} (hT' : T = Union S)
 
 @[simp] lemma Union_lift_mk
   {i : ι} (x : S i) (hx : (x : α) ∈ T) :
@@ -79,13 +79,8 @@ by cases x with x hx; exact hf _ _ _ _ _
   of algebraic structures when defined on the Union of algebraic subobjects.
   For example, it could be used to prove that the lift of a collection
   of group homomorphisms on a union of subgroups preserves `1`. -/
-lemma Union_lift_const
-  (c : T)
-  (ci : Π i, S i)
-  (hci : ∀ i, (ci i : α) = c)
-  (cβ : β)
-  (h : ∀ i, f i (ci i) = cβ) :
-  Union_lift S f hf T hT c = cβ :=
+lemma Union_lift_const (c : T) (ci : Π i, S i) (hci : ∀ i, (ci i : α) = c) (cβ : β)
+  (h : ∀ i, f i (ci i) = cβ) : Union_lift S f hf T hT c = cβ :=
 let ⟨i, hi⟩ := set.mem_Union.1 (hT c.prop) in
 have (ci i) = ⟨c, hi⟩, from subtype.ext (hci i),
 by rw [Union_lift_of_mem _ hi, ← this, h]
@@ -94,9 +89,7 @@ by rw [Union_lift_of_mem _ hi, ← this, h]
   of algebraic structures when defined on the Union of algebraic subobjects.
   For example, it could be used to prove that the lift of a collection
   of linear_maps on a union of submodules preserves scalar multiplication. -/
-lemma Union_lift_unary
-  (u : T → T)
-  (ui : Π i, S i → S i)
+lemma Union_lift_unary (u : T → T) (ui : Π i, S i → S i)
   (hui : ∀ i (x : S i), u (set.inclusion (show S i ⊆ T, from hT'.symm ▸ set.subset_Union S i) x)
     = set.inclusion (show S i ⊆ T, from hT'.symm ▸ set.subset_Union S i) (ui i x))
   (uβ : β → β)
@@ -117,10 +110,7 @@ end
   of algebraic structures when defined on the Union of algebraic subobjects.
   For example, it could be used to prove that the lift of a collection
   of group homomorphisms on a union of subgroups preserves `*`. -/
-lemma Union_lift_binary
-  (dir: directed (≤) S)
-  (op : T → T → T)
-  (opi : Π i, S i → S i → S i)
+lemma Union_lift_binary (dir: directed (≤) S) (op : T → T → T) (opi : Π i, S i → S i → S i)
   (hopi : ∀ i x y, set.inclusion (show S i ⊆ T, from hT'.symm ▸ set.subset_Union S i) (opi i x y) =
     op (set.inclusion (show S i ⊆ T, from hT'.symm ▸ set.subset_Union S i) x)
        (set.inclusion (show S i ⊆ T, from hT'.symm ▸ set.subset_Union S i) y))
@@ -151,6 +141,8 @@ variables
   {hf : ∀ i j (x : α) (hxi : x ∈ S i) (hxj : x ∈ S j), f i ⟨x, hxi⟩ = f j ⟨x, hxj⟩}
   {hS : Union S = univ}
 
+/-- Glue together functions defined on each of a collection `S` of sets that cover a type. See
+  also `set.Union_lift`.   -/
 noncomputable def lift_cover
   (S : ι → set α)
   (f : Π i (x : S i), β)

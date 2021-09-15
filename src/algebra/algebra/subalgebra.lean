@@ -775,45 +775,47 @@ noncomputable def supr_lift [nonempty ι]
   (K : ι → subalgebra R A)
   (dir : directed (≤) K)
   (f : Π i, K i →ₐ[R] B)
-  (hf : ∀ (i j : ι) (h : K i ≤ K j), f i = (f j).comp (inclusion h)) :
-  ↥(supr K) →ₐ[R] B :=
+  (hf : ∀ (i j : ι) (h : K i ≤ K j), f i = (f j).comp (inclusion h))
+  (T : subalgebra R A) (hT : T = supr K) :
+  ↥T →ₐ[R] B :=
+by subst hT; exact
 { to_fun := set.Union_lift (λ i, ↑(K i)) (λ i x, f i x)
     (λ i j x hxi hxj,
       let ⟨k, hik, hjk⟩ := dir i j in
       begin
         rw [hf i k hik, hf j k hjk],
         refl
-      end) _
-    (le_of_eq $ by exactI coe_supr_of_directed dir),
+      end) ↑(supr K)
+    (by rw coe_supr_of_directed dir; refl),
   map_one' := set.Union_lift_const _ (λ _, 1) (λ _, rfl) _ (by simp),
   map_zero' := set.Union_lift_const _ (λ _, 0) (λ _, rfl) _ (by simp),
-  map_mul' := set.Union_lift_binary dir _ (λ _, (*)) (λ _ _ _, rfl) _ (by simp),
-  map_add' := set.Union_lift_binary dir _ (λ _, (+)) (λ _ _ _, rfl) _ (by simp),
+  map_mul' := set.Union_lift_binary (coe_supr_of_directed dir) dir _
+    (λ _, (*)) (λ _ _ _, rfl) _ (by simp),
+  map_add' := set.Union_lift_binary (coe_supr_of_directed dir) dir _
+    (λ _, (+)) (λ _ _ _, rfl) _ (by simp),
   commutes' := λ r, set.Union_lift_const _ (λ _, algebra_map _ _ r)
     (λ _, rfl) _ (λ i, by erw [alg_hom.commutes (f i)]) }
 
 variables [nonempty ι] {K : ι → subalgebra R A} {dir : directed (≤) K}
   {f : Π i, K i →ₐ[R] B}
   {hf : ∀ (i j : ι) (h : K i ≤ K j), f i = (f j).comp (inclusion h)}
+  {T : subalgebra R A} {hT : T = supr K}
 
-@[simp] lemma supr_lift_inclusion {i : ι} (x : K i)
-  (h : K i ≤ supr K := le_supr K i) :
-  supr_lift K dir f hf (inclusion h x) = f i x :=
-set.lift_of_eq_Union_inclusion _
+@[simp] lemma supr_lift_inclusion {i : ι} (x : K i) (h : K i ≤ T) :
+  supr_lift K dir f hf T hT (inclusion h x) = f i x :=
+by subst T; exact set.Union_lift_inclusion _ _
 
-@[simp] lemma supr_lift_comp_inclusion {i : ι}
-  (h : K i ≤ supr K := le_supr K i) :
-  (supr_lift K dir f hf).comp (inclusion h) = f i :=
+@[simp] lemma supr_lift_comp_inclusion {i : ι} (h : K i ≤ T) :
+  (supr_lift K dir f hf T hT).comp (inclusion h) = f i :=
 by ext; simp
 
-@[simp] lemma supr_lift_mk {i : ι} (x : K i)
-  (hx : (x : A) ∈ supr K := set_like.le_def.2 (le_supr K i) x.prop) :
-  supr_lift K dir f hf ⟨x, hx⟩ = f i x :=
-set.lift_of_eq_Union_mk x hx
+@[simp] lemma supr_lift_mk {i : ι} (x : K i) (hx : (x : A) ∈ T) :
+  supr_lift K dir f hf T hT ⟨x, hx⟩ = f i x :=
+by subst hT; exact set.Union_lift_mk x hx
 
-lemma supr_lift_of_mem {i : ι} (x : supr K) (hx : (x : A) ∈ K i) :
-  supr_lift K dir f hf x = f i ⟨x, hx⟩ :=
-set.lift_of_eq_Union_of_mem x hx
+lemma supr_lift_of_mem {i : ι} (x : T) (hx : (x : A) ∈ K i) :
+  supr_lift K dir f hf T hT x = f i ⟨x, hx⟩ :=
+by subst hT; exact set.Union_lift_of_mem x hx
 
 end supr_lift
 

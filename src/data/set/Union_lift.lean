@@ -79,12 +79,7 @@ by cases x with x hx; exact hf _ _ _ _ _
   of algebraic structures when defined on the Union of algebraic subobjects.
   For example, it could be used to prove that the lift of a collection
   of group homomorphisms on a union of subgroups preserves `1`. -/
-lemma Union_lift_const
-  (c : T)
-  (ci : Π i, S i)
-  (hci : ∀ i, (ci i : α) = c)
-  (cβ : β)
-  (h : ∀ i, f i (ci i) = cβ) :
+lemma Union_lift_const (c : T) (ci : Π i, S i) (hci : ∀ i, (ci i : α) = c) (cβ : β) (h : ∀ i, f i (ci i) = cβ) :
   Union_lift S f hf T hT c = cβ :=
 let ⟨i, hi⟩ := set.mem_Union.1 (hT c.prop) in
 have (ci i) = ⟨c, hi⟩, from subtype.ext (hci i),

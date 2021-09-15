@@ -110,10 +110,7 @@ end
   of algebraic structures when defined on the Union of algebraic subobjects.
   For example, it could be used to prove that the lift of a collection
   of group homomorphisms on a union of subgroups preserves `*`. -/
-lemma Union_lift_binary
-  (dir: directed (≤) S)
-  (op : T → T → T)
-  (opi : Π i, S i → S i → S i)
+lemma Union_lift_binary (dir: directed (≤) S) (op : T → T → T) (opi : Π i, S i → S i → S i)
   (hopi : ∀ i x y, set.inclusion (show S i ⊆ T, from hT'.symm ▸ set.subset_Union S i) (opi i x y) =
     op (set.inclusion (show S i ⊆ T, from hT'.symm ▸ set.subset_Union S i) x)
        (set.inclusion (show S i ⊆ T, from hT'.symm ▸ set.subset_Union S i) y))

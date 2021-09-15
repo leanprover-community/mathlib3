@@ -220,7 +220,7 @@ instance : order_top (ideal P) :=
   le_top := λ I x h, le_top,
   .. ideal.partial_order }
 
-@[simp] lemma top_coe : ((⊤ : ideal P) : set P) = set.univ :=
+@[simp] lemma coe_top : ((⊤ : ideal P) : set P) = set.univ :=
 set.univ_subset_iff.1 (λ p _, le_top)
 
 lemma top_of_mem_top {I : ideal P} (mem_top : ⊤ ∈ I) : I = ⊤ :=
@@ -228,7 +228,7 @@ begin
   ext,
   change x ∈ I ↔ x ∈ ((⊤ : ideal P) : set P),
   split,
-  { simp [top_coe] },
+  { simp [coe_top] },
   { exact λ _, I.mem_of_le le_top mem_top }
 end
 
@@ -238,7 +238,7 @@ is_proper_of_not_mem (λ h, ne_top (top_of_mem_top h))
 lemma is_proper.ne_top {I : ideal P} (hI : is_proper I) : I ≠ ⊤ :=
 begin
   intro h,
-  rw [ext'_iff, top_coe] at h,
+  rw [ext'_iff, coe_top] at h,
   apply hI.ne_univ,
   assumption,
 end
@@ -254,7 +254,7 @@ lemma is_proper_iff_ne_top {I : ideal P} : is_proper I ↔ I ≠ ⊤ :=
 
 lemma is_maximal.is_coatom {I : ideal P} (h : is_maximal I) : is_coatom I :=
 ⟨is_maximal.to_is_proper.ne_top,
- λ _ _, by { rw [ext'_iff, top_coe], exact is_maximal.maximal_proper ‹_› }⟩
+ λ _ _, by { rw [ext'_iff, coe_top], exact is_maximal.maximal_proper ‹_› }⟩
 
 lemma is_maximal.is_coatom' {I : ideal P} [is_maximal I] : is_coatom I :=
 is_maximal.is_coatom ‹_›

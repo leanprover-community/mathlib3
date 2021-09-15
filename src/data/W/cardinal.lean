@@ -50,7 +50,7 @@ begin
 end
 
 /-- If, for any `a : α`, `β a` is finite, then the cardinality of `W_type β`
-  is at most the cardinality of `α` or  -/
+  is at most the maximum of the cardinality of `α` and `omega`  -/
 lemma cardinal_mk_le_max_omega_of_fintype [Π a, fintype (β a)] : cardinal.mk (W_type β) ≤
   max (cardinal.mk α) omega :=
 (is_empty_or_nonempty α).elim

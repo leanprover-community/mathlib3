@@ -761,7 +761,7 @@ let K : subalgebra R A :=
       let ⟨j, hj⟩ := set.mem_Union.1 hy in
       let ⟨k, hik, hjk⟩ := dir i j in
       set.mem_Union.2 ⟨k, subalgebra.add_mem (S k) (hik hi) (hjk hj)⟩,
-    algebra_map_mem' := λ r, let ⟨i⟩ := ‹nonempty ι› in
+    algebra_map_mem' := λ r, let i := @nonempty.some ι infer_instance in
       set.mem_Union.2 ⟨i, subalgebra.algebra_map_mem _ _⟩ } in
 have supr S = K,
   from le_antisymm (supr_le (λ i, set.subset_Union (λ i, ↑(S i)) i))

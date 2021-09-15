@@ -746,29 +746,6 @@ section
 
 variables (s : signed_measure α) (μ : measure α) [sigma_finite μ]
 
-lemma singular_part_neg (s : signed_measure α) (μ : measure α) :
-  (-s).singular_part μ = - s.singular_part μ :=
-begin
-  have h₁ : ((-s).to_jordan_decomposition.pos_part.singular_part μ).to_signed_measure =
-    (s.to_jordan_decomposition.neg_part.singular_part μ).to_signed_measure,
-  { refine to_signed_measure_congr _,
-    rw [to_jordan_decomposition_neg, jordan_decomposition.neg_pos_part] },
-  have h₂ : ((-s).to_jordan_decomposition.neg_part.singular_part μ).to_signed_measure =
-    (s.to_jordan_decomposition.pos_part.singular_part μ).to_signed_measure,
-  { refine to_signed_measure_congr _,
-    rw [to_jordan_decomposition_neg, jordan_decomposition.neg_neg_part] },
-  rw [singular_part, singular_part, neg_sub, h₁, h₂],
-end
-
-lemma singular_part_smul_nnreal (s : signed_measure α) (μ : measure α) [sigma_finite μ] (r : ℝ≥0) :
-  (r • s).singular_part μ = r • s.singular_part μ:=
-begin
-  rw [singular_part, singular_part, smul_sub, ← to_signed_measure_smul, ← to_signed_measure_smul],
-  congr,
-  { rw [← singular_part_smul, to_jordan_decomposition_smul, jordan_decomposition.smul_pos_part] },
-  { rw [← singular_part_smul, to_jordan_decomposition_smul, jordan_decomposition.smul_neg_part] },
-end
-
 lemma singular_part_mutually_singular :
   s.to_jordan_decomposition.pos_part.singular_part μ ⊥ₘ
   s.to_jordan_decomposition.neg_part.singular_part μ :=
@@ -857,6 +834,7 @@ begin
   { exact (lintegral_radon_nikodym_deriv_lt_top _ _).ne },
 end
 
+-- move
 lemma with_density_of_real_mutually_singular
   {f : α → ℝ} (hf : measurable f) :
   μ.with_density (λ x, ennreal.of_real $ f x) ⊥ₘ μ.with_density (λ x, ennreal.of_real $ -f x) :=
@@ -922,6 +900,48 @@ begin
       rw hs } },
 end
 
+-- We note that the following lemma does not require `μ` to be σ-finite as it is true even if
+-- the underlying measures do not have Lebesgue decomposition
+lemma singular_part_neg (s : signed_measure α) (μ : measure α) :
+  (-s).singular_part μ = - s.singular_part μ :=
+begin
+  have h₁ : ((-s).to_jordan_decomposition.pos_part.singular_part μ).to_signed_measure =
+    (s.to_jordan_decomposition.neg_part.singular_part μ).to_signed_measure,
+  { refine to_signed_measure_congr _,
+    rw [to_jordan_decomposition_neg, jordan_decomposition.neg_pos_part] },
+  have h₂ : ((-s).to_jordan_decomposition.neg_part.singular_part μ).to_signed_measure =
+    (s.to_jordan_decomposition.pos_part.singular_part μ).to_signed_measure,
+  { refine to_signed_measure_congr _,
+    rw [to_jordan_decomposition_neg, jordan_decomposition.neg_neg_part] },
+  rw [singular_part, singular_part, neg_sub, h₁, h₂],
+end
+
+lemma singular_part_smul (s : signed_measure α) (μ : measure α) [sigma_finite μ] (r : ℝ) :
+  (r • s).singular_part μ = r • s.singular_part μ :=
+begin
+  refine (eq_singular_part ((measurable_radon_nikodym_deriv s μ).const_smul r)
+    ((integrable_radon_nikodym_deriv s μ).smul r)
+    ((mutually_singular_singular_part s μ).smul_left r) _).symm,
+  rw [with_densityᵥ_smul, ← smul_add, singular_part_add_with_density_radon_nikodym_deriv_eq],
+end
+
+lemma singular_part_add (s t : signed_measure α) (μ : measure α) [sigma_finite μ] :
+  (s + t).singular_part μ = s.singular_part μ + t.singular_part μ :=
+begin
+  refine (eq_singular_part
+    ((measurable_radon_nikodym_deriv s μ).add (measurable_radon_nikodym_deriv t μ))
+    ((integrable_radon_nikodym_deriv s μ).add ((integrable_radon_nikodym_deriv t μ)))
+    ((mutually_singular_singular_part s μ).add_left (mutually_singular_singular_part t μ)) _).symm,
+  erw [with_densityᵥ_add (integrable_radon_nikodym_deriv s μ) (integrable_radon_nikodym_deriv t μ)],
+  rw [add_assoc, add_comm (t.singular_part μ), add_assoc, add_comm _ (t.singular_part μ),
+      singular_part_add_with_density_radon_nikodym_deriv_eq, ← add_assoc,
+      singular_part_add_with_density_radon_nikodym_deriv_eq],
+end
+
+lemma singular_part_sub (s t : signed_measure α) (μ : measure α) [sigma_finite μ] :
+  (s - t).singular_part μ = s.singular_part μ - t.singular_part μ :=
+by { rw [sub_eq_add_neg, sub_eq_add_neg, singular_part_add, singular_part_neg] }
+
 lemma radon_nikodym_deriv_neg (s : signed_measure α) (μ : measure α) [sigma_finite μ] :
   (-s).radon_nikodym_deriv μ =ᵐ[μ] - s.radon_nikodym_deriv μ :=
 begin
@@ -932,8 +952,8 @@ begin
       singular_part_add_with_density_radon_nikodym_deriv_eq]
 end
 
-lemma radon_nikodym_deriv_smul_nnreal
-  (s : signed_measure α) (μ : measure α) [sigma_finite μ] (r : ℝ≥0) :
+lemma radon_nikodym_deriv_smul
+  (s : signed_measure α) (μ : measure α) [sigma_finite μ] (r : ℝ) :
   (r • s).radon_nikodym_deriv μ =ᵐ[μ] r • s.radon_nikodym_deriv μ :=
 begin
   refine integrable.ae_eq_of_with_densityᵥ_eq
@@ -941,9 +961,33 @@ begin
   change _ = μ.with_densityᵥ ((r : ℝ) • s.radon_nikodym_deriv μ),
   rw [with_densityᵥ_smul (radon_nikodym_deriv s μ) (r : ℝ),
       ← add_right_inj ((r • s).singular_part μ),
-      singular_part_add_with_density_radon_nikodym_deriv_eq, singular_part_smul_nnreal],
+      singular_part_add_with_density_radon_nikodym_deriv_eq, singular_part_smul],
   change _ = _ + r • _,
   rw [← smul_add, singular_part_add_with_density_radon_nikodym_deriv_eq],
+end
+
+lemma radon_nikodym_deriv_add
+  (s t : signed_measure α) (μ : measure α) [sigma_finite μ] :
+  (s + t).radon_nikodym_deriv μ =ᵐ[μ] s.radon_nikodym_deriv μ + t.radon_nikodym_deriv μ :=
+begin
+  refine integrable.ae_eq_of_with_densityᵥ_eq
+    (integrable_radon_nikodym_deriv _ _)
+    ((integrable_radon_nikodym_deriv _ _).add (integrable_radon_nikodym_deriv _ _)) _,
+  rw [← add_right_inj ((s + t).singular_part μ),
+      singular_part_add_with_density_radon_nikodym_deriv_eq,
+      with_densityᵥ_add (integrable_radon_nikodym_deriv _ _) (integrable_radon_nikodym_deriv _ _),
+      singular_part_add, add_assoc, add_comm (t.singular_part μ), add_assoc,
+      add_comm _ (t.singular_part μ), singular_part_add_with_density_radon_nikodym_deriv_eq,
+      ← add_assoc, singular_part_add_with_density_radon_nikodym_deriv_eq],
+end
+
+lemma radon_nikodym_deriv_sub
+  (s t : signed_measure α) (μ : measure α) [sigma_finite μ] :
+  (s - t).radon_nikodym_deriv μ =ᵐ[μ] s.radon_nikodym_deriv μ - t.radon_nikodym_deriv μ :=
+begin
+  rw [sub_eq_add_neg, sub_eq_add_neg],
+  exact ae_eq_trans (radon_nikodym_deriv_add _ _ _)
+    (filter.eventually_eq.add (ae_eq_refl _) (radon_nikodym_deriv_neg _ _)),
 end
 
 end signed_measure

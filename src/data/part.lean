@@ -69,7 +69,7 @@ theorem mem_unique : ∀ {a b : α} {o : part α}, a ∈ o → b ∈ o → a = b
 | _ _ ⟨p, f⟩ ⟨h₁, rfl⟩ ⟨h₂, rfl⟩ := rfl
 
 theorem mem.left_unique : relator.left_unique ((∈) : α → part α → Prop) :=
-⟨λ a o b, mem_unique⟩
+λ a o b, mem_unique
 
 theorem get_eq_of_mem {o : part α} {a} (h : a ∈ o) (h') : get o h' = a :=
 mem_unique ⟨_, rfl⟩ h

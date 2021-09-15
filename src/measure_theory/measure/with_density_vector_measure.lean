@@ -144,6 +144,41 @@ lemma integrable.with_densityᵥ_eq_iff {f g : α → E}
 
 section signed_measure
 
+section move
+
+omit m
+
+lemma ennreal.of_real_le_ennnorm (r : ℝ) : ennreal.of_real r ≤ ∥r∥₊ :=
+begin
+  by_cases hr : 0 ≤ r,
+  { rw real.ennnorm_eq_of_real hr, refl' },
+  { rw [ennreal.of_real_eq_zero.2 (le_of_lt (not_le.1 hr))],
+    exact bot_le }
+end
+
+lemma is_finite_measure_of_real {f : α → ℝ} (hfi : integrable f μ) :
+  is_finite_measure (μ.with_density (λ x, ennreal.of_real $ f x)) :=
+is_finite_measure_with_density
+  (lt_of_le_of_lt (lintegral_mono (λ x,ennreal.of_real_le_ennnorm _)) hfi.2)
+
+end move
+
+lemma with_densityᵥ_eq_with_density_pos_part_sub_with_density_neg_part
+  {f : α → ℝ} (hfi : integrable f μ) :
+  μ.with_densityᵥ f =
+  @to_signed_measure α _ (μ.with_density (λ x, ennreal.of_real $ f x))
+    (is_finite_measure_of_real hfi) -
+  @to_signed_measure α _ (μ.with_density (λ x, ennreal.of_real $ -f x))
+    (is_finite_measure_of_real hfi.neg) :=
+begin
+  ext i hi,
+  rw [with_densityᵥ_apply hfi hi, integral_eq_lintegral_pos_part_sub_lintegral_neg_part,
+      vector_measure.sub_apply, to_signed_measure_apply_measurable hi,
+      to_signed_measure_apply_measurable hi, with_density_apply _ hi, with_density_apply _ hi],
+  rw ← integrable_on_univ at hfi ⊢,
+  exact hfi.restrict measurable_set.univ
+end
+
 lemma with_densityᵥ_sub_eq_with_density {f g : α → ℝ≥0∞}
   (hfm : ae_measurable f μ) (hgm : ae_measurable g μ)
   (hf : ∫⁻ x, f x ∂μ ≠ ∞) (hg : ∫⁻ x, g x ∂μ ≠ ∞) :

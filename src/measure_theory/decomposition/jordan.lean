@@ -399,6 +399,10 @@ begin
   simp [to_signed_measure_smul],
 end
 
+lemma to_jordan_decomposition_eq {s : signed_measure α} {j : jordan_decomposition α}
+  (h : s = j.to_signed_measure) : s.to_jordan_decomposition = j :=
+by rw [h, to_jordan_decomposition_to_signed_measure]
+
 /-- The total variation of a signed measure. -/
 def total_variation (s : signed_measure α) : measure α :=
 s.to_jordan_decomposition.pos_part + s.to_jordan_decomposition.neg_part
@@ -491,6 +495,11 @@ begin
     rw ← vector_measure.ennreal_to_measure_apply hmt,
     exact measure_mono_null htv hu₂ }
 end
+
+lemma total_variation_mutually_singular_iff (s : signed_measure α) (μ : measure α) :
+  s.total_variation ⊥ₘ μ ↔
+  s.to_jordan_decomposition.pos_part ⊥ₘ μ ∧ s.to_jordan_decomposition.neg_part ⊥ₘ μ :=
+measure.mutually_singular.add_iff
 
 end signed_measure
 

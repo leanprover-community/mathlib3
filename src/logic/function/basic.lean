@@ -487,7 +487,7 @@ end
   extend f g e' b = e' b :=
 by simp [function.extend_def, hb]
 
-lemma extend_injective (hf : injective f) (g : α → γ) (e' : β → γ) :
+lemma extend_injective (hf : injective f) (e' : β → γ) :
   injective (λ g, extend f g e') :=
 begin
   intros g₁ g₂ hg,

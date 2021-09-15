@@ -108,7 +108,7 @@ begin
       { simp only [lintegral_const, zero_mul, zero_le, ennreal.coe_zero] } },
     have : μ s < μ s + ε / c,
     { have : (0 : ℝ≥0∞) < ε / c := ennreal.div_pos_iff.2 ⟨ε0, ennreal.coe_ne_top⟩,
-      simpa using (ennreal.add_lt_add_iff_left _).2 this,
+      simpa using ennreal.add_lt_add_left _ this,
       simpa only [hs, hc, lt_top_iff_ne_top, true_and, simple_func.coe_const, function.const_apply,
         lintegral_const, ennreal.coe_indicator, set.univ_inter, ennreal.coe_ne_top,
         measurable_set.univ, with_top.mul_eq_top_iff, simple_func.const_zero, or_false,

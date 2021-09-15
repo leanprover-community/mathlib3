@@ -199,6 +199,15 @@ instance subtype.opens_measurable_space {α : Type*} [topological_space α] [mea
   opens_measurable_space s :=
 ⟨by { rw [borel_comap], exact comap_mono h.1 }⟩
 
+theorem _root_.measurable_set.induction_on_open [topological_space α] [measurable_space α]
+  [borel_space α] {C : set α → Prop} (h_open : ∀ U, is_open U → C U)
+  (h_compl : ∀ t, measurable_set t → C t → C tᶜ)
+  (h_union : ∀ f : ℕ → set α, pairwise (disjoint on f) →
+    (∀ i, measurable_set (f i)) → (∀ i, C (f i)) → C (⋃ i, f i)) :
+  ∀ ⦃t⦄, measurable_set t → C t :=
+measurable_space.induction_on_inter borel_space.measurable_eq is_pi_system_is_open
+  (h_open _ is_open_empty) h_open h_compl h_union
+
 section
 variables [topological_space α] [measurable_space α] [opens_measurable_space α]
    [topological_space β] [measurable_space β] [opens_measurable_space β]

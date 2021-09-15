@@ -1035,16 +1035,16 @@ begin
     { rintros y hy,
       by_cases htop : f y = ⊤,
       { simp [htop, lt_top_iff_ne_top, ne_top_of_lt he] },
-      { simp at hy,
+      { rw [emetric.mem_ball] at hy,
         have : e + ε < f y + ε := calc
           e + ε ≤ e + (f x - e) : add_le_add_left (min_le_left _ _) _
-          ... = f x : by simp [le_of_lt he]
+          ... = f x : ennreal.add_sub_cancel_of_le he.le
           ... ≤ f y + C * edist x y : h x y
           ... = f y + C * edist y x : by simp [edist_comm]
           ... ≤ f y + C * (C⁻¹ * (ε/2)) :
             add_le_add_left (mul_le_mul_left' (le_of_lt hy) _) _
-          ... < f y + ε : (ennreal.add_lt_add_iff_left htop).2 I,
-        show e < f y, from (ennreal.add_lt_add_iff_right ‹ε ≠ ⊤›).1 this }},
+          ... < f y + ε : ennreal.add_lt_add_left htop I,
+        show e < f y, from lt_of_add_lt_add_right this } },
     apply filter.mem_of_superset (ball_mem_nhds _ (‹0 < C⁻¹ * (ε/2)›)) this },
   show ∀e, f x < e → ∀ᶠ y in 𝓝 x, f y < e,
   { assume e he,
@@ -1065,7 +1065,7 @@ begin
         f y ≤ f x + C * edist y x : h y x
         ... ≤ f x + C * (C⁻¹ * (ε/2)) :
             add_le_add_left (mul_le_mul_left' (le_of_lt hy) _) _
-        ... < f x + ε : (ennreal.add_lt_add_iff_left htop).2 I
+        ... < f x + ε : ennreal.add_lt_add_left htop I
         ... ≤ f x + (e - f x) : add_le_add_left (min_le_left _ _) _
         ... = e : by simp [le_of_lt he] },
     apply filter.mem_of_superset (ball_mem_nhds _ (‹0 < C⁻¹ * (ε/2)›)) this },

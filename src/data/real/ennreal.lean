@@ -467,8 +467,14 @@ by simpa only [pos_iff_ne_zero] using ennreal.pow_pos
 lemma add_lt_add_iff_left (ha : a ≠ ∞) : a + c < a + b ↔ c < b :=
 with_top.add_lt_add_iff_left ha
 
+lemma add_lt_add_left (ha : a ≠ ∞) (h : b < c) : a + b < a + c :=
+(add_lt_add_iff_left ha).2 h
+
 lemma add_lt_add_iff_right (ha : a ≠ ∞) : c + a < b + a ↔ c < b :=
 with_top.add_lt_add_iff_right ha
+
+lemma add_lt_add_right (ha : a ≠ ∞) (h : b < c) : b + a < c + a :=
+(add_lt_add_iff_right ha).2 h
 
 instance contravariant_class_add_lt : contravariant_class ℝ≥0∞ ℝ≥0∞ (+) (<) :=
 with_top.contravariant_class_add_lt
@@ -763,6 +769,9 @@ begin
   simp only [some_eq_coe],
   rw [← coe_add, ← coe_sub, coe_lt_coe, coe_lt_coe, nnreal.lt_sub_iff_add_lt],
 end
+
+lemma lt_sub_comm : a < b - c ↔ c < b - a :=
+by rw [lt_sub_iff_add_lt, lt_sub_iff_add_lt, add_comm]
 
 lemma sub_le_self (a b : ℝ≥0∞) : a - b ≤ a :=
 ennreal.sub_le_iff_le_add.2 $ le_self_add
@@ -1094,6 +1103,9 @@ begin
   refine (le_div_iff_mul_le _ _).symm; simpa
 end
 
+lemma lt_div_iff_mul_lt (hb0 : b ≠ 0 ∨ c ≠ ∞) (hbt : b ≠ ∞ ∨ c ≠ 0) : c < a / b ↔ c * b < a :=
+by simp only [← not_le, div_le_iff_le_mul hb0 hbt]
+
 lemma div_le_of_le_mul (h : a ≤ b * c) : a / c ≤ b :=
 begin
   by_cases h0 : c = 0,
@@ -1123,6 +1135,8 @@ lt_iff_lt_of_le_iff_le $ le_div_iff_mul_le h0 ht
 
 lemma mul_lt_of_lt_div (h : a < b / c) : a * c < b :=
 by { contrapose! h, exact ennreal.div_le_of_le_mul h }
+
+lemma mul_lt_of_lt_div' (h : a < b / c) : c * a < b := mul_comm a c ▸ mul_lt_of_lt_div h
 
 lemma inv_le_iff_le_mul : (b = ∞ → a ≠ 0) → (a = ∞ → b ≠ 0) → (a⁻¹ ≤ b ↔ 1 ≤ a * b) :=
 begin
@@ -1217,6 +1231,8 @@ begin
   norm_cast at hz,
   exact nnreal.half_lt_self hz
 end
+
+lemma half_le_self : a / 2 ≤ a := le_add_self.trans_eq (add_halves _)
 
 lemma sub_half (h : a ≠ ∞) : a - a / 2 = a / 2 :=
 begin

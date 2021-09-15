@@ -1554,6 +1554,24 @@ lemma measure_lt_top (μ : measure α) [is_finite_measure μ] (s : set α) : μ 
 lemma measure_ne_top (μ : measure α) [is_finite_measure μ] (s : set α) : μ s ≠ ∞ :=
 ne_of_lt (measure_lt_top μ s)
 
+lemma measure_compl_le_add_of_le_add [is_finite_measure μ] (hs : measurable_set s)
+  (ht : measurable_set t) {ε : ℝ≥0∞} (h : μ s ≤ μ t + ε) :
+  μ tᶜ ≤ μ sᶜ + ε :=
+begin
+  rw [measure_compl ht (measure_ne_top μ _), measure_compl hs (measure_ne_top μ _),
+    ennreal.sub_le_iff_le_add],
+  calc μ univ = μ univ - μ s + μ s :
+    (ennreal.sub_add_cancel_of_le $ measure_mono s.subset_univ).symm
+  ... ≤ μ univ - μ s + (μ t + ε) : add_le_add_left h _
+  ... = _ : by rw [add_right_comm, add_assoc]
+end
+
+lemma measure_compl_le_add_iff [is_finite_measure μ] (hs : measurable_set s)
+  (ht : measurable_set t) {ε : ℝ≥0∞} :
+  μ sᶜ ≤ μ tᶜ + ε ↔ μ t ≤ μ s + ε :=
+⟨λ h, compl_compl s ▸ compl_compl t ▸ measure_compl_le_add_of_le_add hs.compl ht.compl h,
+  measure_compl_le_add_of_le_add ht hs⟩
+
 /-- The measure of the whole space with respect to a finite measure, considered as `ℝ≥0`. -/
 def measure_univ_nnreal (μ : measure α) : ℝ≥0 := (μ univ).to_nnreal
 

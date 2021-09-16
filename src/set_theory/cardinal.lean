@@ -816,7 +816,7 @@ lt_omega.trans ⟨λ ⟨n, e⟩, begin
 end, λ ⟨_⟩, by exactI ⟨_, fintype_card _⟩⟩
 
 theorem lt_omega_iff_finite {α} {S : set α} : #S < ω ↔ finite S :=
-lt_omega_iff_fintype
+lt_omega_iff_fintype.trans finite_def.symm
 
 instance can_lift_cardinal_nat : can_lift cardinal ℕ :=
 ⟨ coe, λ x, x < ω, λ x hx, let ⟨n, hn⟩ := lt_omega.mp hx in ⟨n, hn.symm⟩⟩

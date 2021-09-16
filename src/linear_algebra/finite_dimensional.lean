@@ -330,11 +330,11 @@ begin
       (submodule.subtype S) (by simpa using bS.linear_independent) (by simp),
   set b := basis.extend this with b_eq,
   letI : fintype (this.extend _) :=
-    classical.choice (finite_of_linear_independent (by simpa using b.linear_independent)),
+    (finite_of_linear_independent (by simpa using b.linear_independent)).fintype,
   letI : fintype (subtype.val '' basis.of_vector_space_index K S) :=
-    classical.choice (finite_of_linear_independent this),
+    (finite_of_linear_independent this).fintype,
   letI : fintype (basis.of_vector_space_index K S) :=
-    classical.choice (finite_of_linear_independent (by simpa using bS.linear_independent)),
+    (finite_of_linear_independent (by simpa using bS.linear_independent)).fintype,
   have : subtype.val '' (basis.of_vector_space_index K S) = this.extend (set.subset_univ _),
   from set.eq_of_subset_of_card_le (this.subset_extend _)
     (by rw [set.card_image_of_injective _ subtype.val_injective, ← finrank_eq_card_basis bS,

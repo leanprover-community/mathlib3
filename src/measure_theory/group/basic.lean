@@ -433,8 +433,7 @@ lemma is_haar_measure_map [borel_space G] [topological_group G] {H : Type*} [gro
 
 /-- A Haar measure on a sigma-compact space is sigma-finite. -/
 @[priority 100, to_additive] -- see Note [lower instance priority]
-instance is_haar_measure.sigma_finite
-  [t2_space G] [sigma_compact_space G] [opens_measurable_space G] :
+instance is_haar_measure.sigma_finite [sigma_compact_space G] :
   sigma_finite μ :=
 ⟨⟨{ set := compact_covering G,
   set_mem := λ n, mem_univ _,

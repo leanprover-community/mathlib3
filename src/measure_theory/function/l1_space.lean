@@ -227,7 +227,7 @@ has_finite_integral_congr' $ eventually_of_forall $ λ x, norm_norm (f x)
 lemma is_finite_measure_with_density_of_real {f : α → ℝ} (hfi : has_finite_integral f μ) :
   is_finite_measure (μ.with_density (λ x, ennreal.of_real $ f x)) :=
 is_finite_measure_with_density $
-  lt_of_le_of_lt (lintegral_mono $ λ x,ennreal.of_real_le_ennnorm _) hfi
+  lt_of_le_of_lt (lintegral_mono $ λ x,real.of_real_le_ennnorm _) hfi
 
 section dominated_convergence
 

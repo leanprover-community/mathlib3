@@ -153,11 +153,10 @@ lemma with_densityᵥ_eq_with_density_pos_part_sub_with_density_neg_part
     (is_finite_measure_with_density_of_real hfi.neg.2) :=
 begin
   ext i hi,
-  rw [with_densityᵥ_apply hfi hi, integral_eq_lintegral_pos_part_sub_lintegral_neg_part,
+  rw [with_densityᵥ_apply hfi hi,
+      integral_eq_lintegral_pos_part_sub_lintegral_neg_part hfi.integrable_on,
       vector_measure.sub_apply, to_signed_measure_apply_measurable hi,
       to_signed_measure_apply_measurable hi, with_density_apply _ hi, with_density_apply _ hi],
-  rw ← integrable_on_univ at hfi ⊢,
-  exact hfi.restrict measurable_set.univ
 end
 
 end signed_measure

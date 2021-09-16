@@ -251,6 +251,13 @@ by { simp only [basis_fun, basis.coe_of_equiv_fun, linear_equiv.refl_symm,
   (pi.basis_fun R η).repr x i = x i :=
 by simp [basis_fun]
 
+end module
+
+end pi
+
+namespace matrix
+
+variables (n m : Type*) [fintype m] [fintype n]
 /-- The standard basis of `matrix n m R`. -/
 noncomputable def _root_.matrix.std_basis (n : Type*) (m : Type*) [fintype m] [fintype n] :
   basis (n × m) R (matrix n m R) :=

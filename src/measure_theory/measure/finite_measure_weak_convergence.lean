@@ -82,7 +82,7 @@ variables {α : Type*} [measurable_space α]
 /-- Finite measures are defined as the subtype of measures that have the property of being finite
 measures (i.e., their total mass is finite). -/
 abbreviation finite_measure (α : Type*) [measurable_space α] : Type* :=
-{ μ : measure α // is_finite_measure μ }
+{μ : measure α // is_finite_measure μ}
 
 namespace finite_measure
 

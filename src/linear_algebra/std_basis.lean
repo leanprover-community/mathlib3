@@ -251,32 +251,31 @@ by { simp only [basis_fun, basis.coe_of_equiv_fun, linear_equiv.refl_symm,
   (pi.basis_fun R η).repr x i = x i :=
 by simp [basis_fun]
 
+end
+
 end module
 
 end pi
 
 namespace matrix
 
-variables (n m : Type*) [fintype m] [fintype n]
+variables (R : Type*) (n : Type*) (m : Type*) [fintype m] [fintype n] [semiring R]
+
 /-- The standard basis of `matrix n m R`. -/
-noncomputable def _root_.matrix.std_basis (n : Type*) (m : Type*) [fintype m] [fintype n] :
-  basis (n × m) R (matrix n m R) :=
+noncomputable def std_basis : basis (n × m) R (matrix n m R) :=
 basis.reindex (pi.basis (λ (i : n), pi.basis_fun R m)) (equiv.sigma_equiv_prod _ _)
 
-lemma std_basis_eq_std_basis_matrix {n : Type*} {m : Type*} (i : n) (j : m)
-  [fintype n] [fintype m] [decidable_eq n] [decidable_eq m] :
-  matrix.std_basis R n m (i, j) = matrix.std_basis_matrix i j (1 : R) :=
+variables {n m}
+
+lemma std_basis_eq_std_basis_matrix (i : n) (j : m) [decidable_eq n] [decidable_eq m] :
+  std_basis R n m (i, j) = std_basis_matrix i j (1 : R) :=
 begin
   ext a b,
   by_cases hi : i = a; by_cases hj : j = b,
-  { simp [matrix.std_basis, hi, hj] },
-  { simp [matrix.std_basis, hi, hj, ne.symm hj, linear_map.std_basis_ne] },
-  { simp [matrix.std_basis, hi, hj, ne.symm hi, linear_map.std_basis_ne] },
-  { simp [matrix.std_basis, hi, hj, ne.symm hj, ne.symm hi, linear_map.std_basis_ne] }
+  { simp [std_basis, hi, hj] },
+  { simp [std_basis, hi, hj, ne.symm hj, linear_map.std_basis_ne] },
+  { simp [std_basis, hi, hj, ne.symm hi, linear_map.std_basis_ne] },
+  { simp [std_basis, hi, hj, ne.symm hj, ne.symm hi, linear_map.std_basis_ne] }
 end
 
-end
-
-end module
-
-end pi
+end matrix

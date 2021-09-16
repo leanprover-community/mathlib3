@@ -175,8 +175,24 @@ namespace localization
   inhabited (localization S) :=
 con.quotient.inhabited
 
-@[to_additive, irreducible] instance : comm_monoid (localization S) :=
-(r S).comm_monoid
+@[to_additive, irreducible] protected def mul :=
+(r S).comm_monoid.mul
+
+@[to_additive] instance : has_mul (localization S) :=
+⟨localization.mul S⟩
+
+@[to_additive, irreducible] protected def one :=
+(r S).comm_monoid.one
+
+@[to_additive] instance : has_one (localization S) :=
+⟨localization.one S⟩
+
+local attribute [semireducible] localization.mul localization.one
+
+@[to_additive] instance : comm_monoid (localization S) :=
+{ mul := (*),
+  one := 1,
+  .. (r S).comm_monoid }
 
 variables {S}
 
@@ -185,6 +201,9 @@ class of `(x, y)` in the localization of `M` at `S`. -/
 @[to_additive "Given an `add_comm_monoid` `M` and submonoid `S`, `mk` sends `x : M`, `y ∈ S` to
 the equivalence class of `(x, y)` in the localization of `M` at `S`."]
 def mk (x : M) (y : S) : localization S := (r S).mk' (x, y)
+
+@[to_additive] lemma mk_mul (a c : M) (b d : S) : mk a b * mk c d = mk (a * c) (b * d) :=rfl
+@[to_additive] lemma mk_one : mk 1 (1 : S) = 1 :=rfl
 
 @[elab_as_eliminator, to_additive]
 theorem ind {p : localization S → Prop}
@@ -210,6 +229,8 @@ induction_on₂ x y $ λ x y, induction_on z $ H x y
 
 @[to_additive] theorem r_of_eq {x y : M × S} (h : y.1 * x.2 = x.1 * y.2) : r S x y :=
 r_iff_exists.2 ⟨1, by rw h⟩
+
+@[to_additive] lemma mk_self (a : S) : mk (a : M) a = 1 := ((r S).eq.2 (one_rel a)).symm
 
 end localization
 
@@ -1013,21 +1034,17 @@ end submonoid
 namespace localization
 variables (S)
 
-section
-
-local attribute [semireducible] localization.comm_monoid
-
 /-- Natural hom sending `x : M`, `M` a `comm_monoid`, to the equivalence class of
 `(x, 1)` in the localization of `M` at a submonoid. -/
 @[to_additive "Natural homomorphism sending `x : M`, `M` an `add_comm_monoid`, to the equivalence
 class of `(x, 0)` in the localization of `M` at a submonoid."]
 def monoid_of : submonoid.localization_map S (localization S) :=
-{ map_units' := λ y, is_unit_iff_exists_inv.2 ⟨mk 1 y, (r S).eq.2 $
-    show r S (_, 1 * y) 1, by simpa using (r S).symm (one_rel y)⟩,
-  surj' := λ z, induction_on z $ λ x, ⟨x, (r S).eq.2 $
-    show r S (x.1 * x.2, x.2 * 1) (x.1, 1), by
-      rw [mul_comm x.2, ←mul_one (x.1, (1 : S))];
-      exact (r S).mul ((r S).refl (x.1, 1)) ((r S).symm $ one_rel x.2)⟩,
+{ to_fun := λ x, mk x 1,
+  map_one' := mk_one,
+  map_mul' := λ x y, by rw [mk_mul, mul_one],
+  map_units' := λ y, is_unit_iff_exists_inv.2 ⟨mk 1 y, by rw [mk_mul, mul_one, one_mul, mk_self]⟩,
+  surj' := λ z, induction_on z $ λ x, ⟨x,
+    by rw [mk_mul, mul_comm x.fst, ← mk_mul, mk_self, one_mul]⟩,
   eq_iff_exists' := λ x y, (r S).eq.trans $ r_iff_exists.trans $
     show (∃ (c : S), x * 1 * c = y * 1 * c) ↔ _, by rw [mul_one, mul_one],
   ..(r S).mk'.comp $ monoid_hom.inl M S }
@@ -1040,7 +1057,7 @@ variables {S}
 show _ = _ * _, from (submonoid.localization_map.mul_inv_right (monoid_of S).map_units _ _ _).2 $
 begin
   rw [←mk_one_eq_monoid_of_mk, ←mk_one_eq_monoid_of_mk,
-      show mk x y * mk y 1 = mk (x * y) (1 * y), by rw mul_comm 1 y; refl,
+      show mk x y * mk y 1 = mk (x * y) (1 * y), by rw [mul_comm 1 y, mk_mul],
       show mk x 1 = mk (x * 1) ((1 : S) * 1), by rw [mul_one, mul_one]],
   exact (con.eq _).2 (con.symm _ $ (localization.r S).mul
     (con.refl _ (x, 1)) $ one_rel _),
@@ -1049,9 +1066,7 @@ end
 @[simp, to_additive] lemma mk_eq_monoid_of_mk' : mk = (monoid_of S).mk' :=
 funext $ λ _, funext $ λ _, mk_eq_monoid_of_mk'_apply _ _
 
-end
-
-variables {S} (f : submonoid.localization_map S N)
+variables (f : submonoid.localization_map S N)
 /-- Given a localization map `f : M →* N` for a submonoid `S`, we get an isomorphism between
 the localization of `M` at `S` as a quotient type and `N`. -/
 @[to_additive "Given a localization map `f : M →+ N` for a submonoid `S`, we get an isomorphism

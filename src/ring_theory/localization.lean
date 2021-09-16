@@ -664,8 +664,8 @@ variables {M}
 
 section
 
-@[irreducible] instance : has_add (localization M) :=
-⟨λ z w, con.lift_on₂ z w
+@[irreducible] protected def add (z w : localization M) : localization M :=
+con.lift_on₂ z w
   (λ x y : R × M, mk ((x.2 : R) * y.1 + y.2 * x.1) (x.2 * y.2)) $
 λ r1 r2 r3 r4 h1 h2, (con.eq _).2
 begin
@@ -676,10 +676,12 @@ begin
   calc ((r1.2 : R) * r2.1 + r2.2 * r1.1) * (r3.2 * r4.2) * (t₆ * t₅) =
       (r2.1 * r4.2 * t₆) * (r1.2 * r3.2 * t₅) + (r1.1 * r3.2 * t₅) * (r2.2 * r4.2 * t₆) : by ring
       ... = (r3.2 * r4.1 + r4.2 * r3.1) * (r1.2 * r2.2) * (t₆ * t₅) : by rw [ht₆, ht₅]; ring
-end⟩
+end
 
-@[irreducible] instance : has_neg (localization M) :=
-⟨λ z, con.lift_on z (λ x : R × M, mk (-x.1) x.2) $
+instance : has_add (localization M) := ⟨localization.add⟩
+
+@[irreducible] protected def neg (z : localization M) : localization M :=
+con.lift_on z (λ x : R × M, mk (-x.1) x.2) $
   λ r1 r2 h, (con.eq _).2
 begin
   rw r_eq_r' at h ⊢,
@@ -687,13 +689,17 @@ begin
   use t,
   rw [neg_mul_eq_neg_mul_symm, neg_mul_eq_neg_mul_symm, ht],
   ring_nf,
-end⟩
+end
 
-@[irreducible] instance : has_zero (localization M) :=
-⟨mk 0 1⟩
+instance : has_neg (localization M) := ⟨localization.neg⟩
 
-local attribute [semireducible] localization.has_add localization.has_neg localization.has_zero
-  localization.comm_monoid
+@[irreducible] protected def zero : localization M :=
+mk 0 1
+
+instance : has_zero (localization M) := ⟨localization.zero⟩
+
+local attribute [semireducible] localization.add localization.neg localization.zero
+  localization.mul localization.one
 
 private meta def tac := `[{
   intros,

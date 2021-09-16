@@ -220,7 +220,7 @@ lemma finset.center_mass_mem_convex_hull (t : finset ι) {w : ι → ℝ} (hw₀
 the space. -/
 lemma finset.center_mass_id_mem_convex_hull (t : finset E) {w : E → ℝ} (hw₀ : ∀ i ∈ t, 0 ≤ w i)
   (hws : 0 < ∑ i in t, w i) :
-  t.center_mass w id ∈ convex_hull (t : set E) :=
+  t.center_mass w id ∈ convex_hull ℝ (t : set E) :=
 t.center_mass_mem_convex_hull hw₀ hws (λ i, mem_coe.2)
 
 lemma affine_combination_eq_center_mass {ι : Type*} {t : finset ι} {p : ι → E} {w : ι → ℝ}
@@ -238,7 +238,7 @@ end
 affine_combination_eq_center_mass (s.sum_centroid_weights_eq_one_of_nonempty ℝ hs)
 
 lemma finset.centroid_mem_convex_hull (s : finset E) (hs : s.nonempty) :
-  s.centroid ℝ id ∈ convex_hull (s : set E) :=
+  s.centroid ℝ id ∈ convex_hull ℝ (s : set E) :=
 begin
   rw s.centroid_eq_center_mass hs,
   apply s.center_mass_id_mem_convex_hull,
@@ -280,7 +280,7 @@ begin
 end
 
 /-- Maximum principle for convex functions. If a function `f` is convex on the convex hull of `s`,
-then `f` can't have a maximum on `convex_hull s` outside of `s`. -/
+then `f` can't have a maximum on `convex_hull ℝ s` outside of `s`. -/
 lemma convex_on.exists_ge_of_mem_convex_hull {f : E → ℝ} (hf : convex_on (convex_hull ℝ s) f)
   {x} (hx : x ∈ convex_hull ℝ s) : ∃ y ∈ s, f x ≤ f y :=
 begin

@@ -156,12 +156,11 @@ end
 -- pair of pairwise unequal elements of B sums to a perfect square.
 lemma exists_finset_of_3_leq_card_with_pairs_summing_to_squares (n : ℕ) (hn : 100 ≤ n) :
   ∃ (B : finset ℕ), 2 * 1 + 1 ≤ B.card ∧ (∀ (a b ∈ B), a ≠ b →
-  ∃ (k : ℕ), a + b = k * k) ∧ ∀ (c ∈  B), n ≤ c ∧ (c : ℕ) ≤ 2 * n :=
+  ∃ k, a + b = k * k) ∧ ∀ (c ∈  B), n ≤ c ∧ c ≤ 2 * n :=
 begin
   have h := exists_triplet_summing_to_squares n hn,
   rcases h with ⟨a, b, c, hna, hab, hbc, hcn, h₁, h₂, h₃⟩,
-  use {a, b, c},
-  refine ⟨_,_,_⟩,
+  refine ⟨{a, b, c}, _, _, _⟩,
   { suffices : ({a, b, c} : finset ℕ).card = 3,
     { linarith },
     rw [finset.card_insert_of_not_mem, finset.card_insert_of_not_mem, finset.card_singleton],
@@ -218,9 +217,7 @@ begin
   cases h with h₁ h₂,
   have h₃: B \ (Y \ X) ⊆ B := finset.sdiff_subset B (Y \ X),
   have h₄: B \ (Y \ X) ⊆ X,
-  { have : B \ (Y \ X) ⊆ (X ∪ Y) \ (Y \ X) := finset.sdiff_subset_sdiff h (finset.subset.refl (Y \ X)),
-    apply finset.subset.trans this,
-    intros i hi,
+  { refine ((finset.sdiff_subset_sdiff h (finset.subset.refl (Y \ X))).trans (λ i hi, _)),
     simp only [not_and, not_not, finset.mem_sdiff, finset.mem_union] at hi,
     cases hi with hi₁ hi₂,
     cases hi₁,
@@ -228,9 +225,7 @@ begin
     { exact hi₂ hi₁ }},
   have h₅ : B \ (X \ Y) ⊆ B := finset.sdiff_subset B (X \ Y),
   have h₆: B \ (X \ Y) ⊆ Y,
-  { have : B \ (X \ Y) ⊆ (X ∪ Y) \ (X \ Y) := finset.sdiff_subset_sdiff h (finset.subset.refl (X \ Y)),
-    apply finset.subset.trans this,
-    intros i hi,
+  { refine ((finset.sdiff_subset_sdiff h (finset.subset.refl (X \ Y))).trans (λ i hi, _)),
     simp only [not_and, not_not, finset.mem_sdiff, finset.mem_union] at hi,
     cases hi with hi₁ hi₂,
     cases hi₁,
@@ -244,13 +239,9 @@ begin
     have h₈ : i ∈ X ∨ i ∈ Y := finset.mem_union.mp (h hi),
     cases h₈,
     { left,
-      refine ⟨hi,_⟩,
-      { intro,
-        exact h₈ } },
+      refine ⟨hi, (λ x, h₈)⟩ },
     { right,
-      refine ⟨hi,_⟩,
-      { intro,
-        exact h₈ }}},
+      refine ⟨hi,(λ x, h₈)⟩ }},
   replace h₇ := finset.card_le_of_subset h₇,
   have h₉ : B.card ≤  2 * n,
   { apply le_trans h₇ _,

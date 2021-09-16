@@ -316,8 +316,18 @@ h.inter_of_left t
 theorem finite.inf_of_right {s : set α} (h : finite s) (t : set α) : finite (t ⊓ s) :=
 h.inter_of_right t
 
-theorem infinite_mono {s t : set α} (h : s ⊆ t) : infinite s → infinite t :=
+protected theorem infinite.mono {s t : set α} (h : s ⊆ t) : infinite s → infinite t :=
 mt (λ ht, ht.subset h)
+
+lemma infinite.diff {s t : set α} (hs : s.infinite) (ht : t.finite) :
+  (s \ t).infinite :=
+λ h, hs ((h.union ht).subset (s.subset_diff_union t))
+
+lemma infinite.exists_not_mem_finset (hs : s.infinite) (f : finset α) : ∃ a ∈ s, a ∉ f :=
+begin
+  obtain ⟨a, ha⟩ := (hs.diff f.finite_to_set).nonempty,
+  exact ⟨a, ha⟩,
+end
 
 instance fintype_image [decidable_eq β] (s : set α) (f : α → β) [fintype s] : fintype (f '' s) :=
 fintype.of_finset (s.to_finset.image f) $ by simp
@@ -384,7 +394,7 @@ not_congr $ finite_image_iff hi
 
 theorem infinite_of_inj_on_maps_to {s : set α} {t : set β} {f : α → β}
   (hi : inj_on f s) (hm : maps_to f s t) (hs : infinite s) : infinite t :=
-infinite_mono (maps_to'.mp hm) $ (infinite_image_iff hi).2 hs
+((infinite_image_iff hi).2 hs).mono (maps_to'.mp hm)
 
 theorem infinite.exists_ne_map_eq_of_maps_to {s : set α} {t : set β} {f : α → β}
   (hs : infinite s) (hf : maps_to f s t) (ht : finite t) :
@@ -456,6 +466,12 @@ by simpa [nat.lt_succ_iff] using set.fintype_lt_nat (n+1)
 lemma finite_le_nat (n : ℕ) : finite {i | i ≤ n} := ⟨set.fintype_le_nat _⟩
 
 lemma finite_lt_nat (n : ℕ) : finite {i | i < n} := ⟨set.fintype_lt_nat _⟩
+
+lemma exists_gt_nat_of_infinite {s : set ℕ} (hs : infinite s) (n : ℕ) : ∃ m, m ∈ s ∧ n < m :=
+begin
+  obtain ⟨m, hm⟩ := (hs.diff $ set.finite_le_nat n).nonempty,
+  exact ⟨m, by simpa using hm⟩,
+end
 
 instance fintype_prod (s : set α) (t : set β) [fintype s] [fintype t] : fintype (set.prod s t) :=
 fintype.of_finset (s.to_finset.product t.to_finset) $ by simp

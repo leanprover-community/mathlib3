@@ -5,7 +5,6 @@ Authors: Markus Himmel, Scott Morrison
 -/
 import ring_theory.principal_ideal_domain
 import ring_theory.ideal.basic
-import linear_algebra.free_module
 
 /-!
 # Invariant basis number property

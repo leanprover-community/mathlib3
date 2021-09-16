@@ -755,7 +755,7 @@ classical.choice (b.nonempty_fintype_index_of_dim_lt_omega h)
 lemma basis.finite_index_of_dim_lt_omega {ι : Type*} {s : set ι}
   (b : basis s R M) (h : module.rank R M < cardinal.omega) :
   s.finite :=
-b.nonempty_fintype_index_of_dim_lt_omega h
+finite_def.2 (b.nonempty_fintype_index_of_dim_lt_omega h)
 
 lemma dim_span {v : ι → M} (hv : linear_independent R v) :
   module.rank R ↥(span R (range v)) = cardinal.mk (range v) :=
@@ -780,7 +780,7 @@ variables {K V}
 /-- If a vector space has a finite dimension, the index set of `basis.of_vector_space` is finite. -/
 lemma basis.finite_of_vector_space_index_of_dim_lt_omega (h : module.rank K V < cardinal.omega) :
   (basis.of_vector_space_index K V).finite :=
-(basis.of_vector_space K V).nonempty_fintype_index_of_dim_lt_omega h
+finite_def.2 $ (basis.of_vector_space K V).nonempty_fintype_index_of_dim_lt_omega h
 
 variables [add_comm_group V'] [module K V']
 

@@ -1030,7 +1030,7 @@ begin
   rw [← add_lt_add_iff_left this, ← add_lintegral, ← map_add @ennreal.coe_add],
   refine (hb _ (λ x, le_trans _ (max_le (hle x) (hψ x)))).trans_lt hbφ,
   norm_cast,
-  simp only [add_apply, sub_apply, nnreal.add_sub_eq_max]
+  simp only [add_apply, sub_apply, add_sub_eq_max]
 end
 
 theorem supr_lintegral_le {ι : Sort*} (f : ι → α → ℝ≥0∞) :
@@ -1233,7 +1233,7 @@ begin
     begin
       rw [← simple_func.add_lintegral, ← simple_func.map_add @ennreal.coe_add],
       refine simple_func.lintegral_mono (λ x, _) le_rfl,
-      simp [-ennreal.coe_add, nnreal.add_sub_eq_max, le_max_right]
+      simp [-ennreal.coe_add, add_sub_eq_max, le_max_right]
     end
   ... ≤ (map coe φ).lintegral (μ.restrict s) + ε₁ :
     begin

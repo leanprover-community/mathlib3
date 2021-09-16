@@ -175,7 +175,7 @@ namespace localization
   inhabited (localization S) :=
 con.quotient.inhabited
 
-@[to_additive] instance : comm_monoid (localization S) :=
+@[to_additive, irreducible] instance : comm_monoid (localization S) :=
 (r S).comm_monoid
 
 variables {S}
@@ -1013,6 +1013,10 @@ end submonoid
 namespace localization
 variables (S)
 
+section
+
+local attribute [semireducible] localization.comm_monoid
+
 /-- Natural hom sending `x : M`, `M` a `comm_monoid`, to the equivalence class of
 `(x, 1)` in the localization of `M` at a submonoid. -/
 @[to_additive "Natural homomorphism sending `x : M`, `M` an `add_comm_monoid`, to the equivalence
@@ -1045,7 +1049,9 @@ end
 @[simp, to_additive] lemma mk_eq_monoid_of_mk' : mk = (monoid_of S).mk' :=
 funext $ λ _, funext $ λ _, mk_eq_monoid_of_mk'_apply _ _
 
-variables (f : submonoid.localization_map S N)
+end
+
+variables {S} (f : submonoid.localization_map S N)
 /-- Given a localization map `f : M →* N` for a submonoid `S`, we get an isomorphism between
 the localization of `M` at `S` as a quotient type and `N`. -/
 @[to_additive "Given a localization map `f : M →+ N` for a submonoid `S`, we get an isomorphism

@@ -662,7 +662,9 @@ open is_localization
 
 variables {M}
 
-instance : has_add (localization M) :=
+section
+
+@[irreducible] instance : has_add (localization M) :=
 ⟨λ z w, con.lift_on₂ z w
   (λ x y : R × M, mk ((x.2 : R) * y.1 + y.2 * x.1) (x.2 * y.2)) $
 λ r1 r2 r3 r4 h1 h2, (con.eq _).2
@@ -676,7 +678,7 @@ begin
       ... = (r3.2 * r4.1 + r4.2 * r3.1) * (r1.2 * r2.2) * (t₆ * t₅) : by rw [ht₆, ht₅]; ring
 end⟩
 
-instance : has_neg (localization M) :=
+@[irreducible] instance : has_neg (localization M) :=
 ⟨λ z, con.lift_on z (λ x : R × M, mk (-x.1) x.2) $
   λ r1 r2 h, (con.eq _).2
 begin
@@ -687,8 +689,11 @@ begin
   ring_nf,
 end⟩
 
-instance : has_zero (localization M) :=
+@[irreducible] instance : has_zero (localization M) :=
 ⟨mk 0 1⟩
+
+local attribute [semireducible] localization.has_add localization.has_neg localization.has_zero
+  localization.comm_monoid
 
 private meta def tac := `[{
   intros,
@@ -723,6 +728,8 @@ instance : is_localization M (localization M) :=
 { map_units := (localization.monoid_of M).map_units,
   surj := (localization.monoid_of M).surj,
   eq_iff_exists := λ _ _, (localization.monoid_of M).eq_iff_exists }
+
+end
 
 lemma monoid_of_eq_algebra_map (x) :
   (monoid_of M).to_map x = algebra_map R (localization M) x :=
@@ -1490,19 +1497,24 @@ is_localization.to_map_ne_zero_of_mem_non_zero_divisors _ (le_refl _) hx
 variables (A)
 
 /-- A `comm_ring` `K` which is the localization of an integral domain `R` at `R - {0}` is an
-integral domain. -/
+integral domain.
+See note [reducible non-instances]. -/
+@[reducible]
 def to_integral_domain : integral_domain K :=
 integral_domain_of_le_non_zero_divisors K (le_refl (non_zero_divisors A))
 
 local attribute [instance] classical.dec_eq
 
 /-- The inverse of an element in the field of fractions of an integral domain. -/
+@[irreducible]
 protected noncomputable def inv (z : K) : K :=
 if h : z = 0 then 0 else
 mk' K ↑(sec (non_zero_divisors A) z).2
   ⟨(sec _ z).1,
    mem_non_zero_divisors_iff_ne_zero.2 $ λ h0, h $
     eq_zero_of_fst_eq_zero (sec_spec (non_zero_divisors A) z) h0⟩
+
+local attribute [semireducible] is_fraction_ring.inv
 
 protected lemma mul_inv_cancel (x : K) (hx : x ≠ 0) :
   x * is_fraction_ring.inv A x = 1 :=
@@ -1887,7 +1899,15 @@ namespace fraction_ring
 variables {A}
 
 noncomputable instance : field (fraction_ring A) :=
-is_fraction_ring.to_field A
+{ add := (+),
+  mul := (*),
+  neg := has_neg.neg,
+  sub := has_sub.sub,
+  one := 1,
+  zero := 0,
+  gsmul := gsmul,
+  npow := npow,
+  .. is_fraction_ring.to_field A }
 
 @[simp] lemma mk_eq_div {r s} : (localization.mk r s : fraction_ring A) =
   (algebra_map _ _ r / algebra_map A _ s : fraction_ring A) :=

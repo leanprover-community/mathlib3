@@ -131,7 +131,7 @@ begin
   rw [← ring_hom.map_det, is_fraction_ring.to_map_eq_zero_iff] at this,
   refine iff.trans _ this, split; rintro ⟨v, hv, mul_eq⟩,
   { refine ⟨λ i, algebra_map _ _ (v i), mt (λ h, funext $ λ i, _) hv, _⟩,
-    { exact is_fraction_ring.injective A (fraction_ring A) (congr_fun h i) },
+    { exact is_fraction_ring.to_map_eq_zero_iff.mp (congr_fun h i) },
     { ext i,
       refine (ring_hom.map_mul_vec _ _ _ i).symm.trans _,
       rw [mul_eq, pi.zero_apply, ring_hom.map_zero, pi.zero_apply] } },
@@ -150,11 +150,13 @@ begin
       calc algebra_map A (fraction_ring A) (M.mul_vec (λ (i : n), f (v i) _) i)
           = ((algebra_map A (fraction_ring A)).map_matrix M).mul_vec
               (algebra_map _ (fraction_ring A) b • v) i : _
-      ... = 0 : _,
+      ... = 0 : _
+      ... = algebra_map A (fraction_ring A) 0 : (ring_hom.map_zero _).symm,
       { simp_rw [ring_hom.map_mul_vec, mul_vec, dot_product, function.comp_app, hf,
           subtype.coe_mk, ring_hom.map_matrix_apply, pi.smul_apply, smul_eq_mul,
           algebra.smul_def] },
-      { rw [mul_vec_smul, mul_eq, pi.smul_apply, pi.zero_apply, smul_zero] } } },
+      { rw [mul_vec_smul, mul_eq, pi.smul_apply, pi.zero_apply, smul_zero],
+        refl } } },
 end
 
 lemma exists_vec_mul_eq_zero_iff {A : Type*} [decidable_eq n] [integral_domain A]

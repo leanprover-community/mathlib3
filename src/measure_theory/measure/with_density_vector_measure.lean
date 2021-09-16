@@ -174,21 +174,6 @@ begin
   exact lintegral_mono_set (set.subset_univ _),
 end
 
-lemma with_densityᵥ_sub_eq_with_density {f g : α → ℝ≥0∞}
-  (hfm : ae_measurable f μ) (hgm : ae_measurable g μ)
-  (hf : ∫⁻ x, f x ∂μ ≠ ∞) (hg : ∫⁻ x, g x ∂μ ≠ ∞) :
-  μ.with_densityᵥ (λ x, (f x).to_real - (g x).to_real) =
-  @to_signed_measure α _ (μ.with_density f)
-    (is_finite_measure_with_density (lt_top_iff_ne_top.2 hf)) -
-  @to_signed_measure α _ (μ.with_density g)
-    (is_finite_measure_with_density (lt_top_iff_ne_top.2 hg)) :=
-begin
-  have hfi := integrable_to_real_of_lintegral_ne_top hfm hf,
-  have hgi := integrable_to_real_of_lintegral_ne_top hgm hg,
-  ext i hi,
-  rw [with_densityᵥ_sub' hfi hgi, with_densityᵥ_to_real hfm hf, with_densityᵥ_to_real hgm hg],
-end
-
 end signed_measure
 
 end measure_theory

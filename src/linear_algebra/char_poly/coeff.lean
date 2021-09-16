@@ -230,7 +230,7 @@ open algebra
 
 /-- The characteristic polynomial of the map `λ x, a * x` is the minimal polynomial of `a`.
 
-In combination with `det_eq_sign_char_poly_coeff` or `trace_eq_neg_char_poly_coeff`
+In combination with `det_eq_sign_charpoly_coeff` or `trace_eq_neg_charpoly_coeff`
 and a bit of rewriting, this will allow us to conclude the
 field norm resp. trace of `x` is the product resp. sum of `x`'s conjugates.
 -/

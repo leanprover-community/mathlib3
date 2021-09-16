@@ -34,7 +34,7 @@ lemma prod_Ico_add (f : ℕ → β) (m n k : ℕ) :
 
 lemma sum_Ico_succ_top {δ : Type*} [add_comm_monoid δ] {a b : ℕ}
   (hab : a ≤ b) (f : ℕ → δ) : (∑ k in Ico a (b + 1), f k) = (∑ k in Ico a b, f k) + f b :=
-by rw [Ico_insert_right hab, sum_insert right_not_mem_Ico, add_comm]
+by rw [nat.Ico_succ_right_eq_insert_Ico hab, sum_insert right_not_mem_Ico, add_comm]
 
 @[to_additive]
 lemma prod_Ico_succ_top {a b : ℕ} (hab : a ≤ b) (f : ℕ → β) :
@@ -44,7 +44,7 @@ lemma prod_Ico_succ_top {a b : ℕ} (hab : a ≤ b) (f : ℕ → β) :
 lemma sum_eq_sum_Ico_succ_bot {δ : Type*} [add_comm_monoid δ] {a b : ℕ}
   (hab : a < b) (f : ℕ → δ) : (∑ k in Ico a b, f k) = f a + (∑ k in Ico (a + 1) b, f k) :=
 have ha : a ∉ Ico (a + 1) b, by simp,
-by rw [← sum_insert ha, Ico.insert_succ_bot hab]
+by rw [← sum_insert ha, nat.Ico_insert_succ_left hab]
 
 @[to_additive]
 lemma prod_eq_prod_Ico_succ_bot {a b : ℕ} (hab : a < b) (f : ℕ → β) :
@@ -54,12 +54,12 @@ lemma prod_eq_prod_Ico_succ_bot {a b : ℕ} (hab : a < b) (f : ℕ → β) :
 @[to_additive]
 lemma prod_Ico_consecutive (f : ℕ → β) {m n k : ℕ} (hmn : m ≤ n) (hnk : n ≤ k) :
   (∏ i in Ico m n, f i) * (∏ i in Ico n k, f i) = (∏ i in Ico m k, f i) :=
-Ico_union_Ico_consecutive hmn hnk ▸ eq.symm $ prod_union $ Ico.disjoint_consecutive m n k
+Ico_union_Ico_eq_Ico hmn hnk ▸ eq.symm $ prod_union $ Ico_disjoint_Ico_consecutive m n k
 
 @[to_additive]
 lemma prod_range_mul_prod_Ico (f : ℕ → β) {m n : ℕ} (h : m ≤ n) :
   (∏ k in range m, f k) * (∏ k in Ico m n, f k) = (∏ k in range n, f k) :=
-Ico.zero_bot m ▸ Ico.zero_bot n ▸ prod_Ico_consecutive f (nat.zero_le m) h
+m.Ico_zero_eq_range ▸ n.Ico_zero_eq_range ▸ prod_Ico_consecutive f m.zero_le h
 
 @[to_additive]
 lemma prod_Ico_eq_mul_inv {δ : Type*} [comm_group δ] (f : ℕ → δ) {m n : ℕ} (h : m ≤ n) :
@@ -90,7 +90,7 @@ lemma prod_Ico_eq_prod_range (f : ℕ → β) (m n : ℕ) :
   (∏ k in Ico m n, f k) = (∏ k in range (n - m), f (m + k)) :=
 begin
   by_cases h : m ≤ n,
-  { rw [← Ico.zero_bot, prod_Ico_add, zero_add, nat.sub_add_cancel h] },
+  { rw [←nat.Ico_zero_eq_range, prod_Ico_add, zero_add, nat.sub_add_cancel h] },
   { replace h : n ≤ m :=  le_of_not_ge h,
      rw [Ico_eq_empty_of_le h, nat.sub_eq_zero_of_le h, range_zero, prod_empty, prod_empty] }
 end
@@ -102,7 +102,7 @@ begin
   { intros i hi,
     exact (add_le_add_iff_right 1).1 (le_trans (nat.lt_iff_add_one_le.1 hi) h) },
   cases lt_or_le k m with hkm hkm,
-  { rw [← finset.Ico.image_const_sub (this _ hkm)],
+  { rw [← nat.Ico_image_const_sub_eq_Ico (this _ hkm)],
     refine (prod_image _).symm,
     simp only [mem_Ico],
     rintros i ⟨ki, im⟩ j ⟨kj, jm⟩ Hij,

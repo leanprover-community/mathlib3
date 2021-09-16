@@ -14,18 +14,18 @@ intervals as finsets and fintypes.
 -/
 
 open finset int
+private lemma inj (a : ℤ) : function.injective (λ n : ℕ, (n : ℤ) + a) :=
+λ m n, by { rw [add_left_inj, coe_nat_inj'], exact id }
 
 instance : locally_finite_order ℤ :=
-have hinj : ∀ a : ℤ, function.injective (λ n : ℕ, (n : ℤ) + a),
-from λ a m n, by { rw [add_left_inj, coe_nat_inj'], exact id },
 { finset_Icc := λ a b, (finset.range (b + 1 - a).to_nat).map
-    ⟨λ n, n + a, hinj a⟩,
+    ⟨λ n, n + a, inj a⟩,
   finset_Ico := λ a b, (finset.range (b - a).to_nat).map
-    ⟨λ n, n + a, hinj a⟩,
+    ⟨λ n, n + a, inj a⟩,
   finset_Ioc := λ a b, (finset.range (b - a).to_nat).map
-    ⟨λ n, n + (a + 1), hinj (a + 1)⟩,
+    ⟨λ n, n + (a + 1), inj (a + 1)⟩,
   finset_Ioo := λ a b, (finset.range (b - a - 1).to_nat).map
-    ⟨λ n, n + (a + 1), hinj (a + 1)⟩,
+    ⟨λ n, n + (a + 1), inj (a + 1)⟩,
   finset_mem_Icc := λ a b x, begin
     simp only [int.lt_to_nat, exists_prop, mem_range, add_comm, function.embedding.coe_fn_mk,
       mem_map],
@@ -76,30 +76,38 @@ from λ a m n, by { rw [add_left_inj, coe_nat_inj'], exact id },
   end }
 
 namespace int
-variables (a b : ℤ).
+variables (a b : ℤ)
 
-@[simp] lemma card_finset_Icc : (Icc a b).card = (b + 1 - a).to_nat :=
+lemma Icc_eq_finset_map : Icc a b = (finset.range (b + 1 - a).to_nat).map ⟨λ n, n + a, inj a⟩ := rfl
+lemma Ico_eq_finset_map : Ico a b = (finset.range (b - a).to_nat).map ⟨λ n, n + a, inj a⟩ := rfl
+lemma Ioc_eq_finset_map : Ioc a b = (finset.range (b - a).to_nat).map ⟨λ n, n + (a + 1), inj _⟩ :=
+rfl
+lemma Ioo_eq_finset_map : Ioo a b = (finset.range (b - a - 1).to_nat).map
+  ⟨λ n, n + (a + 1), inj _⟩ :=
+rfl
+
+@[simp] lemma card_Icc : (Icc a b).card = (b + 1 - a).to_nat :=
 by { change (finset.map _ _).card = _, rw [finset.card_map, finset.card_range] }
 
-@[simp] lemma card_finset_Ico : (Ico a b).card = (b - a).to_nat :=
+@[simp] lemma card_Ico : (Ico a b).card = (b - a).to_nat :=
 by { change (finset.map _ _).card = _, rw [finset.card_map, finset.card_range] }
 
-@[simp] lemma card_finset_Ioc : (Ioc a b).card = (b - a).to_nat :=
+@[simp] lemma card_Ioc : (Ioc a b).card = (b - a).to_nat :=
 by { change (finset.map _ _).card = _, rw [finset.card_map, finset.card_range] }
 
-@[simp] lemma card_finset_Ioo : (Ioo a b).card = (b - a - 1).to_nat :=
+@[simp] lemma card_Ioo : (Ioo a b).card = (b - a - 1).to_nat :=
 by { change (finset.map _ _).card = _, rw [finset.card_map, finset.card_range] }
 
 @[simp] lemma card_fintype_Icc : fintype.card (set.Icc a b) = (b + 1 - a).to_nat :=
-by rw [←card_finset_Icc, fintype.card_of_finset]
+by rw [←card_Icc, fintype.card_of_finset]
 
 @[simp] lemma card_fintype_Ico : fintype.card (set.Ico a b) = (b - a).to_nat :=
-by rw [←card_finset_Ico, fintype.card_of_finset]
+by rw [←card_Ico, fintype.card_of_finset]
 
 @[simp] lemma card_fintype_Ioc : fintype.card (set.Ioc a b) = (b - a).to_nat :=
-by rw [←card_finset_Ioc, fintype.card_of_finset]
+by rw [←card_Ioc, fintype.card_of_finset]
 
 @[simp] lemma card_fintype_Ioo : fintype.card (set.Ioo a b) = (b - a - 1).to_nat :=
-by rw [←card_finset_Ioo, fintype.card_of_finset]
+by rw [←card_Ioo, fintype.card_of_finset]
 
 end int

@@ -123,7 +123,7 @@ lemma coeff_iterated_deriv_as_prod_Ico :
   ∀ m : ℕ, (iterated_deriv f k).coeff m = (∏ i in Ico m.succ (m + k.succ), i) * (f.coeff (m+k)) :=
 begin
   induction k with k ih,
-  { simp only [add_zero, forall_const, one_mul, Ico.self_eq_empty, eq_self_iff_true,
+  { simp only [add_zero, forall_const, one_mul, Ico_self, eq_self_iff_true,
       iterated_deriv_zero_right, prod_empty] },
   { intro m, rw [iterated_deriv_succ, coeff_derivative, ih (m+1), mul_right_comm],
     apply congr_arg2,

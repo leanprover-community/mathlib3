@@ -19,44 +19,45 @@ instance : locally_finite_order ℕ+ := subtype.locally_finite_order _
 namespace pnat
 variables (a b : ℕ+)
 
-@[simp] lemma card_finset_Icc : (Icc a b).card = b + 1 - a :=
-begin
-  change (finset.subtype _ _).card = _,
-  rw [finset.card_subtype, finset.filter_true_of_mem, nat.card_finset_Icc], refl,
-  exact λ x hx, a.2.trans_le (mem_Icc.1 hx).1,
-end
+lemma Icc_eq_finset_subtype : Icc a b = (Icc (a : ℕ) b).subtype (λ (n : ℕ), 0 < n) := rfl
+lemma Ico_eq_finset_subtype : Ico a b = (Ico (a : ℕ) b).subtype (λ (n : ℕ), 0 < n) := rfl
+lemma Ioc_eq_finset_subtype : Ioc a b = (Ioc (a : ℕ) b).subtype (λ (n : ℕ), 0 < n) := rfl
+lemma Ioo_eq_finset_subtype : Ioo a b = (Ioo (a : ℕ) b).subtype (λ (n : ℕ), 0 < n) := rfl
 
-@[simp] lemma card_finset_Ico : (Ico a b).card = b - a :=
-begin
-  change (finset.subtype _ _).card = _,
-  rw [finset.card_subtype, finset.filter_true_of_mem, nat.card_finset_Ico], refl,
-  exact λ x hx, a.2.trans_le (mem_Ico.1 hx).1,
-end
+lemma map_subtype_embedding_Icc : (Icc a b).map (function.embedding.subtype _) = Icc (a : ℕ) b :=
+map_subtype_embedding_Icc _ _ _ (λ a _ x hx _ ha _, ha.trans_le hx)
 
-@[simp] lemma card_finset_Ioc : (Ioc a b).card = b - a :=
-begin
-  change (finset.subtype _ _).card = _,
-  rw [finset.card_subtype, finset.filter_true_of_mem, nat.card_finset_Ioc], refl,
-  exact λ x hx, a.2.trans (mem_Ioc.1 hx).1,
-end
+lemma map_subtype_embedding_Ico : (Ico a b).map (function.embedding.subtype _) = Ico (a : ℕ) b :=
+map_subtype_embedding_Ico _ _ _ (λ a _ x hx _ ha _, ha.trans_le hx)
 
-@[simp] lemma card_finset_Ioo : (Ioo a b).card = b - a - 1 :=
-begin
-  change (finset.subtype _ _).card = _,
-  rw [finset.card_subtype, finset.filter_true_of_mem, nat.card_finset_Ioo], refl,
-  exact λ x hx, a.2.trans (mem_Ioo.1 hx).1,
-end
+lemma map_subtype_embedding_Ioc : (Ioc a b).map (function.embedding.subtype _) = Ioc (a : ℕ) b :=
+map_subtype_embedding_Ioc _ _ _ (λ a _ x hx _ ha _, ha.trans_le hx)
+
+lemma map_subtype_embedding_Ioo : (Ioo a b).map (function.embedding.subtype _) = Ioo (a : ℕ) b :=
+map_subtype_embedding_Ioo _ _ _ (λ a _ x hx _ ha _, ha.trans_le hx)
+
+@[simp] lemma card_Icc : (Icc a b).card = b + 1 - a :=
+by rw [←nat.card_Icc, ←map_subtype_embedding_Icc, card_map]
+
+@[simp] lemma card_Ico : (Ico a b).card = b - a :=
+by rw [←nat.card_Ico, ←map_subtype_embedding_Ico, card_map]
+
+@[simp] lemma card_Ioc : (Ioc a b).card = b - a :=
+by rw [←nat.card_Ioc, ←map_subtype_embedding_Ioc, card_map]
+
+@[simp] lemma card_Ioo : (Ioo a b).card = b - a - 1 :=
+by rw [←nat.card_Ioo, ←map_subtype_embedding_Ioo, card_map]
 
 @[simp] lemma card_fintype_Icc : fintype.card (set.Icc a b) = b + 1 - a :=
-by rw [←card_finset_Icc, fintype.card_of_finset]
+by rw [←card_Icc, fintype.card_of_finset]
 
 @[simp] lemma card_fintype_Ico : fintype.card (set.Ico a b) = b - a :=
-by rw [←card_finset_Ico, fintype.card_of_finset]
+by rw [←card_Ico, fintype.card_of_finset]
 
 @[simp] lemma card_fintype_Ioc : fintype.card (set.Ioc a b) = b - a :=
-by rw [←card_finset_Ioc, fintype.card_of_finset]
+by rw [←card_Ioc, fintype.card_of_finset]
 
 @[simp] lemma card_fintype_Ioo : fintype.card (set.Ioo a b) = b - a - 1 :=
-by rw [←card_finset_Ioo, fintype.card_of_finset]
+by rw [←card_Ioo, fintype.card_of_finset]
 
 end pnat

@@ -25,7 +25,7 @@ In a `locally_finite_order`,
 * `finset.Ioc`: Open-closed interval as a finset.
 * `finset.Ioo`: Open-open interval as a finset.
 * `multiset.Icc`: Closed-closed interval as a multiset.
-* `multiset.Ico`: Closed-open interval as a multiset.
+* `multiset.Ico`: Closed-open interval as a multiset. Currently only for `ℕ`.
 * `multiset.Ioc`: Open-closed interval as a multiset.
 * `multiset.Ioo`: Open-open interval as a finset.
 
@@ -451,21 +451,6 @@ noncomputable def fintype.to_locally_finite_order [fintype α] :
   finset_mem_Ioc := λ a b x, by rw [set.finite.mem_to_finset, set.mem_Ioc],
   finset_mem_Ioo := λ a b x, by rw [set.finite.mem_to_finset, set.mem_Ioo] }
 
-instance [locally_finite_order α] (p : α → Prop) [decidable_pred p] :
-  locally_finite_order (subtype p) :=
-{ finset_Icc := λ a b, (Icc a.val b.val).subtype p,
-  finset_Ico := λ a b, (Ico a.val b.val).subtype p,
-  finset_Ioc := λ a b, (Ioc a.val b.val).subtype p,
-  finset_Ioo := λ a b, (Ioo a.val b.val).subtype p,
-  finset_mem_Icc := λ a b x, by simp_rw [finset.mem_subtype, mem_Icc, subtype.val_eq_coe,
-    subtype.coe_le_coe],
-  finset_mem_Ico := λ a b x, by simp_rw [finset.mem_subtype, mem_Ico, subtype.val_eq_coe,
-    subtype.coe_le_coe, subtype.coe_lt_coe],
-  finset_mem_Ioc := λ a b x, by simp_rw [finset.mem_subtype, mem_Ioc, subtype.val_eq_coe,
-    subtype.coe_le_coe, subtype.coe_lt_coe],
-  finset_mem_Ioo := λ a b x, by simp_rw [finset.mem_subtype, mem_Ioo, subtype.val_eq_coe,
-    subtype.coe_lt_coe] }
-
 variables [preorder β] [decidable_rel ((≤) : β → β → Prop)] [locally_finite_order β]
 
 -- Should this be called `locally_finite_order.lift`?
@@ -488,3 +473,68 @@ instance : locally_finite_order (α × β) :=
   finset_mem_Icc := λ a b x, by { rw [mem_product, mem_Icc, mem_Icc, and_and_and_comm], refl } }
 
 end preorder
+
+/-! #### Subtype of a locally finite -/
+
+variables [preorder α] [decidable_rel ((≤) : α → α → Prop)] [locally_finite_order α]
+  (p : α → Prop) [decidable_pred p]
+
+instance :
+  locally_finite_order (subtype p) :=
+{ finset_Icc := λ a b, (Icc (a : α) b).subtype p,
+  finset_Ico := λ a b, (Ico (a : α) b).subtype p,
+  finset_Ioc := λ a b, (Ioc (a : α) b).subtype p,
+  finset_Ioo := λ a b, (Ioo (a : α) b).subtype p,
+  finset_mem_Icc := λ a b x, by simp_rw [finset.mem_subtype, mem_Icc, subtype.coe_le_coe],
+  finset_mem_Ico := λ a b x, by simp_rw [finset.mem_subtype, mem_Ico, subtype.coe_le_coe,
+    subtype.coe_lt_coe],
+  finset_mem_Ioc := λ a b x, by simp_rw [finset.mem_subtype, mem_Ioc, subtype.coe_le_coe,
+    subtype.coe_lt_coe],
+  finset_mem_Ioo := λ a b x, by simp_rw [finset.mem_subtype, mem_Ioo, subtype.coe_lt_coe] }
+
+variables [decidable_eq α] (a b : subtype p)
+
+namespace finset
+
+lemma subtype_Icc_eq : Icc a b = (Icc (a : α) b).subtype p := rfl
+lemma subtype_Ico_eq : Ico a b = (Ico (a : α) b).subtype p := rfl
+lemma subtype_Ioc_eq : Ioc a b = (Ioc (a : α) b).subtype p := rfl
+lemma subtype_Ioo_eq : Ioo a b = (Ioo (a : α) b).subtype p := rfl
+
+variables (hp : ∀ ⦃a b x⦄, a ≤ x → x ≤ b → p a → p b → p x)
+include hp
+
+lemma map_subtype_embedding_Icc : (Icc a b).map (function.embedding.subtype p) = Icc (a : α) b :=
+begin
+  rw subtype_Icc_eq,
+  refine finset.subtype_map_of_mem (λ x hx, _),
+  rw mem_Icc at hx,
+  exact hp hx.1 hx.2 a.prop b.prop,
+end
+
+lemma map_subtype_embedding_Ico : (Ico a b).map (function.embedding.subtype p) = Ico (a : α) b :=
+begin
+  rw subtype_Ico_eq,
+  refine finset.subtype_map_of_mem (λ x hx, _),
+  rw mem_Ico at hx,
+  exact hp hx.1 hx.2.le a.prop b.prop,
+end
+
+lemma map_subtype_embedding_Ioc : (Ioc a b).map (function.embedding.subtype p) = Ioc (a : α) b :=
+begin
+  rw subtype_Ioc_eq,
+  refine finset.subtype_map_of_mem (λ x hx, _),
+  rw mem_Ioc at hx,
+  exact hp hx.1.le hx.2 a.prop b.prop,
+end
+
+lemma map_subtype_embedding_Ioo : (Ioo a b).map (function.embedding.subtype p) = Ioo (a : α) b :=
+begin
+  rw subtype_Ioo_eq,
+  refine finset.subtype_map_of_mem (λ x hx, _),
+  rw mem_Ioo at hx,
+  exact hp hx.1.le hx.2.le a.prop b.prop,
+end
+
+
+end finset

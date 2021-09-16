@@ -259,6 +259,34 @@ lemma is_root_of_aeval_algebra_map_eq_zero [algebra R S] {p : polynomial R}
   {r : R} (hr : aeval (algebra_map R S r) p = 0) : p.is_root r :=
 is_root_of_eval₂_map_eq_zero inj hr
 
+section aeval₂
+
+variables {A' B' : Type*} [comm_semiring A'] [comm_semiring B'] [algebra S R] [algebra S A']
+  [algebra R A'] [algebra R B'] [algebra S B'] [is_scalar_tower S R A'] [is_scalar_tower S R B']
+
+def aeval₂ (f : R →ₐ[S] A') (x : A') : polynomial R →ₐ[S] A' :=
+{ commutes' := λ r, by simp [algebra_map_apply],
+  ..eval₂_ring_hom ↑f x }
+
+variables (g : R →ₐ[S] A') (y : A')
+
+@[simp] lemma aeval₂_X : aeval₂ g y X = y := eval₂_X _ _
+
+@[simp] lemma aeval₂_C (x : R) : aeval₂ g y (C x) = g x := eval₂_C _ _
+
+@[simp] lemma aeval₂_algebra_map (x : R) :
+  aeval₂ g y (algebra_map R (polynomial R) x) = g x := eval₂_C _ _
+
+@[simp] lemma aeval₂_algebra_map' (x : S) :
+  aeval₂ g y (algebra_map S (polynomial R) x) = g (algebra_map S R x) := eval₂_C _ _
+
+@[ext, priority 200] lemma alg_hom_ext' {f g : polynomial R →ₐ[S] A'}
+  (h₁ : (↑f : polynomial R →+* A').comp C = (g : polynomial R →+* A').comp C)
+  (h₂ : f X = g X)  : f = g :=
+polynomial.ring_hom_ext h₁ h₂
+
+end aeval₂
+
 end comm_semiring
 
 section comm_ring

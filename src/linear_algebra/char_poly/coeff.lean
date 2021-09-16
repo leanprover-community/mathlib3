@@ -20,11 +20,11 @@ We give methods for computing coefficients of the characteristic polynomial.
 
 ## Main definitions
 
-- `char_poly_degree_eq_dim` proves that the degree of the characteristic polynomial
+- `charpoly_degree_eq_dim` proves that the degree of the characteristic polynomial
   over a nonzero ring is the dimension of the matrix
-- `det_eq_sign_char_poly_coeff` proves that the determinant is the constant term of the
+- `det_eq_sign_charpoly_coeff` proves that the determinant is the constant term of the
   characteristic polynomial, up to sign.
-- `trace_eq_neg_char_poly_coeff` proves that the trace is the negative of the (d-1)th coefficient of
+- `trace_eq_neg_charpoly_coeff` proves that the trace is the negative of the (d-1)th coefficient of
   the characteristic polynomial, where d is the dimension of the matrix.
   For a nonzero ring, this is the second-highest coefficient.
 

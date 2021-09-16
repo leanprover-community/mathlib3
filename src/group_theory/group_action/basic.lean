@@ -139,7 +139,8 @@ variables {α} {β}
   one_smul := λ a, subtype.ext (one_smul α a),
   mul_smul := λ a a' b', subtype.ext (mul_smul a a' b') }
 
-@[simp] lemma orbit.coe_smul {b : β} {a : α} {b' : orbit α b} : ((a • b') : β) = a • (b' : β) :=
+@[simp, to_additive] lemma orbit.coe_smul {b : β} {a : α} {b' : orbit α b} :
+  ↑(a • b') = a • (b' : β) :=
 rfl
 
 @[to_additive] lemma mem_fixed_points_iff_card_orbit_eq_one {a : β}

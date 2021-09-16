@@ -510,24 +510,22 @@ begin
   { letI := hNF.to_field A, rcases hI1 (I.eq_bot_or_top.resolve_left hI0) },
   -- We'll show a contradiction with `exists_not_mem_one_of_ne_bot`:
   -- `J⁻¹ = (I * I⁻¹)⁻¹` cannot have an element `x ∉ 1`, so it must equal `1`.
-  by_contradiction h_abs,
   obtain ⟨J, hJ⟩ : ∃ (J : ideal A), (J : fractional_ideal A⁰ K) = I * I⁻¹ :=
     le_one_iff_exists_coe_ideal.mp mul_one_div_le_one,
   by_cases hJ0 : J = ⊥,
   { subst hJ0,
-    apply hI0,
+    refine absurd _ hI0,
     rw [eq_bot_iff, ← coe_ideal_le_coe_ideal K, hJ],
     exact coe_ideal_le_self_mul_inv K I,
     apply_instance },
-  have hJ1 : J ≠ ⊤,
-  { rintro rfl,
-    rw [← hJ, coe_ideal_top] at h_abs,
-    exact h_abs rfl },
+  by_cases hJ1 : J = ⊤,
+  { rw [← hJ, hJ1, coe_ideal_top] },
   obtain ⟨x, hx, hx1⟩ : ∃ (x : K),
     x ∈ (J : fractional_ideal A⁰ K)⁻¹ ∧ x ∉ (1 : fractional_ideal A⁰ K) :=
     exists_not_mem_one_of_ne_bot hNF hJ0 hJ1,
+  contrapose! hx1 with h_abs,
   rw hJ at hx,
-  exact hx1 (hI hx)
+  exact hI hx,
 end
 
 /-- Nonzero integral ideals in a Dedekind domain are invertible.

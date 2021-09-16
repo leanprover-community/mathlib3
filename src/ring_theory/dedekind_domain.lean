@@ -282,18 +282,16 @@ lemma is_dedekind_domain_inv_iff [algebra A K] [is_fraction_ring A K] :
   is_dedekind_domain_inv A ↔
     (∀ I ≠ (⊥ : fractional_ideal A⁰ K), I * I⁻¹ = 1) :=
 begin
-  set h : fraction_ring A ≃ₐ[A] K := fraction_ring.alg_equiv A K,
+  set h := fraction_ring.alg_equiv A K,
   split; rintros hi I hI,
-  { have := hi (fractional_ideal.map h.symm.to_alg_hom I)
-               (fractional_ideal.map_ne_zero h.symm.to_alg_hom hI),
-    convert congr_arg (fractional_ideal.map h.to_alg_hom) this;
-      simp only [alg_equiv.to_alg_hom_eq_coe, map_symm_map, map_one,
-                 fractional_ideal.map_mul, fractional_ideal.map_div, inv_eq] },
-  { have := hi (fractional_ideal.map h.to_alg_hom I)
-               (fractional_ideal.map_ne_zero h.to_alg_hom hI),
-    convert congr_arg (fractional_ideal.map h.symm.to_alg_hom) this;
-      simp only [alg_equiv.to_alg_hom_eq_coe, map_map_symm, map_one,
-                 fractional_ideal.map_mul, fractional_ideal.map_div, inv_eq] },
+  { refine fractional_ideal.map_injective h.symm.to_alg_hom h.symm.injective _,
+    rw [alg_equiv.to_alg_hom_eq_coe, inv_eq, fractional_ideal.map_mul,
+        fractional_ideal.map_one_div, fractional_ideal.map_one, ← inv_eq, hi],
+    exact fractional_ideal.map_ne_zero _ hI },
+  { refine fractional_ideal.map_injective h.to_alg_hom h.injective _,
+    rw [alg_equiv.to_alg_hom_eq_coe, inv_eq, fractional_ideal.map_mul,
+        fractional_ideal.map_one_div, fractional_ideal.map_one, ← inv_eq, hi],
+    exact fractional_ideal.map_ne_zero _ hI },
 end
 
 lemma fractional_ideal.adjoin_integral_eq_one_of_is_unit [algebra A K] [is_fraction_ring A K]

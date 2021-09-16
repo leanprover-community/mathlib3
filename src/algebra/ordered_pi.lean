@@ -22,20 +22,18 @@ namespace pi
 /-- The product of a family of ordered commutative monoids is an ordered commutative monoid. -/
 @[to_additive "The product of a family of ordered additive commutative monoids is
   an ordered additive commutative monoid."]
-instance (ι : Type*) (Z : ι → Type*) [∀ i, ordered_comm_monoid (Z i)] :
+instance ordered_comm_monoid {ι : Type*} {Z : ι → Type*} [∀ i, ordered_comm_monoid (Z i)] :
   ordered_comm_monoid (Π i, Z i) :=
 { mul_le_mul_left := λ f g w h i, mul_le_mul_left' (w i) _,
-  ..(infer_instance : partial_order (Π i, Z i)),
-  ..(infer_instance : comm_monoid (Π i, Z i)) }
+  ..pi.partial_order,
+  ..pi.comm_monoid, }
 
 /-- The product of a family of canonically ordered monoids is a canonically ordered monoid. -/
 @[to_additive "The product of a family of canonically ordered additive monoids is
   a canonically ordered additive monoid."]
-instance (ι : Type*) (Z : ι → Type*) [∀ i, canonically_ordered_monoid (Z i)] :
+instance {ι : Type*} {Z : ι → Type*} [∀ i, canonically_ordered_monoid (Z i)] :
   canonically_ordered_monoid (Π i, Z i) :=
-{ bot := λ i, 1,
-  bot_le := λ f i, by simp,
-  le_iff_exists_mul := λ f g, begin
+{ le_iff_exists_mul := λ f g, begin
     fsplit,
     { intro w,
       fsplit,
@@ -45,7 +43,8 @@ instance (ι : Type*) (Z : ι → Type*) [∀ i, canonically_ordered_monoid (Z i
     { rintro ⟨h, rfl⟩,
       exact λ i, le_mul_right (le_refl _), },
   end,
-  ..(infer_instance : ordered_comm_monoid (Π i, Z i)) }
+  ..pi.order_bot,
+  ..pi.ordered_comm_monoid, }
 
 @[to_additive]
 instance ordered_cancel_comm_monoid [∀ i, ordered_cancel_comm_monoid $ f i] :

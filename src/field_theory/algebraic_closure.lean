@@ -453,7 +453,7 @@ by haveI : nonempty c := set.nonempty.to_subtype hcn; exact
       { simp [← hij.snd x] },
       { erw [alg_hom.comp_apply, ← hji.snd (inclusion h x),
           inclusion_inclusion, inclusion_self, alg_hom.id_apply x] }
-    end } in
+    end _ rfl } in
 ⟨ub, λ N hN, ⟨(le_supr (λ i : c, (i : subfield_with_hom K L M hL).carrier) ⟨N, hN⟩ : _),
   begin
     intro x,

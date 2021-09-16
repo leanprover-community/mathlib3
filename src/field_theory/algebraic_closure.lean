@@ -530,6 +530,7 @@ namespace is_alg_closure
 variables (K : Type u) [field K] (L : Type v) (M : Type w) [field L] [algebra K L]
   [field M] [algebra K M]  [is_alg_closure K L] [is_alg_closure K M]
 
+/-- A (random) isomorphism between two algebraic closures of `K`. -/
 def equiv : L ≃ₐ[K] M :=
 let f : L →ₐ[K] M := is_alg_closed.lift K L M is_alg_closure.algebraic in
 alg_equiv.of_bijective f

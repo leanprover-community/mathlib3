@@ -1647,6 +1647,12 @@ alias range_iff_surjective ↔ _ function.surjective.range_eq
 
 @[simp] theorem range_id : range (@id α) = univ := range_iff_surjective.2 surjective_id
 
+@[simp] theorem _root_.prod.range_fst [nonempty β] : range (prod.fst : α × β → α) = univ :=
+prod.fst_surjective.range_eq
+
+@[simp] theorem _root_.prod.range_snd [nonempty α] : range (prod.snd : α × β → β) = univ :=
+prod.snd_surjective.range_eq
+
 theorem is_compl_range_inl_range_inr : is_compl (range $ @sum.inl α β) (range sum.inr) :=
 ⟨by { rintro y ⟨⟨x₁, rfl⟩, ⟨x₂, _⟩⟩, cc },
   by { rintro (x|y) -; [left, right]; exact mem_range_self _ }⟩

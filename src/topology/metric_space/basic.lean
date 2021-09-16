@@ -1680,17 +1680,23 @@ exists_congr $ λ C, ⟨
 lemma bounded_of_compact_space [compact_space α] : bounded s :=
 compact_univ.bounded.subset (subset_univ _)
 
+lemma is_compact_of_is_closed_bounded [proper_space α] (hc : is_closed s) (hb : bounded s) :
+  is_compact s :=
+begin
+  unfreezingI { rcases eq_empty_or_nonempty s with (rfl|⟨x, hx⟩) },
+  { exact is_compact_empty },
+  { rcases hb.subset_ball x with ⟨r, hr⟩,
+    exact compact_of_is_closed_subset (proper_space.compact_ball x r) hc hr }
+end
+
 /-- The Heine–Borel theorem:
 In a proper space, a set is compact if and only if it is closed and bounded -/
 lemma compact_iff_closed_bounded [t2_space α] [proper_space α] :
   is_compact s ↔ is_closed s ∧ bounded s :=
-⟨λ h, ⟨h.is_closed, h.bounded⟩, begin
-  rintro ⟨hc, hb⟩,
-  cases s.eq_empty_or_nonempty with h h, {simp [h, is_compact_empty]},
-  rcases h with ⟨x, hx⟩,
-  rcases (bounded_iff_subset_ball x).1 hb with ⟨r, hr⟩,
-  exact compact_of_is_closed_subset (proper_space.compact_ball x r) hc hr
-end⟩
+⟨λ h, ⟨h.is_closed, h.bounded⟩, λ h, is_compact_of_is_closed_bounded h.1 h.2⟩
+
+lemma compact_space_iff_bounded_univ [proper_space α] : compact_space α ↔ bounded (univ : set α) :=
+⟨@bounded_of_compact_space α _ _, λ hb, ⟨is_compact_of_is_closed_bounded is_closed_univ hb⟩⟩
 
 section conditionally_complete_linear_order
 
@@ -1791,6 +1797,18 @@ iff.intro
 
 lemma bounded.ediam_ne_top (h : bounded s) : emetric.diam s ≠ ⊤ :=
 bounded_iff_ediam_ne_top.1 h
+
+lemma noncompact_space_iff_ediam_eq_top [proper_space α] :
+  noncompact_space α ↔ emetric.diam (univ : set α) = ∞ :=
+by rw [← not_compact_space_iff, compact_space_iff_bounded_univ, bounded_iff_ediam_ne_top, not_not]
+
+@[simp] lemma ediam_univ_of_noncompact [proper_space α] [noncompact_space α] :
+  emetric.diam (univ : set α) = ∞ :=
+noncompact_space_iff_ediam_eq_top.1 ‹_›
+
+@[simp] lemma diam_univ_of_noncompact [proper_space α] [noncompact_space α] :
+  diam (univ : set α) = 0 :=
+by simp [diam]
 
 /-- The distance between two points in a set is controlled by the diameter of the set. -/
 lemma dist_le_diam_of_mem (h : bounded s) (hx : x ∈ s) (hy : y ∈ s) : dist x y ≤ diam s :=
@@ -1989,6 +2007,19 @@ def of_t2_pseudo_metric_space {α : Type*} [pseudo_metric_space α]
 instance metric_space.to_emetric_space : emetric_space γ :=
 { eq_of_edist_eq_zero := assume x y h, by simpa [edist_dist] using h,
   ..pseudo_metric_space.to_pseudo_emetric_space, }
+
+lemma is_closed_of_pairwise_on_le_dist {s : set γ} {ε : ℝ} (hε : 0 < ε)
+  (hs : pairwise_on s (λ x y, ε ≤ dist x y)) : is_closed s :=
+is_closed_of_spaced_out (dist_mem_uniformity hε) $ by simpa using hs
+
+lemma closed_embedding_of_pairwise_le_dist {α : Type*} [topological_space α] [discrete_topology α]
+  {ε : ℝ} (hε : 0 < ε) {f : α → γ} (hf : pairwise (λ x y, ε ≤ dist (f x) (f y))) :
+  closed_embedding f :=
+closed_embedding_of_spaced_out (dist_mem_uniformity hε) $ by simpa using hf
+
+lemma uniform_embedding_bot_of_pairwise_le_dist {β : Type*} {ε : ℝ} (hε : 0 < ε) {f : β → α}
+  (hf : pairwise (λ x y, ε ≤ dist (f x) (f y))) : @uniform_embedding _ _ ⊥ (by apply_instance) f :=
+uniform_embedding_of_spaced_out (dist_mem_uniformity hε) $ by simpa using hf
 
 end metric
 

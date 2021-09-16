@@ -425,6 +425,9 @@ lemma ne_bot.mono {f g : filter α} (hf : ne_bot f) (hg : f ≤ g) : ne_bot g :=
 lemma ne_bot_of_le {f g : filter α} [hf : ne_bot f] (hg : f ≤ g) : ne_bot g :=
 hf.mono hg
 
+@[simp] lemma sup_ne_bot {f g : filter α} : ne_bot (f ⊔ g) ↔ ne_bot f ∨ ne_bot g :=
+by simp [ne_bot_iff, not_and_distrib]
+
 lemma bot_sets_eq : (⊥ : filter α).sets = univ := rfl
 
 lemma sup_sets_eq {f g : filter α} : (f ⊔ g).sets = f.sets ∩ g.sets :=
@@ -1758,6 +1761,33 @@ lemma ne_bot.comap_of_range_mem {f : filter β} {m : α → β}
   (hf : ne_bot f) (hm : range m ∈ f) : ne_bot (comap m f) :=
 comap_ne_bot_iff_frequently.2 $ eventually.frequently hm
 
+@[simp] lemma comap_fst_ne_bot_iff {f : filter α} :
+  (f.comap (prod.fst : α × β → α)).ne_bot ↔ f.ne_bot ∧ nonempty β :=
+begin
+  casesI is_empty_or_nonempty β,
+  { rw [filter_eq_bot_of_is_empty (f.comap _), ← not_iff_not]; [simp *, apply_instance] },
+  { rw comap_ne_bot_iff_compl_range,
+    simpa [empty_mem_iff_bot, h] using ne_bot_iff.symm }
+end
+
+@[instance] lemma comap_fst_ne_bot [nonempty β] {f : filter α} [ne_bot f] :
+  (f.comap (prod.fst : α × β → α)).ne_bot :=
+comap_fst_ne_bot_iff.2 ⟨‹_›, ‹_›⟩
+
+@[simp] lemma comap_snd_ne_bot_iff {f : filter β} :
+  (f.comap (prod.snd : α × β → β)).ne_bot ↔ nonempty α ∧ f.ne_bot :=
+begin
+  casesI is_empty_or_nonempty α with hα hα,
+  { rw [filter_eq_bot_of_is_empty (f.comap _), ← not_iff_not];
+      [simpa using hα.elim, apply_instance] },
+  { rw comap_ne_bot_iff_compl_range,
+    simpa [empty_mem_iff_bot, hα] using ne_bot_iff.symm }
+end
+
+@[instance] lemma comap_snd_ne_bot [nonempty α] {f : filter β} [ne_bot f] :
+  (f.comap (prod.snd : α × β → β)).ne_bot :=
+comap_snd_ne_bot_iff.2 ⟨‹_›, ‹_›⟩
+
 lemma comap_inf_principal_ne_bot_of_image_mem {f : filter β} {m : α → β}
   (hf : ne_bot f) {s : set α} (hs : m '' s ∈ f) :
   ne_bot (comap m f ⊓ 𝓟 s) :=
@@ -2541,6 +2571,15 @@ by simp [filter.coprod]
 @[mono] lemma coprod_mono {f₁ f₂ : filter α} {g₁ g₂ : filter β} (hf : f₁ ≤ f₂) (hg : g₁ ≤ g₂) :
   f₁.coprod g₁ ≤ f₂.coprod g₂ :=
 sup_le_sup (comap_mono hf) (comap_mono hg)
+
+lemma coprod_ne_bot_iff : (f.coprod g).ne_bot ↔ f.ne_bot ∧ nonempty β ∨ nonempty α ∧ g.ne_bot :=
+by simp [filter.coprod]
+
+@[instance] lemma coprod_ne_bot_left [ne_bot f] [nonempty β] : (f.coprod g).ne_bot :=
+coprod_ne_bot_iff.2 (or.inl ⟨‹_›, ‹_›⟩)
+
+@[instance] lemma coprod_ne_bot_right [ne_bot g] [nonempty α] : (f.coprod g).ne_bot :=
+coprod_ne_bot_iff.2 (or.inr ⟨‹_›, ‹_›⟩)
 
 lemma principal_coprod_principal (s : set α) (t : set β) :
   (𝓟 s).coprod (𝓟 t) = 𝓟 (sᶜ.prod tᶜ)ᶜ :=

@@ -92,13 +92,15 @@ begin
 end
 
 instance : linear_order string :=
-by refine_struct {
-    lt := (<), le := (≤),
-    decidable_lt := by apply_instance,
-    decidable_le := string.decidable_le,
-    decidable_eq := by apply_instance, .. };
-  { simp only [le_iff_to_list_le, lt_iff_to_list_lt, ← to_list_inj], introv,
-    apply_field }
+{ lt := (<), le := (≤),
+  decidable_lt := by apply_instance,
+  decidable_le := string.decidable_le,
+  decidable_eq := by apply_instance,
+  le_refl := λ a, le_iff_to_list_le.2 le_rfl,
+  le_trans := λ a b c, by { simp only [le_iff_to_list_le], exact λ h₁ h₂, h₁.trans h₂ },
+  le_total := λ a b, by { simp only [le_iff_to_list_le], exact le_total _ _ },
+  le_antisymm := λ a b, by { simp only [le_iff_to_list_le, ← to_list_inj], apply le_antisymm },
+  lt_iff_le_not_le := λ a b, by simp only [le_iff_to_list_le, lt_iff_to_list_lt, lt_iff_le_not_le] }
 
 end string
 

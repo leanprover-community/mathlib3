@@ -2047,6 +2047,16 @@ lemma injective.exists_unique_of_mem_range (hf : injective f) {b : β} (hb : b �
   ∃! a, f a = b :=
 hf.mem_range_iff_exists_unique.mp hb
 
+theorem injective.compl_image_eq (hf : injective f) (s : set α) :
+  (f '' s)ᶜ = f '' sᶜ ∪ (range f)ᶜ :=
+begin
+  ext y,
+  rcases em (y ∈ range f) with ⟨x, rfl⟩|hx,
+  { simp [hf.eq_iff] },
+  { rw [mem_range, not_exists] at hx,
+    simp [hx] }
+end
+
 lemma left_inverse.image_image {g : β → α} (h : left_inverse g f) (s : set α) :
   g '' (f '' s) = s :=
 by rw [← image_comp, h.comp_eq_id, image_id]

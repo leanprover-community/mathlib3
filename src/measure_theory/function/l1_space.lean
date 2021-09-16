@@ -224,24 +224,10 @@ lemma has_finite_integral_norm_iff (f : α → β) :
   has_finite_integral (λa, ∥f a∥) μ ↔ has_finite_integral f μ :=
 has_finite_integral_congr' $ eventually_of_forall $ λ x, norm_norm (f x)
 
-lemma has_finite_integral_to_real_of_lintegral_ne_top
-  {f : α → ℝ≥0∞} (hf : ∫⁻ x, f x ∂μ ≠ ∞) :
-  has_finite_integral (λ x, (f x).to_real) μ :=
-begin
-  have : ∀ x, (∥(f x).to_real∥₊ : ℝ≥0∞) =
-    @coe ℝ≥0 ℝ≥0∞ _ (⟨(f x).to_real, ennreal.to_real_nonneg⟩ : ℝ≥0),
-  { intro x, rw real.nnnorm_of_nonneg },
-  simp_rw [has_finite_integral, this],
-  refine lt_of_le_of_lt (lintegral_mono (λ x, _)) (lt_top_iff_ne_top.2 hf),
-  by_cases hfx : f x = ∞,
-  { simp [hfx] },
-  { lift f x to ℝ≥0 using hfx with fx,
-    simp [← h] }
-end
 lemma is_finite_measure_with_density_of_real {f : α → ℝ} (hfi : has_finite_integral f μ) :
   is_finite_measure (μ.with_density (λ x, ennreal.of_real $ f x)) :=
 is_finite_measure_with_density $
-  lt_of_le_of_lt (lintegral_mono $ λ x, ennreal.of_real_le_ennnorm _) hfi
+  lt_of_le_of_lt (lintegral_mono $ λ x,real.of_real_le_ennnorm _) hfi
 
 section dominated_convergence
 

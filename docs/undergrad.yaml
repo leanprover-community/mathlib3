@@ -424,7 +424,7 @@ Topology:
     normed space of bounded continuous functions: 'bounded_continuous_function.normed_space'
     its completeness: 'bounded_continuous_function.complete_space'
     Heine-Borel theorem (closed bounded subsets are compact in finite dimension): 'finite_dimensional.proper'
-    Riesz' lemma (unit-ball characterization of finite dimension):
+    Riesz' lemma (unit-ball characterization of finite dimension): 'finite_dimensional_of_is_compact_closed_ball'
     Arzela-Ascoli theorem: 'bounded_continuous_function.arzela_ascoli'
   Hilbert spaces:
     Hilbert projection theorem: 'exists_norm_eq_infi_of_complete_convex'
@@ -456,7 +456,7 @@ Multivariable calculus:
     differentiable functions: 'differentiable'
     $k$-times continuously differentiable functions: 'times_cont_diff'
     $k$-th order partial derivatives:
-    partial derivatives commute:
+    partial derivatives commute: 'second_derivative_symmetric'
     Taylor's theorem with little-o remainder:
     Taylor's theorem with integral form for remainder:
     local extrema: 'is_local_min.fderiv_eq_zero'

@@ -1350,8 +1350,11 @@ begin
   { refine λ m hm, h _ (λ x, _),
     rw [← to_lin_apply, hm], refl },
   { intros m hm, apply h,
-    ext, exact hm x }
+    ext x, exact hm x }
 end
+
+lemma nondegenerate.ker_eq_bot {B : bilin_form R₂ M₂} (h : B.nondegenerate) :
+  B.to_lin.ker = ⊥ := nondegenerate_iff_ker_eq_bot.mp h
 
 /-- The restriction of a nondegenerate bilinear form `B` onto a submodule `W` is
 nondegenerate if `disjoint W (B.orthogonal W)`. -/
@@ -1458,8 +1461,8 @@ the linear equivalence between a vector space and its dual with the underlying l
 `B.to_lin`. -/
 noncomputable def to_dual (B : bilin_form K V) (b : B.nondegenerate) :
   V ≃ₗ[K] module.dual K V :=
-B.to_lin.linear_equiv_of_ker_eq_bot
-  (nondegenerate_iff_ker_eq_bot.mp b) subspace.dual_finrank_eq.symm
+B.to_lin.linear_equiv_of_injective
+  (linear_map.ker_eq_bot.mp $ b.ker_eq_bot) subspace.dual_finrank_eq.symm
 
 lemma to_dual_def {B : bilin_form K V} (b : B.nondegenerate) {m n : V} :
   B.to_dual b m n = B m n := rfl
@@ -1583,10 +1586,14 @@ open matrix
 variables {A : Type*} [integral_domain A] [module A M₃] (B₃ : bilin_form A M₃)
 variables {ι : Type*} [decidable_eq ι] [fintype ι]
 
+theorem _root_.matrix.nondegenerate.to_bilin' {M : matrix ι ι R₃} (h : M.nondegenerate) :
+  (to_bilin' M).nondegenerate :=
+λ x hx, h.eq_zero_of_ortho (λ y,
+  by simpa only [to_bilin'_apply, dot_product, mul_vec, finset.mul_sum, mul_assoc] using hx y)
+
 theorem nondegenerate_of_det_ne_zero' (M : matrix ι ι A) (h : M.det ≠ 0) :
   (to_bilin' M).nondegenerate :=
-λ x hx, matrix.nondegenerate_of_det_ne_zero h x (λ y,
-  by simpa only [to_bilin'_apply, dot_product, mul_vec, finset.mul_sum, mul_assoc] using hx y)
+(matrix.nondegenerate_of_det_ne_zero h).to_bilin'
 
 theorem nondegenerate_of_det_ne_zero (b : basis ι A M₃) (h : (to_matrix b B₃).det ≠ 0) :
   B₃.nondegenerate :=

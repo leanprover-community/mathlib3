@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
 import algebra.algebra.operations
+import data.set.Union_lift
 
 /-!
 # Subalgebras over Commutative Semiring
@@ -30,8 +31,9 @@ add_decl_doc subalgebra.to_subsemiring
 
 namespace subalgebra
 
-variables {R' : Type u'} {R : Type u} {A : Type v} {B : Type w}
-variables [comm_semiring R] [semiring A] [algebra R A] [semiring B] [algebra R B]
+variables {R' : Type u'} {R : Type u} {A : Type v} {B : Type w} {C : Type w}
+variables [comm_semiring R]
+variables [semiring A] [algebra R A] [semiring B] [algebra R B] [semiring C] [algebra R C]
 include R
 
 instance : set_like (subalgebra R A) A :=
@@ -319,6 +321,13 @@ set.image_subset f
 lemma map_injective {S₁ S₂ : subalgebra R A} (f : A →ₐ[R] B)
   (hf : function.injective f) (ih : S₁.map f = S₂.map f) : S₁ = S₂ :=
 ext $ set.ext_iff.1 $ set.image_injective.2 hf $ set.ext $ set_like.ext_iff.mp ih
+
+@[simp] lemma map_id (S : subalgebra R A) : S.map (alg_hom.id R A) = S :=
+set_like.coe_injective $ set.image_id _
+
+lemma map_map (S : subalgebra R A) (g : B →ₐ[R] C) (f : A →ₐ[R] B) :
+  (S.map f).map g = S.map (g.comp f) :=
+set_like.coe_injective $ set.image_image _ _ _
 
 lemma mem_map {S : subalgebra R A} {f : A →ₐ[R] B} {y : B} :
   y ∈ map S f ↔ ∃ x ∈ S, f x = y :=
@@ -735,6 +744,81 @@ set_like.coe_injective set.prod_inter_prod
 
 end prod
 
+section supr_lift
+variables {ι : Type*}
+
+lemma coe_supr_of_directed [nonempty ι] {S : ι → subalgebra R A}
+  (dir : directed (≤) S) : ↑(supr S) = ⋃ i, (S i : set A) :=
+let K : subalgebra R A :=
+  { carrier := ⋃ i, (S i),
+    mul_mem' := λ x y hx hy,
+      let ⟨i, hi⟩ := set.mem_Union.1 hx in
+      let ⟨j, hj⟩ := set.mem_Union.1 hy in
+      let ⟨k, hik, hjk⟩ := dir i j in
+      set.mem_Union.2 ⟨k, subalgebra.mul_mem (S k) (hik hi) (hjk hj)⟩ ,
+    add_mem' := λ x y hx hy,
+      let ⟨i, hi⟩ := set.mem_Union.1 hx in
+      let ⟨j, hj⟩ := set.mem_Union.1 hy in
+      let ⟨k, hik, hjk⟩ := dir i j in
+      set.mem_Union.2 ⟨k, subalgebra.add_mem (S k) (hik hi) (hjk hj)⟩,
+    algebra_map_mem' := λ r, let i := @nonempty.some ι infer_instance in
+      set.mem_Union.2 ⟨i, subalgebra.algebra_map_mem _ _⟩ } in
+have supr S = K,
+  from le_antisymm (supr_le (λ i, set.subset_Union (λ i, ↑(S i)) i))
+    (set_like.coe_subset_coe.1
+      (set.Union_subset (λ i, set_like.coe_subset_coe.2 (le_supr _ _)))),
+this.symm ▸ rfl
+
+/-- Define an algebra homomorphism on a directed supremum of subalgebras by defining
+it on each subalgebra, and proving that it agrees on the intersection of subalgebras. -/
+noncomputable def supr_lift [nonempty ι]
+  (K : ι → subalgebra R A)
+  (dir : directed (≤) K)
+  (f : Π i, K i →ₐ[R] B)
+  (hf : ∀ (i j : ι) (h : K i ≤ K j), f i = (f j).comp (inclusion h))
+  (T : subalgebra R A) (hT : T = supr K) :
+  ↥T →ₐ[R] B :=
+by subst hT; exact
+{ to_fun := set.Union_lift (λ i, ↑(K i)) (λ i x, f i x)
+    (λ i j x hxi hxj,
+      let ⟨k, hik, hjk⟩ := dir i j in
+      begin
+        rw [hf i k hik, hf j k hjk],
+        refl
+      end) ↑(supr K)
+    (by rw coe_supr_of_directed dir; refl),
+  map_one' := set.Union_lift_const _ (λ _, 1) (λ _, rfl) _ (by simp),
+  map_zero' := set.Union_lift_const _ (λ _, 0) (λ _, rfl) _ (by simp),
+  map_mul' := set.Union_lift_binary (coe_supr_of_directed dir) dir _
+    (λ _, (*)) (λ _ _ _, rfl) _ (by simp),
+  map_add' := set.Union_lift_binary (coe_supr_of_directed dir) dir _
+    (λ _, (+)) (λ _ _ _, rfl) _ (by simp),
+  commutes' := λ r, set.Union_lift_const _ (λ _, algebra_map _ _ r)
+    (λ _, rfl) _ (λ i, by erw [alg_hom.commutes (f i)]) }
+
+variables [nonempty ι] {K : ι → subalgebra R A} {dir : directed (≤) K}
+  {f : Π i, K i →ₐ[R] B}
+  {hf : ∀ (i j : ι) (h : K i ≤ K j), f i = (f j).comp (inclusion h)}
+  {T : subalgebra R A} {hT : T = supr K}
+
+@[simp] lemma supr_lift_inclusion {i : ι} (x : K i) (h : K i ≤ T) :
+  supr_lift K dir f hf T hT (inclusion h x) = f i x :=
+by subst T; exact set.Union_lift_inclusion _ _
+
+@[simp] lemma supr_lift_comp_inclusion {i : ι} (h : K i ≤ T) :
+  (supr_lift K dir f hf T hT).comp (inclusion h) = f i :=
+by ext; simp
+
+@[simp] lemma supr_lift_mk {i : ι} (x : K i) (hx : (x : A) ∈ T) :
+  supr_lift K dir f hf T hT ⟨x, hx⟩ = f i x :=
+by subst hT; exact set.Union_lift_mk x hx
+
+lemma supr_lift_of_mem {i : ι} (x : T) (hx : (x : A) ∈ K i) :
+  supr_lift K dir f hf T hT x = f i ⟨x, hx⟩ :=
+by subst hT; exact set.Union_lift_of_mem x hx
+
+end supr_lift
+
 /-! ## Actions by `subalgebra`s
 
 These are just copies of the definitions about `subsemiring` starting from
@@ -798,7 +882,44 @@ def under {R : Type u} {A : Type v} [comm_semiring R] [comm_semiring A]
 { algebra_map_mem' := λ r, T.algebra_map_mem ⟨algebra_map R A r, S.algebra_map_mem r⟩,
   .. T }
 
+@[simp] lemma mem_under {R : Type u} {A : Type v} [comm_semiring R] [comm_semiring A]
+  {i : algebra R A} {S : subalgebra R A} {T : subalgebra S A} {x : A} :
+  x ∈ S.under T ↔ x ∈ T := iff.rfl
+
 end actions
+
+section pointwise
+variables {R' : Type*} [semiring R'] [mul_semiring_action R' A] [smul_comm_class R' R A]
+
+/-- The action on a subalgebra corresponding to applying the action to every element.
+
+This is available as an instance in the `pointwise` locale. -/
+protected def pointwise_mul_action : mul_action R' (subalgebra R A) :=
+{ smul := λ a S, S.map (mul_semiring_action.to_alg_hom _ _ a),
+  one_smul := λ S,
+    (congr_arg (λ f, S.map f) (alg_hom.ext $ by exact one_smul R')).trans S.map_id,
+  mul_smul := λ a₁ a₂ S,
+    (congr_arg (λ f, S.map f) (alg_hom.ext $ by exact mul_smul _ _)).trans (S.map_map _ _).symm }
+
+localized "attribute [instance] subalgebra.pointwise_mul_action" in pointwise
+open_locale pointwise
+
+@[simp] lemma coe_pointwise_smul (m : R') (S : subalgebra R A) : ↑(m • S) = m • (S : set A) := rfl
+
+@[simp] lemma pointwise_smul_to_subsemiring (m : R') (S : subalgebra R A) :
+  (m • S).to_subsemiring = m • S.to_subsemiring := rfl
+
+@[simp] lemma pointwise_smul_to_submodule (m : R') (S : subalgebra R A) :
+  (m • S).to_submodule = m • S.to_submodule := rfl
+
+@[simp] lemma pointwise_smul_to_subring {R' R A : Type*} [semiring R'] [comm_ring R] [ring A]
+  [mul_semiring_action R' A] [algebra R A] [smul_comm_class R' R A] (m : R') (S : subalgebra R A) :
+  (m • S).to_subring = m • S.to_subring := rfl
+
+lemma smul_mem_pointwise_smul (m : R') (r : A) (S : subalgebra R A) : r ∈ S → m • r ∈ m • S :=
+(set.smul_mem_smul_set : _ → _ ∈ m • (S : set A))
+
+end pointwise
 
 end subalgebra
 

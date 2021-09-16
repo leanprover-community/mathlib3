@@ -193,7 +193,7 @@ cardinal.lift_inj.1 f.lift_dim_eq
 
 lemma dim_eq_of_injective (f : M →ₗ[R] M₁) (h : injective f) :
   module.rank R M = module.rank R f.range :=
-(linear_equiv.of_injective f (linear_map.ker_eq_bot.mpr h)).dim_eq
+(linear_equiv.of_injective f h).dim_eq
 
 /-- Pushforwards of submodules along a `linear_equiv` have the same dimension. -/
 lemma linear_equiv.dim_map_eq (f : M ≃ₗ[R] M₁) (p : submodule R M) :
@@ -755,7 +755,7 @@ classical.choice (b.nonempty_fintype_index_of_dim_lt_omega h)
 lemma basis.finite_index_of_dim_lt_omega {ι : Type*} {s : set ι}
   (b : basis s R M) (h : module.rank R M < cardinal.omega) :
   s.finite :=
-b.nonempty_fintype_index_of_dim_lt_omega h
+finite_def.2 (b.nonempty_fintype_index_of_dim_lt_omega h)
 
 lemma dim_span {v : ι → M} (hv : linear_independent R v) :
   module.rank R ↥(span R (range v)) = cardinal.mk (range v) :=
@@ -780,7 +780,7 @@ variables {K V}
 /-- If a vector space has a finite dimension, the index set of `basis.of_vector_space` is finite. -/
 lemma basis.finite_of_vector_space_index_of_dim_lt_omega (h : module.rank K V < cardinal.omega) :
   (basis.of_vector_space_index K V).finite :=
-(basis.of_vector_space K V).nonempty_fintype_index_of_dim_lt_omega h
+finite_def.2 $ (basis.of_vector_space K V).nonempty_fintype_index_of_dim_lt_omega h
 
 variables [add_comm_group V'] [module K V']
 
@@ -976,8 +976,9 @@ begin
       simp only [add_eq_zero_iff_eq_neg, linear_map.prod_apply, mem_ker,
         coprod_apply, neg_neg, map_neg, neg_apply],
       exact linear_map.ext_iff.1 eq c } },
-  { rw [ker_cod_restrict, ker_prod, hgd, bot_inf_eq] },
-  { rw [eq_top_iff, range_cod_restrict, ← map_le_iff_le_comap, map_top, range_subtype],
+  { rw [← ker_eq_bot, ker_cod_restrict, ker_prod, hgd, bot_inf_eq] },
+  { rw [← range_eq_top, eq_top_iff, range_cod_restrict, ← map_le_iff_le_comap,
+      map_top, range_subtype],
     rintros ⟨d, e⟩,
     have h := eq₂ d (-e),
     simp only [add_eq_zero_iff_eq_neg, linear_map.prod_apply, mem_ker, set_like.mem_coe,

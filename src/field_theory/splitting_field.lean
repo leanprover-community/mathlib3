@@ -454,12 +454,14 @@ alg_equiv.symm $ alg_equiv.of_bijective
   (alg_hom.cod_restrict
     (adjoin_root.lift_hom _ x $ minpoly.aeval F x) _
     (λ p, adjoin_root.induction_on _ p $ λ p,
-      (algebra.adjoin_singleton_eq_range F x).symm ▸ (polynomial.aeval _).mem_range.mpr ⟨p, rfl⟩))
+      (algebra.adjoin_singleton_eq_range_aeval F x).symm ▸
+        (polynomial.aeval _).mem_range.mpr ⟨p, rfl⟩))
   ⟨(alg_hom.injective_cod_restrict _ _ _).2 $ (alg_hom.injective_iff _).2 $ λ p,
     adjoin_root.induction_on _ p $ λ p hp, ideal.quotient.eq_zero_iff_mem.2 $
     ideal.mem_span_singleton.2 $ minpoly.dvd F x hp,
   λ y,
-    let ⟨p, hp⟩ := (set_like.ext_iff.1 (algebra.adjoin_singleton_eq_range F x) (y : R)).1 y.2 in
+    let ⟨p, hp⟩ := (set_like.ext_iff.1
+      (algebra.adjoin_singleton_eq_range_aeval F x) (y : R)).1 y.2 in
     ⟨adjoin_root.mk _ p, subtype.eq hp⟩⟩
 
 open finset

@@ -224,6 +224,11 @@ lemma has_finite_integral_norm_iff (f : α → β) :
   has_finite_integral (λa, ∥f a∥) μ ↔ has_finite_integral f μ :=
 has_finite_integral_congr' $ eventually_of_forall $ λ x, norm_norm (f x)
 
+lemma is_finite_measure_with_density_of_real {f : α → ℝ} (hfi : has_finite_integral f μ) :
+  is_finite_measure (μ.with_density (λ x, ennreal.of_real $ f x)) :=
+is_finite_measure_with_density $
+  lt_of_le_of_lt (lintegral_mono $ λ x,real.of_real_le_ennnorm _) hfi
+
 section dominated_convergence
 
 variables {F : ℕ → α → β} {f : α → β} {bound : α → ℝ}
@@ -857,7 +862,10 @@ variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β] [measurable_
   [opens_measurable_space 𝕜]
 
 lemma to_L1_smul (f : α → β) (hf : integrable f μ) (k : 𝕜) :
-  to_L1 (λa, k • f a) (hf.smul k) = k • to_L1 f hf := rfl
+  to_L1 (λ a, k • f a) (hf.smul k) = k • to_L1 f hf := rfl
+
+lemma to_L1_smul' (f : α → β) (hf : integrable f μ) (k : 𝕜) :
+  to_L1 (k • f) (hf.smul k) = k • to_L1 f hf := rfl
 
 end integrable
 

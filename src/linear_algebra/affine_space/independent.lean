@@ -213,6 +213,12 @@ end
 
 variables {k}
 
+lemma affine_independent.indicator_eq_of_affine_combination_eq {p : ι → P}
+  (ha : affine_independent k p) (s₁ s₂ : finset ι) (w₁ w₂ : ι → k) (hw₁ : ∑ i in s₁, w₁ i = 1)
+  (hw₂ : ∑ i in s₂, w₂ i = 1) (h : s₁.affine_combination p w₁ = s₂.affine_combination p w₂) :
+  set.indicator ↑s₁ w₁ = set.indicator ↑s₂ w₂ :=
+(affine_independent_iff_indicator_eq_of_affine_combination_eq k p).1 ha s₁ s₂ w₁ w₂ hw₁ hw₂ h
+
 /-- An affinely independent family is injective, if the underlying
 ring is nontrivial. -/
 protected lemma affine_independent.injective [nontrivial k] {p : ι → P}

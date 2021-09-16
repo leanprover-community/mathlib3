@@ -46,7 +46,7 @@ variables {α E : Type*} [measurable_space α] {μ : measure α}
   [topological_space.second_countable_topology E] [measurable_space E] [borel_space E]
 
 private lemma convex.smul_integral_mem_of_measurable
-  [is_finite_measure μ] {s : set E} (hs : convex s) (hsc : is_closed s)
+  [is_finite_measure μ] {s : set E} (hs : convex ℝ s) (hsc : is_closed s)
   (hμ : μ ≠ 0) {f : α → E} (hfs : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) (hfm : measurable f) :
   (μ univ).to_real⁻¹ • ∫ x, f x ∂μ ∈ s :=
 begin
@@ -79,7 +79,7 @@ integrable function sending `μ`-a.e. points to `s`, then the average value of `
 `(μ univ).to_real⁻¹ • ∫ x, f x ∂μ ∈ s`. See also `convex.center_mass_mem` for a finite sum version
 of this lemma. -/
 lemma convex.smul_integral_mem
-  [is_finite_measure μ] {s : set E} (hs : convex s) (hsc : is_closed s)
+  [is_finite_measure μ] {s : set E} (hs : convex ℝ s) (hsc : is_closed s)
   (hμ : μ ≠ 0) {f : α → E} (hfs : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) :
   (μ univ).to_real⁻¹ • ∫ x, f x ∂μ ∈ s :=
 begin
@@ -96,8 +96,8 @@ end
 /-- If `μ` is a probability measure on `α`, `s` is a convex closed set in `E`, and `f` is an
 integrable function sending `μ`-a.e. points to `s`, then the expected value of `f` belongs to `s`:
 `∫ x, f x ∂μ ∈ s`. See also `convex.sum_mem` for a finite sum version of this lemma. -/
-lemma convex.integral_mem [is_probability_measure μ] {s : set E} (hs : convex s) (hsc : is_closed s)
-  {f : α → E} (hf : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) :
+lemma convex.integral_mem [is_probability_measure μ] {s : set E} (hs : convex ℝ s)
+  (hsc : is_closed s) {f : α → E} (hf : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) :
   ∫ x, f x ∂μ ∈ s :=
 by simpa [measure_univ] using hs.smul_integral_mem hsc (is_probability_measure.ne_zero μ) hf hfi
 
@@ -112,7 +112,7 @@ lemma convex_on.map_smul_integral_le [is_finite_measure μ] {s : set E} {g : E �
   g ((μ univ).to_real⁻¹ • ∫ x, f x ∂μ) ≤ (μ univ).to_real⁻¹ • ∫ x, g (f x) ∂μ :=
 begin
   set t := {p : E × ℝ | p.1 ∈ s ∧ g p.1 ≤ p.2},
-  have ht_conv : convex t := hg.convex_epigraph,
+  have ht_conv : convex ℝ t := hg.convex_epigraph,
   have ht_closed : is_closed t :=
     (hsc.preimage continuous_fst).is_closed_le (hgc.comp continuous_on_fst (subset.refl _))
       continuous_on_snd,

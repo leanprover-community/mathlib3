@@ -872,7 +872,7 @@ lemma monotone_snd {α β : Type*} [preorder α] [preorder β] : monotone (@prod
 
 /-! ### Additional order classes -/
 
-/-- order without a maximal element. Sometimes called cofinal. -/
+/-- Order without a maximal element. Sometimes called cofinal. -/
 class no_top_order (α : Type u) [preorder α] : Prop :=
 (no_top : ∀ a : α, ∃ a', a < a')
 

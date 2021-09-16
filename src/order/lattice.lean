@@ -238,7 +238,8 @@ suffices (∃b, ¬b ≤ a) → (∃b, a < b),
 assume ⟨b, hb⟩,
 ⟨a ⊔ b, lt_of_le_of_ne le_sup_left $ mt left_eq_sup.1 hb⟩
 
-/-- If `f` is monotone, `g` is antitone, and `f a ≤ g a` for all `a`, then for all `a`, `b` we have `f a ≤ g b`. -/
+/-- If `f` is monotone, `g` is antitone, and `f a ≤ g a` for all `a`, then for all `a`, `b` we have
+`f a ≤ g b`. -/
 theorem monotone.forall_le_of_antitone {β : Type*} [preorder β] {f g : α → β}
   (hf : monotone f) (hg : antitone g) (h : ∀ n, f n ≤ g n) (m n : α) :
   f m ≤ g n :=

@@ -25,11 +25,15 @@ open mul_action subgroup
 variable {G}
 
 instance : Π [group G], group (conj_act G) := id
+instance : Π [div_inv_monoid G], div_inv_monoid (conj_act G) := id
+instance : Π [group_with_zero G], group_with_zero (conj_act G) := id
 instance : Π [fintype G], fintype (conj_act G) := id
 
 @[simp] lemma card [fintype G] : fintype.card (conj_act G) = fintype.card G := rfl
 
-variable [group G]
+section div_inv_monoid
+
+variable [div_inv_monoid G]
 
 instance : inhabited (conj_act G) := ⟨1⟩
 
@@ -52,6 +56,32 @@ def to_conj_act : G ≃* conj_act G := of_conj_act.symm
 @[simp] lemma to_conj_act_mul (x y : G) : to_conj_act (x * y) =
   to_conj_act x * to_conj_act y := rfl
 
+instance : has_scalar (conj_act G) G :=
+{ smul := λ g h, of_conj_act g * h * (of_conj_act g)⁻¹ }
+
+lemma smul_def (g : conj_act G) (h : G) : g • h = of_conj_act g * h * (of_conj_act g)⁻¹ := rfl
+
+@[simp] lemma «forall» (p : conj_act G → Prop) :
+  (∀ (x : conj_act G), p x) ↔ ∀ x : G, p (to_conj_act x) := iff.rfl
+
+end div_inv_monoid
+
+section group_with_zero
+
+variable [group_with_zero G]
+
+@[simp] lemma of_conj_act_zero : of_conj_act (0 : conj_act G) = 0 := rfl
+@[simp] lemma to_conj_act_zero : to_conj_act (0 : G) = 0 := rfl
+
+instance : mul_action (conj_act G) G :=
+{ smul := (•),
+  one_smul := by simp [smul_def],
+  mul_smul := by simp [smul_def, mul_assoc, mul_inv_rev'] }
+
+end group_with_zero
+
+variables [group G]
+
 instance : mul_distrib_mul_action (conj_act G) G :=
 { smul := λ g h, of_conj_act g * h * (of_conj_act g)⁻¹,
   smul_mul := by simp [mul_assoc],
@@ -59,12 +89,7 @@ instance : mul_distrib_mul_action (conj_act G) G :=
   one_smul := by simp,
   mul_smul := by simp [mul_assoc] }
 
-lemma smul_def (g : conj_act G) (h : G) : g • h = of_conj_act g * h * (of_conj_act g)⁻¹ := rfl
-
 lemma smul_eq_conj_act (g : conj_act G) (h : G) : g • h = mul_aut.conj g h := rfl
-
-@[simp] lemma «forall» (p : conj_act G → Prop) :
-  (∀ (x : conj_act G), p x) ↔ ∀ x : G, p (to_conj_act x) := iff.rfl
 
 /-- The set of fixed points of the conj_actugation action of `G` on itself is the center of `G`. -/
 lemma fixed_points_eq_center : fixed_points (conj_act G) G = center G :=

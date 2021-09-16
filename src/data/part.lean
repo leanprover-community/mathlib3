@@ -7,6 +7,46 @@ import data.equiv.basic
 
 /-!
 # Partial values of a type
+
+This file defines `part α`, the partial values of a type.
+
+`o : part α` carries a proposition `o.dom`, its domain, along with a function `get : o.dom → α`, its
+value. The rule is then that every partial value has a value but, to access it, you need to provide
+a proof of the domain.
+
+`part α` behaves the same as `option α` except that `o : option α` is decidably `none` or `some a`
+for some `a : α`, while the domain of `o : part α` doesn't have to be decidable. That means you can
+translate back and forth between a partial value with a decidable domain and an option, and
+`option α` and `part α` are classically equivalent. In general, `part α` is bigger than `option α`.
+
+In current mathlib, `part ℕ`, aka `enat`, is used to move decidability of the order to decidability
+of `enat.find` (which is the smallest natural satisfying a predicate, or `∞` if there's none).
+
+## Main declarations
+
+`option`-like declarations:
+* `part.none`: The partial value whose domain is `false`.
+* `part.some a`: The partial value whose domain is `true` and whose value is `a`.
+* `part.of_option`: Converts an `option α` to a `part α` by sending `none` to `none` and `some a` to
+  `some a`.
+* `part.to_option`: Converts a `part α` with a decidable domain to an `option α`.
+* `part.equiv_option`: Classical equivalence between `part α` and `option α`.
+
+Monadic structure:
+* `part.bind`: `o.bind f` has value `(f (o.get _)).get _` (`f o` morally) and is defined when `o`
+  and `f (o.get _)` are defined.
+* `part.map`: Maps the value and keeps the same domain.
+
+Other:
+* `part.restrict`: `part.restrict p o` replaces the domain of `o : part α` by `p : Prop` so long as
+  `p → o.dom`.
+* `part.assert`: `assert p f` appends `p` to the domains of the values of a partial function.
+* `part.unwrap`: Gets the value of a partial value regardless of its domain. Unsound.
+
+## Notation
+
+For `a : α`, `o : part α`, `a ∈ o` means that `o` is defined and equal to `a`. Formally, it means
+`o.dom` and `o.get _ = a`.
 -/
 
 /-- `part α` is the type of "partial values" of type `α`. It
@@ -42,7 +82,7 @@ instance : has_mem α (part α) := ⟨part.mem⟩
 theorem mem_eq (a : α) (o : part α) : (a ∈ o) = (∃ h, o.get h = a) :=
 rfl
 
-theorem dom_iff_mem : ∀ {o : part α}, o.dom ↔ ∃y, y ∈ o
+theorem dom_iff_mem : ∀ {o : part α}, o.dom ↔ ∃ y, y ∈ o
 | ⟨p, f⟩ := ⟨λh, ⟨f h, h, rfl⟩, λ⟨_, h, rfl⟩, h⟩
 
 theorem get_mem {o : part α} (h) : get o h ∈ o := ⟨_, rfl⟩
@@ -69,10 +109,13 @@ theorem mem_unique : ∀ {a b : α} {o : part α}, a ∈ o → b ∈ o → a = b
 | _ _ ⟨p, f⟩ ⟨h₁, rfl⟩ ⟨h₂, rfl⟩ := rfl
 
 theorem mem.left_unique : relator.left_unique ((∈) : α → part α → Prop) :=
-⟨λ a o b, mem_unique⟩
+λ a o b, mem_unique
 
 theorem get_eq_of_mem {o : part α} {a} (h : a ∈ o) (h') : get o h' = a :=
 mem_unique ⟨_, rfl⟩ h
+
+protected theorem subsingleton (o : part α) : set.subsingleton {a | a ∈ o} :=
+λ a ha b hb, mem_unique ha hb
 
 @[simp] theorem get_some {a : α} (ha : (some a).dom) : get (some a) ha = a := rfl
 
@@ -86,31 +129,26 @@ theorem eq_some_iff {a : α} {o : part α} : o = some a ↔ a ∈ o :=
  λ ⟨h, e⟩, e ▸ ext' (iff_true_intro h) (λ _ _, rfl)⟩
 
 theorem eq_none_iff {o : part α} : o = none ↔ ∀ a, a ∉ o :=
-⟨λ e, e.symm ▸ not_mem_none,
- λ h, ext (by simpa [not_mem_none])⟩
+⟨λ e, e.symm ▸ not_mem_none, λ h, ext (by simpa)⟩
 
 theorem eq_none_iff' {o : part α} : o = none ↔ ¬ o.dom :=
 ⟨λ e, e.symm ▸ id, λ h, eq_none_iff.2 (λ a h', h h'.fst)⟩
 
-lemma some_ne_none (x : α) : some x ≠ none :=
+@[simp] lemma some_ne_none (x : α) : some x ≠ none :=
 by { intro h, change none.dom, rw [← h], trivial }
 
-lemma ne_none_iff {o : part α} : o ≠ none ↔ ∃x, o = some x :=
+@[simp] lemma none_ne_some (x : α) : none ≠ some x :=
+(some_ne_none x).symm
+
+lemma ne_none_iff {o : part α} : o ≠ none ↔ ∃ x, o = some x :=
 begin
   split,
-  { rw [ne, eq_none_iff], intro h, push_neg at h, cases h with x hx, use x, rwa [eq_some_iff] },
+  { rw [ne, eq_none_iff', not_not], exact λ h, ⟨o.get h, eq_some_iff.2 (get_mem h)⟩ },
   { rintro ⟨x, rfl⟩, apply some_ne_none }
 end
 
 lemma eq_none_or_eq_some (o : part α) : o = none ∨ ∃ x, o = some x :=
-begin
-  classical,
-  by_cases h : o.dom,
-  { rw dom_iff_mem at h, right,
-    apply exists_imp_exists _ h,
-    simp [eq_some_iff] },
-  { rw eq_none_iff', exact or.inl h },
-end
+or_iff_not_imp_left.2 ne_none_iff.1
 
 @[simp] lemma some_inj {a b : α} : part.some a = some b ↔ a = b :=
 function.injective.eq_iff (λ a b h, congr_fun (eq_of_heq (part.mk.inj h).2) trivial)
@@ -127,6 +165,19 @@ lemma get_eq_get_of_eq (a : part α) (ha : a.dom) {b : part α} (h : a = b) :
   a.get ha = b.get (h ▸ ha) :=
 by { congr, exact h }
 
+lemma get_eq_iff_mem {o : part α} {a : α} (h : o.dom) : o.get h = a ↔ a ∈ o :=
+⟨λ H, ⟨h, H⟩, λ ⟨h', H⟩, H⟩
+
+lemma eq_get_iff_mem {o : part α} {a : α} (h : o.dom) : a = o.get h ↔ a ∈ o :=
+eq_comm.trans (get_eq_iff_mem h)
+
+@[simp] lemma none_to_option [decidable (@none α).dom] : (none : part α).to_option = option.none :=
+dif_neg id
+
+@[simp] lemma some_to_option (a : α) [decidable (some a).dom] :
+  (some a).to_option = option.some a :=
+dif_pos trivial
+
 instance none_decidable : decidable (@none α).dom := decidable.false
 instance some_decidable (a : α) : decidable (some a).dom := decidable.true
 
@@ -135,10 +186,11 @@ otherwise. -/
 def get_or_else (a : part α) [decidable a.dom] (d : α) :=
 if ha : a.dom then a.get ha else d
 
-@[simp] lemma get_or_else_none (d : α) : get_or_else none d = d :=
+@[simp] lemma get_or_else_none (d : α) [decidable (none : part α).dom] : get_or_else none d = d :=
 dif_neg id
 
-@[simp] lemma get_or_else_some (a : α) (d : α) : get_or_else (some a) d = a :=
+@[simp] lemma get_or_else_some (a : α) (d : α) [decidable (some a).dom] :
+  get_or_else (some a) d = a :=
 dif_pos trivial
 
 @[simp] theorem mem_to_option {o : part α} [decidable o.dom] {a : α} :
@@ -224,7 +276,7 @@ end
 /-- `assert p f` is a bind-like operation which appends an additional condition
   `p` to the domain and uses `f` to produce the value. -/
 def assert (p : Prop) (f : p → part α) : part α :=
-⟨∃h : p, (f h).dom, λha, (f ha.fst).get ha.snd⟩
+⟨∃ h : p, (f h).dom, λha, (f ha.fst).get ha.snd⟩
 
 /-- The bind operation has value `g (f.get)`, and is defined when all the
   parts are defined. -/
@@ -232,7 +284,7 @@ protected def bind (f : part α) (g : α → part β) : part β :=
 assert (dom f) (λb, g (f.get b))
 
 /-- The map operation for `part` just maps the value and maintains the same domain. -/
-def map (f : α → β) (o : part α) : part β :=
+@[simps] def map (f : α → β) (o : part α) : part β :=
 ⟨o.dom, f ∘ o.get⟩
 
 theorem mem_map (f : α → β) {o : part α} :
@@ -294,6 +346,10 @@ theorem mem_bind {f : part α} {g : α → part β} :
 
 @[simp] theorem bind_some (a : α) (f : α → part β) :
   (some a).bind f = f a := ext $ by simp
+
+theorem bind_of_mem {o : part α} {a : α} (h : a ∈ o) (f : α → part β) :
+  o.bind f = f a :=
+by rw [eq_some_iff.2 h, bind_some]
 
 theorem bind_some_eq_map (f : α → β) (x : part α) :
   x.bind (some ∘ f) = map f x :=
@@ -360,14 +416,14 @@ instance : monad_fail part :=
 
 /-- `restrict p o h` replaces the domain of `o` with `p`, and is well defined when
   `p` implies `o` is defined. -/
-def restrict (p : Prop) : ∀ (o : part α), (p → o.dom) → part α
-| ⟨d, f⟩ H := ⟨p, λh, f (H h)⟩
+def restrict (p : Prop) (o : part α) (H : p → o.dom) : part α :=
+⟨p, λh, o.get (H h)⟩
 
 @[simp]
 theorem mem_restrict (p : Prop) (o : part α) (h : p → o.dom) (a : α) :
   a ∈ restrict p o h ↔ p ∧ a ∈ o :=
 begin
-  cases o, dsimp [restrict, mem_eq], split,
+  dsimp [restrict, mem_eq], split,
   { rintro ⟨h₀, h₁⟩, exact ⟨h₀, ⟨_, h₁⟩⟩ },
   rintro ⟨h₀, h₁, h₂⟩, exact ⟨h₀, h₂⟩
 end

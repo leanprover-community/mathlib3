@@ -268,6 +268,18 @@ instance [has_le β] : has_le (α →ₛ β) := ⟨λf g, ∀a, f a ≤ g a⟩
 @[simp] lemma range_zero [nonempty α] [has_zero β] : (0 : α →ₛ β).range = {0} :=
 finset.ext $ λ x, by simp [eq_comm]
 
+@[simp] lemma range_eq_empty_of_is_empty {β} [hα : is_empty α] (f : α →ₛ β) :
+  f.range = ∅ :=
+begin
+  rw ← finset.not_nonempty_iff_eq_empty,
+  by_contra,
+  obtain ⟨y, hy_mem⟩ := h,
+  rw [simple_func.mem_range, set.mem_range] at hy_mem,
+  obtain ⟨x, hxy⟩ := hy_mem,
+  rw is_empty_iff at hα,
+  exact hα x,
+end
+
 lemma eq_zero_of_mem_range_zero [has_zero β] : ∀ {y : β}, y ∈ (0 : α →ₛ β).range → y = 0 :=
 forall_range_iff.2 $ λ x, rfl
 
@@ -684,9 +696,9 @@ by rw [f.restrict_lintegral hs, lintegral_restrict]
 lemma const_lintegral (c : ℝ≥0∞) : (const α c).lintegral μ = c * μ univ :=
 begin
   rw [lintegral],
-  by_cases ha : nonempty α,
-  { resetI, simp [preimage_const_of_mem] },
-  { simp [μ.eq_zero_of_not_nonempty ha] }
+  casesI is_empty_or_nonempty α,
+  { simp [μ.eq_zero_of_is_empty] },
+  { simp [preimage_const_of_mem] },
 end
 
 lemma const_lintegral_restrict (c : ℝ≥0∞) (s : set α) :
@@ -1010,16 +1022,16 @@ lemma exists_simple_func_forall_lintegral_sub_lt_of_pos {f : α → ℝ≥0∞} 
     (map coe (ψ - φ)).lintegral μ < ε :=
 begin
   rw lintegral_eq_nnreal at h,
-  have := ennreal.lt_add_right h hε,
+  have := ennreal.lt_add_right h.ne hε,
   erw ennreal.bsupr_add at this; [skip, exact ⟨0, λ x, by simp⟩],
   simp_rw [lt_supr_iff, supr_lt_iff, supr_le_iff] at this,
   rcases this with ⟨φ, hle : ∀ x, ↑(φ x) ≤ f x, b, hbφ, hb⟩,
   refine ⟨φ, hle, λ ψ hψ, _⟩,
   have : (map coe φ).lintegral μ < ∞, from (le_bsupr φ hle).trans_lt h,
-  rw [← add_lt_add_iff_left this, ← add_lintegral, ← map_add @ennreal.coe_add],
+  rw [← add_lt_add_iff_left this.ne, ← add_lintegral, ← map_add @ennreal.coe_add],
   refine (hb _ (λ x, le_trans _ (max_le (hle x) (hψ x)))).trans_lt hbφ,
   norm_cast,
-  simp only [add_apply, sub_apply, nnreal.add_sub_eq_max]
+  simp only [add_apply, sub_apply, add_sub_eq_max]
 end
 
 theorem supr_lintegral_le {ι : Sort*} (f : ι → α → ℝ≥0∞) :
@@ -1068,6 +1080,11 @@ by simp only [h]
 lemma set_lintegral_congr {f : α → ℝ≥0∞} {s t : set α} (h : s =ᵐ[μ] t) :
   ∫⁻ x in s, f x ∂μ = ∫⁻ x in t, f x ∂μ :=
 by rw [restrict_congr_set h]
+
+lemma set_lintegral_congr_fun {f g : α → ℝ≥0∞} {s : set α} (hs : measurable_set s)
+  (hfg : ∀ᵐ x ∂μ, x ∈ s → f x = g x) :
+  ∫⁻ x in s, f x ∂μ = ∫⁻ x in s, g x ∂μ :=
+by { rw lintegral_congr_ae, rw eventually_eq, rwa ae_restrict_iff' hs, }
 
 /-- Monotone convergence theorem -- sometimes called Beppo-Levi convergence.
 
@@ -1216,7 +1233,7 @@ begin
     begin
       rw [← simple_func.add_lintegral, ← simple_func.map_add @ennreal.coe_add],
       refine simple_func.lintegral_mono (λ x, _) le_rfl,
-      simp [-ennreal.coe_add, nnreal.add_sub_eq_max, le_max_right]
+      simp [-ennreal.coe_add, add_sub_eq_max, le_max_right]
     end
   ... ≤ (map coe φ).lintegral (μ.restrict s) + ε₁ :
     begin
@@ -1314,7 +1331,13 @@ by simpa [tsum_fintype] using lintegral_sum_measure f (λ b, cond b μ ν)
   ∫⁻ a, f a ∂(0 : measure α) = 0 :=
 bot_unique $ by simp [lintegral]
 
-lemma lintegral_in_measure_zero (s : set α) (f : α → ℝ≥0∞) (hs' : μ s = 0) :
+lemma set_lintegral_empty (f : α → ℝ≥0∞) : ∫⁻ x in ∅, f x ∂μ = 0 :=
+by rw [measure.restrict_empty, lintegral_zero_measure]
+
+lemma set_lintegral_univ (f : α → ℝ≥0∞) : ∫⁻ x in univ, f x ∂μ = ∫⁻ x, f x ∂μ :=
+by rw measure.restrict_univ
+
+lemma set_lintegral_measure_zero (s : set α) (f : α → ℝ≥0∞) (hs' : μ s = 0) :
   ∫⁻ x in s, f x ∂μ = 0 :=
 begin
   convert lintegral_zero_measure _,
@@ -1430,6 +1453,15 @@ begin
     simp [hφ x, hs, indicator_le_indicator] }
 end
 
+lemma set_lintegral_eq_const {f : α → ℝ≥0∞} (hf : measurable f) (r : ℝ≥0∞) :
+  ∫⁻ x in {x | f x = r}, f x ∂μ = r * μ {x | f x = r} :=
+begin
+  have : ∀ᵐ x ∂μ, x ∈ {x | f x = r} → f x = r := ae_of_all μ (λ _ hx, hx),
+  erw [set_lintegral_congr_fun _ this, lintegral_const,
+       measure.restrict_apply measurable_set.univ, set.univ_inter],
+  exact hf (measurable_set_singleton r)
+end
+
 /-- **Chebyshev's inequality** -/
 lemma mul_meas_ge_le_lintegral {f : α → ℝ≥0∞} (hf : measurable f) (ε : ℝ≥0∞) :
   ε * μ {x | ε ≤ f x} ≤ ∫⁻ a, f a ∂μ :=
@@ -1440,6 +1472,12 @@ begin
   simp only [restrict_apply _ this],
   exact indicator_apply_le id
 end
+
+lemma lintegral_eq_top_of_measure_eq_top_pos {f : α → ℝ≥0∞} (hf : measurable f)
+  (hμf : 0 < μ {x | f x = ∞}) : ∫⁻ x, f x ∂μ = ∞ :=
+eq_top_iff.mpr $
+calc ∞ = ∞ * μ {x | ∞ ≤ f x} : by simp [mul_eq_top, hμf.ne.symm]
+   ... ≤ ∫⁻ x, f x ∂μ : mul_meas_ge_le_lintegral hf ∞
 
 lemma meas_ge_le_lintegral_div {f : α → ℝ≥0∞} (hf : measurable f) {ε : ℝ≥0∞}
   (hε : ε ≠ 0) (hε' : ε ≠ ∞) :
@@ -1735,6 +1773,10 @@ begin
   { rwa pairwise_disjoint_on_bool }
 end
 
+lemma lintegral_add_compl (f : α → ℝ≥0∞) {A : set α} (hA : measurable_set A) :
+  ∫⁻ x in A, f x ∂μ + ∫⁻ x in Aᶜ, f x ∂μ = ∫⁻ x, f x ∂μ :=
+by rw [← lintegral_add_measure, measure.restrict_add_restrict_compl hA]
+
 lemma lintegral_map [measurable_space β] {f : β → ℝ≥0∞} {g : α → β}
   (hf : measurable f) (hg : measurable g) : ∫⁻ a, f a ∂(map g μ) = ∫⁻ a, f (g a) ∂μ :=
 begin
@@ -1802,6 +1844,15 @@ by simp [lintegral_congr_ae (ae_eq_dirac' hf)]
 lemma lintegral_dirac [measurable_singleton_class α] (a : α) (f : α → ℝ≥0∞) :
   ∫⁻ a, f a ∂(dirac a) = f a :=
 by simp [lintegral_congr_ae (ae_eq_dirac f)]
+
+lemma lintegral_encodable {α : Type*} {m : measurable_space α} [encodable α]
+  [measurable_singleton_class α] (f : α → ℝ≥0∞) (μ : measure α) :
+  ∫⁻ a, f a ∂μ = ∑' a, f a * μ {a} :=
+begin
+  conv_lhs { rw [← sum_smul_dirac μ, lintegral_sum_measure] },
+  congr' 1 with a : 1,
+  rw [lintegral_smul_measure, lintegral_dirac, mul_comm],
+end
 
 lemma lintegral_count' {f : α → ℝ≥0∞} (hf : measurable f) :
   ∫⁻ a, f a ∂count = ∑' a, f a :=
@@ -1874,8 +1925,8 @@ begin
   refl,
 end
 
-lemma finite_measure_with_density {f : α → ℝ≥0∞}
-  (hf : ∫⁻ a, f a ∂μ < ∞) : finite_measure (μ.with_density f) :=
+lemma is_finite_measure_with_density {f : α → ℝ≥0∞}
+  (hf : ∫⁻ a, f a ∂μ < ∞) : is_finite_measure (μ.with_density f) :=
 { measure_univ_lt_top :=
     by rwa [with_density_apply _ measurable_set.univ, measure.restrict_univ] }
 
@@ -1884,7 +1935,7 @@ lemma with_density_absolutely_continuous
 begin
   refine absolutely_continuous.mk (λ s hs₁ hs₂, _),
   rw with_density_apply _ hs₁,
-  exact lintegral_in_measure_zero _ _ hs₂
+  exact set_lintegral_measure_zero _ _ hs₂
 end
 
 @[simp]
@@ -1892,6 +1943,24 @@ lemma with_density_zero : μ.with_density 0 = 0 :=
 begin
   ext1 s hs,
   simp [with_density_apply _ hs],
+end
+
+lemma with_density_tsum {f : ℕ → α → ℝ≥0∞} (h : ∀ i, measurable (f i)) :
+  μ.with_density (∑' n, f n) = sum (λ n, μ.with_density (f n)) :=
+begin
+  ext1 s hs,
+  simp_rw [sum_apply _ hs, with_density_apply _ hs],
+  change ∫⁻ x in s, (∑' n, f n) x ∂μ = ∑' (i : ℕ), ∫⁻ x, f i x ∂(μ.restrict s),
+  rw ← lintegral_tsum h,
+  refine lintegral_congr (λ x, tsum_apply (pi.summable.2 (λ _, ennreal.summable))),
+end
+
+lemma with_density_indicator {s : set α} (hs : measurable_set s) (f : α → ℝ≥0∞) :
+  μ.with_density (s.indicator f) = (μ.restrict s).with_density f :=
+begin
+  ext1 t ht,
+  rw [with_density_apply _ ht, lintegral_indicator _ hs,
+      restrict_comm hs ht, ← with_density_apply _ ht]
 end
 
 end lintegral
@@ -1953,54 +2022,20 @@ lemma exists_integrable_pos_of_sigma_finite
   {α} [measurable_space α] (μ : measure α) [sigma_finite μ] {ε : ℝ≥0} (εpos : 0 < ε) :
   ∃ g : α → ℝ≥0, (∀ x, 0 < g x) ∧ measurable g ∧ (∫⁻ x, g x ∂μ < ε) :=
 begin
-  /- The desired function is almost `∑' n, indicator (s n) * δ n / μ (s n)` where `s n` is any
-    sequence of finite measure sets covering the whole space, which exists by sigma-finiteness,
-    and `δ n` is any summable sequence with sum at most `ε`.
-    The only problem with this definition is that `μ (s n)` might be small, so it is not guaranteed
-    that this series converges everywhere (although it does almost everywhere, as its integral is
-    `∑ n, δ n`). We solve this by using instead `∑' n, indicator (s n) * δ n / max (1, μ (s n))` -/
-  obtain ⟨δ, δpos, ⟨cδ, δsum, c_lt⟩⟩ :
-    ∃ δ : ℕ → ℝ≥0, (∀ i, 0 < δ i) ∧ ∃ (c : ℝ≥0), has_sum δ c ∧ c < ε :=
-    nnreal.exists_pos_sum_of_encodable εpos ℕ,
-  set s := spanning_sets μ with hs,
-  have I : ∀ n, 0 < max 1 (μ (s n)).to_nnreal := λ n, zero_lt_one.trans_le (le_max_left _ _),
-  let ρ := λ n, δ n / max 1 (μ (s n)).to_nnreal,
-  let g := λ x, ∑' n, ((s n).indicator (λ x, ρ n) x),
-  have A : summable ρ,
-  { apply nnreal.summable_of_le (λ n, _) δsum.summable,
-    rw nnreal.div_le_iff (I n).ne',
-    conv_lhs { rw ← mul_one (δ n) },
-    exact mul_le_mul (le_refl _) (le_max_left _ _) bot_le bot_le },
-  have B : ∀ x, summable (λ n, (s n).indicator (λ x, ρ n) x),
-  { assume x,
-    apply nnreal.summable_of_le (λ n, _) A,
-    simp only [set.indicator],
-    split_ifs,
-    { exact le_refl _ },
-    { exact bot_le } },
-  have M : ∀ n, measurable ((s n).indicator (λ x, ρ n)) :=
-    λ n, measurable_const.indicator (measurable_spanning_sets μ n),
-  refine ⟨g, λ x, _, measurable.nnreal_tsum M, _⟩,
-  { have : x ∈ (⋃ n, s n), by { rw [hs, Union_spanning_sets], exact set.mem_univ _ },
-    rcases set.mem_Union.1 this with ⟨n, hn⟩,
-    simp only [nnreal.tsum_pos (B x) n, hn, set.indicator_of_mem, nnreal.div_pos (δpos n) (I n)] },
-  { calc ∫⁻ (x : α), (g x) ∂μ
-        = ∫⁻ x, ∑' n, (((s n).indicator (λ x, ρ n) x : ℝ≥0) : ℝ≥0∞) ∂μ :
-      by { apply lintegral_congr (λ x, _), simp_rw [g, ennreal.coe_tsum (B x)] }
-    ... = ∑' n, ∫⁻ x, (((s n).indicator (λ x, ρ n) x : ℝ≥0) : ℝ≥0∞) ∂μ :
-      lintegral_tsum (λ n, (M n).coe_nnreal_ennreal)
-    ... = ∑' n, μ (s n) * ρ n :
-      by simp only [measurable_spanning_sets μ, lintegral_const, measurable_set.univ, mul_comm,
-                    lintegral_indicator, univ_inter, coe_indicator, measure.restrict_apply]
-    ... ≤ ∑' n, δ n :
-      begin
-        apply ennreal.tsum_le_tsum (λ n, _),
-        rw [ennreal.coe_div (I n).ne', ← mul_div_assoc, mul_comm, ennreal.coe_max],
-        apply ennreal.div_le_of_le_mul (ennreal.mul_le_mul (le_refl _) _),
-        convert le_max_right _ _,
-        exact ennreal.coe_to_nnreal (measure_spanning_sets_lt_top μ n).ne
-      end
-    ... < ε : by rwa [← ennreal.coe_tsum δsum.summable, ennreal.coe_lt_coe, δsum.tsum_eq] }
+  /- Let `s` be a covering of `α` by pairwise disjoint measurable sets of finite measure. Let
+  `δ : ℕ → ℝ≥0` be a positive function such that `∑' i, μ (s i) * δ i < ε`. Then the function that
+   is equal to `δ n` on `s n` is a positive function with integral less than `ε`. -/
+  set s : ℕ → set α := disjointed (spanning_sets μ),
+  have : ∀ n, μ (s n) < ∞,
+    from λ n, (measure_mono $ disjointed_subset _ _).trans_lt (measure_spanning_sets_lt_top μ n),
+  obtain ⟨δ, δpos, δsum⟩ : ∃ δ : ℕ → ℝ≥0, (∀ i, 0 < δ i) ∧ ∑' i, μ (s i) * δ i < ε,
+    from ennreal.exists_pos_tsum_mul_lt_of_encodable (ennreal.coe_pos.2 εpos) _ (λ n, (this n).ne),
+  set N : α → ℕ := spanning_sets_index μ,
+  have hN_meas : measurable N := measurable_spanning_sets_index μ,
+  have hNs : ∀ n, N ⁻¹' {n} = s n := preimage_spanning_sets_index_singleton μ,
+  refine ⟨δ ∘ N, λ x, δpos _, measurable_from_nat.comp hN_meas, _⟩,
+  simpa [lintegral_comp measurable_from_nat.coe_nnreal_ennreal hN_meas, hNs,
+    lintegral_encodable, measurable_spanning_sets_index, mul_comm] using δsum,
 end
 
 lemma lintegral_trim {α : Type*} {m m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0)

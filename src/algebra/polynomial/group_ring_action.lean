@@ -27,7 +27,7 @@ lemma smul_eq_map [mul_semiring_action M R] (m : M) :
   ((•) m) = map (mul_semiring_action.to_ring_hom M R m) :=
 begin
   suffices :
-    distrib_mul_action.to_add_monoid_hom M (polynomial R) m =
+    distrib_mul_action.to_add_monoid_hom (polynomial R) m =
       (map_ring_hom (mul_semiring_action.to_ring_hom M R m)).to_add_monoid_hom,
   { ext1 r, exact add_monoid_hom.congr_fun this r, },
   ext n r : 2,
@@ -95,7 +95,7 @@ theorem prod_X_sub_smul.eval (x : R) : (prod_X_sub_smul G R x).eval x = 0 :=
 
 theorem prod_X_sub_smul.smul (x : R) (g : G) :
   g • prod_X_sub_smul G R x = prod_X_sub_smul G R x :=
-(smul_prod _ _ _ _ _).trans $ fintype.prod_bijective _ (mul_action.bijective g) _ _
+finset.smul_prod.trans $ fintype.prod_bijective _ (mul_action.bijective g) _ _
   (λ g', by rw [of_quotient_stabilizer_smul, smul_sub, polynomial.smul_X, polynomial.smul_C])
 
 theorem prod_X_sub_smul.coeff (x : R) (g : G) (n : ℕ) :

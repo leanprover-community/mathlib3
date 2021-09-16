@@ -56,7 +56,8 @@ le_antisymm (adjoin_le h₁) h₂
 theorem adjoin_eq (S : subalgebra R A) : adjoin R ↑S = S :=
 adjoin_eq_of_le _ (set.subset.refl _) subset_adjoin
 
-theorem adjoin_induction {p : A → Prop} {x : A} (h : x ∈ adjoin R s) (Hs : ∀ x ∈ s, p x)
+@[elab_as_eliminator] theorem adjoin_induction {p : A → Prop} {x : A} (h : x ∈ adjoin R s) 
+  (Hs : ∀ x ∈ s, p x)
   (Halg : ∀ r, p (algebra_map R A r))
   (Hadd : ∀ x y, p x → p y → p (x + y))
   (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
@@ -205,7 +206,29 @@ le_antisymm
     (λ p ⟨n, hn⟩ hp, by rw [alg_hom.map_mul, mv_polynomial.aeval_def _ (mv_polynomial.X _),
       mv_polynomial.eval₂_X]; exact subalgebra.mul_mem _ hp (subset_adjoin hn)))
 
-theorem adjoin_singleton_eq_range (x : A) : adjoin R {x} = (polynomial.aeval x).range :=
+lemma adjoin_range_eq_range_aeval {σ : Type*} (f : σ → A) :
+  adjoin R (set.range f) = (mv_polynomial.aeval f).range :=
+begin
+  ext x,
+  simp only [adjoin_eq_range, alg_hom.mem_range],
+  split,
+  { rintros ⟨p, rfl⟩,
+    use mv_polynomial.rename (function.surj_inv (@@set.surjective_onto_range f)) p,
+    rw [← alg_hom.comp_apply],
+    refine congr_fun (congr_arg _ _) _,
+    ext,
+    simp only [mv_polynomial.rename_X, function.comp_app, mv_polynomial.aeval_X, alg_hom.coe_comp],
+    simpa [subtype.ext_iff] using function.surj_inv_eq (@@set.surjective_onto_range f) i },
+  { rintros ⟨p, rfl⟩,
+    use mv_polynomial.rename (set.range_factorization f) p,
+    rw [← alg_hom.comp_apply],
+    refine congr_fun (congr_arg _ _) _,
+    ext,
+    simp only [mv_polynomial.rename_X, function.comp_app, mv_polynomial.aeval_X, alg_hom.coe_comp,
+      set.range_factorization_coe] }
+end
+
+theorem adjoin_singleton_eq_range_aeval (x : A) : adjoin R {x} = (polynomial.aeval x).range :=
 le_antisymm
   (adjoin_le $ set.singleton_subset_iff.2 ⟨polynomial.X, polynomial.eval₂_X _ _⟩)
   (λ y ⟨p, (hp : polynomial.aeval x p = y)⟩, hp ▸ polynomial.induction_on p

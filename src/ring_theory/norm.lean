@@ -58,7 +58,7 @@ variables (R)
 noncomputable def norm : S →* R :=
 linear_map.det.comp (lmul R S).to_ring_hom.to_monoid_hom
 
-@[simp] lemma norm_apply (x : S) : norm R x = linear_map.det (lmul R S x) := rfl
+lemma norm_apply (x : S) : norm R x = linear_map.det (lmul R S x) := rfl
 
 lemma norm_eq_one_of_not_exists_basis
   (h : ¬ ∃ (s : finset S), nonempty (basis s R S)) (x : S) : norm R x = 1 :=
@@ -119,5 +119,45 @@ begin
 end
 
 end eq_prod_roots
+
+section eq_zero_iff
+
+lemma norm_eq_zero_iff_of_basis (b : basis ι R S) {x : S} :
+  algebra.norm R x = 0 ↔ x = 0 :=
+begin
+  have hι : nonempty ι := b.index_nonempty,
+  letI := classical.dec_eq ι,
+  rw algebra.norm_eq_matrix_det b,
+  split,
+  { rw ← matrix.exists_mul_vec_eq_zero_iff,
+    rintros ⟨v, v_ne, hv⟩,
+    rw [← b.equiv_fun.apply_symm_apply v, b.equiv_fun_symm_apply, b.equiv_fun_apply,
+        algebra.left_mul_matrix_mul_vec_repr] at hv,
+    refine (mul_eq_zero.mp (b.ext_elem $ λ i, _)).resolve_right (show ∑ i, v i • b i ≠ 0, from _),
+    { simpa only [linear_equiv.map_zero, pi.zero_apply] using congr_fun hv i },
+    { contrapose! v_ne with sum_eq,
+      apply b.equiv_fun.symm.injective,
+      rw [b.equiv_fun_symm_apply, sum_eq, linear_equiv.map_zero] } },
+  { rintro rfl,
+    rw [alg_hom.map_zero, matrix.det_zero hι] },
+end
+
+lemma norm_ne_zero_iff_of_basis (b : basis ι R S) {x : S} :
+  algebra.norm R x ≠ 0 ↔ x ≠ 0 :=
+not_iff_not.mpr (algebra.norm_eq_zero_iff_of_basis b)
+
+/-- See also `algebra.norm_eq_zero_iff'` if you already have rewritten with `algebra.norm_apply`. -/
+@[simp]
+lemma norm_eq_zero_iff [finite_dimensional K L] {x : L} :
+  algebra.norm K x = 0 ↔ x = 0 :=
+algebra.norm_eq_zero_iff_of_basis (basis.of_vector_space K L)
+
+/-- This is `algebra.norm_eq_zero_iff` composed with `algebra.norm_apply`. -/
+@[simp]
+lemma norm_eq_zero_iff' [finite_dimensional K L] {x : L} :
+  linear_map.det (algebra.lmul K L x) = 0 ↔ x = 0 :=
+algebra.norm_eq_zero_iff_of_basis (basis.of_vector_space K L)
+
+end eq_zero_iff
 
 end algebra

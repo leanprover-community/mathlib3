@@ -299,6 +299,8 @@ end is_simple_lattice
 
 namespace is_simple_lattice
 
+section bounded_lattice
+
 variables [bounded_lattice α] [is_simple_lattice α]
 
 /-- A simple `bounded_lattice` is also distributive. -/
@@ -314,8 +316,12 @@ instance : is_atomic α :=
 @[priority 100]
 instance : is_coatomic α := is_atomic_dual_iff_is_coatomic.1 is_simple_lattice.is_atomic
 
+end bounded_lattice
+
+/- It is important that in this section `is_simple_lattice` is the last type-class argument. -/
 section decidable_eq
-variable [decidable_eq α]
+
+variables [decidable_eq α] [bounded_lattice α] [is_simple_lattice α]
 
 /-- Every simple lattice is order-isomorphic to `bool`. -/
 def order_iso_bool : α ≃o bool :=
@@ -331,6 +337,8 @@ def order_iso_bool : α ≃o bool :=
       { simp [bot_ne_top] } }
   end }
 
+/- It is important that `is_simple_lattice` is the last type-class argument of this instance,
+so that type-class inference fails quickly if it doesn't apply. -/
 @[priority 200]
 instance : fintype α := fintype.of_equiv bool (order_iso_bool.to_equiv).symm
 
@@ -350,6 +358,7 @@ protected def boolean_algebra : boolean_algebra α :=
 
 end decidable_eq
 
+variables [bounded_lattice α] [is_simple_lattice α]
 open_locale classical
 
 /-- A simple `bounded_lattice` is also complete. -/

@@ -7,6 +7,7 @@ Authors: Kenny Lau
 import group_theory.group_action.group
 import data.equiv.ring
 import ring_theory.subring
+import algebra.pointwise
 
 /-!
 # Group action on rings
@@ -30,55 +31,50 @@ group action, invariant subring
 universes u v
 open_locale big_operators
 
-/-- Typeclass for multiplicative actions by monoids on semirings. -/
-class mul_semiring_action (M : Type u) [monoid M] (R : Type v) [semiring R]
+/-- Typeclass for multiplicative actions by monoids on semirings.
+
+This combines `distrib_mul_action` with `mul_distrib_mul_action`. -/
+class mul_semiring_action (M : Type u) (R : Type v) [monoid M] [semiring R]
   extends distrib_mul_action M R :=
 (smul_one : ∀ (g : M), (g • 1 : R) = 1)
 (smul_mul : ∀ (g : M) (x y : R), g • (x * y) = (g • x) * (g • y))
 
-export mul_semiring_action (smul_one)
-
 section semiring
 
 variables (M G : Type u) [monoid M] [group G]
-variables (A R S F : Type v) [add_monoid A] [semiring R] [comm_semiring S] [field F]
+variables (A R S F : Type v) [add_monoid A] [semiring R] [comm_semiring S] [division_ring F]
 
-variables {M R}
-lemma smul_mul' [mul_semiring_action M R] (g : M) (x y : R) :
-  g • (x * y) = (g • x) * (g • y) :=
-mul_semiring_action.smul_mul g x y
-
-variables (M R)
-
-/-- Each element of the monoid defines a additive monoid homomorphism. -/
-def distrib_mul_action.to_add_monoid_hom [distrib_mul_action M A] (x : M) : A →+ A :=
-{ to_fun   := (•) x,
-  map_zero' := smul_zero x,
-  map_add' := smul_add x }
+-- note we could not use `extends` since these typeclasses are made with `old_structure_cmd`
+@[priority 100]
+instance mul_semiring_action.to_mul_distrib_mul_action [h : mul_semiring_action M R] :
+  mul_distrib_mul_action M R :=
+{ ..h }
 
 /-- Each element of the group defines an additive monoid isomorphism. -/
+@[simps]
 def distrib_mul_action.to_add_equiv [distrib_mul_action G A] (x : G) : A ≃+ A :=
-{ .. distrib_mul_action.to_add_monoid_hom G A x,
+{ .. distrib_mul_action.to_add_monoid_hom A x,
   .. mul_action.to_perm_hom G A x }
 
-/-- Each element of the group defines an additive monoid homomorphism. -/
-def distrib_mul_action.hom_add_monoid_hom [distrib_mul_action M A] : M →* add_monoid.End A :=
-{ to_fun := distrib_mul_action.to_add_monoid_hom M A,
-  map_one' := add_monoid_hom.ext $ λ x, one_smul M x,
-  map_mul' := λ x y, add_monoid_hom.ext $ λ z, mul_smul x y z }
+/-- Each element of the group defines a multiplicative monoid isomorphism. -/
+@[simps]
+def mul_distrib_mul_action.to_mul_equiv [mul_distrib_mul_action G M] (x : G) : M ≃* M :=
+{ .. mul_distrib_mul_action.to_monoid_hom M x,
+  .. mul_action.to_perm_hom G M x }
 
 /-- Each element of the monoid defines a semiring homomorphism. -/
+@[simps]
 def mul_semiring_action.to_ring_hom [mul_semiring_action M R] (x : M) : R →+* R :=
-{ map_one' := smul_one x,
-  map_mul' := smul_mul' x,
-  .. distrib_mul_action.to_add_monoid_hom M R x }
+{ .. mul_distrib_mul_action.to_monoid_hom R x,
+  .. distrib_mul_action.to_add_monoid_hom R x }
 
 theorem to_ring_hom_injective [mul_semiring_action M R] [has_faithful_scalar M R] :
   function.injective (mul_semiring_action.to_ring_hom M R) :=
 λ m₁ m₂ h, eq_of_smul_eq_smul $ λ r, ring_hom.ext_iff.1 h r
 
 /-- Each element of the group defines a semiring isomorphism. -/
-def mul_semiring_action.to_semiring_equiv [mul_semiring_action G R] (x : G) : R ≃+* R :=
+@[simps]
+def mul_semiring_action.to_ring_equiv [mul_semiring_action G R] (x : G) : R ≃+* R :=
 { .. distrib_mul_action.to_add_equiv G R x,
   .. mul_semiring_action.to_ring_hom G R x }
 
@@ -89,8 +85,7 @@ variables {M G R}
 instance submonoid.mul_semiring_action [mul_semiring_action M R] (H : submonoid M) :
   mul_semiring_action H R :=
 { smul := (•),
-  smul_one := λ h, smul_one (h : M),
-  smul_mul := λ h, smul_mul' (h : M),
+  .. H.mul_distrib_mul_action,
   .. H.distrib_mul_action }
 
 /-- A stronger version of `subgroup.distrib_mul_action`. -/
@@ -112,37 +107,75 @@ H.to_subsemiring.mul_semiring_action
 
 end
 
-section prod
-variables [mul_semiring_action M R] [mul_semiring_action M S]
+section pointwise
 
-lemma list.smul_prod (g : M) (L : list R) : g • L.prod = (L.map $ (•) g).prod :=
-(mul_semiring_action.to_ring_hom M R g).map_list_prod L
+namespace subsemiring
+variables [mul_semiring_action M R]
 
-lemma multiset.smul_prod (g : M) (m : multiset S) : g • m.prod = (m.map $ (•) g).prod :=
-(mul_semiring_action.to_ring_hom M S g).map_multiset_prod m
+/-- The action on a subsemiring corresponding to applying the action to every element.
 
-lemma smul_prod (g : M) {ι : Type*} (f : ι → S) (s : finset ι) :
-  g • ∏ i in s, f i = ∏ i in s, g • f i :=
-(mul_semiring_action.to_ring_hom M S g).map_prod f s
+This is available as an instance in the `pointwise` locale. -/
+protected def pointwise_mul_action : mul_action M (subsemiring R) :=
+{ smul := λ a S, S.map (mul_semiring_action.to_ring_hom _ _ a),
+  one_smul := λ S,
+    (congr_arg (λ f, S.map f) (ring_hom.ext $ by exact one_smul M)).trans S.map_id,
+  mul_smul := λ a₁ a₂ S,
+    (congr_arg (λ f, S.map f) (ring_hom.ext $ by exact mul_smul _ _)).trans (S.map_map _ _).symm }
 
-end prod
+localized "attribute [instance] subsemiring.pointwise_mul_action" in pointwise
+open_locale pointwise
+
+@[simp] lemma coe_pointwise_smul (m : M) (S : subsemiring R) : ↑(m • S) = m • (S : set R) := rfl
+
+@[simp] lemma pointwise_smul_to_add_submonoid (m : M) (S : subsemiring R) :
+  (m • S).to_add_submonoid = m • S.to_add_submonoid := rfl
+
+lemma smul_mem_pointwise_smul (m : M) (r : R) (S : subsemiring R) : r ∈ S → m • r ∈ m • S :=
+(set.smul_mem_smul_set : _ → _ ∈ m • (S : set R))
+
+end subsemiring
+
+namespace subring
+variables {R' : Type*} [ring R'] [mul_semiring_action M R']
+
+/-- The action on a subring corresponding to applying the action to every element.
+
+This is available as an instance in the `pointwise` locale. -/
+protected def pointwise_mul_action : mul_action M (subring R') :=
+{ smul := λ a S, S.map (mul_semiring_action.to_ring_hom _ _ a),
+  one_smul := λ S,
+    (congr_arg (λ f, S.map f) (ring_hom.ext $ by exact one_smul M)).trans S.map_id,
+  mul_smul := λ a₁ a₂ S,
+    (congr_arg (λ f, S.map f) (ring_hom.ext $ by exact mul_smul _ _)).trans (S.map_map _ _).symm }
+
+localized "attribute [instance] subring.pointwise_mul_action" in pointwise
+open_locale pointwise
+
+@[simp] lemma coe_pointwise_smul (m : M) (S : subring R') : ↑(m • S) = m • (S : set R') := rfl
+
+@[simp] lemma pointwise_smul_to_add_subgroup (m : M) (S : subring R') :
+  (m • S).to_add_subgroup = m • S.to_add_subgroup := rfl
+
+@[simp] lemma pointwise_smul_to_subsemiring (m : M) (S : subring R') :
+  (m • S).to_subsemiring = m • S.to_subsemiring := rfl
+
+lemma smul_mem_pointwise_smul (m : M) (r : R') (S : subring R') : r ∈ S → m • r ∈ m • S :=
+(set.smul_mem_smul_set : _ → _ ∈ m • (S : set R'))
+
+end subring
+
+end pointwise
 
 section simp_lemmas
 
-variables {M G A R}
+variables {M G A R F}
 
 attribute [simp] smul_one smul_mul' smul_zero smul_add
 
-@[simp] lemma smul_inv' [mul_semiring_action M F] (x : M) (m : F) : x • m⁻¹ = (x • m)⁻¹ :=
+/-- Note that `smul_inv'` refers to the group case, and `smul_inv` has an additional inverse
+on `x`. -/
+@[simp] lemma smul_inv'' [mul_semiring_action M F] (x : M) (m : F) : x • m⁻¹ = (x • m)⁻¹ :=
 (mul_semiring_action.to_ring_hom M F x).map_inv _
-
-@[simp] lemma smul_pow [mul_semiring_action M R] (x : M) (m : R) (n : ℕ) :
-  x • m ^ n = (x • m) ^ n :=
-begin
-  induction n with n ih,
-  { rw [pow_zero, pow_zero], exact smul_one x },
-  { rw [pow_succ, pow_succ], exact (smul_mul' x m (m ^ n)).trans (congr_arg _ ih) }
-end
 
 end simp_lemmas
 

@@ -127,7 +127,9 @@ variables {B : Type*} [semiring B] [algebra R B]
 variables (x : A)
 
 /-- Given a valuation `x` of the variable in an `R`-algebra `A`, `aeval R A x` is
-the unique `R`-algebra homomorphism from `R[X]` to `A` sending `X` to `x`. -/
+the unique `R`-algebra homomorphism from `R[X]` to `A` sending `X` to `x`.
+
+This is a stronger variant of the linear map `polynomial.leval`. -/
 def aeval : polynomial R →ₐ[R] A :=
 { commutes' := λ r, eval₂_C _ _,
   ..eval₂_ring_hom' (algebra_map R A) x (λ a, algebra.commutes _ _) }

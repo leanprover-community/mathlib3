@@ -79,7 +79,7 @@ begin
   refine forall_congr (λ a, _),
   rw [← sq, pow_dvd_iff_le_multiplicity, or_iff_not_imp_left, not_le, imp_congr],
   swap, { refl },
-  convert enat.add_one_le_iff_lt (enat.coe_ne_top _),
+  convert enat.add_one_le_iff_lt (enat.coe_ne_top 1),
   norm_cast,
 end
 
@@ -124,7 +124,7 @@ begin
   { simp [hx, pow_eq_zero_iff (nat.pos_of_ne_zero h0)] },
   by_cases hy : y = 0,
   { simp [hy, zero_pow (nat.pos_of_ne_zero h0)] },
-  refine ⟨λ h, _, λ h, dvd_pow h h0⟩,
+  refine ⟨λ h, _, λ h, h.pow h0⟩,
   rw [dvd_iff_factors_le_factors hx (pow_ne_zero n hy), factors_pow,
     ((squarefree_iff_nodup_factors hx).1 hsq).le_nsmul_iff_le h0] at h,
   rwa dvd_iff_factors_le_factors hx hy,

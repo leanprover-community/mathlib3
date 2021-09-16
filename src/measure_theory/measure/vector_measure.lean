@@ -41,11 +41,11 @@ vector measure, signed measure, complex measure
 
 noncomputable theory
 
-open_locale classical big_operators nnreal ennreal
+open_locale classical big_operators nnreal ennreal measure_theory
 
 namespace measure_theory
 
-variables {α β : Type*} [measurable_space α]
+variables {α β : Type*} {m : measurable_space α}
 
 /-- A vector measure on a measurable space `α` is a σ-additive `M`-valued function (for some `M`
 an add monoid) such that the empty set and non-measurable sets are mapped to zero. -/
@@ -70,6 +70,8 @@ namespace vector_measure
 section
 
 variables {M : Type*} [add_comm_monoid M] [topological_space M]
+
+include m
 
 instance : has_coe_to_fun (vector_measure α M) :=
 ⟨λ _, set α → M, vector_measure.measure_of'⟩
@@ -244,6 +246,8 @@ section add_comm_monoid
 
 variables {M : Type*} [add_comm_monoid M] [topological_space M]
 
+include m
+
 instance : has_zero (vector_measure α M) :=
 ⟨⟨0, rfl, λ _ _, rfl, λ _ _ _, has_sum_zero⟩⟩
 
@@ -280,9 +284,9 @@ end add_comm_monoid
 
 section add_comm_group
 
-variables {M : Type*} [add_comm_group M] [topological_space M]
+variables {M : Type*} [add_comm_group M] [topological_space M] [topological_add_group M]
 
-variables [topological_add_group M]
+include m
 
 /-- The negative of a vector measure is a vector measure. -/
 def neg (v : vector_measure α M) : vector_measure α M :=
@@ -322,6 +326,8 @@ variables {M : Type*} [add_comm_monoid M] [topological_space M]
 variables {R : Type*} [semiring R] [distrib_mul_action R M]
 variables [topological_space R] [has_continuous_smul R M]
 
+include m
+
 /-- Given a real number `r` and a signed measure `s`, `smul r s` is the signed
 measure corresponding to the function `r • s`. -/
 def smul (r : R) (v : vector_measure α M) : vector_measure α M :=
@@ -347,6 +353,8 @@ variables {M : Type*} [add_comm_monoid M] [topological_space M]
 variables {R : Type*} [semiring R] [module R M]
 variables [topological_space R] [has_continuous_smul R M]
 
+include m
+
 instance [has_continuous_add M] : module R (vector_measure α M) :=
 function.injective.module R coe_fn_add_monoid_hom coe_injective coe_smul
 
@@ -356,9 +364,11 @@ end vector_measure
 
 namespace measure
 
+include m
+
 /-- A finite measure coerced into a real function is a signed measure. -/
 @[simps]
-def to_signed_measure (μ : measure α) [hμ : finite_measure μ] : signed_measure α :=
+def to_signed_measure (μ : measure α) [hμ : is_finite_measure μ] : signed_measure α :=
 { measure_of' := λ i : set α, if measurable_set i then (μ.measure_of i).to_real else 0,
   empty' := by simp [μ.empty],
   not_measurable' := λ _ hi, if_neg hi,
@@ -380,13 +390,13 @@ def to_signed_measure (μ : measure α) [hμ : finite_measure μ] : signed_measu
       exact measure_mono (set.subset_univ _) }
   end }
 
-lemma to_signed_measure_apply_measurable {μ : measure α} [finite_measure μ]
+lemma to_signed_measure_apply_measurable {μ : measure α} [is_finite_measure μ]
   {i : set α} (hi : measurable_set i) :
   μ.to_signed_measure i = (μ i).to_real :=
 if_pos hi
 
 lemma to_signed_measure_eq_to_signed_measure_iff
-  {μ ν : measure α} [finite_measure μ] [finite_measure ν] :
+  {μ ν : measure α} [is_finite_measure μ] [is_finite_measure ν] :
   μ.to_signed_measure = ν.to_signed_measure ↔ μ = ν :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
@@ -403,7 +413,7 @@ end
   (0 : measure α).to_signed_measure = 0 :=
 by { ext i hi, simp }
 
-@[simp] lemma to_signed_measure_add (μ ν : measure α) [finite_measure μ] [finite_measure ν] :
+@[simp] lemma to_signed_measure_add (μ ν : measure α) [is_finite_measure μ] [is_finite_measure ν] :
   (μ + ν).to_signed_measure = μ.to_signed_measure + ν.to_signed_measure :=
 begin
   ext i hi,
@@ -414,7 +424,7 @@ begin
   all_goals { apply_instance }
 end
 
-@[simp] lemma to_signed_measure_smul (μ : measure α) [finite_measure μ] (r : ℝ≥0) :
+@[simp] lemma to_signed_measure_smul (μ : measure α) [is_finite_measure μ] (r : ℝ≥0) :
   (r • μ).to_signed_measure = r • μ.to_signed_measure :=
 begin
   ext i hi,
@@ -453,7 +463,7 @@ begin
       to_ennreal_vector_measure_apply_measurable hi, to_ennreal_vector_measure_apply_measurable hi]
 end
 
-lemma to_signed_measure_sub_apply {μ ν : measure α} [finite_measure μ] [finite_measure ν]
+lemma to_signed_measure_sub_apply {μ ν : measure α} [is_finite_measure μ] [is_finite_measure ν]
   {i : set α} (hi : measurable_set i) :
   (μ.to_signed_measure - ν.to_signed_measure) i = (μ i).to_real - (ν i).to_real :=
 begin
@@ -465,9 +475,34 @@ end measure
 
 namespace vector_measure
 
+open measure
+
 section
 
-variables [measurable_space β]
+/-- A vector measure over `ℝ≥0∞` is a measure. -/
+def ennreal_to_measure {m : measurable_space α} (v : vector_measure α ℝ≥0∞) : measure α :=
+of_measurable (λ s _, v s) v.empty (λ f hf₁ hf₂, v.of_disjoint_Union_nat hf₁ hf₂)
+
+lemma ennreal_to_measure_apply {m : measurable_space α} {v : vector_measure α ℝ≥0∞}
+  {s : set α} (hs : measurable_set s) : ennreal_to_measure v s = v s :=
+by rw [ennreal_to_measure, of_measurable_apply _ hs]
+
+/-- The equiv between `vector_measure α ℝ≥0∞` and `measure α` formed by
+`measure_theory.vector_measure.ennreal_to_measure` and
+`measure_theory.measure.to_ennreal_vector_measure`. -/
+@[simps] def equiv_measure [measurable_space α] : vector_measure α ℝ≥0∞ ≃ measure α :=
+{ to_fun := ennreal_to_measure,
+  inv_fun := to_ennreal_vector_measure,
+  left_inv := λ _, ext (λ s hs,
+    by rw [to_ennreal_vector_measure_apply_measurable hs, ennreal_to_measure_apply hs]),
+  right_inv := λ _, measure.ext (λ s hs,
+    by rw [ennreal_to_measure_apply hs, to_ennreal_vector_measure_apply_measurable hs]) }
+
+end
+
+section
+
+variables [measurable_space α] [measurable_space β]
 variables {M : Type*} [add_comm_monoid M] [topological_space M]
 variables (v : vector_measure α M)
 
@@ -485,6 +520,9 @@ if hf : measurable f then
     { ext i, rw if_pos (hg₁ i) },
     { rw [preimage_Union, if_pos (measurable_set.Union hg₁)] }
   end } else 0
+
+lemma map_not_measurable {f : α → β} (hf : ¬ measurable f) : v.map f = 0 :=
+dif_neg hf
 
 lemma map_apply {f : α → β} (hf : measurable f) {s : set β} (hs : measurable_set s) :
   v.map f s = v (f ⁻¹' s) :=
@@ -588,6 +626,8 @@ variables {M : Type*} [add_comm_monoid M] [topological_space M]
 variables {R : Type*} [semiring R] [distrib_mul_action R M]
 variables [topological_space R] [has_continuous_smul R M]
 
+include m
+
 @[simp] lemma map_smul {v : vector_measure α M} {f : α → β} (c : R) :
   (c • v).map f = c • v.map f :=
 begin
@@ -619,6 +659,8 @@ variables {M : Type*} [add_comm_monoid M] [topological_space M]
 variables {R : Type*} [semiring R] [module R M]
 variables [topological_space R] [has_continuous_smul R M] [has_continuous_add M]
 
+include m
+
 /-- `vector_measure.map` as a linear map. -/
 @[simps] def mapₗ (f : α → β) : vector_measure α M →ₗ[R] vector_measure β M :=
 { to_fun := λ v, v.map f,
@@ -636,6 +678,8 @@ end
 section
 
 variables {M : Type*} [topological_space M] [add_comm_monoid M] [partial_order M]
+
+include m
 
 /-- Vector measures over a partially ordered monoid is partially ordered.
 
@@ -852,6 +896,8 @@ section
 variables {M : Type*} [topological_space M] [linear_ordered_add_comm_monoid M]
 variables (v w : vector_measure α M) {i j : set α}
 
+include m
+
 lemma exists_pos_measure_of_not_restrict_le_zero (hi : ¬ v ≤[i] 0) :
   ∃ j : set α, measurable_set j ∧ j ⊆ i ∧ 0 < v j :=
 begin
@@ -869,9 +915,227 @@ section
 variables {M : Type*} [topological_space M] [add_comm_monoid M] [partial_order M]
   [covariant_class M M (+) (≤)] [has_continuous_add M]
 
+include m
+
 instance covariant_add_le :
   covariant_class (vector_measure α M) (vector_measure α M) (+) (≤) :=
 ⟨λ u v w h i hi, add_le_add_left (h i hi) _⟩
+
+end
+
+section
+
+variables {L M N : Type*}
+variables [add_comm_monoid L] [topological_space L] [add_comm_monoid M] [topological_space M]
+  [add_comm_monoid N] [topological_space N]
+
+include m
+
+/-- A vector measure `v` is absolutely continuous with respect to a measure `μ` if for all sets
+`s`, `μ s = 0`, we have `v s = 0`. -/
+def absolutely_continuous (v : vector_measure α M) (w : vector_measure α N) :=
+∀ ⦃s : set α⦄, w s = 0 → v s = 0
+
+infix ` ≪ `:50 := absolutely_continuous
+
+namespace absolutely_continuous
+
+variables {v : vector_measure α M} {w : vector_measure α N}
+
+lemma mk (h : ∀ ⦃s : set α⦄, measurable_set s → w s = 0 → v s = 0) : v ≪ w :=
+begin
+  intros s hs,
+  by_cases hmeas : measurable_set s,
+  { exact h hmeas hs },
+  { exact not_measurable v hmeas }
+end
+
+lemma eq {w : vector_measure α M} (h : v = w) : v ≪ w :=
+λ s hs, h.symm ▸ hs
+
+@[refl] lemma refl (v : vector_measure α M) : v ≪ v :=
+eq rfl
+
+@[trans] lemma trans {u : vector_measure α L} (huv : u ≪ v) (hvw : v ≪ w) : u ≪ w :=
+λ _ hs, huv $ hvw hs
+
+lemma zero (v : vector_measure α N) : (0 : vector_measure α M) ≪ v :=
+λ s _, vector_measure.zero_apply s
+
+lemma neg_left {M : Type*} [add_comm_group M] [topological_space M] [topological_add_group M]
+  {v : vector_measure α M} {w : vector_measure α N} (h : v ≪ w) : -v ≪ w :=
+λ s hs, by { rw [neg_apply, h hs, neg_zero] }
+
+lemma neg_right {N : Type*} [add_comm_group N] [topological_space N] [topological_add_group N]
+  {v : vector_measure α M} {w : vector_measure α N} (h : v ≪ w) : v ≪ -w :=
+begin
+  intros s hs,
+  rw [neg_apply, neg_eq_zero] at hs,
+  exact h hs
+end
+
+lemma add [has_continuous_add M] {v₁ v₂ : vector_measure α M} {w : vector_measure α N}
+  (hv₁ : v₁ ≪ w) (hv₂ : v₂ ≪ w) : v₁ + v₂ ≪ w :=
+λ s hs, by { rw [add_apply, hv₁ hs, hv₂ hs, zero_add] }
+
+lemma sub {M : Type*} [add_comm_group M] [topological_space M] [topological_add_group M]
+  {v₁ v₂ : vector_measure α M} {w : vector_measure α N} (hv₁ : v₁ ≪ w) (hv₂ : v₂ ≪ w) :
+  v₁ - v₂ ≪ w :=
+λ s hs, by { rw [sub_apply, hv₁ hs, hv₂ hs, zero_sub, neg_zero] }
+
+lemma smul {R : Type*} [semiring R] [distrib_mul_action R M]
+  [topological_space R] [has_continuous_smul R M]
+  {r : R} {v : vector_measure α M} {w : vector_measure α N} (h : v ≪ w) :
+  r • v ≪ w :=
+λ s hs, by { rw [smul_apply, h hs, smul_zero] }
+
+lemma map [measure_space β] (h : v ≪ w) (f : α → β) :
+  v.map f ≪ w.map f :=
+begin
+  by_cases hf : measurable f,
+  { refine mk (λ s hs hws, _),
+    rw map_apply _ hf hs at hws ⊢,
+    exact h hws },
+  { intros s hs,
+    rw [map_not_measurable v hf, zero_apply] }
+end
+
+lemma ennreal_to_measure {μ : vector_measure α ℝ≥0∞} :
+  (∀ ⦃s : set α⦄, μ.ennreal_to_measure s = 0 → v s = 0) ↔ v ≪ μ :=
+begin
+  split; intro h,
+  { refine mk (λ s hmeas hs, h _),
+    rw [← hs, ennreal_to_measure_apply hmeas] },
+  { intros s hs,
+    by_cases hmeas : measurable_set s,
+    { rw ennreal_to_measure_apply hmeas at hs,
+      exact h hs },
+    { exact not_measurable v hmeas } },
+end
+
+end absolutely_continuous
+
+/-- Two vector measures `v` and `w` are said to be mutually singular if there exists a measurable
+set `s`, such that for all `t ⊆ s`, `v t = 0` and for all `t ⊆ sᶜ`, `w t = 0`.
+
+We note that we do not require the measurability of `t` in the definition since this makes it easier
+to use. This is equivalent to the definition which requires measurability. To prove
+`mutually_singular` with the measurability condition, use
+`measure_theory.vector_measure.mutually_singular.mk`. -/
+def mutually_singular (v : vector_measure α M) (w : vector_measure α N) : Prop :=
+∃ (s : set α), measurable_set s ∧ (∀ t ⊆ s, v t = 0) ∧ (∀ t ⊆ sᶜ, w t = 0)
+
+localized "infix ` ⊥ᵥ `:60 := measure_theory.vector_measure.mutually_singular" in measure_theory
+
+namespace mutually_singular
+
+variables {v v₁ v₂ : vector_measure α M} {w w₁ w₂ : vector_measure α N}
+
+lemma mk (s : set α) (hs : measurable_set s)
+  (h₁ : ∀ t ⊆ s, measurable_set t → v t = 0)
+  (h₂ : ∀ t ⊆ sᶜ, measurable_set t → w t = 0) : v ⊥ᵥ w :=
+begin
+  refine ⟨s, hs, λ t hst, _, λ t hst, _⟩;
+  by_cases ht : measurable_set t,
+  { exact h₁ t hst ht },
+  { exact not_measurable v ht },
+  { exact h₂ t hst ht },
+  { exact not_measurable w ht }
+end
+
+lemma symm (h : v ⊥ᵥ w) : w ⊥ᵥ v :=
+let ⟨s, hmeas, hs₁, hs₂⟩ := h in
+  ⟨sᶜ, hmeas.compl, hs₂, λ t ht, hs₁ _ (compl_compl s ▸ ht : t ⊆ s)⟩
+
+lemma zero_right : v ⊥ᵥ (0 : vector_measure α N) :=
+⟨∅, measurable_set.empty, λ t ht, (subset_empty_iff.1 ht).symm ▸ v.empty, λ _ _, zero_apply _⟩
+
+lemma zero_left : (0 : vector_measure α M) ⊥ᵥ w :=
+zero_right.symm
+
+lemma add_left [t2_space N] [has_continuous_add M] (h₁ : v₁ ⊥ᵥ w) (h₂ : v₂ ⊥ᵥ w) : v₁ + v₂ ⊥ᵥ w :=
+begin
+  obtain ⟨u, hmu, hu₁, hu₂⟩ := h₁,
+  obtain ⟨v, hmv, hv₁, hv₂⟩ := h₂,
+  refine mk (u ∩ v) (hmu.inter hmv) (λ t ht hmt, _) (λ t ht hmt, _),
+  { rw [add_apply, hu₁ _ (subset_inter_iff.1 ht).1, hv₁ _ (subset_inter_iff.1 ht).2, zero_add] },
+  { rw compl_inter at ht,
+    rw [(_ : t = (uᶜ ∩ t) ∪ (vᶜ \ uᶜ ∩ t)),
+        of_union _ (hmu.compl.inter hmt) ((hmv.compl.diff hmu.compl).inter hmt),
+        hu₂, hv₂, add_zero],
+    { exact subset.trans (inter_subset_left _ _) (diff_subset _ _) },
+    { exact inter_subset_left _ _ },
+    { apply_instance },
+    { exact disjoint.mono (inter_subset_left _ _) (inter_subset_left _ _) disjoint_diff },
+    { apply subset.antisymm;
+      intros x hx,
+      { by_cases hxu' : x ∈ uᶜ,
+        { exact or.inl ⟨hxu', hx⟩ },
+        rcases ht hx with (hxu | hxv),
+        exacts [false.elim (hxu' hxu), or.inr ⟨⟨hxv, hxu'⟩, hx⟩] },
+      { rcases hx; exact hx.2 } } },
+end
+
+lemma add_right [t2_space M] [has_continuous_add N] (h₁ : v ⊥ᵥ w₁) (h₂ : v ⊥ᵥ w₂) : v ⊥ᵥ w₁ + w₂ :=
+(add_left h₁.symm h₂.symm).symm
+
+lemma smul_right {R : Type*} [semiring R] [distrib_mul_action R N] [topological_space R]
+  [has_continuous_smul R N] (r : R) (h : v ⊥ᵥ w) : v ⊥ᵥ r • w :=
+let ⟨s, hmeas, hs₁, hs₂⟩ := h in
+  ⟨s, hmeas, hs₁, λ t ht, by simp only [coe_smul, pi.smul_apply, hs₂ t ht, smul_zero]⟩
+
+lemma smul_left {R : Type*} [semiring R] [distrib_mul_action R M] [topological_space R]
+  [has_continuous_smul R M] (r : R) (h : v ⊥ᵥ w) : r • v ⊥ᵥ w :=
+(smul_right r h.symm).symm
+
+end mutually_singular
+
+section trim
+
+omit m
+
+/-- Restriction of a vector measure onto a sub-σ-algebra. -/
+@[simps] def trim {m n : measurable_space α} (v : vector_measure α M) (hle : m ≤ n) :
+  @vector_measure α m M _ _ :=
+{ measure_of' := λ i, if measurable_set[m] i then v i else 0,
+  empty' := by rw [if_pos measurable_set.empty, v.empty],
+  not_measurable' := λ i hi, by rw if_neg hi,
+  m_Union' := λ f hf₁ hf₂,
+  begin
+    have hf₁' : ∀ k, measurable_set[n] (f k) := λ k, hle _ (hf₁ k),
+    convert v.m_Union hf₁' hf₂,
+    { ext n, rw if_pos (hf₁ n) },
+    { rw if_pos (@measurable_set.Union _ _ m _ _ hf₁) }
+  end }
+
+variables {n : measurable_space α} {v : vector_measure α M}
+
+lemma trim_eq_self : v.trim le_rfl = v :=
+begin
+  ext1 i hi,
+  exact if_pos hi,
+end
+
+@[simp] lemma zero_trim (hle : m ≤ n) :
+  (0 : vector_measure α M).trim hle = 0 :=
+begin
+  ext1 i hi,
+  exact if_pos hi,
+end
+
+lemma trim_measurable_set_eq (hle : m ≤ n) {i : set α} (hi : measurable_set[m] i) :
+  v.trim hle i = v i :=
+if_pos hi
+
+lemma restrict_trim (hle : m ≤ n) {i : set α} (hi : measurable_set[m] i) :
+  @vector_measure.restrict α m M _ _ (v.trim hle) i = (v.restrict i).trim hle :=
+begin
+  ext j hj,
+  rw [restrict_apply, trim_measurable_set_eq hle hj, restrict_apply, trim_measurable_set_eq],
+  all_goals { measurability }
+end
+
+end trim
 
 end
 
@@ -882,6 +1146,8 @@ namespace signed_measure
 open vector_measure
 
 open_locale measure_theory
+
+include m
 
 /-- The underlying function for `signed_measure.to_measure_of_zero_le`. -/
 def to_measure_of_zero_le' (s : signed_measure α) (i : set α) (hi : 0 ≤[i] s)
@@ -943,7 +1209,7 @@ end
 
 /-- `signed_measure.to_measure_of_zero_le` is a finite measure. -/
 instance to_measure_of_zero_le_finite (hi : 0 ≤[i] s) (hi₁ : measurable_set i) :
-  finite_measure (s.to_measure_of_zero_le i hi₁ hi) :=
+  is_finite_measure (s.to_measure_of_zero_le i hi₁ hi) :=
 { measure_univ_lt_top :=
   begin
     rw [to_measure_of_zero_le_apply s hi hi₁ measurable_set.univ],
@@ -952,7 +1218,7 @@ instance to_measure_of_zero_le_finite (hi : 0 ≤[i] s) (hi₁ : measurable_set 
 
 /-- `signed_measure.to_measure_of_le_zero` is a finite measure. -/
 instance to_measure_of_le_zero_finite (hi : s ≤[i] 0) (hi₁ : measurable_set i) :
-  finite_measure (s.to_measure_of_le_zero i hi₁ hi) :=
+  is_finite_measure (s.to_measure_of_le_zero i hi₁ hi) :=
 { measure_univ_lt_top :=
   begin
     rw [to_measure_of_le_zero_apply s hi hi₁ measurable_set.univ],
@@ -979,7 +1245,7 @@ namespace measure
 
 open vector_measure
 
-variables (μ : measure α) [finite_measure μ]
+variables (μ : measure α) [is_finite_measure μ]
 
 lemma zero_le_to_signed_measure : 0 ≤ μ.to_signed_measure :=
 begin

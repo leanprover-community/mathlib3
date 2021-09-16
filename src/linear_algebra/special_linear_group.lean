@@ -11,17 +11,21 @@ import linear_algebra.matrix.to_lin
 /-!
 # The Special Linear group $SL(n, R)$
 
-This file defines the elements of the Special Linear group `special_linear_group n R`,
-also written `SL(n, R)` or `SLₙ(R)`, consisting of all `n` by `n` `R`-matrices with
-determinant `1`.  In addition, we define the group structure on `special_linear_group n R`
-and the embedding into the general linear group `general_linear_group R (n → R)`
-(i.e. `GL(n, R)` or `GLₙ(R)`).
+This file defines the elements of the Special Linear group `special_linear_group n R`, consisting
+of all square `R`-matrices with determinant `1` on the fintype `n` by `n`.  In addition, we define
+the group structure on `special_linear_group n R` and the embedding into the general linear group
+`general_linear_group R (n → R)`.
 
 ## Main definitions
 
  * `matrix.special_linear_group` is the type of matrices with determinant 1
  * `matrix.special_linear_group.group` gives the group structure (under multiplication)
  * `matrix.special_linear_group.to_GL` is the embedding `SLₙ(R) → GLₙ(R)`
+
+## Notation
+
+For `m : ℕ`, we introduce the notation `SL(m,R)` for the special linear group on the fintype
+`n = fin m`, in the locale `matrix_groups`.
 
 ## Implementation notes
 The inverse operation in the `special_linear_group` is defined to be the adjugate
@@ -59,6 +63,8 @@ variables (n : Type u) [decidable_eq n] [fintype n] (R : Type v) [comm_ring R]
 def special_linear_group := { A : matrix n n R // A.det = 1 }
 
 end
+
+localized "notation `SL(` n `,` R `)`:= special_linear_group (fin n) R" in matrix_groups
 
 namespace special_linear_group
 
@@ -103,6 +109,14 @@ variables (A B : special_linear_group n R)
 
 @[simp] lemma det_coe : det ↑ₘA = 1 := A.2
 
+lemma det_ne_zero [nontrivial R] (g : special_linear_group n R) :
+  det ↑ₘg ≠ 0 :=
+by { rw g.det_coe, norm_num }
+
+lemma row_ne_zero [nontrivial R] (g : special_linear_group n R) (i : n):
+  ↑ₘg i ≠ 0 :=
+λ h, g.det_ne_zero $ det_eq_zero_of_row_eq_zero i $ by simp [h]
+
 end coe_lemmas
 
 instance : monoid (special_linear_group n R) :=
@@ -143,6 +157,23 @@ def to_GL : special_linear_group n R →* general_linear_group R (n → R) :=
 (general_linear_group.general_linear_equiv _ _).symm.to_monoid_hom.comp to_lin'
 
 lemma coe_to_GL (A : special_linear_group n R) : ↑A.to_GL = A.to_lin'.to_linear_map := rfl
+
+section has_neg
+
+variables [fact (even (fintype.card n))]
+
+/-- Formal operation of negation on special linear group on even cardinality `n` given by negating
+each element. -/
+instance : has_neg (special_linear_group n R) :=
+⟨λ g,
+  ⟨- g, by simpa [nat.neg_one_pow_of_even (fact.out (even (fintype.card n))), g.det_coe] using
+  det_smul ↑ₘg (-1)⟩⟩
+
+@[simp] lemma coe_neg (g : special_linear_group n R) :
+  ↑(- g) = - (↑g : matrix n n R) :=
+rfl
+
+end has_neg
 
 -- this section should be last to ensure we do not use it in lemmas
 section coe_fn_instance

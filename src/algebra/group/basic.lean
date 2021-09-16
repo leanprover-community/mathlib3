@@ -336,6 +336,8 @@ calc  a / 1 = a * 1⁻¹ : div_eq_mul_inv a 1
 end group
 
 section add_group
+-- TODO: Generalize the contents of this section with to_additive as per
+-- https://leanprover.zulipchat.com/#narrow/stream/144837-PR-reviews/topic/.238667
 variables {G : Type u} [add_group G] {a b c d : G}
 
 @[simp] lemma sub_self (a : G) : a - a = 0 :=
@@ -393,10 +395,10 @@ sub_right_injective.eq_iff
 @[simp] lemma sub_left_inj : b - a = c - a ↔ b = c :=
 by { rw [sub_eq_add_neg, sub_eq_add_neg], exact add_left_inj _ }
 
-lemma sub_add_sub_cancel (a b c : G) : (a - b) + (b - c) = a - c :=
+@[simp] lemma sub_add_sub_cancel (a b c : G) : (a - b) + (b - c) = a - c :=
 by rw [← add_sub_assoc, sub_add_cancel]
 
-lemma sub_sub_sub_cancel_right (a b c : G) : (a - c) - (b - c) = a - b :=
+@[simp] lemma sub_sub_sub_cancel_right (a b c : G) : (a - c) - (b - c) = a - b :=
 by rw [← neg_sub c b, sub_neg_eq_add, sub_add_sub_cancel]
 
 theorem sub_sub_assoc_swap : a - (b - c) = a + c - b :=
@@ -445,9 +447,20 @@ variables {G : Type u} [comm_group G]
 lemma mul_inv (a b : G) : (a * b)⁻¹ = a⁻¹ * b⁻¹ :=
 by rw [mul_inv_rev, mul_comm]
 
+@[to_additive]
+lemma div_eq_of_eq_mul' {a b c : G} (h : a = b * c) : a / b = c :=
+by rw [h, div_eq_mul_inv, mul_comm, inv_mul_cancel_left]
+
+@[to_additive]
+lemma div_mul_comm (a b c d : G) : a / b * (c / d) = a * c / (b * d) :=
+by rw [div_eq_mul_inv, div_eq_mul_inv, div_eq_mul_inv, mul_inv_rev, mul_assoc, mul_assoc,
+  mul_left_cancel_iff, mul_comm, mul_assoc]
+
 end comm_group
 
 section add_comm_group
+-- TODO: Generalize the contents of this section with to_additive as per
+-- https://leanprover.zulipchat.com/#narrow/stream/144837-PR-reviews/topic/.238667
 variables {G : Type u} [add_comm_group G] {a b c d : G}
 
 local attribute [simp] add_assoc add_comm add_left_comm sub_eq_add_neg
@@ -473,9 +486,6 @@ by simp
 lemma eq_sub_of_add_eq' (h : c + a = b) : a = b - c :=
 by simp [h.symm]
 
-lemma sub_eq_of_eq_add' (h : a = b + c) : a - b = c :=
-begin simp [h], rw [add_left_comm], simp end
-
 lemma eq_add_of_sub_eq' (h : a - b = c) : a = b + c :=
 by simp [h.symm]
 
@@ -495,6 +505,8 @@ lemma neg_neg_sub_neg (a b : G) : - (-a - -b) = a - b :=
 by simp
 
 @[simp] lemma sub_sub_cancel (a b : G) : a - (a - b) = b := sub_sub_self a b
+
+@[simp] lemma sub_sub_cancel_left (a b : G) : a - b - a = -b := by simp
 
 lemma sub_eq_neg_add (a b : G) : a - b = -b + a :=
 by rw [sub_eq_add_neg, add_comm _ _]

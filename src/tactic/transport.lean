@@ -42,7 +42,8 @@ and an equivalence `e : α ≃ β`,
 try to produce an `S β`,
 by transporting data and axioms across `e` using `equiv_rw`.
 -/
-@[nolint unused_arguments] -- At present we don't actually use `s`; it's inferred in the `mk_app` call.
+-- At present we don't actually use `s`; it's inferred in the `mk_app` call.
+@[nolint unused_arguments]
 meta def transport (s e : expr) : tactic unit :=
 do
   (_, α, β) ← infer_type e >>= relation_lhs_rhs <|>

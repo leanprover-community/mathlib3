@@ -116,6 +116,11 @@ begin
   exact is_integral_trans L_alg A_alg,
 end
 
+/-- If A is an algebraic algebra over K, then A is algebraic over L when L is an extension of K -/
+lemma is_algebraic_of_larger_field (A_alg : is_algebraic K A) : is_algebraic L A :=
+λ x, let ⟨p, hp⟩ := A_alg x in 
+⟨p.map (algebra_map _ _), map_ne_zero hp.1, by simp [hp.2]⟩
+
 /-- A field extension is algebraic if it is finite. -/
 lemma is_algebraic_of_finite [finite : finite_dimensional K L] : is_algebraic K L :=
 λ x, (is_algebraic_iff_is_integral _).mpr (is_integral_of_submodule_noetherian ⊤

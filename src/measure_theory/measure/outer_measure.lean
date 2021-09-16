@@ -448,7 +448,7 @@ let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑'i, m (f i) in
     { intro,
       have : μ (s i) < μ (s i) + ε' i :=
         ennreal.lt_add_right
-          (lt_of_le_of_lt (by apply ennreal.le_tsum) hb)
+          (ne_top_of_le_ne_top hb.ne $ ennreal.le_tsum _)
           (by simpa using hε' i),
       simpa [μ, infi_lt_iff] },
     refine le_trans _ (ennreal.tsum_le_tsum $ λ i, le_of_lt (hf i).2),
@@ -1114,7 +1114,7 @@ begin
 end
 
 lemma induced_outer_measure_exists_set {s : set α}
-  (hs : induced_outer_measure m P0 m0 s < ∞) {ε : ℝ≥0} (hε : 0 < ε) :
+  (hs : induced_outer_measure m P0 m0 s ≠ ∞) {ε : ℝ≥0} (hε : 0 < ε) :
   ∃ (t : set α) (ht : P t), s ⊆ t ∧
     induced_outer_measure m P0 m0 t ≤ induced_outer_measure m P0 m0 s + ε :=
 begin
@@ -1257,7 +1257,7 @@ begin
       simpa [infi_lt_iff] using hs },
     have : ∀ n : ℕ, ∃ t, s ⊆ t ∧ measurable_set t ∧ m t < ms + n⁻¹,
     { assume n,
-      refine this _ (ennreal.lt_add_right (lt_top_iff_ne_top.2 hs) _),
+      refine this _ (ennreal.lt_add_right hs _),
       exact (ennreal.inv_pos.2 $ ennreal.nat_ne_top _) },
     choose t hsub hm hm',
     refine ⟨⋂ n, t n, subset_Inter hsub, measurable_set.Inter hm, _⟩,

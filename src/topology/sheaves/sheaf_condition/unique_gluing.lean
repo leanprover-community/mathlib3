@@ -48,8 +48,7 @@ open opposite
 
 universes u v
 
-variables {C : Type u} [category.{v} C] [concrete_category.{v} C] [has_limits C]
-variables [reflects_isomorphisms (forget C)] [preserves_limits (forget C)]
+variables {C : Type u} [category.{v} C] [concrete_category.{v} C]
 
 namespace Top
 
@@ -73,14 +72,14 @@ A section `s` is a gluing for a family of sections `sf` if it restricts to `sf i
 for all `i`
 -/
 def is_gluing (sf : Π i : ι, F.obj (op (U i))) (s : F.obj (op (supr U))) : Prop :=
-  ∀ i : ι, F.map (opens.le_supr U i).op s = sf i
+∀ i : ι, F.map (opens.le_supr U i).op s = sf i
 
 /--
 The subtype of all gluings for a given family of sections
 -/
 @[nolint has_inhabited_instance]
 def gluing (sf : Π i : ι, F.obj (op (U i))) : Type v :=
-  {s : F.obj (op (supr U)) // is_gluing F U sf s}
+{s : F.obj (op (supr U)) // is_gluing F U sf s}
 
 /--
 The sheaf condition in terms of unique gluings. A presheaf `F : presheaf C X` satisfies this sheaf
@@ -92,8 +91,8 @@ We prove this to be equivalent to the usual one below in
 -/
 @[derive subsingleton, nolint has_inhabited_instance]
 def sheaf_condition_unique_gluing : Type (v+1) :=
-  Π ⦃ι : Type v⦄ (U : ι → opens X) (sf : Π i : ι, F.obj (op (U i))),
-    is_compatible F U sf → unique (gluing F U sf)
+Π ⦃ι : Type v⦄ (U : ι → opens X) (sf : Π i : ι, F.obj (op (U i))),
+  is_compatible F U sf → unique (gluing F U sf)
 
 end
 
@@ -205,8 +204,8 @@ def sheaf_condition_unique_gluing_of_sheaf_condition_types :
 }
 
 /--
-The sheaf condition in terms of unique gluings is equivalent to the usual sheaf condition
-in terms of equalizer diagrams.
+For type-valued presheaves, the sheaf condition in terms of unique gluings is equivalent to the
+usual sheaf condition in terms of equalizer diagrams.
 -/
 def sheaf_condition_equiv_sheaf_condition_unique_gluing_types :
   F.sheaf_condition ≃ F.sheaf_condition_unique_gluing :=
@@ -220,9 +219,15 @@ section
 
 local attribute [instance] concrete_category.has_coe_to_sort concrete_category.has_coe_to_fun
 
+variables [has_limits C] [reflects_isomorphisms (forget C)] [preserves_limits (forget C)]
 variables {X : Top.{v}} (F : presheaf C X) {ι : Type v} (U : ι → opens X)
 
-def sheaf_condition_equiv_sheaf_condition_unique_gluing :
+/--
+For presheaves valued in a concrete category, whose forgetful functor reflects isomorphisms and
+preserves limits, the sheaf condition in terms of unique gluings is equivalent to the usual one
+in terms of equalizer diagrams.
+-/
+def sheaf_condition_equiv_sheaf_condition_unique_gluing_types :
   F.sheaf_condition ≃ F.sheaf_condition_unique_gluing :=
 equiv.trans (sheaf_condition_equiv_sheaf_condition_comp (forget C) F)
   (sheaf_condition_equiv_sheaf_condition_unique_gluing_types (F ⋙ forget C))
@@ -262,6 +267,9 @@ open category_theory
 section
 
 local attribute [instance] concrete_category.has_coe_to_sort concrete_category.has_coe_to_fun
+
+variables [has_limits C] [reflects_isomorphisms (concrete_category.forget C)]
+variables [preserves_limits (concrete_category.forget C)]
 
 variables {X : Top.{v}} (F : sheaf C X) {ι : Type v} (U : ι → opens X)
 

@@ -70,6 +70,9 @@ by simpa [sub_eq_add_neg, add_assoc] using abv.add_le (a - b) (b - c)
 protected lemma le_sub (a b : R) : abv a - abv b ≤ abv (a - b) :=
 sub_le_iff_le_add.2 $ by simpa using abv.add_le (a - b) b
 
+@[simp] lemma map_sub_eq_zero_iff (a b : R) : abv (a - b) = 0 ↔ a = b :=
+abv.eq_zero.trans sub_eq_zero
+
 end ordered_ring
 
 section linear_ordered_ring
@@ -87,21 +90,13 @@ protected def abs : absolute_value S S :=
 
 instance : inhabited (absolute_value S S) := ⟨absolute_value.abs⟩
 
-end linear_ordered_ring
-
-section linear_ordered_field
-
-section semiring
-
-variables {R S : Type*} [semiring R] [linear_ordered_field S] (abv : absolute_value R S)
-
 variables [nontrivial R]
 
 @[simp] protected theorem map_one : abv 1 = 1 :=
-(mul_right_inj' $ mt abv.eq_zero.1 one_ne_zero).1 $
+(mul_right_inj' $ abv.ne_zero one_ne_zero).1 $
 by rw [← abv.map_mul, mul_one, mul_one]
 
-/-- Absolute values from a nontrivial `R` to a linear ordered field preserve `*`, `0` and `1`. -/
+/-- Absolute values from a nontrivial `R` to a linear ordered ring preserve `*`, `0` and `1`. -/
 def to_monoid_with_zero_hom : monoid_with_zero_hom R S :=
 { to_fun := abv,
   map_zero' := abv.map_zero,
@@ -110,7 +105,7 @@ def to_monoid_with_zero_hom : monoid_with_zero_hom R S :=
 
 @[simp] lemma coe_to_monoid_with_zero_hom : ⇑abv.to_monoid_with_zero_hom = abv := rfl
 
-/-- Absolute values from a nontrivial `R` to a linear ordered field preserve `*` and `1`. -/
+/-- Absolute values from a nontrivial `R` to a linear ordered ring preserve `*` and `1`. -/
 def to_monoid_hom : monoid_hom R S :=
 { to_fun := abv,
   map_one' := abv.map_one,
@@ -121,15 +116,21 @@ def to_monoid_hom : monoid_hom R S :=
 @[simp] protected lemma map_pow (a : R) (n : ℕ) : abv (a ^ n) = abv a ^ n :=
 abv.to_monoid_hom.map_pow a n
 
-end semiring
+end linear_ordered_ring
+
+section linear_ordered_comm_ring
 
 section ring
 
-variables {R S : Type*} [ring R] [linear_ordered_field S] (abv : absolute_value R S)
+variables {R S : Type*} [ring R] [linear_ordered_comm_ring S] (abv : absolute_value R S)
 
 @[simp] protected theorem map_neg (a : R) : abv (-a) = abv a :=
-by rw [← mul_self_inj_of_nonneg (abv.nonneg _) (abv.nonneg _),
-       ← abv.map_mul]; simp
+begin
+  by_cases ha : a = 0, { simp [ha] },
+  refine (mul_self_eq_mul_self_iff.mp
+    (by rw [← abv.map_mul, neg_mul_neg, abv.map_mul])).resolve_right _,
+  exact ((neg_lt_zero.mpr (abv.pos ha)).trans (abv.pos (neg_ne_zero.mpr ha))).ne'
+end
 
 protected theorem map_sub (a b : R) : abv (a - b) = abv (b - a) :=
 by rw [← neg_sub, abv.map_neg]
@@ -139,6 +140,10 @@ lemma abs_abv_sub_le_abv_sub (a b : R) :
 abs_sub_le_iff.2 ⟨abv.le_sub _ _, by rw abv.map_sub; apply abv.le_sub⟩
 
 end ring
+
+end linear_ordered_comm_ring
+
+section linear_ordered_field
 
 section field
 

@@ -278,6 +278,21 @@ begin
     exact general_commutator_normal (lower_central_series G d) ⊤ },
 end
 
+lemma lower_central_series_antimono {m n : ℕ} (h : n ≤ m) :
+  lower_central_series G m ≤ lower_central_series G n :=
+begin
+  refine @monotone_nat_of_le_succ (order_dual (subgroup G)) _ _ _ _ _ h,
+  intros n x hx,
+  simp only [mem_lower_central_series_succ_iff, exists_prop, mem_top, exists_true_left, true_and]
+    at hx,
+  refine closure_induction hx _ (subgroup.one_mem _) (@subgroup.mul_mem _ _ _)
+    (@subgroup.inv_mem _ _ _),
+  rintros y ⟨z, hz, a, ha⟩,
+  rw [← ha, mul_assoc, mul_assoc, ← mul_assoc a z⁻¹ a⁻¹],
+  exact mul_mem (lower_central_series G n) hz
+    (normal.conj_mem (lower_central_series.subgroup.normal n) z⁻¹ (inv_mem _ hz) a),
+end
+
 /-- The lower central series of a group is a descending central series. -/
 theorem lower_central_series_is_descending_central_series :
   is_descending_central_series (lower_central_series G) :=
@@ -347,4 +362,38 @@ begin
   { rintros _ ⟨x, hx : x ∈ upper_central_series G d.succ, rfl⟩ y',
     rcases (h y') with ⟨y, rfl⟩,
     simpa using hd (mem_map_of_mem f (hx y)) }
+end
+
+lemma lower_central_series.map {H : Type*} [group H] (f : G →* H) (n : ℕ) :
+  subgroup.map f (lower_central_series G n) ≤ lower_central_series H n :=
+begin
+  induction n with d hd,
+  { simp [nat.nat_zero_eq_zero] },
+  { rintros a ⟨x, hx : x ∈ lower_central_series G d.succ, rfl⟩,
+    refine closure_induction hx _ (by simp [f.map_one, subgroup.one_mem _])
+      (λ y z hy hz, by simp [monoid_hom.map_mul, subgroup.mul_mem _ hy hz])
+      (λ y hy, by simp [f.map_inv, subgroup.inv_mem _ hy]),
+    rintros a ⟨y, hy, z, ⟨-, rfl⟩⟩,
+    apply mem_closure.mpr,
+    exact λ K hK, hK ⟨f y, hd (mem_map_of_mem f hy), by simp⟩ }
+end
+
+lemma lower_central_series_succ_eq_bot {n : ℕ} (h : lower_central_series G n ≤ center G) :
+  lower_central_series G (n + 1) = ⊥ :=
+begin
+  rw [lower_central_series_succ, closure_eq_bot_iff, set.subset_singleton_iff],
+  rintro x ⟨y, hy1, z, ⟨⟩, rfl⟩,
+  symmetry,
+  rw [eq_mul_inv_iff_mul_eq, eq_mul_inv_iff_mul_eq, one_mul],
+  exact mem_center_iff.mp (h hy1) z,
+end
+
+lemma is_nilpotent_of_ker_le_center {H : Type*} [group H] {f : G →* H}
+  (hf1 : f.ker ≤ center G) (hH : is_nilpotent H) : is_nilpotent G :=
+begin
+  rw nilpotent_iff_lower_central_series at *,
+  rcases hH with ⟨n, hn⟩,
+  refine ⟨n + 1, lower_central_series_succ_eq_bot
+    (le_trans ((map_eq_bot_iff _).mp _) hf1)⟩,
+  exact eq_bot_iff.mpr (hn ▸ (lower_central_series.map f n)),
 end

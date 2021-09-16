@@ -43,8 +43,8 @@ variables [ist : is_scalar_tower R S L] [iic : is_integral_closure S R L]
 variables {R S} (abv : absolute_value R ℤ)
 variables {ι : Type*} [decidable_eq ι] [fintype ι] (bS : basis ι R S)
 
-/-- If `b` is an `R`-basis of `S` of cardinality `n`,
-then `norm_bound abv b` is an integer such that for every `R`-integral element `a : S` with coordinates `≤ y`,
+/-- If `b` is an `R`-basis of `S` of cardinality `n`, then `norm_bound abv b` is an integer
+such that for every `R`-integral element `a : S` with coordinates `≤ y`,
 we have algebra.norm a ≤ norm_bound abv b * y ^ n`. (See also `norm_le` and `norm_lt`). -/
 noncomputable def norm_bound : ℤ :=
 let n := fintype.card ι,

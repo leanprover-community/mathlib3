@@ -815,13 +815,13 @@ lemma strict_mono_on.comp_strict_anti_on [preorder α] [preorder β] [preorder �
   {g : β → γ} {f : α → β} {s : set α} {t : set β} (hg : strict_mono_on g t)
   (hf : strict_anti_on f s) (hs : set.maps_to f s t) :
   strict_anti_on (g ∘ f) s :=
-λ x hx y hy hxy, hg (hs hx) (hs hy) $ hf hx hy hxy
+λ x hx y hy hxy, hg (hs hy) (hs hx) $ hf hx hy hxy
 
 lemma strict_anti_on.comp [preorder α] [preorder β] [preorder γ]
   {g : β → γ} {f : α → β} {s : set α} {t : set β} (hg : strict_anti_on g t)
   (hf : strict_anti_on f s) (hs : set.maps_to f s t) :
   strict_mono_on (g ∘ f) s :=
-λ x hx y hy hxy, hg (hs hx) (hs hy) $ hf hx hy hxy
+λ x hx y hy hxy, hg (hs hy) (hs hx) $ hf hx hy hxy
 
 lemma strict_anti_on.comp_strict_mono_on [preorder α] [preorder β] [preorder γ]
   {g : β → γ} {f : α → β} {s : set α} {t : set β} (hg : strict_anti_on g t)

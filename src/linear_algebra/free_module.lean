@@ -210,11 +210,12 @@ end division_ring
 section integer
 
 variables [add_comm_group M] [module.finite ℤ M] [module.free ℤ M]
+variables [add_comm_group N] [module.finite ℤ N] [module.free ℤ N]
 
-instance : module.finite ℤ (M →+ ℤ) :=
+instance : module.finite ℤ (M →+ N) :=
 module.finite.equiv add_monoid_hom_lequiv_int.symm
 
-instance : module.free ℤ (M →+ ℤ) :=
+instance : module.free ℤ (M →+ N) :=
 module.free.of_equiv add_monoid_hom_lequiv_int.symm
 
 end integer

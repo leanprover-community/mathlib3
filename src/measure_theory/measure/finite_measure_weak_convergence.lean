@@ -81,7 +81,7 @@ variables {α : Type*} [measurable_space α]
 
 /-- Finite measures are defined as the subtype of measures that have the property of being finite
 measures (i.e., their total mass is finite). -/
-abbreviation finite_measure (α : Type*) [measurable_space α] : Type* :=
+def finite_measure (α : Type*) [measurable_space α] : Type* :=
 {μ : measure α // is_finite_measure μ}
 
 namespace finite_measure
@@ -100,6 +100,8 @@ lemma coe_fn_eq_to_nnreal_coe_fn_to_measure (ν : finite_measure α) :
 
 @[simp] lemma ennreal_coe_fn_eq_coe_fn_to_measure (ν : finite_measure α) (s : set α) :
   (ν s : ℝ≥0∞) = (ν : measure α) s := ennreal.coe_to_nnreal (measure_lt_top ↑ν s).ne
+
+@[simp] lemma val_eq_to_measure (ν : finite_measure α) : ν.val = (ν : measure α) := rfl
 
 lemma coe_injective : function.injective (coe : finite_measure α → measure α) :=
 subtype.coe_injective
@@ -156,7 +158,7 @@ end finite_measure
 
 /-- Probability measures are defined as the subtype of measures that have the property of being
 probability measures (i.e., their total mass is one). -/
-abbreviation probability_measure (α : Type*) [measurable_space α] : Type* :=
+def probability_measure (α : Type*) [measurable_space α] : Type* :=
 {μ : measure α // is_probability_measure μ}
 
 namespace probability_measure
@@ -174,6 +176,8 @@ instance (μ : probability_measure α) : is_probability_measure (μ : measure α
 
 lemma coe_fn_eq_to_nnreal_coe_fn_to_measure (ν : probability_measure α) :
   (ν : set α → ℝ≥0) = λ s, ((ν : measure α) s).to_nnreal := rfl
+
+@[simp] lemma val_eq_to_measure (ν : probability_measure α) : ν.val = (ν : measure α) := rfl
 
 lemma coe_injective : function.injective (coe : probability_measure α → measure α) :=
 subtype.coe_injective

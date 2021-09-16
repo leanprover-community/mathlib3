@@ -20,10 +20,6 @@ and define `class_number` as the order of this group.
 ## Main definitions
  - `class_group.fintype_of_admissible`: if `R` has an admissible absolute value,
    its integral closure has a finite class group
- - `number_field.class_number`: the class number of a number field is the (finite)
-   cardinality of the class group of its ring of integers
- - `function_field.class_number`: the class number of a number field is the (finite)
-   cardinality of the class group of its ring of integers
 -/
 
 open_locale big_operators
@@ -47,8 +43,9 @@ variables [ist : is_scalar_tower R S L] [iic : is_integral_closure S R L]
 variables {R S} (abv : absolute_value R ℤ)
 variables {ι : Type*} [decidable_eq ι] [fintype ι] (bS : basis ι R S)
 
-/-- If the `R`-integral element `a : S` has coordinates `≤ y`, then
-`algebra.norm a ≤ norm_bound abv b * y ^ n`. (See also `norm_le` and `norm_lt`). -/
+/-- If `b` is an `R`-basis of `S` of cardinality `n`,
+then `norm_bound abv b` is an integer such that for every `R`-integral element `a : S` with coordinates `≤ y`,
+we have algebra.norm a ≤ norm_bound abv b * y ^ n`. (See also `norm_le` and `norm_lt`). -/
 noncomputable def norm_bound : ℤ :=
 let n := fintype.card ι,
     i : ι := nonempty.some bS.index_nonempty,
@@ -75,8 +72,8 @@ begin
   exact finset.mem_image.mpr ⟨⟨i, j, k⟩, finset.mem_univ _, rfl⟩
 end
 
-/-- If the `R`-integral element `a : S` has coordinates `≤ y`, its norm is less
-than `norm_bound * y ^ dim S`. -/
+/-- If the `R`-integral element `a : S` has coordinates `≤ y` with respect to some basis `b`,
+its norm is less than `norm_bound abv b * y ^ dim S`. -/
 lemma norm_le (a : S) {y : ℤ} (hy : ∀ k, abv (bS.repr a k) ≤ y) :
   abv (algebra.norm R a) ≤ norm_bound abv bS * y ^ fintype.card ι :=
 begin
@@ -91,8 +88,8 @@ begin
     exact finset.mem_image.mpr ⟨⟨i, j, k⟩, finset.mem_univ _, rfl⟩ },
 end
 
-/-- If the `R`-integral element `a : S` has coordinates `< y`, its norm is strictly less
-than `norm_bound * y ^ dim S`. -/
+/-- If the `R`-integral element `a : S` has coordinates `< y` with respect to some basis `b`,
+its norm is strictly less than `norm_bound abv b * y ^ dim S`. -/
 lemma norm_lt {T : Type*} [linear_ordered_comm_ring T]
   (a : S) {y : T} (hy : ∀ k, (abv (bS.repr a k) : T) < y) :
   (abv (algebra.norm R a) : T) < norm_bound abv bS * y ^ fintype.card ι :=
@@ -147,8 +144,12 @@ variables (L) {abv} (adm : abv.is_admissible)
 include adm
 
 /-- If we have a large enough set of elements in `R^ι`, then there will be a pair
-whose remainders are close together. An upper bound for the number of elements
-is `cardM bS adm`. -/
+whose remainders are close together. We'll show that all sets of cardinality
+at least `cardM bS adm` elements satisfy this condition.
+
+The value of `cardM` is not at all optimal: for specific choices of `R`,
+the minimum cardinality can be exponentially smaller.
+-/
 noncomputable def cardM : ℕ :=
 adm.card (norm_bound abv bS ^ (-1 / (fintype.card ι) : ℝ)) ^ fintype.card ι
 

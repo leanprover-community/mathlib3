@@ -74,6 +74,9 @@ begin
     rwa integrable_neg_iff }
 end
 
+lemma with_densityᵥ_neg' : μ.with_densityᵥ (λ x, -f x) = -μ.with_densityᵥ f :=
+with_densityᵥ_neg
+
 @[simp] lemma with_densityᵥ_add (hf : integrable f μ) (hg : integrable g μ) :
   μ.with_densityᵥ (f + g) = μ.with_densityᵥ f + μ.with_densityᵥ g :=
 begin
@@ -86,9 +89,17 @@ begin
   { exact hg.integrable_on.restrict measurable_set.univ }
 end
 
+lemma with_densityᵥ_add' (hf : integrable f μ) (hg : integrable g μ) :
+  μ.with_densityᵥ (λ x, f x + g x) = μ.with_densityᵥ f + μ.with_densityᵥ g :=
+with_densityᵥ_add hf hg
+
 @[simp] lemma with_densityᵥ_sub (hf : integrable f μ) (hg : integrable g μ) :
   μ.with_densityᵥ (f - g) = μ.with_densityᵥ f - μ.with_densityᵥ g :=
 by rw [sub_eq_add_neg, sub_eq_add_neg, with_densityᵥ_add hf hg.neg, with_densityᵥ_neg]
+
+lemma with_densityᵥ_sub' (hf : integrable f μ) (hg : integrable g μ) :
+  μ.with_densityᵥ (λ x, f x - g x) = μ.with_densityᵥ f - μ.with_densityᵥ g :=
+with_densityᵥ_sub hf hg
 
 @[simp] lemma with_densityᵥ_smul {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]
   [smul_comm_class ℝ 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜] (r : 𝕜) :
@@ -104,6 +115,11 @@ begin
     { rw [with_densityᵥ, with_densityᵥ, dif_neg hf, dif_neg, smul_zero],
       rwa integrable_smul_iff hr f } }
 end
+
+lemma with_densityᵥ_smul' {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]
+  [smul_comm_class ℝ 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜] (r : 𝕜) :
+  μ.with_densityᵥ (λ x, r • f x) = r • μ.with_densityᵥ f :=
+with_densityᵥ_smul r
 
 lemma measure.with_densityᵥ_absolutely_continuous (μ : measure α) (f : α → ℝ) :
   μ.with_densityᵥ f ≪ μ.to_ennreal_vector_measure :=
@@ -144,6 +160,20 @@ lemma integrable.with_densityᵥ_eq_iff {f g : α → E}
 
 section signed_measure
 
+lemma with_densityᵥ_to_real {f : α → ℝ≥0∞} (hfm : ae_measurable f μ) (hf : ∫⁻ x, f x ∂μ ≠ ∞) :
+  μ.with_densityᵥ (λ x, (f x).to_real) =
+  @to_signed_measure α _ (μ.with_density f)
+    (is_finite_measure_with_density (lt_top_iff_ne_top.2 hf)) :=
+begin
+  have hfi := integrable_to_real_of_lintegral_ne_top hfm hf,
+  ext i hi,
+  rw [with_densityᵥ_apply hfi hi, to_signed_measure_apply_measurable hi,
+      with_density_apply _ hi, integral_to_real hfm.restrict],
+  refine ae_lt_top' hfm.restrict (lt_of_le_of_lt _ (lt_top_iff_ne_top.2 hf)),
+  conv_rhs { rw ← set_lintegral_univ },
+  exact lintegral_mono_set (set.subset_univ _),
+end
+
 lemma with_densityᵥ_sub_eq_with_density {f g : α → ℝ≥0∞}
   (hfm : ae_measurable f μ) (hgm : ae_measurable g μ)
   (hf : ∫⁻ x, f x ∂μ ≠ ∞) (hg : ∫⁻ x, g x ∂μ ≠ ∞) :
@@ -156,23 +186,7 @@ begin
   have hfi := integrable_to_real_of_lintegral_ne_top hfm hf,
   have hgi := integrable_to_real_of_lintegral_ne_top hgm hg,
   ext i hi,
-  rw [with_densityᵥ_apply _ hi, vector_measure.sub_apply,
-      to_signed_measure_apply_measurable hi, to_signed_measure_apply_measurable hi,
-      with_density_apply _ hi, with_density_apply _ hi, integral_sub,
-      integral_to_real hfm.restrict, integral_to_real hgm.restrict],
-  { refine ae_lt_top' hgm.restrict (lt_of_le_of_lt _ (lt_top_iff_ne_top.2 hg)),
-    conv_rhs { rw ← set_lintegral_univ },
-    exact lintegral_mono_set (set.subset_univ _) },
-  { refine ae_lt_top' hfm.restrict (lt_of_le_of_lt _ (lt_top_iff_ne_top.2 hf)),
-    conv_rhs { rw ← set_lintegral_univ },
-    exact lintegral_mono_set (set.subset_univ _) },
-  { rw ← integrable_on,
-    rw ← integrable_on_univ at hfi,
-    exact integrable_on.mono hfi (set.subset_univ _) (le_refl _) },
-  { rw ← integrable_on,
-    rw ← integrable_on_univ at hgi,
-    exact integrable_on.mono hgi (set.subset_univ _) (le_refl _) },
-  { exact hfi.sub hgi }
+  rw [with_densityᵥ_sub' hfi hgi, with_densityᵥ_to_real hfm hf, with_densityᵥ_to_real hgm hg],
 end
 
 end signed_measure

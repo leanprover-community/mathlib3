@@ -153,8 +153,6 @@ the minimum cardinality can be exponentially smaller.
 noncomputable def cardM : ℕ :=
 adm.card (norm_bound abv bS ^ (-1 / (fintype.card ι) : ℝ)) ^ fintype.card ι
 
--- adm.card (nat_ceil (norm_bound abv b ^ (-1 / (fintype.card ι) : ℝ) : ℝ))
-
 variables [infinite R]
 
 /-- In the following results, we need a large set of distinct elements of `R`. -/

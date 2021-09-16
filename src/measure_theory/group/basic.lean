@@ -437,7 +437,7 @@ instance is_haar_measure.sigma_finite
   [t2_space G] [sigma_compact_space G] [opens_measurable_space G] :
   sigma_finite μ :=
 ⟨⟨{ set := compact_covering G,
-  set_mem := λ n, (is_compact_compact_covering G n).measurable_set,
+  set_mem := λ n, mem_univ _,
   finite := λ n, is_compact.haar_lt_top μ $ is_compact_compact_covering G n,
   spanning := Union_compact_covering G }⟩⟩
 

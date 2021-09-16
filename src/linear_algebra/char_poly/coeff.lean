@@ -48,33 +48,33 @@ open polynomial
 variable {M : matrix n n R}
 
 lemma char_matrix_apply_nat_degree [nontrivial R] (i j : n) :
-  (char_matrix M i j).nat_degree = ite (i = j) 1 0 :=
+  (charmatrix M i j).nat_degree = ite (i = j) 1 0 :=
 by { by_cases i = j; simp [h, ← degree_eq_iff_nat_degree_eq_of_pos (nat.succ_pos 0)], }
 
 lemma char_matrix_apply_nat_degree_le (i j : n) :
-  (char_matrix M i j).nat_degree ≤ ite (i = j) 1 0 :=
+  (charmatrix M i j).nat_degree ≤ ite (i = j) 1 0 :=
 by split_ifs; simp [h, nat_degree_X_sub_C_le]
 
 variable (M)
 lemma char_poly_sub_diagonal_degree_lt :
-(char_poly M - ∏ (i : n), (X - C (M i i))).degree < ↑(fintype.card n - 1) :=
+(M.charpoly - ∏ (i : n), (X - C (M i i))).degree < ↑(fintype.card n - 1) :=
 begin
-  rw [char_poly, det_apply', ← insert_erase (mem_univ (equiv.refl n)),
+  rw [charpoly, det_apply', ← insert_erase (mem_univ (equiv.refl n)),
     sum_insert (not_mem_erase (equiv.refl n) univ), add_comm],
-  simp only [char_matrix_apply_eq, one_mul, equiv.perm.sign_refl, id.def, int.cast_one,
+  simp only [charmatrix_apply_eq, one_mul, equiv.perm.sign_refl, id.def, int.cast_one,
     units.coe_one, add_sub_cancel, equiv.coe_refl],
   rw ← mem_degree_lt, apply submodule.sum_mem (degree_lt R (fintype.card n - 1)),
   intros c hc, rw [← C_eq_int_cast, C_mul'],
   apply submodule.smul_mem (degree_lt R (fintype.card n - 1)) ↑↑(equiv.perm.sign c),
   rw mem_degree_lt, apply lt_of_le_of_lt degree_le_nat_degree _, rw with_bot.coe_lt_coe,
   apply lt_of_le_of_lt _ (equiv.perm.fixed_point_card_lt_of_ne_one (ne_of_mem_erase hc)),
-  apply le_trans (polynomial.nat_degree_prod_le univ (λ i : n, (char_matrix M (c i) i))) _,
+  apply le_trans (polynomial.nat_degree_prod_le univ (λ i : n, (charmatrix M (c i) i))) _,
   rw card_eq_sum_ones, rw sum_filter, apply sum_le_sum,
   intros, apply char_matrix_apply_nat_degree_le,
 end
 
 lemma char_poly_coeff_eq_prod_coeff_of_le {k : ℕ} (h : fintype.card n - 1 ≤ k) :
-  (char_poly M).coeff k = (∏ i : n, (X - C (M i i))).coeff k :=
+  M.charpoly.coeff k = (∏ i : n, (X - C (M i i))).coeff k :=
 begin
   apply eq_of_sub_eq_zero, rw ← coeff_sub, apply polynomial.coeff_eq_zero_of_degree_lt,
   apply lt_of_lt_of_le (char_poly_sub_diagonal_degree_lt M) _, rw with_bot.coe_le_coe, apply h,
@@ -84,11 +84,11 @@ lemma det_of_card_zero (h : fintype.card n = 0) (M : matrix n n R) : M.det = 1 :
 by { rw fintype.card_eq_zero_iff at h, suffices : M = 1, { simp [this] }, ext i, exact h.elim i }
 
 theorem char_poly_degree_eq_dim [nontrivial R] (M : matrix n n R) :
-(char_poly M).degree = fintype.card n :=
+M.charpoly.degree = fintype.card n :=
 begin
   by_cases fintype.card n = 0,
-  { rw h, unfold char_poly, rw det_of_card_zero, {simp}, {assumption} },
-  rw ← sub_add_cancel (char_poly M) (∏ (i : n), (X - C (M i i))),
+  { rw h, unfold charpoly, rw det_of_card_zero, {simp}, {assumption} },
+  rw ← sub_add_cancel M.charpoly (∏ (i : n), (X - C (M i i))),
   have h1 : (∏ (i : n), (X - C (M i i))).degree = fintype.card n,
   { rw degree_eq_iff_nat_degree_eq_of_pos, swap, apply nat.pos_of_ne_zero h,
     rw nat_degree_prod', simp_rw nat_degree_X_sub_C, unfold fintype.card, simp,
@@ -99,17 +99,16 @@ begin
 end
 
 theorem char_poly_nat_degree_eq_dim [nontrivial R] (M : matrix n n R) :
-  (char_poly M).nat_degree = fintype.card n :=
+  M.charpoly.nat_degree = fintype.card n :=
 nat_degree_eq_of_degree_eq_some (char_poly_degree_eq_dim M)
 
-lemma char_poly_monic (M : matrix n n R) :
-  monic (char_poly M) :=
+lemma char_poly_monic (M : matrix n n R) : M.charpoly.monic :=
 begin
   nontriviality,
-  by_cases fintype.card n = 0, {rw [char_poly, det_of_card_zero h], apply monic_one},
+  by_cases fintype.card n = 0, {rw [charpoly, det_of_card_zero h], apply monic_one},
   have mon : (∏ (i : n), (X - C (M i i))).monic,
   { apply monic_prod_of_monic univ (λ i : n, (X - C (M i i))), simp [monic_X_sub_C], },
-  rw ← sub_add_cancel (∏ (i : n), (X - C (M i i))) (char_poly M) at mon,
+  rw ← sub_add_cancel (∏ (i : n), (X - C (M i i))) M.charpoly at mon,
   rw monic at *, rw leading_coeff_add_of_degree_lt at mon, rw ← mon,
   rw char_poly_degree_eq_dim, rw ← neg_sub, rw degree_neg,
   apply lt_trans (char_poly_sub_diagonal_degree_lt M), rw with_bot.coe_lt_coe,
@@ -117,7 +116,7 @@ begin
 end
 
 theorem trace_eq_neg_char_poly_coeff [nonempty n] (M : matrix n n R) :
-  (matrix.trace n R R) M = -(char_poly M).coeff (fintype.card n - 1) :=
+  (matrix.trace n R R) M = -M.charpoly.coeff (fintype.card n - 1) :=
 begin
   nontriviality,
   rw char_poly_coeff_eq_prod_coeff_of_le, swap, refl,
@@ -152,9 +151,9 @@ begin
 end
 
 theorem det_eq_sign_char_poly_coeff (M : matrix n n R) :
-  M.det = (-1)^(fintype.card n) * (char_poly M).coeff 0:=
+  M.det = (-1)^(fintype.card n) * M.charpoly.coeff 0:=
 begin
-  rw [coeff_zero_eq_eval_zero, char_poly, eval_det, mat_poly_equiv_char_matrix, ← det_smul],
+  rw [coeff_zero_eq_eval_zero, charpoly, eval_det, mat_poly_equiv_charmatrix, ← det_smul],
   simp
 end
 
@@ -162,25 +161,25 @@ variables {p : ℕ} [fact p.prime]
 
 lemma mat_poly_equiv_eq_X_pow_sub_C {K : Type*} (k : ℕ) [field K] (M : matrix n n K) :
   mat_poly_equiv
-      ((expand K (k) : polynomial K →+* polynomial K).map_matrix (char_matrix (M ^ k))) =
+      ((expand K (k) : polynomial K →+* polynomial K).map_matrix (charmatrix (M ^ k))) =
     X ^ k - C (M ^ k) :=
 begin
   ext m,
   rw [coeff_sub, coeff_C, mat_poly_equiv_coeff_apply, ring_hom.map_matrix_apply, matrix.map_apply,
     alg_hom.coe_to_ring_hom, dmatrix.sub_apply, coeff_X_pow],
   by_cases hij : i = j,
-  { rw [hij, char_matrix_apply_eq, alg_hom.map_sub, expand_C, expand_X, coeff_sub, coeff_X_pow,
+  { rw [hij, charmatrix_apply_eq, alg_hom.map_sub, expand_C, expand_X, coeff_sub, coeff_X_pow,
      coeff_C],
     split_ifs with mp m0;
     simp only [matrix.one_apply_eq, dmatrix.zero_apply] },
-  { rw [char_matrix_apply_ne _ _ _ hij, alg_hom.map_neg, expand_C, coeff_neg, coeff_C],
+  { rw [charmatrix_apply_ne _ _ _ hij, alg_hom.map_neg, expand_C, coeff_neg, coeff_C],
     split_ifs with m0 mp;
     simp only [hij, zero_sub, dmatrix.zero_apply, sub_zero, neg_zero, matrix.one_apply_ne, ne.def,
       not_false_iff] }
 end
 
 @[simp] lemma finite_field.char_poly_pow_card {K : Type*} [field K] [fintype K] (M : matrix n n K) :
-  char_poly (M ^ (fintype.card K)) = char_poly M :=
+  (M ^ (fintype.card K)).charpoly = M.charpoly :=
 begin
   casesI (is_empty_or_nonempty n).symm,
   { cases char_p.exists K with p hp, letI := hp,
@@ -190,11 +189,11 @@ begin
     apply (frobenius_inj (polynomial K) p).iterate k,
     repeat { rw iterate_frobenius, rw ← hk },
     rw ← finite_field.expand_card,
-    unfold char_poly, rw [alg_hom.map_det, ← coe_det_monoid_hom,
+    unfold charpoly, rw [alg_hom.map_det, ← coe_det_monoid_hom,
       ← (det_monoid_hom : matrix n n (polynomial K) →* polynomial K).map_pow],
     apply congr_arg det,
     refine mat_poly_equiv.injective _,
-    rw [alg_equiv.map_pow, mat_poly_equiv_char_matrix, hk, sub_pow_char_pow_of_commute, ← C_pow],
+    rw [alg_equiv.map_pow, mat_poly_equiv_charmatrix, hk, sub_pow_char_pow_of_commute, ← C_pow],
     { exact (id (mat_poly_equiv_eq_X_pow_sub_C (p ^ k) M) : _) },
     { exact (C M).commute_X } },
   { -- TODO[gh-6025]: remove this `haveI` once `subsingleton_of_empty_right` is a global instance
@@ -203,7 +202,7 @@ begin
 end
 
 @[simp] lemma zmod.char_poly_pow_card (M : matrix n n (zmod p)) :
-  char_poly (M ^ p) = char_poly M :=
+  (M ^ p).charpoly = M.charpoly :=
 by { have h := finite_field.char_poly_pow_card M, rwa zmod.card at h, }
 
 lemma finite_field.trace_pow_card {K : Type*} [field K] [fintype K] [nonempty n]
@@ -217,10 +216,10 @@ by { have h := finite_field.trace_pow_card M, rwa zmod.card at h, }
 
 namespace matrix
 
-theorem is_integral : is_integral R M := ⟨char_poly M, ⟨char_poly_monic M, aeval_self_char_poly M⟩⟩
+theorem is_integral : is_integral R M := ⟨M.charpoly, ⟨char_poly_monic M, aeval_self_char_poly M⟩⟩
 
 theorem min_poly_dvd_char_poly {K : Type*} [field K] (M : matrix n n K) :
-  (minpoly K M) ∣ char_poly M :=
+  (minpoly K M) ∣ M.charpoly :=
 minpoly.dvd _ _ (aeval_self_char_poly M)
 
 end matrix
@@ -237,7 +236,7 @@ field norm resp. trace of `x` is the product resp. sum of `x`'s conjugates.
 -/
 lemma char_poly_left_mul_matrix {K S : Type*} [field K] [comm_ring S] [algebra K S]
   (h : power_basis K S) :
-  char_poly (left_mul_matrix h.basis h.gen) = minpoly K h.gen :=
+  (left_mul_matrix h.basis h.gen).charpoly = minpoly K h.gen :=
 begin
   apply minpoly.unique,
   { apply char_poly_monic },

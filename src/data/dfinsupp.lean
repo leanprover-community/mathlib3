@@ -90,10 +90,10 @@ bundled:
 * `dfinsupp.map_range.linear_map`
 * `dfinsupp.map_range.linear_equiv`
 -/
-def map_range (f : Π i, β₁ i → β₂ i) (hf : ∀ i, f i 0 = 0) (g : Π₀ i, β₁ i) : Π₀ i, β₂ i :=
-quotient.lift_on g (λ x, ⟦(⟨λ i, f i (x.1 i), x.2,
-  λ i, or.cases_on (x.3 i) or.inl $ λ H, or.inr $ by rw [H, hf]⟩ : pre ι β₂)⟧) $ λ x y H,
-quotient.sound $ λ i, by simp only [H i]
+def map_range (f : Π i, β₁ i → β₂ i) (hf : ∀ i, f i 0 = 0) : (Π₀ i, β₁ i) → Π₀ i, β₂ i :=
+quotient.map
+  (λ x, ⟨λ i, f i (x.1 i), x.2, λ i, (x.3 i).imp_right $ λ H, by rw [H, hf]⟩)
+  (λ x y H i, by simp only [H i])
 
 @[simp] lemma map_range_apply
   (f : Π i, β₁ i → β₂ i) (hf : ∀ i, f i 0 = 0) (g : Π₀ i, β₁ i) (i : ι) :
@@ -116,17 +116,17 @@ by { ext, simp only [map_range_apply, coe_zero, pi.zero_apply, hf] }
 
 /-- Let `f i` be a binary operation `β₁ i → β₂ i → β i` such that `f i 0 0 = 0`.
 Then `zip_with f hf` is a binary operation `Π₀ i, β₁ i → Π₀ i, β₂ i → Π₀ i, β i`. -/
-def zip_with (f : Π i, β₁ i → β₂ i → β i) (hf : ∀ i, f i 0 0 = 0)
-  (g₁ : Π₀ i, β₁ i) (g₂ : Π₀ i, β₂ i) : (Π₀ i, β i) :=
+def zip_with (f : Π i, β₁ i → β₂ i → β i) (hf : ∀ i, f i 0 0 = 0) :
+  (Π₀ i, β₁ i) → (Π₀ i, β₂ i) → (Π₀ i, β i) :=
 begin
-  refine quotient.lift_on₂ g₁ g₂ (λ x y, ⟦(⟨λ i, f i (x.1 i) (y.1 i), x.2 + y.2,
-    λ i, _⟩ : pre ι β)⟧) _,
+  refine quotient.map₂
+    (λ x y, ⟨λ i, f i (x.1 i) (y.1 i), x.2 + y.2, λ i, _⟩) _,
   { cases x.3 i with h1 h1,
     { left, rw multiset.mem_add, left, exact h1 },
     cases y.3 i with h2 h2,
     { left, rw multiset.mem_add, right, exact h2 },
     right, rw [h1, h2, hf] },
-  exact λ x₁ x₂ y₁ y₂ H1 H2, quotient.sound $ λ i, by simp only [H1 i, H2 i]
+  exact λ x₁ x₂ H1 y₁ y₂ H2 i, by simp only [H1 i, H2 i]
 end
 
 @[simp] lemma zip_with_apply
@@ -261,10 +261,10 @@ end algebra
 section filter_and_subtype_domain
 
 /-- `filter p f` is the function which is `f i` if `p i` is true and 0 otherwise. -/
-def filter [Π i, has_zero (β i)] (p : ι → Prop) [decidable_pred p] (f : Π₀ i, β i) : Π₀ i, β i :=
-quotient.lift_on f (λ x, ⟦(⟨λ i, if p i then x.1 i else 0, x.2,
-  λ i, or.cases_on (x.3 i) or.inl $ λ H, or.inr $ by rw [H, if_t_t]⟩ : pre ι β)⟧) $ λ x y H,
-quotient.sound $ λ i, by simp only [H i]
+def filter [Π i, has_zero (β i)] (p : ι → Prop) [decidable_pred p] : (Π₀ i, β i) → Π₀ i, β i :=
+quotient.map
+  (λ x, ⟨λ i, if p i then x.1 i else 0, x.2, λ i, (x.3 i).imp_right $ λ H, by rw [H, if_t_t]⟩)
+  (λ x y H i, by simp only [H i])
 
 @[simp] lemma filter_apply [Π i, has_zero (β i)]
   (p : ι → Prop) [decidable_pred p] (i : ι) (f : Π₀ i, β i) :
@@ -333,19 +333,13 @@ variables {γ β}
 
 /-- `subtype_domain p f` is the restriction of the finitely supported function
   `f` to the subtype `p`. -/
-def subtype_domain [Π i, has_zero (β i)] (p : ι → Prop) [decidable_pred p]
-  (f : Π₀ i, β i) : Π₀ i : subtype p, β i :=
-begin
-  fapply quotient.lift_on f,
-  { intro x,
-    refine ⟦⟨λ i, x.1 (i : ι),
-      (x.2.filter p).attach.map $ λ j, ⟨j, (multiset.mem_filter.1 j.2).2⟩, _⟩⟧,
-    refine λ i, or.cases_on (x.3 i) (λ H, _) or.inr,
-    left, rw multiset.mem_map, refine ⟨⟨i, multiset.mem_filter.2 ⟨H, i.2⟩⟩, _, subtype.eta _ _⟩,
-    apply multiset.mem_attach },
-  intros x y H,
-  exact quotient.sound (λ i, H i)
-end
+def subtype_domain [Π i, has_zero (β i)] (p : ι → Prop) [decidable_pred p] :
+  (Π₀ i, β i) → Π₀ i : subtype p, β i :=
+quotient.map
+  (λ x, ⟨λ i, x.1 (i : ι), (x.2.filter p).attach.map $ λ j, ⟨j, (multiset.mem_filter.1 j.2).2⟩,
+      λ i, (x.3 i).imp_left $ λ H, multiset.mem_map.2
+        ⟨⟨i, multiset.mem_filter.2 ⟨H, i.2⟩⟩, multiset.mem_attach _ _, subtype.eta _ _⟩⟩)
+  (λ x y H i, H i)
 
 @[simp] lemma subtype_domain_zero [Π i, has_zero (β i)] {p : ι → Prop} [decidable_pred p] :
   subtype_domain p (0 : Π₀ i, β i) = 0 :=
@@ -520,11 +514,11 @@ by rw [filter_single, if_pos h]
 by rw [filter_single, if_neg h]
 
 /-- Redefine `f i` to be `0`. -/
-def erase (i : ι) (f : Π₀ i, β i) : Π₀ i, β i :=
-quotient.lift_on f (λ x, ⟦(⟨λ j, if j = i then 0 else x.1 j, x.2,
-λ j, or.cases_on (x.3 j) or.inl $ λ H, or.inr $ by simp only [H, if_t_t]⟩ : pre ι β)⟧) $ λ x y H,
-quotient.sound $ λ j, if h : j = i then by simp only [if_pos h]
-else by simp only [if_neg h, H j]
+def erase (i : ι) : (Π₀ i, β i) → Π₀ i, β i :=
+quotient.map
+  (λ x, ⟨λ j, if j = i then 0 else x.1 j, x.2,
+          λ j, (x.3 j).imp_right $ λ H, by simp only [H, if_t_t]⟩)
+  (λ x y H j, if h : j = i then by simp only [if_pos h] else by simp only [if_neg h, H j])
 
 @[simp] lemma erase_apply {i j : ι} {f : Π₀ i, β i} :
   (f.erase i) j = if j = i then 0 else f j :=
@@ -535,6 +529,63 @@ by simp
 
 lemma erase_ne {i i' : ι} {f : Π₀ i, β i} (h : i' ≠ i) : (f.erase i) i' = f i' :=
 by simp [h]
+
+@[simp] lemma filter_ne_eq_erase (f : Π₀ i, β i) (i : ι) : f.filter (≠ i) = f.erase i :=
+begin
+  ext1 j,
+  simp only [dfinsupp.filter_apply, dfinsupp.erase_apply, ite_not],
+end
+
+@[simp] lemma filter_ne_eq_erase' (f : Π₀ i, β i) (i : ι) : f.filter ((≠) i) = f.erase i :=
+begin
+  rw ←filter_ne_eq_erase f i,
+  congr' with j,
+  exact ne_comm,
+end
+
+section update
+
+variables (f : Π₀ i, β i) (i : ι) (b : β i) [decidable (b = 0)]
+
+/-- Replace the value of a `Π₀ i, β i` at a given point `i : ι` by a given value `b : β i`.
+If `b = 0`, this amounts to removing `i` from the support.
+Otherwise, `i` is added to it.
+
+This is the (dependent) finitely-supported version of `function.update`. -/
+def update : Π₀ i, β i :=
+quotient.map (λ (x : pre _ _), ⟨function.update x.to_fun i b,
+  if b = 0 then x.pre_support.erase i else i ::ₘ x.pre_support,
+  begin
+    intro j,
+    rcases eq_or_ne i j with rfl|hi,
+    { split_ifs with hb,
+      { simp [hb] },
+      { simp } },
+    { cases x.zero j with hj hj,
+      { split_ifs;
+        simp [multiset.mem_erase_of_ne hi.symm, hj] },
+      { simp [function.update_noteq hi.symm, hj] } }
+  end⟩)
+  (λ x y h j,
+    show function.update x.to_fun i b j = function.update y.to_fun i b j,
+    by rw (funext h : x.to_fun = y.to_fun)) f
+
+variables (j : ι)
+
+@[simp] lemma coe_update : (f.update i b : Π (i : ι), β i) = function.update f i b :=
+quotient.induction_on f (λ _, rfl)
+@[simp] lemma update_self [decidable (f i = 0)] : f.update i (f i) = f :=
+by { ext, simp }
+
+@[simp] lemma update_eq_erase [decidable ((0 : β i) = 0)] : f.update i 0 = f.erase i :=
+begin
+  ext j,
+  rcases eq_or_ne i j with rfl|hi,
+  { simp },
+  { simp [hi.symm] }
+end
+
+end update
 
 end basic
 
@@ -558,13 +609,13 @@ variables (β)
 
 variables {β}
 
-lemma single_add_erase {i : ι} {f : Π₀ i, β i} : single i (f i) + f.erase i = f :=
+lemma single_add_erase (i : ι) (f : Π₀ i, β i) : single i (f i) + f.erase i = f :=
 ext $ λ i',
 if h : i = i'
 then by subst h; simp only [add_apply, single_apply, erase_apply, dif_pos rfl, if_pos, add_zero]
 else by simp only [add_apply, single_apply, erase_apply, dif_neg h, if_neg (ne.symm h), zero_add]
 
-lemma erase_add_single {i : ι} {f : Π₀ i, β i} : f.erase i + single i (f i) = f :=
+lemma erase_add_single (i : ι) (f : Π₀ i, β i) : f.erase i + single i (f i) = f :=
 ext $ λ i',
 if h : i = i'
 then by subst h; simp only [add_apply, single_apply, erase_apply, dif_pos rfl, if_pos, zero_add]
@@ -591,7 +642,7 @@ begin
     { exact quotient.sound (λ i, rfl) },
     rw H3, apply ih },
   have H2 : p (erase i ⟦{to_fun := f, pre_support := i ::ₘ s, zero := H}⟧),
-  { dsimp only [erase, quotient.lift_on_mk],
+  { dsimp only [erase, quotient.map_mk],
     have H2 : ∀ j, j ∈ s ∨ ite (j = i) 0 (f j) = 0,
     { intro j, cases H j with H2 H2,
       { cases multiset.mem_cons.1 H2 with H3 H3,
@@ -604,7 +655,7 @@ begin
       quotient.sound (λ i, rfl),
     rw H3, apply ih },
   have H3 : single i _ + _ = (⟦{to_fun := f, pre_support := i ::ₘ s, zero := H}⟧ : Π₀ i, β i) :=
-    single_add_erase,
+    single_add_erase _ _,
   rw ← H3,
   change p (single i (f i) + _),
   cases classical.em (f i = 0) with h h,
@@ -807,6 +858,24 @@ by { ext j, by_cases h1 : j = i; by_cases h2 : f j ≠ 0; simp at h2; simp [h1, 
 @[simp] lemma support_erase (i : ι) (f : Π₀ i, β i) :
   (f.erase i).support = f.support.erase i :=
 by { ext j, by_cases h1 : j = i; by_cases h2 : f j ≠ 0; simp at h2; simp [h1, h2] }
+
+lemma support_update_ne_zero (f : Π₀ i, β i) (i : ι) {b : β i} [decidable (b = 0)] (h : b ≠ 0) :
+  support (f.update i b) = insert i f.support :=
+begin
+  ext j,
+  rcases eq_or_ne i j with rfl|hi,
+  { simp [h] },
+  { simp [hi.symm] }
+end
+
+lemma support_update (f : Π₀ i, β i) (i : ι) (b : β i) [decidable (b = 0)] :
+  support (f.update i b) = if b = 0 then support (f.erase i) else insert i f.support :=
+begin
+  ext j,
+  split_ifs with hb,
+  { simp only [hb, update_eq_erase, support_erase] },
+  { rw [support_update_ne_zero f _ hb] }
+end
 
 section filter_and_subtype_domain
 

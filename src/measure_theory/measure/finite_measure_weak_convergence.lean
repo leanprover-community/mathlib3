@@ -10,7 +10,7 @@ import measure_theory.measure.measure_space
 
 This file will define the topology of weak convergence of finite measures and probability measures
 on topological spaces. The topology of weak convergence is the coarsest topology w.r.t. which
-for every bounded continuous `ℝ≥0`-valued function `f` on, the integration of `f` against the
+for every bounded continuous `ℝ≥0`-valued function `f`, the integration of `f` against the
 measure is continuous.
 
 TODOs:
@@ -42,10 +42,10 @@ No new notation is introduced.
 ## Implementation notes
 
 The topology of weak convergence of finite Borel measures will be defined using a mapping from
-`finite_measure α` to `weak_dual ℝ≥0 (α →ᵇ ℝ≥0)`, inheriting the topology from there.
+`finite_measure α` to `weak_dual ℝ≥0 (α →ᵇ ℝ≥0)`, inheriting the topology from the latter.
 
-The current first implementation of `finite_measure α` and `probability_measure α` is directly
-as subtypes of `measure α`, and the coercion to a function is the composition `ennreal.to_nnreal`
+The current implementation of `finite_measure α` and `probability_measure α` is directly as
+subtypes of `measure α`, and the coercion to a function is the composition `ennreal.to_nnreal`
 and the coercion to function of `measure α`. Another alternative would be to use a bijection
 with `vector_measure α ℝ≥0` as an intermediate step. The choice of implementation should not have
 drastic downstream effects, so it can be changed later if appropriate.

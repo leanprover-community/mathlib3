@@ -70,7 +70,7 @@ end
 
 lemma divisors_eq_proper_divisors_insert_self_of_pos (h : 0 < n):
   divisors n = has_insert.insert n (proper_divisors n) :=
-by rw [divisors, proper_divisors, finset.Ico.succ_top h, finset.filter_insert, if_pos (dvd_refl n)]
+by rw [divisors, proper_divisors, finset.Ico_insert_right h, finset.filter_insert, if_pos (dvd_refl n)]
 
 @[simp]
 lemma mem_divisors {m : ℕ} :

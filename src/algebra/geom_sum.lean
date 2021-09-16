@@ -353,14 +353,14 @@ lemma nat.geom_sum_Ico_le {b : ℕ} (hb : 2 ≤ b) (a n : ℕ) :
   ∑ i in Ico 1 n, a/b^i ≤ a/(b - 1) :=
 begin
   cases n,
-  { rw [Ico.eq_empty_of_le zero_le_one, sum_empty],
+  { rw [Ico_eq_empty_of_le zero_le_one, sum_empty],
     exact nat.zero_le _ },
   rw ←add_le_add_iff_left a,
   calc
     a + ∑ (i : ℕ) in Ico 1 n.succ, a/b^i
         = a/b^0 + ∑ (i : ℕ) in Ico 1 n.succ, a/b^i : by rw [pow_zero, nat.div_one]
     ... = ∑ i in range n.succ, a/b^i : begin
-          rw [range_eq_Ico, ←finset.Ico.insert_succ_bot (nat.succ_pos _), sum_insert],
+          rw [range_eq_Ico, ←nat.Ico_insert_succ_left (nat.succ_pos _), sum_insert],
           exact λ h, zero_lt_one.not_le (mem_Ico.1 h).1,
         end
     ... ≤ a * b/(b - 1) : nat.geom_sum_le hb a _

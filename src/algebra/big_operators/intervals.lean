@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 -/
 
 import algebra.big_operators.basic
-import data.finset.intervals
+import data.nat.intervals
 import tactic.linarith
 
 /-!
@@ -34,7 +34,7 @@ lemma prod_Ico_add (f : ℕ → β) (m n k : ℕ) :
 
 lemma sum_Ico_succ_top {δ : Type*} [add_comm_monoid δ] {a b : ℕ}
   (hab : a ≤ b) (f : ℕ → δ) : (∑ k in Ico a (b + 1), f k) = (∑ k in Ico a b, f k) + f b :=
-by rw [Ico.succ_top hab, sum_insert right_not_mem_Ico, add_comm]
+by rw [Ico_insert_right hab, sum_insert right_not_mem_Ico, add_comm]
 
 @[to_additive]
 lemma prod_Ico_succ_top {a b : ℕ} (hab : a ≤ b) (f : ℕ → β) :
@@ -92,7 +92,7 @@ begin
   by_cases h : m ≤ n,
   { rw [← Ico.zero_bot, prod_Ico_add, zero_add, nat.sub_add_cancel h] },
   { replace h : n ≤ m :=  le_of_not_ge h,
-     rw [Ico.eq_empty_of_le h, nat.sub_eq_zero_of_le h, range_zero, prod_empty, prod_empty] }
+     rw [Ico_eq_empty_of_le h, nat.sub_eq_zero_of_le h, range_zero, prod_empty, prod_empty] }
 end
 
 lemma prod_Ico_reflect (f : ℕ → β) (k : ℕ) {m n : ℕ} (h : m ≤ n + 1) :
@@ -107,7 +107,7 @@ begin
     simp only [mem_Ico],
     rintros i ⟨ki, im⟩ j ⟨kj, jm⟩ Hij,
     rw [← nat.sub_sub_self (this _ im), Hij, nat.sub_sub_self (this _ jm)] },
-  { simp [Ico.eq_empty_of_le, nat.sub_le_sub_left, hkm] }
+  { simp [Ico_eq_empty_of_le, nat.sub_le_sub_left, hkm] }
 end
 
 lemma sum_Ico_reflect {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) (k : ℕ) {m n : ℕ}
@@ -120,8 +120,8 @@ lemma prod_range_reflect (f : ℕ → β) (n : ℕ) :
 begin
   cases n,
   { simp },
-  { simp only [range_eq_Ico, nat.succ_sub_succ_eq_sub, nat.sub_zero],
-    rw [prod_Ico_reflect _ _ (le_refl _)],
+  { simp only [←nat.Ico_zero_eq_range, nat.succ_sub_succ_eq_sub, nat.sub_zero],
+    rw prod_Ico_reflect _ _ le_rfl,
     simp }
 end
 

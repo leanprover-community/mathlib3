@@ -183,7 +183,7 @@ begin
       exact one_ne_zero h } },
   have hsplit : finset.range p = {0} ∪ (finset.Ico 1 p),
   { rw [finset.range_eq_Ico, ←finset.Ico.union_consecutive zero_le_one hp.le,
-      finset.Ico.succ_singleton] },
+      finset.Ico_succ_singleton] },
   have hempty : finset.filter p.coprime {0} = ∅,
   { simp only [finset.filter_singleton, nat.coprime_zero_right, hp.ne', if_false] },
   rw [totient_eq_card_coprime, hsplit, finset.filter_union, hempty, finset.empty_union,

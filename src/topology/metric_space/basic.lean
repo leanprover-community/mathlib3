@@ -196,7 +196,7 @@ begin
     calc dist (f m) (f (n+1)) ≤ dist (f m) (f n) + dist _ _ : dist_triangle _ _ _
       ... ≤ ∑ i in finset.Ico m n, _ + _ : add_le_add hrec (le_refl _)
       ... = ∑ i in finset.Ico m (n+1), _ :
-        by rw [finset.Ico.succ_top hn, finset.sum_insert, add_comm]; simp }
+        by rw [finset.Ico_insert_right hn, finset.sum_insert, add_comm]; simp }
 end
 
 /-- The triangle (polygon) inequality for sequences of points; `finset.range` version. -/

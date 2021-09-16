@@ -240,6 +240,9 @@ Icc a ⊤
 def Ioi (a : α) : finset α :=
 Ioc a ⊤
 
+lemma Ici_eq_Icc (a : α) : Ici a = Icc a ⊤ := rfl
+lemma Ioi_eq_Ioc (a : α) : Ioi a = Ioc a ⊤ := rfl
+
 @[simp, norm_cast] lemma coe_Ici (a : α) : (Ici a : set α) = set.Ici a :=
 by rw [Ici, coe_Icc, set.Icc_top]
 
@@ -264,6 +267,9 @@ Icc ⊥ b
 /-- The finset of elements `x` such that `x < b`. Basically `set.Iio b` as a finset. -/
 def Iio (b : α) : finset α :=
 Ico ⊥ b
+
+lemma Iic_eq_Icc : Iic = Icc (⊥ : α) := rfl
+lemma Iio_eq_Ico : Iio = Ico (⊥ : α) := rfl
 
 @[simp, norm_cast] lemma coe_Iic (b : α) : (Iic b : set α) = set.Iic b :=
 by rw [Iic, coe_Icc, set.Icc_bot]

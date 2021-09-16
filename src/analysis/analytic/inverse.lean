@@ -417,7 +417,7 @@ let I := ∥(i.symm : F →L[𝕜] E)∥ in calc
 ∑ k in Ico 1 (n + 1), a ^ k * ∥p.right_inv i k∥
     = a * I + ∑ k in Ico 2 (n + 1), a ^ k * ∥p.right_inv i k∥ :
 by simp only [linear_isometry_equiv.norm_map, pow_one, right_inv_coeff_one,
-              Ico.succ_singleton, sum_singleton, ← sum_Ico_consecutive _ one_le_two hn]
+              Ico_succ_singleton, sum_singleton, ← sum_Ico_consecutive _ one_le_two hn]
 ... = a * I + ∑ k in Ico 2 (n + 1), a ^ k *
         ∥(i.symm : F →L[𝕜] E).comp_continuous_multilinear_map
           (∑ c in ({c | 1 < composition.length c}.to_finset : finset (composition k)),
@@ -487,7 +487,7 @@ begin
   have IRec : ∀ n, 1 ≤ n → S n ≤ (I + 1) * a,
   { apply nat.le_induction,
     { simp only [S],
-      rw [Ico.eq_empty_of_le (le_refl 1), sum_empty],
+      rw [Ico_eq_empty_of_le (le_refl 1), sum_empty],
       exact mul_nonneg (add_nonneg (norm_nonneg _) zero_le_one) apos.le },
     { assume n one_le_n hn,
       have In : 2 ≤ n + 1, by linarith,

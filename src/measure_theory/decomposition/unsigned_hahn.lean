@@ -123,7 +123,7 @@ begin
   { assume n m hnm,
     have : n ≤ m + 1 := le_of_lt (nat.succ_le_succ hnm),
     simp only [f],
-    rw [finset.Ico.succ_top this, finset.inf_insert, set.inter_comm],
+    rw [finset.Ico_insert_right this, finset.inf_insert, set.inter_comm],
     refl },
 
   have le_d_f : ∀n m, m ≤ n → γ - 2 * ((1 / 2) ^ m) + (1 / 2) ^ n ≤ d (f m n),
@@ -131,7 +131,7 @@ begin
     refine nat.le_induction _ _ n h,
     { have := he₂ m,
       simp only [f],
-      rw [finset.Ico.succ_singleton, finset.inf_singleton],
+      rw [finset.Ico_succ_singleton, finset.inf_singleton],
       exact aux this },
     { assume n (hmn : m ≤ n) ih,
       have : γ + (γ - 2 * (1 / 2)^m + (1 / 2) ^ (n + 1)) ≤ γ + d (f m (n + 1)),

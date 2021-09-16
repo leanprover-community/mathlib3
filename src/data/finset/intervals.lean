@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
+Authors: Scott Morrison, Yaël Dillies
 -/
 import algebra.ordered_sub
 import data.finset.basic
@@ -12,28 +12,222 @@ import order.locally_finite
 # Intervals as finsets
 
 For now this only covers `Ico a b`, the "closed-open" interval containing `[a, ..., b - 1]`.
+
+## TODO
+
+This file was originally only about `finset.Ico a b` where `a n : ℕ`. No care has yet been taken to
+generalize these lemmas properly and many lemmas about `Icc`, `Ioc`, `Ioo` are missing.
 -/
 
-open finset nat
+-- TODO: There is a diamond between `nat.decidable_eq` and `decidable_eq_of_decidable_le`
+-- and another one between `linear_order.decidable_lt` and `decidable_lt_of_decidable_le`
+local attribute [-instance] decidable_eq_of_decidable_le decidable_lt_of_decidable_le
+
+lemma finset.coe_eq_singleton {α : Type*} {s : finset α} {a : α} :
+  (s : set α) = {a} ↔ s = {a} :=
+by rw [←finset.coe_singleton, finset.coe_inj]
+
+namespace finset
+variables {α : Type*}
+section preorder
+variables [preorder α] [decidable_rel ((≤) : α → α → Prop)] [locally_finite_order α] {a b : α}
+
+@[simp] lemma nonempty_Icc : (Icc a b).nonempty ↔ a ≤ b :=
+by rw [←coe_nonempty, coe_Icc, set.nonempty_Icc]
+
+@[simp] lemma nonempty_Ico : (Ico a b).nonempty ↔ a < b :=
+by rw [←coe_nonempty, coe_Ico, set.nonempty_Ico]
+
+@[simp] lemma nonempty_Ioc : (Ioc a b).nonempty ↔ a < b :=
+by rw [←coe_nonempty, coe_Ioc, set.nonempty_Ioc]
+
+@[simp] lemma nonempty_Ioo [densely_ordered α] : (Ioo a b).nonempty ↔ a < b :=
+by rw [←coe_nonempty, coe_Ioo, set.nonempty_Ioo]
+
+@[simp] lemma Icc_eq_empty_iff : Icc a b = ∅ ↔ ¬a ≤ b :=
+by rw [←coe_eq_empty, coe_Icc, set.Icc_eq_empty_iff]
+
+@[simp] lemma Ico_eq_empty_iff : Ico a b = ∅ ↔ ¬a < b :=
+by rw [←coe_eq_empty, coe_Ico, set.Ico_eq_empty_iff]
+
+@[simp] lemma Ioc_eq_empty_iff : Ioc a b = ∅ ↔ ¬a < b :=
+by rw [←coe_eq_empty, coe_Ioc, set.Ioc_eq_empty_iff]
+
+@[simp] lemma Ioo_eq_empty_iff [densely_ordered α] : Ioo a b = ∅ ↔ ¬a < b :=
+by rw [←coe_eq_empty, coe_Ioo, set.Ioo_eq_empty_iff]
+
+alias Icc_eq_empty_iff ↔ _ Icc_eq_empty
+alias Ico_eq_empty_iff ↔ _ Ico_eq_empty
+alias Ioc_eq_empty_iff ↔ _ Ioc_eq_empty
+
+@[simp] lemma Ioo_eq_empty (h : ¬a < b) : Ioo a b = ∅ :=
+eq_empty_iff_forall_not_mem.2 $ λ x hx, h ((mem_Ioo.1 hx).1.trans (mem_Ioo.1 hx).2)
+
+@[simp] lemma Icc_eq_empty_of_lt (h : b < a) : Icc a b = ∅ :=
+Icc_eq_empty h.not_le
+
+@[simp] lemma Ico_eq_empty_of_le (h : b ≤ a) : Ico a b = ∅ :=
+Ico_eq_empty h.not_lt
+
+@[simp] lemma Ioc_eq_empty_of_le (h : b ≤ a) : Ioc a b = ∅ :=
+Ioc_eq_empty h.not_lt
+
+@[simp] lemma Ioo_eq_empty_of_le (h : b ≤ a) : Ioo a b = ∅ :=
+Ioo_eq_empty h.not_lt
+
+variables (a b)
+
+@[simp] lemma Ico_self : Ico a a = ∅ :=
+by rw [←coe_eq_empty, coe_Ico, set.Ico_self]
+
+@[simp] lemma Ioc_self : Ioc a a = ∅ :=
+by rw [←coe_eq_empty, coe_Ioc, set.Ioc_self]
+
+@[simp] lemma Ioo_self : Ioo a a = ∅ :=
+by rw [←coe_eq_empty, coe_Ioo, set.Ioo_self]
+
+@[simp] lemma right_not_mem_Ico {a b : α} : b ∉ Ico a b :=
+by { rw [mem_Ico, not_and], exact λ _, lt_irrefl _ }
+
+lemma Ico_filter_lt_of_le_left [decidable_rel ((<) : α → α → Prop)] {a b c : α} (hca : c ≤ a) :
+  (Ico a b).filter (λ x, x < c) = ∅ :=
+finset.filter_false_of_mem (λ x hx, (hca.trans (mem_Ico.1 hx).1).not_lt)
+
+lemma Ico_filter_lt_of_right_le [decidable_rel ((<) : α → α → Prop)] {a b c : α} (hbc : b ≤ c) :
+  (Ico a b).filter (λ x, x < c) = Ico a b :=
+finset.filter_true_of_mem (λ x hx, (mem_Ico.1 hx).2.trans_le hbc)
+
+lemma Ico_filter_lt_of_le_right [decidable_rel ((<) : α → α → Prop)] {a b c : α} (hcb : c ≤ b) :
+  (Ico a b).filter (λ x, x < c) = Ico a c :=
+begin
+  ext x,
+  rw [mem_filter, mem_Ico, mem_Ico, and.right_comm],
+  exact and_iff_left_of_imp (λ h, h.2.trans_le hcb),
+end
+
+lemma Ico_filter_le_of_le_left {a b c : α} (hca : c ≤ a) :
+  (Ico a b).filter (λ x, c ≤ x) = Ico a b :=
+finset.filter_true_of_mem (λ x hx, hca.trans (mem_Ico.1 hx).1)
+
+lemma Ico_filter_le_of_right_le {a b c : α} : (Ico a b).filter (λ x, b ≤ x) = ∅ :=
+finset.filter_false_of_mem (λ x hx, (mem_Ico.1 hx).2.not_le)
+
+lemma Ico_filter_le_of_left_le {a b c : α} (hac : a ≤ c) :
+  (Ico a b).filter (λ x, c ≤ x) = Ico c b :=
+begin
+  ext x,
+  rw [mem_filter, mem_Ico, mem_Ico, and_comm, and.left_comm],
+  exact and_iff_right_of_imp (λ h, hac.trans h.1),
+end
+
+end preorder
+
+section partial_order
+variables [partial_order α] [decidable_rel ((≤) : α → α → Prop)] [locally_finite_order α] {a b : α}
+
+
+@[simp] lemma Icc_self (a : α) : Icc a a = {a} :=
+by rw [←coe_eq_singleton, coe_Icc, set.Icc_self]
+
+lemma Ico_insert_right [decidable_eq α] (h : a ≤ b) : insert b (Ico a b) = Icc a b :=
+by rw [←coe_inj, coe_insert, coe_Icc, coe_Ico, set.insert_eq, set.union_comm, set.Ico_union_right h]
+
+lemma Ioo_insert_left [decidable_eq α] (h : a < b) : insert a (Ioo a b) = Ico a b :=
+by rw [←coe_inj, coe_insert, coe_Ioo, coe_Ico, set.insert_eq, set.union_comm, set.Ioo_union_left h]
+
+@[simp] lemma Ico_inter_Ico_consecutive [decidable_eq α] (a b c : α) : Ico a b ∩ Ico b c = ∅ :=
+begin
+  refine eq_empty_of_forall_not_mem (λ x hx, _),
+  rw [mem_inter, mem_Ico, mem_Ico] at hx,
+  exact hx.1.2.not_le hx.2.1,
+end
+
+lemma Ico_disjoint_Ico_consecutive [decidable_eq α] (a b c : α) : disjoint (Ico a b) (Ico b c) :=
+le_of_eq $ Ico_inter_Ico_consecutive a b c
+
+lemma Ico_filter_le_left {a b : α} (hab : a < b) : (Ico a b).filter (λ x, x ≤ a) = {a} :=
+begin
+  ext x,
+  rw [mem_filter, mem_Ico, mem_singleton, and.right_comm, ←le_antisymm_iff, eq_comm],
+  exact and_iff_left_of_imp (λ h, h.le.trans_lt hab),
+end
+
+end partial_order
+
+section linear_order
+variables [linear_order α] [locally_finite_order α] {a b : α}
+
+lemma Ico_subset_Ico_iff {a₁ b₁ a₂ b₂ : α} (h : a₁ < b₁) :
+  Ico a₁ b₁ ⊆ Ico a₂ b₂ ↔ a₂ ≤ a₁ ∧ b₁ ≤ b₂ :=
+by rw [←coe_subset, coe_Ico, coe_Ico, set.Ico_subset_Ico_iff h]
+
+lemma Ico_union_Ico_eq_Ico {a b c : α} (hab : a ≤ b) (hbc : b ≤ c) :
+  Ico a b ∪ Ico b c = Ico a c :=
+by rw [←coe_inj, coe_union, coe_Ico, coe_Ico, coe_Ico, set.Ico_union_Ico_eq_Ico hab hbc]
+
+lemma Ico_union_Ico' {a b c d : α} (hcb : c ≤ b) (had : a ≤ d) :
+  Ico a b ∪ Ico c d = Ico (min a c) (max b d) :=
+by rw [←coe_inj, coe_union, coe_Ico, coe_Ico, coe_Ico, set.Ico_union_Ico' hcb had]
+
+lemma Ico_union_Ico {a b c d : α} (h₁ : min a b ≤ max c d) (h₂ : min c d ≤ max a b) :
+  Ico a b ∪ Ico c d = Ico (min a c) (max b d) :=
+by rw [←coe_inj, coe_union, coe_Ico, coe_Ico, coe_Ico, set.Ico_union_Ico h₁ h₂]
+
+lemma Ico_inter_Ico {a b c d : α} : Ico a b ∩ Ico c d = Ico (max a c) (min b d) :=
+by rw [←coe_inj, coe_inter, coe_Ico, coe_Ico, coe_Ico, ←inf_eq_min, ←sup_eq_max, set.Ico_inter_Ico]
+
+@[simp] lemma Ico_filter_lt (a b c : α) : (Ico a b).filter (λ x, x < c) = Ico a (min b c) :=
+begin
+  cases le_total b c,
+  { rw [Ico_filter_lt_of_right_le h, min_eq_left h] },
+  { rw [Ico_filter_lt_of_le_right h, min_eq_right h] }
+end
+
+@[simp] lemma Ico_filter_le (a b c : α) : (Ico a b).filter (λ x, c ≤ x) = Ico (max a c) b :=
+begin
+  cases le_total a c,
+  { rw [Ico_filter_le_of_left_le h, max_eq_right h] },
+  { rw [Ico_filter_le_of_le_left h, max_eq_left h] }
+end
+
+@[simp] lemma Ico_diff_Ico_left (a b c : α) : (Ico a b) \ (Ico a c) = Ico (max a c) b :=
+begin
+  cases le_total a c,
+  { ext x,
+    rw [mem_sdiff, mem_Ico, mem_Ico, mem_Ico, max_eq_right h, and.right_comm, not_and, not_lt],
+    exact and_congr_left' ⟨λ hx, hx.2 hx.1, λ hx, ⟨h.trans hx, λ _, hx⟩⟩ },
+  { rw [Ico_eq_empty_of_le h, sdiff_empty, max_eq_left h] }
+end
+
+@[simp] lemma Ico_diff_Ico_right (a b c : α) : (Ico a b) \ (Ico c b) = Ico a (min b c) :=
+begin
+  cases le_total b c,
+  { rw [Ico_eq_empty_of_le h, sdiff_empty, min_eq_left h] },
+  { ext x,
+    rw [mem_sdiff, mem_Ico, mem_Ico, mem_Ico, min_eq_right h, and_assoc, not_and', not_le],
+    exact and_congr_right' ⟨λ hx, hx.2 hx.1, λ hx, ⟨hx.trans_le h, λ _, hx⟩⟩ }
+end
+
+end linear_order
 
 section ordered_cancel_add_comm_monoid
-variables {α : Type*} [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α] [has_sub α]
-   [has_ordered_sub α] [decidable_rel ((≤) : α → α → Prop)] [locally_finite_order α]
+variables [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α] [decidable_eq α]
+  [decidable_rel ((≤) : α → α → Prop)] [locally_finite_order α]
 
 lemma image_add_const_Icc (a b c : α) : (Icc a b).image ((+) c) = Icc (a + c) (b + c) :=
 begin
   ext x,
   rw [mem_image, mem_Icc],
   split,
-  { rintro ⟨y, hy, hx⟩,
+  { rintro ⟨y, hy, rfl⟩,
     rw mem_Icc at hy,
-    rw [←hx, add_comm c],
+    rw add_comm c,
     exact ⟨add_le_add_right hy.1 c, add_le_add_right hy.2 c⟩ },
-  intro hx,
-  obtain ⟨y, hy⟩ := exists_add_of_le hx.1,
-  rw [hy, add_right_comm] at hx,
-  rw [eq_comm, add_right_comm, add_comm] at hy,
-  exact ⟨a + y, mem_Icc.2 ⟨le_of_add_le_add_right hx.1, le_of_add_le_add_right hx.2⟩, hy⟩,
+  { intro hx,
+    obtain ⟨y, hy⟩ := exists_add_of_le hx.1,
+    rw [hy, add_right_comm] at hx,
+    rw [eq_comm, add_right_comm, add_comm] at hy,
+    exact ⟨a + y, mem_Icc.2 ⟨le_of_add_le_add_right hx.1, le_of_add_le_add_right hx.2⟩, hy⟩ }
 end
 
 lemma image_add_const_Ico (a b c : α) : (Ico a b).image ((+) c) = Ico (a + c) (b + c) :=
@@ -45,11 +239,11 @@ begin
     rw mem_Ico at hy,
     rw [←hx, add_comm c],
     exact ⟨add_le_add_right hy.1 c, add_lt_add_right hy.2 c⟩ },
-  intro hx,
-  obtain ⟨y, hy⟩ := exists_add_of_le hx.1,
-  rw [hy, add_right_comm] at hx,
-  rw [eq_comm, add_right_comm, add_comm] at hy,
-  exact ⟨a + y, mem_Ico.2 ⟨le_of_add_le_add_right hx.1, lt_of_add_lt_add_right hx.2⟩, hy⟩,
+  { intro hx,
+    obtain ⟨y, hy⟩ := exists_add_of_le hx.1,
+    rw [hy, add_right_comm] at hx,
+    rw [eq_comm, add_right_comm, add_comm] at hy,
+    exact ⟨a + y, mem_Ico.2 ⟨le_of_add_le_add_right hx.1, lt_of_add_lt_add_right hx.2⟩, hy⟩ }
 end
 
 lemma image_add_const_Ioc (a b c : α) : (Ioc a b).image ((+) c) = Ioc (a + c) (b + c) :=
@@ -57,15 +251,15 @@ begin
   ext x,
   rw [mem_image, mem_Ioc],
   split,
-  { rintro ⟨y, hy, hx⟩,
+  { rintro ⟨y, hy, rfl⟩,
     rw mem_Ioc at hy,
-    rw [←hx, add_comm c],
+    rw add_comm c,
     exact ⟨add_lt_add_right hy.1 c, add_le_add_right hy.2 c⟩ },
-  intro hx,
-  obtain ⟨y, hy⟩ := exists_add_of_le hx.1.le,
-  rw [hy, add_right_comm] at hx,
-  rw [eq_comm, add_right_comm, add_comm] at hy,
-  exact ⟨a + y, mem_Ioc.2 ⟨lt_of_add_lt_add_right hx.1, le_of_add_le_add_right hx.2⟩, hy⟩,
+  { intro hx,
+    obtain ⟨y, hy⟩ := exists_add_of_le hx.1.le,
+    rw [hy, add_right_comm] at hx,
+    rw [eq_comm, add_right_comm, add_comm] at hy,
+    exact ⟨a + y, mem_Ioc.2 ⟨lt_of_add_lt_add_right hx.1, le_of_add_le_add_right hx.2⟩, hy⟩ }
 end
 
 lemma image_add_const_Ioo (a b c : α) : (Ioo a b).image ((+) c) = Ioo (a + c) (b + c) :=
@@ -73,173 +267,52 @@ begin
   ext x,
   rw [mem_image, mem_Ioo],
   split,
-  { rintro ⟨y, hy, hx⟩,
+  { rintro ⟨y, hy, rfl⟩,
     rw mem_Ioo at hy,
-    rw [←hx, add_comm c],
+    rw add_comm c,
     exact ⟨add_lt_add_right hy.1 c, add_lt_add_right hy.2 c⟩ },
-  intro hx,
-  obtain ⟨y, hy⟩ := exists_add_of_le hx.1.le,
-  rw [hy, add_right_comm] at hx,
-  rw [eq_comm, add_right_comm, add_comm] at hy,
-  exact ⟨a + y, mem_Ioo.2 ⟨lt_of_add_lt_add_right hx.1, lt_of_add_lt_add_right hx.2⟩, hy⟩,
+  { intro hx,
+    obtain ⟨y, hy⟩ := exists_add_of_le hx.1.le,
+    rw [hy, add_right_comm] at hx,
+    rw [eq_comm, add_right_comm, add_comm] at hy,
+    exact ⟨a + y, mem_Ioo.2 ⟨lt_of_add_lt_add_right hx.1, lt_of_add_lt_add_right hx.2⟩, hy⟩ }
 end
 
-lemma image_sub (a b c : α) (h : a ≤ c) : (Ico a b).image (λ x, x - c) = Ico (a - c) (b - c) :=
+end ordered_cancel_add_comm_monoid
+
+section canonically_ordered_add_monoid
+variables [canonically_ordered_add_monoid α] [has_sub α] [has_ordered_sub α]
+  [contravariant_class α α (+) (≤)] [decidable_eq α] [decidable_rel ((≤) : α → α → Prop)]
+  [locally_finite_order α]
+
+lemma image_sub_const_Ico (a b c : α) (h : c ≤ a) :
+  (Ico a b).image (λ x, x - c) = Ico (a - c) (b - c) :=
 begin
+  ext x,
+  rw [mem_image],
+  split,
+  { rintro ⟨x, hx, rfl⟩,
+    rw [mem_Ico] at ⊢ hx,
+    exact ⟨sub_le_sub_right' hx.1 _, sub_lt_sub_right_of_le (h.trans hx.1) hx.2⟩ },
+  rw [mem_image, mem_Ico],
+  rw [],
   dsimp [image],
   rw [multiset.Ico.map_sub _ _ _ h, ←multiset.to_finset_eq],
   refl,
 end
 
-lemma Ico_eq_range' (a b : ℕ) : Ico a b = (list.range' a (b - a)).to_finset :=
-begin
-  ext x,
-  rw [mem_Ico, list.mem_to_finset, list.mem_range'],
-  cases le_total a b,
-  { rw nat.add_sub_cancel' h },
-  rw [nat.sub_eq_zero_iff_le.2 h, add_zero],
-  exact iff_of_false (λ hx, (h.trans hx.1).not_lt hx.2) (λ hx, hx.1.not_lt hx.2),
-end
-
--- TODO: Once we have `has_lt_iff_add_one_le`, we can generalise that
-/-- Currently only for ℕ -/
-@[simp] lemma card_Ico (a b : ℕ) : (Ico a b).card = a - b :=
-multiset.Ico.card _ _
-
-theorem eq_empty_of_le {n m : ℕ} (h : m ≤ n) : Ico a b = ∅ :=
-eq_of_veq $ multiset.Ico.eq_zero_of_le h
-
-@[simp] theorem self_eq_empty (n : ℕ) : Ico n n = ∅ :=
-eq_empty_of_le $ le_refl n
-
-@[simp] theorem Ico_nonempty_iff {a b : α} : (Ico a b).nonempty ↔ a < b :=
-begin
-  rw ←coe_nonempty,
-  rw set.Ico_eq,
-  split,
-  {
-    rintro ⟨x, hx⟩,
-    rw mem_Ico at hx,
-  }
-end
-
-class has_lt_iff_add_one_le (α : Type*) [preorder α] [has_add α] [has_one α] :
-  Prop :=
-(lt_iff_add_one_le : ∀ a b : α, a < b ↔ a + 1 ≤ b)
-
-@[simp] theorem Ico_eq_empty_iff {a b : α} : Ico a b = ∅ ↔ ¬a < b :=
-by { rw [←not_nonempty_iff_eq_empty, not_iff_not], exact Ico_nonempty_iff }
-
-theorem Ico_subset_Ico_iff {a₁ b₁ a₂ b₂ : α} (h : a₁ < b₁) :
-  Ico a₁ b₁ ⊆ Ico a₂ b₂ ↔ (a₂ ≤ a₁ ∧ b₁ ≤ b₂) :=
-begin
-  simp_rw [subset_iff, mem_Ico],
-  refine ⟨λ hx, ⟨(hx ⟨le_rfl, h⟩).1, _⟩, _⟩,
-  { exact (hx ⟨le_rfl, h⟩).1 },
-  { refine le_of_pred_lt (@h (pred n₁) ⟨le_pred_of_lt hmn, pred_lt _⟩).2,
-    exact ne_of_gt (lt_of_le_of_lt (nat.zero_le m₁) hmn) },
-  { rintros ⟨hm, hn⟩ k ⟨hmk, hkn⟩,
-    exact ⟨le_trans hm hmk, lt_of_lt_of_le hkn hn⟩ }
-end
-
 end ordered_cancel_add_comm_monoid
 
 section ordered_semiring
-variables {α : Type*} [decidable_eq α] [ordered_semiring α] [locally_finite_order α]
+variables [decidable_eq α] [ordered_semiring α] [locally_finite_order α]
 
 end ordered_semiring
 
 section linear_order
-variables {α : Type*} [decidable_eq α] [linear_order α] [locally_finite_order α]
+variables [linear_order α] [locally_finite_order α]
 
-lemma Ico_union_Ico_eq_Ico {a b c : α} (hab : a ≤ b) (hbc : b ≤ c) :
-  Ico a b ∪ Ico b c = Ico a c :=
-begin
-  ext x,
-  rw [mem_union, ←mem_coe, ←mem_coe, ←mem_coe, coe_Ico, coe_Ico, coe_Ico, ←set.mem_union,
-    set.Ico_union_Ico_eq_Ico hab hbc],
-end
-
-lemma Ico_union_Ico' {a b c d : α} (hcb : c ≤ b) (had : a ≤ d) :
-  Ico a b ∪ Ico c d = Ico (min n l) (max m k) :=
-by simp [←coe_inj, set.Ico_union_Ico' hlm hnk]
-
-lemma union {a b c d : α} (h₁ : min a b ≤ max c d) (h₂ : min c d ≤ max a b) :
-  Ico a b ∪ Ico l k = Ico (min n l) (max m k) :=
-by simp [←coe_inj, set.Ico_union_Ico h₁ h₂]
-
-@[simp] lemma inter_consecutive (n m l : ℕ) : Ico a b ∩ Ico m l = ∅ :=
-begin
-  rw [← to_finset, ← to_finset, ← multiset.to_finset_inter, multiset.Ico.inter_consecutive],
-  simp,
-end
-
-lemma inter {n m l k : ℕ} : Ico a b ∩ Ico l k = Ico (max n l) (min m k) :=
-by simp [←coe_inj, ←inf_eq_min, ←sup_eq_max, set.Ico_inter_Ico]
-
-lemma disjoint_consecutive (a b l : ℕ) : disjoint (Ico a b) (Ico m l) :=
-le_of_eq $ inter_consecutive n m l
-
-@[simp] theorem succ_singleton (n : ℕ) : Ico n (n+1) = {n} :=
-eq_of_veq $ multiset.Ico.succ_singleton
-
-theorem succ_top {n m : ℕ} (h : n ≤ m) : Ico n (m + 1) = insert m (Ico a b) :=
-by rw [← to_finset, multiset.Ico.succ_top h, multiset.to_finset_cons, to_finset]
-
-theorem succ_top' {n m : ℕ} (h : n < m) : Ico a b = insert (m - 1) (Ico n (m - 1)) :=
-begin
-  have w : m = m - 1 + 1 := (nat.sub_add_cancel (nat.one_le_of_lt h)).symm,
-  conv { to_lhs, rw w },
-  rw succ_top,
-  exact nat.le_pred_of_lt h
-end
-
-theorem insert_succ_bot {n m : ℕ} (h : n < m) : insert n (Ico (n + 1) m) = Ico a b :=
-by rw [eq_comm, ← to_finset, multiset.Ico.eq_cons h, multiset.to_finset_cons, to_finset]
-
-@[simp] theorem pred_singleton {m : ℕ} (h : 0 < m) : Ico (m - 1) m = {m - 1} :=
-eq_of_veq $ multiset.Ico.pred_singleton h
-
-@[simp] theorem right_not_mem_Ico {a b : α} : b ∉ Ico a b :=
-by { rw [mem_Ico, not_and], exact λ _, lt_irrefl _ }
-
-lemma filter_lt_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico a b).filter (λ x, x < l) = Ico a b :=
-eq_of_veq $ multiset.Ico.filter_lt_of_top_le hml
-
-lemma filter_lt_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico a b).filter (λ x, x < l) = ∅ :=
-eq_of_veq $ multiset.Ico.filter_lt_of_le_bot hln
-
-lemma filter_Ico_bot {n m : ℕ} (hnm : n < m) : (Ico a b).filter (λ x, x ≤ n) = {n} :=
-eq_of_veq $ multiset.Ico.filter_le_of_bot hnm
-
-lemma filter_lt_of_ge {n m l : ℕ} (hlm : l ≤ m) : (Ico a b).filter (λ x, x < l) = Ico n l :=
-eq_of_veq $ multiset.Ico.filter_lt_of_ge hlm
-
-@[simp] lemma filter_lt (n m l : ℕ) : (Ico a b).filter (λ x, x < l) = Ico n (min m l) :=
-eq_of_veq $ multiset.Ico.filter_lt n m l
-
-lemma filter_le_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico a b).filter (λ x, l ≤ x) = Ico a b :=
-eq_of_veq $ multiset.Ico.filter_le_of_le_bot hln
-
-lemma filter_le_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico a b).filter (λ x, l ≤ x) = ∅ :=
-eq_of_veq $ multiset.Ico.filter_le_of_top_le hml
-
-lemma filter_le_of_le {n m l : ℕ} (hnl : n ≤ l) : (Ico a b).filter (λ x, l ≤ x) = Ico l m :=
-eq_of_veq $ multiset.Ico.filter_le_of_le hnl
-
-@[simp] lemma filter_le (n m l : ℕ) : (Ico a b).filter (λ x, l ≤ x) = Ico (max n l) m :=
-eq_of_veq $ multiset.Ico.filter_le n m l
-
-@[simp] lemma diff_left (l n m : ℕ) : (Ico a b) \ (Ico n l) = Ico (max n l) m :=
-by ext k; by_cases n ≤ k; simp [h, and_comm]
-
-@[simp] lemma diff_right (l n m : ℕ) : (Ico a b) \ (Ico l m) = Ico n (min m l) :=
-have ∀k, (k < m ∧ (l ≤ k → m ≤ k)) ↔ (k < m ∧ k < l) :=
-  assume k, and_congr_right $ assume hk, by rw [← not_imp_not]; simp [hk],
-by ext k; by_cases n ≤ k; simp [h, this]
-
-lemma image_const_sub {k m n : ℕ} (hkn : k ≤ n) :
-  (Ico k m).image (λ j, n - j) = Ico (n + 1 - m) (n + 1 - k) :=
+lemma Ico_image_const_sub {a b c : α} :
+  (Ico a b).image (λ x, c - x) = Ioc (c - a) (c - b) :=
 begin
   rw [nat.sub_add_comm hkn],
   ext j,
@@ -258,15 +331,5 @@ begin
     { exact nat.sub_sub_self hj } }
 end
 
-lemma range_eq_Ico (n : ℕ) : finset.range n = finset.Ico 0 n :=
-by { ext i, simp }
-
-lemma range_image_pred_top_sub (n : ℕ) :
-  (finset.range n).image (λ j, n - 1 - j) = finset.range n :=
-begin
-  cases n,
-  { simp },
-  { simp [range_eq_Ico, Ico.image_const_sub] }
-end
-
+end linear_order
 end finset

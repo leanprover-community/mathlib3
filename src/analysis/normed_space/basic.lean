@@ -1361,6 +1361,14 @@ nnreal.eq $ norm_of_nonneg hx
 lemma ennnorm_eq_of_real {x : ℝ} (hx : 0 ≤ x) : (∥x∥₊ : ℝ≥0∞) = ennreal.of_real x :=
 by { rw [← of_real_norm_eq_coe_nnnorm, norm_of_nonneg hx] }
 
+lemma of_real_le_ennnorm (x : ℝ) : ennreal.of_real x ≤ ∥x∥₊ :=
+begin
+  by_cases hx : 0 ≤ x,
+  { rw real.ennnorm_eq_of_real hx, refl' },
+  { rw [ennreal.of_real_eq_zero.2 (le_of_lt (not_le.1 hx))],
+    exact bot_le }
+end
+
 /-- If `E` is a nontrivial topological module over `ℝ`, then `E` has no isolated points.
 This is a particular case of `module.punctured_nhds_ne_bot`. -/
 instance punctured_nhds_module_ne_bot

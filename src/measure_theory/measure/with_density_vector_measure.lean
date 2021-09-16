@@ -174,6 +174,21 @@ begin
   exact lintegral_mono_set (set.subset_univ _),
 end
 
+lemma with_densityᵥ_eq_with_density_pos_part_sub_with_density_neg_part
+  {f : α → ℝ} (hfi : integrable f μ) :
+  μ.with_densityᵥ f =
+  @to_signed_measure α _ (μ.with_density (λ x, ennreal.of_real $ f x))
+    (is_finite_measure_with_density_of_real hfi.2) -
+  @to_signed_measure α _ (μ.with_density (λ x, ennreal.of_real $ -f x))
+    (is_finite_measure_with_density_of_real hfi.neg.2) :=
+begin
+  ext i hi,
+  rw [with_densityᵥ_apply hfi hi,
+      integral_eq_lintegral_pos_part_sub_lintegral_neg_part hfi.integrable_on,
+      vector_measure.sub_apply, to_signed_measure_apply_measurable hi,
+      to_signed_measure_apply_measurable hi, with_density_apply _ hi, with_density_apply _ hi],
+end
+
 end signed_measure
 
 end measure_theory

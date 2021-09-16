@@ -132,8 +132,6 @@ theorem is_alg_closure_iff (K : Type v) [field K] [algebra k K] :
   is_alg_closure k K ↔ is_alg_closed K ∧ algebra.is_algebraic k K :=
 ⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
 
-attribute [instance] is_alg_closure.alg_closed
-
 namespace algebraic_closure
 
 open mv_polynomial
@@ -517,6 +515,8 @@ variables {K : Type u} [field K] {L : Type v} {M : Type w} [field L] [algebra K 
 
 variables (K L M)
 include hL
+
+local attribute [instance] is_alg_closure.alg_closed
 
 /-- A (random) hom from an algebraic extension of K into an algebraically closed extension of K -/
 @[irreducible] def lift : L →ₐ[K] M :=

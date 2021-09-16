@@ -433,7 +433,9 @@ lemma is_haar_measure_map [borel_space G] [topological_group G] {H : Type*} [gro
 
 /-- A Haar measure on a sigma-compact space is sigma-finite. -/
 @[priority 100, to_additive] -- see Note [lower instance priority]
-instance is_haar_measure.sigma_finite [sigma_compact_space G] :
+instance is_haar_measure.sigma_finite
+  {G : Type*} [group G] [measurable_space G] [topological_space G] [sigma_compact_space G]
+  (μ : measure G) [μ.is_haar_measure] :
   sigma_finite μ :=
 ⟨⟨{ set := compact_covering G,
   set_mem := λ n, mem_univ _,
@@ -449,8 +451,10 @@ no atom.
 This applies in particular to show that an additive Haar measure on a nontrivial
 finite-dimensional real vector space has no atom. -/
 @[priority 100, to_additive]
-instance is_haar_measure.has_no_atoms [t1_space G] [topological_group G] [locally_compact_space G]
-  [borel_space G] [ne_bot (𝓝[{(1 : G)}ᶜ] (1 : G))] :
+instance is_haar_measure.has_no_atoms
+  {G : Type*} [group G] [measurable_space G] [topological_space G] [t1_space G]
+  [topological_group G] [locally_compact_space G] [borel_space G] [(𝓝[{(1 : G)}ᶜ] (1 : G)).ne_bot]
+  (μ : measure G) [μ.is_haar_measure] :
   has_no_atoms μ :=
 begin
   suffices H : μ {(1 : G)} ≤ 0, by { constructor, simp [le_bot_iff.1 H] },

@@ -146,7 +146,7 @@ the result contains the original set.
 
 TODO Generalise this from convex sets to sets that are balanced / star-shaped about `x`. -/
 lemma convex.subset_interior_image_homothety_of_one_lt
-  {s : set E} (hs : convex s) {x : E} (hx : x ∈ interior s) (t : ℝ) (ht : 1 < t) :
+  {s : set E} (hs : convex ℝ s) {x : E} (hx : x ∈ interior s) (t : ℝ) (ht : 1 < t) :
   s ⊆ interior (image (homothety x t) s) :=
 begin
   intros y hy,

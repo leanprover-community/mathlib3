@@ -335,11 +335,11 @@ begin
       ← content_eq_gcd_leading_coeff_content_erase_lead, content_prim_part],
   { rw [← heq, degree_mul, with_bot.add_lt_add_iff_right],
     { apply degree_erase_lt p.prim_part_ne_zero },
-    { rw [bot_lt_iff_ne_bot, ne.def, degree_eq_bot],
+    { rw [ne.def, degree_eq_bot],
       apply q.prim_part_ne_zero } },
   { rw [mul_comm, ← heq, degree_mul, with_bot.add_lt_add_iff_left],
     { apply degree_erase_lt q.prim_part_ne_zero },
-    { rw [bot_lt_iff_ne_bot, ne.def, degree_eq_bot],
+    { rw [ne.def, degree_eq_bot],
       apply p.prim_part_ne_zero } }
 end
 

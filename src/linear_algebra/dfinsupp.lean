@@ -277,26 +277,6 @@ set_like.ext_iff.mp (bsupr_eq_mrange_dfinsupp_lsum p S) x
 
 end submodule
 
-namespace dfinsupp
-
--- PR 9182
-@[simp] lemma filter_ne_eq_erase {β : ι → Type*} [Π i, has_zero (β i)]
-  (f : Π₀ i, β i) (i : ι) : f.filter (≠ i) = f.erase i :=
-begin
-  ext1 j,
-  simp only [dfinsupp.filter_apply, dfinsupp.erase_apply, ite_not],
-end
-
-@[simp] lemma filter_ne_eq_erase' {β : ι → Type*} [Π i, has_zero (β i)]
-  (f : Π₀ i, β i) (i : ι) : f.filter ((≠) i) = f.erase i :=
-begin
-  rw ←filter_ne_eq_erase f i,
-  congr' with j,
-  exact ne_comm,
-end
-
-end dfinsupp
-
 /- Old proof:
 
 /-- If a family of submodules are independent, then `dfinsupp.lsum` applied with

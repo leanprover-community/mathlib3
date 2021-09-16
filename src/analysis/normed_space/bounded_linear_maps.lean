@@ -84,7 +84,7 @@ def to_continuous_linear_map {f : E → F} (hf : is_bounded_linear_map 𝕜 f) :
   ..to_linear_map f hf}
 
 lemma zero : is_bounded_linear_map 𝕜 (λ (x:E), (0:F)) :=
-(0 : E →ₗ F).is_linear.with_bound 0 $ by simp [le_refl]
+(0 : E →ₗ[𝕜] F).is_linear.with_bound 0 $ by simp [le_refl]
 
 lemma id : is_bounded_linear_map 𝕜 (λ (x:E), x) :=
 linear_map.id.is_linear.with_bound 1 $ by simp [le_refl]
@@ -458,5 +458,5 @@ a linear map that is also an isometry with full range. -/
 def continuous_linear_equiv.of_isometry (f : E →ₗ[𝕜] F) (hf : isometry f) (hfr : f.range = ⊤) :
   E ≃L[𝕜] F :=
 continuous_linear_equiv.of_homothety
-(linear_equiv.of_bijective f (linear_map.ker_eq_bot.mpr (isometry.injective hf)) hfr)
-1 zero_lt_one (λ _, by simp [one_mul, f.norm_apply_of_isometry hf])
+  (linear_equiv.of_bijective f (isometry.injective hf) (linear_map.range_eq_top.mp hfr))
+  1 zero_lt_one (λ _, by simp [one_mul, f.norm_apply_of_isometry hf])

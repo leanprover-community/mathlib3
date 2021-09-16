@@ -263,6 +263,13 @@ def quotient_ker_equiv_of_right_inverse (ψ : H → G) (hφ : function.right_inv
   right_inv := hφ,
   .. ker_lift φ }
 
+/-- The canonical isomorphism `G/⊥ ≃* G`. -/
+@[to_additive quotient_add_group.quotient_ker_equiv_of_right_inverse
+"The canonical isomorphism `G/⊥ ≃+ G`.",
+  simps]
+def quotient_bot : quotient (⊥ : subgroup G) ≃* G :=
+quotient_ker_equiv_of_right_inverse (monoid_hom.id G) id (λ x, rfl)
+
 /-- The canonical isomorphism `G/(ker φ) ≃* H` induced by a surjection `φ : G →* H`.
 
 For a `computable` version, see `quotient_group.quotient_ker_equiv_of_right_inverse`.
@@ -286,6 +293,11 @@ def equiv_quotient_of_eq {M N : subgroup G} [M.normal] [N.normal] (h : M = N) :
   left_inv := λ x, x.induction_on' $ by { intro, refl },
   right_inv := λ x, x.induction_on' $ by { intro, refl },
   map_mul' := λ x y, by rw map_mul }
+
+@[simp, to_additive]
+lemma equiv_quotient_of_eq_mk {M N : subgroup G} [M.normal] [N.normal] (h : M = N) (x : G) :
+  quotient_group.equiv_quotient_of_eq h (quotient_group.mk x) = (quotient_group.mk x) :=
+rfl
 
 /-- Let `A', A, B', B` be subgroups of `G`. If `A' ≤ B'` and `A ≤ B`,
 then there is a map `A / (A' ⊓ A) →* B / (B' ⊓ B)` induced by the inclusions. -/

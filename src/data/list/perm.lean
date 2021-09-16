@@ -9,7 +9,14 @@ import data.list.zip
 import logic.relation
 
 /-!
-# List permutations
+# List Permutations
+
+This file introduces the `list.perm` relation, which is true if two lists are permutations of one
+another.
+
+## Notation
+
+The notation `~` is used for permutation equivalence.
 -/
 
 open_locale nat
@@ -255,18 +262,15 @@ begin
   case perm.cons : a l u hlu ih {
     cases huv with _ b _ v hab huv',
     rcases ih huv' with ⟨l₂, h₁₂, h₂₃⟩,
-    exact ⟨b::l₂, forall₂.cons hab h₁₂, h₂₃.cons _⟩
-  },
+    exact ⟨b::l₂, forall₂.cons hab h₁₂, h₂₃.cons _⟩ },
   case perm.swap : a₁ a₂ l₁ l₂ h₂₃ {
     cases h₂₃ with _ b₁ _ l₂ h₁ hr_₂₃,
     cases hr_₂₃ with _ b₂ _ l₂ h₂ h₁₂,
-    exact ⟨b₂::b₁::l₂, forall₂.cons h₂ (forall₂.cons h₁ h₁₂), perm.swap _ _ _⟩
-  },
+    exact ⟨b₂::b₁::l₂, forall₂.cons h₂ (forall₂.cons h₁ h₁₂), perm.swap _ _ _⟩ },
   case perm.trans : la₁ la₂ la₃ _ _ ih₁ ih₂ {
     rcases ih₂ huv with ⟨lb₂, hab₂, h₂₃⟩,
     rcases ih₁ hab₂ with ⟨lb₁, hab₁, h₁₂⟩,
-    exact ⟨lb₁, hab₁, perm.trans h₁₂ h₂₃⟩
-  }
+    exact ⟨lb₁, hab₁, perm.trans h₁₂ h₂₃⟩ }
 end
 
 lemma forall₂_comp_perm_eq_perm_comp_forall₂ : forall₂ r ∘r perm = perm ∘r forall₂ r :=
@@ -292,7 +296,7 @@ this ▸ hbd
 lemma rel_perm (hr : bi_unique r) : (forall₂ r ⇒ forall₂ r ⇒ (↔)) perm perm :=
 assume a b hab c d hcd, iff.intro
   (rel_perm_imp hr.2 hab hcd)
-  (rel_perm_imp (left_unique_flip hr.1) hab.flip hcd.flip)
+  (rel_perm_imp hr.left.flip hab.flip hcd.flip)
 
 end rel
 
@@ -344,6 +348,13 @@ h₁.perm_of_length_le h₂.length_le
 
 theorem subperm.subset {l₁ l₂ : list α} : l₁ <+~ l₂ → l₁ ⊆ l₂
 | ⟨l, p, s⟩ := subset.trans p.symm.subset s.subset
+
+lemma subperm.filter (p : α → Prop) [decidable_pred p]
+  ⦃l l' : list α⦄ (h : l <+~ l') : filter p l <+~ filter p l' :=
+begin
+  obtain ⟨xs, hp, h⟩ := h,
+  exact ⟨_, hp.filter p, h.filter p⟩
+end
 
 end subperm
 
@@ -1167,6 +1178,152 @@ theorem perm.permutations {s t : list α} (h : s ~ t) : permutations s ~ permuta
 
 @[simp] theorem perm_permutations'_iff {s t : list α} : permutations' s ~ permutations' t ↔ s ~ t :=
 ⟨λ h, mem_permutations'.1 $ h.mem_iff.1 $ mem_permutations'.2 (perm.refl _), perm.permutations'⟩
+
+lemma nth_le_permutations'_aux (s : list α) (x : α) (n : ℕ)
+  (hn : n < length (permutations'_aux x s)) :
+  (permutations'_aux x s).nth_le n hn = s.insert_nth n x :=
+begin
+  induction s with y s IH generalizing n,
+  { simp only [length, permutations'_aux, nat.lt_one_iff] at hn,
+    simp [hn] },
+  { cases n,
+    { simp },
+    { simpa using IH _ _ } }
+end
+
+lemma count_permutations'_aux_self [decidable_eq α] (l : list α) (x : α) :
+  count (x :: l) (permutations'_aux x l) = length (take_while ((=) x) l) + 1 :=
+begin
+  induction l with y l IH generalizing x,
+  { simp [take_while], },
+  { rw [permutations'_aux, count_cons_self],
+    by_cases hx : x = y,
+    { subst hx,
+      simpa [take_while, nat.succ_inj'] using IH _ },
+    { rw take_while,
+      rw if_neg hx,
+      cases permutations'_aux x l with a as,
+      { simp },
+      { rw [count_eq_zero_of_not_mem, length, zero_add],
+        simp [hx, ne.symm hx] } } }
+end
+
+@[simp] lemma length_permutations'_aux (s : list α) (x : α) :
+  length (permutations'_aux x s) = length s + 1 :=
+begin
+  induction s with y s IH,
+  { simp },
+  { simpa using IH }
+end
+
+@[simp] lemma permutations'_aux_nth_le_zero (s : list α) (x : α)
+  (hn : 0 < length (permutations'_aux x s) := by simp) :
+  (permutations'_aux x s).nth_le 0 hn = x :: s :=
+nth_le_permutations'_aux _ _ _ _
+
+lemma injective_permutations'_aux (x : α) : function.injective (permutations'_aux x) :=
+begin
+  intros s t h,
+  apply insert_nth_injective s.length x,
+  have hl : s.length = t.length := by simpa using congr_arg length h,
+  rw [←nth_le_permutations'_aux s x s.length (by simp),
+      ←nth_le_permutations'_aux t x s.length (by simp [hl])],
+  simp [h, hl]
+end
+
+lemma nodup_permutations'_aux_of_not_mem (s : list α) (x : α) (hx : x ∉ s) :
+  nodup (permutations'_aux x s) :=
+begin
+  induction s with y s IH,
+  { simp },
+  { simp only [not_or_distrib, mem_cons_iff] at hx,
+    simp only [not_and, exists_eq_right_right, mem_map, permutations'_aux, nodup_cons],
+    refine ⟨λ _, ne.symm hx.left, _⟩,
+    rw nodup_map_iff,
+    { exact IH hx.right },
+    { simp } }
+end
+
+lemma nodup_permutations'_aux_iff {s : list α} {x : α} :
+  nodup (permutations'_aux x s) ↔ x ∉ s :=
+begin
+  refine ⟨λ h, _, nodup_permutations'_aux_of_not_mem _ _⟩,
+  intro H,
+  obtain ⟨k, hk, hk'⟩ := nth_le_of_mem H,
+  rw nodup_iff_nth_le_inj at h,
+  suffices : k = k + 1,
+  { simpa using this },
+  refine h k (k + 1) _ _ _,
+  { simpa [nat.lt_succ_iff] using hk.le },
+  { simpa using hk },
+  rw [nth_le_permutations'_aux, nth_le_permutations'_aux],
+  have hl : length (insert_nth k x s) = length (insert_nth (k + 1) x s),
+  { rw [length_insert_nth _ _ hk.le, length_insert_nth _ _ (nat.succ_le_of_lt hk)] },
+  refine ext_le hl (λ n hn hn', _),
+  rcases lt_trichotomy n k with H|rfl|H,
+  { rw [nth_le_insert_nth_of_lt _ _ _ _ H (H.trans hk),
+        nth_le_insert_nth_of_lt _ _ _ _ (H.trans (nat.lt_succ_self _))] },
+  { rw [nth_le_insert_nth_self _ _ _ hk.le,
+        nth_le_insert_nth_of_lt _ _ _ _ (nat.lt_succ_self _) hk, hk'] },
+  { rcases (nat.succ_le_of_lt H).eq_or_lt with rfl|H',
+    { rw [nth_le_insert_nth_self _ _ _ (nat.succ_le_of_lt hk)],
+      convert hk' using 1,
+      convert nth_le_insert_nth_add_succ _ _ _ 0 _,
+      simpa using hk },
+    { obtain ⟨m, rfl⟩ := nat.exists_eq_add_of_lt H',
+      rw [length_insert_nth _ _ hk.le, nat.succ_lt_succ_iff, nat.succ_add] at hn,
+      rw nth_le_insert_nth_add_succ,
+      convert nth_le_insert_nth_add_succ s x k m.succ _ using 2,
+      { simp [nat.add_succ, nat.succ_add] },
+      { simp [add_left_comm, add_comm] },
+      { simpa [nat.add_succ] using hn },
+      { simpa [nat.succ_add] using hn } } }
+end
+
+lemma nodup_permutations (s : list α) (hs : nodup s) :
+  nodup s.permutations :=
+begin
+  rw (permutations_perm_permutations' s).nodup_iff,
+  induction hs with x l h h' IH,
+  { simp },
+  { rw [permutations'],
+    rw nodup_bind,
+    split,
+    { intros ys hy,
+      rw mem_permutations' at hy,
+      rw [nodup_permutations'_aux_iff, hy.mem_iff],
+      exact λ H, h x H rfl },
+    { refine IH.pairwise_of_forall_ne (λ as ha bs hb H, _),
+      rw disjoint_iff_ne,
+      rintro a ha' b hb' rfl,
+      obtain ⟨n, hn, hn'⟩ := nth_le_of_mem ha',
+      obtain ⟨m, hm, hm'⟩ := nth_le_of_mem hb',
+      rw mem_permutations' at ha hb,
+      have hl : as.length = bs.length := (ha.trans hb.symm).length_eq,
+      simp only [nat.lt_succ_iff, length_permutations'_aux] at hn hm,
+      rw nth_le_permutations'_aux at hn' hm',
+      have hx : nth_le (insert_nth n x as) m
+        (by rwa [length_insert_nth _ _ hn, nat.lt_succ_iff, hl]) = x,
+      { simp [hn', ←hm', hm] },
+      have hx' : nth_le (insert_nth m x bs) n
+        (by rwa [length_insert_nth _ _ hm, nat.lt_succ_iff, ←hl]) = x,
+      { simp [hm', ←hn', hn] },
+      rcases lt_trichotomy n m with ht|ht|ht,
+      { suffices : x ∈ bs,
+        { exact h x (hb.subset this) rfl },
+        rw [←hx', nth_le_insert_nth_of_lt _ _ _ _ ht (ht.trans_le hm)],
+        exact nth_le_mem _ _ _ },
+      { simp only [ht] at hm' hn',
+        rw ←hm' at hn',
+        exact H (insert_nth_injective _ _ hn') },
+      { suffices : x ∈ as,
+        { exact h x (ha.subset this) rfl },
+        rw [←hx, nth_le_insert_nth_of_lt _ _ _ _ ht (ht.trans_le hn)],
+        exact nth_le_mem _ _ _ } } }
+end
+
+-- TODO: `nodup s.permutations ↔ nodup s`
+-- TODO: `count s s.permutations = (zip_with count s s.tails).prod`
 
 end permutations
 

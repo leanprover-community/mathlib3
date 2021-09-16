@@ -170,7 +170,6 @@ lemma pi_pi_le (m : Π i, outer_measure (α i)) (s : Π i, set (α i)) :
 by { cases (pi univ s).eq_empty_or_nonempty with h h, simp [h],
      exact (bounded_by_le _).trans_eq (pi_premeasure_pi h) }
 
-
 lemma le_pi {m : Π i, outer_measure (α i)} {n : outer_measure (Π i, α i)} :
   n ≤ outer_measure.pi m ↔ ∀ (s : Π i, set (α i)), (pi univ s).nonempty →
     n (pi univ s) ≤ ∏ i, m i (s i) :=
@@ -306,6 +305,22 @@ begin
     exact pi'_pi_le μ }
 end
 
+lemma pi_ball [∀ i, sigma_finite (μ i)] [∀ i, metric_space (α i)] [∀ i, borel_space (α i)]
+  (x : Π i, α i) {r : ℝ} (hr : 0 < r) :
+  measure.pi μ (metric.ball x r) = ∏ i, μ i (metric.ball (x i) r) :=
+begin
+  rw [ball_pi _ hr, pi_pi],
+  exact λ i, measurable_set_ball
+end
+
+lemma pi_closed_ball [∀ i, sigma_finite (μ i)] [∀ i, metric_space (α i)] [∀ i, borel_space (α i)]
+  (x : Π i, α i) {r : ℝ} (hr : 0 ≤ r) :
+  measure.pi μ (metric.closed_ball x r) = ∏ i, μ i (metric.closed_ball (x i) r) :=
+begin
+  rw [closed_ball_pi _ hr, pi_pi],
+  exact λ i, measurable_set_closed_ball
+end
+
 variable {μ}
 
 /-- `μ.prod ν` has finite spanning sets in rectangles of finite spanning sets. -/
@@ -313,7 +328,7 @@ def finite_spanning_sets_in.pi {C : Π i, set (set (α i))}
   (hμ : ∀ i, (μ i).finite_spanning_sets_in (C i)) (hC : ∀ i (s ∈ C i), measurable_set s) :
   (measure.pi μ).finite_spanning_sets_in (pi univ '' pi univ C) :=
 begin
-  haveI := λ i, (hμ i).sigma_finite (hC i),
+  haveI := λ i, (hμ i).sigma_finite,
   haveI := fintype.encodable ι,
   let e : ℕ → (ι → ℕ) := λ n, (decode (ι → ℕ) n).iget,
   refine ⟨λ n, pi univ (λ i, (hμ i).set (e n i)), λ n, _, λ n, _, _⟩,
@@ -341,7 +356,7 @@ begin
     (is_pi_system.pi h2C) _,
   rintro _ ⟨s, hs, rfl⟩,
   rw [mem_univ_pi] at hs,
-  haveI := λ i, (h3C i).sigma_finite (h4C i),
+  haveI := λ i, (h3C i).sigma_finite,
   simp_rw [h₁ s hs, pi_pi μ s (λ i, h4C i _ (hs i))]
 end
 
@@ -359,8 +374,7 @@ pi_eq_generate_from (λ i, generate_from_measurable_set)
 variable (μ)
 
 instance pi.sigma_finite : sigma_finite (measure.pi μ) :=
-⟨⟨(finite_spanning_sets_in.pi (λ i, (μ i).to_finite_spanning_sets_in) (λ _ _, id)).mono $
-  by { rintro _ ⟨s, hs, rfl⟩, exact measurable_set.pi_fintype hs }⟩⟩
+(finite_spanning_sets_in.pi (λ i, (μ i).to_finite_spanning_sets_in) (λ _ _, id)).sigma_finite
 
 lemma pi_eval_preimage_null {i : ι} {s : set (α i)} (hs : μ i s = 0) :
   measure.pi μ (eval i ⁻¹' s) = 0 :=
@@ -471,8 +485,8 @@ instance [h : nonempty ι] [∀ i, has_no_atoms (μ i)] : has_no_atoms (measure.
 h.elim $ λ i, pi_has_no_atoms i
 
 instance [Π i, topological_space (α i)] [∀ i, opens_measurable_space (α i)]
-  [∀ i, locally_finite_measure (μ i)] :
-  locally_finite_measure (measure.pi μ) :=
+  [∀ i, is_locally_finite_measure (μ i)] :
+  is_locally_finite_measure (measure.pi μ) :=
 begin
   refine ⟨λ x, _⟩,
   choose s hxs ho hμ using λ i, (μ i).exists_is_open_measure_lt_top (x i),
@@ -494,5 +508,16 @@ lemma volume_pi_pi [Π i, measure_space (α i)] [∀ i, sigma_finite (volume : m
   (s : Π i, set (α i)) (hs : ∀ i, measurable_set (s i)) :
   volume (pi univ s) = ∏ i, volume (s i) :=
 measure.pi_pi (λ i, volume) s hs
+
+lemma volume_pi_ball [Π i, measure_space (α i)] [∀ i, sigma_finite (volume : measure (α i))]
+  [∀ i, metric_space (α i)] [∀ i, borel_space (α i)] (x : Π i, α i) {r : ℝ} (hr : 0 < r) :
+  volume (metric.ball x r) = ∏ i, volume (metric.ball (x i) r) :=
+measure.pi_ball _ _ hr
+
+lemma volume_pi_closed_ball [Π i, measure_space (α i)] [∀ i, sigma_finite (volume : measure (α i))]
+  [∀ i, metric_space (α i)] [∀ i, borel_space (α i)]
+  (x : Π i, α i) {r : ℝ} (hr : 0 ≤ r) :
+  volume (metric.closed_ball x r) = ∏ i, volume (metric.closed_ball (x i) r) :=
+measure.pi_closed_ball _ _ hr
 
 end measure_theory

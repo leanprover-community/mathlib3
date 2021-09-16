@@ -291,8 +291,7 @@ end
 lemma is_three_cycle_cycle_range_two {n : ℕ} :
   is_three_cycle (cycle_range 2 : perm (fin (n + 3))) :=
 begin
-  rw [is_three_cycle, cycle_type_cycle_range, multiset.singleton_eq_singleton,
-    multiset.singleton_eq_singleton, multiset.cons_inj_left];
+  rw [is_three_cycle, cycle_type_cycle_range];
   dec_trivial
 end
 

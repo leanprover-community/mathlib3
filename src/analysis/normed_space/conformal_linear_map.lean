@@ -113,7 +113,7 @@ end
 
 lemma injective {f' : M →L[R] N} (h : is_conformal_map f') : function.injective f' :=
 let ⟨c, hc, li, hf'⟩ := h in by simp only [hf', pi.smul_def];
-  exact (smul_left_injective _ hc).comp li.injective
+  exact (smul_right_injective _ hc).comp li.injective
 
 lemma ne_zero [nontrivial M] {f' : M →L[R] N} (hf' : is_conformal_map f') :
   f' ≠ 0 :=

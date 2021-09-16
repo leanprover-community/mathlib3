@@ -1346,8 +1346,7 @@ begin
   { rintro ⟨u, hmeas, hu₁, hu₂⟩,
     rw [measure.add_apply, add_eq_zero_iff] at hu₁,
     exact ⟨⟨u, hmeas, hu₁.1, hu₂⟩, u, hmeas, hu₁.2, hu₂⟩ },
-  { rintro ⟨h₁, h₂⟩,
-    exact h₁.add h₂ }
+  { exact λ ⟨h₁, h₂⟩, h₁.add h₂ }
 end
 
 lemma smul (r : ℝ≥0) (h : ν ⊥ₘ μ) : r • ν ⊥ₘ μ :=

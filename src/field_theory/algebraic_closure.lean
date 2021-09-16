@@ -516,8 +516,6 @@ variables {K : Type u} [field K] {L : Type v} {M : Type w} [field L] [algebra K 
 variables (K L M)
 include hL
 
-local attribute [instance] is_alg_closure.alg_closed
-
 /-- A (random) hom from an algebraic extension of K into an algebraically closed extension of K -/
 @[irreducible] def lift : L →ₐ[K] M :=
 (lift.subfield_with_hom.maximal_subfield_with_hom M hL).emb.comp $
@@ -529,6 +527,8 @@ namespace is_alg_closure
 
 variables (K : Type u) [field K] (L : Type v) (M : Type w) [field L] [algebra K L]
   [field M] [algebra K M]  [is_alg_closure K L] [is_alg_closure K M]
+
+local attribute [instance] is_alg_closure.alg_closed
 
 /-- A (random) isomorphism between two algebraic closures of `K`. -/
 def equiv : L ≃ₐ[K] M :=

@@ -50,12 +50,7 @@ section comm_ring
 variable [comm_ring R]
 variables {p q : mv_polynomial σ R}
 
-instance : comm_ring (mv_polynomial σ R) :=
-{ zero := 0,
-  one := 1,
-  mul := (*),
-  add := (+),
-  ..add_monoid_algebra.comm_ring }
+instance : comm_ring (mv_polynomial σ R) := add_monoid_algebra.comm_ring
 
 variables (σ a a')
 

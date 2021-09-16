@@ -207,4 +207,16 @@ of_basis (basis.of_vector_space R M)
 
 end division_ring
 
+section integer
+
+variables [add_comm_group M] [module.finite ℤ M] [module.free ℤ M]
+
+instance : module.finite ℤ (M →+ ℤ) :=
+module.finite.equiv add_monoid_hom_lequiv_int.symm
+
+instance : module.free ℤ (M →+ ℤ) :=
+module.free.of_equiv add_monoid_hom_lequiv_int.symm
+
+end integer
+
 end module.free

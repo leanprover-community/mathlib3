@@ -510,6 +510,19 @@ by simp
 lemma erase_ne {i i' : ι} {f : Π₀ i, β i} (h : i' ≠ i) : (f.erase i) i' = f i' :=
 by simp [h]
 
+@[simp] lemma filter_ne_eq_erase (f : Π₀ i, β i) (i : ι) : f.filter (≠ i) = f.erase i :=
+begin
+  ext1 j,
+  simp only [dfinsupp.filter_apply, dfinsupp.erase_apply, ite_not],
+end
+
+@[simp] lemma filter_ne_eq_erase' (f : Π₀ i, β i) (i : ι) : f.filter ((≠) i) = f.erase i :=
+begin
+  rw ←filter_ne_eq_erase f i,
+  congr' with j,
+  exact ne_comm,
+end
+
 section update
 
 variables (f : Π₀ i, β i) (i : ι) (b : β i) [decidable (b = 0)]
@@ -576,13 +589,13 @@ variables (β)
 
 variables {β}
 
-lemma single_add_erase {i : ι} {f : Π₀ i, β i} : single i (f i) + f.erase i = f :=
+lemma single_add_erase (i : ι) (f : Π₀ i, β i) : single i (f i) + f.erase i = f :=
 ext $ λ i',
 if h : i = i'
 then by subst h; simp only [add_apply, single_apply, erase_apply, dif_pos rfl, if_pos, add_zero]
 else by simp only [add_apply, single_apply, erase_apply, dif_neg h, if_neg (ne.symm h), zero_add]
 
-lemma erase_add_single {i : ι} {f : Π₀ i, β i} : f.erase i + single i (f i) = f :=
+lemma erase_add_single (i : ι) (f : Π₀ i, β i) : f.erase i + single i (f i) = f :=
 ext $ λ i',
 if h : i = i'
 then by subst h; simp only [add_apply, single_apply, erase_apply, dif_pos rfl, if_pos, zero_add]
@@ -622,7 +635,7 @@ begin
       quotient.sound (λ i, rfl),
     rw H3, apply ih },
   have H3 : single i _ + _ = (⟦{to_fun := f, pre_support := i ::ₘ s, zero := H}⟧ : Π₀ i, β i) :=
-    single_add_erase,
+    single_add_erase _ _,
   rw ← H3,
   change p (single i (f i) + _),
   cases classical.em (f i = 0) with h h,

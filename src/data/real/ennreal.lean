@@ -739,7 +739,7 @@ begin
   rw coe_le_coe at hac,
   rw [← coe_sub],
   cases b, { exact coe_lt_top },
-  rwa [some_eq_coe, coe_lt_coe, nnreal.sub_lt_iff_lt_add hac, ← coe_lt_coe, coe_add, add_comm]
+  rwa [some_eq_coe, coe_lt_coe, sub_lt_iff_right hac, ← coe_lt_coe, coe_add]
 end
 
 protected lemma sub_lt_iff_lt_add (hb : b ≠ ∞) (hab : b ≤ a) : a - b < c ↔ a < c + b :=

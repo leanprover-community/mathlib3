@@ -400,7 +400,7 @@ begin
   { rcases ennreal.lt_iff_exists_coe.1 hr with ⟨r, rfl, hr'⟩,
     norm_cast at *,
     convert ennreal.tsum_coe_eq (nnreal.has_sum_geometric hr),
-    rw [ennreal.coe_inv $ ne_of_gt $ nnreal.sub_pos.2 hr] },
+    rw [ennreal.coe_inv $ ne_of_gt $ sub_pos_iff_lt.2 hr] },
   { rw [ennreal.sub_eq_zero_of_le hr, ennreal.inv_zero, ennreal.tsum_eq_supr_nat, supr_eq_top],
     refine λ a ha, (ennreal.exists_nat_gt (lt_top_iff_ne_top.1 ha)).imp
       (λ n hn, lt_of_lt_of_le hn _),
@@ -949,6 +949,20 @@ theorem exists_pos_sum_of_encodable' {ε : ℝ≥0∞} (hε : 0 < ε) (ι) [enco
   ∃ ε' : ι → ℝ≥0∞, (∀ i, 0 < ε' i) ∧ (∑' i, ε' i) < ε :=
 let ⟨δ, δpos, hδ⟩ := exists_pos_sum_of_encodable hε ι in
   ⟨λ i, δ i, λ i, ennreal.coe_pos.2 (δpos i), hδ⟩
+
+theorem exists_pos_tsum_mul_lt_of_encodable {ε : ℝ≥0∞} (hε : 0 < ε) {ι} [encodable ι]
+  (w : ι → ℝ≥0∞) (hw : ∀ i, w i ≠ ∞) :
+  ∃ δ : ι → ℝ≥0, (∀ i, 0 < δ i) ∧ ∑' i, (w i * δ i : ℝ≥0∞) < ε :=
+begin
+  lift w to ι → ℝ≥0 using hw,
+  rcases exists_pos_sum_of_encodable hε ι with ⟨δ', Hpos, Hsum⟩,
+  have : ∀ i, 0 < max 1 (w i), from λ i, zero_lt_one.trans_le (le_max_left _ _),
+  refine ⟨λ i, δ' i / max 1 (w i), λ i, nnreal.div_pos (Hpos _) (this i), _⟩,
+  refine lt_of_le_of_lt (ennreal.tsum_le_tsum $ λ i, _) Hsum,
+  rw [coe_div (this i).ne'],
+  refine mul_le_of_le_div' (ennreal.mul_le_mul le_rfl $ ennreal.inv_le_inv.2 _),
+  exact coe_le_coe.2 (le_max_right _ _)
+end
 
 end ennreal
 

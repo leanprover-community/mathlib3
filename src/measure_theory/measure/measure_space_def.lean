@@ -249,6 +249,19 @@ lemma measure_union_null_iff : μ (s₁ ∪ s₂) = 0 ↔ μ s₁ = 0 ∧ μ s�
 ⟨λ h, ⟨measure_mono_null (subset_union_left _ _) h, measure_mono_null (subset_union_right _ _) h⟩,
   λ h, measure_union_null h.1 h.2⟩
 
+lemma measure_union_lt_top (hs : μ s < ∞) (ht : μ t < ∞) : μ (s ∪ t) < ∞ :=
+(measure_union_le s t).trans_lt (ennreal.add_lt_top.mpr ⟨hs, ht⟩)
+
+lemma measure_union_lt_top_iff : μ (s ∪ t) < ∞ ↔ μ s < ∞ ∧ μ t < ∞ :=
+begin
+  refine ⟨λ h, ⟨_, _⟩, λ h, measure_union_lt_top h.1 h.2⟩,
+  { exact (measure_mono (set.subset_union_left s t)).trans_lt h, },
+  { exact (measure_mono (set.subset_union_right s t)).trans_lt h, },
+end
+
+lemma measure_union_ne_top (hs : μ s ≠ ∞) (ht : μ t ≠ ∞) : μ (s ∪ t) ≠ ∞ :=
+((measure_union_le s t).trans_lt (lt_top_iff_ne_top.mpr (ennreal.add_ne_top.mpr ⟨hs, ht⟩))).ne
+
 lemma exists_measure_pos_of_not_measure_Union_null [encodable β] {s : β → set α}
   (hs : μ (⋃ n, s n) ≠ 0) : ∃ n, 0 < μ (s n) :=
 begin
@@ -256,6 +269,12 @@ begin
   simp_rw nonpos_iff_eq_zero at h,
   exact hs (measure_Union_null h),
 end
+
+lemma measure_inter_lt_top (hs_finite : μ s < ∞) : μ (s ∩ t) < ∞ :=
+(measure_mono (set.inter_subset_left s t)).trans_lt hs_finite
+
+lemma measure_inter_ne_top (hs_finite : μ s ≠ ∞) : μ (s ∩ t) ≠ ∞ :=
+(measure_inter_lt_top (lt_top_iff_ne_top.mpr hs_finite)).ne
 
 /-! ### The almost everywhere filter -/
 

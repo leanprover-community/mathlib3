@@ -390,10 +390,7 @@ dif_neg h
 
 lemma forall_update_iff (f : Π a, β a) {a : α} {b : β a} (p : Π a, β a → Prop) :
   (∀ x, p x (update f a b x)) ↔ p a b ∧ ∀ x ≠ a, p x (f x) :=
-calc (∀ x, p x (update f a b x)) ↔ ∀ x, (x = a ∨ x ≠ a) → p x (update f a b x) :
-  by simp only [ne.def, classical.em, forall_prop_of_true]
-... ↔ p a b ∧ ∀ x ≠ a, p x (f x) :
-  by simp [or_imp_distrib, forall_and_distrib] { contextual := tt }
+by { rw [← and_forall_ne a, update_same], simp { contextual := tt } }
 
 lemma update_eq_iff {a : α} {b : β a} {f g : Π a, β a} :
   update f a b = g ↔ b = g a ∧ ∀ x ≠ a, f x = g x :=

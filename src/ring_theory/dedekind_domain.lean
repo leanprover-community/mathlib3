@@ -9,6 +9,8 @@ import ring_theory.ideal.over
 import ring_theory.integrally_closed
 import ring_theory.polynomial.rational_root
 import ring_theory.trace
+import algebra.associated
+
 
 /-!
 # Dedekind domains
@@ -899,3 +901,52 @@ instance integral_closure.is_dedekind_domain_fraction_ring
 integral_closure.is_dedekind_domain A (fraction_ring A) L
 
 end is_integral_closure
+
+section is_dedekind_domain
+
+variables {T : Type*} [integral_domain T] [is_dedekind_domain T] (I J : ideal T)
+open_locale classical
+open multiset unique_factorization_monoid ideal
+
+lemma prod_factors_eq_self {I : ideal T} (hI : I ≠ ⊥) : (factors I).prod = I :=
+associated_iff_eq.1 (factors_prod hI)
+
+lemma factors_prod_factors_eq_factors {α : multiset (ideal T)}
+  (h : ∀ p ∈ α, prime p) : factors α.prod = α :=
+by { simp_rw [← multiset.rel_eq, ← associated_eq_eq],
+     exact prime_factors_unique (prime_of_factor) h (factors_prod
+       (α.prod_ne_zero_of_prime h)) }
+
+lemma count_le_of_ideal_ge {I J : ideal T} (h : I ≤ J) (hI : I ≠ ⊥) (K : ideal T) :
+  count K (factors J) ≤ count K (factors I) :=
+le_iff_count.1 ((dvd_iff_factors_le_factors (ne_bot_of_le_ne_bot hI h) hI).1 (dvd_iff_le.2 h)) _
+
+lemma sup_eq_prod_inf_factors (hI : I ≠ ⊥) (hJ : J ≠ ⊥) : I ⊔ J = (factors I ∩ factors J).prod :=
+begin
+  have H : factors (factors I ∩ factors J).prod = factors I ∩ factors J,
+  { apply factors_prod_factors_eq_factors,
+    intros p hp,
+    rw mem_inter at hp,
+    exact prime_of_factor p hp.left },
+  have := (multiset.prod_ne_zero_of_prime (factors I ∩ factors J)
+      (λ _ h, prime_of_factor _ (multiset.mem_inter.1 h).1)),
+  apply le_antisymm,
+  { rw [sup_le_iff, ← dvd_iff_le, ← dvd_iff_le],
+    split,
+    { rw [dvd_iff_factors_le_factors this hI, H],
+      exact inf_le_left },
+    { rw [dvd_iff_factors_le_factors this hJ, H],
+      exact inf_le_right } },
+  { rw [← dvd_iff_le, dvd_iff_factors_le_factors, factors_prod_factors_eq_factors, le_iff_count],
+    { intro a,
+      rw multiset.count_inter,
+      exact le_min (count_le_of_ideal_ge le_sup_left hI a)
+        (count_le_of_ideal_ge le_sup_right hJ a) },
+    { intros p hp,
+      rw mem_inter at hp,
+      exact prime_of_factor p hp.left },
+    { exact ne_bot_of_le_ne_bot hI le_sup_left },
+    { exact this } },
+end
+
+end is_dedekind_domain

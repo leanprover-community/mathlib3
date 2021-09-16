@@ -356,6 +356,41 @@ by { ext, simp [finsupp.single_eq_pi_single, finsupp.equiv_fun_on_fintype], }
 
 end single
 
+/-! ### Declarations about `update` -/
+
+section update
+
+variables [has_zero M] (f : α →₀ M) (a : α) (b : M) (i : α)
+
+/-- Replace the value of a `α →₀ M` at a given point `a : α` by a given value `b : M`.
+If `b = 0`, this amounts to removing `a` from the `finsupp.support`.
+Otherwise, if `a` was not in the `finsupp.support`, it is added to it.
+
+This is the finitely-supported version of `function.update`. -/
+def update : α →₀ M :=
+⟨if b = 0 then f.support.erase a else insert a f.support,
+  function.update f a b,
+  λ i, begin
+    simp only [function.update_apply, ne.def],
+    split_ifs with hb ha ha hb;
+    simp [ha, hb]
+  end⟩
+
+@[simp] lemma coe_update : (f.update a b : α → M) = function.update f a b := rfl
+@[simp] lemma update_self : f.update a (f a) = f :=
+by { ext, simp }
+
+lemma support_update : support (f.update a b) =
+  if b = 0 then f.support.erase a else insert a f.support := rfl
+
+@[simp] lemma support_update_zero : support (f.update a 0) = f.support.erase a := if_pos rfl
+
+variables {b}
+
+lemma support_update_ne_zero (h : b ≠ 0) : support (f.update a b) = insert a f.support := if_neg h
+
+end update
+
 /-! ### Declarations about `on_finset` -/
 
 section on_finset
@@ -986,6 +1021,8 @@ begin
 end
 
 @[simp] lemma nat_zero_sub (f : α →₀ ℕ) : 0 - f = 0 := ext $ λ x, nat.zero_sub _
+
+@[simp] lemma nat_sub_self (f : α →₀ ℕ) : f - f = 0 := ext $ λ x, nat.sub_self _
 
 end nat_sub
 
@@ -2580,14 +2617,23 @@ instance [ordered_cancel_add_comm_monoid M] : ordered_cancel_add_comm_monoid (α
 
 lemma le_def [preorder M] [has_zero M] {f g : α →₀ M} : f ≤ g ↔ ∀ x, f x ≤ g x := iff.rfl
 
+lemma le_iff' [canonically_ordered_add_monoid M] (f g : α →₀ M)
+  {t : finset α} (hf : f.support ⊆ t) :
+  f ≤ g ↔ ∀ s ∈ t, f s ≤ g s :=
+⟨λ h s hs, h s,
+λ h s, if H : s ∈ f.support then h s (hf H) else (not_mem_support_iff.1 H).symm ▸ zero_le (g s)⟩
+
 lemma le_iff [canonically_ordered_add_monoid M] (f g : α →₀ M) :
   f ≤ g ↔ ∀ s ∈ f.support, f s ≤ g s :=
-⟨λ h s hs, h s,
-λ h s, if H : s ∈ f.support then h s H else (not_mem_support_iff.1 H).symm ▸ zero_le (g s)⟩
+le_iff' f g (subset.refl _)
 
 instance decidable_le [canonically_ordered_add_monoid M] [decidable_rel (@has_le.le M _)] :
   decidable_rel (@has_le.le (α →₀ M) _) :=
 λ f g, decidable_of_iff _ (le_iff f g).symm
+
+@[simp] lemma single_le_iff [canonically_ordered_add_monoid M] {i : α} {x : M} {f : α →₀ M} :
+  single i x ≤ f ↔ x ≤ f i :=
+(le_iff' _ _ support_single_subset).trans $ by simp
 
 @[simp] lemma add_eq_zero_iff [canonically_ordered_add_monoid M] (f g : α →₀ M) :
   f + g = 0 ↔ f = 0 ∧ g = 0 :=
@@ -2633,6 +2679,10 @@ ext $ λ a, nat.add_sub_of_le (h a)
 
 lemma nat_sub_add_cancel {f g : α →₀ ℕ} (h : f ≤ g) : g - f + f = g :=
 ext $ λ a, nat.sub_add_cancel (h a)
+
+lemma nat_add_sub_assoc {f₁ f₂ : α →₀ ℕ} (h : f₁ ≤ f₂) (f₃ : α →₀ ℕ) :
+  f₃ + f₂ - f₁ = f₃ + (f₂ - f₁) :=
+ext $ λ a, nat.add_sub_assoc (h _) _
 
 instance : canonically_ordered_add_monoid (α →₀ ℕ) :=
 { bot := 0,

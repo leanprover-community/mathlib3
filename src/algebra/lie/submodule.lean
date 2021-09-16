@@ -780,7 +780,7 @@ end
 
 @[simp] lemma comap_map_eq (h : ↑(map f I) = f '' I) : comap f (map f I) = I ⊔ f.ker :=
 by rw [← lie_submodule.coe_to_submodule_eq_iff, comap_coe_submodule, I.map_coe_submodule f h,
-  lie_submodule.sup_coe_to_submodule, f.ker_coe_submodule, linear_map.comap_map_eq]
+  lie_submodule.sup_coe_to_submodule, f.ker_coe_submodule, submodule.comap_map_eq]
 
 variables (f I J)
 

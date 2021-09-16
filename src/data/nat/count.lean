@@ -1,11 +1,7 @@
-import order.rel_iso
-import data.set.finite
-import order.conditionally_complete_lattice
-import set_theory.fincard
-import data.nat.lattice
-import data.finset.intervals
-import order.order_iso_nat
+import data.list.basic
 import data.nat.prime
+import order.order_iso_nat
+import set_theory.fincard
 
 /-!
 
@@ -16,35 +12,23 @@ under `k` satisfy the predicate" and "what is the `n`th number that satisifies t
 We define these as two functions, `count` and `nth`, that answer these questions, and prove
 the expected theorems about them.
 
-## Main definitions:
+## Main definitions
 
-* `count`: `count p n` returns the number of `k < n` such that `p k`.
-* `nth`: `nth p n` returns the `n`-th `k` (zero-indexed) number such that `p k`. If there is no
-  such number (that is, `p` is true for at most `n` numbers), `nth p n = 0`.
+* `count p n`: The number of naturals `k < n` such that `p k`.
+* `nth p n`: The `n`-th natural `k` (zero-indexed) such that `p k`. If there is no
+  such natural (that is, `p` is true for at most `n` naturals), then `nth p n = 0`.
 
-## Main results:
+## Main results
 
 * `set.infinite.order_iso_nat`: An infinite set of natural numbers is order-isomorphic to the
   natural numbers.
 -/
 
-open list
-
 section to_move
-
-namespace nat
-
-lemma le_succ_iff (x n : ℕ) : x ≤ n + 1 ↔ x ≤ n ∨ x = n + 1 :=
-by rw [decidable.le_iff_lt_or_eq, nat.lt_succ_iff]
-
-end nat
 
 namespace set
 
 variables {α : Type*} {s t : set α}
-
-lemma sdiff_eq_empty_iff_subset : s \ t = ∅ ↔ s ⊆ t :=
-sdiff_eq_bot_iff
 
 -- TODO: move to `data.set.finite`.
 lemma infinite_of_infinite_sdiff_finite {α : Type*} {s t : set α}
@@ -57,7 +41,7 @@ begin
 end
 
 -- TODO: move to `data.set.finite`.
-lemma exists_gt_of_infinite (s : set ℕ) (i : infinite s) (n : ℕ) : ∃ m, m ∈ s ∧ n < m :=
+lemma exists_gt_nat_of_infinite (s : set ℕ) (i : infinite s) (n : ℕ) : ∃ m, m ∈ s ∧ n < m :=
 begin
   obtain ⟨m, hm⟩ := (infinite_of_infinite_sdiff_finite i $ set.finite_le_nat n).nonempty,
   exact ⟨m, by simpa using hm⟩
@@ -72,45 +56,41 @@ begin
   by_contra h,
   apply i,
   apply finite.subset f.finite_to_set,
-  exact (sdiff_eq_empty_iff_subset.mp $ or.resolve_right (eq_empty_or_nonempty _) h),
+  exact (diff_eq_empty.mp $ or.resolve_right (eq_empty_or_nonempty _) h),
 end
 
 end set
 
-lemma nat.subtype.semilattice_sup_bot_bot_apply {s : set ℕ} [decidable_pred (∈ s)] [h : nonempty s] :
+lemma nat.subtype.semilattice_sup_bot_bot_apply {s : set ℕ} [decidable_pred (∈ s)]
+  [h : nonempty s] :
 ((⊥ : s) : ℕ) = nat.find (nonempty_subtype.1 h) := rfl
 
 end to_move
 
-namespace nat
 
+open finset
+
+namespace nat
 variable (p : ℕ → Prop)
 
 section count
-
 variable [decidable_pred p]
 
-/-- Count the `i < n` satisfying `p i`. -/
+/-- Count the number of naturals `k < n` satisfying `p k`. -/
 def count (n : ℕ) : ℕ :=
 ((list.range n).filter p).length
 
 @[simp] lemma count_zero : count p 0 = 0 :=
-by rw [count, range_zero, filter_nil, length]
+by rw [count, list.range_zero, list.filter_nil, list.length]
 
-lemma list.range_one : range 1 = [0] := rfl
+instance count_set_fintype (n : ℕ) : fintype {i | i < n ∧ p i} :=
+fintype.of_finset ((finset.range n).filter p)
+  (λ x, by rw [mem_filter, mem_range, set.mem_set_of_eq])
 
-lemma list.filter_singleton {α : Type*} (a : α) (p : α → Prop) [decidable_pred p] :
-  [a].filter p = if p a then [a] else [] :=
-by split_ifs; simp [h]
-
-noncomputable instance count_set_fintype (p : ℕ → Prop) (n : ℕ) : fintype { i | i < n ∧ p i } :=
-fintype.of_injective (λ i, (⟨i.1, i.2.1⟩ : { i | i < n })) (by tidy)
-
-lemma count_eq_card_finset (n : ℕ) : count p n = finset.card (finset.filter p (finset.range n)) :=
-rfl
+lemma count_eq_card_finset (n : ℕ) : count p n = ((range n).filter p).card := rfl
 
 /-- `count p n` can be expressed as the cardinality of `{ i | i ≤ n ∧ p i }`. -/
-lemma count_eq_card (n : ℕ) : count p n = fintype.card { i : ℕ | i < n ∧ p i } :=
+lemma count_eq_card_fintype (n : ℕ) : count p n = fintype.card { i : ℕ | i < n ∧ p i } :=
 begin
   rw [←set.to_finset_card, count_eq_card_finset],
   congr' 1,
@@ -120,10 +100,8 @@ end
 
 @[simp] lemma count_succ {n : ℕ} : count p (n + 1) = count p n + (if p n then 1 else 0) :=
 begin
-  suffices : (list.range (n+1)).filter p = ((list.range n).filter p) ++ if p n then [n] else [],
-  { split_ifs; simp [h, count, this] },
-  rw list.range_succ,
-  split_ifs; simp [h]
+  rw [count, count, list.range_succ],
+  split_ifs; simp [h],
 end
 
 lemma count_succ' : ∀ {n : ℕ}, count p (n + 1) = count (λ k, p (k + 1)) n + (if p 0 then 1 else 0)
@@ -148,7 +126,7 @@ lemma count_le_card (n : ℕ) : (count p n : cardinal) ≤ cardinal.mk (set_of p
 begin
   obtain h | h := lt_or_ge (cardinal.mk (set_of p)) cardinal.omega,
   { haveI := (cardinal.lt_omega_iff_fintype.mp h).some,
-    rw [cardinal.fintype_card, cardinal.nat_cast_le, count_eq_card],
+    rw [cardinal.fintype_card, cardinal.nat_cast_le, count_eq_card_fintype],
     fapply fintype.card_le_of_injective,
     exact λ ⟨i, _, hi⟩, ⟨i, hi⟩,
     tidy },
@@ -157,7 +135,7 @@ begin
 end
 
 lemma count_monotone : monotone (count p) :=
-λ x y h, length_le_of_sublist $ filter_sublist_filter p $ range_sublist.mpr h
+λ x y h, list.length_le_of_sublist $ (list.range_sublist.mpr h).filter p
 
 lemma count_lt_of_lt (x y : ℕ) (hc : count p x < count p y) : x < y :=
 (count_monotone p).reflect_lt hc
@@ -193,22 +171,19 @@ lemma Inf_plus {n : ℕ} {p : ℕ → Prop} (h : 0 < Inf {m : ℕ | p m}) :
 begin
   symmetry,
   rw Inf_def,
-  { erw nat.find_eq_iff,
+  { rw nat.find_eq_iff,
     simp only [nat.add_sub_cancel, set.mem_set_of_eq],
-    split,
-    { apply Inf_mem (nonempty_of_pos_Inf h), },
-    { intros k hk hpk,
-      refine not_mem_of_lt_Inf _ hpk,
-      rw sub_lt_iff_right,
-      { exact hk, },
-      { apply le_of_lt,
-        rw [←sub_pos_iff_lt, pos_iff_ne_zero],
-        intro hkn,
-        rw hkn at hpk,
-        exact not_mem_of_lt_Inf h hpk, }, }, },
+    refine ⟨Inf_mem (nonempty_of_pos_Inf h), λ k hk hpk, not_mem_of_lt_Inf _ hpk⟩,
+    rw sub_lt_iff_right,
+    { exact hk, },
+    { apply le_of_lt,
+      rw [←sub_pos_iff_lt, pos_iff_ne_zero],
+      intro hkn,
+      rw hkn at hpk,
+      exact not_mem_of_lt_Inf h hpk } },
   { obtain ⟨t, ht⟩ := nonempty_of_pos_Inf h,
     use t + n,
-    simpa using ht, },
+    simpa using ht }
 end
 
 lemma nth_zero_of_exists [decidable_pred p] (h : ∃ n, p n) : nth p 0 = nat.find h :=
@@ -267,7 +242,7 @@ end
 
 lemma nth_set_card {n : ℕ} (hf : (set_of p).finite)
   (hf' : {i : ℕ | p i ∧ ∀ k < n, nth p k < i}.finite) :
-  hf'.to_finset.card =  hf.to_finset.card - n :=
+  hf'.to_finset.card = hf.to_finset.card - n :=
 begin
   by_cases hle : n ≤ hf.to_finset.card,
   { exact nth_set_card_aux p hf _ hle, },
@@ -594,7 +569,7 @@ begin
     cases h with hp hle,
     exact hle, },
   apply Inf_mem,
-  have hg := set.exists_gt_of_infinite,
+  have hg := set.exists_gt_nat_of_infinite,
   specialize hg p i n,
   cases hg with m hm,
   use m,

@@ -125,7 +125,7 @@ variable {z}
 
 /-- The center of mass of a finite subset of a convex set belongs to the set
 provided that all weights are non-negative, and the total weight is positive. -/
-lemma convex.center_mass_mem (hs : convex s) :
+lemma convex.center_mass_mem (hs : convex ℝ s) :
   (∀ i ∈ t, 0 ≤ w i) → (0 < ∑ i in t, w i) → (∀ i ∈ t, z i ∈ s) → t.center_mass w z ∈ s :=
 begin
   induction t using finset.induction with i t hi ht, { simp [lt_irrefl] },
@@ -147,14 +147,14 @@ begin
     { exact h₀ _ (mem_insert_self _ _) } }
 end
 
-lemma convex.sum_mem (hs : convex s) (h₀ : ∀ i ∈ t, 0 ≤ w i) (h₁ : ∑ i in t, w i = 1)
+lemma convex.sum_mem (hs : convex ℝ s) (h₀ : ∀ i ∈ t, 0 ≤ w i) (h₁ : ∑ i in t, w i = 1)
   (hz : ∀ i ∈ t, z i ∈ s) :
   ∑ i in t, w i • z i ∈ s :=
 by simpa only [h₁, center_mass, inv_one, one_smul] using
   hs.center_mass_mem h₀ (h₁.symm ▸ zero_lt_one) hz
 
 lemma convex_iff_sum_mem :
-  convex s ↔
+  convex ℝ s ↔
     (∀ (t : finset E) (w : E → ℝ),
       (∀ i ∈ t, 0 ≤ w i) → ∑ i in t, w i = 1 → (∀ x ∈ t, x ∈ s) → ∑ x in t, w x • x ∈ s ) :=
 begin
@@ -212,15 +212,15 @@ end
 
 lemma finset.center_mass_mem_convex_hull (t : finset ι) {w : ι → ℝ} (hw₀ : ∀ i ∈ t, 0 ≤ w i)
   (hws : 0 < ∑ i in t, w i) {z : ι → E} (hz : ∀ i ∈ t, z i ∈ s) :
-  t.center_mass w z ∈ convex_hull s :=
-(convex_convex_hull s).center_mass_mem hw₀ hws (λ i hi, subset_convex_hull s $ hz i hi)
+  t.center_mass w z ∈ convex_hull ℝ s :=
+(convex_convex_hull ℝ s).center_mass_mem hw₀ hws (λ i hi, subset_convex_hull ℝ s $ hz i hi)
 
 -- TODO : Do we need other versions of the next lemma?
 
 /-- Convex hull of `s` is equal to the set of all centers of masses of `finset`s `t`, `z '' t ⊆ s`.
 This version allows finsets in any type in any universe. -/
 lemma convex_hull_eq (s : set E) :
-  convex_hull s = {x : E | ∃ (ι : Type u') (t : finset ι) (w : ι → ℝ) (z : ι → E)
+  convex_hull ℝ s = {x : E | ∃ (ι : Type u') (t : finset ι) (w : ι → ℝ) (z : ι → E)
     (hw₀ : ∀ i ∈ t, 0 ≤ w i) (hw₁ : ∑ i in t, w i = 1) (hz : ∀ i ∈ t, z i ∈ s),
     t.center_mass w z = x} :=
 begin
@@ -248,18 +248,18 @@ end
 
 /-- Maximum principle for convex functions. If a function `f` is convex on the convex hull of `s`,
 then `f` can't have a maximum on `convex_hull s` outside of `s`. -/
-lemma convex_on.exists_ge_of_mem_convex_hull {f : E → ℝ} (hf : convex_on (convex_hull s) f)
-  {x} (hx : x ∈ convex_hull s) : ∃ y ∈ s, f x ≤ f y :=
+lemma convex_on.exists_ge_of_mem_convex_hull {f : E → ℝ} (hf : convex_on (convex_hull ℝ s) f)
+  {x} (hx : x ∈ convex_hull ℝ s) : ∃ y ∈ s, f x ≤ f y :=
 begin
   rw convex_hull_eq at hx,
   rcases hx with ⟨α, t, w, z, hw₀, hw₁, hz, rfl⟩,
   rcases hf.exists_ge_of_center_mass hw₀ (hw₁.symm ▸ zero_lt_one)
-    (λ i hi, subset_convex_hull s (hz i hi)) with ⟨i, hit, Hi⟩,
+    (λ i hi, subset_convex_hull ℝ s (hz i hi)) with ⟨i, hit, Hi⟩,
   exact ⟨z i, hz i hit, Hi⟩
 end
 
 lemma finset.convex_hull_eq (s : finset E) :
-  convex_hull ↑s = {x : E | ∃ (w : E → ℝ) (hw₀ : ∀ y ∈ s, 0 ≤ w y) (hw₁ : ∑ y in s, w y = 1),
+  convex_hull ℝ ↑s = {x : E | ∃ (w : E → ℝ) (hw₀ : ∀ y ∈ s, 0 ≤ w y) (hw₁ : ∑ y in s, w y = 1),
     s.center_mass w id = x} :=
 begin
   refine subset.antisymm (convex_hull_min _ _) _,
@@ -281,14 +281,14 @@ begin
 end
 
 lemma set.finite.convex_hull_eq {s : set E} (hs : finite s) :
-  convex_hull s = {x : E | ∃ (w : E → ℝ) (hw₀ : ∀ y ∈ s, 0 ≤ w y)
+  convex_hull ℝ s = {x : E | ∃ (w : E → ℝ) (hw₀ : ∀ y ∈ s, 0 ≤ w y)
     (hw₁ : ∑ y in hs.to_finset, w y = 1), hs.to_finset.center_mass w id = x} :=
 by simpa only [set.finite.coe_to_finset, set.finite.mem_to_finset, exists_prop]
   using hs.to_finset.convex_hull_eq
 
 /-- A weak version of Carathéodory's theorem. -/
 lemma convex_hull_eq_union_convex_hull_finite_subsets (s : set E) :
-  convex_hull s = ⋃ (t : finset E) (w : ↑t ⊆ s), convex_hull ↑t :=
+  convex_hull ℝ s = ⋃ (t : finset E) (w : ↑t ⊆ s), convex_hull ℝ ↑t :=
 begin
   refine subset.antisymm _ _,
   { rw convex_hull_eq,
@@ -309,7 +309,7 @@ variables (ι) [fintype ι] {f : ι → ℝ}
 
 /-- `std_simplex ι` is the convex hull of the canonical basis in `ι → ℝ`. -/
 lemma convex_hull_basis_eq_std_simplex :
-  convex_hull (range $ λ(i j:ι), if i = j then (1:ℝ) else 0) = std_simplex ι :=
+  convex_hull ℝ (range $ λ(i j:ι), if i = j then (1:ℝ) else 0) = std_simplex ι :=
 begin
   refine subset.antisymm (convex_hull_min _ (convex_std_simplex ι)) _,
   { rintros _ ⟨i, rfl⟩,
@@ -329,7 +329,7 @@ Since we have no sums over finite sets, we use sum over `@finset.univ _ hs.finty
 The map is defined in terms of operations on `(s → ℝ) →ₗ[ℝ] ℝ` so that later we will not need
 to prove that this map is linear. -/
 lemma set.finite.convex_hull_eq_image {s : set E} (hs : finite s) :
-  convex_hull s = by haveI := hs.fintype; exact
+  convex_hull ℝ s = by haveI := hs.fintype; exact
     (⇑(∑ x : s, (@linear_map.proj ℝ s _ (λ i, ℝ) _ _ x).smul_right x.1)) '' (std_simplex s) :=
 begin
   rw [← convex_hull_basis_eq_std_simplex, ← linear_map.convex_hull_image, ← set.range_comp, (∘)],

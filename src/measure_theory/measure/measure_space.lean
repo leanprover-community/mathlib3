@@ -1340,9 +1340,21 @@ begin
     exact le_refl _ }
 end
 
+lemma add_iff : ν₁ + ν₂ ⊥ₘ μ ↔ ν₁ ⊥ₘ μ ∧ ν₂ ⊥ₘ μ :=
+begin
+  split,
+  { rintro ⟨u, hmeas, hu₁, hu₂⟩,
+    rw [measure.add_apply, add_eq_zero_iff] at hu₁,
+    exact ⟨⟨u, hmeas, hu₁.1, hu₂⟩, u, hmeas, hu₁.2, hu₂⟩ },
+  { exact λ ⟨h₁, h₂⟩, h₁.add h₂ }
+end
+
 lemma smul (r : ℝ≥0) (h : ν ⊥ₘ μ) : r • ν ⊥ₘ μ :=
 let ⟨s, hs, hs0, hs0'⟩ := h in
   ⟨s, hs, by simp only [coe_nnreal_smul, pi.smul_apply, hs0, smul_zero], hs0'⟩
+
+lemma of_absolutely_continuous (hms : ν₂ ⊥ₘ μ) (hac : ν₁ ≪ ν₂) : ν₁ ⊥ₘ μ :=
+let ⟨u, hmeas, hu₁, hu₂⟩ := hms in ⟨u, hmeas, hac hu₁, hu₂⟩
 
 end mutually_singular
 

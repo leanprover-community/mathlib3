@@ -609,6 +609,25 @@ instance lattice_of_linear_order {α : Type u} [o : linear_order α] :
 theorem sup_eq_max [linear_order α] {x y : α} : x ⊔ y = max x y := rfl
 theorem inf_eq_min [linear_order α] {x y : α} : x ⊓ y = min x y := rfl
 
+/-- A lattice with total order is a linear order.
+
+See note [reducible non-instances]. -/
+@[reducible] def lattice.to_linear_order (α : Type u) [lattice α] [decidable_eq α]
+  [decidable_rel ((≤) : α → α → Prop)] [decidable_rel ((<) : α → α → Prop)]
+  (h : ∀ x y : α, x ≤ y ∨ y ≤ x) :
+  linear_order α :=
+{ decidable_le := ‹_›, decidable_eq := ‹_›, decidable_lt := ‹_›,
+  le_total := h,
+  max := (⊔),
+  max_def := by {
+    funext x y, dunfold max_default,
+    split_ifs with h', exacts [sup_of_le_left h', sup_of_le_right $ (h x y).resolve_right h'] },
+  min := (⊓),
+  min_def := by {
+    funext x y, dunfold min_default,
+    split_ifs with h', exacts [inf_of_le_left h', inf_of_le_right $ (h x y).resolve_left h'] },
+  .. ‹lattice α› }
+
 @[priority 100] -- see Note [lower instance priority]
 instance distrib_lattice_of_linear_order {α : Type u} [o : linear_order α] :
   distrib_lattice α :=

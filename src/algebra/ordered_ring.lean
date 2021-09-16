@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
 import algebra.invertible
 import algebra.ordered_group
+import algebra.ordered_sub
 import data.set.intervals.basic
 
 /-!
@@ -1435,6 +1436,19 @@ lemma zero_lt_one [nontrivial α] : (0:α) < 1 := (zero_le 1).lt_of_ne zero_ne_o
 
 lemma mul_pos : 0 < a * b ↔ (0 < a) ∧ (0 < b) :=
 by simp only [pos_iff_ne_zero, ne.def, mul_eq_zero, not_or_distrib]
+
+variables [has_sub α] [has_ordered_sub α] [contravariant_class α α (+) (≤)] [is_total α (≤)]
+
+lemma _root_.mul_sub' (a b c : α) : a * (b - c) = a * b - a * c :=
+begin
+  cases total_of (≤) b c with hbc hcb,
+  { rw [sub_eq_zero_iff_le.2 hbc, mul_zero, sub_eq_zero_iff_le.2 (mul_le_mul_left' hbc a)] },
+  { apply eq_sub_of_add_eq'',
+    rw [← mul_add, sub_add_cancel_of_le hcb] }
+end
+
+lemma _root_.sub_mul' (a b c : α) : (a - b) * c = a * c - b * c :=
+by simp only [← mul_comm c, mul_sub']
 
 end canonically_ordered_comm_semiring
 

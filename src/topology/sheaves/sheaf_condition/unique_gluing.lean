@@ -227,7 +227,7 @@ For presheaves valued in a concrete category, whose forgetful functor reflects i
 preserves limits, the sheaf condition in terms of unique gluings is equivalent to the usual one
 in terms of equalizer diagrams.
 -/
-def sheaf_condition_equiv_sheaf_condition_unique_gluing_types :
+def sheaf_condition_equiv_sheaf_condition_unique_gluing :
   F.sheaf_condition ≃ F.sheaf_condition_unique_gluing :=
 equiv.trans (sheaf_condition_equiv_sheaf_condition_comp (forget C) F)
   (sheaf_condition_equiv_sheaf_condition_unique_gluing_types (F ⋙ forget C))

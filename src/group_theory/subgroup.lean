@@ -1686,17 +1686,22 @@ begin
   rwa [comap_map_eq, comap_map_eq, sup_of_le_left hH, sup_of_le_left hK] at hf,
 end
 
-@[to_additive] lemma comap_sup_eq
-  (H K : subgroup N) (hf : function.surjective f):
+@[to_additive] lemma comap_sup_eq_of_le_range
+  {H K : subgroup N} (hH : H ≤ f.range) (hK : K ≤ f.range) :
   comap f H ⊔ comap f K = comap f (H ⊔ K) :=
-begin
-  have : map f (comap f H ⊔ comap f K) = map f (comap f (H ⊔ K)),
-  { simp [subgroup.map_comap_eq, map_sup, f.range_top_of_surjective hf], },
-  refine map_injective_of_ker_le f _ _ this,
-  { calc f.ker ≤ comap f H : ker_le_comap f _
-           ... ≤ comap f H ⊔ comap f K : le_sup_left, },
-  exact ker_le_comap _ _,
-end
+map_injective_of_ker_le f ((ker_le_comap f H).trans le_sup_left) (ker_le_comap f (H ⊔ K))
+  (by rw [map_comap_eq, map_sup, map_comap_eq, map_comap_eq, inf_eq_right.mpr hH,
+    inf_eq_right.mpr hK, inf_eq_right.mpr (sup_le hH hK)])
+
+@[to_additive] lemma comap_sup_eq (H K : subgroup N) (hf : function.surjective f) :
+  comap f H ⊔ comap f K = comap f (H ⊔ K) :=
+comap_sup_eq_of_le_range f (le_top.trans (ge_of_eq (f.range_top_of_surjective hf)))
+  (le_top.trans (ge_of_eq (f.range_top_of_surjective hf)))
+
+@[to_additive] lemma sup_subgroup_of_eq {H K L : subgroup G} (hH : H ≤ L) (hK : K ≤ L) :
+  H.subgroup_of L ⊔ K.subgroup_of L = (H ⊔ K).subgroup_of L :=
+comap_sup_eq_of_le_range L.subtype (hH.trans (ge_of_eq L.subtype_range))
+  (hK.trans (ge_of_eq L.subtype_range))
 
 /-- A subgroup is isomorphic to its image under an injective function -/
 @[to_additive  "An additive subgroup is isomorphic to its image under an injective function"]

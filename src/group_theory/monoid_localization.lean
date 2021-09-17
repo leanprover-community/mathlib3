@@ -175,19 +175,22 @@ namespace localization
   inhabited (localization S) :=
 con.quotient.inhabited
 
-@[to_additive, irreducible] protected def mul :=
+@[to_additive, irreducible] protected def mul : localization S → localization S → localization S :=
 (r S).comm_monoid.mul
 
 @[to_additive] instance : has_mul (localization S) :=
 ⟨localization.mul S⟩
 
-@[to_additive, irreducible] protected def one :=
+@[to_additive, irreducible] protected def one : localization S :=
 (r S).comm_monoid.one
 
 @[to_additive] instance : has_one (localization S) :=
 ⟨localization.one S⟩
 
-local attribute [semireducible] localization.mul localization.one
+@[to_additive, irreducible] protected def npow : ℕ → localization S → localization S :=
+(r S).comm_monoid.npow
+
+local attribute [semireducible] localization.mul localization.one localization.npow
 
 @[to_additive] instance : comm_monoid (localization S) :=
 { mul := (*),
@@ -196,7 +199,11 @@ local attribute [semireducible] localization.mul localization.one
     show ∀ (x y z : localization S), x * y * z = x * (y * z), from (r S).comm_monoid.mul_assoc,
   mul_comm := show ∀ (x y : localization S), x * y = y * x, from (r S).comm_monoid.mul_comm,
   mul_one := show ∀ (x : localization S), x * 1 = x, from (r S).comm_monoid.mul_one,
-  one_mul := show ∀ (x : localization S), 1 * x = x, from (r S).comm_monoid.one_mul }
+  one_mul := show ∀ (x : localization S), 1 * x = x, from (r S).comm_monoid.one_mul,
+  npow := localization.npow S,
+  npow_zero' := show ∀ (x : localization S), localization.npow S 0 x = 1, from pow_zero,
+  npow_succ' := show ∀ (n : ℕ) (x : localization S),
+    localization.npow S n.succ x = x * localization.npow S n x, from λ n x, pow_succ x n }
 
 variables {S}
 

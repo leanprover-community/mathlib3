@@ -720,6 +720,7 @@ instance : comm_ring (localization M) :=
   one  := 1,
   add  := (+),
   mul  := (*),
+  npow := localization.npow _,
   add_assoc      := λ m n k, localization.induction_on₃ m n k (by tac),
   zero_add       := λ y, localization.induction_on y (by tac),
   add_zero       := λ y, localization.induction_on y (by tac),
@@ -1925,7 +1926,7 @@ noncomputable instance : field (fraction_ring A) :=
   one := 1,
   zero := 0,
   gsmul := gsmul,
-  npow := npow,
+  npow := localization.npow _,
   .. is_fraction_ring.to_field A }
 
 @[simp] lemma mk_eq_div {r s} : (localization.mk r s : fraction_ring A) =

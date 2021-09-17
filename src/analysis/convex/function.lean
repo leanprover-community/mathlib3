@@ -23,9 +23,11 @@ a convex set.
 * `convex_on.map_center_mass_le` `convex_on.map_sum_le`: Convex Jensen's inequality.
 -/
 
-variables {ι ι' : Type*} [add_comm_group E] [module ℝ E] [add_comm_group F] [module ℝ F] {s : set E}
+open finset linear_map set
+open_locale big_operators classical convex pointwise
 
-variables {β : Type*} [ordered_add_comm_monoid β] [module ℝ β]
+variables {𝕜 E F ι ι' β : Type*} [add_comm_group E] [module ℝ E] [add_comm_group F] [module ℝ F]
+  [ordered_add_comm_monoid β] [module ℝ β] {s : set E}
 
 /-- Convexity of functions -/
 def convex_on (s : set E) (f : E → β) : Prop :=
@@ -75,9 +77,7 @@ lemma convex_on_const (c : β) (hs : convex ℝ s) : convex_on s (λ x:E, c) :=
 ⟨hs, by { intros, simp only [← add_smul, *, one_smul] }⟩
 
 lemma concave_on_const (c : β) (hs : convex ℝ s) : concave_on s (λ x:E, c) :=
-@convex_on_const _ _ _ _ (order_dual β) _ _ c hs
-
-variables {t : set E}
+@convex_on_const _ (order_dual β) _ _ _ _ _ c hs
 
 lemma convex_on_iff_div {f : E → β} :
   convex_on s f ↔ convex ℝ s ∧ ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : ℝ⦄, 0 ≤ a → 0 ≤ b → 0 < a + b
@@ -97,7 +97,7 @@ end⟩
 lemma concave_on_iff_div {f : E → β} :
   concave_on s f ↔ convex ℝ s ∧ ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : ℝ⦄, 0 ≤ a → 0 ≤ b → 0 < a + b
   → (a/(a+b)) • f x + (b/(a+b)) • f y ≤ f ((a/(a+b)) • x + (b/(a+b)) • y) :=
-@convex_on_iff_div _ _ _ _ (order_dual β) _ _ _
+@convex_on_iff_div _ (order_dual β) _ _ _ _ _ _
 
 /-- For a function on a convex set in a linear ordered space, in order to prove that it is convex
 it suffices to verify the inequality `f (a • x + b • y) ≤ a • f x + b • f y` only for `x < y`
@@ -127,7 +127,7 @@ lexicographic order. -/
 lemma linear_order.concave_on_of_lt {f : E → β} [linear_order E] (hs : convex ℝ s)
   (hf : ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → x < y → ∀ ⦃a b : ℝ⦄, 0 < a → 0 < b → a + b = 1 →
      a • f x + b • f y ≤ f (a • x + b • y)) : concave_on s f :=
-@linear_order.convex_on_of_lt _ _ _ _ (order_dual β) _ _ f _ hs hf
+@linear_order.convex_on_of_lt _ (order_dual β) _ _ _ _ _ f _ hs hf
 
 /-- For a function `f` defined on a convex subset `D` of `ℝ`, if for any three points `x < y < z`
 the slope of the secant line of `f` on `[x, y]` is less than or equal to the slope
@@ -232,7 +232,7 @@ lemma concave_on_real_iff_slope_mono_adjacent {s : set ℝ} (hs : convex ℝ s) 
     (f z - f y) / (z - y) ≤ (f y - f x) / (y - x)) :=
 ⟨concave_on.slope_mono_adjacent, concave_on_real_of_slope_mono_adjacent hs⟩
 
-lemma convex_on.subset {f : E → β} (h_convex_on : convex_on t f)
+lemma convex_on.subset {f : E → β} {t : set E} (h_convex_on : convex_on t f)
   (h_subset : s ⊆ t) (h_convex : convex ℝ s) : convex_on s f :=
 begin
   apply and.intro h_convex,
@@ -240,9 +240,9 @@ begin
   exact h_convex_on.2 (h_subset hx) (h_subset hy),
 end
 
-lemma concave_on.subset {f : E → β} (h_concave_on : concave_on t f)
+lemma concave_on.subset {f : E → β} {t : set E} (h_concave_on : concave_on t f)
   (h_subset : s ⊆ t) (h_convex : convex ℝ s) : concave_on s f :=
-@convex_on.subset _ _ _ _ (order_dual β) _ _ t f h_concave_on h_subset h_convex
+@convex_on.subset _ (order_dual β) _ _ _ _ _ f t h_concave_on h_subset h_convex
 
 lemma convex_on.add {f g : E → β} (hf : convex_on s f) (hg : convex_on s g) :
   convex_on s (λx, f x + g x) :=
@@ -258,7 +258,7 @@ end
 
 lemma concave_on.add {f g : E → β} (hf : concave_on s f) (hg : concave_on s g) :
   concave_on s (λx, f x + g x) :=
-@convex_on.add _ _ _ _ (order_dual β) _ _ f g hf hg
+@convex_on.add _ (order_dual β) _ _ _ _ _ f g hf hg
 
 lemma convex_on.smul [ordered_smul ℝ β] {f : E → β} {c : ℝ} (hc : 0 ≤ c)
   (hf : convex_on s f) : convex_on s (λx, c • f x) :=
@@ -273,7 +273,7 @@ end
 
 lemma concave_on.smul [ordered_smul ℝ β] {f : E → β} {c : ℝ} (hc : 0 ≤ c)
   (hf : concave_on s f) : concave_on s (λx, c • f x) :=
-@convex_on.smul _ _ _ _ (order_dual β) _ _ _ f c hc hf
+@convex_on.smul _ (order_dual β) _ _ _ _ _ _ f c hc hf
 
 section linear_order
 section monoid
@@ -413,7 +413,7 @@ end
 
 lemma concave_on.concave_le [ordered_smul ℝ β] {f : E → β} (hf : concave_on s f) (r : β) :
   convex ℝ {x ∈ s | r ≤ f x} :=
-@convex_on.convex_le _ _ _ _ (order_dual β) _ _ _ f hf r
+@convex_on.convex_le _ (order_dual β) _ _ _ _ _ _ f hf r
 
 lemma convex_on.convex_lt {γ : Type*} [ordered_cancel_add_comm_monoid γ]
   [module ℝ γ] [ordered_smul ℝ γ]
@@ -500,7 +500,7 @@ end
 /-- If a function is concave on `s`, it remains concave when precomposed by an affine map. -/
 lemma concave_on.comp_affine_map {f : F → β} (g : E →ᵃ[ℝ] F) {s : set F}
   (hf : concave_on s f) : concave_on (g ⁻¹' s) (f ∘ g) :=
-@convex_on.comp_affine_map _ _ _ _ _ _ (order_dual β) _ _ f g s hf
+@convex_on.comp_affine_map _ _ (order_dual β) _ _ _ _ _ _ f g s hf
 
 /-- If `g` is convex on `s`, so is `(g ∘ f)` on `f ⁻¹' s` for a linear `f`. -/
 lemma convex_on.comp_linear_map {g : F → β} {s : set F} (hg : convex_on s g) (f : E →ₗ[ℝ] F) :
@@ -533,6 +533,8 @@ lemma concave_on.translate_left {f : E → β} {s : set E} {a : E} (hf : concave
 by simpa only [add_comm] using hf.translate_right
 
 /-! ### Jensen's inequality -/
+
+variables {i j : ι} {c : ℝ} {t : finset ι} {w : ι → ℝ} {z : ι → E}
 
 /-- Convex **Jensen's inequality**, `finset.center_mass` version. -/
 lemma convex_on.map_center_mass_le {f : E → ℝ} (hf : convex_on s f)
@@ -580,7 +582,7 @@ then `f` can't have a maximum on `convex_hull s` outside of `s`. -/
 lemma convex_on.exists_ge_of_mem_convex_hull {f : E → ℝ} (hf : convex_on (convex_hull ℝ s) f)
   {x} (hx : x ∈ convex_hull ℝ s) : ∃ y ∈ s, f x ≤ f y :=
 begin
-  rw convex_hull_eq at hx,
+  rw _root_.convex_hull_eq at hx,
   rcases hx with ⟨α, t, w, z, hw₀, hw₁, hz, rfl⟩,
   rcases hf.exists_ge_of_center_mass hw₀ (hw₁.symm ▸ zero_lt_one)
     (λ i hi, subset_convex_hull ℝ s (hz i hi)) with ⟨i, hit, Hi⟩,

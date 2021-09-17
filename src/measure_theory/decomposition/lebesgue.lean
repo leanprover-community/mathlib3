@@ -903,9 +903,11 @@ begin
       rw to_jordan_decomposition_eq_of_eq_add_with_density hf hfi htμ' hadd } },
 end
 
--- We note that the following lemma does not require `μ` to be σ-finite as it is true even if
--- the underlying measures do not have Lebesgue decomposition. This is because this statement is
--- actually a statement about Jordan decompositions.
+/-! We note that the following lemma does not require `μ` to be σ-finite as it is true even if
+the underlying measures do not have Lebesgue decomposition. This is because we may take the negative
+of a Jordan decomposition, and so, allows us to pullback the statement into a lemma about
+Jordan decompositions. The same strategy does not work for the other lemmas. -/
+
 lemma singular_part_neg (s : signed_measure α) (μ : measure α) :
   (-s).singular_part μ = - s.singular_part μ :=
 begin

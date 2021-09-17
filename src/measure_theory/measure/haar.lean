@@ -663,8 +663,8 @@ end
   {G : Type*} [comm_group G] [topological_space G] [topological_group G] [t2_space G]
   [measurable_space G] [borel_space G] [locally_compact_space G] [second_countable_topology G]
   (μ : measure G) [is_haar_measure μ] (s : set G) :
-  μ (has_inv.inv ⁻¹' s) = μ s :=
-calc μ (has_inv.inv ⁻¹' s) = measure.map (has_inv.inv) μ s :
+  μ (s⁻¹) = μ s :=
+calc μ (s⁻¹) = measure.map (has_inv.inv) μ s :
   ((homeomorph.inv G).to_measurable_equiv.map_apply s).symm
 ... = μ s : by rw map_haar_inv
 

@@ -1734,6 +1734,23 @@ begin
   simp only [cons_append, length, this, take_cons, l₁_ih, eq_self_iff_true, and_self]
 end
 
+/-- Taking the first `n` elements in `l₁ ++ l₂` is the same as appending the first `n` elements
+of `l₁` to the first `n - l₁.length` elements of `l₂`. -/
+lemma take_append_sub (l₁ l₂ : list α) (n : ℕ) :
+  take n (l₁ ++ l₂) = take n l₁ ++ take (n - l₁.length) l₂ :=
+begin
+  cases (le_total l₁.length n) with h,
+  { calc take n (l₁ ++ l₂)
+       = take (l₁.length + (n - l₁.length)) (l₁ ++ l₂) : by rw nat.add_sub_of_le h
+   ... = l₁ ++ take (n - l₁.length) l₂                 : by rw take_append
+   ... = take n l₁ ++ take (n - l₁.length) l₂          : by rw take_all_of_le h },
+
+  { calc take n (l₁ ++ l₂) = take n l₁        : take_append_of_le_length h
+   ... = take n l₁ ++ []                      : by rw append_nil
+   ... = take n l₁ ++ take 0 l₂               : rfl
+   ... = take n l₁ ++ take (n - l₁.length) l₂ : by rw nat.sub_eq_zero_of_le h }
+end
+
 /-- The `i`-th element of a list coincides with the `i`-th element of any of its prefixes of
 length `> i`. Version designed to rewrite from the big list to the small list. -/
 lemma nth_le_take (L : list α) {i j : ℕ} (hi : i < L.length) (hj : i < j) :
@@ -1885,6 +1902,23 @@ begin
   have : length l₁_tl + 1 + i = (length l₁_tl + i).succ,
     by { rw nat.succ_eq_add_one, exact succ_add _ _ },
   simp only [cons_append, length, this, drop, l₁_ih]
+end
+
+/-- Dropping the elements up to `n` in `l₁ ++ l₂` is the same as dropping the elements up to `n`
+in `l₁`, dropping the elements up to `n - l₁.length` in `l₂`, and appending them. -/
+lemma drop_append_sub (l₁ l₂ : list α) (n : ℕ) :
+  drop n (l₁ ++ l₂) = drop n l₁ ++ drop (n - l₁.length) l₂ :=
+begin
+  cases (le_total l₁.length n) with h,
+  { calc drop n (l₁ ++ l₂)
+       = drop (l₁.length + (n - l₁.length)) (l₁ ++ l₂) : by rw nat.add_sub_of_le h
+   ... = drop (n - l₁.length) l₂                       : by rw drop_append
+   ... = [] ++ drop (n - l₁.length) l₂                 : rfl
+   ... = drop n l₁ ++ drop (n - l₁.length) l₂          : by rw drop_eq_nil_of_le h },
+  { calc drop n (l₁ ++ l₂)
+       = drop n l₁ ++ l₂                      : drop_append_of_le_length h
+   ... = drop n l₁ ++ drop 0 l₂               : rfl
+   ... = drop n l₁ ++ drop (n - l₁.length) l₂ : by rw nat.sub_eq_zero_of_le h }
 end
 
 /-- The `i + j`-th element of a list coincides with the `j`-th element of the list obtained by

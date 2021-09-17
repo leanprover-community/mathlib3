@@ -19,7 +19,8 @@ open_locale big_operators
 
 namespace polynomial
 universes u v w z
-variables {R : Type u} {S : Type v} {T : Type w} {A : Type z} {a b : R} {n : ℕ}
+variables {R : Type u} {S : Type v} {T : Type w} {A : Type z} {A' B' : Type*} {a b : R} {n : ℕ}
+variables [comm_semiring A'] [comm_semiring B']
 
 section comm_semiring
 variables [comm_semiring R] {p q r : polynomial R}
@@ -52,9 +53,27 @@ When we have `[comm_ring R]`, the function `C` is the same as `algebra_map R (po
 (But note that `C` is defined when `R` is not necessarily commutative, in which case
 `algebra_map` is not available.)
 -/
-lemma C_eq_algebra_map {R : Type*} [comm_semiring R] (r : R) :
+lemma C_eq_algebra_map (r : R) :
   C r = algebra_map R (polynomial R) r :=
 rfl
+
+variables (R)
+
+@[simp] lemma alg_hom_map_eq_C [algebra R A'] :
+  ↑(alg_hom_map R A' (polynomial A')) = (C : A' →+* polynomial A') := rfl
+
+lemma alg_hom_map_apply_eq_C [algebra R A'] (a : A') :
+  (alg_hom_map R A' (polynomial A') a) = C a := rfl
+
+variables {R}
+
+@[ext] lemma alg_hom_ext' [algebra R A'] [algebra R B']
+  {f g : polynomial A' →ₐ[R] B'}
+  (h₁ : f.comp (alg_hom_map R A' (polynomial A')) =
+        g.comp (alg_hom_map R A' (polynomial A')))
+  (h₂ : f X = g X) : f = g :=
+alg_hom.coe_ring_hom_injective (polynomial.ring_hom_ext'
+  (congr_arg alg_hom.to_ring_hom h₁) h₂)
 
 variable (R)
 
@@ -261,7 +280,7 @@ is_root_of_eval₂_map_eq_zero inj hr
 
 section aeval₂
 
-variables {A' B' : Type*} [comm_semiring A'] [comm_semiring B'] [algebra S R] [algebra S A']
+variables [comm_semiring A'] [comm_semiring B'] [algebra S R] [algebra S A']
   [algebra R A'] [algebra R B'] [algebra S B'] [is_scalar_tower S R A'] [is_scalar_tower S R B']
 
 def aeval₂ (f : R →ₐ[S] A') (x : A') : polynomial R →ₐ[S] A' :=
@@ -279,11 +298,6 @@ variables (g : R →ₐ[S] A') (y : A')
 
 @[simp] lemma aeval₂_algebra_map' (x : S) :
   aeval₂ g y (algebra_map S (polynomial R) x) = g (algebra_map S R x) := eval₂_C _ _
-
-@[ext, priority 200] lemma alg_hom_ext' {f g : polynomial R →ₐ[S] A'}
-  (h₁ : (↑f : polynomial R →+* A').comp C = (g : polynomial R →+* A').comp C)
-  (h₂ : f X = g X)  : f = g :=
-polynomial.ring_hom_ext h₁ h₂
 
 end aeval₂
 

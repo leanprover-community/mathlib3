@@ -356,6 +356,41 @@ by { ext, simp [finsupp.single_eq_pi_single, finsupp.equiv_fun_on_fintype], }
 
 end single
 
+/-! ### Declarations about `update` -/
+
+section update
+
+variables [has_zero M] (f : α →₀ M) (a : α) (b : M) (i : α)
+
+/-- Replace the value of a `α →₀ M` at a given point `a : α` by a given value `b : M`.
+If `b = 0`, this amounts to removing `a` from the `finsupp.support`.
+Otherwise, if `a` was not in the `finsupp.support`, it is added to it.
+
+This is the finitely-supported version of `function.update`. -/
+def update : α →₀ M :=
+⟨if b = 0 then f.support.erase a else insert a f.support,
+  function.update f a b,
+  λ i, begin
+    simp only [function.update_apply, ne.def],
+    split_ifs with hb ha ha hb;
+    simp [ha, hb]
+  end⟩
+
+@[simp] lemma coe_update : (f.update a b : α → M) = function.update f a b := rfl
+@[simp] lemma update_self : f.update a (f a) = f :=
+by { ext, simp }
+
+lemma support_update : support (f.update a b) =
+  if b = 0 then f.support.erase a else insert a f.support := rfl
+
+@[simp] lemma support_update_zero : support (f.update a 0) = f.support.erase a := if_pos rfl
+
+variables {b}
+
+lemma support_update_ne_zero (h : b ≠ 0) : support (f.update a b) = insert a f.support := if_neg h
+
+end update
+
 /-! ### Declarations about `on_finset` -/
 
 section on_finset

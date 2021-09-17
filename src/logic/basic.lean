@@ -231,6 +231,13 @@ iff_true_intro $ λ_, trivial
 theorem imp_iff_right (ha : a) : (a → b) ↔ b :=
 ⟨λf, f ha, imp_intro⟩
 
+theorem decidable.imp_iff_right_iff [decidable a] : ((a → b) ↔ b) ↔ (a ∨ b) :=
+⟨λ H, (decidable.em a).imp_right $ λ ha', H.1 $ λ ha, (ha' ha).elim,
+  λ H, H.elim imp_iff_right $ λ hb, ⟨λ hab, hb, λ _ _, hb⟩⟩
+
+@[simp] theorem imp_iff_right_iff : ((a → b) ↔ b) ↔ (a ∨ b) :=
+decidable.imp_iff_right_iff
+
 /-! ### Declarations about `not` -/
 
 /-- Ex falso for negation. From `¬ a` and `a` anything follows. This is the same as `absurd` with
@@ -799,8 +806,12 @@ theorem forall_swap {p : α → β → Prop} : (∀ x y, p x y) ↔ ∀ y x, p x
 theorem exists_swap {p : α → β → Prop} : (∃ x y, p x y) ↔ ∃ y x, p x y :=
 ⟨λ ⟨x, y, h⟩, ⟨y, x, h⟩, λ ⟨y, x, h⟩, ⟨x, y, h⟩⟩
 
-@[simp] theorem exists_imp_distrib : ((∃ x, p x) → b) ↔ ∀ x, p x → b :=
+@[simp] theorem forall_exists_index {q : (∃ x, p x) → Prop} :
+  (∀ h, q h) ↔ ∀ x (h : p x), q ⟨x, h⟩ :=
 ⟨λ h x hpx, h ⟨x, hpx⟩, λ h ⟨x, hpx⟩, h x hpx⟩
+
+theorem exists_imp_distrib : ((∃ x, p x) → b) ↔ ∀ x, p x → b :=
+forall_exists_index
 
 /--
 Extract an element from a existential statement, using `classical.some`.
@@ -845,6 +856,11 @@ protected theorem decidable.not_exists_not [∀ x, decidable (p x)] : (¬ ∃ x,
 by simp [decidable.not_not]
 
 @[simp] theorem not_exists_not : (¬ ∃ x, ¬ p x) ↔ ∀ x, p x := decidable.not_exists_not
+
+theorem forall_imp_iff_exists_imp [ha : nonempty α] : ((∀ x, p x) → b) ↔ ∃ x, p x → b :=
+let ⟨a⟩ := ha in
+⟨λ h, not_forall_not.1 $ λ h', classical.by_cases (λ hb : b, h' a $ λ _, hb)
+  (λ hb, hb $ h $ λ x, (not_imp.1 (h' x)).1), λ ⟨x, hx⟩ h, hx (h x)⟩
 
 -- TODO: duplicate of a lemma in core
 theorem forall_true_iff : (α → true) ↔ true :=
@@ -899,6 +915,10 @@ by simp [and_comm]
 
 @[simp] theorem forall_eq' {a' : α} : (∀a, a' = a → p a) ↔ p a' :=
 by simp [@eq_comm _ a']
+
+theorem and_forall_ne (a : α) : (p a ∧ ∀ b ≠ a, p b) ↔ ∀ b, p b :=
+by simp only [← @forall_eq _ p a, ← forall_and_distrib, ← or_imp_distrib, classical.em,
+  forall_const]
 
 -- this lemma is needed to simplify the output of `list.mem_cons_iff`
 @[simp] theorem forall_eq_or_imp {a' : α} : (∀ a, a = a' ∨ q a → p a) ↔ p a' ∧ ∀ a, q a → p a :=

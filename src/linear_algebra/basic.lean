@@ -1790,14 +1790,14 @@ lemma ker_restrict {p : submodule R M} {f : M →ₗ[R] M} (hf : ∀ x : M, x �
   ker (f.restrict hf) = (f.dom_restrict p).ker :=
 by rw [restrict_eq_cod_restrict_dom_restrict, ker_cod_restrict]
 
-lemma map_comap_eq (f : M →ₗ[R] M₂) (q : submodule R M₂) :
+lemma _root_.submodule.map_comap_eq (f : M →ₗ[R] M₂) (q : submodule R M₂) :
   map f (comap f q) = range f ⊓ q :=
 le_antisymm (le_inf map_le_range (map_comap_le _ _)) $
 by rintro _ ⟨⟨x, _, rfl⟩, hx⟩; exact ⟨x, hx, rfl⟩
 
-lemma map_comap_eq_self {f : M →ₗ[R] M₂} {q : submodule R M₂} (h : q ≤ range f) :
+lemma _root_.submodule.map_comap_eq_self {f : M →ₗ[R] M₂} {q : submodule R M₂} (h : q ≤ range f) :
   map f (comap f q) = q :=
-by rwa [map_comap_eq, inf_eq_right]
+by rwa [submodule.map_comap_eq, inf_eq_right]
 
 @[simp] theorem ker_zero : ker (0 : M →ₗ[R] M₂) = ⊤ :=
 eq_top_iff'.2 $ λ x, by simp
@@ -1853,7 +1853,7 @@ variables [module R M] [module R M₂] [module R M₃]
 include R
 open submodule
 
-lemma comap_map_eq (f : M →ₗ[R] M₂) (p : submodule R M) :
+lemma _root_.submodule.comap_map_eq (f : M →ₗ[R] M₂) (p : submodule R M) :
   comap f (map f p) = p ⊔ ker f :=
 begin
   refine le_antisymm _ (sup_le (le_comap_map _ _) (comap_mono bot_le)),
@@ -1861,12 +1861,12 @@ begin
   exact mem_sup.2 ⟨y, hy, x - y, by simpa using sub_eq_zero.2 e.symm, by simp⟩
 end
 
-lemma comap_map_eq_self {f : M →ₗ[R] M₂} {p : submodule R M} (h : ker f ≤ p) :
+lemma _root_.submodule.comap_map_eq_self {f : M →ₗ[R] M₂} {p : submodule R M} (h : ker f ≤ p) :
   comap f (map f p) = p :=
-by rw [comap_map_eq, sup_of_le_left h]
+by rw [submodule.comap_map_eq, sup_of_le_left h]
 
 theorem map_le_map_iff (f : M →ₗ[R] M₂) {p p'} : map f p ≤ map f p' ↔ p ≤ p' ⊔ ker f :=
-by rw [map_le_iff_le_comap, comap_map_eq]
+by rw [map_le_iff_le_comap, submodule.comap_map_eq]
 
 theorem map_le_map_iff' {f : M →ₗ[R] M₂} (hf : ker f = ⊥) {p p'} : map f p ≤ map f p' ↔ p ≤ p' :=
 by rw [map_le_map_iff, hf, sup_bot_eq]

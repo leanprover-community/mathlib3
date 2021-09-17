@@ -693,7 +693,7 @@ variables [group S] [distrib_mul_action S M] [smul_comm_class S R M]
 This is a stronger version of `distrib_mul_action.to_add_equiv`. -/
 @[simps]
 def to_linear_equiv (s : S) : M ≃ₗ[R] M :=
-{ ..to_add_equiv _ _ s,
+{ ..to_add_equiv M s,
   ..to_linear_map R M s }
 
 end

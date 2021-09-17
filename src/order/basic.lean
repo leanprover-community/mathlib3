@@ -214,8 +214,12 @@ instance (α : Type*) [partial_order α] : partial_order (order_dual α) :=
 
 instance (α : Type*) [linear_order α] : linear_order (order_dual α) :=
 { le_total     := λ a b : α, le_total b a,
-  decidable_le := show decidable_rel (λ a b : α, b ≤ a), by apply_instance,
-  decidable_lt := show decidable_rel (λ a b : α, b < a), by apply_instance,
+  decidable_le := (infer_instance : decidable_rel (λ a b : α, b ≤ a)),
+  decidable_lt := (infer_instance : decidable_rel (λ a b : α, b < a)),
+  min := @max α _,
+  max := @min α _,
+  min_def := @linear_order.max_def α _,
+  max_def := @linear_order.min_def α _,
   .. order_dual.partial_order α }
 
 instance : Π [inhabited α], inhabited (order_dual α) := id

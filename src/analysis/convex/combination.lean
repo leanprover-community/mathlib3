@@ -25,44 +25,44 @@ open set
 open_locale big_operators classical
 
 universes u u'
-variables {E F ι ι' : Type*} [add_comm_group E] [module ℝ E] [add_comm_group F] [module ℝ F]
-  {s : set E}
+variables {𝕜 E ι ι' : Type*} [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E]
 
 /-- Center of mass of a finite collection of points with prescribed weights.
 Note that we require neither `0 ≤ w i` nor `∑ w = 1`. -/
-noncomputable def finset.center_mass (t : finset ι) (w : ι → ℝ) (z : ι → E) : E :=
-(∑ i in t, w i)⁻¹ • (∑ i in t, w i • z i)
+def linear_combination (p : ι → E) :
+  (ι →₀ 𝕜) →ₗ[𝕜] E :=
+⟨λ w : ι →₀ 𝕜, w.sum (λ i _, w i • p i), sorry⟩
 
-variables (i j : ι) (c : ℝ) (t : finset ι) (w : ι → ℝ) (z : ι → E)
+variables (i j : ι) (c : ℝ) (t : finset ι) (w : ι →₀ 𝕜) (p : ι → E)
 
 open finset
 
-lemma finset.center_mass_empty : (∅ : finset ι).center_mass w z = 0 :=
-by simp only [center_mass, sum_empty, smul_zero]
+lemma linear_combination_zero : linear_combination p (0 : ι →₀ 𝕜) = 0 :=
+by rw [linear_combination, linear_map.map_zero]
 
 lemma finset.center_mass_pair (hne : i ≠ j) :
-  ({i, j} : finset ι).center_mass w z = (w i / (w i + w j)) • z i + (w j / (w i + w j)) • z j :=
+  ({i, j} : finset ι).center_mass w p = (w i / (w i + w j)) • p i + (w j / (w i + w j)) • p j :=
 by simp only [center_mass, sum_pair hne, smul_add, (mul_smul _ _ _).symm, div_eq_inv_mul]
 
 variable {w}
 
 lemma finset.center_mass_insert (ha : i ∉ t) (hw : ∑ j in t, w j ≠ 0) :
-  (insert i t).center_mass w z = (w i / (w i + ∑ j in t, w j)) • z i +
-    ((∑ j in t, w j) / (w i + ∑ j in t, w j)) • t.center_mass w z :=
+  (insert i t).center_mass w p = (w i / (w i + ∑ j in t, w j)) • p i +
+    ((∑ j in t, w j) / (w i + ∑ j in t, w j)) • t.center_mass w p :=
 begin
   simp only [center_mass, sum_insert ha, smul_add, (mul_smul _ _ _).symm, ← div_eq_inv_mul],
   congr' 2,
   rw [div_mul_eq_mul_div, mul_inv_cancel hw, one_div]
 end
 
-lemma finset.center_mass_singleton (hw : w i ≠ 0) : ({i} : finset ι).center_mass w z = z i :=
+lemma finset.center_mass_singleton (hw : w i ≠ 0) : ({i} : finset ι).center_mass w p = p i :=
 by rw [center_mass, sum_singleton, sum_singleton, ← mul_smul, inv_mul_cancel hw, one_smul]
 
 lemma finset.center_mass_eq_of_sum_1 (hw : ∑ i in t, w i = 1) :
-  t.center_mass w z = ∑ i in t, w i • z i :=
+  t.center_mass w p = ∑ i in t, w i • p i :=
 by simp only [finset.center_mass, hw, inv_one, one_smul]
 
-lemma finset.center_mass_smul : t.center_mass w (λ i, c • z i) = c • t.center_mass w z :=
+lemma finset.center_mass_smul : t.center_mass w (λ i, c • p i) = c • t.center_mass w p :=
 by simp only [finset.center_mass, finset.smul_sum, (mul_smul _ _ _).symm, mul_comm c, mul_assoc]
 
 /-- A convex combination of two centers of mass is a center of mass as well. This version
@@ -84,19 +84,19 @@ end
 /-- A convex combination of two centers of mass is a center of mass as well. This version
 works if two centers of mass share the set of original points. -/
 lemma finset.center_mass_segment
-  (s : finset ι) (w₁ w₂ : ι → ℝ) (z : ι → E)
+  (s : finset ι) (w₁ w₂ : ι → ℝ) (p : ι → E)
   (hw₁ : ∑ i in s, w₁ i = 1) (hw₂ : ∑ i in s, w₂ i = 1) (a b : ℝ) (hab : a + b = 1) :
-  a • s.center_mass w₁ z + b • s.center_mass w₂ z =
-    s.center_mass (λ i, a * w₁ i + b * w₂ i) z :=
+  a • s.center_mass w₁ p + b • s.center_mass w₂ p =
+    s.center_mass (λ i, a * w₁ i + b * w₂ i) p :=
 have hw : ∑ i in s, (a * w₁ i + b * w₂ i) = 1,
   by simp only [mul_sum.symm, sum_add_distrib, mul_one, *],
 by simp only [finset.center_mass_eq_of_sum_1, smul_sum, sum_add_distrib, add_smul, mul_smul, *]
 
 lemma finset.center_mass_ite_eq (hi : i ∈ t) :
-  t.center_mass (λ j, if (i = j) then 1 else 0) z = z i :=
+  t.center_mass (λ j, if (i = j) then 1 else 0) p = p i :=
 begin
   rw [finset.center_mass_eq_of_sum_1],
-  transitivity ∑ j in t, if (i = j) then z i else 0,
+  transitivity ∑ j in t, if (i = j) then p i else 0,
   { congr' with i, split_ifs, exacts [h ▸ one_smul _ _, zero_smul _ _] },
   { rw [sum_ite_eq, if_pos hi] },
   { rw [sum_ite_eq, if_pos hi] }
@@ -106,7 +106,7 @@ variables {t w}
 
 lemma finset.center_mass_subset {t' : finset ι} (ht : t ⊆ t')
   (h : ∀ i ∈ t', i ∉ t → w i = 0) :
-  t.center_mass w z = t'.center_mass w z :=
+  t.center_mass w p = t'.center_mass w p :=
 begin
   rw [center_mass, sum_subset ht h, smul_sum, center_mass, smul_sum],
   apply sum_subset ht,
@@ -115,8 +115,8 @@ begin
 end
 
 lemma finset.center_mass_filter_ne_zero :
-  (t.filter (λ i, w i ≠ 0)).center_mass w z = t.center_mass w z :=
-finset.center_mass_subset z (filter_subset _ _) $ λ i hit hit',
+  (t.filter (λ i, w i ≠ 0)).center_mass w p = t.center_mass w p :=
+finset.center_mass_subset p (filter_subset _ _) $ λ i hit hit',
   by simpa only [hit, mem_filter, true_and, ne.def, not_not] using hit'
 
 variable {z}
@@ -124,16 +124,16 @@ variable {z}
 /-- The center of mass of a finite subset of a convex set belongs to the set
 provided that all weights are non-negative, and the total weight is positive. -/
 lemma convex.center_mass_mem (hs : convex ℝ s) :
-  (∀ i ∈ t, 0 ≤ w i) → (0 < ∑ i in t, w i) → (∀ i ∈ t, z i ∈ s) → t.center_mass w z ∈ s :=
+  (∀ i ∈ t, 0 ≤ w i) → (0 < ∑ i in t, w i) → (∀ i ∈ t, p i ∈ s) → t.center_mass w p ∈ s :=
 begin
   induction t using finset.induction with i t hi ht, { simp [lt_irrefl] },
   intros h₀ hpos hmem,
-  have zi : z i ∈ s, from hmem _ (mem_insert_self _ _),
+  have zi : p i ∈ s, from hmem _ (mem_insert_self _ _),
   have hs₀ : ∀ j ∈ t, 0 ≤ w j, from λ j hj, h₀ j $ mem_insert_of_mem hj,
   rw [sum_insert hi] at hpos,
   by_cases hsum_t : ∑ j in t, w j = 0,
   { have ws : ∀ j ∈ t, w j = 0, from (sum_eq_zero_iff_of_nonneg hs₀).1 hsum_t,
-    have wz : ∑ j in t, w j • z j = 0, from sum_eq_zero (λ i hi, by simp [ws i hi]),
+    have wp : ∑ j in t, w j • p j = 0, from sum_eq_zero (λ i hi, by simp [ws i hi]),
     simp only [center_mass, sum_insert hi, wz, hsum_t, add_zero],
     simp only [hsum_t, add_zero] at hpos,
     rw [← mul_smul, inv_mul_cancel (ne_of_gt hpos), one_smul],
@@ -146,8 +146,8 @@ begin
 end
 
 lemma convex.sum_mem (hs : convex ℝ s) (h₀ : ∀ i ∈ t, 0 ≤ w i) (h₁ : ∑ i in t, w i = 1)
-  (hz : ∀ i ∈ t, z i ∈ s) :
-  ∑ i in t, w i • z i ∈ s :=
+  (hp : ∀ i ∈ t, p i ∈ s) :
+  ∑ i in t, w i • p i ∈ s :=
 by simpa only [h₁, center_mass, inv_one, one_smul] using
   hs.center_mass_mem h₀ (h₁.symm ▸ zero_lt_one) hz
 
@@ -160,7 +160,7 @@ begin
   intros h x y hx hy a b ha hb hab,
   by_cases h_cases: x = y,
   { rw [h_cases, ←add_smul, hab, one_smul], exact hy },
-  { convert h {x, y} (λ z, if z = y then b else a) _ _ _,
+  { convert h {x, y} (λ z, if p = y then b else a) _ _ _,
     { simp only [sum_pair h_cases, if_neg h_cases, if_pos rfl] },
     { simp_intros i hi,
       cases hi; subst i; simp [ha, hb, if_neg h_cases] },
@@ -170,18 +170,18 @@ begin
 end
 
 lemma finset.center_mass_mem_convex_hull (t : finset ι) {w : ι → ℝ} (hw₀ : ∀ i ∈ t, 0 ≤ w i)
-  (hws : 0 < ∑ i in t, w i) {z : ι → E} (hz : ∀ i ∈ t, z i ∈ s) :
-  t.center_mass w z ∈ convex_hull ℝ s :=
-(convex_convex_hull ℝ s).center_mass_mem hw₀ hws (λ i hi, subset_convex_hull ℝ s $ hz i hi)
+  (hws : 0 < ∑ i in t, w i) {p : ι → E} (hp : ∀ i ∈ t, p i ∈ s) :
+  t.center_mass w p ∈ convex_hull ℝ s :=
+(convex_convex_hull ℝ s).center_mass_mem hw₀ hws (λ i hi, subset_convex_hull ℝ s $ hp i hi)
 
 -- TODO : Do we need other versions of the next lemma?
 
-/-- Convex hull of `s` is equal to the set of all centers of masses of `finset`s `t`, `z '' t ⊆ s`.
+/-- Convex hull of `s` is equal to the set of all centers of masses of `finset`s `t`, `p '' t ⊆ s`.
 This version allows finsets in any type in any universe. -/
 lemma convex_hull_eq (s : set E) :
-  convex_hull ℝ s = {x : E | ∃ (ι : Type u') (t : finset ι) (w : ι → ℝ) (z : ι → E)
-    (hw₀ : ∀ i ∈ t, 0 ≤ w i) (hw₁ : ∑ i in t, w i = 1) (hz : ∀ i ∈ t, z i ∈ s),
-    t.center_mass w z = x} :=
+  convex_hull ℝ s = {x : E | ∃ (ι : Type u') (t : finset ι) (w : ι → ℝ) (p : ι → E)
+    (hw₀ : ∀ i ∈ t, 0 ≤ w i) (hw₁ : ∑ i in t, w i = 1) (hp : ∀ i ∈ t, p i ∈ s),
+    t.center_mass w p = x} :=
 begin
   refine subset.antisymm (convex_hull_min _ _) _,
   { intros x hx,
@@ -202,7 +202,7 @@ begin
       rw [finset.mem_union, finset.mem_map, finset.mem_map] at hi,
       rcases hi with ⟨j, hj, rfl⟩|⟨j, hj, rfl⟩; apply_rules [hzx, hzy] } },
   { rintros _ ⟨ι, t, w, z, hw₀, hw₁, hz, rfl⟩,
-    exact t.center_mass_mem_convex_hull hw₀ (hw₁.symm ▸ zero_lt_one) hz }
+    exact t.center_mass_mem_convex_hull hw₀ (hw₁.symm ▸ zero_lt_one) hp }
 end
 
 lemma finset.convex_hull_eq (s : finset E) :
@@ -243,7 +243,7 @@ begin
     simp only [mem_Union],
     refine ⟨t.image z, _, _⟩,
     { rw [coe_image, set.image_subset_iff],
-      exact hz },
+      exact hp },
     { apply t.center_mass_mem_convex_hull hw₀,
       { simp only [hw₁, zero_lt_one] },
       { exact λ i hi, finset.mem_coe.2 (finset.mem_image_of_mem _ hi) } } },

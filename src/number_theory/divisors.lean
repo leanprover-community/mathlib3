@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import algebra.big_operators.order
-import data.finset.intervals
+import data.nat.intervals
 import data.nat.prime
 
 /-!
@@ -70,7 +70,8 @@ end
 
 lemma divisors_eq_proper_divisors_insert_self_of_pos (h : 0 < n):
   divisors n = has_insert.insert n (proper_divisors n) :=
-by rw [divisors, proper_divisors, finset.Ico_insert_right h, finset.filter_insert, if_pos (dvd_refl n)]
+by rw [divisors, proper_divisors, Ico_succ_right_eq_insert_Ico h, finset.filter_insert,
+  if_pos (dvd_refl n)]
 
 @[simp]
 lemma mem_divisors {m : ℕ} :

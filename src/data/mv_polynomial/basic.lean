@@ -275,21 +275,21 @@ finsupp.induction p (suffices P (monomial 0 0), by rwa monomial_zero at this,
                      show P (monomial 0 0), from h1 0 0)
                     (λ a b f ha hb hPf, h2 _ _ (h1 _ _) hPf)
 
-@[ext] lemma ring_hom_ext {A : Type*} [semiring A] {f g : mv_polynomial σ R →+* A}
+lemma ring_hom_ext {A : Type*} [semiring A] {f g : mv_polynomial σ R →+* A}
+  (hC : ∀ r, f (C r) = g (C r)) (hX : ∀ i, f (X i) = g (X i)) :
+  f = g :=
+by { ext, exacts [hC _, hX _] }
+
+@[ext] lemma ring_hom_ext' {A : Type*} [semiring A] {f g : mv_polynomial σ R →+* A}
   (hC : f.comp C = g.comp C) (hX : ∀ i, f (X i) = g (X i)) :
   f = g :=
-begin
-  ext1,
-  { exact hC },
-  { ext,
-    exact hX _ }
-end
+ring_hom_ext (ring_hom.ext_iff.1 hC) hX
 
 lemma hom_eq_hom [semiring S₂]
   (f g : mv_polynomial σ R →+* S₂)
   (hC : f.comp C = g.comp C) (hX : ∀n:σ, f (X n) = g (X n)) (p : mv_polynomial σ R) :
   f p = g p :=
-ring_hom.congr_fun (ring_hom_ext hC hX) p
+ring_hom.congr_fun (ring_hom_ext' hC hX) p
 
 lemma is_id (f : mv_polynomial σ R →+* mv_polynomial σ R)
   (hC : f.comp C = C) (hX : ∀n:σ, f (X n) = (X n)) (p : mv_polynomial σ R) :

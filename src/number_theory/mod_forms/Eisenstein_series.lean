@@ -598,7 +598,7 @@ end
 
 lemma realpow (n : ℕ ) (k : ℤ): (n: ℝ)^((k : ℝ)-1)= n^(k-1):=
 begin
-have:=real.rpow_int_cast (n: ℝ) (k-1), rw ← this, simp,
+have:=real.rpow_int_cast (n: ℝ) (k-1), rw ← this, simp only [int.cast_one, int.cast_sub],
 end
 
 
@@ -852,7 +852,8 @@ begin
 have:=natpows x n  h2, rw this, have h3:=mul_fpow (x^n) (x⁻¹) (-1), rw fpow_neg at h3, simp at h3, exact h3,
 end
 
-lemma BigClaim (k : ℕ) (z : ℍ) (h : 3 ≤ k): ∀ (n: ℕ), ∑ (y: ℤ × ℤ) in (Square n), ((real_Eise k z) y)  ≤(8/((rfunct z)^k))*(n^((k: ℤ)-1))⁻¹:=
+lemma BigClaim (k : ℕ) (z : ℍ) (h : 3 ≤ k):
+∀ (n: ℕ), ∑ (y: ℤ × ℤ) in (Square n), ((real_Eise k z) y)  ≤(8/((rfunct z)^k))*(n^((k: ℤ)-1))⁻¹:=
 begin
 intro n,
 rw real_Eise, simp,
@@ -879,8 +880,8 @@ norm_cast at ne, rw ne at this, norm_cast,  apply this, have hhh:= nat.pos_of_ne
 end
 
 
-lemma SmallClaim (k : ℕ) (z : ℍ) (h : 3 ≤ k):   ∀ (n : ℕ), (λ (x: ℕ), ∑ (y : ℤ × ℤ) in (Square x), (real_Eise k z) y) n ≤  (8/(rfunct z)^k) * ((rie (k-1)) n):=
-
+lemma SmallClaim (k : ℕ) (z : ℍ) (h : 3 ≤ k):
+ ∀ (n : ℕ), (λ (x: ℕ), ∑ (y : ℤ × ℤ) in (Square x),  (real_Eise k z) y) n ≤  (8/(rfunct z)^k) * ((rie (k-1)) n):=
 begin
  have BIGCLAIM:= BigClaim k z h,
  simp only at BIGCLAIM, rw rie, simp only [one_div], intro n,
@@ -972,13 +973,13 @@ end
 --example (x : ℂ) (a : ℤ × ℤ) (k: ℤ) (h : x ≠ 0)  : deriv (λ x,(x:ℂ)^-k) x = -k*(x: ℂ)^(-k-1) :=
 --by {have:=deriv_fpow h, convert this, norm_cast,   }
 
-def eisen_chunk (k : ℤ) (n: ℕ): ℍ → ℂ:=
+def eisen_square (k : ℤ) (n: ℕ): ℍ → ℂ:=
 λ z, ∑ x in Square n, Eise k z x
 
-lemma Eisenstein_series_is_sum_eisen_chunks (k: ℕ) (z: ℍ) (h : 3 ≤ k) :
-(Eisenstein_series_of_weight_ k z) = ∑' (n : ℕ), eisen_chunk k n z:=
+lemma Eisenstein_series_is_sum_eisen_squares (k: ℕ) (z: ℍ) (h : 3 ≤ k) :
+(Eisenstein_series_of_weight_ k z) = ∑' (n : ℕ), eisen_square k n z:=
 begin
-rw Eisenstein_series_of_weight_, simp_rw eisen_chunk,
+rw Eisenstein_series_of_weight_, simp_rw eisen_square,
 
 have HI:=Squares_cover_all,
 let g:= λ (y : ℤ × ℤ),  (Eise k z ) y,
@@ -988,7 +989,7 @@ have index_lem:= tsum_lemma' g Square HI hgsumm, simp_rw g at index_lem, exact i
 end
 
 def Eisen_partial_sums (k: ℤ) (n : ℕ): ℍ → ℂ:=
-λ z, ∑ x in (finset.range n), (eisen_chunk k x z)
+λ z, ∑ x in (finset.range n), (eisen_square k x z)
 
 def upper_half_space_slice (A B : ℝ) :=
   {z: ℍ | complex.abs(z.1.1) ≤ A ∧ complex.abs(z.1.2) ≥ B  }
@@ -1000,9 +1001,27 @@ instance upper_half_space_slice_to_uhs (A B : ℝ) : has_coe (upper_half_space_s
 
 def lbpoint (A B : ℝ) (h: 0 < B): ℍ:= ⟨⟨A,B⟩, by { simp, exact h,},⟩
 
+lemma aux55 (a b : ℝ ) (h : a ≠ 0 ) : a/(a+b)=1/(b/a+1) :=
+begin
+have : b/a+1=(b+a)/a, by {ring_nf, simp [h],},
+rw this,
+simp,
+rw add_comm,
+end
+
 lemma aux4 (a b : ℝ) (h: 0 < b): (b^4+(a*b)^2)/(a^2+b^2)^2=1/((a/b)^2 +1 ):=
 begin
-field_simp, ring_exp, sorry,
+have h1 : (a^2+b^2)^2=(a^2+b^2)*(a^2+b^2), by {ring,},
+rw h1,
+have h2: (b^4+(a*b)^2)=b^2*(a^2+b^2) , by {ring},
+rw h2,
+rw mul_div_assoc,
+simp,
+field_simp,
+have hb : b^2 ≠ 0 , by {simp [h], intro h3, linarith,},
+have:= (aux55  (b^2) (a^2) hb),
+rw add_comm,
+exact this,
 end
 
 lemma aux5 (a b : ℝ): 0 < a^2/b^2+1:=
@@ -1065,14 +1084,10 @@ apply pow_even_nonneg, simp, nlinarith,  nlinarith,
 end
 
 
-
-
-lemma Real_Eisenstein_bound_unifomly_on_stip (k : ℕ) (z : ℍ) (h : 3 ≤ k) (A B : ℝ) (hb : 0 < B)
-  (z : upper_half_space_slice A B) :
-    (real_Eisenstein_series_of_weight_ k z.1) ≤ (8/(rfunct (lbpoint A B hb) )^k)*Riemann_zeta (k-1):=
+lemma rfunctbound (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (hb : 0 < B) (z : upper_half_space_slice A B) :
+(8/(rfunct z)^k)*Riemann_zeta (k-1)  ≤ (8/(rfunct (lbpoint A B hb) )^k)*Riemann_zeta (k-1) :=
 begin
-have : (8/(rfunct z)^k)*Riemann_zeta (k-1)  ≤ (8/(rfunct (lbpoint A B hb) )^k)*Riemann_zeta (k-1),
-by {have h1:= rfunct_lower_bound_on_slice A B hb z,
+have h1:= rfunct_lower_bound_on_slice A B hb z,
     simp at h1,
     have v1: 0 ≤ rfunct z, by {have:= rfunct_pos z, linarith, },
     have v2: 0 ≤ rfunct (lbpoint A B hb), by {have:= rfunct_pos (lbpoint A B hb), linarith, },
@@ -1087,22 +1102,139 @@ by {have h1:= rfunct_lower_bound_on_slice A B hb z,
     apply pow_pos,
     apply rfunct_pos,
      apply pow_pos,
-    apply rfunct_pos,},
+    apply rfunct_pos,
+end
+
+
+lemma rfunctbound' (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (hb : 0 < B) (z : upper_half_space_slice A B) (n : ℕ) :
+(8/(rfunct z)^k)* (rie (k-1) n)  ≤ (8/(rfunct (lbpoint A B hb) )^k)* (rie  (k-1) n) :=
+begin
+have h1:= rfunct_lower_bound_on_slice A B hb z,
+    simp at h1,
+    have v1: 0 ≤ rfunct z, by {have:= rfunct_pos z, linarith, },
+    have v2: 0 ≤ rfunct (lbpoint A B hb), by {have:= rfunct_pos (lbpoint A B hb), linarith, },
+    have h2:= le_of_pow'  (rfunct (lbpoint A B hb) ) (rfunct z) k v2 v1 h1,
+    ring_nf,
+    rw ← inv_le_inv at h2,
+    have h3: 0 ≤  rie (k-1) n, by {
+             rw rie,
+             simp,
+             apply real.rpow_nonneg_of_nonneg,
+             simp,
+             },
+    nlinarith,
+    apply pow_pos,
+    apply rfunct_pos,
+     apply pow_pos,
+    apply rfunct_pos,
+end
+
+
+
+lemma Real_Eisenstein_bound_unifomly_on_stip (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (hb : 0 < B)
+  (z : upper_half_space_slice A B) :
+    (real_Eisenstein_series_of_weight_ k z.1) ≤ (8/(rfunct (lbpoint A B hb) )^k)*Riemann_zeta (k-1):=
+begin
+have : (8/(rfunct z)^k)*Riemann_zeta (k-1)  ≤ (8/(rfunct (lbpoint A B hb) )^k)*Riemann_zeta (k-1),
+by {apply rfunctbound, exact h},
 apply le_trans (Real_Eisenstein_bound k z h) this,
 end
 
+def Eisen_square_slice (k : ℤ)  (A B : ℝ) (hb : 0 < B) (n : ℕ) : (upper_half_space_slice A B) → ℂ :=
+λ x, (eisen_square k n x)
+
+def Eisen_par_sum_slice (k : ℤ)  (A B : ℝ) (hb : 0 < B) (n : ℕ) : (upper_half_space_slice A B) → ℂ :=
+λ z, ∑ x in (finset.range n), (Eisen_square_slice k A B hb x z)
+
+instance : has_coe ℍ ℍ' :=
+⟨ λ z, ⟨ z.1, by {simp, cases z, assumption,}, ⟩ ⟩
+
+instance slice_coe (A B : ℝ) (hb : 0 < B) : has_coe (upper_half_space_slice A B) ℍ' :=
+⟨λ (x : (upper_half_space_slice A B)), (x : ℍ')  ⟩
+
+def Eisenstein_series_restrict (k : ℤ)  (A B : ℝ) (hb : 0 < B) : (upper_half_space_slice A B) → ℂ :=
+λ x, Eisenstein_series_of_weight_ k x
+
+def canelt (A B : ℝ) (hb : 0 < B) : ℂ :=
+ ⟨ A, B ⟩
 
 
 
-lemma Eisen_partial_tends_to_uniformly (k: ℤ):
-tendsto_uniformly (Eisen_partial_sums k) (Eisenstein_series_of_weight_ k) filter.at_top:=
+
+instance  nonemp (A B : ℝ) (ha : 0 ≤  A) (hb : 0 < B) : nonempty (upper_half_space_slice A B):=
 begin
-rw metric.tendsto_uniformly_iff, intros ε hε, tidy, use 0,
-sorry,
+let z:= (⟨  A, B⟩ : ℂ),
+rw ← exists_true_iff_nonempty,
+simp,
+use z,
+have zim: z.im = B, by {refl,},
+use hb,
+simp_rw z,
+simp_rw [upper_half_plane.re, upper_half_plane.im],
+simp,
+split,
+have:= abs_eq_self.2 ha,
+rw this,
+apply le_abs_self,
 end
 
-example (x : ℤ × ℤ) (k : ℤ) (y : ℂ) : deriv (λ (z : ℂ ), 1/((x.1 : ℂ)*z+x.2)^k) y = (-k*x.1)/(x.1*y+x.2)^(k+1)   :=
-by { simp, ring, norm_cast, sorry,}
+lemma Eisenstein_series_is_sum_eisen_squares_slice (k: ℕ) (h : 3 ≤ k) (A B : ℝ) (hb : 0 < B)
+ (z: (upper_half_space_slice A B)) :
+(Eisenstein_series_restrict k A B hb z) = ∑' (n : ℕ), (Eisen_square_slice k A B hb n z):=
+begin
+rw Eisenstein_series_restrict, simp_rw Eisen_square_slice,
+
+have HI:=Squares_cover_all,
+let g:= λ (y : ℤ × ℤ),  (Eise k z ) y,
+have hgsumm: summable g, by {simp_rw g, apply Eisenstein_series_is_summable k z h, },
+have index_lem:= tsum_lemma' g Square HI hgsumm, simp_rw g at index_lem, exact index_lem,
+end
+
+
+lemma complex_abs_sum_le {ι : Type*} (s : finset ι) (f : ι → ℂ) :
+complex.abs(∑ i in s, f i) ≤ ∑ i in s, complex.abs(f i) :=
+begin
+ exact abv_sum_le_sum_abv (λ (k : ι), f k) s,
+end
+
+lemma Eisen_partial_tends_to_uniformly (k: ℕ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb : 0 < B) :
+tendsto_uniformly (Eisen_par_sum_slice k A B hb) (Eisenstein_series_restrict k A B hb) filter.at_top:=
+begin
+let M : ℕ → ℝ := λ x,   (8/(rfunct (lbpoint A B hb) )^k)* (rie  (k-1) x),
+
+have:= M_test_uniform _ (Eisen_square_slice k A B hb) M,
+simp_rw  ← (Eisenstein_series_is_sum_eisen_squares_slice k h A B hb _) at this,
+apply this,
+simp_rw Eisen_square_slice,
+simp_rw eisen_square,
+simp_rw M,
+
+
+simp_rw Eise,
+intros n a,
+have SC:= SmallClaim k a h n,
+rw real_Eise at SC,
+simp at SC,
+simp,
+have ineq1:
+    complex.abs (∑ (x : ℤ × ℤ) in Square n, ((↑(x.fst) * ↑↑a + ↑(x.snd)) ^ k)⁻¹) ≤
+    ∑ (x : ℤ × ℤ) in Square n, (complex.abs ((↑(x.fst) * ↑↑a + ↑(x.snd)) ^ k))⁻¹,
+    by {simp,
+    have:= complex_abs_sum_le  (Square n) (λ  (x : ℤ × ℤ),  (((x.1 : ℂ) * (a : ℂ) + (x.2 : ℂ)) ^ k)⁻¹),
+      simp at this, exact this, },
+have SC2:= le_trans ineq1 SC,
+have rb := rfunctbound' k h A B hb a n,
+apply le_trans SC2 rb,
+
+simp_rw M,
+have hk: 1 < ((k-1): ℤ), by { linarith, },
+have nze: ((8/((rfunct (lbpoint A B hb))^k)): ℝ)  ≠ 0, by {apply div_ne_zero, simp, apply pow_ne_zero,
+ simp, by_contra HR, have:=rfunct_pos (lbpoint A B hb), rw HR at this, simp at this, exact this, },
+have riesum:=int_Riemann_zeta_is_summmable (k-1) hk,
+  rw (summable_mul_left_iff nze).symm, simp at riesum, apply riesum,
+apply Eisenstein_series.nonemp A B ha hb,
+end
+
 
 def powfun  (k : ℤ) : ℂ → ℂ :=
 λ x, x^k

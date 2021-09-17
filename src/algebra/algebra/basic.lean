@@ -1458,9 +1458,7 @@ end pi
 section is_scalar_tower
 
 variables {R : Type*} [comm_semiring R]
-variables {S : Type*} [comm_semiring S] [algebra R S]
-variables (A : Type*) [semiring A] [algebra R A] [algebra S A] [is_scalar_tower R S A]
-variables {B : Type*} [semiring B] [algebra R B] [algebra S B] [is_scalar_tower R S B]
+variables (A : Type*) [semiring A] [algebra R A]
 variables {M : Type*} [add_comm_monoid M] [module A M] [module R M] [is_scalar_tower R A M]
 variables {N : Type*} [add_comm_monoid N] [module A N] [module R N] [is_scalar_tower R A N]
 
@@ -1469,37 +1467,6 @@ by rw [←(one_smul A m), ←smul_assoc, algebra.smul_def, mul_one, one_smul]
 
 @[simp] lemma algebra_map_smul (r : R) (m : M) : ((algebra_map R A) r) • m = r • m :=
 (algebra_compatible_smul A r m).symm
-
-variables (S A)
-
-@[simp] lemma algebra_map_algebra_map (r : R) : algebra_map S A (algebra_map R S r) =
-  algebra_map R A r :=
-by rw [algebra.algebra_map_eq_smul_one, algebra_map_smul, algebra.algebra_map_eq_smul_one]
-
-@[simp] lemma algebra_map_comp_algebra_map : (algebra_map S A).comp (algebra_map R S) =
-  algebra_map R A :=
-by ext; rw [ring_hom.comp_apply, algebra_map_algebra_map]
-
-variable (R)
-
-/-- `algebra_map S A` as an `R` alg_hom. -/
-def alg_hom_map : S →ₐ[R] A :=
-alg_hom.mk' (algebra_map S A) $ by simp [algebra.algebra_map_eq_smul_one]
-
-@[simp] lemma coe_alg_hom_map : (alg_hom_map R S A : S →+* A) = algebra_map S A :=
-by ext; refl
-
-lemma alg_hom_map_apply (s : S) : alg_hom_map R S A s = algebra_map S A s := rfl
-
-variables {R S A}
-
-@[simp] lemma alg_hom.commutes₂ (f : A →ₐ[S] B) (r : R) :
-  f (algebra_map R A r) = algebra_map R B r :=
-by rw [← algebra_map_algebra_map S A r, f.commutes, algebra_map_algebra_map]
-
-@[simp] lemma alg_hom.comp_algebra_map₂ (f : A →ₐ[S] B) :
-  (f : A →+* B).comp (algebra_map R A) = algebra_map R B :=
-by ext; simp
 
 variable {A}
 

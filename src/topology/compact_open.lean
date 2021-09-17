@@ -101,6 +101,9 @@ continuous_iff_continuous_at.mpr $ assume ⟨f, x⟩ n hn,
   have (f, x) ∈ w, from ⟨image_subset_iff.mpr sv, xu⟩,
   mem_nhds_iff.mpr ⟨w, by assumption, by assumption, by assumption⟩
 
+lemma continuous_ev₁ [locally_compact_space α] (a : α) : continuous (λ f : C(α, β), f a) :=
+continuous_ev.comp (continuous_id.prod_mk continuous_const)
+
 end ev
 
 section Inf_induced
@@ -141,6 +144,42 @@ lemma tendsto_compact_open_iff_forall {ι : Type*} {l : filter ι} (F : ι → C
   filter.tendsto F l (nhds f)
   ↔ ∀ s (hs : is_compact s), filter.tendsto (λ i, (F i).restrict s) l (𝓝 (f.restrict s)) :=
 by { rw [compact_open_eq_Inf_induced], simp [nhds_infi, nhds_induced, filter.tendsto_comap_iff] }
+
+/-- A family `F` of functions in `C(α, β)` converges in the compact-open topology, if and only if
+it converges in the compact-open topology on each compact subset of `α`. -/
+lemma exists_tendsto_compact_open_iff_forall [locally_compact_space α] [t2_space α] [t2_space β]
+  {ι : Type*} {l : filter ι} [filter.ne_bot l] (F : ι → C(α, β)) :
+  (∃ f, filter.tendsto F l (nhds f))
+  ↔ ∀ (s : set α) (hs : is_compact s), ∃ f, filter.tendsto (λ i, (F i).restrict s) l (𝓝 f) :=
+begin
+  split,
+  { rintros ⟨f, hf⟩ s hs,
+    rw tendsto_compact_open_iff_forall at hf,
+    exact ⟨f.restrict s, hf s hs⟩ },
+  { intros h,
+    choose f hf using h,
+    -- By uniqueness of limits in a `t2_space`, since `λ i, F i x` tends to both `f s₁ hs₁ x` and
+    -- `f s₂ hs₂ x`, we have `f s₁ hs₁ x = f s₂ hs₂ x`
+    have h : ∀ s₁ (hs₁ : is_compact s₁) s₂ (hs₂ : is_compact s₂) (x : α) (hxs₁ : x ∈ s₁)
+      (hxs₂ : x ∈ s₂), f s₁ hs₁ ⟨x, hxs₁⟩ = f s₂ hs₂ ⟨x, hxs₂⟩,
+    { rintros s₁ hs₁ s₂ hs₂ x hxs₁ hxs₂,
+      haveI := is_compact_iff_compact_space.mp hs₁,
+      haveI := is_compact_iff_compact_space.mp hs₂,
+      have h₁ := (continuous_ev₁ (⟨x, hxs₁⟩ : s₁)).continuous_at.tendsto.comp (hf s₁ hs₁),
+      have h₂ := (continuous_ev₁ (⟨x, hxs₂⟩ : s₂)).continuous_at.tendsto.comp (hf s₂ hs₂),
+      exact tendsto_nhds_unique h₁ h₂ },
+    -- So glue the `f s hs` together and prove that this glued function `f₀` is a limit on each
+    -- compact set `s`
+    have hs : ∀ x : α, ∃ s (hs : is_compact s), s ∈ 𝓝 x,
+    { intros x,
+      obtain ⟨s, hs, hs'⟩ := exists_compact_mem_nhds x,
+      exact ⟨s, hs, hs'⟩ },
+    refine ⟨lift_cover' _ _ h hs, _⟩,
+    rw tendsto_compact_open_iff_forall,
+    intros s hs,
+    rw lift_cover_restrict',
+    exact hf s hs }
+end
 
 end Inf_induced
 

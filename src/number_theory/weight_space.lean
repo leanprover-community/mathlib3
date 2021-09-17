@@ -673,15 +673,14 @@ lemma factor_F (f : locally_constant (zmod d × ℤ_[p]) R) :
 
 example {α : Type*} [h : fintype α] : fintype (@set.univ α) := by refine set_fintype set.univ
 
-def zmod' (n : ℕ) (h : fact (0 < n)) : finset (zmod n) :=
-  @set.to_finset _ (@set.univ (zmod n)) (@set_fintype _ (@zmod.fintype n h) set.univ _)
-
 noncomputable def g (hc : gcd c p = 1) (hd : 0 < d) (f : locally_constant (zmod d × ℤ_[p]) R) :
   @eventually_constant_seq R :=
 {
   to_seq := λ (n : ℕ),
-    ∑ a in (zmod' (d * p^n) (fact_iff.2
-    (mul_pos hd (pow_pos (nat.prime.pos (fact_iff.1 _inst_3)) n)))), f(a) • ((E_c p d hc n a) : R),
+    have hpos : 0 < d * p^n := mul_pos hd (pow_pos (nat.prime.pos (fact_iff.1 _inst_3)) n),
+    by
+       letI : fintype (zmod (d * p^n)) := @zmod.fintype _ ⟨hpos⟩; exact
+    ∑ a : (zmod (d * p^n)), f(a) • ((E_c p d hc n a) : R),
   is_eventually_const := ⟨classical.some (factor_F p d R f),
   begin
   simp, rintros m hm,

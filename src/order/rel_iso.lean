@@ -203,7 +203,7 @@ theorem map_rel_iff (f : r ↪r s) : ∀ {a b}, s (f a) (f b) ↔ r a b := f.map
 @[simp] theorem coe_fn_to_embedding (f : r ↪r s) : (f.to_embedding : α → β) = f := rfl
 
 /-- The map `coe_fn : (r ↪r s) → (α → β)` is injective. -/
-theorem coe_fn_inj : @function.injective (r ↪r s) (α → β) coe_fn
+theorem coe_fn_injective : @function.injective (r ↪r s) (α → β) coe_fn
 | ⟨⟨f₁, h₁⟩, o₁⟩ ⟨⟨f₂, h₂⟩, o₂⟩ h := by { congr, exact h }
 
 @[ext] theorem ext ⦃f g : r ↪r s⦄ (h : ∀ x, f x = g x) : f = g :=

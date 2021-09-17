@@ -2690,7 +2690,7 @@ lemma ne_bot.Coprod [∀ d, nonempty (κ d)] {f : Π d, filter (κ d)} {d : δ} 
   ne_bot (filter.Coprod f) :=
 Coprod_ne_bot_iff.2 ⟨d, h⟩
 
-instance Coprod_ne_bot [∀ d, nonempty (κ d)] [nonempty δ] {f : Π d, filter (κ d)}
+@[instance] lemma Coprod_ne_bot [∀ d, nonempty (κ d)] [nonempty δ] (f : Π d, filter (κ d))
   [H : ∀ d, ne_bot (f d)] : ne_bot (filter.Coprod f) :=
 (H (classical.arbitrary δ)).Coprod
 

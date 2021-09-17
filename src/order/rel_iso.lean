@@ -207,7 +207,7 @@ theorem coe_fn_injective : @function.injective (r ↪r s) (α → β) coe_fn
 | ⟨⟨f₁, h₁⟩, o₁⟩ ⟨⟨f₂, h₂⟩, o₂⟩ h := by { congr, exact h }
 
 @[ext] theorem ext ⦃f g : r ↪r s⦄ (h : ∀ x, f x = g x) : f = g :=
-coe_fn_inj (funext h)
+coe_fn_injective (funext h)
 
 theorem ext_iff {f g : r ↪r s} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩

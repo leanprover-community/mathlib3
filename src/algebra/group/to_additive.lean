@@ -142,6 +142,7 @@ end extra_attributes
 
 /--
 Find the first argument of `nm` that has a multiplicative type-class on it.
+Returns 1 if there are no types with a multiplicative class as arguments.
 E.g. `prod.group` returns 1, and `pi.has_one` returns 2.
 -/
 meta def first_multiplicative_arg (nm : name) : tactic ℕ := do

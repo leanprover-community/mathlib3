@@ -655,7 +655,7 @@ rw [roots_mul hmf0, map_sub, map_X, map_C, roots_X_sub_C, multiset.to_finset_add
     adjoin_root.adjoin_root_eq_top, algebra.map_top,
     is_scalar_tower.range_under_adjoin K (adjoin_root f.factor)
       (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)),
-    ih, subalgebra.res_top] }
+    ih, subalgebra.restrict_scalars_top] }
 
 end splitting_field_aux
 
@@ -715,7 +715,8 @@ variables {K}
 instance map (f : polynomial F) [is_splitting_field F L f] :
   is_splitting_field K L (f.map $ algebra_map F K) :=
 ⟨by { rw [splits_map_iff, ← is_scalar_tower.algebra_map_eq], exact splits L f },
- subalgebra.res_inj F $ by { rw [map_map, ← is_scalar_tower.algebra_map_eq, subalgebra.res_top,
+ subalgebra.restrict_scalars_injective F $
+  by { rw [map_map, ← is_scalar_tower.algebra_map_eq, subalgebra.restrict_scalars_top,
     eq_top_iff, ← adjoin_roots L f, algebra.adjoin_le_iff],
   exact λ x hx, @algebra.subset_adjoin K _ _ _ _ _ _ hx }⟩
 
@@ -742,7 +743,7 @@ theorem mul (f g : polynomial F) (hf : f ≠ 0) (hg : g ≠ 0) [is_splitting_fie
       roots_map (algebra_map K L) ((splits_id_iff_splits $ algebra_map F K).2 $ splits K f),
       multiset.to_finset_map, finset.coe_image, algebra.adjoin_algebra_map, adjoin_roots,
       algebra.map_top, is_scalar_tower.range_under_adjoin, ← map_map, adjoin_roots,
-      subalgebra.res_top]⟩
+      subalgebra.restrict_scalars_top]⟩
 
 end scalar_tower
 

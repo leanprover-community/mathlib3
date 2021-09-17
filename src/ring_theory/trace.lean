@@ -88,7 +88,7 @@ begin
   rw [trace_apply, linear_map.trace_eq_matrix_trace R b, trace_diag],
   convert finset.sum_const _,
   ext i,
-  simp,
+  simp [-alg_hom.commutes_of_tower]
 end
 omit b
 

@@ -57,14 +57,6 @@ lemma C_eq_algebra_map (r : R) :
   C r = algebra_map R (polynomial R) r :=
 rfl
 
-variables (R)
-
-@[simp] lemma alg_hom_map_eq_C [algebra R A'] :
-  ↑(alg_hom_map R A' (polynomial A')) = (C : A' →+* polynomial A') := rfl
-
-lemma alg_hom_map_apply_eq_C [algebra R A'] (a : A') :
-  (alg_hom_map R A' (polynomial A') a) = C a := rfl
-
 variables {R}
 
 /--
@@ -72,8 +64,8 @@ variables {R}
 -/
 @[ext] lemma alg_hom_ext' [algebra R A'] [algebra R B']
   {f g : polynomial A' →ₐ[R] B'}
-  (h₁ : f.comp (alg_hom_map R A' (polynomial A')) =
-        g.comp (alg_hom_map R A' (polynomial A')))
+  (h₁ : f.comp (is_scalar_tower.to_alg_hom R A' (polynomial A')) =
+        g.comp (is_scalar_tower.to_alg_hom R A' (polynomial A')))
   (h₂ : f X = g X) : f = g :=
 alg_hom.coe_ring_hom_injective (polynomial.ring_hom_ext'
   (congr_arg alg_hom.to_ring_hom h₁) h₂)
@@ -281,30 +273,42 @@ lemma is_root_of_aeval_algebra_map_eq_zero [algebra R S] {p : polynomial R}
   {r : R} (hr : aeval (algebra_map R S r) p = 0) : p.is_root r :=
 is_root_of_eval₂_map_eq_zero inj hr
 
-section aeval₂
+section aeval_tower
 
-variables [comm_semiring A'] [comm_semiring B'] [algebra S R] [algebra S A']
+variables [algebra S R] [algebra S A']
   [algebra R A'] [algebra R B'] [algebra S B'] [is_scalar_tower S R A'] [is_scalar_tower S R B']
 
 /-- Version of `aeval` for defining algebra homs out of `polynomial R` over a smaller base ring
   than `R`. -/
-def aeval₂ (f : R →ₐ[S] A') (x : A') : polynomial R →ₐ[S] A' :=
+def aeval_tower (f : R →ₐ[S] A') (x : A') : polynomial R →ₐ[S] A' :=
 { commutes' := λ r, by simp [algebra_map_apply],
   ..eval₂_ring_hom ↑f x }
 
 variables (g : R →ₐ[S] A') (y : A')
 
-@[simp] lemma aeval₂_X : aeval₂ g y X = y := eval₂_X _ _
+@[simp] lemma aeval_tower_X : aeval_tower g y X = y := eval₂_X _ _
 
-@[simp] lemma aeval₂_C (x : R) : aeval₂ g y (C x) = g x := eval₂_C _ _
+@[simp] lemma aeval_tower_C (x : R) : aeval_tower g y (C x) = g x := eval₂_C _ _
 
-@[simp] lemma aeval₂_algebra_map (x : R) :
-  aeval₂ g y (algebra_map R (polynomial R) x) = g x := eval₂_C _ _
+@[simp] lemma aeval_tower_comp_C : ((aeval_tower g y : polynomial R →+* A').comp C) = g :=
+ring_hom.ext $ aeval_tower_C _ _
 
-@[simp] lemma aeval₂_algebra_map' (x : S) :
-  aeval₂ g y (algebra_map S (polynomial R) x) = g (algebra_map S R x) := eval₂_C _ _
+@[simp] lemma aeval_tower_algebra_map (x : R) :
+  aeval_tower g y (algebra_map R (polynomial R) x) = g x := eval₂_C _ _
 
-end aeval₂
+@[simp] lemma aeval_tower_comp_algebra_map :
+  (aeval_tower g y : polynomial R →+* A').comp (algebra_map R (polynomial R)) = g :=
+aeval_tower_comp_C _ _
+
+@[simp] lemma aeval_tower_to_alg_hom (x : R) :
+  aeval_tower g y (is_scalar_tower.to_alg_hom S R (polynomial R) x) = g x :=
+aeval_tower_algebra_map _ _ _
+
+@[simp] lemma aeval_tower_comp_to_alg_hom :
+  (aeval_tower g y).comp (is_scalar_tower.to_alg_hom S R (polynomial R)) = g :=
+alg_hom.coe_ring_hom_injective $ aeval_tower_comp_algebra_map _ _
+
+end aeval_tower
 
 end comm_semiring
 

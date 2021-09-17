@@ -362,7 +362,8 @@ lemma is_lub_of_u_image [preorder α] [preorder β] (gi : galois_insertion l u) 
 lemma is_glb_of_u_image [preorder α] [preorder β] (gi : galois_insertion l u) {s : set β} {a : α}
   (hs : is_glb (u '' s) a) : is_glb s (l a) :=
 ⟨λ x hx, gi.gc.l_le $ hs.1 $ mem_image_of_mem _ hx,
-  λ x hx, (gi.le_l_u x).trans $ gi.gc.monotone_l $ hs.2 $ gi.gc.monotone_u.mem_lower_bounds_image hx⟩
+  λ x hx, (gi.le_l_u x).trans $ gi.gc.monotone_l $ hs.2 $
+    gi.gc.monotone_u.mem_lower_bounds_image hx⟩
 
 section lift
 

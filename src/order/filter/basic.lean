@@ -401,7 +401,8 @@ instance : complete_lattice (filter α) := original_complete_lattice.copy
                            (@inf_le_right (filter α) _ _ _ _ hb)
        end)
   end
-  /- Sup -/ (join ∘ 𝓟) (by ext s x; exact (@mem_bInter_iff _ _ s filter.sets x).symm)
+  /- Sup -/ (join ∘ 𝓟) (by { ext s x, exact (@mem_bInter_iff _ _ s filter.sets x).symm.trans
+    (set.ext_iff.1 (sInter_image _ _) x).symm})
   /- Inf -/ _ rfl
 
 end complete_lattice

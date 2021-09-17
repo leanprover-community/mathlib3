@@ -238,6 +238,9 @@ def refl (f : C(X, Y)) (A : set X) : homotopy_rel f f A :=
   eq_snd' := λ  _ _ _, rfl,
   ..homotopy.refl f }
 
+instance : inhabited (homotopy_rel (continuous_map.id : C(X, X)) continuous_map.id set.univ) :=
+⟨homotopy_rel.refl continuous_map.id set.univ⟩
+
 /--
 Given continuous functions `f₀ f₁ : C(X, Y)`, and `F : homotopy_rel f g A`, we can reverse the
 homotopy to get a `homotopy_rel g f A`.

@@ -105,9 +105,9 @@ by refine_struct
   mul            := (*),
   sub            := λ a b, a + -b,
   one            := 1,
-  npow           := @npow_rec _ ⟨1⟩ ⟨(*)⟩,
-  nsmul          := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩,
-  gsmul          := @gsmul_rec _ ⟨0⟩ ⟨(+)⟩ ⟨zsqrtd.neg⟩ };
+  npow           := @npow_rec (ℤ√d) ⟨1⟩ ⟨(*)⟩,
+  nsmul          := @nsmul_rec (ℤ√d) ⟨0⟩ ⟨(+)⟩,
+  gsmul          := @gsmul_rec (ℤ√d) ⟨0⟩ ⟨(+)⟩ ⟨zsqrtd.neg⟩ };
 intros; try { refl }; simp [ext, add_mul, mul_add, add_comm, add_left_comm, mul_comm, mul_left_comm]
 
 instance : add_comm_monoid ℤ√d    := by apply_instance

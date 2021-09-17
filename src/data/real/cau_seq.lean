@@ -242,9 +242,9 @@ by refine_struct
        mul := (*),
        one := 1,
        sub := has_sub.sub,
-       npow := @npow_rec _ ⟨1⟩ ⟨(*)⟩,
-       nsmul := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩,
-       gsmul := @gsmul_rec _ ⟨0⟩ ⟨(+)⟩ ⟨has_neg.neg⟩ };
+       npow := @npow_rec (cau_seq β abv) ⟨1⟩ ⟨(*)⟩,
+       nsmul := @nsmul_rec (cau_seq β abv) ⟨0⟩ ⟨(+)⟩,
+       gsmul := @gsmul_rec (cau_seq β abv) ⟨0⟩ ⟨(+)⟩ ⟨has_neg.neg⟩ };
 intros; try { refl }; apply ext;
 simp [mul_add, mul_assoc, add_mul, add_comm, add_left_comm, sub_eq_add_neg]
 

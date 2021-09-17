@@ -631,7 +631,11 @@ end
 
 @[simp] lemma comp_eval₂_hom [comm_semiring S₂] (f : R →+* S₁) (g : σ → S₁) (φ : S₁ →+* S₂) :
   φ.comp (eval₂_hom f g) = (eval₂_hom (φ.comp f) (λ i, φ (g i))) :=
-by ext; simp
+begin
+  apply mv_polynomial.ring_hom_ext',
+  { intro r, rw [ring_hom.comp_apply, eval₂_hom_C, eval₂_hom_C, ring_hom.comp_apply] },
+  { intro i, rw [ring_hom.comp_apply, eval₂_hom_X', eval₂_hom_X'] }
+end
 
 lemma map_eval₂_hom  [comm_semiring S₂] (f : R →+* S₁) (g : σ → S₁) (φ : S₁ →+* S₂)
   (p : mv_polynomial σ R) :

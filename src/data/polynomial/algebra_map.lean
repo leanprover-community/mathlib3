@@ -283,6 +283,8 @@ section aeval₂
 variables [comm_semiring A'] [comm_semiring B'] [algebra S R] [algebra S A']
   [algebra R A'] [algebra R B'] [algebra S B'] [is_scalar_tower S R A'] [is_scalar_tower S R B']
 
+/-- Version of `aeval` for defining algebra homs out of `polynomial R` over a smaller base ring
+  than `R`. -/
 def aeval₂ (f : R →ₐ[S] A') (x : A') : polynomial R →ₐ[S] A' :=
 { commutes' := λ r, by simp [algebra_map_apply],
   ..eval₂_ring_hom ↑f x }

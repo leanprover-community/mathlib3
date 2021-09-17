@@ -11,7 +11,7 @@ import linear_algebra.char_poly.coeff
 
 # Characteristic polynomial
 
-We define the characteristic polynomial of `f : M →ₗ[R] N`, where `M` and `N` are free `R`-modules.
+We define the characteristic polynomial of `f : M →ₗ[R] M`, where `M` is a free `R`-module.
 
 ## Main definition
 
@@ -22,7 +22,7 @@ We define the characteristic polynomial of `f : M →ₗ[R] N`, where `M` and `N
 universes u v
 
 variables {R : Type u} {M : Type v} [comm_ring R] [nontrivial R]
-variables [add_comm_group M] [module R M] [module.free R M] [module.finite R M]
+variables [add_comm_group M] [module R M] [module.free R M] [module.finite R M] (f : M →ₗ[R] M)
 
 open_locale classical
 
@@ -32,7 +32,10 @@ open module.free
 
 section basic
 
-def charpoly (f : M →ₗ[R] M) : polynomial R :=
-(linear_map.to_matrix (choose_basis R M) (choose_basis R M) f).charpoly
+/-- The characteristic polynomial of `f : M →ₗ[R] M`. -/
+def charpoly := (linear_map.to_matrix (choose_basis R M) (choose_basis R M) f).charpoly
+
+lemma charpoly_def : charpoly f =
+  (linear_map.to_matrix (choose_basis R M) (choose_basis R M) f).charpoly := rfl
 
 end basic

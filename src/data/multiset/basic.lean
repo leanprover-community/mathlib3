@@ -670,17 +670,34 @@ quot.induction_on s $ λ l, rfl
 
 lemma map_singleton (f : α → β) (a : α) : ({a} : multiset α).map f = {f a} := rfl
 
+lemma map_eq_singleton {f : α → β} {s : multiset α} {b : β} :
+  map f s = b ::ₘ 0 ↔ ∃ a : α, s = a ::ₘ 0 ∧ f a = b :=
+begin
+  split,
+  { rcases s with ⟨⟨_, _⟩⟩,
+    { simp },
+    { simp [singleton_coe] {contextual := tt} } },
+  { rintro ⟨_, rfl, rfl⟩,
+    simp }
+end
+
 theorem map_repeat (f : α → β) (a : α) (k : ℕ) : (repeat a k).map f = repeat (f a) k := by
 { induction k, simp, simpa }
 
 @[simp] theorem map_add (f : α → β) (s t) : map f (s + t) = map f s + map f t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ map_append _ _ _
 
-instance (f : α → β) : is_add_monoid_hom (map f) :=
-{ map_add := map_add _, map_zero := map_zero _ }
+/-- `multiset.map` as an `add_monoid_hom`. -/
+def map_add_monoid_hom (f : α → β) : multiset α →+ multiset β :=
+{ to_fun := map f,
+  map_zero' := map_zero _,
+  map_add' := map_add _ }
+
+@[simp] lemma coe_map_add_monoid_hom (f : α → β) :
+  (map_add_monoid_hom f : multiset α → multiset β) = map f := rfl
 
 theorem map_nsmul (f : α → β) (n : ℕ) (s) : map f (n • s) = n • (map f s) :=
-(add_monoid_hom.of (map f)).map_nsmul _ _
+(map_add_monoid_hom f).map_nsmul _ _
 
 @[simp] theorem mem_map {f : α → β} {b : β} {s : multiset α} :
   b ∈ map f s ↔ ∃ a, a ∈ s ∧ f a = b :=
@@ -868,8 +885,16 @@ theorem prod_singleton [comm_monoid α] (a : α) : prod (a ::ₘ 0) = a := by si
 theorem prod_add [comm_monoid α] (s t : multiset α) : prod (s + t) = prod s * prod t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, by simp
 
-instance sum.is_add_monoid_hom [add_comm_monoid α] : is_add_monoid_hom (sum : multiset α → α) :=
-{ map_add := sum_add, map_zero := sum_zero }
+
+/-- `multiset.sum`, the sum of the elements of a multiset, promoted to a morphism of
+`add_comm_monoid`s. -/
+def sum_add_monoid_hom [add_comm_monoid α] : multiset α →+ α :=
+{ to_fun := sum,
+  map_zero' := sum_zero,
+  map_add' := sum_add }
+
+@[simp] lemma coe_sum_add_monoid_hom [add_comm_monoid α] :
+  (sum_add_monoid_hom : multiset α → α) = sum := rfl
 
 lemma prod_nsmul {α : Type*} [comm_monoid α] (m : multiset α) :
   ∀ (n : ℕ), (n • m).prod = m.prod ^ n
@@ -932,10 +957,13 @@ theorem prod_hom_rel [comm_monoid β] [comm_monoid γ] (s : multiset α) {r : β
 quotient.induction_on s $ λ l,
   by simp only [l.prod_hom_rel h₁ h₂, quot_mk_to_coe, coe_map, coe_prod]
 
+@[simp] lemma coe_inv_monoid_hom {G : Type*} [comm_group G] :
+  (comm_group.inv_monoid_hom : G → G) = has_inv.inv := rfl
+
 @[simp, to_additive]
 lemma prod_map_inv {G : Type*} [comm_group G] (m : multiset G) :
   (m.map has_inv.inv).prod = m.prod⁻¹ :=
-m.prod_hom (monoid_hom.of has_inv.inv)
+m.prod_hom comm_group.inv_monoid_hom
 
 lemma dvd_prod [comm_monoid α] {a : α} {s : multiset α} : a ∈ s → a ∣ s.prod :=
 quotient.induction_on s (λ l a h, by simpa using list.dvd_prod h) a
@@ -1796,8 +1824,15 @@ quot.induction_on s $ λ l, countp_eq_length_filter _ _
 @[simp] theorem countp_add (s t) : countp p (s + t) = countp p s + countp p t :=
 by simp [countp_eq_card_filter]
 
-instance countp.is_add_monoid_hom : is_add_monoid_hom (countp p : multiset α → ℕ) :=
-{ map_add := countp_add _, map_zero := countp_zero _ }
+/-- `countp p`, the number of elements of a multiset satisfying `p`, promoted to an
+`add_monoid_hom`. -/
+def countp_add_monoid_hom : multiset α →+ ℕ :=
+{ to_fun := countp p,
+  map_zero' := countp_zero _,
+  map_add' := countp_add _ }
+
+@[simp] lemma coe_countp_add_monoid_hom :
+  (countp_add_monoid_hom p : multiset α → ℕ) = countp p := rfl
 
 @[simp] theorem countp_sub [decidable_eq α] {s t : multiset α} (h : t ≤ s) :
   countp p (s - t) = countp p s - countp p t :=
@@ -1855,8 +1890,11 @@ by simp
 @[simp] theorem count_add (a : α) : ∀ s t, count a (s + t) = count a s + count a t :=
 countp_add _
 
-instance count.is_add_monoid_hom (a : α) : is_add_monoid_hom (count a : multiset α → ℕ) :=
-countp.is_add_monoid_hom _
+/-- `count a`, the multiplicity of `a` in a multiset, promoted to an `add_monoid_hom`. -/
+def count_add_monoid_hom (a : α) : multiset α →+ ℕ := countp_add_monoid_hom (eq a)
+
+@[simp] lemma coe_count_add_monoid_hom {a : α} :
+  (count_add_monoid_hom a : multiset α → ℕ) = count a := rfl
 
 @[simp] theorem count_nsmul (a : α) (n s) : count a (n • s) = n * count a s :=
 by induction n; simp [*, succ_nsmul', succ_mul, zero_nsmul]

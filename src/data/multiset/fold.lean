@@ -86,7 +86,7 @@ theorem le_smul_erase_dup [decidable_eq α] (s : multiset α) :
   ∃ n : ℕ, s ≤ n • erase_dup s :=
 ⟨(s.map (λ a, count a s)).fold max 0, le_iff_count.2 $ λ a, begin
   rw count_nsmul, by_cases a ∈ s,
-  { refine le_trans _ (mul_le_mul_left _ $ count_pos.2 $ mem_erase_dup.2 h),
+  { refine le_trans _ (nat.mul_le_mul_left _ $ count_pos.2 $ mem_erase_dup.2 h),
     have : count a s ≤ fold max 0 (map (λ a, count a s) (a ::ₘ erase s a));
     [simp [le_max_left], simpa [cons_erase h]] },
   { simp [count_eq_zero.2 h, nat.zero_le] }

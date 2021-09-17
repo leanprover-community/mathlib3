@@ -30,8 +30,7 @@ def clopen_sets (H : Type*) [topological_space H] := {s : set H // is_clopen s}
 variables (X : Type*)
 variables [topological_space X] [compact_space X] [t2_space X] [totally_disconnected_space X]
 variables {R : Type*} [normed_group R]
-
-noncomputable instance : uniform_space C(X, R) := metric_space.to_uniform_space'
+variables (A : Type*) [normed_comm_ring A]
 
 --todo
 --instance completeness {R : Type*} [normed_group R] : complete_space C(X, R) := sorry
@@ -41,8 +40,32 @@ abbreviation inclusion (R : Type*) [topological_space R] : locally_constant X R 
 locally_constant.to_continuous_map
 
 -- TODO Remove `inclusion'`
-abbreviation inclusion' (A : Type*) [normed_comm_ring A]: locally_constant X A →ₗ[A] C(X, A) :=
+abbreviation inclusion' : locally_constant X A →ₗ[A] C(X, A) :=
 locally_constant.to_continuous_map_linear_map A
+
+-- TODO Generalise this. Ideally appeal to corresponding result for compact-open topology
+-- (cf #8721) if we can solve the defeq problem on the two topologies: CO and metric.
+lemma continuous_const' [nonempty X] : continuous (continuous_map.const : A → C(X,A)) :=
+begin
+  rw metric.continuous_iff,
+  intros a ε hε,
+  refine ⟨ε/2, (show 0<ε/2, by linarith), λ b hb, _⟩,
+  rw dist_eq_norm at hb ⊢,
+  refine lt_of_le_of_lt _ (show ε/2 < ε, by linarith),
+  rw continuous_map.norm_eq_supr_norm,
+  apply csupr_le,
+  intro x,
+  apply le_of_lt,
+  simp [hb],
+end
+
+instance [nonempty X] : has_continuous_smul A C(X, A) :=
+⟨begin
+  change continuous ((λ p, p.1 * p.2 : C(X,A) × C(X,A) → C(X,A)) ∘
+    (λ p, ((continuous_map.const p.fst), p.2) : A × C(X,A) → C(X,A) × C(X,A))),
+  have h := continuous_const' X A,
+  continuity,
+end⟩
 
 noncomputable def char_fn {R : Type*} [topological_space R] [ring R] [topological_ring R]
   (U : clopen_sets X) : locally_constant X R :=
@@ -58,20 +81,11 @@ noncomputable def char_fn {R : Type*} [topological_space R] [ring R] [topologica
     end,
 }
 
-lemma is_basis_iff_cover' {H : Type*} [topological_space H] {B : set (set H)}
-  (h : topological_space.is_topological_basis B) : ∀ (U : set H) (hU : is_open U),
-    ∃ Us ⊆ B, U = ⋃₀ Us :=
-begin
-  rintros U,
-  exact topological_space.is_topological_basis.open_eq_sUnion h,
-end
-
 lemma diff_inter_mem_sUnion {α : Type*} (s : set (set α)) (a y : set α) (h : y ∈ s) :
   (a \ ⋃₀ s) ∩ y = ∅ :=
 begin
-  rw set.diff_eq, suffices : (⋃₀ s)ᶜ ∩ y = ∅,
-  { rw set.inter_assoc, rw this, rw set.inter_empty, },
-  apply set.inter_empty_of_inter_sUnion_empty h _, rw set.compl_inter_self,
+  rw [set.inter_comm, ← set.inter_diff_assoc, set.diff_eq_empty],
+  exact (set.inter_subset_left y a).trans (set.subset_sUnion_of_mem h),
 end
 
 lemma clopen_finite_Union {H : Type*} [topological_space H]
@@ -131,7 +145,7 @@ def h {A : Type*} [normed_ring A] (ε : ℝ) : A → set A := λ (x : A), metric
 
 def S {A : Type*} [normed_ring A] (ε : ℝ) : set (set A) := set.range (h ε)
 
-variables {A : Type*} [normed_comm_ring A] (f : C(X, A)) (ε : ℝ) [hε : 0 < ε]
+variables {A} (f : C(X, A)) (ε : ℝ) [hε : 0 < ε]
 
 def B : set(set X) := { j : set X | ∃ (U ∈ ((S ε) : set(set A))), j = f ⁻¹' U }
 
@@ -219,19 +233,6 @@ begin
   { rintros i, have iC := hV i.2, apply topological_space.is_topological_basis.is_open f' iC, },
 end
 
-lemma sub_iff {α : Type*} (s t : set α) (h : s = t) : ∀ (x : α), x ∈ s ↔ x ∈ t :=
-begin
-  rw set.subset.antisymm_iff at h, rintros x, split,
-  {revert x, show s ⊆ t, apply h.1,},
-  {revert x, show t ⊆ s, apply h.2,},
-end
-
-lemma sub_apply (f : C(X, A)) (g : locally_constant X A) (y : X) :
-  ∥(f - inclusion X A g) y ∥ = ∥f y - (inclusion X A g) y∥ :=
-begin
-  simp only [continuous_map.coe_sub, pi.sub_apply],
-end
-
 noncomputable def T' (ε : ℝ) (f : C(X, A)) (t : finset(set A))
  (ht : set.univ ⊆ ⨆ (i : set A) (H : i ∈ t) (H : i ∈ ((S ε) : set(set A))), f ⁻¹' i) :
  finset (set X) :=
@@ -304,7 +305,7 @@ begin
           cases ht3 with b hb, simp at hb, cases hb with hb hby, have hbU := hby U hU xU,
           have hby := hby y hy xy, rw hby, rw ←hbU, apply x'U, }, },
       simp, ext y, revert y,
-      apply sub_iff, symmetry,
+      rw ← set.ext_iff, symmetry,
       { congr, ext y, simp, rintros hy, split,
         { rintros xy, specialize ht3 x, simp at ht3,
           cases ht3 with b hb, simp at hb, cases hb with hb hby, have hbU := hby U hU xU,
@@ -314,7 +315,7 @@ begin
           have hby := hby y hy xy, rw hby, rw ←hbU, apply xU, }, },
 end
 
-theorem tp_dense (H : nonempty X) (hε : 0 < ε) (f : C(X, A)) (t : finset(set A))
+theorem tp_dense [nonempty X] (hε : 0 < ε) (f : C(X, A)) (t : finset(set A))
  (ht : set.univ ⊆ ⨆ (i : set A) (H : i ∈ t) (H : i ∈ ((S ε) : set(set A))), f ⁻¹' i) :
   ∃ (b : C(X, A)) (H_1 : b ∈ set.range (inclusion X A)), dist f b < ε :=
 begin
@@ -339,7 +340,7 @@ begin
             congr' 2, swap, congr, swap 3, congr,
             repeat { apply hw, refine classical.some_spec (exists_of_exists_unique (ht3 y)), }, },
           convert_to ∥(f y) - ((inclusion X A ⟨(c2 X f ε t ht), loc_const⟩) y)∥ ≤ ε/2,
-          apply sub_apply,
+          { simp only [continuous_map.coe_sub, pi.sub_apply], },
           rw this, --obtain ⟨U, hU, wU⟩ := (ht1 w w1).2, --have yU := wU w2, simp at yU,
           --rw S at ht5, rw set.mem_range at ht5, cases ht5 with z hz,
           have ht5 := (ht1 w w1).2, rcases ht5 with ⟨U, hU, wU⟩,
@@ -362,7 +363,7 @@ begin
     { rw this, exact half_lt_self hε, }, },
 end
 
-theorem dense_C (H : nonempty X) : @dense (C(X, A)) _ (set.range (inclusion X A)) :=
+theorem dense_C [nonempty X] : @dense (C(X, A)) _ (set.range (inclusion X A)) :=
 begin
   rintros f,
   rw metric.mem_closure_iff,
@@ -379,7 +380,7 @@ begin
   rw set.preimage_sUnion at g',
   rw set.subset.antisymm_iff at g',
   obtain ⟨t, ht⟩ := is_compact.elim_finite_subcover _ _ _ g'.2,
-  { simp at ht, apply tp_dense X ε H hε f t ht, },
+  { exact tp_dense X ε hε f t ht, },
   { exact compact_univ, },
   { rintros i, apply is_open_Union, rintros hi, apply continuous.is_open_preimage _,
     { rw [hS, h'] at hi, simp at hi, cases hi with y hy,
@@ -390,14 +391,6 @@ begin
 -- working with clopen sets makes life easy
 end
 --end of density section
-
-lemma clopen_coe (a b : clopen_sets X) : a.val = b.val → a = b :=
-begin
-  rintros h,
-  have : ∀ (a : clopen_sets X), a = ⟨a.val, a.prop⟩,
-    { simp only [implies_true_iff, eq_self_iff_true, subtype.coe_eta, subtype.val_eq_coe], },
-  rw this a, rw this b, simp [h],
-end
 
 instance union : semilattice_inf_bot (clopen_sets X) :=
 begin
@@ -411,7 +404,7 @@ begin
   { rintros a b c ab ac, apply set.subset_inter_iff.2 ⟨ab, ac⟩, },
   { rintros a, apply set.subset.refl, },
   { rintros a b c ab ac, apply set.subset.trans ab ac, },
-  { rintros a b ab ba, apply clopen_coe, apply set.subset.antisymm ab ba, },
+  { rintros a b ab ba, apply subtype.eq, apply set.subset.antisymm ab ba, },
 end
 
 instance : lattice (clopen_sets X) :=
@@ -421,27 +414,18 @@ begin
   { rintros x y, apply is_clopen.inter, },
 end
 
-instance has_union' : has_union (clopen_sets X) :=
-begin
-constructor,
-rintros U V, refine ⟨U.val ∪ V.val, _⟩, apply is_clopen.union U.prop V.prop,
-end
-
---what to do?
-variables {Γ₀   : Type*}  [linear_ordered_comm_group_with_zero Γ₀] (v : valuation A nnreal)
-
 structure  distribution {R : Type*} [add_monoid R] :=
 (phi : clopen_sets X → R)
 (count_add ⦃f : ℕ → clopen_sets X⦄ :
   (∀ (S T : clopen_sets X), S ⊓ T = ⊥ →
-  phi(S ∪ T) = phi S + phi T)) --define has_sup lattice structure via gi
+  phi(S ⊔ T) = phi S + phi T))
 
 structure distribution' :=
 (phi : linear_map A (locally_constant X A) A)
 
-def measures := {φ : distribution X // ∀ S : clopen_sets X, ∃ K : ℝ, (v (φ.phi S) : ℝ) ≤ K }
+variables (v : valuation A nnreal) (A)
 
-variable (A)
+def measures := {φ : distribution X // ∀ S : clopen_sets X, ∃ K : ℝ, (v (φ.phi S) : ℝ) ≤ K }
 
 def measures' :=
   {φ : distribution' X //
@@ -472,21 +456,9 @@ begin
   refl,
 end
 
-lemma di (h : nonempty X) : dense_inducing (inclusion X A) :=
-begin
-  constructor,
-  { constructor, refl, },
-  { apply dense_C, assumption, },
-end
+lemma di [nonempty X] : dense_inducing (inclusion X A) := ⟨⟨rfl⟩, dense_C X⟩
 
-lemma uni_ind [h : nonempty X] : uniform_inducing (inclusion X A) :=
-begin
-  exact {comap_uniformity := refl
-                       (filter.comap
-                          (λ (x : locally_constant X A × locally_constant X A),
-                             (inclusion X A x.fst, inclusion X A x.snd))
-                          (uniformity C(X, A)))},
-end
+lemma uni_ind [nonempty X] : uniform_inducing (inclusion X A) := ⟨rfl⟩
 
 lemma uni_cont (φ : measures'' X A) : uniform_continuous ⇑(φ.val.phi) :=
 begin
@@ -503,39 +475,20 @@ begin
   refl,
 end
 
-instance [h : nonempty X] : has_continuous_smul A C(X, A) :=
-{ continuous_smul := begin
-  change continuous ((λ p, p.1 * p.2 : C(X,A) × C(X,A) → C(X,A)) ∘
-    (λ p, ((continuous_map.const p.fst), p.2) : A × C(X,A) → C(X,A) × C(X,A))),
-  -- should be factored out
-  have h : continuous (continuous_map.const : A → C(X,A)),
-  { rw metric.continuous_iff,
-    intros a ε hε,
-    refine ⟨ε/2, (show 0<ε/2, by linarith), λ b hb, _⟩,
-    rw dist_eq_norm at hb ⊢,
-    refine lt_of_le_of_lt _ (show ε/2 < ε, by linarith),
-    rw continuous_map.norm_eq_supr_norm,
-    apply csupr_le,
-    intro x,
-    apply le_of_lt,
-    simp [hb] },
-  continuity,
-end }
-
-lemma cont [complete_space A] (h : nonempty X) (φ : measures'' X A) :
-  continuous ((di  X A h).extend (φ.val.phi)) :=
+lemma cont [complete_space A] [nonempty X] (φ : measures'' X A) :
+  continuous ((di X A).extend (φ.val.phi)) :=
 begin
   refine uniform_continuous.continuous _,
-  refine uniform_continuous_uniformly_extend _ (dense_inducing.dense (di X A h)) _,
+  refine uniform_continuous_uniformly_extend _ (dense_inducing.dense (di X A)) _,
   { apply uni_ind, },
   { apply uni_cont, },
 end
 
-noncomputable def integral (h : nonempty X) (φ : measures'' X A) [complete_space A] :
+noncomputable def integral [nonempty X] (φ : measures'' X A) [complete_space A] :
   continuous_linear_map A C(X, A) A :=
 begin
-  have cont := cont X A h φ,
-  have di := di X A h,
+  have cont := cont X A φ,
+  have di := di X A,
   split,
   swap,
   { split, swap 3,
@@ -565,13 +518,3 @@ begin
         simp only [linear_map.map_smul], }, }, },
   simp only [auto_param_eq], assumption,
 end
-
-structure system {X : Type*} [set X] :=
-( h : ℕ → finset X )
-( projlim : X = Prop ) --inverse limit
-
-variables (p : ℕ) [fact p.prime]
-
-noncomputable instance topo : topological_space (units ℤ_[p]) := infer_instance
-
-instance topo' : topological_space (units A) := infer_instance

@@ -18,7 +18,7 @@ problem. For the definition of Diophantine function, see `dioph.lean`.
 ## Main definition
 
 * `pell` is a function assigning to a natural number `n` the `n`-th solution to Pell's equation
-  constructed recursively from the intial solution `(0,1)`.
+  constructed recursively from the initial solution `(0, 1)`.
 
 ## Main statements
 
@@ -305,35 +305,35 @@ section
   | (k+1) :=
     let ⟨hx, hy⟩ := xy_modeq_yn k in
     have L : xn (n * k) * xn n + d * yn (n * k) * yn n ≡ xn n^k * xn n + 0 [MOD yn n^2], from
-    modeq.modeq_add (modeq.modeq_mul_right _ hx) $ modeq.modeq_zero_iff.2 $
+      (hx.mul_right _ ).add $ modeq_zero_iff_dvd.2 $
       by rw pow_succ'; exact
-      mul_dvd_mul_right (dvd_mul_of_dvd_right (modeq.modeq_zero_iff.1 $
-        (hy.modeq_of_dvd_of_modeq $ by simp [pow_succ']).trans $ modeq.modeq_zero_iff.2 $
+      mul_dvd_mul_right (dvd_mul_of_dvd_right (modeq_zero_iff_dvd.1 $
+        (hy.modeq_of_dvd $ by simp [pow_succ']).trans $ modeq_zero_iff_dvd.2 $
         by simp [-mul_comm, -mul_assoc]) _) _,
     have R : xn (n * k) * yn n + yn (n * k) * xn n ≡
              xn n^k * yn n + k * xn n^k * yn n [MOD yn n^3], from
-    modeq.modeq_add (by rw pow_succ'; exact modeq.modeq_mul_right' _ hx) $
+    modeq.add (by { rw pow_succ', exact hx.mul_right' _ }) $
       have k * xn n^(k - 1) * yn n * xn n = k * xn n^k * yn n,
         by clear _let_match; cases k with k; simp [pow_succ', mul_comm, mul_left_comm],
-      by rw ← this; exact modeq.modeq_mul_right _ hy,
-    by rw [nat.add_sub_cancel, nat.mul_succ, xn_add, yn_add, pow_succ' (xn _ n),
-           nat.succ_mul, add_comm (k * xn _ n^k) (xn _ n^k), right_distrib];
-       exact ⟨L, R⟩
+      by { rw ← this, exact hy.mul_right _ },
+    by { rw [nat.add_sub_cancel, nat.mul_succ, xn_add, yn_add, pow_succ' (xn _ n),
+           nat.succ_mul, add_comm (k * xn _ n^k) (xn _ n^k), right_distrib],
+       exact ⟨L, R⟩ }
 
   theorem ysq_dvd_yy (n) : yn n * yn n ∣ yn (n * yn n) :=
-  modeq.modeq_zero_iff.1 $
-    ((xy_modeq_yn n (yn n)).right.modeq_of_dvd_of_modeq $ by simp [pow_succ]).trans
-    (modeq.modeq_zero_iff.2 $ by simp [mul_dvd_mul_left, mul_assoc])
+  modeq_zero_iff_dvd.1 $
+    ((xy_modeq_yn n (yn n)).right.modeq_of_dvd $ by simp [pow_succ]).trans
+    (modeq_zero_iff_dvd.2 $ by simp [mul_dvd_mul_left, mul_assoc])
 
   theorem dvd_of_ysq_dvd {n t} (h : yn n * yn n ∣ yn t) : yn n ∣ t :=
   have nt : n ∣ t, from (y_dvd_iff n t).1 $ dvd_of_mul_left_dvd h,
   n.eq_zero_or_pos.elim (λn0, by rw n0; rw n0 at nt; exact nt) $ λ(n0l : 0 < n),
   let ⟨k, ke⟩ := nt in
   have yn n ∣ k * (xn n)^(k-1), from
-  nat.dvd_of_mul_dvd_mul_right (y_increasing n0l) $ modeq.modeq_zero_iff.1 $
+  nat.dvd_of_mul_dvd_mul_right (y_increasing n0l) $ modeq_zero_iff_dvd.1 $
     by have xm := (xy_modeq_yn a1 n k).right; rw ← ke at xm; exact
-    (xm.modeq_of_dvd_of_modeq $ by simp [pow_succ]).symm.trans
-      (modeq.modeq_zero_iff.2 h),
+    (xm.modeq_of_dvd $ by simp [pow_succ]).symm.trans
+      (modeq_zero_iff_dvd.2 h),
   by rw ke; exact dvd_mul_of_dvd_right
     (((xy_coprime _ _).pow_left _).symm.dvd_of_dvd_mul_right this) _
 
@@ -363,23 +363,20 @@ section
   theorem yn_modeq_a_sub_one : ∀ n, yn n ≡ n [MOD a-1]
   | 0 := by simp
   | 1 := by simp
-  | (n+2) := modeq.modeq_add_cancel_right (yn_modeq_a_sub_one n) $
-    have 2*(n+1) = n+2+n, by ring,
-    by rw [yn_succ_succ, ← this];
-    refine modeq.modeq_mul (modeq.modeq_mul_left 2 (_ : a ≡ 1 [MOD a-1]))
-      (yn_modeq_a_sub_one (n+1));
-    exact (modeq.modeq_of_dvd $ by rw [int.coe_nat_sub $ le_of_lt a1]; apply dvd_refl).symm
+  | (n+2) := (yn_modeq_a_sub_one n).add_right_cancel $
+    begin
+      rw [yn_succ_succ, (by ring : n + 2 + n = 2 * (n + 1))],
+      exact ((modeq_sub a1.le).mul_left 2).mul (yn_modeq_a_sub_one (n+1)),
+    end
 
   theorem yn_modeq_two : ∀ n, yn n ≡ n [MOD 2]
   | 0 := by simp
   | 1 := by simp
-  | (n+2) := modeq.modeq_add_cancel_right (yn_modeq_two n) $
-    have 2*(n+1) = n+2+n, by ring,
-    by rw [yn_succ_succ, ← this];
-    refine modeq.modeq_mul _ (yn_modeq_two (n+1));
-    exact modeq.trans
-      (modeq.modeq_zero_iff.2 $ by simp)
-      (modeq.modeq_zero_iff.2 $ by simp).symm
+  | (n+2) := (yn_modeq_two n).add_right_cancel $
+    begin
+      rw [yn_succ_succ, mul_assoc, (by ring : n + 2 + n = 2 * (n + 1))],
+      exact (dvd_mul_right 2 _).modeq_zero_nat.trans (dvd_mul_right 2 _).zero_modeq_nat,
+    end
 
   lemma x_sub_y_dvd_pow_lem (y2 y1 y0 yn1 yn0 xn1 xn0 ay a2 : ℤ) :
     (a2 * yn1 - yn0) * ay + y2 - (a2 * xn1 - xn0) =
@@ -405,13 +402,13 @@ section
   by rw h2 at h1; rw [h1, mul_assoc]; exact dvd_mul_right _ _
 
   theorem xn_modeq_x2n_add (n j) : xn (2 * n + j) + xn j ≡ 0 [MOD xn n] :=
-  by rw [two_mul, add_assoc, xn_add, add_assoc]; exact
-  show _ ≡ 0+0 [MOD xn a1 n],
-    from modeq.modeq_add (modeq.modeq_zero_iff.2 $ dvd_mul_right (xn a1 n) (xn a1 (n + j))) $
-  by rw [yn_add, left_distrib, add_assoc]; exact
-  show _ ≡ 0+0 [MOD xn a1 n],
-    from modeq.modeq_add (modeq.modeq_zero_iff.2 $ dvd_mul_of_dvd_right (dvd_mul_right _ _) _) $
-  modeq.modeq_zero_iff.2 $ xn_modeq_x2n_add_lem _ _ _
+  begin
+    rw [two_mul, add_assoc, xn_add, add_assoc, ←zero_add 0],
+    refine (dvd_mul_right (xn a1 n) (xn a1 (n + j))).modeq_zero_nat.add _,
+    rw [yn_add, left_distrib, add_assoc, ←zero_add 0],
+    exact (dvd_mul_of_dvd_right (dvd_mul_right _ _) _).modeq_zero_nat.add
+      (xn_modeq_x2n_add_lem _ _ _).modeq_zero_nat,
+  end
 
   lemma xn_modeq_x2n_sub_lem {n j} (h : j ≤ n) : xn (2 * n - j) + xn j ≡ 0 [MOD xn n] :=
   have h1 : xz n ∣ ↑d * yz n * yz (n - j) + xz j,
@@ -421,9 +418,11 @@ section
         repeat {rw ← int.coe_nat_add <|> rw ← int.coe_nat_mul}; rw mul_comm (xn a1 j) (yn a1 n);
         exact int.coe_nat_dvd.2 (xn_modeq_x2n_add_lem _ _ _))
     (dvd_mul_of_dvd_right (dvd_mul_right _ _) _),
-  by rw [two_mul, nat.add_sub_assoc h, xn_add, add_assoc]; exact
-  show _ ≡ 0+0 [MOD xn a1 n], from modeq.modeq_add (modeq.modeq_zero_iff.2 $ dvd_mul_right _ _) $
-  modeq.modeq_zero_iff.2 $ int.coe_nat_dvd.1 $ by simpa [xz, yz] using h1
+  begin
+    rw [two_mul, nat.add_sub_assoc h, xn_add, add_assoc, ←zero_add 0],
+    exact (dvd_mul_right _ _).modeq_zero_nat.add
+      (int.coe_nat_dvd.1 $ by simpa [xz, yz] using h1).modeq_zero_nat,
+  end
 
   theorem xn_modeq_x2n_sub {n j} (h : j ≤ 2 * n) : xn (2 * n - j) + xn j ≡ 0 [MOD xn n] :=
   (le_total j n).elim xn_modeq_x2n_sub_lem
@@ -433,13 +432,13 @@ section
         by rwa [nat.sub_sub_self h, add_comm] at t)
 
   theorem xn_modeq_x4n_add (n j) : xn (4 * n + j) ≡ xn j [MOD xn n] :=
-  modeq.modeq_add_cancel_right (modeq.refl $ xn (2 * n + j)) $
+  modeq.add_right_cancel' (xn (2 * n + j)) $
   by refine @modeq.trans _ _ 0 _ _ (by rw add_comm; exact (xn_modeq_x2n_add _ _ _).symm);
      rw [show 4*n = 2*n + 2*n, from right_distrib 2 2 n, add_assoc]; apply xn_modeq_x2n_add
 
   theorem xn_modeq_x4n_sub {n j} (h : j ≤ 2 * n) : xn (4 * n - j) ≡ xn j [MOD xn n] :=
   have h' : j ≤ 2*n, from le_trans h (by rw nat.succ_mul; apply nat.le_add_left),
-  modeq.modeq_add_cancel_right (modeq.refl $ xn (2 * n - j)) $
+  modeq.add_right_cancel' (xn (2 * n - j)) $
   by refine @modeq.trans _ _ 0 _ _ (by rw add_comm; exact (xn_modeq_x2n_sub _ h).symm);
      rw [show 4*n = 2*n + 2*n, from right_distrib 2 2 n, nat.add_sub_assoc h'];
        apply xn_modeq_x2n_add
@@ -473,11 +472,11 @@ section
       suffices xn k % xn n = xn n - xn (2 * n - k), by rw [this, int.coe_nat_sub xle],
       by {
         rw ← nat.mod_eq_of_lt (nat.sub_lt (x_pos a1 n) (x_pos a1 (2 * n - k))),
-        apply modeq.modeq_add_cancel_right (modeq.refl (xn a1 (2 * n - k))),
+        apply modeq.add_right_cancel' (xn a1 (2 * n - k)),
         rw [nat.sub_add_cancel xle],
         have t := xn_modeq_x2n_sub_lem a1 (le_of_lt k2nl),
         rw nat.sub_sub_self k2n at t,
-        exact t.trans (modeq.modeq_zero_iff.2 $ dvd_refl _).symm },
+        exact t.trans (modeq_zero_iff_dvd.2 $ dvd_refl _).symm },
     (lt_trichotomy j n).elim
     (λ (jn : j < n), eq_of_xn_modeq_lem1 ij (lt_of_le_of_ne jn jnn)) $ λo, o.elim
     (λ (jn : j = n), by {
@@ -565,15 +564,15 @@ section
   have jj : j ≡ j' [MOD 4 * n], by delta modeq; rw nat.mod_eq_of_lt jl,
   have ∀j q, xn (j + 4 * n * q) ≡ xn j [MOD xn n], begin
     intros j q, induction q with q IH, { simp },
-    rw[nat.mul_succ, ← add_assoc, add_comm],
-    exact modeq.trans (xn_modeq_x4n_add _ _ _) IH
+    rw [nat.mul_succ, ← add_assoc, add_comm],
+    exact (xn_modeq_x4n_add _ _ _).trans IH
   end,
   or.imp
     (λ(ji : j' = i), by rwa ← ji)
-    (λ(ji : j' + i = 4 * n), (modeq.modeq_add jj (modeq.refl _)).trans $
-      by rw ji; exact modeq.modeq_zero_iff.2 (dvd_refl _))
-    (eq_of_xn_modeq' ipos hin (le_of_lt jl) $
-      (modeq.symm (by rw ← nat.mod_add_div j (4*n); exact this j' _)).trans h)
+    (λ(ji : j' + i = 4 * n), (jj.add_right _).trans $
+      by rw ji; exact (dvd_refl _).modeq_zero_nat)
+    (eq_of_xn_modeq' ipos hin jl.le $
+      (h.symm.trans $ by { rw ← nat.mod_add_div j (4*n), exact this j' _ }).symm)
 end
 
 theorem xy_modeq_of_modeq {a b c} (a1 : 1 < a) (b1 : 1 < b) (h : a ≡ b [MOD c]) :
@@ -581,12 +580,12 @@ theorem xy_modeq_of_modeq {a b c} (a1 : 1 < a) (b1 : 1 < b) (h : a ≡ b [MOD c]
 | 0 := by constructor; refl
 | 1 := by simp; exact ⟨h, modeq.refl 1⟩
 | (n+2) := ⟨
-  modeq.modeq_add_cancel_right (xy_modeq_of_modeq n).left $
-    by rw [xn_succ_succ a1, xn_succ_succ b1]; exact
-    modeq.modeq_mul (modeq.modeq_mul_left _ h) (xy_modeq_of_modeq (n+1)).left,
-  modeq.modeq_add_cancel_right (xy_modeq_of_modeq n).right $
-    by rw [yn_succ_succ a1, yn_succ_succ b1]; exact
-    modeq.modeq_mul (modeq.modeq_mul_left _ h) (xy_modeq_of_modeq (n+1)).right⟩
+  (xy_modeq_of_modeq n).left.add_right_cancel $
+    by { rw [xn_succ_succ a1, xn_succ_succ b1], exact
+    (h.mul_left _ ).mul (xy_modeq_of_modeq (n+1)).left },
+  (xy_modeq_of_modeq n).right.add_right_cancel $
+    by { rw [yn_succ_succ a1, yn_succ_succ b1], exact
+    (h.mul_left _ ).mul (xy_modeq_of_modeq (n+1)).right }⟩
 
 theorem matiyasevic {a k x y} : (∃ a1 : 1 < a, xn a1 k = x ∧ yn a1 k = y) ↔
 1 < a ∧ k ≤ y ∧
@@ -609,13 +608,13 @@ theorem matiyasevic {a k x y} : (∃ a1 : 1 < a, xn a1 k = x ∧ yn a1 k = y) �
   have yv : y * y ∣ v, from dvd_trans (ysq_dvd_yy a1 k) $
       (y_dvd_iff _ _ _).2 $ dvd_mul_left _ _,
   have uco : nat.coprime u (4 * y), from
-    have 2 ∣ v, from modeq.modeq_zero_iff.1 $ (yn_modeq_two _ _).trans $
-      modeq.modeq_zero_iff.2 (dvd_mul_right _ _),
+    have 2 ∣ v, from modeq_zero_iff_dvd.1 $ (yn_modeq_two _ _).trans $
+      modeq_zero_iff_dvd.2 (dvd_mul_right _ _),
     have nat.coprime u 2, from
       (xy_coprime a1 m).coprime_dvd_right this,
     (this.mul_right this).mul_right $
       (xy_coprime _ _).coprime_dvd_right (dvd_of_mul_left_dvd yv),
-  let ⟨b, ba, bm1⟩ := modeq.chinese_remainder uco a 1 in
+  let ⟨b, ba, bm1⟩ := chinese_remainder uco a 1 in
   have m1 : 1 < m, from
     have 0 < k * y, from mul_pos kpos (y_increasing a1 kpos),
     nat.mul_le_mul_left 2 this,
@@ -630,8 +629,8 @@ theorem matiyasevic {a k x y} : (∃ a1 : 1 < a, xn a1 k = x ∧ yn a1 k = y) �
   have tk : t ≡ k [MOD 4 * y], from
       have 4 * y ∣ b - 1, from int.coe_nat_dvd.1 $
         by rw int.coe_nat_sub (le_of_lt b1);
-           exact modeq.dvd_of_modeq bm1.symm,
-      modeq.modeq_of_dvd_of_modeq this $ yn_modeq_a_sub_one _ _,
+           exact bm1.symm.dvd,
+      (yn_modeq_a_sub_one _ _).modeq_of_dvd this,
   ⟨ky, or.inr ⟨u, v, s, t, b,
     pell_eq _ _, pell_eq _ _, pell_eq _ _, b1, bm1, ba, vp, yv, sx, tk⟩⟩,
 λ⟨a1, ky, o⟩, ⟨a1, match o with
@@ -655,8 +654,8 @@ theorem matiyasevic {a k x y} : (∃ a1 : 1 < a, xn a1 k = x ∧ yn a1 k = y) �
     have yd : 4 * yn a1 i ∣ 4 * n, from mul_dvd_mul_left _ $ dvd_of_ysq_dvd a1 yv,
     have jk : j ≡ k [MOD 4 * yn a1 i], from
       have 4 * yn a1 i ∣ b - 1, from int.coe_nat_dvd.1 $
-        by rw int.coe_nat_sub (le_of_lt b1); exact modeq.dvd_of_modeq bm1.symm,
-      (modeq.modeq_of_dvd_of_modeq this (yn_modeq_a_sub_one b1 _)).symm.trans tk,
+        by rw int.coe_nat_sub (le_of_lt b1); exact bm1.symm.dvd,
+      ((yn_modeq_a_sub_one b1 _).modeq_of_dvd this).symm.trans tk,
     have ki : k + i < 4 * yn a1 i, from
       lt_of_le_of_lt (add_le_add ky (yn_ge_n a1 i)) $
       by rw ← two_mul; exact nat.mul_lt_mul_of_pos_right dec_trivial (y_increasing a1 ipos),
@@ -664,10 +663,10 @@ theorem matiyasevic {a k x y} : (∃ a1 : 1 < a, xn a1 k = x ∧ yn a1 k = y) �
       have xn a1 j ≡ xn a1 i [MOD xn a1 n], from (xy_modeq_of_modeq b1 a1 ba j).left.symm.trans sx,
       (modeq_of_xn_modeq a1 ipos iln this).resolve_right $ λ (ji : j + i ≡ 0 [MOD 4 * n]),
       not_le_of_gt ki $ nat.le_of_dvd (lt_of_lt_of_le ipos $ nat.le_add_left _ _) $
-      modeq.modeq_zero_iff.1 $ (modeq.modeq_add jk.symm (modeq.refl i)).trans $
-      modeq.modeq_of_dvd_of_modeq yd ji,
+      modeq_zero_iff_dvd.1 $ (jk.symm.add_right i).trans $
+      ji.modeq_of_dvd yd,
     by have : i % (4 * yn a1 i) = k % (4 * yn a1 i) :=
-         (modeq.modeq_of_dvd_of_modeq yd ji).symm.trans jk;
+         (ji.modeq_of_dvd yd).symm.trans jk;
        rwa [nat.mod_eq_of_lt (lt_of_le_of_lt (nat.le_add_left _ _) ki),
             nat.mod_eq_of_lt (lt_of_le_of_lt (nat.le_add_right _ _) ki)] at this
   end
@@ -716,18 +715,18 @@ k = 0 ∧ m = 1 ∨ 0 < k ∧
   let a := xn w1 w in
   have a1 : 1 < a, from x_increasing w1 wpos,
   let x := xn a1 k, y := yn a1 k in
-  let ⟨z, ze⟩ := show w ∣ yn w1 w, from modeq.modeq_zero_iff.1 $
-    modeq.trans (yn_modeq_a_sub_one w1 w) (modeq.modeq_zero_iff.2 $ dvd_refl _) in
+  let ⟨z, ze⟩ := show w ∣ yn w1 w, from modeq_zero_iff_dvd.1 $
+    (yn_modeq_a_sub_one w1 w).trans (modeq_zero_iff_dvd.2 $ dvd_refl _) in
   have nt : (↑(n^k) : ℤ) < 2 * a * n - n * n - 1, from
     eq_pow_of_pell_lem a1 npos kpos $ calc
       n^k ≤ n^w       : nat.pow_le_pow_of_le_right npos kw
       ... < (w + 1)^w : nat.pow_lt_pow_of_lt_left (nat.lt_succ_of_le nw) wpos
       ... ≤ a         : xn_ge_a_pow w1 w,
   let ⟨t, te⟩ := int.eq_coe_of_zero_le $
-    le_trans (int.coe_zero_le _) $ le_of_lt nt in
-  have na : n ≤ a, from le_trans nw $ le_of_lt $ n_lt_xn w1 w,
+    le_trans (int.coe_zero_le _) nt.le in
+  have na : n ≤ a, from nw.trans $ le_of_lt $ n_lt_xn w1 w,
   have tm : x ≡ y * (a - n) + n^k [MOD t], begin
-    apply modeq.modeq_of_dvd,
+    apply modeq_of_dvd,
     rw [int.coe_nat_add, int.coe_nat_mul, int.coe_nat_sub na, ← te],
     exact x_sub_y_dvd_pow a1 n k
   end,
@@ -765,9 +764,9 @@ k = 0 ∧ m = 1 ∨ 0 < k ∧
     by rw n1 at this;
       rw ← @nat.add_right_cancel 0 2 t this at mt;
       exact nat.not_lt_zero _ mt,
-  have wj : w ≤ j, from nat.le_of_dvd jpos $ modeq.modeq_zero_iff.1 $
+  have wj : w ≤ j, from nat.le_of_dvd jpos $ modeq_zero_iff_dvd.1 $
     (yn_modeq_a_sub_one w1 j).symm.trans $
-    modeq.modeq_zero_iff.2 ⟨z, yj.symm⟩,
+    modeq_zero_iff_dvd.2 ⟨z, yj.symm⟩,
   have nt : (↑(n^k) : ℤ) < 2 * a * n - n * n - 1, from
     eq_pow_of_pell_lem a1 npos kpos $ calc
       n^k ≤ n^j       : nat.pow_le_pow_of_le_right npos (le_trans kw wj)
@@ -781,9 +780,9 @@ k = 0 ∧ m = 1 ∨ 0 < k ∧
     exact ta.symm,
   have xn a1 k ≡ yn a1 k * (a - n) + n^k [MOD t],
     by have := x_sub_y_dvd_pow a1 n k;
-       rw [← te, ← int.coe_nat_sub na] at this; exact modeq.modeq_of_dvd this,
+       rw [← te, ← int.coe_nat_sub na] at this; exact modeq_of_dvd this,
   have n^k % t = m % t, from
-    modeq.modeq_add_cancel_left (modeq.refl _) (this.symm.trans tm),
+    (this.symm.trans tm).add_left_cancel' _,
   by rw ← te at nt;
      rwa [nat.mod_eq_of_lt (int.lt_of_coe_nat_lt_coe_nat nt), nat.mod_eq_of_lt mt] at this
 end⟩

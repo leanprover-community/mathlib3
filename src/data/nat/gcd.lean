@@ -75,7 +75,7 @@ theorem gcd_pos_of_pos_right (m : ℕ) {n : ℕ} (npos : 0 < n) : 0 < gcd m n :=
 pos_of_dvd_of_pos (gcd_dvd_right m n) npos
 
 theorem eq_zero_of_gcd_eq_zero_left {m n : ℕ} (H : gcd m n = 0) : m = 0 :=
-or.elim (eq_zero_or_pos m) id
+or.elim (nat.eq_zero_or_pos m) id
   (assume H1 : 0 < m, absurd (eq.symm H) (ne_of_lt (gcd_pos_of_pos_left _ H1)))
 
 theorem eq_zero_of_gcd_eq_zero_right {m n : ℕ} (H : gcd m n = 0) : n = 0 :=
@@ -83,7 +83,7 @@ by rw gcd_comm at H; exact eq_zero_of_gcd_eq_zero_left H
 
 theorem gcd_div {m n k : ℕ} (H1 : k ∣ m) (H2 : k ∣ n) :
   gcd (m / k) (n / k) = gcd m n / k :=
-or.elim (eq_zero_or_pos k)
+or.elim (nat.eq_zero_or_pos k)
   (λk0, by rw [k0, nat.div_zero, nat.div_zero, nat.div_zero, gcd_zero_right])
   (λH3, nat.eq_of_mul_eq_mul_right H3 $ by rw [
     nat.div_mul_cancel (dvd_gcd H1 H2), ←gcd_mul_right,
@@ -171,7 +171,7 @@ theorem lcm_one_right (m : ℕ) : lcm m 1 = m := lcm_comm 1 m ▸ lcm_one_left m
 
 @[simp]
 theorem lcm_self (m : ℕ) : lcm m m = m :=
-or.elim (eq_zero_or_pos m)
+or.elim (nat.eq_zero_or_pos m)
   (λh, by rw [h, lcm_zero_left])
   (λh, by delta lcm; rw [gcd_self, nat.mul_div_cancel _ h])
 
@@ -185,7 +185,7 @@ theorem gcd_mul_lcm (m n : ℕ) : gcd m n * lcm m n = m * n :=
 by delta lcm; rw [nat.mul_div_cancel' (dvd.trans (gcd_dvd_left m n) (dvd_mul_right m n))]
 
 theorem lcm_dvd {m n k : ℕ} (H1 : m ∣ k) (H2 : n ∣ k) : lcm m n ∣ k :=
-or.elim (eq_zero_or_pos k)
+or.elim (nat.eq_zero_or_pos k)
   (λh, by rw h; exact dvd_zero _)
   (λkpos, dvd_of_mul_dvd_mul_left (gcd_pos_of_pos_left n (pos_of_dvd_of_pos H1 kpos)) $
     by rw [gcd_mul_lcm, ←gcd_mul_right, mul_comm n k];
@@ -342,6 +342,18 @@ theorem coprime.pow_right {m k : ℕ} (n : ℕ) (H1 : coprime k m) : coprime k (
 theorem coprime.pow {k l : ℕ} (m n : ℕ) (H1 : coprime k l) : coprime (k ^ m) (l ^ n) :=
 (H1.pow_left _).pow_right _
 
+lemma coprime_pow_left_iff {n : ℕ} (hn : 0 < n) (a b : ℕ)  :
+  nat.coprime (a ^ n) b ↔ nat.coprime a b :=
+begin
+  obtain ⟨n, rfl⟩ := exists_eq_succ_of_ne_zero hn.ne',
+  rw [pow_succ, nat.coprime_mul_iff_left],
+  exact ⟨and.left, λ hab, ⟨hab, hab.pow_left _⟩⟩
+end
+
+lemma coprime_pow_right_iff {n : ℕ} (hn : 0 < n) (a b : ℕ)  :
+  nat.coprime a (b ^ n) ↔ nat.coprime a b :=
+by rw [nat.coprime_comm, coprime_pow_left_iff hn, nat.coprime_comm]
+
 theorem coprime.eq_one_of_dvd {k m : ℕ} (H : coprime k m) (d : k ∣ m) : k = 1 :=
 by rw [← H.gcd_eq_one, gcd_eq_left d]
 
@@ -409,7 +421,7 @@ dvd_antisymm
 theorem pow_dvd_pow_iff {a b n : ℕ} (n0 : 0 < n) : a ^ n ∣ b ^ n ↔ a ∣ b :=
 begin
   refine ⟨λ h, _, λ h, pow_dvd_pow_of_dvd h _⟩,
-  cases eq_zero_or_pos (gcd a b) with g0 g0,
+  cases nat.eq_zero_or_pos (gcd a b) with g0 g0,
   { simp [eq_zero_of_gcd_eq_zero_right g0] },
   rcases exists_coprime' g0 with ⟨g, a', b', g0', co, rfl, rfl⟩,
   rw [mul_pow, mul_pow] at h,

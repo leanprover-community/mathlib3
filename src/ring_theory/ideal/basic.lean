@@ -475,6 +475,15 @@ instance (I : ideal α) : comm_ring I.quotient :=
 def mk (I : ideal α) : α →+* I.quotient :=
 ⟨λ a, submodule.quotient.mk a, rfl, λ _ _, rfl, rfl, λ _ _, rfl⟩
 
+/- Two `ring_homs`s from the quotient by an ideal are equal if their
+compositions with `ideal.quotient.mk'` are equal.
+
+See note [partially-applied ext lemmas]. -/
+@[ext]
+lemma ring_hom_ext [non_assoc_semiring β] ⦃f g : I.quotient →+* β⦄
+  (h : f.comp (mk I) = g.comp (mk I)) : f = g :=
+ring_hom.ext $ λ x, quotient.induction_on' x $ (ring_hom.congr_fun h : _)
+
 instance : inhabited (quotient I) := ⟨mk I 37⟩
 
 protected theorem eq : mk I x = mk I y ↔ x - y ∈ I := submodule.quotient.eq I
@@ -591,6 +600,11 @@ def quot_equiv_of_eq {R : Type*} [comm_ring R] {I J : ideal R} (h : I = J) :
   I.quotient ≃+* J.quotient :=
 { map_mul' := by { rintro ⟨x⟩ ⟨y⟩, refl },
   .. submodule.quot_equiv_of_eq I J h }
+
+@[simp]
+lemma quot_equiv_of_eq_mk {R : Type*} [comm_ring R] {I J : ideal R} (h : I = J) (x : R) :
+  quot_equiv_of_eq h (ideal.quotient.mk I x) = ideal.quotient.mk J x :=
+rfl
 
 section pi
 variables (ι : Type v)

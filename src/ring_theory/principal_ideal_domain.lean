@@ -3,8 +3,8 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Morenikeji Neri
 -/
-import ring_theory.noetherian
 import ring_theory.unique_factorization_domain
+
 /-!
 # Principal ideal rings and principal ideal domains
 

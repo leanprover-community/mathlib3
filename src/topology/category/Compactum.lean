@@ -69,6 +69,7 @@ We also add wrappers around structures which already exist. Here are the main on
 
 -/
 
+universe variable u
 open category_theory filter ultrafilter topological_space category_theory.limits has_finite_inter
 open_locale classical topological_space
 
@@ -134,7 +135,7 @@ instance {X : Compactum} : topological_space X :=
   is_open_inter := λ S T h3 h4 h5 h6,
     filter.inter_sets _ (h3 _ h6.1) (h4 _ h6.2),
   is_open_sUnion := λ S h1 F ⟨T,hT,h2⟩,
-    mem_sets_of_superset (h1 T hT _ h2) (set.subset_sUnion_of_mem hT) }
+    mem_of_superset (h1 T hT _ h2) (set.subset_sUnion_of_mem hT) }
 
 theorem is_closed_iff {X : Compactum} (S : set X) : is_closed S ↔
   (∀ F : ultrafilter X, S ∈ F → X.str F ∈ S) :=
@@ -176,7 +177,7 @@ begin
     split; filter_upwards [hG]; intro x,
     exacts [and.left, and.right] },
   { rintros ⟨h1, h2⟩,
-    exact inter_mem_sets h1 h2 }
+    exact inter_mem h1 h2 }
 end
 
 private lemma subset_cl {X : Compactum} (A : set X) : A ⊆ cl A := λ a ha, ⟨X.incl a, ha,by simp⟩
@@ -201,14 +202,14 @@ begin
   -- All sets in C0 are nonempty.
   have claim2 : ∀ B ∈ C0, set.nonempty B,
   { rintros B ⟨Q,hQ,rfl⟩,
-    obtain ⟨q⟩ := nonempty_of_mem hQ,
+    obtain ⟨q⟩ := filter.nonempty_of_mem hQ,
     use X.incl q,
     simpa, },
   -- The intersection of AA with every set in C0 is nonempty.
   have claim3 : ∀ B ∈ C0, (AA ∩ B).nonempty,
   { rintros B ⟨Q,hQ,rfl⟩,
     have : (Q ∩ cl A).nonempty :=
-      nonempty_of_mem_sets (inter_mem_sets hQ hF),
+      filter.nonempty_of_mem (inter_mem hQ hF),
     rcases this with ⟨q,hq1,P,hq2,hq3⟩,
     refine ⟨P,hq2,_⟩,
     rw ←hq3 at hq1,
@@ -224,7 +225,7 @@ begin
   -- C2 is closed under finite intersections (by construction!).
   have claim4 := finite_inter_closure_has_finite_inter C1,
   -- C0 is closed under finite intersections by claim1.
-  have claim5 : has_finite_inter C0 := ⟨⟨_, univ_mem_sets, set.preimage_univ⟩, claim1⟩,
+  have claim5 : has_finite_inter C0 := ⟨⟨_, univ_mem, set.preimage_univ⟩, claim1⟩,
   -- Every element of C2 is nonempty.
   have claim6 : ∀ P ∈ C2, (P : set (ultrafilter X)).nonempty,
   { suffices : ∀ P ∈ C2, P ∈ C0 ∨ ∃ Q ∈ C0, P = AA ∩ Q,
@@ -274,11 +275,11 @@ begin
   -- If A ∈ F, then x ∈ cl A.
   have claim2 : ∀ (A : set X), A ∈ F → x ∈ cl A,
   { intros A hA,
-    exact claim1 (cl A) (is_closed_cl A) (mem_sets_of_superset hA (subset_cl A)) },
+    exact claim1 (cl A) (is_closed_cl A) (mem_of_superset hA (subset_cl A)) },
   -- T0 is closed under intersections.
   have claim3 : ∀ (S1 S2 ∈ T0), S1 ∩ S2 ∈ T0,
   { rintros S1 S2 ⟨S1, hS1, rfl⟩ ⟨S2, hS2, rfl⟩,
-    exact ⟨S1 ∩ S2, inter_mem_sets hS1 hS2, by simp [basic_inter]⟩ },
+    exact ⟨S1 ∩ S2, inter_mem hS1 hS2, by simp [basic_inter]⟩ },
   -- For every S ∈ T0, the intersection AA ∩ S is nonempty.
   have claim4 : ∀ (S ∈ T0), (AA ∩ S).nonempty,
   { rintros S ⟨S, hS, rfl⟩,
@@ -313,7 +314,7 @@ begin
     have c1 : X.join G = F := ultrafilter.coe_le_coe.1 (λ P hP, h1 (or.inr ⟨P, hP, rfl⟩)),
     have c2 : G.map X.str = X.incl x,
     { refine ultrafilter.coe_le_coe.1 (λ P hP, _),
-      apply mem_sets_of_superset (h1 (or.inl rfl)),
+      apply mem_of_superset (h1 (or.inl rfl)),
       rintros x ⟨rfl⟩,
       exact hP },
     simp [←c1, c2] },
@@ -383,7 +384,7 @@ noncomputable def of_topological_space (X : Type*) [topological_space X]
     have c4 : ∀ (U : set X), x ∈ U → is_open U → { G : ultrafilter X | U ∈ G } ∈ FF,
     { intros U hx hU,
       suffices : ultrafilter.Lim ⁻¹' U ∈ FF,
-      { apply mem_sets_of_superset this,
+      { apply mem_of_superset this,
         intros P hP,
         exact c2 U P hP hU },
       exact @c3 U (is_open.mem_nhds hU hx) },
@@ -415,7 +416,7 @@ def Compactum_to_CompHaus : Compactum ⥤ CompHaus :=
 namespace Compactum_to_CompHaus
 
 /-- The functor Compactum_to_CompHaus is full. -/
-def full : full Compactum_to_CompHaus :=
+def full : full Compactum_to_CompHaus.{u} :=
 { preimage := λ X Y f, Compactum.hom_of_continuous f.1 f.2 }
 
 /-- The functor Compactum_to_CompHaus is faithful. -/

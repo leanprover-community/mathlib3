@@ -1153,8 +1153,7 @@ calc x + 1 ≤ lim (⟨(λ n : ℕ, ((exp' x) n).re), is_cau_seq_re (exp' x)⟩ 
       begin
         rw [← nat.sub_add_cancel hj, sum_range_succ', sum_range_succ',
           add_re, add_re, h₁, h₂, add_assoc,
-          ← @sum_hom _ _ _ _ _ _ _ complex.re
-            (is_add_group_hom.to_is_add_monoid_hom _)],
+          ← coe_re_add_group_hom, (re_add_group_hom).map_sum, coe_re_add_group_hom ],
         refine le_add_of_nonneg_of_le (sum_nonneg (λ m hm, _)) (le_refl _),
         rw [← of_real_pow, ← of_real_nat_cast, ← of_real_div, of_real_re],
         exact div_nonneg (pow_nonneg hx _) (nat.cast_nonneg _),

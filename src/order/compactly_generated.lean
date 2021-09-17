@@ -3,11 +3,9 @@ Copyright (c) 2021 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import data.set.finite
 import data.finset.order
-import order.well_founded
-import order.order_iso_nat
 import order.atoms
+import order.order_iso_nat
 import order.zorn
 import tactic.tfae
 

@@ -13,6 +13,8 @@ open interactive interactive.types
 section ext
 open lean.parser nat tactic
 
+declare_trace ext
+
 /--
 `derive_struct_ext_lemma n` generates two extensionality lemmas based on
 the equality of all non-propositional projections.
@@ -418,14 +420,23 @@ meta def ext1_core (cfg : apply_cfg := {}) : state_t ext_state tactic unit :=
 do ⟨patts, trace_msg, _⟩ ← get,
    (new_msgs) ← state_t.lift $ focus1 $
    do { m ← get_ext_lemmas,
-         subject ← (target >>= get_ext_subject),
+         tgt ← target,
+         when_tracing `ext $ trace!"[ext] goal: {tgt}",
+         subject ← get_ext_subject tgt,
          new_trace_msg ←
            do { rule ← (m.find subject),
-                (applyc rule cfg),
+                if is_trace_enabled_for `ext then
+                  trace!"[ext] matched goal to rule: {rule}" >>
+                  timetac "[ext] application attempt time" (applyc rule cfg)
+                else applyc rule cfg,
                 pure (["apply " ++ rule.to_string]) } <|>
              do { ls ← get_ext_lemma_names,
                   let nms := ls.map name.to_string,
-                  rule ← (ls.any_of (λ n, applyc n cfg *> pure n)),
+                  rule ← (ls.any_of (λ n,
+                    (if is_trace_enabled_for `ext then
+                      trace!"[ext] trying to apply ext lemma: {n}" >>
+                      timetac "[ext] application attempt time" (applyc n cfg)
+                    else applyc n cfg) *> pure n)),
                   pure (["apply " ++ rule.to_string]) } <|>
                (fail format!"no applicable extensionality rule found for {subject}"),
          pure new_trace_msg },
@@ -481,6 +492,9 @@ ext1 xs {} trace.is_some $> ()
   This will destruct the introduced local constant.
 - Placing a `?` after `ext` (e.g. `ext? i ⟨a,b⟩ : 3`) will display
   a sequence of tactic applications that can replace the call to `ext`.
+- `set_option trace.ext true` will trace every attempted lemma application,
+  along with the time it takes for the application to succeed or fail.
+  This is useful for debugging slow `ext` calls.
 
 When trying to prove:
 
@@ -550,6 +564,9 @@ meta def interactive.ext :
   This will destruct the introduced local constant.
 - Placing a `?` after `ext`/`ext1` (e.g. `ext? i ⟨a,b⟩ : 3`) will display
   a sequence of tactic applications that can replace the call to `ext`/`ext1`.
+- `set_option trace.ext true` will trace every attempted lemma application,
+  along with the time it takes for the application to succeed or fail.
+  This is useful for debugging slow `ext` calls.
 
 When trying to prove:
 

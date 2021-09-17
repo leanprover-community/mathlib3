@@ -39,7 +39,7 @@ include hinj hf
 lemma is_primitive.is_unit_iff_is_unit_map_of_injective :
   is_unit f ↔ is_unit (map φ f) :=
 begin
-  refine ⟨(ring_hom.of (map φ)).is_unit_map, λ h, _⟩,
+  refine ⟨(map_ring_hom φ).is_unit_map, λ h, _⟩,
   rcases is_unit_iff.1 h with ⟨_, ⟨u, rfl⟩, hu⟩,
   have hdeg := degree_C u.ne_zero,
   rw [hu, degree_map' hinj] at hdeg,
@@ -51,7 +51,7 @@ end
 lemma is_primitive.irreducible_of_irreducible_map_of_injective (h_irr : irreducible (map φ f)) :
   irreducible f :=
 begin
-  refine ⟨λ h, h_irr.not_unit (is_unit.map (monoid_hom.of (map φ)) h), _⟩,
+  refine ⟨λ h, h_irr.not_unit (is_unit.map ((map_ring_hom φ).to_monoid_hom) h), _⟩,
   intros a b h,
   rcases h_irr.is_unit_or_is_unit (by rw [h, map_mul]) with hu | hu,
   { left,

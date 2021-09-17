@@ -66,7 +66,7 @@ hp.2.1
 lemma ne_one (hp : prime p) : p ≠ 1 :=
 λ h, hp.2.1 (h.symm ▸ is_unit_one)
 
-lemma div_or_div (hp : prime p) {a b : α} (h : p ∣ a * b) :
+lemma dvd_or_dvd (hp : prime p) {a b : α} (h : p ∣ a * b) :
   p ∣ a ∨ p ∣ b :=
 hp.2.2 a b h
 
@@ -79,7 +79,7 @@ begin
     have := not_unit hp,
     contradiction },
   rw pow_succ at h,
-  cases div_or_div hp h with dvd_a dvd_pow,
+  cases dvd_or_dvd hp h with dvd_a dvd_pow,
   { assumption },
   exact ih dvd_pow
 end
@@ -97,7 +97,7 @@ lemma exists_mem_multiset_dvd_of_prime {s : multiset α} {p : α} (hp : prime p)
 multiset.induction_on s (assume h, (hp.not_unit $ is_unit_of_dvd_one _ h).elim) $
 assume a s ih h,
   have p ∣ a * s.prod, by simpa using h,
-  match hp.div_or_div this with
+  match hp.dvd_or_dvd this with
   | or.inl h := ⟨a, multiset.mem_cons_self a s, h⟩
   | or.inr h := let ⟨a, has, h⟩ := ih h in ⟨a, multiset.mem_cons_of_mem has, h⟩
   end
@@ -166,7 +166,7 @@ end
 lemma irreducible_of_prime [comm_cancel_monoid_with_zero α] {p : α} (hp : prime p) :
   irreducible p :=
 ⟨hp.not_unit, λ a b hab,
-  (show a * b ∣ a ∨ a * b ∣ b, from hab ▸ hp.div_or_div (hab ▸ (dvd_refl _))).elim
+  (show a * b ∣ a ∨ a * b ∣ b, from hab ▸ hp.dvd_or_dvd (hab ▸ (dvd_refl _))).elim
     (λ ⟨x, hx⟩, or.inr (is_unit_iff_dvd_one.2
       ⟨x, mul_right_cancel' (show a ≠ 0, from λ h, by simp [*, prime] at *)
         $ by conv {to_lhs, rw hx}; simp [mul_comm, mul_assoc, mul_left_comm]⟩))
@@ -182,7 +182,7 @@ have h : p ^ (k + l) * (x * y) = p ^ (k + l) * (p * z),
   by simpa [mul_comm, pow_add, hx, hy, mul_assoc, mul_left_comm] using hz,
 have hp0: p ^ (k + l) ≠ 0, from pow_ne_zero _ hp.ne_zero,
 have hpd : p ∣ x * y, from ⟨z, by rwa [mul_right_inj' hp0] at h⟩,
-(hp.div_or_div hpd).elim
+(hp.dvd_or_dvd hpd).elim
   (λ ⟨d, hd⟩, or.inl ⟨d, by simp [*, pow_succ, mul_comm, mul_left_comm, mul_assoc]⟩)
   (λ ⟨d, hd⟩, or.inr ⟨d, by simp [*, pow_succ, mul_comm, mul_left_comm, mul_assoc]⟩)
 
@@ -283,7 +283,7 @@ lemma exists_associated_mem_of_dvd_prod [comm_cancel_monoid_with_zero α] {p : �
 multiset.induction_on s (by simp [mt is_unit_iff_dvd_one.2 hp.not_unit])
   (λ a s ih hs hps, begin
     rw [multiset.prod_cons] at hps,
-    cases hp.div_or_div hps with h h,
+    cases hp.dvd_or_dvd hps with h h,
     { use [a, by simp],
       cases h with u hu,
       cases ((irreducible_of_prime (hs a (multiset.mem_cons.2
@@ -311,7 +311,7 @@ lemma prime_of_associated [comm_monoid_with_zero α] {p q : α} (h : p ~ᵤ q) (
 ⟨(ne_zero_iff_of_associated h).1 hp.ne_zero,
   let ⟨u, hu⟩ := h in
     ⟨λ ⟨v, hv⟩, hp.not_unit ⟨v * u⁻¹, by simp [hv, hu.symm]⟩,
-      hu ▸ by { simp [units.mul_right_dvd], intros a b, exact hp.div_or_div }⟩⟩
+      hu ▸ by { simp [units.mul_right_dvd], intros a b, exact hp.dvd_or_dvd }⟩⟩
 
 lemma associated_of_irreducible_of_dvd [cancel_monoid_with_zero α] {p q : α}
   (p_irr : irreducible p) (q_irr : irreducible q) (dvd : p ∣ q) : associated p q :=

@@ -155,7 +155,7 @@ protected lemma filter.has_basis.separation_rel {ι : Type*} {p : ι → Prop} {
 by { unfold separation_rel, rw h.sInter_sets }
 
 lemma separation_rel_eq_inter_closure : 𝓢 α = ⋂₀ (closure '' (𝓤 α).sets) :=
-by simpa [uniformity_has_basis_closure.separation_rel]
+by simp [uniformity_has_basis_closure.separation_rel]
 
 lemma is_closed_separation_rel : is_closed (𝓢 α) :=
 begin
@@ -226,7 +226,7 @@ begin
   suffices : x = y, by rwa this,
   apply eq_of_forall_symmetric,
   intros V V_in V_symm,
-  rcases hx (inter_mem_sets V₁_in V_in) with ⟨z, hz, hz'⟩,
+  rcases hx (inter_mem V₁_in V_in) with ⟨z, hz, hz'⟩,
   suffices : z = y,
   { rw ← this,
     exact ball_inter_right x _ _ hz },
@@ -499,13 +499,12 @@ begin
            separated_of_uniform_continuous uniform_continuous_snd h⟩ },
   { rintros ⟨eqv_α, eqv_β⟩ r r_in,
     rw uniformity_prod at r_in,
-    rcases r_in with ⟨t_α, ⟨r_α, r_α_in, h_α⟩, t_β, ⟨r_β, r_β_in, h_β⟩, H⟩,
-
+    rcases r_in with ⟨t_α, ⟨r_α, r_α_in, h_α⟩, t_β, ⟨r_β, r_β_in, h_β⟩, rfl⟩,
     let p_α := λ(p : (α × β) × (α × β)), (p.1.1, p.2.1),
     let p_β := λ(p : (α × β) × (α × β)), (p.1.2, p.2.2),
     have key_α : p_α ((a₁, b₁), (a₂, b₂)) ∈ r_α, { simp [p_α, eqv_α r_α r_α_in] },
     have key_β : p_β ((a₁, b₁), (a₂, b₂)) ∈ r_β, { simp [p_β, eqv_β r_β r_β_in] },
-    exact H ⟨h_α key_α, h_β key_β⟩ },
+    exact ⟨h_α key_α, h_β key_β⟩ },
 end
 
 instance separated.prod [separated_space α] [separated_space β] : separated_space (α × β) :=

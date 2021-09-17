@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov
 -/
 import algebra.module.submodule
 import algebra.punit_instances
-import algebra.module.prod
 
 /-!
 # The lattice structure on `submodule`s

@@ -981,8 +981,7 @@ variables {f₂ : 𝕜 → G} {f₂' : G}
 lemma has_deriv_at_filter.prod
   (hf₁ : has_deriv_at_filter f₁ f₁' x L) (hf₂ : has_deriv_at_filter f₂ f₂' x L) :
   has_deriv_at_filter (λ x, (f₁ x, f₂ x)) (f₁', f₂') x L :=
-show has_fderiv_at_filter _ _ _ _,
-by convert has_fderiv_at_filter.prod hf₁ hf₂
+hf₁.prod hf₂
 
 lemma has_deriv_within_at.prod
   (hf₁ : has_deriv_within_at f₁ f₁' s x) (hf₂ : has_deriv_within_at f₂ f₂' s x) :
@@ -991,6 +990,11 @@ hf₁.prod hf₂
 
 lemma has_deriv_at.prod (hf₁ : has_deriv_at f₁ f₁' x) (hf₂ : has_deriv_at f₂ f₂' x) :
   has_deriv_at (λ x, (f₁ x, f₂ x)) (f₁', f₂') x :=
+hf₁.prod hf₂
+
+lemma has_strict_deriv_at.prod (hf₁ : has_strict_deriv_at f₁ f₁' x)
+  (hf₂ : has_strict_deriv_at f₂ f₂' x) :
+  has_strict_deriv_at (λ x, (f₁ x, f₂ x)) (f₁', f₂') x :=
 hf₁.prod hf₂
 
 end cartesian_product
@@ -1177,57 +1181,47 @@ end composition
 section composition_vector
 /-! ### Derivative of the composition of a function between vector spaces and a function on `𝕜` -/
 
+open continuous_linear_map
+
 variables {l : F → E} {l' : F →L[𝕜] E}
 variable (x)
 
 /-- The composition `l ∘ f` where `l : F → E` and `f : 𝕜 → F`, has a derivative within a set
 equal to the Fréchet derivative of `l` applied to the derivative of `f`. -/
 theorem has_fderiv_within_at.comp_has_deriv_within_at {t : set F}
-  (hl : has_fderiv_within_at l l' t (f x)) (hf : has_deriv_within_at f f' s x) (hst : s ⊆ f ⁻¹' t) :
-  has_deriv_within_at (l ∘ f) (l' (f')) s x :=
-begin
-  rw has_deriv_within_at_iff_has_fderiv_within_at,
-  convert has_fderiv_within_at.comp x hl hf hst,
-  ext,
-  simp
-end
-
-/-- The composition `l ∘ f` where `l : F → E` and `f : 𝕜 → F`, has a derivative equal to the
-Fréchet derivative of `l` applied to the derivative of `f`. -/
-theorem has_fderiv_at.comp_has_deriv_at
-  (hl : has_fderiv_at l l' (f x)) (hf : has_deriv_at f f' x) :
-  has_deriv_at (l ∘ f) (l' (f')) x :=
-begin
-  rw has_deriv_at_iff_has_fderiv_at,
-  convert has_fderiv_at.comp x hl hf,
-  ext,
-  simp
-end
+  (hl : has_fderiv_within_at l l' t (f x)) (hf : has_deriv_within_at f f' s x)
+  (hst : maps_to f s t) :
+  has_deriv_within_at (l ∘ f) (l' f') s x :=
+by simpa only [one_apply, one_smul, smul_right_apply, coe_comp', (∘)]
+  using (hl.comp x hf.has_fderiv_within_at hst).has_deriv_within_at
 
 theorem has_fderiv_at.comp_has_deriv_within_at
   (hl : has_fderiv_at l l' (f x)) (hf : has_deriv_within_at f f' s x) :
-  has_deriv_within_at (l ∘ f) (l' (f')) s x :=
-begin
-  rw ← has_fderiv_within_at_univ at hl,
-  exact has_fderiv_within_at.comp_has_deriv_within_at x hl hf subset_preimage_univ
-end
+  has_deriv_within_at (l ∘ f) (l' f') s x :=
+hl.has_fderiv_within_at.comp_has_deriv_within_at x hf (maps_to_univ _ _)
+
+/-- The composition `l ∘ f` where `l : F → E` and `f : 𝕜 → F`, has a derivative equal to the
+Fréchet derivative of `l` applied to the derivative of `f`. -/
+theorem has_fderiv_at.comp_has_deriv_at (hl : has_fderiv_at l l' (f x)) (hf : has_deriv_at f f' x) :
+  has_deriv_at (l ∘ f) (l' f') x :=
+has_deriv_within_at_univ.mp $ hl.comp_has_deriv_within_at x hf.has_deriv_within_at
+
+theorem has_strict_fderiv_at.comp_has_strict_deriv_at
+  (hl : has_strict_fderiv_at l l' (f x)) (hf : has_strict_deriv_at f f' x) :
+  has_strict_deriv_at (l ∘ f) (l' f') x :=
+by simpa only [one_apply, one_smul, smul_right_apply, coe_comp', (∘)]
+  using (hl.comp x hf.has_strict_fderiv_at).has_strict_deriv_at
 
 lemma fderiv_within.comp_deriv_within {t : set F}
   (hl : differentiable_within_at 𝕜 l t (f x)) (hf : differentiable_within_at 𝕜 f s x)
-  (hs : s ⊆ f ⁻¹' t) (hxs : unique_diff_within_at 𝕜 s x) :
+  (hs : maps_to f s t) (hxs : unique_diff_within_at 𝕜 s x) :
   deriv_within (l ∘ f) s x = (fderiv_within 𝕜 l t (f x) : F → E) (deriv_within f s x) :=
-begin
-  apply has_deriv_within_at.deriv_within _ hxs,
-  exact (hl.has_fderiv_within_at).comp_has_deriv_within_at x (hf.has_deriv_within_at) hs
-end
+(hl.has_fderiv_within_at.comp_has_deriv_within_at x hf.has_deriv_within_at hs).deriv_within hxs
 
 lemma fderiv.comp_deriv
   (hl : differentiable_at 𝕜 l (f x)) (hf : differentiable_at 𝕜 f x) :
   deriv (l ∘ f) x = (fderiv 𝕜 l (f x) : F → E) (deriv f x) :=
-begin
-  apply has_deriv_at.deriv _,
-  exact (hl.has_fderiv_at).comp_has_deriv_at x (hf.has_deriv_at)
-end
+(hl.has_fderiv_at.comp_has_deriv_at x hf.has_deriv_at).deriv
 
 end composition_vector
 
@@ -1878,10 +1872,10 @@ begin
   have A : ∀ᶠ z in 𝓝[s \ {x}] x, ∥(z - x)⁻¹ • (f z - f x)∥ ∈ Iio r,
     from (has_deriv_within_at_iff_tendsto_slope.1 hf).norm (is_open.mem_nhds is_open_Iio hr),
   have B : ∀ᶠ z in 𝓝[{x}] x, ∥(z - x)⁻¹ • (f z - f x)∥ ∈ Iio r,
-    from mem_sets_of_superset self_mem_nhds_within
+    from mem_of_superset self_mem_nhds_within
       (singleton_subset_iff.2 $ by simp [hr₀]),
-  have C := mem_sup_sets.2 ⟨A, B⟩,
-  rw [← nhds_within_union, diff_union_self, nhds_within_union, mem_sup_sets] at C,
+  have C := mem_sup.2 ⟨A, B⟩,
+  rw [← nhds_within_union, diff_union_self, nhds_within_union, mem_sup] at C,
   filter_upwards [C.1],
   simp only [norm_smul, mem_Iio, normed_field.norm_inv],
   exact λ _, id

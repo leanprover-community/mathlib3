@@ -168,7 +168,7 @@ instance : has_add cardinal.{u} :=
 ⟨λq₁ q₂, quotient.lift_on₂ q₁ q₂ (λα β, mk (α ⊕ β)) $ assume α β γ δ ⟨e₁⟩ ⟨e₂⟩,
   quotient.sound ⟨equiv.sum_congr e₁ e₂⟩⟩
 
-@[simp] theorem add_def (α β) : mk α + mk β = mk (α ⊕ β) := rfl
+@[simp] theorem add_def (α β : Type u) : mk α + mk β = mk (α ⊕ β) := rfl
 
 instance : has_mul cardinal.{u} :=
 ⟨λq₁ q₂, quotient.lift_on₂ q₁ q₂ (λα β, mk (α × β)) $ assume α β γ δ ⟨e₁⟩ ⟨e₂⟩,
@@ -603,6 +603,54 @@ begin
   simp only [cardinal.mk_def, cardinal.sum_mk, cardinal.lift_id],
   convert mk_prod using 1,
   exact quotient.sound ⟨equiv.sigma_equiv_prod ι α⟩,
+end
+
+protected lemma le_sup_iff {ι : Type v} {f : ι → cardinal.{max v w}} {c : cardinal} :
+  (c ≤ sup f) ↔ (∀ b, (∀ i, f i ≤ b) → c ≤ b) :=
+⟨λ h b hb, le_trans h (sup_le.mpr hb), λ h, h _ $ λ i, le_sup f i⟩
+
+/-- The lift of a supremum is the supremum of the lifts. -/
+lemma lift_sup {ι : Type v} (f : ι → cardinal.{max v w}) :
+  lift.{(max v w) u} (sup.{v w} f) =
+    sup.{v (max u w)} (λ i : ι, lift.{(max v w) u} (f i)) :=
+begin
+  apply le_antisymm,
+  { rw [cardinal.le_sup_iff], intros c hc, by_contra h,
+    obtain ⟨d, rfl⟩ := cardinal.lift_down (not_le.mp h).le,
+    simp only [lift_le, sup_le] at h hc,
+    exact h hc },
+  { simp only [cardinal.sup_le, lift_le, le_sup, implies_true_iff] }
+end
+
+/-- To prove that the lift of a supremum is bounded by some cardinal `t`,
+it suffices to show that the lift of each cardinal is bounded by `t`. -/
+lemma lift_sup_le {ι : Type v} (f : ι → cardinal.{max v w})
+  (t : cardinal.{max u v w}) (w : ∀ i, lift.{_ u} (f i) ≤ t) :
+  lift.{(max v w) u} (sup f) ≤ t :=
+by { rw lift_sup, exact sup_le.mpr w, }
+
+@[simp] lemma lift_sup_le_iff {ι : Type v} (f : ι → cardinal.{max v w}) (t : cardinal.{max u v w}) :
+  lift.{(max v w) u} (sup f) ≤ t ↔ ∀ i, lift.{_ u} (f i) ≤ t :=
+⟨λ h i, (lift_le.mpr (le_sup f i)).trans h,
+ λ h, lift_sup_le f t h⟩
+
+universes v' w'
+
+/--
+To prove an inequality between the lifts to a common universe of two different supremums,
+it suffices to show that the lift of each cardinal from the smaller supremum
+if bounded by the lift of some cardinal from the larger supremum.
+-/
+lemma lift_sup_le_lift_sup
+  {ι : Type v} {ι' : Type v'} (f : ι → cardinal.{max v w}) (f' : ι' → cardinal.{max v' w'})
+  (g : ι → ι') (h : ∀ i, lift.{_ (max v' w')} (f i) ≤ lift.{_ (max v w)} (f' (g i))) :
+  lift.{_ (max v' w')} (sup f) ≤ lift.{_ (max v w)} (sup f') :=
+begin
+  apply lift_sup_le.{(max v' w')} f,
+  intro i,
+  apply le_trans (h i),
+  simp only [lift_le],
+  apply le_sup,
 end
 
 /-- `ω` is the smallest infinite cardinal, also known as ℵ₀. -/

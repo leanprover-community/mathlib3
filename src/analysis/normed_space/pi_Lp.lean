@@ -351,11 +351,10 @@ instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
   begin
     intros x y,
     unfold inner,
-    rw [←finset.sum_hom finset.univ conj],
+    rw conj.map_sum,
     apply finset.sum_congr rfl,
     rintros z -,
     apply inner_conj_sym,
-    apply_instance
   end,
   add_left := λ x y z,
     show ∑ i, inner (x i + y i) (z i) = ∑ i, inner (x i) (z i) + ∑ i, inner (y i) (z i),

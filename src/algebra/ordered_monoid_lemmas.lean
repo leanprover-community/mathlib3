@@ -678,7 +678,9 @@ lemma monotone.mul_const' [covariant_class α α (function.swap (*)) (≤)]
 end has_le
 
 variables [preorder α] [preorder β]
-@[to_additive monotone.add]
+
+/--  The product of two monotone functions is monotone. -/
+@[to_additive monotone.add "The sum of two monotone functions is monotone."]
 lemma monotone.mul' [covariant_class α α (*) (≤)] [covariant_class α α (function.swap (*)) (≤)]
   (hf : monotone f) (hg : monotone g) : monotone (λ x, f x * g x) :=
 λ x y h, mul_le_mul' (hf h) (hg h)
@@ -708,17 +710,31 @@ lemma strict_mono.mul_const' (hf : strict_mono f) (c : α) :
 
 end right
 
+/--  The product of two strictly monotone functions is strictly monotone. -/
+@[to_additive strict_mono.add
+"The sum of two strictly monotone functions is strictly monotone."]
+lemma strict_mono.mul' [has_lt β] [preorder α]
+  [covariant_class α α (*) (<)] [covariant_class α α (function.swap (*)) (<)]
+  (hf : strict_mono f) (hg : strict_mono g) :
+  strict_mono (λ x, f x * g x) :=
+λ a b ab, mul_lt_mul_of_lt_of_lt (hf ab) (hg ab)
+
 variables [preorder α]
 
-@[to_additive monotone.add_strict_mono]
+/--  The product of a monotone function and a strictly monotone function is strictly monotone. -/
+@[to_additive monotone.add_strict_mono
+"The sum of a monotone function and a strictly monotone function is strictly monotone."]
 lemma monotone.mul_strict_mono' [covariant_class α α (*) (<)]
   [covariant_class α α (function.swap (*)) (≤)] {β : Type*} [preorder β]
   {f g : β → α} (hf : monotone f) (hg : strict_mono g) :
   strict_mono (λ x, f x * g x) :=
 λ x y h, mul_lt_mul_of_le_of_lt (hf h.le) (hg h)
+
 variables [covariant_class α α (*) (≤)] [covariant_class α α (function.swap (*)) (<)] [preorder β]
 
-@[to_additive strict_mono.add_monotone]
+/--  The product of a strictly monotone function and a monotone function is strictly monotone. -/
+@[to_additive strict_mono.add_monotone
+"The sum of a strictly monotone function and a monotone function is strictly monotone."]
 lemma strict_mono.mul_monotone' (hf : strict_mono f) (hg : monotone g) :
   strict_mono (λ x, f x * g x) :=
 λ x y h, mul_lt_mul_of_lt_of_le (hf h) (hg h.le)

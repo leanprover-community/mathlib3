@@ -3,11 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import tactic.ring_exp
-import tactic.chain
 import algebra.monoid_algebra
-import data.finset.sort
-import tactic.ring
 
 /-!
 # Theory of univariate polynomials
@@ -131,6 +127,10 @@ instance {S} [monoid S] [distrib_mul_action S R] : distrib_mul_action S (polynom
   mul_smul := by { rintros _ _ ⟨⟩, simp [smul_to_finsupp, mul_smul], },
   smul_add := by { rintros _ ⟨⟩ ⟨⟩, simp [smul_to_finsupp, add_to_finsupp] },
   smul_zero := by { rintros _, simp [← zero_to_finsupp, smul_to_finsupp] } }
+
+instance {S} [monoid S] [distrib_mul_action S R] [has_faithful_scalar S R] :
+  has_faithful_scalar S (polynomial R) :=
+{ eq_of_smul_eq_smul := λ s₁ s₂ h, eq_of_smul_eq_smul $ λ a : ℕ →₀ R, congr_arg to_finsupp (h ⟨a⟩) }
 
 instance {S} [semiring S] [module S R] : module S (polynomial R) :=
 { smul := (•),

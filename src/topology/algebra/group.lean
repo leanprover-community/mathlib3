@@ -314,7 +314,7 @@ begin
 end
 
 @[to_additive]
-lemma topological_group.of_nhds_one' {G : Type*} [group G] [topological_space G]
+lemma topological_group.of_nhds_one' {G : Type u} [group G] [topological_space G]
   (hmul : tendsto (uncurry ((*) : G → G → G)) ((𝓝 1) ×ᶠ 𝓝 1) (𝓝 1))
   (hinv : tendsto (λ x : G, x⁻¹) (𝓝 1) (𝓝 1))
   (hleft : ∀ x₀ : G, 𝓝 x₀ = map (λ x, x₀*x) (𝓝 1))
@@ -362,7 +362,7 @@ lemma topological_group.of_nhds_one {G : Type u} [group G] [topological_space G]
   continuous_inv := topological_group.of_nhds_aux hinv hleft hconj}
 
 @[to_additive]
-lemma topological_group.of_comm_of_nhds_one {G : Type*} [comm_group G] [topological_space G]
+lemma topological_group.of_comm_of_nhds_one {G : Type u} [comm_group G] [topological_space G]
   (hmul : tendsto (uncurry ((*) : G → G → G)) ((𝓝 1) ×ᶠ 𝓝 1) (𝓝 1))
   (hinv : tendsto (λ x : G, x⁻¹) (𝓝 1) (𝓝 1))
   (hleft : ∀ x₀ : G, 𝓝 x₀ = map (λ x, x₀*x) (𝓝 1)) : topological_group G :=
@@ -477,7 +477,7 @@ variables {G}
 
 lemma neg_Z : tendsto (λa:G, - a) (Z G) (Z G) :=
 have tendsto (λa, (0:G)) (Z G) (Z G),
-  by refine le_trans (assume h, _) zero_Z; simp [univ_mem_sets'] {contextual := tt},
+  by refine le_trans (assume h, _) zero_Z; simp [univ_mem'] {contextual := tt},
 have tendsto (λa:G, 0 - a) (Z G) (Z G), from
   sub_Z.comp (tendsto.prod_mk this tendsto_id),
 by simpa
@@ -636,7 +636,8 @@ end
 
 /-- Every locally compact separable topological group is σ-compact.
   Note: this is not true if we drop the topological group hypothesis. -/
-@[priority 100] instance separable_locally_compact_group.sigma_compact_space
+@[priority 100, to_additive separable_locally_compact_add_group.sigma_compact_space]
+instance separable_locally_compact_group.sigma_compact_space
   [separable_space G] [locally_compact_space G] : sigma_compact_space G :=
 begin
   obtain ⟨L, hLc, hL1⟩ := exists_compact_mem_nhds (1 : G),
@@ -669,7 +670,7 @@ begin
     apply ts,
     simpa [mul_comm, mul_assoc, mul_left_comm] using h (v * x⁻¹) v_mem (w * y⁻¹) w_mem },
   { rintros ⟨a, c, ⟨b, hb, ba⟩, ⟨d, hd, dc⟩, ac⟩,
-    refine ⟨b ∩ d, inter_mem_sets hb hd, assume v, _⟩,
+    refine ⟨b ∩ d, inter_mem hb hd, assume v, _⟩,
     simp only [preimage_subset_iff, mul_inv_rev, mem_preimage] at *,
     rintros ⟨vb, vd⟩,
     refine ac ⟨v * y⁻¹, y, _, _, _⟩,
@@ -678,8 +679,12 @@ begin
     { simp only [inv_mul_cancel_right] } }
 end
 
-@[to_additive]
-lemma nhds_is_mul_hom : is_mul_hom (λx:G, 𝓝 x) := ⟨λ_ _, nhds_mul _ _⟩
+/-- On a topological group, `𝓝 : G → filter G` can be promoted to a `mul_hom`. -/
+@[to_additive "On an additive topological group, `𝓝 : G → filter G` can be promoted to an
+`add_hom`.", simps]
+def nhds_mul_hom : mul_hom G (filter G) :=
+{ to_fun := 𝓝,
+  map_mul' := λ_ _, nhds_mul _ _ }
 
 end
 

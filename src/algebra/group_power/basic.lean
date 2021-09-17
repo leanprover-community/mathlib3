@@ -5,7 +5,6 @@ Authors: Jeremy Avigad, Robert Y. Lewis
 -/
 import algebra.ordered_ring
 import tactic.monotonicity.basic
-import deprecated.group
 import group_theory.group_action.defs
 
 /-!
@@ -191,11 +190,6 @@ theorem monoid_hom.map_pow (f : M →* N) (a : M) : ∀(n : ℕ), f (a ^ n) = (f
 | 0     := by rw [pow_zero, pow_zero, f.map_one]
 | (n+1) := by rw [pow_succ, pow_succ, f.map_mul, monoid_hom.map_pow]
 
-@[to_additive is_add_monoid_hom.map_nsmul]
-theorem is_monoid_hom.map_pow (f : M → N) [is_monoid_hom f] (a : M) :
-  ∀(n : ℕ), f (a ^ n) = (f a) ^ n :=
-(monoid_hom.of f).map_pow a
-
 @[to_additive]
 lemma commute.mul_pow {a b : M} (h : commute a b) (n : ℕ) : (a * b) ^ n = a ^ n * b ^ n :=
 nat.rec_on n (by simp only [pow_zero, one_mul]) $ λ n ihn,
@@ -231,9 +225,18 @@ variables [comm_monoid M] [add_comm_monoid A]
 theorem mul_pow (a b : M) (n : ℕ) : (a * b)^n = a^n * b^n :=
 (commute.all a b).mul_pow n
 
-@[to_additive nsmul.is_add_monoid_hom]
-instance pow.is_monoid_hom (n : ℕ) : is_monoid_hom ((^ n) : M → M) :=
-{ map_mul := λ _ _, mul_pow _ _ _, map_one := one_pow _ }
+
+/-- The `n`th power map on a commutative monoid for a natural `n`, considered as a morphism of
+monoids. -/
+@[to_additive nsmul_add_monoid_hom "Multiplication by a natural `n` on a commutative additive
+monoid, considered as a morphism of additive monoids.", simps]
+def pow_monoid_hom (n : ℕ) : M →* M :=
+{ to_fun := (^ n),
+  map_one' := one_pow _,
+  map_mul' := λ a b ,mul_pow a b n }
+
+-- the below line causes the linter to complain :-/
+-- attribute [simps] pow_monoid_hom nsmul_add_monoid_hom
 
 lemma dvd_pow {x y : M} :
   ∀ {n : ℕ} (hxy : x ∣ y) (hn : n ≠ 0), x ∣ y^n
@@ -341,9 +344,14 @@ theorem mul_gpow (a b : G) (n : ℤ) : (a * b)^n = a^n * b^n := (commute.all a b
 theorem div_gpow (a b : G) (n : ℤ) : (a / b) ^ n = a ^ n / b ^ n :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, mul_gpow, inv_gpow]
 
-@[to_additive gsmul.is_add_group_hom]
-instance gpow.is_group_hom (n : ℤ) : is_group_hom ((^ n) : G → G) :=
-{ map_mul := λ _ _, mul_gpow _ _ n }
+/-- The `n`th power map (`n` an integer) on a commutative group, considered as a group
+homomorphism. -/
+@[to_additive "Multiplication by an integer `n` on a commutative additive group, considered as an
+additive group homomorphism.", simps]
+def gpow_group_hom (n : ℤ) : G →* G :=
+{ to_fun := (^ n),
+  map_one' := one_gpow n,
+  map_mul' := λ a b, mul_gpow a b n }
 
 end comm_group
 

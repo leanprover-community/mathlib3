@@ -161,18 +161,18 @@ let R : _ := Sup S in
 have hnile : _ := not_forall.mp (not_or_distrib.mp hni).1,
 have hnige : _ := not_forall.mp (not_or_distrib.mp hni).2,
 Exists.dcases_on hnile $ Exists.dcases_on hnige $ λ r₁ hr₁ r₂ hr₂,
-have HR₁ : ∃ y : ℝ, y ∈ S :=
+have HR₁ : S.nonempty :=
   ⟨r₁ - 1, lt_of_lt_of_le (coe_lt_coe.2 $ sub_one_lt _) (not_lt.mp hr₁) ⟩,
-have HR₂ : ∃ z : ℝ, ∀ y ∈ S, y ≤ z :=
+have HR₂ : bdd_above S :=
   ⟨ r₂, λ y hy, le_of_lt (coe_lt_coe.1 (lt_of_lt_of_le hy (not_lt.mp hr₂))) ⟩,
 λ δ hδ,
   ⟨ lt_of_not_ge' $ λ c,
       have hc : ∀ y ∈ S, y ≤ R - δ := λ y hy, coe_le_coe.1 $ le_of_lt $ lt_of_lt_of_le hy c,
-      not_lt_of_le ((real.Sup_le _ HR₁ HR₂).mpr hc) $ sub_lt_self R hδ,
+      not_lt_of_le (cSup_le HR₁ hc) $ sub_lt_self R hδ,
     lt_of_not_ge' $ λ c,
       have hc : ↑(R + δ / 2) < x :=
         lt_of_lt_of_le (add_lt_add_left (coe_lt_coe.2 (half_lt_self hδ)) R) c,
-      not_lt_of_le (real.le_Sup _ HR₂ hc) $ (lt_add_iff_pos_right _).mpr $ half_pos hδ⟩
+      not_lt_of_le (le_cSup HR₂ hc) $ (lt_add_iff_pos_right _).mpr $ half_pos hδ⟩
 
 theorem exists_st_of_not_infinite {x : ℝ*} (hni : ¬ infinite x) : ∃ r : ℝ, is_st x r :=
 ⟨Sup {y : ℝ | (y : ℝ*) < x}, is_st_Sup hni⟩
@@ -183,10 +183,10 @@ unfold st, split_ifs,
 { exact is_st_unique (classical.some_spec h) (is_st_Sup (not_infinite_of_exists_st h)) },
 { cases not_imp_comm.mp exists_st_of_not_infinite h with H H,
   { rw (set.ext (λ i, ⟨λ hi, set.mem_univ i, λ hi, H i⟩) : {y : ℝ | (y : ℝ*) < x} = set.univ),
-    exact (real.Sup_univ).symm },
+    exact real.Sup_univ.symm },
   { rw (set.ext (λ i, ⟨λ hi, false.elim (not_lt_of_lt (H i) hi),
     λ hi, false.elim (set.not_mem_empty i hi)⟩) : {y : ℝ | (y : ℝ*) < x} = ∅),
-    exact (real.Sup_empty).symm } }
+    exact real.Sup_empty.symm } }
 end
 
 theorem exists_st_iff_not_infinite {x : ℝ*} : (∃ r : ℝ, is_st x r) ↔ ¬ infinite x :=

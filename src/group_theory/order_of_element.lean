@@ -355,6 +355,15 @@ end cancel_monoid
 section group
 variables [group G] [add_group A] {x a} {i : ℤ}
 
+@[to_additive add_order_of_dvd_iff_gsmul_eq_zero]
+lemma order_of_dvd_iff_gpow_eq_one : (order_of x : ℤ) ∣ i ↔ x ^ i = 1 :=
+begin
+  rcases int.eq_coe_or_neg i with ⟨i, rfl|rfl⟩,
+  { rw [int.coe_nat_dvd, order_of_dvd_iff_pow_eq_one, gpow_coe_nat] },
+  { rw [dvd_neg, int.coe_nat_dvd, gpow_neg, inv_eq_one, gpow_coe_nat,
+      order_of_dvd_iff_pow_eq_one] }
+end
+
 @[simp, norm_cast, to_additive] lemma order_of_subgroup {H : subgroup G}
   (y: H) : order_of (y : G) = order_of y :=
 order_of_injective H.subtype subtype.coe_injective y

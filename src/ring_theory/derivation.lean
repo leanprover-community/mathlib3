@@ -75,8 +75,8 @@ coe_injective $ funext H
 
 lemma congr_fun (h : D1 = D2) (a : A) : D1 a = D2 a := congr_fun (congr_arg coe_fn h) a
 
-@[simp] lemma map_add : D (a + b) = D a + D b := is_add_hom.map_add D a b
-@[simp] lemma map_zero : D 0 = 0 := is_add_monoid_hom.map_zero D
+@[simp] lemma map_add : D (a + b) = D a + D b := linear_map.map_add D a b
+@[simp] lemma map_zero : D 0 = 0 := linear_map.map_zero D
 @[simp] lemma map_smul : D (r • a) = r • D a := linear_map.map_smul D r a
 @[simp] lemma leibniz : D (a * b) = a • D b + b • D a := D.leibniz' _ _
 

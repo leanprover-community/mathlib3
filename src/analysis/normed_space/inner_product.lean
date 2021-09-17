@@ -931,6 +931,9 @@ begin
   exact inner_mul_inner_self_le _ _
 end
 
+lemma norm_inner_le_norm (x y : E) : ∥⟪x, y⟫∥ ≤ ∥x∥ * ∥y∥ :=
+(is_R_or_C.norm_eq_abs _).le.trans (abs_inner_le_norm x y)
+
 /-- Cauchy–Schwarz inequality with norm -/
 lemma abs_real_inner_le_norm (x y : F) : absR ⟪x, y⟫_ℝ ≤ ∥x∥ * ∥y∥ :=
 by { have h := @abs_inner_le_norm ℝ F _ _ x y, simpa using h }
@@ -1373,7 +1376,7 @@ linear_map.mk_continuous
     map_add' := λ x y, inner_add_right,
     map_smul' := λ c x, inner_smul_right }
   ∥v∥
-  (by simpa [is_R_or_C.norm_eq_abs] using abs_inner_le_norm v)
+  (by simpa using norm_inner_le_norm v)
 
 @[simp] lemma inner_right_coe (v : E) : (inner_right v : E → 𝕜) = λ w, ⟪v, w⟫ := rfl
 
@@ -1522,7 +1525,7 @@ lemma is_bounded_bilinear_map_inner : is_bounded_bilinear_map ℝ (λ p : E × E
   smul_right := λ r x y,
     by simp only [← algebra_map_smul 𝕜 r y, algebra_map_eq_of_real, inner_smul_real_right],
   bound := ⟨1, zero_lt_one, λ x y,
-    by { rw [one_mul, is_R_or_C.norm_eq_abs], exact abs_inner_le_norm x y, }⟩ }
+    by { rw [one_mul], exact norm_inner_le_norm x y, }⟩ }
 
 /-- Derivative of the inner product. -/
 def fderiv_inner_clm (p : E × E) : E × E →L[ℝ] 𝕜 := is_bounded_bilinear_map_inner.deriv p

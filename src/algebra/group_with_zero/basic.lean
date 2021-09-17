@@ -387,6 +387,23 @@ classical.by_contradiction $ λ ha, h₁ $ mul_right_cancel' ha $ h₂.symm ▸ 
 
 end cancel_monoid_with_zero
 
+section comm_cancel_monoid_with_zero
+
+variables [comm_cancel_monoid_with_zero M₀] {a b c : M₀}
+
+/-- Pullback a `comm_cancel_monoid_with_zero` class along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def function.injective.comm_cancel_monoid_with_zero
+  [has_zero M₀'] [has_mul M₀'] [has_one M₀']
+  (f : M₀' → M₀) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (mul : ∀ x y, f (x * y) = f x * f y) :
+  comm_cancel_monoid_with_zero M₀' :=
+{ .. hf.comm_monoid_with_zero f zero one mul,
+  .. hf.cancel_monoid_with_zero f zero one mul }
+
+end comm_cancel_monoid_with_zero
+
 section group_with_zero
 variables [group_with_zero G₀] {a b c g h x : G₀}
 
@@ -572,6 +589,10 @@ variables {a b : G₀}
 def mk0 (a : G₀) (ha : a ≠ 0) : units G₀ :=
 ⟨a, a⁻¹, mul_inv_cancel ha, inv_mul_cancel ha⟩
 
+@[simp] lemma mk0_one (h := one_ne_zero) :
+  mk0 (1 : G₀) h = 1 :=
+by { ext, refl }
+
 @[simp] lemma coe_mk0 {a : G₀} (h : a ≠ 0) : (mk0 a h : G₀) = a := rfl
 
 @[simp] lemma mk0_coe (u : units G₀) (h : (u : G₀) ≠ 0) : mk0 (u : G₀) h = u :=
@@ -622,6 +643,13 @@ instance group_with_zero.cancel_monoid_with_zero : cancel_monoid_with_zero G₀ 
   mul_right_cancel_of_ne_zero := λ x y z hy h,
     by rw [← mul_inv_cancel_right' hy x, h, mul_inv_cancel_right' hy z],
   .. (‹_› : group_with_zero G₀) }
+
+-- Can't be put next to the other `mk0` lemmas becuase it depends on the
+-- `no_zero_divisors` instance, which depends on `mk0`.
+@[simp] lemma units.mk0_mul (x y : G₀) (hxy) :
+  units.mk0 (x * y) hxy =
+    units.mk0 x (mul_ne_zero_iff.mp hxy).1 * units.mk0 y (mul_ne_zero_iff.mp hxy).2 :=
+by { ext, refl }
 
 lemma mul_inv_rev' (x y : G₀) : (x * y)⁻¹ = y⁻¹ * x⁻¹ :=
 begin

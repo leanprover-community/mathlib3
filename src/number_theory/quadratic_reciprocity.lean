@@ -105,9 +105,9 @@ begin
   calc ((p - 1)! : zmod p) = (∏ x in Ico 1 (succ (p - 1)), x) :
     by rw [← finset.prod_Ico_id_eq_factorial, prod_nat_cast]
                                ... = (∏ x : units (zmod p), x) : _
-                               ... = -1 :
-    by rw [prod_hom _ (coe : units (zmod p) → zmod p),
-           prod_univ_units_id_eq_neg_one, units.coe_neg, units.coe_one],
+                               ... = -1 : by simp_rw [← units.coe_hom_apply,
+    ← (units.coe_hom (zmod p)).map_prod, prod_univ_units_id_eq_neg_one, units.coe_hom_apply,
+    units.coe_neg, units.coe_one],
   have hp : 0 < p := (fact.out p.prime).pos,
   symmetry,
   refine prod_bij (λ a _, (a : zmod p).val) _ _ _ _,

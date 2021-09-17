@@ -3,11 +3,9 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker, Johan Commelin
 -/
-
-import data.polynomial.basic
-import data.polynomial.div
 import data.polynomial.algebra_map
-import data.set.finite
+import data.polynomial.degree.lemmas
+import data.polynomial.div
 
 /-!
 # Theory of univariate polynomials
@@ -421,8 +419,8 @@ if hn : n = 0
 then if h : (X : polynomial R) ^ n - C a = 0
   then by simp only [nat.zero_le, nth_roots, roots, h, dif_pos rfl, empty_eq_zero, card_zero]
   else with_bot.coe_le_coe.1 (le_trans (card_roots h)
-   (by rw [hn, pow_zero, ← C_1, ← @is_ring_hom.map_sub _ _ _ _ (@C R _)];
-      exact degree_C_le))
+   (by { rw [hn, pow_zero, ← C_1, ← ring_hom.map_sub ],
+         exact degree_C_le }))
 else by rw [← with_bot.coe_le_coe, ← degree_X_pow_sub_C (nat.pos_of_ne_zero hn) a];
   exact card_roots (X_pow_sub_C_ne_zero (nat.pos_of_ne_zero hn) a)
 
@@ -631,13 +629,13 @@ begin
   have dz := degree_eq_zero_of_is_unit H,
   rw degree_map_eq_of_leading_coeff_ne_zero at dz,
   { rw eq_C_of_degree_eq_zero dz,
-    apply is_unit.map',
+    refine is_unit.map (C.to_monoid_hom : R →* polynomial R) _,
     convert hf,
     rw (degree_eq_iff_nat_degree_eq _).1 dz,
     rintro rfl,
     simpa using H, },
   { intro h,
-    have u : is_unit (φ f.leading_coeff) := is_unit.map' _ hf,
+    have u : is_unit (φ f.leading_coeff) := is_unit.map φ.to_monoid_hom hf,
     rw h at u,
     simpa using u, }
 end
@@ -659,7 +657,7 @@ lemma monic.irreducible_of_irreducible_map (f : polynomial R)
 begin
   fsplit,
   { intro h,
-    exact h_irr.not_unit (is_unit.map (monoid_hom.of (map φ)) h), },
+    exact h_irr.not_unit (is_unit.map (map_ring_hom φ).to_monoid_hom h), },
   { intros a b h,
 
     have q := (leading_coeff_mul a b).symm,

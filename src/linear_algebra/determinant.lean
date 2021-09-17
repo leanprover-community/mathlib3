@@ -11,7 +11,6 @@ import linear_algebra.matrix.reindex
 import linear_algebra.multilinear
 import linear_algebra.dual
 import ring_theory.algebra_tower
-import ring_theory.matrix_algebra
 
 /-!
 # Determinant of families of vectors
@@ -122,7 +121,7 @@ or avoid mentioning a basis at all using `linear_map.det`.
 def det_aux : trunc (basis ι A M) → (M →ₗ[A] M) →* A :=
 trunc.lift
   (λ b : basis ι A M,
-    (monoid_hom.of (matrix.det)).comp (to_matrix_alg_equiv b : (M →ₗ[A] M) →* matrix ι ι A))
+    (det_monoid_hom).comp (to_matrix_alg_equiv b : (M →ₗ[A] M) →* matrix ι ι A))
   (λ b c, monoid_hom.ext $ det_to_matrix_eq_det_to_matrix b c)
 
 /-- Unfold lemma for `det_aux`.

@@ -3,7 +3,6 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury G. Kudryashov, Scott Morrison
 -/
-import algebra.algebra.basic
 import algebra.big_operators.finsupp
 import linear_algebra.finsupp
 import algebra.non_unital_alg_hom
@@ -240,6 +239,10 @@ finsupp.distrib_mul_action G k
 instance [semiring R] [semiring k] [module R k] :
   module R (monoid_algebra k G) :=
 finsupp.module G k
+
+instance [monoid R] [semiring k] [distrib_mul_action R k] [has_faithful_scalar R k] [nonempty G] :
+  has_faithful_scalar R (monoid_algebra k G) :=
+finsupp.has_faithful_scalar
 
 instance [monoid R] [monoid S] [semiring k] [distrib_mul_action R k] [distrib_mul_action S k]
   [has_scalar R S] [is_scalar_tower R S k] :
@@ -901,6 +904,10 @@ variables {R S : Type*}
 instance [monoid R] [semiring k] [distrib_mul_action R k] :
   distrib_mul_action R (add_monoid_algebra k G) :=
 finsupp.distrib_mul_action G k
+
+instance [monoid R] [semiring k] [distrib_mul_action R k] [has_faithful_scalar R k] [nonempty G] :
+  has_faithful_scalar R (add_monoid_algebra k G) :=
+finsupp.has_faithful_scalar
 
 instance [semiring R] [semiring k] [module R k] : module R (add_monoid_algebra k G) :=
 finsupp.module G k

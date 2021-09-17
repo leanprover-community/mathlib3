@@ -2415,7 +2415,7 @@ finset.induction_on t (by simp) $ λ a r har, by by_cases a ∈ s; simp *; cc
 
 lemma card_union_le [decidable_eq α] (s t : finset α) :
   (s ∪ t).card ≤ s.card + t.card :=
-card_union_add_card_inter s t ▸ le_add_right _ _
+card_union_add_card_inter s t ▸ nat.le_add_right _ _
 
 lemma card_union_eq [decidable_eq α] {s t : finset α} (h : disjoint s t) :
   (s ∪ t).card = s.card + t.card :=

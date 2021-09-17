@@ -110,4 +110,7 @@ begin
   { intros h, apply h, apply_instance, },
 end
 
+lemma ad_ker_eq_bot_of_semisimple [is_semisimple R L] : (ad R L).ker = ⊥ :=
+by simp
+
 end lie_algebra

@@ -3,11 +3,8 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker, Aaron Anderson
 -/
-
-import data.int.basic
-import data.int.gcd
-import ring_theory.multiplicity
-import ring_theory.principal_ideal_domain
+import ring_theory.coprime
+import ring_theory.unique_factorization_domain
 
 /-!
 # Divisibility over ℕ and ℤ
@@ -87,6 +84,23 @@ instance : unique_factorization_monoid ℕ :=
 ⟨λ _, nat.irreducible_iff_prime⟩
 
 end nat
+
+/-- `ℕ` is a gcd_monoid. -/
+instance : gcd_monoid ℕ :=
+{ gcd := nat.gcd,
+  lcm := nat.lcm,
+  gcd_dvd_left := nat.gcd_dvd_left ,
+  gcd_dvd_right := nat.gcd_dvd_right,
+  dvd_gcd := λ a b c, nat.dvd_gcd,
+  normalize_gcd := λ a b, normalize_eq _,
+  gcd_mul_lcm := λ a b, by rw [normalize_eq _, nat.gcd_mul_lcm],
+  lcm_zero_left := nat.lcm_zero_left,
+  lcm_zero_right := nat.lcm_zero_right,
+  .. (infer_instance : normalization_monoid ℕ) }
+
+lemma gcd_eq_nat_gcd (m n : ℕ) : gcd m n = nat.gcd m n := rfl
+
+lemma lcm_eq_nat_lcm (m n : ℕ) : lcm m n = nat.lcm m n := rfl
 
 namespace int
 

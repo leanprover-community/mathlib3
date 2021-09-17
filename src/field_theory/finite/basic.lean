@@ -178,7 +178,7 @@ begin
   { to_fun   := λ x, x ^ i,
     map_one' := by rw [units.coe_one, one_pow],
     map_mul' := by { intros, rw [units.coe_mul, mul_pow] } },
-  haveI : decidable (φ = 1) := by { classical, apply_instance },
+  haveI : decidable (φ = 1), { classical, apply_instance },
   calc ∑ x : units K, φ x = if φ = 1 then fintype.card (units K) else 0 : sum_hom_units φ
                       ... = if (q - 1) ∣ i then -1 else 0 : _,
   suffices : (q - 1) ∣ i ↔ φ = 1,

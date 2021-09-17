@@ -162,10 +162,6 @@ lemma map_smul_of_tower {R S : Type*} [semiring S] [has_scalar R M]
   f (c • x) = c • f x :=
 compatible_smul.map_smul f c x
 
-instance : is_add_monoid_hom f :=
-{ map_add := map_add f,
-  map_zero := map_zero f }
-
 /-- convert a linear map to an additive map -/
 def to_add_monoid_hom : M →+ M₂ :=
 { to_fun := f,
@@ -263,9 +259,6 @@ f.to_add_monoid_hom.map_neg x
 
 @[simp] lemma map_sub (x y : M) : f (x - y) = f x - f y :=
 f.to_add_monoid_hom.map_sub x y
-
-instance : is_add_group_hom f :=
-{ map_add := map_add f }
 
 instance compatible_smul.int_module
   {S : Type*} [semiring S] [module S M] [module S M₂] : compatible_smul M M₂ ℤ S :=
@@ -590,6 +583,11 @@ symm_bijective.injective $ ext $ λ x, rfl
   (⟨e, h₁, h₂, f, h₃, h₄⟩ : M ≃ₗ[R] M₂).symm =
   { to_fun := f, inv_fun := e,
     ..(⟨e, h₁, h₂, f, h₃, h₄⟩ : M ≃ₗ[R] M₂).symm } := rfl
+
+@[simp] lemma coe_symm_mk [module R M] [module R M₂]
+  {to_fun inv_fun map_add map_smul left_inv right_inv} :
+  ⇑((⟨to_fun, map_add, map_smul, inv_fun, left_inv, right_inv⟩ : M ≃ₗ[R] M₂).symm) = inv_fun :=
+rfl
 
 protected lemma bijective : function.bijective e := e.to_equiv.bijective
 protected lemma injective : function.injective e := e.to_equiv.injective

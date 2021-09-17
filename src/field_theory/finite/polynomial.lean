@@ -64,17 +64,17 @@ begin
   rw [← finite_field.card_units, fintype.card_pos_iff],
   exact ⟨1⟩
 end,
-by simp only [indicator, (finset.univ.prod_hom (eval a)).symm, ring_hom.map_sub,
-    is_ring_hom.map_one (eval a), is_monoid_hom.map_pow (eval a), eval_X, eval_C,
-    sub_self, zero_pow this, sub_zero, finset.prod_const_one]
+by { simp only [indicator, (eval a).map_prod, ring_hom.map_sub,
+    (eval a).map_one, (eval a).map_pow, eval_X, eval_C,
+    sub_self, zero_pow this, sub_zero, finset.prod_const_one] }
 
 lemma eval_indicator_apply_eq_zero (a b : σ → K) (h : a ≠ b) :
   eval a (indicator b) = 0 :=
 have ∃i, a i ≠ b i, by rwa [(≠), function.funext_iff, not_forall] at h,
 begin
   rcases this with ⟨i, hi⟩,
-  simp only [indicator, (finset.univ.prod_hom (eval a)).symm, ring_hom.map_sub,
-    is_ring_hom.map_one (eval a), is_monoid_hom.map_pow (eval a), eval_X, eval_C,
+  simp only [indicator, (eval a).map_prod, ring_hom.map_sub,
+    (eval a).map_one, (eval a).map_pow, eval_X, eval_C,
     sub_self, finset.prod_eq_zero_iff],
   refine ⟨i, finset.mem_univ _, _⟩,
   rw [finite_field.pow_card_sub_one_eq_one, sub_self],
@@ -100,9 +100,9 @@ begin
   rw [mem_restrict_degree_iff_sup, indicator],
   assume n,
   refine le_trans (multiset.count_le_of_le _ $ degrees_indicator _) (le_of_eq _),
-  rw [← finset.univ.sum_hom (multiset.count n)],
-  simp only [is_add_monoid_hom.map_nsmul (multiset.count n), multiset.singleton_eq_singleton,
-    nsmul_eq_mul, nat.cast_id],
+  simp_rw [ ← multiset.coe_count_add_monoid_hom, (multiset.count_add_monoid_hom n).map_sum,
+    add_monoid_hom.map_nsmul, multiset.coe_count_add_monoid_hom,
+    multiset.singleton_eq_singleton, nsmul_eq_mul, nat.cast_id],
   transitivity,
   refine finset.sum_eq_single n _ _,
   { assume b hb ne, rw [multiset.count_cons_of_ne ne.symm, multiset.count_zero, mul_zero] },

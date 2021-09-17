@@ -373,6 +373,15 @@ begin
     exact_mod_cast split_frac, }
 end
 
+/-- A version of `padic_val_rat.pow` for `padic_val_nat` -/
+protected lemma pow (p q n : ℕ) [fact p.prime] (hq : q ≠ 0) :
+  padic_val_nat p (q ^ n) = n * padic_val_nat p q :=
+begin
+  apply @nat.cast_injective ℤ,
+  push_cast,
+  exact padic_val_rat.pow _ (cast_ne_zero.mpr hq),
+end
+
 end padic_val_nat
 
 section padic_val_nat
@@ -400,7 +409,7 @@ end
 
 lemma pow_padic_val_nat_dvd {p n : ℕ} [fact (nat.prime p)] : p ^ (padic_val_nat p n) ∣ n :=
 begin
-  cases eq_zero_or_pos n with hn hn,
+  cases nat.eq_zero_or_pos n with hn hn,
   { rw hn, exact dvd_zero (p ^ padic_val_nat p 0) },
   { rw multiplicity.pow_dvd_iff_le_multiplicity,
     apply le_of_eq,
@@ -468,6 +477,12 @@ begin
     { rw [padic_val_nat.div' this (min_fac_dvd n), add_zero], },
     rwa nat.coprime_primes hp.1 hq.1, },
 end
+
+@[simp] lemma padic_val_nat_self (p : ℕ) [fact p.prime] : padic_val_nat p p = 1 :=
+by simp [padic_val_nat_def (fact.out p.prime).ne_zero]
+
+@[simp] lemma padic_val_nat_prime_pow (p n : ℕ) [fact p.prime] : padic_val_nat p (p ^ n) = n :=
+by rw [padic_val_nat.pow p _ _ (fact.out p.prime).ne_zero, padic_val_nat_self p, mul_one]
 
 open_locale big_operators
 

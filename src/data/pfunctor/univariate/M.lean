@@ -533,7 +533,7 @@ end
 section bisim
 
 variable (R : M F → M F → Prop)
-local infix ~ := R
+local infix ` ~ `:50 := R
 
 /-- Bisimulation is the standard proof technique for equality between
 infinite tree-like structures -/

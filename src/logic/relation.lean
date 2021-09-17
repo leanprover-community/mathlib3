@@ -37,7 +37,24 @@ lemma reflexive_ne_imp_iff [is_refl α r] {x y : α} :
   (x ≠ y → r x y) ↔ r x y :=
 is_refl.reflexive.ne_imp_iff
 
+protected lemma symmetric.iff (H : symmetric r) (x y : α) : r x y ↔ r y x := ⟨λ h, H h, λ h, H h⟩
+
 end ne_imp
+
+section comap
+
+variables {r : β → β → Prop}
+
+lemma reflexive.comap (h : reflexive r) (f : α → β) : reflexive (r on f) :=
+λ a, h (f a)
+
+lemma symmetric.comap (h : symmetric r) (f : α → β) : symmetric (r on f) :=
+λ a b hab, h hab
+
+lemma transitive.comap (h : transitive r) (f : α → β) : transitive (r on f) :=
+λ a b c hab hbc, h hab hbc
+
+end comap
 
 namespace relation
 

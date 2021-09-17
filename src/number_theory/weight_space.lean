@@ -30,6 +30,10 @@ p-adic, L-function, Bernoulli measure, ...
 
 --variables (A : Type*) [normed_comm_ring A] (p : ℕ) [fact p.prime] (d : ℕ) (hd : gcd d p = 1)
 
+structure system {X : Type*} [set X] :=
+( h : ℕ → finset X )
+( projlim : X = Prop ) --inverse limit
+
 def zmod.topological_space (d : ℕ) : topological_space (zmod d) := ⊥
 
 local attribute [instance] zmod.topological_space
@@ -90,7 +94,7 @@ end
 
 noncomputable instance (A : Type*) [topological_space A] [group A] [topological_group A] :
   has_one (weight_space A p d) :=
-{ one := ⟨monoid_hom.has_one.one, rfl, is_mul_hom.map_mul 1, continuous_const ⟩ }
+{ one := ⟨monoid_hom.has_one.one, rfl, by simp, continuous_const ⟩ }
 
 instance (A : Type*) [topological_space A] [comm_group A] [topological_group A] :
   has_mul (weight_space A p d) :=
@@ -359,19 +363,19 @@ begin
   { apply is_closed.prod (hs).2 (ht).2, },
 end
 
-lemma is_clopen_discrete {α : Type*} [topological_space α] [discrete_topology α] (b : α) :
+lemma is_clopen_singleton {α : Type*} [topological_space α] [discrete_topology α] (b : α) :
   is_clopen ({b} : set α) :=
  ⟨is_open_discrete _, is_closed_discrete _⟩
 
 def clopen_from (n : ℕ) (a : zmod (d * (p^n))) : clopen_sets (zmod d × ℤ_[p]) :=
 ⟨({a} : set (zmod d)).prod (set.preimage (padic_int.to_zmod_pow n) {(a : zmod (p^n))}),
-    is_clopen_prod (is_clopen_discrete (a : zmod d))
+    is_clopen_prod (is_clopen_singleton (a : zmod d))
       (proj_lim_preimage_clopen p d n a) ⟩
 
 @[reducible] def clopen_basis' :=
 {x : clopen_sets ((zmod d) × ℤ_[p]) // ∃ (n : ℕ) (a : zmod (d * (p^n))),
   x = ⟨({a} : set (zmod d)).prod (set.preimage (padic_int.to_zmod_pow n) {(a : zmod (p^n))}),
-    is_clopen_prod (is_clopen_discrete (a : zmod d))
+    is_clopen_prod (is_clopen_singleton (a : zmod d))
       (proj_lim_preimage_clopen p d n a) ⟩ }
 
 example (n : ℕ) (a : zmod (d * (p^n))) : clopen_basis' p d :=
@@ -382,13 +386,13 @@ example (U : clopen_basis' p d) : clopen_sets (zmod d × ℤ_[p]) := U.val
 -- lemma mem_clopen_basis' (U : clopen_sets ((zmod d) × ℤ_[p])) (hU : U ∈ clopen_basis' p d) :
 --   ∃ (n : ℕ) (a : zmod (d * (p^n))),
 --   U = ⟨({a} : set (zmod d)).prod (set.preimage (padic_int.to_zmod_pow n) {(a : zmod (p^n))}),
---     is_clopen_prod (is_clopen_discrete (a : zmod d))
+--     is_clopen_prod (is_clopen_singleton (a : zmod d))
 --       (proj_lim_preimage_clopen p d n a) ⟩ := sorry
 
 /-def clopen_basis' : set (clopen_sets ((zmod d) × ℤ_[p])) :=
 {x : clopen_sets ((zmod d) × ℤ_[p]) | ∃ (n : ℕ) (a : zmod (p^n)) (b : zmod d),
   x = ⟨({b} : set (zmod d)).prod (set.preimage (padic_int.to_zmod_pow n) a),
-    is_clopen_prod (is_clopen_discrete b) (proj_lim_preimage_clopen p n a) ⟩ }-/
+    is_clopen_prod (is_clopen_singleton b) (proj_lim_preimage_clopen p n a) ⟩ }-/
 
 
 lemma find_this_out (ε : ℝ) (h : 0 < ε) : ∃ (n : ℕ), (1 / (p^n) : ℝ) < ε :=
@@ -552,14 +556,14 @@ end
 @[reducible] def clopen_basis' :=
 {x : clopen_sets ((zmod d) × ℤ_[p]) // ∃ (n : ℕ) (a : zmod (d * (p^n))),
   x = ⟨({a} : set (zmod d)).prod (set.preimage (padic_int.to_zmod_pow n) {(a : zmod (p^n))}),
-    is_clopen_prod (is_clopen_discrete (a : zmod d))
+    is_clopen_prod (is_clopen_singleton (a : zmod d))
       (proj_lim_preimage_clopen p d n a) ⟩ }
 -/
 variables [fact (0 < d)]
 def bernoulli_measure (hc : gcd c p = 1) :=
 {x : locally_constant (zmod d × ℤ_[p]) R →ₗ[R] R |
   ∀ (n : ℕ) (a : zmod (d * (p^n))), x (char_fn (zmod d × ℤ_[p]) ⟨({a} : set (zmod d)).prod (set.preimage (padic_int.to_zmod_pow n) {(a : zmod (p^n))}),
-    is_clopen_prod (is_clopen_discrete (a : zmod d))
+    is_clopen_prod (is_clopen_singleton (a : zmod d))
       (proj_lim_preimage_clopen p d n a) ⟩) =
     E_c p d hc n a }
 
@@ -567,7 +571,7 @@ def bernoulli_measure (hc : gcd c p = 1) :=
 @[reducible] def clopen_basis' :=
 {x : clopen_sets ((zmod d) × ℤ_[p]) // ∃ (n : ℕ) (a : zmod (d * (p^n))),
   x = ⟨({a} : set (zmod d)).prod (set.preimage (padic_int.to_zmod_pow n) {(a : zmod (p^n))}),
-    is_clopen_prod (is_clopen_discrete (a : zmod d))
+    is_clopen_prod (is_clopen_singleton (a : zmod d))
       (proj_lim_preimage_clopen p d n a) ⟩ }
 -/
 variables (d)
@@ -698,7 +702,7 @@ lemma g_def (hc : gcd c p = 1) (f : locally_constant (zmod d × ℤ_[p]) R) (n :
 def clopen_basis' :=
 {x : clopen_sets ((zmod d) × ℤ_[p]) // ∃ (n : ℕ) (a : zmod (d * (p^n))),
   x = ⟨({a} : set (zmod d)).prod (set.preimage (padic_int.to_zmod_pow n) {(a : zmod (p^n))}),
-    is_clopen_prod (is_clopen_discrete (a : zmod d))
+    is_clopen_prod (is_clopen_singleton (a : zmod d))
       (proj_lim_preimage_clopen p d n a) ⟩ }
 -/
 example (U : clopen_basis' p d) : clopen_sets (zmod d × ℤ_[p]) := U
@@ -825,10 +829,10 @@ instance (n m : ℕ) (h : n < m) (a : zmod (p^n)) : fintype (equi_class p n m h 
 /-- For m > n, χ_(b,a,n) = ∑_{j, b_j = a mod p^n} χ_(b,b_j,m) -/
 lemma sum_char_fn_dependent (m n : ℕ) (h : m > n) (a : zmod (p^n)) (b : zmod d) :
   @char_fn (zmod d × ℤ_[p]) _ _ _ _ R _ _ _ (⟨_,
-    is_clopen_prod (is_clopen_discrete (b : zmod d))
+    is_clopen_prod (is_clopen_singleton (b : zmod d))
       (proj_lim_preimage_clopen p d n a) ⟩) = ∑ x in set.to_finset (equi_class p n m h a),
   char_fn _ (⟨_,
-    is_clopen_prod (is_clopen_discrete (b : zmod d)) (proj_lim_preimage_clopen p d n x) ⟩) :=
+    is_clopen_prod (is_clopen_singleton (b : zmod d)) (proj_lim_preimage_clopen p d n x) ⟩) :=
 sorry
 
 #print E_c
@@ -851,7 +855,7 @@ end
 
 lemma clopen_char_fn (U : clopen_basis' p d) : char_fn (zmod d × ℤ_[p]) U =
   @char_fn (zmod d × ℤ_[p]) _ _ _ _ R _ _ _ (⟨_,
-    is_clopen_prod (is_clopen_discrete (coe (classical.some (classical.some_spec U.prop)) : zmod d))
+    is_clopen_prod (is_clopen_singleton (coe (classical.some (classical.some_spec U.prop)) : zmod d))
       (proj_lim_preimage_clopen p d (classical.some U.prop) (classical.some (classical.some_spec U.prop))) ⟩) := sorry
 
 --lemma trial : locally_constant (zmod d × ℤ_[p]) R = submodule.span R (s p d R) := sorry

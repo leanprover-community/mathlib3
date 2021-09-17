@@ -822,20 +822,18 @@ theorem singular_part_add_with_density_radon_nikodym_deriv_eq [sigma_finite μ] 
 begin
   conv_rhs { rw [← to_signed_measure_to_jordan_decomposition s,
                  jordan_decomposition.to_signed_measure] },
-  rw [singular_part, radon_nikodym_deriv, with_densityᵥ_sub_eq_with_density,
-      sub_eq_add_neg, sub_eq_add_neg,
+  rw [singular_part, radon_nikodym_deriv, with_densityᵥ_sub'
+        (integrable_to_real_of_lintegral_ne_top _ _) (integrable_to_real_of_lintegral_ne_top _ _),
+      with_densityᵥ_to_real, with_densityᵥ_to_real, sub_eq_add_neg, sub_eq_add_neg,
       add_comm (s.to_jordan_decomposition.pos_part.singular_part μ).to_signed_measure, ← add_assoc,
       add_assoc (-(s.to_jordan_decomposition.neg_part.singular_part μ).to_signed_measure),
       ← to_signed_measure_add, add_comm, ← add_assoc, ← neg_add, ← to_signed_measure_add,
       add_comm, ← sub_eq_add_neg],
-  congr,
-  { exact (s.to_jordan_decomposition.pos_part.have_lebesgue_decomposition_add μ).symm },
+  convert rfl, -- `convert rfl` much faster than `congr`
+  { exact (s.to_jordan_decomposition.pos_part.have_lebesgue_decomposition_add μ) },
   { rw add_comm,
-    exact (s.to_jordan_decomposition.neg_part.have_lebesgue_decomposition_add μ).symm },
-  { exact ((to_jordan_decomposition s).pos_part.measurable_radon_nikodym_deriv μ).ae_measurable },
-  { exact ((to_jordan_decomposition s).neg_part.measurable_radon_nikodym_deriv μ).ae_measurable },
-  { exact (lintegral_radon_nikodym_deriv_lt_top _ _).ne },
-  { exact (lintegral_radon_nikodym_deriv_lt_top _ _).ne },
+    exact (s.to_jordan_decomposition.neg_part.have_lebesgue_decomposition_add μ) },
+  all_goals { exact (lintegral_radon_nikodym_deriv_lt_top _ _).ne <|> measurability }
 end
 
 lemma jordan_decomposition_add_with_density_mutually_singular

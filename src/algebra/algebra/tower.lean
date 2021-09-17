@@ -248,7 +248,7 @@ variables [comm_semiring R] [comm_semiring S] [comm_semiring A]
 variables [algebra R S] [algebra S A] [algebra R A] [is_scalar_tower R S A]
 
 theorem range_under_adjoin (t : set A) :
-  (to_alg_hom R S A).range.under (algebra.adjoin _ t) = res R (algebra.adjoin S t) :=
+  (to_alg_hom R S A).range.under (algebra.adjoin _ t) = (algebra.adjoin S t).restrict_scalars R :=
 subalgebra.ext $ λ z,
 show z ∈ subsemiring.closure (set.range (algebra_map (to_alg_hom R S A).range A) ∪ t : set A) ↔
   z ∈ subsemiring.closure (set.range (algebra_map S A) ∪ t : set A),

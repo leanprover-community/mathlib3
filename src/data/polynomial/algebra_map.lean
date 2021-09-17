@@ -67,6 +67,9 @@ lemma alg_hom_map_apply_eq_C [algebra R A'] (a : A') :
 
 variables {R}
 
+/--
+  Extensionality lemma for algebra maps out of `polynomial A'` over a smaller base ring than `A'`
+-/
 @[ext] lemma alg_hom_ext' [algebra R A'] [algebra R B']
   {f g : polynomial A' →ₐ[R] B'}
   (h₁ : f.comp (alg_hom_map R A' (polynomial A')) =

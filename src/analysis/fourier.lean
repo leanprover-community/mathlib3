@@ -13,6 +13,7 @@ import topology.continuous_function.stone_weierstrass
 
 -- ALEX ADDED
 import algebra.floor
+import group_theory.coset
 /-!
 
 # Fourier analysis on the circle
@@ -312,6 +313,8 @@ instance : compact_space ℝmodℤ := sorry
 
 instance : t2_space ℝmodℤ := sorry
 
+instance : second_countable_topology ℝmodℤ := sorry
+
 variables [measurable_space ℝmodℤ] [borel_space ℝmodℤ]
 
 notation `μ_ℝmodℤ`:=measure_theory.measure.add_haar_measure positive_compacts_univ
@@ -328,7 +331,51 @@ lemma something1 (S : set ℝ ) (hS : measurable_set S) (h : ∀ t, ∃! x:ℝ ,
 measure.map (quotient_add_group.mk : (ℝ → ℝmodℤ)) (measure.restrict volume S) =
  μ_ℝmodℤ :=
 begin
+  have : S = Ico 0 1 := sorry,
+  rw @measure_theory.measure.add_haar_measure_unique ℝmodℤ _ _ _ _ _ _ _ _
+    (measure.map (quotient_add_group.mk : (ℝ → ℝmodℤ)) (measure.restrict volume S)) sorry _
+    (positive_compacts_univ),
 
+  {
+    transitivity (1:ennreal) • μ_ℝmodℤ,
+    {
+      congr,
+      rw measure_theory.measure.map_apply,
+      simp [positive_compacts_univ],
+      sorry, -- volume S = 1
+      sorry, -- measurability
+      sorry, -- measurability
+    },
+    {
+      simp,
+    },
+  },
+  {
+    rw ←  measure_theory.measure.map_add_left_eq_self,
+    intros x,
+    ext1 A hA,
+    rw measure_theory.measure.map_apply,
+    rw measure_theory.measure.map_apply,
+    rw measure_theory.measure.map_apply,
+
+    let x1 : ℝ  := sorry, -- representative of x in [0,1]
+
+    have : x= ↑ x1 := sorry,
+
+    let A1 := (quotient_add_group.mk ⁻¹' A) ∩ Ico (0:ℝ) ((1:ℝ)-x1),
+    let A2 := (quotient_add_group.mk ⁻¹' A) ∩ Ico (1-x1) 1,
+    have : (quotient_add_group.mk ⁻¹' A) ∩ Ico 0 1 = A1 ∪ A2,
+    {
+      sorry,
+    },
+--    have : (quotient_add_group.mk ⁻¹' (has_add.add x ⁻¹' A)) ∩ Ico 0 1 = (A2-x1) ⊔ (A1+(1-x1???))
+
+    have := measure_theory.measure_union ,
+
+    have := real.map_volume_add_left,
+    -- ALEX homework
+
+  },
   sorry,
 end
 
@@ -336,6 +383,7 @@ lemma integral_Union {ι : Type*} [encodable ι] {s : ι → set ℝ } (f : ℝ 
   (hm : ∀ i, measurable_set (s i)) (hd : pairwise (disjoint on s)) (hfi : integrable f  ) :
   (∫ a in (⋃ n, s n), f a ) = ∑' n, ∫ a in s n, f a  :=
 sorry
+
 
 /-- Move somewhere ??? algebra.floor? -/
 lemma RmodZuniqueRep :
@@ -369,16 +417,34 @@ begin
     ring, },
 end
 
+
+lemma RmodZuniqueRep'
+ {x : ℝ} {i j : ℤ } :
+x ∈ ( (λ (x : ℝ), -↑i + x) ⁻¹' Ico 0 1)
+→
+x ∈ ( (λ (x : ℝ), -↑j + x) ⁻¹' Ico 0 1)
+→
+i = j
+ :=
+begin
+  sorry,
+end
+
+
 theorem floor_eq_on_Ico'' (n : ℤ) (x : ℝ)
 (H : floor x = n ) :
-x ∈ Ico (n:ℝ) (n + 1) :=
+x ∈ (λ (x : ℝ), -↑n + x) ⁻¹' Ico 0 1 :=
 begin
+  simp,
   rw floor_eq_iff at H,
+  rw (by ring : (1:ℝ) + n = n + 1),
   exact H,
 end
 
+
+
 lemma real_to_haar2 (f : Schwarz) (g : ℝmodℤ → ℂ) (F: ℝmodℤ→ℂ)
-(hFf : ∀ (x:ℝ) , F (x:ℝmodℤ) = ∑' (n:ℤ), f(x+n)) :
+(hFf : ∀ (x:ℝ) , F (x:ℝmodℤ) = ∑' (n:ℤ), f((n:ℝ)+x)) :
 ∫ (x : ℝ), f x * g (x:ℝmodℤ) = ∫ (x : ℝmodℤ), F(x) * g(x) ∂ μ_ℝmodℤ :=
 begin
   rw ← something1 (Ico (0:ℝ) (1:ℝ)),
@@ -387,32 +453,77 @@ begin
     {
       symmetry,
       calc
-      ∫ (x : ℝ) in Ico 0 1, F (quotient_add_group.mk x) * g (quotient_add_group.mk x)
-      = ∫ (x : ℝ) in Ico 0 1, (∑' (n:ℤ ), f ( x + n)) * g (quotient_add_group.mk x) : _
-      ... = ∑' (n : ℤ), ∫ (x : ℝ) in Ico 0 1,  f (x + ↑n) * g (quotient_add_group.mk x) : _
-      ... = ∑' (n : ℤ), ∫ (x : ℝ) in Ico (n:ℝ) (n+1), f (x) * g (quotient_add_group.mk x) : _
-      ... = ∫ (x : ℝ) in ⋃ (n : ℤ), Ico (n:ℝ) (n+1), f x * g x : _
+      ∫ (x : ℝ) in Ico 0 1, F (↑x) * g (↑x)
+      = ∫ (x : ℝ) in Ico 0 1, (∑' (n:ℤ ), f ((n:ℝ)+x)) * g (↑x) : _
+      ... = ∑' (n : ℤ), ∫ (x : ℝ) in Ico 0 1,  f (↑n+x) * g (↑x) : _
+      ... = ∑' (n : ℤ), ∫ (x : ℝ) in Ico 0 1,
+              (λ x, f (x) * g (↑x)) (has_add.add n x) : _
+      ... = ∑' (n : ℤ), ∫ (x : ℝ), f (x) * g (↑x)
+              ∂(measure_theory.measure.map (has_add.add (n:ℝ))
+              (volume.restrict (Ico (0:ℝ) 1))) : _
+      ... = ∑' (n : ℤ), ∫ (x : ℝ) in (has_add.add (-(n:ℝ))) ⁻¹' (Ico 0 1),
+              f (x) * g (↑x) : _
+      ... = ∫ (x : ℝ) in ⋃ (n : ℤ), (λ x:ℝ, -(n:ℝ)+x) ⁻¹' (Ico 0 1), f x * g x : _
       ... = ∫ (x : ℝ), f x * g x : _,
 
       { congr' 1,
         ext1,
-        rw (_ : F (quotient_add_group.mk x) = (∑' (n : ℤ), f (x + ↑n))),
+        rw (_ : F (↑x) = (∑' (n : ℤ), f (↑n+x))),
         convert hFf x, },
       { -- dominated convergence, need to reverse sum (n:ℤ ) int_0^1
         sorry, },
       { congr' 1,
         ext1 n,
-        --- left translates , int _0 ^1 f(x+n) = int_n^n+1 f(x)
-        --- maybe use n+ Ico 0 1 instead of Ico n n+1
-        sorry, },
-      { symmetry,
+        congr' 1,
+        ext1 x,
+        rw ←  (_ : g (↑(↑n + x)) = g (↑x)),
+        congr' 1,
+        rw quotient_add_group.eq,
+        use -n,
+        simp, },
+      {
+        congr' 1,
+        ext1 n,
+        rw measure_theory.integral_map,
+        { exact measurable_const_add (↑n), },
+        sorry,
+        -- need ae measurable f * g
+      },
+      {
+        congr' 1, ext1 n,
+        congr' 1,
+
+        transitivity (map (has_add.add (n:ℝ)) volume).restrict (has_add.add ↑(-n) ⁻¹' Ico 0 1),
+
+        {
+          convert (@measure_theory.measure.restrict_map _ _ _ _ (volume : measure ℝ)
+            (has_add.add (n:ℝ)) _ ((has_add.add ↑(-n) ⁻¹' Ico 0 1)) _).symm,
+
+          { rw ← set.preimage_comp ,
+            convert ( set.preimage_id).symm,
+            ext1 x,
+            simp, },
+
+          { exact measurable_const_add ↑n, },
+
+          sorry, -- measurability of Ico
+        },
+
+
+
+        rw real.map_volume_add_left,
+        congr,
+        norm_cast,
+      },
+      {
+        symmetry,
         refine integral_Union (λ x, f x * g x) _ _ _,
         { intros n,
-          exact measurable_set_Ico, },
-        { intros i j ineqj x hx,
-          have := (mem_inter_iff _ _ _).mp hx,
-          exact ineqj ((rfl.congr (floor_eq_on_Ico _ _ this.2)).mp
-            (eq.symm (floor_eq_on_Ico _ _ this.1))), },
+          sorry,
+          --exact measurable_set_Ico,
+          },
+        { rintros i j ineqj x ⟨ hx1, hx2⟩ ,
+          exact ineqj (RmodZuniqueRep' hx1 hx2), },
         { --  integrable volume
           sorry, }, },
       { congr' 1,
@@ -422,6 +533,7 @@ begin
         rw set.mem_Union,
         let n := floor x,
         use n,
+        have := floor_eq_on_Ico'',
         refine floor_eq_on_Ico'' _ _ _,
         dsimp only [n],
         refl, }, },

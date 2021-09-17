@@ -262,7 +262,7 @@ end
 
 lemma lt_omega_of_linear_independent {ι : Type w} [finite_dimensional K V]
   {v : ι → V} (h : linear_independent K v) :
-  #ι < cardinal.omega :=
+  #ι < ω :=
 begin
   apply cardinal.lift_lt.1,
   apply lt_of_le_of_lt,
@@ -275,8 +275,8 @@ lemma not_linear_independent_of_infinite {ι : Type w} [inf : infinite ι] [fini
   (v : ι → V) : ¬ linear_independent K v :=
 begin
   intro h_lin_indep,
-  have : ¬ omega ≤ #ι := not_le.mpr (lt_omega_of_linear_independent h_lin_indep),
-  have : omega ≤ #ι := infinite_iff.mp inf,
+  have : ¬ ω ≤ #ι := not_le.mpr (lt_omega_of_linear_independent h_lin_indep),
+  have : ω ≤ #ι := infinite_iff.mp inf,
   contradiction
 end
 

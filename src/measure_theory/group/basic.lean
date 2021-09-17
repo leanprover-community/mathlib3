@@ -82,15 +82,16 @@ end
 @[to_additive]
 lemma _root_.measure_theory.is_mul_left_invariant.measure_preimage_mul
   [topological_space G] [group G] [topological_group G] [borel_space G]
-  {μ : measure G} (h : is_mul_left_invariant μ)
-  (g : G) (A : set G) : μ ((λ h, g * h) ⁻¹' A) = μ A :=
+  {μ : measure G} (h : is_mul_left_invariant μ) (g : G) (A : set G) :
+  μ ((λ h, g * h) ⁻¹' A) = μ A :=
 calc μ ((λ h, g * h) ⁻¹' A) = measure.map (λ h, g * h) μ A :
   ((homeomorph.mul_left g).to_measurable_equiv.map_apply A).symm
 ... = μ A : by rw map_mul_left_eq_self.2 h g
 
 @[to_additive]
 lemma map_mul_right_eq_self [topological_space G] [has_mul G] [has_continuous_mul G] [borel_space G]
-  {μ : measure G} : (∀ g, measure.map (λ h, h * g) μ = μ) ↔ is_mul_right_invariant μ :=
+  {μ : measure G} :
+  (∀ g, measure.map (λ h, h * g) μ = μ) ↔ is_mul_right_invariant μ :=
 begin
   apply forall_congr, intro g, rw [measure.ext_iff], apply forall_congr, intro A,
   apply forall_congr, intro hA, rw [map_apply (measurable_mul_const g) hA]
@@ -179,10 +180,9 @@ variables [group G] [topological_group G]
 /-- If a left-invariant measure gives positive mass to a compact set, then
 it gives positive mass to any open set. -/
 @[to_additive]
-lemma is_mul_left_invariant.measure_pos_of_is_open
-  (hμ : is_mul_left_invariant μ)
-  (K : set G) (hK : is_compact K) (h : μ K ≠ 0)
-  {U : set G} (hU : is_open U) (h'U : U.nonempty) : 0 < μ U :=
+lemma is_mul_left_invariant.measure_pos_of_is_open (hμ : is_mul_left_invariant μ)
+  (K : set G) (hK : is_compact K) (h : μ K ≠ 0) {U : set G} (hU : is_open U) (h'U : U.nonempty) :
+  0 < μ U :=
 begin
   contrapose! h,
   rw ← nonpos_iff_eq_zero,
@@ -198,7 +198,8 @@ end
 /-! A nonzero left-invariant regular measure gives positive mass to any open set. -/
 @[to_additive]
 lemma is_mul_left_invariant.null_iff_empty [regular μ] (hμ : is_mul_left_invariant μ)
-  (h3μ : μ ≠ 0) {s : set G} (hs : is_open s) : μ s = 0 ↔ s = ∅ :=
+  (h3μ : μ ≠ 0) {s : set G} (hs : is_open s) :
+  μ s = 0 ↔ s = ∅ :=
 begin
   obtain ⟨K, hK, h2K⟩ := regular.exists_compact_not_null.mpr h3μ,
   refine ⟨λ h, _, λ h, by simp only [h, measure_empty]⟩,
@@ -208,7 +209,8 @@ end
 
 @[to_additive]
 lemma is_mul_left_invariant.null_iff [regular μ] (h2μ : is_mul_left_invariant μ)
-  {s : set G} (hs : is_open s) : μ s = 0 ↔ s = ∅ ∨ μ = 0 :=
+  {s : set G} (hs : is_open s) :
+  μ s = 0 ↔ s = ∅ ∨ μ = 0 :=
 begin
   by_cases h3μ : μ = 0, { simp [h3μ] },
   simp only [h3μ, or_false],
@@ -224,10 +226,9 @@ by simp_rw [← ne_empty_iff_nonempty, ne.def, h2μ.null_iff_empty h3μ hs]
 /-- If a left-invariant measure gives finite mass to a nonempty open set, then
 it gives finite mass to any compact set. -/
 @[to_additive]
-lemma is_mul_left_invariant.measure_lt_top_of_is_compact
-  (hμ : is_mul_left_invariant μ)
-  (U : set G) (hU : is_open U) (h'U : U.nonempty) (h : μ U ≠ ∞)
-  {K : set G} (hK : is_compact K) : μ K < ∞ :=
+lemma is_mul_left_invariant.measure_lt_top_of_is_compact (hμ : is_mul_left_invariant μ)
+  (U : set G) (hU : is_open U) (h'U : U.nonempty) (h : μ U ≠ ∞) {K : set G} (hK : is_compact K) :
+  μ K < ∞ :=
 begin
   rw ← hU.interior_eq at h'U,
   obtain ⟨t, hKt⟩ : ∃ (t : finset G), K ⊆ ⋃ (g : G) (H : g ∈ t), (λ (h : G), g * h) ⁻¹' U :=
@@ -242,10 +243,9 @@ end
 /-- If a left-invariant measure gives finite mass to a set with nonempty interior, then
 it gives finite mass to any compact set. -/
 @[to_additive]
-lemma is_mul_left_invariant.measure_lt_top_of_is_compact'
-  (hμ : is_mul_left_invariant μ)
-  (U : set G) (hU : (interior U).nonempty) (h : μ U ≠ ∞)
-  {K : set G} (hK : is_compact K) : μ K < ∞ :=
+lemma is_mul_left_invariant.measure_lt_top_of_is_compact' (hμ : is_mul_left_invariant μ)
+  (U : set G) (hU : (interior U).nonempty) (h : μ U ≠ ∞) {K : set G} (hK : is_compact K) :
+  μ K < ∞ :=
 hμ.measure_lt_top_of_is_compact (interior U) is_open_interior hU
   ((measure_mono (interior_subset)).trans_lt (lt_top_iff_ne_top.2 h)).ne hK
 
@@ -320,7 +320,7 @@ sets and positive mass to open sets. -/
 class is_haar_measure {G : Type*} [group G] [topological_space G] [measurable_space G]
   (μ : measure G) : Prop :=
 (left_invariant : is_mul_left_invariant μ)
-(compact_lt_top : ∀ (K : set G), is_compact K → μ K < ⊤)
+(compact_lt_top : ∀ (K : set G), is_compact K → μ K < ∞)
 (open_pos : ∀ (U : set G), is_open U → U.nonempty → 0 < μ U)
 
 /-- A measure on an additive group is an additive Haar measure if it is left-invariant, and gives
@@ -328,7 +328,7 @@ finite mass to compact sets and positive mass to open sets. -/
 class is_add_haar_measure {G : Type*} [add_group G] [topological_space G] [measurable_space G]
   (μ : measure G) : Prop :=
 (add_left_invariant : is_add_left_invariant μ)
-(compact_lt_top : ∀ (K : set G), is_compact K → μ K < ⊤)
+(compact_lt_top : ∀ (K : set G), is_compact K → μ K < ∞)
 (open_pos : ∀ (U : set G), is_open U → U.nonempty → 0 < μ U)
 
 attribute [to_additive] is_haar_measure
@@ -339,7 +339,7 @@ variables [group G] [measurable_space G] [topological_space G] (μ : measure G) 
 
 @[to_additive]
 lemma _root_.is_compact.haar_lt_top {K : set G} (hK : is_compact K) :
-  μ K < ⊤ :=
+  μ K < ∞ :=
 is_haar_measure.compact_lt_top K hK
 
 @[to_additive]
@@ -391,8 +391,7 @@ lemma is_haar_measure.smul {c : ℝ≥0∞} (cpos : c ≠ 0) (ctop : c ≠ ∞) 
 /-- If a left-invariant measure gives positive mass to some compact set with nonempty interior, then
 it is a Haar measure -/
 @[to_additive]
-lemma is_haar_measure_of_is_compact_nonempty_interior
-  [topological_group G] [borel_space G]
+lemma is_haar_measure_of_is_compact_nonempty_interior [topological_group G] [borel_space G]
   (μ : measure G) (hμ : is_mul_left_invariant μ)
   (K : set G) (hK : is_compact K) (h'K : (interior K).nonempty) (h : μ K ≠ 0) (h' : μ K ≠ ∞) :
   is_haar_measure μ :=
@@ -403,10 +402,8 @@ lemma is_haar_measure_of_is_compact_nonempty_interior
 /-- The image of a Haar measure under a group homomorphism which is also a homeomorphism is again
 a Haar measure. -/
 @[to_additive]
-lemma is_haar_measure_map
-  [borel_space G] [topological_group G]
-  {H : Type*} [group H] [topological_space H] [measurable_space H] [borel_space H] [t2_space H]
-  [topological_group H]
+lemma is_haar_measure_map [borel_space G] [topological_group G] {H : Type*} [group H]
+  [topological_space H] [measurable_space H] [borel_space H] [t2_space H] [topological_group H]
   (f : G ≃* H) (hf : continuous f) (hfsymm : continuous f.symm) :
   is_haar_measure (measure.map f μ) :=
 { left_invariant := begin
@@ -438,9 +435,11 @@ lemma is_haar_measure_map
 /-- A Haar measure on a sigma-compact space is sigma-finite. -/
 @[priority 100, to_additive] -- see Note [lower instance priority]
 instance is_haar_measure.sigma_finite
-  [t2_space G] [sigma_compact_space G] [opens_measurable_space G] : sigma_finite μ :=
+  {G : Type*} [group G] [measurable_space G] [topological_space G] [sigma_compact_space G]
+  (μ : measure G) [μ.is_haar_measure] :
+  sigma_finite μ :=
 ⟨⟨{ set := compact_covering G,
-  set_mem := λ n, (is_compact_compact_covering G n).measurable_set,
+  set_mem := λ n, mem_univ _,
   finite := λ n, is_compact.haar_lt_top μ $ is_compact_compact_covering G n,
   spanning := Union_compact_covering G }⟩⟩
 
@@ -448,11 +447,15 @@ open_locale topological_space
 open filter
 
 /-- If the neutral element of a group is not isolated, then a Haar measure on this group has
-no atom. -/
+no atom.
+
+This applies in particular to show that an additive Haar measure on a nontrivial
+finite-dimensional real vector space has no atom. -/
 @[priority 100, to_additive]
 instance is_haar_measure.has_no_atoms
-  [t1_space G] [topological_group G] [locally_compact_space G] [borel_space G]
-  [ne_bot (𝓝[{(1 : G)}ᶜ] (1 : G))] :
+  {G : Type*} [group G] [measurable_space G] [topological_space G] [t1_space G]
+  [topological_group G] [locally_compact_space G] [borel_space G] [(𝓝[{(1 : G)}ᶜ] (1 : G)).ne_bot]
+  (μ : measure G) [μ.is_haar_measure] :
   has_no_atoms μ :=
 begin
   suffices H : μ {(1 : G)} ≤ 0, by { constructor, simp [le_bot_iff.1 H] },

@@ -75,8 +75,8 @@ instance : is_partial_order (set E) is_extreme :=
   trans := λ A B C, trans,
   antisymm := antisymm }
 
-lemma convex_diff (hA : convex A) (hAB : is_extreme A B) :
-  convex (A \ B) :=
+lemma convex_diff (hA : convex ℝ A) (hAB : is_extreme A B) :
+  convex ℝ (A \ B) :=
 convex_iff_open_segment_subset.2 (λ x₁ x₂ ⟨hx₁A, hx₁B⟩ ⟨hx₂A, hx₂B⟩ x hx,
     ⟨hA.open_segment_subset hx₁A hx₂A hx, λ hxB, hx₁B (hAB.2 x₁ x₂ hx₁A hx₂A x hxB hx).1⟩)
 
@@ -185,8 +185,8 @@ subset_empty_iff.1 extreme_points_subset
 extreme_points_subset.antisymm $ singleton_subset_iff.2
   ⟨mem_singleton x, λ x₁ x₂ hx₁ hx₂ _, ⟨hx₁, hx₂⟩⟩
 
-lemma convex.mem_extreme_points_iff_convex_remove (hA : convex A) :
-  x ∈ A.extreme_points ↔ x ∈ A ∧ convex (A \ {x}) :=
+lemma convex.mem_extreme_points_iff_convex_remove (hA : convex ℝ A) :
+  x ∈ A.extreme_points ↔ x ∈ A ∧ convex ℝ (A \ {x}) :=
 begin
   use λ hx, ⟨hx.1, (mem_extreme_points_iff_extreme_singleton.1 hx).convex_diff hA⟩,
   rintro ⟨hxA, hAx⟩,
@@ -198,8 +198,8 @@ begin
     ⟨hx₂, λ hx₂, h.2 (mem_singleton_iff.2 hx₂)⟩ hx).2 rfl,
 end
 
-lemma convex.mem_extreme_points_iff_mem_diff_convex_hull_remove (hA : convex A) :
-  x ∈ A.extreme_points ↔ x ∈ A \ convex_hull (A \ {x}) :=
+lemma convex.mem_extreme_points_iff_mem_diff_convex_hull_remove (hA : convex ℝ A) :
+  x ∈ A.extreme_points ↔ x ∈ A \ convex_hull ℝ (A \ {x}) :=
 by rw [hA.mem_extreme_points_iff_convex_remove, hA.convex_remove_iff_not_mem_convex_hull_remove,
   mem_diff]
 
@@ -222,11 +222,11 @@ subset.antisymm (λ x hx, ⟨hx.1, hAB.extreme_points_subset_extreme_points hx�
 end is_extreme
 
 lemma extreme_points_convex_hull_subset :
-  (convex_hull A).extreme_points ⊆ A :=
+  (convex_hull ℝ A).extreme_points ⊆ A :=
 begin
   rintro x hx,
-  rw (convex_convex_hull _).mem_extreme_points_iff_convex_remove at hx,
+  rw (convex_convex_hull ℝ _).mem_extreme_points_iff_convex_remove at hx,
   by_contra,
-  exact (convex_hull_min (subset_diff.2 ⟨subset_convex_hull _, disjoint_singleton_right.2 h⟩) hx.2
+  exact (convex_hull_min (subset_diff.2 ⟨subset_convex_hull ℝ _, disjoint_singleton_right.2 h⟩) hx.2
     hx.1).2 rfl,
 end

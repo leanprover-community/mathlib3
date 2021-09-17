@@ -183,7 +183,7 @@ begin
   have d_pos' : 0 < (minpoly K pb.gen).nat_degree, { simpa },
   haveI : nonempty (fin pb.dim) := ⟨⟨0, d_pos⟩⟩,
   -- Write the LHS as the `d-1`'th coefficient of `minpoly K pb.gen`
-  rw [trace_eq_matrix_trace pb.basis, trace_eq_neg_char_poly_coeff, char_poly_left_mul_matrix,
+  rw [trace_eq_matrix_trace pb.basis, trace_eq_neg_charpoly_coeff, charpoly_left_mul_matrix,
       ring_hom.map_neg, ← pb.nat_degree_minpoly, fintype.card_fin,
       ← next_coeff_of_pos_nat_degree _ d_pos',
       ← next_coeff_map (algebra_map K F).injective],

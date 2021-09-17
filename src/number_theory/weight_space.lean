@@ -7,6 +7,7 @@ import number_theory.L_functions
 import ring_theory.witt_vector.teichmuller
 import ring_theory.witt_vector.compare
 import data.nat.modeq
+import topology.discrete_quotient
 
 /-!
 # Weight spaces
@@ -547,8 +548,6 @@ end
 --ℤ_[p] is now profinite!
 --instance sigh : totally_disconnected_space (zmod d × ℤ_[p]) := infer_instance
 
-
-
 /-
 @[reducible] def clopen_basis' :=
 {x : clopen_sets ((zmod d) × ℤ_[p]) // ∃ (n : ℕ) (a : zmod (d * (p^n))),
@@ -603,8 +602,6 @@ variables (R' M N : Type*) [ring R'] [add_comm_group M] [add_comm_group N]
 
 lemma mem_nonempty {α : Type*} {s : set α} {x : α} (h : x ∈ s) : nonempty s := ⟨⟨x, h⟩⟩
 
-
-
 instance : is_absolute_value (norm : R → ℝ) :=
 begin
   constructor, repeat {simp,}, refine norm_add_le, sorry,
@@ -636,14 +633,64 @@ a.to_seq (sequence_limit_index' a)
 lemma sequence_limit_eq {α : Type*} (a : @eventually_constant_seq α) (m : ℕ)
   (hm : sequence_limit_index' a ≤ m) : sequence_limit a = a.to_seq m := sorry
 
-noncomputable def g (hc : gcd c p = 1) (f : locally_constant (zmod d × ℤ_[p]) R) :
+def equi_class (n m : ℕ) (h : n < m) (a : zmod (p^n)) :=
+ {b : zmod (p^m) | (b : zmod (p^n)) = a}
+
+instance (n m : ℕ) (h : n < m) (a : zmod (p^n)) : fintype (equi_class p n m h a) := sorry
+
+/-- For m > n, E_c(χ_(b,a,n)) = ∑_{j, b_j = a mod p^n} E_c(χ_(b,b_j,m)) -/
+lemma sum_char_fn_dependent_Ec (m : ℕ) (a : zmod (p^m)) (b : zmod d) (hc : gcd c p = 1) :
+  E_c p d hc m a = ∑ x in set.to_finset (equi_class p m m.succ (lt_add_one m) a), E_c p d hc m.succ x :=
+sorry
+
+lemma loc_const_const (f : locally_constant (zmod d × ℤ_[p]) R) (a : zmod d × ℤ_[p]) : ∃ N : ℕ, ∀ m ≥ N,
+  ∀ y ∈ {b : zmod d × ℤ_[p] | (to_zmod_pow m) a.2 = (to_zmod_pow m) b.2}, f y = f a :=
+sorry
+
+lemma remove_extras (x : zmod d × ℤ_[p]) (n : ℕ) :
+  is_clopen {b : zmod d × ℤ_[p] | (to_zmod_pow n) x.snd = (to_zmod_pow n) b.snd ∧ x.fst = b.fst} :=
+sorry
+
+noncomputable def F : ℕ → discrete_quotient (zmod d × ℤ_[p]) := λ n,
+  ⟨λ a b, to_zmod_pow n a.2 = to_zmod_pow n b.2 ∧ a.1  = b.1,
+    ⟨ by tauto, by tauto, λ a b c hab hbc, begin simp at *, split, rw [hab.1, hbc.1], rw [hab.2, hbc.2], end⟩,
+    λ x, begin apply remove_extras p d x n,
+--      convert_to is_clopen ((({x.1} : set (zmod d)) × (set.preimage (to_zmod_pow n) {to_zmod_pow n x.2})) : set ((zmod d) × ℤ_[p])),
+--      { ext1 y, simp, split; try { intro h, rw set.mem_singleton_iff at *, rw h, }, },
+--      { convert proj_lim_preimage_clopen p 1 n (to_zmod_pow n x), rw one_mul, simp, },
+end⟩
+
+/-lemma loc_const_const' (f : locally_constant (zmod d × ℤ_[p]) R) : ∃ N : ℕ, ∀ m ≥ N,
+  ∀ y ∈ {b : zmod d × ℤ_[p] | (to_zmod_pow m) a.2 = (to_zmod_pow m) b.2}, f y = f a :=
+sorry-/
+
+lemma factor_F (f : locally_constant (zmod d × ℤ_[p]) R) :
+  ∃ N : ℕ, F p d N ≤ f.discrete_quotient := sorry
+
+example {α : Type*} [h : fintype α] : fintype (@set.univ α) := by refine set_fintype set.univ
+
+def zmod' (n : ℕ) (h : fact (0 < n)) : finset (zmod n) :=
+  @set.to_finset _ (@set.univ (zmod n)) (@set_fintype _ (@zmod.fintype n h) set.univ _)
+
+noncomputable def g (hc : gcd c p = 1) (hd : 0 < d) (f : locally_constant (zmod d × ℤ_[p]) R) :
   @eventually_constant_seq R :=
 {
   to_seq := λ (n : ℕ),
-    ∑ a in (finset.range (d * p^n)),f(a) • ((E_c p d hc n a) : R),
-  is_eventually_const := sorry
+    ∑ a in (zmod' (d * p^n) (fact_iff.2
+    (mul_pos hd (pow_pos (nat.prime.pos (fact_iff.1 _inst_3)) n)))), f(a) • ((E_c p d hc n a) : R),
+  is_eventually_const := ⟨classical.some (factor_F p d R f),
+  begin
+  simp, rintros m hm,
+  set t := λ a : zmod (d * p ^ m), set.to_finset ((equi_class p m m.succ (lt_add_one m)) a) with ht,
+  have := @finset.sum_bUnion _ _ _ _ _ _ (zmod' (d*p^m) _) t _,
+  have : zmod' (d*p^m.succ) _ = (zmod' (d*p^m) _).bUnion t,
+  rw @finset.sum_bUnion _ (finset.range (d*p^m)) t _,
+--  conv_rhs { apply_congr, skip, rw sum_char_fn_dependent_Ec p d m (x : zmod (d * p^m)) _ hc, },
+  obtain ⟨t, ht⟩ := f.discrete_quotient,
+  have com := compact_space.elim_nhds_subcover (λ x, locally_con)
+  have := loc_const_const p d R f, simp, sorry, end⟩,
 }
-
+#exit
 lemma g_def (hc : gcd c p = 1) (f : locally_constant (zmod d × ℤ_[p]) R) (n : ℕ) :
   (g p d R hc f).to_seq n = ∑ a in (finset.range (d * p^n)),f(a) • ((E_c p d hc n a) : R) := rfl
 
@@ -677,6 +724,10 @@ example (a b : R) (h : a + b = a) : b = 0 := add_right_eq_self.mp (congr_fun (co
 instance : semilattice_sup ℕ := infer_instance
 
 -- set_option pp.proofs true
+
+-- def G (f : locally_constant ℤ_[p] R) (a : ℤ_[p]) : ℕ := ⨅ n : ℕ, loc_const_const -- is this really needed?
+
+-- lemma loc_const_comp (f : locally_constant ℤ_[p] R)
 
 -- can hd be removed?
 lemma bernoulli_measure_nonempty (hc : gcd c p = 1) [hd : ∀ n : ℕ, fact (0 < d * p^n)] :
@@ -743,7 +794,7 @@ begin
       sorry, },
 end
 
-#exit
+
 noncomputable
 def linear_map_from_span (η : S → N)
   (cond : ∀ (f : S →₀ R'), finsupp.total S M R' coe f = 0 → finsupp.total S N R' η f = 0) :

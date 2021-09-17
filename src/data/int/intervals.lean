@@ -7,7 +7,7 @@ import data.int.basic
 import data.nat.intervals
 
 /-!
-# Intervals of integers
+# Finite intervals of integers
 
 This file proves that `ℤ` is a `locally_finite_order` and calculates the cardinality of its
 intervals as finsets and fintypes.

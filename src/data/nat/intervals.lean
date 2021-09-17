@@ -6,7 +6,7 @@ Authors: Yaël Dillies
 import data.finset.intervals
 
 /-!
-# Intervals of naturals
+# Finite intervals of naturals
 
 This file proves that `ℕ` is a `locally_finite_order` and calculates the cardinality of its
 intervals as finsets and fintypes.

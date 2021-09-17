@@ -3,25 +3,20 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Yaël Dillies
 -/
-import algebra.ordered_sub
-import data.finset.basic
-import data.multiset.intervals
 import order.locally_finite
 
 /-!
 # Intervals as finsets
 
-For now this only covers `Ico a b`, the "closed-open" interval containing `[a, ..., b - 1]`.
+This file provides basic results about all the `finset.Ixx`, which are defined in
+`order.locally_finite`.
 
 ## TODO
 
-This file was originally only about `finset.Ico a b` where `a n : ℕ`. No care has yet been taken to
-generalize these lemmas properly and many lemmas about `Icc`, `Ioc`, `Ioo` are missing.
+This file was originally only about `finset.Ico a b` where `a b : ℕ`. No care has yet been taken to
+generalize these lemmas properly and many lemmas about `Icc`, `Ioc`, `Ioo` are missing. In general,
+what's to do is taking the lemmas in `data.x.intervals` and abstract away the concrete structure.
 -/
-
--- TODO: There is a diamond between `nat.decidable_eq` and `decidable_eq_of_decidable_le`
--- and another one between `linear_order.decidable_lt` and `decidable_lt_of_decidable_le`
-local attribute [-instance] decidable_eq_of_decidable_le decidable_lt_of_decidable_le
 
 lemma finset.coe_eq_singleton {α : Type*} {s : finset α} {a : α} :
   (s : set α) = {a} ↔ s = {a} :=
@@ -30,7 +25,7 @@ by rw [←finset.coe_singleton, finset.coe_inj]
 namespace finset
 variables {α : Type*}
 section preorder
-variables [preorder α] [decidable_rel ((≤) : α → α → Prop)] [locally_finite_order α] {a b : α}
+variables [preorder α] [locally_finite_order α] {a b : α}
 
 @[simp] lemma nonempty_Icc : (Icc a b).nonempty ↔ a ≤ b :=
 by rw [←coe_nonempty, coe_Icc, set.nonempty_Icc]
@@ -75,7 +70,7 @@ Ioc_eq_empty h.not_lt
 @[simp] lemma Ioo_eq_empty_of_le (h : b ≤ a) : Ioo a b = ∅ :=
 Ioo_eq_empty h.not_lt
 
-variables (a b)
+variables (a)
 
 @[simp] lemma Ico_self : Ico a a = ∅ :=
 by rw [←coe_eq_empty, coe_Ico, set.Ico_self]
@@ -105,14 +100,15 @@ begin
   exact and_iff_left_of_imp (λ h, h.2.trans_le hcb),
 end
 
-lemma Ico_filter_le_of_le_left {a b c : α} (hca : c ≤ a) :
+lemma Ico_filter_le_of_le_left [decidable_rel ((≤) : α → α → Prop)] {a b c : α} (hca : c ≤ a) :
   (Ico a b).filter (λ x, c ≤ x) = Ico a b :=
 finset.filter_true_of_mem (λ x hx, hca.trans (mem_Ico.1 hx).1)
 
-lemma Ico_filter_le_of_right_le {a b c : α} : (Ico a b).filter (λ x, b ≤ x) = ∅ :=
+lemma Ico_filter_le_of_right_le [decidable_rel ((≤) : α → α → Prop)] {a b : α} :
+  (Ico a b).filter (λ x, b ≤ x) = ∅ :=
 finset.filter_false_of_mem (λ x hx, (mem_Ico.1 hx).2.not_le)
 
-lemma Ico_filter_le_of_left_le {a b c : α} (hac : a ≤ c) :
+lemma Ico_filter_le_of_left_le [decidable_rel ((≤) : α → α → Prop)] {a b c : α} (hac : a ≤ c) :
   (Ico a b).filter (λ x, c ≤ x) = Ico c b :=
 begin
   ext x,
@@ -123,7 +119,7 @@ end
 end preorder
 
 section partial_order
-variables [partial_order α] [decidable_rel ((≤) : α → α → Prop)] [locally_finite_order α] {a b : α}
+variables [partial_order α] [locally_finite_order α] {a b : α}
 
 
 @[simp] lemma Icc_self (a : α) : Icc a a = {a} :=
@@ -145,7 +141,8 @@ end
 lemma Ico_disjoint_Ico_consecutive [decidable_eq α] (a b c : α) : disjoint (Ico a b) (Ico b c) :=
 le_of_eq $ Ico_inter_Ico_consecutive a b c
 
-lemma Ico_filter_le_left {a b : α} (hab : a < b) : (Ico a b).filter (λ x, x ≤ a) = {a} :=
+lemma Ico_filter_le_left [decidable_rel ((≤) : α → α → Prop)] {a b : α} (hab : a < b) :
+  (Ico a b).filter (λ x, x ≤ a) = {a} :=
 begin
   ext x,
   rw [mem_filter, mem_Ico, mem_singleton, and.right_comm, ←le_antisymm_iff, eq_comm],
@@ -212,7 +209,7 @@ end linear_order
 
 section ordered_cancel_add_comm_monoid
 variables [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α] [decidable_eq α]
-  [decidable_rel ((≤) : α → α → Prop)] [locally_finite_order α]
+  [locally_finite_order α]
 
 lemma image_add_const_Icc (a b c : α) : (Icc a b).image ((+) c) = Icc (a + c) (b + c) :=
 begin

@@ -173,14 +173,10 @@ instance is_adic_complete.henselian_ring
     intros f hf a₀ h₁ h₂,
     classical,
     let f' := f.derivative,
-    -- a temporary multiplicative inverse for units in `R`
-    let inv : R → R := λ x, if hx : is_unit x then ↑hx.some⁻¹ else 0,
-    have hinv : ∀ x, is_unit x → x * inv x = 1,
-    { intros x hx, simp only [hx, inv, dif_pos], convert units.mul_inv hx.some, rw hx.some_spec },
     -- in the following line, `f'.eval b` is a unit,
     -- because `b` has the same residue class as `a₀`
-    let c : ℕ → R := λ n, nat.rec_on n a₀ (λ k b, b - f.eval b * inv (f'.eval b)),
-    have hc : ∀ n, c (n+1) = c n - f.eval (c n) * inv (f'.eval (c n)),
+    let c : ℕ → R := λ n, nat.rec_on n a₀ (λ k b, b - f.eval b * ring.inverse (f'.eval b)),
+    have hc : ∀ n, c (n+1) = c n - f.eval (c n) * ring.inverse (f'.eval (c n)),
     { intro n, dsimp only [c, nat.rec_add_one], refl, },
     -- we now spend some time determining properties of the sequence `c : ℕ → R`
     -- `hc'`: for every `n`, we have `c n ≡ a₀ [SMOD I]`
@@ -212,7 +208,7 @@ instance is_adic_complete.henselian_ring
       refine ideal.add_mem _ _ _,
       { simp only [finset.sum_range_succ, taylor_coeff_one, mul_one, pow_one, taylor_coeff_zero,
           mul_neg_eq_neg_mul_symm, finset.sum_singleton, finset.range_one, pow_zero],
-        rw [mul_left_comm, hinv _ (hfc n), mul_one, add_neg_self],
+        rw [mul_left_comm, ring.self_mul_inverse _ (hfc n), mul_one, add_neg_self],
         exact ideal.zero_mem _ },
       { refine submodule.sum_mem _ _, simp only [finset.Ico.mem],
         rintro i ⟨h2i, hi⟩,

@@ -128,6 +128,7 @@ variables {R S A B}
 @[simp] lemma _root_.alg_hom.commutes_of_tower (f : A →ₐ[S] B) (r : R) :
   f (algebra_map R A r) = algebra_map R B r :=
 by rw [algebra_map_apply R S A r, f.commutes, ← algebra_map_apply R S B]
+
 variables (R)
 
 @[simp] lemma _root_.alg_hom.comp_algebra_map_of_tower (f : A →ₐ[S] B) :

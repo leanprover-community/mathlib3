@@ -23,12 +23,25 @@ For an open neighborhood `U` of `x`, we define the map `F.germ x : F.obj (op U) 
 canonical morphism into this colimit.
 
 Taking stalks is functorial: For every point `x : X` we define a functor `stalk_functor C x`,
-sending presheaves on `X` to objects of `C`. In `is_iso_iff_stalk_functor_map_iso`, we prove that a
-map `f : F ⟶ G` between `Type`-valued sheaves is an isomorphism if and only if all the maps
-`F.stalk x ⟶ G.stalk x` (given by the stalk functor on `f`) are isomorphisms.
+sending presheaves on `X` to objects of `C`. Furthermore, for a map `f : X ⟶ Y` between
+topological spaces, we define `stalk_pushforward` as the induced map on the stalks
+`(f _* ℱ).stalk (f x) ⟶ ℱ.stalk x`.
 
-For a map `f : X ⟶ Y` between topological spaces, we define `stalk_pushforward` as the induced map
-on the stalks `(f _* ℱ).stalk (f x) ⟶ ℱ.stalk x`.
+Some lemmas about stalks and germs only hold for certain classes of concrete categories. A basic
+property of forgetful functors of categories of algebraic structures (like `Mon`, `CommRing`,...)
+is that they preserve filtered colimits. Since stalks are filtered colimits, this ensures that
+the stalks of presheaves valued in these categories behave exactly as for `Type`-valued presheaves.
+For example, in `germ_exist` we prove that in such a category, every element of the stalk is the
+germ of a section.
+
+Furthermore, if we require the forgetful functor to reflect isomorphisms and preserve limits (as
+is the case for most algebraic structures), we have access to the unique gluing API and can prove
+further properties. Most notably, in `is_iso_iff_stalk_functor_map_iso`, we prove that in such
+a category, a morphism of sheaves is an isomorphism if and only if all of its stalk maps are
+isomorphisms.
+
+See also the definition of "algebraic structures" in the stacks project:
+https://stacks.math.columbia.edu/tag/007L
 
 -/
 
@@ -79,6 +92,10 @@ lemma germ_res (F : X.presheaf C) {U V : opens X} (i : U ⟶ V) (x : U) :
 let i' : (⟨U, x.2⟩ : open_nhds x.1) ⟶ ⟨V, (i x : V).2⟩ := i in
 colimit.w ((open_nhds.inclusion x.1).op ⋙ F) i'.op
 
+/--
+A morphism from the stalk of `F` at `x` to some object `Y` is completely determined by its
+composition with the `germ` morphisms.
+-/
 lemma stalk_hom_ext (F : X.presheaf C) {x} {Y : C} {f₁ f₂ : F.stalk x ⟶ Y}
   (ih : ∀ (U : opens X) (hxU : x ∈ U), F.germ ⟨x, hxU⟩ ≫ f₁ = F.germ ⟨x, hxU⟩ ≫ f₂) : f₁ = f₂ :=
 colimit.hom_ext $ λ U, by { op_induction U, cases U with U hxU, exact ih U hxU }
@@ -185,7 +202,10 @@ by erw [← F.germ_res iWU ⟨x, hxW⟩,
 
 variables [preserves_filtered_colimits (forget C)]
 
-/-- For a `Type` valued presheaf, every point in a stalk is a germ. -/
+/--
+For presheaves valued in a concrete category whose forgetful functor preserves filtered colimits,
+every element of the stalk is the germ of a section.
+-/
 lemma germ_exist (F : X.presheaf C) (x : X) (t : stalk F x) :
   ∃ (U : opens X) (m : x ∈ U) (s : F.obj (op U)), F.germ ⟨x, m⟩ s = t :=
 begin
@@ -227,7 +247,10 @@ end
 
 variables [has_limits C] [preserves_limits (forget C)] [reflects_isomorphisms (forget C)]
 
-/-- If two sections agree on all stalks, they must be equal -/
+/--
+Let `F` be a sheaf valued in a concrete category, whose forgetful functor reflects isomorphisms,
+preserves limits and filtered colimits. Then two sections who agree on every stalk must be equal.
+-/
 lemma section_ext (F : sheaf C X) (U : opens X) (s t : F.presheaf.obj (op U))
   (h : ∀ x : U, F.presheaf.germ x s = F.presheaf.germ x t) :
   s = t :=
@@ -323,15 +346,16 @@ lemma app_bijective_of_stalk_functor_map_bijective {F G : sheaf C X} (f : F ⟶ 
   app_surjective_of_stalk_functor_map_bijective f h U⟩
 
 /--
-If all the stalk maps of map `f : F ⟶ G` of `Type`-valued sheaves are isomorphisms, then `f` is
-an isomorphism.
+Let `F` and `G` be sheaves valued in a concrete category, whose forgetful functor reflects
+isomorphisms, preserves limits and filtered colimits. Then if the stalk maps of a morphism
+`f : F ⟶ G` are all isomorphisms, `f` must be an isomorphism.
 -/
 -- Making this an instance would cause a loop in typeclass resolution with `functor.map_is_iso`
 lemma is_iso_of_stalk_functor_map_iso {F G : sheaf C X} (f : F ⟶ G)
   [∀ x : X, is_iso ((stalk_functor C x).map f)] : is_iso f :=
 begin
-  -- Rather annoyingly, an isomorphism of presheaves isn't quite the same as an isomorphism of
-  -- sheaves. We have to use that the induced functor from sheaves to presheaves is fully faithful
+  -- Since the inclusion functor from sheaves to presheaves is fully faithful, it suffices to
+  -- show that `f`, as a morphism between _presheaves_, is an isomorphism.
   suffices : is_iso ((induced_functor sheaf.presheaf).map f),
   { exactI is_iso_of_fully_faithful (induced_functor sheaf.presheaf) f },
   -- We show that all components of `f` are isomorphisms.
@@ -350,8 +374,9 @@ begin
 end
 
 /--
-A morphism of `Type`-valued sheaves `f : F ⟶ G` is an isomorphism if and only if all the stalk
-maps are isomorphisms
+Let `F` and `G` be sheaves valued in a concrete category, whose forgetful functor reflects
+isomorphisms, preserves limits and filtered colimits. Then a morphism `f : F ⟶ G` is an
+isomorphism if and only if all of its stalk maps are isomorphisms.
 -/
 lemma is_iso_iff_stalk_functor_map_iso {F G : sheaf C X} (f : F ⟶ G) :
   is_iso f ↔ ∀ x : X, is_iso ((stalk_functor C x).map f) :=

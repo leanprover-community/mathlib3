@@ -142,7 +142,8 @@ begin
   split,
   { rintro ⟨x, hx, rfl⟩,
     rw mem_Ico at hx,
-    refine ⟨ _, ((nat.sub_le_sub_left_iff hac).2 hx.1).trans_lt ((nat.sub_lt_sub_right_iff hac).2 (nat.lt_succ_self _))⟩,
+    refine ⟨_, ((nat.sub_le_sub_left_iff hac).2 hx.1).trans_lt ((nat.sub_lt_sub_right_iff hac).2
+      (nat.lt_succ_self _))⟩,
     cases lt_or_le c b,
     { rw nat.sub_eq_zero_of_le h,
       exact zero_le _ },

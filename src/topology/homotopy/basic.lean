@@ -12,15 +12,18 @@ import topology.compact_open
 /-!
 # Homotopy between functions
 
-In this file, we define a `homotopy` between two functions `f₀` and `f₁`.
+In this file, we define a `homotopy` between two functions `f₀` and `f₁`. We also refine the related
+notion of `homotopy` relative to a subset of the domain.
 
 ## Definitions
 
 * `homotopy f₀ f₁` is the type of homotopies between `f₀` and `f₁`
 * `homotopy.refl f₀` is the constant homotopy between `f₀` and `f₀`
-* `homotopy.symm f₀ f₁` is a `homotopy f₁ f₀` defined by reversing the homotopy
-* `homotopy.trans F G`, where `F : homotopy f₀ f₁`, `G : homotopy f₁ f₂` is a `homotopy f₀ f₂`
-  defined by putting the first homotopy on `[0, 1/2]` and the second on `[1/2, 1]`.
+* `homotopy.symm f₀ f₁` is the `homotopy f₁ f₀` defined by reversing the homotopy
+* `homotopy.trans F G`, where `F : homotopy f₀ f₁`, `G : homotopy f₁ f₂` is a
+  `homotopy f₀ f₂` defined by putting the first homotopy on `[0, 1/2]` and the second on `[1/2, 1]`.
+* `homotopy_rel f₀ f₁ A` is the type of homotopies between `f₀` and `f₁` which fix all the points in
+  `A : set X`.
 -/
 
 noncomputable theory
@@ -48,14 +51,14 @@ variables {f₀ f₁ : C(X, Y)}
 
 instance : has_coe_to_fun (homotopy f₀ f₁) := ⟨_, λ F, F.to_fun⟩
 
-@[ext]
-lemma ext {F G : homotopy f₀ f₁} (h : ∀ x, F x = G x) : F = G :=
+lemma coe_fn_injective : @function.injective (homotopy f₀ f₁) (I × X → Y) coe_fn :=
 begin
-  cases F, cases G,
-  congr' 1,
-  ext x,
-  exact h x,
+  rintros ⟨⟨F, _⟩, _, _⟩ ⟨⟨G, _⟩, _, _⟩ h,
+  congr' 2,
 end
+
+@[ext]
+lemma ext {F G : homotopy f₀ f₁} (h : ∀ x, F x = G x) : F = G := coe_fn_injective $ funext h
 
 @[continuity]
 protected lemma continuous (F : homotopy f₀ f₁) : continuous F := F.continuous_to_fun
@@ -66,7 +69,7 @@ lemma apply_zero (F : homotopy f₀ f₁) (x : X) : F (0, x) = f₀ x := F.to_fu
 lemma apply_one (F : homotopy f₀ f₁) (x : X) : F (1, x) = f₁ x := F.to_fun_one x
 
 @[simp]
-lemma to_continuous_map_apply (F : homotopy f₀ f₁) (k : I × X) : F.to_continuous_map k = F k := rfl
+lemma coe_to_continuous_map (F : homotopy f₀ f₁) : ⇑F.to_continuous_map = F := rfl
 
 /--
 Currying a homotopy to a continuous function fron `I` to `C(X, Y)`.
@@ -88,7 +91,7 @@ lemma extend_apply_one (F : homotopy f₀ f₁) (x : X) : F.extend 1 x = f₁ x 
 end
 
 /--
-Given a continuous function `f`, we can define a `homotopy f f` by `F (x, t) = f x`
+Given a continuous function `f`, we can define a `homotopy f f` by `F (t, x) = f x`
 -/
 def refl (f : C(X, Y)) : homotopy f f :=
 { to_fun := λ x, f x.2,
@@ -186,5 +189,84 @@ begin
 end
 
 end homotopy
+
+/--
+The type of homotopies between two functions, fixing all points in `A : set X`.
+-/
+structure homotopy_rel (f g : C(X, Y)) (A : set X) extends homotopy f g :=
+(eq_fst' : ∀ t (x ∈ A), to_fun (t, x) = f x)
+(eq_snd' : ∀ t (x ∈ A), to_fun (t, x) = g x)
+
+namespace homotopy_rel
+
+section
+
+variables {f₀ f₁ : C(X, Y)} {A : set X}
+
+instance : has_coe_to_fun (homotopy_rel f₀ f₁ A) := ⟨_, λ F, F.to_fun⟩
+
+@[simp]
+lemma coe_to_homotopy {F : homotopy_rel f₀ f₁ A} : ⇑F.to_homotopy = F := rfl
+
+lemma coe_fn_injective : @function.injective (homotopy_rel f₀ f₁ A) (I × X → Y) coe_fn :=
+begin
+  rintros ⟨⟨⟨F, _⟩, _⟩, _⟩ ⟨⟨⟨G, _⟩, _⟩, _⟩ h,
+  congr' 3,
+end
+
+@[ext]
+lemma ext {F G : homotopy_rel f₀ f₁ A} (h : ∀ t, F t = G t) : F = G :=
+coe_fn_injective $ funext h
+
+lemma eq_fst (F : homotopy_rel f₀ f₁ A) (t : I) {x : X} (hx : x ∈ A) : F (t, x) = f₀ x :=
+eq_fst' _ _ _ hx
+
+lemma eq_snd (F : homotopy_rel f₀ f₁ A) (t : I) {x : X} (hx : x ∈ A) : F (t, x) = f₁ x :=
+eq_snd' _ _ _ hx
+
+lemma fst_eq_snd (F : homotopy_rel f₀ f₁ A) {x : X} (hx : x ∈ A) : f₀ x = f₁ x :=
+eq_fst' F 1 _ hx ▸ eq_snd' F _ _ hx
+
+end
+
+/--
+Given a continuous function `f : C(X, Y)` and any `A : set X`, we can define the constant homotopy
+relative to `A`.
+-/
+def refl (f : C(X, Y)) (A : set X) : homotopy_rel f f A :=
+{ eq_fst' := λ _ _ _, rfl,
+  eq_snd' := λ  _ _ _, rfl,
+  ..homotopy.refl f }
+
+/--
+Given continuous functions `f₀ f₁ : C(X, Y)`, and `F : homotopy_rel f g A`, we can reverse the
+homotopy to get a `homotopy_rel g f A`.
+-/
+def symm {f₀ f₁ : C(X, Y)} {A : set X} (F : homotopy_rel f₀ f₁ A) : homotopy_rel f₁ f₀ A :=
+{ eq_fst' := λ t x hx, by simp [F.eq_snd, hx],
+  eq_snd' := λ t x hx, by simp [F.eq_fst, hx],
+  ..F.to_homotopy.symm }
+
+/--
+Given `homotopy_rel f₀ f₁ A` and `homotopy_rel f₁ f₂ A`, we can define a `homotopy_rel f₀ f₂ A` by
+putting the first homotopy on `[0, 1/2]` and the second on `[1/2, 1]`.
+-/
+def trans {f₀ f₁ f₂ : C(X, Y)} {A : set X} (F : homotopy_rel f₀ f₁ A) (G : homotopy_rel f₁ f₂ A) :
+  homotopy_rel f₀ f₂ A :=
+{ eq_fst' := λ t x hx, begin
+    simp_rw [to_fun_eq_coe, homotopy.coe_to_continuous_map, homotopy.trans_apply],
+    split_ifs,
+    { rw [coe_to_homotopy, F.eq_fst _ hx] },
+    { rw [coe_to_homotopy, G.eq_fst _ hx, F.fst_eq_snd hx] }
+  end,
+  eq_snd' := λ t x hx, begin
+    simp_rw [to_fun_eq_coe, homotopy.coe_to_continuous_map, homotopy.trans_apply],
+    split_ifs,
+    { rw [coe_to_homotopy, F.eq_snd _ hx, G.fst_eq_snd hx] },
+    { rw [coe_to_homotopy, G.eq_snd _ hx] }
+  end,
+  ..F.to_homotopy.trans G.to_homotopy }
+
+end homotopy_rel
 
 end continuous_map

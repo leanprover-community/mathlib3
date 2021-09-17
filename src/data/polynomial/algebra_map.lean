@@ -275,7 +275,7 @@ is_root_of_eval₂_map_eq_zero inj hr
 
 section aeval_tower
 
-variables [algebra S R] [algebra S A'] [algebra R A'] [algebra R B'] [algebra S B']
+variables [algebra S R] [algebra S A'] [algebra S B']
 
 /-- Version of `aeval` for defining algebra homs out of `polynomial R` over a smaller base ring
   than `R`. -/

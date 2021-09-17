@@ -665,24 +665,27 @@ variables {M}
 section
 
 @[irreducible] protected def add (z w : localization M) : localization M :=
-con.lift_on₂ z w
-  (λ x y : R × M, mk ((x.2 : R) * y.1 + y.2 * x.1) (x.2 * y.2)) $
-λ r1 r2 r3 r4 h1 h2, (con.eq _).2
+localization.lift_on₂ z w
+  (λ a b c d, mk ((b : R) * c + d * a) (b * d)) $
+λ a a' b b' c c' d d' h1 h2, mk_eq_mk_iff.2
 begin
   rw r_eq_r' at h1 h2 ⊢,
   cases h1 with t₅ ht₅,
   cases h2 with t₆ ht₆,
   use t₆ * t₅,
-  calc ((r1.2 : R) * r2.1 + r2.2 * r1.1) * (r3.2 * r4.2) * (t₆ * t₅) =
-      (r2.1 * r4.2 * t₆) * (r1.2 * r3.2 * t₅) + (r1.1 * r3.2 * t₅) * (r2.2 * r4.2 * t₆) : by ring
-      ... = (r3.2 * r4.1 + r4.2 * r3.1) * (r1.2 * r2.2) * (t₆ * t₅) : by rw [ht₆, ht₅]; ring
+  calc ((b : R) * c + d * a) * (b' * d') * (t₆ * t₅) =
+      (c * d' * t₆) * (b * b' * t₅) + (a * b' * t₅) * (d * d' * t₆) : by ring
+      ... = (b' * c' + d' * a') * (b * d) * (t₆ * t₅) : by rw [ht₆, ht₅]; ring
 end
 
 instance : has_add (localization M) := ⟨localization.add⟩
 
+lemma add_mk (a b c d) : (mk a b : localization M) + mk c d = mk (b * c + d * a) (b * d) :=
+by { unfold has_add.add localization.add, apply lift_on₂_mk }
+
 @[irreducible] protected def neg (z : localization M) : localization M :=
-con.lift_on z (λ x : R × M, mk (-x.1) x.2) $
-  λ r1 r2 h, (con.eq _).2
+localization.lift_on z (λ a b, mk (-a) b) $
+  λ a b c d h, mk_eq_mk_iff.2
 begin
   rw r_eq_r' at h ⊢,
   cases h with t ht,
@@ -693,18 +696,23 @@ end
 
 instance : has_neg (localization M) := ⟨localization.neg⟩
 
+lemma neg_mk (a b) : -(mk a b : localization M) = mk (-a) b :=
+by { unfold has_neg.neg localization.neg, apply lift_on_mk }
+
 @[irreducible] protected def zero : localization M :=
 mk 0 1
 
 instance : has_zero (localization M) := ⟨localization.zero⟩
 
-local attribute [semireducible] localization.add localization.neg localization.zero
-  localization.mul localization.one
+lemma mk_zero (b) : (mk 0 b : localization M) = 0 :=
+calc mk 0 b = mk 0 1 : mk_eq_mk_iff.mpr (r_of_eq (by simp))
+... = 0 : by  unfold has_zero.zero localization.zero
 
 private meta def tac := `[{
   intros,
-  refine quotient.sound' (r_of_eq _),
-  simp only [prod.snd_mul, prod.fst_mul, submonoid.coe_mul],
+  simp only [add_mk, localization.mk_mul, neg_mk, ← mk_zero 1],
+  refine mk_eq_mk_iff.mpr (r_of_eq _),
+  simp only [submonoid.coe_mul, prod.fst_mul, prod.snd_mul],
   ring }]
 
 instance : comm_ring (localization M) :=
@@ -712,22 +720,24 @@ instance : comm_ring (localization M) :=
   one  := 1,
   add  := (+),
   mul  := (*),
-  add_assoc      := λ m n k, quotient.induction_on₃' m n k (by tac),
-  zero_add       := λ y, quotient.induction_on' y (by tac),
-  add_zero       := λ y, quotient.induction_on' y (by tac),
+  add_assoc      := λ m n k, localization.induction_on₃ m n k (by tac),
+  zero_add       := λ y, localization.induction_on y (by tac),
+  add_zero       := λ y, localization.induction_on y (by tac),
   neg            := has_neg.neg,
   sub            := λ x y, x + -y,
   sub_eq_add_neg := λ x y, rfl,
-  add_left_neg   := λ y, by exact quotient.induction_on' y (by tac),
-  add_comm       := λ y z, quotient.induction_on₂' z y (by tac),
-  left_distrib   := λ m n k, quotient.induction_on₃' m n k (by tac),
-  right_distrib  := λ m n k, quotient.induction_on₃' m n k (by tac),
+  add_left_neg   := λ y, by exact localization.induction_on y (by tac),
+  add_comm       := λ y z, localization.induction_on₂ z y (by tac),
+  left_distrib   := λ m n k, localization.induction_on₃ m n k (by tac),
+  right_distrib  := λ m n k, localization.induction_on₃ m n k (by tac),
    ..localization.comm_monoid M }
 
 instance : algebra R (localization M) :=
 ring_hom.to_algebra $
-{ map_zero' := rfl,
-  map_add' := λ x y, (con.eq _).2 $ r_of_eq $ by simp [add_comm],
+{ to_fun := (monoid_of M).to_map,
+  map_zero' := by rw [← mk_zero (1 : M), mk_one_eq_monoid_of_mk],
+  map_add' := λ x y,
+    by simp only [← mk_one_eq_monoid_of_mk, add_mk, submonoid.coe_one, one_mul, add_comm],
   .. localization.monoid_of M }
 
 instance : is_localization M (localization M) :=
@@ -737,6 +747,9 @@ instance : is_localization M (localization M) :=
 
 end
 
+@[simp] lemma to_localization_map_eq_monoid_of :
+  to_localization_map M (localization M) = monoid_of M := rfl
+
 lemma monoid_of_eq_algebra_map (x) :
   (monoid_of M).to_map x = algebra_map R (localization M) x :=
 rfl
@@ -744,9 +757,9 @@ rfl
 lemma mk_one_eq_algebra_map (x) : mk x 1 = algebra_map R (localization M) x := rfl
 
 lemma mk_eq_mk'_apply (x y) : mk x y = is_localization.mk' (localization M) x y :=
-mk_eq_monoid_of_mk'_apply _ _
+by rw [mk_eq_monoid_of_mk'_apply, mk', to_localization_map_eq_monoid_of]
 
-@[simp] lemma mk_eq_mk' : (mk : R → M → (localization M)) = is_localization.mk' (localization M) :=
+@[simp] lemma mk_eq_mk' : (mk : R → M → localization M) = is_localization.mk' (localization M) :=
 mk_eq_monoid_of_mk'
 
 variables [is_localization M S]

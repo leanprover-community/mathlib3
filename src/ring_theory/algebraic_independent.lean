@@ -426,9 +426,8 @@ begin
   exact ring_hom.injective _,
 end
 
-@[simp] lemma algebraic_independent_empty [is_empty ι] [nontrivial A] :
+lemma algebraic_independent_empty [nontrivial A] :
   algebraic_independent K (coe : ((∅ : set A) → A)) :=
 algebraic_independent_empty_type
-
 
 end field

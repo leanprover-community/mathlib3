@@ -104,7 +104,7 @@ lemma norm_gen_eq_prod_roots [algebra K S] (pb : power_basis K S)
     ((minpoly K pb.gen).map (algebra_map K F)).roots.prod :=
 begin
   -- Write the LHS as the 0'th coefficient of `minpoly K pb.gen`
-  rw [norm_eq_matrix_det pb.basis, det_eq_sign_char_poly_coeff, char_poly_left_mul_matrix,
+  rw [norm_eq_matrix_det pb.basis, det_eq_sign_charpoly_coeff, charpoly_left_mul_matrix,
       ring_hom.map_mul, ring_hom.map_pow, ring_hom.map_neg, ring_hom.map_one,
       ← polynomial.coeff_map, fintype.card_fin],
   -- Rewrite `minpoly K pb.gen` as a product over the roots.

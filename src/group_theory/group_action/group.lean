@@ -47,6 +47,7 @@ add_decl_doc add_action.to_perm
 variables (α) (β)
 
 /-- Given an action of a group `α` on a set `β`, each `g : α` defines a permutation of `β`. -/
+@[simps]
 def mul_action.to_perm_hom : α →* equiv.perm β :=
 { to_fun := mul_action.to_perm,
   map_one' := equiv.ext $ one_smul α,
@@ -54,6 +55,7 @@ def mul_action.to_perm_hom : α →* equiv.perm β :=
 
 /-- Given an action of a additive group `α` on a set `β`, each `g : α` defines a permutation of
 `β`. -/
+@[simps]
 def add_action.to_perm_hom (α : Type*) [add_group α] [add_action α β] :
   α →+ additive (equiv.perm β) :=
 { to_fun := λ a, additive.of_mul $ add_action.to_perm a,
@@ -136,6 +138,29 @@ section distrib_mul_action
 section group
 variables [group α] [add_monoid β] [distrib_mul_action α β]
 
+variables (β)
+
+/-- Each element of the group defines an additive monoid isomorphism.
+
+This is a stronger version of `mul_action.to_perm`. -/
+@[simps {simp_rhs := tt}]
+def distrib_mul_action.to_add_equiv (x : α) : β ≃+ β :=
+{ .. distrib_mul_action.to_add_monoid_hom β x,
+  .. mul_action.to_perm_hom α β x }
+
+variables (α β)
+
+/-- Each element of the group defines an additive monoid isomorphism.
+
+This is a stronger version of `mul_action.to_perm_hom`. -/
+@[simps]
+def distrib_mul_action.to_add_aut : α →* add_aut β :=
+{ to_fun := distrib_mul_action.to_add_equiv β,
+  map_one' := add_equiv.ext (one_smul _),
+  map_mul' := λ a₁ a₂, add_equiv.ext (mul_smul _ _) }
+
+variables {α β}
+
 theorem smul_eq_zero_iff_eq (a : α) {x : β} : a • x = 0 ↔ x = 0 :=
 ⟨λ h, by rw [← inv_smul_smul a x, h, smul_zero], λ h, h.symm ▸ smul_zero _⟩
 
@@ -157,6 +182,34 @@ end gwz
 
 end distrib_mul_action
 
+section mul_distrib_mul_action
+variables [group α] [monoid β] [mul_distrib_mul_action α β]
+
+variables (β)
+
+/-- Each element of the group defines a multiplicative monoid isomorphism.
+
+This is a stronger version of `mul_action.to_perm`. -/
+@[simps {simp_rhs := tt}]
+def mul_distrib_mul_action.to_mul_equiv (x : α) : β ≃* β :=
+{ .. mul_distrib_mul_action.to_monoid_hom β x,
+  .. mul_action.to_perm_hom α β x }
+
+variables (α β)
+
+/-- Each element of the group defines an multiplicative monoid isomorphism.
+
+This is a stronger version of `mul_action.to_perm_hom`. -/
+@[simps]
+def mul_distrib_mul_action.to_mul_aut : α →* mul_aut β :=
+{ to_fun := mul_distrib_mul_action.to_mul_equiv β,
+  map_one' := mul_equiv.ext (one_smul _),
+  map_mul' := λ a₁ a₂, mul_equiv.ext (mul_smul _ _) }
+
+variables {α β}
+
+end mul_distrib_mul_action
+
 section arrow
 
 /-- If `G` acts on `A`, then it acts also on `A → B`, by `(g • F) a = F (g⁻¹ • a)`. -/
@@ -167,17 +220,18 @@ section arrow
 
 local attribute [instance] arrow_action
 
+/-- When `B` is a monoid, `arrow_action` is additionally a `mul_distrib_mul_action`. -/
+def arrow_mul_distrib_mul_action {G A B : Type*} [group G] [mul_action G A] [monoid B] :
+  mul_distrib_mul_action G (A → B) :=
+{ smul_one := λ g, rfl,
+  smul_mul := λ g f₁ f₂, rfl }
+
+local attribute [instance] arrow_mul_distrib_mul_action
+
 /-- Given groups `G H` with `G` acting on `A`, `G` acts by
   multiplicative automorphisms on `A → H`. -/
-@[simps] def mul_aut_arrow {G A H} [group G] [mul_action G A] [group H] : G →* mul_aut (A → H) :=
-{ to_fun := λ g,
-  { to_fun := λ F, g • F,
-    inv_fun := λ F, g⁻¹ • F,
-    left_inv := λ F, inv_smul_smul g F,
-    right_inv := λ F, smul_inv_smul g F,
-    map_mul' := by { intros, ext, simp only [arrow_action_to_has_scalar_smul, pi.mul_apply] } },
-  map_one' := by { ext, simp only [mul_aut.one_apply, mul_equiv.coe_mk, one_smul] },
-  map_mul' := by { intros, ext, simp only [mul_smul, mul_equiv.coe_mk, mul_aut.mul_apply] } }
+@[simps] def mul_aut_arrow {G A H} [group G] [mul_action G A] [monoid H] : G →* mul_aut (A → H) :=
+mul_distrib_mul_action.to_mul_aut _ _
 
 end arrow
 

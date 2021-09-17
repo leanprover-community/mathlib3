@@ -177,8 +177,8 @@ begin
     exact hxB.2 y hy }
 end
 
-protected lemma is_convex (hAB : is_exposed A B) (hA : convex A) :
-  convex B :=
+protected lemma is_convex (hAB : is_exposed A B) (hA : convex ℝ A) :
+  convex ℝ B :=
 begin
   obtain rfl | hB := B.eq_empty_or_nonempty,
   { exact convex_empty },

@@ -350,7 +350,6 @@ begin
       refl } }
 end
 
-
 private lemma sign_aux_swap_zero_one' (n : ℕ) :
   sign_aux (swap (0 : fin (n + 2)) 1) = -1 :=
 show _ = ∏ x : Σ a : fin (n + 2), fin (n + 2) in {(⟨1, 0⟩ : Σ a : fin (n + 2), fin (n + 2))},

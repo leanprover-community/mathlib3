@@ -69,9 +69,7 @@ namespace Ring
 
 instance : bundled_hom.parent_projection @ring.to_semiring := ⟨⟩
 
-attribute [derive [large_category, concrete_category]] Ring
-
-instance : has_coe_to_sort Ring Type* := bundled.has_coe_to_sort
+attribute [derive [(λ Ring, has_coe_to_sort Ring Type*), large_category, concrete_category]] Ring
 
 /-- Construct a bundled Ring from the underlying type and typeclass. -/
 def of (R : Type u) [ring R] : Ring := bundled.of R

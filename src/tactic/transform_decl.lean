@@ -50,8 +50,8 @@ using the dictionary `f`.
 `pre` is the declaration that got the `@[to_additive]` attribute and `tgt_pre` is the target of this
 declaration. -/
 meta def transform_decl_with_prefix_fun_aux (f : name → option name)
-  (replace_all trace : bool) (ignore relevant reorder : name_map $ list ℕ) (pre tgt_pre : name)
-  (attrs : list name) : name → command :=
+  (replace_all trace : bool) (relevant : name_map ℕ) (ignore reorder : name_map $ list ℕ)
+  (pre tgt_pre : name) (attrs : list name) : name → command :=
 λ src,
 do
   -- if this declaration is not `pre` or an internal declaration, we do nothing.
@@ -93,11 +93,12 @@ replacing fragments of the names of identifiers in the type and the body using t
 This is used to implement `@[to_additive]`.
 -/
 meta def transform_decl_with_prefix_fun (f : name → option name) (replace_all trace : bool)
-  (ignore relevant reorder : name_map $ list ℕ) (src tgt : name) (attrs : list name) : command :=
-do transform_decl_with_prefix_fun_aux f replace_all trace ignore relevant reorder src tgt attrs src,
+  (relevant : name_map ℕ) (ignore reorder : name_map $ list ℕ) (src tgt : name) (attrs : list name)
+  : command :=
+do transform_decl_with_prefix_fun_aux f replace_all trace relevant ignore reorder src tgt attrs src,
    ls ← get_eqn_lemmas_for tt src,
    ls.mmap' $
-    transform_decl_with_prefix_fun_aux f replace_all trace ignore relevant reorder src tgt attrs
+    transform_decl_with_prefix_fun_aux f replace_all trace relevant ignore reorder src tgt attrs
 
 /--
 Make a new copy of a declaration, replacing fragments of the names of identifiers in the type and
@@ -105,7 +106,8 @@ the body using the dictionary `dict`.
 This is used to implement `@[to_additive]`.
 -/
 meta def transform_decl_with_prefix_dict (dict : name_map name) (replace_all trace : bool)
-  (ignore relevant reorder : name_map $ list ℕ) (src tgt : name) (attrs : list name) : command :=
-transform_decl_with_prefix_fun dict.find replace_all trace ignore relevant reorder src tgt attrs
+  (relevant : name_map ℕ) (ignore reorder : name_map $ list ℕ) (src tgt : name) (attrs : list name)
+  : command :=
+transform_decl_with_prefix_fun dict.find replace_all trace relevant ignore reorder src tgt attrs
 
 end tactic

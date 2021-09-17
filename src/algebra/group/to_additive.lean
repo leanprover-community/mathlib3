@@ -78,28 +78,40 @@ meta def ignore_args_attr : user_attribute (name_map $ list ℕ) (list ℕ) :=
   parser    := (lean.parser.small_nat)* }
 
 /--
-An attribute that tells `@[to_additive]` which argument(s) are the type where this declaration uses
-the multiplicative structure. If any of these arguments contain a fixed type, this declaration will
-note be additivized. See the Heuristics section of `to_additive.attr`.
-By default, this is `[1]`, but `@[to_additive]` will usually add this attribute automatically, when
-needed.
-Warning: adding `@[to_additive_reorder]` with an equal or smaller number than any number in this
+An attribute that is automatically added to declarations tagged with `@[to_additive]`, if needed.
+
+This attribute tells which argument is the type where this declaration uses the multiplicative
+structure. If there are multiple argument, we typically tag the first one.
+If this argument contains a fixed type, this declaration will note be additivized.
+See the Heuristics section of `to_additive.attr` for more details.
+
+If a declaration is not tagged, it is presumed that the first argument is relevant.
+`@[to_additive]` uses the function `to_additive.first_multiplicative_arg` to automatically tag
+declarations. It is ok to update it manually if the automatic tagging made an error.
+
+Implementation note: we only allow exactly 1 relevant argument, even though some declarations
+(like `prod.group`) have multiple arguments with a multiplicative structure on it.
+The reason is that whether we additivize a declaration is an all-or-nothing decision, and if
+we will not be able to additivize declarations that (e.g.) talk about multiplication on `ℕ × α`
+anyway.
+
+Warning: adding `@[to_additive_reorder]` with an equal or smaller number than the number in this
 attribute is currently not supported.
 -/
 @[user_attribute]
-meta def relevant_args_attr : user_attribute (name_map $ list ℕ) (list ℕ) :=
-{ name      := `to_additive_relevant_args,
+meta def relevant_arg_attr : user_attribute (name_map ℕ) ℕ :=
+{ name      := `to_additive_relevant_arg,
   descr     :=
     "Auxiliary attribute for `to_additive` stating which arguments are the types with a " ++
     "multiplicative structure.",
   cache_cfg :=
     ⟨λ ns, ns.mfoldl
       (λ dict n, do
-        param ← relevant_args_attr.get_param_untyped n, -- see Note [user attribute parameters]
+        param ← relevant_arg_attr.get_param_untyped n, -- see Note [user attribute parameters]
         -- we subtract 1 from the values provided by the user.
-        return $ dict.insert n $ (param.to_list expr.to_nat).iget.map nat.pred)
+        return $ dict.insert n $ param.to_nat.iget.pred)
       mk_name_map, []⟩,
-  parser    := (lean.parser.small_nat)* }
+  parser    := lean.parser.small_nat }
 
 /--
 An attribute that stores all the declarations that needs their arguments reordered when
@@ -356,9 +368,9 @@ There are some exceptions to this heuristic:
 
 * Identifiers that have the `@[to_additive]` attribute are ignored.
   For example, multiplication in `↥Semigroup` is replaced by addition in `↥AddSemigroup`.
-* If an identifier `d` has attribute `@[to_additive_relevant_args n1 n2 ...]` then the arguments
+* If an identifier `d` has attribute `@[to_additive_relevant_arg n]` then the arguments
   in positions `n1`, `n2`, ... are checked for a fixed type, instead of checking the first argument.
-  `@[to_additive]` will automatically add the attribute `@[to_additive_relevant_args n]` to a
+  `@[to_additive]` will automatically add the attribute `@[to_additive_relevant_arg n]` to a
   declaration when the first argument has no multiplicative type-class, but argument `n` does.
 * If an identifier has attribute `@[to_additive_ignore_args n1 n2 ...]` then all the arguments in
   positions `n1`, `n2`, ... will not be checked for unapplied identifiers (start counting from 1).
@@ -381,14 +393,14 @@ mismatch error.
     The reason is that `@[to_additive]` doesn't additivize declarations if their first argument
     contains fixed types like `ℕ` or `ℝ`. See section Heuristics.
     If the first argument is not the argument with a multiplicative type-class, `@[to_additive]`
-    should have automatically added the attribute `@[to_additive_relevant_args]` to the declaration.
+    should have automatically added the attribute `@[to_additive_relevant_arg]` to the declaration.
     You can test this by running the following (where `d` is the full name of the declaration):
     ```
-      run_cmd to_additive.relevant_args_attr.get_param `d >>= tactic.trace
+      run_cmd to_additive.relevant_arg_attr.get_param `d >>= tactic.trace
     ```
-    The expected output is `[n]` where the `n`-th argument of `d` is a type (family) with a
+    The expected output is `n` where the `n`-th argument of `d` is a type (family) with a
     multiplicative structure on it. If you get a different output (or a failure), you could add
-    the attribute `@[to_additive_relevant_args n]` manually, where `n` is an argument with a
+    the attribute `@[to_additive_relevant_arg n]` manually, where `n` is an argument with a
     multiplicative structure.
 * Option 2: It didn't additivize a declaration that should be additivized.
   This happened because the heuristic applied, and the first argument contains a fixed type,
@@ -485,17 +497,17 @@ protected meta def attr : user_attribute unit value_type :=
     val ← attr.get_param src,
     dict ← aux_attr.get_cache,
     ignore ← ignore_args_attr.get_cache,
-    relevant ← relevant_args_attr.get_cache,
+    relevant ← relevant_arg_attr.get_cache,
     reorder ← reorder_attr.get_cache,
     tgt ← target_name src val.tgt dict val.allow_auto_name,
     aux_attr.set src tgt tt,
     let dict := dict.insert src tgt,
     first_mult_arg ← first_multiplicative_arg src,
-    when (first_mult_arg ≠ 1) $ relevant_args_attr.set src [first_mult_arg] tt,
+    when (first_mult_arg ≠ 1) $ relevant_arg_attr.set src first_mult_arg tt,
     if env.contains tgt
     then proceed_fields env src tgt prio
     else do
-      transform_decl_with_prefix_dict dict val.replace_all val.trace ignore relevant reorder src tgt
+      transform_decl_with_prefix_dict dict val.replace_all val.trace relevant ignore reorder src tgt
         [`reducible, `_refl_lemma, `simp, `instance, `refl, `symm, `trans, `elab_as_eliminator,
          `no_rsimp, `measurability],
       mwhen (has_attribute' `simps src)

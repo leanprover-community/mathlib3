@@ -134,6 +134,8 @@ finite sets, finset
 
 open multiset subtype nat function
 
+universes u
+
 variables {α : Type*} {β : Type*} {γ : Type*}
 
 /-- `finset α` is the type of finite sets of elements of `α`. It is implemented
@@ -202,7 +204,7 @@ lemma coe_injective {α} : injective (coe : finset α → set α) :=
 /-! ### type coercion -/
 
 /-- Coercion from a finset to the corresponding subtype. -/
-instance {α : Type*} : has_coe_to_sort (finset α) := ⟨_, λ s, {x // x ∈ s}⟩
+instance {α : Type u} : has_coe_to_sort (finset α) (Type u) := ⟨λ s, {x // x ∈ s}⟩
 
 instance pi_finset_coe.can_lift (ι : Type*) (α : Π i : ι, Type*) [ne : Π i, nonempty (α i)]
   (s : finset ι) :
@@ -558,7 +560,6 @@ ext $ λ x, by simp only [mem_insert, or.assoc.symm, or_self]
 (insert_nonempty a s).ne_empty
 
 section
-universe u
 /-!
 The universe annotation is required for the following instance, possibly this is a bug in Lean. See
 leanprover.zulipchat.com/#narrow/stream/113488-general/topic/strange.20error.20(universe.20issue.3F)

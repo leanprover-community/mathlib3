@@ -211,7 +211,7 @@ end
 
 
 
-def mat_Z_to_R (A:matrix (fin 2) (fin 2) ℤ ) :matrix (fin 2) (fin 2) ℝ :=
+def mat_Z_to_R (A : matrix (fin 2) (fin 2) ℤ ) :matrix (fin 2) (fin 2) ℝ :=
 ![![A 0 0, A 0 1], ![A 1 0 , A 1 1]]
 
 
@@ -238,6 +238,10 @@ end
 instance SLZ_to_GLZ: has_coe SL2Z (matrix.special_linear_group (fin 2 ) ℝ):=
 ⟨λ A, ⟨mat_Z_to_R A.1, by {rw mat_Z_to_R, rw det_of_22, have:= det_of_22 A, simp at *,
  norm_cast, exact this.symm,}, ⟩⟩
+
+variable (C : GL_pos (fin 2) ℤ)
+
+
 
 
 @[simp]lemma mat_vals (A: SL2Z) (i j : fin 2): ( A : (GL (fin 2) ℝ)) i j = (A.1 i j : ℝ):=

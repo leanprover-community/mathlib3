@@ -24,9 +24,13 @@ open_locale classical
 universes u
 namespace Scott
 
-/--  -/
+/-- `x` is an `ω`-Sup of a chain `c` if it is the least upper bound of the range of `c`. -/
 def is_ωSup {α : Type u} [preorder α] (c : chain α) (x : α) : Prop :=
 (∀ i, c i ≤ x) ∧ (∀ y, (∀ i, c i ≤ y) → x ≤ y)
+
+lemma is_ωSup_iff_is_lub {α : Type u} [preorder α] {c : chain α} {x : α} :
+  is_ωSup c x ↔ is_lub (set.range c) x :=
+by simp [is_ωSup, is_lub, is_least, upper_bounds, lower_bounds]
 
 variables (α : Type u) [omega_complete_partial_order α]
 local attribute [irreducible] set
@@ -67,7 +71,7 @@ begin
     tauto, },
   dsimp [is_open] at *,
   apply complete_lattice.Sup_continuous' _,
-  introv ht, specialize h₀ { x | t x } _,
+  introv ht, specialize h₀ { x | f x } _,
   { simp only [flip, set.mem_image] at *,
     rcases ht with ⟨x,h₀,h₁⟩, subst h₁,
     simpa, },

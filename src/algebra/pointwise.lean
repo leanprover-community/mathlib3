@@ -599,6 +599,7 @@ section
 
 variables {α : Type*} {β : Type*}
 
+/-- A nonempty set is scaled by zero to the singleton set containing 0. -/
 lemma zero_smul_set [has_zero α] [has_zero β] [smul_with_zero α β] {s : set β} (h : s.nonempty) :
   (0 : α) • s = (0 : set β) :=
 by simp only [← image_smul, image_eta, zero_smul, h.image_const, singleton_zero]

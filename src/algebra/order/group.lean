@@ -988,6 +988,11 @@ variables [has_neg α] [linear_order α] {a b: α}
 ]
 def mabs {α : Type*} [has_inv α] [lattice α] (a : α) : α := a ⊔ (a⁻¹)
 
+lemma abs_eq_sup_neg {α : Type*} [has_neg α] [lattice α] (a : α) : abs a = a ⊔ (-a) :=
+begin
+  exact rfl,
+end
+
 lemma abs_eq_max_neg {α : Type*} [has_neg α] [linear_order α] (a : α) : abs a = max a (-a) :=
 begin
   exact rfl,

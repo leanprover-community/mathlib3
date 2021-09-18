@@ -686,8 +686,8 @@ theorem card_erase_eq_ite {a : α} {s : multiset α} :
   card (s.erase a) = if a ∈ s then pred (card s) else card s :=
 begin
   by_cases h : a ∈ s,
-  { rw [card_erase_of_mem h, if_pos], assumption },
-  { rw [erase_of_not_mem h, if_neg], assumption }
+  { rwa [card_erase_of_mem h, if_pos] },
+  { rwa [erase_of_not_mem h, if_neg] }
 end
 
 end erase

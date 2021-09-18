@@ -32,9 +32,9 @@ noncomputable theory
 
 open module.free polynomial matrix
 
-section basic
-
 namespace linear_map
+
+section basic
 
 /-- The characteristic polynomial of `f : M →ₗ[R] M`. -/
 def charpoly := (linear_map.to_matrix (choose_basis R M) (choose_basis R M) f).charpoly
@@ -70,6 +70,16 @@ begin
   refl
 end
 
+end basic
+
+section coeff
+
+lemma charpoly_monic : f.charpoly.monic := charpoly_monic _
+
+end coeff
+
+section aeval
+
 /-- The Cayley-Hamilton Theorem, that the characteristic polynomial of a linear map, applied to
 the linear map itself, is zero. -/
 lemma aeval_self_charpoly : aeval f f.charpoly = 0 :=
@@ -80,6 +90,6 @@ begin
   exact aeval_self_char_poly _,
 end
 
-end linear_map
+end aeval
 
-end basic
+end linear_map

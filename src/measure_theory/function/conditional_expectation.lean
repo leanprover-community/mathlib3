@@ -387,23 +387,18 @@ instance [hm : fact (m ≤ m0)] [complete_space F] [hp : fact (1 ≤ p)] :
   complete_space (Lp_meas F 𝕜 m p μ) :=
 by { rw (Lp_meas_subgroup_to_Lp_meas_iso F 𝕜 p μ).symm.complete_space_iff, apply_instance, }
 
-include 𝕜
-variables (𝕜)
 lemma is_complete_ae_measurable' [hp : fact (1 ≤ p)] [complete_space F] (hm : m ≤ m0) :
   is_complete {f : Lp F p μ | ae_measurable' m f μ} :=
 begin
   rw ← complete_space_coe_iff_is_complete,
   haveI : fact (m ≤ m0) := ⟨hm⟩,
-  change complete_space (Lp_meas F 𝕜 m p μ),
+  change complete_space (Lp_meas_subgroup F m p μ),
   apply_instance,
 end
 
 lemma is_closed_ae_measurable' [hp : fact (1 ≤ p)] [complete_space F] (hm : m ≤ m0) :
   is_closed {f : Lp F p μ | ae_measurable' m f μ} :=
-is_complete.is_closed (is_complete_ae_measurable' 𝕜 hm)
-
-variables {𝕜}
-omit 𝕜
+is_complete.is_closed (is_complete_ae_measurable' hm)
 
 end complete_subspace
 

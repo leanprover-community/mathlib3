@@ -2028,7 +2028,7 @@ begin
     simp [lintegral_supr, ennreal.mul_supr, h_mf.mul (h_mea_g _), *] }
 end
 
-lemma set_lintegral_with_density_eq_lintegral_mul (μ : measure α) {f g : α → ℝ≥0∞}
+lemma set_lintegral_with_density_eq_set_lintegral_mul (μ : measure α) {f g : α → ℝ≥0∞}
   (hf : measurable f) (hg : measurable g) {s : set α} (hs : measurable_set s) :
   ∫⁻ x in s, g x ∂μ.with_density f = ∫⁻ x in s, (f * g) x ∂μ :=
 by rw [restrict_with_density hs, lintegral_with_density_eq_lintegral_mul _ hf hg]

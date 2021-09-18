@@ -664,19 +664,20 @@ instance : wf_dvd_monoid (ideal A) :=
 instance ideal.unique_factorization_monoid :
   unique_factorization_monoid (ideal A) :=
 { irreducible_iff_prime := λ P,
-    ⟨λ hirr, ⟨hirr.ne_zero, hirr.not_unit, λ I J, begin
-      have : P.is_maximal,
-      { use mt ideal.is_unit_iff.mpr hirr.not_unit,
-        intros J hJ,
-        obtain ⟨J_ne, H, hunit, P_eq⟩ := ideal.dvd_not_unit_iff_lt.mpr hJ,
-        exact ideal.is_unit_iff.mp ((hirr.is_unit_or_is_unit P_eq).resolve_right hunit) },
-      simp only [ideal.dvd_iff_le, has_le.le, preorder.le, partial_order.le],
-      contrapose!,
-      rintros ⟨⟨x, x_mem, x_not_mem⟩, ⟨y, y_mem, y_not_mem⟩⟩,
-      exact ⟨x * y, ideal.mul_mem_mul x_mem y_mem,
-             mt this.is_prime.mem_or_mem (not_or x_not_mem y_not_mem)⟩,
-    end⟩,
-    prime.irreducible⟩,
+  ⟨λ hirr, ⟨hirr.ne_zero, hirr.not_unit, λ I J, begin
+    have : P.is_maximal,
+    { refine ⟨⟨mt ideal.is_unit_iff.mpr hirr.not_unit, _⟩⟩,
+      intros J hJ,
+      obtain ⟨J_ne, H, hunit, P_eq⟩ := ideal.dvd_not_unit_iff_lt.mpr hJ,
+      exact ideal.is_unit_iff.mp ((hirr.is_unit_or_is_unit P_eq).resolve_right hunit) },
+    rw [ideal.dvd_iff_le, ideal.dvd_iff_le, ideal.dvd_iff_le,
+        set_like.le_def, set_like.le_def, set_like.le_def],
+    contrapose!,
+    rintros ⟨⟨x, x_mem, x_not_mem⟩, ⟨y, y_mem, y_not_mem⟩⟩,
+    exact ⟨x * y, ideal.mul_mem_mul x_mem y_mem,
+           mt this.is_prime.mem_or_mem (not_or x_not_mem y_not_mem)⟩,
+   end⟩,
+   prime.irreducible⟩,
   .. ideal.wf_dvd_monoid }
 
 noncomputable instance ideal.normalization_monoid : normalization_monoid (ideal A) :=

@@ -103,7 +103,7 @@ instance {α : Type*} : Π [normed_group α], normed_group (order_dual α) := id
 Let `α` be a normed lattice ordered group and let `a`and `b` be elements of `α`. Then `a⊓-a ≥ b⊓-b`
 implies `∥a∥ ≤ ∥b∥`.
 -/
-lemma dual_solid {α : Type*} [h: normed_lattice_add_comm_group α] : ∀ a b : α, a⊓-a ≥ b⊓-b →
+lemma dual_solid {α : Type*} [h: normed_lattice_add_comm_group α] : ∀ a b : α, b⊓-b ≤ a⊓-a →
   ∥a∥ ≤ ∥b∥ :=
 begin
   intros a b h₁,
@@ -207,5 +207,6 @@ infer_instance
 /--
 Let `α` be a normed lattice ordered group. Then `α` is a topological lattice in the norm topology.
 -/
-lemma normed_lattice_add_comm_group_topological_lattice {α : Type*}
+@[priority 100] -- see Note [lower instance priority]
+instance normed_lattice_add_comm_group_topological_lattice {α : Type*}
 [h: normed_lattice_add_comm_group α] : topological_lattice α := by exact topological_lattice.mk

@@ -43,6 +43,7 @@ class has_continuous_sup (L : Type*) [topological_space L] [has_sup L] : Prop :=
 Let `L` be a topological space with a supremum. If the order dual has a continuous infimum then the
 supremum is continuous.
 -/
+@[priority 100] -- see Note [lower instance priority]
 instance has_continuous_inf_dual_has_continuous_sup
 (L : Type*) [topological_space L] [has_sup L] [h: has_continuous_inf (order_dual L)] :
   has_continuous_sup  L :=

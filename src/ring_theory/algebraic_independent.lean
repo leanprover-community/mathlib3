@@ -39,7 +39,7 @@ noncomputable theory
 open function set subalgebra mv_polynomial algebra
 open_locale classical big_operators
 
-universes u v w x
+universes x u v w
 
 variables {ι : Type*} {ι' : Type*} (R : Type*) {K : Type*}
 variables {A : Type*} {A' A'' : Type*} {V : Type u} {V' : Type*}
@@ -444,6 +444,24 @@ begin
     dsimp at q,
     rw [←image_univ, image_image] at q,
     simpa using q, },
+end
+
+lemma is_transcendence_basis.is_algebraic [nontrivial R]
+  (hv : is_transcendence_basis R v) : is_algebraic (adjoin R (range v)) A :=
+begin
+  intro x,
+  rw [← not_iff_comm.1 (hv.1.option_iff _).symm],
+  intro ai,
+  have h₁ : range v ⊆ range (λ o : option ι, o.elim x v),
+  { rintros x ⟨y, rfl⟩, exact ⟨some y, rfl⟩ },
+  have h₂ : range v ≠ range (λ o : option ι, o.elim x v),
+  { intro h,
+    have : x ∈ range v, { rw h, exact ⟨none, rfl⟩ },
+    rcases this with ⟨y, rfl⟩,
+    have : some y = none := ai.injective rfl,
+    simpa },
+  exact h₂ (hv.2 (set.range (λ o : option ι, o.elim x v))
+    ((algebraic_independent_subtype_range ai.injective).2 ai) h₁)
 end
 
 section field

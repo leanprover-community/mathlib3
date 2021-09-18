@@ -1884,9 +1884,9 @@ begin
   refine tendsto_cocompact_of_tendsto_dist_comp_at_top (0 : ℝ) _,
   simp only [filter.tendsto_at_top, eventually_cofinite, not_le, ← mem_ball],
   change ∀ r : ℝ, finite (coe ⁻¹' (ball (0 : ℝ) r)),
-  simp [real.ball_eq, set.finite_Ioo]
+  simp [real.ball_eq, set.finite_Ioo],
 end
-#exit
+
 end int
 
 /-- We now define `metric_space`, extending `pseudo_metric_space`. -/

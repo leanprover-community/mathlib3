@@ -389,6 +389,54 @@ by split_ifs; try {simp *}; try {rw nth_update_nth_of_ne}; assumption
 
 end update_nth
 
+lemma vector.induction_on {C : Π {n}, vector α n → Sort*} {n : ℕ} (v : vector α n)
+  (h_nil : C vector.nil) (h_cons : ∀ (n) (x : vector α n) (a : α), C x → C (a ::ᵥ x)) : C v :=
+begin
+  induction n with n ih generalizing v,
+  { rcases v with ⟨_|⟨-,-⟩,-|-⟩,
+    exact h_nil, },
+  { rcases v with ⟨_|⟨a,v⟩,_⟩,
+    cases v_property,
+    apply h_cons n ⟨v, (add_left_inj 1).mp v_property⟩,
+    apply ih, }
+end
+
+lemma vector.induction_on₂ {C : Π {n}, vector α n → vector α n → Sort*}
+  {n : ℕ} (v w : vector α n)
+  (h_nil : C vector.nil vector.nil)
+  (h_cons : ∀ (n) (x y : vector α n) (a b : α), C x y → C (a ::ᵥ x) (b ::ᵥ y)) : C v w :=
+begin
+  induction n with n ih generalizing v w,
+  { rcases v with ⟨_|⟨-,-⟩,-|-⟩, rcases w with ⟨_|⟨-,-⟩,-|-⟩,
+    exact h_nil, },
+  { rcases v with ⟨_|⟨a,v⟩,_⟩,
+    cases v_property,
+    rcases w with ⟨_|⟨b,w⟩,_⟩,
+    cases w_property,
+    apply h_cons n ⟨v, (add_left_inj 1).mp v_property⟩ ⟨w, (add_left_inj 1).mp w_property⟩,
+    apply ih, }
+end
+
+lemma vector.induction_on₃ {C : Π {n}, vector α n → vector α n → vector α n → Sort*}
+  {n : ℕ} (u v w : vector α n)
+  (h_nil : C vector.nil vector.nil vector.nil)
+  (h_cons : ∀ (n) (x y z : vector α n) (a b c : α), C x y z → C (a ::ᵥ x) (b ::ᵥ y) (c ::ᵥ z)) :
+  C u v w :=
+begin
+  induction n with n ih generalizing u v w,
+  { rcases u with ⟨_|⟨-,-⟩,-|-⟩, rcases v with ⟨_|⟨-,-⟩,-|-⟩, rcases w with ⟨_|⟨-,-⟩,-|-⟩,
+    exact h_nil, },
+  { rcases u with ⟨_|⟨a,u⟩,_⟩,
+    cases u_property,
+    rcases v with ⟨_|⟨b,v⟩,_⟩,
+    cases v_property,
+    rcases w with ⟨_|⟨c,w⟩,_⟩,
+    cases w_property,
+    apply h_cons n ⟨u, (add_left_inj 1).mp u_property⟩ ⟨v, (add_left_inj 1).mp v_property⟩
+      ⟨w, (add_left_inj 1).mp w_property⟩,
+    apply ih, }
+end
+
 end vector
 
 namespace vector

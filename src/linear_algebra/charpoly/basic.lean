@@ -17,7 +17,7 @@ prove the Cayley–Hamilton theorem over arbitrary commutative rings.
 
 ## Main definitions
 
-* `matrix.char_poly` is the characteristic polynomial of a matrix.
+* `matrix.charpoly` is the characteristic polynomial of a matrix.
 
 ## Implementation details
 

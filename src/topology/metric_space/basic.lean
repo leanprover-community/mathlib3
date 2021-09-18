@@ -1149,7 +1149,7 @@ lemma nnreal.nndist_eq (a b : ℝ≥0) :
 begin
   wlog h : a ≤ b,
   { apply nnreal.coe_eq.1,
-    rw [nnreal.sub_eq_zero h, max_eq_right (zero_le $ b - a), ← dist_nndist, nnreal.dist_eq,
+    rw [sub_eq_zero_iff_le.2 h, max_eq_right (zero_le $ b - a), ← dist_nndist, nnreal.dist_eq,
       nnreal.coe_sub h, abs_eq_max_neg, neg_sub],
     apply max_eq_right,
     linarith [nnreal.coe_le_coe.2 h] },
@@ -1680,17 +1680,23 @@ exists_congr $ λ C, ⟨
 lemma bounded_of_compact_space [compact_space α] : bounded s :=
 compact_univ.bounded.subset (subset_univ _)
 
+lemma is_compact_of_is_closed_bounded [proper_space α] (hc : is_closed s) (hb : bounded s) :
+  is_compact s :=
+begin
+  unfreezingI { rcases eq_empty_or_nonempty s with (rfl|⟨x, hx⟩) },
+  { exact is_compact_empty },
+  { rcases hb.subset_ball x with ⟨r, hr⟩,
+    exact compact_of_is_closed_subset (proper_space.compact_ball x r) hc hr }
+end
+
 /-- The Heine–Borel theorem:
 In a proper space, a set is compact if and only if it is closed and bounded -/
 lemma compact_iff_closed_bounded [t2_space α] [proper_space α] :
   is_compact s ↔ is_closed s ∧ bounded s :=
-⟨λ h, ⟨h.is_closed, h.bounded⟩, begin
-  rintro ⟨hc, hb⟩,
-  cases s.eq_empty_or_nonempty with h h, {simp [h, is_compact_empty]},
-  rcases h with ⟨x, hx⟩,
-  rcases (bounded_iff_subset_ball x).1 hb with ⟨r, hr⟩,
-  exact compact_of_is_closed_subset (proper_space.compact_ball x r) hc hr
-end⟩
+⟨λ h, ⟨h.is_closed, h.bounded⟩, λ h, is_compact_of_is_closed_bounded h.1 h.2⟩
+
+lemma compact_space_iff_bounded_univ [proper_space α] : compact_space α ↔ bounded (univ : set α) :=
+⟨@bounded_of_compact_space α _ _, λ hb, ⟨is_compact_of_is_closed_bounded is_closed_univ hb⟩⟩
 
 section conditionally_complete_linear_order
 

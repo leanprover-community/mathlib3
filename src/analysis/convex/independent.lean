@@ -32,10 +32,6 @@ convex independence.
 
 ## TODO
 
-Once convexity is generalised to vector spaces, `convex_independent` will take as first parameter
-the semiring of scalars, so that `convex_independent p` becomes `convex_independent 𝕜 p`, mimicking
-`affine_independent 𝕜 p`. Our current definition would then correspond to `convex_independent ℝ p`.
-
 Prove `affine_independent.convex_independent`. This requires some glue between `affine_combination`
 and `finset.center_mass`.
 
@@ -46,17 +42,20 @@ independence, convex position
 
 open_locale affine big_operators classical
 open finset function
-variables {E : Type*} [add_comm_group E] [module ℝ E]
+variables (𝕜 : Type*) {E : Type*} [ordered_semiring 𝕜] [add_comm_group E] [module 𝕜 E]
           {ι : Type*} {s t : set E}
 
 /-- An indexed family is said to be convex independent if every point only belongs to convex hulls
 of sets containing it. -/
 def convex_independent (p : ι → E) : Prop :=
-∀ (s : set ι) (x : ι), p x ∈ convex_hull (p '' s) → x ∈ s
+∀ (s : set ι) (x : ι), p x ∈ convex_hull 𝕜 (p '' s) → x ∈ s
+
+variables {𝕜}
 
 /-- To check convex independence, one only has to check finsets thanks to Carathéodory's theorem. -/
-lemma convex_independent_iff_finset {p : ι → E} :
-  convex_independent p ↔ ∀ (s : finset ι) (x : ι), p x ∈ convex_hull (s.image p : set E) → x ∈ s :=
+lemma convex_independent_iff_finset [module ℝ E] {p : ι → E} :
+  convex_independent ℝ p
+  ↔ ∀ (s : finset ι) (x : ι), p x ∈ convex_hull ℝ (s.image p : set E) → x ∈ s :=
 begin
   refine ⟨λ hc s x hx, hc s x _, λ h s x hx, _⟩,
   { rwa finset.coe_image at hx },
@@ -83,15 +82,15 @@ end
 
 /-- A family with at most one point is convex independent. -/
 lemma subsingleton.convex_independent [subsingleton ι] (p : ι → E) :
-  convex_independent p :=
+  convex_independent 𝕜 p :=
 λ s x hx, begin
-  have : (convex_hull (p '' s)).nonempty := ⟨p x, hx⟩,
+  have : (convex_hull 𝕜 (p '' s)).nonempty := ⟨p x, hx⟩,
   rw [convex_hull_nonempty_iff, set.nonempty_image_iff] at this,
   rwa subsingleton.mem_iff_nonempty,
 end
 
 /-- A convex independent family is injective. -/
-protected lemma convex_independent.injective {p : ι → E} (hc : convex_independent p) :
+protected lemma convex_independent.injective {p : ι → E} (hc : convex_independent 𝕜 p) :
   function.injective p :=
 begin
   refine λ i j hij, hc {j} i _,
@@ -102,8 +101,8 @@ end
 /-- If a family is convex independent, so is any subfamily given by composition of an embedding into
 index type with the original family. -/
 lemma convex_independent.comp_embedding {ι' : Type*} (f : ι' ↪ ι) {p : ι → E}
-  (hc : convex_independent p) :
-  convex_independent (p ∘ f) :=
+  (hc : convex_independent 𝕜 p) :
+  convex_independent 𝕜 (p ∘ f) :=
 begin
   intros s x hx,
   rw ←f.injective.mem_set_image,
@@ -112,13 +111,13 @@ end
 
 /-- If a family is convex independent, so is any subfamily indexed by a subtype of the index type.
 -/
-protected lemma convex_independent.subtype {p : ι → E} (hc : convex_independent p) (s : set ι) :
-  convex_independent (λ i : s, p i) :=
+protected lemma convex_independent.subtype {p : ι → E} (hc : convex_independent 𝕜 p) (s : set ι) :
+  convex_independent 𝕜 (λ i : s, p i) :=
 hc.comp_embedding (embedding.subtype _)
 
 /-- If an indexed family of points is convex independent, so is the corresponding set of points. -/
-protected lemma convex_independent.range {p : ι → E} (hc : convex_independent p) :
-  convex_independent (λ x, x : set.range p → E) :=
+protected lemma convex_independent.range {p : ι → E} (hc : convex_independent 𝕜 p) :
+  convex_independent 𝕜 (λ x, x : set.range p → E) :=
 begin
   let f : set.range p → ι := λ x, x.property.some,
   have hf : ∀ x, p (f x) = x := λ x, x.property.some_spec,
@@ -129,15 +128,15 @@ begin
 end
 
 /-- A subset of a convex independent set of points is convex independent as well. -/
-protected lemma convex_independent.mono {s t : set E} (hc : convex_independent (λ x, x : t → E))
+protected lemma convex_independent.mono {s t : set E} (hc : convex_independent 𝕜 (λ x, x : t → E))
   (hs : s ⊆ t) :
-  convex_independent (λ x, x : s → E) :=
+  convex_independent 𝕜 (λ x, x : s → E) :=
 hc.comp_embedding (s.embedding_of_subset t hs)
 
 /-- The range of an injective indexed family of points is convex independent iff that family is. -/
 lemma function.injective.convex_independent_iff_set {p : ι → E}
   (hi : function.injective p) :
-  convex_independent (λ x, x : set.range p → E) ↔ convex_independent p :=
+  convex_independent 𝕜 (λ x, x : set.range p → E) ↔ convex_independent 𝕜 p :=
 ⟨λ hc, hc.comp_embedding
   (⟨λ i, ⟨p i, set.mem_range_self _⟩, λ x y h, hi (subtype.mk_eq_mk.1 h)⟩ : ι ↪ set.range p),
   convex_independent.range⟩
@@ -145,14 +144,14 @@ lemma function.injective.convex_independent_iff_set {p : ι → E}
 /-- If a family is convex independent, a point in the family is in the convex hull of some of the
 points given by a subset of the index type if and only if the point's index is in this subset. -/
 @[simp] protected lemma convex_independent.mem_convex_hull_iff {p : ι → E}
-    (hc : convex_independent p) (s : set ι) (i : ι) :
-  p i ∈ convex_hull (p '' s) ↔ i ∈ s :=
-⟨hc _ _, λ hi, subset_convex_hull  _ (set.mem_image_of_mem p hi)⟩
+    (hc : convex_independent 𝕜 p) (s : set ι) (i : ι) :
+  p i ∈ convex_hull 𝕜 (p '' s) ↔ i ∈ s :=
+⟨hc _ _, λ hi, subset_convex_hull 𝕜 _ (set.mem_image_of_mem p hi)⟩
 
 /-- If a family is convex independent, a point in the family is not in the convex hull of the other
 points. See `convex_independent_set_iff_not_mem_convex_hull_diff` for the `set` version.  -/
 lemma convex_independent_iff_not_mem_convex_hull_diff {p : ι → E} :
-  convex_independent p ↔ ∀ i s, p i ∉ convex_hull (p '' (s \ {i})) :=
+  convex_independent 𝕜 p ↔ ∀ i s, p i ∉ convex_hull 𝕜 (p '' (s \ {i})) :=
 begin
   refine ⟨λ hc i s h, _, λ h s i hi, _⟩,
   { rw hc.mem_convex_hull_iff at h,
@@ -164,7 +163,7 @@ begin
 end
 
 lemma convex_independent_set_iff_inter_convex_hull_subset {s : set E} :
-  convex_independent (λ x, x : s → E) ↔ ∀ t, t ⊆ s → s ∩ convex_hull t ⊆ t :=
+  convex_independent 𝕜 (λ x, x : s → E) ↔ ∀ t, t ⊆ s → s ∩ convex_hull 𝕜 t ⊆ t :=
 begin
   split,
   { rintro hc t h x ⟨hxs, hxt⟩,
@@ -179,7 +178,7 @@ end
 /-- If a set is convex independent, a point in the set is not in the convex hull of the other
 points. See `convex_independent_iff_not_mem_convex_hull_diff` for the indexed family version.  -/
 lemma convex_independent_set_iff_not_mem_convex_hull_diff {s : set E} :
-  convex_independent (λ x, x : s → E) ↔ ∀ x ∈ s, x ∉ convex_hull (s \ {x}) :=
+  convex_independent 𝕜 (λ x, x : s → E) ↔ ∀ x ∈ s, x ∉ convex_hull 𝕜 (s \ {x}) :=
 begin
   rw convex_independent_set_iff_inter_convex_hull_subset,
   split,
@@ -192,8 +191,8 @@ end
 
 /-! ### Extreme points -/
 
-lemma convex.extreme_points_convex_independent (hs : convex s) :
-  convex_independent (λ p, p : s.extreme_points → E) :=
+lemma convex.extreme_points_convex_independent [module ℝ E] (hs : convex ℝ s) :
+  convex_independent ℝ (λ p, p : s.extreme_points → E) :=
 convex_independent_set_iff_not_mem_convex_hull_diff.2 $ λ x hx h,
   (extreme_points_convex_hull_subset
   (inter_extreme_points_subset_extreme_points_of_subset (convex_hull_min

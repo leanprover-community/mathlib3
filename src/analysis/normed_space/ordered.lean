@@ -1,7 +1,8 @@
 /-
 Copyright (c) 2020 Anatole Dedecker. All rights reserved.
+Copyright (c) 2021 Christopher Hoskin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Anatole Dedecker
+Authors: Anatole Dedecker, Christopher Hoskin
 -/
 import analysis.normed_space.basic
 import algebra.lattice_ordered_group
@@ -12,6 +13,22 @@ import topology.order.lattice
 
 In this file, we define classes for fields and groups that are both normed and ordered.
 These are mostly useful to avoid diamonds during type class inference.
+
+Motivated by the theory of Banach Lattices, we then define `normed_lattice_add_comm_group` as a
+lattice with a covariant normed group addition satisfying the solid axiom.
+
+## Main statements
+
+We show that a normed lattice ordered group is a topological lattice with respect to the norm
+topology.
+
+## References
+
+* [Meyer-Nieberg, Banach lattices][MeyerNieberg1991]
+
+## Tags
+
+normed, lattice, ordered, group
 -/
 
 open filter set
@@ -51,24 +68,42 @@ noncomputable
 instance : normed_linear_ordered_field ℝ :=
 ⟨dist_eq_norm, normed_field.norm_mul⟩
 
--- See e.g. Peter Meyer-Nieberg
+/-!
+### Normed lattice orderd groups
+
+Motivated by the theory of Banach Lattices, this section introduces normed lattice ordered groups.
+-/
 
 local notation `|`a`|` := abs a
 
--- I guess we would call this a normed lattice ordered group
+/--
+Let `α` be a normed commutative group equipped with a partial order covariant with addition, with
+respect which `α` forms a lattice. Suppose that `α` is *solid*, that is to say, for `a` and `b` in
+`α`, with absolute values `|a|` and `|b|` respectively, `|a| ≤ |b|` implies `∥a∥ ≤ ∥b∥`. Then `α` is
+said to be a normed lattice ordered group.
+-/
 class normed_lattice_add_comm_group (α : Type*)
   extends normed_group α, lattice α :=
 (add_le_add_left : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
 (solid : ∀ a b : α, |a| ≤ |b| → ∥a∥ ≤ ∥b∥)
 
--- Suggested https://leanprover.zulipchat.com/#narrow/stream/113489-new-members/topic/norm.20of.20abs
+/--
+A normed lattice ordered group is a lattice ordered group
+-/
 instance normed_lattice_add_comm_group_to_covariant_class {α : Type*}
   [h : normed_lattice_add_comm_group α] : covariant_class α α (+) (≤) :=
 {elim := λ a b c bc,  normed_lattice_add_comm_group.add_le_add_left _ _ bc a}
 
+/--
+Let `α` be a normed group with a partial order. Then the order dual is also a normed group.
+-/
 instance {α : Type*} : Π [normed_group α], normed_group (order_dual α) := id
 
-lemma opsolid {α : Type*} [h: normed_lattice_add_comm_group α] : ∀ a b : α, a⊓-a ≥ b⊓-b →
+/--
+Let `α` be a normed lattice ordered group and let `a`and `b` be elements of `α`. Then `a⊓-a ≥ b⊓-b`
+implies `∥a∥ ≤ ∥b∥`.
+-/
+lemma dual_solid {α : Type*} [h: normed_lattice_add_comm_group α] : ∀ a b : α, a⊓-a ≥ b⊓-b →
   ∥a∥ ≤ ∥b∥ :=
 begin
   intros a b h₁,
@@ -82,8 +117,10 @@ begin
   finish,
 end
 
-
--- If α is a normed lattice ordered group, so is order_dual α
+/--
+Let `α` be a normed lattice ordered group, then the order dual is also a
+normed lattice ordered group.
+-/
 instance {α : Type*} [h: normed_lattice_add_comm_group α] : normed_lattice_add_comm_group
   (order_dual α) := {
   add_le_add_left := begin
@@ -95,12 +132,16 @@ instance {α : Type*} [h: normed_lattice_add_comm_group α] : normed_lattice_add
   end,
   solid := begin
     intros a b h₂,
-    apply opsolid,
+    apply dual_solid,
     rw ← order_dual.dual_le at h₂,
     finish,
   end,
 }
 
+/--
+Let `α` be a normed lattice ordered group, let `a` be an element of `α` and let `|a|` be the
+absolute value of `a`. Then `∥|a|∥ = ∥a∥`.
+-/
 lemma norm_abs_eq_norm {α : Type*} [normed_lattice_add_comm_group α] (a : α) : ∥|a|∥ = ∥a∥ :=
 begin
   rw le_antisymm_iff,
@@ -115,9 +156,9 @@ begin
   }
 end
 
--- e.g. https://github.com/leanprover-community/mathlib/blob/1fdce2f8774ca129326ae6ec737005dbfa94bf3c/src/analysis/normed_space/basic.lean#L877
--- Banasiak, Banach Lattices in Applications,
--- Proposition 2.19
+/--
+Let `α` be a normed lattice ordered group. Then the infimum is jointly continuous.
+-/
 @[priority 100] -- see Note [lower instance priority]
 instance normed_lattice_add_comm_group_has_continuous_inf {α : Type*}
   [normed_lattice_add_comm_group α] : has_continuous_inf α :=
@@ -164,9 +205,15 @@ begin
 end
 ⟩
 
+/--
+Let `α` be a normed lattice ordered group. Then the supremum is jointly continuous.
+-/
 lemma normed_lattice_add_comm_group_has_continuous_sup {α : Type*}
   [h: normed_lattice_add_comm_group α] : has_continuous_sup α :=
 infer_instance
 
+/--
+Let `α` be a normed lattice ordered group. Then `α` is a topological lattice in the norm topology.
+-/
 lemma normed_lattice_add_comm_group_topological_lattice {α : Type*}
 [h: normed_lattice_add_comm_group α] : topological_lattice α := by exact topological_lattice.mk

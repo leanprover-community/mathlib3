@@ -53,7 +53,7 @@ Linear algebra:
   Endomorphism polynomials:
     annihilating polynomials: ''
     minimal polynomial: 'minpoly'
-    characteristic polynomial: 'char_poly'
+    characteristic polynomial: 'charpoly'
     Cayley-Hamilton theorem: 'aeval_self_char_poly'
   Structure theory of endomorphisms:
     eigenvalue: 'module.End.has_eigenvalue'

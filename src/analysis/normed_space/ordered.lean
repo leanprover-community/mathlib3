@@ -146,14 +146,10 @@ lemma norm_abs_eq_norm {α : Type*} [normed_lattice_add_comm_group α] (a : α) 
 begin
   rw le_antisymm_iff,
   split,
-  {
-    apply normed_lattice_add_comm_group.solid,
-    rw ← lattice_ordered_comm_group.abs_idempotent a,
-  },
-  {
-    apply normed_lattice_add_comm_group.solid,
-    rw ← lattice_ordered_comm_group.abs_idempotent a,
-  }
+  { apply normed_lattice_add_comm_group.solid,
+    rw ← lattice_ordered_comm_group.abs_idempotent a, },
+  { apply normed_lattice_add_comm_group.solid,
+    rw ← lattice_ordered_comm_group.abs_idempotent a, }
 end
 
 /--
@@ -172,8 +168,7 @@ begin
     apply le_trans _ (norm_add_le (|p.fst - q.fst|) (|p.snd - q.snd|)),
     apply normed_lattice_add_comm_group.solid,
     rw lattice_ordered_comm_group.abs_pos_eq (|p.fst - q.fst| + |p.snd - q.snd|),
-    {
-      calc |p.fst ⊓ p.snd - q.fst ⊓ q.snd| =
+    { calc |p.fst ⊓ p.snd - q.fst ⊓ q.snd| =
         |p.fst ⊓ p.snd - q.fst ⊓ p.snd + (q.fst ⊓ p.snd - q.fst ⊓ q.snd)| :
           by { rw sub_add_sub_cancel, }
         ... ≤ |p.fst ⊓ p.snd - q.fst ⊓ p.snd| + |q.fst ⊓ p.snd - q.fst ⊓ q.snd| :
@@ -190,13 +185,10 @@ begin
             (sup_le_iff.elim_left (lattice_ordered_comm_group.Birkhoff_inequalities _ _ _)).right,
           -- Should I be surprised that this isn't infered automatically?
           apply normed_lattice_add_comm_group_to_covariant_class,
-        },
-    },
-    {
-      apply add_nonneg,
+        }, },
+    { apply add_nonneg,
       apply lattice_ordered_comm_group.abs_pos,
-      apply lattice_ordered_comm_group.abs_pos,
-    }
+      apply lattice_ordered_comm_group.abs_pos, }
   },
   refine squeeze_zero (λ e, norm_nonneg _) this _,
   convert (((continuous_fst.tendsto q).sub tendsto_const_nhds).norm).add

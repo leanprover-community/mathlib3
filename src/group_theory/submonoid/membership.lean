@@ -256,11 +256,6 @@ variables [add_monoid A]
 
 open set
 
-lemma nsmul_mem (S : add_submonoid A) {x : A} (hx : x ∈ S) :
-  ∀ n : ℕ, n • x ∈ S
-| 0     := by { rw zero_nsmul, exact S.zero_mem }
-| (n+1) := by { rw [add_nsmul, one_nsmul], exact S.add_mem (nsmul_mem n) hx }
-
 lemma closure_singleton_eq (x : A) : closure ({x} : set A) = (multiples_hom A x).mrange :=
 closure_eq_of_le (set.singleton_subset_iff.2 ⟨1, one_nsmul x⟩) $
   λ x ⟨n, hn⟩, hn ▸ nsmul_mem _ (subset_closure $ set.mem_singleton _) _

@@ -18,7 +18,10 @@ In this file we define and prove properties about finite products of measures
 
 To apply Fubini along some subset of the variables, use
 `measure_theory.measure.map_pi_equiv_pi_subtype_prod` to reduce to the situation of a product
-of two measures.
+of two measures: this lemma states that the bijection `equiv.pi_equiv_pi_subtype_prod p α`
+between `(Π i : ι, α i)` and `(Π i : {i // p i}, α i) × (Π i : {i // ¬ p i}, α i)` maps a product
+measure to a direct product of product measures, to which one can apply the usual Fubini for
+direct product of measures.
 
 ## Implementation Notes
 
@@ -520,8 +523,8 @@ begin
                   λ i hi, by simpa [dif_neg hi] using h i⟩ },
     { assume h i,
       by_cases hi : p i,
-      simpa only [dif_pos hi] using h.1 i hi,
-      simpa only [dif_neg hi] using h.2 i hi } },
+      { simpa only [dif_pos hi] using h.1 i hi },
+      {simpa only [dif_neg hi] using h.2 i hi } } },
   rw [measure.map_apply (measurable_pi_equiv_pi_subtype_prod_symm _ p)
         (measurable_set.univ_pi_fintype hs), A,
       measure.prod_prod, pi_pi, pi_pi, ← fintype.prod_subtype_mul_prod_subtype p (λ i, μ i (s i))],

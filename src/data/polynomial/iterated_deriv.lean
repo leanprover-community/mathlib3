@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 
-import data.finset.intervals
+import data.nat.intervals
 import data.polynomial.derivative
 import tactic.linarith
 
@@ -128,7 +128,7 @@ begin
   { intro m, rw [iterated_deriv_succ, coeff_derivative, ih (m+1), mul_right_comm],
     apply congr_arg2,
     { have set_eq : (Ico m.succ (m + k.succ.succ)) = (Ico (m + 1).succ (m + 1 + k.succ)) ∪ {m+1},
-      { rw [union_comm, ←insert_eq, Ico.insert_succ_bot, add_succ, add_succ, add_succ _ k,
+      { rw [union_comm, ←insert_eq, Ico_insert_succ_left, add_succ, add_succ, add_succ _ k,
             ←succ_eq_add_one, succ_add],
         rw succ_eq_add_one,
         linarith },

@@ -3,10 +3,9 @@ Copyright (c) 2021 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
+import algebra.big_operators.intervals
 import measure_theory.measure.measure_space
 import measure_theory.pi_system
-import algebra.big_operators.intervals
-import data.finset.intervals
 
 /-!
 # Independence of sets of sets and measure spaces (σ-algebras)

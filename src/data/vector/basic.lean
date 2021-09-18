@@ -55,6 +55,11 @@ instance zero_subsingleton : subsingleton (vector α 0) :=
   ∀ (v : vector α n) h, (⟨to_list v, h⟩ : vector α n) = v
 | ⟨l, h₁⟩ h₂ := rfl
 
+@[simp]
+lemma length_coe (v : vector α n) :
+  ((coe : { l : list α // l.length = n } → list α) v).length = n :=
+v.2
+
 @[simp] lemma to_list_map {β : Type*} (v : vector α n) (f : α → β) : (v.map f).to_list =
   v.to_list.map f := by cases v; refl
 

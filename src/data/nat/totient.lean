@@ -181,16 +181,8 @@ begin
     { rintro rfl,
       rw [totient_one, nat.sub_self] at h,
       exact one_ne_zero h } },
-  have hsplit : finset.range p = {0} ∪ (finset.Ico 1 p),
-  { rw [finset.range_eq_Ico, ←finset.Ico_union_Ico_eq_Ico zero_le_one hp.le,
-      finset.Ico_succ_singleton] },
-  have hempty : finset.filter p.coprime {0} = ∅,
-  { simp only [finset.filter_singleton, nat.coprime_zero_right, hp.ne', if_false] },
-  rw [totient_eq_card_coprime, hsplit, finset.filter_union, hempty, finset.empty_union,
-    ←nat.card_Ico 1 p] at h,
-  refine p.prime_of_coprime hp (λ n hn hnz, _),
-  apply finset.filter_card_eq h n,
-  refine finset.mem_Ico.mpr ⟨_, hn⟩,
+  rw [totient_eq_card_coprime, range_eq_Ico, ←Ico_insert_succ_left hp.le, finset.filter_insert, if_neg (tactic.norm_num.nat_coprime_helper_zero_right p hp), ←nat.card_Ico 1 p] at h,
+  refine p.prime_of_coprime hp (λ n hn hnz, finset.filter_card_eq h n $ finset.mem_Ico.mpr ⟨_, hn⟩),
   rwa [succ_le_iff, pos_iff_ne_zero],
 end
 

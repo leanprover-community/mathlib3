@@ -167,3 +167,6 @@ end
 lemma normed_lattice_add_comm_group_has_continuous_sup {α : Type*}
   [h: normed_lattice_add_comm_group α] : has_continuous_sup α :=
 infer_instance
+
+lemma normed_lattice_add_comm_group_topological_lattice {α : Type*}
+[h: normed_lattice_add_comm_group α] : topological_lattice α := by exact topological_lattice.mk

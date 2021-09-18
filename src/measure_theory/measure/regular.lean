@@ -227,15 +227,39 @@ begin
     simpa only [ennreal.mul_infi_of_ne h0 hx, gt_iff_lt, infi_lt_iff, exists_prop] using hr }
 end
 
-lemma of_seq_restrict (μ : measure α) (s : ℕ → set α) (h : ∀ n, outer_regular (μ.restrict (s n)))
-  (hU : (⋃ n, s n) = univ) : outer_regular μ :=
+/-- Let `s` an open covering If the restriction of `μ` to each `s n` is outer regular and `μ` is
+finite on each `s n`, then `μ` is outer regular. -/
+lemma of_seq_restrict [opens_measurable_space α] (μ : measure α) (s : ℕ → set α)
+  [∀ n, outer_regular (μ.restrict (s n))] (ht : ∀ n, μ (s n) ≠ ⊤)
+  (ho : ∀ n, is_open (s n)) (hUs : (⋃ n, s n) = univ) : outer_regular μ :=
 ⟨begin
-  introsI A hA r hr,
+  intros A hA r hr,
+  have hm : ∀ n, measurable_set (s n), from λ n, (ho n).measurable_set,
+  -- Note that `A = ⋃ n, A ∩ disjointed s n`. We replace `A` with this sequence.
+  obtain ⟨A, hAm, hAs, hAd, rfl⟩ : ∃ A' : ℕ → set α, (∀ n, measurable_set (A' n)) ∧
+    (∀ n, A' n ⊆ s n) ∧ pairwise (disjoint on A') ∧ A = ⋃ n, A' n,
+  { refine ⟨λ n, A ∩ disjointed s n, λ n, hA.inter (measurable_set.disjointed hm _),
+      λ n, (inter_subset_right _ _).trans (disjointed_subset _ _),
+      (disjoint_disjointed s).mono (λ k l hkl, hkl.mono inf_le_right inf_le_right), _⟩,
+    rw [← inter_Union, Union_disjointed, hUs, inter_univ] },
   rcases ennreal.exists_pos_sum_of_encodable' (ennreal.sub_pos.2 hr).ne' ℕ with ⟨δ, δ0, hδε⟩,
-  set t : ℕ → set α := disjointed (accumulate s),
-  have htU : (⋃ n, t n) = univ, by simp only [t, Union_disjointed, Union_accumulate, hU],
-  have htd : pairwise (disjoint on t) := disjoint_disjointed _,
-  
+  rw [ennreal.lt_sub_iff_add_lt, add_comm] at hδε,
+  have : ∀ n, ∃ U ⊇ A n, is_open U ∧ μ U < μ (A n) + δ n,
+  { intro n,
+    have H₁ : ∀ t, μ.restrict (s n) t = μ (t ∩ s n) := λ t, restrict_apply' (ho n).measurable_set,
+    have Ht : μ.restrict (s n) (A n) ≠ ⊤,
+    { rw H₁, exact ne_top_of_le_ne_top (ht n) (measure_mono $ inter_subset_right _ _) },
+    rcases (A n).exists_is_open_lt_of_lt _ (ennreal.lt_add_right Ht (δ0 n).ne')
+      with ⟨U, hAU, hUo, hU⟩,
+    rw [H₁, H₁, inter_eq_self_of_subset_left (hAs _)] at hU,
+    exact ⟨U ∩ s n, subset_inter hAU (hAs _), hUo.inter (ho n), hU⟩ },
+  choose U hAU hUo hU,
+  refine ⟨⋃ n, U n, Union_subset_Union hAU, is_open_Union hUo, _⟩,
+  calc μ (⋃ n, U n) ≤ ∑' n, μ (U n)             : measure_Union_le _
+                ... ≤ ∑' n, (μ (A n) + δ n)     : ennreal.tsum_le_tsum (λ n, (hU n).le)
+                ... = ∑' n, μ (A n) + ∑' n, δ n : ennreal.tsum_add
+                ... = μ (⋃ n, A n) + ∑' n, δ n  : congr_arg2 (+) (measure_Union hAd hAm).symm rfl
+                ... < _                         : hδε
 end⟩
 
 end outer_regular
@@ -511,61 +535,19 @@ namespace regular
 /-- Any locally finite measure on a sigma compact locally compact metric space is regular. -/
 @[priority 100] -- see Note [lower instance priority]
 instance of_sigma_compact_space_of_is_locally_finite_measure {X : Type*}
-  [emetric_space X] [sigma_compact_space X] [locally_compact_space X]
-  [measurable_space X] [borel_space X] (μ : measure X)
+  [emetric_space X] [sigma_compact_space X] [measurable_space X] [borel_space X] (μ : measure X)
   [is_locally_finite_measure μ] : regular μ :=
 { lt_top_of_is_compact := λ K hK, hK.measure_lt_top,
   inner_regular := (inner_regular.is_compact_is_closed μ).trans
     (inner_regular.of_pseudo_emetric_space μ),
-  outer_regular :=
+  to_outer_regular :=
   begin
-    /- let `B n` be a compact exhaustion of the space, and let `C n = B n \ B (n-1)`. Consider a
-    measurable set `A`. Then `A ∩ C n` is a set of finite measure, that can be approximated by an
-    open set `U n` (by using the fact that the measure restricted to `B (n+1)` is finite, and
-    therefore weakly regular). The union of the `U n` is an open set containing `A`, with measure
-    arbitrarily close to that of `A`.
-    -/
-    assume A hA r hr,
-    rcases ennreal.exists_pos_sum_of_encodable' (ennreal.sub_pos.2 hr).ne' ℕ with ⟨δ, δpos, hδ⟩,
-    have B : compact_exhaustion X := default _,
-    let C := disjointed (λ n, B n),
-    have C_meas : ∀ n, measurable_set (C n) :=
-      measurable_set.disjointed (λ n, (B.is_compact n).measurable_set),
-    have A_eq : A = (⋃ n, A ∩ C n),
-      by simp_rw [← inter_Union, C, Union_disjointed, compact_exhaustion.Union_eq, inter_univ],
-    have μA_eq : μ A = ∑' n, μ (A ∩ C n),
-    { conv_lhs { rw A_eq },
-      rw measure_Union,
-      { assume m n hmn,
-        exact disjoint.mono (inter_subset_right _ _) (inter_subset_right _ _)
-          (disjoint_disjointed _ m n hmn), },
-      { exact (λ n, hA.inter (C_meas n)) } },
-    have : ∀ n, ∃ U, is_open U ∧ (A ∩ C n ⊆ U) ∧ (μ U ≤ μ (A ∩ C n) + δ n),
-    { assume n,
-      set ν := μ.restrict (B (n+1)) with hν,
-      haveI : fact (μ (B (n + 1)) < ∞) := ⟨(B.is_compact _).measure_lt_top⟩,
-      obtain ⟨U, hACU : A ∩ C n ⊆ U, U_open : is_open U, hνU : ν U < ν (A ∩ C n) + δ n⟩ :=
-        (A ∩ C n).exists_is_open_lt_of_lt _
-          (ennreal.lt_add_right (measure_ne_top ν _) (δpos n).ne'),
-      refine ⟨U ∩ interior (B (n+1)), U_open.inter is_open_interior, _, _⟩,
-      { simp only [hACU, true_and, subset_inter_iff],
-        refine (inter_subset_right _ _).trans _,
-        exact (disjointed_subset _ n).trans (B.subset_interior_succ _) },
-      { simp only [hν, restrict_apply' (B.is_compact _).measurable_set] at hνU,
-        calc μ (U ∩ interior (B (n + 1))) ≤ μ (U ∩ B (n + 1)) :
-          measure_mono (inter_subset_inter_right _ interior_subset)
-        ... ≤ μ (A ∩ C n ∩ B (n + 1)) + δ n : hνU.le
-        ... ≤ μ (A ∩ C n) + δ n :
-          add_le_add (measure_mono (inter_subset_left _ _)) (le_refl _) } },
-    choose U hU using this,
-    refine ⟨⋃ n, U n, _, is_open_Union (λ n, (hU n).1), _⟩,
-    { rw A_eq, exact Union_subset_Union (λ n, (hU n).2.1) },
-    { calc μ (⋃ (n : ℕ), U n)
-          ≤ ∑' n, μ (U n) : measure_Union_le _
-      ... ≤ ∑' n, (μ (A ∩ C n) + δ n) : ennreal.tsum_le_tsum (λ n, (hU n).2.2)
-      ... < μ A + (r - μ A) :
-        by { rw [ennreal.tsum_add, μA_eq.symm], exact ennreal.add_lt_add_left hr.lt.ne_top hδ }
-      ... = r : ennreal.add_sub_cancel_of_le hr.lt.le }
+    have : ∀ n, ∃ U ⊇ compact_covering X n, is_open U ∧ μ U < ∞,
+      from λ n, (is_compact_compact_covering X n).exists_open_superset_measure_lt_top,
+    choose U hUc hUo hU,
+    haveI : ∀ n, fact (μ (U n) < ∞) := λ n, ⟨hU n⟩,
+    refine outer_regular.of_seq_restrict _ U (λ n, (hU n).ne) hUo _,
+    exact eq_univ_of_subset (Union_subset_Union hUc) (Union_compact_covering X),
   end }
 
 end regular

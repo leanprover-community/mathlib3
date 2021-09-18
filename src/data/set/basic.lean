@@ -1719,6 +1719,12 @@ lemma image_preimage_eq_of_subset {f : α → β} {s : set β} (hs : s ⊆ range
   f '' (f ⁻¹' s) = s :=
 by rw [image_preimage_eq_inter_range, inter_eq_self_of_subset_left hs]
 
+instance set.can_lift [can_lift α β] : can_lift (set α) (set β) :=
+{ coe := λ s, can_lift.coe '' s,
+  cond := λ s, ∀ x ∈ s, can_lift.cond β x,
+  prf := λ s hs, ⟨can_lift.coe ⁻¹' s, image_preimage_eq_of_subset $
+    λ x hx, can_lift.prf _ (hs x hx)⟩ }
+
 lemma image_preimage_eq_iff {f : α → β} {s : set β} : f '' (f ⁻¹' s) = s ↔ s ⊆ range f :=
 ⟨by { intro h, rw [← h], apply image_subset_range }, image_preimage_eq_of_subset⟩
 

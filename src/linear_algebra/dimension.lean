@@ -463,9 +463,19 @@ begin
     exact le_antisymm w₁ w₂, }
 end
 
+/-- Given two basis indexed by `ι` and `ι'` of an `R`-module, where `R` satisfies the invariant
+basis number property, an equiv `ι ≃ ι' `. -/
+def equiv_of_basis (v : basis ι R M) (v' : basis ι' R M) : ι ≃ ι' :=
+nonempty.some (cardinal.lift_mk_eq.1 (cardinal.lift_max.2 (mk_eq_mk_of_basis v v')))
+
 theorem mk_eq_mk_of_basis' {ι' : Type w} (v : basis ι R M) (v' : basis ι' R M) :
   cardinal.mk ι = cardinal.mk ι' :=
 cardinal.lift_inj.1 $ mk_eq_mk_of_basis v v'
+
+/-- Given two basis indexed by `ι` and `ι'` of an `R`-module, where `R` satisfies the invariant
+basis number property, an equiv `ι ≃ ι' `. -/
+def equiv_of_basis' {ι' : Type w} (v : basis ι R M) (v' : basis ι' R M) : ι ≃ ι' :=
+nonempty.some (cardinal.eq.1 (mk_eq_mk_of_basis' v v'))
 
 end invariant_basis_number
 

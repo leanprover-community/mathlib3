@@ -32,17 +32,17 @@ variables [add_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M]
 variables {A}
 
 /-- The `R`-algebra morphism `A → End (M)` corresponding to the representation of the algebra `A`
-on the `R`-module `M`. -/
+on the `R`-module `M`.
+
+This is a stronger version of `distrib_mul_action.to_linear_map`, and could also have been
+called `algebra.to_module_End`. -/
 def lsmul : A →ₐ[R] module.End R M :=
-{ map_one' := by { ext m, exact one_smul A m },
-  map_mul' := by { intros a b, ext c, exact smul_assoc a b c },
-  map_zero' := by { ext m, exact zero_smul A m },
-  commutes' := by { intro r, ext m, exact algebra_map_smul A r m },
-  .. (show A →ₗ[R] M →ₗ[R] M, from linear_map.mk₂ R (•)
-  (λ x y z, add_smul x y z)
-  (λ c x y, smul_assoc c x y)
-  (λ x y z, smul_add x y z)
-  (λ c x y, smul_algebra_smul_comm c x y)) }
+{ to_fun := distrib_mul_action.to_linear_map R M,
+  map_one' := linear_map.ext $ λ _, one_smul A _,
+  map_mul' := λ a b, linear_map.ext $ smul_assoc a b,
+  map_zero' := linear_map.ext $ λ _, zero_smul A _,
+  map_add' := λ a b, linear_map.ext $ λ _, add_smul _ _ _,
+  commutes' := λ r, linear_map.ext $ algebra_map_smul A r, }
 
 @[simp] lemma lsmul_coe (a : A) : (lsmul R M a : M → M) = (•) a := rfl
 

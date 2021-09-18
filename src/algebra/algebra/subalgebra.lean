@@ -521,9 +521,10 @@ lemma mem_inf {S T : subalgebra R A} {x : A} : x ∈ S ⊓ T ↔ x ∈ S ∧ x �
   (S ⊓ T).to_subsemiring = S.to_subsemiring ⊓ T.to_subsemiring := rfl
 
 @[simp, norm_cast]
-lemma coe_Inf (S : set (subalgebra R A)) : (↑(Inf S) : set A) = ⋂ s ∈ S, ↑s := rfl
+lemma coe_Inf (S : set (subalgebra R A)) : (↑(Inf S) : set A) = ⋂ s ∈ S, ↑s := Inf_image
 
-lemma mem_Inf {S : set (subalgebra R A)} {x : A} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_bInter_iff
+lemma mem_Inf {S : set (subalgebra R A)} {x : A} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p :=
+by simp only [← set_like.mem_coe, coe_Inf, set.mem_bInter_iff]
 
 @[simp] lemma Inf_to_submodule (S : set (subalgebra R A)) :
   (Inf S).to_submodule = Inf (subalgebra.to_submodule '' S) :=
@@ -535,7 +536,7 @@ set_like.coe_injective $ by simp
 
 @[simp, norm_cast]
 lemma coe_infi {ι : Sort*} {S : ι → subalgebra R A} : (↑(⨅ i, S i) : set A) = ⋂ i, S i :=
-set.bInter_range
+by simp [infi]
 
 lemma mem_infi {ι : Sort*} {S : ι → subalgebra R A} {x : A} : (x ∈ ⨅ i, S i) ↔ ∀ i, x ∈ S i :=
 by simp only [infi, mem_Inf, set.forall_range_iff]

@@ -47,8 +47,8 @@ namespace caratheodory
 /-- If `x` is in the convex hull of some finset `t` whose elements are not affine-independent,
 then it is in the convex hull of a strict subset of `t`. -/
 lemma mem_convex_hull_erase [decidable_eq E] {t : finset E}
-  (h : ¬ affine_independent ℝ (coe : t → E)) {x : E} (m : x ∈ convex_hull (↑t : set E)) :
-  ∃ (y : (↑t : set E)), x ∈ convex_hull (↑(t.erase y) : set E) :=
+  (h : ¬ affine_independent ℝ (coe : t → E)) {x : E} (m : x ∈ convex_hull ℝ (↑t : set E)) :
+  ∃ (y : (↑t : set E)), x ∈ convex_hull ℝ (↑(t.erase y) : set E) :=
 begin
   simp only [finset.convex_hull_eq, mem_set_of_eq] at m ⊢,
   obtain ⟨f, fpos, fsum, rfl⟩ := m,
@@ -88,31 +88,31 @@ begin
       sub_zero, center_mass, fsum, inv_one, one_smul, id.def] }
 end
 
-variables {s : set E} {x : E} (hx : x ∈ convex_hull s)
+variables {s : set E} {x : E} (hx : x ∈ convex_hull ℝ s)
 include hx
 
 /-- Given a point `x` in the convex hull of a set `s`, this is a finite subset of `s` of minimum
 cardinality, whose convex hull contains `x`. -/
 noncomputable def min_card_finset_of_mem_convex_hull : finset E :=
-function.argmin_on finset.card nat.lt_wf { t | ↑t ⊆ s ∧ x ∈ convex_hull (t : set E) }
+function.argmin_on finset.card nat.lt_wf { t | ↑t ⊆ s ∧ x ∈ convex_hull ℝ (t : set E) }
 (by simpa only [convex_hull_eq_union_convex_hull_finite_subsets s, exists_prop, mem_Union] using hx)
 
 lemma min_card_finset_of_mem_convex_hull_subseteq : ↑(min_card_finset_of_mem_convex_hull hx) ⊆ s :=
-(function.argmin_on_mem _ _ { t : finset E | ↑t ⊆ s ∧ x ∈ convex_hull (t : set E) } _).1
+(function.argmin_on_mem _ _ { t : finset E | ↑t ⊆ s ∧ x ∈ convex_hull ℝ (t : set E) } _).1
 
 lemma mem_min_card_finset_of_mem_convex_hull :
-  x ∈ convex_hull (min_card_finset_of_mem_convex_hull hx : set E) :=
-(function.argmin_on_mem _ _ { t : finset E | ↑t ⊆ s ∧ x ∈ convex_hull (t : set E) } _).2
+  x ∈ convex_hull ℝ (min_card_finset_of_mem_convex_hull hx : set E) :=
+(function.argmin_on_mem _ _ { t : finset E | ↑t ⊆ s ∧ x ∈ convex_hull ℝ (t : set E) } _).2
 
 lemma min_card_finset_of_mem_convex_hull_nonempty :
   (min_card_finset_of_mem_convex_hull hx).nonempty :=
 begin
-  rw [← finset.coe_nonempty, ← convex_hull_nonempty_iff],
+  rw [← finset.coe_nonempty, ← @convex_hull_nonempty_iff ℝ],
   exact ⟨x, mem_min_card_finset_of_mem_convex_hull hx⟩,
 end
 
 lemma min_card_finset_of_mem_convex_hull_card_le_card
-  {t : finset E} (ht₁ : ↑t ⊆ s) (ht₂ : x ∈ convex_hull (t : set E)) :
+  {t : finset E} (ht₁ : ↑t ⊆ s) (ht₂ : x ∈ convex_hull ℝ (t : set E)) :
   (min_card_finset_of_mem_convex_hull hx).card ≤ t.card :=
 function.argmin_on_le _ _ _ ⟨ht₁, ht₂⟩
 
@@ -141,8 +141,8 @@ variables {s : set E}
 
 /-- **Carathéodory's convexity theorem** -/
 lemma convex_hull_eq_union :
-  convex_hull s =
-  ⋃ (t : finset E) (hss : ↑t ⊆ s) (hai : affine_independent ℝ (coe : t → E)), convex_hull ↑t :=
+  convex_hull ℝ s =
+  ⋃ (t : finset E) (hss : ↑t ⊆ s) (hai : affine_independent ℝ (coe : t → E)), convex_hull ℝ ↑t :=
 begin
   apply set.subset.antisymm,
   { intros x hx,
@@ -156,7 +156,7 @@ begin
 end
 
 /-- A more explicit version of `convex_hull_eq_union`. -/
-theorem eq_pos_convex_span_of_mem_convex_hull {x : E} (hx : x ∈ convex_hull s) :
+theorem eq_pos_convex_span_of_mem_convex_hull {x : E} (hx : x ∈ convex_hull ℝ s) :
   ∃ (ι : Sort (u+1)) (_ : fintype ι), by exactI ∃ (z : ι → E) (w : ι → ℝ)
     (hss : set.range z ⊆ s) (hai : affine_independent ℝ z)
     (hw : ∀ i, 0 < w i), ∑ i, w i = 1 ∧ ∑ i, w i • z i = x :=

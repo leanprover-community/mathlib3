@@ -280,6 +280,7 @@ lemma ring_hom_ext {A : Type*} [semiring A] {f g : mv_polynomial σ R →+* A}
   f = g :=
 by { ext, exacts [hC _, hX _] }
 
+/-- See note [partially-applied ext lemmas]. -/
 @[ext] lemma ring_hom_ext' {A : Type*} [semiring A] {f g : mv_polynomial σ R →+* A}
   (hC : f.comp C = g.comp C) (hX : ∀ i, f (X i) = g (X i)) :
   f = g :=

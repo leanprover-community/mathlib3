@@ -2161,6 +2161,8 @@ begin
   exact lintegral_le_of_forall_fin_meas_le_of_measurable hm C hf_meas.measurable_mk hf',
 end
 
+omit m
+
 /-- If the Lebesgue integral of a function is bounded by some constant on all sets with finite
 measure and the measure is σ-finite, then the integral over the whole space is bounded by that same
 constant. -/

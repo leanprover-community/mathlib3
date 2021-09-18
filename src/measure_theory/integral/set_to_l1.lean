@@ -359,7 +359,7 @@ begin
       exact subsingleton.elim s ∅, },
     simp [hs_univ, set_to_simple_func], },
   simp_rw set_to_simple_func,
-  rw set.ne_empty_iff_nonempty at hs_empty,
+  rw [← ne.def, set.ne_empty_iff_nonempty] at hs_empty,
   rw range_indicator hs hs_empty hs_univ,
   by_cases hx0 : x = 0,
   { simp_rw hx0, simp, },

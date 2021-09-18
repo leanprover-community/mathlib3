@@ -163,13 +163,18 @@ begin
     (subset_union_right _ _)
 end
 
+lemma edist_approx_on_mono {f : β → α} (hf : measurable f) {s : set α} {y₀ : α} (h₀ : y₀ ∈ s)
+  [separable_space s] (x : β) {m n : ℕ} (h : m ≤ n) :
+  edist (approx_on f hf s y₀ h₀ n x) (f x) ≤ edist (approx_on f hf s y₀ h₀ m x) (f x) :=
+begin
+  dsimp only [approx_on, coe_comp, (∘)],
+  exact edist_nearest_pt_le _ _ ((nearest_pt_ind_le _ _ _).trans h)
+end
+
 lemma edist_approx_on_le {f : β → α} (hf : measurable f) {s : set α} {y₀ : α} (h₀ : y₀ ∈ s)
   [separable_space s] (x : β) (n : ℕ) :
   edist (approx_on f hf s y₀ h₀ n x) (f x) ≤ edist y₀ (f x) :=
-begin
-  dsimp only [approx_on, coe_comp, (∘)],
-  exact edist_nearest_pt_le _ _ (zero_le _)
-end
+edist_approx_on_mono hf h₀ x (zero_le n)
 
 lemma edist_approx_on_y0_le {f : β → α} (hf : measurable f) {s : set α} {y₀ : α} (h₀ : y₀ ∈ s)
   [separable_space s] (x : β) (n : ℕ) :

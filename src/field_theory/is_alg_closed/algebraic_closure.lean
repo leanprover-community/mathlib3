@@ -271,24 +271,3 @@ instance : is_alg_closure k (algebraic_closure k) :=
 ⟨algebraic_closure.is_alg_closed k, is_algebraic k⟩
 
 end algebraic_closure
-
-/--
-Every element `f` in a nontrivial finite-dimensional algebra `A`
-over an algebraically closed field `K`
-has non-empty spectrum:
-that is, there is some `c : K` so `f - c • 1` is not invertible.
--/
--- We will use this both to show eigenvalues exist, and to prove Schur's lemma.
-lemma exists_spectrum_of_is_alg_closed_of_finite_dimensional (𝕜 : Type*) [field 𝕜] [is_alg_closed 𝕜]
-  {A : Type*} [nontrivial A] [ring A] [algebra 𝕜 A] [I : finite_dimensional 𝕜 A] (f : A) :
-  ∃ c : 𝕜, ¬ is_unit (f - algebra_map 𝕜 A c) :=
-begin
-  obtain ⟨p, ⟨h_mon, h_eval_p⟩⟩ := is_integral_of_noetherian I f,
-  have nu : ¬ is_unit (aeval f p), { rw [←aeval_def] at h_eval_p, rw h_eval_p, simp, },
-  rw [eq_prod_roots_of_monic_of_splits_id h_mon (is_alg_closed.splits p),
-    ←multiset.prod_to_list, alg_hom.map_list_prod] at nu,
-  replace nu := mt list.prod_is_unit nu,
-  simp only [not_forall, exists_prop, aeval_C, multiset.mem_to_list,
-    list.mem_map, aeval_X, exists_exists_and_eq_and, multiset.mem_map, alg_hom.map_sub] at nu,
-  exact ⟨nu.some, nu.some_spec.2⟩,
-end

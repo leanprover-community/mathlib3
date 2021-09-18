@@ -176,6 +176,34 @@ lemma support_indicator [has_zero β] {s : set α} (hs : measurable_set s) (f : 
   function.support (f.piecewise s hs (simple_func.const α 0)) = s ∩ function.support f :=
 set.support_indicator
 
+lemma range_indicator {s : set α} (hs : measurable_set s)
+  (hs_nonempty : s.nonempty) (hs_ne_univ : s ≠ univ) (x y : β) :
+  (piecewise s hs (const α x) (const α y)).range = {x, y} :=
+begin
+  ext1 z,
+  rw [mem_range, set.mem_range, finset.mem_insert, finset.mem_singleton],
+  simp_rw piecewise_apply,
+  split; intro h,
+  { obtain ⟨a, haz⟩ := h,
+    by_cases has : a ∈ s,
+    { left,
+      simp only [has, function.const_apply, if_true, coe_const] at haz,
+      exact haz.symm, },
+    { right,
+      simp only [has, function.const_apply, if_false, coe_const] at haz,
+      exact haz.symm, }, },
+  { cases h,
+    { obtain ⟨a, has⟩ : ∃ a, a ∈ s, from hs_nonempty,
+      exact ⟨a, by simpa [has] using h.symm⟩, },
+    { obtain ⟨a, has⟩ : ∃ a, a ∉ s,
+      { by_contra,
+        push_neg at h,
+        refine hs_ne_univ _,
+        ext1 a,
+        simp [h a], },
+      exact ⟨a, by simpa [has] using h.symm⟩, }, },
+end
+
 lemma measurable_bind [measurable_space γ] (f : α →ₛ β) (g : β → α → γ)
   (hg : ∀ b, measurable (g b)) : measurable (λ a, g (f a) a) :=
 λ s hs, f.measurable_set_cut (λ a b, g b a ∈ s) $ λ b, hg b hs

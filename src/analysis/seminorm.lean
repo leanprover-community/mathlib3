@@ -53,26 +53,36 @@ nondiscrete normed field.
 open normed_field set
 open_locale pointwise topological_space
 
+section stuff
+variables {α : Type*} (β : Type*) [linear_ordered_field α] [ordered_add_comm_group β]
+ [mul_action_with_zero α β] [ordered_smul α β]
+
+@[simps] def order_iso.smul_left {a : α} (ha : 0 < a) : β ≃o β :=
+{ to_fun := λ b, a • b,
+  inv_fun := λ b, a⁻¹ • b,
+  left_inv := inv_smul_smul' ha.ne',
+  right_inv := smul_inv_smul' ha.ne',
+  map_rel_iff' := λ b₁ b₂, smul_le_smul_iff_of_pos ha }
+
+end stuff
+
 section
-variables {α : Type*} [linear_ordered_field α] [topological_space α] [module α ℝ]
-  [has_continuous_smul α ℝ] [ordered_smul α ℝ]
+variables {α : Type*} [linear_ordered_field α] [module α ℝ] [ordered_smul α ℝ]
 
 lemma real.Inf_smul_of_nonneg {a : α} (ha : 0 ≤ a) (s : set ℝ) :
   Inf (a • s) = a • Inf s :=
 begin
   obtain rfl | hs := s.eq_empty_or_nonempty,
   { rw [smul_set_empty, real.Inf_empty, smul_zero] },
+  obtain rfl | ha' := ha.eq_or_lt,
+  { rw [zero_smul_set hs, zero_smul],
+    exact cInf_singleton 0 },
   by_cases bdd_below s,
-  { rw [←set.image_smul, eq_comm],
-    exact map_cInf_of_continuous_at_of_monotone (continuous_id.const_smul _).continuous_at
-      (smul_mono_right ha) hs h },
-  { rw [real.Inf_of_not_bdd_below h, smul_zero],
-    obtain rfl | ha' := ha.eq_or_lt,
-    { rw zero_smul_set hs,
-      exact cInf_singleton 0 },
-    { sorry
-      -- exact real.Inf_of_not_bdd_below (mt (bdd_below_smul_iff_of_pos ha).2 _)
-      } }
+  { rw [←order_iso.smul_left_apply _ ha', (order_iso.smul_left ℝ ha').map_cInf hs h],
+  simp,
+    sorry
+    },
+  sorry
 end
 
 lemma real.Sup_smul_of_nonneg {a : α} (ha : 0 ≤ a) (s : set ℝ) :

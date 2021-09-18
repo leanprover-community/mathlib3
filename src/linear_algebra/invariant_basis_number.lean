@@ -84,9 +84,8 @@ strong_rank_condition.le_of_fin_injective f
 lemma strong_rank_condition_iff_succ : strong_rank_condition R ↔
   ∀ (n : ℕ) (f : (fin (n + 1) → R) →ₗ[R] (fin n → R)), ¬function.injective f :=
 begin
-  refine ⟨λ h n, _, λ h, ⟨λ n m f hf, _⟩⟩,
-  { rintros f hf,
-    letI : strong_rank_condition R := h,
+  refine ⟨λ h n, λ f hf, _, λ h, ⟨λ n m f hf, _⟩⟩,
+  { letI : strong_rank_condition R := h,
     exact nat.not_succ_le_self n (le_of_fin_injective R f hf) },
   { by_contra H,
     exact h m (f.comp (function.extend_by_zero.linear_map R (fin.cast_le (not_le.1 H))))

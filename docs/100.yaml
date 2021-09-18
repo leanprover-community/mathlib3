@@ -163,7 +163,7 @@
   title  : Dirichlet’s Theorem
 49:
   title  : The Cayley-Hamilton Theorem
-  decl   : aeval_self_char_poly
+  decl   : aeval_self_charpoly
   author : Scott Morrison
 50:
   title  : The Number of Platonic Solids

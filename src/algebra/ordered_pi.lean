@@ -58,8 +58,7 @@ instance ordered_comm_group [∀ i, ordered_comm_group $ f i] :
   ordered_comm_group (Π i : I, f i) :=
 { mul := (*), one := (1 : Π i, f i), le := (≤), lt := (<),
   npow := λ n x i, npow n (x i),
-  mul_le_mul_left := λ x y hxy c i, mul_le_mul_left' (hxy i) _,
   ..pi.comm_group,
-  ..pi.partial_order }
+  ..pi.ordered_comm_monoid, }
 
 end pi

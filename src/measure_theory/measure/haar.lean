@@ -18,7 +18,7 @@ This is essentially the same argument as in
 https://en.wikipedia.org/wiki/Haar_measure#A_construction_using_compact_subsets.
 
 We construct the Haar measure first on compact sets. For this we define `(K : U)` as the (smallest)
-number of left-translates of `U` are needed to cover `K` (`index` in the formalization).
+number of left-translates of `U` that are needed to cover `K` (`index` in the formalization).
 Then we define a function `h` on compact sets as `lim_U (K : U) / (K₀ : U)`,
 where `U` becomes a smaller and smaller open neighborhood of `1`, and `K₀` is a fixed compact set
 with nonempty interior. This function is `chaar` in the formalization, and we define the limit
@@ -544,11 +544,10 @@ end
 instance regular_haar_measure {K₀ : positive_compacts G} :
   (haar_measure K₀).regular :=
 begin
-  rw [haar_measure_apply hU.measurable_set, ennreal.div_pos_iff],
-  refine ⟨_, ne_of_lt $ content.outer_measure_lt_top_of_is_compact _ K₀.2.1⟩,
-  rw [← pos_iff_ne_zero],
-  exact content.outer_measure_pos_of_is_mul_left_invariant _ is_left_invariant_haar_content
-    ⟨K₀.1, K₀.2.1⟩ (by simpa only [haar_content_self] using one_ne_zero) hU h2U
+  haveI : locally_compact_space G := K₀.locally_compact_space_of_group,
+  apply regular.smul,
+  rw ennreal.inv_ne_top,
+  exact haar_content_outer_measure_self_pos.ne',
 end
 
 /-- The Haar measure is sigma-finite in a second countable group. -/
@@ -556,9 +555,8 @@ end
 instance sigma_finite_haar_measure [second_countable_topology G] {K₀ : positive_compacts G} :
   sigma_finite (haar_measure K₀) :=
 begin
-  apply regular.smul,
-  rw ennreal.inv_ne_top,
-  exact haar_content_outer_measure_self_pos.ne'
+  haveI : locally_compact_space G := K₀.locally_compact_space_of_group,
+  apply_instance,
 end
 
 /-- The Haar measure is a Haar measure, i.e., it is invariant and gives finite mass to compact
@@ -596,7 +594,8 @@ begin
 end
 
 @[to_additive]
-theorem regular_of_is_mul_left_invariant (hμ : is_mul_left_invariant μ) {K} (hK : is_compact K)
+theorem regular_of_is_mul_left_invariant
+  (hμ : is_mul_left_invariant μ) {K} (hK : is_compact K)
   (h2K : (interior K).nonempty) (hμK : μ K ≠ ∞) : regular μ :=
 begin
   rw [haar_measure_unique hμ ⟨K, hK, h2K⟩],
@@ -664,8 +663,8 @@ end
   {G : Type*} [comm_group G] [topological_space G] [topological_group G] [t2_space G]
   [measurable_space G] [borel_space G] [locally_compact_space G] [second_countable_topology G]
   (μ : measure G) [is_haar_measure μ] (s : set G) :
-  μ (has_inv.inv ⁻¹' s) = μ s :=
-calc μ (has_inv.inv ⁻¹' s) = measure.map (has_inv.inv) μ s :
+  μ (s⁻¹) = μ s :=
+calc μ (s⁻¹) = measure.map (has_inv.inv) μ s :
   ((homeomorph.inv G).to_measurable_equiv.map_apply s).symm
 ... = μ s : by rw map_haar_inv
 

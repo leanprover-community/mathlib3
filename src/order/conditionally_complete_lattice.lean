@@ -118,6 +118,57 @@ instance conditionally_complete_linear_order_of_complete_linear_order [complete_
   conditionally_complete_linear_order α :=
 { ..conditionally_complete_lattice_of_complete_lattice, .. ‹complete_linear_order α› }
 
+section
+open_locale classical
+
+/-- A well founded linear order is conditionally complete, with a bottom element. -/
+@[reducible] noncomputable def well_founded.conditionally_complete_linear_order_with_bot
+  {α : Type*} [i : linear_order α] (h : well_founded ((<) : α → α → Prop))
+  (c : α) (hc : c = h.min set.univ ⟨c, mem_univ c⟩) :
+  conditionally_complete_linear_order_bot α :=
+{ sup := max,
+  le_sup_left := le_max_left,
+  le_sup_right := le_max_right,
+  sup_le := λ a b c, max_le,
+  inf := min,
+  inf_le_left := min_le_left,
+  inf_le_right := min_le_right,
+  le_inf := λ a b c, le_min,
+  Inf := λ s, if hs : s.nonempty then h.min s hs else c,
+  cInf_le := begin
+    assume s a hs has,
+    have s_ne : s.nonempty := ⟨a, has⟩,
+    simpa [s_ne] using not_lt.1 (h.not_lt_min s s_ne has),
+  end,
+  le_cInf := begin
+    assume s a hs has,
+    simp only [hs, dif_pos],
+    exact has (h.min_mem s hs),
+  end,
+  Sup := λ s, if hs : (upper_bounds s).nonempty then h.min _ hs else c,
+  le_cSup := begin
+    assume s a hs has,
+    have h's : (upper_bounds s).nonempty := hs,
+    simp only [h's, dif_pos],
+    exact h.min_mem _ h's has,
+  end,
+  cSup_le := begin
+    assume s a hs has,
+    have h's : (upper_bounds s).nonempty := ⟨a, has⟩,
+    simp only [h's, dif_pos],
+    simpa using h.not_lt_min _ h's has,
+  end,
+  bot := c,
+  bot_le := λ x, by convert not_lt.1 (h.not_lt_min set.univ ⟨c, mem_univ c⟩ (mem_univ x)),
+  cSup_empty := begin
+    have : (set.univ : set α).nonempty := ⟨c, mem_univ c⟩,
+    simp only [this, dif_pos, upper_bounds_empty],
+    exact hc.symm
+  end,
+  .. i }
+
+end
+
 section order_dual
 
 instance (α : Type*) [conditionally_complete_lattice α] :
@@ -237,6 +288,12 @@ lemma cSup_lower_bounds_eq_cInf {s : set α} (h : bdd_below s) (hs : s.nonempty)
 lemma cInf_upper_bounds_eq_cSup {s : set α} (h : bdd_above s) (hs : s.nonempty) :
   Inf (upper_bounds s) = Sup s :=
 (is_glb_cInf h $ hs.mono $ λ x hx y hy, hy hx).unique (is_lub_cSup hs h).is_glb
+
+lemma not_mem_of_lt_cInf {x : α} {s : set α} (h : x < Inf s) (hs : bdd_below s) : x ∉ s :=
+λ hx, lt_irrefl _ (h.trans_le (cInf_le hs hx))
+
+lemma not_mem_of_cSup_lt {x : α} {s : set α} (h : Sup s < x) (hs : bdd_above s) : x ∉ s :=
+@not_mem_of_lt_cInf (order_dual α) _ x s h hs
 
 /--Introduction rule to prove that `b` is the supremum of `s`: it suffices to check that `b`
 is larger than all elements of `s`, and that this is not the case of any `w<b`.

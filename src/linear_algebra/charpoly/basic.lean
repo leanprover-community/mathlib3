@@ -8,6 +8,7 @@ import ring_theory.matrix_algebra
 import ring_theory.polynomial_algebra
 import linear_algebra.matrix.nonsingular_inverse
 import tactic.squeeze
+import linear_algebra.matrix.reindex
 
 /-!
 # Characteristic polynomials and the Cayley-Hamilton theorem
@@ -65,6 +66,15 @@ begin
     split_ifs; simp, },
   { rw [charmatrix_apply_ne _ _ _ h, coeff_X, coeff_neg, coeff_C, coeff_C],
     split_ifs; simp [h], }
+end
+
+lemma charmatrix_reindex {m : Type v} [decidable_eq m] [fintype m] (e : n ≃ m) (M : matrix n n R) :
+  charmatrix (reindex e e M) = reindex e e (charmatrix M) :=
+begin
+  ext i j x,
+  by_cases h : i = j,
+  { simp [h] },
+  { simp [h] }
 end
 
 /--

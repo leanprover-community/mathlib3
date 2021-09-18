@@ -798,6 +798,26 @@ begin
   { simp }
 end
 
+lemma mem_of_mem_tail {l : list α} {a : α} (h : a ∈ l.tail) : a ∈ l :=
+begin
+  cases l with a L,
+  { cases h, },
+  { exact list.mem_cons_of_mem a h, }
+end
+
+@[simp]
+lemma tail_nth_le (l : list α) (i) (h : i < l.tail.length) :
+  l.tail.nth_le i h = l.nth_le (i+1) (by { rw l.length_tail at h, exact lt_sub_iff_right.mp h, }) :=
+begin
+  induction l with a l ih,
+  { cases h, },
+  { simp, refl, }
+end
+
+lemma tail_length_of_length_eq_succ {l : list α} {n : ℕ} (h : l.length = n + 1) :
+  l.tail.length = n :=
+by { cases l, cases h, simpa using h, }
+
 /-! ### Induction from the right -/
 
 /-- Induction principle from the right for lists: if a property holds for the empty list, and

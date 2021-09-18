@@ -372,11 +372,7 @@ variables (𝕜)
 /-- `Lp_meas_subgroup` and `Lp_meas` are isometric. -/
 def Lp_meas_subgroup_to_Lp_meas_iso [hp : fact (1 ≤ p)] :
   Lp_meas_subgroup F m p μ ≃ᵢ Lp_meas F 𝕜 m p μ :=
-{ to_fun := id,
-  inv_fun := id,
-  left_inv := λ f, rfl,
-  right_inv := λ f, rfl,
-  isometry_to_fun := by { rw isometry_emetric_iff_metric, simp, } }
+isometric.refl (Lp_meas_subgroup F m p μ)
 variables {F 𝕜 p μ}
 
 instance [hm : fact (m ≤ m0)] [complete_space F] [hp : fact (1 ≤ p)] :

@@ -27,11 +27,11 @@ variables {α : Type u} {β : α → Type u}
 
 noncomputable theory
 
-open cardinal
-
 namespace W_type
 
 open_locale cardinal
+
+open cardinal
 
 lemma cardinal_mk_eq_sum : #(W_type β) =
   cardinal.sum (λ a : α, #(W_type β) ^ #(β a)) :=
@@ -52,9 +52,8 @@ begin
 end
 
 /-- If, for any `a : α`, `β a` is finite, then the cardinality of `W_type β`
-  is at most the maximum of the cardinality of `α` and `omega`  -/
-lemma cardinal_mk_le_max_omega_of_fintype [Π a, fintype (β a)] : #(W_type β) ≤
-  max (#α) omega :=
+  is at most the maximum of the cardinality of `α` and `ω`  -/
+lemma cardinal_mk_le_max_omega_of_fintype [Π a, fintype (β a)] : #(W_type β) ≤ max (#α) ω :=
 (is_empty_or_nonempty α).elim
   (begin
     introI h,
@@ -62,7 +61,7 @@ lemma cardinal_mk_le_max_omega_of_fintype [Π a, fintype (β a)] : #(W_type β) 
     exact zero_le _
   end) $
 λ hn,
-let m := max (#α) omega in
+let m := max (#α) ω in
 cardinal_mk_le_of_le $
 calc cardinal.sum (λ a : α, m ^ #(β a))
     ≤ #α * cardinal.sup.{u u}

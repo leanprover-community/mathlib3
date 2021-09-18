@@ -143,7 +143,6 @@ lemma ess_sup_indicator_eq_ess_sup_restrict [has_zero β] {s : set α}
   {f : α → β} (hf : 0 ≤ᵐ[μ.restrict s] f) (hs : measurable_set s) (hs_not_null : μ s ≠ 0) :
   ess_sup (s.indicator f) μ = ess_sup f (μ.restrict s) :=
 begin
-  simp_rw ess_sup,
   refine le_antisymm _ _,
   swap, { exact Limsup_le_Limsup_of_le (map_restrict_ae_le_map_indicator_ae hs)
     (by is_bounded_default) (by is_bounded_default), },

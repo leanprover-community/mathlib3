@@ -480,7 +480,7 @@ namespace preorder_hom
 @[simps]
 protected def ωSup (c : chain (α →ₘ β)) : α →ₘ β :=
 { to_fun := λ a, ωSup (c.map (preorder_hom.apply a)),
-  mono' := λ x y h, ωSup_le_ωSup_of_le (chain.map_le_map _ $ λ a, a.mono h) }
+  monotone' := λ x y h, ωSup_le_ωSup_of_le (chain.map_le_map _ $ λ a, a.monotone h) }
 
 @[simps ωSup_coe]
 instance omega_complete_partial_order : omega_complete_partial_order (α →ₘ β) :=

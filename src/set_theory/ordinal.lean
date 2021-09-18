@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn
 -/
 import set_theory.cardinal
+import order.conditionally_complete_lattice
 
 /-!
 # Ordinals
@@ -48,6 +49,10 @@ initial segment (or, equivalently, in any way). This total order is well founded
 
 * `cardinal.ord c`: when `c` is a cardinal, `ord c` is the smallest ordinal with this cardinality.
   It is the canonical way to represent a cardinal with an ordinal.
+
+A conditionally complete linear order with bot structure is registered on ordinals, where `⊥` is
+`0`, the ordinal corresponding to the empty type, and `Inf` is `ordinal.omin` for nonempty sets
+and `0` for the empty set by convention.
 
 ## Notations
 * `r ≼i s`: the type of initial segment embeddings of `r` into `s`.
@@ -696,6 +701,12 @@ end⟩⟩
 
 instance : has_well_founded ordinal := ⟨(<), wf⟩
 
+/-- Reformulation of well founded induction on ordinals as a lemma that works with the
+`induction` tactic, as in `induction i using ordinal.induction with i IH`. -/
+lemma induction {p : ordinal.{u} → Prop} (i : ordinal.{u})
+  (h : ∀ j, (∀ k, k < j → p k) → p j) : p i :=
+ordinal.wf.induction i h
+
 /-- Principal segment version of the `typein` function, embedding a well order into
   ordinals as a principal segment. -/
 def typein.principal_seg {α : Type u} (r : α → α → Prop) [is_well_order α r] :
@@ -1101,6 +1112,28 @@ le_antisymm (le_min.2 $ λ a, lift_le.2 $ min_le _ a) $
 let ⟨i, e⟩ := min_eq I (lift ∘ f) in
 by rw e; exact lift_le.2 (le_min.2 $ λ j, lift_le.1 $
 by have := min_le (lift ∘ f) j; rwa e at this)
+
+instance : conditionally_complete_linear_order_bot ordinal :=
+wf.conditionally_complete_linear_order_with_bot 0 $ le_antisymm (ordinal.zero_le _) $
+  not_lt.1 (wf.not_lt_min set.univ ⟨0, mem_univ _⟩ (mem_univ 0))
+
+@[simp] lemma bot_eq_zero : (⊥ : ordinal) = 0 := rfl
+
+lemma Inf_eq_omin {s : set ordinal} (hs : s.nonempty) :
+  Inf s = omin s hs :=
+begin
+  simp only [Inf, conditionally_complete_lattice.Inf, omin, conditionally_complete_linear_order.Inf,
+    conditionally_complete_linear_order_bot.Inf, hs, dif_pos],
+  congr,
+  rw subtype.range_val,
+end
+
+lemma Inf_mem {s : set ordinal} (hs : s.nonempty) :
+  Inf s ∈ s :=
+by { rw Inf_eq_omin hs, exact omin_mem _ hs }
+
+instance : no_top_order ordinal :=
+⟨λ a, ⟨a.succ, lt_succ_self a⟩⟩
 
 end ordinal
 

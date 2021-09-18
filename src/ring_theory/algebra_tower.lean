@@ -7,7 +7,7 @@ import algebra.algebra.restrict_scalars
 import algebra.algebra.tower
 import algebra.invertible
 import linear_algebra.basis
-import ring_theory.adjoin.basic
+import ring_theory.adjoin.fg
 import ring_theory.polynomial.tower
 
 /-!

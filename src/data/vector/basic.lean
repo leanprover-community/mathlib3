@@ -289,24 +289,60 @@ def mmap {m} [monad m] {α} {β : Type u} (f : α → m β) :
   do h' ← f a, t' ← mmap f v, pure (h' ::ᵥ t')
 | _ ⟨l, rfl⟩ := rfl
 
-/-- Define `C v` by induction on `v : vector α (n + 1)`, a vector of
-at least one element.
+/-- Define `C v` by induction on `v : vector α n`.
+
 This function has two arguments: `h0` handles the base case on `C nil`,
 and `hs` defines the inductive step using `∀ x : α, C v → C (x ::ᵥ v)`. -/
 @[elab_as_eliminator] def induction_on
-  {α : Type*} {n : ℕ}
   {C : Π {n : ℕ}, vector α n → Sort*}
-  (v : vector α (n + 1))
-  (h0 : C nil)
-  (hs : ∀ {n : ℕ} {x : α} {w : vector α n}, C w → C (x ::ᵥ w)) :
+  (v : vector α n)
+  (h_nil : C nil)
+  (h_cons : ∀ {n : ℕ} {x : α} {w : vector α n}, C w → C (x ::ᵥ w)) :
     C v :=
 begin
-  induction n with n hn,
-  { rw ←v.cons_head_tail,
-    convert hs h0 },
-  { rw ←v.cons_head_tail,
-    apply hs,
-    apply hn }
+  induction n with n ih generalizing v,
+  { rcases v with ⟨_|⟨-,-⟩,-|-⟩,
+    exact h_nil, },
+  { rcases v with ⟨_|⟨a,v⟩,_⟩,
+    cases v_property,
+    apply @h_cons n _ ⟨v, (add_left_inj 1).mp v_property⟩,
+    apply ih, }
+end
+
+@[elab_as_eliminator] def induction_on₂ {C : Π {n}, vector α n → vector α n → Sort*}
+  {n : ℕ} (v w : vector α n)
+  (h_nil : C nil nil)
+  (h_cons : ∀ {n} {a b : α} {x y : vector α n}, C x y → C (a ::ᵥ x) (b ::ᵥ y)) : C v w :=
+begin
+  induction n with n ih generalizing v w,
+  { rcases v with ⟨_|⟨-,-⟩,-|-⟩, rcases w with ⟨_|⟨-,-⟩,-|-⟩,
+    exact h_nil, },
+  { rcases v with ⟨_|⟨a,v⟩,_⟩,
+    cases v_property,
+    rcases w with ⟨_|⟨b,w⟩,_⟩,
+    cases w_property,
+    apply @h_cons n _ _ ⟨v, (add_left_inj 1).mp v_property⟩ ⟨w, (add_left_inj 1).mp w_property⟩,
+    apply ih, }
+end
+
+@[elab_as_eliminator] def induction_on₃ {C : Π {n}, vector α n → vector α n → vector α n → Sort*}
+  {n : ℕ} (u v w : vector α n)
+  (h_nil : C nil nil nil)
+  (h_cons : ∀ {n} {a b c : α} {x y z : vector α n}, C x y z → C (a ::ᵥ x) (b ::ᵥ y) (c ::ᵥ z)) :
+  C u v w :=
+begin
+  induction n with n ih generalizing u v w,
+  { rcases u with ⟨_|⟨-,-⟩,-|-⟩, rcases v with ⟨_|⟨-,-⟩,-|-⟩, rcases w with ⟨_|⟨-,-⟩,-|-⟩,
+    exact h_nil, },
+  { rcases u with ⟨_|⟨a,u⟩,_⟩,
+    cases u_property,
+    rcases v with ⟨_|⟨b,v⟩,_⟩,
+    cases v_property,
+    rcases w with ⟨_|⟨c,w⟩,_⟩,
+    cases w_property,
+    apply @h_cons n _ _ _ ⟨u, (add_left_inj 1).mp u_property⟩ ⟨v, (add_left_inj 1).mp v_property⟩
+      ⟨w, (add_left_inj 1).mp w_property⟩,
+    apply ih, }
 end
 
 def to_array : vector α n → array n α
@@ -388,54 +424,6 @@ lemma nth_update_nth_eq_if {v : vector α n} {i j : fin n} (a : α) :
 by split_ifs; try {simp *}; try {rw nth_update_nth_of_ne}; assumption
 
 end update_nth
-
-lemma vector.induction_on {C : Π {n}, vector α n → Sort*} {n : ℕ} (v : vector α n)
-  (h_nil : C vector.nil) (h_cons : ∀ (n) (x : vector α n) (a : α), C x → C (a ::ᵥ x)) : C v :=
-begin
-  induction n with n ih generalizing v,
-  { rcases v with ⟨_|⟨-,-⟩,-|-⟩,
-    exact h_nil, },
-  { rcases v with ⟨_|⟨a,v⟩,_⟩,
-    cases v_property,
-    apply h_cons n ⟨v, (add_left_inj 1).mp v_property⟩,
-    apply ih, }
-end
-
-lemma vector.induction_on₂ {C : Π {n}, vector α n → vector α n → Sort*}
-  {n : ℕ} (v w : vector α n)
-  (h_nil : C vector.nil vector.nil)
-  (h_cons : ∀ (n) (x y : vector α n) (a b : α), C x y → C (a ::ᵥ x) (b ::ᵥ y)) : C v w :=
-begin
-  induction n with n ih generalizing v w,
-  { rcases v with ⟨_|⟨-,-⟩,-|-⟩, rcases w with ⟨_|⟨-,-⟩,-|-⟩,
-    exact h_nil, },
-  { rcases v with ⟨_|⟨a,v⟩,_⟩,
-    cases v_property,
-    rcases w with ⟨_|⟨b,w⟩,_⟩,
-    cases w_property,
-    apply h_cons n ⟨v, (add_left_inj 1).mp v_property⟩ ⟨w, (add_left_inj 1).mp w_property⟩,
-    apply ih, }
-end
-
-lemma vector.induction_on₃ {C : Π {n}, vector α n → vector α n → vector α n → Sort*}
-  {n : ℕ} (u v w : vector α n)
-  (h_nil : C vector.nil vector.nil vector.nil)
-  (h_cons : ∀ (n) (x y z : vector α n) (a b c : α), C x y z → C (a ::ᵥ x) (b ::ᵥ y) (c ::ᵥ z)) :
-  C u v w :=
-begin
-  induction n with n ih generalizing u v w,
-  { rcases u with ⟨_|⟨-,-⟩,-|-⟩, rcases v with ⟨_|⟨-,-⟩,-|-⟩, rcases w with ⟨_|⟨-,-⟩,-|-⟩,
-    exact h_nil, },
-  { rcases u with ⟨_|⟨a,u⟩,_⟩,
-    cases u_property,
-    rcases v with ⟨_|⟨b,v⟩,_⟩,
-    cases v_property,
-    rcases w with ⟨_|⟨c,w⟩,_⟩,
-    cases w_property,
-    apply h_cons n ⟨u, (add_left_inj 1).mp u_property⟩ ⟨v, (add_left_inj 1).mp v_property⟩
-      ⟨w, (add_left_inj 1).mp w_property⟩,
-    apply ih, }
-end
 
 end vector
 

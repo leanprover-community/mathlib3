@@ -177,7 +177,7 @@ lemma support_indicator [has_zero β] {s : set α} (hs : measurable_set s) (f : 
 set.support_indicator
 
 lemma range_indicator {s : set α} (hs : measurable_set s)
-  (hs_nonempty : s ≠ ∅) (hs_ne_univ : s ≠ univ) (x y : β) :
+  (hs_nonempty : s.nonempty) (hs_ne_univ : s ≠ univ) (x y : β) :
   (piecewise s hs (const α x) (const α y)).range = {x, y} :=
 begin
   ext1 z,
@@ -193,7 +193,7 @@ begin
       simp only [has, function.const_apply, if_false, coe_const] at haz,
       exact haz.symm, }, },
   { cases h,
-    { obtain ⟨a, has⟩ : ∃ a, a ∈ s, by rwa set.ne_empty_iff_nonempty at hs_nonempty,
+    { obtain ⟨a, has⟩ : ∃ a, a ∈ s, from hs_nonempty,
       exact ⟨a, by simpa [has] using h.symm⟩, },
     { obtain ⟨a, has⟩ : ∃ a, a ∉ s,
       { by_contra,

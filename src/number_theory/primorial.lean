@@ -115,8 +115,7 @@ lemma primorial_le_4_pow : ∀ (n : ℕ), n# ≤ 4 ^ n
             = ∏ i in filter prime (range (2 * m + 2)), i : by simpa [←twice_m]
         ... = ∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2) ∪ range (m + 2)), i :
               begin
-                rw [range_eq_Ico, range_eq_Ico, finset.union_comm,
-                  finset.Ico_union_Ico_consecutive],
+                rw [range_eq_Ico, finset.union_comm, finset.Ico_union_Ico_eq_Ico],
                 exact bot_le,
                 simp only [add_le_add_iff_right],
                 linarith,

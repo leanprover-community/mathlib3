@@ -1891,14 +1891,13 @@ lemma ker_restrict {p : submodule R M} {f : M →ₗ[R] M} (hf : ∀ x : M, x �
   ker (f.restrict hf) = (f.dom_restrict p).ker :=
 by rw [restrict_eq_cod_restrict_dom_restrict, ker_cod_restrict]
 
-lemma _root_.submodule.map_comap_eq [ring_hom_surjective τ₁₂] (f : M →ₛₗ[τ₁₂] M₂) (q : submodule R₂ M₂) :
-  map f (comap f q) = range f ⊓ q :=
+lemma _root_.submodule.map_comap_eq [ring_hom_surjective τ₁₂]
+  (f : M →ₛₗ[τ₁₂] M₂) (q : submodule R₂ M₂) : map f (comap f q) = range f ⊓ q :=
 le_antisymm (le_inf map_le_range (map_comap_le _ _)) $
 by rintro _ ⟨⟨x, _, rfl⟩, hx⟩; exact ⟨x, hx, rfl⟩
 
-lemma _root_.submodule.map_comap_eq_self [ring_hom_surjective τ₁₂] {f : M →ₛₗ[τ₁₂] M₂} {q : submodule R₂ M₂}
-  (h : q ≤ range f) :
-  map f (comap f q) = q :=
+lemma _root_.submodule.map_comap_eq_self [ring_hom_surjective τ₁₂]
+  {f : M →ₛₗ[τ₁₂] M₂} {q : submodule R₂ M₂} (h : q ≤ range f) : map f (comap f q) = q :=
 by rwa [submodule.map_comap_eq, inf_eq_right]
 
 @[simp] theorem ker_zero : ker (0 : M →ₛₗ[τ₁₂] M₂) = ⊤ :=

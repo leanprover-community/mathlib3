@@ -58,23 +58,15 @@ S.subtype.map_prod f s
 
 /-- Product of a list of elements in a submonoid is in the submonoid. -/
 @[to_additive "Sum of a list of elements in an `add_submonoid` is in the `add_submonoid`."]
-lemma list_prod_mem : ∀ {l : list M}, (∀x ∈ l, x ∈ S) → l.prod ∈ S
-| []     h := S.one_mem
-| (a::l) h :=
-  suffices a * l.prod ∈ S, by rwa [list.prod_cons],
-  have a ∈ S ∧ (∀ x ∈ l, x ∈ S), from list.forall_mem_cons.1 h,
-  S.mul_mem this.1 (list_prod_mem this.2)
+lemma list_prod_mem {l : list M} (hl : ∀ x ∈ l, x ∈ S) : l.prod ∈ S :=
+by { lift l to list S using hl, rw ← coe_list_prod, exact l.prod.coe_prop }
 
 /-- Product of a multiset of elements in a submonoid of a `comm_monoid` is in the submonoid. -/
 @[to_additive "Sum of a multiset of elements in an `add_submonoid` of an `add_comm_monoid` is
 in the `add_submonoid`."]
-lemma multiset_prod_mem {M} [comm_monoid M] (S : submonoid M) (m : multiset M) :
-  (∀a ∈ m, a ∈ S) → m.prod ∈ S :=
-begin
-  refine quotient.induction_on m (assume l hl, _),
-  rw [multiset.quot_mk_to_coe, multiset.coe_prod],
-  exact S.list_prod_mem hl
-end
+lemma multiset_prod_mem {M} [comm_monoid M] (S : submonoid M) (m : multiset M)
+  (hm : ∀ a ∈ m, a ∈ S) : m.prod ∈ S :=
+by { lift m to multiset S using hm, rw ← coe_multiset_prod, exact m.prod.coe_prop }
 
 /-- Product of elements of a submonoid of a `comm_monoid` indexed by a `finset` is in the
     submonoid. -/

@@ -18,7 +18,7 @@ In a 𝕜-vector space, we define the following objects and properties.
 * `convex_hull 𝕜 s`: The minimal convex set that includes `s`. In order theory speak, this is a
   closure operator.
 * Standard simplex `std_simplex ι [fintype ι]` is the intersection of the positive quadrant with
-  the hyperplane `s.sum = 1` in the space `ι → ℝ`.
+  the hyperplane `s.sum = 1` in the space `ι → 𝕜`.
 
 We also provide various equivalent versions of the definitions above, prove that some specific sets
 are convex.
@@ -1056,24 +1056,25 @@ end ordered_ring
 end convex_hull
 
 
-variables {ι ι' : Type*} [add_comm_group E] [module ℝ E] [add_comm_group F] [module ℝ F] {s : set E}
+variables {ι ι' : Type*} [ordered_semiring 𝕜] [add_comm_group E] [module 𝕜 E] {s : set E}
 
 /-! ### Simplex -/
 
 section simplex
 
-variables (ι) [fintype ι] {f : ι → ℝ}
+variables (ι) [fintype ι] {f : ι → 𝕜}
 
-/-- The standard simplex in the space of functions `ι → ℝ` is the set
-of vectors with non-negative coordinates with total sum `1`. -/
-def std_simplex (ι : Type*) [fintype ι] : set (ι → ℝ) :=
+/-- The standard simplex in the space of finitely supported functions `ι →₀ 𝕜` is the set
+of vectors with non-negative coordinates with total sum `1`. This is the free object in the category
+of convex spaces.-/
+def std_simplex : set (ι → 𝕜) :=
 {f | (∀ x, 0 ≤ f x) ∧ ∑ x, f x = 1}
 
 lemma std_simplex_eq_inter :
-  std_simplex ι = (⋂ x, {f | 0 ≤ f x}) ∩ {f | ∑ x, f x = 1} :=
+  std_simplex 𝕜 ι = (⋂ x, {f | 0 ≤ f x}) ∩ {f | ∑ x, f x = 1} :=
 by { ext f, simp only [std_simplex, set.mem_inter_eq, set.mem_Inter, set.mem_set_of_eq] }
 
-lemma convex_std_simplex : convex ℝ (std_simplex ι) :=
+lemma convex_std_simplex : convex 𝕜 (std_simplex 𝕜 ι) :=
 begin
   refine λ f g hf hg a b ha hb hab, ⟨λ x, _, _⟩,
   { apply_rules [add_nonneg, mul_nonneg, hf.1, hg.1] },
@@ -1084,7 +1085,7 @@ end
 
 variable {ι}
 
-lemma ite_eq_mem_std_simplex (i : ι) : (λ j, ite (i = j) (1:ℝ) 0) ∈ std_simplex ι :=
+lemma ite_eq_mem_std_simplex (i : ι) : (λ j, ite (i = j) (1:𝕜) 0) ∈ std_simplex 𝕜 ι :=
 ⟨λ j, by simp only; split_ifs; norm_num, by rw [finset.sum_ite_eq, if_pos (finset.mem_univ _)]⟩
 
 end simplex

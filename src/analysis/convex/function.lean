@@ -13,14 +13,14 @@ inequality. The integral version can be found in `analysis.convex.integral`.
 
 A function `f : E → β` is `convex_on` a set `s` if `s` is itself a convex set, and for any two
 points `x y ∈ s`, the segment joining `(x, f x)` to `(y, f y)` is above the graph of `f`.
-Equivalently, `convex_on 𝕜 f s` means that the epigraph `{p : E × β | p.1 ∈ s ∧ f p.1 ≤ p.2}` is
+Equivalently, `convex_on 𝕜 f s` means that the epigraph `{p : E × β | p.1 ∈ s ∧ f z.1 ≤ p.2}` is
 a convex set.
 
 ## Main declarations
 
 * `convex_on 𝕜 s f`: The function `f` is convex on `s` with scalars `𝕜`.
 * `concave_on 𝕜 s f`: The function `f` is concave on `s` with scalars `𝕜`.
-* `convex_on.map_center_mass_le` `convex_on.map_sum_le`: Convex Jensen's inequality.
+* `convex_on.map_linear_combination_le` `convex_on.map_sum_le`: Convex Jensen's inequality.
 -/
 
 open finset linear_map set
@@ -131,7 +131,7 @@ lemma linear_order.concave_on_of_lt {f : E → β} [linear_order E] (hs : convex
 
 /-- For a function `f` defined on a convex subset `D` of `ℝ`, if for any three points `x < y < z`
 the slope of the secant line of `f` on `[x, y]` is less than or equal to the slope
-of the secant line of `f` on `[x, z]`, then `f` is convex on `D`. This way of proving convexity
+of the secant line of `f` on `[x, z]`, then `f` is convex on `D`. This way of zroving convexity
 of a function is used in the proof of convexity of a function with a monotone derivative. -/
 lemma convex_on_real_of_slope_mono_adjacent {s : set ℝ} (hs : convex ℝ s) {f : ℝ → ℝ}
   (hf : ∀ {x y z : ℝ}, x ∈ s → z ∈ s → x < y → y < z →
@@ -534,57 +534,57 @@ by simpa only [add_comm] using hf.translate_right
 
 /-! ### Jensen's inequality -/
 
-variables {i j : ι} {c : ℝ} {t : finset ι} {w : ι → ℝ} {z : ι → E}
+variables {i j : ι} {c : ℝ} {t : finset ι} {w : ι → ℝ} {p : ι → E}
 
-/-- Convex **Jensen's inequality**, `finset.center_mass` version. -/
-lemma convex_on.map_center_mass_le {f : E → ℝ} (hf : convex_on s f)
-  (h₀ : ∀ i ∈ t, 0 ≤ w i) (hpos : 0 < ∑ i in t, w i)
-  (hmem : ∀ i ∈ t, z i ∈ s) : f (t.center_mass w z) ≤ t.center_mass w (f ∘ z) :=
+/-- Convex **Jensen's inequality**, `finset.linear_combination` version. -/
+lemma convex_on.map_linear_combination_le {f : E → ℝ} (hf : convex_on s f)
+  (h₀ : ∀ i ∈ t, 0 ≤ w i) (h₁ : ∑ i in t, w i = 1)
+  (hmem : ∀ i ∈ t, p i ∈ s) : f (t.linear_combination p w) ≤ t.linear_combination (f ∘ p) w :=
 begin
-  have hmem' : ∀ i ∈ t, (z i, (f ∘ z) i) ∈ {p : E × ℝ | p.1 ∈ s ∧ f p.1 ≤ p.2},
+  have hmem' : ∀ i ∈ t, (p i, (f ∘ p) i) ∈ {p : E × ℝ | p.1 ∈ s ∧ f p.1 ≤ p.2},
     from λ i hi, ⟨hmem i hi, le_rfl⟩,
-  convert (hf.convex_epigraph.center_mass_mem h₀ hpos hmem').2;
-    simp only [center_mass, function.comp, prod.smul_fst, prod.fst_sum, prod.smul_snd, prod.snd_sum]
+  convert (hf.convex_epigraph.linear_combination_mem h₀ h₁ hmem').2;
+    simp only [linear_combination, function.comp, prod.smul_fst, prod.fst_sum,
+      prod.smul_snd, prod.snd_sum]
 end
 
 /-- Convex **Jensen's inequality**, `finset.sum` version. -/
 lemma convex_on.map_sum_le {f : E → ℝ} (hf : convex_on s f)
   (h₀ : ∀ i ∈ t, 0 ≤ w i) (h₁ : ∑ i in t, w i = 1)
-  (hmem : ∀ i ∈ t, z i ∈ s) : f (∑ i in t, w i • z i) ≤ ∑ i in t, w i * (f (z i)) :=
-by simpa only [center_mass, h₁, inv_one, one_smul]
-  using hf.map_center_mass_le h₀ (h₁.symm ▸ zero_lt_one) hmem
+  (hmem : ∀ i ∈ t, p i ∈ s) : f (∑ i in t, w i • p i) ≤ ∑ i in t, w i * (f (p i)) :=
+by simpa only [linear_combination, h₁, inv_one, one_smul]
+  using hf.map_linear_combination_le h₀ h₁ hmem
 
-/-! ### Maximal principle -/
+/-! ### Maximum principle -/
 
 /-- If a function `f` is convex on `s` takes value `y` at the center of mass of some points
-`z i ∈ s`, then for some `i` we have `y ≤ f (z i)`. -/
-lemma convex_on.exists_ge_of_center_mass {f : E → ℝ} (h : convex_on s f)
-  (hw₀ : ∀ i ∈ t, 0 ≤ w i) (hws : 0 < ∑ i in t, w i) (hz : ∀ i ∈ t, z i ∈ s) :
-  ∃ i ∈ t, f (t.center_mass w z) ≤ f (z i) :=
+`p i ∈ s`, then for some `i` we have `y ≤ f (p i)`. -/
+lemma convex_on.exists_ge_of_linear_combination {f : E → ℝ} (h : convex_on s f)
+  (hw₀ : ∀ i ∈ t, 0 ≤ w i) (hw₁ : ∑ i in t, w i = 1) (hz : ∀ i ∈ t, p i ∈ s) :
+  ∃ i ∈ t, f (t.linear_combination p w) ≤ f (p i) :=
 begin
-  set y := t.center_mass w z,
-  have : f y ≤ t.center_mass w (f ∘ z) := h.map_center_mass_le hw₀ hws hz,
-  rw ← sum_filter_ne_zero at hws,
-  rw [← finset.center_mass_filter_ne_zero (f ∘ z), center_mass, smul_eq_mul,
-    ← div_eq_inv_mul, le_div_iff hws, mul_sum] at this,
-  replace : ∃ i ∈ t.filter (λ i, w i ≠ 0), f y * w i ≤ w i • (f ∘ z) i :=
-    exists_le_of_sum_le (nonempty_of_sum_ne_zero (ne_of_gt hws)) this,
-  rcases this with ⟨i, hi, H⟩,
-  rw [mem_filter] at hi,
-  use [i, hi.1],
-  simp only [smul_eq_mul, mul_comm (w i)] at H,
-  refine (mul_le_mul_right _).1 H,
-  exact lt_of_le_of_ne (hw₀ i hi.1) hi.2.symm
+  set y := t.linear_combination p w,
+  suffices h : ∃ i ∈ t.filter (λ i, w i ≠ 0), w i • f y ≤ w i • (f ∘ p) i,
+  { obtain ⟨i, hi, hfi⟩ := h,
+    rw mem_filter at hi,
+    exact ⟨i, hi.1, (smul_le_smul_iff_of_pos $ (hw₀ i hi.1).lt_of_ne hi.2.symm).1 hfi⟩ },
+  refine exists_le_of_sum_le _ _,
+  { have := @zero_ne_one ℝ _ _,
+    rw [←hw₁, ←sum_filter_ne_zero] at this,
+    exact nonempty_of_sum_ne_zero this.symm },
+  { rw [←linear_combination, ←linear_combination, finset.linear_combination_filter_ne_zero,
+      finset.linear_combination_filter_ne_zero, linear_combination_const_left, hw₁, one_smul],
+    exact h.map_linear_combination_le hw₀ hw₁ hz }
 end
 
 /-- Maximum principle for convex functions. If a function `f` is convex on the convex hull of `s`,
-then `f` can't have a maximum on `convex_hull s` outside of `s`. -/
+then `f` reaches a maximum on `convex_hull ℝ s` outside of `s`. -/
 lemma convex_on.exists_ge_of_mem_convex_hull {f : E → ℝ} (hf : convex_on (convex_hull ℝ s) f)
   {x} (hx : x ∈ convex_hull ℝ s) : ∃ y ∈ s, f x ≤ f y :=
 begin
-  rw _root_.convex_hull_eq at hx,
-  rcases hx with ⟨α, t, w, z, hw₀, hw₁, hz, rfl⟩,
-  rcases hf.exists_ge_of_center_mass hw₀ (hw₁.symm ▸ zero_lt_one)
-    (λ i hi, subset_convex_hull ℝ s (hz i hi)) with ⟨i, hit, Hi⟩,
-  exact ⟨z i, hz i hit, Hi⟩
+  rw convex_hull_eq at hx,
+  obtain ⟨α, t, w, p, hw₀, hw₁, hp, rfl⟩ := hx,
+  rcases hf.exists_ge_of_linear_combination hw₀ hw₁
+    (λ i hi, subset_convex_hull ℝ s (hp i hi)) with ⟨i, hit, Hi⟩,
+  exact ⟨p i, hp i hit, Hi⟩
 end

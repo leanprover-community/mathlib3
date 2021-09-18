@@ -80,12 +80,12 @@ begin
          ... ≤ f e : fpos e het,
       { apply div_nonneg (fpos i₀ (mem_of_subset (filter_subset _ t) mem)) (le_of_lt hg) },
       { simpa only [mem_filter, het, true_and, not_lt] using hes } } },
-  { simp only [subtype.coe_mk, center_mass_eq_of_sum_1 _ id ksum, id],
+  { simp only [subtype.coe_mk, id],
     calc ∑ e in t.erase i₀, k e • e = ∑ e in t, k e • e : sum_erase _ (by rw [hk, zero_smul])
     ... = ∑ e in t, (f e - f i₀ / g i₀ * g e) • e : rfl
-    ... = t.center_mass f id : _,
+    ... = t.linear_combination id f : _,
     simp only [sub_smul, mul_smul, sum_sub_distrib, ← smul_sum, gcombo, smul_zero,
-      sub_zero, center_mass, fsum, inv_one, one_smul, id.def] }
+      sub_zero, linear_combination, fsum, inv_one, one_smul, id.def] }
 end
 
 variables {s : set E} {x : E} (hx : x ∈ convex_hull ℝ s)
@@ -176,6 +176,6 @@ begin
   { erw [finset.sum_attach, finset.sum_filter_ne_zero, hw₂] },
   { change ∑ (i : t') in t'.attach, (λ e, w e • e) ↑i = x,
     erw [finset.sum_attach, finset.sum_filter_of_ne],
-    { rw t.center_mass_eq_of_sum_1 id hw₂ at hw₃, exact hw₃ },
+    { exact hw₃ },
     { intros e he hwe contra, apply hwe, rw [contra, zero_smul] } }
 end

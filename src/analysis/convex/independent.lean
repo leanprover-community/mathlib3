@@ -33,7 +33,7 @@ convex independence.
 ## TODO
 
 Prove `affine_independent.convex_independent`. This requires some glue between `affine_combination`
-and `finset.center_mass`.
+and `finset.linear_combination`.
 
 ## Tags
 

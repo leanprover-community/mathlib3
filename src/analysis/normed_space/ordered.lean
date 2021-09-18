@@ -62,12 +62,14 @@ class normed_lattice_add_comm_group (α : Type*)
 (solid : ∀ a b : α, |a| ≤ |b| → ∥a∥ ≤ ∥b∥)
 
 -- Suggested https://leanprover.zulipchat.com/#narrow/stream/113489-new-members/topic/norm.20of.20abs
-instance normed_lattice_add_comm_group_to_covariant_class {α : Type*} [h : normed_lattice_add_comm_group α] : covariant_class α α (+) (≤) :=
+instance normed_lattice_add_comm_group_to_covariant_class {α : Type*}
+  [h : normed_lattice_add_comm_group α] : covariant_class α α (+) (≤) :=
 {elim := λ a b c bc,  normed_lattice_add_comm_group.add_le_add_left _ _ bc a}
 
 instance {α : Type*} : Π [normed_group α], normed_group (order_dual α) := id
 
-lemma opsolid {α : Type*} [h: normed_lattice_add_comm_group α] : ∀ a b : α, a⊓-a ≥ b⊓-b → ∥a∥ ≤ ∥b∥ :=
+lemma opsolid {α : Type*} [h: normed_lattice_add_comm_group α] : ∀ a b : α, a⊓-a ≥ b⊓-b →
+  ∥a∥ ≤ ∥b∥ :=
 begin
   intros a b h₁,
   apply h.solid,
@@ -82,7 +84,8 @@ end
 
 
 -- If α is a normed lattice ordered group, so is order_dual α
-instance {α : Type*} [h: normed_lattice_add_comm_group α] : normed_lattice_add_comm_group (order_dual α) := {
+instance {α : Type*} [h: normed_lattice_add_comm_group α] : normed_lattice_add_comm_group
+  (order_dual α) := {
   add_le_add_left := begin
     intros a b h₁ c,
     rw ← order_dual.dual_le,
@@ -116,8 +119,8 @@ end
 -- Banasiak, Banach Lattices in Applications,
 -- Proposition 2.19
 @[priority 100] -- see Note [lower instance priority]
-instance normed_lattice_add_comm_group_has_continuous_inf {α : Type*} [normed_lattice_add_comm_group α] :
-  has_continuous_inf α :=
+instance normed_lattice_add_comm_group_has_continuous_inf {α : Type*}
+  [normed_lattice_add_comm_group α] : has_continuous_inf α :=
 ⟨ continuous_iff_continuous_at.2 $ λ q, tendsto_iff_norm_tendsto_zero.2 $
 begin
   have : ∀ p : α × α, ∥p.1 ⊓ p.2 - q.1 ⊓ q.2∥ ≤ ∥p.1 - q.1∥ + ∥p.2 - q.2∥,
@@ -130,16 +133,20 @@ begin
     rw lattice_ordered_comm_group.abs_pos_eq (|p.fst - q.fst| + |p.snd - q.snd|),
     {
       calc |p.fst ⊓ p.snd - q.fst ⊓ q.snd| =
-        |p.fst ⊓ p.snd - q.fst ⊓ p.snd + (q.fst ⊓ p.snd - q.fst ⊓ q.snd)| : by { rw sub_add_sub_cancel,  }
-        ... ≤ |p.fst ⊓ p.snd - q.fst ⊓ p.snd| + |q.fst ⊓ p.snd - q.fst ⊓ q.snd| : by {apply lattice_ordered_comm_group.abs_triangle,}
+        |p.fst ⊓ p.snd - q.fst ⊓ p.snd + (q.fst ⊓ p.snd - q.fst ⊓ q.snd)| :
+          by { rw sub_add_sub_cancel, }
+        ... ≤ |p.fst ⊓ p.snd - q.fst ⊓ p.snd| + |q.fst ⊓ p.snd - q.fst ⊓ q.snd| :
+          by {apply lattice_ordered_comm_group.abs_triangle,}
         ... ≤ |p.fst - q.fst | + |p.snd - q.snd| : by {
           apply add_le_add,
-          apply (sup_le_iff.elim_left (lattice_ordered_comm_group.Birkhoff_inequalities _ _ _)).right,
+          apply
+            (sup_le_iff.elim_left (lattice_ordered_comm_group.Birkhoff_inequalities _ _ _)).right,
           -- Should I be surprised that this isn't infered automatically?
           apply normed_lattice_add_comm_group_to_covariant_class,
           rw inf_comm,
           nth_rewrite 1 inf_comm,
-          apply (sup_le_iff.elim_left (lattice_ordered_comm_group.Birkhoff_inequalities _ _ _)).right,
+          apply
+            (sup_le_iff.elim_left (lattice_ordered_comm_group.Birkhoff_inequalities _ _ _)).right,
           -- Should I be surprised that this isn't infered automatically?
           apply normed_lattice_add_comm_group_to_covariant_class,
         },
@@ -157,5 +164,6 @@ begin
 end
 ⟩
 
-lemma normed_lattice_add_comm_group_has_continuous_sup {α : Type*} [h: normed_lattice_add_comm_group α] : has_continuous_sup α :=
+lemma normed_lattice_add_comm_group_has_continuous_sup {α : Type*}
+  [h: normed_lattice_add_comm_group α] : has_continuous_sup α :=
 infer_instance

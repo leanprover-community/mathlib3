@@ -88,7 +88,11 @@ begin
   simpa only [to_list_of_fn] using list.of_fn_nth_le _
 end
 
-@[simp] theorem nth_tail : ∀ (v : vector α n.succ) (i : fin n),
+@[simp] theorem nth_tail (x : vector α n) (i) :
+  x.tail.nth i = x.nth ⟨i.1 + 1, lt_sub_iff_right.mp i.2⟩ :=
+by { rcases x with ⟨_|_, h⟩; refl, }
+
+theorem nth_tail_succ : ∀ (v : vector α n.succ) (i : fin n),
   nth (tail v) i = nth v i.succ
 | ⟨a::l, e⟩ ⟨i, h⟩ := by simp [nth_eq_nth_le]; refl
 
@@ -104,7 +108,7 @@ by simp only [←cons_head_tail, eq_iff_true_of_subsingleton]
 
 @[simp] theorem tail_of_fn {n : ℕ} (f : fin n.succ → α) :
   tail (of_fn f) = of_fn (λ i, f i.succ) :=
-(of_fn_nth _).symm.trans $ by { congr, funext i, simp, }
+(of_fn_nth _).symm.trans $ by { congr, funext i, cases i, simp, refl, }
 
 /-- The list that makes up a `vector` made up of a single element,
 retrieved via `to_list`, is equal to the list of that single element. -/
@@ -174,7 +178,7 @@ by convert nth_cons_zero x nil
 
 @[simp] theorem nth_cons_succ
   (a : α) (v : vector α n) (i : fin n) : nth (a ::ᵥ v) i.succ = nth v i :=
-by rw [← nth_tail, tail_cons]
+by rw [← nth_tail_succ, tail_cons]
 
 /-- The last element of a `vector`, given that the vector is at least one element. -/
 def last (v : vector α (n + 1)) : α := v.nth (fin.last n)

@@ -162,7 +162,6 @@ begin
     rw pi.zero_apply at hxf_nonneg,
     exact ⟨hxf_nonneg hxs, hxs_imp_c hxs⟩, },
   refine h_restrict_le.mono (λ x hxc, _),
-  haveI : decidable (x ∈ s) := classical.dec _,
   by_cases hxs : x ∈ s,
   { simpa [hxs] using hxc hxs, },
   { simpa [hxs] using hc, },

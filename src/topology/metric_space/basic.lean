@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis, Johannes Hölzl, Mario Carneiro, Sébastien Gouëzel
 -/
 
-import topology.metric_space.emetric_space
+import data.int.intervals
 import topology.algebra.ordered.basic
-import data.nat.intervals
+import topology.metric_space.emetric_space
 
 /-!
 # Metric spaces
@@ -1886,7 +1886,7 @@ begin
   change ∀ r : ℝ, finite (coe ⁻¹' (ball (0 : ℝ) r)),
   simp [real.ball_eq, set.finite_Ioo]
 end
-
+#exit
 end int
 
 /-- We now define `metric_space`, extending `pseudo_metric_space`. -/

@@ -80,8 +80,79 @@ end mv_polynomial
 
 end mv_polynomial
 
+namespace polynomial
+
+lemma cardinal_mk_le_max {R : Type u} [comm_semiring R] : #(polynomial R) ≤ max (#R) ω :=
+calc #(polynomial R) = #(mv_polynomial punit.{u + 1} R) :
+  cardinal.eq.2 ⟨(mv_polynomial.punit_alg_equiv.{u u} R).to_equiv.symm⟩
+... ≤ _ : mv_polynomial.cardinal_mk_le_max
+... ≤ _ : begin
+  have : #(punit.{u + 1}) ≤ ω, from le_of_lt (lt_omega_iff_fintype.2 ⟨infer_instance⟩),
+  rw [max_assoc, max_eq_right this]
+end
+
+end polynomial
+
 section field_of_fractions
 
+variables {R K : Type u} [integral_domain R] [field K] [algebra R K] [is_fraction_ring R K]
 
+namespace is_fraction_ring
+
+lemma cardinal_mk_le_max : #K ≤ max (#R) ω :=
+calc #K ≤ #R * #R :
+  begin
+    rw [mul_def],
+    refine @mk_le_of_surjective _ _ (λ r : R × R, algebra_map R K r.1 / algebra_map R K r.2) _,
+    intros x,
+    rcases @div_surjective R _ _ _ _ _ x with ⟨a, b, _, rfl⟩,
+    exact ⟨(a, b), rfl⟩,
+  end
+... ≤ _ : mul_le_max _ _
+... ≤ _ : by simp [le_total]
+
+end is_fraction_ring
 
 end field_of_fractions
+
+section algebraic_closure
+
+namespace is_alg_closure
+
+variables (K L : Type u) [field K] [field L] [algebra K L] [is_alg_closure K L]
+
+lemma cardinal_mk_le_max : #L ≤ max (#K) ω :=
+calc #L ≤ #(Σ p : polynomial K, { x : L // x ∈ (p.map (algebra_map K L)).roots }) :
+  @mk_le_of_injective L (Σ p : polynomial K, { x : L | x ∈ (p.map (algebra_map K L)).roots })
+    (λ x : L, ⟨minpoly K x, x,
+       begin
+         rw [set.mem_set_of_eq, polynomial.mem_roots, polynomial.is_root.def, polynomial.eval_map,
+           ← polynomial.aeval_def, minpoly.aeval],
+         refine polynomial.map_ne_zero _,
+         refine minpoly.ne_zero _,
+         rw [← is_algebraic_iff_is_integral],
+         exact is_alg_closure.algebraic x
+       end⟩) (λ x y, begin
+      intro h,
+      simp only at h,
+      refine (subtype.heq_iff_coe_eq _).1 h.2,
+      simp only [h.1, iff_self, forall_true_iff]
+    end)
+... = cardinal.sum (λ p : polynomial K, #{ x : L | x ∈ (p.map (algebra_map K L)).roots }) :
+  (sum_mk _).symm
+... ≤ cardinal.sum.{u u} (λ p : polynomial K, ω) : sum_le_sum _ _
+  (λ p, le_of_lt begin
+    rw [lt_omega_iff_finite],
+    classical,
+    simp only [← @multiset.mem_to_finset _ _ _ (p.map (algebra_map K L)).roots],
+    exact set.finite_mem_finset _,
+  end)
+... = #(polynomial K) * ω : sum_const _ _
+... ≤ max (max (#(polynomial K)) ω) ω : mul_le_max _ _
+... ≤ max (max (max (#K) ω) ω) ω :
+  max_le_max (max_le_max polynomial.cardinal_mk_le_max (le_refl _)) (le_refl _)
+... = max (#K) ω : by simp only [max_assoc, max_comm omega.{u}, max_left_comm omega.{u}, max_self]
+
+end is_alg_closure
+
+end algebraic_closure

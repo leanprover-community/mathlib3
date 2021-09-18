@@ -196,7 +196,7 @@ begin
     calc dist (f m) (f (n+1)) ≤ dist (f m) (f n) + dist _ _ : dist_triangle _ _ _
       ... ≤ ∑ i in finset.Ico m n, _ + _ : add_le_add hrec (le_refl _)
       ... = ∑ i in finset.Ico m (n+1), _ :
-        by rw [finset.Ico_insert_right hn, finset.sum_insert, add_comm]; simp }
+        by rw [nat.Ico_succ_right_eq_insert_Ico hn, finset.sum_insert, add_comm]; simp }
 end
 
 /-- The triangle (polygon) inequality for sequences of points; `finset.range` version. -/
@@ -1884,7 +1884,7 @@ begin
   refine tendsto_cocompact_of_tendsto_dist_comp_at_top (0 : ℝ) _,
   simp only [filter.tendsto_at_top, eventually_cofinite, not_le, ← mem_ball],
   change ∀ r : ℝ, finite (coe ⁻¹' (ball (0 : ℝ) r)),
-  simp [real.ball_eq, Ioo_ℤ_finite]
+  simp [real.ball_eq, set.finite_Ioo]
 end
 
 end int

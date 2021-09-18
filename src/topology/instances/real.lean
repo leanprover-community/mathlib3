@@ -66,7 +66,7 @@ instance : proper_space ℤ :=
 ⟨ begin
     intros x r,
     rw closed_ball_eq,
-    exact (set.Icc_ℤ_finite _ _).is_compact,
+    exact (set.finite_Icc _ _).is_compact,
   end ⟩
 
 end int

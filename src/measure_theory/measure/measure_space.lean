@@ -2823,7 +2823,6 @@ lemma mem_map_indicator_ae_iff_of_zero_nmem [has_zero β] {t : set β} (ht : (0 
 begin
   rw [mem_map, mem_ae_iff, set.indicator_preimage, set.ite, set.compl_union, set.compl_inter],
   change μ (((f ⁻¹' t)ᶜ ∪ sᶜ) ∩ ((λ x, (0 : β)) ⁻¹' t \ s)ᶜ) = 0 ↔ μ ((f ⁻¹' t)ᶜ ∪ sᶜ) = 0,
-  haveI : decidable ((0 : β) ∈ t), from classical.dec _,
   simp only [ht, if_false, set.compl_empty, set.empty_diff, set.inter_univ, set.preimage_const],
 end
 

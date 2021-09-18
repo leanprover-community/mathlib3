@@ -597,18 +597,18 @@ variables {σ₂₁ : R₂ →+* R₁} {σ₃₂ : R₃ →+* R₂} {σ₃₁ : 
 variables [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
 variables [ring_hom_comp_triple σ₃₂ σ₂₁ σ₃₁]
 variables {re₁₂ : ring_hom_inv_pair σ₁₂ σ₂₁} {re₂₃ : ring_hom_inv_pair σ₂₃ σ₃₂}
-variables {re₁₃ : ring_hom_inv_pair σ₁₃ σ₃₁} {re₂₁ : ring_hom_inv_pair σ₂₁ σ₁₂}
-variables {re₃₂ : ring_hom_inv_pair σ₃₂ σ₂₃} {re₃₁ : ring_hom_inv_pair σ₃₁ σ₁₃}
+variables [ring_hom_inv_pair σ₁₃ σ₃₁] {re₂₁ : ring_hom_inv_pair σ₂₁ σ₁₂}
+variables {re₃₂ : ring_hom_inv_pair σ₃₂ σ₂₃} [ring_hom_inv_pair σ₃₁ σ₁₃]
 variables (e₁₂ : M₁ ≃ₛₗ[σ₁₂] M₂) (e₂₃ : M₂ ≃ₛₗ[σ₂₃] M₃)
 
-include σ₃₁ re₁₃ re₃₁
+include σ₃₁
 /-- Linear equivalences are transitive. The linter thinks the `ring_hom_comp_triple` argument
 is doubled -- it is not. -/
 @[trans, nolint unused_arguments]
 def trans : M₁ ≃ₛₗ[σ₁₃] M₃ :=
 { .. e₂₃.to_linear_map.comp e₁₂.to_linear_map,
   .. e₁₂.to_equiv.trans e₂₃.to_equiv }
-omit σ₃₁ re₁₃ re₃₁
+omit σ₃₁
 
 infixl ` ≪≫ₗ `:80 := @linear_equiv.trans _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
   (ring_hom.id _) (ring_hom.id _) (ring_hom.id _)
@@ -626,20 +626,20 @@ lemma to_add_monoid_hom_commutes :
   e.to_linear_map.to_add_monoid_hom = e.to_add_equiv.to_add_monoid_hom :=
 rfl
 
-include σ₃₁ re₁₃ re₃₁
+include σ₃₁
 @[simp] theorem trans_apply (c : M₁) :
   (e₁₂.trans e₂₃ : M₁ ≃ₛₗ[σ₁₃] M₃) c = e₂₃ (e₁₂ c) := rfl
-omit σ₃₁ re₁₃ re₃₁
+omit σ₃₁
 
 include σ'
 @[simp] theorem apply_symm_apply (c : M₂) : e (e.symm c) = c := e.right_inv c
 @[simp] theorem symm_apply_apply (b : M) : e.symm (e b) = b := e.left_inv b
 omit σ'
 
-include σ₃₁ σ₂₁ σ₃₂ re₁₃ re₃₁
+include σ₃₁ σ₂₁ σ₃₂
 @[simp] lemma symm_trans_apply
   (c : M₃) : (e₁₂.trans e₂₃ : M₁ ≃ₛₗ[σ₁₃] M₃).symm c = e₁₂.symm (e₂₃.symm c) := rfl
-omit σ₃₁ σ₂₁ σ₃₂ re₁₃ re₃₁
+omit σ₃₁ σ₂₁ σ₃₂
 
 @[simp] lemma trans_refl : e.trans (refl S M₂) = e := to_equiv_injective e.to_equiv.trans_refl
 @[simp] lemma refl_trans : (refl R M).trans e = e := to_equiv_injective e.to_equiv.refl_trans

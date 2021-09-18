@@ -79,7 +79,7 @@ equivalence is proved in `submodule.fg_iff_finite_dimensional`.
 -/
 
 universes u v v' w
-open_locale classical
+open_locale classical cardinal
 
 open cardinal submodule module function
 
@@ -196,7 +196,7 @@ end
 /-- If a vector space is finite-dimensional, then the cardinality of any basis is equal to its
 `finrank`. -/
 lemma finrank_eq_card_basis' [finite_dimensional K V] {ι : Type w} (h : basis ι K V) :
-  (finrank K V : cardinal.{w}) = cardinal.mk ι :=
+  (finrank K V : cardinal.{w}) = #ι :=
 begin
   haveI : fintype ι := fintype_basis_index h,
   rw [cardinal.fintype_card, finrank_eq_card_basis h]
@@ -240,7 +240,7 @@ lemma basis_unique.repr_eq_zero_iff {ι : Type*} [unique ι] {h : finrank K V = 
 
 lemma cardinal_mk_le_finrank_of_linear_independent
   [finite_dimensional K V] {ι : Type w} {b : ι → V} (h : linear_independent K b) :
-  cardinal.mk ι ≤ finrank K V :=
+  #ι ≤ finrank K V :=
 begin
   rw ← lift_le.{_ (max v w)},
   simpa [← finrank_eq_dim K V] using
@@ -262,7 +262,7 @@ end
 
 lemma lt_omega_of_linear_independent {ι : Type w} [finite_dimensional K V]
   {v : ι → V} (h : linear_independent K v) :
-  cardinal.mk ι < cardinal.omega :=
+  #ι < ω :=
 begin
   apply cardinal.lift_lt.1,
   apply lt_of_le_of_lt,
@@ -275,8 +275,8 @@ lemma not_linear_independent_of_infinite {ι : Type w} [inf : infinite ι] [fini
   (v : ι → V) : ¬ linear_independent K v :=
 begin
   intro h_lin_indep,
-  have : ¬ omega ≤ mk ι := not_le.mpr (lt_omega_of_linear_independent h_lin_indep),
-  have : omega ≤ mk ι := infinite_iff.mp inf,
+  have : ¬ ω ≤ #ι := not_le.mpr (lt_omega_of_linear_independent h_lin_indep),
+  have : ω ≤ #ι := infinite_iff.mp inf,
   contradiction
 end
 
@@ -330,11 +330,11 @@ begin
       (submodule.subtype S) (by simpa using bS.linear_independent) (by simp),
   set b := basis.extend this with b_eq,
   letI : fintype (this.extend _) :=
-    classical.choice (finite_of_linear_independent (by simpa using b.linear_independent)),
+    (finite_of_linear_independent (by simpa using b.linear_independent)).fintype,
   letI : fintype (subtype.val '' basis.of_vector_space_index K S) :=
-    classical.choice (finite_of_linear_independent this),
+    (finite_of_linear_independent this).fintype,
   letI : fintype (basis.of_vector_space_index K S) :=
-    classical.choice (finite_of_linear_independent (by simpa using bS.linear_independent)),
+    (finite_of_linear_independent (by simpa using bS.linear_independent)).fintype,
   have : subtype.val '' (basis.of_vector_space_index K S) = this.extend (set.subset_univ _),
   from set.eq_of_subset_of_card_le (this.subset_extend _)
     (by rw [set.card_image_of_injective _ subtype.val_injective, ← finrank_eq_card_basis bS,
@@ -899,18 +899,17 @@ open finite_dimensional
 variables [finite_dimensional K V]
 
 /-- The linear equivalence corresponging to an injective endomorphism. -/
-noncomputable def of_injective_endo (f : V →ₗ[K] V) (h_inj : f.ker = ⊥) : V ≃ₗ[K] V :=
-(linear_equiv.of_injective f h_inj).trans
-  (linear_equiv.of_top _ (linear_map.ker_eq_bot_iff_range_eq_top.1 h_inj))
+noncomputable def of_injective_endo (f : V →ₗ[K] V) (h_inj : injective f) : V ≃ₗ[K] V :=
+linear_equiv.of_bijective f h_inj $ linear_map.injective_iff_surjective.mp h_inj
 
-@[simp] lemma coe_of_injective_endo (f : V →ₗ[K] V) (h_inj : f.ker = ⊥) :
+@[simp] lemma coe_of_injective_endo (f : V →ₗ[K] V) (h_inj : injective f) :
   ⇑(of_injective_endo f h_inj) = f := rfl
 
-@[simp] lemma of_injective_endo_right_inv (f : V →ₗ[K] V) (h_inj : f.ker = ⊥) :
+@[simp] lemma of_injective_endo_right_inv (f : V →ₗ[K] V) (h_inj : injective f) :
   f * (of_injective_endo f h_inj).symm = 1 :=
 linear_map.ext $ (of_injective_endo f h_inj).apply_symm_apply
 
-@[simp] lemma of_injective_endo_left_inv (f : V →ₗ[K] V) (h_inj : f.ker = ⊥) :
+@[simp] lemma of_injective_endo_left_inv (f : V →ₗ[K] V) (h_inj : injective f) :
   ((of_injective_endo f h_inj).symm : V →ₗ[K] V) * f = 1 :=
 linear_map.ext $ (of_injective_endo f h_inj).symm_apply_apply
 
@@ -923,7 +922,7 @@ begin
   split,
   { rintro ⟨u, rfl⟩,
     exact linear_map.ker_eq_bot_of_inverse u.inv_mul },
-  { intro h_inj,
+  { intro h_inj, rw ker_eq_bot at h_inj,
     exact ⟨⟨f, (linear_equiv.of_injective_endo f h_inj).symm.to_linear_map,
       linear_equiv.of_injective_endo_right_inv f h_inj,
       linear_equiv.of_injective_endo_left_inv f h_inj⟩, rfl⟩ }
@@ -979,18 +978,18 @@ calc  finrank K V
 ... ≤ finrank K V₂ : submodule.finrank_le _
 
 /-- Given a linear map `f` between two vector spaces with the same dimension, if
-`ker f = ⊥` then `linear_equiv_of_ker_eq_bot` is the induced isomorphism
+`ker f = ⊥` then `linear_equiv_of_injective` is the induced isomorphism
 between the two vector spaces. -/
-noncomputable def linear_equiv_of_ker_eq_bot
+noncomputable def linear_equiv_of_injective
   [finite_dimensional K V] [finite_dimensional K V₂]
-  (f : V →ₗ[K] V₂) (hf : f.ker = ⊥) (hdim : finrank K V = finrank K V₂) : V ≃ₗ[K] V₂ :=
-linear_equiv.of_bijective f hf (linear_map.range_eq_top.2 $
-  (linear_map.injective_iff_surjective_of_finrank_eq_finrank hdim).1 (linear_map.ker_eq_bot.1 hf))
+  (f : V →ₗ[K] V₂) (hf : injective f) (hdim : finrank K V = finrank K V₂) : V ≃ₗ[K] V₂ :=
+linear_equiv.of_bijective f hf $
+  (linear_map.injective_iff_surjective_of_finrank_eq_finrank hdim).mp hf
 
-@[simp] lemma linear_equiv_of_ker_eq_bot_apply
+@[simp] lemma linear_equiv_of_injective_apply
   [finite_dimensional K V] [finite_dimensional K V₂]
-  {f : V →ₗ[K] V₂} (hf : f.ker = ⊥) (hdim : finrank K V = finrank K V₂) (x : V) :
-  f.linear_equiv_of_ker_eq_bot hf hdim x = f x := rfl
+  {f : V →ₗ[K] V₂} (hf : injective f) (hdim : finrank K V = finrank K V₂) (x : V) :
+  f.linear_equiv_of_injective hf hdim x = f x := rfl
 
 end linear_map
 
@@ -1076,7 +1075,7 @@ lemma finrank_span_le_card (s : set V) [fin : fintype s] :
   finrank K (span K s) ≤ s.to_finset.card :=
 begin
   haveI := span_of_finite K ⟨fin⟩,
-  have : module.rank K (span K s) ≤ (mk s : cardinal) := dim_span_le s,
+  have : module.rank K (span K s) ≤ #s := dim_span_le s,
   rw [←finrank_eq_dim, cardinal.fintype_card, ←set.to_finset_card] at this,
   exact_mod_cast this
 end
@@ -1091,7 +1090,7 @@ lemma finrank_span_eq_card {ι : Type*} [fintype ι] {b : ι → V}
   finrank K (span K (set.range b)) = fintype.card ι :=
 begin
   haveI : finite_dimensional K (span K (set.range b)) := span_of_finite K (set.finite_range b),
-  have : module.rank K (span K (set.range b)) = (mk (set.range b) : cardinal) := dim_span hb,
+  have : module.rank K (span K (set.range b)) = #(set.range b) := dim_span hb,
   rwa [←finrank_eq_dim, ←lift_inj, mk_range_eq_of_injective hb.injective,
     cardinal.fintype_card, lift_nat_cast, lift_nat_cast, nat_cast_inj] at this,
 end
@@ -1101,7 +1100,7 @@ lemma finrank_span_set_eq_card (s : set V) [fin : fintype s]
   finrank K (span K s) = s.to_finset.card :=
 begin
   haveI := span_of_finite K ⟨fin⟩,
-  have : module.rank K (span K s) = (mk s : cardinal) := dim_span_set hs,
+  have : module.rank K (span K s) = #s := dim_span_set hs,
   rw [←finrank_eq_dim, cardinal.fintype_card, ←set.to_finset_card] at this,
   exact_mod_cast this
 end

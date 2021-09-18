@@ -15,8 +15,8 @@ In this file we define the slope of a function `f : k → PE` taking values in a
 module over `k`. The `slope` function naturally appears in the Mean Value Theorem, and in the
 proof of the fact that a function with nonnegative second derivative on an interval is convex on
 this interval. In the third part of this file we prove inequalities that will be used in
-`analysis.convex.basic` to link convexity of a function on an interval to monotonicity of the slope,
-see section docstring below for details.
+`analysis.convex.function` to link convexity of a function on an interval to monotonicity of the
+slope, see section docstring below for details.
 
 ## Implementation notes
 

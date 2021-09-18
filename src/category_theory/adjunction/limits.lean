@@ -103,7 +103,7 @@ example (E : C ⥤ D) [is_equivalence E]
   (c : cocone K) (h : is_colimit c) : is_colimit (E.map_cocone c) :=
 preserves_colimit.preserves h
 
-instance has_colimit_comp_equivalence (E : C ⥤ D) [is_equivalence E] [has_colimit K] :
+lemma has_colimit_comp_equivalence (E : C ⥤ D) [is_equivalence E] [has_colimit K] :
   has_colimit (K ⋙ E) :=
 has_colimit.mk
 { cocone := E.map_cocone (colimit.cocone K),
@@ -112,7 +112,7 @@ has_colimit.mk
 lemma has_colimit_of_comp_equivalence (E : C ⥤ D) [is_equivalence E] [has_colimit (K ⋙ E)] :
   has_colimit K :=
 @has_colimit_of_iso _ _ _ _ (K ⋙ E ⋙ inv E) K
-(@adjunction.has_colimit_comp_equivalence _ _ _ _ _ _ (K ⋙ E) (inv E) _ _)
+(@has_colimit_comp_equivalence _ _ _ _ _ _ (K ⋙ E) (inv E) _ _)
 ((functor.right_unitor _).symm ≪≫ iso_whisker_left K (E.as_equivalence.unit_iso))
 
 /-- Transport a `has_colimits_of_shape` instance across an equivalence. -/
@@ -210,7 +210,7 @@ example (E : D ⥤ C) [is_equivalence E]
   (c : cone K) [h : is_limit c] : is_limit (E.map_cone c) :=
 preserves_limit.preserves h
 
-instance has_limit_comp_equivalence (E : D ⥤ C) [is_equivalence E] [has_limit K] :
+lemma has_limit_comp_equivalence (E : D ⥤ C) [is_equivalence E] [has_limit K] :
   has_limit (K ⋙ E) :=
 has_limit.mk
 { cone := E.map_cone (limit.cone K),
@@ -219,7 +219,7 @@ has_limit.mk
 lemma has_limit_of_comp_equivalence (E : D ⥤ C) [is_equivalence E] [has_limit (K ⋙ E)] :
   has_limit K :=
 @has_limit_of_iso _ _ _ _ (K ⋙ E ⋙ inv E) K
-(@adjunction.has_limit_comp_equivalence _ _ _ _ _ _ (K ⋙ E) (inv E) _ _)
+(@has_limit_comp_equivalence _ _ _ _ _ _ (K ⋙ E) (inv E) _ _)
 ((iso_whisker_left K E.as_equivalence.unit_iso.symm) ≪≫ (functor.right_unitor _))
 
 /-- Transport a `has_limits_of_shape` instance across an equivalence. -/

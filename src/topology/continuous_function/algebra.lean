@@ -6,6 +6,7 @@ Authors: Scott Morrison, Nicolò Cavalleri
 import topology.algebra.module
 import topology.continuous_function.basic
 import algebra.algebra.subalgebra
+import tactic.field_simp
 
 /-!
 # Algebraic structures over continuous functions
@@ -590,20 +591,11 @@ variables {R : Type*} [linear_ordered_field R]
 -- Rather than stranding it at some intermediate location,
 -- it's here, immediately prior to the point of use.
 lemma min_eq_half_add_sub_abs_sub {x y : R} : min x y = 2⁻¹ * (x + y - abs (x - y)) :=
-begin
-  rw abs_eq_max_neg,
-  dsimp [min, max],
-  simp  [abs_eq_max_neg, neg_le_self_iff, if_congr, sub_nonneg, neg_sub],
-  split_ifs; ring_nf; linarith,
-end
+by cases le_total x y with h h; field_simp [h, abs_of_nonneg, abs_of_nonpos, mul_two]; abel
 
 lemma max_eq_half_add_add_abs_sub {x y : R} : max x y = 2⁻¹ * (x + y + abs (x - y)) :=
-begin
-  rw abs_eq_max_neg,
-  dsimp [min, max],
-  simp only [neg_le_self_iff, if_congr, sub_nonneg, neg_sub],
-  split_ifs; ring_nf; linarith,
-end
+by cases le_total x y with h h; field_simp [h, abs_of_nonneg, abs_of_nonpos, mul_two]; abel
+
 end
 
 namespace continuous_map

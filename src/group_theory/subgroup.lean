@@ -896,6 +896,16 @@ ext $ λ x, and_iff_right_of_imp (λ _, x.prop)
 lemma comap_subtype_inf_right {H K : subgroup G} : comap K.subtype (H ⊓ K) = comap K.subtype H :=
 ext $ λ x, and_iff_left_of_imp (λ _, x.prop)
 
+/-- If `H ≤ K`, then `H` as a subgroup of `K` is isomorphic to `H`. -/
+@[to_additive "If `H ≤ K`, then `H` as a subgroup of `K` is isomorphic to `H`.", simps]
+def comap_subtype_equiv_of_le {G : Type*} [group G] {H K : subgroup G} (h : H ≤ K) :
+  H.comap K.subtype ≃* H :=
+{ to_fun := λ g, ⟨g.1, g.2⟩,
+  inv_fun := λ g, ⟨⟨g.1, h g.2⟩, g.2⟩,
+  left_inv := λ g, subtype.ext (subtype.ext rfl),
+  right_inv := λ g, subtype.ext rfl,
+  map_mul' := λ g h, rfl }
+
 /-- For any subgroups `H` and `K`, view `H ⊓ K` as a subgroup of `K`. -/
 @[to_additive "For any subgroups `H` and `K`, view `H ⊓ K` as a subgroup of `K`."]
 def subgroup_of (H K : subgroup G) : subgroup K := H.comap K.subtype
@@ -1676,17 +1686,22 @@ begin
   rwa [comap_map_eq, comap_map_eq, sup_of_le_left hH, sup_of_le_left hK] at hf,
 end
 
-@[to_additive] lemma comap_sup_eq
-  (H K : subgroup N) (hf : function.surjective f):
+@[to_additive] lemma comap_sup_eq_of_le_range
+  {H K : subgroup N} (hH : H ≤ f.range) (hK : K ≤ f.range) :
   comap f H ⊔ comap f K = comap f (H ⊔ K) :=
-begin
-  have : map f (comap f H ⊔ comap f K) = map f (comap f (H ⊔ K)),
-  { simp [subgroup.map_comap_eq, map_sup, f.range_top_of_surjective hf], },
-  refine map_injective_of_ker_le f _ _ this,
-  { calc f.ker ≤ comap f H : ker_le_comap f _
-           ... ≤ comap f H ⊔ comap f K : le_sup_left, },
-  exact ker_le_comap _ _,
-end
+map_injective_of_ker_le f ((ker_le_comap f H).trans le_sup_left) (ker_le_comap f (H ⊔ K))
+  (by rw [map_comap_eq, map_sup, map_comap_eq, map_comap_eq, inf_eq_right.mpr hH,
+    inf_eq_right.mpr hK, inf_eq_right.mpr (sup_le hH hK)])
+
+@[to_additive] lemma comap_sup_eq (H K : subgroup N) (hf : function.surjective f) :
+  comap f H ⊔ comap f K = comap f (H ⊔ K) :=
+comap_sup_eq_of_le_range f (le_top.trans (ge_of_eq (f.range_top_of_surjective hf)))
+  (le_top.trans (ge_of_eq (f.range_top_of_surjective hf)))
+
+@[to_additive] lemma sup_subgroup_of_eq {H K L : subgroup G} (hH : H ≤ L) (hK : K ≤ L) :
+  H.subgroup_of L ⊔ K.subgroup_of L = (H ⊔ K).subgroup_of L :=
+comap_sup_eq_of_le_range L.subtype (hH.trans (ge_of_eq L.subtype_range))
+  (hK.trans (ge_of_eq L.subtype_range))
 
 /-- A subgroup is isomorphic to its image under an injective function -/
 @[to_additive  "An additive subgroup is isomorphic to its image under an injective function"]
@@ -2318,6 +2333,65 @@ S.to_submonoid.mul_distrib_mul_action
 end subgroup
 
 end actions
+
+/-! ### Pointwise instances on `subgroup`s -/
+
+section
+variables {α : Type*}
+
+namespace subgroup
+
+variables [monoid α] [mul_distrib_mul_action α G]
+
+/-- The action on a subgroup corresponding to applying the action to every element.
+
+This is available as an instance in the `pointwise` locale. -/
+protected def pointwise_mul_action : mul_action α (subgroup G) :=
+{ smul := λ a S, S.map (mul_distrib_mul_action.to_monoid_End _ _ a),
+  one_smul := λ S, (congr_arg (λ f, S.map f) (monoid_hom.map_one _)).trans S.map_id,
+  mul_smul := λ a₁ a₂ S,
+    (congr_arg (λ f, S.map f) (monoid_hom.map_mul _ _ _)).trans (S.map_map _ _).symm,}
+
+localized "attribute [instance] subgroup.pointwise_mul_action" in pointwise
+open_locale pointwise
+
+@[simp] lemma coe_pointwise_smul (a : α) (S : subgroup G) : ↑(a • S) = a • (S : set G) := rfl
+
+@[simp] lemma pointwise_smul_to_submonoid (a : α) (S : subgroup G) :
+  (a • S).to_submonoid = a • S.to_submonoid := rfl
+
+lemma smul_mem_pointwise_smul (m : G) (a : α) (S : subgroup G) : m ∈ S → a • m ∈ a • S :=
+(set.smul_mem_smul_set : _ → _ ∈ a • (S : set G))
+
+end subgroup
+
+namespace add_subgroup
+
+variables [monoid α] [distrib_mul_action α A]
+
+/-- The action on a additive subgroup corresponding to applying the action to every element.
+
+This is available as an instance in the `pointwise` locale. -/
+protected def pointwise_mul_action : mul_action α (add_subgroup A) :=
+{ smul := λ a S, S.map (distrib_mul_action.to_add_monoid_End _ _ a),
+  one_smul := λ S, (congr_arg (λ f, S.map f) (monoid_hom.map_one _)).trans S.map_id,
+  mul_smul := λ a₁ a₂ S,
+    (congr_arg (λ f, S.map f) (monoid_hom.map_mul _ _ _)).trans (S.map_map _ _).symm,}
+
+localized "attribute [instance] add_subgroup.pointwise_mul_action" in pointwise
+open_locale pointwise
+
+@[simp] lemma coe_pointwise_smul (a : α) (S : add_subgroup A) : ↑(a • S) = a • (S : set A) := rfl
+
+@[simp] lemma pointwise_smul_to_add_submonoid (a : α) (S : add_subgroup A) :
+  (a • S).to_add_submonoid = a • S.to_add_submonoid := rfl
+
+lemma smul_mem_pointwise_smul (m : A) (a : α) (S : add_subgroup A) : m ∈ S → a • m ∈ a • S :=
+(set.smul_mem_smul_set : _ → _ ∈ a • (S : set A))
+
+end add_subgroup
+
+end
 
 /-! ### Saturated subgroups -/
 

@@ -920,10 +920,7 @@ units_smul v (λ i, (hw i).unit)
 
 lemma is_unit_smul_apply {v : basis ι R M} {w : ι → R} (hw : ∀ i, is_unit (w i)) (i : ι) :
   v.is_unit_smul hw i = w i • v i :=
-begin
-  convert units_smul_apply i,
-  exact (is_unit.unit_spec (hw i)).symm,
-end
+units_smul_apply i
 
 section fin
 

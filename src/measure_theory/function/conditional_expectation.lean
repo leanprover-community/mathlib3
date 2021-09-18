@@ -831,7 +831,7 @@ lemma integrable_condexp_L2_indicator (hm : m ≤ m0) [sigma_finite (μ.trim hm)
   integrable (condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs x)) μ :=
 begin
   refine integrable_of_forall_fin_meas_le' hm (μ s * ∥x∥₊)
-    (ennreal.mul_lt_top (lt_top_iff_ne_top.mpr hμs) ennreal.coe_lt_top) _ _,
+    (ennreal.mul_lt_top hμs ennreal.coe_ne_top) _ _,
   { rw Lp_meas_coe, exact Lp.ae_measurable _, },
   { refine λ t ht hμt, (set_lintegral_nnnorm_condexp_L2_indicator_le hm hs hμs x ht hμt).trans _,
     exact ennreal.mul_le_mul (measure_mono (set.inter_subset_left _ _)) le_rfl, },
@@ -902,7 +902,7 @@ lemma integrable_condexp_ind_smul (hm : m ≤ m0) [sigma_finite (μ.trim hm)]
   integrable (condexp_ind_smul hm hs hμs x) μ :=
 begin
   refine integrable_of_forall_fin_meas_le' hm (μ s * ∥x∥₊)
-    (ennreal.mul_lt_top (lt_top_iff_ne_top.mpr hμs) ennreal.coe_lt_top) _ _,
+    (ennreal.mul_lt_top hμs ennreal.coe_ne_top) _ _,
   { exact Lp.ae_measurable _, },
   { refine λ t ht hμt, (set_lintegral_nnnorm_condexp_ind_smul_le hm hs hμs x ht hμt).trans _,
     exact ennreal.mul_le_mul (measure_mono (set.inter_subset_left _ _)) le_rfl, },

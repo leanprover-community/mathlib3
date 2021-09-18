@@ -346,8 +346,8 @@ begin
   by_cases hμ : μ = 0,
   { simp [hμ], },
   rw snorm_const c h0 hμ,
-  refine ennreal.mul_lt_top ennreal.coe_lt_top _,
-  refine ennreal.rpow_lt_top_of_nonneg _ (measure_ne_top μ set.univ),
+  refine ennreal.mul_lt_top ennreal.coe_ne_top _,
+  refine (ennreal.rpow_lt_top_of_nonneg _ (measure_ne_top μ set.univ)).ne,
   simp,
 end
 
@@ -958,8 +958,8 @@ begin
   { rw snorm_eq_snorm' hp0 hp_top,
     rw [hq_top, snorm_exponent_top] at hfq_lt_top,
     refine lt_of_le_of_lt (snorm'_le_snorm_ess_sup_mul_rpow_measure_univ hp_pos) _,
-    refine ennreal.mul_lt_top hfq_lt_top _,
-    exact ennreal.rpow_lt_top_of_nonneg (by simp [le_of_lt hp_pos]) (measure_ne_top μ set.univ), },
+    refine ennreal.mul_lt_top hfq_lt_top.ne _,
+    exact (ennreal.rpow_lt_top_of_nonneg (by simp [hp_pos.le]) (measure_ne_top μ set.univ)).ne },
   have hq0 : q ≠ 0,
   { by_contra hq_eq_zero,
     push_neg at hq_eq_zero,
@@ -1053,7 +1053,7 @@ lemma mem_ℒp.const_smul [measurable_space 𝕜] [opens_measurable_space 𝕜] 
   (hf : mem_ℒp f p μ) (c : 𝕜) :
   mem_ℒp (c • f) p μ :=
 ⟨ae_measurable.const_smul hf.1 c,
-  lt_of_le_of_lt (le_of_eq (snorm_const_smul c)) (ennreal.mul_lt_top ennreal.coe_lt_top hf.2)⟩
+  (snorm_const_smul c).le.trans_lt (ennreal.mul_lt_top ennreal.coe_ne_top hf.2.ne)⟩
 
 lemma mem_ℒp.const_mul [measurable_space 𝕜] [borel_space 𝕜]
   {f : α → 𝕜} (hf : mem_ℒp f p μ) (c : 𝕜) : mem_ℒp (λ x, c * f x) p μ :=
@@ -2206,18 +2206,18 @@ end
 
 private lemma tsum_nnnorm_sub_ae_lt_top
   {f : ℕ → α → E} (hf : ∀ n, ae_measurable (f n) μ) {p : ℝ} (hp1 : 1 ≤ p) {B : ℕ → ℝ≥0∞}
-  (hB : ∑' i, B i < ∞)
+  (hB : ∑' i, B i ≠ ∞)
   (h : (∫⁻ a, (∑' i, nnnorm (f (i + 1) a - f i a) : ℝ≥0∞)^p ∂μ) ^ (1/p) ≤ ∑' i, B i) :
   ∀ᵐ x ∂μ, (∑' i, nnnorm (f (i + 1) x - f i x) : ℝ≥0∞) < ∞ :=
 begin
   have hp_pos : 0 < p := zero_lt_one.trans_le hp1,
-  have h_integral : ∫⁻ a, (∑' i, nnnorm (f (i + 1) a - f i a) : ℝ≥0∞)^p ∂μ < ∞,
+  have h_integral : ∫⁻ a, (∑' i, ∥f (i + 1) a - f i a∥₊ : ℝ≥0∞)^p ∂μ < ∞,
   { have h_tsum_lt_top : (∑' i, B i) ^ p < ∞,
-      from ennreal.rpow_lt_top_of_nonneg hp_pos.le (lt_top_iff_ne_top.mp hB),
+      from ennreal.rpow_lt_top_of_nonneg hp_pos.le hB,
     refine lt_of_le_of_lt _ h_tsum_lt_top,
     rwa [←ennreal.le_rpow_one_div_iff (by simp [hp_pos] : 0 < 1 / p), one_div_one_div] at h, },
   have rpow_ae_lt_top : ∀ᵐ x ∂μ, (∑' i, nnnorm (f (i + 1) x - f i x) : ℝ≥0∞)^p < ∞,
-  { refine ae_lt_top' (ae_measurable.pow_const _ _) h_integral,
+  { refine ae_lt_top' (ae_measurable.pow_const _ _) h_integral.ne,
     exact ae_measurable.ennreal_tsum (λ n, ((hf (n+1)).sub (hf n)).ennnorm), },
   refine rpow_ae_lt_top.mono (λ x hx, _),
   rwa [←ennreal.lt_rpow_one_div_iff hp_pos,
@@ -2225,7 +2225,7 @@ begin
 end
 
 lemma ae_tendsto_of_cauchy_snorm' [complete_space E] {f : ℕ → α → E} {p : ℝ}
-  (hf : ∀ n, ae_measurable (f n) μ) (hp1 : 1 ≤ p) {B : ℕ → ℝ≥0∞} (hB : ∑' i, B i < ∞)
+  (hf : ∀ n, ae_measurable (f n) μ) (hp1 : 1 ≤ p) {B : ℕ → ℝ≥0∞} (hB : ∑' i, B i ≠ ∞)
   (h_cau : ∀ (N n m : ℕ), N ≤ n → N ≤ m → snorm' (f n - f m) p μ < B N) :
   ∀ᵐ x ∂μ, ∃ l : E, at_top.tendsto (λ n, f n x) (𝓝 l) :=
 begin
@@ -2260,7 +2260,7 @@ begin
 end
 
 lemma ae_tendsto_of_cauchy_snorm [complete_space E] {f : ℕ → α → E}
-  (hf : ∀ n, ae_measurable (f n) μ) (hp : 1 ≤ p) {B : ℕ → ℝ≥0∞} (hB : ∑' i, B i < ∞)
+  (hf : ∀ n, ae_measurable (f n) μ) (hp : 1 ≤ p) {B : ℕ → ℝ≥0∞} (hB : ∑' i, B i ≠ ∞)
   (h_cau : ∀ (N n m : ℕ), N ≤ n → N ≤ m → snorm (f n - f m) p μ < B N) :
   ∀ᵐ x ∂μ, ∃ l : E, at_top.tendsto (λ n, f n x) (𝓝 l) :=
 begin
@@ -2276,12 +2276,12 @@ begin
       specialize hx N n m hnN hmN,
       rw [dist_eq_norm, ←ennreal.to_real_of_real (norm_nonneg _),
         ennreal.to_real_le_to_real ennreal.of_real_ne_top
-        ((ennreal.ne_top_of_tsum_ne_top (lt_top_iff_ne_top.mp hB)) N)],
+        (ennreal.ne_top_of_tsum_ne_top hB N)],
       rw ←of_real_norm_eq_coe_nnnorm at hx,
       exact hx.le, },
     { rw ← ennreal.zero_to_real,
       exact tendsto.comp (ennreal.tendsto_to_real ennreal.zero_ne_top)
-        (ennreal.tendsto_at_top_zero_of_tsum_lt_top hB), }, },
+        (ennreal.tendsto_at_top_zero_of_tsum_ne_top hB), }, },
   have hp1 : 1 ≤ p.to_real,
   { rw [← ennreal.of_real_le_iff_le_to_real hp_top, ennreal.of_real_one],
     exact hp, },
@@ -2294,7 +2294,7 @@ end
 
 lemma cauchy_tendsto_of_tendsto {f : ℕ → α → E} (hf : ∀ n, ae_measurable (f n) μ)
   (f_lim : α → E) {B : ℕ → ℝ≥0∞}
-  (hB : ∑' i, B i < ∞) (h_cau : ∀ (N n m : ℕ), N ≤ n → N ≤ m → snorm (f n - f m) p μ < B N)
+  (hB : ∑' i, B i ≠ ∞) (h_cau : ∀ (N n m : ℕ), N ≤ n → N ≤ m → snorm (f n - f m) p μ < B N)
   (h_lim : ∀ᵐ (x : α) ∂μ, tendsto (λ n, f n x) at_top (𝓝 (f_lim x))) :
   at_top.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0) :=
 begin
@@ -2303,7 +2303,7 @@ begin
   have h_B : ∃ (N : ℕ), B N ≤ ε,
   { suffices h_tendsto_zero : ∃ (N : ℕ), ∀ n : ℕ, N ≤ n → B n ≤ ε,
       from ⟨h_tendsto_zero.some, h_tendsto_zero.some_spec _ (le_refl _)⟩,
-    exact (ennreal.tendsto_at_top_zero.mp (ennreal.tendsto_at_top_zero_of_tsum_lt_top hB))
+    exact (ennreal.tendsto_at_top_zero.mp (ennreal.tendsto_at_top_zero_of_tsum_ne_top hB))
       ε hε, },
   cases h_B with N h_B,
   refine ⟨N, λ n hn, _⟩,
@@ -2339,7 +2339,7 @@ begin
 end
 
 lemma cauchy_complete_ℒp [complete_space E] (hp : 1 ≤ p)
-  {f : ℕ → α → E} (hf : ∀ n, mem_ℒp (f n) p μ) {B : ℕ → ℝ≥0∞} (hB : ∑' i, B i < ∞)
+  {f : ℕ → α → E} (hf : ∀ n, mem_ℒp (f n) p μ) {B : ℕ → ℝ≥0∞} (hB : ∑' i, B i ≠ ∞)
   (h_cau : ∀ (N n m : ℕ), N ≤ n → N ≤ m → snorm (f n - f m) p μ < B N) :
   ∃ (f_lim : α → E) (hf_lim_meas : mem_ℒp f_lim p μ),
     at_top.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0) :=
@@ -2358,7 +2358,8 @@ end
 /-! ### `Lp` is complete for `1 ≤ p` -/
 
 instance [complete_space E] [hp : fact (1 ≤ p)] : complete_space (Lp E p μ) :=
-complete_space_Lp_of_cauchy_complete_ℒp (λ f hf B hB h_cau, cauchy_complete_ℒp hp.elim hf hB h_cau)
+complete_space_Lp_of_cauchy_complete_ℒp $
+  λ f hf B hB h_cau, cauchy_complete_ℒp hp.elim hf hB.ne h_cau
 
 end Lp
 end measure_theory

@@ -314,10 +314,8 @@ lemma measurable_find {p : α → ℕ → Prop} (hp : ∀ x, ∃ N, p x N)
   measurable (λ x, nat.find (hp x)) :=
 begin
   refine measurable_to_nat (λ x, _),
-  simp only [set.preimage, mem_singleton_iff, nat.find_eq_iff, set_of_and, set_of_forall,
-    ← compl_set_of],
-  repeat { apply_rules [measurable_set.inter, hm, measurable_set.Inter, measurable_set.Inter_Prop,
-    measurable_set.compl]; try { intros } }
+  rw [preimage_find_eq_disjointed],
+  exact measurable_set.disjointed hm _
 end
 
 end nat

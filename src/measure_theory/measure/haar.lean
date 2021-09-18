@@ -544,10 +544,11 @@ end
 instance regular_haar_measure {K₀ : positive_compacts G} :
   (haar_measure K₀).regular :=
 begin
-  haveI : locally_compact_space G := K₀.locally_compact_space_of_group,
-  apply regular.smul,
-  rw ennreal.inv_ne_top,
-  exact haar_content_outer_measure_self_pos.ne',
+  rw [haar_measure_apply hU.measurable_set, ennreal.div_pos_iff],
+  refine ⟨_, ne_of_lt $ content.outer_measure_lt_top_of_is_compact _ K₀.2.1⟩,
+  rw [← pos_iff_ne_zero],
+  exact content.outer_measure_pos_of_is_mul_left_invariant _ is_left_invariant_haar_content
+    ⟨K₀.1, K₀.2.1⟩ (by simpa only [haar_content_self] using one_ne_zero) hU h2U
 end
 
 /-- The Haar measure is sigma-finite in a second countable group. -/
@@ -555,8 +556,9 @@ end
 instance sigma_finite_haar_measure [second_countable_topology G] {K₀ : positive_compacts G} :
   sigma_finite (haar_measure K₀) :=
 begin
-  haveI : locally_compact_space G := K₀.locally_compact_space_of_group,
-  apply_instance,
+  apply regular.smul,
+  rw ennreal.inv_ne_top,
+  exact haar_content_outer_measure_self_pos.ne'
 end
 
 /-- The Haar measure is a Haar measure, i.e., it is invariant and gives finite mass to compact
@@ -594,8 +596,7 @@ begin
 end
 
 @[to_additive]
-theorem regular_of_is_mul_left_invariant
-  (hμ : is_mul_left_invariant μ) {K} (hK : is_compact K)
+theorem regular_of_is_mul_left_invariant (hμ : is_mul_left_invariant μ) {K} (hK : is_compact K)
   (h2K : (interior K).nonempty) (hμK : μ K ≠ ∞) : regular μ :=
 begin
   rw [haar_measure_unique hμ ⟨K, hK, h2K⟩],

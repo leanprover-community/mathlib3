@@ -223,6 +223,12 @@ lemma is_mul_left_invariant.measure_ne_zero_iff_nonempty [regular μ]
   μ s ≠ 0 ↔ s.nonempty :=
 by simp_rw [← ne_empty_iff_nonempty, ne.def, h2μ.null_iff_empty h3μ hs]
 
+@[to_additive]
+lemma is_mul_left_invariant.measure_pos_iff_nonempty [regular μ]
+  (h2μ : is_mul_left_invariant μ) (h3μ : μ ≠ 0) {s : set G} (hs : is_open s) :
+  0 < μ s ↔ s.nonempty :=
+pos_iff_ne_zero.trans $ h2μ.measure_ne_zero_iff_nonempty h3μ hs
+
 /-- If a left-invariant measure gives finite mass to a nonempty open set, then
 it gives finite mass to any compact set. -/
 @[to_additive]
@@ -236,8 +242,7 @@ begin
   calc μ K ≤ μ (⋃ (g : G) (H : g ∈ t), (λ (h : G), g * h) ⁻¹' U) : measure_mono hKt
   ... ≤ ∑ g in t, μ ((λ (h : G), g * h) ⁻¹' U) : measure_bUnion_finset_le _ _
   ... = finset.card t * μ U : by simp only [hμ _ hU.measurable_set, finset.sum_const, nsmul_eq_mul]
-  ... < ∞ : by simp only [ennreal.lt_top_iff_ne_top, h, ennreal.nat_ne_top, with_top.mul_eq_top_iff,
-                          ne.def, not_false_iff, and_false, false_and, or_self]
+  ... < ∞ : ennreal.mul_lt_top ennreal.coe_nat_ne_top h
 end
 
 /-- If a left-invariant measure gives finite mass to a set with nonempty interior, then
@@ -265,10 +270,8 @@ begin
   let s := Ioi r,
   rw [← ne.def, ← pos_iff_ne_zero],
   have : 0 < r * μ (f ⁻¹' Ioi r),
-  { rw ennreal.mul_pos,
-    refine ⟨h1r, _⟩,
-    rw [pos_iff_ne_zero, h2μ.measure_ne_zero_iff_nonempty h3μ h3r],
-    exact ⟨x, h2r⟩ },
+  { have : (f ⁻¹' Ioi r).nonempty, from ⟨x, h2r⟩,
+    simpa [h1r.ne', h2μ.measure_pos_iff_nonempty h3μ h3r, h1r] },
   refine this.trans_le _,
   rw [← set_lintegral_const, ← lintegral_indicator _ h3r.measurable_set],
   apply lintegral_mono,

@@ -131,5 +131,5 @@ begin
 
     exact set.infinite_of_infinite_image g hK_inf },
 
-  exact set.infinite_mono hW_sub_S hW_inf,
+  exact hW_inf.mono hW_sub_S,
 end

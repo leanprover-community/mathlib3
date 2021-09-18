@@ -656,7 +656,7 @@ begin
   refine ⟨⋃ n : ℕ, (f n⁻¹) '' (T n), Union_subset $ λ n, image_subset_iff.2 (λ z hz, hfs _ _),
     countable_Union $ λ n, (hTc n).image _, _⟩,
   refine λ x hx, mem_closure_iff.2 (λ ε ε0, _),
-  rcases ennreal.exists_inv_nat_lt (ennreal.half_pos ε0).ne' with ⟨n, hn⟩,
+  rcases ennreal.exists_inv_nat_lt (ennreal.half_pos ε0.lt.ne').ne' with ⟨n, hn⟩,
   rcases mem_bUnion_iff.1 (hsT n hx) with ⟨y, hyn, hyx⟩,
   refine ⟨f n⁻¹ y, mem_Union.2 ⟨n, mem_image_of_mem _ hyn⟩, _⟩,
   calc edist x (f n⁻¹ y) ≤ n⁻¹ * 2 : hf _ _ ⟨hyx, hx⟩

@@ -155,6 +155,8 @@ variables {α β γ E E' F F' G G' H 𝕜 : Type*} {p : ℝ≥0∞}
 
 section Lp_meas
 
+/-! ## The subset `Lp_meas` of `Lp` functions a.e. measurable with respect to a sub-sigma-algebra -/
+
 variables (F 𝕜)
 /-- `Lp_meas F 𝕜 m p μ` is the subspace of `Lp F p μ` containing functions `f` verifying
 `ae_measurable' m f μ`, i.e. functions which are `μ`-a.e. equal to an `m`-measurable function. -/
@@ -327,6 +329,24 @@ variables {F 𝕜 p μ}
 instance [hm : fact (m ≤ m0)] [complete_space F] [hp : fact (1 ≤ p)] :
   complete_space (Lp_meas F 𝕜 m p μ) :=
 by { rw (Lp_meas_to_Lp_trim_lie F 𝕜 p μ hm.elim).to_isometric.complete_space_iff, apply_instance, }
+
+include 𝕜
+variables (𝕜)
+lemma is_complete_ae_measurable' [hp : fact (1 ≤ p)] [complete_space F] (hm : m ≤ m0) :
+  is_complete {f : Lp F p μ | ae_measurable' m f μ} :=
+begin
+  rw ← complete_space_coe_iff_is_complete,
+  haveI : fact (m ≤ m0) := ⟨hm⟩,
+  change complete_space (Lp_meas F 𝕜 m p μ),
+  apply_instance,
+end
+
+lemma is_closed_ae_measurable' [hp : fact (1 ≤ p)] [complete_space F] (hm : m ≤ m0) :
+  is_closed {f : Lp F p μ | ae_measurable' m f μ} :=
+is_complete.is_closed (is_complete_ae_measurable' 𝕜 hm)
+
+variables {𝕜}
+omit 𝕜
 
 end complete_subspace
 
@@ -539,6 +559,10 @@ def condexp_L2 (hm : m ≤ m0) : (α →₂[μ] E) →L[𝕜] (Lp_meas E 𝕜 m 
 @orthogonal_projection 𝕜 (α →₂[μ] E) _ _ (Lp_meas E 𝕜 m 2 μ)
   (by { haveI : fact (m ≤ m0) := ⟨hm⟩, exact infer_instance, })
 variables {𝕜}
+
+lemma ae_measurable'_condexp_L2 (hm : m ≤ m0) (f : α →₂[μ] E) :
+  ae_measurable' m (condexp_L2 𝕜 hm f) μ :=
+Lp_meas.ae_measurable' _
 
 lemma integrable_on_condexp_L2_of_measure_ne_top (hm : m ≤ m0) (hμs : μ s ≠ ∞) (f : α →₂[μ] E) :
   integrable_on (condexp_L2 𝕜 hm f) s μ :=
@@ -847,6 +871,21 @@ variables [normed_space ℝ G] {hm : m ≤ m0}
 def condexp_ind_smul (hm : m ≤ m0) (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : G) : Lp G 2 μ :=
 (to_span_singleton ℝ x).comp_LpL 2 μ (condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ)))
 
+lemma ae_measurable'_condexp_ind_smul (hm : m ≤ m0) (hs : measurable_set s) (hμs : μ s ≠ ∞)
+  (x : G) :
+  ae_measurable' m (condexp_ind_smul hm hs hμs x) μ :=
+begin
+  have h : ae_measurable' m (condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ))) μ,
+    from ae_measurable'_condexp_L2 _ _,
+  rw condexp_ind_smul,
+  suffices : ae_measurable' m
+    ((to_span_singleton ℝ x) ∘ (condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ)))) μ,
+  { refine ae_measurable'.congr this _,
+    refine eventually_eq.trans _ (coe_fn_comp_LpL _ _).symm,
+    rw Lp_meas_coe, },
+  exact ae_measurable'.measurable_comp (to_span_singleton ℝ x).measurable h,
+end
+
 lemma condexp_ind_smul_add (hs : measurable_set s) (hμs : μ s ≠ ∞) (x y : G) :
   condexp_ind_smul hm hs hμs (x + y)
     = condexp_ind_smul hm hs hμs x + condexp_ind_smul hm hs hμs y :=
@@ -1142,6 +1181,11 @@ begin
 end
 
 variables {hm : m ≤ m0} [sigma_finite (μ.trim hm)]
+
+lemma ae_measurable'_condexp_ind (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : G) :
+  ae_measurable' m (condexp_ind hm μ s x) μ :=
+ae_measurable'.congr (ae_measurable'_condexp_ind_smul hm hs hμs x)
+  (condexp_ind_ae_eq_condexp_ind_smul hm hs hμs x).symm
 
 @[simp] lemma condexp_ind_empty : condexp_ind hm μ ∅ = (0 : G →L[ℝ] α →₁[μ] G) :=
 begin

@@ -62,6 +62,11 @@ theorem nth_eq_nth_le : ∀ (v : vector α n) (i),
   nth v i = v.to_list.nth_le i.1 (by rw to_list_length; exact i.2)
 | ⟨l, h⟩ i := rfl
 
+@[simp]
+lemma repeat_nth (a : α) (i : fin n) :
+  (vector.repeat a n).nth i = a :=
+by apply list.nth_le_repeat
+
 @[simp] lemma nth_map {β : Type*} (v : vector α n) (f : α → β) (i : fin n) :
   (v.map f).nth i = f (v.nth i) :=
 by simp [nth_eq_nth_le]
@@ -94,7 +99,7 @@ by simp only [←cons_head_tail, eq_iff_true_of_subsingleton]
 
 @[simp] theorem tail_of_fn {n : ℕ} (f : fin n.succ → α) :
   tail (of_fn f) = of_fn (λ i, f i.succ) :=
-(of_fn_nth _).symm.trans $ by congr; funext i; simp
+(of_fn_nth _).symm.trans $ by { congr, funext i, simp, }
 
 /-- The list that makes up a `vector` made up of a single element,
 retrieved via `to_list`, is equal to the list of that single element. -/
@@ -133,12 +138,17 @@ theorem head'_to_list : ∀ (v : vector α n.succ),
   (to_list v).head' = some (head v)
 | ⟨a::l, e⟩ := rfl
 
+/-- Reverse a vector. -/
 def reverse (v : vector α n) : vector α n :=
 ⟨v.to_list.reverse, by simp⟩
 
 /-- The `list` of a vector after a `reverse`, retrieved by `to_list` is equal
 to the `list.reverse` after retrieving a vector's `to_list`. -/
 lemma to_list_reverse {v : vector α n} : v.reverse.to_list = v.to_list.reverse := rfl
+
+@[simp]
+lemma reverse_reverse {v : vector α n} : v.reverse.reverse = v :=
+by { cases v, simp [vector.reverse], }
 
 @[simp] theorem nth_zero : ∀ (v : vector α n.succ), nth v 0 = head v
 | ⟨a::l, e⟩ := rfl
@@ -267,6 +277,8 @@ end
 
 end scan
 
+/-- Monadic analog of `vector.of_fn`.
+Given a monadic function on `fin n`, return a `vector α n` inside the monad. -/
 def m_of_fn {m} [monad m] {α : Type u} : ∀ {n}, (fin n → m α) → m (vector α n)
 | 0     f := pure nil
 | (n+1) f := do a ← f 0, v ← m_of_fn (λi, f i.succ), pure (a ::ᵥ v)
@@ -276,6 +288,8 @@ theorem m_of_fn_pure {m} [monad m] [is_lawful_monad m] {α} :
 | 0     f := rfl
 | (n+1) f := by simp [m_of_fn, @m_of_fn_pure n, of_fn]
 
+/-- Apply a monadic function to each component of a vector,
+returning a vector inside the monad. -/
 def mmap {m} [monad m] {α} {β : Type u} (f : α → m β) :
   ∀ {n}, vector α n → m (vector β n)
 | 0 xs := pure nil
@@ -309,12 +323,15 @@ begin
     apply hn }
 end
 
+/-- Cast a vector to an array. -/
 def to_array : vector α n → array n α
 | ⟨xs, h⟩ := cast (by rw h) xs.to_array
 
 section insert_nth
 variable {a : α}
 
+/-- `v.insert_nth a i` inserts `a` into the vector `v` at position `i`
+(and shifting later components to the right). -/
 def insert_nth (a : α) (i : fin (n+1)) (v : vector α n) : vector α (n+1) :=
 ⟨v.1.insert_nth i a,
   begin
@@ -406,11 +423,12 @@ private def traverse_aux {α β : Type u} (f : α → F β) :
 | []      := pure vector.nil
 | (x::xs) := vector.cons <$> f x <*> traverse_aux xs
 
+/-- Apply an applicative function to each component of a vector. -/
 protected def traverse {α β : Type u} (f : α → F β) : vector α n → F (vector β n)
 | ⟨v, Hv⟩ := cast (by rw Hv) $ traverse_aux f v
 
-variables [is_lawful_applicative F] [is_lawful_applicative G]
-variables {α β γ : Type u}
+section
+variables {α β : Type u}
 
 @[simp] protected lemma traverse_def
   (f : α → F β) (x : α) : ∀ (xs : vector α n),
@@ -424,8 +442,16 @@ begin
   simp! [IH], refl
 end
 
+end
+
 open function
 
+variables [is_lawful_applicative F] [is_lawful_applicative G]
+variables {α β γ : Type u}
+
+-- We need to turn off the linter here as
+-- the `is_lawful_traversable` instance below expects a particular signature.
+@[nolint unused_arguments]
 protected lemma comp_traverse (f : β → F γ) (g : α → G β) : ∀ (x : vector α n),
   vector.traverse (comp.mk ∘ functor.map f ∘ g) x =
   comp.mk (vector.traverse f <$> vector.traverse g x) :=

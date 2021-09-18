@@ -18,7 +18,7 @@ Bundled monotone functions, `x ≤ y → f x ≤ f y`.
 /-- Bundled monotone (aka, increasing) function -/
 structure preorder_hom (α β : Type*) [preorder α] [preorder β] :=
 (to_fun   : α → β)
-(mono' : monotone to_fun)
+(monotone' : monotone to_fun)
 
 infixr ` →ₘ `:25 := preorder_hom
 
@@ -31,8 +31,8 @@ instance : has_coe_to_fun (α →ₘ β) :=
 
 initialize_simps_projections preorder_hom (to_fun → coe)
 
-protected lemma mono (f : α →ₘ β) : monotone f :=
-preorder_hom.mono' f
+protected lemma monotone (f : α →ₘ β) : monotone f := f.monotone'
+protected lemma mono (f : α →ₘ β) : monotone f := f.monotone
 
 @[simp] lemma to_fun_eq_coe {f : α →ₘ β} : f.to_fun = f := rfl
 @[simp] lemma coe_fun_mk {f : α → β} (hf : _root_.monotone f) : (mk f hf : α → β) = f := rfl
@@ -106,7 +106,7 @@ by { ext, refl }
 @[simps {fully_applied := ff}]
 def const (α : Type*) [preorder α] {β : Type*} [preorder β] : β →ₘ α →ₘ β :=
 { to_fun := λ b, ⟨function.const α b, λ _ _ _, le_rfl⟩,
-  mono' := λ b₁ b₂ h x, h }
+  monotone' := λ b₁ b₂ h x, h }
 
 @[simp] lemma const_comp (f : α →ₘ β) (c : γ) : (const β c).comp f = const α c := rfl
 
@@ -137,8 +137,10 @@ curry ⟨λ f : (α →ₘ β) × (α →ₘ γ), f.1.prod f.2, λ f₁ f₂ h, 
 /-- Restriction of `f : α →ₘ α →ₘ β` to the diagonal. -/
 @[simps {simp_rhs := tt}] def on_diag (f : α →ₘ α →ₘ β) : α →ₘ β := (curry.symm f).comp diag
 
+/-- `prod.fst` as a `preorder_hom`. -/
 @[simps] def fst : α × β →ₘ α := ⟨prod.fst, λ x y h, h.1⟩
 
+/-- `prod.snd` as a `preorder_hom`. -/
 @[simps] def snd : α × β →ₘ β := ⟨prod.snd, λ x y h, h.2⟩
 
 @[simp] lemma fst_prod_snd : (fst : α × β →ₘ α).prod snd = id :=
@@ -171,8 +173,10 @@ def eval (i : ι) : (Π j, π j) →ₘ π i := ⟨function.eval i, function.mon
 is monotone. -/
 @[simps {fully_applied := ff}] def to_fun_hom : (α →ₘ β) →ₘ (α → β) :=
 { to_fun := λ f, f,
-  mono' := λ x y h, h }
+  monotone' := λ x y h, h }
 
+/-- Function application `λ f, f a` (for fixed `a`) is a monotone function from the
+monotone function space `α →ₘ β` to `β`. See also `preorder_hom.eval`.  -/
 @[simps {fully_applied := ff}] def apply (x : α) : (α →ₘ β) →ₘ β :=
 (eval x).comp to_fun_hom
 
@@ -326,7 +330,7 @@ namespace order_embedding
 @[simps {fully_applied := ff}]
 def to_preorder_hom {X Y : Type*} [preorder X] [preorder Y] (f : X ↪o Y) : X →ₘ Y :=
 { to_fun := f,
-  mono' := f.monotone }
+  monotone' := f.monotone }
 
 end order_embedding
 section rel_hom
@@ -342,7 +346,7 @@ is weakly monotonic. -/
 @[simps {fully_applied := ff}]
 def to_preorder_hom : α →ₘ β :=
 { to_fun    := f,
-  mono' := strict_mono.monotone (λ x y, f.map_rel), }
+  monotone' := strict_mono.monotone (λ x y, f.map_rel), }
 
 end rel_hom
 

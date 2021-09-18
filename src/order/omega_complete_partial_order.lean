@@ -69,13 +69,13 @@ variables {α} {α' : Type*} {β' : Type*} [preorder α'] [preorder β']
 @[simps]
 def bind {β γ} (f : α →ₘ part β) (g : α →ₘ β → part γ) : α →ₘ part γ :=
 { to_fun := λ x, f x >>= g x,
-  mono' :=
+  monotone' :=
   begin
     intros x y h a,
     simp only [and_imp, exists_prop, part.bind_eq_bind, part.mem_bind_iff,
                exists_imp_distrib],
     intros b hb ha,
-    refine ⟨b, f.mono h _ hb, g.mono h _ _ ha⟩,
+    refine ⟨b, f.monotone h _ hb, g.monotone h _ _ ha⟩,
   end }
 
 end preorder_hom
@@ -174,7 +174,7 @@ protected def lift [partial_order β] (f : β →ₘ α)
   (h : ∀ x y, f x ≤ f y → x ≤ y)
   (h' : ∀ c, f (ωSup₀ c) = ωSup (c.map f)) : omega_complete_partial_order β :=
 { ωSup := ωSup₀,
-  ωSup_le := λ c x hx, h _ _ (by rw h'; apply ωSup_le; intro; apply f.mono (hx i)),
+  ωSup_le := λ c x hx, h _ _ (by rw h'; apply ωSup_le; intro; apply f.monotone (hx i)),
   le_ωSup := λ c i, h _ _ (by rw h'; apply le_ωSup (c.map f)) }
 
 lemma le_ωSup_of_le {c : chain α} {x : α} (i : ℕ) (h : x ≤ c i) : x ≤ ωSup c :=
@@ -283,7 +283,7 @@ begin
   cases hb with j hb, replace hb := hb.symm,
   wlog h : i ≤ j := le_total i j using [a b i j, b a j i],
   rw [eq_some_iff] at ha hb,
-  have := c.mono h _ ha, apply mem_unique this hb
+  have := c.monotone h _ ha, apply mem_unique this hb
 end
 
 /-- The (noncomputable) `ωSup` definition for the `ω`-CPO structure on `part α`. -/
@@ -497,7 +497,7 @@ variables (α β)
 if for every chain `c : chain α`, `f (⊔ i, c i) = ⊔ i, f (c i)`.
 This is just the bundled version of `preorder_hom.continuous`. -/
 structure continuous_hom extends preorder_hom α β :=
-(cont : continuous (preorder_hom.mk to_fun mono'))
+(cont : continuous (preorder_hom.mk to_fun monotone'))
 
 attribute [nolint doc_blame] continuous_hom.to_preorder_hom
 
@@ -523,7 +523,7 @@ congr_arg (λ h : α →𝒄 β, h x) h
 theorem congr_arg (f : α →𝒄 β) {x y : α} (h : x = y) : f x = f y :=
 congr_arg (λ x : α, f x) h
 
-protected lemma mono (f : α →𝒄 β) : monotone f := f.mono'
+protected lemma monotone (f : α →𝒄 β) : monotone f := f.monotone'
 
 @[mono] lemma apply_mono {f g : α →𝒄 β} {x y : α} (h₁ : f ≤ g) (h₂ : x ≤ y) : f x ≤ g y :=
 preorder_hom.apply_mono (show (f : α →ₘ β) ≤ g, from h₁) h₂
@@ -594,7 +594,7 @@ by refine {to_fun := f, ..}; subst h; cases g; assumption
 @[simps, reducible]
 def of_mono (f : α →ₘ β) (h : ∀ c : chain α, f (ωSup c) = ωSup (c.map f)) : α →𝒄 β :=
 { to_fun := f,
-  mono' := f.mono,
+  monotone' := f.monotone,
   cont := h }
 
 /-- The identity as a continuous function. -/
@@ -646,7 +646,7 @@ of a continuous function before we do.) -/
 @[simps]
 def apply : (α →𝒄 β) × α →ₘ β :=
 { to_fun := λ f, f.1 f.2,
-  mono' := λ x y h, by dsimp; transitivity y.fst x.snd; [apply h.1, apply y.1.mono h.2] }
+  monotone' := λ x y h, by dsimp; transitivity y.fst x.snd; [apply h.1, apply y.1.monotone h.2] }
 
 end prod
 
@@ -654,7 +654,7 @@ end prod
 @[simps]
 def to_mono : (α →𝒄 β) →ₘ (α →ₘ β) :=
 { to_fun := λ f, f,
-  mono' := λ x y h, h }
+  monotone' := λ x y h, h }
 
 /-- When proving that a chain of applications is below a bound `z`, it suffices to consider the
 functions and values being selected from the same index in the chains.
@@ -669,8 +669,8 @@ begin
   { apply h },
   { apply le_trans _ (h (max i j)),
     transitivity c₀ i (c₁ (max i j)),
-    { apply (c₀ i).mono, apply c₁.mono, apply le_max_right },
-    { apply c₀.mono, apply le_max_left } }
+    { apply (c₀ i).monotone, apply c₁.monotone, apply le_max_right },
+    { apply c₀.monotone, apply le_max_left } }
 end
 
 @[simp]
@@ -713,7 +713,7 @@ end
 @[simps]
 def flip {α : Type*} (f : α → β →𝒄 γ) : β →𝒄 α → γ :=
 { to_fun := λ x y, f y x,
-  mono' := λ x y h a, (f a).mono h,
+  monotone' := λ x y h a, (f a).monotone h,
   cont := by intro; ext; change f x _ = _; rw [(f x).continuous ]; refl, }
 
 /-- `part.bind` as a continuous function. -/

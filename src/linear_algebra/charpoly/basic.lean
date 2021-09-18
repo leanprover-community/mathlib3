@@ -68,7 +68,7 @@ begin
     split_ifs; simp [h], }
 end
 
-lemma charmatrix_reindex {m : Type v} [decidable_eq m] [fintype m] (e : n ≃ m) (M : matrix n n R) :
+lemma charmatrix_of_reindex {m : Type v} [decidable_eq m] [fintype m] (e : n ≃ m) (M : matrix n n R) :
   charmatrix (reindex e e M) = reindex e e (charmatrix M) :=
 begin
   ext i j x,
@@ -82,6 +82,13 @@ The characteristic polynomial of a matrix `M` is given by $\det (t I - M)$.
 -/
 def matrix.charpoly (M : matrix n n R) : polynomial R :=
 (charmatrix M).det
+
+lemma matrix.charpoly_of_reindex {m : Type v} [decidable_eq m] [fintype m] (e : n ≃ m)
+  (M : matrix n n R) : (reindex e e M).charpoly = M.charpoly :=
+begin
+  unfold matrix.charpoly,
+  rw [charmatrix_of_reindex, matrix.det_reindex_self ]
+end
 
 /--
 The **Cayley-Hamilton Theorem**, that the characteristic polynomial of a matrix,

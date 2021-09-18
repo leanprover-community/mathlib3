@@ -81,7 +81,7 @@ attribute [mono] upper_bounds_mono_set lower_bounds_mono_set
 attribute [mono] add_le_add mul_le_mul neg_le_neg
          mul_lt_mul_of_pos_left mul_lt_mul_of_pos_right
          imp_imp_imp le_implies_le_of_le_of_le
-         sub_le_sub abs_le_abs sup_le_sup
+         sub_le_sub sub_le_sub' sub_le_sub_right' abs_le_abs sup_le_sup
          inf_le_inf
 attribute [mono left] add_lt_add_of_le_of_lt mul_lt_mul'
 attribute [mono right] add_lt_add_of_lt_of_le mul_lt_mul

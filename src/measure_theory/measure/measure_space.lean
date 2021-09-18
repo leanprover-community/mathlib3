@@ -2813,7 +2813,6 @@ begin
   rw [measure.restrict_apply' hs, set.indicator_preimage, set.ite],
   simp_rw [set.compl_union, set.compl_inter],
   change μ (((f ⁻¹' t)ᶜ ∪ sᶜ) ∩ ((λ x, (0 : β)) ⁻¹' t \ s)ᶜ) = 0 ↔ μ ((f ⁻¹' t)ᶜ ∩ s) = 0,
-  haveI : decidable ((0 : β) ∈ t), from classical.dec _,
   simp only [ht, ← set.compl_eq_univ_diff, compl_compl, set.compl_union, if_true,
     set.preimage_const],
   simp_rw [set.union_inter_distrib_right, set.compl_inter_self s, set.union_empty],

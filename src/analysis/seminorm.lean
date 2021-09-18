@@ -79,9 +79,9 @@ begin
     exact cInf_singleton 0 },
   by_cases bdd_below s,
   { rw [←order_iso.smul_left_apply _ ha', (order_iso.smul_left ℝ ha').map_cInf hs h],
-  simp,
+    simp,
     sorry
-    },
+  },
   sorry
 end
 
@@ -90,17 +90,14 @@ lemma real.Sup_smul_of_nonneg {a : α} (ha : 0 ≤ a) (s : set ℝ) :
 begin
   obtain rfl | hs := s.eq_empty_or_nonempty,
   { rw [smul_set_empty, real.Sup_empty, smul_zero] },
+  obtain rfl | ha' := ha.eq_or_lt,
+  { rw [zero_smul_set hs, zero_smul],
+    exact cSup_singleton 0 },
   by_cases bdd_above s,
-  { rw [←set.image_smul, eq_comm],
-    exact map_cSup_of_continuous_at_of_monotone (continuous_id.const_smul _).continuous_at
-      (smul_mono_right ha) hs h },
-  { rw [real.Sup_of_not_bdd_above h, smul_zero],
-    obtain rfl | ha' := ha.eq_or_lt,
-    { rw zero_smul_set hs,
-      exact cSup_singleton 0 },
-    { sorry
-     -- exact real.Inf_of_not_bdd_below (mt (bdd_above_smul_iff_of_pos ha).2 _)
-    } }
+  { rw [←order_iso.smul_left_apply _ ha', (order_iso.smul_left ℝ ha').map_cSup hs h],
+    sorry
+  },
+  sorry
 end
 
 end
@@ -369,7 +366,7 @@ lemma gauge_nonneg (x : E) :
   0 ≤ gauge s x :=
 real.Inf_nonneg _ (λ x hx, hx.1.le)
 
-lemma gauge_le_one_eq' (hs : convex s) (zero_mem : (0 : E) ∈ s) (absorbs : absorbent ℝ s) :
+lemma gauge_le_one_eq' (hs : convex ℝ s) (zero_mem : (0 : E) ∈ s) (absorbs : absorbent ℝ s) :
   {x | gauge s x ≤ 1} = ⋂ (θ : ℝ) (H : 1 < θ), θ • s :=
 begin
   ext,
@@ -392,7 +389,7 @@ begin
       (add_lt_add_left (half_lt_self hε) _) }
 end
 
-lemma gauge_le_one_eq (hs : convex s) (zero_mem : (0 : E) ∈ s) (absorbs : absorbent ℝ s) :
+lemma gauge_le_one_eq (hs : convex ℝ s) (zero_mem : (0 : E) ∈ s) (absorbs : absorbent ℝ s) :
   {x | gauge s x ≤ 1} = ⋂ (θ ∈ set.Ioi (1 : ℝ)), θ • s :=
 gauge_le_one_eq' hs zero_mem absorbs
 
@@ -420,13 +417,13 @@ begin
   { exact λ ⟨θ, ⟨hθ₀, hθ₁⟩, hx⟩, (gauge_le_of_mem hθ₀ hx).trans_lt hθ₁ }
 end
 
-lemma gauge_lt_one_subset_self (hs : convex s) (zero_mem : (0 : E) ∈ s) (absorbs : absorbent ℝ s) :
+lemma gauge_lt_one_subset_self (hs : convex ℝ s) (h₀ : (0 : E) ∈ s) (absorbs : absorbent ℝ s) :
   {x | gauge s x < 1} ⊆ s :=
 begin
   rw gauge_lt_one_eq absorbs,
   apply set.bUnion_subset,
   rintro θ hθ _ ⟨y, hy, rfl⟩,
-  exact hs.smul_mem_of_zero_mem zero_mem hy (Ioo_subset_Icc_self hθ),
+  exact hs.smul_mem_of_zero_mem h₀ hy (Ioo_subset_Icc_self hθ),
 end
 
 lemma gauge_le_one_of_mem {x : E} (hx : x ∈ s) : gauge s x ≤ 1 :=
@@ -435,11 +432,11 @@ gauge_le_of_mem zero_lt_one (by rwa one_smul)
 lemma self_subset_gauge_le_one : s ⊆ {x | gauge s x ≤ 1} :=
 λ x, gauge_le_one_of_mem
 
-lemma convex.gauge_le_one (hs : convex s) (zero_mem : (0 : E) ∈ s) (absorbs : absorbent ℝ s) :
-  convex {x | gauge s x ≤ 1} :=
+lemma convex.gauge_le_one (hs : convex ℝ s) (h₀ : (0 : E) ∈ s) (absorbs : absorbent ℝ s) :
+  convex ℝ {x | gauge s x ≤ 1} :=
 begin
-  rw gauge_le_one_eq hs zero_mem absorbs,
-  refine convex_Inter (λ i, convex_Inter (λ (hi : _ < _), convex.smul _ hs)),
+  rw gauge_le_one_eq hs h₀ absorbs,
+  exact convex_Inter (λ i, convex_Inter (λ (hi : _ < _), hs.smul _)),
 end
 
 lemma interior_subset_gauge_lt_one [topological_space E] [has_continuous_smul ℝ E] (s : set E) :
@@ -468,7 +465,7 @@ begin
 end
 
 lemma gauge_lt_one_eq_self_of_open [topological_space E] [has_continuous_smul ℝ E] {s : set E}
-  (hs : convex s) (zero_mem : (0 : E) ∈ s) (hs₂ : is_open s) :
+  (hs : convex ℝ s) (zero_mem : (0 : E) ∈ s) (hs₂ : is_open s) :
   {x | gauge s x < 1} = s :=
 begin
   apply (gauge_lt_one_subset_self hs ‹_› $ absorbent_nhds_zero $ hs₂.mem_nhds zero_mem).antisymm,
@@ -477,12 +474,12 @@ begin
 end
 
 lemma gauge_lt_one_of_mem_of_open [topological_space E] [has_continuous_smul ℝ E] {s : set E}
-  (hs : convex s) (zero_mem : (0 : E) ∈ s) (hs₂ : is_open s) (x : E) (hx : x ∈ s) :
+  (hs : convex ℝ s) (zero_mem : (0 : E) ∈ s) (hs₂ : is_open s) (x : E) (hx : x ∈ s) :
   gauge s x < 1 :=
 by rwa ←gauge_lt_one_eq_self_of_open hs zero_mem hs₂ at hx
 
 lemma one_le_gauge_of_not_mem [topological_space E] [has_continuous_smul ℝ E] {s : set E}
-  (hs : convex s) (zero_mem : (0 : E) ∈ s) (hs₂ : is_open s) {x : E} (hx : x ∉ s) :
+  (hs : convex ℝ s) (zero_mem : (0 : E) ∈ s) (hs₂ : is_open s) {x : E} (hx : x ∉ s) :
   1 ≤ gauge s x :=
 begin
   rw ←gauge_lt_one_eq_self_of_open hs zero_mem hs₂ at hx,
@@ -542,7 +539,7 @@ begin
   { apply_instance }
 end
 
-lemma gauge_subadditive (hs : convex s) (absorbs : absorbent ℝ s) (x y : E) :
+lemma gauge_subadditive (hs : convex ℝ s) (absorbs : absorbent ℝ s) (x y : E) :
   gauge s (x + y) ≤ gauge s x + gauge s y :=
 begin
   refine le_of_forall_pos_lt_add (λ ε hε, _),
@@ -563,7 +560,7 @@ begin
 end
 
 /-- If `s` is symmetric, convex and absorbent, its `gauge` is a seminorm. -/
-def gauge_seminorm (symmetric : ∀ x ∈ s, -x ∈ s) (hs : convex s) (hs' : absorbent ℝ s) :
+def gauge_seminorm (symmetric : ∀ x ∈ s, -x ∈ s) (hs : convex ℝ s) (hs' : absorbent ℝ s) :
   seminorm ℝ E :=
 { to_fun := gauge s,
   smul' := λ θ x, by rw [gauge_homogeneous symmetric, real.norm_eq_abs, smul_eq_mul];

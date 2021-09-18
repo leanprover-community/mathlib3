@@ -39,7 +39,7 @@ class lawful_fix (α : Type*) [omega_complete_partial_order α] extends has_fix 
 lemma lawful_fix.fix_eq' {α} [omega_complete_partial_order α] [lawful_fix α]
   {f : α → α} (hf : continuous' f) :
   has_fix.fix f = f (has_fix.fix f) :=
-lawful_fix.fix_eq (continuous.to_bundled _ hf)
+lawful_fix.fix_eq (hf.to_bundled _)
 
 namespace part
 

@@ -506,9 +506,13 @@ congr rfl ((closure L).eq_of_le set.subset.rfl (λ x xS, mem_closure.2 (λ T hT,
 
 open set
 
+example {α : Type*} [h : semilattice_sup α] :
+  @partial_order.to_preorder α (@semilattice_sup.to_partial_order α h) =
+  @directed_order.to_preorder α (@semilattice_sup.to_directed_order α h) := rfl
+
 /-- A substructure `S` includes `closure L s` if and only if it includes `s`. -/
 @[simp]
-lemma closure_le : closure L s ≤ S ↔ s ⊆ S := (closure L).closure_le_closed_iff_le s S.closed
+lemma closure_le : closure L s ≤ S ↔ s ⊆ S := (closure L).le_iff_subset s S
 
 /-- Substructure closure of a set is monotone in its argument: if `s ⊆ t`,
 then `closure L s ≤ closure L t`. -/

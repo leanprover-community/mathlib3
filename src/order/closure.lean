@@ -68,8 +68,8 @@ def simps.apply [preorder α] (f : closure_operator α) : α → α := f
 
 initialize_simps_projections closure_operator (to_preorder_hom_to_fun → apply, -to_preorder_hom)
 
-section partial_order
-variable [partial_order α]
+section preorder
+variable [preorder α]
 
 /-- The identity function as a closure operator. -/
 @[simps]
@@ -83,9 +83,44 @@ instance : inhabited (closure_operator α) := ⟨id α⟩
 
 variables {α} (c : closure_operator α)
 
-@[ext] lemma ext :
+@[ext] protected lemma ext :
   ∀ (c₁ c₂ : closure_operator α), (c₁ : α → α) = (c₂ : α → α) → c₁ = c₂
 | ⟨⟨c₁, _⟩, _, _⟩ ⟨⟨c₂, _⟩, _, _⟩ h := by { congr, exact h }
+
+@[mono] protected lemma monotone : monotone c := c.monotone'
+
+/-- Every element is less than its closure. This property is sometimes referred to as extensivity or
+inflationarity. -/
+lemma le_closure (x : α) : x ≤ c x := c.le_closure' x
+
+@[simp] protected lemma idempotent (x : α) : c (c x) = c x := c.idempotent' x
+
+lemma le_closure_iff (x y : α) : x ≤ c y ↔ c x ≤ c y :=
+⟨λ h, c.idempotent y ▸ c.monotone h, λ h, (c.le_closure x).trans h⟩
+
+/-- An element `x` is closed for the closure operator `c` if it is a fixed point for it. -/
+def closed : set α := λ x, c x = x
+
+lemma mem_closed_iff (x : α) : x ∈ c.closed ↔ c x = x := iff.rfl
+
+lemma closure_eq_self_of_mem_closed {x : α} (h : x ∈ c.closed) : c x = x := h
+
+@[simp] lemma closure_is_closed (x : α) : c x ∈ c.closed := c.idempotent x
+
+/-- The set of closed elements for `c` is exactly its range. -/
+lemma closed_eq_range_close : c.closed = set.range c :=
+set.ext $ λ x, ⟨λ h, ⟨x, h⟩, by { rintro ⟨y, rfl⟩, apply c.idempotent }⟩
+
+/-- Send an `x` to an element of the set of closed elements (by taking the closure). -/
+def to_closed (x : α) : c.closed := ⟨c x, c.closure_is_closed x⟩
+
+@[simp] lemma closure_le_closed_iff_le (x : α) {y : α} (hy : c.closed y) : c x ≤ y ↔ x ≤ y :=
+by rw [←c.closure_eq_self_of_mem_closed hy, ←le_closure_iff]
+
+end preorder
+
+section partial_order
+variables {α} [partial_order α] (c : closure_operator α)
 
 /-- Constructor for a closure operator using the weaker idempotency axiom: `f (f x) ≤ f x`. -/
 @[simps]
@@ -115,52 +150,8 @@ def mk₃ (f : α → α) (p : α → Prop) (hf : ∀ x, x ≤ f x) (hfp : ∀ x
   closure_operator α :=
 mk₂ f hf (λ x y hxy, hmin hxy (hfp y))
 
-/-- This lemma shows that the image of `x` of a closure operator built from the `mk₃` constructor
-respects `p`, the property that was fed into it. -/
-lemma closure_mem_mk₃ {f : α → α} {p : α → Prop} {hf : ∀ x, x ≤ f x} {hfp : ∀ x, p (f x)}
-  {hmin : ∀ ⦃x y⦄, x ≤ y → p y → f x ≤ y} (x : α) :
-  p (mk₃ f p hf hfp hmin x) :=
-hfp x
-
-/-- Analogue of `closure_le_closed_iff_le` but with the `p` that was fed into the `mk₃` constructor.
--/
-lemma closure_le_mk₃_iff {f : α → α} {p : α → Prop} {hf : ∀ x, x ≤ f x} {hfp : ∀ x, p (f x)}
-  {hmin : ∀ ⦃x y⦄, x ≤ y → p y → f x ≤ y} {x y : α} (hxy : x ≤ y) (hy : p y) :
-  mk₃ f p hf hfp hmin x ≤ y :=
-hmin hxy hy
-
-@[mono] lemma monotone : monotone c := c.monotone'
-
-/-- Every element is less than its closure. This property is sometimes referred to as extensivity or
-inflationarity. -/
-lemma le_closure (x : α) : x ≤ c x := c.le_closure' x
-
-@[simp] lemma idempotent (x : α) : c (c x) = c x := c.idempotent' x
-
-lemma le_closure_iff (x y : α) : x ≤ c y ↔ c x ≤ c y :=
-⟨λ h, c.idempotent y ▸ c.monotone h, λ h, (c.le_closure x).trans h⟩
-
-/-- An element `x` is closed for the closure operator `c` if it is a fixed point for it. -/
-def closed : set α := λ x, c x = x
-
-lemma mem_closed_iff (x : α) : x ∈ c.closed ↔ c x = x := iff.rfl
-
 lemma mem_closed_iff_closure_le (x : α) : x ∈ c.closed ↔ c x ≤ x :=
 ⟨le_of_eq, λ h, h.antisymm (c.le_closure x)⟩
-
-lemma closure_eq_self_of_mem_closed {x : α} (h : x ∈ c.closed) : c x = x := h
-
-@[simp] lemma closure_is_closed (x : α) : c x ∈ c.closed := c.idempotent x
-
-/-- The set of closed elements for `c` is exactly its range. -/
-lemma closed_eq_range_close : c.closed = set.range c :=
-set.ext $ λ x, ⟨λ h, ⟨x, h⟩, by { rintro ⟨y, rfl⟩, apply c.idempotent }⟩
-
-/-- Send an `x` to an element of the set of closed elements (by taking the closure). -/
-def to_closed (x : α) : c.closed := ⟨c x, c.closure_is_closed x⟩
-
-@[simp] lemma closure_le_closed_iff_le (x : α) {y : α} (hy : c.closed y) : c x ≤ y ↔ x ≤ y :=
-by rw [←c.closure_eq_self_of_mem_closed hy, ←le_closure_iff]
 
 /-- A closure operator is equal to the closure operator obtained by feeding `c.closed` into the
 `mk₃` constructor. -/

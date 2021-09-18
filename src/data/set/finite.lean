@@ -461,7 +461,7 @@ lemma finite_le_nat (n : ℕ) : finite {i | i ≤ n} := ⟨set.fintype_le_nat _�
 
 lemma finite_lt_nat (n : ℕ) : finite {i | i < n} := ⟨set.fintype_lt_nat _⟩
 
-lemma exists_gt_nat_of_infinite {s : set ℕ} (hs : infinite s) (n : ℕ) : ∃ m, m ∈ s ∧ n < m :=
+lemma infinite.exists_nat_lt {s : set ℕ} (hs : infinite s) (n : ℕ) : ∃ m ∈ s, n < m :=
 begin
   obtain ⟨m, hm⟩ := (hs.diff $ set.finite_le_nat n).nonempty,
   exact ⟨m, by simpa using hm⟩,

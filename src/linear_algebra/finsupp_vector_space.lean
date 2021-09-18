@@ -154,7 +154,7 @@ open module
 
 
 lemma equiv_of_dim_eq_lift_dim
-  (h : cardinal.lift.{v w} (module.rank K V) = cardinal.lift.{w v} (module.rank K V')) :
+  (h : cardinal.lift.{w} (module.rank K V) = cardinal.lift.{v} (module.rank K V')) :
   nonempty (V ≃ₗ[K] V') :=
 begin
   haveI := classical.dec_eq V,
@@ -178,7 +178,7 @@ end
 def fin_dim_vectorspace_equiv (n : ℕ)
   (hn : (module.rank K V) = n) : V ≃ₗ[K] (fin n → K) :=
 begin
-  have : cardinal.lift.{v u} (n : cardinal.{v}) = cardinal.lift.{u v} (n : cardinal.{u}),
+  have : cardinal.lift.{u} (n : cardinal.{v}) = cardinal.lift.{v} (n : cardinal.{u}),
     by simp,
   have hn := cardinal.lift_inj.{v u}.2 hn,
   rw this at hn,

@@ -118,20 +118,6 @@ funext $ λ i, basis.apply_eq_iff.mpr rfl
 
 end ring
 
-section comm_ring
-variables {R : Type*} {M : Type*} {N : Type*} {ι : Type*} {κ : Type*}
-variables [comm_ring R] [add_comm_group M] [module R M] [add_comm_group N] [module R N]
-
-/-- If b : ι → M and c : κ → N are bases then so is λ i, b i.1 ⊗ₜ c i.2 : ι × κ → M ⊗ N. -/
-def basis.tensor_product (b : basis ι R M) (c : basis κ R N) :
-  basis (ι × κ) R (tensor_product R M N) :=
-finsupp.basis_single_one.map
-  ((tensor_product.congr b.repr c.repr) ≪≫ₗ
-    (finsupp_tensor_finsupp _ _ _ _ _) ≪≫ₗ
-    (lcongr (equiv.refl _)) (tensor_product.lid R R)).symm
-
-end comm_ring
-
 section dim
 universes u v
 variables {K : Type u} {V : Type v} {ι : Type v}

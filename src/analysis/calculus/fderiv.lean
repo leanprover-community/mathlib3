@@ -747,6 +747,10 @@ begin
   exact hL.fderiv_within_eq unique_diff_within_at_univ A
 end
 
+protected lemma filter.eventually_eq.fderiv (h : f₁ =ᶠ[𝓝 x] f) :
+  fderiv 𝕜 f₁ =ᶠ[𝓝 x] fderiv 𝕜 f :=
+h.eventually_eq_nhds.mono $ λ x h, h.fderiv_eq
+
 end congr
 
 section id
@@ -2267,40 +2271,65 @@ lemma fderiv_smul_const (hc : differentiable_at 𝕜 c x) (f : F) :
 end smul
 
 section mul
-/-! ### Derivative of the product of two scalar-valued functions -/
+/-! ### Derivative of the product of two functions -/
 
-variables {c d : E → 𝕜} {c' d' : E →L[𝕜] 𝕜}
+variables {𝔸 𝔸' : Type*} [normed_ring 𝔸] [normed_comm_ring 𝔸'] [normed_algebra 𝕜 𝔸]
+  [normed_algebra 𝕜 𝔸'] {a b : E → 𝔸} {a' b' : E →L[𝕜] 𝔸} {c d : E → 𝔸'} {c' d' : E →L[𝕜] 𝔸'}
+
+theorem has_strict_fderiv_at.mul' {x : E} (ha : has_strict_fderiv_at a a' x)
+  (hb : has_strict_fderiv_at b b' x) :
+  has_strict_fderiv_at (λ y, a y * b y) (a x • b' + a'.smul_right (b x)) x :=
+((continuous_linear_map.lmul 𝕜 𝔸).is_bounded_bilinear_map.has_strict_fderiv_at (a x, b x)).comp x
+  (ha.prod hb)
 
 theorem has_strict_fderiv_at.mul
   (hc : has_strict_fderiv_at c c' x) (hd : has_strict_fderiv_at d d' x) :
   has_strict_fderiv_at (λ y, c y * d y) (c x • d' + d x • c') x :=
-by { convert hc.smul hd, ext z, apply mul_comm }
+by { convert hc.mul' hd, ext z, apply mul_comm }
+
+theorem has_fderiv_within_at.mul'
+  (ha : has_fderiv_within_at a a' s x) (hb : has_fderiv_within_at b b' s x) :
+  has_fderiv_within_at (λ y, a y * b y) (a x • b' + a'.smul_right (b x)) s x :=
+((continuous_linear_map.lmul 𝕜 𝔸).is_bounded_bilinear_map.has_fderiv_at
+  (a x, b x)).comp_has_fderiv_within_at x (ha.prod hb)
 
 theorem has_fderiv_within_at.mul
   (hc : has_fderiv_within_at c c' s x) (hd : has_fderiv_within_at d d' s x) :
   has_fderiv_within_at (λ y, c y * d y) (c x • d' + d x • c') s x :=
-by { convert hc.smul hd, ext z, apply mul_comm }
+by { convert hc.mul' hd, ext z, apply mul_comm }
+
+theorem has_fderiv_at.mul'
+  (ha : has_fderiv_at a a' x) (hb : has_fderiv_at b b' x) :
+  has_fderiv_at (λ y, a y * b y) (a x • b' + a'.smul_right (b x)) x :=
+((continuous_linear_map.lmul 𝕜 𝔸).is_bounded_bilinear_map.has_fderiv_at (a x, b x)).comp x
+  (ha.prod hb)
 
 theorem has_fderiv_at.mul (hc : has_fderiv_at c c' x) (hd : has_fderiv_at d d' x) :
   has_fderiv_at (λ y, c y * d y) (c x • d' + d x • c') x :=
-by { convert hc.smul hd, ext z, apply mul_comm }
+by { convert hc.mul' hd, ext z, apply mul_comm }
 
 lemma differentiable_within_at.mul
-  (hc : differentiable_within_at 𝕜 c s x) (hd : differentiable_within_at 𝕜 d s x) :
-  differentiable_within_at 𝕜 (λ y, c y * d y) s x :=
-(hc.has_fderiv_within_at.mul hd.has_fderiv_within_at).differentiable_within_at
+  (ha : differentiable_within_at 𝕜 a s x) (hb : differentiable_within_at 𝕜 b s x) :
+  differentiable_within_at 𝕜 (λ y, a y * b y) s x :=
+(ha.has_fderiv_within_at.mul' hb.has_fderiv_within_at).differentiable_within_at
 
-@[simp] lemma differentiable_at.mul (hc : differentiable_at 𝕜 c x) (hd : differentiable_at 𝕜 d x) :
-  differentiable_at 𝕜 (λ y, c y * d y) x :=
-(hc.has_fderiv_at.mul hd.has_fderiv_at).differentiable_at
+@[simp] lemma differentiable_at.mul (ha : differentiable_at 𝕜 a x) (hb : differentiable_at 𝕜 b x) :
+  differentiable_at 𝕜 (λ y, a y * b y) x :=
+(ha.has_fderiv_at.mul' hb.has_fderiv_at).differentiable_at
 
-lemma differentiable_on.mul (hc : differentiable_on 𝕜 c s) (hd : differentiable_on 𝕜 d s) :
-  differentiable_on 𝕜 (λ y, c y * d y) s :=
-λx hx, (hc x hx).mul (hd x hx)
+lemma differentiable_on.mul (ha : differentiable_on 𝕜 a s) (hb : differentiable_on 𝕜 b s) :
+  differentiable_on 𝕜 (λ y, a y * b y) s :=
+λx hx, (ha x hx).mul (hb x hx)
 
-@[simp] lemma differentiable.mul (hc : differentiable 𝕜 c) (hd : differentiable 𝕜 d) :
-  differentiable 𝕜 (λ y, c y * d y) :=
-λx, (hc x).mul (hd x)
+@[simp] lemma differentiable.mul (ha : differentiable 𝕜 a) (hb : differentiable 𝕜 b) :
+  differentiable 𝕜 (λ y, a y * b y) :=
+λx, (ha x).mul (hb x)
+
+lemma fderiv_within_mul' (hxs : unique_diff_within_at 𝕜 s x)
+  (ha : differentiable_within_at 𝕜 a s x) (hb : differentiable_within_at 𝕜 b s x) :
+  fderiv_within 𝕜 (λ y, a y * b y) s x =
+    a x • fderiv_within 𝕜 b s x + (fderiv_within 𝕜 a s x).smul_right (b x) :=
+(ha.has_fderiv_within_at.mul' hb.has_fderiv_within_at).fderiv_within hxs
 
 lemma fderiv_within_mul (hxs : unique_diff_within_at 𝕜 s x)
   (hc : differentiable_within_at 𝕜 c s x) (hd : differentiable_within_at 𝕜 d s x) :
@@ -2308,99 +2337,113 @@ lemma fderiv_within_mul (hxs : unique_diff_within_at 𝕜 s x)
     c x • fderiv_within 𝕜 d s x + d x • fderiv_within 𝕜 c s x :=
 (hc.has_fderiv_within_at.mul hd.has_fderiv_within_at).fderiv_within hxs
 
+lemma fderiv_mul' (ha : differentiable_at 𝕜 a x) (hb : differentiable_at 𝕜 b x) :
+  fderiv 𝕜 (λ y, a y * b y) x =
+    a x • fderiv 𝕜 b x + (fderiv 𝕜 a x).smul_right (b x) :=
+(ha.has_fderiv_at.mul' hb.has_fderiv_at).fderiv
+
 lemma fderiv_mul (hc : differentiable_at 𝕜 c x) (hd : differentiable_at 𝕜 d x) :
   fderiv 𝕜 (λ y, c y * d y) x =
     c x • fderiv 𝕜 d x + d x • fderiv 𝕜 c x :=
 (hc.has_fderiv_at.mul hd.has_fderiv_at).fderiv
 
-theorem has_strict_fderiv_at.mul_const (hc : has_strict_fderiv_at c c' x) (d : 𝕜) :
+theorem has_strict_fderiv_at.mul_const' (ha : has_strict_fderiv_at a a' x) (b : 𝔸) :
+  has_strict_fderiv_at (λ y, a y * b) (a'.smul_right b) x :=
+(((continuous_linear_map.lmul 𝕜 𝔸).flip b).has_strict_fderiv_at).comp x ha
+
+theorem has_strict_fderiv_at.mul_const (hc : has_strict_fderiv_at c c' x) (d : 𝔸') :
   has_strict_fderiv_at (λ y, c y * d) (d • c') x :=
-by simpa only [smul_zero, zero_add] using hc.mul (has_strict_fderiv_at_const d x)
+by { convert hc.mul_const' d, ext z, apply mul_comm }
 
-theorem has_fderiv_within_at.mul_const (hc : has_fderiv_within_at c c' s x) (d : 𝕜) :
+theorem has_fderiv_within_at.mul_const' (ha : has_fderiv_within_at a a' s x) (b : 𝔸) :
+  has_fderiv_within_at (λ y, a y * b) (a'.smul_right b) s x :=
+(((continuous_linear_map.lmul 𝕜 𝔸).flip b).has_fderiv_at).comp_has_fderiv_within_at x ha
+
+theorem has_fderiv_within_at.mul_const (hc : has_fderiv_within_at c c' s x) (d : 𝔸') :
   has_fderiv_within_at (λ y, c y * d) (d • c') s x :=
-by simpa only [smul_zero, zero_add] using hc.mul (has_fderiv_within_at_const d x s)
+by { convert hc.mul_const' d, ext z, apply mul_comm }
 
-theorem has_fderiv_at.mul_const (hc : has_fderiv_at c c' x) (d : 𝕜) :
+theorem has_fderiv_at.mul_const' (ha : has_fderiv_at a a' x) (b : 𝔸) :
+  has_fderiv_at (λ y, a y * b) (a'.smul_right b) x :=
+(((continuous_linear_map.lmul 𝕜 𝔸).flip b).has_fderiv_at).comp x ha
+
+theorem has_fderiv_at.mul_const (hc : has_fderiv_at c c' x) (d : 𝔸') :
   has_fderiv_at (λ y, c y * d) (d • c') x :=
-begin
-  rw [← has_fderiv_within_at_univ] at *,
-  exact hc.mul_const d
-end
+by { convert hc.mul_const' d, ext z, apply mul_comm }
 
 lemma differentiable_within_at.mul_const
-  (hc : differentiable_within_at 𝕜 c s x) (d : 𝕜) :
-  differentiable_within_at 𝕜 (λ y, c y * d) s x :=
-(hc.has_fderiv_within_at.mul_const d).differentiable_within_at
+  (ha : differentiable_within_at 𝕜 a s x) (b : 𝔸) :
+  differentiable_within_at 𝕜 (λ y, a y * b) s x :=
+(ha.has_fderiv_within_at.mul_const' b).differentiable_within_at
 
-lemma differentiable_at.mul_const (hc : differentiable_at 𝕜 c x) (d : 𝕜) :
-  differentiable_at 𝕜 (λ y, c y * d) x :=
-(hc.has_fderiv_at.mul_const d).differentiable_at
+lemma differentiable_at.mul_const (ha : differentiable_at 𝕜 a x) (b : 𝔸) :
+  differentiable_at 𝕜 (λ y, a y * b) x :=
+(ha.has_fderiv_at.mul_const' b).differentiable_at
 
-lemma differentiable_on.mul_const (hc : differentiable_on 𝕜 c s) (d : 𝕜) :
-  differentiable_on 𝕜 (λ y, c y * d) s :=
-λx hx, (hc x hx).mul_const d
+lemma differentiable_on.mul_const (ha : differentiable_on 𝕜 a s) (b : 𝔸) :
+  differentiable_on 𝕜 (λ y, a y * b) s :=
+λx hx, (ha x hx).mul_const b
 
-lemma differentiable.mul_const (hc : differentiable 𝕜 c) (d : 𝕜) :
-  differentiable 𝕜 (λ y, c y * d) :=
-λx, (hc x).mul_const d
+lemma differentiable.mul_const (ha : differentiable 𝕜 a) (b : 𝔸) :
+  differentiable 𝕜 (λ y, a y * b) :=
+λx, (ha x).mul_const b
+
+lemma fderiv_within_mul_const' (hxs : unique_diff_within_at 𝕜 s x)
+  (ha : differentiable_within_at 𝕜 a s x) (b : 𝔸) :
+  fderiv_within 𝕜 (λ y, a y * b) s x = (fderiv_within 𝕜 a s x).smul_right b :=
+(ha.has_fderiv_within_at.mul_const' b).fderiv_within hxs
 
 lemma fderiv_within_mul_const (hxs : unique_diff_within_at 𝕜 s x)
-  (hc : differentiable_within_at 𝕜 c s x) (d : 𝕜) :
+  (hc : differentiable_within_at 𝕜 c s x) (d : 𝔸') :
   fderiv_within 𝕜 (λ y, c y * d) s x = d • fderiv_within 𝕜 c s x :=
 (hc.has_fderiv_within_at.mul_const d).fderiv_within hxs
 
-lemma fderiv_mul_const (hc : differentiable_at 𝕜 c x) (d : 𝕜) :
+lemma fderiv_mul_const' (ha : differentiable_at 𝕜 a x) (b : 𝔸) :
+  fderiv 𝕜 (λ y, a y * b) x = (fderiv 𝕜 a x).smul_right b :=
+(ha.has_fderiv_at.mul_const' b).fderiv
+
+lemma fderiv_mul_const (hc : differentiable_at 𝕜 c x) (d : 𝔸') :
   fderiv 𝕜 (λ y, c y * d) x = d • fderiv 𝕜 c x :=
 (hc.has_fderiv_at.mul_const d).fderiv
 
-theorem has_strict_fderiv_at.const_mul (hc : has_strict_fderiv_at c c' x) (d : 𝕜) :
-  has_strict_fderiv_at (λ y, d * c y) (d • c') x :=
-begin
-  simp only [mul_comm d],
-  exact hc.mul_const d,
-end
+theorem has_strict_fderiv_at.const_mul (ha : has_strict_fderiv_at a a' x) (b : 𝔸) :
+  has_strict_fderiv_at (λ y, b * a y) (b • a') x :=
+(((continuous_linear_map.lmul 𝕜 𝔸) b).has_strict_fderiv_at).comp x ha
 
 theorem has_fderiv_within_at.const_mul
-  (hc : has_fderiv_within_at c c' s x) (d : 𝕜) :
-  has_fderiv_within_at (λ y, d * c y) (d • c') s x :=
-begin
-  simp only [mul_comm d],
-  exact hc.mul_const d,
-end
+  (ha : has_fderiv_within_at a a' s x) (b : 𝔸) :
+  has_fderiv_within_at (λ y, b * a y) (b • a') s x :=
+(((continuous_linear_map.lmul 𝕜 𝔸) b).has_fderiv_at).comp_has_fderiv_within_at x ha
 
-theorem has_fderiv_at.const_mul (hc : has_fderiv_at c c' x) (d : 𝕜) :
-  has_fderiv_at (λ y, d * c y) (d • c') x :=
-begin
-  simp only [mul_comm d],
-  exact hc.mul_const d,
-end
+theorem has_fderiv_at.const_mul (ha : has_fderiv_at a a' x) (b : 𝔸) :
+  has_fderiv_at (λ y, b * a y) (b • a') x :=
+(((continuous_linear_map.lmul 𝕜 𝔸) b).has_fderiv_at).comp x ha
 
 lemma differentiable_within_at.const_mul
-  (hc : differentiable_within_at 𝕜 c s x) (d : 𝕜) :
-  differentiable_within_at 𝕜 (λ y, d * c y) s x :=
-(hc.has_fderiv_within_at.const_mul d).differentiable_within_at
+  (ha : differentiable_within_at 𝕜 a s x) (b : 𝔸) :
+  differentiable_within_at 𝕜 (λ y, b * a y) s x :=
+(ha.has_fderiv_within_at.const_mul b).differentiable_within_at
 
-lemma differentiable_at.const_mul (hc : differentiable_at 𝕜 c x) (d : 𝕜) :
-  differentiable_at 𝕜 (λ y, d * c y) x :=
-(hc.has_fderiv_at.const_mul d).differentiable_at
+lemma differentiable_at.const_mul (ha : differentiable_at 𝕜 a x) (b : 𝔸) :
+  differentiable_at 𝕜 (λ y, b * a y) x :=
+(ha.has_fderiv_at.const_mul b).differentiable_at
 
-lemma differentiable_on.const_mul (hc : differentiable_on 𝕜 c s) (d : 𝕜) :
-  differentiable_on 𝕜 (λ y, d * c y) s :=
-λx hx, (hc x hx).const_mul d
+lemma differentiable_on.const_mul (ha : differentiable_on 𝕜 a s) (b : 𝔸) :
+  differentiable_on 𝕜 (λ y, b * a y) s :=
+λx hx, (ha x hx).const_mul b
 
-lemma differentiable.const_mul (hc : differentiable 𝕜 c) (d : 𝕜) :
-  differentiable 𝕜 (λ y, d * c y) :=
-λx, (hc x).const_mul d
+lemma differentiable.const_mul (ha : differentiable 𝕜 a) (b : 𝔸) :
+  differentiable 𝕜 (λ y, b * a y) :=
+λx, (ha x).const_mul b
 
 lemma fderiv_within_const_mul (hxs : unique_diff_within_at 𝕜 s x)
-  (hc : differentiable_within_at 𝕜 c s x) (d : 𝕜) :
-  fderiv_within 𝕜 (λ y, d * c y) s x = d • fderiv_within 𝕜 c s x :=
-(hc.has_fderiv_within_at.const_mul d).fderiv_within hxs
+  (ha : differentiable_within_at 𝕜 a s x) (b : 𝔸) :
+  fderiv_within 𝕜 (λ y, b * a y) s x = b • fderiv_within 𝕜 a s x :=
+(ha.has_fderiv_within_at.const_mul b).fderiv_within hxs
 
-lemma fderiv_const_mul (hc : differentiable_at 𝕜 c x) (d : 𝕜) :
-  fderiv 𝕜 (λ y, d * c y) x = d • fderiv 𝕜 c x :=
-(hc.has_fderiv_at.const_mul d).fderiv
+lemma fderiv_const_mul (ha : differentiable_at 𝕜 a x) (b : 𝔸) :
+  fderiv 𝕜 (λ y, b * a y) x = b • fderiv 𝕜 a x :=
+(ha.has_fderiv_at.const_mul b).fderiv
 
 end mul
 

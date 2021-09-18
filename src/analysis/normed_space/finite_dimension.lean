@@ -28,6 +28,8 @@ are continuous. Moreover, a finite-dimensional subspace is always complete and c
   resolution. It is however registered as an instance for `𝕜 = ℝ` and `𝕜 = ℂ`. As properness
   implies completeness, there is no need to also register `finite_dimensional.complete` on `ℝ` or
   `ℂ`.
+* `finite_dimensional_of_is_compact_closed_ball`: Riesz' theorem: if the closed unit ball is
+  compact, then the space is finite-dimensional.
 
 ## Implementation notes
 
@@ -402,6 +404,91 @@ complete_space_coe_iff_is_complete.1 (finite_dimensional.complete 𝕜 s)
 lemma submodule.closed_of_finite_dimensional (s : submodule 𝕜 E) [finite_dimensional 𝕜 s] :
   is_closed (s : set E) :=
 s.complete_of_finite_dimensional.is_closed
+
+section riesz
+
+/-- In an infinite dimensional space, given a finite number of points, one may find a point
+with norm at most `R` which is at distance at least `1` of all these points. -/
+theorem exists_norm_le_le_norm_sub_of_finset {c : 𝕜} (hc : 1 < ∥c∥) {R : ℝ} (hR : ∥c∥ < R)
+  (h : ¬ (finite_dimensional 𝕜 E)) (s : finset E) :
+  ∃ (x : E), ∥x∥ ≤ R ∧ ∀ y ∈ s, 1 ≤ ∥y - x∥ :=
+begin
+  let F := submodule.span 𝕜 (s : set E),
+  haveI : finite_dimensional 𝕜 F,
+  { apply is_noetherian_span_of_finite _ (finset.finite_to_set s), apply_instance },
+  have Fclosed : is_closed (F : set E) := submodule.closed_of_finite_dimensional _,
+  have : ∃ x, x ∉ F,
+  { contrapose! h,
+    have : (⊤ : submodule 𝕜 E) = F, by { ext x, simp [h] },
+    have : finite_dimensional 𝕜 (⊤ : submodule 𝕜 E), by rwa this,
+    exact is_noetherian_top_iff.1 this },
+  obtain ⟨x, xR, hx⟩ : ∃ (x : E), ∥x∥ ≤ R ∧ ∀ (y : E), y ∈ F → 1 ≤ ∥x - y∥ :=
+    riesz_lemma_of_norm_lt hc hR Fclosed this,
+  have hx' : ∀ (y : E), y ∈ F → 1 ≤ ∥y - x∥,
+  { assume y hy, rw ← norm_neg, simpa using hx y hy },
+  exact ⟨x, xR, λ y hy, hx' _ (submodule.subset_span hy)⟩,
+end
+
+/-- In an infinite-dimensional normed space, there exists a sequence of points which are all
+bounded by `R` and at distance at least `1`. For a version not assuming `c` and `R`, see
+`exists_seq_norm_le_one_le_norm_sub`. -/
+theorem exists_seq_norm_le_one_le_norm_sub' {c : 𝕜} (hc : 1 < ∥c∥) {R : ℝ} (hR : ∥c∥ < R)
+  (h : ¬ (finite_dimensional 𝕜 E)) :
+  ∃ f : ℕ → E, (∀ n, ∥f n∥ ≤ R) ∧ (∀ m n, m ≠ n → 1 ≤ ∥f m - f n∥) :=
+begin
+  haveI : is_symm E (λ (x y : E), 1 ≤ ∥x - y∥),
+  { constructor,
+    assume x y hxy,
+    rw ← norm_neg,
+    simpa },
+  apply exists_seq_of_forall_finset_exists' (λ (x : E), ∥x∥ ≤ R) (λ (x : E) (y : E), 1 ≤ ∥x - y∥),
+  assume s hs,
+  exact exists_norm_le_le_norm_sub_of_finset hc hR h s,
+end
+
+theorem exists_seq_norm_le_one_le_norm_sub (h : ¬ (finite_dimensional 𝕜 E)) :
+  ∃ (R : ℝ) (f : ℕ → E), (1 < R) ∧ (∀ n, ∥f n∥ ≤ R) ∧ (∀ m n, m ≠ n → 1 ≤ ∥f m - f n∥) :=
+begin
+  obtain ⟨c, hc⟩ : ∃ (c : 𝕜), 1 < ∥c∥ := normed_field.exists_one_lt_norm 𝕜,
+  have A : ∥c∥ < ∥c∥ + 1, by linarith,
+  rcases exists_seq_norm_le_one_le_norm_sub' hc A h with ⟨f, hf⟩,
+  exact ⟨∥c∥ + 1, f, hc.trans A, hf.1, hf.2⟩
+end
+
+variable (𝕜)
+/-- Riesz's theorem: if the unit ball is compact in a vector space, then the space is
+finite-dimensional. -/
+theorem finite_dimensional_of_is_compact_closed_ball {r : ℝ} (rpos : 0 < r)
+  (h : is_compact (metric.closed_ball (0 : E) r)) : finite_dimensional 𝕜 E :=
+begin
+  by_contra hfin,
+  obtain ⟨R, f, Rgt, fle, lef⟩ :
+    ∃ (R : ℝ) (f : ℕ → E), (1 < R) ∧ (∀ n, ∥f n∥ ≤ R) ∧ (∀ m n, m ≠ n → 1 ≤ ∥f m - f n∥) :=
+      exists_seq_norm_le_one_le_norm_sub hfin,
+  have rRpos : 0 < r / R := div_pos rpos (zero_lt_one.trans Rgt),
+  obtain ⟨c, hc⟩ : ∃ (c : 𝕜), 0 < ∥c∥ ∧ ∥c∥ < (r / R) := normed_field.exists_norm_lt _ rRpos,
+  let g := λ (n : ℕ), c • f n,
+  have A : ∀ n, g n ∈ metric.closed_ball (0 : E) r,
+  { assume n,
+    simp only [norm_smul, dist_zero_right, metric.mem_closed_ball],
+    calc ∥c∥ * ∥f n∥ ≤ (r / R) * R : mul_le_mul hc.2.le (fle n) (norm_nonneg _) rRpos.le
+    ... = r : by field_simp [(zero_lt_one.trans Rgt).ne'] },
+  obtain ⟨x, hx, φ, φmono, φlim⟩ : ∃ (x : E) (H : x ∈ metric.closed_ball (0 : E) r) (φ : ℕ → ℕ),
+    strict_mono φ ∧ tendsto (g ∘ φ) at_top (𝓝 x) := h.tendsto_subseq A,
+  have B : cauchy_seq (g ∘ φ) := φlim.cauchy_seq,
+  obtain ⟨N, hN⟩ : ∃ (N : ℕ), ∀ (n : ℕ), N ≤ n → dist ((g ∘ φ) n) ((g ∘ φ) N) < ∥c∥ :=
+    metric.cauchy_seq_iff'.1 B (∥c∥) hc.1,
+  apply lt_irrefl (∥c∥),
+  calc ∥c∥ ≤ dist (g (φ (N+1))) (g (φ N)) : begin
+    conv_lhs { rw [← mul_one (∥c∥)] },
+    simp only [g, dist_eq_norm, ←smul_sub, norm_smul, -mul_one],
+    apply mul_le_mul_of_nonneg_left (lef _ _ (ne_of_gt _)) (norm_nonneg _),
+    exact φmono (nat.lt_succ_self N)
+  end
+  ... < ∥c∥ : hN (N+1) (nat.le_succ N)
+end
+
+end riesz
 
 lemma continuous_linear_map.exists_right_inverse_of_surjective [finite_dimensional 𝕜 F]
   (f : E →L[𝕜] F) (hf : f.range = ⊤) :

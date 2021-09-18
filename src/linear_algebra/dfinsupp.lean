@@ -44,11 +44,11 @@ include dec_ι
 
 /-- `dfinsupp.mk` as a `linear_map`. -/
 def lmk (s : finset ι) : (Π i : (↑s : set ι), M i) →ₗ[R] Π₀ i, M i :=
-{ to_fun := mk s, map_add' := λ _ _, mk_add, map_smul' := λ c x, mk_smul R x }
+{ to_fun := mk s, map_add' := λ _ _, mk_add, map_smul' := λ c x, mk_smul c x}
 
 /-- `dfinsupp.single` as a `linear_map` -/
 def lsingle (i) : M i →ₗ[R] Π₀ i, M i :=
-{ to_fun := single i, map_smul' := λ r x, single_smul _, .. dfinsupp.single_add_hom _ _ }
+{ to_fun := single i, map_smul' := single_smul, .. dfinsupp.single_add_hom _ _ }
 
 /-- Two `R`-linear maps from `Π₀ i, M i` which agree on each `single i x` agree everywhere. -/
 lemma lhom_ext ⦃φ ψ : (Π₀ i, M i) →ₗ[R] N⦄
@@ -99,7 +99,7 @@ we have with the `Π i, has_zero (M i →ₗ[R] N)` instance which appears as a 
 `dfinsupp` type. -/
 instance module_of_linear_map [semiring S] [module S N] [smul_comm_class R S N] :
   module S (Π₀ (i : ι), M i →ₗ[R] N) :=
-@dfinsupp.module _ (λ i, M i →ₗ[R] N) _ _ _ _
+@dfinsupp.module _ _ (λ i, M i →ₗ[R] N) _ _ _
 
 variables (S)
 

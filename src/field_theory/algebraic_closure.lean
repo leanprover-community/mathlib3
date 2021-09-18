@@ -29,10 +29,6 @@ polynomial in `k` splits.
 - `is_alg_closed.lift` is a map from an algebraic extension `L` of `K`, into any algebraically
   closed extension of `K`.
 
-## TODO
-
-Show that any two algebraic closures are isomorphic
-
 ## Tags
 
 algebraic closure, algebraically closed
@@ -488,7 +484,8 @@ begin
   letI : algebra N M := (maximal_subfield_with_hom M hL).emb.to_ring_hom.to_algebra,
   cases is_alg_closed.exists_aeval_eq_zero M (minpoly N x)
     (ne_of_gt (minpoly.degree_pos
-      ((is_algebraic_iff_is_integral _).1 (algebra.is_algebraic_of_larger_field hL x)))) with y hy,
+      ((is_algebraic_iff_is_integral _).1
+        (algebra.is_algebraic_of_larger_base _ _ hL x)))) with y hy,
   let O : subalgebra N L := algebra.adjoin N {(x : L)},
   let larger_emb := ((adjoin_root.lift_hom (minpoly N x) y hy).comp
      (alg_equiv.adjoin_singleton_equiv_adjoin_root_minpoly N x).to_alg_hom),
@@ -525,3 +522,27 @@ include hL
   eq.rec_on (lift.subfield_with_hom.maximal_subfield_with_hom_eq_top M hL).symm algebra.to_top
 
 end is_alg_closed
+
+namespace is_alg_closure
+
+variables (K : Type u) [field K] (L : Type v) (M : Type w) [field L] [algebra K L]
+  [field M] [algebra K M]  [is_alg_closure K L] [is_alg_closure K M]
+
+local attribute [instance] is_alg_closure.alg_closed
+
+/-- A (random) isomorphism between two algebraic closures of `K`. -/
+def equiv : L ≃ₐ[K] M :=
+let f : L →ₐ[K] M := is_alg_closed.lift K L M is_alg_closure.algebraic in
+alg_equiv.of_bijective f
+  ⟨ring_hom.injective f.to_ring_hom,
+    begin
+      letI : algebra L M := ring_hom.to_algebra f,
+      letI : is_scalar_tower K L M :=
+        is_scalar_tower.of_algebra_map_eq (by simp [ring_hom.algebra_map_to_algebra]),
+      show function.surjective (algebra_map L M),
+      exact is_alg_closed.algebra_map_surjective_of_is_algebraic
+        (algebra.is_algebraic_of_larger_base K L is_alg_closure.algebraic),
+    end⟩
+
+
+end is_alg_closure

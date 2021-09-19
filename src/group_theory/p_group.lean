@@ -200,7 +200,14 @@ lemma to_sup_of_normal_left' {H K : subgroup G} (hH : is_p_group p H) (hK : is_p
   (hHK : K ≤ H.normalizer) : is_p_group p (H ⊔ K : subgroup G) :=
 (congr_arg (λ H : subgroup G, is_p_group p H) sup_comm).mp (to_sup_of_normal_right' hK hH hHK)
 
-lemma to_comap_injective {H : subgroup G} (hH : is_p_group p H) {K : Type*} [group K]
+lemma map {H : subgroup G} (hH : is_p_group p H) {K : Type*} [group K]
+  (ϕ : G →* K) : is_p_group p (H.map ϕ) :=
+begin
+  rw [←H.subtype_range, monoid_hom.map_range],
+  exact hH.of_surjective (ϕ.restrict H).range_restrict (ϕ.restrict H).range_restrict_surjective,
+end
+
+lemma comap_injective {H : subgroup G} (hH : is_p_group p H) {K : Type*} [group K]
   (ϕ : K →* G) (hϕ : function.injective ϕ) : is_p_group p (H.comap ϕ) :=
 begin
   refine (hH.to_le _).of_injective (ϕ.restrict (H.comap ϕ)).range_restrict _,

@@ -1986,6 +1986,14 @@ begin
       restrict_comm hs ht, ← with_density_apply _ ht]
 end
 
+lemma restrict_with_density {s : set α} (hs : measurable_set s) (f : α → ℝ≥0∞) :
+  (μ.with_density f).restrict s = (μ.restrict s).with_density f :=
+begin
+  ext1 t ht,
+  rw [restrict_apply ht, with_density_apply _ ht,
+      with_density_apply _ (ht.inter hs), restrict_restrict ht],
+end
+
 end lintegral
 
 end measure_theory
@@ -2016,6 +2024,10 @@ end
 
 namespace measure_theory
 
+variables {α : Type*} {m m0 : measurable_space α}
+
+include m
+
 /-- This is Exercise 1.2.1 from [tao2010]. It allows you to express integration of a measurable
 function with respect to `(μ.with_density f)` as an integral with respect to `μ`, called the base
 measure. `μ` is often the Lebesgue measure, and in this circumstance `f` is the probability density
@@ -2025,7 +2037,7 @@ the exponential distribution, the Beta distribution, or the Cauchy distribution 
 of [wasserman2004]). Thus, this method shows how to one can calculate expectations, variances,
 and other moments as a function of the probability density function.
  -/
-lemma lintegral_with_density_eq_lintegral_mul {α} [measurable_space α] (μ : measure α)
+lemma lintegral_with_density_eq_lintegral_mul (μ : measure α)
   {f : α → ℝ≥0∞} (h_mf : measurable f) : ∀ {g : α → ℝ≥0∞}, measurable g →
   ∫⁻ a, g a ∂(μ.with_density f) = ∫⁻ a, (f * g) a ∂μ :=
 begin
@@ -2039,10 +2051,15 @@ begin
     simp [lintegral_supr, ennreal.mul_supr, h_mf.mul (h_mea_g _), *] }
 end
 
+lemma set_lintegral_with_density_eq_set_lintegral_mul (μ : measure α) {f g : α → ℝ≥0∞}
+  (hf : measurable f) (hg : measurable g) {s : set α} (hs : measurable_set s) :
+  ∫⁻ x in s, g x ∂μ.with_density f = ∫⁻ x in s, (f * g) x ∂μ :=
+by rw [restrict_with_density hs, lintegral_with_density_eq_lintegral_mul _ hf hg]
+
 /-- In a sigma-finite measure space, there exists an integrable function which is
 positive everywhere (and with an arbitrarily small integral). -/
 lemma exists_pos_lintegral_lt_of_sigma_finite
-  {α} [measurable_space α] (μ : measure α) [sigma_finite μ] {ε : ℝ≥0∞} (ε0 : ε ≠ 0) :
+  (μ : measure α) [sigma_finite μ] {ε : ℝ≥0∞} (ε0 : ε ≠ 0) :
   ∃ g : α → ℝ≥0, (∀ x, 0 < g x) ∧ measurable g ∧ (∫⁻ x, g x ∂μ < ε) :=
 begin
   /- Let `s` be a covering of `α` by pairwise disjoint measurable sets of finite measure. Let
@@ -2061,7 +2078,7 @@ begin
     lintegral_encodable, measurable_spanning_sets_index, mul_comm] using δsum,
 end
 
-lemma lintegral_trim {α : Type*} {m m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0)
+lemma lintegral_trim {μ : measure α} (hm : m ≤ m0)
   {f : α → ℝ≥0∞} (hf : @measurable _ _ m _ f) :
   ∫⁻ a, f a ∂(μ.trim hm) = ∫⁻ a, f a ∂μ :=
 begin
@@ -2082,7 +2099,7 @@ begin
     exact funext (λ n, hf_prop n), },
 end
 
-lemma lintegral_trim_ae {α : Type*} {m m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0)
+lemma lintegral_trim_ae {μ : measure α} (hm : m ≤ m0)
   {f : α → ℝ≥0∞} (hf : ae_measurable f (μ.trim hm)) :
   ∫⁻ a, f a ∂(μ.trim hm) = ∫⁻ a, f a ∂μ :=
 by rw [lintegral_congr_ae (ae_eq_of_ae_eq_trim hf.ae_eq_mk),
@@ -2090,7 +2107,7 @@ by rw [lintegral_congr_ae (ae_eq_of_ae_eq_trim hf.ae_eq_mk),
 
 section sigma_finite
 
-variables {α E : Type*} {m m0 : measurable_space α} [normed_group E] [measurable_space E]
+variables {E : Type*} [normed_group E] [measurable_space E]
   [opens_measurable_space E]
 
 lemma univ_le_of_forall_fin_meas_le {μ : measure α} (hm : m ≤ m0) [@sigma_finite _ m (μ.trim hm)]
@@ -2166,6 +2183,8 @@ begin
   rw lintegral_congr_ae hf_meas.ae_eq_mk,
   exact lintegral_le_of_forall_fin_meas_le_of_measurable hm C hf_meas.measurable_mk hf',
 end
+
+omit m
 
 /-- If the Lebesgue integral of a function is bounded by some constant on all sets with finite
 measure and the measure is σ-finite, then the integral over the whole space is bounded by that same

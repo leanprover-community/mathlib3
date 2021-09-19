@@ -417,7 +417,7 @@ let I := ∥(i.symm : F →L[𝕜] E)∥ in calc
 ∑ k in Ico 1 (n + 1), a ^ k * ∥p.right_inv i k∥
     = a * I + ∑ k in Ico 2 (n + 1), a ^ k * ∥p.right_inv i k∥ :
 by simp only [linear_isometry_equiv.norm_map, pow_one, right_inv_coeff_one,
-              Ico_succ_singleton, sum_singleton, ← sum_Ico_consecutive _ one_le_two hn]
+              nat.Ico_succ_singleton, sum_singleton, ← sum_Ico_consecutive _ one_le_two hn]
 ... = a * I + ∑ k in Ico 2 (n + 1), a ^ k *
         ∥(i.symm : F →L[𝕜] E).comp_continuous_multilinear_map
           (∑ c in ({c | 1 < composition.length c}.to_finset : finset (composition k)),

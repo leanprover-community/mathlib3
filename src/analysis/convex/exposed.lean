@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import analysis.convex.extreme
+import analysis.convex.function
 import analysis.normed_space.basic
 
 /-!
@@ -177,8 +178,8 @@ begin
     exact hxB.2 y hy }
 end
 
-protected lemma is_convex (hAB : is_exposed A B) (hA : convex A) :
-  convex B :=
+protected lemma is_convex (hAB : is_exposed A B) (hA : convex ℝ A) :
+  convex ℝ B :=
 begin
   obtain rfl | hB := B.eq_empty_or_nonempty,
   { exact convex_empty },

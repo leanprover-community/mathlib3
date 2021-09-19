@@ -399,6 +399,9 @@ lemma has_basis.inf {ι ι' : Type*} {p : ι → Prop} {s : ι → set α} {p' :
 lemma has_basis_principal (t : set α) : (𝓟 t).has_basis (λ i : unit, true) (λ i, t) :=
 ⟨λ U, by simp⟩
 
+lemma has_basis_pure (x : α) : (pure x : filter α).has_basis (λ i : unit, true) (λ i, {x}) :=
+by simp only [← principal_singleton, has_basis_principal]
+
 lemma has_basis.sup' (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
   (l ⊔ l').has_basis (λ i : pprod ι ι', p i.1 ∧ p' i.2) (λ i, s i.1 ∪ s' i.2) :=
 ⟨begin
@@ -419,6 +422,15 @@ lemma has_basis_supr {ι : Sort*} {ι' : ι → Type*} {l : ι → filter α}
   (⨆ i, l i).has_basis (λ f : Π i, ι' i, ∀ i, p i (f i)) (λ f : Π i, ι' i, ⋃ i, s i (f i)) :=
 has_basis_iff.mpr $ λ t, by simp only [has_basis_iff, (hl _).mem_iff, classical.skolem,
   forall_and_distrib, Union_subset_iff, mem_supr]
+
+lemma has_basis.sup_principal (hl : l.has_basis p s) (t : set α) :
+  (l ⊔ 𝓟 t).has_basis p (λ i, s i ∪ t) :=
+⟨λ u, by simp only [(hl.sup' (has_basis_principal t)).mem_iff, pprod.exists, exists_prop, and_true,
+  unique.exists_iff]⟩
+
+lemma has_basis.sup_pure (hl : l.has_basis p s) (x : α) :
+  (l ⊔ pure x).has_basis p (λ i, s i ∪ {x}) :=
+by simp only [← principal_singleton, hl.sup_principal]
 
 lemma has_basis.inf_principal (hl : l.has_basis p s) (s' : set α) :
   (l ⊓ 𝓟 s').has_basis p (λ i, s i ∩ s') :=
@@ -601,7 +613,7 @@ variables {la : filter α} {pa : ι → Prop} {sa : ι → set α}
   {lb : filter β} {pb : ι' → Prop} {sb : ι' → set β} {f : α → β}
 
 lemma has_basis.tendsto_left_iff (hla : la.has_basis pa sa) :
-  tendsto f la lb ↔ ∀ t ∈ lb, ∃ i (hi : pa i), ∀ x ∈ sa i, f x ∈ t :=
+  tendsto f la lb ↔ ∀ t ∈ lb, ∃ i (hi : pa i), maps_to f (sa i) t :=
 by { simp only [tendsto, (hla.map f).le_iff, image_subset_iff], refl }
 
 lemma has_basis.tendsto_right_iff (hlb : lb.has_basis pb sb) :
@@ -613,7 +625,7 @@ lemma has_basis.tendsto_iff (hla : la.has_basis pa sa) (hlb : lb.has_basis pb sb
 by simp [hlb.tendsto_right_iff, hla.eventually_iff]
 
 lemma tendsto.basis_left (H : tendsto f la lb) (hla : la.has_basis pa sa) :
-  ∀ t ∈ lb, ∃ i (hi : pa i), ∀ x ∈ sa i, f x ∈ t :=
+  ∀ t ∈ lb, ∃ i (hi : pa i), maps_to f (sa i) t :=
 hla.tendsto_left_iff.1 H
 
 lemma tendsto.basis_right (H : tendsto f la lb) (hlb : lb.has_basis pb sb) :

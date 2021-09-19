@@ -26,9 +26,12 @@ polynomial in `k` splits.
   out by a maximal ideal containing every `f(x_f)`, and then repeating this step countably
   many times. See Exercise 1.13 in Atiyah--Macdonald.
 
+- `is_alg_closed.lift` is a map from an algebraic extension `L` of `K`, into any algebraically
+  closed extension of `K`.
+
 ## TODO
 
-Show that any algebraic extension embeds into any algebraically closed extension (via Zorn's lemma).
+Show that any two algebraic closures are isomorphic
 
 ## Tags
 
@@ -69,8 +72,21 @@ polynomial.splits_of_splits_id _ $ is_alg_closed.splits _
 
 namespace is_alg_closed
 
-theorem exists_root [is_alg_closed k] (p : polynomial k) (hp : p.degree ≠ 0) : ∃ x, is_root p x := 
+variables {k}
+
+theorem exists_root [is_alg_closed k] (p : polynomial k) (hp : p.degree ≠ 0) : ∃ x, is_root p x :=
 exists_root_of_splits _ (is_alg_closed.splits p) hp
+
+theorem exists_eval₂_eq_zero {R : Type*} [field R] [is_alg_closed k] (f : R →+* k)
+  (p : polynomial R) (hp : p.degree ≠ 0) : ∃ x, p.eval₂ f x = 0 :=
+let ⟨x, hx⟩ := exists_root (p.map f) (by rwa [degree_map]) in
+⟨x, by rwa [eval₂_eq_eval_map, ← is_root]⟩
+
+variables (k)
+
+theorem exists_aeval_eq_zero {R : Type*} [field R] [is_alg_closed k] [algebra R k]
+  (p : polynomial R) (hp : p.degree ≠ 0) : ∃ x : k, aeval x p = 0 :=
+exists_eval₂_eq_zero (algebra_map R k) p hp
 
 theorem of_exists_root (H : ∀ p : polynomial k, p.monic → irreducible p → ∃ x, p.eval x = 0) :
   is_alg_closed k :=
@@ -374,3 +390,138 @@ begin
     list.mem_map, aeval_X, exists_exists_and_eq_and, multiset.mem_map, alg_hom.map_sub] at nu,
   exact ⟨nu.some, nu.some_spec.2⟩,
 end
+
+namespace lift
+/- In this section, the homomorphism from any algebraic extension into an algebraically
+  closed extension is proven to exist. The assumption that M is algebraically closed could probably
+  easily be switched to an assumption that M contains all the roots of polynomials in K -/
+variables {K : Type u} {L : Type v} {M : Type w} [field K] [field L] [algebra K L]
+  [field M] [algebra K M] [is_alg_closed M] (hL : algebra.is_algebraic K L)
+
+variables (K L M)
+include hL
+open zorn subalgebra alg_hom function
+
+/-- This structure is used to prove the existence of a homomorphism from any algebraic extension
+into an algebraic closure -/
+structure subfield_with_hom :=
+(carrier : subalgebra K L)
+(emb : carrier →ₐ[K] M)
+
+variables {K L M hL}
+
+namespace subfield_with_hom
+variables {E₁ E₂ E₃ : subfield_with_hom K L M hL}
+
+instance : has_le (subfield_with_hom K L M hL) :=
+{ le := λ E₁ E₂, ∃ h : E₁.carrier ≤ E₂.carrier, ∀ x, E₂.emb (inclusion h x) = E₁.emb x }
+
+instance : inhabited (subfield_with_hom K L M hL) :=
+⟨{ carrier := ⊥,
+   emb := (algebra.of_id K M).comp (algebra.bot_equiv K L).to_alg_hom }⟩
+
+lemma le_def : E₁ ≤ E₂ ↔ ∃ h : E₁.carrier ≤ E₂.carrier, ∀ x, E₂.emb (inclusion h x) = E₁.emb x :=
+iff.rfl
+
+lemma compat (h : E₁ ≤ E₂) : ∀ x, E₂.emb (inclusion h.fst x) = E₁.emb x :=
+by { rw le_def at h, cases h, assumption }
+
+instance : preorder (subfield_with_hom K L M hL) :=
+{ le := (≤),
+  le_refl := λ E, ⟨le_refl _, by simp⟩,
+  le_trans := λ E₁ E₂ E₃ h₁₂ h₂₃,
+    ⟨le_trans h₁₂.fst h₂₃.fst,
+    λ _, by erw [← inclusion_inclusion h₁₂.fst h₂₃.fst, compat, compat]⟩ }
+
+open lattice
+
+lemma maximal_subfield_with_hom_chain_bounded (c : set (subfield_with_hom K L M hL))
+  (hc : chain (≤) c) (hcn  : c.nonempty) :
+  ∃ ub : subfield_with_hom K L M hL, ∀ N, N ∈ c → N ≤ ub :=
+let ub : subfield_with_hom K L M hL :=
+by haveI : nonempty c := set.nonempty.to_subtype hcn; exact
+{ carrier := ⨆ i : c, (i : subfield_with_hom K L M hL).carrier,
+  emb := subalgebra.supr_lift
+    (λ i : c, (i : subfield_with_hom K L M hL).carrier)
+    (λ i j, let ⟨k, hik, hjk⟩ := directed_on_iff_directed.1 hc.directed_on i j in
+      ⟨k, hik.fst, hjk.fst⟩)
+    (λ i, (i : subfield_with_hom K L M hL).emb)
+    begin
+      assume i j h,
+      ext x,
+      cases hc.total i.prop j.prop with hij hji,
+      { simp [← hij.snd x] },
+      { erw [alg_hom.comp_apply, ← hji.snd (inclusion h x),
+          inclusion_inclusion, inclusion_self, alg_hom.id_apply x] }
+    end _ rfl } in
+⟨ub, λ N hN, ⟨(le_supr (λ i : c, (i : subfield_with_hom K L M hL).carrier) ⟨N, hN⟩ : _),
+  begin
+    intro x,
+    simp [ub],
+    refl
+  end⟩⟩
+
+variables (hL M)
+
+lemma exists_maximal_subfield_with_hom : ∃ E : subfield_with_hom K L M hL,
+  ∀ N, E ≤ N → N ≤ E :=
+zorn.exists_maximal_of_nonempty_chains_bounded
+  maximal_subfield_with_hom_chain_bounded (λ _ _ _, le_trans)
+
+/-- The maximal `subfield_with_hom`. We later prove that this is equal to `⊤`. -/
+def maximal_subfield_with_hom : subfield_with_hom K L M hL :=
+classical.some (exists_maximal_subfield_with_hom M hL)
+
+lemma maximal_subfield_with_hom_is_maximal :
+  ∀ (N : subfield_with_hom K L M hL),
+    (maximal_subfield_with_hom M hL) ≤ N → N ≤ (maximal_subfield_with_hom M hL) :=
+classical.some_spec (exists_maximal_subfield_with_hom M hL)
+
+lemma maximal_subfield_with_hom_eq_top :
+  (maximal_subfield_with_hom M hL).carrier = ⊤ :=
+begin
+  rw [eq_top_iff],
+  intros x _,
+  let p := minpoly K x,
+  let N : subalgebra K L := (maximal_subfield_with_hom M hL).carrier,
+  letI : field N := is_field.to_field _ (subalgebra.is_field_of_algebraic N hL),
+  letI : algebra N M := (maximal_subfield_with_hom M hL).emb.to_ring_hom.to_algebra,
+  cases is_alg_closed.exists_aeval_eq_zero M (minpoly N x)
+    (ne_of_gt (minpoly.degree_pos
+      ((is_algebraic_iff_is_integral _).1 (algebra.is_algebraic_of_larger_field hL x)))) with y hy,
+  let O : subalgebra N L := algebra.adjoin N {(x : L)},
+  let larger_emb := ((adjoin_root.lift_hom (minpoly N x) y hy).comp
+     (alg_equiv.adjoin_singleton_equiv_adjoin_root_minpoly N x).to_alg_hom),
+  have hNO : N ≤ N.under O,
+  { intros z hz,
+    show algebra_map N L ⟨z, hz⟩ ∈ O,
+    exact O.algebra_map_mem _ },
+  let O' : subfield_with_hom K L M hL :=
+  { carrier := N.under O,
+    emb := larger_emb.restrict_scalars K },
+  have hO' : maximal_subfield_with_hom M hL ≤ O',
+  { refine ⟨hNO, _⟩,
+    intros z,
+    show O'.emb (algebra_map N O z) = algebra_map N M z,
+    simp only [O', restrict_scalars_apply, alg_hom.commutes] },
+  refine (maximal_subfield_with_hom_is_maximal M hL O' hO').fst _,
+  exact algebra.subset_adjoin (set.mem_singleton x),
+end
+
+end subfield_with_hom
+end lift
+
+namespace is_alg_closed
+
+variables {K : Type u} [field K] {L : Type v} {M : Type w} [field L] [algebra K L]
+  [field M] [algebra K M] [is_alg_closed M] (hL : algebra.is_algebraic K L)
+
+variables (K L M)
+include hL
+
+/-- A (random) hom from an algebraic extension of K into an algebraically closed extension of K -/
+@[irreducible] def lift : L →ₐ[K] M :=
+(lift.subfield_with_hom.maximal_subfield_with_hom M hL).emb.comp $
+  eq.rec_on (lift.subfield_with_hom.maximal_subfield_with_hom_eq_top M hL).symm algebra.to_top
+
+end is_alg_closed

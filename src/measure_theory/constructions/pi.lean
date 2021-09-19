@@ -328,13 +328,13 @@ def finite_spanning_sets_in.pi {C : Π i, set (set (α i))}
   (hμ : ∀ i, (μ i).finite_spanning_sets_in (C i)) (hC : ∀ i (s ∈ C i), measurable_set s) :
   (measure.pi μ).finite_spanning_sets_in (pi univ '' pi univ C) :=
 begin
-  haveI := λ i, (hμ i).sigma_finite (hC i),
+  haveI := λ i, (hμ i).sigma_finite,
   haveI := fintype.encodable ι,
   let e : ℕ → (ι → ℕ) := λ n, (decode (ι → ℕ) n).iget,
   refine ⟨λ n, pi univ (λ i, (hμ i).set (e n i)), λ n, _, λ n, _, _⟩,
   { refine mem_image_of_mem _ (λ i _, (hμ i).set_mem _) },
   { simp_rw [pi_pi μ (λ i, (hμ i).set (e n i)) (λ i, hC i _ ((hμ i).set_mem _))],
-    exact ennreal.prod_lt_top (λ i _, (hμ i).finite _) },
+    exact ennreal.prod_lt_top (λ i _, ((hμ i).finite _).ne) },
   { simp_rw [(surjective_decode_iget (ι → ℕ)).Union_comp (λ x, pi univ (λ i, (hμ i).set (x i))),
       Union_univ_pi (λ i, (hμ i).set), (hμ _).spanning, pi_univ] }
 end
@@ -356,7 +356,7 @@ begin
     (is_pi_system.pi h2C) _,
   rintro _ ⟨s, hs, rfl⟩,
   rw [mem_univ_pi] at hs,
-  haveI := λ i, (h3C i).sigma_finite (h4C i),
+  haveI := λ i, (h3C i).sigma_finite,
   simp_rw [h₁ s hs, pi_pi μ s (λ i, h4C i _ (hs i))]
 end
 
@@ -374,8 +374,7 @@ pi_eq_generate_from (λ i, generate_from_measurable_set)
 variable (μ)
 
 instance pi.sigma_finite : sigma_finite (measure.pi μ) :=
-⟨⟨(finite_spanning_sets_in.pi (λ i, (μ i).to_finite_spanning_sets_in) (λ _ _, id)).mono $
-  by { rintro _ ⟨s, hs, rfl⟩, exact measurable_set.pi_fintype hs }⟩⟩
+(finite_spanning_sets_in.pi (λ i, (μ i).to_finite_spanning_sets_in) (λ _ _, id)).sigma_finite
 
 lemma pi_eval_preimage_null {i : ι} {s : set (α i)} (hs : μ i s = 0) :
   measure.pi μ (eval i ⁻¹' s) = 0 :=
@@ -493,7 +492,7 @@ begin
   choose s hxs ho hμ using λ i, (μ i).exists_is_open_measure_lt_top (x i),
   refine ⟨pi univ s, set_pi_mem_nhds finite_univ (λ i hi, is_open.mem_nhds (ho i) (hxs i)), _⟩,
   rw [pi_pi],
-  exacts [ennreal.prod_lt_top (λ i _, hμ i), λ i, (ho i).measurable_set]
+  exacts [ennreal.prod_lt_top (λ i _, (hμ i).ne), λ i, (ho i).measurable_set]
 end
 
 end measure

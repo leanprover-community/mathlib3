@@ -513,26 +513,6 @@ lemma single_eq_of_sigma_eq
   dfinsupp.single i xi = dfinsupp.single j xj :=
 by { cases h, refl }
 
-lemma filter_single {p : ι → Prop} [decidable_pred p] (i : ι) (x : β i) :
-  (single i x).filter p = if p i then single i x else 0 :=
-begin
-  ext j,
-  have := apply_ite (λ x : Π₀ i, β i, x j) (p i) (single i x) 0,
-  dsimp at this,
-  rw [filter_apply, this],
-  obtain rfl | hij := decidable.eq_or_ne i j,
-  { refl, },
-  { rw [single_eq_of_ne hij, if_t_t, if_t_t], },
-end
-
-@[simp] lemma filter_single_pos {p : ι → Prop} [decidable_pred p] (i : ι) (x : β i) (h : p i) :
-  (single i x).filter p = single i x :=
-by rw [filter_single, if_pos h]
-
-@[simp] lemma filter_single_neg {p : ι → Prop} [decidable_pred p] (i : ι) (x : β i) (h : ¬p i) :
-  (single i x).filter p = 0 :=
-by rw [filter_single, if_neg h]
-
 /-- Redefine `f i` to be `0`. -/
 def erase (i : ι) : (Π₀ i, β i) → Π₀ i, β i :=
 quotient.map

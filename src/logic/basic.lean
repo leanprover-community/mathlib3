@@ -161,9 +161,6 @@ lemma ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨ne.symm, ne.symm⟩
   (∀ {c}, a = c ↔ b = c) ↔ (a = b) :=
 ⟨λ h, by rw h, λ h a, by rw h⟩
 
-/-- Annotation identity function to force Lean to see `a` in the type of the goal. -/
-abbreviation id_annotate {α} (a : α) {β} (b : β) := b
-
 /-- Wrapper for adding elementary propositions to the type class systems.
 Warning: this can easily be abused. See the rest of this docstring for details.
 

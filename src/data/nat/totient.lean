@@ -10,7 +10,7 @@ import data.zmod.basic
 /-!
 # Euler's totient function
 
-This file defines [Euler's totient function][https://en.wikipedia.org/wiki/Euler's_totient_function]
+This file defines [Euler's totient function](https://en.wikipedia.org/wiki/Euler's_totient_function)
 `nat.totient n` which counts the number of naturals less than `n` that are coprime with `n`.
 We prove the divisor sum formula, namely that `n` equals `φ` summed over the divisors of `n`. See
 `sum_totient`. We also prove two lemmas to help compute totients, namely `totient_mul` and
@@ -181,7 +181,8 @@ begin
     { rintro rfl,
       rw [totient_one, nat.sub_self] at h,
       exact one_ne_zero h } },
-  rw [totient_eq_card_coprime, range_eq_Ico, ←Ico_insert_succ_left hp.le, finset.filter_insert, if_neg (tactic.norm_num.nat_coprime_helper_zero_right p hp), ←nat.card_Ico 1 p] at h,
+  rw [totient_eq_card_coprime, range_eq_Ico, ←Ico_insert_succ_left hp.le, finset.filter_insert,
+    if_neg (tactic.norm_num.nat_coprime_helper_zero_right p hp), ←nat.card_Ico 1 p] at h,
   refine p.prime_of_coprime hp (λ n hn hnz, finset.filter_card_eq h n $ finset.mem_Ico.mpr ⟨_, hn⟩),
   rwa [succ_le_iff, pos_iff_ne_zero],
 end

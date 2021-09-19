@@ -5,7 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
 import algebra.invertible
 import algebra.order.group
-import algebra.ordered_sub
+import algebra.order.sub
 import data.set.intervals.basic
 
 /-!

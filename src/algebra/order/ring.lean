@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
 import algebra.invertible
-import algebra.ordered_group
-import algebra.ordered_sub
+import algebra.order.group
+import algebra.order.sub
 import data.set.intervals.basic
 
 /-!
@@ -1434,7 +1434,7 @@ end
 /-- A version of `zero_lt_one : 0 < 1` for a `canonically_ordered_comm_semiring`. -/
 lemma zero_lt_one [nontrivial α] : (0:α) < 1 := (zero_le 1).lt_of_ne zero_ne_one
 
-lemma mul_pos : 0 < a * b ↔ (0 < a) ∧ (0 < b) :=
+@[simp] lemma mul_pos : 0 < a * b ↔ (0 < a) ∧ (0 < b) :=
 by simp only [pos_iff_ne_zero, ne.def, mul_eq_zero, not_or_distrib]
 
 variables [has_sub α] [has_ordered_sub α] [contravariant_class α α (+) (≤)] [is_total α (≤)]
@@ -1514,10 +1514,10 @@ begin
   { simp [← coe_mul] }
 end
 
-lemma mul_lt_top [partial_order α] {a b : with_top α} (ha : a < ⊤) (hb : b < ⊤) : a * b < ⊤ :=
+lemma mul_lt_top [partial_order α] {a b : with_top α} (ha : a ≠ ⊤) (hb : b ≠ ⊤) : a * b < ⊤ :=
 begin
-  lift a to α using ne_top_of_lt ha,
-  lift b to α using ne_top_of_lt hb,
+  lift a to α using ha,
+  lift b to α using hb,
   simp only [← coe_mul, coe_lt_top]
 end
 

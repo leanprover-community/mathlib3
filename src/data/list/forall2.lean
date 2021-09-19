@@ -93,24 +93,24 @@ lemma forall₂_and_left {r : α → β → Prop} {p : α → Prop} :
 | _ (b :: u) := by simp only [map, forall₂_cons_right_iff, forall₂_map_right_iff]
 
 lemma left_unique_forall₂' (hr : left_unique r) :
-  ∀ {a b c}, forall₂ r a b → forall₂ r c b → a = c
+  ∀ {a b c}, forall₂ r a c → forall₂ r b c → a = b
 | a₀ nil a₁ forall₂.nil forall₂.nil := rfl
 | (a₀ :: l₀) (b :: l) (a₁ :: l₁) (forall₂.cons ha₀ h₀) (forall₂.cons ha₁ h₁) :=
-  hr.unique ha₀ ha₁ ▸ left_unique_forall₂' h₀ h₁ ▸ rfl
+  hr ha₀ ha₁ ▸ left_unique_forall₂' h₀ h₁ ▸ rfl
 
-lemma left_unique_forall₂ (hr : left_unique r) : left_unique (forall₂ r) :=
-⟨@left_unique_forall₂' _ _ _ hr⟩
+lemma _root_.relator.left_unique.forall₂ (hr : left_unique r) : left_unique (forall₂ r) :=
+@left_unique_forall₂' _ _ _ hr
 
 lemma right_unique_forall₂' (hr : right_unique r) : ∀ {a b c}, forall₂ r a b → forall₂ r a c → b = c
 | nil a₀ a₁ forall₂.nil forall₂.nil := rfl
 | (b :: l) (a₀ :: l₀) (a₁ :: l₁) (forall₂.cons ha₀ h₀) (forall₂.cons ha₁ h₁) :=
-  hr.unique ha₀ ha₁ ▸ right_unique_forall₂' h₀ h₁ ▸ rfl
+  hr ha₀ ha₁ ▸ right_unique_forall₂' h₀ h₁ ▸ rfl
 
-lemma right_unique_forall₂ (hr : right_unique r) : right_unique (forall₂ r) :=
-⟨@right_unique_forall₂' _ _ _ hr⟩
+lemma _root_.relator.right_unique.forall₂ (hr : right_unique r) : right_unique (forall₂ r) :=
+@right_unique_forall₂' _ _ _ hr
 
-lemma bi_unique_forall₂ (hr : bi_unique r) : bi_unique (forall₂ r) :=
-@@bi_unique.mk _ (left_unique_forall₂ hr.1) (right_unique_forall₂ hr.2)
+lemma _root_.relator.bi_unique.forall₂ (hr : bi_unique r) : bi_unique (forall₂ r) :=
+⟨hr.left.forall₂, hr.right.forall₂⟩
 
 theorem forall₂_length_eq {R : α → β → Prop} :
   ∀ {l₁ l₂}, forall₂ R l₁ l₂ → length l₁ = length l₂

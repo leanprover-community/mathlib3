@@ -99,9 +99,8 @@ begin
   rw ← h_add (S a) (⋃ i ∈ s, S i) (hS_meas a) (measurable_set_bUnion _ (λ i _, hS_meas i))
     (hps a (finset.mem_insert_self a s)),
   { congr, convert finset.supr_insert a s S, },
-  { exact ((measure_bUnion_finset_le _ _).trans_lt
-      (ennreal.sum_lt_top (λ i hi, lt_top_iff_ne_top.mpr
-      (hps i (finset.mem_insert_of_mem hi))))).ne, },
+  { exact ((measure_bUnion_finset_le _ _).trans_lt $
+      ennreal.sum_lt_top $ λ i hi, hps i $ finset.mem_insert_of_mem hi).ne, },
   { simp_rw set.inter_Union,
     refine Union_eq_empty.mpr (λ i, Union_eq_empty.mpr (λ hi, _)),
     rw ← set.disjoint_iff_inter_eq_empty,
@@ -359,6 +358,7 @@ begin
       exact subsingleton.elim s ∅, },
     simp [hs_univ, set_to_simple_func], },
   simp_rw set_to_simple_func,
+  rw [← ne.def, set.ne_empty_iff_nonempty] at hs_empty,
   rw range_indicator hs hs_empty hs_univ,
   by_cases hx0 : x = 0,
   { simp_rw hx0, simp, },
@@ -400,8 +400,8 @@ begin
   { intros x hx,
     by_cases hx0 : x = 0,
     { rw hx0, simp, },
-    { exact ennreal.mul_lt_top ennreal.coe_lt_top
-        (simple_func.measure_preimage_lt_top_of_integrable _ (simple_func.integrable f) hx0), }, },
+    { exact ennreal.mul_ne_top ennreal.coe_ne_top
+        (simple_func.measure_preimage_lt_top_of_integrable _ (simple_func.integrable f) hx0).ne } }
 end
 
 section set_to_L1s

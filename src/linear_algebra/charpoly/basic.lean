@@ -17,7 +17,7 @@ prove the Cayley–Hamilton theorem over arbitrary commutative rings.
 
 ## Main definitions
 
-* `char_poly` is the characteristic polynomial of a matrix.
+* `matrix.charpoly` is the characteristic polynomial of a matrix.
 
 ## Implementation details
 
@@ -36,41 +36,42 @@ variables {n : Type w} [decidable_eq n] [fintype n]
 
 open finset
 
+
 /--
 The "characteristic matrix" of `M : matrix n n R` is the matrix of polynomials $t I - M$.
 The determinant of this matrix is the characteristic polynomial.
 -/
-def char_matrix (M : matrix n n R) : matrix n n (polynomial R) :=
+def charmatrix (M : matrix n n R) : matrix n n (polynomial R) :=
 matrix.scalar n (X : polynomial R) - (C : R →+* polynomial R).map_matrix M
 
-@[simp] lemma char_matrix_apply_eq (M : matrix n n R) (i : n) :
-  char_matrix M i i = (X : polynomial R) - C (M i i) :=
-by simp only [char_matrix, sub_left_inj, pi.sub_apply, scalar_apply_eq,
+@[simp] lemma charmatrix_apply_eq (M : matrix n n R) (i : n) :
+  charmatrix M i i = (X : polynomial R) - C (M i i) :=
+by simp only [charmatrix, sub_left_inj, pi.sub_apply, scalar_apply_eq,
   ring_hom.map_matrix_apply, map_apply, dmatrix.sub_apply]
 
-@[simp] lemma char_matrix_apply_ne (M : matrix n n R) (i j : n) (h : i ≠ j) :
-  char_matrix M i j = - C (M i j) :=
-by simp only [char_matrix, pi.sub_apply, scalar_apply_ne _ _ _ h, zero_sub,
+@[simp] lemma charmatrix_apply_ne (M : matrix n n R) (i j : n) (h : i ≠ j) :
+  charmatrix M i j = - C (M i j) :=
+by simp only [charmatrix, pi.sub_apply, scalar_apply_ne _ _ _ h, zero_sub,
   ring_hom.map_matrix_apply, map_apply, dmatrix.sub_apply]
 
-lemma mat_poly_equiv_char_matrix (M : matrix n n R) :
-  mat_poly_equiv (char_matrix M) = X - C M :=
+lemma mat_poly_equiv_charmatrix (M : matrix n n R) :
+  mat_poly_equiv (charmatrix M) = X - C M :=
 begin
   ext k i j,
   simp only [mat_poly_equiv_coeff_apply, coeff_sub, pi.sub_apply],
   by_cases h : i = j,
-  { subst h, rw [char_matrix_apply_eq, coeff_sub],
+  { subst h, rw [charmatrix_apply_eq, coeff_sub],
     simp only [coeff_X, coeff_C],
     split_ifs; simp, },
-  { rw [char_matrix_apply_ne _ _ _ h, coeff_X, coeff_neg, coeff_C, coeff_C],
+  { rw [charmatrix_apply_ne _ _ _ h, coeff_X, coeff_neg, coeff_C, coeff_C],
     split_ifs; simp [h], }
 end
 
 /--
 The characteristic polynomial of a matrix `M` is given by $\det (t I - M)$.
 -/
-def char_poly (M : matrix n n R) : polynomial R :=
-(char_matrix M).det
+def matrix.charpoly (M : matrix n n R) : polynomial R :=
+(charmatrix M).det
 
 /--
 The **Cayley-Hamilton Theorem**, that the characteristic polynomial of a matrix,
@@ -79,19 +80,19 @@ applied to the matrix itself, is zero.
 This holds over any commutative ring.
 -/
 -- This proof follows http://drorbn.net/AcademicPensieve/2015-12/CayleyHamilton.pdf
-theorem aeval_self_char_poly (M : matrix n n R) :
-  aeval M (char_poly M) = 0 :=
+theorem aeval_self_charpoly (M : matrix n n R) :
+  aeval M M.charpoly = 0 :=
 begin
   -- We begin with the fact $χ_M(t) I = adjugate (t I - M) * (t I - M)$,
   -- as an identity in `matrix n n (polynomial R)`.
-  have h : (char_poly M) • (1 : matrix n n (polynomial R)) =
-    adjugate (char_matrix M) * (char_matrix M) :=
+  have h : M.charpoly • (1 : matrix n n (polynomial R)) =
+    adjugate (charmatrix M) * (charmatrix M) :=
     (adjugate_mul _).symm,
   -- Using the algebra isomorphism `matrix n n (polynomial R) ≃ₐ[R] polynomial (matrix n n R)`,
   -- we have the same identity in `polynomial (matrix n n R)`.
   apply_fun mat_poly_equiv at h,
   simp only [mat_poly_equiv.map_mul,
-    mat_poly_equiv_char_matrix] at h,
+    mat_poly_equiv_charmatrix] at h,
   -- Because the coefficient ring `matrix n n R` is non-commutative,
   -- evaluation at `M` is not multiplicative.
   -- However, any polynomial which is a product of the form $N * (t I - M)$

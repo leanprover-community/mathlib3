@@ -1035,12 +1035,6 @@ begin
                  singular_part_smul] }
 end
 
-example (a : ℝ) (ha : 0 ≤ a) : ↑a.to_nnreal = a :=
-begin
-  exact real.coe_to_nnreal a ha,
-
-end
-
 lemma singular_part_smul (s : signed_measure α) (μ : measure α) (r : ℝ) :
   (r • s).singular_part μ = r • s.singular_part μ :=
 begin

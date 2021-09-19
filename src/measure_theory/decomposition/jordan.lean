@@ -75,6 +75,9 @@ instance : has_scalar ℝ≥0 (jordan_decomposition α) :=
 { smul := λ r j, ⟨r • j.pos_part, r • j.neg_part,
     mutually_singular.smul _ (mutually_singular.smul _ j.mutually_singular.symm).symm⟩ }
 
+instance has_scalar_real : has_scalar ℝ (jordan_decomposition α) :=
+{ smul := λ r j, if hr : 0 ≤ r then r.to_nnreal • j else - ((-r).to_nnreal • j) }
+
 @[simp] lemma zero_pos_part : (0 : jordan_decomposition α).pos_part = 0 := rfl
 @[simp] lemma zero_neg_part : (0 : jordan_decomposition α).neg_part = 0 := rfl
 
@@ -83,6 +86,35 @@ instance : has_scalar ℝ≥0 (jordan_decomposition α) :=
 
 @[simp] lemma smul_pos_part (r : ℝ≥0) : (r • j).pos_part = r • j.pos_part := rfl
 @[simp] lemma smul_neg_part (r : ℝ≥0) : (r • j).neg_part = r • j.neg_part := rfl
+
+lemma real_smul_def (r : ℝ) (j : jordan_decomposition α) :
+  r • j = if hr : 0 ≤ r then r.to_nnreal • j else - ((-r).to_nnreal • j) :=
+rfl
+
+@[simp] lemma coe_smul (r : ℝ≥0) : (r : ℝ) • j = r • j :=
+show dite _ _ _ = _, by rw [dif_pos (nnreal.coe_nonneg r), real.to_nnreal_coe]
+
+lemma real_smul_nonneg (r : ℝ) (hr : 0 ≤ r) : r • j = r.to_nnreal • j :=
+dif_pos hr
+
+lemma real_smul_neg (r : ℝ) (hr : r < 0) : r • j = - ((-r).to_nnreal • j) :=
+dif_neg (not_le.2 hr)
+
+lemma real_smul_pos_part_nonneg (r : ℝ) (hr : 0 ≤ r) :
+  (r • j).pos_part = r.to_nnreal • j.pos_part :=
+by { rw [real_smul_def, ← smul_pos_part, dif_pos hr] }
+
+lemma real_smul_neg_part_nonneg (r : ℝ) (hr : 0 ≤ r) :
+  (r • j).neg_part = r.to_nnreal • j.neg_part :=
+by { rw [real_smul_def, ← smul_neg_part, dif_pos hr] }
+
+lemma real_smul_pos_part_neg (r : ℝ) (hr : r < 0) :
+  (r • j).pos_part = (-r).to_nnreal • j.neg_part :=
+by { rw [real_smul_def, ← smul_neg_part, dif_neg (not_le.2 hr), neg_pos_part] }
+
+lemma real_smul_neg_part_neg (r : ℝ) (hr : r < 0) :
+  (r • j).neg_part = (-r).to_nnreal • j.pos_part :=
+by { rw [real_smul_def, ← smul_pos_part, dif_neg (not_le.2 hr), neg_neg_part] }
 
 /-- The signed measure associated with a Jordan decomposition. -/
 def to_signed_measure : signed_measure α :=
@@ -397,6 +429,33 @@ lemma to_jordan_decomposition_smul (s : signed_measure α) (r : ℝ≥0) :
 begin
   apply to_signed_measure_injective,
   simp [to_signed_measure_smul],
+end
+
+private
+lemma to_jordan_decomposition_smul_real_nonneg (s : signed_measure α) (r : ℝ) (hr : 0 ≤ r):
+  (r • s).to_jordan_decomposition = r • s.to_jordan_decomposition :=
+begin
+  lift r to ℝ≥0 using hr,
+  rw [coe_smul, ← to_jordan_decomposition_smul],
+  refl
+end
+
+lemma to_jordan_decomposition_smul_real (s : signed_measure α) (r : ℝ) :
+  (r • s).to_jordan_decomposition = r • s.to_jordan_decomposition :=
+begin
+  by_cases hr : 0 ≤ r,
+  { exact to_jordan_decomposition_smul_real_nonneg s r hr },
+  { ext1,
+    { rw [real_smul_pos_part_neg _ _ (not_le.1 hr),
+          show r • s = -(-r • s), by rw [neg_smul, neg_neg], to_jordan_decomposition_neg,
+          neg_pos_part, to_jordan_decomposition_smul_real_nonneg, ← smul_neg_part,
+          real_smul_nonneg],
+      all_goals { exact left.nonneg_neg_iff.2 (le_of_lt (not_le.1 hr)) } },
+    { rw [real_smul_neg_part_neg _ _ (not_le.1 hr),
+          show r • s = -(-r • s), by rw [neg_smul, neg_neg], to_jordan_decomposition_neg,
+          neg_neg_part, to_jordan_decomposition_smul_real_nonneg, ← smul_pos_part,
+          real_smul_nonneg],
+      all_goals { exact left.nonneg_neg_iff.2 (le_of_lt (not_le.1 hr)) } } }
 end
 
 lemma to_jordan_decomposition_eq {s : signed_measure α} {j : jordan_decomposition α}

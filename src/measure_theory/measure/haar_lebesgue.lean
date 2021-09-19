@@ -11,13 +11,18 @@ import linear_algebra.finite_dimensional
 # Relationship between the Haar and Lebesgue measures
 
 We prove that the Haar measure and Lebesgue measure are equal on `ℝ` and on `ℝ^ι`.
+
 We deduce basic properties of any Haar measure on a finite dimensional real vector space:
 * `map_linear_map_add_haar_eq_smul_add_haar`: a linear map rescales the Haar measure by the
   absolute value of its determinant.
+* `add_haar_smul` : the measure of `r • s` is `|r| ^ dim * μ s`
+* `add_haar_ball`: the measure of `ball x r` is `r ^ dim * μ (ball 0 1)`
+* `add_haar_closed_ball`: same thing for closed balls
+* `add_haar_sphere`: spheres have zero measure
 
 -/
 
-open topological_space set filter
+open topological_space set filter metric
 open_locale ennreal pointwise topological_space
 
 /-- The interval `[0,1]` as a compact set with non-empty interior. -/
@@ -26,7 +31,7 @@ def topological_space.positive_compacts.Icc01 : positive_compacts ℝ :=
 
 universe u
 
-/-- The set `[0,1]^n` as a compact set with non-empty interior. -/
+/-- The set `[0,1]^ι` as a compact set with non-empty interior. -/
 def topological_space.positive_compacts.pi_Icc01 (ι : Type*) [fintype ι] :
   positive_compacts (ι → ℝ) :=
 ⟨set.pi set.univ (λ i, Icc 0 1), is_compact_univ_pi (λ i, is_compact_Icc),
@@ -76,6 +81,8 @@ end
 instance is_add_haar_measure_volume_pi (ι : Type*) [fintype ι] :
   is_add_haar_measure (volume : measure (ι → ℝ)) :=
 by { rw ← add_haar_measure_eq_volume_pi, apply_instance }
+
+namespace measure
 
 /-!
 ### Applying a linear map rescales Haar measure by the determinant
@@ -147,29 +154,27 @@ calc μ (f ⁻¹' s) = measure.map f μ s :
 ### Basic properties of Haar measures on real vector spaces
 -/
 
-@[simp] lemma add_haar_ball
+@[simp] lemma add_haar_ball_center
   {E : Type*} [normed_group E] [measurable_space E]
   [borel_space E] (μ : measure E) [is_add_haar_measure μ] (x : E) (r : ℝ) :
-  μ (metric.ball x r) = μ (metric.ball (0 : E) r) :=
+  μ (ball x r) = μ (ball (0 : E) r) :=
 begin
-  have : metric.ball (0 : E) r = ((+) x) ⁻¹' (metric.ball x r), by { ext y, simp [dist_eq_norm] },
+  have : ball (0 : E) r = ((+) x) ⁻¹' (ball x r), by { ext y, simp [dist_eq_norm] },
   rw [this, add_haar_preimage_add]
 end
 
-
-@[simp] lemma add_haar_closed_ball
+@[simp] lemma add_haar_closed_ball_center
   {E : Type*} [normed_group E] [measurable_space E]
   [borel_space E] (μ : measure E) [is_add_haar_measure μ] (x : E) (r : ℝ) :
-  μ (metric.closed_ball x r) = μ (metric.closed_ball (0 : E) r) :=
+  μ (closed_ball x r) = μ (closed_ball (0 : E) r) :=
 begin
-  have : metric.closed_ball (0 : E) r = ((+) x) ⁻¹' (metric.closed_ball x r),
+  have : closed_ball (0 : E) r = ((+) x) ⁻¹' (closed_ball x r),
     by { ext y, simp [dist_eq_norm] },
   rw [this, add_haar_preimage_add]
 end
 
 variables {E : Type*} [normed_group E] [measurable_space E] [normed_space ℝ E]
-  [finite_dimensional ℝ E]
-  [borel_space E] (μ : measure E) [is_add_haar_measure μ]
+  [finite_dimensional ℝ E] [borel_space E] (μ : measure E) [is_add_haar_measure μ]
 
 lemma map_add_haar_smul {r : ℝ} (hr : r ≠ 0) :
   measure.map ((•) r) μ = ennreal.of_real (abs (r ^ (finrank ℝ E))⁻¹) • μ :=
@@ -190,101 +195,121 @@ calc μ (((•) r) ⁻¹' s) = measure.map ((•) r) μ s :
   ((homeomorph.smul (is_unit_iff_ne_zero.2 hr).unit).to_measurable_equiv.map_apply s).symm
 ... = ennreal.of_real (abs (r^(finrank ℝ E))⁻¹) * μ s : by { rw map_add_haar_smul μ hr, refl }
 
-private lemma add_haar_smul_of_ne_zero {r : ℝ} (hr : r ≠ 0) (s : set E) :
-  μ (r • s) = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :=
-begin
-  have : r • s = ((•) r⁻¹) ⁻¹' s,
-  { ext x,
-    rw mem_smul_set,
-    split,
-    { rintros ⟨y, ys, hy⟩,
-      rw ← hy,
-      simp [smul_smul, inv_mul_cancel hr, ys] },
-    { assume h,
-      simp at h,
-      refine ⟨_, h, _⟩,
-      simp [smul_smul, mul_inv_cancel hr] } },
-  rw [this, add_haar_preimage_smul],
-  simp only [inv_inv', inv_pow'],
-  exact inv_ne_zero hr,
-end
-
-private lemma add_haar_smul_of_zero (s : set E) :
-  μ ((0 : ℝ) • s) = ennreal.of_real (abs ((0 : ℝ) ^ (finrank ℝ E))) * μ s :=
-begin
-  rcases eq_empty_or_nonempty s with rfl|hs,
-  { simp only [measure_empty, mul_zero, smul_set_empty] },
-  { have : (0 : ℝ) • s = {(0 : E)},
-      by { ext y, simp [mem_smul_set, set.nonempty_def.1 hs, eq_comm] },
-    simp only [this],
-    by_cases h : finrank ℝ E = 0,
-    { haveI : subsingleton E := finrank_zero_iff.1 h,
-      simp only [h, one_mul, ennreal.of_real_one, abs_one, subsingleton.eq_univ_of_nonempty hs,
-        pow_zero, subsingleton.eq_univ_of_nonempty (singleton_nonempty (0 : E))] },
-    { haveI : nontrivial E := nontrivial_of_finrank_pos (bot_lt_iff_ne_bot.2 h),
-      simp only [h, zero_mul, ennreal.of_real_zero, abs_zero, ne.def, not_false_iff, zero_pow',
-        measure_singleton] } }
-end
-
 /-- Rescaling a set by a factor `r` multiplies its measure by `abs (r ^ dim)`. -/
 lemma add_haar_smul (r : ℝ) (s : set E) :
   μ (r • s) = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :=
 begin
-  rcases eq_or_ne r 0 with rfl|h,
-  { exact add_haar_smul_of_zero μ s },
-  { exact add_haar_smul_of_ne_zero μ h s }
+  rcases ne_or_eq r 0 with h|rfl,
+  { rw [← preimage_smul_inv h, add_haar_preimage_smul μ (inv_ne_zero h), inv_pow', inv_inv'] },
+  rcases eq_empty_or_nonempty s with rfl|hs,
+  { simp only [measure_empty, mul_zero, smul_set_empty] },
+  rw [zero_smul_set hs, ← singleton_zero],
+  by_cases h : finrank ℝ E = 0,
+  { haveI : subsingleton E := finrank_zero_iff.1 h,
+    simp only [h, one_mul, ennreal.of_real_one, abs_one, subsingleton.eq_univ_of_nonempty hs,
+      pow_zero, subsingleton.eq_univ_of_nonempty (singleton_nonempty (0 : E))] },
+  { haveI : nontrivial E := nontrivial_of_finrank_pos (bot_lt_iff_ne_bot.2 h),
+    simp only [h, zero_mul, ennreal.of_real_zero, abs_zero, ne.def, not_false_iff, zero_pow',
+      measure_singleton] }
 end
+
+/-! We don't need to state `map_add_haar_neg` here, because it has already been proved for
+general Haar measures on general commutative groups. -/
+
+/-! ### Measure of balls -/
+
+lemma add_haar_closed_ball_lt_top (x : E) (r : ℝ) :
+  μ (closed_ball x r) < ∞ :=
+(proper_space.compact_ball x r).add_haar_lt_top μ
+
+lemma add_haar_ball_lt_top (x : E) (r : ℝ) :
+  μ (ball x r) < ∞ :=
+lt_of_le_of_lt (measure_mono ball_subset_closed_ball) (add_haar_closed_ball_lt_top μ x r)
+
+lemma add_haar_ball_pos (x : E) {r : ℝ} (hr : 0 < r) :
+  0 < μ (ball x r) :=
+is_open_ball.add_haar_pos μ (nonempty_ball.2 hr)
+
+lemma add_haar_closed_ball_pos (x : E) {r : ℝ} (hr : 0 < r) :
+  0 < μ (closed_ball x r) :=
+lt_of_lt_of_le (add_haar_ball_pos μ x hr) (measure_mono ball_subset_closed_ball)
+
+lemma add_haar_ball_of_pos (x : E) {r : ℝ} (hr : 0 < r) :
+  μ (ball x r) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (ball 0 1) :=
+begin
+  have : ball (0 : E) r = r • ball 0 1,
+  { rw ← preimage_smul_inv hr.ne',
+    ext y,
+    simp [norm_smul, real.norm_eq_abs, mem_ball_0_iff, mem_preimage, abs_inv,
+      abs_of_nonneg hr.le, ← div_eq_inv_mul, div_lt_iff hr] },
+  simp [this, add_haar_smul, abs_of_nonneg hr.le],
+end
+
+lemma add_haar_ball [nontrivial E] (x : E) {r : ℝ} (hr : 0 ≤ r) :
+  μ (ball x r) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (ball 0 1) :=
+begin
+  rcases has_le.le.eq_or_lt hr with h|h,
+  { simp [← h, zero_pow finrank_pos] },
+  { exact add_haar_ball_of_pos μ x h }
+end
+
+/-- The measure of a closed ball can be expressed in terms of the measure of the closed unit ball.
+Use instead `add_haar_closed_ball`, which uses the measure of the open unit ball as a standard
+form. -/
+lemma add_haar_closed_ball' (x : E) {r : ℝ} (hr : 0 ≤ r) :
+  μ (closed_ball x r) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (closed_ball 0 1) :=
+begin
+  have : closed_ball (0 : E) r = r • closed_ball 0 1,
+  { rcases has_le.le.eq_or_lt hr with h|h,
+    { simp [← h, zero_smul_set, singleton_zero] },
+    { rw ← preimage_smul_inv h.ne',
+      ext y,
+      simp [norm_smul, real.norm_eq_abs, mem_ball_0_iff, mem_preimage, abs_inv,
+        abs_of_nonneg hr, ← div_eq_inv_mul, div_le_iff h] } },
+  simp [this, add_haar_smul, abs_of_nonneg hr],
+end
+
+lemma add_haar_closed_unit_ball_eq_unit_ball :
+  μ (closed_ball (0 : E) 1) = μ (ball 0 1) :=
+begin
+  apply le_antisymm _ (measure_mono ball_subset_closed_ball),
+  have A : tendsto (λ (r : ℝ), ennreal.of_real (r ^ (finrank ℝ E)) * μ (closed_ball (0 : E) 1))
+    (𝓝[Iio 1] 1) (𝓝 (ennreal.of_real (1 ^ (finrank ℝ E)) * μ (closed_ball (0 : E) 1))),
+  { refine ennreal.tendsto.mul _ (by simp) tendsto_const_nhds (by simp),
+    exact ennreal.tendsto_of_real ((tendsto_id' nhds_within_le_nhds).pow _) },
+  simp only [one_pow, one_mul, ennreal.of_real_one] at A,
+  refine le_of_tendsto A _,
+  refine mem_nhds_within_Iio_iff_exists_Ioo_subset.2 ⟨(0 : ℝ), by simp, λ r hr, _⟩,
+  dsimp,
+  rw ← add_haar_closed_ball' μ (0 : E) hr.1.le,
+  exact measure_mono (closed_ball_subset_ball hr.2)
+end
+
+lemma add_haar_closed_ball (x : E) {r : ℝ} (hr : 0 ≤ r) :
+  μ (closed_ball x r) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (ball 0 1) :=
+by rw [add_haar_closed_ball' μ x hr, add_haar_closed_unit_ball_eq_unit_ball]
+
+lemma add_haar_sphere_of_ne_zero (x : E) {r : ℝ} (hr : r ≠ 0) :
+  μ (sphere x r) = 0 :=
+begin
+  rcases lt_trichotomy r 0 with h|rfl|h,
+  { simp only [empty_diff, measure_empty, ← closed_ball_diff_ball, closed_ball_eq_empty.2 h] },
+  { exact (hr rfl).elim },
+  { rw [← closed_ball_diff_ball,
+        measure_diff ball_subset_closed_ball measurable_set_closed_ball measurable_set_ball
+          ((add_haar_ball_lt_top μ x r).ne),
+        add_haar_ball_of_pos μ _ h, add_haar_closed_ball μ _ h.le, ennreal.sub_self] }
+end
+
+lemma add_haar_sphere [nontrivial E] (x : E) (r : ℝ) :
+  μ (sphere x r) = 0 :=
+begin
+  rcases eq_or_ne r 0 with rfl|h,
+  { simp only [← closed_ball_diff_ball, diff_empty, closed_ball_zero,
+               ball_zero, measure_singleton] },
+  { exact add_haar_sphere_of_ne_zero μ x h }
+end
+
+end measure
 
 end measure_theory
-
-
-#exit
-
-
-lemma smul_map_volume_mul_left {a : ℝ} (h : a ≠ 0) :
-  ennreal.of_real (abs a) • measure.map ((*) a) volume = volume :=
-begin
-  refine (real.measure_ext_Ioo_rat $ λ p q, _).symm,
-  cases lt_or_gt_of_ne h with h h,
-  { simp only [real.volume_Ioo, measure.smul_apply, ← ennreal.of_real_mul (le_of_lt $ neg_pos.2 h),
-      measure.map_apply (measurable_const_mul a) measurable_set_Ioo, neg_sub_neg,
-      ← neg_mul_eq_neg_mul, preimage_const_mul_Ioo_of_neg _ _ h, abs_of_neg h, mul_sub,
-      mul_div_cancel' _ (ne_of_lt h)] },
-  { simp only [real.volume_Ioo, measure.smul_apply, ← ennreal.of_real_mul (le_of_lt h),
-      measure.map_apply (measurable_const_mul a) measurable_set_Ioo, preimage_const_mul_Ioo _ _ h,
-      abs_of_pos h, mul_sub, mul_div_cancel' _ (ne_of_gt h)] }
-end
-
-lemma map_volume_mul_left {a : ℝ} (h : a ≠ 0) :
-  measure.map ((*) a) volume = ennreal.of_real (abs a⁻¹) • volume :=
-by conv_rhs { rw [← real.smul_map_volume_mul_left h, smul_smul,
-  ← ennreal.of_real_mul (abs_nonneg _), ← abs_mul, inv_mul_cancel h, abs_one, ennreal.of_real_one,
-  one_smul] }
-
-@[simp] lemma volume_preimage_mul_left {a : ℝ} (h : a ≠ 0) (s : set ℝ) :
-  volume (((*) a) ⁻¹' s) = ennreal.of_real (abs a⁻¹) * volume s :=
-calc volume (((*) a) ⁻¹' s) = measure.map ((*) a) volume s :
-  ((homeomorph.mul_left' a h).to_measurable_equiv.map_apply s).symm
-... = ennreal.of_real (abs a⁻¹) * volume s : by { rw map_volume_mul_left h, refl }
-
-lemma smul_map_volume_mul_right {a : ℝ} (h : a ≠ 0) :
-  ennreal.of_real (abs a) • measure.map (* a) volume = volume :=
-by simpa only [mul_comm] using real.smul_map_volume_mul_left h
-
-lemma map_volume_mul_right {a : ℝ} (h : a ≠ 0) :
-  measure.map (* a) volume = ennreal.of_real (abs a⁻¹) • volume :=
-by simpa only [mul_comm] using real.map_volume_mul_left h
-
-@[simp] lemma volume_preimage_mul_right {a : ℝ} (h : a ≠ 0) (s : set ℝ) :
-  volume ((* a) ⁻¹' s) = ennreal.of_real (abs a⁻¹) * volume s :=
-by simpa only [mul_comm] using volume_preimage_mul_left h s
-
-lemma map_volume_neg : measure.map has_neg.neg (volume : measure ℝ) = volume :=
-eq.symm $ real.measure_ext_Ioo_rat $ λ p q,
-  by simp [show measure.map has_neg.neg volume (Ioo (p : ℝ) q) = _,
-    from measure.map_apply measurable_neg measurable_set_Ioo]
-
-@[simp] lemma volume_preimage_neg (s : set ℝ) : volume (-s) = volume s :=
-calc volume (has_neg.neg ⁻¹' s) = measure.map (has_neg.neg) volume s :
-  ((homeomorph.neg ℝ).to_measurable_equiv.map_apply s).symm
-... = volume s : by rw map_volume_neg

@@ -108,7 +108,7 @@ begin
   rw [mul_pow, eq_zero_of_zero_dvd h, zero_mul, mul_zero, zero_mul]
 end
 
-private lemma aux₂ (hp : p % 2 = 1) :
+private lemma geom_sum₂_add_mul (hp : p % 2 = 1) :
   geom_sum₂ (a + p * b) a p = p * a ^ (p - 1) :=
 calc  ∑ i in finset.range p, (a + p * b) ^ i * a ^ (p - 1 - i)
     = ∑ i in finset.range p,
@@ -160,8 +160,9 @@ begin
     cases hxy₁ with k hk,
     rw [← mem_span_singleton, ← eq_zero_iff_mem, ring_hom.map_geom_sum₂,
       sub_eq_iff_eq_add'.mp hk, ring_hom.map_add, ring_hom.map_mul, ring_hom.map_nat_cast,
-      aux₂ hp' hp1, ← ring_hom.map_nat_cast (mk I), ← ring_hom.map_pow, ← ring_hom.map_mul,
-      eq_zero_iff_mem, mem_span_singleton, pow_two, mul_dvd_mul_iff_left hp.1],
+      geom_sum₂_add_mul hp' hp1, ← ring_hom.map_nat_cast (mk I),
+      ← ring_hom.map_pow, ← ring_hom.map_mul, eq_zero_iff_mem,
+      mem_span_singleton, pow_two, mul_dvd_mul_iff_left hp.1],
     intro h,
     exact hxy₂ (dvd_mul_of_dvd_right (hp.dvd_of_dvd_pow h) _) }
 end

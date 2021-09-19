@@ -539,7 +539,7 @@ section sub
 
 In this section we provide the instance `nnreal.has_ordered_sub` and a few lemmas about subtraction
 that do not fit well into any other typeclass. For lemmas about subtraction and addition see lemmas
-about `has_ordered_sub` in the file `algebra/ordered_sub`. See also `mul_sub'` and `sub_mul'`. -/
+about `has_ordered_sub` in the file `algebra.order.sub`. See also `mul_sub'` and `sub_mul'`. -/
 
 lemma sub_def {r p : ℝ≥0} : r - p = real.to_nnreal (r - p) := rfl
 

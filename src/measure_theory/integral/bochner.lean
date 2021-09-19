@@ -299,7 +299,7 @@ map_set_to_simple_func _ weighted_smul_union hf hg
     `α →ₛ ℝ≥0∞`. But since `ℝ≥0∞` is not a `normed_space`, we need some form of coercion.
     See `integral_eq_lintegral` for a simpler version. -/
 lemma integral_eq_lintegral' {f : α →ₛ E} {g : E → ℝ≥0∞} (hf : integrable f μ) (hg0 : g 0 = 0)
-  (hgt : ∀b, g b < ∞) :
+  (ht : ∀ b, g b ≠ ∞) :
   (f.map (ennreal.to_real ∘ g)).integral μ = ennreal.to_real (∫⁻ a, g (f a) ∂μ) :=
 begin
   have hf' : f.fin_meas_supp μ := integrable_iff_fin_meas_supp.1 hf,
@@ -309,8 +309,8 @@ begin
     rw [smul_eq_mul, to_real_mul, mul_comm] },
   { assume a ha,
     by_cases a0 : a = 0,
-    { rw [a0, hg0, zero_mul], exact with_top.zero_lt_top },
-    { apply mul_lt_top (hgt a) (hf'.meas_preimage_singleton_ne_zero a0) } },
+    { rw [a0, hg0, zero_mul], exact with_top.zero_ne_top },
+    { apply mul_ne_top (ht a) (hf'.meas_preimage_singleton_ne_zero a0).ne } },
   { simp [hg0] }
 end
 
@@ -328,9 +328,7 @@ begin
   have : f =ᵐ[μ] f.map (ennreal.to_real ∘ ennreal.of_real) :=
     h_pos.mono (λ a h, (ennreal.to_real_of_real h).symm),
   rw [← integral_eq_lintegral' hf],
-  { exact integral_congr hf this },
-  { exact ennreal.of_real_zero },
-  { assume b, rw ennreal.lt_top_iff_ne_top, exact ennreal.of_real_ne_top }
+  exacts [integral_congr hf this, ennreal.of_real_zero, λ b, ennreal.of_real_ne_top]
 end
 
 lemma integral_add {f g : α →ₛ E} (hf : integrable f μ) (hg : integrable g μ) :
@@ -781,7 +779,7 @@ begin
   simp_rw [← coe_nnnorm, ← nnreal.coe_zero, nnreal.tendsto_coe, ← ennreal.tendsto_coe,
     ennreal.coe_zero],
   exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds
-    (tendsto_set_lintegral_zero hf hs) (λ i, zero_le _)
+    (tendsto_set_lintegral_zero (ne_of_lt hf) hs) (λ i, zero_le _)
     (λ i, ennnorm_integral_le_lintegral_ennnorm _)
 end
 
@@ -1185,7 +1183,7 @@ end
 norm_le_zero_iff.1 $ le_trans (norm_integral_le_lintegral_norm f) $ by simp
 
 private lemma integral_smul_measure_aux {f : α → E} {c : ℝ≥0∞}
-  (h0 : 0 < c) (hc : c < ∞) (fmeas : measurable f) (hfi : integrable f μ) :
+  (h0 : c ≠ 0) (hc : c ≠ ∞) (fmeas : measurable f) (hfi : integrable f μ) :
   ∫ x, f x ∂(c • μ) = c.to_real • ∫ x, f x ∂μ :=
 begin
   refine tendsto_nhds_unique _
@@ -1200,13 +1198,13 @@ end
 begin
   -- First we consider “degenerate” cases:
   -- `c = 0`
-  rcases (zero_le c).eq_or_lt with rfl|h0, { simp },
+  rcases eq_or_ne c 0 with rfl|h0, { simp },
   -- `f` is not almost everywhere measurable
   by_cases hfm : ae_measurable f μ, swap,
-  { have : ¬ (ae_measurable f (c • μ)), by simpa [ne_of_gt h0] using hfm,
+  { have : ¬ (ae_measurable f (c • μ)), by simpa [h0] using hfm,
     simp [integral_non_ae_measurable, hfm, this] },
   -- `c = ∞`
-  rcases (le_top : c ≤ ∞).eq_or_lt with rfl|hc,
+  rcases eq_or_ne c ∞ with rfl|hc,
   { rw [ennreal.top_to_real, zero_smul],
     by_cases hf : f =ᵐ[μ] 0,
     { have : f =ᵐ[∞ • μ] 0 := ae_smul_measure hf ∞,
@@ -1222,8 +1220,8 @@ begin
   by_cases hfi : integrable f μ, swap,
   { rw [integral_undef hfi, smul_zero],
     refine integral_undef (mt (λ h, _) hfi),
-    convert h.smul_measure (ennreal.inv_lt_top.2 h0),
-    rw [smul_smul, ennreal.inv_mul_cancel (ne_of_gt h0) (ne_of_lt hc), one_smul] },
+    convert h.smul_measure (ennreal.inv_ne_top.2 h0),
+    rw [smul_smul, ennreal.inv_mul_cancel h0 hc, one_smul] },
   -- Main case: `0 < c < ∞`, `f` is almost everywhere measurable and integrable
   let g := hfm.mk f,
   calc ∫ x, f x ∂(c • μ) = ∫ x, g x ∂(c • μ) : integral_congr_ae $ ae_smul_measure hfm.ae_eq_mk c

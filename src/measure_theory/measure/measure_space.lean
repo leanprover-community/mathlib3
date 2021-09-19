@@ -1455,6 +1455,10 @@ begin
   { exact hx1 hxt, },
 end
 
+lemma mem_map_restrict_ae_iff {β} {s : set α} {t : set β} {f : α → β} (hs : measurable_set s) :
+  t ∈ filter.map f (μ.restrict s).ae ↔ μ ((f ⁻¹' t)ᶜ ∩ s) = 0 :=
+by rw [mem_map, mem_ae_iff, measure.restrict_apply' hs]
+
 lemma ae_smul_measure {p : α → Prop} (h : ∀ᵐ x ∂μ, p x) (c : ℝ≥0∞) : ∀ᵐ x ∂(c • μ), p x :=
 ae_iff.2 $ by rw [smul_apply, ae_iff.1 h, mul_zero]
 
@@ -2834,6 +2838,37 @@ end piecewise
 section indicator_function
 
 variables [measurable_space α] {μ : measure α} {s t : set α} {f : α → β}
+
+lemma mem_map_indicator_ae_iff_mem_map_restrict_ae_of_zero_mem [has_zero β] {t : set β}
+  (ht : (0 : β) ∈ t) (hs : measurable_set s) :
+  t ∈ filter.map (s.indicator f) μ.ae ↔ t ∈ filter.map f (μ.restrict s).ae :=
+begin
+  simp_rw [mem_map, mem_ae_iff],
+  rw [measure.restrict_apply' hs, set.indicator_preimage, set.ite],
+  simp_rw [set.compl_union, set.compl_inter],
+  change μ (((f ⁻¹' t)ᶜ ∪ sᶜ) ∩ ((λ x, (0 : β)) ⁻¹' t \ s)ᶜ) = 0 ↔ μ ((f ⁻¹' t)ᶜ ∩ s) = 0,
+  simp only [ht, ← set.compl_eq_univ_diff, compl_compl, set.compl_union, if_true,
+    set.preimage_const],
+  simp_rw [set.union_inter_distrib_right, set.compl_inter_self s, set.union_empty],
+end
+
+lemma mem_map_indicator_ae_iff_of_zero_nmem [has_zero β] {t : set β} (ht : (0 : β) ∉ t)  :
+  t ∈ filter.map (s.indicator f) μ.ae ↔ μ ((f ⁻¹' t)ᶜ ∪ sᶜ) = 0 :=
+begin
+  rw [mem_map, mem_ae_iff, set.indicator_preimage, set.ite, set.compl_union, set.compl_inter],
+  change μ (((f ⁻¹' t)ᶜ ∪ sᶜ) ∩ ((λ x, (0 : β)) ⁻¹' t \ s)ᶜ) = 0 ↔ μ ((f ⁻¹' t)ᶜ ∪ sᶜ) = 0,
+  simp only [ht, if_false, set.compl_empty, set.empty_diff, set.inter_univ, set.preimage_const],
+end
+
+lemma map_restrict_ae_le_map_indicator_ae [has_zero β] (hs : measurable_set s) :
+  filter.map f (μ.restrict s).ae ≤ filter.map (s.indicator f) μ.ae :=
+begin
+  intro t,
+  by_cases ht : (0 : β) ∈ t,
+  { rw mem_map_indicator_ae_iff_mem_map_restrict_ae_of_zero_mem ht hs, exact id, },
+  rw [mem_map_indicator_ae_iff_of_zero_nmem ht, mem_map_restrict_ae_iff hs],
+  exact λ h, measure_mono_null ((set.inter_subset_left _ _).trans (set.subset_union_left _ _)) h,
+end
 
 lemma ae_measurable.restrict [measurable_space β] (hfm : ae_measurable f μ) {s} :
   ae_measurable f (μ.restrict s) :=

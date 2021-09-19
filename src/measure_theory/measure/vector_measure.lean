@@ -1088,6 +1088,15 @@ lemma smul_left {R : Type*} [semiring R] [distrib_mul_action R M] [topological_s
   [has_continuous_smul R M] (r : R) (h : v ⊥ᵥ w) : r • v ⊥ᵥ w :=
 (smul_right r h.symm).symm
 
+lemma neg {M : Type*} [add_comm_group M] [topological_space M] [topological_add_group M]
+  {v : vector_measure α M} {w : vector_measure α N} (h : v ⊥ᵥ w) : -v ⊥ᵥ w :=
+begin
+  obtain ⟨u, hmu, hu₁, hu₂⟩ := h,
+  refine ⟨u, hmu, λ s hs, _, hu₂⟩,
+  rw [neg_apply v s, neg_eq_zero],
+  exact hu₁ s hs
+end
+
 end mutually_singular
 
 section trim

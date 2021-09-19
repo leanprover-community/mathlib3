@@ -17,7 +17,7 @@ We define the characteristic polynomial of `f : M →ₗ[R] M`, where `M` is a f
 
 ## Main definition
 
-* `charpoly f` : the characteristic polynomial of `f`.
+* `linear_map.charpoly f` : the characteristic polynomial of `f : M →ₗ[R] M`.
 
 -/
 

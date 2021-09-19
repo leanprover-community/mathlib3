@@ -217,7 +217,7 @@ begin
 end
 
 lemma continuous_of_basis_is_open_preimage {β : Type*} [topological_space β]
-  (B : set (set β)) (hB : is_topological_basis B) (f : α → β) (hf : ∀ s ∈ B, is_open (f ⁻¹' s)) :
+  {B : set (set β)} (hB : is_topological_basis B) (f : α → β) (hf : ∀ s ∈ B, is_open (f ⁻¹' s)) :
   continuous f :=
 begin rw hB.eq_generate_from, exact continuous_generated_from hf end
 

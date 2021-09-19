@@ -516,7 +516,3 @@ end
 
 end End
 end module
-variables {K V : Type*} [field K] [add_comm_group V] [module K V] [finite_dimensional K V]
-
-protected lemma linear_map.is_integral (f : V →ₗ[K] V) : is_integral K f :=
-module.End.is_integral f

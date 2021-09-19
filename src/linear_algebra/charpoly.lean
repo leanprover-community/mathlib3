@@ -43,7 +43,6 @@ lemma charpoly_def :
   f.charpoly = (linear_map.to_matrix (choose_basis R M) (choose_basis R M) f).charpoly := rfl
 
 /-- `charpoly f` is the characteristic polynomial of the matrix of `f` in any basis. -/
---Is adding [fintype ι] by hand OK?
 lemma charpoly_eq_matrix.charpoly {ι : Type w} [fintype ι] (b : basis ι R M) :
   f.charpoly = (linear_map.to_matrix b b f).charpoly :=
 begin

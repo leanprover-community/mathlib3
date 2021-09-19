@@ -1440,7 +1440,7 @@ begin
       by refl,
     rw this,
     refine is_closed.preimage (condexp_L1_clm hm μ).continuous _,
-    exact is_closed_ae_measurable' ℝ hm, },
+    exact is_closed_ae_measurable' hm, },
 end
 
 /-- Conditional expectation of a function, in L1. Its value is 0 if the function is not

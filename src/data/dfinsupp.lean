@@ -517,6 +517,7 @@ begin
   rcases eq_or_ne i j with rfl|h,
   { simp },
   { simp [erase_ne h.symm, single_eq_of_ne h] }
+end
 
 @[simp] lemma filter_ne_eq_erase (f : Π₀ i, β i) (i : ι) : f.filter (≠ i) = f.erase i :=
 begin

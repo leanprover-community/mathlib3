@@ -575,9 +575,9 @@ lemma mk_compl_eq_mk_compl_infinite {α : Type*} {s t : set α} (h : omega ≤ #
 by { rw [mk_compl_of_omega_le s h hs, mk_compl_of_omega_le t h ht] }
 
 lemma mk_compl_eq_mk_compl_finite_lift {α : Type u} {β : Type v} {s : set α} {t : set β}
-  (hα : #α < omega) (h1 : lift.{u (max v w)} (#α) = lift.{v (max u w)} (#β))
-  (h2 : lift.{u (max v w)} (#s) = lift.{v (max u w)} (#t)) :
-  lift.{u (max v w)} (#(sᶜ : set α)) = lift.{v (max u w)} (#(tᶜ : set β)) :=
+  (hα : #α < omega) (h1 : lift.{(max v w)} (#α) = lift.{(max u w)} (#β))
+  (h2 : lift.{(max v w)} (#s) = lift.{(max u w)} (#t)) :
+  lift.{(max v w)} (#(sᶜ : set α)) = lift.{(max u w)} (#(tᶜ : set β)) :=
 begin
   have hα' := hα, have h1' := h1,
   rw [← mk_sum_compl s, ← mk_sum_compl t] at h1,

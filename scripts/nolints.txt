@@ -998,9 +998,6 @@ apply_nolint continuous_map.induced doc_blame
 -- topology/maps.lean
 apply_nolint inducing doc_blame
 
--- topology/opens.lean
-apply_nolint topological_space.opens.is_basis doc_blame
-
 -- topology/sheaves/presheaf.lean
 apply_nolint Top.presheaf doc_blame has_inhabited_instance
 apply_nolint Top.presheaf.pushforward.comp doc_blame

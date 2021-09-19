@@ -6,9 +6,9 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 import algebra.group.with_one
 import algebra.group.type_tags
 import algebra.group.prod
-import algebra.order_functions
+import algebra.order.functions
+import algebra.order.monoid_lemmas
 import order.bounded_lattice
-import algebra.ordered_monoid_lemmas
 import order.rel_iso
 
 /-!

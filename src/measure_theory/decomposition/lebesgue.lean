@@ -978,6 +978,26 @@ begin
   exact (measure_lt_top _ _).ne
 end
 
+lemma have_lebesgue_decomposition_mk {s t : signed_measure α} (μ : measure α)
+  {f : α → ℝ} (hf : measurable f) (hfi : integrable f μ)
+  (htμ : t ⊥ᵥ μ.to_ennreal_vector_measure) (hadd : s = t + μ.with_densityᵥ f) :
+  s.have_lebesgue_decomposition μ :=
+begin
+  have htμ' := htμ,
+  rw mutually_singular_ennreal_iff at htμ,
+  change _ ⊥ₘ vector_measure.equiv_measure.to_fun (vector_measure.equiv_measure.inv_fun μ) at htμ,
+  rw [vector_measure.equiv_measure.right_inv, total_variation_mutually_singular_iff] at htμ,
+  refine
+    { pos_part :=
+      by { use ⟨t.to_jordan_decomposition.pos_part, λ x, ennreal.of_real (f x)⟩,
+          refine ⟨hf.ennreal_of_real, htμ.1, _⟩,
+          rw to_jordan_decomposition_eq_of_eq_add_with_density hf hfi htμ' hadd },
+      neg_part :=
+      by { use ⟨t.to_jordan_decomposition.neg_part, λ x, ennreal.of_real (-f x)⟩,
+           refine ⟨hf.neg.ennreal_of_real, htμ.2, _⟩,
+           rw to_jordan_decomposition_eq_of_eq_add_with_density hf hfi htμ' hadd } }
+end
+
 /-- Given a measure `μ`, signed measures `s` and `t`, and a function `f` such that `t` is
 mutually singular with respect to `μ` and `s = t + μ.with_densityᵥ f`, we have
 `t = singular_part s μ`, i.e. `t` is the singular part of the Lebesgue decomposition between
@@ -1075,18 +1095,19 @@ by { rw [sub_eq_add_neg, sub_eq_add_neg, singular_part_add, singular_part_neg] }
 /-- Given a measure `μ`, signed measures `s` and `t`, and a function `f` such that `t` is
 mutually singular with respect to `μ` and `s = t + μ.with_densityᵥ f`, we have
 `f = radon_nikodym_deriv s μ`, i.e. `f` is the Radon-Nikodym derivative of `s` and `μ`. -/
-theorem eq_radon_nikodym_deriv [s.have_lebesgue_decomposition μ]
+theorem eq_radon_nikodym_deriv
   {t : signed_measure α} {f : α → ℝ} (hf : measurable f) (hfi : integrable f μ)
   (htμ : t ⊥ᵥ μ.to_ennreal_vector_measure) (hadd : s = t + μ.with_densityᵥ f) :
   f =ᵐ[μ] s.radon_nikodym_deriv μ :=
 begin
+  haveI := have_lebesgue_decomposition_mk μ hf hfi htμ hadd,
   refine (integrable.ae_eq_of_with_densityᵥ_eq (integrable_radon_nikodym_deriv _ _) hfi _).symm,
   rw [← add_right_inj t, ← hadd, eq_singular_part hf hfi htμ hadd,
       singular_part_add_with_density_radon_nikodym_deriv_eq],
 end
 
 lemma radon_nikodym_deriv_neg (s : signed_measure α) (μ : measure α)
-  [s.have_lebesgue_decomposition μ]:
+  [s.have_lebesgue_decomposition μ] :
   (-s).radon_nikodym_deriv μ =ᵐ[μ] - s.radon_nikodym_deriv μ :=
 begin
   refine integrable.ae_eq_of_with_densityᵥ_eq

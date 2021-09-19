@@ -7,6 +7,46 @@ import data.equiv.basic
 
 /-!
 # Partial values of a type
+
+This file defines `part α`, the partial values of a type.
+
+`o : part α` carries a proposition `o.dom`, its domain, along with a function `get : o.dom → α`, its
+value. The rule is then that every partial value has a value but, to access it, you need to provide
+a proof of the domain.
+
+`part α` behaves the same as `option α` except that `o : option α` is decidably `none` or `some a`
+for some `a : α`, while the domain of `o : part α` doesn't have to be decidable. That means you can
+translate back and forth between a partial value with a decidable domain and an option, and
+`option α` and `part α` are classically equivalent. In general, `part α` is bigger than `option α`.
+
+In current mathlib, `part ℕ`, aka `enat`, is used to move decidability of the order to decidability
+of `enat.find` (which is the smallest natural satisfying a predicate, or `∞` if there's none).
+
+## Main declarations
+
+`option`-like declarations:
+* `part.none`: The partial value whose domain is `false`.
+* `part.some a`: The partial value whose domain is `true` and whose value is `a`.
+* `part.of_option`: Converts an `option α` to a `part α` by sending `none` to `none` and `some a` to
+  `some a`.
+* `part.to_option`: Converts a `part α` with a decidable domain to an `option α`.
+* `part.equiv_option`: Classical equivalence between `part α` and `option α`.
+
+Monadic structure:
+* `part.bind`: `o.bind f` has value `(f (o.get _)).get _` (`f o` morally) and is defined when `o`
+  and `f (o.get _)` are defined.
+* `part.map`: Maps the value and keeps the same domain.
+
+Other:
+* `part.restrict`: `part.restrict p o` replaces the domain of `o : part α` by `p : Prop` so long as
+  `p → o.dom`.
+* `part.assert`: `assert p f` appends `p` to the domains of the values of a partial function.
+* `part.unwrap`: Gets the value of a partial value regardless of its domain. Unsound.
+
+## Notation
+
+For `a : α`, `o : part α`, `a ∈ o` means that `o` is defined and equal to `a`. Formally, it means
+`o.dom` and `o.get _ = a`.
 -/
 
 /-- `part α` is the type of "partial values" of type `α`. It
@@ -42,7 +82,7 @@ instance : has_mem α (part α) := ⟨part.mem⟩
 theorem mem_eq (a : α) (o : part α) : (a ∈ o) = (∃ h, o.get h = a) :=
 rfl
 
-theorem dom_iff_mem : ∀ {o : part α}, o.dom ↔ ∃y, y ∈ o
+theorem dom_iff_mem : ∀ {o : part α}, o.dom ↔ ∃ y, y ∈ o
 | ⟨p, f⟩ := ⟨λh, ⟨f h, h, rfl⟩, λ⟨_, h, rfl⟩, h⟩
 
 theorem get_mem {o : part α} (h) : get o h ∈ o := ⟨_, rfl⟩
@@ -69,7 +109,7 @@ theorem mem_unique : ∀ {a b : α} {o : part α}, a ∈ o → b ∈ o → a = b
 | _ _ ⟨p, f⟩ ⟨h₁, rfl⟩ ⟨h₂, rfl⟩ := rfl
 
 theorem mem.left_unique : relator.left_unique ((∈) : α → part α → Prop) :=
-⟨λ a o b, mem_unique⟩
+λ a o b, mem_unique
 
 theorem get_eq_of_mem {o : part α} {a} (h : a ∈ o) (h') : get o h' = a :=
 mem_unique ⟨_, rfl⟩ h
@@ -100,7 +140,7 @@ by { intro h, change none.dom, rw [← h], trivial }
 @[simp] lemma none_ne_some (x : α) : none ≠ some x :=
 (some_ne_none x).symm
 
-lemma ne_none_iff {o : part α} : o ≠ none ↔ ∃x, o = some x :=
+lemma ne_none_iff {o : part α} : o ≠ none ↔ ∃ x, o = some x :=
 begin
   split,
   { rw [ne, eq_none_iff', not_not], exact λ h, ⟨o.get h, eq_some_iff.2 (get_mem h)⟩ },
@@ -236,7 +276,7 @@ end
 /-- `assert p f` is a bind-like operation which appends an additional condition
   `p` to the domain and uses `f` to produce the value. -/
 def assert (p : Prop) (f : p → part α) : part α :=
-⟨∃h : p, (f h).dom, λha, (f ha.fst).get ha.snd⟩
+⟨∃ h : p, (f h).dom, λha, (f ha.fst).get ha.snd⟩
 
 /-- The bind operation has value `g (f.get)`, and is defined when all the
   parts are defined. -/

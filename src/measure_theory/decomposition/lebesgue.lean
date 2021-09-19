@@ -38,7 +38,7 @@ The Lebesgue decomposition provides the Radon-Nikodym theorem readily.
   measure mutually singular to `ν` and `f` is a measurable function such that `μ = s + fν`,
   then `f = radon_nikodym_deriv μ ν`.
 * `measure_theory.signed_measure.singular_part_add_with_density_radon_nikodym_deriv_eq` :
-  tthe Lebesgue decomposition theorem between a signed measure and a σ-finite positive measure.
+  the Lebesgue decomposition theorem between a signed measure and a σ-finite positive measure.
 
 # Tags
 

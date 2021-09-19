@@ -586,7 +586,7 @@ section
 variables {R : Type*} [linear_ordered_field R]
 
 -- TODO:
--- This lemma (and the next) could go all the way back in `algebra.ordered_field`,
+-- This lemma (and the next) could go all the way back in `algebra.order.field`,
 -- except that it is tedious to prove without tactics.
 -- Rather than stranding it at some intermediate location,
 -- it's here, immediately prior to the point of use.

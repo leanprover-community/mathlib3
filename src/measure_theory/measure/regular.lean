@@ -201,16 +201,16 @@ begin
     rw [map_apply hf hK.measurable_set] }
 end
 
-protected lemma smul [regular μ] {x : ℝ≥0∞} (hx : x < ∞) :
+protected lemma smul [regular μ] {x : ℝ≥0∞} (hx : x ≠ ∞) :
   (x • μ).regular :=
 begin
   split,
-  { intros K hK, exact ennreal.mul_lt_top hx (regular.lt_top_of_is_compact hK) },
+  { intros K hK, exact ennreal.mul_lt_top hx (regular.lt_top_of_is_compact hK).ne },
   { intros A hA, rw [coe_smul],
     refine le_trans _ (ennreal.mul_left_mono $ regular.outer_regular hA),
     simp only [infi_and'], simp only [infi_subtype'],
     haveI : nonempty {s : set α // is_open s ∧ A ⊆ s} := ⟨⟨set.univ, is_open_univ, subset_univ _⟩⟩,
-    rw [ennreal.mul_infi], refl', exact ne_of_lt hx },
+    rw [ennreal.mul_infi], refl', exact hx },
   { intros U hU,
     rw [coe_smul],
     refine le_trans (ennreal.mul_left_mono $ regular.inner_regular hU) _,
@@ -313,13 +313,13 @@ begin
     rcases h ε εpos with ⟨⟨U, U_open, U_subset, nu_U⟩, ⟨F, F_closed, F_subset, nu_F⟩⟩,
     refine ⟨⟨Fᶜ, is_open_compl_iff.2 F_closed, compl_subset_compl.2 F_subset, _⟩,
             ⟨Uᶜ, is_closed_compl_iff.2 U_open, compl_subset_compl.2 U_subset, _⟩⟩,
-    { apply ennreal.le_of_add_le_add_left (measure_lt_top μ F),
+    { apply ennreal.le_of_add_le_add_left (measure_ne_top μ F),
       calc
         μ F + μ Fᶜ = μ s + μ sᶜ :
           by rw [measure_add_measure_compl hs, measure_add_measure_compl F_closed.measurable_set]
-        ... ≤ (μ F + ε) + μ sᶜ : add_le_add nu_F (le_refl _)
-        ... = μ F + (μ sᶜ + ε) : by abel },
-    { apply ennreal.le_of_add_le_add_left (measure_lt_top μ s),
+        ... ≤ (μ F + ε) + μ sᶜ : add_le_add_right nu_F _
+        ... = μ F + (μ sᶜ + ε) : by ac_refl },
+    { apply ennreal.le_of_add_le_add_left (measure_ne_top μ s),
       calc
         μ s + μ sᶜ = μ U + μ Uᶜ :
           by rw [measure_add_measure_compl hs, measure_add_measure_compl U_open.measurable_set]
@@ -330,7 +330,7 @@ begin
     split,
     -- the approximating open set is constructed by taking for each `s n` an approximating open set
     -- `U n` with measure at most `μ (s n) + δ n` for a summable `δ`, and taking the union of these.
-    { rcases ennreal.exists_pos_sum_of_encodable' εpos ℕ with ⟨δ, δpos, hδ⟩,
+    { rcases ennreal.exists_pos_sum_of_encodable' εpos.lt.ne' ℕ with ⟨δ, δpos, hδ⟩,
       have : ∀ n, ∃ (U : set α), is_open U ∧ s n ⊆ U ∧ μ U ≤ μ (s n) + δ n :=
         λ n, (hs n _ (δpos n).gt).1,
       choose U hU using this,
@@ -349,7 +349,7 @@ begin
     -- cover all the measure up to `ε/2`, approximating each of these by a closed set `F i`, and
     -- taking the union of these (finitely many) `F i`.
     { set δ := ε / 2 with hδ,
-      have δpos : 0 < δ := ennreal.half_pos εpos,
+      have δpos : 0 < δ := ennreal.half_pos εpos.lt.ne',
       have L : tendsto (λ n, ∑ i in finset.range n, μ (s i) + δ) at_top (𝓝 (μ (⋃ i, s i) + δ)),
       { rw measure_Union s_disj s_meas,
         refine tendsto.add (ennreal.tendsto_nat_tsum _) tendsto_const_nhds },
@@ -580,7 +580,7 @@ instance of_sigma_compact_space_of_is_locally_finite_measure {X : Type*}
     -/
     assume A hA,
     apply ennreal.le_of_forall_pos_le_add (λ ε εpos μA, le_of_lt _),
-    rcases ennreal.exists_pos_sum_of_encodable' (ennreal.coe_pos.2 εpos) ℕ with ⟨δ, δpos, hδ⟩,
+    rcases ennreal.exists_pos_sum_of_encodable' (ennreal.coe_pos.2 εpos).ne' ℕ with ⟨δ, δpos, hδ⟩,
     have B : compact_exhaustion X := default _,
     let C := disjointed (λ n, B n),
     have C_meas : ∀ n, measurable_set (C n) :=
@@ -645,7 +645,7 @@ begin
   refine le_antisymm _ (supr_le $ λ s, supr_le $ λ hs, supr_le $ λ h2s, μ.mono h2s),
   apply ennreal.le_of_forall_pos_le_add (λ ε εpos H, _),
   set δ := (ε : ℝ≥0∞) / 2 with hδ,
-  have δpos : 0 < δ := ennreal.half_pos (ennreal.coe_pos.2 εpos),
+  have δpos : 0 < δ := ennreal.half_pos (ennreal.coe_pos.2 εpos).ne',
   -- construct `U` approximating `A` from outside.
   obtain ⟨U, U_open, AU, μU⟩ : ∃ (U : set α), is_open U ∧ A ⊆ U ∧ μ U < ∞ :=
     weakly_regular.exists_subset_is_open_measure_lt_top h'A,
@@ -676,7 +676,7 @@ begin
       begin
         refine add_le_add (add_le_add (le_refl _) _) (le_refl _),
         rw [measure_diff KU U_open.measurable_set K_compact.measurable_set
-          (lt_top_of_is_compact K_compact), ennreal.sub_le_iff_le_add'],
+          (lt_top_of_is_compact K_compact).ne, ennreal.sub_le_iff_le_add'],
         { exact μK.le },
         { apply_instance }
       end

@@ -35,7 +35,7 @@ lemmas about subtraction/division in `ordered_[add_]comm_group` with these.
 
 -/
 
-variables {α : Type*}
+variables {α β : Type*}
 
 /-- `has_ordered_sub α` means that `α` has a subtraction characterized by `a - b ≤ c ↔ a ≤ c + b`.
 In other words, `a - b` is the least `c` such that `a ≤ b + c`.
@@ -46,11 +46,55 @@ in canonically ordered monoids on many specific types.
 class has_ordered_sub (α : Type*) [preorder α] [has_add α] [has_sub α] :=
 (sub_le_iff_right : ∀ a b c : α, a - b ≤ c ↔ a ≤ c + b)
 
-section ordered_add_comm_monoid
-variables {a b c d : α} [partial_order α] [add_comm_monoid α] [has_sub α] [has_ordered_sub α]
+section has_add
+
+variables [preorder α] [has_add α] [has_sub α] [has_ordered_sub α] {a b c d : α}
 
 @[simp] lemma sub_le_iff_right : a - b ≤ c ↔ a ≤ c + b :=
 has_ordered_sub.sub_le_iff_right a b c
+
+/-- See `add_sub_cancel_right` for the equality if `contravariant_class α α (+) (≤)`. -/
+lemma add_sub_le_right : a + b - b ≤ a :=
+sub_le_iff_right.mpr le_rfl
+
+lemma le_sub_add : b ≤ (b - a) + a :=
+sub_le_iff_right.mp le_rfl
+
+lemma add_hom.le_map_sub [preorder β] [has_add β] [has_sub β] [has_ordered_sub β]
+  (f : add_hom α β) (hf : monotone f) (a b : α) :
+  f a - f b ≤ f (a - b) :=
+by { rw [sub_le_iff_right, ← f.map_add], exact hf le_sub_add }
+
+lemma le_mul_sub {R : Type*} [distrib R] [preorder R] [has_sub R] [has_ordered_sub R]
+  [covariant_class R R (*) (≤)] (a b c : R) :
+  a * b - a * c ≤ a * (b - c) :=
+(add_hom.mul_left a).le_map_sub (monotone_id.const_mul' a) _ _
+
+lemma le_sub_mul {R : Type*} [comm_semiring R] [preorder R] [has_sub R] [has_ordered_sub R]
+  [covariant_class R R (*) (≤)] (a b c : R) :
+  a * c - b * c ≤ (a - b) * c :=
+by simpa only [mul_comm c] using le_mul_sub c a b
+
+end has_add
+
+/-- An order isomorphism between types with ordered subtraction preserves subtraction provided that
+it preserves addition. -/
+lemma order_iso.map_sub {M N : Type*} [preorder M] [has_add M] [has_sub M] [has_ordered_sub M]
+  [partial_order N] [has_add N] [has_sub N] [has_ordered_sub N] (e : M ≃o N)
+  (h_add : ∀ a b, e (a + b) = e a + e b) (a b : M) :
+  e (a - b) = e a - e b :=
+begin
+  set e_add : M ≃+ N := { map_add' := h_add, .. e },
+  refine le_antisymm _ (e_add.to_add_hom.le_map_sub e.monotone a b),
+  suffices : e (e.symm (e a) - e.symm (e b)) ≤ e (e.symm (e a - e b)), by simpa,
+  exact e.monotone (e_add.symm.to_add_hom.le_map_sub e.symm.monotone _ _)
+end
+
+section ordered_add_comm_monoid
+
+section preorder
+
+variables [preorder α] [add_comm_monoid α] [has_sub α] [has_ordered_sub α] {a b c d : α}
 
 lemma sub_le_iff_left : a - b ≤ c ↔ a ≤ b + c :=
 by rw [sub_le_iff_right, add_comm]
@@ -62,18 +106,24 @@ sub_le_iff_left.mp le_rfl
 lemma add_sub_le_left : a + b - a ≤ b :=
 sub_le_iff_left.mpr le_rfl
 
-/-- See `add_sub_cancel_right` for the equality if `contravariant_class α α (+) (≤)`. -/
-lemma add_sub_le_right : a + b - b ≤ a :=
-sub_le_iff_right.mpr le_rfl
-
-lemma le_sub_add : b ≤ (b - a) + a :=
-sub_le_iff_right.mp le_rfl
-
 lemma sub_le_sub_right' (h : a ≤ b) (c : α) : a - c ≤ b - c :=
 sub_le_iff_left.mpr $ h.trans le_add_sub
 
 lemma sub_le_iff_sub_le : a - b ≤ c ↔ a - c ≤ b :=
 by rw [sub_le_iff_left, sub_le_iff_right]
+
+/-- See `sub_sub_cancel_of_le` for the equality. -/
+lemma sub_sub_le : b - (b - a) ≤ a :=
+sub_le_iff_right.mpr le_add_sub
+
+lemma add_monoid_hom.le_map_sub [preorder β] [add_comm_monoid β] [has_sub β]
+  [has_ordered_sub β] (f : α →+ β) (hf : monotone f) (a b : α) :
+  f a - f b ≤ f (a - b) :=
+f.to_add_hom.le_map_sub hf a b
+
+end preorder
+
+variables [partial_order α] [add_comm_monoid α] [has_sub α] [has_ordered_sub α] {a b c d : α}
 
 lemma sub_sub' (b a c : α) : b - a - c = b - (a + c) :=
 begin
@@ -81,10 +131,6 @@ begin
   { rw [sub_le_iff_left, sub_le_iff_left, ← add_assoc, ← sub_le_iff_left] },
   { rw [sub_le_iff_left, add_assoc, ← sub_le_iff_left, ← sub_le_iff_left] }
 end
-
-/-- See `sub_sub_cancel_of_le` for the equality. -/
-lemma sub_sub_le : b - (b - a) ≤ a :=
-sub_le_iff_right.mpr le_add_sub
 
 section cov
 variable [covariant_class α α (+) (≤)]
@@ -133,7 +179,7 @@ end
 
 end cov
 
-/-! Lemmas that assume that an element is `add_le_cancellable`. -/
+/-! ### Lemmas that assume that an element is `add_le_cancellable`. -/
 namespace add_le_cancellable
 
 protected lemma le_add_sub_swap (hb : add_le_cancellable b) : a ≤ b + a - b :=
@@ -181,7 +227,7 @@ end
 
 end add_le_cancellable
 
-/-! Lemmas where addition is order-reflecting. -/
+/-! ### Lemmas where addition is order-reflecting. -/
 
 section contra
 variable [contravariant_class α α (+) (≤)]
@@ -240,7 +286,7 @@ end both
 
 end ordered_add_comm_monoid
 
-/-! Lemmas in a linearly ordered monoid. -/
+/-! ### Lemmas in a linearly ordered monoid. -/
 section linear_order
 variables {a b c d : α} [linear_order α] [add_comm_monoid α] [has_sub α] [has_ordered_sub α]
 
@@ -259,7 +305,7 @@ end cov
 
 end linear_order
 
-/-! Lemmas in a canonically ordered monoid. -/
+/-! ### Lemmas in a canonically ordered monoid. -/
 
 section canonically_ordered_add_monoid
 variables [canonically_ordered_add_monoid α] [has_sub α] [has_ordered_sub α] {a b c d : α}
@@ -332,7 +378,7 @@ end
 lemma sub_sub_sub_cancel_right' (h : c ≤ b) : (a - c) - (b - c) = a - b :=
 by rw [sub_sub', add_sub_cancel_of_le h]
 
-/-! Lemmas that assume that an element is `add_le_cancellable`. -/
+/-! ### Lemmas that assume that an element is `add_le_cancellable`. -/
 
 namespace add_le_cancellable
 protected lemma eq_sub_iff_add_eq_of_le (hc : add_le_cancellable c) (h : c ≤ b) :
@@ -462,7 +508,7 @@ by rw [hba.sub_eq_iff_eq_add_of_le sub_le_self', add_sub_cancel_of_le h]
 end add_le_cancellable
 
 section contra
-/-! Lemmas where addition is order-reflecting. -/
+/-! ### Lemmas where addition is order-reflecting. -/
 variable [contravariant_class α α (+) (≤)]
 
 lemma eq_sub_iff_add_eq_of_le (h : c ≤ b) : a = b - c ↔ a + c = b :=
@@ -551,7 +597,7 @@ end contra
 
 end canonically_ordered_add_monoid
 
-/-! Lemmas in a linearly canonically ordered monoid. -/
+/-! ### Lemmas in a linearly canonically ordered monoid. -/
 
 section canonically_linear_ordered_add_monoid
 variables [canonically_linear_ordered_add_monoid α] [has_sub α] [has_ordered_sub α] {a b c d : α}
@@ -643,7 +689,7 @@ contravariant.add_le_cancellable.sub_lt_sub_iff_left_of_le contravariant.add_le_
 
 end contra
 
-/-! Lemmas about `max` and `min`. -/
+/-! ### Lemmas about `max` and `min`. -/
 
 lemma sub_add_eq_max : a - b + b = max a b :=
 begin

@@ -1796,7 +1796,7 @@ Then there exists a (unique) `v` in `K` that minimizes the distance `∥u - v∥
 -- It should be broken in a sequence of more manageable pieces,
 -- perhaps with individual statements for the three steps below.
 theorem exists_norm_eq_infi_of_complete_convex {K : set F} (ne : K.nonempty) (h₁ : is_complete K)
-  (h₂ : convex K) : ∀ u : F, ∃ v ∈ K, ∥u - v∥ = ⨅ w : K, ∥u - w∥ := assume u,
+  (h₂ : convex ℝ K) : ∀ u : F, ∃ v ∈ K, ∥u - v∥ = ⨅ w : K, ∥u - w∥ := assume u,
 begin
   let δ := ⨅ w : K, ∥u - w∥,
   letI : nonempty K := ne.to_subtype,
@@ -1909,7 +1909,7 @@ end
 
 /-- Characterization of minimizers for the projection on a convex set in a real inner product
 space. -/
-theorem norm_eq_infi_iff_real_inner_le_zero {K : set F} (h : convex K) {u : F} {v : F}
+theorem norm_eq_infi_iff_real_inner_le_zero {K : set F} (h : convex ℝ K) {u : F} {v : F}
   (hv : v ∈ K) : ∥u - v∥ = (⨅ w : K, ∥u - w∥) ↔ ∀ w ∈ K, ⟪u - v, w - v⟫_ℝ ≤ 0 :=
 iff.intro
 begin

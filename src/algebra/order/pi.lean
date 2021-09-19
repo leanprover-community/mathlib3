@@ -19,6 +19,33 @@ variables (x y : Π i, f i) (i : I)
 
 namespace pi
 
+/-- The product of a family of ordered commutative monoids is an ordered commutative monoid. -/
+@[to_additive "The product of a family of ordered additive commutative monoids is
+  an ordered additive commutative monoid."]
+instance ordered_comm_monoid {ι : Type*} {Z : ι → Type*} [∀ i, ordered_comm_monoid (Z i)] :
+  ordered_comm_monoid (Π i, Z i) :=
+{ mul_le_mul_left := λ f g w h i, mul_le_mul_left' (w i) _,
+  ..pi.partial_order,
+  ..pi.comm_monoid, }
+
+/-- The product of a family of canonically ordered monoids is a canonically ordered monoid. -/
+@[to_additive "The product of a family of canonically ordered additive monoids is
+  a canonically ordered additive monoid."]
+instance {ι : Type*} {Z : ι → Type*} [∀ i, canonically_ordered_monoid (Z i)] :
+  canonically_ordered_monoid (Π i, Z i) :=
+{ le_iff_exists_mul := λ f g, begin
+    fsplit,
+    { intro w,
+      fsplit,
+      { exact λ i, (le_iff_exists_mul.mp (w i)).some, },
+      { ext i,
+        exact (le_iff_exists_mul.mp (w i)).some_spec, }, },
+    { rintro ⟨h, rfl⟩,
+      exact λ i, le_mul_right (le_refl _), },
+  end,
+  ..pi.order_bot,
+  ..pi.ordered_comm_monoid, }
+
 @[to_additive]
 instance ordered_cancel_comm_monoid [∀ i, ordered_cancel_comm_monoid $ f i] :
   ordered_cancel_comm_monoid (Π i : I, f i) :=
@@ -31,8 +58,7 @@ instance ordered_comm_group [∀ i, ordered_comm_group $ f i] :
   ordered_comm_group (Π i : I, f i) :=
 { mul := (*), one := (1 : Π i, f i), le := (≤), lt := (<),
   npow := λ n x i, npow n (x i),
-  mul_le_mul_left := λ x y hxy c i, mul_le_mul_left' (hxy i) _,
   ..pi.comm_group,
-  ..pi.partial_order }
+  ..pi.ordered_comm_monoid, }
 
 end pi

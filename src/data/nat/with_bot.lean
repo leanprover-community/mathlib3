@@ -42,7 +42,7 @@ lemma with_bot.one_le_iff_zero_lt {x : with_bot ℕ} : 1 ≤ x ↔ 0 < x :=
 begin
   refine ⟨λ h, lt_of_lt_of_le (with_bot.coe_lt_coe.mpr zero_lt_one) h, λ h, _⟩,
   induction x using with_bot.rec_bot_coe,
-  { exact false.elim (not_lt_of_lt (with_bot.bot_lt_some 0) h) },
+  { exact (not_lt_bot h).elim },
   { exact with_bot.coe_le_coe.mpr (nat.succ_le_iff.mpr (with_bot.coe_lt_coe.mp h)) }
 end
 

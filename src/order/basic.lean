@@ -85,7 +85,15 @@ lemma partial_order.to_preorder_injective {α : Type*} :
 @[ext]
 lemma linear_order.to_partial_order_injective {α : Type*} :
   function.injective (@linear_order.to_partial_order α) :=
-λ A B h, by { cases A, cases B, injection h, congr' }
+begin
+  intros A B h,
+  cases A, cases B, injection h,
+  obtain rfl : A_le = B_le := ‹_›, obtain rfl : A_lt = B_lt := ‹_›,
+  obtain rfl : A_decidable_le = B_decidable_le := subsingleton.elim _ _,
+  obtain rfl : A_max = B_max := A_max_def.trans B_max_def.symm,
+  obtain rfl : A_min = B_min := A_min_def.trans B_min_def.symm,
+  congr
+end
 
 theorem preorder.ext {α} {A B : preorder α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
@@ -206,8 +214,12 @@ instance (α : Type*) [partial_order α] : partial_order (order_dual α) :=
 
 instance (α : Type*) [linear_order α] : linear_order (order_dual α) :=
 { le_total     := λ a b : α, le_total b a,
-  decidable_le := show decidable_rel (λ a b : α, b ≤ a), by apply_instance,
-  decidable_lt := show decidable_rel (λ a b : α, b < a), by apply_instance,
+  decidable_le := (infer_instance : decidable_rel (λ a b : α, b ≤ a)),
+  decidable_lt := (infer_instance : decidable_rel (λ a b : α, b < a)),
+  min := @max α _,
+  max := @min α _,
+  min_def := @linear_order.max_def α _,
+  max_def := @linear_order.min_def α _,
   .. order_dual.partial_order α }
 
 instance : Π [inhabited α], inhabited (order_dual α) := id

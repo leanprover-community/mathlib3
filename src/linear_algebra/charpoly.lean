@@ -78,7 +78,7 @@ lemma charpoly_monic : f.charpoly.monic := charpoly_monic _
 
 end coeff
 
-section aeval
+section cayley_hamilton
 
 /-- The Cayley-Hamilton Theorem, that the characteristic polynomial of a linear map, applied to
 the linear map itself, is zero. -/
@@ -87,9 +87,15 @@ begin
   apply (linear_equiv.map_eq_zero_iff (alg_equiv_matrix _).to_linear_equiv).1,
   rw [alg_equiv.to_linear_equiv_apply, ← alg_equiv.coe_alg_hom,
     ← polynomial.aeval_alg_hom_apply _ _ _, charpoly_def],
-  exact aeval_self_char_poly _,
+  exact aeval_self_charpoly _,
 end
 
-end aeval
+lemma is_integral : is_integral R f := ⟨f.charpoly, ⟨charpoly_monic f, aeval_self_charpoly f⟩⟩
+
+lemma minpoly_dvd_charpoly {K : Type u} {M : Type v} [field K] [add_comm_group M] [module K M]
+  [finite_dimensional K M] (f : M →ₗ[K] M) : (minpoly K f) ∣ f.charpoly :=
+minpoly.dvd _ _ (aeval_self_charpoly f)
+
+end cayley_hamilton
 
 end linear_map

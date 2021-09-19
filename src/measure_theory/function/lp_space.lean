@@ -1563,28 +1563,58 @@ lemma mem_ℒp.indicator (hs : measurable_set s) (hf : mem_ℒp f p μ) :
   mem_ℒp (s.indicator f) p μ :=
 ⟨hf.ae_measurable.indicator hs, lt_of_le_of_lt (snorm_indicator_le f) hf.snorm_lt_top⟩
 
+lemma snorm_ess_sup_indicator_eq_snorm_ess_sup_restrict {f : α → F} (hs : measurable_set s) :
+  snorm_ess_sup (s.indicator f) μ = snorm_ess_sup f (μ.restrict s) :=
+begin
+  simp_rw [snorm_ess_sup, nnnorm_indicator_eq_indicator_nnnorm, ennreal.coe_indicator],
+  by_cases hs_null : μ s = 0,
+  { rw measure.restrict_zero_set hs_null,
+    simp only [ess_sup_measure_zero, ennreal.ess_sup_eq_zero_iff, ennreal.bot_eq_zero],
+    have hs_empty : s =ᵐ[μ] (∅ : set α), by { rw ae_eq_set, simpa using hs_null, },
+    refine (indicator_ae_eq_of_ae_eq_set hs_empty).trans _,
+    rw set.indicator_empty,
+    refl, },
+  rw ess_sup_indicator_eq_ess_sup_restrict (eventually_of_forall (λ x, _)) hs hs_null,
+  rw pi.zero_apply,
+  exact zero_le _,
+end
+
+lemma snorm_indicator_eq_snorm_restrict {f : α → F} (hs : measurable_set s) :
+  snorm (s.indicator f) p μ = snorm f p (μ.restrict s) :=
+begin
+  by_cases hp_zero : p = 0,
+  { simp only [hp_zero, snorm_exponent_zero], },
+  by_cases hp_top : p = ∞,
+  { simp_rw [hp_top, snorm_exponent_top],
+    exact snorm_ess_sup_indicator_eq_snorm_ess_sup_restrict hs, },
+  simp_rw snorm_eq_lintegral_rpow_nnnorm hp_zero hp_top,
+  suffices : ∫⁻ x, ∥s.indicator f x∥₊ ^ p.to_real ∂μ = ∫⁻ x in s, ∥f x∥₊ ^ p.to_real ∂μ,
+    by rw this,
+  rw ← lintegral_indicator _ hs,
+  congr,
+  simp_rw [nnnorm_indicator_eq_indicator_nnnorm, ennreal.coe_indicator],
+  have h_zero : (λ x, x ^ p.to_real) (0 : ℝ≥0∞) = 0,
+    by simp [ennreal.to_real_pos_iff.mpr ⟨ne.bot_lt hp_zero, hp_top⟩],
+  exact (set.indicator_comp_of_zero h_zero).symm,
+end
+
+lemma mem_ℒp_indicator_iff_restrict (hs : measurable_set s) :
+  mem_ℒp (s.indicator f) p μ ↔ mem_ℒp f p (μ.restrict s) :=
+by simp [mem_ℒp, ae_measurable_indicator_iff hs, snorm_indicator_eq_snorm_restrict hs]
+
 lemma mem_ℒp_indicator_const (p : ℝ≥0∞) (hs : measurable_set s) (c : E) (hμsc : c = 0 ∨ μ s ≠ ∞) :
   mem_ℒp (s.indicator (λ _, c)) p μ :=
 begin
-  cases hμsc with hc hμs,
-  { simp only [hc, set.indicator_zero],
-    exact zero_mem_ℒp, },
-  refine ⟨(ae_measurable_indicator_iff hs).mpr ae_measurable_const, _⟩,
-  by_cases hp0 : p = 0,
-  { simp only [hp0, snorm_exponent_zero, with_top.zero_lt_top], },
+  rw mem_ℒp_indicator_iff_restrict hs,
+  by_cases hp_zero : p = 0,
+  { rw hp_zero, exact mem_ℒp_zero_iff_ae_measurable.mpr ae_measurable_const, },
   by_cases hp_top : p = ∞,
-  { rw [hp_top, snorm_exponent_top],
-    exact (snorm_ess_sup_indicator_const_le s c).trans_lt ennreal.coe_lt_top, },
-  have hp_pos : 0 < p.to_real,
-    from ennreal.to_real_pos_iff.mpr ⟨lt_of_le_of_ne (zero_le _) (ne.symm hp0), hp_top⟩,
-  rw snorm_lt_top_iff_lintegral_rpow_nnnorm_lt_top hp0 hp_top,
-  simp_rw [nnnorm_indicator_eq_indicator_nnnorm, ennreal.coe_indicator],
-  have h_indicator_pow : (λ a : α, s.indicator (λ _, (∥c∥₊ : ℝ≥0∞)) a ^ p.to_real)
-    = s.indicator (λ _, ↑∥c∥₊ ^ p.to_real),
-  { rw set.comp_indicator_const (∥c∥₊ : ℝ≥0∞) (λ x, x ^ p.to_real) _, simp [hp_pos], },
-  rw [h_indicator_pow, lintegral_indicator _ hs, set_lintegral_const],
-  refine ennreal.mul_lt_top _ hμs,
-  exact (ennreal.rpow_lt_top_of_nonneg hp_pos.le ennreal.coe_ne_top).ne,
+  { rw hp_top,
+    exact mem_ℒp_top_of_bound ae_measurable_const (∥c∥) (eventually_of_forall (λ x, le_rfl)), },
+  rw [mem_ℒp_const_iff hp_zero hp_top, measure.restrict_apply_univ],
+  cases hμsc,
+  { exact or.inl hμsc, },
+  { exact or.inr hμsc.lt_top, },
 end
 
 end indicator

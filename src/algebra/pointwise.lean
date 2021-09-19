@@ -620,6 +620,10 @@ lemma preimage_smul' [group_with_zero α] [mul_action α β] {a : α} (ha : a �
   (λ x, a • x) ⁻¹' t = a⁻¹ • t :=
 preimage_smul (units.mk0 a ha) t
 
+lemma preimage_smul_inv [group_with_zero α] [mul_action α β] {a : α} (ha : a ≠ 0) (t : set β) :
+  (λ x, a⁻¹ • x) ⁻¹' t = a • t :=
+preimage_smul ((units.mk0 a ha)⁻¹) t
+
 end
 
 namespace finset

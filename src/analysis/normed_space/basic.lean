@@ -25,7 +25,7 @@ variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
 noncomputable theory
 open filter metric
-open_locale topological_space big_operators nnreal ennreal uniformity
+open_locale topological_space big_operators nnreal ennreal uniformity pointwise
 
 /-- Auxiliary class, endowing a type `α` with a function `norm : α → ℝ`. This class is designed to
 be extended in more interesting classes specifying the properties of the norm. -/
@@ -283,6 +283,14 @@ lemma bounded_iff_forall_norm_le {s : set α} : bounded s ↔ ∃ C, ∀ x ∈ s
 begin
   rw bounded_iff_subset_ball (0 : α),
   exact exists_congr (λ r, by simp [(⊆), set.subset]),
+end
+
+lemma preimage_add_ball (x y : α) (r : ℝ) : ((+) y) ⁻¹' (ball x r) = ball (x - y) r :=
+begin
+  ext z,
+  simp [dist_eq_norm],
+  congr' 3,
+  abel
 end
 
 @[simp] lemma mem_sphere_iff_norm (v w : α) (r : ℝ) : w ∈ sphere v r ↔ ∥w - v∥ = r :=
@@ -1606,6 +1614,34 @@ theorem frontier_closed_ball [semi_normed_space ℝ E] (x : E) {r : ℝ} (hr : 0
   frontier (closed_ball x r) = sphere x r :=
 by rw [frontier, closure_closed_ball, interior_closed_ball x hr,
   closed_ball_diff_ball]
+
+open_locale pointwise
+
+theorem smul_ball_0 {c : α} (hc : c ≠ 0) (r : ℝ) :
+  c • ball (0 : α) r = ball 0 (∥c∥ * r) :=
+begin
+  rw ← preimage_smul_inv hc,
+  ext y,
+  simp [← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hc), mul_comm _ r],
+end
+
+theorem smul_closed_ball_0 (c : α) {r : ℝ} (hr : 0 ≤ r) :
+  c • closed_ball (0 : α) r = closed_ball 0 (∥c∥ * r) :=
+begin
+  rcases eq_or_ne c 0 with rfl|hc,
+  { simp [hr, zero_smul_set, set.singleton_zero, ← nonempty_closed_ball] },
+  { rw ← preimage_smul_inv hc,
+    ext y,
+    simp [← div_eq_inv_mul, div_le_iff (norm_pos_iff.2 hc), mul_comm _ r] }
+end
+
+theorem smul_closed_ball_0' {c : α} (hc : c ≠ 0) (r : ℝ) :
+  c • closed_ball (0 : α) r = closed_ball 0 (∥c∥ * r) :=
+begin
+  rw ← preimage_smul_inv hc,
+  ext y,
+  simp [← div_eq_inv_mul, div_le_iff (norm_pos_iff.2 hc), mul_comm _ r],
+end
 
 variables (α)
 

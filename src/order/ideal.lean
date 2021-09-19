@@ -164,7 +164,6 @@ lemma inter_nonempty [ideal_inter_nonempty P] :
   ∀ (I J : ideal P), ((I : set P) ∩ (J : set P)).nonempty :=
 ideal_inter_nonempty.inter_nonempty
 
-
 lemma Inter_nonempty [ideal_Inter_nonempty P] :
   (⋂ (I : ideal P), (I : set P)).nonempty :=
 ideal_Inter_nonempty.Inter_nonempty
@@ -373,10 +372,10 @@ instance : has_Inf (ideal P) :=
   nonempty := ideal_Inter_nonempty.all_bInter_nonempty,
   directed := λ x hx y hy, ⟨x ⊔ y, ⟨λ S ⟨I, hS⟩,
     begin
-      simp [← hS],
-      assume hI,
+      simp only [←hS, sup_mem_iff, mem_coe, set.mem_Inter],
+      intro hI,
       rw set.mem_bInter_iff at *,
-      tauto,
+      exact ⟨hx _ hI, hy _ hI⟩
     end,
     le_sup_left, le_sup_right⟩⟩,
   mem_of_le := λ x y hxy hy,
@@ -396,9 +395,9 @@ lemma Inf_le (hI : I ∈ s) : Inf s ≤ I :=
 λ _ hx, hx I ⟨I, by simp [hI]⟩
 
 lemma le_Inf (h : ∀ J ∈ s, I ≤ J) : I ≤ Inf s :=
-λ _ _, by { simp, tauto }
+λ _ _, by { simp only [mem_coe, coe_Inf, set.mem_Inter], tauto }
 
-lemma is_glb_Inf : is_glb s (Inf s) := ⟨assume a, Inf_le, assume a, le_Inf⟩
+lemma is_glb_Inf : is_glb s (Inf s) := ⟨λ _, Inf_le, λ _, le_Inf⟩
 
 instance : complete_lattice (ideal P) :=
 { ..ideal.lattice,

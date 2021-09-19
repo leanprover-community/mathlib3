@@ -549,6 +549,37 @@ begin
   { simp [measurable_set_pi_of_nonempty hs, h, ← not_nonempty_iff_eq_empty] }
 end
 
+section
+variable (π)
+
+@[measurability]
+lemma measurable_pi_equiv_pi_subtype_prod_symm (p : δ → Prop) [decidable_pred p] :
+  measurable (equiv.pi_equiv_pi_subtype_prod p π).symm :=
+begin
+  apply measurable_pi_iff.2 (λ j, _),
+  by_cases hj : p j,
+  { simp only [hj, dif_pos, equiv.pi_equiv_pi_subtype_prod_symm_apply],
+    have : measurable (λ (f : (Π (i : {x // p x}), π ↑i)), f ⟨j, hj⟩) :=
+      measurable_pi_apply ⟨j, hj⟩,
+    exact measurable.comp this measurable_fst },
+  { simp only [hj, equiv.pi_equiv_pi_subtype_prod_symm_apply, dif_neg, not_false_iff],
+    have : measurable (λ (f : (Π (i : {x // ¬ p x}), π ↑i)), f ⟨j, hj⟩) :=
+      measurable_pi_apply ⟨j, hj⟩,
+    exact measurable.comp this measurable_snd }
+end
+
+@[measurability]
+lemma measurable_pi_equiv_pi_subtype_prod (p : δ → Prop) [decidable_pred p] :
+  measurable (equiv.pi_equiv_pi_subtype_prod p π) :=
+begin
+  refine measurable_prod.2 _,
+  split;
+  { apply measurable_pi_iff.2 (λ j, _),
+    simp only [pi_equiv_pi_subtype_prod_apply, measurable_pi_apply] }
+end
+
+end
+
 section fintype
 
 local attribute [instance] fintype.encodable

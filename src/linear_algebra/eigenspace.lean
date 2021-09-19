@@ -8,6 +8,7 @@ import field_theory.algebraic_closure
 import linear_algebra.finsupp
 import linear_algebra.matrix.to_lin
 import order.preorder_hom
+import linear_algebra.charpoly
 
 /-!
 # Eigenvectors and eigenvalues
@@ -129,9 +130,6 @@ begin
 end
 
 variables [finite_dimensional K V] (f : End K V)
-
-protected theorem is_integral : is_integral K f :=
-is_integral_of_noetherian (by apply_instance) f
 
 variables {f} {μ : K}
 

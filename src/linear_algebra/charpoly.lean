@@ -7,7 +7,6 @@ Authors: Riccardo Brasca
 import linear_algebra.free_module
 import linear_algebra.charpoly.coeff
 import linear_algebra.matrix.basis
-import linear_algebra.dimension
 
 /-!
 

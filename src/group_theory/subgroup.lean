@@ -1374,6 +1374,10 @@ monoid_hom.mk' (λ g, ⟨f g, ⟨g, rfl⟩⟩) $ λ a b, by {ext, exact f.map_mu
 lemma coe_range_restrict (f : G →* N) (g : G) : (f.range_restrict g : N) = f g := rfl
 
 @[to_additive]
+lemma range_restrict_surjective (f : G →* N) : function.surjective f.range_restrict :=
+λ ⟨_, g, rfl⟩, ⟨g, rfl⟩
+
+@[to_additive]
 lemma map_range (g : N →* P) (f : G →* N) : f.range.map g = (g.comp f).range :=
 by rw [range_eq_map, range_eq_map]; exact (⊤ : subgroup G).map_map g f
 

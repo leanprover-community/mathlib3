@@ -1,12 +1,12 @@
 import data.W.cardinal
 import ring_theory.algebraic_independent
 import field_theory.algebraic_closure
-import algebra.char_p.algebra
+import data.zmod.algebra
 
 open cardinal
 open_locale cardinal
 
-universe u
+universes u v
 
 section mv_polynomial
 
@@ -156,3 +156,48 @@ calc #L ≤ #(Σ p : polynomial K, { x : L // x ∈ (p.map (algebra_map K L)).ro
 end is_alg_closure
 
 end algebraic_closure
+
+section classification
+
+variables {K L : Type*}
+variables [field K] [is_alg_closed K] [char_zero K] [algebra ℤ K]
+variables [field L] [is_alg_closed L] [char_zero L] [algebra ℤ L]
+variables {ι : Type*} (v : ι → K)
+variables {κ : Type*} (w : κ → L)
+--attribute [semireducible] fraction_ring
+local attribute [instance, priority 0] algebra_int
+#print localization.algebra
+set_option pp.all true
+
+def G {R : Type*} [integral_domain R] : algebra R (fraction_ring R) := by apply_instance
+#print fraction_ring
+#print is_fraction_ring.field_equiv_of_ring_equiv
+def equiv_of_transcendence_basis (e : ι ≃ κ)
+  (hv : is_transcendence_basis ℤ v)
+  (hw : is_transcendence_basis ℤ w) :
+  K ≃+* L :=
+begin
+  have := hv.is_algebraic,
+  let V := algebra.adjoin ℤ (set.range v),
+  let W := algebra.adjoin ℤ (set.range w),
+  let f : V ≃ₐ[ℤ] W :=
+    (hv.1.aeval_equiv.symm.trans (mv_polynomial.rename_equiv ℤ e)).trans hw.1.aeval_equiv,
+  letI : algebra V (fraction_ring V) :=
+    begin
+      apply_instance,
+      have := @localization.algebra V (subalgebra.to_comm_ring V) (non_zero_divisors V),
+      --exact this,
+    end,
+  -- letI : algebra W (fraction_ring W) :=
+  --   begin
+  --     have := @localization.algebra W (subalgebra.to_comm_ring W) (non_zero_divisors W),
+  --     convert this,
+  --   end,
+  -- let f' : fraction_ring V ≃+* fraction_ring W :=
+  --   is_fraction_ring.field_equiv_of_ring_equiv f.to_ring_equiv,
+
+end
+
+
+
+end classification

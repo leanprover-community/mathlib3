@@ -435,25 +435,6 @@ lemma is_closed_ae_measurable' [hp : fact (1 ≤ p)] [complete_space F] (hm : m 
   is_closed {f : Lp F p μ | ae_measurable' m f μ} :=
 is_complete.is_closed (is_complete_ae_measurable' hm)
 
-
-include 𝕜
-variables (𝕜)
-lemma is_complete_ae_measurable' [hp : fact (1 ≤ p)] [complete_space F] (hm : m ≤ m0) :
-  is_complete {f : Lp F p μ | ae_measurable' m f μ} :=
-begin
-  rw ← complete_space_coe_iff_is_complete,
-  haveI : fact (m ≤ m0) := ⟨hm⟩,
-  change complete_space (Lp_meas F 𝕜 m p μ),
-  apply_instance,
-end
-
-lemma is_closed_ae_measurable' [hp : fact (1 ≤ p)] [complete_space F] (hm : m ≤ m0) :
-  is_closed {f : Lp F p μ | ae_measurable' m f μ} :=
-is_complete.is_closed (is_complete_ae_measurable' 𝕜 hm)
-
-variables {𝕜}
-omit 𝕜
-
 end complete_subspace
 
 section strongly_measurable

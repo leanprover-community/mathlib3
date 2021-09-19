@@ -32,17 +32,17 @@ variables [add_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M]
 variables {A}
 
 /-- The `R`-algebra morphism `A → End (M)` corresponding to the representation of the algebra `A`
-on the `R`-module `M`. -/
+on the `R`-module `M`.
+
+This is a stronger version of `distrib_mul_action.to_linear_map`, and could also have been
+called `algebra.to_module_End`. -/
 def lsmul : A →ₐ[R] module.End R M :=
-{ map_one' := by { ext m, exact one_smul A m },
-  map_mul' := by { intros a b, ext c, exact smul_assoc a b c },
-  map_zero' := by { ext m, exact zero_smul A m },
-  commutes' := by { intro r, ext m, exact algebra_map_smul A r m },
-  .. (show A →ₗ[R] M →ₗ[R] M, from linear_map.mk₂ R (•)
-  (λ x y z, add_smul x y z)
-  (λ c x y, smul_assoc c x y)
-  (λ x y z, smul_add x y z)
-  (λ c x y, smul_algebra_smul_comm c x y)) }
+{ to_fun := distrib_mul_action.to_linear_map R M,
+  map_one' := linear_map.ext $ λ _, one_smul A _,
+  map_mul' := λ a b, linear_map.ext $ smul_assoc a b,
+  map_zero' := linear_map.ext $ λ _, zero_smul A _,
+  map_add' := λ a b, linear_map.ext $ λ _, add_smul _ _ _,
+  commutes' := λ r, linear_map.ext $ algebra_map_smul A r, }
 
 @[simp] lemma lsmul_coe (a : A) : (lsmul R M a : M → M) = (•) a := rfl
 
@@ -158,18 +158,6 @@ variables (R) {A S B}
 
 open is_scalar_tower
 
-/-- Given a scalar tower `R`, `S`, `A` of algebras, reinterpret an `S`-subalgebra of `A` an as an
-`R`-subalgebra. -/
-def subalgebra.restrict_scalars (iSB : subalgebra S A) :
-  subalgebra R A :=
-{ one_mem' := iSB.one_mem,
-  mul_mem' := λ _ _, iSB.mul_mem,
-  algebra_map_mem' := λ r, begin
-    rw is_scalar_tower.algebra_map_eq R S,
-    exact iSB.algebra_map_mem' _,
-  end,
-  .. iSB.to_submodule.restrict_scalars R }
-
 namespace alg_hom
 
 /-- R ⟶ S induces S-Alg ⥤ R-Alg -/
@@ -221,19 +209,25 @@ section semiring
 variables (R) {S A} [comm_semiring R] [comm_semiring S] [semiring A]
 variables [algebra R S] [algebra S A] [algebra R A] [is_scalar_tower R S A]
 
-/-- If A/S/R is a tower of algebras then the `res`triction of a S-subalgebra of A is
-an R-subalgebra of A. -/
-def res (U : subalgebra S A) : subalgebra R A :=
+/-- Given a scalar tower `R`, `S`, `A` of algebras, reinterpret an `S`-subalgebra of `A` an as an
+`R`-subalgebra. -/
+def restrict_scalars (U : subalgebra S A) : subalgebra R A :=
 { algebra_map_mem' := λ x, by { rw algebra_map_apply R S A, exact U.algebra_map_mem _ },
   .. U }
 
-@[simp] lemma res_top : res R (⊤ : subalgebra S A) = ⊤ :=
-algebra.eq_top_iff.2 $ λ _, show _ ∈ (⊤ : subalgebra S A), from algebra.mem_top
+@[simp] lemma restrict_scalars_top : restrict_scalars R (⊤ : subalgebra S A) = ⊤ :=
+set_like.coe_injective rfl
 
-@[simp] lemma mem_res {U : subalgebra S A} {x : A} : x ∈ res R U ↔ x ∈ U := iff.rfl
+@[simp] lemma restrict_scalars_to_submodule {U : subalgebra S A} :
+  (U.restrict_scalars R).to_submodule = U.to_submodule.restrict_scalars R :=
+set_like.coe_injective rfl
 
-lemma res_inj {U V : subalgebra S A} (H : res R U = res R V) : U = V :=
-ext $ λ x, by rw [← mem_res R, H, mem_res]
+@[simp] lemma mem_restrict_scalars {U : subalgebra S A} {x : A} :
+  x ∈ restrict_scalars R U ↔ x ∈ U := iff.rfl
+
+lemma restrict_scalars_injective :
+  function.injective (restrict_scalars R : subalgebra S A → subalgebra R A) :=
+λ U V H, ext $ λ x, by rw [← mem_restrict_scalars R, H, mem_restrict_scalars]
 
 /-- Produces a map from `subalgebra.under`. -/
 def of_under {R A B : Type*} [comm_semiring R] [comm_semiring A] [semiring B]
@@ -254,7 +248,7 @@ variables [comm_semiring R] [comm_semiring S] [comm_semiring A]
 variables [algebra R S] [algebra S A] [algebra R A] [is_scalar_tower R S A]
 
 theorem range_under_adjoin (t : set A) :
-  (to_alg_hom R S A).range.under (algebra.adjoin _ t) = res R (algebra.adjoin S t) :=
+  (to_alg_hom R S A).range.under (algebra.adjoin _ t) = (algebra.adjoin S t).restrict_scalars R :=
 subalgebra.ext $ λ z,
 show z ∈ subsemiring.closure (set.range (algebra_map (to_alg_hom R S A).range A) ∪ t : set A) ↔
   z ∈ subsemiring.closure (set.range (algebra_map S A) ∪ t : set A),

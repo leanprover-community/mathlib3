@@ -79,7 +79,7 @@ equivalence is proved in `submodule.fg_iff_finite_dimensional`.
 -/
 
 universes u v v' w
-open_locale classical
+open_locale classical cardinal
 
 open cardinal submodule module function
 
@@ -196,7 +196,7 @@ end
 /-- If a vector space is finite-dimensional, then the cardinality of any basis is equal to its
 `finrank`. -/
 lemma finrank_eq_card_basis' [finite_dimensional K V] {ι : Type w} (h : basis ι K V) :
-  (finrank K V : cardinal.{w}) = cardinal.mk ι :=
+  (finrank K V : cardinal.{w}) = #ι :=
 begin
   haveI : fintype ι := fintype_basis_index h,
   rw [cardinal.fintype_card, finrank_eq_card_basis h]
@@ -240,7 +240,7 @@ lemma basis_unique.repr_eq_zero_iff {ι : Type*} [unique ι] {h : finrank K V = 
 
 lemma cardinal_mk_le_finrank_of_linear_independent
   [finite_dimensional K V] {ι : Type w} {b : ι → V} (h : linear_independent K b) :
-  cardinal.mk ι ≤ finrank K V :=
+  #ι ≤ finrank K V :=
 begin
   rw ← lift_le.{_ (max v w)},
   simpa [← finrank_eq_dim K V] using
@@ -262,7 +262,7 @@ end
 
 lemma lt_omega_of_linear_independent {ι : Type w} [finite_dimensional K V]
   {v : ι → V} (h : linear_independent K v) :
-  cardinal.mk ι < cardinal.omega :=
+  #ι < ω :=
 begin
   apply cardinal.lift_lt.1,
   apply lt_of_le_of_lt,
@@ -275,8 +275,8 @@ lemma not_linear_independent_of_infinite {ι : Type w} [inf : infinite ι] [fini
   (v : ι → V) : ¬ linear_independent K v :=
 begin
   intro h_lin_indep,
-  have : ¬ omega ≤ mk ι := not_le.mpr (lt_omega_of_linear_independent h_lin_indep),
-  have : omega ≤ mk ι := infinite_iff.mp inf,
+  have : ¬ ω ≤ #ι := not_le.mpr (lt_omega_of_linear_independent h_lin_indep),
+  have : ω ≤ #ι := infinite_iff.mp inf,
   contradiction
 end
 
@@ -1075,7 +1075,7 @@ lemma finrank_span_le_card (s : set V) [fin : fintype s] :
   finrank K (span K s) ≤ s.to_finset.card :=
 begin
   haveI := span_of_finite K ⟨fin⟩,
-  have : module.rank K (span K s) ≤ (mk s : cardinal) := dim_span_le s,
+  have : module.rank K (span K s) ≤ #s := dim_span_le s,
   rw [←finrank_eq_dim, cardinal.fintype_card, ←set.to_finset_card] at this,
   exact_mod_cast this
 end
@@ -1090,7 +1090,7 @@ lemma finrank_span_eq_card {ι : Type*} [fintype ι] {b : ι → V}
   finrank K (span K (set.range b)) = fintype.card ι :=
 begin
   haveI : finite_dimensional K (span K (set.range b)) := span_of_finite K (set.finite_range b),
-  have : module.rank K (span K (set.range b)) = (mk (set.range b) : cardinal) := dim_span hb,
+  have : module.rank K (span K (set.range b)) = #(set.range b) := dim_span hb,
   rwa [←finrank_eq_dim, ←lift_inj, mk_range_eq_of_injective hb.injective,
     cardinal.fintype_card, lift_nat_cast, lift_nat_cast, nat_cast_inj] at this,
 end
@@ -1100,7 +1100,7 @@ lemma finrank_span_set_eq_card (s : set V) [fin : fintype s]
   finrank K (span K s) = s.to_finset.card :=
 begin
   haveI := span_of_finite K ⟨fin⟩,
-  have : module.rank K (span K s) = (mk s : cardinal) := dim_span_set hs,
+  have : module.rank K (span K s) = #s := dim_span_set hs,
   rw [←finrank_eq_dim, cardinal.fintype_card, ←set.to_finset_card] at this,
   exact_mod_cast this
 end

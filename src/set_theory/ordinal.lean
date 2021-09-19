@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn
 -/
 import set_theory.cardinal
+import order.conditionally_complete_lattice
 
 /-!
 # Ordinals
@@ -48,6 +49,10 @@ initial segment (or, equivalently, in any way). This total order is well founded
 
 * `cardinal.ord c`: when `c` is a cardinal, `ord c` is the smallest ordinal with this cardinality.
   It is the canonical way to represent a cardinal with an ordinal.
+
+A conditionally complete linear order with bot structure is registered on ordinals, where `⊥` is
+`0`, the ordinal corresponding to the empty type, and `Inf` is `ordinal.omin` for nonempty sets
+and `0` for the empty set by convention.
 
 ## Notations
 * `r ≼i s`: the type of initial segment embeddings of `r` into `s`.
@@ -124,7 +129,7 @@ theorem unique_of_extensional [is_extensional β s] :
   well_founded r → subsingleton (r ≼i s) | ⟨h⟩ :=
 ⟨λ f g, begin
   suffices : (f : α → β) = g, { cases f, cases g,
-    congr, exact rel_embedding.coe_fn_inj this },
+    congr, exact rel_embedding.coe_fn_injective this },
   funext a, have := h a, induction this with a H IH,
   refine @is_extensional.ext _ s _ _ _ (λ x, ⟨λ h, _, λ h, _⟩),
   { rcases f.init_iff.1 h with ⟨y, rfl, h'⟩,
@@ -294,7 +299,7 @@ instance [is_well_order β s] : subsingleton (r ≺i s) :=
   { refine @is_extensional.ext _ s _ _ _ (λ x, _),
     simp only [f.down, g.down, ef, coe_fn_to_rel_embedding] },
   cases f, cases g,
-  have := rel_embedding.coe_fn_inj ef; congr'
+  have := rel_embedding.coe_fn_injective ef; congr'
 end⟩
 
 theorem top_eq [is_well_order γ t]
@@ -696,6 +701,12 @@ end⟩⟩
 
 instance : has_well_founded ordinal := ⟨(<), wf⟩
 
+/-- Reformulation of well founded induction on ordinals as a lemma that works with the
+`induction` tactic, as in `induction i using ordinal.induction with i IH`. -/
+lemma induction {p : ordinal.{u} → Prop} (i : ordinal.{u})
+  (h : ∀ j, (∀ k, k < j → p k) → p j) : p i :=
+ordinal.wf.induction i h
+
 /-- Principal segment version of the `typein` function, embedding a well order into
   ordinals as a principal segment. -/
 def typein.principal_seg {α : Type u} (r : α → α → Prop) [is_well_order α r] :
@@ -713,14 +724,14 @@ def typein.principal_seg {α : Type u} (r : α → α → Prop) [is_well_order �
 /-- The cardinal of an ordinal is the cardinal of any
   set with that order type. -/
 def card (o : ordinal) : cardinal :=
-quot.lift_on o (λ ⟨α, r, _⟩, mk α) $
+quot.lift_on o (λ ⟨α, r, _⟩, #α) $
 λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨e⟩, quotient.sound ⟨e.to_equiv⟩
 
 @[simp] theorem card_type (r : α → α → Prop) [is_well_order α r] :
-  card (type r) = mk α := rfl
+  card (type r) = #α := rfl
 
 lemma card_typein {r : α → α → Prop} [wo : is_well_order α r] (x : α) :
-  mk {y // r y x} = (typein r x).card := rfl
+  #{y // r y x} = (typein r x).card := rfl
 
 theorem card_le_card {o₁ o₂ : ordinal} : o₁ ≤ o₂ → card o₁ ≤ card o₂ :=
 induction_on o₁ $ λ α r _, induction_on o₂ $ λ β s _ ⟨⟨⟨f, _⟩, _⟩⟩, ⟨f⟩
@@ -843,7 +854,7 @@ theorem lift_down' {a : cardinal.{u}} {b : ordinal.{max u v}}
 let ⟨c, e⟩ := cardinal.lift_down h in
 quotient.induction_on c (λ α, induction_on b $ λ β s _ e', begin
   resetI,
-  rw [mk_def, card_type, ← cardinal.lift_id'.{(max u v) u} (mk β),
+  rw [mk_def, card_type, ← cardinal.lift_id'.{(max u v) u} (#β),
       ← cardinal.lift_umax.{u v}, lift_mk_eq.{u (max u v) (max u v)}] at e',
   cases e' with f,
   have g := rel_iso.preimage f s,
@@ -1102,6 +1113,28 @@ let ⟨i, e⟩ := min_eq I (lift ∘ f) in
 by rw e; exact lift_le.2 (le_min.2 $ λ j, lift_le.1 $
 by have := min_le (lift ∘ f) j; rwa e at this)
 
+instance : conditionally_complete_linear_order_bot ordinal :=
+wf.conditionally_complete_linear_order_with_bot 0 $ le_antisymm (ordinal.zero_le _) $
+  not_lt.1 (wf.not_lt_min set.univ ⟨0, mem_univ _⟩ (mem_univ 0))
+
+@[simp] lemma bot_eq_zero : (⊥ : ordinal) = 0 := rfl
+
+lemma Inf_eq_omin {s : set ordinal} (hs : s.nonempty) :
+  Inf s = omin s hs :=
+begin
+  simp only [Inf, conditionally_complete_lattice.Inf, omin, conditionally_complete_linear_order.Inf,
+    conditionally_complete_linear_order_bot.Inf, hs, dif_pos],
+  congr,
+  rw subtype.range_val,
+end
+
+lemma Inf_mem {s : set ordinal} (hs : s.nonempty) :
+  Inf s ∈ s :=
+by { rw Inf_eq_omin hs, exact omin_mem _ hs }
+
+instance : no_top_order ordinal :=
+⟨λ a, ⟨a.succ, lt_succ_self a⟩⟩
+
 end ordinal
 
 /-! ### Representing a cardinal with an ordinal -/
@@ -1127,18 +1160,18 @@ begin
   exact ordinal.min_le (λ i:ι α, ⟦⟨α, i.1, i.2⟩⟧) ⟨_, _⟩
 end
 
-lemma ord_eq_min (α : Type u) : ord (mk α) =
+lemma ord_eq_min (α : Type u) : ord (#α) =
   @ordinal.min {r // is_well_order α r} ⟨⟨well_ordering_rel, by apply_instance⟩⟩
     (λ i, ⟦⟨α, i.1, i.2⟩⟧) := rfl
 
 theorem ord_eq (α) : ∃ (r : α → α → Prop) [wo : is_well_order α r],
-  ord (mk α) = @type α r wo :=
+  ord (#α) = @type α r wo :=
 let ⟨⟨r, wo⟩, h⟩ := @ordinal.min_eq {r // is_well_order α r}
   ⟨⟨well_ordering_rel, by apply_instance⟩⟩
   (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) in
 ⟨r, wo, h⟩
 
-theorem ord_le_type (r : α → α → Prop) [is_well_order α r] : ord (mk α) ≤ ordinal.type r :=
+theorem ord_le_type (r : α → α → Prop) [is_well_order α r] : ord (#α) ≤ ordinal.type r :=
 @ordinal.min_le {r // is_well_order α r}
   ⟨⟨well_ordering_rel, by apply_instance⟩⟩
   (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) ⟨r, _⟩
@@ -1195,11 +1228,11 @@ eq_of_forall_ge_iff $ λ o, le_iff_le_iff_lt_iff_lt.2 $ begin
     rwa [ordinal.lift_lt, lt_ord] }
 end
 
-lemma mk_ord_out (c : cardinal) : mk c.ord.out.α = c :=
+lemma mk_ord_out (c : cardinal) : #c.ord.out.α = c :=
 by rw [←card_type c.ord.out.r, type_out, card_ord]
 
 lemma card_typein_lt (r : α → α → Prop) [is_well_order α r] (x : α)
-  (h : ord (mk α) = type r) : card (typein r x) < mk α :=
+  (h : ord (#α) = type r) : card (typein r x) < #α :=
 by { rw [←ord_lt_ord, h], refine lt_of_le_of_lt (ord_card_le _) (typein_lt_type r x) }
 
 lemma card_typein_out_lt (c : cardinal) (x : c.ord.out.α) : card (typein c.ord.out.r x) < c :=
@@ -1221,9 +1254,9 @@ rel_embedding.order_embedding_of_lt_embedding
 /-- The cardinal `univ` is the cardinality of ordinal `univ`, or
   equivalently the cardinal of `ordinal.{u}`, or `cardinal.{u}`,
   as an element of `cardinal.{v}` (when `u < v`). -/
-def univ := lift.{(u+1) v} (mk ordinal)
+def univ := lift.{(u+1) v} (#ordinal)
 
-theorem univ_id : univ.{u (u+1)} = mk ordinal := lift_id _
+theorem univ_id : univ.{u (u+1)} = #ordinal := lift_id _
 
 @[simp] theorem lift_univ : lift.{_ w} univ.{u v} = univ.{u (max v w)} := lift_lift _
 

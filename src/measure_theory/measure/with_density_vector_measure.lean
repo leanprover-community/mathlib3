@@ -162,14 +162,13 @@ section signed_measure
 
 lemma with_densityᵥ_to_real {f : α → ℝ≥0∞} (hfm : ae_measurable f μ) (hf : ∫⁻ x, f x ∂μ ≠ ∞) :
   μ.with_densityᵥ (λ x, (f x).to_real) =
-  @to_signed_measure α _ (μ.with_density f)
-    (is_finite_measure_with_density (lt_top_iff_ne_top.2 hf)) :=
+  @to_signed_measure α _ (μ.with_density f) (is_finite_measure_with_density hf) :=
 begin
   have hfi := integrable_to_real_of_lintegral_ne_top hfm hf,
   ext i hi,
   rw [with_densityᵥ_apply hfi hi, to_signed_measure_apply_measurable hi,
       with_density_apply _ hi, integral_to_real hfm.restrict],
-  refine ae_lt_top' hfm.restrict (lt_of_le_of_lt _ (lt_top_iff_ne_top.2 hf)),
+  refine ae_lt_top' hfm.restrict (ne_top_of_le_ne_top hf _),
   conv_rhs { rw ← set_lintegral_univ },
   exact lintegral_mono_set (set.subset_univ _),
 end

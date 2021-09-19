@@ -91,6 +91,8 @@ lemma lt_top_iff_ne_top : a < ⊤ ↔ a ≠ ⊤ := le_top.lt_iff_ne
 lemma ne_top_of_lt (h : a < b) : a ≠ ⊤ :=
 lt_top_iff_ne_top.1 $ lt_of_lt_of_le h le_top
 
+alias ne_top_of_lt ← has_lt.lt.ne_top
+
 theorem ne_top_of_le_ne_top {a b : α} (hb : b ≠ ⊤) (hab : a ≤ b) : a ≠ ⊤ :=
 λ ha, hb $ top_unique $ ha ▸ hab
 
@@ -161,6 +163,8 @@ end
 
 lemma ne_bot_of_gt (h : a < b) : b ≠ ⊥ :=
 bot_lt_iff_ne_bot.1 $ lt_of_le_of_lt bot_le h
+
+alias ne_bot_of_gt ← has_lt.lt.ne_bot
 
 lemma eq_bot_of_minimal (h : ∀ b, ¬ b < a) : a = ⊥ :=
 or.elim (lt_or_eq_of_le bot_le) (λ hlt, absurd hlt (h ⊥)) (λ he, he.symm)
@@ -500,6 +504,10 @@ def unbot : Π (x : with_bot α), x ≠ ⊥ → α
 | ⊥        h := absurd rfl h
 | (some x) h := x
 
+@[simp] lemma coe_unbot {α : Type*} (x : with_bot α) (h : x ≠ ⊥) :
+  (x.unbot h : with_bot α) = x :=
+by { cases x, simpa using h, refl, }
+
 @[simp] lemma unbot_coe (x : α) (h : (x : with_bot α) ≠ ⊥ := coe_ne_bot _) :
   (x : with_bot α).unbot h = x := rfl
 
@@ -556,12 +564,12 @@ instance order_bot [partial_order α] : order_bot (with_bot α) :=
 @[simp] theorem some_le_some [preorder α] {a b : α} :
   @has_le.le (with_bot α) _ (some a) (some b) ↔ a ≤ b := coe_le_coe
 
-theorem coe_le [partial_order α] {a b : α} :
+theorem coe_le [preorder α] {a b : α} :
   ∀ {o : option α}, b ∈ o → ((a : with_bot α) ≤ o ↔ a ≤ b)
 | _ rfl := coe_le_coe
 
 @[norm_cast]
-lemma coe_lt_coe [partial_order α] {a b : α} : (a : with_bot α) < b ↔ a < b := some_lt_some
+lemma coe_lt_coe [preorder α] {a b : α} : (a : with_bot α) < b ↔ a < b := some_lt_some
 
 lemma le_coe_get_or_else [preorder α] : ∀ (a : with_bot α) (b : α), a ≤ a.get_or_else b
 | (some a) b := le_refl a
@@ -724,6 +732,10 @@ option.ne_none_iff_exists
 def untop : Π (x : with_top α), x ≠ ⊤ → α :=
 with_bot.unbot
 
+@[simp] lemma coe_untop {α : Type*} (x : with_top α) (h : x ≠ ⊤) :
+  (x.untop h : with_top α) = x :=
+by { cases x, simpa using h, refl, }
+
 @[simp] lemma untop_coe (x : α) (h : (x : with_top α) ≠ ⊤ := coe_ne_top) :
   (x : with_top α).untop h = x := rfl
 
@@ -782,12 +794,12 @@ instance order_top [partial_order α] : order_top (with_top α) :=
 { le_top := λ a a' h, option.no_confusion h,
   ..with_top.partial_order, .. with_top.has_top }
 
-@[simp, norm_cast] theorem coe_le_coe [partial_order α] {a b : α} :
+@[simp, norm_cast] theorem coe_le_coe [preorder α] {a b : α} :
   (a : with_top α) ≤ b ↔ a ≤ b :=
 ⟨λ h, by rcases h b rfl with ⟨_, ⟨⟩, h⟩; exact h,
  λ h a' e, option.some_inj.1 e ▸ ⟨a, rfl, h⟩⟩
 
-theorem le_coe [partial_order α] {a b : α} :
+theorem le_coe [preorder α] {a b : α} :
   ∀ {o : option α}, a ∈ o →
   (@has_le.le (with_top α) _ o b ↔ a ≤ b)
 | _ rfl := coe_le_coe
@@ -805,15 +817,15 @@ theorem lt_iff_exists_coe [partial_order α] : ∀{a b : with_top α}, a < b ↔
 | none     b := by simp [none_eq_top]
 
 @[norm_cast]
-lemma coe_lt_coe [partial_order α] {a b : α} : (a : with_top α) < b ↔ a < b := some_lt_some
+lemma coe_lt_coe [preorder α] {a b : α} : (a : with_top α) < b ↔ a < b := some_lt_some
 
-lemma coe_lt_top [partial_order α] (a : α) : (a : with_top α) < ⊤ := some_lt_none a
+lemma coe_lt_top [preorder α] (a : α) : (a : with_top α) < ⊤ := some_lt_none a
 
-theorem coe_lt_iff [partial_order α] {a : α} : ∀{x : with_top α}, ↑a < x ↔ (∀b:α, x = ↑b → a < b)
+theorem coe_lt_iff [preorder α] {a : α} : ∀{x : with_top α}, ↑a < x ↔ (∀b:α, x = ↑b → a < b)
 | (some b) := by simp [some_eq_coe, coe_eq_coe, coe_lt_coe]
 | none     := by simp [none_eq_top, coe_lt_top]
 
-lemma not_top_le_coe [partial_order α] (a : α) : ¬ (⊤:with_top α) ≤ ↑a :=
+lemma not_top_le_coe [preorder α] (a : α) : ¬ (⊤:with_top α) ≤ ↑a :=
 λ h, (lt_irrefl ⊤ (lt_of_le_of_lt h (coe_lt_top a))).elim
 
 instance decidable_le [preorder α] [@decidable_rel α (≤)] : @decidable_rel (with_top α) (≤) :=

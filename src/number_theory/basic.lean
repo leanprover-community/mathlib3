@@ -73,22 +73,7 @@ section helpers
 
 open_locale big_operators
 
-variables {a b : R} {p n : ℕ}
-
-private lemma aux₁ :
-  ∑ i in finset.range p, a ^ ((i - 1) + (p - 1 - i)) * i =
-  ∑ i in finset.range p, a ^ (p - 2) * i :=
-begin
-  apply finset.sum_congr rfl,
-  intros i hi,
-  cases i,
-  { rw [nat.cast_zero, mul_zero, mul_zero] },
-  { congr' 2,
-    rw ← nat.add_sub_assoc (nat.le_pred_of_lt (finset.mem_range.mp hi)),
-    exact congr_arg nat.pred (nat.add_sub_cancel_left _ _) }
-end
-
-variable (hp2 : (p : R) ^ 2 = 0)
+variables {a b : R} {p n : ℕ} (hp2 : (p : R) ^ 2 = 0)
 include hp2
 
 private lemma add_mul_pow_eq :
@@ -110,13 +95,22 @@ end
 
 private lemma geom_sum₂_add_mul (hp : p % 2 = 1) :
   geom_sum₂ (a + p * b) a p = p * a ^ (p - 1) :=
+have h : ∀ i ∈ finset.range p, a ^ ((i - 1) + (p - 1 - i)) * i = a ^ (p - 2) * i,
+begin
+  intros i hi,
+  cases i,
+  { rw [nat.cast_zero, mul_zero, mul_zero] },
+  { congr' 2,
+    rw ← nat.add_sub_assoc (nat.le_pred_of_lt (finset.mem_range.mp hi)),
+    exact congr_arg nat.pred (nat.add_sub_cancel_left _ _) }
+end,
 calc  ∑ i in finset.range p, (a + p * b) ^ i * a ^ (p - 1 - i)
     = ∑ i in finset.range p,
         (a ^ i * a ^ (p - 1 - i) + b * p * (a ^ ((i - 1) + (p - 1 - i)) * i)) :
-  finset.sum_congr rfl $ λ i hi, by rw [add_mul_pow_eq hp2, pow_add]; ring
+  finset.sum_congr rfl $ λ i hi, by rw add_mul_pow_eq hp2; ring_exp
 ... = p * a ^ (p - 1) + b * a ^ (p - 2) * ↑((p - 1) / 2) * ↑p ^ 2 :
-  by rw [finset.sum_add_distrib, ← geom_sum₂, geom_sum₂_self,
-    ← finset.mul_sum, aux₁, ← finset.mul_sum, ← nat.cast_sum, finset.sum_range_id,
+  by rw [finset.sum_add_distrib, ← geom_sum₂, geom_sum₂_self, ← finset.mul_sum,
+    finset.sum_congr rfl h, ← finset.mul_sum, ← nat.cast_sum, finset.sum_range_id,
     nat.mul_div_assoc _ (nat.dvd_sub_of_mod_eq hp), nat.cast_mul]; ring
 ... = p * a ^ (p - 1) :
   by rw [hp2, mul_zero, add_zero]

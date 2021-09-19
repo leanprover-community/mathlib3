@@ -621,17 +621,17 @@ by rw [p.coeff_update, if_neg h]
   p.update n 0 = p.erase n :=
 by { ext, rw [coeff_update, coeff_erase] }
 
-lemma support_update (p : polynomial R) (n : ℕ) (a : R) :
+lemma support_update (p : polynomial R) (n : ℕ) (a : R) [decidable (a = 0)] :
   support (p.update n a) = if a = 0 then p.support.erase n else insert n p.support :=
 by { cases p, simp only [support, update, support_update], congr }
 
 lemma support_update_zero (p : polynomial R) (n : ℕ) :
   support (p.update n 0) = p.support.erase n :=
-by rw [support_update, if_pos rfl]
+by classical; rw [support_update, if_pos rfl]
 
 lemma support_update_ne_zero (p : polynomial R) (n : ℕ) {a : R}
   (ha : a ≠ 0) : support (p.update n a) = insert n p.support :=
-by rw [support_update, if_neg ha]
+by classical; rw [support_update, if_neg ha]
 
 end update
 

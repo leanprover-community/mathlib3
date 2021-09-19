@@ -1038,19 +1038,19 @@ end
 lemma singular_part_smul (s : signed_measure α) (μ : measure α) (r : ℝ) :
   (r • s).singular_part μ = r • s.singular_part μ :=
 begin
-  { by_cases hr : 0 ≤ r,
-    { lift r to ℝ≥0 using hr,
-      exact singular_part_smul_nnreal s μ r },
-    { rw [singular_part, singular_part],
-      conv_lhs { congr, congr,
-        rw [to_jordan_decomposition_smul_real,
-            jordan_decomposition.real_smul_pos_part_neg _ _ (not_le.1 hr), singular_part_smul],
-                skip, congr,
-        rw [to_jordan_decomposition_smul_real,
-            jordan_decomposition.real_smul_neg_part_neg _ _ (not_le.1 hr), singular_part_smul] },
-      rw [to_signed_measure_smul, to_signed_measure_smul, ← neg_sub, ← smul_sub],
-      change -(((-r).to_nnreal : ℝ) • _) = _,
-      rw [← neg_smul, real.coe_to_nnreal _ (le_of_lt (neg_pos.mpr (not_le.1 hr))), neg_neg] } }
+  by_cases hr : 0 ≤ r,
+  { lift r to ℝ≥0 using hr,
+    exact singular_part_smul_nnreal s μ r },
+  { rw [singular_part, singular_part],
+    conv_lhs { congr, congr,
+      rw [to_jordan_decomposition_smul_real,
+          jordan_decomposition.real_smul_pos_part_neg _ _ (not_le.1 hr), singular_part_smul],
+              skip, congr,
+      rw [to_jordan_decomposition_smul_real,
+          jordan_decomposition.real_smul_neg_part_neg _ _ (not_le.1 hr), singular_part_smul] },
+    rw [to_signed_measure_smul, to_signed_measure_smul, ← neg_sub, ← smul_sub],
+    change -(((-r).to_nnreal : ℝ) • _) = _,
+    rw [← neg_smul, real.coe_to_nnreal _ (le_of_lt (neg_pos.mpr (not_le.1 hr))), neg_neg] }
 end
 
 lemma singular_part_add (s t : signed_measure α) (μ : measure α)

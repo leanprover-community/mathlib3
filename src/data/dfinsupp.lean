@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau
 -/
 import algebra.module.pi
+import algebra.module.linear_map
 import algebra.big_operators.basic
 import data.set.finite
 import group_theory.submonoid.membership
@@ -18,7 +19,7 @@ universes u u₁ u₂ v v₁ v₂ v₃ w x y l
 
 open_locale big_operators
 
-variables (ι : Type u) (β : ι → Type v) {β₁ : ι → Type v₁} {β₂ : ι → Type v₂}
+variables (ι : Type u) {γ : Type w} (β : ι → Type v) {β₁ : ι → Type v₁} {β₂ : ι → Type v₂}
 
 namespace dfinsupp
 
@@ -89,10 +90,10 @@ bundled:
 * `dfinsupp.map_range.linear_map`
 * `dfinsupp.map_range.linear_equiv`
 -/
-def map_range (f : Π i, β₁ i → β₂ i) (hf : ∀ i, f i 0 = 0) (g : Π₀ i, β₁ i) : Π₀ i, β₂ i :=
-quotient.lift_on g (λ x, ⟦(⟨λ i, f i (x.1 i), x.2,
-  λ i, or.cases_on (x.3 i) or.inl $ λ H, or.inr $ by rw [H, hf]⟩ : pre ι β₂)⟧) $ λ x y H,
-quotient.sound $ λ i, by simp only [H i]
+def map_range (f : Π i, β₁ i → β₂ i) (hf : ∀ i, f i 0 = 0) : (Π₀ i, β₁ i) → Π₀ i, β₂ i :=
+quotient.map
+  (λ x, ⟨λ i, f i (x.1 i), x.2, λ i, (x.3 i).imp_right $ λ H, by rw [H, hf]⟩)
+  (λ x y H i, by simp only [H i])
 
 @[simp] lemma map_range_apply
   (f : Π i, β₁ i → β₂ i) (hf : ∀ i, f i 0 = 0) (g : Π₀ i, β₁ i) (i : ι) :
@@ -115,17 +116,17 @@ by { ext, simp only [map_range_apply, coe_zero, pi.zero_apply, hf] }
 
 /-- Let `f i` be a binary operation `β₁ i → β₂ i → β i` such that `f i 0 0 = 0`.
 Then `zip_with f hf` is a binary operation `Π₀ i, β₁ i → Π₀ i, β₂ i → Π₀ i, β i`. -/
-def zip_with (f : Π i, β₁ i → β₂ i → β i) (hf : ∀ i, f i 0 0 = 0)
-  (g₁ : Π₀ i, β₁ i) (g₂ : Π₀ i, β₂ i) : (Π₀ i, β i) :=
+def zip_with (f : Π i, β₁ i → β₂ i → β i) (hf : ∀ i, f i 0 0 = 0) :
+  (Π₀ i, β₁ i) → (Π₀ i, β₂ i) → (Π₀ i, β i) :=
 begin
-  refine quotient.lift_on₂ g₁ g₂ (λ x y, ⟦(⟨λ i, f i (x.1 i) (y.1 i), x.2 + y.2,
-    λ i, _⟩ : pre ι β)⟧) _,
+  refine quotient.map₂
+    (λ x y, ⟨λ i, f i (x.1 i) (y.1 i), x.2 + y.2, λ i, _⟩) _,
   { cases x.3 i with h1 h1,
     { left, rw multiset.mem_add, left, exact h1 },
     cases y.3 i with h2 h2,
     { left, rw multiset.mem_add, right, exact h2 },
     right, rw [h1, h2, hf] },
-  exact λ x₁ x₂ y₁ y₂ H1 H2, quotient.sound $ λ i, by simp only [H1 i, H2 i]
+  exact λ x₁ x₂ H1 y₁ y₂ H2 i, by simp only [H1 i, H2 i]
 end
 
 @[simp] lemma zip_with_apply
@@ -211,27 +212,27 @@ instance [Π i, add_comm_group (β i)] : add_comm_group (Π₀ i, β i) :=
 
 /-- Dependent functions with finite support inherit a semiring action from an action on each
 coordinate. -/
-instance {γ : Type w} [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)] :
+instance [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)] :
   has_scalar γ (Π₀ i, β i) :=
 ⟨λc v, v.map_range (λ _, (•) c) (λ _, smul_zero _)⟩
 
-lemma smul_apply {γ : Type w} [monoid γ] [Π i, add_monoid (β i)]
+lemma smul_apply [monoid γ] [Π i, add_monoid (β i)]
   [Π i, distrib_mul_action γ (β i)] (b : γ) (v : Π₀ i, β i) (i : ι) :
   (b • v) i = b • (v i) :=
 map_range_apply _ _ v i
 
-@[simp] lemma coe_smul {γ : Type w} [monoid γ] [Π i, add_monoid (β i)]
+@[simp] lemma coe_smul [monoid γ] [Π i, add_monoid (β i)]
   [Π i, distrib_mul_action γ (β i)] (b : γ) (v : Π₀ i, β i) :
   ⇑(b • v) = b • v :=
 funext $ smul_apply b v
 
-instance {γ : Type w} {δ : Type*} [monoid γ] [monoid δ]
+instance {δ : Type*} [monoid γ] [monoid δ]
   [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)] [Π i, distrib_mul_action δ (β i)]
   [Π i, smul_comm_class γ δ (β i)] :
   smul_comm_class γ δ (Π₀ i, β i) :=
 { smul_comm := λ r s m, ext $ λ i, by simp only [smul_apply, smul_comm r s (m i)] }
 
-instance {γ : Type w} {δ : Type*} [monoid γ] [monoid δ]
+instance {δ : Type*} [monoid γ] [monoid δ]
   [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)] [Π i, distrib_mul_action δ (β i)]
   [has_scalar γ δ] [Π i, is_scalar_tower γ δ (β i)] :
   is_scalar_tower γ δ (Π₀ i, β i) :=
@@ -239,7 +240,7 @@ instance {γ : Type w} {δ : Type*} [monoid γ] [monoid δ]
 
 /-- Dependent functions with finite support inherit a `distrib_mul_action` structure from such a
 structure on each coordinate. -/
-instance {γ : Type w} [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)] :
+instance [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)] :
   distrib_mul_action γ (Π₀ i, β i) :=
 { smul_zero := λ c, ext $ λ i, by simp only [smul_apply, smul_zero, zero_apply],
   smul_add := λ c x y, ext $ λ i, by simp only [add_apply, smul_apply, smul_add],
@@ -249,7 +250,7 @@ instance {γ : Type w} [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_
 
 /-- Dependent functions with finite support inherit a module structure from such a structure on
 each coordinate. -/
-instance {γ : Type w} [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, module γ (β i)] :
+instance [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, module γ (β i)] :
   module γ (Π₀ i, β i) :=
 { zero_smul := λ c, ext $ λ i, by simp only [smul_apply, zero_smul, zero_apply],
   add_smul := λ c x y, ext $ λ i, by simp only [add_apply, smul_apply, add_smul],
@@ -260,10 +261,10 @@ end algebra
 section filter_and_subtype_domain
 
 /-- `filter p f` is the function which is `f i` if `p i` is true and 0 otherwise. -/
-def filter [Π i, has_zero (β i)] (p : ι → Prop) [decidable_pred p] (f : Π₀ i, β i) : Π₀ i, β i :=
-quotient.lift_on f (λ x, ⟦(⟨λ i, if p i then x.1 i else 0, x.2,
-  λ i, or.cases_on (x.3 i) or.inl $ λ H, or.inr $ by rw [H, if_t_t]⟩ : pre ι β)⟧) $ λ x y H,
-quotient.sound $ λ i, by simp only [H i]
+def filter [Π i, has_zero (β i)] (p : ι → Prop) [decidable_pred p] : (Π₀ i, β i) → Π₀ i, β i :=
+quotient.map
+  (λ x, ⟨λ i, if p i then x.1 i else 0, x.2, λ i, (x.3 i).imp_right $ λ H, by rw [H, if_t_t]⟩)
+  (λ x y H i, by simp only [H i])
 
 @[simp] lemma filter_apply [Π i, has_zero (β i)]
   (p : ι → Prop) [decidable_pred p] (i : ι) (f : Π₀ i, β i) :
@@ -285,21 +286,60 @@ lemma filter_pos_add_filter_neg [Π i, add_zero_class (β i)] (f : Π₀ i, β i
   f.filter p + f.filter (λi, ¬ p i) = f :=
 ext $ λ i, by simp only [add_apply, filter_apply]; split_ifs; simp only [add_zero, zero_add]
 
+@[simp] lemma filter_zero [Π i, has_zero (β i)] (p : ι → Prop) [decidable_pred p] :
+  (0 : Π₀ i, β i).filter p = 0 :=
+by { ext, simp }
+
+@[simp] lemma filter_add [Π i, add_zero_class (β i)] (p : ι → Prop) [decidable_pred p]
+  (f g : Π₀ i, β i) :
+  (f + g).filter p = f.filter p + g.filter p :=
+by { ext, simp [ite_add_zero] }
+
+@[simp] lemma filter_smul [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)]
+  (p : ι → Prop) [decidable_pred p] (r : γ) (f : Π₀ i, β i) :
+  (r • f).filter p = r • f.filter p :=
+by { ext, simp [smul_ite] }
+
+variables (γ β)
+
+/-- `dfinsupp.filter` as an `add_monoid_hom`. -/
+@[simps]
+def filter_add_monoid_hom [Π i, add_zero_class (β i)] (p : ι → Prop) [decidable_pred p] :
+  (Π₀ i, β i) →+ (Π₀ i, β i) :=
+{ to_fun := filter p,
+  map_zero' := filter_zero p,
+  map_add' := filter_add p }
+
+/-- `dfinsupp.filter` as a `linear_map`. -/
+@[simps]
+def filter_linear_map [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, module γ (β i)]
+  (p : ι → Prop) [decidable_pred p] :
+  (Π₀ i, β i) →ₗ[γ] (Π₀ i, β i) :=
+{ to_fun := filter p,
+  map_add' := filter_add p,
+  map_smul' := filter_smul p }
+
+variables {γ β}
+
+@[simp] lemma filter_neg [Π i, add_group (β i)] (p : ι → Prop) [decidable_pred p]
+  (f : Π₀ i, β i) :
+  (-f).filter p = -f.filter p :=
+(filter_add_monoid_hom β p).map_neg f
+
+@[simp] lemma filter_sub [Π i, add_group (β i)] (p : ι → Prop) [decidable_pred p]
+  (f g : Π₀ i, β i) :
+  (f - g).filter p = f.filter p - g.filter p :=
+(filter_add_monoid_hom β p).map_sub f g
+
 /-- `subtype_domain p f` is the restriction of the finitely supported function
   `f` to the subtype `p`. -/
-def subtype_domain [Π i, has_zero (β i)] (p : ι → Prop) [decidable_pred p]
-  (f : Π₀ i, β i) : Π₀ i : subtype p, β i :=
-begin
-  fapply quotient.lift_on f,
-  { intro x,
-    refine ⟦⟨λ i, x.1 (i : ι),
-      (x.2.filter p).attach.map $ λ j, ⟨j, (multiset.mem_filter.1 j.2).2⟩, _⟩⟧,
-    refine λ i, or.cases_on (x.3 i) (λ H, _) or.inr,
-    left, rw multiset.mem_map, refine ⟨⟨i, multiset.mem_filter.2 ⟨H, i.2⟩⟩, _, subtype.eta _ _⟩,
-    apply multiset.mem_attach },
-  intros x y H,
-  exact quotient.sound (λ i, H i)
-end
+def subtype_domain [Π i, has_zero (β i)] (p : ι → Prop) [decidable_pred p] :
+  (Π₀ i, β i) → Π₀ i : subtype p, β i :=
+quotient.map
+  (λ x, ⟨λ i, x.1 (i : ι), (x.2.filter p).attach.map $ λ j, ⟨j, (multiset.mem_filter.1 j.2).2⟩,
+      λ i, (x.3 i).imp_left $ λ H, multiset.mem_map.2
+        ⟨⟨i, multiset.mem_filter.2 ⟨H, i.2⟩⟩, multiset.mem_attach _ _, subtype.eta _ _⟩⟩)
+  (λ x y H i, H i)
 
 @[simp] lemma subtype_domain_zero [Π i, has_zero (β i)] {p : ι → Prop} [decidable_pred p] :
   subtype_domain p (0 : Π₀ i, β i) = 0 :=
@@ -311,16 +351,34 @@ rfl
 quotient.induction_on v $ λ x, rfl
 
 @[simp] lemma subtype_domain_add [Π i, add_zero_class (β i)] {p : ι → Prop} [decidable_pred p]
-  {v v' : Π₀ i, β i} :
+  (v v' : Π₀ i, β i) :
   (v + v').subtype_domain p = v.subtype_domain p + v'.subtype_domain p :=
 ext $ λ i, by simp only [add_apply, subtype_domain_apply]
 
+@[simp] lemma subtype_domain_smul [monoid γ] [Π i, add_monoid (β i)]
+  [Π i, distrib_mul_action γ (β i)] {p : ι → Prop} [decidable_pred p] (r : γ) (f : Π₀ i, β i) :
+  (r • f).subtype_domain p = r • f.subtype_domain p :=
+quotient.induction_on f $ λ x, rfl
+
+variables (γ β)
+
 /-- `subtype_domain` but as an `add_monoid_hom`. -/
 @[simps] def subtype_domain_add_monoid_hom [Π i, add_zero_class (β i)]
-  {p : ι → Prop} [decidable_pred p] : (Π₀ i : ι, β i) →+ Π₀ i : subtype p, β i :=
+  (p : ι → Prop) [decidable_pred p] : (Π₀ i : ι, β i) →+ Π₀ i : subtype p, β i :=
 { to_fun := subtype_domain p,
   map_zero' := subtype_domain_zero,
-  map_add' := λ _ _, subtype_domain_add }
+  map_add' := subtype_domain_add }
+
+/-- `dfinsupp.subtype_domain` as a `linear_map`. -/
+@[simps]
+def subtype_domain_linear_map [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, module γ (β i)]
+  (p : ι → Prop) [decidable_pred p] :
+  (Π₀ i, β i) →ₗ[γ] (Π₀ i : subtype p, β i) :=
+{ to_fun := subtype_domain p,
+  map_add' := subtype_domain_add,
+  map_smul' := subtype_domain_smul }
+
+variables {γ β}
 
 @[simp]
 lemma subtype_domain_neg [Π i, add_group (β i)] {p : ι → Prop} [decidable_pred p] {v : Π₀ i, β i} :
@@ -429,6 +487,26 @@ begin
   simp,
 end
 
+lemma filter_single (p : ι → Prop) [decidable_pred p] (i : ι) (x : β i) :
+  (single i x).filter p = if p i then single i x else 0 :=
+begin
+  ext j,
+  have := apply_ite (λ x : Π₀ i, β i, x j) (p i) (single i x) 0,
+  dsimp at this,
+  rw [filter_apply, this],
+  obtain rfl | hij := decidable.eq_or_ne i j,
+  { refl, },
+  { rw [single_eq_of_ne hij, if_t_t, if_t_t], },
+end
+
+@[simp] lemma filter_single_pos {p : ι → Prop} [decidable_pred p] (i : ι) (x : β i) (h : p i) :
+  (single i x).filter p = single i x :=
+by rw [filter_single, if_pos h]
+
+@[simp] lemma filter_single_neg {p : ι → Prop} [decidable_pred p] (i : ι) (x : β i) (h : ¬p i) :
+  (single i x).filter p = 0 :=
+by rw [filter_single, if_neg h]
+
 /-- Equality of sigma types is sufficient (but not necessary) to show equality of `dfinsupp`s. -/
 lemma single_eq_of_sigma_eq
   {i j} {xi : β i} {xj : β j} (h : (⟨i, xi⟩ : sigma β) = ⟨j, xj⟩) :
@@ -436,11 +514,11 @@ lemma single_eq_of_sigma_eq
 by { cases h, refl }
 
 /-- Redefine `f i` to be `0`. -/
-def erase (i : ι) (f : Π₀ i, β i) : Π₀ i, β i :=
-quotient.lift_on f (λ x, ⟦(⟨λ j, if j = i then 0 else x.1 j, x.2,
-λ j, or.cases_on (x.3 j) or.inl $ λ H, or.inr $ by simp only [H, if_t_t]⟩ : pre ι β)⟧) $ λ x y H,
-quotient.sound $ λ j, if h : j = i then by simp only [if_pos h]
-else by simp only [if_neg h, H j]
+def erase (i : ι) : (Π₀ i, β i) → Π₀ i, β i :=
+quotient.map
+  (λ x, ⟨λ j, if j = i then 0 else x.1 j, x.2,
+          λ j, (x.3 j).imp_right $ λ H, by simp only [H, if_t_t]⟩)
+  (λ x y H j, if h : j = i then by simp only [if_pos h] else by simp only [if_neg h, H j])
 
 @[simp] lemma erase_apply {i j : ι} {f : Π₀ i, β i} :
   (f.erase i) j = if j = i then 0 else f j :=
@@ -451,6 +529,32 @@ by simp
 
 lemma erase_ne {i i' : ι} {f : Π₀ i, β i} (h : i' ≠ i) : (f.erase i) i' = f i' :=
 by simp [h]
+
+@[simp] lemma erase_zero (i : ι) : erase i (0 : Π₀ i, β i) = 0 :=
+ext $ λ _, if_t_t _ _
+
+@[simp] lemma filter_ne_eq_erase (f : Π₀ i, β i) (i : ι) : f.filter (≠ i) = f.erase i :=
+begin
+  ext1 j,
+  simp only [dfinsupp.filter_apply, dfinsupp.erase_apply, ite_not],
+end
+
+@[simp] lemma filter_ne_eq_erase' (f : Π₀ i, β i) (i : ι) : f.filter ((≠) i) = f.erase i :=
+begin
+  rw ←filter_ne_eq_erase f i,
+  congr' with j,
+  exact ne_comm,
+end
+
+lemma erase_single (j : ι) (i : ι) (x : β i) :
+  (single i x).erase j = if i = j then 0 else single i x :=
+by rw [←filter_ne_eq_erase, filter_single, ite_not]
+
+@[simp] lemma erase_single_same (i : ι) (x : β i) : (single i x).erase i = 0 :=
+by rw [erase_single, if_pos rfl]
+
+@[simp] lemma erase_single_ne {i j : ι} (x : β i) (h : i ≠ j) : (single i x).erase j = single i x :=
+by rw [erase_single, if_neg h]
 
 section update
 
@@ -510,21 +614,44 @@ begin
   { simp only [add_apply, single_eq_of_ne h, zero_add] }
 end
 
+@[simp] lemma erase_add (i : ι) (f₁ f₂ : Π₀ i, β i) : erase i (f₁ + f₂) = erase i f₁ + erase i f₂ :=
+ext $ λ _, by simp [ite_zero_add]
+
 variables (β)
 
 /-- `dfinsupp.single` as an `add_monoid_hom`. -/
 @[simps] def single_add_hom (i : ι) : β i →+ Π₀ i, β i :=
 { to_fun := single i, map_zero' := single_zero i, map_add' := single_add i }
 
+/-- `dfinsupp.erase` as an `add_monoid_hom`. -/
+@[simps] def erase_add_hom (i : ι) : (Π₀ i, β i) →+ Π₀ i, β i :=
+{ to_fun := erase i, map_zero' := erase_zero i, map_add' := erase_add i }
+
 variables {β}
 
-lemma single_add_erase {i : ι} {f : Π₀ i, β i} : single i (f i) + f.erase i = f :=
+@[simp] lemma single_neg {β : ι → Type v} [Π i, add_group (β i)] (i : ι) (x : β i) :
+  single i (-x) = -single i x :=
+(single_add_hom β i).map_neg x
+
+@[simp] lemma single_sub {β : ι → Type v} [Π i, add_group (β i)] (i : ι) (x y : β i) :
+  single i (x - y) = single i x - single i y :=
+(single_add_hom β i).map_sub x y
+
+@[simp] lemma erase_neg {β : ι → Type v} [Π i, add_group (β i)] (i : ι) (f : Π₀ i, β i) :
+  (-f).erase i = -f.erase i :=
+(erase_add_hom β i).map_neg f
+
+@[simp] lemma erase_sub {β : ι → Type v} [Π i, add_group (β i)] (i : ι) (f g : Π₀ i, β i) :
+  (f - g).erase i = f.erase i - g.erase i :=
+(erase_add_hom β i).map_sub f g
+
+lemma single_add_erase (i : ι) (f : Π₀ i, β i) : single i (f i) + f.erase i = f :=
 ext $ λ i',
 if h : i = i'
 then by subst h; simp only [add_apply, single_apply, erase_apply, dif_pos rfl, if_pos, add_zero]
 else by simp only [add_apply, single_apply, erase_apply, dif_neg h, if_neg (ne.symm h), zero_add]
 
-lemma erase_add_single {i : ι} {f : Π₀ i, β i} : f.erase i + single i (f i) = f :=
+lemma erase_add_single (i : ι) (f : Π₀ i, β i) : f.erase i + single i (f i) = f :=
 ext $ λ i',
 if h : i = i'
 then by subst h; simp only [add_apply, single_apply, erase_apply, dif_pos rfl, if_pos, zero_add]
@@ -551,7 +678,7 @@ begin
     { exact quotient.sound (λ i, rfl) },
     rw H3, apply ih },
   have H2 : p (erase i ⟦{to_fun := f, pre_support := i ::ₘ s, zero := H}⟧),
-  { dsimp only [erase, quotient.lift_on_mk],
+  { dsimp only [erase, quotient.map_mk],
     have H2 : ∀ j, j ∈ s ∨ ite (j = i) 0 (f j) = 0,
     { intro j, cases H j with H2 H2,
       { cases multiset.mem_cons.1 H2 with H3 H3,
@@ -564,7 +691,7 @@ begin
       quotient.sound (λ i, rfl),
     rw H3, apply ih },
   have H3 : single i _ + _ = (⟦{to_fun := f, pre_support := i ::ₘ s, zero := H}⟧ : Π₀ i, β i) :=
-    single_add_erase,
+    single_add_erase _ _,
   rw ← H3,
   change p (single i (f i) + _),
   cases classical.em (f i = 0) with h h,
@@ -640,14 +767,13 @@ def mk_add_group_hom [Π i, add_group (β i)] (s : finset ι) :
   map_add' := λ _ _, mk_add }
 
 section
-variables (γ : Type w) [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, module γ (β i)]
-include γ
+variables [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)]
 
-@[simp] lemma mk_smul {s : finset ι} {c : γ} (x : Π i : (↑s : set ι), β i.1) :
+@[simp] lemma mk_smul {s : finset ι} (c : γ) (x : Π i : (↑s : set ι), β (i : ι)) :
   mk s (c • x) = c • mk s x :=
 ext $ λ i, by simp only [smul_apply, mk_apply]; split_ifs; [refl, rw smul_zero]
 
-@[simp] lemma single_smul {i : ι} {c : γ} {x : β i} :
+@[simp] lemma single_smul {i : ι} (c : γ) (x : β i) :
   single i (c • x) = c • single i x :=
 ext $ λ i, by simp only [smul_apply, single_apply]; split_ifs; [cases h, rw smul_zero]; refl
 
@@ -839,8 +965,6 @@ assume f g, decidable_of_iff (f.support = g.support ∧ (∀i∈f.support, f i =
     by intro h; subst h; simp⟩
 
 section prod_and_sum
-
-variables {γ : Type w}
 
 -- [to_additive sum] for dfinsupp.prod doesn't work, the equation lemmas are not generated
 /-- `sum f g` is the sum of `g i (f i)` over the support of `f`. -/
@@ -1195,7 +1319,7 @@ omit dec
 lemma subtype_domain_sum [Π i, add_comm_monoid (β i)]
   {s : finset γ} {h : γ → Π₀ i, β i} {p : ι → Prop} [decidable_pred p] :
   (∑ c in s, h c).subtype_domain p = ∑ c in s, (h c).subtype_domain p :=
-(subtype_domain_add_monoid_hom : (Π₀ (i : ι), β i) →+ Π₀ (i : subtype p), β i).map_sum  _ s
+(subtype_domain_add_monoid_hom β p).map_sum  _ s
 
 lemma subtype_domain_finsupp_sum {δ : γ → Type x} [decidable_eq γ]
   [Π c, has_zero (δ c)] [Π c (x : δ c), decidable (x ≠ 0)]

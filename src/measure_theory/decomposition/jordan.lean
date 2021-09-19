@@ -336,8 +336,7 @@ begin
     { exact hi.inter hT₁.compl } },
   -- since the two signed measures associated with the Jordan decompositions are the same,
   -- and the symmetric difference of the Hahn decompositions have measure zero, the result follows
-  rw [← ennreal.to_real_eq_to_real (measure_lt_top _ _) (measure_lt_top _ _),
-      hμ₁, hμ₂, ← hj],
+  rw [← ennreal.to_real_eq_to_real (measure_ne_top _ _) (measure_ne_top _ _), hμ₁, hμ₂, ← hj],
   exact of_inter_eq_of_symm_diff_eq_zero_positive hS₁.compl hT₁.compl hi hS₃ hT₃ hST₁,
   all_goals { apply_instance },
 end

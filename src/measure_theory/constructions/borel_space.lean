@@ -1640,6 +1640,8 @@ lemma is_compact.measure_lt_top [topological_space α] {s : set α} {μ : measur
   μ s < ∞ :=
 h.measure_lt_top_of_nhds_within $ λ x hx, μ.finite_at_nhds_within _ _
 
+/-- Compact covering of a `σ`-compact topological space as
+`measure_theory.measure.finite_spanning_sets_in`. -/
 def measure_theory.measure.finite_spanning_sets_in_compact [topological_space α]
   [sigma_compact_space α] (μ : measure α) [is_locally_finite_measure μ] :
   μ.finite_spanning_sets_in {K | is_compact K} :=
@@ -1648,6 +1650,8 @@ def measure_theory.measure.finite_spanning_sets_in_compact [topological_space α
   finite := λ n, (is_compact_compact_covering α n).measure_lt_top,
   spanning := Union_compact_covering α }
 
+/-- A locally finite measure on a `σ`-compact topological space admits a finite spanning sequence
+of open sets. -/
 def measure_theory.measure.finite_spanning_sets_in_open [topological_space α]
   [sigma_compact_space α] (μ : measure α) [is_locally_finite_measure μ] :
   μ.finite_spanning_sets_in {K | is_open K} :=

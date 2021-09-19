@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Floris Van Doorn
+Authors: Floris Van Doorn, Yury Kudryashov
 -/
 
 import measure_theory.constructions.borel_space
@@ -9,24 +9,33 @@ import measure_theory.constructions.borel_space
 /-!
 # Regular measures
 
+A measure is `outer_regular` the measure of any measurable set `A` is the infimum of `μ U` over all
+open sets `U` containing `A`.
+
 A measure is `regular` if it satisfies the following properties:
 * it is finite on compact sets;
-* it is outer regular for measurable sets with respect to open sets: the measure of any measurable
-  set `A` is the infimum of `μ U` over all open sets `U` containing `A`;
+* it is outer regular;
 * it is inner regular for open sets with respect to compacts sets: the measure of any open set `U`
   is the supremum of `μ K` over all compact sets `K` contained in `U`.
 
 A measure is `weakly_regular` if it satisfies the following properties:
-* it is outer regular for measurable sets with respect to open sets: the measure of any measurable
-  set `A` is the infimum of `μ U` over all open sets `U` containing `A`;
+* it is outer regular;
 * it is inner regular for open sets with respect to closed sets: the measure of any open set `U`
   is the supremum of `μ F` over all compact sets `F` contained in `U`.
 
-Regularity implies weak regularity. Both these conditions are registered as typeclasses for a
-measure `μ`, and this implication is recorded as an instance.
+In a Hausdorff topological space, regularity implies weak regularity. These three conditions are
+registered as typeclasses for a measure `μ`, and this implication is recorded as an instance.
 
-These conditions imply inner regularity for all measurable sets of finite measure (with respect to
-compact sets or closed sets respectively), but in general not for all sets. For a counterexample,
+In order to avoid code duplication, we also define a measure `μ` to be `inner_regular` for sets
+satisfying a predicate `q` with respect to sets satisfying a predicate `p` if for any set
+`U ∈ {U | q U}` and a number `r < μ U` there exists `F ⊆ U` such that `p F` and `r < μ F`.
+
+We prove that inner regularity for open sets with respect to compact sets or closed sets implies
+inner regularity for all measurable sets of finite measure (with respect to
+compact sets or closed sets respectively), and register some corollaries for (weakly) regular
+measures.
+
+Note that a similar statement for measurable sets of infinite mass can fail. For a counterexample,
 consider the group `ℝ × ℝ` where the first factor has the discrete topology and the second one the
 usual topology. It is a locally compact Hausdorff topological group, with Haar measure equal to
 Lebesgue measure on each vertical fiber. The set `ℝ × {0}` has infinite measure (by outer
@@ -40,47 +49,79 @@ measure is finite.
 The interest of the notion of weak regularity is that it is enough for many applications, and it
 is automatically satisfied by any finite measure on a metric space.
 
-## Main definitions and results
+## Main definitions
 
-* `regular μ`: a typeclass registering that a measure `μ` on a topological space is regular.
-* `measurable_set.measure_eq_infi_is_open'` asserts that, when `μ` is regular, the measure of a
-  measurable set is the infimum of the measure of open sets containing it. The unprimed version
-  is reserved for weakly regular measures, as it should apply most of the time. Such open sets
-  with suitable measures can be constructed with `measurable_set.exists_is_open_lt_of_lt'`.
+* `measure_theory.measure.outer_regular μ`: a typeclass registering that a measure `μ` on a
+  topological space is outer regular.
+* `measure_theory.measure.regular μ`: a typeclass registering that a measure `μ` on a topological
+  space is regular.
+* `measure_theory.measure.weakly_regular μ`: a typeclass registering that a measure `μ` on a
+  topological space is weakly regular.
+* `measure_theory.measure.inner_regular μ p q`: a non-typeclass predicate saying that a measure `μ`
+  is inner regular for sets satisfying `q` with respect to sets satisfying `p`.
+
+## Main results
+
+### Outer regular measures
+
+* `set.measure_eq_infi_is_open` asserts that, when `μ` is outer regular, the measure of a
+  set is the infimum of the measure of open sets containing it.
+* `set.exists_is_open_lt_of_lt'` asserts that, when `μ` is outer regular, for every set `s`
+  and `r > μ s` there exists an open superset `U ⊇ s` of measure less than `r`.
+* push forward of an outer regular measure is outer regular, and scalar multiplication of a regular
+  measure by a finite number is outer regular.
+* `measure_theory.measure.outer_regular.of_sigma_compact_space_of_is_locally_finite_measure`:
+  a locally finite measure on a `σ`-compact metric (or even pseudo emetric) space is outer regular.
+
+### Weakly regular measures
+
 * `is_open.measure_eq_supr_is_compact` asserts that the measure of an open set is the supremum of
-  the measure of compact sets it contains. Such a compact set with suitable measure can be
-  constructed with `is_open.exists_lt_is_compact`.
-* `measurable_set.measure_eq_supr_is_compact_of_lt_top` asserts that the measure of a measurable set
-  of finite measure is the supremum of the measure of compact sets it contains. Such a compact set
-  with suitable measure can be constructed with `measurable_set.exists_lt_is_compact_of_lt_top` or
-  `measurable_set.exists_lt_is_compact_of_lt_top_of_pos`.
-* `regular.of_sigma_compact_space_of_is_locally_finite_measure` is an instance registering that a
-  locally finite measure on a locally compact metric space is regular (in fact, an emetric space
-  is enough).
+  the measure of compact sets it contains.
+* `is_open.exists_lt_is_compact`: for an open set `U` and `r < μ U`, there exists a compact `K ⊆ U`
+  of measure greater than `r`;
+* `measurable_set.measure_eq_supr_is_compact_of_ne_top` asserts that the measure of a measurable set
+  of finite measure is the supremum of the measure of compact sets it contains.
+*  `measurable_set.exists_lt_is_compact_of_ne_top` and `measurable_set.exists_is_compact_lt_add`:
+  a measurable set of finite measure can be approximated by a compact subset (stated as
+  `r < μ K` and `μ s < μ K + ε`, respectively).
+* `measure_theory.measure.regular.of_sigma_compact_space_of_is_locally_finite_measure` is an
+  instance registering that a locally finite measure on a `σ`-compact metric space is regular (in
+  fact, an emetric space is enough).
+* `measure_theory.measure.weakly_regular.of_pseudo_emetric_space_of_is_finite_measure` is an
+  instance registering that a finite measure on a metric space is weakly regular (in fact, a pseudo
+  emetric space is enough);
+* `measure_theory.measure.weakly_regular.of_pseudo_emetric_sigma_compact_space_of_locally_finite`
+  is an instance registering that a locally finite measure on a `σ`-compact metric space (or even
+  a pseudo emetric space) is weakly regular.
 
-* `weakly_regular μ`: a typeclass registering that a measure `μ` on a topological space is
-  weakly regular.
-* `measurable_set.measure_eq_infi_is_open`, `measurable_set.exists_is_open_lt_of_lt`,
-  `is_open.measure_eq_supr_is_closed`, `is_open.exists_lt_is_closed`,
-  `measurable_set.measure_eq_supr_is_closed_of_lt_top`,
-  `measurable_set.exists_lt_is_closed_of_lt_top` and
-  `measurable_set.exists_lt_is_closed_of_lt_top_of_pos`
-  state the corresponding properties for weakly regular measures.
-* `weakly_regular.of_pseudo_emetric_space_of_is_finite_measure` is an instance registering that a
-  finite measure on a metric space is weakly regular (in fact, a pseudo emetric space is enough).
+### Regular measures
+
+* `is_open.measure_eq_supr_is_compact` asserts that the measure of an open set is the supremum of
+  the measure of compact sets it contains.
+* `is_open.exists_lt_is_compact`: for an open set `U` and `r < μ U`, there exists a compact `K ⊆ U`
+  of measure greater than `r`;
+* `measurable_set.measure_eq_supr_is_compact_of_ne_top` asserts that the measure of a measurable set
+  of finite measure is the supremum of the measure of compact sets it contains.
+*  `measurable_set.exists_lt_is_compact_of_ne_top` and `measurable_set.exists_is_compact_lt_add`:
+  a measurable set of finite measure can be approximated by a compact subset (stated as
+  `r < μ K` and `μ s < μ K + ε`, respectively).
+* `measure_theory.measure.regular.of_sigma_compact_space_of_is_locally_finite_measure` is an
+  instance registering that a locally finite measure on a `σ`-compact metric space is regular (in
+  fact, an emetric space is enough).
 
 ## Implementation notes
 
-The main nontrivial statement is `weakly_regular.exists_closed_subset_self_subset_open`, expressing
-that in a finite measure space, if every open set can be approximated from inside by closed sets,
-then any measurable set can be approximated from inside by closed sets and from outside by open
-sets. This statement is proved by measurable induction, starting from open sets and checking that
-it is stable by taking complements (this is the point of this condition, being symmetrical between
-inside and outside) and countable disjoint unions.
+The main nontrivial statement is `measure_theory.measure.inner_regular.weakly_regular_of_finite`,
+expressing that in a finite measure space, if every open set can be approximated from inside by
+closed sets, then the measure is in fact weakly regular. To prove that we show taht any measurable
+set can be approximated from inside by closed sets and from outside by open sets. This statement is
+proved by measurable induction, starting from open sets and checking that it is stable by taking
+complements (this is the point of this condition, being symmetrical between inside and outside) and
+countable disjoint unions.
 
-Once this statement is proved, one deduces results for general measures from this statement, by
-restricting them to finite measure sets (and proving that this restriction is weakly regular,
-using again the same statement).
+Once this statement is proved, one deduces results for `σ`-measures from this statement, by
+restricting them to finite measure sets (and proving that this restriction is weakly regular, using
+again the same statement).
 
 ## References
 
@@ -97,6 +138,12 @@ open_locale ennreal topological_space nnreal big_operators
 namespace measure_theory
 namespace measure
 
+/-- We say that a measure `μ` is *inner regular* with respecto to predicates `p q : set α → Prop`,
+if for every `U` such that `q U` and `r < μ U`, there exists a subset `K ⊆ U` of measure greater
+than `r`.
+
+This definition is used to prove some facts about regular and weakly regular measures without
+repeating the proofs. -/
 def inner_regular {α} {m : measurable_space α} (μ : measure α) (p q : set α → Prop) :=
 ∀ ⦃U⦄, q U → ∀ r < μ U, ∃ K ⊆ U, p K ∧ r < μ K
 
@@ -154,7 +201,10 @@ end inner_regular
 
 variables {α β : Type*} [measurable_space α] [topological_space α] {μ : measure α}
 
-/-- A measure `μ` is outer regular if `μ(A) = inf {μ(U) | A ⊆ U open}` for a measurable set `A`. -/
+/-- A measure `μ` is outer regular if `μ(A) = inf {μ(U) | A ⊆ U open}` for a measurable set `A`.
+
+This definition implies the same equality for any (not necessarily measurable) set, see
+`set.measure_eq_infi_is_open`. -/
 @[protect_proj] class outer_regular (μ : measure α) : Prop :=
 (outer_regular : ∀ ⦃A : set α⦄, measurable_set A → ∀ r > μ A, ∃ U ⊇ A, is_open U ∧ μ U < r)
 
@@ -227,32 +277,35 @@ begin
     simpa only [ennreal.mul_infi_of_ne h0 hx, gt_iff_lt, infi_lt_iff, exists_prop] using hr }
 end
 
-/-- Let `s` an open covering If the restriction of `μ` to each `s n` is outer regular and `μ` is
-finite on each `s n`, then `μ` is outer regular. -/
-lemma of_seq_restrict [opens_measurable_space α] (μ : measure α) (s : ℕ → set α)
-  [∀ n, outer_regular (μ.restrict (s n))] (ht : ∀ n, μ (s n) ≠ ⊤)
-  (ho : ∀ n, is_open (s n)) (hUs : (⋃ n, s n) = univ) : outer_regular μ :=
-⟨begin
-  intros A hA r hr,
-  have hm : ∀ n, measurable_set (s n), from λ n, (ho n).measurable_set,
+end outer_regular
+
+/-- If a measure `μ` admits finite spanning open sets such that the restriction of `μ` to each set
+is outer regular, then the original measure is outer regular as well. -/
+protected lemma finite_spanning_sets_in.outer_regular [opens_measurable_space α] {μ : measure α}
+  (s : μ.finite_spanning_sets_in {U | is_open U ∧ outer_regular (μ.restrict U)}) :
+  outer_regular μ :=
+begin
+  refine ⟨λ A hA r hr, _⟩,
+  have hm : ∀ n, measurable_set (s.set n), from λ n, (s.set_mem n).1.measurable_set,
+  haveI : ∀ n, outer_regular (μ.restrict (s.set n)) := λ n, (s.set_mem n).2,
   -- Note that `A = ⋃ n, A ∩ disjointed s n`. We replace `A` with this sequence.
   obtain ⟨A, hAm, hAs, hAd, rfl⟩ : ∃ A' : ℕ → set α, (∀ n, measurable_set (A' n)) ∧
-    (∀ n, A' n ⊆ s n) ∧ pairwise (disjoint on A') ∧ A = ⋃ n, A' n,
-  { refine ⟨λ n, A ∩ disjointed s n, λ n, hA.inter (measurable_set.disjointed hm _),
+    (∀ n, A' n ⊆ s.set n) ∧ pairwise (disjoint on A') ∧ A = ⋃ n, A' n,
+  { refine ⟨λ n, A ∩ disjointed s.set n, λ n, hA.inter (measurable_set.disjointed hm _),
       λ n, (inter_subset_right _ _).trans (disjointed_subset _ _),
-      (disjoint_disjointed s).mono (λ k l hkl, hkl.mono inf_le_right inf_le_right), _⟩,
-    rw [← inter_Union, Union_disjointed, hUs, inter_univ] },
+      (disjoint_disjointed s.set).mono (λ k l hkl, hkl.mono inf_le_right inf_le_right), _⟩,
+    rw [← inter_Union, Union_disjointed, s.spanning, inter_univ] },
   rcases ennreal.exists_pos_sum_of_encodable' (ennreal.sub_pos.2 hr).ne' ℕ with ⟨δ, δ0, hδε⟩,
   rw [ennreal.lt_sub_iff_add_lt, add_comm] at hδε,
   have : ∀ n, ∃ U ⊇ A n, is_open U ∧ μ U < μ (A n) + δ n,
   { intro n,
-    have H₁ : ∀ t, μ.restrict (s n) t = μ (t ∩ s n) := λ t, restrict_apply' (ho n).measurable_set,
-    have Ht : μ.restrict (s n) (A n) ≠ ⊤,
-    { rw H₁, exact ne_top_of_le_ne_top (ht n) (measure_mono $ inter_subset_right _ _) },
+    have H₁ : ∀ t, μ.restrict (s.set n) t = μ (t ∩ s.set n), from λ t, restrict_apply' (hm n),
+    have Ht : μ.restrict (s.set n) (A n) ≠ ⊤,
+    { rw H₁, exact ((measure_mono $ inter_subset_right _ _).trans_lt (s.finite n)).ne },
     rcases (A n).exists_is_open_lt_of_lt _ (ennreal.lt_add_right Ht (δ0 n).ne')
       with ⟨U, hAU, hUo, hU⟩,
     rw [H₁, H₁, inter_eq_self_of_subset_left (hAs _)] at hU,
-    exact ⟨U ∩ s n, subset_inter hAU (hAs _), hUo.inter (ho n), hU⟩ },
+    exact ⟨U ∩ s.set n, subset_inter hAU (hAs _), hUo.inter (s.set_mem n).1, hU⟩ },
   choose U hAU hUo hU,
   refine ⟨⋃ n, U n, Union_subset_Union hAU, is_open_Union hUo, _⟩,
   calc μ (⋃ n, U n) ≤ ∑' n, μ (U n)             : measure_Union_le _
@@ -260,14 +313,15 @@ lemma of_seq_restrict [opens_measurable_space α] (μ : measure α) (s : ℕ →
                 ... = ∑' n, μ (A n) + ∑' n, δ n : ennreal.tsum_add
                 ... = μ (⋃ n, A n) + ∑' n, δ n  : congr_arg2 (+) (measure_Union hAd hAm).symm rfl
                 ... < _                         : hδε
-end⟩
-
-end outer_regular
+  
+end
 
 namespace inner_regular
 
 variables {p q : set α → Prop} {U s : set α} {ε r : ℝ≥0∞}
 
+/-- If a measure is inner regular (using closed or compact sets), then every measurable set of
+finite measure can by approximated by a (closed or compact) subset. -/
 lemma measurable_set_of_open [opens_measurable_space α] [outer_regular μ]
   (H : inner_regular μ p is_open) (h0 : p ∅) (hd : ∀ ⦃s U⦄, p s → is_open U → p (s \ U)) :
   inner_regular μ p (λ s, measurable_set s ∧ μ s ≠ ∞) :=
@@ -295,8 +349,7 @@ end
 open finset
 
 /-- In a finite measure space, assume that any open set can be approximated from inside by closed
-sets. Then any measurable set can be approximated from inside by closed sets, and from outside
-by open sets. -/
+sets. Then the measure is weakly regular. -/
 lemma weakly_regular_of_finite [borel_space α] (μ : measure α) [is_finite_measure μ]
   (H : inner_regular μ is_closed is_open) : weakly_regular μ :=
 begin
@@ -364,6 +417,7 @@ begin
   exact ⟨F n, subset_Union _ _, F_closed n, hn⟩
 end
 
+/-- In a `σ`-compact space, any closed set can be approximated by a compact subset. -/
 lemma is_compact_is_closed {X : Type*} [topological_space X] [t2_space X]
   [sigma_compact_space X] [measurable_space X] [opens_measurable_space X] (μ : measure X) :
   inner_regular μ is_compact is_closed :=
@@ -387,6 +441,7 @@ namespace regular
 instance zero : regular (0 : measure α) :=
 ⟨λ K hK, ennreal.coe_lt_top, λ U hU r hr, ⟨∅, empty_subset _, is_compact_empty, hr⟩⟩
 
+/-- If `μ` is a regular measure, then any open set can be approximated by a compact subset. -/
 lemma _root_.is_open.exists_lt_is_compact [regular μ] ⦃U : set α⦄ (hU : is_open U)
   {r : ℝ≥0∞} (hr : r < μ U) :
   ∃ K ⊆ U, is_compact K  ∧ r < μ K :=
@@ -398,24 +453,26 @@ lemma _root_.is_open.measure_eq_supr_is_compact ⦃U : set α⦄ (hU : is_open U
   μ U = (⨆ (K : set α) (h : K ⊆ U) (h2 : is_compact K), μ K) :=
 regular.inner_regular.measure_eq_supr hU
 
-lemma _root_.is_open.exists_is_compact_lt_add [regular μ] ⦃U : set α⦄ (hU : is_open U)
-  (hμU : μ U ≠ ∞) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
-  ∃ K ⊆ U, is_compact K ∧ μ U < μ K + ε :=
-regular.inner_regular.exists_subset_lt_add is_compact_empty hU hμU hε
-
 lemma exists_compact_not_null [regular μ] : (∃ K, is_compact K ∧ μ K ≠ 0) ↔ μ ≠ 0 :=
 by simp_rw [ne.def, ← measure_univ_eq_zero, is_open_univ.measure_eq_supr_is_compact,
     ennreal.supr_eq_zero, not_forall, exists_prop, subset_univ, true_and]
 
+/-- If `μ` is a regular measure, then any measurable set of finite measure can be approximated by a
+compact subset. See also `measurable_set.exists_is_compact_lt_add` and
+`measurable_set.exists_lt_is_compact_of_ne_top`. -/
 lemma inner_regular_measurable [opens_measurable_space α] [regular μ] :
   inner_regular μ is_compact (λ s, measurable_set s ∧ μ s ≠ ∞) :=
 regular.inner_regular.measurable_set_of_open is_compact_empty (λ _ _, is_compact.diff)
 
+/-- If `μ` is a regular measure, then any measurable set of finite measure can be approximated by a
+compact subset. See also `measurable_set.exists_lt_is_compact_of_ne_top`. -/
 lemma _root_.measurable_set.exists_is_compact_lt_add [opens_measurable_space α]
   [regular μ] ⦃A : set α⦄ (hA : measurable_set A) (h'A : μ A ≠ ∞) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
   ∃ K ⊆ A, is_compact K ∧ μ A < μ K + ε :=
 regular.inner_regular_measurable.exists_subset_lt_add is_compact_empty ⟨hA, h'A⟩ h'A hε
 
+/-- If `μ` is a regular measure, then any measurable set of finite measure can be approximated by a
+compact subset. See also `measurable_set.exists_is_compact_lt_add`. -/
 lemma _root_.measurable_set.exists_lt_is_compact_of_ne_top [regular μ]
   [opens_measurable_space α] ⦃A : set α⦄ (hA : measurable_set A) (h'A : μ A ≠ ∞)
   {r : ℝ≥0∞} (hr : r < μ A) :
@@ -463,20 +520,17 @@ end regular
 
 namespace weakly_regular
 
+/-- If `μ` is a weakly regular measure, then any open set can be approximated by a closed subset. -/
 lemma _root_.is_open.exists_lt_is_closed [weakly_regular μ] ⦃U : set α⦄ (hU : is_open U)
   {r : ℝ≥0∞} (hr : r < μ U) :
   ∃ F ⊆ U, is_closed F ∧ r < μ F :=
 weakly_regular.inner_regular hU r hr
 
+/-- If `μ` is a weakly regular measure, then any open set can be approximated by a closed subset. -/
 lemma _root_.is_open.measure_eq_supr_is_closed ⦃U : set α⦄ (hU : is_open U)
   (μ : measure α) [weakly_regular μ] :
   μ U = (⨆ (F ⊆ U) (h : is_closed F), μ F) :=
 weakly_regular.inner_regular.measure_eq_supr hU
-
-lemma _root_.is_open.exists_is_closed_lt_add [weakly_regular μ] [opens_measurable_space α]
-  ⦃U : set α⦄ (hU : is_open U) (hμU : μ U ≠ ∞) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
-  ∃ K ⊆ U, is_closed K ∧ μ U < μ K + ε :=
-weakly_regular.inner_regular.exists_subset_lt_add is_closed_empty hU hμU hε
 
 lemma inner_regular_measurable [opens_measurable_space α] [weakly_regular μ] :
   inner_regular μ is_closed (λ s, measurable_set s ∧ μ s ≠ ∞) :=
@@ -528,29 +582,31 @@ instance of_pseudo_emetric_space_of_is_finite_measure {X : Type*} [pseudo_emetri
   weakly_regular μ :=
 (inner_regular.of_pseudo_emetric_space μ).weakly_regular_of_finite μ
 
+/-- Any locally finite measure on a `σ`-compact metric space (or even a pseudo emetric space) is
+weakly regular. -/
+@[priority 100] -- see Note [lower instance priority]
+instance of_pseudo_emetric_sigma_compact_space_of_locally_finite {X : Type*}
+  [pseudo_emetric_space X] [sigma_compact_space X] [measurable_space X] [borel_space X]
+  (μ : measure X) [is_locally_finite_measure μ] :
+  weakly_regular μ :=
+begin
+  haveI : outer_regular μ,
+  { refine (μ.finite_spanning_sets_in_open.mono' $ λ U hU, _).outer_regular,
+    haveI : fact (μ U < ∞), from ⟨hU.2⟩,
+    exact ⟨hU.1, infer_instance⟩ },
+  exact ⟨inner_regular.of_pseudo_emetric_space μ⟩
+end
+
 end weakly_regular
 
-namespace regular
-
-/-- Any locally finite measure on a sigma compact locally compact metric space is regular. -/
+/-- Any locally finite measure on a `σ`-compact (e)metric space is regular. -/
 @[priority 100] -- see Note [lower instance priority]
-instance of_sigma_compact_space_of_is_locally_finite_measure {X : Type*}
+instance regular.of_sigma_compact_space_of_is_locally_finite_measure {X : Type*}
   [emetric_space X] [sigma_compact_space X] [measurable_space X] [borel_space X] (μ : measure X)
   [is_locally_finite_measure μ] : regular μ :=
 { lt_top_of_is_compact := λ K hK, hK.measure_lt_top,
   inner_regular := (inner_regular.is_compact_is_closed μ).trans
-    (inner_regular.of_pseudo_emetric_space μ),
-  to_outer_regular :=
-  begin
-    have : ∀ n, ∃ U ⊇ compact_covering X n, is_open U ∧ μ U < ∞,
-      from λ n, (is_compact_compact_covering X n).exists_open_superset_measure_lt_top,
-    choose U hUc hUo hU,
-    haveI : ∀ n, fact (μ (U n) < ∞) := λ n, ⟨hU n⟩,
-    refine outer_regular.of_seq_restrict _ U (λ n, (hU n).ne) hUo _,
-    exact eq_univ_of_subset (Union_subset_Union hUc) (Union_compact_covering X),
-  end }
-
-end regular
+    (inner_regular.of_pseudo_emetric_space μ) }
 
 end measure
 end measure_theory

@@ -1625,7 +1625,7 @@ end
 /-- If `s` is a compact set and `μ` is a locally finite measure, then `s` admits an open superset of
 finite measure. -/
 lemma is_compact.exists_open_superset_measure_lt_top [topological_space α]
-  {s : set α} {μ : measure α} [is_locally_finite_measure μ] (h : is_compact s) :
+  {s : set α} (μ : measure α) [is_locally_finite_measure μ] (h : is_compact s) :
   ∃ U ⊇ s, is_open U ∧ μ U < ∞ :=
 h.exists_open_superset_measure_lt_top' $ λ x hx, μ.finite_at_nhds x
 
@@ -1639,3 +1639,23 @@ lemma is_compact.measure_lt_top [topological_space α] {s : set α} {μ : measur
   [is_locally_finite_measure μ] (h : is_compact s) :
   μ s < ∞ :=
 h.measure_lt_top_of_nhds_within $ λ x hx, μ.finite_at_nhds_within _ _
+
+def measure_theory.measure.finite_spanning_sets_in_compact [topological_space α]
+  [sigma_compact_space α] (μ : measure α) [is_locally_finite_measure μ] :
+  μ.finite_spanning_sets_in {K | is_compact K} :=
+{ set := compact_covering α,
+  set_mem := is_compact_compact_covering α,
+  finite := λ n, (is_compact_compact_covering α n).measure_lt_top,
+  spanning := Union_compact_covering α }
+
+def measure_theory.measure.finite_spanning_sets_in_open [topological_space α]
+  [sigma_compact_space α] (μ : measure α) [is_locally_finite_measure μ] :
+  μ.finite_spanning_sets_in {K | is_open K} :=
+{ set := λ n, ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some,
+  set_mem := λ n,
+    ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.snd.1,
+  finite := λ n,
+    ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.snd.2,
+  spanning := eq_univ_of_subset (Union_subset_Union $ λ n,
+    ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.fst)
+    (Union_compact_covering α) }

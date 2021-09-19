@@ -1909,9 +1909,15 @@ namespace finite_spanning_sets_in
 
 variables {C D : set (set α)}
 
+/-- If `μ` has finite spanning sets in `C` and `C ∩ {s | μ s < ∞} ⊆ D` then `μ` has finite spanning
+sets in `D`. -/
+protected def mono' (h : μ.finite_spanning_sets_in C) (hC : C ∩ {s | μ s < ∞} ⊆ D) :
+  μ.finite_spanning_sets_in D :=
+⟨h.set, λ i, hC ⟨h.set_mem i, h.finite i⟩, h.finite, h.spanning⟩
+
 /-- If `μ` has finite spanning sets in `C` and `C ⊆ D` then `μ` has finite spanning sets in `D`. -/
 protected def mono (h : μ.finite_spanning_sets_in C) (hC : C ⊆ D) : μ.finite_spanning_sets_in D :=
-⟨h.set, λ i, hC (h.set_mem i), h.finite, h.spanning⟩
+h.mono' (λ s hs, hC hs.1)
 
 /-- If `μ` has finite spanning sets in the collection of measurable sets `C`, then `μ` is σ-finite.
 -/
@@ -1926,7 +1932,7 @@ protected lemma ext {ν : measure α} {C : set (set α)} (hA : ‹_› = generat
 ext_of_generate_from_of_Union C _ hA hC h.spanning h.set_mem (λ i, (h.finite i).ne) h_eq
 
 protected lemma is_countably_spanning (h : μ.finite_spanning_sets_in C) : is_countably_spanning C :=
-⟨_, h.set_mem, h.spanning⟩
+⟨h.set, h.set_mem, h.spanning⟩
 
 end finite_spanning_sets_in
 

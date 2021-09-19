@@ -206,8 +206,7 @@ lemma coeff_bit1_mul (P Q : polynomial R) (n : ℕ) :
   coeff (bit1 P * Q) n = 2 * coeff (P * Q) n + coeff Q n :=
 by simp [bit1, add_mul, coeff_bit0_mul]
 
-lemma coeff_update_eq_sub {R : Type*} [ring R] [Π r : R, decidable (r = 0)]
-  (p : polynomial R) (n : ℕ) (a : R) :
+lemma coeff_update_eq_sub {R : Type*} [ring R] (p : polynomial R) (n : ℕ) (a : R) :
   p.update n a = p + (polynomial.C (a - p.coeff n) * polynomial.X ^ n) :=
 begin
   ext,

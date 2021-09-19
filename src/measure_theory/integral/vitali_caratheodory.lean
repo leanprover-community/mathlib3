@@ -114,8 +114,8 @@ begin
         measurable_set.univ, with_top.mul_eq_top_iff, simple_func.const_zero, or_false,
         lintegral_indicator, ennreal.coe_eq_zero, ne.def, not_false_iff, simple_func.coe_zero,
         set.piecewise_eq_indicator, simple_func.coe_piecewise, false_and, restrict_apply] using h },
-    obtain ⟨u, u_open, su, μu⟩ : ∃ u, is_open u ∧ s ⊆ u ∧ μ u < μ s + ε / c :=
-      hs.exists_is_open_lt_of_lt _ this,
+    obtain ⟨u, su, u_open, μu⟩ : ∃ u ⊇ s, is_open u ∧ μ u < μ s + ε / c :=
+      s.exists_is_open_lt_of_lt _ this,
     refine ⟨set.indicator u (λ x, c), λ x, _, u_open.lower_semicontinuous_indicator (zero_le _), _⟩,
     { simp only [simple_func.coe_const, simple_func.const_zero, simple_func.coe_zero,
         set.piecewise_eq_indicator, simple_func.coe_piecewise],
@@ -325,8 +325,8 @@ begin
         lintegral_indicator, ennreal.coe_eq_zero, ne.def, not_false_iff, simple_func.coe_zero,
         set.piecewise_eq_indicator, simple_func.coe_piecewise, false_and] using int_f,
     have : (0 : ℝ≥0∞) < ε / c := ennreal.div_pos_iff.2 ⟨ε0, ennreal.coe_ne_top⟩,
-    obtain ⟨F, F_closed, Fs, μF⟩ : ∃ F, is_closed F ∧ F ⊆ s ∧ μ s < μ F + ε / c :=
-      hs.exists_lt_is_closed_of_lt_top_of_pos μs_lt_top this,
+    obtain ⟨F, Fs, F_closed, μF⟩ : ∃ F ⊆ s, is_closed F ∧ μ s < μ F + ε / c :=
+      hs.exists_is_closed_lt_add μs_lt_top.ne this.ne',
     refine ⟨set.indicator F (λ x, c), λ x, _,
       F_closed.upper_semicontinuous_indicator (zero_le _), _⟩,
     { simp only [simple_func.coe_const, simple_func.const_zero, simple_func.coe_zero,

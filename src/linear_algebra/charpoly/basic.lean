@@ -73,8 +73,7 @@ lemma charmatrix_of_reindex {m : Type v} [decidable_eq m] [fintype m] (e : n ≃
 begin
   ext i j x,
   by_cases h : i = j,
-  { simp [h] },
-  { simp [h] }
+  all_goals { simp [h] }
 end
 
 /--

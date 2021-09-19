@@ -3,7 +3,7 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import analysis.convex.combination
+import analysis.convex.function
 import measure_theory.integral.set_integral
 
 /-!
@@ -64,7 +64,7 @@ begin
   refine hsc.mem_of_tendsto (tendsto_const_nhds.smul this) (eventually_of_forall $ λ n, _),
   have : ∑ y in (F n).range, (μ ((F n) ⁻¹' {y})).to_real = (μ univ).to_real,
     by rw [← (F n).sum_range_measure_preimage_singleton, @ennreal.to_real_sum _ _
-      (λ y, μ ((F n) ⁻¹' {y})) (λ _ _, (measure_lt_top _ _))],
+      (λ y, μ ((F n) ⁻¹' {y})) (λ _ _, (measure_ne_top _ _))],
   rw [← this, simple_func.integral],
   refine hs.center_mass_mem (λ _ _, ennreal.to_real_nonneg) _ _,
   { rw [this, ennreal.to_real_pos_iff, pos_iff_ne_zero, ne.def, measure.measure_univ_eq_zero],

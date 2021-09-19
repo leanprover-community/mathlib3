@@ -111,7 +111,7 @@ begin
   conv_lhs { rw polynomial.eq_prod_roots_of_splits hf },
   rw [polynomial.coeff_C_mul, polynomial.coeff_zero_multiset_prod, multiset.map_map,
       (minpoly.monic pb.is_integral_gen).leading_coeff, ring_hom.map_one, one_mul],
-  -- Incorporate the `-1` from the `char_poly` back into the product.
+  -- Incorporate the `-1` from the `charpoly` back into the product.
   rw [← multiset.prod_repeat (-1 : F), ← pb.nat_degree_minpoly,
       polynomial.nat_degree_eq_card_roots hf, ← multiset.map_const, ← multiset.prod_map_mul],
   -- And conclude that both sides are the same.

@@ -201,7 +201,7 @@ begin
     exact congr_arg _ (subsingleton.elim _ _), },
 end
 
-@[simp] lemma zmod.char_poly_pow_card (M : matrix n n (zmod p)) :
+@[simp] lemma zmod.charpoly_pow_card (M : matrix n n (zmod p)) :
   (M ^ p).charpoly = M.charpoly :=
 by { have h := finite_field.charpoly_pow_card M, rwa zmod.card at h, }
 
@@ -216,11 +216,11 @@ by { have h := finite_field.trace_pow_card M, rwa zmod.card at h, }
 
 namespace matrix
 
-theorem is_integral : is_integral R M := ⟨M.charpoly, ⟨charpoly_monic M, aeval_self_char_poly M⟩⟩
+theorem is_integral : is_integral R M := ⟨M.charpoly, ⟨charpoly_monic M, aeval_self_charpoly M⟩⟩
 
 theorem minpoly_dvd_charpoly {K : Type*} [field K] (M : matrix n n K) :
   (minpoly K M) ∣ M.charpoly :=
-minpoly.dvd _ _ (aeval_self_char_poly M)
+minpoly.dvd _ _ (aeval_self_charpoly M)
 
 end matrix
 
@@ -241,7 +241,7 @@ begin
   apply minpoly.unique,
   { apply charpoly_monic },
   { apply (left_mul_matrix _).injective_iff.mp (left_mul_matrix_injective h.basis),
-    rw [← polynomial.aeval_alg_hom_apply, aeval_self_char_poly] },
+    rw [← polynomial.aeval_alg_hom_apply, aeval_self_charpoly] },
   { intros q q_monic root_q,
     rw [charpoly_degree_eq_dim, fintype.card_fin, degree_eq_nat_degree q_monic.ne_zero],
     apply with_bot.some_le_some.mpr,

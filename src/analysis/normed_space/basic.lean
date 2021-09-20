@@ -288,8 +288,7 @@ end
 lemma preimage_add_ball (x y : α) (r : ℝ) : ((+) y) ⁻¹' (ball x r) = ball (x - y) r :=
 begin
   ext z,
-  simp [dist_eq_norm],
-  congr' 3,
+  simp only [dist_eq_norm, set.mem_preimage, mem_ball],
   abel
 end
 

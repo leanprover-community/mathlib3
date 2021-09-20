@@ -977,7 +977,8 @@ mem_erase_iff_of_nodup s.2
 
 theorem not_mem_erase (a : α) (s : finset α) : a ∉ erase s a := mem_erase_of_nodup s.2
 
-@[simp] theorem erase_empty (a : α) : erase ∅ a = ∅ := rfl
+-- While this can be solved by `simp`, this lemma is eligible for `dsimp`
+@[nolint simp_nf, simp] theorem erase_empty (a : α) : erase ∅ a = ∅ := rfl
 
 theorem ne_of_mem_erase {a b : α} {s : finset α} : b ∈ erase s a → b ≠ a :=
 by simp only [mem_erase]; exact and.left
@@ -1016,6 +1017,7 @@ lemma erase_ssubset {a : α} {s : finset α} (h : a ∈ s) : s.erase a ⊂ s :=
 calc s.erase a ⊂ insert a (s.erase a) : ssubset_insert $ not_mem_erase _ _
   ... = _ : insert_erase h
 
+@[simp]
 theorem erase_eq_of_not_mem {a : α} {s : finset α} (h : a ∉ s) : erase s a = s :=
 eq_of_veq $ erase_of_not_mem h
 
@@ -2242,6 +2244,7 @@ begin
   { simp [finset.singleton_inter_of_mem h] },
 end
 
+@[simp]
 theorem card_erase_of_mem [decidable_eq α] {a : α} {s : finset α} :
   a ∈ s → card (erase s a) = pred (card s) := card_erase_of_mem
 
@@ -2258,6 +2261,10 @@ begin
   { rw [card_erase_of_mem h], refl },
   { rw [erase_eq_of_not_mem h], apply nat.sub_le }
 end
+
+/-- If `a ∈ s` is known, see also `finset.card_erase_of_mem` and `finset.erase_eq_of_not_mem`. -/
+theorem card_erase_eq_ite [decidable_eq α] {a : α} {s : finset α} :
+  card (erase s a) = if a ∈ s then pred (card s) else card s := card_erase_eq_ite
 
 @[simp] theorem card_range (n : ℕ) : card (range n) = n := card_range n
 

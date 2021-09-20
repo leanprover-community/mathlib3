@@ -44,9 +44,8 @@ variables [algebra F K] [module K A] [module F A] [is_scalar_tower F K A]
 /-- Tower law: if `A` is a `K`-vector space and `K` is a field extension of `F` then
 `dim_F(A) = dim_F(K) * dim_K(A)`. -/
 theorem dim_mul_dim' :
-  (cardinal.lift.{v w} (module.rank F K) *
-      cardinal.lift.{w v} (module.rank K A) : cardinal.{max w v}) =
-  cardinal.lift.{w v} (module.rank F A) :=
+  (cardinal.lift.{w} (module.rank F K) * cardinal.lift.{v} (module.rank K A)) =
+  cardinal.lift.{v} (module.rank F A) :=
 let b := basis.of_vector_space F K, c := basis.of_vector_space K A in
 by rw [← (module.rank F K).lift_id, ← b.mk_eq_dim,
     ← (module.rank K A).lift_id, ← c.mk_eq_dim,

@@ -28,16 +28,6 @@ namespace matrix
 
 variables {n' : Type*} [decidable_eq n'] [fintype n'] {K : Type*} [comm_ring K]
 
-lemma smul_pow {α R : Type*} [semiring α] [monoid R] [distrib_mul_action R α]
-  [is_scalar_tower R α α] [smul_comm_class R α α]
-  (k : R) (A : matrix n' n' α) (p : ℕ) :
-  (k • A) ^ p = k ^ p • A ^ p :=
-begin
-  induction p with p IH,
-  { simp },
-  { rw [pow_succ', IH, smul_mul_smul, ←pow_succ', ←pow_succ'] }
-end
-
 local notation `M` := matrix n' n' K
 
 noncomputable instance : div_inv_monoid M :=

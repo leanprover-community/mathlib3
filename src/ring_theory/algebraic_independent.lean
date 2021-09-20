@@ -398,8 +398,8 @@ have ring_hom.comp (polynomial.aeval x :
       polynomial (adjoin R (set.range v)) →ₐ[_] A).to_ring_hom
     e.to_ring_hom = (mv_polynomial.aeval (λ o : option ι, o.elim x v)).to_ring_hom,
   begin
-    letI : is_scalar_tower R (mv_polynomial ι R)
-        (polynomial (mv_polynomial ι R)) := polynomial.is_scalar_tower,
+    letI : is_scalar_tower R (mv_polynomial ι R) (polynomial (mv_polynomial ι R)) :=
+        @polynomial.is_scalar_tower (mv_polynomial ι R) _ R _ _ _ _ _ _ _,
     ext,
     { simp [e, ring_equiv.to_ring_hom_eq_coe, is_scalar_tower.algebra_map_eq R
         (mv_polynomial ι R) (polynomial (mv_polynomial ι R)),

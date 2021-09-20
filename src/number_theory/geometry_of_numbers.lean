@@ -153,17 +153,13 @@ begin
   exact mul_action.injective a,
 end
 
-lemma measure_null_of_subset_null {α : Type*} [measurable_space α] {μ : measure α} {S T : set α}
-  (hST : S ⊆ T) (h : μ T = 0) : μ S = 0 :=
-nonpos_iff_eq_zero.mp (h ▸ measure_mono hST)
-
 lemma measure_null_of_null_right {α : Type*} [measurable_space α] {μ : measure α} (S : set α)
   {T : set α} (h : μ T = 0) : μ (S ∩ T) = 0 :=
-measure_null_of_subset_null (inter_subset_right S T) h
+measure_mono_null (inter_subset_right S T) h
 
 lemma measure_null_of_null_left {α : Type*} [measurable_space α] {μ : measure α} {S : set α}
   (T : set α) (h : μ S = 0) : μ (S ∩ T) = 0 :=
-measure_null_of_subset_null (inter_subset_left S T) h
+measure_mono_null (inter_subset_left S T) h
 
 lemma measure_Union_of_null_inter {α β : Type*} [measurable_space α] {μ : measure α} [encodable β]
   {f : β → set α} (hn : pairwise ((λ S T, μ (S ∩ T) = 0) on f)) (h : ∀ i, measurable_set (f i)) :

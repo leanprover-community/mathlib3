@@ -42,6 +42,8 @@ then the identities from `E` to `E'` and from `E'`to `E` are continuous thanks t
 
 universes u v w x
 
+noncomputable theory
+
 open set finite_dimensional topological_space filter asymptotics
 open_locale classical big_operators filter topological_space asymptotics
 
@@ -59,7 +61,7 @@ variables {R₁ : Type*} [field R₁] [module R₁ E₁] [module R₁ F]
 
 /-- A linear isometry between finite dimensional spaces of equal dimension can be upgraded
     to a linear isometry equivalence. -/
-noncomputable def to_linear_isometry_equiv
+def to_linear_isometry_equiv
   (li : E₁ →ₗᵢ[R₁] F) (h : finrank R₁ E₁ = finrank R₁ F) : E₁ ≃ₗᵢ[R₁] F :=
 { to_linear_equiv :=
     li.to_linear_map.linear_equiv_of_injective li.injective h,
@@ -90,7 +92,7 @@ variables [finite_dimensional 𝕜 V₁] [finite_dimensional 𝕜 V₂]
 
 /-- A affine isometry between finite dimensional spaces of equal dimension can be upgraded
     to an affine isometry equivalence. -/
-noncomputable def to_affine_isometry_equiv [inhabited P₁]
+def to_affine_isometry_equiv [inhabited P₁]
   (li : P₁ →ᵃⁱ[𝕜] P₂) (h : finrank 𝕜 V₁ = finrank 𝕜 V₂) : P₁ ≃ᵃⁱ[𝕜] P₂ :=
 affine_isometry_equiv.mk' li (li.linear_isometry.to_linear_isometry_equiv h) (arbitrary P₁)
   (λ p, by simp)
@@ -104,9 +106,6 @@ affine_isometry_equiv.mk' li (li.linear_isometry.to_linear_isometry_equiv h) (ar
   (li.to_affine_isometry_equiv h) x = li x := rfl
 
 end affine_isometry
-
-
-noncomputable theory
 
 /-- A linear map on `ι → 𝕜` (where `ι` is a fintype) is continuous -/
 lemma linear_map.continuous_on_pi {ι : Type w} [fintype ι] {𝕜 : Type u} [normed_field 𝕜]

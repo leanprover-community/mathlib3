@@ -5,6 +5,7 @@ Authors: Yakov Pechersky, Mario Carneiro
 -/
 
 import tactic.norm_num
+import data.fin
 
 /-!
 # `norm_fin`

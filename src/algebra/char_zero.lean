@@ -5,7 +5,6 @@ Authors: Mario Carneiro
 -/
 
 import data.nat.cast
-import data.fintype.basic
 import tactic.wlog
 
 /-!
@@ -24,6 +23,9 @@ from the natural numbers into it is injective.
 ## Main statements
 
 * A linearly ordered semiring has characteristic zero.
+
+See `algebra/char_zero/infinite.lean` for
+
 * Characteristic zero implies that the additive monoid is infinite.
 
 ## TODO
@@ -91,13 +93,7 @@ end nat
 
 section
 
-variables (M : Type*) [add_monoid M] [has_one M] [char_zero M]
-
-@[priority 100] -- see Note [lower instance priority]
-instance char_zero.infinite : infinite M :=
-infinite.of_injective coe nat.cast_injective
-
-variable {M}
+variables {M : Type*} [add_monoid M] [has_one M] [char_zero M]
 
 @[field_simps] lemma two_ne_zero' : (2:M) ≠ 0 :=
 have ((2:ℕ):M) ≠ 0, from nat.cast_ne_zero.2 dec_trivial,

@@ -6,6 +6,7 @@ Authors: Johannes Hölzl
 
 import data.finset.fold
 import data.equiv.mul_add
+import data.fintype.basic
 import tactic.abel
 
 /-!

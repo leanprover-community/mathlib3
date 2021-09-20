@@ -940,7 +940,7 @@ intermediate_value_Icc' (by norm_num) continuous_on_cos
   ⟨le_of_lt cos_two_neg, le_of_lt cos_one_pos⟩
 
 /-- The number π = 3.14159265... Defined here using choice as twice a zero of cos in [1,2], from
-which one can derive all its properties. For explicit bounds on π, see `data.real.pi`. -/
+which one can derive all its properties. For explicit bounds on π, see `data.real.pi.bounds`. -/
 protected noncomputable def pi : ℝ := 2 * classical.some exists_cos_eq_zero
 
 localized "notation `π` := real.pi" in real

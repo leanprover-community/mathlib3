@@ -4,7 +4,7 @@ run_cmd tactic.skip
 -- algebra/free_algebra.lean
 apply_nolint free_algebra.semiring check_reducibility
 
--- algebra/ordered_monoid.lean
+-- algebra/order/monoid.lean
 apply_nolint with_zero.canonically_ordered_add_monoid check_reducibility
 
 -- algebra/pointwise.lean

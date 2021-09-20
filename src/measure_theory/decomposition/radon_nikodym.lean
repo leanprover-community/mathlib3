@@ -75,7 +75,7 @@ begin
       with_density_radon_nikodym_deriv_eq μ ν h],
   { measurability },
   { refine ae_lt_top (μ.measurable_radon_nikodym_deriv ν)
-      (lt_of_le_of_lt (lintegral_mono_set i.subset_univ) _),
+      (lt_of_le_of_lt (lintegral_mono_set i.subset_univ) _).ne,
     rw [← with_density_apply _ measurable_set.univ,
         with_density_radon_nikodym_deriv_eq μ ν h],
     exact measure_lt_top _ _ },

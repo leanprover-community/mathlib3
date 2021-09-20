@@ -2150,15 +2150,16 @@ end
 /-- `multiset.map f` preserves `count` if `f` is injective on the set of elements contained in
 the multiset -/
 theorem _root_.set.inj_on.count_map_multiset [decidable_eq β] (f : α → β) (s : multiset α)
- (hf : set.inj_on f (s : set α)) (x ∈ s) : (s.map f).count (f x) = s.count x :=
+ (hf : set.inj_on f {x : α | x ∈ s}) (x ∈ s) : (s.map f).count (f x) = s.count x :=
 begin
   suffices : (filter (λ (a : α), f x = f a) s).count x = card (filter (λ (a : α), f x = f a) s),
   { rw [count, countp_map, ← this],
     exact count_filter_of_pos rfl },
-  { rw eq_repeat.2 ⟨rfl, λ b hb, (hf x b H (mem_filter.1 hb).left (mem_filter.1 hb).right).symm⟩,
-   simp only [count_repeat, eq_self_iff_true, if_true, card_repeat]},
+  { rw eq_repeat.2 ⟨rfl, λ b hb, eq_comm.1 ((hf H (mem_filter.1 hb).left) (mem_filter.1 hb).right)⟩,
+    simp only [count_repeat, eq_self_iff_true, if_true, card_repeat]},
 end
 
+#check multiset.mem_filter
 end
 
 /-! ### Lift a relation to `multiset`s -/

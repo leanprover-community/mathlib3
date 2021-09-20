@@ -38,7 +38,7 @@ end
 @[simp]
 lemma zip_with_tail (x : vector α n) (y : vector β n) :
   (vector.zip_with f x y).tail = vector.zip_with f x.tail y.tail :=
-by { ext, simp, }
+by { ext, simp [nth_tail], }
 
 end zip_with
 

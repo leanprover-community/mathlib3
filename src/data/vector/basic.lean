@@ -68,7 +68,7 @@ theorem nth_eq_nth_le : ∀ (v : vector α n) (i),
 | ⟨l, h⟩ i := rfl
 
 @[simp]
-lemma repeat_nth (a : α) (i : fin n) :
+lemma nth_repeat (a : α) (i : fin n) :
   (vector.repeat a n).nth i = a :=
 by apply list.nth_le_repeat
 

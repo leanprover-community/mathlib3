@@ -36,7 +36,8 @@ namespace linear_map
 section basic
 
 /-- The characteristic polynomial of `f : M →ₗ[R] M`. -/
-def charpoly := (linear_map.to_matrix (choose_basis R M) (choose_basis R M) f).charpoly
+def charpoly : polynomial R :=
+(linear_map.to_matrix (choose_basis R M) (choose_basis R M) f).charpoly
 
 lemma charpoly_def :
   f.charpoly = (linear_map.to_matrix (choose_basis R M) (choose_basis R M) f).charpoly := rfl

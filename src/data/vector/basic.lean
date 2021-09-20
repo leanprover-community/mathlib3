@@ -308,11 +308,13 @@ begin
     apply ih, }
 end
 
-/-- Define `C v w` by induction on a pair of vectors `v w : vector α n`. -/
-@[elab_as_eliminator] def induction_on₂ {C : Π {n}, vector α n → vector α n → Sort*}
-  (v w : vector α n)
+variables {β γ : Type*}
+
+/-- Define `C v w` by induction on a pair of vectors `v : vector α n` and `w : vector β n`. -/
+@[elab_as_eliminator] def induction_on₂ {C : Π {n}, vector α n → vector β n → Sort*}
+  (v : vector α n) (w : vector β n)
   (h_nil : C nil nil)
-  (h_cons : ∀ {n} {a b : α} {x y : vector α n}, C x y → C (a ::ᵥ x) (b ::ᵥ y)) : C v w :=
+  (h_cons : ∀ {n a b} {x : vector α n} {y}, C x y → C (a ::ᵥ x) (b ::ᵥ y)) : C v w :=
 begin
   induction n with n ih generalizing v w,
   { rcases v with ⟨_|⟨-,-⟩,-|-⟩, rcases w with ⟨_|⟨-,-⟩,-|-⟩,
@@ -325,11 +327,12 @@ begin
     apply ih, }
 end
 
-/-- Define `C u v w` by induction on a triplet of vectors `u v w : vector α n`. -/
-@[elab_as_eliminator] def induction_on₃ {C : Π {n}, vector α n → vector α n → vector α n → Sort*}
-  (u v w : vector α n)
+/-- Define `C u v w` by induction on a triplet of vectors
+`u : vector α n`, `v : vector β n`, and `w : vector γ b`. -/
+@[elab_as_eliminator] def induction_on₃ {C : Π {n}, vector α n → vector β n → vector γ n → Sort*}
+  (u : vector α n) (v : vector β n) (w : vector γ n)
   (h_nil : C nil nil nil)
-  (h_cons : ∀ {n} {a b c : α} {x y z : vector α n}, C x y z → C (a ::ᵥ x) (b ::ᵥ y) (c ::ᵥ z)) :
+  (h_cons : ∀ {n a b c} {x : vector α n} {y z}, C x y z → C (a ::ᵥ x) (b ::ᵥ y) (c ::ᵥ z)) :
   C u v w :=
 begin
   induction n with n ih generalizing u v w,

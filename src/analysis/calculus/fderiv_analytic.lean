@@ -3,17 +3,20 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import analysis.calculus.fderiv
+import analysis.calculus.deriv
 import analysis.analytic.basic
 
 /-!
 # Frechet derivatives of analytic functions.
 
 A function expressible as a power series at a point has a Frechet derivative there.
+Also the special case in terms of `deriv` when the domain is 1-dimensional.
 -/
 
 open filter asymptotics
 open_locale ennreal
+
+section fderiv
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
@@ -54,3 +57,24 @@ lemma has_fpower_series_on_ball.differentiable_on [complete_space F]
   (h : has_fpower_series_on_ball f p x r) :
   differentiable_on 𝕜 f (emetric.ball x r) :=
 λ y hy, (h.analytic_at_of_mem hy).differentiable_within_at
+
+end fderiv
+
+section deriv
+
+variables {p : formal_multilinear_series 𝕜 𝕜 F} {r : ℝ≥0∞}
+variables {f : 𝕜 → F} {x : 𝕜}
+
+protected lemma has_fpower_series_at.has_strict_deriv_at (h : has_fpower_series_at f p x) :
+  has_strict_deriv_at f (p 1 (λ _, 1)) x :=
+h.has_strict_fderiv_at.has_strict_deriv_at
+
+protected lemma has_fpower_series_at.has_deriv_at (h : has_fpower_series_at f p x) :
+  has_deriv_at f (p 1 (λ _, 1)) x :=
+h.has_strict_deriv_at.has_deriv_at
+
+protected lemma has_fpower_series_at.deriv (h : has_fpower_series_at f p x) :
+  deriv f x = p 1 (λ _, 1) :=
+h.has_deriv_at.deriv
+
+end deriv

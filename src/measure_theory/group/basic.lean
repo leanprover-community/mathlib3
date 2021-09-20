@@ -278,7 +278,6 @@ begin
   refine indicator_le (λ y, le_of_lt),
 end
 
-
 end group
 
 section integration

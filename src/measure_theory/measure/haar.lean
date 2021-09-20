@@ -506,11 +506,25 @@ scaled so that `add_haar_measure K₀ K₀ = 1`."]
 def haar_measure (K₀ : positive_compacts G) : measure G :=
 ((haar_content K₀).outer_measure K₀.1)⁻¹ • (haar_content K₀).measure
 
+-- Unfortunately we have to manually give the additive version here
+lemma add_haar_measure_apply {G : Type*} [add_group G] [topological_space G] [t2_space G]
+  [topological_add_group G] [measurable_space G] [borel_space G] {K₀ : positive_compacts G}
+  {s : set G} (hs : measurable_set s) : add_haar_measure K₀ s =
+  (add_haar_content K₀).outer_measure s / (add_haar_content K₀).outer_measure K₀.1 :=
+begin
+  delta add_haar_measure,
+  simp only [hs, div_eq_mul_inv, mul_comm, content.measure_apply, algebra.id.smul_eq_mul,
+    coe_smul, pi.smul_apply],
+end
+
 @[to_additive]
 lemma haar_measure_apply {K₀ : positive_compacts G} {s : set G} (hs : measurable_set s) :
   haar_measure K₀ s = (haar_content K₀).outer_measure s / (haar_content K₀).outer_measure K₀.1 :=
-by simp only [haar_measure, hs, div_eq_mul_inv, mul_comm, content.measure_apply,
-      algebra.id.smul_eq_mul, pi.smul_apply, measure.coe_smul]
+begin
+  delta haar_measure,
+  simp only [hs, div_eq_mul_inv, mul_comm, content.measure_apply, algebra.id.smul_eq_mul,
+    coe_smul, pi.smul_apply],
+end
 
 @[to_additive]
 lemma is_mul_left_invariant_haar_measure (K₀ : positive_compacts G) :
@@ -540,7 +554,7 @@ begin
   refine ⟨_, ne_of_lt $ content.outer_measure_lt_top_of_is_compact _ K₀.2.1⟩,
   rw [← pos_iff_ne_zero],
   exact content.outer_measure_pos_of_is_mul_left_invariant _ is_left_invariant_haar_content
-    ⟨K₀.1, K₀.2.1⟩ (by simp only [haar_content_self, ennreal.zero_lt_one]) hU h2U
+    ⟨K₀.1, K₀.2.1⟩ (by simpa only [haar_content_self] using one_ne_zero) hU h2U
 end
 
 /-- The Haar measure is regular. -/
@@ -549,8 +563,8 @@ instance regular_haar_measure [locally_compact_space G] {K₀ : positive_compact
   (haar_measure K₀).regular :=
 begin
   apply regular.smul,
-  rw ennreal.inv_lt_top,
-  exact haar_content_outer_measure_self_pos,
+  rw ennreal.inv_ne_top,
+  exact haar_content_outer_measure_self_pos.ne'
 end
 
 section unique
@@ -570,7 +584,7 @@ end
 
 @[to_additive]
 theorem regular_of_is_mul_left_invariant (hμ : is_mul_left_invariant μ) {K} (hK : is_compact K)
-  (h2K : (interior K).nonempty) (hμK : μ K < ∞) : regular μ :=
+  (h2K : (interior K).nonempty) (hμK : μ K ≠ ∞) : regular μ :=
 begin
   rw [haar_measure_unique hμ ⟨K, hK, h2K⟩],
   exact regular.smul hμK

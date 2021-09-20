@@ -199,7 +199,7 @@ begin
 end
 
 lemma C_content_dvd (p : polynomial R) : C p.content ∣ p :=
-dvd_content_iff_C_dvd.1 (dvd_refl _)
+dvd_content_iff_C_dvd.1 dvd_rfl
 
 lemma is_primitive_iff_content_eq_one {p : polynomial R} : p.is_primitive ↔ p.content = 1 :=
 begin
@@ -335,11 +335,11 @@ begin
       ← content_eq_gcd_leading_coeff_content_erase_lead, content_prim_part],
   { rw [← heq, degree_mul, with_bot.add_lt_add_iff_right],
     { apply degree_erase_lt p.prim_part_ne_zero },
-    { rw [bot_lt_iff_ne_bot, ne.def, degree_eq_bot],
+    { rw [ne.def, degree_eq_bot],
       apply q.prim_part_ne_zero } },
   { rw [mul_comm, ← heq, degree_mul, with_bot.add_lt_add_iff_left],
     { apply degree_erase_lt q.prim_part_ne_zero },
-    { rw [bot_lt_iff_ne_bot, ne.def, degree_eq_bot],
+    { rw [ne.def, degree_eq_bot],
       apply p.prim_part_ne_zero } }
 end
 

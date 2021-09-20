@@ -1,7 +1,6 @@
 /-
 Copyright (c) 2020 E.W.Ayers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-
 Authors: E.W.Ayers
 -/
 
@@ -73,7 +72,8 @@ meta def sf.flatten : sf → sf
   | (sf.of_string sx), (sf.of_string sy) := sf.of_string (sx ++ sy)
   | (sf.of_string sx), (sf.compose (sf.of_string sy) z) := sf.compose (sf.of_string (sx ++ sy)) z
   | (sf.compose x (sf.of_string sy)), (sf.of_string sz) := sf.compose x (sf.of_string (sy ++ sz))
-  | (sf.compose x (sf.of_string sy1)), (sf.compose (sf.of_string sy2) z) := sf.compose x (sf.compose (sf.of_string (sy1 ++ sy2)) z)
+  | (sf.compose x (sf.of_string sy1)), (sf.compose (sf.of_string sy2) z) :=
+    sf.compose x (sf.compose (sf.of_string (sy1 ++ sy2)) z)
   | x, y := sf.compose x y
   end
 | (sf.of_string s) := -- replace newline by space
@@ -150,7 +150,8 @@ meta def goto_def_button {γ} : expr → tactic (list (html (action γ)))
   ) <|> pure []
 
 /-- Due to a bug in the webview browser, we have to reduce the number of spans in the expression.
-To do this, we collect the attributes from `sf.block` and `sf.highlight` after an expression boundary. -/
+To do this, we collect the attributes from `sf.block` and `sf.highlight` after an expression
+boundary. -/
 meta def get_block_attrs {γ}: sf → tactic (sf × list (attr γ))
 | (sf.block i a) := do
   let s : attr (γ) := style [
@@ -170,11 +171,13 @@ meta def get_block_attrs {γ}: sf → tactic (sf × list (attr γ))
 /--
 Renders a subexpression as a list of html elements.
 -/
-meta def view {γ} (tooltip_component : tc subexpr (action γ)) (click_address : option expr.address) (select_address : option expr.address) :
+meta def view {γ} (tooltip_component : tc subexpr (action γ)) (click_address : option expr.address)
+  (select_address : option expr.address) :
   subexpr → sf → tactic (list (html (action γ)))
 | ⟨ce, current_address⟩ (sf.tag_expr ea e m) := do
   let new_address := current_address ++ ea,
-  let select_attrs : list (attr (action γ)) := if some new_address = select_address then [className "highlight"] else [],
+  let select_attrs : list (attr (action γ)) :=
+    if some new_address = select_address then [className "highlight"] else [],
   click_attrs  : list (attr (action γ)) ←
     if some new_address = click_address then do
       content ← tc.to_html tooltip_component (e, new_address),
@@ -182,8 +185,10 @@ meta def view {γ} (tooltip_component : tc subexpr (action γ)) (click_address :
       gd_btn ← goto_def_button e,
       pure [tooltip $ h "div" [] [
           h "div" [cn "fr"] (gd_btn ++ [
-            h "button" [cn "pointer ba br3 mr1", on_click (λ _, action.effect $ widget.effect.copy_text efmt), attr.val "title" "copy expression to clipboard"] ["📋"],
-            h "button" [cn "pointer ba br3", on_click (λ _, action.on_close_tooltip), attr.val "title" "close"] ["×"]
+            h "button" [cn "pointer ba br3 mr1", on_click (λ _, action.effect $
+              widget.effect.copy_text efmt), attr.val "title" "copy expression to clipboard"] ["📋"],
+            h "button" [cn "pointer ba br3", on_click (λ _, action.on_close_tooltip),
+              attr.val "title" "close"] ["×"]
           ]),
           content
       ]]
@@ -229,7 +234,8 @@ $ tc.mk_simple
     match act with
     | (action.on_mouse_enter ⟨e, ea⟩) := ((ca, some (e, ea)), none)
     | (action.on_mouse_leave_all)     := ((ca, none), none)
-    | (action.on_click ⟨e, ea⟩)       := if some (e,ea) = ca then ((none, sa), none) else ((some (e, ea), sa), none)
+    | (action.on_click ⟨e, ea⟩)       :=
+      if some (e,ea) = ca then ((none, sa), none) else ((some (e, ea), sa), none)
     | (action.on_tooltip_action g)    := ((none, sa), some $ sum.inl g)
     | (action.on_close_tooltip)       := ((none, sa), none)
     | (action.effect e)               := ((ca,sa), some $ sum.inr $ e)
@@ -239,7 +245,8 @@ $ tc.mk_simple
     m ← sf.of_eformat <$> tactic.pp_tagged e,
     let m := m.elim_part_apps,
     let m := m.flatten,
-    let m := m.tag_expr [] e, -- [hack] in pp.cpp I forgot to add an expr-boundary for the root expression.
+    -- [hack] in pp.cpp I forgot to add an expr-boundary for the root expression.
+    let m := m.tag_expr [] e,
     v ← view tooltip_comp (prod.snd <$> ca) (prod.snd <$> sa) ⟨e, []⟩ m,
     pure $
     [ h "span" [
@@ -365,7 +372,8 @@ meta def group_local_collection : list local_collection → list local_collectio
 | ls := ls
 
 /-- Component that displays the main (first) goal. -/
-meta def tactic_view_goal {γ} (local_c : tc local_collection γ) (target_c : tc expr γ) : tc filter_type γ :=
+meta def tactic_view_goal {γ} (local_c : tc local_collection γ) (target_c : tc expr γ) :
+  tc filter_type γ :=
 tc.stateless $ λ ft, do
   g@(expr.mvar u_n pp_n y) ← main_goal,
   t ← get_tag g,
@@ -410,7 +418,8 @@ meta def goals_accomplished_message {α} : html α :=
 h "div" [cn "f5"] ["goals accomplished 🎉"]
 
 /-- Component that displays all goals, together with the `$n goals` message. -/
-meta def tactic_view_component {γ} (local_c : tc local_collection γ) (target_c : tc expr γ) : tc unit γ :=
+meta def tactic_view_component {γ} (local_c : tc local_collection γ) (target_c : tc expr γ) :
+  tc unit γ :=
 tc.mk_simple
   (tactic_view_action γ)
   (filter_type)
@@ -436,12 +445,14 @@ tc.mk_simple
           h "li" [className $ "lh-copy mt2", key i] [x])
         $ (goal_message :: hs),
     pure [
-      h "div" [className "fr"] [html.of_component ft $ component.map_action tactic_view_action.filter filter_component],
+      h "div" [className "fr"]
+        [html.of_component ft $ component.map_action tactic_view_action.filter filter_component],
       html.map_action tactic_view_action.out goals
     ])
 
 /-- Component that displays the term-mode goal. -/
-meta def tactic_view_term_goal {γ} (local_c : tc local_collection γ) (target_c : tc expr γ) : tc unit γ :=
+meta def tactic_view_term_goal {γ} (local_c : tc local_collection γ) (target_c : tc expr γ) :
+  tc unit γ :=
 tc.stateless $ λ _, do
   goal ← flip tc.to_html (filter_type.none) $ tactic_view_goal local_c target_c,
   pure [h "ul" [className "list pl0"] [

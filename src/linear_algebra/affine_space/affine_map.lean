@@ -286,6 +286,22 @@ instance : monoid (P1 →ᵃ[k] P1) :=
 @[simp] lemma coe_mul (f g : P1 →ᵃ[k] P1) : ⇑(f * g) = f ∘ g := rfl
 @[simp] lemma coe_one : ⇑(1 : P1 →ᵃ[k] P1) = _root_.id := rfl
 
+include V2
+
+@[simp] lemma injective_iff_linear_injective (f : P1 →ᵃ[k] P2) :
+  function.injective f.linear ↔ function.injective f :=
+begin
+  split; intros hf x y hxy,
+  { rw [← @vsub_eq_zero_iff_eq V1, ← @submodule.mem_bot k V1, ← linear_map.ker_eq_bot.mpr hf,
+      linear_map.mem_ker, affine_map.linear_map_vsub, hxy, vsub_self], },
+  { obtain ⟨p⟩ := (by apply_instance : nonempty P1),
+    have hxy' : (f.linear x) +ᵥ f p = (f.linear y) +ᵥ f p, { rw hxy, },
+    rw [← f.map_vadd, ← f.map_vadd] at hxy',
+    exact (vadd_right_cancel_iff _).mp (hf hxy'), },
+end
+
+omit V2
+
 /-! ### Definition of `affine_map.line_map` and lemmas about it -/
 
 /-- The affine map from `k` to `P1` sending `0` to `p₀` and `1` to `p₁`. -/
@@ -459,7 +475,7 @@ instance : module k (P1 →ᵃ[k] V2) :=
 
 @[simp] lemma coe_smul (c : k) (f : P1 →ᵃ[k] V2) : ⇑(c • f) = c • f := rfl
 
-/-- `homothety c r` is the homothety about `c` with scale factor `r`. -/
+/-- `homothety c r` is the homothety (also known as dilation) about `c` with scale factor `r`. -/
 def homothety (c : P1) (r : k) : P1 →ᵃ[k] P1 :=
 r • (id k P1 -ᵥ const k P1 c) +ᵥ const k P1 c
 

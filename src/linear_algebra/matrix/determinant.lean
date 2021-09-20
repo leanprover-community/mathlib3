@@ -104,11 +104,18 @@ lemma det_unique {n : Type*} [unique n] [decidable_eq n] [fintype n] (A : matrix
   det A = A (default n) (default n) :=
 by simp [det_apply, univ_unique]
 
+lemma det_eq_elem_of_subsingleton [subsingleton n] (A : matrix n n R) (k : n) :
+  det A = A k k :=
+begin
+  convert det_unique _,
+  exact unique_of_subsingleton k
+end
+
 lemma det_eq_elem_of_card_eq_one {A : matrix n n R} (h : fintype.card n = 1) (k : n) :
   det A = A k k :=
 begin
-  casesI fintype.card_eq_one_iff_nonempty_unique.mp h,
-  convert det_unique A,
+  haveI : subsingleton n := fintype.card_le_one_iff_subsingleton.mp h.le,
+  exact det_eq_elem_of_subsingleton _ _
 end
 
 lemma det_mul_aux {M N : matrix n n R} {p : n → n} (H : ¬bijective p) :

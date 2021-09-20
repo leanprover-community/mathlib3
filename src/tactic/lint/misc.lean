@@ -326,8 +326,8 @@ the universe problem is with `xyz` itself (even if the linter doesn't flag `xyz`
 -/
 
 /--
-Checks whether a lemma is a declaration of the form `∀ a b ... z, e₁ = e₂` 
-where `e₁` and `e₂` are identical exprs. 
+Checks whether a lemma is a declaration of the form `∀ a b ... z, e₁ = e₂`
+where `e₁` and `e₂` are identical exprs.
 We call declarations of this form syntactic tautologies.
 Such lemmas are (mostly) useless and sometimes introduced unintentionally when proving basic facts
 with rfl when elaboration results in a different term than the user intended.
@@ -352,3 +352,5 @@ meta def linter.syn_taut : linter :=
 "basic facts using `rfl`, when elaboration results in a different term than the user intended. " ++
 "You should check that the declaration really says what you think it does.",
   is_fast := tt }
+
+attribute [nolint syn_taut] rfl

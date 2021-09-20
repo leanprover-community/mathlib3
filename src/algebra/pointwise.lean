@@ -238,6 +238,16 @@ Union_image_left _
 lemma Union_mul_right_image [has_mul α] : (⋃ a ∈ t, (λ x, x * a) '' s) = s * t :=
 Union_image_right _
 
+@[to_additive]
+lemma Union_mul {ι : Sort*} [has_mul α] (s : ι → set α) (t : set α) :
+  (⋃ i, s i) * t = ⋃ i, (s i * t) :=
+image2_Union_left _ _ _
+
+@[to_additive]
+lemma mul_Union {ι : Sort*} [has_mul α] (t : set α) (s : ι → set α) :
+  t * (⋃ i, s i) = ⋃ i, (t * s i) :=
+image2_Union_right _ _ _
+
 @[simp, to_additive]
 lemma univ_mul_univ [monoid α] : (univ : set α) * univ = univ :=
 begin
@@ -396,6 +406,9 @@ by { rw [← inv_subset_inv, set.inv_inv] }
 @[to_additive] lemma finite.inv [group α] {s : set α} (hs : finite s) : finite s⁻¹ :=
 hs.preimage $ inv_injective.inj_on _
 
+@[to_additive] lemma inv_singleton {β : Type*} [group β] (x : β) : ({x} : set β)⁻¹ = {x⁻¹} :=
+by { ext1 y, rw [mem_inv, mem_singleton_iff, mem_singleton_iff, inv_eq_iff_inv_eq, eq_comm], }
+
 /-! ### Properties about scalar multiplication -/
 
 /-- The scaling of a set `(x • s : set β)` by a scalar `x ∶ α` is defined as `{x • y | y ∈ s}`
@@ -543,12 +556,14 @@ instance set_semiring.comm_semiring [comm_monoid α] : comm_semiring (set_semiri
 
 /-- A multiplicative action of a monoid on a type β gives also a
  multiplicative action on the subsets of β. -/
+@[to_additive "An additive action of an additive monoid on a type β gives also an additive action
+on the subsets of β."]
 protected def mul_action_set [monoid α] [mul_action α β] : mul_action α (set β) :=
 { mul_smul := by { intros, simp only [← image_smul, image_image, ← mul_smul] },
   one_smul := by { intros, simp only [← image_smul, image_eta, one_smul, image_id'] },
   ..set.has_scalar_set }
 
-localized "attribute [instance] set.mul_action_set" in pointwise
+localized "attribute [instance] set.mul_action_set set.add_action_set" in pointwise
 
 section mul_hom
 

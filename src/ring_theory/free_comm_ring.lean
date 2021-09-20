@@ -334,7 +334,8 @@ ring_equiv.of_hom_inv
 
 /-- The free commutative ring on the empty type is isomorphic to `ℤ`. -/
 def free_comm_ring_pempty_equiv_int : free_comm_ring pempty.{u+1} ≃+* ℤ :=
-ring_equiv.trans (free_comm_ring_equiv_mv_polynomial_int _) (mv_polynomial.pempty_ring_equiv _)
+ring_equiv.trans (free_comm_ring_equiv_mv_polynomial_int _)
+  (mv_polynomial.is_empty_ring_equiv _ pempty)
 
 /-- The free commutative ring on a type with one term is isomorphic to `ℤ[X]`. -/
 def free_comm_ring_punit_equiv_polynomial_int : free_comm_ring punit.{u+1} ≃+* polynomial ℤ :=

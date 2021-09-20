@@ -98,11 +98,11 @@ by rw [← coe_nonempty, coe_univ, set.nonempty_iff_univ_nonempty]
 lemma univ_nonempty [nonempty α] : (univ : finset α).nonempty :=
 univ_nonempty_iff.2 ‹_›
 
-lemma univ_eq_empty : (univ : finset α) = ∅ ↔ ¬nonempty α :=
-by rw [← univ_nonempty_iff, nonempty_iff_ne_empty, ne.def, not_not]
+lemma univ_eq_empty_iff : (univ : finset α) = ∅ ↔ is_empty α :=
+by rw [← not_nonempty_iff, ← univ_nonempty_iff, not_nonempty_iff_eq_empty]
 
-lemma univ_eq_empty' : (univ : finset α) = ∅ ↔ is_empty α :=
-univ_eq_empty.trans (not_nonempty_iff)
+lemma univ_eq_empty [is_empty α] : (univ : finset α) = ∅ :=
+univ_eq_empty_iff.2 ‹_›
 
 @[simp] theorem subset_univ (s : finset α) : s ⊆ univ := λ a _, mem_univ a
 
@@ -936,8 +936,9 @@ by rw [←card_unit, card_eq]; exact
     λ _, subsingleton.elim _ _⟩⟩⟩
 
 lemma card_eq_zero_iff : card α = 0 ↔ is_empty α :=
-⟨λ h, ⟨λ a, have e : α ≃ empty := classical.choice (card_eq.1 (by simp [h])), (e a).elim⟩,
-  λ h, by { have e : α ≃ empty, exactI equiv.equiv_empty α, simp [card_congr e] }⟩
+by rw [card, finset.card_eq_zero, univ_eq_empty_iff]
+
+lemma card_eq_zero [is_empty α] : card α = 0 := card_eq_zero_iff.2 ‹_›
 
 lemma card_eq_one_iff_nonempty_unique : card α = 1 ↔ nonempty (unique α) :=
 ⟨λ h, let ⟨d, h⟩ := fintype.card_eq_one_iff.mp h in ⟨{ default := d, uniq := h}⟩,
@@ -1606,12 +1607,9 @@ not_fintype α
 @[simp] lemma is_empty_fintype {α : Type*} : is_empty (fintype α) ↔ infinite α :=
 ⟨λ ⟨x⟩, ⟨x⟩, λ ⟨x⟩, ⟨x⟩⟩
 
-@[simp] lemma not_nonempty_fintype {α : Type*} : ¬ nonempty (fintype α) ↔ infinite α :=
-not_nonempty_iff.trans is_empty_fintype
-
 /-- A non-infinite type is a fintype. -/
 noncomputable def fintype_of_not_infinite {α : Type*} (h : ¬ infinite α) : fintype α :=
-((not_iff_comm.mp not_nonempty_fintype).mp h).some
+nonempty.some $ by rwa [← not_is_empty_iff, is_empty_fintype]
 
 section
 open_locale classical
@@ -1863,3 +1861,65 @@ begin
 end
 
 end fintype
+
+/-- Auxiliary definition to show `exists_seq_of_forall_finset_exists`. -/
+noncomputable def seq_of_forall_finset_exists_aux
+  {α : Type*} [decidable_eq α] (P : α → Prop) (r : α → α → Prop)
+  (h : ∀ (s : finset α), ∃ y, (∀ x ∈ s, P x) → (P y ∧ (∀ x ∈ s, r x y))) : ℕ → α
+| n := classical.some (h (finset.image (λ (i : fin n), seq_of_forall_finset_exists_aux i)
+        (finset.univ : finset (fin n))))
+using_well_founded {dec_tac := `[exact i.2]}
+
+/-- Induction principle to build a sequence, by adding one point at a time satisfying a given
+relation with respect to all the previously chosen points.
+
+More precisely, Assume that, for any finite set `s`, one can find another point satisfying
+some relation `r` with respect to all the points in `s`. Then one may construct a
+function `f : ℕ → α` such that `r (f m) (f n)` holds whenever `m < n`.
+We also ensure that all constructed points satisfy a given predicate `P`. -/
+lemma exists_seq_of_forall_finset_exists {α : Type*} (P : α → Prop) (r : α → α → Prop)
+  (h : ∀ (s : finset α), (∀ x ∈ s, P x) → ∃ y, P y ∧ (∀ x ∈ s, r x y)) :
+  ∃ (f : ℕ → α), (∀ n, P (f n)) ∧ (∀ m n, m < n → r (f m) (f n)) :=
+begin
+  classical,
+  haveI : nonempty α,
+  { rcases h ∅ (by simp) with ⟨y, hy⟩,
+    exact ⟨y⟩ },
+  choose! F hF using h,
+  have h' : ∀ (s : finset α), ∃ y, (∀ x ∈ s, P x) → (P y ∧ (∀ x ∈ s, r x y)) := λ s, ⟨F s, hF s⟩,
+  set f := seq_of_forall_finset_exists_aux P r h' with hf,
+  have A : ∀ (n : ℕ), P (f n),
+  { assume n,
+    induction n using nat.strong_induction_on with n IH,
+    have IH' : ∀ (x : fin n), P (f x) := λ n, IH n.1 n.2,
+    rw [hf, seq_of_forall_finset_exists_aux],
+    exact (classical.some_spec (h' (finset.image (λ (i : fin n), f i)
+      (finset.univ : finset (fin n)))) (by simp [IH'])).1 },
+  refine ⟨f, A, λ m n hmn, _⟩,
+  nth_rewrite 1 hf,
+  rw seq_of_forall_finset_exists_aux,
+  apply (classical.some_spec (h' (finset.image (λ (i : fin n), f i)
+    (finset.univ : finset (fin n)))) (by simp [A])).2,
+  exact finset.mem_image.2 ⟨⟨m, hmn⟩, finset.mem_univ _, rfl⟩,
+end
+
+/-- Induction principle to build a sequence, by adding one point at a time satisfying a given
+symmetric relation with respect to all the previously chosen points.
+
+More precisely, Assume that, for any finite set `s`, one can find another point satisfying
+some relation `r` with respect to all the points in `s`. Then one may construct a
+function `f : ℕ → α` such that `r (f m) (f n)` holds whenever `m ≠ n`.
+We also ensure that all constructed points satisfy a given predicate `P`. -/
+lemma exists_seq_of_forall_finset_exists' {α : Type*} (P : α → Prop) (r : α → α → Prop)
+  [is_symm α r]
+  (h : ∀ (s : finset α), (∀ x ∈ s, P x) → ∃ y, P y ∧ (∀ x ∈ s, r x y)) :
+  ∃ (f : ℕ → α), (∀ n, P (f n)) ∧ (∀ m n, m ≠ n → r (f m) (f n)) :=
+begin
+  rcases exists_seq_of_forall_finset_exists P r h with ⟨f, hf, hf'⟩,
+  refine ⟨f, hf, λ m n hmn, _⟩,
+  rcases lt_trichotomy m n with h|rfl|h,
+  { exact hf' m n h },
+  { exact (hmn rfl).elim },
+  { apply symm,
+    exact hf' n m h }
+end

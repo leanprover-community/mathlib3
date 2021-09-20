@@ -30,7 +30,7 @@ begin
   { rw eventually_countable_forall,
     refine λ n, eventually_lt_of_limsup_lt _,
     nth_rewrite 0 ←add_zero (f.limsup u),
-    exact (add_lt_add_iff_left (lt_top_iff_ne_top.mpr hx_top)).mpr (by simp), },
+    exact (add_lt_add_iff_left hx_top).mpr (by simp), },
   refine h_forall_le.mono (λ y hy, le_of_forall_pos_le_add (λ r hr_pos hx_top, _)),
   have hr_ne_zero : (r : ℝ≥0∞) ≠ 0,
   { rw [ne.def, coe_eq_zero],

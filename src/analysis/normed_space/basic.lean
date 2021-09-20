@@ -227,7 +227,7 @@ calc ∥v∥ = ∥u - (u - v)∥ : by abel
 lemma norm_le_insert' (u v : α) : ∥u∥ ≤ ∥v∥ + ∥u - v∥ :=
 by { rw norm_sub_rev, exact norm_le_insert v u }
 
-lemma ball_0_eq (ε : ℝ) : ball (0:α) ε = {x | ∥x∥ < ε} :=
+lemma ball_zero_eq (ε : ℝ) : ball (0:α) ε = {x | ∥x∥ < ε} :=
 set.ext $ assume a, by simp
 
 lemma mem_ball_iff_norm {g h : α} {r : ℝ} :
@@ -242,7 +242,7 @@ lemma mem_ball_iff_norm' {g h : α} {r : ℝ} :
   h ∈ ball g r ↔ ∥g - h∥ < r :=
 by rw [mem_ball', dist_eq_norm]
 
-@[simp] lemma mem_ball_0_iff {ε : ℝ} {x : α} : x ∈ ball (0 : α) ε ↔ ∥x∥ < ε :=
+@[simp] lemma mem_ball_zero_iff {ε : ℝ} {x : α} : x ∈ ball (0 : α) ε ↔ ∥x∥ < ε :=
 by rw [mem_ball, dist_zero_right]
 
 lemma mem_closed_ball_iff_norm {g h : α} {r : ℝ} :
@@ -554,7 +554,7 @@ by rw [edist_dist, dist_eq_norm, of_real_norm_eq_coe_nnnorm]
 lemma edist_eq_coe_nnnorm (x : β) : edist x 0 = (∥x∥₊ : ℝ≥0∞) :=
 by rw [edist_eq_coe_nnnorm_sub, _root_.sub_zero]
 
-lemma mem_emetric_ball_0_iff {x : β} {r : ℝ≥0∞} : x ∈ emetric.ball (0 : β) r ↔ ↑∥x∥₊ < r :=
+lemma mem_emetric_ball_zero_iff {x : β} {r : ℝ≥0∞} : x ∈ emetric.ball (0 : β) r ↔ ↑∥x∥₊ < r :=
 by rw [emetric.mem_ball, edist_eq_coe_nnnorm]
 
 lemma nndist_add_add_le (g₁ g₂ h₁ h₂ : α) :
@@ -1614,28 +1614,29 @@ theorem frontier_closed_ball [semi_normed_space ℝ E] (x : E) {r : ℝ} (hr : 0
 by rw [frontier, closure_closed_ball, interior_closed_ball x hr,
   closed_ball_diff_ball]
 
-theorem smul_ball_0 {c : α} (hc : c ≠ 0) (r : ℝ) :
-  c • ball (0 : α) r = ball 0 (∥c∥ * r) :=
+theorem smul_ball_zero {c : α} (hc : c ≠ 0) (r : ℝ) :
+  c • ball (0 : E) r = ball 0 (∥c∥ * r) :=
 begin
-  rw ← preimage_smul_inv hc,
+  rw ← preimage_smul_inv' hc (ball (0 : E) r),
   ext y,
-  simp [← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hc), mul_comm _ r],
+  simp [norm_smul, ← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hc), mul_comm _ r],
 end
 
-theorem smul_closed_ball_0' {c : α} (hc : c ≠ 0) (r : ℝ) :
-  c • closed_ball (0 : α) r = closed_ball 0 (∥c∥ * r) :=
+theorem smul_closed_ball_zero' {c : α} (hc : c ≠ 0) (r : ℝ) :
+  c • closed_ball (0 : E) r = closed_ball 0 (∥c∥ * r) :=
 begin
-  rw ← preimage_smul_inv hc,
+  rw ← preimage_smul_inv' hc (closed_ball (0 : E) r),
   ext y,
-  simp [← div_eq_inv_mul, div_le_iff (norm_pos_iff.2 hc), mul_comm _ r],
+  simp [norm_smul, ← div_eq_inv_mul, div_le_iff (norm_pos_iff.2 hc), mul_comm _ r],
 end
 
-theorem smul_closed_ball_0 (c : α) {r : ℝ} (hr : 0 ≤ r) :
-  c • closed_ball (0 : α) r = closed_ball 0 (∥c∥ * r) :=
+theorem smul_closed_ball_zero {E : Type*} [normed_group E] [normed_space α E]
+  (c : α) {r : ℝ} (hr : 0 ≤ r) :
+  c • closed_ball (0 : E) r = closed_ball 0 (∥c∥ * r) :=
 begin
   rcases eq_or_ne c 0 with rfl|hc,
   { simp [hr, zero_smul_set, set.singleton_zero, ← nonempty_closed_ball] },
-  { exact smul_closed_ball_0' hc r }
+  { exact smul_closed_ball_zero' hc r }
 end
 
 variables (α)
@@ -1908,7 +1909,7 @@ lemma cauchy_seq_finset_iff_vanishing_norm {f : ι → α} :
     ∀ε > (0 : ℝ), ∃s:finset ι, ∀t, disjoint t s → ∥ ∑ i in t, f i ∥ < ε :=
 begin
   rw [cauchy_seq_finset_iff_vanishing, nhds_basis_ball.forall_iff],
-  { simp only [ball_0_eq, set.mem_set_of_eq] },
+  { simp only [ball_zero_eq, set.mem_set_of_eq] },
   { rintros s t hst ⟨s', hs'⟩,
     exact ⟨s', λ t' ht', hst $ hs' _ ht'⟩ }
 end

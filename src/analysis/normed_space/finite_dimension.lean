@@ -45,6 +45,67 @@ universes u v w x
 open set finite_dimensional topological_space filter asymptotics
 open_locale classical big_operators filter topological_space asymptotics
 
+namespace linear_isometry
+
+open linear_map
+
+variables {R : Type*} [semiring R]
+
+variables {F E₁ : Type*} [semi_normed_group F]
+  [normed_group E₁] [module R E₁]
+
+variables {R₁ : Type*} [field R₁] [module R₁ E₁] [module R₁ F]
+  [finite_dimensional R₁ E₁] [finite_dimensional R₁ F]
+
+/-- A linear isometry between finite dimensional spaces of equal dimension can be upgraded
+    to a linear isometry equivalence. -/
+noncomputable def to_linear_isometry_equiv
+  (li : E₁ →ₗᵢ[R₁] F) (h : finrank R₁ E₁ = finrank R₁ F) : E₁ ≃ₗᵢ[R₁] F :=
+{ to_linear_equiv :=
+    li.to_linear_map.linear_equiv_of_injective li.injective h,
+  norm_map' := li.norm_map' }
+
+@[simp] lemma coe_to_linear_isometry_equiv
+  (li : E₁ →ₗᵢ[R₁] F) (h : finrank R₁ E₁ = finrank R₁ F) :
+  (li.to_linear_isometry_equiv h : E₁ → F) = li := rfl
+
+@[simp] lemma to_linear_isometry_equiv_apply
+  (li : E₁ →ₗᵢ[R₁] F) (h : finrank R₁ E₁ = finrank R₁ F) (x : E₁) :
+  (li.to_linear_isometry_equiv h) x = li x := rfl
+
+end linear_isometry
+
+namespace affine_isometry
+
+open affine_map
+
+variables {𝕜 : Type*} {V₁ V₂  : Type*} {P₁ P₂ : Type*}
+  [normed_field 𝕜]
+  [normed_group V₁] [semi_normed_group V₂]
+  [normed_space 𝕜 V₁] [semi_normed_space 𝕜 V₂]
+  [metric_space P₁] [pseudo_metric_space P₂]
+  [normed_add_torsor V₁ P₁] [semi_normed_add_torsor V₂ P₂]
+
+variables [finite_dimensional 𝕜 V₁] [finite_dimensional 𝕜 V₂]
+
+/-- A affine isometry between finite dimensional spaces of equal dimension can be upgraded
+    to an affine isometry equivalence. -/
+noncomputable def to_affine_isometry_equiv [inhabited P₁]
+  (li : P₁ →ᵃⁱ[𝕜] P₂) (h : finrank 𝕜 V₁ = finrank 𝕜 V₂) : P₁ ≃ᵃⁱ[𝕜] P₂ :=
+affine_isometry_equiv.mk' li (li.linear_isometry.to_linear_isometry_equiv h) (arbitrary P₁)
+  (λ p, by simp)
+
+@[simp] lemma coe_to_affine_isometry_equiv [inhabited P₁]
+  (li : P₁ →ᵃⁱ[𝕜] P₂) (h : finrank 𝕜 V₁ = finrank 𝕜 V₂) :
+  (li.to_affine_isometry_equiv h : P₁ → P₂) = li := rfl
+
+@[simp] lemma to_affine_isometry_equiv_apply [inhabited P₁]
+  (li : P₁ →ᵃⁱ[𝕜] P₂) (h : finrank 𝕜 V₁ = finrank 𝕜 V₂) (x : P₁) :
+  (li.to_affine_isometry_equiv h) x = li x := rfl
+
+end affine_isometry
+
+
 noncomputable theory
 
 /-- A linear map on `ι → 𝕜` (where `ι` is a fintype) is continuous -/

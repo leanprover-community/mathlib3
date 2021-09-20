@@ -594,8 +594,8 @@ lemma antilipschitz_with.add_lipschitz_with {α : Type*} [pseudo_metric_space α
 begin
   refine antilipschitz_with.of_le_mul_dist (λ x y, _),
   rw [nnreal.coe_inv, ← div_eq_inv_mul],
-  rw le_div_iff (nnreal.coe_pos.2 $ nnreal.sub_pos.2 hK),
-  rw [mul_comm, nnreal.coe_sub (le_of_lt hK), sub_mul],
+  rw le_div_iff (nnreal.coe_pos.2 $ sub_pos_iff_lt.2 hK),
+  rw [mul_comm, nnreal.coe_sub hK.le, sub_mul],
   calc ↑Kf⁻¹ * dist x y - Kg * dist x y ≤ dist (f x) (f y) - dist (g x) (g y) :
     sub_le_sub (hf.mul_le_dist x y) (hg.dist_le_mul x y)
   ... ≤ _ : le_trans (le_abs_self _) (abs_dist_sub_le_dist_add_add _ _ _ _)
@@ -1360,6 +1360,14 @@ nnreal.eq $ norm_of_nonneg hx
 
 lemma ennnorm_eq_of_real {x : ℝ} (hx : 0 ≤ x) : (∥x∥₊ : ℝ≥0∞) = ennreal.of_real x :=
 by { rw [← of_real_norm_eq_coe_nnnorm, norm_of_nonneg hx] }
+
+lemma of_real_le_ennnorm (x : ℝ) : ennreal.of_real x ≤ ∥x∥₊ :=
+begin
+  by_cases hx : 0 ≤ x,
+  { rw real.ennnorm_eq_of_real hx, refl' },
+  { rw [ennreal.of_real_eq_zero.2 (le_of_lt (not_le.1 hx))],
+    exact bot_le }
+end
 
 /-- If `E` is a nontrivial topological module over `ℝ`, then `E` has no isolated points.
 This is a particular case of `module.punctured_nhds_ne_bot`. -/

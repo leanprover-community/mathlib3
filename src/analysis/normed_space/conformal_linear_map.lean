@@ -43,14 +43,15 @@ open linear_isometry continuous_linear_map
 
 /-- A continuous linear map `f'` is said to be conformal if it's
     a nonzero multiple of a linear isometry. -/
-def is_conformal_map {R : Type*} {X Y : Type*} [nondiscrete_normed_field R]
-  [normed_group X] [normed_group Y] [normed_space R X] [normed_space R Y]
+def is_conformal_map {R : Type*} {X Y : Type*} [normed_field R]
+  [semi_normed_group X] [semi_normed_group Y] [semi_normed_space R X] [semi_normed_space R Y]
   (f' : X →L[R] Y) :=
 ∃ (c : R) (hc : c ≠ 0) (li : X →ₗᵢ[R] Y), (f' : X → Y) = c • li
 
-variables {R M N G : Type*} [nondiscrete_normed_field R]
-  [normed_group M] [normed_group N] [normed_group G]
-  [normed_space R M] [normed_space R N] [normed_space R G]
+variables {R M N G M' : Type*} [normed_field R]
+  [semi_normed_group M] [semi_normed_group N] [semi_normed_group G]
+  [semi_normed_space R M] [semi_normed_space R N] [semi_normed_space R G]
+  [normed_group M'] [normed_space R M']
 
 lemma is_conformal_map_id : is_conformal_map (id R M) :=
 ⟨1, one_ne_zero, id, by { ext, simp }⟩
@@ -86,15 +87,15 @@ begin
              function.comp_app, linear_isometry.map_smul, smul_smul],
 end
 
-lemma injective {f' : M →L[R] N} (h : is_conformal_map f') : function.injective f' :=
+lemma injective {f' : M' →L[R] N} (h : is_conformal_map f') : function.injective f' :=
 let ⟨c, hc, li, hf'⟩ := h in by simp only [hf', pi.smul_def];
   exact (smul_right_injective _ hc).comp li.injective
 
-lemma ne_zero [nontrivial M] {f' : M →L[R] N} (hf' : is_conformal_map f') :
+lemma ne_zero [nontrivial M'] {f' : M' →L[R] N} (hf' : is_conformal_map f') :
   f' ≠ 0 :=
 begin
   intros w,
-  rcases exists_ne (0 : M) with ⟨a, ha⟩,
+  rcases exists_ne (0 : M') with ⟨a, ha⟩,
   have : f' a = f' 0,
   { simp_rw [w, continuous_linear_map.zero_apply], },
   exact ha (hf'.injective this),

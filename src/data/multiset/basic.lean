@@ -2159,7 +2159,6 @@ begin
     simp only [count_repeat, eq_self_iff_true, if_true, card_repeat]},
 end
 
-#check multiset.mem_filter
 end
 
 /-! ### Lift a relation to `multiset`s -/

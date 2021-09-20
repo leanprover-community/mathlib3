@@ -95,6 +95,25 @@ lemma minpoly_dvd_charpoly {K : Type u} {M : Type v} [field K] [add_comm_group M
   [finite_dimensional K M] (f : M →ₗ[K] M) : (minpoly K f) ∣ f.charpoly :=
 minpoly.dvd _ _ (aeval_self_charpoly f)
 
+lemma charpoly_coeff_zero_of_injective (hf : function.injective f) : (minpoly R f).coeff 0 ≠ 0 :=
+begin
+  intro h,
+  obtain ⟨P, hP⟩ := X_dvd_iff.2 h,
+  have hdegP : P.degree < (minpoly R f).degree,
+  { rw [hP, mul_comm],
+    refine degree_lt_degree_mul_X (λ h, _),
+    rw [h, mul_zero] at hP,
+    exact minpoly.ne_zero (is_integral f) hP },
+  have hPmonic : P.monic,
+  { suffices : (minpoly R f).monic,
+    { rwa [monic.def, hP, mul_comm, leading_coeff_mul_X, ← monic.def] at this },
+    exact minpoly.monic (is_integral f) },
+  have hzero : aeval f (minpoly R f) = 0 := minpoly.aeval _ _,
+  simp only [hP, mul_eq_comp, ext_iff, hf, aeval_X, map_eq_zero_iff, coe_comp, alg_hom.map_mul,
+    zero_apply] at hzero,
+  exact not_le.2 hdegP (minpoly.min _ _ hPmonic (ext hzero)),
+end
+
 end cayley_hamilton
 
 end linear_map

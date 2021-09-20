@@ -32,7 +32,6 @@ Show that any two algebraic closures are isomorphic
 algebraic closure, algebraically closed
 
 -/
-
 universes u v w
 
 open_locale classical big_operators

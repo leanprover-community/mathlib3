@@ -354,3 +354,114 @@ meta def linter.syn_taut : linter :=
   is_fast := tt }
 
 attribute [nolint syn_taut] rfl
+
+
+/-!
+## Linters for ineffectual have and suffices statements in term mode
+-/
+
+meta def expr.has_zero_var (e : expr) : bool :=
+e.fold ff $ λ e' d res, res || match e' with | var k := k = d | _ := ff end
+
+meta def find_unused_have_macro : expr → tactic (list string)
+| (app a b) := (++) <$> find_unused_have_macro a <*> find_unused_have_macro b
+| (lam var_name bi var_type body) := (++) <$> find_unused_have_macro var_type
+                                     <*> find_unused_have_macro body
+| (pi var_name bi var_type body) := (++) <$> find_unused_have_macro var_type
+                                    <*> find_unused_have_macro body
+| (elet var_name type assignment body) := (++) <$> find_unused_have_macro type
+                                          <*> ((++) <$> find_unused_have_macro assignment
+                                               <*> find_unused_have_macro body)
+| (macro md [lam ppnm bi vt bd]) := do -- term mode have statements are tagged with a macro
+  -- if the macro annotation is `have then this lambda came from a term mode have statement
+  if Π h : (macro md [lam ppnm bi vt bd]).is_annotation.is_some, (option.get h).fst = `have then
+    (++) (if bd.has_zero_var then [] else
+      ["unnecessary have " ++ ppnm.to_string ++ " : " ++ vt.to_string]) <$>
+    find_unused_have_macro (lam ppnm bi vt bd)
+  else find_unused_have_macro (lam ppnm bi vt bd)
+| (macro md l) := do ls ← l.mmap find_unused_have_macro, return ls.join
+| _ := return []
+
+meta def unused_have_of_decl : declaration → tactic (list string)
+| (declaration.defn _ _ _ bd _ _) := find_unused_have_macro bd
+| (declaration.thm _ _ _ bd) := find_unused_have_macro bd.get
+| _ := return []
+
+/--
+Checks whether a declaration contains term mode have statements that have no effect on the resulting
+term.
+-/
+meta def has_unused_haves (d : declaration) : tactic (option string) := do
+  ns ← unused_have_of_decl d,
+  if ns.length = 0 then
+    return none
+  else
+    return (", ".intercalate (ns.map to_string))
+
+/-- A linter for checking that declarations don't have unused term mode have statements. We do not
+tag this as `@[linter]` so that it is not in the default linter set as it is slow and an uncommon
+problem. -/
+@[linter] -- TODO remove
+meta def linter.unused_haves : linter :=
+{ test := has_unused_haves,
+  auto_decls := ff,
+  no_errors_found := "No declarations have unused term mode have statements.",
+  errors_found := "THE FOLLOWING DECLARATIONS HAVE INEFFECTUAL TERM MODE HAVE STATEMENTS. " ++
+"This is a term of the form `have h := foo, bar` where `bar` does not refer to `foo`. " ++
+"Such statements have no effect on the generated proof, and can just be replaced by `bar`, " ++
+"in addition to being ineffectual, they may make unnecessary assumptions in proofs appear as if " ++
+"they are used. ",
+  is_fast := ff }
+
+
+meta def find_unused_suffices_macro : expr → tactic (list string)
+| (app a b) := (++) <$> find_unused_suffices_macro a <*> find_unused_suffices_macro b
+| (lam var_name bi var_type body) := (++) <$> find_unused_suffices_macro var_type
+                                     <*> find_unused_suffices_macro body
+| (pi var_name bi var_type body) := (++) <$> find_unused_suffices_macro var_type
+                                    <*> find_unused_suffices_macro body
+| (elet var_name type assignment body) := (++) <$> find_unused_suffices_macro type
+                                          <*> ((++) <$> find_unused_suffices_macro assignment
+                                               <*> find_unused_suffices_macro body)
+| (macro md [app (lam ppnm bi vt bd) arg]) := do
+  -- term mode suffices statements are tagged with a macro
+  -- if the macro annotation is `suffices then this lambda came from a term mode suffices statement
+  if Π h : (macro md [lam ppnm bi vt bd]).is_annotation.is_some, (option.get h).fst = `suffices then
+       (++) (if bd.has_zero_var then [] else
+        ["unnecessary suffices " ++ ppnm.to_string ++ " : " ++ vt.to_string]) <$>
+       find_unused_suffices_macro (lam ppnm bi vt bd)
+  else find_unused_suffices_macro (lam ppnm bi vt bd)
+| (macro md l) := do ls ← l.mmap find_unused_suffices_macro, return ls.join
+| _ := return []
+
+meta def unused_suffices_of_decl : declaration → tactic (list string)
+| (declaration.defn _ _ _ bd _ _) := find_unused_suffices_macro bd
+| (declaration.thm _ _ _ bd) := find_unused_suffices_macro bd.get
+| _ := return []
+
+/--
+Checks whether a declaration contains term mode suffices statements that have no effect on the
+resulting term.
+-/
+meta def has_unused_suffices (d : declaration) : tactic (option string) := do
+  ns ← unused_suffices_of_decl d,
+  if ns.length = 0 then
+    return none
+  else
+    return (", ".intercalate (ns.map to_string))
+
+/-- A linter for checking that declarations don't have unused term mode suffices statements.
+We do not tag this as `@[linter]` so that it is not in the default linter set as it is slow and an
+uncommon problem. -/
+@[linter] -- TODO remove
+meta def linter.unused_suffices : linter :=
+{ test := has_unused_suffices,
+  auto_decls := ff,
+  no_errors_found := "No declarations have unused term mode suffices statements.",
+  errors_found := "THE FOLLOWING DECLARATIONS HAVE INEFFECTUAL TERM MODE SUFFICES STATEMENTS. " ++
+"This is a term of the form `suffices h : foo, proof_of_goal, proof_of_foo` where " ++
+"`proof_of_goal` does not refer to `foo`. " ++
+"Such statements have no effect on the generated proof, and can just be replaced by " ++
+"`proof_of_goal`, in addition to being ineffectual, they may make unnecessary assumptions in " ++
+"proofs appear as if they are used. ",
+  is_fast := ff }

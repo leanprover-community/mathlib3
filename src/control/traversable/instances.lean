@@ -109,12 +109,7 @@ lemma mem_traverse {f : α' → set β'} :
 | []      []      := by simp
 | (a::as) []      := by simp; exact assume h, match h with end
 | []      (b::bs) := by simp
-| (a::as) (b::bs) :=
-  suffices (b :: bs : list β') ∈ traverse f (a :: as) ↔ b ∈ f a ∧ bs ∈ traverse f as,
-    by simp [mem_traverse as bs],
-  iff.intro
-    (assume ⟨_, ⟨b, hb, rfl⟩, _, hl, rfl⟩, ⟨hb, hl⟩)
-    (assume ⟨hb, hl⟩, ⟨_, ⟨b, hb, rfl⟩, _, hl, rfl⟩)
+| (a::as) (b::bs) := by simp [mem_traverse as bs]
 
 end traverse
 

@@ -725,6 +725,24 @@ continuous_iff_continuous_at.2 $ λ x, hf.continuous_at.update i hg.continuous_a
   continuous (λ f : (Π j, π j) × π i, function.update f.1 i f.2) :=
 continuous_fst.update i continuous_snd
 
+lemma filter.tendsto.extend_compl [∀ i, topological_space (π i)] [decidable_eq ι]
+  {l : filter α} {i : ι} {x : π i} {f : α → π i} (hf : tendsto f l (𝓝 x))
+  {g : α → Π j : ({i}ᶜ : set ι), π j} {y} (hg : tendsto g l (𝓝 y)) :
+  tendsto (λ a, pi.extend_compl_single i (f a) (g a)) l (𝓝 $ pi.extend_compl_single i x y) :=
+tendsto_pi.2 $ λ j, by { rcases em (j = i) with rfl|hj; simp [*, hg.apply] }
+
+lemma continuous_at.extend_compl [∀ i, topological_space (π i)] [decidable_eq ι]
+  [topological_space α] {a : α} {i : ι} {f : α → π i} (hf : continuous_at f a)
+  {g : α → Π j : ({i}ᶜ : set ι), π j} (hg : continuous_at g a) :
+  continuous_at (λ a, pi.extend_compl_single i (f a) (g a)) a :=
+hf.extend_compl hg
+
+@[continuity] lemma continuous.extend_compl [∀ i, topological_space (π i)] [decidable_eq ι]
+  [topological_space α] {i : ι} {f : α → π i} (hf : continuous f)
+  {g : α → Π j : ({i}ᶜ : set ι), π j} (hg : continuous g) :
+  continuous (λ a, pi.extend_compl_single i (f a) (g a)) :=
+continuous_iff_continuous_at.2 $ λ x, hf.continuous_at.extend_compl hg.continuous_at
+
 lemma is_open_set_pi [∀a, topological_space (π a)] {i : set ι} {s : Πa, set (π a)}
   (hi : finite i) (hs : ∀a∈i, is_open (s a)) : is_open (pi i s) :=
 by rw [pi_def]; exact (is_open_bInter hi $ assume a ha, (hs _ ha).preimage (continuous_apply _))

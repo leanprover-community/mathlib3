@@ -137,6 +137,59 @@ variables {α β γ : Type*}
 
 end instance_lemmas
 
+section
+
+variables [decidable_eq I]
+
+/-- Extend a function from `{i}ᶜ : set I` to `I`. -/
+def extend_compl_single (i : I) (y : f i) (g : Π j : ({i}ᶜ : set I), f j) :
+  Π j : I, f j :=
+λ j, if h : j = i then eq.rec y h.symm else g ⟨j, h⟩
+
+@[simp] lemma extend_compl_single_same (i : I) (y : f i) (g : Π j : ({i}ᶜ : set I), f j) :
+  extend_compl_single i y g i = y :=
+dif_pos rfl
+
+@[simp] lemma extend_compl_single_of_noteq {i j : I} (h : j ≠ i) (y : f i)
+  (g : Π j : ({i}ᶜ : set I), f j) :
+  extend_compl_single i y g j = g ⟨j, h⟩ :=
+dif_neg h
+
+@[simp] lemma extend_compl_single_zero [Π i, has_zero (f i)] (i : I) (y : f i) :
+  extend_compl_single i y 0 = single i y :=
+rfl
+
+lemma forall_extend_compl_single (p : Π i, f i → Prop) {i : I} {y : f i}
+  {g : Π j : ({i}ᶜ : set I), f j} :
+  (∀ j, p j (extend_compl_single i y g j)) ↔ p i y ∧ ∀ j (hj : j ≠ i), p j (g ⟨j, hj⟩) :=
+(and_forall_ne i).symm.trans $ and_congr (by rw extend_compl_single_same) $
+  forall_congr $ λ j, forall_congr $ λ hj, by rw [extend_compl_single_of_noteq hj]
+
+@[simp] lemma extend_compl_single_sub_same [Π i, add_group (f i)] (i : I) (y₁ y₂ : f i)
+  (g : Π j : ({i}ᶜ : set I), f j) :
+  extend_compl_single i y₁ g - extend_compl_single i y₂ g = single i (y₁ - y₂) :=
+by { ext j, rcases eq_or_ne j i with (rfl|hj); simp * }
+
+@[simp] lemma extend_compl_single_le_iff [Π i, preorder (f i)] {i : I} {y : f i}
+  {g : Π j : ({i}ᶜ : set I), f j} {g' : Π j, f j} :
+  extend_compl_single i y g ≤ g' ↔ y ≤ g' i ∧ ∀ j (hj : j ≠ i), g ⟨j, hj⟩ ≤ g' j :=
+forall_extend_compl_single (λ j y, y ≤ g' j)
+
+@[simp] lemma le_extend_compl_single_iff [Π i, preorder (f i)] {i : I} {y : f i}
+  {g : Π j : ({i}ᶜ : set I), f j} {g' : Π j, f j} :
+  g' ≤ extend_compl_single i y g ↔ g' i ≤ y ∧ ∀ j (hj : j ≠ i), g' j ≤ g ⟨j, hj⟩ :=
+forall_extend_compl_single (λ j y, g' j ≤ y)
+
+open set
+
+lemma extend_compl_single_mem_Icc [Π i, preorder (f i)] {i : I} {y : f i}
+  {g : Π j : ({i}ᶜ : set I), f j} {g₁ g₂ : Π j, f j} :
+   extend_compl_single i y g ∈ Icc g₁ g₂ ↔
+     y ∈ Icc (g₁ i) (g₂ i) ∧ ∀ j (hj : j ≠ i), g ⟨j, hj⟩ ∈ Icc (g₁ j) (g₂ j) :=
+by simp [forall_and_distrib, and.assoc, and_comm, and.left_comm]
+
+end
+
 end pi
 
 section monoid_hom

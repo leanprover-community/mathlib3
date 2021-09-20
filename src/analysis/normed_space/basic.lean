@@ -1615,8 +1615,6 @@ theorem frontier_closed_ball [semi_normed_space ℝ E] (x : E) {r : ℝ} (hr : 0
 by rw [frontier, closure_closed_ball, interior_closed_ball x hr,
   closed_ball_diff_ball]
 
-open_locale pointwise
-
 theorem smul_ball_0 {c : α} (hc : c ≠ 0) (r : ℝ) :
   c • ball (0 : α) r = ball 0 (∥c∥ * r) :=
 begin

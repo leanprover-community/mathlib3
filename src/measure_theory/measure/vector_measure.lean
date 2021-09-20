@@ -1101,6 +1101,18 @@ lemma neg_right {N : Type*} [add_comm_group N] [topological_space N] [topologica
   {v : vector_measure α M} {w : vector_measure α N} (h : v ⊥ᵥ w) : v ⊥ᵥ -w :=
 h.symm.neg_left.symm
 
+@[simp]
+lemma neg_left_iff {M : Type*} [add_comm_group M] [topological_space M] [topological_add_group M]
+  {v : vector_measure α M} {w : vector_measure α N} :
+  -v ⊥ᵥ w ↔ v ⊥ᵥ w :=
+⟨λ h, neg_neg v ▸ h.neg_left, neg_left⟩
+
+@[simp]
+lemma neg_right_iff {N : Type*} [add_comm_group N] [topological_space N] [topological_add_group N]
+  {v : vector_measure α M} {w : vector_measure α N} :
+  v ⊥ᵥ -w ↔ v ⊥ᵥ w :=
+⟨λ h, neg_neg w ▸ h.neg_right, neg_right⟩
+
 end mutually_singular
 
 section trim

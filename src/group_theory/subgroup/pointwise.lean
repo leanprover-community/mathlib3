@@ -18,7 +18,7 @@ which matches the action of `mul_action_set`.
 These actions are available in the `pointwise` locale.
 -/
 
-variables {α : Type*} {G : Type*} [group G]
+variables {α : Type*} {G : Type*} {A : Type*} [group G] [add_group A]
 
 namespace subgroup
 
@@ -71,5 +71,3 @@ lemma smul_mem_pointwise_smul (m : A) (a : α) (S : add_subgroup A) : m ∈ S �
 (set.smul_mem_smul_set : _ → _ ∈ a • (S : set A))
 
 end add_subgroup
-
-end

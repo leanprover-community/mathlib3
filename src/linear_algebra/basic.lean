@@ -6,7 +6,6 @@ Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov
 import algebra.big_operators.pi
 import algebra.module.prod
 import algebra.module.submodule_lattice
-import algebra.module.submodule_pointwise
 import data.dfinsupp
 import data.finsupp.basic
 import order.compactly_generated
@@ -766,7 +765,7 @@ image_subset _
 have ∃ (x : M), x ∈ p := ⟨0, p.zero_mem⟩,
 ext $ by simp [this, eq_comm]
 
-lemma map_add_le (f g : M →ₗ[R] M₂) : map (f + g) p ≤ map f p + map g p :=
+lemma map_add_le (f g : M →ₗ[R] M₂) : map (f + g) p ≤ map f p ⊔ map g p :=
 begin
   rintros x ⟨m, hm, rfl⟩,
   exact add_mem_sup (mem_map_of_mem hm) (mem_map_of_mem hm),
@@ -1257,13 +1256,13 @@ instance : is_compactly_generated (submodule R M) :=
   apply singleton_span_is_compact_element,
 end, by rw [Sup_eq_supr, supr_image, ←span_eq_supr_of_singleton_spans, span_eq]⟩⟩⟩
 
-lemma lt_add_iff_not_mem {I : submodule R M} {a : M} : I < I + (R ∙ a) ↔ a ∉ I :=
+lemma lt_sup_iff_not_mem {I : submodule R M} {a : M} : I < I ⊔ (R ∙ a) ↔ a ∉ I :=
 begin
   split,
   { intro h,
     by_contra akey,
-    have h1 : I + (R ∙ a) ≤ I,
-    { simp only [add_eq_sup, sup_le_iff],
+    have h1 : I ⊔ (R ∙ a) ≤ I,
+    { simp only [sup_le_iff],
       split,
       { exact le_refl I, },
       { exact (span_singleton_le_iff_mem a I).mpr akey, } },
@@ -1271,10 +1270,10 @@ begin
     exact lt_irrefl I h2, },
   { intro h,
     apply set_like.lt_iff_le_and_exists.mpr, split,
-    simp only [add_eq_sup, le_sup_left],
+    simp only [le_sup_left],
     use a,
     split, swap, { assumption, },
-    { have : (R ∙ a) ≤ I + (R ∙ a) := le_sup_right,
+    { have : (R ∙ a) ≤ I ⊔ (R ∙ a) := le_sup_right,
       exact this (mem_span_singleton_self a), } },
 end
 

@@ -3,7 +3,8 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import algebra.module.submodule_lattice
+import group_theory.subgroup.pointwise
+import linear_algebra.basic
 
 /-! # Pointwise instances on `submodule`s
 

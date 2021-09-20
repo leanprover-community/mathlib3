@@ -154,25 +154,6 @@ calc μ (f ⁻¹' s) = measure.map f μ s :
 ### Basic properties of Haar measures on real vector spaces
 -/
 
-@[simp] lemma add_haar_ball_center
-  {E : Type*} [normed_group E] [measurable_space E]
-  [borel_space E] (μ : measure E) [is_add_haar_measure μ] (x : E) (r : ℝ) :
-  μ (ball x r) = μ (ball (0 : E) r) :=
-begin
-  have : ball (0 : E) r = ((+) x) ⁻¹' (ball x r), by { ext y, simp [dist_eq_norm] },
-  rw [this, add_haar_preimage_add]
-end
-
-@[simp] lemma add_haar_closed_ball_center
-  {E : Type*} [normed_group E] [measurable_space E]
-  [borel_space E] (μ : measure E) [is_add_haar_measure μ] (x : E) (r : ℝ) :
-  μ (closed_ball x r) = μ (closed_ball (0 : E) r) :=
-begin
-  have : closed_ball (0 : E) r = ((+) x) ⁻¹' (closed_ball x r),
-    by { ext y, simp [dist_eq_norm] },
-  rw [this, add_haar_preimage_add]
-end
-
 variables {E : Type*} [normed_group E] [measurable_space E] [normed_space ℝ E]
   [finite_dimensional ℝ E] [borel_space E] (μ : measure E) [is_add_haar_measure μ]
 
@@ -218,19 +199,44 @@ general Haar measures on general commutative groups. -/
 
 /-! ### Measure of balls -/
 
-lemma add_haar_closed_ball_lt_top (x : E) (r : ℝ) :
+lemma add_haar_ball_center
+  {E : Type*} [normed_group E] [measurable_space E]
+  [borel_space E] (μ : measure E) [is_add_haar_measure μ] (x : E) (r : ℝ) :
+  μ (ball x r) = μ (ball (0 : E) r) :=
+begin
+  have : ball (0 : E) r = ((+) x) ⁻¹' (ball x r), by { ext y, simp [dist_eq_norm] },
+  rw [this, add_haar_preimage_add]
+end
+
+lemma add_haar_closed_ball_center
+  {E : Type*} [normed_group E] [measurable_space E]
+  [borel_space E] (μ : measure E) [is_add_haar_measure μ] (x : E) (r : ℝ) :
+  μ (closed_ball x r) = μ (closed_ball (0 : E) r) :=
+begin
+  have : closed_ball (0 : E) r = ((+) x) ⁻¹' (closed_ball x r),
+    by { ext y, simp [dist_eq_norm] },
+  rw [this, add_haar_preimage_add]
+end
+
+lemma add_haar_closed_ball_lt_top {E : Type*} [normed_group E] [normed_space ℝ E]
+  [finite_dimensional ℝ E] [measurable_space E]
+  (μ : measure E) [is_add_haar_measure μ] (x : E) (r : ℝ) :
   μ (closed_ball x r) < ∞ :=
 (proper_space.compact_ball x r).add_haar_lt_top μ
 
-lemma add_haar_ball_lt_top (x : E) (r : ℝ) :
+lemma add_haar_ball_lt_top {E : Type*} [normed_group E] [normed_space ℝ E]
+  [finite_dimensional ℝ E] [measurable_space E]
+  (μ : measure E) [is_add_haar_measure μ] (x : E) (r : ℝ) :
   μ (ball x r) < ∞ :=
 lt_of_le_of_lt (measure_mono ball_subset_closed_ball) (add_haar_closed_ball_lt_top μ x r)
 
-lemma add_haar_ball_pos (x : E) {r : ℝ} (hr : 0 < r) :
+lemma add_haar_ball_pos {E : Type*} [normed_group E] [measurable_space E]
+  (μ : measure E) [is_add_haar_measure μ] (x : E) {r : ℝ} (hr : 0 < r) :
   0 < μ (ball x r) :=
 is_open_ball.add_haar_pos μ (nonempty_ball.2 hr)
 
-lemma add_haar_closed_ball_pos (x : E) {r : ℝ} (hr : 0 < r) :
+lemma add_haar_closed_ball_pos {E : Type*} [normed_group E] [measurable_space E]
+  (μ : measure E) [is_add_haar_measure μ] (x : E) {r : ℝ} (hr : 0 < r) :
   0 < μ (closed_ball x r) :=
 lt_of_lt_of_le (add_haar_ball_pos μ x hr) (measure_mono ball_subset_closed_ball)
 
@@ -242,7 +248,7 @@ begin
     ext y,
     simp [norm_smul, real.norm_eq_abs, mem_ball_0_iff, mem_preimage, abs_inv,
       abs_of_nonneg hr.le, ← div_eq_inv_mul, div_lt_iff hr] },
-  simp [this, add_haar_smul, abs_of_nonneg hr.le],
+  simp [this, add_haar_smul, abs_of_nonneg hr.le, add_haar_ball_center],
 end
 
 lemma add_haar_ball [nontrivial E] (x : E) {r : ℝ} (hr : 0 ≤ r) :
@@ -266,7 +272,7 @@ begin
       ext y,
       simp [norm_smul, real.norm_eq_abs, mem_ball_0_iff, mem_preimage, abs_inv,
         abs_of_nonneg hr, ← div_eq_inv_mul, div_le_iff h] } },
-  simp [this, add_haar_smul, abs_of_nonneg hr],
+  simp [this, add_haar_smul, abs_of_nonneg hr, add_haar_closed_ball_center],
 end
 
 lemma add_haar_closed_unit_ball_eq_unit_ball :

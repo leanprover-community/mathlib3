@@ -241,7 +241,7 @@ have h5:= upper_half_plane.denom_ne_zero (γ : GL2P) z,
 end
 open_locale direct_sum
 
-def gmod  (Γ : subgroup SL2Z) : direct_sum.gcomm_monoid (λ k, modular_submodule k Γ) :=
+instance gmod  (Γ : subgroup SL2Z) : direct_sum.gcomm_monoid (λ k, modular_submodule k Γ) :=
 begin
 have one_mem : (1 : ℍ → ℂ) ∈ modular_submodule 0 Γ, by {simp only [modular_mem',
    mul_one, forall_const, gpow_zero, implies_true_iff, eq_self_iff_true, pi.one_apply],},
@@ -250,10 +250,10 @@ intros k_1 k_2 f g,
 apply mul_modular k_1 k_2 Γ f g, apply f.property, apply g.property,
 end
 
-instance ring_of_mod_forms (Γ : subgroup SL2Z): comm_ring (⨁  k, modular_submodule k Γ)  :=
-begin
-sorry,
-end
+
+instance semiring_of_mod_forms (Γ : subgroup SL2Z): comm_semiring (⨁  k, modular_submodule k Γ)
+  := infer_instance
+
 
 
 /--The definition of the zero modular form, whose values at all points is zero-/
@@ -492,7 +492,7 @@ lemma zero_cusp_form :  (is_cusp_form_of_lvl_and_weight Γ k)  (zero_form ) :=
     linarith}
 }
 
-lemma is_modular_form_of_lvl_and_weight__of_is_cusp_form_of_lvl_and_weight  (f : ℍ → ℂ)
+lemma is_modular_form_of_lvl_and_weight_of_is_cusp_form_of_lvl_and_weight  (f : ℍ → ℂ)
 (h : is_cusp_form_of_lvl_and_weight Γ k f) : is_modular_form_of_lvl_and_weight Γ k f :=
 ⟨h.1, h.2, is_zero_at_inf_is_bound' f h.3⟩
 

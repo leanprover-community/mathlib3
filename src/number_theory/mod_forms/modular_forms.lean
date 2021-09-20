@@ -43,7 +43,7 @@ instance : has_coe ℍ' ℍ :=
  and it acts on `ℍ` via Moebius trainsformations. -/
 def is_modular_of_level_and_weight (Γ : subgroup SL2Z) (k : ℤ) :=
 { f : ℍ → ℂ | ∀ M : Γ, ∀ z : ℍ,
-    f ((M : matrix.GL_pos (fin 2) ℝ) • z) = ((M 1 0 )*z + M 1 1)^k * f z}
+  f ((M : matrix.GL_pos (fin 2) ℝ) • z) = ((M 1 0 )*z + M 1 1)^k * f z}
 
 variables (Γ : subgroup SL2Z) (k: ℤ)
 

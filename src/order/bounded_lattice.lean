@@ -504,6 +504,10 @@ def unbot : Π (x : with_bot α), x ≠ ⊥ → α
 | ⊥        h := absurd rfl h
 | (some x) h := x
 
+@[simp] lemma coe_unbot {α : Type*} (x : with_bot α) (h : x ≠ ⊥) :
+  (x.unbot h : with_bot α) = x :=
+by { cases x, simpa using h, refl, }
+
 @[simp] lemma unbot_coe (x : α) (h : (x : with_bot α) ≠ ⊥ := coe_ne_bot _) :
   (x : with_bot α).unbot h = x := rfl
 
@@ -727,6 +731,10 @@ option.ne_none_iff_exists
 /-- Deconstruct a `x : with_top α` to the underlying value in `α`, given a proof that `x ≠ ⊤`. -/
 def untop : Π (x : with_top α), x ≠ ⊤ → α :=
 with_bot.unbot
+
+@[simp] lemma coe_untop {α : Type*} (x : with_top α) (h : x ≠ ⊤) :
+  (x.untop h : with_top α) = x :=
+by { cases x, simpa using h, refl, }
 
 @[simp] lemma untop_coe (x : α) (h : (x : with_top α) ≠ ⊤ := coe_ne_top) :
   (x : with_top α).untop h = x := rfl

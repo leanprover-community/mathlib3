@@ -283,7 +283,9 @@ calc volume (((+) a) ⁻¹' s) = measure.map ((+) a) volume s :
 
 open matrix
 
-/-- A diagonal matrix rescales Lebesgue according to its determinant. -/
+/-- A diagonal matrix rescales Lebesgue according to its determinant. This is a special case of
+`real.map_matrix_volume_pi_eq_smul_volume_pi`, that one should use instead (and whose proof
+uses this particular case). -/
 lemma smul_map_diagonal_volume_pi [decidable_eq ι] {D : ι → ℝ} (h : det (diagonal D) ≠ 0) :
   ennreal.of_real (abs (det (diagonal D))) • measure.map ((diagonal D).to_lin') volume = volume :=
 begin
@@ -313,6 +315,9 @@ end
 lemma map_transvection_volume_pi [decidable_eq ι] (t : transvection_struct ι ℝ) :
   measure.map (t.to_matrix.to_lin') volume = volume :=
 begin
+  /- We separate the coordinate along which there is a shearing from the other ones, and apply
+  Fubini. Along this coordinate (and when all the other coordinates are fixed), it acts like a
+  translation, and therefore preserves Lebesgue. -/
   suffices H : measure_preserving t.to_matrix.to_lin' volume volume, by exact H.2,
   let p : ι → Prop := λ i, i ≠ t.i,
   let α : Type* := {x // p x},

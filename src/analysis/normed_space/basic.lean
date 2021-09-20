@@ -1615,23 +1615,24 @@ by rw [frontier, closure_closed_ball, interior_closed_ball x hr,
   closed_ball_diff_ball]
 
 theorem smul_ball_zero {c : α} (hc : c ≠ 0) (r : ℝ) :
-  c • ball (0 : α) r = ball 0 (∥c∥ * r) :=
+  c • ball (0 : E) r = ball 0 (∥c∥ * r) :=
 begin
-  rw ← preimage_smul_inv' hc,
+  rw ← preimage_smul_inv' hc (ball (0 : E) r),
   ext y,
-  simp [← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hc), mul_comm _ r],
+  simp [norm_smul, ← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hc), mul_comm _ r],
 end
 
 theorem smul_closed_ball_zero' {c : α} (hc : c ≠ 0) (r : ℝ) :
-  c • closed_ball (0 : α) r = closed_ball 0 (∥c∥ * r) :=
+  c • closed_ball (0 : E) r = closed_ball 0 (∥c∥ * r) :=
 begin
-  rw ← preimage_smul_inv' hc,
+  rw ← preimage_smul_inv' hc (closed_ball (0 : E) r),
   ext y,
-  simp [← div_eq_inv_mul, div_le_iff (norm_pos_iff.2 hc), mul_comm _ r],
+  simp [norm_smul, ← div_eq_inv_mul, div_le_iff (norm_pos_iff.2 hc), mul_comm _ r],
 end
 
-theorem smul_closed_ball_zero (c : α) {r : ℝ} (hr : 0 ≤ r) :
-  c • closed_ball (0 : α) r = closed_ball 0 (∥c∥ * r) :=
+theorem smul_closed_ball_zero {E : Type*} [normed_group E] [normed_space α E]
+  (c : α) {r : ℝ} (hr : 0 ≤ r) :
+  c • closed_ball (0 : E) r = closed_ball 0 (∥c∥ * r) :=
 begin
   rcases eq_or_ne c 0 with rfl|hc,
   { simp [hr, zero_smul_set, set.singleton_zero, ← nonempty_closed_ball] },

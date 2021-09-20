@@ -5,6 +5,7 @@ Authors: Kexing Ying
 -/
 import group_theory.submonoid
 import group_theory.submonoid.center
+import group_theory.submonoid.pointwise
 import algebra.group.conj
 import algebra.pointwise
 import order.atoms

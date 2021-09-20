@@ -299,10 +299,9 @@ lemma fin_succ_equiv_eq (n : ℕ) :
   eval₂_hom (polynomial.C.comp (C : R →+* mv_polynomial (fin n) R))
     (λ i : fin (n+1), fin.cases polynomial.X (λ k, polynomial.C (X k)) i) :=
 begin
-  apply ring_hom_ext,
-  { intro r,
-    dsimp [fin_succ_equiv, option_equiv_left, sum_alg_equiv, sum_ring_equiv],
-    simp only [sum_to_iter_C, eval₂_C, rename_C, ring_hom.coe_comp] },
+  ext,
+  { simp [fin_succ_equiv],
+    refl },
   { intro i,
     refine fin.cases _ _ i;
     simp [fin_succ_equiv] }

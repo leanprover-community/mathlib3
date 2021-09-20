@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2021 Eric Weiser. All rights reserved.
+Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Eric Weiser
+Authors: Eric Wieser
 -/
 import group_theory.submonoid.operations
 import algebra.pointwise
@@ -15,7 +15,7 @@ namespace submonoid
 
 variables [monoid α] [monoid M'] [mul_distrib_mul_action α M']
 
-/-- The action on a additive submonoid corresponding to applying the action to every element.
+/-- The action on a submonoid corresponding to applying the action to every element.
 
 This is available as an instance in the `pointwise` locale. -/
 protected def pointwise_mul_action : mul_action α (submonoid M') :=
@@ -38,7 +38,7 @@ namespace add_submonoid
 
 variables [monoid α] [add_monoid M'] [distrib_mul_action α M']
 
-/-- The action on a additive submonoid corresponding to applying the action to every element.
+/-- The action on an additive submonoid corresponding to applying the action to every element.
 
 This is available as an instance in the `pointwise` locale. -/
 protected def pointwise_mul_action : mul_action α (add_submonoid M') :=

@@ -68,7 +68,7 @@ begin
     split_ifs; simp [h], }
 end
 
-lemma charmatrix_of_reindex {m : Type v} [decidable_eq m] [fintype m] (e : n ≃ m)
+lemma charmatrix_reindex {m : Type v} [decidable_eq m] [fintype m] (e : n ≃ m)
   (M : matrix n n R) : charmatrix (reindex e e M) = reindex e e (charmatrix M) :=
 begin
   ext i j x,

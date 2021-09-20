@@ -1051,23 +1051,23 @@ end
 /-- By definition, if `x` is not invertible then `inverse x = 0`. -/
 @[simp] lemma inverse_non_unit (x : M₀) (h : ¬(is_unit x)) : inverse x = 0 := dif_neg h
 
-lemma self_mul_inverse (x : M₀) (h : is_unit x) : x * inverse x = 1 :=
+lemma mul_inverse_cancel (x : M₀) (h : is_unit x) : x * inverse x = 1 :=
 by { rcases h with ⟨u, rfl⟩, rw [inverse_unit, units.mul_inv], }
 
-lemma inverse_mul_self (x : M₀) (h : is_unit x) : inverse x * x = 1 :=
+lemma inverse_mul_cancel (x : M₀) (h : is_unit x) : inverse x * x = 1 :=
 by { rcases h with ⟨u, rfl⟩, rw [inverse_unit, units.inv_mul], }
 
-lemma self_mul_inverse_assoc_left (x y : M₀) (h : is_unit x) : y * x * inverse x = y :=
-by rw [mul_assoc, self_mul_inverse x h, mul_one]
+lemma mul_inverse_cancel_right (x y : M₀) (h : is_unit x) : y * x * inverse x = y :=
+by rw [mul_assoc, mul_inverse_cancel x h, mul_one]
 
-lemma inverse_mul_self_assoc_left (x y : M₀) (h : is_unit x) : y * inverse x * x = y :=
-by rw [mul_assoc, inverse_mul_self x h, mul_one]
+lemma inverse_mul_cancel_right (x y : M₀) (h : is_unit x) : y * inverse x * x = y :=
+by rw [mul_assoc, inverse_mul_cancel x h, mul_one]
 
-lemma self_mul_inverse_assoc_right (x y : M₀) (h : is_unit x) : x * (inverse x * y) = y :=
-by rw [← mul_assoc, self_mul_inverse x h, one_mul]
+lemma mul_inverse_cancel_left (x y : M₀) (h : is_unit x) : x * (inverse x * y) = y :=
+by rw [← mul_assoc, mul_inverse_cancel x h, one_mul]
 
-lemma inverse_mul_self_assoc_right (x y : M₀) (h : is_unit x) : inverse x * (x * y) = y :=
-by rw [← mul_assoc, inverse_mul_self x h, one_mul]
+lemma inverse_mul_cancel_left (x y : M₀) (h : is_unit x) : inverse x * (x * y) = y :=
+by rw [← mul_assoc, inverse_mul_cancel x h, one_mul]
 
 end ring
 

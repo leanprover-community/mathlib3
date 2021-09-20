@@ -116,7 +116,7 @@ end
 @[simp] theorem type_cardinal : @ordinal.type cardinal (<) _ = ordinal.univ.{u (u+1)} :=
 by rw ordinal.univ_id; exact quotient.sound ⟨aleph_idx.rel_iso⟩
 
-@[simp] theorem mk_cardinal : mk cardinal = univ.{u (u+1)} :=
+@[simp] theorem mk_cardinal : #cardinal = univ.{u (u+1)} :=
 by simpa only [card_type, card_univ] using congr_arg card type_cardinal
 
 /-- The `aleph'` function gives the cardinals listed by their ordinal
@@ -468,24 +468,24 @@ end
 
 /-! ### Computing cardinality of various types -/
 
-theorem mk_list_eq_mk {α : Type u} (H1 : omega ≤ mk α) : mk (list α) = mk α :=
+theorem mk_list_eq_mk {α : Type u} (H1 : ω ≤ #α) : #(list α) = #α :=
 eq.symm $ le_antisymm ⟨⟨λ x, [x], λ x y H, (list.cons.inj H).1⟩⟩ $
-calc  mk (list α)
-    = sum (λ n : ℕ, mk α ^ (n : cardinal.{u})) : mk_list_eq_sum_pow α
-... ≤ sum (λ n : ℕ, mk α) : sum_le_sum _ _ $ λ n, pow_le H1 $ nat_lt_omega n
-... = sum (λ n : ulift.{u} ℕ, mk α) : quotient.sound
-  ⟨@sigma_congr_left _ _ (λ _, quotient.out (mk α)) equiv.ulift.symm⟩
-... = omega * mk α : sum_const _ _
-... = max (omega) (mk α) : mul_eq_max (le_refl _) H1
-... = mk α : max_eq_right H1
+calc  #(list α)
+    = sum (λ n : ℕ, #α ^ (n : cardinal.{u})) : mk_list_eq_sum_pow α
+... ≤ sum (λ n : ℕ, #α) : sum_le_sum _ _ $ λ n, pow_le H1 $ nat_lt_omega n
+... = sum (λ n : ulift.{u} ℕ, #α) : quotient.sound
+  ⟨@sigma_congr_left _ _ (λ _, quotient.out (#α)) equiv.ulift.symm⟩
+... = omega * #α : sum_const _ _
+... = max ω (#α) : mul_eq_max (le_refl _) H1
+... = #α : max_eq_right H1
 
-theorem mk_finset_eq_mk {α : Type u} (h : omega ≤ mk α) : mk (finset α) = mk α :=
+theorem mk_finset_eq_mk {α : Type u} (h : omega ≤ #α) : #(finset α) = #α :=
 eq.symm $ le_antisymm (mk_le_of_injective (λ x y, finset.singleton_inj.1)) $
-calc mk (finset α) ≤ mk (list α) : mk_le_of_surjective list.to_finset_surjective
-... = mk α : mk_list_eq_mk h
+calc #(finset α) ≤ #(list α) : mk_le_of_surjective list.to_finset_surjective
+... = #α : mk_list_eq_mk h
 
-lemma mk_bounded_set_le_of_omega_le (α : Type u) (c : cardinal) (hα : omega ≤ mk α) :
-  mk {t : set α // mk t ≤ c} ≤ mk α ^ c :=
+lemma mk_bounded_set_le_of_omega_le (α : Type u) (c : cardinal) (hα : omega ≤ #α) :
+  #{t : set α // mk t ≤ c} ≤ #α ^ c :=
 begin
   refine le_trans _ (by rw [←add_one_eq hα]), refine quotient.induction_on c _, clear c, intro β,
   fapply mk_le_of_surjective,
@@ -506,18 +506,18 @@ begin
 end
 
 lemma mk_bounded_set_le (α : Type u) (c : cardinal) :
-  mk {t : set α // mk t ≤ c} ≤ max (mk α) omega ^ c :=
+  #{t : set α // #t ≤ c} ≤ max (#α) omega ^ c :=
 begin
-  transitivity mk {t : set (ulift.{u} nat ⊕ α) // mk t ≤ c},
+  transitivity #{t : set (ulift.{u} nat ⊕ α) // #t ≤ c},
   { refine ⟨embedding.subtype_map _ _⟩, apply embedding.image,
     use sum.inr, apply sum.inr.inj, intros s hs, exact le_trans mk_image_le hs },
   refine le_trans
-    (mk_bounded_set_le_of_omega_le (ulift.{u} nat ⊕ α) c (self_le_add_right omega (mk α))) _,
+    (mk_bounded_set_le_of_omega_le (ulift.{u} nat ⊕ α) c (self_le_add_right omega (#α))) _,
   rw [max_comm, ←add_eq_max]; refl
 end
 
 lemma mk_bounded_subset_le {α : Type u} (s : set α) (c : cardinal.{u}) :
-  mk {t : set α // t ⊆ s ∧ mk t ≤ c} ≤ max (mk s) omega ^ c :=
+  #{t : set α // t ⊆ s ∧ #t ≤ c} ≤ max (#s) omega ^ c :=
 begin
   refine le_trans _ (mk_bounded_set_le s c),
   refine ⟨embedding.cod_restrict _ _ _⟩,
@@ -542,9 +542,9 @@ lemma mk_compl_eq_mk_compl_infinite {α : Type*} {s t : set α} (h : omega ≤ #
 by { rw [mk_compl_of_omega_le s h hs, mk_compl_of_omega_le t h ht] }
 
 lemma mk_compl_eq_mk_compl_finite_lift {α : Type u} {β : Type v} {s : set α} {t : set β}
-  (hα : #α < omega) (h1 : lift.{u (max v w)} (#α) = lift.{v (max u w)} (#β))
-  (h2 : lift.{u (max v w)} (#s) = lift.{v (max u w)} (#t)) :
-  lift.{u (max v w)} (#(sᶜ : set α)) = lift.{v (max u w)} (#(tᶜ : set β)) :=
+  (hα : #α < omega) (h1 : lift.{(max v w)} (#α) = lift.{(max u w)} (#β))
+  (h2 : lift.{(max v w)} (#s) = lift.{(max u w)} (#t)) :
+  lift.{(max v w)} (#(sᶜ : set α)) = lift.{(max u w)} (#(tᶜ : set β)) :=
 begin
   have hα' := hα, have h1' := h1,
   rw [← mk_sum_compl s, ← mk_sum_compl t] at h1,

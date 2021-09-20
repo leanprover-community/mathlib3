@@ -76,7 +76,7 @@ The stalk of a locally ringed space, just as a `CommRing`.
 -- TODO perhaps we should make a bundled `LocalRing` and return one here?
 -- TODO define `sheaf.stalk` so we can write `X.𝒪.stalk` here?
 noncomputable
-def stalk (x : X) : CommRing := X.presheaf.stalk x
+abbreviation stalk (x : X) : CommRing := X.presheaf.stalk x
 
 /--
 A morphism of locally ringed spaces `f : X ⟶ Y` induces

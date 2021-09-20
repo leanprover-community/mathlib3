@@ -95,15 +95,6 @@ lemma minpoly_dvd_charpoly {K : Type u} {M : Type v} [field K] [add_comm_group M
   [finite_dimensional K M] (f : M →ₗ[K] M) : (minpoly K f) ∣ f.charpoly :=
 minpoly.dvd _ _ (aeval_self_charpoly f)
 
-lemma miao (hf : function.injective f) : (minpoly R f).coeff 0 ≠ 0 :=
-begin
-  intro h,
-  obtain ⟨P, hP⟩ := X_dvd_iff.2 h,
-  have hdegP : P.degree < (minpoly R f).degree := sorry,
-  have hzero : aeval f (minpoly R f) = 0 := minpoly.aeval _ _,
-  rw [hP, aeval_mul, aeval_X] at hzero,
-end
-
 end cayley_hamilton
 
 end linear_map

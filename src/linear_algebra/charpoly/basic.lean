@@ -86,7 +86,7 @@ lemma matrix.charpoly_of_reindex {m : Type v} [decidable_eq m] [fintype m] (e : 
   (M : matrix n n R) : (reindex e e M).charpoly = M.charpoly :=
 begin
   unfold matrix.charpoly,
-  rw [charmatrix_of_reindex, matrix.det_reindex_self ]
+  rw [charmatrix_reindex, matrix.det_reindex_self]
 end
 
 /--

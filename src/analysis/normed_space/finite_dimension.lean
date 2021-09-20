@@ -90,7 +90,7 @@ variables {𝕜 : Type*} {V₁ V₂  : Type*} {P₁ P₂ : Type*}
 
 variables [finite_dimensional 𝕜 V₁] [finite_dimensional 𝕜 V₂]
 
-/-- A affine isometry between finite dimensional spaces of equal dimension can be upgraded
+/-- An affine isometry between finite dimensional spaces of equal dimension can be upgraded
     to an affine isometry equivalence. -/
 def to_affine_isometry_equiv [inhabited P₁]
   (li : P₁ →ᵃⁱ[𝕜] P₂) (h : finrank 𝕜 V₁ = finrank 𝕜 V₂) : P₁ ≃ᵃⁱ[𝕜] P₂ :=

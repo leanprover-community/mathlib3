@@ -13,7 +13,7 @@ Notably, these include `pi_gt_sqrt_two_add_series` and `pi_lt_sqrt_two_add_serie
 which bound `π` using series;
 numerical bounds on `π` such as `pi_gt_314`and `pi_lt_315` (more precise versions are given, too).
 
-See also `data.real.pi.leibniz` and `data.real.pi.wallis` for infinite formuluas for `π`.
+See also `data.real.pi.leibniz` and `data.real.pi.wallis` for infinite formulas for `π`.
 -/
 
 open_locale real

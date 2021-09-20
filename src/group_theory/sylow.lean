@@ -17,7 +17,9 @@ The Sylow theorems are the following results for every finite group `G` and ever
   `p`-subgroup, `nₚ ≡ 1 [MOD p]`, and `nₚ` is equal to the index of the normalizer of the Sylow
   `p`-subgroup in `G`.
 
-In this file, currently only the first of these results is proven.
+## Main definitions
+
+* `sylow p G` : The type of Sylow `p`-subgroups of `G`.
 
 ## Main statements
 

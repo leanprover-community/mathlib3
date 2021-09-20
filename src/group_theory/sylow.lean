@@ -70,11 +70,11 @@ exists.elim (zorn.zorn_nonempty_partial_order₀ {Q : subgroup G | is_p_group p 
     rwa [subtype.ext_iff, coe_pow] at hk ⊢ },
   λ M hM g hg, ⟨M, ⟨⟨M, hM⟩, rfl⟩, hg⟩⟩) P hP) (λ Q ⟨hQ1, hQ2, hQ3⟩, ⟨⟨Q, hQ1, hQ3⟩, hQ2⟩)
 
-instance sylow_nonempty : nonempty (sylow p G) :=
+instance sylow.nonempty : nonempty (sylow p G) :=
 nonempty_of_exists is_p_group.of_bot.exists_le_sylow
 
-noncomputable instance sylow_inhabited : inhabited (sylow p G) :=
-classical.inhabited_of_nonempty sylow_nonempty
+noncomputable instance sylow.inhabited : inhabited (sylow p G) :=
+classical.inhabited_of_nonempty sylow.nonempty
 
 instance sylow.mul_aut_mul_action : mul_action (mul_aut G) (sylow p G) :=
 { smul := λ ϕ P, ⟨P.1.comap ϕ⁻¹.to_monoid_hom, P.2.comap_injective _ ϕ⁻¹.injective, λ Q hQ hP,
@@ -84,22 +84,22 @@ instance sylow.mul_aut_mul_action : mul_action (mul_aut G) (sylow p G) :=
   one_smul := λ P, sylow.ext (ext (λ g, iff.rfl)),
   mul_smul := λ ϕ ψ P, sylow.ext (P.1.comap_comap ψ⁻¹.to_monoid_hom ϕ⁻¹.to_monoid_hom).symm }
 
-lemma mul_aut_coe_smul_sylow {ϕ : mul_aut G} {P : sylow p G} :
+lemma sylow.coe_mul_aut_smul {ϕ : mul_aut G} {P : sylow p G} :
   ↑(ϕ • P) = P.1.comap ϕ⁻¹.to_monoid_hom := rfl
 
 instance sylow.mul_action : mul_action G (sylow p G) :=
 of_End_hom (to_End_hom.comp mul_aut.conj)
 
-lemma coe_smul_sylow {g : G} {P : sylow p G} :
+lemma sylow.coe_smul {g : G} {P : sylow p G} :
   ↑(g • P) = P.1.comap (mul_aut.conj g)⁻¹.to_monoid_hom := rfl
 
-lemma smul_eq_iff_mem_normalizer {g : G} {P : sylow p G} :
+lemma sylow.smul_eq_iff_mem_normalizer {g : G} {P : sylow p G} :
   g • P = P ↔ g ∈ P.1.normalizer :=
 by rw [eq_comm, sylow.ext_iff, set_like.ext_iff, ←inv_mem_iff, mem_normalizer_iff, inv_inv]; refl
 
 lemma subgroup.sylow_mem_fixed_points_iff (H : subgroup G) {P : sylow p G} :
   P ∈ fixed_points H (sylow p G) ↔ H ≤ P.1.normalizer :=
-by simp_rw [set_like.le_def, ←smul_eq_iff_mem_normalizer]; exact subtype.forall
+by simp_rw [set_like.le_def, ←sylow.smul_eq_iff_mem_normalizer]; exact subtype.forall
 
 lemma is_p_group.inf_normalizer_sylow {P : subgroup G} (hP : is_p_group p P) (Q : sylow p G) :
   P ⊓ Q.1.normalizer = P ⊓ Q :=
@@ -113,7 +113,7 @@ by rw [P.sylow_mem_fixed_points_iff, ←inf_eq_left, hP.inf_normalizer_sylow, in
 
 /-- A generalization of **Sylow's second theorem**.
   If the number of Sylow `p`-subgroups is finite, then all Sylow `p`-subgroups are conjugate. -/
-lemma sylow_conjugate [hp : fact p.prime] [fintype (sylow p G)] (P Q : sylow p G) :
+lemma sylow.conjugate [hp : fact p.prime] [fintype (sylow p G)] (P Q : sylow p G) :
   ∃ g : G, g • P = Q :=
 begin
   classical,
@@ -139,7 +139,7 @@ variables (p) (G)
   If the number of Sylow `p`-subgroups is finite, then it is congruent to `1` modulo `p`. -/
 lemma card_sylow_modeq_one [fact p.prime] [fintype (sylow p G)] : card (sylow p G) ≡ 1 [MOD p] :=
 begin
-  refine sylow_nonempty.elim (λ P : sylow p G, _),
+  refine sylow.nonempty.elim (λ P : sylow p G, _),
   have := set.ext (λ Q : sylow p G, calc Q ∈ fixed_points P (sylow p G)
       ↔ P.1 ≤ Q : P.2.sylow_mem_fixed_points_iff
   ... ↔ Q.1 = P.1 : ⟨P.3 Q.2, ge_of_eq⟩

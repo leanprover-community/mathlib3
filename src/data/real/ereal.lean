@@ -168,34 +168,28 @@ end
 lemma ereal.to_real' {x : ereal} (h : x ≠ ⊥) (h' : x ≠ ⊤) :
   ∃ (c : ℝ), (c : ereal) = x := by {rcases x with rfl|rfl|x;tauto}
 
-lemma ereal.eq_top_iff (x : ereal) : x = ⊤ ↔ ∀ (y : ℝ), (y : ereal) < x :=
+lemma ereal.eq_top_iff_forall_lt (x : ereal) : x = ⊤ ↔ ∀ (y : ℝ), (y : ereal) < x :=
 begin
   split,
-  { intro h,
-    subst h,
-    exact ereal.coe_lt_top },
-  { intro h,
-    by_contradiction hc,
-    by_cases hb : x = ⊥,
-    { subst hb,
-      simpa [not_lt_bot] using (h 0) },
-    obtain ⟨z, hz⟩ := ereal.to_real' hb hc,
-    simpa [hz] using (h z) }
+  { rintro rfl, exact ereal.coe_lt_top },
+  { contrapose!,
+    intro h,
+    by_cases h' : x = ⊥,
+    { exact ⟨0, by simp only [h', bot_le]⟩ },
+    exact ⟨x.to_real, by simp only [le_refl, coe_to_real h h']⟩,
+  }
 end
 
-lemma ereal.eq_bot_iff (x : ereal) : x = ⊥ ↔ ∀ (y : ℝ), x < (y : ereal) :=
+lemma ereal.eq_bot_iff_forall_lt (x : ereal) : x = ⊥ ↔ ∀ (y : ℝ), x < (y : ereal) :=
 begin
   split,
-  { intro h,
-    subst h,
-    exact ereal.bot_lt_coe },
-  { intro h,
-    by_contradiction hc,
-    by_cases ht : x = ⊤,
-    { subst ht,
-      simpa [not_lt_bot] using (h 0) },
-    obtain ⟨z, hz⟩ := ereal.to_real' hc ht,
-    simpa [hz] using (h z) }
+  { rintro rfl, exact bot_lt_coe },
+  { contrapose!,
+    intro h',
+    by_cases h : x = ⊤,
+    { exact ⟨0, by simp only [h, le_top]⟩ },
+    exact ⟨x.to_real, by simp only [le_refl, coe_to_real h h']⟩,
+  }
 end
 
 /-! ### ennreal coercion -/

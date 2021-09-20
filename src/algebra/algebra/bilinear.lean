@@ -7,10 +7,11 @@ import algebra.algebra.basic
 import linear_algebra.tensor_product
 
 /-!
-# Facts about algebras involving linear maps and tensor products
+# Facts about algebras involving bilinear maps and tensor products
 
 We move a few basic statements about algebras out of `algebra.algebra.basic`,
-in order to avoid importing `linear_algebra.tensor_product` unnecessarily.
+in order to avoid importing `linear_algebra.bilinear_map` and
+`linear_algebra.tensor_product` unnecessarily.
 -/
 
 universes u v w

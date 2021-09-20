@@ -152,7 +152,7 @@ lemma linear_map.to_matrix'_mul [fintype m] [decidable_eq m]
   (f * g).to_matrix' = f.to_matrix' ⬝ g.to_matrix' :=
 linear_map.to_matrix'_comp f g
 
-lemma linear_map.to_matrix'_algebra_map (x : R) :
+@[simp] lemma linear_map.to_matrix'_algebra_map (x : R) :
   linear_map.to_matrix' (algebra_map R (module.End R (n → R)) x) = scalar n x :=
 by simp [module.algebra_map_End_eq_smul_id]
 

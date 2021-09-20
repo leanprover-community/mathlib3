@@ -3,7 +3,7 @@ Copyright (c) 2019 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Benjamin Davidson
 -/
-import analysis.special_functions.integrals
+import analysis.special_functions.pow
 
 /-! ### Leibniz's Series for Pi -/
 
@@ -132,3 +132,5 @@ begin
                ... = 1 - U + U^(2*k) * U : by ring
                ... = 1 - (u k) + (u k)^(2*(k:ℝ)+1) : by { rw [← pow_succ' (U:ℝ) (2*k)], norm_cast },
 end
+
+end real

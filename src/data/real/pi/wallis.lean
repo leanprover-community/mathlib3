@@ -7,10 +7,10 @@ import analysis.special_functions.integrals
 
 /-! ### The Wallis Product for Pi -/
 
-open_locale real
 namespace real
 
-open finset interval_integral
+open_locale real topological_space big_operators
+open filter finset interval_integral
 
 lemma integral_sin_pow_div_tendsto_one :
   tendsto (λ k, (∫ x in 0..π, sin x ^ (2 * k + 1)) / ∫ x in 0..π, sin x ^ (2 * k)) at_top (𝓝 1) :=
@@ -80,3 +80,5 @@ begin
   simp only [h, ← integral_sin_pow_even, ← integral_sin_pow_odd],
   exact integral_sin_pow_div_tendsto_one,
 end
+
+end real

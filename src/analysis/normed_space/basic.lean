@@ -1622,22 +1622,20 @@ begin
   simp [← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hc), mul_comm _ r],
 end
 
-theorem smul_closed_ball_0 (c : α) {r : ℝ} (hr : 0 ≤ r) :
-  c • closed_ball (0 : α) r = closed_ball 0 (∥c∥ * r) :=
-begin
-  rcases eq_or_ne c 0 with rfl|hc,
-  { simp [hr, zero_smul_set, set.singleton_zero, ← nonempty_closed_ball] },
-  { rw ← preimage_smul_inv hc,
-    ext y,
-    simp [← div_eq_inv_mul, div_le_iff (norm_pos_iff.2 hc), mul_comm _ r] }
-end
-
 theorem smul_closed_ball_0' {c : α} (hc : c ≠ 0) (r : ℝ) :
   c • closed_ball (0 : α) r = closed_ball 0 (∥c∥ * r) :=
 begin
   rw ← preimage_smul_inv hc,
   ext y,
   simp [← div_eq_inv_mul, div_le_iff (norm_pos_iff.2 hc), mul_comm _ r],
+end
+
+theorem smul_closed_ball_0 (c : α) {r : ℝ} (hr : 0 ≤ r) :
+  c • closed_ball (0 : α) r = closed_ball 0 (∥c∥ * r) :=
+begin
+  rcases eq_or_ne c 0 with rfl|hc,
+  { simp [hr, zero_smul_set, set.singleton_zero, ← nonempty_closed_ball] },
+  { exact smul_closed_ball_0' hc r }
 end
 
 variables (α)

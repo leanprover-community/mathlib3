@@ -23,7 +23,7 @@ a nonzero multiple of a linear isometry.
 * `is_conformal_map.preserves_angle`: if a continuous linear map is conformal, then it
                                       preserves all angles in the normed space
 
-See `analysis.normed_space.conformal_linear_map.inner_product_space` for
+See `analysis.normed_space.conformal_linear_map.inner_product` for
 * `is_conformal_map_iff`: a map between inner product spaces is conformal
   iff it preserves inner products up to a fixed scalar factor.
 

@@ -1,7 +1,6 @@
 import data.W.cardinal
 import ring_theory.algebraic_independent
 import field_theory.algebraic_closure
-import data.zmod.algebra
 
 open cardinal
 open_locale cardinal
@@ -159,44 +158,55 @@ end algebraic_closure
 
 section classification
 
-variables {K L : Type*}
-variables [field K] [is_alg_closed K] [char_zero K] [algebra ℤ K]
-variables [field L] [is_alg_closed L] [char_zero L] [algebra ℤ L]
-variables {ι : Type*} (v : ι → K)
-variables {κ : Type*} (w : κ → L)
---attribute [semireducible] fraction_ring
-local attribute [instance, priority 0] algebra_int
-#print localization.algebra
-set_option pp.all true
+noncomputable theory
 
-def G {R : Type*} [integral_domain R] : algebra R (fraction_ring R) := by apply_instance
-#print fraction_ring
-#print is_fraction_ring.field_equiv_of_ring_equiv
+variables {K L : Type*}
+variables [field K] -- [is_alg_closed K] [char_zero K] [algebra ℤ K]
+variables [field L] -- [is_alg_closed L] [char_zero L] [algebra ℤ L]
+variables {ι : Type*} {v : ι → K}
+variables {κ : Type*} (w : κ → L)
+
+-- def mv_polynomial_algebra : algebra (mv_polynomial ι ℤ) K :=
+-- ring_hom.to_algebra (mv_polynomial.aeval v).to_ring_hom
+
+instance fr_alg : algebra (fraction_ring (algebra.adjoin ℤ (set.range v))) K :=
+ring_hom.to_algebra (is_fraction_ring.lift
+  (show function.injective (subalgebra.val
+    (algebra.adjoin ℤ (set.range v))).to_ring_hom,
+      from subtype.val_injective))
+
+-- instance fr_sc : is_scalar_tower (algebra.adjoin ℤ (set.range v))
+--   (fraction_ring (algebra.adjoin ℤ (set.range v))) K :=
+-- is_scalar_tower.of_algebra_map_eq
+--   (λ x, (is_fraction_ring.lift_algebra_map _ x).symm)
+
+lemma is_alg_closure_of_transcendence_basis :-- (hv : is_transcendence_basis ℤ v) :
+  is_alg_closure (fraction_ring (algebra.adjoin ℤ (set.range v))) K := sorry
+-- { alg_closed := by apply_instance,
+--   algebraic := λ x, (is_fraction_ring.is_algebraic_iff _ _).1
+--     (hv.is_algebraic _) }
+
+#exit
+
 def equiv_of_transcendence_basis (e : ι ≃ κ)
   (hv : is_transcendence_basis ℤ v)
   (hw : is_transcendence_basis ℤ w) :
   K ≃+* L :=
 begin
-  have := hv.is_algebraic,
-  let V := algebra.adjoin ℤ (set.range v),
-  let W := algebra.adjoin ℤ (set.range w),
-  let f : V ≃ₐ[ℤ] W :=
-    (hv.1.aeval_equiv.symm.trans (mv_polynomial.rename_equiv ℤ e)).trans hw.1.aeval_equiv,
-  letI : algebra V (fraction_ring V) :=
-    begin
-      apply_instance,
-      have := @localization.algebra V (subalgebra.to_comm_ring V) (non_zero_divisors V),
-      --exact this,
-    end,
-  -- letI : algebra W (fraction_ring W) :=
-  --   begin
-  --     have := @localization.algebra W (subalgebra.to_comm_ring W) (non_zero_divisors W),
-  --     convert this,
-  --   end,
+  -- have := hv.is_algebraic,
+  -- let V := algebra.adjoin ℤ (set.range v),
+  -- let f : V ≃ₐ[ℤ] W :=
+  --   (hv.1.aeval_equiv.symm.trans (mv_polynomial.rename_equiv ℤ e)).trans hw.1.aeval_equiv,
+  -- letI : is_fraction_ring V (fraction_ring V) := infer_instance,
+  -- letI : algebra (fraction_ring V) K :=
+  --   ring_hom.to_algebra (is_fraction_ring.lift
+  --     (show function.injective (algebra_map V K), from subtype.val_injective)),
+  -- letI : is_scalar_tower V (fraction_ring V) K :=
+  --   is_scalar_tower.of_algebra_map_eq _,
   -- let f' : fraction_ring V ≃+* fraction_ring W :=
   --   is_fraction_ring.field_equiv_of_ring_equiv f.to_ring_equiv,
 
-end
+-- end
 
 
 

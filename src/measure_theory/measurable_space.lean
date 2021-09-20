@@ -213,11 +213,23 @@ hf.piecewise hs measurable_const
 @[to_additive]
 lemma measurable_one [has_one α] : measurable (1 : β → α) := @measurable_const _ _ _ _ 1
 
-lemma measurable_of_not_nonempty  (h : ¬ nonempty α) (f : α → β) : measurable f :=
+lemma measurable_of_empty [is_empty α] (f : α → β) : measurable f :=
 begin
   assume s hs,
   convert measurable_set.empty,
-  exact eq_empty_of_not_nonempty h _,
+  exact eq_empty_of_is_empty _,
+end
+
+lemma measurable_of_empty_codomain [is_empty β] (f : α → β) : measurable f :=
+by { haveI := function.is_empty f, exact measurable_of_empty f }
+
+/-- A version of `measurable_const` that assumes `f x = f y` for all `x, y`. This version works
+for functions between empty types. -/
+lemma measurable_const' {f : β → α} (hf : ∀ x y, f x = f y) : measurable f :=
+begin
+  casesI is_empty_or_nonempty β,
+  { exact measurable_of_empty f },
+  { convert measurable_const, exact funext (λ x, hf x h.some) }
 end
 
 @[to_additive, measurability] lemma measurable_set_mul_support [has_one β]
@@ -302,10 +314,8 @@ lemma measurable_find {p : α → ℕ → Prop} (hp : ∀ x, ∃ N, p x N)
   measurable (λ x, nat.find (hp x)) :=
 begin
   refine measurable_to_nat (λ x, _),
-  simp only [set.preimage, mem_singleton_iff, nat.find_eq_iff, set_of_and, set_of_forall,
-    ← compl_set_of],
-  repeat { apply_rules [measurable_set.inter, hm, measurable_set.Inter, measurable_set.Inter_Prop,
-    measurable_set.compl]; try { intros } }
+  rw [preimage_find_eq_disjointed],
+  exact measurable_set.disjointed hm _
 end
 
 end nat
@@ -537,6 +547,37 @@ begin
   cases (pi s t).eq_empty_or_nonempty with h h,
   { simp [h] },
   { simp [measurable_set_pi_of_nonempty hs, h, ← not_nonempty_iff_eq_empty] }
+end
+
+section
+variable (π)
+
+@[measurability]
+lemma measurable_pi_equiv_pi_subtype_prod_symm (p : δ → Prop) [decidable_pred p] :
+  measurable (equiv.pi_equiv_pi_subtype_prod p π).symm :=
+begin
+  apply measurable_pi_iff.2 (λ j, _),
+  by_cases hj : p j,
+  { simp only [hj, dif_pos, equiv.pi_equiv_pi_subtype_prod_symm_apply],
+    have : measurable (λ (f : (Π (i : {x // p x}), π ↑i)), f ⟨j, hj⟩) :=
+      measurable_pi_apply ⟨j, hj⟩,
+    exact measurable.comp this measurable_fst },
+  { simp only [hj, equiv.pi_equiv_pi_subtype_prod_symm_apply, dif_neg, not_false_iff],
+    have : measurable (λ (f : (Π (i : {x // ¬ p x}), π ↑i)), f ⟨j, hj⟩) :=
+      measurable_pi_apply ⟨j, hj⟩,
+    exact measurable.comp this measurable_snd }
+end
+
+@[measurability]
+lemma measurable_pi_equiv_pi_subtype_prod (p : δ → Prop) [decidable_pred p] :
+  measurable (equiv.pi_equiv_pi_subtype_prod p π) :=
+begin
+  refine measurable_prod.2 _,
+  split;
+  { apply measurable_pi_iff.2 (λ j, _),
+    simp only [pi_equiv_pi_subtype_prod_apply, measurable_pi_apply] }
+end
+
 end
 
 section fintype

@@ -285,6 +285,18 @@ dvd.elim h₁ (λ d hd, dvd.elim h₂ (λ e he, dvd.intro (d + e) (by simp [left
 
 end semiring
 
+namespace add_hom
+
+/-- Left multiplication by an element of a type with distributive multiplication is an `add_hom`. -/
+@[simps { fully_applied := ff}] def mul_left {R : Type*} [distrib R] (r : R) : add_hom R R :=
+⟨(*) r, mul_add r⟩
+
+/-- Left multiplication by an element of a type with distributive multiplication is an `add_hom`. -/
+@[simps { fully_applied := ff}] def mul_right {R : Type*} [distrib R] (r : R) : add_hom R R :=
+⟨λ a, a * r, λ _ _, add_mul _ _ r⟩
+
+end add_hom
+
 namespace add_monoid_hom
 
 /-- Left multiplication by an element of a (semi)ring is an `add_monoid_hom` -/
@@ -880,7 +892,7 @@ end
 lemma dvd_mul_sub_mul {k a b x y : α} (hab : k ∣ a - b) (hxy : k ∣ x - y) :
   k ∣ a * x - b * y :=
 begin
-  convert dvd_add (dvd_mul_of_dvd_right hxy a) (dvd_mul_of_dvd_left hab y),
+  convert dvd_add (hxy.mul_left a) (hab.mul_right y),
   rw [mul_sub_left_distrib, mul_sub_right_distrib],
   simp only [sub_eq_add_neg, add_assoc, neg_add_cancel_left],
 end

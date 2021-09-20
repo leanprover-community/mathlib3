@@ -5,10 +5,11 @@ Authors: Anne Baanen
 -/
 
 import linear_algebra.bilinear_form
-import linear_algebra.char_poly.coeff
+import linear_algebra.charpoly.coeff
 import linear_algebra.determinant
+import linear_algebra.vandermonde
 import linear_algebra.trace
-import field_theory.algebraic_closure
+import field_theory.is_alg_closed.algebraic_closure
 import field_theory.primitive_element
 import ring_theory.power_basis
 
@@ -182,7 +183,7 @@ begin
   have d_pos' : 0 < (minpoly K pb.gen).nat_degree, { simpa },
   haveI : nonempty (fin pb.dim) := ⟨⟨0, d_pos⟩⟩,
   -- Write the LHS as the `d-1`'th coefficient of `minpoly K pb.gen`
-  rw [trace_eq_matrix_trace pb.basis, trace_eq_neg_char_poly_coeff, char_poly_left_mul_matrix,
+  rw [trace_eq_matrix_trace pb.basis, trace_eq_neg_charpoly_coeff, charpoly_left_mul_matrix,
       ring_hom.map_neg, ← pb.nat_degree_minpoly, fintype.card_fin,
       ← next_coeff_of_pos_nat_degree _ d_pos',
       ← next_coeff_map (algebra_map K F).injective],
@@ -338,3 +339,69 @@ begin
 end
 
 end eq_sum_embeddings
+
+section det_ne_zero
+
+open algebra
+
+variables (pb : power_basis K L)
+
+lemma det_trace_form_ne_zero' [is_separable K L] :
+  det (bilin_form.to_matrix pb.basis (trace_form K L)) ≠ 0 :=
+begin
+  suffices : algebra_map K (algebraic_closure L)
+    (det (bilin_form.to_matrix pb.basis (trace_form K L))) ≠ 0,
+  { refine mt (λ ht, _) this,
+    rw [ht, ring_hom.map_zero] },
+  haveI : finite_dimensional K L := pb.finite_dimensional,
+  let e : (L →ₐ[K] algebraic_closure L) ≃ fin pb.dim := fintype.equiv_fin_of_card_eq _,
+  let M : matrix (fin pb.dim) (fin pb.dim) (algebraic_closure L) :=
+    vandermonde (λ i, e.symm i pb.gen),
+  calc algebra_map K (algebraic_closure _) (bilin_form.to_matrix pb.basis (trace_form K L)).det
+      = det ((algebra_map K _).map_matrix $
+              bilin_form.to_matrix pb.basis (trace_form K L)) : ring_hom.map_det
+  ... = det (Mᵀ ⬝ M) : _
+  ... = det M * det M : by rw [det_mul, det_transpose]
+  ... ≠ 0 : mt mul_self_eq_zero.mp _,
+  { refine congr_arg det _, ext i j,
+    rw [vandermonde_transpose_mul_vandermonde, ring_hom.map_matrix_apply, matrix.map_apply,
+        bilin_form.to_matrix_apply, pb.basis_eq_pow, pb.basis_eq_pow, trace_form_apply,
+        ← pow_add, trace_eq_sum_embeddings (algebraic_closure L) (pb.is_integral_gen.pow _),
+        fintype.sum_equiv e],
+    intros σ,
+    rw [e.symm_apply_apply, σ.map_pow] },
+  { simp only [det_vandermonde, finset.prod_eq_zero_iff, not_exists, sub_eq_zero],
+    intros i _ j hij h,
+    exact (finset.mem_filter.mp hij).2.ne' (e.symm.injective $ pb.alg_hom_ext h) },
+  { rw [alg_hom.card, pb.finrank] }
+end
+
+lemma det_trace_form_ne_zero [is_separable K L] [decidable_eq ι] (b : basis ι K L) :
+  det (bilin_form.to_matrix b (trace_form K L)) ≠ 0 :=
+begin
+  haveI : finite_dimensional K L := finite_dimensional.of_fintype_basis b,
+  let pb : power_basis K L := field.power_basis_of_finite_of_separable _ _,
+  rw [← bilin_form.to_matrix_mul_basis_to_matrix pb.basis b,
+      ← det_comm' (pb.basis.to_matrix_mul_to_matrix_flip b) _,
+      ← matrix.mul_assoc, det_mul],
+  swap, { apply basis.to_matrix_mul_to_matrix_flip },
+  refine mul_ne_zero
+    (is_unit_of_mul_eq_one _ ((b.to_matrix pb.basis)ᵀ ⬝ b.to_matrix pb.basis).det _).ne_zero
+    (det_trace_form_ne_zero' pb),
+  calc (pb.basis.to_matrix b ⬝ (pb.basis.to_matrix b)ᵀ).det *
+      ((b.to_matrix pb.basis)ᵀ ⬝ b.to_matrix pb.basis).det
+      = (pb.basis.to_matrix b ⬝ (b.to_matrix pb.basis ⬝ pb.basis.to_matrix b)ᵀ ⬝
+        b.to_matrix pb.basis).det
+      : by simp only [← det_mul, matrix.mul_assoc, matrix.transpose_mul]
+  ... = 1 : by simp only [basis.to_matrix_mul_to_matrix_flip, matrix.transpose_one,
+                          matrix.mul_one, matrix.det_one]
+end
+
+variables (K L)
+
+theorem trace_form_nondegenerate [finite_dimensional K L] [is_separable K L] :
+  (trace_form K L).nondegenerate :=
+bilin_form.nondegenerate_of_det_ne_zero (trace_form K L) _
+  (det_trace_form_ne_zero (finite_dimensional.fin_basis K L))
+
+end det_ne_zero

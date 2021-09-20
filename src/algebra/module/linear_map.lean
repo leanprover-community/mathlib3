@@ -224,6 +224,8 @@ variables (f : M₂ →ₗ[R] M₃) (g : M →ₗ[R] M₂)
 def comp : M →ₗ[R] M₃ :=
 { to_fun := f ∘ g, .. f.to_distrib_mul_action_hom.comp g.to_distrib_mul_action_hom }
 
+infixr ` ∘ₗ `:80 := linear_map.comp
+
 lemma comp_apply (x : M) : f.comp g x = f (g x) := rfl
 
 @[simp, norm_cast] lemma coe_comp : (f.comp g : M → M₃) = f ∘ g := rfl
@@ -526,6 +528,8 @@ def trans : M ≃ₗ[R] M₃ :=
 { .. e₂.to_linear_map.comp e₁.to_linear_map,
   .. e₁.to_equiv.trans e₂.to_equiv }
 
+infixl ` ≪≫ₗ `:80 := linear_equiv.trans
+
 @[simp] lemma coe_to_add_equiv : ⇑(e.to_add_equiv) = e := rfl
 
 /-- The two paths coercion can take to an `add_monoid_hom` are equivalent -/
@@ -662,3 +666,36 @@ by exact {
   ..g }
 
 end module
+
+namespace distrib_mul_action
+
+variables (R M) [semiring R] [add_comm_monoid M] [module R M]
+
+section
+variables [monoid S] [distrib_mul_action S M] [smul_comm_class S R M]
+
+/-- Each element of the monoid defines a linear map.
+
+This is a stronger version of `distrib_mul_action.to_add_monoid_hom`. -/
+@[simps]
+def to_linear_map (s : S) : M →ₗ[R] M :=
+{ to_fun := has_scalar.smul s,
+  map_add' := smul_add s,
+  map_smul' := λ a b, smul_comm _ _ _ }
+
+end
+
+section
+variables [group S] [distrib_mul_action S M] [smul_comm_class S R M]
+
+/-- Each element of the group defines a linear equivalence.
+
+This is a stronger version of `distrib_mul_action.to_add_equiv`. -/
+@[simps]
+def to_linear_equiv (s : S) : M ≃ₗ[R] M :=
+{ ..to_add_equiv M s,
+  ..to_linear_map R M s }
+
+end
+
+end distrib_mul_action

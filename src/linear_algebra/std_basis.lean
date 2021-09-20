@@ -6,6 +6,7 @@ Authors: Johannes Hölzl
 import linear_algebra.basic
 import linear_algebra.basis
 import linear_algebra.pi
+import data.matrix.basic
 
 /-!
 # The standard basis
@@ -200,7 +201,7 @@ protected noncomputable def basis (s : ∀ j, basis (ιs j) R (Ms j)) :
   basis (Σ j, ιs j) R (Π j, Ms j) :=
 -- The `add_comm_monoid (Π j, Ms j)` instance was hard to find.
 -- Defining this in tactic mode seems to shake up instance search enough that it works by itself.
-by { refine basis.of_repr (linear_equiv.trans _ (finsupp.sigma_finsupp_lequiv_pi_finsupp R).symm),
+by { refine basis.of_repr (_ ≪≫ₗ (finsupp.sigma_finsupp_lequiv_pi_finsupp R).symm),
      exact linear_equiv.Pi_congr_right (λ j, (s j).repr) }
 
 @[simp] lemma basis_repr_std_basis [decidable_eq η] (s : ∀ j, basis (ιs j) R (Ms j)) (j i) :
@@ -249,6 +250,11 @@ by { simp only [basis_fun, basis.coe_of_equiv_fun, linear_equiv.refl_symm,
 @[simp] lemma basis_fun_repr (x : η → R) (i : η) :
   (pi.basis_fun R η).repr x i = x i :=
 by simp [basis_fun]
+
+/-- The standard basis on `matrix n m R`. -/
+noncomputable def _root_.matrix.std_basis (n : Type*) (m : Type*) [fintype m] [fintype n] :
+  basis (Σ (j : n), (λ (i : n), m) j) R (matrix n m R) :=
+pi.basis (λ (i : n), pi.basis_fun R m)
 
 end
 

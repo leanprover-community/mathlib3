@@ -94,6 +94,9 @@ variables {n m : ℕ} {a b : fin n}
 
 instance fin_to_nat (n : ℕ) : has_coe (fin n) nat := ⟨subtype.val⟩
 
+lemma pos_iff_nonempty {n : ℕ} : 0 < n ↔ nonempty (fin n) :=
+⟨λ h, ⟨⟨0, h⟩⟩, λ ⟨i⟩, lt_of_le_of_lt (nat.zero_le _) i.2⟩
+
 section coe
 
 /-!
@@ -229,6 +232,13 @@ begin
     simp at w,
     subst w,
     refl, },
+end
+
+lemma eq_zero_or_eq_succ {n : ℕ} (i : fin (n+1)) : i = 0 ∨ ∃ j : fin n, i = j.succ :=
+begin
+  rcases i with ⟨_|j, h⟩,
+  { left, refl, },
+  { right, exact ⟨⟨j, nat.lt_of_succ_lt_succ h⟩, rfl⟩, }
 end
 
 /-- The greatest value of `fin (n+1)` -/

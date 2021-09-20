@@ -3,6 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import algebra.order.absolute_value
 import algebra.big_operators.order
 
 /-!
@@ -16,7 +17,6 @@ This is a concrete implementation that is useful for simplicity and computabilit
 
 ## Important definitions
 
-* `is_absolute_value`: a type class stating that `f : β → α` satisfies the axioms of an abs val
 * `is_cau_seq`: a predicate that says `f : ℕ → β` is Cauchy.
 * `cau_seq`: the type of Cauchy sequences valued in type `β` with respect to an absolute value
   function `abv`.
@@ -27,73 +27,6 @@ sequence, cauchy, abs val, absolute value
 -/
 
 open_locale big_operators
-
-/-- A function `f` is an absolute value if it is nonnegative, zero only at 0, additive, and
-multiplicative. -/
-class is_absolute_value {α} [linear_ordered_field α]
-  {β} [ring β] (f : β → α) : Prop :=
-(abv_nonneg [] : ∀ x, 0 ≤ f x)
-(abv_eq_zero [] : ∀ {x}, f x = 0 ↔ x = 0)
-(abv_add [] : ∀ x y, f (x + y) ≤ f x + f y)
-(abv_mul [] : ∀ x y, f (x * y) = f x * f y)
-
-namespace is_absolute_value
-variables {α : Type*} [linear_ordered_field α]
-  {β : Type*} [ring β] (abv : β → α) [is_absolute_value abv]
-
-theorem abv_zero : abv 0 = 0 := (abv_eq_zero abv).2 rfl
-
-theorem abv_one [nontrivial β] : abv 1 = 1 :=
-(mul_right_inj' $ mt (abv_eq_zero abv).1 one_ne_zero).1 $
-by rw [← abv_mul abv, mul_one, mul_one]
-
-theorem abv_pos {a : β} : 0 < abv a ↔ a ≠ 0 :=
-by rw [lt_iff_le_and_ne, ne, eq_comm]; simp [abv_eq_zero abv, abv_nonneg abv]
-
-theorem abv_neg (a : β) : abv (-a) = abv a :=
-by rw [← mul_self_inj_of_nonneg (abv_nonneg abv _) (abv_nonneg abv _),
-  ← abv_mul abv, ← abv_mul abv]; simp
-
-theorem abv_sub (a b : β) : abv (a - b) = abv (b - a) :=
-by rw [← neg_sub, abv_neg abv]
-
-/-- `abv` as a `monoid_with_zero_hom`. -/
-def abv_hom [nontrivial β] : monoid_with_zero_hom β α :=
-⟨abv, abv_zero abv, abv_one abv, abv_mul abv⟩
-
-theorem abv_inv
-  {β : Type*} [field β] (abv : β → α) [is_absolute_value abv]
-  (a : β) : abv a⁻¹ = (abv a)⁻¹ :=
-(abv_hom abv).map_inv' a
-
-theorem abv_div
-  {β : Type*} [field β] (abv : β → α) [is_absolute_value abv]
-  (a b : β) : abv (a / b) = abv a / abv b :=
-(abv_hom abv).map_div a b
-
-lemma abv_sub_le (a b c : β) : abv (a - c) ≤ abv (a - b) + abv (b - c) :=
-by simpa [sub_eq_add_neg, add_assoc] using abv_add abv (a - b) (b - c)
-
-lemma sub_abv_le_abv_sub (a b : β) : abv a - abv b ≤ abv (a - b) :=
-sub_le_iff_le_add.2 $ by simpa using abv_add abv (a - b) b
-
-lemma abs_abv_sub_le_abv_sub (a b : β) :
-  abs (abv a - abv b) ≤ abv (a - b) :=
-abs_sub_le_iff.2 ⟨sub_abv_le_abv_sub abv _ _,
-  by rw abv_sub abv; apply sub_abv_le_abv_sub abv⟩
-
-lemma abv_pow [nontrivial β] (abv : β → α) [is_absolute_value abv]
-  (a : β) (n : ℕ) : abv (a ^ n) = abv a ^ n :=
-(abv_hom abv).to_monoid_hom.map_pow a n
-
-end is_absolute_value
-
-instance abs_is_absolute_value {α} [linear_ordered_field α] :
-  is_absolute_value (abs : α → α) :=
-{ abv_nonneg  := abs_nonneg,
-  abv_eq_zero := λ _, abs_eq_zero,
-  abv_add     := abs_add,
-  abv_mul     := abs_mul }
 
 open is_absolute_value
 

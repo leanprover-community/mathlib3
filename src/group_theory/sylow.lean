@@ -49,10 +49,10 @@ variables {p} {G}
 
 instance : has_coe (sylow p G) (subgroup G) := ⟨sylow.to_subgroup⟩
 
-@[ext] lemma sylow.ext {P Q : sylow p G} (h : ↑P = (↑Q : subgroup G)) : P = Q :=
+@[ext] lemma sylow.ext {P Q : sylow p G} (h : (P : subgroup G) = Q) : P = Q :=
 by cases P; cases Q; congr'
 
-lemma sylow.ext_iff {P Q : sylow p G} : P = Q ↔ ↑P = (↑Q : subgroup G) :=
+lemma sylow.ext_iff {P Q : sylow p G} : P = Q ↔ (P : subgroup G) = Q :=
 ⟨congr_arg coe, sylow.ext⟩
 
 /-- A generalization of **Sylow's first theorem**.
@@ -75,8 +75,6 @@ nonempty_of_exists is_p_group.of_bot.exists_le_sylow
 
 noncomputable instance sylow_inhabited : inhabited (sylow p G) :=
 classical.inhabited_of_nonempty sylow_nonempty
-
---subtype.ext (ext (λ g, iff.rfl))
 
 instance sylow.mul_aut_mul_action : mul_action (mul_aut G) (sylow p G) :=
 { smul := λ ϕ P, ⟨P.1.comap ϕ⁻¹.to_monoid_hom, P.2.comap_injective _ ϕ⁻¹.injective, λ Q hQ hP,

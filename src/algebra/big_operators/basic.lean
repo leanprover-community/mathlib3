@@ -259,7 +259,10 @@ namespace finset
 section comm_monoid
 variables [comm_monoid β]
 
-@[to_additive]
+/-- Multiplying the products of a function over `s` and over `sᶜ` gives the whole product.
+For a version expressed with subtypes, see `fintype.prod_subtype_mul_prod_subtype`. -/
+@[to_additive "Adding the sums of a function over `s` and over `sᶜ` gives the whole sum.
+For a version expressed with subtypes, see `fintype.sum_subtype_add_sum_subtype`. "]
 lemma prod_mul_prod_compl [fintype α] [decidable_eq α] (s : finset α) (f : α → β) :
   (∏ i in s, f i) * (∏ i in sᶜ, f i) = ∏ i, f i :=
 is_compl_compl.prod_mul_prod f
@@ -1383,6 +1386,19 @@ lemma prod_subsingleton {α β : Type*} [comm_monoid β] [subsingleton α] (f : 
 begin
   haveI : unique α := unique_of_subsingleton a,
   convert prod_unique f
+end
+
+@[to_additive]
+lemma prod_subtype_mul_prod_subtype {α β : Type*} [fintype α] [comm_monoid β]
+  (p : α → Prop) (f : α → β) [decidable_pred p] :
+  (∏ (i : {x // p x}), f i) * (∏ i : {x // ¬ p x}, f i) = ∏ i, f i :=
+begin
+  classical,
+  let s := {x | p x}.to_finset,
+  rw [← finset.prod_subtype s, ← finset.prod_subtype sᶜ],
+  { exact finset.prod_mul_prod_compl _ _ },
+  { simp },
+  { simp }
 end
 
 end fintype

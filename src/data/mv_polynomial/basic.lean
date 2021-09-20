@@ -275,20 +275,25 @@ finsupp.induction p (suffices P (monomial 0 0), by rwa monomial_zero at this,
                      show P (monomial 0 0), from h1 0 0)
                     (λ a b f ha hb hPf, h2 _ _ (h1 _ _) hPf)
 
-
-@[ext] lemma ring_hom_ext {A : Type*} [semiring A] {f g : mv_polynomial σ R →+* A}
+lemma ring_hom_ext {A : Type*} [semiring A] {f g : mv_polynomial σ R →+* A}
   (hC : ∀ r, f (C r) = g (C r)) (hX : ∀ i, f (X i) = g (X i)) :
   f = g :=
 by { ext, exacts [hC _, hX _] }
 
+/-- See note [partially-applied ext lemmas]. -/
+@[ext] lemma ring_hom_ext' {A : Type*} [semiring A] {f g : mv_polynomial σ R →+* A}
+  (hC : f.comp C = g.comp C) (hX : ∀ i, f (X i) = g (X i)) :
+  f = g :=
+ring_hom_ext (ring_hom.ext_iff.1 hC) hX
+
 lemma hom_eq_hom [semiring S₂]
   (f g : mv_polynomial σ R →+* S₂)
-  (hC : ∀a:R, f (C a) = g (C a)) (hX : ∀n:σ, f (X n) = g (X n)) (p : mv_polynomial σ R) :
+  (hC : f.comp C = g.comp C) (hX : ∀n:σ, f (X n) = g (X n)) (p : mv_polynomial σ R) :
   f p = g p :=
-ring_hom.congr_fun (ring_hom_ext hC hX) p
+ring_hom.congr_fun (ring_hom_ext' hC hX) p
 
 lemma is_id (f : mv_polynomial σ R →+* mv_polynomial σ R)
-  (hC : ∀a:R, f (C a) = (C a)) (hX : ∀n:σ, f (X n) = (X n)) (p : mv_polynomial σ R) :
+  (hC : f.comp C = C) (hX : ∀n:σ, f (X n) = (X n)) (p : mv_polynomial σ R) :
   f p = p :=
 hom_eq_hom f (ring_hom.id _) hC hX p
 
@@ -431,7 +436,7 @@ add_monoid_algebra.mul_apply_antidiagonal p q _ _ $ λ p, mem_antidiagonal
 
 @[simp] lemma support_mul_X (s : σ) (p : mv_polynomial σ R) :
   (p * X s).support = p.support.map (add_right_embedding (single s 1)) :=
-add_monoid_algebra.support_mul_single p _ (by simp) _ 
+add_monoid_algebra.support_mul_single p _ (by simp) _
 
 lemma coeff_mul_X' [decidable_eq σ] (m) (s : σ) (p : mv_polynomial σ R) :
   coeff m (p * X s) = if s ∈ m.support then coeff (m - single s 1) p else 0 :=

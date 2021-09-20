@@ -289,24 +289,64 @@ def mmap {m} [monad m] {α} {β : Type u} (f : α → m β) :
   do h' ← f a, t' ← mmap f v, pure (h' ::ᵥ t')
 | _ ⟨l, rfl⟩ := rfl
 
-/-- Define `C v` by induction on `v : vector α (n + 1)`, a vector of
-at least one element.
-This function has two arguments: `h0` handles the base case on `C nil`,
-and `hs` defines the inductive step using `∀ x : α, C v → C (x ::ᵥ v)`. -/
-@[elab_as_eliminator] def induction_on
-  {α : Type*} {n : ℕ}
-  {C : Π {n : ℕ}, vector α n → Sort*}
-  (v : vector α (n + 1))
-  (h0 : C nil)
-  (hs : ∀ {n : ℕ} {x : α} {w : vector α n}, C w → C (x ::ᵥ w)) :
+/-- Define `C v` by induction on `v : vector α n`.
+
+This function has two arguments: `h_nil` handles the base case on `C nil`,
+and `h_cons` defines the inductive step using `∀ x : α, C w → C (x ::ᵥ w)`. -/
+@[elab_as_eliminator] def induction_on {C : Π {n : ℕ}, vector α n → Sort*}
+  (v : vector α n)
+  (h_nil : C nil)
+  (h_cons : ∀ {n : ℕ} {x : α} {w : vector α n}, C w → C (x ::ᵥ w)) :
     C v :=
 begin
-  induction n with n hn,
-  { rw ←v.cons_head_tail,
-    convert hs h0 },
-  { rw ←v.cons_head_tail,
-    apply hs,
-    apply hn }
+  induction n with n ih generalizing v,
+  { rcases v with ⟨_|⟨-,-⟩,-|-⟩,
+    exact h_nil, },
+  { rcases v with ⟨_|⟨a,v⟩,_⟩,
+    cases v_property,
+    apply @h_cons n _ ⟨v, (add_left_inj 1).mp v_property⟩,
+    apply ih, }
+end
+
+variables {β γ : Type*}
+
+/-- Define `C v w` by induction on a pair of vectors `v : vector α n` and `w : vector β n`. -/
+@[elab_as_eliminator] def induction_on₂ {C : Π {n}, vector α n → vector β n → Sort*}
+  (v : vector α n) (w : vector β n)
+  (h_nil : C nil nil)
+  (h_cons : ∀ {n a b} {x : vector α n} {y}, C x y → C (a ::ᵥ x) (b ::ᵥ y)) : C v w :=
+begin
+  induction n with n ih generalizing v w,
+  { rcases v with ⟨_|⟨-,-⟩,-|-⟩, rcases w with ⟨_|⟨-,-⟩,-|-⟩,
+    exact h_nil, },
+  { rcases v with ⟨_|⟨a,v⟩,_⟩,
+    cases v_property,
+    rcases w with ⟨_|⟨b,w⟩,_⟩,
+    cases w_property,
+    apply @h_cons n _ _ ⟨v, (add_left_inj 1).mp v_property⟩ ⟨w, (add_left_inj 1).mp w_property⟩,
+    apply ih, }
+end
+
+/-- Define `C u v w` by induction on a triplet of vectors
+`u : vector α n`, `v : vector β n`, and `w : vector γ b`. -/
+@[elab_as_eliminator] def induction_on₃ {C : Π {n}, vector α n → vector β n → vector γ n → Sort*}
+  (u : vector α n) (v : vector β n) (w : vector γ n)
+  (h_nil : C nil nil nil)
+  (h_cons : ∀ {n a b c} {x : vector α n} {y z}, C x y z → C (a ::ᵥ x) (b ::ᵥ y) (c ::ᵥ z)) :
+  C u v w :=
+begin
+  induction n with n ih generalizing u v w,
+  { rcases u with ⟨_|⟨-,-⟩,-|-⟩, rcases v with ⟨_|⟨-,-⟩,-|-⟩, rcases w with ⟨_|⟨-,-⟩,-|-⟩,
+    exact h_nil, },
+  { rcases u with ⟨_|⟨a,u⟩,_⟩,
+    cases u_property,
+    rcases v with ⟨_|⟨b,v⟩,_⟩,
+    cases v_property,
+    rcases w with ⟨_|⟨c,w⟩,_⟩,
+    cases w_property,
+    apply @h_cons n _ _ _ ⟨u, (add_left_inj 1).mp u_property⟩ ⟨v, (add_left_inj 1).mp v_property⟩
+      ⟨w, (add_left_inj 1).mp w_property⟩,
+    apply ih, }
 end
 
 def to_array : vector α n → array n α

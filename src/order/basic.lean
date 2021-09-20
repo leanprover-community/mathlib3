@@ -542,10 +542,19 @@ lemma subtype.mono_coe [preorder α] (t : set α) : monotone (coe : (subtype t) 
 lemma subtype.strict_mono_coe [preorder α] (t : set α) : strict_mono (coe : (subtype t) → α) :=
 λ x y, id
 
-instance prod.has_le (α : Type u) (β : Type v) [has_le α] [has_le β] : has_le (α × β) :=
+namespace prod
+
+instance (α : Type u) (β : Type v) [has_le α] [has_le β] : has_le (α × β) :=
 ⟨λ p q, p.1 ≤ q.1 ∧ p.2 ≤ q.2⟩
 
-instance prod.preorder (α : Type u) (β : Type v) [preorder α] [preorder β] : preorder (α × β) :=
+lemma le_def {α β : Type*} [has_le α] [has_le β] {x y : α × β} :
+  x ≤ y ↔ x.1 ≤ y.1 ∧ x.2 ≤ y.2 := iff.rfl
+
+@[simp] lemma mk_le_mk {α β : Type*} [has_le α] [has_le β] {x₁ x₂ : α} {y₁ y₂ : β} :
+  (x₁, y₁) ≤ (x₂, y₂) ↔ x₁ ≤ x₂ ∧ y₁ ≤ y₂ :=
+iff.rfl
+
+instance (α : Type u) (β : Type v) [preorder α] [preorder β] : preorder (α × β) :=
 { le_refl  := λ ⟨a, b⟩, ⟨le_refl a, le_refl b⟩,
   le_trans := λ ⟨a, b⟩ ⟨c, d⟩ ⟨e, f⟩ ⟨hac, hbd⟩ ⟨hce, hdf⟩,
     ⟨le_trans hac hce, le_trans hbd hdf⟩,
@@ -554,11 +563,13 @@ instance prod.preorder (α : Type u) (β : Type v) [preorder α] [preorder β] :
 /-- The pointwise partial order on a product.
     (The lexicographic ordering is defined in order/lexicographic.lean, and the instances are
     available via the type synonym `lex α β = α × β`.) -/
-instance prod.partial_order (α : Type u) (β : Type v) [partial_order α] [partial_order β] :
+instance (α : Type u) (β : Type v) [partial_order α] [partial_order β] :
   partial_order (α × β) :=
 { le_antisymm := λ ⟨a, b⟩ ⟨c, d⟩ ⟨hac, hbd⟩ ⟨hca, hdb⟩,
     prod.ext (hac.antisymm hca) (hbd.antisymm hdb),
   .. prod.preorder α β }
+
+end prod
 
 lemma monotone_fst {α β : Type*} [preorder α] [preorder β] : monotone (@prod.fst α β) :=
 λ x y h, h.1

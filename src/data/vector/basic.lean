@@ -291,8 +291,8 @@ def mmap {m} [monad m] {α} {β : Type u} (f : α → m β) :
 
 /-- Define `C v` by induction on `v : vector α n`.
 
-This function has two arguments: `h0` handles the base case on `C nil`,
-and `hs` defines the inductive step using `∀ x : α, C v → C (x ::ᵥ v)`. -/
+This function has two arguments: `h_nil` handles the base case on `C nil`,
+and `h_cons` defines the inductive step using `∀ x : α, C w → C (x ::ᵥ w)`. -/
 @[elab_as_eliminator] def induction_on {C : Π {n : ℕ}, vector α n → Sort*}
   (v : vector α n)
   (h_nil : C nil)
@@ -325,7 +325,7 @@ begin
     apply ih, }
 end
 
-/-- Define `C u v w` by induction on a pair of vectors `u v w : vector α n`. -/
+/-- Define `C u v w` by induction on a triplet of vectors `u v w : vector α n`. -/
 @[elab_as_eliminator] def induction_on₃ {C : Π {n}, vector α n → vector α n → vector α n → Sort*}
   (u v w : vector α n)
   (h_nil : C nil nil nil)

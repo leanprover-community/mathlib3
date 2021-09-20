@@ -24,7 +24,8 @@ The Sylow theorems are the following results for every finite group `G` and ever
 ## Main statements
 
 * `exists_subgroup_card_pow_prime`: A generalization of Sylow's first theorem:
-  For every prime power `pⁿ` dividing the cardinality of `G`, there exists a subgroup of `G` of order `pⁿ`.
+  For every prime power `pⁿ` dividing the cardinality of `G`,
+  there exists a subgroup of `G` of order `pⁿ`.
 * `is_p_group.exists_le_sylow`: A generalization of Sylow's first theorem:
   Every `p`-subgroup is contained in a Sylow `p`-subgroup.
 * `sylow_conjugate`: A generalization of Sylow's second theorem:
@@ -40,10 +41,11 @@ section infinite_sylow
 variables (p : ℕ) (G : Type*) [group G]
 
 /-- A Sylow `p`-subgroup is a maximal `p`-subgroup. -/
-def sylow :=
-{P : subgroup G // is_p_group p P ∧ ∀ {Q : subgroup G}, is_p_group p Q → P ≤ Q → Q = P}
+structure sylow extends subgroup G :=
+(is_p_group' : is_p_group p to_subgroup)
+(is_maximal' : ∀ {Q : subgroup G}, is_p_group p Q → to_subgroup ≤ Q → Q = to_subgroup)
 
-instance : has_coe (sylow p G) (subgroup G) := ⟨subtype.val⟩
+instance : has_coe (sylow p G) (subgroup G) := ⟨sylow.to_subgroup⟩
 
 variables {p} {G}
 

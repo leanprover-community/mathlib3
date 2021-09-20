@@ -375,17 +375,6 @@ by rw [← not_nonempty_iff_eq_empty, nonempty_closed_ball, not_le]
 theorem ball_subset_closed_ball : ball x ε ⊆ closed_ball x ε :=
 assume y (hy : _ < _), le_of_lt hy
 
-lemma ball_disjoint_ball (x y : α) (rx ry : ℝ) (h : rx + ry ≤ dist x y) :
-  disjoint (ball x rx) (ball y ry) :=
-begin
-  rw disjoint_left,
-  assume a ax ay,
-  apply lt_irrefl (dist x y),
-  calc dist x y ≤ dist x a + dist a y : dist_triangle _ _ _
-  ... < rx + ry : add_lt_add (mem_ball'.1 ax) (mem_ball.1 ay)
-  ... ≤ dist x y : h
-end
-
 theorem sphere_subset_closed_ball : sphere x ε ⊆ closed_ball x ε :=
 λ y, le_of_eq
 

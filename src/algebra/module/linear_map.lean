@@ -34,6 +34,11 @@ To ensure that composition works smoothly for semilinear maps, we use the follow
 These typeclasses ensure that objects such as `σ₂₃.comp σ₁₂` never end up in the type of a
 semilinear map; instead, the typeclass system directly finds the appropriate `ring_hom` to use.
 
+## Notation
+
+* Throughout the file, we denote regular linear maps by `fₗ`, `gₗ`, etc, and semilinear maps
+  by `f`, `g`, etc.
+
 ## Tags
 
 linear map, linear equiv, linear equivalences, linear isomorphism, linear isomorphic
@@ -599,8 +604,8 @@ variables {re₃₂ : ring_hom_inv_pair σ₃₂ σ₂₃} [ring_hom_inv_pair σ
 variables (e₁₂ : M₁ ≃ₛₗ[σ₁₂] M₂) (e₂₃ : M₂ ≃ₛₗ[σ₂₃] M₃)
 
 include σ₃₁
-/-- Linear equivalences are transitive. The linter thinks the `ring_hom_comp_triple` argument
-is doubled -- it is not. -/
+/-- Linear equivalences are transitive. -/
+-- Note: The linter thinks the `ring_hom_comp_triple` argument is doubled -- it is not.
 @[trans, nolint unused_arguments]
 def trans : M₁ ≃ₛₗ[σ₁₃] M₃ :=
 { .. e₂₃.to_linear_map.comp e₁₂.to_linear_map,

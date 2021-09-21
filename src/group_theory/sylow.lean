@@ -92,8 +92,11 @@ instance sylow.pointwise_mul_action {α : Type*} [group α] [mul_distrib_mul_act
 instance sylow.mul_action : mul_action G (sylow p G) :=
 mul_action.comp_hom _ mul_aut.conj
 
+lemma sylow.coe_subgroup_smul {g : G} {P : sylow p G} :
+  ↑(g • P) = mul_aut.conj g • (P : subgroup G) := rfl
+
 lemma sylow.coe_smul {g : G} {P : sylow p G} :
-  ↑(g • P) = P.1.map (mul_aut.conj g).to_monoid_hom := rfl
+  ↑(g • P) = mul_aut.conj g • (P : set G) := rfl
 
 lemma sylow.smul_eq_iff_mem_normalizer {g : G} {P : sylow p G} :
   g • P = P ↔ g ∈ P.1.normalizer :=

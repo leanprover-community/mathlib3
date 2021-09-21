@@ -2304,6 +2304,8 @@ by { intros μ₁ μ₂ hμ, apply_fun map e.symm at hμ, simpa [map_symm_map e]
 lemma map_apply_eq_iff_map_symm_apply_eq (e : α ≃ᵐ β) : map e μ = ν ↔ map e.symm ν = μ :=
 by rw [← (map_measurable_equiv_injective e).eq_iff, map_map_symm, eq_comm]
 
+lemma restrict_map (e : α ≃ᵐ β) (s : set β) : (map e μ).restrict s = map e (μ.restrict $ e ⁻¹' s) :=
+measure.ext $ λ t ht, by simp [e.map_apply, ht, e.measurable ht]
 
 end measurable_equiv
 
@@ -2754,6 +2756,15 @@ begin
   refine measurable_set.union _ ((measurable_const ht).diff hs),
   rw [← subtype.image_preimage_coe, ← preimage_comp],
   exact hs.subtype_image (hf ht)
+end
+
+lemma ae_measurable_map_equiv_iff [measurable_space γ] (e : α ≃ᵐ β) {f : β → γ} :
+  ae_measurable f (map e μ) ↔ ae_measurable (f ∘ e) μ :=
+begin
+  refine ⟨λ h, h.comp_measurable e.measurable, λ h, _⟩,
+  rw [← (e.map_symm_map : _ = μ)] at h,
+  convert h.comp_measurable e.symm.measurable,
+  simp [(∘)]
 end
 
 end

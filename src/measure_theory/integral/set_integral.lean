@@ -294,6 +294,10 @@ begin
   apply_instance,
 end
 
+lemma set_integral_map_equiv {β} [measurable_space β] (e : α ≃ᵐ β) (f : β → E) (s : set β) :
+  ∫ y in s, f y ∂(measure.map e μ) = ∫ x in e ⁻¹' s, f (e x) ∂μ :=
+by rw [e.restrict_map, integral_map_equiv]
+
 lemma norm_set_integral_le_of_norm_le_const_ae {C : ℝ} (hs : μ s < ∞)
   (hC : ∀ᵐ x ∂μ.restrict s, ∥f x∥ ≤ C) :
   ∥∫ x in s, f x ∂μ∥ ≤ C * (μ s).to_real :=

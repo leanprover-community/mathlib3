@@ -14,28 +14,29 @@ import tactic.ring_exp
 
 /-!
 # IMO 2021 Q1
-Let n≥100 be an integer. Ivan writes the numbers n, n+1,..., 2n each on different cards.
-He then shuffles these n+1 cards, and divides them into two piles. Prove that at least one
+Let `n≥100` be an integer. Ivan writes the numbers` n, n+1,..., 2n` each on different cards.
+He then shuffles these `n+1` cards, and divides them into two piles. Prove that at least one
 of the piles contains two cards such that the sum of their numbers is a perfect square.
 # Solution
-We show there exists a triplet a, b, c ∈ [n , 2n] with a < b < c and each of the sums (a + b),
-(b + c), (a + c) being a perfect square. Specifically, we consider the linear system of equations
+We show there exists a triplet `a, b, c ∈ [n , 2n]` with `a < b < c` and each of the sums `(a + b)`,
+`(b + c)`, `(a + c)` being a perfect square. Specifically, we consider the linear system of
+equations
 
-  a + b = (2 * l - 1) ^ 2
-  a + c = (2 * l) ^ 2
-  b + c = (2 * l + 1) ^ 2
+    a + b = (2 * l - 1) ^ 2
+    a + c = (2 * l) ^ 2
+    b + c = (2 * l + 1) ^ 2
 
 which can be solved to give
 
-  a = 2 * l * l - 4 * l
-  b = 2 * l * l + 1
-  c = 2 * l * l + 4 * l
+    a = 2 * l * l - 4 * l
+    b = 2 * l * l + 1
+    c = 2 * l * l + 4 * l
 
 Therefore, it is enough to show that there exists a natural number l such that
-n ≤ 2 * l * l - 4 * l and 2 * l * l + 4 * l ≤ 2 * n for n ≥ 100.
+`n ≤ 2 * l * l - 4 * l` and `2 * l * l + 4 * l ≤ 2 * n` for `n ≥ 100`.
 
-Then, by Pigeonhole principle, at least two numbers in the triplet must lie in the same pile, which
-finishes the proof.
+Then, by the Pigeonhole principle, at least two numbers in the triplet must lie in the same pile,
+which finishes the proof.
 -/
 
 open real
@@ -85,7 +86,7 @@ begin
       have : n = 107 := nat.eq_of_le_of_lt_succ h p,
       subst this,
       norm_num },
-      swap 3,
+    swap 3,
     { norm_num,
       apply sqrt_nonneg },
       all_goals { norm_cast, linarith } },
@@ -140,7 +141,7 @@ begin
     { have h₁ : 4 * l ≤ 2 * l * l, { linarith },
       have h₂ : 1 ≤ 2 * l, { linarith },
       refine ⟨2 * l * l - 4 * l, 2 * l * l + 1, 2 * l * l + 4 * l,
-      ⟨_,⟨_,⟨_,⟨_,⟨2 * l - 1, _⟩,⟨2 * l, _⟩,2 * l + 1, _⟩⟩⟩⟩⟩,
+      _,_,_,⟨_,⟨2 * l - 1, _⟩,⟨2 * l, _⟩,2 * l + 1, _⟩⟩,
       all_goals { zify [h₁, h₂], linarith } },
     { exfalso,
       simp only [not_lt] at p,
@@ -155,11 +156,11 @@ end
 -- to state that there always exists a set B ⊆ [n, 2n] of cardinality at least 3, such that each
 -- pair of pairwise unequal elements of B sums to a perfect square.
 lemma exists_finset_of_3_leq_card_with_pairs_summing_to_squares (n : ℕ) (hn : 100 ≤ n) :
-  ∃ (B : finset ℕ), 2 * 1 + 1 ≤ B.card ∧ (∀ (a b ∈ B), a ≠ b →
-  ∃ k, a + b = k * k) ∧ ∀ (c ∈  B), n ≤ c ∧ c ≤ 2 * n :=
+   ∃ (B : finset ℕ), 2 * 1 + 1 ≤ B.card ∧
+    (∀ (a b ∈ B), a ≠ b → ∃ k, a + b = k * k) ∧
+    ∀ (c ∈ B), n ≤ c ∧ c ≤ 2 * n :=
 begin
-  have h := exists_triplet_summing_to_squares n hn,
-  rcases h with ⟨a, b, c, hna, hab, hbc, hcn, h₁, h₂, h₃⟩,
+  obtain ⟨a, b, c, hna, hab, hbc, hcn, h₁, h₂, h₃⟩ := exists_triplet_summing_to_squares n hn,
   refine ⟨{a, b, c}, _, _, _⟩,
   { suffices : ({a, b, c} : finset ℕ).card = 3,
     { linarith },
@@ -270,8 +271,7 @@ begin
   -- a finite set B ⊆ [n, 2n] such that all pairwise unequal pairs of B sum to a perfect square
   -- noting that B has cardinality greater or equal to 3, by the explicit construction of the
   -- triplet {a, b, c} before.
-  have hp₁ := exists_finset_of_3_leq_card_with_pairs_summing_to_squares n hn,
-  rcases hp₁ with ⟨B,⟨hB,h₁, h₂⟩⟩,
+  obtain ⟨B, hB, h₁, h₂⟩ := exists_finset_of_3_leq_card_with_pairs_summing_to_squares n hn,
   have hBA : B ⊆ (finset.Ico n (2 * n + 1) \ A) ∪ A,
   { rw finset.sdiff_union_of_subset hA,
     intros c hc,

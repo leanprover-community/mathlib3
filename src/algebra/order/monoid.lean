@@ -6,9 +6,9 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 import algebra.group.with_one
 import algebra.group.type_tags
 import algebra.group.prod
-import algebra.order_functions
+import algebra.order.functions
+import algebra.order.monoid_lemmas
 import order.bounded_lattice
-import algebra.ordered_monoid_lemmas
 import order.rel_iso
 
 /-!
@@ -176,14 +176,14 @@ linear_order.lift coe units.ext
 @[simp, norm_cast, to_additive]
 theorem max_coe [monoid α] [linear_order α] {a b : units α} :
   (↑(max a b) : α) = max a b :=
-by by_cases b ≤ a; simp [max, h]
+by by_cases b ≤ a; simp [max_def, h]
 
 attribute [norm_cast] add_units.max_coe
 
 @[simp, norm_cast, to_additive]
 theorem min_coe [monoid α] [linear_order α] {a b : units α} :
   (↑(min a b) : α) = min a b :=
-by by_cases a ≤ b; simp [min, h]
+by by_cases a ≤ b; simp [min_def, h]
 
 attribute [norm_cast] add_units.min_coe
 

@@ -162,7 +162,7 @@ by rw [finrank_eq_card_basis basis_one_I, fintype.card_fin]
 @[simp] lemma dim_real_complex : module.rank ℝ ℂ = 2 :=
 by simp [← finrank_eq_dim, finrank_real_complex]
 
-lemma {u} dim_real_complex' : cardinal.lift.{0 u} (module.rank ℝ ℂ) = 2 :=
+lemma {u} dim_real_complex' : cardinal.lift.{u} (module.rank ℝ ℂ) = 2 :=
 by simp [← finrank_eq_dim, finrank_real_complex, bit0]
 
 /-- `fact` version of the dimension of `ℂ` over `ℝ`, locally useful in the definition of the

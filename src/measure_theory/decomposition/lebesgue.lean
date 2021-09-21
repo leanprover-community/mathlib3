@@ -1120,7 +1120,7 @@ by { rw [sub_eq_add_neg, sub_eq_add_neg, singular_part_add, singular_part_neg] }
 mutually singular with respect to `μ` and `s = t + μ.with_densityᵥ f`, we have
 `f = radon_nikodym_deriv s μ`, i.e. `f` is the Radon-Nikodym derivative of `s` and `μ`. -/
 theorem eq_radon_nikodym_deriv
-  {t : signed_measure α} {f : α → ℝ} (hfi : integrable f μ)
+  (t : signed_measure α) (f : α → ℝ) (hfi : integrable f μ)
   (htμ : t ⊥ᵥ μ.to_ennreal_vector_measure) (hadd : s = t + μ.with_densityᵥ f) :
   f =ᵐ[μ] s.radon_nikodym_deriv μ :=
 begin

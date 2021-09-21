@@ -15,10 +15,10 @@ We prove that the Haar measure and Lebesgue measure are equal on `ℝ` and on `�
 We deduce basic properties of any Haar measure on a finite dimensional real vector space:
 * `map_linear_map_add_haar_eq_smul_add_haar`: a linear map rescales the Haar measure by the
   absolute value of its determinant.
-* `add_haar_smul` : the measure of `r • s` is `|r| ^ dim * μ s`
-* `add_haar_ball`: the measure of `ball x r` is `r ^ dim * μ (ball 0 1)`
-* `add_haar_closed_ball`: same thing for closed balls
-* `add_haar_sphere`: spheres have zero measure
+* `add_haar_smul` : the measure of `r • s` is `|r| ^ dim * μ s`.
+* `add_haar_ball`: the measure of `ball x r` is `r ^ dim * μ (ball 0 1)`.
+* `add_haar_closed_ball`: the measure of `closed_ball x r` is `r ^ dim * μ (ball 0 1)`.
+* `add_haar_sphere`: spheres have zero measure.
 
 -/
 
@@ -181,7 +181,7 @@ lemma add_haar_smul (r : ℝ) (s : set E) :
   μ (r • s) = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :=
 begin
   rcases ne_or_eq r 0 with h|rfl,
-  { rw [← preimage_smul_inv h, add_haar_preimage_smul μ (inv_ne_zero h), inv_pow', inv_inv'] },
+  { rw [← preimage_smul_inv' h, add_haar_preimage_smul μ (inv_ne_zero h), inv_pow', inv_inv'] },
   rcases eq_empty_or_nonempty s with rfl|hs,
   { simp only [measure_empty, mul_zero, smul_set_empty] },
   rw [zero_smul_set hs, ← singleton_zero],
@@ -204,7 +204,7 @@ lemma add_haar_ball_center
   [borel_space E] (μ : measure E) [is_add_haar_measure μ] (x : E) (r : ℝ) :
   μ (ball x r) = μ (ball (0 : E) r) :=
 begin
-  have : ball (0 : E) r = ((+) x) ⁻¹' (ball x r), by { ext y, simp [dist_eq_norm] },
+  have : ball (0 : E) r = ((+) x) ⁻¹' (ball x r), by simp [preimage_add_ball],
   rw [this, add_haar_preimage_add]
 end
 
@@ -213,19 +213,16 @@ lemma add_haar_closed_ball_center
   [borel_space E] (μ : measure E) [is_add_haar_measure μ] (x : E) (r : ℝ) :
   μ (closed_ball x r) = μ (closed_ball (0 : E) r) :=
 begin
-  have : closed_ball (0 : E) r = ((+) x) ⁻¹' (closed_ball x r),
-    by { ext y, simp [dist_eq_norm] },
+  have : closed_ball (0 : E) r = ((+) x) ⁻¹' (closed_ball x r), by simp [preimage_add_closed_ball],
   rw [this, add_haar_preimage_add]
 end
 
-lemma add_haar_closed_ball_lt_top {E : Type*} [normed_group E] [normed_space ℝ E]
-  [finite_dimensional ℝ E] [measurable_space E]
+lemma add_haar_closed_ball_lt_top {E : Type*} [normed_group E] [proper_space E] [measurable_space E]
   (μ : measure E) [is_add_haar_measure μ] (x : E) (r : ℝ) :
   μ (closed_ball x r) < ∞ :=
 (proper_space.compact_ball x r).add_haar_lt_top μ
 
-lemma add_haar_ball_lt_top {E : Type*} [normed_group E] [normed_space ℝ E]
-  [finite_dimensional ℝ E] [measurable_space E]
+lemma add_haar_ball_lt_top {E : Type*} [normed_group E] [proper_space E] [measurable_space E]
   (μ : measure E) [is_add_haar_measure μ] (x : E) (r : ℝ) :
   μ (ball x r) < ∞ :=
 lt_of_le_of_lt (measure_mono ball_subset_closed_ball) (add_haar_closed_ball_lt_top μ x r)
@@ -244,10 +241,7 @@ lemma add_haar_ball_of_pos (x : E) {r : ℝ} (hr : 0 < r) :
   μ (ball x r) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (ball 0 1) :=
 begin
   have : ball (0 : E) r = r • ball 0 1,
-  { rw ← preimage_smul_inv hr.ne',
-    ext y,
-    simp [norm_smul, real.norm_eq_abs, mem_ball_0_iff, mem_preimage, abs_inv,
-      abs_of_nonneg hr.le, ← div_eq_inv_mul, div_lt_iff hr] },
+    by simp [smul_ball hr.ne' (0 : E) 1, real.norm_eq_abs, abs_of_nonneg hr.le],
   simp [this, add_haar_smul, abs_of_nonneg hr.le, add_haar_ball_center],
 end
 
@@ -266,16 +260,11 @@ lemma add_haar_closed_ball' (x : E) {r : ℝ} (hr : 0 ≤ r) :
   μ (closed_ball x r) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (closed_ball 0 1) :=
 begin
   have : closed_ball (0 : E) r = r • closed_ball 0 1,
-  { rcases has_le.le.eq_or_lt hr with h|h,
-    { simp [← h, zero_smul_set, singleton_zero] },
-    { rw ← preimage_smul_inv h.ne',
-      ext y,
-      simp [norm_smul, real.norm_eq_abs, mem_ball_0_iff, mem_preimage, abs_inv,
-        abs_of_nonneg hr, ← div_eq_inv_mul, div_le_iff h] } },
+    by simp [smul_closed_ball r (0 : E) zero_le_one, real.norm_eq_abs, abs_of_nonneg hr],
   simp [this, add_haar_smul, abs_of_nonneg hr, add_haar_closed_ball_center],
 end
 
-lemma add_haar_closed_unit_ball_eq_unit_ball :
+lemma add_haar_closed_unit_ball_eq_add_haar_unit_ball :
   μ (closed_ball (0 : E) 1) = μ (ball 0 1) :=
 begin
   apply le_antisymm _ (measure_mono ball_subset_closed_ball),
@@ -293,7 +282,7 @@ end
 
 lemma add_haar_closed_ball (x : E) {r : ℝ} (hr : 0 ≤ r) :
   μ (closed_ball x r) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (ball 0 1) :=
-by rw [add_haar_closed_ball' μ x hr, add_haar_closed_unit_ball_eq_unit_ball]
+by rw [add_haar_closed_ball' μ x hr, add_haar_closed_unit_ball_eq_add_haar_unit_ball]
 
 lemma add_haar_sphere_of_ne_zero (x : E) {r : ℝ} (hr : r ≠ 0) :
   μ (sphere x r) = 0 :=

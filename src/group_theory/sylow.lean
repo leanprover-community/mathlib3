@@ -143,6 +143,9 @@ begin
   exact set.eq_singleton_iff_unique_mem.mpr ⟨H.mpr rfl, λ R h, subtype.ext (sylow.ext (H.mp h))⟩,
 end
 
+instance [hp : fact p.prime] [fintype (sylow p G)] : is_pretransitive G (sylow p G) :=
+⟨sylow.conjugate⟩
+
 variables (p) (G)
 
 /-- A generalization of **Sylow's third theorem**.

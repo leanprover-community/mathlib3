@@ -265,12 +265,11 @@ by rw [edist_nndist, ennreal.coe_lt_coe]
 by rw [edist_nndist, ennreal.coe_le_coe]
 
 /--In a pseudometric space, the extended distance is always finite-/
-lemma edist_ne_top (x y : α) : edist x y ≠ ⊤ :=
-by rw [edist_dist x y]; apply ennreal.coe_ne_top
+lemma edist_lt_top {α : Type*} [pseudo_metric_space α] (x y : α) : edist x y < ⊤ :=
+(edist_dist x y).symm ▸ ennreal.of_real_lt_top
 
 /--In a pseudometric space, the extended distance is always finite-/
-lemma edist_lt_top {α : Type*} [pseudo_metric_space α] (x y : α) : edist x y < ⊤ :=
-ennreal.lt_top_iff_ne_top.2 (edist_ne_top x y)
+lemma edist_ne_top (x y : α) : edist x y ≠ ⊤ := (edist_lt_top x y).ne
 
 /--`nndist x x` vanishes-/
 @[simp] lemma nndist_self (a : α) : nndist a a = 0 := (nnreal.coe_eq_zero _).1 (dist_self a)

@@ -70,8 +70,8 @@ end order
 
 theorem rel_iso.cof.aux {α : Type u} {β : Type v} {r s}
   [is_refl α r] [is_refl β s] (f : r ≃r s) :
-  cardinal.lift.{u (max u v)} (order.cof r) ≤
-  cardinal.lift.{v (max u v)} (order.cof s) :=
+  cardinal.lift.{(max u v)} (order.cof r) ≤
+  cardinal.lift.{(max u v)} (order.cof s) :=
 begin
   rw [order.cof, order.cof, lift_min, lift_min, cardinal.le_min],
   intro S, cases S with S H, simp [(∘)],
@@ -86,8 +86,8 @@ end
 
 theorem rel_iso.cof {α : Type u} {β : Type v} {r s}
   [is_refl α r] [is_refl β s] (f : r ≃r s) :
-  cardinal.lift.{u (max u v)} (order.cof r) =
-  cardinal.lift.{v (max u v)} (order.cof s) :=
+  cardinal.lift.{(max u v)} (order.cof r) =
+  cardinal.lift.{(max u v)} (order.cof s) :=
 le_antisymm (rel_iso.cof.aux f) (rel_iso.cof.aux f.symm)
 
 def strict_order.cof (r : α → α → Prop) [h : is_irrefl α r] : cardinal :=

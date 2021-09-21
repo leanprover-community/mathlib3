@@ -73,7 +73,7 @@ linearly dependent, linear dependence, linearly independent, linear independence
 noncomputable theory
 
 open function set submodule
-open_locale classical big_operators
+open_locale classical big_operators cardinal
 
 universes u
 
@@ -305,7 +305,7 @@ then the same is true for arbitrary sets of linearly independent vectors.
 -/
 lemma linear_independent_bounded_of_finset_linear_independent_bounded {n : ℕ}
   (H : ∀ s : finset M, linear_independent R (λ i : s, (i : M)) → s.card ≤ n) :
-  ∀ s : set M, linear_independent R (coe : s → M) → cardinal.mk s ≤ n :=
+  ∀ s : set M, linear_independent R (coe : s → M) → #s ≤ n :=
 begin
   intros s li,
   apply cardinal.card_le_of,

@@ -355,15 +355,6 @@ apply_nolint wseq.mem doc_blame
 apply_nolint wseq.tail.aux doc_blame
 apply_nolint wseq.think_congr unused_arguments
 
--- data/vector/basic.lean
-apply_nolint vector.insert_nth doc_blame
-apply_nolint vector.m_of_fn doc_blame
-apply_nolint vector.mmap doc_blame
-apply_nolint vector.reverse doc_blame
-apply_nolint vector.to_array doc_blame
-apply_nolint vector.traverse doc_blame
-apply_nolint vector.traverse_def unused_arguments
-
 -- data/vector3.lean
 apply_nolint vector3 has_inhabited_instance
 apply_nolint vector3.cons_elim doc_blame

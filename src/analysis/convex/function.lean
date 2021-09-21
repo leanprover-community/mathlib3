@@ -131,7 +131,7 @@ lemma linear_order.concave_on_of_lt {f : E → β} [linear_order E] (hs : convex
 
 /-- For a function `f` defined on a convex subset `D` of `ℝ`, if for any three points `x < y < z`
 the slope of the secant line of `f` on `[x, y]` is less than or equal to the slope
-of the secant line of `f` on `[x, z]`, then `f` is convex on `D`. This way of zroving convexity
+of the secant line of `f` on `[x, z]`, then `f` is convex on `D`. This way of proving convexity
 of a function is used in the proof of convexity of a function with a monotone derivative. -/
 lemma convex_on_real_of_slope_mono_adjacent {s : set ℝ} (hs : convex ℝ s) {f : ℝ → ℝ}
   (hf : ∀ {x y z : ℝ}, x ∈ s → z ∈ s → x < y → y < z →

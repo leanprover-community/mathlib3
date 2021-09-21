@@ -589,6 +589,19 @@ protected lemma tsum_eq_top_of_eq_top : (∃ a, f a = ∞) → ∑' a, f a = ∞
 @[simp] protected lemma tsum_top [nonempty α] : ∑' a : α, ∞ = ∞ :=
 let ⟨a⟩ := ‹nonempty α› in ennreal.tsum_eq_top_of_eq_top ⟨a, rfl⟩
 
+lemma tsum_const_eq_top_of_ne_zero {α : Type*} [infinite α] {c : ℝ≥0∞} (hc : c ≠ 0) :
+  (∑' (a : α), c) = ∞ :=
+begin
+  have A : tendsto (λ (n : ℕ), (n : ℝ≥0∞) * c) at_top (𝓝 (∞ * c)),
+  { apply ennreal.tendsto.mul_const tendsto_nat_nhds_top,
+    simp only [true_or, top_ne_zero, ne.def, not_false_iff] },
+  have B : ∀ (n : ℕ), (n : ℝ≥0∞) * c ≤ (∑' (a : α), c),
+  { assume n,
+    rcases infinite.exists_subset_card_eq α n with ⟨s, hs⟩,
+    simpa [hs] using @ennreal.sum_le_tsum α (λ i, c) s },
+  simpa [hc] using le_of_tendsto' A B,
+end
+
 protected lemma ne_top_of_tsum_ne_top (h : ∑' a, f a ≠ ∞) (a : α) : f a ≠ ∞ :=
 λ ha, h $ ennreal.tsum_eq_top_of_eq_top ⟨a, ha⟩
 

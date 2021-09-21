@@ -681,8 +681,8 @@ end
 lemma nonempty_of_affine_span_eq_top {s : set P} (h : affine_span k s = ⊤) : s.nonempty :=
 begin
   rw ← set.ne_empty_iff_nonempty,
-  intros contra,
-  rw [contra, affine_subspace.span_empty] at h,
+  rintros rfl,
+  rw affine_subspace.span_empty at h,
   exact bot_ne_top k V P h,
 end
 

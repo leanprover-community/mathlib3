@@ -1630,29 +1630,31 @@ theorem frontier_closed_ball [semi_normed_space ℝ E] (x : E) {r : ℝ} (hr : 0
 by rw [frontier, closure_closed_ball, interior_closed_ball x hr,
   closed_ball_diff_ball]
 
-theorem smul_ball_zero {c : α} (hc : c ≠ 0) (r : ℝ) :
-  c • ball (0 : E) r = ball 0 (∥c∥ * r) :=
+theorem smul_ball {c : α} (hc : c ≠ 0) (x : E) (r : ℝ) :
+  c • ball x r = ball (c • x) (∥c∥ * r) :=
 begin
-  rw ← preimage_smul_inv' hc (ball (0 : E) r),
   ext y,
-  simp [norm_smul, ← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hc), mul_comm _ r],
+  rw mem_smul_set_iff_inv_smul_mem' hc,
+  conv_lhs { rw ←inv_smul_smul' hc x },
+  simp [← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hc), mul_comm _ r, dist_smul],
 end
 
-theorem smul_closed_ball_zero' {c : α} (hc : c ≠ 0) (r : ℝ) :
-  c • closed_ball (0 : E) r = closed_ball 0 (∥c∥ * r) :=
+theorem smul_closed_ball' {c : α} (hc : c ≠ 0) (x : E) (r : ℝ) :
+  c • closed_ball x r = closed_ball (c • x) (∥c∥ * r) :=
 begin
-  rw ← preimage_smul_inv' hc (closed_ball (0 : E) r),
   ext y,
-  simp [norm_smul, ← div_eq_inv_mul, div_le_iff (norm_pos_iff.2 hc), mul_comm _ r],
+  rw mem_smul_set_iff_inv_smul_mem' hc,
+  conv_lhs { rw ←inv_smul_smul' hc x },
+  simp [dist_smul, ← div_eq_inv_mul, div_le_iff (norm_pos_iff.2 hc), mul_comm _ r],
 end
 
-theorem smul_closed_ball_zero {E : Type*} [normed_group E] [normed_space α E]
-  (c : α) {r : ℝ} (hr : 0 ≤ r) :
-  c • closed_ball (0 : E) r = closed_ball 0 (∥c∥ * r) :=
+theorem smul_closed_ball {E : Type*} [normed_group E] [normed_space α E]
+  (c : α) (x : E) {r : ℝ} (hr : 0 ≤ r) :
+  c • closed_ball x r = closed_ball (c • x) (∥c∥ * r) :=
 begin
   rcases eq_or_ne c 0 with rfl|hc,
   { simp [hr, zero_smul_set, set.singleton_zero, ← nonempty_closed_ball] },
-  { exact smul_closed_ball_zero' hc r }
+  { exact smul_closed_ball' hc x r }
 end
 
 variables (α)

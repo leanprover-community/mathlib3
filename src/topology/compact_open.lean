@@ -141,7 +141,7 @@ lemma nhds_compact_open_eq_Inf_nhds_induced (f : C(α, β)) :
 by { rw [compact_open_eq_Inf_induced], simp [nhds_infi, nhds_induced] }
 
 lemma tendsto_compact_open_iff_forall {ι : Type*} {l : filter ι} (F : ι → C(α, β)) (f : C(α, β)) :
-  filter.tendsto F l (nhds f)
+  filter.tendsto F l (𝓝 f)
   ↔ ∀ s (hs : is_compact s), filter.tendsto (λ i, (F i).restrict s) l (𝓝 (f.restrict s)) :=
 by { rw [compact_open_eq_Inf_induced], simp [nhds_infi, nhds_induced, filter.tendsto_comap_iff] }
 
@@ -149,7 +149,7 @@ by { rw [compact_open_eq_Inf_induced], simp [nhds_infi, nhds_induced, filter.ten
 it converges in the compact-open topology on each compact subset of `α`. -/
 lemma exists_tendsto_compact_open_iff_forall [locally_compact_space α] [t2_space α] [t2_space β]
   {ι : Type*} {l : filter ι} [filter.ne_bot l] (F : ι → C(α, β)) :
-  (∃ f, filter.tendsto F l (nhds f))
+  (∃ f, filter.tendsto F l (𝓝 f))
   ↔ ∀ (s : set α) (hs : is_compact s), ∃ f, filter.tendsto (λ i, (F i).restrict s) l (𝓝 f) :=
 begin
   split,

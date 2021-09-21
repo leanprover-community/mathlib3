@@ -14,10 +14,13 @@ import tactic.ring_exp
 
 /-!
 # IMO 2021 Q1
+
 Let `n≥100` be an integer. Ivan writes the numbers` n, n+1,..., 2n` each on different cards.
 He then shuffles these `n+1` cards, and divides them into two piles. Prove that at least one
 of the piles contains two cards such that the sum of their numbers is a perfect square.
+
 # Solution
+
 We show there exists a triplet `a, b, c ∈ [n , 2n]` with `a < b < c` and each of the sums `(a + b)`,
 `(b + c)`, `(a + c)` being a perfect square. Specifically, we consider the linear system of
 equations
@@ -94,8 +97,8 @@ end
 
 -- We will later make use of the fact that there exists (l : ℕ) such that
 -- n ≤ 2 * l * l - 4 * l and 2 * l * l + 4 * l ≤ 2 * n for n ≥ 107.
-lemma exists_numbers_in_interval (n : ℕ) (hn : 107 ≤ n): ∃ (l : ℕ),
-  (n + 4 * l ≤ 2 * l * l ∧ 2 * l * l + 4 * l ≤ 2 * n) :=
+lemma exists_numbers_in_interval (n : ℕ) (hn : 107 ≤ n) :
+  ∃ (l : ℕ), (n + 4 * l ≤ 2 * l * l ∧ 2 * l * l + 4 * l ≤ 2 * n) :=
 begin
   suffices : ∃ (l : ℕ), 2 + sqrt (4 + 2 * n) ≤ 2 * (l : ℝ) ∧ (l : ℝ) ≤ sqrt (1 + n) - 1,
   { cases this with l t,
@@ -128,7 +131,7 @@ begin
     { norm_cast, linarith } },
 end
 
-lemma exists_triplet_summing_to_squares (n : ℕ) (hn : 100 ≤ n):
+lemma exists_triplet_summing_to_squares (n : ℕ) (hn : 100 ≤ n) :
   (∃ (a b c : ℕ), n ≤ a ∧ a < b ∧ b < c ∧ c ≤ 2 * n ∧ (∃ (k : ℕ), a + b = k * k) ∧
   (∃ (l : ℕ), c + a = l * l) ∧ (∃ (m : ℕ), b + c = m * m)) :=
 begin
@@ -156,9 +159,9 @@ end
 -- to state that there always exists a set B ⊆ [n, 2n] of cardinality at least 3, such that each
 -- pair of pairwise unequal elements of B sums to a perfect square.
 lemma exists_finset_of_3_leq_card_with_pairs_summing_to_squares (n : ℕ) (hn : 100 ≤ n) :
-   ∃ (B : finset ℕ), 2 * 1 + 1 ≤ B.card ∧
-    (∀ (a b ∈ B), a ≠ b → ∃ k, a + b = k * k) ∧
-    ∀ (c ∈ B), n ≤ c ∧ c ≤ 2 * n :=
+  ∃ (B : finset ℕ), 2 * 1 + 1 ≤ B.card ∧
+  (∀ (a b ∈ B), a ≠ b → ∃ k, a + b = k * k) ∧
+  ∀ (c ∈ B), n ≤ c ∧ c ≤ 2 * n :=
 begin
   obtain ⟨a, b, c, hna, hab, hbc, hcn, h₁, h₂, h₃⟩ := exists_triplet_summing_to_squares n hn,
   refine ⟨{a, b, c}, _, _, _⟩,
@@ -210,14 +213,14 @@ end
 -- X ⊆ [n, 2n] and Y = [n, 2n] \ X, while we'll let B ⊆ [n, 2n] be the subset such that each
 -- pairwise unequal pair of B sums to a perfect square.
 lemma finset_subset_or_complement_cardinality {α : Type*} [decidable_eq α] (B X Y : finset α)
-(h : B ⊆ X ∪ Y) {n : ℕ} (hB : 2 * n + 1 ≤ B.card) :
+  (h : B ⊆ X ∪ Y) {n : ℕ} (hB : 2 * n + 1 ≤ B.card) :
   (∃ C, C ⊆ B ∧ C ⊆ X ∧ n + 1 ≤ C.card) ∨ (∃ C, C ⊆ B ∧ C ⊆ Y ∧ n + 1 ≤ C.card) :=
 begin
   by_contra h,
   push_neg at h,
   cases h with h₁ h₂,
-  have h₃: B \ (Y \ X) ⊆ B := finset.sdiff_subset B (Y \ X),
-  have h₄: B \ (Y \ X) ⊆ X,
+  have h₃ : B \ (Y \ X) ⊆ B := finset.sdiff_subset B (Y \ X),
+  have h₄ : B \ (Y \ X) ⊆ X,
   { refine ((finset.sdiff_subset_sdiff h (finset.subset.refl (Y \ X))).trans (λ i hi, _)),
     simp only [not_and, not_not, finset.mem_sdiff, finset.mem_union] at hi,
     cases hi with hi₁ hi₂,
@@ -225,7 +228,7 @@ begin
     { exact hi₁ },
     { exact hi₂ hi₁ }},
   have h₅ : B \ (X \ Y) ⊆ B := finset.sdiff_subset B (X \ Y),
-  have h₆: B \ (X \ Y) ⊆ Y,
+  have h₆ : B \ (X \ Y) ⊆ Y,
   { refine ((finset.sdiff_subset_sdiff h (finset.subset.refl (X \ Y))).trans (λ i hi, _)),
     simp only [not_and, not_not, finset.mem_sdiff, finset.mem_union] at hi,
     cases hi with hi₁ hi₂,

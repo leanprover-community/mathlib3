@@ -67,11 +67,12 @@ class has_pdf {m : measurable_space α} (X : α → E)
 
 /-- If `X` is a random variable that `has_pdf X ℙ μ`, then `pdf X` is the measurable function `f`
 such that the push-forward measure of `ℙ` along `X` equals `μ.with_density f`. -/
-def pdf {m : measurable_space α} (X : α → E) (ℙ : measure α) (μ : measure E) : E → ℝ≥0∞ :=
+def pdf {m : measurable_space α} (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac) :=
 if hX : has_pdf X ℙ μ then classical.some hX.pdf' else 0
 
 @[measurability]
-lemma measurable_pdf {m : measurable_space α} (X : α → E) (ℙ : measure α) (μ : measure E) :
+lemma measurable_pdf {m : measurable_space α}
+  (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac) :
   measurable (pdf X ℙ μ) :=
 begin
   by_cases hX : has_pdf X ℙ μ,
@@ -82,15 +83,16 @@ begin
 end
 
 lemma pdf_spec {m : measurable_space α}
-  (X : α → E) (ℙ : measure α) (μ : measure E) [hX : has_pdf X ℙ μ] :
+  (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac) [hX : has_pdf X ℙ μ] :
   measure.map X ℙ = μ.with_density (pdf X ℙ μ) :=
 begin
   rw [pdf, dif_pos hX],
   exact (classical.some_spec hX.pdf').2
 end
 
-lemma pdf_spec' {m : measurable_space α} (X : α → E) (ℙ : measure α) (μ : measure E)
-  [hX : has_pdf X ℙ μ] {s : set E} (hs : measurable_set s) :
+lemma pdf_spec' {m : measurable_space α}
+  (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac) [hX : has_pdf X ℙ μ]
+  {s : set E} (hs : measurable_set s) :
   measure.map X ℙ s = ∫⁻ x in s, pdf X ℙ μ x ∂μ :=
 by rw [← with_density_apply _ hs, pdf_spec X ℙ μ]
 
@@ -203,7 +205,7 @@ lemma has_pdf_iff : has_pdf X ℙ ↔ measure.map X ℙ ≪ volume :=
 begin
   split,
   { introI hX,
-    rw pdf_spec X ℙ volume,
+    rw pdf_spec X ℙ,
     exact with_density_absolutely_continuous _ _,
     all_goals { apply_instance } },
   { intro h,
@@ -216,11 +218,11 @@ end
 `∫ x, x * f x ∂λ` where `λ` is the Lebesgue measure. -/
 lemma integral_mul_eq_integral [has_pdf X ℙ]
   (hpdf : integrable (λ x, x * (pdf X ℙ volume x).to_real) volume) :
-  ∫ x, x * (pdf X ℙ volume x).to_real ∂(volume : measure ℝ) = ∫ x, X x ∂ℙ :=
+  ∫ x, x * (pdf X ℙ volume x).to_real ∂(volume) = ∫ x, X x ∂ℙ :=
 integral_mul_eq_integral' hX _ measurable_id hpdf
 
 lemma has_finite_integral_mul {f : ℝ → ℝ} {g : ℝ → ℝ≥0∞}
-  (hg : pdf X ℙ volume =ᵐ[volume] g) (hgi : ∫⁻ x, ∥f x∥₊ * g x ∂(volume) < ∞) :
+  (hg : pdf X ℙ =ᵐ[volume] g) (hgi : ∫⁻ x, ∥f x∥₊ * g x ∂(volume) < ∞) :
   has_finite_integral (λ x, f x * (pdf X ℙ volume x).to_real) volume :=
 begin
   rw [has_finite_integral],
@@ -292,19 +294,19 @@ lemma mul_pdf_integrable (hX : measurable X) :
   integrable (λ x : ℝ, x * (pdf X ℙ volume x).to_real) volume :=
 begin
   by_cases hsupp : volume (support X ℙ) = ∞,
-  { have : pdf X ℙ volume =ᵐ[volume] 0,
-    { refine ae_eq_trans (pdf_ae_eq X ℙ volume) _,
+  { have : pdf X ℙ =ᵐ[volume] 0,
+    { refine ae_eq_trans (pdf_ae_eq X ℙ) _,
       simp [hsupp] },
     refine integrable.congr (integrable_zero _ _ _) _,
     rw [(by simp : (λ x, 0 : ℝ → ℝ) = (λ x, x * (0 : ℝ≥0∞).to_real))],
     refine filter.eventually_eq.mul (ae_eq_refl _)
       (filter.eventually_eq.fun_comp this.symm ennreal.to_real) },
-  refine ⟨ae_measurable_id'.mul (measurable_pdf X ℙ volume).ae_measurable.ennreal_to_real, _⟩,
-  refine has_finite_integral_mul hX (pdf_ae_eq X ℙ volume) _,
+  refine ⟨ae_measurable_id'.mul (measurable_pdf X ℙ).ae_measurable.ennreal_to_real, _⟩,
+  refine has_finite_integral_mul hX (pdf_ae_eq X ℙ) _,
   set ind := (volume (support X ℙ))⁻¹ • (1 : ℝ → ℝ≥0∞) with hind,
   have : ∀ x, ↑∥x∥₊ * (support X ℙ).indicator ind x =
     (support X ℙ).indicator (λ x, ∥x∥₊ * ind x) x :=
-      λ x, ((support X ℙ volume).indicator_mul_right (λ x, ↑∥x∥₊) ind).symm,
+      λ x, ((support X ℙ).indicator_mul_right (λ x, ↑∥x∥₊) ind).symm,
   simp only [this, lintegral_indicator _ (measurable_set_support X ℙ), hind, mul_one,
              algebra.id.smul_eq_mul, pi.one_apply, pi.smul_apply],
   rw lintegral_mul_const _ measurable_nnnorm.coe_nnreal_ennreal,

@@ -163,16 +163,26 @@ begin
   refine hs hpi _ (h₀ _ (mem_insert_self _ _)) (sum_nonneg ht₀) h₁,
   refine ht (λ j hj, _) _ (λ j hj, hmem _ (mem_insert_of_mem hj)),
   { dsimp,
-    refine mul_nonneg (inv_nonneg.2 (sum_nonneg ht₀)) (ht₀ j hj) },
+    exact mul_nonneg (inv_nonneg.2 (sum_nonneg ht₀)) (ht₀ j hj) },
   dsimp,
   simp, --nonterminal simp to fix
   rw [←mul_sum, inv_eq_one_div, one_div_mul_cancel hsum_t],
 end
 
-lemma _root_.convex.sum_mem (hs : convex 𝕜 s) (h₀ : ∀ i ∈ t, 0 ≤ w i) (h₁ : ∑ i in t, w i = 1)
+lemma _root_.convex.sum_mem (hs : convex 𝕜 s) (h₀ : ∀ i ∈ t, 0 ≤ w i) (h₁ : ∑ i in t, w i ≠ 0)
   (hp : ∀ i ∈ t, p i ∈ s) :
-  ∑ i in t, w i • p i ∈ s :=
-hs.linear_combination_mem h₀ h₁ hp
+  (∑ i in t, w i)⁻¹ • ∑ i in t, w i • p i ∈ s :=
+begin
+  rw [linear_combination_normalize h₁, inv_smul_smul' h₁],
+  refine hs.linear_combination_mem _ _ hp,
+  {
+    rintro i hi,
+    refine smul_nonneg (h₀ i hi) _,
+    sorry
+  },
+  { rw [smul_sum, div_self h₁],
+  }
+end
 
 lemma _root_.convex_iff_linear_combination_mem :
   convex 𝕜 s ↔

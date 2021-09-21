@@ -8,13 +8,11 @@ import analysis.convex.basic
 /-!
 # Convex combinations
 
-This file defines convex combinations of points in a vector space and proves the finite Jensen
-inequality. The integral version can be found in `analysis.convex.integral`.
+This file defines convex combinations of points in a vector space.
 
 ## Main declarations
 
 * `finset.center_mass`: Center of mass of a finite family of points.
-* `convex_on.map_center_mass_le` `convex_on.map_sum_le`: Convex Jensen's inequality.
 
 ## Implementation notes
 
@@ -171,45 +169,6 @@ begin
       cases hi; subst i; simp [hx, hy, if_neg h_cases] } }
 end
 
-/-- Convex **Jensen's inequality**, `finset.center_mass` version. -/
-lemma convex_on.map_center_mass_le {f : E → ℝ} (hf : convex_on s f)
-  (h₀ : ∀ i ∈ t, 0 ≤ w i) (hpos : 0 < ∑ i in t, w i)
-  (hmem : ∀ i ∈ t, z i ∈ s) : f (t.center_mass w z) ≤ t.center_mass w (f ∘ z) :=
-begin
-  have hmem' : ∀ i ∈ t, (z i, (f ∘ z) i) ∈ {p : E × ℝ | p.1 ∈ s ∧ f p.1 ≤ p.2},
-    from λ i hi, ⟨hmem i hi, le_rfl⟩,
-  convert (hf.convex_epigraph.center_mass_mem h₀ hpos hmem').2;
-    simp only [center_mass, function.comp, prod.smul_fst, prod.fst_sum, prod.smul_snd, prod.snd_sum]
-end
-
-/-- Convex **Jensen's inequality**, `finset.sum` version. -/
-lemma convex_on.map_sum_le {f : E → ℝ} (hf : convex_on s f)
-  (h₀ : ∀ i ∈ t, 0 ≤ w i) (h₁ : ∑ i in t, w i = 1)
-  (hmem : ∀ i ∈ t, z i ∈ s) : f (∑ i in t, w i • z i) ≤ ∑ i in t, w i * (f (z i)) :=
-by simpa only [center_mass, h₁, inv_one, one_smul]
-  using hf.map_center_mass_le h₀ (h₁.symm ▸ zero_lt_one) hmem
-
-/-- If a function `f` is convex on `s` takes value `y` at the center of mass of some points
-`z i ∈ s`, then for some `i` we have `y ≤ f (z i)`. -/
-lemma convex_on.exists_ge_of_center_mass {f : E → ℝ} (h : convex_on s f)
-  (hw₀ : ∀ i ∈ t, 0 ≤ w i) (hws : 0 < ∑ i in t, w i) (hz : ∀ i ∈ t, z i ∈ s) :
-  ∃ i ∈ t, f (t.center_mass w z) ≤ f (z i) :=
-begin
-  set y := t.center_mass w z,
-  have : f y ≤ t.center_mass w (f ∘ z) := h.map_center_mass_le hw₀ hws hz,
-  rw ← sum_filter_ne_zero at hws,
-  rw [← finset.center_mass_filter_ne_zero (f ∘ z), center_mass, smul_eq_mul,
-    ← div_eq_inv_mul, le_div_iff hws, mul_sum] at this,
-  replace : ∃ i ∈ t.filter (λ i, w i ≠ 0), f y * w i ≤ w i • (f ∘ z) i :=
-    exists_le_of_sum_le (nonempty_of_sum_ne_zero (ne_of_gt hws)) this,
-  rcases this with ⟨i, hi, H⟩,
-  rw [mem_filter] at hi,
-  use [i, hi.1],
-  simp only [smul_eq_mul, mul_comm (w i)] at H,
-  refine (mul_le_mul_right _).1 H,
-  exact lt_of_le_of_ne (hw₀ i hi.1) hi.2.symm
-end
-
 lemma finset.center_mass_mem_convex_hull (t : finset ι) {w : ι → ℝ} (hw₀ : ∀ i ∈ t, 0 ≤ w i)
   (hws : 0 < ∑ i in t, w i) {z : ι → E} (hz : ∀ i ∈ t, z i ∈ s) :
   t.center_mass w z ∈ convex_hull ℝ s :=
@@ -244,18 +203,6 @@ begin
       rcases hi with ⟨j, hj, rfl⟩|⟨j, hj, rfl⟩; apply_rules [hzx, hzy] } },
   { rintros _ ⟨ι, t, w, z, hw₀, hw₁, hz, rfl⟩,
     exact t.center_mass_mem_convex_hull hw₀ (hw₁.symm ▸ zero_lt_one) hz }
-end
-
-/-- Maximum principle for convex functions. If a function `f` is convex on the convex hull of `s`,
-then `f` can't have a maximum on `convex_hull s` outside of `s`. -/
-lemma convex_on.exists_ge_of_mem_convex_hull {f : E → ℝ} (hf : convex_on (convex_hull ℝ s) f)
-  {x} (hx : x ∈ convex_hull ℝ s) : ∃ y ∈ s, f x ≤ f y :=
-begin
-  rw convex_hull_eq at hx,
-  rcases hx with ⟨α, t, w, z, hw₀, hw₁, hz, rfl⟩,
-  rcases hf.exists_ge_of_center_mass hw₀ (hw₁.symm ▸ zero_lt_one)
-    (λ i hi, subset_convex_hull ℝ s (hz i hi)) with ⟨i, hit, Hi⟩,
-  exact ⟨z i, hz i hit, Hi⟩
 end
 
 lemma finset.convex_hull_eq (s : finset E) :

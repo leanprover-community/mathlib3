@@ -88,7 +88,7 @@ instance sylow.pointwise_mul_action {α : Type*} [group α] [mul_distrib_mul_act
   mul_smul := λ g h P, sylow.ext (mul_smul g h P) }
 
 instance sylow.mul_action : mul_action G (sylow p G) :=
-of_End_hom (to_End_hom.comp mul_aut.conj)
+mul_action.comp_hom _ mul_aut.conj
 
 lemma sylow.coe_smul {g : G} {P : sylow p G} :
   ↑(g • P) = P.1.map (mul_aut.conj g).to_monoid_hom := rfl

@@ -21,7 +21,7 @@ In this file we define
 * `is_linear_map R f` : predicate saying that `f : M → M₂` is a linear map. (Note that this
   was not generalized to semilinear maps.)
 
-* `linear_equiv σ M₂`, `M ≃ₛₗ[σ] M₂`: an invertible semilinear map. The plain linear version,
+* `linear_equiv σ M M₂`, `M ≃ₛₗ[σ] M₂`: an invertible semilinear map. The plain linear version,
   with `σ` being `ring_hom.id R`, is denoted by `M ≃ₗ[R] M₂`.
 
 ## Implementation notes

@@ -32,9 +32,9 @@ The Lebesgue decomposition provides the Radon-Nikodym theorem readily.
 * `measure_theory.signed_measure.singular_part` : The singular part between a signed measure `s`
   and a measure `μ` is simply the singular part of the positive part of `s` with respect to `μ`
   minus the singular part of the negative part of `s` with respect to `μ`.
-* `measure_theory.signed_measure.radon_nikodym_deriv` : The radon-nikodym derivative of a signed
-  measure `s` with respect to a measure `μ` is the radon-nikodym derivative of the positive part of
-  `s` with respect to `μ` minus the radon-nikodym derivative of the negative part of `s` with
+* `measure_theory.signed_measure.radon_nikodym_deriv` : The Radon-Nikodym derivative of a signed
+  measure `s` with respect to a measure `μ` is the Radon-Nikodym derivative of the positive part of
+  `s` with respect to `μ` minus the Radon-Nikodym derivative of the negative part of `s` with
   respect to `μ`.
 
 ## Main results

@@ -1096,6 +1096,16 @@ begin
     exact (hnt hat).elim }
 end
 
+lemma set_lintegral_mono_ae {s : set α} {f g : α → ℝ≥0∞}
+  (hf : measurable f) (hg : measurable g) (hfg : ∀ᵐ x ∂μ, x ∈ s → f x ≤ g x) :
+  ∫⁻ x in s, f x ∂μ ≤ ∫⁻ x in s, g x ∂μ :=
+lintegral_mono_ae $ (ae_restrict_iff $ measurable_set_le hf hg).2 hfg
+
+lemma set_lintegral_mono {s : set α} {f g : α → ℝ≥0∞}
+  (hf : measurable f) (hg : measurable g) (hfg : ∀ x ∈ s, f x ≤ g x) :
+  ∫⁻ x in s, f x ∂μ ≤ ∫⁻ x in s, g x ∂μ :=
+set_lintegral_mono_ae hf hg (ae_of_all _ hfg)
+
 lemma lintegral_congr_ae {f g : α → ℝ≥0∞} (h : f =ᵐ[μ] g) :
   (∫⁻ a, f a ∂μ) = (∫⁻ a, g a ∂μ) :=
 le_antisymm (lintegral_mono_ae $ h.le) (lintegral_mono_ae $ h.symm.le)

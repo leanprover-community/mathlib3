@@ -4,27 +4,6 @@ import measure_theory.measure.lebesgue
 noncomputable theory
 open_locale classical measure_theory nnreal ennreal
 
-section
-
-open measure_theory measure_theory.measure topological_space
-
-variables {α β : Type*} [measurable_space α] [measurable_space β]
-variables {E : Type*} [normed_ring E] [measurable_space E] [second_countable_topology E]
-  [normed_space ℝ E] [complete_space E] [borel_space E]
-
--- Do we not have this?
-lemma set_lintegral_mono_on_ae {μ : measure α} {s : set α} {f g : α → ℝ≥0∞}
-  (hf : measurable f) (hg : measurable g) (hfg : ∀ᵐ x ∂μ, x ∈ s → f x ≤ g x) :
-  ∫⁻ x in s, f x ∂μ ≤ ∫⁻ x in s, g x ∂μ :=
-lintegral_mono_ae $ (ae_restrict_iff $ measurable_set_le hf hg).2 hfg
-
-lemma set_lintegral_mono_on {μ : measure α} {s : set α} {f g : α → ℝ≥0∞}
-  (hf : measurable f) (hg : measurable g) (hfg : ∀ x ∈ s, f x ≤ g x) :
-  ∫⁻ x in s, f x ∂μ ≤ ∫⁻ x in s, g x ∂μ :=
-set_lintegral_mono_on_ae hf hg (ae_of_all _ hfg)
-
-end
-
 namespace measure_theory
 
 open topological_space measure
@@ -258,7 +237,7 @@ lemma set_lintegral_nnnorm_lt_top_of_bdd_above
 begin
   obtain ⟨M, hM⟩ := hbdd,
   rw mem_upper_bounds at hM,
-  refine lt_of_le_of_lt (set_lintegral_mono_on
+  refine lt_of_le_of_lt (set_lintegral_mono
     measurable_nnnorm.coe_nnreal_ennreal (@measurable_const _ _ _ _ ↑M) _) _,
   { simpa using hM },
   { rw lintegral_const,

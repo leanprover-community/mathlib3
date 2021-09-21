@@ -33,8 +33,14 @@ random variables with this distribution.
 * `measure_theory.pdf.integral_mul_eq_integral` : A real-valued random variable `X` with
   pdf `f` has expectation `∫ x, x * f x dx`.
 * `measure_theory.pdf.uniform.integral_eq` : If `X` follows the uniform distribution with
-  its pdf having support `s`, then `X` has expectation `(λ s)⁻¹ * ∫ x in s, x ∂λ` where `λ`
+  its pdf having support `s`, then `X` has expectation `(λ s)⁻¹ * ∫ x in s, x dx` where `λ`
   is the Lebesgue measure.
+
+## TODOs
+
+Ultimately, we would also like to define characteristic functions to describe distributions as
+it exists for all random variables. However, to define this, we will need Fourier transforms
+which we currently do not have.
 -/
 
 noncomputable theory
@@ -278,26 +284,6 @@ filter.eventually_eq.fun_comp (pdf_ae_eq X ℙ μ) ennreal.to_real
 
 variables [is_finite_measure ℙ] {X : α → ℝ} [uniform X ℙ volume]
 
--- move the next two lemmas
-lemma set_lintegral_nnnorm_lt_top_of_bdd_above
-  {s : set E} (hs : μ s < ∞) (hbdd : bdd_above ((λ x, ∥x∥₊) '' s)) :
-  ∫⁻ x in s, ∥x∥₊ ∂μ < ∞ :=
-begin
-  obtain ⟨M, hM⟩ := hbdd,
-  rw mem_upper_bounds at hM,
-  refine lt_of_le_of_lt (set_lintegral_mono
-    measurable_nnnorm.coe_nnreal_ennreal (@measurable_const _ _ _ _ ↑M) _) _,
-  { simpa using hM },
-  { rw lintegral_const,
-    refine ennreal.mul_lt_top ennreal.coe_lt_top.ne _,
-    simp [hs.ne] }
-end
-
-lemma set_lintegral_nnnorm_lt_top_of_is_compact
-  {s : set E} (hs : μ s < ∞) (hsc : is_compact s) :
-  ∫⁻ x in s, ∥x∥₊ ∂μ < ∞ :=
-set_lintegral_nnnorm_lt_top_of_bdd_above hs (hsc.image continuous_nnnorm).bdd_above
-
 lemma mul_pdf_integrable (hX : measurable X) :
   integrable (λ x : ℝ, x * (pdf X ℙ volume x).to_real) volume :=
 begin
@@ -318,8 +304,8 @@ begin
   simp only [this, lintegral_indicator _ (measurable_set_support X ℙ), hind, mul_one,
              algebra.id.smul_eq_mul, pi.one_apply, pi.smul_apply],
   rw lintegral_mul_const _ measurable_nnnorm.coe_nnreal_ennreal,
-  { refine ennreal.mul_lt_top (set_lintegral_nnnorm_lt_top_of_is_compact
-      (lt_top_iff_ne_top.2 hsupp) (is_compact_support X ℙ)).ne
+  { exact ennreal.mul_lt_top (set_lintegral_lt_top_of_is_compact
+      (lt_top_iff_ne_top.2 hsupp) (is_compact_support X ℙ) continuous_nnnorm).ne
       (ennreal.inv_lt_top.2 (support_not_null X ℙ)).ne },
   { apply_instance }
 end

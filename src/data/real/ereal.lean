@@ -165,7 +165,6 @@ begin
   { simpa using hx },
 end
 
-
 lemma le_coe_to_real {x : ereal} (h : x ≠ ⊤) : x ≤ x.to_real :=
 begin
   by_cases h' : x = ⊥,

@@ -1016,6 +1016,48 @@ end
 
 end ideals
 
+section at_units
+variables (R) (S) (M)
+
+/- The localization at a module of units is isomorphic to the ring -/
+noncomputable
+def at_units [is_localization M S] (H : ∀ x : M, is_unit (x : R)) : R ≃ₐ[R] S :=
+begin
+  apply alg_equiv.of_bijective (algebra.of_id R S),
+  split,
+  { intros x y hxy,
+    obtain ⟨c, eq⟩ := (is_localization.eq_iff_exists M S).mp hxy,
+    obtain ⟨u, hu⟩ := H c,
+    rw [← hu, units.mul_left_inj] at eq,
+    exact eq },
+  { intros y,
+    obtain ⟨⟨x, s⟩, eq⟩ := is_localization.surj M y,
+    obtain ⟨u, hu⟩ := H s,
+    use x * u.inv,
+    dsimp only [algebra.of_id, ring_hom.to_fun_eq_coe, alg_hom.coe_mk],
+    rw [ring_hom.map_mul, ← eq, ← hu, mul_assoc, ← ring_hom.map_mul],
+    simp }
+end
+
+/- The localization away from a unit is isomorphic to the ring -/
+noncomputable
+def at_unit (x : R) [e : is_unit x] [is_localization.away x S] : R ≃ₐ[R] S :=
+begin
+  apply at_units R (submonoid.powers x),
+  rintros ⟨xn, n, hxn⟩,
+  obtain ⟨u, hu⟩ := e,
+  rw is_unit_iff_exists_inv,
+  use u.inv ^ n,
+  simp[← hxn, ← hu, ← mul_pow]
+end
+
+/- The localization at one is isomorphic to the ring. -/
+noncomputable
+def at_one [is_localization.away (1 : R) S] : R ≃ₐ[R] S :=
+@at_unit R _ S _ _ (1 : R) is_unit_one _
+
+end at_units
+
 variables (S)
 
 /-- Map from ideals of `R` to submodules of `S` induced by `f`. -/

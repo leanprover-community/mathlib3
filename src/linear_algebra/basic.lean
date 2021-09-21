@@ -40,7 +40,7 @@ Many of the relevant definitions, including `module`, `submodule`, and `linear_m
 ## Notations
 
 * We continue to use the notations `M →ₛₗ[σ] M₂` and `M →ₗ[R] M₂` for the type of semilinear
-  (resp. linear) maps from `M` to `M₂` over the ring `R` (resp. over the ring homomorphism `σ`).
+  (resp. linear) maps from `M` to `M₂` over the ring homomorphism `σ` (resp. over the ring `R`).
 * We introduce the notation `R ∙ v` for the span of a singleton, `submodule.span R {v}`.  This is
   `\.`, not the same as the scalar multiplication `•`/`\bub`.
 

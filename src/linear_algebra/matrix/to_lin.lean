@@ -366,7 +366,7 @@ lemma linear_map.to_matrix_mul (f g : M₁ →ₗ[R] M₁) :
 by { rw [show (@has_mul.mul (M₁ →ₗ[R] M₁) _) = linear_map.comp, from rfl,
          linear_map.to_matrix_comp v₁ v₁ v₁ f g] }
 
-@[simp] lemma linear_map.to_matrix_algebra_map (x : R) : 
+@[simp] lemma linear_map.to_matrix_algebra_map (x : R) :
   linear_map.to_matrix v₁ v₁ (algebra_map R (module.End R M₁) x) = scalar n x :=
 by simp [module.algebra_map_End_eq_smul_id, linear_map.to_matrix_id]
 

@@ -193,6 +193,21 @@ begin
   { assumption },
 end
 
+/-- A random variable that `has_pdf` is quasi-measure preserving. -/
+def to_quasi_measure_preserving (X : α → E) (hX : measurable X) [has_pdf X ℙ μ] :
+  quasi_measure_preserving X ℙ μ :=
+{ measurable := hX,
+  absolutely_continuous :=
+  begin
+    rw pdf_spec X ℙ μ,
+    exact with_density_absolutely_continuous _ _,
+    all_goals { apply_instance }
+  end }
+
+lemma map_absolutely_continuous {X : α → E} (hX : measurable X) [has_pdf X ℙ μ] :
+  map X ℙ ≪ μ :=
+(to_quasi_measure_preserving X hX).absolutely_continuous
+
 end
 
 section real
@@ -206,14 +221,25 @@ only if the push-forward measure of `ℙ` along `X` is absolutely continuous wit
 lemma has_pdf_iff : has_pdf X ℙ ↔ map X ℙ ≪ volume :=
 begin
   split,
-  { introI hX,
-    rw pdf_spec X ℙ,
-    exact with_density_absolutely_continuous _ _,
-    all_goals { apply_instance } },
+  { intro hX',
+    exactI map_absolutely_continuous hX },
   { intro h,
     refine ⟨⟨(measure.map X ℙ).radon_nikodym_deriv volume, measurable_radon_nikodym_deriv _ _, _⟩⟩,
     haveI := ℙ.is_finite_measure_map hX,
     rwa with_density_radon_nikodym_deriv_eq }
+end
+
+lemma quasi_measure_preserving_has_pdf [has_pdf X ℙ]
+  (g : ℝ → ℝ) (hg : quasi_measure_preserving g) :
+  has_pdf (g ∘ X) ℙ :=
+begin
+  rw [has_pdf_iff (hg.measurable.comp hX), ← map_map hg.measurable hX, pdf_spec X ℙ],
+  refine absolutely_continuous.mk (λ s hsm hs, _),
+  rw [map_apply hg.measurable hsm, with_density_apply _ (hg.measurable hsm)],
+  have := hg.absolutely_continuous hs,
+  rw map_apply hg.measurable hsm at this,
+  exact set_lintegral_measure_zero _ _ this,
+  apply_instance
 end
 
 /-- If `X` is a real-valued random variable that has pdf `f`, then the expectation of `X` equals

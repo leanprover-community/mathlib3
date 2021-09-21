@@ -78,7 +78,8 @@ classical.inhabited_of_nonempty sylow.nonempty
 
 open_locale pointwise
 
-instance sylow.mul_action' {α : Type*} [group α] [mul_distrib_mul_action α G] :
+/-- `subgroup.pointwise_mul_action` preserves Sylow subgroups. -/
+instance sylow.pointwise_mul_action {α : Type*} [group α] [mul_distrib_mul_action α G] :
   mul_action α (sylow p G) :=
 { smul := λ g P, ⟨g • P, P.2.map _, λ Q hQ hS, inv_smul_eq_iff.mp (P.3 (hQ.map _)
     (λ s hs, (congr_arg (∈ g⁻¹ • Q) (inv_smul_smul g s)).mp

@@ -155,7 +155,20 @@ variables {α β γ E E' F F' G G' H 𝕜 : Type*} {p : ℝ≥0∞}
 
 section Lp_meas
 
-variables (F 𝕜)
+/-! ## The subset `Lp_meas` of `Lp` functions a.e. measurable with respect to a sub-sigma-algebra -/
+
+variables (F)
+
+/-- `Lp_meas_subgroup F m p μ` is the subspace of `Lp F p μ` containing functions `f` verifying
+`ae_measurable' m f μ`, i.e. functions which are `μ`-a.e. equal to an `m`-measurable function. -/
+def Lp_meas_subgroup (m : measurable_space α) [measurable_space α] (p : ℝ≥0∞) (μ : measure α) :
+  add_subgroup (Lp F p μ) :=
+{ carrier   := {f : (Lp F p μ) | ae_measurable' m f μ} ,
+  zero_mem' := ⟨(0 : α → F), @measurable_zero _ α _ m _, Lp.coe_fn_zero _ _ _⟩,
+  add_mem'  := λ f g hf hg, (hf.add hg).congr (Lp.coe_fn_add f g).symm,
+  neg_mem' := λ f hf, ae_measurable'.congr hf.neg (Lp.coe_fn_neg f).symm, }
+
+variables (𝕜)
 /-- `Lp_meas F 𝕜 m p μ` is the subspace of `Lp F p μ` containing functions `f` verifying
 `ae_measurable' m f μ`, i.e. functions which are `μ`-a.e. equal to an `m`-measurable function. -/
 def Lp_meas [opens_measurable_space 𝕜] (m : measurable_space α) [measurable_space α] (p : ℝ≥0∞)
@@ -169,9 +182,14 @@ variables {F 𝕜}
 
 variables [opens_measurable_space 𝕜]
 
+lemma mem_Lp_meas_subgroup_iff_ae_measurable' {m m0 : measurable_space α} {μ : measure α}
+  {f : Lp F p μ} :
+  f ∈ Lp_meas_subgroup F m p μ ↔ ae_measurable' m f μ :=
+by rw [← add_subgroup.mem_carrier, Lp_meas_subgroup, set.mem_set_of_eq]
+
 lemma mem_Lp_meas_iff_ae_measurable' {m m0 : measurable_space α} {μ : measure α} {f : Lp F p μ} :
   f ∈ Lp_meas F 𝕜 m p μ ↔ ae_measurable' m f μ :=
-by simp_rw [← set_like.mem_coe, ← submodule.mem_carrier, Lp_meas, set.mem_set_of_eq]
+by rw [← set_like.mem_coe, ← submodule.mem_carrier, Lp_meas, set.mem_set_of_eq]
 
 lemma Lp_meas.ae_measurable' {m m0 : measurable_space α} {μ : measure α} (f : Lp_meas F 𝕜 m p μ) :
   ae_measurable' m f μ :=
@@ -180,6 +198,11 @@ mem_Lp_meas_iff_ae_measurable'.mp f.mem
 lemma mem_Lp_meas_self {m0 : measurable_space α} (μ : measure α) (f : Lp F p μ) :
   f ∈ Lp_meas F 𝕜 m0 p μ :=
 mem_Lp_meas_iff_ae_measurable'.mpr (Lp.ae_measurable f)
+
+lemma Lp_meas_subgroup_coe {m m0 : measurable_space α} {μ : measure α}
+  {f : Lp_meas_subgroup F m p μ} :
+  ⇑f = (f : Lp F p μ) :=
+coe_fn_coe_base f
 
 lemma Lp_meas_coe {m m0 : measurable_space α} {μ : measure α} {f : Lp_meas F 𝕜 m p μ} :
   ⇑f = (f : Lp F p μ) :=
@@ -196,18 +219,19 @@ section complete_subspace
 
 /-! ## The subspace `Lp_meas` is complete.
 
-We define a `linear_isometry_equiv` between `Lp_meas` and the `Lp` space corresponding to the
+We define an `isometric` between `Lp_meas_subgroup` and the `Lp` space corresponding to the
 measure `μ.trim hm`. As a consequence, the completeness of `Lp` implies completeness of
-`Lp_meas`. -/
+`Lp_meas_subgroup` (and `Lp_meas`). -/
 
 variables {ι : Type*} {m m0 : measurable_space α} {μ : measure α}
 
-/-- If `f` belongs to `Lp_meas F 𝕜 m p μ`, then the measurable function it is almost everywhere
-equal to (given by `ae_measurable.mk`) belongs to `ℒp` for the measure `μ.trim hm`. -/
-lemma mem_ℒp_trim_of_mem_Lp_meas (hm : m ≤ m0) (f : Lp F p μ) (hf_meas : f ∈ Lp_meas F 𝕜 m p μ) :
-  mem_ℒp (mem_Lp_meas_iff_ae_measurable'.mp hf_meas).some p (μ.trim hm) :=
+/-- If `f` belongs to `Lp_meas_subgroup F m p μ`, then the measurable function it is almost
+everywhere equal to (given by `ae_measurable.mk`) belongs to `ℒp` for the measure `μ.trim hm`. -/
+lemma mem_ℒp_trim_of_mem_Lp_meas_subgroup (hm : m ≤ m0) (f : Lp F p μ)
+  (hf_meas : f ∈ Lp_meas_subgroup F m p μ) :
+  mem_ℒp (mem_Lp_meas_subgroup_iff_ae_measurable'.mp hf_meas).some p (μ.trim hm) :=
 begin
-  have hf : ae_measurable' m f μ, from (mem_Lp_meas_iff_ae_measurable'.mp hf_meas),
+  have hf : ae_measurable' m f μ, from (mem_Lp_meas_subgroup_iff_ae_measurable'.mp hf_meas),
   let g := hf.some,
   obtain ⟨hg, hfg⟩ := hf.some_spec,
   change mem_ℒp g p (μ.trim hm),
@@ -218,115 +242,159 @@ begin
   exact Lp.snorm_lt_top f,
 end
 
-/-- If `f` belongs to `Lp` for the measure `μ.trim hm`, then it belongs to the subspace
-`Lp_meas F 𝕜 m p μ`. -/
-lemma mem_Lp_meas_to_Lp_of_trim (hm : m ≤ m0) (f : Lp F p (μ.trim hm)) :
-  (mem_ℒp_of_mem_ℒp_trim hm (Lp.mem_ℒp f)).to_Lp f ∈ Lp_meas F 𝕜 m p μ :=
+/-- If `f` belongs to `Lp` for the measure `μ.trim hm`, then it belongs to the subgroup
+`Lp_meas_subgroup F m p μ`. -/
+lemma mem_Lp_meas_subgroup_to_Lp_of_trim (hm : m ≤ m0) (f : Lp F p (μ.trim hm)) :
+  (mem_ℒp_of_mem_ℒp_trim hm (Lp.mem_ℒp f)).to_Lp f ∈ Lp_meas_subgroup F m p μ :=
 begin
   let hf_mem_ℒp := mem_ℒp_of_mem_ℒp_trim hm (Lp.mem_ℒp f),
-  rw mem_Lp_meas_iff_ae_measurable',
+  rw mem_Lp_meas_subgroup_iff_ae_measurable',
   refine ae_measurable'.congr _ (mem_ℒp.coe_fn_to_Lp hf_mem_ℒp).symm,
   refine ae_measurable'_of_ae_measurable'_trim hm _,
   exact (Lp.ae_measurable f),
 end
 
-variables (F 𝕜 p μ)
-/-- Map from `Lp_meas` to `Lp F p (μ.trim hm)`. -/
-def Lp_meas_to_Lp_trim (hm : m ≤ m0) (f : Lp_meas F 𝕜 m p μ) : Lp F p (μ.trim hm) :=
-mem_ℒp.to_Lp (mem_Lp_meas_iff_ae_measurable'.mp f.mem).some (mem_ℒp_trim_of_mem_Lp_meas hm f f.mem)
+variables (F p μ)
+/-- Map from `Lp_meas_subgroup` to `Lp F p (μ.trim hm)`. -/
+def Lp_meas_subgroup_to_Lp_trim (hm : m ≤ m0) (f : Lp_meas_subgroup F m p μ) : Lp F p (μ.trim hm) :=
+mem_ℒp.to_Lp (mem_Lp_meas_subgroup_iff_ae_measurable'.mp f.mem).some
+  (mem_ℒp_trim_of_mem_Lp_meas_subgroup hm f f.mem)
 
-/-- Map from `Lp F p (μ.trim hm)` to `Lp_meas`, inverse of `Lp_meas_to_Lp_trim`. -/
-def Lp_trim_to_Lp_meas (hm : m ≤ m0) (f : Lp F p (μ.trim hm)) : Lp_meas F 𝕜 m p μ :=
-⟨(mem_ℒp_of_mem_ℒp_trim hm (Lp.mem_ℒp f)).to_Lp f, mem_Lp_meas_to_Lp_of_trim hm f⟩
+/-- Map from `Lp F p (μ.trim hm)` to `Lp_meas_subgroup`, inverse of
+`Lp_meas_subgroup_to_Lp_trim`. -/
+def Lp_trim_to_Lp_meas_subgroup (hm : m ≤ m0) (f : Lp F p (μ.trim hm)) : Lp_meas_subgroup F m p μ :=
+⟨(mem_ℒp_of_mem_ℒp_trim hm (Lp.mem_ℒp f)).to_Lp f, mem_Lp_meas_subgroup_to_Lp_of_trim hm f⟩
 
-variables {F 𝕜 p μ}
+variables {F p μ}
 
-lemma Lp_meas_to_Lp_trim_ae_eq (hm : m ≤ m0) (f : Lp_meas F 𝕜 m p μ) :
-  Lp_meas_to_Lp_trim F 𝕜 p μ hm f =ᵐ[μ] f :=
-(ae_eq_of_ae_eq_trim (mem_ℒp.coe_fn_to_Lp (mem_ℒp_trim_of_mem_Lp_meas hm ↑f f.mem))).trans
-  (mem_Lp_meas_iff_ae_measurable'.mp f.mem).some_spec.2.symm
+lemma Lp_meas_subgroup_to_Lp_trim_ae_eq (hm : m ≤ m0) (f : Lp_meas_subgroup F m p μ) :
+  Lp_meas_subgroup_to_Lp_trim F p μ hm f =ᵐ[μ] f :=
+(ae_eq_of_ae_eq_trim (mem_ℒp.coe_fn_to_Lp (mem_ℒp_trim_of_mem_Lp_meas_subgroup hm ↑f f.mem))).trans
+  (mem_Lp_meas_subgroup_iff_ae_measurable'.mp f.mem).some_spec.2.symm
 
-lemma Lp_trim_to_Lp_meas_ae_eq (hm : m ≤ m0) (f : Lp F p (μ.trim hm)) :
-  Lp_trim_to_Lp_meas F 𝕜 p μ hm f =ᵐ[μ] f :=
+lemma Lp_trim_to_Lp_meas_subgroup_ae_eq (hm : m ≤ m0) (f : Lp F p (μ.trim hm)) :
+  Lp_trim_to_Lp_meas_subgroup F p μ hm f =ᵐ[μ] f :=
 mem_ℒp.coe_fn_to_Lp _
 
-/-- `Lp_trim_to_Lp_meas` is a right inverse of `Lp_meas_to_Lp_trim`. -/
-lemma Lp_meas_to_Lp_trim_right_inv (hm : m ≤ m0) :
-  function.right_inverse (Lp_trim_to_Lp_meas F 𝕜 p μ hm) (Lp_meas_to_Lp_trim F 𝕜 p μ hm) :=
+/-- `Lp_trim_to_Lp_meas_subgroup` is a right inverse of `Lp_meas_subgroup_to_Lp_trim`. -/
+lemma Lp_meas_subgroup_to_Lp_trim_right_inv (hm : m ≤ m0) :
+  function.right_inverse (Lp_trim_to_Lp_meas_subgroup F p μ hm)
+    (Lp_meas_subgroup_to_Lp_trim F p μ hm) :=
 begin
   intro f,
   ext1,
   refine ae_eq_trim_of_measurable hm (Lp.measurable _) (Lp.measurable _) _,
-  exact (Lp_meas_to_Lp_trim_ae_eq hm _).trans (Lp_trim_to_Lp_meas_ae_eq hm _),
+  exact (Lp_meas_subgroup_to_Lp_trim_ae_eq hm _).trans (Lp_trim_to_Lp_meas_subgroup_ae_eq hm _),
 end
 
-/-- `Lp_trim_to_Lp_meas` is a left inverse of `Lp_meas_to_Lp_trim`. -/
-lemma Lp_meas_to_Lp_trim_left_inv (hm : m ≤ m0) :
-  function.left_inverse (Lp_trim_to_Lp_meas F 𝕜 p μ hm) (Lp_meas_to_Lp_trim F 𝕜 p μ hm) :=
+/-- `Lp_trim_to_Lp_meas_subgroup` is a left inverse of `Lp_meas_subgroup_to_Lp_trim`. -/
+lemma Lp_meas_subgroup_to_Lp_trim_left_inv (hm : m ≤ m0) :
+  function.left_inverse (Lp_trim_to_Lp_meas_subgroup F p μ hm)
+    (Lp_meas_subgroup_to_Lp_trim F p μ hm) :=
 begin
   intro f,
   ext1,
   ext1,
-  rw ← Lp_meas_coe,
-  exact (Lp_trim_to_Lp_meas_ae_eq hm _).trans (Lp_meas_to_Lp_trim_ae_eq hm _),
+  rw ← Lp_meas_subgroup_coe,
+  exact (Lp_trim_to_Lp_meas_subgroup_ae_eq hm _).trans (Lp_meas_subgroup_to_Lp_trim_ae_eq hm _),
 end
 
-lemma Lp_meas_to_Lp_trim_add (hm : m ≤ m0) (f g : Lp_meas F 𝕜 m p μ) :
-  Lp_meas_to_Lp_trim F 𝕜 p μ hm (f + g)
-    = Lp_meas_to_Lp_trim F 𝕜 p μ hm f + Lp_meas_to_Lp_trim F 𝕜 p μ hm g :=
+lemma Lp_meas_subgroup_to_Lp_trim_add (hm : m ≤ m0) (f g : Lp_meas_subgroup F m p μ) :
+  Lp_meas_subgroup_to_Lp_trim F p μ hm (f + g)
+    = Lp_meas_subgroup_to_Lp_trim F p μ hm f + Lp_meas_subgroup_to_Lp_trim F p μ hm g :=
 begin
   ext1,
   refine eventually_eq.trans _ (Lp.coe_fn_add _ _).symm,
   refine ae_eq_trim_of_measurable hm (Lp.measurable _) _ _,
   { exact @measurable.add _ _ _ _ m _ _ _ (Lp.measurable _) (Lp.measurable _), },
-  refine (Lp_meas_to_Lp_trim_ae_eq hm _).trans _,
+  refine (Lp_meas_subgroup_to_Lp_trim_ae_eq hm _).trans _,
   refine eventually_eq.trans _
-    (eventually_eq.add (Lp_meas_to_Lp_trim_ae_eq hm f).symm (Lp_meas_to_Lp_trim_ae_eq hm g).symm),
+    (eventually_eq.add (Lp_meas_subgroup_to_Lp_trim_ae_eq hm f).symm
+      (Lp_meas_subgroup_to_Lp_trim_ae_eq hm g).symm),
   refine (Lp.coe_fn_add _ _).trans _,
-  simp_rw Lp_meas_coe,
+  simp_rw Lp_meas_subgroup_coe,
   exact eventually_of_forall (λ x, by refl),
 end
 
-lemma Lp_meas_to_Lp_trim_smul (hm : m ≤ m0) (c : 𝕜) (f : Lp_meas F 𝕜 m p μ) :
-  Lp_meas_to_Lp_trim F 𝕜 p μ hm (c • f) = c • Lp_meas_to_Lp_trim F 𝕜 p μ hm f :=
+lemma Lp_meas_subgroup_to_Lp_trim_neg (hm : m ≤ m0) (f : Lp_meas_subgroup F m p μ) :
+  Lp_meas_subgroup_to_Lp_trim F p μ hm (-f)
+    = -Lp_meas_subgroup_to_Lp_trim F p μ hm f :=
 begin
   ext1,
-  refine eventually_eq.trans _ (Lp.coe_fn_smul _ _).symm,
+  refine eventually_eq.trans _ (Lp.coe_fn_neg _).symm,
   refine ae_eq_trim_of_measurable hm (Lp.measurable _) _ _,
-  { exact @measurable.const_smul _ _ _ _ _ _ m _ _ (Lp.measurable _) c, },
-  refine (Lp_meas_to_Lp_trim_ae_eq hm _).trans _,
-  refine (Lp.coe_fn_smul c _).trans _,
-  refine (Lp_meas_to_Lp_trim_ae_eq hm f).mono (λ x hx, _),
-  rw [pi.smul_apply, pi.smul_apply, hx, Lp_meas_coe],
-  refl,
+  { exact @measurable.neg _ _ _ _ _ m _ (Lp.measurable _), },
+  refine (Lp_meas_subgroup_to_Lp_trim_ae_eq hm _).trans _,
+  refine eventually_eq.trans _
+    (eventually_eq.neg (Lp_meas_subgroup_to_Lp_trim_ae_eq hm f).symm),
+  refine (Lp.coe_fn_neg _).trans _,
+  simp_rw Lp_meas_subgroup_coe,
+  exact eventually_of_forall (λ x, by refl),
 end
 
-/-- `Lp_meas_to_Lp_trim` preserves the norm. -/
-lemma Lp_meas_to_Lp_trim_norm_map [hp : fact (1 ≤ p)] (hm : m ≤ m0) (f : Lp_meas F 𝕜 m p μ) :
-  ∥Lp_meas_to_Lp_trim F 𝕜 p μ hm f∥ = ∥f∥ :=
+lemma Lp_meas_subgroup_to_Lp_trim_sub (hm : m ≤ m0) (f g : Lp_meas_subgroup F m p μ) :
+  Lp_meas_subgroup_to_Lp_trim F p μ hm (f - g)
+    = Lp_meas_subgroup_to_Lp_trim F p μ hm f - Lp_meas_subgroup_to_Lp_trim F p μ hm g :=
+by rw [sub_eq_add_neg, sub_eq_add_neg, Lp_meas_subgroup_to_Lp_trim_add,
+  Lp_meas_subgroup_to_Lp_trim_neg]
+
+/-- `Lp_meas_subgroup_to_Lp_trim` preserves the norm. -/
+lemma Lp_meas_subgroup_to_Lp_trim_norm_map [hp : fact (1 ≤ p)] (hm : m ≤ m0)
+  (f : Lp_meas_subgroup F m p μ) :
+  ∥Lp_meas_subgroup_to_Lp_trim F p μ hm f∥ = ∥f∥ :=
 begin
   rw [Lp.norm_def, snorm_trim hm (Lp.measurable _)],
   swap, { apply_instance, },
-  rw [snorm_congr_ae (Lp_meas_to_Lp_trim_ae_eq hm _), Lp_meas_coe, ← Lp.norm_def],
+  rw [snorm_congr_ae (Lp_meas_subgroup_to_Lp_trim_ae_eq hm _), Lp_meas_subgroup_coe, ← Lp.norm_def],
   congr,
 end
 
-variables (F 𝕜 p μ)
-/-- A linear isometry equivalence between `Lp_meas` and `Lp F p (μ.trim hm)`. -/
-def Lp_meas_to_Lp_trim_lie [hp : fact (1 ≤ p)] (hm : m ≤ m0) :
-  Lp_meas F 𝕜 m p μ ≃ₗᵢ[𝕜] Lp F p (μ.trim hm) :=
-{ to_fun    := Lp_meas_to_Lp_trim F 𝕜 p μ hm,
-  map_add'  := Lp_meas_to_Lp_trim_add hm,
-  map_smul' := Lp_meas_to_Lp_trim_smul hm,
-  inv_fun   := Lp_trim_to_Lp_meas F 𝕜 p μ hm,
-  left_inv  := Lp_meas_to_Lp_trim_left_inv hm,
-  right_inv := Lp_meas_to_Lp_trim_right_inv hm,
-  norm_map' := Lp_meas_to_Lp_trim_norm_map hm, }
+lemma isometry_Lp_meas_subgroup_to_Lp_trim [hp : fact (1 ≤ p)] (hm : m ≤ m0) :
+  isometry (Lp_meas_subgroup_to_Lp_trim F p μ hm) :=
+begin
+  rw isometry_emetric_iff_metric,
+  intros f g,
+  rw [dist_eq_norm, ← Lp_meas_subgroup_to_Lp_trim_sub, Lp_meas_subgroup_to_Lp_trim_norm_map,
+    dist_eq_norm],
+end
+
+variables (F p μ)
+/-- `Lp_meas_subgroup` and `Lp F p (μ.trim hm)` are isometric. -/
+def Lp_meas_subgroup_to_Lp_trim_iso [hp : fact (1 ≤ p)] (hm : m ≤ m0) :
+  Lp_meas_subgroup F m p μ ≃ᵢ Lp F p (μ.trim hm) :=
+{ to_fun    := Lp_meas_subgroup_to_Lp_trim F p μ hm,
+  inv_fun   := Lp_trim_to_Lp_meas_subgroup F p μ hm,
+  left_inv  := Lp_meas_subgroup_to_Lp_trim_left_inv hm,
+  right_inv := Lp_meas_subgroup_to_Lp_trim_right_inv hm,
+  isometry_to_fun := isometry_Lp_meas_subgroup_to_Lp_trim hm, }
+
+variables (𝕜)
+/-- `Lp_meas_subgroup` and `Lp_meas` are isometric. -/
+def Lp_meas_subgroup_to_Lp_meas_iso [hp : fact (1 ≤ p)] :
+  Lp_meas_subgroup F m p μ ≃ᵢ Lp_meas F 𝕜 m p μ :=
+isometric.refl (Lp_meas_subgroup F m p μ)
 variables {F 𝕜 p μ}
 
 instance [hm : fact (m ≤ m0)] [complete_space F] [hp : fact (1 ≤ p)] :
+  complete_space (Lp_meas_subgroup F m p μ) :=
+by { rw (Lp_meas_subgroup_to_Lp_trim_iso F p μ hm.elim).complete_space_iff, apply_instance, }
+
+instance [hm : fact (m ≤ m0)] [complete_space F] [hp : fact (1 ≤ p)] :
   complete_space (Lp_meas F 𝕜 m p μ) :=
-by { rw (Lp_meas_to_Lp_trim_lie F 𝕜 p μ hm.elim).to_isometric.complete_space_iff, apply_instance, }
+by { rw (Lp_meas_subgroup_to_Lp_meas_iso F 𝕜 p μ).symm.complete_space_iff, apply_instance, }
+
+lemma is_complete_ae_measurable' [hp : fact (1 ≤ p)] [complete_space F] (hm : m ≤ m0) :
+  is_complete {f : Lp F p μ | ae_measurable' m f μ} :=
+begin
+  rw ← complete_space_coe_iff_is_complete,
+  haveI : fact (m ≤ m0) := ⟨hm⟩,
+  change complete_space (Lp_meas_subgroup F m p μ),
+  apply_instance,
+end
+
+lemma is_closed_ae_measurable' [hp : fact (1 ≤ p)] [complete_space F] (hm : m ≤ m0) :
+  is_closed {f : Lp F p μ | ae_measurable' m f μ} :=
+is_complete.is_closed (is_complete_ae_measurable' hm)
 
 end complete_subspace
 
@@ -340,8 +408,8 @@ variables {m m0 : measurable_space α} {μ : measure α}
 lemma Lp_meas.ae_fin_strongly_measurable' (hm : m ≤ m0) (f : Lp_meas F 𝕜 m p μ) (hp_ne_zero : p ≠ 0)
   (hp_ne_top : p ≠ ∞) :
   ∃ g, fin_strongly_measurable g (μ.trim hm) ∧ f =ᵐ[μ] g :=
-⟨Lp_meas_to_Lp_trim F 𝕜 p μ hm f, Lp.fin_strongly_measurable _ hp_ne_zero hp_ne_top,
-  (Lp_meas_to_Lp_trim_ae_eq hm f).symm⟩
+⟨Lp_meas_subgroup_to_Lp_trim F p μ hm f, Lp.fin_strongly_measurable _ hp_ne_zero hp_ne_top,
+  (Lp_meas_subgroup_to_Lp_trim_ae_eq hm f).symm⟩
 
 end strongly_measurable
 
@@ -539,6 +607,10 @@ def condexp_L2 (hm : m ≤ m0) : (α →₂[μ] E) →L[𝕜] (Lp_meas E 𝕜 m 
 @orthogonal_projection 𝕜 (α →₂[μ] E) _ _ (Lp_meas E 𝕜 m 2 μ)
   (by { haveI : fact (m ≤ m0) := ⟨hm⟩, exact infer_instance, })
 variables {𝕜}
+
+lemma ae_measurable'_condexp_L2 (hm : m ≤ m0) (f : α →₂[μ] E) :
+  ae_measurable' m (condexp_L2 𝕜 hm f) μ :=
+Lp_meas.ae_measurable' _
 
 lemma integrable_on_condexp_L2_of_measure_ne_top (hm : m ≤ m0) (hμs : μ s ≠ ∞) (f : α →₂[μ] E) :
   integrable_on (condexp_L2 𝕜 hm f) s μ :=
@@ -831,7 +903,7 @@ lemma integrable_condexp_L2_indicator (hm : m ≤ m0) [sigma_finite (μ.trim hm)
   integrable (condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs x)) μ :=
 begin
   refine integrable_of_forall_fin_meas_le' hm (μ s * ∥x∥₊)
-    (ennreal.mul_lt_top (lt_top_iff_ne_top.mpr hμs) ennreal.coe_lt_top) _ _,
+    (ennreal.mul_lt_top hμs ennreal.coe_ne_top) _ _,
   { rw Lp_meas_coe, exact Lp.ae_measurable _, },
   { refine λ t ht hμt, (set_lintegral_nnnorm_condexp_L2_indicator_le hm hs hμs x ht hμt).trans _,
     exact ennreal.mul_le_mul (measure_mono (set.inter_subset_left _ _)) le_rfl, },
@@ -846,6 +918,21 @@ variables [normed_space ℝ G] {hm : m ≤ m0}
 /-- Conditional expectation of the indicator of a measurable set with finite measure, in L2. -/
 def condexp_ind_smul (hm : m ≤ m0) (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : G) : Lp G 2 μ :=
 (to_span_singleton ℝ x).comp_LpL 2 μ (condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ)))
+
+lemma ae_measurable'_condexp_ind_smul (hm : m ≤ m0) (hs : measurable_set s) (hμs : μ s ≠ ∞)
+  (x : G) :
+  ae_measurable' m (condexp_ind_smul hm hs hμs x) μ :=
+begin
+  have h : ae_measurable' m (condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ))) μ,
+    from ae_measurable'_condexp_L2 _ _,
+  rw condexp_ind_smul,
+  suffices : ae_measurable' m
+    ((to_span_singleton ℝ x) ∘ (condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ)))) μ,
+  { refine ae_measurable'.congr this _,
+    refine eventually_eq.trans _ (coe_fn_comp_LpL _ _).symm,
+    rw Lp_meas_coe, },
+  exact ae_measurable'.measurable_comp (to_span_singleton ℝ x).measurable h,
+end
 
 lemma condexp_ind_smul_add (hs : measurable_set s) (hμs : μ s ≠ ∞) (x y : G) :
   condexp_ind_smul hm hs hμs (x + y)
@@ -902,7 +989,7 @@ lemma integrable_condexp_ind_smul (hm : m ≤ m0) [sigma_finite (μ.trim hm)]
   integrable (condexp_ind_smul hm hs hμs x) μ :=
 begin
   refine integrable_of_forall_fin_meas_le' hm (μ s * ∥x∥₊)
-    (ennreal.mul_lt_top (lt_top_iff_ne_top.mpr hμs) ennreal.coe_lt_top) _ _,
+    (ennreal.mul_lt_top hμs ennreal.coe_ne_top) _ _,
   { exact Lp.ae_measurable _, },
   { refine λ t ht hμt, (set_lintegral_nnnorm_condexp_ind_smul_le hm hs hμs x ht hμt).trans _,
     exact ennreal.mul_le_mul (measure_mono (set.inter_subset_left _ _)) le_rfl, },
@@ -1142,6 +1229,11 @@ begin
 end
 
 variables {hm : m ≤ m0} [sigma_finite (μ.trim hm)]
+
+lemma ae_measurable'_condexp_ind (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : G) :
+  ae_measurable' m (condexp_ind hm μ s x) μ :=
+ae_measurable'.congr (ae_measurable'_condexp_ind_smul hm hs hμs x)
+  (condexp_ind_ae_eq_condexp_ind_smul hm hs hμs x).symm
 
 @[simp] lemma condexp_ind_empty : condexp_ind hm μ ∅ = (0 : G →L[ℝ] α →₁[μ] G) :=
 begin

@@ -7,7 +7,7 @@ import algebra.algebra.restrict_scalars
 import algebra.algebra.tower
 import algebra.invertible
 import linear_algebra.basis
-import ring_theory.adjoin.basic
+import ring_theory.adjoin.fg
 import ring_theory.polynomial.tower
 
 /-!
@@ -81,10 +81,11 @@ theorem adjoin_algebra_map (R : Type u) (S : Type v) (A : Type w)
 le_antisymm (adjoin_le $ set.image_subset_iff.2 $ λ y hy, ⟨y, subset_adjoin hy, rfl⟩)
   (subalgebra.map_le.2 $ adjoin_le $ λ y hy, subset_adjoin ⟨y, hy, rfl⟩)
 
-lemma adjoin_res (C D E : Type*) [comm_semiring C] [comm_semiring D] [comm_semiring E]
+lemma adjoin_restrict_scalars (C D E : Type*) [comm_semiring C] [comm_semiring D] [comm_semiring E]
   [algebra C D] [algebra C E] [algebra D E] [is_scalar_tower C D E] (S : set E) :
-(algebra.adjoin D S).res C = ((⊤ : subalgebra C D).map (is_scalar_tower.to_alg_hom C D E)).under
-  (algebra.adjoin ((⊤ : subalgebra C D).map (is_scalar_tower.to_alg_hom C D E)) S) :=
+(algebra.adjoin D S).restrict_scalars C =
+  ((⊤ : subalgebra C D).map (is_scalar_tower.to_alg_hom C D E)).under
+    (algebra.adjoin ((⊤ : subalgebra C D).map (is_scalar_tower.to_alg_hom C D E)) S) :=
 begin
   suffices : set.range (algebra_map D E) =
     set.range (algebra_map ((⊤ : subalgebra C D).map (is_scalar_tower.to_alg_hom C D E)) E),
@@ -101,11 +102,12 @@ lemma adjoin_res_eq_adjoin_res (C D E F : Type*) [comm_semiring C] [comm_semirin
   [comm_semiring E] [comm_semiring F] [algebra C D] [algebra C E] [algebra C F] [algebra D F]
   [algebra E F] [is_scalar_tower C D F] [is_scalar_tower C E F] {S : set D} {T : set E}
   (hS : algebra.adjoin C S = ⊤) (hT : algebra.adjoin C T = ⊤) :
-(algebra.adjoin E (algebra_map D F '' S)).res C =
-  (algebra.adjoin D (algebra_map E F '' T)).res C :=
-by { rw [adjoin_res, adjoin_res, ←hS, ←hT, ←algebra.adjoin_image, ←algebra.adjoin_image,
-  ←alg_hom.coe_to_ring_hom, ←alg_hom.coe_to_ring_hom, is_scalar_tower.coe_to_alg_hom,
-  is_scalar_tower.coe_to_alg_hom, ←adjoin_union_eq_under, ←adjoin_union_eq_under, set.union_comm] }
+(algebra.adjoin E (algebra_map D F '' S)).restrict_scalars C =
+  (algebra.adjoin D (algebra_map E F '' T)).restrict_scalars C :=
+by rw [adjoin_restrict_scalars, adjoin_restrict_scalars, ←hS, ←hT, ←algebra.adjoin_image,
+  ←algebra.adjoin_image, ←alg_hom.coe_to_ring_hom, ←alg_hom.coe_to_ring_hom,
+  is_scalar_tower.coe_to_alg_hom, is_scalar_tower.coe_to_alg_hom, ←adjoin_union_eq_under,
+  ←adjoin_union_eq_under, set.union_comm]
 
 end algebra
 
@@ -118,7 +120,7 @@ lemma algebra.fg_trans' {R S A : Type*} [comm_ring R] [comm_ring S] [comm_ring A
 let ⟨s, hs⟩ := hRS, ⟨t, ht⟩ := hSA in ⟨s.image (algebra_map S A) ∪ t,
 by rw [finset.coe_union, finset.coe_image, algebra.adjoin_union_eq_under,
   algebra.adjoin_algebra_map, hs, algebra.map_top, is_scalar_tower.range_under_adjoin, ht,
-  subalgebra.res_top]⟩
+  subalgebra.restrict_scalars_top]⟩
 end
 
 section algebra_map_coeffs

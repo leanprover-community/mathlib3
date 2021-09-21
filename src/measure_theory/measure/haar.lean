@@ -554,7 +554,7 @@ begin
   refine ⟨_, ne_of_lt $ content.outer_measure_lt_top_of_is_compact _ K₀.2.1⟩,
   rw [← pos_iff_ne_zero],
   exact content.outer_measure_pos_of_is_mul_left_invariant _ is_left_invariant_haar_content
-    ⟨K₀.1, K₀.2.1⟩ (by simp only [haar_content_self, ennreal.zero_lt_one]) hU h2U
+    ⟨K₀.1, K₀.2.1⟩ (by simpa only [haar_content_self] using one_ne_zero) hU h2U
 end
 
 /-- The Haar measure is regular. -/
@@ -563,8 +563,8 @@ instance regular_haar_measure [locally_compact_space G] {K₀ : positive_compact
   (haar_measure K₀).regular :=
 begin
   apply regular.smul,
-  rw ennreal.inv_lt_top,
-  exact haar_content_outer_measure_self_pos,
+  rw ennreal.inv_ne_top,
+  exact haar_content_outer_measure_self_pos.ne'
 end
 
 section unique
@@ -584,7 +584,7 @@ end
 
 @[to_additive]
 theorem regular_of_is_mul_left_invariant (hμ : is_mul_left_invariant μ) {K} (hK : is_compact K)
-  (h2K : (interior K).nonempty) (hμK : μ K < ∞) : regular μ :=
+  (h2K : (interior K).nonempty) (hμK : μ K ≠ ∞) : regular μ :=
 begin
   rw [haar_measure_unique hμ ⟨K, hK, h2K⟩],
   exact regular.smul hμK

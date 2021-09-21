@@ -1019,7 +1019,7 @@ end ideals
 section at_units
 variables (R) (S) (M)
 
-/- The localization at a module of units is isomorphic to the ring -/
+/-- The localization at a module of units is isomorphic to the ring -/
 noncomputable
 def at_units [is_localization M S] (H : ∀ x : M, is_unit (x : R)) : R ≃ₐ[R] S :=
 begin
@@ -1039,9 +1039,9 @@ begin
     simp }
 end
 
-/- The localization away from a unit is isomorphic to the ring -/
+/-- The localization away from a unit is isomorphic to the ring -/
 noncomputable
-def at_unit (x : R) [e : is_unit x] [is_localization.away x S] : R ≃ₐ[R] S :=
+def at_unit (x : R) (e : is_unit x) [is_localization.away x S] : R ≃ₐ[R] S :=
 begin
   apply at_units R (submonoid.powers x),
   rintros ⟨xn, n, hxn⟩,
@@ -1051,7 +1051,7 @@ begin
   simp[← hxn, ← hu, ← mul_pow]
 end
 
-/- The localization at one is isomorphic to the ring. -/
+/-- The localization at one is isomorphic to the ring. -/
 noncomputable
 def at_one [is_localization.away (1 : R) S] : R ≃ₐ[R] S :=
 @at_unit R _ S _ _ (1 : R) is_unit_one _

@@ -95,7 +95,7 @@ open finset
 /-- A locally finite order is an order where bounded intervals are finite. When you don't care too
 much about definitional equality, you can use `locally_finite_order.of_Icc` or
 `locally_finite_order.of_finite_Icc` to build a locally finite order from just `finset.Icc`. -/
-class locally_finite_order (α : Type*) [preorder α] :=
+@[ext] class locally_finite_order (α : Type*) [preorder α] :=
 (finset_Icc : α → α → finset α)
 (finset_Ico : α → α → finset α)
 (finset_Ioc : α → α → finset α)
@@ -421,7 +421,7 @@ noncomputable def fintype.to_locally_finite_order [fintype α] :
   finset_mem_Ioo := λ a b x, by rw [set.finite.mem_to_finset, set.mem_Ioo] }
 
 instance : subsingleton (locally_finite_order α) :=
-subsingleton.intro _ (λ h₀ h₁, begin
+subsingleton.intro (λ h₀ h₁, begin
   ext,
   { rw [h₀.finset_mem_Icc, h₁.finset_mem_Icc] },
   { rw [h₀.finset_mem_Ico, h₁.finset_mem_Ico] },

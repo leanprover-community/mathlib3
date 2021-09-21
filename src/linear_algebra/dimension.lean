@@ -115,7 +115,7 @@ variables {M' : Type v'} [add_comm_group M'] [module R M']
 variables {M₁ : Type v} [add_comm_group M₁] [module R M₁]
 
 theorem linear_map.lift_dim_le_of_injective (f : M →ₗ[R] M') (i : injective f) :
-  cardinal.lift.{v v'} (module.rank R M) ≤ cardinal.lift.{v' v} (module.rank R M') :=
+  cardinal.lift.{v'} (module.rank R M) ≤ cardinal.lift.{ v} (module.rank R M') :=
 begin
   dsimp [module.rank],
   fapply cardinal.lift_sup_le_lift_sup',
@@ -143,7 +143,7 @@ begin
 end
 
 lemma lift_dim_range_le (f : M →ₗ[R] M') :
-  cardinal.lift.{v' v} (module.rank R f.range) ≤ cardinal.lift.{v v'} (module.rank R M) :=
+  cardinal.lift.{v} (module.rank R f.range) ≤ cardinal.lift.{v'} (module.rank R M) :=
 begin
   dsimp [module.rank],
   apply cardinal.lift_sup_le,
@@ -161,7 +161,7 @@ lemma dim_range_le (f : M →ₗ[R] M₁) : module.rank R f.range ≤ module.ran
 by simpa using lift_dim_range_le f
 
 lemma lift_dim_map_le (f : M →ₗ[R] M') (p : submodule R M) :
-  cardinal.lift.{v' v} (module.rank R (p.map f)) ≤ cardinal.lift.{v v'} (module.rank R p) :=
+  cardinal.lift.{v} (module.rank R (p.map f)) ≤ cardinal.lift.{v'} (module.rank R p) :=
 begin
   have h := lift_dim_range_le (f.comp (submodule.subtype p)),
   rwa [linear_map.range_comp, range_subtype] at h,
@@ -178,7 +178,7 @@ lemma dim_le_of_submodule (s t : submodule R M) (h : s ≤ t) :
 /-- Two linearly equivalent vector spaces have the same dimension, a version with different
 universes. -/
 theorem linear_equiv.lift_dim_eq (f : M ≃ₗ[R] M') :
-  cardinal.lift.{v v'} (module.rank R M) = cardinal.lift.{v' v} (module.rank R M') :=
+  cardinal.lift.{v'} (module.rank R M) = cardinal.lift.{v} (module.rank R M') :=
 begin
   apply le_antisymm,
   { exact f.to_linear_map.lift_dim_le_of_injective f.injective, },
@@ -234,7 +234,7 @@ variables [nontrivial R]
 
 lemma {m} cardinal_lift_le_dim_of_linear_independent
   {ι : Type w} {v : ι → M} (hv : linear_independent R v) :
-  cardinal.lift.{w (max v m)} (#ι) ≤ cardinal.lift.{v (max w m)} (module.rank R M) :=
+  cardinal.lift.{(max v m)} (#ι) ≤ cardinal.lift.{(max w m)} (module.rank R M) :=
 begin
   apply le_trans,
   { exact cardinal.lift_mk_le.mpr
@@ -394,14 +394,14 @@ then the cardinality of `b` is bounded by the cardinality of `s`.
 lemma infinite_basis_le_maximal_linear_independent'
   {ι : Type w} (b : basis ι R M) [infinite ι]
   {κ : Type w'} (v : κ → M) (i : linear_independent R v) (m : i.maximal) :
-  cardinal.lift.{w w'} (#ι) ≤ cardinal.lift.{w' w} (#κ) :=
+  cardinal.lift.{w'} (#ι) ≤ cardinal.lift.{w} (#κ) :=
 begin
   let Φ := λ k : κ, (b.repr (v k)).support,
   have w₁ : #ι ≤ #(set.range Φ),
   { apply cardinal.le_range_of_union_finset_eq_top,
     exact union_support_maximal_linear_independent_eq_range_basis b v i m, },
   have w₂ :
-    cardinal.lift.{w w'} (#(set.range Φ)) ≤ cardinal.lift.{w' w} (#κ) :=
+    cardinal.lift.{w'} (#(set.range Φ)) ≤ cardinal.lift.{w} (#κ) :=
     cardinal.mk_range_le_lift,
   exact (cardinal.lift_le.mpr w₁).trans w₂,
 end
@@ -429,7 +429,7 @@ variables {M : Type v} [add_comm_group M] [module R M]
 /-- The dimension theorem: if `v` and `v'` are two bases, their index types
 have the same cardinalities. -/
 theorem mk_eq_mk_of_basis (v : basis ι R M) (v' : basis ι' R M) :
-  cardinal.lift.{w w'} (#ι) = cardinal.lift.{w' w} (#ι') :=
+  cardinal.lift.{w'} (#ι) = cardinal.lift.{w} (#ι') :=
 begin
   by_cases h : #ι < ω,
   { -- `v` is a finite basis, so by `basis_fintype_of_finite_spans` so is `v'`.
@@ -728,11 +728,11 @@ by rw [←h.mk_range_eq_dim, cardinal.fintype_card,
        set.card_range_of_injective h.injective]
 
 theorem basis.mk_eq_dim (v : basis ι R M) :
-  cardinal.lift.{w v} (#ι) = cardinal.lift.{v w} (module.rank R M) :=
+  cardinal.lift.{v} (#ι) = cardinal.lift.{w} (module.rank R M) :=
 by rw [←v.mk_range_eq_dim, cardinal.mk_range_eq_of_injective v.injective]
 
 theorem {m} basis.mk_eq_dim' (v : basis ι R M) :
-  cardinal.lift.{w (max v m)} (#ι) = cardinal.lift.{v (max w m)} (module.rank R M) :=
+  cardinal.lift.{(max v m)} (#ι) = cardinal.lift.{(max w m)} (module.rank R M) :=
 by simpa using v.mk_eq_dim
 
 /-- If a module has a finite dimension, all bases are indexed by a finite type. -/
@@ -785,12 +785,12 @@ variables [add_comm_group V'] [module K V']
 
 /-- Two vector spaces are isomorphic if they have the same dimension. -/
 theorem nonempty_linear_equiv_of_lift_dim_eq
-  (cond : cardinal.lift.{v v'} (module.rank K V) = cardinal.lift.{v' v} (module.rank K V')) :
+  (cond : cardinal.lift.{v'} (module.rank K V) = cardinal.lift.{v} (module.rank K V')) :
   nonempty (V ≃ₗ[K] V') :=
 begin
   let B := basis.of_vector_space K V,
   let B' := basis.of_vector_space K V',
-  have : cardinal.lift.{v v'} (#_) = cardinal.lift.{v' v} (#_),
+  have : cardinal.lift.{v' v} (#_) = cardinal.lift.{v v'} (#_),
     by rw [B.mk_eq_dim'', cond, B'.mk_eq_dim''],
   exact (cardinal.lift_mk_eq.{v v' 0}.1 this).map (B.equiv B')
 end
@@ -806,7 +806,7 @@ variables (V V' V₁)
 
 /-- Two vector spaces are isomorphic if they have the same dimension. -/
 def linear_equiv.of_lift_dim_eq
-  (cond : cardinal.lift.{v v'} (module.rank K V) = cardinal.lift.{v' v} (module.rank K V')) :
+  (cond : cardinal.lift.{v'} (module.rank K V) = cardinal.lift.{v} (module.rank K V')) :
   V ≃ₗ[K] V' :=
 classical.choice (nonempty_linear_equiv_of_lift_dim_eq cond)
 
@@ -819,7 +819,7 @@ end
 /-- Two vector spaces are isomorphic if and only if they have the same dimension. -/
 theorem linear_equiv.nonempty_equiv_iff_lift_dim_eq :
   nonempty (V ≃ₗ[K] V') ↔
-    cardinal.lift.{v v'} (module.rank K V) = cardinal.lift.{v' v} (module.rank K V') :=
+    cardinal.lift.{v'} (module.rank K V) = cardinal.lift.{v} (module.rank K V') :=
 ⟨λ ⟨h⟩, linear_equiv.lift_dim_eq h, λ h, nonempty_linear_equiv_of_lift_dim_eq h⟩
 
 /-- Two vector spaces are isomorphic if and only if they have the same dimension. -/
@@ -913,7 +913,7 @@ by rw [dim_pi, cardinal.sum_const, cardinal.fintype_card]
 
 lemma dim_fun_eq_lift_mul :
   module.rank K (η → V) = (fintype.card η : cardinal.{max u₁' v}) *
-    cardinal.lift.{v u₁'} (module.rank K V) :=
+    cardinal.lift.{u₁'} (module.rank K V) :=
 by rw [dim_pi, cardinal.sum_const_eq_lift_mul, cardinal.fintype_card, cardinal.lift_nat_cast]
 
 lemma dim_fun' : module.rank K (η → K) = fintype.card η :=
@@ -1117,7 +1117,7 @@ end
 
 lemma le_rank_iff_exists_linear_independent {c : cardinal} {f : V →ₗ[K] V'} :
   c ≤ rank f ↔
-  ∃ s : set V, cardinal.lift.{v v'} (#s) = cardinal.lift.{v' v} c ∧
+  ∃ s : set V, cardinal.lift.{v'} (#s) = cardinal.lift.{v} c ∧
     linear_independent K (λ x : s, f x) :=
 begin
   rcases f.range_restrict.exists_right_inverse_of_surjective f.range_range_restrict with ⟨g, hg⟩,

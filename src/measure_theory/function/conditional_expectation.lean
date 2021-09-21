@@ -1540,7 +1540,7 @@ variables {𝕜} {m m0 : measurable_space α} {μ : measure α} [borel_space �
   α → F' :=
 ae_measurable'_condexp_L1.mk (condexp_L1 hm μ f)
 
-notation  μ `[` f `|` hm `]` := condexp hm μ f
+localized "notation  μ `[` f `|` hm `]` := condexp hm μ f" in measure_theory
 
 lemma condexp_ae_eq_condexp_L1 (f : α → F') : μ[f|hm] =ᵐ[μ] condexp_L1 hm μ f :=
 by { unfold condexp, exact (ae_measurable'.ae_eq_mk ae_measurable'_condexp_L1).symm, }

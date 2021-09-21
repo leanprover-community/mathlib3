@@ -292,6 +292,14 @@ begin
   abel
 end
 
+lemma preimage_add_closed_ball (x y : α) (r : ℝ) :
+  ((+) y) ⁻¹' (closed_ball x r) = closed_ball (x - y) r :=
+begin
+  ext z,
+  simp only [dist_eq_norm, set.mem_preimage, mem_closed_ball],
+  abel
+end
+
 @[simp] lemma mem_sphere_iff_norm (v w : α) (r : ℝ) : w ∈ sphere v r ↔ ∥w - v∥ = r :=
 by simp [dist_eq_norm]
 
@@ -300,6 +308,14 @@ by simp [dist_eq_norm]
 
 @[simp] lemma norm_eq_of_mem_sphere {r : ℝ} (x : sphere (0:α) r) : ∥(x:α)∥ = r :=
 mem_sphere_zero_iff_norm.mp x.2
+
+lemma preimage_add_sphere (x y : α) (r : ℝ) :
+  ((+) y) ⁻¹' (sphere x r) = sphere (x - y) r :=
+begin
+  ext z,
+  simp only [set.mem_preimage, mem_sphere_iff_norm],
+  abel
+end
 
 lemma ne_zero_of_norm_pos {g : α} : 0 < ∥ g ∥ → g ≠ 0 :=
 begin

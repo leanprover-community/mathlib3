@@ -165,10 +165,8 @@ begin
   { simpa using hx },
 end
 
-lemma ereal.to_real' {x : ereal} (h : x ≠ ⊥) (h' : x ≠ ⊤) :
-  ∃ (c : ℝ), (c : ereal) = x := by {rcases x with rfl|rfl|x;tauto}
 
-lemma ereal.eq_top_iff_forall_lt (x : ereal) : x = ⊤ ↔ ∀ (y : ℝ), (y : ereal) < x :=
+lemma eq_top_iff_forall_lt (x : ereal) : x = ⊤ ↔ ∀ (y : ℝ), (y : ereal) < x :=
 begin
   split,
   { rintro rfl, exact ereal.coe_lt_top },
@@ -180,7 +178,7 @@ begin
   }
 end
 
-lemma ereal.eq_bot_iff_forall_lt (x : ereal) : x = ⊥ ↔ ∀ (y : ℝ), x < (y : ereal) :=
+lemma eq_bot_iff_forall_lt (x : ereal) : x = ⊥ ↔ ∀ (y : ℝ), x < (y : ereal) :=
 begin
   split,
   { rintro rfl, exact bot_lt_coe },
@@ -277,21 +275,6 @@ def ne_top_bot_equiv_real : ({⊥, ⊤} : set ereal).compl ≃ ℝ :=
     { simpa [not_or_distrib, and_comm] using hx }
   end,
   right_inv := λ x, by simp }
-
-
-/-! ### Supremum and Infimum -/
-
-lemma ereal.le_Sup {α : set ereal} {x : ereal} (h : x ∈ α) : x ≤ Sup α :=
-  @_root_.le_Sup ereal _ _ _ h
-
-lemma ereal.Inf_le  {α : set ereal} {x : ereal} (h : x ∈ α) : Inf α ≤ x :=
-  @_root_.Inf_le ereal _ _ _ h
-
-lemma ereal.lt_Sup {α : set ereal} {x : ereal} (h : x < Sup α) : ∃ y ∈ α, x < y :=
-  (@_root_.lt_Sup_iff ereal _ α x).1 h
-
-lemma ereal.Inf_lt {α : set ereal} {x : ereal} (h : Inf α < x) : ∃ y ∈ α, y < x :=
-  (@_root_.Inf_lt_iff ereal _ α x).1 h
 
 /-! ### Addition -/
 

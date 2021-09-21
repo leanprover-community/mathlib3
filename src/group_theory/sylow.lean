@@ -49,6 +49,8 @@ variables {p} {G}
 
 instance : has_coe (sylow p G) (subgroup G) := ⟨sylow.to_subgroup⟩
 
+@[simp] lemma sylow.to_subgroup_eq_coe {P : sylow p G} : P.to_subgroup = ↑P := rfl
+
 @[ext] lemma sylow.ext {P Q : sylow p G} (h : (P : subgroup G) = Q) : P = Q :=
 by cases P; cases Q; congr'
 

@@ -1021,7 +1021,7 @@ variables (R) (S) (M)
 
 /-- The localization at a module of units is isomorphic to the ring -/
 noncomputable
-def at_units [is_localization M S] (H : ∀ x : M, is_unit (x : R)) : R ≃ₐ[R] S :=
+def at_units (H : ∀ x : M, is_unit (x : R)) : R ≃ₐ[R] S :=
 begin
   apply alg_equiv.of_bijective (algebra.of_id R S),
   split,

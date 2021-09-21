@@ -91,6 +91,9 @@ lemma is_iso_of_op {X Y : C} (f : X ⟶ Y) [is_iso f.op] : is_iso f :=
 ⟨⟨(inv (f.op)).unop,
   ⟨quiver.hom.op_inj (by simp), quiver.hom.op_inj (by simp)⟩⟩⟩
 
+lemma op_inv {X Y : C} (f : X ⟶ Y) [f_iso : is_iso f] : (inv f).op = inv f.op :=
+by ext; rw [← op_comp, is_iso.inv_hom_id, op_id]
+
 namespace functor
 
 section

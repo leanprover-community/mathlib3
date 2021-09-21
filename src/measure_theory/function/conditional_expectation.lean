@@ -1536,13 +1536,14 @@ variables {𝕜} {m m0 : measurable_space α} {μ : measure α} [borel_space �
   {hm : m ≤ m0} [sigma_finite (μ.trim hm)] {f g : α → F'} {s : set α}
 
 /-- Conditional expectation of a function. Its value is 0 if the function is not integrable. -/
-def condexp (hm : m ≤ m0) (μ : measure α) [sigma_finite (μ.trim hm)] (f : α → F') : α → F' :=
+@[irreducible] def condexp (hm : m ≤ m0) (μ : measure α) [sigma_finite (μ.trim hm)] (f : α → F') :
+  α → F' :=
 ae_measurable'_condexp_L1.mk (condexp_L1 hm μ f)
 
 notation  μ `[` f `|` hm `]` := condexp hm μ f
 
 lemma condexp_ae_eq_condexp_L1 (f : α → F') : μ[f|hm] =ᵐ[μ] condexp_L1 hm μ f :=
-(ae_measurable'.ae_eq_mk ae_measurable'_condexp_L1).symm
+by { unfold condexp, exact (ae_measurable'.ae_eq_mk ae_measurable'_condexp_L1).symm, }
 
 lemma condexp_ae_eq_condexp_L1_clm (hf : integrable f μ) :
   μ[f|hm] =ᵐ[μ] condexp_L1_clm hm μ (hf.to_L1 f) :=
@@ -1563,7 +1564,8 @@ begin
   rw condexp_L1_zero,
 end
 
-lemma measurable_condexp : measurable[m] (μ[f|hm]) := ae_measurable'.measurable_mk _
+lemma measurable_condexp : measurable[m] (μ[f|hm]) :=
+by { unfold condexp, exact ae_measurable'.measurable_mk _, }
 
 lemma integrable_condexp : integrable (μ[f|hm]) μ :=
 (integrable_condexp_L1 f).congr (condexp_ae_eq_condexp_L1 f).symm

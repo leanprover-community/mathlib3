@@ -503,7 +503,7 @@ regular.inner_regular_measurable ⟨hA, h'A⟩ _ hr
 /-- Given a regular measure, any measurable set of finite mass can be approximated from
 inside by compact sets. -/
 lemma _root_.measurable_set.measure_eq_supr_is_compact_of_ne_top
-  [opens_measurable_space α] [t2_space α] [regular μ]
+  [opens_measurable_space α] [regular μ]
   ⦃A : set α⦄ (hA : measurable_set A) (h'A : μ A ≠ ∞) :
   μ A = (⨆ (K ⊆ A) (h : is_compact K), μ K) :=
 regular.inner_regular_measurable.measure_eq_supr ⟨hA, h'A⟩

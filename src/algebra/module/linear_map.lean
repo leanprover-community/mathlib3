@@ -67,7 +67,7 @@ is semilinear if it satisfies the two properties `f (x + y) = f x + f y` and
 `M →ₛₗ[σ] M₂`) are bundled versions of such maps. For plain linear maps (i.e. for which
 `σ = ring_hom.id R`), the notation `M →ₗ[R] M₂` is available. An unbundled version of plain linear
 maps is available with the predicate `is_linear_map`, but it should be avoided most of the time. -/
-structure linear_map {R : Type*} {S : Type*} [semiring R] [semiring S]  (σ : R →+* S)
+structure linear_map {R : Type*} {S : Type*} [semiring R] [semiring S] (σ : R →+* S)
   (M : Type*) (M₂ : Type*)
   [add_comm_monoid M] [add_comm_monoid M₂] [module R M] [module S M₂]
   extends add_hom M M₂ :=

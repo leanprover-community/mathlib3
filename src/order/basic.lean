@@ -57,7 +57,7 @@ import data.prod
 
 ## See also
 
-- `algebra.order` for basic lemmas about orders, and projection notation for orders
+- `algebra.order.basic` for basic lemmas about orders, and projection notation for orders
 
 ## Tags
 
@@ -97,7 +97,15 @@ lemma partial_order.to_preorder_injective {α : Type*} :
 @[ext]
 lemma linear_order.to_partial_order_injective {α : Type*} :
   function.injective (@linear_order.to_partial_order α) :=
-λ A B h, by { cases A, cases B, injection h, congr' }
+begin
+  intros A B h,
+  cases A, cases B, injection h,
+  obtain rfl : A_le = B_le := ‹_›, obtain rfl : A_lt = B_lt := ‹_›,
+  obtain rfl : A_decidable_le = B_decidable_le := subsingleton.elim _ _,
+  obtain rfl : A_max = B_max := A_max_def.trans B_max_def.symm,
+  obtain rfl : A_min = B_min := A_min_def.trans B_min_def.symm,
+  congr
+end
 
 theorem preorder.ext {α} {A B : preorder α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
@@ -303,8 +311,12 @@ instance (α : Type*) [partial_order α] : partial_order (order_dual α) :=
 
 instance (α : Type*) [linear_order α] : linear_order (order_dual α) :=
 { le_total     := λ a b : α, le_total b a,
-  decidable_le := show decidable_rel (λ a b : α, b ≤ a), by apply_instance,
-  decidable_lt := show decidable_rel (λ a b : α, b < a), by apply_instance,
+  decidable_le := (infer_instance : decidable_rel (λ a b : α, b ≤ a)),
+  decidable_lt := (infer_instance : decidable_rel (λ a b : α, b < a)),
+  min := @max α _,
+  max := @min α _,
+  min_def := @linear_order.max_def α _,
+  max_def := @linear_order.min_def α _,
   .. order_dual.partial_order α }
 
 instance : Π [inhabited α], inhabited (order_dual α) := id
@@ -762,10 +774,19 @@ lemma subtype.mono_coe [preorder α] (t : set α) : monotone (coe : (subtype t) 
 lemma subtype.strict_mono_coe [preorder α] (t : set α) : strict_mono (coe : (subtype t) → α) :=
 λ x y, id
 
-instance prod.has_le (α : Type u) (β : Type v) [has_le α] [has_le β] : has_le (α × β) :=
+namespace prod
+
+instance (α : Type u) (β : Type v) [has_le α] [has_le β] : has_le (α × β) :=
 ⟨λ p q, p.1 ≤ q.1 ∧ p.2 ≤ q.2⟩
 
-instance prod.preorder (α : Type u) (β : Type v) [preorder α] [preorder β] : preorder (α × β) :=
+lemma le_def {α β : Type*} [has_le α] [has_le β] {x y : α × β} :
+  x ≤ y ↔ x.1 ≤ y.1 ∧ x.2 ≤ y.2 := iff.rfl
+
+@[simp] lemma mk_le_mk {α β : Type*} [has_le α] [has_le β] {x₁ x₂ : α} {y₁ y₂ : β} :
+  (x₁, y₁) ≤ (x₂, y₂) ↔ x₁ ≤ x₂ ∧ y₁ ≤ y₂ :=
+iff.rfl
+
+instance (α : Type u) (β : Type v) [preorder α] [preorder β] : preorder (α × β) :=
 { le_refl  := λ ⟨a, b⟩, ⟨le_refl a, le_refl b⟩,
   le_trans := λ ⟨a, b⟩ ⟨c, d⟩ ⟨e, f⟩ ⟨hac, hbd⟩ ⟨hce, hdf⟩,
     ⟨le_trans hac hce, le_trans hbd hdf⟩,
@@ -774,11 +795,13 @@ instance prod.preorder (α : Type u) (β : Type v) [preorder α] [preorder β] :
 /-- The pointwise partial order on a product.
     (The lexicographic ordering is defined in order/lexicographic.lean, and the instances are
     available via the type synonym `lex α β = α × β`.) -/
-instance prod.partial_order (α : Type u) (β : Type v) [partial_order α] [partial_order β] :
+instance (α : Type u) (β : Type v) [partial_order α] [partial_order β] :
   partial_order (α × β) :=
 { le_antisymm := λ ⟨a, b⟩ ⟨c, d⟩ ⟨hac, hbd⟩ ⟨hca, hdb⟩,
     prod.ext (hac.antisymm hca) (hbd.antisymm hdb),
   .. prod.preorder α β }
+
+end prod
 
 lemma monotone_fst {α β : Type*} [preorder α] [preorder β] : monotone (@prod.fst α β) :=
 λ x y h, h.1

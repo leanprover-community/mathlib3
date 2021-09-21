@@ -3,7 +3,7 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import ring_theory.adjoin.basic
+import ring_theory.adjoin.fg
 import ring_theory.polynomial.scale_roots
 import ring_theory.polynomial.tower
 
@@ -168,7 +168,7 @@ begin
     rcases finset.mem_image.1 hs with ⟨k, hk, rfl⟩, clear hk,
     exact (algebra.adjoin R {x}).pow_mem (algebra.subset_adjoin (set.mem_singleton _)) k },
   intros r hr, change r ∈ algebra.adjoin R ({x} : set A) at hr,
-  rw algebra.adjoin_singleton_eq_range at hr,
+  rw algebra.adjoin_singleton_eq_range_aeval at hr,
   rcases (aeval x).mem_range.mp hr with ⟨p, rfl⟩,
   rw ← mod_by_monic_add_div p hfm,
   rw ← aeval_def at hfx,

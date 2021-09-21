@@ -266,6 +266,19 @@ instance : module S (alternating_map R M N ι) :=
 
 end module
 
+section
+variables (R N)
+
+/-- The evaluation map from `ι → N` to `N` at a given `i` is alternating when `ι` is subsingleton.
+-/
+@[simps]
+def of_subsingleton [subsingleton ι] (i : ι) : alternating_map R N N ι :=
+{ to_fun := function.eval i,
+  map_eq_zero_of_eq' := λ v i j hv hij, (hij $ subsingleton.elim _ _).elim,
+  ..multilinear_map.of_subsingleton R N i }
+
+end
+
 end alternating_map
 
 /-!

@@ -76,26 +76,30 @@ nonempty_of_exists is_p_group.of_bot.exists_le_sylow
 noncomputable instance sylow.inhabited : inhabited (sylow p G) :=
 classical.inhabited_of_nonempty sylow.nonempty
 
-instance sylow.mul_aut_mul_action : mul_action (mul_aut G) (sylow p G) :=
-{ smul := λ ϕ P, ⟨P.1.comap ϕ⁻¹.to_monoid_hom, P.2.comap_injective _ ϕ⁻¹.injective, λ Q hQ hP,
-    le_antisymm (λ g hg, by { rw ← P.3 (hQ.comap_injective ϕ.to_monoid_hom ϕ.injective)
-      (ge_trans (comap_mono hP) (λ g h, (congr_arg _ (ϕ.inv_apply_self G g)).mpr h)),
-      simpa only [mem_comap, mul_equiv.coe_to_monoid_hom, mul_aut.apply_inv_self] }) hP⟩,
-  one_smul := λ P, sylow.ext (ext (λ g, iff.rfl)),
-  mul_smul := λ ϕ ψ P, sylow.ext (P.1.comap_comap ψ⁻¹.to_monoid_hom ϕ⁻¹.to_monoid_hom).symm }
+open_locale pointwise
 
-lemma sylow.coe_mul_aut_smul {ϕ : mul_aut G} {P : sylow p G} :
-  ↑(ϕ • P) = P.1.comap ϕ⁻¹.to_monoid_hom := rfl
+instance sylow.mul_action' {α : Type*} [group α] [mul_distrib_mul_action α G] :
+  mul_action α (sylow p G) :=
+{ smul := λ g P, ⟨g • P, P.2.map _, λ Q hQ hS, inv_smul_eq_iff.mp (P.3 (hQ.map _)
+    (λ s hs, (congr_arg (∈ g⁻¹ • Q) (inv_smul_smul g s)).mp
+      (smul_mem_pointwise_smul (g • s) g⁻¹ Q (hS (smul_mem_pointwise_smul s g P hs)))))⟩,
+  one_smul := λ P, sylow.ext (one_smul α P),
+  mul_smul := λ g h P, sylow.ext (mul_smul g h P) }
 
 instance sylow.mul_action : mul_action G (sylow p G) :=
 of_End_hom (to_End_hom.comp mul_aut.conj)
 
 lemma sylow.coe_smul {g : G} {P : sylow p G} :
-  ↑(g • P) = P.1.comap (mul_aut.conj g)⁻¹.to_monoid_hom := rfl
+  ↑(g • P) = P.1.map (mul_aut.conj g).to_monoid_hom := rfl
 
 lemma sylow.smul_eq_iff_mem_normalizer {g : G} {P : sylow p G} :
   g • P = P ↔ g ∈ P.1.normalizer :=
-by rw [eq_comm, sylow.ext_iff, set_like.ext_iff, ←inv_mem_iff, mem_normalizer_iff, inv_inv]; refl
+begin
+  rw [eq_comm, sylow.ext_iff, set_like.ext_iff, ←inv_mem_iff, mem_normalizer_iff, inv_inv],
+  exact forall_congr (λ h, iff_congr iff.rfl ⟨λ ⟨a, b, c⟩, (congr_arg _ c).mp
+    ((congr_arg (∈ P.1) (mul_aut.inv_apply_self G (mul_aut.conj g) a)).mpr b),
+    λ hh, ⟨(mul_aut.conj g)⁻¹ h, hh, mul_aut.apply_inv_self G (mul_aut.conj g) h⟩⟩),
+end
 
 lemma subgroup.sylow_mem_fixed_points_iff (H : subgroup G) {P : sylow p G} :
   P ∈ fixed_points H (sylow p G) ↔ H ≤ P.1.normalizer :=

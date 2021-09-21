@@ -58,6 +58,9 @@ S.subtype.map_multiset_prod m
   ↑(∏ i in s, f i) = (∏ i in s, f i : M) :=
 S.subtype.map_prod f s
 
+attribute [norm_cast] add_submonoid.coe_nsmul add_submonoid.coe_list_sum
+  add_submonoid.coe_multiset_sum add_submonoid.coe_finset_sum
+
 /-- Product of a list of elements in a submonoid is in the submonoid. -/
 @[to_additive "Sum of a list of elements in an `add_submonoid` is in the `add_submonoid`."]
 lemma list_prod_mem {l : list M} (hl : ∀ x ∈ l, x ∈ S) : l.prod ∈ S :=

@@ -189,7 +189,6 @@ begin
   { assumption },
 end
 
-
 end
 
 section real

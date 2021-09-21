@@ -123,10 +123,9 @@ by rw [P.sylow_mem_fixed_points_iff, ←inf_eq_left, hP.inf_normalizer_sylow, in
 
 /-- A generalization of **Sylow's second theorem**.
   If the number of Sylow `p`-subgroups is finite, then all Sylow `p`-subgroups are conjugate. -/
-lemma sylow.conjugate [hp : fact p.prime] [fintype (sylow p G)] (P Q : sylow p G) :
-  ∃ g : G, g • P = Q :=
-begin
-  classical,
+instance [hp : fact p.prime] [fintype (sylow p G)] : is_pretransitive G (sylow p G) :=
+⟨λ P Q, by
+{ classical,
   have H := λ {R : sylow p G} {S : orbit G P},
   calc S ∈ fixed_points R (orbit G P)
       ↔ S.1 ∈ fixed_points R (sylow p G) : forall_congr (λ a, subtype.ext_iff)
@@ -140,11 +139,7 @@ begin
      ... ≡ card (orbit G P) [MOD p] : (P.2.card_modeq_card_fixed_points (orbit G P)).symm
      ... ≡ 0 [MOD p] : nat.modeq_zero_iff_dvd.mpr h,
   convert (set.card_singleton (⟨P, mem_orbit_self P⟩ : orbit G P)).symm,
-  exact set.eq_singleton_iff_unique_mem.mpr ⟨H.mpr rfl, λ R h, subtype.ext (sylow.ext (H.mp h))⟩,
-end
-
-instance [hp : fact p.prime] [fintype (sylow p G)] : is_pretransitive G (sylow p G) :=
-⟨sylow.conjugate⟩
+  exact set.eq_singleton_iff_unique_mem.mpr ⟨H.mpr rfl, λ R h, subtype.ext (sylow.ext (H.mp h))⟩ }⟩
 
 variables (p) (G)
 

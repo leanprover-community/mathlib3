@@ -30,13 +30,13 @@ begin
 end
 
 lemma Ico.infinite {a b : α} (h : a < b) : infinite (Ico a b) :=
-infinite_mono Ioo_subset_Ico_self (Ioo.infinite h)
+(Ioo.infinite h).mono Ioo_subset_Ico_self
 
 lemma Ioc.infinite {a b : α} (h : a < b) : infinite (Ioc a b) :=
-infinite_mono Ioo_subset_Ioc_self (Ioo.infinite h)
+(Ioo.infinite h).mono Ioo_subset_Ioc_self
 
 lemma Icc.infinite {a b : α} (h : a < b) : infinite (Icc a b) :=
-infinite_mono Ioo_subset_Icc_self (Ioo.infinite h)
+(Ioo.infinite h).mono Ioo_subset_Icc_self
 
 end bounded
 
@@ -54,7 +54,7 @@ begin
 end
 
 lemma Iic.infinite {b : α} : infinite (Iic b) :=
-infinite_mono Iio_subset_Iic_self Iio.infinite
+Iio.infinite.mono Iio_subset_Iic_self
 
 end unbounded_below
 
@@ -66,7 +66,7 @@ lemma Ioi.infinite {a : α} : infinite (Ioi a) :=
 by apply @Iio.infinite (order_dual α)
 
 lemma Ici.infinite {a : α} : infinite (Ici a) :=
-infinite_mono Ioi_subset_Ici_self Ioi.infinite
+Ioi.infinite.mono Ioi_subset_Ici_self
 
 end unbounded_above
 

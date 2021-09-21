@@ -420,6 +420,15 @@ noncomputable def fintype.to_locally_finite_order [fintype α] :
   finset_mem_Ioc := λ a b x, by rw [set.finite.mem_to_finset, set.mem_Ioc],
   finset_mem_Ioo := λ a b x, by rw [set.finite.mem_to_finset, set.mem_Ioo] }
 
+instance : subsingleton (locally_finite_order α) :=
+subsingleton.intro _ (λ h₀ h₁, begin
+  ext,
+  { rw [h₀.finset_mem_Icc, h₁.finset_mem_Icc] },
+  { rw [h₀.finset_mem_Ico, h₁.finset_mem_Ico] },
+  { rw [h₀.finset_mem_Ioc, h₁.finset_mem_Ioc] },
+  { rw [h₀.finset_mem_Ioo, h₁.finset_mem_Ioo] }
+end)
+
 variables [preorder β] [locally_finite_order β]
 
 -- Should this be called `locally_finite_order.lift`?

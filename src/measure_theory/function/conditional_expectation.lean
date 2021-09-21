@@ -1526,7 +1526,7 @@ end condexp_L1
 
 section condexp
 
-/-! # Conditional expectation of a function -/
+/-! ### Conditional expectation of a function -/
 
 open_locale classical
 

@@ -53,24 +53,6 @@ section equiv
 
 variables (R) [comm_semiring R]
 
-/-- The algebra isomorphism between multivariable polynomials in no variables
-and the ground ring. -/
-@[simps]
-def pempty_alg_equiv : mv_polynomial pempty R ≃ₐ[R] R :=
-{ to_fun    := mv_polynomial.eval₂ (ring_hom.id _) $ pempty.elim,
-  inv_fun   := C,
-  left_inv  := is_id (C.comp (eval₂_hom (ring_hom.id _) pempty.elim))
-    (assume a : R, by { dsimp, rw [eval₂_C], refl }) (assume a, a.elim),
-  right_inv := λ r, eval₂_C _ _ _,
-  map_mul'  := λ _ _, eval₂_mul _ _,
-  map_add'  := λ _ _, eval₂_add _ _,
-  commutes' := λ _, by rw [mv_polynomial.algebra_map_eq]; simp }
-
-/-- The ring isomorphism between multivariable polynomials in no variables and the ground ring. -/
-@[simps]
-def pempty_ring_equiv : mv_polynomial pempty R ≃+* R :=
-(pempty_alg_equiv R).to_ring_equiv
-
 /--
 The ring isomorphism between multivariable polynomials in a single variable and
 polynomials over the ground ring.
@@ -87,7 +69,7 @@ def punit_alg_equiv : mv_polynomial punit R ≃ₐ[R] polynomial R :=
         (eval₂_hom polynomial.C (λu:punit, polynomial.X)),
       show ∀ p, f.comp g p = p,
       apply is_id,
-      { assume a, dsimp, rw [eval₂_C, polynomial.eval₂_C] },
+      { ext a, dsimp, rw [eval₂_C, polynomial.eval₂_C] },
       { rintros ⟨⟩, dsimp, rw [eval₂_X, polynomial.eval₂_X] }
     end,
   right_inv := assume p, polynomial.induction_on p
@@ -204,14 +186,32 @@ eval₂_X _ _ _
 lemma iter_to_sum_C_X (c : S₂) : iter_to_sum R S₁ S₂ (C (X c)) = X (sum.inr c) :=
 eq.trans (eval₂_C _ _ (X c)) (eval₂_X _ _ _)
 
+variable (σ)
+
+/-- The algebra isomorphism between multivariable polynomials in no variables
+and the ground ring. -/
+@[simps] def is_empty_alg_equiv [he : is_empty σ] : mv_polynomial σ R ≃ₐ[R] R :=
+alg_equiv.of_alg_hom
+  (aeval (is_empty.elim he))
+  (algebra.of_id _ _)
+  (by { ext, simp [algebra.of_id_apply, algebra_map_eq] })
+  (by { ext i m, exact is_empty.elim' he i })
+
+/-- The ring isomorphism between multivariable polynomials in no variables
+and the ground ring. -/
+@[simps] def is_empty_ring_equiv [he : is_empty σ] : mv_polynomial σ R ≃+* R :=
+(is_empty_alg_equiv R σ).to_ring_equiv
+
+variable {σ}
+
 /-- A helper function for `sum_ring_equiv`. -/
 @[simps]
 def mv_polynomial_equiv_mv_polynomial [comm_semiring S₃]
   (f : mv_polynomial S₁ R →+* mv_polynomial S₂ S₃)
   (g : mv_polynomial S₂ S₃ →+* mv_polynomial S₁ R)
-  (hfgC : ∀a, f (g (C a)) = C a)
+  (hfgC : (f.comp g).comp C = C)
   (hfgX : ∀n, f (g (X n)) = X n)
-  (hgfC : ∀a, g (f (C a)) = C a)
+  (hgfC : (g.comp f).comp C = C)
   (hgfX : ∀n, g (f (X n)) = X n) :
   mv_polynomial S₁ R ≃+* mv_polynomial S₂ S₃ :=
 { to_fun    := f, inv_fun := g,
@@ -229,12 +229,14 @@ def sum_ring_equiv : mv_polynomial (S₁ ⊕ S₂) R ≃+* mv_polynomial S₁ (m
 begin
   apply @mv_polynomial_equiv_mv_polynomial R (S₁ ⊕ S₂) _ _ _ _
     (sum_to_iter R S₁ S₂) (iter_to_sum R S₁ S₂),
-  { assume p,
+  { refine ring_hom.ext (λ p, _),
+    rw [ring_hom.comp_apply],
     convert hom_eq_hom ((sum_to_iter R S₁ S₂).comp ((iter_to_sum R S₁ S₂).comp C)) C _ _ p,
-    { assume a, dsimp, rw [iter_to_sum_C_C R S₁ S₂, sum_to_iter_C R S₁ S₂] },
+    { ext1 a, dsimp, rw [iter_to_sum_C_C R S₁ S₂, sum_to_iter_C R S₁ S₂] },
     { assume c, dsimp, rw [iter_to_sum_C_X R S₁ S₂, sum_to_iter_Xr R S₁ S₂] } },
   { assume b, rw [iter_to_sum_X R S₁ S₂, sum_to_iter_Xl R S₁ S₂] },
-  { assume a, rw [sum_to_iter_C R S₁ S₂, iter_to_sum_C_C R S₁ S₂] },
+  { ext1 a, rw [ring_hom.comp_apply, ring_hom.comp_apply,
+      sum_to_iter_C R S₁ S₂, iter_to_sum_C_C R S₁ S₂] },
   { assume n, cases n with b c,
     { rw [sum_to_iter_Xl, iter_to_sum_X] },
     { rw [sum_to_iter_Xr, iter_to_sum_C_X] } },
@@ -298,8 +300,7 @@ lemma fin_succ_equiv_eq (n : ℕ) :
 begin
   apply ring_hom_ext,
   { intro r,
-    dsimp [ring_equiv.coe_to_ring_hom, fin_succ_equiv, option_equiv_left, sum_alg_equiv,
-      sum_ring_equiv],
+    dsimp [fin_succ_equiv, option_equiv_left, sum_alg_equiv, sum_ring_equiv],
     simp only [sum_to_iter_C, eval₂_C, rename_C, ring_hom.coe_comp] },
   { intro i,
     dsimp [fin_succ_equiv, option_equiv_left, sum_alg_equiv, sum_ring_equiv],

@@ -64,13 +64,12 @@ theorem map_rel (f : r →r s) : ∀ {a b}, r a b → s (f a) (f b) := f.map_rel
 
 @[simp] theorem coe_fn_to_fun (f : r →r s) : (f.to_fun : α → β) = f := rfl
 
-/-- The map `coe_fn : (r →r s) → (α → β)` is injective. We can't use `function.injective`
-here but mimic its signature by using `⦃e₁ e₂⦄`. -/
-theorem coe_fn_inj : ∀ ⦃e₁ e₂ : r →r s⦄, (e₁ : α → β) = e₂ → e₁ = e₂
+/-- The map `coe_fn : (r →r s) → (α → β)` is injective. -/
+theorem coe_fn_injective : @function.injective (r →r s) (α → β) coe_fn
 | ⟨f₁, o₁⟩ ⟨f₂, o₂⟩ h := by { congr, exact h }
 
 @[ext] theorem ext ⦃f g : r →r s⦄ (h : ∀ x, f x = g x) : f = g :=
-coe_fn_inj (funext h)
+coe_fn_injective (funext h)
 
 theorem ext_iff {f g : r →r s} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
@@ -203,13 +202,12 @@ theorem map_rel_iff (f : r ↪r s) : ∀ {a b}, s (f a) (f b) ↔ r a b := f.map
 
 @[simp] theorem coe_fn_to_embedding (f : r ↪r s) : (f.to_embedding : α → β) = f := rfl
 
-/-- The map `coe_fn : (r ↪r s) → (α → β)` is injective. We can't use `function.injective`
-here but mimic its signature by using `⦃e₁ e₂⦄`. -/
-theorem coe_fn_inj : ∀ ⦃e₁ e₂ : r ↪r s⦄, (e₁ : α → β) = e₂ → e₁ = e₂
+/-- The map `coe_fn : (r ↪r s) → (α → β)` is injective. -/
+theorem coe_fn_injective : @function.injective (r ↪r s) (α → β) coe_fn
 | ⟨⟨f₁, h₁⟩, o₁⟩ ⟨⟨f₂, h₂⟩, o₂⟩ h := by { congr, exact h }
 
 @[ext] theorem ext ⦃f g : r ↪r s⦄ (h : ∀ x, f x = g x) : f = g :=
-coe_fn_inj (funext h)
+coe_fn_injective (funext h)
 
 theorem ext_iff {f g : r ↪r s} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis
 -/
 
-import algebra.ordered_pi
+import algebra.order.pi
 import algebra.smul_with_zero
 import group_theory.group_action.group
 
@@ -150,22 +150,22 @@ variables {R M : Type*}
 instance [has_scalar R M] : has_scalar R (order_dual M) :=
 { smul := λ k x, order_dual.rec (λ x', (k • x' : M)) x }
 
-instance [semiring R] [ordered_add_comm_monoid M] [h : smul_with_zero R M] :
+instance [has_zero R] [add_zero_class M] [h : smul_with_zero R M] :
   smul_with_zero R (order_dual M) :=
 { zero_smul := λ m, order_dual.rec (zero_smul _) m,
   smul_zero := λ r, order_dual.rec (smul_zero' _) r,
   ..order_dual.has_scalar }
 
-instance [semiring R] [mul_action R M] : mul_action R (order_dual M) :=
+instance [monoid R] [mul_action R M] : mul_action R (order_dual M) :=
 { one_smul := λ m, order_dual.rec (one_smul _) m,
   mul_smul := λ r, order_dual.rec mul_smul r,
   ..order_dual.has_scalar }
 
-instance [semiring R] [ordered_add_comm_monoid M] [mul_action_with_zero R M] :
+instance [monoid_with_zero R] [add_monoid M] [mul_action_with_zero R M] :
   mul_action_with_zero R (order_dual M) :=
 { ..order_dual.mul_action, ..order_dual.smul_with_zero }
 
-instance [semiring R] [ordered_add_comm_monoid M] [distrib_mul_action R M] :
+instance [monoid_with_zero R] [add_monoid M] [distrib_mul_action R M] :
   distrib_mul_action R (order_dual M) :=
 { smul_add := λ k a, order_dual.rec (λ a' b, order_dual.rec (smul_add _ _) b) a,
   smul_zero := λ r, order_dual.rec smul_zero r }

@@ -203,7 +203,7 @@ include hX
 
 /-- A real-valued random variable `X` `has_pdf X ℙ λ` (where `λ` is the Lebesgue measure) if and
 only if the push-forward measure of `ℙ` along `X` is absolutely continuous with respect to `λ`. -/
-lemma has_pdf_iff : has_pdf X ℙ ↔ measure.map X ℙ ≪ volume :=
+lemma has_pdf_iff : has_pdf X ℙ ↔ map X ℙ ≪ volume :=
 begin
   split,
   { introI hX,

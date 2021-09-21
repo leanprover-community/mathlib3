@@ -206,6 +206,7 @@ lemma faithful.div_faithful (F : C ⥤ E) [faithful F] (G : D ⥤ E) [faithful G
 instance full.comp [full F] [full G] : full (F ⋙ G) :=
 { preimage := λ _ _ f, F.preimage (G.preimage f) }
 
+/-- If `F ⋙ G` is full and `G` is faithful, then `F` is full -/
 def full.of_comp_faithful [full $ F ⋙ G] [faithful G] : full F :=
 { preimage := λ X Y f, (F ⋙ G).preimage (G.map f),
   witness' := λ X Y f, G.map_injective ((F ⋙ G).image_preimage _) }

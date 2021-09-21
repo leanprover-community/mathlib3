@@ -31,7 +31,7 @@ In this file we prove various facts about membership in a submonoid:
 submonoid, submonoids
 -/
 
-open_locale big_operators
+open_locale big_operators pointwise
 
 variables {M : Type*}
 variables {A : Type*}
@@ -206,11 +206,34 @@ set.ext (λ n, exists_congr $ λ i, by simp; refl)
 
 @[simp] lemma mem_powers (n : M) : n ∈ powers n := ⟨1, pow_one _⟩
 
+lemma mem_powers_iff (x z : M) : x ∈ powers z ↔ ∃ n : ℕ, z ^ n = x := iff.rfl
+
 lemma powers_eq_closure (n : M) : powers n = closure {n} :=
 by { ext, exact mem_closure_singleton.symm }
 
 lemma powers_subset {n : M} {P : submonoid M} (h : n ∈ P) : powers n ≤ P :=
 λ x hx, match x, hx with _, ⟨i, rfl⟩ := P.pow_mem h i end
+
+/-- Exponentiation map from natural numbers to powers. -/
+def pow (n : M) (m : ℕ) : powers n := ⟨n ^ m, m, rfl⟩
+
+/-- Logarithms from powers to natural numbers. -/
+def log [decidable_eq M] {n : M} (p : powers n) : ℕ :=
+nat.find $ (mem_powers_iff p.val n).mp p.prop
+
+@[simp] theorem pow_log_eq_self [decidable_eq M] {n : M} (p : powers n) : pow n (log p) = p :=
+subtype.ext $ nat.find_spec p.prop
+
+lemma pow_right_injective_iff_pow_injective {n : M} :
+  function.injective (λ m : ℕ, n ^ m) ↔ function.injective (pow n) :=
+subtype.coe_injective.of_comp_iff (pow n)
+
+theorem log_pow_eq_self [decidable_eq M] {n : M} (h : function.injective (λ m : ℕ, n ^ m)) (m : ℕ) :
+  log (pow n m) = m := 
+pow_right_injective_iff_pow_injective.mp h $ pow_log_eq_self _
+
+theorem log_pow_int_eq_self {x : ℤ} (h : 1 < x.nat_abs) (m : ℕ) : log (pow x m) = m :=
+log_pow_eq_self (int.pow_right_injective h) _
 
 end submonoid
 
@@ -264,6 +287,8 @@ set.ext (λ n, exists_congr $ λ i, by simp; refl)
 
 @[simp] lemma mem_multiples (x : A) : x ∈ multiples x := ⟨1, one_nsmul _⟩
 
+lemma mem_multiples_iff (x z : A) : x ∈ multiples z ↔ ∃ n : ℕ, n • z = x := iff.rfl
+
 lemma multiples_eq_closure (x : A) : multiples x = closure {x} :=
 by { ext, exact mem_closure_singleton.symm }
 
@@ -272,6 +297,7 @@ lemma multiples_subset {x : A} {P : add_submonoid A} (h : x ∈ P) : multiples x
 
 attribute [to_additive add_submonoid.multiples] submonoid.powers
 attribute [to_additive add_submonoid.mem_multiples] submonoid.mem_powers
+attribute [to_additive add_submonoid.mem_multiples_iff] submonoid.mem_powers_iff
 attribute [to_additive add_submonoid.multiples_eq_closure] submonoid.powers_eq_closure
 attribute [to_additive add_submonoid.multiples_subset] submonoid.powers_subset
 
@@ -280,7 +306,7 @@ end add_submonoid
 /-! Lemmas about additive closures of `submonoid`. -/
 namespace submonoid
 
-variables {R : Type*} [semiring R] (S : submonoid R) {a b : R}
+variables {R : Type*} [non_assoc_semiring R] (S : submonoid R) {a b : R}
 
 /-- The product of an element of the additive closure of a multiplicative submonoid `M`
 and an element of `M` is contained in the additive closure of `M`. -/

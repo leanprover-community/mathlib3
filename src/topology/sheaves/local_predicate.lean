@@ -67,7 +67,7 @@ Continuity is a "prelocal" predicate on functions to a fixed topological space `
 @[simps]
 def continuous_prelocal (T : Top.{v}) : prelocal_predicate (λ x : X, T) :=
 { pred := λ U f, continuous f,
-  res := λ U V i f h, continuous.comp h (opens.open_embedding_of_le (le_of_hom i)).continuous, }
+  res := λ U V i f h, continuous.comp h (opens.open_embedding_of_le i.le).continuous, }
 
 /-- Satisfying the inhabited linter. -/
 instance inhabited_prelocal_predicate (T : Top.{v}) : inhabited (prelocal_predicate (λ x : X, T)) :=
@@ -105,7 +105,7 @@ def continuous_local (T : Top.{v}) : local_predicate (λ x : X, T) :=
      dsimp at w,
      rw continuous_iff_continuous_at at w,
      specialize w ⟨x, m⟩,
-     simpa using (opens.open_embedding_of_le (le_of_hom i)).continuous_at_iff.1 w,
+     simpa using (opens.open_embedding_of_le i.le).continuous_at_iff.1 w,
    end,
   ..continuous_prelocal X T }
 
@@ -190,8 +190,7 @@ sheaf_condition_of_exists_unique_gluing _ $ λ ι U sf sf_comp, begin
     use [U i, hi, opens.le_supr U i],
     -- This follows, since our original family `sf` satisfies the predicate
     convert (sf i).property,
-    exact gl_spec i
-  },
+    exact gl_spec i },
   -- It remains to show that the chosen lift is really a gluing for the subsheaf and
   -- that it is unique. Both of which follow immediately from the corresponding facts
   -- in the sheaf of functions without the local predicate.
@@ -272,7 +271,7 @@ begin
   obtain ⟨V, ⟨fV, hV⟩, rfl⟩ := jointly_surjective' tV,
   { -- Decompose everything into its constituent parts:
     dsimp,
-    simp only [stalk_to_fiber, colimit.ι_desc_apply] at h,
+    simp only [stalk_to_fiber, types.colimit.ι_desc_apply] at h,
     specialize w (unop U) (unop V) fU hU fV hV h,
     rcases w with ⟨W, iU, iV, w⟩,
     -- and put it back together again in the correct order.

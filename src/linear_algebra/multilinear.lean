@@ -5,6 +5,9 @@ Authors: Sébastien Gouëzel
 -/
 import linear_algebra.basic
 import algebra.algebra.basic
+import algebra.big_operators.order
+import algebra.big_operators.ring
+import data.fintype.card
 import data.fintype.sort
 
 /-!
@@ -180,6 +183,21 @@ multilinear map taking values in the space of functions `Π i, M' i`. -/
 { to_fun := λ m i, f i m,
   map_add' := λ m i x y, funext $ λ j, (f j).map_add _ _ _ _,
   map_smul' := λ m i c x, funext $ λ j, (f j).map_smul _ _ _ _ }
+
+section
+variables (R M₂)
+
+/-- The evaluation map from `ι → M₂` to `M₂` is multilinear at a given `i` when `ι` is subsingleton.
+-/
+@[simps]
+def of_subsingleton [subsingleton ι] (i' : ι) : multilinear_map R (λ _ : ι, M₂) M₂ :=
+{ to_fun := function.eval i',
+  map_add' := λ m i x y, by {
+    rw subsingleton.elim i i', simp only [function.eval, function.update_same], },
+  map_smul' := λ m i r x, by {
+    rw subsingleton.elim i i', simp only [function.eval, function.update_same], } }
+
+end
 
 /-- Given a multilinear map `f` on `n` variables (parameterized by `fin n`) and a subset `s` of `k`
 of these variables, one gets a new multilinear map on `fin k` by varying these variables, and fixing
@@ -369,7 +387,7 @@ begin
       have : A i₀ = B i₀ ∪ C i₀,
       { simp only [B, C, function.update_same, finset.sdiff_union_self_eq_union],
         symmetry,
-        simp only [hj₂, finset.singleton_subset_iff, union_eq_left_iff_subset] },
+        simp only [hj₂, finset.singleton_subset_iff, finset.union_eq_left_iff_subset] },
       rw this,
       apply finset.sum_union,
       apply finset.disjoint_right.2 (λ j hj, _),
@@ -964,7 +982,7 @@ def multilinear_map.uncurry_right
     { have : last n ≠ i := ne.symm (ne_of_lt h),
       rw [update_noteq this, update_noteq this, update_noteq this],
       revert x y,
-      rw  [(cast_succ_cast_lt i h).symm],
+      rw [(cast_succ_cast_lt i h).symm],
       assume x y,
       rw [init_update_cast_succ, map_add, init_update_cast_succ, init_update_cast_succ,
           linear_map.add_apply] },
@@ -979,7 +997,7 @@ def multilinear_map.uncurry_right
     { have : last n ≠ i := ne.symm (ne_of_lt h),
       rw [update_noteq this, update_noteq this],
       revert x,
-      rw  [(cast_succ_cast_lt i h).symm],
+      rw [(cast_succ_cast_lt i h).symm],
       assume x,
       rw [init_update_cast_succ, init_update_cast_succ, map_smul, linear_map.smul_apply] },
     { revert x,
@@ -1115,7 +1133,7 @@ variables (R M₂ M')
 `l`, then the space of multilinear maps on `λ i : fin n, M'` is isomorphic to the space of
 multilinear maps on `λ i : fin k, M'` taking values in the space of multilinear maps
 on `λ i : fin l, M'`. -/
-def curry_fin_finset {k l n : ℕ} {s : finset (fin n)} [decidable_pred (s : set (fin n))]
+def curry_fin_finset {k l n : ℕ} {s : finset (fin n)}
   (hk : s.card = k) (hl : sᶜ.card = l) :
   multilinear_map R (λ x : fin n, M') M₂ ≃ₗ[R]
     multilinear_map R (λ x : fin k, M') (multilinear_map R (λ x : fin l, M') M₂) :=
@@ -1125,7 +1143,7 @@ def curry_fin_finset {k l n : ℕ} {s : finset (fin n)} [decidable_pred (s : set
 variables {R M₂ M'}
 
 @[simp]
-lemma curry_fin_finset_apply {k l n : ℕ} {s : finset (fin n)} [decidable_pred (s : set (fin n))]
+lemma curry_fin_finset_apply {k l n : ℕ} {s : finset (fin n)}
   (hk : s.card = k) (hl : sᶜ.card = l) (f : multilinear_map R (λ x : fin n, M') M₂)
   (mk : fin k → M') (ml : fin l → M') :
   curry_fin_finset R M₂ M' hk hl f mk ml =
@@ -1133,7 +1151,7 @@ lemma curry_fin_finset_apply {k l n : ℕ} {s : finset (fin n)} [decidable_pred 
 rfl
 
 @[simp] lemma curry_fin_finset_symm_apply {k l n : ℕ} {s : finset (fin n)}
-  [decidable_pred (s : set (fin n))] (hk : s.card = k) (hl : sᶜ.card = l)
+  (hk : s.card = k) (hl : sᶜ.card = l)
   (f : multilinear_map R (λ x : fin k, M') (multilinear_map R (λ x : fin l, M') M₂))
   (m : fin n → M') :
   (curry_fin_finset R M₂ M' hk hl).symm f m =
@@ -1142,7 +1160,7 @@ rfl
 rfl
 
 @[simp] lemma curry_fin_finset_symm_apply_piecewise_const {k l n : ℕ} {s : finset (fin n)}
-  [decidable_pred (s : set (fin n))] (hk : s.card = k) (hl : sᶜ.card = l)
+  (hk : s.card = k) (hl : sᶜ.card = l)
   (f : multilinear_map R (λ x : fin k, M') (multilinear_map R (λ x : fin l, M') M₂)) (x y : M') :
   (curry_fin_finset R M₂ M' hk hl).symm f (s.piecewise (λ _, x) (λ _, y)) = f (λ _, x) (λ _, y) :=
 begin
@@ -1154,13 +1172,12 @@ begin
 end
 
 @[simp] lemma curry_fin_finset_symm_apply_const {k l n : ℕ} {s : finset (fin n)}
-  [decidable_pred (s : set (fin n))] (hk : s.card = k) (hl : sᶜ.card = l)
+  (hk : s.card = k) (hl : sᶜ.card = l)
   (f : multilinear_map R (λ x : fin k, M') (multilinear_map R (λ x : fin l, M') M₂)) (x : M') :
   (curry_fin_finset R M₂ M' hk hl).symm f (λ _, x) = f (λ _, x) (λ _, x) :=
 rfl
 
 @[simp] lemma curry_fin_finset_apply_const {k l n : ℕ} {s : finset (fin n)}
-  [decidable_pred (s : set (fin n))]
   (hk : s.card = k) (hl : sᶜ.card = l) (f : multilinear_map R (λ x : fin n, M') M₂) (x y : M') :
   curry_fin_finset R M₂ M' hk hl f (λ _, x) (λ _, y) = f (s.piecewise (λ _, x) (λ _, y)) :=
 begin

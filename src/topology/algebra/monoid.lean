@@ -17,22 +17,27 @@ applications the underlying type is a monoid (multiplicative or additive), we do
 the definitions.
 -/
 
+universe variables u v
 open classical set filter topological_space
-open_locale classical topological_space big_operators
+open_locale classical topological_space big_operators pointwise
 
 variables {ι α X M N : Type*} [topological_space X]
+
+@[to_additive]
+lemma continuous_one [topological_space M] [has_one M] : continuous (1 : X → M) :=
+@continuous_const _ _ _ _ 1
 
 /-- Basic hypothesis to talk about a topological additive monoid or a topological additive
 semigroup. A topological additive monoid over `M`, for example, is obtained by requiring both the
 instances `add_monoid M` and `has_continuous_add M`. -/
-class has_continuous_add (M : Type*) [topological_space M] [has_add M] : Prop :=
+class has_continuous_add (M : Type u) [topological_space M] [has_add M] : Prop :=
 (continuous_add : continuous (λ p : M × M, p.1 + p.2))
 
 /-- Basic hypothesis to talk about a topological monoid or a topological semigroup.
 A topological monoid over `M`, for example, is obtained by requiring both the instances `monoid M`
 and `has_continuous_mul M`. -/
 @[to_additive]
-class has_continuous_mul (M : Type*) [topological_space M] [has_mul M] : Prop :=
+class has_continuous_mul (M : Type u) [topological_space M] [has_mul M] : Prop :=
 (continuous_mul : continuous (λ p : M × M, p.1 * p.2))
 
 section has_continuous_mul
@@ -107,6 +112,13 @@ instance pi.has_continuous_mul {C : ι → Type*} [∀ i, topological_space (C i
 { continuous_mul := continuous_pi (λ i, continuous.mul
     ((continuous_apply i).comp continuous_fst) ((continuous_apply i).comp continuous_snd)) }
 
+/-- A version of `pi.has_continuous_mul` for non-dependent functions. It is needed because sometimes
+Lean fails to use `pi.has_continuous_mul` for non-dependent functions. -/
+@[to_additive "A version of `pi.has_continuous_add` for non-dependent functions. It is needed
+because sometimes Lean fails to use `pi.has_continuous_add` for non-dependent functions."]
+instance pi.has_continuous_mul' : has_continuous_mul (ι → M) :=
+pi.has_continuous_mul
+
 @[priority 100, to_additive]
 instance has_continuous_mul_of_discrete_topology [topological_space N]
   [has_mul N] [discrete_topology N] : has_continuous_mul N :=
@@ -117,7 +129,7 @@ open_locale filter
 open function
 
 @[to_additive]
-lemma has_continuous_mul.of_nhds_one {M : Type*} [monoid M] [topological_space M]
+lemma has_continuous_mul.of_nhds_one {M : Type u} [monoid M] [topological_space M]
   (hmul : tendsto (uncurry ((*) : M → M → M)) (𝓝 1 ×ᶠ 𝓝 1) $ 𝓝 1)
   (hleft : ∀ x₀ : M, 𝓝 x₀ = map (λ x, x₀*x) (𝓝 1))
   (hright : ∀ x₀ : M, 𝓝 x₀ = map (λ x, x*x₀) (𝓝 1)) : has_continuous_mul M :=
@@ -139,7 +151,7 @@ lemma has_continuous_mul.of_nhds_one {M : Type*} [monoid M] [topological_space M
   end⟩
 
 @[to_additive]
-lemma has_continuous_mul_of_comm_of_nhds_one (M : Type*) [comm_monoid M] [topological_space M]
+lemma has_continuous_mul_of_comm_of_nhds_one (M : Type u) [comm_monoid M] [topological_space M]
   (hmul : tendsto (uncurry ((*) : M → M → M)) (𝓝 1 ×ᶠ 𝓝 1) (𝓝 1))
   (hleft : ∀ x₀ : M, 𝓝 x₀ = map (λ x, x₀*x) (𝓝 1)) : has_continuous_mul M :=
 begin
@@ -214,7 +226,7 @@ by simpa only [prod_subset_iff] using exists_nhds_square this
 lemma exists_nhds_one_split {s : set M} (hs : s ∈ 𝓝 (1 : M)) :
   ∃ V ∈ 𝓝 (1 : M), ∀ (v ∈ V) (w ∈ V), v * w ∈ s :=
 let ⟨V, Vo, V1, hV⟩ := exists_open_nhds_one_split hs
-in ⟨V, mem_nhds_sets Vo V1, hV⟩
+in ⟨V, is_open.mem_nhds Vo V1, hV⟩
 
 @[to_additive exists_nhds_zero_quarter]
 lemma exists_nhds_one_split4 {u : set M} (hu : u ∈ 𝓝 (1 : M)) :
@@ -273,6 +285,25 @@ lemma continuous.pow {f : X → M} (h : continuous f) (n : ℕ) :
 
 lemma continuous_on_pow {s : set M} (n : ℕ) : continuous_on (λ x, x ^ n) s :=
 (continuous_pow n).continuous_on
+
+lemma continuous_at_pow (x : M) (n : ℕ) : continuous_at (λ x, x ^ n) x :=
+(continuous_pow n).continuous_at
+
+lemma filter.tendsto.pow {l : filter α} {f : α → M} {x : M} (hf : tendsto f l (𝓝 x)) (n : ℕ) :
+  tendsto (λ x, f x ^ n) l (𝓝 (x ^ n)) :=
+(continuous_at_pow _ _).tendsto.comp hf
+
+lemma continuous_within_at.pow {f : X → M} {x : X} {s : set X} (hf : continuous_within_at f s x)
+  (n : ℕ) : continuous_within_at (λ x, f x ^ n) s x :=
+hf.pow n
+
+lemma continuous_at.pow {f : X → M} {x : X} (hf : continuous_at f x) (n : ℕ) :
+  continuous_at (λ x, f x ^ n) x :=
+hf.pow n
+
+lemma continuous_on.pow {f : X → M} {s : set X} (hf : continuous_on f s) (n : ℕ) :
+  continuous_on (λ x, f x ^ n) s :=
+λ x hx, (hf x hx).pow n
 
 end has_continuous_mul
 
@@ -335,7 +366,7 @@ variables [topological_space M] [comm_monoid M]
 @[to_additive]
 lemma submonoid.mem_nhds_one (S : submonoid M) (oS : is_open (S : set M)) :
   (S : set M) ∈ 𝓝 (1 : M) :=
-mem_nhds_sets oS S.one_mem
+is_open.mem_nhds oS S.one_mem
 
 variable [has_continuous_mul M]
 
@@ -375,7 +406,7 @@ begin
   rcases hf x with ⟨U, hxU, hUf⟩,
   have : continuous_at (λ x, ∏ i in hUf.to_finset, f i x) x,
     from tendsto_finset_prod _ (λ i hi, (hc i).continuous_at),
-  refine this.congr (mem_sets_of_superset hxU $ λ y hy, _),
+  refine this.congr (mem_of_superset hxU $ λ y hy, _),
   refine (finprod_eq_prod_of_mul_support_subset _ (λ i hi, _)).symm,
   rw [hUf.coe_to_finset],
   exact ⟨y, hi, hy⟩
@@ -393,8 +424,8 @@ end
 
 instance additive.has_continuous_add {M} [h : topological_space M] [has_mul M]
   [has_continuous_mul M] : @has_continuous_add (additive M) h _ :=
-{ continuous_add := @continuous_mul M _ _ _  }
+{ continuous_add := @continuous_mul M _ _ _ }
 
 instance multiplicative.has_continuous_mul {M} [h : topological_space M] [has_add M]
   [has_continuous_add M] : @has_continuous_mul (multiplicative M) h _ :=
-{ continuous_mul := @continuous_add M _ _ _  }
+{ continuous_mul := @continuous_add M _ _ _ }

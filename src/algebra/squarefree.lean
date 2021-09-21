@@ -63,12 +63,12 @@ end
 @[simp]
 lemma prime.squarefree [comm_cancel_monoid_with_zero R] {x : R} (h : prime x) :
   squarefree x :=
-(irreducible_of_prime h).squarefree
+h.irreducible.squarefree
 
 lemma squarefree_of_dvd_of_squarefree [comm_monoid R]
   {x y : R} (hdvd : x ∣ y) (hsq : squarefree y) :
   squarefree x :=
-λ a h, hsq _ (dvd.trans h hdvd)
+λ a h, hsq _ (h.trans hdvd)
 
 namespace multiplicity
 variables [comm_monoid R] [decidable_rel (has_dvd.dvd : R → R → Prop)]
@@ -79,7 +79,7 @@ begin
   refine forall_congr (λ a, _),
   rw [← sq, pow_dvd_iff_le_multiplicity, or_iff_not_imp_left, not_le, imp_congr],
   swap, { refl },
-  convert enat.add_one_le_iff_lt (enat.coe_ne_top _),
+  convert enat.add_one_le_iff_lt (enat.coe_ne_top 1),
   norm_cast,
 end
 
@@ -124,7 +124,7 @@ begin
   { simp [hx, pow_eq_zero_iff (nat.pos_of_ne_zero h0)] },
   by_cases hy : y = 0,
   { simp [hy, zero_pow (nat.pos_of_ne_zero h0)] },
-  refine ⟨λ h, _, λ h, dvd_pow h h0⟩,
+  refine ⟨λ h, _, λ h, h.pow h0⟩,
   rw [dvd_iff_factors_le_factors hx (pow_ne_zero n hy), factors_pow,
     ((squarefree_iff_nodup_factors hx).1 hsq).le_nsmul_iff_le h0] at h,
   rwa dvd_iff_factors_le_factors hx hy,
@@ -173,7 +173,7 @@ begin
         intro con,
         apply not_irreducible_zero (irreducible_of_factor 0
             (multiset.mem_erase_dup.1 (multiset.mem_of_le hs con))) },
-      rw [dvd_iff_dvd_of_rel_right (factors_prod h0).symm],
+      rw (factors_prod h0).symm.dvd_iff_dvd_right,
       refine ⟨⟨multiset.prod_dvd_prod (le_trans hs (multiset.erase_dup_le _)), h0⟩, _⟩,
       have h := unique_factorization_monoid.factors_unique irreducible_of_factor
         (λ x hx, irreducible_of_factor x (multiset.mem_of_le
@@ -217,7 +217,7 @@ begin
   simp only [finset.sep_def, S, finset.mem_filter, finset.mem_range] at hs,
   obtain ⟨hsn1, ⟨a, hsa⟩, ⟨b, hsb⟩⟩ := hs,
   rw hsa at hn,
-  obtain ⟨hlts, hlta⟩ := canonically_ordered_semiring.mul_pos.mp hn,
+  obtain ⟨hlts, hlta⟩ := canonically_ordered_comm_semiring.mul_pos.mp hn,
   rw hsb at hsa hn hlts,
   refine ⟨a, b, hlta, (pow_pos_iff zero_lt_two).mp hlts, hsa.symm, _⟩,
   rintro x ⟨y, hy⟩,

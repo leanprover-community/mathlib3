@@ -237,8 +237,7 @@ by subst H; induction m with m ih; [simp only [zero_add, iterate_zero_apply],
 instance : comm_ring (perfect_closure K p) :=
 { add_assoc := λ e f g, quot.induction_on e $ λ ⟨m, x⟩, quot.induction_on f $ λ ⟨n, y⟩,
     quot.induction_on g $ λ ⟨s, z⟩, congr_arg (quot.mk _) $
-    by simp only [add_assoc, ring_hom.iterate_map_add,
-      ← iterate_add_apply, add_comm, add_left_comm],
+    by simp only [ring_hom.iterate_map_add, ← iterate_add_apply, add_assoc, add_comm s _],
   zero := 0,
   zero_add := λ e, quot.induction_on e (λ ⟨n, x⟩, congr_arg (quot.mk _) $
     by simp only [ring_hom.iterate_map_zero, iterate_zero_apply, zero_add]),
@@ -334,8 +333,7 @@ begin
     rw [pow_succ, ih],
     symmetry,
     apply r.sound,
-    simp only [pow_succ, (frobenius _ _).iterate_map_mul]
-  }
+    simp only [pow_succ, (frobenius _ _).iterate_map_mul] }
 end
 
 /-- Embedding of `K` into `perfect_closure K p` -/

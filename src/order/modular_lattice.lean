@@ -6,6 +6,7 @@ Authors: Aaron Anderson
 import order.rel_iso
 import order.lattice_intervals
 import order.order_dual
+import order.galois_connection
 
 /-!
 # Modular Lattices
@@ -56,9 +57,72 @@ instance : is_modular_lattice (order_dual α) :=
 ⟨λ x y z xz, le_of_eq (by { rw [inf_comm, sup_comm, eq_comm, inf_comm, sup_comm],
   convert sup_inf_assoc_of_le (order_dual.of_dual y) (order_dual.dual_le.2 xz) })⟩
 
-theorem is_modular_lattice.sup_inf_sup_assoc {x y z : α} :
+variables {x y z : α}
+
+theorem is_modular_lattice.sup_inf_sup_assoc :
   (x ⊔ z) ⊓ (y ⊔ z) = ((x ⊔ z) ⊓ y) ⊔ z :=
 @is_modular_lattice.inf_sup_inf_assoc (order_dual α) _ _ _ _ _
+
+theorem eq_of_le_of_inf_le_of_sup_le (hxy : x ≤ y) (hinf : y ⊓ z ≤ x ⊓ z) (hsup : y ⊔ z ≤ x ⊔ z) :
+  x = y :=
+le_antisymm hxy $
+  have h : y ≤ x ⊔ z,
+    from calc y ≤ y ⊔ z : le_sup_left
+      ... ≤ x ⊔ z : hsup,
+  calc y ≤ (x ⊔ z) ⊓ y : le_inf h (le_refl _)
+    ... = x ⊔ (z ⊓ y) : sup_inf_assoc_of_le _ hxy
+    ... ≤ x ⊔ (z ⊓ x) : sup_le_sup_left
+      (by rw [inf_comm, @inf_comm _ _ z]; exact hinf) _
+    ... ≤ x : sup_le (le_refl _) inf_le_right
+
+theorem sup_lt_sup_of_lt_of_inf_le_inf (hxy : x < y) (hinf : y ⊓ z ≤ x ⊓ z) : x ⊔ z < y ⊔ z :=
+lt_of_le_of_ne
+  (sup_le_sup_right (le_of_lt hxy) _)
+  (λ hsup, ne_of_lt hxy $ eq_of_le_of_inf_le_of_sup_le (le_of_lt hxy) hinf
+    (le_of_eq hsup.symm))
+
+theorem inf_lt_inf_of_lt_of_sup_le_sup (hxy : x < y) (hinf : y ⊔ z ≤ x ⊔ z) : x ⊓ z < y ⊓ z :=
+@sup_lt_sup_of_lt_of_inf_le_inf (order_dual α) _ _ _ _ _ hxy hinf
+
+/-- A generalization of the theorem that if `N` is a submodule of `M` and
+  `N` and `M / N` are both Artinian, then `M` is Artinian. -/
+theorem well_founded_lt_exact_sequence
+  {β γ : Type*} [partial_order β] [partial_order γ]
+  (h₁ : well_founded ((<) : β → β → Prop))
+  (h₂ : well_founded ((<) : γ → γ → Prop))
+  (K : α) (f₁ : β → α) (f₂ : α → β) (g₁ : γ → α) (g₂ : α → γ)
+  (gci : galois_coinsertion f₁ f₂)
+  (gi : galois_insertion g₂ g₁)
+  (hf : ∀ a, f₁ (f₂ a) = a ⊓ K)
+  (hg : ∀ a, g₁ (g₂ a) = a ⊔ K) :
+  well_founded ((<) : α → α → Prop) :=
+subrelation.wf
+  (λ A B hAB, show prod.lex (<) (<) (f₂ A, g₂ A) (f₂ B, g₂ B),
+    begin
+      simp only [prod.lex_def, lt_iff_le_not_le, ← gci.l_le_l_iff,
+        ← gi.u_le_u_iff, hf, hg, le_antisymm_iff],
+      simp only [gci.l_le_l_iff, gi.u_le_u_iff, ← lt_iff_le_not_le, ← le_antisymm_iff],
+      cases lt_or_eq_of_le (inf_le_inf_right K (le_of_lt hAB)) with h h,
+      { exact or.inl h },
+      { exact or.inr ⟨h, sup_lt_sup_of_lt_of_inf_le_inf hAB (le_of_eq h.symm)⟩ }
+    end)
+  (inv_image.wf _ (prod.lex_wf h₁ h₂))
+
+/-- A generalization of the theorem that if `N` is a submodule of `M` and
+  `N` and `M / N` are both Noetherian, then `M` is Noetherian.  -/
+theorem well_founded_gt_exact_sequence
+  {β γ : Type*} [partial_order β] [partial_order γ]
+  (h₁ : well_founded ((>) : β → β → Prop))
+  (h₂ : well_founded ((>) : γ → γ → Prop))
+  (K : α) (f₁ : β → α) (f₂ : α → β) (g₁ : γ → α) (g₂ : α → γ)
+  (gci : galois_coinsertion f₁ f₂)
+  (gi : galois_insertion g₂ g₁)
+  (hf : ∀ a, f₁ (f₂ a) = a ⊓ K)
+  (hg : ∀ a, g₁ (g₂ a) = a ⊔ K) :
+  well_founded ((>) : α → α → Prop) :=
+@well_founded_lt_exact_sequence
+  (order_dual α) _ _ (order_dual γ) (order_dual β) _ _
+  h₂ h₁ K g₁ g₂ f₁ f₂ gi.dual gci.dual hg hf
 
 /-- The diamond isomorphism between the intervals `[a ⊓ b, a]` and `[b, a ⊔ b]` -/
 def inf_Icc_order_iso_Icc_sup (a b : α) : set.Icc (a ⊓ b) a ≃o set.Icc b (a ⊔ b) :=
@@ -112,6 +176,16 @@ begin
   rw [sup_comm, is_modular_lattice.sup_inf_sup_assoc, hsup.eq_bot, bot_sup_eq]
 end
 
+theorem disjoint.disjoint_sup_left_of_disjoint_sup_right
+  [bounded_lattice α] [is_modular_lattice α] {a b c : α}
+  (h : disjoint b c) (hsup : disjoint a (b ⊔ c)) :
+  disjoint (a ⊔ b) c :=
+begin
+  rw [disjoint.comm, sup_comm],
+  apply disjoint.disjoint_sup_right_of_disjoint_sup_left h.symm,
+  rwa [sup_comm, disjoint.comm] at hsup,
+end
+
 namespace is_modular_lattice
 
 variables [bounded_lattice α] [is_modular_lattice α] {a : α}
@@ -126,25 +200,25 @@ section is_complemented
 variables [is_complemented α]
 
 instance is_complemented_Iic : is_complemented (set.Iic a) :=
-⟨λ ⟨x, hx⟩, ⟨⟨(classical.some (exists_is_compl x)) ⊓ a, set.mem_Iic.2 inf_le_right⟩, begin
+⟨λ ⟨x, hx⟩, let ⟨y, hy⟩ := exists_is_compl x in
+  ⟨⟨y ⊓ a, set.mem_Iic.2 inf_le_right⟩, begin
     split,
-    { change x ⊓ (classical.some _ ⊓ a) ≤ ⊥, -- improve lattice subtype API
+    { change x ⊓ (y ⊓ a) ≤ ⊥, -- improve lattice subtype API
       rw ← inf_assoc,
-      exact le_trans inf_le_left (classical.some_spec (exists_is_compl x)).1 },
-    { change a ≤ x ⊔ (classical.some _ ⊓ a), -- improve lattice subtype API
-      rw [← sup_inf_assoc_of_le _ (set.mem_Iic.1 hx),
-          top_le_iff.1 (classical.some_spec (exists_is_compl x)).2, top_inf_eq] }
+      exact le_trans inf_le_left hy.1 },
+    { change a ≤ x ⊔ (y ⊓ a), -- improve lattice subtype API
+      rw [← sup_inf_assoc_of_le _ (set.mem_Iic.1 hx), top_le_iff.1 hy.2, top_inf_eq] }
   end⟩⟩
 
 instance is_complemented_Ici : is_complemented (set.Ici a) :=
-⟨λ ⟨x, hx⟩, ⟨⟨(classical.some (exists_is_compl x)) ⊔ a, set.mem_Ici.2 le_sup_right⟩, begin
+⟨λ ⟨x, hx⟩, let ⟨y, hy⟩ := exists_is_compl x in
+  ⟨⟨y ⊔ a, set.mem_Ici.2 le_sup_right⟩, begin
     split,
-    { change x ⊓ (classical.some _ ⊔ a) ≤ a, -- improve lattice subtype API
-      rw [← inf_sup_assoc_of_le _ (set.mem_Ici.1 hx),
-          le_bot_iff.1 (classical.some_spec (exists_is_compl x)).1, bot_sup_eq] },
-    { change ⊤ ≤ x ⊔ (classical.some _ ⊔ a), -- improve lattice subtype API
+    { change x ⊓ (y ⊔ a) ≤ a, -- improve lattice subtype API
+      rw [← inf_sup_assoc_of_le _ (set.mem_Ici.1 hx),  le_bot_iff.1 hy.1, bot_sup_eq] },
+    { change ⊤ ≤ x ⊔ (y ⊔ a), -- improve lattice subtype API
       rw ← sup_assoc,
-      exact le_trans (classical.some_spec (exists_is_compl x)).2 le_sup_left }
+      exact le_trans hy.2 le_sup_left }
   end⟩⟩
 
 end is_complemented

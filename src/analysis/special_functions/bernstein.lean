@@ -4,11 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import ring_theory.polynomial.bernstein
-import topology.continuous_function.compact
 import topology.continuous_function.polynomial
-import topology.unit_interval
-import algebra.floor
-import analysis.specific_limits
 
 /-!
 # Bernstein approximations and Weierstrass' theorem

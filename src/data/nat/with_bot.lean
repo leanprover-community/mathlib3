@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import data.nat.basic
-import algebra.ordered_group
+import algebra.order.group
 /-!
 # `with_bot ℕ`
 
@@ -37,5 +37,13 @@ by rw [← with_bot.coe_zero, with_bot.coe_le_coe]; exact nat.zero_le _
 @[simp] lemma with_bot.lt_zero_iff (n : with_bot ℕ) : n < 0 ↔ n = ⊥ :=
 option.cases_on n dec_trivial (λ n, iff_of_false
   (by simp [with_bot.some_eq_coe]) (λ h, option.no_confusion h))
+
+lemma with_bot.one_le_iff_zero_lt {x : with_bot ℕ} : 1 ≤ x ↔ 0 < x :=
+begin
+  refine ⟨λ h, lt_of_lt_of_le (with_bot.coe_lt_coe.mpr zero_lt_one) h, λ h, _⟩,
+  induction x using with_bot.rec_bot_coe,
+  { exact (not_lt_bot h).elim },
+  { exact with_bot.coe_le_coe.mpr (nat.succ_le_iff.mpr (with_bot.coe_lt_coe.mp h)) }
+end
 
 end nat

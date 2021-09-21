@@ -15,7 +15,7 @@ discrete (hence finite) quotients.
 ## Definitions
 
 There are a handful of definitions in this file, given `X : Profinite`:
-1. `X.fintype_diagram` is the functor `discret_quotient X ⥤ Fintype` whose limit
+1. `X.fintype_diagram` is the functor `discrete_quotient X ⥤ Fintype` whose limit
   is isomorphic to `X` (the limit taking place in `Profinite` via `Fintype_to_Profinite`, see 2).
 2. `X.diagram` is an abbreviation for `X.fintype_diagram ⋙ Fintype_to_Profinite`.
 3. `X.as_limit_cone` is the cone over `X.diagram` whose cone point is `X`.
@@ -41,7 +41,7 @@ variables (X : Profinite.{u})
 /-- The functor `discrete_quotient X ⥤ Fintype` whose limit is isomorphic to `X`. -/
 def fintype_diagram : discrete_quotient X ⥤ Fintype :=
 { obj := λ S, Fintype.of S,
-  map := λ S T f, discrete_quotient.of_le $ le_of_hom f }
+  map := λ S T f, discrete_quotient.of_le f.le }
 
 /-- An abbreviation for `X.fintype_diagram ⋙ Fintype_to_Profinite`. -/
 abbreviation diagram : discrete_quotient X ⥤ Profinite :=

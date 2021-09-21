@@ -3,8 +3,10 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
+
 import data.polynomial.basic
 import data.finset.nat_antidiagonal
+import data.nat.choose.sum
 
 /-!
 # Theory of univariate polynomials
@@ -34,11 +36,11 @@ coeff_monomial
 lemma coeff_add (p q : polynomial R) (n : ℕ) : coeff (p + q) n = coeff p n + coeff q n :=
 by { rcases p, rcases q, simp [coeff, add_to_finsupp] }
 
-@[simp] lemma coeff_smul (p : polynomial R) (r : R) (n : ℕ) :
-  coeff (r • p) n = r * coeff p n :=
+@[simp] lemma coeff_smul [monoid S] [distrib_mul_action S R] (r : S) (p : polynomial R) (n : ℕ) :
+  coeff (r • p) n = r • coeff p n :=
 by { rcases p, simp [coeff, smul_to_finsupp] }
 
-lemma support_smul (p : polynomial R) (r : R) :
+lemma support_smul [monoid S] [distrib_mul_action S R] (r : S) (p : polynomial R) :
   support (r • p) ⊆ support p :=
 begin
   assume i hi,
@@ -47,12 +49,24 @@ begin
   simp [hi]
 end
 
+/-- `polynomial.sum` as a linear map. -/
+@[simps] def lsum {R A M : Type*} [semiring R] [semiring A] [add_comm_monoid M]
+  [module R A] [module R M] (f : ℕ → A →ₗ[R] M) :
+  polynomial A →ₗ[R] M :=
+{ to_fun := λ p, p.sum (λ n r, f n r),
+  map_add' := λ p q, sum_add_index p q _ (λ n, (f n).map_zero) (λ n _ _, (f n).map_add _ _),
+  map_smul' := λ c p,
+  begin
+    rw [sum_eq_of_subset _ (λ n r, f n r) (λ n, (f n).map_zero) _ (support_smul c p)],
+    simp only [sum_def, finset.smul_sum, coeff_smul, linear_map.map_smul],
+  end }
+
 variable (R)
 /-- The nth coefficient, as a linear map. -/
 def lcoeff (n : ℕ) : polynomial R →ₗ[R] R :=
 { to_fun := λ p, coeff p n,
   map_add' := λ p q, coeff_add p q n,
-  map_smul' := λ r p, coeff_smul p r n }
+  map_smul' := λ r p, coeff_smul r p n }
 
 variable {R}
 
@@ -60,7 +74,7 @@ variable {R}
 
 @[simp] lemma finset_sum_coeff {ι : Type*} (s : finset ι) (f : ι → polynomial R) (n : ℕ) :
   coeff (∑ b in s, f b) n = ∑ b in s, coeff (f b) n :=
-(s.sum_hom (λ q : polynomial R, lcoeff R n q)).symm
+(lcoeff R n).map_sum
 
 lemma coeff_sum [semiring S] (n : ℕ) (f : ℕ → R → polynomial S) :
   coeff (p.sum f) n = p.sum (λ a b, coeff (f a b) n) :=
@@ -95,7 +109,7 @@ by { rcases p, simp only [C, monomial, monomial_fun, mul_to_finsupp, ring_hom.co
   coeff, add_monoid_algebra.single_zero_mul_apply p a n] }
 
 lemma C_mul' (a : R) (f : polynomial R) : C a * f = a • f :=
-by { ext, rw [coeff_C_mul, coeff_smul] }
+by { ext, rw [coeff_C_mul, coeff_smul, smul_eq_mul] }
 
 @[simp] lemma coeff_mul_C (p : polynomial R) (n : ℕ) (a : R) :
   coeff (p * C a) n = coeff p n * a :=
@@ -140,13 +154,30 @@ theorem mul_X_pow_eq_zero {p : polynomial R} {n : ℕ}
 ext $ λ k, (coeff_mul_X_pow p n k).symm.trans $ ext_iff.1 H (k+n)
 
 lemma C_mul_X_pow_eq_monomial (c : R) (n : ℕ) : C c * X^n = monomial n c :=
-by { ext1, rw [monomial_eq_smul_X, coeff_smul, coeff_C_mul] }
+by { ext1, rw [monomial_eq_smul_X, coeff_smul, coeff_C_mul, smul_eq_mul] }
 
 lemma support_mul_X_pow (c : R) (n : ℕ) (H : c ≠ 0) : (C c * X^n).support = singleton n :=
 by rw [C_mul_X_pow_eq_monomial, support_monomial n c H]
 
 lemma support_C_mul_X_pow' {c : R} {n : ℕ} : (C c * X^n).support ⊆ singleton n :=
 by { rw [C_mul_X_pow_eq_monomial], exact support_monomial' n c }
+
+lemma coeff_X_add_one_pow (R : Type*) [semiring R] (n k : ℕ) :
+  ((X + 1) ^ n).coeff k = (n.choose k : R) :=
+begin
+  rw [(commute_X (1 : polynomial R)).add_pow, ← lcoeff_apply, linear_map.map_sum],
+  simp only [one_pow, mul_one, lcoeff_apply, ← C_eq_nat_cast, coeff_mul_C, nat.cast_id],
+  rw [finset.sum_eq_single k, coeff_X_pow_self, one_mul],
+  { intros _ _,
+    simp only [coeff_X_pow, boole_mul, ite_eq_right_iff, ne.def] {contextual := tt},
+    rintro h rfl, contradiction },
+  { simp only [coeff_X_pow_self, one_mul, not_lt, finset.mem_range],
+    intro h, rw [nat.choose_eq_zero_of_lt h, nat.cast_zero], }
+end
+
+lemma coeff_one_add_X_pow (R : Type*) [semiring R] (n k : ℕ) :
+  ((1 + X) ^ n).coeff k = (n.choose k : R) :=
+by rw [add_comm _ X, coeff_X_add_one_pow]
 
 lemma C_dvd_iff_dvd_coeff (r : R) (φ : polynomial R) :
   C r ∣ φ ↔ ∀ i, r ∣ φ.coeff i :=
@@ -166,6 +197,14 @@ begin
     { rw hc },
     { rw [not_not] at hi, rwa mul_zero } },
 end
+
+lemma coeff_bit0_mul (P Q : polynomial R) (n : ℕ) :
+  coeff (bit0 P * Q) n = 2 * coeff (P * Q) n :=
+by simp [bit0, add_mul]
+
+lemma coeff_bit1_mul (P Q : polynomial R) (n : ℕ) :
+  coeff (bit1 P * Q) n = 2 * coeff (P * Q) n + coeff Q n :=
+by simp [bit1, add_mul, coeff_bit0_mul]
 
 end coeff
 

@@ -175,7 +175,7 @@ eventually_nhds_within_iff.2 $ (e.eventually_left_inverse hx).mono $
 
 lemma nhds_within_source_inter {x} (hx : x ∈ e.source) (s : set α) :
   𝓝[e.source ∩ s] x = 𝓝[s] x :=
-nhds_within_inter_of_mem (mem_nhds_within_of_mem_nhds $ mem_nhds_sets e.open_source hx)
+nhds_within_inter_of_mem (mem_nhds_within_of_mem_nhds $ is_open.mem_nhds e.open_source hx)
 
 lemma nhds_within_target_inter {x} (hx : x ∈ e.target) (s : set β) :
   𝓝[e.target ∩ s] x = 𝓝[s] x :=
@@ -209,6 +209,10 @@ lemma target_inter_inv_preimage_preimage (s : set β) :
   e.target ∩ e.symm ⁻¹' (e ⁻¹' s) = e.target ∩ s :=
 e.symm.source_inter_preimage_inv_preimage _
 
+lemma source_inter_preimage_target_inter (s : set β) :
+  e.source ∩ (e ⁻¹' (e.target ∩ s)) = e.source ∩ (e ⁻¹' s) :=
+e.to_local_equiv.source_inter_preimage_target_inter s
+
 /-- Two local homeomorphisms are equal when they have equal `to_fun`, `inv_fun` and `source`.
 It is not sufficient to have equal `to_fun` and `source`, as this only determines `inv_fun` on
 the target. This would only be true for a weaker notion of equality, arguably the right one,
@@ -226,7 +230,7 @@ lemma symm_target : e.symm.target = e.source := rfl
 
 /-- A local homeomorphism is continuous at any point of its source -/
 protected lemma continuous_at {x : α} (h : x ∈ e.source) : continuous_at e x :=
-(e.continuous_on x h).continuous_at (mem_nhds_sets e.open_source h)
+(e.continuous_on x h).continuous_at (is_open.mem_nhds e.open_source h)
 
 /-- A local homeomorphism inverse is continuous at any point of its target -/
 lemma continuous_at_symm {x : β} (h : x ∈ e.target) : continuous_at e.symm x :=
@@ -444,7 +448,7 @@ end
 
 /-- The image of the restriction of an open set to the source is open. -/
 lemma image_open_of_open' {s : set α} (hs : is_open s) : is_open (e '' (e.source ∩ s)) :=
-image_open_of_open _ (is_open_inter e.open_source hs) (inter_subset_left _ _)
+image_open_of_open _ (is_open.inter e.open_source hs) (inter_subset_left _ _)
 
 /-- A `local_equiv` with continuous open forward map and an open source is a `local_homeomorph`. -/
 def of_continuous_open_restrict (e : local_equiv α β) (hc : continuous_on e e.source)
@@ -469,7 +473,7 @@ be used then its local_equiv is defeq to local_equiv.restr -/
 protected def restr_open (s : set α) (hs : is_open s) :
   local_homeomorph α β :=
 (@is_image.of_symm_preimage_eq α β _ _ e s (e.symm ⁻¹' s) rfl).restr
-  (is_open_inter e.open_source hs)
+  (is_open.inter e.open_source hs)
 
 @[simp, mfld_simps] lemma restr_open_to_local_equiv (s : set α) (hs : is_open s) :
   (e.restr_open s hs).to_local_equiv = e.to_local_equiv.restr s := rfl
@@ -632,7 +636,7 @@ by rw [of_set_trans, restr_source_inter]
 
 @[simp, mfld_simps] lemma of_set_trans_of_set
   {s : set α} (hs : is_open s) {s' : set α} (hs' : is_open s') :
-  (of_set s hs).trans (of_set s' hs') = of_set (s ∩ s') (is_open_inter hs hs')  :=
+  (of_set s hs).trans (of_set s' hs') = of_set (s ∩ s') (is_open.inter hs hs')  :=
 begin
   rw (of_set s hs).trans_of_set hs',
   ext; simp [hs'.interior_eq]
@@ -829,7 +833,7 @@ begin
   refine forall_congr (λ x, forall_congr $ λ hx, _),
   rw [e.continuous_within_at_iff_continuous_within_at_comp_right (h hx),
     e.symm_image_eq_source_inter_preimage h, inter_comm, continuous_within_at_inter],
-  exact mem_nhds_sets e.open_source (e.map_target (h hx))
+  exact is_open.mem_nhds e.open_source (e.map_target (h hx))
 end
 
 /-- Continuity within a set at a point can be read under left composition with a local
@@ -853,7 +857,7 @@ neighborhood of the initial point is sent to the source of the local homeomorphi
 lemma continuous_at_iff_continuous_at_comp_left {f : γ → α} {x : γ} (h : f ⁻¹' e.source ∈ 𝓝 x) :
   continuous_at f x ↔ continuous_at (e ∘ f) x :=
 begin
-  have hx : f x ∈ e.source := (mem_of_nhds h : _),
+  have hx : f x ∈ e.source := (mem_of_mem_nhds h : _),
   have h' : f ⁻¹' e.source ∈ 𝓝[univ] x, by rwa nhds_within_univ,
   rw [← continuous_within_at_univ, ← continuous_within_at_univ,
       e.continuous_within_at_iff_continuous_within_at_comp_left hx h']
@@ -864,7 +868,7 @@ on the left is continuous on the corresponding set. -/
 lemma continuous_on_iff_continuous_on_comp_left {f : γ → α} {s : set γ} (h : s ⊆ f ⁻¹' e.source) :
   continuous_on f s ↔ continuous_on (e ∘ f) s :=
 forall_congr $ λ x, forall_congr $ λ hx, e.continuous_within_at_iff_continuous_within_at_comp_left
-  (h hx) (mem_sets_of_superset self_mem_nhds_within h)
+  (h hx) (mem_of_superset self_mem_nhds_within h)
 
 end continuity
 

@@ -36,7 +36,7 @@ variables [add_comm_group M] [module R M]
 variables [add_comm_group N] [module R N]
 
 /-- A module over a commutative ring is `finite` if it is finitely generated as a module. -/
-class module.finite (R : Type*) (M : Type*) [comm_semiring R] [add_comm_monoid M] [module R M] :
+class module.finite (R : Type*) (M : Type*) [semiring R] [add_comm_monoid M] [module R M] :
   Prop := (out : (⊤ : submodule R M).fg)
 
 /-- An algebra over a commutative ring is of `finite_type` if it is finitely generated
@@ -51,7 +51,7 @@ def algebra.finite_presentation : Prop :=
 
 namespace module
 
-lemma finite_def {R : Type*} {M : Type*} [comm_semiring R] [add_comm_monoid M] [module R M] :
+lemma finite_def {R : Type*} {M : Type*} [semiring R] [add_comm_monoid M] [module R M] :
   finite R M ↔ (⊤ : submodule R M).fg := ⟨λ h, h.1, λ h, ⟨h⟩⟩
 
 @[priority 100] -- see Note [lower instance priority]
@@ -169,14 +169,14 @@ begin
     intro x,
     have hrw : (↑s : set A) = (λ (x : A), x ∈ s.val) := rfl,
     rw [← set.mem_range, ← alg_hom.coe_range, ← adjoin_eq_range, ← hrw, hs],
-    exact mem_top },
+    exact set.mem_univ x },
   { rintro ⟨s, ⟨f, hsur⟩⟩,
     exact finite_type.of_surjective (finite_type.mv_polynomial R {x // x ∈ s}) f hsur }
 end
 
 /-- An algebra is finitely generated if and only if it is a quotient
 of a polynomial ring whose variables are indexed by a fintype. -/
-lemma iff_quotient_mv_polynomial' : (finite_type R A) ↔ ∃ (ι : Type u_2) [fintype ι]
+lemma iff_quotient_mv_polynomial' : (finite_type R A) ↔ ∃ (ι : Type u_2) (_ : fintype ι)
   (f : (mv_polynomial ι R) →ₐ[R] A), (surjective f) :=
 begin
   split,
@@ -212,6 +212,12 @@ begin
   apply (finite_type.iff_quotient_mv_polynomial'').2,
   exact ⟨n, f, hf.1⟩
 end
+
+instance prod [hA : finite_type R A] [hB : finite_type R B] : finite_type R (A × B) :=
+⟨begin
+  rw ← subalgebra.prod_top,
+  exact subalgebra.fg_prod hA.1 hB.1
+end⟩
 
 end finite_type
 
@@ -266,7 +272,7 @@ end
 
 /-- `R` is finitely presented as `R`-algebra. -/
 lemma self : finite_presentation R R :=
-equiv (mv_polynomial R pempty) (mv_polynomial.pempty_alg_equiv R)
+equiv (mv_polynomial R pempty) (mv_polynomial.is_empty_alg_equiv R pempty)
 
 variable {R}
 
@@ -279,7 +285,7 @@ begin
   refine ⟨n, (ideal.quotient.mkₐ R I).comp f, _, _⟩,
   { exact (ideal.quotient.mkₐ_surjective R I).comp hf.1 },
   { refine submodule.fg_ker_ring_hom_comp _ _ hf.2 _ hf.1,
-    rwa ideal.quotient.mkₐ_ker R I }
+    simp [h] }
 end
 
 /-- If `f : A →ₐ[R] B` is surjective with finitely generated kernel and `A` is finitely presented,
@@ -300,7 +306,7 @@ end
 
 /-- An algebra is finitely presented if and only if it is a quotient of a polynomial ring whose
 variables are indexed by a fintype by a finitely generated ideal. -/
-lemma iff_quotient_mv_polynomial' : finite_presentation R A ↔ ∃ (ι : Type u_2) [fintype ι]
+lemma iff_quotient_mv_polynomial' : finite_presentation R A ↔ ∃ (ι : Type u_2) (_ : fintype ι)
   (f : (_root_.mv_polynomial ι R) →ₐ[R] A), (surjective f) ∧ f.to_ring_hom.ker.fg :=
 begin
   split,
@@ -695,9 +701,9 @@ end
 /-- An additive monoid `M` is finitely generated if and only if `add_monoid_algebra R M` is of
 finite type. -/
 lemma finite_type_iff_fg [comm_ring R] [nontrivial R] :
-  add_monoid.fg M ↔ finite_type R (add_monoid_algebra R M) :=
+  finite_type R (add_monoid_algebra R M) ↔ add_monoid.fg M :=
 begin
-  refine ⟨λ h, @add_monoid_algebra.finite_type_of_fg _ _ _ _ h, λ h, _⟩,
+  refine ⟨λ h, _, λ h, @add_monoid_algebra.finite_type_of_fg _ _ _ _ h⟩,
   obtain ⟨S, hS⟩ := @exists_finset_adjoin_eq_top R M _ _ h,
   refine add_monoid.fg_def.2 ⟨S, (eq_top_iff' _).2 (λ m, _)⟩,
   have hm : of' R M m ∈ (adjoin R (of' R M '' ↑S)).to_submodule,
@@ -709,7 +715,13 @@ end
 /-- If `add_monoid_algebra R M` is of finite type then `M` is finitely generated. -/
 lemma fg_of_finite_type [comm_ring R] [nontrivial R] [h : finite_type R (add_monoid_algebra R M)] :
   add_monoid.fg M :=
-finite_type_iff_fg.2 h
+finite_type_iff_fg.1 h
+
+/-- An additive group `G` is finitely generated if and only if `add_monoid_algebra R G` is of
+finite type. -/
+lemma finite_type_iff_group_fg {G : Type*} [add_comm_group G] [comm_ring R] [nontrivial R] :
+  finite_type R (add_monoid_algebra R G) ↔ add_group.fg G :=
+by simpa [add_group.fg_iff_add_monoid.fg] using finite_type_iff_fg
 
 end add_monoid_algebra
 
@@ -831,14 +843,19 @@ add_monoid_algebra.finite_type_of_fg.equiv (to_additive_alg_equiv R M).symm
 
 /-- A monoid `M` is finitely generated if and only if `monoid_algebra R M` is of finite type. -/
 lemma finite_type_iff_fg [comm_ring R] [nontrivial R] :
-  monoid.fg M ↔ finite_type R (monoid_algebra R M) :=
-⟨λ h, @monoid_algebra.finite_type_of_fg _ _ _ _ h, λ h, monoid.fg_iff_add_fg.2 $
-  add_monoid_algebra.finite_type_iff_fg.2 $ h.equiv $ to_additive_alg_equiv R M⟩
+  finite_type R (monoid_algebra R M) ↔ monoid.fg M :=
+⟨λ h, monoid.fg_iff_add_fg.2 $ add_monoid_algebra.finite_type_iff_fg.1 $ h.equiv $
+  to_additive_alg_equiv R M, λ h, @monoid_algebra.finite_type_of_fg _ _ _ _ h⟩
 
 /-- If `monoid_algebra R M` is of finite type then `M` is finitely generated. -/
 lemma fg_of_finite_type [comm_ring R] [nontrivial R] [h : finite_type R (monoid_algebra R M)] :
   monoid.fg M :=
-finite_type_iff_fg.2 h
+finite_type_iff_fg.1 h
+
+/-- A group `G` is finitely generated if and only if `add_monoid_algebra R G` is of finite type. -/
+lemma finite_type_iff_group_fg {G : Type*} [comm_group G] [comm_ring R] [nontrivial R] :
+  finite_type R (monoid_algebra R G) ↔ group.fg G :=
+by simpa [group.fg_iff_monoid.fg] using finite_type_iff_fg
 
 end monoid_algebra
 

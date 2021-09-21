@@ -71,14 +71,14 @@ begin
   rw [← bind₁_bind₁, bind₁_X_in_terms_of_W_witt_polynomial, bind₁_X_right],
 end
 
-/-- An auxilliary definition, to avoid an excessive amount of finiteness proofs
+/-- An auxiliary definition, to avoid an excessive amount of finiteness proofs
 for `multiplicity p n`. -/
 private def pnat_multiplicity (n : ℕ+) : ℕ :=
 (multiplicity p n).get $ multiplicity.finite_nat_iff.mpr $ ⟨ne_of_gt hp.1.one_lt, n.2⟩
 
 local notation `v` := pnat_multiplicity
 
-/-- An auxilliary polynomial over the integers, that satisfies
+/-- An auxiliary polynomial over the integers, that satisfies
 `(frobenius_poly_aux p n - X n ^ p) / p = frobenius_poly p n`.
 This makes it easy to show that `frobenius_poly p n` is congruent to `X n ^ p`
 modulo `p`. -/
@@ -123,7 +123,7 @@ begin
   { rw [← multiplicity.finite_iff_dom, multiplicity.finite_nat_iff],
     exact ⟨hp.1.ne_one, nat.choose_pos hj⟩, },
   rw [← enat.coe_get aux, enat.coe_le_coe, nat.sub_le_left_iff_le_add,
-      ← enat.coe_le_coe, enat.coe_add, pnat_multiplicity, enat.coe_get, enat.coe_get, add_comm],
+      ← enat.coe_le_coe, nat.cast_add, pnat_multiplicity, enat.coe_get, enat.coe_get, add_comm],
   exact (hp.1.multiplicity_choose_prime_pow hj j.succ_pos).ge,
 end
 
@@ -134,7 +134,9 @@ lemma map_frobenius_poly.key₂ {n i j : ℕ} (hi : i < n) (hj : j < p ^ (n - i)
 begin
   generalize h : (v p ⟨j + 1, j.succ_pos⟩) = m,
   suffices : m ≤ n - i ∧ m ≤ j,
-  { cases this, unfreezingI { clear_dependent p }, omega },
+  { rw [←nat.sub_add_comm this.2, add_comm i j, nat.add_sub_assoc (this.1.trans (nat.sub_le n i)),
+      add_assoc, nat.sub.right_comm, add_comm i, nat.sub_add_cancel (nat.le_sub_right_of_add_le
+      ((nat.le_sub_left_iff_add_le hi.le).mp this.1))] },
   split,
   { rw [← h, ← enat.coe_le_coe, pnat_multiplicity, enat.coe_get,
         ← hp.1.multiplicity_choose_prime_pow hj j.succ_pos],

@@ -85,12 +85,12 @@ variables {α β}
 -- The evaluation map C(α, β) × α → β is continuous if α is locally compact.
 lemma continuous_ev [locally_compact_space α] : continuous (ev α β) :=
 continuous_iff_continuous_at.mpr $ assume ⟨f, x⟩ n hn,
-  let ⟨v, vn, vo, fxv⟩ := mem_nhds_sets_iff.mp hn in
-  have v ∈ 𝓝 (f x), from mem_nhds_sets vo fxv,
+  let ⟨v, vn, vo, fxv⟩ := mem_nhds_iff.mp hn in
+  have v ∈ 𝓝 (f x), from is_open.mem_nhds vo fxv,
   let ⟨s, hs, sv, sc⟩ :=
     locally_compact_space.local_compact_nhds x (f ⁻¹' v)
       (f.continuous.tendsto x this) in
-  let ⟨u, us, uo, xu⟩ := mem_nhds_sets_iff.mp hs in
+  let ⟨u, us, uo, xu⟩ := mem_nhds_iff.mp hs in
   show (ev α β) ⁻¹' n ∈ 𝓝 (f, x), from
   let w := set.prod (compact_open.gen s v) u in
   have w ⊆ ev α β ⁻¹' n, from assume ⟨f', x'⟩ ⟨hf', hx'⟩, calc
@@ -99,9 +99,50 @@ continuous_iff_continuous_at.mpr $ assume ⟨f, x⟩ n hn,
     ...       ⊆ n            : vn,
   have is_open w, from (is_open_gen sc vo).prod uo,
   have (f, x) ∈ w, from ⟨image_subset_iff.mpr sv, xu⟩,
-  mem_nhds_sets_iff.mpr ⟨w, by assumption, by assumption, by assumption⟩
+  mem_nhds_iff.mpr ⟨w, by assumption, by assumption, by assumption⟩
 
 end ev
+
+section Inf_induced
+
+/-- The compact-open topology on `C(α, β)` is equal to the infimum of the compact-open topologies
+on `C(s, β)` for `s` a compact subset of `α`.  The key point of the proof is that the union of the
+compact subsets of `α` is equal to the union of compact subsets of the compact subsets of `α`. -/
+lemma compact_open_eq_Inf_induced :
+  (continuous_map.compact_open : topological_space C(α, β))
+  = ⨅ (s : set α) (hs : is_compact s),
+    topological_space.induced (continuous_map.restrict s) continuous_map.compact_open :=
+begin
+  simp only [← generate_from_Union, induced_generate_from_eq, continuous_map.compact_open],
+  congr' 1,
+  ext m,
+  rw mem_bUnion_iff',
+  split,
+  { rintros ⟨s, hs, u, hu, rfl⟩,
+    refine ⟨s, hs, compact_open.gen univ u, _⟩,
+    refine ⟨⟨univ, is_compact_iff_is_compact_univ.mp hs, u, hu, rfl⟩, _⟩,
+    ext f,
+    simp only [compact_open.gen, mem_set_of_eq, mem_preimage, continuous_map.coe_restrict],
+    rw image_comp f (coe : s → α),
+    simp },
+  { rintros ⟨s, hs, sb, ⟨s', hs', u, hu, rfl⟩, rfl⟩,
+    refine ⟨coe '' s', hs'.image continuous_subtype_coe, u, hu, _⟩,
+    ext f,
+    simp only [compact_open.gen, coe_restrict, mem_set_of_eq, preimage_set_of_eq,
+      image_subset_iff],
+    rw preimage_comp },
+end
+
+lemma nhds_compact_open_eq_Inf_nhds_induced (f : C(α, β)) :
+  𝓝 f = ⨅ s (hs : is_compact s), (𝓝 (f.restrict s)).comap (continuous_map.restrict s) :=
+by { rw [compact_open_eq_Inf_induced], simp [nhds_infi, nhds_induced] }
+
+lemma tendsto_compact_open_iff_forall {ι : Type*} {l : filter ι} (F : ι → C(α, β)) (f : C(α, β)) :
+  filter.tendsto F l (nhds f)
+  ↔ ∀ s (hs : is_compact s), filter.tendsto (λ i, (F i).restrict s) l (𝓝 (f.restrict s)) :=
+by { rw [compact_open_eq_Inf_induced], simp [nhds_infi, nhds_induced, filter.tendsto_comap_iff] }
+
+end Inf_induced
 
 section coev
 
@@ -119,7 +160,7 @@ continuous_generated_from $ begin
   intros y hy,
   change (coev α β y) '' s ⊆ u at hy,
   rw image_coev s at hy,
-  rcases generalized_tube_lemma compact_singleton sc uo hy
+  rcases generalized_tube_lemma is_compact_singleton sc uo hy
     with ⟨v, w, vo, wo, yv, sw, vwu⟩,
   refine ⟨v, _, vo, singleton_subset_iff.mp yv⟩,
   intros y' hy',
@@ -163,6 +204,9 @@ begin
   tidy
 end
 
+@[simp]
+lemma curry_apply (f : C(α × β, γ)) (a : α) (b : β) : f.curry a b = f (a, b) := rfl
+
 /-- The uncurried form of a continuous map `α → C(β, γ)` is a continuous map `α × β → γ`. -/
 lemma continuous_uncurry_of_continuous [locally_compact_space β] (f : C(α, C(β, γ))) :
   continuous (function.uncurry (λ x y, f x y)) :=
@@ -184,6 +228,13 @@ begin
   apply continuous.comp continuous_ev (continuous.prod_map continuous_ev id.2);
   apply_instance
 end
+
+/-- The family of constant maps: `β → C(α, β)` as a continuous map. -/
+def const' : C(β, C(α, β)) := curry ⟨prod.fst, continuous_fst⟩
+
+@[simp] lemma coe_const' : (const' : β → C(α, β)) = const := rfl
+
+lemma continuous_const' : continuous (const : β → C(α, β)) := const'.continuous
 
 end curry
 

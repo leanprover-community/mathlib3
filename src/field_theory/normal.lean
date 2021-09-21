@@ -22,7 +22,10 @@ is the same as being a splitting field (`normal.of_is_splitting_field` and
 -/
 
 noncomputable theory
+
+open_locale big_operators
 open_locale classical
+
 open polynomial is_scalar_tower
 
 variables (F K : Type*) [field F] [field K] [algebra F K]
@@ -61,17 +64,17 @@ variables (K)
 theorem normal.exists_is_splitting_field [h : normal F K] [finite_dimensional F K] :
   ∃ p : polynomial F, is_splitting_field F K p :=
 begin
-  obtain ⟨s, hs⟩ := finite_dimensional.exists_is_basis_finset F K,
-  refine ⟨s.prod $ λ x, minpoly F x,
-    splits_prod _ $ λ x hx, h.splits x,
+  let s := basis.of_vector_space F K,
+  refine ⟨∏ x, minpoly F (s x),
+    splits_prod _ $ λ x hx, h.splits (s x),
     subalgebra.to_submodule_injective _⟩,
-  rw [algebra.top_to_submodule, eq_top_iff, ← hs.2, submodule.span_le, set.range_subset_iff],
+  rw [algebra.top_to_submodule, eq_top_iff, ← s.span_eq, submodule.span_le, set.range_subset_iff],
   refine λ x, algebra.subset_adjoin (multiset.mem_to_finset.mpr $
     (mem_roots $ mt (map_eq_zero $ algebra_map F K).1 $
     finset.prod_ne_zero_iff.2 $ λ x hx, _).2 _),
-  { exact minpoly.ne_zero (h.is_integral x) },
+  { exact minpoly.ne_zero (h.is_integral (s x)) },
   rw [is_root.def, eval_map, ← aeval_def, alg_hom.map_prod],
-  exact finset.prod_eq_zero x.2 (minpoly.aeval _ _)
+  exact finset.prod_eq_zero (finset.mem_univ _) (minpoly.aeval _ _)
 end
 
 section normal_tower
@@ -125,7 +128,7 @@ lemma normal.of_is_splitting_field (p : polynomial F) [hFEp : is_splitting_field
   normal F E :=
 begin
   by_cases hp : p = 0,
-  { haveI : is_splitting_field F F p := by { rw hp, exact ⟨splits_zero _, subsingleton.elim _ _⟩ },
+  { haveI : is_splitting_field F F p, { rw hp, exact ⟨splits_zero _, subsingleton.elim _ _⟩ },
     exactI (alg_equiv.transfer_normal ((is_splitting_field.alg_equiv F p).trans
       (is_splitting_field.alg_equiv E p).symm)).mp (normal_self F) },
   refine normal_iff.2 (λ x, _),
@@ -174,9 +177,11 @@ begin
           ←aeval_def, minpoly.aeval F z, ring_hom.map_zero] } },
   rw [←intermediate_field.to_subalgebra_le_to_subalgebra, intermediate_field.top_to_subalgebra],
   apply ge_trans (intermediate_field.algebra_adjoin_le_adjoin C S),
-  suffices : (algebra.adjoin C S).res F = (algebra.adjoin E {adjoin_root.root q}).res F,
-  { rw [adjoin_root.adjoin_root_eq_top, subalgebra.res_top, ←@subalgebra.res_top F C] at this,
-    exact top_le_iff.mpr (subalgebra.res_inj F this) },
+  suffices : (algebra.adjoin C S).restrict_scalars F
+           = (algebra.adjoin E {adjoin_root.root q}).restrict_scalars F,
+  { rw [adjoin_root.adjoin_root_eq_top, subalgebra.restrict_scalars_top,
+      ←@subalgebra.restrict_scalars_top F C] at this,
+    exact top_le_iff.mpr (subalgebra.restrict_scalars_injective F this) },
   dsimp only [S],
   rw [←finset.image_to_finset, finset.coe_image],
   apply eq.trans (algebra.adjoin_res_eq_adjoin_res F E C D

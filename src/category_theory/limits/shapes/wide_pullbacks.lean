@@ -191,4 +191,176 @@ abbreviation has_wide_pullbacks : Prop :=
 abbreviation has_wide_pushouts : Prop :=
 Π (J : Type v), has_colimits_of_shape (wide_pushout_shape J) C
 
+variables {C J}
+
+/-- `has_wide_pullback B objs arrows` means that `wide_cospan B objs arrows` has a limit. -/
+abbreviation has_wide_pullback (B : C) (objs : J → C)
+  (arrows : Π (j : J), objs j ⟶ B) : Prop :=
+has_limit (wide_pullback_shape.wide_cospan B objs arrows)
+
+/-- `has_wide_pushout B objs arrows` means that `wide_span B objs arrows` has a colimit. -/
+abbreviation has_wide_pushout (B : C) (objs : J → C)
+  (arrows : Π (j : J), B ⟶ objs j) : Prop :=
+has_colimit (wide_pushout_shape.wide_span B objs arrows)
+
+/-- A choice of wide pullback. -/
+noncomputable
+abbreviation wide_pullback (B : C) (objs : J → C) (arrows : Π (j : J), objs j ⟶ B)
+  [has_wide_pullback B objs arrows] : C :=
+limit (wide_pullback_shape.wide_cospan B objs arrows)
+
+/-- A choice of wide pushout. -/
+noncomputable
+abbreviation wide_pushout (B : C) (objs : J → C) (arrows : Π (j : J), B ⟶ objs j)
+  [has_wide_pushout B objs arrows] : C :=
+colimit (wide_pushout_shape.wide_span B objs arrows)
+
+variable (C)
+
+namespace wide_pullback
+
+variables {C} {B : C} {objs : J → C} (arrows : Π (j : J), objs j ⟶ B)
+variables [has_wide_pullback B objs arrows]
+
+/-- The `j`-th projection from the pullback. -/
+noncomputable
+abbreviation π (j : J) : wide_pullback _ _ arrows ⟶ objs j :=
+limit.π (wide_pullback_shape.wide_cospan _ _ _) (option.some j)
+
+/-- The unique map to the base from the pullback. -/
+noncomputable
+abbreviation base : wide_pullback _ _ arrows ⟶ B :=
+limit.π (wide_pullback_shape.wide_cospan _ _ _) option.none
+
+@[simp, reassoc]
+lemma π_arrow (j : J) : π arrows j ≫ arrows _ = base arrows :=
+by apply limit.w (wide_pullback_shape.wide_cospan _ _ _) (wide_pullback_shape.hom.term j)
+
+variables {arrows}
+
+/-- Lift a collection of morphisms to a morphism to the pullback. -/
+noncomputable
+abbreviation lift {X : C} (f : X ⟶ B) (fs : Π (j : J), X ⟶ objs j)
+  (w : ∀ j, fs j ≫ arrows j = f) : X ⟶ wide_pullback _ _ arrows :=
+limit.lift (wide_pullback_shape.wide_cospan _ _ _)
+  (wide_pullback_shape.mk_cone f fs $ by exact w)
+
+variables (arrows)
+
+variables {X : C} (f : X ⟶ B) (fs : Π (j : J), X ⟶ objs j)
+  (w : ∀ j, fs j ≫ arrows j = f)
+
+@[simp, reassoc]
+lemma lift_π (j : J) : lift f fs w ≫ π arrows j = fs _ :=
+by { simp, refl }
+
+@[simp, reassoc]
+lemma lift_base : lift f fs w ≫ base arrows = f :=
+by { simp, refl }
+
+lemma eq_lift_of_comp_eq (g : X ⟶ wide_pullback _ _ arrows) :
+  (∀ j : J, g ≫ π arrows j = fs j) → g ≫ base arrows = f → g = lift f fs w :=
+begin
+  intros h1 h2,
+  apply (limit.is_limit (wide_pullback_shape.wide_cospan B objs arrows)).uniq
+    (wide_pullback_shape.mk_cone f fs $ by exact w),
+  rintro (_|_),
+  { apply h2 },
+  { apply h1 }
+end
+
+lemma hom_eq_lift (g : X ⟶ wide_pullback _ _ arrows) :
+  g = lift (g ≫ base arrows) (λ j, g ≫ π arrows j) (by tidy) :=
+begin
+  apply eq_lift_of_comp_eq,
+  tidy,
+end
+
+@[ext]
+lemma hom_ext (g1 g2 : X ⟶ wide_pullback _ _ arrows) :
+  (∀ j : J, g1 ≫ π arrows j = g2 ≫ π arrows j) →
+  g1 ≫ base arrows = g2 ≫ base arrows → g1 = g2 :=
+begin
+  intros h1 h2,
+  apply limit.hom_ext,
+  rintros (_|_),
+  { apply h2 },
+  { apply h1 },
+end
+
+end wide_pullback
+
+namespace wide_pushout
+
+variables {C} {B : C} {objs : J → C} (arrows : Π (j : J), B ⟶ objs j)
+variables [has_wide_pushout B objs arrows]
+
+/-- The `j`-th inclusion to the pushout. -/
+noncomputable
+abbreviation ι (j : J) : objs j ⟶ wide_pushout _ _ arrows :=
+colimit.ι (wide_pushout_shape.wide_span _ _ _) (option.some j)
+
+/-- The unique map from the head to the pushout. -/
+noncomputable
+abbreviation head : B ⟶ wide_pushout B objs arrows :=
+colimit.ι (wide_pushout_shape.wide_span _ _ _) option.none
+
+@[simp, reassoc]
+lemma arrow_ι (j : J) : arrows j ≫ ι arrows j = head arrows :=
+by apply colimit.w (wide_pushout_shape.wide_span _ _ _) (wide_pushout_shape.hom.init j)
+
+variables {arrows}
+
+/-- Descend a collection of morphisms to a morphism from the pushout. -/
+noncomputable
+abbreviation desc {X : C} (f : B ⟶ X) (fs : Π (j : J), objs j ⟶ X)
+  (w : ∀ j, arrows j ≫ fs j = f) : wide_pushout _ _ arrows ⟶ X :=
+colimit.desc (wide_pushout_shape.wide_span B objs arrows)
+  (wide_pushout_shape.mk_cocone f fs $ by exact w)
+
+variables (arrows)
+
+variables {X : C} (f : B ⟶ X) (fs : Π (j : J), objs j ⟶ X)
+  (w : ∀ j, arrows j ≫ fs j = f)
+
+@[simp, reassoc]
+lemma ι_desc (j : J) : ι arrows j ≫ desc f fs w = fs _ :=
+by { simp, refl }
+
+@[simp, reassoc]
+lemma head_desc : head arrows ≫ desc f fs w = f :=
+by { simp, refl }
+
+lemma eq_desc_of_comp_eq (g : wide_pushout _ _ arrows ⟶ X) :
+  (∀ j : J, ι arrows j ≫ g = fs j) → head arrows ≫ g = f → g = desc f fs w :=
+begin
+  intros h1 h2,
+  apply (colimit.is_colimit (wide_pushout_shape.wide_span B objs arrows)).uniq
+    (wide_pushout_shape.mk_cocone f fs $ by exact w),
+  rintro (_|_),
+  { apply h2 },
+  { apply h1 }
+end
+
+lemma hom_eq_desc (g : wide_pushout _ _ arrows ⟶ X) :
+  g = desc (head arrows ≫ g) (λ j, ι arrows j ≫ g) (λ j, by { rw ← category.assoc, simp }) :=
+begin
+  apply eq_desc_of_comp_eq,
+  tidy,
+end
+
+@[ext]
+lemma hom_ext (g1 g2 : wide_pushout _ _ arrows ⟶ X) :
+  (∀ j : J, ι arrows j ≫ g1 = ι arrows j ≫ g2) →
+  head arrows ≫ g1 = head arrows ≫ g2 → g1 = g2 :=
+begin
+  intros h1 h2,
+  apply colimit.hom_ext,
+  rintros (_|_),
+  { apply h2 },
+  { apply h1 },
+end
+
+end wide_pushout
+
 end category_theory.limits

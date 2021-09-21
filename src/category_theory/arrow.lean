@@ -83,6 +83,20 @@ def hom_mk' {X Y : T} {f : X ⟶ Y} {P Q : T} {g : P ⟶ Q} {u : X ⟶ P} {v : Y
   sq.left ≫ g = f.hom ≫ sq.right :=
 sq.w
 
+instance {f g : arrow T} (ff : f ⟶ g) [is_iso ff.left] [is_iso ff.right] :
+  is_iso ff :=
+{ out := ⟨⟨inv ff.left, inv ff.right⟩,
+          by { ext; dsimp; simp only [is_iso.hom_inv_id] },
+          by { ext; dsimp; simp only [is_iso.inv_hom_id] }⟩ }
+
+/-- Create an isomorphism between arrows,
+by providing isomorphisms between the domains and codomains,
+and a proof that the square commutes. -/
+@[simps] def iso_mk {f g : arrow T}
+  (l : f.left ≅ g.left) (r : f.right ≅ g.right) (h : l.hom ≫ g.hom = f.hom ≫ r.hom) :
+  f ≅ g :=
+comma.iso_mk l r h
+
 /-- Given a square from an arrow `i` to an isomorphism `p`, express the source part of `sq`
 in terms of the inverse of `p`. -/
 @[simp] lemma square_to_iso_invert (i : arrow T) {X Y : T} (p : X ≅ Y) (sq : i ⟶ arrow.mk p.hom) :
@@ -177,6 +191,17 @@ B  → Z                 B → Z
   i ⟶ arrow.mk g :=
 { left := sq.left ≫ f,
   right := sq.right }
+
+/-- The functor sending an arrow to its source. -/
+@[simps] def left_func : arrow C ⥤ C := comma.fst _ _
+
+/-- The functor sending an arrow to its target. -/
+@[simps] def right_func : arrow C ⥤ C := comma.snd _ _
+
+/-- The natural transformation from `left_func` to `right_func`, given by the arrow itself. -/
+@[simps]
+def left_to_right : (left_func : arrow C ⥤ C) ⟶ right_func :=
+{ app := λ f, f.hom }
 
 end arrow
 

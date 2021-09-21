@@ -3,7 +3,7 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import topology.metric_space.isometry
+import analysis.normed_space.basic
 
 /-!
 # Linear isometries
@@ -103,7 +103,11 @@ f.isometry.comp_continuous_iff
 /-- The identity linear isometry. -/
 def id : E →ₗᵢ[R] E := ⟨linear_map.id, λ x, rfl⟩
 
-@[simp] lemma coe_id : ⇑(id : E →ₗᵢ[R] E) = id := rfl
+@[simp] lemma coe_id : ⇑(id : E →ₗᵢ[R] E) = _root_.id := rfl
+
+@[simp] lemma id_apply (x : E) : (id : E →ₗᵢ[R] E) x = x := rfl
+
+@[simp] lemma id_to_linear_map : (id.to_linear_map : E →ₗ[R] E) = linear_map.id := rfl
 
 instance : inhabited (E →ₗᵢ[R] E) := ⟨id⟩
 
@@ -205,6 +209,9 @@ def to_isometric : E ≃ᵢ F := ⟨e.to_linear_equiv.to_equiv, e.isometry⟩
 
 @[simp] lemma coe_to_isometric : ⇑e.to_isometric = e := rfl
 
+lemma range_eq_univ (e : E ≃ₗᵢ[R] F) : set.range e = set.univ :=
+by { rw ← coe_to_isometric, exact isometric.range_eq_univ _, }
+
 /-- Reinterpret a `linear_isometry_equiv` as an `homeomorph`. -/
 def to_homeomorph : E ≃ₜ F := e.to_isometric.to_homeomorph
 
@@ -216,6 +223,13 @@ protected lemma continuous_on {s} : continuous_on e s := e.continuous.continuous
 
 protected lemma continuous_within_at {s x} : continuous_within_at e s x :=
 e.continuous.continuous_within_at
+
+/-- Interpret a `linear_isometry_equiv` as a continuous linear equiv. -/
+def to_continuous_linear_equiv : E ≃L[R] F :=
+{ .. e.to_linear_isometry.to_continuous_linear_map,
+  .. e.to_homeomorph }
+
+@[simp] lemma coe_to_continuous_linear_equiv : ⇑e.to_continuous_linear_equiv = e := rfl
 
 variables (R E)
 
@@ -328,5 +342,16 @@ e.isometry.comp_continuous_on_iff
 @[simp] lemma comp_continuous_iff {f : α → E} :
   continuous (e ∘ f) ↔ continuous f :=
 e.isometry.comp_continuous_iff
+
+variables (R)
+/-- The negation operation on a normed space `E`, considered as a linear isometry equivalence. -/
+def neg : E ≃ₗᵢ[R] E :=
+{ norm_map' := norm_neg,
+  .. linear_equiv.neg R }
+
+variables {R}
+@[simp] lemma coe_neg : (neg R : E → E) = λ x, -x := rfl
+
+@[simp] lemma symm_neg : (neg R : E ≃ₗᵢ[R] E).symm = neg R := rfl
 
 end linear_isometry_equiv

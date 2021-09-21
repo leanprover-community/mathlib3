@@ -28,6 +28,11 @@ In this file we define various operations on `submonoid`s and `monoid_hom`s.
 * `submonoid.to_monoid`, `submonoid.to_comm_monoid`: a submonoid inherits a (commutative) monoid
   structure.
 
+### Group actions by submonoids
+
+* `submonoid.mul_action`, `submonoid.distrib_mul_action`: a submonoid inherits (distributive)
+  multiplicative actions.
+
 ### Operations on submonoids
 
 * `submonoid.comap`: preimage of a submonoid under a monoid homomorphism as a submonoid of the
@@ -48,6 +53,7 @@ In this file we define various operations on `submonoid`s and `monoid_hom`s.
 ### Operations on `monoid_hom`s
 
 * `monoid_hom.mrange`: range of a monoid homomorphism as a submonoid of the codomain;
+* `monoid_hom.mker`: kernel of a monoid homomorphism as a submonoid of the domain;
 * `monoid_hom.mrestrict`: restrict a monoid homomorphism to a submonoid;
 * `monoid_hom.cod_mrestrict`: restrict the codomain of a monoid homomorphism to a submonoid;
 * `monoid_hom.mrange_restrict`: restrict a monoid homomorphism to its range;
@@ -191,8 +197,12 @@ lemma mem_map {f : M →* N} {S : submonoid M} {y : N} :
 mem_image_iff_bex
 
 @[to_additive]
-lemma mem_map_of_mem (f : M →* N) (x : S) : f x ∈ S.map f :=
-mem_image_of_mem f x.2
+lemma mem_map_of_mem (f : M →* N) {S : submonoid M} {x : M} (hx : x ∈ S) : f x ∈ S.map f :=
+mem_image_of_mem f hx
+
+@[to_additive]
+lemma apply_coe_mem_map (f : M →* N) (S : submonoid M) (x : S) : f x ∈ S.map f :=
+mem_map_of_mem f x.prop
 
 @[to_additive]
 lemma map_map (g : N →* P) (f : M →* N) : (S.map f).map g = S.map (g.comp f) :=
@@ -273,34 +283,44 @@ variables {ι : Type*} {f : M →* N} (hf : function.injective f)
 include hf
 
 /-- `map f` and `comap f` form a `galois_coinsertion` when `f` is injective. -/
+@[to_additive /-" `map f` and `comap f` form a `galois_coinsertion` when `f` is injective. "-/]
 def gci_map_comap : galois_coinsertion (map f) (comap f) :=
 (gc_map_comap f).to_galois_coinsertion
   (λ S x, by simp [mem_comap, mem_map, hf.eq_iff])
 
+@[to_additive]
 lemma comap_map_eq_of_injective (S : submonoid M) : (S.map f).comap f = S :=
 (gci_map_comap hf).u_l_eq _
 
+@[to_additive]
 lemma comap_surjective_of_injective : function.surjective (comap f) :=
 (gci_map_comap hf).u_surjective
 
+@[to_additive]
 lemma map_injective_of_injective : function.injective (map f) :=
 (gci_map_comap hf).l_injective
 
+@[to_additive]
 lemma comap_inf_map_of_injective (S T : submonoid M) : (S.map f ⊓ T.map f).comap f = S ⊓ T :=
 (gci_map_comap hf).u_inf_l _ _
 
+@[to_additive]
 lemma comap_infi_map_of_injective (S : ι → submonoid M) : (⨅ i, (S i).map f).comap f = infi S :=
 (gci_map_comap hf).u_infi_l _
 
+@[to_additive]
 lemma comap_sup_map_of_injective (S T : submonoid M) : (S.map f ⊔ T.map f).comap f = S ⊔ T :=
 (gci_map_comap hf).u_sup_l _ _
 
+@[to_additive]
 lemma comap_supr_map_of_injective (S : ι → submonoid M) : (⨆ i, (S i).map f).comap f = supr S :=
 (gci_map_comap hf).u_supr_l _
 
+@[to_additive]
 lemma map_le_map_iff_of_injective {S T : submonoid M} : S.map f ≤ T.map f ↔ S ≤ T :=
 (gci_map_comap hf).l_le_l_iff
 
+@[to_additive]
 lemma map_strict_mono_of_injective : strict_mono (map f) :=
 (gci_map_comap hf).strict_mono_l
 
@@ -313,34 +333,44 @@ variables {ι : Type*} {f : M →* N} (hf : function.surjective f)
 include hf
 
 /-- `map f` and `comap f` form a `galois_insertion` when `f` is surjective. -/
+@[to_additive /-" `map f` and `comap f` form a `galois_insertion` when `f` is surjective. "-/]
 def gi_map_comap : galois_insertion (map f) (comap f) :=
 (gc_map_comap f).to_galois_insertion
   (λ S x h, let ⟨y, hy⟩ := hf x in mem_map.2 ⟨y, by simp [hy, h]⟩)
 
+@[to_additive]
 lemma map_comap_eq_of_surjective (S : submonoid N) : (S.comap f).map f = S :=
 (gi_map_comap hf).l_u_eq _
 
+@[to_additive]
 lemma map_surjective_of_surjective : function.surjective (map f) :=
 (gi_map_comap hf).l_surjective
 
+@[to_additive]
 lemma comap_injective_of_surjective : function.injective (comap f) :=
 (gi_map_comap hf).u_injective
 
+@[to_additive]
 lemma map_inf_comap_of_surjective (S T : submonoid N) : (S.comap f ⊓ T.comap f).map f = S ⊓ T :=
 (gi_map_comap hf).l_inf_u _ _
 
+@[to_additive]
 lemma map_infi_comap_of_surjective (S : ι → submonoid N) : (⨅ i, (S i).comap f).map f = infi S :=
 (gi_map_comap hf).l_infi_u _
 
+@[to_additive]
 lemma map_sup_comap_of_surjective (S T : submonoid N) : (S.comap f ⊔ T.comap f).map f = S ⊔ T :=
 (gi_map_comap hf).l_sup_u _ _
 
+@[to_additive]
 lemma map_supr_comap_of_surjective (S : ι → submonoid N) : (⨆ i, (S i).comap f).map f = supr S :=
 (gi_map_comap hf).l_supr_u _
 
+@[to_additive]
 lemma comap_le_comap_iff_of_surjective {S T : submonoid N} : S.comap f ≤ T.comap f ↔ S ≤ T :=
 (gi_map_comap hf).u_le_u_iff
 
+@[to_additive]
 lemma comap_strict_mono_of_surjective : strict_mono (comap f) :=
 (gi_map_comap hf).strict_mono_u
 
@@ -411,6 +441,16 @@ subtype.coe_injective.linear_ordered_cancel_comm_monoid coe rfl (λ _ _, rfl)
 def subtype : S →* M := ⟨coe, rfl, λ _ _, rfl⟩
 
 @[simp, to_additive] theorem coe_subtype : ⇑S.subtype = coe := rfl
+
+/-- A submonoid is isomorphic to its image under an injective function -/
+@[to_additive "An additive submonoid is isomorphic to its image under an injective function"]
+noncomputable def equiv_map_of_injective
+  (f : M →* N) (hf : function.injective f) : S ≃* S.map f :=
+{ map_mul' := λ _ _, subtype.ext (f.map_mul _ _), ..equiv.set.image f S hf }
+
+@[simp, to_additive] lemma coe_equiv_map_of_injective_apply
+  (f : M →* N) (hf : function.injective f) (x : S) :
+  (equiv_map_of_injective S f hf x : N) = f x := rfl
 
 /-- An induction principle on elements of the type `submonoid.closure s`.
 If `p` holds for `1` and all elements of `s`, and is preserved under multiplication, then `p`
@@ -505,6 +545,21 @@ le_antisymm (sup_le (prod_mono (le_refl s) bot_le) (prod_mono bot_le (le_refl t)
 assume p hp, prod.fst_mul_snd p ▸ mul_mem _
   ((le_sup_left : s.prod ⊥ ≤ s.prod ⊥ ⊔ prod ⊥ t) ⟨hp.1, set.mem_singleton 1⟩)
   ((le_sup_right : prod ⊥ t ≤ s.prod ⊥ ⊔ prod ⊥ t) ⟨set.mem_singleton 1, hp.2⟩)
+
+@[to_additive]
+lemma mem_map_equiv {f : M ≃* N} {K : submonoid M} {x : N} :
+  x ∈ K.map f.to_monoid_hom ↔ f.symm x ∈ K :=
+@set.mem_image_equiv _ _ ↑K f.to_equiv x
+
+@[to_additive]
+lemma map_equiv_eq_comap_symm (f : M ≃* N) (K : submonoid M) :
+  K.map f.to_monoid_hom = K.comap f.symm.to_monoid_hom :=
+set_like.coe_injective (f.to_equiv.image_eq_preimage K)
+
+@[to_additive]
+lemma comap_equiv_eq_map_symm (f : N ≃* M) (K : submonoid M) :
+  K.comap f.to_monoid_hom = K.map f.symm.to_monoid_hom :=
+(map_equiv_eq_comap_symm f.symm K).symm
 
 end submonoid
 
@@ -601,7 +656,7 @@ lemma mrestrict_apply {N : Type*} [mul_one_class N] (f : M →* N) (x : S) : f.m
 rfl
 
 /-- Restriction of a monoid hom to a submonoid of the codomain. -/
-@[to_additive "Restriction of an `add_monoid` hom to an `add_submonoid` of the codomain."]
+@[to_additive "Restriction of an `add_monoid` hom to an `add_submonoid` of the codomain.", simps]
 def cod_mrestrict (f : M →* N) (S : submonoid N) (h : ∀ x, f x ∈ S) : M →* S :=
 { to_fun := λ n, ⟨f n, h n⟩,
   map_one' := subtype.eq f.map_one,
@@ -616,6 +671,51 @@ f.cod_mrestrict f.mrange $ λ x, ⟨x, rfl⟩
 lemma coe_mrange_restrict {N} [mul_one_class N] (f : M →* N) (x : M) :
   (f.mrange_restrict x : N) = f x :=
 rfl
+
+/-- The multiplicative kernel of a monoid homomorphism is the submonoid of elements `x : G` such
+that `f x = 1` -/
+@[to_additive "The additive kernel of an `add_monoid` homomorphism is the `add_submonoid` of
+elements such that `f x = 0`"]
+def mker (f : M →* N) : submonoid M := (⊥ : submonoid N).comap f
+
+@[to_additive]
+lemma mem_mker (f : M →* N) {x : M} : x ∈ f.mker ↔ f x = 1 := iff.rfl
+
+@[to_additive]
+lemma coe_mker (f : M →* N) : (f.mker : set M) = (f : M → N) ⁻¹' {1} := rfl
+
+@[to_additive]
+instance decidable_mem_mker [decidable_eq N] (f : M →* N) :
+  decidable_pred (∈ f.mker) :=
+λ x, decidable_of_iff (f x = 1) f.mem_mker
+
+@[to_additive]
+lemma comap_mker (g : N →* P) (f : M →* N) : g.mker.comap f = (g.comp f).mker := rfl
+
+@[simp, to_additive] lemma comap_bot' (f : M →* N) :
+  (⊥ : submonoid N).comap f = f.mker := rfl
+
+@[to_additive] lemma range_restrict_mker (f : M →* N) : mker (mrange_restrict f) = mker f :=
+begin
+  ext,
+  change (⟨f x, _⟩ : mrange f) = ⟨1, _⟩ ↔ f x = 1,
+  simp only [],
+end
+
+@[simp, to_additive]
+lemma mker_one : (1 : M →* N).mker = ⊤ :=
+by { ext, simp [mem_mker] }
+
+@[to_additive]
+lemma prod_map_comap_prod' {M' : Type*} {N' : Type*} [mul_one_class M'] [mul_one_class N']
+  (f : M →* N) (g : M' →* N') (S : submonoid N) (S' : submonoid N') :
+  (S.prod S').comap (prod_map f g) = (S.comap f).prod (S'.comap g) :=
+set_like.coe_injective $ set.preimage_prod_map_prod f g _ _
+
+@[to_additive]
+lemma mker_prod_map {M' : Type*} {N' : Type*} [mul_one_class M'] [mul_one_class N'] (f : M →* N)
+  (g : M' →* N') : (prod_map f g).mker = f.mker.prod g.mker :=
+by rw [←comap_bot', ←comap_bot', ←comap_bot', ←prod_map_comap_prod', bot_prod_bot]
 
 end monoid_hom
 
@@ -720,4 +820,89 @@ submonoids of an additive monoid are equal."]
 def submonoid_congr (h : S = T) : S ≃* T :=
 { map_mul' :=  λ _ _, rfl, ..equiv.set_congr $ congr_arg _ h }
 
+-- this name is primed so that the version to `f.range` instead of `f.mrange` can be unprimed.
+/-- A monoid homomorphism `f : M →* N` with a left-inverse `g : N → M` defines a multiplicative
+equivalence between `M` and `f.mrange`.
+
+This is a bidirectional version of `monoid_hom.mrange_restrict`. -/
+@[to_additive /-"
+An additive monoid homomorphism `f : M →+ N` with a left-inverse `g : N → M` defines an additive
+equivalence between `M` and `f.mrange`.
+
+This is a bidirectional version of `add_monoid_hom.mrange_restrict`. "-/, simps {simp_rhs := tt}]
+def of_left_inverse' (f : M →* N) {g : N → M} (h : function.left_inverse g f) : M ≃* f.mrange :=
+{ to_fun := f.mrange_restrict,
+  inv_fun := g ∘ f.mrange.subtype,
+  left_inv := h,
+  right_inv := λ x, subtype.ext $
+    let ⟨x', hx'⟩ := monoid_hom.mem_mrange.mp x.prop in
+    show f (g x) = x, by rw [←hx', h x'],
+  .. f.mrange_restrict }
+
+/-- A `mul_equiv` `φ` between two monoids `M` and `N` induces a `mul_equiv` between
+a submonoid `S ≤ M` and the submonoid `φ(S) ≤ N`. -/
+@[to_additive "An `add_equiv` `φ` between two additive monoids `M` and `N` induces an `add_equiv`
+between a submonoid `S ≤ M` and the submonoid `φ(S) ≤ N`. "]
+def submonoid_equiv_map (e : M ≃* N) (S : submonoid M) : S ≃* S.map e.to_monoid_hom :=
+{ map_mul' := λ _ _, subtype.ext (e.map_mul _ _), ..equiv.image e.to_equiv S }
+
 end mul_equiv
+
+section actions
+/-! ### Actions by `submonoid`s
+
+These instances tranfer the action by an element `m : M` of a monoid `M` written as `m • a` onto the
+action by an element `s : S` of a submonoid `S : submonoid M` such that `s • a = (s : M) • a`.
+
+These instances work particularly well in conjunction with `monoid.to_mul_action`, enabling
+`s • m` as an alias for `↑s * m`.
+-/
+
+namespace submonoid
+
+variables {M' : Type*} {α β : Type*} [monoid M']
+
+/-- The action by a submonoid is the action by the underlying monoid. -/
+@[to_additive /-"The additive action by an add_submonoid is the action by the underlying
+add_monoid. "-/]
+instance [mul_action M' α] (S : submonoid M') : mul_action S α :=
+mul_action.comp_hom _ S.subtype
+
+@[to_additive]
+lemma smul_def [mul_action M' α] {S : submonoid M'} (g : S) (m : α) : g • m = (g : M') • m := rfl
+
+/-- The action by a submonoid is the action by the underlying monoid. -/
+instance [add_monoid α] [distrib_mul_action M' α] (S : submonoid M') : distrib_mul_action S α :=
+distrib_mul_action.comp_hom _ S.subtype
+
+/-- The action by a submonoid is the action by the underlying monoid. -/
+instance [monoid α] [mul_distrib_mul_action M' α] (S : submonoid M') : mul_distrib_mul_action S α :=
+mul_distrib_mul_action.comp_hom _ S.subtype
+
+@[to_additive]
+instance smul_comm_class_left
+  [mul_action M' β] [has_scalar α β] [smul_comm_class M' α β] (S : submonoid M') :
+  smul_comm_class S α β :=
+⟨λ a, (smul_comm (a : M') : _)⟩
+
+@[to_additive]
+instance smul_comm_class_right
+  [has_scalar α β] [mul_action M' β] [smul_comm_class α M' β] (S : submonoid M') :
+  smul_comm_class α S β :=
+⟨λ a s, (smul_comm a (s : M') : _)⟩
+
+/-- Note that this provides `is_scalar_tower S M' M'` which is needed by `smul_mul_assoc`. -/
+instance
+  [has_scalar α β] [mul_action M' α] [mul_action M' β] [is_scalar_tower M' α β] (S : submonoid M') :
+  is_scalar_tower S α β :=
+⟨λ a, (smul_assoc (a : M') : _)⟩
+
+example {S : submonoid M'} : is_scalar_tower S M' M' := by apply_instance
+
+instance [mul_action M' α] [has_faithful_scalar M' α] (S : submonoid M') :
+  has_faithful_scalar S α :=
+{ eq_of_smul_eq_smul := λ x y h, subtype.ext (eq_of_smul_eq_smul h) }
+
+end submonoid
+
+end actions

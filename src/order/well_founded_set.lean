@@ -44,6 +44,8 @@ A well-founded subset of an ordered type is one on which the relation `<` is wel
  * [Nash-Williams, *On Well-Quasi-Ordering Finite Trees*][Nash-Williams63]
 -/
 
+open_locale pointwise
+
 variables {α : Type*}
 
 namespace set
@@ -68,6 +70,17 @@ begin
     exact ⟨m, mt, λ x xt ⟨xm, xs, ms⟩, hst ⟨m, ⟨ms, mt⟩⟩⟩ }
 end
 
+lemma well_founded_on.induction {s : set α} {r : α → α → Prop} (hs : s.well_founded_on r) {x : α}
+  (hx : x ∈ s) {P : α → Prop} (hP : ∀ (y ∈ s), (∀ (z ∈ s), r z y → P z) → P y) :
+  P x :=
+begin
+  let Q : s → Prop := λ y, P y,
+  change Q ⟨x, hx⟩,
+  refine well_founded.induction hs ⟨x, hx⟩ _,
+  rintros ⟨y, ys⟩ ih,
+  exact hP _ ys (λ z zs zy, ih ⟨z, zs⟩ zy),
+end
+
 instance is_strict_order.subset {s : set α} {r : α → α → Prop} [is_strict_order α r] :
   is_strict_order α (λ (a b : α), r a b ∧ a ∈ s ∧ b ∈ s) :=
 { to_is_irrefl := ⟨λ a con, irrefl_of r a con.1 ⟩,
@@ -77,13 +90,11 @@ theorem well_founded_on_iff_no_descending_seq {s : set α} {r : α → α → Pr
   s.well_founded_on r ↔ ∀ (f : ((>) : ℕ → ℕ → Prop) ↪r r), ¬ (range f) ⊆ s :=
 begin
   rw [well_founded_on_iff, rel_embedding.well_founded_iff_no_descending_seq],
-  refine ⟨λ h f con, h begin
-    use f,
-      { exact f.injective },
-      { intros a b,
-        simp only [con (mem_range_self a), con (mem_range_self b), and_true, gt_iff_lt,
-          function.embedding.coe_fn_mk, f.map_rel_iff] }
-    end, λ h con, _⟩,
+  refine ⟨λ h f con, begin
+      refine h.elim' ⟨⟨f, f.injective⟩, λ a b, _⟩,
+       simp only [con (mem_range_self a), con (mem_range_self b), and_true, gt_iff_lt,
+        function.embedding.coe_fn_mk, f.map_rel_iff]
+    end, λ h, ⟨λ con, _⟩⟩,
   rcases con with ⟨f, hf⟩,
   have hfs' : ∀ n : ℕ, f n ∈ s := λ n, (hf.2 n.lt_succ_self).2.2,
   refine h ⟨f, λ a b, _⟩ (λ n hn, _),
@@ -121,8 +132,7 @@ theorem is_wf_iff_no_descending_seq :
 begin
   haveI : is_strict_order α (λ (a b : α), a < b ∧ a ∈ s ∧ b ∈ s) := {
     to_is_irrefl := ⟨λ x con, lt_irrefl x con.1⟩,
-    to_is_trans := ⟨λ a b c ab bc, ⟨lt_trans ab.1 bc.1, ab.2.1, bc.2.2⟩⟩,
-  },
+    to_is_trans := ⟨λ a b c ab bc, ⟨lt_trans ab.1 bc.1, ab.2.1, bc.2.2⟩⟩, },
   rw [is_wf, well_founded_on_iff_no_descending_seq],
   exact ⟨λ h f, h f.lt_embedding, λ h f, h (order_embedding.of_strict_mono
     f (λ _ _, f.map_rel_iff.2))⟩,
@@ -176,9 +186,10 @@ theorem partially_well_ordered_on.mono {s t : set α} {r : α → α → Prop}
   s.partially_well_ordered_on r :=
 λ f hf, ht f (set.subset.trans hf hsub)
 
-theorem partially_well_ordered_on.image_of_monotone {s : set α}
+theorem partially_well_ordered_on.image_of_monotone_on {s : set α}
   {r : α → α → Prop} {β : Type*} {r' : β → β → Prop}
-  (hs : s.partially_well_ordered_on r) {f : α → β} (hf : ∀ a1 a2 : α, r a1 a2 → r' (f a1) (f a2)) :
+  (hs : s.partially_well_ordered_on r) {f : α → β}
+  (hf : ∀ a1 a2 : α, a1 ∈ s → a2 ∈ s → r a1 a2 → r' (f a1) (f a2)) :
   (f '' s).partially_well_ordered_on r' :=
 λ g hg, begin
   have h := λ (n : ℕ), ((mem_image _ _ _).1 (hg (mem_range_self n))),
@@ -186,7 +197,7 @@ theorem partially_well_ordered_on.image_of_monotone {s : set α}
   { refine ⟨m, n, hlt, _⟩,
     rw [← (classical.some_spec (h m)).2,
       ← (classical.some_spec (h n)).2],
-    apply hf _ _ hmn },
+    exact hf _ _ (classical.some_spec (h m)).1 (classical.some_spec (h n)).1 hmn },
   { rintros _ ⟨n, rfl⟩,
     exact (classical.some_spec (h n)).1 }
 end
@@ -282,7 +293,7 @@ end
 theorem is_pwo.image_of_monotone {β : Type*} [partial_order β]
   (hs : s.is_pwo) {f : α → β} (hf : monotone f) :
   is_pwo (f '' s) :=
-hs.image_of_monotone hf
+hs.image_of_monotone_on (λ _ _ _ _ ab, hf ab)
 
 theorem is_pwo.union (hs : is_pwo s) (ht : is_pwo t) : is_pwo (s ∪ t) :=
 begin
@@ -634,6 +645,41 @@ begin
 end
 
 end partially_well_ordered_on
+
+namespace is_pwo
+
+@[to_additive]
+lemma submonoid_closure [ordered_cancel_comm_monoid α] {s : set α} (hpos : ∀ x : α, x ∈ s → 1 ≤ x)
+  (h : s.is_pwo) : is_pwo ((submonoid.closure s) : set α) :=
+begin
+  have hl : ((submonoid.closure s) : set α) ⊆ list.prod '' { l : list α | ∀ x, x ∈ l → x ∈ s },
+  { intros x hx,
+    rw set_like.mem_coe at hx,
+    refine submonoid.closure_induction hx (λ x hx, ⟨_, λ y hy, _, list.prod_singleton⟩)
+      ⟨_, λ y hy, (list.not_mem_nil _ hy).elim, list.prod_nil⟩ _,
+    { rwa list.mem_singleton.1 hy },
+    rintros _ _ ⟨l, hl, rfl⟩ ⟨l', hl', rfl⟩,
+    refine ⟨_, λ y hy, _, list.prod_append⟩,
+    cases list.mem_append.1 hy with hy hy,
+    { exact hl _ hy },
+    { exact hl' _ hy } },
+  apply ((h.partially_well_ordered_on_sublist_forall₂ (≤)).image_of_monotone_on _).mono hl,
+  intros l1 l2 hl1 hl2 h12,
+  obtain ⟨l, hll1, hll2⟩ := list.sublist_forall₂_iff.1 h12,
+  refine le_trans (list.rel_prod (le_refl 1) (λ a b ab c d cd, mul_le_mul' ab cd) hll1) _,
+  obtain ⟨l', hl'⟩ := hll2.exists_perm_append,
+  rw [hl'.prod_eq, list.prod_append, ← mul_one l.prod, mul_assoc, one_mul],
+  apply mul_le_mul_left',
+  have hl's := λ x hx, hl2 x (list.subset.trans (l.subset_append_right _) hl'.symm.subset hx),
+  clear hl',
+  induction l' with x1 x2 x3 x4 x5,
+  { refl },
+  rw [list.prod_cons, ← one_mul (1 : α)],
+  exact mul_le_mul' (hpos x1 (hl's x1 (list.mem_cons_self x1 x2)))
+    (x3 (λ x hx, hl's x (list.mem_cons_of_mem _ hx)))
+end
+
+end is_pwo
 
 /-- `set.mul_antidiagonal s t a` is the set of all pairs of an element in `s` and an element in `t`
   that multiply to `a`. -/

@@ -3,7 +3,6 @@ Copyright (c) 2020 David Wärn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Wärn
 -/
-import order.basic
 import data.equiv.encodable.basic
 import order.atoms
 
@@ -23,6 +22,8 @@ structure, such as a bottom element, a top element, or a join-semilattice struct
 - `order.ideal.is_maximal`: a predicate for maximal ideals.
   Dual to the notion of an ultrafilter.
 - `ideal_inter_nonempty P`: a predicate for when the intersection of any two ideals of
+  `P` is nonempty.
+- `ideal_Inter_nonempty P`: a predicate for when the intersection of all ideals of
   `P` is nonempty.
 - `order.cofinal P`: the type of subsets of `P` containing arbitrarily large elements.
   Dual to the notion of 'dense set' used in forcing.
@@ -72,18 +73,6 @@ structure ideal (P) [preorder P] :=
 `order.is_ideal`. -/
 def is_ideal.to_ideal [preorder P] {I : set P} (h : is_ideal I) : ideal P :=
 ⟨I, h.1, h.2, h.3⟩
-
-/-- A preorder `P` has the `ideal_inter_nonempty` property if the
-    intersection of any two ideals is nonempty.
-    Most importantly, a `semilattice_sup` preorder with this property
-    satisfies that its ideal poset is a lattice.
--/
-class ideal_inter_nonempty (P) [preorder P] : Prop :=
-(inter_nonempty : ∀ (I J : ideal P), (I.carrier ∩ J.carrier).nonempty)
-
-lemma inter_nonempty [preorder P] [ideal_inter_nonempty P] :
-∀ (I J : ideal P), (I.carrier ∩ J.carrier).nonempty :=
-ideal_inter_nonempty.inter_nonempty
 
 namespace ideal
 
@@ -149,7 +138,51 @@ end⟩
   Note that we cannot use the `is_coatom` class because `P` might not have a `top` element.
 -/
 @[mk_iff] class is_maximal (I : ideal P) extends is_proper I : Prop :=
-(maximal_proper : ∀ ⦃J : ideal P⦄, I < J → J.carrier = set.univ)
+(maximal_proper : ∀ ⦃J : ideal P⦄, I < J → (J : set P) = set.univ)
+
+variable (P)
+
+/-- A preorder `P` has the `ideal_inter_nonempty` property if the
+    intersection of any two ideals is nonempty.
+    Most importantly, a `semilattice_sup` preorder with this property
+    satisfies that its ideal poset is a lattice.
+-/
+class ideal_inter_nonempty : Prop :=
+(inter_nonempty : ∀ (I J : ideal P), ((I : set P) ∩ (J : set P)).nonempty)
+
+/-- A preorder `P` has the `ideal_Inter_nonempty` property if the
+    intersection of all ideals is nonempty.
+    Most importantly, a `semilattice_sup` preorder with this property
+    satisfies that its ideal poset is a complete lattice.
+-/
+class ideal_Inter_nonempty : Prop :=
+(Inter_nonempty : (⋂ (I : ideal P), (I : set P)).nonempty)
+
+variable {P}
+
+lemma inter_nonempty [ideal_inter_nonempty P] :
+  ∀ (I J : ideal P), ((I : set P) ∩ (J : set P)).nonempty :=
+ideal_inter_nonempty.inter_nonempty
+
+lemma Inter_nonempty [ideal_Inter_nonempty P] :
+  (⋂ (I : ideal P), (I : set P)).nonempty :=
+ideal_Inter_nonempty.Inter_nonempty
+
+lemma ideal_Inter_nonempty.exists_all_mem [ideal_Inter_nonempty P] :
+  ∃ a : P, ∀ I : ideal P, a ∈ I :=
+begin
+  change ∃ (a : P), ∀ (I : ideal P), a ∈ (I : set P),
+  rw ← set.nonempty_Inter,
+  exact Inter_nonempty,
+end
+
+lemma ideal_Inter_nonempty_of_exists_all_mem (h : ∃ a : P, ∀ I : ideal P, a ∈ I) :
+  ideal_Inter_nonempty P :=
+{ Inter_nonempty := by rwa set.nonempty_Inter }
+
+lemma ideal_Inter_nonempty_iff :
+  ideal_Inter_nonempty P ↔ ∃ a : P, ∀ I : ideal P, a ∈ I :=
+⟨λ _, by exactI ideal_Inter_nonempty.exists_all_mem, ideal_Inter_nonempty_of_exists_all_mem⟩
 
 end preorder
 
@@ -166,6 +199,10 @@ instance : order_bot (ideal P) :=
   bot_le := by simp,
   .. ideal.partial_order }
 
+@[priority 100]
+instance order_bot.ideal_Inter_nonempty : ideal_Inter_nonempty P :=
+by { rw ideal_Inter_nonempty_iff, exact ⟨⊥, λ I, bot_mem⟩ }
+
 end order_bot
 
 section order_top
@@ -178,17 +215,15 @@ instance : order_top (ideal P) :=
   le_top := λ I x h, le_top,
   .. ideal.partial_order }
 
-@[simp] lemma top_carrier : (⊤ : ideal P).carrier = set.univ :=
+@[simp] lemma coe_top : ((⊤ : ideal P) : set P) = set.univ :=
 set.univ_subset_iff.1 (λ p _, le_top)
-
-@[simp] lemma top_coe : ((⊤ : ideal P) : set P) = set.univ := top_carrier
 
 lemma top_of_mem_top {I : ideal P} (mem_top : ⊤ ∈ I) : I = ⊤ :=
 begin
   ext,
-  change x ∈ I.carrier ↔ x ∈ (⊤ : ideal P).carrier,
+  change x ∈ I ↔ x ∈ ((⊤ : ideal P) : set P),
   split,
-  { simp [top_carrier] },
+  { simp [coe_top] },
   { exact λ _, I.mem_of_le le_top mem_top }
 end
 
@@ -198,10 +233,13 @@ is_proper_of_not_mem (λ h, ne_top (top_of_mem_top h))
 lemma is_proper.ne_top {I : ideal P} (hI : is_proper I) : I ≠ ⊤ :=
 begin
   intro h,
-  rw [ext'_iff, top_coe] at h,
+  rw [ext'_iff, coe_top] at h,
   apply hI.ne_univ,
   assumption,
 end
+
+lemma is_proper.top_not_mem {I : ideal P} (hI : is_proper I) : ⊤ ∉ I :=
+by { by_contra, exact hI.ne_top (top_of_mem_top h) }
 
 lemma _root_.is_coatom.is_proper {I : ideal P} (hI : is_coatom I) : is_proper I :=
 is_proper_of_ne_top hI.1
@@ -211,7 +249,7 @@ lemma is_proper_iff_ne_top {I : ideal P} : is_proper I ↔ I ≠ ⊤ :=
 
 lemma is_maximal.is_coatom {I : ideal P} (h : is_maximal I) : is_coatom I :=
 ⟨is_maximal.to_is_proper.ne_top,
- λ _ _, by { rw [ext'_iff, top_coe], exact is_maximal.maximal_proper ‹_› }⟩
+ λ _ _, by { rw [ext'_iff, coe_top], exact is_maximal.maximal_proper ‹_› }⟩
 
 lemma is_maximal.is_coatom' {I : ideal P} [is_maximal I] : is_coatom I :=
 is_maximal.is_coatom ‹_›
@@ -296,14 +334,76 @@ end
 
 end semilattice_sup_ideal_inter_nonempty
 
-section semilattice_sup_bot
-variables [semilattice_sup_bot P]
+section ideal_Inter_nonempty
+
+variables [preorder P] [ideal_Inter_nonempty P]
 
 @[priority 100]
-instance semilattice_sup_bot.ideal_inter_nonempty : ideal_inter_nonempty P :=
-{ inter_nonempty := λ _ _, ⟨⊥, ⟨bot_mem, bot_mem⟩⟩ }
+instance ideal_Inter_nonempty.ideal_inter_nonempty : ideal_inter_nonempty P :=
+{ inter_nonempty := λ _ _, begin
+    obtain ⟨a, ha⟩ : ∃ a : P, ∀ I : ideal P, a ∈ I := ideal_Inter_nonempty.exists_all_mem,
+    exact ⟨a, ha _, ha _⟩
+  end }
 
-end semilattice_sup_bot
+variables {α β γ : Type*} {ι : Sort*}
+
+lemma ideal_Inter_nonempty.all_Inter_nonempty {f : ι → ideal P} :
+  (⋂ x, (f x : set P)).nonempty :=
+begin
+  obtain ⟨a, ha⟩ : ∃ a : P, ∀ I : ideal P, a ∈ I := ideal_Inter_nonempty.exists_all_mem,
+  exact ⟨a, by simp [ha]⟩
+end
+
+lemma ideal_Inter_nonempty.all_bInter_nonempty {f : α → ideal P} {s : set α} :
+  (⋂ x ∈ s, (f x : set P)).nonempty :=
+begin
+  obtain ⟨a, ha⟩ : ∃ a : P, ∀ I : ideal P, a ∈ I := ideal_Inter_nonempty.exists_all_mem,
+  exact ⟨a, by simp [ha]⟩
+end
+
+end ideal_Inter_nonempty
+
+section semilattice_sup_ideal_Inter_nonempty
+
+variables [semilattice_sup P] [ideal_Inter_nonempty P] {x : P} {I J K : ideal P}
+
+instance : has_Inf (ideal P) :=
+{ Inf := λ s, { carrier := ⋂ (I ∈ s), (I : set P),
+  nonempty := ideal_Inter_nonempty.all_bInter_nonempty,
+  directed := λ x hx y hy, ⟨x ⊔ y, ⟨λ S ⟨I, hS⟩,
+    begin
+      simp only [←hS, sup_mem_iff, mem_coe, set.mem_Inter],
+      intro hI,
+      rw set.mem_bInter_iff at *,
+      exact ⟨hx _ hI, hy _ hI⟩
+    end,
+    le_sup_left, le_sup_right⟩⟩,
+  mem_of_le := λ x y hxy hy,
+    begin
+      rw set.mem_bInter_iff at *,
+      exact λ I hI, mem_of_le I ‹_› (hy I hI)
+    end } }
+
+variables {s : set (ideal P)}
+
+@[simp] lemma mem_Inf : x ∈ Inf s ↔ ∀ I ∈ s, x ∈ I :=
+by { change x ∈ (⋂ (I ∈ s), (I : set P)) ↔ ∀ I ∈ s, x ∈ I, simp }
+
+@[simp] lemma coe_Inf : ↑(Inf s) = ⋂ (I ∈ s), (I : set P) := rfl
+
+lemma Inf_le (hI : I ∈ s) : Inf s ≤ I :=
+λ _ hx, hx I ⟨I, by simp [hI]⟩
+
+lemma le_Inf (h : ∀ J ∈ s, I ≤ J) : I ≤ Inf s :=
+λ _ _, by { simp only [mem_coe, coe_Inf, set.mem_Inter], tauto }
+
+lemma is_glb_Inf : is_glb s (Inf s) := ⟨λ _, Inf_le, λ _, le_Inf⟩
+
+instance : complete_lattice (ideal P) :=
+{ ..ideal.lattice,
+  ..complete_lattice_of_Inf (ideal P) (λ _, @is_glb_Inf _ _ _ _) }
+
+end semilattice_sup_ideal_Inter_nonempty
 
 section semilattice_inf
 
@@ -342,6 +442,23 @@ begin
 end
 
 end distrib_lattice
+
+section boolean_algebra
+
+variables [boolean_algebra P] {x : P} {I : ideal P}
+
+lemma is_proper.not_mem_of_compl_mem (hI : is_proper I) (hxc : xᶜ ∈ I) : x ∉ I :=
+begin
+  intro hx,
+  apply hI.top_not_mem,
+  have ht : x ⊔ xᶜ ∈ I := sup_mem _ _ ‹_› ‹_›,
+  rwa sup_compl_eq_top at ht,
+end
+
+lemma is_proper.not_mem_or_compl_not_mem (hI : is_proper I) : x ∉ I ∨ xᶜ ∉ I :=
+have h : xᶜ ∈ I → x ∉ I := hI.not_mem_of_compl_mem, by tauto
+
+end boolean_algebra
 
 end ideal
 
@@ -387,7 +504,7 @@ noncomputable def sequence_of_cofinals : ℕ → P
            end
 
 lemma sequence_of_cofinals.monotone : monotone (sequence_of_cofinals p 𝒟) :=
-by { apply monotone_of_monotone_nat, intros n, dunfold sequence_of_cofinals,
+by { apply monotone_nat_of_le_succ, intros n, dunfold sequence_of_cofinals,
   cases encodable.decode ι n, { refl }, { apply cofinal.le_above }, }
 
 lemma sequence_of_cofinals.encode_mem (i : ι) :

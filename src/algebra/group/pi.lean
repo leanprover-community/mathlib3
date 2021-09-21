@@ -144,17 +144,22 @@ section monoid_hom
 variables (f) [Π i, mul_one_class (f i)]
 
 /-- Evaluation of functions into an indexed collection of monoids at a point is a monoid
-homomorphism. -/
-@[to_additive "Evaluation of functions into an indexed collection of additive monoids at a point
-is an additive monoid homomorphism."]
-def monoid_hom.apply (i : I) : (Π i, f i) →* f i :=
+homomorphism.
+This is `function.eval i` as a `monoid_hom`. -/
+@[to_additive "Evaluation of functions into an indexed collection of additive monoids at a
+point is an additive monoid homomorphism.
+This is `function.eval i` as an `add_monoid_hom`.", simps]
+def pi.eval_monoid_hom (i : I) : (Π i, f i) →* f i :=
 { to_fun := λ g, g i,
-  map_one' := rfl,
-  map_mul' := λ x y, rfl, }
+  map_one' := pi.one_apply i,
+  map_mul' := λ x y, pi.mul_apply _ _ i, }
 
-@[simp, to_additive]
-lemma monoid_hom.apply_apply (i : I) (g : Π i, f i) :
-  (monoid_hom.apply f i) g = g i := rfl
+/-- `function.const` as a `monoid_hom`. -/
+@[to_additive "`function.const` as an `add_monoid_hom`.", simps]
+def pi.const_monoid_hom (α β : Type*) [mul_one_class β] : β →* (α → β) :=
+{ to_fun := function.const α,
+  map_one' := rfl,
+  map_mul' := λ _ _, rfl }
 
 /-- Coercion of a `monoid_hom` into a function is itself a `monoid_hom`.
 
@@ -166,6 +171,17 @@ def monoid_hom.coe_fn (α β : Type*) [mul_one_class α] [comm_monoid β] : (α 
 { to_fun := λ g, g,
   map_one' := rfl,
   map_mul' := λ x y, rfl, }
+
+/-- Monoid homomorphism between the function spaces `I → α` and `I → β`, induced by a monoid
+homomorphism `f` between `α` and `β`. -/
+@[to_additive "Additive monoid homomorphism between the function spaces `I → α` and `I → β`,
+induced by an additive monoid homomorphism `f` between `α` and `β`", simps]
+protected def monoid_hom.comp_left {α β : Type*} [mul_one_class α] [mul_one_class β] (f : α →* β)
+  (I : Type*) :
+  (I → α) →* (I → β) :=
+{ to_fun := λ h, f ∘ h,
+  map_one' := by ext; simp,
+  map_mul' := λ _ _, by ext; simp }
 
 end monoid_hom
 

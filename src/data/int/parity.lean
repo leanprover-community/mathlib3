@@ -3,7 +3,6 @@ Copyright (c) 2019 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Benjamin Davidson
 -/
-import data.int.modeq
 import data.nat.parity
 
 /-!
@@ -26,12 +25,6 @@ by cases mod_two_eq_zero_or_one n with h h; simp [h]
 local attribute [simp] -- euclidean_domain.mod_eq_zero uses (2 ∣ n) as normal form
 theorem mod_two_ne_zero : ¬ n % 2 = 0 ↔ n % 2 = 1 :=
 by cases mod_two_eq_zero_or_one n with h h; simp [h]
-
-@[simp] theorem even_coe_nat (n : ℕ) : even (n : ℤ) ↔ even n :=
-have ∀ m, 2 * to_nat m = to_nat (2 * m),
- from λ m, by cases m; refl,
-⟨λ ⟨m, hm⟩, ⟨to_nat m, by rw [this, ←to_nat_coe_nat n, hm]⟩,
- λ ⟨m, hm⟩, ⟨m, by simp [hm]⟩⟩
 
 theorem even_iff : even n ↔ n % 2 = 0 :=
 ⟨λ ⟨m, hm⟩, by simp [hm], λ h, ⟨n / 2, (mod_add_div n 2).symm.trans (by simp [h])⟩⟩
@@ -110,9 +103,6 @@ by rw [even_add, even_iff_not_odd, even_iff_not_odd, not_iff_not]
 theorem odd.add_odd (hm : odd m) (hn : odd n) : even (m + n) :=
 even_add'.2 $ iff_of_true hm hn
 
-@[parity_simps] theorem even_neg : even (-n) ↔ even n :=
-by simp [even_iff]
-
 @[simp] theorem not_even_bit1 (n : ℤ) : ¬ even (bit1 n) :=
 by simp [bit1] with parity_simps
 
@@ -158,8 +148,11 @@ theorem odd.of_mul_left (h : odd (m * n)) : odd m :=
 theorem odd.of_mul_right (h : odd (m * n)) : odd n :=
 (odd_mul.mp h).2
 
-@[parity_simps] theorem even_pow {n : ℕ} : even (m^n) ↔ even m ∧ n ≠ 0 :=
+@[parity_simps] theorem even_pow {n : ℕ} : even (m ^ n) ↔ even m ∧ n ≠ 0 :=
 by { induction n with n ih; simp [*, even_mul, pow_succ], tauto }
+
+theorem even_pow' {n : ℕ} (h : n ≠ 0) : even (m ^ n) ↔ even m :=
+even_pow.trans $ and_iff_left h
 
 @[parity_simps] theorem odd_add : odd (m + n) ↔ (odd m ↔ even n) :=
 by rw [odd_iff_not_even, even_add, not_iff, odd_iff_not_even]
@@ -194,6 +187,18 @@ begin
   convert n.even_or_odd,
   simp with parity_simps
 end
+
+@[simp, norm_cast] theorem even_coe_nat (n : ℕ) : even (n : ℤ) ↔ even n :=
+by rw_mod_cast [even_iff, nat.even_iff]
+
+@[simp, norm_cast] theorem odd_coe_nat (n : ℕ) : odd (n : ℤ) ↔ odd n :=
+by rw [odd_iff_not_even, nat.odd_iff_not_even, even_coe_nat]
+
+@[simp] theorem nat_abs_even : even n.nat_abs ↔ even n :=
+coe_nat_dvd_left.symm
+
+@[simp] theorem nat_abs_odd : odd n.nat_abs ↔ odd n :=
+by rw [odd_iff_not_even, nat.odd_iff_not_even, nat_abs_even]
 
 -- Here are examples of how `parity_simps` can be used with `int`.
 

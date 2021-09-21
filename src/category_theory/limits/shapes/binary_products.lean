@@ -904,7 +904,7 @@ namespace category_theory
 
 variables {C : Type u} [category.{v} C]
 
-/-- Auxilliary definition for `over.coprod`. -/
+/-- Auxiliary definition for `over.coprod`. -/
 @[simps]
 def over.coprod_obj [has_binary_coproducts C] {A : C} : over A → over A ⥤ over A := λ f,
 { obj := λ g, over.mk (coprod.desc f.hom g.hom),

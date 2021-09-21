@@ -96,13 +96,18 @@ namespace subobject
 abbreviation mk {X A : C} (f : A ⟶ X) [mono f] : subobject X :=
 (to_thin_skeleton _).obj (mono_over.mk' f)
 
+/-- The category of subobjects is equivalent to the `mono_over` category. It is more convenient to
+use the former due to the partial order instance, but oftentimes it is easier to define structures
+on the latter. -/
+noncomputable def equiv_mono_over (X : C) : subobject X ≌ mono_over X :=
+thin_skeleton.equivalence _
+
 /--
 Use choice to pick a representative `mono_over X` for each `subobject X`.
 -/
 noncomputable
 def representative {X : C} : subobject X ⥤ mono_over X :=
-thin_skeleton.from_thin_skeleton _
-
+(equiv_mono_over X).functor
 
 /--
 Starting with `A : mono_over X`, we can take its equivalence class in `subobject X`
@@ -112,7 +117,7 @@ This is isomorphic (in `mono_over X`) to the original `A`.
 noncomputable
 def representative_iso {X : C} (A : mono_over X) :
   representative.obj ((to_thin_skeleton _).obj A) ≅ A :=
-(thin_skeleton.from_thin_skeleton _).as_equivalence.counit_iso.app A
+(equiv_mono_over X).counit_iso.app A
 
 /--
 Use choice to pick a representative underlying object in `C` for any `subobject X`.
@@ -237,7 +242,7 @@ eq_mk_of_comm _ ((underlying_iso f).trans i) $ by simp [w]
 -- it is possible to see its source and target
 -- (`h` will just display as `_`, because it is in `Prop`).
 def of_le {B : C} (X Y : subobject B) (h : X ≤ Y) : (X : C) ⟶ (Y : C) :=
-underlying.map $ hom_of_le h
+underlying.map $ h.hom
 
 @[simp, reassoc] lemma of_le_arrow {B : C} {X Y : subobject B} (h : X ≤ Y) :
   of_le X Y h ≫ Y.arrow = X.arrow :=

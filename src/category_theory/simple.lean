@@ -73,7 +73,7 @@ nontrivial_of_ne 1 0 (id_nonzero X)
 
 section
 variable [has_zero_object C]
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 /-- We don't want the definition of 'simple' to include the zero object, so we check that here. -/
 lemma zero_not_simple [simple (0 : C)] : false :=

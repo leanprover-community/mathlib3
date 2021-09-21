@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov
 -/
 import algebra.module.submodule
+import algebra.punit_instances
 
 /-!
 # The lattice structure on `submodule`s
@@ -22,10 +23,11 @@ to unify the APIs where possible.
 
 -/
 
-variables {R : Type*} {M : Type*}
+variables {R S M : Type*}
 
 section add_comm_monoid
-variables [semiring R] [add_comm_monoid M] [module R M]
+variables [semiring R] [semiring S] [add_comm_monoid M] [module R M] [module S M]
+variables [has_scalar S R] [is_scalar_tower S R M]
 variables {p q : submodule R M}
 
 namespace submodule
@@ -41,6 +43,8 @@ instance inhabited' : inhabited (submodule R M) := ⟨⊥⟩
 
 section
 variables (R)
+@[simp] lemma restrict_scalars_bot : restrict_scalars S (⊥ : submodule R M) = ⊥ := rfl
+
 @[simp] lemma mem_bot {x : M} : x ∈ (⊥ : submodule R M) ↔ x = 0 := set.mem_singleton_iff
 end
 
@@ -62,8 +66,24 @@ protected lemma eq_bot_iff (p : submodule R M) : p = ⊥ ↔ ∀ x ∈ p, x = (0
 ⟨ λ h, h.symm ▸ λ x hx, (mem_bot R).mp hx,
   λ h, eq_bot_iff.mpr (λ x hx, (mem_bot R).mpr (h x hx)) ⟩
 
+@[ext] protected lemma bot_ext (x y : (⊥ : submodule R M)) : x = y :=
+begin
+  rcases x with ⟨x, xm⟩, rcases y with ⟨y, ym⟩, congr,
+  rw (submodule.eq_bot_iff _).mp rfl x xm,
+  rw (submodule.eq_bot_iff _).mp rfl y ym,
+end
+
 protected lemma ne_bot_iff (p : submodule R M) : p ≠ ⊥ ↔ ∃ x ∈ p, x ≠ (0 : M) :=
 by { haveI := classical.prop_decidable, simp_rw [ne.def, p.eq_bot_iff, not_forall] }
+
+/-- The bottom submodule is linearly equivalent to punit as an `R`-module. -/
+@[simps] def bot_equiv_punit : (⊥ : submodule R M) ≃ₗ[R] punit :=
+{ to_fun := λ x, punit.star,
+  inv_fun := λ x, 0,
+  map_add' := by { intros, ext, },
+  map_smul' := by { intros, ext, },
+  left_inv := by { intro x, ext, },
+  right_inv := by { intro x, ext, }, }
 
 /-- The universal set is the top element of the lattice of submodules. -/
 instance : has_top (submodule R M) :=
@@ -75,6 +95,11 @@ instance : has_top (submodule R M) :=
 
 @[simp] lemma mem_top {x : M} : x ∈ (⊤ : submodule R M) := trivial
 
+section
+variables (R)
+@[simp] lemma restrict_scalars_top : restrict_scalars S (⊤ : submodule R M) = ⊤ := rfl
+end
+
 instance : order_top (submodule R M) :=
 { top := ⊤,
   le_top := λ p x _, trivial,
@@ -82,6 +107,15 @@ instance : order_top (submodule R M) :=
 
 lemma eq_top_iff' {p : submodule R M} : p = ⊤ ↔ ∀ x, x ∈ p :=
 eq_top_iff.trans ⟨λ h x, h trivial, λ h x _, h x⟩
+
+/-- The top submodule is linearly equivalent to the module. -/
+@[simps] def top_equiv_self : (⊤ : submodule R M) ≃ₗ[R] M :=
+{ to_fun := λ x, x,
+  inv_fun := λ x, ⟨x, by simp⟩,
+  map_add' := by { intros, refl, },
+  map_smul' := by { intros, refl, },
+  left_inv := by { intro x, ext, refl, },
+  right_inv := by { intro x, refl, }, }
 
 instance : has_Inf (submodule R M) :=
 ⟨λ S, {
@@ -146,10 +180,25 @@ show S ≤ S ⊔ T, from le_sup_left
 lemma mem_sup_right {S T : submodule R M} : ∀ {x : M}, x ∈ T → x ∈ S ⊔ T :=
 show T ≤ S ⊔ T, from le_sup_right
 
+lemma add_mem_sup {S T : submodule R M} {s t : M} (hs : s ∈ S) (ht : t ∈ T) : s + t ∈ S ⊔ T :=
+add_mem _ (mem_sup_left hs) (mem_sup_right ht)
+
 lemma mem_supr_of_mem {ι : Sort*} {b : M} {p : ι → submodule R M} (i : ι) (h : b ∈ p i) :
   b ∈ (⨆i, p i) :=
 have p i ≤ (⨆i, p i) := le_supr p i,
 @this b h
+
+open_locale big_operators
+
+lemma sum_mem_supr {ι : Type*} [fintype ι] {f : ι → M} {p : ι → submodule R M}
+  (h : ∀ i, f i ∈ p i) :
+  ∑ i, f i ∈ ⨆ i, p i :=
+sum_mem _ $ λ i hi, mem_supr_of_mem i (h i)
+
+lemma sum_mem_bsupr {ι : Type*} {s : finset ι} {f : ι → M} {p : ι → submodule R M}
+  (h : ∀ i ∈ s, f i ∈ p i) :
+  ∑ i in s, f i ∈ ⨆ i ∈ s, p i :=
+sum_mem _ $ λ i hi, mem_supr_of_mem i $ mem_supr_of_mem hi (h i hi)
 
 /-! Note that `submodule.mem_supr` is provided in `linear_algebra/basic.lean`. -/
 

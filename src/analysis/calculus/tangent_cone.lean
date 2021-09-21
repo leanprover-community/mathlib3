@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.convex.basic
-import analysis.normed_space.bounded_linear_maps
 import analysis.specific_limits
 
 /-!
@@ -77,7 +76,7 @@ lemma tangent_cone_univ : tangent_cone_at 𝕜 univ x = univ :=
 begin
   refine univ_subset_iff.1 (λy hy, _),
   rcases exists_one_lt_norm 𝕜 with ⟨w, hw⟩,
-  refine ⟨λn, w^n, λn, (w^n)⁻¹ • y, univ_mem_sets' (λn, mem_univ _),  _, _⟩,
+  refine ⟨λn, w^n, λn, (w^n)⁻¹ • y, univ_mem' (λn, mem_univ _),  _, _⟩,
   { simp only [norm_pow],
     exact tendsto_pow_at_top_at_top_of_one_lt hw },
   { convert tendsto_const_nhds,
@@ -93,7 +92,7 @@ lemma tangent_cone_mono (h : s ⊆ t) :
   tangent_cone_at 𝕜 s x ⊆ tangent_cone_at 𝕜 t x :=
 begin
   rintros y ⟨c, d, ds, ctop, clim⟩,
-  exact ⟨c, d, mem_sets_of_superset ds (λn hn, h hn), ctop, clim⟩
+  exact ⟨c, d, mem_of_superset ds (λn hn, h hn), ctop, clim⟩
 end
 
 /-- Auxiliary lemma ensuring that, under the assumptions defining the tangent cone,
@@ -209,13 +208,13 @@ end
 
 /-- If a subset of a real vector space contains a segment, then the direction of this
 segment belongs to the tangent cone at its endpoints. -/
-lemma mem_tangent_cone_of_segment_subset {s : set G} {x y : G} (h : segment x y ⊆ s) :
+lemma mem_tangent_cone_of_segment_subset {s : set G} {x y : G} (h : segment ℝ x y ⊆ s) :
   y - x ∈ tangent_cone_at ℝ s x :=
 begin
   let c := λn:ℕ, (2:ℝ)^n,
   let d := λn:ℕ, (c n)⁻¹ • (y-x),
-  refine ⟨c, d, filter.univ_mem_sets' (λn, h _), _, _⟩,
-  show x + d n ∈ segment x y,
+  refine ⟨c, d, filter.univ_mem' (λn, h _), _, _⟩,
+  show x + d n ∈ segment ℝ x y,
   { rw segment_eq_image,
     refine ⟨(c n)⁻¹, ⟨_, _⟩, _⟩,
     { rw inv_nonneg, apply pow_nonneg, norm_num },
@@ -296,10 +295,10 @@ lemma unique_diff_within_at_of_mem_nhds (h : s ∈ 𝓝 x) : unique_diff_within_
 by simpa only [univ_inter] using unique_diff_within_at_univ.inter h
 
 lemma is_open.unique_diff_within_at (hs : is_open s) (xs : x ∈ s) : unique_diff_within_at 𝕜 s x :=
-unique_diff_within_at_of_mem_nhds (mem_nhds_sets hs xs)
+unique_diff_within_at_of_mem_nhds (is_open.mem_nhds hs xs)
 
 lemma unique_diff_on.inter (hs : unique_diff_on 𝕜 s) (ht : is_open t) : unique_diff_on 𝕜 (s ∩ t) :=
-λx hx, (hs x hx.1).inter (mem_nhds_sets ht hx.2)
+λx hx, (hs x hx.1).inter (is_open.mem_nhds ht hx.2)
 
 lemma is_open.unique_diff_on (hs : is_open s) : unique_diff_on 𝕜 s :=
 λx hx, is_open.unique_diff_within_at hs hx
@@ -369,7 +368,7 @@ unique_diff_on.pi _ _ _ _ $ λ i _, h i
 
 /-- In a real vector space, a convex set with nonempty interior is a set of unique
 differentiability. -/
-theorem unique_diff_on_convex {s : set G} (conv : convex s) (hs : (interior s).nonempty) :
+theorem unique_diff_on_convex {s : set G} (conv : convex ℝ s) (hs : (interior s).nonempty) :
   unique_diff_on ℝ s :=
 begin
   assume x xs,
@@ -379,7 +378,7 @@ begin
     simp [(submodule.span ℝ (tangent_cone_at ℝ s x)).eq_top_of_nonempty_interior'
       ⟨y - x, interior_mono submodule.subset_span this⟩] },
   rw [mem_interior_iff_mem_nhds] at hy ⊢,
-  apply mem_sets_of_superset ((is_open_map_sub_right x).image_mem_nhds hy),
+  apply mem_of_superset ((is_open_map_sub_right x).image_mem_nhds hy),
   rintros _ ⟨z, zs, rfl⟩,
   exact mem_tangent_cone_of_segment_subset (conv.segment_subset xs zs)
 end
@@ -402,12 +401,12 @@ unique_diff_on_convex (convex_Icc a b) $ by simp only [interior_Icc, nonempty_Io
 lemma unique_diff_on_Ico (a b : ℝ) : unique_diff_on ℝ (Ico a b) :=
 if hab : a < b
 then unique_diff_on_convex (convex_Ico a b) $ by simp only [interior_Ico, nonempty_Ioo, hab]
-else by simp only [Ico_eq_empty (le_of_not_lt hab), unique_diff_on_empty]
+else by simp only [Ico_eq_empty hab, unique_diff_on_empty]
 
 lemma unique_diff_on_Ioc (a b : ℝ) : unique_diff_on ℝ (Ioc a b) :=
 if hab : a < b
 then unique_diff_on_convex (convex_Ioc a b) $ by simp only [interior_Ioc, nonempty_Ioo, hab]
-else by simp only [Ioc_eq_empty (le_of_not_lt hab), unique_diff_on_empty]
+else by simp only [Ioc_eq_empty hab, unique_diff_on_empty]
 
 lemma unique_diff_on_Ioo (a b : ℝ) : unique_diff_on ℝ (Ioo a b) :=
 is_open_Ioo.unique_diff_on

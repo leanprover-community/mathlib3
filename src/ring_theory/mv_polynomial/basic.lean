@@ -25,7 +25,7 @@ that the monomials form a basis.
 
 * The multivariate polynomial ring over a commutative ring of positive characteristic has positive
   characteristic.
-* `is_basis_monomials`: shows that the monomials form a basis of the vector space of multivariate
+* `basis_monomials`: shows that the monomials form a basis of the vector space of multivariate
   polynomials.
 
 ## TODO
@@ -61,11 +61,12 @@ begin
   rw [← finsupp.sum_single p, finsupp.sum],
   -- It's not great that we need to use an `erw` here,
   -- but hopefully it will become smoother when we move entirely away from `is_semiring_hom`.
+  -- [note added later: we have moved entirely away from it but we still need the `erw` because
+  -- `finsupp.map_range ⇑↑f` is not syntactically `finsupp.map_range ⇑f` ]
   erw [finsupp.map_range_finset_sum (f : R →+ S)],
-  rw [← (finsupp.support p).sum_hom (map f)],
-  { refine finset.sum_congr rfl (assume n _, _),
-    rw [finsupp.map_range_single, ← monomial, ← monomial, map_monomial], refl, },
-  apply_instance
+  rw (map f).map_sum,
+  refine finset.sum_congr rfl (assume n _, _),
+  rw [finsupp.map_range_single, ← monomial, ← monomial, map_monomial], refl,
 end
 
 end homomorphism
@@ -107,24 +108,31 @@ end
 
 variables (σ R)
 
-lemma is_basis_monomials :
-  is_basis R ((λs, (monomial s 1 : mv_polynomial σ R))) :=
-suffices is_basis R (λ (sa : Σ _, unit), (monomial sa.1 1 : mv_polynomial σ R)),
-begin
-  apply is_basis.comp this (λ (s : σ →₀ ℕ), ⟨s, punit.star⟩),
-  split,
-  { intros x y hxy,
-    simpa using hxy },
-  { rintros ⟨x₁, x₂⟩,
-    use x₁,
-    rw punit_eq punit.star x₂ }
-end,
-begin
-  apply finsupp.is_basis_single (λ _ _, (1 : R)),
-  intro _,
-  apply is_basis_singleton_one,
-end
+/-- The monomials form a basis on `mv_polynomial σ R`. -/
+def basis_monomials : basis (σ →₀ ℕ) R (mv_polynomial σ R) := finsupp.basis_single_one
+
+@[simp] lemma coe_basis_monomials :
+  (basis_monomials σ R : (σ →₀ ℕ) → mv_polynomial σ R) = λ s, monomial s 1 :=
+rfl
+
+lemma linear_independent_X : linear_independent R (X : σ → mv_polynomial σ R) :=
+(basis_monomials σ R).linear_independent.comp
+  (λ s : σ, finsupp.single s 1) (finsupp.single_left_injective one_ne_zero)
 
 end degree
 
 end mv_polynomial
+
+
+/- this is here to avoid import cycle issues -/
+namespace polynomial
+
+/-- The monomials form a basis on `polynomial R`. -/
+noncomputable def basis_monomials : basis ℕ R (polynomial R) :=
+finsupp.basis_single_one.map (to_finsupp_iso_alg R).to_linear_equiv.symm
+
+@[simp] lemma coe_basis_monomials :
+  (basis_monomials R : ℕ → polynomial R) = λ s, monomial s 1 :=
+_root_.funext $ λ n, to_finsupp_iso_symm_single
+
+end polynomial

@@ -104,10 +104,6 @@ by { split_ifs; refl, }
 
 end
 
-@[mono] lemma monotone {α β : Type*} [preorder α] [preorder β] (F : α ⥤ β) :
-  monotone F.obj :=
-λ a b h, le_of_hom (F.map (hom_of_le h))
-
 end functor
 
 end category_theory

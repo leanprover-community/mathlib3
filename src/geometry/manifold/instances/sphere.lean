@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
 import geometry.manifold.instances.real
+import analysis.complex.circle
 
 /-!
 # Manifold structure on the sphere
@@ -21,7 +22,7 @@ For finite-dimensional `E`, we then construct a smooth manifold instance on the 
 here are obtained by composing the local homeomorphisms `stereographic` with arbitrary isometries
 from `(ℝ ∙ v)ᗮ` to Euclidean space.
 
-Finally, two lemmas about smooth maps:
+We prove two lemmas about smooth maps:
 * `times_cont_mdiff_coe_sphere` states that the coercion map from the sphere into `E` is smooth;
   this is a useful tool for constructing smooth maps *from* the sphere.
 * `times_cont_mdiff.cod_restrict_sphere` states that a map from a manifold into the sphere is
@@ -29,6 +30,15 @@ Finally, two lemmas about smooth maps:
   *to* the sphere.
 
 As an application we prove `times_cont_mdiff_neg_sphere`, that the antipodal map is smooth.
+
+Finally, we equip the `circle` (defined in `analysis.complex.circle` to be the sphere in `ℂ`
+centred at `0` of radius `1`) with the following structure:
+* a charted space with model space `euclidean_space ℝ (fin 1)` (inherited from `metric.sphere`)
+* a Lie group with model with corners `𝓡 1`
+
+We furthermore show that `exp_map_circle` (defined in `analysis.complex.circle` to be the natural
+map `λ t, exp (t * I)` from `ℝ` to `circle`) is smooth.
+
 
 ## Implementation notes
 
@@ -48,7 +58,7 @@ noncomputable theory
 open metric finite_dimensional
 open_locale manifold
 
-local attribute [instance] finite_dimensional_of_finrank_eq_succ
+local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
 
 section stereographic_projection
 variables (v : E)
@@ -377,3 +387,38 @@ lemma times_cont_mdiff_neg_sphere {n : ℕ} [fact (finrank ℝ E = n + 1)] :
 (times_cont_diff_neg.times_cont_mdiff.comp times_cont_mdiff_coe_sphere).cod_restrict_sphere _
 
 end smooth_manifold
+
+section circle
+
+open complex
+
+local attribute [instance] finrank_real_complex_fact
+
+/-- The unit circle in `ℂ` is a charted space modelled on `euclidean_space ℝ (fin 1)`.  This
+follows by definition from the corresponding result for `metric.sphere`. -/
+instance : charted_space (euclidean_space ℝ (fin 1)) circle := metric.sphere.charted_space
+
+instance : smooth_manifold_with_corners (𝓡 1) circle :=
+metric.sphere.smooth_manifold_with_corners
+
+/-- The unit circle in `ℂ` is a Lie group. -/
+instance : lie_group (𝓡 1) circle :=
+{ smooth_mul := begin
+    let c : circle → ℂ := coe,
+    have h₁ : times_cont_mdiff _ _ _ (prod.map c c) :=
+      times_cont_mdiff_coe_sphere.prod_map times_cont_mdiff_coe_sphere,
+    have h₂ : times_cont_mdiff (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ)) 𝓘(ℝ, ℂ) ∞ (λ (z : ℂ × ℂ), z.fst * z.snd),
+    { rw times_cont_mdiff_iff,
+      exact ⟨continuous_mul, λ x y, (times_cont_diff_mul.restrict_scalars ℝ).times_cont_diff_on⟩ },
+    exact (h₂.comp h₁).cod_restrict_sphere _,
+  end,
+  smooth_inv := (complex.conj_cle.times_cont_diff.times_cont_mdiff.comp
+    times_cont_mdiff_coe_sphere).cod_restrict_sphere _,
+  .. metric.sphere.smooth_manifold_with_corners }
+
+/-- The map `λ t, exp (t * I)` from `ℝ` to the unit circle in `ℂ` is smooth. -/
+lemma times_cont_mdiff_exp_map_circle : times_cont_mdiff 𝓘(ℝ, ℝ) (𝓡 1) ∞ exp_map_circle :=
+(((times_cont_diff_exp.restrict_scalars ℝ).comp
+  (times_cont_diff_id.smul times_cont_diff_const)).times_cont_mdiff).cod_restrict_sphere _
+
+end circle

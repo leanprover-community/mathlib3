@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import data.real.basic
-import data.set.disjointed
 import data.set.intervals
+import data.set.pairwise
 import set_theory.cardinal
 /-!
 Proof that a cube (in dimension n ≥ 3) cannot be cubed:
@@ -18,6 +18,7 @@ http://www.alaricstephen.com/main-featured/2017/9/28/cubing-a-cube-proof
 
 
 open real set function fin
+open_locale cardinal
 
 noncomputable theory
 
@@ -125,7 +126,7 @@ def correct (cs : ι → cube n) : Prop :=
 pairwise (disjoint on (cube.to_set ∘ cs)) ∧
 (⋃(i : ι), (cs i).to_set) = unit_cube.to_set ∧
 injective (cube.w ∘ cs) ∧
-2 ≤ cardinal.mk ι ∧
+2 ≤ #ι ∧
 3 ≤ n
 
 variable (h : correct cs)
@@ -261,7 +262,7 @@ end
 
 open cardinal
 /-- There are at least two cubes in a valley -/
-lemma two_le_mk_bcubes : 2 ≤ cardinal.mk (bcubes cs c) :=
+lemma two_le_mk_bcubes : 2 ≤ #(bcubes cs c) :=
 begin
   rw [two_le_iff],
   rcases v.1 c.b_mem_bottom with ⟨_, ⟨i, rfl⟩, hi⟩,
@@ -497,7 +498,7 @@ def decreasing_sequence (k : ℕ) : order_dual ℝ :=
 (cs (sequence_of_cubes h k).1).w
 
 lemma strict_mono_sequence_of_cubes : strict_mono $ decreasing_sequence h :=
-strict_mono.nat $
+strict_mono_nat_of_lt_succ $
 begin
   intro k, let v := (sequence_of_cubes h k).2, dsimp only [decreasing_sequence, sequence_of_cubes],
   apply w_lt_w h v (mi_mem_bcubes : mi h v ∈ _),
@@ -513,11 +514,11 @@ begin
   dsimp only [decreasing_sequence], rw hnm
 end
 
-/-- A cube cannot be cubed. -/
+/-- **Dissection of Cubes**: A cube cannot be cubed. -/
 theorem cannot_cube_a_cube :
   ∀{n : ℕ}, n ≥ 3 →                              -- In ℝ^n for n ≥ 3
   ∀{ι : Type} [fintype ι] {cs : ι → cube n},     -- given a finite collection of (hyper)cubes
-  2 ≤ cardinal.mk ι →                            -- containing at least two elements
+  2 ≤ #ι →                                       -- containing at least two elements
   pairwise (disjoint on (cube.to_set ∘ cs)) →    -- which is pairwise disjoint
   (⋃(i : ι), (cs i).to_set) = unit_cube.to_set → -- whose union is the unit cube
   injective (cube.w ∘ cs) →                      -- such that the widths of all cubes are different

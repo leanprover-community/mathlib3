@@ -119,6 +119,9 @@ abbreviation small_category (C : Type u) : Type (u+1) := category.{u} C
 section
 variables {C : Type u} [category.{v} C] {X Y Z : C}
 
+initialize_simps_projections category (to_category_struct_to_quiver_hom → hom,
+  to_category_struct_comp → comp, to_category_struct_id → id, -to_category_struct)
+
 /-- postcompose an equation between morphisms by another morphism -/
 lemma eq_whisker {f g : X ⟶ Y} (w : f = g) (h : Y ⟶ Z) : f ≫ h = g ≫ h :=
 by rw w
@@ -245,63 +248,6 @@ instance ulift_category : category.{v} (ulift.{u'} C) :=
 -- We verify that this previous instance can lift small categories to large categories.
 example (D : Type u) [small_category D] : large_category (ulift.{u+1} D) := by apply_instance
 end
-
-end category_theory
-
-open category_theory
-
-/-!
-We now put a category instance on any preorder.
-
-Because we do not allow the morphisms of a category to live in `Prop`,
-unfortunately we need to use `plift` and `ulift` when defining the morphisms.
-
-As convenience functions, we provide `hom_of_le` and `le_of_hom` to wrap and unwrap inequalities.
--/
-namespace preorder
-
-variables (α : Type u)
-
-/--
-The category structure coming from a preorder. There is a morphism `X ⟶ Y` if and only if `X ≤ Y`.
-
-Because we don't allow morphisms to live in `Prop`,
-we have to define `X ⟶ Y` as `ulift (plift (X ≤ Y))`.
-See `category_theory.hom_of_le` and `category_theory.le_of_hom`.
-
-See https://stacks.math.columbia.edu/tag/00D3.
--/
-@[priority 100] -- see Note [lower instance priority]
-instance small_category [preorder α] : small_category α :=
-{ hom  := λ U V, ulift (plift (U ≤ V)),
-  id   := λ X, ⟨ ⟨ le_refl X ⟩ ⟩,
-  comp := λ X Y Z f g, ⟨ ⟨ le_trans _ _ _ f.down.down g.down.down ⟩ ⟩ }
-
-end preorder
-
-namespace category_theory
-
-variables {α : Type u} [preorder α]
-
-/--
-Express an inequality as a morphism in the corresponding preorder category.
--/
-def hom_of_le {U V : α} (h : U ≤ V) : U ⟶ V := ulift.up (plift.up h)
-
-@[simp] lemma hom_of_le_refl {U : α} : hom_of_le (le_refl U) = 𝟙 U := rfl
-@[simp] lemma hom_of_le_comp {U V W : α} (h : U ≤ V) (k : V ≤ W) :
-  hom_of_le h ≫ hom_of_le k = hom_of_le (h.trans k) := rfl
-
-/--
-Extract the underlying inequality from a morphism in a preorder category.
--/
-lemma le_of_hom {U V : α} (h : U ⟶ V) : U ≤ V := h.down.down
-
-@[simp] lemma le_of_hom_hom_of_le {a b : α} (h : a ≤ b) :
-  le_of_hom (hom_of_le h) = h := rfl
-@[simp] lemma hom_of_le_le_of_hom {a b : α} (h : a ⟶ b) :
-  hom_of_le (le_of_hom h) = h :=
-by { cases h, cases h, refl, }
 
 end category_theory
 

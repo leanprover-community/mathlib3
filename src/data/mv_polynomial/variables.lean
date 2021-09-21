@@ -3,9 +3,9 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 -/
-
+import algebra.big_operators.order
 import data.mv_polynomial.monad
-import data.set.disjointed
+import data.set.pairwise
 
 /-!
 # Degrees and variables of polynomials
@@ -103,7 +103,7 @@ lemma degrees_X' (n : σ) : degrees (X n : mv_polynomial σ R) ≤ {n} :=
 le_trans (degrees_monomial _ _) $ le_of_eq $ to_multiset_single _ _
 
 @[simp] lemma degrees_X [nontrivial R] (n : σ) : degrees (X n : mv_polynomial σ R) = {n} :=
-(degrees_monomial_eq _ _ one_ne_zero).trans (to_multiset_single _ _)
+(degrees_monomial_eq _ (1 : R) one_ne_zero).trans (to_multiset_single _ _)
 
 @[simp] lemma degrees_zero : degrees (0 : mv_polynomial σ R) = 0 :=
 by { rw ← C_0, exact degrees_C 0 }
@@ -115,8 +115,8 @@ begin
   refine finset.sup_le (assume b hb, _),
   have := finsupp.support_add hb, rw finset.mem_union at this,
   cases this,
-  { exact le_sup_left_of_le (finset.le_sup this) },
-  { exact le_sup_right_of_le (finset.le_sup this) },
+  { exact le_sup_of_le_left (finset.le_sup this) },
+  { exact le_sup_of_le_right (finset.le_sup this) },
 end
 
 lemma degrees_sum {ι : Type*} (s : finset ι) (f : ι → mv_polynomial σ R) :
@@ -295,7 +295,7 @@ begin
   contrapose! hd, cases hd,
   rw finset.sum_eq_zero,
   rintro ⟨d₁, d₂⟩ H,
-  rw finsupp.mem_antidiagonal_support at H,
+  rw finsupp.mem_antidiagonal at H,
   subst H,
   obtain H|H : i ∈ d₁.support ∨ i ∈ d₂.support,
   { simpa only [finset.mem_union] using finsupp.support_add hi, },
@@ -469,8 +469,8 @@ finset.sup_le $ assume n hn,
   begin
     rw finset.mem_union at this,
     cases this,
-    { exact le_max_left_of_le (finset.le_sup this) },
-    { exact le_max_right_of_le (finset.le_sup this) }
+    { exact le_max_of_le_left (finset.le_sup this) },
+    { exact le_max_of_le_right (finset.le_sup this) }
   end
 
 lemma total_degree_mul (a b : mv_polynomial σ R) :

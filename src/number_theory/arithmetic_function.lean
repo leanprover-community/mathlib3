@@ -735,7 +735,7 @@ begin
       int.cast_one, sum_singleton, coe_mul_zeta_apply, one_one, int_coe_apply, pow_zero] },
   rw [coe_mul_zeta_apply, one_apply_ne (ne_of_gt (succ_lt_succ (nat.succ_pos _)))],
   simp_rw [int_coe_apply],
-  rw [← finset.sum_int_cast, ← sum_filter_ne_zero],
+  rw [←int.cast_sum, ← sum_filter_ne_zero],
   convert int.cast_zero,
   simp only [moebius_ne_zero_iff_squarefree],
   suffices :
@@ -766,7 +766,7 @@ begin
       use j,
       apply multiset.mem_to_finset.2 hj },
     rw nat.is_unit_iff,
-    omega },
+    norm_num },
 end
 
 @[simp] lemma coe_zeta_mul_coe_moebius [comm_ring R] : (ζ * μ : arithmetic_function R) = 1 :=

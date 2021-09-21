@@ -125,7 +125,7 @@ end
 theorem even.sub_even (hm : even m) (hn : even n) : even (m - n) :=
 (le_total n m).elim
   (λ h, by simp only [even_sub h, *])
-  (λ h, by simp only [sub_eq_zero_of_le h, even_zero])
+  (λ h, by simp only [nat.sub_eq_zero_of_le h, even_zero])
 
 theorem even_sub' (h : n ≤ m) : even (m - n) ↔ (odd m ↔ odd n) :=
 by rw [even_sub h, even_iff_not_odd, even_iff_not_odd, not_iff_not]
@@ -133,7 +133,7 @@ by rw [even_sub h, even_iff_not_odd, even_iff_not_odd, not_iff_not]
 theorem odd.sub_odd (hm : odd m) (hn : odd n) : even (m - n) :=
 (le_total n m).elim
   (λ h, by simp only [even_sub' h, *])
-  (λ h, by simp only [sub_eq_zero_of_le h, even_zero])
+  (λ h, by simp only [nat.sub_eq_zero_of_le h, even_zero])
 
 @[parity_simps] theorem even_succ : even (succ n) ↔ ¬ even n :=
 by rw [succ_eq_add_one, even_add]; simp [not_even_one]
@@ -164,8 +164,11 @@ theorem odd.of_mul_right (h : odd (m * n)) : odd n :=
 
 /-- If `m` and `n` are natural numbers, then the natural number `m^n` is even
 if and only if `m` is even and `n` is positive. -/
-@[parity_simps] theorem even_pow : even (m^n) ↔ even m ∧ n ≠ 0 :=
+@[parity_simps] theorem even_pow : even (m ^ n) ↔ even m ∧ n ≠ 0 :=
 by { induction n with n ih; simp [*, pow_succ', even_mul], tauto }
+
+theorem even_pow' (h : n ≠ 0) : even (m ^ n) ↔ even m :=
+even_pow.trans $ and_iff_left h
 
 theorem even_div : even (m / n) ↔ m % (2 * n) / n = 0 :=
 by rw [even_iff_two_dvd, dvd_iff_mod_eq_zero, nat.div_mod_eq_mod_mul_div, mul_comm]

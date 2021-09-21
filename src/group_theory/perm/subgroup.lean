@@ -26,7 +26,7 @@ universes u
 
 instance sum_congr_hom.decidable_mem_range {α β : Type*}
   [decidable_eq α] [decidable_eq β] [fintype α] [fintype β] :
-  decidable_pred (λ x, x ∈ (sum_congr_hom α β).range) :=
+  decidable_pred (∈ (sum_congr_hom α β).range) :=
 λ x, infer_instance
 
 @[simp]
@@ -37,7 +37,7 @@ fintype.card_eq.mpr ⟨(of_injective (sum_congr_hom α β) sum_congr_hom_injecti
 
 instance sigma_congr_right_hom.decidable_mem_range {α : Type*} {β : α → Type*}
   [decidable_eq α] [∀ a, decidable_eq (β a)] [fintype α] [∀ a, fintype (β a)] :
-  decidable_pred (λ x, x ∈ (sigma_congr_right_hom β).range) :=
+  decidable_pred (∈ (sigma_congr_right_hom β).range) :=
 λ x, infer_instance
 
 @[simp]
@@ -48,7 +48,7 @@ fintype.card_eq.mpr ⟨(of_injective (sigma_congr_right_hom β) sigma_congr_righ
 
 instance subtype_congr_hom.decidable_mem_range {α : Type*} (p : α → Prop) [decidable_pred p]
   [fintype (perm {a // p a} × perm {a // ¬ p a})] [decidable_eq (perm α)] :
-  decidable_pred (λ x, x ∈ (subtype_congr_hom p).range) :=
+  decidable_pred (∈ (subtype_congr_hom p).range) :=
 λ x, infer_instance
 
 @[simp]
@@ -56,6 +56,13 @@ lemma subtype_congr_hom.card_range {α : Type*} (p : α → Prop) [decidable_pre
   [fintype (subtype_congr_hom p).range] [fintype (perm {a // p a} × perm {a // ¬ p a})] :
   fintype.card (subtype_congr_hom p).range = fintype.card (perm {a // p a} × perm {a // ¬ p a}) :=
 fintype.card_eq.mpr ⟨(of_injective (subtype_congr_hom p) (subtype_congr_hom_injective p)).symm⟩
+
+/-- **Cayley's theorem**: Every group G is isomorphic to a subgroup of the symmetric group acting on
+`G`. Note that we generalize this to an arbitrary "faithful" group action by `G`. Setting `H = G`
+recovers the usual statement of Cayley's theorem via `right_cancel_monoid.to_has_faithful_scalar` -/
+noncomputable def subgroup_of_mul_action (G H : Type*) [group G] [mul_action G H]
+  [has_faithful_scalar G H] : G ≃* (mul_action.to_perm_hom G H).range :=
+mul_equiv.of_left_inverse' _ (classical.some_spec mul_action.to_perm_injective.has_left_inverse)
 
 end perm
 end equiv

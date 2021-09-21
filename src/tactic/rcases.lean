@@ -299,7 +299,7 @@ meta mutual def rcases_core, rcases.continue
 with rcases_core : rcases_patt → expr → tactic (list uncleared_goal)
 | (rcases_patt.one `rfl) e := do
   (t, e) ← get_local_and_type e,
-  subst e,
+  subst' e,
   list.map (prod.mk []) <$> get_goals
 -- If the pattern is any other name, we already bound the name in the
 -- top-level `cases` tactic, so there is no more work to do for it.
@@ -478,7 +478,7 @@ with rcases_hint_core : ℕ → expr → tactic (rcases_patt × list expr)
   env ← get_env,
   let I := t.get_app_fn.const_name,
   (do guard (I = ``eq),
-    subst e,
+    subst' e,
     prod.mk (rcases_patt.one `rfl) <$> get_goals) <|>
   (do
     let c := env.constructors_of I,
@@ -575,10 +575,10 @@ do l ← intros,
 setup_tactic_parser
 
 /--
-* `rcases_patt_parse tt` will parse a high precedence `rcases` pattern, `patt_hi`.
+* `rcases_patt_parse_hi` will parse a high precedence `rcases` pattern, `patt_hi`.
   This means only tuples and identifiers are allowed; alternations and type ascriptions
   require `(...)` instead, which switches to `patt`.
-* `rcases_patt_parse ff` will parse a low precedence `rcases` pattern, `patt`. This consists of a
+* `rcases_patt_parse` will parse a low precedence `rcases` pattern, `patt`. This consists of a
   `patt_med` (which deals with alternations), optionally followed by a `: ty` type ascription. The
   expression `ty` is at `texpr` precedence because it can appear at the end of a tactic, for
   example in `rcases e with x : ty <|> skip`.
@@ -593,19 +593,22 @@ patt_med ::= (patt_hi "|")* patt_hi
 patt_hi ::= id | "rfl" | "_" | "⟨" (patt ",")* patt "⟩" | "(" patt ")"
 ```
 -/
-meta mutual def rcases_patt_parse, rcases_patt_parse_list, rcases_patt_parse_list_rest
-with rcases_patt_parse : bool → parser rcases_patt
-| tt := with_desc "patt_hi" $
-  (brackets "(" ")" (rcases_patt_parse ff)) <|>
-  (rcases_patt.tuple <$> brackets "⟨" "⟩" (sep_by (tk ",") (rcases_patt_parse ff))) <|>
+meta mutual def
+  rcases_patt_parse_hi, rcases_patt_parse, rcases_patt_parse_list, rcases_patt_parse_list_rest
+with rcases_patt_parse_hi : parser rcases_patt
+| x := with_desc "patt_hi"
+  ((brackets "(" ")" rcases_patt_parse) <|>
+  (rcases_patt.tuple <$> brackets "⟨" "⟩" (sep_by (tk ",") rcases_patt_parse)) <|>
   (tk "-" $> rcases_patt.clear) <|>
-  (rcases_patt.one <$> ident_)
-| ff := with_desc "patt" $ do
+  (rcases_patt.one <$> ident_)) x
+
+with rcases_patt_parse : parser rcases_patt
+| x := with_desc "patt" (do
   pat ← rcases_patt.alts' <$> rcases_patt_parse_list,
-  (tk ":" *> pat.typed <$> texpr) <|> pure pat
+  (tk ":" *> pat.typed <$> texpr) <|> pure pat) x
 
 with rcases_patt_parse_list : parser (listΣ rcases_patt)
-| x := (with_desc "patt_med" $ rcases_patt_parse tt >>= rcases_patt_parse_list_rest) x
+| x := (with_desc "patt_med" $ rcases_patt_parse_hi >>= rcases_patt_parse_list_rest) x
 
 with rcases_patt_parse_list_rest : rcases_patt → parser (listΣ rcases_patt)
 | pat :=
@@ -644,7 +647,7 @@ with_desc "('?' expr (: n)?) | ((h :)? expr (with patt)?)" $ do
       sum.inl (expr.local_const h _ _ _) ← pure p,
       tk ":" *> (@sum.inl _ (pexpr ⊕ list pexpr) ∘ prod.mk h) <$> texpr) <|>
       pure (sum.inr p),
-    ids ← (tk "with" *> rcases_patt_parse ff)?,
+    ids ← (tk "with" *> rcases_patt_parse)?,
     let ids := ids.get_or_else (rcases_patt.tuple []),
     pure $ match p with
     | sum.inl (name, tgt) := rcases_args.rcases (some name) tgt ids
@@ -664,11 +667,11 @@ parsing top level `rintro` patterns, which allow sequences like `(x y : t)` in a
 * `rintro_patt_parse_hi` will parse a high precedence `rcases` pattern, `rintro_patt_hi` below.
   This means only tuples and identifiers are allowed; alternations and type ascriptions
   require `(...)` instead, which switches to `patt`.
-* `rintro_patt_parse tt` will parse a low precedence `rcases` pattern, `rintro_patt` below.
+* `rintro_patt_parse` will parse a low precedence `rcases` pattern, `rintro_patt` below.
   This consists of either a sequence of patterns `p1 p2 p3` or an alternation list `p1 | p2 | p3`
   treated as a single pattern, optionally followed by a `: ty` type ascription, which applies to
   every pattern in the list.
-* `rintro_patt_parse ff` parses `rintro_patt_low`, which is the same as `rintro_patt_parse tt` but
+* `rintro_patt_parse_low` parses `rintro_patt_low`, which is the same as `rintro_patt_parse tt` but
   it does not permit an unparenthesized alternation list, it must have the form `p1 p2 p3 (: ty)?`.
 
 ```lean
@@ -677,13 +680,13 @@ rintro_patt_low ::= rintro_patt_hi* (":" expr)?
 rintro_patt_hi ::= patt_hi | "(" rintro_patt ")"
 ```
 -/
-meta mutual def rintro_patt_parse_hi, rintro_patt_parse
+meta mutual def rintro_patt_parse_hi, rintro_patt_parse'
 with rintro_patt_parse_hi : parser (listΠ rcases_patt)
 | x := (with_desc "rintro_patt_hi" $
-  brackets "(" ")" (rintro_patt_parse tt) <|>
-  (do p ← rcases_patt_parse tt, pure [p])) x
-with rintro_patt_parse : bool → parser (listΠ rcases_patt)
-| med := with_desc "rintro_patt" $ do
+  brackets "(" ")" (rintro_patt_parse' tt) <|>
+  (do p ← rcases_patt_parse_hi, pure [p])) x
+with rintro_patt_parse' : bool → parser (listΠ rcases_patt)
+| med := do
   ll ← rintro_patt_parse_hi*,
   pats ← match med, ll.join with
   | tt, [] := failure
@@ -693,11 +696,25 @@ with rintro_patt_parse : bool → parser (listΠ rcases_patt)
   (do tk ":", e ← texpr, pure (pats.map (λ p, rcases_patt.typed p e))) <|>
   pure pats
 
+/--
+`rintro_patt_parse` will parse a low precedence `rcases` pattern, `rintro_patt` below.
+This consists of either a sequence of patterns `p1 p2 p3` or an alternation list `p1 | p2 | p3`
+treated as a single pattern, optionally followed by a `: ty` type ascription, which applies to
+every pattern in the list.
+-/
+meta def rintro_patt_parse := with_desc "rintro_patt" $ rintro_patt_parse' tt
+
+/--
+`rintro_patt_parse_low` parses `rintro_patt_low`, which is the same as `rintro_patt_parse tt` but
+it does not permit an unparenthesized alternation list, it must have the form `p1 p2 p3 (: ty)?`.
+-/
+meta def rintro_patt_parse_low := with_desc "rintro_patt_low" $ rintro_patt_parse' ff
+
 /-- Syntax for a `rintro` pattern: `('?' (: n)?) | rintro_patt`. -/
 meta def rintro_parse : parser (listΠ rcases_patt ⊕ nat) :=
 with_desc "('?' (: n)?) | patt*" $
 (tk "?" >> sum.inr <$> rcases_parse_depth) <|>
-sum.inl <$> rintro_patt_parse ff
+sum.inl <$> rintro_patt_parse_low
 
 namespace interactive
 open interactive interactive.types expr
@@ -808,13 +825,13 @@ add_tactic_doc
 setup_tactic_parser
 
 /-- Parses `patt? (: expr)? (:= expr)?`, the arguments for `obtain`.
- (This is almost the same as `rcases_patt_parse ff`,
+ (This is almost the same as `rcases_patt_parse`,
 but it allows the pattern part to be empty.) -/
 meta def obtain_parse :
   parser ((option rcases_patt × option pexpr) × option (pexpr ⊕ list pexpr)) :=
 with_desc "patt? (: expr)? (:= expr)?" $ do
   (pat, tp) ←
-    (do pat ← rcases_patt_parse ff,
+    (do pat ← rcases_patt_parse,
       pure $ match pat with
       | rcases_patt.typed pat tp := (some pat, some tp)
       | _ := (some pat, none)

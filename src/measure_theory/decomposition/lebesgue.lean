@@ -26,6 +26,16 @@ The Lebesgue decomposition provides the Radon-Nikodym theorem readily.
 * `measure_theory.measure.radon_nikodym_deriv` : If a pair of measures
   `have_lebesgue_decomposition`, then `radon_nikodym_deriv` chooses the measurable function from
   `have_lebesgue_decomposition`, otherwise it returns the zero function.
+* `measure_theory.signed_measure.have_lebesgue_decomposition` : A signed measure `s` and a
+  measure `μ` is said to `have_lebesgue_decomposition` if both the positive part and negative
+  part of `s` `have_lebesgue_decomposition` with respect to `μ`.
+* `measure_theory.signed_measure.singular_part` : The singular part between a signed measure `s`
+  and a measure `μ` is simply the singular part of the positive part of `s` with respect to `μ`
+  minus the singular part of the negative part of `s` with respect to `μ`.
+* `measure_theory.signed_measure.radon_nikodym_deriv` : The radon-nikodym derivative of a signed
+  measure `s` with respect to a measure `μ` is the radon-nikodym derivative of the positive part of
+  `s` with respect to `μ` minus the radon-nikodym derivative of the negative part of `s` with
+  respect to `μ`.
 
 ## Main results
 

@@ -166,16 +166,27 @@ begin
 end
 
 
+lemma le_coe_to_real {x : ereal} (h : x ≠ ⊤) : x ≤ x.to_real :=
+begin
+  by_cases h' : x = ⊥,
+  { simp only [h', bot_le] },
+  { simp only [le_refl, coe_to_real h h'] },
+end
+
+lemma coe_to_real_le {x : ereal} (h : x ≠ ⊥) : ↑x.to_real ≤ x :=
+begin
+  by_cases h' : x = ⊤,
+  { simp only [h', le_top] },
+  { simp only [le_refl, coe_to_real h' h] },
+end
+
 lemma eq_top_iff_forall_lt (x : ereal) : x = ⊤ ↔ ∀ (y : ℝ), (y : ereal) < x :=
 begin
   split,
   { rintro rfl, exact ereal.coe_lt_top },
   { contrapose!,
     intro h,
-    by_cases h' : x = ⊥,
-    { exact ⟨0, by simp only [h', bot_le]⟩ },
-    exact ⟨x.to_real, by simp only [le_refl, coe_to_real h h']⟩,
-  }
+    exact ⟨x.to_real, le_coe_to_real h⟩, },
 end
 
 lemma eq_bot_iff_forall_lt (x : ereal) : x = ⊥ ↔ ∀ (y : ℝ), x < (y : ereal) :=
@@ -183,11 +194,8 @@ begin
   split,
   { rintro rfl, exact bot_lt_coe },
   { contrapose!,
-    intro h',
-    by_cases h : x = ⊤,
-    { exact ⟨0, by simp only [h, le_top]⟩ },
-    exact ⟨x.to_real, by simp only [le_refl, coe_to_real h h']⟩,
-  }
+    intro h,
+    exact ⟨x.to_real, coe_to_real_le h⟩, },
 end
 
 /-! ### ennreal coercion -/

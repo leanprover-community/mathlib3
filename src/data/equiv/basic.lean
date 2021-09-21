@@ -1483,6 +1483,28 @@ def subtype_prod_equiv_sigma_subtype {α β : Type*} (p : α → β → Prop) :
   left_inv := λ x, by ext; refl,
   right_inv := λ ⟨a, b, pab⟩, rfl }
 
+/-- The type `Π (i : α), β i` can be split as a product by separating the indices in `α`
+depending on whether they satisfy a predicate `p` or not. -/
+@[simps] def pi_equiv_pi_subtype_prod
+  {α : Type*} (p : α → Prop) (β : α → Type*) [decidable_pred p] :
+  (Π (i : α), β i) ≃ (Π (i : {x // p x}), β i) × (Π (i : {x // ¬ p x}), β i) :=
+{ to_fun := λ f, (λ x, f x, λ x, f x),
+  inv_fun := λ f x, if h : p x then f.1 ⟨x, h⟩ else f.2 ⟨x, h⟩,
+  right_inv := begin
+    rintros ⟨f, g⟩,
+    ext1;
+    { ext y,
+      rcases y,
+      simp only [y_property, dif_pos, dif_neg, not_false_iff, subtype.coe_mk],
+      refl },
+  end,
+  left_inv := λ f, begin
+    ext x,
+    by_cases h : p x;
+    { simp only [h, dif_neg, dif_pos, not_false_iff],
+      refl },
+  end }
+
 end
 
 section subtype_equiv_codomain

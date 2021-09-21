@@ -21,7 +21,10 @@ namespace set
 
 /-- A set is finite if the subtype is a fintype, i.e. there is a
   list that enumerates its members. -/
-def finite (s : set α) : Prop := nonempty (fintype s)
+inductive finite (s : set α) : Prop
+| intro : fintype s → finite
+
+lemma finite_def {s : set α} : finite s ↔ nonempty (fintype s) := ⟨λ ⟨h⟩, ⟨h⟩, λ ⟨h⟩, ⟨h⟩⟩
 
 /-- A set is infinite if it is not finite. -/
 def infinite (s : set α) : Prop := ¬ finite s
@@ -30,7 +33,7 @@ def infinite (s : set α) : Prop := ¬ finite s
 that because `finite` isn't a typeclass, this will not fire if it
 is made into an instance -/
 noncomputable def finite.fintype {s : set α} (h : finite s) : fintype s :=
-classical.choice h
+classical.choice $ finite_def.1 h
 
 /-- Get a finset from a finite set -/
 noncomputable def finite.to_finset {s : set α} (h : finite s) : finset α :=
@@ -243,7 +246,7 @@ theorem infinite_univ [h : _root_.infinite α] : infinite (@univ α) :=
 infinite_univ_iff.2 h
 
 theorem infinite_coe_iff {s : set α} : _root_.infinite s ↔ infinite s :=
-⟨λ ⟨h₁⟩ h₂, h₁ h₂.some, λ h₁, ⟨λ h₂, h₁ ⟨h₂⟩⟩⟩
+⟨λ ⟨h₁⟩ h₂, h₁ h₂.fintype, λ h₁, ⟨λ h₂, h₁ ⟨h₂⟩⟩⟩
 
 theorem infinite.to_subtype {s : set α} (h : infinite s) : _root_.infinite s :=
 infinite_coe_iff.2 h
@@ -313,8 +316,12 @@ h.inter_of_left t
 theorem finite.inf_of_right {s : set α} (h : finite s) (t : set α) : finite (t ⊓ s) :=
 h.inter_of_right t
 
-theorem infinite_mono {s t : set α} (h : s ⊆ t) : infinite s → infinite t :=
+protected theorem infinite.mono {s t : set α} (h : s ⊆ t) : infinite s → infinite t :=
 mt (λ ht, ht.subset h)
+
+lemma infinite.diff {s t : set α} (hs : s.infinite) (ht : t.finite) :
+  (s \ t).infinite :=
+λ h, hs ((h.union ht).subset (s.subset_diff_union t))
 
 instance fintype_image [decidable_eq β] (s : set α) (f : α → β) [fintype s] : fintype (f '' s) :=
 fintype.of_finset (s.to_finset.image f) $ by simp
@@ -381,13 +388,13 @@ not_congr $ finite_image_iff hi
 
 theorem infinite_of_inj_on_maps_to {s : set α} {t : set β} {f : α → β}
   (hi : inj_on f s) (hm : maps_to f s t) (hs : infinite s) : infinite t :=
-infinite_mono (maps_to'.mp hm) $ (infinite_image_iff hi).2 hs
+((infinite_image_iff hi).2 hs).mono (maps_to'.mp hm)
 
 theorem infinite.exists_ne_map_eq_of_maps_to {s : set α} {t : set β} {f : α → β}
   (hs : infinite s) (hf : maps_to f s t) (ht : finite t) :
   ∃ (x ∈ s) (y ∈ s), x ≠ y ∧ f x = f y :=
 begin
-  unfreezingI { contrapose! ht },
+  contrapose! ht,
   exact infinite_of_inj_on_maps_to (λ x hx y hy, not_imp_not.1 (ht x hx y hy)) hf hs
 end
 
@@ -403,7 +410,7 @@ by { rw [←image_univ, infinite_image_iff (inj_on_of_injective hi _)], exact in
 
 theorem infinite_of_injective_forall_mem [_root_.infinite α] {s : set β} {f : α → β}
   (hi : injective f) (hf : ∀ x : α, f x ∈ s) : infinite s :=
-by { rw ←range_subset_iff at hf, exact infinite_mono hf (infinite_range_of_injective hi) }
+by { rw ←range_subset_iff at hf, exact (infinite_range_of_injective hi).mono hf }
 
 theorem finite.preimage {s : set β} {f : α → β}
   (I : set.inj_on f (f⁻¹' s)) (h : finite s) : finite (f ⁻¹' s) :=
@@ -453,6 +460,12 @@ by simpa [nat.lt_succ_iff] using set.fintype_lt_nat (n+1)
 lemma finite_le_nat (n : ℕ) : finite {i | i ≤ n} := ⟨set.fintype_le_nat _⟩
 
 lemma finite_lt_nat (n : ℕ) : finite {i | i < n} := ⟨set.fintype_lt_nat _⟩
+
+lemma infinite.exists_nat_lt {s : set ℕ} (hs : infinite s) (n : ℕ) : ∃ m ∈ s, n < m :=
+begin
+  obtain ⟨m, hm⟩ := (hs.diff $ set.finite_le_nat n).nonempty,
+  exact ⟨m, by simpa using hm⟩,
+end
 
 instance fintype_prod (s : set α) (t : set β) [fintype s] [fintype t] : fintype (set.prod s t) :=
 fintype.of_finset (s.to_finset.product t.to_finset) $ by simp
@@ -721,6 +734,13 @@ lemma finite.card_to_finset {s : set α} [fintype s] (h : s.finite) :
   h.to_finset.card = fintype.card s :=
 by { rw [← finset.card_attach, finset.attach_eq_univ, ← fintype.card], congr' 2, funext,
      rw set.finite.mem_to_finset }
+
+lemma infinite.exists_not_mem_finset {s : set α} (hs : s.infinite) (f : finset α) :
+  ∃ a ∈ s, a ∉ f :=
+begin
+  obtain ⟨a, has, haf⟩ := (hs.diff f.finite_to_set).nonempty,
+  refine ⟨a, has, λ h, haf $ finset.mem_coe.1 h⟩,
+end
 
 section decidable_eq
 

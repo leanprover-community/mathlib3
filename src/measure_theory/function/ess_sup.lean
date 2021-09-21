@@ -139,6 +139,34 @@ filter.eventually_lt_of_limsup_lt hf
 lemma ae_lt_of_lt_ess_inf {f : α → β} {x : β} (hf : x < ess_inf f μ) : ∀ᵐ y ∂μ, x < f y :=
 @ae_lt_of_ess_sup_lt α (order_dual β) _ _ _ _ _ hf
 
+lemma ess_sup_indicator_eq_ess_sup_restrict [has_zero β] {s : set α}
+  {f : α → β} (hf : 0 ≤ᵐ[μ.restrict s] f) (hs : measurable_set s) (hs_not_null : μ s ≠ 0) :
+  ess_sup (s.indicator f) μ = ess_sup f (μ.restrict s) :=
+begin
+  refine le_antisymm _ (Limsup_le_Limsup_of_le (map_restrict_ae_le_map_indicator_ae hs)
+    (by is_bounded_default) (by is_bounded_default)),
+  refine Limsup_le_Limsup (by is_bounded_default) (by is_bounded_default) (λ c h_restrict_le, _),
+  rw eventually_map at h_restrict_le ⊢,
+  rw ae_restrict_iff' hs at h_restrict_le,
+  have hc : 0 ≤ c,
+  { suffices : ∃ x, 0 ≤ f x ∧ f x ≤ c, by { obtain ⟨x, hx⟩ := this, exact hx.1.trans hx.2, },
+    refine frequently.exists _,
+    { exact μ.ae, },
+    rw [eventually_le, ae_restrict_iff' hs] at hf,
+    have hs' : ∃ᵐ x ∂μ, x ∈ s,
+    { contrapose! hs_not_null,
+      rw [not_frequently, ae_iff] at hs_not_null,
+      suffices : {a : α | ¬a ∉ s} = s, by rwa ← this,
+      simp, },
+    refine hs'.mp (hf.mp (h_restrict_le.mono (λ x hxs_imp_c hxf_nonneg hxs, _))),
+    rw pi.zero_apply at hxf_nonneg,
+    exact ⟨hxf_nonneg hxs, hxs_imp_c hxs⟩, },
+  refine h_restrict_le.mono (λ x hxc, _),
+  by_cases hxs : x ∈ s,
+  { simpa [hxs] using hxc hxs, },
+  { simpa [hxs] using hc, },
+end
+
 end complete_linear_order
 
 namespace ennreal

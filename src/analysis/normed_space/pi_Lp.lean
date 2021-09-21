@@ -236,7 +236,7 @@ begin
     (λf g, (∑ (i : ι), (dist (f i) (g i)) ^ p) ^ (1/p)) (λ f g, _) (λ f g, _),
   { simp [pi_Lp.edist, ennreal.rpow_eq_top_iff, asymm pos, pos,
           ennreal.sum_eq_top_iff, edist_ne_top] },
-  { have A : ∀ (i : ι), i ∈ (finset.univ : finset ι) → edist (f i) (g i) ^ p < ⊤ :=
+  { have A : ∀ (i : ι), i ∈ (finset.univ : finset ι) → edist (f i) (g i) ^ p ≠ ⊤ :=
       λ i hi, by simp [lt_top_iff_ne_top, edist_ne_top, le_of_lt pos],
     simp [dist, -one_div, pi_Lp.edist, ← ennreal.to_real_rpow,
           ennreal.to_real_sum A, dist_edist] }
@@ -254,8 +254,8 @@ begin
     (λf g, (∑ (i : ι), (dist (f i) (g i)) ^ p) ^ (1/p)) (λ f g, _) (λ f g, _),
   { simp [pi_Lp.edist, ennreal.rpow_eq_top_iff, asymm pos, pos,
           ennreal.sum_eq_top_iff, edist_ne_top] },
-  { have A : ∀ (i : ι), i ∈ (finset.univ : finset ι) → edist (f i) (g i) ^ p < ⊤ :=
-      λ i hi, by simp [lt_top_iff_ne_top, edist_ne_top, le_of_lt pos],
+  { have A : ∀ (i : ι), i ∈ (finset.univ : finset ι) → edist (f i) (g i) ^ p ≠ ⊤ :=
+      λ i hi, by simp [edist_ne_top, pos.le],
     simp [dist, -one_div, pi_Lp.edist, ← ennreal.to_real_rpow,
           ennreal.to_real_sum A, dist_edist] }
 end

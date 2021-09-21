@@ -175,21 +175,20 @@ begin
   of the `f`-length of `s i`. -/
   refine le_antisymm (by { rw ← f.length_Ioc, apply outer_le_length })
     (le_binfi $ λ s hs, ennreal.le_of_forall_pos_le_add $ λ ε εpos h, _),
-  let δ := ε/2,
-  have δpos : 0 < δ := nnreal.half_pos εpos,
-  rcases ennreal.exists_pos_sum_of_encodable
-    (ennreal.zero_lt_coe_iff.2 δpos) ℕ with ⟨ε', ε'0, hε⟩,
+  let δ := ε / 2,
+  have δpos : 0 < (δ : ℝ≥0∞), by simpa using εpos.ne',
+  rcases ennreal.exists_pos_sum_of_encodable δpos.ne' ℕ with ⟨ε', ε'0, hε⟩,
   obtain ⟨a', ha', aa'⟩ : ∃ a', f a' - f a < δ ∧ a < a',
   { have A : continuous_within_at (λ r, f r - f a) (Ioi a) a,
     { refine continuous_within_at.sub _ continuous_within_at_const,
       exact (f.right_continuous a).mono Ioi_subset_Ici_self },
-    have B : f a - f a < δ, by rwa [sub_self],
+    have B : f a - f a < δ, by rwa [sub_self, nnreal.coe_pos, ← ennreal.coe_pos],
     exact (((tendsto_order.1 A).2 _ B).and self_mem_nhds_within).exists },
   have : ∀ i, ∃ p:ℝ×ℝ, s i ⊆ Ioo p.1 p.2 ∧
                         (of_real (f p.2 - f p.1) : ℝ≥0∞) < f.length (s i) + ε' i,
   { intro i,
     have := (ennreal.lt_add_right ((ennreal.le_tsum i).trans_lt h).ne
-        (ennreal.zero_lt_coe_iff.2 (ε'0 i))),
+        (ennreal.coe_ne_zero.2 (ε'0 i).ne')),
     conv at this { to_lhs, rw length },
     simp only [infi_lt_iff, exists_prop] at this,
     rcases this with ⟨p, q', spq, hq'⟩,
@@ -244,7 +243,7 @@ begin
   refine le_infi (λ t, le_infi $ λ ht,
     ennreal.le_of_forall_pos_le_add $ λ ε ε0 h, _),
   rcases ennreal.exists_pos_sum_of_encodable
-    (ennreal.zero_lt_coe_iff.2 ε0) ℕ with ⟨ε', ε'0, hε⟩,
+    (ennreal.coe_pos.2 ε0).ne' ℕ with ⟨ε', ε'0, hε⟩,
   refine le_trans _ (add_le_add_left (le_of_lt hε) _),
   rw ← ennreal.tsum_add,
   choose g hg using show
@@ -252,7 +251,7 @@ begin
       f.outer s ≤ f.length (t i) + of_real (ε' i),
   { intro i,
     have := (ennreal.lt_add_right ((ennreal.le_tsum i).trans_lt h).ne
-        (ennreal.zero_lt_coe_iff.2 (ε'0 i))),
+        (ennreal.coe_pos.2 (ε'0 i)).ne'),
     conv at this {to_lhs, rw length},
     simp only [infi_lt_iff] at this,
     rcases this with ⟨a, b, h₁, h₂⟩,
@@ -298,7 +297,7 @@ begin
   { rw A,
     refine tendsto_measure_Inter (λ n, measurable_set_Ioc) (λ m n hmn, _) _,
     { exact Ioc_subset_Ioc (u_mono.monotone hmn) le_rfl },
-    { exact ⟨0, by simp only [measure_Ioc, ennreal.of_real_lt_top]⟩ } },
+    { exact ⟨0, by simpa only [measure_Ioc] using ennreal.of_real_ne_top⟩ } },
   have L2 : tendsto (λ n, f.measure (Ioc (u n) a)) at_top (𝓝 (of_real (f a - f.left_lim a))),
   { simp only [measure_Ioc],
     have : tendsto (λ n, f (u n)) at_top (𝓝 (f.left_lim a)),
@@ -332,7 +331,7 @@ begin
     simp only [←Ioo_union_Icc_eq_Ioc hab le_rfl, measure_singleton,
       measure_union A measurable_set_Ioo (measurable_set_singleton b), Icc_self] at this,
     rw [D, ennreal.of_real_add, add_comm] at this,
-    { simpa only [ennreal.add_right_inj, ennreal.of_real_lt_top] },
+    { simpa only [ennreal.add_right_inj ennreal.of_real_ne_top] },
     { simp only [f.left_lim_le, sub_nonneg] },
     { simp only [f.le_left_lim hab, sub_nonneg] } },
 end

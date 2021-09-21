@@ -164,24 +164,17 @@ begin
   refine ht (λ j hj, _) _ (λ j hj, hmem _ (mem_insert_of_mem hj)),
   { dsimp,
     exact mul_nonneg (inv_nonneg.2 (sum_nonneg ht₀)) (ht₀ j hj) },
-  dsimp,
-  simp, --nonterminal simp to fix
-  rw [←mul_sum, inv_eq_one_div, one_div_mul_cancel hsum_t],
+  { simp_rw [pi.smul_apply, ←smul_sum, smul_eq_mul, inv_mul_cancel hsum_t] }
 end
 
-lemma _root_.convex.sum_mem (hs : convex 𝕜 s) (h₀ : ∀ i ∈ t, 0 ≤ w i) (h₁ : ∑ i in t, w i ≠ 0)
-  (hp : ∀ i ∈ t, p i ∈ s) :
-  (∑ i in t, w i)⁻¹ • ∑ i in t, w i • p i ∈ s :=
+lemma _root_.convex.linear_combination_mem' (hs : convex 𝕜 s) (h₀ : ∀ i ∈ t, 0 ≤ w i)
+  (h₁ : ∑ i in t, w i ≠ 0) (hp : ∀ i ∈ t, p i ∈ s) :
+  (∑ i in t, w i)⁻¹ • t.linear_combination p w ∈ s :=
 begin
   rw [linear_combination_normalize h₁, inv_smul_smul' h₁],
-  refine hs.linear_combination_mem _ _ hp,
-  {
-    rintro i hi,
-    refine smul_nonneg (h₀ i hi) _,
-    sorry
-  },
-  { rw [smul_sum, div_self h₁],
-  }
+  refine hs.linear_combination_mem (λ i hi, mul_nonneg (inv_nonneg.2 $ sum_nonneg h₀)
+    (h₀ i hi)) _ hp,
+  simp_rw [pi.smul_apply, ←smul_sum, smul_eq_mul, inv_mul_cancel h₁]
 end
 
 lemma _root_.convex_iff_linear_combination_mem :

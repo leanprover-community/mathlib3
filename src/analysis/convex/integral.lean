@@ -18,8 +18,8 @@ In this file we prove four theorems:
 
 * `convex.integral_mem`: if `μ` is a probability measure on `α`, `s` is a convex closed set in `E`,
   and `f` is an integrable function sending `μ`-a.e. points to `s`, then the expected value of `f`
-  belongs to `s`: `∫ x, f x ∂μ ∈ s`. See also `convex.sum_mem` for a finite sum version of this
-  lemma.
+  belongs to `s`: `∫ x, f x ∂μ ∈ s`. See also `convex.linear_combination_mem` for a finite sum
+  version of this lemma.
 
 * `convex_on.map_smul_integral_le`: Jensen's inequality: if a function `g : E → ℝ` is convex and
   continuous on a convex closed set `s`, `μ` is a finite non-zero measure on `α`, and `f : α → E` is
@@ -66,7 +66,7 @@ begin
     by rw [← (F n).sum_range_measure_preimage_singleton, @ennreal.to_real_sum _ _
       (λ y, μ ((F n) ⁻¹' {y})) (λ _ _, (measure_ne_top _ _))],
   rw [← this, simple_func.integral],
-  refine hs.linear_combination_mem (λ _ _, ennreal.to_real_nonneg) _ _,
+  refine hs.linear_combination_mem' (λ _ _, ennreal.to_real_nonneg) _ _,
   { rw [this, ennreal.to_real_pos_iff, pos_iff_ne_zero, ne.def, measure.measure_univ_eq_zero],
     exact ⟨hμ, measure_ne_top _ _⟩ },
   { simp only [simple_func.mem_range],

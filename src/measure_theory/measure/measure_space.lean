@@ -182,6 +182,13 @@ calc μ s₁ ≤ μ (s₂ ∪ s₁)        : measure_mono (subset_union_right _ 
       ... = μ (s₂ ∪ s₁ \ s₂)   : congr_arg μ union_diff_self.symm
       ... ≤ μ s₂ + μ (s₁ \ s₂) : measure_union_le _ _
 
+lemma measure_diff_lt_of_lt_add (hs : measurable_set s) (ht : measurable_set t) (hst : s ⊆ t)
+  (hs' : μ s ≠ ∞) {ε : ℝ≥0∞} (h : μ t < μ s + ε) : μ (t \ s) < ε :=
+begin
+  rw [measure_diff hst ht hs hs'], rw add_comm at h,
+  exact ennreal.sub_lt_of_lt_add (measure_mono hst) h
+end
+
 lemma meas_eq_meas_of_null_diff {s t : set α}
   (hst : s ⊆ t) (h_nulldiff : μ (t.diff s) = 0) : μ s = μ t :=
 by { rw [←diff_diff_cancel_left hst, ←@measure_diff_null _ _ _ t _ h_nulldiff], refl, }

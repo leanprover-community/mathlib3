@@ -43,8 +43,8 @@ lemma charpoly_def :
   f.charpoly = (linear_map.to_matrix (choose_basis R M) (choose_basis R M) f).charpoly := rfl
 
 /-- `charpoly f` is the characteristic polynomial of the matrix of `f` in any basis. -/
-lemma charpoly_eq_matrix.charpoly {ι : Type w} [fintype ι] (b : basis ι R M) :
-  f.charpoly = (linear_map.to_matrix b b f).charpoly :=
+@[simp] lemma charpoly_to_matrix {ι : Type w} [fintype ι] (b : basis ι R M) :
+  (linear_map.to_matrix b b f).charpoly = f.charpoly :=
 begin
   set b' := (choose_basis R M),
   set P := reindex_linear_equiv R R (basis.index_equiv b' b) (equiv.refl ι) (b'.to_matrix b),

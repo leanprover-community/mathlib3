@@ -485,6 +485,10 @@ instance _root_.module.End.smul_comm_class [has_scalar S R] [is_scalar_tower S R
   smul_comm_class S (module.End R M₂) (module.End R M₂) :=
 ⟨λ s _ _, (comp_smul _ _ s).symm⟩
 
+instance _root_.module.End.smul_comm_class' [has_scalar S R] [is_scalar_tower S R M₂] :
+  smul_comm_class (module.End R M₂) S (module.End R M₂) :=
+smul_comm_class.symm _ _ _
+
 end has_scalar
 
 section module

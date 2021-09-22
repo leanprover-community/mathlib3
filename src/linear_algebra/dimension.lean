@@ -3,8 +3,8 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johannes Hölzl, Sander Dahmen, Scott Morrison
 -/
-import linear_algebra.basis
 import linear_algebra.std_basis
+import linear_algebra.isomorphisms
 import set_theory.cofinality
 import linear_algebra.invariant_basis_number
 

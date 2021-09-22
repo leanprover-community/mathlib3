@@ -95,7 +95,7 @@ open finset
 /-- A locally finite order is an order where bounded intervals are finite. When you don't care too
 much about definitional equality, you can use `locally_finite_order.of_Icc` or
 `locally_finite_order.of_finite_Icc` to build a locally finite order from just `finset.Icc`. -/
-@[ext] class locally_finite_order (α : Type*) [preorder α] :=
+class locally_finite_order (α : Type*) [preorder α] :=
 (finset_Icc : α → α → finset α)
 (finset_Ico : α → α → finset α)
 (finset_Ioc : α → α → finset α)
@@ -422,11 +422,17 @@ noncomputable def fintype.to_locally_finite_order [fintype α] :
 
 instance : subsingleton (locally_finite_order α) :=
 subsingleton.intro (λ h₀ h₁, begin
-  ext,
-  { rw [h₀.finset_mem_Icc, h₁.finset_mem_Icc] },
-  { rw [h₀.finset_mem_Ico, h₁.finset_mem_Ico] },
-  { rw [h₀.finset_mem_Ioc, h₁.finset_mem_Ioc] },
-  { rw [h₀.finset_mem_Ioo, h₁.finset_mem_Ioo] }
+  cases h₀,
+  cases h₁,
+  have hIcc : h₀_finset_Icc = h₁_finset_Icc,
+  { ext a b x, rw [h₀_finset_mem_Icc, h₁_finset_mem_Icc] },
+  have hIco : h₀_finset_Ico = h₁_finset_Ico,
+  { ext a b x, rw [h₀_finset_mem_Ico, h₁_finset_mem_Ico] },
+  have hIoc : h₀_finset_Ioc = h₁_finset_Ioc,
+  { ext a b x, rw [h₀_finset_mem_Ioc, h₁_finset_mem_Ioc] },
+  have hIoo : h₀_finset_Ioo = h₁_finset_Ioo,
+  { ext a b x, rw [h₀_finset_mem_Ioo, h₁_finset_mem_Ioo] },
+  simp_rw [hIcc, hIco, hIoc, hIoo],
 end)
 
 variables [preorder β] [locally_finite_order β]

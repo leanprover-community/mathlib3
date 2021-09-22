@@ -82,7 +82,7 @@ The characteristic polynomial of a matrix `M` is given by $\det (t I - M)$.
 def matrix.charpoly (M : matrix n n R) : polynomial R :=
 (charmatrix M).det
 
-lemma matrix.charpoly_of_reindex {m : Type v} [decidable_eq m] [fintype m] (e : n ≃ m)
+lemma matrix.charpoly_reindex {m : Type v} [decidable_eq m] [fintype m] (e : n ≃ m)
   (M : matrix n n R) : (reindex e e M).charpoly = M.charpoly :=
 begin
   unfold matrix.charpoly,

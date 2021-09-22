@@ -229,18 +229,23 @@ lemma affine_combination_vsub (w₁ w₂ : ι → k) (p : ι → P) :
   s.affine_combination p w₁ -ᵥ s.affine_combination p w₂ = s.weighted_vsub p (w₁ - w₂) :=
 by rw [←affine_map.linear_map_vsub, affine_combination_linear, vsub_eq_sub]
 
-lemma affine_combination_attach (s : finset P) (w : P → k) :
-  s.attach.affine_combination (coe : s → P) (w ∘ coe) = s.affine_combination id w :=
+lemma attach_affine_combination_of_injective
+  (s : finset P) (w : P → k) (f : s → P) (hf : function.injective f) :
+  s.attach.affine_combination f (w ∘ f) = (image f univ).affine_combination id w :=
 begin
   simp only [affine_combination, weighted_vsub_of_point_apply, id.def, vadd_right_cancel_iff,
     function.comp_app, affine_map.coe_mk],
-  let f : s → V := λ i, w (i : P) • ((i : P) -ᵥ classical.choice S.nonempty),
-  let g : P → V := λ i, w i • (i -ᵥ classical.choice S.nonempty),
-  change univ.sum f = s.sum g,
-  have hfg : f = g ∘ (coe : s → P), { ext, simp, },
-  rw hfg,
-  exact sum_attach,
+  let g₁ : s → V := λ i, w (f i) • (f i -ᵥ classical.choice S.nonempty),
+  let g₂ : P → V := λ i, w i • (i -ᵥ classical.choice S.nonempty),
+  change univ.sum g₁ = (image f univ).sum g₂,
+  have hgf : g₁ = g₂ ∘ f, { ext, simp, },
+  rw [hgf, sum_comp_of_injective g₂ f hf],
 end
+
+lemma attach_affine_combination_coe (s : finset P) (w : P → k) :
+  s.attach.affine_combination (coe : s → P) (w ∘ coe) = s.affine_combination id w :=
+by rw [attach_affine_combination_of_injective s w (coe : s → P) subtype.coe_injective,
+  univ_eq_attach, attach_image_coe]
 
 omit S
 
@@ -408,7 +413,7 @@ rfl
 
 lemma centroid_univ (s : finset P) :
   univ.centroid k (coe : s → P) = s.centroid k id :=
-by { rw [centroid, centroid, ← s.affine_combination_attach], congr, ext, simp, }
+by { rw [centroid, centroid, ← s.attach_affine_combination_coe], congr, ext, simp, }
 
 /-- The centroid of a single point. -/
 @[simp] lemma centroid_singleton (p : ι → P) (i : ι) :

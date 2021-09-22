@@ -473,10 +473,17 @@ instance : distrib_mul_action S (M →ₗ[R] M₂) :=
 theorem smul_comp (a : S) (g : M₃ →ₗ[R] M₂) (f : M →ₗ[R] M₃) : (a • g).comp f = a • (g.comp f) :=
 rfl
 
+instance _root_.module.End.is_scalar_tower :
+  is_scalar_tower S (module.End R M₂) (module.End R M₂) := ⟨smul_comp⟩
+
 theorem comp_smul [distrib_mul_action S M₃] [smul_comm_class R S M₃] [compatible_smul M₂ M₃ S R]
   (g : M₂ →ₗ[R] M₃) (a : S) :
   g.comp (a • f) = a • (g.comp f) :=
 ext $ λ _, g.map_smul_of_tower _ _
+
+instance _root_.module.End.smul_comm_class [has_scalar S R] [is_scalar_tower S R M₂] :
+  smul_comm_class S (module.End R M₂) (module.End R M₂) :=
+⟨λ s _ _, (comp_smul _ _ s).symm⟩
 
 end has_scalar
 

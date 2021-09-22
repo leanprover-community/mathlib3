@@ -664,6 +664,11 @@ variables {M}
 
 section
 
+/-- Addition in a ring localization is defined as `⟨a, b⟩ + ⟨c, d⟩ = ⟨b * c + d * a, b * d⟩`.
+
+Should not be confused with `add_localization.add`, which is defined as
+`⟨a, b⟩ + ⟨c, d⟩ = ⟨a + c, b + d⟩`.
+-/
 @[irreducible] protected def add (z w : localization M) : localization M :=
 localization.lift_on₂ z w
   (λ a b c d, mk ((b : R) * c + d * a) (b * d)) $
@@ -683,6 +688,7 @@ instance : has_add (localization M) := ⟨localization.add⟩
 lemma add_mk (a b c d) : (mk a b : localization M) + mk c d = mk (b * c + d * a) (b * d) :=
 by { unfold has_add.add localization.add, apply lift_on₂_mk }
 
+/-- Negation in a ring localization is defined as `-⟨a, b⟩ = ⟨-a, b⟩`. -/
 @[irreducible] protected def neg (z : localization M) : localization M :=
 localization.lift_on z (λ a b, mk (-a) b) $
   λ a b c d h, mk_eq_mk_iff.2
@@ -699,6 +705,9 @@ instance : has_neg (localization M) := ⟨localization.neg⟩
 lemma neg_mk (a b) : -(mk a b : localization M) = mk (-a) b :=
 by { unfold has_neg.neg localization.neg, apply lift_on_mk }
 
+/-- The zero element in a ring localization is defined as `⟨0, 1⟩`.
+
+Should not be confused with `add_localization.zero` which is `⟨0, 0⟩`. -/
 @[irreducible] protected def zero : localization M :=
 mk 0 1
 

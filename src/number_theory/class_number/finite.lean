@@ -7,7 +7,6 @@ Authors: Anne Baanen
 import linear_algebra.free_module.pid
 import linear_algebra.matrix.absolute_value
 import number_theory.class_number.admissible_absolute_value
-import number_theory.function_field
 import ring_theory.class_group
 import ring_theory.norm
 

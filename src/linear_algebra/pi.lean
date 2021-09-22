@@ -110,7 +110,7 @@ families of functions on these modules. See note [bundled maps over different ri
 { to_fun := λ f, ∑ i : ι, (f i).comp (proj i),
   inv_fun := λ f i, f.comp (single i),
   map_add' := λ f g, by simp only [pi.add_apply, add_comp, finset.sum_add_distrib],
-  map_smul' := λ c f, by simp [pi.smul_apply, smul_comp, finset.smul_sum],
+  map_smul' := λ c f, by simp only [pi.smul_apply, smul_comp, finset.smul_sum, ring_hom.id_apply],
   left_inv := λ f, by { ext i x, simp [apply_single] },
   right_inv := λ f,
     begin

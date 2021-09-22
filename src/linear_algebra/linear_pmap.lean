@@ -223,7 +223,7 @@ begin
   { intros c z,
     rw [smul_add, ← map_smul, ← map_smul],
     apply fg_eq,
-    simp [coe_smul, coe_mk, ← smul_add, hxy] },
+    simp only [coe_smul, coe_mk, ← smul_add, hxy, ring_hom.id_apply] },
 end
 
 /-- Given two partial linear maps that agree on the intersection of their domains,

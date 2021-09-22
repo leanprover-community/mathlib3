@@ -1004,7 +1004,7 @@ def multilinear_map.curry_right (f : multilinear_map R M M₂) :
 { to_fun := λm,
   { to_fun    := λx, f (snoc m x),
     map_add'  := λx y, by rw f.snoc_add,
-    map_smul' := λc x, by simp [f.snoc_smul] },
+    map_smul' := λc x, by simp only [f.snoc_smul, ring_hom.id_apply] },
   map_add' := λm i x y, begin
     ext z,
     change f (snoc (update m i (x + y)) z)

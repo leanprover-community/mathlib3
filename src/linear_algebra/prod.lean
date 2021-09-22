@@ -64,7 +64,7 @@ theorem snd_surjective : function.surjective (snd R M M₂) := λ x, ⟨(0, x), 
 @[simps] def prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) : (M →ₗ[R] M₂ × M₃) :=
 { to_fun    := λ x, (f x, g x),
   map_add'  := λ x y, by simp only [prod.mk_add_mk, map_add],
-  map_smul' := λ c x, by simp [prod.smul_mk, map_smul] }
+  map_smul' := λ c x, by simp only [prod.smul_mk, map_smul, ring_hom.id_apply] }
 
 
 @[simp] theorem fst_prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) :

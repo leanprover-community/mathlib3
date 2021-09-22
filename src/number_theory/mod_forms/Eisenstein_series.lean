@@ -240,7 +240,8 @@ def Square (m: ℕ): finset (ℤ × ℤ):=((finset.Ico_ℤ (-m) (m+1)).product (
 
 
 def Square2 (m: ℕ): finset (ℤ × ℤ):=
-(finset.Ico_ℤ (-m) (m+1)).product {m } ∪ (finset.Ico_ℤ (-m) (m+1)).product {-(m: ℤ)} ∪    ({m} : finset (ℤ)).product (finset.Ico_ℤ (-m+1) (m)) ∪   ({-m} : finset (ℤ)).product (finset.Ico_ℤ (-m+1) (m))
+(finset.Ico_ℤ (-m) (m+1)).product {m } ∪ (finset.Ico_ℤ (-m) (m+1)).product {-(m: ℤ)} ∪
+({m} : finset (ℤ)).product (finset.Ico_ℤ (-m+1) (m)) ∪   ({-m} : finset (ℤ)).product (finset.Ico_ℤ (-m+1) (m))
 
 
 lemma square2_card (n: ℕ) (h: 1 ≤ n): finset.card (Square2 n)=8*n:=

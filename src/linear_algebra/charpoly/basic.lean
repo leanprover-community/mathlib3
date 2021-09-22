@@ -7,8 +7,8 @@ import tactic.apply_fun
 import ring_theory.matrix_algebra
 import ring_theory.polynomial_algebra
 import linear_algebra.matrix.nonsingular_inverse
-import tactic.squeeze
 import linear_algebra.matrix.reindex
+import tactic.squeeze
 
 /-!
 # Characteristic polynomials and the Cayley-Hamilton theorem

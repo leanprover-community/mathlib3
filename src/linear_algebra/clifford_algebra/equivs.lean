@@ -114,7 +114,7 @@ lemma Q_apply (r : ℝ) : Q r = - (r * r) := rfl
 def to_complex : clifford_algebra Q →ₐ[ℝ] ℂ :=
 clifford_algebra.lift Q ⟨linear_map.to_span_singleton _ _ complex.I, λ r, begin
   dsimp [linear_map.to_span_singleton, linear_map.id],
-  rw smul_mul_smul,
+  rw mul_mul_mul_comm,
   simp,
 end⟩
 

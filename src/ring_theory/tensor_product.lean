@@ -127,7 +127,7 @@ the given bilinear map `M →[A] N →[R] P`. -/
 @[simps] def uncurry : (M →ₗ[A] (N →ₗ[R] P)) →ₗ[A] ((M ⊗[R] N) →ₗ[A] P) :=
 { to_fun := lift,
   map_add' := λ f g, ext $ λ x y, by simp only [lift_tmul, add_apply],
-  map_smul' := λ c f, ext $ λ x y, by simp only [lift_tmul, smul_apply] }
+  map_smul' := λ c f, ext $ λ x y, by simp only [lift_tmul, smul_apply, ring_hom.id_apply] }
 
 /-- Heterobasic version of `tensor_product.lcurry`:
 
@@ -199,7 +199,8 @@ def base_change (f : M →ₗ[R] N) : A ⊗[R] M →ₗ[A] A ⊗[R] N :=
   map_smul' := λ a x,
     show (f.ltensor A) (rtensor M (algebra.lmul R A a) x) =
       (rtensor N ((algebra.lmul R A) a)) ((ltensor A f) x),
-    by simp only [← comp_apply, ltensor_comp_rtensor, rtensor_comp_ltensor] }
+    by { rw [← comp_apply, ← comp_apply],
+      simp only [- comp_apply, ltensor_comp_rtensor, rtensor_comp_ltensor] } }
 
 variables {A}
 

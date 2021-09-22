@@ -667,6 +667,7 @@ def equivariant_of_linear_of_comm : V →ₗ[monoid_algebra k G] W :=
   apply finsupp.induction c,
   { simp, },
   { intros g r c' nm nz w,
+    dsimp at *,
     simp only [add_smul, f.map_add, w, add_left_inj, single_eq_algebra_map_mul_of, ← smul_smul],
     erw [algebra_map_smul (monoid_algebra k G) r, algebra_map_smul (monoid_algebra k G) r,
       f.map_smul, h g v, of_apply],

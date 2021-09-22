@@ -12,7 +12,8 @@ import linear_algebra.matrix.basis
 
 # Characteristic polynomial
 
-We define the characteristic polynomial of `f : M →ₗ[R] M`, where `M` is a free `R`-module.
+We define the characteristic polynomial of `f : M →ₗ[R] M`, where `M` is a finite and
+free `R`-module.
 
 ## Main definition
 
@@ -51,40 +52,38 @@ begin
   set ι' := choose_basis_index R M,
   set A' := to_matrix b' b' f,
   set e := basis.index_equiv b b',
-  set φ := reindex e e,
-  set φ₁ := reindex e (equiv.refl ι'),
-  set φ₂ := reindex (equiv.refl ι') (equiv.refl ι'),
-  set φ₃ := reindex (equiv.refl ι') e,
+  set φ := reindex_linear_equiv R R e e,
+  set φ₁ := reindex_linear_equiv R R e (equiv.refl ι'),
+  set φ₂ := reindex_linear_equiv R R (equiv.refl ι') (equiv.refl ι'),
+  set φ₃ := reindex_linear_equiv R R (equiv.refl ι') e,
   set P := b.to_matrix b',
   set Q := b'.to_matrix b,
 
---  have hPQ : (P.map C).mul (Q.map C) = 1,
---  { rw [← matrix.map_mul, ← @reindex_linear_equiv_mul _ ι _ _ _ _ R R,
---      basis.to_matrix_mul_to_matrix_flip, reindex_linear_equiv_one, ← ring_hom.map_matrix_apply,
---      ring_hom.map_one] },
---  have hscalar : (scalar ι) X = (((scalar ι) X).mul (P.map C)).mul (Q.map C),
---  { rw [matrix.mul_assoc ((scalar ι) X), hPQ, matrix.mul_one] },
---  have hcomm : ((scalar ι) X).mul (P.map C) = (P.map C).mul ((scalar ι) X) := by simp,
+  have hPQ : C.map_matrix (φ₁ P) ⬝ (C.map_matrix (φ₃ Q)) = 1,
+  { rw [ring_hom.map_matrix_apply, ring_hom.map_matrix_apply, ← matrix.map_mul, ←
+      @reindex_linear_equiv_mul _ ι' _ _ _ _ R R, basis.to_matrix_mul_to_matrix_flip,
+      reindex_linear_equiv_one, ← ring_hom.map_matrix_apply, ring_hom.map_one] },
 
   calc A.charpoly = (reindex e e A).charpoly : (charpoly_reindex _ _).symm
-  ... = ((scalar ι') X - (C.map_matrix) (φ A)).det : rfl
-  ... = ((scalar ι') X - (C.map_matrix) (φ (P ⬝ A' ⬝ Q))).det :
+  ... = (scalar ι' X - C.map_matrix (φ A)).det : rfl
+  ... = (scalar ι' X - C.map_matrix (φ (P ⬝ A' ⬝ Q))).det :
     by rw [basis_to_matrix_mul_linear_map_to_matrix_mul_basis_to_matrix]
-  ... = ((scalar ι') X - (C.map_matrix) (φ₁ P ⬝ φ₂ A' ⬝ φ₃ Q)).det :
-    by rw [reindex_linear_equiv_mul R R _ (equiv.refl ι') e, reindex_linear_equiv_mul R R e (equiv.refl ι') _]
-  ... = f.charpoly : sorry
-
-
-
---  rw [charpoly, ← charpoly_reindex (basis.index_equiv (choose_basis R M) b), matrix.charpoly,
---    charmatrix, ← linear_map_to_matrix_mul_basis_to_matrix b' b b' f,
---    ← basis_to_matrix_mul_linear_map_to_matrix b b' b f, ← reindex_linear_equiv_apply R R,
---    reindex_linear_equiv_mul R R _ (equiv.refl ι) _,
---    reindex_linear_equiv_mul R R _ (equiv.refl ι) (equiv.refl ι),
---    reindex_linear_equiv_refl_refl, linear_equiv.refl_apply, ring_hom.map_matrix_apply,
---    matrix.map_mul, matrix.map_mul, hscalar, hcomm, ← matrix.sub_mul, ← matrix.mul_sub,
---    det_mul, matrix.det_mul, mul_comm (P.map C).det, mul_assoc, ← det_mul, hPQ, det_one, mul_one],
---    refl,
+  ... = (scalar ι' X - C.map_matrix (φ₁ P ⬝ φ₂ A' ⬝ φ₃ Q)).det :
+    by rw [reindex_linear_equiv_mul R R _ _ e, reindex_linear_equiv_mul R R e _ _]
+  ... = (scalar ι' X - (C.map_matrix (φ₁ P) ⬝ C.map_matrix A' ⬝ C.map_matrix (φ₃ Q))).det : by simp
+  ... = (scalar ι' X ⬝ C.map_matrix (φ₁ P) ⬝ (C.map_matrix (φ₃ Q)) -
+    (C.map_matrix (φ₁ P) ⬝ C.map_matrix A' ⬝ C.map_matrix (φ₃ Q))).det :
+      by { rw [matrix.mul_assoc ((scalar ι') X), hPQ, matrix.mul_one] }
+  ... = (C.map_matrix (φ₁ P) ⬝ scalar ι' X ⬝ (C.map_matrix (φ₃ Q)) -
+    (C.map_matrix (φ₁ P) ⬝ C.map_matrix A' ⬝ C.map_matrix (φ₃ Q))).det : by simp
+  ... = (C.map_matrix (φ₁ P) ⬝ (scalar ι' X - C.map_matrix A') ⬝ C.map_matrix (φ₃ Q)).det :
+    by rw [← matrix.sub_mul, ← matrix.mul_sub]
+  ... = (C.map_matrix (φ₁ P)).det * (scalar ι' X - C.map_matrix A').det * (C.map_matrix (φ₃ Q)).det :
+    by rw [det_mul, det_mul]
+  ... = (C.map_matrix (φ₁ P)).det * (C.map_matrix (φ₃ Q)).det * (scalar ι' X - C.map_matrix A').det :
+    by ring
+  ... = (scalar ι' X - C.map_matrix A').det : by rw [← det_mul, hPQ, det_one, one_mul]
+  ... = f.charpoly : rfl
 end
 
 end basic

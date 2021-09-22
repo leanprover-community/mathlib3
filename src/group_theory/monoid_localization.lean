@@ -201,10 +201,12 @@ which is defined as `⟨0, 1⟩`.", irreducible] protected def one : localizatio
 This is a separate `irreducible` def to ensure the elaborator doesn't waste its time
 trying to unify some huge recursive definition with itself, but unfolded one step less.
 -/
-@[to_additive "Multiplication with a natural in an `add_localization` is defined as `n • ⟨a, b⟩ = ⟨n • a, n • b⟩`.
+@[to_additive
+"Multiplication with a natural in an `add_localization` is defined as `n • ⟨a, b⟩ = ⟨n • a, n • b⟩`.
 
 This is a separate `irreducible` def to ensure the elaborator doesn't waste its time
-trying to unify some huge recursive definition with itself, but unfolded one step less.", irreducible]
+trying to unify some huge recursive definition with itself, but unfolded one step less.",
+irreducible]
 protected def npow : ℕ → localization S → localization S :=
 (r S).comm_monoid.npow
 

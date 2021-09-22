@@ -227,11 +227,10 @@ def eval_add_monoid_hom (a : M) : (M →ₗ[R] M₂) →+ M₂ :=
   map_add' := λ f g, linear_map.add_apply f g a,
   map_zero' := rfl }
 
-lemma add_comp (g : M₂ →ₗ[R] M₃) (h : M₂ →ₗ[R] M₃) :
-  (h + g).comp f = h.comp f + g.comp f := rfl
+lemma add_comp (g : M₂ →ₗ[R] M₃) (h : M₂ →ₗ[R] M₃) : (h + g).comp f = h.comp f + g.comp f := rfl
 
-lemma comp_add (g : M →ₗ[R] M₂) (h : M₂ →ₗ[R] M₃) :
-  h.comp (f + g) = h.comp f + h.comp g := by { ext, simp }
+lemma comp_add (g : M →ₗ[R] M₂) (h : M₂ →ₗ[R] M₃) : h.comp (f + g) = h.comp f + h.comp g :=
+ext $ λ _, h.map_add _ _
 
 /-- `linear_map.to_add_monoid_hom` promoted to an `add_monoid_hom` -/
 def to_add_monoid_hom' : (M →ₗ[R] M₂) →+ (M →+ M₂) :=
@@ -387,34 +386,35 @@ end add_comm_monoid
 section add_comm_group
 
 variables [semiring R]
-  [add_comm_monoid M] [add_comm_group M₂] [add_comm_group M₃] [add_comm_group M₄]
+  [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_group M₃] [add_comm_group M₄]
   [module R M] [module R M₂] [module R M₃] [module R M₄]
-  (f g : M →ₗ[R] M₂)
 
 /-- The negation of a linear map is linear. -/
-instance : has_neg (M →ₗ[R] M₂) :=
+instance : has_neg (M →ₗ[R] M₃) :=
 ⟨λ f, { to_fun := -f, map_add' := by simp [add_comm], map_smul' := by simp }⟩
 
-@[simp] lemma neg_apply (x : M) : (- f) x = - f x := rfl
+@[simp] lemma neg_apply (f : M →ₗ[R] M₃) (x : M) : (- f) x = - f x := rfl
 
-@[simp] lemma comp_neg (g : M₂ →ₗ[R] M₃) : g.comp (- f) = - g.comp f := by { ext, simp }
+@[simp] lemma neg_comp (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M₃) : (- g).comp f = - g.comp f := rfl
+
+@[simp] lemma comp_neg (f : M →ₗ[R] M₃) (g : M₃ →ₗ[R] M₄) : g.comp (- f) = - g.comp f :=
+ext $ λ _, g.map_neg _
 
 /-- The negation of a linear map is linear. -/
-instance : has_sub (M →ₗ[R] M₂) :=
+instance : has_sub (M →ₗ[R] M₃) :=
 ⟨λ f g, { to_fun := f - g,
           map_add' := λ x y, by simp only [pi.sub_apply, map_add, add_sub_comm],
           map_smul' := λ r x, by simp only [pi.sub_apply, map_smul, smul_sub] }⟩
 
-@[simp] lemma sub_apply (x : M) : (f - g) x = f x - g x := rfl
+@[simp] lemma sub_apply (f g : M →ₗ[R] M₃) (x : M) : (f - g) x = f x - g x := rfl
 
-lemma sub_comp (g : M₂ →ₗ[R] M₃) (h : M₂ →ₗ[R] M₃) :
-  (g - h).comp f = g.comp f - h.comp f := rfl
+lemma sub_comp (f : M →ₗ[R] M₂) (g h : M₂ →ₗ[R] M₃) : (g - h).comp f = g.comp f - h.comp f := rfl
 
-lemma comp_sub (g : M →ₗ[R] M₂) (h : M₂ →ₗ[R] M₃) :
-  h.comp (g - f) = h.comp g - h.comp f := by { ext, simp }
+lemma comp_sub (f g : M →ₗ[R] M₃) (h : M₃ →ₗ[R] M₃) : h.comp (g - f) = h.comp g - h.comp f :=
+ext $ λ _, h.map_sub _ _
 
 /-- The type of linear maps is an additive group. -/
-instance : add_comm_group (M →ₗ[R] M₂) :=
+instance : add_comm_group (M →ₗ[R] M₃) :=
 by refine
 { zero := 0,
   add := (+),
@@ -472,6 +472,11 @@ instance : distrib_mul_action S (M →ₗ[R] M₂) :=
 
 theorem smul_comp (a : S) (g : M₃ →ₗ[R] M₂) (f : M →ₗ[R] M₃) : (a • g).comp f = a • (g.comp f) :=
 rfl
+
+theorem comp_smul [distrib_mul_action S M₃] [smul_comm_class R S M₃] [compatible_smul M₂ M₃ S R]
+  (g : M₂ →ₗ[R] M₃) (a : S) :
+  g.comp (a • f) = a • (g.comp f) :=
+ext $ λ _, g.map_smul_of_tower _ _
 
 end has_scalar
 
@@ -531,9 +536,6 @@ variables [comm_semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [add_comm
 variables [module R M] [module R M₂] [module R M₃]
 variables (f g : M →ₗ[R] M₂)
 include R
-
-theorem comp_smul (g : M₂ →ₗ[R] M₃) (a : R) : g.comp (a • f) = a • (g.comp f) :=
-ext $ assume b, by rw [comp_apply, smul_apply, g.map_smul]; refl
 
 /-- Composition by `f : M₂ → M₃` is a linear map from the space of linear maps `M → M₂`
 to the space of linear maps `M₂ → M₃`. -/

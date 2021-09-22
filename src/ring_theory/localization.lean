@@ -619,7 +619,7 @@ variables [is_localization.away x S]
 
 /-- Given `x : R` and a localization map `F : R →+* S` away from `x`, `inv_self` is `(F x)⁻¹`. -/
 noncomputable def inv_self : S :=
-mk' S 1 ⟨x, submonoid.mem_powers _⟩
+mk' S (1 : R) ⟨x, submonoid.mem_powers _⟩
 
 variables {g : R →+* P}
 
@@ -994,7 +994,7 @@ begin
   { have : I = ⊤,
     { rw ideal.eq_top_iff_one,
       rw [ideal.quotient.eq_zero_iff_mem, ideal.mem_comap] at hM,
-      convert I.mul_mem_right (mk' S 1 ⟨m, hm⟩) hM,
+      convert I.mul_mem_right (mk' S (1 : R) ⟨m, hm⟩) hM,
       rw [← mk'_eq_mul_mk'_one, mk'_self] },
     exact ⟨0, eq_comm.1 (by simp [ideal.quotient.eq_zero_iff_mem, this])⟩ },
   { rw ideal.quotient.maximal_ideal_iff_is_field_quotient at hI,

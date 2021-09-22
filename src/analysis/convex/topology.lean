@@ -5,8 +5,8 @@ Authors: Alexander Bentkamp, Yury Kudriashov
 -/
 import analysis.convex.function
 import analysis.normed_space.finite_dimension
-import topology.path_connected
 import topology.algebra.affine
+import topology.path_connected
 
 /-!
 # Topological and metric properties of convex sets

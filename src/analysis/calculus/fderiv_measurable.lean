@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
 import analysis.calculus.deriv
 import measure_theory.constructions.borel_space
+import tactic.ring_exp
 
 /-!
 # Derivative is measurable

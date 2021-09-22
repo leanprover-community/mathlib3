@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudriashov
 -/
 import analysis.convex.basic
+import algebra.big_operators.order
 
 /-!
 # Linear combinations
@@ -251,7 +252,7 @@ begin
       hw₁ (λ x hx, hx) }
 end
 
-lemma _root_.set.finite.convex_hull_eq {s : set E} (hs : finite s) :
+protected lemma _root_.set.finite.convex_hull_eq {s : set E} (hs : finite s) :
   convex_hull 𝕜 s = {x : E | ∃ (w : E → 𝕜) (hw₀ : ∀ y ∈ s, 0 ≤ w y)
     (hw₁ : ∑ y in hs.to_finset, w y = 1), hs.to_finset.linear_combination id w = x} :=
 by simpa only [set.finite.coe_to_finset, set.finite.mem_to_finset, exists_prop]
@@ -288,9 +289,9 @@ lemma convex_hull_basis_eq_std_simplex :
   convex_hull 𝕜 (range $ λ(i j:ι), if i = j then (1:𝕜) else (0 : 𝕜)) = std_simplex 𝕜 ι :=
 begin
   refine (convex_hull_min _ (convex_std_simplex 𝕜 ι)).antisymm _,
-  { rintros _ ⟨i, rfl⟩,
+  { rintro _ ⟨i, rfl⟩,
     exact ite_eq_mem_std_simplex 𝕜 i },
-  { rintros w ⟨hw₀, hw₁⟩,
+  { rintro w ⟨hw₀, hw₁⟩,
     rw [pi_eq_sum_univ w],
     exact finset.univ.linear_combination_mem_convex_hull (λ i hi, hw₀ i)
       hw₁ (λ i hi, mem_range_self i) }

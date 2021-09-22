@@ -105,7 +105,7 @@ begin
     simpa using Fs.trans su },
   have h_μ_sdiff : μ (u \ F) ≤ 2 * η,
   { have hFμ : μ F < ⊤ := (measure_mono Fs).trans_lt hsμ,
-    refine ennreal.le_of_add_le_add_left hFμ _,
+    refine ennreal.le_of_add_le_add_left hFμ.ne _,
     have : μ u < μ F + ↑η + ↑η,
     { refine μu.trans _,
       rwa ennreal.add_lt_add_iff_right (ennreal.coe_ne_top : ↑η ≠ ⊤) },

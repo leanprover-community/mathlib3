@@ -91,6 +91,8 @@ lemma lt_top_iff_ne_top : a < ⊤ ↔ a ≠ ⊤ := le_top.lt_iff_ne
 lemma ne_top_of_lt (h : a < b) : a ≠ ⊤ :=
 lt_top_iff_ne_top.1 $ lt_of_lt_of_le h le_top
 
+alias ne_top_of_lt ← has_lt.lt.ne_top
+
 theorem ne_top_of_le_ne_top {a b : α} (hb : b ≠ ⊤) (hab : a ≤ b) : a ≠ ⊤ :=
 λ ha, hb $ top_unique $ ha ▸ hab
 
@@ -161,6 +163,8 @@ end
 
 lemma ne_bot_of_gt (h : a < b) : b ≠ ⊥ :=
 bot_lt_iff_ne_bot.1 $ lt_of_le_of_lt bot_le h
+
+alias ne_bot_of_gt ← has_lt.lt.ne_bot
 
 lemma eq_bot_of_minimal (h : ∀ b, ¬ b < a) : a = ⊥ :=
 or.elim (lt_or_eq_of_le bot_le) (λ hlt, absurd hlt (h ⊥)) (λ he, he.symm)
@@ -500,6 +504,10 @@ def unbot : Π (x : with_bot α), x ≠ ⊥ → α
 | ⊥        h := absurd rfl h
 | (some x) h := x
 
+@[simp] lemma coe_unbot {α : Type*} (x : with_bot α) (h : x ≠ ⊥) :
+  (x.unbot h : with_bot α) = x :=
+by { cases x, simpa using h, refl, }
+
 @[simp] lemma unbot_coe (x : α) (h : (x : with_bot α) ≠ ⊥ := coe_ne_bot _) :
   (x : with_bot α).unbot h = x := rfl
 
@@ -723,6 +731,10 @@ option.ne_none_iff_exists
 /-- Deconstruct a `x : with_top α` to the underlying value in `α`, given a proof that `x ≠ ⊤`. -/
 def untop : Π (x : with_top α), x ≠ ⊤ → α :=
 with_bot.unbot
+
+@[simp] lemma coe_untop {α : Type*} (x : with_top α) (h : x ≠ ⊤) :
+  (x.untop h : with_top α) = x :=
+by { cases x, simpa using h, refl, }
 
 @[simp] lemma untop_coe (x : α) (h : (x : with_top α) ≠ ⊤ := coe_ne_top) :
   (x : with_top α).untop h = x := rfl

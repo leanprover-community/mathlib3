@@ -169,7 +169,7 @@ begin
   by_contra h,
   simp only [nonmoves, not_exists, not_forall, set.mem_set_of_eq, not_not] at h,
 
-  have hle : cardinal.univ.{u (u+1)} ≤ cardinal.lift.{u (u+1)} (cardinal.mk α),
+  have hle : cardinal.univ.{u (u+1)} ≤ cardinal.lift.{(u+1)} (cardinal.mk α),
   { refine ⟨⟨λ ⟨O⟩, ⟨classical.some (h O)⟩, _⟩⟩,
     rintros ⟨O₁⟩ ⟨O₂⟩ heq,
     ext,
@@ -178,7 +178,7 @@ begin
     rw heq,
     exact classical.some_spec (h O₂) },
 
-  have hlt : cardinal.lift.{u (u+1)} (cardinal.mk α) < cardinal.univ.{u (u+1)} :=
+  have hlt : cardinal.lift.{(u+1)} (cardinal.mk α) < cardinal.univ.{u (u+1)} :=
     cardinal.lt_univ.2 ⟨cardinal.mk α, rfl⟩,
 
   cases hlt,

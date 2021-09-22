@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudriashov
 -/
 import analysis.convex.basic
+import linear_algebra.affine_space.combination
 import algebra.big_operators.order
 
 /-!
@@ -178,12 +179,12 @@ lemma finset.center_mass_mem_convex_hull (t : finset ι) {w : ι → R} (hw₀ :
 
 /-- A refinement of `finset.center_mass_mem_convex_hull` when the indexed family is a `finset` of
 the space. -/
-lemma finset.center_mass_id_mem_convex_hull (t : finset E) {w : E → ℝ} (hw₀ : ∀ i ∈ t, 0 ≤ w i)
+lemma finset.center_mass_id_mem_convex_hull (t : finset E) {w : E → R} (hw₀ : ∀ i ∈ t, 0 ≤ w i)
   (hws : 0 < ∑ i in t, w i) :
-  t.center_mass w id ∈ convex_hull ℝ (t : set E) :=
+  t.center_mass w id ∈ convex_hull R (t : set E) :=
 t.center_mass_mem_convex_hull hw₀ hws (λ i, mem_coe.2)
 
-lemma affine_combination_eq_center_mass {ι : Type*} {t : finset ι} {p : ι → E} {w : ι → ℝ}
+lemma affine_combination_eq_center_mass {ι : Type*} {t : finset ι} {p : ι → E} {w : ι → R}
   (hw₂ : ∑ i in t, w i = 1) :
   affine_combination t p w = center_mass t w p :=
 begin
@@ -194,16 +195,16 @@ end
 
 /-- The centroid can be regarded as a center of mass. -/
 @[simp] lemma finset.centroid_eq_center_mass (s : finset ι) (hs : s.nonempty) (p : ι → E) :
-  s.centroid ℝ p = s.center_mass (s.centroid_weights ℝ) p :=
-affine_combination_eq_center_mass (s.sum_centroid_weights_eq_one_of_nonempty ℝ hs)
+  s.centroid R p = s.center_mass (s.centroid_weights R) p :=
+affine_combination_eq_center_mass (s.sum_centroid_weights_eq_one_of_nonempty R hs)
 
 lemma finset.centroid_mem_convex_hull (s : finset E) (hs : s.nonempty) :
-  s.centroid ℝ id ∈ convex_hull ℝ (s : set E) :=
+  s.centroid R id ∈ convex_hull R (s : set E) :=
 begin
   rw s.centroid_eq_center_mass hs,
   apply s.center_mass_id_mem_convex_hull,
   { simp only [inv_nonneg, implies_true_iff, nat.cast_nonneg, finset.centroid_weights_apply], },
-  { have hs_card : (s.card : ℝ) ≠ 0, { simp [finset.nonempty_iff_ne_empty.mp hs] },
+  { have hs_card : (s.card : R) ≠ 0, { simp [finset.nonempty_iff_ne_empty.mp hs] },
     simp only [hs_card, finset.sum_const, nsmul_eq_mul, mul_inv_cancel, ne.def, not_false_iff,
       finset.centroid_weights_apply, zero_lt_one] }
 end

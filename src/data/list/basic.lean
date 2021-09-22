@@ -814,10 +814,6 @@ begin
   { simp, refl, }
 end
 
-@[simp]
-lemma tail_length {l : list α} : l.tail.length = l.length - 1 :=
-by { cases l; simp, }
-
 /-! ### Induction from the right -/
 
 /-- Induction principle from the right for lists: if a property holds for the empty list, and

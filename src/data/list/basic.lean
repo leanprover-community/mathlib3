@@ -814,9 +814,9 @@ begin
   { simp, refl, }
 end
 
-lemma tail_length_of_length_eq_succ {l : list α} {n : ℕ} (h : l.length = n + 1) :
-  l.tail.length = n :=
-by { cases l, cases h, simpa using h, }
+@[simp]
+lemma tail_length {l : list α} : l.tail.length = l.length - 1 :=
+by { cases l; simp, }
 
 /-! ### Induction from the right -/
 

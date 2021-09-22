@@ -47,8 +47,8 @@ lemma charpoly_eq_matrix.charpoly {ι : Type w} [fintype ι] (b : basis ι R M) 
   f.charpoly = (linear_map.to_matrix b b f).charpoly :=
 begin
   set b' := (choose_basis R M),
-  set P := reindex_linear_equiv R R (equiv_of_basis b' b) (equiv.refl ι) (b'.to_matrix b),
-  set Q := reindex_linear_equiv R R (equiv.refl ι) (equiv_of_basis b' b) (b.to_matrix b'),
+  set P := reindex_linear_equiv R R (basis.index_equiv b' b) (equiv.refl ι) (b'.to_matrix b),
+  set Q := reindex_linear_equiv R R (equiv.refl ι) (basis.index_equiv b' b) (b.to_matrix b'),
 
   have hPQ : (P.map C).mul (Q.map C) = 1,
   { rw [← matrix.map_mul, ← reindex_linear_equiv_mul R R, basis.to_matrix_mul_to_matrix_flip,
@@ -58,7 +58,7 @@ begin
   { rw [matrix.mul_assoc ((scalar ι) X), hPQ, matrix.mul_one] },
   have hcomm : ((scalar ι) X).mul (P.map C) = (P.map C).mul ((scalar ι) X) := by simp,
 
-  rw [charpoly, ← charpoly_of_reindex (equiv_of_basis (choose_basis R M) b), matrix.charpoly,
+  rw [charpoly, ← charpoly_of_reindex (basis.index_equiv (choose_basis R M) b), matrix.charpoly,
     charmatrix, ← linear_map_to_matrix_mul_basis_to_matrix b' b b' f,
     ← basis_to_matrix_mul_linear_map_to_matrix b b' b f, ← reindex_linear_equiv_apply R R,
     reindex_linear_equiv_mul R R _ (equiv.refl ι) _,

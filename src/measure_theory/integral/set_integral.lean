@@ -155,7 +155,7 @@ lemma tendsto_set_integral_of_monotone {ι : Type*} [encodable ι] [semilattice_
   (h_mono : monotone s) (hfi : integrable_on f (⋃ n, s n) μ) :
   tendsto (λ i, ∫ a in s i, f a ∂μ) at_top (𝓝 (∫ a in (⋃ n, s n), f a ∂μ)) :=
 begin
-  have hfi' : _ < _ := hfi.2,
+  have hfi' : ∫⁻ x in ⋃ n, s n, ∥f x∥₊ ∂μ < ∞ := hfi.2,
   set S := ⋃ i, s i,
   have hSm : measurable_set S := measurable_set.Union hsm,
   have hsub : ∀ {i}, s i ⊆ S, from subset_Union s,

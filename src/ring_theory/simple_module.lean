@@ -154,6 +154,6 @@ noncomputable instance [decidable_eq (module.End R M)] [is_simple_module R M] :
     exact (equiv.of_bijective _ (bijective_of_ne_zero a0)).right_inv x,
   end,
   inv_zero := dif_pos rfl,
-.. (linear_map.endomorphism_ring : ring (module.End R M))}
+.. (module.End.ring : ring (module.End R M))}
 
 end linear_map

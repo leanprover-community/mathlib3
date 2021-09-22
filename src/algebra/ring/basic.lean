@@ -18,6 +18,19 @@ structure `ring_hom a β`, a.k.a. `α →+* β`, for both homomorphism types.
 The unbundled homomorphisms are defined in `deprecated/ring`. They are deprecated and the plan is to
 slowly remove them from mathlib.
 
+This file also contains three typeclasses used in the definition of (semi)linear maps:
+* `ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃`, which expresses the fact that `σ₂₃.comp σ₁₂ = σ₁₃`
+* `ring_hom_inv_pair σ₁₂ σ₂₁`, which states that `σ₁₂` and `σ₂₁` are inverses of each other
+* `ring_hom_surjective σ`, which states that `σ` is surjective
+
+Instances of these typeclasses mostly involving `ring_hom.id` are also provided:
+* `ring_hom_inv_pair (ring_hom.id R) (ring_hom.id R)`
+* `ring_hom_comp_triple σ₁₂ σ₂₁ (ring_hom.id R₁)`
+* `ring_hom_comp_triple (ring_hom.id R₁) σ₁₂ σ₁₂`
+* `ring_hom_comp_triple σ₁₂ (ring_hom.id R₂) σ₁₂`
+* `ring_hom_surjective (ring_hom.id R)`
+* `[ring_hom_inv_pair σ₁ σ₂] : ring_hom_surjective σ₁`
+
 ## Main definitions
 
 ring_hom, nonzero, domain, integral_domain
@@ -28,13 +41,21 @@ ring_hom, nonzero, domain, integral_domain
 
 ## Implementation notes
 
-There's a coercion from bundled homs to fun, and the canonical
-notation is to use the bundled hom as a function via this coercion.
+* There's a coercion from bundled homs to fun, and the canonical notation is to
+  use the bundled hom as a function via this coercion.
 
-There is no `semiring_hom` -- the idea is that `ring_hom` is used.
-The constructor for a `ring_hom` between semirings needs a proof of `map_zero`, `map_one` and
-`map_add` as well as `map_mul`; a separate constructor `ring_hom.mk'` will construct ring homs
-between rings from monoid homs given only a proof that addition is preserved.
+* There is no `semiring_hom` -- the idea is that `ring_hom` is used.
+  The constructor for a `ring_hom` between semirings needs a proof of `map_zero`,
+  `map_one` and `map_add` as well as `map_mul`; a separate constructor
+  `ring_hom.mk'` will construct ring homs between rings from monoid homs given
+  only a proof that addition is preserved.
+
+* For the typeclass `ring_hom_inv_pair σ₁₂ σ₂₁`, `σ₂₁` is marked as an `out_param`,
+  as it must typically be found via the typeclass inference system.
+
+* Likewise, for `ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃`, `σ₁₃` is marked as an `out_param`,
+  for the same reason.
+
 
 ## Tags
 

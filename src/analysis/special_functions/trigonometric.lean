@@ -26,7 +26,7 @@ The continuity and differentiability of the usual trigonometric functions are pr
 derivatives are computed.
 
 * `polynomial.chebyshev.T_complex_cos`: the `n`-th Chebyshev polynomial evaluates on `complex.cos θ`
-  to the value `n * complex.cos θ`.
+  to the value `complex.cos (n * θ)`.
 
 ## Tags
 

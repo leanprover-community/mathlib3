@@ -748,7 +748,6 @@ to_equiv_injective $ equiv.coe_fn_injective h
   (⟨e, h1, h2⟩ : α ≃ᵐ β).symm = ⟨e.symm, h2, h1⟩ := rfl
 
 attribute [simps apply to_equiv] trans refl
-attribute [simps apply] symm
 
 @[simp] lemma symm_refl (α : Type*) [measurable_space α] : (refl α).symm = refl α := rfl
 

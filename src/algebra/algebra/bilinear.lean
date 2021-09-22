@@ -43,16 +43,6 @@ variables {R A}
 
 @[simp] lemma lmul_apply (p q : A) : lmul R A p q = p * q := rfl
 
-instance linear_map.module' (R : Type u) [comm_semiring R]
-  (M : Type v) [add_comm_monoid M] [module R M]
-  (S : Type w) [comm_semiring S] [algebra R S] : module S (M →ₗ[R] S) :=
-{ smul := λ s f, linear_map.llcomp _ _ _ _ (algebra.lmul R S s) f,
-  one_smul := λ f, linear_map.ext $ λ x, one_mul _,
-  mul_smul := λ s₁ s₂ f, linear_map.ext $ λ x, mul_assoc _ _ _,
-  smul_add := λ s f g, linear_map.map_add _ _ _,
-  smul_zero := λ s, linear_map.map_zero _,
-  add_smul := λ s₁ s₂ f, linear_map.ext $ λ x, add_mul _ _ _,
-  zero_smul := λ f, linear_map.ext $ λ x, zero_mul _ }
 
 variables (R)
 

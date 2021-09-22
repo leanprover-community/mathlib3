@@ -227,6 +227,4 @@ inv_mem' := by {intros x hx, simp at *,
   rw ← ha,
   simp,
   simp_rw ←  mul_assoc,} ,
-
-
 }

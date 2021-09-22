@@ -80,8 +80,8 @@ begin
     by rw [← matrix.sub_mul, ← matrix.mul_sub]
   ... = (C.map_matrix (φ₁ P)).det * (scalar ι' X - C.map_matrix A').det *
     (C.map_matrix (φ₃ Q)).det : by rw [det_mul, det_mul]
-  ... = (C.map_matrix (φ₁ P)).det * (C.map_matrix (φ₃ Q)).det * (scalar ι' X - C.map_matrix A').det :
-    by ring
+  ... = (C.map_matrix (φ₁ P)).det * (C.map_matrix (φ₃ Q)).det *
+    (scalar ι' X - C.map_matrix A').det : by ring
   ... = (scalar ι' X - C.map_matrix A').det : by rw [← det_mul, hPQ, det_one, one_mul]
   ... = f.charpoly : rfl
 end

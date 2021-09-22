@@ -606,7 +606,7 @@ instance _root_.module.End.semiring : semiring (M →ₗ[R] M) :=
   .. linear_map.add_comm_monoid }
 
 instance _root_.module.End.ring : ring (N →ₗ[R] N) :=
-{ ..linear_map.endomorphism_semiring, ..linear_map.add_comm_group }
+{ ..module.End.semiring, ..linear_map.add_comm_group }
 
 end endomorphisms
 

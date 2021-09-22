@@ -39,7 +39,7 @@ variables {α β} {f g : continuous_map α β}
 
 @[continuity] protected lemma continuous (f : C(α, β)) : continuous f := f.continuous_to_fun
 @[continuity] lemma continuous_set_coe (s : set C(α, β)) (f : s) : continuous f :=
-by { cases f, rw @coe_fn_coe_base _ _ (λ _, α → β), continuity, }
+by { cases f, rw @coe_fn_coe_base', continuity }
 
 protected lemma continuous_at (f : C(α, β)) (x : α) : continuous_at f x :=
 f.continuous.continuous_at

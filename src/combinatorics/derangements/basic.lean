@@ -51,9 +51,8 @@ calc
       : begin
         refine (perm.subtype_equiv_subtype_perm p).subtype_equiv (λ f, ⟨λ hf a hfa ha, _, _⟩),
         { refine hf ⟨a, ha⟩ (subtype.ext _),
-          rwa [mem_fixed_points, is_fixed_pt, perm.subtype_equiv_subtype_perm,
-              @coe_fn_coe_base _ _ (λ _, α → α), equiv.coe_fn_mk, subtype.coe_mk,
-              equiv.perm.of_subtype_apply_of_mem]
+          rwa [mem_fixed_points, is_fixed_pt, perm.subtype_equiv_subtype_perm, @coe_fn_coe_base',
+               equiv.coe_fn_mk, subtype.coe_mk, equiv.perm.of_subtype_apply_of_mem]
             at hfa },
         rintro hf ⟨a, ha⟩ hfa,
         refine hf _ _ ha,

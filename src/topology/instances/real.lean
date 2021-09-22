@@ -75,7 +75,7 @@ lemma closed_embedding_coe_real : closed_embedding (coe : ℤ → ℝ) :=
 closed_embedding_of_pairwise_le_dist zero_lt_one pairwise_one_le_dist
 
 instance : metric_space ℤ := int.uniform_embedding_coe_real.comap_metric_space _
-      
+
 theorem preimage_ball (x : ℤ) (r : ℝ) : coe ⁻¹' (ball (x : ℝ) r) = ball x r := rfl
 
 theorem preimage_closed_ball (x : ℤ) (r : ℝ) :

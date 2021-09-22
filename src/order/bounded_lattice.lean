@@ -519,12 +519,8 @@ instance has_lt [has_lt α] : has_lt (with_bot α) :=
   @has_lt.lt (with_bot α) _ (some a) (some b) ↔ a < b :=
 by simp [(<)]
 
-<<<<<<< HEAD
-lemma none_lt_some [has_lt α] (a : α) : (⊥ : with_bot α) < some a :=
-=======
 lemma none_lt_some [has_lt α] (a : α) :
   @has_lt.lt (with_bot α) _ none (some a) :=
->>>>>>> origin
 ⟨a, rfl, λ b hb, (option.not_mem_none _ hb).elim⟩
 
 lemma bot_lt_coe [has_lt α] (a : α) : (⊥ : with_bot α) < a := none_lt_some a

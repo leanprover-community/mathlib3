@@ -850,18 +850,8 @@ begin
   haveI : is_associative (with_bot ℕ) max := ⟨max_assoc⟩,
   calc  (∑ i, C (f i) * X ^ (i : ℕ)).degree
       ≤ finset.univ.fold (⊔) ⊥ (λ i, (C (f i) * X ^ (i : ℕ)).degree) : degree_sum_le _ _
-<<<<<<< HEAD
-  ... = finset.univ.fold max ⊥ (λ i, (C (f i) * X ^ (i : ℕ)).degree) :
-    (@finset.fold_hom _ _ _ (⊔) _ _ _ ⊥ finset.univ _ _ _ id (with_bot.sup_eq_max)).symm
-<<<<<<< HEAD
-  ... < n : (finset.fold_max_lt (n : with_bot ℕ)).mpr ⟨with_bot.none_lt_some _, _⟩,
-=======
-=======
   ... = finset.univ.fold max ⊥ (λ i, (C (f i) * X ^ (i : ℕ)).degree) : rfl
->>>>>>> origin/master
   ... < n : (finset.fold_max_lt (n : with_bot ℕ)).mpr ⟨with_bot.bot_lt_coe _, _⟩,
->>>>>>> origin
-
   rintros ⟨i, hi⟩ -,
   calc (C (f ⟨i, hi⟩) * X ^ i).degree
       ≤ (C _).degree + (X ^ i).degree : degree_mul_le _ _

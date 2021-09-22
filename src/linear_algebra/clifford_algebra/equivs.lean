@@ -5,7 +5,6 @@ Authors: Eric Wieser
 -/
 import algebra.quaternion_basis
 import data.complex.module
-import linear_algebra.clifford_algebra.basic
 import linear_algebra.clifford_algebra.conjugation
 
 /-!

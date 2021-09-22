@@ -16,13 +16,13 @@ Also the special case in terms of `deriv` when the domain is 1-dimensional.
 open filter asymptotics
 open_locale ennreal
 
-section fderiv
-
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
-variables {p : formal_multilinear_series 𝕜 E F} {r : ℝ≥0∞}
 
+section fderiv
+
+variables {p : formal_multilinear_series 𝕜 E F} {r : ℝ≥0∞}
 variables {f : E → F} {x : E} {s : set E}
 
 lemma has_fpower_series_at.has_strict_fderiv_at (h : has_fpower_series_at f p x) :

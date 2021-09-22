@@ -568,7 +568,7 @@ section semiring
 
 variables [semiring R] [add_comm_monoid M] [module R M]
 
-instance _root_.module.End.semiring : semiring (End R M) :=
+instance _root_.module.End.semiring : semiring (module.End R M) :=
 { mul := (*),
   one := (1 : M →ₗ[R] M),
   zero := 0,

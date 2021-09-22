@@ -85,8 +85,18 @@ theorem coe_fn_coe_trans
   {α β γ δ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_fun γ δ]
   (x : α) : @coe_fn α _ _ x = @coe_fn β _ _ x := rfl
 
+/-- Non-dependent version of `coe_fn_coe_trans`, helps `rw` figure out the argument. -/
+theorem coe_fn_coe_trans'
+  {α β γ} {δ : out_param $ _} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_fun γ (λ _, δ)]
+  (x : α) : @coe_fn α _ _ x = @coe_fn β _ _ x := rfl
+
 @[simp] theorem coe_fn_coe_base
   {α β γ} [has_coe α β] [has_coe_to_fun β γ]
+  (x : α) : @coe_fn α _ _ x = @coe_fn β _ _ x := rfl
+
+/-- Non-dependent version of `coe_fn_coe_base`, helps `rw` figure out the argument. -/
+theorem coe_fn_coe_base'
+  {α β} {γ : out_param $ _} [has_coe α β] [has_coe_to_fun β (λ _, γ)]
   (x : α) : @coe_fn α _ _ x = @coe_fn β _ _ x := rfl
 
 theorem coe_sort_coe_trans

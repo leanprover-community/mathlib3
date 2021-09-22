@@ -175,19 +175,37 @@ namespace localization
   inhabited (localization S) :=
 con.quotient.inhabited
 
-@[to_additive, irreducible] protected def mul : localization S → localization S → localization S :=
+/-- Multiplication in a localization is defined as `⟨a, b⟩ * ⟨c, d⟩ = ⟨a * c, b * d⟩`. -/
+@[to_additive "Addition in an `add_localization` is defined as `⟨a, b⟩ + ⟨c, d⟩ = ⟨a + c, b + d⟩`.
+
+Should not be confused with the ring localization counterpart `localization.add`, which maps
+`⟨a, b⟩ + ⟨c, d⟩` to `⟨d * a + b * c, b * d⟩`.", irreducible]
+protected def mul : localization S → localization S → localization S :=
 (r S).comm_monoid.mul
 
 @[to_additive] instance : has_mul (localization S) :=
 ⟨localization.mul S⟩
 
-@[to_additive, irreducible] protected def one : localization S :=
+/-- The identity element of a localization is defined as `⟨1, 1⟩`. -/
+@[to_additive "The identity element of an `add_localization` is defined as `⟨0, 0⟩`.
+
+Should not be confused with the ring localization counterpart `localization.zero`,
+which is defined as `⟨0, 1⟩`.", irreducible] protected def one : localization S :=
 (r S).comm_monoid.one
 
 @[to_additive] instance : has_one (localization S) :=
 ⟨localization.one S⟩
 
-@[to_additive, irreducible] protected def npow : ℕ → localization S → localization S :=
+/-- Exponentiation in a localization is defined as `⟨a, b⟩ ^ n = ⟨a ^ n, b ^ n⟩`.
+
+This is a separate `irreducible` def to ensure the elaborator doesn't waste its time
+trying to unify some huge recursive definition with itself, but unfolded one step less.
+-/
+@[to_additive "Multiplication with a natural in an `add_localization` is defined as `n • ⟨a, b⟩ = ⟨n • a, n • b⟩`.
+
+This is a separate `irreducible` def to ensure the elaborator doesn't waste its time
+trying to unify some huge recursive definition with itself, but unfolded one step less.", irreducible]
+protected def npow : ℕ → localization S → localization S :=
 (r S).comm_monoid.npow
 
 local attribute [semireducible] localization.mul localization.one localization.npow
@@ -222,7 +240,10 @@ universes u
 /-- Dependent recursion principle for localizations: given elements `f a b : p (mk a b)`
 for all `a b`, such that `r S (a, b) (c, d)` implies `f a b = f c d` (wih the correct coercions),
 then `f` is defined on the whole `localization S`. -/
-@[elab_as_eliminator, to_additive]
+@[elab_as_eliminator, to_additive
+"Dependent recursion principle for `add_localizations`: given elements `f a b : p (mk a b)`
+for all `a b`, such that `r S (a, b) (c, d)` implies `f a b = f c d` (wih the correct coercions),
+then `f` is defined on the whole `add_localization S`."]
 def rec {p : localization S → Sort u}
   (f : ∀ (a : M) (b : S), p (mk a b))
   (H : ∀ {a c : M} {b d : S} (h : r S (a, b) (c, d)),
@@ -244,7 +265,10 @@ rfl
 /-- Non-dependent recursion principle for localizations: given elements `f a b : p`
 for all `a b`, such that `r S (a, b) (c, d)` implies `f a b = f c d`,
 then `f` is defined on the whole `localization S`. -/
-@[elab_as_eliminator, to_additive]
+@[elab_as_eliminator, to_additive
+"Non-dependent recursion principle for `add_localizations`: given elements `f a b : p`
+for all `a b`, such that `r S (a, b) (c, d)` implies `f a b = f c d`,
+then `f` is defined on the whole `localization S`."]
 def lift_on {p : Sort u} (x : localization S) (f : M → S → p)
   (H : ∀ {a c : M} {b d : S} (h : r S (a, b) (c, d)), f a b = f c d) : p :=
 rec f (λ a c b d h, by rw [eq_rec_constant, H h]) x
@@ -266,7 +290,10 @@ theorem induction_on {p : localization S → Prop} (x)
 /-- Non-dependent recursion principle for localizations: given elements `f x y : p`
 for all `x` and `y`, such that `r S x x'` and `r S y y'` implies `f x y = f x' y'`,
 then `f` is defined on the whole `localization S`. -/
-@[elab_as_eliminator, to_additive]
+@[elab_as_eliminator, to_additive
+"Non-dependent recursion principle for localizations: given elements `f x y : p`
+for all `x` and `y`, such that `r S x x'` and `r S y y'` implies `f x y = f x' y'`,
+then `f` is defined on the whole `localization S`."]
 def lift_on₂ {p : Sort u} (x y : localization S) (f : M → S → M → S → p)
   (H : ∀ {a a' b b' c c' d d'} (hx : r S (a, b) (a', b')) (hy : r S (c, d) (c', d')),
     f a b c d = f a' b' c' d') :

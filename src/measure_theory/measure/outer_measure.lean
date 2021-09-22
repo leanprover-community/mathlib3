@@ -440,7 +440,7 @@ let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑'i, m (f i) in
     infi_le_infi2 $ assume hb, ⟨subset.trans hs hb, le_refl _⟩,
   Union_nat := assume s, ennreal.le_of_forall_pos_le_add $ begin
     assume ε hε (hb : ∑'i, μ (s i) < ∞),
-    rcases ennreal.exists_pos_sum_of_encodable (ennreal.coe_lt_coe.2 hε) ℕ with ⟨ε', hε', hl⟩,
+    rcases ennreal.exists_pos_sum_of_encodable (ennreal.coe_pos.2 hε).ne' ℕ with ⟨ε', hε', hl⟩,
     refine le_trans _ (add_le_add_left (le_of_lt hl) _),
     rw ← ennreal.tsum_add,
     choose f hf using show
@@ -449,7 +449,7 @@ let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑'i, m (f i) in
       have : μ (s i) < μ (s i) + ε' i :=
         ennreal.lt_add_right
           (ne_top_of_le_ne_top hb.ne $ ennreal.le_tsum _)
-          (by simpa using hε' i),
+          (by simpa using (hε' i).ne'),
       simpa [μ, infi_lt_iff] },
     refine le_trans _ (ennreal.tsum_le_tsum $ λ i, le_of_lt (hf i).2),
     rw [← ennreal.tsum_prod, ← equiv.nat_prod_nat_equiv_nat.symm.tsum_eq],
@@ -1114,11 +1114,11 @@ begin
 end
 
 lemma induced_outer_measure_exists_set {s : set α}
-  (hs : induced_outer_measure m P0 m0 s ≠ ∞) {ε : ℝ≥0} (hε : 0 < ε) :
+  (hs : induced_outer_measure m P0 m0 s ≠ ∞) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
   ∃ (t : set α) (ht : P t), s ⊆ t ∧
     induced_outer_measure m P0 m0 t ≤ induced_outer_measure m P0 m0 s + ε :=
 begin
-  have := ennreal.lt_add_right hs (ennreal.zero_lt_coe_iff.2 hε),
+  have := ennreal.lt_add_right hs hε,
   conv at this {to_lhs, rw induced_outer_measure_eq_infi _ msU m_mono },
   simp only [infi_lt_iff] at this,
   rcases this with ⟨t, h1t, h2t, h3t⟩,
@@ -1258,7 +1258,7 @@ begin
     have : ∀ n : ℕ, ∃ t, s ⊆ t ∧ measurable_set t ∧ m t < ms + n⁻¹,
     { assume n,
       refine this _ (ennreal.lt_add_right hs _),
-      exact (ennreal.inv_pos.2 $ ennreal.nat_ne_top _) },
+      simp },
     choose t hsub hm hm',
     refine ⟨⋂ n, t n, subset_Inter hsub, measurable_set.Inter hm, _⟩,
     have : tendsto (λ n : ℕ, ms + n⁻¹) at_top (𝓝 (ms + 0)),

@@ -83,14 +83,7 @@ begin
   apply subtype.ext_iff_val.mpr,
   exact (is_open.inter U.2 V.2).interior_eq.symm,
 end
-/- Sup -/ (λ Us, ⟨⋃₀ (coe '' Us), is_open_sUnion $ λ U hU,
-by { rcases hU with ⟨⟨V, hV⟩, h, h'⟩, dsimp at h', subst h', exact hV}⟩)
-begin
-  funext,
-  apply subtype.ext_iff_val.mpr,
-  simp [Sup_range],
-  refl,
-end
+/- Sup -/ _ rfl
 /- Inf -/ _ rfl
 
 lemma le_def {U V : opens α} : U ≤ V ↔ (U : set α) ≤ (V : set α) :=
@@ -139,6 +132,7 @@ lemma open_embedding_of_le {U V : opens α} (i : U ≤ V) :
     exact U.property.preimage continuous_subtype_val
   end, }
 
+/-- A set of `opens α` is a basis if the set of corresponding sets is a topological basis. -/
 def is_basis (B : set (opens α)) : Prop := is_topological_basis ((coe : _ → set α) '' B)
 
 lemma is_basis_iff_nbhd {B : set (opens α)} :

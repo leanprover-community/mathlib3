@@ -646,6 +646,26 @@ by apply_instance
 -/
 namespace monotone
 
+/-- Pointwise supremum of two monotone functions is a monotone function. -/
+protected lemma sup [preorder α] [semilattice_sup β] {f g : α → β} (hf : monotone f)
+  (hg : monotone g) : monotone (λ x, f x ⊔ g x) :=
+λ x y h, sup_le_sup (hf h) (hg h)
+
+/-- Pointwise infimum of two monotone functions is a monotone function. -/
+protected lemma inf [preorder α] [semilattice_inf β] {f g : α → β} (hf : monotone f)
+  (hg : monotone g) : monotone (λ x, f x ⊓ g x) :=
+λ x y h, inf_le_inf (hf h) (hg h)
+
+/-- Pointwise maximum of two monotone functions is a monotone function. -/
+protected lemma max [preorder α] [linear_order β] {f g : α → β} (hf : monotone f)
+  (hg : monotone g) : monotone (λ x, max (f x) (g x)) :=
+hf.sup hg
+
+/-- Pointwise minimum of two monotone functions is a monotone function. -/
+protected lemma min [preorder α] [linear_order β] {f g : α → β} (hf : monotone f)
+  (hg : monotone g) : monotone (λ x, min (f x) (g x)) :=
+hf.inf hg
+
 lemma le_map_sup [semilattice_sup α] [semilattice_sup β]
   {f : α → β} (h : monotone f) (x y : α) :
   f x ⊔ f y ≤ f (x ⊔ y) :=

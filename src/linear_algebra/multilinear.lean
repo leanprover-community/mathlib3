@@ -188,6 +188,21 @@ multilinear map taking values in the space of functions `Π i, M' i`. -/
   map_add' := λ m i x y, funext $ λ j, (f j).map_add _ _ _ _,
   map_smul' := λ m i c x, funext $ λ j, (f j).map_smul _ _ _ _ }
 
+section
+variables (R M₂)
+
+/-- The evaluation map from `ι → M₂` to `M₂` is multilinear at a given `i` when `ι` is subsingleton.
+-/
+@[simps]
+def of_subsingleton [subsingleton ι] (i' : ι) : multilinear_map R (λ _ : ι, M₂) M₂ :=
+{ to_fun := function.eval i',
+  map_add' := λ m i x y, by {
+    rw subsingleton.elim i i', simp only [function.eval, function.update_same], },
+  map_smul' := λ m i r x, by {
+    rw subsingleton.elim i i', simp only [function.eval, function.update_same], } }
+
+end
+
 /-- Given a multilinear map `f` on `n` variables (parameterized by `fin n`) and a subset `s` of `k`
 of these variables, one gets a new multilinear map on `fin k` by varying these variables, and fixing
 the other ones equal to a given value `z`. It is denoted by `f.restr s hk z`, where `hk` is a

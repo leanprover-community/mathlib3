@@ -401,7 +401,8 @@ instance : complete_lattice (filter α) := original_complete_lattice.copy
                            (@inf_le_right (filter α) _ _ _ _ hb)
        end)
   end
-  /- Sup -/ (join ∘ 𝓟) (by ext s x; exact (@mem_bInter_iff _ _ s filter.sets x).symm)
+  /- Sup -/ (join ∘ 𝓟) (by { ext s x, exact (@mem_bInter_iff _ _ s filter.sets x).symm.trans
+    (set.ext_iff.1 (sInter_image _ _) x).symm})
   /- Inf -/ _ rfl
 
 end complete_lattice
@@ -424,6 +425,9 @@ lemma ne_bot.mono {f g : filter α} (hf : ne_bot f) (hg : f ≤ g) : ne_bot g :=
 
 lemma ne_bot_of_le {f g : filter α} [hf : ne_bot f] (hg : f ≤ g) : ne_bot g :=
 hf.mono hg
+
+@[simp] lemma sup_ne_bot {f g : filter α} : ne_bot (f ⊔ g) ↔ ne_bot f ∨ ne_bot g :=
+by simp [ne_bot_iff, not_and_distrib]
 
 lemma bot_sets_eq : (⊥ : filter α).sets = univ := rfl
 
@@ -469,8 +473,11 @@ iff.rfl
   x ∈ supr f ↔ (∀ i, x ∈ f i) :=
 by simp only [← filter.mem_sets, supr_sets_eq, iff_self, mem_Inter]
 
+@[simp] lemma supr_ne_bot {f : ι → filter α} : (⨆ i, f i).ne_bot ↔ ∃ i, (f i).ne_bot :=
+by simp [ne_bot_iff]
+
 lemma infi_eq_generate (s : ι → filter α) : infi s = generate (⋃ i, (s i).sets) :=
-show generate _ = generate _, from congr_arg _ supr_range
+show generate _ = generate _, from congr_arg _ $ congr_arg Sup $ (range_comp _ _).symm
 
 lemma mem_infi_of_mem {f : ι → filter α} (i : ι) : ∀ {s}, s ∈ f i → s ∈ ⨅ i, f i :=
 show (⨅ i, f i) ≤ f i, from infi_le _ _
@@ -1758,6 +1765,51 @@ lemma ne_bot.comap_of_range_mem {f : filter β} {m : α → β}
   (hf : ne_bot f) (hm : range m ∈ f) : ne_bot (comap m f) :=
 comap_ne_bot_iff_frequently.2 $ eventually.frequently hm
 
+@[simp] lemma comap_fst_ne_bot_iff {f : filter α} :
+  (f.comap (prod.fst : α × β → α)).ne_bot ↔ f.ne_bot ∧ nonempty β :=
+begin
+  casesI is_empty_or_nonempty β,
+  { rw [filter_eq_bot_of_is_empty (f.comap _), ← not_iff_not]; [simp *, apply_instance] },
+  { simp [comap_ne_bot_iff_frequently, h] }
+end
+
+@[instance] lemma comap_fst_ne_bot [nonempty β] {f : filter α} [ne_bot f] :
+  (f.comap (prod.fst : α × β → α)).ne_bot :=
+comap_fst_ne_bot_iff.2 ⟨‹_›, ‹_›⟩
+
+@[simp] lemma comap_snd_ne_bot_iff {f : filter β} :
+  (f.comap (prod.snd : α × β → β)).ne_bot ↔ nonempty α ∧ f.ne_bot :=
+begin
+  casesI is_empty_or_nonempty α with hα hα,
+  { rw [filter_eq_bot_of_is_empty (f.comap _), ← not_iff_not];
+      [simpa using hα.elim, apply_instance] },
+  { simp [comap_ne_bot_iff_frequently, hα] }
+end
+
+@[instance] lemma comap_snd_ne_bot [nonempty α] {f : filter β} [ne_bot f] :
+  (f.comap (prod.snd : α × β → β)).ne_bot :=
+comap_snd_ne_bot_iff.2 ⟨‹_›, ‹_›⟩
+
+lemma comap_eval_ne_bot_iff' {ι : Type*} {α : ι → Type*} {i : ι} {f : filter (α i)} :
+  (comap (function.eval i) f).ne_bot ↔ (∀ j, nonempty (α j)) ∧ ne_bot f :=
+begin
+  casesI is_empty_or_nonempty (Π j, α j) with H H,
+  { rw [filter_eq_bot_of_is_empty (f.comap _), ← not_iff_not]; [skip, assumption],
+    simpa [← classical.nonempty_pi] using H.elim },
+  { haveI : ∀ j, nonempty (α j), from classical.nonempty_pi.1 H,
+    simp [comap_ne_bot_iff_frequently, *] }
+end
+
+@[simp] lemma comap_eval_ne_bot_iff {ι : Type*} {α : ι → Type*} [∀ j, nonempty (α j)]
+  {i : ι} {f : filter (α i)} :
+  (comap (function.eval i) f).ne_bot ↔ ne_bot f :=
+by simp [comap_eval_ne_bot_iff', *]
+
+@[instance] lemma comap_eval_ne_bot {ι : Type*} {α : ι → Type*} [∀ j, nonempty (α j)]
+  (i : ι) (f : filter (α i)) [ne_bot f] :
+  (comap (function.eval i) f).ne_bot :=
+comap_eval_ne_bot_iff.2 ‹_›
+
 lemma comap_inf_principal_ne_bot_of_image_mem {f : filter β} {m : α → β}
   (hf : ne_bot f) {s : set α} (hs : m '' s ∈ f) :
   ne_bot (comap m f ⊓ 𝓟 s) :=
@@ -2542,6 +2594,15 @@ by simp [filter.coprod]
   f₁.coprod g₁ ≤ f₂.coprod g₂ :=
 sup_le_sup (comap_mono hf) (comap_mono hg)
 
+lemma coprod_ne_bot_iff : (f.coprod g).ne_bot ↔ f.ne_bot ∧ nonempty β ∨ nonempty α ∧ g.ne_bot :=
+by simp [filter.coprod]
+
+@[instance] lemma coprod_ne_bot_left [ne_bot f] [nonempty β] : (f.coprod g).ne_bot :=
+coprod_ne_bot_iff.2 (or.inl ⟨‹_›, ‹_›⟩)
+
+@[instance] lemma coprod_ne_bot_right [ne_bot g] [nonempty α] : (f.coprod g).ne_bot :=
+coprod_ne_bot_iff.2 (or.inr ⟨‹_›, ‹_›⟩)
+
 lemma principal_coprod_principal (s : set α) (t : set β) :
   (𝓟 s).coprod (𝓟 t) = 𝓟 (sᶜ.prod tᶜ)ᶜ :=
 begin
@@ -2617,6 +2678,22 @@ protected def Coprod (f : Π d, filter (κ d)) : filter (Π d, κ d) :=
 lemma mem_Coprod_iff {s : set (Π d, κ d)} {f : Π d, filter (κ d)} :
   (s ∈ (filter.Coprod f)) ↔ (∀ d : δ, (∃ t₁ ∈ f d, (λ k : (Π d, κ d), k d) ⁻¹' t₁ ⊆ s)) :=
 by simp [filter.Coprod]
+
+lemma Coprod_ne_bot_iff' {f : Π d, filter (κ d)} :
+  ne_bot (filter.Coprod f) ↔ (∀ d, nonempty (κ d)) ∧ ∃ d, ne_bot (f d) :=
+by simp only [filter.Coprod, supr_ne_bot, ← exists_and_distrib_left, ← comap_eval_ne_bot_iff']
+
+@[simp] lemma Coprod_ne_bot_iff [∀ d, nonempty (κ d)] {f : Π d, filter (κ d)} :
+  ne_bot (filter.Coprod f) ↔ ∃ d, ne_bot (f d) :=
+by simp [Coprod_ne_bot_iff', *]
+
+lemma ne_bot.Coprod [∀ d, nonempty (κ d)] {f : Π d, filter (κ d)} {d : δ} (h : ne_bot (f d)) :
+  ne_bot (filter.Coprod f) :=
+Coprod_ne_bot_iff.2 ⟨d, h⟩
+
+@[instance] lemma Coprod_ne_bot [∀ d, nonempty (κ d)] [nonempty δ] (f : Π d, filter (κ d))
+  [H : ∀ d, ne_bot (f d)] : ne_bot (filter.Coprod f) :=
+(H (classical.arbitrary δ)).Coprod
 
 @[mono] lemma Coprod_mono {f₁ f₂ : Π d, filter (κ d)} (hf : ∀ d, f₁ d ≤ f₂ d) :
   filter.Coprod f₁ ≤ filter.Coprod f₂ :=

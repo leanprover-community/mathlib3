@@ -171,11 +171,12 @@ def coe_fn_add_monoid_hom [Π i, add_zero_class (β i)] : (Π₀ i, β i) →+ (
 def eval_add_monoid_hom [Π i, add_zero_class (β i)] (i : ι) : (Π₀ i, β i) →+ β i :=
 (pi.eval_add_monoid_hom β i).comp coe_fn_add_monoid_hom
 
-instance [Π i, add_group (β i)] : has_neg (Π₀ i, β i) :=
-⟨λ f, f.map_range (λ _, has_neg.neg) (λ _, neg_zero)⟩
-
 instance [Π i, add_comm_monoid (β i)] : add_comm_monoid (Π₀ i, β i) :=
 { add_comm := λ f g, ext $ λ i, by simp only [add_apply, add_comm],
+  nsmul := λ n v, v.map_range (λ _, (•) n) (λ _, smul_zero _),
+  nsmul_zero' := λ n, ext $ λ i, by simp only [map_range_apply, zero_apply, zero_smul],
+  nsmul_succ' := λ n z, ext $ λ i, by simp only [map_range_apply, add_apply,
+    nat.succ_eq_one_add, add_smul, one_smul],
   .. dfinsupp.add_monoid }
 
 @[simp] lemma coe_finset_sum {α} [Π i, add_comm_monoid (β i)] (s : finset α) (g : α → Π₀ i, β i) :
@@ -187,27 +188,42 @@ instance [Π i, add_comm_monoid (β i)] : add_comm_monoid (Π₀ i, β i) :=
   (∑ a in s, g a) i = ∑ a in s, g a i :=
 (eval_add_monoid_hom i : _ →+ β i).map_sum g s
 
+instance [Π i, add_group (β i)] : has_neg (Π₀ i, β i) :=
+⟨λ f, f.map_range (λ _, has_neg.neg) (λ _, neg_zero)⟩
+
 lemma neg_apply [Π i, add_group (β i)] (g : Π₀ i, β i) (i : ι) : (- g) i = - g i :=
 map_range_apply _ _ g i
 
 @[simp] lemma coe_neg [Π i, add_group (β i)] (g : Π₀ i, β i) : ⇑(- g) = - g :=
 funext $ neg_apply g
 
-instance [Π i, add_group (β i)] : add_group (Π₀ i, β i) :=
-{ add_left_neg := λ f, ext $ λ i, by simp only [add_apply, neg_apply, zero_apply, add_left_neg],
-  .. dfinsupp.add_monoid,
-  .. (infer_instance : has_neg (Π₀ i, β i)) }
+instance [Π i, add_group (β i)] : has_sub (Π₀ i, β i) :=
+⟨zip_with (λ _, has_sub.sub) (λ _, sub_zero 0)⟩
 
 lemma sub_apply [Π i, add_group (β i)] (g₁ g₂ : Π₀ i, β i) (i : ι) :
   (g₁ - g₂) i = g₁ i - g₂ i :=
-by rw [sub_eq_add_neg]; simp [sub_eq_add_neg]
+zip_with_apply _ _ g₁ g₂ i
 
 @[simp] lemma coe_sub [Π i, add_group (β i)] (g₁ g₂ : Π₀ i, β i) :
   ⇑(g₁ - g₂) = g₁ - g₂ :=
 funext $ sub_apply g₁ g₂
 
+instance [Π i, add_group (β i)] : add_group (Π₀ i, β i) :=
+{ add_left_neg := λ f, ext $ λ i, by simp only [add_apply, neg_apply, zero_apply, add_left_neg],
+  sub_eq_add_neg := λ f g, ext $ λ i,
+    by simp only [sub_apply, add_apply, neg_apply, sub_eq_add_neg],
+  .. dfinsupp.add_monoid,
+  .. dfinsupp.has_sub,
+  .. dfinsupp.has_neg }
+
 instance [Π i, add_comm_group (β i)] : add_comm_group (Π₀ i, β i) :=
-{ add_comm := λ f g, ext $ λ i, by simp only [add_apply, add_comm],
+{ gsmul := λ n v, v.map_range (λ _, (•) n) (λ _, smul_zero _),
+  gsmul_neg' := λ n f, ext $ λ i, by
+    rw [neg_apply, map_range_apply, map_range_apply, gsmul_neg_succ_of_nat, nsmul_eq_smul_cast ℤ,
+      int.nat_cast_eq_coe_nat],
+  gsmul_zero' := λ n, ext $ λ i, by simp only [map_range_apply, zero_apply, zero_smul],
+  gsmul_succ' := λ n f, ext $ λ i, by simp [map_range_apply, add_smul, add_comm],
+  ..@dfinsupp.add_comm_monoid _ β _,
   ..dfinsupp.add_group }
 
 /-- Dependent functions with finite support inherit a semiring action from an action on each
@@ -487,6 +503,26 @@ begin
   simp,
 end
 
+lemma filter_single (p : ι → Prop) [decidable_pred p] (i : ι) (x : β i) :
+  (single i x).filter p = if p i then single i x else 0 :=
+begin
+  ext j,
+  have := apply_ite (λ x : Π₀ i, β i, x j) (p i) (single i x) 0,
+  dsimp at this,
+  rw [filter_apply, this],
+  obtain rfl | hij := decidable.eq_or_ne i j,
+  { refl, },
+  { rw [single_eq_of_ne hij, if_t_t, if_t_t], },
+end
+
+@[simp] lemma filter_single_pos {p : ι → Prop} [decidable_pred p] (i : ι) (x : β i) (h : p i) :
+  (single i x).filter p = single i x :=
+by rw [filter_single, if_pos h]
+
+@[simp] lemma filter_single_neg {p : ι → Prop} [decidable_pred p] (i : ι) (x : β i) (h : ¬p i) :
+  (single i x).filter p = 0 :=
+by rw [filter_single, if_neg h]
+
 /-- Equality of sigma types is sufficient (but not necessary) to show equality of `dfinsupp`s. -/
 lemma single_eq_of_sigma_eq
   {i j} {xi : β i} {xj : β j} (h : (⟨i, xi⟩ : sigma β) = ⟨j, xj⟩) :
@@ -510,6 +546,9 @@ by simp
 lemma erase_ne {i i' : ι} {f : Π₀ i, β i} (h : i' ≠ i) : (f.erase i) i' = f i' :=
 by simp [h]
 
+@[simp] lemma erase_zero (i : ι) : erase i (0 : Π₀ i, β i) = 0 :=
+ext $ λ _, if_t_t _ _
+
 @[simp] lemma filter_ne_eq_erase (f : Π₀ i, β i) (i : ι) : f.filter (≠ i) = f.erase i :=
 begin
   ext1 j,
@@ -522,6 +561,16 @@ begin
   congr' with j,
   exact ne_comm,
 end
+
+lemma erase_single (j : ι) (i : ι) (x : β i) :
+  (single i x).erase j = if i = j then 0 else single i x :=
+by rw [←filter_ne_eq_erase, filter_single, ite_not]
+
+@[simp] lemma erase_single_same (i : ι) (x : β i) : (single i x).erase i = 0 :=
+by rw [erase_single, if_pos rfl]
+
+@[simp] lemma erase_single_ne {i j : ι} (x : β i) (h : i ≠ j) : (single i x).erase j = single i x :=
+by rw [erase_single, if_neg h]
 
 section update
 
@@ -581,13 +630,36 @@ begin
   { simp only [add_apply, single_eq_of_ne h, zero_add] }
 end
 
+@[simp] lemma erase_add (i : ι) (f₁ f₂ : Π₀ i, β i) : erase i (f₁ + f₂) = erase i f₁ + erase i f₂ :=
+ext $ λ _, by simp [ite_zero_add]
+
 variables (β)
 
 /-- `dfinsupp.single` as an `add_monoid_hom`. -/
 @[simps] def single_add_hom (i : ι) : β i →+ Π₀ i, β i :=
 { to_fun := single i, map_zero' := single_zero i, map_add' := single_add i }
 
+/-- `dfinsupp.erase` as an `add_monoid_hom`. -/
+@[simps] def erase_add_hom (i : ι) : (Π₀ i, β i) →+ Π₀ i, β i :=
+{ to_fun := erase i, map_zero' := erase_zero i, map_add' := erase_add i }
+
 variables {β}
+
+@[simp] lemma single_neg {β : ι → Type v} [Π i, add_group (β i)] (i : ι) (x : β i) :
+  single i (-x) = -single i x :=
+(single_add_hom β i).map_neg x
+
+@[simp] lemma single_sub {β : ι → Type v} [Π i, add_group (β i)] (i : ι) (x y : β i) :
+  single i (x - y) = single i x - single i y :=
+(single_add_hom β i).map_sub x y
+
+@[simp] lemma erase_neg {β : ι → Type v} [Π i, add_group (β i)] (i : ι) (f : Π₀ i, β i) :
+  (-f).erase i = -f.erase i :=
+(erase_add_hom β i).map_neg f
+
+@[simp] lemma erase_sub {β : ι → Type v} [Π i, add_group (β i)] (i : ι) (f g : Π₀ i, β i) :
+  (f - g).erase i = f.erase i - g.erase i :=
+(erase_add_hom β i).map_sub f g
 
 lemma single_add_erase (i : ι) (f : Π₀ i, β i) : single i (f i) + f.erase i = f :=
 ext $ λ i',

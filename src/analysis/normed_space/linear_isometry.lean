@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.normed_space.basic
-import linear_algebra.finite_dimensional
 
 /-!
 # Linear isometries
@@ -356,28 +355,3 @@ variables {R}
 @[simp] lemma symm_neg : (neg R : E ≃ₗᵢ[R] E).symm = neg R := rfl
 
 end linear_isometry_equiv
-
-namespace linear_isometry
-
-open finite_dimensional linear_map
-
-variables {R₁ : Type*} [field R₁] [module R₁ E₁] [module R₁ F]
-  [finite_dimensional R₁ E₁] [finite_dimensional R₁ F]
-
-/-- A linear isometry between finite dimensional spaces of equal dimension can be upgraded
-    to a linear isometry equivalence. -/
-noncomputable def to_linear_isometry_equiv
-  (li : E₁ →ₗᵢ[R₁] F) (h : finrank R₁ E₁ = finrank R₁ F) : E₁ ≃ₗᵢ[R₁] F :=
-{ to_linear_equiv :=
-    li.to_linear_map.linear_equiv_of_injective li.injective h,
-  norm_map' := li.norm_map' }
-
-@[simp] lemma coe_to_linear_isometry_equiv
-  (li : E₁ →ₗᵢ[R₁] F) (h : finrank R₁ E₁ = finrank R₁ F) :
-  (li.to_linear_isometry_equiv h : E₁ → F) = li := rfl
-
-@[simp] lemma to_linear_isometry_equiv_apply
-  (li : E₁ →ₗᵢ[R₁] F) (h : finrank R₁ E₁ = finrank R₁ F) (x : E₁) :
-  (li.to_linear_isometry_equiv h) x = li x := rfl
-
-end linear_isometry

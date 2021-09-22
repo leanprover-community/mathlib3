@@ -275,8 +275,7 @@ end
 /-- Continuity from above: the measure of the intersection of a decreasing sequence of measurable
 sets is the infimum of the measures. -/
 lemma measure_Inter_eq_infi [encodable ι] {s : ι → set α}
-  (h : ∀ i, measurable_set (s i)) (hd : directed (⊇) s)
-  (hfin : ∃ i, μ (s i) ≠ ∞) :
+  (h : ∀ i, measurable_set (s i)) (hd : directed (⊇) s) (hfin : ∃ i, μ (s i) ≠ ∞) :
   μ (⋂ i, s i) = (⨅ i, μ (s i)) :=
 begin
   rcases hfin with ⟨k, hk⟩,
@@ -310,7 +309,8 @@ by { rw [measure_eq_inter_diff (hs.union ht) ht, set.union_inter_cancel_right,
 
 /-- Continuity from below: the measure of the union of an increasing sequence of measurable sets
 is the limit of the measures. -/
-lemma tendsto_measure_Union {s : ℕ → set α} (hs : ∀ n, measurable_set (s n)) (hm : monotone s) :
+lemma tendsto_measure_Union [semilattice_sup ι] [encodable ι] {s : ι → set α}
+  (hs : ∀ n, measurable_set (s n)) (hm : monotone s) :
   tendsto (μ ∘ s) at_top (𝓝 (μ (⋃ n, s n))) :=
 begin
   rw measure_Union_eq_supr hs (directed_of_sup hm),
@@ -319,7 +319,7 @@ end
 
 /-- Continuity from above: the measure of the intersection of a decreasing sequence of measurable
 sets is the limit of the measures. -/
-lemma tendsto_measure_Inter {s : ℕ → set α}
+lemma tendsto_measure_Inter [encodable ι] [semilattice_sup ι] {s : ι → set α}
   (hs : ∀ n, measurable_set (s n)) (hm : ∀ ⦃n m⦄, n ≤ m → s m ⊆ s n) (hf : ∃ i, μ (s i) ≠ ∞) :
   tendsto (μ ∘ s) at_top (𝓝 (μ (⋂ n, s n))) :=
 begin

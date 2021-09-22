@@ -37,16 +37,20 @@ section basic
 
 /-- The characteristic polynomial of `f : M →ₗ[R] M`. -/
 def charpoly : polynomial R :=
-(linear_map.to_matrix (choose_basis R M) (choose_basis R M) f).charpoly
+(to_matrix (choose_basis R M) (choose_basis R M) f).charpoly
 
 lemma charpoly_def :
-  f.charpoly = (linear_map.to_matrix (choose_basis R M) (choose_basis R M) f).charpoly := rfl
+  f.charpoly = (to_matrix (choose_basis R M) (choose_basis R M) f).charpoly := rfl
 
 /-- `charpoly f` is the characteristic polynomial of the matrix of `f` in any basis. -/
 @[simp] lemma charpoly_to_matrix {ι : Type w} [fintype ι] (b : basis ι R M) :
-  (linear_map.to_matrix b b f).charpoly = f.charpoly :=
+  (to_matrix b b f).charpoly = f.charpoly :=
 begin
+  set A := to_matrix b b f,
   set b' := choose_basis R M,
+  set ι' := choose_basis_index R M,
+  set A' := to_matrix b' b' f,
+  set e := basis.index_equiv b b',
   set P := reindex_linear_equiv R R (basis.index_equiv b' b) (equiv.refl ι) (b'.to_matrix b),
   set Q := reindex_linear_equiv R R (equiv.refl ι) (basis.index_equiv b' b) (b.to_matrix b'),
 
@@ -58,15 +62,23 @@ begin
   { rw [matrix.mul_assoc ((scalar ι) X), hPQ, matrix.mul_one] },
   have hcomm : ((scalar ι) X).mul (P.map C) = (P.map C).mul ((scalar ι) X) := by simp,
 
-  rw [charpoly, ← charpoly_of_reindex (basis.index_equiv (choose_basis R M) b), matrix.charpoly,
-    charmatrix, ← linear_map_to_matrix_mul_basis_to_matrix b' b b' f,
-    ← basis_to_matrix_mul_linear_map_to_matrix b b' b f, ← reindex_linear_equiv_apply R R,
-    reindex_linear_equiv_mul R R _ (equiv.refl ι) _,
-    reindex_linear_equiv_mul R R _ (equiv.refl ι) (equiv.refl ι),
-    reindex_linear_equiv_refl_refl, linear_equiv.refl_apply, ring_hom.map_matrix_apply,
-    matrix.map_mul, matrix.map_mul, hscalar, hcomm, ← matrix.sub_mul, ← matrix.mul_sub,
-    det_mul, matrix.det_mul, mul_comm (P.map C).det, mul_assoc, ← det_mul, hPQ, det_one, mul_one],
-  refl
+  calc A.charpoly = (reindex e e A).charpoly : (charpoly_reindex _ _).symm
+  ... = ((scalar ι') X - (C.map_matrix) (reindex e e A)).det : rfl
+  ... = ((scalar ι') X - (C.map_matrix) (reindex e e (   (Q.mul A').mul P   ))).det : sorry
+
+  ... = f.charpoly : sorry
+
+
+
+--  rw [charpoly, ← charpoly_reindex (basis.index_equiv (choose_basis R M) b), matrix.charpoly,
+--    charmatrix, ← linear_map_to_matrix_mul_basis_to_matrix b' b b' f,
+--    ← basis_to_matrix_mul_linear_map_to_matrix b b' b f, ← reindex_linear_equiv_apply R R,
+--    reindex_linear_equiv_mul R R _ (equiv.refl ι) _,
+--    reindex_linear_equiv_mul R R _ (equiv.refl ι) (equiv.refl ι),
+--    reindex_linear_equiv_refl_refl, linear_equiv.refl_apply, ring_hom.map_matrix_apply,
+--    matrix.map_mul, matrix.map_mul, hscalar, hcomm, ← matrix.sub_mul, ← matrix.mul_sub,
+--    det_mul, matrix.det_mul, mul_comm (P.map C).det, mul_assoc, ← det_mul, hPQ, det_one, mul_one],
+--    refl,
 end
 
 end basic

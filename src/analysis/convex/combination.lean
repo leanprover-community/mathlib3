@@ -11,7 +11,8 @@ import analysis.convex.basic
 This file defines linear combinations of points in a semimodule and proves results about convex
 combinations.
 
-Convex combinations in a semimodule can be modelled as linear combinations with nonnegative coefficients summing to `1`. In an affine space, they can be modelled through affine combinations.
+Convex combinations in a semimodule can be modelled as linear combinations with nonnegative
+coefficients summing to `1`. In an affine space, they can be modelled through affine combinations.
 
 In a vector space, both coincide but it is still an open question whether we can make the two ways
 to derive `convex_combination` definitionally equal.

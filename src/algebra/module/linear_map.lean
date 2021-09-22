@@ -666,8 +666,6 @@ by { ext x, simp }
   (linear_equiv.refl R M : M →ₗ[R] M) = linear_map.id :=
 rfl
 
-instance : ring_hom_inv_pair (ring_hom.id R) (ring_hom.id R) := by apply_instance
-
 @[simp, norm_cast]
 lemma comp_coe [module R M] [module R M₂] [module R M₃] (f :  M ≃ₗ[R] M₂)
   (f' :  M₂ ≃ₗ[R] M₃) : (f' : M₂ →ₗ[R] M₃).comp (f : M →ₗ[R] M₂) = (f.trans f' : M ≃ₗ[R] M₃) :=

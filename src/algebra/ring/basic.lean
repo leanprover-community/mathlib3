@@ -1176,14 +1176,14 @@ maps
 -/
 variables {R₁ : Type*} {R₂ : Type*} {R₃ : Type*}
 variables [semiring R₁] [semiring R₂] [semiring R₃]
-variables (σ₁₂ : R₁ →+* R₂) (σ₂₃ : R₂ →+* R₃) (σ₁₃ : out_param (R₁ →+* R₃))
 
 /-- Class that expresses the fact that three ring equivs form a composition triple. This is
 used to handle composition of semilinear maps. -/
-class ring_hom_comp_triple : Prop :=
+class ring_hom_comp_triple (σ₁₂ : R₁ →+* R₂) (σ₂₃ : R₂ →+* R₃)
+  (σ₁₃ : out_param (R₁ →+* R₃)) : Prop :=
 (is_comp_triple : σ₁₃ = σ₂₃.comp σ₁₂)
 
-variables {σ₁₂} {σ₂₃} {σ₁₃}
+variables {σ₁₂ : R₁ →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R₁ →+* R₃}
 
 namespace ring_hom_comp_triple
 
@@ -1196,15 +1196,13 @@ show (σ₂₃.comp σ₁₂) x = σ₁₃ x, by rw [comp_eq]
 
 end ring_hom_comp_triple
 
-variables (σ : R₁ →+* R₂) (σ' : out_param (R₂ →+* R₁))
-
 /-- Class that expresses the fact that two ring equivs are inverses of each other. This is used
 to handle `symm` for semilinear equivalences. -/
-class ring_hom_inv_pair : Prop :=
+class ring_hom_inv_pair (σ : R₁ →+* R₂) (σ' : out_param (R₂ →+* R₁)) : Prop :=
 (is_inv_pair₁ : σ'.comp σ = ring_hom.id R₁)
 (is_inv_pair₂ : σ.comp σ' = ring_hom.id R₂)
 
-variables {σ} {σ'}
+variables {σ : R₁ →+* R₂} {σ' : R₂ →+* R₁}
 
 namespace ring_hom_inv_pair
 

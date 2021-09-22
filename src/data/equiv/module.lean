@@ -55,7 +55,7 @@ include R
 
 instance : has_coe (M ≃ₗ[R] M₂) (M →ₗ[R] M₂) := ⟨to_linear_map⟩
 -- see Note [function coercion]
-instance : has_coe_to_fun (M ≃ₗ[R] M₂) M M₂ := ⟨λ f, f.to_fun⟩
+instance : has_coe_to_fun (M ≃ₗ[R] M₂) (λ _, M → M₂) := ⟨λ f, f.to_fun⟩
 
 @[simp] lemma coe_mk {to_fun inv_fun map_add map_smul left_inv right_inv } :
   ⇑(⟨to_fun, map_add, map_smul, inv_fun, left_inv, right_inv⟩ : M ≃ₗ[R] M₂) = to_fun :=

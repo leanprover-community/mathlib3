@@ -826,7 +826,7 @@ lemma is_lub_prod [preorder α] [preorder β] {s : set (α × β)} (p : α × β
   is_lub s p ↔ is_lub (prod.fst '' s) p.1 ∧ is_lub (prod.snd '' s) p.2 :=
 begin
   refine ⟨λ H, ⟨⟨monotone.mem_upper_bounds_image monotone_fst H.1, λ a ha, _⟩,
-    ⟨monotone_snd.mem_upper_bounds_image H.1, λ a ha, _⟩⟩, λ H, ⟨_, _⟩⟩,
+    ⟨monotone.mem_upper_bounds_image monotone_snd H.1, λ a ha, _⟩⟩, λ H, ⟨_, _⟩⟩,
   { suffices : (a, p.2) ∈ upper_bounds s, from (H.2 this).1,
     exact λ q hq, ⟨ha $ mem_image_of_mem _ hq, (H.1 hq).2⟩ },
   { suffices : (p.1, a) ∈ upper_bounds s, from (H.2 this).2,

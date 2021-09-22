@@ -273,7 +273,7 @@ def lift_on {p : Sort u} (x : localization S) (f : M → S → p)
   (H : ∀ {a c : M} {b d : S} (h : r S (a, b) (c, d)), f a b = f c d) : p :=
 rec f (λ a c b d h, by rw [eq_rec_constant, H h]) x
 
-@[simp, to_additive] lemma lift_on_mk {p : Sort u}
+@[to_additive] lemma lift_on_mk {p : Sort u}
   (f : ∀ (a : M) (b : S), p) (H) (a : M) (b : S) :
   lift_on (mk a b) f H = f a b :=
 rfl
@@ -301,7 +301,7 @@ def lift_on₂ {p : Sort u} (x y : localization S) (f : M → S → M → S → 
 lift_on x (λ a b, lift_on y (f a b) (λ c c' d d' hy, H ((r S).refl _) hy))
   (λ a a' b b' hx, induction_on y (λ ⟨c, d⟩, H hx ((r S).refl _)))
 
-@[simp, to_additive] lemma lift_on₂_mk {p : Sort*}
+@[to_additive] lemma lift_on₂_mk {p : Sort*}
   (f : M → S → M → S → p) (H) (a c : M) (b d : S) :
   lift_on₂ (mk a b) (mk c d) f H = f a b c d :=
 rfl
@@ -1158,6 +1158,18 @@ end
 
 @[simp, to_additive] lemma mk_eq_monoid_of_mk' : mk = (monoid_of S).mk' :=
 funext $ λ _, funext $ λ _, mk_eq_monoid_of_mk'_apply _ _
+
+universes u
+
+@[simp, to_additive] lemma lift_on_mk' {p : Sort u}
+  (f : ∀ (a : M) (b : S), p) (H) (a : M) (b : S) :
+  lift_on ((monoid_of S).mk' a b) f H = f a b :=
+by rw [← mk_eq_monoid_of_mk', lift_on_mk]
+
+@[simp, to_additive] lemma lift_on₂_mk' {p : Sort*}
+  (f : M → S → M → S → p) (H) (a c : M) (b d : S) :
+  lift_on₂ ((monoid_of S).mk' a b) ((monoid_of S).mk' c d) f H = f a b c d :=
+by rw [← mk_eq_monoid_of_mk', lift_on₂_mk]
 
 variables (f : submonoid.localization_map S N)
 /-- Given a localization map `f : M →* N` for a submonoid `S`, we get an isomorphism between

@@ -92,7 +92,7 @@ end
 lemma is_integral : is_integral R f := ⟨f.charpoly, ⟨charpoly_monic f, aeval_self_charpoly f⟩⟩
 
 lemma minpoly_dvd_charpoly {K : Type u} {M : Type v} [field K] [add_comm_group M] [module K M]
-  [finite_dimensional K M] (f : M →ₗ[K] M) : (minpoly K f) ∣ f.charpoly :=
+  [finite_dimensional K M] (f : M →ₗ[K] M) : minpoly K f ∣ f.charpoly :=
 minpoly.dvd _ _ (aeval_self_charpoly f)
 
 variable {f}

@@ -642,7 +642,6 @@ instance distrib_lattice_of_linear_order {α : Type u} [o : linear_order α] :
 instance nat.distrib_lattice : distrib_lattice ℕ :=
 by apply_instance
 
-
 /-! ### Function lattices -/
 
 namespace pi

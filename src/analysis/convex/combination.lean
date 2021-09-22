@@ -44,9 +44,6 @@ section ordered_semiring
 variables {𝕜 E ι ι' : Type*} [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E]
   (i j : ι) (c : 𝕜) (s : finset ι) (p : ι → E) (w : ι → 𝕜)
 
-lemma linear_combination_def :
-  s.linear_combination p w = ∑ i in s, w i • p i := rfl
-
 lemma linear_combination_empty : (∅ : finset ι).linear_combination p w = 0 :=
 by simp only [linear_combination, sum_empty, smul_zero]
 
@@ -71,7 +68,7 @@ by rw [linear_combination, finset.sum_smul]
 /-- A convex combination of two centers of mass is a center of mass as well. This version
 deals with two different index types. -/
 lemma linear_combination_segment' (s : finset ι) (t : finset ι') (ws : ι → 𝕜) (ps : ι → E)
-  (wt : ι' → 𝕜) (pt : ι' → E) (a b : 𝕜) (hab : a + b = 1) :
+  (wt : ι' → 𝕜) (pt : ι' → E) (a b : 𝕜) :
   a • s.linear_combination ps ws + b • t.linear_combination pt wt =
     (s.map function.embedding.inl ∪ t.map function.embedding.inr).linear_combination
       (sum.elim ps pt)
@@ -84,13 +81,12 @@ end
 
 /-- A convex combination of two centers of mass is a center of mass as well. This version
 works if two centers of mass share the set of original points. -/
-lemma linear_combination_segment (s : finset ι) (w₁ w₂ : ι → 𝕜) (p : ι → E) (a b : 𝕜)
-  (hab : a + b = 1) :
+lemma linear_combination_segment (s : finset ι) (w₁ w₂ : ι → 𝕜) (p : ι → E) (a b : 𝕜) :
   a • s.linear_combination p w₁ + b • s.linear_combination p w₂ =
     s.linear_combination p (λ i, a * w₁ i + b * w₂ i) :=
 begin
   unfold linear_combination,
-  simp only [linear_combination_def, smul_sum, sum_add_distrib, add_smul, mul_smul, *],
+  simp only [linear_combination, smul_sum, sum_add_distrib, add_smul, mul_smul, *],
 end
 
 lemma linear_combination_ite_eq (hi : i ∈ s) :
@@ -217,7 +213,7 @@ begin
     simp only [finset.linear_combination, finset.sum_singleton, inv_one, one_smul] },
   { rintros x y ⟨ι, sx, wx, zx, hwx₀, hwx₁, hzx, rfl⟩ ⟨ι', sy, wy, zy, hwy₀, hwy₁, hzy, rfl⟩
       a b ha hb hab,
-    rw [finset.linear_combination_segment' _ _ _ _ _ _ _ _ hab],
+    rw [finset.linear_combination_segment' _ _ _ _ _ _ _ _],
     refine ⟨_, _, _, _, _, _, _, rfl⟩,
     { rintros i hi,
       rw [finset.mem_union, finset.mem_map, finset.mem_map] at hi,
@@ -245,7 +241,7 @@ begin
     { intros, split_ifs, exacts [zero_le_one, le_refl 0] },
     { rw [finset.sum_ite_eq, if_pos hx] } },
   { rintro x y ⟨wx, hwx₀, hwx₁, rfl⟩ ⟨wy, hwy₀, hwy₁, rfl⟩ a b ha hb hab,
-    rw [finset.linear_combination_segment _ _ _ _ _ _ hab],
+    rw [finset.linear_combination_segment _ _ _ _ _ _],
     refine ⟨_, _, _, rfl⟩,
     { rintros i hi,
       apply_rules [add_nonneg, mul_nonneg, hwx₀, hwy₀], },

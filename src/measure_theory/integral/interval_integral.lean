@@ -2242,21 +2242,23 @@ end
 ### Integration by substitution / Change of variables
 -/
 
+section smul
+
 /--
 Change of variables, general form. If `f` is continuous on `[a, b]` and has
 continuous right-derivative `f'` in `(a, b)`, and `g` is continuous on `f '' [a, b]` then we can
-substitute `u = f x` to get `∫ x in a..b, (g ∘ f) x * f' x = ∫ u in f a..f b, g u`.
+substitute `u = f x` to get `∫ x in a..b, f' x • (g ∘ f) x = ∫ u in f a..f b, g u`.
 
 We could potentially slightly weaken the conditions, by not requiring that `f'` and `g` are
 continuous on the endpoints of these intervals, but in that case we need to additionally assume that
 the functions are integrable on that interval.
 -/
-theorem integral_comp_mul_deriv'' {f f' g : ℝ → ℝ}
+theorem integral_comp_smul_deriv'' {f f' : ℝ → ℝ} {g : ℝ → E}
   (hf : continuous_on f [a, b])
   (hff' : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_within_at f (f' x) (Ioi x) x)
   (hf' : continuous_on f' [a, b])
   (hg : continuous_on g (f '' [a, b])) :
-  ∫ x in a..b, (g ∘ f) x * f' x = ∫ u in f a..f b, g u :=
+  ∫ x in a..b, f' x • (g ∘ f) x= ∫ u in f a..f b, g u :=
 begin
   have h_cont : continuous_on (λ u, ∫ t in f a..f u, g t) [a, b],
   { rw [real.image_interval hf] at hg,
@@ -2264,7 +2266,7 @@ begin
     { rw [← real.image_interval hf], exact mem_image_of_mem f left_mem_interval },
     { rw [← image_subset_iff], exact (real.image_interval hf).subset } },
   have h_der : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_within_at
-    (λ u, ∫ t in f a..f u, g t) ((g ∘ f) x * f' x) (Ioi x) x,
+    (λ u, ∫ t in f a..f u, g t) (f' x • ((g ∘ f) x)) (Ioi x) x,
   { intros x hx,
     let I := [Inf (f '' [a, b]), Sup (f '' [a, b])],
     have hI : f '' [a, b] = I := real.image_interval hf,
@@ -2278,13 +2280,76 @@ begin
     haveI : fact (f x ∈ I) := ⟨h2x⟩,
     have : has_deriv_within_at (λ u, ∫ x in f a..u, g x) (g (f x)) I (f x) :=
     integral_has_deriv_within_at_right h2g h3g (hg (f x) h2x),
-    refine (this.comp x ((hff' x hx).Ioo_of_Ioi hx.2) _).Ioi_of_Ioo hx.2,
+    refine (this.scomp x ((hff' x hx).Ioo_of_Ioi hx.2) _).Ioi_of_Ioo hx.2,
     dsimp only [I], rw [← image_subset_iff, ← real.image_interval hf],
     refine image_subset f (Ioo_subset_Icc_self.trans $ Icc_subset_Icc_left hx.1.le) },
-  have h_int : interval_integrable (λ (x : ℝ), (g ∘ f) x * f' x) volume a b :=
-  ((hg.comp hf $ subset_preimage_image f _).mul hf').interval_integrable,
+  have h_int : interval_integrable (λ (x : ℝ), f' x • (g ∘ f) x) volume a b :=
+  (hf'.smul (hg.comp hf $ subset_preimage_image f _)).interval_integrable,
   simp_rw [integral_eq_sub_of_has_deriv_right h_cont h_der h_int, integral_same, sub_zero],
 end
+
+/--
+Change of variables. If `f` is has continuous derivative `f'` on `[a, b]`,
+and `g` is continuous on `f '' [a, b]`, then we can substitute `u = f x` to get
+`∫ x in a..b, f' x • (g ∘ f) x = ∫ u in f a..f b, g u`.
+Compared to `interval_integral.integral_comp_smul_deriv` we only require that `g` is continuous on
+`f '' [a, b]`.
+-/
+theorem integral_comp_smul_deriv' {f f' : ℝ → ℝ} {g : ℝ → E}
+  (h : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
+  (h' : continuous_on f' (interval a b)) (hg : continuous_on g (f '' [a, b])) :
+  ∫ x in a..b, f' x • (g ∘ f) x = ∫ x in f a..f b, g x :=
+integral_comp_smul_deriv'' (λ x hx, (h x hx).continuous_at.continuous_within_at)
+  (λ x hx, (h x $ Ioo_subset_Icc_self hx).has_deriv_within_at) h' hg
+
+/--
+Change of variables, most common version. If `f` is has continuous derivative `f'` on `[a, b]`,
+and `g` is continuous, then we can substitute `u = f x` to get
+`∫ x in a..b, f' x • (g ∘ f) x = ∫ u in f a..f b, g u`.
+-/
+theorem integral_comp_smul_deriv {f f' g : ℝ → ℝ} {g : ℝ → E}
+  (h : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
+  (h' : continuous_on f' (interval a b)) (hg : continuous g) :
+  ∫ x in a..b, f' x • (g ∘ f) x = ∫ x in f a..f b, g x :=
+integral_comp_smul_deriv' h h' hg.continuous_on
+
+theorem integral_deriv_comp_smul_deriv' {f f' : ℝ → ℝ} {g g' : ℝ → E}
+  (hf : continuous_on f [a, b])
+  (hff' : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_within_at f (f' x) (Ioi x) x)
+  (hf' : continuous_on f' [a, b])
+  (hg : continuous_on g [f a, f b])
+  (hgg' : ∀ x ∈ Ioo (min (f a) (f b)) (max (f a) (f b)), has_deriv_within_at g (g' x) (Ioi x) x)
+  (hg' : continuous_on g' (f '' [a, b])) :
+  ∫ x in a..b, f' x • (g' ∘ f) x = (g ∘ f) b - (g ∘ f) a :=
+begin
+  rw [integral_comp_smul_deriv'' hf hff' hf' hg',
+  integral_eq_sub_of_has_deriv_right hg hgg' (hg'.mono _).interval_integrable],
+  exact real.interval_subset_image_interval hf left_mem_interval right_mem_interval,
+end
+
+theorem integral_deriv_comp_smul_deriv {f f' : ℝ → ℝ} {g g' : ℝ → E}
+  (hf : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
+  (hg : ∀ x ∈ interval a b, has_deriv_at g (g' (f x)) (f x))
+  (hf' : continuous_on f' (interval a b)) (hg' : continuous g') :
+  ∫ x in a..b, f' x • (g' ∘ f) x = (g ∘ f) b - (g ∘ f) a :=
+integral_eq_sub_of_has_deriv_at (λ x hx, (hg x hx).scomp x $ hf x hx)
+  (hf'.smul (hg'.comp_continuous_on $ has_deriv_at.continuous_on hf)).interval_integrable
+
+end smul
+section mul
+
+/--
+Change of variables, general form for scalar functions. If `f` is continuous on `[a, b]` and has
+continuous right-derivative `f'` in `(a, b)`, and `g` is continuous on `f '' [a, b]` then we can
+substitute `u = f x` to get `∫ x in a..b, (g ∘ f) x * f' x = ∫ u in f a..f b, g u`.
+-/
+theorem integral_comp_mul_deriv'' {f f' g : ℝ → ℝ}
+  (hf : continuous_on f [a, b])
+  (hff' : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_within_at f (f' x) (Ioi x) x)
+  (hf' : continuous_on f' [a, b])
+  (hg : continuous_on g (f '' [a, b])) :
+  ∫ x in a..b, (g ∘ f) x * f' x = ∫ u in f a..f b, g u :=
+by simpa [mul_comm] using integral_comp_smul_deriv'' hf hff' hf' hg
 
 /--
 Change of variables. If `f` is has continuous derivative `f'` on `[a, b]`,
@@ -2297,8 +2362,7 @@ theorem integral_comp_mul_deriv' {f f' g : ℝ → ℝ}
   (h : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
   (h' : continuous_on f' (interval a b)) (hg : continuous_on g (f '' [a, b])) :
   ∫ x in a..b, (g ∘ f) x * f' x = ∫ x in f a..f b, g x :=
-integral_comp_mul_deriv'' (λ x hx, (h x hx).continuous_at.continuous_within_at)
-  (λ x hx, (h x $ Ioo_subset_Icc_self hx).has_deriv_within_at) h' hg
+by simpa [mul_comm] using integral_comp_smul_deriv' h h' hg
 
 /--
 Change of variables, most common version. If `f` is has continuous derivative `f'` on `[a, b]`,
@@ -2319,18 +2383,15 @@ theorem integral_deriv_comp_mul_deriv' {f f' g g' : ℝ → ℝ}
   (hgg' : ∀ x ∈ Ioo (min (f a) (f b)) (max (f a) (f b)), has_deriv_within_at g (g' x) (Ioi x) x)
   (hg' : continuous_on g' (f '' [a, b])) :
   ∫ x in a..b, (g' ∘ f) x * f' x = (g ∘ f) b - (g ∘ f) a :=
-begin
-  rw [integral_comp_mul_deriv'' hf hff' hf' hg',
-  integral_eq_sub_of_has_deriv_right hg hgg' (hg'.mono _).interval_integrable],
-  exact real.interval_subset_image_interval hf left_mem_interval right_mem_interval,
-end
+by simpa [mul_comm] using integral_deriv_comp_smul_deriv' hf hff' hf' hg hgg' hg'
 
 theorem integral_deriv_comp_mul_deriv {f f' g g' : ℝ → ℝ}
   (hf : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
   (hg : ∀ x ∈ interval a b, has_deriv_at g (g' (f x)) (f x))
   (hf' : continuous_on f' (interval a b)) (hg' : continuous g') :
   ∫ x in a..b, (g' ∘ f) x * f' x = (g ∘ f) b - (g ∘ f) a :=
-integral_eq_sub_of_has_deriv_at (λ x hx, (hg x hx).comp x $ hf x hx)
-  ((hg'.comp_continuous_on $ has_deriv_at.continuous_on hf).mul hf').interval_integrable
+by simpa [mul_comm] using integral_deriv_comp_smul_deriv hf hg hf' hg'
+
+end mul
 
 end interval_integral

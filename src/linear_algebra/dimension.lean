@@ -471,11 +471,6 @@ theorem mk_eq_mk_of_basis' {ι' : Type w} (v : basis ι R M) (v' : basis ι' R M
   #ι = #ι' :=
 cardinal.lift_inj.1 $ mk_eq_mk_of_basis v v'
 
-/-- Given two basis indexed by `ι` and `ι'` of an `R`-module, where `R` satisfies the invariant
-basis number property, an equiv `ι ≃ ι' `. -/
-def basis.index_equiv' {ι' : Type w} (v : basis ι R M) (v' : basis ι' R M) : ι ≃ ι' :=
-nonempty.some (cardinal.eq.1 (mk_eq_mk_of_basis' v v'))
-
 end invariant_basis_number
 
 section rank_condition

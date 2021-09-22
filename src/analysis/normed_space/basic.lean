@@ -25,7 +25,7 @@ variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
 noncomputable theory
 open filter metric
-open_locale topological_space big_operators nnreal ennreal uniformity
+open_locale topological_space big_operators nnreal ennreal uniformity pointwise
 
 /-- Auxiliary class, endowing a type `α` with a function `norm : α → ℝ`. This class is designed to
 be extended in more interesting classes specifying the properties of the norm. -/
@@ -227,7 +227,7 @@ calc ∥v∥ = ∥u - (u - v)∥ : by abel
 lemma norm_le_insert' (u v : α) : ∥u∥ ≤ ∥v∥ + ∥u - v∥ :=
 by { rw norm_sub_rev, exact norm_le_insert v u }
 
-lemma ball_0_eq (ε : ℝ) : ball (0:α) ε = {x | ∥x∥ < ε} :=
+lemma ball_zero_eq (ε : ℝ) : ball (0:α) ε = {x | ∥x∥ < ε} :=
 set.ext $ assume a, by simp
 
 lemma mem_ball_iff_norm {g h : α} {r : ℝ} :
@@ -242,7 +242,7 @@ lemma mem_ball_iff_norm' {g h : α} {r : ℝ} :
   h ∈ ball g r ↔ ∥g - h∥ < r :=
 by rw [mem_ball', dist_eq_norm]
 
-@[simp] lemma mem_ball_0_iff {ε : ℝ} {x : α} : x ∈ ball (0 : α) ε ↔ ∥x∥ < ε :=
+@[simp] lemma mem_ball_zero_iff {ε : ℝ} {x : α} : x ∈ ball (0 : α) ε ↔ ∥x∥ < ε :=
 by rw [mem_ball, dist_zero_right]
 
 lemma mem_closed_ball_iff_norm {g h : α} {r : ℝ} :
@@ -285,6 +285,21 @@ begin
   exact exists_congr (λ r, by simp [(⊆), set.subset]),
 end
 
+lemma preimage_add_ball (x y : α) (r : ℝ) : ((+) y) ⁻¹' (ball x r) = ball (x - y) r :=
+begin
+  ext z,
+  simp only [dist_eq_norm, set.mem_preimage, mem_ball],
+  abel
+end
+
+lemma preimage_add_closed_ball (x y : α) (r : ℝ) :
+  ((+) y) ⁻¹' (closed_ball x r) = closed_ball (x - y) r :=
+begin
+  ext z,
+  simp only [dist_eq_norm, set.mem_preimage, mem_closed_ball],
+  abel
+end
+
 @[simp] lemma mem_sphere_iff_norm (v w : α) (r : ℝ) : w ∈ sphere v r ↔ ∥w - v∥ = r :=
 by simp [dist_eq_norm]
 
@@ -293,6 +308,14 @@ by simp [dist_eq_norm]
 
 @[simp] lemma norm_eq_of_mem_sphere {r : ℝ} (x : sphere (0:α) r) : ∥(x:α)∥ = r :=
 mem_sphere_zero_iff_norm.mp x.2
+
+lemma preimage_add_sphere (x y : α) (r : ℝ) :
+  ((+) y) ⁻¹' (sphere x r) = sphere (x - y) r :=
+begin
+  ext z,
+  simp only [set.mem_preimage, mem_sphere_iff_norm],
+  abel
+end
 
 lemma ne_zero_of_norm_pos {g : α} : 0 < ∥ g ∥ → g ≠ 0 :=
 begin
@@ -547,7 +570,7 @@ by rw [edist_dist, dist_eq_norm, of_real_norm_eq_coe_nnnorm]
 lemma edist_eq_coe_nnnorm (x : β) : edist x 0 = (∥x∥₊ : ℝ≥0∞) :=
 by rw [edist_eq_coe_nnnorm_sub, _root_.sub_zero]
 
-lemma mem_emetric_ball_0_iff {x : β} {r : ℝ≥0∞} : x ∈ emetric.ball (0 : β) r ↔ ↑∥x∥₊ < r :=
+lemma mem_emetric_ball_zero_iff {x : β} {r : ℝ≥0∞} : x ∈ emetric.ball (0 : β) r ↔ ↑∥x∥₊ < r :=
 by rw [emetric.mem_ball, edist_eq_coe_nnnorm]
 
 lemma nndist_add_add_le (g₁ g₂ h₁ h₂ : α) :
@@ -1361,6 +1384,14 @@ nnreal.eq $ norm_of_nonneg hx
 lemma ennnorm_eq_of_real {x : ℝ} (hx : 0 ≤ x) : (∥x∥₊ : ℝ≥0∞) = ennreal.of_real x :=
 by { rw [← of_real_norm_eq_coe_nnnorm, norm_of_nonneg hx] }
 
+lemma of_real_le_ennnorm (x : ℝ) : ennreal.of_real x ≤ ∥x∥₊ :=
+begin
+  by_cases hx : 0 ≤ x,
+  { rw real.ennnorm_eq_of_real hx, refl' },
+  { rw [ennreal.of_real_eq_zero.2 (le_of_lt (not_le.1 hx))],
+    exact bot_le }
+end
+
 /-- If `E` is a nontrivial topological module over `ℝ`, then `E` has no isolated points.
 This is a particular case of `module.punctured_nhds_ne_bot`. -/
 instance punctured_nhds_module_ne_bot
@@ -1598,6 +1629,33 @@ theorem frontier_closed_ball [semi_normed_space ℝ E] (x : E) {r : ℝ} (hr : 0
   frontier (closed_ball x r) = sphere x r :=
 by rw [frontier, closure_closed_ball, interior_closed_ball x hr,
   closed_ball_diff_ball]
+
+theorem smul_ball {c : α} (hc : c ≠ 0) (x : E) (r : ℝ) :
+  c • ball x r = ball (c • x) (∥c∥ * r) :=
+begin
+  ext y,
+  rw mem_smul_set_iff_inv_smul_mem' hc,
+  conv_lhs { rw ←inv_smul_smul' hc x },
+  simp [← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hc), mul_comm _ r, dist_smul],
+end
+
+theorem smul_closed_ball' {c : α} (hc : c ≠ 0) (x : E) (r : ℝ) :
+  c • closed_ball x r = closed_ball (c • x) (∥c∥ * r) :=
+begin
+  ext y,
+  rw mem_smul_set_iff_inv_smul_mem' hc,
+  conv_lhs { rw ←inv_smul_smul' hc x },
+  simp [dist_smul, ← div_eq_inv_mul, div_le_iff (norm_pos_iff.2 hc), mul_comm _ r],
+end
+
+theorem smul_closed_ball {E : Type*} [normed_group E] [normed_space α E]
+  (c : α) (x : E) {r : ℝ} (hr : 0 ≤ r) :
+  c • closed_ball x r = closed_ball (c • x) (∥c∥ * r) :=
+begin
+  rcases eq_or_ne c 0 with rfl|hc,
+  { simp [hr, zero_smul_set, set.singleton_zero, ← nonempty_closed_ball] },
+  { exact smul_closed_ball' hc x r }
+end
 
 variables (α)
 
@@ -1869,7 +1927,7 @@ lemma cauchy_seq_finset_iff_vanishing_norm {f : ι → α} :
     ∀ε > (0 : ℝ), ∃s:finset ι, ∀t, disjoint t s → ∥ ∑ i in t, f i ∥ < ε :=
 begin
   rw [cauchy_seq_finset_iff_vanishing, nhds_basis_ball.forall_iff],
-  { simp only [ball_0_eq, set.mem_set_of_eq] },
+  { simp only [ball_zero_eq, set.mem_set_of_eq] },
   { rintros s t hst ⟨s', hs'⟩,
     exact ⟨s', λ t' ht', hst $ hs' _ ht'⟩ }
 end

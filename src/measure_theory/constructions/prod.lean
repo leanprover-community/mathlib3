@@ -153,7 +153,7 @@ begin
   { rintro _ ⟨s, t, hs, ht, rfl⟩, simp only [mk_preimage_prod_right_eq_if, measure_if],
     exact measurable_const.indicator hs },
   { intros t ht h2t,
-    simp_rw [preimage_compl, measure_compl (measurable_prod_mk_left ht) (measure_lt_top ν _)],
+    simp_rw [preimage_compl, measure_compl (measurable_prod_mk_left ht) (measure_ne_top ν _)],
     exact h2t.const_sub _ },
   { intros f h1f h2f h3f, simp_rw [preimage_Union],
     have : ∀ b, ν (⋃ i, prod.mk b ⁻¹' f i) = ∑' i, ν (prod.mk b ⁻¹' f i) :=
@@ -320,6 +320,10 @@ instance prod.measure_space {α β} [measure_space α] [measure_space β] : meas
 
 variables {μ ν} [sigma_finite ν]
 
+lemma volume_eq_prod (α β) [measure_space α] [measure_space β] :
+  (volume : measure (α × β)) = (volume : measure α).prod (volume : measure β) :=
+rfl
+
 lemma prod_apply {s : set (α × β)} (hs : measurable_set s) :
   μ.prod ν s = ∫⁻ x, ν (prod.mk x ⁻¹' s) ∂μ :=
 by simp_rw [measure.prod, bind_apply hs measurable.map_prod_mk_left,
@@ -361,16 +365,16 @@ begin
 end
 
 lemma ae_measure_lt_top {s : set (α × β)} (hs : measurable_set s)
-  (h2s : (μ.prod ν) s < ∞) : ∀ᵐ x ∂μ, ν (prod.mk x ⁻¹' s) < ∞ :=
+  (h2s : (μ.prod ν) s ≠ ∞) : ∀ᵐ x ∂μ, ν (prod.mk x ⁻¹' s) < ∞ :=
 by { simp_rw [prod_apply hs] at h2s, refine ae_lt_top (measurable_measure_prod_mk_left hs) h2s }
 
 lemma integrable_measure_prod_mk_left {s : set (α × β)}
-  (hs : measurable_set s) (h2s : (μ.prod ν) s < ∞) :
+  (hs : measurable_set s) (h2s : (μ.prod ν) s ≠ ∞) :
   integrable (λ x, (ν (prod.mk x ⁻¹' s)).to_real) μ :=
 begin
   refine ⟨(measurable_measure_prod_mk_left hs).ennreal_to_real.ae_measurable, _⟩,
   simp_rw [has_finite_integral, ennnorm_eq_of_real to_real_nonneg],
-  convert h2s using 1, simp_rw [prod_apply hs], apply lintegral_congr_ae,
+  convert h2s.lt_top using 1, simp_rw [prod_apply hs], apply lintegral_congr_ae,
   refine (ae_measure_lt_top hs h2s).mp _, apply eventually_of_forall, intros x hx,
   rw [lt_top_iff_ne_top] at hx, simp [of_real_to_real, hx],
 end
@@ -410,7 +414,7 @@ begin
   refine ⟨λ n, (hμ.set n.unpair.1).prod (hν.set n.unpair.2),
     λ n, mem_image2_of_mem (hμ.set_mem _) (hν.set_mem _), λ n, _, _⟩,
   { simp_rw [prod_prod (hC _ (hμ.set_mem _)) (hD _ (hν.set_mem _))],
-    exact mul_lt_top (hμ.finite _) (hν.finite _) },
+    exact mul_lt_top (hμ.finite _).ne (hν.finite _).ne },
   { simp_rw [Union_unpair_prod, hμ.spanning, hν.spanning, univ_prod_univ] }
 end
 
@@ -710,7 +714,7 @@ begin
   { intro h2f, rw lintegral_congr_ae,
     refine h2f.mp _, apply eventually_of_forall, intros x hx, dsimp only,
     rw [of_real_to_real], rw [← lt_top_iff_ne_top], exact hx },
-  { intro h2f, refine ae_lt_top _ h2f, exact h1f.ennnorm.lintegral_prod_right' },
+  { intro h2f, refine ae_lt_top _ h2f.ne, exact h1f.ennnorm.lintegral_prod_right' },
 end
 
 lemma has_finite_integral_prod_iff' ⦃f : α × β → E⦄ (h1f : ae_measurable f (μ.prod ν)) :
@@ -891,7 +895,7 @@ begin
       function.comp, integral_indicator (measurable_prod_mk_left hs),
       set_integral_const, integral_smul_const,
       integral_to_real (measurable_measure_prod_mk_left hs).ae_measurable
-      (ae_measure_lt_top hs h2s), prod_apply hs] },
+      (ae_measure_lt_top hs h2s.ne), prod_apply hs] },
   { intros f g hfg i_f i_g hf hg,
     simp_rw [integral_add' i_f i_g, integral_integral_add' i_f i_g, hf, hg] },
   { exact is_closed_eq continuous_integral continuous_integral_integral },

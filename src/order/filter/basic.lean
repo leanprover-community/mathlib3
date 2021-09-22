@@ -401,7 +401,8 @@ instance : complete_lattice (filter α) := original_complete_lattice.copy
                            (@inf_le_right (filter α) _ _ _ _ hb)
        end)
   end
-  /- Sup -/ (join ∘ 𝓟) (by ext s x; exact (@mem_bInter_iff _ _ s filter.sets x).symm)
+  /- Sup -/ (join ∘ 𝓟) (by { ext s x, exact (@mem_bInter_iff _ _ s filter.sets x).symm.trans
+    (set.ext_iff.1 (sInter_image _ _) x).symm})
   /- Inf -/ _ rfl
 
 end complete_lattice
@@ -476,7 +477,7 @@ by simp only [← filter.mem_sets, supr_sets_eq, iff_self, mem_Inter]
 by simp [ne_bot_iff]
 
 lemma infi_eq_generate (s : ι → filter α) : infi s = generate (⋃ i, (s i).sets) :=
-show generate _ = generate _, from congr_arg _ supr_range
+show generate _ = generate _, from congr_arg _ $ congr_arg Sup $ (range_comp _ _).symm
 
 lemma mem_infi_of_mem {f : ι → filter α} (i : ι) : ∀ {s}, s ∈ f i → s ∈ ⨅ i, f i :=
 show (⨅ i, f i) ≤ f i, from infi_le _ _
@@ -2690,7 +2691,7 @@ lemma ne_bot.Coprod [∀ d, nonempty (κ d)] {f : Π d, filter (κ d)} {d : δ} 
   ne_bot (filter.Coprod f) :=
 Coprod_ne_bot_iff.2 ⟨d, h⟩
 
-instance Coprod_ne_bot [∀ d, nonempty (κ d)] [nonempty δ] {f : Π d, filter (κ d)}
+@[instance] lemma Coprod_ne_bot [∀ d, nonempty (κ d)] [nonempty δ] (f : Π d, filter (κ d))
   [H : ∀ d, ne_bot (f d)] : ne_bot (filter.Coprod f) :=
 (H (classical.arbitrary δ)).Coprod
 

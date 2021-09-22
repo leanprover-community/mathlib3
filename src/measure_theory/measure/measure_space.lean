@@ -394,6 +394,10 @@ m.le_trim s
   μ.to_outer_measure.to_measure (le_to_outer_measure_caratheodory _) = μ :=
 measure.ext $ λ s, μ.to_outer_measure.trim_eq
 
+@[simp] lemma bounded_by_measure (μ : measure α) :
+  outer_measure.bounded_by μ = μ.to_outer_measure :=
+μ.to_outer_measure.bounded_by_eq_self
+
 end outer_measure
 
 variables {m0 : measurable_space α} [measurable_space β] [measurable_space γ]

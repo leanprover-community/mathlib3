@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp
 -/
 
-import field_theory.algebraic_closure
-import linear_algebra.charpoly
+import field_theory.is_alg_closed.basic
 import linear_algebra.finsupp
 import linear_algebra.matrix.to_lin
 import order.preorder_hom

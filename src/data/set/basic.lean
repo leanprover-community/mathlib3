@@ -291,6 +291,8 @@ in theorem assumptions instead of `∃ x, x ∈ s` or `s ≠ ∅` as it gives ac
 to the dot notation. -/
 protected def nonempty (s : set α) : Prop := ∃ x, x ∈ s
 
+@[simp] lemma nonempty_coe_sort (s : set α) : nonempty ↥s ↔ s.nonempty := nonempty_subtype
+
 lemma nonempty_def : s.nonempty ↔ ∃ x, x ∈ s := iff.rfl
 
 lemma nonempty_of_mem {x} (h : x ∈ s) : s.nonempty := ⟨x, h⟩

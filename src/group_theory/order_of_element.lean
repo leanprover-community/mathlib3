@@ -126,6 +126,10 @@ attribute [to_additive add_order_of_nsmul_eq_zero] pow_order_of_eq_one
 lemma order_of_eq_zero (h : ¬ is_of_fin_order x) : order_of x = 0 :=
 by rwa [order_of, minimal_period, dif_neg]
 
+@[to_additive add_order_of_eq_zero_iff] lemma order_of_eq_zero_iff :
+  order_of x = 0 ↔ ¬ is_of_fin_order x :=
+⟨λ h H, (order_of_pos' H).ne' h, order_of_eq_zero⟩
+
 lemma nsmul_ne_zero_of_lt_add_order_of' (n0 : n ≠ 0) (h : n < add_order_of a) :
   n • a ≠ 0 :=
 λ j, not_is_periodic_pt_of_pos_of_lt_minimal_period n0 h
@@ -382,10 +386,6 @@ begin
 end
 
 attribute [to_additive gsmul_eq_mod_add_order_of] gpow_eq_mod_order_of
-
-@[to_additive add_order_of_eq_zero_iff] lemma order_of_eq_zero_iff :
-  order_of x = 0 ↔ ¬ is_of_fin_order x :=
-⟨λ h H, (order_of_pos' H).ne' h, order_of_eq_zero⟩
 
 @[to_additive nsmul_inj_iff_of_add_order_of_eq_zero]
 lemma pow_inj_iff_of_order_of_eq_zero (h : order_of x = 0) {n m : ℕ} :

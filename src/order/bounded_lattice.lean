@@ -91,6 +91,8 @@ lemma lt_top_iff_ne_top : a < ⊤ ↔ a ≠ ⊤ := le_top.lt_iff_ne
 lemma ne_top_of_lt (h : a < b) : a ≠ ⊤ :=
 lt_top_iff_ne_top.1 $ lt_of_lt_of_le h le_top
 
+alias ne_top_of_lt ← has_lt.lt.ne_top
+
 theorem ne_top_of_le_ne_top {a b : α} (hb : b ≠ ⊤) (hab : a ≤ b) : a ≠ ⊤ :=
 λ ha, hb $ top_unique $ ha ▸ hab
 
@@ -161,6 +163,8 @@ end
 
 lemma ne_bot_of_gt (h : a < b) : b ≠ ⊥ :=
 bot_lt_iff_ne_bot.1 $ lt_of_le_of_lt bot_le h
+
+alias ne_bot_of_gt ← has_lt.lt.ne_bot
 
 lemma eq_bot_of_minimal (h : ∀ b, ¬ b < a) : a = ⊥ :=
 or.elim (lt_or_eq_of_le bot_le) (λ hlt, absurd hlt (h ⊥)) (λ he, he.symm)
@@ -365,77 +369,43 @@ instance pi.order_bot {α : Type*} {β : α → Type*} [∀ a, order_bot $ β a]
 
 /-! ### Function lattices -/
 
-instance pi.has_sup {ι : Type*} {α : ι → Type*} [Π i, has_sup (α i)] : has_sup (Π i, α i) :=
-⟨λ f g i, f i ⊔ g i⟩
+namespace pi
+variables {ι : Type*} {α' : ι → Type*}
 
-@[simp] lemma sup_apply {ι : Type*} {α : ι → Type*} [Π i, has_sup (α i)] (f g : Π i, α i) (i : ι) :
-  (f ⊔ g) i = f i ⊔ g i :=
-rfl
+instance [Π i, has_bot (α' i)] : has_bot (Π i, α' i) := ⟨λ i, ⊥⟩
 
-instance pi.has_inf {ι : Type*} {α : ι → Type*} [Π i, has_inf (α i)] : has_inf (Π i, α i) :=
-⟨λ f g i, f i ⊓ g i⟩
+@[simp] lemma bot_apply [Π i, has_bot (α' i)] (i : ι) : (⊥ : Π i, α' i) i = ⊥ := rfl
 
-@[simp] lemma inf_apply {ι : Type*} {α : ι → Type*} [Π i, has_inf (α i)] (f g : Π i, α i) (i : ι) :
-  (f ⊓ g) i = f i ⊓ g i :=
-rfl
+lemma bot_def [Π i, has_bot (α' i)] : (⊥ : Π i, α' i) = λ i, ⊥ := rfl
 
-instance pi.has_bot {ι : Type*} {α : ι → Type*} [Π i, has_bot (α i)] : has_bot (Π i, α i) :=
-⟨λ i, ⊥⟩
+instance [Π i, has_top (α' i)] : has_top (Π i, α' i) := ⟨λ i, ⊤⟩
 
-@[simp] lemma bot_apply {ι : Type*} {α : ι → Type*} [Π i, has_bot (α i)] (i : ι) :
-  (⊥ : Π i, α i) i = ⊥ :=
-rfl
+@[simp] lemma top_apply [Π i, has_top (α' i)] (i : ι) : (⊤ : Π i, α' i) i = ⊤ := rfl
 
-instance pi.has_top {ι : Type*} {α : ι → Type*} [Π i, has_top (α i)] : has_top (Π i, α i) :=
-⟨λ i, ⊤⟩
+lemma top_def [Π i, has_top (α' i)] : (⊤ : Π i, α' i) = λ i, ⊤ := rfl
 
-@[simp] lemma top_apply {ι : Type*} {α : ι → Type*} [Π i, has_top (α i)] (i : ι) :
-  (⊤ : Π i, α i) i = ⊤ :=
-rfl
-
-instance pi.semilattice_sup {ι : Type*} {α : ι → Type*} [Π i, semilattice_sup (α i)] :
-  semilattice_sup (Π i, α i) :=
-by refine_struct { sup := (⊔), .. pi.partial_order }; tactic.pi_instance_derive_field
-
-instance pi.semilattice_inf {ι : Type*} {α : ι → Type*} [Π i, semilattice_inf (α i)] :
-  semilattice_inf (Π i, α i) :=
-by refine_struct { inf := (⊓), .. pi.partial_order }; tactic.pi_instance_derive_field
-
-instance pi.semilattice_inf_bot {ι : Type*} {α : ι → Type*} [Π i, semilattice_inf_bot (α i)] :
-  semilattice_inf_bot (Π i, α i) :=
+instance [Π i, semilattice_inf_bot (α' i)] : semilattice_inf_bot (Π i, α' i) :=
 by refine_struct { inf := (⊓), bot := ⊥, .. pi.partial_order }; tactic.pi_instance_derive_field
 
-instance pi.semilattice_inf_top {ι : Type*} {α : ι → Type*} [Π i, semilattice_inf_top (α i)] :
-  semilattice_inf_top (Π i, α i) :=
+instance [Π i, semilattice_inf_top (α' i)] : semilattice_inf_top (Π i, α' i) :=
 by refine_struct { inf := (⊓), top := ⊤, .. pi.partial_order }; tactic.pi_instance_derive_field
 
-instance pi.semilattice_sup_bot {ι : Type*} {α : ι → Type*} [Π i, semilattice_sup_bot (α i)] :
-  semilattice_sup_bot (Π i, α i) :=
+instance [Π i, semilattice_sup_bot (α' i)] : semilattice_sup_bot (Π i, α' i) :=
 by refine_struct { sup := (⊔), bot := ⊥, .. pi.partial_order }; tactic.pi_instance_derive_field
 
-instance pi.semilattice_sup_top {ι : Type*} {α : ι → Type*} [Π i, semilattice_sup_top (α i)] :
-  semilattice_sup_top (Π i, α i) :=
+instance [Π i, semilattice_sup_top (α' i)] : semilattice_sup_top (Π i, α' i) :=
 by refine_struct { sup := (⊔), top := ⊤, .. pi.partial_order }; tactic.pi_instance_derive_field
 
-instance pi.lattice {ι : Type*} {α : ι → Type*} [Π i, lattice (α i)] : lattice (Π i, α i) :=
-{ .. pi.semilattice_sup, .. pi.semilattice_inf }
-
-instance pi.distrib_lattice {ι : Type*} {α : ι → Type*} [Π i, distrib_lattice (α i)] :
-  distrib_lattice (Π i, α i) :=
-by refine_struct { .. pi.lattice }; tactic.pi_instance_derive_field
-
-instance pi.bounded_lattice {ι : Type*} {α : ι → Type*} [Π i, bounded_lattice (α i)] :
-  bounded_lattice (Π i, α i) :=
+instance [Π i, bounded_lattice (α' i)] : bounded_lattice (Π i, α' i) :=
 { .. pi.semilattice_sup_top, .. pi.semilattice_inf_bot }
 
-instance pi.distrib_lattice_bot {ι : Type*} {α : ι → Type*} [Π i, distrib_lattice_bot (α i)] :
-  distrib_lattice_bot (Π i, α i) :=
+instance [Π i, distrib_lattice_bot (α' i)] : distrib_lattice_bot (Π i, α' i) :=
 { .. pi.distrib_lattice, .. pi.order_bot }
 
-instance pi.bounded_distrib_lattice {ι : Type*} {α : ι → Type*}
-  [Π i, bounded_distrib_lattice (α i)] :
-  bounded_distrib_lattice (Π i, α i) :=
+instance [Π i, bounded_distrib_lattice (α' i)] : bounded_distrib_lattice (Π i, α' i) :=
 { .. pi.bounded_lattice, .. pi.distrib_lattice }
+
+end pi
 
 lemma eq_bot_of_bot_eq_top {α : Type*} [bounded_lattice α] (hα : (⊥ : α) = ⊤) (x : α) :
   x = (⊥ : α) :=
@@ -499,6 +469,10 @@ option.ne_none_iff_exists
 def unbot : Π (x : with_bot α), x ≠ ⊥ → α
 | ⊥        h := absurd rfl h
 | (some x) h := x
+
+@[simp] lemma coe_unbot {α : Type*} (x : with_bot α) (h : x ≠ ⊥) :
+  (x.unbot h : with_bot α) = x :=
+by { cases x, simpa using h, refl, }
 
 @[simp] lemma unbot_coe (x : α) (h : (x : with_bot α) ≠ ⊥ := coe_ne_bot _) :
   (x : with_bot α).unbot h = x := rfl
@@ -723,6 +697,10 @@ option.ne_none_iff_exists
 /-- Deconstruct a `x : with_top α` to the underlying value in `α`, given a proof that `x ≠ ⊤`. -/
 def untop : Π (x : with_top α), x ≠ ⊤ → α :=
 with_bot.unbot
+
+@[simp] lemma coe_untop {α : Type*} (x : with_top α) (h : x ≠ ⊤) :
+  (x.untop h : with_top α) = x :=
+by { cases x, simpa using h, refl, }
 
 @[simp] lemma untop_coe (x : α) (h : (x : with_top α) ≠ ⊤ := coe_ne_top) :
   (x : with_top α).untop h = x := rfl

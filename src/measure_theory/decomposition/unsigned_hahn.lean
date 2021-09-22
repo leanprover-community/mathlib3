@@ -43,12 +43,12 @@ begin
   let c : set ℝ := d '' {s | measurable_set s },
   let γ : ℝ := Sup c,
 
-  have hμ : ∀s, μ s < ∞ := measure_lt_top μ,
-  have hν : ∀s, ν s < ∞ := measure_lt_top ν,
+  have hμ : ∀ s, μ s ≠ ∞ := measure_ne_top μ,
+  have hν : ∀ s, ν s ≠ ∞ := measure_ne_top ν,
   have to_nnreal_μ : ∀s, ((μ s).to_nnreal : ℝ≥0∞) = μ s :=
-    (assume s, ennreal.coe_to_nnreal $ ne_top_of_lt $ hμ _),
+    (assume s, ennreal.coe_to_nnreal $ hμ _),
   have to_nnreal_ν : ∀s, ((ν s).to_nnreal : ℝ≥0∞) = ν s :=
-    (assume s, ennreal.coe_to_nnreal $ ne_top_of_lt $ hν _),
+    (assume s, ennreal.coe_to_nnreal $ hν _),
 
   have d_empty : d ∅ = 0, { simp [d], rw [measure_empty, measure_empty], simp },
 
@@ -66,8 +66,8 @@ begin
     tendsto (λn, d (s n)) at_top (𝓝 (d (⋃n, s n))),
   { assume s hs hm,
     refine tendsto.sub _ _;
-      refine (nnreal.tendsto_coe.2 $
-        (ennreal.tendsto_to_nnreal $ @ne_top_of_lt _ _ _ ∞ _).comp $ tendsto_measure_Union hs hm),
+      refine (nnreal.tendsto_coe.2 $ (ennreal.tendsto_to_nnreal _).comp $
+        tendsto_measure_Union hs hm),
     exact hμ _,
     exact hν _ },
 
@@ -75,12 +75,9 @@ begin
     tendsto (λn, d (s n)) at_top (𝓝 (d (⋂n, s n))),
   { assume s hs hm,
     refine tendsto.sub _ _;
-      refine (nnreal.tendsto_coe.2 $
-        (ennreal.tendsto_to_nnreal $ @ne_top_of_lt _ _ _ ∞ _).comp $ tendsto_measure_Inter hs hm _),
-    exact hμ _,
-    exact ⟨0, hμ _⟩,
-    exact hν _,
-    exact ⟨0, hν _⟩ },
+      refine (nnreal.tendsto_coe.2 $ (ennreal.tendsto_to_nnreal $ _).comp $
+        tendsto_measure_Inter hs hm _),
+    exacts [hμ _, ⟨0, hμ _⟩, hν _, ⟨0, hν _⟩] },
 
   have bdd_c : bdd_above c,
   { use (μ univ).to_nnreal,

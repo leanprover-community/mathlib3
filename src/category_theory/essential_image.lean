@@ -86,7 +86,7 @@ The functor `F` factorises through its essential image, where the first functor 
 surjective and the second is fully faithful.
 -/
 @[simps]
-def to_ess_image_comp_essential_image_inclusion :
+def to_ess_image_comp_essential_image_inclusion (F : C ⥤ D) :
   F.to_ess_image ⋙ F.ess_image_inclusion ≅ F :=
 nat_iso.of_components (λ X, iso.refl _) (by tidy)
 
@@ -114,5 +114,18 @@ def functor.obj_preimage (Y : D) : C := (ess_surj.mem_ess_image F Y).witness
     isomorphic to `Y`. -/
 def functor.obj_obj_preimage_iso (Y : D) : F.obj (F.obj_preimage Y) ≅ Y :=
 (ess_surj.mem_ess_image F Y).get_iso
+
+
+/-- The induced functor of a faithful functor is faithful -/
+instance faithful.to_ess_image (F : C ⥤ D) [faithful F] : faithful F.to_ess_image :=
+faithful.of_comp_iso F.to_ess_image_comp_essential_image_inclusion
+
+/-- The induced functor of a full functor is full -/
+instance full.to_ess_image (F : C ⥤ D) [full F] : full F.to_ess_image :=
+begin
+  haveI := full.of_iso F.to_ess_image_comp_essential_image_inclusion.symm,
+  exactI full.of_comp_faithful F.to_ess_image F.ess_image_inclusion
+end
+
 
 end category_theory

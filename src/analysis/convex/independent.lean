@@ -42,8 +42,10 @@ independence, convex position
 
 open_locale affine big_operators classical
 open finset function
-variables (𝕜 : Type*) {E : Type*} [ordered_semiring 𝕜] [add_comm_group E] [module 𝕜 E]
-          {ι : Type*} {s t : set E}
+variables (𝕜 : Type*) {E : Type*}
+
+section ordered_semiring
+variables [ordered_semiring 𝕜] [add_comm_group E] [module 𝕜 E] {ι : Type*} {s t : set E}
 
 /-- An indexed family is said to be convex independent if every point only belongs to convex hulls
 of sets containing it. -/
@@ -189,11 +191,18 @@ begin
     exact hs _ hxs (convex_hull_mono (set.subset_diff_singleton ht h) hxt) }
 end
 
+end ordered_semiring
+
 /-! ### Extreme points -/
 
-lemma convex.extreme_points_convex_independent [module ℝ E] (hs : convex ℝ s) :
-  convex_independent ℝ (λ p, p : s.extreme_points → E) :=
+section linear_ordered_field
+variables [linear_ordered_field 𝕜] [add_comm_group E] [module 𝕜 E] {s : set E}
+
+lemma convex.convex_independent_extreme_points (hs : convex 𝕜 s) :
+  convex_independent 𝕜 (λ p, p : s.extreme_points 𝕜 → E) :=
 convex_independent_set_iff_not_mem_convex_hull_diff.2 $ λ x hx h,
   (extreme_points_convex_hull_subset
   (inter_extreme_points_subset_extreme_points_of_subset (convex_hull_min
   ((set.diff_subset _ _).trans extreme_points_subset) hs) ⟨h, hx⟩)).2 (set.mem_singleton _)
+
+end linear_ordered_field

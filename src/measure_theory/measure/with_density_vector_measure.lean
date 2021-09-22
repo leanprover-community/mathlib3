@@ -44,7 +44,7 @@ if hf : integrable f μ then
   not_measurable' := λ s hs, if_neg hs,
   m_Union' := λ s hs₁ hs₂,
   begin
-    convert has_sum_integral_Union hs₁ hs₂ hf,
+    convert has_sum_integral_Union hs₁ hs₂ hf.integrable_on,
     { ext n, rw if_pos (hs₁ n) },
     { rw if_pos (measurable_set.Union hs₁) }
   end }

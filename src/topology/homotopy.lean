@@ -46,7 +46,7 @@ section
 
 variables {f₀ f₁ : C(X, Y)}
 
-instance : has_coe_to_fun (homotopy f₀ f₁) := ⟨_, λ F, F.to_fun⟩
+instance : has_coe_to_fun (homotopy f₀ f₁) (λ _, I × X → Y) := ⟨λ F, F.to_fun⟩
 
 @[ext]
 lemma ext {F G : homotopy f₀ f₁} (h : ∀ x, F x = G x) : F = G :=

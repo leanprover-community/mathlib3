@@ -60,8 +60,8 @@ lemma dist_eq (z w : ℂ) : dist z w = abs (z - w) := rfl
 
 @[simp] lemma norm_real (r : ℝ) : ∥(r : ℂ)∥ = ∥r∥ := abs_of_real _
 
-@[simp] lemma norm_rat (r : ℚ) : ∥(r : ℂ)∥ = has_abs.abs (r : ℝ) :=
-suffices ∥((r : ℝ) : ℂ)∥ = has_abs.abs r, by simpa,
+@[simp] lemma norm_rat (r : ℚ) : ∥(r : ℂ)∥ = |(r : ℝ)| :=
+suffices ∥((r : ℝ) : ℂ)∥ = |r|, by simpa,
 by rw [norm_real, real.norm_eq_abs]
 
 @[simp] lemma norm_nat (n : ℕ) : ∥(n : ℂ)∥ = n := abs_of_nat _

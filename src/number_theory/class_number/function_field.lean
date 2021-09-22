@@ -8,7 +8,7 @@ import number_theory.class_number.finite
 import number_theory.function_field
 
 /-!
-# Class numbers of number fields
+# Class numbers of function fields
 
 This file defines the class number of a function field as the (finite) cardinality of
 the class group of its ring of integers. It also proves some elementary results

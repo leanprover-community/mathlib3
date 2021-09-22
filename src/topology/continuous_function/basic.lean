@@ -114,7 +114,7 @@ def abs (f : C(α, β)) : C(α, β) :=
 { to_fun := λ x, |f x|, }
 
 @[priority 100] -- see Note [lower instance priority]
-instance  : has_abs C(α, β)  := ⟨λf, abs f⟩
+instance : has_abs C(α, β) := ⟨λf, abs f⟩
 
 @[simp] lemma abs_apply (f : C(α, β)) (x : α) : |f| x = |f x| :=
 rfl

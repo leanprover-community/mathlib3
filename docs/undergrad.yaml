@@ -18,7 +18,7 @@ Linear algebra:
     linear map: 'linear_map'
     range of a linear map: 'linear_map.range'
     kernel of a linear map: 'linear_map.ker'
-    algebra of endomorphisms of a vector space: 'module.endomorphism_algebra'
+    algebra of endomorphisms of a vector space: 'module.End.algebra'
     general linear group: 'linear_map.general_linear_group'
   Duality:
     dual vector space: 'module.dual'

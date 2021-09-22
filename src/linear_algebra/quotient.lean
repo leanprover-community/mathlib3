@@ -12,11 +12,16 @@ import linear_algebra.basic
   that is, elements of `M` are identified if their difference is in `p`. This is itself a module.
 
 -/
+
+-- For most of this file we work over a noncommuative ring
+section ring
+
+variables {R M : Type*} {r : R} {x y : M} [ring R] [add_comm_group M] [module R M]
+variables (p p' : submodule R M)
+
 namespace submodule
 
 open linear_map
-variables {R M : Type*} {r : R} {x y : M} [ring R] [add_comm_group M] [module R M]
-variables (p p' : submodule R M)
 
 -- TODO(Mario): Factor through add_subgroup
 /-- The equivalence relation associated to a submodule `p`, defined by `x ≈ y` iff `y - x ∈ p`. -/
@@ -240,8 +245,13 @@ begin
   exact inf_le_right,
 end
 
-section ring
+end submodule
 
+open submodule
+
+namespace linear_map
+
+variables {M₂ : Type*} [add_comm_group M₂] [module R M₂]
 variables {M₃ : Type*} [add_comm_group M₃] [module R M₃]
 
 lemma range_mkq_comp (f : M →ₗ[R] M₂) : f.range.mkq.comp f = 0 :=
@@ -260,9 +270,11 @@ begin
   exact ker_zero
 end
 
-end ring
+end linear_map
 
 open linear_map
+
+namespace submodule
 
 /-- If `p = ⊥`, then `M / p ≃ₗ[R] M`. -/
 def quot_equiv_of_eq_bot (hp : p = ⊥) : p.quotient ≃ₗ[R] M :=
@@ -291,11 +303,15 @@ rfl
 
 end submodule
 
-namespace submodule
+end ring
+
+section comm_ring
 
 variables {R M M₂ : Type*} {r : R} {x y : M} [comm_ring R]
   [add_comm_group M] [module R M] [add_comm_group M₂] [module R M₂]
   (p : submodule R M) (q : submodule R M₂)
+
+namespace submodule
 
 /-- Given modules `M`, `M₂` over a commutative ring, together with submodules `p ⊆ M`, `q ⊆ M₂`, the
 natural map $\{f ∈ Hom(M, M₂) | f(p) ⊆ q \} \to Hom(M/p, M₂/q)$ is linear. -/
@@ -305,3 +321,5 @@ def mapq_linear : compatible_maps p q →ₗ[R] p.quotient →ₗ[R] q.quotient 
   map_smul' := λ c f, by { ext, refl, } }
 
 end submodule
+
+end comm_ring

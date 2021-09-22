@@ -79,11 +79,13 @@ nat_iso.of_components
   (by tidy)
 
 /-- If `F` and `F'` are both left adjoint to `G`, then they are naturally isomorphic. -/
+@[simps]
 def left_adjoint_uniq {F F' : C ⥤ D} {G : D ⥤ C}
   (adj1 : F ⊣ G) (adj2 : F' ⊣ G) : F ≅ F' :=
 nat_iso.remove_op (fully_faithful_cancel_right _ (left_adjoints_coyoneda_equiv adj2 adj1))
 
 /-- If `G` and `G'` are both right adjoint to `F`, then they are naturally isomorphic. -/
+@[simps]
 def right_adjoint_uniq {F : C ⥤ D} {G G' : D ⥤ C}
   (adj1 : F ⊣ G) (adj2 : F ⊣ G') : G ≅ G' :=
 nat_iso.remove_op

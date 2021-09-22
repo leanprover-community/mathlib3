@@ -4,12 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.monad.algebra
-import category_theory.adjunction
+import category_theory.adjunction.reflective
 
 namespace category_theory
 open category
 
-universes v₁ v₂ u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
+universes v₁ v₂ v₃ u₁ u₂ u₃
+  -- morphism levels before object levels. See note [category_theory universes].
 
 variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
 variables {L : C ⥤ D} {R : D ⥤ C}
@@ -84,8 +85,46 @@ def monad.comparison_forget (h : L ⊣ R) :
 
 lemma monad.left_comparison (h : L ⊣ R) : L ⋙ monad.comparison h = h.to_monad.free := rfl
 
-instance [faithful R] (h : L ⊣ R) :
-  faithful (monad.comparison h) :=
+/-- A technical lemma which helps show uniqueness of the comparison functor. -/
+lemma monad.comparison_unique_aux {L : C ⥤ D} {R : D ⥤ C} {h : L ⊣ R}
+  {K : D ⥤ h.to_monad.algebra}
+  {i : K ⋙ h.to_monad.forget ≅ R}
+  (hK : ∀ Y,
+    R.map (L.map (i.hom.app (L.obj (R.obj Y)))) ≫ R.map (h.counit.app (L.obj (R.obj Y))) =
+      (K.obj (L.obj (R.obj Y))).a ≫ i.hom.app (L.obj (R.obj Y))) :
+  ∀ Y, R.map (L.map (i.hom.app Y)) ≫ R.map (h.counit.app Y) = (K.obj Y).a ≫ i.hom.app Y :=
+begin
+  intro Y,
+  haveI : split_epi (R.map (h.counit.app Y)) := ⟨h.unit.app _, h.right_triangle_components⟩,
+  rw [←is_iso.eq_inv_comp, ←cancel_epi (R.map (L.map (R.map (h.counit.app Y))))],
+  dsimp only [functor.id_obj],
+  have : R.map (L.map (K.map (h.counit.app Y)).f) ≫ (K.obj Y).a =
+          (K.obj (L.obj (R.obj Y))).a ≫ (K.map (h.counit.app Y)).f := (K.map (h.counit.app Y)).h,
+  rw [←R.map_comp, h.counit_naturality, ←functor.map_inv, ←functor.map_inv, ←R.map_comp_assoc,
+    ←L.map_comp, ←nat_iso.is_iso_inv_app, is_iso.iso.inv_hom, i.inv.naturality, L.map_comp,
+    R.map_comp, R.map_comp, assoc, ←is_iso.inv_comp_eq, ←functor.map_inv, ←functor.map_inv,
+    ←nat_iso.is_iso_inv_app, is_iso.iso.inv_inv],
+  dsimp only [functor.comp_obj, functor.comp_map],
+  rw [reassoc_of hK, monad.forget_map, reassoc_of this, ←i.hom.naturality],
+  refl,
+end
+
+/-- Given an adjunction `h : L ⊣ R` and an functor `K` from `D` to the category of algebras on the
+monad induced by `h`, if `K ⋙ monad.forget _` is isomorphic to `R` and the isomorphism commutes
+with the monad on objects of the from `L (R Y)`, produce an isomorphism from `K` to the comparison
+functor. -/
+@[simps]
+def monad.comparison_unique {L : C ⥤ D} {R : D ⥤ C} {h : L ⊣ R} {K : D ⥤ h.to_monad.algebra}
+  (i : K ⋙ h.to_monad.forget ≅ R)
+  (hK' : ∀ (Y : D),
+    R.map (L.map (i.hom.app (L.obj (R.obj Y)))) ≫ R.map (h.counit.app (L.obj (R.obj Y))) =
+      (K.obj (L.obj (R.obj Y))).a ≫ i.hom.app (L.obj (R.obj Y))):
+  K ≅ monad.comparison h :=
+nat_iso.of_components
+  (λ X, monad.algebra.iso_mk (i.app X) (monad.comparison_unique_aux hK' _))
+  (λ X Y f, by { ext, apply i.hom.naturality f })
+
+instance [faithful R] (h : L ⊣ R) : faithful (monad.comparison h) :=
 { map_injective' := λ X Y f g w, R.map_injective (congr_arg monad.algebra.hom.f w : _) }
 
 instance (T : monad C) : full (monad.comparison T.adj) :=
@@ -147,6 +186,80 @@ from `C` to the category of Eilenberg-Moore algebras for the adjunction is an eq
 -/
 class comonadic_left_adjoint (L : C ⥤ D) extends is_left_adjoint L :=
 (eqv : is_equivalence (comonad.comparison (adjunction.of_left_adjoint L)))
+
+attribute [instance] monadic_right_adjoint.eqv comonadic_left_adjoint.eqv
+
+/-- Given an adjunction `L ⊣ R₁` and an isomorphism `R₁ ≅ R₂` the monads induced on `C` by `R₁` and
+`R₂` are isomorphic. -/
+@[simps]
+def to_monad_iso_of_nat_iso_right {L : C ⥤ D} {R₁ R₂ : D ⥤ C} (h₁ : L ⊣ R₁) (i : R₁ ≅ R₂) :
+  h₁.to_monad ≅ (h₁.of_nat_iso_right i).to_monad :=
+monad_iso.mk (iso_whisker_left L i)
+  (λ X, by simp)
+  (λ X,
+  begin
+    dsimp only [adjunction.to_monad_coe, adjunction.to_monad_μ, whisker_left_app, functor.comp_obj,
+      whisker_right_app, functor.comp_map, iso_whisker_left_hom, functor.id_obj],
+    simp only [i.hom.naturality, h₁.of_nat_iso_right_counit_app, assoc, ←R₂.map_comp,
+      ←L.map_comp_assoc, i.hom_inv_id_app, L.map_id, id_comp],
+  end)
+
+/-- The property of being a monadic right adjoint is preserved under isomorphism. -/
+def monadic_right_adjoint_of_iso (R₁ R₂ : D ⥤ C) [monadic_right_adjoint R₁] (i : R₁ ≅ R₂) :
+  monadic_right_adjoint R₂ :=
+{ to_is_right_adjoint := ⟨_, (adjunction.of_right_adjoint R₁).of_nat_iso_right i⟩,
+  eqv :=
+  begin
+    let h₁ := adjunction.of_right_adjoint R₁,
+    change is_equivalence (monad.comparison (h₁.of_nat_iso_right i)),
+    let z' : h₁.to_monad.algebra ≌ (h₁.of_nat_iso_right i).to_monad.algebra :=
+      monad.algebra_equiv_of_iso_monads (to_monad_iso_of_nat_iso_right h₁ i),
+    let : monad.comparison h₁ ⋙ z'.functor ≅ monad.comparison (h₁.of_nat_iso_right i),
+    { refine monad.comparison_unique (nat_iso.of_components (λ X, i.app X) (by tidy)) _,
+      intro Y,
+      dsimp,
+      simp [-functor.map_comp, ←R₂.map_comp, ←(left_adjoint R₁).map_comp_assoc] },
+    apply functor.is_equivalence_of_iso _ this,
+  end }
+
+variables {D' : Type u₃} [category.{v₃} D']
+
+/--
+Given an adjunction `L ⊣ R` between `C` and `D` and an equivalence `D ≌ D'` the monads induced on
+`C` are isomorphic.
+-/
+@[simps]
+def to_monad_iso_of_equivalence {L : C ⥤ D} {R : D ⥤ C} (h : L ⊣ R) (e : D ≌ D') :
+  h.to_monad ≅ (h.comp _ _ e.to_adjunction).to_monad :=
+monad_iso.mk
+  (iso_whisker_left L (e.fun_inv_id_assoc R).symm ≪≫ (L.associator _ _).symm)
+  (λ X, by simp)
+  (λ X,
+  begin
+    dsimp,
+    simp only [e.counit_inv_functor_comp, id_comp, e.fun_inv_id_assoc_inv_app, assoc, ←R.map_comp],
+    simp,
+  end)
+
+/--
+If `R : D ⥤ C` is a monadic right adjoint, and `e : D' ≌ D` is an equivalence of categories, the
+composite `e.functor ⋙ R` is monadic.
+Note that the composite of monadic functors is not in general monadic (in fact the composite of
+a reflective functor with a monadic functor may not be monadic).
+-/
+def monadic_right_adjoint_of_equivalent (R : D ⥤ C) (e : D' ≌ D) [monadic_right_adjoint R] :
+  monadic_right_adjoint (e.functor ⋙ R) :=
+{ eqv :=
+  begin
+    let h := adjunction.of_right_adjoint R,
+    let z' : h.to_monad.algebra ≌ (h.comp _ _ e.symm.to_adjunction).to_monad.algebra :=
+      monad.algebra_equiv_of_iso_monads (to_monad_iso_of_equivalence _ e.symm),
+    let : e.functor ⋙ monad.comparison (adjunction.of_right_adjoint R) ⋙ z'.functor ≅
+            monad.comparison (h.comp _ _ e.symm.to_adjunction),
+    { refine monad.comparison_unique (nat_iso.of_components (λ X, iso.refl _) (by tidy)) _,
+      tidy },
+    apply functor.is_equivalence_of_iso _ this,
+  end }
 
 noncomputable instance (T : monad C) : monadic_right_adjoint T.forget :=
 ⟨(equivalence.of_fully_faithfully_ess_surj _ : is_equivalence (monad.comparison T.adj))⟩

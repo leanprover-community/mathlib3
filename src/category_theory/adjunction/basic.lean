@@ -279,6 +279,7 @@ adjunction.mk_of_hom_equiv
 { hom_equiv := λ X Y, (equiv_homset_left_of_nat_iso iso.symm).trans (adj.hom_equiv X Y) }
 
 /-- Transport an adjunction along an natural isomorphism on the right. -/
+@[simps]
 def of_nat_iso_right
   {F : C ⥤ D} {G H : D ⥤ C} (adj : F ⊣ G) (iso : G ≅ H) :
   F ⊣ H :=
@@ -304,6 +305,7 @@ Composition of adjunctions.
 
 See https://stacks.math.columbia.edu/tag/0DV0.
 -/
+@[simps]
 def comp (adj₁ : F ⊣ G) (adj₂ : H ⊣ I) : F ⋙ H ⊣ I ⋙ G :=
 { hom_equiv := λ X Z, equiv.trans (adj₂.hom_equiv _ _) (adj₁.hom_equiv _ _),
   unit := adj₁.unit ≫
@@ -440,6 +442,7 @@ namespace equivalence
 
 /-- The adjunction given by an equivalence of categories. (To obtain the opposite adjunction,
 simply use `e.symm.to_adjunction`. -/
+@[simps]
 def to_adjunction (e : C ≌ D) : e.functor ⊣ e.inverse :=
 mk_of_unit_counit ⟨e.unit, e.counit,
   by { ext, dsimp, simp only [id_comp], exact e.functor_unit_comp _, },
@@ -450,8 +453,9 @@ end equivalence
 namespace functor
 
 /-- An equivalence `E` is left adjoint to its inverse. -/
+@[simps]
 def adjunction (E : C ⥤ D) [is_equivalence E] : E ⊣ E.inv :=
-(E.as_equivalence).to_adjunction
+E.as_equivalence.to_adjunction
 
 /-- If `F` is an equivalence, it's a left adjoint. -/
 @[priority 10]

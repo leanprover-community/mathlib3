@@ -413,6 +413,7 @@ end is_equivalence
 namespace functor
 
 /-- Interpret a functor that is an equivalence as an equivalence. -/
+@[simps functor inverse]
 def as_equivalence (F : C ⥤ D) [is_equivalence F] : C ≌ D :=
 ⟨F, is_equivalence.inverse F, is_equivalence.unit_iso, is_equivalence.counit_iso,
   is_equivalence.functor_unit_iso_comp⟩
@@ -427,12 +428,6 @@ is_equivalence.inverse F
 instance is_equivalence_inv (F : C ⥤ D) [is_equivalence F] : is_equivalence F.inv :=
 is_equivalence.of_equivalence F.as_equivalence.symm
 
-@[simp] lemma as_equivalence_functor (F : C ⥤ D) [is_equivalence F] :
-  F.as_equivalence.functor = F := rfl
-
-@[simp] lemma as_equivalence_inverse (F : C ⥤ D) [is_equivalence F] :
-  F.as_equivalence.inverse = inv F := rfl
-
 @[simp] lemma inv_inv (F : C ⥤ D) [is_equivalence F] :
   inv (inv F) = F := rfl
 
@@ -441,6 +436,13 @@ variables {E : Type u₃} [category.{v₃} E]
 instance is_equivalence_trans (F : C ⥤ D) (G : D ⥤ E) [is_equivalence F] [is_equivalence G] :
   is_equivalence (F ⋙ G) :=
 is_equivalence.of_equivalence (equivalence.trans (as_equivalence F) (as_equivalence G))
+
+/-- If `F₁` is an equivalence and it is isomorphic to `F₂`, then `F₂` is also an equivalence. -/
+def is_equivalence_of_iso (F₁ : D ⥤ C) {F₂ : D ⥤ C} (i : F₁ ≅ F₂) [is_equivalence F₁] :
+  is_equivalence F₂ :=
+is_equivalence.mk F₁.inv
+  (is_equivalence.unit_iso ≪≫ iso_whisker_right i _)
+  (iso_whisker_left _ i.symm ≪≫ is_equivalence.counit_iso)
 
 end functor
 

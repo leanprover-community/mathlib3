@@ -7,6 +7,7 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro, Anne 
 import algebra.group.hom
 import algebra.module.basic
 import algebra.group_action_hom
+import algebra.ring.comp_typeclasses
 
 /-!
 # (Semi)linear maps

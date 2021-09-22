@@ -144,7 +144,7 @@ variable [fintype ι]
 lemma basis_to_matrix_mul_linear_map_to_matrix_mul_basis_to_matrix
   [decidable_eq ι] [decidable_eq ι'] :
   c.to_matrix c' ⬝ linear_map.to_matrix b' c' f ⬝ b'.to_matrix b = linear_map.to_matrix b c f :=
-by { rw [basis_to_matrix_mul_linear_map_to_matrix, linear_map_to_matrix_mul_basis_to_matrix] }
+by rw [basis_to_matrix_mul_linear_map_to_matrix, linear_map_to_matrix_mul_basis_to_matrix]
 
 /-- A generalization of `linear_map.to_matrix_id`. -/
 @[simp] lemma linear_map.to_matrix_id_eq_basis_to_matrix [decidable_eq ι] :

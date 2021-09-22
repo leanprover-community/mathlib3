@@ -7,6 +7,7 @@ import analysis.calculus.deriv
 import topology.algebra.ordered.extend_from
 import topology.algebra.polynomial
 import topology.local_extr
+import data.polynomial.field_division
 
 /-!
 # Local extrema of smooth functions

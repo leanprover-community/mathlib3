@@ -51,9 +51,9 @@ begin
   set Q := reindex_linear_equiv R R (equiv.refl ι) (basis.index_equiv b' b) (b.to_matrix b'),
 
   have hPQ : (P.map C).mul (Q.map C) = 1,
-  { rw [← matrix.map_mul, ← reindex_linear_equiv_mul R R, basis.to_matrix_mul_to_matrix_flip,
-      reindex_linear_equiv_one, ← ring_hom.map_matrix_apply, ring_hom.map_one],
-    apply_instance },
+  { rw [← matrix.map_mul, ← @reindex_linear_equiv_mul _ ι _ _ _ _ R R,
+      basis.to_matrix_mul_to_matrix_flip, reindex_linear_equiv_one, ← ring_hom.map_matrix_apply,
+      ring_hom.map_one] },
   have hscalar : (scalar ι) X = (((scalar ι) X).mul (P.map C)).mul (Q.map C),
   { rw [matrix.mul_assoc ((scalar ι) X), hPQ, matrix.mul_one] },
   have hcomm : ((scalar ι) X).mul (P.map C) = (P.map C).mul ((scalar ι) X) := by simp,

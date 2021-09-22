@@ -46,7 +46,7 @@ lemma charpoly_def :
 @[simp] lemma charpoly_to_matrix {ι : Type w} [fintype ι] (b : basis ι R M) :
   (linear_map.to_matrix b b f).charpoly = f.charpoly :=
 begin
-  set b' := (choose_basis R M),
+  set b' := choose_basis R M,
   set P := reindex_linear_equiv R R (basis.index_equiv b' b) (equiv.refl ι) (b'.to_matrix b),
   set Q := reindex_linear_equiv R R (equiv.refl ι) (basis.index_equiv b' b) (b.to_matrix b'),
 

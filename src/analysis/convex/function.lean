@@ -15,7 +15,7 @@ inequality. The integral version can be found in `analysis.convex.integral`.
 
 A function `f : E → β` is `convex_on` a set `s` if `s` is itself a convex set, and for any two
 points `x y ∈ s`, the segment joining `(x, f x)` to `(y, f y)` is above the graph of `f`.
-Equivalently, `convex_on 𝕜 f s` means that the epigraph `{p : E × β | p.1 ∈ s ∧ f z.1 ≤ p.2}` is
+Equivalently, `convex_on 𝕜 f s` means that the epigraph `{p : E × β | p.1 ∈ s ∧ f p.1 ≤ p.2}` is
 a convex set.
 
 ## Main declarations

@@ -25,7 +25,7 @@ universes u v w
 variables {R : Type u} {M : Type v} [comm_ring R] [nontrivial R]
 variables [add_comm_group M] [module R M] [module.free R M] [module.finite R M] (f : M →ₗ[R] M)
 
-open_locale classical
+open_locale classical matrix
 
 noncomputable theory
 
@@ -51,21 +51,27 @@ begin
   set ι' := choose_basis_index R M,
   set A' := to_matrix b' b' f,
   set e := basis.index_equiv b b',
-  set P := reindex_linear_equiv R R (basis.index_equiv b' b) (equiv.refl ι) (b'.to_matrix b),
-  set Q := reindex_linear_equiv R R (equiv.refl ι) (basis.index_equiv b' b) (b.to_matrix b'),
+  set φ := reindex e e,
+  set φ₁ := reindex e (equiv.refl ι'),
+  set φ₂ := reindex (equiv.refl ι') (equiv.refl ι'),
+  set φ₃ := reindex (equiv.refl ι') e,
+  set P := b.to_matrix b',
+  set Q := b'.to_matrix b,
 
-  have hPQ : (P.map C).mul (Q.map C) = 1,
-  { rw [← matrix.map_mul, ← @reindex_linear_equiv_mul _ ι _ _ _ _ R R,
-      basis.to_matrix_mul_to_matrix_flip, reindex_linear_equiv_one, ← ring_hom.map_matrix_apply,
-      ring_hom.map_one] },
-  have hscalar : (scalar ι) X = (((scalar ι) X).mul (P.map C)).mul (Q.map C),
-  { rw [matrix.mul_assoc ((scalar ι) X), hPQ, matrix.mul_one] },
-  have hcomm : ((scalar ι) X).mul (P.map C) = (P.map C).mul ((scalar ι) X) := by simp,
+--  have hPQ : (P.map C).mul (Q.map C) = 1,
+--  { rw [← matrix.map_mul, ← @reindex_linear_equiv_mul _ ι _ _ _ _ R R,
+--      basis.to_matrix_mul_to_matrix_flip, reindex_linear_equiv_one, ← ring_hom.map_matrix_apply,
+--      ring_hom.map_one] },
+--  have hscalar : (scalar ι) X = (((scalar ι) X).mul (P.map C)).mul (Q.map C),
+--  { rw [matrix.mul_assoc ((scalar ι) X), hPQ, matrix.mul_one] },
+--  have hcomm : ((scalar ι) X).mul (P.map C) = (P.map C).mul ((scalar ι) X) := by simp,
 
   calc A.charpoly = (reindex e e A).charpoly : (charpoly_reindex _ _).symm
-  ... = ((scalar ι') X - (C.map_matrix) (reindex e e A)).det : rfl
-  ... = ((scalar ι') X - (C.map_matrix) (reindex e e (   (Q.mul A').mul P   ))).det : sorry
-
+  ... = ((scalar ι') X - (C.map_matrix) (φ A)).det : rfl
+  ... = ((scalar ι') X - (C.map_matrix) (φ (P ⬝ A' ⬝ Q))).det :
+    by rw [basis_to_matrix_mul_linear_map_to_matrix_mul_basis_to_matrix]
+  ... = ((scalar ι') X - (C.map_matrix) (φ₁ P ⬝ φ₂ A' ⬝ φ₃ Q)).det :
+    by rw [reindex_linear_equiv_mul R R _ (equiv.refl ι') e, reindex_linear_equiv_mul R R e (equiv.refl ι') _]
   ... = f.charpoly : sorry
 
 

@@ -194,7 +194,7 @@ begin
 end
 
 /-- A random variable that `has_pdf` is quasi-measure preserving. -/
-def to_quasi_measure_preserving (X : α → E) (hX : measurable X) [has_pdf X ℙ μ] :
+lemma to_quasi_measure_preserving (X : α → E) (hX : measurable X) [has_pdf X ℙ μ] :
   quasi_measure_preserving X ℙ μ :=
 { measurable := hX,
   absolutely_continuous :=
@@ -229,6 +229,8 @@ begin
     rwa with_density_radon_nikodym_deriv_eq }
 end
 
+/-- A real-valued random variable that `has_pdf` transformed under a `quasi_measure_preserving`
+map also `has_pdf`. -/
 lemma quasi_measure_preserving_has_pdf [has_pdf X ℙ]
   (g : ℝ → ℝ) (hg : quasi_measure_preserving g) :
   has_pdf (g ∘ X) ℙ :=

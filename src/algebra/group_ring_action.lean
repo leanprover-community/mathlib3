@@ -4,10 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import group_theory.group_action.group
-import data.equiv.ring
-import ring_theory.subring
 import algebra.pointwise
+import data.equiv.ring
+import group_theory.group_action.group
+import group_theory.submonoid.pointwise
+import group_theory.subgroup.pointwise
+import ring_theory.subring
 
 /-!
 # Group action on rings
@@ -50,18 +52,6 @@ instance mul_semiring_action.to_mul_distrib_mul_action [h : mul_semiring_action 
   mul_distrib_mul_action M R :=
 { ..h }
 
-/-- Each element of the group defines an additive monoid isomorphism. -/
-@[simps]
-def distrib_mul_action.to_add_equiv [distrib_mul_action G A] (x : G) : A ≃+ A :=
-{ .. distrib_mul_action.to_add_monoid_hom A x,
-  .. mul_action.to_perm_hom G A x }
-
-/-- Each element of the group defines a multiplicative monoid isomorphism. -/
-@[simps]
-def mul_distrib_mul_action.to_mul_equiv [mul_distrib_mul_action G M] (x : G) : M ≃* M :=
-{ .. mul_distrib_mul_action.to_monoid_hom M x,
-  .. mul_action.to_perm_hom G M x }
-
 /-- Each element of the monoid defines a semiring homomorphism. -/
 @[simps]
 def mul_semiring_action.to_ring_hom [mul_semiring_action M R] (x : M) : R →+* R :=
@@ -75,7 +65,7 @@ theorem to_ring_hom_injective [mul_semiring_action M R] [has_faithful_scalar M R
 /-- Each element of the group defines a semiring isomorphism. -/
 @[simps]
 def mul_semiring_action.to_ring_equiv [mul_semiring_action G R] (x : G) : R ≃+* R :=
-{ .. distrib_mul_action.to_add_equiv G R x,
+{ .. distrib_mul_action.to_add_equiv R x,
   .. mul_semiring_action.to_ring_hom G R x }
 
 section

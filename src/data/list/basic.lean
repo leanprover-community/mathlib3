@@ -799,12 +799,13 @@ begin
 end
 
 @[simp]
-lemma tail_nth_le (l : list α) (i) (h : i < l.tail.length) :
-  l.tail.nth_le i h = l.nth_le (i+1) (by { rw l.length_tail at h, exact lt_sub_iff_right.mp h, }) :=
+lemma nth_le_tail (l : list α) (i) (h : i < l.tail.length)
+  (h' : i + 1 < l.length := by simpa [←lt_sub_iff_right] using h) :
+  l.tail.nth_le i h = l.nth_le (i + 1) h' :=
 begin
-  induction l with a l ih,
+  cases l,
   { cases h, },
-  { simp, refl, }
+  { simpa }
 end
 
 /-! ### Induction from the right -/

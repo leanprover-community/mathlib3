@@ -1108,6 +1108,26 @@ Note this cannot be an instance as it needs `h`. -/
   (h : fintype.card β < fintype.card α) : is_empty (α ↪ β) :=
 ⟨λ f, let ⟨x, y, ne, feq⟩ := fintype.exists_ne_map_eq_of_card_lt f h in ne $ f.injective feq⟩
 
+/-- A constructive embedding of a fintype `α` in another fintype `β` when `card α ≤ card β`. -/
+def trunc_of_card_le {α β : Type*} [fintype α] [fintype β] [decidable_eq α] [decidable_eq β]
+  (h : fintype.card α ≤ fintype.card β) : trunc (α ↪ β) :=
+(fintype.trunc_equiv_fin α).bind $ λ ea,
+  (fintype.trunc_equiv_fin β).map $ λ eb,
+    ea.to_embedding.trans ((fin.cast_le h).to_embedding.trans eb.symm.to_embedding)
+
+lemma nonempty_of_card_le {α β : Type*} [fintype α] [fintype β]
+  (h : fintype.card α ≤ fintype.card β) : nonempty (α ↪ β) :=
+by { classical, exact (trunc_of_card_le h).nonempty }
+
+lemma exists_of_card_le_finset {α β : Type*} [fintype α]
+  {s : finset β} (h : fintype.card α ≤ s.card) :
+  ∃ (f : α ↪ β), set.range f ⊆ s :=
+begin
+  rw ← fintype.card_coe at h,
+  rcases nonempty_of_card_le h with ⟨f⟩,
+  exact ⟨f.trans (embedding.subtype _), by simp [set.range_subset_iff]⟩
+end
+
 end function.embedding
 
 @[simp]

@@ -351,6 +351,10 @@ begin
   exact h
 end
 
+@[simp] lemma ext_iff (s₁ s₂ : affine_subspace k P) :
+  (s₁ : set P) = s₂ ↔ s₁ = s₂ :=
+⟨ext, by tidy⟩
+
 /-- Two affine subspaces with the same direction and nonempty
 intersection are equal. -/
 lemma ext_of_direction_eq {s1 s2 : affine_subspace k P} (hd : s1.direction = s2.direction)
@@ -666,6 +670,21 @@ end
 /-- `⊥`, coerced to a set, is the empty set. -/
 @[simp] lemma bot_coe : ((⊥ : affine_subspace k P) : set P) = ∅ :=
 rfl
+
+lemma bot_ne_top : (⊥ : affine_subspace k P) ≠ ⊤ :=
+begin
+  intros contra,
+  rw [← ext_iff, bot_coe, top_coe] at contra,
+  exact set.empty_ne_univ contra,
+end
+
+lemma nonempty_of_affine_span_eq_top {s : set P} (h : affine_span k s = ⊤) : s.nonempty :=
+begin
+  rw ← set.ne_empty_iff_nonempty,
+  rintros rfl,
+  rw affine_subspace.span_empty at h,
+  exact bot_ne_top k V P h,
+end
 
 variables {P}
 

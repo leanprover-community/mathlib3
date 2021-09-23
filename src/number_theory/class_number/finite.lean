@@ -392,12 +392,16 @@ begin
   let bS := b.map ((linear_map.quot_ker_equiv_range _).symm ≪≫ₗ _),
   refine fintype_of_admissible_of_algebraic L bS adm
     (λ x, (is_fraction_ring.is_algebraic_iff R K).mpr (algebra.is_algebraic_of_finite x)),
+  swap 7,
   { rw linear_map.ker_eq_bot.mpr,
     { exact submodule.quot_equiv_of_eq_bot _ rfl },
     { exact is_integral_closure.algebra_map_injective _ R _ } },
+  swap 3,
   { refine (basis.linear_independent _).restrict_scalars _,
     simp only [algebra.smul_def, mul_one],
-    apply is_fraction_ring.injective }
+    apply is_fraction_ring.injective },
+  { apply_instance, },
+  { apply_instance, },
 end
 
 end is_admissible

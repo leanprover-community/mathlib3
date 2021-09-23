@@ -782,9 +782,8 @@ def map (f : M →ₛₗ[σ₁₂] M₂) (p : submodule R M) : submodule R₂ M�
   smul_mem' :=
   begin
     rintro c x ⟨y, hy, rfl⟩,
-    obtain ⟨a, ha⟩ := σ₁₂.is_surjective c,
-    refine ⟨_, p.smul_mem a hy, _⟩,
-    simp [ha]
+    obtain ⟨a, rfl⟩ := σ₁₂.is_surjective c,
+    exact ⟨_, p.smul_mem a hy, f.map_smulₛₗ _ _⟩,
   end,
   .. p.to_add_submonoid.map f.to_add_monoid_hom }
 

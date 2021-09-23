@@ -240,8 +240,8 @@ begin
   { exact λ n, eventually_of_forall
       (λ x, rpow_le_rpow (coe_mono (nnnorm_approx_on_le hf h₀ x n)) to_real_nonneg) },
   -- (3) The bounding function `λ x, ∥f x - y₀∥ ^ p.to_real` has finite integral
-  have h_fin :  ∫⁻ (a : β), ∥f a - y₀∥₊ ^ p.to_real ∂μ < ⊤,
-  { exact lintegral_rpow_nnnorm_lt_top_of_snorm_lt_top hp_zero hp_ne_top hi },
+  have h_fin :  ∫⁻ (a : β), ∥f a - y₀∥₊ ^ p.to_real ∂μ ≠ ⊤,
+    from (lintegral_rpow_nnnorm_lt_top_of_snorm_lt_top hp_zero hp_ne_top hi).ne,
   -- (4) The functions "`p`-th power of distance between `f` and the approximation" tend pointwise
   -- to zero
   have h_lim : ∀ᵐ (a : β) ∂μ,
@@ -415,8 +415,8 @@ begin
   refine ennreal.rpow_lt_top_of_nonneg (by simp) (ennreal.sum_lt_top_iff.mpr (λ y hy, _)).ne,
   by_cases hy0 : y = 0,
   { simp [hy0, ennreal.to_real_pos_iff.mpr ⟨lt_of_le_of_ne (zero_le _) (ne.symm hp0), hp_top⟩], },
-  { refine ennreal.mul_lt_top _ (hf y hy0),
-    exact ennreal.rpow_lt_top_of_nonneg ennreal.to_real_nonneg ennreal.coe_ne_top, },
+  { refine ennreal.mul_lt_top _ (hf y hy0).ne,
+    exact (ennreal.rpow_lt_top_of_nonneg ennreal.to_real_nonneg ennreal.coe_ne_top).ne },
 end
 
 lemma mem_ℒp_iff {f : α →ₛ E} (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) :

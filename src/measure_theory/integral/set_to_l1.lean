@@ -99,9 +99,8 @@ begin
   rw ← h_add (S a) (⋃ i ∈ s, S i) (hS_meas a) (measurable_set_bUnion _ (λ i _, hS_meas i))
     (hps a (finset.mem_insert_self a s)),
   { congr, convert finset.supr_insert a s S, },
-  { exact ((measure_bUnion_finset_le _ _).trans_lt
-      (ennreal.sum_lt_top (λ i hi, lt_top_iff_ne_top.mpr
-      (hps i (finset.mem_insert_of_mem hi))))).ne, },
+  { exact ((measure_bUnion_finset_le _ _).trans_lt $
+      ennreal.sum_lt_top $ λ i hi, hps i $ finset.mem_insert_of_mem hi).ne, },
   { simp_rw set.inter_Union,
     refine Union_eq_empty.mpr (λ i, Union_eq_empty.mpr (λ hi, _)),
     rw ← set.disjoint_iff_inter_eq_empty,
@@ -343,34 +342,6 @@ calc ∥f.set_to_simple_func T∥
   end
 ... ≤ C * ∑ x in f.range, (μ (f ⁻¹' {x})).to_real * ∥x∥ : by simp_rw [mul_sum, ← mul_assoc]
 
-lemma simple_func.range_indicator {β} {m : measurable_space α} {s : set α} (hs : measurable_set s)
-  (hs_nonempty : s ≠ ∅) (hs_ne_univ : s ≠ univ) (x y : β) :
-  (simple_func.piecewise s hs (simple_func.const α x) (simple_func.const α y)).range = {x, y} :=
-begin
-  ext1 z,
-  rw [mem_range, set.mem_range, finset.mem_insert, finset.mem_singleton],
-  simp_rw simple_func.piecewise_apply,
-  split; intro h,
-  { obtain ⟨a, haz⟩ := h,
-    by_cases has : a ∈ s,
-    { left,
-      simp only [has, function.const_apply, if_true, coe_const] at haz,
-      exact haz.symm, },
-    { right,
-      simp only [has, function.const_apply, if_false, coe_const] at haz,
-      exact haz.symm, }, },
-  { cases h,
-    { obtain ⟨a, has⟩ : ∃ a, a ∈ s, by rwa set.ne_empty_iff_nonempty at hs_nonempty,
-      exact ⟨a, by simpa [has] using h.symm⟩, },
-    { obtain ⟨a, has⟩ : ∃ a, a ∉ s,
-      { by_contra,
-        push_neg at h,
-        refine hs_ne_univ _,
-        ext1 a,
-        simp [h a], },
-      exact ⟨a, by simpa [has] using h.symm⟩, }, },
-end
-
 lemma set_to_simple_func_indicator (T : set α → F →L[ℝ] F') (hT_empty : T ∅ = 0)
   {m : measurable_space α} {s : set α} (hs : measurable_set s) (x : F) :
   simple_func.set_to_simple_func T
@@ -387,7 +358,8 @@ begin
       exact subsingleton.elim s ∅, },
     simp [hs_univ, set_to_simple_func], },
   simp_rw set_to_simple_func,
-  rw simple_func.range_indicator hs hs_empty hs_univ,
+  rw [← ne.def, set.ne_empty_iff_nonempty] at hs_empty,
+  rw range_indicator hs hs_empty hs_univ,
   by_cases hx0 : x = 0,
   { simp_rw hx0, simp, },
   rw sum_insert,
@@ -428,8 +400,8 @@ begin
   { intros x hx,
     by_cases hx0 : x = 0,
     { rw hx0, simp, },
-    { exact ennreal.mul_lt_top ennreal.coe_lt_top
-        (simple_func.measure_preimage_lt_top_of_integrable _ (simple_func.integrable f) hx0), }, },
+    { exact ennreal.mul_ne_top ennreal.coe_ne_top
+        (simple_func.measure_preimage_lt_top_of_integrable _ (simple_func.integrable f) hx0).ne } }
 end
 
 section set_to_L1s
@@ -679,6 +651,15 @@ begin
       (integrable.to_L1_eq_to_L1_iff f g hfi hgi).2 h] },
   { have hgi : ¬ integrable g μ, { rw integrable_congr h at hfi, exact hfi },
     rw [set_to_fun_undef hT hfi, set_to_fun_undef hT hgi] },
+end
+
+lemma set_to_fun_indicator_const (hT : dominated_fin_meas_additive μ T C) {s : set α}
+  (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : E) :
+  set_to_fun hT (s.indicator (λ _, x)) = T s x :=
+begin
+  rw set_to_fun_congr_ae hT (@indicator_const_Lp_coe_fn _ _ _ 1 _ _ _ _ hs hμs x _ _).symm,
+  rw L1.set_to_fun_eq_set_to_L1 hT,
+  exact L1.set_to_L1_indicator_const_Lp hT hs hμs x,
 end
 
 end function

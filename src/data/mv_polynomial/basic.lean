@@ -275,20 +275,25 @@ finsupp.induction p (suffices P (monomial 0 0), by rwa monomial_zero at this,
                      show P (monomial 0 0), from h1 0 0)
                     (λ a b f ha hb hPf, h2 _ _ (h1 _ _) hPf)
 
-
-@[ext] lemma ring_hom_ext {A : Type*} [semiring A] {f g : mv_polynomial σ R →+* A}
+lemma ring_hom_ext {A : Type*} [semiring A] {f g : mv_polynomial σ R →+* A}
   (hC : ∀ r, f (C r) = g (C r)) (hX : ∀ i, f (X i) = g (X i)) :
   f = g :=
 by { ext, exacts [hC _, hX _] }
 
+/-- See note [partially-applied ext lemmas]. -/
+@[ext] lemma ring_hom_ext' {A : Type*} [semiring A] {f g : mv_polynomial σ R →+* A}
+  (hC : f.comp C = g.comp C) (hX : ∀ i, f (X i) = g (X i)) :
+  f = g :=
+ring_hom_ext (ring_hom.ext_iff.1 hC) hX
+
 lemma hom_eq_hom [semiring S₂]
   (f g : mv_polynomial σ R →+* S₂)
-  (hC : ∀a:R, f (C a) = g (C a)) (hX : ∀n:σ, f (X n) = g (X n)) (p : mv_polynomial σ R) :
+  (hC : f.comp C = g.comp C) (hX : ∀n:σ, f (X n) = g (X n)) (p : mv_polynomial σ R) :
   f p = g p :=
-ring_hom.congr_fun (ring_hom_ext hC hX) p
+ring_hom.congr_fun (ring_hom_ext' hC hX) p
 
 lemma is_id (f : mv_polynomial σ R →+* mv_polynomial σ R)
-  (hC : ∀a:R, f (C a) = (C a)) (hX : ∀n:σ, f (X n) = (X n)) (p : mv_polynomial σ R) :
+  (hC : f.comp C = C) (hX : ∀n:σ, f (X n) = (X n)) (p : mv_polynomial σ R) :
   f p = p :=
 hom_eq_hom f (ring_hom.id _) hC hX p
 
@@ -423,51 +428,15 @@ end
 
 lemma coeff_mul (p q : mv_polynomial σ R) (n : σ →₀ ℕ) :
   coeff n (p * q) = ∑ x in antidiagonal n, coeff x.1 p * coeff x.2 q :=
-begin
-  rw mul_def,
-  -- We need to manipulate both sides into a shape to which we can apply `finset.sum_bij_ne_zero`,
-  -- so we need to turn both sides into a sum over a product.
-  have := @finset.sum_product R (σ →₀ ℕ) _ _ p.support q.support
-    (λ x, if (x.1 + x.2 = n) then coeff x.1 p * coeff x.2 q else 0),
-  convert this.symm using 1; clear this,
-  { rw [coeff],
-    iterate 2 { rw sum_apply, apply finset.sum_congr rfl, intros, dsimp only },
-    exact single_apply },
-  symmetry,
-  -- We are now ready to show that both sums are equal using `finset.sum_bij_ne_zero`.
-  apply finset.sum_bij_ne_zero (λ (x : (σ →₀ ℕ) × (σ →₀ ℕ)) _ _, (x.1, x.2)),
-  { intros x hx hx',
-    simp only [mem_antidiagonal, eq_self_iff_true, if_false, forall_true_iff],
-    contrapose! hx',
-    rw [if_neg hx'] },
-  { rintros ⟨i, j⟩ ⟨k, l⟩ hij hij' hkl hkl',
-    simpa only [and_imp, prod.mk.inj_iff, heq_iff_eq] using and.intro },
-  { rintros ⟨i, j⟩ hij hij',
-    refine ⟨⟨i, j⟩, _, _⟩,
-    { simp only [mem_support_iff, finset.mem_product],
-      contrapose! hij',
-      exact mul_eq_zero_of_ne_zero_imp_eq_zero hij' },
-    { rw [mem_antidiagonal] at hij,
-      simp only [exists_prop, true_and, ne.def, if_pos hij, hij', not_false_iff] } },
-  { intros x hx hx',
-    simp only [ne.def] at hx' ⊢,
-    split_ifs with H,
-    { refl },
-    { rw if_neg H at hx', contradiction } }
-end
+add_monoid_algebra.mul_apply_antidiagonal p q _ _ $ λ p, mem_antidiagonal
 
 @[simp] lemma coeff_mul_X (m) (s : σ) (p : mv_polynomial σ R) :
   coeff (m + single s 1) (p * X s) = coeff m p :=
-begin
-  have : (m, single s 1) ∈ (m + single s 1).antidiagonal := mem_antidiagonal.2 rfl,
-  rw [coeff_mul, ← finset.insert_erase this, finset.sum_insert (finset.not_mem_erase _ _),
-      finset.sum_eq_zero, add_zero, coeff_X, mul_one],
-  rintros ⟨i,j⟩ hij,
-  rw [finset.mem_erase, mem_antidiagonal] at hij,
-  by_cases H : single s 1 = j,
-  { subst j, simpa using hij },
-  { rw [coeff_X', if_neg H, mul_zero] },
-end
+(add_monoid_algebra.mul_single_apply_aux p _ _ _ _ (λ a, add_left_inj _)).trans (mul_one _)
+
+@[simp] lemma support_mul_X (s : σ) (p : mv_polynomial σ R) :
+  (p * X s).support = p.support.map (add_right_embedding (single s 1)) :=
+add_monoid_algebra.support_mul_single p _ (by simp) _
 
 lemma coeff_mul_X' [decidable_eq σ] (m) (s : σ) (p : mv_polynomial σ R) :
   coeff m (p * X s) = if s ∈ m.support then coeff (m - single s 1) p else 0 :=

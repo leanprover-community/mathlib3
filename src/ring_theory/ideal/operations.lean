@@ -21,8 +21,10 @@ namespace submodule
 variables {R : Type u} {M : Type v}
 variables [comm_ring R] [add_comm_group M] [module R M]
 
+open_locale pointwise
+
 instance has_scalar' : has_scalar (ideal R) (submodule R M) :=
-⟨λ I N, ⨆ r : I, N.map (r.1 • linear_map.id)⟩
+⟨λ I N, ⨆ r : I, (r : R) • N⟩
 
 /-- `N.annihilator` is the ideal of all elements `r : R` such that `r • N = 0`. -/
 def annihilator (N : submodule R M) : ideal R :=
@@ -112,6 +114,15 @@ smul_mono h (le_refl N)
 
 theorem smul_mono_right (h : N ≤ P) : I • N ≤ I • P :=
 smul_mono (le_refl I) h
+
+@[simp] theorem annihilator_smul (N : submodule R M) : annihilator N • N = ⊥ :=
+eq_bot_iff.2 (smul_le.2 (λ r, mem_annihilator.1))
+
+@[simp] theorem annihilator_mul (I : ideal R) : annihilator I * I = ⊥ :=
+annihilator_smul I
+
+@[simp] theorem mul_annihilator (I : ideal R) : I * annihilator I = ⊥ :=
+by rw [mul_comm, annihilator_mul]
 
 variables (I J N P)
 @[simp] theorem smul_bot : I • (⊥ : submodule R M) = ⊥ :=

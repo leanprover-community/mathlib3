@@ -163,7 +163,7 @@ begin
     assume j hjJ,
     have : j ∉ I := assume hjI, hd ⟨hjI, hjJ⟩,
     rw [dif_neg this, zero_apply] },
-  { simp only [pi_comp, comp_assoc, subtype_comp_cod_restrict, proj_pi, dif_pos, subtype.coe_prop],
+  { simp only [pi_comp, comp_assoc, subtype_comp_cod_restrict, proj_pi, subtype.coe_prop],
     ext b ⟨j, hj⟩,
     simp only [dif_pos, function.comp_app, function.eval_apply, linear_map.cod_restrict_apply,
       linear_map.coe_comp, linear_map.coe_proj, linear_map.pi_apply, submodule.subtype_apply,

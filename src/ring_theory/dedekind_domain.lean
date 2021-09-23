@@ -946,3 +946,19 @@ begin
 end
 
 end is_dedekind_domain
+
+section quotient_multiplicity
+noncomputable theory
+open_locale classical
+variables {T : Type*} [integral_domain T] [is_dedekind_domain T] (I : ideal T)
+
+open ideal unique_factorization_monoid
+
+def quotient_multiplicity (hI : I ≠ ⊥) (p : ideal T) (Hp : p ∈ factors I) : ℕ :=
+  Inf {n : ℕ | ∀ m : ℕ, m ≥ n → (map I^.quotient.mk p)^n = (map I^.quotient.mk p)^m}
+
+@[simp] lemma quotient_multiplicity_def (hI : I ≠ ⊥) (p : ideal T) (Hp : p ∈ factors I) :
+  quotient_multiplicity I hI p Hp = Inf {n : ℕ | ∀ m : ℕ, m ≥ n → (map I^.quotient.mk p)^n =
+  (map I^.quotient.mk p)^m} := rfl
+
+end quotient_multiplicity

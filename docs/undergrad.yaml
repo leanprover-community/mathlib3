@@ -42,7 +42,7 @@ Linear algebra:
     commutative-ring-valued matrices: 'matrix'
     field-valued matrices: 'matrix'
     matrix representation of a linear map: 'linear_map.to_matrix'
-    change of basis: ''
+    change of basis: 'basis_to_matrix_mul_linear_map_to_matrix_mul_basis_to_matrix'
     rank of a matrix: ''
     determinant: 'matrix.det'
     invertibility: 'matrix.nonsing_inv'
@@ -53,8 +53,8 @@ Linear algebra:
   Endomorphism polynomials:
     annihilating polynomials: ''
     minimal polynomial: 'minpoly'
-    characteristic polynomial: 'char_poly'
-    Cayley-Hamilton theorem: 'aeval_self_char_poly'
+    characteristic polynomial: 'matrix.charpoly'
+    Cayley-Hamilton theorem: 'aeval_self_charpoly'
   Structure theory of endomorphisms:
     eigenvalue: 'module.End.has_eigenvalue'
     eigenvector: 'module.End.has_eigenvector'

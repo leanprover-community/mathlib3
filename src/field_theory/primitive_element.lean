@@ -5,7 +5,7 @@ Authors: Thomas Browning, Patrick Lutz
 -/
 
 import field_theory.adjoin
-import field_theory.algebraic_closure
+import field_theory.is_alg_closed.basic
 import field_theory.separable
 
 /-!
@@ -163,7 +163,7 @@ end
 
 end primitive_element_inf
 
-variables (F E : Type*) [field F] [field E] 
+variables (F E : Type*) [field F] [field E]
 variables [algebra F E] [finite_dimensional F E] [is_separable F E]
 
 /-- Primitive element theorem: a finite separable field extension `E` of `F` has a

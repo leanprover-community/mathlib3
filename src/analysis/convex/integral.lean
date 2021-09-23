@@ -21,13 +21,14 @@ In this file we prove four theorems:
   belongs to `s`: `∫ x, f x ∂μ ∈ s`. See also `convex.linear_combination_mem` for a finite sum
   version of this lemma.
 
-* `convex_on.map_smul_integral_le`: Jensen's inequality: if a function `g : E → ℝ` is convex and
-  continuous on a convex closed set `s`, `μ` is a finite non-zero measure on `α`, and `f : α → E` is
-  a function sending `μ`-a.e. points to `s`, then the value of `g` at the average value of `f` is
-  less than or equal to the average value of `g ∘ f` provided that both `f` and `g ∘ f` are
-  integrable. See also `convex.map_linear_combination_le` for a finite sum version of this lemma.
+* `convex_on.map_smul_integral_le`: Convex Jensen's inequality: If a function `g : E → ℝ` is convex
+  and continuous on a convex closed set `s`, `μ` is a finite non-zero measure on `α`, and
+  `f : α → E` is a function sending `μ`-a.e. points to `s`, then the value of `g` at the average
+  value of `f` is less than or equal to the average value of `g ∘ f` provided that both `f` and
+  `g ∘ f` are integrable. See also `convex_on.map_linear_combination_le` for a finite sum version of
+  this lemma.
 
-* `convex_on.map_integral_le`: Jensen's inequality: if a function `g : E → ℝ` is convex and
+* `convex_on.map_integral_le`: Convex Jensen's inequality: If a function `g : E → ℝ` is convex and
   continuous on a convex closed set `s`, `μ` is a probability measure on `α`, and `f : α → E` is a
   function sending `μ`-a.e. points to `s`, then the value of `g` at the expected value of `f` is
   less than or equal to the expected value of `g ∘ f` provided that both `f` and `g ∘ f` are

@@ -974,7 +974,7 @@ theorem convex_on_of_deriv_mono {D : set ℝ} (hD : convex ℝ D) {f : ℝ → �
   (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
   (hf'_mono : ∀ x y ∈ interior D, x ≤ y → deriv f x ≤ deriv f y) :
   convex_on D f :=
-convex_on_real_of_slope_mono_adjacent hD
+convex_on_of_slope_mono_adjacent hD
 begin
   intros x y z hx hz hxy hyz,
   -- First we prove some trivial inclusions

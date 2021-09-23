@@ -135,9 +135,20 @@ section linear_ordered_field
 variables {𝕜 E ι ι' : Type*} [linear_ordered_field 𝕜] [add_comm_monoid E] [module 𝕜 E]
   {s : set E} {t : finset ι} {p : ι → E} {w : ι → 𝕜}
 
-lemma linear_combination_normalize  (hw : ∑ i in t, w i ≠ 0) :
+lemma linear_combination_normalize (hw : ∑ i in t, w i ≠ 0) :
   t.linear_combination p w = (∑ i in t, w i) • t.linear_combination p ((∑ i in t, w i)⁻¹ • w) :=
 by rw [linear_combination_smul_right, smul_inv_smul' hw]
+
+lemma linear_combination_normalize_weight_sum (hw : ∑ i in t, w i ≠ 0) :
+  ∑ i in t, ((∑ i in t, w i)⁻¹ • w) i = 1 :=
+by { simp_rw pi.smul_apply, rw [←smul_sum, smul_eq_mul, inv_mul_cancel hw] }
+
+lemma linear_combination_normalize_weight_nonneg (hw : ∀ i ∈ t, 0 ≤ w i) (i : ι) (hi : i ∈ t) :
+  (0 : 𝕜) ≤ ((∑ i in t, w i)⁻¹ • w) i :=
+begin
+  rw [pi.smul_apply, smul_eq_mul],
+  exact mul_nonneg (inv_nonneg.2 $ sum_nonneg hw) (hw i hi),
+end
 
 /-- The linear combination of a finite subset of a convex set belongs to the set
 provided that all weights are non-negative, and the total weight is `1`. -/

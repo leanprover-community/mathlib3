@@ -720,31 +720,30 @@ variables {R A B S: Type*} [comm_semiring R] [semiring A] [semiring B] [comm_sem
 variables [algebra R A] [algebra R B] [algebra R S]
 variables (f : A →ₐ[R] S) (g : B →ₐ[R] S)
 
-variables (S)
+variables (R)
 
-/-- The multiplication map on an algebra is a morphism of algebras. -/
+/-- `algebra.lmul'` is an alg_hom on commutative rings. -/
 def lmul' : S ⊗[R] S →ₐ[R] S :=
 alg_hom_of_linear_map_tensor_product (algebra.lmul' R)
   (λ a₁ a₂ b₁ b₂, by simp only [algebra.lmul'_apply, mul_mul_mul_comm])
   (λ r, by simp only [algebra.lmul'_apply, _root_.mul_one])
 
-variables {S}
+variables {R}
 
-lemma lmul'_to_linear_map : (lmul' S).to_linear_map = algebra.lmul' R := rfl
+lemma lmul'_to_linear_map : (lmul' R : _ →ₐ[R] S).to_linear_map = algebra.lmul' R := rfl
 
-@[simp] lemma lmul'_apply_tmul (a b : S) : lmul' S (a ⊗ₜ[R] b) = a * b := lmul'_apply
+@[simp] lemma lmul'_apply_tmul (a b : S) : lmul' R (a ⊗ₜ[R] b) = a * b := lmul'_apply
 
-include f g
 
 /--
 If `S` is commutative, for a pair of morphisms `f : A →ₐ[R] S`, `g : B →ₐ[R] S`,
 We obtain a map `A ⊗[R] B →ₐ[R] S` that commutes with `f`, `g` via `a ⊗ b ↦ f(a) * g(b)`.
 -/
-def product_map : A ⊗[R] B →ₐ[R] S := (lmul' S).comp (tensor_product.map f g)
+def product_map : A ⊗[R] B →ₐ[R] S := (lmul' R).comp (tensor_product.map f g)
 
 
 @[simp] lemma product_map_apply_tmul (a : A) (b : B) : product_map f g (a ⊗ₜ b) = f a * g b :=
-by { unfold product_map, simp }
+by { unfold product_map lmul', simp }
 
 lemma product_map_left_apply (a : A) : product_map f g (include_left a) = f a := by simp
 
@@ -757,3 +756,5 @@ lemma product_map_right_apply (b : B) : product_map f g (include_right b) = g b 
 end
 end tensor_product
 end algebra
+
+#lint

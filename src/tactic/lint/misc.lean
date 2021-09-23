@@ -372,9 +372,9 @@ meta def find_unused_have_macro : expr → tactic (list string)
 | (elet var_name type assignment body) := (++) <$> find_unused_have_macro type
                                           <*> ((++) <$> find_unused_have_macro assignment
                                                <*> find_unused_have_macro body)
-| (macro md [lam ppnm bi vt bd]) := do -- term mode have statements are tagged with a macro
+| m@(macro md [lam ppnm bi vt bd]) := do -- term mode have statements are tagged with a macro
   -- if the macro annotation is `have then this lambda came from a term mode have statement
-  if Π h : (macro md [lam ppnm bi vt bd]).is_annotation.is_some, (option.get h).fst = `have then
+  if m.is_annotation.iget.fst = `have then
     (++) (if bd.has_zero_var then [] else
       ["unnecessary have " ++ ppnm.to_string ++ " : " ++ vt.to_string]) <$>
     find_unused_have_macro (lam ppnm bi vt bd)

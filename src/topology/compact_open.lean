@@ -104,9 +104,29 @@ continuous_iff_continuous_at.mpr $ assume ⟨f, x⟩ n hn,
 lemma continuous_ev₁ [locally_compact_space α] (a : α) : continuous (λ f : C(α, β), f a) :=
 continuous_ev.comp (continuous_id.prod_mk continuous_const)
 
+instance [t2_space β] [locally_compact_space α] : t2_space C(α, β) :=
+⟨ begin
+    intros f₁ f₂ h,
+    obtain ⟨p, hp⟩ := not_forall.mp (mt continuous_map.ext h),
+    exact separated_by_continuous (continuous_ev₁ p) hp,
+  end ⟩
+
 end ev
 
 section Inf_induced
+
+lemma compact_open_le_induced (s : set α) :
+  (continuous_map.compact_open : topological_space C(α, β))
+  ≤ topological_space.induced (continuous_map.restrict s) continuous_map.compact_open :=
+begin
+  simp only [induced_generate_from_eq, continuous_map.compact_open],
+  apply generate_from_mono,
+  rintros b ⟨a, ⟨c, hc, u, hu, rfl⟩, rfl⟩,
+  refine ⟨coe '' c, hc.image continuous_subtype_coe, u, hu, _⟩,
+  ext f,
+  simp only [compact_open.gen, mem_set_of_eq, mem_preimage, continuous_map.coe_restrict],
+  rw image_comp f (coe : s → α),
+end
 
 /-- The compact-open topology on `C(α, β)` is equal to the infimum of the compact-open topologies
 on `C(s, β)` for `s` a compact subset of `α`.  The key point of the proof is that the union of the
@@ -116,29 +136,33 @@ lemma compact_open_eq_Inf_induced :
   = ⨅ (s : set α) (hs : is_compact s),
     topological_space.induced (continuous_map.restrict s) continuous_map.compact_open :=
 begin
+  refine le_antisymm _ _,
+  { refine le_binfi _,
+    exact λ s hs, compact_open_le_induced s },
   simp only [← generate_from_Union, induced_generate_from_eq, continuous_map.compact_open],
-  congr' 1,
-  ext m,
+  apply generate_from_mono,
+  rintros _ ⟨s, hs, u, hu, rfl⟩,
   rw mem_bUnion_iff',
-  split,
-  { rintros ⟨s, hs, u, hu, rfl⟩,
-    refine ⟨s, hs, compact_open.gen univ u, _⟩,
-    refine ⟨⟨univ, is_compact_iff_is_compact_univ.mp hs, u, hu, rfl⟩, _⟩,
-    ext f,
-    simp only [compact_open.gen, mem_set_of_eq, mem_preimage, continuous_map.coe_restrict],
-    rw image_comp f (coe : s → α),
-    simp },
-  { rintros ⟨s, hs, sb, ⟨s', hs', u, hu, rfl⟩, rfl⟩,
-    refine ⟨coe '' s', hs'.image continuous_subtype_coe, u, hu, _⟩,
-    ext f,
-    simp only [compact_open.gen, coe_restrict, mem_set_of_eq, preimage_set_of_eq,
-      image_subset_iff],
-    rw preimage_comp },
+  refine ⟨s, hs, _, ⟨univ, is_compact_iff_is_compact_univ.mp hs, u, hu, rfl⟩, _⟩,
+  ext f,
+  simp only [compact_open.gen, mem_set_of_eq, mem_preimage, continuous_map.coe_restrict],
+  rw image_comp f (coe : s → α),
+  simp
 end
+
+/-- For any subset `s` of `α`, the restriction of continuous functions to `s` is continuous as a
+function from `C(α, β)` to `C(s, β)` with their respective compact-open topologies. -/
+lemma continuous_restrict (s : set α) : continuous (λ F : C(α, β), F.restrict s) :=
+by { rw continuous_iff_le_induced, exact compact_open_le_induced s }
 
 lemma nhds_compact_open_eq_Inf_nhds_induced (f : C(α, β)) :
   𝓝 f = ⨅ s (hs : is_compact s), (𝓝 (f.restrict s)).comap (continuous_map.restrict s) :=
 by { rw [compact_open_eq_Inf_induced], simp [nhds_infi, nhds_induced] }
+
+lemma tendsto_compact_open_restrict {ι : Type*} {l : filter ι} {F : ι → C(α, β)} {f : C(α, β)}
+  (hFf : filter.tendsto F l (𝓝 f)) (s : set α) :
+  filter.tendsto (λ i, (F i).restrict s) l (𝓝 (f.restrict s)) :=
+(continuous_restrict s).continuous_at.tendsto.comp hFf
 
 lemma tendsto_compact_open_iff_forall {ι : Type*} {l : filter ι} (F : ι → C(α, β)) (f : C(α, β)) :
   filter.tendsto F l (𝓝 f)
@@ -154,8 +178,7 @@ lemma exists_tendsto_compact_open_iff_forall [locally_compact_space α] [t2_spac
 begin
   split,
   { rintros ⟨f, hf⟩ s hs,
-    rw tendsto_compact_open_iff_forall at hf,
-    exact ⟨f.restrict s, hf s hs⟩ },
+    exact ⟨f.restrict s, tendsto_compact_open_restrict hf s⟩ },
   { intros h,
     choose f hf using h,
     -- By uniqueness of limits in a `t2_space`, since `λ i, F i x` tends to both `f s₁ hs₁ x` and

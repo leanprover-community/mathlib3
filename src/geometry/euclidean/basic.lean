@@ -3,7 +3,7 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Manuel Candales
 -/
-import analysis.special_functions.trigonometric
+import analysis.special_functions.trigonometric.basic
 import algebra.quadratic_discriminant
 import analysis.normed_space.affine_isometry
 import data.matrix.notation

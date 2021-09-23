@@ -35,7 +35,7 @@ numbers but instead Davis' variant of using solutions to Pell's equation.
 
 ## References
 
-* [M. Carneiro, _A Lean formalization of Matiyasiv's theorem_][carneiro2018matiysevic]
+* [M. Carneiro, _A Lean formalization of Matiyasevič's theorem_][carneiro2018matiyasevic]
 * [M. Davis, _Hilbert's tenth problem is unsolvable_][MR317916]
 
 ## Tags
@@ -44,7 +44,6 @@ Pell's equation, Matiyasevic's theorem, Hilbert's tenth problem
 
 ## TODO
 
-* Please the unused arguments linter.
 * Provide solutions to Pell's equation for the case of arbitrary `d` (not just `d = a ^ 2 - 1` like
   in the current version) and furthermore also for `x ^ 2 - d * y ^ 2 = -1`.
 * Connect solutions to the continued fraction expansion of `√d`.
@@ -395,7 +394,7 @@ theorem x_sub_y_dvd_pow (y : ℕ) :
   have (2*a*y - y*y - 1 : ℤ) ∣ ↑(y^(n + 2)) - ↑(2 * a) * ↑(y^(n + 1)) + ↑(y^n), from
   ⟨-↑(y^n), by { simp [pow_succ, mul_add, int.coe_nat_mul,
       show ((2:ℕ):ℤ) = 2, from rfl, mul_comm, mul_left_comm], ring }⟩,
-  by { rw [xz_succ_succ, yz_succ_succ, x_sub_y_dvd_pow_lem a1 ↑(y^(n+2)) ↑(y^(n+1)) ↑(y^n)],
+  by { rw [xz_succ_succ, yz_succ_succ, x_sub_y_dvd_pow_lem ↑(y^(n+2)) ↑(y^(n+1)) ↑(y^n)],
   exact
     dvd_sub (dvd_add this $ (x_sub_y_dvd_pow (n+1)).mul_left _) (x_sub_y_dvd_pow n) }
 

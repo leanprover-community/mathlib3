@@ -7,7 +7,6 @@ Authors: Kenny Lau
 import algebra.char_p.basic
 import data.mv_polynomial.comm_ring
 import data.mv_polynomial.equiv
-import data.polynomial.field_division
 import ring_theory.principal_ideal_domain
 import ring_theory.polynomial.content
 
@@ -753,7 +752,7 @@ namespace mv_polynomial
 lemma is_noetherian_ring_fin_0 [is_noetherian_ring R] :
   is_noetherian_ring (mv_polynomial (fin 0) R) :=
 is_noetherian_ring_of_ring_equiv R
-  ((mv_polynomial.pempty_ring_equiv R).symm.trans
+  ((mv_polynomial.is_empty_ring_equiv R pempty).symm.trans
    (rename_equiv R fin_zero_equiv'.symm).to_ring_equiv)
 
 theorem is_noetherian_ring_fin [is_noetherian_ring R] :
@@ -774,7 +773,8 @@ instance is_noetherian_ring [fintype σ] [is_noetherian_ring R] :
 lemma is_integral_domain_fin_zero (R : Type u) [comm_ring R] (hR : is_integral_domain R) :
   is_integral_domain (mv_polynomial (fin 0) R) :=
 ring_equiv.is_integral_domain R hR
-  ((rename_equiv R fin_zero_equiv').to_ring_equiv.trans (mv_polynomial.pempty_ring_equiv R))
+  ((rename_equiv R fin_zero_equiv').to_ring_equiv.trans
+    (mv_polynomial.is_empty_ring_equiv R pempty))
 
 /-- Auxiliary lemma:
 Multivariate polynomials over an integral domain

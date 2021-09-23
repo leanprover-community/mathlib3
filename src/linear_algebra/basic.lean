@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov
 -/
 import algebra.big_operators.pi
+import algebra.module.hom
 import algebra.module.prod
 import algebra.module.submodule_lattice
 import data.dfinsupp
@@ -635,11 +636,12 @@ end comm_ring
 end linear_map
 
 /--
-The `ℕ`-linear equivalence between additive morphisms `A →+ B` and `ℕ`-linear morphisms `A →ₗ[ℕ] B`.
+The `R`-linear equivalence between additive morphisms `A →+ B` and `ℕ`-linear morphisms `A →ₗ[ℕ] B`.
 -/
 @[simps]
-def add_monoid_hom_lequiv_nat {A B : Type*} [add_comm_monoid A] [add_comm_monoid B] :
-  (A →+ B) ≃ₗ[ℕ] (A →ₗ[ℕ] B) :=
+def add_monoid_hom_lequiv_nat {A B : Type*} (R : Type*)
+  [semiring R] [add_comm_monoid A] [add_comm_monoid B] [module R B] :
+  (A →+ B) ≃ₗ[R] (A →ₗ[ℕ] B) :=
 { to_fun := add_monoid_hom.to_nat_linear_map,
   inv_fun := linear_map.to_add_monoid_hom,
   map_add' := by { intros, ext, refl },
@@ -648,11 +650,12 @@ def add_monoid_hom_lequiv_nat {A B : Type*} [add_comm_monoid A] [add_comm_monoid
   right_inv := by { intros f, ext, refl } }
 
 /--
-The `ℤ`-linear equivalence between additive morphisms `A →+ B` and `ℤ`-linear morphisms `A →ₗ[ℤ] B`.
+The `R`-linear equivalence between additive morphisms `A →+ B` and `ℤ`-linear morphisms `A →ₗ[ℤ] B`.
 -/
 @[simps]
-def add_monoid_hom_lequiv_int {A B : Type*} [add_comm_group A] [add_comm_group B] :
-  (A →+ B) ≃ₗ[ℤ] (A →ₗ[ℤ] B) :=
+def add_monoid_hom_lequiv_int {A B : Type*} (R : Type*)
+  [semiring R] [add_comm_group A] [add_comm_group B] [module R B] :
+  (A →+ B) ≃ₗ[R] (A →ₗ[ℤ] B) :=
 { to_fun := add_monoid_hom.to_int_linear_map,
   inv_fun := linear_map.to_add_monoid_hom,
   map_add' := by { intros, ext, refl },
@@ -692,18 +695,6 @@ variables (p p')
 lemma subtype_comp_of_le (p q : submodule R M) (h : p ≤ q) :
   q.subtype.comp (of_le h) = p.subtype :=
 by { ext ⟨b, hb⟩, refl }
-
-
-instance add_comm_monoid_submodule : add_comm_monoid (submodule R M) :=
-{ add := (⊔),
-  add_assoc := λ _ _ _, sup_assoc,
-  zero := ⊥,
-  zero_add := λ _, bot_sup_eq,
-  add_zero := λ _, sup_bot_eq,
-  add_comm := λ _ _, sup_comm }
-
-@[simp] lemma add_eq_sup (p q : submodule R M) : p + q = p ⊔ q := rfl
-@[simp] lemma zero_eq_bot : (0 : submodule R M) = ⊥ := rfl
 
 variables (R)
 
@@ -777,7 +768,7 @@ image_subset _
 have ∃ (x : M), x ∈ p := ⟨0, p.zero_mem⟩,
 ext $ by simp [this, eq_comm]
 
-lemma map_add_le (f g : M →ₗ[R] M₂) : map (f + g) p ≤ map f p + map g p :=
+lemma map_add_le (f g : M →ₗ[R] M₂) : map (f + g) p ≤ map f p ⊔ map g p :=
 begin
   rintros x ⟨m, hm, rfl⟩,
   exact add_mem_sup (mem_map_of_mem hm) (mem_map_of_mem hm),
@@ -1268,13 +1259,13 @@ instance : is_compactly_generated (submodule R M) :=
   apply singleton_span_is_compact_element,
 end, by rw [Sup_eq_supr, supr_image, ←span_eq_supr_of_singleton_spans, span_eq]⟩⟩⟩
 
-lemma lt_add_iff_not_mem {I : submodule R M} {a : M} : I < I + (R ∙ a) ↔ a ∉ I :=
+lemma lt_sup_iff_not_mem {I : submodule R M} {a : M} : I < I ⊔ (R ∙ a) ↔ a ∉ I :=
 begin
   split,
   { intro h,
     by_contra akey,
-    have h1 : I + (R ∙ a) ≤ I,
-    { simp only [add_eq_sup, sup_le_iff],
+    have h1 : I ⊔ (R ∙ a) ≤ I,
+    { simp only [sup_le_iff],
       split,
       { exact le_refl I, },
       { exact (span_singleton_le_iff_mem a I).mpr akey, } },
@@ -1282,10 +1273,10 @@ begin
     exact lt_irrefl I h2, },
   { intro h,
     apply set_like.lt_iff_le_and_exists.mpr, split,
-    simp only [add_eq_sup, le_sup_left],
+    simp only [le_sup_left],
     use a,
     split, swap, { assumption, },
-    { have : (R ∙ a) ≤ I + (R ∙ a) := le_sup_right,
+    { have : (R ∙ a) ≤ I ⊔ (R ∙ a) := le_sup_right,
       exact this (mem_span_singleton_self a), } },
 end
 
@@ -1731,14 +1722,14 @@ lemma ker_restrict {p : submodule R M} {f : M →ₗ[R] M} (hf : ∀ x : M, x �
   ker (f.restrict hf) = (f.dom_restrict p).ker :=
 by rw [restrict_eq_cod_restrict_dom_restrict, ker_cod_restrict]
 
-lemma map_comap_eq (f : M →ₗ[R] M₂) (q : submodule R M₂) :
+lemma _root_.submodule.map_comap_eq (f : M →ₗ[R] M₂) (q : submodule R M₂) :
   map f (comap f q) = range f ⊓ q :=
 le_antisymm (le_inf map_le_range (map_comap_le _ _)) $
 by rintro _ ⟨⟨x, _, rfl⟩, hx⟩; exact ⟨x, hx, rfl⟩
 
-lemma map_comap_eq_self {f : M →ₗ[R] M₂} {q : submodule R M₂} (h : q ≤ range f) :
+lemma _root_.submodule.map_comap_eq_self {f : M →ₗ[R] M₂} {q : submodule R M₂} (h : q ≤ range f) :
   map f (comap f q) = q :=
-by rwa [map_comap_eq, inf_eq_right]
+by rwa [submodule.map_comap_eq, inf_eq_right]
 
 @[simp] theorem ker_zero : ker (0 : M →ₗ[R] M₂) = ⊤ :=
 eq_top_iff'.2 $ λ x, by simp
@@ -1794,7 +1785,7 @@ variables [module R M] [module R M₂] [module R M₃]
 include R
 open submodule
 
-lemma comap_map_eq (f : M →ₗ[R] M₂) (p : submodule R M) :
+lemma _root_.submodule.comap_map_eq (f : M →ₗ[R] M₂) (p : submodule R M) :
   comap f (map f p) = p ⊔ ker f :=
 begin
   refine le_antisymm _ (sup_le (le_comap_map _ _) (comap_mono bot_le)),
@@ -1802,12 +1793,12 @@ begin
   exact mem_sup.2 ⟨y, hy, x - y, by simpa using sub_eq_zero.2 e.symm, by simp⟩
 end
 
-lemma comap_map_eq_self {f : M →ₗ[R] M₂} {p : submodule R M} (h : ker f ≤ p) :
+lemma _root_.submodule.comap_map_eq_self {f : M →ₗ[R] M₂} {p : submodule R M} (h : ker f ≤ p) :
   comap f (map f p) = p :=
-by rw [comap_map_eq, sup_of_le_left h]
+by rw [submodule.comap_map_eq, sup_of_le_left h]
 
 theorem map_le_map_iff (f : M →ₗ[R] M₂) {p p'} : map f p ≤ map f p' ↔ p ≤ p' ⊔ ker f :=
-by rw [map_le_iff_le_comap, comap_map_eq]
+by rw [map_le_iff_le_comap, submodule.comap_map_eq]
 
 theorem map_le_map_iff' {f : M →ₗ[R] M₂} (hf : ker f = ⊥) {p p'} : map f p ≤ map f p' ↔ p ≤ p' :=
 by rw [map_le_map_iff, hf, sup_bot_eq]

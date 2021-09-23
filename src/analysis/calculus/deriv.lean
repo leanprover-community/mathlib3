@@ -365,10 +365,14 @@ has_fderiv_within_at.has_fderiv_at h hs
 
 lemma differentiable_within_at.has_deriv_within_at (h : differentiable_within_at 𝕜 f s x) :
   has_deriv_within_at f (deriv_within f s x) s x :=
-show has_fderiv_within_at _ _ _ _, by { convert h.has_fderiv_within_at, simp [deriv_within] }
+h.has_fderiv_within_at.has_deriv_within_at
 
 lemma differentiable_at.has_deriv_at (h : differentiable_at 𝕜 f x) : has_deriv_at f (deriv f x) x :=
-show has_fderiv_at _ _ _, by { convert h.has_fderiv_at, simp [deriv] }
+h.has_fderiv_at.has_deriv_at
+
+lemma differentiable_on.has_deriv_at (h : differentiable_on 𝕜 f s) (hs : s ∈ 𝓝 x) :
+  has_deriv_at f (deriv f x) x :=
+(h.has_fderiv_at hs).has_deriv_at
 
 lemma has_deriv_at.deriv (h : has_deriv_at f f' x) : deriv f x = f' :=
 h.differentiable_at.has_deriv_at.unique h

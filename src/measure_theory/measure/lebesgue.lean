@@ -26,7 +26,7 @@ are proved more generally for any additive Haar measure on a finite-dimensional 
 noncomputable theory
 open classical set filter measure_theory
 open ennreal (of_real)
-open_locale big_operators ennreal nnreal topological_space pointwise
+open_locale big_operators ennreal nnreal topological_space
 
 /-!
 ### Definition of the Lebesgue measure and lengths of intervals

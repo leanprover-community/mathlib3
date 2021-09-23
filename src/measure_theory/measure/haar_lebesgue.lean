@@ -10,7 +10,8 @@ import linear_algebra.finite_dimensional
 /-!
 # Relationship between the Haar and Lebesgue measures
 
-We prove that the Haar measure and Lebesgue measure are equal on `ℝ` and on `ℝ^ι`.
+We prove that the Haar measure and Lebesgue measure are equal on `ℝ` and on `ℝ^ι`, in
+`measure_theory.add_haar_measure_eq_volume` and `measure_theory.add_haar_measure_eq_volume_pi`.
 
 We deduce basic properties of any Haar measure on a finite dimensional real vector space:
 * `map_linear_map_add_haar_eq_smul_add_haar`: a linear map rescales the Haar measure by the

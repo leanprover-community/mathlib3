@@ -9,7 +9,6 @@ import analysis.normed_space.affine_isometry
 import data.matrix.notation
 import linear_algebra.affine_space.finite_dimensional
 import tactic.fin_cases
-import analysis.calculus.conformal
 import analysis.normed_space.inner_product
 
 /-!

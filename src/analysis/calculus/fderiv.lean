@@ -414,6 +414,10 @@ lemma has_fderiv_within_at.has_fderiv_at (h : has_fderiv_within_at f f' s x) (hs
   has_fderiv_at f f' x :=
 by rwa [← univ_inter s, has_fderiv_within_at_inter hs, has_fderiv_within_at_univ] at h
 
+lemma differentiable_within_at.differentiable_at
+  (h : differentiable_within_at 𝕜 f s x) (hs : s ∈ 𝓝 x) : differentiable_at 𝕜 f x :=
+h.imp (λ f' hf', hf'.has_fderiv_at hs)
+
 lemma differentiable_within_at.has_fderiv_within_at (h : differentiable_within_at 𝕜 f s x) :
   has_fderiv_within_at f (fderiv_within 𝕜 f s x) s x :=
 begin
@@ -431,6 +435,10 @@ begin
   rw dif_pos h,
   exact classical.some_spec h
 end
+
+lemma differentiable_on.has_fderiv_at (h : differentiable_on 𝕜 f s) (hs : s ∈ 𝓝 x) :
+  has_fderiv_at f (fderiv 𝕜 f x) x :=
+((h x (mem_of_mem_nhds hs)).differentiable_at hs).has_fderiv_at
 
 lemma has_fderiv_at.fderiv (h : has_fderiv_at f f' x) : fderiv 𝕜 f x = f' :=
 by { ext, rw h.unique h.differentiable_at.has_fderiv_at }
@@ -484,10 +492,6 @@ lemma differentiable_at.differentiable_within_at
 lemma differentiable.differentiable_at (h : differentiable 𝕜 f) :
   differentiable_at 𝕜 f x :=
 h x
-
-lemma differentiable_within_at.differentiable_at
-  (h : differentiable_within_at 𝕜 f s x) (hs : s ∈ 𝓝 x) : differentiable_at 𝕜 f x :=
-h.imp (λ f' hf', hf'.has_fderiv_at hs)
 
 lemma differentiable_at.fderiv_within
   (h : differentiable_at 𝕜 f x) (hxs : unique_diff_within_at 𝕜 s x) :

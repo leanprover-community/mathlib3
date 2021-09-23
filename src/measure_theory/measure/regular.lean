@@ -9,8 +9,8 @@ import measure_theory.constructions.borel_space
 /-!
 # Regular measures
 
-A measure is `outer_regular` if the measure of any measurable set `A` is the infimum of `μ U` over all
-open sets `U` containing `A`.
+A measure is `outer_regular` if the measure of any measurable set `A` is the infimum of `μ U` over
+all open sets `U` containing `A`.
 
 A measure is `regular` if it satisfies the following properties:
 * it is finite on compact sets;

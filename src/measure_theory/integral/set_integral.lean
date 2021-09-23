@@ -5,6 +5,7 @@ Authors: Zhouhang Zhou, Yury Kudryashov
 -/
 import measure_theory.integral.integrable_on
 import measure_theory.integral.bochner
+import order.filter.indicator_function
 
 /-!
 # Set integral
@@ -39,20 +40,14 @@ We provide the following notations for expressing the integral of a function on 
 * `∫ a in s, f a ∂μ` is `measure_theory.integral (μ.restrict s) f`
 * `∫ a in s, f a` is `∫ a in s, f a ∂volume`
 
-Note that the set notations are defined in the file `measure_theory/bochner_integration`,
+Note that the set notations are defined in the file `measure_theory/integral/bochner`,
 but we reference them here because all theorems about set integrals are in this file.
-
-## TODO
-
-The file ends with over a hundred lines of commented out code. This is the old contents of this file
-using the `indicator` approach to the definition of `∫ x in s, f x ∂μ`. This code should be
-migrated to the new definition.
 
 -/
 
 noncomputable theory
 open set filter topological_space measure_theory function
-open_locale classical topological_space interval big_operators filter ennreal measure_theory
+open_locale classical topological_space interval big_operators filter ennreal nnreal measure_theory
 
 variables {α β E F : Type*} [measurable_space α]
 
@@ -73,10 +68,58 @@ lemma set_integral_congr (hs : measurable_set s) (h : eq_on f g s) :
   ∫ x in s, f x ∂μ = ∫ x in s, g x ∂μ :=
 set_integral_congr_ae hs $ eventually_of_forall h
 
+lemma set_integral_congr_set_ae (hst : s =ᵐ[μ] t) :
+  ∫ x in s, f x ∂μ = ∫ x in t, f x ∂μ :=
+by rw restrict_congr_set hst
+
 lemma integral_union (hst : disjoint s t) (hs : measurable_set s) (ht : measurable_set t)
   (hfs : integrable_on f s μ) (hft : integrable_on f t μ) :
   ∫ x in s ∪ t, f x ∂μ = ∫ x in s, f x ∂μ + ∫ x in t, f x ∂μ :=
 by simp only [integrable_on, measure.restrict_union hst hs ht, integral_add_measure hfs hft]
+
+lemma integral_union_ae (hst : (s ∩ t : set α) =ᵐ[μ] (∅ : set α)) (hs : measurable_set s)
+  (ht : measurable_set t) (hfs : integrable_on f s μ) (hft : integrable_on f t μ) :
+  ∫ x in s ∪ t, f x ∂μ = ∫ x in s, f x ∂μ + ∫ x in t, f x ∂μ :=
+begin
+  have : s =ᵐ[μ] s \ t,
+  { refine (hst.mem_iff.mono _).set_eq, simp },
+  rw [← diff_union_self, integral_union disjoint_diff.symm, set_integral_congr_set_ae this],
+  exacts [hs.diff ht, ht, hfs.mono_set (diff_subset _ _), hft]
+end
+
+lemma integral_diff (hs : measurable_set s) (ht : measurable_set t) (hfs : integrable_on f s μ)
+  (hft : integrable_on f t μ) (hts : t ⊆ s) :
+  ∫ x in s \ t, f x ∂μ = ∫ x in s, f x ∂μ - ∫ x in t, f x ∂μ :=
+begin
+  rw [eq_sub_iff_add_eq, ← integral_union, diff_union_of_subset hts],
+  exacts [disjoint_diff.symm, hs.diff ht, ht, hfs.mono_set (diff_subset _ _), hft]
+end
+
+lemma integral_finset_bUnion {ι : Type*} (t : finset ι) {s : ι → set α}
+  (hs : ∀ i ∈ t, measurable_set (s i)) (h's : pairwise_on ↑t (disjoint on s))
+  (hf : ∀ i ∈ t, integrable_on f (s i) μ) :
+  ∫ x in (⋃ i ∈ t, s i), f x ∂ μ = ∑ i in t, ∫ x in s i, f x ∂ μ :=
+begin
+  induction t using finset.induction_on with a t hat IH hs h's,
+  { simp },
+  { simp only [finset.coe_insert, finset.forall_mem_insert, set.pairwise_on_insert,
+      finset.set_bUnion_insert] at hs hf h's ⊢,
+    rw [integral_union _ hs.1 _ hf.1 (integrable_on_finset_Union.2 hf.2)],
+    { rw [finset.sum_insert hat, IH hs.2 h's.1 hf.2] },
+    { simp only [disjoint_Union_right],
+      exact (λ i hi, (h's.2 i hi (ne_of_mem_of_not_mem hi hat).symm).1) },
+    { exact finset.measurable_set_bUnion _ hs.2 } }
+end
+
+lemma integral_fintype_Union {ι : Type*} [fintype ι] {s : ι → set α}
+  (hs : ∀ i, measurable_set (s i)) (h's : pairwise (disjoint on s))
+  (hf : ∀ i, integrable_on f (s i) μ) :
+  ∫ x in (⋃ i, s i), f x ∂ μ = ∑ i, ∫ x in s i, f x ∂ μ :=
+begin
+  convert integral_finset_bUnion finset.univ (λ i hi, hs i) _ (λ i _, hf i),
+  { simp },
+  { simp [pairwise_on_univ, h's] }
+end
 
 lemma integral_empty : ∫ x in ∅, f x ∂μ = 0 := by rw [measure.restrict_empty, integral_zero_measure]
 
@@ -107,9 +150,130 @@ begin
   ... = ∫ x in s, f x ∂μ : by simp
 end
 
-lemma set_integral_congr_set_ae (hst : s =ᵐ[μ] t) :
-  ∫ x in s, f x ∂μ = ∫ x in t, f x ∂μ :=
-by rw restrict_congr_set hst
+lemma tendsto_set_integral_of_monotone {ι : Type*} [encodable ι] [semilattice_sup ι]
+  {s : ι → set α} {f : α → E} (hsm : ∀ i, measurable_set (s i))
+  (h_mono : monotone s) (hfi : integrable_on f (⋃ n, s n) μ) :
+  tendsto (λ i, ∫ a in s i, f a ∂μ) at_top (𝓝 (∫ a in (⋃ n, s n), f a ∂μ)) :=
+begin
+  have hfi' : ∫⁻ x in ⋃ n, s n, ∥f x∥₊ ∂μ < ∞ := hfi.2,
+  set S := ⋃ i, s i,
+  have hSm : measurable_set S := measurable_set.Union hsm,
+  have hsub : ∀ {i}, s i ⊆ S, from subset_Union s,
+  rw [← with_density_apply _ hSm] at hfi',
+  set ν := μ.with_density (λ x, ∥f x∥₊) with hν,
+  refine metric.nhds_basis_closed_ball.tendsto_right_iff.2 (λ ε ε0, _),
+  lift ε to ℝ≥0 using ε0.le,
+  have : ∀ᶠ i in at_top, ν (s i) ∈ Icc (ν S - ε) (ν S + ε),
+    from tendsto_measure_Union hsm h_mono (ennreal.Icc_mem_nhds hfi'.ne (ennreal.coe_pos.2 ε0).ne'),
+  refine this.mono (λ i hi, _),
+  rw [mem_closed_ball_iff_norm', ← integral_diff hSm (hsm i) hfi (hfi.mono_set hsub) hsub,
+    ← coe_nnnorm, nnreal.coe_le_coe, ← ennreal.coe_le_coe],
+  refine (ennnorm_integral_le_lintegral_ennnorm _).trans _,
+  rw [← with_density_apply _ (hSm.diff (hsm _)), ← hν, measure_diff hsub hSm (hsm _)],
+  exacts [ennreal.sub_le_of_sub_le hi.1,
+    (hi.2.trans_lt $ ennreal.add_lt_top.2 ⟨hfi', ennreal.coe_lt_top⟩).ne]
+end
+
+lemma has_sum_integral_Union {ι : Type*} [encodable ι] {s : ι → set α} {f : α → E}
+  (hm : ∀ i, measurable_set (s i)) (hd : pairwise (disjoint on s))
+  (hfi : integrable_on f (⋃ i, s i) μ) :
+  has_sum (λ n, ∫ a in s n, f a ∂ μ) (∫ a in ⋃ n, s n, f a ∂μ) :=
+begin
+  have hfi' : ∀ i, integrable_on f (s i) μ, from λ i, hfi.mono_set (subset_Union _ _),
+  simp only [has_sum, ← integral_finset_bUnion _ (λ i _, hm i) (hd.pairwise_on _) (λ i _, hfi' i)],
+  rw Union_eq_Union_finset at hfi ⊢,
+  exact tendsto_set_integral_of_monotone (λ t, t.measurable_set_bUnion (λ i _, hm i))
+    (λ t₁ t₂ h, bUnion_subset_bUnion_left h) hfi
+end
+
+lemma integral_Union {ι : Type*} [encodable ι] {s : ι → set α} {f : α → E}
+  (hm : ∀ i, measurable_set (s i)) (hd : pairwise (disjoint on s))
+  (hfi : integrable_on f (⋃ i, s i) μ) :
+  (∫ a in (⋃ n, s n), f a ∂μ) = ∑' n, ∫ a in s n, f a ∂ μ :=
+(has_sum.tsum_eq (has_sum_integral_Union hm hd hfi)).symm
+
+lemma set_integral_eq_zero_of_forall_eq_zero {f : α → E} (hf : measurable f)
+  (ht_eq : ∀ x ∈ t, f x = 0) :
+  ∫ x in t, f x ∂μ = 0 :=
+begin
+  refine integral_eq_zero_of_ae _,
+  rw [eventually_eq, ae_restrict_iff (measurable_set_eq_fun hf measurable_zero)],
+  refine eventually_of_forall (λ x hx, _),
+  rw pi.zero_apply,
+  exact ht_eq x hx,
+end
+
+private lemma set_integral_union_eq_left_of_disjoint {f : α → E} (hf : measurable f)
+  (hfi : integrable f μ) (hs : measurable_set s) (ht : measurable_set t) (ht_eq : ∀ x ∈ t, f x = 0)
+  (hs_disj : disjoint s t) :
+  ∫ x in (s ∪ t), f x ∂μ = ∫ x in s, f x ∂μ :=
+by rw [integral_union hs_disj hs ht hfi.integrable_on hfi.integrable_on,
+  set_integral_eq_zero_of_forall_eq_zero hf ht_eq, add_zero]
+
+lemma set_integral_union_eq_left {f : α → E} (hf : measurable f) (hfi : integrable f μ)
+  (hs : measurable_set s) (ht : measurable_set t) (ht_eq : ∀ x ∈ t, f x = 0) :
+  ∫ x in (s ∪ t), f x ∂μ = ∫ x in s, f x ∂μ :=
+begin
+  let s_ := s \ {x | f x = 0},
+  have hs_ : measurable_set s_, from hs.diff (measurable_set_eq_fun hf measurable_const),
+  let s0 := s ∩ {x | f x = 0},
+  have hs0 : measurable_set s0, from hs.inter (measurable_set_eq_fun hf measurable_const),
+  have hs0_eq : ∀ x ∈ s0, f x = 0,
+    by { intros x hx, simp_rw [s0, set.mem_inter_iff] at hx, exact hx.2, },
+  have h_s_union : s = s_ ∪ s0, from (set.diff_union_inter s _).symm,
+  have h_s_disj : disjoint s_ s0,
+    from (@disjoint_sdiff_self_left (set α) {x | f x = 0} s _).mono_right
+      (set.inter_subset_right _ _),
+  rw [h_s_union, set_integral_union_eq_left_of_disjoint hf hfi hs_ hs0 hs0_eq h_s_disj],
+  have hst0_eq : ∀ x ∈ s0 ∪ t, f x = 0,
+  { intros x hx,
+    rw set.mem_union at hx,
+    cases hx,
+    { exact hs0_eq x hx, },
+    { exact ht_eq x hx, }, },
+  have hst_disj : disjoint s_ (s0 ∪ t),
+  { rw [← set.sup_eq_union, disjoint_sup_right],
+    exact ⟨h_s_disj, (@disjoint_sdiff_self_left (set α) {x | f x = 0} s _).mono_right ht_eq⟩, },
+  rw set.union_assoc,
+  exact set_integral_union_eq_left_of_disjoint hf hfi hs_ (hs0.union ht) hst0_eq hst_disj,
+end
+
+lemma set_integral_neg_eq_set_integral_nonpos [linear_order E] [order_closed_topology E]
+  {f : α → E} (hf : measurable f) (hfi : integrable f μ) :
+  ∫ x in {x | f x < 0}, f x ∂μ = ∫ x in {x | f x ≤ 0}, f x ∂μ :=
+begin
+  have h_union : {x | f x ≤ 0} = {x | f x < 0} ∪ {x | f x = 0},
+    by { ext, simp_rw [set.mem_union_eq, set.mem_set_of_eq], exact le_iff_lt_or_eq, },
+  rw h_union,
+  exact (set_integral_union_eq_left hf hfi (measurable_set_lt hf measurable_const)
+    (measurable_set_eq_fun hf measurable_const) (λ x hx, hx)).symm,
+end
+
+lemma integral_norm_eq_pos_sub_neg {f : α → ℝ} (hf : measurable f) (hfi : integrable f μ) :
+  ∫ x, ∥f x∥ ∂μ = ∫ x in {x | 0 ≤ f x}, f x ∂μ - ∫ x in {x | f x ≤ 0}, f x ∂μ :=
+have h_meas : measurable_set {x | 0 ≤ f x}, from measurable_set_le measurable_const hf,
+calc ∫ x, ∥f x∥ ∂μ = ∫ x in {x | 0 ≤ f x}, ∥f x∥ ∂μ + ∫ x in {x | 0 ≤ f x}ᶜ, ∥f x∥ ∂μ :
+  by rw ← integral_add_compl h_meas hfi.norm
+... = ∫ x in {x | 0 ≤ f x}, f x ∂μ + ∫ x in {x | 0 ≤ f x}ᶜ, ∥f x∥ ∂μ :
+begin
+  congr' 1,
+  refine set_integral_congr h_meas (λ x hx, _),
+  dsimp only,
+  rw [real.norm_eq_abs, abs_eq_self.mpr _],
+  exact hx,
+end
+... = ∫ x in {x | 0 ≤ f x}, f x ∂μ - ∫ x in {x | 0 ≤ f x}ᶜ, f x ∂μ :
+begin
+  congr' 1,
+  rw ← integral_neg,
+  refine set_integral_congr h_meas.compl (λ x hx, _),
+  dsimp only,
+  rw [real.norm_eq_abs, abs_eq_neg_self.mpr _],
+  rw [set.mem_compl_iff, set.nmem_set_of_eq] at hx,
+  linarith,
+end
+... = ∫ x in {x | 0 ≤ f x}, f x ∂μ - ∫ x in {x | f x ≤ 0}, f x ∂μ :
+by { rw ← set_integral_neg_eq_set_integral_nonpos hf hfi, congr, ext1 x, simp, }
 
 lemma set_integral_const (c : E) : ∫ x in s, c ∂μ = (μ s).to_real • c :=
 by rw [integral_const, measure.restrict_apply_univ]
@@ -141,7 +305,7 @@ lemma norm_set_integral_le_of_norm_le_const_ae {C : ℝ} (hs : μ s < ∞)
   ∥∫ x in s, f x ∂μ∥ ≤ C * (μ s).to_real :=
 begin
   rw ← measure.restrict_apply_univ at *,
-  haveI : finite_measure (μ.restrict s) := ⟨‹_›⟩,
+  haveI : is_finite_measure (μ.restrict s) := ⟨‹_›⟩,
   exact norm_integral_le_of_norm_le_const hC
 end
 
@@ -198,7 +362,7 @@ end normed_group
 
 section mono
 
-variables {μ : measure α} {f g : α → ℝ} {s : set α}
+variables {μ : measure α} {f g : α → ℝ} {s t : set α}
   (hf : integrable_on f s μ) (hg : integrable_on g s μ)
 
 lemma set_integral_mono_ae_restrict (h : f ≤ᵐ[μ.restrict s] g) :
@@ -214,31 +378,17 @@ lemma set_integral_mono_on (hs : measurable_set s) (h : ∀ x ∈ s, f x ≤ g x
 set_integral_mono_ae_restrict hf hg
   (by simp [hs, eventually_le, eventually_inf_principal, ae_of_all _ h])
 
+include hf hg  -- why do I need this include, but we don't need it in other lemmas?
+lemma set_integral_mono_on_ae (hs : measurable_set s) (h : ∀ᵐ x ∂μ, x ∈ s → f x ≤ g x) :
+  ∫ a in s, f a ∂μ ≤ ∫ a in s, g a ∂μ :=
+by { refine set_integral_mono_ae_restrict hf hg _, rwa [eventually_le, ae_restrict_iff' hs], }
+omit hf hg
+
 lemma set_integral_mono (h : f ≤ g) :
   ∫ a in s, f a ∂μ ≤ ∫ a in s, g a ∂μ :=
 integral_mono hf hg h
 
-end mono
-
-section nonneg
-
-variables {μ : measure α} {f : α → ℝ} {s : set α}
-
-lemma set_integral_nonneg_of_ae_restrict (hf : 0 ≤ᵐ[μ.restrict s] f) :
-  (0:ℝ) ≤ (∫ a in s, f a ∂μ) :=
-integral_nonneg_of_ae hf
-
-lemma set_integral_nonneg_of_ae (hf : 0 ≤ᵐ[μ] f) : (0:ℝ) ≤ (∫ a in s, f a ∂μ) :=
-set_integral_nonneg_of_ae_restrict (ae_restrict_of_ae hf)
-
-lemma set_integral_nonneg (hs : measurable_set s) (hf : ∀ a, a ∈ s → 0 ≤ f a) :
-  (0:ℝ) ≤ (∫ a in s, f a ∂μ) :=
-set_integral_nonneg_of_ae_restrict ((ae_restrict_iff' hs).mpr (ae_of_all μ hf))
-
-end nonneg
-
-lemma set_integral_mono_set {α : Type*} [measurable_space α] {μ : measure α}
-  {s t : set α} {f : α → ℝ} (hfi : integrable f μ) (hf : 0 ≤ᵐ[μ] f) (hst : s ≤ᵐ[μ] t) :
+lemma set_integral_mono_set (hfi : integrable f μ) (hf : 0 ≤ᵐ[μ] f) (hst : s ≤ᵐ[μ] t) :
   ∫ x in s, f x ∂μ ≤ ∫ x in t, f x ∂μ :=
 begin
   repeat { rw integral_eq_lintegral_of_nonneg_ae (ae_restrict_of_ae hf)
@@ -249,6 +399,92 @@ begin
   exact (lintegral_mono_set' hst),
 end
 
+end mono
+
+section nonneg
+
+variables {μ : measure α} {f : α → ℝ} {s : set α}
+
+lemma set_integral_nonneg_of_ae_restrict (hf : 0 ≤ᵐ[μ.restrict s] f) :
+  0 ≤ ∫ a in s, f a ∂μ :=
+integral_nonneg_of_ae hf
+
+lemma set_integral_nonneg_of_ae (hf : 0 ≤ᵐ[μ] f) : 0 ≤ ∫ a in s, f a ∂μ :=
+set_integral_nonneg_of_ae_restrict (ae_restrict_of_ae hf)
+
+lemma set_integral_nonneg (hs : measurable_set s) (hf : ∀ a, a ∈ s → 0 ≤ f a) :
+  0 ≤ ∫ a in s, f a ∂μ :=
+set_integral_nonneg_of_ae_restrict ((ae_restrict_iff' hs).mpr (ae_of_all μ hf))
+
+lemma set_integral_nonneg_ae (hs : measurable_set s) (hf : ∀ᵐ a ∂μ, a ∈ s → 0 ≤ f a) :
+  0 ≤ ∫ a in s, f a ∂μ :=
+set_integral_nonneg_of_ae_restrict $ by rwa [eventually_le, ae_restrict_iff' hs]
+
+lemma set_integral_le_nonneg {s : set α} (hs : measurable_set s) (hf : measurable f)
+  (hfi : integrable f μ) :
+  ∫ x in s, f x ∂μ ≤ ∫ x in {y | 0 ≤ f y}, f x ∂μ :=
+begin
+  rw [← integral_indicator hs, ← integral_indicator (measurable_set_le measurable_const hf)],
+  exact integral_mono (hfi.indicator hs) (hfi.indicator (measurable_set_le measurable_const hf))
+    (indicator_le_indicator_nonneg s f),
+end
+
+lemma set_integral_nonpos_of_ae_restrict (hf : f ≤ᵐ[μ.restrict s] 0) :
+  ∫ a in s, f a ∂μ ≤ 0 :=
+integral_nonpos_of_ae hf
+
+lemma set_integral_nonpos_of_ae (hf : f ≤ᵐ[μ] 0) : ∫ a in s, f a ∂μ ≤ 0 :=
+set_integral_nonpos_of_ae_restrict (ae_restrict_of_ae hf)
+
+lemma set_integral_nonpos (hs : measurable_set s) (hf : ∀ a, a ∈ s → f a ≤ 0) :
+  ∫ a in s, f a ∂μ ≤ 0 :=
+set_integral_nonpos_of_ae_restrict ((ae_restrict_iff' hs).mpr (ae_of_all μ hf))
+
+lemma set_integral_nonpos_ae (hs : measurable_set s) (hf : ∀ᵐ a ∂μ, a ∈ s → f a ≤ 0) :
+  ∫ a in s, f a ∂μ ≤ 0 :=
+set_integral_nonpos_of_ae_restrict $ by rwa [eventually_le, ae_restrict_iff' hs]
+
+lemma set_integral_nonpos_le {s : set α} (hs : measurable_set s) {f : α → ℝ} (hf : measurable f)
+  (hfi : integrable f μ) :
+  ∫ x in {y | f y ≤ 0}, f x ∂μ ≤ ∫ x in s, f x ∂μ :=
+begin
+  rw [← integral_indicator hs, ← integral_indicator (measurable_set_le hf measurable_const)],
+  exact integral_mono (hfi.indicator (measurable_set_le hf measurable_const)) (hfi.indicator hs)
+    (indicator_nonpos_le_indicator s f),
+end
+
+end nonneg
+
+section tendsto_mono
+
+variables {μ : measure α}
+  [measurable_space E] [normed_group E] [borel_space E] [complete_space E] [normed_space ℝ E]
+  [second_countable_topology E] {s : ℕ → set α} {f : α → E}
+
+lemma tendsto_set_integral_of_antimono (hsm : ∀ i, measurable_set (s i))
+  (h_mono : ∀ i j, i ≤ j → s j ⊆ s i) (hfi : integrable_on f (s 0) μ) :
+  tendsto (λi, ∫ a in s i, f a ∂μ) at_top (𝓝 (∫ a in (⋂ n, s n), f a ∂μ)) :=
+begin
+  let bound : α → ℝ := indicator (s 0) (λ a, ∥f a∥),
+  have h_int_eq : (λ i, ∫ a in s i, f a ∂μ) = (λ i, ∫ a, (s i).indicator f a ∂μ),
+    from funext (λ i, (integral_indicator (hsm i)).symm),
+  rw h_int_eq,
+  rw ← integral_indicator (measurable_set.Inter hsm),
+  refine tendsto_integral_of_dominated_convergence bound _ _ _ _ _,
+  { intro n,
+    rw ae_measurable_indicator_iff (hsm n),
+    exact (integrable_on.mono_set hfi (h_mono 0 n (zero_le n))).1, },
+  { rw ae_measurable_indicator_iff (measurable_set.Inter hsm),
+    exact (integrable_on.mono_set hfi (set.Inter_subset s 0)).1, },
+  { rw integrable_indicator_iff (hsm 0),
+    exact hfi.norm, },
+  { simp_rw norm_indicator_eq_indicator_norm,
+    refine λ n, eventually_of_forall (λ x, _),
+    exact indicator_le_indicator_of_subset (h_mono 0 n (zero_le n)) (λ a, norm_nonneg _) _, },
+  { filter_upwards [] λa, le_trans (tendsto_indicator_of_antimono _ h_mono _ _) (pure_le_nhds _), },
+end
+
+end tendsto_mono
 
 section continuous_set_integral
 /-! ### Continuity of the set integral
@@ -389,7 +625,7 @@ arguments, `m i = (μ (s i)).to_real` is used in the output. -/
 lemma continuous_within_at.integral_sub_linear_is_o_ae
   [topological_space α] [opens_measurable_space α]
   [normed_space ℝ E] [second_countable_topology E] [complete_space E] [borel_space E]
-  {μ : measure α} [locally_finite_measure μ] {a : α} {t : set α}
+  {μ : measure α} [is_locally_finite_measure μ] {a : α} {t : set α}
   {f : α → E} (ha : continuous_within_at f t a) (ht : measurable_set t)
   (hfm : measurable_at_filter f (𝓝[t] a) μ)
   {s : ι → set α} {li : filter ι} (hs : tendsto s li ((𝓝[t] a).lift' powerset))
@@ -412,7 +648,7 @@ arguments, `m i = (μ (s i)).to_real` is used in the output. -/
 lemma continuous_at.integral_sub_linear_is_o_ae
   [topological_space α] [opens_measurable_space α]
   [normed_space ℝ E] [second_countable_topology E] [complete_space E] [borel_space E]
-  {μ : measure α} [locally_finite_measure μ] {a : α}
+  {μ : measure α} [is_locally_finite_measure μ] {a : α}
   {f : α → E} (ha : continuous_at f a) (hfm : measurable_at_filter f (𝓝 a) μ)
   {s : ι → set α} {li : filter ι} (hs : tendsto s li ((𝓝 a).lift' powerset))
   (m : ι → ℝ := λ i, (μ (s i)).to_real)
@@ -434,6 +670,15 @@ lemma continuous_at.measurable_at_filter
   ∀ x ∈ s, measurable_at_filter f (𝓝 x) μ :=
 continuous_on.measurable_at_filter hs $ continuous_at.continuous_on hf
 
+/-- If a function is continuous on a measurable set `s`, then it is measurable at the filter
+  `𝓝[s] x` for all `x`. -/
+lemma continuous_on.measurable_at_filter_nhds_within {α E : Type*} [measurable_space α]
+  [measurable_space E] [normed_group E] [topological_space α] [opens_measurable_space α]
+  [borel_space E] {f : α → E} {s : set α} {μ : measure α}
+  (hf : continuous_on f s) (hs : measurable_set s) (x : α) :
+  measurable_at_filter f (𝓝[s] x) μ :=
+⟨s, self_mem_nhds_within, hf.ae_measurable hs⟩
+
 /-- Fundamental theorem of calculus for set integrals, `nhds_within` version: if `μ` is a locally
 finite measure, `f` is continuous on a measurable set `t`, and `a ∈ t`, then `∫ x in (s i), f x ∂μ =
 μ (s i) • f a + o(μ (s i))` at `li` provided that `s i` tends to `(𝓝[t] a).lift' powerset` along
@@ -445,7 +690,7 @@ arguments, `m i = (μ (s i)).to_real` is used in the output. -/
 lemma continuous_on.integral_sub_linear_is_o_ae
   [topological_space α] [opens_measurable_space α]
   [normed_space ℝ E] [second_countable_topology E] [complete_space E] [borel_space E]
-  {μ : measure α} [locally_finite_measure μ] {a : α} {t : set α}
+  {μ : measure α} [is_locally_finite_measure μ] {a : α} {t : set α}
   {f : α → E} (hft : continuous_on f t) (ha : a ∈ t) (ht : measurable_set t)
   {s : ι → set α} {li : filter ι} (hs : tendsto s li ((𝓝[t] a).lift' powerset))
   (m : ι → ℝ := λ i, (μ (s i)).to_real)
@@ -479,6 +724,10 @@ variables [second_countable_topology F] [complete_space F]
 lemma integral_comp_Lp (L : E →L[𝕜] F) (φ : Lp E p μ) :
   ∫ a, (L.comp_Lp φ) a ∂μ = ∫ a, L (φ a) ∂μ :=
 integral_congr_ae $ coe_fn_comp_Lp _ _
+
+lemma set_integral_comp_Lp (L : E →L[𝕜] F) (φ : Lp E p μ) {s : set α} (hs : measurable_set s) :
+  ∫ a in s, (L.comp_Lp φ) a ∂μ = ∫ a in s, L (φ a) ∂μ :=
+set_integral_congr_ae hs ((L.coe_fn_comp_Lp φ).mono (λ x hx hx2, hx))
 
 lemma continuous_integral_comp_L1 [measurable_space 𝕜] [opens_measurable_space 𝕜] (L : E →L[𝕜] F) :
   continuous (λ (φ : α →₁[μ] E), ∫ (a : α), L (φ a) ∂μ) :=
@@ -602,149 +851,3 @@ by { specialize hf_int (∫ x, f x ∂μ), rwa [integral_inner hf, inner_self_eq
 end inner
 
 end
-
-/-
-namespace integrable
-
-variables [measurable_space α] [measurable_space β] [normed_group E]
-
-protected lemma measure_mono
-
-end integrable
-
-end measure_theory
-
-section integral_on
-variables [measurable_space α]
-  [normed_group β] [second_countable_topology β] [normed_space ℝ β] [complete_space β]
-  [measurable_space β] [borel_space β]
-  {s t : set α} {f g : α → β} {μ : measure α}
-open set
-
-lemma integral_on_congr (hf : measurable f) (hg : measurable g) (hs : measurable_set s)
-  (h : ∀ᵐ a ∂μ, a ∈ s → f a = g a) : ∫ a in s, f a ∂μ = ∫ a in s, g a ∂μ :=
-integral_congr_ae hf hg $ _
-
-lemma integral_on_congr_of_set (hsm : measurable_on s f) (htm : measurable_on t f)
-  (h : ∀ᵐ a, a ∈ s ↔ a ∈ t) : (∫ a in s, f a) = (∫ a in t, f a) :=
-integral_congr_ae hsm htm $ indicator_congr_of_set h
-
-lemma integral_on_add {s : set α} (hfm : measurable_on s f) (hfi : integrable_on s f)
-  (hgm : measurable_on s g) (hgi : integrable_on s g) :
-  (∫ a in s, f a + g a) = (∫ a in s, f a) + (∫ a in s, g a) :=
-by { simp only [indicator_add], exact integral_add hfm hfi hgm hgi }
-
-lemma integral_on_sub (hfm : measurable_on s f) (hfi : integrable_on s f) (hgm : measurable_on s g)
-  (hgi : integrable_on s g) : (∫ a in s, f a - g a) = (∫ a in s, f a) - (∫ a in s, g a) :=
-by { simp only [indicator_sub], exact integral_sub hfm hfi hgm hgi }
-
-lemma integral_on_le_integral_on_ae {f g : α → ℝ} (hfm : measurable_on s f)
-  (hfi : integrable_on s f) (hgm : measurable_on s g) (hgi : integrable_on s g)
-  (h : ∀ᵐ a, a ∈ s → f a ≤ g a) :
-  (∫ a in s, f a) ≤ (∫ a in s, g a) :=
-begin
-  apply integral_le_integral_ae hfm hfi hgm hgi,
-  apply indicator_le_indicator_ae,
-  exact h
-end
-
-lemma integral_on_le_integral_on {f g : α → ℝ} (hfm : measurable_on s f) (hfi : integrable_on s f)
-  (hgm : measurable_on s g) (hgi : integrable_on s g) (h : ∀ a, a ∈ s → f a ≤ g a) :
-  (∫ a in s, f a) ≤ (∫ a in s, g a) :=
-integral_on_le_integral_on_ae hfm hfi hgm hgi $ by filter_upwards [] h
-
-lemma integral_on_union (hsm : measurable_on s f) (hsi : integrable_on s f)
-  (htm : measurable_on t f) (hti : integrable_on t f) (h : disjoint s t) :
-  (∫ a in (s ∪ t), f a) = (∫ a in s, f a) + (∫ a in t, f a) :=
-by { rw [indicator_union_of_disjoint h, integral_add hsm hsi htm hti] }
-
-lemma integral_on_union_ae (hs : measurable_set s) (ht : measurable_set t) (hsm : measurable_on s f)
-  (hsi : integrable_on s f) (htm : measurable_on t f) (hti : integrable_on t f)
-  (h : ∀ᵐ a, a ∉ s ∩ t) :
-  (∫ a in (s ∪ t), f a) = (∫ a in s, f a) + (∫ a in t, f a) :=
-begin
-  have := integral_congr_ae _ _ (indicator_union_ae h f),
-  rw [this, integral_add hsm hsi htm hti],
-  { exact hsm.union hs ht htm },
-  { exact measurable.add hsm htm }
-end
-
-lemma integral_on_nonneg_of_ae {f : α → ℝ} (hf : ∀ᵐ a, a ∈ s → 0 ≤ f a) : (0:ℝ) ≤ (∫ a in s, f a) :=
-integral_nonneg_of_ae $ by { filter_upwards [hf] λ a h, indicator_nonneg' h }
-
-lemma integral_on_nonneg {f : α → ℝ} (hf : ∀ a, a ∈ s → 0 ≤ f a) : (0:ℝ) ≤ (∫ a in s, f a) :=
-integral_on_nonneg_of_ae $ univ_mem' hf
-
-lemma integral_on_nonpos_of_ae {f : α → ℝ} (hf : ∀ᵐ a, a ∈ s → f a ≤ 0) : (∫ a in s, f a) ≤ 0 :=
-integral_nonpos_of_nonpos_ae $ by { filter_upwards [hf] λ a h, indicator_nonpos' h }
-
-lemma integral_on_nonpos {f : α → ℝ} (hf : ∀ a, a ∈ s → f a ≤ 0) : (∫ a in s, f a) ≤ 0 :=
-integral_on_nonpos_of_ae $ univ_mem' hf
-
-lemma tendsto_integral_on_of_monotone {s : ℕ → set α} {f : α → β} (hsm : ∀i, measurable_set (s i))
-  (h_mono : monotone s) (hfm : measurable_on (Union s) f) (hfi : integrable_on (Union s) f) :
-  tendsto (λi, ∫ a in (s i), f a) at_top (nhds (∫ a in (Union s), f a)) :=
-let bound : α → ℝ := indicator (Union s) (λa, ∥f a∥) in
-begin
-  apply tendsto_integral_of_dominated_convergence,
-  { assume i, exact hfm.subset (hsm i) (subset_Union _ _) },
-  { assumption },
-  { show integrable_on (Union s) (λa, ∥f a∥), rwa integrable_on_norm_iff },
-  { assume i, apply ae_of_all,
-    assume a,
-    rw [norm_indicator_eq_indicator_norm],
-    exact indicator_le_indicator_of_subset (subset_Union _ _) (λa, norm_nonneg _) _ },
-  { filter_upwards [] λa, le_trans (tendsto_indicator_of_monotone _ h_mono _ _) (pure_le_nhds _) }
-end
-
-lemma tendsto_integral_on_of_antimono (s : ℕ → set α) (f : α → β) (hsm : ∀i, measurable_set (s i))
-  (h_mono : ∀i j, i ≤ j → s j ⊆ s i) (hfm : measurable_on (s 0) f) (hfi : integrable_on (s 0) f) :
-  tendsto (λi, ∫ a in (s i), f a) at_top (nhds (∫ a in (Inter s), f a)) :=
-let bound : α → ℝ := indicator (s 0) (λa, ∥f a∥) in
-begin
-  apply tendsto_integral_of_dominated_convergence,
-  { assume i, refine hfm.subset (hsm i) (h_mono _ _ (zero_le _)) },
-  { exact hfm.subset (measurable_set.Inter hsm) (Inter_subset _ _) },
-  { show integrable_on (s 0) (λa, ∥f a∥), rwa integrable_on_norm_iff },
-  { assume i, apply ae_of_all,
-    assume a,
-    rw [norm_indicator_eq_indicator_norm],
-    refine indicator_le_indicator_of_subset (h_mono _ _ (zero_le _)) (λa, norm_nonneg _) _ },
-  { filter_upwards [] λa, le_trans (tendsto_indicator_of_antimono _ h_mono _ _) (pure_le_nhds _) }
-end
-
--- TODO : prove this for an encodable type
--- by proving an encodable version of `filter.is_countably_generated_at_top_finset_nat `
-lemma integral_on_Union (s : ℕ → set α) (f : α → β) (hm : ∀i, measurable_set (s i))
-  (hd : ∀ i j, i ≠ j → s i ∩ s j = ∅) (hfm : measurable_on (Union s) f)
-  (hfi : integrable_on (Union s) f) :
-  (∫ a in (Union s), f a) = ∑'i, ∫ a in s i, f a :=
-suffices h : tendsto (λn:finset ℕ, ∑ i in n, ∫ a in s i, f a) at_top (𝓝 $ (∫ a in (Union s), f a)),
-  by { rwa has_sum.tsum_eq },
-begin
-  have : (λn:finset ℕ, ∑ i in n, ∫ a in s i, f a) = λn:finset ℕ, ∫ a in (⋃i∈n, s i), f a,
-  { funext,
-    rw [← integral_finset_sum, indicator_finset_bUnion],
-    { assume i hi j hj hij, exact hd i j hij },
-    { assume i, refine hfm.subset (hm _) (subset_Union _ _) },
-    { assume i, refine hfi.subset (subset_Union _ _) } },
-  rw this,
-  refine tendsto_integral_filter_of_dominated_convergence _ _ _ _ _ _ _,
-  { exact indicator (Union s) (λ a, ∥f a∥) },
-  { exact is_countably_generated_at_top_finset_nat },
-  { refine univ_mem' (λ n, _),
-    simp only [mem_set_of_eq],
-    refine hfm.subset (measurable_set.Union (λ i, measurable_set.Union_Prop (λh, hm _)))
-      (bUnion_subset_Union _ _), },
-  { assumption },
-  { refine univ_mem' (λ n, univ_mem' $ _),
-    simp only [mem_set_of_eq],
-    assume a,
-    rw ← norm_indicator_eq_indicator_norm,
-    refine norm_indicator_le_of_subset (bUnion_subset_Union _ _) _ _ },
-  { rw [← integrable_on, integrable_on_norm_iff], assumption },
-  { filter_upwards [] λa, le_trans (tendsto_indicator_bUnion_finset _ _ _) (pure_le_nhds _) }
-end
-
-end integral_on
--/

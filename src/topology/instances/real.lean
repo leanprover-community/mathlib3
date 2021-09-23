@@ -16,8 +16,7 @@ import algebra.periodic
 
 noncomputable theory
 open classical set filter topological_space metric
-open_locale classical
-open_locale topological_space
+open_locale classical topological_space filter uniformity interval
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -29,37 +28,48 @@ theorem rat.dist_eq (x y : ℚ) : dist x y = abs (x - y) := rfl
 
 @[norm_cast, simp] lemma rat.dist_cast (x y : ℚ) : dist (x : ℝ) y = dist x y := rfl
 
-section low_prio
--- we want to ignore this instance for the next declaration
-local attribute [instance, priority 10] int.uniform_space
-instance : metric_space ℤ :=
-begin
-  letI M := metric_space.induced coe int.cast_injective real.metric_space,
-  refine @metric_space.replace_uniformity _ int.uniform_space M
-    (le_antisymm refl_le_uniformity $ λ r ru,
-      mem_uniformity_dist.2 ⟨1, zero_lt_one, λ a b h,
-      mem_principal.1 ru $ dist_le_zero.1 (_ : (abs (a - b) : ℝ) ≤ 0)⟩),
-  have : (abs (↑a - ↑b) : ℝ) < 1 := h,
-  have : abs (a - b) < 1, by norm_cast at this; assumption,
-  have : abs (a - b) ≤ 0 := (@int.lt_add_one_iff _ 0).mp this,
-  norm_cast, assumption
-end
-end low_prio
+namespace int
 
-theorem int.dist_eq (x y : ℤ) : dist x y = abs (x - y) := rfl
+lemma uniform_embedding_coe_real : uniform_embedding (coe : ℤ → ℝ) :=
+{ comap_uniformity :=
+    begin
+      refine le_antisymm (le_principal_iff.2 _) (@refl_le_uniformity ℤ $
+        uniform_space.comap coe (infer_instance : uniform_space ℝ)),
+      refine (uniformity_basis_dist.comap _).mem_iff.2 ⟨1, zero_lt_one, _⟩,
+      rintro ⟨a, b⟩ (h : abs (a - b : ℝ) < 1),
+      norm_cast at h,
+      erw [@int.lt_add_one_iff _ 0, abs_nonpos_iff, sub_eq_zero] at h, assumption
+    end,
+  inj := int.cast_injective }
 
-@[norm_cast, simp] theorem int.dist_cast_real (x y : ℤ) : dist (x : ℝ) y = dist x y := rfl
+instance : metric_space ℤ := int.uniform_embedding_coe_real.comap_metric_space _
 
-@[norm_cast, simp] theorem int.dist_cast_rat (x y : ℤ) : dist (x : ℚ) y = dist x y :=
+theorem dist_eq (x y : ℤ) : dist x y = abs (x - y) := rfl
+
+@[norm_cast, simp] theorem dist_cast_real (x y : ℤ) : dist (x : ℝ) y = dist x y := rfl
+
+@[norm_cast, simp] theorem dist_cast_rat (x y : ℤ) : dist (x : ℚ) y = dist x y :=
 by rw [← int.dist_cast_real, ← rat.dist_cast]; congr' 1; norm_cast
+
+theorem preimage_ball (x : ℤ) (r : ℝ) : coe ⁻¹' (ball (x : ℝ) r) = ball x r := rfl
+
+theorem preimage_closed_ball (x : ℤ) (r : ℝ) :
+  coe ⁻¹' (closed_ball (x : ℝ) r) = closed_ball x r := rfl
+
+theorem ball_eq (x : ℤ) (r : ℝ) : ball x r = Ioo ⌊↑x - r⌋ ⌈↑x + r⌉ :=
+by rw [← preimage_ball, real.ball_eq, preimage_Ioo]
+
+theorem closed_ball_eq (x : ℤ) (r : ℝ) : closed_ball x r = Icc ⌈↑x - r⌉ ⌊↑x + r⌋ :=
+by rw [← preimage_closed_ball, real.closed_ball_eq, preimage_Icc]
 
 instance : proper_space ℤ :=
 ⟨ begin
     intros x r,
-    apply set.finite.is_compact,
-    have : closed_ball x r = coe ⁻¹' (closed_ball (x:ℝ) r) := rfl,
-    simp [this, closed_ball_Icc, set.Icc_ℤ_finite],
+    rw closed_ball_eq,
+    exact (set.Icc_ℤ_finite _ _).is_compact,
   end ⟩
+
+end int
 
 theorem uniform_continuous_of_rat : uniform_continuous (coe : ℚ → ℝ) :=
 uniform_continuous_comap
@@ -111,7 +121,7 @@ instance : order_topology ℚ :=
 induced_order_topology _ (λ x y, rat.cast_lt) (@exists_rat_btwn _ _ _)
 
 instance : proper_space ℝ :=
-{ compact_ball := λx r, by { rw closed_ball_Icc, apply is_compact_Icc } }
+{ is_compact_closed_ball := λx r, by { rw real.closed_ball_eq, apply is_compact_Icc } }
 
 instance : second_countable_topology ℝ := second_countable_of_proper
 
@@ -199,8 +209,6 @@ tendsto_of_uniform_continuous_subtype
 instance : topological_ring ℝ :=
 { continuous_mul := real.continuous_mul, ..real.topological_add_group }
 
-instance : topological_semiring ℝ := by apply_instance  -- short-circuit type class inference
-
 lemma rat.continuous_mul : continuous (λp : ℚ × ℚ, p.1 * p.2) :=
 embedding_of_rat.continuous_iff.2 $ by simp [(∘)]; exact
 real.continuous_mul.comp ((continuous_of_rat.comp continuous_fst).prod_mk
@@ -264,7 +272,7 @@ lemma real.bounded_iff_bdd_below_bdd_above {s : set ℝ} : bounded s ↔ bdd_bel
 ⟨begin
   assume bdd,
   rcases (bounded_iff_subset_ball 0).1 bdd with ⟨r, hr⟩, -- hr : s ⊆ closed_ball 0 r
-  rw closed_ball_Icc at hr, -- hr : s ⊆ Icc (0 - r) (0 + r)
+  rw real.closed_ball_eq at hr, -- hr : s ⊆ Icc (0 - r) (0 + r)
   exact ⟨bdd_below_Icc.mono hr, bdd_above_Icc.mono hr⟩
 end,
 begin
@@ -282,6 +290,30 @@ lemma real.image_Icc {f : ℝ → ℝ} {a b : ℝ} (hab : a ≤ b) (h : continuo
   f '' Icc a b = Icc (Inf $ f '' Icc a b) (Sup $ f '' Icc a b) :=
 eq_Icc_of_connected_compact ⟨(nonempty_Icc.2 hab).image f, is_preconnected_Icc.image f h⟩
   (is_compact_Icc.image_of_continuous_on h)
+
+lemma real.image_interval_eq_Icc {f : ℝ → ℝ} {a b : ℝ} (h : continuous_on f $ [a, b]) :
+  f '' [a, b] = Icc (Inf (f '' [a, b])) (Sup (f '' [a, b])) :=
+begin
+  cases le_total a b with h2 h2,
+  { simp_rw [interval_of_le h2] at h ⊢, exact real.image_Icc h2 h },
+  { simp_rw [interval_of_ge h2] at h ⊢, exact real.image_Icc h2 h },
+end
+
+lemma real.image_interval {f : ℝ → ℝ} {a b : ℝ} (h : continuous_on f $ [a, b]) :
+  f '' [a, b] = [Inf (f '' [a, b]), Sup (f '' [a, b])] :=
+begin
+  refine (real.image_interval_eq_Icc h).trans (interval_of_le _).symm,
+  rw [real.image_interval_eq_Icc h],
+  exact real.Inf_le_Sup _ bdd_below_Icc bdd_above_Icc
+end
+
+lemma real.interval_subset_image_interval {f : ℝ → ℝ} {a b x y : ℝ}
+  (h : continuous_on f [a, b]) (hx : x ∈ [a, b]) (hy : y ∈ [a, b]) :
+  [f x, f y] ⊆ f '' [a, b] :=
+begin
+  rw [real.image_interval h, interval_subset_interval_iff_mem, ← real.image_interval h],
+  exact ⟨mem_image_of_mem f hx, mem_image_of_mem f hy⟩
+end
 
 end
 

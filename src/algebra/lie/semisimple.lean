@@ -84,12 +84,12 @@ begin
   exact h₂ hI,
 end
 
--- TODO[gh-6025]: make this an instance once safe to do so
+/-- A semisimple Abelian Lie algebra is trivial. -/
 lemma subsingleton_of_semisimple_lie_abelian [is_semisimple R L] [h : is_lie_abelian L] :
-  subsingleton (lie_ideal R L) :=
+  subsingleton L :=
 begin
-  apply subsingleton_of_bot_eq_top,
-  rwa [is_lie_abelian_iff_center_eq_top R L, center_eq_bot_of_semisimple] at h,
+  rw [is_lie_abelian_iff_center_eq_top R L, center_eq_bot_of_semisimple] at h,
+  exact (lie_submodule.subsingleton_iff R L L).mp (subsingleton_of_bot_eq_top h),
 end
 
 lemma abelian_radical_of_semisimple [is_semisimple R L] : is_lie_abelian (radical R L) :=

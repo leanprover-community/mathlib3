@@ -69,12 +69,6 @@ full_subcategory_inclusion _
 lemma open_embedding {x : X} (U : open_nhds x) : open_embedding (U.1.inclusion) :=
 U.1.open_embedding
 
-instance open_nhds_is_filtered (x : X) : is_filtered (open_nhds x)ᵒᵖ :=
-{ nonempty := ⟨op ⊤⟩,
-  cocone_objs := λ U V, ⟨op (unop U ⊓ unop V),
-    (inf_le_left (unop U) (unop V)).op, (inf_le_right (unop U) (unop V)).op, trivial⟩ ,
-  cocone_maps := λ U V i j, ⟨V, 𝟙 V, rfl⟩, }
-
 def map (x : X) : open_nhds (f x) ⥤ open_nhds x :=
 { obj := λ U, ⟨(opens.map f).obj U.1, by tidy⟩,
   map := λ U V i, (opens.map f).map i }
@@ -100,4 +94,31 @@ nat_iso.of_components
 @[simp] lemma inclusion_map_iso_inv (x : X) : (inclusion_map_iso f x).inv = 𝟙 _ := rfl
 
 end open_nhds
+
 end topological_space
+
+namespace is_open_map
+
+open topological_space
+
+variables {f}
+
+/--
+An open map `f : X ⟶ Y` induces a functor `open_nhds x ⥤ open_nhds (f x)`.
+-/
+@[simps]
+def functor_nhds (h : is_open_map f) (x : X) :
+  open_nhds x ⥤ open_nhds (f x) :=
+{ obj := λ U, ⟨h.functor.obj U.1, ⟨x, U.2, rfl⟩⟩,
+  map := λ U V i, h.functor.map i }
+
+/--
+An open map `f : X ⟶ Y` induces an adjunction between `open_nhds x` and `open_nhds (f x)`.
+-/
+def adjunction_nhds (h : is_open_map f) (x : X) :
+  is_open_map.functor_nhds h x ⊣ open_nhds.map f x :=
+adjunction.mk_of_unit_counit
+{ unit := { app := λ U, hom_of_le $ λ x hxU, ⟨x, hxU, rfl⟩ },
+  counit := { app := λ V, hom_of_le $ λ y ⟨x, hfxV, hxy⟩, hxy ▸ hfxV } }
+
+end is_open_map

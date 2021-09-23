@@ -116,6 +116,15 @@ begin
   exact is_integral_trans L_alg A_alg,
 end
 
+variables (K L)
+
+/-- If A is an algebraic algebra over K, then A is algebraic over L when L is an extension of K -/
+lemma is_algebraic_of_larger_base (A_alg : is_algebraic K A) : is_algebraic L A :=
+λ x, let ⟨p, hp⟩ := A_alg x in
+⟨p.map (algebra_map _ _), map_ne_zero hp.1, by simp [hp.2]⟩
+
+variables {K L}
+
 /-- A field extension is algebraic if it is finite. -/
 lemma is_algebraic_of_finite [finite : finite_dimensional K L] : is_algebraic K L :=
 λ x, (is_algebraic_iff_is_integral _).mpr (is_integral_of_submodule_noetherian ⊤
@@ -127,20 +136,38 @@ variables {R S : Type*} [integral_domain R] [comm_ring S]
 
 lemma exists_integral_multiple [algebra R S] {z : S} (hz : is_algebraic R z)
   (inj : ∀ x, algebra_map R S x = 0 → x = 0) :
-  ∃ (x : integral_closure R S) (y ≠ (0 : integral_closure R S)),
-    z * y = x :=
+  ∃ (x : integral_closure R S) (y ≠ (0 : R)),
+    z * algebra_map R S y = x :=
 begin
   rcases hz with ⟨p, p_ne_zero, px⟩,
   set a := p.leading_coeff with a_def,
   have a_ne_zero : a ≠ 0 := mt polynomial.leading_coeff_eq_zero.mp p_ne_zero,
   have y_integral : is_integral R (algebra_map R S a) := is_integral_algebra_map,
   have x_integral : is_integral R (z * algebra_map R S a) :=
-    ⟨ p.integral_normalization,
-      monic_integral_normalization p_ne_zero,
-      integral_normalization_aeval_eq_zero px inj ⟩,
-  refine ⟨⟨_, x_integral⟩, ⟨_, y_integral⟩, _, rfl⟩,
-  exact λ h, a_ne_zero (inj _ (subtype.ext_iff_val.mp h))
+    ⟨p.integral_normalization,
+     monic_integral_normalization p_ne_zero,
+     integral_normalization_aeval_eq_zero px inj⟩,
+  exact ⟨⟨_, x_integral⟩, a, a_ne_zero, rfl⟩
 end
+
+/-- A fraction `(a : S) / (b : S)` can be reduced to `(c : S) / (d : R)`,
+if `S` is the integral closure of `R` in an algebraic extension `L` of `R`. -/
+lemma is_integral_closure.exists_smul_eq_mul {L : Type*} [field L]
+  [algebra R S] [algebra S L] [algebra R L] [is_scalar_tower R S L] [is_integral_closure S R L]
+  (h : algebra.is_algebraic R L) (inj : function.injective (algebra_map R L))
+  (a : S) {b : S} (hb : b ≠ 0) : ∃ (c : S) (d ≠ (0 : R)), d • a = b * c :=
+begin
+  obtain ⟨c, d, d_ne, hx⟩ := exists_integral_multiple
+    (h (algebra_map _ L a / algebra_map _ L b))
+    ((ring_hom.injective_iff _).mp inj),
+  refine ⟨is_integral_closure.mk' S (c : L) c.2, d, d_ne,
+    is_integral_closure.algebra_map_injective S R L _⟩,
+  simp only [algebra.smul_def, ring_hom.map_mul, is_integral_closure.algebra_map_mk', ← hx,
+    ← is_scalar_tower.algebra_map_apply],
+  rw [← mul_assoc _ (_ / _), mul_div_cancel' (algebra_map S L a), mul_comm],
+  exact mt ((ring_hom.injective_iff _).mp (is_integral_closure.algebra_map_injective S R L) _) hb
+end
+
 section field
 
 variables {K L : Type*} [field K] [field L] [algebra K L] (A : subalgebra K L)

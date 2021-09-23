@@ -52,7 +52,7 @@ While `convex` is a predicate on sets, `convex_cone` is a bundled convex cone.
 universes u v
 
 open set linear_map
-open_locale classical
+open_locale classical pointwise
 
 variables (E : Type*) [add_comm_group E] [module ℝ E]
   {F : Type*} [add_comm_group F] [module ℝ F]
@@ -107,7 +107,7 @@ lemma smul_mem_iff {c : ℝ} (hc : 0 < c) {x : E} :
 ⟨λ h, by simpa only [smul_smul, inv_mul_cancel (ne_of_gt hc), one_smul]
   using S.smul_mem (inv_pos.2 hc) h, λ h, S.smul_mem hc h⟩
 
-lemma convex : convex (S : set E) :=
+lemma convex : convex ℝ (S : set E) :=
 convex_iff_forall_pos.2 $ λ x y hx hy a b ha hb hab,
 S.add_mem (S.smul_mem ha hx) (S.smul_mem hb hy)
 
@@ -192,9 +192,9 @@ ext' $ preimage_comp.symm
 Constructs an ordered module given an `ordered_add_comm_group`, a cone, and a proof that
 the order relation is the one defined by the cone.
 -/
-lemma to_ordered_module {M : Type*} [ordered_add_comm_group M] [module ℝ M]
-  (S : convex_cone M) (h : ∀ x y : M, x ≤ y ↔ y - x ∈ S) : ordered_module ℝ M :=
-ordered_module.mk'
+lemma to_ordered_smul {M : Type*} [ordered_add_comm_group M] [module ℝ M]
+  (S : convex_cone M) (h : ∀ x y : M, x ≤ y ↔ y - x ∈ S) : ordered_smul ℝ M :=
+ordered_smul.mk'
 begin
   intros x y z xy hz,
   rw [h (z • x) (z • y), ←smul_sub z y x],
@@ -244,7 +244,7 @@ end
 def to_preorder (S : convex_cone E) (h₁ : pointed S) : preorder E :=
 { le := λ x y, y - x ∈ S,
   le_refl := λ x, by change x - x ∈ S; rw [sub_self x]; exact h₁,
-  le_trans := λ x y z xy zy, by simp [(show z - x = z - y + (y - x), by abel), add_mem S zy xy] }
+  le_trans := λ x y z xy zy, by simpa using add_mem S zy xy }
 
 /-- A pointed and salient cone defines a partial order. -/
 def to_partial_order (S : convex_cone E) (h₁ : pointed S) (h₂ : salient S) : partial_order E :=
@@ -275,7 +275,7 @@ def to_ordered_add_comm_group (S : convex_cone E) (h₁ : pointed S) (h₂ : sal
 /-! ### Positive cone of an ordered module -/
 section positive_cone
 
-variables (M : Type*) [ordered_add_comm_group M] [module ℝ M] [ordered_module ℝ M]
+variables (M : Type*) [ordered_add_comm_group M] [module ℝ M] [ordered_smul ℝ M]
 
 /--
 The positive cone is the convex cone formed by the set of nonnegative elements in an ordered
@@ -318,7 +318,7 @@ end convex_cone
 namespace convex
 
 /-- The set of vectors proportional to those in a convex set forms a convex cone. -/
-def to_cone (s : set E) (hs : convex s) : convex_cone E :=
+def to_cone (s : set E) (hs : convex ℝ s) : convex_cone E :=
 begin
   apply convex_cone.mk (⋃ c > 0, (c : ℝ) • s);
     simp only [mem_Union, mem_smul_set],
@@ -330,7 +330,7 @@ begin
     simp only [smul_add, smul_smul, mul_div_assoc', mul_div_cancel_left _ (ne_of_gt this)] }
 end
 
-variables {s : set E} (hs : convex s) {x : E}
+variables {s : set E} (hs : convex ℝ s) {x : E}
 
 lemma mem_to_cone : x ∈ hs.to_cone s ↔ ∃ (c > 0) (y ∈ s), (c : ℝ) • y = x :=
 by simp only [to_cone, convex_cone.mem_mk, mem_Union, mem_smul_set, eq_comm, exists_prop]
@@ -361,15 +361,15 @@ hs.to_cone_is_least.is_glb.Inf_eq.symm
 end convex
 
 lemma convex_hull_to_cone_is_least (s : set E) :
-  is_least {t : convex_cone E | s ⊆ t} ((convex_convex_hull s).to_cone _) :=
+  is_least {t : convex_cone E | s ⊆ t} ((convex_convex_hull ℝ s).to_cone _) :=
 begin
-  convert (convex_convex_hull s).to_cone_is_least,
+  convert (convex_convex_hull ℝ s).to_cone_is_least,
   ext t,
-  exact ⟨λ h, convex_hull_min h t.convex, λ h, subset.trans (subset_convex_hull s) h⟩
+  exact ⟨λ h, convex_hull_min h t.convex, λ h, subset.trans (subset_convex_hull ℝ s) h⟩
 end
 
 lemma convex_hull_to_cone_eq_Inf (s : set E) :
-  (convex_convex_hull s).to_cone _ = Inf {t : convex_cone E | s ⊆ t} :=
+  (convex_convex_hull ℝ s).to_cone _ = Inf {t : convex_cone E | s ⊆ t} :=
 (convex_hull_to_cone_is_least s).is_glb.Inf_eq.symm
 
 /-!
@@ -487,7 +487,7 @@ theorem riesz_extension (s : convex_cone E) (f : linear_pmap ℝ E ℝ)
 begin
   rcases riesz_extension.exists_top s f nonneg dense with ⟨⟨g_dom, g⟩, ⟨hpg, hfg⟩, htop, hgs⟩,
   clear hpg,
-  refine ⟨g.comp (linear_equiv.of_top _ htop).symm, _, _⟩;
+  refine ⟨g ∘ₗ ↑(linear_equiv.of_top _ htop).symm, _, _⟩;
     simp only [comp_apply, linear_equiv.coe_coe, linear_equiv.of_top_symm_apply],
   { exact λ x, (hfg (submodule.coe_mk _ _).symm).symm },
   { exact λ x hx, hgs ⟨x, _⟩ hx }
@@ -517,7 +517,7 @@ begin
   { intros x y,
     simpa only [subtype.coe_mk, subtype.coe_eta] using g_eq ⟨(x, y), ⟨x.2, trivial⟩⟩ },
   { refine ⟨-g.comp (inl ℝ E ℝ), _, _⟩; simp only [neg_apply, inl_apply, comp_apply],
-    { intro x, simp  [g_eq x 0] },
+    { intro x, simp [g_eq x 0] },
     { intro x,
       have A : (x, N x) = (x, 0) + (0, N x), by simp,
       have B := g_nonneg ⟨x, N x⟩ (le_refl (N x)),

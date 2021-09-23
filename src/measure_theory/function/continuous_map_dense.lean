@@ -97,7 +97,7 @@ begin
   -- subset
   obtain ⟨u, u_open, su, μu⟩ : ∃ u, is_open u ∧ s ⊆ u ∧ μ u < μ s + ↑η,
   { refine hs.exists_is_open_lt_of_lt _ _,
-    simpa using (ennreal.add_lt_add_iff_left hsμ).2 hη_pos' },
+    simpa using (ennreal.add_lt_add_iff_left hsμ.ne).2 hη_pos' },
   obtain ⟨F, F_closed, Fs, μF⟩ : ∃ F, is_closed F ∧ F ⊆ s ∧ μ s < μ F + ↑η :=
     hs.exists_lt_is_closed_of_lt_top_of_pos hsμ hη_pos',
   have : disjoint uᶜ F,
@@ -105,10 +105,10 @@ begin
     simpa using Fs.trans su },
   have h_μ_sdiff : μ (u \ F) ≤ 2 * η,
   { have hFμ : μ F < ⊤ := (measure_mono Fs).trans_lt hsμ,
-    refine ennreal.le_of_add_le_add_left hFμ _,
+    refine ennreal.le_of_add_le_add_left hFμ.ne _,
     have : μ u < μ F + ↑η + ↑η,
     { refine μu.trans _,
-      rwa ennreal.add_lt_add_iff_right (ennreal.coe_lt_top : ↑η < ⊤) },
+      rwa ennreal.add_lt_add_iff_right (ennreal.coe_ne_top : ↑η ≠ ⊤) },
     convert this.le using 1,
     { rw [add_comm, ← measure_union, set.diff_union_of_subset (Fs.trans su)],
       { exact disjoint_sdiff_self_left },
@@ -171,7 +171,7 @@ variables (𝕜 : Type*) [measurable_space 𝕜] [normed_field 𝕜] [opens_meas
 
 namespace bounded_continuous_function
 
-lemma to_Lp_dense_range [μ.weakly_regular] [finite_measure μ] :
+lemma to_Lp_dense_range [μ.weakly_regular] [is_finite_measure μ] :
   dense_range ⇑(to_Lp p μ 𝕜 : (α →ᵇ E) →L[𝕜] Lp E p μ) :=
 begin
   haveI : normed_space ℝ E := restrict_scalars.normed_space ℝ 𝕜 E,
@@ -185,7 +185,7 @@ end bounded_continuous_function
 
 namespace continuous_map
 
-lemma to_Lp_dense_range [compact_space α] [μ.weakly_regular] [finite_measure μ] :
+lemma to_Lp_dense_range [compact_space α] [μ.weakly_regular] [is_finite_measure μ] :
   dense_range ⇑(to_Lp p μ 𝕜 : C(α, E) →L[𝕜] Lp E p μ) :=
 begin
   haveI : normed_space ℝ E := restrict_scalars.normed_space ℝ 𝕜 E,

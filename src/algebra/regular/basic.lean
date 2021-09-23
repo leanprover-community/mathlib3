@@ -3,7 +3,7 @@ Copyright (c) 2021 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
-import algebra.group.basic
+import algebra.order.monoid_lemmas
 import algebra.group_with_zero.basic
 import logic.embedding
 
@@ -42,6 +42,10 @@ on the right is injective. -/
 structure is_regular (c : R) : Prop :=
 (left : is_left_regular c)
 (right : is_right_regular c)
+
+protected lemma mul_le_cancellable.is_left_regular [partial_order R] {a : R}
+  (ha : mul_le_cancellable a) : is_left_regular a :=
+ha.injective
 
 end has_mul
 

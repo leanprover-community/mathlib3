@@ -440,7 +440,7 @@ let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑'i, m (f i) in
     infi_le_infi2 $ assume hb, ⟨subset.trans hs hb, le_refl _⟩,
   Union_nat := assume s, ennreal.le_of_forall_pos_le_add $ begin
     assume ε hε (hb : ∑'i, μ (s i) < ∞),
-    rcases ennreal.exists_pos_sum_of_encodable (ennreal.coe_lt_coe.2 hε) ℕ with ⟨ε', hε', hl⟩,
+    rcases ennreal.exists_pos_sum_of_encodable (ennreal.coe_pos.2 hε).ne' ℕ with ⟨ε', hε', hl⟩,
     refine le_trans _ (add_le_add_left (le_of_lt hl) _),
     rw ← ennreal.tsum_add,
     choose f hf using show
@@ -448,8 +448,8 @@ let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑'i, m (f i) in
     { intro,
       have : μ (s i) < μ (s i) + ε' i :=
         ennreal.lt_add_right
-          (lt_of_le_of_lt (by apply ennreal.le_tsum) hb)
-          (by simpa using hε' i),
+          (ne_top_of_le_ne_top hb.ne $ ennreal.le_tsum _)
+          (by simpa using (hε' i).ne'),
       simpa [μ, infi_lt_iff] },
     refine le_trans _ (ennreal.tsum_le_tsum $ λ i, le_of_lt (hf i).2),
     rw [← ennreal.tsum_prod, ← equiv.nat_prod_nat_equiv_nat.symm.tsum_eq],
@@ -602,6 +602,9 @@ theorem bounded_by_eq (s : set α) (m_empty : m ∅ = 0) (m_mono : ∀ ⦃t : se
   (m_subadd : ∀ (s : ℕ → set α), m (⋃i, s i) ≤ ∑'i, m (s i)) : bounded_by m s = m s :=
 by rw [bounded_by_eq_of_function m_empty, of_function_eq s m_mono m_subadd]
 
+@[simp] theorem bounded_by_eq_self (m : outer_measure α) : bounded_by m = m :=
+ext $ λ s, bounded_by_eq _ m.empty' (λ t ht, m.mono' ht) m.Union
+
 theorem le_bounded_by {μ : outer_measure α} : μ ≤ bounded_by m ↔ ∀ s, μ s ≤ m s :=
 begin
   rw [bounded_by, le_of_function, forall_congr], intro s,
@@ -690,8 +693,8 @@ lemma is_caratheodory_Union_lt {s : ℕ → set α} :
   ∀{n:ℕ}, (∀i<n, is_caratheodory (s i)) → is_caratheodory (⋃i<n, s i)
 | 0       h := by simp [nat.not_lt_zero]
 | (n + 1) h := by rw bUnion_lt_succ; exact is_caratheodory_union m
-  (h n (le_refl (n + 1)))
-      (is_caratheodory_Union_lt $ assume i hi, h i $ lt_of_lt_of_le hi $ nat.le_succ _)
+    (is_caratheodory_Union_lt $ assume i hi, h i $ lt_of_lt_of_le hi $ nat.le_succ _)
+    (h n (le_refl (n + 1)))
 
 lemma is_caratheodory_inter (h₁ : is_caratheodory s₁) (h₂ : is_caratheodory s₂) :
   is_caratheodory (s₁ ∩ s₂) :=
@@ -703,10 +706,10 @@ lemma is_caratheodory_sum {s : ℕ → set α} (h : ∀i, is_caratheodory (s i))
   ∀ {n}, ∑ i in finset.range n, m (t ∩ s i) = m (t ∩ ⋃i<n, s i)
 | 0            := by simp [nat.not_lt_zero, m.empty]
 | (nat.succ n) := begin
-  simp [bUnion_lt_succ, range_succ],
-  rw [measure_inter_union m _ (h n), is_caratheodory_sum],
+  rw [bUnion_lt_succ, finset.sum_range_succ, set.union_comm, is_caratheodory_sum,
+    m.measure_inter_union _ (h n), add_comm],
   intro a,
-  simpa [range_succ] using λ (h₁ : a ∈ s n) i (hi : i < n) h₂, hd _ _ (ne_of_gt hi) ⟨h₁, h₂⟩
+  simpa using λ (h₁ : a ∈ s n) i (hi : i < n) h₂, hd _ _ (ne_of_gt hi) ⟨h₁, h₂⟩
 end
 
 lemma is_caratheodory_Union_nat {s : ℕ → set α} (h : ∀i, is_caratheodory (s i))
@@ -1078,7 +1081,7 @@ lemma induced_outer_measure_union_of_false_of_nonempty_inter {s t : set α}
   (h : ∀ u, (s ∩ u).nonempty → (t ∩ u).nonempty → ¬P u) :
   induced_outer_measure m P0 m0 (s ∪ t) =
      induced_outer_measure m P0 m0 s + induced_outer_measure m P0 m0 t :=
-of_function_union_of_top_of_nonempty_inter $ λ u hsu htu, infi_of_empty' $ h u hsu htu
+of_function_union_of_top_of_nonempty_inter $ λ u hsu htu, @infi_of_empty _ _ _ ⟨h u hsu htu⟩ _
 
 include msU m_mono
 lemma induced_outer_measure_eq_extend' {s : set α} (hs : P s) :
@@ -1114,11 +1117,11 @@ begin
 end
 
 lemma induced_outer_measure_exists_set {s : set α}
-  (hs : induced_outer_measure m P0 m0 s < ∞) {ε : ℝ≥0} (hε : 0 < ε) :
+  (hs : induced_outer_measure m P0 m0 s ≠ ∞) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
   ∃ (t : set α) (ht : P t), s ⊆ t ∧
     induced_outer_measure m P0 m0 t ≤ induced_outer_measure m P0 m0 s + ε :=
 begin
-  have := ennreal.lt_add_right hs (ennreal.zero_lt_coe_iff.2 hε),
+  have := ennreal.lt_add_right hs hε,
   conv at this {to_lhs, rw induced_outer_measure_eq_infi _ msU m_mono },
   simp only [infi_lt_iff] at this,
   rcases this with ⟨t, h1t, h2t, h3t⟩,
@@ -1215,6 +1218,14 @@ theorem le_trim_iff {m₁ m₂ : outer_measure α} :
   m₁ ≤ m₂.trim ↔ ∀ s, measurable_set s → m₁ s ≤ m₂ s :=
 le_of_function.trans $ forall_congr $ λ s, le_infi_iff
 
+theorem trim_le_trim_iff {m₁ m₂ : outer_measure α} :
+  m₁.trim ≤ m₂.trim ↔ ∀ s, measurable_set s → m₁ s ≤ m₂ s :=
+le_trim_iff.trans $ forall_congr $ λ s, forall_congr $ λ hs, by rw [trim_eq _ hs]
+
+theorem trim_eq_trim_iff {m₁ m₂ : outer_measure α} :
+  m₁.trim = m₂.trim ↔ ∀ s, measurable_set s → m₁ s = m₂ s :=
+by simp only [le_antisymm_iff, trim_le_trim_iff, forall_and_distrib]
+
 theorem trim_eq_infi (s : set α) : m.trim s = ⨅ t (st : s ⊆ t) (ht : measurable_set t), m t :=
 by { simp only [infi_comm] {single_pass := tt}, exact induced_outer_measure_eq_infi
     measurable_set.Union (λ f _, m.Union_nat f) (λ _ _ _ _ h, m.mono h) s }
@@ -1223,7 +1234,7 @@ theorem trim_eq_infi' (s : set α) : m.trim s = ⨅ t : {t // s ⊆ t ∧ measur
 by simp [infi_subtype, infi_and, trim_eq_infi]
 
 theorem trim_trim (m : outer_measure α) : m.trim.trim = m.trim :=
-le_antisymm (le_trim_iff.2 $ λ s hs, by simp [trim_eq _ hs, le_refl]) (le_trim _)
+trim_eq_trim_iff.2 $ λ s, m.trim_eq
 
 @[simp] theorem trim_zero : (0 : outer_measure α).trim = 0 :=
 ext $ λ s, le_antisymm
@@ -1249,8 +1260,8 @@ begin
       simpa [infi_lt_iff] using hs },
     have : ∀ n : ℕ, ∃ t, s ⊆ t ∧ measurable_set t ∧ m t < ms + n⁻¹,
     { assume n,
-      refine this _ (ennreal.lt_add_right (lt_top_iff_ne_top.2 hs) _),
-      exact (ennreal.inv_pos.2 $ ennreal.nat_ne_top _) },
+      refine this _ (ennreal.lt_add_right hs _),
+      simp },
     choose t hsub hm hm',
     refine ⟨⋂ n, t n, subset_Inter hsub, measurable_set.Inter hm, _⟩,
     have : tendsto (λ n : ℕ, ms + n⁻¹) at_top (𝓝 (ms + 0)),

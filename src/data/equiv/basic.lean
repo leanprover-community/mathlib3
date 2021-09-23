@@ -183,8 +183,11 @@ lemma perm.subsingleton_eq_refl [subsingleton α] (e : perm α) :
 protected def decidable_eq (e : α ≃ β) [decidable_eq β] : decidable_eq α :=
 e.injective.decidable_eq
 
-lemma nonempty_iff_nonempty (e : α ≃ β) : nonempty α ↔ nonempty β :=
+lemma nonempty_congr (e : α ≃ β) : nonempty α ↔ nonempty β :=
 nonempty.congr e e.symm
+
+protected lemma nonempty (e : α ≃ β) [nonempty β] : nonempty α :=
+e.nonempty_congr.mpr ‹_›
 
 /-- If `α ≃ β` and `β` is inhabited, then so is `α`. -/
 protected def inhabited [inhabited β] (e : α ≃ β) : inhabited α :=
@@ -791,6 +794,15 @@ def option_is_some_equiv (α : Type*) : {x : option α // x.is_some} ≃ α :=
   left_inv := λ o, subtype.eq $ option.some_get _,
   right_inv := λ x, option.get_some _ _ }
 
+/-- The product over `option α` of `β a` is the binary product of the
+product over `α` of `β (some α)` and `β none` -/
+@[simps] def pi_option_equiv_prod {α : Type*} {β : option α → Type*} :
+  (Π a : option α, β a) ≃ (β none × Π a : α, β (some a)) :=
+{ to_fun := λ f, (f none, λ a, f (some a)),
+  inv_fun := λ x a, option.cases_on a x.fst x.snd,
+  left_inv := λ f, funext $ λ a, by cases a; refl,
+  right_inv := λ x, by simp }
+
 /-- `α ⊕ β` is equivalent to a `sigma`-type over `bool`. Note that this definition assumes `α` and
 `β` to be types from the same universe, so it cannot by used directly to transfer theorems about
 sigma types to theorems about sum types. In many cases one can use `ulift` to work around this
@@ -1044,6 +1056,14 @@ is equivalent to the product. -/
 def sigma_equiv_prod_of_equiv {α β} {β₁ : α → Sort*} (F : Π a, β₁ a ≃ β) : sigma β₁ ≃ α × β :=
 (sigma_congr_right F).trans (sigma_equiv_prod α β)
 
+/-- Dependent product of types is associative up to an equivalence. -/
+def sigma_assoc {α : Type*} {β : α → Type*} (γ : Π (a : α), β a → Type*) :
+  (Σ (ab : Σ (a : α), β a), γ ab.1 ab.2) ≃ Σ (a : α), (Σ (b : β a), γ a b) :=
+{ to_fun := λ x, ⟨x.1.1, ⟨x.1.2, x.2⟩⟩,
+  inv_fun := λ x, ⟨⟨x.1, x.2.1⟩, x.2.2⟩,
+  left_inv := λ ⟨⟨a, b⟩, c⟩, rfl,
+  right_inv := λ ⟨a, ⟨b, c⟩⟩, rfl }
+
 end
 
 section prod_congr
@@ -1209,17 +1229,11 @@ calc bool × α ≃ (unit ⊕ unit) × α       : prod_congr bool_equiv_punit_su
       ...     ≃ α ⊕ α                   : sum_congr (punit_prod _) (punit_prod _)
 
 /-- The function type `bool → α` is equivalent to `α × α`. -/
-def bool_to_equiv_prod (α : Type u) : (bool → α) ≃ α × α :=
-calc (bool → α) ≃ ((unit ⊕ unit) → α) : (arrow_congr bool_equiv_punit_sum_punit (equiv.refl α))
-     ...        ≃ (unit → α) × (unit → α) : sum_arrow_equiv_prod_arrow _ _ _
-     ...        ≃ α × α : prod_congr (punit_arrow_equiv _) (punit_arrow_equiv _)
-
-@[simp] lemma bool_to_equiv_prod_apply {α : Type u} (f : bool → α) :
-  bool_to_equiv_prod α f = (f ff, f tt) := rfl
-@[simp] lemma bool_to_equiv_prod_symm_apply_ff {α : Type u} (p : α × α) :
-  (bool_to_equiv_prod α).symm p ff = p.1 := rfl
-@[simp] lemma bool_to_equiv_prod_symm_apply_tt {α : Type u} (p : α × α) :
-  (bool_to_equiv_prod α).symm p tt = p.2 := rfl
+@[simps] def bool_arrow_equiv_prod (α : Type u) : (bool → α) ≃ α × α :=
+{ to_fun := λ f, (f tt, f ff),
+  inv_fun := λ p b, cond b p.1 p.2,
+  left_inv := λ f, funext $ bool.forall_bool.2 ⟨rfl, rfl⟩,
+  right_inv := λ ⟨x, y⟩, rfl }
 
 end
 
@@ -1264,6 +1278,9 @@ def unique_congr (e : α ≃ β) : unique α ≃ unique β :=
 lemma is_empty_congr (e : α ≃ β) : is_empty α ↔ is_empty β :=
 ⟨λ h, @function.is_empty _ _ h e.symm, λ h, @function.is_empty _ _ h e⟩
 
+protected lemma is_empty (e : α ≃ β) [is_empty β] : is_empty α :=
+e.is_empty_congr.mpr ‹_›
+
 section
 open subtype
 
@@ -1286,8 +1303,7 @@ by { ext, refl }
   (h : ∀ (a : α), p a ↔ q (e a)) :
   (e.subtype_equiv h).symm = e.symm.subtype_equiv (λ a, by {
     convert (h $ e.symm a).symm,
-    exact (e.apply_symm_apply a).symm,
-  }) :=
+    exact (e.apply_symm_apply a).symm }) :=
 rfl
 
 @[simp] lemma subtype_equiv_trans {p : α → Prop} {q : β → Prop} {r : γ → Prop}
@@ -1413,6 +1429,20 @@ calc (Σ y : subtype q, {x : α // f x = y}) ≃
 
    ... ≃ subtype p : sigma_preimage_equiv (λ x : subtype p, (⟨f x, (h x).1 x.property⟩ : subtype q))
 
+/-- A sigma type over an `option` is equivalent to the sigma set over the original type,
+if the fiber is empty at none. -/
+def sigma_option_equiv_of_some {α : Type u} (p : option α → Type v) (h : p none → false) :
+  (Σ x : option α, p x) ≃ (Σ x : α, p (some x)) :=
+begin
+  have h' : ∀ x, p x → x.is_some,
+  { intro x,
+    cases x,
+    { intro n, exfalso, exact h n },
+    { intro s, exact rfl } },
+  exact (sigma_subtype_equiv_of_subset _ _ h').symm.trans
+    (sigma_congr_left' (option_is_some_equiv α)),
+end
+
 /-- The `pi`-type `Π i, π i` is equivalent to the type of sections `f : ι → Σ i, π i` of the
 `sigma` type such that for all `i` we have `(f i).fst = i`. -/
 def pi_equiv_subtype_sigma (ι : Type*) (π : ι → Type*) :
@@ -1446,6 +1476,28 @@ def subtype_prod_equiv_sigma_subtype {α β : Type*} (p : α → β → Prop) :
   inv_fun := λ x, ⟨⟨x.1, x.2⟩, x.2.prop⟩,
   left_inv := λ x, by ext; refl,
   right_inv := λ ⟨a, b, pab⟩, rfl }
+
+/-- The type `Π (i : α), β i` can be split as a product by separating the indices in `α`
+depending on whether they satisfy a predicate `p` or not. -/
+@[simps] def pi_equiv_pi_subtype_prod
+  {α : Type*} (p : α → Prop) (β : α → Type*) [decidable_pred p] :
+  (Π (i : α), β i) ≃ (Π (i : {x // p x}), β i) × (Π (i : {x // ¬ p x}), β i) :=
+{ to_fun := λ f, (λ x, f x, λ x, f x),
+  inv_fun := λ f x, if h : p x then f.1 ⟨x, h⟩ else f.2 ⟨x, h⟩,
+  right_inv := begin
+    rintros ⟨f, g⟩,
+    ext1;
+    { ext y,
+      rcases y,
+      simp only [y_property, dif_pos, dif_neg, not_false_iff, subtype.coe_mk],
+      refl },
+  end,
+  left_inv := λ f, begin
+    ext x,
+    by_cases h : p x;
+    { simp only [h, dif_neg, dif_pos, not_false_iff],
+      refl },
+  end }
 
 end
 
@@ -1725,6 +1777,14 @@ protected noncomputable def image_of_inj_on {α β} (f : α → β) (s : set α)
 protected noncomputable def image {α β} (f : α → β) (s : set α) (H : injective f) : s ≃ (f '' s) :=
 equiv.set.image_of_inj_on f s (H.inj_on s)
 
+@[simp] protected lemma image_symm_apply {α β} (f : α → β) (s : set α) (H : injective f)
+  (x : α) (h : x ∈ s) :
+  (set.image f s H).symm ⟨f x, ⟨x, ⟨h, rfl⟩⟩⟩ = ⟨x, h⟩ :=
+begin
+  apply (set.image f s H).injective,
+  simp [(set.image f s H).apply_symm_apply],
+end
+
 lemma image_symm_preimage {α β} {f : α → β} (hf : injective f) (u s : set α) :
   (λ x, (set.image f s hf).symm x : f '' s → α) ⁻¹' u = coe ⁻¹' (f '' u) :=
 begin
@@ -1749,6 +1809,19 @@ protected def powerset {α} (S : set α) : 𝒫 S ≃ set S :=
   inv_fun := λ x : set S, ⟨coe '' x, by rintro _ ⟨a : S, _, rfl⟩; exact a.2⟩,
   left_inv := λ x, by ext y; exact ⟨λ ⟨⟨_, _⟩, h, rfl⟩, h, λ h, ⟨⟨_, x.2 h⟩, h, rfl⟩⟩,
   right_inv := λ x, by ext; simp }
+
+/--
+If `s` is a set in `range f`,
+then its image under `range_splitting f` is in bijection (via `f`) with `s`.
+-/
+@[simps]
+noncomputable def range_splitting_image_equiv {α β : Type*} (f : α → β) (s : set (range f)) :
+  range_splitting f '' s ≃ s :=
+{ to_fun := λ x, ⟨⟨f x, by simp⟩,
+    (by { rcases x with ⟨x, ⟨y, ⟨m, rfl⟩⟩⟩, simpa [apply_range_splitting f] using m, })⟩,
+  inv_fun := λ x, ⟨range_splitting f x, ⟨x, ⟨x.2, rfl⟩⟩⟩,
+  left_inv := λ x, by { rcases x with ⟨x, ⟨y, ⟨m, rfl⟩⟩⟩, simp [apply_range_splitting f] },
+  right_inv := λ x, by simp [apply_range_splitting f], }
 
 end set
 
@@ -2194,15 +2267,6 @@ lemma function.injective.swap_comp [decidable_eq α] [decidable_eq β] {f : α �
   (hf : function.injective f) (x y : α) :
   equiv.swap (f x) (f y) ∘ f = f ∘ equiv.swap x y :=
 funext $ λ z, hf.swap_apply _ _ _
-
-instance {α} [subsingleton α] : subsingleton (ulift α) := equiv.ulift.subsingleton
-instance {α} [subsingleton α] : subsingleton (plift α) := equiv.plift.subsingleton
-
-instance {α} [unique α] : unique (ulift α) := equiv.ulift.unique
-instance {α} [unique α] : unique (plift α) := equiv.plift.unique
-
-instance {α} [decidable_eq α] : decidable_eq (ulift α) := equiv.ulift.decidable_eq
-instance {α} [decidable_eq α] : decidable_eq (plift α) := equiv.plift.decidable_eq
 
 /-- If both `α` and `β` are singletons, then `α ≃ β`. -/
 def equiv_of_unique_of_unique [unique α] [unique β] : α ≃ β :=

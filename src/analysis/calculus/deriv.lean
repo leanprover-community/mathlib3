@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Ebner, Sébastien Gouëzel
 -/
 import analysis.calculus.fderiv
+import data.polynomial.derivative
 
 /-!
 
@@ -270,6 +271,13 @@ lemma has_deriv_at_iff_tendsto_slope :
     tendsto (λ y, (y - x)⁻¹ • (f y - f x)) (𝓝[{x}ᶜ] x) (𝓝 f') :=
 has_deriv_at_filter_iff_tendsto_slope
 
+theorem has_deriv_within_at_congr_set {s t u : set 𝕜}
+  (hu : u ∈ 𝓝 x) (h : s ∩ u = t ∩ u) :
+    has_deriv_within_at f f' s x ↔ has_deriv_within_at f f' t x :=
+by simp_rw [has_deriv_within_at, nhds_within_eq_nhds_within' hu h]
+
+alias has_deriv_within_at_congr_set ↔ has_deriv_within_at.congr_set _
+
 @[simp] lemma has_deriv_within_at_diff_singleton :
   has_deriv_within_at f f' (s \ {x}) x ↔ has_deriv_within_at f f' s x :=
 by simp only [has_deriv_within_at_iff_tendsto_slope, sdiff_idem]
@@ -287,6 +295,15 @@ by rw [← Iic_diff_right, has_deriv_within_at_diff_singleton]
 
 alias has_deriv_within_at_Iio_iff_Iic ↔
   has_deriv_within_at.Iic_of_Iio has_deriv_within_at.Iio_of_Iic
+
+theorem has_deriv_within_at.Ioi_iff_Ioo [linear_order 𝕜] [order_closed_topology 𝕜] {x y : 𝕜}
+  (h : x < y) :
+  has_deriv_within_at f f' (Ioo x y) x ↔ has_deriv_within_at f f' (Ioi x) x :=
+has_deriv_within_at_congr_set (is_open_Iio.mem_nhds h) $
+  by { rw [Ioi_inter_Iio, inter_eq_left_iff_subset], exact Ioo_subset_Iio_self }
+
+alias has_deriv_within_at.Ioi_iff_Ioo ↔
+  has_deriv_within_at.Ioi_of_Ioo has_deriv_within_at.Ioo_of_Ioi
 
 theorem has_deriv_at_iff_is_o_nhds_zero : has_deriv_at f f' x ↔
   is_o (λh, f (x + h) - f x - h • f') (λh, h) (𝓝 0) :=
@@ -440,6 +457,9 @@ by { unfold deriv_within, rw fderiv_within_congr hs hL hx }
 lemma filter.eventually_eq.deriv_eq (hL : f₁ =ᶠ[𝓝 x] f) : deriv f₁ x = deriv f x :=
 by { unfold deriv, rwa filter.eventually_eq.fderiv_eq }
 
+protected lemma filter.eventually_eq.deriv (h : f₁ =ᶠ[𝓝 x] f) : deriv f₁ =ᶠ[𝓝 x] deriv f :=
+h.eventually_eq_nhds.mono $ λ x h, h.deriv_eq
+
 end congr
 
 section id
@@ -464,11 +484,9 @@ theorem has_strict_deriv_at_id : has_strict_deriv_at id 1 x :=
 lemma deriv_id : deriv id x = 1 :=
 has_deriv_at.deriv (has_deriv_at_id x)
 
-@[simp] lemma deriv_id' : deriv (@id 𝕜) = λ _, 1 :=
-funext deriv_id
+@[simp] lemma deriv_id' : deriv (@id 𝕜) = λ _, 1 := funext deriv_id
 
-@[simp] lemma deriv_id'' : deriv (λ x : 𝕜, x) x = 1 :=
-deriv_id x
+@[simp] lemma deriv_id'' : deriv (λ x : 𝕜, x) = λ _, 1 := deriv_id'
 
 lemma deriv_within_id (hxs : unique_diff_within_at 𝕜 s x) : deriv_within id s x = 1 :=
 (has_deriv_within_at_id x s).deriv_within hxs
@@ -552,24 +570,6 @@ e.has_deriv_within_at.deriv_within hxs
 
 end linear_map
 
-section analytic
-
-variables {p : formal_multilinear_series 𝕜 𝕜 F} {r : ℝ≥0∞}
-
-protected lemma has_fpower_series_at.has_strict_deriv_at (h : has_fpower_series_at f p x) :
-  has_strict_deriv_at f (p 1 (λ _, 1)) x :=
-h.has_strict_fderiv_at.has_strict_deriv_at
-
-protected lemma has_fpower_series_at.has_deriv_at (h : has_fpower_series_at f p x) :
-  has_deriv_at f (p 1 (λ _, 1)) x :=
-h.has_strict_deriv_at.has_deriv_at
-
-protected lemma has_fpower_series_at.deriv (h : has_fpower_series_at f p x) :
-  deriv f x = p 1 (λ _, 1) :=
-h.has_deriv_at.deriv
-
-end analytic
-
 section add
 /-! ### Derivative of the sum of two functions -/
 
@@ -625,6 +625,9 @@ by simp only [deriv_within, fderiv_within_add_const hxs]
 lemma deriv_add_const (c : F) : deriv (λy, f y + c) x = deriv f x :=
 by simp only [deriv, fderiv_add_const]
 
+@[simp] lemma deriv_add_const' (c : F) : deriv (λ y, f y + c) = deriv f :=
+funext $ λ x, deriv_add_const c
+
 theorem has_deriv_at_filter.const_add (c : F) (hf : has_deriv_at_filter f f' x L) :
   has_deriv_at_filter (λ y, c + f y) f' x L :=
 zero_add f' ▸ (has_deriv_at_filter_const x L c).add hf
@@ -643,6 +646,9 @@ by simp only [deriv_within, fderiv_within_const_add hxs]
 
 lemma deriv_const_add (c : F)  : deriv (λy, c + f y) x = deriv f x :=
 by simp only [deriv, fderiv_const_add]
+
+@[simp] lemma deriv_const_add' (c : F) : deriv (λ y, c + f y) = deriv f :=
+funext $ λ x, deriv_const_add c
 
 end add
 
@@ -1226,15 +1232,19 @@ lemma fderiv.comp_deriv
 end composition_vector
 
 section mul
-/-! ### Derivative of the multiplication of two scalar functions -/
-variables {c d : 𝕜 → 𝕜} {c' d' : 𝕜}
+/-! ### Derivative of the multiplication of two functions -/
+variables {𝕜' 𝔸 : Type*} [normed_field 𝕜'] [normed_ring 𝔸] [normed_algebra 𝕜 𝕜']
+  [normed_algebra 𝕜 𝔸] {c d : 𝕜 → 𝔸} {c' d' : 𝔸} {u v : 𝕜 → 𝕜'}
 
 theorem has_deriv_within_at.mul
   (hc : has_deriv_within_at c c' s x) (hd : has_deriv_within_at d d' s x) :
   has_deriv_within_at (λ y, c y * d y) (c' * d x + c x * d') s x :=
 begin
-  convert hc.smul hd using 1,
-  rw [smul_eq_mul, smul_eq_mul, add_comm]
+  have := (has_fderiv_within_at.mul' hc hd).has_deriv_within_at,
+  rwa [continuous_linear_map.add_apply, continuous_linear_map.smul_apply,
+      continuous_linear_map.smul_right_apply, continuous_linear_map.smul_right_apply,
+      continuous_linear_map.smul_right_apply, continuous_linear_map.one_apply,
+      one_smul, one_smul, add_comm] at this,
 end
 
 theorem has_deriv_at.mul (hc : has_deriv_at c c' x) (hd : has_deriv_at d d' x) :
@@ -1248,8 +1258,11 @@ theorem has_strict_deriv_at.mul
   (hc : has_strict_deriv_at c c' x) (hd : has_strict_deriv_at d d' x) :
   has_strict_deriv_at (λ y, c y * d y) (c' * d x + c x * d') x :=
 begin
-  convert hc.smul hd using 1,
-  rw [smul_eq_mul, smul_eq_mul, add_comm]
+  have := (has_strict_fderiv_at.mul' hc hd).has_strict_deriv_at,
+  rwa [continuous_linear_map.add_apply, continuous_linear_map.smul_apply,
+      continuous_linear_map.smul_right_apply, continuous_linear_map.smul_right_apply,
+      continuous_linear_map.smul_right_apply, continuous_linear_map.one_apply,
+      one_smul, one_smul, add_comm] at this,
 end
 
 lemma deriv_within_mul (hxs : unique_diff_within_at 𝕜 s x)
@@ -1261,21 +1274,21 @@ lemma deriv_within_mul (hxs : unique_diff_within_at 𝕜 s x)
   deriv (λ y, c y * d y) x = deriv c x * d x + c x * deriv d x :=
 (hc.has_deriv_at.mul hd.has_deriv_at).deriv
 
-theorem has_deriv_within_at.mul_const (hc : has_deriv_within_at c c' s x) (d : 𝕜) :
+theorem has_deriv_within_at.mul_const (hc : has_deriv_within_at c c' s x) (d : 𝔸) :
   has_deriv_within_at (λ y, c y * d) (c' * d) s x :=
 begin
   convert hc.mul (has_deriv_within_at_const x s d),
   rw [mul_zero, add_zero]
 end
 
-theorem has_deriv_at.mul_const (hc : has_deriv_at c c' x) (d : 𝕜) :
+theorem has_deriv_at.mul_const (hc : has_deriv_at c c' x) (d : 𝔸) :
   has_deriv_at (λ y, c y * d) (c' * d) x :=
 begin
   rw [← has_deriv_within_at_univ] at *,
   exact hc.mul_const d
 end
 
-theorem has_strict_deriv_at.mul_const (hc : has_strict_deriv_at c c' x) (d : 𝕜) :
+theorem has_strict_deriv_at.mul_const (hc : has_strict_deriv_at c c' x) (d : 𝔸) :
   has_strict_deriv_at (λ y, c y * d) (c' * d) x :=
 begin
   convert hc.mul (has_strict_deriv_at_const x d),
@@ -1283,29 +1296,44 @@ begin
 end
 
 lemma deriv_within_mul_const (hxs : unique_diff_within_at 𝕜 s x)
-  (hc : differentiable_within_at 𝕜 c s x) (d : 𝕜) :
+  (hc : differentiable_within_at 𝕜 c s x) (d : 𝔸) :
   deriv_within (λ y, c y * d) s x = deriv_within c s x * d :=
 (hc.has_deriv_within_at.mul_const d).deriv_within hxs
 
-lemma deriv_mul_const (hc : differentiable_at 𝕜 c x) (d : 𝕜) :
+lemma deriv_mul_const (hc : differentiable_at 𝕜 c x) (d : 𝔸) :
   deriv (λ y, c y * d) x = deriv c x * d :=
 (hc.has_deriv_at.mul_const d).deriv
 
-theorem has_deriv_within_at.const_mul (c : 𝕜) (hd : has_deriv_within_at d d' s x) :
+lemma deriv_mul_const_field (v : 𝕜') :
+  deriv (λ y, u y * v) x = deriv u x * v :=
+begin
+  by_cases hu : differentiable_at 𝕜 u x,
+  { exact deriv_mul_const hu v },
+  { rw [deriv_zero_of_not_differentiable_at hu, zero_mul],
+    rcases eq_or_ne v 0 with rfl|hd,
+    { simp only [mul_zero, deriv_const] },
+    { refine deriv_zero_of_not_differentiable_at (mt (λ H, _) hu),
+      simpa only [mul_inv_cancel_right' hd] using H.mul_const v⁻¹ } }
+end
+
+@[simp] lemma deriv_mul_const_field' (v : 𝕜') : deriv (λ x, u x * v) = λ x, deriv u x * v :=
+funext $ λ _, deriv_mul_const_field v
+
+theorem has_deriv_within_at.const_mul (c : 𝔸) (hd : has_deriv_within_at d d' s x) :
   has_deriv_within_at (λ y, c * d y) (c * d') s x :=
 begin
   convert (has_deriv_within_at_const x s c).mul hd,
   rw [zero_mul, zero_add]
 end
 
-theorem has_deriv_at.const_mul (c : 𝕜) (hd : has_deriv_at d d' x) :
+theorem has_deriv_at.const_mul (c : 𝔸) (hd : has_deriv_at d d' x) :
   has_deriv_at (λ y, c * d y) (c * d') x :=
 begin
   rw [← has_deriv_within_at_univ] at *,
   exact hd.const_mul c
 end
 
-theorem has_strict_deriv_at.const_mul (c : 𝕜) (hd : has_strict_deriv_at d d' x) :
+theorem has_strict_deriv_at.const_mul (c : 𝔸) (hd : has_strict_deriv_at d d' x) :
   has_strict_deriv_at (λ y, c * d y) (c * d') x :=
 begin
   convert (has_strict_deriv_at_const _ _).mul hd,
@@ -1313,13 +1341,19 @@ begin
 end
 
 lemma deriv_within_const_mul (hxs : unique_diff_within_at 𝕜 s x)
-  (c : 𝕜) (hd : differentiable_within_at 𝕜 d s x) :
+  (c : 𝔸) (hd : differentiable_within_at 𝕜 d s x) :
   deriv_within (λ y, c * d y) s x = c * deriv_within d s x :=
 (hd.has_deriv_within_at.const_mul c).deriv_within hxs
 
-lemma deriv_const_mul (c : 𝕜) (hd : differentiable_at 𝕜 d x) :
+lemma deriv_const_mul (c : 𝔸) (hd : differentiable_at 𝕜 d x) :
   deriv (λ y, c * d y) x = c * deriv d x :=
 (hd.has_deriv_at.const_mul c).deriv
+
+lemma deriv_const_mul_field (u : 𝕜') : deriv (λ y, u * v y) x = u * deriv v x :=
+by simp only [mul_comm u, deriv_mul_const_field]
+
+@[simp] lemma deriv_const_mul_field' (u : 𝕜') : deriv (λ x, u * v x) = λ x, u * deriv v x :=
+funext (λ x, deriv_const_mul_field u)
 
 end mul
 
@@ -1348,26 +1382,32 @@ theorem has_deriv_within_at_inv (x_ne_zero : x ≠ 0) (s : set 𝕜) :
   has_deriv_within_at (λx, x⁻¹) (-(x^2)⁻¹) s x :=
 (has_deriv_at_inv x_ne_zero).has_deriv_within_at
 
-lemma differentiable_at_inv (x_ne_zero : x ≠ 0) :
-  differentiable_at 𝕜 (λx, x⁻¹) x :=
-(has_deriv_at_inv x_ne_zero).differentiable_at
+lemma differentiable_at_inv :
+  differentiable_at 𝕜 (λx, x⁻¹) x ↔ x ≠ 0:=
+⟨λ H, normed_field.continuous_at_inv.1 H.continuous_at,
+  λ H, (has_deriv_at_inv H).differentiable_at⟩
 
 lemma differentiable_within_at_inv (x_ne_zero : x ≠ 0) :
   differentiable_within_at 𝕜 (λx, x⁻¹) s x :=
-(differentiable_at_inv x_ne_zero).differentiable_within_at
+(differentiable_at_inv.2 x_ne_zero).differentiable_within_at
 
 lemma differentiable_on_inv : differentiable_on 𝕜 (λx:𝕜, x⁻¹) {x | x ≠ 0} :=
 λx hx, differentiable_within_at_inv hx
 
-lemma deriv_inv (x_ne_zero : x ≠ 0) :
-  deriv (λx, x⁻¹) x = -(x^2)⁻¹ :=
-(has_deriv_at_inv x_ne_zero).deriv
+lemma deriv_inv : deriv (λx, x⁻¹) x = -(x^2)⁻¹ :=
+begin
+  rcases eq_or_ne x 0 with rfl|hne,
+  { simp [deriv_zero_of_not_differentiable_at (mt differentiable_at_inv.1 (not_not.2 rfl))] },
+  { exact (has_deriv_at_inv hne).deriv  }
+end
+
+@[simp] lemma deriv_inv' : deriv (λ x : 𝕜, x⁻¹) = λ x, -(x ^ 2)⁻¹ := funext (λ x, deriv_inv)
 
 lemma deriv_within_inv (x_ne_zero : x ≠ 0) (hxs : unique_diff_within_at 𝕜 s x) :
   deriv_within (λx, x⁻¹) s x = -(x^2)⁻¹ :=
 begin
-  rw differentiable_at.deriv_within (differentiable_at_inv x_ne_zero) hxs,
-  exact deriv_inv x_ne_zero
+  rw differentiable_at.deriv_within (differentiable_at_inv.2 x_ne_zero) hxs,
+  exact deriv_inv
 end
 
 lemma has_fderiv_at_inv (x_ne_zero : x ≠ 0) :
@@ -1378,15 +1418,15 @@ lemma has_fderiv_within_at_inv (x_ne_zero : x ≠ 0) :
   has_fderiv_within_at (λx, x⁻¹) (smul_right (1 : 𝕜 →L[𝕜] 𝕜) (-(x^2)⁻¹) : 𝕜 →L[𝕜] 𝕜) s x :=
 (has_fderiv_at_inv x_ne_zero).has_fderiv_within_at
 
-lemma fderiv_inv (x_ne_zero : x ≠ 0) :
+lemma fderiv_inv :
   fderiv 𝕜 (λx, x⁻¹) x = smul_right (1 : 𝕜 →L[𝕜] 𝕜) (-(x^2)⁻¹) :=
-(has_fderiv_at_inv x_ne_zero).fderiv
+by rw [← deriv_fderiv, deriv_inv]
 
 lemma fderiv_within_inv (x_ne_zero : x ≠ 0) (hxs : unique_diff_within_at 𝕜 s x) :
   fderiv_within 𝕜 (λx, x⁻¹) s x = smul_right (1 : 𝕜 →L[𝕜] 𝕜) (-(x^2)⁻¹) :=
 begin
-  rw differentiable_at.fderiv_within (differentiable_at_inv x_ne_zero) hxs,
-  exact fderiv_inv x_ne_zero
+  rw differentiable_at.fderiv_within (differentiable_at_inv.2 x_ne_zero) hxs,
+  exact fderiv_inv
 end
 
 variables {c : 𝕜 → 𝕜} {c' : 𝕜}
@@ -1427,7 +1467,7 @@ lemma deriv_within_inv' (hc : differentiable_within_at 𝕜 c s x) (hx : c x ≠
   deriv_within (λx, (c x)⁻¹) s x = - (deriv_within c s x) / (c x)^2 :=
 (hc.has_deriv_within_at.inv hx).deriv_within hxs
 
-@[simp] lemma deriv_inv' (hc : differentiable_at 𝕜 c x) (hx : c x ≠ 0) :
+@[simp] lemma deriv_inv'' (hc : differentiable_at 𝕜 c x) (hx : c x ≠ 0) :
   deriv (λx, (c x)⁻¹) x = - (deriv c x) / (c x)^2 :=
 (hc.has_deriv_at.inv hx).deriv
 
@@ -1516,9 +1556,9 @@ lemma deriv_within_div_const (hc : differentiable_within_at 𝕜 c s x) {d : �
   deriv_within (λx, c x / d) s x = (deriv_within c s x) / d :=
 by simp [div_eq_inv_mul, deriv_within_const_mul, hc, hxs]
 
-@[simp] lemma deriv_div_const (hc : differentiable_at 𝕜 c x) {d : 𝕜} :
+@[simp] lemma deriv_div_const (d : 𝕜) :
   deriv (λx, c x / d) x = (deriv c x) / d :=
-by simp [div_eq_inv_mul, deriv_const_mul, hc]
+by simp only [div_eq_mul_inv, deriv_mul_const_field]
 
 end division
 
@@ -1715,21 +1755,6 @@ lemma deriv_within_pow (hxs : unique_diff_within_at 𝕜 s x) :
   deriv_within (λx, x^n) s x = (n : 𝕜) * x^(n-1) :=
 (has_deriv_within_at_pow n x s).deriv_within hxs
 
-lemma iter_deriv_pow' {k : ℕ} :
-  deriv^[k] (λx:𝕜, x^n) = λ x, (∏ i in finset.range k, (n - i) : ℕ) * x^(n-k) :=
-begin
-  induction k with k ihk,
-  { simp only [one_mul, finset.prod_range_zero, function.iterate_zero_apply, nat.sub_zero,
-      nat.cast_one] },
-  { simp only [function.iterate_succ_apply', ihk, finset.prod_range_succ],
-    ext x,
-    rw [((has_deriv_at_pow (n - k) x).const_mul _).deriv, nat.cast_mul, mul_assoc, nat.sub_sub] }
-end
-
-lemma iter_deriv_pow {k : ℕ} :
-  deriv^[k] (λx:𝕜, x^n) x = (∏ i in finset.range k, (n - i) : ℕ) * x^(n-k) :=
-congr_fun iter_deriv_pow' x
-
 lemma has_deriv_within_at.pow (hc : has_deriv_within_at c c' s x) :
   has_deriv_within_at (λ y, (c y)^n) ((n : 𝕜) * (c x)^(n-1) * c') s x :=
 (has_deriv_at_pow n (c x)).comp_has_deriv_within_at x hc
@@ -1767,10 +1792,9 @@ end pow
 
 section fpow
 /-! ### Derivative of `x ↦ x^m` for `m : ℤ` -/
-variables {x : 𝕜} {s : set 𝕜}
-variable {m : ℤ}
+variables {x : 𝕜} {s : set 𝕜} {m : ℤ}
 
-lemma has_strict_deriv_at_fpow (m : ℤ) (hx : x ≠ 0) :
+lemma has_strict_deriv_at_fpow (m : ℤ) (x : 𝕜) (h : x ≠ 0 ∨ 0 ≤ m) :
   has_strict_deriv_at (λx, x^m) ((m : 𝕜) * x^(m-1)) x :=
 begin
   have : ∀ m : ℤ, 0 < m → has_strict_deriv_at (λx, x^m) ((m:𝕜) * x^(m-1)) x,
@@ -1782,7 +1806,8 @@ begin
     norm_cast at hm,
     exact nat.succ_le_of_lt hm },
   rcases lt_trichotomy m 0 with hm|hm|hm,
-  { have := (has_strict_deriv_at_inv _).scomp _ (this (-m) (neg_pos.2 hm));
+  { have hx : x ≠ 0, from h.resolve_right hm.not_le,
+    have := (has_strict_deriv_at_inv _).scomp _ (this (-m) (neg_pos.2 hm));
       [skip, exact fpow_ne_zero_of_ne_zero hx _],
     simp only [(∘), fpow_neg, one_div, inv_inv', smul_eq_mul] at this,
     convert this using 1,
@@ -1792,42 +1817,79 @@ begin
   { exact this m hm }
 end
 
-lemma has_deriv_at_fpow (m : ℤ) (hx : x ≠ 0) :
+lemma has_deriv_at_fpow (m : ℤ) (x : 𝕜) (h : x ≠ 0 ∨ 0 ≤ m) :
   has_deriv_at (λx, x^m) ((m : 𝕜) * x^(m-1)) x :=
-(has_strict_deriv_at_fpow m hx).has_deriv_at
+(has_strict_deriv_at_fpow m x h).has_deriv_at
 
-theorem has_deriv_within_at_fpow (m : ℤ) (hx : x ≠ 0) (s : set 𝕜) :
+theorem has_deriv_within_at_fpow (m : ℤ) (x : 𝕜) (h : x ≠ 0 ∨ 0 ≤ m) (s : set 𝕜) :
   has_deriv_within_at (λx, x^m) ((m : 𝕜) * x^(m-1)) s x :=
-(has_deriv_at_fpow m hx).has_deriv_within_at
+(has_deriv_at_fpow m x h).has_deriv_within_at
 
-lemma differentiable_at_fpow (hx : x ≠ 0)  : differentiable_at 𝕜 (λx, x^m) x :=
-(has_deriv_at_fpow m hx).differentiable_at
+lemma differentiable_at_fpow : differentiable_at 𝕜 (λx, x^m) x ↔ x ≠ 0 ∨ 0 ≤ m :=
+⟨λ H, normed_field.continuous_at_fpow.1 H.continuous_at,
+  λ H, (has_deriv_at_fpow m x H).differentiable_at⟩
 
-lemma differentiable_within_at_fpow (hx : x ≠ 0) :
+lemma differentiable_within_at_fpow (m : ℤ) (x : 𝕜) (h : x ≠ 0 ∨ 0 ≤ m) :
   differentiable_within_at 𝕜 (λx, x^m) s x :=
-(differentiable_at_fpow hx).differentiable_within_at
+(differentiable_at_fpow.mpr h).differentiable_within_at
 
-lemma differentiable_on_fpow (hs : (0:𝕜) ∉ s) : differentiable_on 𝕜 (λx, x^m) s :=
-λ x hxs, differentiable_within_at_fpow (λ hx, hs $ hx ▸ hxs)
+lemma differentiable_on_fpow (m : ℤ) (s : set 𝕜) (h : (0 : 𝕜) ∉ s ∨ 0 ≤ m) :
+  differentiable_on 𝕜 (λx, x^m) s :=
+λ x hxs, differentiable_within_at_fpow m x $ h.imp_left $ ne_of_mem_of_not_mem hxs
 
--- TODO : this is true at `x=0` as well
-lemma deriv_fpow (hx : x ≠ 0) : deriv (λx, x^m) x = (m : 𝕜) * x^(m-1) :=
-(has_deriv_at_fpow m hx).deriv
-
-lemma deriv_within_fpow (hxs : unique_diff_within_at 𝕜 s x) (hx : x ≠ 0) :
-  deriv_within (λx, x^m) s x = (m : 𝕜) * x^(m-1) :=
-(has_deriv_within_at_fpow m hx s).deriv_within hxs
-
-lemma iter_deriv_fpow {k : ℕ} (hx : x ≠ 0) :
-  deriv^[k] (λx:𝕜, x^m) x = (∏ i in finset.range k, (m - i) : ℤ) * x^(m-k) :=
+lemma deriv_fpow (m : ℤ) (x : 𝕜) : deriv (λ x, x ^ m) x = m * x ^ (m - 1) :=
 begin
-  induction k with k ihk generalizing x hx,
-  { simp only [one_mul, finset.prod_range_zero, function.iterate_zero_apply, int.coe_nat_zero,
-      sub_zero, int.cast_one] },
-  { rw [function.iterate_succ', finset.prod_range_succ, int.cast_mul, mul_assoc,
-      int.coe_nat_succ, ← sub_sub, ← ((has_deriv_at_fpow _ hx).const_mul _).deriv],
-    exact filter.eventually_eq.deriv_eq (eventually.mono (is_open.mem_nhds is_open_ne hx) @ihk) }
+  by_cases H : x ≠ 0 ∨ 0 ≤ m,
+  { exact (has_deriv_at_fpow m x H).deriv },
+  { rw deriv_zero_of_not_differentiable_at (mt differentiable_at_fpow.1 H),
+    push_neg at H, rcases H with ⟨rfl, hm⟩,
+    rw [zero_fpow _ ((sub_one_lt _).trans hm).ne, mul_zero] }
 end
+
+@[simp] lemma deriv_fpow' (m : ℤ) : deriv (λ x : 𝕜, x ^ m) = λ x, m * x ^ (m - 1) :=
+funext $ deriv_fpow m
+
+lemma deriv_within_fpow (hxs : unique_diff_within_at 𝕜 s x) (h : x ≠ 0 ∨ 0 ≤ m) :
+  deriv_within (λx, x^m) s x = (m : 𝕜) * x^(m-1) :=
+(has_deriv_within_at_fpow m x h s).deriv_within hxs
+
+@[simp] lemma iter_deriv_fpow' (m : ℤ) (k : ℕ) :
+  deriv^[k] (λ x : 𝕜, x ^ m) = λ x, (∏ i in finset.range k, (m - i)) * x ^ (m - k) :=
+begin
+  induction k with k ihk,
+  { simp only [one_mul, int.coe_nat_zero, id, sub_zero, finset.prod_range_zero,
+      function.iterate_zero] },
+  { simp only [function.iterate_succ_apply', ihk, deriv_const_mul_field', deriv_fpow',
+      finset.prod_range_succ, int.coe_nat_succ, ← sub_sub, int.cast_sub, int.cast_coe_nat,
+      mul_assoc], }
+end
+
+lemma iter_deriv_fpow (m : ℤ) (x : 𝕜) (k : ℕ) :
+  deriv^[k] (λ y, y ^ m) x = (∏ i in finset.range k, (m - i)) * x ^ (m - k) :=
+congr_fun (iter_deriv_fpow' m k) x
+
+lemma iter_deriv_pow (n : ℕ) (x : 𝕜) (k : ℕ) :
+  deriv^[k] (λx:𝕜, x^n) x = (∏ i in finset.range k, (n - i)) * x^(n-k) :=
+begin
+  simp only [← gpow_coe_nat, iter_deriv_fpow, int.cast_coe_nat],
+  cases le_or_lt k n with hkn hnk,
+  { rw int.coe_nat_sub hkn },
+  { have : ∏ i in finset.range k, (n - i : 𝕜) = 0,
+      from finset.prod_eq_zero (finset.mem_range.2 hnk) (sub_self _),
+    simp only [this, zero_mul] }
+end
+
+@[simp] lemma iter_deriv_pow' (n k : ℕ) :
+  deriv^[k] (λ x : 𝕜, x ^ n) = λ x, (∏ i in finset.range k, (n - i)) * x ^ (n - k) :=
+funext $ λ x, iter_deriv_pow n x k
+
+lemma iter_deriv_inv (k : ℕ) (x : 𝕜) :
+  deriv^[k] has_inv.inv x = (∏ i in finset.range k, (-1 - i)) * x ^ (-1 - k : ℤ) :=
+by simpa only [fpow_neg_one, int.cast_neg, int.cast_one] using iter_deriv_fpow (-1) x k
+
+@[simp] lemma iter_deriv_inv' (k : ℕ) :
+  deriv^[k] has_inv.inv = λ x : 𝕜, (∏ i in finset.range k, (-1 - i)) * x ^ (-1 - k : ℤ) :=
+funext (iter_deriv_inv k)
 
 end fpow
 

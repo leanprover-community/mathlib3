@@ -692,8 +692,8 @@ begin
     { intros i,
       have h' : ∥v i∥ ^ 2 = 1 ^ 2 := by simp [norm_sq_eq_inner, h i i],
       have h₁ : 0 ≤ ∥v i∥ := norm_nonneg _,
-      have h₂ : (0:ℝ) ≤ 1 := by norm_num,
-      rwa eq_of_sq_eq_sq h₁ h₂ at h' },
+      have h₂ : (0:ℝ) ≤ 1 := zero_le_one,
+      rwa sq_eq_sq h₁ h₂ at h' },
     { intros i j hij,
       simpa [hij] using h i j } }
 end
@@ -1087,6 +1087,14 @@ begin
     linarith }
 end
 
+/-- Given two orthogonal vectors, their sum and difference have equal norms. -/
+lemma norm_sub_eq_norm_add {v w : E} (h : ⟪v, w⟫ = 0) : ∥w - v∥ = ∥w + v∥ :=
+begin
+  rw ←mul_self_inj_of_nonneg (norm_nonneg _) (norm_nonneg _),
+  simp [h, ←inner_self_eq_norm_sq, inner_add_left, inner_add_right, inner_sub_left,
+    inner_sub_right, inner_re_symm]
+end
+
 /-- The real inner product of two vectors, divided by the product of their
 norms, has absolute value at most 1. -/
 lemma abs_real_inner_div_norm_mul_norm_le_one (x y : F) : absR (⟪x, y⟫_ℝ / (∥x∥ * ∥y∥)) ≤ 1 :=
@@ -1420,18 +1428,14 @@ end
 /-- The sum defined in Bessel's inequality is summable. -/
 lemma orthonormal.inner_products_summable (hv : orthonormal 𝕜 v) : summable (λ i, ∥⟪v i, x⟫∥ ^ 2) :=
 begin
-  by_cases hnon : nonempty ι,
-  { use Sup (set.range (λ s : finset ι, ∑ i in s, ∥⟪v i, x⟫∥ ^ 2)),
-    apply has_sum_of_is_lub_of_nonneg,
-    { intro b,
-      simp only [norm_nonneg, pow_nonneg], },
-    { refine is_lub_cSup (set.range_nonempty _) _,
-      use ∥x∥ ^ 2,
-      rintro y ⟨s, rfl⟩,
-      exact hv.sum_inner_products_le x, }, },
-  { rw not_nonempty_iff at hnon,
-    haveI := hnon,
-    exact summable_empty, },
+  use ⨆ s : finset ι, ∑ i in s, ∥⟪v i, x⟫∥ ^ 2,
+  apply has_sum_of_is_lub_of_nonneg,
+  { intro b,
+    simp only [norm_nonneg, pow_nonneg], },
+  { refine is_lub_csupr _,
+    use ∥x∥ ^ 2,
+    rintro y ⟨s, rfl⟩,
+    exact hv.sum_inner_products_le x }
 end
 
 end bessels_inequality
@@ -1493,6 +1497,10 @@ variable {E}
 
 lemma real_inner_eq_re_inner (x y : E) :
   @has_inner.inner ℝ E (has_inner.is_R_or_C_to_real 𝕜 E) x y = re ⟪x, y⟫ := rfl
+
+lemma real_inner_I_smul_self (x : E) :
+  @has_inner.inner ℝ E (has_inner.is_R_or_C_to_real 𝕜 E) x ((I : 𝕜) • x) = 0 :=
+by simp [real_inner_eq_re_inner, inner_smul_right]
 
 omit 𝕜
 
@@ -1788,7 +1796,7 @@ Then there exists a (unique) `v` in `K` that minimizes the distance `∥u - v∥
 -- It should be broken in a sequence of more manageable pieces,
 -- perhaps with individual statements for the three steps below.
 theorem exists_norm_eq_infi_of_complete_convex {K : set F} (ne : K.nonempty) (h₁ : is_complete K)
-  (h₂ : convex K) : ∀ u : F, ∃ v ∈ K, ∥u - v∥ = ⨅ w : K, ∥u - w∥ := assume u,
+  (h₂ : convex ℝ K) : ∀ u : F, ∃ v ∈ K, ∥u - v∥ = ⨅ w : K, ∥u - w∥ := assume u,
 begin
   let δ := ⨅ w : K, ∥u - w∥,
   letI : nonempty K := ne.to_subtype,
@@ -1854,7 +1862,7 @@ begin
         repeat {exact le_of_lt one_half_pos},
         exact add_halves 1 },
     have eq₁ : 4 * δ * δ ≤ 4 * ∥u - half • (wq + wp)∥ * ∥u - half • (wq + wp)∥,
-    {  mono, mono, norm_num, apply mul_nonneg, norm_num, exact norm_nonneg _ },
+    { mono, mono, norm_num, apply mul_nonneg, norm_num, exact norm_nonneg _ },
     have eq₂ : ∥a∥ * ∥a∥ ≤ (δ + div) * (δ + div) :=
       mul_self_le_mul_self (norm_nonneg _)
         (le_trans (le_of_lt $ hw q) (add_le_add_left (nat.one_div_le_one_div hq) _)),
@@ -1901,7 +1909,7 @@ end
 
 /-- Characterization of minimizers for the projection on a convex set in a real inner product
 space. -/
-theorem norm_eq_infi_iff_real_inner_le_zero {K : set F} (h : convex K) {u : F} {v : F}
+theorem norm_eq_infi_iff_real_inner_le_zero {K : set F} (h : convex ℝ K) {u : F} {v : F}
   (hv : v ∈ K) : ∥u - v∥ = (⨅ w : K, ∥u - w∥) ↔ ∀ w ∈ K, ⟪u - v, w - v⟫_ℝ ≤ 0 :=
 iff.intro
 begin
@@ -2203,7 +2211,31 @@ end
 @[simp] lemma orthogonal_projection_mem_subspace_eq_self (v : K) : orthogonal_projection K v = v :=
 by { ext, apply eq_orthogonal_projection_of_mem_of_inner_eq_zero; simp }
 
-local attribute [instance] finite_dimensional_bot
+/-- A point equals its orthogonal projection if and only if it lies in the subspace. -/
+lemma orthogonal_projection_eq_self_iff {v : E} :
+  (orthogonal_projection K v : E) = v ↔ v ∈ K :=
+begin
+  refine ⟨λ h, _, λ h, eq_orthogonal_projection_of_mem_of_inner_eq_zero h _⟩,
+  { rw ← h,
+    simp },
+  { simp }
+end
+
+/-- Orthogonal projection onto the `submodule.map` of a subspace. -/
+lemma orthogonal_projection_map_apply {E E' : Type*} [inner_product_space 𝕜 E]
+  [inner_product_space 𝕜 E'] (f : E ≃ₗᵢ[𝕜] E') (p : submodule 𝕜 E) [finite_dimensional 𝕜 p]
+  (x : E') :
+  (orthogonal_projection (p.map (f.to_linear_equiv : E →ₗ[𝕜] E')) x : E')
+  = f (orthogonal_projection p (f.symm x)) :=
+begin
+  apply eq_orthogonal_projection_of_mem_of_inner_eq_zero,
+  { exact ⟨orthogonal_projection p (f.symm x), submodule.coe_mem _, by simp⟩, },
+  rintros w ⟨a, ha, rfl⟩,
+  suffices : inner (f (f.symm x - orthogonal_projection p (f.symm x))) (f a) = (0:𝕜),
+  { simpa using this },
+  rw f.inner_map_map,
+  exact orthogonal_projection_inner_eq_zero _ _ ha,
+end
 
 /-- The orthogonal projection onto the trivial submodule is the zero map. -/
 @[simp] lemma orthogonal_projection_bot : orthogonal_projection (⊥ : submodule 𝕜 E) = 0 :=
@@ -2254,6 +2286,79 @@ lemma orthogonal_projection_unit_singleton {v : E} (hv : ∥v∥ = 1) (w : E) :
 by { rw ← smul_orthogonal_projection_singleton 𝕜 w, simp [hv] }
 
 end orthogonal_projection
+
+section reflection
+variables {𝕜} (K) [complete_space K]
+
+/-- Reflection in a complete subspace of an inner product space.  The word "reflection" is
+sometimes understood to mean specifically reflection in a codimension-one subspace, and sometimes
+more generally to cover operations such as reflection in a point.  The definition here, of
+reflection in a subspace, is a more general sense of the word that includes both those common
+cases. -/
+def reflection : E ≃ₗᵢ[𝕜] E :=
+{ norm_map' := begin
+    intros x,
+    let w : K := orthogonal_projection K x,
+    let v := x - w,
+    have : ⟪v, w⟫ = 0 := orthogonal_projection_inner_eq_zero x w w.2,
+    convert norm_sub_eq_norm_add this using 2,
+    { simp [bit0],
+      dsimp [w, v],
+      abel },
+    { simp [bit0] }
+  end,
+  ..linear_equiv.of_involutive
+      (bit0 (K.subtype.comp (orthogonal_projection K).to_linear_map) - linear_map.id)
+      (λ x, by simp [bit0]) }
+
+variables {K}
+
+/-- The result of reflecting. -/
+lemma reflection_apply (p : E) : reflection K p = bit0 ↑(orthogonal_projection K p) - p := rfl
+
+/-- Reflection is its own inverse. -/
+@[simp] lemma reflection_symm : (reflection K).symm = reflection K := rfl
+
+variables (K)
+
+/-- Reflecting twice in the same subspace. -/
+@[simp] lemma reflection_reflection (p : E) : reflection K (reflection K p) = p :=
+(reflection K).left_inv p
+
+/-- Reflection is involutive. -/
+lemma reflection_involutive : function.involutive (reflection K) := reflection_reflection K
+
+variables {K}
+
+/-- A point is its own reflection if and only if it is in the subspace. -/
+lemma reflection_eq_self_iff (x : E) : reflection K x = x ↔ x ∈ K :=
+begin
+  rw [←orthogonal_projection_eq_self_iff, reflection_apply, sub_eq_iff_eq_add', ← two_smul 𝕜,
+    ← two_smul' 𝕜],
+  refine (smul_right_injective E _).eq_iff,
+  exact two_ne_zero
+end
+
+lemma reflection_mem_subspace_eq_self {x : E} (hx : x ∈ K) : reflection K x = x :=
+(reflection_eq_self_iff x).mpr hx
+
+/-- Reflection in the `submodule.map` of a subspace. -/
+lemma reflection_map_apply {E E' : Type*} [inner_product_space 𝕜 E] [inner_product_space 𝕜 E']
+  (f : E ≃ₗᵢ[𝕜] E') (K : submodule 𝕜 E) [finite_dimensional 𝕜 K] (x : E') :
+  reflection (K.map (f.to_linear_equiv : E →ₗ[𝕜] E')) x = f (reflection K (f.symm x)) :=
+by simp [bit0, reflection_apply, orthogonal_projection_map_apply f K x]
+
+/-- Reflection in the `submodule.map` of a subspace. -/
+lemma reflection_map {E E' : Type*} [inner_product_space 𝕜 E] [inner_product_space 𝕜 E']
+  (f : E ≃ₗᵢ[𝕜] E') (K : submodule 𝕜 E) [finite_dimensional 𝕜 K] :
+  reflection (K.map (f.to_linear_equiv : E →ₗ[𝕜] E')) = f.symm.trans ((reflection K).trans f) :=
+linear_isometry_equiv.ext $ reflection_map_apply f K
+
+/-- Reflection through the trivial subspace {0} is just negation. -/
+@[simp] lemma reflection_bot : reflection (⊥ : submodule 𝕜 E) = linear_isometry_equiv.neg 𝕜 :=
+by ext; simp [reflection_apply]
+
+end reflection
 
 /-- The subspace of vectors orthogonal to a given subspace. -/
 def submodule.orthogonal : submodule 𝕜 E :=
@@ -2491,17 +2596,34 @@ lemma orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero
   orthogonal_projection K v = 0 :=
 by { ext, convert eq_orthogonal_projection_of_mem_orthogonal _ _; simp [hv] }
 
+/-- The reflection in `K` of an element of `Kᗮ` is its negation. -/
+lemma reflection_mem_subspace_orthogonal_complement_eq_neg
+  [complete_space K] {v : E} (hv : v ∈ Kᗮ) :
+  reflection K v = - v :=
+by simp [reflection_apply, orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero hv]
+
 /-- The orthogonal projection onto `Kᗮ` of an element of `K` is zero. -/
 lemma orthogonal_projection_mem_subspace_orthogonal_precomplement_eq_zero
   [complete_space E] {v : E} (hv : v ∈ K) :
   orthogonal_projection Kᗮ v = 0 :=
 orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero (K.le_orthogonal_orthogonal hv)
 
+/-- The reflection in `Kᗮ` of an element of `K` is its negation. -/
+lemma reflection_mem_subspace_orthogonal_precomplement_eq_neg
+  [complete_space E] {v : E} (hv : v ∈ K) :
+  reflection Kᗮ v = -v :=
+reflection_mem_subspace_orthogonal_complement_eq_neg (K.le_orthogonal_orthogonal hv)
+
 /-- The orthogonal projection onto `(𝕜 ∙ v)ᗮ` of `v` is zero. -/
 lemma orthogonal_projection_orthogonal_complement_singleton_eq_zero [complete_space E] (v : E) :
   orthogonal_projection (𝕜 ∙ v)ᗮ v = 0 :=
 orthogonal_projection_mem_subspace_orthogonal_precomplement_eq_zero
   (submodule.mem_span_singleton_self v)
+
+/-- The reflection in `(𝕜 ∙ v)ᗮ` of `v` is `-v`. -/
+lemma reflection_orthogonal_complement_singleton_eq_neg [complete_space E] (v : E) :
+  reflection (𝕜 ∙ v)ᗮ v = -v :=
+reflection_mem_subspace_orthogonal_precomplement_eq_neg (submodule.mem_span_singleton_self v)
 
 variables (K)
 
@@ -2586,7 +2708,7 @@ lemma submodule.finrank_add_finrank_orthogonal' [finite_dimensional 𝕜 E] {K :
   finrank 𝕜 Kᗮ = n :=
 by { rw ← add_right_inj (finrank 𝕜 K), simp [submodule.finrank_add_finrank_orthogonal, h_dim] }
 
-local attribute [instance] finite_dimensional_of_finrank_eq_succ
+local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
 
 /-- In a finite-dimensional inner product space, the dimension of the orthogonal complement of the
 span of a nonzero vector is one less than the dimension of the space. -/

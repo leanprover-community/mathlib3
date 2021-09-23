@@ -316,7 +316,7 @@ begin
 end
 
 lemma type_subrel_lt (o : ordinal.{u}) :
-  type (subrel (<) {o' : ordinal | o' < o}) = ordinal.lift.{u u+1} o :=
+  type (subrel (<) {o' : ordinal | o' < o}) = ordinal.lift.{u+1} o :=
 begin
   refine quotient.induction_on o _,
   rintro ⟨α, r, wo⟩, resetI, apply quotient.sound,
@@ -324,7 +324,7 @@ begin
 end
 
 lemma mk_initial_seg (o : ordinal.{u}) :
-  #{o' : ordinal | o' < o} = cardinal.lift.{u u+1} o.card :=
+  #{o' : ordinal | o' < o} = cardinal.lift.{u+1} o.card :=
 by rw [lift_card, ←type_subrel_lt, card_type]
 
 /-! ### Normal ordinal functions -/
@@ -482,7 +482,7 @@ by rw ← ordinal.le_zero; apply sub_le_self
 @[simp] theorem sub_self (a : ordinal) : a - a = 0 :=
 by simpa only [add_zero] using add_sub_cancel a 0
 
-theorem sub_eq_zero_iff_le {a b : ordinal} : a - b = 0 ↔ a ≤ b :=
+protected theorem sub_eq_zero_iff_le {a b : ordinal} : a - b = 0 ↔ a ≤ b :=
 ⟨λ h, by simpa only [h, add_zero] using le_add_sub a b,
  λ h, by rwa [← ordinal.le_zero, sub_le, add_zero]⟩
 
@@ -941,7 +941,7 @@ theorem zero_power' (a : ordinal) : 0 ^ a = 1 - a :=
 by simp only [pow, power, if_pos rfl]
 
 @[simp] theorem zero_power {a : ordinal} (a0 : a ≠ 0) : 0 ^ a = 0 :=
-by rwa [zero_power', sub_eq_zero_iff_le, one_le_iff_ne_zero]
+by rwa [zero_power', ordinal.sub_eq_zero_iff_le, one_le_iff_ne_zero]
 
 @[simp] theorem power_zero (a : ordinal) : a ^ 0 = 1 :=
 by by_cases a = 0; [simp only [pow, power, if_pos h, sub_zero],
@@ -1332,7 +1332,7 @@ not_congr nat_cast_eq_zero
 
 @[simp] theorem nat_cast_sub {m n : ℕ} : ((m - n : ℕ) : ordinal) = m - n :=
 (_root_.le_total m n).elim
-  (λ h, by rw [nat.sub_eq_zero_iff_le.2 h, sub_eq_zero_iff_le.2 (nat_cast_le.2 h)]; refl)
+  (λ h, by rw [nat.sub_eq_zero_iff_le.2 h, ordinal.sub_eq_zero_iff_le.2 (nat_cast_le.2 h)]; refl)
   (λ h, (add_left_cancel n).1 $ by rw [← nat.cast_add,
      nat.add_sub_cancel' h, add_sub_cancel_of_le (nat_cast_le.2 h)])
 

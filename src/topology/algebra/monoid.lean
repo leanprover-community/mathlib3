@@ -19,7 +19,7 @@ the definitions.
 
 universe variables u v
 open classical set filter topological_space
-open_locale classical topological_space big_operators
+open_locale classical topological_space big_operators pointwise
 
 variables {ι α X M N : Type*} [topological_space X]
 
@@ -111,6 +111,13 @@ instance pi.has_continuous_mul {C : ι → Type*} [∀ i, topological_space (C i
   [∀ i, has_mul (C i)] [∀ i, has_continuous_mul (C i)] : has_continuous_mul (Π i, C i) :=
 { continuous_mul := continuous_pi (λ i, continuous.mul
     ((continuous_apply i).comp continuous_fst) ((continuous_apply i).comp continuous_snd)) }
+
+/-- A version of `pi.has_continuous_mul` for non-dependent functions. It is needed because sometimes
+Lean fails to use `pi.has_continuous_mul` for non-dependent functions. -/
+@[to_additive "A version of `pi.has_continuous_add` for non-dependent functions. It is needed
+because sometimes Lean fails to use `pi.has_continuous_add` for non-dependent functions."]
+instance pi.has_continuous_mul' : has_continuous_mul (ι → M) :=
+pi.has_continuous_mul
 
 @[priority 100, to_additive]
 instance has_continuous_mul_of_discrete_topology [topological_space N]
@@ -417,8 +424,8 @@ end
 
 instance additive.has_continuous_add {M} [h : topological_space M] [has_mul M]
   [has_continuous_mul M] : @has_continuous_add (additive M) h _ :=
-{ continuous_add := @continuous_mul M _ _ _  }
+{ continuous_add := @continuous_mul M _ _ _ }
 
 instance multiplicative.has_continuous_mul {M} [h : topological_space M] [has_add M]
   [has_continuous_add M] : @has_continuous_mul (multiplicative M) h _ :=
-{ continuous_mul := @continuous_add M _ _ _  }
+{ continuous_mul := @continuous_add M _ _ _ }

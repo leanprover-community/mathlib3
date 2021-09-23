@@ -729,7 +729,7 @@ lemma filter.tendsto.fin_insert_nth {n} {π : fin (n + 1) → Type*} [Π i, topo
   (i : fin (n + 1)) {f : α → π i} {l : filter α} {x : π i} (hf : tendsto f l (𝓝 x))
   {g : α → Π j : fin n, π (i.succ_above j)} {y : Π j, π (i.succ_above j)} (hg : tendsto g l (𝓝 y)) :
   tendsto (λ a, i.insert_nth (f a) (g a)) l (𝓝 $ i.insert_nth x y) :=
-tendsto_pi.2 (λ j, fin.cases_on_succ_above i (by simpa) (by simpa using tendsto_pi.1 hg) j)
+tendsto_pi.2 (λ j, fin.cases_succ_above i (by simpa) (by simpa using tendsto_pi.1 hg) j)
 
 lemma continuous_at.fin_insert_nth {n} {π : fin (n + 1) → Type*} [Π i, topological_space (π i)]
   [topological_space α] (i : fin (n + 1)) {f : α → π i} {a : α} (hf : continuous_at f a)

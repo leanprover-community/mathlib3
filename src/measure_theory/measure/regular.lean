@@ -9,7 +9,7 @@ import measure_theory.constructions.borel_space
 /-!
 # Regular measures
 
-A measure is `outer_regular` the measure of any measurable set `A` is the infimum of `μ U` over all
+A measure is `outer_regular` if the measure of any measurable set `A` is the infimum of `μ U` over all
 open sets `U` containing `A`.
 
 A measure is `regular` if it satisfies the following properties:
@@ -113,13 +113,13 @@ is automatically satisfied by any finite measure on a metric space.
 
 The main nontrivial statement is `measure_theory.measure.inner_regular.weakly_regular_of_finite`,
 expressing that in a finite measure space, if every open set can be approximated from inside by
-closed sets, then the measure is in fact weakly regular. To prove that we show taht any measurable
+closed sets, then the measure is in fact weakly regular. To prove that we show that any measurable
 set can be approximated from inside by closed sets and from outside by open sets. This statement is
 proved by measurable induction, starting from open sets and checking that it is stable by taking
 complements (this is the point of this condition, being symmetrical between inside and outside) and
 countable disjoint unions.
 
-Once this statement is proved, one deduces results for `σ`-measures from this statement, by
+Once this statement is proved, one deduces results for `σ`-finite measures from this statement, by
 restricting them to finite measure sets (and proving that this restriction is weakly regular, using
 again the same statement).
 
@@ -138,9 +138,9 @@ open_locale ennreal topological_space nnreal big_operators
 namespace measure_theory
 namespace measure
 
-/-- We say that a measure `μ` is *inner regular* with respecto to predicates `p q : set α → Prop`,
-if for every `U` such that `q U` and `r < μ U`, there exists a subset `K ⊆ U` of measure greater
-than `r`.
+/-- We say that a measure `μ` is *inner regular* with respect to predicates `p q : set α → Prop`,
+if for every `U` such that `q U` and `r < μ U`, there exists a subset `K ⊆ U` satisfying `p K`
+of measure greater than `r`.
 
 This definition is used to prove some facts about regular and weakly regular measures without
 repeating the proofs. -/
@@ -453,7 +453,7 @@ instance zero : regular (0 : measure α) :=
 /-- If `μ` is a regular measure, then any open set can be approximated by a compact subset. -/
 lemma _root_.is_open.exists_lt_is_compact [regular μ] ⦃U : set α⦄ (hU : is_open U)
   {r : ℝ≥0∞} (hr : r < μ U) :
-  ∃ K ⊆ U, is_compact K  ∧ r < μ K :=
+  ∃ K ⊆ U, is_compact K ∧ r < μ K :=
 regular.inner_regular hU r hr
 
 /-- The measure of an open set is the supremum of the measures of compact sets it contains. -/
@@ -559,7 +559,7 @@ weakly_regular.inner_regular.measurable_set_of_open is_closed_empty
   (λ _ _ h₁ h₂, h₁.inter h₂.is_closed_compl)
 
 /-- If `s` is a measurable set, a weakly regular measure `μ` is finite on `s`, and `ε` is a positive
-number, then there exist a closed set `K ⊆ s`  such that `μ s < μ K + ε`. -/
+number, then there exist a closed set `K ⊆ s` such that `μ s < μ K + ε`. -/
 lemma _root_.measurable_set.exists_is_closed_lt_add [weakly_regular μ]
   [opens_measurable_space α] {s : set α} (hs : measurable_set s) (hμs : μ s ≠ ∞)
   {ε : ℝ≥0∞} (hε : ε ≠ 0) :

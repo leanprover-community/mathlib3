@@ -212,10 +212,10 @@ variables [add_comm_group M] [module.finite ℤ M] [module.free ℤ M]
 variables [add_comm_group N] [module.finite ℤ N] [module.free ℤ N]
 
 instance : module.finite ℤ (M →+ N) :=
-module.finite.equiv add_monoid_hom_lequiv_int.symm
+module.finite.equiv (add_monoid_hom_lequiv_int ℤ).symm
 
 instance : module.free ℤ (M →+ N) :=
-module.free.of_equiv add_monoid_hom_lequiv_int.symm
+module.free.of_equiv (add_monoid_hom_lequiv_int ℤ).symm
 
 end integer
 

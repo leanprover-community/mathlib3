@@ -6,6 +6,7 @@ Authors: Frédéric Dupuis
 import analysis.convex.function
 import topology.algebra.affine
 import topology.local_extr
+import topology.instances.real
 
 /-!
 # Minima and maxima of convex functions

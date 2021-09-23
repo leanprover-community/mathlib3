@@ -145,7 +145,7 @@ begin
   simp,
 end
 
-@[simp] lemma integrable_on_finite_union {s : set β} (hs : finite s)
+@[simp] lemma integrable_on_finite_Union {s : set β} (hs : finite s)
   {t : β → set α} : integrable_on f (⋃ i ∈ s, t i) μ ↔ ∀ i ∈ s, integrable_on f (t i) μ :=
 begin
   apply hs.induction_on,
@@ -153,9 +153,13 @@ begin
   { intros a s ha hs hf, simp [hf, or_imp_distrib, forall_and_distrib] }
 end
 
-@[simp] lemma integrable_on_finset_union  {s : finset β} {t : β → set α} :
+@[simp] lemma integrable_on_finset_Union {s : finset β} {t : β → set α} :
   integrable_on f (⋃ i ∈ s, t i) μ ↔ ∀ i ∈ s, integrable_on f (t i) μ :=
-integrable_on_finite_union s.finite_to_set
+integrable_on_finite_Union s.finite_to_set
+
+@[simp] lemma integrable_on_fintype_Union [fintype β] {t : β → set α} :
+  integrable_on f (⋃ i, t i) μ ↔ ∀ i, integrable_on f (t i) μ :=
+by simpa using @integrable_on_finset_Union _ _ _ _ _ _ f μ finset.univ t
 
 lemma integrable_on.add_measure (hμ : integrable_on f s μ) (hν : integrable_on f s ν) :
   integrable_on f s (μ + ν) :=

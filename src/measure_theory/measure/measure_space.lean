@@ -322,7 +322,8 @@ by { rw [measure_eq_inter_diff (hs.union ht) ht, set.union_inter_cancel_right,
 
 /-- Continuity from below: the measure of the union of an increasing sequence of measurable sets
 is the limit of the measures. -/
-lemma tendsto_measure_Union {s : ℕ → set α} (hs : ∀ n, measurable_set (s n)) (hm : monotone s) :
+lemma tendsto_measure_Union [semilattice_sup ι] [encodable ι] {s : ι → set α}
+  (hs : ∀ n, measurable_set (s n)) (hm : monotone s) :
   tendsto (μ ∘ s) at_top (𝓝 (μ (⋃ n, s n))) :=
 begin
   rw measure_Union_eq_supr hs (directed_of_sup hm),
@@ -331,7 +332,7 @@ end
 
 /-- Continuity from above: the measure of the intersection of a decreasing sequence of measurable
 sets is the limit of the measures. -/
-lemma tendsto_measure_Inter {s : ℕ → set α}
+lemma tendsto_measure_Inter [encodable ι] [semilattice_sup ι] {s : ι → set α}
   (hs : ∀ n, measurable_set (s n)) (hm : ∀ ⦃n m⦄, n ≤ m → s m ⊆ s n) (hf : ∃ i, μ (s i) ≠ ∞) :
   tendsto (μ ∘ s) at_top (𝓝 (μ (⋂ n, s n))) :=
 begin
@@ -405,6 +406,10 @@ m.le_trim s
 @[simp] lemma to_outer_measure_to_measure {μ : measure α} :
   μ.to_outer_measure.to_measure (le_to_outer_measure_caratheodory _) = μ :=
 measure.ext $ λ s, μ.to_outer_measure.trim_eq
+
+@[simp] lemma bounded_by_measure (μ : measure α) :
+  outer_measure.bounded_by μ = μ.to_outer_measure :=
+μ.to_outer_measure.bounded_by_eq_self
 
 end outer_measure
 
@@ -2320,8 +2325,7 @@ begin
   rw [measure_eq_infi' μ],
   refine le_infi _, rintro ⟨t, hst, ht⟩,
   rw [subtype.coe_mk],
-  have := f.symm.to_equiv.image_eq_preimage,
-  simp only [←coe_eq, symm_symm, symm_to_equiv] at this,
+  have : f.symm '' s = f ⁻¹' s := f.symm.to_equiv.image_eq_preimage s,
   rw [← this, image_subset_iff] at hst,
   convert measure_mono hst,
   rw [map_apply, preimage_preimage],

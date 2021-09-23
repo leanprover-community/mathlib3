@@ -616,6 +616,15 @@ lemma mul_left_mono : monotone ((*) a) := λ b c, mul_le_mul (le_refl a)
 
 lemma mul_right_mono : monotone (λ x, x * a) := λ b c h, mul_le_mul h (le_refl a)
 
+lemma pow_strict_mono {n : ℕ} (hn : n ≠ 0) : strict_mono (λ (x : ℝ≥0∞), x^n) :=
+begin
+  assume x y hxy,
+  obtain ⟨n, rfl⟩ := nat.exists_eq_succ_of_ne_zero hn,
+  induction n with n IH,
+  { simp only [hxy, pow_one] },
+  { simp only [pow_succ _ n.succ, mul_lt_mul hxy (IH (nat.succ_pos _).ne')] }
+end
+
 lemma max_mul : max a b * c = max (a * c) (b * c) :=
 mul_right_mono.map_max
 

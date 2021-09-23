@@ -4,7 +4,7 @@ noncomputable theory
 
 namespace real
 
-open filter
+open set filter
 open_locale topological_space real
 
 lemma tan_add {x y : ℝ}

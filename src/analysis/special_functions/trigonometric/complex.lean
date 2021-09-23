@@ -1,3 +1,4 @@
+import algebra.quadratic_discriminant
 import analysis.special_functions.complex.log
 
 noncomputable theory

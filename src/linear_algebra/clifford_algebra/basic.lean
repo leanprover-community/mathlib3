@@ -193,7 +193,6 @@ begin
   exact alg_hom.congr_fun of_id a,
 end
 
---set_option trace.simplify.rewrite true
 /-- A Clifford algebra with a zero quadratic form is isomorphic to an `exterior_algebra` -/
 def as_exterior : clifford_algebra (0 : quadratic_form R M) ≃ₐ[R] exterior_algebra R M :=
 alg_equiv.of_alg_hom

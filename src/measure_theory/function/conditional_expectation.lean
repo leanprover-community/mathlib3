@@ -299,12 +299,24 @@ def Lp_meas_subgroup_to_Lp_trim (hm : m ≤ m0) (f : Lp_meas_subgroup F m p μ) 
 mem_ℒp.to_Lp (mem_Lp_meas_subgroup_iff_ae_measurable'.mp f.mem).some
   (mem_ℒp_trim_of_mem_Lp_meas_subgroup hm f f.mem)
 
+variables (𝕜)
+/-- Map from `Lp_meas` to `Lp F p (μ.trim hm)`. -/
+def Lp_meas_to_Lp_trim (hm : m ≤ m0) (f : Lp_meas F 𝕜 m p μ) : Lp F p (μ.trim hm) :=
+mem_ℒp.to_Lp (mem_Lp_meas_iff_ae_measurable'.mp f.mem).some
+  (mem_ℒp_trim_of_mem_Lp_meas_subgroup hm f f.mem)
+variables {𝕜}
+
 /-- Map from `Lp F p (μ.trim hm)` to `Lp_meas_subgroup`, inverse of
 `Lp_meas_subgroup_to_Lp_trim`. -/
 def Lp_trim_to_Lp_meas_subgroup (hm : m ≤ m0) (f : Lp F p (μ.trim hm)) : Lp_meas_subgroup F m p μ :=
 ⟨(mem_ℒp_of_mem_ℒp_trim hm (Lp.mem_ℒp f)).to_Lp f, mem_Lp_meas_subgroup_to_Lp_of_trim hm f⟩
 
-variables {F p μ}
+variables (𝕜)
+/-- Map from `Lp F p (μ.trim hm)` to `Lp_meas`, inverse of `Lp_meas_to_Lp_trim`. -/
+def Lp_trim_to_Lp_meas (hm : m ≤ m0) (f : Lp F p (μ.trim hm)) : Lp_meas F 𝕜 m p μ :=
+⟨(mem_ℒp_of_mem_ℒp_trim hm (Lp.mem_ℒp f)).to_Lp f, mem_Lp_meas_subgroup_to_Lp_of_trim hm f⟩
+
+variables {F 𝕜 p μ}
 
 lemma Lp_meas_subgroup_to_Lp_trim_ae_eq (hm : m ≤ m0) (f : Lp_meas_subgroup F m p μ) :
   Lp_meas_subgroup_to_Lp_trim F p μ hm f =ᵐ[μ] f :=
@@ -313,6 +325,15 @@ lemma Lp_meas_subgroup_to_Lp_trim_ae_eq (hm : m ≤ m0) (f : Lp_meas_subgroup F 
 
 lemma Lp_trim_to_Lp_meas_subgroup_ae_eq (hm : m ≤ m0) (f : Lp F p (μ.trim hm)) :
   Lp_trim_to_Lp_meas_subgroup F p μ hm f =ᵐ[μ] f :=
+mem_ℒp.coe_fn_to_Lp _
+
+lemma Lp_meas_to_Lp_trim_ae_eq (hm : m ≤ m0) (f : Lp_meas F 𝕜 m p μ) :
+  Lp_meas_to_Lp_trim F 𝕜 p μ hm f =ᵐ[μ] f :=
+(ae_eq_of_ae_eq_trim (mem_ℒp.coe_fn_to_Lp (mem_ℒp_trim_of_mem_Lp_meas_subgroup hm ↑f f.mem))).trans
+  (mem_Lp_meas_subgroup_iff_ae_measurable'.mp f.mem).some_spec.2.symm
+
+lemma Lp_trim_to_Lp_meas_ae_eq (hm : m ≤ m0) (f : Lp F p (μ.trim hm)) :
+  Lp_trim_to_Lp_meas F 𝕜 p μ hm f =ᵐ[μ] f :=
 mem_ℒp.coe_fn_to_Lp _
 
 /-- `Lp_trim_to_Lp_meas_subgroup` is a right inverse of `Lp_meas_subgroup_to_Lp_trim`. -/
@@ -377,6 +398,20 @@ lemma Lp_meas_subgroup_to_Lp_trim_sub (hm : m ≤ m0) (f g : Lp_meas_subgroup F 
 by rw [sub_eq_add_neg, sub_eq_add_neg, Lp_meas_subgroup_to_Lp_trim_add,
   Lp_meas_subgroup_to_Lp_trim_neg]
 
+lemma Lp_meas_to_Lp_trim_smul (hm : m ≤ m0) (c : 𝕜) (f : Lp_meas F 𝕜 m p μ) :
+  Lp_meas_to_Lp_trim F 𝕜 p μ hm (c • f) = c • Lp_meas_to_Lp_trim F 𝕜 p μ hm f :=
+begin
+  ext1,
+  refine eventually_eq.trans _ (Lp.coe_fn_smul _ _).symm,
+  refine ae_eq_trim_of_measurable hm (Lp.measurable _) _ _,
+  { exact @measurable.const_smul _ _ α _ _ _ m _ _ (Lp.measurable _) c, },
+  refine (Lp_meas_to_Lp_trim_ae_eq hm _).trans _,
+  refine (Lp.coe_fn_smul _ _).trans _,
+  refine (Lp_meas_to_Lp_trim_ae_eq hm f).mono (λ x hx, _),
+  rw [pi.smul_apply, pi.smul_apply, hx],
+  refl,
+end
+
 /-- `Lp_meas_subgroup_to_Lp_trim` preserves the norm. -/
 lemma Lp_meas_subgroup_to_Lp_trim_norm_map [hp : fact (1 ≤ p)] (hm : m ≤ m0)
   (f : Lp_meas_subgroup F m p μ) :
@@ -412,6 +447,17 @@ variables (𝕜)
 def Lp_meas_subgroup_to_Lp_meas_iso [hp : fact (1 ≤ p)] :
   Lp_meas_subgroup F m p μ ≃ᵢ Lp_meas F 𝕜 m p μ :=
 isometric.refl (Lp_meas_subgroup F m p μ)
+
+/-- `Lp_meas` and `Lp F p (μ.trim hm)` are isometric, with a linear equivalence. -/
+def Lp_meas_to_Lp_trim_lie [hp : fact (1 ≤ p)] (hm : m ≤ m0) :
+  Lp_meas F 𝕜 m p μ ≃ₗᵢ[𝕜] Lp F p (μ.trim hm) :=
+{ to_fun    := Lp_meas_to_Lp_trim F 𝕜 p μ hm,
+  inv_fun   := Lp_trim_to_Lp_meas F 𝕜 p μ hm,
+  left_inv  := Lp_meas_subgroup_to_Lp_trim_left_inv hm,
+  right_inv := Lp_meas_subgroup_to_Lp_trim_right_inv hm,
+  map_add'  := Lp_meas_subgroup_to_Lp_trim_add hm,
+  map_smul' := Lp_meas_to_Lp_trim_smul hm,
+  norm_map' := Lp_meas_subgroup_to_Lp_trim_norm_map hm, }
 variables {F 𝕜 p μ}
 
 instance [hm : fact (m ≤ m0)] [complete_space F] [hp : fact (1 ≤ p)] :
@@ -1337,6 +1383,20 @@ calc
     ((condexp_ind_ae_eq_condexp_ind_smul hm ht hμt x).mono (λ x hx hxs, hx))
 ... = (μ (t ∩ s)).to_real • x : set_integral_condexp_ind_smul hs ht hμs hμt x
 
+lemma condexp_ind_of_measurable (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) (c : F') :
+  condexp_ind hm μ s c = indicator_const_Lp 1 (hm s hs) hμs c :=
+begin
+  ext1,
+  refine eventually_eq.trans _ indicator_const_Lp_coe_fn.symm,
+  refine (condexp_ind_ae_eq_condexp_ind_smul hm (hm s hs) hμs c).trans _,
+  refine (condexp_ind_smul_ae_eq_smul hm (hm s hs) hμs c).trans _,
+  rw [Lp_meas_coe, condexp_L2_indicator_of_measurable hm hs hμs (1 : ℝ)],
+  refine (@indicator_const_Lp_coe_fn α _ _ 2 μ _ _ s (hm s hs) hμs (1 : ℝ) _ _).mono (λ x hx, _),
+  dsimp only,
+  rw hx,
+  by_cases hx_mem : x ∈ s; simp [hx_mem],
+end
+
 end condexp_ind
 
 section condexp_L1
@@ -1443,6 +1503,50 @@ begin
     exact is_closed_ae_measurable' hm, },
 end
 
+lemma Lp_meas_to_Lp_trim_lie_symm_indicator (hs : measurable_set[m] s) (hμs : μ.trim hm s ≠ ∞)
+  (c : F') :
+  ((Lp_meas_to_Lp_trim_lie F' ℝ 1 μ hm).symm
+      (indicator_const_Lp 1 hs hμs c) : α →₁[μ] F')
+    = indicator_const_Lp 1 (hm s hs) ((le_trim hm).trans_lt hμs.lt_top).ne c :=
+begin
+  ext1,
+  rw ← Lp_meas_coe,
+  change Lp_trim_to_Lp_meas F' ℝ 1 μ hm (indicator_const_Lp 1 hs hμs c)
+    =ᵐ[μ] (indicator_const_Lp 1 _ _ c : α → F'),
+  refine (Lp_trim_to_Lp_meas_ae_eq hm _).trans _,
+  exact (ae_eq_of_ae_eq_trim indicator_const_Lp_coe_fn).trans indicator_const_Lp_coe_fn.symm,
+end
+
+lemma condexp_L1_clm_Lp_meas (f : Lp_meas F' ℝ m 1 μ) :
+  condexp_L1_clm hm μ (f : α →₁[μ] F') = ↑f :=
+begin
+  let g := Lp_meas_to_Lp_trim_lie F' ℝ 1 μ hm f,
+  have hfg : f = (Lp_meas_to_Lp_trim_lie F' ℝ 1 μ hm).symm g,
+    by simp only [linear_isometry_equiv.symm_apply_apply],
+  rw hfg,
+  refine @Lp.induction α F' m _ _ _ _ 1 (μ.trim hm) _ ennreal.coe_ne_top
+    (λ g : α →₁[μ.trim hm] F',
+      condexp_L1_clm hm μ ((Lp_meas_to_Lp_trim_lie F' ℝ 1 μ hm).symm g : α →₁[μ] F')
+        = ↑((Lp_meas_to_Lp_trim_lie F' ℝ 1 μ hm).symm g)) _ _ _ g,
+  { intros c s hs hμs,
+    rw [Lp.simple_func.coe_indicator_const, Lp_meas_to_Lp_trim_lie_symm_indicator hs hμs.ne c,
+      condexp_L1_clm_indicator_const_Lp],
+    exact condexp_ind_of_measurable hs ((le_trim hm).trans_lt hμs).ne c, },
+  { intros f g hf hg hfg_disj hf_eq hg_eq,
+    rw linear_isometry_equiv.map_add,
+    push_cast,
+    rw [map_add, hf_eq, hg_eq], },
+  { refine is_closed_eq _ _,
+    { refine (condexp_L1_clm hm μ).continuous.comp (continuous_induced_dom.comp _),
+      exact linear_isometry_equiv.continuous _, },
+    { refine continuous_induced_dom.comp _,
+      exact linear_isometry_equiv.continuous _, }, },
+end
+
+lemma condexp_L1_clm_of_ae_measurable' (f : α →₁[μ] F') (hfm : ae_measurable' m f μ) :
+  condexp_L1_clm hm μ f = f :=
+condexp_L1_clm_Lp_meas (⟨f, hfm⟩ : Lp_meas F' ℝ m 1 μ)
+
 /-- Conditional expectation of a function, in L1. Its value is 0 if the function is not
 integrable. -/
 def condexp_L1 (hm : m ≤ m0) (μ : measure α) [sigma_finite (μ.trim hm)] (f : α → F') : α →₁[μ] F' :=
@@ -1522,6 +1626,15 @@ lemma condexp_L1_sub (hf : integrable f μ) (hg : integrable g μ) :
   condexp_L1 hm μ (f - g) = condexp_L1 hm μ f - condexp_L1 hm μ g :=
 by rw [sub_eq_add_neg, sub_eq_add_neg, condexp_L1_add hf hg.neg, condexp_L1_neg g]
 
+lemma condexp_L1_of_ae_measurable' (hfm : ae_measurable' m f μ) (hfi : integrable f μ) :
+  condexp_L1 hm μ f =ᵐ[μ] f :=
+begin
+  rw condexp_L1_eq hfi,
+  refine eventually_eq.trans _ (integrable.coe_fn_to_L1 hfi),
+  rw condexp_L1_clm_of_ae_measurable',
+  exact ae_measurable'.congr hfm (integrable.coe_fn_to_L1 hfi).symm,
+end
+
 end condexp_L1
 
 section condexp
@@ -1538,12 +1651,29 @@ variables {𝕜} {m m0 : measurable_space α} {μ : measure α} [borel_space �
 /-- Conditional expectation of a function. Its value is 0 if the function is not integrable. -/
 @[irreducible] def condexp (hm : m ≤ m0) (μ : measure α) [sigma_finite (μ.trim hm)] (f : α → F') :
   α → F' :=
-ae_measurable'_condexp_L1.mk (condexp_L1 hm μ f)
+if (measurable[m] f ∧ integrable f μ) then f else ae_measurable'_condexp_L1.mk (condexp_L1 hm μ f)
 
 localized "notation  μ `[` f `|` hm `]` := condexp hm μ f" in measure_theory
 
+lemma condexp_of_measurable {f : α → F'} (hf : measurable[m] f) (hfi : integrable f μ) :
+  μ[f|hm] = f :=
+by rw [condexp, if_pos (⟨hf, hfi⟩ : measurable[m] f ∧ integrable f μ)]
+
+lemma condexp_const (c : F') [is_finite_measure μ] : μ[(λ x : α, c)|hm] = λ _, c :=
+condexp_of_measurable (@measurable_const _ _ _ m _) (integrable_const c)
+
 lemma condexp_ae_eq_condexp_L1 (f : α → F') : μ[f|hm] =ᵐ[μ] condexp_L1 hm μ f :=
-by { unfold condexp, exact (ae_measurable'.ae_eq_mk ae_measurable'_condexp_L1).symm, }
+begin
+  unfold condexp,
+  by_cases hfm : measurable[m] f,
+  { by_cases hfi : integrable f μ,
+    { rw if_pos (⟨hfm, hfi⟩ : measurable[m] f ∧ integrable f μ),
+      exact (condexp_L1_of_ae_measurable' (measurable.ae_measurable' hfm) hfi).symm, },
+    { simp only [hfi, if_false, and_false],
+    exact (ae_measurable'.ae_eq_mk ae_measurable'_condexp_L1).symm, }, },
+  simp only [hfm, if_false, false_and],
+  exact (ae_measurable'.ae_eq_mk ae_measurable'_condexp_L1).symm,
+end
 
 lemma condexp_ae_eq_condexp_L1_clm (hf : integrable f μ) :
   μ[f|hm] =ᵐ[μ] condexp_L1_clm hm μ (hf.to_L1 f) :=
@@ -1558,14 +1688,20 @@ begin
   rw condexp_L1_undef hf,
 end
 
-lemma condexp_zero : μ[(0 : α → F')|hm] =ᵐ[μ] 0 :=
-begin
-  refine (condexp_ae_eq_condexp_L1 _).trans (eventually_eq.trans _ (coe_fn_zero _ 1 _)),
-  rw condexp_L1_zero,
-end
+lemma condexp_zero : μ[(0 : α → F')|hm] = 0 :=
+condexp_of_measurable (@measurable_zero _ _ _ m _) (integrable_zero _ _ _)
 
 lemma measurable_condexp : measurable[m] (μ[f|hm]) :=
-by { unfold condexp, exact ae_measurable'.measurable_mk _, }
+begin
+  unfold condexp,
+  by_cases hfm : measurable[m] f,
+  { by_cases hfi : integrable f μ,
+    { rwa if_pos (⟨hfm, hfi⟩ : measurable[m] f ∧ integrable f μ), },
+    { simp only [hfi, if_false, and_false],
+    exact ae_measurable'.measurable_mk _, }, },
+  simp only [hfm, if_false, false_and],
+  exact ae_measurable'.measurable_mk _,
+end
 
 lemma integrable_condexp : integrable (μ[f|hm]) μ :=
 (integrable_condexp_L1 f).congr (condexp_ae_eq_condexp_L1 f).symm
@@ -1616,7 +1752,7 @@ begin
     refine (coe_fn_smul c (condexp_L1 hm μ f)).mono (λ x hx1 hx2, _),
     rw [hx1, pi.smul_apply, pi.smul_apply, hx2], },
   { by_cases hc : c = 0,
-    { rw [hc, zero_smul, zero_smul], exact condexp_zero, },
+    { rw [hc, zero_smul, zero_smul, condexp_zero], },
     refine (condexp_undef (mt (integrable_smul_iff hc f).mp hf)).trans _,
     refine (@condexp_undef _ _ _ _ _ _ _ _ _ _ _ hm _ _ hf).mono (λ x hx, _),
     rw [pi.zero_apply, pi.smul_apply, hx, pi.zero_apply, smul_zero], },

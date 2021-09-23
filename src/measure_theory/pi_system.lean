@@ -273,12 +273,12 @@ begin
     { exact h_univ m, }, },
   { ext,
     simp_rw set.mem_Inter,
-    split; intro hx1,
-    { intros i h_p_i,
+    split; intro hx,
+    { intros j h_p_j,
       split_ifs,
-      { exact hx1, },
+      { exact hx, },
       { exact set.mem_univ _, }, },
-    { simpa using hx1 i his, }, },
+    { simpa using hx i his, }, },
 end
 
 lemma le_generate_from_pi_Union_Inter {α ι} {m : measurable_space α}

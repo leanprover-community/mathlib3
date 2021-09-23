@@ -1113,7 +1113,7 @@ begin
 end
 
 lemma lt_div_iff_mul_lt (hb0 : b ≠ 0 ∨ c ≠ ∞) (hbt : b ≠ ∞ ∨ c ≠ 0) : c < a / b ↔ c * b < a :=
-by simp only [← not_le, div_le_iff_le_mul hb0 hbt]
+lt_iff_lt_of_le_iff_le (div_le_iff_le_mul hb0 hbt)
 
 lemma div_le_of_le_mul (h : a ≤ b * c) : a / c ≤ b :=
 begin

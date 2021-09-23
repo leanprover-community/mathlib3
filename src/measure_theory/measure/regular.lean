@@ -75,18 +75,15 @@ is automatically satisfied by any finite measure on a metric space.
 
 ### Weakly regular measures
 
-* `is_open.measure_eq_supr_is_compact` asserts that the measure of an open set is the supremum of
-  the measure of compact sets it contains.
-* `is_open.exists_lt_is_compact`: for an open set `U` and `r < μ U`, there exists a compact `K ⊆ U`
+* `is_open.measure_eq_supr_is_closed` asserts that the measure of an open set is the supremum of
+  the measure of closed sets it contains.
+* `is_open.exists_lt_is_closed`: for an open set `U` and `r < μ U`, there exists a closed `F ⊆ U`
   of measure greater than `r`;
-* `measurable_set.measure_eq_supr_is_compact_of_ne_top` asserts that the measure of a measurable set
-  of finite measure is the supremum of the measure of compact sets it contains.
-*  `measurable_set.exists_lt_is_compact_of_ne_top` and `measurable_set.exists_is_compact_lt_add`:
-  a measurable set of finite measure can be approximated by a compact subset (stated as
-  `r < μ K` and `μ s < μ K + ε`, respectively).
-* `measure_theory.measure.regular.of_sigma_compact_space_of_is_locally_finite_measure` is an
-  instance registering that a locally finite measure on a `σ`-compact metric space is regular (in
-  fact, an emetric space is enough).
+* `measurable_set.measure_eq_supr_is_closed_of_ne_top` asserts that the measure of a measurable set
+  of finite measure is the supremum of the measure of closed sets it contains.
+*  `measurable_set.exists_lt_is_closed_of_ne_top` and `measurable_set.exists_is_closed_lt_add`:
+  a measurable set of finite measure can be approximated by a closed subset (stated as
+  `r < μ F` and `μ s < μ F + ε`, respectively).
 * `measure_theory.measure.weakly_regular.of_pseudo_emetric_space_of_is_finite_measure` is an
   instance registering that a finite measure on a metric space is weakly regular (in fact, a pseudo
   emetric space is enough);

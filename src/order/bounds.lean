@@ -832,8 +832,8 @@ begin
   { suffices : (p.1, a) ∈ upper_bounds s, from (H.2 this).2,
     exact λ q hq, ⟨(H.1 hq).1, ha $ mem_image_of_mem _ hq⟩ },
   { exact λ q hq, ⟨H.1.1 $ mem_image_of_mem _ hq, H.2.1 $ mem_image_of_mem _ hq⟩ },
-  { exact λ q hq, ⟨H.1.2 $ monotone.mem_upper_bounds_image monotone_fst hq,
-      H.2.2 $ monotone.mem_upper_bounds_image hq⟩ }
+  { refine λ q hq, ⟨H.1.2 $ monotone.mem_upper_bounds_image monotone_fst hq,
+      H.2.2 $ monotone.mem_upper_bounds_image monotone_snd hq⟩ }
 end
 
 lemma is_glb_prod [preorder α] [preorder β] {s : set (α × β)} (p : α × β) :

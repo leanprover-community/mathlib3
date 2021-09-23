@@ -554,10 +554,7 @@ end
 @[to_additive]
 instance sigma_finite_haar_measure [second_countable_topology G] {K₀ : positive_compacts G} :
   sigma_finite (haar_measure K₀) :=
-begin
-  haveI : locally_compact_space G := K₀.locally_compact_space_of_group,
-  apply_instance,
-end
+by { haveI : locally_compact_space G := K₀.locally_compact_space_of_group, apply_instance, }
 
 /-- The Haar measure is a Haar measure, i.e., it is invariant and gives finite mass to compact
 sets and positive mass to nonempty open sets. -/
@@ -594,9 +591,9 @@ begin
 end
 
 @[to_additive]
-theorem regular_of_is_mul_left_invariant
-  (hμ : is_mul_left_invariant μ) {K} (hK : is_compact K)
-  (h2K : (interior K).nonempty) (hμK : μ K ≠ ∞) : regular μ :=
+theorem regular_of_is_mul_left_invariant (hμ : is_mul_left_invariant μ) {K} (hK : is_compact K)
+  (h2K : (interior K).nonempty) (hμK : μ K ≠ ∞) :
+  regular μ :=
 begin
   rw [haar_measure_unique hμ ⟨K, hK, h2K⟩],
   exact regular.smul hμK

@@ -6,7 +6,18 @@ Authors: Eric Wieser
 import group_theory.submonoid.operations
 import algebra.pointwise
 
-/-! ### Pointwise instances on `submonoid`s and `add_submonoid`s -/
+/-! # Pointwise instances on `submonoid`s and `add_submonoid`s
+
+This file provides the actions
+
+* `submonoid.pointwise_mul_action`
+* `add_submonoid.pointwise_mul_action`
+
+which matches the action of `mul_action_set`.
+
+These actions are available in the `pointwise` locale.
+
+-/
 
 section
 variables {M' : Type*} {α β : Type*}

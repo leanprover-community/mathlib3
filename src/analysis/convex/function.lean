@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, François Dupuis
 -/
 import analysis.convex.combination
+import data.real.basic
+import algebra.module.ordered
 
 /-!
 # Convex and concave functions

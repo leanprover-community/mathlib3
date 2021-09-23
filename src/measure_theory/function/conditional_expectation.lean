@@ -1670,7 +1670,7 @@ begin
     { rw if_pos (⟨hfm, hfi⟩ : measurable[m] f ∧ integrable f μ),
       exact (condexp_L1_of_ae_measurable' (measurable.ae_measurable' hfm) hfi).symm, },
     { simp only [hfi, if_false, and_false],
-    exact (ae_measurable'.ae_eq_mk ae_measurable'_condexp_L1).symm, }, },
+      exact (ae_measurable'.ae_eq_mk ae_measurable'_condexp_L1).symm, }, },
   simp only [hfm, if_false, false_and],
   exact (ae_measurable'.ae_eq_mk ae_measurable'_condexp_L1).symm,
 end
@@ -1698,7 +1698,7 @@ begin
   { by_cases hfi : integrable f μ,
     { rwa if_pos (⟨hfm, hfi⟩ : measurable[m] f ∧ integrable f μ), },
     { simp only [hfi, if_false, and_false],
-    exact ae_measurable'.measurable_mk _, }, },
+      exact ae_measurable'.measurable_mk _, }, },
   simp only [hfm, if_false, false_and],
   exact ae_measurable'.measurable_mk _,
 end

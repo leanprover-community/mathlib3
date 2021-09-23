@@ -8,6 +8,7 @@ import field_theory.is_alg_closed.basic
 import linear_algebra.finsupp
 import linear_algebra.matrix.to_lin
 import order.preorder_hom
+import linear_algebra.charpoly
 
 /-!
 # Eigenvectors and eigenvalues
@@ -129,9 +130,6 @@ begin
 end
 
 variables [finite_dimensional K V] (f : End K V)
-
-protected theorem is_integral : is_integral K f :=
-is_integral_of_noetherian (by apply_instance) f
 
 variables {f} {μ : K}
 
@@ -518,7 +516,3 @@ end
 
 end End
 end module
-variables {K V : Type*} [field K] [add_comm_group V] [module K V] [finite_dimensional K V]
-
-protected lemma linear_map.is_integral (f : V →ₗ[K] V) : is_integral K f :=
-module.End.is_integral f

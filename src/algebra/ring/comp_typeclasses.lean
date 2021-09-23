@@ -68,22 +68,22 @@ namespace ring_hom_inv_pair
 
 variables [ring_hom_inv_pair σ σ']
 
-@[simp] lemma trans_eq : σ.comp σ' = (ring_hom.id R₂) :=
+@[simp] lemma comp_eq : σ.comp σ' = (ring_hom.id R₂) :=
 by { rw ring_hom_inv_pair.is_inv_pair₂ }
 
-@[simp] lemma trans_eq₂ : σ'.comp σ = (ring_hom.id R₁) :=
+@[simp] lemma comp_eq₂ : σ'.comp σ = (ring_hom.id R₁) :=
 by { rw ring_hom_inv_pair.is_inv_pair₁ }
 
 @[simp] lemma inv_pair_apply {x : R₁} : σ' (σ x) = x :=
-by { rw [← ring_hom.comp_apply, trans_eq₂], simp }
+by { rw [← ring_hom.comp_apply, comp_eq₂], simp }
 
 @[simp] lemma inv_pair_apply₂ {x : R₂} : σ (σ' x) = x :=
-by { rw [← ring_hom.comp_apply, trans_eq], simp }
+by { rw [← ring_hom.comp_apply, comp_eq], simp }
 
 instance ids : ring_hom_inv_pair (ring_hom.id R₁) (ring_hom.id R₁) := ⟨rfl, rfl⟩
 instance triples {σ₂₁ : R₂ →+* R₁} [ring_hom_inv_pair σ₁₂ σ₂₁] :
   ring_hom_comp_triple σ₁₂ σ₂₁ (ring_hom.id R₁) :=
-⟨by simp only [trans_eq₂]⟩
+⟨by simp only [comp_eq₂]⟩
 
 end ring_hom_inv_pair
 

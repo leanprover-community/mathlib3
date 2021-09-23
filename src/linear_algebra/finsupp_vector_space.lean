@@ -28,6 +28,7 @@ noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
 open set linear_map submodule
+open_locale cardinal
 
 namespace finsupp
 
@@ -123,7 +124,7 @@ universes u v
 variables {K : Type u} {V : Type v} {ι : Type v}
 variables [field K] [add_comm_group V] [module K V]
 
-lemma dim_eq : module.rank K (ι →₀ V) = cardinal.mk ι * module.rank K V :=
+lemma dim_eq : module.rank K (ι →₀ V) = #ι * module.rank K V :=
 begin
   let bs := basis.of_vector_space K V,
   rw [← cardinal.lift_inj, cardinal.lift_mul, ← bs.mk_eq_dim,
@@ -153,7 +154,7 @@ open module
 
 
 lemma equiv_of_dim_eq_lift_dim
-  (h : cardinal.lift.{v w} (module.rank K V) = cardinal.lift.{w v} (module.rank K V')) :
+  (h : cardinal.lift.{w} (module.rank K V) = cardinal.lift.{v} (module.rank K V')) :
   nonempty (V ≃ₗ[K] V') :=
 begin
   haveI := classical.dec_eq V,
@@ -177,7 +178,7 @@ end
 def fin_dim_vectorspace_equiv (n : ℕ)
   (hn : (module.rank K V) = n) : V ≃ₗ[K] (fin n → K) :=
 begin
-  have : cardinal.lift.{v u} (n : cardinal.{v}) = cardinal.lift.{u v} (n : cardinal.{u}),
+  have : cardinal.lift.{u} (n : cardinal.{v}) = cardinal.lift.{v} (n : cardinal.{u}),
     by simp,
   have hn := cardinal.lift_inj.{v u}.2 hn,
   rw this at hn,
@@ -195,17 +196,17 @@ open module
 variables (K V : Type u) [field K] [add_comm_group V] [module K V]
 
 lemma cardinal_mk_eq_cardinal_mk_field_pow_dim [finite_dimensional K V] :
-  cardinal.mk V = cardinal.mk K ^ module.rank K V :=
+  #V = #K ^ module.rank K V :=
 begin
   let s := basis.of_vector_space_index K V,
   let hs := basis.of_vector_space K V,
-  calc cardinal.mk V = cardinal.mk (s →₀ K) : quotient.sound ⟨hs.repr.to_equiv⟩
-    ... = cardinal.mk (s → K) : quotient.sound ⟨finsupp.equiv_fun_on_fintype⟩
+  calc #V = #(s →₀ K) : quotient.sound ⟨hs.repr.to_equiv⟩
+    ... = #(s → K) : quotient.sound ⟨finsupp.equiv_fun_on_fintype⟩
     ... = _ : by rw [← cardinal.lift_inj.1 hs.mk_eq_dim, cardinal.power_def]
 end
 
 lemma cardinal_lt_omega_of_finite_dimensional [fintype K] [finite_dimensional K V] :
-  cardinal.mk V < cardinal.omega :=
+  #V < ω :=
 begin
   rw cardinal_mk_eq_cardinal_mk_field_pow_dim K V,
   exact cardinal.power_lt_omega (cardinal.lt_omega_iff_fintype.2 ⟨infer_instance⟩)

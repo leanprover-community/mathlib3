@@ -622,6 +622,9 @@ by simp only [← image_smul, mem_image, inv_smul_eq_iff, exists_eq_right]
 lemma preimage_smul (a : α) (t : set β) : (λ x, a • x) ⁻¹' t = a⁻¹ • t :=
 ((mul_action.to_perm a).symm.image_eq_preimage _).symm
 
+lemma preimage_smul_inv (a : α) (t : set β) : (λ x, a⁻¹ • x) ⁻¹' t = a • t :=
+preimage_smul (to_units a)⁻¹ t
+
 @[simp] lemma set_smul_subset_set_smul_iff {a : α} {A B : set β} : a • A ⊆ a • B ↔ A ⊆ B :=
 image_subset_image_iff $ mul_action.injective _
 
@@ -651,6 +654,10 @@ show _ ∈ (units.mk0 a ha)⁻¹ • _ ↔ _, from mem_inv_smul_set_iff
 
 lemma preimage_smul' {a : α} (ha : a ≠ 0) (t : set β) : (λ x, a • x) ⁻¹' t = a⁻¹ • t :=
 preimage_smul (units.mk0 a ha) t
+
+lemma preimage_smul_inv' {a : α} (ha : a ≠ 0) (t : set β) :
+  (λ x, a⁻¹ • x) ⁻¹' t = a • t :=
+preimage_smul ((units.mk0 a ha)⁻¹) t
 
 @[simp] lemma set_smul_subset_set_smul_iff' {a : α} (ha : a ≠ 0) {A B : set β} :
   a • A ⊆ a • B ↔ A ⊆ B :=

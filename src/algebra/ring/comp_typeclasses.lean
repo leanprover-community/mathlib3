@@ -42,14 +42,13 @@ variables [semiring R₁] [semiring R₂] [semiring R₃]
 used to handle composition of semilinear maps. -/
 class ring_hom_comp_triple (σ₁₂ : R₁ →+* R₂) (σ₂₃ : R₂ →+* R₃)
   (σ₁₃ : out_param (R₁ →+* R₃)) : Prop :=
-(is_comp_triple : σ₁₃ = σ₂₃.comp σ₁₂)
+(comp_eq : σ₂₃.comp σ₁₂ = σ₁₃)
+
+attribute [simp] ring_hom_comp_triple.comp_eq
 
 variables {σ₁₂ : R₁ →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R₁ →+* R₃}
 
 namespace ring_hom_comp_triple
-
-@[simp] lemma comp_eq [t : ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] : σ₂₃.comp σ₁₂ = σ₁₃ :=
-t.is_comp_triple.symm
 
 @[simp] lemma comp_apply [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] {x : R₁} :
   σ₂₃ (σ₁₂ x) = σ₁₃ x :=

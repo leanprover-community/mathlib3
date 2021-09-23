@@ -299,7 +299,7 @@ ring_hom.ext $ aeval_tower_C _ _
   (aeval_tower g y : polynomial R →+* A').comp (algebra_map R (polynomial R)) = g :=
 aeval_tower_comp_C _ _
 
-@[simp] lemma aeval_tower_to_alg_hom (x : R) :
+lemma aeval_tower_to_alg_hom (x : R) :
   aeval_tower g y (is_scalar_tower.to_alg_hom S R (polynomial R) x) = g x :=
 aeval_tower_algebra_map _ _ _
 

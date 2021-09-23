@@ -682,6 +682,14 @@ theorem card_erase_lt_of_mem {a : α} {s : multiset α} : a ∈ s → card (s.er
 theorem card_erase_le {a : α} {s : multiset α} : card (s.erase a) ≤ card s :=
 card_le_of_le (erase_le a s)
 
+theorem card_erase_eq_ite {a : α} {s : multiset α} :
+  card (s.erase a) = if a ∈ s then pred (card s) else card s :=
+begin
+  by_cases h : a ∈ s,
+  { rwa [card_erase_of_mem h, if_pos] },
+  { rwa [erase_of_not_mem h, if_neg] }
+end
+
 end erase
 
 @[simp] theorem coe_reverse (l : list α) : (reverse l : multiset α) = l :=
@@ -714,6 +722,13 @@ theorem map_repeat (f : α → β) (a : α) (k : ℕ) : (repeat a k).map f = rep
 
 @[simp] theorem map_add (f : α → β) (s t) : map f (s + t) = map f s + map f t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ map_append _ _ _
+
+/-- If each element of `s : multiset α` can be lifted to `β`, then `s` can be lifted to
+`multiset β`. -/
+instance [can_lift α β] : can_lift (multiset α) (multiset β) :=
+{ cond := λ s, ∀ x ∈ s, can_lift.cond β x,
+  coe := map can_lift.coe,
+  prf := by { rintro ⟨l⟩ hl, lift l to list β using hl, exact ⟨l, coe_map _ _⟩ } }
 
 /-- `multiset.map` as an `add_monoid_hom`. -/
 def map_add_monoid_hom (f : α → β) : multiset α →+ multiset β :=

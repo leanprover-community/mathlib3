@@ -275,8 +275,7 @@ end
 /-- Continuity from above: the measure of the intersection of a decreasing sequence of measurable
 sets is the infimum of the measures. -/
 lemma measure_Inter_eq_infi [encodable ι] {s : ι → set α}
-  (h : ∀ i, measurable_set (s i)) (hd : directed (⊇) s)
-  (hfin : ∃ i, μ (s i) ≠ ∞) :
+  (h : ∀ i, measurable_set (s i)) (hd : directed (⊇) s) (hfin : ∃ i, μ (s i) ≠ ∞) :
   μ (⋂ i, s i) = (⨅ i, μ (s i)) :=
 begin
   rcases hfin with ⟨k, hk⟩,
@@ -310,7 +309,8 @@ by { rw [measure_eq_inter_diff (hs.union ht) ht, set.union_inter_cancel_right,
 
 /-- Continuity from below: the measure of the union of an increasing sequence of measurable sets
 is the limit of the measures. -/
-lemma tendsto_measure_Union {s : ℕ → set α} (hs : ∀ n, measurable_set (s n)) (hm : monotone s) :
+lemma tendsto_measure_Union [semilattice_sup ι] [encodable ι] {s : ι → set α}
+  (hs : ∀ n, measurable_set (s n)) (hm : monotone s) :
   tendsto (μ ∘ s) at_top (𝓝 (μ (⋃ n, s n))) :=
 begin
   rw measure_Union_eq_supr hs (directed_of_sup hm),
@@ -319,7 +319,7 @@ end
 
 /-- Continuity from above: the measure of the intersection of a decreasing sequence of measurable
 sets is the limit of the measures. -/
-lemma tendsto_measure_Inter {s : ℕ → set α}
+lemma tendsto_measure_Inter [encodable ι] [semilattice_sup ι] {s : ι → set α}
   (hs : ∀ n, measurable_set (s n)) (hm : ∀ ⦃n m⦄, n ≤ m → s m ⊆ s n) (hf : ∃ i, μ (s i) ≠ ∞) :
   tendsto (μ ∘ s) at_top (𝓝 (μ (⋂ n, s n))) :=
 begin
@@ -393,6 +393,10 @@ m.le_trim s
 @[simp] lemma to_outer_measure_to_measure {μ : measure α} :
   μ.to_outer_measure.to_measure (le_to_outer_measure_caratheodory _) = μ :=
 measure.ext $ λ s, μ.to_outer_measure.trim_eq
+
+@[simp] lemma bounded_by_measure (μ : measure α) :
+  outer_measure.bounded_by μ = μ.to_outer_measure :=
+μ.to_outer_measure.bounded_by_eq_self
 
 end outer_measure
 
@@ -1449,6 +1453,10 @@ begin
   { exact hx2 hxt, },
   { exact hx1 hxt, },
 end
+
+lemma mem_map_restrict_ae_iff {β} {s : set α} {t : set β} {f : α → β} (hs : measurable_set s) :
+  t ∈ filter.map f (μ.restrict s).ae ↔ μ ((f ⁻¹' t)ᶜ ∩ s) = 0 :=
+by rw [mem_map, mem_ae_iff, measure.restrict_apply' hs]
 
 lemma ae_smul_measure {p : α → Prop} (h : ∀ᵐ x ∂μ, p x) (c : ℝ≥0∞) : ∀ᵐ x ∂(c • μ), p x :=
 ae_iff.2 $ by rw [smul_apply, ae_iff.1 h, mul_zero]
@@ -2811,6 +2819,37 @@ end piecewise
 section indicator_function
 
 variables [measurable_space α] {μ : measure α} {s t : set α} {f : α → β}
+
+lemma mem_map_indicator_ae_iff_mem_map_restrict_ae_of_zero_mem [has_zero β] {t : set β}
+  (ht : (0 : β) ∈ t) (hs : measurable_set s) :
+  t ∈ filter.map (s.indicator f) μ.ae ↔ t ∈ filter.map f (μ.restrict s).ae :=
+begin
+  simp_rw [mem_map, mem_ae_iff],
+  rw [measure.restrict_apply' hs, set.indicator_preimage, set.ite],
+  simp_rw [set.compl_union, set.compl_inter],
+  change μ (((f ⁻¹' t)ᶜ ∪ sᶜ) ∩ ((λ x, (0 : β)) ⁻¹' t \ s)ᶜ) = 0 ↔ μ ((f ⁻¹' t)ᶜ ∩ s) = 0,
+  simp only [ht, ← set.compl_eq_univ_diff, compl_compl, set.compl_union, if_true,
+    set.preimage_const],
+  simp_rw [set.union_inter_distrib_right, set.compl_inter_self s, set.union_empty],
+end
+
+lemma mem_map_indicator_ae_iff_of_zero_nmem [has_zero β] {t : set β} (ht : (0 : β) ∉ t)  :
+  t ∈ filter.map (s.indicator f) μ.ae ↔ μ ((f ⁻¹' t)ᶜ ∪ sᶜ) = 0 :=
+begin
+  rw [mem_map, mem_ae_iff, set.indicator_preimage, set.ite, set.compl_union, set.compl_inter],
+  change μ (((f ⁻¹' t)ᶜ ∪ sᶜ) ∩ ((λ x, (0 : β)) ⁻¹' t \ s)ᶜ) = 0 ↔ μ ((f ⁻¹' t)ᶜ ∪ sᶜ) = 0,
+  simp only [ht, if_false, set.compl_empty, set.empty_diff, set.inter_univ, set.preimage_const],
+end
+
+lemma map_restrict_ae_le_map_indicator_ae [has_zero β] (hs : measurable_set s) :
+  filter.map f (μ.restrict s).ae ≤ filter.map (s.indicator f) μ.ae :=
+begin
+  intro t,
+  by_cases ht : (0 : β) ∈ t,
+  { rw mem_map_indicator_ae_iff_mem_map_restrict_ae_of_zero_mem ht hs, exact id, },
+  rw [mem_map_indicator_ae_iff_of_zero_nmem ht, mem_map_restrict_ae_iff hs],
+  exact λ h, measure_mono_null ((set.inter_subset_left _ _).trans (set.subset_union_left _ _)) h,
+end
 
 lemma ae_measurable.restrict [measurable_space β] (hfm : ae_measurable f μ) {s} :
   ae_measurable f (μ.restrict s) :=

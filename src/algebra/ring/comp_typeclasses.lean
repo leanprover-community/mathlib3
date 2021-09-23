@@ -53,7 +53,7 @@ t.is_comp_triple.symm
 
 @[simp] lemma comp_apply [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] {x : R₁} :
   σ₂₃ (σ₁₂ x) = σ₁₃ x :=
-show (σ₂₃.comp σ₁₂) x = σ₁₃ x, by rw [comp_eq]
+ring_hom.congr_fun comp_eq x
 
 end ring_hom_comp_triple
 

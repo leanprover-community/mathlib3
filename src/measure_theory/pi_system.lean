@@ -294,20 +294,7 @@ lemma mem_pi_Union_Inter_of_measurable_set {α ι} (m : ι → measurable_space 
   {S : set (finset ι)} {i : ι} {p : finset ι} (hpS : p ∈ S) (hpi : i ∈ p) (t : set α)
   (ht : @measurable_set _ (m i) t) :
   t ∈ pi_Union_Inter (λ n, (m n).measurable_set') S :=
-begin
-  use [p, hpS, (λ n, ite (n=i) t set.univ)],
-  split,
-  { intros j hj,
-    split_ifs with hji,
-    { rwa hji, },
-    { exact @measurable_set.univ α (m j), }, },
-  { ext,
-    simp_rw set.mem_Inter,
-    split; intro hx,
-    { intros _ _,
-      split_ifs; simp [hx], },
-    { simpa using (hx i hpi), }, },
-end
+subset_pi_Union_Inter (λ i, @measurable_set.univ α (m i)) hpS hpi ht
 
 lemma measurable_set_supr_of_mem_pi_Union_Inter {α ι} (m : ι → measurable_space α)
   (S : set (finset ι)) (t : set α) (ht : t ∈ pi_Union_Inter (λ n, (m n).measurable_set') S) :

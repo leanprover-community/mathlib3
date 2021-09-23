@@ -366,28 +366,23 @@ e.fold ff $ λ e' d res, res || match e' with | var k := k = d | _ := ff end
 
 meta def find_unused_have_suffices_macros : expr → tactic (list string)
 | (app a b) := (++) <$> find_unused_have_suffices_macros a <*> find_unused_have_suffices_macros b
-| (lam var_name bi var_type body) := (++) <$> find_unused_have_suffices_macros var_type
-                                     <*> find_unused_have_suffices_macros body
-| (pi var_name bi var_type body) := (++) <$> find_unused_have_suffices_macros var_type
-                                    <*> find_unused_have_suffices_macros body
-| (elet var_name type assignment body) := (++) <$> find_unused_have_suffices_macros type
-                                          <*> ((++) <$> find_unused_have_suffices_macros assignment
-                                               <*> find_unused_have_suffices_macros body)
-| m@(macro md [lam ppnm bi vt bd]) := do -- term mode have statements are tagged with a macro
+| (lam var_name bi var_type body) := find_unused_have_suffices_macros body
+| (pi var_name bi var_type body) := find_unused_have_suffices_macros body
+| (elet var_name type assignment body) := (++) <$> find_unused_have_suffices_macros assignment
+                                               <*> find_unused_have_suffices_macros body
+| m@(macro md [l@(lam ppnm bi vt bd)]) := do -- term mode have statements are tagged with a macro
   -- if the macro annotation is `have then this lambda came from a term mode have statement
-  if m.is_annotation.iget.fst = `have then
-    (++) (if bd.has_zero_var then [] else
-      ["unnecessary have " ++ ppnm.to_string ++ " : " ++ vt.to_string]) <$>
-    find_unused_have_suffices_macros (lam ppnm bi vt bd)
-  else find_unused_have_suffices_macros (lam ppnm bi vt bd)
-| m@(macro md [app (lam ppnm bi vt bd) arg]) := do
+  (++) (if m.is_annotation.iget.fst = `have ∧ ¬bd.has_zero_var then
+      ["unnecessary have " ++ ppnm.to_string ++ " : " ++ vt.to_string]
+    else []) <$>
+  find_unused_have_suffices_macros l
+| m@(macro md [app l@(lam ppnm bi vt bd) arg]) := do
   -- term mode suffices statements are tagged with a macro
   -- if the macro annotation is `suffices then this lambda came from a term mode suffices statement
-  if m.is_annotation.iget.fst = `suffices then
-       (++) (if bd.has_zero_var then [] else
-        ["unnecessary suffices " ++ ppnm.to_string ++ " : " ++ vt.to_string]) <$>
-       find_unused_have_suffices_macros (lam ppnm bi vt bd)
-  else find_unused_have_suffices_macros (lam ppnm bi vt bd)
+  (++) (if m.is_annotation.iget.fst = `suffices ∧ ¬bd.has_zero_var then
+      ["unnecessary suffices " ++ ppnm.to_string ++ " : " ++ vt.to_string]
+    else []) <$>
+  ((++) <$> find_unused_have_suffices_macros l <*> find_unused_have_suffices_macros arg)
 | (macro md l) := do ls ← l.mmap find_unused_have_suffices_macros, return ls.join
 | _ := return []
 

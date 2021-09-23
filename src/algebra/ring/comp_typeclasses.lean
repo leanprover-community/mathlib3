@@ -16,7 +16,7 @@ This file contains three typeclasses used in the definition of (semi)linear maps
 
 Instances of these typeclasses mostly involving `ring_hom.id` are also provided:
 * `ring_hom_inv_pair (ring_hom.id R) (ring_hom.id R)`
-* `ring_hom_comp_triple σ₁₂ σ₂₁ (ring_hom.id R₁)`
+* `[ring_hom_inv_pair σ₁₂ σ₂₁] ring_hom_comp_triple σ₁₂ σ₂₁ (ring_hom.id R₁)`
 * `ring_hom_comp_triple (ring_hom.id R₁) σ₁₂ σ₁₂`
 * `ring_hom_comp_triple σ₁₂ (ring_hom.id R₂) σ₁₂`
 * `ring_hom_surjective (ring_hom.id R)`

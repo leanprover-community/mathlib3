@@ -25,7 +25,7 @@ In this file we define
 ## Implementation notes
 
 To ensure that composition works smoothly for semilinear maps, we use the following typeclasses
-  for `ring_hom`s defined in `algebra/ring/basic`:
+  for `ring_hom`s defined in `algebra/ring/comp_typeclasses`:
 * `ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃`, which states that `σ₁₃ = σ₂₃.comp σ₁₂`.
 * `ring_hom_inv_pair σ σ'`, which state that `σ` and `σ'` are inverses of each other.
 * `ring_hom_surjective σ`, which states that `σ` is surjective.

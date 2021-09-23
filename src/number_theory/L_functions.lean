@@ -5,6 +5,7 @@ Authors: Ashvni Narayanan
 -/
 import number_theory.padics.padic_integers
 import topology.continuous_function.compact
+import topology.continuous_function.locally_constant
 
 /-!
 # L-functions
@@ -203,7 +204,7 @@ begin
   set s1 : (s' : set V) → set X := λ x, (x.1 : set X) with hs1,
   --set s1 := {i : set X | ∃ (j : V) (H : j ∈ s'), (j : set X) = i } with hs1,
   have fin : (set.range s1).finite,
-  { apply set.finite_range _, apply finset.subtype.fintype, },
+  { apply set.finite_range _, exact plift.fintype s', },
   obtain ⟨s, clo, hs, sub, disj⟩ := clopen_Union_disjoint (set.finite.to_finset fin) _,
   use s,
   { split,

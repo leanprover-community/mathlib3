@@ -230,7 +230,7 @@ end
 lemma span_eq_open_ball (n : ℕ) :
   metric.ball 0 ((p : ℝ) ^ (1 - (n : ℤ))) = (@ideal.span ℤ_[p] _ {(p^n : ℤ_[p])} : set ℤ_[p]) :=
 begin
-  ext, simp only [mem_ball_0_iff, set_like.mem_coe],
+  ext, simp only [mem_ball_zero_iff, set_like.mem_coe],
   rw [←padic_int.norm_le_pow_iff_mem_span_pow, padic_int.norm_le_pow_iff_norm_lt_pow_add_one],
   have : 1 - (n : ℤ) = -(n : ℤ) + 1 := sub_eq_neg_add 1 ↑n,
   rw this,
@@ -312,7 +312,7 @@ end
 -/
 
 lemma preimage_to_zmod_pow (n : ℕ) (x : zmod (p^n)) : (to_zmod_pow n) ⁻¹' {x} =
-  {(x : ℤ_[p])} + (((to_zmod_pow n).ker : ideal ℤ_[p]) : set ℤ_[p]) :=
+ {(x : ℤ_[p])} + (((to_zmod_pow n).ker : ideal ℤ_[p]) : set ℤ_[p]) :=
 begin
  ext y,
     simp only [set.image_add_left, set.mem_preimage, set.singleton_add,
@@ -327,7 +327,8 @@ begin
   refine continuous_of_topological_basis _ discrete_topology.is_topological_basis _,
   rintros s hs, simp only [set.mem_range] at hs, cases hs with x hx,
   change {x} = s at hx, rw ←hx,
-  rw [preimage_to_zmod_pow, ker_to_zmod_pow], refine is_open.add_left _, exact is_open_span p n,
+  rw [preimage_to_zmod_pow, ker_to_zmod_pow],
+  refine is_open.add_left _, exact is_open_span p n,
 end
 
 lemma proj_lim_preimage_clopen (n : ℕ) (a : zmod (d*(p^n))) :
@@ -337,6 +338,8 @@ begin
   { refine continuous_def.mp (continuous_to_zmod_pow p n) {a} trivial, },
   { refine continuous_iff_is_closed.mp (continuous_to_zmod_pow p n) {a} _, simp, },
 end
+
+--example {α : Type*} [h : has_add α] : has_add (set α) := by refine set.has_add
 
 lemma add_ball (x y : ℤ_[p]) (r : ℝ) :
   ({x} : set ℤ_[p]) + metric.ball y r = metric.ball (x + y) r :=

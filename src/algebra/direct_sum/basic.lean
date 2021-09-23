@@ -6,7 +6,7 @@ Authors: Kenny Lau
 -/
 import data.dfinsupp
 import group_theory.submonoid.operations
-import group_theory.subgroup
+import group_theory.subgroup.basic
 
 /-!
 # Direct sum

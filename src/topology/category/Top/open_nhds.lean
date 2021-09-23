@@ -69,12 +69,6 @@ full_subcategory_inclusion _
 lemma open_embedding {x : X} (U : open_nhds x) : open_embedding (U.1.inclusion) :=
 U.1.open_embedding
 
-instance open_nhds_is_filtered (x : X) : is_filtered (open_nhds x)ᵒᵖ :=
-{ nonempty := ⟨op ⊤⟩,
-  cocone_objs := λ U V, ⟨op (unop U ⊓ unop V),
-    (inf_le_left (unop U) (unop V)).op, (inf_le_right (unop U) (unop V)).op, trivial⟩ ,
-  cocone_maps := λ U V i j, ⟨V, 𝟙 V, rfl⟩, }
-
 def map (x : X) : open_nhds (f x) ⥤ open_nhds x :=
 { obj := λ U, ⟨(opens.map f).obj U.1, by tidy⟩,
   map := λ U V i, (opens.map f).map i }

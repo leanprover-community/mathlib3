@@ -435,7 +435,7 @@ lemma to_jordan_decomposition_smul_real_nonneg (s : signed_measure α) (r : ℝ)
   (r • s).to_jordan_decomposition = r • s.to_jordan_decomposition :=
 begin
   lift r to ℝ≥0 using hr,
-  rw [coe_smul, ← to_jordan_decomposition_smul],
+  rw [jordan_decomposition.coe_smul, ← to_jordan_decomposition_smul],
   refl
 end
 

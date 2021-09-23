@@ -730,6 +730,8 @@ alg_hom_of_linear_map_tensor_product (algebra.lmul' R)
 
 variables {S}
 
+lemma lmul'_to_linear_map : (lmul' S).to_linear_map = algebra.lmul' R := rfl
+
 @[simp] lemma lmul'_apply_tmul (a b : S) : lmul' S (a ⊗ₜ[R] b) = a * b := lmul'_apply
 
 include f g

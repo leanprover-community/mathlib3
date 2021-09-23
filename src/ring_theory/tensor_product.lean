@@ -719,12 +719,13 @@ end tensor_product
 end algebra
 
 namespace tensor_product
+
 variables {R M N S: Type*} [comm_semiring R] [add_comm_monoid M] [add_comm_monoid N] [semiring S]
 variables [module R M] [module R N] [algebra R S]
 
 /--
 If `S` is an `R`-algebra, for a pair of morphisms `f : M →ₗ[R] S`, `g : N →ₗ[R] S`,
-We obtain a map `M ⊗[R] N →ₗ[R] S` via `a ⊗ b ↦ f(a) * g(b)`.
+We may obtain a map `M ⊗[R] N →ₗ[R] S` via `a ⊗ b ↦ f(a) * g(b)`.
 This may not be that useful in module-sense, but is useful when `M`, `N` are both algebras.
 -/
 def product_map (f : M →ₗ[R] S) (g : N →ₗ[R] S) : M ⊗[R] N →ₗ[R] S :=
@@ -742,16 +743,15 @@ lift {
 }
 
 @[simp] lemma product_map_apply_tmul (f : M →ₗ[R] S) (g : N →ₗ[R] S) (m : M) (n : N) :
-  product_map f g (m ⊗ₜ n) = f m * g n := by apply tensor_product.lift.tmul
+  product_map f g (m ⊗ₜ n) = f m * g n :=
+by apply tensor_product.lift.tmul
 
 end tensor_product
 
 namespace algebra.tensor_product
 
-variables {R : Type u} [comm_semiring R]
-variables {A : Type v₁} [semiring A] [algebra R A]
-variables {B : Type v₂} [semiring B] [algebra R B]
-variables {S : Type v₂} [comm_semiring S] [algebra R S]
+variables {R A B S: Type*} [comm_semiring R] [semiring A] [semiring B] [comm_semiring S]
+variables [algebra R A] [algebra R B] [algebra R S]
 variables (f : A →ₐ[R] S) (g : B →ₐ[R] S)
 include f g
 
@@ -772,8 +772,7 @@ begin
   { intros r, simp }
 end
 
-@[simp] lemma product_map_apply_tmul (a : A) (b : B) :
-  product_map f g (a ⊗ₜ b) = f a * g b :=
+@[simp] lemma product_map_apply_tmul (a : A) (b : B) : product_map f g (a ⊗ₜ b) = f a * g b :=
 tensor_product.product_map_apply_tmul f.to_linear_map g.to_linear_map a b
 
 lemma product_map_left_apply (a : A) : product_map f g (include_left a) = f a := by simp

@@ -273,7 +273,7 @@ end
 lemma measure_inter_lt_top_of_left_ne_top (hs_finite : μ s ≠ ∞) : μ (s ∩ t) < ∞ :=
 (measure_mono (set.inter_subset_left s t)).trans_lt hs_finite.lt_top
 
-lemma measure_inter_lt_top_of_right (ht_finite : μ t ≠ ∞) : μ (s ∩ t) < ∞ :=
+lemma measure_inter_lt_top_of_right_ne_top (ht_finite : μ t ≠ ∞) : μ (s ∩ t) < ∞ :=
 inter_comm t s ▸ measure_inter_lt_top_of_left_ne_top ht_finite
 
 lemma measure_inter_null_of_null_right (S : set α) {T : set α} (h : μ T = 0) : μ (S ∩ T) = 0 :=

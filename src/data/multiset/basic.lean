@@ -117,6 +117,7 @@ quotient.hrec_on m (@list.rec α (λl, C ⟦l⟧) C_0 (λa l b, C_cons a ⟦l⟧
     (assume a l l' b b' hl, have ⟦l⟧ = ⟦l'⟧, from quot.sound hl, by cc)
     (assume a a' l, C_cons_heq a a' ⟦l⟧)
 
+/-- Companion to `multiset.rec` with more convenient argument order. -/
 @[elab_as_eliminator]
 protected def rec_on (m : multiset α)
   (C_0 : C 0)
@@ -499,6 +500,10 @@ pos_iff_ne_zero.trans $ not_congr card_eq_zero
 theorem card_pos_iff_exists_mem {s : multiset α} : 0 < card s ↔ ∃ a, a ∈ s :=
 quot.induction_on s $ λ l, length_pos_iff_exists_mem
 
+/-- A strong induction principle for multisets:
+If you construct a value for a particular multiset given values for all strictly smaller multisets,
+you can construct a value for any multiset.
+-/
 @[elab_as_eliminator] def strong_induction_on {p : multiset α → Sort*} :
   ∀ (s : multiset α), (∀ s, (∀t < s, p t) → p s) → p s
 | s := λ ih, ih s $ λ t h,
@@ -905,7 +910,8 @@ foldl_induction' f H x p p s p_f px p_s
 
 /-- Product of a multiset given a commutative monoid structure on `α`.
   `prod {a, b, c} = a * b * c` -/
-@[to_additive]
+@[to_additive "Sum of a multiset given a commutative additive monoid structure on `α`.
+  `sum {a, b, c} = a + b + c`"]
 def prod [comm_monoid α] : multiset α → α :=
 foldr (*) (λ x y z, by simp [mul_left_comm]) 1
 
@@ -1438,6 +1444,8 @@ quotient.induction_on m $ assume l, congr_arg coe $ congr_arg (list.cons _) $
 section decidable_pi_exists
 variables {m : multiset α}
 
+/-- If `p` is a decidable predicate,
+so is the predicate that all elements of a multiset satisfy `p`. -/
 protected def decidable_forall_multiset {p : α → Prop} [hp : ∀a, decidable (p a)] :
   decidable (∀a∈m, p a) :=
 quotient.rec_on_subsingleton m (λl, decidable_of_iff (∀a∈l, p a) $ by simp)
@@ -1453,6 +1461,8 @@ instance decidable_eq_pi_multiset {β : α → Type*} [h : ∀a, decidable_eq (�
   decidable_eq (Πa∈m, β a) :=
 assume f g, decidable_of_iff (∀a (h : a ∈ m), f a h = g a h) (by simp [function.funext_iff])
 
+/-- If `p` is a decidable predicate,
+so is the existence of an element in a multiset satisfying `p`. -/
 def decidable_exists_multiset {p : α → Prop} [decidable_pred p] :
   decidable (∃ x ∈ m, p x) :=
 quotient.rec_on_subsingleton m list.decidable_exists_mem

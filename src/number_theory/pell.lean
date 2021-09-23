@@ -90,6 +90,7 @@ def xz (n : ℕ) : ℤ := xn n
 /-- The Pell `y` sequence, considered as an integer sequence.-/
 def yz (n : ℕ) : ℤ := yn n
 /-- The element `a` such that `d = a ^ 2 - 1`, considered as an integer.-/
+@[nolint unused_arguments]
 def az : ℤ := a
 
 theorem asq_pos : 0 < a*a :=
@@ -377,9 +378,14 @@ theorem yn_modeq_two : ∀ n, yn n ≡ n [MOD 2]
     exact (dvd_mul_right 2 _).modeq_zero_nat.trans (dvd_mul_right 2 _).zero_modeq_nat,
   end
 
+section
+
+omit a1
 lemma x_sub_y_dvd_pow_lem (y2 y1 y0 yn1 yn0 xn1 xn0 ay a2 : ℤ) :
   (a2 * yn1 - yn0) * ay + y2 - (a2 * xn1 - xn0) =
     y2 - a2 * y1 + y0 + a2 * (yn1 * ay + y1 - xn1) - (yn0 * ay + y0 - xn0) := by ring
+
+end
 
 theorem x_sub_y_dvd_pow (y : ℕ) :
   ∀ n, (2*a*y - y*y - 1 : ℤ) ∣ yz n * (a - y) + ↑(y^n) - xz n

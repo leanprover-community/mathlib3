@@ -88,9 +88,14 @@ show pell n = ((pell n).1, (pell n).2), from match pell n with (a, b) := rfl end
 def xz (n : ℕ) : ℤ := xn n
 /-- The Pell `y` sequence, considered as an integer sequence.-/
 def yz (n : ℕ) : ℤ := yn n
+
+section
+omit a1
+
 /-- The element `a` such that `d = a ^ 2 - 1`, considered as an integer.-/
-@[nolint unused_arguments]
 def az : ℤ := a
+
+end
 
 theorem asq_pos : 0 < a*a :=
 le_trans (le_of_lt a1) (by have := @nat.mul_le_mul_left 1 a a (le_of_lt a1); rwa mul_one at this)
@@ -339,7 +344,7 @@ by rw ke; exact dvd_mul_of_dvd_right
 theorem pell_zd_succ_succ (n) : pell_zd (n + 2) + pell_zd n = (2 * a : ℕ) * pell_zd (n + 1) :=
 have (1:ℤ√d) + ⟨a, 1⟩ * ⟨a, 1⟩ = ⟨a, 1⟩ * (2 * a),
 by { rw zsqrtd.coe_nat_val, change (⟨_,_⟩:ℤ√(d a1))=⟨_,_⟩,
-    rw dz_val, change az a1 with a, rw zsqrtd.ext, dsimp, split; ring },
+    rw dz_val, dsimp [az], rw zsqrtd.ext, dsimp, split; ring },
 by simpa [mul_add, mul_comm, mul_left_comm, add_comm] using congr_arg (* pell_zd a1 n) this
 
 theorem xy_succ_succ (n) : xn (n + 2) + xn n = (2 * a) * xn (n + 1) ∧

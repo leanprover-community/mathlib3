@@ -717,3 +717,71 @@ end monoidal
 end tensor_product
 
 end algebra
+
+namespace tensor_product
+variables {R M N S: Type*} [comm_semiring R] [add_comm_monoid M] [add_comm_monoid N] [semiring S]
+variables [module R M] [module R N] [algebra R S]
+
+/--
+If `S` is an `R`-algebra, for a pair of morphisms `f : M →ₗ[R] S`, `g : N →ₗ[R] S`,
+We obtain a map `M ⊗[R] N →ₗ[R] S` via `a ⊗ b ↦ f(a) * g(b)`.
+This may not be that useful in module-sense, but is useful when `M`, `N` are both algebras.
+-/
+def product_map (f : M →ₗ[R] S) (g : N →ₗ[R] S) : M ⊗[R] N →ₗ[R] S :=
+lift {
+  to_fun := λ m, {
+    to_fun := λ n, f m * g n,
+    map_add' := λ n₁ n₂, by rw [g.map_add, mul_add],
+    map_smul' := λ r n, by rw [g.map_smul, mul_smul_comm]
+  },
+  map_add' := λ m₁ m₂, by
+    { ext n, simp only [linear_map.coe_mk, linear_map.add_apply, f.map_add, add_mul] },
+  map_smul' := λ r m, by
+    { ext n, simp only [linear_map.coe_mk, linear_map.smul_apply,
+      f.map_smul, algebra.smul_mul_assoc] }
+}
+
+@[simp] lemma product_map_apply_tmul (f : M →ₗ[R] S) (g : N →ₗ[R] S) (m : M) (n : N) :
+  product_map f g (m ⊗ₜ n) = f m * g n := by apply tensor_product.lift.tmul
+
+end tensor_product
+
+namespace algebra.tensor_product
+
+variables {R : Type u} [comm_semiring R]
+variables {A : Type v₁} [semiring A] [algebra R A]
+variables {B : Type v₂} [semiring B] [algebra R B]
+variables {S : Type v₂} [comm_semiring S] [algebra R S]
+variables (f : A →ₐ[R] S) (g : B →ₐ[R] S)
+include f g
+
+/--
+If `S` is commutative, for a pair of morphisms `f : A →ₐ[R] S`, `g : B →ₐ[R] S`,
+We obtain a map `A ⊗[R] B →ₐ[R] S` that commutes with `f`, `g` via `a ⊗ b ↦ f(a) * g(b)`.
+-/
+def product_map : A ⊗[R] B →ₐ[R] S :=
+begin
+  apply alg_hom_of_linear_map_tensor_product
+    (tensor_product.product_map f.to_linear_map g.to_linear_map),
+  { intros a₁ a₂ b₁ b₂,
+    unfold alg_hom.to_linear_map,
+    simp only [linear_map.coe_mk, tensor_product.product_map_apply_tmul, alg_hom.map_mul],
+    rw [semiring.mul_assoc, semiring.mul_assoc,
+      ← semiring.mul_assoc (f a₂), ← semiring.mul_assoc (g b₁), mul_comm (f a₂)],
+    refl },
+  { intros r, simp }
+end
+
+@[simp] lemma product_map_apply_tmul (a : A) (b : B) :
+  product_map f g (a ⊗ₜ b) = f a * g b :=
+tensor_product.product_map_apply_tmul f.to_linear_map g.to_linear_map a b
+
+@[simp] lemma product_map_left_apply (a : A) : product_map f g (include_left a) = f a := by simp
+
+@[simp] lemma product_map_left : (product_map f g).comp include_left = f := alg_hom.ext (by simp)
+
+@[simp] lemma product_map_right_apply (b : B) : product_map f g (include_right b) = g b := by simp
+
+@[simp] lemma product_map_right : (product_map f g).comp include_right = g := alg_hom.ext (by simp)
+
+end algebra.tensor_product

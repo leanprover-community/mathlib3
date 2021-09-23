@@ -24,7 +24,7 @@ variables {R A B : CommRing.{u}} (f : R ⟶ A) (g : R ⟶ B)
 
 namespace CommRing
 
-/-- The explicit cocone with tensor products as the fibred product in `CommRing`. -/
+/-- The explicit cocone with tensor products as the fibered product in `CommRing`. -/
 def pushout_cocone : limits.pushout_cocone f g :=
 begin
   letI := ring_hom.to_algebra f,

@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2020 Andrew Yang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Andrew Yang
+-/
 import category_theory.limits.shapes.pullbacks
 import ring_theory.tensor_product
 import algebra.category.CommRing.basic

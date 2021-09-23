@@ -9,7 +9,7 @@ This implementation depends on the NetworkX python module.
 """
 
 import json
-import os
+from pathlib import Path
 import networkx as nx
 
 timings = json.load(open("scripts/times.json"))["timings"]
@@ -27,34 +27,35 @@ count = 0
 
 walked_set = set()
 
-for root, directories, filenames in os.walk('src'):
+source_path = Path('src')
 
-    for filename in filenames:
+print(f"Searching for lean files in {source_path}")
 
-        if filename.endswith(".lean"):
-            count += 1
-            file = os.path.join(root, filename)
-            rel_file = file[4:]
+for filename in source_path.glob('**/*.lean'):
 
-            walked_set.add(rel_file)
+    count += 1
 
-            found_import = False
-            for line in open(file):
-                if line.startswith("/-!"):
-                    # we have reached the module docstring, there are no more
-                    # imports
-                    break
-                if line.startswith("import"):
-                    found_import = True
-                    imported = line[7:-1].replace(".", "/") + ".lean"
-                    time = timings[rel_file] if rel_file in timings else 0
-                    import_graph.add_edge(rel_file, imported, weight=time)
-                else:
-                    if found_import:
-                        # We have left the import section
-                        # Important as some files include commented examples
-                        # of imports, which are not true imports
-                        break
+    rel_file = str(filename)[4:]
+
+    walked_set.add(rel_file)
+
+    found_import = False
+    for line in open(filename):
+        if line.startswith("/-!"):
+            # we have reached the module docstring, there are no more
+            # imports
+            break
+        if line.startswith("import"):
+            found_import = True
+            imported = line[7:-1].replace(".", "/") + ".lean"
+            time = timings[rel_file] if rel_file in timings else 0
+            import_graph.add_edge(rel_file, imported, weight=time)
+        else:
+            if found_import:
+                # We have left the import section
+                # Important as some files include commented examples
+                # of imports, which are not true imports
+                break
 
 print(f"Walked {count} lean files")
 

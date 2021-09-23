@@ -263,7 +263,7 @@ begin
   have hl := λ i : ι, mem_sorted_univ i,
   have hnd := @sorted_univ_nodup ι _ _,
   apply ((pi_measurable_equiv_tprod hnd hl).symm.map_apply (pi univ s)).trans_le,
-  dsimp only [pi_measurable_equiv_tprod, tprod.pi_equiv_tprod, coe_symm_mk, equiv.coe_fn_symm_mk],
+  dsimp only [pi_measurable_equiv_tprod_symm_apply],
   rw [elim_preimage_pi hnd],
   refine (tprod_tprod_le _ _ _).trans_eq _,
   rw [← list.prod_to_finset _ hnd],

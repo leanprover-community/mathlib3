@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Ebner, Sébastien Gouëzel
 -/
 import analysis.calculus.fderiv
+import data.polynomial.derivative
 
 /-!
 
@@ -364,10 +365,14 @@ has_fderiv_within_at.has_fderiv_at h hs
 
 lemma differentiable_within_at.has_deriv_within_at (h : differentiable_within_at 𝕜 f s x) :
   has_deriv_within_at f (deriv_within f s x) s x :=
-show has_fderiv_within_at _ _ _ _, by { convert h.has_fderiv_within_at, simp [deriv_within] }
+h.has_fderiv_within_at.has_deriv_within_at
 
 lemma differentiable_at.has_deriv_at (h : differentiable_at 𝕜 f x) : has_deriv_at f (deriv f x) x :=
-show has_fderiv_at _ _ _, by { convert h.has_fderiv_at, simp [deriv] }
+h.has_fderiv_at.has_deriv_at
+
+lemma differentiable_on.has_deriv_at (h : differentiable_on 𝕜 f s) (hs : s ∈ 𝓝 x) :
+  has_deriv_at f (deriv f x) x :=
+(h.has_fderiv_at hs).has_deriv_at
 
 lemma has_deriv_at.deriv (h : has_deriv_at f f' x) : deriv f x = f' :=
 h.differentiable_at.has_deriv_at.unique h
@@ -568,24 +573,6 @@ protected lemma linear_map.deriv_within (hxs : unique_diff_within_at 𝕜 s x) :
 e.has_deriv_within_at.deriv_within hxs
 
 end linear_map
-
-section analytic
-
-variables {p : formal_multilinear_series 𝕜 𝕜 F} {r : ℝ≥0∞}
-
-protected lemma has_fpower_series_at.has_strict_deriv_at (h : has_fpower_series_at f p x) :
-  has_strict_deriv_at f (p 1 (λ _, 1)) x :=
-h.has_strict_fderiv_at.has_strict_deriv_at
-
-protected lemma has_fpower_series_at.has_deriv_at (h : has_fpower_series_at f p x) :
-  has_deriv_at f (p 1 (λ _, 1)) x :=
-h.has_strict_deriv_at.has_deriv_at
-
-protected lemma has_fpower_series_at.deriv (h : has_fpower_series_at f p x) :
-  deriv f x = p 1 (λ _, 1) :=
-h.has_deriv_at.deriv
-
-end analytic
 
 section add
 /-! ### Derivative of the sum of two functions -/

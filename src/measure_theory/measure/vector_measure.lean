@@ -395,6 +395,12 @@ lemma to_signed_measure_apply_measurable {μ : measure α} [is_finite_measure μ
   μ.to_signed_measure i = (μ i).to_real :=
 if_pos hi
 
+-- Without this lemma, `singular_part_neg` in `measure_theory.decomposition.lebesgue` is
+-- extremely slow
+lemma to_signed_measure_congr {μ ν : measure α} [is_finite_measure μ] [is_finite_measure ν]
+  (h : μ = ν) : μ.to_signed_measure = ν.to_signed_measure :=
+by { congr, exact h }
+
 lemma to_signed_measure_eq_to_signed_measure_iff
   {μ ν : measure α} [is_finite_measure μ] [is_finite_measure ν] :
   μ.to_signed_measure = ν.to_signed_measure ↔ μ = ν :=
@@ -1087,6 +1093,31 @@ let ⟨s, hmeas, hs₁, hs₂⟩ := h in
 lemma smul_left {R : Type*} [semiring R] [distrib_mul_action R M] [topological_space R]
   [has_continuous_smul R M] (r : R) (h : v ⊥ᵥ w) : r • v ⊥ᵥ w :=
 (smul_right r h.symm).symm
+
+lemma neg_left {M : Type*} [add_comm_group M] [topological_space M] [topological_add_group M]
+  {v : vector_measure α M} {w : vector_measure α N} (h : v ⊥ᵥ w) : -v ⊥ᵥ w :=
+begin
+  obtain ⟨u, hmu, hu₁, hu₂⟩ := h,
+  refine ⟨u, hmu, λ s hs, _, hu₂⟩,
+  rw [neg_apply v s, neg_eq_zero],
+  exact hu₁ s hs
+end
+
+lemma neg_right {N : Type*} [add_comm_group N] [topological_space N] [topological_add_group N]
+  {v : vector_measure α M} {w : vector_measure α N} (h : v ⊥ᵥ w) : v ⊥ᵥ -w :=
+h.symm.neg_left.symm
+
+@[simp]
+lemma neg_left_iff {M : Type*} [add_comm_group M] [topological_space M] [topological_add_group M]
+  {v : vector_measure α M} {w : vector_measure α N} :
+  -v ⊥ᵥ w ↔ v ⊥ᵥ w :=
+⟨λ h, neg_neg v ▸ h.neg_left, neg_left⟩
+
+@[simp]
+lemma neg_right_iff {N : Type*} [add_comm_group N] [topological_space N] [topological_add_group N]
+  {v : vector_measure α M} {w : vector_measure α N} :
+  v ⊥ᵥ -w ↔ v ⊥ᵥ w :=
+⟨λ h, neg_neg w ▸ h.neg_right, neg_right⟩
 
 end mutually_singular
 

@@ -6,7 +6,7 @@ Authors: Kevin Buzzard, Johan Commelin, Ashwin Iyengar, Patrick Massot
 import topology.algebra.ring
 import topology.algebra.open_subgroup
 import data.set.basic
-import group_theory.subgroup
+import group_theory.subgroup.basic
 
 /-!
 # Nonarchimedean Topology

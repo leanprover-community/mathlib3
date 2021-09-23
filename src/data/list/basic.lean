@@ -181,6 +181,19 @@ lemma map_bind (g : β → list γ) (f : α → β) :
 | [] := rfl
 | (a::l) := by simp only [cons_bind, map_cons, map_bind l]
 
+/-- If each element of a list can be lifted to some type, then the whole list can be lifted to this
+type. -/
+instance [h : can_lift α β] : can_lift (list α) (list β) :=
+{ coe := list.map h.coe,
+  cond := λ l, ∀ x ∈ l, can_lift.cond β x,
+  prf  := λ l H,
+    begin
+      induction l with a l ihl, { exact ⟨[], rfl⟩ },
+      rcases ihl (λ x hx, H x (or.inr hx)) with ⟨l, rfl⟩,
+      rcases can_lift.prf a (H a (or.inl rfl)) with ⟨a, rfl⟩,
+      exact ⟨a :: l, rfl⟩
+    end}
+
 /-! ### length -/
 
 theorem length_eq_zero {l : list α} : length l = 0 ↔ l = [] :=

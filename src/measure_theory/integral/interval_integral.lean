@@ -2307,7 +2307,7 @@ Change of variables, most common version. If `f` is has continuous derivative `f
 and `g` is continuous, then we can substitute `u = f x` to get
 `∫ x in a..b, f' x • (g ∘ f) x = ∫ u in f a..f b, g u`.
 -/
-theorem integral_comp_smul_deriv {f f' g : ℝ → ℝ} {g : ℝ → E}
+theorem integral_comp_smul_deriv {f f' : ℝ → ℝ} {g : ℝ → E}
   (h : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
   (h' : continuous_on f' (interval a b)) (hg : continuous g) :
   ∫ x in a..b, f' x • (g ∘ f) x = ∫ x in f a..f b, g x :=

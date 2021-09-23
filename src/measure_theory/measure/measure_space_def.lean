@@ -270,22 +270,16 @@ begin
   exact hs (measure_Union_null h),
 end
 
-lemma measure_inter_lt_top_of_left (hs_finite : μ s < ∞) : μ (s ∩ t) < ∞ :=
-(measure_mono (set.inter_subset_left s t)).trans_lt hs_finite
+lemma measure_inter_lt_top_of_left_ne_top (hs_finite : μ s ≠ ∞) : μ (s ∩ t) < ∞ :=
+(measure_mono (set.inter_subset_left s t)).trans_lt hs_finite.lt_top
 
-lemma measure_inter_lt_top_of_right (ht_finite : μ t < ∞) : μ (s ∩ t) < ∞ :=
-inter_comm t s ▸ measure_inter_lt_top_of_left ht_finite
+lemma measure_inter_lt_top_of_right (ht_finite : μ t ≠ ∞) : μ (s ∩ t) < ∞ :=
+inter_comm t s ▸ measure_inter_lt_top_of_left_ne_top ht_finite
 
-lemma measure_inter_ne_top_of_left (hs_finite : μ s ≠ ∞) : μ (s ∩ t) ≠ ∞ :=
-(measure_inter_lt_top_of_left (lt_top_iff_ne_top.mpr hs_finite)).ne
-
-lemma measure_inter_ne_top_of_right (ht_finite : μ t ≠ ∞) : μ (s ∩ t) ≠ ∞ :=
-inter_comm t s ▸ measure_inter_ne_top_of_left ht_finite
-
-lemma measure_null_of_null_right (S : set α) {T : set α} (h : μ T = 0) : μ (S ∩ T) = 0 :=
+lemma measure_inter_null_of_null_right (S : set α) {T : set α} (h : μ T = 0) : μ (S ∩ T) = 0 :=
 measure_mono_null (inter_subset_right S T) h
 
-lemma measure_null_of_null_left {S : set α} (T : set α) (h : μ S = 0) : μ (S ∩ T) = 0 :=
+lemma measure_inter_null_of_null_left {S : set α} (T : set α) (h : μ S = 0) : μ (S ∩ T) = 0 :=
 measure_mono_null (inter_subset_left S T) h
 
 /-! ### The almost everywhere filter -/

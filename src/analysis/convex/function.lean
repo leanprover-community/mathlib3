@@ -13,13 +13,13 @@ inequality. The integral version can be found in `analysis.convex.integral`.
 
 A function `f : E → β` is `convex_on` a set `s` if `s` is itself a convex set, and for any two
 points `x y ∈ s`, the segment joining `(x, f x)` to `(y, f y)` is above the graph of `f`.
-Equivalently, `convex_on 𝕜 𝕜 f s` means that the epigraph `{p : E × β | p.1 ∈ s ∧ f z.1 ≤ p.2}` is
+Equivalently, `convex_on 𝕜 f s` means that the epigraph `{p : E × β | p.1 ∈ s ∧ f z.1 ≤ p.2}` is
 a convex set.
 
 ## Main declarations
 
-* `convex_on 𝕜 𝕜 s f`: The function `f` is convex on `s` with scalars `𝕜`.
-* `concave_on 𝕜 𝕜 s f`: The function `f` is concave on `s` with scalars `𝕜`.
+* `convex_on 𝕜 s f`: The function `f` is convex on `s` with scalars `𝕜`.
+* `concave_on 𝕜 s f`: The function `f` is concave on `s` with scalars `𝕜`.
 * `convex_on.map_linear_combination_le` `convex_on.map_sum_le`: Convex Jensen's inequality.
 -/
 
@@ -479,8 +479,8 @@ begin
 end⟩
 
 lemma concave_on_iff_div {f : E → β} :
-  concave_on 𝕜 s f ↔ convex 𝕜 s ∧ ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → 0 < a + b
-  → (a/(a+b)) • f x + (b/(a+b)) • f y ≤ f ((a/(a+b)) • x + (b/(a+b)) • y) :=
+  concave_on 𝕜 s f ↔ convex 𝕜 s ∧ ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b
+  → 0 < a + b → (a/(a+b)) • f x + (b/(a+b)) • f y ≤ f ((a/(a+b)) • x + (b/(a+b)) • y) :=
 @convex_on_iff_div _ _ (order_dual β) _ _ _ _ _ _ _
 
 /-- For a function `f` defined on a convex subset `D` of `𝕜`, if for any three points `x < y < z`

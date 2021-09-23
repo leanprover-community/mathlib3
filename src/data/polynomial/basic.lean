@@ -600,26 +600,31 @@ def update (p : polynomial R) (n : ℕ) (a : R) :
   polynomial R :=
 polynomial.of_finsupp (p.to_finsupp.update n a)
 
-lemma coeff_update (p : polynomial R) (n : ℕ) (a : R) (i : ℕ) :
-  (p.update n a).coeff i = if (i = n) then a else p.coeff i :=
+lemma coeff_update (p : polynomial R) (n : ℕ) (a : R) :
+  (p.update n a).coeff = function.update p.coeff n a :=
 begin
+  ext,
   cases p,
   simp only [coeff, update, function.update_apply, coe_update],
   congr
 end
 
+lemma coeff_update_apply (p : polynomial R) (n : ℕ) (a : R) (i : ℕ) :
+  (p.update n a).coeff i = if (i = n) then a else p.coeff i :=
+by rw [coeff_update, function.update_apply]
+
 @[simp] lemma coeff_update_same (p : polynomial R) (n : ℕ) (a : R) :
   (p.update n a).coeff n = a :=
-by rw [p.coeff_update, if_pos rfl]
+by rw [p.coeff_update_apply, if_pos rfl]
 
 lemma coeff_update_ne (p : polynomial R) {n : ℕ} (a : R)
   {i : ℕ} (h : i ≠ n) :
   (p.update n a).coeff i = p.coeff i :=
-by rw [p.coeff_update, if_neg h]
+by rw [p.coeff_update_apply, if_neg h]
 
 @[simp] lemma update_zero_eq_erase (p : polynomial R) (n : ℕ) :
   p.update n 0 = p.erase n :=
-by { ext, rw [coeff_update, coeff_erase] }
+by { ext, rw [coeff_update_apply, coeff_erase] }
 
 lemma support_update (p : polynomial R) (n : ℕ) (a : R) [decidable (a = 0)] :
   support (p.update n a) = if a = 0 then p.support.erase n else insert n p.support :=

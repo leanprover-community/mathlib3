@@ -521,7 +521,7 @@ end
 lemma degree_update_le (p : polynomial R) (n : ℕ) (a : R) :
   degree (p.update n a) ≤ max (degree p) n :=
 begin
-  simp only [degree, coeff_update, le_max_iff, finset.sup_le_iff, mem_support_iff],
+  simp only [degree, coeff_update_apply, le_max_iff, finset.sup_le_iff, mem_support_iff],
   intros b hb,
   split_ifs at hb with h,
   { subst b,

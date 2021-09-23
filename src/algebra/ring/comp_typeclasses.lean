@@ -13,6 +13,10 @@ This file contains three typeclasses used in the definition of (semi)linear maps
 * `ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃`, which expresses the fact that `σ₂₃.comp σ₁₂ = σ₁₃`
 * `ring_hom_inv_pair σ₁₂ σ₂₁`, which states that `σ₁₂` and `σ₂₁` are inverses of each other
 * `ring_hom_surjective σ`, which states that `σ` is surjective
+These typeclasses ensure that objects such as `σ₂₃.comp σ₁₂` never end up in the type of a
+semilinear map; instead, the typeclass system directly finds the appropriate `ring_hom` to use.
+A typical use-case is conjugate-linear maps, i.e. when `σ = complex.conj`; this system ensures that
+composing two conjugate-linear maps is a linear map, and not a `conj.comp conj`-linear map.
 
 Instances of these typeclasses mostly involving `ring_hom.id` are also provided:
 * `ring_hom_inv_pair (ring_hom.id R) (ring_hom.id R)`

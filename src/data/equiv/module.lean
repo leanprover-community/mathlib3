@@ -17,13 +17,9 @@ In this file we define
 
 ## Implementation notes
 
-To ensure that composition works smoothly for semilinear maps, we use the following typeclasses
-  for `ring_hom`s defined in `algebra/ring/comp_typeclasses`:
-* `ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃`, which states that `σ₁₃ = σ₂₃.comp σ₁₂`.
-* `ring_hom_inv_pair σ σ'`, which state that `σ` and `σ'` are inverses of each other.
-* `ring_hom_surjective σ`, which states that `σ` is surjective.
-These typeclasses ensure that objects such as `σ₂₃.comp σ₁₂` never end up in the type of a
-semilinear map; instead, the typeclass system directly finds the appropriate `ring_hom` to use.
+To ensure that composition works smoothly for semilinear equivalences, we use the typeclasses
+`ring_hom_comp_triple`, `ring_hom_inv_pair` and `ring_hom_surjective` from
+`algebra/ring/comp_typeclasses`.
 
 The group structure on automorphisms, `linear_equiv.automorphism_group`, is provided elsewhere.
 

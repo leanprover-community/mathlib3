@@ -51,6 +51,10 @@ We note that, when constructing linear maps, it is convenient to use operations 
 maps (`linear_map.prod`, `linear_map.coprod`, arithmetic operations like `+`) instead of defining a
 function and proving it is linear.
 
+## TODO
+
+* Parts of this file have not yet been generalized to semilinear maps
+
 ## Tags
 linear algebra, vector space, module
 

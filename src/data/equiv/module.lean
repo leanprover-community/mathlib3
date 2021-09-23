@@ -27,6 +27,10 @@ semilinear map; instead, the typeclass system directly finds the appropriate `ri
 
 The group structure on automorphisms, `linear_equiv.automorphism_group`, is provided elsewhere.
 
+## TODO
+
+* Parts of this file have not yet been generalized to semilinear maps
+
 ## Tags
 
 linear equiv, linear equivalences, linear isomorphism, linear isomorphic

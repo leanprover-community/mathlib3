@@ -37,6 +37,10 @@ semilinear map; instead, the typeclass system directly finds the appropriate `ri
 * Throughout the file, we denote regular linear maps by `fₗ`, `gₗ`, etc, and semilinear maps
   by `f`, `g`, etc.
 
+## TODO
+
+* Parts of this file have not yet been generalized to semilinear maps (i.e. `compatible_smul`)
+
 ## Tags
 
 linear map

@@ -13,13 +13,13 @@ import linear_algebra.basic
 
 -/
 
--- For most of this file we work over a noncommuative ring
+-- For most of this file we work over a noncommutative ring
 section ring
+
+namespace submodule
 
 variables {R M : Type*} {r : R} {x y : M} [ring R] [add_comm_group M] [module R M]
 variables (p p' : submodule R M)
-
-namespace submodule
 
 open linear_map
 
@@ -125,6 +125,8 @@ end
 
 end quotient
 
+section
+
 variables {M₂ : Type*} [add_comm_group M₂] [module R M₂]
 
 lemma quot_hom_ext ⦃f g : quotient p →ₗ[R] M₂⦄ (h : ∀ x, f (quotient.mk x) = g (quotient.mk x)) :
@@ -136,6 +138,10 @@ def mkq : M →ₗ[R] p.quotient :=
 { to_fun := quotient.mk, map_add' := by simp, map_smul' := by simp }
 
 @[simp] theorem mkq_apply (x : M) : p.mkq x = quotient.mk x := rfl
+
+end
+
+variables {R₂ M₂ : Type*} [ring R₂] [add_comm_group M₂] [module R₂ M₂] {τ₁₂ : R →+*R₂}
 
 /-- Two `linear_map`s from a quotient module are equal if their compositions with
 `submodule.mkq` are equal.
@@ -176,6 +182,8 @@ by simp [comap_map_eq, sup_comm]
 
 @[simp] theorem map_mkq_eq_top : map p.mkq p' = ⊤ ↔ p ⊔ p' = ⊤ :=
 by simp only [map_eq_top_iff p.range_mkq, sup_comm, ker_mkq]
+
+variables (q : submodule R₂ M₂)
 
 /-- The map from the quotient of `M` by submodule `p` to the quotient of `M₂` by submodule `q` along
 `f : M → M₂` is linear. -/
@@ -253,6 +261,7 @@ namespace linear_map
 
 section ring
 
+variables {R M R₂ M₂ R₃ M₃ : Type*}
 variables [ring R] [ring R₂] [ring R₃]
 variables [add_comm_monoid M] [add_comm_group M₂] [add_comm_monoid M₃]
 variables [module R M] [module R₂ M₂] [module R₃ M₃]
@@ -282,6 +291,9 @@ end linear_map
 open linear_map
 
 namespace submodule
+
+variables {R M : Type*} {r : R} {x y : M} [ring R] [add_comm_group M] [module R M]
+variables (p p' : submodule R M)
 
 /-- If `p = ⊥`, then `M / p ≃ₗ[R] M`. -/
 def quot_equiv_of_eq_bot (hp : p = ⊥) : p.quotient ≃ₗ[R] M :=
@@ -322,7 +334,7 @@ namespace submodule
 
 /-- Given modules `M`, `M₂` over a commutative ring, together with submodules `p ⊆ M`, `q ⊆ M₂`,
 the natural map $\{f ∈ Hom(M, M₂) | f(p) ⊆ q \} \to Hom(M/p, M₂/q)$ is linear. -/
-def mapq_linear : compatible_maps pₗ qₗ →ₗ[R] pₗ.quotient →ₗ[R] qₗ.quotient :=
+def mapq_linear : compatible_maps p q →ₗ[R] p.quotient →ₗ[R] q.quotient :=
 { to_fun    := λ f, mapq _ _ f.val f.property,
   map_add'  := λ x y, by { ext, refl, },
   map_smul' := λ c f, by { ext, refl, } }

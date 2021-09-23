@@ -798,13 +798,6 @@ begin
   { simp }
 end
 
-lemma mem_of_mem_tail {l : list α} {a : α} (h : a ∈ l.tail) : a ∈ l :=
-begin
-  cases l with a L,
-  { cases h, },
-  { exact list.mem_cons_of_mem a h, }
-end
-
 @[simp]
 lemma tail_nth_le (l : list α) (i) (h : i < l.tail.length) :
   l.tail.nth_le i h = l.nth_le (i+1) (by { rw l.length_tail at h, exact lt_sub_iff_right.mp h, }) :=
@@ -3736,6 +3729,9 @@ theorem tail_suffix (l : list α) : tail l <:+ l := by rw ← drop_one; apply dr
 lemma tail_sublist (l : list α) : l.tail <+ l := sublist_of_suffix (tail_suffix l)
 
 theorem tail_subset (l : list α) : tail l ⊆ l := (tail_sublist l).subset
+
+lemma mem_of_mem_tail {l : list α} {a : α} (h : a ∈ l.tail) : a ∈ l :=
+tail_subset l h
 
 theorem prefix_iff_eq_append {l₁ l₂ : list α} : l₁ <+: l₂ ↔ l₁ ++ drop (length l₁) l₂ = l₂ :=
 ⟨by rintros ⟨r, rfl⟩; rw drop_left, λ e, ⟨_, e⟩⟩

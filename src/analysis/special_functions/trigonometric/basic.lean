@@ -11,21 +11,33 @@ import data.set.intervals.infinite
 
 ## Main definitions
 
-This file contains the following definitions:
-* π, arcsin, arccos, arctan
-* argument of a complex number
-* logarithm on complex numbers
+This file contains the definition of `π`.
+
+See also `analysis.special_functions.trigonometric.inverse` and
+`analysis.special_functions.trigonometric.arctan` for the inverse trigonometric functions.
+
+See also `analysis.special_functions.complex.arg` and
+`analysis.special_functions.complex.log` for the complex argument function
+and the complex logarithm.
 
 ## Main statements
 
-Many basic inequalities on trigonometric functions are established.
+Many basic inequalities on the real trigonometric functions are established.
 
 The continuity and differentiability of the usual trigonometric functions are proved, and their
 derivatives are computed.
 
+Several facts about the real trigonometric functions have the proofs deferred to
+`analysis.special_functions.trigonometric.complex`,
+as they are most easily proved by appealing to the corresponding fact for
+complex trigonometric functions.
+
+See also `analysis.special_functions.trigonometric.chebyshev` for the multiple angle formulas
+in terms of Chebyshev polynomials.
+
 ## Tags
 
-log, sin, cos, tan, arcsin, arccos, arctan, angle, argument
+sin, cos, tan, angle
 -/
 
 noncomputable theory

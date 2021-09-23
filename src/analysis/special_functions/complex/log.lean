@@ -1,4 +1,15 @@
+/-
+Copyright (c) 2018 Chris Hughes. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
+-/
 import analysis.special_functions.complex.arg
+
+/-!
+# The complex `log` function
+
+Basic properties, relationship with `exp`, and differentiability.
+-/
 
 noncomputable theory
 

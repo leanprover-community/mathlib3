@@ -1,4 +1,18 @@
+/-
+Copyright (c) 2018 Chris Hughes. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
+-/
 import analysis.special_functions.trigonometric.basic
+
+/-!
+# Inverse trigonometric functions.
+
+See also `analysis.special_functions.trigonometric.arctan` for the inverse tan function.
+(This is delayed as it is easier to set up after developing complex trigonometric functions.)
+
+Basic inequalities and derivatives.
+-/
 
 noncomputable theory
 open_locale classical topological_space filter

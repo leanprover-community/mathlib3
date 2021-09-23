@@ -88,7 +88,7 @@ This is a stronger version of `submodule.pointwise_distrib_mul_action`. Note tha
 not hold so this cannot be stated as a `module`. -/
 protected def pointwise_mul_action_with_zero : mul_action_with_zero α (submodule R M) :=
 { zero_smul := λ S,
-    (congr_arg (λ f, S.map f) (linear_map.ext $ by exact zero_smul α)).trans S.map_zero,
+    (congr_arg (λ f : M →ₗ[R] M, S.map f) (linear_map.ext $ by exact zero_smul α)).trans S.map_zero,
   .. submodule.pointwise_distrib_mul_action }
 
 localized "attribute [instance] submodule.pointwise_mul_action_with_zero" in pointwise

@@ -15,7 +15,7 @@ these inequalities are available in `measure_theory.mean_inequalities`.
 
 ## Main theorems
 
-### AM-GM inequality:
+### AM-GM inequality
 
 The inequality says that the geometric mean of a tuple of non-negative numbers is less than or equal
 to their arithmetic mean. We prove the weighted version of this inequality: if $w$ and $z$
@@ -127,8 +127,8 @@ begin
   -- If all numbers `z i` with non-zero weight are positive, then we apply Jensen's inequality
   -- for `exp` and numbers `log (z i)` with weights `w i`.
   { simp only [not_exists, not_and, ne.def, not_not] at A,
-    have := convex_on_exp.map_sum_le hw hw' (λ i _, set.mem_univ $ log (z i)),
-    simp only [exp_sum, (∘), smul_eq_mul, mul_comm (w _) (log _)] at this,
+    have := convex_on_exp.map_linear_combination_le hw hw' (λ i _, set.mem_univ $ log (z i)),
+    simp only [linear_combination, exp_sum, (∘), smul_eq_mul, mul_comm (w _) (log _)] at this,
     convert this using 1; [apply prod_congr rfl, apply sum_congr rfl]; intros i hi,
     { cases eq_or_lt_of_le (hz i hi) with hz hz,
       { simp [A i hi hz.symm] },
@@ -141,22 +141,22 @@ end
 theorem pow_arith_mean_le_arith_mean_pow (w z : ι → ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
   (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 ≤ z i) (n : ℕ) :
   (∑ i in s, w i * z i) ^ n ≤ ∑ i in s, (w i * z i ^ n) :=
-(convex_on_pow n).map_sum_le hw hw' hz
+(convex_on_pow n).map_linear_combination_le hw hw' hz
 
 theorem pow_arith_mean_le_arith_mean_pow_of_even (w z : ι → ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
   (hw' : ∑ i in s, w i = 1) {n : ℕ} (hn : even n) :
   (∑ i in s, w i * z i) ^ n ≤ ∑ i in s, (w i * z i ^ n) :=
-(convex_on_pow_of_even hn).map_sum_le hw hw' (λ _ _, trivial)
+(convex_on_pow_of_even hn).map_linear_combination_le hw hw' (λ _ _, trivial)
 
 theorem fpow_arith_mean_le_arith_mean_fpow (w z : ι → ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
   (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 < z i) (m : ℤ) :
   (∑ i in s, w i * z i) ^ m ≤ ∑ i in s, (w i * z i ^ m) :=
-(convex_on_fpow m).map_sum_le hw hw' hz
+(convex_on_fpow m).map_linear_combination_le hw hw' hz
 
 theorem rpow_arith_mean_le_arith_mean_rpow (w z : ι → ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
   (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 ≤ z i) {p : ℝ} (hp : 1 ≤ p) :
   (∑ i in s, w i * z i) ^ p ≤ ∑ i in s, (w i * z i ^ p) :=
-(convex_on_rpow hp).map_sum_le hw hw' hz
+(convex_on_rpow hp).map_linear_combination_le hw hw' hz
 
 theorem arith_mean_le_rpow_mean (w z : ι → ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
   (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 ≤ z i) {p : ℝ} (hp : 1 ≤ p) :

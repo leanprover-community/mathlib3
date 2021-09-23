@@ -284,17 +284,17 @@ begin
     { simpa using hx i his, }, },
 end
 
+lemma mem_pi_Union_Inter_of_measurable_set {α ι} (m : ι → measurable_space α)
+  {S : set (finset ι)} {i : ι} {t : finset ι} (htS : t ∈ S) (hit : i ∈ t) (s : set α)
+  (hs : @measurable_set _ (m i) s) :
+  s ∈ pi_Union_Inter (λ n, (m n).measurable_set') S :=
+subset_pi_Union_Inter (λ i, @measurable_set.univ α (m i)) htS hit hs
+
 lemma le_generate_from_pi_Union_Inter {α ι} {m : measurable_space α}
   {π : ι → set (set α)} (S : set (finset ι)) (h_univ : ∀ n, set.univ ∈ (π n)) {x : ι}
   {t : finset ι} (htS : t ∈ S) (hxt : x ∈ t) (hpix : m = measurable_space.generate_from (π x)) :
   m ≤ generate_from (pi_Union_Inter π S) :=
 by { rw hpix, exact generate_from_le_generate_from (subset_pi_Union_Inter h_univ htS hxt), }
-
-lemma mem_pi_Union_Inter_of_measurable_set {α ι} (m : ι → measurable_space α)
-  {S : set (finset ι)} {i : ι} {p : finset ι} (hpS : p ∈ S) (hpi : i ∈ p) (t : set α)
-  (ht : @measurable_set _ (m i) t) :
-  t ∈ pi_Union_Inter (λ n, (m n).measurable_set') S :=
-subset_pi_Union_Inter (λ i, @measurable_set.univ α (m i)) hpS hpi ht
 
 lemma measurable_set_supr_of_mem_pi_Union_Inter {α ι} (m : ι → measurable_space α)
   (S : set (finset ι)) (t : set α) (ht : t ∈ pi_Union_Inter (λ n, (m n).measurable_set') S) :
@@ -313,18 +313,17 @@ begin
     ((⨆ i (hi : ∃ s ∈ S, i ∈ s), m i)) _ pt (λ i hipt, h_i i hipt),
 end
 
-lemma bsupr_measurable_space_eq_generate_from_pi_Union_Inter {α ι} (m : ι → measurable_space α)
+lemma generate_from_pi_Union_Inter_measurable_space {α ι} (m : ι → measurable_space α)
   (S : set (finset ι)) :
-  (⨆ i (hi : ∃ p ∈ S, i ∈ p), m i) = measurable_space.generate_from
-    (pi_Union_Inter (λ n, (m n).measurable_set') S) :=
+  generate_from (pi_Union_Inter (λ n, (m n).measurable_set') S) = ⨆ i (hi : ∃ p ∈ S, i ∈ p), m i :=
 begin
   refine le_antisymm _ _,
+  { rw ← @generate_from_measurable_set α (⨆ i (hi : ∃ p ∈ S, i ∈ p), m i),
+    exact generate_from_le_generate_from (measurable_set_supr_of_mem_pi_Union_Inter m S), },
   { refine bsupr_le (λ i hi, _),
     rcases hi with ⟨p, hpS, hpi⟩,
     rw ← @generate_from_measurable_set α (m i),
     exact generate_from_le_generate_from (mem_pi_Union_Inter_of_measurable_set m hpS hpi), },
-  { rw ← @generate_from_measurable_set α (⨆ i (hi : ∃ p ∈ S, i ∈ p), m i),
-    exact generate_from_le_generate_from (measurable_set_supr_of_mem_pi_Union_Inter m S), },
 end
 
 end Union_Inter

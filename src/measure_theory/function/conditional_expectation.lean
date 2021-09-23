@@ -1653,7 +1653,7 @@ variables {𝕜} {m m0 : measurable_space α} {μ : measure α} [borel_space �
   α → F' :=
 if (measurable[m] f ∧ integrable f μ) then f else ae_measurable'_condexp_L1.mk (condexp_L1 hm μ f)
 
-localized "notation  μ `[` f `|` hm `]` := condexp hm μ f" in measure_theory
+localized "notation  μ `[` f `|` hm `]` := measure_theory.condexp hm μ f" in measure_theory
 
 lemma condexp_of_measurable {f : α → F'} (hf : measurable[m] f) (hfi : integrable f μ) :
   μ[f|hm] = f :=

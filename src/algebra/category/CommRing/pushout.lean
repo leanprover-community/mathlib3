@@ -10,7 +10,7 @@ import algebra.category.CommRing.basic
 /-!
 # Explicit pushout cocone for CommRing
 
-In this file we prove that tensor products is indeed the fibered coproduct in `CommRing`, and
+In this file we prove that tensor product is indeed the fibered coproduct in `CommRing`, and
 provide the explicit pushout cocone.
 
 -/

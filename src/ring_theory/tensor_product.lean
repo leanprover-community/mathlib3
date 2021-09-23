@@ -716,7 +716,7 @@ end monoidal
 
 section
 
-variables {R A B S: Type*} [comm_semiring R] [semiring A] [semiring B] [comm_semiring S]
+variables {R A B S : Type*} [comm_semiring R] [semiring A] [semiring B] [comm_semiring S]
 variables [algebra R A] [algebra R B] [algebra R S]
 variables (f : A →ₐ[R] S) (g : B →ₐ[R] S)
 

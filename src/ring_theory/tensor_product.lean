@@ -200,7 +200,7 @@ def base_change (f : M →ₗ[R] N) : A ⊗[R] M →ₗ[A] A ⊗[R] N :=
     show (f.ltensor A) (rtensor M (algebra.lmul R A a) x) =
       (rtensor N ((algebra.lmul R A) a)) ((ltensor A f) x),
     by { rw [← comp_apply, ← comp_apply],
-      simp only [- comp_apply, ltensor_comp_rtensor, rtensor_comp_ltensor] } }
+      simp only [ltensor_comp_rtensor, rtensor_comp_ltensor] } }
 
 variables {A}
 

@@ -19,7 +19,7 @@ variables {R A B : CommRing.{u}} (f : R ⟶ A) (g : R ⟶ B)
 
 namespace CommRing
 
-/-- The explicit cocone with tensor products as the fibred product in `CommRing` -/
+/-- The explicit cocone with tensor products as the fibred product in `CommRing`. -/
 def pushout_cocone : limits.pushout_cocone f g :=
 begin
   letI := ring_hom.to_algebra f,
@@ -52,7 +52,8 @@ lemma pushout_cocone_X : (pushout_cocone f g).X = (by {
   exactI CommRing.of (A ⊗[R] B)
 }) := rfl
 
-lemma pushout_cocone_is_pushout : limits.is_colimit (pushout_cocone f g) :=
+/-- Verify that the `pushout_cocone` is indeed the colimit. -/
+def pushout_cocone_is_colimit : limits.is_colimit (pushout_cocone f g) :=
 limits.pushout_cocone.is_colimit_aux' _ (λ s,
 begin
   letI := ring_hom.to_algebra f,
@@ -60,17 +61,17 @@ begin
   letI := ring_hom.to_algebra (f ≫ s.inl),
   let f' : A →ₐ[R] s.X := { commutes' := λ r, by {
         change s.inl.to_fun (f r) = (f ≫ s.inl) r, refl
-      }, ..s.inl},
+      }, ..s.inl },
   let g' : B →ₐ[R] s.X := { commutes' := λ r, by {
         change (g ≫ s.inr) r = (f ≫ s.inl) r,
         congr' 1,
         exact (s.ι.naturality limits.walking_span.hom.snd).trans
           (s.ι.naturality limits.walking_span.hom.fst).symm
-      }, ..s.inr},
-  /- The factor map is a ⊗ b ↦ f(a) * g(b) -/
+      }, ..s.inr },
+  /- The factor map is a ⊗ b ↦ f(a) * g(b). -/
   use alg_hom.to_ring_hom (algebra.tensor_product.product_map f' g'),
   simp only [pushout_cocone_inl, pushout_cocone_inr],
-  split, { ext x, exact algebra.tensor_product.product_map_left_apply _ _ x, },
+  split, { ext x, exact algebra.tensor_product.product_map_left_apply  _ _ x, },
   split, { ext x, exact algebra.tensor_product.product_map_right_apply _ _ x, },
   intros h eq1 eq2,
   let h' : (A ⊗[R] B) →ₐ[R] s.X :=

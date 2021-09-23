@@ -776,11 +776,11 @@ end
   product_map f g (a ⊗ₜ b) = f a * g b :=
 tensor_product.product_map_apply_tmul f.to_linear_map g.to_linear_map a b
 
-@[simp] lemma product_map_left_apply (a : A) : product_map f g (include_left a) = f a := by simp
+lemma product_map_left_apply (a : A) : product_map f g (include_left a) = f a := by simp
 
 @[simp] lemma product_map_left : (product_map f g).comp include_left = f := alg_hom.ext (by simp)
 
-@[simp] lemma product_map_right_apply (b : B) : product_map f g (include_right b) = g b := by simp
+lemma product_map_right_apply (b : B) : product_map f g (include_right b) = g b := by simp
 
 @[simp] lemma product_map_right : (product_map f g).comp include_right = g := alg_hom.ext (by simp)
 

@@ -59,8 +59,11 @@ end ring_hom_comp_triple
 /-- Class that expresses the fact that two ring equivs are inverses of each other. This is used
 to handle `symm` for semilinear equivalences. -/
 class ring_hom_inv_pair (σ : R₁ →+* R₂) (σ' : out_param (R₂ →+* R₁)) : Prop :=
-(is_inv_pair₁ : σ'.comp σ = ring_hom.id R₁)
-(is_inv_pair₂ : σ.comp σ' = ring_hom.id R₂)
+(comp_eq : σ'.comp σ = ring_hom.id R₁)
+(comp_eq₂ : σ.comp σ' = ring_hom.id R₂)
+
+attribute [simp] ring_hom_inv_pair.comp_eq
+attribute [simp] ring_hom_inv_pair.comp_eq₂
 
 variables {σ : R₁ →+* R₂} {σ' : R₂ →+* R₁}
 
@@ -68,21 +71,19 @@ namespace ring_hom_inv_pair
 
 variables [ring_hom_inv_pair σ σ']
 
-@[simp] lemma comp_eq : σ.comp σ' = (ring_hom.id R₂) :=
-by { rw ring_hom_inv_pair.is_inv_pair₂ }
-
-@[simp] lemma comp_eq₂ : σ'.comp σ = (ring_hom.id R₁) :=
-by { rw ring_hom_inv_pair.is_inv_pair₁ }
-
-@[simp] lemma inv_pair_apply {x : R₁} : σ' (σ x) = x :=
-by { rw [← ring_hom.comp_apply, comp_eq₂], simp }
-
-@[simp] lemma inv_pair_apply₂ {x : R₂} : σ (σ' x) = x :=
+@[simp] lemma comp_apply_eq {x : R₁} : σ' (σ x) = x :=
 by { rw [← ring_hom.comp_apply, comp_eq], simp }
+
+@[simp] lemma comp_apply_eq₂ {x : R₂} : σ (σ' x) = x :=
+by { rw [← ring_hom.comp_apply, comp_eq₂], simp }
 
 instance ids : ring_hom_inv_pair (ring_hom.id R₁) (ring_hom.id R₁) := ⟨rfl, rfl⟩
 instance triples {σ₂₁ : R₂ →+* R₁} [ring_hom_inv_pair σ₁₂ σ₂₁] :
   ring_hom_comp_triple σ₁₂ σ₂₁ (ring_hom.id R₁) :=
+⟨by simp only [comp_eq]⟩
+
+instance triples₂ {σ₂₁ : R₂ →+* R₁} [ring_hom_inv_pair σ₁₂ σ₂₁] :
+  ring_hom_comp_triple σ₂₁ σ₁₂ (ring_hom.id R₂) :=
 ⟨by simp only [comp_eq₂]⟩
 
 end ring_hom_inv_pair
@@ -107,7 +108,7 @@ namespace ring_hom_surjective
 -- The linter gives a false positive, since `σ₂` is an out_param
 @[priority 100, nolint dangerous_instance] instance inv_pair {σ₁ : R₁ →+* R₂} {σ₂ : R₂ →+* R₁}
   [ring_hom_inv_pair σ₁ σ₂] : ring_hom_surjective σ₁ :=
-⟨λ x, ⟨σ₂ x, ring_hom_inv_pair.inv_pair_apply₂⟩⟩
+⟨λ x, ⟨σ₂ x, ring_hom_inv_pair.comp_apply_eq₂⟩⟩
 
 instance ids : ring_hom_surjective (ring_hom.id R₁) := ⟨is_surjective⟩
 

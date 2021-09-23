@@ -213,9 +213,11 @@ def pi_Union_Inter {α ι} (π : ι → set (set α)) (S : set (finset ι)) : se
 {s : set α | ∃ (t : finset ι) (htS : t ∈ S) (f : ι → set α) (hf : ∀ x, x ∈ t → f x ∈ π x),
   s = ⋂ x ∈ t, f x}
 
-lemma is_pi_system_pi_Union_Inter {α ι} (pi : ι → set (set α))
-  (hpi : ∀ x, is_pi_system (pi x)) (S : set (finset ι)) (h_sup : sup_closed S) :
-  is_pi_system (pi_Union_Inter pi S) :=
+/-- If `S` is union-closed and `π` is a family of π-systems, then `pi_Union_Inter π S` is a
+π-system. -/
+lemma is_pi_system_pi_Union_Inter {α ι} (π : ι → set (set α))
+  (hpi : ∀ x, is_pi_system (π x)) (S : set (finset ι)) (h_sup : sup_closed S) :
+  is_pi_system (pi_Union_Inter π S) :=
 begin
   rintros t1 t2 ⟨p1, hp1S, f1, hf1m, ht1_eq⟩ ⟨p2, hp2S, f2, hf2m, ht2_eq⟩ h_nonempty,
   simp_rw [pi_Union_Inter, set.mem_set_of_eq],
@@ -250,9 +252,9 @@ begin
 end
 
 lemma generate_from_pi_Union_Inter_le {α ι} {m : measurable_space α}
-  {s : ι → measurable_space α} (h : ∀ n, s n ≤ m) (pi : ι → set (set α)) (S : set (finset ι))
-  (hpis : ∀ n, s n = generate_from (pi n)) :
-  generate_from (pi_Union_Inter pi S) ≤ m :=
+  {s : ι → measurable_space α} (h : ∀ n, s n ≤ m) (π : ι → set (set α)) (S : set (finset ι))
+  (hpis : ∀ n, s n = generate_from (π n)) :
+  generate_from (pi_Union_Inter π S) ≤ m :=
 begin
   refine generate_from_le (λ t ht, _),
   rcases ht with ⟨ht_p, ht_p_mem, ft, hft_mem_pi, ht_eq⟩,
@@ -262,9 +264,9 @@ begin
   exact measurable_set_generate_from (hft_mem_pi x hx_mem),
 end
 
-lemma subset_pi_Union_Inter {α ι} {pi : ι → set (set α)} {S : set (finset ι)}
-  (h_univ : ∀ i, set.univ ∈ (pi i)) {i : ι} {s : finset ι} (hsS : s ∈ S) (his : i ∈ s) :
-  pi i ⊆ pi_Union_Inter pi S :=
+lemma subset_pi_Union_Inter {α ι} {π : ι → set (set α)} {S : set (finset ι)}
+  (h_univ : ∀ i, set.univ ∈ (π i)) {i : ι} {s : finset ι} (hsS : s ∈ S) (his : i ∈ s) :
+  π i ⊆ pi_Union_Inter π S :=
 begin
   refine λ t ht_pii, ⟨s, hsS, (λ j, ite (j = i) t set.univ), _⟩,
   split,
@@ -283,9 +285,9 @@ begin
 end
 
 lemma le_generate_from_pi_Union_Inter {α ι} {m : measurable_space α}
-  {pi : ι → set (set α)} (S : set (finset ι)) (h_univ : ∀ n, set.univ ∈ (pi n)) {x : ι}
-  {t : finset ι} (htS : t ∈ S) (hxt : x ∈ t) (hpix : m = measurable_space.generate_from (pi x)) :
-  m ≤ generate_from (pi_Union_Inter pi S) :=
+  {π : ι → set (set α)} (S : set (finset ι)) (h_univ : ∀ n, set.univ ∈ (π n)) {x : ι}
+  {t : finset ι} (htS : t ∈ S) (hxt : x ∈ t) (hpix : m = measurable_space.generate_from (π x)) :
+  m ≤ generate_from (pi_Union_Inter π S) :=
 by { rw hpix, exact generate_from_le_generate_from (subset_pi_Union_Inter h_univ htS hxt), }
 
 lemma mem_pi_Union_Inter_of_measurable_set {α ι} (m : ι → measurable_space α)

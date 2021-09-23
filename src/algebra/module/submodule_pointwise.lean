@@ -47,7 +47,8 @@ protected def pointwise_distrib_mul_action : distrib_mul_action α (submodule R 
   one_smul := λ S,
     (congr_arg (λ f, S.map f) (linear_map.ext $ by exact one_smul α)).trans S.map_id,
   mul_smul := λ a₁ a₂ S,
-    (congr_arg (λ f, S.map f) (linear_map.ext $ by exact mul_smul _ _)).trans (S.map_comp _ _),
+    (congr_arg (λ f : M →ₗ[R] M, S.map f) (linear_map.ext $ by exact mul_smul _ _)).trans
+      (S.map_comp _ _),
   smul_zero := λ a, map_bot _,
   smul_add := λ a S₁ S₂, map_sup _ _ _ }
 

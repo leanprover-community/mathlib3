@@ -406,7 +406,7 @@ section add_comm_group
 variables [semiring R] [semiring R₂] [semiring R₃] [semiring R₄]
   [add_comm_monoid M] [add_comm_group M₂] [add_comm_group M₃] [add_comm_group M₄]
   [module R M] [module R₂ M₂] [module R₃ M₃] [module R₄ M₄]
-  {σ₁₂ : R →+*R₂} {σ₂₃ : R₂ →+*R₃} {σ₁₃ : R →+*R₃}
+  {σ₁₂ : R →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R →+* R₃}
   [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
   (f g : M →ₛₗ[σ₁₂] M₂)
 
@@ -703,8 +703,8 @@ section add_comm_monoid
 variables [semiring R] [semiring R₂] [semiring R₃]
 variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_monoid M']
 variables [module R M] [module R M'] [module R₂ M₂] [module R₃ M₃]
-variables {σ₁₂ : R →+*R₂} {σ₂₃ : R₂ →+*R₃} {σ₁₃ : R →+*R₃}
-variables {σ₂₁ : R₂ →+*R}
+variables {σ₁₂ : R →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R →+* R₃}
+variables {σ₂₁ : R₂ →+* R}
 variables [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
 variables [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
 variables (p p' : submodule R M) (q q' : submodule R₂ M₂)
@@ -1587,7 +1587,7 @@ section add_comm_monoid
 
 variables [semiring R] [semiring R₂] [semiring R₃]
 variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
-variables {σ₁₂ : R →+*R₂} {σ₂₃ : R₂ →+*R₃} {σ₁₃ : R →+*R₃}
+variables {σ₁₂ : R →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R →+* R₃}
 variables [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
 variables [module R M] [module R₂ M₂] [module R₃ M₃]
 include R
@@ -1665,7 +1665,7 @@ end sum_add_hom
 
 end dfinsupp
 
-variables {σ₂₁ : R₂ →+*R} {τ₁₂ : R →+*R₂} {τ₂₃ : R₂ →+*R₃} {τ₁₃ : R →+*R₃}
+variables {σ₂₁ : R₂ →+* R} {τ₁₂ : R →+* R₂} {τ₂₃ : R₂ →+* R₃} {τ₁₃ : R →+* R₃}
 variables [ring_hom_comp_triple τ₁₂ τ₂₃ τ₁₃]
 
 theorem map_cod_restrict [ring_hom_surjective σ₂₁] (p : submodule R M) (f : M₂ →ₛₗ[σ₂₁] M) (h p') :
@@ -1796,7 +1796,7 @@ theorem ker_eq_bot' {f : M →ₛₗ[τ₁₂] M₂} :
   ker f = ⊥ ↔ (∀ m, f m = 0 → m = 0) :=
 by simpa [disjoint] using @disjoint_ker _ _ _ _ _ _ _ _ _ _ _ f ⊤
 
-theorem ker_eq_bot_of_inverse {τ₂₁ : R₂ →+*R} [ring_hom_inv_pair τ₁₂ τ₂₁]
+theorem ker_eq_bot_of_inverse {τ₂₁ : R₂ →+* R} [ring_hom_inv_pair τ₁₂ τ₂₁]
   {f : M →ₛₗ[τ₁₂] M₂} {g : M₂ →ₛₗ[τ₂₁] M} (h : (g.comp f : M →ₗ[R] M) = id) :
   ker f = ⊥ :=
 ker_eq_bot'.2 $ λ m hm, by rw [← id_apply m, ← h, comp_apply, hm, g.map_zero]
@@ -1805,11 +1805,11 @@ lemma le_ker_iff_map [ring_hom_surjective τ₁₂] {f : M →ₛₗ[τ₁₂] M
   p ≤ ker f ↔ map f p = ⊥ :=
 by rw [ker, eq_bot_iff, map_le_iff_le_comap]
 
-lemma ker_cod_restrict {τ₂₁ : R₂ →+*R} (p : submodule R M) (f : M₂ →ₛₗ[τ₂₁] M) (hf) :
+lemma ker_cod_restrict {τ₂₁ : R₂ →+* R} (p : submodule R M) (f : M₂ →ₛₗ[τ₂₁] M) (hf) :
   ker (cod_restrict p f hf) = ker f :=
 by rw [ker, comap_cod_restrict, map_bot]; refl
 
-lemma range_cod_restrict {τ₂₁ : R₂ →+*R} [ring_hom_surjective τ₂₁] (p : submodule R M)
+lemma range_cod_restrict {τ₂₁ : R₂ →+* R} [ring_hom_surjective τ₂₁] (p : submodule R M)
   (f : M₂ →ₛₗ[τ₂₁] M) (hf) :
   range (cod_restrict p f hf) = comap p.subtype f.range :=
 by simpa only [range_eq_map] using map_cod_restrict _ _ _ _
@@ -1885,7 +1885,7 @@ section add_comm_group
 variables [semiring R] [semiring R₂] [semiring R₃]
 variables [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃]
 variables [module R M] [module R₂ M₂] [module R₃ M₃]
-variables {τ₁₂ : R →+*R₂} {τ₂₃ : R₂ →+*R₃} {τ₁₃ : R →+*R₃}
+variables {τ₁₂ : R →+* R₂} {τ₂₃ : R₂ →+* R₃} {τ₁₃ : R →+* R₃}
 variables [ring_hom_comp_triple τ₁₂ τ₂₃ τ₁₃] [ring_hom_surjective τ₁₂]
 include R
 open submodule
@@ -1924,7 +1924,7 @@ section ring
 variables [ring R] [ring R₂] [ring R₃]
 variables [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃]
 variables [module R M] [module R₂ M₂] [module R₃ M₃]
-variables {τ₁₂ : R →+*R₂} {τ₂₃ : R₂ →+*R₃} {τ₁₃ : R →+*R₃}
+variables {τ₁₂ : R →+* R₂} {τ₂₃ : R₂ →+* R₃} {τ₁₃ : R →+* R₃}
 variables [ring_hom_comp_triple τ₁₂ τ₂₃ τ₁₃]
 variables {f : M →ₛₗ[τ₁₂] M₂}
 include R
@@ -2026,7 +2026,7 @@ section add_comm_monoid
 variables [semiring R] [semiring R₂] [add_comm_monoid M] [add_comm_monoid M₂]
 variables [module R M] [module R₂ M₂]
 variables (p p' : submodule R M) (q : submodule R₂ M₂)
-variables {τ₁₂ : R →+*R₂}
+variables {τ₁₂ : R →+* R₂}
 open linear_map
 
 @[simp] theorem map_top [ring_hom_surjective τ₁₂] (f : M →ₛₗ[τ₁₂] M₂) : map f ⊤ = range f :=
@@ -2067,7 +2067,7 @@ section ring
 
 variables [ring R] [ring R₂] [add_comm_group M] [add_comm_group M₂] [module R M] [module R₂ M₂]
 variables (p p' : submodule R M) (q : submodule R₂ M₂)
-variables {τ₁₂ : R →+*R₂}
+variables {τ₁₂ : R →+* R₂}
 
 open linear_map
 
@@ -2218,7 +2218,7 @@ section semiring
 variables [semiring R] [semiring R₂] [semiring R₃]
 variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
 variables [module R M] [module R₂ M₂] [module R₃ M₃]
-variables {τ₁₂ : R →+*R₂} {τ₂₃ : R₂ →+*R₃} {τ₁₃ : R →+*R₃}
+variables {τ₁₂ : R →+* R₂} {τ₂₃ : R₂ →+* R₃} {τ₁₃ : R →+* R₃}
 variables [ring_hom_comp_triple τ₁₂ τ₂₃ τ₁₃]
 
 /-- A monomorphism is injective. -/
@@ -2247,7 +2247,7 @@ section ring
 variables [ring R] [ring R₂] [ring R₃]
 variables [add_comm_monoid M] [add_comm_group M₂] [add_comm_monoid M₃]
 variables [module R M] [module R₂ M₂] [module R₃ M₃]
-variables {τ₁₂ : R →+*R₂} {τ₂₃ : R₂ →+*R₃} {τ₁₃ : R →+*R₃}
+variables {τ₁₂ : R →+* R₂} {τ₂₃ : R₂ →+* R₃} {τ₁₃ : R →+* R₃}
 variables [ring_hom_comp_triple τ₁₂ τ₂₃ τ₁₃] [ring_hom_surjective τ₁₂]
 
 lemma range_mkq_comp (f : M →ₛₗ[τ₁₂] M₂) : f.range.mkq.comp f = 0 :=
@@ -2285,7 +2285,7 @@ variables [semiring R] [semiring R₂] [semiring R₃] [semiring R₄]
 variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_monoid M₄]
 variables [module R M] [module R₂ M₂]
 variables [subsingleton M] [subsingleton M₂]
-variables {σ₁₂ : R →+*R₂} {σ₂₁ : R₂ →+*R}
+variables {σ₁₂ : R →+* R₂} {σ₂₁ : R₂ →+* R}
 variables [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
 
 include σ₂₁
@@ -2317,7 +2317,7 @@ section
 variables [semiring R] [semiring R₂] [semiring R₃] [semiring R₄]
 variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_monoid M₄]
 variables {module_M : module R M} {module_M₂ : module R₂ M₂}
-variables {σ₁₂ : R →+*R₂} {σ₂₁ : R₂ →+*R}
+variables {σ₁₂ : R →+* R₂} {σ₂₁ : R₂ →+* R}
 variables {re₁₂ : ring_hom_inv_pair σ₁₂ σ₂₁} {re₂₁ : ring_hom_inv_pair σ₂₁ σ₁₂}
 variables (e e' : M ≃ₛₗ[σ₁₂] M₂)
 
@@ -2355,7 +2355,7 @@ variables {γ : Type*}
 variables [semiring R] [semiring R₂]
 variables [add_comm_monoid M] [add_comm_monoid M₂]
 variables [module R M] [module R₂ M₂] [has_zero γ]
-variables {τ₁₂ : R →+*R₂} {τ₂₁ : R₂ →+* R}
+variables {τ₁₂ : R →+* R₂} {τ₂₁ : R₂ →+* R}
 variables [ring_hom_inv_pair τ₁₂ τ₂₁] [ring_hom_inv_pair τ₂₁ τ₁₂]
 
 include τ₂₁
@@ -2371,7 +2371,7 @@ open dfinsupp
 variables [semiring R] [semiring R₂]
 variables [add_comm_monoid M] [add_comm_monoid M₂]
 variables [module R M] [module R₂ M₂]
-variables {τ₁₂ : R →+*R₂} {τ₂₁ : R₂ →+* R}
+variables {τ₁₂ : R →+* R₂} {τ₂₁ : R₂ →+* R}
 variables [ring_hom_inv_pair τ₁₂ τ₂₁] [ring_hom_inv_pair τ₂₁ τ₁₂]
 variables {γ : ι → Type*} [decidable_eq ι]
 
@@ -2411,9 +2411,9 @@ section
 variables [semiring R] [semiring R₂] [semiring R₃] [semiring R₄]
 variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_monoid M₄]
 variables {module_M : module R M} {module_M₂ : module R₂ M₂} {module_M₃ : module R₃ M₃}
-variables {σ₁₂ : R →+*R₂} {σ₂₁ : R₂ →+*R}
-variables {σ₂₃ : R₂ →+*R₃} {σ₁₃ : R →+*R₃} [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
-variables {σ₃₂ : R₃ →+*R₂}
+variables {σ₁₂ : R →+* R₂} {σ₂₁ : R₂ →+* R}
+variables {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R →+* R₃} [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
+variables {σ₃₂ : R₃ →+* R₂}
 variables {re₁₂ : ring_hom_inv_pair σ₁₂ σ₂₁} {re₂₁ : ring_hom_inv_pair σ₂₁ σ₁₂}
 variables {re₂₃ : ring_hom_inv_pair σ₂₃ σ₃₂} {re₃₂ : ring_hom_inv_pair σ₃₂ σ₂₃}
 variables (f : M →ₛₗ[σ₁₂] M₂) (g : M₂ →ₛₗ[σ₂₁] M) (e : M ≃ₛₗ[σ₁₂] M₂) (h : M₂ →ₛₗ[σ₂₃] M₃)
@@ -2589,8 +2589,8 @@ variables [semiring R] [semiring R₂] [semiring R₃] [semiring R₄]
 variables [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃] [add_comm_group M₄]
 variables {module_M : module R M} {module_M₂ : module R₂ M₂}
 variables {module_M₃ : module R₃ M₃} {module_M₄ : module R₄ M₄}
-variables {σ₁₂ : R →+*R₂} {σ₃₄ : R₃ →+*R₄}
-variables {σ₂₁ : R₂ →+*R} {σ₄₃ : R₄ →+*R₃}
+variables {σ₁₂ : R →+* R₂} {σ₃₄ : R₃ →+* R₄}
+variables {σ₂₁ : R₂ →+* R} {σ₄₃ : R₄ →+* R₃}
 variables {re₁₂ : ring_hom_inv_pair σ₁₂ σ₂₁} {re₂₁ : ring_hom_inv_pair σ₂₁ σ₁₂}
 variables {re₃₄ : ring_hom_inv_pair σ₃₄ σ₄₃} {re₄₃ : ring_hom_inv_pair σ₄₃ σ₃₄}
 variables (e e₁ : M ≃ₛₗ[σ₁₂] M₂) (e₂ : M₃ ≃ₛₗ[σ₃₄] M₄)
@@ -2848,7 +2848,7 @@ namespace submodule
 variables [comm_ring R] [comm_ring R₂]
 variables [add_comm_group M] [add_comm_group M₂] [module R M] [module R₂ M₂]
 variables [add_comm_group N] [add_comm_group N₂] [module R N] [module R N₂]
-variables {τ₁₂ : R →+*R₂} {τ₂₁ : R₂ →+*R}
+variables {τ₁₂ : R →+* R₂} {τ₂₁ : R₂ →+* R}
 variables [ring_hom_inv_pair τ₁₂ τ₂₁] [ring_hom_inv_pair τ₂₁ τ₁₂]
 variables (p : submodule R M) (q : submodule R₂ M₂)
 variables (pₗ : submodule R N) (qₗ : submodule R N₂)

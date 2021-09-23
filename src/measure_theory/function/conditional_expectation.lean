@@ -1383,7 +1383,7 @@ calc
     ((condexp_ind_ae_eq_condexp_ind_smul hm ht hμt x).mono (λ x hx hxs, hx))
 ... = (μ (t ∩ s)).to_real • x : set_integral_condexp_ind_smul hs ht hμs hμt x
 
-lemma condexp_ind_of_measurable (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) (c : F') :
+lemma condexp_ind_of_measurable (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) (c : G) :
   condexp_ind hm μ s c = indicator_const_Lp 1 (hm s hs) hμs c :=
 begin
   ext1,
@@ -1503,16 +1503,16 @@ begin
     exact is_closed_ae_measurable' hm, },
 end
 
-lemma Lp_meas_to_Lp_trim_lie_symm_indicator (hs : measurable_set[m] s) (hμs : μ.trim hm s ≠ ∞)
-  (c : F') :
-  ((Lp_meas_to_Lp_trim_lie F' ℝ 1 μ hm).symm
-      (indicator_const_Lp 1 hs hμs c) : α →₁[μ] F')
+lemma Lp_meas_to_Lp_trim_lie_symm_indicator [normed_space ℝ F] {μ : measure α}
+  (hs : measurable_set[m] s) (hμs : μ.trim hm s ≠ ∞) (c : F) :
+  ((Lp_meas_to_Lp_trim_lie F ℝ 1 μ hm).symm
+      (indicator_const_Lp 1 hs hμs c) : α →₁[μ] F)
     = indicator_const_Lp 1 (hm s hs) ((le_trim hm).trans_lt hμs.lt_top).ne c :=
 begin
   ext1,
   rw ← Lp_meas_coe,
-  change Lp_trim_to_Lp_meas F' ℝ 1 μ hm (indicator_const_Lp 1 hs hμs c)
-    =ᵐ[μ] (indicator_const_Lp 1 _ _ c : α → F'),
+  change Lp_trim_to_Lp_meas F ℝ 1 μ hm (indicator_const_Lp 1 hs hμs c)
+    =ᵐ[μ] (indicator_const_Lp 1 _ _ c : α → F),
   refine (Lp_trim_to_Lp_meas_ae_eq hm _).trans _,
   exact (ae_eq_of_ae_eq_trim indicator_const_Lp_coe_fn).trans indicator_const_Lp_coe_fn.symm,
 end

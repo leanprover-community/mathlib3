@@ -395,7 +395,7 @@ end opposite
 namespace module
 variables (R : Type u) (M : Type v) [comm_semiring R] [add_comm_monoid M] [module R M]
 
-instance endomorphism_algebra : algebra R (M →ₗ[R] M) :=
+instance : algebra R (module.End R M) :=
 { to_fun    := λ r, r • linear_map.id,
   map_one' := one_smul _ _,
   map_zero' := zero_smul _ _,
@@ -466,11 +466,11 @@ instance coe_add_monoid_hom : has_coe (A →ₐ[R] B) (A →+ B) := ⟨λ f, ↑
 
 variables (φ : A →ₐ[R] B)
 
-theorem coe_fn_inj ⦃φ₁ φ₂ : A →ₐ[R] B⦄ (H : ⇑φ₁ = φ₂) : φ₁ = φ₂ :=
-by { cases φ₁, cases φ₂, congr, exact H }
+theorem coe_fn_injective : @function.injective (A →ₐ[R] B) (A → B) coe_fn :=
+by { intros φ₁ φ₂ H, cases φ₁, cases φ₂, congr, exact H }
 
 theorem coe_ring_hom_injective : function.injective (coe : (A →ₐ[R] B) → (A →+* B)) :=
-λ φ₁ φ₂ H, coe_fn_inj $ show ((φ₁ : (A →+* B)) : A → B) = ((φ₂ : (A →+* B)) : A → B),
+λ φ₁ φ₂ H, coe_fn_injective $ show ((φ₁ : (A →+* B)) : A → B) = ((φ₂ : (A →+* B)) : A → B),
   from congr_arg _ H
 
 theorem coe_monoid_hom_injective : function.injective (coe : (A →ₐ[R] B)  → (A →* B)) :=
@@ -484,7 +484,7 @@ protected lemma congr_arg (φ : A →ₐ[R] B) {x y : A} (h : x = y) : φ x = φ
 
 @[ext]
 theorem ext {φ₁ φ₂ : A →ₐ[R] B} (H : ∀ x, φ₁ x = φ₂ x) : φ₁ = φ₂ :=
-coe_fn_inj $ funext H
+coe_fn_injective $ funext H
 
 theorem ext_iff {φ₁ φ₂ : A →ₐ[R] B} : φ₁ = φ₂ ↔ ∀ x, φ₁ x = φ₂ x :=
 ⟨alg_hom.congr_fun, ext⟩
@@ -1340,17 +1340,6 @@ linear_map.coe_injective $ ((lmul_right R a).coe_pow n).symm ▸ (mul_right_iter
 
 @[simp] lemma lmul'_apply {x y : A} : lmul' R (x ⊗ₜ y) = x * y :=
 by simp only [algebra.lmul', tensor_product.lift.tmul, alg_hom.to_linear_map_apply, lmul_apply]
-
-instance linear_map.module' (R : Type u) [comm_semiring R]
-  (M : Type v) [add_comm_monoid M] [module R M]
-  (S : Type w) [comm_semiring S] [algebra R S] : module S (M →ₗ[R] S) :=
-{ smul := λ s f, linear_map.llcomp _ _ _ _ (algebra.lmul R S s) f,
-  one_smul := λ f, linear_map.ext $ λ x, one_mul _,
-  mul_smul := λ s₁ s₂ f, linear_map.ext $ λ x, mul_assoc _ _ _,
-  smul_add := λ s f g, linear_map.map_add _ _ _,
-  smul_zero := λ s, linear_map.map_zero _,
-  add_smul := λ s₁ s₂ f, linear_map.ext $ λ x, add_mul _ _ _,
-  zero_smul := λ f, linear_map.ext $ λ x, zero_mul _ }
 
 end algebra
 

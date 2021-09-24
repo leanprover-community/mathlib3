@@ -44,7 +44,7 @@ if hf : integrable f μ then
   not_measurable' := λ s hs, if_neg hs,
   m_Union' := λ s hs₁ hs₂,
   begin
-    convert has_sum_integral_Union hs₁ hs₂ hf,
+    convert has_sum_integral_Union hs₁ hs₂ hf.integrable_on,
     { ext n, rw if_pos (hs₁ n) },
     { rw if_pos (measurable_set.Union hs₁) }
   end }
@@ -102,7 +102,7 @@ lemma with_densityᵥ_sub' (hf : integrable f μ) (hg : integrable g μ) :
 with_densityᵥ_sub hf hg
 
 @[simp] lemma with_densityᵥ_smul {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]
-  [smul_comm_class ℝ 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜] (r : 𝕜) :
+  [smul_comm_class ℝ 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜] (f : α → E) (r : 𝕜) :
   μ.with_densityᵥ (r • f) = r • μ.with_densityᵥ f :=
 begin
   by_cases hf : integrable f μ,
@@ -117,9 +117,9 @@ begin
 end
 
 lemma with_densityᵥ_smul' {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]
-  [smul_comm_class ℝ 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜] (r : 𝕜) :
+  [smul_comm_class ℝ 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜] (f : α → E) (r : 𝕜) :
   μ.with_densityᵥ (λ x, r • f x) = r • μ.with_densityᵥ f :=
-with_densityᵥ_smul r
+with_densityᵥ_smul f r
 
 lemma measure.with_densityᵥ_absolutely_continuous (μ : measure α) (f : α → ℝ) :
   μ.with_densityᵥ f ≪ μ.to_ennreal_vector_measure :=
@@ -162,14 +162,13 @@ section signed_measure
 
 lemma with_densityᵥ_to_real {f : α → ℝ≥0∞} (hfm : ae_measurable f μ) (hf : ∫⁻ x, f x ∂μ ≠ ∞) :
   μ.with_densityᵥ (λ x, (f x).to_real) =
-  @to_signed_measure α _ (μ.with_density f)
-    (is_finite_measure_with_density (lt_top_iff_ne_top.2 hf)) :=
+  @to_signed_measure α _ (μ.with_density f) (is_finite_measure_with_density hf) :=
 begin
   have hfi := integrable_to_real_of_lintegral_ne_top hfm hf,
   ext i hi,
   rw [with_densityᵥ_apply hfi hi, to_signed_measure_apply_measurable hi,
       with_density_apply _ hi, integral_to_real hfm.restrict],
-  refine ae_lt_top' hfm.restrict (lt_of_le_of_lt _ (lt_top_iff_ne_top.2 hf)),
+  refine ae_lt_top' hfm.restrict (ne_top_of_le_ne_top hf _),
   conv_rhs { rw ← set_lintegral_univ },
   exact lintegral_mono_set (set.subset_univ _),
 end

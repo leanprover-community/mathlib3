@@ -152,6 +152,10 @@ lemma linear_map.to_matrix'_mul [fintype m] [decidable_eq m]
   (f * g).to_matrix' = f.to_matrix' ⬝ g.to_matrix' :=
 linear_map.to_matrix'_comp f g
 
+@[simp] lemma linear_map.to_matrix'_algebra_map (x : R) :
+  linear_map.to_matrix' (algebra_map R (module.End R (n → R)) x) = scalar n x :=
+by simp [module.algebra_map_End_eq_smul_id]
+
 lemma matrix.ker_to_lin'_eq_bot_iff {M : matrix n n R} :
   M.to_lin'.ker = ⊥ ↔ ∀ v, M.mul_vec v = 0 → v = 0 :=
 by simp only [submodule.eq_bot_iff, linear_map.mem_ker, matrix.to_lin'_apply]
@@ -172,7 +176,7 @@ def matrix.to_lin'_of_inv [fintype m] [decidable_eq m]
 /-- Linear maps `(n → R) →ₗ[R] (n → R)` are algebra equivalent to `matrix n n R`. -/
 def linear_map.to_matrix_alg_equiv' : ((n → R) →ₗ[R] (n → R)) ≃ₐ[R] matrix n n R :=
 alg_equiv.of_linear_equiv linear_map.to_matrix' linear_map.to_matrix'_mul
-  (by simp [module.algebra_map_End_eq_smul_id])
+  linear_map.to_matrix'_algebra_map
 
 /-- A `matrix n n R` is algebra equivalent to a linear map `(n → R) →ₗ[R] (n → R)`. -/
 def matrix.to_lin_alg_equiv' : matrix n n R ≃ₐ[R] ((n → R) →ₗ[R] (n → R)) :=
@@ -362,6 +366,10 @@ lemma linear_map.to_matrix_mul (f g : M₁ →ₗ[R] M₁) :
 by { rw [show (@has_mul.mul (M₁ →ₗ[R] M₁) _) = linear_map.comp, from rfl,
          linear_map.to_matrix_comp v₁ v₁ v₁ f g] }
 
+@[simp] lemma linear_map.to_matrix_algebra_map (x : R) :
+  linear_map.to_matrix v₁ v₁ (algebra_map R (module.End R M₁) x) = scalar n x :=
+by simp [module.algebra_map_End_eq_smul_id, linear_map.to_matrix_id]
+
 lemma linear_map.to_matrix_mul_vec_repr (f : M₁ →ₗ[R] M₂) (x : M₁) :
   (linear_map.to_matrix v₁ v₂ f).mul_vec (v₁.repr x) = v₂.repr (f x) :=
 by { ext i,
@@ -405,7 +413,7 @@ equivalence between linear maps `M₁ →ₗ M₁` and square matrices over `R` 
 def linear_map.to_matrix_alg_equiv :
   (M₁ →ₗ[R] M₁) ≃ₐ[R] matrix n n R :=
 alg_equiv.of_linear_equiv (linear_map.to_matrix v₁ v₁) (linear_map.to_matrix_mul v₁)
-  (by simp [module.algebra_map_End_eq_smul_id, linear_map.to_matrix_id])
+  (linear_map.to_matrix_algebra_map v₁)
 
 /-- Given a basis of a module `M₁` over a commutative ring `R`, we get an algebra
 equivalence between square matrices over `R` indexed by the basis and linear maps `M₁ →ₗ M₁`. -/

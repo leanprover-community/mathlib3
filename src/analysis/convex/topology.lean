@@ -3,9 +3,10 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Yury Kudriashov
 -/
-import analysis.convex.combination
+import analysis.convex.function
 import analysis.normed_space.finite_dimension
 import topology.path_connected
+import topology.algebra.affine
 
 /-!
 # Topological and metric properties of convex sets
@@ -43,7 +44,7 @@ variables [fintype ι]
 
 /-- Every vector in `std_simplex ι` has `max`-norm at most `1`. -/
 lemma std_simplex_subset_closed_ball :
-  std_simplex ι ⊆ metric.closed_ball 0 1 :=
+  std_simplex ι ℝ ⊆ metric.closed_ball 0 1 :=
 begin
   assume f hf,
   rw [metric.mem_closed_ball, dist_zero_right],
@@ -56,17 +57,17 @@ end
 variable (ι)
 
 /-- `std_simplex ι` is bounded. -/
-lemma bounded_std_simplex : metric.bounded (std_simplex ι) :=
+lemma bounded_std_simplex : metric.bounded (std_simplex ι ℝ) :=
 (metric.bounded_iff_subset_ball 0).2 ⟨1, std_simplex_subset_closed_ball⟩
 
 /-- `std_simplex ι` is closed. -/
-lemma is_closed_std_simplex : is_closed (std_simplex ι) :=
-(std_simplex_eq_inter ι).symm ▸ is_closed.inter
+lemma is_closed_std_simplex : is_closed (std_simplex ι ℝ) :=
+(std_simplex_eq_inter ι ℝ).symm ▸ is_closed.inter
   (is_closed_Inter $ λ i, is_closed_le continuous_const (continuous_apply i))
   (is_closed_eq (continuous_finset_sum _ $ λ x _, continuous_apply x) continuous_const)
 
 /-- `std_simplex ι` is compact. -/
-lemma compact_std_simplex : is_compact (std_simplex ι) :=
+lemma compact_std_simplex : is_compact (std_simplex ι ℝ) :=
 metric.compact_iff_closed_bounded.2 ⟨is_closed_std_simplex ι, bounded_std_simplex ι⟩
 
 end std_simplex
@@ -137,6 +138,40 @@ lemma convex.add_smul_mem_interior {s : set E} (hs : convex ℝ s)
   {x y : E} (hx : x ∈ s) (hy : x + y ∈ interior s) {t : ℝ} (ht : t ∈ Ioc (0 : ℝ) 1) :
   x + t • y ∈ interior s :=
 by { convert hs.add_smul_sub_mem_interior hx hy ht, abel }
+
+open affine_map
+
+/-- If we dilate a convex set about a point in its interior by a scale `t > 1`, the interior of
+the result contains the original set.
+
+TODO Generalise this from convex sets to sets that are balanced / star-shaped about `x`. -/
+lemma convex.subset_interior_image_homothety_of_one_lt
+  {s : set E} (hs : convex ℝ s) {x : E} (hx : x ∈ interior s) (t : ℝ) (ht : 1 < t) :
+  s ⊆ interior (image (homothety x t) s) :=
+begin
+  intros y hy,
+  let I := { z | ∃ (u : ℝ), u ∈ Ioc (0 : ℝ) 1 ∧ z = y + u • (x - y) },
+  have hI : I ⊆ interior s,
+  { rintros z ⟨u, hu, rfl⟩, exact hs.add_smul_sub_mem_interior hy hx hu, },
+  let z := homothety x t⁻¹ y,
+  have hz₁ : z ∈ interior s,
+  { suffices : z ∈ I, { exact hI this, },
+    use 1 - t⁻¹,
+    split,
+    { simp only [mem_Ioc, sub_le_self_iff, inv_nonneg, sub_pos, inv_lt_one ht, true_and],
+      linarith, },
+    { simp only [z, homothety_apply, sub_smul, smul_sub, vsub_eq_sub, vadd_eq_add, one_smul],
+      abel, }, },
+  have ht' : t ≠ 0, { linarith, },
+  have hz₂ : y = homothety x t z, { simp [z, ht', homothety_apply, smul_smul], },
+  rw hz₂,
+  rw mem_interior at hz₁ ⊢,
+  obtain ⟨U, hU₁, hU₂, hU₃⟩ := hz₁,
+  exact ⟨image (homothety x t) U,
+         image_subset ⇑(homothety x t) hU₁,
+         homothety_is_open_map x t ht' U hU₂,
+         mem_image_of_mem ⇑(homothety x t) hU₃⟩,
+end
 
 end has_continuous_smul
 

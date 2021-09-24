@@ -442,6 +442,14 @@ lemma smul_mem_smul_set [has_scalar α β] {t : set β} (hy : y ∈ t) : a • y
 lemma smul_set_union [has_scalar α β] {s t : set β} : a • (s ∪ t) = a • s ∪ a • t :=
 by simp only [← image_smul, image_union]
 
+@[to_additive]
+lemma smul_set_inter [group α] [mul_action α β] {s t : set β} :
+  a • (s ∩ t) = a • s ∩ a • t :=
+begin
+  erw [← image_smul, image_inter],
+  exact mul_action.injective a,
+end
+
 @[simp, to_additive]
 lemma smul_set_empty [has_scalar α β] (a : α) : a • (∅ : set β) = ∅ :=
 by rw [← image_smul, image_empty]

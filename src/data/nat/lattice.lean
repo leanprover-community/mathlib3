@@ -64,6 +64,24 @@ begin
   rw nat.Inf_eq_zero, right, assumption,
 end
 
+lemma Inf_plus {n : ℕ} {p : ℕ → Prop} (h : 0 < Inf {m : ℕ | p m}) :
+  Inf {m : ℕ | p m} + n = Inf {m : ℕ | p (m - n)} :=
+begin
+  symmetry,
+  rw Inf_def,
+  { rw nat.find_eq_iff,
+    simp only [nat.add_sub_cancel, set.mem_set_of_eq],
+    refine ⟨Inf_mem (nonempty_of_pos_Inf h), λ k hk hpk, not_mem_of_lt_Inf _ hpk⟩,
+    rwa sub_lt_iff_right,
+    apply le_of_lt,
+    rw [←sub_pos_iff_lt, pos_iff_ne_zero],
+    intro hkn,
+    rw hkn at hpk,
+    exact not_mem_of_lt_Inf h hpk },
+  { obtain ⟨t, ht⟩ := nonempty_of_pos_Inf h,
+    exact ⟨t + n, by simpa using ht⟩ }
+end
+
 lemma nonempty_of_Inf_eq_succ {s : set ℕ} {k : ℕ} (h : Inf s = k + 1) : s.nonempty :=
 nonempty_of_pos_Inf (h.symm ▸ (succ_pos k) : Inf s > 0)
 

@@ -1744,6 +1744,7 @@ begin
 end
 
 /-- **Uniqueness of the conditional expectation**
+If a function is a.e. `m`-measurable, verifies an integrability condition and has same integral
 as `f` on all `m`-measurable sets, then it is a.e. equal to `μ[f|hm]`. -/
 lemma ae_eq_condexp_of_forall_set_integral_eq (hm : m ≤ m0) [sigma_finite (μ.trim hm)]
   {f g : α → F'} (hf : integrable f μ)

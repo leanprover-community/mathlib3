@@ -1299,6 +1299,15 @@ begin
     rwa ae_measurable_comp_right_iff_of_closed_embedding hφ }
 end
 
+lemma integral_map_equiv {β} [measurable_space β] (e : α ≃ᵐ β) (f : β → E) :
+  ∫ y, f y ∂(measure.map e μ) = ∫ x, f (e x) ∂μ :=
+begin
+  by_cases hfm : ae_measurable f (measure.map e μ),
+  { exact integral_map e.measurable hfm },
+  { rw [integral_non_ae_measurable hfm, integral_non_ae_measurable],
+    rwa ← ae_measurable_map_equiv_iff }
+end
+
 lemma integral_dirac' [measurable_space α] (f : α → E) (a : α) (hfm : measurable f) :
   ∫ x, f x ∂(measure.dirac a) = f a :=
 calc ∫ x, f x ∂(measure.dirac a) = ∫ x, f a ∂(measure.dirac a) :

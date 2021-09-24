@@ -283,6 +283,21 @@ lemma integral_indicator_const (e : E) ⦃s : set α⦄ (s_meas : measurable_set
   ∫ (a : α), s.indicator (λ (x : α), e) a ∂μ = (μ s).to_real • e :=
 by rw [integral_indicator s_meas, ← set_integral_const]
 
+lemma set_integral_indicator_const_Lp {p : ℝ≥0∞} (hs : measurable_set s) (ht : measurable_set t)
+  (hμt : μ t ≠ ∞) (x : E) :
+  ∫ a in s, indicator_const_Lp p ht hμt x a ∂μ = (μ (t ∩ s)).to_real • x :=
+calc ∫ a in s, indicator_const_Lp p ht hμt x a ∂μ
+    = (∫ a in s, t.indicator (λ _, x) a ∂μ) :
+  by rw set_integral_congr_ae hs (indicator_const_Lp_coe_fn.mono (λ x hx hxs, hx))
+... = (μ (t ∩ s)).to_real • x : by rw [integral_indicator_const _ ht, measure.restrict_apply ht]
+
+lemma integral_indicator_const_Lp {p : ℝ≥0∞} (ht : measurable_set t) (hμt : μ t ≠ ∞) (x : E) :
+  ∫ a, indicator_const_Lp p ht hμt x a ∂μ = (μ t).to_real • x :=
+calc ∫ a, indicator_const_Lp p ht hμt x a ∂μ
+    = ∫ a in univ, indicator_const_Lp p ht hμt x a ∂μ : by rw integral_univ
+... = (μ (t ∩ univ)).to_real • x : set_integral_indicator_const_Lp measurable_set.univ ht hμt x
+... = (μ t).to_real • x : by rw inter_univ
+
 lemma set_integral_map {β} [measurable_space β] {g : α → β} {f : β → E} {s : set β}
   (hs : measurable_set s) (hf : ae_measurable f (measure.map g μ)) (hg : measurable g) :
   ∫ y in s, f y ∂(measure.map g μ) = ∫ x in g ⁻¹' s, f (g x) ∂μ :=
@@ -299,6 +314,10 @@ begin
   rw [measure.restrict_map hg.measurable hs, integral_map_of_closed_embedding hg],
   apply_instance,
 end
+
+lemma set_integral_map_equiv {β} [measurable_space β] (e : α ≃ᵐ β) (f : β → E) (s : set β) :
+  ∫ y in s, f y ∂(measure.map e μ) = ∫ x in e ⁻¹' s, f (e x) ∂μ :=
+by rw [e.restrict_map, integral_map_equiv]
 
 lemma norm_set_integral_le_of_norm_le_const_ae {C : ℝ} (hs : μ s < ∞)
   (hC : ∀ᵐ x ∂μ.restrict s, ∥f x∥ ≤ C) :

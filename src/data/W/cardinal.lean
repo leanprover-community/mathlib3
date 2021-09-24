@@ -34,21 +34,22 @@ open_locale cardinal
 open cardinal
 
 lemma cardinal_mk_eq_sum : #(W_type β) =
-  cardinal.sum (λ a : α, #(W_type β) ^ #(β a)) :=
+  sum (λ a : α, #(W_type β) ^ #(β a)) :=
 begin
   simp only [cardinal.lift_mk, cardinal.power_def, cardinal.sum_mk],
   exact cardinal.eq.2 ⟨equiv_sigma β⟩
 end
 
+/-- `W_type β` is the least cardinal `κ` such that `sum (λ a : α, κ ^ #(β a)) ≤ κ` -/
 lemma cardinal_mk_le_of_le {κ : cardinal.{u}}
-  (hκ : cardinal.sum (λ a : α, κ ^ #(β a)) ≤ κ) :
+  (hκ : sum (λ a : α, κ ^ #(β a)) ≤ κ) :
   #(W_type β) ≤ κ :=
 begin
   conv_rhs { rw ← cardinal.mk_out κ},
   rw [← cardinal.mk_out κ] at hκ,
   simp only [cardinal.power_def, cardinal.sum_mk, cardinal.le_def] at hκ,
   cases hκ,
-  exact cardinal.mk_le_of_injective (to_type_injective _ hκ.1 hκ.2)
+  exact cardinal.mk_le_of_injective (elim_injective _ hκ.1 hκ.2)
 end
 
 /-- If, for any `a : α`, `β a` is finite, then the cardinality of `W_type β`

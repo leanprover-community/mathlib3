@@ -23,6 +23,7 @@ case in this module has few dependencies.
 A description of this formalization is in [Gusakov2021].
 
 ## Main statements
+
 * `finset.all_card_le_bUnion_card_iff_exists_injective'` is Hall's theorem with
   a finite index set.  This is elsewhere generalized to
   `finset.all_card_le_bUnion_card_iff_exists_injective`.

@@ -8,16 +8,19 @@ import data.rel
 import data.set.finite
 
 /-!
-# Hall's Marriage Theorem (finite version)
+# Hall's Marriage Theorem for finite index types
 
-This module proves the finite case of Hall's theorem, which is
-when the indexed family `t : ι → finset α` has `[fintype ι]`.
-See `combinatorics.hall.basic` for more details, which is where
-the finiteness constraint is lifted.
+This module proves the basic form of Hall's theorem.
+In constrast to the theorem described in `combinatorics.hall.basic`, this
+version requires that the indexed family `t : ι → finset α` have `ι` be a `fintype`.
+The `combinatorics.hall.basic` module applies a compactness argument to this version
+to remove the `fintype` constraint on `ι`.
 
 The modules are split like this since the generalized statement
 depends on the topology and category theory libraries, but the finite
-case has few dependencies.
+case in this module has few dependencies.
+
+A description of this formalization is in [Gusakov2021].
 
 ## Main statements
 * `finset.all_card_le_bUnion_card_iff_exists_injective'` is Hall's theorem with

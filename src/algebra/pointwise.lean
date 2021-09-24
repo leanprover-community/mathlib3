@@ -447,6 +447,10 @@ lemma smul_set_inter [group α] [mul_action α β] {s t : set β} :
   a • (s ∩ t) = a • s ∩ a • t :=
 (image_inter $ mul_action.injective a).symm
 
+lemma smul_set_inter' [group_with_zero α] [mul_action α β] {s t : set β} (ha : a ≠ 0) :
+  a • (s ∩ t) = a • s ∩ a • t :=
+show units.mk0 a ha • _ = _, from smul_set_inter
+
 @[to_additive]
 lemma smul_set_inter_subset [has_scalar α β] {s t : set β} :
   a • (s ∩ t) ⊆ a • s ∩ a • t := image_inter_subset _ _ _

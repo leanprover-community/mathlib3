@@ -589,13 +589,13 @@ lemma integrable.with_density_iff {f : α → ℝ≥0∞} (hf : measurable f)
   integrable g (μ.with_density f) ↔ integrable (λ x, g x * (f x).to_real) μ :=
 begin
   have : (λ x, (f * λ x, ↑∥g x∥₊) x) =ᵐ[μ] (λ x, ∥g x * (f x).to_real∥₊),
-    { simp_rw [← smul_eq_mul, nnnorm_smul, ennreal.coe_mul],
-      rw [smul_eq_mul, mul_comm],
-      refine filter.eventually_eq.mul (ae_eq_refl _)
-        (ae_eq_trans (ennreal.of_real_to_real_ae_eq hflt).symm _),
-      convert ae_eq_refl _,
-      ext1 x,
-      exact real.ennnorm_eq_of_real ennreal.to_real_nonneg },
+  { simp_rw [← smul_eq_mul, nnnorm_smul, ennreal.coe_mul],
+    rw [smul_eq_mul, mul_comm],
+    refine filter.eventually_eq.mul (ae_eq_refl _)
+      (ae_eq_trans (ennreal.of_real_to_real_ae_eq hflt).symm _),
+    convert ae_eq_refl _,
+    ext1 x,
+    exact real.ennnorm_eq_of_real ennreal.to_real_nonneg },
   split; intro hi,
   { refine ⟨hg.ae_measurable.mul hf.ae_measurable.ennreal_to_real, _⟩,
     rw [has_finite_integral, lintegral_congr_ae this.symm,

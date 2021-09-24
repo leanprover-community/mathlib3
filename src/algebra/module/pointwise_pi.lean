@@ -21,49 +21,28 @@ open_locale pointwise
 open set
 
 @[to_additive]
-lemma smul_univ_pi {K R : Type*} [has_scalar K R] (ι : Type*) {r : K} (t : ι → set R) :
-  r • pi (univ : set ι) t = pi (univ : set ι) (r • t) :=
+lemma smul_pi_subset {K R : Type*} [has_scalar K R] {ι : Type*} (r : K) (t : ι → set R) (s : set ι) :
+  r • pi s t ⊆ pi s (r • t) :=
 begin
-  ext x,
-  simp only [mem_smul_set, mem_univ_pi],
-  split; intro h,
-  { rcases h with ⟨h_w, h_h_left, rfl⟩,
-    simp only [pi.smul_apply],
-    intro i,
-    refine ⟨h_w i, h_h_left i, rfl⟩, },
-  { use (λ i, classical.some (h i)),
-    split,
-    { exact λ i, (classical.some_spec (h i)).left, },
-    { ext i,
-      exact (classical.some_spec (h i)).right, }, },
+  rintros x ⟨y, h, rfl⟩ i hi,
+  exact smul_mem_smul_set (h i hi),
 end
 
-lemma smul_pi' {K R : Type*} [group_with_zero K] [mul_action K R] {ι : Type*} {r : K}
-  (t : ι → set R) (S : set ι) (hr : r ≠ 0) : r • S.pi t = S.pi (r • t) :=
-begin
-  ext x,
-  simp only [mem_smul_set, mem_pi],
-  split; intro h,
-  { rcases h with ⟨h_w, h_h_left, rfl⟩,
-    simp only [mul_eq_mul_left_iff, pi.smul_apply],
-    intros i hi,
-    refine ⟨h_w i, h_h_left i hi, rfl⟩, },
-  classical,
-  { existsi (λ i, if hiS : i ∈ S then classical.some (h i hiS) else r⁻¹ • x i),
-    dsimp,
-    split,
-    { intros i hiS,
-      split_ifs,
-      exact (classical.some_spec (h i hiS)).left, },
-    { ext i,
-      rw [pi.smul_apply],
-      split_ifs with hiS,
-      exact (classical.some_spec (h i hiS)).right,
-      rw [smul_smul, mul_inv_cancel hr, one_smul], }, },
+@[to_additive]
+lemma smul_univ_pi {K R : Type*} [has_scalar K R] {ι : Type*} (r : K) (t : ι → set R) :
+  r • pi (univ : set ι) t = pi (univ : set ι) (r • t) :=
+subset.antisymm (smul_pi_subset _ _ _) $ λ x h, begin
+  refine ⟨λ i, classical.some (h i $ set.mem_univ _), λ i hi, _, funext $ λ i, _⟩,
+  { exact (classical.some_spec (h i _)).left, },
+  { exact (classical.some_spec (h i _)).right, },
 end
 
 @[to_additive]
 lemma smul_pi {K R : Type*} [group K] [mul_action K R] {ι : Type*} {r : K} (t : ι → set R)
   (S : set ι) : r • S.pi t = S.pi (λ (i : ι), r • t i) :=
-subset.antisymm (smul_pi_subset _ _) $ λ x h,
+subset.antisymm (smul_pi_subset _ _ _) $ λ x h,
   ⟨r⁻¹ • x, λ i hiS, mem_smul_set_iff_inv_smul_mem.mp (h i hiS), smul_inv_smul _ _⟩
+
+lemma smul_pi' {K R : Type*} [group_with_zero K] [mul_action K R] {ι : Type*} {r : K}
+  (t : ι → set R) (S : set ι) (hr : r ≠ 0) : r • S.pi t = S.pi (r • t) :=
+@smul_pi _ _ _ _ _ (units.mk0 r hr) t S

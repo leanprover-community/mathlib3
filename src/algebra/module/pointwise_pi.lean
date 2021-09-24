@@ -6,10 +6,22 @@ Authors: Alex J. Best
 import algebra.pointwise
 import algebra.module.pi
 
+/-!
+# Pointwise actions on sets in Pi types
+
+This file contains lemmas about pointwise actions on sets in Pi types.
+
+## Tags
+
+set multiplication, set addition, pointwise addition, pointwise multiplication, pi
+
+-/
+
 open_locale pointwise
 open set
 
-lemma smul_univ_pi {K : Type*} [has_mul K] (ι : Type*) {r : K} (t : ι → set K) :
+@[to_additive]
+lemma smul_univ_pi {K R : Type*} [has_scalar K R] (ι : Type*) {r : K} (t : ι → set R) :
   r • pi (univ : set ι) t = pi (univ : set ι) (λ (i : ι), r • t i) :=
 begin
   ext x,
@@ -26,8 +38,8 @@ begin
       exact (classical.some_spec (h i)).right, }, },
 end
 
-lemma smul_pi' {K : Type*} [group_with_zero K] (ι : Type*) {r : K} (t : ι → set K) (S : set ι)
-  (hr : r ≠ 0) : r • S.pi t = S.pi (λ (i : ι), r • t i) :=
+lemma smul_pi' {K R : Type*} [group_with_zero K] [mul_action K R] {ι : Type*} {r : K}
+  (t : ι → set R) (S : set ι) (hr : r ≠ 0) : r • S.pi t = S.pi (λ (i : ι), r • t i) :=
 begin
   ext x,
   simp only [mem_smul_set, mem_pi],
@@ -37,20 +49,22 @@ begin
     intros i hi,
     refine ⟨h_w i, h_h_left i hi, rfl⟩, },
   classical,
-  { use (λ i, if hiS : i ∈ S then classical.some (h i hiS) else r⁻¹ * x i),
+  { existsi (λ i, if hiS : i ∈ S then classical.some (h i hiS) else r⁻¹ • x i),
+    dsimp,
     split,
     { intros i hiS,
       split_ifs,
       exact (classical.some_spec (h i hiS)).left, },
     { ext i,
-      rw [pi.smul_apply, smul_eq_mul],
+      rw [pi.smul_apply],
       split_ifs with hiS,
       exact (classical.some_spec (h i hiS)).right,
-      rw mul_inv_cancel_left' hr, }, },
+      rw [smul_smul, mul_inv_cancel hr, one_smul], }, },
 end
 
-lemma smul_pi {K : Type*} [group K] (ι : Type*) {r : K} (t : ι → set K) (S : set ι) :
-  r • S.pi t = S.pi (λ (i : ι), r • t i) :=
+@[to_additive]
+lemma smul_pi {K R : Type*} [group K] [mul_action K R] {ι : Type*} {r : K} (t : ι → set R)
+  (S : set ι) : r • S.pi t = S.pi (λ (i : ι), r • t i) :=
 begin
   ext x,
   simp only [mem_smul_set, mem_pi],
@@ -60,14 +74,15 @@ begin
     intros i hi,
     refine ⟨h_w i, h_h_left i hi, rfl⟩, },
   classical,
-  { use (λ i, if hiS : i ∈ S then classical.some (h i hiS) else r⁻¹ * x i),
+  { existsi (λ i, if hiS : i ∈ S then classical.some (h i hiS) else r⁻¹ • x i),
+    dsimp,
     split,
     { intros i hiS,
       split_ifs,
       exact (classical.some_spec (h i hiS)).left, },
     { ext i,
-      rw [pi.smul_apply, smul_eq_mul],
+      rw [pi.smul_apply],
       split_ifs with hiS,
       exact (classical.some_spec (h i hiS)).right,
-      rw mul_inv_cancel_left, }, },
+      rw [smul_smul, mul_right_inv, one_smul], }, },
 end

@@ -156,9 +156,10 @@ lemma integral_mul_eq_integral' [is_finite_measure ℙ] {X : α → E} [has_pdf 
   ∫ x, f x * (pdf X ℙ μ x).to_real ∂μ = ∫ x, f (X x) ∂ℙ :=
 begin
   rw [← integral_map hX hf.ae_measurable, map_eq_with_density_pdf X ℙ μ,
+      integral_eq_lintegral_pos_part_sub_lintegral_neg_part hpdf,
       integral_eq_lintegral_pos_part_sub_lintegral_neg_part,
-      integral_eq_lintegral_pos_part_sub_lintegral_neg_part,
-      lintegral_with_density_eq_lintegral_mul, lintegral_with_density_eq_lintegral_mul],
+      lintegral_with_density_eq_lintegral_mul _ (measurable_pdf X ℙ μ) hf.neg.ennreal_of_real,
+      lintegral_with_density_eq_lintegral_mul _ (measurable_pdf X ℙ μ) hf.ennreal_of_real],
   { congr' 2,
     { have : ∀ x, ennreal.of_real (f x * (pdf X ℙ μ x).to_real) =
         ennreal.of_real (pdf X ℙ μ x).to_real * ennreal.of_real (f x),
@@ -174,10 +175,6 @@ begin
       simp_rw [this],
       exact lintegral_congr_ae (filter.eventually_eq.mul
         (of_real_to_real_ae_eq hX) (ae_eq_refl _)) } },
-  { exact measurable_pdf X ℙ μ },
-  { exact (measurable.neg hf).ennreal_of_real },
-  { exact measurable_pdf X ℙ μ},
-  { exact measurable.ennreal_of_real hf },
   { refine ⟨hf.ae_measurable, _⟩,
     rw [has_finite_integral, lintegral_with_density_eq_lintegral_mul _
           (measurable_pdf _ _ _) hf.nnnorm.coe_nnreal_ennreal],
@@ -191,7 +188,6 @@ begin
       exact real.ennnorm_eq_of_real ennreal.to_real_nonneg },
     rw lintegral_congr_ae this,
     exact hpdf.2 },
-  { assumption },
 end
 
 /-- A random variable that `has_pdf` is quasi-measure preserving. -/

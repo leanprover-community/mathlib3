@@ -151,8 +151,7 @@ begin
   apply finset.card_erase_of_mem,
   rw [nth, set.finite.mem_to_finset],
   apply Inf_mem,
-  rw [←set.finite.to_finset.nonempty hf'', ←finset.card_pos],
-  rwa hk
+  rwa [←set.finite.to_finset.nonempty hf'', ←finset.card_pos, hk]
 end
 
 lemma nth_set_card {n : ℕ} (hf : (set_of p).finite)
@@ -165,7 +164,8 @@ begin
     simp only [finset.card_eq_zero, set.finite_to_finset_eq_empty_iff, ←set.subset_empty_iff],
     convert_to _ ⊆ {i : ℕ | p i ∧ ∀ (k : ℕ), k < hf.to_finset.card → nth p k < i},
     { symmetry,
-      rw [←set.finite_to_finset_eq_empty_iff, ←finset.card_eq_zero, ←nat.sub_self hf.to_finset.card],
+      rw [←set.finite_to_finset_eq_empty_iff, ←finset.card_eq_zero,
+          ←nat.sub_self hf.to_finset.card],
       { apply nth_set_card_aux p hf _ le_rfl, },
       { apply hf.subset,
         simp {contextual := tt}, } },
@@ -300,8 +300,8 @@ lemma count_nth_of_lt_card_finite {n : ℕ} (hf : (set_of p).finite)
 begin
   induction n with k hk,
   { apply count_nth_of_zero },
-  rw [count_eq_card_finset, filter_range_nth_eq_insert_of_finite p hf hlt],
-  rw finset.card_insert_of_not_mem,
+  rw [count_eq_card_finset, filter_range_nth_eq_insert_of_finite p hf hlt,
+      finset.card_insert_of_not_mem],
   { rw [←count_eq_card_finset, hk],
     exact lt_of_succ_lt hlt, },
   { simp }
@@ -335,8 +335,8 @@ lemma count_nth_of_infinite (i : (set_of p).infinite) (n : ℕ) : count p (nth p
 begin
   induction n with k hk,
   { apply count_nth_of_zero },
-  rw count_eq_card_finset,
-  rw [filter_range_nth_eq_insert_of_infinite p i, finset.card_insert_of_not_mem],
+  rw [count_eq_card_finset, filter_range_nth_eq_insert_of_infinite p i,
+      finset.card_insert_of_not_mem],
   { rw [←count_eq_card_finset, hk] },
   { simp }
 end

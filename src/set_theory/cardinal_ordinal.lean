@@ -657,7 +657,7 @@ by { norm_cast, norm_num }
 ```
 -/
 
-@[simp] lemma bit0_ne_zero (a : cardinal) : ¬bit0 a = 0 ↔ ¬a = 0 :=
+lemma bit0_ne_zero (a : cardinal) : ¬bit0 a = 0 ↔ ¬a = 0 :=
 by simp [bit0]
 
 @[simp] lemma bit1_ne_zero (a : cardinal) : ¬bit1 a = 0 :=

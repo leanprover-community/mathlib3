@@ -34,14 +34,15 @@ open_locale cardinal
 open cardinal
 
 lemma cardinal_mk_eq_sum : #(W_type β) =
-  cardinal.sum (λ a : α, #(W_type β) ^ #(β a)) :=
+  sum (λ a : α, #(W_type β) ^ #(β a)) :=
 begin
   simp only [cardinal.lift_mk, cardinal.power_def, cardinal.sum_mk],
   exact cardinal.eq.2 ⟨equiv_sigma β⟩
 end
 
+/-- `W_type β` is the least cardinal `κ` such that `sum (λ a : α, κ ^ #(β a)) ≤ κ` -/
 lemma cardinal_mk_le_of_le {κ : cardinal.{u}}
-  (hκ : cardinal.sum (λ a : α, κ ^ #(β a)) ≤ κ) :
+  (hκ : sum (λ a : α, κ ^ #(β a)) ≤ κ) :
   #(W_type β) ≤ κ :=
 begin
   conv_rhs { rw ← cardinal.mk_out κ},

@@ -113,6 +113,10 @@ theorem const_apply (a : α) (b : β) : (const α b) a = b := rfl
   (const α b).range = {b} :=
 finset.coe_injective $ by simp
 
+lemma range_const_subset (α) [measurable_space α] (b : β) :
+  (const α b).range ⊆ {b} :=
+finset.coe_subset.1 $ by simp
+
 lemma measurable_set_cut (r : α → β → Prop) (f : α →ₛ β)
   (h : ∀b, measurable_set {a | r a b}) : measurable_set {a | r a (f a)} :=
 begin
@@ -2013,6 +2017,27 @@ begin
   ext1 t ht,
   rw [with_density_apply _ ht, lintegral_indicator _ hs,
       restrict_comm hs ht, ← with_density_apply _ ht]
+end
+
+lemma with_density_of_real_mutually_singular {f : α → ℝ} (hf : measurable f) :
+  μ.with_density (λ x, ennreal.of_real $ f x) ⊥ₘ μ.with_density (λ x, ennreal.of_real $ -f x) :=
+begin
+  set S : set α := { x | f x < 0 } with hSdef,
+  have hS : measurable_set S := measurable_set_lt hf measurable_const,
+  refine ⟨S, hS, _, _⟩,
+  { rw [with_density_apply _ hS, hSdef],
+    have hf0 : ∀ᵐ x ∂μ, x ∈ S → ennreal.of_real (f x) = 0,
+    { refine ae_of_all _ (λ _ hx, _),
+      rw [ennreal.of_real_eq_zero.2 (le_of_lt hx)] },
+    rw set_lintegral_congr_fun hS hf0,
+    exact lintegral_zero },
+  { rw [with_density_apply _ hS.compl, hSdef],
+    have hf0 : ∀ᵐ x ∂μ, x ∈ Sᶜ → ennreal.of_real (-f x) = 0,
+    { refine ae_of_all _ (λ x hx, _),
+      rw ennreal.of_real_eq_zero.2,
+      rwa [neg_le, neg_zero, ← not_lt] },
+    rw set_lintegral_congr_fun hS.compl hf0,
+    exact lintegral_zero },
 end
 
 lemma restrict_with_density {s : set α} (hs : measurable_set s) (f : α → ℝ≥0∞) :

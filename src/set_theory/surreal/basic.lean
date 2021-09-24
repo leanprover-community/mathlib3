@@ -104,6 +104,9 @@ theorem numeric_neg : Π {x : pgame} (o : numeric x), numeric (-x)
 ⟨λ j i, lt_iff_neg_gt.1 (o.1 i j),
   ⟨λ j, numeric_neg (o.2.2 j), λ i, numeric_neg (o.2.1 i)⟩⟩
 
+-- We provide this as an analogue for `numeric.move_left_le`,
+-- even though it does not need the `numeric` hypothesis.
+@[nolint unused_arguments]
 theorem numeric.move_left_lt {x : pgame.{u}} (o : numeric x) (i : x.left_moves) :
   x.move_left i < x :=
 begin
@@ -116,6 +119,9 @@ theorem numeric.move_left_le {x : pgame} (o : numeric x) (i : x.left_moves) :
   x.move_left i ≤ x :=
 le_of_lt (o.move_left i) o (o.move_left_lt i)
 
+-- We provide this as an analogue for `numeric.le_move_right`,
+-- even though it does not need the `numeric` hypothesis.
+@[nolint unused_arguments]
 theorem numeric.lt_move_right {x : pgame} (o : numeric x) (j : x.right_moves) :
   x < x.move_right j :=
 begin
@@ -129,7 +135,7 @@ theorem numeric.le_move_right {x : pgame} (o : numeric x) (j : x.right_moves) :
 le_of_lt o (o.move_right j) (o.lt_move_right j)
 
 theorem add_lt_add
-  {w x y z : pgame.{u}} (ow : numeric w) (ox : numeric x) (oy : numeric y) (oz : numeric z)
+  {w x y z : pgame.{u}} (oy : numeric y) (oz : numeric z)
   (hwx : w < x) (hyz : y < z) : w + y < x + z :=
 begin
   rw lt_def_le at *,
@@ -168,13 +174,9 @@ theorem numeric_add : Π {x y : pgame} (ox : numeric x) (oy : numeric y), numeri
    { show xL ix + ⟨yl, yr, yL, yR⟩ < xR jx + ⟨yl, yr, yL, yR⟩,
      exact add_lt_add_right (ox.1 ix jx), },
    { show xL ix + ⟨yl, yr, yL, yR⟩ < ⟨xl, xr, xL, xR⟩ + yR jy,
-     apply add_lt_add (ox.move_left ix) ox oy (oy.move_right jy),
-     apply ox.move_left_lt,
-     apply oy.lt_move_right },
+     exact add_lt_add oy (oy.move_right jy) (ox.move_left_lt _) (oy.lt_move_right _), },
    { --  show ⟨xl, xr, xL, xR⟩ + yL iy < xR jx + ⟨yl, yr, yL, yR⟩, -- fails?
-     apply add_lt_add ox (ox.move_right jx) (oy.move_left iy) oy,
-     apply ox.lt_move_right,
-     apply oy.move_left_lt, },
+     exact add_lt_add (oy.move_left iy) oy (ox.lt_move_right _) (oy.move_left_lt _), },
    { --  show ⟨xl, xr, xL, xR⟩ + yL iy < ⟨xl, xr, xL, xR⟩ + yR jy, -- fails?
      exact @add_lt_add_left ⟨xl, xr, xL, xR⟩ _ _ (oy.1 iy jy), }
  end,

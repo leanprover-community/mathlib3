@@ -6,7 +6,7 @@ Authors: Eric Wieser
 import algebra.algebra.basic
 import algebra.algebra.operations
 import algebra.direct_sum.basic
-import group_theory.subgroup
+import group_theory.subgroup.basic
 
 /-!
 # Additively-graded multiplicative structures on `⨁ i, A i`

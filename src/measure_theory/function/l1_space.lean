@@ -457,6 +457,10 @@ lemma integrable_map_measure [opens_measurable_space β] {f : α → δ} {g : δ
   integrable g (measure.map f μ) ↔ integrable (g ∘ f) μ :=
 by simp [integrable, hg, hg.comp_measurable hf, has_finite_integral, lintegral_map' hg.ennnorm hf]
 
+lemma integrable_map_equiv (f : α ≃ᵐ δ) (g : δ → β) :
+  integrable g (measure.map f μ) ↔ integrable (g ∘ f) μ :=
+by simp only [integrable, ae_measurable_map_equiv_iff, has_finite_integral, lintegral_map_equiv]
+
 lemma lintegral_edist_lt_top [second_countable_topology β] [opens_measurable_space β] {f g : α → β}
   (hf : integrable f μ) (hg : integrable g μ) :
   ∫⁻ a, edist (f a) (g a) ∂μ < ∞ :=
@@ -564,6 +568,47 @@ begin
   apply lintegral_mono,
   assume x,
   simp [real.norm_eq_abs, ennreal.of_real_le_of_real, abs_le, abs_nonneg, le_abs_self],
+end
+
+lemma ennreal.of_real_to_real_ae_eq {f : α → ℝ≥0∞} (hflt : ∀ᵐ x ∂μ, f x < ∞) :
+  (λ x, ennreal.of_real (f x).to_real) =ᵐ[μ] f :=
+begin
+  have : ∀ x, ennreal.of_real (f x).to_real ≠ f x ↔ f x = ∞,
+  { intro x,
+    split; intro h,
+    { by_contra htop,
+      rw [← ne.def, ← lt_top_iff_ne_top] at htop,
+      exact h (ennreal.of_real_to_real htop.ne) },
+    { rw h, simp } },
+  change μ {x | ennreal.of_real (f x).to_real ≠ f x} = 0,
+  simp_rw this,
+  suffices hne : ∀ᵐ x ∂μ, f x ≠ ∞,
+  { simp_rw [ae_iff, not_not] at hne, exact hne },
+  simp_rw [← lt_top_iff_ne_top],
+  exact hflt
+end
+
+lemma integrable.with_density_iff {f : α → ℝ≥0∞} (hf : measurable f)
+  (hflt : ∀ᵐ x ∂μ, f x < ∞) {g : α → ℝ} (hg : measurable g) :
+  integrable g (μ.with_density f) ↔ integrable (λ x, g x * (f x).to_real) μ :=
+begin
+  have : (λ x, (f * λ x, ↑∥g x∥₊) x) =ᵐ[μ] (λ x, ∥g x * (f x).to_real∥₊),
+    { simp_rw [← smul_eq_mul, nnnorm_smul, ennreal.coe_mul],
+      rw [smul_eq_mul, mul_comm],
+      refine filter.eventually_eq.mul (ae_eq_refl _)
+        (ae_eq_trans (ennreal.of_real_to_real_ae_eq hflt).symm _),
+      convert ae_eq_refl _,
+      ext1 x,
+      exact real.ennnorm_eq_of_real ennreal.to_real_nonneg },
+  split; intro hi,
+  { refine ⟨hg.ae_measurable.mul hf.ae_measurable.ennreal_to_real, _⟩,
+    rw [has_finite_integral, lintegral_congr_ae this.symm,
+        ← lintegral_with_density_eq_lintegral_mul _ hf hg.nnnorm.coe_nnreal_ennreal],
+    exact hi.2 },
+  { refine ⟨hg.ae_measurable, _⟩,
+    rw [has_finite_integral, lintegral_with_density_eq_lintegral_mul _
+          hf hg.nnnorm.coe_nnreal_ennreal, lintegral_congr_ae this],
+    exact hi.2 }
 end
 
 lemma mem_ℒ1_to_real_of_lintegral_ne_top

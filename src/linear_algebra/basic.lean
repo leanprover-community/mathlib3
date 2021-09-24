@@ -249,10 +249,10 @@ def eval_add_monoid_hom (a : M) : (M →ₛₗ[σ₁₂] M₂) →+ M₂ :=
   map_add' := λ f g, linear_map.add_apply f g a,
   map_zero' := rfl }
 
-lemma add_comp (g : M₂ →ₛₗ[σ₂₃] M₃) (h : M₂ →ₛₗ[σ₂₃] M₃) :
+lemma add_comp (f : M →ₛₗ[σ₁₂] M₂)(g h : M₂ →ₛₗ[σ₂₃] M₃) :
   ((h + g).comp f : M →ₛₗ[σ₁₃] M₃) = h.comp f + g.comp f := rfl
 
-lemma comp_add (g : M →ₛₗ[σ₁₂] M₂) (h : M₂ →ₛₗ[σ₂₃] M₃) :
+lemma comp_add (f g : M →ₛₗ[σ₁₂] M₂) (h : M₂ →ₛₗ[σ₂₃] M₃) :
   (h.comp (f + g) : M →ₛₗ[σ₁₃] M₃) = h.comp f + h.comp g :=
 ext $ λ _, h.map_add _ _
 
@@ -422,11 +422,11 @@ instance : has_neg (M →ₛₗ[σ₁₃] M₃) :=
 @[simp] lemma neg_apply (f : M →ₛₗ[σ₁₃] M₃) (x : M) : (- f) x = - f x := rfl
 
 include σ₁₃
-@[simp] lemma neg_comp (f : M →ₗ[σ₁₂] M₂) (g : M₂ →ₗ[σ₂₃] M₃) : (- g).comp f = - g.comp f := rfl
+@[simp] lemma neg_comp (f : M →ₛₗ[σ₁₂] M₂) (g : M₂ →ₛₗ[σ₂₃] M₃) : (- g).comp f = - g.comp f := rfl
 omit σ₁₃
 
 include σ₁₄
-@[simp] lemma comp_neg (f : M →ₗ[σ₁₃] M₃) (g : M₃ →ₛₗ[σ₃₄] M₄) : g.comp (- f) = - g.comp f :=
+@[simp] lemma comp_neg (f : M →ₛₗ[σ₁₃] M₃) (g : M₃ →ₛₗ[σ₃₄] M₄) : g.comp (- f) = - g.comp f :=
 ext $ λ _, g.map_neg _
 omit σ₁₄
 
@@ -439,12 +439,12 @@ instance : has_sub (M →ₛₗ[σ₁₃] M₃) :=
 @[simp] lemma sub_apply (f g : M →ₛₗ[σ₁₃] M₃) (x : M) : (f - g) x = f x - g x := rfl
 
 include σ₁₃
-lemma sub_comp (f : M →ₗ[R] M₂) (g : M₂ →ₛₗ[σ₂₃] M₃) (h : M₂ →ₛₗ[σ₂₃] M₃) :
+lemma sub_comp (f : M →ₛₗ[R] M₂) (g : M₂ →ₛₗ[σ₂₃] M₃) (h : M₂ →ₛₗ[σ₂₃] M₃) :
   (g - h).comp f = g.comp f - h.comp f := rfl
 omit σ₁₃
 
 include σ₁₄
-lemma comp_sub (g : M →ₛₗ[σ₁₃] M₃) (h : M₃ →ₛₗ[σ₃₄] M₄) :
+lemma comp_sub (f g : M →ₛₗ[σ₁₃] M₃) (h : M₃ →ₛₗ[σ₃₄] M₄) :
   h.comp (g - f) = h.comp g - h.comp f := by { ext, simp }
 omit σ₁₄
 

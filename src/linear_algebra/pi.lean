@@ -334,3 +334,16 @@ def sum_arrow_lequiv_prod_arrow (α β R M : Type*) [semiring R] [add_comm_monoi
   ((sum_arrow_lequiv_prod_arrow α β R M).symm (f, g)) (sum.inr b) = g b := rfl
 
 end linear_equiv
+
+section extend
+
+variables (R) {η : Type x} [semiring R] (s : ι → η)
+
+/-- `function.extend s f 0` as a bundled linear map. -/
+@[simps]
+noncomputable def function.extend_by_zero.linear_map : (ι → R) →ₗ[R] (η → R) :=
+{ to_fun := λ f, function.extend s f 0,
+  map_smul' := λ r f, by { simpa using function.extend_smul r s f 0 },
+  ..function.extend_by_zero.hom R s }
+
+end extend

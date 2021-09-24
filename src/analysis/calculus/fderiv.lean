@@ -414,6 +414,10 @@ lemma has_fderiv_within_at.has_fderiv_at (h : has_fderiv_within_at f f' s x) (hs
   has_fderiv_at f f' x :=
 by rwa [← univ_inter s, has_fderiv_within_at_inter hs, has_fderiv_within_at_univ] at h
 
+lemma differentiable_within_at.differentiable_at
+  (h : differentiable_within_at 𝕜 f s x) (hs : s ∈ 𝓝 x) : differentiable_at 𝕜 f x :=
+h.imp (λ f' hf', hf'.has_fderiv_at hs)
+
 lemma differentiable_within_at.has_fderiv_within_at (h : differentiable_within_at 𝕜 f s x) :
   has_fderiv_within_at f (fderiv_within 𝕜 f s x) s x :=
 begin
@@ -431,6 +435,10 @@ begin
   rw dif_pos h,
   exact classical.some_spec h
 end
+
+lemma differentiable_on.has_fderiv_at (h : differentiable_on 𝕜 f s) (hs : s ∈ 𝓝 x) :
+  has_fderiv_at f (fderiv 𝕜 f x) x :=
+((h x (mem_of_mem_nhds hs)).differentiable_at hs).has_fderiv_at
 
 lemma has_fderiv_at.fderiv (h : has_fderiv_at f f' x) : fderiv 𝕜 f x = f' :=
 by { ext, rw h.unique h.differentiable_at.has_fderiv_at }
@@ -484,10 +492,6 @@ lemma differentiable_at.differentiable_within_at
 lemma differentiable.differentiable_at (h : differentiable 𝕜 f) :
   differentiable_at 𝕜 f x :=
 h x
-
-lemma differentiable_within_at.differentiable_at
-  (h : differentiable_within_at 𝕜 f s x) (hs : s ∈ 𝓝 x) : differentiable_at 𝕜 f x :=
-h.imp (λ f' hf', hf'.has_fderiv_at hs)
 
 lemma differentiable_at.fderiv_within
   (h : differentiable_at 𝕜 f x) (hxs : unique_diff_within_at 𝕜 s x) :
@@ -2094,6 +2098,111 @@ lemma is_bounded_bilinear_map.continuous_right (h : is_bounded_bilinear_map 𝕜
 h.continuous.comp (continuous_const.prod_mk continuous_id)
 
 end bilinear_map
+
+section clm_comp_apply
+/-! ### Derivative of the pointwise composition/application of continuous linear maps -/
+
+variables {H : Type*} [normed_group H] [normed_space 𝕜 H] {c : E → G →L[𝕜] H}
+  {c' : E →L[𝕜] G →L[𝕜] H} {d : E → F →L[𝕜] G} {d' : E →L[𝕜] F →L[𝕜] G} {u : E → G}
+  {u' : E →L[𝕜] G}
+
+lemma has_strict_fderiv_at.clm_comp (hc : has_strict_fderiv_at c c' x)
+  (hd : has_strict_fderiv_at d d' x) : has_strict_fderiv_at (λ y, (c y).comp (d y))
+  ((compL 𝕜 F G H (c x)).comp d' + ((compL 𝕜 F G H).flip (d x)).comp c') x :=
+begin
+  rw add_comm,
+  exact (is_bounded_bilinear_map_comp.has_strict_fderiv_at (d x, c x)).comp x (hd.prod hc)
+end
+
+lemma has_fderiv_within_at.clm_comp (hc : has_fderiv_within_at c c' s x)
+  (hd : has_fderiv_within_at d d' s x) : has_fderiv_within_at (λ y, (c y).comp (d y))
+  ((compL 𝕜 F G H (c x)).comp d' + ((compL 𝕜 F G H).flip (d x)).comp c') s x :=
+begin
+  rw add_comm,
+  exact (is_bounded_bilinear_map_comp.has_fderiv_at (d x, c x)).comp_has_fderiv_within_at x
+    (hd.prod hc)
+end
+
+lemma has_fderiv_at.clm_comp (hc : has_fderiv_at c c' x)
+  (hd : has_fderiv_at d d' x) : has_fderiv_at (λ y, (c y).comp (d y))
+  ((compL 𝕜 F G H (c x)).comp d' + ((compL 𝕜 F G H).flip (d x)).comp c') x :=
+begin
+  rw add_comm,
+  exact (is_bounded_bilinear_map_comp.has_fderiv_at (d x, c x)).comp x (hd.prod hc)
+end
+
+lemma differentiable_within_at.clm_comp
+  (hc : differentiable_within_at 𝕜 c s x) (hd : differentiable_within_at 𝕜 d s x) :
+  differentiable_within_at 𝕜 (λ y, (c y).comp (d y)) s x :=
+(hc.has_fderiv_within_at.clm_comp hd.has_fderiv_within_at).differentiable_within_at
+
+lemma differentiable_at.clm_comp (hc : differentiable_at 𝕜 c x)
+  (hd : differentiable_at 𝕜 d x) : differentiable_at 𝕜 (λ y, (c y).comp (d y)) x :=
+(hc.has_fderiv_at.clm_comp hd.has_fderiv_at).differentiable_at
+
+lemma differentiable_on.clm_comp (hc : differentiable_on 𝕜 c s) (hd : differentiable_on 𝕜 d s) :
+  differentiable_on 𝕜 (λ y, (c y).comp (d y)) s :=
+λx hx, (hc x hx).clm_comp (hd x hx)
+
+lemma differentiable.clm_comp (hc : differentiable 𝕜 c) (hd : differentiable 𝕜 d) :
+  differentiable 𝕜 (λ y, (c y).comp (d y)) :=
+λx, (hc x).clm_comp (hd x)
+
+lemma fderiv_within_clm_comp (hxs : unique_diff_within_at 𝕜 s x)
+  (hc : differentiable_within_at 𝕜 c s x) (hd : differentiable_within_at 𝕜 d s x) :
+  fderiv_within 𝕜 (λ y, (c y).comp (d y)) s x =
+    (compL 𝕜 F G H (c x)).comp (fderiv_within 𝕜 d s x) +
+    ((compL 𝕜 F G H).flip (d x)).comp (fderiv_within 𝕜 c s x) :=
+(hc.has_fderiv_within_at.clm_comp hd.has_fderiv_within_at).fderiv_within hxs
+
+lemma fderiv_clm_comp (hc : differentiable_at 𝕜 c x) (hd : differentiable_at 𝕜 d x) :
+  fderiv 𝕜 (λ y, (c y).comp (d y)) x =
+    (compL 𝕜 F G H (c x)).comp (fderiv 𝕜 d x) +
+    ((compL 𝕜 F G H).flip (d x)).comp (fderiv 𝕜 c x) :=
+(hc.has_fderiv_at.clm_comp hd.has_fderiv_at).fderiv
+
+lemma has_strict_fderiv_at.clm_apply (hc : has_strict_fderiv_at c c' x)
+  (hu : has_strict_fderiv_at u u' x) :
+  has_strict_fderiv_at (λ y, (c y) (u y)) ((c x).comp u' + c'.flip (u x)) x :=
+(is_bounded_bilinear_map_apply.has_strict_fderiv_at (c x, u x)).comp x (hc.prod hu)
+
+lemma has_fderiv_within_at.clm_apply (hc : has_fderiv_within_at c c' s x)
+  (hu : has_fderiv_within_at u u' s x) :
+  has_fderiv_within_at (λ y, (c y) (u y)) ((c x).comp u' + c'.flip (u x)) s x :=
+(is_bounded_bilinear_map_apply.has_fderiv_at (c x, u x)).comp_has_fderiv_within_at x (hc.prod hu)
+
+lemma has_fderiv_at.clm_apply (hc : has_fderiv_at c c' x) (hu : has_fderiv_at u u' x) :
+  has_fderiv_at (λ y, (c y) (u y)) ((c x).comp u' + c'.flip (u x)) x :=
+(is_bounded_bilinear_map_apply.has_fderiv_at (c x, u x)).comp x (hc.prod hu)
+
+lemma differentiable_within_at.clm_apply
+  (hc : differentiable_within_at 𝕜 c s x) (hu : differentiable_within_at 𝕜 u s x) :
+  differentiable_within_at 𝕜 (λ y, (c y) (u y)) s x :=
+(hc.has_fderiv_within_at.clm_apply hu.has_fderiv_within_at).differentiable_within_at
+
+lemma differentiable_at.clm_apply (hc : differentiable_at 𝕜 c x)
+  (hu : differentiable_at 𝕜 u x) : differentiable_at 𝕜 (λ y, (c y) (u y)) x :=
+(hc.has_fderiv_at.clm_apply hu.has_fderiv_at).differentiable_at
+
+lemma differentiable_on.clm_apply (hc : differentiable_on 𝕜 c s) (hu : differentiable_on 𝕜 u s) :
+  differentiable_on 𝕜 (λ y, (c y) (u y)) s :=
+λx hx, (hc x hx).clm_apply (hu x hx)
+
+lemma differentiable.clm_apply (hc : differentiable 𝕜 c) (hu : differentiable 𝕜 u) :
+  differentiable 𝕜 (λ y, (c y) (u y)) :=
+λx, (hc x).clm_apply (hu x)
+
+lemma fderiv_within_clm_apply (hxs : unique_diff_within_at 𝕜 s x)
+  (hc : differentiable_within_at 𝕜 c s x) (hu : differentiable_within_at 𝕜 u s x) :
+  fderiv_within 𝕜 (λ y, (c y) (u y)) s x =
+    ((c x).comp (fderiv_within 𝕜 u s x) + (fderiv_within 𝕜 c s x).flip (u x)) :=
+(hc.has_fderiv_within_at.clm_apply hu.has_fderiv_within_at).fderiv_within hxs
+
+lemma fderiv_clm_apply (hc : differentiable_at 𝕜 c x) (hu : differentiable_at 𝕜 u x) :
+  fderiv 𝕜 (λ y, (c y) (u y)) x = ((c x).comp (fderiv 𝕜 u x) + (fderiv 𝕜 c x).flip (u x)) :=
+(hc.has_fderiv_at.clm_apply hu.has_fderiv_at).fderiv
+
+end clm_comp_apply
 
 namespace continuous_linear_equiv
 

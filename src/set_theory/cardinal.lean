@@ -681,7 +681,7 @@ def omega : cardinal.{u} := lift (#ℕ)
 
 localized "notation `ω` := cardinal.omega" in cardinal
 
-lemma mk_nat : #ℕ = ω := (lift_id _).symm
+@[simp] lemma mk_nat : #ℕ = ω := (lift_id _).symm
 
 theorem omega_ne_zero : ω ≠ 0 :=
 ne_zero_iff_nonempty.2 ⟨⟨0⟩⟩
@@ -733,8 +733,12 @@ by rw [← lift_mk_fin, ← lift_mk_fin, lift_le]; exact
 @[simp, norm_cast] theorem nat_cast_lt {m n : ℕ} : (m : cardinal) < n ↔ m < n :=
 by simp [lt_iff_le_not_le, -not_le]
 
-@[simp, norm_cast] theorem nat_cast_inj {m n : ℕ} : (m : cardinal) = n ↔ m = n :=
-by simp [le_antisymm_iff]
+instance : char_zero cardinal := ⟨strict_mono.injective $ λ m n, nat_cast_lt.2⟩
+
+theorem nat_cast_inj {m n : ℕ} : (m : cardinal) = n ↔ m = n := nat.cast_inj
+
+lemma nat_cast_injective : injective (coe : ℕ → cardinal) :=
+nat.cast_injective
 
 @[simp, norm_cast, priority 900] theorem nat_succ (n : ℕ) : (n.succ : cardinal) = succ n :=
 le_antisymm (add_one_le_succ _) (succ_le.2 $ nat_cast_lt.2 $ nat.lt_succ_self _)
@@ -918,9 +922,6 @@ end
 lemma to_nat_right_inverse : function.right_inverse (coe : ℕ → cardinal) to_nat := to_nat_cast
 
 lemma to_nat_surjective : surjective to_nat := to_nat_right_inverse.surjective
-
-lemma nat_cast_injective : injective (coe : ℕ → cardinal) :=
-to_nat_right_inverse.left_inverse.injective
 
 @[simp]
 lemma mk_to_nat_of_infinite [h : infinite α] : (#α).to_nat = 0 :=

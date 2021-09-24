@@ -201,3 +201,12 @@ instance (α) {r : semiring α} {m : Π i, add_comm_monoid $ f i}
   (λ i, (smul_eq_zero.mp (congr_fun h i)).resolve_left hc))⟩
 
 end pi
+
+section extend
+
+@[to_additive]
+lemma function.extend_smul {R α β γ} [has_scalar R γ] (r : R) (f : α → β) (g : α → γ) (e : β → γ) :
+  function.extend f (r • g) (r • e) = r • function.extend f g e :=
+funext $ λ _, by convert (apply_dite ((•) r) _ _ _).symm
+
+end extend

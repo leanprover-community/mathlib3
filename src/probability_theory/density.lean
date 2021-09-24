@@ -53,6 +53,53 @@ open_locale classical measure_theory nnreal ennreal
 
 namespace measure_theory
 
+section move
+
+variables {α : Type*} [measurable_space α] {μ : measure α}
+
+lemma of_real_to_real_ae_eq {f : α → ℝ≥0∞} (hf : measurable f) (hflt : ∀ᵐ x ∂μ, f x < ∞) :
+  (λ x, ennreal.of_real (f x).to_real) =ᵐ[μ] f :=
+begin
+  change μ {x | ennreal.of_real (f x).to_real ≠ f x} = 0,
+  have : ∀ x, ennreal.of_real (f x).to_real ≠ f x ↔ f x = ∞,
+  { intro x,
+    split; intro h,
+    { by_contra htop,
+      rw [← ne.def, ← lt_top_iff_ne_top] at htop,
+      exact h (ennreal.of_real_to_real htop.ne) },
+    { rw h, simp } },
+  simp_rw this,
+  suffices hne : ∀ᵐ x ∂μ, f x ≠ ∞,
+  { simp_rw [ae_iff, not_not] at hne, exact hne },
+  simp_rw [← lt_top_iff_ne_top],
+  exact hflt
+end
+
+lemma integrable.with_density_iff {f : α → ℝ≥0∞} (hf : measurable f)
+  (hflt : ∀ᵐ x ∂μ, f x < ∞) {g : α → ℝ} (hg : measurable g) :
+  integrable g (μ.with_density f) ↔ integrable (λ x, g x * (f x).to_real) μ :=
+begin
+  have : (λ x, (f * λ x, ↑∥g x∥₊) x) =ᵐ[μ] (λ x, ∥g x * (f x).to_real∥₊),
+    { simp_rw [← smul_eq_mul, nnnorm_smul, ennreal.coe_mul],
+      rw [smul_eq_mul, mul_comm],
+      refine filter.eventually_eq.mul (ae_eq_refl _)
+        (ae_eq_trans (of_real_to_real_ae_eq hf hflt).symm _),
+      convert ae_eq_refl _,
+      ext1 x,
+      exact real.ennnorm_eq_of_real ennreal.to_real_nonneg },
+  split; intro hi,
+  { refine ⟨hg.ae_measurable.mul hf.ae_measurable.ennreal_to_real, _⟩,
+    rw [has_finite_integral, lintegral_congr_ae this.symm,
+        ← lintegral_with_density_eq_lintegral_mul _ hf hg.nnnorm.coe_nnreal_ennreal],
+    exact hi.2 },
+  { refine ⟨hg.ae_measurable, _⟩,
+    rw [has_finite_integral, lintegral_with_density_eq_lintegral_mul _
+          hf hg.nnnorm.coe_nnreal_ennreal, lintegral_congr_ae this],
+    exact hi.2 }
+end
+
+end move
+
 open topological_space
 
 variables {α E : Type*} [normed_group E] [measurable_space E] [second_countable_topology E]
@@ -127,67 +174,65 @@ lemma of_real_to_real_ae_eq [is_finite_measure ℙ] {X : α → E} (hX : measura
   (λ x, ennreal.of_real (pdf X ℙ μ x).to_real) =ᵐ[μ] pdf X ℙ μ :=
 begin
   by_cases hpdf : has_pdf X ℙ μ,
-  { haveI := hpdf,
-    change μ {x : E | ennreal.of_real (pdf X ℙ μ x).to_real ≠ pdf X ℙ μ x} = 0,
-    have : ∀ x, ennreal.of_real (pdf X ℙ μ x).to_real ≠ pdf X ℙ μ x ↔
-      pdf X ℙ μ x = ∞,
-    { intro x,
-      split; intro h,
-      { by_contra htop,
-        rw [← ne.def, ← lt_top_iff_ne_top] at htop,
-        exact h (ennreal.of_real_to_real htop.ne) },
-      { rw h, simp } },
-    { simp_rw this,
-      suffices hne : ∀ᵐ x ∂μ, pdf X ℙ μ x ≠ ∞,
-      { simp_rw [ae_iff, not_not] at hne, exact hne },
-      convert ae_lt_top ℙ hX,
-      simp_rw [lt_top_iff_ne_top] } },
+  { exactI of_real_to_real_ae_eq (measurable_pdf _ _ _) (ae_lt_top _ hX) },
   { convert ae_eq_refl _,
     ext1 x,
     rw [pdf, dif_neg hpdf, pi.zero_apply, ennreal.zero_to_real, ennreal.of_real_zero] }
 end
 
+lemma integrable_iff_integrable_mul_pdf [is_finite_measure ℙ] {X : α → E} [has_pdf X ℙ μ]
+  (hX : measurable X) {f : E → ℝ} (hf : measurable f) :
+  integrable (λ x, f (X x)) ℙ ↔ integrable (λ x, f x * (pdf X ℙ μ x).to_real) μ :=
+begin
+  rw [← integrable_map_measure hf.ae_measurable hX, map_eq_with_density_pdf X ℙ μ,
+      integrable.with_density_iff (measurable_pdf _ _ _) (ae_lt_top _ hX) hf],
+  apply_instance
+end
+
 /-- **The Law of the Unconscious Statistician**: Given a random variable `X` and a measurable
 function `f`, `f ∘ X` is a random variable with expectation `∫ x, f x * pdf X ∂μ`
 where `μ` is a measure on the codomain of `X`. -/
-lemma integral_mul_eq_integral' [is_finite_measure ℙ] {X : α → E} [has_pdf X ℙ μ]
-  (hX : measurable X) {f : E → ℝ} (hf : measurable f)
-  (hpdf : integrable (λ x, f x * (pdf X ℙ μ x).to_real) μ) :
+lemma integral_mul_eq_integral' [is_finite_measure ℙ]
+  {X : α → E} [has_pdf X ℙ μ] (hX : measurable X) {f : E → ℝ} (hf : measurable f) :
   ∫ x, f x * (pdf X ℙ μ x).to_real ∂μ = ∫ x, f (X x) ∂ℙ :=
 begin
-  rw [← integral_map hX hf.ae_measurable, map_eq_with_density_pdf X ℙ μ,
-      integral_eq_lintegral_pos_part_sub_lintegral_neg_part hpdf,
-      integral_eq_lintegral_pos_part_sub_lintegral_neg_part,
-      lintegral_with_density_eq_lintegral_mul _ (measurable_pdf X ℙ μ) hf.neg.ennreal_of_real,
-      lintegral_with_density_eq_lintegral_mul _ (measurable_pdf X ℙ μ) hf.ennreal_of_real],
-  { congr' 2,
-    { have : ∀ x, ennreal.of_real (f x * (pdf X ℙ μ x).to_real) =
-        ennreal.of_real (pdf X ℙ μ x).to_real * ennreal.of_real (f x),
-      { intro x,
-        rw [mul_comm, ennreal.of_real_mul ennreal.to_real_nonneg] },
-      simp_rw [this],
-      exact lintegral_congr_ae (filter.eventually_eq.mul
-        (of_real_to_real_ae_eq hX) (ae_eq_refl _)) },
-    { have : ∀ x, ennreal.of_real (- (f x * (pdf X ℙ μ x).to_real)) =
-        ennreal.of_real (pdf X ℙ μ x).to_real * ennreal.of_real (-f x),
-      { intro x,
-        rw [neg_mul_eq_neg_mul, mul_comm, ennreal.of_real_mul ennreal.to_real_nonneg] },
-      simp_rw [this],
-      exact lintegral_congr_ae (filter.eventually_eq.mul
-        (of_real_to_real_ae_eq hX) (ae_eq_refl _)) } },
-  { refine ⟨hf.ae_measurable, _⟩,
-    rw [has_finite_integral, lintegral_with_density_eq_lintegral_mul _
-          (measurable_pdf _ _ _) hf.nnnorm.coe_nnreal_ennreal],
-    have : (λ x, (pdf X ℙ μ * λ x, ↑∥f x∥₊) x) =ᵐ[μ] (λ x, ∥f x * (pdf X ℙ μ x).to_real∥₊),
-    { simp_rw [← smul_eq_mul, nnnorm_smul, ennreal.coe_mul],
-      rw [smul_eq_mul, mul_comm],
-      refine filter.eventually_eq.mul (ae_eq_refl _)
-        (ae_eq_trans (of_real_to_real_ae_eq hX).symm _),
-      convert ae_eq_refl _,
-      ext1 x,
-      exact real.ennnorm_eq_of_real ennreal.to_real_nonneg },
-    rw lintegral_congr_ae this,
-    exact hpdf.2 },
+  by_cases hpdf : integrable (λ x, f x * (pdf X ℙ μ x).to_real) μ,
+  { rw [← integral_map hX hf.ae_measurable, map_eq_with_density_pdf X ℙ μ,
+        integral_eq_lintegral_pos_part_sub_lintegral_neg_part hpdf,
+        integral_eq_lintegral_pos_part_sub_lintegral_neg_part,
+        lintegral_with_density_eq_lintegral_mul _ (measurable_pdf X ℙ μ) hf.neg.ennreal_of_real,
+        lintegral_with_density_eq_lintegral_mul _ (measurable_pdf X ℙ μ) hf.ennreal_of_real],
+    { congr' 2,
+      { have : ∀ x, ennreal.of_real (f x * (pdf X ℙ μ x).to_real) =
+          ennreal.of_real (pdf X ℙ μ x).to_real * ennreal.of_real (f x),
+        { intro x,
+          rw [mul_comm, ennreal.of_real_mul ennreal.to_real_nonneg] },
+        simp_rw [this],
+        exact lintegral_congr_ae (filter.eventually_eq.mul
+          (of_real_to_real_ae_eq hX) (ae_eq_refl _)) },
+      { have : ∀ x, ennreal.of_real (- (f x * (pdf X ℙ μ x).to_real)) =
+          ennreal.of_real (pdf X ℙ μ x).to_real * ennreal.of_real (-f x),
+        { intro x,
+          rw [neg_mul_eq_neg_mul, mul_comm, ennreal.of_real_mul ennreal.to_real_nonneg] },
+        simp_rw [this],
+        exact lintegral_congr_ae (filter.eventually_eq.mul
+          (of_real_to_real_ae_eq hX) (ae_eq_refl _)) } },
+    { refine ⟨hf.ae_measurable, _⟩,
+      rw [has_finite_integral, lintegral_with_density_eq_lintegral_mul _
+            (measurable_pdf _ _ _) hf.nnnorm.coe_nnreal_ennreal],
+      have : (λ x, (pdf X ℙ μ * λ x, ↑∥f x∥₊) x) =ᵐ[μ] (λ x, ∥f x * (pdf X ℙ μ x).to_real∥₊),
+      { simp_rw [← smul_eq_mul, nnnorm_smul, ennreal.coe_mul],
+        rw [smul_eq_mul, mul_comm],
+        refine filter.eventually_eq.mul (ae_eq_refl _)
+          (ae_eq_trans (of_real_to_real_ae_eq hX).symm _),
+        convert ae_eq_refl _,
+        ext1 x,
+        exact real.ennnorm_eq_of_real ennreal.to_real_nonneg },
+      rw lintegral_congr_ae this,
+      exact hpdf.2 } },
+  { rw [integral_undef hpdf, integral_undef],
+    rwa ← integrable_iff_integrable_mul_pdf hX hf at hpdf,
+    all_goals { apply_instance } }
 end
 
 /-- A random variable that `has_pdf` is quasi-measure preserving. -/
@@ -243,10 +288,9 @@ end
 
 /-- If `X` is a real-valued random variable that has pdf `f`, then the expectation of `X` equals
 `∫ x, x * f x ∂λ` where `λ` is the Lebesgue measure. -/
-lemma integral_mul_eq_integral [has_pdf X ℙ]
-  (hpdf : integrable (λ x, x * (pdf X ℙ volume x).to_real) volume) :
+lemma integral_mul_eq_integral [has_pdf X ℙ]:
   ∫ x, x * (pdf X ℙ volume x).to_real ∂(volume) = ∫ x, X x ∂ℙ :=
-integral_mul_eq_integral' hX measurable_id hpdf
+integral_mul_eq_integral' hX measurable_id
 
 lemma has_finite_integral_mul {f : ℝ → ℝ} {g : ℝ → ℝ≥0∞}
   (hg : pdf X ℙ =ᵐ[volume] g) (hgi : ∫⁻ x, ∥f x∥₊ * g x ∂(volume) < ∞) :
@@ -349,7 +393,7 @@ lemma integral_eq (hX : measurable X) :
   ∫ x, X x ∂ℙ =
   (volume (support X ℙ))⁻¹.to_real * ∫ x in support X ℙ, x ∂(volume) :=
 begin
-  rw ← integral_mul_eq_integral hX (mul_pdf_integrable hX),
+  rw ← integral_mul_eq_integral hX,
   all_goals { try { apply_instance } },
   rw integral_congr_ae (filter.eventually_eq.mul (ae_eq_refl _) (pdf_to_real_ae_eq X ℙ)),
   have : ∀ x, x * ((support X ℙ).indicator

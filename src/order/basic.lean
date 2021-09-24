@@ -366,10 +366,10 @@ lemma injective (H : strict_mono f) : injective f :=
 lemma le_iff_le (H : strict_mono f) {a b} : f a ≤ f b ↔ a ≤ b :=
 (H.strict_mono_on set.univ).le_iff_le trivial trivial
 
-lemma top_preimage_top (H : strict_mono f) {a} (h_top : ∀ p, p ≤ f a) (x : α) : x ≤ a :=
+lemma maximal_preimage_top (H : strict_mono f) {a} (h_top : ∀ p, p ≤ f a) (x : α) : x ≤ a :=
 H.le_iff_le.mp (h_top (f x))
 
-lemma bot_preimage_bot (H : strict_mono f) {a} (h_bot : ∀ p, f a ≤ p) (x : α) : a ≤ x :=
+lemma minimal_preimage_bot (H : strict_mono f) {a} (h_bot : ∀ p, f a ≤ p) (x : α) : a ≤ x :=
 H.le_iff_le.mp (h_bot (f x))
 
 end

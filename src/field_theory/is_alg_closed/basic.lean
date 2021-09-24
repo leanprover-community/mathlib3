@@ -288,10 +288,13 @@ end is_alg_closed
 
 namespace is_alg_closure
 
-variables (K : Type u) [field K] (L : Type v) (M : Type w) [field L] [algebra K L]
-  [field M] [algebra K M]  [is_alg_closure K L] [is_alg_closure K M]
+variables (J : Type*) (K : Type u) [field J] [field K] (L : Type v) (M : Type w) [field L]
+  [field M] [algebra K M] [is_alg_closure K M]
 
 local attribute [instance] is_alg_closure.alg_closed
+
+section
+variables [algebra K L] [is_alg_closure K L]
 
 /-- A (random) isomorphism between two algebraic closures of `K`. -/
 noncomputable def equiv : L ≃ₐ[K] M :=
@@ -307,5 +310,42 @@ alg_equiv.of_bijective f
         (algebra.is_algebraic_of_larger_base K L is_alg_closure.algebraic),
     end⟩
 
+end
+
+section equiv_of_algebraic
+
+variables [algebra K J] [algebra J L] [is_alg_closure J L] [algebra K L]
+  [is_scalar_tower K J L]
+
+/-- An equiv between an algebraic closure of `K` and an algebraic closure of an algebraic
+  extension of `K` -/
+noncomputable def equiv_of_algebraic (hKJ : algebra.is_algebraic K J) : L ≃ₐ[K] M :=
+begin
+  letI : is_alg_closure K L :=
+  { alg_closed := by apply_instance,
+    algebraic := algebra.is_algebraic_trans hKJ is_alg_closure.algebraic  },
+  exact is_alg_closure.equiv _ _ _
+end
+
+end equiv_of_algebraic
+
+section equiv_of_equiv
+
+variables [algebra J L] [is_alg_closure J L]
+
+noncomputable def equiv_of_equiv (hJK : J ≃+* K) : L ≃+* M :=
+begin
+  letI : algebra K J := ring_hom.to_algebra hJK.symm.to_ring_hom,
+  have : algebra.is_algebraic K J,
+    from λ x, begin
+      rw [← ring_equiv.symm_apply_apply hJK x],
+      exact is_algebraic_algebra_map _
+    end,
+  letI : algebra K L := ring_hom.to_algebra ((algebra_map J L).comp (algebra_map K J)),
+  letI : is_scalar_tower K J L := is_scalar_tower.of_algebra_map_eq (λ _, rfl),
+  exact equiv_of_algebraic J K L M this
+end
+
+end equiv_of_equiv
 
 end is_alg_closure

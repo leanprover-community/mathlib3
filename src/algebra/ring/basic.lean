@@ -841,7 +841,7 @@ end
 @[simp] theorem even_neg (a : α) : even (-a) ↔ even a :=
 dvd_neg _ _
 
-lemma odd.neg {p : α} (hp : odd p) : odd (-p) :=
+lemma odd.neg {a : α} (hp : odd a) : odd (-a) :=
 begin
   obtain ⟨k, hk⟩ := hp,
   use -(k + 1),
@@ -849,8 +849,8 @@ begin
     neg_add_cancel_right, ←neg_add, hk],
 end
 
-lemma odd_neg {p : α} : odd (-p) ↔ odd p :=
-⟨λ h, neg_neg p ▸ h.neg, odd.neg⟩
+@[simp] lemma odd_neg (a : α) : odd (-a) ↔ odd a :=
+⟨λ h, neg_neg a ▸ h.neg, odd.neg⟩
 
 end ring
 

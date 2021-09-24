@@ -507,6 +507,13 @@ begin
   split_ifs; simp [f.map_zero],
 end
 
+@[simps] def map_equiv (e : R ≃+* S) : polynomial R ≃+* polynomial S :=
+ring_equiv.of_hom_inv
+  (map_ring_hom e)
+  (map_ring_hom e.symm)
+  (by ext; simp)
+  (by ext; simp)
+
 lemma map_map [semiring T] (g : S →+* T)
   (p : polynomial R) : (p.map f).map g = p.map (g.comp f) :=
 ext (by simp [coeff_map])

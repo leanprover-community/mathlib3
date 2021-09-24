@@ -267,11 +267,12 @@ local attribute [instance, priority 2000] is_scalar_tower.right
 The algebra isomorphism between multivariable polynomials in `option S₁` and
 polynomials with coefficients in `mv_polynomial S₁ R`.
 -/
-def option_equiv_left : mv_polynomial (option S₁) R ≃ₐ[R] polynomial (mv_polynomial S₁ R) :=
-(rename_equiv R $ (equiv.option_equiv_sum_punit.{0} S₁).trans (equiv.sum_comm _ _))
-  .trans $
-(sum_alg_equiv R _ _).trans $
-(punit_alg_equiv (mv_polynomial S₁ R)).restrict_scalars R
+@[simps] def option_equiv_left : mv_polynomial (option S₁) R ≃ₐ[R] polynomial (mv_polynomial S₁ R) :=
+alg_equiv.of_alg_hom
+  (mv_polynomial.aeval (λ o, o.elim polynomial.X (λ s, polynomial.C (X s))))
+  (polynomial.aeval_tower (mv_polynomial.rename some) (X none))
+  (by ext : 2; simp [← polynomial.C_eq_algebra_map])
+  (by ext i : 2; cases i; simp)
 
 end
 
@@ -298,19 +299,12 @@ lemma fin_succ_equiv_eq (n : ℕ) :
   eval₂_hom (polynomial.C.comp (C : R →+* mv_polynomial (fin n) R))
     (λ i : fin (n+1), fin.cases polynomial.X (λ k, polynomial.C (X k)) i) :=
 begin
-  apply ring_hom_ext,
-  { intro r,
-    dsimp [fin_succ_equiv, option_equiv_left, sum_alg_equiv, sum_ring_equiv],
-    simp only [sum_to_iter_C, eval₂_C, rename_C, ring_hom.coe_comp] },
+  ext,
+  { simp [fin_succ_equiv],
+    refl },
   { intro i,
-    dsimp [fin_succ_equiv, option_equiv_left, sum_alg_equiv, sum_ring_equiv],
-    refine fin.cases _ (λ _, _) i,
-    { simp only [fin.cases_zero, sum.swap, rename_X, equiv.option_equiv_sum_punit_none,
-      equiv.sum_comm_apply, rename_equiv_apply, comp_app, sum_to_iter_Xl, equiv.coe_trans,
-      fin_succ_equiv_zero, eval₂_X], },
-    { simp only [equiv.option_equiv_sum_punit_some, sum.swap, fin.cases_succ, rename_X,
-        equiv.sum_comm_apply, sum_to_iter_Xr, comp_app, eval₂_C,
-        equiv.coe_trans, fin_succ_equiv_succ, eval₂_X]} }
+    refine fin.cases _ _ i;
+    simp [fin_succ_equiv] }
 end
 
 @[simp] lemma fin_succ_equiv_apply (n : ℕ) (p : mv_polynomial (fin (n + 1)) R) :

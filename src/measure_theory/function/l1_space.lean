@@ -457,6 +457,10 @@ lemma integrable_map_measure [opens_measurable_space β] {f : α → δ} {g : δ
   integrable g (measure.map f μ) ↔ integrable (g ∘ f) μ :=
 by simp [integrable, hg, hg.comp_measurable hf, has_finite_integral, lintegral_map' hg.ennnorm hf]
 
+lemma integrable_map_equiv (f : α ≃ᵐ δ) (g : δ → β) :
+  integrable g (measure.map f μ) ↔ integrable (g ∘ f) μ :=
+by simp only [integrable, ae_measurable_map_equiv_iff, has_finite_integral, lintegral_map_equiv]
+
 lemma lintegral_edist_lt_top [second_countable_topology β] [opens_measurable_space β] {f g : α → β}
   (hf : integrable f μ) (hg : integrable g μ) :
   ∫⁻ a, edist (f a) (g a) ∂μ < ∞ :=

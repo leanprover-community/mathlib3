@@ -997,6 +997,11 @@ begin
   exact H,
 end
 
+-- This lemma could maybe be removed as it only shows up once in the following code
+lemma quotient_multiplicity_well_defined (hI : I ≠ ⊥) (p : ideal T) (Hp : p ∈ factors I) :
+  {n : ℕ | ∀ m : ℕ, m ≥ n → (map I^.quotient.mk p)^n = (map I^.quotient.mk p)^m}.nonempty :=
+by {use (factors I).count p, intros m hm, exact (seq_pow_eventually_constant I hI p Hp m hm).symm}
+
 lemma pow_map_gt_of_exponent_lt (hI : I ≠ ⊥) (p : ideal T) (Hp : p ∈ factors I) (n : ℕ)
   (hn : n < (factors I).count p) :
   (map I^.quotient.mk p)^(factors I).count p < (map I^.quotient.mk p)^n :=
@@ -1024,24 +1029,26 @@ begin
         (dvd_pow (dvd_refl p) (ne_of_gt (sub_pos_iff_lt.mpr hn))), H'⟩ } },
 end
 
+/--The quotient multiplicity of a prime factor `p` of `I ≠ 0` is equal to the multiplicity of `p`
+  in the factorisation of `I` -/
 lemma quotient_multiplicity_eq_count (hI : I ≠ ⊥) (p : ideal T) (Hp : p ∈ factors I) :
  quotient_multiplicity I p = (factors I).count p :=
 begin
   apply le_antisymm,
-  { rw quotient_multiplicity_def,
+  { rw quotient_multiplicity,
     apply nat.Inf_le,
     exact (λ m hm, (seq_pow_eventually_constant I hI p Hp m hm).symm) },
-  { suffices H₃ : ∀ n : ℕ, n ∈ {n : ℕ | ∀ m : ℕ, m ≥ n → quotient_map_pow I p n = quotient_map_pow I p m}
+  { suffices H₃ : ∀ n : ℕ, n ∈ {n : ℕ | ∀ m : ℕ, m ≥ n →  (map I^.quotient.mk p)^n =
+    (map I^.quotient.mk p)^m}
     → n ≥ (factors I).count p,
     { specialize H₃ (quotient_multiplicity I p),
-      rw quotient_multiplicity_def,
+      rw quotient_multiplicity,
       apply H₃ (nat.Inf_mem (quotient_multiplicity_well_defined I hI p Hp)) },
     { intros n hn,
       by_contradiction hc,
       rw not_le at hc,
       have H₄ := pow_map_gt_of_exponent_lt I hI p Hp n hc,
       specialize hn ((factors I).count p) (le_of_lt hc),
-      rw [quotient_map_pow, quotient_map_pow] at hn,
       rw ← hn at H₄,
       apply false_of_ne,
       exact ne_of_lt H₄ } },

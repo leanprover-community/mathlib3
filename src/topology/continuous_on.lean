@@ -482,6 +482,19 @@ lemma continuous_on_pi {ι : Type*} {π : ι → Type*} [∀ i, topological_spac
   continuous_on f s ↔ ∀ i, continuous_on (λ y, f y i) s :=
 ⟨λ h i x hx, tendsto_pi.1 (h x hx) i, λ h x hx, tendsto_pi.2 (λ i, h i x hx)⟩
 
+lemma continuous_within_at.fin_insert_nth {n} {π : fin (n + 1) → Type*}
+  [Π i, topological_space (π i)] (i : fin (n + 1)) {f : α → π i} {a : α} {s : set α}
+  (hf : continuous_within_at f s a)
+  {g : α → Π j : fin n, π (i.succ_above j)} (hg : continuous_within_at g s a) :
+  continuous_within_at (λ a, i.insert_nth (f a) (g a)) s a :=
+hf.fin_insert_nth i hg
+
+lemma continuous_on.fin_insert_nth {n} {π : fin (n + 1) → Type*} [Π i, topological_space (π i)]
+  (i : fin (n + 1)) {f : α → π i} {s : set α} (hf : continuous_on f s)
+  {g : α → Π j : fin n, π (i.succ_above j)} (hg : continuous_on g s) :
+  continuous_on (λ a, i.insert_nth (f a) (g a)) s :=
+λ a ha, (hf a ha).fin_insert_nth i (hg a ha)
+
 theorem continuous_on_iff {f : α → β} {s : set α} :
   continuous_on f s ↔ ∀ x ∈ s, ∀ t : set β, is_open t → f x ∈ t → ∃ u, is_open u ∧ x ∈ u ∧
     u ∩ s ⊆ f ⁻¹' t :=

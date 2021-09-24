@@ -1429,6 +1429,7 @@ lemma condexp_L1_clm_indicator_const (hs : measurable_set s) (hμs : μ s ≠ �
   (condexp_L1_clm hm μ) ↑(simple_func.indicator_const 1 hs hμs x) = condexp_ind hm μ s x :=
 by { rw Lp.simple_func.coe_indicator_const, exact condexp_L1_clm_indicator_const_Lp hs hμs x, }
 
+/-- Auxiliary lemma used in the proof of `set_integral_condexp_L1_clm`. -/
 lemma set_integral_condexp_L1_clm_of_measure_ne_top (f : α →₁[μ] F') (hs : measurable_set[m] s)
   (hμs : μ s ≠ ∞) :
   ∫ x in s, condexp_L1_clm hm μ f x ∂μ = ∫ x in s, f x ∂μ :=
@@ -1454,6 +1455,9 @@ begin
   { exact continuous_set_integral s, },
 end
 
+/-- The integral of the conditional expectation `μ[f|hm]` over an `m`-measurable set is equal to
+the integral of `f` on that set. See also `set_integral_condexp`, the similar statement for
+`condexp`. -/
 lemma set_integral_condexp_L1_clm (f : α →₁[μ] F') (hs : measurable_set[m] s) :
   ∫ x in s, condexp_L1_clm hm μ f x ∂μ = ∫ x in s, f x ∂μ :=
 begin

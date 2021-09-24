@@ -39,7 +39,7 @@ begin
 end
 
 lemma smul_pi' {K R : Type*} [group_with_zero K] [mul_action K R] {ι : Type*} {r : K}
-  (t : ι → set R) (S : set ι) (hr : r ≠ 0) : r • S.pi t = S.pi (λ (i : ι), r • t i) :=
+  (t : ι → set R) (S : set ι) (hr : r ≠ 0) : r • S.pi t = S.pi (r • t) :=
 begin
   ext x,
   simp only [mem_smul_set, mem_pi],

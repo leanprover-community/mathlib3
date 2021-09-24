@@ -2103,8 +2103,7 @@ lemma is_glb.mem_lower_bounds_of_tendsto [preorder γ] [topological_space γ]
   [order_closed_topology γ] {f : α → γ} {s : set α} {a : α} {b : γ}
   (hf : monotone_on f s) (ha : is_glb s a)
   (hb : tendsto f (𝓝[s] a) (𝓝 b)) : b ∈ lower_bounds (f '' s) :=
-@is_lub.mem_upper_bounds_of_tendsto (order_dual α) (order_dual γ) _ _ _ _ _ _ _ _ _ _
-  (λ x hx y hy, hf y hy x hx) ha hb
+@is_lub.mem_upper_bounds_of_tendsto (order_dual α) (order_dual γ) _ _ _ _ _ _ _ _ _ _ hf.dual ha hb
 
 -- For a version of this theorem in which the convergence considered on the domain `α` is as
 -- `x : α` tends to negative infinity, rather than tending to a point `x` in `α`, see
@@ -2113,8 +2112,7 @@ lemma is_glb.is_glb_of_tendsto [preorder γ] [topological_space γ]
   [order_closed_topology γ] {f : α → γ} {s : set α} {a : α} {b : γ}
   (hf : monotone_on f s) : is_glb s a → s.nonempty →
   tendsto f (𝓝[s] a) (𝓝 b) → is_glb (f '' s) b :=
-@is_lub.is_lub_of_tendsto (order_dual α) (order_dual γ) _ _ _ _ _ _ f s a b
-  (λ x hx y hy, hf y hy x hx)
+@is_lub.is_lub_of_tendsto (order_dual α) (order_dual γ) _ _ _ _ _ _ f s a b hf.dual
 
 lemma is_lub.mem_lower_bounds_of_tendsto [preorder γ] [topological_space γ]
   [order_closed_topology γ] {f : α → γ} {s : set α} {a : α} {b : γ}
@@ -2130,7 +2128,7 @@ lemma is_lub.is_glb_of_tendsto [preorder γ] [topological_space γ]
 
 lemma is_glb.mem_upper_bounds_of_tendsto [preorder γ] [topological_space γ]
   [order_closed_topology γ] {f : α → γ} {s : set α} {a : α} {b : γ}
-  (antitone_on f s) (ha : is_glb s a)
+  (hf : antitone_on f s) (ha : is_glb s a)
   (hb : tendsto f (𝓝[s] a) (𝓝 b)) : b ∈ upper_bounds (f '' s) :=
 @is_glb.mem_lower_bounds_of_tendsto α (order_dual γ) _ _ _ _ _ _ _ _ _ _ hf ha hb
 
@@ -3635,12 +3633,12 @@ begin
   refine tendsto_order.2 ⟨λ b hb, _, λ b hb, _⟩,
   { filter_upwards [hs, self_mem_nhds_within],
     intros x hxs hxa,
-    exact hb.trans_le (h_mono _ has _ hxs hxa) },
+    exact hb.trans_le (h_mono has hxs hxa) },
   { rcases hfs b hb with ⟨c, hcs, hac, hcb⟩,
-    have : a < c, from not_le.1 (λ h, hac.not_le $ h_mono _ hcs _ has h),
+    have : a < c, from not_le.1 (λ h, hac.not_le $ h_mono hcs has h),
     filter_upwards [hs, Ico_mem_nhds_within_Ici (left_mem_Ico.2 this)],
     rintros x hx ⟨hax, hxc⟩,
-    exact (h_mono _ hx _ hcs hxc.le).trans_lt hcb }
+    exact (h_mono hx hcs hxc.le).trans_lt hcb }
 end
 
 /-- If a function `f` with a densely ordered codomain is monotonically increasing on a right
@@ -3720,22 +3718,22 @@ The assumption `hfs : ∀ b < f a, ∃ c ∈ s, f c ∈ Ioo b (f a)` cannot be r
 assumption `hfs : ∀ b < f a, ∃ c ∈ s, f c ∈ Ico b (f a)` we use for strictly monotone functions
 because otherwise the function `floor : ℝ → ℤ` would be a counter-example at `a = 0`. -/
 lemma continuous_at_left_of_monotone_on_of_exists_between {f : α → β} {s : set α} {a : α}
-  (h_mono : monotone_on f s) (hs : s ∈ 𝓝[Iic a] a)
+  (hf : monotone_on f s) (hs : s ∈ 𝓝[Iic a] a)
   (hfs : ∀ b < f a, ∃ c ∈ s, f c ∈ Ioo b (f a)) :
   continuous_within_at f (Iic a) a :=
 @continuous_at_right_of_monotone_on_of_exists_between (order_dual α) (order_dual β) _ _ _ _ _ _
-  f s a (λ x hx y hy, h_mono y hy x hx) hs $
+  f s a hf.dual hs $
   λ b hb, let ⟨c, hcs, hcb, hca⟩ := hfs b hb in ⟨c, hcs, hca, hcb⟩
 
 /-- If a function `f` with a densely ordered codomain is monotonically increasing on a left
 neighborhood of `a` and the closure of the image of this neighborhood under `f` is a left
 neighborhood of `f a`, then `f` is continuous at `a` from the left -/
 lemma continuous_at_left_of_monotone_on_of_closure_image_mem_nhds_within [densely_ordered β]
-  {f : α → β} {s : set α} {a : α} (h_mono : monotone_on f s)
+  {f : α → β} {s : set α} {a : α} (hf : monotone_on f s)
   (hs : s ∈ 𝓝[Iic a] a) (hfs : closure (f '' s) ∈ 𝓝[Iic (f a)] (f a)) :
   continuous_within_at f (Iic a) a :=
 @continuous_at_right_of_monotone_on_of_closure_image_mem_nhds_within (order_dual α) (order_dual β)
-  _ _ _ _ _ _ _ f s a (λ x hx y hy, h_mono y hy x hx) hs hfs
+  _ _ _ _ _ _ _ f s a hf.dual hs hfs
 
 /-- If a function `f` with a densely ordered codomain is monotonically increasing on a left
 neighborhood of `a` and the image of this neighborhood under `f` is a left neighborhood of `f a`,

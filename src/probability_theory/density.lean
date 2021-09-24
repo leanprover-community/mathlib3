@@ -335,7 +335,7 @@ begin
              algebra.id.smul_eq_mul, pi.one_apply, pi.smul_apply],
   rw lintegral_mul_const _ measurable_nnnorm.coe_nnreal_ennreal,
   { exact ennreal.mul_lt_top (set_lintegral_lt_top_of_is_compact
-      (lt_top_iff_ne_top.2 hsupp) (is_compact_support X ℙ) continuous_nnnorm).ne
+      hsupp (is_compact_support X ℙ) continuous_nnnorm).ne
       (ennreal.inv_lt_top.2 (support_not_null X ℙ)).ne },
   { apply_instance }
 end

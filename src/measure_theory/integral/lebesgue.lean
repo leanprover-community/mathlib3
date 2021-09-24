@@ -1927,7 +1927,7 @@ begin
 end
 
 lemma set_lintegral_lt_top_of_bdd_above
-  {s : set α} (hs : μ s < ∞) {f : α → ℝ≥0} (hf : measurable f) (hbdd : bdd_above (f '' s)) :
+  {s : set α} (hs : μ s ≠ ∞) {f : α → ℝ≥0} (hf : measurable f) (hbdd : bdd_above (f '' s)) :
   ∫⁻ x in s, f x ∂μ < ∞ :=
 begin
   obtain ⟨M, hM⟩ := hbdd,
@@ -1937,11 +1937,11 @@ begin
   { simpa using hM },
   { rw lintegral_const,
     refine ennreal.mul_lt_top ennreal.coe_lt_top.ne _,
-    simp [hs.ne] }
+    simp [hs] }
 end
 
 lemma set_lintegral_lt_top_of_is_compact [topological_space α] [opens_measurable_space α]
-  {s : set α} (hs : μ s < ∞) (hsc : is_compact s) {f : α → ℝ≥0} (hf : continuous f) :
+  {s : set α} (hs : μ s ≠ ∞) (hsc : is_compact s) {f : α → ℝ≥0} (hf : continuous f) :
   ∫⁻ x in s, f x ∂μ < ∞ :=
 set_lintegral_lt_top_of_bdd_above hs hf.measurable (hsc.image hf).bdd_above
 

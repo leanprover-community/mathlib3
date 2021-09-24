@@ -110,6 +110,42 @@ matrix.to_lin'_one
 
 end coe_lemmas
 
+namespace finite_fields
+variables {K : Type*} [field K] [fintype K]
+(m : ℕ) (x : K)
+local notation `q` := fintype.card K
+
+open_locale big_operators
+
+
+
+
+noncomputable instance GL_over_fin_field_is_fin : fintype (GL n K):=infer_instance
+
+
+def ma :  ℕ → ℕ :=
+λ i, q^m - q^(i : ℕ)
+
+
+
+lemma GL_n_q_equiv : (GL (fin m) K) ≃  finset.bUnion (finset.range m) ( λ i, ( finset.Ico_ℤ 0 (q^m - q^(i : ℕ))  ) ):={
+to_fun := sorry,
+inv_fun := sorry,
+left_inv:=sorry,
+right_inv := sorry,
+
+}
+
+lemma GL_n_q_size : fintype.card (GL (fin m) K) = ∏ i in finset.range (m), ( λ i, q^m - q^(i : ℕ)) i :=
+begin
+  simp,
+sorry,
+end
+
+
+
+end finite_fields
+
 end general_linear_group
 
 namespace special_linear_group

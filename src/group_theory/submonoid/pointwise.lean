@@ -93,7 +93,8 @@ lemma mem_pointwise_smul_iff_inv_smul_mem' {a : α} (ha : a ≠ 0) (S : submonoi
   x ∈ a • S ↔ a⁻¹ • x ∈ S :=
 mem_smul_set_iff_inv_smul_mem' ha (S : set M) x
 
-lemma mem_inv_pointwise_smul_iff' {a : α} (ha : a ≠ 0) (S : submonoid M) (x : M) : x ∈ a⁻¹ • S ↔ a • x ∈ S :=
+lemma mem_inv_pointwise_smul_iff' {a : α} (ha : a ≠ 0) (S : submonoid M) (x : M) :
+  x ∈ a⁻¹ • S ↔ a • x ∈ S :=
 mem_inv_smul_set_iff' ha (S : set M) x
 
 @[simp] lemma pointwise_smul_le_pointwise_smul_iff' {a : α} (ha : a ≠ 0) {S T : submonoid M} :
@@ -175,17 +176,20 @@ lemma mem_pointwise_smul_iff_inv_smul_mem' {a : α} (ha : a ≠ 0) (S : add_subm
   x ∈ a • S ↔ a⁻¹ • x ∈ S :=
 mem_smul_set_iff_inv_smul_mem' ha (S : set A) x
 
-lemma mem_inv_pointwise_smul_iff' {a : α} (ha : a ≠ 0) (S : add_submonoid A) (x : A) : x ∈ a⁻¹ • S ↔ a • x ∈ S :=
+lemma mem_inv_pointwise_smul_iff' {a : α} (ha : a ≠ 0) (S : add_submonoid A) (x : A) :
+  x ∈ a⁻¹ • S ↔ a • x ∈ S :=
 mem_inv_smul_set_iff' ha (S : set A) x
 
 @[simp] lemma pointwise_smul_le_pointwise_smul_iff' {a : α} (ha : a ≠ 0) {S T : add_submonoid A} :
   a • S ≤ a • T ↔ S ≤ T :=
 set_smul_subset_set_smul_iff' ha
 
-lemma pointwise_smul_le_iff' {a : α} (ha : a ≠ 0) {S T : add_submonoid A} : a • S ≤ T ↔ S ≤ a⁻¹ • T :=
+lemma pointwise_smul_le_iff' {a : α} (ha : a ≠ 0) {S T : add_submonoid A} :
+  a • S ≤ T ↔ S ≤ a⁻¹ • T :=
 set_smul_subset_iff' ha
 
-lemma le_pointwise_smul_iff' {a : α} (ha : a ≠ 0) {S T : add_submonoid A} : S ≤ a • T ↔ a⁻¹ • S ≤ T :=
+lemma le_pointwise_smul_iff' {a : α} (ha : a ≠ 0) {S T : add_submonoid A} :
+  S ≤ a • T ↔ a⁻¹ • S ≤ T :=
 subset_set_smul_iff' ha
 
 end group_with_zero

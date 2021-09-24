@@ -75,6 +75,7 @@ instance : has_coe_to_sort CpltSepUniformSpace (Type u) := ⟨CpltSepUniformSpac
 
 attribute [instance] is_uniform_space is_complete_space is_separated
 
+/-- The function forgetting that a complete separated uniform spaces is complete and separated. -/
 def to_UniformSpace (X : CpltSepUniformSpace) : UniformSpace :=
 UniformSpace.of X
 

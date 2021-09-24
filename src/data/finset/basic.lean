@@ -315,6 +315,8 @@ protected def nonempty (s : finset α) : Prop := ∃ x:α, x ∈ s
 
 @[simp, norm_cast] lemma coe_nonempty {s : finset α} : (s:set α).nonempty ↔ s.nonempty := iff.rfl
 
+@[simp] lemma nonempty_coe_sort (s : finset α) : nonempty ↥s ↔ s.nonempty := nonempty_subtype
+
 alias coe_nonempty ↔ _ finset.nonempty.to_set
 
 lemma nonempty.bex {s : finset α} (h : s.nonempty) : ∃ x:α, x ∈ s := h
@@ -1910,6 +1912,17 @@ by simp only [mem_def, image_val, mem_erase_dup, multiset.mem_map, exists_prop]
 theorem mem_image_of_mem (f : α → β) {a} {s : finset α} (h : a ∈ s) : f a ∈ s.image f :=
 mem_image.2 ⟨_, h, rfl⟩
 
+instance [can_lift β α] : can_lift (finset β) (finset α) :=
+{ cond := λ s, ∀ x ∈ s, can_lift.cond α x,
+  coe := image can_lift.coe,
+  prf :=
+    begin
+      rintro ⟨⟨l⟩, hd : l.nodup⟩ hl,
+      lift l to list α using hl,
+      refine ⟨⟨l, list.nodup_of_nodup_map _ hd⟩, ext $ λ a, _⟩,
+      simp
+    end }
+
 lemma _root_.function.injective.mem_finset_image {f : α → β} (hf : function.injective f)
   {s : finset α} {x : α} :
   f x ∈ s.image f ↔ x ∈ s :=
@@ -2862,6 +2875,9 @@ by rw [← card_union_add_card_inter, disjoint_iff_inter_eq_empty.1 h, card_empt
 theorem card_sdiff {s t : finset α} (h : s ⊆ t) : card (t \ s) = card t - card s :=
 suffices card (t \ s) = card ((t \ s) ∪ s) - card s, by rwa sdiff_union_of_subset h at this,
 by rw [card_disjoint_union sdiff_disjoint, nat.add_sub_cancel]
+
+lemma card_sdiff_add_card {s t : finset α} : (s \ t).card + t.card = (s ∪ t).card :=
+by rw [← card_disjoint_union sdiff_disjoint, sdiff_union_self_eq_union]
 
 lemma disjoint_filter {s : finset α} {p q : α → Prop} [decidable_pred p] [decidable_pred q] :
     disjoint (s.filter p) (s.filter q) ↔ (∀ x ∈ s, p x → ¬ q x) :=

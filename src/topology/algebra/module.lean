@@ -271,7 +271,7 @@ contained in the `topological_closure` of its image. -/
 lemma _root_.submodule.topological_closure_map [topological_space R] [has_continuous_smul R M]
   [has_continuous_add M] [has_continuous_smul R M₂] [has_continuous_add M₂] (f : M →L[R] M₂)
   (s : submodule R M) :
-  (s.topological_closure.map ↑f) ≤ (s.map (f : M →ₗ[R] M₂)).topological_closure :=
+  (s.topological_closure.map (f : M →ₗ[R] M₂)) ≤ (s.map (f : M →ₗ[R] M₂)).topological_closure :=
 image_closure_subset_closure_image f.continuous
 
 /-- Under a dense continuous linear map, a submodule whose `topological_closure` is `⊤` is sent to
@@ -385,6 +385,8 @@ def comp (g : M₂ →L[R] M₃) (f : M →L[R] M₂) : M →L[R] M₃ :=
 
 @[simp, norm_cast] lemma coe_comp : ((h.comp f) : (M →ₗ[R] M₃)) = (h : M₂ →ₗ[R] M₃) ∘ₗ ↑f := rfl
 @[simp, norm_cast] lemma coe_comp' : ((h.comp f) : (M → M₃)) = (h : M₂ → M₃) ∘ f := rfl
+
+lemma comp_apply (g : M₂ →L[R] M₃) (f : M →L[R] M₂) (x : M) : (g.comp f) x = g (f x) := rfl
 
 @[simp] theorem comp_id : f.comp (id R M) = f :=
 ext $ λ x, rfl

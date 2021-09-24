@@ -151,7 +151,7 @@ instance : lie_ring_module L (M →ₗ[R] N) :=
 { bracket     := λ x f,
   { to_fun    := λ m, ⁅x, f m⁆ - f ⁅x, m⁆,
     map_add'  := λ m n, by { simp only [lie_add, linear_map.map_add], abel, },
-    map_smul' := λ t m, by simp only [smul_sub, linear_map.map_smul, lie_smul], },
+    map_smul' := λ t m, by simp only [smul_sub, linear_map.map_smul, lie_smul, ring_hom.id_apply] },
   add_lie     := λ x y f, by
     { ext n, simp only [add_lie, linear_map.coe_mk, linear_map.add_apply, linear_map.map_add],
       abel, },

@@ -92,14 +92,14 @@ begin
     obtain ⟨η, hη, hηδ⟩ := exists_between hδ,
     refine ⟨η, hη, _⟩,
     exact_mod_cast hδε' hηδ },
-  have hη_pos' : (0 : ℝ≥0∞) < ↑η := by exact_mod_cast hη_pos,
+  have hη_pos' : (0 : ℝ≥0∞) < η := ennreal.coe_pos.2 hη_pos,
   -- Use the regularity of the measure to `η`-approximate `s` by an open superset and a closed
   -- subset
-  obtain ⟨u, u_open, su, μu⟩ : ∃ u, is_open u ∧ s ⊆ u ∧ μ u < μ s + ↑η,
-  { refine hs.exists_is_open_lt_of_lt _ _,
-    simpa using (ennreal.add_lt_add_iff_left hsμ.ne).2 hη_pos' },
-  obtain ⟨F, F_closed, Fs, μF⟩ : ∃ F, is_closed F ∧ F ⊆ s ∧ μ s < μ F + ↑η :=
-    hs.exists_lt_is_closed_of_lt_top_of_pos hsμ hη_pos',
+  obtain ⟨u, su, u_open, μu⟩ : ∃ u ⊇ s, is_open u ∧ μ u < μ s + ↑η,
+  { refine s.exists_is_open_lt_of_lt _ _,
+    simpa using ennreal.add_lt_add_left hsμ.ne hη_pos' },
+  obtain ⟨F, Fs, F_closed, μF⟩ : ∃ F ⊆ s, is_closed F ∧ μ s < μ F + ↑η :=
+    hs.exists_is_closed_lt_add hsμ.ne hη_pos'.ne',
   have : disjoint uᶜ F,
   { rw [set.disjoint_iff_inter_eq_empty, set.inter_comm, ← set.subset_compl_iff_disjoint],
     simpa using Fs.trans su },
@@ -107,8 +107,7 @@ begin
   { have hFμ : μ F < ⊤ := (measure_mono Fs).trans_lt hsμ,
     refine ennreal.le_of_add_le_add_left hFμ.ne _,
     have : μ u < μ F + ↑η + ↑η,
-    { refine μu.trans _,
-      rwa ennreal.add_lt_add_iff_right (ennreal.coe_ne_top : ↑η ≠ ⊤) },
+      from μu.trans (ennreal.add_lt_add_right ennreal.coe_ne_top μF),
     convert this.le using 1,
     { rw [add_comm, ← measure_union, set.diff_union_of_subset (Fs.trans su)],
       { exact disjoint_sdiff_self_left },

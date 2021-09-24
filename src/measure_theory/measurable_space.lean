@@ -684,8 +684,8 @@ end constructions
 /-- Equivalences between measurable spaces. Main application is the simplification of measurability
 statements along measurable equivalences. -/
 structure measurable_equiv (α β : Type*) [measurable_space α] [measurable_space β] extends α ≃ β :=
-(measurable_to_fun : measurable to_fun)
-(measurable_inv_fun : measurable inv_fun)
+(measurable_to_fun : measurable to_equiv)
+(measurable_inv_fun : measurable to_equiv.symm)
 
 infix ` ≃ᵐ `:25 := measurable_equiv
 
@@ -697,7 +697,7 @@ instance : has_coe_to_fun (α ≃ᵐ β) (λ _, α → β) := ⟨λ e, e.to_fun�
 
 variables {α β}
 
-lemma coe_eq (e : α ≃ᵐ β) : (e : α → β) = e.to_equiv := rfl
+@[simp] lemma coe_to_equiv (e : α ≃ᵐ β) : (e.to_equiv : α → β) = e := rfl
 
 @[measurability]
 protected lemma measurable (e : α ≃ᵐ β) : measurable (e : α → β) :=
@@ -714,24 +714,59 @@ def refl (α : Type*) [measurable_space α] : α ≃ᵐ α :=
 instance : inhabited (α ≃ᵐ α) := ⟨refl α⟩
 
 /-- The composition of equivalences between measurable spaces. -/
-@[simps] def trans (ab : α ≃ᵐ β) (bc : β ≃ᵐ γ) :
+def trans (ab : α ≃ᵐ β) (bc : β ≃ᵐ γ) :
   α ≃ᵐ γ :=
 { to_equiv := ab.to_equiv.trans bc.to_equiv,
   measurable_to_fun := bc.measurable_to_fun.comp ab.measurable_to_fun,
   measurable_inv_fun := ab.measurable_inv_fun.comp bc.measurable_inv_fun }
 
 /-- The inverse of an equivalence between measurable spaces. -/
-@[simps] def symm (ab : α ≃ᵐ β) : β ≃ᵐ α :=
+def symm (ab : α ≃ᵐ β) : β ≃ᵐ α :=
 { to_equiv := ab.to_equiv.symm,
   measurable_to_fun := ab.measurable_inv_fun,
   measurable_inv_fun := ab.measurable_to_fun }
 
-@[simp] lemma coe_symm_mk (e : α ≃ β) (h1 : measurable e) (h2 : measurable e.symm) :
-  ((⟨e, h1, h2⟩ : α ≃ᵐ β).symm : β → α) = e.symm := rfl
+@[simp] lemma coe_to_equiv_symm (e : α ≃ᵐ β) : (e.to_equiv.symm : β → α) = e.symm := rfl
+
+/-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
+  because it is a composition of multiple projections. -/
+def simps.apply (h : α ≃ᵐ β) : α → β := h
+/-- See Note [custom simps projection] -/
+def simps.symm_apply (h : α ≃ᵐ β) : β → α := h.symm
+
+initialize_simps_projections measurable_equiv
+  (to_equiv_to_fun → apply, to_equiv_inv_fun → symm_apply)
+
+lemma to_equiv_injective : injective (to_equiv : (α ≃ᵐ β) → (α ≃ β)) :=
+by { rintro ⟨e₁, _, _⟩ ⟨e₂, _, _⟩ (rfl : e₁ = e₂), refl }
+
+@[ext] lemma ext {e₁ e₂ : α ≃ᵐ β} (h : (e₁ : α → β) = e₂) : e₁ = e₂ :=
+to_equiv_injective $ equiv.coe_fn_injective h
+
+@[simp] lemma symm_mk (e : α ≃ β) (h1 : measurable e) (h2 : measurable e.symm) :
+  (⟨e, h1, h2⟩ : α ≃ᵐ β).symm = ⟨e.symm, h2, h1⟩ := rfl
+
+attribute [simps apply to_equiv] trans refl
+
+@[simp] lemma symm_refl (α : Type*) [measurable_space α] : (refl α).symm = refl α := rfl
 
 @[simp] theorem symm_comp_self (e : α ≃ᵐ β) : e.symm ∘ e = id := funext e.left_inv
 
 @[simp] theorem self_comp_symm (e : α ≃ᵐ β) : e ∘ e.symm = id := funext e.right_inv
+
+@[simp] theorem apply_symm_apply (e : α ≃ᵐ β) (y : β) : e (e.symm y) = y := e.right_inv y
+
+@[simp] theorem symm_apply_apply (e : α ≃ᵐ β) (x : α) : e.symm (e x) = x := e.left_inv x
+
+@[simp] theorem symm_trans_self (e : α ≃ᵐ β) : e.symm.trans e = refl β :=
+ext e.self_comp_symm
+
+@[simp] theorem self_trans_symm (e : α ≃ᵐ β) : e.trans e.symm = refl α :=
+ext e.symm_comp_self
+
+protected theorem surjective (e : α ≃ᵐ β) : surjective e := e.to_equiv.surjective
+protected theorem bijective (e : α ≃ᵐ β) : bijective e := e.to_equiv.bijective
+protected theorem injective (e : α ≃ᵐ β) : injective e := e.to_equiv.injective
 
 /-- Equal measurable spaces are equivalent. -/
 protected def cast {α β} [i₁ : measurable_space α] [i₂ : measurable_space β]
@@ -745,7 +780,7 @@ protected lemma measurable_coe_iff {f : β → γ} (e : α ≃ᵐ β) :
 iff.intro
   (assume hfe,
     have measurable (f ∘ (e.symm.trans e).to_equiv) := hfe.comp e.symm.measurable,
-    by rwa [trans_to_equiv, symm_to_equiv, equiv.symm_trans] at this)
+    by rwa [coe_to_equiv, symm_trans_self] at this)
   (λ h, h.comp e.measurable)
 
 /-- Products of equivalent measurable spaces are equivalent. -/
@@ -910,11 +945,19 @@ def Pi_congr_right (e : Π a, π a ≃ᵐ π' a) : (Π a, π a) ≃ᵐ (Π a, π
     measurable_pi_lambda _ (λ i, (e i).measurable_inv_fun.comp (measurable_pi_apply i)) }
 
 /-- Pi-types are measurably equivalent to iterated products. -/
+@[simps {fully_applied := ff}]
 noncomputable def pi_measurable_equiv_tprod {l : list δ'} (hnd : l.nodup) (h : ∀ i, i ∈ l) :
   (Π i, π i) ≃ᵐ list.tprod π l :=
 { to_equiv := list.tprod.pi_equiv_tprod hnd h,
   measurable_to_fun := measurable_tprod_mk l,
   measurable_inv_fun := measurable_tprod_elim' h }
+
+/-- If `α` has a unique term, then the type of function `α → β` is measurably equivalent to `β`. -/
+@[simps {fully_applied := ff}] def fun_unique (α β : Type*) [unique α] [measurable_space β] :
+  (α → β) ≃ᵐ β :=
+{ to_equiv := equiv.fun_unique α β,
+  measurable_to_fun := measurable_pi_apply _,
+  measurable_inv_fun := measurable_pi_iff.2 $ λ b, measurable_id }
 
 end measurable_equiv
 

@@ -683,6 +683,15 @@ def set.univ : (set.univ : set α) ≃o α :=
 { to_equiv := equiv.set.univ α,
   map_rel_iff' := λ x y, iff.rfl }
 
+/-- Order isomorphism between `α → β` and `β`, where `α` has a unique element. -/
+@[simps to_equiv apply] def fun_unique (α β : Type*) [unique α] [preorder β] :
+  (α → β) ≃o β :=
+{ to_equiv := equiv.fun_unique α β,
+  map_rel_iff' := λ f g, by simp [pi.le_def, unique.forall_iff] }
+
+@[simp] lemma fun_unique_symm_apply {α β : Type*} [unique α] [preorder β] :
+  ((fun_unique α β).symm : β → α → β) = function.const α := rfl
+
 end order_iso
 
 namespace equiv

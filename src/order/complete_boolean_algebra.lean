@@ -68,9 +68,9 @@ instance pi.complete_distrib_lattice {ι : Type*} {π : ι → Type*}
   [∀ i, complete_distrib_lattice (π i)] : complete_distrib_lattice (Π i, π i) :=
 { infi_sup_le_sup_Inf := λ a s i,
     by simp only [← sup_infi_eq, complete_lattice.Inf, Inf_apply, ←infi_subtype'', infi_apply,
-      sup_apply],
+      pi.sup_apply],
   inf_Sup_le_supr_inf := λ a s i,
-    by simp only [complete_lattice.Sup, Sup_apply, supr_apply, inf_apply, inf_supr_eq,
+    by simp only [complete_lattice.Sup, Sup_apply, supr_apply, pi.inf_apply, inf_supr_eq,
       ← supr_subtype''],
   .. pi.complete_lattice }
 

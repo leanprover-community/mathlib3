@@ -3,7 +3,7 @@ Copyright (c) 2019 Alexander Bentkamp. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Yury Kudriashov, Yaël Dillies
 -/
-import data.complex.module
+import algebra.order.smul
 import data.set.intervals.image_preimage
 import linear_algebra.affine_space.affine_map
 import order.closure
@@ -809,7 +809,7 @@ lemma convex.mem_smul_of_zero_mem (h : convex 𝕜 s) {x : E} (zero_mem : (0 : E
   (hx : x ∈ s) {t : 𝕜} (ht : 1 ≤ t) :
   x ∈ t • s :=
 begin
-  rw mem_smul_set_iff_inv_smul_mem (zero_lt_one.trans_le ht).ne',
+  rw mem_smul_set_iff_inv_smul_mem' (zero_lt_one.trans_le ht).ne',
   exact h.smul_mem_of_zero_mem zero_mem hx ⟨inv_nonneg.2 (zero_le_one.trans ht), inv_le_one ht⟩,
 end
 
@@ -835,30 +835,6 @@ end
 
 end add_comm_monoid
 end linear_ordered_field
-
-lemma convex_halfspace_re_lt (r : ℝ) : convex ℝ {c : ℂ | c.re < r} :=
-convex_halfspace_lt (is_linear_map.mk complex.add_re complex.smul_re) _
-
-lemma convex_halfspace_re_le (r : ℝ) : convex ℝ {c : ℂ | c.re ≤ r} :=
-convex_halfspace_le (is_linear_map.mk complex.add_re complex.smul_re) _
-
-lemma convex_halfspace_re_gt (r : ℝ) : convex ℝ {c : ℂ | r < c.re } :=
-convex_halfspace_gt (is_linear_map.mk complex.add_re complex.smul_re) _
-
-lemma convex_halfspace_re_ge (r : ℝ) : convex ℝ {c : ℂ | r ≤ c.re} :=
-convex_halfspace_ge (is_linear_map.mk complex.add_re complex.smul_re) _
-
-lemma convex_halfspace_im_lt (r : ℝ) : convex ℝ {c : ℂ | c.im < r} :=
-convex_halfspace_lt (is_linear_map.mk complex.add_im complex.smul_im) _
-
-lemma convex_halfspace_im_le (r : ℝ) : convex ℝ {c : ℂ | c.im ≤ r} :=
-convex_halfspace_le (is_linear_map.mk complex.add_im complex.smul_im) _
-
-lemma convex_halfspace_im_gt (r : ℝ) : convex ℝ {c : ℂ | r < c.im} :=
-convex_halfspace_gt (is_linear_map.mk complex.add_im complex.smul_im) _
-
-lemma convex_halfspace_im_ge (r : ℝ) : convex ℝ {c : ℂ | r ≤ c.im} :=
-convex_halfspace_ge (is_linear_map.mk complex.add_im complex.smul_im) _
 
 /-!
 #### Convex sets in an ordered space
@@ -1055,25 +1031,25 @@ end add_comm_monoid
 end ordered_ring
 end convex_hull
 
-
-variables {ι ι' : Type*} [add_comm_group E] [module ℝ E] [add_comm_group F] [module ℝ F] {s : set E}
-
 /-! ### Simplex -/
 
 section simplex
 
-variables (ι) [fintype ι] {f : ι → ℝ}
+variables (ι : Type*) [fintype ι]
 
 /-- The standard simplex in the space of functions `ι → ℝ` is the set
 of vectors with non-negative coordinates with total sum `1`. -/
-def std_simplex (ι : Type*) [fintype ι] : set (ι → ℝ) :=
+def std_simplex (ι : Type*) [fintype ι] (R : Type*) [ordered_semiring R] :
+  set (ι → R) :=
 {f | (∀ x, 0 ≤ f x) ∧ ∑ x, f x = 1}
 
+variables (R : Type*) [ordered_semiring R] {f : ι → R}
+
 lemma std_simplex_eq_inter :
-  std_simplex ι = (⋂ x, {f | 0 ≤ f x}) ∩ {f | ∑ x, f x = 1} :=
+  std_simplex ι R = (⋂ x, {f | 0 ≤ f x}) ∩ {f | ∑ x, f x = 1} :=
 by { ext f, simp only [std_simplex, set.mem_inter_eq, set.mem_Inter, set.mem_set_of_eq] }
 
-lemma convex_std_simplex : convex ℝ (std_simplex ι) :=
+lemma convex_std_simplex : convex R (std_simplex ι R) :=
 begin
   refine λ f g hf hg a b ha hb hab, ⟨λ x, _, _⟩,
   { apply_rules [add_nonneg, mul_nonneg, hf.1, hg.1] },
@@ -1084,7 +1060,7 @@ end
 
 variable {ι}
 
-lemma ite_eq_mem_std_simplex (i : ι) : (λ j, ite (i = j) (1:ℝ) 0) ∈ std_simplex ι :=
+lemma ite_eq_mem_std_simplex (i : ι) : (λ j, ite (i = j) (1:R) 0) ∈ std_simplex ι R :=
 ⟨λ j, by simp only; split_ifs; norm_num, by rw [finset.sum_ite_eq, if_pos (finset.mem_univ _)]⟩
 
 end simplex

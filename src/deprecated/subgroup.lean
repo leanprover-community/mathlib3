@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mitchell Rowett, Scott Morrison, Johan Commelin, Mario Carneiro,
   Michael Howes
 -/
-import group_theory.subgroup
+import group_theory.subgroup.basic
 import deprecated.submonoid
 /-!
 # Unbundled subgroups

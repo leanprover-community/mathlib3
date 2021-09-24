@@ -930,7 +930,8 @@ by simpa only [zero_mul, sub_nonneg] using hD.mul_sub_le_image_sub_of_le_deriv h
 
 /-- Let `f : ℝ → ℝ` be a differentiable function. If `f'` is nonnegative, then
 `f` is a monotone function. -/
-theorem monotone_on_of_deriv_nonneg {f : ℝ → ℝ} (hf : differentiable ℝ f) (hf' : ∀ x, 0 ≤ deriv f x) :
+theorem monotone_on_of_deriv_nonneg {f : ℝ → ℝ} (hf : differentiable ℝ f)
+  (hf' : ∀ x, 0 ≤ deriv f x) :
   monotone f :=
 λ x y hxy, convex_univ.monotone_on_of_deriv_nonneg hf.continuous.continuous_on hf.differentiable_on
   (λ x _, hf' x) x y trivial trivial hxy
@@ -963,7 +964,8 @@ by simpa only [zero_mul, sub_nonpos] using hD.image_sub_le_mul_sub_of_deriv_le h
 
 /-- Let `f : ℝ → ℝ` be a differentiable function. If `f'` is nonpositive, then
 `f` is a antitone function. -/
-theorem antitone_on_of_deriv_nonpos {f : ℝ → ℝ} (hf : differentiable ℝ f) (hf' : ∀ x, deriv f x ≤ 0) :
+theorem antitone_on_of_deriv_nonpos {f : ℝ → ℝ} (hf : differentiable ℝ f)
+  (hf' : ∀ x, deriv f x ≤ 0) :
   ∀ ⦃x y⦄, x ≤ y → f y ≤ f x :=
 λ x y hxy, convex_univ.antitone_on_of_deriv_nonpos hf.continuous.continuous_on hf.differentiable_on
   (λ x _, hf' x) x y trivial trivial hxy

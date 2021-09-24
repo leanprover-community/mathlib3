@@ -47,6 +47,10 @@ begin
   { apply pow_dvd_pow }
 end
 
+lemma not_unit_of_not_unit_dvd [comm_monoid α] {a b : α} (ha : ¬is_unit a) (hb : a ∣ b) :
+  ¬ is_unit b :=
+by by_contra h ; exact ha (is_unit_of_dvd_unit hb h)
+
 section prime
 variables [comm_monoid_with_zero α]
 

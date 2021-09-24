@@ -945,6 +945,31 @@ begin
     { exact this } },
 end
 
+lemma sup_prime_factor (hI : I ≠ ⊥) (p : ideal T) (hp : p ∈ factors I) (n : ℕ) :
+  p^n ⊔ I = p^(min ((factors I).count p) n) :=
+begin
+  suffices H : factors (p^n) = repeat p n,
+  { rw [sup_eq_prod_inf_factors (p^n) I (pow_ne_zero n (prime_of_factor p hp).ne_zero) hI,
+    ← inf_eq_inter, H, repeat_inf, prod_repeat] },
+    suffices : (factors (p^n)).prod = (repeat p n).prod,
+    { have H₁ : associated (factors (p^n)).prod (repeat p n).prod,
+        rw this,
+      have H'' := prime_factors_unique (prime_of_factor) (by {intros x hx, rw eq_of_mem_repeat hx,
+        exact prime_of_factor p hp}) H₁,
+      rw [associated_eq_eq, multiset.rel_eq] at H'',
+      exact H'' },
+    { rw [prod_factors_eq_self, prod_repeat p n],
+      apply pow_ne_zero n (prime_of_factor p hp).ne_zero },
+end
+
+lemma sup_dvd_of_ge (hI : I ≠ ⊥) (p : ideal T) (hp : p ∈ factors I) (n : ℕ)
+  (hn : n ≥ (factors I).count p) : p^n ⊔ I = p^((factors I).count p) :=
+by rw [sup_prime_factor I hI p hp, min_eq_left hn]
+
+lemma sup_dvd_of_le  (hI : I ≠ ⊥) {p : ideal T} (hp : p ∈ factors I) (n : ℕ)
+  (hn : n < (factors I).count p) : p^n ⊔ I = p^n :=
+by rw [sup_prime_factor I hI p hp, min_eq_right (le_of_lt hn)]
+
 end is_dedekind_domain
 
 section quotient_multiplicity
@@ -954,10 +979,74 @@ variables {T : Type*} [integral_domain T] [is_dedekind_domain T] (I : ideal T)
 
 open ideal unique_factorization_monoid
 
+/--The quotient multiplicity of `p` is the least natural number `n` such that the sequence of
+ powers `(p')^m` for `m ≥ n` is constant, where `p'` is the image of `p` in `R/I` -/
+@[simp]
 def quotient_multiplicity (p : ideal T) : ℕ :=
   Inf {n : ℕ | ∀ m : ℕ, m ≥ n → (map I^.quotient.mk p)^n = (map I^.quotient.mk p)^m}
 
-@[simp] lemma quotient_multiplicity_def (p : ideal T) : quotient_multiplicity I p =
-  Inf {n : ℕ | ∀ m : ℕ, m ≥ n → (map I^.quotient.mk p)^n = (map I^.quotient.mk p)^m} := rfl
+/--The sequence of powers `(p')^m` is eventually constant, where `p'` is the image of `p` in `R/I`-/
+lemma seq_pow_eventually_constant (hI : I ≠ ⊥) (p : ideal T) (Hp : p ∈ factors I) (n : ℕ)
+ (hn : n ≥ (unique_factorization_monoid.factors I).count  p):
+  (map I^.quotient.mk p)^n = (map I^.quotient.mk p)^((factors I).count p) :=
+begin
+  rw [← map_pow, ← map_pow],
+  have H : map I^.quotient.mk ((p^n)) = map I^.quotient.mk (p^n ⊔ I),
+  { rw [map_sup, map_mk_eq_bot_of_le (le_refl I), sup_bot_eq] },
+  rw sup_dvd_of_ge I hI p Hp n hn at H,
+  exact H,
+end
+
+lemma pow_map_gt_of_exponent_lt (hI : I ≠ ⊥) (p : ideal T) (Hp : p ∈ factors I) (n : ℕ)
+  (hn : n < (factors I).count p) :
+  (map I^.quotient.mk p)^(factors I).count p < (map I^.quotient.mk p)^n :=
+begin
+  suffices H : p^(factors I).count p < p^n,
+  { have H₁ : (map I^.quotient.mk p)^(factors I).count p = (map I^.quotient.mk p)^n *
+    (map I^.quotient.mk p)^((factors I).count p - n),
+    { by rw [← pow_add, nat.add_sub_cancel' (le_of_lt hn)] },
+    apply lt_of_le_of_ne (le_of_dvd ⟨(map I^.quotient.mk p)^((factors I).count p - n), H₁⟩),
+    by_contra hcontra,
+    { rw [ne.def, not_not] at hcontra,
+      apply_fun (comap I^.quotient.mk) at hcontra,
+      rw [← map_pow, ← map_pow, comap_map_of_surjective I^.quotient.mk quotient.mk_surjective,
+        comap_map_of_surjective I^.quotient.mk quotient.mk_surjective, ← ring_hom.ker_eq_comap_bot,
+        mk_ker, sup_dvd_of_ge I hI p Hp ((factors I).count p) (le_refl ((factors I).count p)),
+        sup_dvd_of_le I hI Hp n hn] at hcontra,
+      rw hcontra at H,
+      exact false_of_ne (ne_of_lt H) } },
+   { have H' : p^(factors I).count p = p^n * p^((factors I).count p - n) :=
+      by rw [← pow_add, nat.add_sub_cancel' (le_of_lt hn)],
+      rw ← ideal.dvd_not_unit_iff_lt,
+      split,
+      { exact pow_ne_zero n (prime_of_factor p Hp).ne_zero },
+      { exact ⟨ p^((factors I).count p -n), not_unit_of_not_unit_dvd (prime_of_factor p Hp).not_unit
+        (dvd_pow (dvd_refl p) (ne_of_gt (sub_pos_iff_lt.mpr hn))), H'⟩ } },
+end
+
+lemma quotient_multiplicity_eq_count (hI : I ≠ ⊥) (p : ideal T) (Hp : p ∈ factors I) :
+ quotient_multiplicity I p = (factors I).count p :=
+begin
+  apply le_antisymm,
+  { rw quotient_multiplicity_def,
+    apply nat.Inf_le,
+    exact (λ m hm, (seq_pow_eventually_constant I hI p Hp m hm).symm) },
+  { suffices H₃ : ∀ n : ℕ, n ∈ {n : ℕ | ∀ m : ℕ, m ≥ n → quotient_map_pow I p n = quotient_map_pow I p m}
+    → n ≥ (factors I).count p,
+    { specialize H₃ (quotient_multiplicity I p),
+      rw quotient_multiplicity_def,
+      apply H₃ (nat.Inf_mem (quotient_multiplicity_well_defined I hI p Hp)) },
+    { intros n hn,
+      by_contradiction hc,
+      rw not_le at hc,
+      have H₄ := pow_map_gt_of_exponent_lt I hI p Hp n hc,
+      specialize hn ((factors I).count p) (le_of_lt hc),
+      rw [quotient_map_pow, quotient_map_pow] at hn,
+      rw ← hn at H₄,
+      apply false_of_ne,
+      exact ne_of_lt H₄ } },
+end
+
+
 
 end quotient_multiplicity

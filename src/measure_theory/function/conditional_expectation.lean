@@ -1455,8 +1455,8 @@ begin
   { exact continuous_set_integral s, },
 end
 
-/-- The integral of the conditional expectation `μ[f|hm]` over an `m`-measurable set is equal to
-the integral of `f` on that set. See also `set_integral_condexp`, the similar statement for
+/-- The integral of the conditional expectation `condexp_L1_clm` over an `m`-measurable set is equal
+to the integral of `f` on that set. See also `set_integral_condexp`, the similar statement for
 `condexp`. -/
 lemma set_integral_condexp_L1_clm (f : α →₁[μ] F') (hs : measurable_set[m] s) :
   ∫ x in s, condexp_L1_clm hm μ f x ∂μ = ∫ x in s, f x ∂μ :=
@@ -1588,7 +1588,7 @@ end
 lemma integrable_condexp_L1 (f : α → F') : integrable (condexp_L1 hm μ f) μ :=
 L1.integrable_coe_fn _
 
-/-- The integral of the conditional expectation `μ[f|hm]` over an `m`-measurable set is equal to
+/-- The integral of the conditional expectation `condexp_L1` over an `m`-measurable set is equal to
 the integral of `f` on that set. See also `set_integral_condexp`, the similar statement for
 `condexp`. -/
 lemma set_integral_condexp_L1 (hf : integrable f μ) (hs : measurable_set[m] s) :

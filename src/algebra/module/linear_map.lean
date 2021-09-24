@@ -370,7 +370,7 @@ end add_comm_group
 end is_linear_map
 
 /-- Linear endomorphisms of a module, with associated ring structure
-`linear_map.endomorphism_semiring` and algebra structure `module.endomorphism_algebra`. -/
+`module.End.semiring` and algebra structure `module.End.algebra`. -/
 abbreviation module.End (R : Type u) (M : Type v)
   [semiring R] [add_comm_monoid M] [module R M] := M →ₗ[R] M
 

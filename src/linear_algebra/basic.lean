@@ -289,7 +289,7 @@ rfl
   ⇑(∑ i in t, f i) = ∑ i in t, (f i : M → M₂) :=
 add_monoid_hom.map_sum ⟨@to_fun R M M₂ _ _ _ _ _, rfl, λ x y, rfl⟩ _ _
 
-instance : monoid (M →ₗ[R] M) :=
+instance _root_.module.End.monoid : monoid (module.End R M) :=
 by refine_struct { mul := (*), one := (1 : M →ₗ[R] M), npow := @npow_rec _ ⟨1⟩ ⟨(*)⟩ };
 intros; try { refl }; apply linear_map.ext; simp {proj := ff}
 
@@ -568,15 +568,18 @@ section semiring
 
 variables [semiring R] [add_comm_monoid M] [module R M]
 
-instance endomorphism_semiring : semiring (M →ₗ[R] M) :=
-by refine_struct
-  { mul := (*),
-    one := (1 : M →ₗ[R] M),
-    zero := 0,
-    add := (+),
-    npow := @npow_rec _ ⟨1⟩ ⟨(*)⟩,
-    .. linear_map.add_comm_monoid, .. };
-intros; try { refl }; apply linear_map.ext; simp {proj := ff}
+instance _root_.module.End.semiring : semiring (module.End R M) :=
+{ mul := (*),
+  one := (1 : M →ₗ[R] M),
+  zero := 0,
+  add := (+),
+  npow := @npow_rec _ ⟨1⟩ ⟨(*)⟩,
+  mul_zero := comp_zero,
+  zero_mul := zero_comp,
+  left_distrib := λ f g h, comp_add _ _ _,
+  right_distrib := λ f g h, add_comp _ _ _,
+  .. _root_.module.End.monoid,
+  .. linear_map.add_comm_monoid }
 
 /-- The tautological action by `M →ₗ[R] M` on `M`.
 
@@ -608,8 +611,8 @@ section ring
 
 variables [ring R] [add_comm_group M] [module R M]
 
-instance endomorphism_ring : ring (M →ₗ[R] M) :=
-{ ..linear_map.endomorphism_semiring, ..linear_map.add_comm_group }
+instance _root_.module.End.ring : ring (module.End R M) :=
+{ ..module.End.semiring, ..linear_map.add_comm_group }
 
 end ring
 

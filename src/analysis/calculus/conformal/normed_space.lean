@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yourong Zang
 -/
 import analysis.normed_space.conformal_linear_map
+import analysis.calculus.fderiv
 
 /-!
 # Conformal Maps
@@ -21,7 +22,11 @@ if it is real differentiable at that point and its differential `is_conformal_li
 * The conformality of the composition of two conformal maps, the identity map
   and multiplications by nonzero constants
 * `conformal_at_iff_is_conformal_map_fderiv`: an equivalent definition of the conformality of a map
+
+In `analysis.calculus.conformal.inner_product`:
 * `conformal_at_iff`: an equivalent definition of the conformality of a map
+
+In `geometry.euclidean.basic`:
 * `conformal_at.preserves_angle`: if a map is conformal at `x`, then its differential
                                   preserves all angles at `x`
 
@@ -37,14 +42,12 @@ Maps such as the complex conjugate are considered to be conformal.
 
 noncomputable theory
 
-variables {E F : Type*} [inner_product_space ℝ E] [inner_product_space ℝ F]
-  {X Y Z : Type*} [normed_group X] [normed_group Y] [normed_group Z]
+variables {X Y Z : Type*} [normed_group X] [normed_group Y] [normed_group Z]
   [normed_space ℝ X] [normed_space ℝ Y] [normed_space ℝ Z]
 
 section loc_conformality
 
 open linear_isometry continuous_linear_map
-open_locale real_inner_product_space
 
 /-- A map `f` is said to be conformal if it has a conformal differential `f'`. -/
 def conformal_at (f : X → Y) (x : X) :=
@@ -76,19 +79,6 @@ begin
         exact H.ne_zero (fderiv_zero_of_not_differentiable_at h), }, }, },
 end
 
-/-- A real differentiable map `f` is conformal at point `x` if and only if its
-    differential `fderiv ℝ f x` at that point scales every inner product by a positive scalar. -/
-lemma conformal_at_iff' {f : E → F} {x : E} :
-  conformal_at f x ↔
-  ∃ (c : ℝ), 0 < c ∧ ∀ (u v : E), ⟪fderiv ℝ f x u, fderiv ℝ f x v⟫ = c * ⟪u, v⟫ :=
-by rw [conformal_at_iff_is_conformal_map_fderiv, is_conformal_map_iff]
-
-/-- A real differentiable map `f` is conformal at point `x` if and only if its
-    differential `f'` at that point scales every inner product by a positive scalar. -/
-lemma conformal_at_iff {f : E → F} {x : E} {f' : E →L[ℝ] F} (h : has_fderiv_at f f' x) :
-  conformal_at f x ↔ ∃ (c : ℝ), 0 < c ∧ ∀ (u v : E), ⟪f' u, f' v⟫ = c * ⟪u, v⟫ :=
-by simp only [conformal_at_iff', h.fderiv]
-
 namespace conformal_at
 
 lemma differentiable_at {f : X → Y} {x : X} (h : conformal_at f x) :
@@ -112,25 +102,6 @@ end
 lemma const_smul {f : X → Y} {x : X} {c : ℝ} (hc : c ≠ 0) (hf : conformal_at f x) :
   conformal_at (c • f) x :=
 (conformal_at_const_smul hc $ f x).comp x hf
-
-/-- The conformal factor of a conformal map at some point `x`. Some authors refer to this function
-    as the characteristic function of the conformal map. -/
-def conformal_factor_at {f : E → F} {x : E} (h : conformal_at f x) : ℝ :=
-classical.some (conformal_at_iff'.mp h)
-
-lemma conformal_factor_at_pos {f : E → F} {x : E} (h : conformal_at f x) :
-  0 < conformal_factor_at h :=
-(classical.some_spec $ conformal_at_iff'.mp h).1
-
-lemma conformal_factor_at_inner_eq_mul_inner' {f : E → F} {x : E}
-  (h : conformal_at f x) (u v : E) :
-  ⟪(fderiv ℝ f x) u, (fderiv ℝ f x) v⟫ = (conformal_factor_at h : ℝ) * ⟪u, v⟫ :=
-(classical.some_spec $ conformal_at_iff'.mp h).2 u v
-
-lemma conformal_factor_at_inner_eq_mul_inner {f : E → F} {x : E} {f' : E →L[ℝ] F}
-  (h : has_fderiv_at f f' x) (H : conformal_at f x) (u v : E) :
-  ⟪f' u, f' v⟫ = (conformal_factor_at H : ℝ) * ⟪u, v⟫ :=
-(H.differentiable_at.has_fderiv_at.unique h) ▸ conformal_factor_at_inner_eq_mul_inner' H u v
 
 end conformal_at
 

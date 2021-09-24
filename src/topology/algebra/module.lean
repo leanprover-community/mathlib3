@@ -386,6 +386,8 @@ def comp (g : M₂ →L[R] M₃) (f : M →L[R] M₂) : M →L[R] M₃ :=
 @[simp, norm_cast] lemma coe_comp : ((h.comp f) : (M →ₗ[R] M₃)) = (h : M₂ →ₗ[R] M₃) ∘ₗ ↑f := rfl
 @[simp, norm_cast] lemma coe_comp' : ((h.comp f) : (M → M₃)) = (h : M₂ → M₃) ∘ f := rfl
 
+lemma comp_apply (g : M₂ →L[R] M₃) (f : M →L[R] M₂) (x : M) : (g.comp f) x = g (f x) := rfl
+
 @[simp] theorem comp_id : f.comp (id R M) = f :=
 ext $ λ x, rfl
 

@@ -141,7 +141,7 @@ def mkq : M →ₗ[R] p.quotient :=
 
 end
 
-variables {R₂ M₂ : Type*} [ring R₂] [add_comm_group M₂] [module R₂ M₂] {τ₁₂ : R →+*R₂}
+variables {R₂ M₂ : Type*} [ring R₂] [add_comm_group M₂] [module R₂ M₂] {τ₁₂ : R →+* R₂}
 
 /-- Two `linear_map`s from a quotient module are equal if their compositions with
 `submodule.mkq` are equal.
@@ -265,7 +265,7 @@ variables {R M R₂ M₂ R₃ M₃ : Type*}
 variables [ring R] [ring R₂] [ring R₃]
 variables [add_comm_monoid M] [add_comm_group M₂] [add_comm_monoid M₃]
 variables [module R M] [module R₂ M₂] [module R₃ M₃]
-variables {τ₁₂ : R →+*R₂} {τ₂₃ : R₂ →+*R₃} {τ₁₃ : R →+*R₃}
+variables {τ₁₂ : R →+* R₂} {τ₂₃ : R₂ →+* R₃} {τ₁₃ : R →+* R₃}
 variables [ring_hom_comp_triple τ₁₂ τ₂₃ τ₁₃] [ring_hom_surjective τ₁₂]
 
 lemma range_mkq_comp (f : M →ₛₗ[τ₁₂] M₂) : f.range.mkq.comp f = 0 :=

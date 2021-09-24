@@ -24,18 +24,18 @@ In this file we define
 
 ## Implementation notes
 
-To ensure that composition works smoothly for semilinear maps, we use the following typeclasses
-  for `ring_hom`s defined in `algebra/ring/comp_typeclasses`:
-* `ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃`, which states that `σ₁₃ = σ₂₃.comp σ₁₂`.
-* `ring_hom_inv_pair σ σ'`, which state that `σ` and `σ'` are inverses of each other.
-* `ring_hom_surjective σ`, which states that `σ` is surjective.
-These typeclasses ensure that objects such as `σ₂₃.comp σ₁₂` never end up in the type of a
-semilinear map; instead, the typeclass system directly finds the appropriate `ring_hom` to use.
+To ensure that composition works smoothly for semilinear maps, we use the typeclasses
+`ring_hom_comp_triple`, `ring_hom_inv_pair` and `ring_hom_surjective` from
+`algebra/ring/comp_typeclasses`.
 
 ## Notation
 
 * Throughout the file, we denote regular linear maps by `fₗ`, `gₗ`, etc, and semilinear maps
   by `f`, `g`, etc.
+
+## TODO
+
+* Parts of this file have not yet been generalized to semilinear maps (i.e. `compatible_smul`)
 
 ## Tags
 
@@ -238,7 +238,7 @@ theorem to_add_monoid_hom_injective :
   function.injective (to_add_monoid_hom : (M →ₛₗ[σ] M₃) → (M →+ M₃)) :=
 λ f g h, ext $ add_monoid_hom.congr_fun h
 
-/-- If two `R`-linear maps from `R` are equal on `1`, then they are equal. -/
+/-- If two `σ`-linear maps from `R` are equal on `1`, then they are equal. -/
 @[ext] theorem ext_ring {f g : R →ₛₗ[σ] M₃} (h : f 1 = g 1) : f = g :=
 ext $ λ x, by rw [← mul_one x, ← smul_eq_mul, f.map_smulₛₗ, g.map_smulₛₗ, h]
 
@@ -419,7 +419,7 @@ end add_comm_group
 end is_linear_map
 
 /-- Linear endomorphisms of a module, with associated ring structure
-`linear_map.endomorphism_semiring` and algebra structure `module.endomorphism_algebra`. -/
+`module.End.semiring` and algebra structure `module.End.algebra`. -/
 abbreviation module.End (R : Type u) (M : Type v)
   [semiring R] [add_comm_monoid M] [module R M] := M →ₗ[R] M
 

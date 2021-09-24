@@ -163,7 +163,7 @@ begin
     assume j hjJ,
     have : j ∉ I := assume hjI, hd ⟨hjI, hjJ⟩,
     rw [dif_neg this, zero_apply] },
-  { simp only [pi_comp, comp_assoc, subtype_comp_cod_restrict, proj_pi, dif_pos, subtype.coe_prop],
+  { simp only [pi_comp, comp_assoc, subtype_comp_cod_restrict, proj_pi, subtype.coe_prop],
     ext b ⟨j, hj⟩,
     simp only [dif_pos, function.comp_app, function.eval_apply, linear_map.cod_restrict_apply,
       linear_map.coe_comp, linear_map.coe_proj, linear_map.pi_apply, submodule.subtype_apply,
@@ -334,3 +334,16 @@ def sum_arrow_lequiv_prod_arrow (α β R M : Type*) [semiring R] [add_comm_monoi
   ((sum_arrow_lequiv_prod_arrow α β R M).symm (f, g)) (sum.inr b) = g b := rfl
 
 end linear_equiv
+
+section extend
+
+variables (R) {η : Type x} [semiring R] (s : ι → η)
+
+/-- `function.extend s f 0` as a bundled linear map. -/
+@[simps]
+noncomputable def function.extend_by_zero.linear_map : (ι → R) →ₗ[R] (η → R) :=
+{ to_fun := λ f, function.extend s f 0,
+  map_smul' := λ r f, by { simpa using function.extend_smul r s f 0 },
+  ..function.extend_by_zero.hom R s }
+
+end extend

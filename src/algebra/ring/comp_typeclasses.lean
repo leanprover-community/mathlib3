@@ -13,10 +13,14 @@ This file contains three typeclasses used in the definition of (semi)linear maps
 * `ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃`, which expresses the fact that `σ₂₃.comp σ₁₂ = σ₁₃`
 * `ring_hom_inv_pair σ₁₂ σ₂₁`, which states that `σ₁₂` and `σ₂₁` are inverses of each other
 * `ring_hom_surjective σ`, which states that `σ` is surjective
+These typeclasses ensure that objects such as `σ₂₃.comp σ₁₂` never end up in the type of a
+semilinear map; instead, the typeclass system directly finds the appropriate `ring_hom` to use.
+A typical use-case is conjugate-linear maps, i.e. when `σ = complex.conj`; this system ensures that
+composing two conjugate-linear maps is a linear map, and not a `conj.comp conj`-linear map.
 
 Instances of these typeclasses mostly involving `ring_hom.id` are also provided:
 * `ring_hom_inv_pair (ring_hom.id R) (ring_hom.id R)`
-* `[ring_hom_inv_pair σ₁₂ σ₂₁] ring_hom_comp_triple σ₁₂ σ₂₁ (ring_hom.id R₁)`
+* `[ring_hom_inv_pair σ₁₂ σ₂₁] : ring_hom_comp_triple σ₁₂ σ₂₁ (ring_hom.id R₁)`
 * `ring_hom_comp_triple (ring_hom.id R₁) σ₁₂ σ₁₂`
 * `ring_hom_comp_triple σ₁₂ (ring_hom.id R₂) σ₁₂`
 * `ring_hom_surjective (ring_hom.id R)`
@@ -42,26 +46,28 @@ variables [semiring R₁] [semiring R₂] [semiring R₃]
 used to handle composition of semilinear maps. -/
 class ring_hom_comp_triple (σ₁₂ : R₁ →+* R₂) (σ₂₃ : R₂ →+* R₃)
   (σ₁₃ : out_param (R₁ →+* R₃)) : Prop :=
-(is_comp_triple : σ₁₃ = σ₂₃.comp σ₁₂)
+(comp_eq : σ₂₃.comp σ₁₂ = σ₁₃)
+
+attribute [simp] ring_hom_comp_triple.comp_eq
 
 variables {σ₁₂ : R₁ →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R₁ →+* R₃}
 
 namespace ring_hom_comp_triple
 
-@[simp] lemma comp_eq [t : ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] : σ₂₃.comp σ₁₂ = σ₁₃ :=
-t.is_comp_triple.symm
-
 @[simp] lemma comp_apply [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] {x : R₁} :
   σ₂₃ (σ₁₂ x) = σ₁₃ x :=
-show (σ₂₃.comp σ₁₂) x = σ₁₃ x, by rw [comp_eq]
+ring_hom.congr_fun comp_eq x
 
 end ring_hom_comp_triple
 
 /-- Class that expresses the fact that two ring equivs are inverses of each other. This is used
 to handle `symm` for semilinear equivalences. -/
 class ring_hom_inv_pair (σ : R₁ →+* R₂) (σ' : out_param (R₂ →+* R₁)) : Prop :=
-(is_inv_pair₁ : σ'.comp σ = ring_hom.id R₁)
-(is_inv_pair₂ : σ.comp σ' = ring_hom.id R₂)
+(comp_eq : σ'.comp σ = ring_hom.id R₁)
+(comp_eq₂ : σ.comp σ' = ring_hom.id R₂)
+
+attribute [simp] ring_hom_inv_pair.comp_eq
+attribute [simp] ring_hom_inv_pair.comp_eq₂
 
 variables {σ : R₁ →+* R₂} {σ' : R₂ →+* R₁}
 
@@ -69,22 +75,20 @@ namespace ring_hom_inv_pair
 
 variables [ring_hom_inv_pair σ σ']
 
-@[simp] lemma trans_eq : σ.comp σ' = (ring_hom.id R₂) :=
-by { rw ring_hom_inv_pair.is_inv_pair₂ }
+@[simp] lemma comp_apply_eq {x : R₁} : σ' (σ x) = x :=
+by { rw [← ring_hom.comp_apply, comp_eq], simp }
 
-@[simp] lemma trans_eq₂ : σ'.comp σ = (ring_hom.id R₁) :=
-by { rw ring_hom_inv_pair.is_inv_pair₁ }
-
-@[simp] lemma inv_pair_apply {x : R₁} : σ' (σ x) = x :=
-by { rw [← ring_hom.comp_apply, trans_eq₂], simp }
-
-@[simp] lemma inv_pair_apply₂ {x : R₂} : σ (σ' x) = x :=
-by { rw [← ring_hom.comp_apply, trans_eq], simp }
+@[simp] lemma comp_apply_eq₂ {x : R₂} : σ (σ' x) = x :=
+by { rw [← ring_hom.comp_apply, comp_eq₂], simp }
 
 instance ids : ring_hom_inv_pair (ring_hom.id R₁) (ring_hom.id R₁) := ⟨rfl, rfl⟩
 instance triples {σ₂₁ : R₂ →+* R₁} [ring_hom_inv_pair σ₁₂ σ₂₁] :
   ring_hom_comp_triple σ₁₂ σ₂₁ (ring_hom.id R₁) :=
-⟨by simp only [trans_eq₂]⟩
+⟨by simp only [comp_eq]⟩
+
+instance triples₂ {σ₂₁ : R₂ →+* R₁} [ring_hom_inv_pair σ₁₂ σ₂₁] :
+  ring_hom_comp_triple σ₂₁ σ₁₂ (ring_hom.id R₂) :=
+⟨by simp only [comp_eq₂]⟩
 
 end ring_hom_inv_pair
 
@@ -108,11 +112,11 @@ namespace ring_hom_surjective
 -- The linter gives a false positive, since `σ₂` is an out_param
 @[priority 100, nolint dangerous_instance] instance inv_pair {σ₁ : R₁ →+* R₂} {σ₂ : R₂ →+* R₁}
   [ring_hom_inv_pair σ₁ σ₂] : ring_hom_surjective σ₁ :=
-⟨λ x, ⟨σ₂ x, ring_hom_inv_pair.inv_pair_apply₂⟩⟩
+⟨λ x, ⟨σ₂ x, ring_hom_inv_pair.comp_apply_eq₂⟩⟩
 
 instance ids : ring_hom_surjective (ring_hom.id R₁) := ⟨is_surjective⟩
 
--- if this is an instance, it causes typeclass inference to loop
+/-- This cannot be an instance as there is no way to infer `σ₁₂` and `σ₂₃`. -/
 lemma comp [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [ring_hom_surjective σ₁₂] [ring_hom_surjective σ₂₃] :
   ring_hom_surjective σ₁₃ :=
 { is_surjective := begin

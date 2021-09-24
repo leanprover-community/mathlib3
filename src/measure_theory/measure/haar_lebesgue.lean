@@ -221,7 +221,7 @@ end
 lemma add_haar_closed_ball_lt_top {E : Type*} [normed_group E] [proper_space E] [measurable_space E]
   (μ : measure E) [is_add_haar_measure μ] (x : E) (r : ℝ) :
   μ (closed_ball x r) < ∞ :=
-(proper_space.compact_ball x r).add_haar_lt_top μ
+(proper_space.is_compact_closed_ball x r).add_haar_lt_top μ
 
 lemma add_haar_ball_lt_top {E : Type*} [normed_group E] [proper_space E] [measurable_space E]
   (μ : measure E) [is_add_haar_measure μ] (x : E) (r : ℝ) :

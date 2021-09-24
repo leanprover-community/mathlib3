@@ -84,7 +84,7 @@ begin
     exact measurable_zero }
 end
 
-lemma pdf_spec {m : measurable_space α}
+lemma map_eq_with_density_pdf {m : measurable_space α}
   (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac) [hX : has_pdf X ℙ μ] :
   measure.map X ℙ = μ.with_density (pdf X ℙ μ) :=
 begin
@@ -92,11 +92,11 @@ begin
   exact (classical.some_spec hX.pdf').2
 end
 
-lemma pdf_spec' {m : measurable_space α}
+lemma map_eq_set_lintegral_pdf {m : measurable_space α}
   (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac) [hX : has_pdf X ℙ μ]
   {s : set E} (hs : measurable_set s) :
   measure.map X ℙ s = ∫⁻ x in s, pdf X ℙ μ x ∂μ :=
-by rw [← with_density_apply _ hs, pdf_spec X ℙ μ]
+by rw [← with_density_apply _ hs, map_eq_with_density_pdf X ℙ μ]
 
 namespace pdf
 
@@ -107,7 +107,7 @@ section
 lemma lintegral_eq_measure_univ {X : α → E} [has_pdf X ℙ μ] (hX : measurable X) :
   ∫⁻ x, pdf X ℙ μ x ∂μ = ℙ set.univ :=
 begin
-  rw [← set_lintegral_univ, ← pdf_spec' X ℙ μ measurable_set.univ,
+  rw [← set_lintegral_univ, ← map_eq_set_lintegral_pdf X ℙ μ measurable_set.univ,
       measure.map_apply hX measurable_set.univ, set.preimage_univ],
 end
 
@@ -155,7 +155,7 @@ lemma integral_mul_eq_integral' [is_finite_measure ℙ] {X : α → E} [has_pdf 
   (hpdf : integrable (λ x, f x * (pdf X ℙ μ x).to_real) μ) :
   ∫ x, f x * (pdf X ℙ μ x).to_real ∂μ = ∫ x, f (X x) ∂ℙ :=
 begin
-  rw [← integral_map hX hf.ae_measurable, pdf_spec X ℙ μ,
+  rw [← integral_map hX hf.ae_measurable, map_eq_with_density_pdf X ℙ μ,
       integral_eq_lintegral_pos_part_sub_lintegral_neg_part,
       integral_eq_lintegral_pos_part_sub_lintegral_neg_part,
       lintegral_with_density_eq_lintegral_mul, lintegral_with_density_eq_lintegral_mul],
@@ -200,7 +200,7 @@ lemma to_quasi_measure_preserving (X : α → E) (hX : measurable X) [has_pdf X 
 { measurable := hX,
   absolutely_continuous :=
   begin
-    rw pdf_spec X ℙ μ,
+    rw map_eq_with_density_pdf X ℙ μ,
     exact with_density_absolutely_continuous _ _,
     all_goals { apply_instance }
   end }
@@ -236,7 +236,7 @@ lemma quasi_measure_preserving_has_pdf [has_pdf X ℙ]
   (g : ℝ → ℝ) (hg : quasi_measure_preserving g) :
   has_pdf (g ∘ X) ℙ :=
 begin
-  rw [has_pdf_iff (hg.measurable.comp hX), ← map_map hg.measurable hX, pdf_spec X ℙ],
+  rw [has_pdf_iff (hg.measurable.comp hX), ← map_map hg.measurable hX, map_eq_with_density_pdf X ℙ],
   refine absolutely_continuous.mk (λ s hsm hs, _),
   rw [map_apply hg.measurable hsm, with_density_apply _ (hg.measurable hsm)],
   have := hg.absolutely_continuous hs,

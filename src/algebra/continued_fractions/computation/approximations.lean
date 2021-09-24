@@ -297,7 +297,7 @@ begin
   exact (le_of_succ_succ_nth_continuants_aux_b nth_part_denom_eq)
 end
 
-/-- Shows that the sequence of denominators is monotonically increasing, that is `Bₙ ≤ Bₙ₊₁`. -/
+/-- Shows that the sequence of denominators is monotone, that is `Bₙ ≤ Bₙ₊₁`. -/
 theorem of_denom_mono : (gcf.of v).denominators n ≤ (gcf.of v).denominators (n + 1) :=
 begin
   let g := gcf.of v,

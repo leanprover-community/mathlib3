@@ -49,10 +49,10 @@ In this file we prove the following facts:
   `convex.image_sub_le_mul_sub_of_deriv_le`, `convex.mul_sub_le_image_sub_of_le_deriv`,
   if `∀ x, C (</≤/>/≥) (f' x)`, then `C * (y - x) (</≤/>/≥) (f y - f x)` whenever `x < y`.
 
-* `convex.mono_of_deriv_nonneg`, `convex.antimono_of_deriv_nonpos`,
-  `convex.strict_mono_of_deriv_pos`, `convex.strict_antimono_of_deriv_neg` :
+* `convex.monotone_on_of_deriv_nonneg`, `convex.antitone_on_of_deriv_nonpos`,
+  `convex.strict_mono_of_deriv_pos`, `convex.strict_anti_of_deriv_neg` :
   if the derivative of a function is non-negative/non-positive/positive/negative, then
-  the function is monotone/monotonically decreasing/strictly monotone/strictly monotonically
+  the function is monotone/antitone/strictly monotone/strictly monotonically
   decreasing.
 
 * `convex_on_of_deriv_mono`, `convex_on_of_deriv2_nonneg` : if the derivative of a function
@@ -904,7 +904,7 @@ convex_univ.image_sub_le_mul_sub_of_deriv_le hf.continuous.continuous_on hf.diff
 
 /-- Let `f` be a function continuous on a convex (or, equivalently, connected) subset `D`
 of the real line. If `f` is differentiable on the interior of `D` and `f'` is positive, then
-`f` is a strictly monotonically increasing function on `D`. -/
+`f` is a strictly monotone function on `D`. -/
 theorem convex.strict_mono_of_deriv_pos {D : set ℝ} (hD : convex ℝ D) {f : ℝ → ℝ}
   (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
   (hf'_pos : ∀ x ∈ interior D, 0 < deriv f x) :
@@ -912,7 +912,7 @@ theorem convex.strict_mono_of_deriv_pos {D : set ℝ} (hD : convex ℝ D) {f : �
 by simpa only [zero_mul, sub_pos] using hD.mul_sub_lt_image_sub_of_lt_deriv hf hf' hf'_pos
 
 /-- Let `f : ℝ → ℝ` be a differentiable function. If `f'` is positive, then
-`f` is a strictly monotonically increasing function. -/
+`f` is a strictly monotone function. -/
 theorem strict_mono_of_deriv_pos {f : ℝ → ℝ} (hf : differentiable ℝ f)
   (hf'_pos : ∀ x, 0 < deriv f x) :
   strict_mono f :=
@@ -921,51 +921,51 @@ theorem strict_mono_of_deriv_pos {f : ℝ → ℝ} (hf : differentiable ℝ f)
 
 /-- Let `f` be a function continuous on a convex (or, equivalently, connected) subset `D`
 of the real line. If `f` is differentiable on the interior of `D` and `f'` is nonnegative, then
-`f` is a monotonically increasing function on `D`. -/
-theorem convex.mono_of_deriv_nonneg {D : set ℝ} (hD : convex ℝ D) {f : ℝ → ℝ}
+`f` is a monotone function on `D`. -/
+theorem convex.monotone_on_of_deriv_nonneg {D : set ℝ} (hD : convex ℝ D) {f : ℝ → ℝ}
   (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
   (hf'_nonneg : ∀ x ∈ interior D, 0 ≤ deriv f x) :
   ∀ x y ∈ D, x ≤ y → f x ≤ f y :=
 by simpa only [zero_mul, sub_nonneg] using hD.mul_sub_le_image_sub_of_le_deriv hf hf' hf'_nonneg
 
 /-- Let `f : ℝ → ℝ` be a differentiable function. If `f'` is nonnegative, then
-`f` is a monotonically increasing function. -/
-theorem mono_of_deriv_nonneg {f : ℝ → ℝ} (hf : differentiable ℝ f) (hf' : ∀ x, 0 ≤ deriv f x) :
+`f` is a monotone function. -/
+theorem monotone_on_of_deriv_nonneg {f : ℝ → ℝ} (hf : differentiable ℝ f) (hf' : ∀ x, 0 ≤ deriv f x) :
   monotone f :=
-λ x y hxy, convex_univ.mono_of_deriv_nonneg hf.continuous.continuous_on hf.differentiable_on
+λ x y hxy, convex_univ.monotone_on_of_deriv_nonneg hf.continuous.continuous_on hf.differentiable_on
   (λ x _, hf' x) x y trivial trivial hxy
 
 /-- Let `f` be a function continuous on a convex (or, equivalently, connected) subset `D`
 of the real line. If `f` is differentiable on the interior of `D` and `f'` is negative, then
-`f` is a strictly monotonically decreasing function on `D`. -/
-theorem convex.strict_antimono_of_deriv_neg {D : set ℝ} (hD : convex ℝ D) {f : ℝ → ℝ}
+`f` is a strictly antitone function on `D`. -/
+theorem convex.strict_anti_of_deriv_neg {D : set ℝ} (hD : convex ℝ D) {f : ℝ → ℝ}
   (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
   (hf'_neg : ∀ x ∈ interior D, deriv f x < 0) :
   ∀ x y ∈ D, x < y → f y < f x :=
 by simpa only [zero_mul, sub_lt_zero] using hD.image_sub_lt_mul_sub_of_deriv_lt hf hf' hf'_neg
 
 /-- Let `f : ℝ → ℝ` be a differentiable function. If `f'` is negative, then
-`f` is a strictly monotonically decreasing function. -/
-theorem strict_antimono_of_deriv_neg {f : ℝ → ℝ} (hf : differentiable ℝ f)
+`f` is a strictly antitone function. -/
+theorem strict_anti_of_deriv_neg {f : ℝ → ℝ} (hf : differentiable ℝ f)
   (hf' : ∀ x, deriv f x < 0) :
   ∀ ⦃x y⦄, x < y → f y < f x :=
-λ x y hxy, convex_univ.strict_antimono_of_deriv_neg hf.continuous.continuous_on hf.differentiable_on
+λ x y hxy, convex_univ.strict_anti_of_deriv_neg hf.continuous.continuous_on hf.differentiable_on
   (λ x _, hf' x) x y trivial trivial hxy
 
 /-- Let `f` be a function continuous on a convex (or, equivalently, connected) subset `D`
 of the real line. If `f` is differentiable on the interior of `D` and `f'` is nonpositive, then
-`f` is a monotonically decreasing function on `D`. -/
-theorem convex.antimono_of_deriv_nonpos {D : set ℝ} (hD : convex ℝ D) {f : ℝ → ℝ}
+`f` is an antitone function on `D`. -/
+protected theorem convex.antitone_on_of_deriv_nonpos {D : set ℝ} (hD : convex ℝ D) {f : ℝ → ℝ}
   (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
   (hf'_nonpos : ∀ x ∈ interior D, deriv f x ≤ 0) :
   ∀ x y ∈ D, x ≤ y → f y ≤ f x :=
 by simpa only [zero_mul, sub_nonpos] using hD.image_sub_le_mul_sub_of_deriv_le hf hf' hf'_nonpos
 
 /-- Let `f : ℝ → ℝ` be a differentiable function. If `f'` is nonpositive, then
-`f` is a monotonically decreasing function. -/
-theorem antimono_of_deriv_nonpos {f : ℝ → ℝ} (hf : differentiable ℝ f) (hf' : ∀ x, deriv f x ≤ 0) :
+`f` is a antitone function. -/
+theorem antitone_on_of_deriv_nonpos {f : ℝ → ℝ} (hf : differentiable ℝ f) (hf' : ∀ x, deriv f x ≤ 0) :
   ∀ ⦃x y⦄, x ≤ y → f y ≤ f x :=
-λ x y hxy, convex_univ.antimono_of_deriv_nonpos hf.continuous.continuous_on hf.differentiable_on
+λ x y hxy, convex_univ.antitone_on_of_deriv_nonpos hf.continuous.continuous_on hf.differentiable_on
   (λ x _, hf' x) x y trivial trivial hxy
 
 /-- If a function `f` is continuous on a convex set `D ⊆ ℝ`, is differentiable on its interior,
@@ -995,8 +995,8 @@ begin
 end
 
 /-- If a function `f` is continuous on a convex set `D ⊆ ℝ`, is differentiable on its interior,
-and `f'` is antimonotone on the interior, then `f` is concave on `D`. -/
-theorem concave_on_of_deriv_antimono {D : set ℝ} (hD : convex ℝ D) {f : ℝ → ℝ}
+and `f'` is antitone on the interior, then `f` is concave on `D`. -/
+theorem concave_on_of_deriv_antitone {D : set ℝ} (hD : convex ℝ D) {f : ℝ → ℝ}
   (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
   (hf'_mono : ∀ x y ∈ interior D, x ≤ y → deriv f y ≤ deriv f x) :
   concave_on D f :=
@@ -1015,11 +1015,11 @@ theorem convex_on_univ_of_deriv_mono {f : ℝ → ℝ} (hf : differentiable ℝ 
 convex_on_of_deriv_mono convex_univ hf.continuous.continuous_on hf.differentiable_on
   (λ x y _ _ h, hf'_mono h)
 
-/-- If a function `f` is differentiable and `f'` is antimonotone on `ℝ` then `f` is concave. -/
-theorem concave_on_univ_of_deriv_antimono {f : ℝ → ℝ} (hf : differentiable ℝ f)
-  (hf'_antimono : ∀⦃a b⦄, a ≤ b → (deriv f) b ≤ (deriv f) a) : concave_on univ f :=
-concave_on_of_deriv_antimono convex_univ hf.continuous.continuous_on hf.differentiable_on
-  (λ x y _ _ h, hf'_antimono h)
+/-- If a function `f` is differentiable and `f'` is antitone on `ℝ` then `f` is concave. -/
+theorem antitone.concave_on_univ {f : ℝ → ℝ} (hf : differentiable ℝ f)
+  (hf'_anti : ∀⦃a b⦄, a ≤ b → (deriv f) b ≤ (deriv f) a) : concave_on univ f :=
+concave_on_of_deriv_antitone convex_univ hf.continuous.continuous_on hf.differentiable_on
+  (λ x y _ _ h, hf'_anti h)
 
 /-- If a function `f` is continuous on a convex set `D ⊆ ℝ`, is twice differentiable on its
 interior, and `f''` is nonnegative on the interior, then `f` is convex on `D`. -/
@@ -1030,7 +1030,7 @@ theorem convex_on_of_deriv2_nonneg {D : set ℝ} (hD : convex ℝ D) {f : ℝ �
   convex_on D f :=
 convex_on_of_deriv_mono hD hf hf' $
 assume x y hx hy hxy,
-hD.interior.mono_of_deriv_nonneg hf''.continuous_on (by rwa [interior_interior])
+hD.interior.monotone_on_of_deriv_nonneg hf''.continuous_on (by rwa [interior_interior])
   (by rwa [interior_interior]) _ _ hx hy hxy
 
 /-- If a function `f` is continuous on a convex set `D ⊆ ℝ`, is twice differentiable on its
@@ -1040,9 +1040,9 @@ theorem concave_on_of_deriv2_nonpos {D : set ℝ} (hD : convex ℝ D) {f : ℝ �
   (hf'' : differentiable_on ℝ (deriv f) (interior D))
   (hf''_nonpos : ∀ x ∈ interior D, (deriv^[2] f x) ≤ 0) :
   concave_on D f :=
-concave_on_of_deriv_antimono hD hf hf' $
+concave_on_of_deriv_antitone hD hf hf' $
 assume x y hx hy hxy,
-hD.interior.antimono_of_deriv_nonpos hf''.continuous_on (by rwa [interior_interior])
+hD.interior.antitone_on_of_deriv_nonpos hf''.continuous_on (by rwa [interior_interior])
   (by rwa [interior_interior]) _ _ hx hy hxy
 
 /-- If a function `f` is twice differentiable on a open convex set `D ⊆ ℝ` and

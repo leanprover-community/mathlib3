@@ -117,7 +117,7 @@ end preorder_hom
 
 namespace omega_complete_partial_order
 
-/-- A chain is a monotonically increasing sequence.
+/-- A chain is a monotone sequence.
 
 See the definition on page 114 of [gunter1992]. -/
 def chain (α : Type u) [preorder α] :=

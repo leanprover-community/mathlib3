@@ -265,7 +265,7 @@ lemma of_inv_fr_num_lt_num_of_pos (q_pos : 0 < q) :
 rat.fract_inv_num_lt_num_of_pos q_pos
 
 /-- Shows that the sequence of numerators of the fractional parts of the stream is strictly
-monotonically decreasing. -/
+antitone. -/
 lemma stream_succ_nth_fr_num_lt_nth_fr_num_rat {ifp_n ifp_succ_n : int_fract_pair ℚ}
   (stream_nth_eq : int_fract_pair.stream q n = some ifp_n)
   (stream_succ_nth_eq : int_fract_pair.stream q (n + 1) = some ifp_succ_n) :

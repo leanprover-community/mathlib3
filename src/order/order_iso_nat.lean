@@ -170,14 +170,14 @@ begin
     exact n.succ_ne_self.symm (rel_embedding.to_preorder_hom_injective _ (hn _ n.le_succ)), },
 end
 
-/-- Given an eventually-constant monotonic sequence `a₀ ≤ a₁ ≤ a₂ ≤ ...` in a partially-ordered
+/-- Given an eventually-constant monotone sequence `a₀ ≤ a₁ ≤ a₂ ≤ ...` in a partially-ordered
 type, `monotonic_sequence_limit_index a` is the least natural number `n` for which `aₙ` reaches the
 constant value. For sequences that are not eventually constant, `monotonic_sequence_limit_index a`
 is defined, but is a junk value. -/
 noncomputable def monotonic_sequence_limit_index {α : Type*} [partial_order α] (a : ℕ →ₘ α) : ℕ :=
 Inf { n | ∀ m, n ≤ m → a n = a m }
 
-/-- The constant value of an eventually-constant monotonic sequence `a₀ ≤ a₁ ≤ a₂ ≤ ...` in a
+/-- The constant value of an eventually-constant monotone sequence `a₀ ≤ a₁ ≤ a₂ ≤ ...` in a
 partially-ordered type. -/
 noncomputable def monotonic_sequence_limit {α : Type*} [partial_order α] (a : ℕ →ₘ α) :=
 a (monotonic_sequence_limit_index a)

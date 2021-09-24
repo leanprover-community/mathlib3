@@ -296,26 +296,26 @@ lemma continuous.comp_lower_semicontinuous
   (gmon : monotone g) : lower_semicontinuous (g ∘ f) :=
 λ x, (hg.continuous_at).comp_lower_semicontinuous_at (hf x) gmon
 
-lemma continuous_at.comp_lower_semicontinuous_within_at_antimono
+lemma continuous_at.comp_lower_semicontinuous_within_at_antitone
   {g : γ → δ} {f : α → γ} (hg : continuous_at g (f x)) (hf : lower_semicontinuous_within_at f s x)
   (gmon : ∀ x y, x ≤ y → g y ≤ g x) : upper_semicontinuous_within_at (g ∘ f) s x :=
 @continuous_at.comp_lower_semicontinuous_within_at α _ x s γ _ _ _ (order_dual δ) _ _ _
   g f hg hf gmon
 
-lemma continuous_at.comp_lower_semicontinuous_at_antimono
+lemma continuous_at.comp_lower_semicontinuous_at_antitone
   {g : γ → δ} {f : α → γ} (hg : continuous_at g (f x)) (hf : lower_semicontinuous_at f x)
   (gmon : ∀ x y, x ≤ y → g y ≤ g x) : upper_semicontinuous_at (g ∘ f) x :=
 @continuous_at.comp_lower_semicontinuous_at α _ x γ _ _ _ (order_dual δ) _ _ _ g f hg hf gmon
 
-lemma continuous.comp_lower_semicontinuous_on_antimono
+lemma continuous.comp_lower_semicontinuous_on_antitone
   {g : γ → δ} {f : α → γ} (hg : continuous g) (hf : lower_semicontinuous_on f s)
   (gmon : ∀ x y, x ≤ y → g y ≤ g x) : upper_semicontinuous_on (g ∘ f) s :=
-λ x hx, (hg.continuous_at).comp_lower_semicontinuous_within_at_antimono (hf x hx) gmon
+λ x hx, (hg.continuous_at).comp_lower_semicontinuous_within_at_antitone (hf x hx) gmon
 
-lemma continuous.comp_lower_semicontinuous_antimono
+lemma continuous.comp_lower_semicontinuous_antitone
   {g : γ → δ} {f : α → γ} (hg : continuous g) (hf : lower_semicontinuous f)
   (gmon : ∀ x y, x ≤ y → g y ≤ g x) : upper_semicontinuous (g ∘ f) :=
-λ x, (hg.continuous_at).comp_lower_semicontinuous_at_antimono (hf x) gmon
+λ x, (hg.continuous_at).comp_lower_semicontinuous_at_antitone (hf x) gmon
 
 end
 
@@ -730,26 +730,26 @@ lemma continuous.comp_upper_semicontinuous
   (gmon : monotone g) : upper_semicontinuous (g ∘ f) :=
 λ x, (hg.continuous_at).comp_upper_semicontinuous_at (hf x) gmon
 
-lemma continuous_at.comp_upper_semicontinuous_within_at_antimono
+lemma continuous_at.comp_upper_semicontinuous_within_at_antitone
   {g : γ → δ} {f : α → γ} (hg : continuous_at g (f x)) (hf : upper_semicontinuous_within_at f s x)
   (gmon : ∀ x y, x ≤ y → g y ≤ g x) : lower_semicontinuous_within_at (g ∘ f) s x :=
 @continuous_at.comp_upper_semicontinuous_within_at α _ x s γ _ _ _ (order_dual δ) _ _ _
   g f hg hf gmon
 
-lemma continuous_at.comp_upper_semicontinuous_at_antimono
+lemma continuous_at.comp_upper_semicontinuous_at_antitone
   {g : γ → δ} {f : α → γ} (hg : continuous_at g (f x)) (hf : upper_semicontinuous_at f x)
   (gmon : ∀ x y, x ≤ y → g y ≤ g x) : lower_semicontinuous_at (g ∘ f) x :=
 @continuous_at.comp_upper_semicontinuous_at α _ x γ _ _ _ (order_dual δ) _ _ _ g f hg hf gmon
 
-lemma continuous.comp_upper_semicontinuous_on_antimono
+lemma continuous.comp_upper_semicontinuous_on_antitone
   {g : γ → δ} {f : α → γ} (hg : continuous g) (hf : upper_semicontinuous_on f s)
   (gmon : ∀ x y, x ≤ y → g y ≤ g x) : lower_semicontinuous_on (g ∘ f) s :=
-λ x hx, (hg.continuous_at).comp_upper_semicontinuous_within_at_antimono (hf x hx) gmon
+λ x hx, (hg.continuous_at).comp_upper_semicontinuous_within_at_antitone (hf x hx) gmon
 
-lemma continuous.comp_upper_semicontinuous_antimono
+lemma continuous.comp_upper_semicontinuous_antitone
   {g : γ → δ} {f : α → γ} (hg : continuous g) (hf : upper_semicontinuous f)
   (gmon : ∀ x y, x ≤ y → g y ≤ g x) : lower_semicontinuous (g ∘ f) :=
-λ x, (hg.continuous_at).comp_upper_semicontinuous_at_antimono (hf x) gmon
+λ x, (hg.continuous_at).comp_upper_semicontinuous_at_antitone (hf x) gmon
 
 end
 

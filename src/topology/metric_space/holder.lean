@@ -23,7 +23,7 @@ properties of Hölder continuous functions.
 
 We use the type `ℝ≥0` (a.k.a. `nnreal`) for `C` because this type has coercion both to `ℝ` and
 `ℝ≥0∞`, so it can be easily used both in inequalities about `dist` and `edist`. We also use `ℝ≥0`
-for `r` to ensure that `d ^ r` is monotonically increasing in `d`. It might be a good idea to use
+for `r` to ensure that `d ^ r` is monotone in `d`. It might be a good idea to use
 `ℝ>0` for `r` but we don't have this type in `mathlib` (yet).
 
 ## Tags

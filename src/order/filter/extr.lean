@@ -32,7 +32,7 @@ Similar predicates with `_on` suffix are particular cases for `l = 𝓟 s`.
 
 * `is_*_*.comp_mono` : if `x` is an extremum for `f` and `g` is a monotone function,
   then `x` is an extremum for `g ∘ f`;
-* `is_*_*.comp_antimono` : similarly for the case of monotonically decreasing `g`;
+* `is_*_*.comp_antitone` : similarly for the case of antitone `g`;
 * `is_*_*.bicomp_mono` : if `x` is an extremum of the same type for `f` and `g`
   and a binary operation `op` is monotone in both arguments, then `x` is an extremum
   of the same type for `λ x, op (f x) (g x)`.
@@ -230,17 +230,17 @@ lemma is_extr_filter.comp_mono (hf : is_extr_filter f l a) {g : β → γ} (hg :
   is_extr_filter (g ∘ f) l a :=
 hf.elim (λ hf, (hf.comp_mono hg).is_extr)  (λ hf, (hf.comp_mono hg).is_extr)
 
-lemma is_min_filter.comp_antimono (hf : is_min_filter f l a) {g : β → γ}
+lemma is_min_filter.comp_antitone (hf : is_min_filter f l a) {g : β → γ}
   (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
   is_max_filter (g ∘ f) l a :=
 hf.dual.comp_mono (λ x y h, hg h)
 
-lemma is_max_filter.comp_antimono (hf : is_max_filter f l a) {g : β → γ}
+lemma is_max_filter.comp_antitone (hf : is_max_filter f l a) {g : β → γ}
   (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
   is_min_filter (g ∘ f) l a :=
 hf.dual.comp_mono (λ x y h, hg h)
 
-lemma is_extr_filter.comp_antimono (hf : is_extr_filter f l a) {g : β → γ}
+lemma is_extr_filter.comp_antitone (hf : is_extr_filter f l a) {g : β → γ}
   (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
   is_extr_filter (g ∘ f) l a :=
 hf.dual.comp_mono (λ x y h, hg h)
@@ -257,20 +257,20 @@ lemma is_extr_on.comp_mono (hf : is_extr_on f s a) {g : β → γ} (hg : monoton
   is_extr_on (g ∘ f) s a :=
 hf.comp_mono hg
 
-lemma is_min_on.comp_antimono (hf : is_min_on f s a) {g : β → γ}
+lemma is_min_on.comp_antitone (hf : is_min_on f s a) {g : β → γ}
   (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
   is_max_on (g ∘ f) s a :=
-hf.comp_antimono hg
+hf.comp_antitone hg
 
-lemma is_max_on.comp_antimono (hf : is_max_on f s a) {g : β → γ}
+lemma is_max_on.comp_antitone (hf : is_max_on f s a) {g : β → γ}
   (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
   is_min_on (g ∘ f) s a :=
-hf.comp_antimono hg
+hf.comp_antitone hg
 
-lemma is_extr_on.comp_antimono (hf : is_extr_on f s a) {g : β → γ}
+lemma is_extr_on.comp_antitone (hf : is_extr_on f s a) {g : β → γ}
   (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
   is_extr_on (g ∘ f) s a :=
-hf.comp_antimono hg
+hf.comp_antitone hg
 
 lemma is_min_filter.bicomp_mono [preorder δ] {op : β → γ → δ} (hop : ((≤) ⇒ (≤) ⇒ (≤)) op op)
   (hf : is_min_filter f l a) {g : α → γ} (hg : is_min_filter g l a) :
@@ -357,19 +357,19 @@ section ordered_add_comm_group
 variables [ordered_add_comm_group β] {f g : α → β} {a : α} {s : set α} {l : filter α}
 
 lemma is_min_filter.neg (hf : is_min_filter f l a) : is_max_filter (λ x, -f x) l a :=
-hf.comp_antimono (λ x y hx, neg_le_neg hx)
+hf.comp_antitone (λ x y hx, neg_le_neg hx)
 
 lemma is_max_filter.neg (hf : is_max_filter f l a) : is_min_filter (λ x, -f x) l a :=
-hf.comp_antimono (λ x y hx, neg_le_neg hx)
+hf.comp_antitone (λ x y hx, neg_le_neg hx)
 
 lemma is_extr_filter.neg (hf : is_extr_filter f l a) : is_extr_filter (λ x, -f x) l a :=
 hf.elim (λ hf, hf.neg.is_extr) (λ hf, hf.neg.is_extr)
 
 lemma is_min_on.neg (hf : is_min_on f s a) : is_max_on (λ x, -f x) s a :=
-hf.comp_antimono (λ x y hx, neg_le_neg hx)
+hf.comp_antitone (λ x y hx, neg_le_neg hx)
 
 lemma is_max_on.neg (hf : is_max_on f s a) : is_min_on (λ x, -f x) s a :=
-hf.comp_antimono (λ x y hx, neg_le_neg hx)
+hf.comp_antitone (λ x y hx, neg_le_neg hx)
 
 lemma is_extr_on.neg (hf : is_extr_on f s a) : is_extr_on (λ x, -f x) s a :=
 hf.elim (λ hf, hf.neg.is_extr) (λ hf, hf.neg.is_extr)

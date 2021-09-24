@@ -11,8 +11,8 @@ import measure_theory.measure.lebesgue
 
 This file defines the probability density function of a random variable. In particular,
 a measurable function `f` is said to the probability density function of a random variable `X`
-if for all measurable set `S`, `ℙ(X ∈ S) = ∫ x in S, f x dx`. Probability density functions
-is one way of describing the distribution of a random variable, and is useful for calculating
+if for all measurable sets `S`, `ℙ(X ∈ S) = ∫ x in S, f x dx`. Probability density functions
+are one way of describing the distribution of a random variable, and are useful for calculating
 probabilities and finding moments (although the latter is better achieved with moment generating
 functions).
 
@@ -131,7 +131,8 @@ begin
     change μ {x : E | ennreal.of_real (pdf X ℙ μ x).to_real ≠ pdf X ℙ μ x} = 0,
     have : ∀ x, ennreal.of_real (pdf X ℙ μ x).to_real ≠ pdf X ℙ μ x ↔
       pdf X ℙ μ x = ∞,
-    { intro x, split; intro h,
+    { intro x,
+      split; intro h,
       { by_contra htop,
         rw [← ne.def, ← lt_top_iff_ne_top] at htop,
         exact h (ennreal.of_real_to_real htop.ne) },
@@ -147,7 +148,7 @@ begin
 end
 
 /-- **The Law of the Unconscious Statistician**: Given a random variable `X` and a measurable
-function `f`, we have `f ∘ X` is a random variable and have expectation `∫ x, f x * pdf X ∂μ`
+function `f`, `f ∘ X` is a random variable with expectation `∫ x, f x * pdf X ∂μ`
 where `μ` is a measure on the codomain of `X`. -/
 lemma integral_mul_eq_integral' [is_finite_measure ℙ] {X : α → E} [has_pdf X ℙ μ]
   (hX : measurable X) (f : E → ℝ) (hf : measurable f)

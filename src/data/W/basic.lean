@@ -70,16 +70,16 @@ def equiv_sigma : W_type β ≃ Σ a : α, β a → W_type β :=
 variable {β}
 
 /-- The canonical map from `W_type β` into any type `γ` given a map `(Σ a : α, β a → γ) → γ`. -/
-def to_type (γ : Type*) (fγ : (Σ a : α, β a → γ) → γ) : W_type β → γ
-| ⟨a, f⟩ := fγ ⟨a, λ b, to_type (f b)⟩
+def elim (γ : Type*) (fγ : (Σ a : α, β a → γ) → γ) : W_type β → γ
+| ⟨a, f⟩ := fγ ⟨a, λ b, elim (f b)⟩
 
-lemma to_type_injective (γ : Type*) (fγ : (Σ a : α, β a → γ) → γ)
+lemma elim_injective (γ : Type*) (fγ : (Σ a : α, β a → γ) → γ)
   (fγ_injective : function.injective fγ) :
-  function.injective (to_type γ fγ)
+  function.injective (elim γ fγ)
 | ⟨a₁, f₁⟩ ⟨a₂, f₂⟩ h := begin
   obtain ⟨rfl, h⟩ := sigma.mk.inj (fγ_injective h),
   congr' with x,
-  exact to_type_injective (congr_fun (eq_of_heq h) x : _),
+  exact elim_injective (congr_fun (eq_of_heq h) x : _),
 end
 
 instance [hα : is_empty α] : is_empty (W_type β) :=

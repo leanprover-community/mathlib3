@@ -1696,7 +1696,7 @@ begin
   rw condexp_L1_undef hf,
 end
 
-lemma condexp_zero : μ[(0 : α → F')|hm] = 0 :=
+@[simp] lemma condexp_zero : μ[(0 : α → F')|hm] = 0 :=
 condexp_of_measurable (@measurable_zero _ _ _ m _) (integrable_zero _ _ _)
 
 lemma measurable_condexp : measurable[m] (μ[f|hm]) :=

@@ -22,7 +22,7 @@ open set
 
 @[to_additive]
 lemma smul_univ_pi {K R : Type*} [has_scalar K R] (ι : Type*) {r : K} (t : ι → set R) :
-  r • pi (univ : set ι) t = pi (univ : set ι) (λ (i : ι), r • t i) :=
+  r • pi (univ : set ι) t = pi (univ : set ι) (r • t) :=
 begin
   ext x,
   simp only [mem_smul_set, mem_univ_pi],

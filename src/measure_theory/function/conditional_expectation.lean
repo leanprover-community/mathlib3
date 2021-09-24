@@ -1653,7 +1653,7 @@ variables {𝕜} {m m0 : measurable_space α} {μ : measure α} [borel_space �
   α → F' :=
 if (measurable[m] f ∧ integrable f μ) then f else ae_measurable'_condexp_L1.mk (condexp_L1 hm μ f)
 
-localized "notation  μ `[` f `|` hm `]` := condexp hm μ f" in measure_theory
+localized "notation  μ `[` f `|` hm `]` := measure_theory.condexp hm μ f" in measure_theory
 
 lemma condexp_of_measurable {f : α → F'} (hf : measurable[m] f) (hfi : integrable f μ) :
   μ[f|hm] = f :=
@@ -1763,6 +1763,51 @@ lemma condexp_sub (hf : integrable f μ) (hg : integrable g μ) :
 begin
   simp_rw sub_eq_add_neg,
   exact (condexp_add hf hg.neg).trans (eventually_eq.rfl.add (condexp_neg g)),
+end
+
+lemma trim_trim {m₁ m₂ : measurable_space α} {hm₁₂ : m₁ ≤ m₂} {hm₂ : m₂ ≤ m0} :
+  (μ.trim hm₂).trim hm₁₂ = μ.trim (hm₁₂.trans hm₂) :=
+begin
+  ext1 t ht,
+  rw [trim_measurable_set_eq hm₁₂ ht, trim_measurable_set_eq (hm₁₂.trans hm₂) ht,
+    trim_measurable_set_eq hm₂ (hm₁₂ t ht)],
+end
+
+/-- Having this as an instance causes timeouts. -/
+def sigma_finite_trim_of_le {m₁ m₂ : measurable_space α} {hm₁₂ : m₁ ≤ m₂} {hm₂ : m₂ ≤ m0}
+  [sigma_finite (μ.trim (hm₁₂.trans hm₂))] :
+  sigma_finite (μ.trim hm₂) :=
+begin
+  refine sigma_finite_iff.mpr _,
+  use spanning_sets (μ.trim (hm₁₂.trans hm₂)),
+  { simp, },
+  { refine λ i, (le_trim hm₁₂).trans_lt _,
+    rw trim_trim,
+    exact measure_spanning_sets_lt_top (μ.trim (hm₁₂.trans hm₂)) i, },
+  { exact Union_spanning_sets (μ.trim (hm₁₂.trans hm₂)), },
+end
+
+/-- Having this as an instance causes timeouts. -/
+def sigma_finite_of_trim [sigma_finite (μ.trim hm)] : sigma_finite μ :=
+begin
+  have h : sigma_finite (μ.trim le_rfl),
+    from @measure_theory.sigma_finite_trim_of_le _ m0 μ m m0 hm le_rfl _,
+  rwa trim_eq_self at h,
+end
+
+lemma condexp_condexp_of_le {m₁ m₂ m0 : measurable_space α} {μ : measure α}
+  (hm₁₂ : m₁ ≤ m₂) (hm₂ : m₂ ≤ m0) [sigma_finite (μ.trim (hm₁₂.trans hm₂))]
+  [sigma_finite (μ.trim hm₂)] :
+  μ[ μ[f|hm₂] | hm₁₂.trans hm₂] =ᵐ[μ] μ[f | hm₁₂.trans hm₂] :=
+begin
+  refine ae_eq_of_forall_set_integral_eq_of_sigma_finite' (hm₁₂.trans hm₂)
+    (λ s hs hμs, integrable_condexp.integrable_on) (λ s hs hμs, integrable_condexp.integrable_on)
+    _ (measurable.ae_measurable' measurable_condexp) (measurable.ae_measurable' measurable_condexp),
+  intros s hs hμs,
+  rw set_integral_condexp integrable_condexp hs,
+  by_cases hf : integrable f μ,
+  { rw [set_integral_condexp hf hs, set_integral_condexp hf (hm₁₂ s hs)], },
+  { simp_rw integral_congr_ae (ae_restrict_of_ae (condexp_undef hf)), },
 end
 
 end condexp

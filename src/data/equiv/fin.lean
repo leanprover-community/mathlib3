@@ -66,32 +66,9 @@ This is a version of `fin.pred_above` that produces `option (fin n)` instead of
 mapping both `i.cast_succ` and `i.succ` to `i`. -/
 def fin_succ_equiv' {n : ℕ} (i : fin (n + 1)) :
   fin (n + 1) ≃ option (fin n) :=
-have hx0 : ∀ {i x : fin (n + 1)}, i < x → x ≠ 0,
-  from λ i x hix, ne_of_gt (lt_of_le_of_lt i.zero_le hix),
-have hiltx : ∀ {i x : fin (n + 1)}, ¬ i < x → ¬ x = i → x < i,
-  from λ i x hix hxi, lt_of_le_of_ne (le_of_not_lt hix) hxi,
-have hxltn : ∀ {i x : fin (n + 1)}, ¬ i < x → ¬ x = i → (x : ℕ) < n,
-  from λ i x hix hxi, lt_of_lt_of_le (hiltx hix hxi) (nat.le_of_lt_succ i.2),
-{ to_fun := λ x,
-    if hix : i < x
-    then some (x.pred (hx0 hix))
-    else if hxi : x = i
-    then none
-    else some (x.cast_lt (hxltn hix hxi)),
+{ to_fun := i.insert_nth none some,
   inv_fun := λ x, x.cases_on' i (fin.succ_above i),
-  left_inv := λ x,
-    if hix : i < x
-    then
-      have hi : i ≤ fin.cast_succ (x.pred (hx0 hix)),
-        by { simp only [fin.le_iff_coe_le_coe, fin.coe_cast_succ, fin.coe_pred],
-          exact nat.le_pred_of_lt hix },
-      by simp [dif_pos hix, option.cases_on'_some, fin.succ_above_above _ _ hi, fin.succ_pred]
-    else if hxi : x = i
-    then by simp [hxi]
-    else have hi : fin.cast_succ (x.cast_lt (hxltn hix hxi)) < i,
-        from lt_of_le_of_ne (le_of_not_gt hix) (by simp [hxi]),
-      by simp only [dif_neg hix, dif_neg hxi, option.cases_on'_some, fin.succ_above_below _ _ hi,
-        fin.cast_succ_cast_lt],
+  left_inv := λ x, cases_succ_above,
   right_inv := λ x, by {
     cases x,
     { simp },

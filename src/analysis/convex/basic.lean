@@ -404,7 +404,7 @@ section add_comm_monoid
 variables [add_comm_monoid E]
 
 /-- Convexity of sets. -/
-def convex [has_scalar 𝕜 E](s : set E) :=
+def convex [has_scalar 𝕜 E] (s : set E) :=
 ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → a + b = 1 →
   a • x + b • y ∈ s
 
@@ -1035,7 +1035,7 @@ end convex_hull
 
 section simplex
 
-variables (ι : Type*) [ordered_semiring 𝕜] [add_comm_group E] [fintype ι] [module 𝕜 E]
+variables (ι : Type*) [ordered_semiring 𝕜] [fintype ι]
 
 /-- The standard simplex in the space of functions `ι → 𝕜` is the set of vectors with non-negative
 coordinates with total sum `1`. This is the free object in the category of convex spaces.-/

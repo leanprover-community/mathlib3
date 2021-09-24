@@ -1729,20 +1729,6 @@ begin
     ((condexp_ae_eq_condexp_L1 _).symm.add (condexp_ae_eq_condexp_L1 _).symm),
 end
 
-lemma condexp_neg (f : α → F') : μ[-f|hm] =ᵐ[μ] - μ[f|hm] :=
-begin
-  by_cases hf : integrable f μ,
-  { refine (condexp_ae_eq_condexp_L1 (-f)).trans _,
-    rw condexp_L1_neg f,
-    refine (coe_fn_neg _).trans _,
-    refine (@condexp_ae_eq_condexp_L1 _ _ _ _ _ _ _ _ m _ _ hm _ f).mono (λ x hx, _),
-    rw [pi.neg_apply, ← hx, pi.neg_apply],
-    },
-  { refine (condexp_undef (mt integrable_neg_iff.mp hf)).trans _,
-    refine (@condexp_undef _ _ _ _ _ _ _ _ _ _ _ hm _ _ hf).mono (λ x hx, _),
-    rw [pi.neg_apply, hx, pi.zero_apply, neg_zero], },
-end
-
 lemma condexp_smul (c : 𝕜) (f : α → F') : μ[c • f | hm] =ᵐ[μ] c • μ[f|hm] :=
 begin
   by_cases hf : integrable f μ,
@@ -1757,6 +1743,12 @@ begin
     refine (@condexp_undef _ _ _ _ _ _ _ _ _ _ _ hm _ _ hf).mono (λ x hx, _),
     rw [pi.zero_apply, pi.smul_apply, hx, pi.zero_apply, smul_zero], },
 end
+
+lemma condexp_neg (f : α → F') : μ[-f|hm] =ᵐ[μ] - μ[f|hm] :=
+by letI : module ℝ (α → F') := @pi.module α (λ _, F') ℝ _ _ (λ _, infer_instance);
+calc μ[-f|hm] = μ[(-1 : ℝ) • f|hm] : by rw neg_one_smul ℝ f
+... =ᵐ[μ] (-1 : ℝ) • μ[f|hm] : condexp_smul (-1) f
+... = -μ[f|hm] : neg_one_smul ℝ (μ[f|hm])
 
 lemma condexp_sub (hf : integrable f μ) (hg : integrable g μ) :
   μ[f - g | hm] =ᵐ[μ] μ[f|hm] - μ[g|hm] :=

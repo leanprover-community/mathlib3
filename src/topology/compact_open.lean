@@ -44,6 +44,7 @@ section compact_open
 variables {α : Type*} {β : Type*} {γ : Type*}
 variables [topological_space α] [topological_space β] [topological_space γ]
 
+/-- A generating set for the compact-open topology (when `s` is compact and `u` is open). -/
 def compact_open.gen (s : set α) (u : set β) : set C(α,β) := {f | f '' s ⊆ u}
 
 -- The compact-open topology on the space of continuous maps α → β.
@@ -79,10 +80,13 @@ end functorial
 section ev
 
 variables (α β)
+
+/-- The evaluation map `map C(α, β) × α → β` -/
 def ev (p : C(α, β) × α) : β := p.1 p.2
 
 variables {α β}
--- The evaluation map C(α, β) × α → β is continuous if α is locally compact.
+
+/-- The evaluation map `C(α, β) × α → β` is continuous if `α` is locally compact. -/
 lemma continuous_ev [locally_compact_space α] : continuous (ev α β) :=
 continuous_iff_continuous_at.mpr $ assume ⟨f, x⟩ n hn,
   let ⟨v, vn, vo, fxv⟩ := mem_nhds_iff.mp hn in
@@ -209,6 +213,9 @@ end Inf_induced
 section coev
 
 variables (α β)
+
+/-- The coevaluation map `β → C(α, β × α)` sending a point `x : β` to the continuous function
+on `α` sending `y` to `(x, y)`. -/
 def coev (b : β) : C(α, β × α) := ⟨λ a, (b, a), continuous.prod_mk continuous_const continuous_id⟩
 
 variables {α β}

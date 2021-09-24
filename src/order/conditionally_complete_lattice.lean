@@ -521,14 +521,6 @@ lemma csupr_mem_Inter_Icc_of_antitone_Icc [nonempty β] [semilattice_sup β]
 monotone.csupr_mem_Inter_Icc_of_antitone (λ m n hmn, ((Icc_subset_Icc_iff (h' n)).1 (h hmn)).1)
   (λ m n hmn, ((Icc_subset_Icc_iff (h' n)).1 (h hmn)).2) h'
 
-/-- Nested intervals lemma: if `[f n, g n]` is an antitone sequence of nonempty
-closed intervals, then `⨆ n, f n` belongs to all the intervals `[f n, g n]`. -/
-lemma csupr_mem_Inter_Icc_of_antitone_Icc_nat
-  {f g : ℕ → α} (h : ∀ n, Icc (f (n + 1)) (g (n + 1)) ⊆ Icc (f n) (g n)) (h' : ∀ n, f n ≤ g n) :
-  (⨆ n, f n) ∈ ⋂ n, Icc (f n) (g n) :=
-monotone.csupr_mem_Inter_Icc_of_antitone
-  (@monotone_nat_of_le_succ (order_dual $ set α) _ (λ n, Icc (f n) (g n)) h) h'
-
 lemma finset.nonempty.sup'_eq_cSup_image {s : finset β} (hs : s.nonempty) (f : β → α) :
   s.sup' hs f = Sup (f '' s) :=
 eq_of_forall_ge_iff $ λ a,

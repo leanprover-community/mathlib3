@@ -109,7 +109,7 @@ begin
       exact (classical.some_spec (h i)).right, }, },
 end
 
-lemma smul_pi {K : Type*} [group_with_zero K] (ι : Type*) {r : K} (t : ι → set K) (S : set ι)
+lemma smul_pi' {K : Type*} [group_with_zero K] (ι : Type*) {r : K} (t : ι → set K) (S : set ι)
   (hr : r ≠ 0) : r • S.pi t = S.pi (λ (i : ι), r • t i) :=
 begin
   ext x,
@@ -130,6 +130,29 @@ begin
       split_ifs with hiS,
       exact (classical.some_spec (h i hiS)).right,
       rw mul_inv_cancel_left' hr, }, },
+end
+
+lemma smul_pi {K : Type*} [group K] (ι : Type*) {r : K} (t : ι → set K) (S : set ι) :
+  r • S.pi t = S.pi (λ (i : ι), r • t i) :=
+begin
+  ext x,
+  simp only [mem_smul_set, mem_pi],
+  split; intro h,
+  { rcases h with ⟨h_w, h_h_left, rfl⟩,
+    simp only [mul_eq_mul_left_iff, pi.smul_apply],
+    intros i hi,
+    refine ⟨h_w i, h_h_left i hi, rfl⟩, },
+  classical,
+  { use (λ i, if hiS : i ∈ S then classical.some (h i hiS) else r⁻¹ * x i),
+    split,
+    { intros i hiS,
+      split_ifs,
+      exact (classical.some_spec (h i hiS)).left, },
+    { ext i,
+      rw [pi.smul_apply, smul_eq_mul],
+      split_ifs with hiS,
+      exact (classical.some_spec (h i hiS)).right,
+      rw mul_inv_cancel_left, }, },
 end
 
 section

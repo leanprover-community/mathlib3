@@ -8,6 +8,7 @@ import ring_theory.witt_vector.teichmuller
 import ring_theory.witt_vector.compare
 import data.nat.modeq
 import topology.discrete_quotient
+import algebra.pointwise
 
 /-!
 # Weight spaces
@@ -339,7 +340,7 @@ begin
   { refine continuous_iff_is_closed.mp (continuous_to_zmod_pow p n) {a} _, simp, },
 end
 
---example {α : Type*} [h : has_add α] : has_add (set α) := by refine set.has_add
+example {α : Type*} [h : has_add α] : has_add (set α) := by refine set.has_add
 
 lemma add_ball (x y : ℤ_[p]) (r : ℝ) :
   ({x} : set ℤ_[p]) + metric.ball y r = metric.ball (x + y) r :=
@@ -641,13 +642,13 @@ lemma sequence_limit_eq {α : Type*} (a : @eventually_constant_seq α) (m : ℕ)
   (hm : sequence_limit_index' a ≤ m) : sequence_limit a = a.to_seq m := sorry
 
 def equi_class (n m : ℕ) (h : n < m) (a : zmod (p^n)) :=
- {b : zmod (p^m) | (b : zmod (p^n)) = a}
+ {b : zmod (d * p^m) | (b : zmod (p^n)) = a}
 
-instance (n m : ℕ) (h : n < m) (a : zmod (p^n)) : fintype (equi_class p n m h a) := sorry
+instance (n m : ℕ) (h : n < m) (a : zmod (p^n)) : fintype (equi_class p d n m h a) := sorry
 
 /-- For m > n, E_c(χ_(b,a,n)) = ∑_{j, b_j = a mod p^n} E_c(χ_(b,b_j,m)) -/
 lemma sum_char_fn_dependent_Ec (m : ℕ) (a : zmod (p^m)) (b : zmod d) (hc : gcd c p = 1) :
-  E_c p d hc m a = ∑ x in set.to_finset (equi_class p m m.succ (lt_add_one m) a), E_c p d hc m.succ x :=
+  E_c p d hc m a = ∑ x in set.to_finset (equi_class p d m m.succ (lt_add_one m) a), E_c p d hc m.succ x :=
 sorry
 
 lemma loc_const_const (f : locally_constant (zmod d × ℤ_[p]) R) (a : zmod d × ℤ_[p]) : ∃ N : ℕ, ∀ m ≥ N,
@@ -676,27 +677,50 @@ lemma factor_F (f : locally_constant (zmod d × ℤ_[p]) R) :
 
 example {α : Type*} [h : fintype α] : fintype (@set.univ α) := by refine set_fintype set.univ
 
+lemma mul_prime_pow_pos (m : ℕ) : 0 < d * p^m := sorry
+
+def zmod' (n : ℕ) (h : 0 < n) : finset (zmod n) :=
+  @finset.univ _ (@zmod.fintype n (fact_iff.2 h))
+
+--def zmod' (n : ℕ) (h : fact (0 < n)) : finset (zmod n) :=
+--  @set.to_finset _ (@set.univ (zmod n)) (@set_fintype _ (@zmod.fintype n h) set.univ _)
+
+lemma coe_sort_eq (m : ℕ) : zmod (d * p ^ m) = (zmod' (d * p ^ m) (mul_prime_pow_pos p d m)) :=
+begin
+  unfold zmod', rw ←finset.coe_sort_coe,
+end
+#exit
 noncomputable def g (hc : gcd c p = 1) (hd : 0 < d) (f : locally_constant (zmod d × ℤ_[p]) R) :
   @eventually_constant_seq R :=
-{
-  to_seq := λ (n : ℕ),
+{ to_seq := λ (n : ℕ),
     have hpos : 0 < d * p^n := mul_pos hd (pow_pos (nat.prime.pos (fact_iff.1 _inst_3)) n),
     by
        letI : fintype (zmod (d * p^n)) := @zmod.fintype _ ⟨hpos⟩; exact
-    ∑ a : (zmod (d * p^n)), f(a) • ((E_c p d hc n a) : R),
+    ∑ a : (zmod' (d * p^n) (mul_prime_pow_pos p d n)), f(a) • ((E_c p d hc n a) : R),
   is_eventually_const := ⟨classical.some (factor_F p d R f),
   begin
-  simp, rintros m hm,
-  set t := λ a : zmod (d * p ^ m), set.to_finset ((equi_class p m m.succ (lt_add_one m)) a) with ht,
-  have := @finset.sum_bUnion _ _ _ _ _ _ (zmod' (d*p^m) _) t _,
-  have : zmod' (d*p^m.succ) _ = (zmod' (d*p^m) _).bUnion t,
-  rw @finset.sum_bUnion _ (finset.range (d*p^m)) t _,
---  conv_rhs { apply_congr, skip, rw sum_char_fn_dependent_Ec p d m (x : zmod (d * p^m)) _ hc, },
-  obtain ⟨t, ht⟩ := f.discrete_quotient,
-  have com := compact_space.elim_nhds_subcover (λ x, locally_con)
-  have := loc_const_const p d R f, simp, sorry, end⟩,
-}
+  simp, rintros m hm, -- why is the simp needed?
+  set t := λ a : zmod (d * p ^ m), set.to_finset ((equi_class p d m m.succ (lt_add_one m)) a) with ht,
+  have : zmod' (d*p^m.succ) (mul_prime_pow_pos p d m.succ) = (zmod' (d*p^m) (mul_prime_pow_pos p d m)).bUnion t,
+  { sorry, },
+  rw this,
+  convert_to ∑ (x : zmod (d * p ^ m.succ)) in ((zmod' (d * p ^ m) (mul_prime_pow_pos p d m)).bUnion t), ((f x) * ↑(E_c p d hc m.succ ↑x)) = _,
+  { sorry, },
+  rw @finset.sum_bUnion _ _ _ _ _ _ (zmod' (d*p^m) (mul_prime_pow_pos p d m)) t _,
+  { simp only [zmod.cast_id', id.def, pow_pos],
+    have : ∀ (x : zmod (d * p^m)) (y : zmod (d * p^m.succ)), y ∈ (t x) → f y = f x,
+    sorry,
+    have f1 : ∀ (x : zmod (d * p^m)), ∑ (x : zmod (d * p ^ m.succ)) in t x, ((E_c p d hc m.succ x) : R) = (E_c p d hc m x), sorry,
+    conv_lhs { apply_congr, skip, conv { apply_congr, skip, rw this x x_1 H_1, }, rw [←finset.mul_sum], rw [f1 x], },
+    congr,
+    {
+      unfold zmod', rw finset.univ, sorry, },
+    { sorry, },
+    { sorry, }, },
+  { sorry, }, end⟩, }
+
 #exit
+
 lemma g_def (hc : gcd c p = 1) (f : locally_constant (zmod d × ℤ_[p]) R) (n : ℕ) :
   (g p d R hc f).to_seq n = ∑ a in (finset.range (d * p^n)),f(a) • ((E_c p d hc n a) : R) := rfl
 

@@ -549,7 +549,7 @@ by simpa only [sub_eq_add_neg] using (integral_add hf hg.neg).trans (congr_arg _
 
 @[simp] lemma integral_smul {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]
   [smul_comm_class ℝ 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜]
-  (r : 𝕜) : ∫ x in a..b, r • f x ∂μ = r • ∫ x in a..b, f x ∂μ :=
+  (r : 𝕜) (f : α → E) : ∫ x in a..b, r • f x ∂μ = r • ∫ x in a..b, f x ∂μ :=
 by simp only [interval_integral, integral_smul, smul_sub]
 
 lemma integral_const' (c : E) :

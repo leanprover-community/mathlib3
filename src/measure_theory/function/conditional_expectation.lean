@@ -59,6 +59,14 @@ For a measure `μ` defined on a measurable space structure `m0`, another measura
 `m` with `hm : m ≤ m0` (a sub-sigma-algebra) and a function `f`, we define the notation
 * `μ[f|hm] = condexp hm μ f`.
 
+## Implementation notes
+
+Most of the results in this file are valid for a second countable, borel, real normed space `F`.
+However, some lemmas also use `𝕜 : is_R_or_C`:
+* `condexp_L2` is defined only for an `inner_product_space` for now, and we use `𝕜` for its field.
+* results about scalar multiplication are stated not only for `ℝ` but also for `𝕜` if we happen to
+  have `normed_space 𝕜 F` and `is_scalar_tower ℝ 𝕜 F'`.
+
 ## Tags
 
 conditional expectation, conditional expected value

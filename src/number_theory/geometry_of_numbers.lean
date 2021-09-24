@@ -5,7 +5,7 @@ Authors: Alex J. Best
 -/
 import measure_theory.measure.haar_lebesgue
 import analysis.convex.basic
-import algebra.ordered_pointwise
+import algebra.order.pointwise
 import topology.bases
 
 /-!
@@ -151,49 +151,6 @@ lemma smul_set_inter {α β : Type*} [group α] (a : α) [mul_action α β] {s t
 begin
   erw [← image_smul, image_inter],
   exact mul_action.injective a,
-end
-
-lemma measure_null_of_null_right {α : Type*} [measurable_space α] {μ : measure α} (S : set α)
-  {T : set α} (h : μ T = 0) : μ (S ∩ T) = 0 :=
-measure_mono_null (inter_subset_right S T) h
-
-lemma measure_null_of_null_left {α : Type*} [measurable_space α] {μ : measure α} {S : set α}
-  (T : set α) (h : μ S = 0) : μ (S ∩ T) = 0 :=
-measure_mono_null (inter_subset_left S T) h
-
-lemma measure_Union_of_null_inter {α β : Type*} [measurable_space α] {μ : measure α} [encodable β]
-  {f : β → set α} (hn : pairwise ((λ S T, μ (S ∩ T) = 0) on f)) (h : ∀ i, measurable_set (f i)) :
-  μ (⋃ i, f i) = ∑' i, μ (f i) :=
-begin
-  have h_null : μ (⋃ (ij : β × β) (hij : ij.fst ≠ ij.snd), f ij.fst ∩ f ij.snd) = 0,
-  { rw measure_Union_null_iff,
-    rintro ⟨i, j⟩,
-    by_cases hij : i = j,
-    { simp [hij], },
-    { simp [hij], -- TODO squeeze_simp doesn't work
-      apply hn i j hij, }, },
-  have h_pair : pairwise (disjoint on
-    (λ i, f i \ (⋃ (ij : β × β) (hij : ij.fst ≠ ij.snd), f ij.fst ∩ f ij.snd))),
-  { intros i j hij x hx,
-    simp only [not_exists, exists_prop, mem_Union, mem_inter_eq, not_and,
-      inf_eq_inter, ne.def, mem_diff, prod.exists] at hx,
-    simp only [mem_empty_eq, bot_eq_empty],
-    rcases hx with ⟨⟨hx_left_left, hx_left_right⟩, hx_right_left, hx_right_right⟩,
-    exact hx_left_right _ _ hij hx_left_left hx_right_left, },
-  have h_meas :
-    ∀ i, measurable_set (f i \ (⋃ (ij : β × β) (hij : ij.fst ≠ ij.snd), f ij.fst ∩ f ij.snd)),
-  { intro w,
-    apply (h w).diff,
-    apply measurable_set.Union,
-    rintro ⟨i, j⟩,
-    by_cases hij : i = j,
-    { simp [hij], },
-    { simp [hij],
-      exact measurable_set.inter (h i) (h j), }, },
-  have : μ _ = _ := measure_Union h_pair h_meas,
-  rw ← Union_diff at this,
-  simp_rw measure_diff_null h_null at this,
-  exact this,
 end
 
 end
@@ -369,66 +326,29 @@ begin
       use [l],
       refine ⟨_, hl, _⟩,
       rw [inv_smul_smul], },
+    { intro l,
+      exact hS.inter (F.measurable_set_smul l⁻¹), },
     { intros x y hxy,
       change volume _ = 0,
       rw inter_assoc,
-      apply measure_null_of_null_right,
+      apply measure_inter_null_of_null_right,
       rw [inter_comm, inter_assoc],
-      apply measure_null_of_null_right,
+      apply measure_inter_null_of_null_right,
       rw ← h_smul_left.volume_smul y
         ((F.measurable_set_smul y⁻¹).inter (F.measurable_set_smul x⁻¹)),
       simp only [smul_set_inter, smul_inv_smul],
       rw [smul_smul],
-      apply measure_null_of_subset_null (F.domain.inter_subset_inter_right _) F.almost_disjoint,
+      apply measure_mono_null (F.domain.inter_subset_inter_right _) F.almost_disjoint,
       intros t ht,
       rw mem_Union,
       use y * x⁻¹,
       rw [ne.def, mul_inv_eq_one, mem_Union],
-      exact ⟨hxy.symm, ht⟩, },
-    { intro l,
-      exact hS.inter (F.measurable_set_smul l⁻¹), }, },
+      exact ⟨hxy.symm, ht⟩, }, },
   { congr,
     ext1 l,
     rw h_smul_left.volume_smul,
     exact (_root_.measurable_set_smul l hS).inter F.measurable_set_domain, },
 end
-
-def map (Y X : Type*) [measurable_space X] [measure_space Y] [group X] [mul_action X Y]
-  [has_measurable_smul X Y] (F : fundamental_domain Y X) (S : subgroup X) [S.normal]
-  [fintype (quotient_group.quotient S)] : fundamental_domain Y S :=
-{ domain := ⋃ g : quotient_group.quotient S, g.out' • F.domain,
-  measurable_set_domain := begin
-    apply' measurable_set.Union,
-    exact fintype.encodable _,
-    intro b,
-    exact F.measurable_set_smul _, -- TODO do we really need all these assumptions for this
-  end,
-  almost_disjoint := begin
-    rw ← nonpos_iff_eq_zero, -- TODO we did the same tricks somewhere else, this needs a lemma
-    rw ← F.almost_disjoint, -- TODO wrong
-    apply measure_mono,
-    simp only [subset_inter_iff, ne.def],
-    sorry,
-  end,
-  covers := begin
-    intro y,
-    obtain ⟨l, hl⟩ := F.covers y,
-    obtain ⟨x, hx⟩ := quotient_group.mk_out'_eq_mul S l⁻¹,
-    use x,
-    refine mem_Union.mpr _,
-    use quotient_group.mk' S (l⁻¹),
-    -- rw mem_smul_set_iff_inv_smul_mem,
-    -- TODO version of mem_smul_set_iff_inv_smul_mem for regular gps?
-    rw mem_smul_set,
-    refine ⟨_, hl, _⟩,
-    rw smul_smul,
-    congr' 1,
-    simp at *,
-    have := mul_eq_of_eq_inv_mul hx,
-    rw ← this,
-    simp,
-    rw mul_smul,
-  end }
 
 
 end fundamental_domain
@@ -454,8 +374,8 @@ begin
   rw [measure.comap_apply _ subtype.val_injective, set.image_univ],
   { congr,
     exact subtype.range_val, },
-  { intros x hx,
-    exact measurable_set.subtype_image hmp hx, },
+  { intros x,
+    exact measurable_set.subtype_image hmp, },
   { exact measurable_set.univ, }
 end
 
@@ -587,13 +507,13 @@ open ennreal fintype
 lemma exists_nonzero_mem_lattice_of_volume_mul_two_pow_card_lt_volume [fintype ι]
   (L : add_subgroup (ι → ℝ)) [encodable.{u} L] (F : add_fundamental_domain (ι → ℝ) L)
   (S : set (ι → ℝ)) (hS : measurable_set S) (h : volume F.domain * 2 ^ (card ι) < volume S)
-  (h_symm : ∀ x ∈ S, -x ∈ S) (h_conv : convex S) : ∃ (x : L) (h : x ≠ 0), (x : ι → ℝ) ∈ S :=
+  (h_symm : ∀ x ∈ S, -x ∈ S) (h_conv : convex ℝ S) : ∃ (x : L) (h : x ≠ 0), (x : ι → ℝ) ∈ S :=
 begin
   have mhalf : measurable_set ((1/2 : ℝ) • S),
   { convert measurable_const_smul (2 : ℝ) hS,
     ext x,
     simp only [one_div, set.mem_preimage],
-    exact mem_inv_smul_set_iff two_ne_zero S x, },
+    exact mem_inv_smul_set_iff' two_ne_zero S x, },
   have : volume ((1/2 : ℝ) • S) * 2 ^ (card ι) = volume S,
   { suffices : volume ((1/2 : ℝ) • S) = (1 / 2) ^ (card ι) * volume S,
     { rw [this, mul_comm _ (volume S), mul_assoc, ← mul_pow, one_div,

@@ -8,6 +8,7 @@ import data.nat.prime
 import tactic.interval_cases
 import tactic.cancel_denoms
 import tactic.linarith
+import data.nat.totient
 
 
 /-!
@@ -30,19 +31,8 @@ def prime_counting' (n : ℕ) : ℕ := ((range n).filter (prime)).card
 def prime_counting (n : ℕ) : ℕ := ((range (n + 1)).filter (prime)).card
 
 localized "notation `π` := nat.prime_counting" in nat
+localized "notation `π'` := nat.prime_counting'" in nat
 
-lemma prime_mod_six (p : ℕ) (h : p.prime) : p = 2 ∨ p = 3 ∨ p % 6 = 1 ∨ p % 6 = 5 :=
-begin
-  have : p % 6 < 6,
-    apply mod_lt, dec_trivial,
-  interval_cases p % 6,
-  { sorry, },
-  { finish, },
-  { sorry, },
-  { sorry, },
-  { sorry, },
-  { finish, },
-end
 
 lemma filter_mod_eq_range_card (a b n : ℕ) :
   (filter (λ (i : ℕ), i % a = b) (range n)).card = (n - b) / a :=
@@ -50,41 +40,32 @@ begin
   sorry,
 end
 
-/-- A simple linear bound on the size of the prime counting function -/
-lemma linear_prime_counting_bound (n : ℕ) : π n ≤ n / 3 + 2 :=
-calc π n ≤ ((range (n + 1)).filter (λ i, i = 2 ∨ i = 3 ∨ i % 6 = 1 ∨ i % 6 = 5)).card :
+-- TODO prove π is nondecreasing
+
+/-- A simple linear bound on the size of the `prime_counting'` function -/
+lemma linear_prime_counting_bound (n k : ℕ) : π' n ≤ π' k + nat.totient k * (n - k) / k :=
+calc π' n ≤ ((range k).filter (prime)).card + ((Ico k n).filter (prime)).card :
             begin
-              rw prime_counting,
+              rw prime_counting',
+              have h : (range n).filter prime = (range k).filter prime ∪ (Ico k n).filter prime,
+                { sorry, },
+              rw h,
+              apply card_union_le,
+            end
+     ... ≤ π' k + ((Ico k n).filter (prime)).card :
+            begin
+              rw prime_counting',
+            end
+     ... ≤ π' k + ((Ico k n).filter (λ i, coprime i k)).card :
+            begin
+              apply add_le_add_left,
               apply card_le_of_subset,
-              simp only [subset_iff, and_imp, mem_filter, mem_range],
-              intros x hxn hxp,
-              exact ⟨hxn, prime_mod_six x hxp⟩,
-            end
-     ... ≤ 1 + (1 + (n / 6 + n / 6)) :
-            begin
-              repeat {rw filter_or},
-              repeat { transitivity, apply card_union_le, apply add_le_add,},
-              { rw filter_eq', simp only [if_congr, finset.mem_range],
-                by_cases 2 < n + 1,
-                  { rw if_pos, simp, exact h, },
-                  { rw if_neg, simp, exact h, }, },
-              { rw filter_eq', simp only [if_congr, finset.mem_range],
-                by_cases 3 < n + 1,
-                  { rw if_pos, simp, exact h, },
-                  { rw if_neg, simp, exact h, }, },
-              { rw filter_mod_eq_range_card,
-                simp, },
-              { rw filter_mod_eq_range_card,
-                apply nat.div_le_div_right,
-                simp, },
-            end
-     ... ≤ n / 3 + 2 :
-            begin
-              have : 0 < 6, dec_trivial,
-              rw <-mul_le_mul_left this,
-              simp only [mul_add],
               sorry,
             end
-
+     ... ≤ π' k + nat.totient k * (n - k) / k :
+            begin
+              apply add_le_add_left,
+              sorry,
+            end
 
 end nat

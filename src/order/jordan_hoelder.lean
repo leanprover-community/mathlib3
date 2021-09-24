@@ -318,12 +318,12 @@ s.strict_mono.monotone (fin.zero_le _)
 lemma bot_le_of_mem {s : composition_series X} {x : X} (hx : x ∈ s) : s.bot ≤ x :=
 let ⟨i, hi⟩ := set.mem_range.2 hx in hi ▸ bot_le _
 
-instance : set_like (composition_series X) X :=
-{ coe := λ s, set.range s,
-  coe_injective' := λ s₁ s₂ h, ext $ λ x, begin
-    dsimp at h,
-    rw [mem_def, mem_def, h]
-  end }
+-- instance : set_like (composition_series X) X :=
+-- { coe := λ s, set.range s,
+--   coe_injective' := λ s₁ s₂ h, ext $ λ x, begin
+--     dsimp at h,
+--     rw [mem_def, mem_def, h]
+--   end }
 
 lemma length_pos_of_mem_ne {s : composition_series X}
   {x y : X} (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y) :
@@ -339,55 +339,6 @@ hij.lt_or_lt.elim
 lemma forall_mem_eq_of_length_eq_zero {s : composition_series X}
   (hs : s.length = 0) {x y} (hx : x ∈ s) (hy : y ∈ s) : x = y :=
 by_contradiction (λ hxy, pos_iff_ne_zero.1 (length_pos_of_mem_ne hx hy hxy) hs)
-
-/-- `s.take i` returns the inital segment of `s` up to and including
-the `i`th term.  -/
-@[simps] def take (s : composition_series X) (i : fin (s.length + 1)) :
-  composition_series X :=
-{ length := i,
-  series := λ j, s (fin.cast_le (nat.succ_le_of_lt i.2) j),
-  step' := λ j,
-    by simpa using s.step (fin.cast_le (nat.le_of_lt_succ i.2) j) }
-
-@[simp] lemma top_take  (s : composition_series X) (i : fin (s.length + 1)) :
-  (s.take i).top = s i :=
-begin
-  cases i,
-  simp [top, fin.ext_iff],
-end
-
-@[simp] lemma bot_take  (s : composition_series X) (i : fin (s.length + 1)) :
-  (s.take i).bot = s.bot := rfl
-
-/-- `s.drop i` returns the final segment of `s` starting at and including
-the `i`th term.  -/
-@[simps] def drop (s : composition_series X) (i : fin (s.length + 1)) :
-  composition_series X :=
-{ length := s.length - i,
-  series :=
-    have (i : ℕ) + (s.length - i + 1) = s.length + 1,
-      by rw [← add_assoc, nat.add_sub_cancel' (nat.le_of_lt_succ i.is_lt)],
-    λ j, s (fin.cast this (fin.cast_add_right i j)),
-  step' := λ j, begin
-    have := s.step (fin.cast (nat.add_sub_cancel'
-      (nat.le_of_lt_succ i.is_lt)) (fin.cast_add_right i j)),
-    cases j,
-    simpa
-  end }
-
-@[simp] lemma top_drop  (s : composition_series X) (i : fin (s.length + 1)) :
-  (s.drop i).top = s.top :=
-begin
-  cases i with _ hi,
-  simp [top, fin.ext_iff, nat.add_sub_cancel' (nat.le_of_lt_succ hi)],
-end
-
-@[simp] lemma bot_drop  (s : composition_series X) (i : fin (s.length + 1)) :
-  (s.drop i).bot = s i :=
-begin
-  cases i,
-  simp [bot, fin.ext_iff],
-end
 
 /-- Remove the largest element from a `composition_series`. If the series `s`
 has length zero, then `s.erase_top = s` -/
@@ -428,11 +379,11 @@ begin
     simp [fin.ext_iff, nat.mod_eq_of_lt hi] }
 end
 
-lemma erase_top_le (s : composition_series X) : s.erase_top ≤ s :=
-begin
-  rintros x ⟨i, rfl⟩,
-  simp [mem_def, erase_top],
-end
+-- lemma erase_top_le (s : composition_series X) : s.erase_top ≤ s :=
+-- begin
+--   rintros x ⟨i, rfl⟩,
+--   simp [mem_def, erase_top],
+-- end
 
 lemma mem_erase_top {s : composition_series X} {x : X}
   (h : 0 < s.length) : x ∈ s.erase_top ↔ x ≠ s.top ∧ x ∈ s :=
@@ -466,145 +417,6 @@ begin
   rw [top_erase_top, top],
   convert s.step ⟨s.length - 1, nat.sub_lt h zero_lt_one⟩;
   ext; simp [this]
-end
-
-/-- Remove the smallest element from a `composition_series`. If the series `s`
-has length zero, then `s.erase_bot = s` -/
-@[simps] def erase_bot (s : composition_series X) : composition_series X :=
-{ length := s.length - 1,
-  series := λ i, if h0s : 0 < s.length then s (fin.succ ⟨i,
-    (by conv_rhs {rw [← nat.sub_add_cancel h0s]}; exact i.is_lt)⟩)
-    else s.top,
-  step' := λ i, begin
-    have := s.step (⟨i + 1, nat.add_lt_of_lt_sub_right i.2⟩),
-    have h0s : 0 < s.length,
-      from lt_of_lt_of_le (fin.pos_iff_nonempty.2 ⟨i⟩) (nat.sub_le_self _ _),
-    cases i,
-    simpa [h0s]
-  end }
-
-lemma bot_erase_bot (s : composition_series X) (h0s : 0 < s.length):
-  s.erase_bot.bot = s ⟨1, nat.succ_lt_succ h0s⟩ :=
-by simp [erase_bot, bot, h0s]
-
-lemma le_erase_bot_bot (s : composition_series X) : s.bot ≤ s.erase_bot.bot :=
-by simp [erase_bot, bot, fin.le_iff_coe_le_coe, nat.sub_le_self];
-  split_ifs; simp [s.strict_mono.le_iff_le, fin.le_iff_coe_le_coe]
-
-@[simp] lemma top_erase_bot (s : composition_series X) : s.erase_bot.top = s.top :=
-begin
-  simp [erase_bot, top],
-  split_ifs,
-  { simp [fin.ext_iff, nat.sub_add_cancel h] },
-  { refl }
-end
-
-lemma mem_erase_bot_of_ne_of_mem {s : composition_series X} {x : X}
-  (hx : x ≠ s.bot) (hxs : x ∈ s) : x ∈ s.erase_bot :=
-begin
-  rcases hxs with ⟨i, rfl⟩,
-  have hi0 : (0 : ℕ) < i, from nat.pos_of_ne_zero (by simpa [bot, fin.ext_iff] using hx),
-  have hi : (i - 1 : ℕ) < (s.length - 1).succ,
-  { conv_rhs { rw [← nat.succ_sub (length_pos_of_mem_ne ⟨i, rfl⟩ s.bot_mem hx),
-      nat.succ_sub_one] },
-    exact (nat.sub_lt_right_iff_lt_add hi0).2 i.2 },
-  refine ⟨⟨i - 1, hi⟩, _⟩,
-  dsimp [erase_bot],
-  split_ifs,
-  { simp [fin.ext_iff, nat.sub_add_cancel hi0] },
-  { cases i,
-    simp [*, bot, top, fin.ext_iff] at *,
-    simp * at *}
-end
-
-lemma erase_bot_le (s : composition_series X) : s.erase_top ≤ s :=
-begin
-  rintros x ⟨i, rfl⟩,
-  simp [mem_def],
-end
-
-lemma mem_erase_bot {s : composition_series X} {x : X}
-  (h0s : 0 < s.length) : x ∈ s.erase_bot ↔ x ≠ s.bot ∧ x ∈ s :=
-begin
-  simp only [mem_def],
-  dsimp only [erase_bot, coe_fn_mk],
-  split,
-  { rintros ⟨i, rfl⟩,
-    have hi : (i : ℕ) < s.length,
-    { conv_rhs { rw [← nat.succ_sub_one s.length, nat.succ_sub h0s] },
-      exact i.2 },
-    simp [bot, fin.ext_iff, (ne_of_lt hi), h0s] },
-  { intro h,
-    exact mem_erase_bot_of_ne_of_mem h.1 h.2 }
-end
-
-lemma bot_lt_of_mem_erase_bot
-  {s : composition_series X} {x : X}
-  (h : 0 < s.length)
-  (hx : x ∈ s.erase_bot) :
-  s.bot < x :=
-lt_of_le_of_ne
-  (bot_le_of_mem ((mem_erase_bot h).1 hx).2)
-  ((mem_erase_bot h).1 hx).1.symm
-
-lemma is_maximal_bot_erase_bot {s : composition_series X} (h : 0 < s.length) :
-  is_maximal s.bot s.erase_bot.bot :=
-have s.length - 1 + 1 = s.length,
-  by conv_rhs { rw [← nat.succ_sub_one s.length] }; rw nat.succ_sub h,
-begin
-  rw [bot_erase_bot s h, bot],
-  convert s.step ⟨0, h⟩,
-end
-
-/-- If `s.top` and `x` are both maximal inside `y`, and `¬ s i ≤ x`, then
-`x ⊓ s i` is maximal inside `s i` -/
-lemma is_maximal_inf_series'
-  {s : composition_series X} {x y : X}
-  {i : fin (s.length + 1)}
-  (hy : is_maximal x y)
-  (ht : is_maximal s.top y):
-  ¬ s i ≤ x →
-  is_maximal (x ⊓ s i) (s i) :=
-begin
-  refine fin.reverse_induction _ _ i,
-  { intro hb,
-    refine is_maximal_of_eq_inf _ _ rfl _ hy ht,
-    { rintro rfl,
-      exact hb (le_refl _) } },
-  { intros i ih hb,
-    refine is_maximal_of_eq_inf (x ⊓ s i.succ) _ _ _ (ih _) (s.step i),
-    { rw [inf_assoc, inf_eq_right.2 (le_of_lt (lt_of_is_maximal (s.step _))), inf_comm] },
-    { assume h,
-      exact hb (h ▸ inf_le_left) },
-    { assume h,
-      exact hb (le_trans (s.strict_mono.monotone (le_of_lt i.cast_succ_lt_succ)) h) } }
-end
-
-/-- If `x` is maximal inside `s j`, and `¬ s i ≤ x` and `i ≤ j`, then
-`x ⊓ s i` is maximal inside `s i` -/
-lemma is_maximal_inf_series
-  {s : composition_series X} {x : X}
-  {i j : fin (s.length + 1)}
-  (hij : i ≤ j)
-  (hm : is_maximal x (s j))
-  (hb : ¬ s i ≤ x) : is_maximal (x ⊓ s i) (s i) :=
-begin
-  have : ∀ (t : composition_series X) (i : fin (t.length + 1)),
-    is_maximal x t.top → ¬ t i ≤ x → is_maximal (x ⊓ t i) (t i),
-  { intros t i hm,
-    refine fin.last_cases _ _ i,
-    { assume h,
-      erw [inf_eq_left.2 (le_of_lt (lt_of_is_maximal hm))],
-      exact hm },
-    { intros i hb,
-      have h0t : 0 < t.length,
-        from fin.pos_iff_nonempty.2 ⟨i⟩,
-      have := @is_maximal_inf_series' _ _ _ _ _ _
-        ⟨i, by rw [erase_top_length, nat.sub_add_cancel h0t]; exact i.2⟩
-        hm (is_maximal_erase_top_top h0t) hb,
-      exact this } },
-  let i' : fin ((s.take j).length + 1) := ⟨i, nat.lt_succ_of_le hij⟩,
-  simpa using this (s.take j) i' (by simpa using hm) (by simpa using hb)
 end
 
 lemma append_cast_add_aux
@@ -695,38 +507,6 @@ append_cast_add_right_aux i
   append s₁ s₂ h (fin.cast_add_right s₁.length i).succ = s₂ i.succ :=
 append_succ_cast_add_right_aux i
 
-@[simp] lemma top_append
-  {s₁ s₂ : composition_series X}
-  (h : s₁.top = s₂.bot) :
-  (append s₁ s₂ h).top = s₂.top :=
-by simp [top, append, fin.append, fin.ext_iff]
-
-@[simp] lemma bot_append
-  {s₁ s₂ : composition_series X}
-  (h : s₁.top = s₂.bot) :
-  (append s₁ s₂ h).bot = s₁.bot :=
-have s₁.length = 0 → s₁ 0 = s₁.top :=
-  λ h, forall_mem_eq_of_length_eq_zero h s₁.bot_mem s₁.top_mem,
-by revert this; simp [bot, append, fin.append, fin.ext_iff, h] { contextual := tt }
-
-lemma take_append_drop
-  (s : composition_series X) (i : fin (s.length + 1)) :
-  (s.take i).append (s.drop i) (by simp) = s :=
-begin
-  refine ext_fun _ _,
-  { simp [nat.add_sub_cancel' (nat.le_of_lt_succ i.is_lt)] },
-  { intro j,
-    refine fin.last_cases _ _ j,
-    { rw [← top, top_append],
-      simp [top, fin.ext_iff] },
-    { assume j,
-      refine fin.add_cases _ _ j,
-      { intro j,
-        simp [fin.ext_iff] },
-      { intro j,
-        simp [fin.ext_iff] } } }
-end
-
 /-- Add an element to the top of a `composition_series` -/
 @[simps length] def snoc
   (s : composition_series X)
@@ -811,158 +591,6 @@ have h : 0 < s.length,
   end,
 (eq_snoc_erase_top h).symm
 
-/-- Add an element to the bottom of a `composition_series` -/
-@[simps length] def cons
-  (s : composition_series X)
-  (x : X)
-  (hsat : is_maximal x s.bot) :
-  composition_series X :=
-{ length := s.length + 1,
-  series := fin.cons x s,
-  step' := λ i, begin
-    refine fin.cases _ _ i,
-    { rwa [fin.cons_succ, fin.cast_succ_zero, fin.cons_zero, ← bot] },
-    { intro i,
-      rw [fin.cons_succ, fin.cast_succ_fin_succ, fin.cons_succ],
-      exact s.step _ }
-  end }
-
-@[simp] lemma bot_cons
-  (s : composition_series X)
-  (x : X)
-  (hsat : is_maximal x s.bot) :
-  (cons s x hsat).bot = x :=
-by simp [bot, cons]
-
-@[simp] lemma cons_zero
-  (s : composition_series X)
-  (x : X)
-  (hsat : is_maximal x s.bot) :
-  cons s x hsat 0 = x :=
-bot_cons _ _ _
-
-@[simp] lemma cons_succ
-  (s : composition_series X)
-  (x : X)
-  (hsat : is_maximal x s.bot) (i : fin (s.length + 1)) :
-  cons s x hsat (i.succ) = s i :=
-fin.cons_succ _ _ _
-
-@[simp] lemma top_cons
-  (s : composition_series X)
-  (x : X)
-  (hsat : is_maximal x s.bot) :
-  (cons s x hsat).top = s.top :=
-begin
-  rw [top],
-  dsimp only [cons_length],
-  rw [← fin.succ_last, cons_succ, top]
-end
-
-lemma mem_cons
-  {s : composition_series X}
-  {x y: X}
-  {hsat : is_maximal x s.bot} :
-  y ∈ cons s x hsat ↔ y ∈ s ∨ y = x :=
-begin
-  simp only [snoc, mem_def],
-  split,
-  { rintros ⟨i, rfl⟩,
-    refine fin.cases _ (λ i, _) i,
-    { right, simp },
-    { left, simp } },
-  { intro h,
-    rcases h with ⟨i, rfl⟩ | rfl,
-    { use i.succ, simp },
-    { use 0, simp } }
-end
-
-lemma eq_cons_erase_bot
-  {s : composition_series X}
-  (h : 0 < s.length) :
-  s = cons (erase_bot s) s.bot
-    (is_maximal_bot_erase_bot h) :=
-begin
-  ext x,
-  simp [mem_cons, mem_erase_bot h],
-  by_cases h : x = s.bot; simp [*, s.bot_mem]
-end
-
-@[simp] lemma cons_erase_bot_bot {s : composition_series X}
-  (h : is_maximal s.bot s.erase_bot.bot) :
-  s.erase_bot.cons s.bot h = s :=
-have h : 0 < s.length,
-  from nat.pos_of_ne_zero begin
-    assume hs,
-    refine ne_of_gt (lt_of_is_maximal h) _,
-    simp [bot, fin.ext_iff, hs, erase_bot, top]
-  end,
-(eq_cons_erase_bot h).symm
-
-/-- For a composition series `s` and an element `x`, return the series
-whose `i`th term is `x ⊓ s i` -/
-@[simps] def infinum (s : composition_series X) (x : X)
-  (hm : is_maximal x s.top) (hb : ¬ s.bot ≤ x) :
-  composition_series X :=
-{ length := s.length,
-  series := λ i, x ⊓ s i,
-  step' := λ i, begin
-    generalize hj : i.succ = j,
-    revert i,
-    refine fin.last_cases _ _ j,
-    { intros i hj,
-      rw [top] at hm,
-      rw [inf_eq_left.2 (le_of_lt (lt_of_is_maximal hm))],
-      refine is_maximal_of_eq_inf _ _ inf_comm _ (s.step i) (hj.symm ▸ hm),
-      rintro rfl,
-      exact hb (bot_le _) },
-    { intros j i hj, rw [← hj],
-      exact is_maximal_of_eq_inf
-        (s i.cast_succ)
-        (s i.succ)
-        (by rw [inf_comm, inf_assoc, inf_eq_right.2
-          (le_of_lt (s.strict_mono (i.cast_succ_lt_succ)))])
-        (λ h, hb (le_trans (bot_le i.cast_succ) (h.symm ▸ inf_le_left)))
-        (s.step i)
-        (is_maximal_inf_series (fin.le_last _) hm
-          (λ h, hb (le_trans (s.strict_mono.monotone (fin.zero_le _)) h)))  }
-  end }
-
-@[simp] lemma infinum_top
-  (s : composition_series X) (x : X)
-  (hm : is_maximal x s.top) (hb : ¬ s.bot ≤ x) :
-  (s.infinum x hm hb).top = x :=
-begin
-  dsimp [top],
-  simpa [top] using le_of_lt (lt_of_is_maximal hm)
-end
-
-lemma iso_inf_mem_top
-  {s : composition_series X}
-  {x : X} {i : fin (s.length + 1)}
-  (hm : is_maximal x s.top) :
-  ∀ (hb : ¬s i ≤ x),
-  iso (x ⊓ s i, s i) (x, s.top) :=
-begin
-  refine fin.reverse_induction _ _ i,
-  { intro hb,
-    rw [← top, inf_eq_left.2],
-    { exact iso_refl_of_is_maximal hm },
-    { exact le_of_lt (lt_of_is_maximal hm) } },
-  { intros i ih hb,
-    have : ¬ s i.succ ≤ x,
-      from λ h, hb $ le_trans
-        (le_of_lt (s.strict_mono i.cast_succ_lt_succ)) h,
-    refine iso_trans _ (ih this),
-    exact iso_symm (second_iso_of_eq
-      (is_maximal_inf_series (fin.le_last _) hm this)
-      (sup_eq_of_is_maximal (is_maximal_inf_series (fin.le_last _) hm this)
-        (s.step i)
-        (λ h, hb (h ▸ inf_le_left)))
-      (by rw [inf_assoc, inf_eq_right.2
-        (le_of_lt (s.strict_mono i.cast_succ_lt_succ))])) }
-end
-
 /-- Two `composition_series X`, `s₁` and `s₂` are equivalent if there is a bijection
 `e : fin s₁.length ≃ fin s₂.length` such that for any `i`,
 `iso (s₁ i) (s₁ i.succ) (s₂ (e i), s₂ (e i.succ))` -/
@@ -1025,70 +653,6 @@ let e : fin s₁.length.succ ≃ fin s₂.length.succ :=
   { assume i,
     simpa [fin.succ_cast_succ] using hequiv.some_spec i }
 end⟩
-
-protected lemma cons
-  {s₁ s₂ : composition_series X}
-  {x₁ x₂ : X}
-  {hsat₁ : is_maximal x₁ s₁.bot}
-  {hsat₂ : is_maximal x₂ s₂.bot}
-  (hequiv : equivalent s₁ s₂)
-  (hbot : iso (x₁, s₁.bot) (x₂, s₂.bot)) :
-  equivalent (s₁.cons x₁ hsat₁) (s₂.cons x₂ hsat₂) :=
-let e : fin s₁.length.succ ≃ fin s₂.length.succ :=
-  calc fin (s₁.length + 1) ≃ option (fin s₁.length) : fin_succ_equiv _
-  ... ≃ option (fin s₂.length) : functor.map_equiv option hequiv.some
-  ... ≃ fin (s₂.length + 1) : (fin_succ_equiv _).symm in
-⟨e,  λ i, begin
-  refine fin.cases _ _ i,
-  { simpa [bot] using hbot },
-  { assume i,
-    simpa [← fin.succ_cast_succ] using hequiv.some_spec i }
-end⟩
-
-lemma cons_snoc
-  {s₁ s₂ : composition_series X}
-  {x₁ x₂ : X}
-  {hsat₁ : is_maximal x₁ s₁.bot}
-  {hsat₂ : is_maximal s₂.top x₂}
-  (hequiv : equivalent s₁ s₂)
-  (hbottop : iso (x₁, s₁.bot) (s₂.top, x₂)) :
-  equivalent (s₁.cons x₁ hsat₁) (s₂.snoc x₂ hsat₂) :=
-let e : fin s₁.length.succ ≃ fin s₂.length.succ :=
-  calc fin (s₁.length + 1) ≃ option (fin s₁.length) : fin_succ_equiv _
-  ... ≃ option (fin s₂.length) : functor.map_equiv option hequiv.some
-  ... ≃ fin (s₂.length + 1) : fin_succ_equiv_last.symm in
-⟨e,  λ i, begin
-  refine fin.cases _ _ i,
-  { simpa [bot] using hbottop },
-  { assume i,
-    simp [← fin.succ_cast_succ],
-    simpa [fin.succ_cast_succ] using hequiv.some_spec i }
-end⟩
-
-lemma infinum (s : composition_series X) (x : X)
-  (hm : is_maximal x s.top) (hb : ¬ s.bot ≤ x) :
-  equivalent (s.infinum x hm hb) s :=
-⟨equiv.refl _, λ i, begin simp,
-  refine iso_symm (second_iso_of_eq _ _ _),
-  { simpa using s.step i },
-  { refine sup_eq_of_is_maximal _ _ _,
-    { simpa using s.step i },
-    { exact is_maximal_inf_series (fin.le_last _) (by simpa)
-        (λ h, hb (le_trans (bot_le _) h)) },
-    { intro h,
-      refine hb (le_trans (bot_le i.cast_succ) _),
-      simp * at * } },
-  { simp [inf_left_comm, inf_eq_left.2 (le_of_lt (s.strict_mono (fin.cast_succ_lt_succ i)))] }
-end⟩
-
-lemma snoc_infinum_cons
-  (s : composition_series X) (x : X)
-  (hm : is_maximal x s.top) (hb : ¬ s.bot ≤ x) :
-  ((s.infinum x hm hb).snoc s.top (by simpa)).equivalent
-  (s.cons (x ⊓ s.bot) (is_maximal_inf_series (fin.zero_le _) hm hb)) :=
-equivalent.symm $ equivalent.cons_snoc
-  (equivalent.infinum _ _ _ _).symm
-  (by simpa [bot] using iso_inf_mem_top hm hb)
 
 lemma length_eq {s₁ s₂ : composition_series X} (h : equivalent s₁ s₂) : s₁.length = s₂.length :=
 by simpa using fintype.card_congr h.some

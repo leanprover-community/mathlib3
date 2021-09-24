@@ -29,30 +29,6 @@ the expected theorems about them.
   natural numbers.
 -/
 
-section to_move
-
-namespace set
-
-variables {α : Type*} {s t : set α}
-
--- TODO: move to `data.set.finite`.
-lemma infinite_of_infinite_sdiff_finite {α : Type*} {s t : set α}
-  (hs : s.infinite) (ht : t.finite) : (s \ t).infinite :=
-λ hd, by simpa using hd.union (ht.inter_of_right s)
-
--- TODO: move to `data.set.finite`.
-lemma exists_gt_nat_of_infinite (s : set ℕ) (i : infinite s) (n : ℕ) : ∃ m, m ∈ s ∧ n < m :=
-let ⟨m, hm⟩ := (infinite_of_infinite_sdiff_finite i $ set.finite_le_nat n).nonempty
-in ⟨m, by simpa using hm⟩
-
-end set
-
-lemma nat.subtype.semilattice_sup_bot_bot_apply {s : set ℕ} [decidable_pred (∈ s)]
-  [h : nonempty s] : ((⊥ : s) : ℕ) = nat.find (nonempty_subtype.1 h) := rfl
-
-end to_move
-
-
 open finset
 
 namespace nat
@@ -257,7 +233,7 @@ begin
   { ext i,
     simp, },
   apply set.infinite.nonempty,
-  apply set.infinite_of_infinite_sdiff_finite i,
+  apply i.diff,
   apply set.finite.bUnion (set.finite_lt_nat _),
   intros k h,
   apply set.finite_le_nat,
@@ -463,7 +439,7 @@ begin
   suffices h : Inf {i : ℕ | p i ∧ n ≤ i} ∈ {i : ℕ | p i ∧ n ≤ i},
   { exact h.2 },
   apply Inf_mem,
-  obtain ⟨m, hp, hn⟩ := set.exists_gt_nat_of_infinite p i n,
+  obtain ⟨m, hp, hn⟩ := i.exists_nat_lt n,
   exact ⟨m, hp, hn.le⟩
 end
 

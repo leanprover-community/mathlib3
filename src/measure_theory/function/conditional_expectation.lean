@@ -40,6 +40,9 @@ The conditional expectation and its properties
   expectation verifies `∫ x in s, condexp hm μ f x ∂μ = ∫ x in s, f x ∂μ` for any `m`-measurable
   set `s`.
 
+While `condexp` is function-valued, we also define `condexp_L1` with value in `L1` and a continuous
+linear map `condexp_L1_clm` from `L1` to `L1`. `condexp` should be used in most cases.
+
 Uniqueness of the conditional expectation
 
 * `Lp.ae_eq_of_forall_set_integral_eq'`: two `Lp` functions verifying the equality of integrals
@@ -47,6 +50,8 @@ Uniqueness of the conditional expectation
 * `ae_eq_of_forall_set_integral_eq_of_sigma_finite'`: two functions verifying the equality of
   integrals defining the conditional expectation are equal everywhere.
   Requires `[sigma_finite (μ.trim hm)]`.
+* `ae_eq_condexp_of_forall_set_integral_eq`: an a.e. `m`-measurable function which verifies the
+  equality of integrals is a.e. equal to `condexp`.
 
 ## Notations
 
@@ -1548,7 +1553,7 @@ lemma condexp_L1_clm_of_ae_measurable' (f : α →₁[μ] F') (hfm : ae_measurab
 condexp_L1_clm_Lp_meas (⟨f, hfm⟩ : Lp_meas F' ℝ m 1 μ)
 
 /-- Conditional expectation of a function, in L1. Its value is 0 if the function is not
-integrable. -/
+integrable. The function-valued `condexp` should be used instead in most cases. -/
 def condexp_L1 (hm : m ≤ m0) (μ : measure α) [sigma_finite (μ.trim hm)] (f : α → F') : α →₁[μ] F' :=
 set_to_fun (dominated_fin_meas_additive_condexp_ind F' hm μ) f
 
@@ -1579,6 +1584,9 @@ end
 lemma integrable_condexp_L1 (f : α → F') : integrable (condexp_L1 hm μ f) μ :=
 L1.integrable_coe_fn _
 
+/-- The integral of the conditional expectation `μ[f|hm]` over an `m`-measurable set is equal to
+the integral of `f` on that set. See also `set_integral_condexp`, the similar statement for
+`condexp`. -/
 lemma set_integral_condexp_L1 (hf : integrable f μ) (hs : measurable_set[m] s) :
   ∫ x in s, condexp_L1 hm μ f x ∂μ = ∫ x in s, f x ∂μ :=
 begin
@@ -1706,6 +1714,8 @@ end
 lemma integrable_condexp : integrable (μ[f|hm]) μ :=
 (integrable_condexp_L1 f).congr (condexp_ae_eq_condexp_L1 f).symm
 
+/-- The integral of the conditional expectation `μ[f|hm]` over an `m`-measurable set is equal to
+the integral of `f` on that set. -/
 lemma set_integral_condexp (hf : integrable f μ) (hs : measurable_set[m] s) :
   ∫ x in s, μ[f|hm] x ∂μ = ∫ x in s, f x ∂μ :=
 begin
@@ -1718,6 +1728,22 @@ begin
   suffices : ∫ x in set.univ, μ[f|hm] x ∂μ = ∫ x in set.univ, f x ∂μ,
     by { simp_rw integral_univ at this, exact this, },
   exact set_integral_condexp hf (@measurable_set.univ _ m),
+end
+
+/-- **Uniqueness of the conditional expectation**
+If a function is a.e. `m`-measurable, verifies an integrability condition and has same integral
+as `f` on all `m`-measurable sets, then it is a.e. equal to `μ[f|hm]`. -/
+lemma ae_eq_condexp_of_forall_set_integral_eq (hm : m ≤ m0) [sigma_finite (μ.trim hm)]
+  {f g : α → F'} (hf : integrable f μ)
+  (hg_int_finite : ∀ s, measurable_set[m] s → μ s < ∞ → integrable_on g s μ)
+  (hg_eq : ∀ s : set α, measurable_set[m] s → μ s < ∞ → ∫ x in s, g x ∂μ = ∫ x in s, f x ∂μ)
+  (hgm : ae_measurable' m g μ) :
+  g =ᵐ[μ] μ[f|hm] :=
+begin
+  refine ae_eq_of_forall_set_integral_eq_of_sigma_finite' hm hg_int_finite
+    (λ s hs hμs, integrable_condexp.integrable_on) (λ s hs hμs, _) hgm
+    (measurable.ae_measurable' measurable_condexp),
+  rw [hg_eq s hs hμs, set_integral_condexp hf hs],
 end
 
 lemma condexp_add (hf : integrable f μ) (hg : integrable g μ) :

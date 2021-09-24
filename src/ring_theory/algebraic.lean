@@ -65,7 +65,7 @@ begin
   simp only [algebra.mem_top, forall_prop_of_true, iff_self],
 end
 
-lemma is_algebraic_iff_not_injective {x : A} : is_algebraic R x ↔
+lemma is_algebraic_iff_not_injective {x : A} : is_algebraic R x ↔ 
   ¬ function.injective (polynomial.aeval x : polynomial R →ₐ[R] A) :=
 by simp only [is_algebraic, alg_hom.injective_iff, not_forall, and.comm, exists_prop]
 

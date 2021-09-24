@@ -18,6 +18,7 @@ http://www.alaricstephen.com/main-featured/2017/9/28/cubing-a-cube-proof
 
 
 open real set function fin
+open_locale cardinal
 
 noncomputable theory
 
@@ -125,7 +126,7 @@ def correct (cs : ι → cube n) : Prop :=
 pairwise (disjoint on (cube.to_set ∘ cs)) ∧
 (⋃(i : ι), (cs i).to_set) = unit_cube.to_set ∧
 injective (cube.w ∘ cs) ∧
-2 ≤ cardinal.mk ι ∧
+2 ≤ #ι ∧
 3 ≤ n
 
 variable (h : correct cs)
@@ -261,7 +262,7 @@ end
 
 open cardinal
 /-- There are at least two cubes in a valley -/
-lemma two_le_mk_bcubes : 2 ≤ cardinal.mk (bcubes cs c) :=
+lemma two_le_mk_bcubes : 2 ≤ #(bcubes cs c) :=
 begin
   rw [two_le_iff],
   rcases v.1 c.b_mem_bottom with ⟨_, ⟨i, rfl⟩, hi⟩,
@@ -517,7 +518,7 @@ end
 theorem cannot_cube_a_cube :
   ∀{n : ℕ}, n ≥ 3 →                              -- In ℝ^n for n ≥ 3
   ∀{ι : Type} [fintype ι] {cs : ι → cube n},     -- given a finite collection of (hyper)cubes
-  2 ≤ cardinal.mk ι →                            -- containing at least two elements
+  2 ≤ #ι →                                       -- containing at least two elements
   pairwise (disjoint on (cube.to_set ∘ cs)) →    -- which is pairwise disjoint
   (⋃(i : ι), (cs i).to_set) = unit_cube.to_set → -- whose union is the unit cube
   injective (cube.w ∘ cs) →                      -- such that the widths of all cubes are different

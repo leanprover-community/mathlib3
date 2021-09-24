@@ -216,6 +216,11 @@ begin
       image_subset_iff.2 hvu⟩ }
 end
 
+protected lemma is_topological_basis.continuous {β : Type*} [topological_space β]
+  {B : set (set β)} (hB : is_topological_basis B) (f : α → β) (hf : ∀ s ∈ B, is_open (f ⁻¹' s)) :
+  continuous f :=
+begin rw hB.eq_generate_from, exact continuous_generated_from hf end
+
 variables (α)
 
 /-- A separable space is one with a countable dense subset, available through

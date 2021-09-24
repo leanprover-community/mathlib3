@@ -570,10 +570,9 @@ begin
   simp [real.norm_eq_abs, ennreal.of_real_le_of_real, abs_le, abs_nonneg, le_abs_self],
 end
 
-lemma ennreal.of_real_to_real_ae_eq {f : α → ℝ≥0∞} (hf : measurable f) (hflt : ∀ᵐ x ∂μ, f x < ∞) :
+lemma ennreal.of_real_to_real_ae_eq {f : α → ℝ≥0∞} (hflt : ∀ᵐ x ∂μ, f x < ∞) :
   (λ x, ennreal.of_real (f x).to_real) =ᵐ[μ] f :=
 begin
-  change μ {x | ennreal.of_real (f x).to_real ≠ f x} = 0,
   have : ∀ x, ennreal.of_real (f x).to_real ≠ f x ↔ f x = ∞,
   { intro x,
     split; intro h,
@@ -581,6 +580,7 @@ begin
       rw [← ne.def, ← lt_top_iff_ne_top] at htop,
       exact h (ennreal.of_real_to_real htop.ne) },
     { rw h, simp } },
+  change μ {x | ennreal.of_real (f x).to_real ≠ f x} = 0,
   simp_rw this,
   suffices hne : ∀ᵐ x ∂μ, f x ≠ ∞,
   { simp_rw [ae_iff, not_not] at hne, exact hne },
@@ -596,7 +596,7 @@ begin
     { simp_rw [← smul_eq_mul, nnnorm_smul, ennreal.coe_mul],
       rw [smul_eq_mul, mul_comm],
       refine filter.eventually_eq.mul (ae_eq_refl _)
-        (ae_eq_trans (ennreal.of_real_to_real_ae_eq hf hflt).symm _),
+        (ae_eq_trans (ennreal.of_real_to_real_ae_eq hflt).symm _),
       convert ae_eq_refl _,
       ext1 x,
       exact real.ennnorm_eq_of_real ennreal.to_real_nonneg },

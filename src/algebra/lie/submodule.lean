@@ -533,11 +533,11 @@ def comap : lie_ideal R L :=
   ..(J : submodule R L').comap (f : L →ₗ[R] L') }
 
 @[simp] lemma map_coe_submodule (h : ↑(map f I) = f '' I) :
-  (map f I : submodule R L') = (I : submodule R L).map f :=
+  (map f I : submodule R L') = (I : submodule R L).map (f : L →ₗ[R] L') :=
 by { rw [set_like.ext'_iff, lie_submodule.coe_to_submodule, h, submodule.map_coe], refl, }
 
-@[simp] lemma comap_coe_submodule : (comap f J : submodule R L) = (J : submodule R L').comap f :=
-rfl
+@[simp] lemma comap_coe_submodule :
+  (comap f J : submodule R L) = (J : submodule R L').comap (f : L →ₗ[R] L') := rfl
 
 lemma map_le : map f I ≤ J ↔ f '' I ⊆ J := lie_submodule.lie_span_le
 
@@ -707,7 +707,7 @@ variables {f : L →ₗ⁅R⁆ L'} {I : lie_ideal R L} {J : lie_ideal R L'}
 by { rw ← le_bot_iff, exact lie_ideal.map_le_iff_le_comap }
 
 lemma coe_map_of_surjective (h : function.surjective f) :
-  (I.map f : submodule R L') = (I : submodule R L).map f :=
+  (I.map f : submodule R L') = (I : submodule R L).map (f : L →ₗ[R] L') :=
 begin
   let J : lie_ideal R L' :=
   { lie_mem := λ x y hy,
@@ -780,7 +780,7 @@ end
 
 @[simp] lemma comap_map_eq (h : ↑(map f I) = f '' I) : comap f (map f I) = I ⊔ f.ker :=
 by rw [← lie_submodule.coe_to_submodule_eq_iff, comap_coe_submodule, I.map_coe_submodule f h,
-  lie_submodule.sup_coe_to_submodule, f.ker_coe_submodule, linear_map.comap_map_eq]
+  lie_submodule.sup_coe_to_submodule, f.ker_coe_submodule, submodule.comap_map_eq]
 
 variables (f I J)
 

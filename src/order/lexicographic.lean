@@ -18,6 +18,10 @@ and linear orders.
 * `lex_<pre/partial_/linear_>order`: Instances lifting the orders on `α` and `β` to `lex α β`
 * `dlex_<pre/partial_/linear_>order`: Instances lifting the orders on every `Z a` to the dependent
   pair `Z`.
+
+## See also
+
+The lexicographic ordering on lists is provided in `data.list.basic`.
 -/
 
 universes u v

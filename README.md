@@ -55,6 +55,7 @@ welcomed.
 * Mario Carneiro (@digama0): all
 * Bryan Gin-ge Chen (@bryangingechen): documentation, infrastructure
 * Johan Commelin (@jcommelin): algebra
+* Rémy Degenne (@RemyDegenne): probability, measure theory, analysis
 * Floris van Doorn (@fpvandoorn): all
 * Gabriel Ebner (@gebner): all
 * Sébastien Gouëzel (@sgouezel): topology, calculus
@@ -67,5 +68,6 @@ welcomed.
 * Patrick Massot (@patrickmassot): documentation, topology
 * Bhavik Mehta (@b-mehta): category theory, combinatorics
 * Scott Morrison (@semorrison): category theory
+* Oliver Nash (@ocfnash): algebra, geometry, topology
 * Adam Topaz (@adamtopaz): algebra, category theory
 * Eric Wieser (@eric-wieser): algebra, infrastructure

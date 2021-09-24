@@ -570,22 +570,18 @@ begin
   simp [real.norm_eq_abs, ennreal.of_real_le_of_real, abs_le, abs_nonneg, le_abs_self],
 end
 
-lemma ennreal.of_real_to_real_ae_eq {f : α → ℝ≥0∞} (hflt : ∀ᵐ x ∂μ, f x < ∞) :
+lemma ennreal.of_real_to_real_ae_eq {f : α → ℝ≥0∞} (hf : ∀ᵐ x ∂μ, f x < ∞) :
   (λ x, ennreal.of_real (f x).to_real) =ᵐ[μ] f :=
 begin
-  have : ∀ x, ennreal.of_real (f x).to_real ≠ f x ↔ f x = ∞,
-  { intro x,
-    split; intro h,
-    { by_contra htop,
-      rw [← ne.def, ← lt_top_iff_ne_top] at htop,
-      exact h (ennreal.of_real_to_real htop.ne) },
-    { rw h, simp } },
-  change μ {x | ennreal.of_real (f x).to_real ≠ f x} = 0,
-  simp_rw this,
-  suffices hne : ∀ᵐ x ∂μ, f x ≠ ∞,
-  { simp_rw [ae_iff, not_not] at hne, exact hne },
-  simp_rw [← lt_top_iff_ne_top],
-  exact hflt
+  rw ae_iff at hf,
+  rw [filter.eventually_eq, ae_iff],
+  have : {x | ¬ ennreal.of_real (f x).to_real = f x} = {x | f x = ∞},
+  { ext x, simp only [ne.def, set.mem_set_of_eq], split; intro hx,
+    { by_contra hntop,
+      exact hx (ennreal.of_real_to_real hntop) },
+    { rw hx, simp } },
+  rw this,
+  simpa using hf,
 end
 
 lemma integrable.with_density_iff {f : α → ℝ≥0∞} (hf : measurable f)

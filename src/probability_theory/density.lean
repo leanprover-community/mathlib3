@@ -151,7 +151,7 @@ end
 function `f`, `f ∘ X` is a random variable with expectation `∫ x, f x * pdf X ∂μ`
 where `μ` is a measure on the codomain of `X`. -/
 lemma integral_mul_eq_integral' [is_finite_measure ℙ] {X : α → E} [has_pdf X ℙ μ]
-  (hX : measurable X) (f : E → ℝ) (hf : measurable f)
+  (hX : measurable X) {f : E → ℝ} (hf : measurable f)
   (hpdf : integrable (λ x, f x * (pdf X ℙ μ x).to_real) μ) :
   ∫ x, f x * (pdf X ℙ μ x).to_real ∂μ = ∫ x, f (X x) ∂ℙ :=
 begin
@@ -250,7 +250,7 @@ end
 lemma integral_mul_eq_integral [has_pdf X ℙ]
   (hpdf : integrable (λ x, x * (pdf X ℙ volume x).to_real) volume) :
   ∫ x, x * (pdf X ℙ volume x).to_real ∂(volume) = ∫ x, X x ∂ℙ :=
-integral_mul_eq_integral' hX _ measurable_id hpdf
+integral_mul_eq_integral' hX measurable_id hpdf
 
 lemma has_finite_integral_mul {f : ℝ → ℝ} {g : ℝ → ℝ≥0∞}
   (hg : pdf X ℙ =ᵐ[volume] g) (hgi : ∫⁻ x, ∥f x∥₊ * g x ∂(volume) < ∞) :

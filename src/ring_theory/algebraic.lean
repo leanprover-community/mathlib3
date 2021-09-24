@@ -65,6 +65,10 @@ begin
   simp only [algebra.mem_top, forall_prop_of_true, iff_self],
 end
 
+lemma is_algebraic_iff_not_injective {x : A} : is_algebraic R x ↔ 
+  ¬ function.injective (polynomial.aeval x : polynomial R →ₐ[R] A) :=
+by simp only [is_algebraic, alg_hom.injective_iff, not_forall, and.comm, exists_prop]
+
 end
 
 section zero_ne_one
@@ -149,6 +153,25 @@ begin
      integral_normalization_aeval_eq_zero px inj⟩,
   exact ⟨⟨_, x_integral⟩, a, a_ne_zero, rfl⟩
 end
+
+/-- A fraction `(a : S) / (b : S)` can be reduced to `(c : S) / (d : R)`,
+if `S` is the integral closure of `R` in an algebraic extension `L` of `R`. -/
+lemma is_integral_closure.exists_smul_eq_mul {L : Type*} [field L]
+  [algebra R S] [algebra S L] [algebra R L] [is_scalar_tower R S L] [is_integral_closure S R L]
+  (h : algebra.is_algebraic R L) (inj : function.injective (algebra_map R L))
+  (a : S) {b : S} (hb : b ≠ 0) : ∃ (c : S) (d ≠ (0 : R)), d • a = b * c :=
+begin
+  obtain ⟨c, d, d_ne, hx⟩ := exists_integral_multiple
+    (h (algebra_map _ L a / algebra_map _ L b))
+    ((ring_hom.injective_iff _).mp inj),
+  refine ⟨is_integral_closure.mk' S (c : L) c.2, d, d_ne,
+    is_integral_closure.algebra_map_injective S R L _⟩,
+  simp only [algebra.smul_def, ring_hom.map_mul, is_integral_closure.algebra_map_mk', ← hx,
+    ← is_scalar_tower.algebra_map_apply],
+  rw [← mul_assoc _ (_ / _), mul_div_cancel' (algebra_map S L a), mul_comm],
+  exact mt ((ring_hom.injective_iff _).mp (is_integral_closure.algebra_map_injective S R L) _) hb
+end
+
 section field
 
 variables {K L : Type*} [field K] [field L] [algebra K L] (A : subalgebra K L)

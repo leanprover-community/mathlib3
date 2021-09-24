@@ -18,7 +18,7 @@ Linear algebra:
     linear map: 'linear_map'
     range of a linear map: 'linear_map.range'
     kernel of a linear map: 'linear_map.ker'
-    algebra of endomorphisms of a vector space: 'module.endomorphism_algebra'
+    algebra of endomorphisms of a vector space: 'module.End.algebra'
     general linear group: 'linear_map.general_linear_group'
   Duality:
     dual vector space: 'module.dual'
@@ -42,7 +42,7 @@ Linear algebra:
     commutative-ring-valued matrices: 'matrix'
     field-valued matrices: 'matrix'
     matrix representation of a linear map: 'linear_map.to_matrix'
-    change of basis: ''
+    change of basis: 'basis_to_matrix_mul_linear_map_to_matrix_mul_basis_to_matrix'
     rank of a matrix: ''
     determinant: 'matrix.det'
     invertibility: 'matrix.nonsing_inv'

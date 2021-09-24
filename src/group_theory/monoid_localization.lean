@@ -175,8 +175,55 @@ namespace localization
   inhabited (localization S) :=
 con.quotient.inhabited
 
+/-- Multiplication in a localization is defined as `⟨a, b⟩ * ⟨c, d⟩ = ⟨a * c, b * d⟩`. -/
+@[to_additive "Addition in an `add_localization` is defined as `⟨a, b⟩ + ⟨c, d⟩ = ⟨a + c, b + d⟩`.
+
+Should not be confused with the ring localization counterpart `localization.add`, which maps
+`⟨a, b⟩ + ⟨c, d⟩` to `⟨d * a + b * c, b * d⟩`.", irreducible]
+protected def mul : localization S → localization S → localization S :=
+(r S).comm_monoid.mul
+
+@[to_additive] instance : has_mul (localization S) :=
+⟨localization.mul S⟩
+
+/-- The identity element of a localization is defined as `⟨1, 1⟩`. -/
+@[to_additive "The identity element of an `add_localization` is defined as `⟨0, 0⟩`.
+
+Should not be confused with the ring localization counterpart `localization.zero`,
+which is defined as `⟨0, 1⟩`.", irreducible] protected def one : localization S :=
+(r S).comm_monoid.one
+
+@[to_additive] instance : has_one (localization S) :=
+⟨localization.one S⟩
+
+/-- Exponentiation in a localization is defined as `⟨a, b⟩ ^ n = ⟨a ^ n, b ^ n⟩`.
+
+This is a separate `irreducible` def to ensure the elaborator doesn't waste its time
+trying to unify some huge recursive definition with itself, but unfolded one step less.
+-/
+@[to_additive
+"Multiplication with a natural in an `add_localization` is defined as `n • ⟨a, b⟩ = ⟨n • a, n • b⟩`.
+
+This is a separate `irreducible` def to ensure the elaborator doesn't waste its time
+trying to unify some huge recursive definition with itself, but unfolded one step less.",
+irreducible]
+protected def npow : ℕ → localization S → localization S :=
+(r S).comm_monoid.npow
+
+local attribute [semireducible] localization.mul localization.one localization.npow
+
 @[to_additive] instance : comm_monoid (localization S) :=
-(r S).comm_monoid
+{ mul := (*),
+  one := 1,
+  mul_assoc :=
+    show ∀ (x y z : localization S), x * y * z = x * (y * z), from (r S).comm_monoid.mul_assoc,
+  mul_comm := show ∀ (x y : localization S), x * y = y * x, from (r S).comm_monoid.mul_comm,
+  mul_one := show ∀ (x : localization S), x * 1 = x, from (r S).comm_monoid.mul_one,
+  one_mul := show ∀ (x : localization S), 1 * x = x, from (r S).comm_monoid.one_mul,
+  npow := localization.npow S,
+  npow_zero' := show ∀ (x : localization S), localization.npow S 0 x = 1, from pow_zero,
+  npow_succ' := show ∀ (n : ℕ) (x : localization S),
+    localization.npow S n.succ x = x * localization.npow S n x, from λ n x, pow_succ x n }
 
 variables {S}
 
@@ -186,14 +233,80 @@ class of `(x, y)` in the localization of `M` at `S`. -/
 the equivalence class of `(x, y)` in the localization of `M` at `S`."]
 def mk (x : M) (y : S) : localization S := (r S).mk' (x, y)
 
+@[to_additive] theorem mk_eq_mk_iff {a c : M} {b d : S} :
+  mk a b = mk c d ↔ r S ⟨a, b⟩ ⟨c, d⟩ :=
+(r S).eq
+
+universes u
+
+/-- Dependent recursion principle for localizations: given elements `f a b : p (mk a b)`
+for all `a b`, such that `r S (a, b) (c, d)` implies `f a b = f c d` (wih the correct coercions),
+then `f` is defined on the whole `localization S`. -/
+@[elab_as_eliminator, to_additive
+"Dependent recursion principle for `add_localizations`: given elements `f a b : p (mk a b)`
+for all `a b`, such that `r S (a, b) (c, d)` implies `f a b = f c d` (wih the correct coercions),
+then `f` is defined on the whole `add_localization S`."]
+def rec {p : localization S → Sort u}
+  (f : ∀ (a : M) (b : S), p (mk a b))
+  (H : ∀ {a c : M} {b d : S} (h : r S (a, b) (c, d)),
+    (eq.rec (f a b) (mk_eq_mk_iff.mpr h) : p (mk c d)) = f c d)
+  (x) : p x :=
+quot.rec (λ y, eq.rec (f y.1 y.2) (prod.mk.eta : (y.1, y.2) = y))
+  (λ y z h, by { cases y, cases z, exact H h }) x
+
+attribute [irreducible] localization
+
+@[to_additive] lemma mk_mul (a c : M) (b d : S) : mk a b * mk c d = mk (a * c) (b * d) := rfl
+@[to_additive] lemma mk_one : mk 1 (1 : S) = 1 := rfl
+
+@[simp, to_additive] lemma rec_mk {p : localization S → Sort u}
+  (f : ∀ (a : M) (b : S), p (mk a b)) (H) (a : M) (b : S) :
+  (rec f H (mk a b) : p (mk a b)) = f a b :=
+rfl
+
+/-- Non-dependent recursion principle for localizations: given elements `f a b : p`
+for all `a b`, such that `r S (a, b) (c, d)` implies `f a b = f c d`,
+then `f` is defined on the whole `localization S`. -/
+@[elab_as_eliminator, to_additive
+"Non-dependent recursion principle for `add_localizations`: given elements `f a b : p`
+for all `a b`, such that `r S (a, b) (c, d)` implies `f a b = f c d`,
+then `f` is defined on the whole `localization S`."]
+def lift_on {p : Sort u} (x : localization S) (f : M → S → p)
+  (H : ∀ {a c : M} {b d : S} (h : r S (a, b) (c, d)), f a b = f c d) : p :=
+rec f (λ a c b d h, by rw [eq_rec_constant, H h]) x
+
+@[to_additive] lemma lift_on_mk {p : Sort u}
+  (f : ∀ (a : M) (b : S), p) (H) (a : M) (b : S) :
+  lift_on (mk a b) f H = f a b :=
+rfl
+
 @[elab_as_eliminator, to_additive]
 theorem ind {p : localization S → Prop}
   (H : ∀ (y : M × S), p (mk y.1 y.2)) (x) : p x :=
-by rcases x; convert H x; exact prod.mk.eta.symm
+rec (λ a b, H (a, b)) (λ _ _ _ _ _, rfl) x
 
 @[elab_as_eliminator, to_additive]
 theorem induction_on {p : localization S → Prop} (x)
   (H : ∀ (y : M × S), p (mk y.1 y.2)) : p x := ind H x
+
+/-- Non-dependent recursion principle for localizations: given elements `f x y : p`
+for all `x` and `y`, such that `r S x x'` and `r S y y'` implies `f x y = f x' y'`,
+then `f` is defined on the whole `localization S`. -/
+@[elab_as_eliminator, to_additive
+"Non-dependent recursion principle for localizations: given elements `f x y : p`
+for all `x` and `y`, such that `r S x x'` and `r S y y'` implies `f x y = f x' y'`,
+then `f` is defined on the whole `localization S`."]
+def lift_on₂ {p : Sort u} (x y : localization S) (f : M → S → M → S → p)
+  (H : ∀ {a a' b b' c c' d d'} (hx : r S (a, b) (a', b')) (hy : r S (c, d) (c', d')),
+    f a b c d = f a' b' c' d') :
+  p :=
+lift_on x (λ a b, lift_on y (f a b) (λ c c' d d' hy, H ((r S).refl _) hy))
+  (λ a a' b b' hx, induction_on y (λ ⟨c, d⟩, H hx ((r S).refl _)))
+
+@[to_additive] lemma lift_on₂_mk {p : Sort*}
+  (f : M → S → M → S → p) (H) (a c : M) (b d : S) :
+  lift_on₂ (mk a b) (mk c d) f H = f a b c d :=
+rfl
 
 @[elab_as_eliminator, to_additive]
 theorem induction_on₂ {p : localization S → localization S → Prop} (x y)
@@ -210,6 +323,9 @@ induction_on₂ x y $ λ x y, induction_on z $ H x y
 
 @[to_additive] theorem r_of_eq {x y : M × S} (h : y.1 * x.2 = x.1 * y.2) : r S x y :=
 r_iff_exists.2 ⟨1, by rw h⟩
+
+@[to_additive] lemma mk_self (a : S) : mk (a : M) a = 1 :=
+by { symmetry, rw [← mk_one, mk_eq_mk_iff], exact one_rel a }
 
 end localization
 
@@ -1018,13 +1134,13 @@ variables (S)
 @[to_additive "Natural homomorphism sending `x : M`, `M` an `add_comm_monoid`, to the equivalence
 class of `(x, 0)` in the localization of `M` at a submonoid."]
 def monoid_of : submonoid.localization_map S (localization S) :=
-{ map_units' := λ y, is_unit_iff_exists_inv.2 ⟨mk 1 y, (r S).eq.2 $
-    show r S (_, 1 * y) 1, by simpa using (r S).symm (one_rel y)⟩,
-  surj' := λ z, induction_on z $ λ x, ⟨x, (r S).eq.2 $
-    show r S (x.1 * x.2, x.2 * 1) (x.1, 1), by
-      rw [mul_comm x.2, ←mul_one (x.1, (1 : S))];
-      exact (r S).mul ((r S).refl (x.1, 1)) ((r S).symm $ one_rel x.2)⟩,
-  eq_iff_exists' := λ x y, (r S).eq.trans $ r_iff_exists.trans $
+{ to_fun := λ x, mk x 1,
+  map_one' := mk_one,
+  map_mul' := λ x y, by rw [mk_mul, mul_one],
+  map_units' := λ y, is_unit_iff_exists_inv.2 ⟨mk 1 y, by rw [mk_mul, mul_one, one_mul, mk_self]⟩,
+  surj' := λ z, induction_on z $ λ x, ⟨x,
+    by rw [mk_mul, mul_comm x.fst, ← mk_mul, mk_self, one_mul]⟩,
+  eq_iff_exists' := λ x y, mk_eq_mk_iff.trans $ r_iff_exists.trans $
     show (∃ (c : S), x * 1 * c = y * 1 * c) ↔ _, by rw [mul_one, mul_one],
   ..(r S).mk'.comp $ monoid_hom.inl M S }
 
@@ -1036,14 +1152,26 @@ variables {S}
 show _ = _ * _, from (submonoid.localization_map.mul_inv_right (monoid_of S).map_units _ _ _).2 $
 begin
   rw [←mk_one_eq_monoid_of_mk, ←mk_one_eq_monoid_of_mk,
-      show mk x y * mk y 1 = mk (x * y) (1 * y), by rw mul_comm 1 y; refl,
+      show mk x y * mk y 1 = mk (x * y) (1 * y), by rw [mul_comm 1 y, mk_mul],
       show mk x 1 = mk (x * 1) ((1 : S) * 1), by rw [mul_one, mul_one]],
-  exact (con.eq _).2 (con.symm _ $ (localization.r S).mul
+  exact mk_eq_mk_iff.2 (con.symm _ $ (localization.r S).mul
     (con.refl _ (x, 1)) $ one_rel _),
 end
 
 @[simp, to_additive] lemma mk_eq_monoid_of_mk' : mk = (monoid_of S).mk' :=
 funext $ λ _, funext $ λ _, mk_eq_monoid_of_mk'_apply _ _
+
+universes u
+
+@[simp, to_additive] lemma lift_on_mk' {p : Sort u}
+  (f : ∀ (a : M) (b : S), p) (H) (a : M) (b : S) :
+  lift_on ((monoid_of S).mk' a b) f H = f a b :=
+by rw [← mk_eq_monoid_of_mk', lift_on_mk]
+
+@[simp, to_additive] lemma lift_on₂_mk' {p : Sort*}
+  (f : M → S → M → S → p) (H) (a c : M) (b d : S) :
+  lift_on₂ ((monoid_of S).mk' a b) ((monoid_of S).mk' c d) f H = f a b c d :=
+by rw [← mk_eq_monoid_of_mk', lift_on₂_mk]
 
 variables (f : submonoid.localization_map S N)
 /-- Given a localization map `f : M →* N` for a submonoid `S`, we get an isomorphism between

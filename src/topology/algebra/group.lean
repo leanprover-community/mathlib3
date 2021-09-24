@@ -8,6 +8,7 @@ import order.filter.pointwise
 import group_theory.quotient_group
 import topology.algebra.monoid
 import topology.homeomorph
+import topology.compacts
 
 /-!
 # Theory of topological groups
@@ -649,6 +650,23 @@ begin
       exact (dense_range_dense_seq G).inter_nhds_nonempty
         ((homeomorph.mul_left x).continuous.continuous_at $ hL1) },
     exact ⟨n, hn⟩ }
+end
+
+/-- Every separated topological group in which there exists a compact set with nonempty interior
+is locally compact. -/
+@[to_additive] lemma topological_space.positive_compacts.locally_compact_space_of_group
+  [t2_space G] (K : positive_compacts G) :
+  locally_compact_space G :=
+begin
+  refine locally_compact_of_compact_nhds (λ x, _),
+  obtain ⟨y, hy⟩ : ∃ y, y ∈ interior K.1 := K.2.2,
+  let F := homeomorph.mul_left (x * y⁻¹),
+  refine ⟨F '' K.1, _, is_compact.image K.2.1 F.continuous⟩,
+  suffices : F.symm ⁻¹' K.1 ∈ 𝓝 x, by { convert this, apply equiv.image_eq_preimage },
+  apply continuous_at.preimage_mem_nhds F.symm.continuous.continuous_at,
+  have : F.symm x = y, by simp [F, homeomorph.mul_left_symm],
+  rw this,
+  exact mem_interior_iff_mem_nhds.1 hy
 end
 
 end

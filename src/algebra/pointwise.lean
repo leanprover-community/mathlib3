@@ -607,31 +607,39 @@ by simp only [← image_smul, image_eta, zero_smul, h.image_const, singleton_zer
 section group
 variables [group α] [mul_action α β]
 
-@[simp] lemma smul_mem_smul_set_iff {a : α} {A : set β} {x : β} : a • x ∈ a • A ↔ x ∈ A :=
+@[simp, to_additive]
+lemma smul_mem_smul_set_iff {a : α} {A : set β} {x : β} : a • x ∈ a • A ↔ x ∈ A :=
 ⟨λ h, begin
   rw [←inv_smul_smul a x, ←inv_smul_smul a A],
   exact smul_mem_smul_set h,
 end, smul_mem_smul_set⟩
 
+@[to_additive]
 lemma mem_smul_set_iff_inv_smul_mem {a : α} {A : set β} {x : β} : x ∈ a • A ↔ a⁻¹ • x ∈ A :=
 show x ∈ mul_action.to_perm a '' A ↔ _, from mem_image_equiv
 
+@[to_additive]
 lemma mem_inv_smul_set_iff {a : α} {A : set β} {x : β} : x ∈ a⁻¹ • A ↔ a • x ∈ A :=
 by simp only [← image_smul, mem_image, inv_smul_eq_iff, exists_eq_right]
 
+@[to_additive]
 lemma preimage_smul (a : α) (t : set β) : (λ x, a • x) ⁻¹' t = a⁻¹ • t :=
 ((mul_action.to_perm a).symm.image_eq_preimage _).symm
 
+@[to_additive]
 lemma preimage_smul_inv (a : α) (t : set β) : (λ x, a⁻¹ • x) ⁻¹' t = a • t :=
 preimage_smul (to_units a)⁻¹ t
 
-@[simp] lemma set_smul_subset_set_smul_iff {a : α} {A B : set β} : a • A ⊆ a • B ↔ A ⊆ B :=
+@[simp, to_additive]
+lemma set_smul_subset_set_smul_iff {a : α} {A B : set β} : a • A ⊆ a • B ↔ A ⊆ B :=
 image_subset_image_iff $ mul_action.injective _
 
+@[to_additive]
 lemma set_smul_subset_iff {a : α} {A B : set β} : a • A ⊆ B ↔ A ⊆ a⁻¹ • B :=
 (image_subset_iff).trans $ iff_of_eq $ congr_arg _ $
   preimage_equiv_eq_image_symm _ $ mul_action.to_perm _
 
+@[to_additive]
 lemma subset_set_smul_iff {a : α} {A B : set β} : A ⊆ a • B ↔ a⁻¹ • A ⊆ B :=
 iff.symm $ (image_subset_iff).trans $ iff.symm $ iff_of_eq $ congr_arg _ $
   image_equiv_eq_preimage_symm _ $ mul_action.to_perm _

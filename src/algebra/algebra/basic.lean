@@ -395,7 +395,7 @@ end opposite
 namespace module
 variables (R : Type u) (M : Type v) [comm_semiring R] [add_comm_monoid M] [module R M]
 
-instance endomorphism_algebra : algebra R (M →ₗ[R] M) :=
+instance : algebra R (module.End R M) :=
 { to_fun    := λ r, r • linear_map.id,
   map_one' := one_smul _ _,
   map_zero' := zero_smul _ _,

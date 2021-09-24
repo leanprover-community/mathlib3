@@ -217,6 +217,40 @@ begin
   exact supr_le (λ s, sum_measure_le_measure_univ (λ i hi, hs i) (λ i hi j hj hij, H i j hij))
 end
 
+lemma measure_Union_of_null_inter [encodable ι] {f : ι → set α} (h : ∀ i, measurable_set (f i))
+  (hn : pairwise ((λ S T, μ (S ∩ T) = 0) on f)) : μ (⋃ i, f i) = ∑' i, μ (f i) :=
+begin
+  have h_null : μ (⋃ (ij : ι × ι) (hij : ij.fst ≠ ij.snd), f ij.fst ∩ f ij.snd) = 0,
+  { rw measure_Union_null_iff,
+    rintro ⟨i, j⟩,
+    by_cases hij : i = j,
+    { simp [hij], },
+    { suffices : μ (f i ∩ f j) = 0,
+      { simpa [hij], },
+      apply hn i j hij, }, },
+  have h_pair : pairwise (disjoint on
+    (λ i, f i \ (⋃ (ij : ι × ι) (hij : ij.fst ≠ ij.snd), f ij.fst ∩ f ij.snd))),
+  { intros i j hij x hx,
+    simp only [not_exists, exists_prop, mem_Union, mem_inter_eq, not_and,
+      inf_eq_inter, ne.def, mem_diff, prod.exists] at hx,
+    simp only [mem_empty_eq, bot_eq_empty],
+    rcases hx with ⟨⟨hx_left_left, hx_left_right⟩, hx_right_left, hx_right_right⟩,
+    exact hx_left_right _ _ hij hx_left_left hx_right_left, },
+  have h_meas :
+    ∀ i, measurable_set (f i \ (⋃ (ij : ι × ι) (hij : ij.fst ≠ ij.snd), f ij.fst ∩ f ij.snd)),
+  { intro w,
+    apply (h w).diff,
+    apply measurable_set.Union,
+    rintro ⟨i, j⟩,
+    by_cases hij : i = j,
+    { simp [hij], },
+    { simp [hij, measurable_set.inter (h i) (h j)], }, },
+  have : μ _ = _ := measure_Union h_pair h_meas,
+  rw ← Union_diff at this,
+  simp_rw measure_diff_null h_null at this,
+  exact this,
+end
+
 /-- Pigeonhole principle for measure spaces: if `∑' i, μ (s i) > μ univ`, then
 one of the intersections `s i ∩ s j` is not empty. -/
 lemma exists_nonempty_inter_of_measure_univ_lt_tsum_measure {m : measurable_space α} (μ : measure α)
@@ -2288,8 +2322,7 @@ begin
   rw [measure_eq_infi' μ],
   refine le_infi _, rintro ⟨t, hst, ht⟩,
   rw [subtype.coe_mk],
-  have := f.symm.to_equiv.image_eq_preimage,
-  simp only [←coe_eq, symm_symm, symm_to_equiv] at this,
+  have : f.symm '' s = f ⁻¹' s := f.symm.to_equiv.image_eq_preimage s,
   rw [← this, image_subset_iff] at hst,
   convert measure_mono hst,
   rw [map_apply, preimage_preimage],
@@ -2309,6 +2342,8 @@ by { intros μ₁ μ₂ hμ, apply_fun map e.symm at hμ, simpa [map_symm_map e]
 lemma map_apply_eq_iff_map_symm_apply_eq (e : α ≃ᵐ β) : map e μ = ν ↔ map e.symm ν = μ :=
 by rw [← (map_measurable_equiv_injective e).eq_iff, map_map_symm, eq_comm]
 
+lemma restrict_map (e : α ≃ᵐ β) (s : set β) : (map e μ).restrict s = map e (μ.restrict $ e ⁻¹' s) :=
+measure.ext $ λ t ht, by simp [e.map_apply, ht, e.measurable ht]
 
 end measurable_equiv
 
@@ -2759,6 +2794,15 @@ begin
   refine measurable_set.union _ ((measurable_const ht).diff hs),
   rw [← subtype.image_preimage_coe, ← preimage_comp],
   exact hs.subtype_image (hf ht)
+end
+
+lemma ae_measurable_map_equiv_iff [measurable_space γ] (e : α ≃ᵐ β) {f : β → γ} :
+  ae_measurable f (map e μ) ↔ ae_measurable (f ∘ e) μ :=
+begin
+  refine ⟨λ h, h.comp_measurable e.measurable, λ h, _⟩,
+  rw [← (e.map_symm_map : _ = μ)] at h,
+  convert h.comp_measurable e.symm.measurable,
+  simp [(∘)]
 end
 
 end

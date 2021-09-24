@@ -1023,8 +1023,7 @@ variables (R) (S) (M)
 noncomputable
 def at_units (H : ∀ x : M, is_unit (x : R)) : R ≃ₐ[R] S :=
 begin
-  apply alg_equiv.of_bijective (algebra.of_id R S),
-  split,
+  refine alg_equiv.of_bijective (algebra.of_id R S) ⟨_, _⟩,
   { intros x y hxy,
     obtain ⟨c, eq⟩ := (is_localization.eq_iff_exists M S).mp hxy,
     obtain ⟨u, hu⟩ := H c,

@@ -1741,28 +1741,28 @@ variables {α : fin (n+1) → Type u} {β : Type v}
 propositions, see also `fin.insert_nth` for a version without an `@[elab_as_eliminator]`
 attribute. -/
 @[elab_as_eliminator]
-def cases_succ_above {α : fin (n + 1) → Sort u} (i : fin (n + 1)) (x : α i)
+def succ_above_cases {α : fin (n + 1) → Sort u} (i : fin (n + 1)) (x : α i)
   (p : Π j : fin n, α (i.succ_above j)) (j : fin (n + 1)) : α j :=
 if hj : j = i then eq.rec x hj.symm
 else if hlt : j < i then eq.rec_on (succ_above_cast_lt hlt) (p _)
 else eq.rec_on (succ_above_pred $ (ne.lt_or_lt hj).resolve_left hlt) (p _)
 
 /-- Insert an element into a tuple at a given position. For `i = 0` see `fin.cons`,
-for `i = fin.last n` see `fin.snoc`. See also `fin.cases_succ_above` for a version elaborated
+for `i = fin.last n` see `fin.snoc`. See also `fin.succ_above_cases` for a version elaborated
 as an eliminator. -/
 def insert_nth (i : fin (n + 1)) (x : α i) (p : Π j : fin n, α (i.succ_above j)) (j : fin (n + 1)) :
   α j :=
-cases_succ_above i x p j
+succ_above_cases i x p j
 
 @[simp] lemma insert_nth_apply_same (i : fin (n + 1)) (x : α i) (p : Π j, α (i.succ_above j)) :
   insert_nth i x p i = x :=
-by simp [insert_nth, cases_succ_above]
+by simp [insert_nth, succ_above_cases]
 
 @[simp] lemma insert_nth_apply_succ_above (i : fin (n + 1)) (x : α i) (p : Π j, α (i.succ_above j))
   (j : fin n) :
   insert_nth i x p (i.succ_above j) = p j :=
 begin
-  simp only [insert_nth, cases_succ_above, dif_neg (succ_above_ne _ _)],
+  simp only [insert_nth, succ_above_cases, dif_neg (succ_above_ne _ _)],
   by_cases hlt : j.cast_succ < i,
   { rw [dif_pos ((succ_above_lt_iff _ _).2 hlt)],
     apply eq_of_heq ((eq_rec_heq _ _).trans _),
@@ -1772,8 +1772,8 @@ begin
     rw [pred_succ_above (le_of_not_lt hlt)] }
 end
 
-@[simp] lemma cases_succ_above_eq_insert_nth :
-  @cases_succ_above.{u + 1} = @insert_nth.{u} := rfl
+@[simp] lemma succ_above_cases_eq_insert_nth :
+  @succ_above_cases.{u + 1} = @insert_nth.{u} := rfl
 
 @[simp] lemma insert_nth_comp_succ_above (i : fin (n + 1)) (x : β) (p : fin n → β) :
   insert_nth i x p ∘ i.succ_above = p :=

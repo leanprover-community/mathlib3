@@ -6,6 +6,7 @@ Authors: Rémy Degenne
 
 import measure_theory.function.l2_space
 import measure_theory.function.ae_eq_of_integral
+import measure_theory.decomposition.radon_nikodym
 
 /-! # Conditional expectation
 
@@ -1743,7 +1744,6 @@ begin
 end
 
 /-- **Uniqueness of the conditional expectation**
-If a function is a.e. `m`-measurable, verifies an integrability condition and has same integral
 as `f` on all `m`-measurable sets, then it is a.e. equal to `μ[f|hm]`. -/
 lemma ae_eq_condexp_of_forall_set_integral_eq (hm : m ≤ m0) [sigma_finite (μ.trim hm)]
   {f g : α → F'} (hf : integrable f μ)
@@ -1794,6 +1794,31 @@ begin
   simp_rw sub_eq_add_neg,
   exact (condexp_add hf hg.neg).trans (eventually_eq.rfl.add (condexp_neg g)),
 end
+
+section real
+
+lemma radon_nikodym_deriv_ae_eq_condexp {f : α → ℝ} (hf : integrable f μ) :
+  @signed_measure.radon_nikodym_deriv α m
+    ((μ.with_densityᵥ f).trim hm) (μ.trim hm) =ᵐ[μ] μ[f | hm] :=
+begin
+  refine ae_eq_condexp_of_forall_set_integral_eq hm hf _ _ _,
+  { intros,
+    exact integrable.integrable_on (integrable_of_integrable_trim hm
+      (@signed_measure.integrable_radon_nikodym_deriv α m
+        ((μ.with_densityᵥ f).trim hm) (μ.trim hm))) },
+  { intros s hs hlt,
+    conv_rhs { rw [← hf.with_densityᵥ_trim_eq_integral hm hs,
+                   ← @signed_measure.with_densityᵥ_radon_nikodym_deriv_eq α m
+                     ((μ.with_densityᵥ f).trim hm) (μ.trim hm) _
+                     (hf.with_densityᵥ_trim_absolutely_continuous hm)] },
+    rw [with_densityᵥ_apply (@signed_measure.integrable_radon_nikodym_deriv α m
+          ((μ.with_densityᵥ f).trim hm) (μ.trim hm)), ← set_integral_trim hm],
+    measurability },
+  { refine measurable.ae_measurable' _,
+    measurability }
+end
+
+end real
 
 end condexp
 

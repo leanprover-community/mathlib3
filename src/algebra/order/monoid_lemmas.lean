@@ -30,7 +30,7 @@ Almost no monoid is actually present in this file: most assumptions have been ge
 
 open function
 
-variables {α : Type*}
+variables {α β : Type*}
 
 section has_mul
 variables [has_mul α]
@@ -672,10 +672,7 @@ iff.intro
 end partial_order
 
 section mono
-variables [has_mul α] {β : Type*} {f g : β → α}
-
-section has_le
-variables [preorder α] [preorder β]
+variables [has_mul α] [preorder α] [preorder β] {f g : β → α}
 
 @[to_additive monotone.const_add]
 lemma monotone.const_mul' [covariant_class α α (*) (≤)] (hf : monotone f) (a : α) :
@@ -687,23 +684,14 @@ lemma monotone.mul_const' [covariant_class α α (swap (*)) (≤)]
   (hf : monotone f) (a : α) : monotone (λ x, f x * a) :=
 λ x y h, mul_le_mul_right' (hf h) a
 
-end has_le
-
-variables [preorder α] [preorder β]
-
 /--  The product of two monotone functions is monotone. -/
 @[to_additive monotone.add "The sum of two monotone functions is monotone."]
 lemma monotone.mul' [covariant_class α α (*) (≤)] [covariant_class α α (swap (*)) (≤)]
   (hf : monotone f) (hg : monotone g) : monotone (λ x, f x * g x) :=
 λ x y h, mul_le_mul' (hf h) (hg h)
 
-end mono
-
-section strict_mono
-variables [has_mul α] {β : Type*} {f g : β → α}
-
 section left
-variables [has_lt α] [covariant_class α α (*) (<)] [has_lt β]
+variables [covariant_class α α (*) (<)]
 
 @[to_additive strict_mono.const_add]
 lemma strict_mono.const_mul' (hf : strict_mono f) (c : α) :
@@ -713,7 +701,7 @@ lemma strict_mono.const_mul' (hf : strict_mono f) (c : α) :
 end left
 
 section right
-variables [has_lt α] [covariant_class α α (swap (*)) (<)] [has_lt β]
+variables [covariant_class α α (swap (*)) (<)]
 
 @[to_additive strict_mono.add_const]
 lemma strict_mono.mul_const' (hf : strict_mono f) (c : α) :
@@ -725,24 +713,20 @@ end right
 /--  The product of two strictly monotone functions is strictly monotone. -/
 @[to_additive strict_mono.add
 "The sum of two strictly monotone functions is strictly monotone."]
-lemma strict_mono.mul' [has_lt β] [preorder α]
-  [covariant_class α α (*) (<)] [covariant_class α α (swap (*)) (<)]
+lemma strict_mono.mul' [covariant_class α α (*) (<)] [covariant_class α α (swap (*)) (<)]
   (hf : strict_mono f) (hg : strict_mono g) :
   strict_mono (λ x, f x * g x) :=
 λ a b ab, mul_lt_mul_of_lt_of_lt (hf ab) (hg ab)
 
-variables [preorder α]
-
 /--  The product of a monotone function and a strictly monotone function is strictly monotone. -/
 @[to_additive monotone.add_strict_mono
 "The sum of a monotone function and a strictly monotone function is strictly monotone."]
-lemma monotone.mul_strict_mono' [covariant_class α α (*) (<)]
-  [covariant_class α α (swap (*)) (≤)] {β : Type*} [preorder β]
+lemma monotone.mul_strict_mono' [covariant_class α α (*) (<)] [covariant_class α α (swap (*)) (≤)]
   {f g : β → α} (hf : monotone f) (hg : strict_mono g) :
   strict_mono (λ x, f x * g x) :=
 λ x y h, mul_lt_mul_of_le_of_lt (hf h.le) (hg h)
 
-variables [covariant_class α α (*) (≤)] [covariant_class α α (swap (*)) (<)] [preorder β]
+variables [covariant_class α α (*) (≤)] [covariant_class α α (swap (*)) (<)]
 
 /--  The product of a strictly monotone function and a monotone function is strictly monotone. -/
 @[to_additive strict_mono.add_monotone
@@ -751,7 +735,7 @@ lemma strict_mono.mul_monotone' (hf : strict_mono f) (hg : monotone g) :
   strict_mono (λ x, f x * g x) :=
 λ x y h, mul_lt_mul_of_lt_of_le (hf h) (hg h.le)
 
-end strict_mono
+end mono
 
 /--
 An element `a : α` is `mul_le_cancellable` if `x ↦ a * x` is order-reflecting.

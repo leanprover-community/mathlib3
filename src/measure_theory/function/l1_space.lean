@@ -570,6 +570,43 @@ begin
   simp [real.norm_eq_abs, ennreal.of_real_le_of_real, abs_le, abs_nonneg, le_abs_self],
 end
 
+lemma ennreal.of_real_to_real_ae_eq {f : α → ℝ≥0∞} (hf : ∀ᵐ x ∂μ, f x < ∞) :
+  (λ x, ennreal.of_real (f x).to_real) =ᵐ[μ] f :=
+begin
+  rw ae_iff at hf,
+  rw [filter.eventually_eq, ae_iff],
+  have : {x | ¬ ennreal.of_real (f x).to_real = f x} = {x | f x = ∞},
+  { ext x, simp only [ne.def, set.mem_set_of_eq], split; intro hx,
+    { by_contra hntop,
+      exact hx (ennreal.of_real_to_real hntop) },
+    { rw hx, simp } },
+  rw this,
+  simpa using hf,
+end
+
+lemma integrable.with_density_iff {f : α → ℝ≥0∞} (hf : measurable f)
+  (hflt : ∀ᵐ x ∂μ, f x < ∞) {g : α → ℝ} (hg : measurable g) :
+  integrable g (μ.with_density f) ↔ integrable (λ x, g x * (f x).to_real) μ :=
+begin
+  have : (λ x, (f * λ x, ↑∥g x∥₊) x) =ᵐ[μ] (λ x, ∥g x * (f x).to_real∥₊),
+  { simp_rw [← smul_eq_mul, nnnorm_smul, ennreal.coe_mul],
+    rw [smul_eq_mul, mul_comm],
+    refine filter.eventually_eq.mul (ae_eq_refl _)
+      (ae_eq_trans (ennreal.of_real_to_real_ae_eq hflt).symm _),
+    convert ae_eq_refl _,
+    ext1 x,
+    exact real.ennnorm_eq_of_real ennreal.to_real_nonneg },
+  split; intro hi,
+  { refine ⟨hg.ae_measurable.mul hf.ae_measurable.ennreal_to_real, _⟩,
+    rw [has_finite_integral, lintegral_congr_ae this.symm,
+        ← lintegral_with_density_eq_lintegral_mul _ hf hg.nnnorm.coe_nnreal_ennreal],
+    exact hi.2 },
+  { refine ⟨hg.ae_measurable, _⟩,
+    rw [has_finite_integral, lintegral_with_density_eq_lintegral_mul _
+          hf hg.nnnorm.coe_nnreal_ennreal, lintegral_congr_ae this],
+    exact hi.2 }
+end
+
 lemma mem_ℒ1_to_real_of_lintegral_ne_top
   {f : α → ℝ≥0∞} (hfm : ae_measurable f μ) (hfi : ∫⁻ x, f x ∂μ ≠ ∞) :
   mem_ℒp (λ x, (f x).to_real) 1 μ :=

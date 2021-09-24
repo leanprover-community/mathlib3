@@ -395,7 +395,7 @@ end opposite
 namespace module
 variables (R : Type u) (M : Type v) [comm_semiring R] [add_comm_monoid M] [module R M]
 
-instance : algebra R (M →ₗ[R] M) :=
+instance : algebra R (module.End R M) :=
 algebra.of_module smul_mul_assoc (λ r f g, (smul_comm r f g).symm)
 
 lemma algebra_map_End_eq_smul_id (a : R) :

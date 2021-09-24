@@ -240,7 +240,7 @@ theorem mem_unique {s : computation α} {a b : α} : a ∈ s → b ∈ s → a =
   (le_stable s (le_max_right m n) hb.symm)
 
 theorem mem.left_unique : relator.left_unique ((∈) : α → computation α → Prop) :=
-⟨λ a s b, mem_unique⟩
+λ a s b, mem_unique
 
 /-- `terminates s` asserts that the computation `s` eventually terminates with some value. -/
 class terminates (s : computation α) : Prop := (term : ∃ a, a ∈ s)

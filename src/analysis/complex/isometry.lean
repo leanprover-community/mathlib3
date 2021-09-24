@@ -34,7 +34,7 @@ preference. -/
 def rotation_aux (a : circle) : ℂ ≃ₗᵢ[ℝ] ℂ :=
 { to_fun := λ z, a * z,
   map_add' := mul_add ↑a,
-  map_smul' := λ t z, by { simp only [smul_coe], ring },
+  map_smul' := λ t z, by { simp only [real_smul, ring_hom.id_apply], ring },
   inv_fun := λ z, a⁻¹ * z,
   left_inv := λ z, by { field_simp [nonzero_of_mem_circle], ring },
   right_inv := λ z, by { field_simp [nonzero_of_mem_circle], ring },

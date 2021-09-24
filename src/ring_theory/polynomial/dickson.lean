@@ -195,7 +195,7 @@ begin
   rw [map_dickson, map_pow, map_X],
   apply eq_of_infinite_eval_eq,
   -- The two polynomials agree on all `x` of the form `x = y + y⁻¹`.
-  apply @set.infinite_mono _ {x : K | ∃ y, x = y + y⁻¹ ∧ y ≠ 0},
+  apply @set.infinite.mono _ {x : K | ∃ y, x = y + y⁻¹ ∧ y ≠ 0},
   { rintro _ ⟨x, rfl, hx⟩,
     simp only [eval_X, eval_pow, set.mem_set_of_eq, @add_pow_char K _ p,
       dickson_one_one_eval_add_inv _ _ (mul_inv_cancel hx), inv_pow', zmod.cast_hom_apply,

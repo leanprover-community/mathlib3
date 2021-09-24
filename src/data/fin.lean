@@ -1442,24 +1442,6 @@ begin
     simp }
 end
 
-lemma forall_iff_succ_above {p : fin (n + 1) → Prop} (i : fin (n + 1)) :
-  (∀ j, p j) ↔ p i ∧ ∀ j, p (i.succ_above j) :=
-⟨λ h, ⟨h _, λ j, h _⟩,
-  λ h j, if hj : j = i then (hj.symm ▸ h.1) else
-  begin
-    cases n,
-    { convert h.1 },
-    { cases lt_or_gt_of_ne hj with lt gt,
-      { rcases j.zero_le.eq_or_lt with rfl|H,
-        { convert h.2 0, rw succ_above_below; simp [lt] },
-        { have ltl : j < last _ := lt.trans_le i.le_last,
-          convert h.2 j.cast_pred,
-          simp [succ_above_below, cast_succ_cast_pred ltl, lt] } },
-      { convert h.2 (j.pred (i.zero_le.trans_lt gt).ne.symm),
-        rw succ_above_above;
-        simp [le_cast_succ_iff, gt.lt] } }
-  end⟩
-
 end pred_above
 
 /-- `min n m` as an element of `fin (m + 1)` -/
@@ -1783,6 +1765,10 @@ def succ_above_cases {α : fin (n + 1) → Sort u} (i : fin (n + 1)) (x : α i)
 if hj : j = i then eq.rec x hj.symm
 else if hlt : j < i then eq.rec_on (succ_above_cast_lt hlt) (p _)
 else eq.rec_on (succ_above_pred $ (ne.lt_or_lt hj).resolve_left hlt) (p _)
+
+lemma forall_iff_succ_above {p : fin (n + 1) → Prop} (i : fin (n + 1)) :
+  (∀ j, p j) ↔ p i ∧ ∀ j, p (i.succ_above j) :=
+⟨λ h, ⟨h _, λ j, h _⟩, λ h, succ_above_cases i h.1 h.2⟩
 
 /-- Insert an element into a tuple at a given position. For `i = 0` see `fin.cons`,
 for `i = fin.last n` see `fin.snoc`. See also `fin.succ_above_cases` for a version elaborated

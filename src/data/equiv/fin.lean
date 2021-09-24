@@ -42,6 +42,26 @@ def fin_two_equiv : fin 2 ≃ bool :=
     { rw ← fin.succ_zero_eq_one, refl }
   end⟩
 
+/-- `Π i : fin 2, α i` is equivalent to `α 0 × α 1`. See also `equiv.fin_two_arrow_equiv` for a
+non-dependent version and `equiv.prod_equiv_pi_fin_two` for a version with inputs `α β : Type u`. -/
+@[simps {fully_applied := ff}] def pi_fin_two_equiv (α : fin 2 → Type u) : (Π i, α i) ≃ α 0 × α 1 :=
+{ to_fun := λ f, (f 0, f 1),
+  inv_fun := λ p, fin.cons p.1 $ fin.cons p.2 fin_zero_elim,
+  left_inv := λ f, by { ext k, refine fin.cases _ _ k, exacts [rfl, unique.forall_iff.2 rfl] },
+  right_inv := λ ⟨x, y⟩, rfl }
+
+/-- A product space `α × β` is equivalent to the space `Π i : fin 2, γ i`, where
+`γ = fin.cons α (fin.cons β fin_zero_elim)`. See also `equiv.pi_fin_two_equiv` and
+`equiv.fin_two_arrow_equiv`. -/
+@[simps {fully_applied := ff }] def prod_equiv_pi_fin_two (α β : Type u) :
+  α × β ≃ Π i : fin 2, @fin.cons _ (λ _, Type u) α (fin.cons β fin_zero_elim) i :=
+(pi_fin_two_equiv (fin.cons α (fin.cons β fin_zero_elim))).symm
+
+/-- The space of functions `fin 2 → α` is equivalent to `α × α`. See also `equiv.pi_fin_two_equiv`
+and `equiv.prod_equiv_pi_fin_two`. -/
+@[simps {fully_applied := ff}] def fin_two_arrow_equiv (α : Type*) : (fin 2 → α) ≃ α × α :=
+pi_fin_two_equiv (λ _, α)
+
 /-- The 'identity' equivalence between `fin n` and `fin m` when `n = m`. -/
 def fin_congr {n m : ℕ} (h : n = m) : fin n ≃ fin m :=
 (fin.cast h).to_equiv

@@ -169,6 +169,8 @@ variables {κ : Type*} (w : κ → L)
 
 variables (hv : algebraic_independent R v)
 
+/-- the field of rational functions over `ι`. `v` is an explicit unused argument
+here in order to be able to define an `algebra _ K` instance. -/
 @[derive field, derive algebra (mv_polynomial ι R),
   derive is_fraction_ring (mv_polynomial ι R)]
 def rat_fun (v : ι → K) (hv : algebraic_independent R v) : Type* :=
@@ -198,33 +200,36 @@ lemma is_alg_closure_of_transcendence_basis [is_alg_closed K]
 
 variables (hw : algebraic_independent R w)
 
-def rat_fun_equiv (e : ι ≃ κ) : rat_fun v hv ≃+* rat_fun w hw := sorry
--- ring_equiv.of_hom_inv
---   (is_fraction_ring.lift
---     (show function.injective
---         ((algebra_map (mv_polynomial κ R) (rat_fun w hw)).comp
---           (mv_polynomial.rename e).to_ring_hom),
---       from function.injective.comp
---         (is_fraction_ring.injective _ _)
---         (mv_polynomial.rename_injective e e.injective)))
---   (is_fraction_ring.lift
---     (show function.injective
---         ((algebra_map (mv_polynomial ι R) (rat_fun v hv)).comp
---           (mv_polynomial.rename e.symm).to_ring_hom),
---       from function.injective.comp
---         (is_fraction_ring.injective _ _)
---         (mv_polynomial.rename_injective e.symm e.symm.injective)))
---   begin
---     refine is_localization.ring_hom_ext (non_zero_divisors (mv_polynomial ι R)) _,
---     ext;
---     simp
---   end
---   begin
---     refine is_localization.ring_hom_ext (non_zero_divisors (mv_polynomial κ R)) _,
---     ext;
---     simp
---   end
+def rat_fun_equiv (e : ι ≃ κ) : rat_fun v hv ≃+* rat_fun w hw :=
+ring_equiv.of_hom_inv
+  (is_fraction_ring.lift
+    (show function.injective
+        ((algebra_map (mv_polynomial κ R) (rat_fun w hw)).comp
+          (mv_polynomial.rename e).to_ring_hom),
+      from function.injective.comp
+        (is_fraction_ring.injective _ _)
+        (mv_polynomial.rename_injective e e.injective)))
+  (is_fraction_ring.lift
+    (show function.injective
+        ((algebra_map (mv_polynomial ι R) (rat_fun v hv)).comp
+          (mv_polynomial.rename e.symm).to_ring_hom),
+      from function.injective.comp
+        (is_fraction_ring.injective _ _)
+        (mv_polynomial.rename_injective e.symm e.symm.injective)))
+  begin
+    refine is_localization.ring_hom_ext (non_zero_divisors (mv_polynomial ι R)) _,
+    ext;
+    simp
+  end
+  begin
+    refine is_localization.ring_hom_ext (non_zero_divisors (mv_polynomial κ R)) _,
+    ext;
+    simp
+  end
 
+/-- setting `R` to be `zmod (ring_char K)` this result shows that if two algebraically
+closed fields have the same size transcendence basis and the same characteristic then they are
+isomorphic. -/
 def equiv_of_transcendence_basis
   [is_alg_closed K]
   [is_alg_closed L]
@@ -260,16 +265,52 @@ calc #(K) ≤ max (#(rat_fun v hv.1)) ω :
 ... ≤ max (max (max (#R) (#ι)) ω) ω : max_le_max (cardinal_rat_fun v hv.1) (le_refl _)
 ... = _ : by simp [max_assoc]
 
+/-- If `K` is an uncountable algebraically closed field, then its
+cardinality is the same as that of a transcendence basis. -/
+lemma cardinal_eq_cardinal_transcendence_basis_of_omega_lt
+  (hv : is_transcendence_basis R v)
+  (hR : #R ≤ ω)
+  (hK : ω < #K) :
+  #K = #ι :=
+have ω ≤ #ι,
+  from le_of_not_lt (λ h,
+    not_le_of_gt hK $ calc
+      #K ≤ max (max (#R) (#ι)) ω : cardinal_le v hv
+     ... ≤ _ : max_le (max_le hR (le_of_lt h)) (le_refl _)),
+le_antisymm
+  (calc #K ≤ max (max (#R) (#ι)) ω : cardinal_le v hv
+       ... = #ι : begin
+         rw [max_eq_left, max_eq_right],
+         { exact le_trans hR this },
+         { exact le_max_of_le_right this }
+       end)
+  (mk_le_of_injective (show function.injective v, from hv.1.injective))
+
+
 end cardinal
 
+--TODO: prove for algebraically closed fields of characteristic `p`
+/-- Two uncountable algebraically closed fields of characteristic zero are isomorphic
+if they have the same cardinality. -/
 def ring_equiv_of_cardinal_eq
-  {K L : Type u}
+  {K L : Type}
   [field K] [field L]
   [is_alg_closed K] [is_alg_closed L]
-  (hchar : ring_char K = ring_char L)
+  [char_zero K] [char_zero L]
   (hK : ω < #K) (hKL : #K = #L) :
   K ≃+* L :=
 begin
-
-
+  apply classical.choice,
+  cases exists_is_transcendence_basis ℤ
+    (show function.injective (algebra_map ℤ K),
+      from int.cast_injective) with s hs,
+  cases exists_is_transcendence_basis ℤ
+    (show function.injective (algebra_map ℤ L),
+      from int.cast_injective) with t ht,
+  have : #s = #t,
+  { rw [← cardinal_eq_cardinal_transcendence_basis_of_omega_lt _ hs (le_of_eq mk_int) hK,
+        ← cardinal_eq_cardinal_transcendence_basis_of_omega_lt _ ht (le_of_eq mk_int), hKL],
+    rwa ← hKL },
+  cases cardinal.eq.1 this with e,
+  exact ⟨equiv_of_transcendence_basis _ _ e hs ht⟩,
 end

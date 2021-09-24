@@ -926,14 +926,15 @@ theorem convex.monotone_on_of_deriv_nonneg {D : set ℝ} (hD : convex ℝ D) {f 
   (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
   (hf'_nonneg : ∀ x ∈ interior D, 0 ≤ deriv f x) :
   monotone_on f D :=
-by simpa only [zero_mul, sub_nonneg] using hD.mul_sub_le_image_sub_of_le_deriv hf hf' hf'_nonneg
+λ x hx y hy hxy, by simpa only [zero_mul, sub_nonneg]
+  using hD.mul_sub_le_image_sub_of_le_deriv hf hf' hf'_nonneg x y hx hy hxy
 
 /-- Let `f : ℝ → ℝ` be a differentiable function. If `f'` is nonnegative, then
 `f` is a monotonically increasing function. -/
 theorem monotone_of_deriv_nonneg {f : ℝ → ℝ} (hf : differentiable ℝ f) (hf' : ∀ x, 0 ≤ deriv f x) :
   monotone f :=
 λ x y hxy, convex_univ.monotone_on_of_deriv_nonneg hf.continuous.continuous_on hf.differentiable_on
-  (λ x _, hf' x) x y trivial trivial hxy
+  (λ x _, hf' x) trivial trivial hxy
 
 /-- Let `f` be a function continuous on a convex (or, equivalently, connected) subset `D`
 of the real line. If `f` is differentiable on the interior of `D` and `f'` is negative, then
@@ -960,14 +961,15 @@ theorem convex.antitone_on_of_deriv_nonpos {D : set ℝ} (hD : convex ℝ D) {f 
   (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
   (hf'_nonpos : ∀ x ∈ interior D, deriv f x ≤ 0) :
   antitone_on f D :=
-by simpa only [zero_mul, sub_nonpos] using hD.image_sub_le_mul_sub_of_deriv_le hf hf' hf'_nonpos
+λ x hx y hy hxy, by simpa only [zero_mul, sub_nonpos]
+  using hD.image_sub_le_mul_sub_of_deriv_le hf hf' hf'_nonpos x y hx hy hxy
 
 /-- Let `f : ℝ → ℝ` be a differentiable function. If `f'` is nonpositive, then
 `f` is a monotonically decreasing function. -/
 theorem antitone_of_deriv_nonpos {f : ℝ → ℝ} (hf : differentiable ℝ f) (hf' : ∀ x, deriv f x ≤ 0) :
   antitone f :=
 λ x y hxy, convex_univ.antitone_on_of_deriv_nonpos hf.continuous.continuous_on hf.differentiable_on
-  (λ x _, hf' x) x y trivial trivial hxy
+  (λ x _, hf' x) trivial trivial hxy
 
 /-- If a function `f` is continuous on a convex set `D ⊆ ℝ`, is differentiable on its interior,
 and `f'` is monotone on the interior, then `f` is convex on `D`. -/
@@ -999,12 +1001,12 @@ end
 and `f'` is antitone on the interior, then `f` is concave on `D`. -/
 theorem concave_on_of_deriv_antitone {D : set ℝ} (hD : convex ℝ D) {f : ℝ → ℝ}
   (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
-  (hf'_mono : ∀ x y ∈ interior D, x ≤ y → deriv f y ≤ deriv f x) :
+  (h_anti : antitone_on (deriv f) (interior D)) :
   concave_on D f :=
 begin
-  have : ∀ x y ∈ interior D, x ≤ y → deriv (-f) x ≤ deriv (-f) y,
-  { intros x y hx hy hxy,
-    convert neg_le_neg (hf'_mono x y hx hy hxy);
+  have : monotone_on (deriv (-f)) (interior D),
+  { intros x hx y hy hxy,
+    convert neg_le_neg (h_anti hx hy hxy);
     convert deriv.neg },
   exact (neg_convex_on_iff D f).mp (convex_on_of_deriv_mono hD
     hf.neg hf'.neg this),
@@ -1029,10 +1031,9 @@ theorem convex_on_of_deriv2_nonneg {D : set ℝ} (hD : convex ℝ D) {f : ℝ �
   (hf'' : differentiable_on ℝ (deriv f) (interior D))
   (hf''_nonneg : ∀ x ∈ interior D, 0 ≤ (deriv^[2] f x)) :
   convex_on D f :=
-convex_on_of_deriv_mono hD hf hf' $
-assume x y hx hy hxy,
-hD.interior.monotone_on_of_deriv_nonneg hf''.continuous_on (by rwa [interior_interior])
-  (by rwa [interior_interior]) _ _ hx hy hxy
+convex_on_of_deriv_mono hD hf hf' $ λ x hx y hy hxy,
+hD.interior.monotone_on_of_deriv_nonneg hf''.continuous_on (by rwa interior_interior)
+  (by rwa interior_interior) hx hy hxy
 
 /-- If a function `f` is continuous on a convex set `D ⊆ ℝ`, is twice differentiable on its
 interior, and `f''` is nonpositive on the interior, then `f` is concave on `D`. -/
@@ -1041,10 +1042,9 @@ theorem concave_on_of_deriv2_nonpos {D : set ℝ} (hD : convex ℝ D) {f : ℝ �
   (hf'' : differentiable_on ℝ (deriv f) (interior D))
   (hf''_nonpos : ∀ x ∈ interior D, (deriv^[2] f x) ≤ 0) :
   concave_on D f :=
-concave_on_of_deriv_antitone hD hf hf' $
-assume x y hx hy hxy,
+concave_on_of_deriv_antitone hD hf hf' $ λ x hx y hy hxy,
 hD.interior.antitone_on_of_deriv_nonpos hf''.continuous_on (by rwa [interior_interior])
-  (by rwa [interior_interior]) _ _ hx hy hxy
+  (by rwa [interior_interior]) hx hy hxy
 
 /-- If a function `f` is twice differentiable on a open convex set `D ⊆ ℝ` and
 `f''` is nonnegative on `D`, then `f` is convex on `D`. -/

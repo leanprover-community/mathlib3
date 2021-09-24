@@ -422,6 +422,17 @@ def is_transcendence_basis (v : ι → A) : Prop :=
 algebraic_independent R v ∧
   ∀ (s : set A) (i' : algebraic_independent R (coe : s → A)) (h : range v ≤ s), range v = s
 
+lemma exists_is_transcendence_basis (h : injective (algebra_map R A)) :
+  ∃ s : set A, is_transcendence_basis R (coe : s → A) :=
+begin
+  cases exists_maximal_algebraic_independent (∅ : set A) set.univ
+    (set.subset_univ _) ((algebraic_independent_empty_iff R A).2 h) with s hs,
+  use [s, hs.1],
+  intros t ht hr,
+  simp only [subtype.range_coe_subtype, set_of_mem_eq] at *,
+  exact eq.symm (hs.2.2.2 t ht hr (set.subset_univ _))
+end
+
 variable {R}
 lemma algebraic_independent.is_transcendence_basis_iff
   {ι : Type w} {R : Type u} [comm_ring R] [nontrivial R]

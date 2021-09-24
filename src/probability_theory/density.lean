@@ -53,53 +53,6 @@ open_locale classical measure_theory nnreal ennreal
 
 namespace measure_theory
 
-section move
-
-variables {α : Type*} [measurable_space α] {μ : measure α}
-
-lemma of_real_to_real_ae_eq {f : α → ℝ≥0∞} (hf : measurable f) (hflt : ∀ᵐ x ∂μ, f x < ∞) :
-  (λ x, ennreal.of_real (f x).to_real) =ᵐ[μ] f :=
-begin
-  change μ {x | ennreal.of_real (f x).to_real ≠ f x} = 0,
-  have : ∀ x, ennreal.of_real (f x).to_real ≠ f x ↔ f x = ∞,
-  { intro x,
-    split; intro h,
-    { by_contra htop,
-      rw [← ne.def, ← lt_top_iff_ne_top] at htop,
-      exact h (ennreal.of_real_to_real htop.ne) },
-    { rw h, simp } },
-  simp_rw this,
-  suffices hne : ∀ᵐ x ∂μ, f x ≠ ∞,
-  { simp_rw [ae_iff, not_not] at hne, exact hne },
-  simp_rw [← lt_top_iff_ne_top],
-  exact hflt
-end
-
-lemma integrable.with_density_iff {f : α → ℝ≥0∞} (hf : measurable f)
-  (hflt : ∀ᵐ x ∂μ, f x < ∞) {g : α → ℝ} (hg : measurable g) :
-  integrable g (μ.with_density f) ↔ integrable (λ x, g x * (f x).to_real) μ :=
-begin
-  have : (λ x, (f * λ x, ↑∥g x∥₊) x) =ᵐ[μ] (λ x, ∥g x * (f x).to_real∥₊),
-    { simp_rw [← smul_eq_mul, nnnorm_smul, ennreal.coe_mul],
-      rw [smul_eq_mul, mul_comm],
-      refine filter.eventually_eq.mul (ae_eq_refl _)
-        (ae_eq_trans (of_real_to_real_ae_eq hf hflt).symm _),
-      convert ae_eq_refl _,
-      ext1 x,
-      exact real.ennnorm_eq_of_real ennreal.to_real_nonneg },
-  split; intro hi,
-  { refine ⟨hg.ae_measurable.mul hf.ae_measurable.ennreal_to_real, _⟩,
-    rw [has_finite_integral, lintegral_congr_ae this.symm,
-        ← lintegral_with_density_eq_lintegral_mul _ hf hg.nnnorm.coe_nnreal_ennreal],
-    exact hi.2 },
-  { refine ⟨hg.ae_measurable, _⟩,
-    rw [has_finite_integral, lintegral_with_density_eq_lintegral_mul _
-          hf hg.nnnorm.coe_nnreal_ennreal, lintegral_congr_ae this],
-    exact hi.2 }
-end
-
-end move
-
 open topological_space
 
 variables {α E : Type*} [normed_group E] [measurable_space E] [second_countable_topology E]
@@ -174,7 +127,7 @@ lemma of_real_to_real_ae_eq [is_finite_measure ℙ] {X : α → E} (hX : measura
   (λ x, ennreal.of_real (pdf X ℙ μ x).to_real) =ᵐ[μ] pdf X ℙ μ :=
 begin
   by_cases hpdf : has_pdf X ℙ μ,
-  { exactI of_real_to_real_ae_eq (measurable_pdf _ _ _) (ae_lt_top _ hX) },
+  { exactI ennreal.of_real_to_real_ae_eq (ae_lt_top _ hX) },
   { convert ae_eq_refl _,
     ext1 x,
     rw [pdf, dif_neg hpdf, pi.zero_apply, ennreal.zero_to_real, ennreal.of_real_zero] }

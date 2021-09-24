@@ -260,7 +260,7 @@ by { subst h }
 lemma map {v' : valuation R Γ₀} (f : monoid_with_zero_hom Γ₀ Γ'₀) (hf : monotone f)
   (inf : injective f) (h : v.is_equiv v') :
   (v.map f hf).is_equiv (v'.map f hf) :=
-let H : strict_mono f := strict_mono_of_monotone_of_injective hf inf in
+let H : strict_mono f := hf.strict_mono_of_injective inf in
 λ r s,
 calc f (v r) ≤ f (v s) ↔ v r ≤ v s   : by rw H.le_iff_le
                    ... ↔ v' r ≤ v' s : h r s

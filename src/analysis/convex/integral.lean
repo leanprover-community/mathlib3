@@ -13,26 +13,26 @@ In this file we prove four theorems:
 
 * `convex.smul_integral_mem`: if `μ` is a non-zero finite measure on `α`, `s` is a convex closed set
   in `E`, and `f` is an integrable function sending `μ`-a.e. points to `s`, then the average value
-  of `f` belongs to `s`: `(μ univ).to_real⁻¹ • ∫ x, f x ∂μ ∈ s`. See also
-  `convex.linear_combination_mem` for a finite sum version of this lemma.
+  of `f` belongs to `s`: `(μ univ).to_real⁻¹ • ∫ x, f x ∂μ ∈ s`. See also `convex.center_mass_mem`
+  for a finite sum version of this lemma.
 
 * `convex.integral_mem`: if `μ` is a probability measure on `α`, `s` is a convex closed set in `E`,
   and `f` is an integrable function sending `μ`-a.e. points to `s`, then the expected value of `f`
-  belongs to `s`: `∫ x, f x ∂μ ∈ s`. See also `convex.linear_combination_mem` for a finite sum
+  belongs to `s`: `∫ x, f x ∂μ ∈ s`. See also `convex.center_mass_mem` for a finite sum
   version of this lemma.
 
 * `convex_on.map_smul_integral_le`: Convex Jensen's inequality: If a function `g : E → ℝ` is convex
   and continuous on a convex closed set `s`, `μ` is a finite non-zero measure on `α`, and
   `f : α → E` is a function sending `μ`-a.e. points to `s`, then the value of `g` at the average
   value of `f` is less than or equal to the average value of `g ∘ f` provided that both `f` and
-  `g ∘ f` are integrable. See also `convex_on.map_linear_combination_le` for a finite sum version of
+  `g ∘ f` are integrable. See also `convex_on.map_center_mass_le` for a finite sum version of
   this lemma.
 
 * `convex_on.map_integral_le`: Convex Jensen's inequality: If a function `g : E → ℝ` is convex and
   continuous on a convex closed set `s`, `μ` is a probability measure on `α`, and `f : α → E` is a
   function sending `μ`-a.e. points to `s`, then the value of `g` at the expected value of `f` is
   less than or equal to the expected value of `g ∘ f` provided that both `f` and `g ∘ f` are
-  integrable. See also `convex_on.map_linear_combination_le` for a finite sum version of this lemma.
+  integrable. See also `convex_on.map_center_mass_le` for a finite sum version of this lemma.
 
 ## Tags
 
@@ -67,7 +67,7 @@ begin
     by rw [← (F n).sum_range_measure_preimage_singleton, @ennreal.to_real_sum _ _
       (λ y, μ ((F n) ⁻¹' {y})) (λ _ _, (measure_ne_top _ _))],
   rw [← this, simple_func.integral],
-  refine hs.linear_combination_mem' (λ _ _, ennreal.to_real_nonneg) _ _,
+  refine hs.center_mass_mem' (λ _ _, ennreal.to_real_nonneg) _ _,
   { rw [this, ne.def, ennreal.to_real_eq_zero_iff, measure.measure_univ_eq_zero],
     exact not_or hμ (measure_ne_top _ _) },
   { simp only [simple_func.mem_range],
@@ -77,7 +77,7 @@ end
 
 /-- If `μ` is a non-zero finite measure on `α`, `s` is a convex closed set in `E`, and `f` is an
 integrable function sending `μ`-a.e. points to `s`, then the average value of `f` belongs to `s`:
-`(μ univ).to_real⁻¹ • ∫ x, f x ∂μ ∈ s`. See also `convex.linear_combination_mem` for a finite sum
+`(μ univ).to_real⁻¹ • ∫ x, f x ∂μ ∈ s`. See also `convex.center_mass_mem` for a finite sum
 version of this lemma. -/
 lemma convex.smul_integral_mem
   [is_finite_measure μ] {s : set E} (hs : convex ℝ s) (hsc : is_closed s)
@@ -106,7 +106,7 @@ by simpa [measure_univ] using hs.smul_integral_mem hsc (is_probability_measure.n
 `s`, `μ` is a finite non-zero measure on `α`, and `f : α → E` is a function sending `μ`-a.e. points
 to `s`, then the value of `g` at the average value of `f` is less than or equal to the average value
 of `g ∘ f` provided that both `f` and `g ∘ f` are integrable. See also
-`convex.map_linear_combination_le` for a finite sum version of this lemma. -/
+`convex.map_center_mass_le` for a finite sum version of this lemma. -/
 lemma convex_on.map_smul_integral_le [is_finite_measure μ] {s : set E} {g : E → ℝ}
   (hg : convex_on ℝ s g) (hgc : continuous_on g s) (hsc : is_closed s) (hμ : μ ≠ 0) {f : α → E}
   (hfs : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) (hgi : integrable (g ∘ f) μ) :
@@ -126,7 +126,7 @@ end
 closed set `s`, `μ` is a probability measure on `α`, and `f : α → E` is a function sending `μ`-a.e.
 points to `s`, then the value of `g` at the expected value of `f` is less than or equal to the
 expected value of `g ∘ f` provided that both `f` and `g ∘ f` are integrable. See also
-`convex_on.map_linear_combination_le` for a finite sum version of this lemma. -/
+`convex_on.map_center_mass_le` for a finite sum version of this lemma. -/
 lemma convex_on.map_integral_le [is_probability_measure μ] {s : set E} {g : E → ℝ}
   (hg : convex_on ℝ s g) (hgc : continuous_on g s) (hsc : is_closed s) {f : α → E}
   (hfs : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) (hgi : integrable (g ∘ f) μ) :

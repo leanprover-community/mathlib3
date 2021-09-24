@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, François Dupuis
 -/
 import analysis.convex.combination
+import data.real.basic
+import algebra.module.ordered
 
 /-!
 # Convex and concave functions
@@ -20,7 +22,7 @@ a convex set.
 
 * `convex_on 𝕜 s f`: The function `f` is convex on `s` with scalars `𝕜`.
 * `concave_on 𝕜 s f`: The function `f` is concave on `s` with scalars `𝕜`.
-* `convex_on.map_linear_combination_le` `convex_on.map_sum_le`: Convex Jensen's inequality.
+* `convex_on.map_center_mass_le` `convex_on.map_sum_le`: Convex Jensen's inequality.
 -/
 
 open finset linear_map set
@@ -603,33 +605,33 @@ section jensen
 variables [linear_ordered_field 𝕜] [add_comm_monoid E] [ordered_add_comm_monoid β] [module 𝕜 E]
   [module 𝕜 β] [ordered_smul 𝕜 β] {s : set E} {f : E → β} {t : finset ι} {w : ι → 𝕜} {p : ι → E}
 
-/-- Convex **Jensen's inequality**, `finset.linear_combination` version. -/
-lemma convex_on.map_linear_combination_le (hf : convex_on 𝕜 s f) (h₀ : ∀ i ∈ t, 0 ≤ w i)
+/-- Convex **Jensen's inequality**, `finset.center_mass` version. -/
+lemma convex_on.map_center_mass_le (hf : convex_on 𝕜 s f) (h₀ : ∀ i ∈ t, 0 ≤ w i)
   (h₁ : ∑ i in t, w i = 1) (hmem : ∀ i ∈ t, p i ∈ s) :
-  f (t.linear_combination p w) ≤ t.linear_combination (f ∘ p) w :=
+  f (t.center_mass p w) ≤ t.center_mass (f ∘ p) w :=
 begin
   have hmem' : ∀ i ∈ t, (p i, (f ∘ p) i) ∈ {p : E × β | p.1 ∈ s ∧ f p.1 ≤ p.2},
     from λ i hi, ⟨hmem i hi, le_rfl⟩,
-  convert (hf.convex_epigraph.linear_combination_mem h₀ h₁ hmem').2;
-    simp only [linear_combination, function.comp, prod.smul_fst, prod.fst_sum,
+  convert (hf.convex_epigraph.center_mass_mem h₀ h₁ hmem').2;
+    simp only [center_mass, function.comp, prod.smul_fst, prod.fst_sum,
       prod.smul_snd, prod.snd_sum],
 end
 
-/-- Concave **Jensen's inequality**, `finset.linear_combination` version. -/
-lemma concave_on.le_map_linear_combination (hf : concave_on 𝕜 s f) (h₀ : ∀ i ∈ t, 0 ≤ w i)
+/-- Concave **Jensen's inequality**, `finset.center_mass` version. -/
+lemma concave_on.le_map_center_mass (hf : concave_on 𝕜 s f) (h₀ : ∀ i ∈ t, 0 ≤ w i)
   (h₁ : ∑ i in t, w i = 1) (hmem : ∀ i ∈ t, p i ∈ s) :
-  t.linear_combination (f ∘ p) w ≤ f (t.linear_combination p w) :=
-@convex_on.map_linear_combination_le 𝕜 E (order_dual β) _ _ _ _ _ _ _ _ _ _ _ _ hf h₀ h₁ hmem
+  t.center_mass (f ∘ p) w ≤ f (t.center_mass p w) :=
+@convex_on.map_center_mass_le 𝕜 E (order_dual β) _ _ _ _ _ _ _ _ _ _ _ _ hf h₀ h₁ hmem
 
 /-- Convex **Jensen's inequality**, `finset.sum` version. -/
 lemma convex_on.map_sum_le (hf : convex_on 𝕜 s f) (h₀ : ∀ i ∈ t, 0 ≤ w i) (h₁ : ∑ i in t, w i ≠ 0)
   (hmem : ∀ i ∈ t, p i ∈ s) :
   f ((∑ i in t, w i)⁻¹ • ∑ i in t, w i • p i) ≤ (∑ i in t, w i)⁻¹ • ∑ i in t, w i • f (p i) :=
 begin
-  rw [←linear_combination, ←linear_combination_smul_right, ←linear_combination,
-    ←linear_combination_smul_right],
-  exact hf.map_linear_combination_le (linear_combination_normalize_weight_nonneg h₀)
-    (linear_combination_normalize_weight_sum h₁) hmem,
+  rw [←center_mass, ←center_mass_smul_right, ←center_mass,
+    ←center_mass_smul_right],
+  exact hf.map_center_mass_le (center_mass_normalize_weight_nonneg h₀)
+    (center_mass_normalize_weight_sum h₁) hmem,
 end
 
 /-- Concave **Jensen's inequality**, `finset.sum` version. -/
@@ -649,11 +651,11 @@ variables [linear_ordered_field 𝕜] [add_comm_monoid E] [ordered_add_comm_mono
 
 /-- If a function `f` is convex on `s` takes value `y` at the center of mass of some points
 `p i ∈ s`, then for some `i` we have `y ≤ f (p i)`. -/
-lemma convex_on.exists_ge_of_linear_combination {f : E → 𝕜} (h : convex_on 𝕜 s f)
+lemma convex_on.exists_ge_of_center_mass {f : E → 𝕜} (h : convex_on 𝕜 s f)
   (hw₀ : ∀ i ∈ t, 0 ≤ w i) (hw₁ : ∑ i in t, w i = 1) (hz : ∀ i ∈ t, p i ∈ s) :
-  ∃ i ∈ t, f (t.linear_combination p w) ≤ f (p i) :=
+  ∃ i ∈ t, f (t.center_mass p w) ≤ f (p i) :=
 begin
-  set y := t.linear_combination p w,
+  set y := t.center_mass p w,
   suffices h : ∃ i ∈ t.filter (λ i, w i ≠ 0), w i • f y ≤ w i • (f ∘ p) i,
   { obtain ⟨i, hi, hfi⟩ := h,
     rw mem_filter at hi,
@@ -662,9 +664,9 @@ begin
   { have := @zero_ne_one 𝕜 _ _,
     rw [←hw₁, ←sum_filter_ne_zero] at this,
     exact nonempty_of_sum_ne_zero this.symm },
-  { rw [←linear_combination, ←linear_combination, finset.linear_combination_filter_ne_zero,
-      finset.linear_combination_filter_ne_zero, linear_combination_const_left, hw₁, one_smul],
-    exact h.map_linear_combination_le hw₀ hw₁ hz }
+  { rw [←center_mass, ←center_mass, finset.center_mass_filter_ne_zero,
+      finset.center_mass_filter_ne_zero, center_mass_const_left, hw₁, one_smul],
+    exact h.map_center_mass_le hw₀ hw₁ hz }
 end
 
 /-- Maximum principle for convex functions. If a function `f` is convex on the convex hull of `s`,
@@ -674,7 +676,7 @@ lemma convex_on.exists_ge_of_mem_convex_hull {f : E → 𝕜} (hf : convex_on �
 begin
   rw convex_hull_eq at hx,
   obtain ⟨α, t, w, p, hw₀, hw₁, hp, rfl⟩ := hx,
-  rcases hf.exists_ge_of_linear_combination hw₀ hw₁
+  rcases hf.exists_ge_of_center_mass hw₀ hw₁
     (λ i hi, subset_convex_hull 𝕜 s (hp i hi)) with ⟨i, hit, Hi⟩,
   exact ⟨p i, hp i hit, Hi⟩
 end

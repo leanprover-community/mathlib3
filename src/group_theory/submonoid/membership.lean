@@ -41,40 +41,37 @@ namespace submonoid
 section assoc
 variables [monoid M] (S : submonoid M)
 
-@[simp, norm_cast] theorem coe_pow (x : S) (n : ℕ) : ↑(x ^ n) = (x ^ n : M) :=
+@[simp, norm_cast, to_additive coe_nsmul] theorem coe_pow (x : S) (n : ℕ) :
+  ↑(x ^ n) = (x ^ n : M) :=
 S.subtype.map_pow x n
 
-@[simp, norm_cast] theorem coe_list_prod (l : list S) : (l.prod : M) = (l.map coe).prod :=
+@[simp, norm_cast, to_additive] theorem coe_list_prod (l : list S) :
+  (l.prod : M) = (l.map coe).prod :=
 S.subtype.map_list_prod l
 
-@[simp, norm_cast] theorem coe_multiset_prod {M} [comm_monoid M] (S : submonoid M)
+@[simp, norm_cast, to_additive] theorem coe_multiset_prod {M} [comm_monoid M] (S : submonoid M)
   (m : multiset S) : (m.prod : M) = (m.map coe).prod :=
 S.subtype.map_multiset_prod m
 
-@[simp, norm_cast] theorem coe_finset_prod {ι M} [comm_monoid M] (S : submonoid M)
+@[simp, norm_cast, to_additive] theorem coe_finset_prod {ι M} [comm_monoid M] (S : submonoid M)
   (f : ι → S) (s : finset ι) :
   ↑(∏ i in s, f i) = (∏ i in s, f i : M) :=
 S.subtype.map_prod f s
 
+attribute [norm_cast] add_submonoid.coe_nsmul add_submonoid.coe_list_sum
+  add_submonoid.coe_multiset_sum add_submonoid.coe_finset_sum
+
 /-- Product of a list of elements in a submonoid is in the submonoid. -/
 @[to_additive "Sum of a list of elements in an `add_submonoid` is in the `add_submonoid`."]
-lemma list_prod_mem : ∀ {l : list M}, (∀x ∈ l, x ∈ S) → l.prod ∈ S
-| []     h := S.one_mem
-| (a::l) h :=
-  suffices a * l.prod ∈ S, by rwa [list.prod_cons],
-  have a ∈ S ∧ (∀ x ∈ l, x ∈ S), from list.forall_mem_cons.1 h,
-  S.mul_mem this.1 (list_prod_mem this.2)
+lemma list_prod_mem {l : list M} (hl : ∀ x ∈ l, x ∈ S) : l.prod ∈ S :=
+by { lift l to list S using hl, rw ← coe_list_prod, exact l.prod.coe_prop }
 
 /-- Product of a multiset of elements in a submonoid of a `comm_monoid` is in the submonoid. -/
 @[to_additive "Sum of a multiset of elements in an `add_submonoid` of an `add_comm_monoid` is
 in the `add_submonoid`."]
-lemma multiset_prod_mem {M} [comm_monoid M] (S : submonoid M) (m : multiset M) :
-  (∀a ∈ m, a ∈ S) → m.prod ∈ S :=
-begin
-  refine quotient.induction_on m (assume l hl, _),
-  rw [multiset.quot_mk_to_coe, multiset.coe_prod],
-  exact S.list_prod_mem hl
-end
+lemma multiset_prod_mem {M} [comm_monoid M] (S : submonoid M) (m : multiset M)
+  (hm : ∀ a ∈ m, a ∈ S) : m.prod ∈ S :=
+by { lift m to multiset S using hm, rw ← coe_multiset_prod, exact m.prod.coe_prop }
 
 /-- Product of elements of a submonoid of a `comm_monoid` indexed by a `finset` is in the
     submonoid. -/
@@ -85,7 +82,7 @@ lemma prod_mem {M : Type*} [comm_monoid M] (S : submonoid M)
   ∏ c in t, f c ∈ S :=
 S.multiset_prod_mem (t.1.map f) $ λ x hx, let ⟨i, hi, hix⟩ := multiset.mem_map.1 hx in hix ▸ h i hi
 
-lemma pow_mem {x : M} (hx : x ∈ S) (n : ℕ) : x ^ n ∈ S :=
+@[to_additive nsmul_mem] lemma pow_mem {x : M} (hx : x ∈ S) (n : ℕ) : x ^ n ∈ S :=
 by simpa only [coe_pow] using ((⟨x, hx⟩ : S) ^ n).coe_prop
 
 end assoc
@@ -261,11 +258,6 @@ namespace add_submonoid
 variables [add_monoid A]
 
 open set
-
-lemma nsmul_mem (S : add_submonoid A) {x : A} (hx : x ∈ S) :
-  ∀ n : ℕ, n • x ∈ S
-| 0     := by { rw zero_nsmul, exact S.zero_mem }
-| (n+1) := by { rw [add_nsmul, one_nsmul], exact S.add_mem (nsmul_mem n) hx }
 
 lemma closure_singleton_eq (x : A) : closure ({x} : set A) = (multiples_hom A x).mrange :=
 closure_eq_of_le (set.singleton_subset_iff.2 ⟨1, one_nsmul x⟩) $

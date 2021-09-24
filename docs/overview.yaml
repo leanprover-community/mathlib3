@@ -272,7 +272,7 @@ Analysis:
   Convexity:
     convex function: 'convex_on'
     characterization of convexity: 'convex_on_of_deriv2_nonneg'
-    Jensen's inequality (finite sum version): 'convex_on.map_linear_combination_le'
+    Jensen's inequality (finite sum version): 'convex_on.map_center_mass_le'
     Jensen's inequality (integral version): 'convex_on.map_integral_le'
     convexity inequalities: 'analysis/mean_inequalities.html'
     Carathéodory's theorem: 'convex_hull_eq_union'

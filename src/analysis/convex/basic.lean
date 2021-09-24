@@ -3,7 +3,7 @@ Copyright (c) 2019 Alexander Bentkamp. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Yury Kudriashov, Yaël Dillies
 -/
-import data.complex.module
+import algebra.order.smul
 import data.set.intervals.image_preimage
 import linear_algebra.affine_space.affine_map
 import order.closure
@@ -836,30 +836,6 @@ end
 end add_comm_monoid
 end linear_ordered_field
 
-lemma convex_halfspace_re_lt (r : ℝ) : convex ℝ {c : ℂ | c.re < r} :=
-convex_halfspace_lt (is_linear_map.mk complex.add_re complex.smul_re) _
-
-lemma convex_halfspace_re_le (r : ℝ) : convex ℝ {c : ℂ | c.re ≤ r} :=
-convex_halfspace_le (is_linear_map.mk complex.add_re complex.smul_re) _
-
-lemma convex_halfspace_re_gt (r : ℝ) : convex ℝ {c : ℂ | r < c.re } :=
-convex_halfspace_gt (is_linear_map.mk complex.add_re complex.smul_re) _
-
-lemma convex_halfspace_re_ge (r : ℝ) : convex ℝ {c : ℂ | r ≤ c.re} :=
-convex_halfspace_ge (is_linear_map.mk complex.add_re complex.smul_re) _
-
-lemma convex_halfspace_im_lt (r : ℝ) : convex ℝ {c : ℂ | c.im < r} :=
-convex_halfspace_lt (is_linear_map.mk complex.add_im complex.smul_im) _
-
-lemma convex_halfspace_im_le (r : ℝ) : convex ℝ {c : ℂ | c.im ≤ r} :=
-convex_halfspace_le (is_linear_map.mk complex.add_im complex.smul_im) _
-
-lemma convex_halfspace_im_gt (r : ℝ) : convex ℝ {c : ℂ | r < c.im} :=
-convex_halfspace_gt (is_linear_map.mk complex.add_im complex.smul_im) _
-
-lemma convex_halfspace_im_ge (r : ℝ) : convex ℝ {c : ℂ | r ≤ c.im} :=
-convex_halfspace_ge (is_linear_map.mk complex.add_im complex.smul_im) _
-
 /-!
 #### Convex sets in an ordered space
 Relates `convex` and `ord_connected`.
@@ -1055,18 +1031,14 @@ end add_comm_monoid
 end ordered_ring
 end convex_hull
 
-
-variables {ι ι' : Type*} [ordered_semiring 𝕜] [add_comm_group E] [module 𝕜 E] {s : set E}
-
 /-! ### Simplex -/
 
 section simplex
 
-variables (ι) [fintype ι] {f : ι → 𝕜}
+variables (ι : Type*) [ordered_semiring 𝕜] [add_comm_group E] [fintype ι] [module 𝕜 E]
 
-/-- The standard simplex in the space of finitely supported functions `ι →₀ 𝕜` is the set
-of vectors with non-negative coordinates with total sum `1`. This is the free object in the category
-of convex spaces.-/
+/-- The standard simplex in the space of functions `ι → 𝕜` is the set of vectors with non-negative
+coordinates with total sum `1`. This is the free object in the category of convex spaces.-/
 def std_simplex : set (ι → 𝕜) :=
 {f | (∀ x, 0 ≤ f x) ∧ ∑ x, f x = 1}
 

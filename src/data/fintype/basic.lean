@@ -1092,11 +1092,11 @@ fintype.card_le_of_embedding (function.embedding.subtype s)
 namespace function.embedding
 
 /-- An embedding from a `fintype` to itself can be promoted to an equivalence. -/
-noncomputable def equiv_of_fintype_self_embedding {α : Type*} [fintype α] (e : α ↪ α) : α ≃ α :=
+noncomputable def equiv_of_fintype_self_embedding [fintype α] (e : α ↪ α) : α ≃ α :=
 equiv.of_bijective e (fintype.injective_iff_bijective.1 e.2)
 
 @[simp]
-lemma equiv_of_fintype_self_embedding_to_embedding {α : Type*} [fintype α] (e : α ↪ α) :
+lemma equiv_of_fintype_self_embedding_to_embedding [fintype α] (e : α ↪ α) :
   e.equiv_of_fintype_self_embedding.to_embedding = e :=
 by { ext, refl, }
 
@@ -1104,9 +1104,28 @@ by { ext, refl, }
 This is a formulation of the pigeonhole principle.
 
 Note this cannot be an instance as it needs `h`. -/
-@[simp] lemma is_empty_of_card_lt {α β} [fintype α] [fintype β]
+@[simp] lemma is_empty_of_card_lt [fintype α] [fintype β]
   (h : fintype.card β < fintype.card α) : is_empty (α ↪ β) :=
 ⟨λ f, let ⟨x, y, ne, feq⟩ := fintype.exists_ne_map_eq_of_card_lt f h in ne $ f.injective feq⟩
+
+/-- A constructive embedding of a fintype `α` in another fintype `β` when `card α ≤ card β`. -/
+def trunc_of_card_le [fintype α] [fintype β] [decidable_eq α] [decidable_eq β]
+  (h : fintype.card α ≤ fintype.card β) : trunc (α ↪ β) :=
+(fintype.trunc_equiv_fin α).bind $ λ ea,
+  (fintype.trunc_equiv_fin β).map $ λ eb,
+    ea.to_embedding.trans ((fin.cast_le h).to_embedding.trans eb.symm.to_embedding)
+
+lemma nonempty_of_card_le [fintype α] [fintype β]
+  (h : fintype.card α ≤ fintype.card β) : nonempty (α ↪ β) :=
+by { classical, exact (trunc_of_card_le h).nonempty }
+
+lemma exists_of_card_le_finset [fintype α] {s : finset β} (h : fintype.card α ≤ s.card) :
+  ∃ (f : α ↪ β), set.range f ⊆ s :=
+begin
+  rw ← fintype.card_coe at h,
+  rcases nonempty_of_card_le h with ⟨f⟩,
+  exact ⟨f.trans (embedding.subtype _), by simp [set.range_subset_iff]⟩
+end
 
 end function.embedding
 

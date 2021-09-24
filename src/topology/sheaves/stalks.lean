@@ -291,6 +291,8 @@ end
 
 variables (C)
 
+/-- A continuous map `X ⟶ Y` induces a morphism
+from the `f _* ℱ` stalk at `f x` to the `ℱ` stalk at `x`. -/
 def stalk_pushforward (f : X ⟶ Y) (ℱ : X.presheaf C) (x : X) : (f _* ℱ).stalk (f x) ⟶ ℱ.stalk x :=
 begin
   -- This is a hack; Lean doesn't like to elaborate the term written directly.

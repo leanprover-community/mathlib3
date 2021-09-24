@@ -450,6 +450,10 @@ begin
   exact mul_action.injective a,
 end
 
+@[to_additive]
+lemma smul_set_inter_subset [has_scalar α β] {s t : set β} :
+  a • (s ∩ t) ⊆ a • s ∩ a • t := image_inter_subset _ _ _
+
 @[simp, to_additive]
 lemma smul_set_empty [has_scalar α β] (a : α) : a • (∅ : set β) = ∅ :=
 by rw [← image_smul, image_empty]

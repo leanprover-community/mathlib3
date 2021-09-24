@@ -273,6 +273,6 @@ lemma mem_bsupr_iff_exists_dfinsupp (p : ι → Prop) [decidable_pred p] (S : ι
   (x : N) :
   x ∈ (⨆ i (h : p i), S i) ↔
     ∃ f : Π₀ i, S i, dfinsupp.lsum ℕ (λ i, (S i).subtype) (f.filter p) = x :=
-set_like.ext_iff.mp (bsupr_eq_mrange_dfinsupp_lsum p S) x
+set_like.ext_iff.mp (bsupr_eq_range_dfinsupp_lsum p S) x
 
 end submodule

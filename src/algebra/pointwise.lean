@@ -445,10 +445,7 @@ by simp only [← image_smul, image_union]
 @[to_additive]
 lemma smul_set_inter [group α] [mul_action α β] {s t : set β} :
   a • (s ∩ t) = a • s ∩ a • t :=
-begin
-  erw [← image_smul, image_inter],
-  exact mul_action.injective a,
-end
+(image_inter $ mul_action.injective a).symm
 
 @[to_additive]
 lemma smul_set_inter_subset [has_scalar α β] {s t : set β} :

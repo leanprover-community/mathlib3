@@ -65,24 +65,5 @@ end
 @[to_additive]
 lemma smul_pi {K R : Type*} [group K] [mul_action K R] {ι : Type*} {r : K} (t : ι → set R)
   (S : set ι) : r • S.pi t = S.pi (λ (i : ι), r • t i) :=
-begin
-  ext x,
-  simp only [mem_smul_set, mem_pi],
-  split; intro h,
-  { rcases h with ⟨h_w, h_h_left, rfl⟩,
-    simp only [mul_eq_mul_left_iff, pi.smul_apply],
-    intros i hi,
-    refine ⟨h_w i, h_h_left i hi, rfl⟩, },
-  classical,
-  { existsi (λ i, if hiS : i ∈ S then classical.some (h i hiS) else r⁻¹ • x i),
-    dsimp,
-    split,
-    { intros i hiS,
-      split_ifs,
-      exact (classical.some_spec (h i hiS)).left, },
-    { ext i,
-      rw [pi.smul_apply],
-      split_ifs with hiS,
-      exact (classical.some_spec (h i hiS)).right,
-      rw [smul_smul, mul_right_inv, one_smul], }, },
-end
+subset.antisymm (smul_pi_subset _ _) $ λ x h,
+  ⟨r⁻¹ • x, λ i hiS, mem_smul_set_iff_inv_smul_mem.mp (h i hiS), smul_inv_smul _ _⟩

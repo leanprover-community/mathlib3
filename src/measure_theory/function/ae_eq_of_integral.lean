@@ -473,6 +473,8 @@ end ae_eq_of_forall_set_integral_eq
 
 section lintegral
 
+namespace ae_measurable
+
 lemma ae_eq_of_to_real_ae_eq {f g : α → ℝ≥0∞}
   (hf : ae_measurable f μ) (hg : ae_measurable g μ)
   (hfi : ∀ᵐ x ∂μ, f x < ∞) (hgi : ∀ᵐ x ∂μ, g x < ∞)
@@ -506,18 +508,19 @@ begin
       (integrable_to_real_of_lintegral_ne_top hg hgi) (λ s hs hs', _)),
   rw [integral_eq_lintegral_of_nonneg_ae, integral_eq_lintegral_of_nonneg_ae],
   { congr' 1,
-    rw lintegral_congr_ae (ennreal.of_real_to_real_ae_eq f _),
-    rw lintegral_congr_ae (ennreal.of_real_to_real_ae_eq g _),
+    rw [lintegral_congr_ae (ennreal.of_real_to_real_ae_eq _),
+        lintegral_congr_ae (ennreal.of_real_to_real_ae_eq _)],
     { exact hfg hs hs' },
     { refine (ae_lt_top' hg.restrict (ne_of_lt (lt_of_le_of_lt _ hgi.lt_top))),
       exact @set_lintegral_univ α _ μ g ▸ lintegral_mono_set (set.subset_univ _) },
     { refine (ae_lt_top' hf.restrict (ne_of_lt (lt_of_le_of_lt _ hfi.lt_top))),
       exact @set_lintegral_univ α _ μ f ▸ lintegral_mono_set (set.subset_univ _) } },
-  { exact ae_of_all _ (λ x, ennreal.to_real_nonneg) },
-  { exact ae_measurable.restrict hg.ennreal_to_real },
-  { exact ae_of_all _ (λ x, ennreal.to_real_nonneg) },
-  { exact ae_measurable.restrict hf.ennreal_to_real }
+  -- putting the proofs where they are used is extremely slow
+  exacts [ae_of_all _ (λ x, ennreal.to_real_nonneg), hg.ennreal_to_real.restrict,
+          ae_of_all _ (λ x, ennreal.to_real_nonneg), hf.ennreal_to_real.restrict]
 end
+
+end ae_measurable
 
 end lintegral
 

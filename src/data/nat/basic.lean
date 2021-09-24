@@ -625,6 +625,8 @@ end
 @[simp] lemma add_sub_sub_cancel {a c : ℕ} (h : c ≤ a) (b : ℕ) : a + b - (a - c) = b + c :=
 by rw [add_comm, nat.add_sub_assoc (nat.sub_le_self _ _), nat.sub_sub_self h]
 
+lemma sub_succ' (a b : ℕ) : a - b.succ = a - b - 1 := rfl
+
 /-! ### `mul` -/
 
 lemma succ_mul_pos (m : ℕ) (hn : 0 < n) : 0 < (succ m) * n :=

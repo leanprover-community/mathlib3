@@ -119,8 +119,6 @@ end
 lemma nth_zero_of_exists [decidable_pred p] (h : ∃ n, p n) : nth p 0 = nat.find h :=
 by { rw [nth_zero], convert nat.Inf_def h }
 
-lemma nat.sub_succ' (a b : ℕ) : a - b.succ = a - b - 1 := rfl
-
 lemma nth_set_card_aux {n : ℕ} (hf : (set_of p).finite)
   (hf' : {i : ℕ | p i ∧ ∀ t < n, nth p t < i}.finite) (hle : n ≤ hf.to_finset.card) :
   hf'.to_finset.card = hf.to_finset.card - n :=

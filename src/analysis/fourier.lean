@@ -327,64 +327,6 @@ begin
   sorry,
 end
 
-lemma something1 (S : set ℝ ) (hS : measurable_set S) (h : ∀ t, ∃! x:ℝ ,  ∃n:ℤ, x∈ S ∧  t=x+n ) :
-measure.map (quotient_add_group.mk : (ℝ → ℝmodℤ)) (measure.restrict volume S) =
- μ_ℝmodℤ :=
-begin
-  have : S = Ico 0 1 := sorry,
-  rw @measure_theory.measure.add_haar_measure_unique ℝmodℤ _ _ _ _ _ _ _ _
-    (measure.map (quotient_add_group.mk : (ℝ → ℝmodℤ)) (measure.restrict volume S)) sorry _
-    (positive_compacts_univ),
-
-  {
-    transitivity (1:ennreal) • μ_ℝmodℤ,
-    {
-      congr,
-      rw measure_theory.measure.map_apply,
-      simp [positive_compacts_univ],
-      sorry, -- volume S = 1
-      sorry, -- measurability
-      sorry, -- measurability
-    },
-    {
-      simp,
-    },
-  },
-  {
-    rw ←  measure_theory.measure.map_add_left_eq_self,
-    intros x,
-    ext1 A hA,
-    rw measure_theory.measure.map_apply,
-    rw measure_theory.measure.map_apply,
-    rw measure_theory.measure.map_apply,
-
-    let x1 : ℝ  := sorry, -- representative of x in [0,1]
-
-    have : x= ↑ x1 := sorry,
-
-    let A1 := (quotient_add_group.mk ⁻¹' A) ∩ Ico (0:ℝ) ((1:ℝ)-x1),
-    let A2 := (quotient_add_group.mk ⁻¹' A) ∩ Ico (1-x1) 1,
-    have : (quotient_add_group.mk ⁻¹' A) ∩ Ico 0 1 = A1 ∪ A2,
-    {
-      sorry,
-    },
---    have : (quotient_add_group.mk ⁻¹' (has_add.add x ⁻¹' A)) ∩ Ico 0 1 = (A2-x1) ⊔ (A1+(1-x1???))
-
-    have := measure_theory.measure_union ,
-
-    have := real.map_volume_add_left,
-    -- ALEX homework
-
-  },
-  sorry,
-end
-
-lemma integral_Union {ι : Type*} [encodable ι] {s : ι → set ℝ } (f : ℝ  → ℂ )
-  (hm : ∀ i, measurable_set (s i)) (hd : pairwise (disjoint on s)) (hfi : integrable f  ) :
-  (∫ a in (⋃ n, s n), f a ) = ∑' n, ∫ a in s n, f a  :=
-sorry
-
-
 /-- Move somewhere ??? algebra.floor? -/
 lemma RmodZuniqueRep :
 ∀ (t : ℝ), ∃! (x : ℝ), ∃ (n : ℤ), x ∈ Ico (0:ℝ) 1 ∧ t = x + n :=
@@ -417,6 +359,159 @@ begin
     ring, },
 end
 
+theorem real.volume_preimage_add_left (a : ℝ) (s : set ℝ) :
+measure_theory.measure_space.volume (has_add.add a ⁻¹' s) = measure_theory.measure_space.volume s
+:= sorry,
+
+theorem disjoint.inter {α : Type*} {s t : set α} (u : set α) (h : disjoint s t) :
+disjoint (u ∩ s) (u ∩ t) :=
+begin
+  apply disjoint.inter_right',
+  apply disjoint.inter_left',
+  exact h,
+end
+
+theorem disjoint.inter' {α : Type*} {s t : set α} (u : set α) (h : disjoint s t) :
+disjoint (s ∩ u) (t ∩ u) :=
+begin
+  apply disjoint.inter_left,
+  apply disjoint.inter_right,
+  exact h,
+end
+
+/--- This was recently added , change finite_measure to is_finite_measure! -/
+theorem measure_theory.measure.is_finite_measure_map {α : Type*} {β : Type*} [measurable_space β]
+{m : measurable_space α} (μ : measure_theory.measure α) [measure_theory.finite_measure μ]
+{f : α → β} (hf : measurable f) :
+measure_theory.finite_measure ((measure_theory.measure.map f) μ) := sorry
+
+
+lemma min_cases {α : Type*} [linear_order α] (a b : α) :
+min a b = a ∧ a ≤ b ∨ min a b = b ∧ b < a :=
+begin
+  by_cases a ≤ b,
+  { left,
+    exact ⟨min_eq_left h, h⟩ },
+  { right,
+    push_neg at h,
+    exact ⟨min_eq_right (le_of_lt h), h⟩ }
+end
+
+lemma max_cases {α : Type*} [linear_order α] (a b : α) :
+max a b = b ∧ a ≤ b ∨ max a b = a ∧ b < a :=
+begin
+  by_cases a ≤ b,
+  { left,
+    exact ⟨max_eq_right h, h⟩ },
+  { right,
+    push_neg at h,
+    exact ⟨max_eq_left (le_of_lt h), h⟩ }
+end
+
+
+lemma something1
+--(S : set ℝ ) (hS : measurable_set S)
+--(h : S = Ico 0 1)
+--(h : ∀ t, ∃! x:ℝ ,  ∃n:ℤ, x∈ S ∧  t=x+n )
+:
+measure.map (quotient_add_group.mk : (ℝ → ℝmodℤ)) (measure.restrict volume (Ico (0:ℝ) 1)) =
+ μ_ℝmodℤ :=
+begin
+  have meas1 : measurable (quotient_add_group.mk : (ℝ → ℝmodℤ)),
+  { apply continuous.measurable,
+    exact continuous_quotient_mk, },
+  let S := Ico (0:ℝ) 1,
+  haveI : finite_measure (measure.restrict volume (Ico (0:ℝ) 1)) := ⟨ by simp ⟩,
+  haveI : finite_measure (measure.map (quotient_add_group.mk : (ℝ → ℝmodℤ))
+    (measure.restrict volume (Ico (0:ℝ) 1))),
+  { refine measure_theory.measure.is_finite_measure_map _ _,
+    exact meas1, },
+
+  rw @measure_theory.measure.add_haar_measure_unique ℝmodℤ _ _ _ _ _ _ _ _
+    (measure.map (quotient_add_group.mk : (ℝ → ℝmodℤ)) (measure.restrict volume S)) _ _
+    (positive_compacts_univ),
+
+  { transitivity (1:ennreal) • μ_ℝmodℤ,
+    { congr,
+      rw measure_theory.measure.map_apply,
+      { simp [positive_compacts_univ], },
+      { exact meas1, },
+      { exact measurable_set.univ, }, },
+    { simp, }, },
+  { rw ←  measure_theory.measure.map_add_left_eq_self,
+    intros x,
+    ext1 A hA,
+    rw measure_theory.measure.map_apply,
+    rw measure_theory.measure.map_apply,
+    rw measure_theory.measure.map_apply,
+
+    -- make this a lemma for the group theory library! ...
+    obtain ⟨x0, hx0⟩ := @quotient.exists_rep _ (quotient_add_group.left_rel (add_subgroup.gmultiples (1:ℝ))) x,
+
+    obtain ⟨x1, ⟨n, ⟨ hx11, hx12⟩ , hn⟩, hx1'⟩ := RmodZuniqueRep x0,
+
+    have xeqx1 : x= ↑x1,
+    { rw ← hx0,
+      rw hn,
+      refine quotient_add_group.eq.mpr _,
+      use -n,
+      simp, },
+
+    let A1 := (quotient_add_group.mk ⁻¹' A) ∩ Ico (0:ℝ) ((1:ℝ)-x1),
+    let A2 := (quotient_add_group.mk ⁻¹' A) ∩ Ico (1-x1) 1,
+    have A1A2dis : disjoint A1 A2,
+    {
+      dsimp only [A1, A2],
+      apply disjoint.inter,
+      rw set.Ico_disjoint_Ico,
+
+      cases (min_cases (1 - x1) 1); cases (max_cases  0 (1 - x1)); linarith,
+
+
+
+--      rw (_ : min (1 - x1) 1 = 1-x1),
+--      rw (_ : max 0 (1 - x1) = 1-x1),
+
+    },
+    have A1A2 : (quotient_add_group.mk ⁻¹' A) ∩ Ico 0 1 = A1 ∪ A2,
+    { convert set.inter_union_distrib_left using 2,
+      refine (set.Ico_union_Ico_eq_Ico _ _).symm; linarith, },
+    let B1 : set ℝ :=  (has_add.add x1 ⁻¹' A1),
+    let B2 : set ℝ :=  (has_add.add x1 ⁻¹' A2),
+    have B1B2 :  (quotient_add_group.mk ⁻¹' (has_add.add x ⁻¹' A)) ∩ S = B1 ∪ B2,
+    {
+      sorry,
+    },
+    {
+      rw measure_theory.measure.restrict_apply',
+      rw measure_theory.measure.restrict_apply',
+      rw A1A2,
+      rw B1B2,
+      dsimp only [B1, B2],
+      rw measure_theory.measure_union,
+      rw measure_theory.measure_union,
+      rw real.volume_preimage_add_left,
+      rw real.volume_preimage_add_left,
+    },
+
+    have := measure_theory.measure_union ,
+
+    have := real.map_volume_add_left,
+    -- ALEX homework
+
+--    have : (quotient_add_group.mk ⁻¹' (has_add.add x ⁻¹' A)) ∩ Ico 0 1 = (A2-x1) ⊔ (A1+(1-x1???))
+
+  },
+  sorry,
+end
+
+lemma integral_Union {ι : Type*} [encodable ι] {s : ι → set ℝ } (f : ℝ  → ℂ )
+  (hm : ∀ i, measurable_set (s i)) (hd : pairwise (disjoint on s)) (hfi : integrable f  ) :
+  (∫ a in (⋃ n, s n), f a ) = ∑' n, ∫ a in s n, f a  :=
+sorry
+
+
+
 
 lemma RmodZuniqueRep'
  {x : ℝ} {i j : ℤ } :
@@ -442,12 +537,12 @@ begin
 end
 
 
-
+/-- This is the "unfolding" trick -/
 lemma real_to_haar2 (f : Schwarz) (g : ℝmodℤ → ℂ) (F: ℝmodℤ→ℂ)
 (hFf : ∀ (x:ℝ) , F (x:ℝmodℤ) = ∑' (n:ℤ), f((n:ℝ)+x)) :
 ∫ (x : ℝ), f x * g (x:ℝmodℤ) = ∫ (x : ℝmodℤ), F(x) * g(x) ∂ μ_ℝmodℤ :=
 begin
-  rw ← something1 (Ico (0:ℝ) (1:ℝ)),
+  rw ← something1,
   {
     rw integral_map,
     {

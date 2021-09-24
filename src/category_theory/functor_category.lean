@@ -5,6 +5,19 @@ Authors: Tim Baumann, Stephen Morgan, Scott Morrison, Floris van Doorn
 -/
 import category_theory.natural_transformation
 
+/-!
+# The category of functors and natural transformations between two fixed categories.
+
+We provide the category instance on `C ⥤ D`, with morphisms the natural transformations.
+
+## Universes
+
+If `C` and `D` are both small categories at the same universe level,
+this is another small category at that level.
+However if `C` and `D` are both large categories at the same universe level,
+this is a small category at the next higher level.
+-/
+
 namespace category_theory
 
 -- declare the `v`'s first; see `category_theory.category` for an explanation

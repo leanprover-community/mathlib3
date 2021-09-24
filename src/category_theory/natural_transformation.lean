@@ -2,6 +2,11 @@
 Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tim Baumann, Stephen Morgan, Scott Morrison, Floris van Doorn
+-/
+import category_theory.functor
+
+/-!
+# Natural transformations
 
 Defines natural transformations between functors.
 
@@ -10,8 +15,8 @@ Introduces notations
   `F ⟶ G` for the type of natural transformations between functors `F` and `G`,
   `σ ≫ τ` for vertical compositions, and
   `σ ◫ τ` for horizontal compositions.
+
 -/
-import category_theory.functor
 
 namespace category_theory
 

@@ -12,7 +12,10 @@ import algebra.category.CommRing.filtered_colimits
 /-!
 # Ringed spaces
 
-TODO
+We introduce the category of ringed spaces, as an alias for `SheafedSpace CommRing`.
+
+The facts collected in this file are typically stated for locally ringed spaces, but never actually
+make use of the locality of stalks. See for instance https://stacks.math.columbia.edu/tag/01HZ.
 
 -/
 
@@ -34,6 +37,10 @@ open SheafedSpace
 
 variables (X : RingedSpace.{v})
 
+/--
+If the germ of a section `f` is a unit in the stalk at `x`, then `f` must be a unit on some small
+neighborhood around `x`.
+-/
 lemma is_unit_res_of_is_unit_germ (U : opens X) (f : X.presheaf.obj (op U)) (x : U)
   (h : is_unit (X.presheaf.germ x f)) :
   ∃ (V : opens X) (i : V ⟶ U) (hxV : x.1 ∈ V), is_unit (X.presheaf.map i.op f) :=
@@ -51,16 +58,20 @@ begin
   exact is_unit_of_mul_eq_one _ _ heq',
 end
 
+/-- If a section `f` is a unit in each stalk, `f` must be a unit. -/
 lemma is_unit_of_is_unit_germ (U : opens X) (f : X.presheaf.obj (op U))
   (h : ∀ x : U, is_unit (X.presheaf.germ x f)) :
   is_unit f :=
 begin
+  -- We pick a cover of `U` by open sets `V x`, such that `f` is a unit on each `V x`.
   choose V iVU m h_unit using λ x : U, X.is_unit_res_of_is_unit_germ U f x (h x),
   have hcover : U ≤ supr V,
   { intros x hxU,
     rw [subtype.val_eq_coe, opens.mem_coe, opens.mem_supr],
     exact ⟨⟨x, hxU⟩, m ⟨x, hxU⟩⟩ },
+  -- Let `g x` denote the inverse of `f` in `U x`.
   choose g hg using λ x : U, is_unit.exists_right_inv (h_unit x),
+  -- We claim that these local inverses glue together to a global inverse of `f`.
   obtain ⟨gl, gl_spec, -⟩ := X.sheaf.exists_unique_gluing' V U iVU hcover g _,
   swap,
   { intros x y,
@@ -80,6 +91,10 @@ begin
   exact hg i,
 end
 
+/--
+The basic open of a global section `f` is the set of all points `x`, such that the germ of `f` at
+`x` is a unit.
+-/
 def basic_open (f : Γ.obj (op X)) : opens X :=
 { val := { x : X | is_unit (X.presheaf.germ (⟨x, trivial⟩ : (⊤ : opens X)) f) },
   property := begin
@@ -98,6 +113,7 @@ def basic_open (f : Γ.obj (op X)) : opens X :=
 lemma mem_basic_open (f : Γ.obj (op X)) (x : X) :
   x ∈ X.basic_open f ↔ is_unit (X.presheaf.germ (⟨x, trivial⟩ : (⊤ : opens X)) f) := iff.rfl
 
+/-- The restriction of a global section `f` to the basic open of `f` is a unit. -/
 lemma is_unit_res_basic_open (f : Γ.obj (op X)) :
   is_unit (X.presheaf.map (opens.le_top (X.basic_open f)).op f) :=
 begin

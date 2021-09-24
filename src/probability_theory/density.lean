@@ -9,12 +9,12 @@ import measure_theory.measure.lebesgue
 /-!
 # Probability density function
 
-This file defines the probability density function of a random variable. In particular,
-a measurable function `f` is said to the probability density function of a random variable `X`
-if for all measurable sets `S`, `ℙ(X ∈ S) = ∫ x in S, f x dx`. Probability density functions
-are one way of describing the distribution of a random variable, and are useful for calculating
-probabilities and finding moments (although the latter is better achieved with moment generating
-functions).
+This file defines the probability density function of random variables, by which we mean
+measurable functions taking values in a Borel space. In particular, a measurable function `f`
+is said to the probability density function of a random variable `X` if for all measurable
+sets `S`, `ℙ(X ∈ S) = ∫ x in S, f x dx`. Probability density functions are one way of describing
+the distribution of a random variable, and are useful for calculating probabilities and
+finding moments (although the latter is better achieved with moment generating functions).
 
 This file also defines the continuous uniform distribution and proves some properties about
 random variables with this distribution.

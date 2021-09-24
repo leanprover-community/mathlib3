@@ -312,6 +312,9 @@ end
 --is there a nicer way of doing this using translation properties and x = 0?
 -/
 
+-- enable set addition for additive groups
+open_locale pointwise
+
 lemma preimage_to_zmod_pow (n : ℕ) (x : zmod (p^n)) : (to_zmod_pow n) ⁻¹' {x} =
  {(x : ℤ_[p])} + (((to_zmod_pow n).ker : ideal ℤ_[p]) : set ℤ_[p]) :=
 begin

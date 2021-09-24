@@ -439,7 +439,7 @@ instance : has_sub (M →ₛₗ[σ₁₃] M₃) :=
 @[simp] lemma sub_apply (f g : M →ₛₗ[σ₁₃] M₃) (x : M) : (f - g) x = f x - g x := rfl
 
 include σ₁₃
-lemma sub_comp (f : M →ₛₗ[R] M₂) (g : M₂ →ₛₗ[σ₂₃] M₃) (h : M₂ →ₛₗ[σ₂₃] M₃) :
+lemma sub_comp (f : M →ₛₗ[R] M₂) (g h : M₂ →ₛₗ[σ₂₃] M₃) :
   (g - h).comp f = g.comp f - h.comp f := rfl
 omit σ₁₃
 

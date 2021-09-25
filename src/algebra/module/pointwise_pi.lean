@@ -31,7 +31,7 @@ begin
 end
 
 @[to_additive]
-lemma smul_univ_pi [∀ i, has_scalar K (R i)] (r : K) (t : Π i, set (R i)) (s : set ι) :
+lemma smul_univ_pi [∀ i, has_scalar K (R i)] (r : K) (t : Π i, set (R i)) :
   r • pi (univ : set ι) t = pi (univ : set ι) (r • t) :=
 subset.antisymm (smul_pi_subset _ _ _) $ λ x h, begin
   refine ⟨λ i, classical.some (h i $ set.mem_univ _), λ i hi, _, funext $ λ i, _⟩,

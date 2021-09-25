@@ -102,8 +102,6 @@ namespace pdf
 
 variables {m : measurable_space α} {ℙ : measure α} {μ : measure E}
 
-section
-
 lemma lintegral_eq_measure_univ {X : α → E} [has_pdf X ℙ μ] (hX : measurable X) :
   ∫⁻ x, pdf X ℙ μ x ∂μ = ℙ set.univ :=
 begin
@@ -189,20 +187,65 @@ begin
 end
 
 /-- A random variable that `has_pdf` is quasi-measure preserving. -/
-lemma to_quasi_measure_preserving (X : α → E) (hX : measurable X) [has_pdf X ℙ μ] :
+lemma to_quasi_measure_preserving {X : α → E} (hX : measurable X) [has_pdf X ℙ μ] :
   quasi_measure_preserving X ℙ μ :=
 { measurable := hX,
   absolutely_continuous :=
   begin
     rw map_eq_with_density_pdf X ℙ μ,
     exact with_density_absolutely_continuous _ _,
-    all_goals { apply_instance }
   end }
 
 lemma map_absolutely_continuous {X : α → E} (hX : measurable X) [has_pdf X ℙ μ] :
   map X ℙ ≪ μ :=
-(to_quasi_measure_preserving X hX).absolutely_continuous
+(to_quasi_measure_preserving hX).absolutely_continuous
 
+lemma have_lebesgue_decomposition_of_has_pdf {X : α → E} [hX' : has_pdf X ℙ μ] :
+  (map X ℙ).have_lebesgue_decomposition μ :=
+⟨⟨⟨0, pdf X ℙ μ⟩,
+  by simp only [zero_add, measurable_pdf X ℙ μ, true_and, mutually_singular.zero.symm,
+    map_eq_with_density_pdf X ℙ μ] ⟩⟩
+
+lemma has_pdf_iff {X : α → E} (hX : measurable X) :
+  has_pdf X ℙ μ ↔ (map X ℙ).have_lebesgue_decomposition μ ∧ map X ℙ ≪ μ :=
+begin
+  split,
+  { intro hX',
+    exactI ⟨have_lebesgue_decomposition_of_has_pdf, map_absolutely_continuous hX⟩, },
+  { rintros ⟨h_decomp, h⟩,
+    haveI := h_decomp,
+    refine ⟨⟨(measure.map X ℙ).radon_nikodym_deriv μ, measurable_radon_nikodym_deriv _ _, _⟩⟩,
+    rwa with_density_radon_nikodym_deriv_eq }
+end
+
+/-- A random variable that `has_pdf` transformed under a `quasi_measure_preserving`
+map also `has_pdf` if `(map g (map X ℙ)).have_lebesgue_decomposition μ`.
+
+`quasi_measure_preserving_has_pdf'` is more useful in the case we are working with a
+probability measure and a real-valued random variable. -/
+lemma quasi_measure_preserving_has_pdf {X : α → E} (hX : measurable X) [has_pdf X ℙ μ]
+  {g : E → E} (hg : quasi_measure_preserving g μ μ)
+  (hmap : (map g (map X ℙ)).have_lebesgue_decomposition μ) :
+  has_pdf (g ∘ X) ℙ μ :=
+begin
+  rw [has_pdf_iff (hg.measurable.comp hX), ← map_map hg.measurable hX],
+  refine ⟨hmap, _⟩,
+  rw [map_eq_with_density_pdf X ℙ μ],
+  refine absolutely_continuous.mk (λ s hsm hs, _),
+  rw [map_apply hg.measurable hsm, with_density_apply _ (hg.measurable hsm)],
+  have := hg.absolutely_continuous hs,
+  rw map_apply hg.measurable hsm at this,
+  exact set_lintegral_measure_zero _ _ this,
+end
+
+lemma quasi_measure_preserving_has_pdf' [is_finite_measure ℙ] [sigma_finite μ]
+  {X : α → E} (hX : measurable X) [has_pdf X ℙ μ]
+  {g : E → E} (hg : quasi_measure_preserving g μ μ) :
+  has_pdf (g ∘ X) ℙ μ :=
+begin
+  haveI : is_finite_measure (map g (map X ℙ)) :=
+    @is_finite_measure_map _ _ _ _ (map X ℙ) (is_finite_measure_map ℙ hX) _ hg.measurable,
+  exact quasi_measure_preserving_has_pdf hX hg infer_instance,
 end
 
 section real
@@ -213,30 +256,11 @@ include hX
 
 /-- A real-valued random variable `X` `has_pdf X ℙ λ` (where `λ` is the Lebesgue measure) if and
 only if the push-forward measure of `ℙ` along `X` is absolutely continuous with respect to `λ`. -/
-lemma has_pdf_iff : has_pdf X ℙ ↔ map X ℙ ≪ volume :=
+lemma real.has_pdf_iff : has_pdf X ℙ ↔ map X ℙ ≪ volume :=
 begin
-  split,
-  { intro hX',
-    exactI map_absolutely_continuous hX },
-  { intro h,
-    refine ⟨⟨(measure.map X ℙ).radon_nikodym_deriv volume, measurable_radon_nikodym_deriv _ _, _⟩⟩,
-    haveI := ℙ.is_finite_measure_map hX,
-    rwa with_density_radon_nikodym_deriv_eq }
-end
-
-/-- A real-valued random variable that `has_pdf` transformed under a `quasi_measure_preserving`
-map also `has_pdf`. -/
-lemma quasi_measure_preserving_has_pdf [has_pdf X ℙ]
-  (g : ℝ → ℝ) (hg : quasi_measure_preserving g) :
-  has_pdf (g ∘ X) ℙ :=
-begin
-  rw [has_pdf_iff (hg.measurable.comp hX), ← map_map hg.measurable hX, map_eq_with_density_pdf X ℙ],
-  refine absolutely_continuous.mk (λ s hsm hs, _),
-  rw [map_apply hg.measurable hsm, with_density_apply _ (hg.measurable hsm)],
-  have := hg.absolutely_continuous hs,
-  rw map_apply hg.measurable hsm at this,
-  exact set_lintegral_measure_zero _ _ this,
-  apply_instance
+  haveI : is_finite_measure ((map X) ℙ) := is_finite_measure_map ℙ hX,
+  rw [has_pdf_iff hX, and_iff_right_iff_imp],
+  exact λ h, infer_instance,
 end
 
 /-- If `X` is a real-valued random variable that has pdf `f`, then the expectation of `X` equals

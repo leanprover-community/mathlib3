@@ -8,7 +8,7 @@ import analysis.normed_space.bounded_linear_maps
 import analysis.normed_space.dual
 
 /-!
-# The  Fréchet-Riesz representation theorem
+# The Fréchet-Riesz representation theorem
 
 We consider inner product spaces, with base field over `ℝ` (the corresponding results for `ℂ`
 will require the definition of conjugate-linear maps). We define `to_dual_map`, a continuous linear

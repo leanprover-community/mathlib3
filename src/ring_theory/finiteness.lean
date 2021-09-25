@@ -103,10 +103,6 @@ begin
   exact this
 end
 
-lemma of_restrict_scalars_finite' (M : Type*) [add_comm_group M] [module A M]
-  (hM : finite R ((restrict_scalars R A M))) : finite A M :=
-by convert of_restrict_scalars_finite R A (restrict_scalars R A M)
-
 variables {R M}
 
 instance prod [hM : finite R M] [hN : finite R N] : finite R (M × N) :=
@@ -166,10 +162,6 @@ begin
   refine ⟨⟨S, eq_top_iff.2 (λ b, _)⟩⟩,
   convert adjoin_le_restrict_scalars R A B ↑S (eq_top_iff.1 hS b)
 end
-
-lemma of_restrict_scalars_finite_type' (B : Type*) [comm_ring B] [algebra A B]
-  (hB : finite_type R (restrict_scalars R A B)) : finite_type A B :=
-by convert of_restrict_scalars_finite_type R A (restrict_scalars R A B)
 
 variables {R A B}
 

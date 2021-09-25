@@ -597,8 +597,7 @@ begin
   rw lintegral_with_density_eq_lintegral_mul _ hf hg.nnnorm.coe_nnreal_ennreal,
   refine lintegral_congr_ae _,
   rw mul_comm,
-  refine filter.eventually_eq.mul (ae_eq_refl _)
-    ((ennreal.of_real_to_real_ae_eq hflt).symm.trans _),
+  refine filter.eventually_eq.mul (ae_eq_refl _) ((of_real_to_real_ae_eq hflt).symm.trans _),
   convert ae_eq_refl _,
   ext1 x,
   exact real.ennnorm_eq_of_real ennreal.to_real_nonneg,

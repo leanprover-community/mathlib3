@@ -60,7 +60,6 @@ section functorial
 
 variables (g : C(β, γ))
 
-def induced (f : C(α, β)) : C(α, γ) := g.comp f
 
 private lemma preimage_gen {s : set α} (hs : is_compact s) {u : set γ} (hu : is_open u) :
   continuous_map.induced g ⁻¹' (compact_open.gen s u) = compact_open.gen s (g ⁻¹' u) :=

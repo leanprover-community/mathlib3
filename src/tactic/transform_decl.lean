@@ -50,8 +50,8 @@ using the dictionary `f`.
 `pre` is the declaration that got the `@[to_additive]` attribute and `tgt_pre` is the target of this
 declaration. -/
 meta def transform_decl_with_prefix_fun_aux (f : name → option name)
-  (replace_all trace : bool) (ignore reorder : name_map $ list ℕ) (pre tgt_pre : name)
-  (attrs : list name) : name → command :=
+  (replace_all trace : bool) (relevant : name_map ℕ) (ignore reorder : name_map $ list ℕ)
+  (pre tgt_pre : name) (attrs : list name) : name → command :=
 λ src,
 do
   -- if this declaration is not `pre` or an internal declaration, we do nothing.
@@ -71,15 +71,20 @@ The declaration {pre} depends on the declaration {src} which is in the namespace
   (decl.value.list_names_with_prefix pre).mfold () (λ n _, transform_decl_with_prefix_fun_aux n),
   -- we transform `decl` using `f` and the configuration options.
   let decl :=
-    decl.update_with_fun env (name.map_prefix f) (additive_test f replace_all ignore) reorder tgt,
+    decl.update_with_fun env (name.map_prefix f) (additive_test f replace_all ignore)
+      relevant reorder tgt,
+  -- o ← get_options, set_options $ o.set_bool `pp.all tt, -- print with pp.all (for debugging)
   pp_decl ← pp decl,
   when trace $ trace!"[to_additive] > generating\n{pp_decl}",
   decorate_error (format!"@[to_additive] failed. Type mismatch in additive declaration.
 For help, see the docstring of `to_additive.attr`, section `Troubleshooting`.
 Failed to add declaration\n{pp_decl}
 
-Nested error message:\n").to_string $ -- the empty line is intentional
+Nested error message:\n").to_string $ do {
     if env.is_protected src then add_protected_decl decl else add_decl decl,
+    -- we test that the declaration value type-checks, so that we get the decorated error message
+    -- without this line, the type-checking might fail outside the `decorate_error`.
+    decorate_error "proof doesn't type-check. " $ type_check decl.value },
   attrs.mmap' $ λ n, copy_attribute n src tgt
 
 /--
@@ -88,10 +93,12 @@ replacing fragments of the names of identifiers in the type and the body using t
 This is used to implement `@[to_additive]`.
 -/
 meta def transform_decl_with_prefix_fun (f : name → option name) (replace_all trace : bool)
-  (ignore reorder : name_map $ list ℕ) (src tgt : name) (attrs : list name) : command :=
-do transform_decl_with_prefix_fun_aux f replace_all trace ignore reorder src tgt attrs src,
+  (relevant : name_map ℕ) (ignore reorder : name_map $ list ℕ) (src tgt : name) (attrs : list name)
+  : command :=
+do transform_decl_with_prefix_fun_aux f replace_all trace relevant ignore reorder src tgt attrs src,
    ls ← get_eqn_lemmas_for tt src,
-   ls.mmap' $ transform_decl_with_prefix_fun_aux f replace_all trace ignore reorder src tgt attrs
+   ls.mmap' $
+    transform_decl_with_prefix_fun_aux f replace_all trace relevant ignore reorder src tgt attrs
 
 /--
 Make a new copy of a declaration, replacing fragments of the names of identifiers in the type and
@@ -99,7 +106,8 @@ the body using the dictionary `dict`.
 This is used to implement `@[to_additive]`.
 -/
 meta def transform_decl_with_prefix_dict (dict : name_map name) (replace_all trace : bool)
-  (ignore reorder : name_map $ list ℕ) (src tgt : name) (attrs : list name) : command :=
-transform_decl_with_prefix_fun dict.find replace_all trace ignore reorder src tgt attrs
+  (relevant : name_map ℕ) (ignore reorder : name_map $ list ℕ) (src tgt : name) (attrs : list name)
+  : command :=
+transform_decl_with_prefix_fun dict.find replace_all trace relevant ignore reorder src tgt attrs
 
 end tactic

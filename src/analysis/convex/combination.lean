@@ -265,11 +265,8 @@ begin
 end
 
 lemma finsupp.linear_combi_single_eq {α M : Type*} [semiring M] (f : α →₀ M) :
-  f.sum (λ a b, f a • finsupp.single a (1 : M)) = f :=
-begin
-  simp_rw [finsupp.smul_single, smul_eq_mul, mul_one],
-  exact f.sum_single,
-end
+  f.sum (λ a b, b • finsupp.single a (1 : M)) = f :=
+by simp_rw [finsupp.smul_single, smul_eq_mul, mul_one, f.sum_single]
 
 variables (ι) {f : ι →₀ R}
 

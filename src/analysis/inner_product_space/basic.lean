@@ -18,7 +18,8 @@ two vectors. In particular vectors `x` and `y` are orthogonal if their inner pro
 We define both the real and complex cases at the same time using the `is_R_or_C` typeclass.
 
 This file proves general results on inner product spaces. For the specific construction of an inner
-product structure on `n → 𝕜` for `𝕜 = ℝ` or `ℂ`, see `euclidean_space` in `analysis.pi_Lp`.
+product structure on `n → 𝕜` for `𝕜 = ℝ` or `ℂ`, see `euclidean_space` in
+`analysis.inner_product_space.pi_Lp`.
 
 ## Main results
 

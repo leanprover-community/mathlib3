@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.inner_product_space.calculus
-import analysis.normed_space.pi_Lp
+import analysis.inner_product_space.pi_L2
 
 /-!
 # Euclidean distance on a finite dimensional space

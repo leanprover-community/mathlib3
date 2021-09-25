@@ -167,7 +167,7 @@ begin
       cases n, { exact le_rfl }, { exact (u_mono 0 n.succ (nat.succ_pos _)).le } },
     obtain ⟨f, -, φ, φ_mono, hf⟩ : ∃ (f ∈ closed_ball (0 : fin N → E) (2 * u 0)) (φ : ℕ → ℕ),
       strict_mono φ ∧ tendsto ((F ∘ u) ∘ φ) at_top (𝓝 f) :=
-        is_compact.tendsto_subseq (proper_space.compact_ball _ _) A,
+        is_compact.tendsto_subseq (proper_space.is_compact_closed_ball _ _) A,
     refine ⟨f, λ i, _, λ i j hij, _⟩,
     { have A : tendsto (λ n, ∥F (u (φ n)) i∥) at_top (𝓝 (∥f i∥)) := (hf.apply i).norm,
       have B : tendsto (λ n, 2 * u (φ n)) at_top (𝓝 (2 * 1)) :=
@@ -213,37 +213,72 @@ lemma card_le_multiplicity_τ {s : finset E} (hs : ∀ c ∈ s, ∥c∥ ≤ 2 * 
   s.card ≤ multiplicity E :=
 (classical.some_spec (exists_good_τ E)).2 s hs h's
 
-#exit
-
-
 lemma zoug {E : Type*} [normed_group E] [normed_space ℝ E] {N : ℕ} (c : ℕ → E) (r : ℕ → ℝ)
   (δ : ℝ) (τ : ℝ)
+  (oneτ : 1 ≤ τ)
   (hcN : c N = 0)
   (hrN : r N = 1)
-  (hcr : ∀ i < N, ∥c i∥ ≤ r i + r 1)
+  (hcr : ∀ i < N, ∥c i∥ ≤ r i + 1)
+  (hτ : ∀ i < N, τ⁻¹ ≤ r i)
   (hcr' : ∀ i < N, r i ≤ ∥c i∥)
   (hc : ∀ (i ≤ N) (j ≤ N),
-    (r i ≤ ∥c j - c i∥ ∧ r j ≤ τ * r i) ∨ (r j ≤ ∥c i - c j∥ ∧ r i ≤ τ * r j)) :
+    (r i ≤ ∥c j - c i∥ ∧ r j ≤ τ * r i) ∨ (r j ≤ ∥c i - c j∥ ∧ r i ≤ τ * r j))
+  (hδ1 : 1 - δ ≤ τ⁻¹) :
   ∃ (c' : ℕ → E), (∀ n ≤ N, ∥c' n∥ ≤ 2) ∧ (∀ i ≤ N, ∀ j ≤ N, i ≠ j → 1 - δ ≤ ∥c' i - c' j∥) :=
 begin
+  have hδ1' : 1 - δ ≤ 1 := sorry,
+  have hτ' : ∀ i ≤ N, τ⁻¹ ≤ r i := sorry,
+  have hcr' : ∀ i ≤ N, ∥c i∥ ≤ r i + 1 := sorry,
   let c' : ℕ → E := λ i, if ∥c i∥ ≤ 2 then c i else (2 / ∥c i∥) • c i,
-  have norm_c'_le : ∀ i, ∥c' i∥ ≤ 2,
-  { assume i,
+  have norm_c'_le : ∀ i, ∥c' i∥ ≤ 2, sorry,
+  /-{ assume i,
     simp only [c'],
     split_ifs, { exact h },
     by_cases hi : ∥c i∥ = 0;
-    field_simp [norm_smul, hi] },
+    field_simp [norm_smul, hi] },-/
   refine ⟨c', λ n hn, norm_c'_le n, _⟩,
   assume i hi j hj hij,
-  by_cases H : ∥c i∥ ≤ 2 ∧ ∥c j∥ ≤ 2,
-  { simp only [c'],
-    simp [c', H.1, H.2],
+  wlog hij : ∥c i∥ ≤ ∥c j∥ := le_total (∥c i∥) (∥c j∥) using [i j, j i] tactic.skip, swap,
+  { assume hi hj i_ne_j,
+    rw norm_sub_rev,
+    exact this hj hi i_ne_j.symm },
+  rcases le_or_lt (∥c j∥) 2 with Hj|Hj,
+  { sorry,
+    /- simp_rw [c', Hj, hij.trans Hj, if_true],
+    refine le_trans hδ1 _,
+    rcases hc i hi j hj with H|H,
+    { rw norm_sub_rev,
+      apply le_trans _ H.1,
+      exact hτ' i hi },
+    { apply le_trans _ H.1,
+      exact hτ' j hj }-/ },
+  { have H'j : (∥c j∥ ≤ 2) ↔ false, by simpa only [not_le, iff_false] using Hj,
+    rcases le_or_lt (∥c i∥) 2 with Hi|Hi,
+    { simp_rw [c', Hi, if_true, H'j, if_false],
+      rcases hc i hi j hj with H|H,
+      { sorry,
 
+      },
+      { sorry,/-set d := (2 / ∥c j∥) • c j with hd,
+        have : r j ≤ ∥c i - d∥ + (r j - 1) := calc
+          r j ≤ ∥c i - c j∥ : H.1
+          ... ≤ ∥c i - d∥ + ∥d - c j∥ : by simp only [← dist_eq_norm, dist_triangle]
+          ... ≤ ∥c i - d∥ + (r j - 1) : begin
+            apply add_le_add_left,
+            have A : 0 ≤ 1 - 2 / ∥c j∥, by simpa [div_le_iff (zero_le_two.trans_lt Hj)] using Hj.le,
+            rw [← one_smul ℝ (c j), hd, ← sub_smul, norm_smul, norm_sub_rev, real.norm_eq_abs,
+                abs_of_nonneg A, sub_mul],
+            field_simp [(zero_le_two.trans_lt Hj).ne'],
+            linarith [hcr' j hj]
+          end,
+        linarith -/ } },
+    { have H'i : (∥c i∥ ≤ 2) ↔ false, by simpa only [not_le, iff_false] using Hi,
+      simp_rw [c', H'i, if_false, H'j, if_false],
 
-  } ,
+    }
+
+  }
 end
-
-
 
 #exit
 

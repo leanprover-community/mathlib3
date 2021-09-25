@@ -484,7 +484,7 @@ begin
     (ν.to_finite_spanning_sets_in.prod τ.to_finite_spanning_sets_in (λ _, id) (λ _, id)) _).symm,
   rintro s hs _ ⟨t, u, ht, hu, rfl⟩, rw [mem_set_of_eq] at hs ht hu,
   simp_rw [map_apply (measurable_equiv.measurable _) (hs.prod (ht.prod hu)), prod_prod ht hu,
-    measurable_equiv.prod_assoc, measurable_equiv.coe_eq, equiv.prod_assoc_preimage,
+    measurable_equiv.prod_assoc, measurable_equiv.coe_mk, equiv.prod_assoc_preimage,
     prod_prod (hs.prod ht) hu, prod_prod hs ht, mul_assoc]
 end
 

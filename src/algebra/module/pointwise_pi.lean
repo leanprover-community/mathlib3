@@ -38,7 +38,7 @@ subset.antisymm (smul_pi_subset _ _ _) $ λ x h, begin
 end
 
 @[to_additive]
-lemma smul_pi {K R : Type*} [group K] [mul_action K R] {ι : Type*} {r : K} (t : ι → set R)
+lemma smul_pi {K R : Type*} [group K] [mul_action K R] {ι : Type*} (r : K) (t : ι → set R)
   (S : set ι) : r • S.pi t = S.pi (λ (i : ι), r • t i) :=
 subset.antisymm (smul_pi_subset _ _ _) $ λ x h,
   ⟨r⁻¹ • x, λ i hiS, mem_smul_set_iff_inv_smul_mem.mp (h i hiS), smul_inv_smul _ _⟩

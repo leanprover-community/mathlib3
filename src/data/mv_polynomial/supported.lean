@@ -3,7 +3,7 @@ Copyright (c) 2021 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import ring_theory.adjoin.basic
+import ring_theory.adjoin.polynomial
 import data.mv_polynomial.variables
 
 /-!

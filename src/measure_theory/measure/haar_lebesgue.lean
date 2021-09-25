@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Floris van Doorn
+Authors: Floris van Doorn, Sébastien Gouëzel
 -/
 import measure_theory.measure.lebesgue
 import measure_theory.measure.haar
@@ -10,7 +10,8 @@ import linear_algebra.finite_dimensional
 /-!
 # Relationship between the Haar and Lebesgue measures
 
-We prove that the Haar measure and Lebesgue measure are equal on `ℝ` and on `ℝ^ι`.
+We prove that the Haar measure and Lebesgue measure are equal on `ℝ` and on `ℝ^ι`, in
+`measure_theory.add_haar_measure_eq_volume` and `measure_theory.add_haar_measure_eq_volume_pi`.
 
 We deduce basic properties of any Haar measure on a finite dimensional real vector space:
 * `map_linear_map_add_haar_eq_smul_add_haar`: a linear map rescales the Haar measure by the
@@ -220,7 +221,7 @@ end
 lemma add_haar_closed_ball_lt_top {E : Type*} [normed_group E] [proper_space E] [measurable_space E]
   (μ : measure E) [is_add_haar_measure μ] (x : E) (r : ℝ) :
   μ (closed_ball x r) < ∞ :=
-(proper_space.compact_ball x r).add_haar_lt_top μ
+(proper_space.is_compact_closed_ball x r).add_haar_lt_top μ
 
 lemma add_haar_ball_lt_top {E : Type*} [normed_group E] [proper_space E] [measurable_space E]
   (μ : measure E) [is_add_haar_measure μ] (x : E) (r : ℝ) :

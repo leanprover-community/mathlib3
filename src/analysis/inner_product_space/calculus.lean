@@ -15,10 +15,6 @@ instance. Though we can deduce this structure from `inner_product_space 𝕜 E`,
 not definitionally equal to some other “natural” instance. So, we assume `[normed_space ℝ E]` and
 `[is_scalar_tower ℝ 𝕜 E]`. In both interesting cases `𝕜 = ℝ` and `𝕜 = ℂ` we have these instances.
 
-Currently, the continuity of the inner product is also proved in this file, as a consequence of the
-differentiability; however (TODO) this ought to be re-proved directly and moved to
-`analysis.inner_product_space.basic`.
-
 -/
 
 noncomputable theory
@@ -30,19 +26,7 @@ variables {𝕜 E F : Type*} [is_R_or_C 𝕜]
 variables [inner_product_space 𝕜 E] [inner_product_space ℝ F]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
-section deriv
-
 variables [normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E]
-
-lemma is_bounded_bilinear_map_inner : is_bounded_bilinear_map ℝ (λ p : E × E, ⟪p.1, p.2⟫) :=
-{ add_left := λ _ _ _, inner_add_left,
-  smul_left := λ r x y,
-    by simp only [← algebra_map_smul 𝕜 r x, algebra_map_eq_of_real, inner_smul_real_left],
-  add_right := λ _ _ _, inner_add_right,
-  smul_right := λ r x y,
-    by simp only [← algebra_map_smul 𝕜 r y, algebra_map_eq_of_real, inner_smul_real_right],
-  bound := ⟨1, zero_lt_one, λ x y,
-    by { rw [one_mul], exact norm_inner_le_norm x y, }⟩ }
 
 /-- Derivative of the inner product. -/
 def fderiv_inner_clm (p : E × E) : E × E →L[ℝ] 𝕜 := is_bounded_bilinear_map_inner.deriv p
@@ -242,50 +226,3 @@ lemma differentiable_on.dist (hf : differentiable_on ℝ f s) (hg : differentiab
   (hne : ∀ x ∈ s, f x ≠ g x) :
   differentiable_on ℝ (λ y, dist (f y) (g y)) s :=
 λ x hx, (hf x hx).dist (hg x hx) (hne x hx)
-
-end deriv
-
-section continuous
-
-/-!
-### Continuity of the inner product
-
-Since the inner product is `ℝ`-smooth, it is continuous. We do not need a `[normed_space ℝ E]`
-structure to *state* this fact and its corollaries, so we introduce them in the proof instead.
--/
-
-lemma continuous_inner : continuous (λ p : E × E, ⟪p.1, p.2⟫) :=
-begin
-  letI : inner_product_space ℝ E := inner_product_space.is_R_or_C_to_real 𝕜 E,
-  letI : is_scalar_tower ℝ 𝕜 E := restrict_scalars.is_scalar_tower _ _ _,
-  exact differentiable_inner.continuous
-end
-
-variables {α : Type*}
-
-lemma filter.tendsto.inner {f g : α → E} {l : filter α} {x y : E} (hf : tendsto f l (𝓝 x))
-  (hg : tendsto g l (𝓝 y)) :
-  tendsto (λ t, ⟪f t, g t⟫) l (𝓝 ⟪x, y⟫) :=
-(continuous_inner.tendsto _).comp (hf.prod_mk_nhds hg)
-
-variables [topological_space α] {f g : α → E} {x : α} {s : set α}
-
-include 𝕜
-
-lemma continuous_within_at.inner (hf : continuous_within_at f s x)
-  (hg : continuous_within_at g s x) :
-  continuous_within_at (λ t, ⟪f t, g t⟫) s x :=
-hf.inner hg
-
-lemma continuous_at.inner (hf : continuous_at f x) (hg : continuous_at g x) :
-  continuous_at (λ t, ⟪f t, g t⟫) x :=
-hf.inner hg
-
-lemma continuous_on.inner (hf : continuous_on f s) (hg : continuous_on g s) :
-  continuous_on (λ t, ⟪f t, g t⟫) s :=
-λ x hx, (hf x hx).inner (hg x hx)
-
-lemma continuous.inner (hf : continuous f) (hg : continuous g) : continuous (λ t, ⟪f t, g t⟫) :=
-continuous_iff_continuous_at.2 $ λ x, hf.continuous_at.inner hg.continuous_at
-
-end continuous

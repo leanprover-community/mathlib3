@@ -65,12 +65,18 @@ namespace measure
 along `X` equals `μ.with_density f`. -/
 class has_pdf {m : measurable_space α} (X : α → E)
   (ℙ : measure α) (μ : measure E . volume_tac) : Prop :=
-(pdf' : ∃ (f : E → ℝ≥0∞), measurable f ∧ map X ℙ = μ.with_density f)
+(pdf' : measurable X ∧ ∃ (f : E → ℝ≥0∞), measurable f ∧ map X ℙ = μ.with_density f)
+
+@[measurability]
+lemma has_pdf.measurable {m : measurable_space α}
+  (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac) [hX : has_pdf X ℙ μ] :
+  measurable X :=
+hX.pdf'.1
 
 /-- If `X` is a random variable that `has_pdf X ℙ μ`, then `pdf X` is the measurable function `f`
 such that the push-forward measure of `ℙ` along `X` equals `μ.with_density f`. -/
 def pdf {m : measurable_space α} (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac) :=
-if hX : has_pdf X ℙ μ then classical.some hX.pdf' else 0
+if hX : has_pdf X ℙ μ then classical.some hX.pdf'.2 else 0
 
 lemma pdf_undef {m : measurable_space α} {ℙ : measure α} {μ : measure E} {X : α → E}
   (h : ¬ has_pdf X ℙ μ) :
@@ -84,7 +90,7 @@ lemma measurable_pdf {m : measurable_space α}
 begin
   by_cases hX : has_pdf X ℙ μ,
   { rw [pdf, dif_pos hX],
-    exact (classical.some_spec hX.pdf').1 },
+    exact (classical.some_spec hX.pdf'.2).1 },
   { rw [pdf, dif_neg hX],
     exact measurable_zero }
 end
@@ -94,7 +100,7 @@ lemma map_eq_with_density_pdf {m : measurable_space α}
   measure.map X ℙ = μ.with_density (pdf X ℙ μ) :=
 begin
   rw [pdf, dif_pos hX],
-  exact (classical.some_spec hX.pdf').2
+  exact (classical.some_spec hX.pdf'.2).2
 end
 
 lemma map_eq_set_lintegral_pdf {m : measurable_space α}
@@ -124,41 +130,43 @@ namespace pdf
 
 variables {m : measurable_space α} {ℙ : measure α} {μ : measure E}
 
-lemma lintegral_eq_measure_univ {X : α → E} [has_pdf X ℙ μ] (hX : measurable X) :
+lemma lintegral_eq_measure_univ {X : α → E} [has_pdf X ℙ μ] :
   ∫⁻ x, pdf X ℙ μ x ∂μ = ℙ set.univ :=
 begin
   rw [← set_lintegral_univ, ← map_eq_set_lintegral_pdf X ℙ μ measurable_set.univ,
-      measure.map_apply hX measurable_set.univ, set.preimage_univ],
+      measure.map_apply (has_pdf.measurable X ℙ μ) measurable_set.univ, set.preimage_univ],
 end
 
-lemma ae_lt_top {m : measurable_space α} (ℙ : measure α) [is_finite_measure ℙ] {μ : measure E}
-  {X : α → E} (hX : measurable X) : ∀ᵐ x ∂μ, pdf X ℙ μ x < ∞ :=
+lemma ae_lt_top {m : measurable_space α}
+  (ℙ : measure α) [is_finite_measure ℙ] {μ : measure E} {X : α → E} :
+  ∀ᵐ x ∂μ, pdf X ℙ μ x < ∞ :=
 begin
   by_cases hpdf : has_pdf X ℙ μ,
-  { refine ae_lt_top (measurable_pdf X ℙ μ) _,
-    rw lintegral_eq_measure_univ hX,
-    { exact (measure_lt_top _ _).ne },
-    { exact hpdf } },
+  { haveI := hpdf,
+    refine ae_lt_top (measurable_pdf X ℙ μ) _,
+    rw lintegral_eq_measure_univ,
+    exact (measure_lt_top _ _).ne },
   { rw [pdf, dif_neg hpdf],
     exact filter.eventually_of_forall (λ x, with_top.zero_lt_top) }
 end
 
-lemma of_real_to_real_ae_eq [is_finite_measure ℙ] {X : α → E} (hX : measurable X) :
+lemma of_real_to_real_ae_eq [is_finite_measure ℙ] {X : α → E} :
   (λ x, ennreal.of_real (pdf X ℙ μ x).to_real) =ᵐ[μ] pdf X ℙ μ :=
 begin
   by_cases hpdf : has_pdf X ℙ μ,
-  { exactI ennreal.of_real_to_real_ae_eq (ae_lt_top _ hX) },
+  { exactI ennreal.of_real_to_real_ae_eq (ae_lt_top _) },
   { convert ae_eq_refl _,
     ext1 x,
     rw [pdf, dif_neg hpdf, pi.zero_apply, ennreal.zero_to_real, ennreal.of_real_zero] }
 end
 
 lemma integrable_iff_integrable_mul_pdf [is_finite_measure ℙ] {X : α → E} [has_pdf X ℙ μ]
-  (hX : measurable X) {f : E → ℝ} (hf : measurable f) :
+  {f : E → ℝ} (hf : measurable f) :
   integrable (λ x, f (X x)) ℙ ↔ integrable (λ x, f x * (pdf X ℙ μ x).to_real) μ :=
 begin
-  rw [← integrable_map_measure hf.ae_measurable hX, map_eq_with_density_pdf X ℙ μ,
-      integrable.with_density_iff (measurable_pdf _ _ _) (ae_lt_top _ hX) hf],
+  rw [← integrable_map_measure hf.ae_measurable (has_pdf.measurable X ℙ μ),
+      map_eq_with_density_pdf X ℙ μ,
+      integrable.with_density_iff (measurable_pdf _ _ _) (ae_lt_top _) hf],
   apply_instance
 end
 
@@ -166,11 +174,12 @@ end
 function `f`, `f ∘ X` is a random variable with expectation `∫ x, f x * pdf X ∂μ`
 where `μ` is a measure on the codomain of `X`. -/
 lemma integral_mul_eq_integral' [is_finite_measure ℙ]
-  {X : α → E} [has_pdf X ℙ μ] (hX : measurable X) {f : E → ℝ} (hf : measurable f) :
+  {X : α → E} [has_pdf X ℙ μ] {f : E → ℝ} (hf : measurable f) :
   ∫ x, f x * (pdf X ℙ μ x).to_real ∂μ = ∫ x, f (X x) ∂ℙ :=
 begin
   by_cases hpdf : integrable (λ x, f x * (pdf X ℙ μ x).to_real) μ,
-  { rw [← integral_map hX hf.ae_measurable, map_eq_with_density_pdf X ℙ μ,
+  { rw [← integral_map (has_pdf.measurable X ℙ μ) hf.ae_measurable,
+        map_eq_with_density_pdf X ℙ μ,
         integral_eq_lintegral_pos_part_sub_lintegral_neg_part hpdf,
         integral_eq_lintegral_pos_part_sub_lintegral_neg_part,
         lintegral_with_density_eq_lintegral_mul _ (measurable_pdf X ℙ μ) hf.neg.ennreal_of_real,
@@ -181,46 +190,44 @@ begin
         { intro x,
           rw [mul_comm, ennreal.of_real_mul ennreal.to_real_nonneg] },
         simp_rw [this],
-        exact lintegral_congr_ae (filter.eventually_eq.mul
-          (of_real_to_real_ae_eq hX) (ae_eq_refl _)) },
+        exact lintegral_congr_ae (filter.eventually_eq.mul of_real_to_real_ae_eq (ae_eq_refl _)) },
       { have : ∀ x, ennreal.of_real (- (f x * (pdf X ℙ μ x).to_real)) =
           ennreal.of_real (pdf X ℙ μ x).to_real * ennreal.of_real (-f x),
         { intro x,
           rw [neg_mul_eq_neg_mul, mul_comm, ennreal.of_real_mul ennreal.to_real_nonneg] },
         simp_rw [this],
-        exact lintegral_congr_ae (filter.eventually_eq.mul
-          (of_real_to_real_ae_eq hX) (ae_eq_refl _)) } },
+        exact lintegral_congr_ae (filter.eventually_eq.mul of_real_to_real_ae_eq
+          (ae_eq_refl _)) } },
     { refine ⟨hf.ae_measurable, _⟩,
       rw [has_finite_integral, lintegral_with_density_eq_lintegral_mul _
             (measurable_pdf _ _ _) hf.nnnorm.coe_nnreal_ennreal],
       have : (λ x, (pdf X ℙ μ * λ x, ↑∥f x∥₊) x) =ᵐ[μ] (λ x, ∥f x * (pdf X ℙ μ x).to_real∥₊),
       { simp_rw [← smul_eq_mul, nnnorm_smul, ennreal.coe_mul],
         rw [smul_eq_mul, mul_comm],
-        refine filter.eventually_eq.mul (ae_eq_refl _)
-          (ae_eq_trans (of_real_to_real_ae_eq hX).symm _),
+        refine filter.eventually_eq.mul (ae_eq_refl _) (ae_eq_trans of_real_to_real_ae_eq.symm _),
         convert ae_eq_refl _,
         ext1 x,
         exact real.ennnorm_eq_of_real ennreal.to_real_nonneg },
       rw lintegral_congr_ae this,
       exact hpdf.2 } },
   { rw [integral_undef hpdf, integral_undef],
-    rwa ← integrable_iff_integrable_mul_pdf hX hf at hpdf,
+    rwa ← integrable_iff_integrable_mul_pdf hf at hpdf,
     all_goals { apply_instance } }
 end
 
 /-- A random variable that `has_pdf` is quasi-measure preserving. -/
-lemma to_quasi_measure_preserving {X : α → E} (hX : measurable X) [has_pdf X ℙ μ] :
+lemma to_quasi_measure_preserving {X : α → E} [has_pdf X ℙ μ] :
   quasi_measure_preserving X ℙ μ :=
-{ measurable := hX,
+{ measurable := has_pdf.measurable X ℙ μ,
   absolutely_continuous :=
   begin
     rw map_eq_with_density_pdf X ℙ μ,
     exact with_density_absolutely_continuous _ _,
   end }
 
-lemma map_absolutely_continuous {X : α → E} (hX : measurable X) [has_pdf X ℙ μ] :
+lemma map_absolutely_continuous {X : α → E} [has_pdf X ℙ μ] :
   map X ℙ ≪ μ :=
-(to_quasi_measure_preserving hX).absolutely_continuous
+to_quasi_measure_preserving.absolutely_continuous
 
 lemma have_lebesgue_decomposition_of_has_pdf {X : α → E} [hX' : has_pdf X ℙ μ] :
   (map X ℙ).have_lebesgue_decomposition μ :=
@@ -233,10 +240,10 @@ lemma has_pdf_iff {X : α → E} (hX : measurable X) :
 begin
   split,
   { intro hX',
-    exactI ⟨have_lebesgue_decomposition_of_has_pdf, map_absolutely_continuous hX⟩, },
+    exactI ⟨have_lebesgue_decomposition_of_has_pdf, map_absolutely_continuous⟩, },
   { rintros ⟨h_decomp, h⟩,
     haveI := h_decomp,
-    refine ⟨⟨(measure.map X ℙ).radon_nikodym_deriv μ, measurable_radon_nikodym_deriv _ _, _⟩⟩,
+    refine ⟨⟨hX, (measure.map X ℙ).radon_nikodym_deriv μ, measurable_radon_nikodym_deriv _ _, _⟩⟩,
     rwa with_density_radon_nikodym_deriv_eq }
 end
 
@@ -250,12 +257,13 @@ map also `has_pdf` if `(map g (map X ℙ)).have_lebesgue_decomposition μ`.
 
 `quasi_measure_preserving_has_pdf'` is more useful in the case we are working with a
 probability measure and a real-valued random variable. -/
-lemma quasi_measure_preserving_has_pdf {X : α → E} (hX : measurable X) [has_pdf X ℙ μ]
+lemma quasi_measure_preserving_has_pdf {X : α → E} [has_pdf X ℙ μ]
   {g : E → F} (hg : quasi_measure_preserving g μ ν)
   (hmap : (map g (map X ℙ)).have_lebesgue_decomposition ν) :
   has_pdf (g ∘ X) ℙ ν :=
 begin
-  rw [has_pdf_iff (hg.measurable.comp hX), ← map_map hg.measurable hX],
+  rw [has_pdf_iff (hg.measurable.comp (has_pdf.measurable X ℙ μ)),
+      ← map_map hg.measurable (has_pdf.measurable X ℙ μ)],
   refine ⟨hmap, _⟩,
   rw [map_eq_with_density_pdf X ℙ μ],
   refine absolutely_continuous.mk (λ s hsm hs, _),
@@ -266,26 +274,24 @@ begin
 end
 
 lemma quasi_measure_preserving_has_pdf' [is_finite_measure ℙ] [sigma_finite ν]
-  {X : α → E} (hX : measurable X) [has_pdf X ℙ μ]
-  {g : E → F} (hg : quasi_measure_preserving g μ ν) :
+  {X : α → E} [has_pdf X ℙ μ] {g : E → F} (hg : quasi_measure_preserving g μ ν) :
   has_pdf (g ∘ X) ℙ ν :=
 begin
   haveI : is_finite_measure (map g (map X ℙ)) :=
-    @is_finite_measure_map _ _ _ _ (map X ℙ) (is_finite_measure_map ℙ hX) _ hg.measurable,
-  exact quasi_measure_preserving_has_pdf hX hg infer_instance,
+    @is_finite_measure_map _ _ _ _ (map X ℙ)
+      (is_finite_measure_map ℙ (has_pdf.measurable X ℙ μ)) _ hg.measurable,
+  exact quasi_measure_preserving_has_pdf hg infer_instance,
 end
 
 end
 
 section real
 
-variables [is_finite_measure ℙ] {X : α → ℝ} (hX : measurable X)
-
-include hX
+variables [is_finite_measure ℙ] {X : α → ℝ}
 
 /-- A real-valued random variable `X` `has_pdf X ℙ λ` (where `λ` is the Lebesgue measure) if and
 only if the push-forward measure of `ℙ` along `X` is absolutely continuous with respect to `λ`. -/
-lemma real.has_pdf_iff : has_pdf X ℙ ↔ map X ℙ ≪ volume :=
+lemma real.has_pdf_iff (hX : measurable X) : has_pdf X ℙ ↔ map X ℙ ≪ volume :=
 begin
   haveI : is_finite_measure ((map X) ℙ) := is_finite_measure_map ℙ hX,
   rw [has_pdf_iff hX, and_iff_right_iff_imp],
@@ -294,18 +300,18 @@ end
 
 /-- If `X` is a real-valued random variable that has pdf `f`, then the expectation of `X` equals
 `∫ x, x * f x ∂λ` where `λ` is the Lebesgue measure. -/
-lemma integral_mul_eq_integral [has_pdf X ℙ]:
+lemma integral_mul_eq_integral [has_pdf X ℙ] :
   ∫ x, x * (pdf X ℙ volume x).to_real ∂(volume) = ∫ x, X x ∂ℙ :=
-integral_mul_eq_integral' hX measurable_id
+integral_mul_eq_integral' measurable_id
 
 lemma has_finite_integral_mul {f : ℝ → ℝ} {g : ℝ → ℝ≥0∞}
   (hg : pdf X ℙ =ᵐ[volume] g) (hgi : ∫⁻ x, ∥f x∥₊ * g x ∂(volume) < ∞) :
   has_finite_integral (λ x, f x * (pdf X ℙ volume x).to_real) volume :=
 begin
-  rw [has_finite_integral],
+  rw has_finite_integral,
   have : (λ x, ↑∥f x∥₊ * g x) =ᵐ[volume] (λ x, ∥f x * (pdf X ℙ volume x).to_real∥₊),
   { refine ae_eq_trans (filter.eventually_eq.mul (ae_eq_refl (λ x, ∥f x∥₊))
-      (ae_eq_trans hg.symm (of_real_to_real_ae_eq hX).symm)) _,
+      (ae_eq_trans hg.symm of_real_to_real_ae_eq.symm)) _,
     simp_rw [← smul_eq_mul, nnnorm_smul, ennreal.coe_mul, smul_eq_mul],
     refine filter.eventually_eq.mul (ae_eq_refl _) _,
     convert ae_eq_refl _,

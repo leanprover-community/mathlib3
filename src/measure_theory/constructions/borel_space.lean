@@ -39,7 +39,7 @@ import topology.instances.ereal
 noncomputable theory
 
 open classical set filter measure_theory
-open_locale classical big_operators topological_space nnreal ennreal
+open_locale classical big_operators topological_space nnreal ennreal interval
 
 universes u v w x y
 variables {α β γ γ₂ δ : Type*} {ι : Sort y} {s t u : set α}
@@ -199,6 +199,15 @@ instance subtype.opens_measurable_space {α : Type*} [topological_space α] [mea
   opens_measurable_space s :=
 ⟨by { rw [borel_comap], exact comap_mono h.1 }⟩
 
+theorem _root_.measurable_set.induction_on_open [topological_space α] [measurable_space α]
+  [borel_space α] {C : set α → Prop} (h_open : ∀ U, is_open U → C U)
+  (h_compl : ∀ t, measurable_set t → C t → C tᶜ)
+  (h_union : ∀ f : ℕ → set α, pairwise (disjoint on f) →
+    (∀ i, measurable_set (f i)) → (∀ i, C (f i)) → C (⋃ i, f i)) :
+  ∀ ⦃t⦄, measurable_set t → C t :=
+measurable_space.induction_on_inter borel_space.measurable_eq is_pi_system_is_open
+  (h_open _ is_open_empty) h_open h_compl h_union
+
 section
 variables [topological_space α] [measurable_space α] [opens_measurable_space α]
    [topological_space β] [measurable_space β] [opens_measurable_space β]
@@ -315,7 +324,7 @@ lemma meas_closure_of_null_bdry {μ : measure α'} {s : set α'}
   interior_subset subset_closure h_nullbdry).symm
 
 section preorder
-variables [preorder α] [order_closed_topology α] {a b : α}
+variables [preorder α] [order_closed_topology α] {a b x : α}
 
 @[simp, measurability]
 lemma measurable_set_Ici : measurable_set (Ici a) := is_closed_Ici.measurable_set
@@ -331,6 +340,10 @@ measurable_set_Ici.nhds_within_is_measurably_generated _
 instance nhds_within_Iic_is_measurably_generated :
   (𝓝[Iic b] a).is_measurably_generated :=
 measurable_set_Iic.nhds_within_is_measurably_generated _
+
+instance nhds_within_Icc_is_measurably_generated :
+  is_measurably_generated (𝓝[Icc a b] x) :=
+by { rw [← Ici_inter_Iic, nhds_within_inter], apply_instance }
 
 instance at_top_is_measurably_generated : (filter.at_top : filter α).is_measurably_generated :=
 @filter.infi_is_measurably_generated _ _ _ _ $
@@ -358,7 +371,7 @@ hf.prod_mk hg measurable_set_le'
 end partial_order
 
 section linear_order
-variables [linear_order α] [order_closed_topology α] {a b : α}
+variables [linear_order α] [order_closed_topology α] {a b x : α}
 
 @[simp, measurability]
 lemma measurable_set_Iio : measurable_set (Iio a) := is_open_Iio.measurable_set
@@ -380,6 +393,10 @@ measurable_set_Ioi.nhds_within_is_measurably_generated _
 instance nhds_within_Iio_is_measurably_generated :
   (𝓝[Iio b] a).is_measurably_generated :=
 measurable_set_Iio.nhds_within_is_measurably_generated _
+
+instance nhds_within_interval_is_measurably_generated :
+  is_measurably_generated (𝓝[[a, b]] x) :=
+nhds_within_Icc_is_measurably_generated
 
 @[measurability]
 lemma measurable_set_lt' [second_countable_topology α] : measurable_set {p : α × α | p.1 < p.2} :=
@@ -426,7 +443,7 @@ variables [second_countable_topology α]
 @[measurability]
 lemma measurable.max {f g : δ → α} (hf : measurable f) (hg : measurable g) :
   measurable (λ a, max (f a) (g a)) :=
-hf.piecewise (measurable_set_le hg hf) hg
+by simpa only [max_def] using hf.piecewise (measurable_set_le hg hf) hg
 
 @[measurability]
 lemma ae_measurable.max {f g : δ → α} {μ : measure δ}
@@ -437,7 +454,7 @@ lemma ae_measurable.max {f g : δ → α} {μ : measure δ}
 @[measurability]
 lemma measurable.min {f g : δ → α} (hf : measurable f) (hg : measurable g) :
   measurable (λ a, min (f a) (g a)) :=
-hf.piecewise (measurable_set_le hf hg) hg
+by simpa only [min_def] using hf.piecewise (measurable_set_le hf hg) hg
 
 @[measurability]
 lemma ae_measurable.min {f g : δ → α} {μ : measure δ}
@@ -613,15 +630,14 @@ end
 lemma ae_measurable_comp_iff_of_closed_embedding {f : δ → β} {μ : measure δ}
   (g : β → γ) (hg : closed_embedding g) : ae_measurable (g ∘ f) μ ↔ ae_measurable f μ :=
 begin
-  by_cases h : nonempty β,
-  { resetI,
-    refine ⟨λ hf, _, λ hf, hg.measurable.comp_ae_measurable hf⟩,
+  casesI is_empty_or_nonempty β,
+  { haveI := function.is_empty f,
+    simp only [(measurable_of_empty (g ∘ f)).ae_measurable,
+      (measurable_of_empty f).ae_measurable] },
+  { refine ⟨λ hf, _, λ hf, hg.measurable.comp_ae_measurable hf⟩,
     convert hg.measurable_inv_fun.comp_ae_measurable hf,
     ext x,
     exact (function.left_inverse_inv_fun hg.to_embedding.inj (f x)).symm },
-  { have H : ¬ nonempty δ, by { contrapose! h, exact nonempty.map f h },
-    simp [(measurable_of_not_nonempty H (g ∘ f)).ae_measurable,
-          (measurable_of_not_nonempty H f).ae_measurable] }
 end
 
 lemma ae_measurable_comp_right_iff_of_closed_embedding {g : α → β} {μ : measure α}
@@ -629,9 +645,7 @@ lemma ae_measurable_comp_right_iff_of_closed_embedding {g : α → β} {μ : mea
   ae_measurable (f ∘ g) μ ↔ ae_measurable f (measure.map g μ) :=
 begin
   refine ⟨λ h, _, λ h, h.comp_measurable hg.measurable⟩,
-  by_cases hα : nonempty α,
-  swap, { simp [measure.eq_zero_of_not_nonempty hα μ] },
-  resetI,
+  casesI is_empty_or_nonempty α, { simp [μ.eq_zero_of_is_empty] },
   refine ⟨(h.mk _) ∘ (function.inv_fun g), h.measurable_mk.comp hg.measurable_inv_fun, _⟩,
   have : μ = measure.map (function.inv_fun g) (measure.map g μ),
     by rw [measure.map_map hg.measurable_inv_fun hg.measurable,
@@ -1091,7 +1105,7 @@ by simpa using is_pi_system_Ioo (coe : ℚ → ℝ)
 
 /-- The intervals `(-(n + 1), (n + 1))` form a finite spanning sets in the set of open intervals
 with rational endpoints for a locally finite measure `μ` on `ℝ`. -/
-def finite_spanning_sets_in_Ioo_rat (μ : measure ℝ) [locally_finite_measure μ] :
+def finite_spanning_sets_in_Ioo_rat (μ : measure ℝ) [is_locally_finite_measure μ] :
   μ.finite_spanning_sets_in (⋃ (a b : ℚ) (h : a < b), {Ioo a b}) :=
 { set := λ n, Ioo (-(n + 1)) (n + 1),
   set_mem := λ n,
@@ -1102,12 +1116,12 @@ def finite_spanning_sets_in_Ioo_rat (μ : measure ℝ) [locally_finite_measure �
     end,
   finite := λ n,
     calc μ (Ioo _ _) ≤ μ (Icc _ _) : μ.mono Ioo_subset_Icc_self
-                 ... < ∞           : is_compact_Icc.finite_measure,
+                 ... < ∞           : is_compact_Icc.is_finite_measure,
   spanning := Union_eq_univ_iff.2 $ λ x,
     ⟨⌊abs x⌋₊, neg_lt.1 ((neg_le_abs_self x).trans_lt (lt_nat_floor_add_one _)),
       (le_abs_self x).trans_lt (lt_nat_floor_add_one _)⟩ }
 
-lemma measure_ext_Ioo_rat {μ ν : measure ℝ} [locally_finite_measure μ]
+lemma measure_ext_Ioo_rat {μ ν : measure ℝ} [is_locally_finite_measure μ]
   (h : ∀ a b : ℚ, μ (Ioo a b) = ν (Ioo a b)) : μ = ν :=
 (finite_spanning_sets_in_Ioo_rat μ).ext borel_eq_generate_from_Ioo_rat is_pi_system_Ioo_rat $
   by { simp only [mem_Union, mem_singleton_iff], rintro _ ⟨a, b, -, rfl⟩, apply h }
@@ -1281,6 +1295,15 @@ lemma measurable.ennreal_tsum {ι} [encodable ι] {f : ι → α → ℝ≥0∞}
   measurable (λ x, ∑' i, f i x) :=
 by { simp_rw [ennreal.tsum_eq_supr_sum], apply measurable_supr,
   exact λ s, s.measurable_sum (λ i _, h i) }
+
+@[measurability]
+lemma measurable.ennreal_tsum' {ι} [encodable ι] {f : ι → α → ℝ≥0∞} (h : ∀ i, measurable (f i)) :
+  measurable (∑' i, f i) :=
+begin
+  convert measurable.ennreal_tsum h,
+  ext1 x,
+  exact tsum_apply (pi.summable.2 (λ _, ennreal.summable)),
+end
 
 @[measurability]
 lemma measurable.nnreal_tsum {ι} [encodable ι] {f : ι → α → ℝ≥0} (h : ∀ i, measurable (f i)) :
@@ -1582,6 +1605,30 @@ ae_measurable_comp_iff_of_closed_embedding (λ y : 𝕜, y • c) (closed_embedd
 
 end normed_space
 
+/-- If `s` is a compact set and `μ` is finite at `𝓝 x` for every `x ∈ s`, then `s` admits an open
+superset of finite measure. -/
+lemma is_compact.exists_open_superset_measure_lt_top' [topological_space α]
+  {s : set α} {μ : measure α} (h : is_compact s) (hμ : ∀ x ∈ s, μ.finite_at_filter (𝓝 x)) :
+  ∃ U ⊇ s, is_open U ∧ μ U < ∞ :=
+begin
+  refine is_compact.induction_on h _ _ _ _,
+  { use ∅, simp [superset] },
+  { rintro s t hst ⟨U, htU, hUo, hU⟩, exact ⟨U, hst.trans htU, hUo, hU⟩ },
+  { rintro s t ⟨U, hsU, hUo, hU⟩ ⟨V, htV, hVo, hV⟩,
+    refine ⟨U ∪ V, union_subset_union hsU htV, hUo.union hVo,
+      (measure_union_le _ _).trans_lt $ ennreal.add_lt_top.2 ⟨hU, hV⟩⟩ },
+  { intros x hx,
+    rcases (hμ x hx).exists_mem_basis (nhds_basis_opens _) with ⟨U, ⟨hx, hUo⟩, hU⟩,
+    exact ⟨U, nhds_within_le_nhds (hUo.mem_nhds hx), U, subset.rfl, hUo, hU⟩ }
+end
+
+/-- If `s` is a compact set and `μ` is a locally finite measure, then `s` admits an open superset of
+finite measure. -/
+lemma is_compact.exists_open_superset_measure_lt_top [topological_space α]
+  {s : set α} (μ : measure α) [is_locally_finite_measure μ] (h : is_compact s) :
+  ∃ U ⊇ s, is_open U ∧ μ U < ∞ :=
+h.exists_open_superset_measure_lt_top' $ λ x hx, μ.finite_at_nhds x
+
 lemma is_compact.measure_lt_top_of_nhds_within [topological_space α]
   {s : set α} {μ : measure α} (h : is_compact s) (hμ : ∀ x ∈ s, μ.finite_at_filter (𝓝[s] x)) :
   μ s < ∞ :=
@@ -1589,6 +1636,30 @@ is_compact.induction_on h (by simp) (λ s t hst ht, (measure_mono hst).trans_lt 
   (λ s t hs ht, (measure_union_le s t).trans_lt (ennreal.add_lt_top.2 ⟨hs, ht⟩)) hμ
 
 lemma is_compact.measure_lt_top [topological_space α] {s : set α} {μ : measure α}
-  [locally_finite_measure μ] (h : is_compact s) :
+  [is_locally_finite_measure μ] (h : is_compact s) :
   μ s < ∞ :=
 h.measure_lt_top_of_nhds_within $ λ x hx, μ.finite_at_nhds_within _ _
+
+/-- Compact covering of a `σ`-compact topological space as
+`measure_theory.measure.finite_spanning_sets_in`. -/
+def measure_theory.measure.finite_spanning_sets_in_compact [topological_space α]
+  [sigma_compact_space α] (μ : measure α) [is_locally_finite_measure μ] :
+  μ.finite_spanning_sets_in {K | is_compact K} :=
+{ set := compact_covering α,
+  set_mem := is_compact_compact_covering α,
+  finite := λ n, (is_compact_compact_covering α n).measure_lt_top,
+  spanning := Union_compact_covering α }
+
+/-- A locally finite measure on a `σ`-compact topological space admits a finite spanning sequence
+of open sets. -/
+def measure_theory.measure.finite_spanning_sets_in_open [topological_space α]
+  [sigma_compact_space α] (μ : measure α) [is_locally_finite_measure μ] :
+  μ.finite_spanning_sets_in {K | is_open K} :=
+{ set := λ n, ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some,
+  set_mem := λ n,
+    ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.snd.1,
+  finite := λ n,
+    ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.snd.2,
+  spanning := eq_univ_of_subset (Union_subset_Union $ λ n,
+    ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.fst)
+    (Union_compact_covering α) }

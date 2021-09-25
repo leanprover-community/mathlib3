@@ -265,12 +265,11 @@ by rw [edist_nndist, ennreal.coe_lt_coe]
 by rw [edist_nndist, ennreal.coe_le_coe]
 
 /--In a pseudometric space, the extended distance is always finite-/
-lemma edist_ne_top (x y : α) : edist x y ≠ ⊤ :=
-by rw [edist_dist x y]; apply ennreal.coe_ne_top
+lemma edist_lt_top {α : Type*} [pseudo_metric_space α] (x y : α) : edist x y < ⊤ :=
+(edist_dist x y).symm ▸ ennreal.of_real_lt_top
 
 /--In a pseudometric space, the extended distance is always finite-/
-lemma edist_lt_top {α : Type*} [pseudo_metric_space α] (x y : α) : edist x y < ⊤ :=
-ennreal.lt_top_iff_ne_top.2 (edist_ne_top x y)
+lemma edist_ne_top (x y : α) : edist x y ≠ ⊤ := (edist_lt_top x y).ne
 
 /--`nndist x x` vanishes-/
 @[simp] lemma nndist_self (a : α) : nndist a a = 0 := (nnreal.coe_eq_zero _).1 (dist_self a)
@@ -378,6 +377,17 @@ assume y (hy : _ < _), le_of_lt hy
 
 theorem sphere_subset_closed_ball : sphere x ε ⊆ closed_ball x ε :=
 λ y, le_of_eq
+
+lemma ball_disjoint_ball (x y : α) (rx ry : ℝ) (h : rx + ry ≤ dist x y) :
+  disjoint (ball x rx) (ball y ry) :=
+begin
+  rw disjoint_left,
+  assume a ax ay,
+  apply lt_irrefl (dist x y),
+  calc dist x y ≤ dist x a + dist a y : dist_triangle _ _ _
+  ... < rx + ry : add_lt_add (mem_ball'.1 ax) (mem_ball.1 ay)
+  ... ≤ dist x y : h
+end
 
 theorem sphere_disjoint_ball : disjoint (sphere x ε) (ball x ε) :=
 λ y ⟨hy₁, hy₂⟩, absurd hy₁ $ ne_of_lt hy₂
@@ -523,13 +533,11 @@ uniformity_basis_dist.uniform_continuous_iff uniformity_basis_dist
 
 lemma uniform_continuous_on_iff [pseudo_metric_space β] {f : α → β} {s : set α} :
   uniform_continuous_on f s ↔ ∀ ε > 0, ∃ δ > 0, ∀ x y ∈ s, dist x y < δ → dist (f x) (f y) < ε :=
-begin
-  dsimp [uniform_continuous_on],
-  rw (metric.uniformity_basis_dist.inf_principal (s.prod s)).tendsto_iff
-    metric.uniformity_basis_dist,
-  simp only [and_imp, exists_prop, prod.forall, mem_inter_eq, gt_iff_lt, mem_set_of_eq, mem_prod],
-  finish,
-end
+metric.uniformity_basis_dist.uniform_continuous_on_iff metric.uniformity_basis_dist
+
+lemma uniform_continuous_on_iff_le [pseudo_metric_space β] {f : α → β} {s : set α} :
+  uniform_continuous_on f s ↔ ∀ ε > 0, ∃ δ > 0, ∀ x y ∈ s, dist x y ≤ δ → dist (f x) (f y) ≤ ε :=
+metric.uniformity_basis_dist_le.uniform_continuous_on_iff metric.uniformity_basis_dist_le
 
 theorem uniform_embedding_iff [pseudo_metric_space β] {f : α → β} :
   uniform_embedding f ↔ function.injective f ∧ uniform_continuous f ∧
@@ -562,7 +570,7 @@ theorem totally_bounded_iff {s : set α} :
 /-- A pseudometric space space is totally bounded if one can reconstruct up to any ε>0 any element
 of the space from finitely many data. -/
 lemma totally_bounded_of_finite_discretization {s : set α}
-  (H : ∀ε > (0 : ℝ), ∃ (β : Type u) [fintype β] (F : s → β),
+  (H : ∀ε > (0 : ℝ), ∃ (β : Type u) (_ : fintype β) (F : s → β),
     ∀x y, F x = F y → dist (x:α) y < ε) :
   totally_bounded s :=
 begin
@@ -813,6 +821,11 @@ instance pseudo_metric_space.to_pseudo_emetric_space : pseudo_emetric_space α :
   uniformity_edist    := metric.uniformity_edist,
   ..‹pseudo_metric_space α› }
 
+/-- In a pseudometric space, an open ball of infinite radius is the whole space -/
+lemma metric.eball_top_eq_univ (x : α) :
+  emetric.ball x ∞ = set.univ :=
+set.eq_univ_iff_forall.mpr (λ y, edist_lt_top y x)
+
 /-- Balls defined using the distance or the edistance coincide -/
 @[simp] lemma metric.emetric_ball {x : α} {ε : ℝ} : emetric.ball x (ennreal.of_real ε) = ball x ε :=
 begin
@@ -922,6 +935,10 @@ instance real.pseudo_metric_space : pseudo_metric_space ℝ :=
   dist_triangle      := assume x y z, abs_sub_le _ _ _ }
 
 theorem real.dist_eq (x y : ℝ) : dist x y = abs (x - y) := rfl
+
+theorem real.nndist_eq (x y : ℝ) : nndist x y = real.nnabs (x - y) := rfl
+
+theorem real.nndist_eq' (x y : ℝ) : nndist x y = real.nnabs (y - x) := nndist_comm _ _
 
 theorem real.dist_0_eq_abs (x : ℝ) : dist x 0 = abs x :=
 by simp [real.dist_eq]
@@ -1118,6 +1135,13 @@ def pseudo_metric_space.induced {α β} (f : α → β)
       exact ⟨_, dist_mem_uniformity ε0, λ ⟨a, b⟩, hε⟩ }
   end }
 
+/-- Pull back a pseudometric space structure by a uniform inducing map. This is a version of
+`pseudo_metric_space.induced` useful in case if the domain already has a `uniform_space`
+structure. -/
+def uniform_inducing.comap_pseudo_metric_space {α β} [uniform_space α] [pseudo_metric_space β]
+  (f : α → β) (h : uniform_inducing f) : pseudo_metric_space α :=
+(pseudo_metric_space.induced f ‹_›).replace_uniformity h.comap_uniformity.symm
+
 instance subtype.psudo_metric_space {α : Type*} {p : α → Prop} [t : pseudo_metric_space α] :
   pseudo_metric_space (subtype p) :=
 pseudo_metric_space.induced coe t
@@ -1135,8 +1159,8 @@ lemma nnreal.nndist_eq (a b : ℝ≥0) :
 begin
   wlog h : a ≤ b,
   { apply nnreal.coe_eq.1,
-    rw [nnreal.sub_eq_zero h, max_eq_right (zero_le $ b - a), ← dist_nndist, nnreal.dist_eq,
-      nnreal.coe_sub h, abs, neg_sub],
+    rw [sub_eq_zero_iff_le.2 h, max_eq_right (zero_le $ b - a), ← dist_nndist, nnreal.dist_eq,
+      nnreal.coe_sub h, abs_eq_max_neg, neg_sub],
     apply max_eq_right,
     linarith [nnreal.coe_le_coe.2 h] },
   rwa [nndist_comm, max_comm]
@@ -1395,12 +1419,12 @@ open metric
 
 /-- A pseudometric space is proper if all closed balls are compact. -/
 class proper_space (α : Type u) [pseudo_metric_space α] : Prop :=
-(compact_ball : ∀x:α, ∀r, is_compact (closed_ball x r))
+(is_compact_closed_ball : ∀x:α, ∀r, is_compact (closed_ball x r))
 
 /-- In a proper pseudometric space, all spheres are compact. -/
 lemma is_compact_sphere {α : Type*} [pseudo_metric_space α] [proper_space α] (x : α) (r : ℝ) :
   is_compact (sphere x r) :=
-compact_of_is_closed_subset (proper_space.compact_ball x r) is_closed_sphere
+compact_of_is_closed_subset (proper_space.is_compact_closed_ball x r) is_closed_sphere
   sphere_subset_closed_ball
 
 /-- In a proper pseudometric space, any sphere is a `compact_space` when considered as a subtype. -/
@@ -1417,7 +1441,7 @@ begin
   -- add an instance for `sigma_compact_space`.
   suffices : sigma_compact_space α, by exactI emetric.second_countable_of_sigma_compact α,
   rcases em (nonempty α) with ⟨⟨x⟩⟩|hn,
-  { exact ⟨⟨λ n, closed_ball x n, λ n, proper_space.compact_ball _ _,
+  { exact ⟨⟨λ n, closed_ball x n, λ n, proper_space.is_compact_closed_ball _ _,
       Union_closed_ball_nat _⟩⟩ },
   { exact ⟨⟨λ n, ∅, λ n, is_compact_empty, Union_eq_univ_iff.2 $ λ x, (hn ⟨x⟩).elim⟩⟩ }
 end
@@ -1425,7 +1449,8 @@ end
 lemma tendsto_dist_right_cocompact_at_top [proper_space α] (x : α) :
   tendsto (λ y, dist y x) (cocompact α) at_top :=
 (has_basis_cocompact.tendsto_iff at_top_basis).2 $ λ r hr,
-  ⟨closed_ball x r, proper_space.compact_ball x r, λ y hy, (not_le.1 $ mt mem_closed_ball.2 hy).le⟩
+  ⟨closed_ball x r, proper_space.is_compact_closed_ball x r, 
+    λ y hy, (not_le.1 $ mt mem_closed_ball.2 hy).le⟩
 
 lemma tendsto_dist_left_cocompact_at_top [proper_space α] (x : α) :
   tendsto (dist x) (cocompact α) at_top :=
@@ -1458,7 +1483,7 @@ instance proper_of_compact [compact_space α] : proper_space α :=
 instance locally_compact_of_proper [proper_space α] :
   locally_compact_space α :=
 locally_compact_space_of_has_basis (λ x, nhds_basis_closed_ball) $
-  λ x ε ε0, proper_space.compact_ball _ _
+  λ x ε ε0, proper_space.is_compact_closed_ball _ _
 
 /-- A proper space is complete -/
 @[priority 100] -- see Note [lower instance priority]
@@ -1471,7 +1496,7 @@ instance complete_of_proper [proper_space α] : complete_space α :=
     (metric.cauchy_iff.1 hf).2 1 zero_lt_one,
   rcases hf.1.nonempty_of_mem t_fset with ⟨x, xt⟩,
   have : closed_ball x 1 ∈ f := mem_of_superset t_fset (λ y yt, (ht y x yt xt).le),
-  rcases (compact_iff_totally_bounded_complete.1 (proper_space.compact_ball x 1)).2 f hf
+  rcases (compact_iff_totally_bounded_complete.1 (proper_space.is_compact_closed_ball x 1)).2 f hf
     (le_principal_iff.2 this) with ⟨y, -, hy⟩,
   exact ⟨y, hy⟩
 end⟩
@@ -1483,7 +1508,7 @@ begin
   refine proper_space_of_compact_closed_ball_of_le 0 (λx r hr, _),
   rw closed_ball_pi _ hr,
   apply is_compact_univ_pi (λb, _),
-  apply (h b).compact_ball
+  apply (h b).is_compact_closed_ball
 end
 
 variables [proper_space α] {x : α} {r : ℝ} {s : set α}
@@ -1496,7 +1521,7 @@ begin
   unfreezingI { rcases eq_empty_or_nonempty s with rfl|hne },
   { exact ⟨r / 2, ⟨half_pos hr, half_lt_self hr⟩, empty_subset _⟩ },
   have : is_compact s,
-    from compact_of_is_closed_subset (proper_space.compact_ball x r) hs
+    from compact_of_is_closed_subset (proper_space.is_compact_closed_ball x r) hs
       (subset.trans h ball_subset_closed_ball),
   obtain ⟨y, hys, hy⟩ : ∃ y ∈ s, s ⊆ closed_ball x (dist y x),
     from this.exists_forall_ge hne (continuous_id.dist continuous_const).continuous_on,
@@ -1602,6 +1627,9 @@ begin
   { exact bounded_closed_ball.subset hC }
 end
 
+lemma bounded.subset_ball (h : bounded s) (c : α) : ∃ r, s ⊆ closed_ball c r :=
+(bounded_iff_subset_ball c).1 h
+
 lemma bounded_closure_of_bounded (h : bounded s) : bounded (closure s) :=
 let ⟨C, h⟩ := h in
 ⟨C, λ a b ha hb, (is_closed_le' C).closure_subset $ map_mem_closure2 continuous_dist ha hb h⟩
@@ -1663,17 +1691,23 @@ exists_congr $ λ C, ⟨
 lemma bounded_of_compact_space [compact_space α] : bounded s :=
 compact_univ.bounded.subset (subset_univ _)
 
+lemma is_compact_of_is_closed_bounded [proper_space α] (hc : is_closed s) (hb : bounded s) :
+  is_compact s :=
+begin
+  unfreezingI { rcases eq_empty_or_nonempty s with (rfl|⟨x, hx⟩) },
+  { exact is_compact_empty },
+  { rcases hb.subset_ball x with ⟨r, hr⟩,
+    exact compact_of_is_closed_subset (proper_space.is_compact_closed_ball x r) hc hr }
+end
+
 /-- The Heine–Borel theorem:
 In a proper space, a set is compact if and only if it is closed and bounded -/
 lemma compact_iff_closed_bounded [t2_space α] [proper_space α] :
   is_compact s ↔ is_closed s ∧ bounded s :=
-⟨λ h, ⟨h.is_closed, h.bounded⟩, begin
-  rintro ⟨hc, hb⟩,
-  cases s.eq_empty_or_nonempty with h h, {simp [h, is_compact_empty]},
-  rcases h with ⟨x, hx⟩,
-  rcases (bounded_iff_subset_ball x).1 hb with ⟨r, hr⟩,
-  exact compact_of_is_closed_subset (proper_space.compact_ball x r) hc hr
-end⟩
+⟨λ h, ⟨h.is_closed, h.bounded⟩, λ h, is_compact_of_is_closed_bounded h.1 h.2⟩
+
+lemma compact_space_iff_bounded_univ [proper_space α] : compact_space α ↔ bounded (univ : set α) :=
+⟨@bounded_of_compact_space α _ _, λ hb, ⟨is_compact_of_is_closed_bounded is_closed_univ hb⟩⟩
 
 section conditionally_complete_linear_order
 
@@ -1836,22 +1870,38 @@ end diam
 
 end metric
 
+lemma comap_dist_right_at_top_le_cocompact (x : α) : comap (λ y, dist y x) at_top ≤ cocompact α :=
+begin
+  refine filter.has_basis_cocompact.ge_iff.2 (λ s hs, mem_comap.2 _),
+  rcases hs.bounded.subset_ball x with ⟨r, hr⟩,
+  exact ⟨Ioi r, Ioi_mem_at_top r, λ y hy hys, (mem_closed_ball.1 $ hr hys).not_lt hy⟩
+end
+
+lemma comap_dist_left_at_top_le_cocompact (x : α) : comap (dist x) at_top ≤ cocompact α :=
+by simpa only [dist_comm _ x] using comap_dist_right_at_top_le_cocompact x
+
+lemma comap_dist_right_at_top_eq_cocompact [proper_space α] (x : α) :
+  comap (λ y, dist y x) at_top = cocompact α :=
+(comap_dist_right_at_top_le_cocompact x).antisymm $ (tendsto_dist_right_cocompact_at_top x).le_comap
+
+lemma comap_dist_left_at_top_eq_cocompact [proper_space α] (x : α) :
+  comap (dist x) at_top = cocompact α :=
+(comap_dist_left_at_top_le_cocompact x).antisymm $ (tendsto_dist_left_cocompact_at_top x).le_comap
+
+lemma tendsto_cocompact_of_tendsto_dist_comp_at_top {f : β → α} {l : filter β} (x : α)
+  (h : tendsto (λ y, dist (f y) x) l at_top) : tendsto f l (cocompact α) :=
+by { refine tendsto.mono_right _ (comap_dist_right_at_top_le_cocompact x), rwa tendsto_comap_iff }
+
 namespace int
 open metric
 
 /-- Under the coercion from `ℤ` to `ℝ`, inverse images of compact sets are finite. -/
 lemma tendsto_coe_cofinite : tendsto (coe : ℤ → ℝ) cofinite (cocompact ℝ) :=
 begin
-  simp only [filter.has_basis_cocompact.tendsto_right_iff, eventually_iff_exists_mem],
-  intros s hs,
-  obtain ⟨r, hr⟩ : ∃ r, s ⊆ closed_ball (0:ℝ) r,
-  { rw ← bounded_iff_subset_ball,
-    exact hs.bounded },
-  refine ⟨(coe ⁻¹' closed_ball (0:ℝ) r)ᶜ, _, _⟩,
-  { simp [mem_cofinite, real.closed_ball_eq, set.Icc_ℤ_finite] },
-  { rw ← compl_subset_compl at hr,
-    intros y hy,
-    exact hr hy }
+  refine tendsto_cocompact_of_tendsto_dist_comp_at_top (0 : ℝ) _,
+  simp only [filter.tendsto_at_top, eventually_cofinite, not_le, ← mem_ball],
+  change ∀ r : ℝ, finite (coe ⁻¹' (ball (0 : ℝ) r)),
+  simp [real.ball_eq, Ioo_ℤ_finite]
 end
 
 end int
@@ -1998,6 +2048,12 @@ def metric_space.induced {γ β} (f : γ → β) (hf : function.injective f)
 { eq_of_dist_eq_zero := λ x y h, hf (dist_eq_zero.1 h),
   ..pseudo_metric_space.induced f m.to_pseudo_metric_space }
 
+/-- Pull back a metric space structure by a uniform embedding. This is a version of
+`metric_space.induced` useful in case if the domain already has a `uniform_space` structure. -/
+def uniform_embedding.comap_metric_space {α β} [uniform_space α] [metric_space β] (f : α → β)
+  (h : uniform_embedding f) : metric_space α :=
+(metric_space.induced f h.inj ‹_›).replace_uniformity h.comap_uniformity.symm
+
 instance subtype.metric_space {α : Type*} {p : α → Prop} [t : metric_space α] :
   metric_space (subtype p) :=
 metric_space.induced coe (λ x y, subtype.ext) t
@@ -2071,7 +2127,7 @@ open topological_space
 /-- A metric space space is second countable if one can reconstruct up to any `ε>0` any element of
 the space from countably many data. -/
 lemma second_countable_of_countable_discretization {α : Type u} [metric_space α]
-  (H : ∀ε > (0 : ℝ), ∃ (β : Type*) [encodable β] (F : α → β), ∀x y, F x = F y → dist x y ≤ ε) :
+  (H : ∀ε > (0 : ℝ), ∃ (β : Type*) (_ : encodable β) (F : α → β), ∀x y, F x = F y → dist x y ≤ ε) :
   second_countable_topology α :=
 begin
   cases (univ : set α).eq_empty_or_nonempty with hs hs,

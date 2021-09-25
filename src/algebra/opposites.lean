@@ -222,6 +222,12 @@ instance (R : Type*) [monoid R] [add_monoid α] [distrib_mul_action R α] :
   smul_zero := λ r, unop_injective $ smul_zero r,
   ..opposite.mul_action α R }
 
+instance (R : Type*) [monoid R] [monoid α] [mul_distrib_mul_action R α] :
+  mul_distrib_mul_action R (opposite α) :=
+{ smul_mul := λ r x₁ x₂, unop_injective $ smul_mul' r (unop x₂) (unop x₁),
+  smul_one := λ r, unop_injective $ smul_one r,
+  ..opposite.mul_action α R }
+
 /-- Like `has_mul.to_has_scalar`, but multiplies on the right.
 
 See also `monoid.to_opposite_mul_action` and `monoid_with_zero.to_opposite_mul_action`. -/

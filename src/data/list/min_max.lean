@@ -242,7 +242,7 @@ begin
   { rw [max_eq_left], refl, exact bot_le },
   change (coe : α → with_bot α) with some,
   rw [max_comm],
-  simp [max]
+  simp [max_def]
 end
 
 theorem minimum_concat (a : α) (l : list α) : minimum (l ++ [a]) = min (minimum l) a :=

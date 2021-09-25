@@ -157,7 +157,7 @@ include V
 /-- The identity affine isometry. -/
 def id : P →ᵃⁱ[𝕜] P := ⟨affine_map.id 𝕜 P, λ x, rfl⟩
 
-@[simp] lemma coe_id : ⇑(id : P →ᵃⁱ[𝕜] P) = id := rfl
+@[simp] lemma coe_id : ⇑(id : P →ᵃⁱ[𝕜] P) = _root_.id := rfl
 
 @[simp] lemma id_apply (x : P) : (affine_isometry.id : P →ᵃⁱ[𝕜] P) x = x := rfl
 
@@ -537,29 +537,6 @@ affine_equiv.point_reflection_midpoint_right x y
 end constructions
 
 end affine_isometry_equiv
-
-namespace affine_isometry
-
-open finite_dimensional affine_map
-
-variables [finite_dimensional 𝕜 V₁] [finite_dimensional 𝕜 V₂]
-
-/-- A affine isometry between finite dimensional spaces of equal dimension can be upgraded
-    to an affine isometry equivalence. -/
-noncomputable def to_affine_isometry_equiv [inhabited P₁]
-  (li : P₁ →ᵃⁱ[𝕜] P₂) (h : finrank 𝕜 V₁ = finrank 𝕜 V₂) : P₁ ≃ᵃⁱ[𝕜] P₂ :=
-affine_isometry_equiv.mk' li (li.linear_isometry.to_linear_isometry_equiv h) (arbitrary P₁)
-  (λ p, by simp)
-
-@[simp] lemma coe_to_affine_isometry_equiv [inhabited P₁]
-  (li : P₁ →ᵃⁱ[𝕜] P₂) (h : finrank 𝕜 V₁ = finrank 𝕜 V₂) :
-  (li.to_affine_isometry_equiv h : P₁ → P₂) = li := rfl
-
-@[simp] lemma to_affine_isometry_equiv_apply [inhabited P₁]
-  (li : P₁ →ᵃⁱ[𝕜] P₂) (h : finrank 𝕜 V₁ = finrank 𝕜 V₂) (x : P₁) :
-  (li.to_affine_isometry_equiv h) x = li x := rfl
-
-end affine_isometry
 
 include V V₂
 /-- If `f` is an affine map, then its linear part is continuous iff `f` is continuous. -/

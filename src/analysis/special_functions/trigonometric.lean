@@ -26,7 +26,7 @@ The continuity and differentiability of the usual trigonometric functions are pr
 derivatives are computed.
 
 * `polynomial.chebyshev.T_complex_cos`: the `n`-th Chebyshev polynomial evaluates on `complex.cos θ`
-  to the value `n * complex.cos θ`.
+  to the value `complex.cos (n * θ)`.
 
 ## Tags
 
@@ -940,7 +940,7 @@ intermediate_value_Icc' (by norm_num) continuous_on_cos
   ⟨le_of_lt cos_two_neg, le_of_lt cos_one_pos⟩
 
 /-- The number π = 3.14159265... Defined here using choice as twice a zero of cos in [1,2], from
-which one can derive all its properties. For explicit bounds on π, see `data.real.pi`. -/
+which one can derive all its properties. For explicit bounds on π, see `data.real.pi.bounds`. -/
 protected noncomputable def pi : ℝ := 2 * classical.some exists_cos_eq_zero
 
 localized "notation `π` := real.pi" in real
@@ -1393,8 +1393,8 @@ lemma sqrt_two_add_series_lt_two : ∀(n : ℕ), sqrt_two_add_series 0 n < 2
 | 0     := by norm_num
 | (n+1) :=
   begin
-    refine lt_of_lt_of_le _ (le_of_eq $ sqrt_sq $ le_of_lt zero_lt_two),
-    rw [sqrt_two_add_series, sqrt_lt, ← lt_sub_iff_add_lt'],
+    refine lt_of_lt_of_le _ (sqrt_sq zero_lt_two.le).le,
+    rw [sqrt_two_add_series, sqrt_lt_sqrt_iff, ← lt_sub_iff_add_lt'],
     { refine (sqrt_two_add_series_lt_two n).trans_le _, norm_num },
     { exact add_nonneg zero_le_two (sqrt_two_add_series_zero_nonneg n) }
   end

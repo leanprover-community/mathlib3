@@ -139,31 +139,21 @@ supr_congr_Prop pq f
   (pq : p ↔ q) (f : ∀x, f₁ (pq.mpr x) = f₂ x) : Inter f₁ = Inter f₂ :=
 infi_congr_Prop pq f
 
-lemma Union_prop (f : ι → set α) (p : ι → Prop) (i : ι) [decidable $ p i] :
-  (⋃ (h : p i), f i) = if p i then f i else ∅ :=
-begin
-  ext x,
-  rw mem_Union,
-  split_ifs; tauto,
-end
+lemma Union_eq_if {p : Prop} [decidable p] (s : set α) :
+  (⋃ h : p, s) = if p then s else ∅ :=
+supr_eq_if _
 
-@[simp]
-lemma Union_prop_pos {p : ι → Prop} {i : ι} (hi : p i) (f : ι → set α) :
-  (⋃ (h : p i), f i) = f i :=
-begin
-  classical,
-  ext x,
-  rw [Union_prop, if_pos hi]
-end
+lemma Union_eq_dif {p : Prop} [decidable p] (s : p → set α) :
+  (⋃ (h : p), s h) = if h : p then s h else ∅ :=
+supr_eq_dif _
 
-@[simp]
-lemma Union_prop_neg {p : ι → Prop} {i : ι} (hi : ¬ p i) (f : ι → set α) :
-  (⋃ (h : p i), f i) = ∅ :=
-begin
-  classical,
-  ext x,
-  rw [Union_prop, if_neg hi]
-end
+lemma Inter_eq_if {p : Prop} [decidable p] (s : set α) :
+  (⋂ h : p, s) = if p then s else univ :=
+infi_eq_if _
+
+lemma Infi_eq_dif {p : Prop} [decidable p] (s : p → set α) :
+  (⋂ (h : p), s h) = if h : p then s h else univ :=
+infi_eq_dif _
 
 lemma exists_set_mem_of_union_eq_top {ι : Type*} (t : set ι) (s : ι → set β)
   (w : (⋃ i ∈ t, s i) = ⊤) (x : β) :
@@ -331,6 +321,43 @@ supr_option s
 
 lemma Inter_option {ι} (s : option ι → set α) : (⋂ o, s o) = s none ∩ ⋂ i, s (some i) :=
 infi_option s
+
+section
+
+variables (p : ι → Prop) [decidable_pred p]
+
+lemma Union_dite (f : Π i, p i → set α) (g : Π i, ¬p i → set α) :
+  (⋃ i, if h : p i then f i h else g i h) = (⋃ i (h : p i), f i h) ∪ (⋃ i (h : ¬ p i), g i h) :=
+supr_dite _ _ _
+
+lemma Union_ite (f g : ι → set α) :
+  (⋃ i, if p i then f i else g i) = (⋃ i (h : p i), f i) ∪ (⋃ i (h : ¬ p i), g i) :=
+Union_dite _ _ _
+
+lemma Inter_dite (f : Π i, p i → set α) (g : Π i, ¬p i → set α) :
+  (⋂ i, if h : p i then f i h else g i h) = (⋂ i (h : p i), f i h) ∩ (⋂ i (h : ¬ p i), g i h) :=
+infi_dite _ _ _
+
+lemma Inter_ite (f g : ι → set α) :
+  (⋂ i, if p i then f i else g i) = (⋂ i (h : p i), f i) ∩ (⋂ i (h : ¬ p i), g i) :=
+Inter_dite _ _ _
+
+end
+
+lemma image_projection_prod {ι : Type*} {α : ι → Type*} {v : Π (i : ι), set (α i)}
+  (hv : (pi univ v).nonempty) (i : ι) :
+  (λ (x : Π (i : ι), α i), x i) '' (⋂ k, (λ (x : Π (j : ι), α j), x k) ⁻¹' v k) = v i:=
+begin
+  classical,
+  apply subset.antisymm,
+  { simp [Inter_subset] },
+  { intros y y_in,
+    simp only [mem_image, mem_Inter, mem_preimage],
+    rcases hv with ⟨z, hz⟩,
+    refine ⟨function.update z i y, _, update_same i y z⟩,
+    rw @forall_update_iff ι α _ z i y (λ i t, t ∈ v i),
+    exact ⟨y_in, λ j hj, by simpa using hz j⟩ },
+end
 
 /-! ### Unions and intersections indexed by `Prop` -/
 
@@ -715,6 +742,35 @@ lemma sUnion_eq_univ_iff {c : set (set α)} :
   ⋃₀ c = univ ↔ ∀ a, ∃ b ∈ c, a ∈ b :=
 by simp only [eq_univ_iff_forall, mem_sUnion]
 
+-- classical
+lemma Inter_eq_empty_iff {f : ι → set α} : (⋂ i, f i) = ∅ ↔ ∀ x, ∃ i, x ∉ f i :=
+by simp [set.eq_empty_iff_forall_not_mem]
+
+-- classical
+lemma bInter_eq_empty_iff {f : α → set β} {s : set α} :
+  (⋂ x ∈ s, f x) = ∅ ↔ ∀ y, ∃ x ∈ s, y ∉ f x :=
+by simp [set.eq_empty_iff_forall_not_mem]
+
+-- classical
+lemma sInter_eq_empty_iff {c : set (set α)} :
+  ⋂₀ c = ∅ ↔ ∀ a, ∃ b ∈ c, a ∉ b :=
+by simp [set.eq_empty_iff_forall_not_mem]
+
+-- classical
+@[simp] theorem nonempty_Inter {f : ι → set α} : (⋂ i, f i).nonempty ↔ ∃ x, ∀ i, x ∈ f i :=
+by simp [← ne_empty_iff_nonempty, Inter_eq_empty_iff]
+
+-- classical
+@[simp] theorem nonempty_bInter {f : α → set β} {s : set α} :
+  (⋂ x ∈ s, f x).nonempty ↔ ∃ y, ∀ x ∈ s, y ∈ f x :=
+by simp [← ne_empty_iff_nonempty, Inter_eq_empty_iff]
+
+-- classical
+@[simp] theorem nonempty_sInter {c : set (set α)}:
+  (⋂₀ c).nonempty ↔ ∃ a, ∀ b ∈ c, a ∈ b :=
+by simp [← ne_empty_iff_nonempty, sInter_eq_empty_iff]
+
+-- classical
 theorem compl_sUnion (S : set (set α)) :
   (⋃₀ S)ᶜ = ⋂₀ (compl '' S) :=
 ext $ λ x, by simp
@@ -1439,6 +1495,14 @@ by simpa using h.preimage f
 lemma preimage_eq_empty_iff {f : α → β} {s : set β} : disjoint s (range f) ↔ f ⁻¹' s = ∅ :=
 ⟨preimage_eq_empty,
   λ h, by { simp [eq_empty_iff_forall_not_mem, set.disjoint_iff_inter_eq_empty] at h ⊢, finish }⟩
+
+lemma disjoint_iff_subset_compl_right :
+  disjoint s t ↔ s ⊆ tᶜ :=
+disjoint_left
+
+lemma disjoint_iff_subset_compl_left :
+  disjoint s t ↔ t ⊆ sᶜ :=
+disjoint_right
 
 end set
 

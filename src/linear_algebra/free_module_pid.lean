@@ -85,7 +85,7 @@ begin
   refine b.ext_elem (λ i, _),
   rw (eq_bot_iff_generator_eq_zero _).mpr hgen at hϕ,
   rw [linear_equiv.map_zero, finsupp.zero_apply],
-  exact (submodule.eq_bot_iff _).mp (hϕ ((finsupp.lapply i).comp b.repr) bot_le) _ ⟨x, hx, rfl⟩
+  exact (submodule.eq_bot_iff _).mp (hϕ ((finsupp.lapply i) ∘ₗ ↑b.repr) bot_le) _ ⟨x, hx, rfl⟩
 end
 
 /-- `(ϕ : O →ₗ M').submodule_image N` is `ϕ(N)` as a submodule of `M'` -/
@@ -132,7 +132,7 @@ begin
   refine congr_arg coe (show (⟨x, hNO hx⟩ : O) = 0, from b.ext_elem (λ i, _)),
   rw (eq_bot_iff_generator_eq_zero _).mpr hgen at hϕ,
   rw [linear_equiv.map_zero, finsupp.zero_apply],
-  refine (submodule.eq_bot_iff _).mp (hϕ ((finsupp.lapply i).comp b.repr) bot_le) _ _,
+  refine (submodule.eq_bot_iff _).mp (hϕ ((finsupp.lapply i) ∘ₗ ↑b.repr) bot_le) _ _,
   exact (linear_map.mem_submodule_image_of_le hNO).mpr ⟨x, hx, rfl⟩
 end
 
@@ -308,14 +308,6 @@ lemma basis.card_le_card_of_le
 b.card_le_card_of_linear_independent
   (b'.linear_independent.map' (submodule.of_le hNO) (N.ker_of_le O _))
 
-/-- If we have two bases on the same space, their indices are in bijection. -/
-noncomputable def basis.index_equiv {R ι ι' : Type*} [integral_domain R] [module R M]
-  [fintype ι] [fintype ι'] (b : basis ι R M) (b' : basis ι' R M) :
-  ι ≃ ι' :=
-(fintype.card_eq.mp (le_antisymm
-  (b'.card_le_card_of_linear_independent b.linear_independent)
-  (b.card_le_card_of_linear_independent b'.linear_independent))).some
-
 /-- If `N` is a submodule in a free, finitely generated module,
 do induction on adjoining a linear independent element to a submodule. -/
 def submodule.induction_on_rank [fintype ι] (b : basis ι R M) (P : submodule R M → Sort*)
@@ -437,9 +429,7 @@ begin
         (show (set.range (λ ψ : M →ₗ[R] R, ψ.submodule_image N)).nonempty,
          from ⟨_, set.mem_range.mpr ⟨0, rfl⟩⟩),
     obtain ⟨ϕ, rfl⟩ := set.mem_range.mp P_eq,
-    use ϕ,
-    intros ψ hψ,
-    exact P_max _ ⟨_, rfl⟩ hψ },
+    exact ⟨ϕ, λ ψ hψ, P_max _ ⟨_, rfl⟩ hψ⟩ },
   let ϕ := this.some,
   have ϕ_max := this.some_spec,
   -- Since `ϕ(N)` is a `R`-submodule of the PID `R`,
@@ -638,7 +628,7 @@ begin
   let φ : M →ₗ[R] M := linear_map.lsmul R M A,
   have : φ.ker = ⊥,
     from linear_map.ker_lsmul hA,
-  let ψ : M ≃ₗ[R] φ.range := linear_equiv.of_injective φ this,
+  let ψ : M ≃ₗ[R] φ.range := linear_equiv.of_injective φ (linear_map.ker_eq_bot.mp this),
   have : φ.range ≤ N, -- as announced, `A • M ⊆ N`
   { suffices : ∀ i, φ (s i) ∈ N,
     { rw [linear_map.range_eq_map, ← hs, φ.map_span_le],

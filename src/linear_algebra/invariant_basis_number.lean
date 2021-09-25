@@ -71,12 +71,26 @@ variables (R : Type u) [ring R]
 
 /-- We say that `R` satisfies the strong rank condition if `(fin n → R) →ₗ[R] (fin m → R)` injective
     implies `n ≤ m`. -/
+@[mk_iff]
 class strong_rank_condition : Prop :=
 (le_of_fin_injective : ∀ {n m : ℕ} (f : (fin n → R) →ₗ[R] (fin m → R)), injective f → n ≤ m)
 
 lemma le_of_fin_injective [strong_rank_condition R] {n m : ℕ} (f : (fin n → R) →ₗ[R] (fin m → R)) :
   injective f → n ≤ m :=
 strong_rank_condition.le_of_fin_injective f
+
+/-- A ring satisfies the strong rank condition if and only if, for all `n : ℕ`, any linear map
+`(fin (n + 1) → R) →ₗ[R] (fin n → R)` is not injective. -/
+lemma strong_rank_condition_iff_succ : strong_rank_condition R ↔
+  ∀ (n : ℕ) (f : (fin (n + 1) → R) →ₗ[R] (fin n → R)), ¬function.injective f :=
+begin
+  refine ⟨λ h n, λ f hf, _, λ h, ⟨λ n m f hf, _⟩⟩,
+  { letI : strong_rank_condition R := h,
+    exact nat.not_succ_le_self n (le_of_fin_injective R f hf) },
+  { by_contra H,
+    exact h m (f.comp (function.extend_by_zero.linear_map R (fin.cast_le (not_le.1 H))))
+      (hf.comp (function.extend_injective (rel_embedding.injective _) 0)) }
+end
 
 lemma card_le_of_injective [strong_rank_condition R] {α β : Type*} [fintype α] [fintype β]
   (f : (α → R) →ₗ[R] (β → R)) (i : injective f) : fintype.card α ≤ fintype.card β :=
@@ -155,7 +169,7 @@ invariant_basis_number.eq_of_fin_equiv
 
 lemma card_eq_of_lequiv {α β : Type*} [fintype α] [fintype β]
   (f : (α → R) ≃ₗ[R] (β → R)) : fintype.card α = fintype.card β :=
-eq_of_fin_equiv R (((linear_equiv.fun_congr_left R R (fintype.equiv_fin α)).trans f).trans
+eq_of_fin_equiv R (((linear_equiv.fun_congr_left R R (fintype.equiv_fin α)).trans f) ≪≫ₗ
   ((linear_equiv.fun_congr_left R R (fintype.equiv_fin β)).symm))
 
 lemma nontrivial_of_invariant_basis_number : nontrivial R :=
@@ -258,6 +272,6 @@ instance invariant_basis_number_of_nontrivial_of_comm_ring {R : Type u} [comm_ri
   [nontrivial R] : invariant_basis_number R :=
 ⟨λ n m e, let ⟨I, hI⟩ := ideal.exists_maximal R in
   by exactI eq_of_fin_equiv I.quotient
-    ((ideal.pi_quot_equiv _ _).symm.trans ((induced_equiv _ e).trans (ideal.pi_quot_equiv _ _)))⟩
+    ((ideal.pi_quot_equiv _ _).symm ≪≫ₗ ((induced_equiv _ e) ≪≫ₗ (ideal.pi_quot_equiv _ _)))⟩
 
 end

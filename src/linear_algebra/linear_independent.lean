@@ -23,7 +23,6 @@ one, including injectivity of `finsupp.total ι M R v` and some versions with ex
 linear combinations.
 
 ## Main definitions
-
 All definitions are given for families of vectors, i.e. `v : ι → M` where `M` is the module or
 vector space and `ι : Type*` is an arbitrary indexing type.
 
@@ -74,7 +73,7 @@ linearly dependent, linear dependence, linearly independent, linear independence
 noncomputable theory
 
 open function set submodule
-open_locale classical big_operators
+open_locale classical big_operators cardinal
 
 universes u
 
@@ -306,7 +305,7 @@ then the same is true for arbitrary sets of linearly independent vectors.
 -/
 lemma linear_independent_bounded_of_finset_linear_independent_bounded {n : ℕ}
   (H : ∀ s : finset M, linear_independent R (λ i : s, (i : M)) → s.card ≤ n) :
-  ∀ s : set M, linear_independent R (coe : s → M) → cardinal.mk s ≤ n :=
+  ∀ s : set M, linear_independent R (coe : s → M) → #s ≤ n :=
 begin
   intros s li,
   apply cardinal.card_le_of,
@@ -704,10 +703,10 @@ variables (hv : linear_independent R v)
 begin
 apply linear_equiv.of_bijective
   (linear_map.cod_restrict (span R (range v)) (finsupp.total ι M R v) _),
-{ rw linear_map.ker_cod_restrict,
+{ rw [← linear_map.ker_eq_bot, linear_map.ker_cod_restrict],
   apply hv },
-{ rw [linear_map.range_eq_map, linear_map.map_cod_restrict, ← linear_map.range_le_iff_comap,
-    range_subtype, map_top],
+{ rw [← linear_map.range_eq_top, linear_map.range_eq_map, linear_map.map_cod_restrict,
+    ← linear_map.range_le_iff_comap, range_subtype, map_top],
   rw finsupp.range_total,
   apply le_refl (span R (range v)) },
 { intro l,
@@ -1133,7 +1132,6 @@ begin
   { ext,
     -- TODO: why doesn't simp use `fin_succ_equiv_symm_coe` here?
     rw [comp_app, comp_app, fin_succ_equiv_symm_coe, fin.cons_succ] },
-  { rw [comp_app, fin_succ_equiv_symm_none, fin.cons_zero] },
   { ext,
     rw [comp_app, comp_app, fin_succ_equiv_symm_coe, fin.cons_succ] }
 end

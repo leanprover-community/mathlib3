@@ -110,7 +110,7 @@ families of functions on these modules. See note [bundled maps over different ri
 { to_fun := λ f, ∑ i : ι, (f i).comp (proj i),
   inv_fun := λ f i, f.comp (single i),
   map_add' := λ f g, by simp only [pi.add_apply, add_comp, finset.sum_add_distrib],
-  map_smul' := λ c f, by simp only [pi.smul_apply, smul_comp, finset.smul_sum],
+  map_smul' := λ c f, by simp only [pi.smul_apply, smul_comp, finset.smul_sum, ring_hom.id_apply],
   left_inv := λ f, by { ext i x, simp [apply_single] },
   right_inv := λ f,
     begin
@@ -163,8 +163,11 @@ begin
     assume j hjJ,
     have : j ∉ I := assume hjI, hd ⟨hjI, hjJ⟩,
     rw [dif_neg this, zero_apply] },
-  { simp only [pi_comp, comp_assoc, subtype_comp_cod_restrict, proj_pi, dif_pos, subtype.coe_prop],
-    ext b ⟨j, hj⟩, refl },
+  { simp only [pi_comp, comp_assoc, subtype_comp_cod_restrict, proj_pi, subtype.coe_prop],
+    ext b ⟨j, hj⟩,
+    simp only [dif_pos, function.comp_app, function.eval_apply, linear_map.cod_restrict_apply,
+      linear_map.coe_comp, linear_map.coe_proj, linear_map.pi_apply, submodule.subtype_apply,
+      subtype.coe_prop], refl },
   { ext1 ⟨b, hb⟩,
     apply subtype.ext,
     ext j,
@@ -279,6 +282,14 @@ This is `equiv.Pi_congr_left` as a `linear_equiv` -/
 def Pi_congr_left (e : ι' ≃ ι) : (Π i', φ (e i')) ≃ₗ[R] (Π i, φ i) :=
 (Pi_congr_left' R φ e.symm).symm
 
+/-- This is `equiv.pi_option_equiv_prod` as a `linear_equiv` -/
+def pi_option_equiv_prod {ι : Type*} {M : option ι → Type*}
+  [Π i, add_comm_group (M i)] [Π i, module R (M i)] :
+  (Π i : option ι, M i) ≃ₗ[R] (M none × Π i : ι, M (some i)) :=
+{ map_add' := by simp [function.funext_iff],
+  map_smul' := by simp [function.funext_iff],
+  ..equiv.pi_option_equiv_prod }
+
 variables (ι R M) (S : Type*) [fintype ι] [decidable_eq ι] [semiring S]
   [add_comm_monoid M] [module R M] [module S M] [smul_comm_class R S M]
 
@@ -323,3 +334,16 @@ def sum_arrow_lequiv_prod_arrow (α β R M : Type*) [semiring R] [add_comm_monoi
   ((sum_arrow_lequiv_prod_arrow α β R M).symm (f, g)) (sum.inr b) = g b := rfl
 
 end linear_equiv
+
+section extend
+
+variables (R) {η : Type x} [semiring R] (s : ι → η)
+
+/-- `function.extend s f 0` as a bundled linear map. -/
+@[simps]
+noncomputable def function.extend_by_zero.linear_map : (ι → R) →ₗ[R] (η → R) :=
+{ to_fun := λ f, function.extend s f 0,
+  map_smul' := λ r f, by { simpa using function.extend_smul r s f 0 },
+  ..function.extend_by_zero.hom R s }
+
+end extend

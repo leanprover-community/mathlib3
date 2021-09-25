@@ -5,7 +5,6 @@ Authors: Kenny Lau
 -/
 import algebra.algebra.subalgebra
 import linear_algebra.prod
-import algebra.algebra.tower
 
 /-!
 # Adjoining elements to form subalgebras
@@ -205,12 +204,6 @@ begin
   rw [adjoin_eq_span, adjoin_eq_span, adjoin_eq_span, span_mul_span],
   congr' 1 with z, simp [submonoid.closure_union, submonoid.mem_sup, set.mem_mul]
 end
-
-variable (A)
-
-lemma adjoin_le_restrict_scalars (B : Type*) [semiring B] [algebra R B] [algebra A B]
-  [is_scalar_tower R A B] (s : set B) : adjoin R s ≤ subalgebra.restrict_scalars R (adjoin A s) :=
-algebra.adjoin_le algebra.subset_adjoin
 
 end comm_semiring
 

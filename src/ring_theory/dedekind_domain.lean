@@ -963,10 +963,10 @@ begin
 end
 
 lemma sup_dvd_of_ge (hI : I ≠ ⊥) (p : ideal T) (hp : p ∈ factors I) (n : ℕ)
-  (hn : n ≥ (factors I).count p) : p^n ⊔ I = p^((factors I).count p) :=
+  (hn : (factors I).count p ≤ n) : p^n ⊔ I = p^((factors I).count p) :=
 by rw [sup_prime_factor I hI p hp, min_eq_left hn]
 
-lemma sup_dvd_of_le  (hI : I ≠ ⊥) {p : ideal T} (hp : p ∈ factors I) (n : ℕ)
+lemma sup_dvd_of_lt  (hI : I ≠ ⊥) {p : ideal T} (hp : p ∈ factors I) (n : ℕ)
   (hn : n < (factors I).count p) : p^n ⊔ I = p^n :=
 by rw [sup_prime_factor I hI p hp, min_eq_right (le_of_lt hn)]
 
@@ -987,7 +987,7 @@ def quotient_multiplicity (p : ideal T) : ℕ :=
 
 /--The sequence of powers `(p')^m` is eventually constant, where `p'` is the image of `p` in `R/I`-/
 lemma seq_pow_eventually_constant (hI : I ≠ ⊥) (p : ideal T) (Hp : p ∈ factors I) (n : ℕ)
- (hn : n ≥ (unique_factorization_monoid.factors I).count  p):
+ (hn : (unique_factorization_monoid.factors I).count p ≤ n):
   (map I^.quotient.mk p)^n = (map I^.quotient.mk p)^((factors I).count p) :=
 begin
   rw [← map_pow, ← map_pow],
@@ -1017,7 +1017,7 @@ begin
       rw [← map_pow, ← map_pow, comap_map_of_surjective I^.quotient.mk quotient.mk_surjective,
         comap_map_of_surjective I^.quotient.mk quotient.mk_surjective, ← ring_hom.ker_eq_comap_bot,
         mk_ker, sup_dvd_of_ge I hI p Hp ((factors I).count p) (le_refl ((factors I).count p)),
-        sup_dvd_of_le I hI Hp n hn] at hcontra,
+        sup_dvd_of_lt I hI Hp n hn] at hcontra,
       rw hcontra at H,
       exact false_of_ne (ne_of_lt H) } },
   have H' : p^(factors I).count p = p^n * p^((factors I).count p - n) :=

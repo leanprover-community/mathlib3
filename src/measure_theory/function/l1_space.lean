@@ -570,7 +570,7 @@ begin
   simp [real.norm_eq_abs, ennreal.of_real_le_of_real, abs_le, abs_nonneg, le_abs_self],
 end
 
-lemma ennreal.of_real_to_real_ae_eq {f : α → ℝ≥0∞} (hf : ∀ᵐ x ∂μ, f x < ∞) :
+lemma of_real_to_real_ae_eq {f : α → ℝ≥0∞} (hf : ∀ᵐ x ∂μ, f x < ∞) :
   (λ x, ennreal.of_real (f x).to_real) =ᵐ[μ] f :=
 begin
   rw ae_iff at hf,
@@ -586,7 +586,7 @@ begin
   simpa using hf,
 end
 
-lemma integrable.with_density_iff {f : α → ℝ≥0∞} (hf : measurable f)
+lemma integrable_with_density_iff {f : α → ℝ≥0∞} (hf : measurable f)
   (hflt : ∀ᵐ x ∂μ, f x < ∞) {g : α → ℝ} (hg : measurable g) :
   integrable g (μ.with_density f) ↔ integrable (λ x, g x * (f x).to_real) μ :=
 begin

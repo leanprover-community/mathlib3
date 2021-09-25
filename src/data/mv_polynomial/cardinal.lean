@@ -5,9 +5,6 @@ Authors: Chris Hughes
 -/
 import data.W.cardinal
 import data.mv_polynomial.basic
-
-open cardinal
-open_locale cardinal
 /-!
 # Cardinality of Polynomial Ring
 
@@ -30,6 +27,8 @@ inductive mv_polynomial_term (σ R : Type u) : Type u
 
 `W_type (arity σ R)` is isomorphic to the above type.
 -/
+open cardinal
+open_locale cardinal
 
 /-- A type used to prove theorems about the cardinality of `mv_polynomial σ R`. The
 `W_type (arity σ R)` has a constant for every element of `R` and `σ` and two binary functions. -/

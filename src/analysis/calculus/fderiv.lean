@@ -2077,26 +2077,6 @@ begin
   exact h.fderiv p
 end
 
-lemma is_bounded_bilinear_map.differentiable (h : is_bounded_bilinear_map 𝕜 b) :
-  differentiable 𝕜 b :=
-λx, h.differentiable_at x
-
-lemma is_bounded_bilinear_map.differentiable_on (h : is_bounded_bilinear_map 𝕜 b) :
-  differentiable_on 𝕜 b u :=
-h.differentiable.differentiable_on
-
-lemma is_bounded_bilinear_map.continuous (h : is_bounded_bilinear_map 𝕜 b) :
-  continuous b :=
-h.differentiable.continuous
-
-lemma is_bounded_bilinear_map.continuous_left (h : is_bounded_bilinear_map 𝕜 b) {f : F} :
-  continuous (λe, b (e, f)) :=
-h.continuous.comp (continuous_id.prod_mk continuous_const)
-
-lemma is_bounded_bilinear_map.continuous_right (h : is_bounded_bilinear_map 𝕜 b) {e : E} :
-  continuous (λf, b (e, f)) :=
-h.continuous.comp (continuous_const.prod_mk continuous_id)
-
 end bilinear_map
 
 section clm_comp_apply
@@ -2203,41 +2183,6 @@ lemma fderiv_clm_apply (hc : differentiable_at 𝕜 c x) (hu : differentiable_at
 (hc.has_fderiv_at.clm_apply hu.has_fderiv_at).fderiv
 
 end clm_comp_apply
-
-namespace continuous_linear_equiv
-
-/-!
-### The set of continuous linear equivalences between two Banach spaces is open
-
-In this section we establish that the set of continuous linear equivalences between two Banach
-spaces is an open subset of the space of linear maps between them.  These facts are placed here
-because the proof uses `is_bounded_bilinear_map.continuous_left`, proved just above as a consequence
-of its differentiability.
--/
-
-protected lemma is_open [complete_space E] : is_open (range (coe : (E ≃L[𝕜] F) → (E →L[𝕜] F))) :=
-begin
-  nontriviality E,
-  rw [is_open_iff_mem_nhds, forall_range_iff],
-  refine λ e, is_open.mem_nhds _ (mem_range_self _),
-  let O : (E →L[𝕜] F) → (E →L[𝕜] E) := λ f, (e.symm : F →L[𝕜] E).comp f,
-  have h_O : continuous O := is_bounded_bilinear_map_comp.continuous_left,
-  convert units.is_open.preimage h_O using 1,
-  ext f',
-  split,
-  { rintros ⟨e', rfl⟩,
-    exact ⟨(e'.trans e.symm).to_unit, rfl⟩ },
-  { rintros ⟨w, hw⟩,
-    use (units_equiv 𝕜 E w).trans e,
-    ext x,
-    simp [hw] }
-end
-
-protected lemma nhds [complete_space E] (e : E ≃L[𝕜] F) :
-  (range (coe : (E ≃L[𝕜] F) → (E →L[𝕜] F))) ∈ 𝓝 (e : E →L[𝕜] F) :=
-is_open.mem_nhds continuous_linear_equiv.is_open (by simp)
-
-end continuous_linear_equiv
 
 section smul
 /-! ### Derivative of the product of a scalar-valued function and a vector-valued function

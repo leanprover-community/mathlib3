@@ -1092,11 +1092,11 @@ fintype.card_le_of_embedding (function.embedding.subtype s)
 namespace function.embedding
 
 /-- An embedding from a `fintype` to itself can be promoted to an equivalence. -/
-noncomputable def equiv_of_fintype_self_embedding {α : Type*} [fintype α] (e : α ↪ α) : α ≃ α :=
+noncomputable def equiv_of_fintype_self_embedding [fintype α] (e : α ↪ α) : α ≃ α :=
 equiv.of_bijective e (fintype.injective_iff_bijective.1 e.2)
 
 @[simp]
-lemma equiv_of_fintype_self_embedding_to_embedding {α : Type*} [fintype α] (e : α ↪ α) :
+lemma equiv_of_fintype_self_embedding_to_embedding [fintype α] (e : α ↪ α) :
   e.equiv_of_fintype_self_embedding.to_embedding = e :=
 by { ext, refl, }
 
@@ -1104,9 +1104,28 @@ by { ext, refl, }
 This is a formulation of the pigeonhole principle.
 
 Note this cannot be an instance as it needs `h`. -/
-@[simp] lemma is_empty_of_card_lt {α β} [fintype α] [fintype β]
+@[simp] lemma is_empty_of_card_lt [fintype α] [fintype β]
   (h : fintype.card β < fintype.card α) : is_empty (α ↪ β) :=
 ⟨λ f, let ⟨x, y, ne, feq⟩ := fintype.exists_ne_map_eq_of_card_lt f h in ne $ f.injective feq⟩
+
+/-- A constructive embedding of a fintype `α` in another fintype `β` when `card α ≤ card β`. -/
+def trunc_of_card_le [fintype α] [fintype β] [decidable_eq α] [decidable_eq β]
+  (h : fintype.card α ≤ fintype.card β) : trunc (α ↪ β) :=
+(fintype.trunc_equiv_fin α).bind $ λ ea,
+  (fintype.trunc_equiv_fin β).map $ λ eb,
+    ea.to_embedding.trans ((fin.cast_le h).to_embedding.trans eb.symm.to_embedding)
+
+lemma nonempty_of_card_le [fintype α] [fintype β]
+  (h : fintype.card α ≤ fintype.card β) : nonempty (α ↪ β) :=
+by { classical, exact (trunc_of_card_le h).nonempty }
+
+lemma exists_of_card_le_finset [fintype α] {s : finset β} (h : fintype.card α ≤ s.card) :
+  ∃ (f : α ↪ β), set.range f ⊆ s :=
+begin
+  rw ← fintype.card_coe at h,
+  rcases nonempty_of_card_le h with ⟨f⟩,
+  exact ⟨f.trans (embedding.subtype _), by simp [set.range_subset_iff]⟩
+end
 
 end function.embedding
 
@@ -1861,3 +1880,65 @@ begin
 end
 
 end fintype
+
+/-- Auxiliary definition to show `exists_seq_of_forall_finset_exists`. -/
+noncomputable def seq_of_forall_finset_exists_aux
+  {α : Type*} [decidable_eq α] (P : α → Prop) (r : α → α → Prop)
+  (h : ∀ (s : finset α), ∃ y, (∀ x ∈ s, P x) → (P y ∧ (∀ x ∈ s, r x y))) : ℕ → α
+| n := classical.some (h (finset.image (λ (i : fin n), seq_of_forall_finset_exists_aux i)
+        (finset.univ : finset (fin n))))
+using_well_founded {dec_tac := `[exact i.2]}
+
+/-- Induction principle to build a sequence, by adding one point at a time satisfying a given
+relation with respect to all the previously chosen points.
+
+More precisely, Assume that, for any finite set `s`, one can find another point satisfying
+some relation `r` with respect to all the points in `s`. Then one may construct a
+function `f : ℕ → α` such that `r (f m) (f n)` holds whenever `m < n`.
+We also ensure that all constructed points satisfy a given predicate `P`. -/
+lemma exists_seq_of_forall_finset_exists {α : Type*} (P : α → Prop) (r : α → α → Prop)
+  (h : ∀ (s : finset α), (∀ x ∈ s, P x) → ∃ y, P y ∧ (∀ x ∈ s, r x y)) :
+  ∃ (f : ℕ → α), (∀ n, P (f n)) ∧ (∀ m n, m < n → r (f m) (f n)) :=
+begin
+  classical,
+  haveI : nonempty α,
+  { rcases h ∅ (by simp) with ⟨y, hy⟩,
+    exact ⟨y⟩ },
+  choose! F hF using h,
+  have h' : ∀ (s : finset α), ∃ y, (∀ x ∈ s, P x) → (P y ∧ (∀ x ∈ s, r x y)) := λ s, ⟨F s, hF s⟩,
+  set f := seq_of_forall_finset_exists_aux P r h' with hf,
+  have A : ∀ (n : ℕ), P (f n),
+  { assume n,
+    induction n using nat.strong_induction_on with n IH,
+    have IH' : ∀ (x : fin n), P (f x) := λ n, IH n.1 n.2,
+    rw [hf, seq_of_forall_finset_exists_aux],
+    exact (classical.some_spec (h' (finset.image (λ (i : fin n), f i)
+      (finset.univ : finset (fin n)))) (by simp [IH'])).1 },
+  refine ⟨f, A, λ m n hmn, _⟩,
+  nth_rewrite 1 hf,
+  rw seq_of_forall_finset_exists_aux,
+  apply (classical.some_spec (h' (finset.image (λ (i : fin n), f i)
+    (finset.univ : finset (fin n)))) (by simp [A])).2,
+  exact finset.mem_image.2 ⟨⟨m, hmn⟩, finset.mem_univ _, rfl⟩,
+end
+
+/-- Induction principle to build a sequence, by adding one point at a time satisfying a given
+symmetric relation with respect to all the previously chosen points.
+
+More precisely, Assume that, for any finite set `s`, one can find another point satisfying
+some relation `r` with respect to all the points in `s`. Then one may construct a
+function `f : ℕ → α` such that `r (f m) (f n)` holds whenever `m ≠ n`.
+We also ensure that all constructed points satisfy a given predicate `P`. -/
+lemma exists_seq_of_forall_finset_exists' {α : Type*} (P : α → Prop) (r : α → α → Prop)
+  [is_symm α r]
+  (h : ∀ (s : finset α), (∀ x ∈ s, P x) → ∃ y, P y ∧ (∀ x ∈ s, r x y)) :
+  ∃ (f : ℕ → α), (∀ n, P (f n)) ∧ (∀ m n, m ≠ n → r (f m) (f n)) :=
+begin
+  rcases exists_seq_of_forall_finset_exists P r h with ⟨f, hf, hf'⟩,
+  refine ⟨f, hf, λ m n hmn, _⟩,
+  rcases lt_trichotomy m n with h|rfl|h,
+  { exact hf' m n h },
+  { exact (hmn rfl).elim },
+  { apply symm,
+    exact hf' n m h }
+end

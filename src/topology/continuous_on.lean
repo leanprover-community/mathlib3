@@ -158,20 +158,24 @@ end
 theorem nhds_within_le_nhds {a : α} {s : set α} : 𝓝[s] a ≤ 𝓝 a :=
 by { rw ← nhds_within_univ, apply nhds_within_le_of_mem, exact univ_mem }
 
+lemma nhds_within_eq_nhds_within' {a : α} {s t u : set α}
+  (hs : s ∈ 𝓝 a) (h₂ : t ∩ s = u ∩ s) : 𝓝[t] a = 𝓝[u] a :=
+by rw [nhds_within_restrict' t hs, nhds_within_restrict' u hs, h₂]
+
 theorem nhds_within_eq_nhds_within {a : α} {s t u : set α}
     (h₀ : a ∈ s) (h₁ : is_open s) (h₂ : t ∩ s = u ∩ s) :
   𝓝[t] a = 𝓝[u] a :=
 by rw [nhds_within_restrict t h₀ h₁, nhds_within_restrict u h₀ h₁, h₂]
 
-theorem nhds_within_eq_of_open {a : α} {s : set α} (h₀ : a ∈ s) (h₁ : is_open s) :
+theorem is_open.nhds_within_eq {a : α} {s : set α} (h : is_open s) (ha : a ∈ s) :
   𝓝[s] a = 𝓝 a :=
-inf_eq_left.2 $ le_principal_iff.2 $ is_open.mem_nhds h₁ h₀
+inf_eq_left.2 $ le_principal_iff.2 $ is_open.mem_nhds h ha
 
 lemma preimage_nhds_within_coinduced {π : α → β} {s : set β} {t : set α} {a : α}
   (h : a ∈ t) (ht : is_open t)
   (hs : s ∈ @nhds β (topological_space.coinduced (λ x : t, π x) subtype.topological_space) (π a)) :
   π ⁻¹' s ∈ 𝓝 a :=
-by { rw ←nhds_within_eq_of_open h ht, exact preimage_nhds_within_coinduced' h ht hs }
+by { rw ← ht.nhds_within_eq h, exact preimage_nhds_within_coinduced' h ht hs }
 
 @[simp] theorem nhds_within_empty (a : α) : 𝓝[∅] a = ⊥ :=
 by rw [nhds_within, principal_empty, inf_bot_eq]
@@ -206,6 +210,9 @@ by simp
 lemma insert_mem_nhds_within_insert {a : α} {s t : set α} (h : t ∈ 𝓝[s] a) :
   insert a t ∈ 𝓝[insert a s] a :=
 by simp [mem_of_superset h]
+
+@[simp] theorem nhds_within_compl_singleton_sup_pure (a : α) : 𝓝[{a}ᶜ] a ⊔ pure a = 𝓝 a :=
+by rw [← nhds_within_singleton, ← nhds_within_union, compl_union_self, nhds_within_univ]
 
 lemma nhds_within_prod_eq {α : Type*} [topological_space α] {β : Type*} [topological_space β]
   (a : α) (b : β) (s : set α) (t : set β) :
@@ -849,6 +856,20 @@ end
 lemma embedding.continuous_on_iff {f : α → β} {g : β → γ} (hg : embedding g) {s : set α} :
   continuous_on f s ↔ continuous_on (g ∘ f) s :=
 inducing.continuous_on_iff hg.1
+
+lemma embedding.map_nhds_within_eq {f : α → β} (hf : embedding f) (s : set α) (x : α) :
+  map f (𝓝[s] x) = 𝓝[f '' s] (f x) :=
+by rw [nhds_within, map_inf hf.inj, hf.map_nhds_eq, map_principal, ← nhds_within_inter',
+  inter_eq_self_of_subset_right (image_subset_range _ _)]
+
+lemma open_embedding.map_nhds_within_preimage_eq {f : α → β} (hf : open_embedding f)
+  (s : set β) (x : α) :
+  map f (𝓝[f ⁻¹' s] x) = 𝓝[s] (f x) :=
+begin
+  rw [hf.to_embedding.map_nhds_within_eq, image_preimage_eq_inter_range],
+  apply nhds_within_eq_nhds_within (mem_range_self _) hf.open_range,
+  rw [inter_assoc, inter_self]
+end
 
 lemma continuous_within_at_of_not_mem_closure {f : α → β} {s : set α} {x : α} :
   x ∉ closure s → continuous_within_at f s x :=

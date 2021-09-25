@@ -208,13 +208,13 @@ end
 
 /-- If a subset of a real vector space contains a segment, then the direction of this
 segment belongs to the tangent cone at its endpoints. -/
-lemma mem_tangent_cone_of_segment_subset {s : set G} {x y : G} (h : segment x y ⊆ s) :
+lemma mem_tangent_cone_of_segment_subset {s : set G} {x y : G} (h : segment ℝ x y ⊆ s) :
   y - x ∈ tangent_cone_at ℝ s x :=
 begin
   let c := λn:ℕ, (2:ℝ)^n,
   let d := λn:ℕ, (c n)⁻¹ • (y-x),
   refine ⟨c, d, filter.univ_mem' (λn, h _), _, _⟩,
-  show x + d n ∈ segment x y,
+  show x + d n ∈ segment ℝ x y,
   { rw segment_eq_image,
     refine ⟨(c n)⁻¹, ⟨_, _⟩, _⟩,
     { rw inv_nonneg, apply pow_nonneg, norm_num },
@@ -368,7 +368,7 @@ unique_diff_on.pi _ _ _ _ $ λ i _, h i
 
 /-- In a real vector space, a convex set with nonempty interior is a set of unique
 differentiability. -/
-theorem unique_diff_on_convex {s : set G} (conv : convex s) (hs : (interior s).nonempty) :
+theorem unique_diff_on_convex {s : set G} (conv : convex ℝ s) (hs : (interior s).nonempty) :
   unique_diff_on ℝ s :=
 begin
   assume x xs,

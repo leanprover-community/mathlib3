@@ -3,7 +3,8 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import algebra.algebra.basic
+import algebra.algebra.bilinear
+import algebra.module.submodule_pointwise
 
 /-!
 # Multiplication and division of submodules of an algebra.
@@ -220,7 +221,7 @@ instance : semiring (submodule R A) :=
   mul_zero      := mul_bot,
   left_distrib  := mul_sup,
   right_distrib := sup_mul,
-  ..submodule.add_comm_monoid_submodule,
+  ..submodule.pointwise_add_comm_monoid,
   ..submodule.has_one,
   ..submodule.has_mul }
 

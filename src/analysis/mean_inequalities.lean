@@ -270,17 +270,15 @@ begin
     -- by using `nnreal.rpow_arith_mean_le_arith_mean_rpow`.
     intros h_top_rpow_sum _,
     -- show hypotheses needed to put the `.to_nnreal` inside the sums.
-    have h_top : ∀ (a : ι), a ∈ s → w a * z a < ⊤,
-    { have h_top_sum : ∑ (i : ι) in s, w i * z i < ⊤,
-      { by_contra h,
-        rw [lt_top_iff_ne_top, not_not] at h,
+    have h_top : ∀ (a : ι), a ∈ s → w a * z a ≠ ⊤,
+    { have h_top_sum : ∑ (i : ι) in s, w i * z i ≠ ⊤,
+      { intro h,
         rw [h, top_rpow_of_pos hp_pos] at h_top_rpow_sum,
         exact h_top_rpow_sum rfl, },
-      rwa sum_lt_top_iff at h_top_sum, },
-    have h_top_rpow : ∀ (a : ι), a ∈ s → w a * z a ^ p < ⊤,
+      exact λ a ha, (lt_top_of_sum_ne_top h_top_sum ha).ne },
+    have h_top_rpow : ∀ (a : ι), a ∈ s → w a * z a ^ p ≠ ⊤,
     { intros i hi,
       specialize h_top i hi,
-      rw lt_top_iff_ne_top at h_top ⊢,
       rwa [ne.def, ←h_top_iff_rpow_top i hi], },
     -- put the `.to_nnreal` inside the sums.
     simp_rw [to_nnreal_sum h_top_rpow, ←to_nnreal_rpow, to_nnreal_sum h_top, to_nnreal_mul,
@@ -290,11 +288,10 @@ begin
       _ hp,
     -- verify the hypothesis `∑ i in s, (w i).to_nnreal = 1`, using `∑ i in s, w i = 1` .
     have h_sum_nnreal : (∑ i in s, w i) = ↑(∑ i in s, (w i).to_nnreal),
-    { have hw_top : ∑ i in s, w i < ⊤, by { rw hw', exact one_lt_top, },
-      rw ←to_nnreal_sum,
-      { rw coe_to_nnreal,
-        rwa ←lt_top_iff_ne_top, },
-      { rwa sum_lt_top_iff at hw_top, }, },
+    { rw coe_finset_sum,
+      refine sum_congr rfl (λ i hi, (coe_to_nnreal _).symm),
+      refine (lt_top_of_sum_ne_top _ hi).ne,
+      exact hw'.symm ▸ ennreal.one_ne_top },
     rwa [←coe_eq_coe, ←h_sum_nnreal], },
 end
 

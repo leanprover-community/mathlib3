@@ -28,13 +28,14 @@ ring_hom, nonzero, domain, integral_domain
 
 ## Implementation notes
 
-There's a coercion from bundled homs to fun, and the canonical
-notation is to use the bundled hom as a function via this coercion.
+* There's a coercion from bundled homs to fun, and the canonical notation is to
+  use the bundled hom as a function via this coercion.
 
-There is no `semiring_hom` -- the idea is that `ring_hom` is used.
-The constructor for a `ring_hom` between semirings needs a proof of `map_zero`, `map_one` and
-`map_add` as well as `map_mul`; a separate constructor `ring_hom.mk'` will construct ring homs
-between rings from monoid homs given only a proof that addition is preserved.
+* There is no `semiring_hom` -- the idea is that `ring_hom` is used.
+  The constructor for a `ring_hom` between semirings needs a proof of `map_zero`,
+  `map_one` and `map_add` as well as `map_mul`; a separate constructor
+  `ring_hom.mk'` will construct ring homs between rings from monoid homs given
+  only a proof that addition is preserved.
 
 ## Tags
 
@@ -284,6 +285,18 @@ theorem dvd_add {a b c : α} (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b + c :=
 dvd.elim h₁ (λ d hd, dvd.elim h₂ (λ e he, dvd.intro (d + e) (by simp [left_distrib, hd, he])))
 
 end semiring
+
+namespace add_hom
+
+/-- Left multiplication by an element of a type with distributive multiplication is an `add_hom`. -/
+@[simps { fully_applied := ff}] def mul_left {R : Type*} [distrib R] (r : R) : add_hom R R :=
+⟨(*) r, mul_add r⟩
+
+/-- Left multiplication by an element of a type with distributive multiplication is an `add_hom`. -/
+@[simps { fully_applied := ff}] def mul_right {R : Type*} [distrib R] (r : R) : add_hom R R :=
+⟨λ a, a * r, λ _ _, add_mul _ _ r⟩
+
+end add_hom
 
 namespace add_monoid_hom
 

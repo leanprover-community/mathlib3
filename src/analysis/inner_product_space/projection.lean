@@ -9,17 +9,29 @@ import analysis.convex.basic
 /-!
 # The orthogonal projection
 
-Existence of orthogonal projection onto nonempty complete subspace:
-Let `u` be a point in an inner product space, and let `K` be a nonempty complete subspace.
-Then there exists a unique `v` in `K` that minimizes the distance `∥u - v∥` to `u`.
-The point `v` is usually called the orthogonal projection of `u` onto `K`.
+Given a nonempty complete subspace `K` of an inner product space `E`, this file constructs
+`orthogonal_projection K : E →L[𝕜] K`, the orthogonal projection of `E` onto `K`.  This map
+satisfies: for any point `u` in `E`, the point `v = orthogonal_projection K u` in `K` minimizes the
+distance `∥u - v∥` to `u`.
 
-We prove the existence of a
-maximal orthonormal set, `exists_maximal_orthonormal`, and also prove that a maximal orthonormal
-set is a basis (`maximal_orthonormal_iff_basis_of_finite_dimensional`), if `E` is finite-
-dimensional, or in general (`maximal_orthonormal_iff_dense_span`) a set whose span is dense
-(i.e., a Hilbert basis, although we do not make that definition).
+Also a linear isometry equivalence `reflection K : E ≃ₗᵢ[𝕜] E` is constructed, by choosing, for
+each `u : E`, the point `reflection K u` to satisfy
+`u + (reflection K u) = 2 • orthogonal_projection K u`.
 
+Basic API for `orthogonal_projection` and `reflection` is developed.
+
+Next, the orthogonal projection is used to prove a series of more subtle lemmas about the
+the orthogonal complement of complete subspaces of `E` (the orthogonal complement itself was
+defined in `analysis.inner_product_space.basic`); the lemma
+`submodule.sup_orthogonal_of_is_complete`, stating that for a complete subspace `K` of `E` we have
+`K ⊔ Kᗮ = ⊤`, is a typical example.
+
+The last section covers orthonormal bases, Hilbert bases, etc. The lemma
+`maximal_orthonormal_iff_dense_span`, whose proof requires the theory on the orthogonal complement
+developed earlier in this file, states that an orthonormal set in an inner product space is
+maximal, if and only if its span is dense (i.e., iff it is Hilbert basis, although we do not make
+that definition).  Various consequences are stated, including that if `E` is finite-dimensional
+then a maximal orthonormal set is a basis (`maximal_orthonormal_iff_basis_of_finite_dimensional`).
 
 ## References
 
@@ -615,7 +627,6 @@ by ext; simp [reflection_apply]
 
 end reflection
 
-
 section orthogonal
 
 /-- If `K₁` is complete and contained in `K₂`, `K₁` and `K₁ᗮ ⊓ K₂` span `K₂`. -/
@@ -657,7 +668,6 @@ begin
   exact ⟨y, hy, z, hz, hyz.symm⟩
 end
 
-
 /-- If `K` is complete, then the orthogonal complement of its orthogonal complement is itself. -/
 @[simp] lemma submodule.orthogonal_orthogonal [complete_space K] : Kᗮᗮ = K :=
 begin
@@ -673,7 +683,6 @@ begin
     rw inner_eq_zero_sym,
     exact hw v hv }
 end
-
 
 lemma submodule.orthogonal_orthogonal_eq_closure [complete_space E] :
   Kᗮᗮ = K.topological_closure :=

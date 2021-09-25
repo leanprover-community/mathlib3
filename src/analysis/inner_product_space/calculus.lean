@@ -7,7 +7,17 @@ import analysis.inner_product_space.basic
 import analysis.special_functions.sqrt
 
 /-!
-# Calculus lemmas for inner product space
+# Derivative of the inner product
+
+In this file we prove that the inner product and square of the norm in an inner space are
+infinitely `ℝ`-smooth. In order to state these results, we need a `normed_space ℝ E`
+instance. Though we can deduce this structure from `inner_product_space 𝕜 E`, this instance may be
+not definitionally equal to some other “natural” instance. So, we assume `[normed_space ℝ E]` and
+`[is_scalar_tower ℝ 𝕜 E]`. In both interesting cases `𝕜 = ℝ` and `𝕜 = ℂ` we have these instances.
+
+Currently, the continuity of the inner product is also proved in this file, as a consequence of the
+differentiability; however (TODO) this ought to be re-proved directly and moved to
+`analysis.inner_product_space.basic`.
 
 -/
 
@@ -20,20 +30,7 @@ variables {𝕜 E F : Type*} [is_R_or_C 𝕜]
 variables [inner_product_space 𝕜 E] [inner_product_space ℝ F]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
-
-
 section deriv
-
-/-!
-### Derivative of the inner product
-
-In this section we prove that the inner product and square of the norm in an inner space are
-infinitely `ℝ`-smooth. In order to state these results, we need a `normed_space ℝ E`
-instance. Though we can deduce this structure from `inner_product_space 𝕜 E`, this instance may be
-not definitionally equal to some other “natural” instance. So, we assume `[normed_space ℝ E]` and
-`[is_scalar_tower ℝ 𝕜 E]`. In both interesting cases `𝕜 = ℝ` and `𝕜 = ℂ` we have these instances.
-
--/
 
 variables [normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E]
 

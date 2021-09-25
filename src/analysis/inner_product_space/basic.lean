@@ -26,7 +26,8 @@ product structure on `n → 𝕜` for `𝕜 = ℝ` or `ℂ`, see `euclidean_spac
   properties, most notably the Cauchy-Schwarz inequality. Here `𝕜` is understood to be either `ℝ`
   or `ℂ`, through the `is_R_or_C` typeclass.
 - We show that if `f i` is an inner product space for each `i`, then so is `Π i, f i`
-- We define `orthonormal`, a predicate on a function `v : ι → E`.  For the existence of orthonormal
+- We define `orthonormal`, a predicate on a function `v : ι → E`, and prove the existence of a
+  maximal orthonormal set, `exists_maximal_orthonormal`.  For the existence of orthonormal
   bases, Hilbert bases, etc., see the file `analysis.inner_product_space.projection`.
 
 ## Notation

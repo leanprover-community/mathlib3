@@ -209,7 +209,7 @@ end
 variable (A)
 
 lemma adjoin_le_restrict_scalars (B : Type*) [semiring B] [algebra R B] [algebra A B]
-  [is_scalar_tower R A B] (s : set B) : adjoin R s ≤  subalgebra.restrict_scalars R (adjoin A s) :=
+  [is_scalar_tower R A B] (s : set B) : adjoin R s ≤ subalgebra.restrict_scalars R (adjoin A s) :=
 algebra.adjoin_le algebra.subset_adjoin
 
 end comm_semiring

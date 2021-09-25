@@ -169,7 +169,7 @@ protected lemma is_extreme [normed_space ℝ E]  (hAB : is_exposed ℝ A B) :
 begin
   refine ⟨hAB.subset, λ x₁ x₂ hx₁A hx₂A x hxB hx, _⟩,
   obtain ⟨l, rfl⟩ := hAB ⟨x, hxB⟩,
-  have hl : convex_on ℝ univ l := l.to_linear_map.convex_on ℝ convex_univ,
+  have hl : convex_on ℝ univ l := l.to_linear_map.convex_on convex_univ,
   have hlx₁ := hxB.2 x₁ hx₁A,
   have hlx₂ := hxB.2 x₂ hx₂A,
   refine ⟨⟨hx₁A, λ y hy, _⟩, ⟨hx₂A, λ y hy, _⟩⟩,
@@ -186,7 +186,7 @@ begin
   { exact convex_empty },
   obtain ⟨l, rfl⟩ := hAB hB,
   exact λ x₁ x₂ hx₁ hx₂ a b ha hb hab, ⟨hA hx₁.1 hx₂.1 ha hb hab, λ y hy,
-    ((l.to_linear_map.concave_on ℝ convex_univ).concave_le _
+    ((l.to_linear_map.concave_on convex_univ).concave_le _
     ⟨mem_univ _, hx₁.2 y hy⟩ ⟨mem_univ _, hx₂.2 y hy⟩ ha hb hab).2⟩,
 end
 

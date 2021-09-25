@@ -9,15 +9,67 @@ import measure_theory.function.ae_eq_of_integral
 
 /-! # Conditional expectation
 
-We build the conditional expectation with respect to a sub-sigma-algebra `m` in three steps:
+We build the conditional expectation of a function `f` with value in a Banach space with respect to
+a measure `μ` (defined on a measurable space structure `m0`) and a measurable space structure `m`
+with `hm : m ≤ m0` (a sub-sigma-algebra). This is an `m`-measurable function `μ[f|hm]` which is
+integrable and verifies `∫ x in s, μ[f|hm] x ∂μ = ∫ x in s, f x ∂μ` for any `m`-measurable sets `s`.
+It is unique as an element of `L¹`.
+
+The construction is done in four steps:
 * Define the conditional expectation of an `L²` function, as an element of `L²`. This is the
   orthogonal projection on the subspace of almost everywhere `m`-measurable functions.
 * Show that the conditional expectation of the indicator of a measurable set with finite measure
   is integrable and define a map `set α → (E →L[ℝ] (α →₁[μ] E))` which to a set associates a linear
   map. That linear map sends `x ∈ E` to the conditional expectation of the indicator of the set
   with value `x`.
-* Extend that map to `(α →₁[μ] E) →L[𝕜] (α →₁[μ] E)`. This is done using the same construction as
-  the Bochner integral. TODO.
+* Extend that map to `condexp_L1_clm : (α →₁[μ] E) →L[ℝ] (α →₁[μ] E)`. This is done using the same
+  construction as the Bochner integral (see the file `measure_theory/integral/set_to_L1`).
+* Define the conditional expectation of a function `f : α → E`, which is an integrable function
+  `α → E` equal to 0 if `f` is not integrable, and equal to an `m`-measurable representative of
+  `condexp_L1_clm` applied to `[f]`, the equivalence class of `f` in `L¹`.
+
+## Main results
+
+The conditional expectation and its properties
+
+* `condexp (hm : m ≤ m0) (μ : measure α) (f : α → E)`: conditional expectation of `f` with respect
+  to `m`.
+* `integrable_condexp` : `condexp` is integrable.
+* `measurable_condexp` : `condexp` is `m`-measurable.
+* `set_integral_condexp (hf : integrable f μ) (hs : measurable_set[m] s)` : the conditional
+  expectation verifies `∫ x in s, condexp hm μ f x ∂μ = ∫ x in s, f x ∂μ` for any `m`-measurable
+  set `s`.
+
+While `condexp` is function-valued, we also define `condexp_L1` with value in `L1` and a continuous
+linear map `condexp_L1_clm` from `L1` to `L1`. `condexp` should be used in most cases.
+
+Uniqueness of the conditional expectation
+
+* `Lp.ae_eq_of_forall_set_integral_eq'`: two `Lp` functions verifying the equality of integrals
+  defining the conditional expectation are equal everywhere.
+* `ae_eq_of_forall_set_integral_eq_of_sigma_finite'`: two functions verifying the equality of
+  integrals defining the conditional expectation are equal everywhere.
+  Requires `[sigma_finite (μ.trim hm)]`.
+* `ae_eq_condexp_of_forall_set_integral_eq`: an a.e. `m`-measurable function which verifies the
+  equality of integrals is a.e. equal to `condexp`.
+
+## Notations
+
+For a measure `μ` defined on a measurable space structure `m0`, another measurable space structure
+`m` with `hm : m ≤ m0` (a sub-sigma-algebra) and a function `f`, we define the notation
+* `μ[f|hm] = condexp hm μ f`.
+
+## Implementation notes
+
+Most of the results in this file are valid for a second countable, borel, real normed space `F`.
+However, some lemmas also use `𝕜 : is_R_or_C`:
+* `condexp_L2` is defined only for an `inner_product_space` for now, and we use `𝕜` for its field.
+* results about scalar multiplication are stated not only for `ℝ` but also for `𝕜` if we happen to
+  have `normed_space 𝕜 F` and `is_scalar_tower ℝ 𝕜 F'`.
+
+## Tags
+
+conditional expectation, conditional expected value
 
 -/
 
@@ -155,7 +207,20 @@ variables {α β γ E E' F F' G G' H 𝕜 : Type*} {p : ℝ≥0∞}
 
 section Lp_meas
 
-variables (F 𝕜)
+/-! ## The subset `Lp_meas` of `Lp` functions a.e. measurable with respect to a sub-sigma-algebra -/
+
+variables (F)
+
+/-- `Lp_meas_subgroup F m p μ` is the subspace of `Lp F p μ` containing functions `f` verifying
+`ae_measurable' m f μ`, i.e. functions which are `μ`-a.e. equal to an `m`-measurable function. -/
+def Lp_meas_subgroup (m : measurable_space α) [measurable_space α] (p : ℝ≥0∞) (μ : measure α) :
+  add_subgroup (Lp F p μ) :=
+{ carrier   := {f : (Lp F p μ) | ae_measurable' m f μ} ,
+  zero_mem' := ⟨(0 : α → F), @measurable_zero _ α _ m _, Lp.coe_fn_zero _ _ _⟩,
+  add_mem'  := λ f g hf hg, (hf.add hg).congr (Lp.coe_fn_add f g).symm,
+  neg_mem' := λ f hf, ae_measurable'.congr hf.neg (Lp.coe_fn_neg f).symm, }
+
+variables (𝕜)
 /-- `Lp_meas F 𝕜 m p μ` is the subspace of `Lp F p μ` containing functions `f` verifying
 `ae_measurable' m f μ`, i.e. functions which are `μ`-a.e. equal to an `m`-measurable function. -/
 def Lp_meas [opens_measurable_space 𝕜] (m : measurable_space α) [measurable_space α] (p : ℝ≥0∞)
@@ -169,9 +234,14 @@ variables {F 𝕜}
 
 variables [opens_measurable_space 𝕜]
 
+lemma mem_Lp_meas_subgroup_iff_ae_measurable' {m m0 : measurable_space α} {μ : measure α}
+  {f : Lp F p μ} :
+  f ∈ Lp_meas_subgroup F m p μ ↔ ae_measurable' m f μ :=
+by rw [← add_subgroup.mem_carrier, Lp_meas_subgroup, set.mem_set_of_eq]
+
 lemma mem_Lp_meas_iff_ae_measurable' {m m0 : measurable_space α} {μ : measure α} {f : Lp F p μ} :
   f ∈ Lp_meas F 𝕜 m p μ ↔ ae_measurable' m f μ :=
-by simp_rw [← set_like.mem_coe, ← submodule.mem_carrier, Lp_meas, set.mem_set_of_eq]
+by rw [← set_like.mem_coe, ← submodule.mem_carrier, Lp_meas, set.mem_set_of_eq]
 
 lemma Lp_meas.ae_measurable' {m m0 : measurable_space α} {μ : measure α} (f : Lp_meas F 𝕜 m p μ) :
   ae_measurable' m f μ :=
@@ -180,6 +250,11 @@ mem_Lp_meas_iff_ae_measurable'.mp f.mem
 lemma mem_Lp_meas_self {m0 : measurable_space α} (μ : measure α) (f : Lp F p μ) :
   f ∈ Lp_meas F 𝕜 m0 p μ :=
 mem_Lp_meas_iff_ae_measurable'.mpr (Lp.ae_measurable f)
+
+lemma Lp_meas_subgroup_coe {m m0 : measurable_space α} {μ : measure α}
+  {f : Lp_meas_subgroup F m p μ} :
+  ⇑f = (f : Lp F p μ) :=
+coe_fn_coe_base f
 
 lemma Lp_meas_coe {m m0 : measurable_space α} {μ : measure α} {f : Lp_meas F 𝕜 m p μ} :
   ⇑f = (f : Lp F p μ) :=
@@ -196,18 +271,19 @@ section complete_subspace
 
 /-! ## The subspace `Lp_meas` is complete.
 
-We define a `linear_isometry_equiv` between `Lp_meas` and the `Lp` space corresponding to the
+We define an `isometric` between `Lp_meas_subgroup` and the `Lp` space corresponding to the
 measure `μ.trim hm`. As a consequence, the completeness of `Lp` implies completeness of
-`Lp_meas`. -/
+`Lp_meas_subgroup` (and `Lp_meas`). -/
 
 variables {ι : Type*} {m m0 : measurable_space α} {μ : measure α}
 
-/-- If `f` belongs to `Lp_meas F 𝕜 m p μ`, then the measurable function it is almost everywhere
-equal to (given by `ae_measurable.mk`) belongs to `ℒp` for the measure `μ.trim hm`. -/
-lemma mem_ℒp_trim_of_mem_Lp_meas (hm : m ≤ m0) (f : Lp F p μ) (hf_meas : f ∈ Lp_meas F 𝕜 m p μ) :
-  mem_ℒp (mem_Lp_meas_iff_ae_measurable'.mp hf_meas).some p (μ.trim hm) :=
+/-- If `f` belongs to `Lp_meas_subgroup F m p μ`, then the measurable function it is almost
+everywhere equal to (given by `ae_measurable.mk`) belongs to `ℒp` for the measure `μ.trim hm`. -/
+lemma mem_ℒp_trim_of_mem_Lp_meas_subgroup (hm : m ≤ m0) (f : Lp F p μ)
+  (hf_meas : f ∈ Lp_meas_subgroup F m p μ) :
+  mem_ℒp (mem_Lp_meas_subgroup_iff_ae_measurable'.mp hf_meas).some p (μ.trim hm) :=
 begin
-  have hf : ae_measurable' m f μ, from (mem_Lp_meas_iff_ae_measurable'.mp hf_meas),
+  have hf : ae_measurable' m f μ, from (mem_Lp_meas_subgroup_iff_ae_measurable'.mp hf_meas),
   let g := hf.some,
   obtain ⟨hg, hfg⟩ := hf.some_spec,
   change mem_ℒp g p (μ.trim hm),
@@ -218,74 +294,122 @@ begin
   exact Lp.snorm_lt_top f,
 end
 
-/-- If `f` belongs to `Lp` for the measure `μ.trim hm`, then it belongs to the subspace
-`Lp_meas F 𝕜 m p μ`. -/
-lemma mem_Lp_meas_to_Lp_of_trim (hm : m ≤ m0) (f : Lp F p (μ.trim hm)) :
-  (mem_ℒp_of_mem_ℒp_trim hm (Lp.mem_ℒp f)).to_Lp f ∈ Lp_meas F 𝕜 m p μ :=
+/-- If `f` belongs to `Lp` for the measure `μ.trim hm`, then it belongs to the subgroup
+`Lp_meas_subgroup F m p μ`. -/
+lemma mem_Lp_meas_subgroup_to_Lp_of_trim (hm : m ≤ m0) (f : Lp F p (μ.trim hm)) :
+  (mem_ℒp_of_mem_ℒp_trim hm (Lp.mem_ℒp f)).to_Lp f ∈ Lp_meas_subgroup F m p μ :=
 begin
   let hf_mem_ℒp := mem_ℒp_of_mem_ℒp_trim hm (Lp.mem_ℒp f),
-  rw mem_Lp_meas_iff_ae_measurable',
+  rw mem_Lp_meas_subgroup_iff_ae_measurable',
   refine ae_measurable'.congr _ (mem_ℒp.coe_fn_to_Lp hf_mem_ℒp).symm,
   refine ae_measurable'_of_ae_measurable'_trim hm _,
   exact (Lp.ae_measurable f),
 end
 
-variables (F 𝕜 p μ)
+variables (F p μ)
+/-- Map from `Lp_meas_subgroup` to `Lp F p (μ.trim hm)`. -/
+def Lp_meas_subgroup_to_Lp_trim (hm : m ≤ m0) (f : Lp_meas_subgroup F m p μ) : Lp F p (μ.trim hm) :=
+mem_ℒp.to_Lp (mem_Lp_meas_subgroup_iff_ae_measurable'.mp f.mem).some
+  (mem_ℒp_trim_of_mem_Lp_meas_subgroup hm f f.mem)
+
+variables (𝕜)
 /-- Map from `Lp_meas` to `Lp F p (μ.trim hm)`. -/
 def Lp_meas_to_Lp_trim (hm : m ≤ m0) (f : Lp_meas F 𝕜 m p μ) : Lp F p (μ.trim hm) :=
-mem_ℒp.to_Lp (mem_Lp_meas_iff_ae_measurable'.mp f.mem).some (mem_ℒp_trim_of_mem_Lp_meas hm f f.mem)
+mem_ℒp.to_Lp (mem_Lp_meas_iff_ae_measurable'.mp f.mem).some
+  (mem_ℒp_trim_of_mem_Lp_meas_subgroup hm f f.mem)
+variables {𝕜}
 
+/-- Map from `Lp F p (μ.trim hm)` to `Lp_meas_subgroup`, inverse of
+`Lp_meas_subgroup_to_Lp_trim`. -/
+def Lp_trim_to_Lp_meas_subgroup (hm : m ≤ m0) (f : Lp F p (μ.trim hm)) : Lp_meas_subgroup F m p μ :=
+⟨(mem_ℒp_of_mem_ℒp_trim hm (Lp.mem_ℒp f)).to_Lp f, mem_Lp_meas_subgroup_to_Lp_of_trim hm f⟩
+
+variables (𝕜)
 /-- Map from `Lp F p (μ.trim hm)` to `Lp_meas`, inverse of `Lp_meas_to_Lp_trim`. -/
 def Lp_trim_to_Lp_meas (hm : m ≤ m0) (f : Lp F p (μ.trim hm)) : Lp_meas F 𝕜 m p μ :=
-⟨(mem_ℒp_of_mem_ℒp_trim hm (Lp.mem_ℒp f)).to_Lp f, mem_Lp_meas_to_Lp_of_trim hm f⟩
+⟨(mem_ℒp_of_mem_ℒp_trim hm (Lp.mem_ℒp f)).to_Lp f, mem_Lp_meas_subgroup_to_Lp_of_trim hm f⟩
 
 variables {F 𝕜 p μ}
 
+lemma Lp_meas_subgroup_to_Lp_trim_ae_eq (hm : m ≤ m0) (f : Lp_meas_subgroup F m p μ) :
+  Lp_meas_subgroup_to_Lp_trim F p μ hm f =ᵐ[μ] f :=
+(ae_eq_of_ae_eq_trim (mem_ℒp.coe_fn_to_Lp (mem_ℒp_trim_of_mem_Lp_meas_subgroup hm ↑f f.mem))).trans
+  (mem_Lp_meas_subgroup_iff_ae_measurable'.mp f.mem).some_spec.2.symm
+
+lemma Lp_trim_to_Lp_meas_subgroup_ae_eq (hm : m ≤ m0) (f : Lp F p (μ.trim hm)) :
+  Lp_trim_to_Lp_meas_subgroup F p μ hm f =ᵐ[μ] f :=
+mem_ℒp.coe_fn_to_Lp _
+
 lemma Lp_meas_to_Lp_trim_ae_eq (hm : m ≤ m0) (f : Lp_meas F 𝕜 m p μ) :
   Lp_meas_to_Lp_trim F 𝕜 p μ hm f =ᵐ[μ] f :=
-(ae_eq_of_ae_eq_trim (mem_ℒp.coe_fn_to_Lp (mem_ℒp_trim_of_mem_Lp_meas hm ↑f f.mem))).trans
-  (mem_Lp_meas_iff_ae_measurable'.mp f.mem).some_spec.2.symm
+(ae_eq_of_ae_eq_trim (mem_ℒp.coe_fn_to_Lp (mem_ℒp_trim_of_mem_Lp_meas_subgroup hm ↑f f.mem))).trans
+  (mem_Lp_meas_subgroup_iff_ae_measurable'.mp f.mem).some_spec.2.symm
 
 lemma Lp_trim_to_Lp_meas_ae_eq (hm : m ≤ m0) (f : Lp F p (μ.trim hm)) :
   Lp_trim_to_Lp_meas F 𝕜 p μ hm f =ᵐ[μ] f :=
 mem_ℒp.coe_fn_to_Lp _
 
-/-- `Lp_trim_to_Lp_meas` is a right inverse of `Lp_meas_to_Lp_trim`. -/
-lemma Lp_meas_to_Lp_trim_right_inv (hm : m ≤ m0) :
-  function.right_inverse (Lp_trim_to_Lp_meas F 𝕜 p μ hm) (Lp_meas_to_Lp_trim F 𝕜 p μ hm) :=
+/-- `Lp_trim_to_Lp_meas_subgroup` is a right inverse of `Lp_meas_subgroup_to_Lp_trim`. -/
+lemma Lp_meas_subgroup_to_Lp_trim_right_inv (hm : m ≤ m0) :
+  function.right_inverse (Lp_trim_to_Lp_meas_subgroup F p μ hm)
+    (Lp_meas_subgroup_to_Lp_trim F p μ hm) :=
 begin
   intro f,
   ext1,
   refine ae_eq_trim_of_measurable hm (Lp.measurable _) (Lp.measurable _) _,
-  exact (Lp_meas_to_Lp_trim_ae_eq hm _).trans (Lp_trim_to_Lp_meas_ae_eq hm _),
+  exact (Lp_meas_subgroup_to_Lp_trim_ae_eq hm _).trans (Lp_trim_to_Lp_meas_subgroup_ae_eq hm _),
 end
 
-/-- `Lp_trim_to_Lp_meas` is a left inverse of `Lp_meas_to_Lp_trim`. -/
-lemma Lp_meas_to_Lp_trim_left_inv (hm : m ≤ m0) :
-  function.left_inverse (Lp_trim_to_Lp_meas F 𝕜 p μ hm) (Lp_meas_to_Lp_trim F 𝕜 p μ hm) :=
+/-- `Lp_trim_to_Lp_meas_subgroup` is a left inverse of `Lp_meas_subgroup_to_Lp_trim`. -/
+lemma Lp_meas_subgroup_to_Lp_trim_left_inv (hm : m ≤ m0) :
+  function.left_inverse (Lp_trim_to_Lp_meas_subgroup F p μ hm)
+    (Lp_meas_subgroup_to_Lp_trim F p μ hm) :=
 begin
   intro f,
   ext1,
   ext1,
-  rw ← Lp_meas_coe,
-  exact (Lp_trim_to_Lp_meas_ae_eq hm _).trans (Lp_meas_to_Lp_trim_ae_eq hm _),
+  rw ← Lp_meas_subgroup_coe,
+  exact (Lp_trim_to_Lp_meas_subgroup_ae_eq hm _).trans (Lp_meas_subgroup_to_Lp_trim_ae_eq hm _),
 end
 
-lemma Lp_meas_to_Lp_trim_add (hm : m ≤ m0) (f g : Lp_meas F 𝕜 m p μ) :
-  Lp_meas_to_Lp_trim F 𝕜 p μ hm (f + g)
-    = Lp_meas_to_Lp_trim F 𝕜 p μ hm f + Lp_meas_to_Lp_trim F 𝕜 p μ hm g :=
+lemma Lp_meas_subgroup_to_Lp_trim_add (hm : m ≤ m0) (f g : Lp_meas_subgroup F m p μ) :
+  Lp_meas_subgroup_to_Lp_trim F p μ hm (f + g)
+    = Lp_meas_subgroup_to_Lp_trim F p μ hm f + Lp_meas_subgroup_to_Lp_trim F p μ hm g :=
 begin
   ext1,
   refine eventually_eq.trans _ (Lp.coe_fn_add _ _).symm,
   refine ae_eq_trim_of_measurable hm (Lp.measurable _) _ _,
   { exact @measurable.add _ _ _ _ m _ _ _ (Lp.measurable _) (Lp.measurable _), },
-  refine (Lp_meas_to_Lp_trim_ae_eq hm _).trans _,
+  refine (Lp_meas_subgroup_to_Lp_trim_ae_eq hm _).trans _,
   refine eventually_eq.trans _
-    (eventually_eq.add (Lp_meas_to_Lp_trim_ae_eq hm f).symm (Lp_meas_to_Lp_trim_ae_eq hm g).symm),
+    (eventually_eq.add (Lp_meas_subgroup_to_Lp_trim_ae_eq hm f).symm
+      (Lp_meas_subgroup_to_Lp_trim_ae_eq hm g).symm),
   refine (Lp.coe_fn_add _ _).trans _,
-  simp_rw Lp_meas_coe,
+  simp_rw Lp_meas_subgroup_coe,
   exact eventually_of_forall (λ x, by refl),
 end
+
+lemma Lp_meas_subgroup_to_Lp_trim_neg (hm : m ≤ m0) (f : Lp_meas_subgroup F m p μ) :
+  Lp_meas_subgroup_to_Lp_trim F p μ hm (-f)
+    = -Lp_meas_subgroup_to_Lp_trim F p μ hm f :=
+begin
+  ext1,
+  refine eventually_eq.trans _ (Lp.coe_fn_neg _).symm,
+  refine ae_eq_trim_of_measurable hm (Lp.measurable _) _ _,
+  { exact @measurable.neg _ _ _ _ _ m _ (Lp.measurable _), },
+  refine (Lp_meas_subgroup_to_Lp_trim_ae_eq hm _).trans _,
+  refine eventually_eq.trans _
+    (eventually_eq.neg (Lp_meas_subgroup_to_Lp_trim_ae_eq hm f).symm),
+  refine (Lp.coe_fn_neg _).trans _,
+  simp_rw Lp_meas_subgroup_coe,
+  exact eventually_of_forall (λ x, by refl),
+end
+
+lemma Lp_meas_subgroup_to_Lp_trim_sub (hm : m ≤ m0) (f g : Lp_meas_subgroup F m p μ) :
+  Lp_meas_subgroup_to_Lp_trim F p μ hm (f - g)
+    = Lp_meas_subgroup_to_Lp_trim F p μ hm f - Lp_meas_subgroup_to_Lp_trim F p μ hm g :=
+by rw [sub_eq_add_neg, sub_eq_add_neg, Lp_meas_subgroup_to_Lp_trim_add,
+  Lp_meas_subgroup_to_Lp_trim_neg]
 
 lemma Lp_meas_to_Lp_trim_smul (hm : m ≤ m0) (c : 𝕜) (f : Lp_meas F 𝕜 m p μ) :
   Lp_meas_to_Lp_trim F 𝕜 p μ hm (c • f) = c • Lp_meas_to_Lp_trim F 𝕜 p μ hm f :=
@@ -293,40 +417,82 @@ begin
   ext1,
   refine eventually_eq.trans _ (Lp.coe_fn_smul _ _).symm,
   refine ae_eq_trim_of_measurable hm (Lp.measurable _) _ _,
-  { exact @measurable.const_smul _ _ _ _ _ _ m _ _ (Lp.measurable _) c, },
+  { exact @measurable.const_smul _ _ α _ _ _ m _ _ (Lp.measurable _) c, },
   refine (Lp_meas_to_Lp_trim_ae_eq hm _).trans _,
-  refine (Lp.coe_fn_smul c _).trans _,
+  refine (Lp.coe_fn_smul _ _).trans _,
   refine (Lp_meas_to_Lp_trim_ae_eq hm f).mono (λ x hx, _),
-  rw [pi.smul_apply, pi.smul_apply, hx, Lp_meas_coe],
+  rw [pi.smul_apply, pi.smul_apply, hx],
   refl,
 end
 
-/-- `Lp_meas_to_Lp_trim` preserves the norm. -/
-lemma Lp_meas_to_Lp_trim_norm_map [hp : fact (1 ≤ p)] (hm : m ≤ m0) (f : Lp_meas F 𝕜 m p μ) :
-  ∥Lp_meas_to_Lp_trim F 𝕜 p μ hm f∥ = ∥f∥ :=
+/-- `Lp_meas_subgroup_to_Lp_trim` preserves the norm. -/
+lemma Lp_meas_subgroup_to_Lp_trim_norm_map [hp : fact (1 ≤ p)] (hm : m ≤ m0)
+  (f : Lp_meas_subgroup F m p μ) :
+  ∥Lp_meas_subgroup_to_Lp_trim F p μ hm f∥ = ∥f∥ :=
 begin
   rw [Lp.norm_def, snorm_trim hm (Lp.measurable _)],
   swap, { apply_instance, },
-  rw [snorm_congr_ae (Lp_meas_to_Lp_trim_ae_eq hm _), Lp_meas_coe, ← Lp.norm_def],
+  rw [snorm_congr_ae (Lp_meas_subgroup_to_Lp_trim_ae_eq hm _), Lp_meas_subgroup_coe, ← Lp.norm_def],
   congr,
 end
 
-variables (F 𝕜 p μ)
-/-- A linear isometry equivalence between `Lp_meas` and `Lp F p (μ.trim hm)`. -/
+lemma isometry_Lp_meas_subgroup_to_Lp_trim [hp : fact (1 ≤ p)] (hm : m ≤ m0) :
+  isometry (Lp_meas_subgroup_to_Lp_trim F p μ hm) :=
+begin
+  rw isometry_emetric_iff_metric,
+  intros f g,
+  rw [dist_eq_norm, ← Lp_meas_subgroup_to_Lp_trim_sub, Lp_meas_subgroup_to_Lp_trim_norm_map,
+    dist_eq_norm],
+end
+
+variables (F p μ)
+/-- `Lp_meas_subgroup` and `Lp F p (μ.trim hm)` are isometric. -/
+def Lp_meas_subgroup_to_Lp_trim_iso [hp : fact (1 ≤ p)] (hm : m ≤ m0) :
+  Lp_meas_subgroup F m p μ ≃ᵢ Lp F p (μ.trim hm) :=
+{ to_fun    := Lp_meas_subgroup_to_Lp_trim F p μ hm,
+  inv_fun   := Lp_trim_to_Lp_meas_subgroup F p μ hm,
+  left_inv  := Lp_meas_subgroup_to_Lp_trim_left_inv hm,
+  right_inv := Lp_meas_subgroup_to_Lp_trim_right_inv hm,
+  isometry_to_fun := isometry_Lp_meas_subgroup_to_Lp_trim hm, }
+
+variables (𝕜)
+/-- `Lp_meas_subgroup` and `Lp_meas` are isometric. -/
+def Lp_meas_subgroup_to_Lp_meas_iso [hp : fact (1 ≤ p)] :
+  Lp_meas_subgroup F m p μ ≃ᵢ Lp_meas F 𝕜 m p μ :=
+isometric.refl (Lp_meas_subgroup F m p μ)
+
+/-- `Lp_meas` and `Lp F p (μ.trim hm)` are isometric, with a linear equivalence. -/
 def Lp_meas_to_Lp_trim_lie [hp : fact (1 ≤ p)] (hm : m ≤ m0) :
   Lp_meas F 𝕜 m p μ ≃ₗᵢ[𝕜] Lp F p (μ.trim hm) :=
 { to_fun    := Lp_meas_to_Lp_trim F 𝕜 p μ hm,
-  map_add'  := Lp_meas_to_Lp_trim_add hm,
-  map_smul' := Lp_meas_to_Lp_trim_smul hm,
   inv_fun   := Lp_trim_to_Lp_meas F 𝕜 p μ hm,
-  left_inv  := Lp_meas_to_Lp_trim_left_inv hm,
-  right_inv := Lp_meas_to_Lp_trim_right_inv hm,
-  norm_map' := Lp_meas_to_Lp_trim_norm_map hm, }
+  left_inv  := Lp_meas_subgroup_to_Lp_trim_left_inv hm,
+  right_inv := Lp_meas_subgroup_to_Lp_trim_right_inv hm,
+  map_add'  := Lp_meas_subgroup_to_Lp_trim_add hm,
+  map_smul' := Lp_meas_to_Lp_trim_smul hm,
+  norm_map' := Lp_meas_subgroup_to_Lp_trim_norm_map hm, }
 variables {F 𝕜 p μ}
 
 instance [hm : fact (m ≤ m0)] [complete_space F] [hp : fact (1 ≤ p)] :
+  complete_space (Lp_meas_subgroup F m p μ) :=
+by { rw (Lp_meas_subgroup_to_Lp_trim_iso F p μ hm.elim).complete_space_iff, apply_instance, }
+
+instance [hm : fact (m ≤ m0)] [complete_space F] [hp : fact (1 ≤ p)] :
   complete_space (Lp_meas F 𝕜 m p μ) :=
-by { rw (Lp_meas_to_Lp_trim_lie F 𝕜 p μ hm.elim).to_isometric.complete_space_iff, apply_instance, }
+by { rw (Lp_meas_subgroup_to_Lp_meas_iso F 𝕜 p μ).symm.complete_space_iff, apply_instance, }
+
+lemma is_complete_ae_measurable' [hp : fact (1 ≤ p)] [complete_space F] (hm : m ≤ m0) :
+  is_complete {f : Lp F p μ | ae_measurable' m f μ} :=
+begin
+  rw ← complete_space_coe_iff_is_complete,
+  haveI : fact (m ≤ m0) := ⟨hm⟩,
+  change complete_space (Lp_meas_subgroup F m p μ),
+  apply_instance,
+end
+
+lemma is_closed_ae_measurable' [hp : fact (1 ≤ p)] [complete_space F] (hm : m ≤ m0) :
+  is_closed {f : Lp F p μ | ae_measurable' m f μ} :=
+is_complete.is_closed (is_complete_ae_measurable' hm)
 
 end complete_subspace
 
@@ -340,8 +506,8 @@ variables {m m0 : measurable_space α} {μ : measure α}
 lemma Lp_meas.ae_fin_strongly_measurable' (hm : m ≤ m0) (f : Lp_meas F 𝕜 m p μ) (hp_ne_zero : p ≠ 0)
   (hp_ne_top : p ≠ ∞) :
   ∃ g, fin_strongly_measurable g (μ.trim hm) ∧ f =ᵐ[μ] g :=
-⟨Lp_meas_to_Lp_trim F 𝕜 p μ hm f, Lp.fin_strongly_measurable _ hp_ne_zero hp_ne_top,
-  (Lp_meas_to_Lp_trim_ae_eq hm f).symm⟩
+⟨Lp_meas_subgroup_to_Lp_trim F p μ hm f, Lp.fin_strongly_measurable _ hp_ne_zero hp_ne_top,
+  (Lp_meas_subgroup_to_Lp_trim_ae_eq hm f).symm⟩
 
 end strongly_measurable
 
@@ -539,6 +705,10 @@ def condexp_L2 (hm : m ≤ m0) : (α →₂[μ] E) →L[𝕜] (Lp_meas E 𝕜 m 
 @orthogonal_projection 𝕜 (α →₂[μ] E) _ _ (Lp_meas E 𝕜 m 2 μ)
   (by { haveI : fact (m ≤ m0) := ⟨hm⟩, exact infer_instance, })
 variables {𝕜}
+
+lemma ae_measurable'_condexp_L2 (hm : m ≤ m0) (f : α →₂[μ] E) :
+  ae_measurable' m (condexp_L2 𝕜 hm f) μ :=
+Lp_meas.ae_measurable' _
 
 lemma integrable_on_condexp_L2_of_measure_ne_top (hm : m ≤ m0) (hμs : μ s ≠ ∞) (f : α →₂[μ] E) :
   integrable_on (condexp_L2 𝕜 hm f) s μ :=
@@ -831,7 +1001,7 @@ lemma integrable_condexp_L2_indicator (hm : m ≤ m0) [sigma_finite (μ.trim hm)
   integrable (condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs x)) μ :=
 begin
   refine integrable_of_forall_fin_meas_le' hm (μ s * ∥x∥₊)
-    (ennreal.mul_lt_top (lt_top_iff_ne_top.mpr hμs) ennreal.coe_lt_top) _ _,
+    (ennreal.mul_lt_top hμs ennreal.coe_ne_top) _ _,
   { rw Lp_meas_coe, exact Lp.ae_measurable _, },
   { refine λ t ht hμt, (set_lintegral_nnnorm_condexp_L2_indicator_le hm hs hμs x ht hμt).trans _,
     exact ennreal.mul_le_mul (measure_mono (set.inter_subset_left _ _)) le_rfl, },
@@ -846,6 +1016,21 @@ variables [normed_space ℝ G] {hm : m ≤ m0}
 /-- Conditional expectation of the indicator of a measurable set with finite measure, in L2. -/
 def condexp_ind_smul (hm : m ≤ m0) (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : G) : Lp G 2 μ :=
 (to_span_singleton ℝ x).comp_LpL 2 μ (condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ)))
+
+lemma ae_measurable'_condexp_ind_smul (hm : m ≤ m0) (hs : measurable_set s) (hμs : μ s ≠ ∞)
+  (x : G) :
+  ae_measurable' m (condexp_ind_smul hm hs hμs x) μ :=
+begin
+  have h : ae_measurable' m (condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ))) μ,
+    from ae_measurable'_condexp_L2 _ _,
+  rw condexp_ind_smul,
+  suffices : ae_measurable' m
+    ((to_span_singleton ℝ x) ∘ (condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ)))) μ,
+  { refine ae_measurable'.congr this _,
+    refine eventually_eq.trans _ (coe_fn_comp_LpL _ _).symm,
+    rw Lp_meas_coe, },
+  exact ae_measurable'.measurable_comp (to_span_singleton ℝ x).measurable h,
+end
 
 lemma condexp_ind_smul_add (hs : measurable_set s) (hμs : μ s ≠ ∞) (x y : G) :
   condexp_ind_smul hm hs hμs (x + y)
@@ -902,7 +1087,7 @@ lemma integrable_condexp_ind_smul (hm : m ≤ m0) [sigma_finite (μ.trim hm)]
   integrable (condexp_ind_smul hm hs hμs x) μ :=
 begin
   refine integrable_of_forall_fin_meas_le' hm (μ s * ∥x∥₊)
-    (ennreal.mul_lt_top (lt_top_iff_ne_top.mpr hμs) ennreal.coe_lt_top) _ _,
+    (ennreal.mul_lt_top hμs ennreal.coe_ne_top) _ _,
   { exact Lp.ae_measurable _, },
   { refine λ t ht hμt, (set_lintegral_nnnorm_condexp_ind_smul_le hm hs hμs x ht hμt).trans _,
     exact ennreal.mul_le_mul (measure_mono (set.inter_subset_left _ _)) le_rfl, },
@@ -915,6 +1100,20 @@ begin
   rw [condexp_ind_smul, indicator_const_empty],
   simp only [coe_fn_coe_base, submodule.coe_zero, continuous_linear_map.map_zero],
 end
+
+lemma set_integral_condexp_ind_smul (hs : measurable_set[m] s) (ht : measurable_set t)
+  (hμs : μ s ≠ ∞) (hμt : μ t ≠ ∞) (x : G') :
+  ∫ a in s, (condexp_ind_smul hm ht hμt x) a ∂μ = (μ (t ∩ s)).to_real • x :=
+calc ∫ a in s, (condexp_ind_smul hm ht hμt x) a ∂μ
+    = (∫ a in s, (condexp_L2 ℝ hm (indicator_const_Lp 2 ht hμt (1 : ℝ)) a • x) ∂μ) :
+  set_integral_congr_ae (hm s hs) ((condexp_ind_smul_ae_eq_smul hm ht hμt x).mono (λ x hx hxs, hx))
+... = (∫ a in s, condexp_L2 ℝ hm (indicator_const_Lp 2 ht hμt (1 : ℝ)) a ∂μ) • x :
+  by rw integral_smul_const _ x
+... = (∫ a in s, indicator_const_Lp 2 ht hμt (1 : ℝ) a ∂μ) • x :
+  by rw @integral_condexp_L2_eq α _ ℝ _ _ _ _ _ _ _ _ _ _ _ _ _ _ hm
+    (indicator_const_Lp 2 ht hμt (1 : ℝ)) hs hμs
+... = (μ (t ∩ s)).to_real • x :
+  by rw [set_integral_indicator_const_Lp (hm s hs), smul_assoc, one_smul]
 
 end condexp_ind_smul
 
@@ -1143,6 +1342,11 @@ end
 
 variables {hm : m ≤ m0} [sigma_finite (μ.trim hm)]
 
+lemma ae_measurable'_condexp_ind (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : G) :
+  ae_measurable' m (condexp_ind hm μ s x) μ :=
+ae_measurable'.congr (ae_measurable'_condexp_ind_smul hm hs hμs x)
+  (condexp_ind_ae_eq_condexp_ind_smul hm hs hμs x).symm
+
 @[simp] lemma condexp_ind_empty : condexp_ind hm μ ∅ = (0 : G →L[ℝ] α →₁[μ] G) :=
 begin
   ext1,
@@ -1174,6 +1378,423 @@ lemma condexp_ind_disjoint_union (hs : measurable_set s) (ht : measurable_set t)
   (condexp_ind hm μ (s ∪ t) : G →L[ℝ] α →₁[μ] G) = condexp_ind hm μ s + condexp_ind hm μ t :=
 by { ext1, push_cast, exact condexp_ind_disjoint_union_apply hs ht hμs hμt hst x, }
 
+variables (G)
+
+lemma dominated_fin_meas_additive_condexp_ind (hm : m ≤ m0) (μ : measure α)
+  [sigma_finite (μ.trim hm)] :
+  dominated_fin_meas_additive μ (condexp_ind hm μ : set α → G →L[ℝ] α →₁[μ] G) 1 :=
+⟨λ s t, condexp_ind_disjoint_union, λ s, norm_condexp_ind_le.trans (one_mul _).symm.le⟩
+
+variables {G}
+
+lemma set_integral_condexp_ind (hs : measurable_set[m] s) (ht : measurable_set t) (hμs : μ s ≠ ∞)
+  (hμt : μ t ≠ ∞) (x : G') :
+  ∫ a in s, condexp_ind hm μ t x a ∂μ = (μ (t ∩ s)).to_real • x :=
+calc
+∫ a in s, condexp_ind hm μ t x a ∂μ = ∫ a in s, condexp_ind_smul hm ht hμt x a ∂μ :
+  set_integral_congr_ae (hm s hs)
+    ((condexp_ind_ae_eq_condexp_ind_smul hm ht hμt x).mono (λ x hx hxs, hx))
+... = (μ (t ∩ s)).to_real • x : set_integral_condexp_ind_smul hs ht hμs hμt x
+
+lemma condexp_ind_of_measurable (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) (c : G) :
+  condexp_ind hm μ s c = indicator_const_Lp 1 (hm s hs) hμs c :=
+begin
+  ext1,
+  refine eventually_eq.trans _ indicator_const_Lp_coe_fn.symm,
+  refine (condexp_ind_ae_eq_condexp_ind_smul hm (hm s hs) hμs c).trans _,
+  refine (condexp_ind_smul_ae_eq_smul hm (hm s hs) hμs c).trans _,
+  rw [Lp_meas_coe, condexp_L2_indicator_of_measurable hm hs hμs (1 : ℝ)],
+  refine (@indicator_const_Lp_coe_fn α _ _ 2 μ _ _ s (hm s hs) hμs (1 : ℝ) _ _).mono (λ x hx, _),
+  dsimp only,
+  rw hx,
+  by_cases hx_mem : x ∈ s; simp [hx_mem],
+end
+
 end condexp_ind
+
+section condexp_L1
+
+local attribute [instance] fact_one_le_one_ennreal
+
+variables {m m0 : measurable_space α} {μ : measure α} [borel_space 𝕜] [is_scalar_tower ℝ 𝕜 F']
+  {hm : m ≤ m0} [sigma_finite (μ.trim hm)] {f g : α → F'} {s : set α}
+
+/-- Conditional expectation of a function as a linear map from `α →₁[μ] F'` to itself. -/
+def condexp_L1_clm (hm : m ≤ m0) (μ : measure α) [sigma_finite (μ.trim hm)] :
+  (α →₁[μ] F') →L[ℝ] α →₁[μ] F' :=
+L1.set_to_L1 (dominated_fin_meas_additive_condexp_ind F' hm μ)
+
+lemma condexp_L1_clm_smul (c : 𝕜) (f : α →₁[μ] F') :
+  condexp_L1_clm hm μ (c • f) = c • condexp_L1_clm hm μ f :=
+L1.set_to_L1_smul (dominated_fin_meas_additive_condexp_ind F' hm μ)
+  (λ c s x, condexp_ind_smul' c x) c f
+
+lemma condexp_L1_clm_indicator_const_Lp (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : F') :
+  (condexp_L1_clm hm μ) (indicator_const_Lp 1 hs hμs x) = condexp_ind hm μ s x :=
+L1.set_to_L1_indicator_const_Lp (dominated_fin_meas_additive_condexp_ind F' hm μ) hs hμs x
+
+lemma condexp_L1_clm_indicator_const (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : F') :
+  (condexp_L1_clm hm μ) ↑(simple_func.indicator_const 1 hs hμs x) = condexp_ind hm μ s x :=
+by { rw Lp.simple_func.coe_indicator_const, exact condexp_L1_clm_indicator_const_Lp hs hμs x, }
+
+/-- Auxiliary lemma used in the proof of `set_integral_condexp_L1_clm`. -/
+lemma set_integral_condexp_L1_clm_of_measure_ne_top (f : α →₁[μ] F') (hs : measurable_set[m] s)
+  (hμs : μ s ≠ ∞) :
+  ∫ x in s, condexp_L1_clm hm μ f x ∂μ = ∫ x in s, f x ∂μ :=
+begin
+  refine Lp.induction ennreal.one_ne_top
+    (λ f : α →₁[μ] F', ∫ x in s, condexp_L1_clm hm μ f x ∂μ = ∫ x in s, f x ∂μ)
+  _ _ (is_closed_eq _ _) f,
+  { intros x t ht hμt,
+    simp_rw condexp_L1_clm_indicator_const ht hμt.ne x,
+    rw [Lp.simple_func.coe_indicator_const, set_integral_indicator_const_Lp (hm _ hs)],
+    exact set_integral_condexp_ind hs ht hμs hμt.ne x, },
+  { intros f g hf_Lp hg_Lp hfg_disj hf hg,
+    simp_rw (condexp_L1_clm hm μ).map_add,
+    rw set_integral_congr_ae (hm s hs) ((Lp.coe_fn_add (condexp_L1_clm hm μ (hf_Lp.to_Lp f))
+      (condexp_L1_clm hm μ (hg_Lp.to_Lp g))).mono (λ x hx hxs, hx)),
+    rw set_integral_congr_ae (hm s hs) ((Lp.coe_fn_add (hf_Lp.to_Lp f) (hg_Lp.to_Lp g)).mono
+      (λ x hx hxs, hx)),
+    simp_rw pi.add_apply,
+    rw [integral_add (L1.integrable_coe_fn _).integrable_on (L1.integrable_coe_fn _).integrable_on,
+      integral_add (L1.integrable_coe_fn _).integrable_on (L1.integrable_coe_fn _).integrable_on,
+      hf, hg], },
+  { exact (continuous_set_integral s).comp (condexp_L1_clm hm μ).continuous, },
+  { exact continuous_set_integral s, },
+end
+
+/-- The integral of the conditional expectation `condexp_L1_clm` over an `m`-measurable set is equal
+to the integral of `f` on that set. See also `set_integral_condexp`, the similar statement for
+`condexp`. -/
+lemma set_integral_condexp_L1_clm (f : α →₁[μ] F') (hs : measurable_set[m] s) :
+  ∫ x in s, condexp_L1_clm hm μ f x ∂μ = ∫ x in s, f x ∂μ :=
+begin
+  let S := spanning_sets (μ.trim hm),
+  have hS_meas : ∀ i, measurable_set[m] (S i) := measurable_spanning_sets (μ.trim hm),
+  have hS_meas0 : ∀ i, measurable_set (S i) := λ i, hm _ (hS_meas i),
+  have hs_eq : s = ⋃ i, S i ∩ s,
+  { simp_rw set.inter_comm,
+    rw [← set.inter_Union, (Union_spanning_sets (μ.trim hm)), set.inter_univ], },
+  have hS_finite : ∀ i, μ (S i ∩ s) < ∞,
+  { refine λ i, (measure_mono (set.inter_subset_left _ _)).trans_lt _,
+    have hS_finite_trim := measure_spanning_sets_lt_top (μ.trim hm) i,
+    rwa trim_measurable_set_eq hm (hS_meas i) at hS_finite_trim, },
+  have h_mono : monotone (λ i, (S i) ∩ s),
+  { intros i j hij x,
+    simp_rw set.mem_inter_iff,
+    exact λ h, ⟨monotone_spanning_sets (μ.trim hm) hij h.1, h.2⟩, },
+  have h_eq_forall : (λ i, ∫ x in (S i) ∩ s, condexp_L1_clm hm μ f x ∂μ)
+      = λ i, ∫ x in (S i) ∩ s, f x ∂μ,
+    from funext (λ i, set_integral_condexp_L1_clm_of_measure_ne_top f
+      (@measurable_set.inter α m _ _ (hS_meas i) hs) (hS_finite i).ne),
+  have h_right : tendsto (λ i, ∫ x in (S i) ∩ s, f x ∂μ) at_top (𝓝 (∫ x in s, f x ∂μ)),
+  { have h := tendsto_set_integral_of_monotone (λ i, (hS_meas0 i).inter (hm s hs)) h_mono
+      (L1.integrable_coe_fn f).integrable_on,
+    rwa ← hs_eq at h, },
+  have h_left : tendsto (λ i, ∫ x in (S i) ∩ s, condexp_L1_clm hm μ f x ∂μ) at_top
+    (𝓝 (∫ x in s, condexp_L1_clm hm μ f x ∂μ)),
+  { have h := tendsto_set_integral_of_monotone (λ i, (hS_meas0 i).inter (hm s hs))
+      h_mono (L1.integrable_coe_fn (condexp_L1_clm hm μ f)).integrable_on,
+    rwa ← hs_eq at h, },
+  rw h_eq_forall at h_left,
+  exact tendsto_nhds_unique h_left h_right,
+end
+
+lemma ae_measurable'_condexp_L1_clm (f : α →₁[μ] F') : ae_measurable' m (condexp_L1_clm hm μ f) μ :=
+begin
+  refine Lp.induction ennreal.one_ne_top
+    (λ f : α →₁[μ] F', ae_measurable' m (condexp_L1_clm hm μ f) μ)
+    _ _ _ f,
+  { intros c s hs hμs,
+    rw condexp_L1_clm_indicator_const hs hμs.ne c,
+    exact ae_measurable'_condexp_ind hs hμs.ne c, },
+  { intros f g hf hg h_disj hfm hgm,
+    rw (condexp_L1_clm hm μ).map_add,
+    refine ae_measurable'.congr _ (coe_fn_add _ _).symm,
+    exact ae_measurable'.add hfm hgm, },
+  { have : {f : Lp F' 1 μ | ae_measurable' m (condexp_L1_clm hm μ f) μ}
+        = (condexp_L1_clm hm μ) ⁻¹' {f | ae_measurable' m f μ},
+      by refl,
+    rw this,
+    refine is_closed.preimage (condexp_L1_clm hm μ).continuous _,
+    exact is_closed_ae_measurable' hm, },
+end
+
+lemma Lp_meas_to_Lp_trim_lie_symm_indicator [normed_space ℝ F] {μ : measure α}
+  (hs : measurable_set[m] s) (hμs : μ.trim hm s ≠ ∞) (c : F) :
+  ((Lp_meas_to_Lp_trim_lie F ℝ 1 μ hm).symm
+      (indicator_const_Lp 1 hs hμs c) : α →₁[μ] F)
+    = indicator_const_Lp 1 (hm s hs) ((le_trim hm).trans_lt hμs.lt_top).ne c :=
+begin
+  ext1,
+  rw ← Lp_meas_coe,
+  change Lp_trim_to_Lp_meas F ℝ 1 μ hm (indicator_const_Lp 1 hs hμs c)
+    =ᵐ[μ] (indicator_const_Lp 1 _ _ c : α → F),
+  refine (Lp_trim_to_Lp_meas_ae_eq hm _).trans _,
+  exact (ae_eq_of_ae_eq_trim indicator_const_Lp_coe_fn).trans indicator_const_Lp_coe_fn.symm,
+end
+
+lemma condexp_L1_clm_Lp_meas (f : Lp_meas F' ℝ m 1 μ) :
+  condexp_L1_clm hm μ (f : α →₁[μ] F') = ↑f :=
+begin
+  let g := Lp_meas_to_Lp_trim_lie F' ℝ 1 μ hm f,
+  have hfg : f = (Lp_meas_to_Lp_trim_lie F' ℝ 1 μ hm).symm g,
+    by simp only [linear_isometry_equiv.symm_apply_apply],
+  rw hfg,
+  refine @Lp.induction α F' m _ _ _ _ 1 (μ.trim hm) _ ennreal.coe_ne_top
+    (λ g : α →₁[μ.trim hm] F',
+      condexp_L1_clm hm μ ((Lp_meas_to_Lp_trim_lie F' ℝ 1 μ hm).symm g : α →₁[μ] F')
+        = ↑((Lp_meas_to_Lp_trim_lie F' ℝ 1 μ hm).symm g)) _ _ _ g,
+  { intros c s hs hμs,
+    rw [Lp.simple_func.coe_indicator_const, Lp_meas_to_Lp_trim_lie_symm_indicator hs hμs.ne c,
+      condexp_L1_clm_indicator_const_Lp],
+    exact condexp_ind_of_measurable hs ((le_trim hm).trans_lt hμs).ne c, },
+  { intros f g hf hg hfg_disj hf_eq hg_eq,
+    rw linear_isometry_equiv.map_add,
+    push_cast,
+    rw [map_add, hf_eq, hg_eq], },
+  { refine is_closed_eq _ _,
+    { refine (condexp_L1_clm hm μ).continuous.comp (continuous_induced_dom.comp _),
+      exact linear_isometry_equiv.continuous _, },
+    { refine continuous_induced_dom.comp _,
+      exact linear_isometry_equiv.continuous _, }, },
+end
+
+lemma condexp_L1_clm_of_ae_measurable' (f : α →₁[μ] F') (hfm : ae_measurable' m f μ) :
+  condexp_L1_clm hm μ f = f :=
+condexp_L1_clm_Lp_meas (⟨f, hfm⟩ : Lp_meas F' ℝ m 1 μ)
+
+/-- Conditional expectation of a function, in L1. Its value is 0 if the function is not
+integrable. The function-valued `condexp` should be used instead in most cases. -/
+def condexp_L1 (hm : m ≤ m0) (μ : measure α) [sigma_finite (μ.trim hm)] (f : α → F') : α →₁[μ] F' :=
+set_to_fun (dominated_fin_meas_additive_condexp_ind F' hm μ) f
+
+lemma condexp_L1_undef (hf : ¬ integrable f μ) : condexp_L1 hm μ f = 0 :=
+set_to_fun_undef (dominated_fin_meas_additive_condexp_ind F' hm μ) hf
+
+lemma condexp_L1_eq (hf : integrable f μ) :
+  condexp_L1 hm μ f = condexp_L1_clm hm μ (hf.to_L1 f) :=
+set_to_fun_eq (dominated_fin_meas_additive_condexp_ind F' hm μ) hf
+
+lemma condexp_L1_zero : condexp_L1 hm μ (0 : α → F') = 0 :=
+begin
+  refine (condexp_L1_eq (integrable_zero _ _ _)).trans _,
+  change (condexp_L1_clm hm μ) (integrable.to_L1 0 _) = 0,
+  rw [integrable.to_L1_zero, continuous_linear_map.map_zero],
+end
+
+lemma ae_measurable'_condexp_L1 {f : α → F'} : ae_measurable' m (condexp_L1 hm μ f) μ :=
+begin
+  by_cases hf : integrable f μ,
+  { rw condexp_L1_eq hf,
+    exact ae_measurable'_condexp_L1_clm _, },
+  { rw condexp_L1_undef hf,
+    refine ae_measurable'.congr _ (coe_fn_zero _ _ _).symm,
+    exact measurable.ae_measurable' (@measurable_zero _ _ _ m _), },
+end
+
+lemma integrable_condexp_L1 (f : α → F') : integrable (condexp_L1 hm μ f) μ :=
+L1.integrable_coe_fn _
+
+/-- The integral of the conditional expectation `condexp_L1` over an `m`-measurable set is equal to
+the integral of `f` on that set. See also `set_integral_condexp`, the similar statement for
+`condexp`. -/
+lemma set_integral_condexp_L1 (hf : integrable f μ) (hs : measurable_set[m] s) :
+  ∫ x in s, condexp_L1 hm μ f x ∂μ = ∫ x in s, f x ∂μ :=
+begin
+  simp_rw condexp_L1_eq hf,
+  rw set_integral_condexp_L1_clm (hf.to_L1 f) hs,
+  exact set_integral_congr_ae (hm s hs) ((hf.coe_fn_to_L1).mono (λ x hx hxs, hx)),
+end
+
+lemma condexp_L1_add (hf : integrable f μ) (hg : integrable g μ) :
+  condexp_L1 hm μ (f + g) = condexp_L1 hm μ f + condexp_L1 hm μ g :=
+calc condexp_L1 hm μ (f + g) = condexp_L1_clm hm μ ((hf.add hg).to_L1 (f + g)) :
+  condexp_L1_eq (hf.add hg)
+... = condexp_L1_clm hm μ (hf.to_L1 f + hg.to_L1 g) : by rw integrable.to_L1_add _ _ hf hg
+... = condexp_L1_clm hm μ (hf.to_L1 f) + condexp_L1_clm hm μ (hg.to_L1 g) :
+  (condexp_L1_clm hm μ).map_add _ _
+... = condexp_L1 hm μ f + condexp_L1 hm μ g :
+  by rw [condexp_L1_eq hf, condexp_L1_eq hg]
+
+lemma condexp_L1_neg (f : α → F') :
+  condexp_L1 hm μ (-f) = - condexp_L1 hm μ f :=
+begin
+  by_cases hf : integrable f μ,
+  { calc condexp_L1 hm μ (-f) = condexp_L1_clm hm μ (hf.neg.to_L1 (-f)) : condexp_L1_eq hf.neg
+    ... = condexp_L1_clm hm μ (- hf.to_L1 f) : by rw integrable.to_L1_neg _ hf
+    ... = - condexp_L1_clm hm μ (hf.to_L1 f) : (condexp_L1_clm hm μ).map_neg _
+    ... = - condexp_L1 hm μ f : by rw condexp_L1_eq hf, },
+  { rw [condexp_L1_undef hf, condexp_L1_undef (mt integrable_neg_iff.mp hf), neg_zero], },
+end
+
+lemma condexp_L1_smul (c : 𝕜) (f : α → F') :
+  condexp_L1 hm μ (c • f) = c • condexp_L1 hm μ f :=
+begin
+  by_cases hf : integrable f μ,
+  { calc condexp_L1 hm μ (c • f) = condexp_L1_clm hm μ ((hf.smul c).to_L1 (c • f)) :
+      condexp_L1_eq (hf.smul c)
+    ... = condexp_L1_clm hm μ (c • hf.to_L1 f) : by rw integrable.to_L1_smul' _ hf c
+    ... = c • condexp_L1_clm hm μ (hf.to_L1 f) : condexp_L1_clm_smul c (hf.to_L1 f)
+    ... = c • condexp_L1 hm μ f : by rw condexp_L1_eq hf, },
+  { by_cases hc : c = 0,
+    { rw [hc, zero_smul, zero_smul, condexp_L1_zero], },
+    rw [condexp_L1_undef hf, condexp_L1_undef (mt (integrable_smul_iff hc f).mp hf), smul_zero], },
+end
+
+lemma condexp_L1_sub (hf : integrable f μ) (hg : integrable g μ) :
+  condexp_L1 hm μ (f - g) = condexp_L1 hm μ f - condexp_L1 hm μ g :=
+by rw [sub_eq_add_neg, sub_eq_add_neg, condexp_L1_add hf hg.neg, condexp_L1_neg g]
+
+lemma condexp_L1_of_ae_measurable' (hfm : ae_measurable' m f μ) (hfi : integrable f μ) :
+  condexp_L1 hm μ f =ᵐ[μ] f :=
+begin
+  rw condexp_L1_eq hfi,
+  refine eventually_eq.trans _ (integrable.coe_fn_to_L1 hfi),
+  rw condexp_L1_clm_of_ae_measurable',
+  exact ae_measurable'.congr hfm (integrable.coe_fn_to_L1 hfi).symm,
+end
+
+end condexp_L1
+
+section condexp
+
+/-! ### Conditional expectation of a function -/
+
+open_locale classical
+
+local attribute [instance] fact_one_le_one_ennreal
+
+variables {𝕜} {m m0 : measurable_space α} {μ : measure α} [borel_space 𝕜] [is_scalar_tower ℝ 𝕜 F']
+  {hm : m ≤ m0} [sigma_finite (μ.trim hm)] {f g : α → F'} {s : set α}
+
+/-- Conditional expectation of a function. Its value is 0 if the function is not integrable. -/
+@[irreducible] def condexp (hm : m ≤ m0) (μ : measure α) [sigma_finite (μ.trim hm)] (f : α → F') :
+  α → F' :=
+if (measurable[m] f ∧ integrable f μ) then f else ae_measurable'_condexp_L1.mk (condexp_L1 hm μ f)
+
+localized "notation  μ `[` f `|` hm `]` := measure_theory.condexp hm μ f" in measure_theory
+
+lemma condexp_of_measurable {f : α → F'} (hf : measurable[m] f) (hfi : integrable f μ) :
+  μ[f|hm] = f :=
+by rw [condexp, if_pos (⟨hf, hfi⟩ : measurable[m] f ∧ integrable f μ)]
+
+lemma condexp_const (c : F') [is_finite_measure μ] : μ[(λ x : α, c)|hm] = λ _, c :=
+condexp_of_measurable (@measurable_const _ _ _ m _) (integrable_const c)
+
+lemma condexp_ae_eq_condexp_L1 (f : α → F') : μ[f|hm] =ᵐ[μ] condexp_L1 hm μ f :=
+begin
+  unfold condexp,
+  by_cases hfm : measurable[m] f,
+  { by_cases hfi : integrable f μ,
+    { rw if_pos (⟨hfm, hfi⟩ : measurable[m] f ∧ integrable f μ),
+      exact (condexp_L1_of_ae_measurable' (measurable.ae_measurable' hfm) hfi).symm, },
+    { simp only [hfi, if_false, and_false],
+      exact (ae_measurable'.ae_eq_mk ae_measurable'_condexp_L1).symm, }, },
+  simp only [hfm, if_false, false_and],
+  exact (ae_measurable'.ae_eq_mk ae_measurable'_condexp_L1).symm,
+end
+
+lemma condexp_ae_eq_condexp_L1_clm (hf : integrable f μ) :
+  μ[f|hm] =ᵐ[μ] condexp_L1_clm hm μ (hf.to_L1 f) :=
+begin
+  refine (condexp_ae_eq_condexp_L1 f).trans (eventually_of_forall (λ x, _)),
+  rw condexp_L1_eq hf,
+end
+
+lemma condexp_undef (hf : ¬ integrable f μ) : μ[f|hm] =ᵐ[μ] 0 :=
+begin
+  refine (condexp_ae_eq_condexp_L1 f).trans (eventually_eq.trans _ (coe_fn_zero _ 1 _)),
+  rw condexp_L1_undef hf,
+end
+
+@[simp] lemma condexp_zero : μ[(0 : α → F')|hm] = 0 :=
+condexp_of_measurable (@measurable_zero _ _ _ m _) (integrable_zero _ _ _)
+
+lemma measurable_condexp : measurable[m] (μ[f|hm]) :=
+begin
+  unfold condexp,
+  by_cases hfm : measurable[m] f,
+  { by_cases hfi : integrable f μ,
+    { rwa if_pos (⟨hfm, hfi⟩ : measurable[m] f ∧ integrable f μ), },
+    { simp only [hfi, if_false, and_false],
+      exact ae_measurable'.measurable_mk _, }, },
+  simp only [hfm, if_false, false_and],
+  exact ae_measurable'.measurable_mk _,
+end
+
+lemma integrable_condexp : integrable (μ[f|hm]) μ :=
+(integrable_condexp_L1 f).congr (condexp_ae_eq_condexp_L1 f).symm
+
+/-- The integral of the conditional expectation `μ[f|hm]` over an `m`-measurable set is equal to
+the integral of `f` on that set. -/
+lemma set_integral_condexp (hf : integrable f μ) (hs : measurable_set[m] s) :
+  ∫ x in s, μ[f|hm] x ∂μ = ∫ x in s, f x ∂μ :=
+begin
+  rw set_integral_congr_ae (hm s hs) ((condexp_ae_eq_condexp_L1 f).mono (λ x hx _, hx)),
+  exact set_integral_condexp_L1 hf hs,
+end
+
+lemma integral_condexp (hf : integrable f μ) : ∫ x, μ[f|hm] x ∂μ = ∫ x, f x ∂μ :=
+begin
+  suffices : ∫ x in set.univ, μ[f|hm] x ∂μ = ∫ x in set.univ, f x ∂μ,
+    by { simp_rw integral_univ at this, exact this, },
+  exact set_integral_condexp hf (@measurable_set.univ _ m),
+end
+
+/-- **Uniqueness of the conditional expectation**
+If a function is a.e. `m`-measurable, verifies an integrability condition and has same integral
+as `f` on all `m`-measurable sets, then it is a.e. equal to `μ[f|hm]`. -/
+lemma ae_eq_condexp_of_forall_set_integral_eq (hm : m ≤ m0) [sigma_finite (μ.trim hm)]
+  {f g : α → F'} (hf : integrable f μ)
+  (hg_int_finite : ∀ s, measurable_set[m] s → μ s < ∞ → integrable_on g s μ)
+  (hg_eq : ∀ s : set α, measurable_set[m] s → μ s < ∞ → ∫ x in s, g x ∂μ = ∫ x in s, f x ∂μ)
+  (hgm : ae_measurable' m g μ) :
+  g =ᵐ[μ] μ[f|hm] :=
+begin
+  refine ae_eq_of_forall_set_integral_eq_of_sigma_finite' hm hg_int_finite
+    (λ s hs hμs, integrable_condexp.integrable_on) (λ s hs hμs, _) hgm
+    (measurable.ae_measurable' measurable_condexp),
+  rw [hg_eq s hs hμs, set_integral_condexp hf hs],
+end
+
+lemma condexp_add (hf : integrable f μ) (hg : integrable g μ) :
+  μ[f + g | hm] =ᵐ[μ] μ[f|hm] + μ[g|hm] :=
+begin
+  refine (condexp_ae_eq_condexp_L1 _).trans _,
+  rw condexp_L1_add hf hg,
+  exact (coe_fn_add _ _).trans
+    ((condexp_ae_eq_condexp_L1 _).symm.add (condexp_ae_eq_condexp_L1 _).symm),
+end
+
+lemma condexp_smul (c : 𝕜) (f : α → F') : μ[c • f | hm] =ᵐ[μ] c • μ[f|hm] :=
+begin
+  by_cases hf : integrable f μ,
+  { refine (condexp_ae_eq_condexp_L1 _).trans _,
+    rw condexp_L1_smul c f,
+    refine (@condexp_ae_eq_condexp_L1 _ _ _ _ _ _ _ _ m _ _ hm _ f).mp _,
+    refine (coe_fn_smul c (condexp_L1 hm μ f)).mono (λ x hx1 hx2, _),
+    rw [hx1, pi.smul_apply, pi.smul_apply, hx2], },
+  { by_cases hc : c = 0,
+    { rw [hc, zero_smul, zero_smul, condexp_zero], },
+    refine (condexp_undef (mt (integrable_smul_iff hc f).mp hf)).trans _,
+    refine (@condexp_undef _ _ _ _ _ _ _ _ _ _ _ hm _ _ hf).mono (λ x hx, _),
+    rw [pi.zero_apply, pi.smul_apply, hx, pi.zero_apply, smul_zero], },
+end
+
+lemma condexp_neg (f : α → F') : μ[-f|hm] =ᵐ[μ] - μ[f|hm] :=
+by letI : module ℝ (α → F') := @pi.module α (λ _, F') ℝ _ _ (λ _, infer_instance);
+calc μ[-f|hm] = μ[(-1 : ℝ) • f|hm] : by rw neg_one_smul ℝ f
+... =ᵐ[μ] (-1 : ℝ) • μ[f|hm] : condexp_smul (-1) f
+... = -μ[f|hm] : neg_one_smul ℝ (μ[f|hm])
+
+lemma condexp_sub (hf : integrable f μ) (hg : integrable g μ) :
+  μ[f - g | hm] =ᵐ[μ] μ[f|hm] - μ[g|hm] :=
+begin
+  simp_rw sub_eq_add_neg,
+  exact (condexp_add hf hg.neg).trans (eventually_eq.rfl.add (condexp_neg g)),
+end
+
+end condexp
 
 end measure_theory

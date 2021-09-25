@@ -442,9 +442,8 @@ lemma degree_le_zero_iff : degree p ≤ 0 ↔ p = C (coeff p 0) :=
 
 lemma degree_add_le (p q : polynomial R) : degree (p + q) ≤ max (degree p) (degree q) :=
 calc degree (p + q) = ((p + q).support).sup some : rfl
-  ... ≤ (p.support ∪ q.support).sup some : by convert sup_mono support_add
-  ... = p.support.sup some ⊔ q.support.sup some : by convert sup_union
-  ... = _ : with_bot.sup_eq_max _ _
+  ... ≤ (p.support ∪ q.support).sup some : sup_mono support_add
+  ... = p.support.sup some ⊔ q.support.sup some : sup_union
 
 lemma nat_degree_add_le (p q : polynomial R) :
   nat_degree (p + q) ≤ max (nat_degree p) (nat_degree q) :=
@@ -525,7 +524,7 @@ finset.induction_on s (by simp only [sum_empty, sup_empty, degree_zero, le_refl]
   assume a s has ih,
   calc degree (∑ i in insert a s, f i) ≤ max (degree (f a)) (degree (∑ i in s, f i)) :
     by rw sum_insert has; exact degree_add_le _ _
-  ... ≤ _ : by rw [sup_insert, with_bot.sup_eq_max]; exact max_le_max (le_refl _) ih
+  ... ≤ _ : by rw [sup_insert, sup_eq_max]; exact max_le_max le_rfl ih
 
 lemma degree_mul_le (p q : polynomial R) : degree (p * q) ≤ degree p + degree q :=
 calc degree (p * q) ≤ (p.support).sup (λi, degree (sum q (λj a, C (coeff p i * a) * X ^ (i + j)))) :
@@ -851,8 +850,7 @@ begin
   haveI : is_associative (with_bot ℕ) max := ⟨max_assoc⟩,
   calc  (∑ i, C (f i) * X ^ (i : ℕ)).degree
       ≤ finset.univ.fold (⊔) ⊥ (λ i, (C (f i) * X ^ (i : ℕ)).degree) : degree_sum_le _ _
-  ... = finset.univ.fold max ⊥ (λ i, (C (f i) * X ^ (i : ℕ)).degree) :
-    (@finset.fold_hom _ _ _ (⊔) _ _ _ ⊥ finset.univ _ _ _ id (with_bot.sup_eq_max)).symm
+  ... = finset.univ.fold max ⊥ (λ i, (C (f i) * X ^ (i : ℕ)).degree) : rfl
   ... < n : (finset.fold_max_lt (n : with_bot ℕ)).mpr ⟨with_bot.bot_lt_coe _, _⟩,
 
   rintros ⟨i, hi⟩ -,

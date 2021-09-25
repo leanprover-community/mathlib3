@@ -256,7 +256,7 @@ begin
   have : inf_edist y t < (↑(2 * j + r))⁻¹, from not_le.1 (λ hle, hy.2 ⟨hy.1, hle⟩),
   rcases exists_edist_lt_of_inf_edist_lt this with ⟨z, hzt, hyz⟩,
   have hxz : (↑(2 * i + 1 + r))⁻¹ ≤ edist x z, from le_inf_edist.1 hx.2 _ hzt,
-  apply ennreal.le_of_add_le_add_right (hyz.trans_le le_top),
+  apply ennreal.le_of_add_le_add_right hyz.ne_top,
   refine le_trans _ (edist_triangle _ _ _),
   refine (add_le_add le_rfl hyz.le).trans (eq.trans_le _ hxz),
   rw [ennreal.sub_add_cancel_of_le A.le]
@@ -1254,9 +1254,9 @@ dimension of sets.
 on a convex set `s`, then the Hausdorff dimension of `f '' s` is less than or equal to the Hausdorff
 dimension of `s`.
 
-TODO: do we actually need `convex s`? -/
+TODO: do we actually need `convex ℝ s`? -/
 lemma times_cont_diff_on.dimH_image_le {f : E → F} {s t : set E} (hf : times_cont_diff_on ℝ 1 f s)
-  (hc : convex s) (ht : t ⊆ s) :
+  (hc : convex ℝ s) (ht : t ⊆ s) :
   dimH (f '' t) ≤ dimH t :=
 dimH_image_le_of_locally_lipschitz_on $ λ x hx,
   let ⟨C, u, hu, hf⟩ := (hf x (ht hx)).exists_lipschitz_on_with hc
@@ -1274,7 +1274,7 @@ calc dimH (range f) = dimH (f '' univ) : by rw image_univ
 vector spaces. Suppose that `f` is `C¹` smooth on a convex set `s` of Hausdorff dimension strictly
 less than the dimension of `F`. Then the complement of the image `f '' s` is dense in `F`. -/
 lemma times_cont_diff_on.dense_compl_image_of_dimH_lt_finrank [finite_dimensional ℝ F] {f : E → F}
-  {s t : set E} (h : times_cont_diff_on ℝ 1 f s) (hc : convex s) (ht : t ⊆ s)
+  {s t : set E} (h : times_cont_diff_on ℝ 1 f s) (hc : convex ℝ s) (ht : t ⊆ s)
   (htF : dimH t < finrank ℝ F) :
   dense (f '' t)ᶜ :=
 dense_compl_of_dimH_lt_finrank $ (h.dimH_image_le hc ht).trans_lt htF

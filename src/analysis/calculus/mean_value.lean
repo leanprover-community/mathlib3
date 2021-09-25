@@ -1065,7 +1065,7 @@ concave_on_of_deriv2_nonpos hD hf'.continuous_on (by simpa [hD₂.interior_eq] u
 then `f` is convex on `ℝ`. -/
 theorem convex_on_univ_of_deriv2_nonneg {f : ℝ → ℝ} (hf' : differentiable ℝ f)
   (hf'' : differentiable ℝ (deriv f)) (hf''_nonneg : ∀ x, 0 ≤ (deriv^[2] f x)) :
-  convex_on univ f :=
+  convex_on ℝ univ f :=
 convex_on_open_of_deriv2_nonneg convex_univ is_open_univ hf'.differentiable_on
   hf''.differentiable_on (λ x _, hf''_nonneg x)
 

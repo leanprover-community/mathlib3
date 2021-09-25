@@ -97,8 +97,8 @@ begin
 end⟩
 
 lemma concave_on_iff_div {f : E → β} :
-  concave_on ℝ s f ↔ convex ℝ s ∧ ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : ℝ⦄, 0 ≤ a → 0 ≤ b → 0 < a + b
-  → (a/(a+b)) • f x + (b/(a+b)) • f y ≤ f ((a/(a+b)) • x + (b/(a+b)) • y) :=
+  concave_on ℝ s f ↔ convex ℝ s ∧ ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : ℝ⦄, 0 ≤ a → 0 ≤ b
+  → 0 < a + b → (a/(a+b)) • f x + (b/(a+b)) • f y ≤ f ((a/(a+b)) • x + (b/(a+b)) • y) :=
 @convex_on_iff_div _ (order_dual β) _ _ _ _ _ _
 
 /-- For a function on a convex set in a linear ordered space, in order to prove that it is convex

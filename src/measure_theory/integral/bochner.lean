@@ -289,6 +289,28 @@ begin
   rw [simple_func.mem_range] at hx, rw [preimage_eq_empty]; simp [disjoint_singleton_left, hx]
 end
 
+@[simp] lemma integral_const {m : measurable_space α} (μ : measure α) (y : F) :
+  (const α y).integral μ = (μ univ).to_real • y :=
+calc (const α y).integral μ = ∑ z in {y}, (μ ((const α y) ⁻¹' {z})).to_real • z :
+  integral_eq_sum_of_subset $ (filter_subset _ _).trans (range_const_subset _ _)
+... = (μ univ).to_real • y : by simp
+
+@[simp] lemma integral_piecewise_zero {m : measurable_space α} (f : α →ₛ F) (μ : measure α)
+  {s : set α} (hs : measurable_set s) :
+  (piecewise s hs f 0).integral μ = f.integral (μ.restrict s) :=
+begin
+  refine (integral_eq_sum_of_subset _).trans
+    ((sum_congr rfl $ λ y hy, _).trans (integral_eq_sum_filter _ _).symm),
+  { intros y hy,
+    simp only [mem_filter, mem_range, coe_piecewise, coe_zero, piecewise_eq_indicator,
+      mem_range_indicator] at *,
+    rcases hy with ⟨⟨rfl, -⟩|⟨x, hxs, rfl⟩, h₀⟩,
+    exacts [(h₀ rfl).elim, ⟨set.mem_range_self _, h₀⟩] },
+  { dsimp,
+    rw [indicator_preimage_of_not_mem, measure.restrict_apply (f.measurable_set_preimage _)],
+    exact λ h₀, (mem_filter.1 hy).2 (eq.symm h₀) }
+end
+
 /-- Calculate the integral of `g ∘ f : α →ₛ F`, where `f` is an integrable function from `α` to `E`
     and `g` is a function from `E` to `F`. We require `g 0 = 0` so that `g ∘ f` is integrable. -/
 lemma map_integral (f : α →ₛ E) (g : E → F) (hf : integrable f μ) (hg : g 0 = 0) :
@@ -989,6 +1011,20 @@ begin
   { exact (eventually_of_forall $ λ x, ennreal.to_real_nonneg) }
 end
 
+lemma lintegral_coe_le_coe_iff_integral_le {f : α → ℝ≥0} (hfi : integrable (λ x, (f x : ℝ)) μ)
+  {b : ℝ≥0} :
+  ∫⁻ a, f a ∂μ ≤ b ↔ ∫ a, (f a : ℝ) ∂μ ≤ b :=
+by rw [lintegral_coe_eq_integral f hfi, ennreal.of_real, ennreal.coe_le_coe,
+  real.to_nnreal_le_iff_le_coe]
+
+lemma integral_coe_le_of_lintegral_coe_le {f : α → ℝ≥0} {b : ℝ≥0} (h : ∫⁻ a, f a ∂μ ≤ b) :
+  ∫ a, (f a : ℝ) ∂μ ≤ b :=
+begin
+  by_cases hf : integrable (λ a, (f a : ℝ)) μ,
+  { exact (lintegral_coe_le_coe_iff_integral_le hf).1 h },
+  { rw integral_undef hf, exact b.2 }
+end
+
 lemma integral_nonneg {f : α → ℝ} (hf : 0 ≤ f) : 0 ≤ ∫ a, f a ∂μ :=
 integral_nonneg_of_ae $ eventually_of_forall hf
 
@@ -1115,12 +1151,7 @@ begin
   { haveI : is_finite_measure μ := ⟨hμ⟩,
     calc ∫ x : α, c ∂μ = (simple_func.const α c).integral μ :
       ((simple_func.const α c).integral_eq_integral (integrable_const _)).symm
-    ... = _ : _,
-    casesI is_empty_or_nonempty α,
-    { rw simple_func.integral,
-      simp [μ.eq_zero_of_is_empty], },
-    { rw simple_func.integral_eq,
-      simp [preimage_const_of_mem], } },
+    ... = _ : simple_func.integral_const _ _ },
   { by_cases hc : c = 0,
     { simp [hc, integral_zero] },
     { have : ¬integrable (λ x : α, c) μ,
@@ -1266,6 +1297,15 @@ begin
   { exact integral_map hφ.continuous.measurable hfm },
   { rw [integral_non_ae_measurable hfm, integral_non_ae_measurable],
     rwa ae_measurable_comp_right_iff_of_closed_embedding hφ }
+end
+
+lemma integral_map_equiv {β} [measurable_space β] (e : α ≃ᵐ β) (f : β → E) :
+  ∫ y, f y ∂(measure.map e μ) = ∫ x, f (e x) ∂μ :=
+begin
+  by_cases hfm : ae_measurable f (measure.map e μ),
+  { exact integral_map e.measurable hfm },
+  { rw [integral_non_ae_measurable hfm, integral_non_ae_measurable],
+    rwa ← ae_measurable_map_equiv_iff }
 end
 
 lemma integral_dirac' [measurable_space α] (f : α → E) (a : α) (hfm : measurable f) :

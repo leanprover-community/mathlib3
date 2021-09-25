@@ -62,6 +62,10 @@ begin
   exact ⟨λ k b hb, k _ _ hb rfl, λ k a' b hb h, h ▸ k _ hb⟩,
 end
 
+@[simp] lemma sup_bUnion [decidable_eq β] (s : finset γ) (t : γ → finset β) :
+  (s.bUnion t).sup f = s.sup (λ x, (t x).sup f) :=
+eq_of_forall_ge_iff $ λ c, by simp [@forall_swap _ β]
+
 lemma sup_const {s : finset β} (h : s.nonempty) (c : α) : s.sup (λ _, c) = c :=
 eq_of_forall_ge_iff $ λ b, sup_le_iff.trans h.forall_const
 
@@ -213,6 +217,13 @@ lemma inf_union [decidable_eq β] : (s₁ ∪ s₂).inf f = s₁.inf f ⊓ s₂.
 theorem inf_congr {f g : β → α} (hs : s₁ = s₂) (hfg : ∀a∈s₂, f a = g a) : s₁.inf f = s₂.inf g :=
 by subst hs; exact finset.fold_congr hfg
 
+@[simp] lemma inf_bUnion [decidable_eq β] (s : finset γ) (t : γ → finset β) :
+  (s.bUnion t).inf f = s.inf (λ x, (t x).inf f) :=
+@sup_bUnion (order_dual α) _ _ _ _ _ _ _
+
+lemma inf_const {s : finset β} (h : s.nonempty) (c : α) : s.inf (λ _, c) = c :=
+@sup_const (order_dual α) _ _ _ h _
+
 lemma le_inf_iff {a : α} : a ≤ s.inf f ↔ ∀ b ∈ s, a ≤ f b :=
 @sup_le_iff (order_dual α) _ _ _ _ _
 
@@ -337,6 +348,11 @@ begin
   exact bex_congr (λ b hb, with_bot.coe_lt_coe),
 end
 
+lemma sup'_bUnion [decidable_eq β] {s : finset γ} (Hs : s.nonempty) {t : γ → finset β}
+  (Ht : ∀ b, (t b).nonempty) :
+  (s.bUnion t).sup' (Hs.bUnion (λ b _, Ht b)) f = s.sup' Hs (λ b, (t b).sup' (Ht b) f) :=
+eq_of_forall_ge_iff $ λ c, by simp [@forall_swap _ β]
+
 lemma comp_sup'_eq_sup'_comp [semilattice_sup γ] {s : finset β} (H : s.nonempty)
   {f : β → α} (g : α → γ) (g_sup : ∀ x y, g (x ⊔ y) = g x ⊔ g y) :
   g (s.sup' H f) = s.sup' H (g ∘ f) :=
@@ -383,6 +399,14 @@ lemma sup'_mem
   {ι : Type*} (t : finset ι) (H : t.nonempty) (p : ι → α) (h : ∀ i ∈ t, p i ∈ s) :
   t.sup' H p ∈ s :=
 sup'_induction H p w h
+
+@[congr] lemma sup'_congr {t : finset β} {f g : β → α} (h₁ : s = t) (h₂ : ∀ x ∈ s, f x = g x) :
+  s.sup' H f = t.sup' (h₁ ▸ H) g :=
+begin
+  subst s,
+  refine eq_of_forall_ge_iff (λ c, _),
+  simp only [sup'_le_iff, h₂] { contextual := tt }
+end
 
 end sup'
 
@@ -436,6 +460,11 @@ lemma inf'_le {b : β} (h : b ∈ s) : s.inf' ⟨b, h⟩ f ≤ f b :=
 @[simp] lemma inf'_lt_iff [is_total α (≤)] {a : α} : s.inf' H f < a ↔ (∃ b ∈ s, f b < a) :=
 @lt_sup'_iff (order_dual α) _ _ _ H f _ _
 
+lemma inf'_bUnion [decidable_eq β] {s : finset γ} (Hs : s.nonempty) {t : γ → finset β}
+  (Ht : ∀ b, (t b).nonempty) :
+  (s.bUnion t).inf' (Hs.bUnion (λ b _, Ht b)) f = s.inf' Hs (λ b, (t b).inf' (Ht b) f) :=
+@sup'_bUnion (order_dual α) _ _ _ _ _ _ Hs _ Ht
+
 lemma comp_inf'_eq_inf'_comp [semilattice_inf γ] {s : finset β} (H : s.nonempty)
   {f : β → α} (g : α → γ) (g_inf : ∀ x y, g (x ⊓ y) = g x ⊓ g y) :
   g (s.inf' H f) = s.inf' H (g ∘ f) :=
@@ -452,6 +481,10 @@ lemma inf'_mem (s : set α) (w : ∀ x y ∈ s, x ⊓ y ∈ s)
   {ι : Type*} (t : finset ι) (H : t.nonempty) (p : ι → α) (h : ∀ i ∈ t, p i ∈ s) :
   t.inf' H p ∈ s :=
 inf'_induction H p w h
+
+@[congr] lemma inf'_congr {t : finset β} {f g : β → α} (h₁ : s = t) (h₂ : ∀ x ∈ s, f x = g x) :
+  s.inf' H f = t.inf' (h₁ ▸ H) g :=
+@sup'_congr (order_dual α) _ _ _ H _ _ _ h₁ h₂
 
 end inf'
 

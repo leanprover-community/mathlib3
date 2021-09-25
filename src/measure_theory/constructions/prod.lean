@@ -320,6 +320,10 @@ instance prod.measure_space {α β} [measure_space α] [measure_space β] : meas
 
 variables {μ ν} [sigma_finite ν]
 
+lemma volume_eq_prod (α β) [measure_space α] [measure_space β] :
+  (volume : measure (α × β)) = (volume : measure α).prod (volume : measure β) :=
+rfl
+
 lemma prod_apply {s : set (α × β)} (hs : measurable_set s) :
   μ.prod ν s = ∫⁻ x, ν (prod.mk x ⁻¹' s) ∂μ :=
 by simp_rw [measure.prod, bind_apply hs measurable.map_prod_mk_left,
@@ -480,7 +484,7 @@ begin
     (ν.to_finite_spanning_sets_in.prod τ.to_finite_spanning_sets_in (λ _, id) (λ _, id)) _).symm,
   rintro s hs _ ⟨t, u, ht, hu, rfl⟩, rw [mem_set_of_eq] at hs ht hu,
   simp_rw [map_apply (measurable_equiv.measurable _) (hs.prod (ht.prod hu)), prod_prod ht hu,
-    measurable_equiv.prod_assoc, measurable_equiv.coe_eq, equiv.prod_assoc_preimage,
+    measurable_equiv.prod_assoc, measurable_equiv.coe_mk, equiv.prod_assoc_preimage,
     prod_prod (hs.prod ht) hu, prod_prod hs ht, mul_assoc]
 end
 

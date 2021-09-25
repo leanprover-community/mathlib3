@@ -171,11 +171,12 @@ def coe_fn_add_monoid_hom [Π i, add_zero_class (β i)] : (Π₀ i, β i) →+ (
 def eval_add_monoid_hom [Π i, add_zero_class (β i)] (i : ι) : (Π₀ i, β i) →+ β i :=
 (pi.eval_add_monoid_hom β i).comp coe_fn_add_monoid_hom
 
-instance [Π i, add_group (β i)] : has_neg (Π₀ i, β i) :=
-⟨λ f, f.map_range (λ _, has_neg.neg) (λ _, neg_zero)⟩
-
 instance [Π i, add_comm_monoid (β i)] : add_comm_monoid (Π₀ i, β i) :=
 { add_comm := λ f g, ext $ λ i, by simp only [add_apply, add_comm],
+  nsmul := λ n v, v.map_range (λ _, (•) n) (λ _, smul_zero _),
+  nsmul_zero' := λ n, ext $ λ i, by simp only [map_range_apply, zero_apply, zero_smul],
+  nsmul_succ' := λ n z, ext $ λ i, by simp only [map_range_apply, add_apply,
+    nat.succ_eq_one_add, add_smul, one_smul],
   .. dfinsupp.add_monoid }
 
 @[simp] lemma coe_finset_sum {α} [Π i, add_comm_monoid (β i)] (s : finset α) (g : α → Π₀ i, β i) :
@@ -187,27 +188,42 @@ instance [Π i, add_comm_monoid (β i)] : add_comm_monoid (Π₀ i, β i) :=
   (∑ a in s, g a) i = ∑ a in s, g a i :=
 (eval_add_monoid_hom i : _ →+ β i).map_sum g s
 
+instance [Π i, add_group (β i)] : has_neg (Π₀ i, β i) :=
+⟨λ f, f.map_range (λ _, has_neg.neg) (λ _, neg_zero)⟩
+
 lemma neg_apply [Π i, add_group (β i)] (g : Π₀ i, β i) (i : ι) : (- g) i = - g i :=
 map_range_apply _ _ g i
 
 @[simp] lemma coe_neg [Π i, add_group (β i)] (g : Π₀ i, β i) : ⇑(- g) = - g :=
 funext $ neg_apply g
 
-instance [Π i, add_group (β i)] : add_group (Π₀ i, β i) :=
-{ add_left_neg := λ f, ext $ λ i, by simp only [add_apply, neg_apply, zero_apply, add_left_neg],
-  .. dfinsupp.add_monoid,
-  .. (infer_instance : has_neg (Π₀ i, β i)) }
+instance [Π i, add_group (β i)] : has_sub (Π₀ i, β i) :=
+⟨zip_with (λ _, has_sub.sub) (λ _, sub_zero 0)⟩
 
 lemma sub_apply [Π i, add_group (β i)] (g₁ g₂ : Π₀ i, β i) (i : ι) :
   (g₁ - g₂) i = g₁ i - g₂ i :=
-by rw [sub_eq_add_neg]; simp [sub_eq_add_neg]
+zip_with_apply _ _ g₁ g₂ i
 
 @[simp] lemma coe_sub [Π i, add_group (β i)] (g₁ g₂ : Π₀ i, β i) :
   ⇑(g₁ - g₂) = g₁ - g₂ :=
 funext $ sub_apply g₁ g₂
 
+instance [Π i, add_group (β i)] : add_group (Π₀ i, β i) :=
+{ add_left_neg := λ f, ext $ λ i, by simp only [add_apply, neg_apply, zero_apply, add_left_neg],
+  sub_eq_add_neg := λ f g, ext $ λ i,
+    by simp only [sub_apply, add_apply, neg_apply, sub_eq_add_neg],
+  .. dfinsupp.add_monoid,
+  .. dfinsupp.has_sub,
+  .. dfinsupp.has_neg }
+
 instance [Π i, add_comm_group (β i)] : add_comm_group (Π₀ i, β i) :=
-{ add_comm := λ f g, ext $ λ i, by simp only [add_apply, add_comm],
+{ gsmul := λ n v, v.map_range (λ _, (•) n) (λ _, smul_zero _),
+  gsmul_neg' := λ n f, ext $ λ i, by
+    rw [neg_apply, map_range_apply, map_range_apply, gsmul_neg_succ_of_nat, nsmul_eq_smul_cast ℤ,
+      int.nat_cast_eq_coe_nat],
+  gsmul_zero' := λ n, ext $ λ i, by simp only [map_range_apply, zero_apply, zero_smul],
+  gsmul_succ' := λ n f, ext $ λ i, by simp [map_range_apply, add_smul, add_comm],
+  ..@dfinsupp.add_comm_monoid _ β _,
   ..dfinsupp.add_group }
 
 /-- Dependent functions with finite support inherit a semiring action from an action on each

@@ -65,7 +65,7 @@ lemma balanced.absorbs_self (hA : balanced 𝕜 A) : absorbs 𝕜 A A :=
 begin
   use [1, zero_lt_one],
   intros a ha x hx,
-  rw mem_smul_set_iff_inv_smul_mem,
+  rw mem_smul_set_iff_inv_smul_mem',
   { apply hA a⁻¹,
     { rw norm_inv, exact inv_le_one ha },
     { rw mem_smul_set, use [x, hx] }},
@@ -130,7 +130,7 @@ begin
     rw [metric.mem_ball, dist_zero_right, norm_inv],
     calc ∥a∥⁻¹ ≤ r/2 : (inv_le (half_pos hr₁) ha₂).mp ha₁
     ...       < r : half_lt_self hr₁ },
-  rw [mem_smul_set_iff_inv_smul_mem (norm_pos_iff.mp ha₂)],
+  rw [mem_smul_set_iff_inv_smul_mem' (norm_pos_iff.mp ha₂)],
   exact hw₁ ha₃,
 end
 

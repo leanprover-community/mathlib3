@@ -361,9 +361,15 @@ attribute [nolint syn_taut] rfl
 ## Linters for ineffectual have and suffices statements in term mode
 -/
 
+/--
+Check if an expression contains `var 0` by folding over the expression and matching the binder depth
+-/
 meta def expr.has_zero_var (e : expr) : bool :=
 e.fold ff $ λ e' d res, res || match e' with | var k := k = d | _ := ff end
 
+/--
+Return a list of unused have and suffices terms in an expression
+-/
 meta def find_unused_have_suffices_macros : expr → tactic (list string)
 | (app a b) := (++) <$> find_unused_have_suffices_macros a <*> find_unused_have_suffices_macros b
 | (lam var_name bi var_type body) := find_unused_have_suffices_macros body
@@ -386,6 +392,9 @@ meta def find_unused_have_suffices_macros : expr → tactic (list string)
 | (macro md l) := do ls ← l.mmap find_unused_have_suffices_macros, return ls.join
 | _ := return []
 
+/--
+Return a list of unused have and suffices terms in a declaration
+-/
 meta def unused_have_of_decl : declaration → tactic (list string)
 | (declaration.defn _ _ _ bd _ _) := find_unused_have_suffices_macros bd
 | (declaration.thm _ _ _ bd) := find_unused_have_suffices_macros bd.get

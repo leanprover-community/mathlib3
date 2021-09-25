@@ -29,19 +29,16 @@ open finset linear_map set
 open_locale big_operators classical convex pointwise
 
 /-- Convexity of functions -/
-def convex_on (𝕜 : Type*) {E β : Type*} [ordered_semiring 𝕜] [add_comm_monoid E] [add_comm_monoid F]
+def convex_on (𝕜 : Type*) {E β : Type*} [ordered_semiring 𝕜] [add_comm_monoid E]
   [ordered_add_comm_monoid β] [has_scalar 𝕜 E] [has_scalar 𝕜 β] (s : set E) (f : E → β) : Prop :=
-  convex ℝ s ∧
-  ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : ℝ⦄, 0 ≤ a → 0 ≤ b → a + b = 1 →
-    f (a • x + b • y) ≤ a • f x + b • f y
+  convex 𝕜 s ∧ ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → a + b = 1
+    → f (a • x + b • y) ≤ a • f x + b • f y
 
 /-- Concavity of functions -/
 def concave_on (𝕜 : Type*) {E β : Type*} [ordered_semiring 𝕜] [add_comm_monoid E]
-  [add_comm_monoid F] [ordered_add_comm_monoid β] [has_scalar 𝕜 E] [has_scalar 𝕜 β] (s : set E)
-  (f : E → β) : Prop :=
-  convex ℝ s ∧
-  ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : ℝ⦄, 0 ≤ a → 0 ≤ b → a + b = 1 →
-    a • f x + b • f y ≤ f (a • x + b • y)
+  [ordered_add_comm_monoid β] [has_scalar 𝕜 E] [has_scalar 𝕜 β] (s : set E) (f : E → β) : Prop :=
+  convex 𝕜 s ∧ ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → a + b = 1
+    → a • f x + b • f y ≤ f (a • x + b • y)
 
 variables {𝕜 E F ι ι' β : Type*} [add_comm_group E] [module ℝ E] [add_comm_group F] [module ℝ F]
   [ordered_add_comm_monoid β] [module ℝ β] {s : set E}

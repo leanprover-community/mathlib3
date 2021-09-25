@@ -963,8 +963,8 @@ protected theorem convex.antitone_on_of_deriv_nonpos {D : set ℝ} (hD : convex 
 by simpa only [zero_mul, sub_nonpos] using hD.image_sub_le_mul_sub_of_deriv_le hf hf' hf'_nonpos
 
 /-- Let `f : ℝ → ℝ` be a differentiable function. If `f'` is nonpositive, then
-`f` is a antitone function. -/
-theorem antitone_on_of_deriv_nonpos {f : ℝ → ℝ} (hf : differentiable ℝ f)
+`f` is an antitone function. -/
+theorem antitone_of_deriv_nonpos {f : ℝ → ℝ} (hf : differentiable ℝ f)
   (hf' : ∀ x, deriv f x ≤ 0) :
   ∀ ⦃x y⦄, x ≤ y → f y ≤ f x :=
 λ x y hxy, convex_univ.antitone_on_of_deriv_nonpos hf.continuous.continuous_on hf.differentiable_on

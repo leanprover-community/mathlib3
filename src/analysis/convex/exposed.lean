@@ -186,7 +186,7 @@ begin
   { exact convex_empty },
   obtain ⟨l, rfl⟩ := hAB hB,
   exact λ x₁ x₂ hx₁ hx₂ a b ha hb hab, ⟨hA hx₁.1 hx₂.1 ha hb hab, λ y hy,
-    ((l.to_linear_map.concave_on convex_univ).concave_le _
+    ((l.to_linear_map.concave_on convex_univ).concave_ge _
     ⟨mem_univ _, hx₁.2 y hy⟩ ⟨mem_univ _, hx₂.2 y hy⟩ ha hb hab).2⟩,
 end
 

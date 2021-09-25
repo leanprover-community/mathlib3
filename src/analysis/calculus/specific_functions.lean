@@ -406,7 +406,7 @@ lemma closure_support_eq : closure (support f) = euclidean.closed_ball c f.R :=
 by rw [f.support_eq, euclidean.closure_ball _ f.R_pos]
 
 lemma compact_closure_support : is_compact (closure (support f)) :=
-by { rw f.closure_support_eq, exact euclidean.compact_ball }
+by { rw f.closure_support_eq, exact euclidean.is_compact_closed_ball }
 
 lemma eventually_eq_one_of_mem_ball (h : x ∈ euclidean.ball c f.r) :
   f =ᶠ[𝓝 x] 1 :=

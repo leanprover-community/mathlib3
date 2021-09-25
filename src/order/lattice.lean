@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 -/
 import order.rel_classes
 import tactic.simps
+import tactic.pi_instances
 
 /-!
 # (Semi-)lattices
@@ -609,6 +610,25 @@ instance lattice_of_linear_order {α : Type u} [o : linear_order α] :
 theorem sup_eq_max [linear_order α] {x y : α} : x ⊔ y = max x y := rfl
 theorem inf_eq_min [linear_order α] {x y : α} : x ⊓ y = min x y := rfl
 
+/-- A lattice with total order is a linear order.
+
+See note [reducible non-instances]. -/
+@[reducible] def lattice.to_linear_order (α : Type u) [lattice α] [decidable_eq α]
+  [decidable_rel ((≤) : α → α → Prop)] [decidable_rel ((<) : α → α → Prop)]
+  (h : ∀ x y : α, x ≤ y ∨ y ≤ x) :
+  linear_order α :=
+{ decidable_le := ‹_›, decidable_eq := ‹_›, decidable_lt := ‹_›,
+  le_total := h,
+  max := (⊔),
+  max_def := by {
+    funext x y, dunfold max_default,
+    split_ifs with h', exacts [sup_of_le_left h', sup_of_le_right $ (h x y).resolve_right h'] },
+  min := (⊓),
+  min_def := by {
+    funext x y, dunfold min_default,
+    split_ifs with h', exacts [inf_of_le_left h', inf_of_le_right $ (h x y).resolve_left h'] },
+  .. ‹lattice α› }
+
 @[priority 100] -- see Note [lower instance priority]
 instance distrib_lattice_of_linear_order {α : Type u} [o : linear_order α] :
   distrib_lattice α :=
@@ -622,10 +642,63 @@ instance distrib_lattice_of_linear_order {α : Type u} [o : linear_order α] :
 instance nat.distrib_lattice : distrib_lattice ℕ :=
 by apply_instance
 
+/-! ### Function lattices -/
+
+namespace pi
+variables {ι : Type*} {α' : ι → Type*}
+
+instance [Π i, has_sup (α' i)] : has_sup (Π i, α' i) := ⟨λ f g i, f i ⊔ g i⟩
+
+@[simp] lemma sup_apply [Π i, has_sup (α' i)] (f g : Π i, α' i) (i : ι) : (f ⊔ g) i = f i ⊔ g i :=
+rfl
+
+lemma sup_def [Π i, has_sup (α' i)] (f g : Π i, α' i) : f ⊔ g = λ i, f i ⊔ g i := rfl
+
+instance [Π i, has_inf (α' i)] : has_inf (Π i, α' i) := ⟨λ f g i, f i ⊓ g i⟩
+
+@[simp] lemma inf_apply [Π i, has_inf (α' i)] (f g : Π i, α' i) (i : ι) : (f ⊓ g) i = f i ⊓ g i :=
+rfl
+
+lemma inf_def [Π i, has_inf (α' i)] (f g : Π i, α' i) : f ⊓ g = λ i, f i ⊓ g i := rfl
+
+instance [Π i, semilattice_sup (α' i)] : semilattice_sup (Π i, α' i) :=
+by refine_struct { sup := (⊔), .. pi.partial_order }; tactic.pi_instance_derive_field
+
+instance [Π i, semilattice_inf (α' i)] : semilattice_inf (Π i, α' i) :=
+by refine_struct { inf := (⊓), .. pi.partial_order }; tactic.pi_instance_derive_field
+
+instance [Π i, lattice (α' i)] : lattice (Π i, α' i) :=
+{ .. pi.semilattice_sup, .. pi.semilattice_inf }
+
+instance [Π i, distrib_lattice (α' i)] : distrib_lattice (Π i, α' i) :=
+by refine_struct { .. pi.lattice }; tactic.pi_instance_derive_field
+
+end pi
+
 /-!
 ### Monotone functions and lattices
 -/
 namespace monotone
+
+/-- Pointwise supremum of two monotone functions is a monotone function. -/
+protected lemma sup [preorder α] [semilattice_sup β] {f g : α → β} (hf : monotone f)
+  (hg : monotone g) : monotone (f ⊔ g) :=
+λ x y h, sup_le_sup (hf h) (hg h)
+
+/-- Pointwise infimum of two monotone functions is a monotone function. -/
+protected lemma inf [preorder α] [semilattice_inf β] {f g : α → β} (hf : monotone f)
+  (hg : monotone g) : monotone (f ⊓ g) :=
+λ x y h, inf_le_inf (hf h) (hg h)
+
+/-- Pointwise maximum of two monotone functions is a monotone function. -/
+protected lemma max [preorder α] [linear_order β] {f g : α → β} (hf : monotone f)
+  (hg : monotone g) : monotone (λ x, max (f x) (g x)) :=
+hf.sup hg
+
+/-- Pointwise minimum of two monotone functions is a monotone function. -/
+protected lemma min [preorder α] [linear_order β] {f g : α → β} (hf : monotone f)
+  (hg : monotone g) : monotone (λ x, min (f x) (g x)) :=
+hf.inf hg
 
 lemma le_map_sup [semilattice_sup α] [semilattice_sup β]
   {f : α → β} (h : monotone f) (x y : α) :

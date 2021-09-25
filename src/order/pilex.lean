@@ -3,15 +3,15 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import algebra.ordered_pi
+import algebra.order.pi
 import order.well_founded
-import algebra.order_functions
+import algebra.order.functions
 
 /-!
 # Lexicographic order on Pi types
 
 This file defines the lexicographic relation for Pi types of partial orders and linear orders. We
-also provide a `pilex` analog of `pi.ordered_comm_group` (see `algebra.ordered_pi`).
+also provide a `pilex` analog of `pi.ordered_comm_group` (see `algebra.order.pi`).
 -/
 
 variables {ι : Type*} {β : ι → Type*} (r : ι → ι → Prop)

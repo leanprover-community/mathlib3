@@ -62,7 +62,7 @@ def pderiv (i : σ) : mv_polynomial σ R →ₗ[R] mv_polynomial σ R :=
   map_smul' := begin
     intros c x,
     rw [sum_smul_index', smul_sum],
-    { simp_rw [monomial, smul_single, smul_eq_mul, mul_assoc] },
+    { dsimp, simp_rw [monomial, smul_single, smul_eq_mul, mul_assoc] },
     { intros s,
       simp only [monomial_zero, zero_mul] }
   end,

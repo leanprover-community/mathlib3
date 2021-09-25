@@ -3,7 +3,6 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import linear_algebra.basic
 import linear_algebra.basis
 import linear_algebra.pi
 import data.matrix.basis

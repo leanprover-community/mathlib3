@@ -269,7 +269,7 @@ begin
     rw [list.nth_le_of_fn'] }
 end
 
-@[simp] lemma of_list_to_list' (s : composition_series X) (hc : list.chain' is_maximal s.to_list) :
+@[simp] lemma of_list_to_list' (s : composition_series X) :
   of_list s.to_list s.to_list_ne_nil s.chain'_to_list = s :=
 of_list_to_list s
 
@@ -799,4 +799,5 @@ begin
     exact equivalent.snoc this
       (by simp [htt, iso_refl_of_is_maximal (is_maximal_erase_top_top h0s₂)]) }
 end
+
 end composition_series

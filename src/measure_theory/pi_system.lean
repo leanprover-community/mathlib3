@@ -207,7 +207,7 @@ section Union_Inter
 define the set of sets that can be written as `⋂ x ∈ t, f x` for some `t ∈ S` and sets `f x ∈ π x`.
 
 If `S` is union-closed and `π` is a family of π-systems, then it is a π-system.
-The π-systems used to prove Komogorov's 0-1 law are of that form. -/
+The π-systems used to prove Kolmogorov's 0-1 law are of that form. -/
 def pi_Union_Inter {α ι} (π : ι → set (set α)) (S : set (finset ι)) : set (set α) :=
 {s : set α | ∃ (t : finset ι) (htS : t ∈ S) (f : ι → set α) (hf : ∀ x, x ∈ t → f x ∈ π x),
   s = ⋂ x ∈ t, f x}

@@ -2048,6 +2048,12 @@ begin
       with_density_apply _ (ht.inter hs), restrict_restrict ht],
 end
 
+lemma with_density_eq_zero {f : α → ℝ≥0∞}
+  (hf : ae_measurable f μ) (h : μ.with_density f = 0) :
+  f =ᵐ[μ] 0 :=
+by rw [← lintegral_eq_zero_iff' hf, ← set_lintegral_univ,
+       ← with_density_apply _ measurable_set.univ, h, measure.coe_zero, pi.zero_apply]
+
 end lintegral
 
 end measure_theory

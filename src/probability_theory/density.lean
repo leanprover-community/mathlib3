@@ -72,6 +72,11 @@ such that the push-forward measure of `ℙ` along `X` equals `μ.with_density f`
 def pdf {m : measurable_space α} (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac) :=
 if hX : has_pdf X ℙ μ then classical.some hX.pdf' else 0
 
+lemma pdf_undef {m : measurable_space α} {ℙ : measure α} {μ : measure E} {X : α → E}
+  (h : ¬ has_pdf X ℙ μ) :
+  pdf X ℙ μ = 0 :=
+by simp only [pdf, dif_neg h]
+
 @[measurability]
 lemma measurable_pdf {m : measurable_space α}
   (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac) :
@@ -97,6 +102,23 @@ lemma map_eq_set_lintegral_pdf {m : measurable_space α}
   {s : set E} (hs : measurable_set s) :
   measure.map X ℙ s = ∫⁻ x in s, pdf X ℙ μ x ∂μ :=
 by rw [← with_density_apply _ hs, map_eq_with_density_pdf X ℙ μ]
+
+lemma pdf_ae_eq_zero_of_not_measurable {m : measurable_space α}
+  {ℙ : measure α} {μ : measure E} {X : α → E} (hX : ¬ measurable X) :
+  pdf X ℙ μ =ᵐ[μ] 0 :=
+begin
+  by_cases hX_pdf : has_pdf X ℙ μ,
+  { haveI := hX_pdf,
+    have h_eq := map_eq_with_density_pdf X ℙ μ,
+    rw map_of_not_measurable hX at h_eq,
+    exact with_density_eq_zero (measurable_pdf X ℙ μ).ae_measurable h_eq.symm, },
+  { exact filter.eventually_of_forall (λ x, by rw pdf_undef hX_pdf), },
+end
+
+lemma measurable_of_pdf_ne_zero {m : measurable_space α}
+  {ℙ : measure α} {μ : measure E} (X : α → E) (h : ¬ pdf X ℙ μ =ᵐ[μ] 0) :
+  measurable X :=
+by { by_contra hX, exact h (pdf_ae_eq_zero_of_not_measurable hX), }
 
 namespace pdf
 

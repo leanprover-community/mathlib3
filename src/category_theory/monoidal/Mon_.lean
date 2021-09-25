@@ -198,8 +198,10 @@ def map_Mon (F : lax_monoidal_functor C D) : Mon_ C ⥤ Mon_ D :=
       rw [category.assoc, F.μ_natural_assoc, ←F.to_functor.map_comp, ←F.to_functor.map_comp,
         f.mul_hom],
     end },
-  map_id' := λ A, by { ext, simp, },
-  map_comp' := λ A B C f g, by { ext, simp, }, }
+  map_id' := λ A, by { ext,
+    simp only [eq_self_iff_true, category_theory.functor.map_id, Mon_.id_hom'], },
+  map_comp' := λ A B C f g, by {
+      ext, simp only [eq_self_iff_true, Mon_.comp_hom', category_theory.functor.map_comp], }, }
 
 variables (C D)
 

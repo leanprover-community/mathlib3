@@ -19,7 +19,7 @@ absolute value is compatible with the Euclidean domain structure on its domain.
  * `absolute_value.abs_is_euclidean` shows the "standard" absolute value on `ℤ`,
    mapping negative `x` to `-x`, is euclidean.
 -/
-local infix ` ≺ `:50 := euclidean_domain.r
+local infix ` ≺ `:50 := euclidean_domain_core.r
 
 namespace absolute_value
 

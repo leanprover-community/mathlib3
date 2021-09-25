@@ -40,9 +40,10 @@ alias real.convex_iff_is_preconnected ↔ convex.is_preconnected is_preconnected
 
 section std_simplex
 
+
 /-- Every vector in `std_simplex ℝ ι` has `max`-norm at most `1`. -/
 lemma std_simplex_subset_closed_ball :
-  std_simplex ℝ ι ⊆ metric.closed_ball 0 1 :=
+  (coe : (ι →₀ ℝ) → ι → ℝ) '' std_simplex ℝ ι ⊆ metric.closed_ball 0 1 :=
 begin
   assume f hf,
   rw [metric.mem_closed_ball, dist_zero_right],
@@ -60,7 +61,7 @@ lemma bounded_std_simplex : metric.bounded (std_simplex ℝ ι) :=
 
 /-- `std_simplex ℝ ι` is closed. -/
 lemma is_closed_std_simplex : is_closed (std_simplex ℝ ι) :=
-(std_simplex_eq_inter ι ℝ).symm ▸ is_closed.inter
+(std_simplex_eq_inter ℝ ι).symm ▸ is_closed.inter
   (is_closed_Inter $ λ i, is_closed_le continuous_const (continuous_apply i))
   (is_closed_eq (continuous_finset_sum _ $ λ x _, continuous_apply x) continuous_const)
 

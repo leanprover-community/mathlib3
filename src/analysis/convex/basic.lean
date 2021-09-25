@@ -1040,7 +1040,7 @@ variables (ι : Type*) [ordered_semiring 𝕜]
 with non-negative coordinates with total sum `1`. This is the free object in the category of convex
 spaces.-/
 def std_simplex : set (ι →₀ 𝕜) :=
-{f | (∀ x, 0 ≤ f x) ∧ f.sum (λ _, id) = 1}
+{f | (∀ x, 0 ≤ f x) ∧ f.sum (λ i, id) = 1}
 
 lemma std_simplex_eq_inter :
   std_simplex 𝕜 ι = (⋂ x, {f | 0 ≤ f x}) ∩ {f | f.sum (λ _, id) = 1} :=
@@ -1050,15 +1050,22 @@ lemma convex_std_simplex : convex 𝕜 (std_simplex 𝕜 ι) :=
 begin
   refine λ f g hf hg a b ha hb hab, ⟨λ x, _, _⟩,
   { apply_rules [add_nonneg, mul_nonneg, hf.1, hg.1] },
-  { rw [finsupp.sum_add_index, ←finsupp.smul_sum, finsupp.sum_smul_index, hf.2, hg.2,
-      smul_eq_mul, smul_eq_mul, mul_one, mul_one],
-    exact hab }
+  rw [finsupp.sum_add_index, finsupp.sum_smul_index, finsupp.sum_smul_index],
+  change f.sum (λ (i : ι) (x : 𝕜), a • x) + g.sum (λ (i : ι) (x : 𝕜), b • x) = 1,
+  rw [←finsupp.smul_sum, ←finsupp.smul_sum],
+  change a • f.sum (λ i, id) + b • g.sum (λ i, id) = 1,
+  rw [hf.2, hg.2, smul_eq_mul, smul_eq_mul, mul_one, mul_one, hab],
+  all_goals { intros, refl }
 end
 
 variable {ι}
 
-lemma single_mem_std_simplex (i : ι) : finsupp.single i 1 ∈ std_simplex 𝕜 ι :=
-⟨λ j, by simp only; split_ifs; norm_num, by rw [finset.sum_ite_eq, if_pos (finset.mem_univ _)],
-  finsupp.sum_single _ _⟩
+lemma single_mem_std_simplex (i : ι) : finsupp.single i (1 : 𝕜) ∈ std_simplex 𝕜 ι :=
+⟨λ j, begin
+  rw finsupp.single_apply,
+  split_ifs,
+  { exact zero_le_one },
+  { exact le_rfl }
+end, by simp only [finsupp.sum_single_index, id.def]⟩
 
 end simplex

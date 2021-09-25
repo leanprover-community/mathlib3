@@ -254,16 +254,26 @@ end
 
 /-! ### `std_simplex` -/
 
+lemma finsupp.single_le_sum {α M N : Type*} [has_zero M] [ordered_add_comm_monoid N] (f : α →₀ M)
+  {a : α} {h : α → M → N} (h₀ : h a 0 = 0)
+  (hsupp : ∀ (i : α), i ∈ f.support → 0 ≤ h i (f i)) : h a (f a) ≤ f.sum h :=
+begin
+  by_cases a ∈ f.support,
+  { exact finset.single_le_sum hsupp h },
+  { rw [finsupp.not_mem_support_iff.1 h, h₀],
+    exact finset.sum_nonneg hsupp }
+end
+
 variables (ι) {f : ι →₀ R}
 
 /-- `std_simplex R ι` is the convex hull of the canonical basis in `ι → R`. -/
 lemma convex_hull_basis_eq_std_simplex :
-  convex_hull R (range $ λ (i :ι), finsupp.single i 1) = std_simplex R ι :=
+  convex_hull R (range $ λ (i :ι), finsupp.single i (1 : R)) = std_simplex R ι :=
 begin
   refine subset.antisymm (convex_hull_min _ (convex_std_simplex R ι)) _,
-  { rintros _ ⟨i, rfl⟩,
+  { rintro _ ⟨i, rfl⟩,
     exact single_mem_std_simplex R i },
-  { rintros w ⟨hw₀, hw₁⟩,
+  { rintro w ⟨hw₀, hw₁⟩,
     rw [pi_eq_sum_univ w, ← finset.univ.center_mass_eq_of_sum_1 _ hw₁],
     exact finset.univ.center_mass_mem_convex_hull (λ i hi, hw₀ i)
       (hw₁.symm ▸ zero_lt_one) (λ i hi, mem_range_self i) }
@@ -291,4 +301,8 @@ end
 /-- All values of a function `f ∈ std_simplex ι` belong to `[0, 1]`. -/
 lemma mem_Icc_of_mem_std_simplex (hf : f ∈ std_simplex R ι) (x) :
   f x ∈ Icc (0 : R) 1 :=
-⟨hf.1 x, hf.2 ▸ finset.single_le_sum (λ y hy, hf.1 y) (finset.mem_univ x)⟩
+⟨hf.1 x, begin
+  rw ←hf.2,
+  change (λ i : ι, id) x (f x) ≤ _,
+  exact f.single_le_sum rfl (λ i _, hf.1 i),
+end⟩

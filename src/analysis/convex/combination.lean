@@ -264,19 +264,29 @@ begin
     exact finset.sum_nonneg hsupp }
 end
 
+lemma finsupp.linear_combi_single_eq {α M : Type*} [semiring M] (f : α →₀ M) :
+  f.sum (λ a b, f a • finsupp.single a (1 : M)) = f :=
+begin
+  simp_rw [finsupp.smul_single, smul_eq_mul, mul_one],
+  exact f.sum_single,
+end
+
 variables (ι) {f : ι →₀ R}
 
 /-- `std_simplex R ι` is the convex hull of the canonical basis in `ι → R`. -/
 lemma convex_hull_basis_eq_std_simplex :
-  convex_hull R (range $ λ (i :ι), finsupp.single i (1 : R)) = std_simplex R ι :=
+  convex_hull R (range $ λ (i : ι), finsupp.single i (1 : R)) = std_simplex R ι :=
 begin
-  refine subset.antisymm (convex_hull_min _ (convex_std_simplex R ι)) _,
+  refine (convex_hull_min _ (convex_std_simplex R ι)).antisymm _,
   { rintro _ ⟨i, rfl⟩,
     exact single_mem_std_simplex R i },
-  { rintro w ⟨hw₀, hw₁⟩,
-    rw [pi_eq_sum_univ w, ← finset.univ.center_mass_eq_of_sum_1 _ hw₁],
-    exact finset.univ.center_mass_mem_convex_hull (λ i hi, hw₀ i)
-      (hw₁.symm ▸ zero_lt_one) (λ i hi, mem_range_self i) }
+  rintro w ⟨hw₀, hw₁⟩,
+  rw [←w.linear_combi_single_eq, finsupp.sum],
+  simp_rw [finsupp.sum, id.def] at hw₁,
+  rw ←finset.center_mass_eq_of_sum_1,
+  exact finset.center_mass_mem_convex_hull _ (λ i _, hw₀ i) (hw₁.symm ▸ zero_lt_one)
+    (λ i _, mem_range_self i),
+  { exact hw₁ }
 end
 
 variable {ι}
@@ -289,7 +299,7 @@ The map is defined in terms of operations on `(s → ℝ) →ₗ[ℝ] ℝ` so th
 to prove that this map is linear. -/
 lemma set.finite.convex_hull_eq_image {s : set E} (hs : finite s) :
   convex_hull R s = by haveI := hs.fintype; exact
-    (⇑(∑ x : s, (@linear_map.proj R s _ (λ i, R) _ _ x).smul_right x.1)) '' (std_simplex R s) :=
+    (⇑(∑ x : s, (@linear_map.proj R s _ (λ i, R) _ _ x).smul_right x.1)) '' (coe '' std_simplex R s) :=
 begin
   rw [← convex_hull_basis_eq_std_simplex, ← linear_map.convex_hull_image, ← set.range_comp, (∘)],
   apply congr_arg,

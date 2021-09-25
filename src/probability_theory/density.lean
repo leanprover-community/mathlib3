@@ -218,15 +218,21 @@ begin
     rwa with_density_radon_nikodym_deriv_eq }
 end
 
+section
+
+variables {F : Type*} [normed_group F] [measurable_space F] [second_countable_topology F]
+  [normed_space ℝ F] [complete_space F] [borel_space F] {ν : measure F}
+
+
 /-- A random variable that `has_pdf` transformed under a `quasi_measure_preserving`
 map also `has_pdf` if `(map g (map X ℙ)).have_lebesgue_decomposition μ`.
 
 `quasi_measure_preserving_has_pdf'` is more useful in the case we are working with a
 probability measure and a real-valued random variable. -/
 lemma quasi_measure_preserving_has_pdf {X : α → E} (hX : measurable X) [has_pdf X ℙ μ]
-  {g : E → E} (hg : quasi_measure_preserving g μ μ)
-  (hmap : (map g (map X ℙ)).have_lebesgue_decomposition μ) :
-  has_pdf (g ∘ X) ℙ μ :=
+  {g : E → F} (hg : quasi_measure_preserving g μ ν)
+  (hmap : (map g (map X ℙ)).have_lebesgue_decomposition ν) :
+  has_pdf (g ∘ X) ℙ ν :=
 begin
   rw [has_pdf_iff (hg.measurable.comp hX), ← map_map hg.measurable hX],
   refine ⟨hmap, _⟩,
@@ -238,14 +244,16 @@ begin
   exact set_lintegral_measure_zero _ _ this,
 end
 
-lemma quasi_measure_preserving_has_pdf' [is_finite_measure ℙ] [sigma_finite μ]
+lemma quasi_measure_preserving_has_pdf' [is_finite_measure ℙ] [sigma_finite ν]
   {X : α → E} (hX : measurable X) [has_pdf X ℙ μ]
-  {g : E → E} (hg : quasi_measure_preserving g μ μ) :
-  has_pdf (g ∘ X) ℙ μ :=
+  {g : E → F} (hg : quasi_measure_preserving g μ ν) :
+  has_pdf (g ∘ X) ℙ ν :=
 begin
   haveI : is_finite_measure (map g (map X ℙ)) :=
     @is_finite_measure_map _ _ _ _ (map X ℙ) (is_finite_measure_map ℙ hX) _ hg.measurable,
   exact quasi_measure_preserving_has_pdf hX hg infer_instance,
+end
+
 end
 
 section real

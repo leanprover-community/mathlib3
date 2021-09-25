@@ -223,7 +223,6 @@ section
 variables {F : Type*} [normed_group F] [measurable_space F] [second_countable_topology F]
   [normed_space ℝ F] [complete_space F] [borel_space F] {ν : measure F}
 
-
 /-- A random variable that `has_pdf` transformed under a `quasi_measure_preserving`
 map also `has_pdf` if `(map g (map X ℙ)).have_lebesgue_decomposition μ`.
 

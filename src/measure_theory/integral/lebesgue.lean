@@ -1597,33 +1597,40 @@ begin
     refl' }
 end
 
-lemma lintegral_strict_mono {f g : α → ℝ≥0∞} (huniv : μ set.univ ≠ 0)
-  (hf : measurable f) (hg : measurable g) (hfi : ∫⁻ x, f x ∂μ ≠ ∞) (h : ∀ᵐ x ∂μ, f x < g x) :
+lemma lintegral_strict_mono_of_ae_le_of_ae_lt_on {f g : α → ℝ≥0∞}
+  (hf : measurable f) (hg : measurable g) (hfi : ∫⁻ x, f x ∂μ ≠ ∞) (h_le : f ≤ᵐ[μ] g)
+  {s : set α} (hμs : μ s ≠ 0) (h : ∀ᵐ x ∂μ, x ∈ s → f x < g x) :
   ∫⁻ x, f x ∂μ < ∫⁻ x, g x ∂μ :=
 begin
-  rw [← ennreal.sub_pos, ← lintegral_sub hg hf hfi (ae_le_of_ae_lt h)],
+  rw [← ennreal.sub_pos, ← lintegral_sub hg hf hfi h_le],
   by_contra hnlt,
   rw [not_lt, nonpos_iff_eq_zero, lintegral_eq_zero_iff (hg.sub hf), filter.eventually_eq] at hnlt,
   simp only [ae_iff, ennreal.sub_eq_zero_iff_le, pi.zero_apply, not_lt, not_le] at hnlt h,
-  refine huniv _,
-  rw [← h, ← add_zero (μ {a : α | g a ≤ f a}), ← hnlt, ← measure_union],
-  { congr, ext x,
-    simp only [set.mem_univ, iff_true, set.mem_union_eq, set.mem_set_of_eq, le_or_lt] },
-  { rintro x ⟨hxlt, hxgt⟩,
-    exact not_lt.2 hxlt hxgt },
-  { exact measurable_set_le hg hf },
-  { exact measurable_set_lt hf hg }
+  refine hμs _,
+  push_neg at h,
+  have hs_eq : s = {a : α | a ∈ s ∧ g a ≤ f a} ∪ {a : α | a ∈ s ∧ f a < g a},
+  { ext1 x,
+    simp_rw [set.mem_union, set.mem_set_of_eq, ← not_le],
+    tauto, },
+  rw hs_eq,
+  refine measure_union_null h (measure_mono_null _ hnlt),
+  simp,
+end
+
+lemma lintegral_strict_mono {f g : α → ℝ≥0∞} (hμ : μ ≠ 0)
+  (hf : measurable f) (hg : measurable g) (hfi : ∫⁻ x, f x ∂μ ≠ ∞) (h : ∀ᵐ x ∂μ, f x < g x) :
+  ∫⁻ x, f x ∂μ < ∫⁻ x, g x ∂μ :=
+begin
+  rw [ne.def, ← measure.measure_univ_eq_zero] at hμ,
+  refine lintegral_strict_mono_of_ae_le_of_ae_lt_on hf hg hfi (ae_le_of_ae_lt h) hμ _,
+  simpa using h,
 end
 
 lemma set_lintegral_strict_mono {f g : α → ℝ≥0∞} {s : set α}
   (hsm : measurable_set s) (hs : μ s ≠ 0) (hf : measurable f) (hg : measurable g)
   (hfi : ∫⁻ x in s, f x ∂μ ≠ ∞) (h : ∀ᵐ x ∂μ, x ∈ s → f x < g x) :
   ∫⁻ x in s, f x ∂μ < ∫⁻ x in s, g x ∂μ :=
-begin
-  refine lintegral_strict_mono _ hf hg hfi _,
-  { rwa [measure.restrict_apply measurable_set.univ, set.univ_inter] },
-  { rwa ae_restrict_iff' hsm }
-end
+lintegral_strict_mono (by simp [hs]) hf hg hfi ((ae_restrict_iff' hsm).mpr h)
 
 /-- Monotone convergence theorem for nonincreasing sequences of functions -/
 lemma lintegral_infi_ae

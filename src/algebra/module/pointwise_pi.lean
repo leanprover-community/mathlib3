@@ -23,7 +23,7 @@ open set
 variables {K ι : Type*} {R : ι → Type*}
 
 @[to_additive]
-lemma smul_pi_subset [∀ i, has_scalar K (R i)] (r : K) (t : Π i, set (R i)) (s : set ι) :
+lemma smul_pi_subset [∀ i, has_scalar K (R i)] (r : K) (s : set ι) (t : Π i, set (R i)) :
   r • pi s t ⊆ pi s (r • t) :=
 begin
   rintros x ⟨y, h, rfl⟩ i hi,
@@ -40,11 +40,11 @@ subset.antisymm (smul_pi_subset _ _ _) $ λ x h, begin
 end
 
 @[to_additive]
-lemma smul_pi [group K] [∀ i, mul_action K (R i)] (r : K) (t : Π i, set (R i)) (S : set ι) :
+lemma smul_pi [group K] [∀ i, mul_action K (R i)] (r : K) (S : set ι) (t : Π i, set (R i)) :
   r • S.pi t = S.pi (r • t) :=
 subset.antisymm (smul_pi_subset _ _ _) $ λ x h,
   ⟨r⁻¹ • x, λ i hiS, mem_smul_set_iff_inv_smul_mem.mp (h i hiS), smul_inv_smul _ _⟩
 
-lemma smul_pi' [group_with_zero K] [∀ i, mul_action K (R i)] {r : K} (t : Π i, set (R i))
-  (S : set ι) (hr : r ≠ 0) : r • S.pi t = S.pi (r • t) :=
+lemma smul_pi' [group_with_zero K] [∀ i, mul_action K (R i)] {r : K} (S : set ι)
+  (t : Π i, set (R i)) (hr : r ≠ 0) : r • S.pi t = S.pi (r • t) :=
 smul_pi (units.mk0 r hr) t S

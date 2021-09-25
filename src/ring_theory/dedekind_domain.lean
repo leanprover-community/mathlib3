@@ -1044,14 +1044,14 @@ begin
     { specialize H₃ (quotient_multiplicity I p),
       rw quotient_multiplicity,
       apply H₃ (nat.Inf_mem (quotient_multiplicity_well_defined I hI p Hp)) },
-    { intros n hn,
+    intros n hn,
       by_contradiction hc,
       rw not_le at hc,
       have H₄ := pow_map_gt_of_exponent_lt I hI p Hp n hc,
       specialize hn ((factors I).count p) (le_of_lt hc),
       rw ← hn at H₄,
       apply false_of_ne,
-      exact ne_of_lt H₄ } },
+      exact ne_of_lt H₄ },
 end
 
 

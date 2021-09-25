@@ -47,4 +47,4 @@ subset.antisymm (smul_pi_subset _ _ _) $ λ x h,
 
 lemma smul_pi' [group_with_zero K] [∀ i, mul_action K (R i)] {r : K} (S : set ι)
   (t : Π i, set (R i)) (hr : r ≠ 0) : r • S.pi t = S.pi (r • t) :=
-smul_pi (units.mk0 r hr) t S
+smul_pi (units.mk0 r hr) S t

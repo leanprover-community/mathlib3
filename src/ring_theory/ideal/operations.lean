@@ -1131,8 +1131,8 @@ le_antisymm (map_le_iff_le_comap.2 $ mul_le.2 $ λ r hri s hsj,
 theorem map_pow (n : ℕ) : map f (I^n) = (map f I)^n :=
 begin
   induction n with n hn,
-    rw [pow_zero, one_eq_top, map_top, pow_zero, one_eq_top],
-    rw [pow_succ, map_mul, pow_succ, hn],
+  { rw [pow_zero, one_eq_top, map_top, pow_zero, one_eq_top], },
+  { rw [pow_succ, map_mul, pow_succ, hn], },
 end
 
 theorem comap_radical : comap f (radical K) = radical (comap f K) :=

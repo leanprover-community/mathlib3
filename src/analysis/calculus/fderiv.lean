@@ -2077,6 +2077,14 @@ begin
   exact h.fderiv p
 end
 
+lemma is_bounded_bilinear_map.differentiable (h : is_bounded_bilinear_map 𝕜 b) :
+  differentiable 𝕜 b :=
+λx, h.differentiable_at x
+
+lemma is_bounded_bilinear_map.differentiable_on (h : is_bounded_bilinear_map 𝕜 b) :
+  differentiable_on 𝕜 b u :=
+h.differentiable.differentiable_on
+
 end bilinear_map
 
 section clm_comp_apply

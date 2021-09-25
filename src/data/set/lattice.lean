@@ -1581,7 +1581,7 @@ def sup_closed [has_sup α] (s : set α) : Prop := ∀ x1 x2, x1 ∈ s → x2 �
 lemma sup_closed_singleton [semilattice_sup α] (x : α) : sup_closed ({x} : set α) :=
 λ _ _ y1_mem y2_mem, by { rw set.mem_singleton_iff at *, rw [y1_mem, y2_mem, sup_idem], }
 
-lemma sup_closed_inter [semilattice_sup α] {s t : set α} (hs : sup_closed s)
+lemma sup_closed.inter [semilattice_sup α] {s t : set α} (hs : sup_closed s)
   (ht : sup_closed t) :
   sup_closed (s ∩ t) :=
 begin

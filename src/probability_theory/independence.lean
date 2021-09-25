@@ -312,41 +312,6 @@ begin
   exact indep_sets.indep_aux h2 hp2 hpm2 hyp ht ht2,
 end
 
-end from_pi_systems_to_measurable_spaces
-
-section indep_set
-/-! ### Independence of measurable sets
-
-We prove the following equivalences on `indep_set`, for measurable sets `s, t`.
-* `indep_set s t μ ↔ μ (s ∩ t) = μ s * μ t`,
-* `indep_set s t μ ↔ indep_sets {s} {t} μ`.
--/
-
-variables {α : Type*} [measurable_space α] {s t : set α} (S T : set (set α))
-
-lemma indep_set_iff_indep_sets_singleton (hs_meas : measurable_set s) (ht_meas : measurable_set t)
-  (μ : measure α . volume_tac) [is_probability_measure μ] :
-  indep_set s t μ ↔ indep_sets {s} {t} μ :=
-⟨indep.indep_sets,  λ h, indep_sets.indep
-  (generate_from_le (λ u hu, by rwa set.mem_singleton_iff.mp hu))
-  (generate_from_le (λ u hu, by rwa set.mem_singleton_iff.mp hu)) (is_pi_system.singleton s)
-  (is_pi_system.singleton t) rfl rfl h⟩
-
-lemma indep_set_iff_measure_inter_eq_mul (hs_meas : measurable_set s) (ht_meas : measurable_set t)
-  (μ : measure α . volume_tac) [is_probability_measure μ] :
-  indep_set s t μ ↔ μ (s ∩ t) = μ s * μ t :=
-(indep_set_iff_indep_sets_singleton hs_meas ht_meas μ).trans indep_sets_singleton_iff
-
-lemma indep_sets.indep_set_of_mem (hs : s ∈ S) (ht : t ∈ T) (hs_meas : measurable_set s)
-  (ht_meas : measurable_set t) (μ : measure α . volume_tac) [is_probability_measure μ]
-  (h_indep : indep_sets S T μ) :
-  indep_set s t μ :=
-(indep_set_iff_measure_inter_eq_mul hs_meas ht_meas μ).mpr (h_indep s t hs ht)
-
-end indep_set
-
-section indep_of_indep_sets_of_pi_system
-
 variables {α ι : Type*} {m0 : measurable_space α} {μ : measure α}
 
 lemma pi_system_indep_insert {π : ι → set (set α)} {a : ι} {S : finset ι}
@@ -413,6 +378,37 @@ begin
   exact @finset.measurable_set_bInter α ι m_p f _ (λ i hi, h_S_f i hi),
 end
 
-end indep_of_indep_sets_of_pi_system
+end from_pi_systems_to_measurable_spaces
+
+section indep_set
+/-! ### Independence of measurable sets
+
+We prove the following equivalences on `indep_set`, for measurable sets `s, t`.
+* `indep_set s t μ ↔ μ (s ∩ t) = μ s * μ t`,
+* `indep_set s t μ ↔ indep_sets {s} {t} μ`.
+-/
+
+variables {α : Type*} [measurable_space α] {s t : set α} (S T : set (set α))
+
+lemma indep_set_iff_indep_sets_singleton (hs_meas : measurable_set s) (ht_meas : measurable_set t)
+  (μ : measure α . volume_tac) [is_probability_measure μ] :
+  indep_set s t μ ↔ indep_sets {s} {t} μ :=
+⟨indep.indep_sets,  λ h, indep_sets.indep
+  (generate_from_le (λ u hu, by rwa set.mem_singleton_iff.mp hu))
+  (generate_from_le (λ u hu, by rwa set.mem_singleton_iff.mp hu)) (is_pi_system.singleton s)
+  (is_pi_system.singleton t) rfl rfl h⟩
+
+lemma indep_set_iff_measure_inter_eq_mul (hs_meas : measurable_set s) (ht_meas : measurable_set t)
+  (μ : measure α . volume_tac) [is_probability_measure μ] :
+  indep_set s t μ ↔ μ (s ∩ t) = μ s * μ t :=
+(indep_set_iff_indep_sets_singleton hs_meas ht_meas μ).trans indep_sets_singleton_iff
+
+lemma indep_sets.indep_set_of_mem (hs : s ∈ S) (ht : t ∈ T) (hs_meas : measurable_set s)
+  (ht_meas : measurable_set t) (μ : measure α . volume_tac) [is_probability_measure μ]
+  (h_indep : indep_sets S T μ) :
+  indep_set s t μ :=
+(indep_set_iff_measure_inter_eq_mul hs_meas ht_meas μ).mpr (h_indep s t hs ht)
+
+end indep_set
 
 end probability_theory

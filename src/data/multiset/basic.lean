@@ -2149,7 +2149,7 @@ end
 
 /-- `multiset.map f` preserves `count` if `f` is injective on the set of elements contained in
 the multiset -/
-theorem _root_.set.inj_on.count_map_multiset [decidable_eq β] (f : α → β) (s : multiset α)
+theorem count_map_eq_count [decidable_eq β] (f : α → β) (s : multiset α)
  (hf : set.inj_on f {x : α | x ∈ s}) (x ∈ s) : (s.map f).count (f x) = s.count x :=
 begin
   suffices : (filter (λ (a : α), f x = f a) s).count x = card (filter (λ (a : α), f x = f a) s),

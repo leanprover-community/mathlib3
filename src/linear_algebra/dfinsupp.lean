@@ -320,7 +320,7 @@ begin
   letI : add_comm_group (Π₀ i, p i) := @dfinsupp.add_comm_group _ (λ i, p i) _,
   -- simplify everything down to binders over equalities in `M`
   rw [linear_map.ker_eq_bot', complete_lattice.independent_def],
-  simp_rw [submodule.disjoint_def, submodule.bsupr_eq_mrange_dfinsupp_lsum,
+  simp_rw [submodule.disjoint_def, submodule.bsupr_eq_range_dfinsupp_lsum,
     linear_map.mem_range, dfinsupp.ext_iff, zero_apply, ←submodule.coe_eq_zero,
     exists_imp_distrib, linear_map.comp_apply, filter_linear_map_apply],
   -- we can't seem to rewrite the iff with this, but we use it in both directions.

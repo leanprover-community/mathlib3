@@ -9,7 +9,6 @@ import order.order_iso_nat
 import set_theory.fincard
 
 /-!
-
 # Counting on ℕ
 
 This files defines ways to get basic properties of a predicate on ℕ, such as "how many numbers
@@ -29,6 +28,30 @@ the expected theorems about them.
   natural numbers.
 -/
 
+lemma list.range_add (a : ℕ) :
+  ∀ b, list.range (a + b) = list.range a ++ (list.range b).map (λ x, a + x)
+| 0 := by rw [add_zero, list.range_zero, list.map_nil, list.append_nil]
+| (b + 1) := by rw [nat.add_succ, list.range_succ, list.range_add b, list.range_succ,
+  list.map_append, list.map_singleton, list.append_assoc]
+
+lemma multiset.range_add (a b : ℕ) :
+  multiset.range (a + b) = multiset.range a ∪ (multiset.range b).map (λ x, a + x) :=
+begin
+  rw [multiset.range, list.range_add, ←multiset.coe_add, ←multiset.coe_map],
+  refine multiset.add_eq_union_iff_disjoint.2 (λ x hxa hxb, _),
+  rw [multiset.mem_coe, list.mem_range] at hxa,
+  obtain ⟨c, _, rfl⟩ := multiset.mem_map.1 hxb,
+  exact (self_le_add_right _ _).not_lt hxa,
+end
+
+lemma finset.range_add (a b : ℕ) :
+  finset.range (a + b) = finset.range a ∪ (finset.range b).image (λ x, a + x) :=
+begin
+  rw [←finset.val_inj, finset.range, finset.union_val,
+    finset.image_val_of_inj_on ((add_right_injective a).inj_on _)],
+  exact multiset.range_add a b,
+end
+
 open finset
 
 namespace nat
@@ -43,22 +66,37 @@ def count (n : ℕ) : ℕ := ((list.range n).filter p).length
 @[simp] lemma count_zero : count p 0 = 0 :=
 by rw [count, list.range_zero, list.filter_nil, list.length]
 
-instance count_set_fintype (n : ℕ) : fintype {i | i < n ∧ p i} :=
-fintype.of_finset ((finset.range n).filter p) (by simp)
+/-- A fintype instance for the set relevant to `nat.count`. Locally an instance in locale `count` -/
+def count_set.fintype (n : ℕ) : fintype {i | i < n ∧ p i} :=
+fintype.of_finset ((finset.range n).filter p)
+  (λ x, by rw [mem_filter, mem_range, set.mem_set_of_eq])
 
-lemma count_eq_card_finset (n : ℕ) : count p n = ((range n).filter p).card := rfl
+localized "attribute [instance] count_set.fintype" in count
 
-/-- `count p n` can be expressed as the cardinality of `{ i | i ≤ n ∧ p i }`. -/
-lemma count_eq_card_fintype (n : ℕ) : count p n = fintype.card { i : ℕ | i < n ∧ p i } :=
+lemma count_eq_card_filter_range (n : ℕ) : count p n = ((range n).filter p).card := rfl
+
+/-- `count p n` can be expressed as the cardinality of `{k | k ≤ n ∧ p k}`. -/
+lemma count_eq_card_fintype (n : ℕ) : count p n = fintype.card {k : ℕ | k < n ∧ p k} :=
 begin
-  rw [←set.to_finset_card, count_eq_card_finset],
+  rw [←set.to_finset_card, count_eq_card_filter_range],
   congr' 1,
   ext i,
-  simp [lt_succ_iff],
+  rw [mem_filter, mem_range, set.mem_to_finset, set.mem_set_of_eq],
 end
 
 @[simp] lemma count_succ {n : ℕ} : count p (n + 1) = count p n + (if p n then 1 else 0) :=
 by split_ifs; simp [count, list.range_succ, h]
+
+lemma count_add {a b : ℕ} : count p (a + b) = count p a + count (λ k, p (a + k)) b :=
+begin
+  rw [count_eq_card_filter_range, count_eq_card_filter_range, count_eq_card_filter_range, range_add,
+    filter_union, card_disjoint_union, image_filter,
+    card_image_of_injective _ (add_right_injective a)],
+  intros x hx,
+  simp_rw [inf_eq_inter, mem_inter, mem_filter, mem_image, mem_range] at hx,
+  obtain ⟨⟨hx, _⟩, ⟨c, _, rfl⟩, _⟩ := hx,
+  exact (self_le_add_right _ _).not_lt hx,
+end
 
 lemma count_succ' : ∀ {n : ℕ}, count p (n + 1) = count (λ k, p (k + 1)) n + (if p 0 then 1 else 0)
 | 0     := by simp
@@ -268,7 +306,7 @@ variables [decidable_pred p]
 
 @[simp] lemma count_nth_of_zero : count p (nth p 0) = 0 :=
 begin
-  rw [count_eq_card_finset, finset.card_eq_zero, nth_zero],
+  rw [count_eq_card_filter_range, finset.card_eq_zero, nth_zero],
   ext a,
   simp only [finset.not_mem_empty, not_and, finset.mem_filter, finset.mem_range, iff_false],
   intros ha hp,
@@ -300,9 +338,9 @@ lemma count_nth_of_lt_card_finite {n : ℕ} (hf : (set_of p).finite)
 begin
   induction n with k hk,
   { apply count_nth_of_zero },
-  rw [count_eq_card_finset, filter_range_nth_eq_insert_of_finite p hf hlt,
+  rw [count_eq_card_filter_range, filter_range_nth_eq_insert_of_finite p hf hlt,
       finset.card_insert_of_not_mem],
-  { rw [←count_eq_card_finset, hk],
+  { rw [←count_eq_card_filter_range, hk],
     exact lt_of_succ_lt hlt, },
   { simp }
 end
@@ -335,15 +373,15 @@ lemma count_nth_of_infinite (i : (set_of p).infinite) (n : ℕ) : count p (nth p
 begin
   induction n with k hk,
   { apply count_nth_of_zero },
-  rw [count_eq_card_finset, filter_range_nth_eq_insert_of_infinite p i,
+  rw [count_eq_card_filter_range, filter_range_nth_eq_insert_of_infinite p i,
       finset.card_insert_of_not_mem],
-  { rw [←count_eq_card_finset, hk] },
+  { rw [←count_eq_card_filter_range, hk] },
   { simp }
 end
 
 lemma count_strict_mono {m n : ℕ} (hm : p m) (hmn : m < n) : count p m < count p n :=
 begin
-  rw [count_eq_card_finset, count_eq_card_finset],
+  rw [count_eq_card_filter_range, count_eq_card_filter_range],
   apply finset.card_lt_card,
   refine ⟨λ a, _, _⟩,
   { simp only [and_imp, mem_filter, mem_range],
@@ -370,7 +408,7 @@ end
 lemma count_lt_card {n : ℕ} (hf : (set_of p).finite) (hp : p n) :
   count p n < hf.to_finset.card :=
 begin
-  rw count_eq_card_finset,
+  rw count_eq_card_filter_range,
   refine finset.card_lt_card ⟨λ _, by simp {contextual := tt}, _⟩,
   rw finset.not_subset,
   exact ⟨n, by simp [hp]⟩
@@ -454,7 +492,7 @@ lemma lt_nth_iff_count_lt (i : (set_of p).infinite) {a b : ℕ} :
 
 lemma lt_of_count_lt {a b : ℕ} (h: count p a < count p b): a < b :=
 begin
-  simp only [count_eq_card_finset] at h,
+  simp only [count_eq_card_filter_range] at h,
   by_contra hab,
   push_neg at hab,
   apply (lt_iff_not_ge _ _).mp h,
@@ -470,7 +508,7 @@ begin
     { rwa count_nth_of_lt_card_finite,
       { refine h.trans_le _,
         { exact hfi }, -- rogue goal
-        simp [count_eq_card_finset, finset.card_le_of_subset, finset.subset_iff] } },
+        simp [count_eq_card_filter_range, finset.card_le_of_subset, finset.subset_iff] } },
     apply lt_of_count_lt p hio },
   { rwa ← lt_nth_iff_count_lt,
     exact hinf }

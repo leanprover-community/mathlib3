@@ -507,6 +507,7 @@ begin
   split_ifs; simp [f.map_zero],
 end
 
+/-- If `R` and `S` are isomorphic, then so are their polynomial rings. -/
 @[simps] def map_equiv (e : R ≃+* S) : polynomial R ≃+* polynomial S :=
 ring_equiv.of_hom_inv
   (map_ring_hom e)

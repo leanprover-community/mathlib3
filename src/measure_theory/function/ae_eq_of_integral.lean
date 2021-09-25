@@ -473,10 +473,7 @@ end ae_eq_of_forall_set_integral_eq
 
 section lintegral
 
-namespace ae_measurable
-
 lemma ae_eq_of_to_real_ae_eq {f g : α → ℝ≥0∞}
-  (hf : ae_measurable f μ) (hg : ae_measurable g μ)
   (hfi : ∀ᵐ x ∂μ, f x < ∞) (hgi : ∀ᵐ x ∂μ, g x < ∞)
   (hfg : (λ x, (f x).to_real) =ᵐ[μ] (λ x, (g x).to_real)) :
   f =ᵐ[μ] g :=
@@ -496,13 +493,13 @@ begin
     (hfi.symm ▸ hgi.symm ▸ (zero_add (0 : ℝ≥0∞)).symm ▸ le_refl _),
 end
 
-lemma ae_eq_of_forall_set_lintegral_eq {f g : α → ℝ≥0∞}
+lemma ae_measurable.ae_eq_of_forall_set_lintegral_eq {f g : α → ℝ≥0∞}
   (hf : ae_measurable f μ) (hg : ae_measurable g μ)
   (hfi : ∫⁻ x, f x ∂μ ≠ ∞) (hgi : ∫⁻ x, g x ∂μ ≠ ∞)
   (hfg : ∀ ⦃s⦄, measurable_set s → μ s < ∞ → ∫⁻ x in s, f x ∂μ = ∫⁻ x in s, g x ∂μ) :
   f =ᵐ[μ] g :=
 begin
-  refine ae_eq_of_to_real_ae_eq hf hg (ae_lt_top' hf hfi) (ae_lt_top' hg hgi)
+  refine ae_eq_of_to_real_ae_eq (ae_lt_top' hf hfi) (ae_lt_top' hg hgi)
     (integrable.ae_eq_of_forall_set_integral_eq _ _
       (integrable_to_real_of_lintegral_ne_top hf hfi)
       (integrable_to_real_of_lintegral_ne_top hg hgi) (λ s hs hs', _)),
@@ -519,8 +516,6 @@ begin
   exacts [ae_of_all _ (λ x, ennreal.to_real_nonneg), hg.ennreal_to_real.restrict,
           ae_of_all _ (λ x, ennreal.to_real_nonneg), hf.ennreal_to_real.restrict]
 end
-
-end ae_measurable
 
 end lintegral
 

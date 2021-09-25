@@ -1020,13 +1020,13 @@ begin
         sup_dvd_of_le I hI Hp n hn] at hcontra,
       rw hcontra at H,
       exact false_of_ne (ne_of_lt H) } },
-   { have H' : p^(factors I).count p = p^n * p^((factors I).count p - n) :=
-      by rw [← pow_add, nat.add_sub_cancel' (le_of_lt hn)],
-      rw ← ideal.dvd_not_unit_iff_lt,
-      split,
-      { exact pow_ne_zero n (prime_of_factor p Hp).ne_zero },
-      { exact ⟨ p^((factors I).count p -n), not_unit_of_not_unit_dvd (prime_of_factor p Hp).not_unit
-        (dvd_pow (dvd_refl p) (ne_of_gt (sub_pos_iff_lt.mpr hn))), H'⟩ } },
+  have H' : p^(factors I).count p = p^n * p^((factors I).count p - n) :=
+    by rw [← pow_add, nat.add_sub_cancel' (le_of_lt hn)],
+  rw ← ideal.dvd_not_unit_iff_lt,
+  split,
+  { exact pow_ne_zero n (prime_of_factor p Hp).ne_zero },
+  { exact ⟨ p^((factors I).count p -n), not_unit_of_not_unit_dvd (prime_of_factor p Hp).not_unit
+      (dvd_pow (dvd_refl p) (ne_of_gt (sub_pos_iff_lt.mpr hn))), H'⟩ }
 end
 
 /--The quotient multiplicity of a prime factor `p` of `I ≠ 0` is equal to the multiplicity of `p`

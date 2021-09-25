@@ -41,7 +41,7 @@ end
 
 @[to_additive]
 lemma smul_pi [group K] [∀ i, mul_action K (R i)] (r : K) (t : Π i, set (R i)) (S : set ι) :
-  r • S.pi t = S.pi (λ (i : ι), r • t i) :=
+  r • S.pi t = S.pi (r • t) :=
 subset.antisymm (smul_pi_subset _ _ _) $ λ x h,
   ⟨r⁻¹ • x, λ i hiS, mem_smul_set_iff_inv_smul_mem.mp (h i hiS), smul_inv_smul _ _⟩
 

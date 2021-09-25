@@ -315,7 +315,6 @@ by rw [degree_eq_nat_degree p_ne_zero, nat_degree_eq_card_roots hsplit]
 
 section UFD
 
-local attribute [instance, priority 10] principal_ideal_ring.to_unique_factorization_monoid
 local infix ` ~ᵤ ` : 50 := associated
 
 open unique_factorization_monoid associates

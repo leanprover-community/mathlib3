@@ -101,6 +101,22 @@ lemma mem_span_insert {s : set α} {x y} :
 lemma mem_span_singleton' {x y : α} :
   x ∈ span ({y} : set α) ↔ ∃ a, a * y = x := submodule.mem_span_singleton
 
+lemma span_insert (x) (s : set α) :
+  span (insert x s) = span ({x} : set α) ⊔ span s :=
+begin
+  ext z,
+  rw [mem_span_insert, submodule.mem_sup],
+  split,
+  { rintro ⟨a, b, hb, h⟩,
+    refine ⟨a * x, _, b, hb, h.symm⟩,
+    rw mem_span_singleton',
+    exact ⟨a, rfl⟩ },
+  { rintro ⟨a, ha, b, hb, rfl⟩,
+    rw mem_span_singleton' at ha,
+    obtain ⟨a', rfl⟩ := ha,
+    exact ⟨a', b, hb, rfl⟩ }
+end
+
 lemma span_eq_bot {s : set α} : span s = ⊥ ↔ ∀ x ∈ s, (x:α) = 0 := submodule.span_eq_bot
 
 @[simp] lemma span_singleton_eq_bot {x} : span ({x} : set α) = ⊥ ↔ x = 0 :=

@@ -9,6 +9,7 @@ import data.polynomial.ring_division
 import data.set.pairwise
 import ring_theory.coprime.lemmas
 import ring_theory.euclidean_domain
+import ring_theory.principal_ideal_domain
 
 /-!
 # Theory of univariate polynomials
@@ -228,7 +229,7 @@ else by rw [mod_def, mod_def, leading_coeff_map f, ← f.map_inv, ← map_C f,
 section
 open euclidean_domain
 theorem gcd_map [field k] (f : R →+* k) :
-  gcd (p.map f) (q.map f) = (gcd p q).map f :=
+  euclidean_domain.gcd (p.map f) (q.map f) = (euclidean_domain.gcd p q).map f :=
 gcd.induction p q (λ x, by simp_rw [map_zero, euclidean_domain.gcd_zero_left]) $ λ x y hx ih,
 by rw [gcd_val, ← map_mod, ih, ← gcd_val]
 end
@@ -261,7 +262,8 @@ root_gcd_iff_root_left_right
 
 theorem is_coprime_map [field k] (f : R →+* k) :
   is_coprime (p.map f) (q.map f) ↔ is_coprime p q :=
-by rw [← gcd_is_unit_iff, ← gcd_is_unit_iff, gcd_map, is_unit_map]
+by rw [← gcd_is_unit_iff, ← gcd_is_unit_iff, euclidean_domain.gcd_eq_gcd,
+  euclidean_domain.gcd_eq_gcd, gcd_map, is_unit_map]
 
 @[simp] lemma map_eq_zero [semiring S] [nontrivial S] (f : R →+* S) :
   p.map f = 0 ↔ p = 0 :=

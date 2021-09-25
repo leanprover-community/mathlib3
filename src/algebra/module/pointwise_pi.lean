@@ -20,8 +20,11 @@ set multiplication, set addition, pointwise addition, pointwise multiplication, 
 open_locale pointwise
 open set
 
+variables {K ι : Type*} {R : ι → Type*}
+
 @[to_additive]
-lemma smul_pi_subset {K R : Type*} [has_scalar K R] {ι : Type*} (r : K) (t : ι → set R) (s : set ι) :
+lemma smul_pi_subset [∀ i, has_scalar K (R i)] (r : K)
+  (t : Π i, set (R i)) (s : set ι) :
   r • pi s t ⊆ pi s (r • t) :=
 begin
   rintros x ⟨y, h, rfl⟩ i hi,
@@ -29,8 +32,8 @@ begin
 end
 
 @[to_additive]
-lemma smul_univ_pi {K R : Type*} [has_scalar K R] {ι : Type*} (r : K) (t : ι → set R) :
-  r • pi (univ : set ι) t = pi (univ : set ι) (r • t) :=
+lemma smul_univ_pi [∀ i, has_scalar K (R i)] (r : K)
+  (t : Π i, set (R i)) (s : set ι) : r • pi (univ : set ι) t = pi (univ : set ι) (r • t) :=
 subset.antisymm (smul_pi_subset _ _ _) $ λ x h, begin
   refine ⟨λ i, classical.some (h i $ set.mem_univ _), λ i hi, _, funext $ λ i, _⟩,
   { exact (classical.some_spec (h i _)).left, },
@@ -38,11 +41,11 @@ subset.antisymm (smul_pi_subset _ _ _) $ λ x h, begin
 end
 
 @[to_additive]
-lemma smul_pi {K R : Type*} [group K] [mul_action K R] {ι : Type*} (r : K) (t : ι → set R)
-  (S : set ι) : r • S.pi t = S.pi (λ (i : ι), r • t i) :=
+lemma smul_pi [group K] [∀ i, mul_action K (R i)] (r : K) (t : Π i, set (R i)) (S : set ι) :
+  r • S.pi t = S.pi (λ (i : ι), r • t i) :=
 subset.antisymm (smul_pi_subset _ _ _) $ λ x h,
   ⟨r⁻¹ • x, λ i hiS, mem_smul_set_iff_inv_smul_mem.mp (h i hiS), smul_inv_smul _ _⟩
 
-lemma smul_pi' {K R : Type*} [group_with_zero K] [mul_action K R] {ι : Type*} {r : K}
-  (t : ι → set R) (S : set ι) (hr : r ≠ 0) : r • S.pi t = S.pi (r • t) :=
-@smul_pi _ _ _ _ _ (units.mk0 r hr) t S
+lemma smul_pi' [group_with_zero K] [∀ i, mul_action K (R i)] {r : K} (t : Π i, set (R i))
+  (S : set ι) (hr : r ≠ 0) : r • S.pi t = S.pi (r • t) :=
+smul_pi (units.mk0 r hr) t S

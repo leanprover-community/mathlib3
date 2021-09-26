@@ -4,7 +4,7 @@ run_cmd tactic.skip
 -- algebra/free_algebra.lean
 apply_nolint free_algebra.semiring check_reducibility
 
--- algebra/ordered_monoid.lean
+-- algebra/order/monoid.lean
 apply_nolint with_zero.canonically_ordered_add_monoid check_reducibility
 
 -- algebra/pointwise.lean
@@ -355,15 +355,6 @@ apply_nolint wseq.mem doc_blame
 apply_nolint wseq.tail.aux doc_blame
 apply_nolint wseq.think_congr unused_arguments
 
--- data/vector/basic.lean
-apply_nolint vector.insert_nth doc_blame
-apply_nolint vector.m_of_fn doc_blame
-apply_nolint vector.mmap doc_blame
-apply_nolint vector.reverse doc_blame
-apply_nolint vector.to_array doc_blame
-apply_nolint vector.traverse doc_blame
-apply_nolint vector.traverse_def unused_arguments
-
 -- data/vector3.lean
 apply_nolint vector3 has_inhabited_instance
 apply_nolint vector3.cons_elim doc_blame
@@ -485,11 +476,6 @@ apply_nolint pgame.left_moves has_inhabited_instance
 apply_nolint pgame.relabelling has_inhabited_instance
 apply_nolint pgame.restricted has_inhabited_instance
 apply_nolint pgame.right_moves has_inhabited_instance
-
--- set_theory/surreal/basic.lean
-apply_nolint pgame.add_lt_add unused_arguments
-apply_nolint pgame.numeric.lt_move_right unused_arguments
-apply_nolint pgame.numeric.move_left_lt unused_arguments
 
 -- set_theory/zfc.lean
 apply_nolint Set.map_definable_aux unused_arguments
@@ -978,34 +964,17 @@ apply_nolint transfer.compute_transfer doc_blame
 apply_nolint tactic.wlog doc_blame
 
 -- topology/category/Top/open_nhds.lean
-apply_nolint topological_space.open_nhds doc_blame has_inhabited_instance
-apply_nolint topological_space.open_nhds.inclusion doc_blame
-apply_nolint topological_space.open_nhds.inclusion_map_iso doc_blame
+apply_nolint topological_space.open_nhds has_inhabited_instance
 apply_nolint topological_space.open_nhds.map doc_blame
 
 -- topology/category/TopCommRing.lean
 apply_nolint TopCommRing has_inhabited_instance
 
--- topology/category/UniformSpace.lean
-apply_nolint CpltSepUniformSpace.to_UniformSpace doc_blame
-
--- topology/compact_open.lean
-apply_nolint continuous_map.coev doc_blame
-apply_nolint continuous_map.compact_open.gen doc_blame
-apply_nolint continuous_map.ev doc_blame
-apply_nolint continuous_map.induced doc_blame
-
 -- topology/maps.lean
 apply_nolint inducing doc_blame
 
 -- topology/sheaves/presheaf.lean
-apply_nolint Top.presheaf doc_blame has_inhabited_instance
-apply_nolint Top.presheaf.pushforward.comp doc_blame
-apply_nolint Top.presheaf.pushforward.id doc_blame
-apply_nolint Top.presheaf.pushforward_eq doc_blame
-
--- topology/sheaves/stalks.lean
-apply_nolint Top.presheaf.stalk_pushforward doc_blame
+apply_nolint Top.presheaf has_inhabited_instance
 
 -- topology/uniform_space/completion.lean
 apply_nolint Cauchy.extend doc_blame

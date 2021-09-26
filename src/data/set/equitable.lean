@@ -52,7 +52,7 @@ end
 
 lemma equitable_on_iff_exists_eq_eq_add_one {s : set α} {f : α → ℕ} :
   s.equitable_on f ↔ ∃ b, ∀ a ∈ s, f a = b ∨ f a = b + 1 :=
-by simp_rw [equitable_on_iff_exists_le_le_add_one, le_le_add_one_iff]
+by simp_rw [equitable_on_iff_exists_le_le_add_one, nat.le_le_add_one_iff]
 
 end set
 

@@ -156,7 +156,9 @@ of degree less than `s.card`. -/
 def fun_equiv_degree_lt : degree_lt F s.card ≃ₗ[F] (s → F) :=
 { to_fun := λ f x, f.1.eval x,
   map_add' := λ f g, funext $ λ x, eval_add,
-  map_smul' := λ c f, funext $ λ x, by { rw [pi.smul_apply, smul_eq_mul, ← @eval_C F c _ x,
+  map_smul' := λ c f, funext $ λ x, by {
+      change eval ↑x (c • f).val = (c • λ (x : s), eval ↑x f.val) x,
+      rw [pi.smul_apply, smul_eq_mul, ← @eval_C F c _ x,
       ← eval_mul, eval_C, C_mul'], refl },
   inv_fun := λ f, ⟨interpolate s f, mem_degree_lt.2 $ degree_interpolate_lt s f⟩,
   left_inv := λ f, subtype.eq $ eq_interpolate s f $ mem_degree_lt.1 f.2,

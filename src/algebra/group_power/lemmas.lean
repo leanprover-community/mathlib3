@@ -83,6 +83,23 @@ begin
   exact is_unit_of_invertible x
 end
 
+lemma smul_pow [mul_action M N] [is_scalar_tower M N N] [smul_comm_class M N N]
+  (k : M) (x : N) (p : ℕ) :
+  (k • x) ^ p = k ^ p • x ^ p :=
+begin
+  induction p with p IH,
+  { simp },
+  { rw [pow_succ', IH, smul_mul_smul, ←pow_succ', ←pow_succ'] }
+end
+
+@[simp] lemma smul_pow' [mul_distrib_mul_action M N] (x : M) (m : N) (n : ℕ) :
+  x • m ^ n = (x • m) ^ n :=
+begin
+  induction n with n ih,
+  { rw [pow_zero, pow_zero], exact smul_one x },
+  { rw [pow_succ, pow_succ], exact (smul_mul' x m (m ^ n)).trans (congr_arg _ ih) }
+end
+
 end monoid
 
 section group

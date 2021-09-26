@@ -263,7 +263,7 @@ begin
   have hl := λ i : ι, mem_sorted_univ i,
   have hnd := @sorted_univ_nodup ι _ _,
   apply ((pi_measurable_equiv_tprod hnd hl).symm.map_apply (pi univ s)).trans_le,
-  dsimp only [pi_measurable_equiv_tprod, tprod.pi_equiv_tprod, coe_symm_mk, equiv.coe_fn_symm_mk],
+  dsimp only [pi_measurable_equiv_tprod_symm_apply],
   rw [elim_preimage_pi hnd],
   refine (tprod_tprod_le _ _ _).trans_eq _,
   rw [← list.prod_to_finset _ hnd],
@@ -327,6 +327,21 @@ begin
   rw [closed_ball_pi _ hr, pi_pi],
   exact λ i, measurable_set_closed_ball
 end
+
+lemma pi_unique_eq_map {β : Type*} {m : measurable_space β} (μ : measure β) (α : Type*) [unique α] :
+  measure.pi (λ a : α, μ) = map (measurable_equiv.fun_unique α β).symm μ :=
+begin
+  set e := measurable_equiv.fun_unique α β,
+  have : pi_premeasure (λ _ : α, μ.to_outer_measure) = map e.symm μ,
+  { ext1 s,
+    rw [pi_premeasure, fintype.prod_unique, to_outer_measure_apply, e.symm.map_apply],
+    congr' 1, exact e.to_equiv.image_eq_preimage s },
+  simp only [measure.pi, outer_measure.pi, this, bounded_by_measure, to_outer_measure_to_measure],
+end
+
+lemma map_fun_unique {α β : Type*} [unique α] {m : measurable_space β} (μ : measure β) :
+  map (measurable_equiv.fun_unique α β) (measure.pi $ λ _, μ) = μ :=
+(measurable_equiv.fun_unique α β).map_apply_eq_iff_map_symm_apply_eq.2 (pi_unique_eq_map μ _).symm
 
 variable {μ}
 
@@ -566,5 +581,53 @@ lemma volume_pi_closed_ball [Π i, measure_space (α i)] [∀ i, sigma_finite (v
   (x : Π i, α i) {r : ℝ} (hr : 0 ≤ r) :
   volume (metric.closed_ball x r) = ∏ i, volume (metric.closed_ball (x i) r) :=
 measure.pi_closed_ball _ _ hr
+
+/-!
+### Integral over `ι → α` with `[unique ι]`
+
+In this section we prove some lemmas that relate integrals over `ι → β`, where `ι` is a type with
+unique element (e.g., `unit` or `fin 1`) and integrals over `β`.
+-/
+
+variables {β E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E]
+  [topological_space.second_countable_topology E] [borel_space E] [complete_space E]
+
+lemma integral_fun_unique_pi (ι) [unique ι] {m : measurable_space β} (μ : measure β)
+  (f : (ι → β) → E) :
+  ∫ y, f y ∂(measure.pi (λ _, μ)) = ∫ x, f (λ _, x) ∂μ :=
+by rw [measure.pi_unique_eq_map μ ι, integral_map_equiv]; refl
+
+lemma integral_fun_unique_pi' (ι : Type*) [unique ι] {m : measurable_space β} (μ : measure β)
+  (f : β → E) :
+  ∫ y : ι → β, f (y (default ι)) ∂(measure.pi (λ _, μ)) = ∫ x, f x ∂μ :=
+integral_fun_unique_pi ι μ _
+
+lemma integral_fun_unique (ι : Type*) [unique ι] [measure_space β] (f : (ι → β) → E) :
+  ∫ y, f y = ∫ x, f (λ _, x) :=
+integral_fun_unique_pi ι volume f
+
+lemma integral_fun_unique' (ι : Type*) [unique ι] [measure_space β] (f : β → E) :
+  ∫ y : ι → β, f (y (default ι)) = ∫ x, f x :=
+integral_fun_unique_pi' ι volume f
+
+lemma set_integral_fun_unique_pi (ι : Type*) [unique ι] {m : measurable_space β} (μ : measure β)
+  (f : (ι → β) → E) (s : set (ι → β)) :
+  ∫ y in s, f y ∂(measure.pi (λ _, μ)) = ∫ x in const ι ⁻¹' s, f (λ _, x) ∂μ :=
+by rw [measure.pi_unique_eq_map μ ι, set_integral_map_equiv]; refl
+
+lemma set_integral_fun_unique_pi' (ι : Type*) [unique ι] {m : measurable_space β} (μ : measure β)
+  (f : β → E) (s : set β) :
+  ∫ y : ι → β in function.eval (default ι) ⁻¹' s, f (y (default ι)) ∂(measure.pi (λ _, μ)) =
+    ∫ x in s, f x ∂μ :=
+by erw [set_integral_fun_unique_pi, (equiv.fun_unique ι β).symm_preimage_preimage]
+
+lemma set_integral_fun_unique (ι : Type*) [unique ι] [measure_space β] (f : (ι → β) → E)
+  (s : set (ι → β)) :
+  ∫ y in s, f y = ∫ x in const ι ⁻¹' s, f (λ _, x) :=
+by convert set_integral_fun_unique_pi ι volume f s
+
+lemma set_integral_fun_unique' (ι : Type*) [unique ι] [measure_space β] (f : β → E) (s : set β) :
+  ∫ y : ι → β in @function.eval ι (λ _, β) (default ι) ⁻¹' s, f (y (default ι)) = ∫ x in s, f x :=
+by convert set_integral_fun_unique_pi' ι volume f s
 
 end measure_theory

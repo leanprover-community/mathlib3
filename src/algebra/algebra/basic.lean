@@ -5,15 +5,15 @@ Authors: Kenny Lau, Yury Kudryashov
 -/
 import algebra.iterate_hom
 import data.equiv.ring_aut
-import linear_algebra.tensor_product
-import tactic.nth_rewrite
+import algebra.module.basic
+import linear_algebra.basic
 
 /-!
-# Algebra over Commutative Semiring
+# Algebras over commutative semirings
 
 In this file we define `algebra`s over commutative (semi)rings, algebra homomorphisms `alg_hom`,
-algebra equivalences `alg_equiv`. We also define usual operations on `alg_hom`s
-(`id`, `comp`).
+and algebra equivalences `alg_equiv`.
+We also define the usual operations on `alg_hom`s (`id`, `comp`).
 
 `subalgebra`s are defined in `algebra.algebra.subalgebra`.
 
@@ -32,7 +32,7 @@ For the category of `R`-algebras, denoted `Algebra R`, see the file
 
 universes u v w u₁ v₁
 
-open_locale tensor_product big_operators
+open_locale big_operators
 
 section prio
 -- We set this priority to 0 later in this file
@@ -395,14 +395,8 @@ end opposite
 namespace module
 variables (R : Type u) (M : Type v) [comm_semiring R] [add_comm_monoid M] [module R M]
 
-instance endomorphism_algebra : algebra R (M →ₗ[R] M) :=
-{ to_fun    := λ r, r • linear_map.id,
-  map_one' := one_smul _ _,
-  map_zero' := zero_smul _ _,
-  map_add' := λ r₁ r₂, add_smul _ _ _,
-  map_mul' := λ r₁ r₂, by { ext x, simp [mul_smul] },
-  commutes' := by { intros, ext, simp },
-  smul_def' := by { intros, ext, simp } }
+instance : algebra R (module.End R M) :=
+algebra.of_module smul_mul_assoc (λ r f g, (smul_comm r f g).symm)
 
 lemma algebra_map_End_eq_smul_id (a : R) :
   (algebra_map R (End R M)) a = a • linear_map.id := rfl
@@ -1247,137 +1241,7 @@ variables {R}
 
 theorem of_id_apply (r) : of_id R A r = algebra_map R A r := rfl
 
-variables (R A)
-/-- The multiplication in an algebra is a bilinear map.
-
-A weaker version of this for semirings exists as `add_monoid_hom.mul`. -/
-def lmul : A →ₐ[R] (End R A) :=
-{ map_one' := by { ext a, exact one_mul a },
-  map_mul' := by { intros a b, ext c, exact mul_assoc a b c },
-  map_zero' := by { ext a, exact zero_mul a },
-  commutes' := by { intro r, ext a, dsimp, rw [smul_def] },
-  .. (show A →ₗ[R] A →ₗ[R] A, from linear_map.mk₂ R (*)
-  (λ x y z, add_mul x y z)
-  (λ c x y, by rw [smul_def, smul_def, mul_assoc _ x y])
-  (λ x y z, mul_add x y z)
-  (λ c x y, by rw [smul_def, smul_def, left_comm])) }
-
-variables {A}
-
-/-- The multiplication on the left in an algebra is a linear map. -/
-def lmul_left (r : A) : A →ₗ[R] A :=
-lmul R A r
-
-/-- The multiplication on the right in an algebra is a linear map. -/
-def lmul_right (r : A) : A →ₗ[R] A :=
-(lmul R A).to_linear_map.flip r
-
-/-- Simultaneous multiplication on the left and right is a linear map. -/
-def lmul_left_right (vw: A × A) : A →ₗ[R] A :=
-(lmul_right R vw.2).comp (lmul_left R vw.1)
-
-/-- The multiplication map on an algebra, as an `R`-linear map from `A ⊗[R] A` to `A`. -/
-def lmul' : A ⊗[R] A →ₗ[R] A :=
-tensor_product.lift (lmul R A).to_linear_map
-
-lemma commute_lmul_left_right (a b : A) :
-  commute (lmul_left R a) (lmul_right R b) :=
-by { ext c, exact (mul_assoc a c b).symm, }
-
-variables {R A}
-
-@[simp] lemma lmul_apply (p q : A) : lmul R A p q = p * q := rfl
-@[simp] lemma lmul_left_apply (p q : A) : lmul_left R p q = p * q := rfl
-@[simp] lemma lmul_right_apply (p q : A) : lmul_right R p q = q * p := rfl
-@[simp] lemma lmul_left_right_apply (vw : A × A) (p : A) :
-  lmul_left_right R vw p = vw.1 * p * vw.2 := rfl
-
-@[simp] lemma lmul_left_one : lmul_left R (1:A) = linear_map.id :=
-by { ext, simp only [linear_map.id_coe, one_mul, id.def, lmul_left_apply] }
-
-@[simp] lemma lmul_left_mul (a b : A) :
-  lmul_left R (a * b) = (lmul_left R a).comp (lmul_left R b) :=
-by { ext, simp only [lmul_left_apply, linear_map.comp_apply, mul_assoc] }
-
-@[simp] lemma lmul_right_one : lmul_right R (1:A) = linear_map.id :=
-by { ext, simp only [linear_map.id_coe, mul_one, id.def, lmul_right_apply] }
-
-@[simp] lemma lmul_right_mul (a b : A) :
-  lmul_right R (a * b) = (lmul_right R b).comp (lmul_right R a) :=
-by { ext, simp only [lmul_right_apply, linear_map.comp_apply, mul_assoc] }
-
-@[simp] lemma lmul_left_zero_eq_zero :
-  lmul_left R (0 : A) = 0 :=
-(lmul R A).map_zero
-
-@[simp] lemma lmul_right_zero_eq_zero :
-  lmul_right R (0 : A) = 0 :=
-(lmul R A).to_linear_map.flip.map_zero
-
-@[simp] lemma lmul_left_eq_zero_iff (a : A) :
-  lmul_left R a = 0 ↔ a = 0 :=
-begin
-  split; intros h,
-  { rw [← mul_one a, ← lmul_left_apply a 1, h, linear_map.zero_apply], },
-  { rw h, exact lmul_left_zero_eq_zero, },
-end
-
-@[simp] lemma lmul_right_eq_zero_iff (a : A) :
-  lmul_right R a = 0 ↔ a = 0 :=
-begin
-  split; intros h,
-  { rw [← one_mul a, ← lmul_right_apply a 1, h, linear_map.zero_apply], },
-  { rw h, exact lmul_right_zero_eq_zero, },
-end
-
-@[simp] lemma pow_lmul_left (a : A) (n : ℕ) :
-  (lmul_left R a) ^ n = lmul_left R (a ^ n) :=
-((lmul R A).map_pow a n).symm
-
-@[simp] lemma pow_lmul_right (a : A) (n : ℕ) :
-  (lmul_right R a) ^ n = lmul_right R (a ^ n) :=
-linear_map.coe_injective $ ((lmul_right R a).coe_pow n).symm ▸ (mul_right_iterate a n)
-
-@[simp] lemma lmul'_apply {x y : A} : lmul' R (x ⊗ₜ y) = x * y :=
-by simp only [algebra.lmul', tensor_product.lift.tmul, alg_hom.to_linear_map_apply, lmul_apply]
-
-instance linear_map.module' (R : Type u) [comm_semiring R]
-  (M : Type v) [add_comm_monoid M] [module R M]
-  (S : Type w) [comm_semiring S] [algebra R S] : module S (M →ₗ[R] S) :=
-{ smul := λ s f, linear_map.llcomp _ _ _ _ (algebra.lmul R S s) f,
-  one_smul := λ f, linear_map.ext $ λ x, one_mul _,
-  mul_smul := λ s₁ s₂ f, linear_map.ext $ λ x, mul_assoc _ _ _,
-  smul_add := λ s f g, linear_map.map_add _ _ _,
-  smul_zero := λ s, linear_map.map_zero _,
-  add_smul := λ s₁ s₂ f, linear_map.ext $ λ x, add_mul _ _ _,
-  zero_smul := λ f, linear_map.ext $ λ x, zero_mul _ }
-
 end algebra
-
-section ring
-
-namespace algebra
-
-variables {R A : Type*} [comm_semiring R] [ring A] [algebra R A]
-
-lemma lmul_left_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
-  function.injective (lmul_left R x) :=
-by { letI : domain A := { exists_pair_ne := ⟨x, 0, hx⟩, ..‹ring A›, ..‹no_zero_divisors A› },
-     exact mul_right_injective' hx }
-
-lemma lmul_right_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
-  function.injective (lmul_right R x) :=
-by { letI : domain A := { exists_pair_ne := ⟨x, 0, hx⟩, ..‹ring A›, ..‹no_zero_divisors A› },
-     exact mul_left_injective' hx }
-
-lemma lmul_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
-  function.injective (lmul R A x) :=
-by { letI : domain A := { exists_pair_ne := ⟨x, 0, hx⟩, ..‹ring A›, ..‹no_zero_divisors A› },
-     exact mul_right_injective' hx }
-
-end algebra
-
-end ring
 
 section int
 

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Ebner, Sébastien Gouëzel
 -/
 import analysis.calculus.fderiv
+import data.polynomial.derivative
 
 /-!
 
@@ -364,10 +365,14 @@ has_fderiv_within_at.has_fderiv_at h hs
 
 lemma differentiable_within_at.has_deriv_within_at (h : differentiable_within_at 𝕜 f s x) :
   has_deriv_within_at f (deriv_within f s x) s x :=
-show has_fderiv_within_at _ _ _ _, by { convert h.has_fderiv_within_at, simp [deriv_within] }
+h.has_fderiv_within_at.has_deriv_within_at
 
 lemma differentiable_at.has_deriv_at (h : differentiable_at 𝕜 f x) : has_deriv_at f (deriv f x) x :=
-show has_fderiv_at _ _ _, by { convert h.has_fderiv_at, simp [deriv] }
+h.has_fderiv_at.has_deriv_at
+
+lemma differentiable_on.has_deriv_at (h : differentiable_on 𝕜 f s) (hs : s ∈ 𝓝 x) :
+  has_deriv_at f (deriv f x) x :=
+(h.has_fderiv_at hs).has_deriv_at
 
 lemma has_deriv_at.deriv (h : has_deriv_at f f' x) : deriv f x = f' :=
 h.differentiable_at.has_deriv_at.unique h
@@ -568,24 +573,6 @@ protected lemma linear_map.deriv_within (hxs : unique_diff_within_at 𝕜 s x) :
 e.has_deriv_within_at.deriv_within hxs
 
 end linear_map
-
-section analytic
-
-variables {p : formal_multilinear_series 𝕜 𝕜 F} {r : ℝ≥0∞}
-
-protected lemma has_fpower_series_at.has_strict_deriv_at (h : has_fpower_series_at f p x) :
-  has_strict_deriv_at f (p 1 (λ _, 1)) x :=
-h.has_strict_fderiv_at.has_strict_deriv_at
-
-protected lemma has_fpower_series_at.has_deriv_at (h : has_fpower_series_at f p x) :
-  has_deriv_at f (p 1 (λ _, 1)) x :=
-h.has_strict_deriv_at.has_deriv_at
-
-protected lemma has_fpower_series_at.deriv (h : has_fpower_series_at f p x) :
-  deriv f x = p 1 (λ _, 1) :=
-h.has_deriv_at.deriv
-
-end analytic
 
 section add
 /-! ### Derivative of the sum of two functions -/
@@ -1578,6 +1565,88 @@ by simp [div_eq_inv_mul, deriv_within_const_mul, hc, hxs]
 by simp only [div_eq_mul_inv, deriv_mul_const_field]
 
 end division
+
+section clm_comp_apply
+/-! ### Derivative of the pointwise composition/application of continuous linear maps -/
+
+open continuous_linear_map
+
+variables {G : Type*} [normed_group G] [normed_space 𝕜 G] {c : 𝕜 → F →L[𝕜] G} {c' : F →L[𝕜] G}
+  {d : 𝕜 → E →L[𝕜] F} {d' : E →L[𝕜] F} {u : 𝕜 → F} {u' : F}
+
+lemma has_strict_deriv_at.clm_comp (hc : has_strict_deriv_at c c' x)
+  (hd : has_strict_deriv_at d d' x) :
+  has_strict_deriv_at (λ y, (c y).comp (d y)) (c'.comp (d x) + (c x).comp d') x :=
+begin
+  have := (hc.has_strict_fderiv_at.clm_comp hd.has_strict_fderiv_at).has_strict_deriv_at,
+  rwa [add_apply, comp_apply, comp_apply, smul_right_apply, smul_right_apply, one_apply, one_smul,
+      one_smul, add_comm] at this,
+end
+
+lemma has_deriv_within_at.clm_comp (hc : has_deriv_within_at c c' s x)
+  (hd : has_deriv_within_at d d' s x) :
+  has_deriv_within_at (λ y, (c y).comp (d y)) (c'.comp (d x) + (c x).comp d') s x :=
+begin
+  have := (hc.has_fderiv_within_at.clm_comp hd.has_fderiv_within_at).has_deriv_within_at,
+  rwa [add_apply, comp_apply, comp_apply, smul_right_apply, smul_right_apply, one_apply, one_smul,
+      one_smul, add_comm] at this,
+end
+
+lemma has_deriv_at.clm_comp (hc : has_deriv_at c c' x) (hd : has_deriv_at d d' x) :
+  has_deriv_at (λ y, (c y).comp (d y))
+  (c'.comp (d x) + (c x).comp d') x :=
+begin
+  rw [← has_deriv_within_at_univ] at *,
+  exact hc.clm_comp hd
+end
+
+lemma deriv_within_clm_comp (hc : differentiable_within_at 𝕜 c s x)
+  (hd : differentiable_within_at 𝕜 d s x) (hxs : unique_diff_within_at 𝕜 s x):
+  deriv_within (λ y, (c y).comp (d y)) s x =
+    ((deriv_within c s x).comp (d x) + (c x).comp (deriv_within d s x)) :=
+(hc.has_deriv_within_at.clm_comp hd.has_deriv_within_at).deriv_within hxs
+
+lemma deriv_clm_comp (hc : differentiable_at 𝕜 c x) (hd : differentiable_at 𝕜 d x) :
+  deriv (λ y, (c y).comp (d y)) x =
+    ((deriv c x).comp (d x) + (c x).comp (deriv d x)) :=
+(hc.has_deriv_at.clm_comp hd.has_deriv_at).deriv
+
+lemma has_strict_deriv_at.clm_apply (hc : has_strict_deriv_at c c' x)
+  (hu : has_strict_deriv_at u u' x) :
+  has_strict_deriv_at (λ y, (c y) (u y)) (c' (u x) + c x u') x :=
+begin
+  have := (hc.has_strict_fderiv_at.clm_apply hu.has_strict_fderiv_at).has_strict_deriv_at,
+  rwa [add_apply, comp_apply, flip_apply, smul_right_apply, smul_right_apply, one_apply, one_smul,
+      one_smul, add_comm] at this,
+end
+
+lemma has_deriv_within_at.clm_apply (hc : has_deriv_within_at c c' s x)
+  (hu : has_deriv_within_at u u' s x) :
+  has_deriv_within_at (λ y, (c y) (u y)) (c' (u x) + c x u') s x :=
+begin
+  have := (hc.has_fderiv_within_at.clm_apply hu.has_fderiv_within_at).has_deriv_within_at,
+  rwa [add_apply, comp_apply, flip_apply, smul_right_apply, smul_right_apply, one_apply, one_smul,
+      one_smul, add_comm] at this,
+end
+
+lemma has_deriv_at.clm_apply (hc : has_deriv_at c c' x) (hu : has_deriv_at u u' x) :
+  has_deriv_at (λ y, (c y) (u y)) (c' (u x) + c x u') x :=
+begin
+  have := (hc.has_fderiv_at.clm_apply hu.has_fderiv_at).has_deriv_at,
+  rwa [add_apply, comp_apply, flip_apply, smul_right_apply, smul_right_apply, one_apply, one_smul,
+      one_smul, add_comm] at this,
+end
+
+lemma deriv_within_clm_apply (hxs : unique_diff_within_at 𝕜 s x)
+  (hc : differentiable_within_at 𝕜 c s x) (hu : differentiable_within_at 𝕜 u s x) :
+  deriv_within (λ y, (c y) (u y)) s x = (deriv_within c s x (u x) + c x (deriv_within u s x)) :=
+(hc.has_deriv_within_at.clm_apply hu.has_deriv_within_at).deriv_within hxs
+
+lemma deriv_clm_apply (hc : differentiable_at 𝕜 c x) (hu : differentiable_at 𝕜 u x) :
+  deriv (λ y, (c y) (u y)) x = (deriv c x (u x) + c x (deriv u x)) :=
+(hc.has_deriv_at.clm_apply hu.has_deriv_at).deriv
+
+end clm_comp_apply
 
 theorem has_strict_deriv_at.has_strict_fderiv_at_equiv {f : 𝕜 → 𝕜} {f' x : 𝕜}
   (hf : has_strict_deriv_at f f' x) (hf' : f' ≠ 0) :

@@ -852,7 +852,8 @@ multilinear_map.mk_continuous
   { to_fun := λ m, linear_map.mk_continuous
       { to_fun := λ x, f x m,
         map_add' := λ x y, by simp only [map_add, continuous_multilinear_map.add_apply],
-        map_smul' := λ c x, by simp only [continuous_multilinear_map.smul_apply, map_smul]}
+        map_smul' := λ c x, by simp only [continuous_multilinear_map.smul_apply, map_smul,
+                                          ring_hom.id_apply] }
       (∥f∥ * ∏ i, ∥m i∥) $ λ x,
       by { rw mul_right_comm, exact (f x).le_of_op_norm_le _ (f.le_op_norm x) },
     map_add' := λ m i x y,

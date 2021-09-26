@@ -56,6 +56,12 @@ simp_rw H.2.2.1, refl,
 simp_rw H.2.2.2, refl,
  end
 
+lemma Gamma_N_normal (N : ℕ) : subgroup.normal (Gamma_N N) :=
+begin
+rw Gamma_N,
+exact (SL_mod_map N).normal_ker,
+end
+
 
 def is_congruence_subgroup (Γ : subgroup SL2Z) : Prop :=
 ∃ (N : ℕ), (Gamma_N N) ≤ Γ
@@ -228,3 +234,48 @@ inv_mem' := by {intros x hx, simp at *,
   simp,
   simp_rw ←  mul_assoc,} ,
 }
+
+@[simp]
+lemma conf_cong_mem  (g : SL2Z)  (Γ : subgroup SL2Z) (h : SL2Z) :
+ (h ∈ conj_cong_subgroup g Γ) ↔ ∃ x : Γ, g⁻¹ * x * g = h  :=iff.rfl
+
+lemma Gamma_N_cong_eq_self (N : ℕ) (g : SL2Z) : conj_cong_subgroup g (Gamma_N N) = (Gamma_N N) :=
+begin
+have h:= (Gamma_N_normal N).conj_mem ,
+ext, split, intro x,
+simp only [conf_cong_mem] at x,
+let y := classical.some_spec x, rw ← y,
+let yy:= classical.some x,
+have hh:= h yy yy.property g⁻¹, simp only [integral_matrices_with_determinant.mat_m_vals, matrix.special_linear_group.coe_mul,
+  inv_inv, subtype.val_eq_coe, matrix.special_linear_group.coe_inv] at hh, exact hh,
+intro y,
+have hh:= h x y g,
+simp only [conf_cong_mem],
+use ⟨g*x*g⁻¹, hh⟩,
+simp only [subgroup.coe_mk],
+simp_rw ← mul_assoc,
+simp only [one_mul, mul_left_inv, inv_mul_cancel_right],
+end
+
+lemma subgroup_conj_covariant (g : SL2Z)  (Γ_1 Γ_2 : subgroup SL2Z) (h : Γ_1 ≤ Γ_2) :
+  (conj_cong_subgroup g Γ_1) ≤ (conj_cong_subgroup g Γ_2) :=
+begin
+simp_rw set_like.le_def at *,
+simp only [forall_apply_eq_imp_iff', conf_cong_mem, mul_right_inj, forall_exists_index, mul_left_inj],
+intro a,
+use a,
+have ha:= h a.property,
+apply ha,
+simp only [subgroup.coe_mk],
+end
+
+lemma conj_cong_is_cong (g : SL2Z)  (Γ : subgroup SL2Z) (h : is_congruence_subgroup Γ) :
+  is_congruence_subgroup  (conj_cong_subgroup g Γ) :=
+begin
+simp_rw is_congruence_subgroup at *,
+let N:= classical.some h,
+use N,
+rw ←  Gamma_N_cong_eq_self N g,
+apply subgroup_conj_covariant,
+exact classical.some_spec h,
+end

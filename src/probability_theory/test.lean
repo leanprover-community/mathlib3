@@ -1,3 +1,5 @@
+import probability_theory.density
+
 /-
 Right now, pdf is defined such that `μ.with_density f` must agree with
 `map X ℙ` everywhere, while in introductory probability courses, is condition
@@ -14,3 +16,15 @@ This allows us to use traditional methods for find the pdf of transformations, n
 `pdf g(X) x = pdf X (g⁻¹ x) * g'`.
 
 -/
+
+noncomputable theory
+open_locale classical measure_theory nnreal ennreal
+
+namespace measure_theory
+
+open topological_space
+
+variables {α E : Type*} [normed_group E] [measurable_space E] [second_countable_topology E]
+  [normed_space ℝ E] [complete_space E] [borel_space E]
+
+end measure_theory

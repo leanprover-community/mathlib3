@@ -147,7 +147,7 @@ lemma of_real_to_real_ae_eq [is_finite_measure ℙ] {X : α → E} :
   (λ x, ennreal.of_real (pdf X ℙ μ x).to_real) =ᵐ[μ] pdf X ℙ μ :=
 begin
   by_cases hpdf : has_pdf X ℙ μ,
-  { exactI ennreal.of_real_to_real_ae_eq (ae_lt_top _) },
+  { exactI of_real_to_real_ae_eq (ae_lt_top _) },
   { convert ae_eq_refl _,
     ext1 x,
     rw [pdf, dif_neg hpdf, pi.zero_apply, ennreal.zero_to_real, ennreal.of_real_zero] }
@@ -159,7 +159,7 @@ lemma integrable_iff_integrable_mul_pdf [is_finite_measure ℙ] {X : α → E} [
 begin
   rw [← integrable_map_measure hf.ae_measurable (has_pdf.measurable X ℙ μ),
       map_eq_with_density_pdf X ℙ μ,
-      integrable.with_density_iff (measurable_pdf _ _ _) (ae_lt_top _) hf],
+      integrable_with_density_iff (measurable_pdf _ _ _) (ae_lt_top _) hf],
   apply_instance
 end
 

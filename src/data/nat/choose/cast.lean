@@ -13,10 +13,11 @@ This file allows calculating the binomial coefficient `a.choose b` as an element
 of characteristic `0`.
 -/
 
-open nat
 open_locale nat
 
 variables (K : Type*) [division_ring K] [char_zero K]
+
+namespace nat
 
 lemma cast_choose {a b : ℕ} (h : a ≤ b) :
   (b.choose a : K) = b! / (a! * (b - a)!) :=
@@ -39,3 +40,5 @@ lemma cast_choose_two (a : ℕ) :
   (a.choose 2 : K) = a * (a - 1) / 2 :=
 by rw [←cast_desc_factorial_two, desc_factorial_eq_factorial_mul_choose, factorial_two, mul_comm,
     cast_mul, cast_two, eq_div_iff_mul_eq (two_ne_zero' : (2 : K) ≠ 0)]
+
+end nat

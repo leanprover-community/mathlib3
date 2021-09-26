@@ -39,6 +39,8 @@ variables {m n : ℕ}
 
 @[simp] theorem factorial_one : 1! = 1 := rfl
 
+@[simp] theorem factorial_two : 2! = 2 := rfl
+
 theorem mul_factorial_pred (hn : 0 < n) : n * (n - 1)! = n! :=
 nat.sub_add_cancel hn ▸ rfl
 

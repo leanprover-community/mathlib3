@@ -108,7 +108,7 @@ begin
     exact mul_nonneg (sub_nonneg_of_le hp) (rpow_nonneg_of_nonneg (le_of_lt hx) _) }
 end
 
-lemma concave_on_log_Ioi : concave_on (Ioi 0) log :=
+lemma concave_on_log_Ioi : concave_on ℝ (Ioi 0) log :=
 begin
   have h₁ : Ioi 0 ⊆ ({0} : set ℝ)ᶜ,
   { intros x hx hx',
@@ -126,7 +126,7 @@ begin
     exact neg_nonpos.mpr (inv_nonneg.mpr (sq_nonneg x)) }
 end
 
-lemma concave_on_log_Iio : concave_on (Iio 0) log :=
+lemma concave_on_log_Iio : concave_on ℝ (Iio 0) log :=
 begin
   have h₁ : Iio 0 ⊆ ({0} : set ℝ)ᶜ,
   { intros x hx hx',

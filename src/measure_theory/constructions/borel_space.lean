@@ -479,7 +479,7 @@ begin
 end
 
 /-- Two measures on a Borel space are equal if they agree on all closed-open intervals. -/
-lemma ext_of_Iio {α : Type*} [normed_group α] {m : measurable_space α}
+lemma ext_of_Iio {α : Type*} [nonempty α] [topological_space α] {m : measurable_space α}
   [second_countable_topology α] [linear_order α] [order_topology α] [borel_space α]
   (μ ν : measure α) [is_finite_measure μ] (hμν : μ univ = ν univ)
   (h : ∀ ⦃a b⦄, a < b → μ (Ico a b) = ν (Ico a b)) : μ = ν :=

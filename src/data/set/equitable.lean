@@ -1,28 +1,29 @@
 /-
-Copyright (c) 2021 Bhavik Mehta, Yaël Dillies. All rights reserved.
+Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Bhavik Mehta, Yaël Dillies
+Authors: Yaël Dillies, Bhavik Mehta
 -/
 import algebra.big_operators.order
-import algebra.ordered_ring
 import data.nat.basic
 
 /-!
 # Equitable functions
 
-This file provides a way to state that a function is equitable.
+This file defines equitable functions.
 
-A function `f` is equitable on a set `s` if `f a₁ ≤ f a₂ + 1` for all `a₁, a₂ ∈ s`.
+A function `f` is equitable on a set `s` if `f a₁ ≤ f a₂ + 1` for all `a₁, a₂ ∈ s`. This is mostly
+useful when the domain of `f` is `ℕ` or `ℤ` (or more generally a successor order).
+
+## TODO
+
+`ℕ` can be replaced by any `succ_order`, but we don't have those yet.
 -/
 
 open_locale big_operators
 
--- [has_lt_iff_add_one_le α]
-lemma le_and_le_add_one_iff {α : Type*} [ordered_semiring α] {x a : α} :
-  a ≤ x ∧ x ≤ a + 1 ↔ x = a ∨ x = a + 1 := sorry
+variables {α β : Type*}
 
 namespace set
-variables {α β : Type*}
 
 /-- A set is equitable if no element value is more than one bigger than another. -/
 def equitable_on [has_le β] [has_add β] [has_one β] (s : set α) (f : α → β) : Prop :=
@@ -33,8 +34,7 @@ lemma equitable_on_empty [has_le β] [has_add β] [has_one β] (f : α → β) :
   equitable_on ∅ f :=
 λ a _ ha, (set.not_mem_empty _ ha).elim
 
--- [has_lt_iff_add_one_le β]
-lemma equitable_on_iff_le_le_add_one [linear_ordered_semiring β] {s : set α} {f : α → β} :
+lemma equitable_on_iff_exists_le_le_add_one {s : set α} {f : α → ℕ} :
   s.equitable_on f ↔ ∃ b, ∀ a ∈ s, b ≤ f a ∧ f a ≤ b + 1 :=
 begin
   refine ⟨_, λ ⟨b, hb⟩ x y hx hy, (hb x hx).2.trans (add_le_add_right (hb y hy).1 _)⟩,
@@ -44,30 +44,27 @@ begin
   by_cases h : ∀ y ∈ s, f x ≤ f y,
   { exact ⟨f x, λ y hy, ⟨h _ hy, hs hy hx⟩⟩ },
   push_neg at h,
-  obtain ⟨w, hw, h⟩ := h,
-  refine ⟨f w, λ y hy, ⟨_, hs hy hw⟩⟩,
-  by_contra,
-  sorry
+  obtain ⟨w, hw, hwx⟩ := h,
+  refine ⟨f w, λ y hy, ⟨nat.le_of_succ_le_succ _, hs hy hw⟩⟩,
+  rw (nat.succ_le_of_lt hwx).antisymm (hs hx hw),
+  exact hs hx hy,
 end
 
--- [has_lt_iff_add_one_le β]
-lemma equitable_on_iff_almost_eq_constant [linear_ordered_semiring β] {s : set α} {f : α → β} :
+lemma equitable_on_iff_exists_eq_eq_add_one {s : set α} {f : α → ℕ} :
   s.equitable_on f ↔ ∃ b, ∀ a ∈ s, f a = b ∨ f a = b + 1 :=
-by simp_rw [equitable_on_iff_le_le_add_one, le_and_le_add_one_iff]
+by simp_rw [equitable_on_iff_exists_le_le_add_one, le_le_add_one_iff]
 
 end set
 
 open set
 
 namespace finset
-variables {α : Type*}
 
--- TODO: Could be generalised but we don't have the correct instances
 lemma equitable_on_iff_le_le_add_one {s : finset α} {f : α → ℕ} :
   equitable_on (s : set α) f ↔
     ∀ a ∈ s, (∑ i in s, f i) / s.card ≤ f a ∧ f a ≤ (∑ i in s, f i) / s.card + 1 :=
 begin
-  rw set.equitable_on_iff_le_le_add_one,
+  rw set.equitable_on_iff_exists_le_le_add_one,
   refine ⟨_, λ h, ⟨_, h⟩ ⟩,
   rintro ⟨b, hb⟩,
   by_cases h : ∀ a ∈ s, f a = b + 1,
@@ -86,9 +83,9 @@ begin
   exact λ _ _, rfl,
 end
 
-lemma equitable_on_finset_iff {s : finset α} {f : α → ℕ} :
+lemma equitable_on_iff {s : finset α} {f : α → ℕ} :
   equitable_on (s : set α) f ↔
     ∀ a ∈ s, f a = (∑ i in s, f i) / s.card ∨ f a = (∑ i in s, f i) / s.card + 1 :=
-by simp_rw [equitable_on_iff_le_le_add_one, le_and_le_add_one_iff]
+by simp_rw [equitable_on_iff_le_le_add_one, le_le_add_one_iff]
 
 end finset

@@ -310,6 +310,20 @@ namespace complete_lattice
 
 open dfinsupp
 
+/-- Independence of a family of submodules can be expressed as a quantifier over `dfinsupp`s. -/
+lemma independent_iff_forall_dfinsupp {R M : Type*}
+  [ring R] [add_comm_monoid M] [module R M] (p : ι → submodule R M) :
+  independent p ↔
+    ∀ i (x : p i) (v : Π₀ (i : ι), ↥(p i)), lsum ℕ (λ i, (p i).subtype) (erase i v) = x → x = 0 :=
+begin
+  simp_rw [complete_lattice.independent_def, submodule.disjoint_def,
+    submodule.mem_bsupr_iff_exists_dfinsupp, exists_imp_distrib, filter_ne_eq_erase],
+  apply forall_congr (λ i, _),
+  convert subtype.forall',
+  simp_rw submodule.coe_eq_zero,
+  refl,
+end
+
 /-- A family of submodules over an additive group are independent if and only iff `dfinsupp.lsum`
 applied with `submodule.subtype` is injective. -/
 lemma independent_iff_dfinsupp_lsum_ker {R M : Type*}
@@ -319,28 +333,27 @@ begin
   -- Lean can't find this without our help
   letI : add_comm_group (Π₀ i, p i) := @dfinsupp.add_comm_group _ (λ i, p i) _,
   -- simplify everything down to binders over equalities in `M`
-  rw [linear_map.ker_eq_bot', complete_lattice.independent_def],
-  simp_rw [submodule.disjoint_def, submodule.bsupr_eq_range_dfinsupp_lsum,
-    linear_map.mem_range, dfinsupp.ext_iff, zero_apply, ←submodule.coe_eq_zero,
-    exists_imp_distrib, linear_map.comp_apply, filter_linear_map_apply],
+  rw [linear_map.ker_eq_bot'],
+  rw independent_iff_forall_dfinsupp,
+  simp_rw [dfinsupp.ext_iff, dfinsupp.zero_apply],
   -- we can't seem to rewrite the iff with this, but we use it in both directions.
-  have h_lsum : ∀ (m : Π₀ i, p i) {i} {x} (hx : x ∈ p i),
-    lsum ℕ (λ i, (p i).subtype) (filter (≠ i) m) = x ↔
-      lsum ℕ (λ i, (p i).subtype) (filter (≠ i) m - single i ⟨x, hx⟩) = 0,
-  { intros m i x hx,
-    simp only [add_monoid_hom.map_sub, lsum_apply_apply, sum_add_hom_single, sub_eq_zero],
-    refl },
+  have h_lsum : ∀ (m : Π₀ i, p i) {i} (x : p i),
+    lsum ℕ (λ i, (p i).subtype) (erase i m) = x ↔
+      lsum ℕ (λ i, (p i).subtype) (erase i m - single i x) = 0,
+  { intros m i x,
+    simp only [add_monoid_hom.map_sub, lsum_apply_apply, sum_add_hom_single, sub_eq_zero,
+      linear_map.to_add_monoid_hom_coe, submodule.subtype_apply], },
   split,
   { intros h m hm i,
-    refine h i (m i) (m i).prop (-m) _,
-    rw h_lsum (-m) (m i).prop,
-    rw [@filter_neg _ (λ i, p i) _ _ _ m, ←neg_add', linear_map.map_neg, filter_ne_eq_erase,
-      subtype.coe_eta, erase_add_single, hm, neg_zero], },
-  { intros h i x hx m hm,
-    rw h_lsum m hx at hm,
+    refine h i (m i) (-m) _,
+    rw h_lsum (-m) (m i),
+    rw [@erase_neg _ _ (λ i, p i) _ _ m, ←neg_add', linear_map.map_neg, erase_add_single, hm,
+      neg_zero], },
+  { intros h i x m hm,
+    rw h_lsum m x at hm,
     have := h _ hm i,
-    rw [sub_eq_add_neg, add_apply, filter_ne_eq_erase, erase_same, zero_add] at this,
-    change (-(single i (⟨x, hx⟩ : p i) i) : M) = 0 at this, -- `neg_apply` doesn't work :(
+    rw [sub_eq_add_neg, add_apply, erase_same, zero_add] at this,
+    rw @neg_apply _ (λ i, p i) _ (single i x) at this,
     rw [neg_eq_zero, single_eq_same] at this,
     exact this, },
 end

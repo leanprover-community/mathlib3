@@ -223,10 +223,12 @@ lemma zoug {E : Type*} [normed_group E] [normed_space ℝ E] {N : ℕ} (c : ℕ 
   (hcr' : ∀ i < N, r i ≤ ∥c i∥)
   (hc : ∀ (i ≤ N) (j ≤ N),
     (r i ≤ ∥c j - c i∥ ∧ r j ≤ τ * r i) ∨ (r j ≤ ∥c i - c j∥ ∧ r i ≤ τ * r j))
-  (hδ1 : 1 - δ ≤ τ⁻¹) :
+  (hδ1 : τ ≤ 1 + δ / 4)
+  (hδ2 : δ ≤ 1) :
   ∃ (c' : ℕ → E), (∀ n ≤ N, ∥c' n∥ ≤ 2) ∧ (∀ i ≤ N, ∀ j ≤ N, i ≠ j → 1 - δ ≤ ∥c' i - c' j∥) :=
 begin
-  have hδ1' : 1 - δ ≤ 1 := sorry,
+  have δnonneg : 0 ≤ δ := by linarith only [oneτ, hδ1],
+  have τnonneg : 0 ≤ τ := zero_le_one.trans oneτ,
   have hτ' : ∀ i ≤ N, τ⁻¹ ≤ r i := sorry,
   have hcr' : ∀ i ≤ N, ∥c i∥ ≤ r i + 1 := sorry,
   let c' : ℕ → E := λ i, if ∥c i∥ ≤ 2 then c i else (2 / ∥c i∥) • c i,
@@ -236,13 +238,14 @@ begin
     split_ifs, { exact h },
     by_cases hi : ∥c i∥ = 0;
     field_simp [norm_smul, hi] },-/
-  refine ⟨c', λ n hn, norm_c'_le n, _⟩,
-  assume i hi j hj hij,
+  refine ⟨c', λ n hn, norm_c'_le n, λ i hi j hj hij, _⟩,
+  -- up to exchanging `i` and `j`, one can assume `∥c i∥ ≤ ∥c j∥`.
   wlog hij : ∥c i∥ ≤ ∥c j∥ := le_total (∥c i∥) (∥c j∥) using [i j, j i] tactic.skip, swap,
   { assume hi hj i_ne_j,
     rw norm_sub_rev,
     exact this hj hi i_ne_j.symm },
   rcases le_or_lt (∥c j∥) 2 with Hj|Hj,
+  -- case `∥c j∥ ≤ 2` (and therefore also `∥c i∥ ≤ 2`)
   { sorry,
     /- simp_rw [c', Hj, hij.trans Hj, if_true],
     refine le_trans hδ1 _,
@@ -252,32 +255,68 @@ begin
       exact hτ' i hi },
     { apply le_trans _ H.1,
       exact hτ' j hj }-/ },
-  { have H'j : (∥c j∥ ≤ 2) ↔ false, by simpa only [not_le, iff_false] using Hj,
-    rcases le_or_lt (∥c i∥) 2 with Hi|Hi,
-    { simp_rw [c', Hi, if_true, H'j, if_false],
-      rcases hc i hi j hj with H|H,
-      { sorry,
-
-      },
-      { sorry,/-set d := (2 / ∥c j∥) • c j with hd,
-        have : r j ≤ ∥c i - d∥ + (r j - 1) := calc
-          r j ≤ ∥c i - c j∥ : H.1
-          ... ≤ ∥c i - d∥ + ∥d - c j∥ : by simp only [← dist_eq_norm, dist_triangle]
-          ... ≤ ∥c i - d∥ + (r j - 1) : begin
-            apply add_le_add_left,
-            have A : 0 ≤ 1 - 2 / ∥c j∥, by simpa [div_le_iff (zero_le_two.trans_lt Hj)] using Hj.le,
-            rw [← one_smul ℝ (c j), hd, ← sub_smul, norm_smul, norm_sub_rev, real.norm_eq_abs,
-                abs_of_nonneg A, sub_mul],
-            field_simp [(zero_le_two.trans_lt Hj).ne'],
-            linarith [hcr' j hj]
-          end,
-        linarith -/ } },
-    { have H'i : (∥c i∥ ≤ 2) ↔ false, by simpa only [not_le, iff_false] using Hi,
-      simp_rw [c', H'i, if_false, H'j, if_false],
-
-    }
-
-  }
+  -- case `∥c j∥ > 2`
+  have H'j : (∥c j∥ ≤ 2) ↔ false, by simpa only [not_le, iff_false] using Hj,
+  rcases le_or_lt (∥c i∥) 2 with Hi|Hi,
+  sorry,
+  /-{ -- case `∥c i∥ ≤ 2`
+    simp_rw [c', Hi, if_true, H'j, if_false],
+    have A : r j - δ ≤ ∥c i - c j∥,
+    { rcases hc j hj i hi with H|H, { linarith [H.1] },
+      have B : r j ≤ 2 * τ^2,
+      { have I : r i ≤ τ * ∥c i∥,
+        { rcases hc i hi N le_rfl with H'|H',
+          { apply H'.1.trans,
+            simp only [hcN, zero_sub, norm_neg],
+            exact le_mul_of_one_le_left (norm_nonneg _) oneτ },
+          { apply H'.2.trans,
+            apply mul_le_mul_of_nonneg_left _ (zero_le_one.trans oneτ),
+            simpa [hcN] using H'.1 } },
+        calc
+          r j ≤ τ * r i : H.2
+          ... ≤ τ * (τ * ∥c i∥) : mul_le_mul_of_nonneg_left I τnonneg
+          ... ≤ τ * (τ * 2) :
+            by apply_rules [mul_le_mul_of_nonneg_left _ τnonneg]
+          ... = 2 * τ^2 : by ring_exp },
+      have C : r j ≤ 4 := calc
+        r j ≤ 2 * τ^2 : B
+        ... ≤ 2 * (5/4)^2 : begin
+          have D : τ ≤ 5/4, by linarith only [hδ1, hδ2],
+          apply mul_le_mul_of_nonneg_left _ zero_le_two,
+          rw [pow_two, pow_two],
+          exact mul_le_mul D D τnonneg (by norm_num),
+        end
+        ... ≤ 4 : by norm_num,
+      have D : 0 ≤ 1 - δ / 4, by linarith only [hδ2],
+      have E : 0 ≤ r i := le_trans (inv_nonneg.2 τnonneg) (hτ' i hi),
+      calc r j - δ ≤ r j - (r j / 4) * δ : begin
+          refine sub_le_sub le_rfl _,
+          refine mul_le_of_le_one_left δnonneg _,
+          linarith only [C],
+        end
+      ... = (1 - δ / 4) * r j : by ring
+      ... ≤ (1 - δ / 4) * ((1 + δ / 4) * r i) :
+        mul_le_mul_of_nonneg_left (H.2.trans (mul_le_mul_of_nonneg_right hδ1 E)) D
+      ... = (1 - δ^2 / 16) * r i : by ring
+      ... ≤ r i : mul_le_of_le_one_left E (by linarith only [sq_nonneg δ])
+      ... ≤ ∥c i - c j∥ : by { rw norm_sub_rev, exact H.1 } },
+    set d := (2 / ∥c j∥) • c j with hd,
+    have : r j - δ ≤ ∥c i - d∥ + (r j - 1) := calc
+      r j - δ ≤ ∥c i - c j∥ : A
+      ... ≤ ∥c i - d∥ + ∥d - c j∥ : by simp only [← dist_eq_norm, dist_triangle]
+      ... ≤ ∥c i - d∥ + (r j - 1) : begin
+        apply add_le_add_left,
+        have A : 0 ≤ 1 - 2 / ∥c j∥, by simpa [div_le_iff (zero_le_two.trans_lt Hj)] using Hj.le,
+        rw [← one_smul ℝ (c j), hd, ← sub_smul, norm_smul, norm_sub_rev, real.norm_eq_abs,
+            abs_of_nonneg A, sub_mul],
+        field_simp [(zero_le_two.trans_lt Hj).ne'],
+        linarith [hcr' j hj]
+      end,
+    linarith only [this] },-/
+  -- case `∥c i∥ > 2` and `∥c j∥ > 2`
+  have H'i : (∥c i∥ ≤ 2) ↔ false, by simpa only [not_le, iff_false] using Hi,
+  simp_rw [c', H'i, if_false, H'j, if_false],
+  sorry,
 end
 
 #exit

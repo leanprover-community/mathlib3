@@ -111,7 +111,7 @@ Group Theory:
   Representation theory of finite groups:
     representations of abelian groups: ''
     dual groups: ''
-    Maschke theorem: ''
+    Maschke theorem: 'monoid_algebra.submodule.is_complemented'
     orthogonality of irreducible characters: ''
     Fourier transform for finite abelian groups: ''
     convolution: ''

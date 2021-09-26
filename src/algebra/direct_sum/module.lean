@@ -192,14 +192,11 @@ begin
 end
 
 lemma submodule_is_internal.independent {R M : Type*}
-  [ring R] [add_comm_group M] [module R M] {A : ι → submodule R M}
+  [ring R] [add_comm_monoid M] [module R M] {A : ι → submodule R M}
   (h : submodule_is_internal A) : complete_lattice.independent A :=
-begin
-  letI : add_comm_group (⨁ i, A i) := direct_sum.add_comm_group (λ i, A i),
-  rw complete_lattice.independent_iff_dfinsupp_lsum_ker,
-  exact linear_map.ker_eq_bot.2 h.injective,  -- `linear_map.ker_eq_bot` doesn't work in the `rw`
-end
+complete_lattice.independent_of_dfinsupp_lsum_injective _ h.injective
 
+/-- TODO: relax `add_comm_group M` to `add_comm_monoid`. -/
 lemma submodule_is_internal_of_independent_of_supr_eq_top {R M : Type*}
   [ring R] [add_comm_group M] [module R M] {A : ι → submodule R M}
   (hi : complete_lattice.independent A) (hs : supr A = ⊤) : submodule_is_internal A :=

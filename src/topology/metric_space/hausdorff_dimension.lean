@@ -431,8 +431,8 @@ by rw [dimH_univ_eq_finrank ℝ, finite_dimensional.finrank_self, nat.cast_one]
 end real
 
 variables {E F : Type*}
-  [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E] [measurable_space E] [borel_space E]
-  [normed_group F] [normed_space ℝ F] [measurable_space F] [borel_space F]
+  [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
+  [normed_group F] [normed_space ℝ F]
 
 theorem dense_compl_of_dimH_lt_finrank {s : set E} (hs : dimH s < finrank ℝ E) : dense sᶜ :=
 begin
@@ -485,4 +485,3 @@ lemma times_cont_diff.dense_compl_range_of_finrank_lt_finrank [finite_dimensiona
   (h : times_cont_diff ℝ 1 f) (hEF : finrank ℝ E < finrank ℝ F) :
   dense (range f)ᶜ :=
 dense_compl_of_dimH_lt_finrank $ h.dimH_range_le.trans_lt $ ennreal.coe_nat_lt_coe_nat.2 hEF
-

@@ -1035,18 +1035,21 @@ end convex_hull
 
 section simplex
 
-variables (ι : Type*) [ordered_semiring 𝕜] [fintype ι]
+variables (ι : Type*) [fintype ι]
 
-/-- The standard simplex in the space of functions `ι → 𝕜` is the set of vectors with non-negative
-coordinates with total sum `1`. This is the free object in the category of convex spaces.-/
-def std_simplex : set (ι → 𝕜) :=
+/-- The standard simplex in the space of functions `ι → ℝ` is the set
+of vectors with non-negative coordinates with total sum `1`. -/
+def std_simplex (ι : Type*) [fintype ι] (R : Type*) [ordered_semiring R] :
+  set (ι → R) :=
 {f | (∀ x, 0 ≤ f x) ∧ ∑ x, f x = 1}
 
+variables (R : Type*) [ordered_semiring R] {f : ι → R}
+
 lemma std_simplex_eq_inter :
-  std_simplex 𝕜 ι = (⋂ x, {f | 0 ≤ f x}) ∩ {f | ∑ x, f x = 1} :=
+  std_simplex ι R = (⋂ x, {f | 0 ≤ f x}) ∩ {f | ∑ x, f x = 1} :=
 by { ext f, simp only [std_simplex, set.mem_inter_eq, set.mem_Inter, set.mem_set_of_eq] }
 
-lemma convex_std_simplex : convex 𝕜 (std_simplex 𝕜 ι) :=
+lemma convex_std_simplex : convex R (std_simplex ι R) :=
 begin
   refine λ f g hf hg a b ha hb hab, ⟨λ x, _, _⟩,
   { apply_rules [add_nonneg, mul_nonneg, hf.1, hg.1] },
@@ -1057,7 +1060,7 @@ end
 
 variable {ι}
 
-lemma ite_eq_mem_std_simplex (i : ι) : (λ j, ite (i = j) (1:𝕜) 0) ∈ std_simplex 𝕜 ι :=
+lemma ite_eq_mem_std_simplex (i : ι) : (λ j, ite (i = j) (1:R) 0) ∈ std_simplex ι R :=
 ⟨λ j, by simp only; split_ifs; norm_num, by rw [finset.sum_ite_eq, if_pos (finset.mem_univ _)]⟩
 
 end simplex

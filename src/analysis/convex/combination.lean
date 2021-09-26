@@ -26,9 +26,7 @@ open set
 open_locale big_operators classical
 
 universes u u'
-variables {R E F ι ι' : Type*}
-  [linear_ordered_field R] [add_comm_monoid E] [module R E] [add_comm_group F] [module R F]
-  {s : set E}
+variables {R E ι ι' : Type*} [linear_ordered_field R] [add_comm_monoid E] [module R E] {s : set E}
 
 /-- Center of mass of a finite collection of points with prescribed weights.
 Note that we require neither `0 ≤ w i` nor `∑ w = 1`. -/
@@ -256,11 +254,11 @@ end
 
 variables (ι) [fintype ι] {f : ι → R}
 
-/-- `std_simplex R ι` is the convex hull of the canonical basis in `ι → R`. -/
+/-- `std_simplex ι` is the convex hull of the canonical basis in `ι → ℝ`. -/
 lemma convex_hull_basis_eq_std_simplex :
-  convex_hull R (range $ λ(i j:ι), if i = j then (1:R) else 0) = std_simplex R ι :=
+  convex_hull R (range $ λ(i j:ι), if i = j then (1:R) else 0) = std_simplex ι R :=
 begin
-  refine subset.antisymm (convex_hull_min _ (convex_std_simplex R ι)) _,
+  refine subset.antisymm (convex_hull_min _ (convex_std_simplex ι R)) _,
   { rintros _ ⟨i, rfl⟩,
     exact ite_eq_mem_std_simplex R i },
   { rintros w ⟨hw₀, hw₁⟩,
@@ -273,12 +271,13 @@ variable {ι}
 
 /-- The convex hull of a finite set is the image of the standard simplex in `s → ℝ`
 under the linear map sending each function `w` to `∑ x in s, w x • x`.
+
 Since we have no sums over finite sets, we use sum over `@finset.univ _ hs.fintype`.
 The map is defined in terms of operations on `(s → ℝ) →ₗ[ℝ] ℝ` so that later we will not need
 to prove that this map is linear. -/
 lemma set.finite.convex_hull_eq_image {s : set E} (hs : finite s) :
   convex_hull R s = by haveI := hs.fintype; exact
-    (⇑(∑ x : s, (@linear_map.proj R s _ (λ i, R) _ _ x).smul_right x.1)) '' (std_simplex R s) :=
+    (⇑(∑ x : s, (@linear_map.proj R s _ (λ i, R) _ _ x).smul_right x.1)) '' (std_simplex s R) :=
 begin
   rw [← convex_hull_basis_eq_std_simplex, ← linear_map.convex_hull_image, ← set.range_comp, (∘)],
   apply congr_arg,
@@ -288,6 +287,6 @@ begin
 end
 
 /-- All values of a function `f ∈ std_simplex ι` belong to `[0, 1]`. -/
-lemma mem_Icc_of_mem_std_simplex (hf : f ∈ std_simplex R ι) (x) :
+lemma mem_Icc_of_mem_std_simplex (hf : f ∈ std_simplex ι R) (x) :
   f x ∈ Icc (0 : R) 1 :=
 ⟨hf.1 x, hf.2 ▸ finset.single_le_sum (λ y hy, hf.1 y) (finset.mem_univ x)⟩

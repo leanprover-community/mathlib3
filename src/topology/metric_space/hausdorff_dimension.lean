@@ -201,6 +201,10 @@ alias dimH_finite ← set.finite.dimH_zero
 
 alias dimH_coe_finset ← finset.dimH_zero
 
+/-!
+### Hausdorff dimension and Hölder continuity
+-/
+
 variables {C K r : ℝ≥0} {f : X → Y} {s t : set X}
 
 /-- If `f` is a Hölder continuous map with exponent `r > 0`, then `dimH (f '' s) ≤ dimH s / r`. -/
@@ -261,6 +265,10 @@ begin
   refine dimH_image_le_of_locally_holder_on hr (λ x _, _),
   simpa only [exists_prop, nhds_within_univ] using hf x
 end
+
+/-!
+### Hausdorff dimension and Lipschitz continuity
+-/
 
 /-- If `f : X → Y` is Lipschitz continuous on `s`, then `dimH (f '' s) ≤ dimH s`. -/
 lemma lipschitz_on_with.dimH_image_le (h : lipschitz_on_with K f s) : dimH (f '' s) ≤ dimH s :=
@@ -324,6 +332,10 @@ calc dimH s ≤ dimH (f ⁻¹' (f '' s)) : dimH_mono (subset_preimage_image _ _)
 
 end antilipschitz_with
 
+/-!
+### Isometries preserve Hausdorff dimension
+-/
+
 lemma isometry.dimH_image (hf : isometry f) (s : set X) : dimH (f '' s) = dimH s :=
 le_antisymm (hf.lipschitz.dimH_image_le _) (hf.antilipschitz.le_dimH_image _)
 
@@ -356,6 +368,10 @@ lemma dimH_univ (e : E ≃L[𝕜] F) : dimH (univ : set E) = dimH (univ : set F)
 by rw [← e.dimH_preimage, preimage_univ]
 
 end continuous_linear_equiv
+
+/-!
+### Hausdorff dimension in a real vector space
+-/
 
 namespace real
 

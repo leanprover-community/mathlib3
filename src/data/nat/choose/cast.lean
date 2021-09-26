@@ -37,11 +37,5 @@ by rw [eq_div_iff_mul_eq (nat.cast_ne_zero.2 b.factorial_ne_zero : (b.factorial 
 
 lemma cast_choose_two (a : ℕ) :
   (a.choose 2 : K) = a * (a - 1) / 2 :=
-begin
-  rw [cast_choose', factorial_two, cast_two],
-  cases a,
-  { rw [nat.zero_sub, cast_zero, pochhammer_ne_zero_eval_zero _ (two_ne_zero), zero_mul] },
-  { rw [succ_sub_succ, nat.sub_zero, cast_succ, add_sub_cancel, pochhammer_succ_right,
-      pochhammer_one, polynomial.X_mul, polynomial.eval_mul_X, polynomial.eval_add,
-      polynomial.eval_X, cast_one, polynomial.eval_one] }
-end
+by rw [←cast_desc_factorial_two, desc_factorial_eq_factorial_mul_choose, factorial_two, mul_comm,
+    cast_mul, cast_two, eq_div_iff_mul_eq (two_ne_zero' : (2 : K) ≠ 0)]

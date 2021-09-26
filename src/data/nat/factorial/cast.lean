@@ -9,7 +9,8 @@ import ring_theory.polynomial.pochhammer
 /-!
 # Cast of factorials
 
-This file allows calculating factorials (including ascending and descending ones) as elements of a semiring.
+This file allows calculating factorials (including ascending and descending ones) as elements of a
+semiring.
 -/
 
 open nat

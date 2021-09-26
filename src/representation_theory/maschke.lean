@@ -26,10 +26,6 @@ taking the average over `G` of the conjugates of `π`.
 familiar `¬(ring_char k ∣ fintype.card G)`. It is possible to convert between them using
 `invertible_of_ring_char_not_dvd` and `not_ring_char_dvd_of_invertible`.
 
-
-## Future work
-It's not so far to give the usual statement, that every finite dimensional representation
-of a finite group is semisimple (i.e. a direct sum of irreducibles).
 -/
 
 universes u

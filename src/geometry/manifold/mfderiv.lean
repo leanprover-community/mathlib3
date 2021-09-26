@@ -543,7 +543,7 @@ omit Is I's
 /-! ### Deriving continuity from differentiability on manifolds -/
 
 theorem has_mfderiv_within_at.continuous_within_at
-  (h : mdifferentiable_within_at I I' f s x) : continuous_within_at f s x :=
+  (h : has_mfderiv_within_at I I' f s x f') : continuous_within_at f s x :=
 h.1
 
 theorem has_mfderiv_at.continuous_at (h : has_mfderiv_at I I' f x f') :

@@ -54,7 +54,7 @@ Linear algebra:
     annihilating polynomials: ''
     minimal polynomial: 'minpoly'
     characteristic polynomial: 'matrix.charpoly'
-    Cayley-Hamilton theorem: 'aeval_self_charpoly'
+    Cayley-Hamilton theorem: 'matrix.aeval_self_charpoly'
   Structure theory of endomorphisms:
     eigenvalue: 'module.End.has_eigenvalue'
     eigenvector: 'module.End.has_eigenvector'
@@ -353,7 +353,7 @@ Single Variable Real Analysis:
     continuity of the limit: 'continuous_of_uniform_approx_of_continuous'
     differentiability of the limit:
     Weierstrass polynomial approximation theorem: 'polynomial_functions_closure_eq_top'
-    Weierstrass trigonometric approximation theorem:
+    Weierstrass trigonometric approximation theorem: 'span_fourier_closure_eq_top'
   Convexity:
     convex functions of a real variable: 'convex_on'
     continuity and differentiability of convex functions:

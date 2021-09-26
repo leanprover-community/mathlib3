@@ -12,7 +12,7 @@ We define `groupoid` as a typeclass extending `category`,
 asserting that all morphisms have inverses.
 
 The instance `is_iso.of_groupoid (f : X ⟶ Y) : is_iso f` means that you can then write
-`inv f` is access the inverse of any morphism.
+`inv f` to access the inverse of any morphism `f`.
 
 `groupoid.iso_equiv_hom : (X ≅ Y) ≃ (X ⟶ Y)` provides the equivalence between
 isomorphisms and morphisms in a groupoid.

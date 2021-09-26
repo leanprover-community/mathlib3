@@ -671,13 +671,13 @@ curried form, which makes it easier for the elaborator to figure out `f` automat
 lemma lintegral_lintegral_symm [sigma_finite μ] ⦃f : α → β → ℝ≥0∞⦄
   (hf : ae_measurable (uncurry f) (μ.prod ν)) :
   ∫⁻ x, ∫⁻ y, f x y ∂ν ∂μ = ∫⁻ z, f z.2 z.1 ∂(ν.prod μ) :=
-(lintegral_prod_symm _ hf.prod_swap).symm
+(lintegral_prod_symm' _ hf.prod_swap).symm
 
 /-- Change the order of Lebesgue integration. -/
 lemma lintegral_lintegral_swap [sigma_finite μ] ⦃f : α → β → ℝ≥0∞⦄
   (hf : ae_measurable (uncurry f) (μ.prod ν)) :
   ∫⁻ x, ∫⁻ y, f x y ∂ν ∂μ = ∫⁻ y, ∫⁻ x, f x y ∂μ ∂ν :=
-(lintegral_lintegral hf).trans (lintegral_prod_symm _ hf)
+(lintegral_lintegral hf).trans (lintegral_prod_symm' _ hf)
 
 lemma lintegral_prod_mul {f : α → ℝ≥0∞} {g : β → ℝ≥0∞}
   (hf : ae_measurable f μ) (hg : ae_measurable g ν) :

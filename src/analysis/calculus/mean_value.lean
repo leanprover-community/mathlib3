@@ -974,7 +974,7 @@ and `f'` is monotone on the interior, then `f` is convex on `D`. -/
 theorem convex_on_of_deriv_mono {D : set ℝ} (hD : convex ℝ D) {f : ℝ → ℝ}
   (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
   (hf'_mono : ∀ x y ∈ interior D, x ≤ y → deriv f x ≤ deriv f y) :
-  convex_on D f :=
+  convex_on ℝ D f :=
 convex_on_real_of_slope_mono_adjacent hD
 begin
   intros x y z hx hz hxy hyz,
@@ -1000,7 +1000,7 @@ and `f'` is antitone on the interior, then `f` is concave on `D`. -/
 theorem concave_on_of_deriv_antitone {D : set ℝ} (hD : convex ℝ D) {f : ℝ → ℝ}
   (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
   (hf'_mono : ∀ x y ∈ interior D, x ≤ y → deriv f y ≤ deriv f x) :
-  concave_on D f :=
+  concave_on ℝ D f :=
 begin
   have : ∀ x y ∈ interior D, x ≤ y → deriv (-f) x ≤ deriv (-f) y,
   { intros x y hx hy hxy,
@@ -1012,15 +1012,15 @@ end
 
 /-- If a function `f` is differentiable and `f'` is monotone on `ℝ` then `f` is convex. -/
 theorem convex_on_univ_of_deriv_mono {f : ℝ → ℝ} (hf : differentiable ℝ f)
-  (hf'_mono : monotone (deriv f)) : convex_on univ f :=
+  (hf'_mono : monotone (deriv f)) : convex_on ℝ univ f :=
 convex_on_of_deriv_mono convex_univ hf.continuous.continuous_on hf.differentiable_on
   (λ x y _ _ h, hf'_mono h)
 
 /-- If a function `f` is differentiable and `f'` is antitone on `ℝ` then `f` is concave. -/
 theorem antitone.concave_on_univ {f : ℝ → ℝ} (hf : differentiable ℝ f)
-  (hf'_antitone : antitone (deriv f)) : concave_on univ f :=
+  (hf'_anti : antitone (deriv f)) : concave_on ℝ univ f :=
 concave_on_of_deriv_antitone convex_univ hf.continuous.continuous_on hf.differentiable_on
-  (λ x y _ _ h, hf'_antitone h)
+  (λ x y _ _ h, hf'_anti h)
 
 /-- If a function `f` is continuous on a convex set `D ⊆ ℝ`, is twice differentiable on its
 interior, and `f''` is nonnegative on the interior, then `f` is convex on `D`. -/
@@ -1028,7 +1028,7 @@ theorem convex_on_of_deriv2_nonneg {D : set ℝ} (hD : convex ℝ D) {f : ℝ �
   (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
   (hf'' : differentiable_on ℝ (deriv f) (interior D))
   (hf''_nonneg : ∀ x ∈ interior D, 0 ≤ (deriv^[2] f x)) :
-  convex_on D f :=
+  convex_on ℝ D f :=
 convex_on_of_deriv_mono hD hf hf' $
 assume x y hx hy hxy,
 hD.interior.mono_of_deriv_nonneg hf''.continuous_on (by rwa [interior_interior])
@@ -1040,7 +1040,7 @@ theorem concave_on_of_deriv2_nonpos {D : set ℝ} (hD : convex ℝ D) {f : ℝ �
   (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
   (hf'' : differentiable_on ℝ (deriv f) (interior D))
   (hf''_nonpos : ∀ x ∈ interior D, (deriv^[2] f x) ≤ 0) :
-  concave_on D f :=
+  concave_on ℝ D f :=
 concave_on_of_deriv_antitone hD hf hf' $
 assume x y hx hy hxy,
 hD.interior.antitone_of_deriv_nonpos hf''.continuous_on (by rwa [interior_interior])
@@ -1050,7 +1050,7 @@ hD.interior.antitone_of_deriv_nonpos hf''.continuous_on (by rwa [interior_interi
 `f''` is nonnegative on `D`, then `f` is convex on `D`. -/
 theorem convex_on_open_of_deriv2_nonneg {D : set ℝ} (hD : convex ℝ D) (hD₂ : is_open D) {f : ℝ → ℝ}
   (hf' : differentiable_on ℝ f D) (hf'' : differentiable_on ℝ (deriv f) D)
-  (hf''_nonneg : ∀ x ∈ D, 0 ≤ (deriv^[2] f x)) : convex_on D f :=
+  (hf''_nonneg : ∀ x ∈ D, 0 ≤ (deriv^[2] f x)) : convex_on ℝ D f :=
 convex_on_of_deriv2_nonneg hD hf'.continuous_on (by simpa [hD₂.interior_eq] using hf')
   (by simpa [hD₂.interior_eq] using hf'') (by simpa [hD₂.interior_eq] using hf''_nonneg)
 
@@ -1058,7 +1058,7 @@ convex_on_of_deriv2_nonneg hD hf'.continuous_on (by simpa [hD₂.interior_eq] us
 `f''` is nonpositive on `D`, then `f` is concave on `D`. -/
 theorem concave_on_open_of_deriv2_nonpos {D : set ℝ} (hD : convex ℝ D) (hD₂ : is_open D) {f : ℝ → ℝ}
   (hf' : differentiable_on ℝ f D) (hf'' : differentiable_on ℝ (deriv f) D)
-  (hf''_nonpos : ∀ x ∈ D, (deriv^[2] f x) ≤ 0) : concave_on D f :=
+  (hf''_nonpos : ∀ x ∈ D, (deriv^[2] f x) ≤ 0) : concave_on ℝ D f :=
 concave_on_of_deriv2_nonpos hD hf'.continuous_on (by simpa [hD₂.interior_eq] using hf')
   (by simpa [hD₂.interior_eq] using hf'') (by simpa [hD₂.interior_eq] using hf''_nonpos)
 
@@ -1066,7 +1066,7 @@ concave_on_of_deriv2_nonpos hD hf'.continuous_on (by simpa [hD₂.interior_eq] u
 then `f` is convex on `ℝ`. -/
 theorem convex_on_univ_of_deriv2_nonneg {f : ℝ → ℝ} (hf' : differentiable ℝ f)
   (hf'' : differentiable ℝ (deriv f)) (hf''_nonneg : ∀ x, 0 ≤ (deriv^[2] f x)) :
-  convex_on univ f :=
+  convex_on ℝ univ f :=
 convex_on_open_of_deriv2_nonneg convex_univ is_open_univ hf'.differentiable_on
   hf''.differentiable_on (λ x _, hf''_nonneg x)
 
@@ -1074,7 +1074,7 @@ convex_on_open_of_deriv2_nonneg convex_univ is_open_univ hf'.differentiable_on
 then `f` is concave on `ℝ`. -/
 theorem concave_on_univ_of_deriv2_nonpos {f : ℝ → ℝ} (hf' : differentiable ℝ f)
   (hf'' : differentiable ℝ (deriv f)) (hf''_nonpos : ∀ x, (deriv^[2] f x) ≤ 0) :
-  concave_on univ f :=
+  concave_on ℝ univ f :=
 concave_on_open_of_deriv2_nonpos convex_univ is_open_univ hf'.differentiable_on
   hf''.differentiable_on (λ x _, hf''_nonpos x)
 

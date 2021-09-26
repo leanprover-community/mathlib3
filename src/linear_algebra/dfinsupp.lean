@@ -324,8 +324,25 @@ begin
   refl,
 end
 
+/- If `dfinsupp.lsum` applied with `submodule.subtype` is injective then the submodules are
+independent. -/
+lemma independent_of_dfinsupp_lsum_injective {R M : Type*}
+  [ring R] [add_comm_monoid M] [module R M] (p : ι → submodule R M)
+  (h : function.injective (lsum ℕ (λ i, (p i).subtype))) :
+  independent p :=
+begin
+  rw independent_iff_forall_dfinsupp,
+  intros i x v hv,
+  replace hv : lsum ℕ (λ i, (p i).subtype) (erase i v) = lsum ℕ (λ i, (p i).subtype) (single i x),
+  { simpa only [lsum_apply_apply, sum_add_hom_single] using hv, },
+  have := dfinsupp.ext_iff.mp (h hv) i,
+  simpa [eq_comm] using this,
+end
+
 /-- A family of submodules over an additive group are independent if and only iff `dfinsupp.lsum`
-applied with `submodule.subtype` is injective. -/
+applied with `submodule.subtype` is injective.
+
+TODO: relax the assumptions to `add_comm_monoid M`. -/
 lemma independent_iff_dfinsupp_lsum_ker {R M : Type*}
   [ring R] [add_comm_group M] [module R M] (p : ι → submodule R M) :
   independent p ↔ (lsum ℕ (λ i, (p i).subtype)).ker = ⊥ :=

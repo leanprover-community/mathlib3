@@ -92,7 +92,7 @@ end
 
 /-- A local maximum of a concave function is a global maximum, restricted to a set `s`. -/
 lemma is_max_on.of_is_local_max_on_of_concave_on {f : E → β} {a : E}
-  (a_in_s : a ∈ s) (h_localmax : is_local_max_on f s a) (h_conc : concave_on ℝ s f) :
+  (a_in_s : a ∈ s) (h_localmax: is_local_max_on f s a) (h_conc : concave_on ℝ s f) :
   ∀ x ∈ s, f x ≤ f a :=
 @is_min_on.of_is_local_min_on_of_convex_on
   _ (order_dual β) _ _ _ _ _ _ _ _ s f a a_in_s h_localmax h_conc

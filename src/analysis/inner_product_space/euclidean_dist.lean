@@ -3,6 +3,7 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
+import analysis.inner_product_space.calculus
 import analysis.normed_space.pi_Lp
 
 /-!
@@ -61,14 +62,14 @@ lemma closed_ball_eq_image (x : E) (r : ℝ) :
   closed_ball x r = to_euclidean.symm '' metric.closed_ball (to_euclidean x) r :=
 by rw [to_euclidean.image_symm_eq_preimage, closed_ball_eq_preimage]
 
-lemma compact_ball {x : E} {r : ℝ} : is_compact (closed_ball x r) :=
+lemma is_compact_closed_ball {x : E} {r : ℝ} : is_compact (closed_ball x r) :=
 begin
   rw closed_ball_eq_image,
-  exact (proper_space.compact_ball _ _).image to_euclidean.symm.continuous
+  exact (proper_space.is_compact_closed_ball _ _).image to_euclidean.symm.continuous
 end
 
 lemma is_closed_closed_ball {x : E} {r : ℝ} : is_closed (closed_ball x r) :=
-compact_ball.is_closed
+is_compact_closed_ball.is_closed
 
 lemma closure_ball (x : E) {r : ℝ} (h : 0 < r) : closure (ball x r) = closed_ball x r :=
 by rw [ball_eq_preimage, ← to_euclidean.preimage_closure, closure_ball (to_euclidean x) h,

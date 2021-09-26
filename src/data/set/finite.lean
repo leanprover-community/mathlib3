@@ -196,10 +196,10 @@ end
 @[elab_as_eliminator]
 theorem finite.dinduction_on {C : ∀s:set α, finite s → Prop} {s : set α} (h : finite s)
   (H0 : C ∅ finite_empty)
-  (H1 : ∀ {a s}, a ∉ s → ∀h:finite s, C s h → C (insert a s) (h.insert a)) :
+  (H1 : ∀ {a s}, a ∉ s → ∀ h : finite s, C s h → C (insert a s) (h.insert a)) :
   C s h :=
-have ∀h:finite s, C s h,
-  from finite.induction_on h (assume h, H0) (assume a s has hs ih h, H1 has hs (ih _)),
+have ∀ h : finite s, C s h,
+  from finite.induction_on h (λ h, H0) (λ a s has hs ih h, H1 has hs (ih _)),
 this h
 
 instance fintype_singleton (a : α) : fintype ({a} : set α) :=
@@ -375,8 +375,8 @@ end
 
 theorem finite_of_finite_image {s : set α} {f : α → β} (hi : set.inj_on f s) :
   finite (f '' s) → finite s | ⟨h⟩ :=
-⟨@fintype.of_injective _ _ h (λa:s, ⟨f a.1, mem_image_of_mem f a.2⟩) $
-  assume a b eq, subtype.eq $ hi a.2 b.2 $ subtype.ext_iff_val.1 eq⟩
+⟨@fintype.of_injective _ _ h (λ a : s, ⟨f a.1, mem_image_of_mem f a.2⟩) $
+  λ a b eq, subtype.eq $ hi a.2 b.2 $ subtype.ext_iff_val.1 eq⟩
 
 theorem finite_image_iff {s : set α} {f : α → β} (hi : inj_on f s) :
   finite (f '' s) ↔ finite s :=
@@ -462,10 +462,7 @@ lemma finite_le_nat (n : ℕ) : finite {i | i ≤ n} := ⟨set.fintype_le_nat _�
 lemma finite_lt_nat (n : ℕ) : finite {i | i < n} := ⟨set.fintype_lt_nat _⟩
 
 lemma infinite.exists_nat_lt {s : set ℕ} (hs : infinite s) (n : ℕ) : ∃ m ∈ s, n < m :=
-begin
-  obtain ⟨m, hm⟩ := (hs.diff $ set.finite_le_nat n).nonempty,
-  exact ⟨m, by simpa using hm⟩,
-end
+let ⟨m, hm⟩ := (hs.diff $ set.finite_le_nat n).nonempty in ⟨m, by simpa using hm⟩
 
 instance fintype_prod (s : set α) (t : set β) [fintype s] [fintype t] : fintype (set.prod s t) :=
 fintype.of_finset (s.to_finset.product t.to_finset) $ by simp
@@ -662,7 +659,7 @@ lemma finite_range_const {c : β} : finite (range (λ x : α, c)) :=
 
 lemma range_find_greatest_subset {P : α → ℕ → Prop} [∀ x, decidable_pred (P x)] {b : ℕ}:
   range (λ x, nat.find_greatest (P x) b) ⊆ ↑(finset.range (b + 1)) :=
-by { rw range_subset_iff, assume x, simp [nat.lt_succ_iff, nat.find_greatest_le] }
+by { rw range_subset_iff, intro x, simp [nat.lt_succ_iff, nat.find_greatest_le] }
 
 lemma finite_range_find_greatest {P : α → ℕ → Prop} [∀ x, decidable_pred (P x)] {b : ℕ} :
   finite (range (λ x, nat.find_greatest (P x) b)) :=
@@ -710,21 +707,21 @@ lemma card_range_of_injective [fintype α] {f : α → β} (hf : injective f)
 eq.symm $ fintype.card_congr $ equiv.of_injective f hf
 
 lemma finite.exists_maximal_wrt [partial_order β] (f : α → β) (s : set α) (h : set.finite s) :
-  s.nonempty → ∃a∈s, ∀a'∈s, f a ≤ f a' → f a = f a' :=
+  s.nonempty → ∃ a ∈ s, ∀ a' ∈ s, f a ≤ f a' → f a = f a' :=
 begin
   classical,
   refine h.induction_on _ _,
-  { assume h, exact absurd h empty_not_nonempty },
-  assume a s his _ ih _,
+  { exact λ h, absurd h empty_not_nonempty },
+  intros a s his _ ih _,
   cases s.eq_empty_or_nonempty with h h,
   { use a, simp [h] },
   rcases ih h with ⟨b, hb, ih⟩,
   by_cases f b ≤ f a,
-  { refine ⟨a, set.mem_insert _ _, assume c hc hac, le_antisymm hac _⟩,
+  { refine ⟨a, set.mem_insert _ _, λ c hc hac, le_antisymm hac _⟩,
     rcases set.mem_insert_iff.1 hc with rfl | hcs,
     { refl },
     { rwa [← ih c hcs (le_trans h hac)] } },
-  { refine ⟨b, set.mem_insert_of_mem _ hb, assume c hc hbc, _⟩,
+  { refine ⟨b, set.mem_insert_of_mem _ hb, λ c hc hbc, _⟩,
     rcases set.mem_insert_iff.1 hc with rfl | hcs,
     { exact (h hbc).elim },
     { exact ih c hcs hbc } }
@@ -737,10 +734,7 @@ by { rw [← finset.card_attach, finset.attach_eq_univ, ← fintype.card], congr
 
 lemma infinite.exists_not_mem_finset {s : set α} (hs : s.infinite) (f : finset α) :
   ∃ a ∈ s, a ∉ f :=
-begin
-  obtain ⟨a, has, haf⟩ := (hs.diff f.finite_to_set).nonempty,
-  refine ⟨a, has, λ h, haf $ finset.mem_coe.1 h⟩,
-end
+let ⟨a, has, haf⟩ := (hs.diff f.finite_to_set).nonempty in ⟨a, has, λ h, haf $ finset.mem_coe.1 h⟩
 
 section decidable_eq
 

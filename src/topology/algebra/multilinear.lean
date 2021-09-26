@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import topology.algebra.module
-import linear_algebra.multilinear
+import linear_algebra.multilinear.basic
 
 /-!
 # Continuous multilinear maps

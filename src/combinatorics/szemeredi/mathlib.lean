@@ -6,12 +6,13 @@ Authors: Yaël Dillies, Bhavik Mehta
 import analysis.special_functions.exp_log
 import analysis.special_functions.pow
 import combinatorics.simple_graph.basic
+import ring_theory.polynomial.pochhammer
 
 /-! # Things that belong to mathlib -/
 
 universe u
 
-open_locale big_operators
+open_locale big_operators nat
 open finset fintype function
 
 variable {α : Type u}
@@ -61,11 +62,74 @@ begin
   assumption
 end
 
+alias nat.desc_factorial_eq_zero_iff_lt ↔ _ nat.desc_factorial_of_lt
+
+lemma pochhammer_nat_eq_desc_factorial (a b : ℕ) :
+  (pochhammer ℕ b).eval a = (a + b - 1).desc_factorial b :=
+begin
+  cases b,
+  { rw [nat.desc_factorial_zero, pochhammer_zero, polynomial.eval_one] },
+  rw [nat.succ_sub_succ, nat.sub_zero],
+  cases a,
+  { rw [pochhammer_ne_zero_eval_zero _ b.succ_ne_zero, zero_add,
+    nat.desc_factorial_of_lt b.lt_succ_self] },
+  { rw [nat.succ_add, ←nat.add_succ, nat.add_desc_factorial_eq_asc_factorial,
+      pochhammer_nat_eq_asc_factorial] }
+end
+
+lemma pochhammer_succ_eval (S : Type*) [comm_semiring S] (n : ℕ) (k : S) :
+  (pochhammer S n.succ).eval k = (pochhammer S n).eval k * (k + ↑n) :=
+by rw [pochhammer_succ_right, polynomial.eval_mul, polynomial.eval_add, polynomial.eval_X,
+    polynomial.eval_nat_cast]
+
+namespace nat
+
 lemma lt_div_mul_add {a b : ℕ} (hb : 0 < b) : a < a/b*b + b :=
 begin
   rw [←nat.succ_mul, ←nat.div_lt_iff_lt_mul _ _ hb],
   exact nat.lt_succ_self _,
 end
+
+lemma succ_sub_self : ∀ {n : ℕ}, n.succ - n = 1
+| 0       := rfl
+| (n + 1) := by rw [succ_sub_succ, succ_sub_self]
+
+@[simp] theorem factorial_two : 2! = 2 := rfl
+
+lemma cast_asc_factorial (S : Type*) [semiring S] (a b : ℕ) :
+  (a.asc_factorial b : S) = (pochhammer S b).eval (a + 1) :=
+by rw [←pochhammer_nat_eq_asc_factorial, pochhammer_eval_cast, nat.cast_add, nat.cast_one]
+
+lemma cast_desc_factorial (S : Type*) [semiring S] (a b : ℕ) :
+  (a.desc_factorial b : S) = (pochhammer S b).eval (a - (b - 1) : ℕ) :=
+begin
+  rw [←pochhammer_eval_cast, pochhammer_nat_eq_desc_factorial],
+  cases b,
+  { simp_rw desc_factorial_zero },
+  simp_rw succ_sub_one,
+  obtain h | h := le_total a b,
+  { rw [desc_factorial_of_lt (lt_succ_of_le h), desc_factorial_of_lt (lt_succ_of_le _)],
+    rw [sub_eq_zero_of_le h, zero_add] },
+  { rw nat.sub_add_cancel h }
+end
+
+lemma cast_choose' (K : Type*) [division_ring K] [char_zero K] (a b : ℕ) :
+  (a.choose b : K) = (pochhammer K b).eval (a - (b - 1) : ℕ) / b.factorial :=
+by rw [eq_div_iff_mul_eq (nat.cast_ne_zero.2 b.factorial_ne_zero : (b.factorial : K) ≠ 0),
+  ←nat.cast_mul, mul_comm, ←nat.desc_factorial_eq_factorial_mul_choose, ←cast_desc_factorial]
+
+lemma cast_choose_two_right (K : Type*) [division_ring K] [char_zero K] (a : ℕ) :
+  (a.choose 2 : K) = a * (a - 1) / 2 :=
+begin
+  rw [cast_choose', factorial_two, cast_two],
+  cases a,
+  { rw [nat.zero_sub, cast_zero, pochhammer_ne_zero_eval_zero _ (two_ne_zero), zero_mul] },
+  { rw [succ_sub_succ, nat.sub_zero, cast_succ, add_sub_cancel, pochhammer_succ_right,
+      pochhammer_one, polynomial.X_mul, polynomial.eval_mul_X, polynomial.eval_add,
+      polynomial.eval_X, cast_one, polynomial.eval_one] }
+end
+
+end nat
 
 open finset
 

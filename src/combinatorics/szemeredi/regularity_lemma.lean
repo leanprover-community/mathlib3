@@ -876,7 +876,7 @@ begin
   rw [exp_bound, ←nat.div_div_eq_div_mul, nat.add_le_to_le_sub _ h],
   apply nat.sub_le_left_of_le_add,
   rw ←nat.add_sub_assoc h,
-  exact nat.le_pred_of_lt (lt_div_mul_add h),
+  exact nat.le_pred_of_lt (nat.lt_div_mul_add h),
 end
 
 private lemma card_aux₁ :
@@ -1209,9 +1209,9 @@ begin
   rw [mem_coe, increment, mem_bind_parts] at hA,
   obtain ⟨U, hU, hA⟩ := hA,
   exact card_eq_of_mem_parts_chunk_increment hA,
-end.
+end
 
-protected lemma index [nonempty α] (hP : P.is_equipartition)
+protected lemma index [nonempty α] (hP : P.is_equipartition) (hP₁₀₀ : 100 ≤ P.size)
   (hε : 100 < ε^5 * 4^P.size) (hPα : P.size * 16^P.size ≤ card α) (hPG : ¬P.is_uniform G ε) :
   P.index G + ε^5 / 8 ≤ (hP.increment G ε).index G :=
 begin
@@ -1219,24 +1219,30 @@ begin
     index G P + ε^5/8
         ≤ index G P - ε^5/25 + 1/P.size^2 * ε * (P.size.choose 2) * ε^4/3
         : begin
-          rw [sub_eq_add_neg, add_assoc, ←neg_div],
+          have hP₀ : (0 : ℝ) < P.size := nat.cast_pos.2 ((nat.zero_lt_succ _).trans_le hP₁₀₀),
+          rw [sub_eq_add_neg, add_assoc, ←neg_div, nat.cast_choose_two_right],
           refine add_le_add_left _ _,
           calc
-            - ε^5/25 + 1/P.size^2 * ε * (P.size.choose 2) * ε^4/3
-                = ε^5 * ((P.size.choose 2)/P.size^2/3 - 1/25)
+            - ε^5/25 + 1/P.size^2 * ε * (P.size * (P.size - 1)/2) * ε^4/3
+                = ε^5 * ((P.size * (P.size - 1))/P.size^2/6 - 1/25)
                 : by ring
             ... = ε^5 * ((1 - 1/P.size)/6 - 1/25)
-                : begin
-                  have : (P.size.choose 2 : ℝ)/P.size^2 = (1 - 1/P.size)/2,
-                  rw [nat.cast_choose],
-                end
+                : by rw [sq, mul_div_mul_left _ _ hP₀.ne', sub_div, div_self hP₀.ne']
             ... ≥ ε^5/8
-                : sorry
+                : begin
+                  rw @div_eq_mul_inv ℝ _ _ 8,
+                  refine mul_le_mul_of_nonneg_left _ _,
+                  rw [le_sub_iff_add_le, le_div_iff (by norm_num : (0 : ℝ) < 6),
+                    le_sub_iff_add_le, ←le_sub_iff_add_le', div_le_iff hP₀, ←div_le_iff'],
+                  norm_num,
+                  exact_mod_cast hP₁₀₀,
+                  norm_num,
+                  exact nonneg_of_mul_nonneg_right ((by norm_num : (0 : ℝ) ≤ 100).trans hε.le)
+                    (pow_pos zero_lt_four _),
+                end
         end
     ... ≤ index G (hP.increment G ε) : sorry,
-end
-
-#exit
+end.
 
 end increment
 
@@ -1273,7 +1279,8 @@ lemma iteration_bound_le_szemeredi_bound (ε l) :
 
 /-- Effective Szemerédi's Regularity Lemma: For any sufficiently big graph, there is an ε-uniform
 equipartition of bounded size (where the bound does not depend on the graph). -/
-theorem szemeredi_regularity {ε : ℝ} (hε : 0 < ε) (hε' : ε < 1) (l : ℕ) (hG : l ≤ card α) :
+theorem szemeredi_regularity [nonempty α] {ε : ℝ} (hε : 0 < ε) (hε' : ε < 1) (l : ℕ)
+  (hG : l ≤ card α) :
   ∃ (P : finpartition α),
     P.is_equipartition ∧ l ≤ P.size ∧ P.size ≤ szemeredi_bound ε l ∧ P.is_uniform G ε :=
 begin
@@ -1327,7 +1334,7 @@ begin
   have hPα : P.size * 16^P.size ≤ card α :=
     (nat.mul_le_mul hsize (nat.pow_le_pow_of_le_right (by norm_num) hsize)).trans hα,
   refine ⟨hP₁.increment G ε, increment.is_equipartition hP₁ G ε, _, _,
-    or.inr (le_trans _ (increment.index hP₁ hεl' hPα huniform))⟩,
+    or.inr (le_trans _ (increment.index hP₁ sorry hεl' hPα huniform))⟩,
   { rw increment.size hP₁ hPα huniform,
     exact hP₂.trans (le_exp_bound _) },
   { rw [increment.size hP₁ hPα huniform, function.iterate_succ_apply'],

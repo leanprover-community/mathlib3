@@ -48,7 +48,7 @@ variables {𝕜 : Type*} {V : Type*} [normed_field 𝕜] [add_comm_group V] [mod
 
 instance : has_coe_to_fun (enorm 𝕜 V) := ⟨_, enorm.to_fun⟩
 
-lemma coe_fn_injective : function.injective (λ (e : enorm 𝕜 V) (x : V), e x) :=
+lemma coe_fn_injective : @function.injective (enorm 𝕜 V) (V → ℝ≥0∞) coe_fn :=
 λ e₁ e₂ h, by cases e₁; cases e₂; congr; exact h
 
 @[ext] lemma ext {e₁ e₂ : enorm 𝕜 V} (h : ∀ x, e₁ x = e₂ x) : e₁ = e₂ :=
@@ -158,9 +158,9 @@ def finite_subspace : subspace 𝕜 V :=
 { carrier   := {x | e x < ⊤},
   zero_mem' := by simp,
   add_mem'  := λ x y hx hy, lt_of_le_of_lt (e.map_add_le x y) (ennreal.add_lt_top.2 ⟨hx, hy⟩),
-  smul_mem' := λ c x hx,
+  smul_mem' := λ c x (hx : _ < _),
     calc e (c • x) = nnnorm c * e x : e.map_smul c x
-               ... < ⊤              : ennreal.mul_lt_top ennreal.coe_lt_top hx }
+               ... < ⊤              : ennreal.mul_lt_top ennreal.coe_ne_top hx.ne }
 
 /-- Metric space structure on `e.finite_subspace`. We use `emetric_space.to_metric_space_of_dist`
 to ensure that this definition agrees with `e.emetric_space`. -/
@@ -169,8 +169,7 @@ begin
   letI := e.emetric_space,
   refine emetric_space.to_metric_space_of_dist _ (λ x y, _) (λ x y, rfl),
   change e (x - y) ≠ ⊤,
-  rw [← ennreal.lt_top_iff_ne_top],
-  exact lt_of_le_of_lt (e.map_sub_le x y) (ennreal.add_lt_top.2 ⟨x.2, y.2⟩)
+  exact ne_top_of_le_ne_top (ennreal.add_lt_top.2 ⟨x.2, y.2⟩).ne (e.map_sub_le x y)
 end
 
 lemma finite_dist_eq (x y : e.finite_subspace) : dist x y = (e (x - y)).to_real := rfl

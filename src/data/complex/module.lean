@@ -3,11 +3,10 @@ Copyright (c) 2020 Alexander Bentkamp, Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Sébastien Gouëzel, Eric Wieser
 -/
+import algebra.module.ordered
 import data.complex.basic
-import algebra.algebra.ordered
 import data.matrix.notation
 import field_theory.tower
-import linear_algebra.finite_dimensional
 
 /-!
 # Complex number as a vector space over `ℝ`
@@ -43,15 +42,14 @@ section
 variables [has_scalar R ℝ]
 
 /- The useless `0` multiplication in `smul` is to make sure that
-`restrict_scalars.module ℝ ℂ ℂ  = complex.module` definitionally. -/
+`restrict_scalars.module ℝ ℂ ℂ = complex.module` definitionally. -/
 instance : has_scalar R ℂ :=
 { smul := λ r x, ⟨r • x.re - 0 * x.im, r • x.im + 0 * x.re⟩ }
 
 lemma smul_re (r : R) (z : ℂ) : (r • z).re = r • z.re := by simp [(•)]
 lemma smul_im (r : R) (z : ℂ) : (r • z).im = r • z.im := by simp [(•)]
 
-@[simp] lemma smul_coe {x : ℝ} {z : ℂ} : x • z = x * z :=
-by ext; simp [smul_re, smul_im]
+@[simp] lemma real_smul {x : ℝ} {z : ℂ} : x • z = x * z := rfl
 
 end
 
@@ -64,7 +62,7 @@ instance [has_scalar R S] [has_scalar R ℝ] [has_scalar S ℝ] [is_scalar_tower
 
 instance [monoid R] [mul_action R ℝ] : mul_action R ℂ :=
 { one_smul := λ x, by ext; simp [smul_re, smul_im, one_smul],
-  mul_smul := λ r s x, by ext; simp  [smul_re, smul_im, mul_smul] }
+  mul_smul := λ r s x, by ext; simp [smul_re, smul_im, mul_smul] }
 
 instance [semiring R] [distrib_mul_action R ℝ] : distrib_mul_action R ℂ :=
 { smul_add := λ r x y, by ext; simp [smul_re, smul_im, smul_add],
@@ -80,8 +78,7 @@ instance [comm_semiring R] [algebra R ℝ] : algebra R ℂ :=
   commutes' := λ r ⟨xr, xi⟩, by ext; simp [smul_re, smul_im, algebra.commutes],
   ..complex.of_real.comp (algebra_map R ℝ) }
 
-/-- Note that when applied the RHS is further simplified by `complex.of_real_eq_coe`. -/
-@[simp] lemma coe_algebra_map : ⇑(algebra_map ℝ ℂ) = complex.of_real := rfl
+@[simp] lemma coe_algebra_map : (algebra_map ℝ ℂ : ℝ → ℂ) = coe := rfl
 
 section
 variables {A : Type*} [semiring A] [algebra ℝ A]
@@ -105,7 +102,7 @@ end
 section
 open_locale complex_order
 
-lemma complex_ordered_module : ordered_module ℝ ℂ :=
+lemma complex_ordered_smul : ordered_smul ℝ ℂ :=
 { smul_lt_smul_of_pos := λ z w x h₁ h₂,
   begin
     obtain ⟨y, l, rfl⟩ := lt_def.mp h₁,
@@ -120,16 +117,15 @@ lemma complex_ordered_module : ordered_module ℝ ℂ :=
     { subst h, exfalso, apply lt_irrefl 0 h₂, },
     { refine lt_def.mpr ⟨y / x, div_pos l h₂, _⟩,
       replace e := congr_arg (λ z, (x⁻¹ : ℂ) * z) e,
-      simp only [mul_add, ←mul_assoc, h, one_mul, of_real_eq_zero, smul_coe, ne.def,
+      simp only [mul_add, ←mul_assoc, h, one_mul, of_real_eq_zero, real_smul, ne.def,
         not_false_iff, inv_mul_cancel] at e,
       convert e,
       simp only [div_eq_iff_mul_eq, h, of_real_eq_zero, of_real_div, ne.def, not_false_iff],
       norm_cast,
-      simp [mul_comm _ y, mul_assoc, h],
-    },
+      simp [mul_comm _ y, mul_assoc, h] },
   end }
 
-localized "attribute [instance] complex_ordered_module" in complex_order
+localized "attribute [instance] complex_ordered_smul" in complex_order
 
 end
 
@@ -164,7 +160,7 @@ by rw [finrank_eq_card_basis basis_one_I, fintype.card_fin]
 @[simp] lemma dim_real_complex : module.rank ℝ ℂ = 2 :=
 by simp [← finrank_eq_dim, finrank_real_complex]
 
-lemma {u} dim_real_complex' : cardinal.lift.{0 u} (module.rank ℝ ℂ) = 2 :=
+lemma {u} dim_real_complex' : cardinal.lift.{u} (module.rank ℝ ℂ) = 2 :=
 by simp [← finrank_eq_dim, finrank_real_complex, bit0]
 
 /-- `fact` version of the dimension of `ℂ` over `ℝ`, locally useful in the definition of the
@@ -182,6 +178,11 @@ restrict_scalars.module ℝ ℂ E
 instance module.real_complex_tower (E : Type*) [add_comm_group E] [module ℂ E] :
   is_scalar_tower ℝ ℂ E :=
 restrict_scalars.is_scalar_tower ℝ ℂ E
+
+@[simp, norm_cast] lemma complex.coe_smul {E : Type*} [add_comm_group E] [module ℂ E]
+  (x : ℝ) (y : E) :
+  (x : ℂ) • y = x • y :=
+rfl
 
 @[priority 100]
 instance finite_dimensional.complex_to_real (E : Type*) [add_comm_group E] [module ℂ E]

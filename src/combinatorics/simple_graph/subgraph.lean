@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Hunter Monroe, Kyle Miller, Alena Gusakov
 -/
 import combinatorics.simple_graph.basic
-import data.set.finite
 
 /-!
 # Subgraphs of a simple graph
@@ -26,7 +25,10 @@ sub-relation of the adjacency relation of the simple graph.
 * `subgraph.is_spanning` for whether a subgraph is a spanning subgraph and
   `subgraph.is_induced` for whether a subgraph is an induced subgraph.
 
-* A `bounded_lattice (subgraph G)` instance.
+* A `bounded_lattice (subgraph G)` instance, under the `subgraph` relation.
+
+* `simple_graph.to_subgraph`: If a `simple_graph` is a subgraph of another, then you can turn it
+  into a member of the larger graph's `simple_graph.subgraph` type.
 
 * Graph homomorphisms from a subgraph to a graph (`subgraph.map_top`) and between subgraphs
   (`subgraph.map`).
@@ -57,21 +59,21 @@ structure subgraph {V : Type u} (G : simple_graph V) :=
 (adj : V → V → Prop)
 (adj_sub : ∀ {v w : V}, adj v w → G.adj v w)
 (edge_vert : ∀ {v w : V}, adj v w → v ∈ verts)
-(sym : symmetric adj . obviously)
+(symm : symmetric adj . obviously)
 
 namespace subgraph
 
 variables {V : Type u} {G : simple_graph V}
 
 lemma adj_comm (G' : subgraph G) (v w : V) : G'.adj v w ↔ G'.adj w v :=
-⟨λ x, G'.sym x, λ x, G'.sym x⟩
+⟨λ x, G'.symm x, λ x, G'.symm x⟩
 
-@[symm] lemma adj_symm (G' : subgraph G) {u v : V} (h : G'.adj u v) : G'.adj v u := G'.sym h
+@[symm] lemma adj_symm (G' : subgraph G) {u v : V} (h : G'.adj u v) : G'.adj v u := G'.symm h
 
-/-- Coercion from `subgraph G` to `simple_graph G.V`. -/
+/-- Coercion from `G' : subgraph G` to a `simple_graph ↥G'.verts`. -/
 @[simps] def coe (G' : subgraph G) : simple_graph G'.verts :=
 { adj := λ v w, G'.adj v w,
-  sym := λ v w h, G'.sym h,
+  symm := λ v w h, G'.symm h,
   loopless := λ v h, loopless G v (G'.adj_sub h) }
 
 @[simp] lemma coe_adj_sub (G' : subgraph G) (u v : G'.verts) (h : G'.coe.adj u v) : G.adj u v :=
@@ -79,6 +81,26 @@ G'.adj_sub h
 
 /-- A subgraph is called a *spanning subgraph* if it contains all the vertices of `G`. --/
 def is_spanning (G' : subgraph G) : Prop := ∀ (v : V), v ∈ G'.verts
+
+/-- Coercion from `subgraph G` to `simple_graph V`.  If `G'` is a spanning
+subgraph, then `G'.spanning_coe` yields an isomorphic graph.
+In general, this adds in all vertices from `V` as isolated vertices. -/
+@[simps] def spanning_coe (G' : subgraph G) : simple_graph V :=
+{ adj := G'.adj,
+  symm := G'.symm,
+  loopless := λ v hv, G.loopless v (G'.adj_sub hv) }
+
+@[simp] lemma spanning_coe_adj_sub (H : subgraph G) (u v : H.verts) (h : H.spanning_coe.adj u v) :
+  G.adj u v := H.adj_sub h
+
+/-- `spanning_coe` is equivalent to `coe` for a subgraph that `is_spanning`.  -/
+@[simps] def spanning_coe_equiv_coe_of_spanning (G' : subgraph G) (h : G'.is_spanning) :
+  G'.spanning_coe ≃g G'.coe :=
+{ to_fun := λ v, ⟨v, h v⟩,
+  inv_fun := λ v, v,
+  left_inv := λ v, rfl,
+  right_inv := λ ⟨v, hv⟩, rfl,
+  map_rel_iff' := λ v w, iff.rfl }
 
 /-- A subgraph is called an *induced subgraph* if vertices of `G'` are adjacent if
 they are adjacent in `G`. -/
@@ -103,7 +125,7 @@ def coe_neighbor_set_equiv {G' : subgraph G} (v : G'.verts) :
   right_inv := λ w, by simp }
 
 /-- The edge set of `G'` consists of a subset of edges of `G`. -/
-def edge_set (G' : subgraph G) : set (sym2 V) := sym2.from_rel G'.sym
+def edge_set (G' : subgraph G) : set (sym2 V) := sym2.from_rel G'.symm
 
 lemma edge_set_subset (G' : subgraph G) : G'.edge_set ⊆ G.edge_set :=
 λ e, quotient.ind (λ e h, G'.adj_sub h) e
@@ -119,7 +141,7 @@ begin
   simp only [mem_edge_set] at he,
   cases sym2.mem_iff.mp hv with h h; subst h,
   { exact G'.edge_vert he, },
-  { exact G'.edge_vert (G'.sym he), },
+  { exact G'.edge_vert (G'.symm he), },
 end
 
 /-- The `incidence_set` is the set of edges incident to a given vertex. -/
@@ -148,7 +170,7 @@ def copy (G' : subgraph G)
   adj := adj',
   adj_sub := hadj.symm ▸ G'.adj_sub,
   edge_vert := hV.symm ▸ hadj.symm ▸ G'.edge_vert,
-  sym := hadj.symm ▸ G'.sym }
+  symm := hadj.symm ▸ G'.symm }
 
 lemma copy_eq (G' : subgraph G)
   (V'' : set V) (hV : V'' = G'.verts)
@@ -159,21 +181,18 @@ subgraph.ext _ _ hV hadj
 /-- The union of two subgraphs. -/
 def union (x y : subgraph G) : subgraph G :=
 { verts := x.verts ∪ y.verts,
-  adj := λ v w, x.adj v w ∨ y.adj v w,
+  adj := x.adj ⊔ y.adj,
   adj_sub := λ v w h, or.cases_on h (λ h, x.adj_sub h) (λ h, y.adj_sub h),
   edge_vert := λ v w h, or.cases_on h (λ h, or.inl (x.edge_vert h)) (λ h, or.inr (y.edge_vert h)),
-  sym := λ v w h, by rwa [x.adj_comm, y.adj_comm] }
+  symm := λ v w h, by rwa [pi.sup_apply, pi.sup_apply, x.adj_comm, y.adj_comm] }
 
 /-- The intersection of two subgraphs. -/
 def inter (x y : subgraph G) : subgraph G :=
 { verts := x.verts ∩ y.verts,
-  adj := λ v w, x.adj v w ∧ y.adj v w,
+  adj := x.adj ⊓ y.adj,
   adj_sub := λ v w h, x.adj_sub h.1,
   edge_vert := λ v w h, ⟨x.edge_vert h.1, y.edge_vert h.2⟩,
-  sym := λ v w h, by rwa [x.adj_comm, y.adj_comm] }
-
-instance : has_union (subgraph G) := ⟨union⟩
-instance : has_inter (subgraph G) := ⟨inter⟩
+  symm := λ v w h, by rwa [pi.inf_apply, pi.inf_apply, x.adj_comm, y.adj_comm] }
 
 /-- The `top` subgraph is `G` as a subgraph of itself. -/
 def top : subgraph G :=
@@ -181,7 +200,7 @@ def top : subgraph G :=
   adj := G.adj,
   adj_sub := λ v w h, h,
   edge_vert := λ v w h, set.mem_univ v,
-  sym := G.sym }
+  symm := G.symm }
 
 /-- The `bot` subgraph is the subgraph with no vertices or edges. -/
 def bot : subgraph G :=
@@ -189,12 +208,12 @@ def bot : subgraph G :=
   adj := λ v w, false,
   adj_sub := λ v w h, false.rec _ h,
   edge_vert := λ v w h, false.rec _ h,
-  sym := λ u v h, h }
+  symm := λ u v h, h }
 
 instance subgraph_inhabited : inhabited (subgraph G) := ⟨bot⟩
 
 /-- The relation that one subgraph is a subgraph of another. -/
-def is_subgraph (x y : subgraph G) : Prop := x.verts ⊆ y.verts ∧ ∀ {v w : V}, x.adj v w → y.adj v w
+def is_subgraph (x y : subgraph G) : Prop := x.verts ⊆ y.verts ∧ ∀ ⦃v w : V⦄, x.adj v w → y.adj v w
 
 instance : bounded_lattice (subgraph G) :=
 { le := is_subgraph,
@@ -222,22 +241,37 @@ instance : bounded_lattice (subgraph G) :=
   inf_le_left := λ x y, ⟨set.inter_subset_left x.verts y.verts, (λ v w h, h.1)⟩,
   inf_le_right := λ x y, ⟨set.inter_subset_right x.verts y.verts, (λ v w h, h.2)⟩ }
 
+/-- Turn a subgraph of a `simple_graph` into a member of its subgraph type. -/
+@[simps] def _root_.simple_graph.to_subgraph (H : simple_graph V) (h : H ≤ G) :
+  G.subgraph :=
+{ verts := set.univ,
+  adj := H.adj,
+  adj_sub := h,
+  edge_vert := λ v w h, set.mem_univ v,
+  symm := H.symm }
+
+lemma _root_.simple_graph.to_subgraph.is_spanning (H : simple_graph V) (h : H ≤ G) :
+  (H.to_subgraph h).is_spanning := set.mem_univ
+
+lemma spanning_coe.is_subgraph_of_is_subgraph {H H' : subgraph G} (h : H ≤ H') :
+  H.spanning_coe ≤ H'.spanning_coe := h.2
+
 /-- The top of the `subgraph G` lattice is equivalent to the graph itself. -/
 def top_equiv : (⊤ : subgraph G).coe ≃g G :=
 { to_fun := λ v, ↑v,
-  inv_fun := λ v, ⟨v, by tidy⟩,
-  left_inv := by tidy,
-  right_inv := by tidy,
-  map_rel_iff' := by tidy }
+  inv_fun := λ v, ⟨v, trivial⟩,
+  left_inv := λ ⟨v, _⟩, rfl,
+  right_inv := λ v, rfl,
+  map_rel_iff' := λ a b, iff.rfl }
 
 /-- The bottom of the `subgraph G` lattice is equivalent to the empty graph on the empty
 vertex type. -/
-def bot_equiv : (⊥ : subgraph G).coe ≃g empty_graph empty :=
-{ to_fun := λ v, false.elim v.property,
-  inv_fun := λ v, begin cases v, end,
-  left_inv := by tidy,
-  right_inv := by tidy,
-  map_rel_iff' := by tidy }
+def bot_equiv : (⊥ : subgraph G).coe ≃g (⊥ : simple_graph empty) :=
+{ to_fun := λ v, v.property.elim,
+  inv_fun := λ v, v.elim,
+  left_inv := λ ⟨_, h⟩, h.elim,
+  right_inv := λ v, v.elim,
+  map_rel_iff' := λ a b, iff.rfl }
 
 /-- Given two subgraphs, one a subgraph of the other, there is an induced injective homomorphism of
 the subgraphs as graphs. -/

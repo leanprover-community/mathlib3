@@ -64,17 +64,17 @@ begin
   rw [← finite_field.card_units, fintype.card_pos_iff],
   exact ⟨1⟩
 end,
-by simp only [indicator, (finset.univ.prod_hom (eval a)).symm, ring_hom.map_sub,
-    is_ring_hom.map_one (eval a), is_monoid_hom.map_pow (eval a), eval_X, eval_C,
-    sub_self, zero_pow this, sub_zero, finset.prod_const_one]
+by { simp only [indicator, (eval a).map_prod, ring_hom.map_sub,
+    (eval a).map_one, (eval a).map_pow, eval_X, eval_C,
+    sub_self, zero_pow this, sub_zero, finset.prod_const_one] }
 
 lemma eval_indicator_apply_eq_zero (a b : σ → K) (h : a ≠ b) :
   eval a (indicator b) = 0 :=
 have ∃i, a i ≠ b i, by rwa [(≠), function.funext_iff, not_forall] at h,
 begin
   rcases this with ⟨i, hi⟩,
-  simp only [indicator, (finset.univ.prod_hom (eval a)).symm, ring_hom.map_sub,
-    is_ring_hom.map_one (eval a), is_monoid_hom.map_pow (eval a), eval_X, eval_C,
+  simp only [indicator, (eval a).map_prod, ring_hom.map_sub,
+    (eval a).map_one, (eval a).map_pow, eval_X, eval_C,
     sub_self, finset.prod_eq_zero_iff],
   refine ⟨i, finset.mem_univ _, _⟩,
   rw [finite_field.pow_card_sub_one_eq_one, sub_self],
@@ -100,14 +100,13 @@ begin
   rw [mem_restrict_degree_iff_sup, indicator],
   assume n,
   refine le_trans (multiset.count_le_of_le _ $ degrees_indicator _) (le_of_eq _),
-  rw [← finset.univ.sum_hom (multiset.count n)],
-  simp only [is_add_monoid_hom.map_nsmul (multiset.count n), multiset.singleton_eq_singleton,
-    nsmul_eq_mul, nat.cast_id],
+  simp_rw [ ← multiset.coe_count_add_monoid_hom, (multiset.count_add_monoid_hom n).map_sum,
+    add_monoid_hom.map_nsmul, multiset.coe_count_add_monoid_hom, nsmul_eq_mul, nat.cast_id],
   transitivity,
   refine finset.sum_eq_single n _ _,
-  { assume b hb ne, rw [multiset.count_cons_of_ne ne.symm, multiset.count_zero, mul_zero] },
+  { assume b hb ne, rw [multiset.count_singleton, if_neg ne.symm, mul_zero] },
   { assume h, exact (h $ finset.mem_univ _).elim },
-  { rw [multiset.count_cons_self, multiset.count_zero, mul_one] }
+  { rw [multiset.count_singleton_self, mul_one] }
 end
 
 section
@@ -141,7 +140,7 @@ end mv_polynomial
 
 namespace mv_polynomial
 
-open_locale classical
+open_locale classical cardinal
 open linear_map submodule
 
 universe u
@@ -159,20 +158,20 @@ calc module.rank K (R σ K) =
   module.rank K (↥{s : σ →₀ ℕ | ∀ (n : σ), s n ≤ fintype.card K - 1} →₀ K) :
     linear_equiv.dim_eq
       (finsupp.supported_equiv_finsupp {s : σ →₀ ℕ | ∀n:σ, s n ≤ fintype.card K - 1 })
-  ... = cardinal.mk {s : σ →₀ ℕ | ∀ (n : σ), s n ≤ fintype.card K - 1} :
-    by rw [finsupp.dim_eq, dim_of_field, mul_one]
-  ... = cardinal.mk {s : σ → ℕ | ∀ (n : σ), s n < fintype.card K } :
+  ... = #{s : σ →₀ ℕ | ∀ (n : σ), s n ≤ fintype.card K - 1} :
+    by rw [finsupp.dim_eq, dim_self, mul_one]
+  ... = #{s : σ → ℕ | ∀ (n : σ), s n < fintype.card K } :
   begin
     refine quotient.sound ⟨equiv.subtype_equiv finsupp.equiv_fun_on_fintype $ assume f, _⟩,
     refine forall_congr (assume n, nat.le_sub_right_iff_add_le _),
     exact fintype.card_pos_iff.2 ⟨0⟩
   end
-  ... = cardinal.mk (σ → {n // n < fintype.card K}) :
-    quotient.sound ⟨@equiv.subtype_pi_equiv_pi σ (λ_, ℕ) (λs n, n < fintype.card K)⟩
-  ... = cardinal.mk (σ → fin (fintype.card K)) :
-    quotient.sound ⟨equiv.arrow_congr (equiv.refl σ) (equiv.fin_equiv_subtype _).symm⟩
-  ... = cardinal.mk (σ → K) :
-    quotient.sound ⟨equiv.arrow_congr (equiv.refl σ) (fintype.equiv_fin K).symm⟩
+  ... = #(σ → {n // n < fintype.card K}) :
+    (@equiv.subtype_pi_equiv_pi σ (λ_, ℕ) (λs n, n < fintype.card K)).cardinal_eq
+  ... = #(σ → fin (fintype.card K)) :
+    (equiv.arrow_congr (equiv.refl σ) (equiv.fin_equiv_subtype _).symm).cardinal_eq
+  ... = #(σ → K) :
+    (equiv.arrow_congr (equiv.refl σ) (fintype.equiv_fin K).symm).cardinal_eq
   ... = fintype.card (σ → K) : cardinal.fintype_card _
 
 instance : finite_dimensional K (R σ K) :=

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jalex Stark, Kyle Miller
 -/
 import combinatorics.simple_graph.adj_matrix
-import linear_algebra.char_poly.coeff
+import linear_algebra.matrix.charpoly.coeff
 import data.int.modeq
 import data.zmod.basic
 import tactic.interval_cases
@@ -106,7 +106,7 @@ lemma degree_eq_of_not_adj {v w : V} (hvw : ¬ G.adj v w) :
 begin
   rw [← nat.cast_id (G.degree v), ← nat.cast_id (G.degree w),
       ← adj_matrix_pow_three_of_not_adj ℕ hG hvw,
-      ← adj_matrix_pow_three_of_not_adj ℕ hG (λ h, hvw (G.sym h))],
+      ← adj_matrix_pow_three_of_not_adj ℕ hG (λ h, hvw (G.symm h))],
   conv_lhs {rw ← transpose_adj_matrix},
   simp only [pow_succ, sq, mul_eq_mul, ← transpose_mul, transpose_apply],
   simp only [← mul_eq_mul, mul_assoc],
@@ -163,8 +163,8 @@ begin
     rw [h, mem_singleton] at h',
     injection h', },
   apply hxy',
-  rw [key ((mem_common_neighbors G).mpr ⟨hvx, G.sym hxw⟩),
-      key ((mem_common_neighbors G).mpr ⟨hvy, G.sym hcontra⟩)],
+  rw [key ((mem_common_neighbors G).mpr ⟨hvx, G.symm hxw⟩),
+      key ((mem_common_neighbors G).mpr ⟨hvy, G.symm hcontra⟩)],
 end
 
 /-- Let `A` be the adjacency matrix of a `d`-regular friendship graph, and let `v` be a vector

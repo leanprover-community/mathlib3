@@ -13,18 +13,18 @@ import geometry.manifold.instances.real
 In this file we define `smooth_bump_function I c` to be a bundled smooth "bump" function centered at
 `c`. It is a structure that consists of two real numbers `0 < r < R` with small enough `R`. We
 define a coercion to function for this type, and for `f : smooth_bump_function I c`, the function
-`⇑f` written in the extended chart at `f.c` has the following properties:
+`⇑f` written in the extended chart at `c` has the following properties:
 
-* `f x = 1` in the closed euclidean ball of radius `f.r` centered at `f.c`;
-* `f x = 0` outside of the euclidean ball of radius `f.R` centered at `f.c`;
+* `f x = 1` in the closed euclidean ball of radius `f.r` centered at `c`;
+* `f x = 0` outside of the euclidean ball of radius `f.R` centered at `c`;
 * `0 ≤ f x ≤ 1` for all `x`.
 
-The actual statements involve (pre)images under `ext_chart_at I f.c` and are given as lemmas in the
+The actual statements involve (pre)images under `ext_chart_at I f` and are given as lemmas in the
 `smooth_bump_function` namespace.
 
 ## Tags
 
-manifold, smooth bump function, partition of unity, Whitney theorem
+manifold, smooth bump function
 -/
 
 universes uE uF uH uM
@@ -54,7 +54,7 @@ In this section we define a structure for a bundled smooth bump function and pro
 
 The structure contains data required to construct a function with these properties. The function is
 available as `⇑f` or `f x`. Formal statements of the properties listed above involve some
-(pre)images under `ext_chart_at I f.c` and are given as lemmas in the `msmooth_bump_function`
+(pre)images under `ext_chart_at I f.c` and are given as lemmas in the `smooth_bump_function`
 namespace. -/
 structure smooth_bump_function (c : M) extends times_cont_diff_bump (ext_chart_at I c c) :=
 (closed_ball_subset :
@@ -168,7 +168,7 @@ lemma support_mem_nhds : support f ∈ 𝓝 c :=
 f.eventually_eq_one.mono $ λ x hx, by { rw hx, exact one_ne_zero }
 
 lemma closure_support_mem_nhds : closure (support f) ∈ 𝓝 c :=
-mem_sets_of_superset f.support_mem_nhds subset_closure
+mem_of_superset f.support_mem_nhds subset_closure
 
 lemma c_mem_support : c ∈ support f := mem_of_mem_nhds f.support_mem_nhds
 
@@ -176,7 +176,7 @@ lemma nonempty_support : (support f).nonempty := ⟨c, f.c_mem_support⟩
 
 lemma compact_symm_image_closed_ball :
   is_compact ((ext_chart_at I c).symm '' (closed_ball (ext_chart_at I c c) f.R ∩ range I)) :=
-(compact_ball.inter_right I.closed_range).image_of_continuous_on $
+(is_compact_closed_ball.inter_right I.closed_range).image_of_continuous_on $
   (ext_chart_at_continuous_on_symm _ _).mono f.closed_ball_subset
 
 /-- Given a smooth bump function `f : smooth_bump_function I c`, the closed ball of radius `f.R` is
@@ -190,7 +190,7 @@ begin
       (ext_chart_at_target_mem_nhds_within _ _)).to_has_basis' _ _,
   { rintro R ⟨hR0, hsub⟩,
     exact ⟨⟨⟨⟨R / 2, R, half_pos hR0, half_lt_self hR0⟩⟩, hsub⟩, trivial, subset.rfl⟩ },
-  { exact λ f _, inter_mem_sets (mem_nhds_within_of_mem_nhds $ closed_ball_mem_nhds f.R_pos)
+  { exact λ f _, inter_mem (mem_nhds_within_of_mem_nhds $ closed_ball_mem_nhds f.R_pos)
       self_mem_nhds_within }
 end
 
@@ -306,6 +306,8 @@ begin
 end
 
 protected lemma smooth_at {x} : smooth_at I 𝓘(ℝ) f x := f.smooth.smooth_at
+
+protected lemma continuous : continuous f := f.smooth.continuous
 
 /-- If `f : smooth_bump_function I c` is a smooth bump function and `g : M → G` is a function smooth
 on the source of the chart at `c`, then `f • g` is smooth on the whole manifold. -/

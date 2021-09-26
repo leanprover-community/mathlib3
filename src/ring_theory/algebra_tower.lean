@@ -3,11 +3,11 @@ Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-
+import algebra.algebra.restrict_scalars
 import algebra.algebra.tower
 import algebra.invertible
 import linear_algebra.basis
-import ring_theory.adjoin.basic
+import ring_theory.adjoin.fg
 import ring_theory.polynomial.tower
 
 /-!
@@ -27,6 +27,7 @@ of `A`, then `{bi cj | i ∈ I, j ∈ J}` is an `R`-basis of `A`. This statement
 base rings to be a field, so we also generalize the lemma to rings in this file.
 -/
 
+open_locale pointwise
 universes u v w u₁
 
 variables (R : Type u) (S : Type v) (A : Type w) (B : Type u₁)
@@ -80,10 +81,11 @@ theorem adjoin_algebra_map (R : Type u) (S : Type v) (A : Type w)
 le_antisymm (adjoin_le $ set.image_subset_iff.2 $ λ y hy, ⟨y, subset_adjoin hy, rfl⟩)
   (subalgebra.map_le.2 $ adjoin_le $ λ y hy, subset_adjoin ⟨y, hy, rfl⟩)
 
-lemma adjoin_res (C D E : Type*) [comm_semiring C] [comm_semiring D] [comm_semiring E]
+lemma adjoin_restrict_scalars (C D E : Type*) [comm_semiring C] [comm_semiring D] [comm_semiring E]
   [algebra C D] [algebra C E] [algebra D E] [is_scalar_tower C D E] (S : set E) :
-(algebra.adjoin D S).res C = ((⊤ : subalgebra C D).map (is_scalar_tower.to_alg_hom C D E)).under
-  (algebra.adjoin ((⊤ : subalgebra C D).map (is_scalar_tower.to_alg_hom C D E)) S) :=
+(algebra.adjoin D S).restrict_scalars C =
+  ((⊤ : subalgebra C D).map (is_scalar_tower.to_alg_hom C D E)).under
+    (algebra.adjoin ((⊤ : subalgebra C D).map (is_scalar_tower.to_alg_hom C D E)) S) :=
 begin
   suffices : set.range (algebra_map D E) =
     set.range (algebra_map ((⊤ : subalgebra C D).map (is_scalar_tower.to_alg_hom C D E)) E),
@@ -100,11 +102,12 @@ lemma adjoin_res_eq_adjoin_res (C D E F : Type*) [comm_semiring C] [comm_semirin
   [comm_semiring E] [comm_semiring F] [algebra C D] [algebra C E] [algebra C F] [algebra D F]
   [algebra E F] [is_scalar_tower C D F] [is_scalar_tower C E F] {S : set D} {T : set E}
   (hS : algebra.adjoin C S = ⊤) (hT : algebra.adjoin C T = ⊤) :
-(algebra.adjoin E (algebra_map D F '' S)).res C =
-  (algebra.adjoin D (algebra_map E F '' T)).res C :=
-by { rw [adjoin_res, adjoin_res, ←hS, ←hT, ←algebra.adjoin_image, ←algebra.adjoin_image,
-  ←alg_hom.coe_to_ring_hom, ←alg_hom.coe_to_ring_hom, is_scalar_tower.coe_to_alg_hom,
-  is_scalar_tower.coe_to_alg_hom, ←adjoin_union_eq_under, ←adjoin_union_eq_under, set.union_comm] }
+(algebra.adjoin E (algebra_map D F '' S)).restrict_scalars C =
+  (algebra.adjoin D (algebra_map E F '' T)).restrict_scalars C :=
+by rw [adjoin_restrict_scalars, adjoin_restrict_scalars, ←hS, ←hT, ←algebra.adjoin_image,
+  ←algebra.adjoin_image, ←alg_hom.coe_to_ring_hom, ←alg_hom.coe_to_ring_hom,
+  is_scalar_tower.coe_to_alg_hom, is_scalar_tower.coe_to_alg_hom, ←adjoin_union_eq_under,
+  ←adjoin_union_eq_under, set.union_comm]
 
 end algebra
 
@@ -117,8 +120,28 @@ lemma algebra.fg_trans' {R S A : Type*} [comm_ring R] [comm_ring S] [comm_ring A
 let ⟨s, hs⟩ := hRS, ⟨t, ht⟩ := hSA in ⟨s.image (algebra_map S A) ∪ t,
 by rw [finset.coe_union, finset.coe_image, algebra.adjoin_union_eq_under,
   algebra.adjoin_algebra_map, hs, algebra.map_top, is_scalar_tower.range_under_adjoin, ht,
-  subalgebra.res_top]⟩
+  subalgebra.restrict_scalars_top]⟩
 end
+
+section algebra_map_coeffs
+
+variables {R} (A) {ι M : Type*} [comm_semiring R] [semiring A] [add_comm_monoid M]
+variables [algebra R A] [module A M] [module R M] [is_scalar_tower R A M]
+variables (b : basis ι R M) (h : function.bijective (algebra_map R A))
+
+/-- If `R` and `A` have a bijective `algebra_map R A` and act identically on `M`,
+then a basis for `M` as `R`-module is also a basis for `M` as `R'`-module. -/
+@[simps]
+noncomputable def basis.algebra_map_coeffs : basis ι A M :=
+b.map_coeffs (ring_equiv.of_bijective _ h) (λ c x, by simp)
+
+lemma basis.algebra_map_coeffs_apply (i : ι) : b.algebra_map_coeffs A h i = b i :=
+b.map_coeffs_apply _ _ _
+
+@[simp] lemma basis.coe_algebra_map_coeffs : (b.algebra_map_coeffs A h : ι → M) = b :=
+b.coe_map_coeffs _ _
+
+end algebra_map_coeffs
 
 section ring
 
@@ -149,10 +172,10 @@ end
 where the `(i, j)`th basis vector is `b i • c j`. -/
 noncomputable def basis.smul {ι : Type v₁} {ι' : Type w₁}
   (b : basis ι R S) (c : basis ι' S A) : basis (ι × ι') R A :=
-basis.of_repr ((c.repr.restrict_scalars R).trans $
-  (finsupp.lcongr (equiv.refl _) b.repr).trans $
-  (finsupp_prod_lequiv R).symm.trans $
-  (finsupp.lcongr (equiv.prod_comm ι' ι) (linear_equiv.refl _ _)))
+basis.of_repr ((c.repr.restrict_scalars R) ≪≫ₗ
+  ((finsupp.lcongr (equiv.refl _) b.repr) ≪≫ₗ
+  ((finsupp_prod_lequiv R).symm ≪≫ₗ
+  ((finsupp.lcongr (equiv.prod_comm ι' ι) (linear_equiv.refl _ _))))))
 
 @[simp] theorem basis.smul_repr {ι : Type v₁} {ι' : Type w₁}
   (b : basis ι R S) (c : basis ι' S A) (x ij):
@@ -178,6 +201,12 @@ begin
   { simp [hi, finsupp.single_apply] },
   { simp [hi] },
 end
+
+lemma basis.algebra_map_injective {ι : Type v₁} [no_zero_divisors R] [nontrivial S]
+  (b : basis ι R S) :
+  function.injective (algebra_map R S) :=
+have no_zero_smul_divisors R S := b.no_zero_smul_divisors,
+by exactI no_zero_smul_divisors.algebra_map_injective R S
 
 end ring
 

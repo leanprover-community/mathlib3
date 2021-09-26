@@ -31,7 +31,7 @@ In this file we prove various facts about membership in a submonoid:
 submonoid, submonoids
 -/
 
-open_locale big_operators
+open_locale big_operators pointwise
 
 variables {M : Type*}
 variables {A : Type*}
@@ -41,40 +41,37 @@ namespace submonoid
 section assoc
 variables [monoid M] (S : submonoid M)
 
-@[simp, norm_cast] theorem coe_pow (x : S) (n : ℕ) : ↑(x ^ n) = (x ^ n : M) :=
+@[simp, norm_cast, to_additive coe_nsmul] theorem coe_pow (x : S) (n : ℕ) :
+  ↑(x ^ n) = (x ^ n : M) :=
 S.subtype.map_pow x n
 
-@[simp, norm_cast] theorem coe_list_prod (l : list S) : (l.prod : M) = (l.map coe).prod :=
+@[simp, norm_cast, to_additive] theorem coe_list_prod (l : list S) :
+  (l.prod : M) = (l.map coe).prod :=
 S.subtype.map_list_prod l
 
-@[simp, norm_cast] theorem coe_multiset_prod {M} [comm_monoid M] (S : submonoid M)
+@[simp, norm_cast, to_additive] theorem coe_multiset_prod {M} [comm_monoid M] (S : submonoid M)
   (m : multiset S) : (m.prod : M) = (m.map coe).prod :=
 S.subtype.map_multiset_prod m
 
-@[simp, norm_cast] theorem coe_finset_prod {ι M} [comm_monoid M] (S : submonoid M)
+@[simp, norm_cast, to_additive] theorem coe_finset_prod {ι M} [comm_monoid M] (S : submonoid M)
   (f : ι → S) (s : finset ι) :
   ↑(∏ i in s, f i) = (∏ i in s, f i : M) :=
 S.subtype.map_prod f s
 
+attribute [norm_cast] add_submonoid.coe_nsmul add_submonoid.coe_list_sum
+  add_submonoid.coe_multiset_sum add_submonoid.coe_finset_sum
+
 /-- Product of a list of elements in a submonoid is in the submonoid. -/
 @[to_additive "Sum of a list of elements in an `add_submonoid` is in the `add_submonoid`."]
-lemma list_prod_mem : ∀ {l : list M}, (∀x ∈ l, x ∈ S) → l.prod ∈ S
-| []     h := S.one_mem
-| (a::l) h :=
-  suffices a * l.prod ∈ S, by rwa [list.prod_cons],
-  have a ∈ S ∧ (∀ x ∈ l, x ∈ S), from list.forall_mem_cons.1 h,
-  S.mul_mem this.1 (list_prod_mem this.2)
+lemma list_prod_mem {l : list M} (hl : ∀ x ∈ l, x ∈ S) : l.prod ∈ S :=
+by { lift l to list S using hl, rw ← coe_list_prod, exact l.prod.coe_prop }
 
 /-- Product of a multiset of elements in a submonoid of a `comm_monoid` is in the submonoid. -/
 @[to_additive "Sum of a multiset of elements in an `add_submonoid` of an `add_comm_monoid` is
 in the `add_submonoid`."]
-lemma multiset_prod_mem {M} [comm_monoid M] (S : submonoid M) (m : multiset M) :
-  (∀a ∈ m, a ∈ S) → m.prod ∈ S :=
-begin
-  refine quotient.induction_on m (assume l hl, _),
-  rw [multiset.quot_mk_to_coe, multiset.coe_prod],
-  exact S.list_prod_mem hl
-end
+lemma multiset_prod_mem {M} [comm_monoid M] (S : submonoid M) (m : multiset M)
+  (hm : ∀ a ∈ m, a ∈ S) : m.prod ∈ S :=
+by { lift m to multiset S using hm, rw ← coe_multiset_prod, exact m.prod.coe_prop }
 
 /-- Product of elements of a submonoid of a `comm_monoid` indexed by a `finset` is in the
     submonoid. -/
@@ -85,7 +82,7 @@ lemma prod_mem {M : Type*} [comm_monoid M] (S : submonoid M)
   ∏ c in t, f c ∈ S :=
 S.multiset_prod_mem (t.1.map f) $ λ x hx, let ⟨i, hi, hix⟩ := multiset.mem_map.1 hx in hix ▸ h i hi
 
-lemma pow_mem {x : M} (hx : x ∈ S) (n : ℕ) : x ^ n ∈ S :=
+@[to_additive nsmul_mem] lemma pow_mem {x : M} (hx : x ∈ S) (n : ℕ) : x ^ n ∈ S :=
 by simpa only [coe_pow] using ((⟨x, hx⟩ : S) ^ n).coe_prop
 
 end assoc
@@ -206,11 +203,34 @@ set.ext (λ n, exists_congr $ λ i, by simp; refl)
 
 @[simp] lemma mem_powers (n : M) : n ∈ powers n := ⟨1, pow_one _⟩
 
+lemma mem_powers_iff (x z : M) : x ∈ powers z ↔ ∃ n : ℕ, z ^ n = x := iff.rfl
+
 lemma powers_eq_closure (n : M) : powers n = closure {n} :=
 by { ext, exact mem_closure_singleton.symm }
 
 lemma powers_subset {n : M} {P : submonoid M} (h : n ∈ P) : powers n ≤ P :=
 λ x hx, match x, hx with _, ⟨i, rfl⟩ := P.pow_mem h i end
+
+/-- Exponentiation map from natural numbers to powers. -/
+def pow (n : M) (m : ℕ) : powers n := ⟨n ^ m, m, rfl⟩
+
+/-- Logarithms from powers to natural numbers. -/
+def log [decidable_eq M] {n : M} (p : powers n) : ℕ :=
+nat.find $ (mem_powers_iff p.val n).mp p.prop
+
+@[simp] theorem pow_log_eq_self [decidable_eq M] {n : M} (p : powers n) : pow n (log p) = p :=
+subtype.ext $ nat.find_spec p.prop
+
+lemma pow_right_injective_iff_pow_injective {n : M} :
+  function.injective (λ m : ℕ, n ^ m) ↔ function.injective (pow n) :=
+subtype.coe_injective.of_comp_iff (pow n)
+
+theorem log_pow_eq_self [decidable_eq M] {n : M} (h : function.injective (λ m : ℕ, n ^ m)) (m : ℕ) :
+  log (pow n m) = m := 
+pow_right_injective_iff_pow_injective.mp h $ pow_log_eq_self _
+
+theorem log_pow_int_eq_self {x : ℤ} (h : 1 < x.nat_abs) (m : ℕ) : log (pow x m) = m :=
+log_pow_eq_self (int.pow_right_injective h) _
 
 end submonoid
 
@@ -239,11 +259,6 @@ variables [add_monoid A]
 
 open set
 
-lemma nsmul_mem (S : add_submonoid A) {x : A} (hx : x ∈ S) :
-  ∀ n : ℕ, n • x ∈ S
-| 0     := by { rw zero_nsmul, exact S.zero_mem }
-| (n+1) := by { rw [add_nsmul, one_nsmul], exact S.add_mem (nsmul_mem n) hx }
-
 lemma closure_singleton_eq (x : A) : closure ({x} : set A) = (multiples_hom A x).mrange :=
 closure_eq_of_le (set.singleton_subset_iff.2 ⟨1, one_nsmul x⟩) $
   λ x ⟨n, hn⟩, hn ▸ nsmul_mem _ (subset_closure $ set.mem_singleton _) _
@@ -264,6 +279,8 @@ set.ext (λ n, exists_congr $ λ i, by simp; refl)
 
 @[simp] lemma mem_multiples (x : A) : x ∈ multiples x := ⟨1, one_nsmul _⟩
 
+lemma mem_multiples_iff (x z : A) : x ∈ multiples z ↔ ∃ n : ℕ, n • z = x := iff.rfl
+
 lemma multiples_eq_closure (x : A) : multiples x = closure {x} :=
 by { ext, exact mem_closure_singleton.symm }
 
@@ -272,6 +289,7 @@ lemma multiples_subset {x : A} {P : add_submonoid A} (h : x ∈ P) : multiples x
 
 attribute [to_additive add_submonoid.multiples] submonoid.powers
 attribute [to_additive add_submonoid.mem_multiples] submonoid.mem_powers
+attribute [to_additive add_submonoid.mem_multiples_iff] submonoid.mem_powers_iff
 attribute [to_additive add_submonoid.multiples_eq_closure] submonoid.powers_eq_closure
 attribute [to_additive add_submonoid.multiples_subset] submonoid.powers_subset
 

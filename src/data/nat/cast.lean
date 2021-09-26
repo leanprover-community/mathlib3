@@ -3,7 +3,7 @@ Copyright (c) 2014 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import algebra.ordered_field
+import algebra.order.field
 import data.nat.basic
 
 /-!
@@ -204,11 +204,11 @@ end
 
 @[simp, norm_cast] theorem cast_min [linear_ordered_semiring α] {a b : ℕ} :
   (↑(min a b) : α) = min a b :=
-by by_cases a ≤ b; simp [h, min]
+(@mono_cast α _).map_min
 
 @[simp, norm_cast] theorem cast_max [linear_ordered_semiring α] {a b : ℕ} :
   (↑(max a b) : α) = max a b :=
-by by_cases a ≤ b; simp [h, max]
+(@mono_cast α _).map_max
 
 @[simp, norm_cast] theorem abs_cast [linear_ordered_ring α] (a : ℕ) :
   abs (a : α) = a :=
@@ -238,6 +238,19 @@ by { refine one_div_lt_one_div_of_lt _ _, exact nat.cast_add_one_pos _, simpa }
 end linear_ordered_field
 
 end nat
+
+namespace prod
+
+variables {α : Type*} {β : Type*} [has_zero α] [has_one α] [has_add α]
+  [has_zero β] [has_one β] [has_add β]
+
+@[simp] lemma fst_nat_cast (n : ℕ) : (n : α × β).fst = n :=
+by induction n; simp *
+
+@[simp] lemma snd_nat_cast (n : ℕ) : (n : α × β).snd = n :=
+by induction n; simp *
+
+end prod
 
 namespace add_monoid_hom
 

@@ -175,7 +175,7 @@ le_sqrt.2 (le_trans (sqrt_le _) h)
 by rw [sqrt, size_zero, sqrt._match_1]
 
 theorem sqrt_eq_zero {n : ℕ} : sqrt n = 0 ↔ n = 0 :=
-⟨λ h, eq_zero_of_le_zero $ le_of_lt_succ $ (@sqrt_lt n 1).1 $
+⟨λ h, nat.eq_zero_of_le_zero $ le_of_lt_succ $ (@sqrt_lt n 1).1 $
   by rw [h]; exact dec_trivial,
  by { rintro rfl, simp }⟩
 
@@ -216,7 +216,7 @@ theorem sqrt_succ_le_succ_sqrt (n : ℕ) : sqrt n.succ ≤ n.sqrt.succ :=
 le_of_lt_succ $ sqrt_lt.2 $ lt_succ_of_le $ succ_le_succ $
 le_trans (sqrt_le_add n) $ add_le_add_right
   (by refine add_le_add
-    (mul_le_mul_right _ _) _; exact le_add_right _ 2) _
+    (nat.mul_le_mul_right _ _) _; exact nat.le_add_right _ 2) _
 
 theorem exists_mul_self (x : ℕ) :
   (∃ n, n * n = x) ↔ sqrt x * sqrt x = x :=

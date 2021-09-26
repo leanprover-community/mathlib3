@@ -261,7 +261,7 @@ The ring equivalence between `ring_quot r` and `(ideal.of_rel r).quotient`
 def ring_quot_equiv_ideal_quotient (r : B → B → Prop) :
   ring_quot r ≃+* (ideal.of_rel r).quotient :=
 ring_equiv.of_hom_inv (ring_quot_to_ideal_quotient r) (ideal_quotient_to_ring_quot r)
-  (by { ext, simp, }) (by { ext ⟨x⟩, simp, })
+  (by { ext, refl, }) (by { ext, refl, })
 
 end comm_ring
 

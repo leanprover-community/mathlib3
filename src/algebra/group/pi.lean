@@ -154,6 +154,13 @@ def pi.eval_monoid_hom (i : I) : (Π i, f i) →* f i :=
   map_one' := pi.one_apply i,
   map_mul' := λ x y, pi.mul_apply _ _ i, }
 
+/-- `function.const` as a `monoid_hom`. -/
+@[to_additive "`function.const` as an `add_monoid_hom`.", simps]
+def pi.const_monoid_hom (α β : Type*) [mul_one_class β] : β →* (α → β) :=
+{ to_fun := function.const α,
+  map_one' := rfl,
+  map_mul' := λ _ _, rfl }
+
 /-- Coercion of a `monoid_hom` into a function is itself a `monoid_hom`.
 
 See also `monoid_hom.eval`. -/
@@ -250,3 +257,16 @@ lemma pi.piecewise_div [Π i, has_div (f i)] (s : set I) [Π i, decidable (i ∈
 s.piecewise_op₂ _ _ _ _ (λ _, (/))
 
 end piecewise
+
+section extend
+
+variables {ι : Type u} {η : Type v} (R : Type w) (s : ι → η)
+
+/-- `function.extend s f 1` as a bundled hom. -/
+@[to_additive function.extend_by_zero.hom "`function.extend s f 0` as a bundled hom.", simps]
+noncomputable def function.extend_by_one.hom [mul_one_class R] : (ι → R) →* (η → R) :=
+{ to_fun := λ f, function.extend s f 1,
+  map_one' := function.extend_one s,
+  map_mul' := λ f g, by { simpa using function.extend_mul s f g 1 1 } }
+
+end extend

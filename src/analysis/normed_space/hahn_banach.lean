@@ -3,10 +3,8 @@ Copyright (c) 2020 Yury Kudryashov All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Heather Macbeth
 -/
-import analysis.normed_space.operator_norm
-import analysis.normed_space.extend
 import analysis.convex.cone
-import data.complex.is_R_or_C
+import analysis.normed_space.extend
 
 /-!
 # Hahn-Banach theorem
@@ -157,6 +155,20 @@ begin
     refine ⟨g, hg.left, _⟩,
     rw [norm'_def, hx, norm_zero, ring_hom.map_zero, continuous_linear_map.map_zero] },
   { exact exists_dual_vector 𝕜 x hx }
+end
+
+/-- Variant of Hahn-Banach, eliminating the hypothesis that `x` be nonzero, but only ensuring that
+    the dual element has norm at most `1` (this can not be improved for the trivial
+    vector space). -/
+theorem exists_dual_vector'' (x : E) :
+  ∃ g : E →L[𝕜] 𝕜, ∥g∥ ≤ 1 ∧ g x = norm' 𝕜 x :=
+begin
+  by_cases hx : x = 0,
+  { refine ⟨0, by simp, _⟩,
+    symmetry,
+    simp [hx], },
+  { rcases exists_dual_vector 𝕜 x hx with ⟨g, g_norm, g_eq⟩,
+    exact ⟨g, g_norm.le, g_eq⟩ }
 end
 
 end dual_vector

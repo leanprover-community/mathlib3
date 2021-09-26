@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 
-import linear_algebra.char_poly.coeff
+import linear_algebra.matrix.charpoly.coeff
 import linear_algebra.determinant
 import ring_theory.power_basis
 
@@ -58,7 +58,7 @@ variables (R)
 noncomputable def norm : S →* R :=
 linear_map.det.comp (lmul R S).to_ring_hom.to_monoid_hom
 
-@[simp] lemma norm_apply (x : S) : norm R x = linear_map.det (lmul R S x) := rfl
+lemma norm_apply (x : S) : norm R x = linear_map.det (lmul R S x) := rfl
 
 lemma norm_eq_one_of_not_exists_basis
   (h : ¬ ∃ (s : finset S), nonempty (basis s R S)) (x : S) : norm R x = 1 :=
@@ -104,14 +104,14 @@ lemma norm_gen_eq_prod_roots [algebra K S] (pb : power_basis K S)
     ((minpoly K pb.gen).map (algebra_map K F)).roots.prod :=
 begin
   -- Write the LHS as the 0'th coefficient of `minpoly K pb.gen`
-  rw [norm_eq_matrix_det pb.basis, det_eq_sign_char_poly_coeff, char_poly_left_mul_matrix,
+  rw [norm_eq_matrix_det pb.basis, det_eq_sign_charpoly_coeff, charpoly_left_mul_matrix,
       ring_hom.map_mul, ring_hom.map_pow, ring_hom.map_neg, ring_hom.map_one,
       ← polynomial.coeff_map, fintype.card_fin],
   -- Rewrite `minpoly K pb.gen` as a product over the roots.
   conv_lhs { rw polynomial.eq_prod_roots_of_splits hf },
   rw [polynomial.coeff_C_mul, polynomial.coeff_zero_multiset_prod, multiset.map_map,
       (minpoly.monic pb.is_integral_gen).leading_coeff, ring_hom.map_one, one_mul],
-  -- Incorporate the `-1` from the `char_poly` back into the product.
+  -- Incorporate the `-1` from the `charpoly` back into the product.
   rw [← multiset.prod_repeat (-1 : F), ← pb.nat_degree_minpoly,
       polynomial.nat_degree_eq_card_roots hf, ← multiset.map_const, ← multiset.prod_map_mul],
   -- And conclude that both sides are the same.
@@ -119,5 +119,45 @@ begin
 end
 
 end eq_prod_roots
+
+section eq_zero_iff
+
+lemma norm_eq_zero_iff_of_basis (b : basis ι R S) {x : S} :
+  algebra.norm R x = 0 ↔ x = 0 :=
+begin
+  have hι : nonempty ι := b.index_nonempty,
+  letI := classical.dec_eq ι,
+  rw algebra.norm_eq_matrix_det b,
+  split,
+  { rw ← matrix.exists_mul_vec_eq_zero_iff,
+    rintros ⟨v, v_ne, hv⟩,
+    rw [← b.equiv_fun.apply_symm_apply v, b.equiv_fun_symm_apply, b.equiv_fun_apply,
+        algebra.left_mul_matrix_mul_vec_repr] at hv,
+    refine (mul_eq_zero.mp (b.ext_elem $ λ i, _)).resolve_right (show ∑ i, v i • b i ≠ 0, from _),
+    { simpa only [linear_equiv.map_zero, pi.zero_apply] using congr_fun hv i },
+    { contrapose! v_ne with sum_eq,
+      apply b.equiv_fun.symm.injective,
+      rw [b.equiv_fun_symm_apply, sum_eq, linear_equiv.map_zero] } },
+  { rintro rfl,
+    rw [alg_hom.map_zero, matrix.det_zero hι] },
+end
+
+lemma norm_ne_zero_iff_of_basis (b : basis ι R S) {x : S} :
+  algebra.norm R x ≠ 0 ↔ x ≠ 0 :=
+not_iff_not.mpr (algebra.norm_eq_zero_iff_of_basis b)
+
+/-- See also `algebra.norm_eq_zero_iff'` if you already have rewritten with `algebra.norm_apply`. -/
+@[simp]
+lemma norm_eq_zero_iff [finite_dimensional K L] {x : L} :
+  algebra.norm K x = 0 ↔ x = 0 :=
+algebra.norm_eq_zero_iff_of_basis (basis.of_vector_space K L)
+
+/-- This is `algebra.norm_eq_zero_iff` composed with `algebra.norm_apply`. -/
+@[simp]
+lemma norm_eq_zero_iff' [finite_dimensional K L] {x : L} :
+  linear_map.det (algebra.lmul K L x) = 0 ↔ x = 0 :=
+algebra.norm_eq_zero_iff_of_basis (basis.of_vector_space K L)
+
+end eq_zero_iff
 
 end algebra

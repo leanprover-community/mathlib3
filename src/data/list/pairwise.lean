@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.list.sublists
+import data.list.lex
 
 /-!
 # Pairwise relations on a list
@@ -290,12 +291,12 @@ end
 theorem pairwise_iff_nth_le {R} : ∀ {l : list α},
   pairwise R l ↔ ∀ i j (h₁ : j < length l) (h₂ : i < j),
     R (nth_le l i (lt_trans h₂ h₁)) (nth_le l j h₁)
-| [] := by simp only [pairwise.nil, true_iff]; exact λ i j h, (not_lt_zero j).elim h
+| [] := by simp only [pairwise.nil, true_iff]; exact λ i j h, (nat.not_lt_zero j).elim h
 | (a :: l) := begin
   rw [pairwise_cons, pairwise_iff_nth_le],
   refine ⟨λ H i j h₁ h₂, _, λ H, ⟨λ a' m, _,
     λ i j h₁ h₂, H _ _ (succ_lt_succ h₁) (succ_lt_succ h₂)⟩⟩,
-  { cases j with j, {exact (not_lt_zero _).elim h₂},
+  { cases j with j, {exact (nat.not_lt_zero _).elim h₂},
     cases i with i,
     { exact H.1 _ (nth_le_mem l _ _) },
     { exact H.2 _ _ (lt_of_succ_lt_succ h₁) (lt_of_succ_lt_succ h₂) } },

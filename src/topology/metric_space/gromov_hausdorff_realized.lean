@@ -89,7 +89,7 @@ local attribute [instance, priority 10] inhabited_of_nonempty'
 
 private lemma max_var_bound : dist x y ≤ max_var X Y := calc
   dist x y ≤ diam (univ : set (X ⊕ Y)) :
-    dist_le_diam_of_mem (bounded_of_compact compact_univ) (mem_univ _) (mem_univ _)
+    dist_le_diam_of_mem bounded_of_compact_space (mem_univ _) (mem_univ _)
   ... = diam (inl '' (univ : set X) ∪ inr '' (univ : set Y)) :
     by apply congr_arg; ext x y z; cases x; simp [mem_univ, mem_range_self]
   ... ≤ diam (inl '' (univ : set X)) + dist (inl (default X)) (inr (default Y)) +
@@ -328,10 +328,10 @@ begin
       ... ≤ diam (univ : set X) + 1 + diam (univ : set Y) :
       begin
         apply add_le_add (add_le_add _ (le_refl _)),
-        exact dist_le_diam_of_mem (bounded_of_compact (compact_univ)) (mem_univ _) (mem_univ _),
+        exact dist_le_diam_of_mem bounded_of_compact_space (mem_univ _) (mem_univ _),
         any_goals { exact ordered_add_comm_monoid.to_covariant_class_left ℝ },
         any_goals { exact ordered_add_comm_monoid.to_covariant_class_right ℝ },
-        exact dist_le_diam_of_mem (bounded_of_compact (compact_univ)) (mem_univ _) (mem_univ _),
+        exact dist_le_diam_of_mem bounded_of_compact_space (mem_univ _) (mem_univ _),
       end,
     exact le_trans A B },
   { have A : (⨅ x, candidates_b_dist X Y (inl x, inr y)) ≤
@@ -342,10 +342,10 @@ begin
       ... ≤ diam (univ : set X) + 1 + diam (univ : set Y) :
       begin
         apply add_le_add (add_le_add _ (le_refl _)),
-        exact dist_le_diam_of_mem (bounded_of_compact (compact_univ)) (mem_univ _) (mem_univ _),
+        exact dist_le_diam_of_mem bounded_of_compact_space (mem_univ _) (mem_univ _),
         any_goals { exact ordered_add_comm_monoid.to_covariant_class_left ℝ },
         any_goals { exact ordered_add_comm_monoid.to_covariant_class_right ℝ },
-        exact dist_le_diam_of_mem (bounded_of_compact (compact_univ)) (mem_univ _) (mem_univ _)
+        exact dist_le_diam_of_mem bounded_of_compact_space (mem_univ _) (mem_univ _)
       end,
     exact le_trans A B },
 end

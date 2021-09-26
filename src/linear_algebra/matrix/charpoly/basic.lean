@@ -96,7 +96,7 @@ applied to the matrix itself, is zero.
 This holds over any commutative ring.
 -/
 -- This proof follows http://drorbn.net/AcademicPensieve/2015-12/CayleyHamilton.pdf
-theorem aeval_self_charpoly (M : matrix n n R) :
+theorem matrix.aeval_self_charpoly (M : matrix n n R) :
   aeval M M.charpoly = 0 :=
 begin
   -- We begin with the fact $χ_M(t) I = adjugate (t I - M) * (t I - M)$,

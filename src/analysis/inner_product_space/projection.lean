@@ -50,7 +50,7 @@ open_locale big_operators classical topological_space
 variables {𝕜 E F : Type*} [is_R_or_C 𝕜]
 variables [inner_product_space 𝕜 E] [inner_product_space ℝ F]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
-local notation `absR` := _root_.abs
+local notation `absR` := has_abs.abs
 
 /-! ### Orthogonal projection in inner product spaces -/
 

@@ -22,7 +22,7 @@ Let `p : polynomial R`.
 ## Main Results
  - `polynomial.content_mul`:
   If `p q : polynomial R`, then `(p * q).content = p.content * q.content`.
- - `polynomial.gcd_monoid`:
+ - `polynomial.normalized_gcd_monoid`:
   The polynomial ring of a GCD domain is itself a GCD domain.
 
 -/
@@ -61,8 +61,8 @@ end primitive
 
 variables {R : Type*} [integral_domain R]
 
-section gcd_monoid
-variable [gcd_monoid R]
+section normalized_gcd_monoid
+variable [normalized_gcd_monoid R]
 
 /-- `p.content` is the `gcd` of the coefficients of `p`. -/
 def content (p : polynomial R) : R := (p.support).gcd p.coeff
@@ -432,8 +432,8 @@ begin
 end
 
 @[priority 100]
-instance gcd_monoid : gcd_monoid (polynomial R) :=
-gcd_monoid_of_exists_lcm $ λ p q, begin
+instance normalized_gcd_monoid : normalized_gcd_monoid (polynomial R) :=
+normalized_gcd_monoid_of_exists_lcm $ λ p q, begin
   rcases exists_primitive_lcm_of_is_primitive p.is_primitive_prim_part q.is_primitive_prim_part
     with ⟨r, rprim, hr⟩,
   refine ⟨C (lcm p.content q.content) * r, λ s, _⟩,
@@ -449,5 +449,5 @@ gcd_monoid_of_exists_lcm $ λ p q, begin
   tauto,
 end
 
-end gcd_monoid
+end normalized_gcd_monoid
 end polynomial

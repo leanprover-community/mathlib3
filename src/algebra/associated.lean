@@ -381,10 +381,12 @@ by rw [mul_comm a, mul_comm c]; exact associated.of_mul_left
 section unique_units
 variables [monoid α] [unique (units α)]
 
+lemma units_eq_one (u : units α) : u = 1 := subsingleton.elim u 1
+
 theorem associated_iff_eq {x y : α} : x ~ᵤ y ↔ x = y :=
 begin
   split,
-  { rintro ⟨c, rfl⟩, simp [subsingleton.elim c 1] },
+  { rintro ⟨c, rfl⟩, rw [units_eq_one c, units.coe_one, mul_one] },
   { rintro rfl, refl },
 end
 

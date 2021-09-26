@@ -362,12 +362,54 @@ unique_factorization_monoid.of_exists_prime_factors (by
     simp_rw irreducible_iff_prime_of_exists_unique_irreducible_factors eif uif })
 
 namespace unique_factorization_monoid
+variables [comm_cancel_monoid_with_zero α] [decidable_eq α] [nontrivial α]
+variables [unique_factorization_monoid α]
+/-- Noncomputably determines the multiset of prime factors. -/
+noncomputable def factors'' (a : α) : multiset α := if h : a = 0 then 0 else
+classical.some (unique_factorization_monoid.exists_prime_factors a h)
+
+theorem factors_prod'' {a : α} (ane0 : a ≠ 0) : associated (factors'' a).prod a :=
+begin
+  rw [factors'', dif_neg ane0],
+  exact (classical.some_spec (exists_prime_factors a ane0)).2
+end
+
+theorem prime_of_factor'' {a : α} : ∀ (x : α), x ∈ factors'' a → prime x :=
+begin
+  rw [factors''],
+  split_ifs with ane0, { simp only [multiset.not_mem_zero, forall_false_left, forall_const] },
+  intros x hx,
+  exact (classical.some_spec (unique_factorization_monoid.exists_prime_factors a ane0)).1 x hx,
+end
+
+theorem irreducible_of_factor'' {a : α} : ∀ (x : α), x ∈ factors'' a → irreducible x :=
+λ x h, (prime_of_factor'' x h).irreducible
+
+lemma exists_mem_factors_of_dvd'' {a p : α} (ha0 : a ≠ 0) (hp : irreducible p) : p ∣ a →
+  ∃ q ∈ factors'' a, p ~ᵤ q :=
+λ ⟨b, hb⟩,
+have hb0 : b ≠ 0, from λ hb0, by simp * at *,
+have multiset.rel associated (p ::ₘ factors'' b) (factors'' a),
+  from factors_unique
+    (λ x hx, (multiset.mem_cons.1 hx).elim (λ h, h.symm ▸ hp)
+      (irreducible_of_factor'' _))
+    irreducible_of_factor''
+    (associated.symm $ calc multiset.prod (factors'' a) ~ᵤ a : factors_prod'' ha0
+      ... = p * b : hb
+      ... ~ᵤ multiset.prod (p ::ₘ factors'' b) :
+        by rw multiset.prod_cons; exact (factors_prod'' hb0).symm.mul_left _),
+multiset.exists_mem_of_rel_of_mem this (by simp)
+
+end unique_factorization_monoid
+
+namespace unique_factorization_monoid
 variables [comm_cancel_monoid_with_zero α] [decidable_eq α] [nontrivial α] [normalization_monoid α]
 variables [unique_factorization_monoid α]
 
 /-- Noncomputably determines the multiset of prime factors. -/
 noncomputable def factors (a : α) : multiset α := if h : a = 0 then 0 else
 multiset.map normalize $ classical.some (unique_factorization_monoid.exists_prime_factors a h)
+--TODO: multiset.map normalize $ factors' a
 
 theorem factors_prod {a : α} (ane0 : a ≠ 0) : associated (factors a).prod a :=
 begin
@@ -782,14 +824,14 @@ begin
   simpa [quot_mk_eq_mk, prod_mk, mk_eq_mk_iff_associated] using eq
 end
 
-variables [nontrivial α] [normalization_monoid α]
+variables [nontrivial α]
 
 private theorem forall_map_mk_factors_irreducible [decidable_eq α] (x : α) (hx : x ≠ 0) :
-  ∀(a : associates α), a ∈ multiset.map associates.mk (factors x) → irreducible a :=
+  ∀(a : associates α), a ∈ multiset.map associates.mk (factors'' x) → irreducible a :=
 begin
   assume a ha,
   rcases multiset.mem_map.1 ha with ⟨c, hc, rfl⟩,
-  exact (irreducible_mk c).2 (irreducible_of_factor _ hc)
+  exact (irreducible_mk c).2 (irreducible_of_factor'' _ hc)
 end
 
 theorem prod_le_prod_iff_le {p q : multiset (associates α)}
@@ -803,10 +845,10 @@ iff.intro
       assume (hc : quot.mk setoid.r c = 0),
       have (0 : associates α) ∈ q, from prod_eq_zero_iff.1 $ eqc.symm ▸ hc.symm ▸ mul_zero _,
       not_irreducible_zero ((irreducible_mk 0).1 $ hq _ this)),
-    have : associates.mk (factors c).prod = quot.mk setoid.r c,
-      from mk_eq_mk_iff_associated.2 (factors_prod this),
+    have : associates.mk (factors'' c).prod = quot.mk setoid.r c,
+      from mk_eq_mk_iff_associated.2 (factors_prod'' this),
 
-    refine multiset.le_iff_exists_add.2 ⟨(factors c).map associates.mk, unique' hq _ _⟩,
+    refine multiset.le_iff_exists_add.2 ⟨(factors'' c).map associates.mk, unique' hq _ _⟩,
     { assume x hx,
       rcases multiset.mem_add.1 hx with h | h,
       exact hp x h,
@@ -822,18 +864,18 @@ include dec
   a multiset of irreducible associates `with_top`. -/
 noncomputable def factors' (a : α) :
   multiset { a : associates α // irreducible a } :=
-(factors a).pmap (λa ha, ⟨associates.mk a, (irreducible_mk _).2 ha⟩)
-  (irreducible_of_factor)
+(factors'' a).pmap (λa ha, ⟨associates.mk a, (irreducible_mk _).2 ha⟩)
+  (irreducible_of_factor'')
 
 @[simp] theorem map_subtype_coe_factors' {a : α} :
-  (factors' a).map coe = (factors a).map associates.mk :=
+  (factors' a).map coe = (factors'' a).map associates.mk :=
 by simp [factors', multiset.map_pmap, multiset.pmap_eq_map]
 
 theorem factors'_cong {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) (h : a ~ᵤ b) :
   factors' a = factors' b :=
-have multiset.rel associated (factors a) (factors b), from
-  factors_unique irreducible_of_factor irreducible_of_factor
-    ((factors_prod ha).trans $ h.trans $ (factors_prod hb).symm),
+have multiset.rel associated (factors'' a) (factors'' b), from
+  factors_unique irreducible_of_factor'' irreducible_of_factor''
+    ((factors_prod'' ha).trans $ h.trans $ (factors_prod'' hb).symm),
 by simpa [(multiset.map_eq_map subtype.coe_injective).symm, rel_associated_iff_map_eq_map.symm]
 
 include dec'
@@ -876,7 +918,7 @@ theorem prod_factors : ∀(s : factor_set α), s.prod.factors = s
       have irreducible (0 : associates α), from eq ▸ ha,
       not_irreducible_zero ((irreducible_mk _).1 this),
     have ha : a ≠ 0, by simp [*] at *,
-    suffices : (unique_factorization_monoid.factors a).map associates.mk = s.map coe,
+    suffices : (unique_factorization_monoid.factors'' a).map associates.mk = s.map coe,
     { rw [factors_mk a ha],
       apply congr_arg some _,
       simpa [(multiset.map_eq_map subtype.coe_injective).symm] },
@@ -886,7 +928,7 @@ theorem prod_factors : ∀(s : factor_set α), s.prod.factors = s
       (assume a ha, let ⟨⟨x, hx⟩, ha, eq⟩ := multiset.mem_map.1 ha in eq ▸ hx)
       _,
     rw [prod_mk, eq_a, mk_eq_mk_iff_associated],
-    exact factors_prod ha
+    exact factors_prod'' ha
   end
 
 @[simp]
@@ -895,7 +937,7 @@ quotient.induction_on a $ assume a, decidable.by_cases
   (assume : associates.mk a = 0, by simp [quotient_mk_eq_mk, this])
   (assume : associates.mk a ≠ 0,
     have a ≠ 0, by simp * at *,
-    by simp [this, quotient_mk_eq_mk, prod_mk, mk_eq_mk_iff_associated.2 (factors_prod this)])
+    by simp [this, quotient_mk_eq_mk, prod_mk, mk_eq_mk_iff_associated.2 (factors_prod'' this)])
 
 theorem eq_of_factors_eq_factors {a b : associates α} (h : a.factors = b.factors) : a = b :=
 have a.factors.prod = b.factors.prod, by rw h,
@@ -986,7 +1028,7 @@ omit dec'
 lemma dvd_of_mem_factors' {a : α} {p : associates α} {hp : irreducible p} {hz : a ≠ 0}
   (h_mem : subtype.mk p hp ∈ factors' a) : p ∣ associates.mk a :=
 by { haveI := classical.dec_eq (associates α),
-  apply @dvd_of_mem_factors _ _ _ _ _ _ _ _ _ _ hp,
+  apply @dvd_of_mem_factors _ _ _ _ _ _ _ _ _ hp,
   rw factors_mk _ hz,
   apply mem_factor_set_some.2 h_mem }
 
@@ -995,7 +1037,7 @@ omit dec_irr
 lemma mem_factors'_of_dvd {a p : α} (ha0 : a ≠ 0) (hp : irreducible p) (hd : p ∣ a) :
   subtype.mk (associates.mk p) ((irreducible_mk _).2 hp) ∈ factors' a :=
 begin
-  obtain ⟨q, hq, hpq⟩ := exists_mem_factors_of_dvd ha0 hp hd,
+  obtain ⟨q, hq, hpq⟩ := exists_mem_factors_of_dvd'' ha0 hp hd,
   apply multiset.mem_pmap.mpr, use q, use hq,
   exact subtype.eq (eq.symm (mk_eq_mk_iff_associated.mpr hpq))
 end
@@ -1217,11 +1259,49 @@ end associates
 section
 open associates unique_factorization_monoid
 
-/-- `to_gcd_monoid` constructs a GCD monoid out of a normalization on a
-  unique factorization domain. -/
+lemma associates.quot_out {α : Type*} [comm_monoid α] (a : associates α):
+associates.mk (quot.out (a)) ~ᵤ a :=
+by rw [←quot_mk_eq_mk, quot.out_eq]
+
+/-- `to_gcd_monoid` constructs a GCD monoid out of a  unique factorization domain. -/
 noncomputable def unique_factorization_monoid.to_gcd_monoid
   (α : Type*) [comm_cancel_monoid_with_zero α] [nontrivial α] [unique_factorization_monoid α]
-  [normalization_monoid α] [decidable_eq (associates α)] [decidable_eq α] : gcd_monoid α :=
+  [decidable_eq (associates α)] [decidable_eq α] : gcd_monoid α :=
+{ gcd := λa b, quot.out (associates.mk a ⊓ associates.mk b : associates α),
+  lcm := λa b, quot.out (associates.mk a ⊔ associates.mk b : associates α),
+  gcd_dvd_left := λ a b, by {
+    rw [←mk_dvd_mk, (associates.mk a ⊓ associates.mk b).quot_out.dvd_iff_dvd_left, dvd_eq_le],
+    exact inf_le_left },
+  gcd_dvd_right := λ a b, by {
+    rw [←mk_dvd_mk, (associates.mk a ⊓ associates.mk b).quot_out.dvd_iff_dvd_left, dvd_eq_le],
+    exact inf_le_right },
+  dvd_gcd := λ a b c hac hab, by {
+    rw [←mk_dvd_mk, (associates.mk c ⊓ associates.mk b).quot_out.dvd_iff_dvd_right, dvd_eq_le,
+      le_inf_iff, mk_le_mk_iff_dvd_iff, mk_le_mk_iff_dvd_iff],
+    exact ⟨hac, hab⟩ },
+  lcm_zero_left := λ a, by {
+    have : associates.mk (0 : α) = ⊤ := rfl,
+    rw [this, top_sup_eq, ←this, ←associated_zero_iff_eq_zero, ←mk_eq_mk_iff_associated,
+      ←associated_iff_eq],
+    exact associates.quot_out _ },
+  lcm_zero_right := λ a, by {
+    have : associates.mk (0 : α) = ⊤ := rfl,
+    rw [this, sup_top_eq, ←this, ←associated_zero_iff_eq_zero, ←mk_eq_mk_iff_associated,
+      ←associated_iff_eq],
+    exact associates.quot_out _ },
+  gcd_mul_lcm := λ a b, by {
+    rw [←mk_eq_mk_iff_associated, ←associates.mk_mul_mk, ←associated_iff_eq],
+    have := (associates.mk a ⊓ associates.mk b).quot_out,
+    apply ((associates.mk a ⊓ associates.mk b).quot_out.mul_right _).trans,
+    apply ((associates.mk a ⊔ associates.mk b).quot_out.mul_left _).trans,
+    rw [mul_comm, sup_mul_inf, associates.mk_mul_mk] } }
+
+/-- `to_gcd_monoid` constructs a GCD monoid out of a normalization on a
+  unique factorization domain. -/
+noncomputable def unique_factorization_monoid.to_normalized_gcd_monoid
+  (α : Type*) [comm_cancel_monoid_with_zero α] [nontrivial α] [unique_factorization_monoid α]
+  [normalization_monoid α] [decidable_eq (associates α)] [decidable_eq α] :
+  normalized_gcd_monoid α :=
 { gcd := λa b, (associates.mk a ⊓ associates.mk b).out,
   lcm := λa b, (associates.mk a ⊔ associates.mk b).out,
   gcd_dvd_left := assume a b, (out_dvd_iff a (associates.mk a ⊓ associates.mk b)).2 $ inf_le_left,
@@ -1230,11 +1310,11 @@ noncomputable def unique_factorization_monoid.to_gcd_monoid
     by rw [dvd_out_iff, le_inf_iff, mk_le_mk_iff_dvd_iff, mk_le_mk_iff_dvd_iff]; exact ⟨hac, hab⟩,
   lcm_zero_left := assume a, show (⊤ ⊔ associates.mk a).out = 0, by simp,
   lcm_zero_right := assume a, show (associates.mk a ⊔ ⊤).out = 0, by simp,
-  gcd_mul_lcm := assume a b,
-    show (associates.mk a ⊓ associates.mk b).out * (associates.mk a ⊔ associates.mk b).out =
-      normalize (a * b),
-    by rw [← out_mk, ← out_mul, mul_comm, sup_mul_inf]; refl,
+  gcd_mul_lcm := assume a b, by {
+    rw [← out_mul, mul_comm, sup_mul_inf, mk_mul_mk, out_mk],
+    exact normalize_associated (a * b) },
   normalize_gcd := assume a b, by convert normalize_out _,
+  normalize_lcm := assume a b, by convert normalize_out _,
   .. ‹normalization_monoid α› }
 
 end

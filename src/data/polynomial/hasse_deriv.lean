@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import data.polynomial.derivative
+import data.nat.choose.cast
 import data.nat.choose.vandermonde
+import data.polynomial.derivative
 
 /-!
 # Hasse derivative of polynomials

@@ -118,6 +118,22 @@ by rw [exp_sub, div_eq_one_iff_eq (exp_ne_zero _)]
 lemma exp_eq_exp_iff_exists_int {x y : ℂ} : exp x = exp y ↔ ∃ n : ℤ, x = y + n * ((2 * π) * I) :=
 by simp only [exp_eq_exp_iff_exp_sub_eq_one, exp_eq_one_iff, sub_eq_iff_eq_add']
 
+@[simp] lemma countable_preimage_exp {s : set ℂ} : countable (exp ⁻¹' s) ↔ countable s :=
+begin
+  refine ⟨λ hs, _, λ hs, _⟩,
+  { refine ((hs.image exp).insert 0).mono _,
+    rw [image_preimage_eq_inter_range, range_exp, ← diff_eq, ← union_singleton, diff_union_self],
+    exact subset_union_left _ _ },
+  { rw ← bUnion_preimage_singleton,
+    refine hs.bUnion (λ z hz, _),
+    rcases em (∃ w, exp w = z) with ⟨w, rfl⟩|hne,
+    { simp only [preimage, mem_singleton_iff, exp_eq_exp_iff_exists_int, set_of_exists],
+      exact countable_Union (λ m, countable_singleton _) },
+    { push_neg at hne, simp [preimage, hne] } }
+end
+
+alias countable_preimage_exp ↔ _ set.countable.preimage_cexp
+
 /-- `complex.exp` as a `local_homeomorph` with `source = {z | -π < im z < π}` and
 `target = {z | 0 < re z} ∪ {z | im z ≠ 0}`. This definition is used to prove that `complex.log`
 is complex differentiable at all points but the negative real semi-axis. -/

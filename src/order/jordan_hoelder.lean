@@ -5,7 +5,6 @@ Authors: Chris Hughes
 -/
 import order.lattice
 import data.fin
-import data.set_like.basic
 import data.list.sort
 import data.equiv.fin
 import data.equiv.functor
@@ -318,13 +317,6 @@ s.strict_mono.monotone (fin.zero_le _)
 lemma bot_le_of_mem {s : composition_series X} {x : X} (hx : x ∈ s) : s.bot ≤ x :=
 let ⟨i, hi⟩ := set.mem_range.2 hx in hi ▸ bot_le _
 
--- instance : set_like (composition_series X) X :=
--- { coe := λ s, set.range s,
---   coe_injective' := λ s₁ s₂ h, ext $ λ x, begin
---     dsimp at h,
---     rw [mem_def, mem_def, h]
---   end }
-
 lemma length_pos_of_mem_ne {s : composition_series X}
   {x y : X} (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y) :
   0 < s.length :=
@@ -378,12 +370,6 @@ begin
     refine ⟨i.cast_succ, _⟩,
     simp [fin.ext_iff, nat.mod_eq_of_lt hi] }
 end
-
--- lemma erase_top_le (s : composition_series X) : s.erase_top ≤ s :=
--- begin
---   rintros x ⟨i, rfl⟩,
---   simp [mem_def, erase_top],
--- end
 
 lemma mem_erase_top {s : composition_series X} {x : X}
   (h : 0 < s.length) : x ∈ s.erase_top ↔ x ≠ s.top ∧ x ∈ s :=

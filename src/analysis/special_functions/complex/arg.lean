@@ -17,7 +17,8 @@ noncomputable theory
 
 namespace complex
 
-open_locale real
+open_locale real topological_space
+open filter
 
 /-- `arg` returns values in the range (-π, π], such that for `x ≠ 0`,
   `sin (arg x) = x.im / x.abs` and `cos (arg x) = x.re / x.abs`,

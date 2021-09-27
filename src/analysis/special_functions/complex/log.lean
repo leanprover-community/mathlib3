@@ -17,7 +17,7 @@ namespace complex
 
 open set filter
 
-open_locale real
+open_locale real topological_space
 
 /-- Inverse of the `exp` function. Returns values such that `(log x).im > - π` and `(log x).im ≤ π`.
   `log 0 = 0`-/

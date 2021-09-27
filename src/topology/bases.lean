@@ -261,6 +261,16 @@ def dense_seq [separable_space α] [nonempty α] : ℕ → α := classical.some 
 @[simp] lemma dense_range_dense_seq [separable_space α] [nonempty α] :
   dense_range (dense_seq α) := classical.some_spec (exists_dense_seq α)
 
+lemma exists_dense_seq_mem [separable_space α] [nonempty α]
+  {U : set α} (hU : U.nonempty) (hUo : is_open U) :
+  ∃ n, dense_seq α n ∈ U :=
+begin
+  have := dense_range_dense_seq α,
+  rw [dense_range, dense_iff_inter_open] at this,
+  obtain ⟨-, hxs, n, rfl⟩ := this U hUo hU,
+  exact ⟨n, hxs⟩
+end
+
 end topological_space
 
 open topological_space

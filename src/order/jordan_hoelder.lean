@@ -10,7 +10,7 @@ import data.list.sort
 import data.equiv.fin
 import data.equiv.functor
 /-!
-# Jordan Hölder Theorem
+# Jordan-Hölder Theorem
 
 This file proves the Jordan Hölder theorem for a `jordan_hoelder_lattice`, a class also defined in
 this file. Examples of `jordan_hoelder_lattice` include `subgroup G` if `G` is a group, and

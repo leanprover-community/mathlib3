@@ -121,8 +121,8 @@ end
 Let `α` be a normed lattice ordered group, then the order dual is also a
 normed lattice ordered group.
 -/
-instance {α : Type*} [h: normed_lattice_add_comm_group α] : normed_lattice_add_comm_group
-  (order_dual α) := {
+instance {α : Type*} [h: normed_lattice_add_comm_group α] : 
+  normed_lattice_add_comm_group (order_dual α) := {
   add_le_add_left := begin
     intros a b h₁ c,
     rw ← order_dual.dual_le,

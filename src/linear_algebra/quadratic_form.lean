@@ -379,7 +379,12 @@ def lin_mul_lin (f g : M →ₗ[R₁] R₁) : quadratic_form R₁ M :=
 mk_left (f * g)
   (λ a x, by { simp, ring })
   (λ x x' y, by { simp [polar], ring })
-  (λ a x y, by { simp [polar], ring })
+  (λ a x y,
+    begin
+      dsimp [polar],
+      simp only [linear_map.map_add, linear_map.map_smul, smul_eq_mul],
+      ring,
+    end)
 
 @[simp]
 lemma lin_mul_lin_apply (f g : M →ₗ[R₁] R₁) (x) : lin_mul_lin f g x = f x * g x := rfl

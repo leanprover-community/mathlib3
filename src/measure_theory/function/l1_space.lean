@@ -570,6 +570,39 @@ begin
   simp [real.norm_eq_abs, ennreal.of_real_le_of_real, abs_le, abs_nonneg, le_abs_self],
 end
 
+lemma of_real_to_real_ae_eq {f : α → ℝ≥0∞} (hf : ∀ᵐ x ∂μ, f x < ∞) :
+  (λ x, ennreal.of_real (f x).to_real) =ᵐ[μ] f :=
+begin
+  rw ae_iff at hf,
+  rw [filter.eventually_eq, ae_iff],
+  have : {x | ¬ ennreal.of_real (f x).to_real = f x} = {x | f x = ∞},
+  { ext x,
+    simp only [ne.def, set.mem_set_of_eq],
+    split; intro hx,
+    { by_contra hntop,
+      exact hx (ennreal.of_real_to_real hntop) },
+    { rw hx, simp } },
+  rw this,
+  simpa using hf,
+end
+
+lemma integrable_with_density_iff {f : α → ℝ≥0∞} (hf : measurable f)
+  (hflt : ∀ᵐ x ∂μ, f x < ∞) {g : α → ℝ} (hg : measurable g) :
+  integrable g (μ.with_density f) ↔ integrable (λ x, g x * (f x).to_real) μ :=
+begin
+  simp only [integrable, has_finite_integral, hg.ae_measurable.mul hf.ae_measurable.ennreal_to_real,
+    hg.ae_measurable, true_and, coe_mul, normed_field.nnnorm_mul],
+  suffices h_int_eq : ∫⁻ a, ∥g a∥₊ ∂μ.with_density f = ∫⁻ a, ∥g a∥₊ * ∥(f a).to_real∥₊ ∂μ,
+    by rw h_int_eq,
+  rw lintegral_with_density_eq_lintegral_mul _ hf hg.nnnorm.coe_nnreal_ennreal,
+  refine lintegral_congr_ae _,
+  rw mul_comm,
+  refine filter.eventually_eq.mul (ae_eq_refl _) ((of_real_to_real_ae_eq hflt).symm.trans _),
+  convert ae_eq_refl _,
+  ext1 x,
+  exact real.ennnorm_eq_of_real ennreal.to_real_nonneg,
+end
+
 lemma mem_ℒ1_to_real_of_lintegral_ne_top
   {f : α → ℝ≥0∞} (hfm : ae_measurable f μ) (hfi : ∫⁻ x, f x ∂μ ≠ ∞) :
   mem_ℒp (λ x, (f x).to_real) 1 μ :=

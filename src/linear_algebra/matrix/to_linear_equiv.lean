@@ -82,7 +82,8 @@ begin
     left_inv := λ x, _,
     right_inv := λ x, _,
     .. to_lin b b A };
-  simp only [← linear_map.comp_apply, ← matrix.to_lin_mul b b b,
+  rw ← linear_map.comp_apply;
+  simp only [← matrix.to_lin_mul b b b,
              matrix.nonsing_inv_mul _ hA, matrix.mul_nonsing_inv _ hA,
              to_lin_one, linear_map.id_apply]
 end

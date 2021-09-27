@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Manuel Candales
 -/
 import analysis.inner_product_space.projection
-import analysis.special_functions.trigonometric
+import analysis.special_functions.trigonometric.inverse
+import algebra.quadratic_discriminant
 import linear_algebra.affine_space.finite_dimensional
 
 /-!

@@ -88,10 +88,9 @@ instance : semiring nat           := by apply_instance
 instance : ordered_semiring nat   := by apply_instance
 
 instance : canonically_ordered_comm_semiring ℕ :=
-{ le_iff_exists_add := assume a b,
-  ⟨assume h, let ⟨c, hc⟩ := nat.le.dest h in ⟨c, hc.symm⟩,
-    assume ⟨c, hc⟩, hc.symm ▸ nat.le_add_right _ _⟩,
-  eq_zero_or_eq_zero_of_mul_eq_zero   := assume a b, nat.eq_zero_of_mul_eq_zero,
+{ le_iff_exists_add := λ a b, ⟨λ h, let ⟨c, hc⟩ := nat.le.dest h in ⟨c, hc.symm⟩,
+                               λ ⟨c, hc⟩, hc.symm ▸ nat.le_add_right _ _⟩,
+  eq_zero_or_eq_zero_of_mul_eq_zero   := λ a b, nat.eq_zero_of_mul_eq_zero,
   bot               := 0,
   bot_le            := nat.zero_le,
   .. nat.nontrivial,
@@ -189,8 +188,8 @@ add_units.ext $ (nat.eq_zero_of_add_eq_zero u.val_neg).1
 
 @[simp] protected theorem is_unit_iff {n : ℕ} : is_unit n ↔ n = 1 :=
 iff.intro
-  (assume ⟨u, hu⟩, match n, u, hu, nat.units_eq_one u with _, _, rfl, rfl := rfl end)
-  (assume h, h.symm ▸ ⟨1, rfl⟩)
+  (λ ⟨u, hu⟩, match n, u, hu, nat.units_eq_one u with _, _, rfl, rfl := rfl end)
+  (λ h, h.symm ▸ ⟨1, rfl⟩)
 
 instance unique_units : unique (units ℕ) :=
 { default := 1, uniq := nat.units_eq_one }
@@ -222,7 +221,7 @@ lemma eq_zero_of_mul_le {a b : ℕ} (hb : 2 ≤ b) (h : b * a ≤ a) : a = 0 :=
 eq_zero_of_double_le $ le_trans (nat.mul_le_mul_right _ hb) h
 
 theorem le_zero_iff {i : ℕ} : i ≤ 0 ↔ i = 0 :=
-⟨nat.eq_zero_of_le_zero, assume h, h ▸ le_refl i⟩
+⟨nat.eq_zero_of_le_zero, λ h, h ▸ le_refl i⟩
 
 lemma zero_max {m : ℕ} : max 0 m = m :=
 max_eq_right (zero_le _)
@@ -418,12 +417,12 @@ lemma add_eq_one_iff : ∀ {a b : ℕ}, a + b = 1 ↔ (a = 0 ∧ b = 1) ∨ (a =
 | _     (b+2) := by rw [← add_assoc]; simp only [nat.succ_inj', nat.succ_ne_zero]; simp
 
 theorem le_add_one_iff {i j : ℕ} : i ≤ j + 1 ↔ (i ≤ j ∨ i = j + 1) :=
-⟨assume h,
+⟨λ h,
   match nat.eq_or_lt_of_le h with
   | or.inl h := or.inr h
   | or.inr h := or.inl $ nat.le_of_succ_le_succ h
   end,
-  or.rec (assume h, le_trans h $ nat.le_add_right _ _) le_of_eq⟩
+  or.rec (λ h, le_trans h $ nat.le_add_right _ _) le_of_eq⟩
 
 lemma add_succ_lt_add {a b c d : ℕ} (hab : a < b) (hcd : c < d) : a + c + 1 < b + d :=
 begin

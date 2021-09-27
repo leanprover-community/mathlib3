@@ -389,7 +389,7 @@ begin
   exact (integrable_on_compact_of_monotone_on is_compact_interval hu).mono_set Ioc_subset_Icc_self,
 end
 
-lemma interval_integrable_of_antimono_on {u : ι → E} {a b : ι}
+lemma interval_integrable_of_antitone_on {u : ι → E} {a b : ι}
   (hu : ∀ ⦃x y⦄, x ∈ interval a b → y ∈ interval a b → x ≤ y → u y ≤ u x) :
   interval_integrable u μ a b :=
 @interval_integrable_of_monotone_on (order_dual E) _ ‹_› ι _ _ _ _ _ _ _ _ _ ‹_› ‹_› u a b hu
@@ -400,7 +400,7 @@ interval_integrable_of_monotone_on (λ x y _ _ hxy, hu hxy)
 
 alias interval_integrable_of_monotone ← monotone.interval_integrable
 
-lemma interval_integrable_of_antimono {u : ι → E} {a b : ι}
+lemma interval_integrable_of_antitone {u : ι → E} {a b : ι}
   (hu : ∀ ⦃x y⦄, x ≤ y → u y ≤ u x) :
   interval_integrable u μ a b :=
 @interval_integrable_of_monotone (order_dual E) _ ‹_› ι _ _ _ _ _ _ _ _ _ ‹_› ‹_› u a b hu
@@ -547,7 +547,9 @@ by { simp only [interval_integral, integral_neg], abel }
   ∫ x in a..b, f x - g x ∂μ = ∫ x in a..b, f x ∂μ - ∫ x in a..b, g x ∂μ :=
 by simpa only [sub_eq_add_neg] using (integral_add hf hg.neg).trans (congr_arg _ integral_neg)
 
-@[simp] lemma integral_smul (r : ℝ) : ∫ x in a..b, r • f x ∂μ = r • ∫ x in a..b, f x ∂μ :=
+@[simp] lemma integral_smul {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]
+  [smul_comm_class ℝ 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜]
+  (r : 𝕜) (f : α → E) : ∫ x in a..b, r • f x ∂μ = r • ∫ x in a..b, f x ∂μ :=
 by simp only [interval_integral, integral_smul, smul_sub]
 
 lemma integral_const' (c : E) :

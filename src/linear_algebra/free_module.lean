@@ -10,7 +10,6 @@ import linear_algebra.std_basis
 import logic.small
 import ring_theory.finiteness
 import linear_algebra.matrix.to_lin
-import linear_algebra.std_basis
 
 /-!
 
@@ -206,5 +205,18 @@ instance of_division_ring : module.free R M :=
 of_basis (basis.of_vector_space R M)
 
 end division_ring
+
+section integer
+
+variables [add_comm_group M] [module.finite ℤ M] [module.free ℤ M]
+variables [add_comm_group N] [module.finite ℤ N] [module.free ℤ N]
+
+instance : module.finite ℤ (M →+ N) :=
+module.finite.equiv (add_monoid_hom_lequiv_int ℤ).symm
+
+instance : module.free ℤ (M →+ N) :=
+module.free.of_equiv (add_monoid_hom_lequiv_int ℤ).symm
+
+end integer
 
 end module.free

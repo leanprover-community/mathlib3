@@ -3,7 +3,7 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import linear_algebra.basic
+import linear_algebra.quotient
 import linear_algebra.prod
 
 /-!
@@ -241,7 +241,7 @@ def of_is_compl_prod {p q : submodule R₁ E} (h : is_compl p q) :
   ((p →ₗ[R₁] F) × (q →ₗ[R₁] F)) →ₗ[R₁] (E →ₗ[R₁] F) :=
 { to_fun := λ φ, of_is_compl h φ.1 φ.2,
   map_add' := by { intros φ ψ, rw [prod.snd_add, prod.fst_add, of_is_compl_add] },
-  map_smul' := by { intros c φ, rw [prod.smul_snd, prod.smul_fst, of_is_compl_smul] } }
+  map_smul' := by { intros c φ, simp [prod.smul_snd, prod.smul_fst, of_is_compl_smul] } }
 
 @[simp] lemma of_is_compl_prod_apply {p q : submodule R₁ E} (h : is_compl p q)
   (φ : (p →ₗ[R₁] F) × (q →ₗ[R₁] F)) : of_is_compl_prod h φ = of_is_compl h φ.1 φ.2 := rfl

@@ -338,7 +338,7 @@ begin
 end
 
 /-- The measure induced by the outer measure coming from a content, on the Borel sigma-algebra. -/
-def measure : measure G := μ.outer_measure.to_measure μ.borel_le_caratheodory
+protected def measure : measure G := μ.outer_measure.to_measure μ.borel_le_caratheodory
 
 lemma measure_apply {s : set G} (hs : measurable_set s) : μ.measure s = μ.outer_measure s :=
 to_measure_apply _ _ hs
@@ -346,24 +346,23 @@ to_measure_apply _ _ hs
 /-- In a locally compact space, any measure constructed from a content is regular. -/
 instance regular [locally_compact_space G] : μ.measure.regular :=
 begin
+  haveI : μ.measure.outer_regular,
+  { refine ⟨λ A hA r (hr : _ < _), _⟩,
+    rw [μ.measure_apply hA, outer_measure_eq_infi] at hr,
+    simp only [infi_lt_iff] at hr,
+    rcases hr with ⟨U, hUo, hAU, hr⟩,
+    rw [← μ.outer_measure_of_is_open U hUo, ← μ.measure_apply hUo.measurable_set] at hr,
+    exact ⟨U, hAU, hUo, hr⟩ },
   split,
   { intros K hK,
     rw [measure_apply _ hK.measurable_set],
     exact μ.outer_measure_lt_top_of_is_compact hK },
-  { intros A hA,
-    rw [measure_apply _ hA, outer_measure_eq_infi],
-    refine binfi_le_binfi _,
-    intros U hU,
-    refine infi_le_infi _,
-    intro h2U,
-    rw [measure_apply _ hU.measurable_set, μ.outer_measure_of_is_open U hU],
-    refl' },
-  { intros U hU,
-    rw [measure_apply _ hU.measurable_set, μ.outer_measure_of_is_open U hU],
-    dsimp only [inner_content], refine bsupr_le (λ K hK, _),
-    refine le_supr_of_le K.1 _, refine le_supr_of_le K.2 _, refine le_supr_of_le hK _,
-    rw [measure_apply _ K.2.measurable_set],
-    apply le_outer_measure_compacts },
+  { intros U hU r hr,
+    rw [measure_apply _ hU.measurable_set, μ.outer_measure_of_is_open U hU] at hr,
+    simp only [inner_content, lt_supr_iff] at hr,
+    rcases hr with ⟨K, hKU, hr⟩,
+    refine ⟨K.1, hKU, K.2, hr.trans_le _⟩,
+    exact (μ.le_outer_measure_compacts K).trans (le_to_measure_apply _ _ _) },
 end
 
 end content

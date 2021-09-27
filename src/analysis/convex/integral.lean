@@ -107,7 +107,7 @@ to `s`, then the value of `g` at the average value of `f` is less than or equal 
 of `g ∘ f` provided that both `f` and `g ∘ f` are integrable. See also `convex.map_center_mass_le`
 for a finite sum version of this lemma. -/
 lemma convex_on.map_smul_integral_le [is_finite_measure μ] {s : set E} {g : E → ℝ}
-  (hg : convex_on s g) (hgc : continuous_on g s) (hsc : is_closed s) (hμ : μ ≠ 0) {f : α → E}
+  (hg : convex_on ℝ s g) (hgc : continuous_on g s) (hsc : is_closed s) (hμ : μ ≠ 0) {f : α → E}
   (hfs : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) (hgi : integrable (g ∘ f) μ) :
   g ((μ univ).to_real⁻¹ • ∫ x, f x ∂μ) ≤ (μ univ).to_real⁻¹ • ∫ x, g (f x) ∂μ :=
 begin
@@ -127,7 +127,7 @@ end
 of `g ∘ f` provided that both `f` and `g ∘ f` are integrable. See also `convex.map_sum_le` for a
 finite sum version of this lemma. -/
 lemma convex_on.map_integral_le [is_probability_measure μ] {s : set E} {g : E → ℝ}
-  (hg : convex_on s g) (hgc : continuous_on g s) (hsc : is_closed s) {f : α → E}
+  (hg : convex_on ℝ s g) (hgc : continuous_on g s) (hsc : is_closed s) {f : α → E}
   (hfs : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) (hgi : integrable (g ∘ f) μ) :
   g (∫ x, f x ∂μ) ≤ ∫ x, g (f x) ∂μ :=
 by simpa [measure_univ]

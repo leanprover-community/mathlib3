@@ -47,6 +47,12 @@ class normed_lattice_add_comm_group (α : Type*)
 (solid : ∀ a b : α, |a| ≤ |b| → ∥a∥ ≤ ∥b∥)
 
 /--
+A normed lattice ordered group is an ordered additive commutative group
+-/
+instance normed_lattice_add_comm_group_to_ordered_add_comm_group {α : Type*}
+  [h : normed_lattice_add_comm_group α] : ordered_add_comm_group α := { ..h }
+
+/--
 A normed lattice ordered group is a lattice ordered group
 -/
 instance normed_lattice_add_comm_group_to_covariant_class {α : Type*}

@@ -143,7 +143,7 @@ lemma top_def : (⊤ : setoid α).rel = ⊤ := rfl
 @[simp]
 lemma bot_def : (⊥ : setoid α).rel = (=) := rfl
 
-lemma setoid.eq_top_iff {α : Type*} {s : setoid α} : s = (⊤ : setoid α) ↔ ∀ x y : α, s.rel x y :=
+lemma eq_top_iff {α : Type*} {s : setoid α} : s = (⊤ : setoid α) ↔ ∀ x y : α, s.rel x y :=
 by simp [eq_top_iff, setoid.le_def, setoid.top_def, top_apply]
 
 /-- The inductively defined equivalence closure of a binary relation r is the infimum
@@ -368,6 +368,7 @@ def correspondence (r : setoid α) : {s // r ≤ s} ≃o setoid (quotient r) :=
       t.1.trans' (t.1.symm' $ t.2 $ eq_rel.1 hx) $ t.1.trans' ht $ t.2 $ eq_rel.1 hy,
       λ h x y hs, let ⟨a, b, hx, hy, Hs⟩ := hs in ⟨a, b, hx, hy, h Hs⟩⟩ }
 
+@[simp]
 lemma subsingleton_quotient_iff_eq_top  {s : setoid α} :
   subsingleton (quotient s) ↔ s = ⊤ :=
 begin
@@ -379,7 +380,7 @@ end
 
 lemma _root_.subsingleton_quot_iff (r : α → α → Prop) : subsingleton (quot r) ↔ eqv_gen r = ⊤ :=
 begin
-  simp only [subsingleton_iff, eq_top_iff, pi.le_def, top_apply, forall_const],
+  simp only [subsingleton_iff, _root_.eq_top_iff, pi.le_def, top_apply, forall_const],
   refine (surjective_quot_mk _).forall.trans (forall_congr $ λ a, _),
   refine (surjective_quot_mk _).forall.trans (forall_congr $ λ b, _),
   rw quot.eq,

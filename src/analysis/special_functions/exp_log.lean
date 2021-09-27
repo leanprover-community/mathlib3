@@ -462,10 +462,10 @@ end
 lemma log_nonpos (hx : 0 ≤ x) (h'x : x ≤ 1) : log x ≤ 0 :=
 (log_nonpos_iff' hx).2 h'x
 
-lemma strict_mono_incr_on_log : strict_mono_incr_on log (set.Ioi 0) :=
+lemma strict_mono_on_log : strict_mono_on log (set.Ioi 0) :=
 λ x hx y hy hxy, log_lt_log hx hxy
 
-lemma strict_mono_decr_on_log : strict_mono_decr_on log (set.Iio 0) :=
+lemma strict_anti_on_log : strict_anti_on log (set.Iio 0) :=
 begin
   rintros x (hx : x < 0) y (hy : y < 0) hxy,
   rw [← log_abs y, ← log_abs x],
@@ -474,7 +474,7 @@ begin
 end
 
 lemma log_inj_on_pos : set.inj_on log (set.Ioi 0) :=
-strict_mono_incr_on_log.inj_on
+strict_mono_on_log.inj_on
 
 lemma eq_one_of_pos_of_log_eq_zero {x : ℝ} (h₁ : 0 < x) (h₂ : log x = 0) : x = 1 :=
 log_inj_on_pos (set.mem_Ioi.2 h₁) (set.mem_Ioi.2 zero_lt_one) (h₂.trans real.log_one.symm)

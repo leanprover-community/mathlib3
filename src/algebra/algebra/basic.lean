@@ -396,13 +396,7 @@ namespace module
 variables (R : Type u) (M : Type v) [comm_semiring R] [add_comm_monoid M] [module R M]
 
 instance : algebra R (module.End R M) :=
-{ to_fun    := λ r, r • linear_map.id,
-  map_one' := one_smul _ _,
-  map_zero' := zero_smul _ _,
-  map_add' := λ r₁ r₂, add_smul _ _ _,
-  map_mul' := λ r₁ r₂, by { ext x, simp [mul_smul] },
-  commutes' := by { intros, ext, simp },
-  smul_def' := by { intros, ext, simp } }
+algebra.of_module smul_mul_assoc (λ r f g, (smul_comm r f g).symm)
 
 lemma algebra_map_End_eq_smul_id (a : R) :
   (algebra_map R (End R M)) a = a • linear_map.id := rfl

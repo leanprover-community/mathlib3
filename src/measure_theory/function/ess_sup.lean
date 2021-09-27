@@ -112,7 +112,7 @@ begin
   all_goals { is_bounded_default, },
 end
 
-lemma ess_inf_antimono_measure {f : α → β} (hμν : μ ≪ ν) : ess_inf f ν ≤ ess_inf f μ :=
+lemma ess_inf_antitone_measure {f : α → β} (hμν : μ ≪ ν) : ess_inf f ν ≤ ess_inf f μ :=
 begin
   refine liminf_le_liminf_of_le (measure.ae_le_iff_absolutely_continuous.mpr hμν) _ _,
   all_goals { is_bounded_default, },

@@ -58,12 +58,10 @@ topological_space.generate_open.basic _ (by dsimp [mem_set_of_eq]; tauto)
 
 section functorial
 
-variables {g : β → γ} (hg : continuous g)
-
-def induced (f : C(α, β)) : C(α, γ) := ⟨g ∘ f, hg.comp f.continuous⟩
+variables (g : C(β, γ))
 
 private lemma preimage_gen {s : set α} (hs : is_compact s) {u : set γ} (hu : is_open u) :
-  continuous_map.induced hg ⁻¹' (compact_open.gen s u) = compact_open.gen s (g ⁻¹' u) :=
+  continuous_map.comp g ⁻¹' (compact_open.gen s u) = compact_open.gen s (g ⁻¹' u) :=
 begin
   ext ⟨f, _⟩,
   change g ∘ f '' s ⊆ u ↔ f '' s ⊆ g ⁻¹' u,
@@ -71,9 +69,9 @@ begin
 end
 
 /-- C(α, -) is a functor. -/
-lemma continuous_induced : continuous (continuous_map.induced hg : C(α, β) → C(α, γ)) :=
+lemma continuous_comp : continuous (continuous_map.comp g : C(α, β) → C(α, γ)) :=
 continuous_generated_from $ assume m ⟨s, hs, u, hu, hm⟩,
-  by rw [hm, preimage_gen hg hs hu]; exact is_open_gen hs (hu.preimage hg)
+  by rw [hm, preimage_gen g hs hu]; exact is_open_gen hs (hu.preimage g.2)
 
 end functorial
 
@@ -247,8 +245,8 @@ def curry' (f : C(α × β, γ)) (a : α) : C(β, γ) := ⟨function.curry f a�
 
 /-- If a map `α × β → γ` is continuous, then its curried form `α → C(β, γ)` is continuous. -/
 lemma continuous_curry' (f : C(α × β, γ)) : continuous (curry' f) :=
-have hf : curry' f = continuous_map.induced f.continuous_to_fun ∘ coev _ _, by { ext, refl },
-hf ▸ continuous.comp (continuous_induced f.continuous_to_fun) continuous_coev
+have hf : curry' f = continuous_map.comp f ∘ coev _ _, by { ext, refl },
+hf ▸ continuous.comp (continuous_comp f) continuous_coev
 
 /-- To show continuity of a map `α → C(β, γ)`, it suffices to show that its uncurried form
     `α × β → γ` is continuous. -/
@@ -323,11 +321,11 @@ def curry [locally_compact_space α] [locally_compact_space β] : C(α × β, γ
 
 /-- If `α` has a single element, then `β` is homeomorphic to `C(α, β)`. -/
 def continuous_map_of_unique [unique α] : β ≃ₜ C(α, β) :=
-{ to_fun := continuous_map.induced continuous_fst ∘ coev α β,
+{ to_fun := continuous_map.comp ⟨_, continuous_fst⟩ ∘ coev α β,
   inv_fun := ev α β ∘ (λ f, (f, default α)),
   left_inv := λ a, rfl,
   right_inv := λ f, by { ext, rw unique.eq_default x, refl },
-  continuous_to_fun := continuous.comp (continuous_induced _) continuous_coev,
+  continuous_to_fun := continuous.comp (continuous_comp _) continuous_coev,
   continuous_inv_fun :=
     continuous.comp continuous_ev (continuous.prod_mk continuous_id continuous_const) }
 

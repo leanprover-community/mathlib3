@@ -6,7 +6,6 @@ Authors: Riccardo Brasca
 
 import linear_algebra.direct_sum.finsupp
 import logic.small
-import ring_theory.finiteness
 
 /-!
 
@@ -137,16 +136,6 @@ variables [add_comm_group N] [module R N] [module.free R N]
 instance tensor : module.free R (M ⊗[R] N) :=
 of_equiv' (of_equiv' (finsupp.free R) (finsupp_tensor_finsupp' R _ _).symm)
   (tensor_product.congr (choose_basis R M).repr (choose_basis R N).repr).symm
-
-variables {R M}
-
-lemma _root_.module.finite.of_basis {R : Type*} {M : Type*} {ι : Type*} [comm_ring R]
-  [add_comm_group M] [module R M] [fintype ι] (b : basis ι R M) : module.finite R M :=
-begin
-  classical,
-  refine ⟨⟨finset.univ.image b, _⟩⟩,
-  simp only [set.image_univ, finset.coe_univ, finset.coe_image, basis.span_eq],
-end
 
 end comm_ring
 

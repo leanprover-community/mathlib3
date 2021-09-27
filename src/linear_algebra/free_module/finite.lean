@@ -7,6 +7,7 @@ Authors: Riccardo Brasca
 import linear_algebra.free_module.basic
 import linear_algebra.matrix.to_lin
 import linear_algebra.std_basis
+import ring_theory.finiteness
 
 /-!
 
@@ -62,6 +63,16 @@ begin
   classical,
   exact of_equiv
     (linear_map.to_matrix (module.free.choose_basis R M) (module.free.choose_basis R N)).symm,
+end
+
+variables {R M}
+
+lemma _root_.module.finite.of_basis {R : Type*} {M : Type*} {ι : Type*} [comm_ring R]
+  [add_comm_group M] [module R M] [fintype ι] (b : basis ι R M) : module.finite R M :=
+begin
+  classical,
+  refine ⟨⟨finset.univ.image b, _⟩⟩,
+  simp only [set.image_univ, finset.coe_univ, finset.coe_image, basis.span_eq],
 end
 
 instance _root_.module.finite.matrix {ι₁ : Type*} [fintype ι₁] {ι₂ : Type*} [fintype ι₂] :

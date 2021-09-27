@@ -508,8 +508,8 @@ begin
   exact set_seq_mono hf U_mem hn hp.2
 end
 
-/-- A sequence of points such that `seq n ∈ set_seq n`. Here `set_seq` is a monotonically
-decreasing sequence of sets `set_seq n ∈ f` with diameters controlled by a given sequence
+/-- A sequence of points such that `seq n ∈ set_seq n`. Here `set_seq` is an antitone
+sequence of sets `set_seq n ∈ f` with diameters controlled by a given sequence
 of entourages. -/
 def seq (n : ℕ) : α := some $ hf.1.nonempty_of_mem (set_seq_mem hf U_mem n)
 

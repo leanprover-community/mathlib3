@@ -62,7 +62,7 @@ lemma convex_on.subset {f : E → β} {t : set E} (hf : convex_on 𝕜 t f) (hst
 ⟨hs, λ x y hx hy, hf.2 (hst hx) (hst hy)⟩
 
 lemma concave_on.subset {f : E → β} {t : set E} (hf : concave_on 𝕜 t f) (hst : s ⊆ t)
-(hs : convex 𝕜 s) : concave_on 𝕜 s f :=
+  (hs : convex 𝕜 s) : concave_on 𝕜 s f :=
 ⟨hs, λ x y hx hy, hf.2 (hst hx) (hst hy)⟩
 
 end has_scalar

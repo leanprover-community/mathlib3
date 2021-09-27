@@ -121,7 +121,7 @@ end
 Let `α` be a normed lattice ordered group, then the order dual is also a
 normed lattice ordered group.
 -/
-instance {α : Type*} [h: normed_lattice_add_comm_group α] : 
+instance {α : Type*} [h: normed_lattice_add_comm_group α] :
   normed_lattice_add_comm_group (order_dual α) := {
   add_le_add_left := begin
     intros a b h₁ c,
@@ -209,5 +209,5 @@ Let `α` be a normed lattice ordered group. Then `α` is a topological lattice i
 -/
 @[priority 100] -- see Note [lower instance priority]
 instance normed_lattice_add_comm_group_topological_lattice {α : Type*}
-  [h: normed_lattice_add_comm_group α] : topological_lattice α := 
-by exact topological_lattice.mk
+  [h: normed_lattice_add_comm_group α] : topological_lattice α :=
+topological_lattice.mk

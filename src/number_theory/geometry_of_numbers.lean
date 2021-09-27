@@ -7,6 +7,7 @@ import measure_theory.measure.haar_lebesgue
 import analysis.convex.basic
 import algebra.order.pointwise
 import topology.bases
+import algebra.module.pointwise_pi
 
 /-!
 # Geometry of numbers
@@ -92,88 +93,28 @@ end
 end measure_theory
 end
 
-lemma smul_univ_pi {K : Type*} [has_mul K] (ι : Type*) {r : K} (t : ι → set K) :
-  r • pi (univ : set ι) t = pi (univ : set ι) (λ (i : ι), r • t i) :=
-begin
-  ext x,
-  simp only [mem_smul_set, mem_univ_pi],
-  split; intro h,
-  { rcases h with ⟨h_w, h_h_left, rfl⟩,
-    simp only [pi.smul_apply],
-    intro i,
-    refine ⟨h_w i, h_h_left i, rfl⟩, },
-  { use (λ i, classical.some (h i)),
-    split,
-    { exact λ i, (classical.some_spec (h i)).left, },
-    { ext i,
-      exact (classical.some_spec (h i)).right, }, },
-end
-
-lemma smul_pi' {K : Type*} [group_with_zero K] (ι : Type*) {r : K} (t : ι → set K) (S : set ι)
-  (hr : r ≠ 0) : r • S.pi t = S.pi (λ (i : ι), r • t i) :=
-begin
-  ext x,
-  simp only [mem_smul_set, mem_pi],
-  split; intro h,
-  { rcases h with ⟨h_w, h_h_left, rfl⟩,
-    simp only [mul_eq_mul_left_iff, pi.smul_apply],
-    intros i hi,
-    refine ⟨h_w i, h_h_left i hi, rfl⟩, },
-  classical,
-  { use (λ i, if hiS : i ∈ S then classical.some (h i hiS) else r⁻¹ * x i),
-    split,
-    { intros i hiS,
-      split_ifs,
-      exact (classical.some_spec (h i hiS)).left, },
-    { ext i,
-      rw [pi.smul_apply, smul_eq_mul],
-      split_ifs with hiS,
-      exact (classical.some_spec (h i hiS)).right,
-      rw mul_inv_cancel_left' hr, }, },
-end
-
-lemma smul_pi {K : Type*} [group K] (ι : Type*) {r : K} (t : ι → set K) (S : set ι) :
-  r • S.pi t = S.pi (λ (i : ι), r • t i) :=
-begin
-  ext x,
-  simp only [mem_smul_set, mem_pi],
-  split; intro h,
-  { rcases h with ⟨h_w, h_h_left, rfl⟩,
-    simp only [mul_eq_mul_left_iff, pi.smul_apply],
-    intros i hi,
-    refine ⟨h_w i, h_h_left i hi, rfl⟩, },
-  classical,
-  { use (λ i, if hiS : i ∈ S then classical.some (h i hiS) else r⁻¹ * x i),
-    split,
-    { intros i hiS,
-      split_ifs,
-      exact (classical.some_spec (h i hiS)).left, },
-    { ext i,
-      rw [pi.smul_apply, smul_eq_mul],
-      split_ifs with hiS,
-      exact (classical.some_spec (h i hiS)).right,
-      rw mul_inv_cancel_left, }, },
-end
-
 section
 variables {X Y : Type*} [measure_space Y] [group X] [mul_action X Y]
   [measurable_space X] [has_measurable_smul X Y]
+
 @[to_additive]
 lemma measurable_set_smul (x : X) {S : set Y} (h : measurable_set S) : measurable_set (x • S) :=
 begin
   rw [← inv_inv x, ← preimage_smul (x⁻¹)],
-  apply has_measurable_smul.measurable_const_smul,
-  exact h,
+  exact has_measurable_smul.measurable_const_smul _ h,
 end
 
+end
+section
+variables {X Y : Type*} [measure_space Y] [group_with_zero X] [mul_action X Y]
+  [measurable_space X] [has_measurable_smul X Y]
 
---TODO move
-@[to_additive]
-lemma smul_set_inter {α β : Type*} [group α] (a : α) [mul_action α β] {s t : set β} :
-  a • (s ∩ t) = a • s ∩ a • t :=
+-- TODO is there a version of this for x = 0 as well
+lemma measurable_set_smul' {x : X} (hx : x ≠ 0) {S : set Y} (h : measurable_set S) :
+  measurable_set (x • S) :=
 begin
-  erw [← image_smul, image_inter],
-  exact mul_action.injective a,
+  rw [← inv_inv' x, ← preimage_smul' (inv_ne_zero hx)],
+  exact has_measurable_smul.measurable_const_smul _ h,
 end
 
 end
@@ -497,8 +438,9 @@ begin
   refine (pi_eq _).symm,
   intros s hS,
   simp only [one_div, algebra.id.smul_eq_mul, coe_smul, pi.smul_apply],
-  rw [comap_apply, image_smul, smul_univ_pi ι],
+  rw [comap_apply, image_smul, smul_univ_pi],
   { erw pi_pi,
+    dsimp,
     { conv in (r • _)
       { rw ← inv_inv' r, },
       conv in (volume (r⁻¹⁻¹ • _))
@@ -512,15 +454,12 @@ begin
       congr,
       rw [ennreal.of_real_inv_of_pos hr, abs_of_pos (inv_pos.mpr hr)], },
     { intro i,
-      rw [← inv_inv' r, ← preimage_smul' (inv_ne_zero (ne_of_gt hr))],
-      exact measurable_const_smul _ (hS i), }, },
+      dsimp,
+      exact measurable_set_smul' (ne_of_gt hr) (hS i), }, },
   { exact smul_right_injective (ι → ℝ) (ne_of_gt hr), },
   { intros S hS,
-    rw [image_smul, ← inv_inv' r, ← preimage_smul' (ne_of_gt (inv_pos.mpr hr))],
-    apply measurable_set_preimage _ hS,
-    rw measurable_const_smul_iff' (ne_of_gt (inv_pos.mpr hr)),
-    exact measurable_id',
-    apply_instance, },
+    rw [image_smul],
+    exact measurable_set_smul' (ne_of_gt hr) hS, },
   { exact measurable_set.univ_pi_fintype hS, },
 end
 

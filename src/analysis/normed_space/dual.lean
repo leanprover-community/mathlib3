@@ -3,8 +3,9 @@ Copyright (c) 2020 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth, Frédéric Dupuis
 -/
+import analysis.inner_product_space.projection
+import analysis.normed_space.bounded_linear_maps
 import analysis.normed_space.hahn_banach
-import analysis.normed_space.inner_product
 
 /-!
 # The topological dual of a normed space

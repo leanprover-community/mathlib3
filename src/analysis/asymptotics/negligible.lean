@@ -63,6 +63,11 @@ begin
   exact fpow_le_of_le hx hab,
 end
 
+
+
+
+
+
 /-- Definition of negligible functions over an arbitrary `normed_field`.
   Note that the second function always has type `ℕ → ℝ`, which generally gives better lemmas. -/
 def negligible {𝕜 : Type*} [normed_ring 𝕜] (f : ℕ → 𝕜) :=
@@ -95,21 +100,13 @@ end
 lemma negligible_of_is_O_fpow_le (C : ℤ)
   (h : ∀ c ≤ C, is_O f (λ n, (n : ℝ) ^ c) filter.at_top) :
   negligible f :=
-begin
-  refine negligible_of_eventually_is_O _,
-  rw filter.eventually_at_bot,
-  refine ⟨C, h⟩,
-end
+negligible_of_eventually_is_O (filter.eventually_at_bot.2 ⟨C, h⟩)
 
 lemma negligible_of_is_O_fpow_lt (C : ℤ)
   (h : ∀ c < C, is_O f (λ n, (n : ℝ) ^ c) filter.at_top) :
   negligible f :=
-begin
-  refine negligible_of_is_O_fpow_le C.pred (λ c hc, _),
-  refine h c _,
-  refine lt_of_le_of_lt hc _,
-  refine int.pred_self_lt C,
-end
+negligible_of_is_O_fpow_le C.pred
+  (λ c hc, h c (lt_of_le_of_lt hc (int.pred_self_lt C)))
 
 lemma tendsto_zero_of_negligible (hf : negligible f) :
   filter.tendsto f filter.at_top (nhds 0) :=
@@ -152,6 +149,22 @@ end
 lemma negligible_zero : negligible (function.const ℕ (0 : 𝕜)) :=
 λ c, is_O_zero _ _
 
+lemma negligible_add (hf : negligible f) (hg : negligible g) :
+  negligible (f + g) :=
+λ c, is_O.add (hf c) (hg c)
+
+lemma negligible_mul (hf : negligible f) (hg : negligible g) :
+  negligible (f * g) :=
+begin
+  suffices : is_O (f * g) f filter.at_top,
+  from λ c, this.trans (hf c),
+  refine is_O.of_bound 1 _,
+  have := norm_eventually_le_of_negligible hg 1 (zero_lt_one),
+  refine this.mono (λ x hx, _),
+  rw [pi.mul_apply, normed_field.norm_mul, mul_comm 1 ∥f x∥],
+  exact mul_le_mul le_rfl hx (norm_nonneg $ g x) (norm_nonneg $ f x),
+end
+
 @[simp]
 lemma negligable_const_iff [t1_space 𝕜] (x : 𝕜) :
   negligible (function.const ℕ x) ↔ x = 0 :=
@@ -168,43 +181,61 @@ begin
   exact filter.at_top.empty_not_mem this,
 end
 
-lemma negligible_add (hf : negligible f) (hg : negligible g) :
-  negligible (f + g) :=
-λ c, (hf c).add $ hg c
-
-lemma negligible_mul (hf : negligible f) (hg : negligible g) :
-  negligible (f * g) :=
+@[simp]
+lemma negligible_const_mul_iff (f : ℕ → 𝕜) (c : 𝕜) :
+  negligible (λ n, c * f n) ↔ (c = 0) ∨ (negligible f) :=
 begin
-  suffices : is_O (f * g) f filter.at_top,
-  from λ c, this.trans (hf c),
-  refine is_O.of_bound 1 _,
-  have := norm_eventually_le_of_negligible hg 1 (zero_lt_one),
-  refine this.mono (λ x hx, _),
-  rw [pi.mul_apply, normed_field.norm_mul, mul_comm 1 ∥f x∥],
-  refine mul_le_mul le_rfl hx (norm_nonneg $ g x) (norm_nonneg $ f x),
+  refine ⟨λ h, _, λ h, _⟩,
+  { by_cases hc : c = 0,
+    { exact or.inl hc },
+    { exact or.inr (negligible_of_is_O h (is_O_self_const_mul c hc f filter.at_top)) } },
+  { cases h,
+    { simp only [h, zero_mul, negligable_const_iff] },
+    { exact negligible_of_is_O h (is_O_const_mul_self c f filter.at_top) } }
 end
 
-lemma negligible_const_mul_iff (f : ℕ → 𝕜) {c : 𝕜} (hc : c ≠ 0) :
+-- TODO: add `∨ c = 0` to conclusion instead
+lemma negligible_const_mul_iff_of_ne_zero (f : ℕ → 𝕜) {c : 𝕜} (hc : c ≠ 0) :
   negligible (λ n, c * f n) ↔ negligible f :=
-forall_congr (λ x, ⟨λ h, is_O.trans (is_O_self_const_mul c hc f filter.at_top) h,
-  λ h, is_O.trans (is_O_const_mul_self c f filter.at_top) h⟩)
+(negligible_const_mul_iff f c).trans (by simp only [hc, false_or])
 
 lemma negligable_const_mul_of_negligable {f : ℕ → 𝕜} (c : 𝕜)
   (hf : negligible f) : negligible (λ n, c * f n) :=
-begin
-  by_cases hc : c = 0,
-  { simpa only [hc, zero_mul] using negligible_zero },
-  { simpa only [hc, ne.def, not_false_iff, negligible_const_mul_iff] using hf }
-end
+(negligible_const_mul_iff f c).2 (or.inr hf)
+
+section extra_assumption
 
 @[simp]
-lemma negligible_x_mul_iff [norm_one_class 𝕜] (f : ℕ → 𝕜) :
+lemma negligible_nsmul_iff (f : ℕ → 𝕜) :
   negligible (λ n, n • f n) ↔ negligible f :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
   {
     refine negligible_of_is_O h _,
-    sorry,
+
+    -- TODO: Not sure what extra assumptions would give this
+    have h𝕜 : ∃ (d : ℝ) (hd : 0 < d), ∀ (n : ℕ) (hn : n ≠ 0), d ≤ ∥(n : 𝕜)∥ := sorry,
+    obtain ⟨d, hd0, hd⟩ := h𝕜,
+
+    refine is_O.of_bound d⁻¹ _,
+    rw filter.eventually_at_top,
+    use 1,
+    intros n hn,
+    specialize hd n (by linarith),
+    rw [nsmul_eq_mul, normed_field.norm_mul],
+    calc ∥f n∥ ≤ 1 * ∥f n∥ : by rw one_mul
+      ... ≤ (d⁻¹ * ∥(n : 𝕜)∥) * ∥f n∥ : begin
+        refine mul_le_mul_of_nonneg_right _ (norm_nonneg (f n)),
+        rw inv_eq_one_div,
+        rw mul_comm (1 / d),
+        rw ← mul_div_assoc,
+        rw mul_one,
+        rw le_div_iff hd0,
+        rwa one_mul,
+      end
+
+      ... ≤ d⁻¹ * (∥(n : 𝕜)∥ * ∥f n∥) : by rw mul_assoc
+
   },
   { refine negligible_of_is_O_fpow_lt 0 (λ c hc, _),
     specialize h (c - 1),
@@ -214,29 +245,65 @@ begin
     refine this.trans _,
     refine is_O_of_le _ (λ x, le_of_eq (congr_arg _ _)),
     by_cases hx : (x : ℝ) = 0,
-    {
-      simp [hx, this],
-      refine symm (zero_fpow c (ne_of_lt hc)),
-    },
+    { simp [hx, this],
+      refine symm (zero_fpow c (ne_of_lt hc)) },
     calc (x : ℝ) * ↑x ^ (c - 1) = (↑x ^ (1 : ℤ)) * (↑x ^ (c - 1)) : by rw gpow_one
       ... = ↑x ^ (1 + (c - 1)) : (fpow_add hx 1 (c - 1)).symm
       ... = ↑x ^ c : congr_arg (λ g, gpow g (x : ℝ)) (by linarith)
   }
-
-    -- refine is_O.trans (is_O.mul _ _) _,
-    -- refine (is_O.mul (is_O_refl (coe : ℕ → 𝕜) filter.at_top) (h (c - 1))).trans (_),
-    -- refine is_O_of_le filter.at_top (λ x, _),
-    -- simp only [one_mul, normed_field.norm_mul, normed_field.norm_fpow, set.mem_set_of_eq],
-    -- by_cases hx : (x : ℝ) = 0,
-    -- { by_cases hc : c = 0,
-    --   { simp [hx, hc, zero_le_one] },
-    --   { simp [hx, zero_fpow c hc] } },
-    -- {
-    --   have : ∥(x : ℝ)∥ ≠ 0,
-    --   by rwa ← norm_eq_zero at hx,
-    --   rw [mul_comm ∥(x : ℝ)∥, fpow_sub_one this, mul_assoc, inv_mul_cancel this, mul_one],
-    --    } }
 end
+
+lemma negligible_coe_nat_mul_iff (f : ℕ → 𝕜) :
+  negligible (λ n, (n : 𝕜) * f n) ↔ negligible f :=
+trans (by simp only [nsmul_eq_mul]) (negligible_nsmul_iff f)
+
+@[simp]
+lemma negligible_pow_nsmul_iff (f : ℕ → 𝕜) (c : ℕ) :
+  negligible (λ n, (n ^ c) • f n : ℕ → 𝕜) ↔ negligible f :=
+begin
+  induction c with c hc,
+  { simp [one_mul, pow_zero] },
+  { refine iff.trans _ hc,
+    simp only [pow_succ, mul_assoc, nsmul_eq_mul, nat.cast_mul, nat.cast_pow],
+    simp_rw ← nsmul_eq_mul,
+    exact negligible_nsmul_iff _ }
+end
+
+@[simp]
+lemma negligible_pow_mul_iff (f : ℕ → 𝕜) (c : ℕ) :
+  negligible (λ n, ((n : 𝕜) ^ c) * f n) ↔ negligible f :=
+trans (by simp only [nsmul_eq_mul, nat.cast_pow]) (negligible_pow_nsmul_iff f c)
+
+theorem negligable_polynomial_mul_iff (f : ℕ → 𝕜)
+  (p : polynomial 𝕜) (hp0 : p ≠ 0) :
+  negligible (λ n, (p.eval n) * f n) ↔ negligible f :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { by_cases hp : 1 ≤ p.degree,
+    { have : ∀ᶠ (n : ℕ) in filter.at_top, 1 ≤ ∥polynomial.eval ↑n p∥ :=
+        sorry,
+        -- (comap_nat_coe_at_top ℝ) ▸ filter.eventually_comap' (poly_help hp 1),
+      refine (negligible_of_eventually_le h $ filter.sets_of_superset _ this (λ x hx, _)),
+      simp only [normed_field.norm_mul, set.mem_set_of_eq] at ⊢ hx,
+      by_cases hfx : f x = 0,
+      { simp only [hfx, norm_zero, mul_zero]},
+      { refine (le_mul_iff_one_le_left (norm_pos_iff.2 hfx)).2 hx } },
+    { replace hp : p.degree ≤ 0,
+      { rw not_le at hp,
+        contrapose! hp,
+        rwa nat.with_bot.one_le_iff_zero_lt },
+      have hp_C := polynomial.eq_C_of_degree_le_zero hp,
+      have hpc0 : p.coeff 0 ≠ 0 := λ h, hp0 (hp_C.trans (by simp only [h, ring_hom.map_zero])),
+      rw [hp_C] at h,
+      simpa only [polynomial.eval_C, negligible_const_mul_iff_of_ne_zero _ hpc0] using h } },
+  { refine λ h, polynomial.induction_on' p (λ p q hp hq, _) (λ n x, _),
+    { simpa [polynomial.eval_add, add_mul] using negligible_add hp hq },
+    { simp only [negligible_const_mul_iff, mul_assoc x,
+        negligible_pow_mul_iff, polynomial.eval_monomial],
+      exact or.inr h, } }
+end
+
+end extra_assumption
 
 
 end asymptotics

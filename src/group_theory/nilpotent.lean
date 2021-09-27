@@ -278,7 +278,7 @@ begin
     exact general_commutator_normal (lower_central_series G d) ⊤ },
 end
 
-lemma lower_central_series_antimono {m n : ℕ} (h : n ≤ m) :
+lemma lower_central_series_antitone {m n : ℕ} (h : n ≤ m) :
   lower_central_series G m ≤ lower_central_series G n :=
 begin
   refine @monotone_nat_of_le_succ (order_dual (subgroup G)) _ _ _ _ _ h,

@@ -1186,13 +1186,13 @@ h.to_order_dual.le_left_iff
 lemma right_le_iff (h : is_compl x y) : y ≤ z ↔ ⊤ ≤ z ⊔ x :=
 h.symm.left_le_iff
 
-lemma antimono {x' y'} (h : is_compl x y) (h' : is_compl x' y') (hx : x ≤ x') :
+lemma antitone {x' y'} (h : is_compl x y) (h' : is_compl x' y') (hx : x ≤ x') :
   y' ≤ y :=
 h'.right_le_iff.2 $ le_trans h.symm.top_le_sup (sup_le_sup_left hx _)
 
 lemma right_unique (hxy : is_compl x y) (hxz : is_compl x z) :
   y = z :=
-le_antisymm (hxz.antimono hxy $ le_refl x) (hxy.antimono hxz $ le_refl x)
+le_antisymm (hxz.antitone hxy $ le_refl x) (hxy.antitone hxz $ le_refl x)
 
 lemma left_unique (hxz : is_compl x z) (hyz : is_compl y z) :
   x = y :=

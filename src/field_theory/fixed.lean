@@ -45,7 +45,7 @@ def fixed_by.subfield : subfield F :=
   neg_mem' := λ x hx, (smul_neg m x).trans $ congr_arg _ hx,
   one_mem' := smul_one m,
   mul_mem' := λ x y hx hy, (smul_mul' m x y).trans $ congr_arg2 _ hx hy,
-  inv_mem' := λ x hx, (smul_inv' F m x).trans $ congr_arg _ hx }
+  inv_mem' := λ x hx, (smul_inv'' m x).trans $ congr_arg _ hx }
 
 section invariant_subfields
 
@@ -84,6 +84,11 @@ subfield.copy (⨅ (m : M), fixed_by.subfield F m) (fixed_points M F)
 instance : is_invariant_subfield M (fixed_points.subfield M F) :=
 { smul_mem := λ g x hx g', by rw [hx, hx] }
 
+instance : smul_comm_class M (fixed_points.subfield M F) F :=
+{ smul_comm := λ m f f', show m • (↑f * f') = f * (m • f'), by rw [smul_mul', f.prop m] }
+
+instance smul_comm_class' : smul_comm_class (fixed_points.subfield M F) M F :=
+smul_comm_class.symm _ _ _
 
 @[simp] theorem smul (m : M) (x : fixed_points.subfield M F) : m • x = x :=
 subtype.eq $ x.2 m
@@ -93,7 +98,7 @@ subtype.eq $ x.2 m
 polynomial.induction_on p
   (λ x, by rw [polynomial.smul_C, smul])
   (λ p q ihp ihq, by rw [smul_add, ihp, ihq])
-  (λ n x ih, by rw [smul_mul', polynomial.smul_C, smul, smul_pow, polynomial.smul_X])
+  (λ n x ih, by rw [smul_mul', polynomial.smul_C, smul, smul_pow', polynomial.smul_X])
 
 instance : algebra (fixed_points.subfield M F) F :=
 algebra.of_subring (fixed_points.subfield M F).to_subring
@@ -243,7 +248,7 @@ begin
   refine dim_le (λ s hs, cardinal.nat_cast_le.1 _),
   rw [← @dim_fun' F G, ← cardinal.lift_nat_cast.{v (max u v)},
     cardinal.finset_card, ← cardinal.lift_id (module.rank F (G → F))],
-  exact linear_independent_le_dim'.{_ _ _ (max u v)}
+  exact cardinal_lift_le_dim_of_linear_independent.{_ _ _ (max u v)}
     (linear_independent_smul_of_linear_independent G F hs)
 end
 
@@ -292,45 +297,35 @@ lemma finrank_alg_hom (K : Type u) (V : Type v)
 fintype_card_le_finrank_of_linear_independent $ linear_independent_to_linear_map K V V
 
 namespace fixed_points
-/-- Embedding produced from a faithful action. -/
-@[simps apply {fully_applied := ff}]
-def to_alg_hom (G : Type u) (F : Type v) [group G] [field F]
-  [faithful_mul_semiring_action G F] : G ↪ (F →ₐ[fixed_points.subfield G F] F) :=
-{ to_fun := λ g, { commutes' := λ x, x.2 g,
-    .. mul_semiring_action.to_ring_hom G F g },
-  inj' := λ g₁ g₂ hg, to_ring_hom_injective G F $ ring_hom.ext $ λ x, alg_hom.ext_iff.1 hg x, }
-
-lemma to_alg_hom_apply_apply {G : Type u} {F : Type v} [group G] [field F]
-  [faithful_mul_semiring_action G F] (g : G) (x : F) :
-  to_alg_hom G F g x = g • x :=
-rfl
 
 theorem finrank_eq_card (G : Type u) (F : Type v) [group G] [field F]
-  [fintype G] [faithful_mul_semiring_action G F] :
+  [fintype G] [mul_semiring_action G F] [has_faithful_scalar G F] :
   finrank (fixed_points.subfield G F) F = fintype.card G :=
 le_antisymm (fixed_points.finrank_le_card G F) $
 calc  fintype.card G
     ≤ fintype.card (F →ₐ[fixed_points.subfield G F] F) :
-        fintype.card_le_of_injective _ (to_alg_hom G F).2
+        fintype.card_le_of_injective _ (mul_semiring_action.to_alg_hom_injective _ F)
 ... ≤ finrank F (F →ₗ[fixed_points.subfield G F] F) : finrank_alg_hom (fixed_points G F) F
 ... = finrank (fixed_points.subfield G F) F : finrank_linear_map' _ _ _
 
+/-- `mul_semiring_action.to_alg_hom` is bijective. -/
 theorem to_alg_hom_bijective (G : Type u) (F : Type v) [group G] [field F]
-  [fintype G] [faithful_mul_semiring_action G F] :
-  function.bijective (to_alg_hom G F) :=
+  [fintype G] [mul_semiring_action G F] [has_faithful_scalar G F] :
+  function.bijective (mul_semiring_action.to_alg_hom _ _ : G → F →ₐ[subfield G F] F) :=
 begin
   rw fintype.bijective_iff_injective_and_card,
   split,
-  { exact (to_alg_hom G F).injective },
+  { exact mul_semiring_action.to_alg_hom_injective _ F },
   { apply le_antisymm,
-    { exact fintype.card_le_of_injective _ (to_alg_hom G F).injective },
+    { exact fintype.card_le_of_injective _ (mul_semiring_action.to_alg_hom_injective _ F) },
     { rw ← finrank_eq_card G F,
       exact has_le.le.trans_eq (finrank_alg_hom _ F) (finrank_linear_map' _ _ _) } },
 end
 
 /-- Bijection between G and algebra homomorphisms that fix the fixed points -/
 def to_alg_hom_equiv (G : Type u) (F : Type v) [group G] [field F]
-  [fintype G] [faithful_mul_semiring_action G F] : G ≃ (F →ₐ[fixed_points.subfield G F] F) :=
-function.embedding.equiv_of_surjective (to_alg_hom G F) (to_alg_hom_bijective G F).2
+  [fintype G] [mul_semiring_action G F] [has_faithful_scalar G F] :
+    G ≃ (F →ₐ[fixed_points.subfield G F] F) :=
+equiv.of_bijective _ (to_alg_hom_bijective G F)
 
 end fixed_points

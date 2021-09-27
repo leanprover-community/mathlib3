@@ -5,7 +5,7 @@ Authors: Eric Wieser
 -/
 import group_theory.perm.basic
 import data.fintype.basic
-import group_theory.subgroup
+import group_theory.subgroup.basic
 /-!
 # Lemmas about subgroups within the permutations (self-equivalences) of a type `α`
 
@@ -56,6 +56,13 @@ lemma subtype_congr_hom.card_range {α : Type*} (p : α → Prop) [decidable_pre
   [fintype (subtype_congr_hom p).range] [fintype (perm {a // p a} × perm {a // ¬ p a})] :
   fintype.card (subtype_congr_hom p).range = fintype.card (perm {a // p a} × perm {a // ¬ p a}) :=
 fintype.card_eq.mpr ⟨(of_injective (subtype_congr_hom p) (subtype_congr_hom_injective p)).symm⟩
+
+/-- **Cayley's theorem**: Every group G is isomorphic to a subgroup of the symmetric group acting on
+`G`. Note that we generalize this to an arbitrary "faithful" group action by `G`. Setting `H = G`
+recovers the usual statement of Cayley's theorem via `right_cancel_monoid.to_has_faithful_scalar` -/
+noncomputable def subgroup_of_mul_action (G H : Type*) [group G] [mul_action G H]
+  [has_faithful_scalar G H] : G ≃* (mul_action.to_perm_hom G H).range :=
+mul_equiv.of_left_inverse' _ (classical.some_spec mul_action.to_perm_injective.has_left_inverse)
 
 end perm
 end equiv

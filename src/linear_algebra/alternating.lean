@@ -4,12 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser, Zhangir Azerbayev
 -/
 
-import linear_algebra.multilinear
+import linear_algebra.multilinear.tensor_product
 import linear_algebra.linear_independent
 import group_theory.perm.sign
 import group_theory.perm.subgroup
 import data.equiv.fin
-import linear_algebra.tensor_product
 import group_theory.quotient_group
 
 /-!
@@ -207,7 +206,7 @@ instance : has_sub (alternating_map R M N' ι) :=
 ⟨λ f g,
   { map_eq_zero_of_eq' :=
       λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij, g.map_eq_zero_of_eq v h hij],
-    ..(f - g : multilinear_map R (λ i : ι, M) N')  }⟩
+    ..(f - g : multilinear_map R (λ i : ι, M) N') }⟩
 
 @[simp] lemma sub_apply (m : ι → M) : (g - g₂) m = g m - g₂ m := rfl
 
@@ -265,6 +264,19 @@ instance : module S (alternating_map R M N ι) :=
   zero_smul := λ f, ext $ λ x, zero_smul _ _ }
 
 end module
+
+section
+variables (R N)
+
+/-- The evaluation map from `ι → N` to `N` at a given `i` is alternating when `ι` is subsingleton.
+-/
+@[simps]
+def of_subsingleton [subsingleton ι] (i : ι) : alternating_map R N N ι :=
+{ to_fun := function.eval i,
+  map_eq_zero_of_eq' := λ v i j hv hij, (hij $ subsingleton.elim _ _).elim,
+  ..multilinear_map.of_subsingleton R N i }
+
+end
 
 end alternating_map
 
@@ -583,8 +595,7 @@ begin
     all_goals { convert smul_zero _, },
     work_on_goal 0 { convert tensor_product.tmul_zero _ _, },
     work_on_goal 1 { convert tensor_product.zero_tmul _ _, },
-    all_goals { exact alternating_map.map_eq_zero_of_eq _ _ hv (λ hij', hij (hij' ▸ rfl)), },
-    },
+    all_goals { exact alternating_map.map_eq_zero_of_eq _ _ hv (λ hij', hij (hij' ▸ rfl)), } },
 end
 
 /-- Like `multilinear_map.dom_coprod`, but ensures the result is also alternating.

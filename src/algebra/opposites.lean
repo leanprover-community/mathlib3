@@ -126,8 +126,20 @@ instance [mul_one_class α] : mul_one_class (opposite α) :=
 instance [monoid α] : monoid (opposite α) :=
 { .. opposite.semigroup α, .. opposite.mul_one_class α }
 
+instance [right_cancel_monoid α] : left_cancel_monoid (opposite α) :=
+{ .. opposite.left_cancel_semigroup α, ..opposite.monoid α }
+
+instance [left_cancel_monoid α] : right_cancel_monoid (opposite α) :=
+{ .. opposite.right_cancel_semigroup α, ..opposite.monoid α }
+
+instance [cancel_monoid α] : cancel_monoid (opposite α) :=
+{ .. opposite.right_cancel_monoid α, ..opposite.left_cancel_monoid α }
+
 instance [comm_monoid α] : comm_monoid (opposite α) :=
 { .. opposite.monoid α, .. opposite.comm_semigroup α }
+
+instance [cancel_comm_monoid α] : cancel_comm_monoid (opposite α) :=
+{ .. opposite.cancel_monoid α, ..opposite.comm_monoid α }
 
 instance [has_inv α] : has_inv (opposite α) :=
 { inv := λ x, op $ (unop x)⁻¹ }
@@ -210,9 +222,31 @@ instance (R : Type*) [monoid R] [add_monoid α] [distrib_mul_action R α] :
   smul_zero := λ r, unop_injective $ smul_zero r,
   ..opposite.mul_action α R }
 
+instance (R : Type*) [monoid R] [monoid α] [mul_distrib_mul_action R α] :
+  mul_distrib_mul_action R (opposite α) :=
+{ smul_mul := λ r x₁ x₂, unop_injective $ smul_mul' r (unop x₂) (unop x₁),
+  smul_one := λ r, unop_injective $ smul_one r,
+  ..opposite.mul_action α R }
+
+/-- Like `has_mul.to_has_scalar`, but multiplies on the right.
+
+See also `monoid.to_opposite_mul_action` and `monoid_with_zero.to_opposite_mul_action`. -/
+instance _root_.has_mul.to_has_opposite_scalar [has_mul α] : has_scalar (opposite α) α :=
+{ smul := λ c x, x * c.unop }
+
+lemma op_smul_eq_mul [has_mul α] {a a' : α} : op a • a' = a' * a := rfl
+
+instance _root_.semigroup.opposite_smul_comm_class [semigroup α] :
+  smul_comm_class (opposite α) α α :=
+{ smul_comm := λ x y z, (mul_assoc _ _ _) }
+
+instance _root_.semigroup.opposite_smul_comm_class' [semigroup α] :
+  smul_comm_class α (opposite α) α :=
+{ smul_comm := λ x y z, (mul_assoc _ _ _).symm }
+
 /-- Like `monoid.to_mul_action`, but multiplies on the right. -/
-instance monoid.to_opposite_mul_action [monoid α] : mul_action (opposite α) α :=
-{ smul := λ c x, x * c.unop,
+instance _root_.monoid.to_opposite_mul_action [monoid α] : mul_action (opposite α) α :=
+{ smul := (•),
   one_smul := mul_one,
   mul_smul := λ x y r, (mul_assoc _ _ _).symm }
 
@@ -220,7 +254,15 @@ instance monoid.to_opposite_mul_action [monoid α] : mul_action (opposite α) α
 -- `mul_action (opposite α) (opposite α)` are defeq.
 example [monoid α] : monoid.to_mul_action (opposite α) = opposite.mul_action α (opposite α) := rfl
 
-lemma op_smul_eq_mul [monoid α] {a a' : α} : op a • a' = a' * a := rfl
+/-- `monoid.to_opposite_mul_action` is faithful on cancellative monoids. -/
+instance _root_.left_cancel_monoid.to_has_faithful_opposite_scalar [left_cancel_monoid α] :
+  has_faithful_scalar (opposite α) α :=
+⟨λ x y h, unop_injective $ mul_left_cancel (h 1)⟩
+
+/-- `monoid.to_opposite_mul_action` is faithful on nontrivial cancellative monoids with zero. -/
+instance _root_.cancel_monoid_with_zero.to_has_faithful_opposite_scalar
+  [cancel_monoid_with_zero α] [nontrivial α] : has_faithful_scalar (opposite α) α :=
+⟨λ x y h, unop_injective $ mul_left_cancel' one_ne_zero (h 1)⟩
 
 @[simp] lemma op_zero [has_zero α] : op (0 : α) = 0 := rfl
 @[simp] lemma unop_zero [has_zero α] : unop (0 : αᵒᵖ) = 0 := rfl
@@ -448,3 +490,17 @@ def mul_equiv.op {α β} [has_mul α] [has_mul β] :
 /-- The 'unopposite' of an iso `αᵒᵖ ≃* βᵒᵖ`. Inverse to `mul_equiv.op`. -/
 @[simp] def mul_equiv.unop {α β} [has_mul α] [has_mul β] :
   (αᵒᵖ ≃* βᵒᵖ) ≃ (α ≃* β) := mul_equiv.op.symm
+
+section ext
+
+/-- This ext lemma change equalities on `αᵒᵖ →+ β` to equalities on `α →+ β`.
+This is useful because there are often ext lemmas for specific `α`s that will apply
+to an equality of `α →+ β` such as `finsupp.add_hom_ext'`. -/
+@[ext]
+lemma add_monoid_hom.op_ext {α β} [add_zero_class α] [add_zero_class β]
+  (f g : αᵒᵖ →+ β)
+  (h : f.comp (op_add_equiv : α ≃+ αᵒᵖ).to_add_monoid_hom =
+       g.comp (op_add_equiv : α ≃+ αᵒᵖ).to_add_monoid_hom) : f = g :=
+add_monoid_hom.ext $ λ x, (add_monoid_hom.congr_fun h : _) x.unop
+
+end ext

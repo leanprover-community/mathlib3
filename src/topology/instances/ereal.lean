@@ -67,12 +67,12 @@ lemma embedding_coe : embedding (coe : ℝ → ereal) :=
     refine le_generate_from (assume s ha, _),
     rcases ha with ⟨a, rfl | rfl⟩,
     show is_open {b : ℝ | a < ↑b},
-    { rcases a.cases with rfl|⟨x, rfl⟩|rfl,
+    { induction a using ereal.rec,
       { simp only [is_open_univ, bot_lt_coe, set_of_true] },
       { simp only [ereal.coe_lt_coe_iff], exact is_open_Ioi },
       { simp only [set_of_false, is_open_empty, not_top_lt] } },
     show is_open {b : ℝ | ↑b < a},
-    { rcases a.cases with rfl|⟨x, rfl⟩|rfl,
+    { induction a using ereal.rec,
       { simp only [not_lt_bot, set_of_false, is_open_empty] },
       { simp only [ereal.coe_lt_coe_iff], exact is_open_Iio },
       { simp only [is_open_univ, coe_lt_top, set_of_true] } } },
@@ -89,7 +89,7 @@ lemma open_embedding_coe : open_embedding (coe : ℝ → ereal) :=
 begin
   convert @is_open_Ioo ereal _ _ _ ⊥ ⊤,
   ext x,
-  rcases x.cases with rfl|⟨y, rfl⟩|rfl,
+  induction x using ereal.rec,
   { simp only [left_mem_Ioo, mem_range, coe_ne_bot, exists_false, not_false_iff] },
   { simp only [mem_range_self, mem_Ioo, bot_lt_coe, coe_lt_top, and_self] },
   { simp only [mem_range, right_mem_Ioo, exists_false, coe_ne_top] }
@@ -142,7 +142,7 @@ lemma embedding_coe_ennreal : embedding (coe : ℝ≥0∞ → ereal) :=
     refine le_generate_from (assume s ha, _),
     rcases ha with ⟨a, rfl | rfl⟩,
     show is_open {b : ℝ≥0∞ | a < ↑b},
-    { rcases a.cases with rfl|⟨x, rfl⟩|rfl,
+    { induction a using ereal.rec with x,
       { simp only [is_open_univ, bot_lt_coe_ennreal, set_of_true] },
       { rcases le_or_lt 0 x with h|h,
         { have : (x : ereal) = ((id ⟨x, h⟩ : ℝ≥0) : ℝ≥0∞) := rfl,
@@ -154,7 +154,7 @@ lemma embedding_coe_ennreal : embedding (coe : ℝ≥0∞ → ereal) :=
           simp only [this, is_open_univ, set_of_true] } },
       { simp only [set_of_false, is_open_empty, not_top_lt] } },
     show is_open {b : ℝ≥0∞ | ↑b < a},
-    { rcases a.cases with rfl|⟨x, rfl⟩|rfl,
+    { induction a using ereal.rec with x,
       { simp only [not_lt_bot, set_of_false, is_open_empty] },
       { rcases le_or_lt 0 x with h|h,
         { have : (x : ereal) = ((id ⟨x, h⟩ : ℝ≥0) : ℝ≥0∞) := rfl,
@@ -197,7 +197,7 @@ begin
   apply le_antisymm,
   { exact infi_le_infi2 (λ x, ⟨x, by simp⟩) },
   { refine le_infi (λ r, le_infi (λ hr, _)),
-    rcases r.cases with rfl|⟨x, rfl⟩|rfl,
+    induction r using ereal.rec,
     { exact (infi_le _ 0).trans (by simp) },
     { exact infi_le _ _ },
     { simpa using hr, } }
@@ -206,7 +206,7 @@ end
 lemma mem_nhds_top_iff {s : set ereal} :
   s ∈ 𝓝 (⊤ : ereal) ↔ ∃ (y : ℝ), Ioi (y : ereal) ⊆ s :=
 begin
-  rw [nhds_top', mem_infi],
+  rw [nhds_top', mem_infi_of_directed],
   { refl },
   exact λ x y, ⟨max x y, by simp [le_refl], by simp [le_refl]⟩,
 end
@@ -224,7 +224,7 @@ begin
   apply le_antisymm,
   { exact infi_le_infi2 (λ x, ⟨x, by simp⟩) },
   { refine le_infi (λ r, le_infi (λ hr, _)),
-    rcases r.cases with rfl|⟨x, rfl⟩|rfl,
+    induction r using ereal.rec,
     { simpa using hr },
     { exact infi_le _ _ },
     { exact (infi_le _ 0).trans (by simp) } }
@@ -233,7 +233,7 @@ end
 lemma mem_nhds_bot_iff {s : set ereal} :
   s ∈ 𝓝 (⊥ : ereal) ↔ ∃ (y : ℝ), Iio (y : ereal) ⊆ s :=
 begin
-  rw [nhds_bot', mem_infi],
+  rw [nhds_bot', mem_infi_of_directed],
   { refl },
   exact λ x y, ⟨min x y, by simp [le_refl], by simp [le_refl]⟩,
 end
@@ -331,7 +331,7 @@ lemma continuous_at_add {p : ereal × ereal} (h : p.1 ≠ ⊤ ∨ p.2 ≠ ⊥) (
   continuous_at (λ (p : ereal × ereal), p.1 + p.2) p :=
 begin
   rcases p with ⟨x, y⟩,
-  rcases x.cases with rfl|⟨x, rfl⟩|rfl; rcases y.cases with rfl|⟨y, rfl⟩|rfl,
+  induction x using ereal.rec; induction y using ereal.rec,
   { exact continuous_at_add_bot_bot },
   { exact continuous_at_add_bot_coe _ },
   { simpa using h' },

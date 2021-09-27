@@ -7,6 +7,7 @@ import analysis.calculus.deriv
 import topology.algebra.ordered.extend_from
 import topology.algebra.polynomial
 import topology.local_extr
+import data.polynomial.field_division
 
 /-!
 # Local extrema of smooth functions
@@ -81,17 +82,17 @@ def pos_tangent_cone_at (s : set E) (x : E) : set E :=
 lemma pos_tangent_cone_at_mono : monotone (λ s, pos_tangent_cone_at s a) :=
 begin
   rintros s t hst y ⟨c, d, hd, hc, hcd⟩,
-  exact ⟨c, d, mem_sets_of_superset hd $ λ h hn, hst hn, hc, hcd⟩
+  exact ⟨c, d, mem_of_superset hd $ λ h hn, hst hn, hc, hcd⟩
 end
 
-lemma mem_pos_tangent_cone_at_of_segment_subset {s : set E} {x y : E} (h : segment x y ⊆ s) :
+lemma mem_pos_tangent_cone_at_of_segment_subset {s : set E} {x y : E} (h : segment ℝ x y ⊆ s) :
   y - x ∈ pos_tangent_cone_at s x :=
 begin
   let c := λn:ℕ, (2:ℝ)^n,
   let d := λn:ℕ, (c n)⁻¹ • (y-x),
-  refine ⟨c, d, filter.univ_mem_sets' (λn, h _),
+  refine ⟨c, d, filter.univ_mem' (λn, h _),
     tendsto_pow_at_top_at_top_of_one_lt one_lt_two, _⟩,
-  show x + d n ∈ segment x y,
+  show x + d n ∈ segment ℝ x y,
   { rw segment_eq_image',
     refine ⟨(c n)⁻¹, ⟨_, _⟩, rfl⟩,
     exacts [inv_nonneg.2 (pow_nonneg zero_le_two _),
@@ -103,7 +104,8 @@ begin
     exact pow_ne_zero _ two_ne_zero }
 end
 
-lemma mem_pos_tangent_cone_at_of_segment_subset' {s : set E} {x y : E} (h : segment x (x + y) ⊆ s) :
+lemma mem_pos_tangent_cone_at_of_segment_subset' {s : set E} {x y : E}
+  (h : segment ℝ x (x + y) ⊆ s) :
   y ∈ pos_tangent_cone_at s x :=
 by simpa only [add_sub_cancel'] using mem_pos_tangent_cone_at_of_segment_subset h
 

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mitchell Rowett, Scott Morrison
 -/
 
-import group_theory.subgroup
+import group_theory.subgroup.basic
 
 /-!
 # Cosets
@@ -283,12 +283,40 @@ lemma induction_on' {C : quotient s → Prop} (x : quotient s)
 quotient.induction_on' x H
 
 @[to_additive]
+lemma forall_coe {C : quotient s → Prop} :
+  (∀ x : quotient s, C x) ↔ ∀ x : α, C x :=
+⟨λ hx x, hx _, quot.ind⟩
+
+@[to_additive]
 instance (s : subgroup α) : inhabited (quotient s) :=
 ⟨((1 : α) : quotient s)⟩
 
 @[to_additive quotient_add_group.eq]
 protected lemma eq {a b : α} : (a : quotient s) = b ↔ a⁻¹ * b ∈ s :=
 quotient.eq'
+
+@[to_additive quotient_add_group.eq']
+lemma eq' {a b : α} : (mk a : quotient s) = mk b ↔ a⁻¹ * b ∈ s :=
+quotient_group.eq
+
+@[to_additive quotient_add_group.out_eq']
+lemma out_eq' (a : quotient s) : mk a.out' = a :=
+quotient.out_eq' a
+
+variables (s)
+
+/- It can be useful to write `obtain ⟨h, H⟩ := mk_out'_eq_mul ...`, and then `rw [H]` or
+  `simp_rw [H]` or `simp only [H]`. In order for `simp_rw` and `simp only` to work, this lemma is
+  stated in terms of an arbitrary `h : s`, rathern that the specific `h = g⁻¹ * (mk g).out'`. -/
+@[to_additive quotient_add_group.mk_out'_eq_mul]
+lemma mk_out'_eq_mul (g : α) : ∃ h : s, (mk g : quotient s).out' = g * h :=
+⟨⟨g⁻¹ * (mk g).out', eq'.mp (mk g).out_eq'.symm⟩, by rw [s.coe_mk, mul_inv_cancel_left]⟩
+
+variables {s}
+
+@[to_additive quotient_add_group.mk_mul_of_mem]
+lemma mk_mul_of_mem (g₁ g₂ : α) (hg₂ : g₂ ∈ s) : (mk (g₁ * g₂) : quotient s) = mk g₁ :=
+by rwa [eq', mul_inv_rev, inv_mul_cancel_right, s.inv_mem_iff]
 
 @[to_additive]
 lemma eq_class_eq_left_coset (s : subgroup α) (g : α) :
@@ -348,8 +376,45 @@ calc α ≃ Σ L : quotient s, {x : α // (x : quotient s) = L} :
     ... ≃ quotient s × s :
   equiv.sigma_equiv_prod _ _
 
-lemma card_eq_card_quotient_mul_card_subgroup [fintype α] (s : subgroup α) [fintype s]
-  [decidable_pred (λ a, a ∈ s)] : fintype.card α = fintype.card (quotient s) * fintype.card s :=
+variables {t : subgroup α}
+
+/-- If `H ≤ K`, then `G/H ≃ G/K × K/H` constructively, using the provided right inverse
+of the quotient map `G → G/K`. The classical version is `quotient_equiv_prod_of_le`. -/
+@[to_additive "If `H ≤ K`, then `G/H ≃ G/K × K/H` constructively, using the provided right inverse
+of the quotient map `G → G/K`. The classical version is `quotient_equiv_prod_of_le`.", simps]
+def quotient_equiv_prod_of_le' (h_le : s ≤ t)
+  (f : quotient t → α) (hf : function.right_inverse f quotient_group.mk) :
+  quotient s ≃ quotient t × quotient (s.subgroup_of t) :=
+{ to_fun := λ a, ⟨a.map' id (λ b c h, h_le h),
+    a.map' (λ g : α, ⟨(f (quotient.mk' g))⁻¹ * g, quotient.exact' (hf g)⟩) (λ b c h, by
+    { change ((f b)⁻¹ * b)⁻¹ * ((f c)⁻¹ * c) ∈ s,
+      have key : f b = f c := congr_arg f (quotient.sound' (h_le h)),
+      rwa [key, mul_inv_rev, inv_inv, mul_assoc, mul_inv_cancel_left] })⟩,
+  inv_fun := λ a, a.2.map' (λ b, f a.1 * b) (λ b c h, by
+  { change (f a.1 * b)⁻¹ * (f a.1 * c) ∈ s,
+    rwa [mul_inv_rev, mul_assoc, inv_mul_cancel_left] }),
+  left_inv := by
+  { refine quotient.ind' (λ a, _),
+    simp_rw [quotient.map'_mk', id.def, t.coe_mk, mul_inv_cancel_left] },
+  right_inv := by
+  { refine prod.rec _,
+    refine quotient.ind' (λ a, _),
+    refine quotient.ind' (λ b, _),
+    have key : quotient.mk' (f (quotient.mk' a) * b) = quotient.mk' a :=
+      (quotient_group.mk_mul_of_mem (f a) ↑b b.2).trans (hf a),
+    simp_rw [quotient.map'_mk', id.def, key, inv_mul_cancel_left, subtype.coe_eta] } }
+
+/-- If `H ≤ K`, then `G/H ≃ G/K × K/H` nonconstructively.
+The constructive version is `quotient_equiv_prod_of_le'`. -/
+@[to_additive "If `H ≤ K`, then `G/H ≃ G/K × K/H` nonconstructively.
+The constructive version is `quotient_equiv_prod_of_le'`.", simps]
+noncomputable def quotient_equiv_prod_of_le (h_le : s ≤ t) :
+  quotient s ≃ quotient t × quotient (s.subgroup_of t) :=
+quotient_equiv_prod_of_le' h_le quotient.out' quotient.out_eq'
+
+@[to_additive] lemma card_eq_card_quotient_mul_card_subgroup
+  [fintype α] (s : subgroup α) [fintype s] [decidable_pred (λ a, a ∈ s)] :
+  fintype.card α = fintype.card (quotient s) * fintype.card s :=
 by rw ← fintype.card_prod;
   exact fintype.card_congr (subgroup.group_equiv_quotient_times_subgroup)
 

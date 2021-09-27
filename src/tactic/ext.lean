@@ -13,6 +13,8 @@ open interactive interactive.types
 section ext
 open lean.parser nat tactic
 
+declare_trace ext
+
 /--
 `derive_struct_ext_lemma n` generates two extensionality lemmas based on
 the equality of all non-propositional projections.
@@ -100,7 +102,7 @@ do e ← get_env,
             { repeat (do refine ``(and_imp.mpr _),
                          h ← intro1, cases h, skip ),
               h ← intro1, cases h,
-              reflexivity }  },
+              reflexivity } },
           instantiate_mvars pr },
    add_decl (declaration.thm (n <.> "ext_iff") d.univ_params t pr),
    pure decl_n
@@ -124,16 +126,6 @@ meta def get_ext_subject : expr → tactic name
 | e := fail format!"Only expressions of the form `_ → _ → ... → R ... e are supported: {e}"
 
 open native
-
-@[reducible] def ext_param_type := option name ⊕ option name
-
-meta def opt_minus : lean.parser (option name → ext_param_type) :=
-sum.inl <$ tk "-" <|> pure sum.inr
-
-meta def ext_param :=
-opt_minus <*> ( name.mk_numeral 0 name.anonymous <$ brackets "(" ")" (tk "→" <|> tk "->") <|>
-                none <$  tk "*" <|>
-                some <$> ident )
 
 meta def saturate_fun : name → tactic expr
 | (name.mk_numeral 0 name.anonymous) :=
@@ -178,7 +170,7 @@ library_note "user attribute parameters"
 For performance reasons, the parameters of the `@[ext]` attribute are stored
 in two auxiliary attributes:
 ```lean
-attribute [ext [thunk]] funext
+attribute [ext thunk] funext
 
 -- is turned into
 attribute [_ext_core (@id name @funext)] thunk
@@ -200,11 +192,9 @@ private meta def ext_attr_core : user_attribute (name_map name) name :=
   descr := "(internal attribute used by ext)",
   cache_cfg := {
     dependencies := [],
-    mk_cache := λ ns, do
-      attrs ← ns.mmap (λ n, do
-        ext_l ← ext_attr_core.get_param_untyped n,
-        pure (n, ext_l.app_arg.const_name)),
-      pure $ rb_map.of_list attrs },
+    mk_cache := λ ns, ns.mfoldl (λ m n, do
+      ext_l ← ext_attr_core.get_param_untyped n,
+      pure (m.insert n ext_l.app_arg.const_name)) mk_name_map },
   parser := failure }
 
 end performance_hack
@@ -229,6 +219,11 @@ Returns the extensionality lemmas in the environment, as a list of lemma names.
 meta def get_ext_lemma_names : tactic (list name) :=
 attribute.get_instances ext_lemma_attr_core.name
 
+/-- Marks `lem` as an extensionality lemma corresponding to type constructor `constr`;
+if `persistent` is true then this is a global attribute, else local. -/
+meta def add_ext_lemma (constr lem : name) (persistent : bool) : tactic unit :=
+ext_attr_core.set constr lem persistent >> ext_lemma_attr_core.set lem () persistent
+
 /--
 Tag lemmas of the form:
 
@@ -245,23 +240,7 @@ the lemma.  In some cases, the same lemma can be used to state the
 extensionality of multiple types that are definitionally equivalent.
 
 ```lean
-attribute [ext [(→),thunk,stream]] funext
-```
-
-Those parameters are cumulative. The following are equivalent:
-
-```lean
-attribute [ext [(→),thunk]] funext
-attribute [ext [stream]] funext
-```
-and
-```lean
-attribute [ext [(→),thunk,stream]] funext
-```
-
-One removes type names from the list for one lemma with:
-```lean
-attribute [ext [-stream,-thunk]] funext
+attribute [ext thunk, ext stream] funext
 ```
 
 Also, the following:
@@ -276,7 +255,7 @@ lemma my_collection.ext (a b : my_collection)
 is equivalent to
 
 ```lean
-@[ext *]
+@[ext my_collection]
 lemma my_collection.ext (a b : my_collection)
   (h : ∀ x, a.lookup x = b.lookup y) :
   a = b := ...
@@ -286,7 +265,7 @@ This allows us specify type synonyms along with the type
 that is referred to in the lemma statement.
 
 ```lean
-@[ext [*,my_type_synonym]]
+@[ext, ext my_type_synonym]
 lemma my_collection.ext (a b : my_collection)
   (h : ∀ x, a.lookup x = b.lookup y) :
   a = b := ...
@@ -314,27 +293,23 @@ x = y ↔ x.x = y.x ∧ x.y = y.y ∧ x.z == y.z ∧ x.k = y.k
 
 -/
 @[user_attribute]
-meta def extensional_attribute : user_attribute unit (list ext_param_type) :=
+meta def extensional_attribute : user_attribute unit (option name) :=
 { name := `ext,
   descr := "lemmas usable by `ext` tactic",
-  parser := pure <$> ext_param <|> list_of ext_param <|> pure [],
-  after_set := some $ λ n prio b,
-    do ls ← extensional_attribute.get_param n,
-       e ← get_env,
-       n ← if (e.structure_fields n).is_some
-         then derive_struct_ext_lemma n
-         else pure n,
-       s ← mk_const n >>= infer_type >>= get_ext_subject,
-       let (rs,ls'') := if ls.empty
-                           then ([],[s])
-                           else ls.partition_map (sum.map (flip option.get_or_else s)
-                                                    (flip option.get_or_else s)),
-       ls''.mmap' (equiv_type_constr s),
-       ls' ← get_ext_lemmas,
-       let l := ls'' ∪ (ls'.to_list.filter $ λ l, prod.snd l = n).map prod.fst \ rs,
-       l.mmap' $ λ l, do
-        ext_attr_core.set l n b prio,
-        ext_lemma_attr_core.set n () b prio }
+  parser := optional ident,
+  before_unset := some $ λ _ _, pure (),
+  after_set := some $ λ n _ b, do
+    add ← extensional_attribute.get_param n,
+    unset_attribute `ext n,
+    e ← get_env,
+    n ← if (e.structure_fields n).is_some
+      then derive_struct_ext_lemma n
+      else pure n,
+    s ← mk_const n >>= infer_type >>= get_ext_subject,
+    match add with
+    | none := add_ext_lemma s n b
+    | some add := equiv_type_constr s add >> add_ext_lemma add n b
+    end }
 
 add_tactic_doc
 { name                     := "ext",
@@ -359,7 +334,13 @@ library_note "partially-applied ext lemmas"
 
 -- We mark some existing extensionality lemmas.
 attribute [ext] array.ext propext function.hfunext
-attribute [ext [(→),thunk]] _root_.funext
+attribute [ext thunk] _root_.funext
+
+-- This line is equivalent to:
+--   attribute [ext (→)] _root_.funext
+-- but (→) is not actually a binary relation with a constant at the head,
+-- so we use the special name [anon].0 to represent (→).
+run_cmd add_ext_lemma (name.mk_numeral 0 name.anonymous) ``_root_.funext tt
 
 -- We create some extensionality lemmas for existing structures.
 attribute [ext] ulift
@@ -418,14 +399,23 @@ meta def ext1_core (cfg : apply_cfg := {}) : state_t ext_state tactic unit :=
 do ⟨patts, trace_msg, _⟩ ← get,
    (new_msgs) ← state_t.lift $ focus1 $
    do { m ← get_ext_lemmas,
-         subject ← (target >>= get_ext_subject),
+         tgt ← target,
+         when_tracing `ext $ trace!"[ext] goal: {tgt}",
+         subject ← get_ext_subject tgt,
          new_trace_msg ←
            do { rule ← (m.find subject),
-                (applyc rule cfg),
+                if is_trace_enabled_for `ext then
+                  trace!"[ext] matched goal to rule: {rule}" >>
+                  timetac "[ext] application attempt time" (applyc rule cfg)
+                else applyc rule cfg,
                 pure (["apply " ++ rule.to_string]) } <|>
              do { ls ← get_ext_lemma_names,
                   let nms := ls.map name.to_string,
-                  rule ← (ls.any_of (λ n, applyc n cfg *> pure n)),
+                  rule ← (ls.any_of (λ n,
+                    (if is_trace_enabled_for `ext then
+                      trace!"[ext] trying to apply ext lemma: {n}" >>
+                      timetac "[ext] application attempt time" (applyc n cfg)
+                    else applyc n cfg) *> pure n)),
                   pure (["apply " ++ rule.to_string]) } <|>
                (fail format!"no applicable extensionality rule found for {subject}"),
          pure new_trace_msg },
@@ -470,7 +460,7 @@ named automatically, as per `intro`. Placing a `?` after `ext1`
 applications that can replace the call to `ext1`.
 -/
 meta def interactive.ext1 (trace : parse (tk "?")?)
-  (xs : parse (rcases_patt_parse tt)*) : tactic unit :=
+  (xs : parse rcases_patt_parse_hi*) : tactic unit :=
 ext1 xs {} trace.is_some $> ()
 
 /--
@@ -481,6 +471,9 @@ ext1 xs {} trace.is_some $> ()
   This will destruct the introduced local constant.
 - Placing a `?` after `ext` (e.g. `ext? i ⟨a,b⟩ : 3`) will display
   a sequence of tactic applications that can replace the call to `ext`.
+- `set_option trace.ext true` will trace every attempted lemma application,
+  along with the time it takes for the application to succeed or fail.
+  This is useful for debugging slow `ext` calls.
 
 When trying to prove:
 
@@ -531,7 +524,7 @@ Try this: apply funext, rintro ⟨a, b⟩
 A maximum depth can be provided with `ext x y z : 3`.
 -/
 meta def interactive.ext :
-  (parse $ (tk "?")?) → parse (rcases_patt_parse tt)* → parse (tk ":" *> small_nat)? → tactic unit
+  (parse $ (tk "?")?) → parse rcases_patt_parse_hi* → parse (tk ":" *> small_nat)? → tactic unit
  | trace [] (some n)  := iterate_range 1 n (ext1 [] {} trace.is_some $> ())
  | trace [] none      := repeat1 (ext1 [] {} trace.is_some $> ())
  | trace xs n         := ext xs n {} trace.is_some $> ()
@@ -550,6 +543,9 @@ meta def interactive.ext :
   This will destruct the introduced local constant.
 - Placing a `?` after `ext`/`ext1` (e.g. `ext? i ⟨a,b⟩ : 3`) will display
   a sequence of tactic applications that can replace the call to `ext`/`ext1`.
+- `set_option trace.ext true` will trace every attempted lemma application,
+  along with the time it takes for the application to succeed or fail.
+  This is useful for debugging slow `ext` calls.
 
 When trying to prove:
 

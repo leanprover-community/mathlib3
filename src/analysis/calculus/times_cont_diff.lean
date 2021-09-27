@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import analysis.calculus.mean_value
 import analysis.normed_space.multilinear
+import analysis.calculus.formal_multilinear_series
 
 /-!
 # Higher differentiability
@@ -446,7 +447,7 @@ lemma times_cont_diff_within_at.congr_of_eventually_eq {n : with_top ℕ}
   (h : times_cont_diff_within_at 𝕜 n f s x) (h₁ : f₁ =ᶠ[𝓝[s] x] f) (hx : f₁ x = f x) :
   times_cont_diff_within_at 𝕜 n f₁ s x :=
 λ m hm, let ⟨u, hu, p, H⟩ := h m hm in
-⟨{x ∈ u | f₁ x = f x}, filter.inter_mem_sets hu (mem_nhds_within_insert.2 ⟨hx, h₁⟩), p,
+⟨{x ∈ u | f₁ x = f x}, filter.inter_mem hu (mem_nhds_within_insert.2 ⟨hx, h₁⟩), p,
   (H.mono (sep_subset _ _)).congr (λ _, and.right)⟩
 
 lemma times_cont_diff_within_at.congr_of_eventually_eq' {n : with_top ℕ}
@@ -482,7 +483,7 @@ end
 lemma times_cont_diff_within_at.mono {n : with_top ℕ}
   (h : times_cont_diff_within_at 𝕜 n f s x) {t : set E} (hst : t ⊆ s) :
   times_cont_diff_within_at 𝕜 n f t x :=
-h.mono_of_mem $ filter.mem_sets_of_superset self_mem_nhds_within hst
+h.mono_of_mem $ filter.mem_of_superset self_mem_nhds_within hst
 
 lemma times_cont_diff_within_at.congr_nhds {n : with_top ℕ}
   (h : times_cont_diff_within_at 𝕜 n f s x) {t : set E} (hst : 𝓝[s] x = 𝓝[t] x) :
@@ -541,7 +542,7 @@ begin
     rw times_cont_diff_within_at_nat,
     rcases Hf' n (le_refl _) with ⟨v, hv, p', Hp'⟩,
     refine ⟨v ∩ u, _, λ x, (p' x).unshift (f x), _⟩,
-    { apply filter.inter_mem_sets _ hu,
+    { apply filter.inter_mem _ hu,
       apply nhds_within_le_of_mem hu,
       exact nhds_within_mono _ (subset_insert x u) hv },
     { rw has_ftaylor_series_up_to_on_succ_iff_right,
@@ -591,12 +592,23 @@ lemma times_cont_diff_within_at.times_cont_diff_on {n : with_top ℕ} {m : ℕ}
   ∃ u ∈ 𝓝[insert x s] x, u ⊆ insert x s ∧ times_cont_diff_on 𝕜 m f u :=
 begin
   rcases h m hm with ⟨u, u_nhd, p, hp⟩,
-  refine ⟨u ∩ insert x s, filter.inter_mem_sets u_nhd self_mem_nhds_within,
+  refine ⟨u ∩ insert x s, filter.inter_mem u_nhd self_mem_nhds_within,
     inter_subset_right _ _, _⟩,
   assume y hy m' hm',
   refine ⟨u ∩ insert x s, _, p, (hp.mono (inter_subset_left _ _)).of_le hm'⟩,
   convert self_mem_nhds_within,
   exact insert_eq_of_mem hy
+end
+
+protected lemma times_cont_diff_within_at.eventually {n : ℕ}
+  (h : times_cont_diff_within_at 𝕜 n f s x) :
+  ∀ᶠ y in 𝓝[insert x s] x, times_cont_diff_within_at 𝕜 n f s y :=
+begin
+  rcases h.times_cont_diff_on le_rfl with ⟨u, hu, hu_sub, hd⟩,
+  have : ∀ᶠ (y : E) in 𝓝[insert x s] x, u ∈ 𝓝[insert x s] y ∧ y ∈ u,
+    from (eventually_nhds_within_nhds_within.2 hu).and hu,
+  refine this.mono (λ y hy, (hd y hy.2).mono_of_mem _),
+  exact nhds_within_mono y (subset_insert _ _) hy.1
 end
 
 lemma times_cont_diff_on.of_le {m n : with_top ℕ}
@@ -1251,6 +1263,10 @@ begin
     exact (h_fderiv x hxu).has_fderiv_within_at }
 end
 
+protected theorem times_cont_diff_at.eventually {n : ℕ} (h : times_cont_diff_at 𝕜 n f x) :
+  ∀ᶠ y in 𝓝 x, times_cont_diff_at 𝕜 n f y :=
+by simpa [nhds_within_univ] using h.eventually
+
 /-! ### Smooth functions -/
 
 variable (𝕜)
@@ -1825,7 +1841,7 @@ begin
   assume m hm,
   rcases hf m hm with ⟨u, hu, p, hp⟩,
   rcases hg m hm with ⟨v, hv, q, hq⟩,
-  exact ⟨u ∩ v, filter.inter_mem_sets hu hv, _,
+  exact ⟨u ∩ v, filter.inter_mem hu hv, _,
         (hp.mono (inter_subset_left u v)).prod (hq.mono (inter_subset_right u v))⟩
 end
 
@@ -1900,7 +1916,7 @@ begin
   set pr := @continuous_linear_map.proj 𝕜 _ ι F' _ _ _,
   refine ⟨λ h i, h.continuous_linear_map_comp (pr i), λ h m hm, _⟩,
   choose u hux p hp using λ i, h i m hm,
-  exact ⟨⋂ i, u i, filter.Inter_mem_sets.2 hux, _,
+  exact ⟨⋂ i, u i, filter.Inter_mem.2 hux, _,
     has_ftaylor_series_up_to_on_pi.2 (λ i, (hp i).mono $ Inter_subset _ _)⟩,
 end
 
@@ -1974,8 +1990,8 @@ begin
     have ws : w ⊆ s := λ y hy, hy.1,
     refine ⟨w, _, λ y, (g' (f y)).comp (f' y), _, _⟩,
     show w ∈ 𝓝[s] x,
-    { apply filter.inter_mem_sets self_mem_nhds_within,
-      apply filter.inter_mem_sets hu,
+    { apply filter.inter_mem self_mem_nhds_within,
+      apply filter.inter_mem hu,
       apply continuous_within_at.preimage_mem_nhds_within',
       { rw ← continuous_within_at_inter' hu,
         exact (hf' x xu).differentiable_within_at.continuous_within_at.mono
@@ -2089,7 +2105,7 @@ begin
       rintros y ⟨hy1, hy2⟩,
       simp [hy1, hy2, vs hy2] },
     rw [A, ← nhds_within_restrict''],
-    exact filter.inter_mem_sets this v_nhd },
+    exact filter.inter_mem this v_nhd },
   rwa [insert_eq_of_mem xmem, this] at Z,
 end
 
@@ -2605,7 +2621,7 @@ begin
       { have hf₀' := f₀'.nhds,
         rw ← eq_f₀' at hf₀',
         exact hf'.continuous_at.preimage_mem_nhds hf₀' },
-      obtain ⟨t, htu, ht, htf⟩ := mem_nhds_iff.mp (filter.inter_mem_sets hu h_nhds),
+      obtain ⟨t, htu, ht, htf⟩ := mem_nhds_iff.mp (filter.inter_mem hu h_nhds),
       use f.target ∩ (f.symm) ⁻¹' t,
       refine ⟨is_open.mem_nhds _ _, _⟩,
       { exact f.preimage_open_of_open_symm ht },
@@ -2719,7 +2735,7 @@ and `∥p x 1∥₊ < K`, then `f` is `K`-Lipschitz in a neighborhood of `x` wit
 lemma has_ftaylor_series_up_to_on.exists_lipschitz_on_with_of_nnnorm_lt {E F : Type*}
   [normed_group E] [normed_space ℝ E] [normed_group F] [normed_space ℝ F] {f : E → F}
   {p : E → formal_multilinear_series ℝ E F} {s : set E} {x : E}
-  (hf : has_ftaylor_series_up_to_on 1 f p (insert x s)) (hs : convex s) (K : ℝ≥0)
+  (hf : has_ftaylor_series_up_to_on 1 f p (insert x s)) (hs : convex ℝ s) (K : ℝ≥0)
   (hK : ∥p x 1∥₊ < K) :
   ∃ t ∈ 𝓝[s] x, lipschitz_on_with K f t :=
 begin
@@ -2739,7 +2755,7 @@ then `f` is Lipschitz in a neighborhood of `x` within `s`. -/
 lemma has_ftaylor_series_up_to_on.exists_lipschitz_on_with {E F : Type*}
   [normed_group E] [normed_space ℝ E] [normed_group F] [normed_space ℝ F] {f : E → F}
   {p : E → formal_multilinear_series ℝ E F} {s : set E} {x : E}
-  (hf : has_ftaylor_series_up_to_on 1 f p (insert x s)) (hs : convex s) :
+  (hf : has_ftaylor_series_up_to_on 1 f p (insert x s)) (hs : convex ℝ s) :
   ∃ K (t ∈ 𝓝[s] x), lipschitz_on_with K f t :=
 (no_top _).imp $ hf.exists_lipschitz_on_with_of_nnnorm_lt hs
 
@@ -2747,7 +2763,7 @@ lemma has_ftaylor_series_up_to_on.exists_lipschitz_on_with {E F : Type*}
 within `s`. -/
 lemma times_cont_diff_within_at.exists_lipschitz_on_with {E F : Type*} [normed_group E]
   [normed_space ℝ E] [normed_group F] [normed_space ℝ F] {f : E → F} {s : set E}
-  {x : E} (hf : times_cont_diff_within_at ℝ 1 f s x) (hs : convex s) :
+  {x : E} (hf : times_cont_diff_within_at ℝ 1 f s x) (hs : convex ℝ s) :
   ∃ (K : ℝ≥0) (t ∈ 𝓝[s] x), lipschitz_on_with K f t :=
 begin
   rcases hf 1 le_rfl with ⟨t, hst, p, hp⟩,

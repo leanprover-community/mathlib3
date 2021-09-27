@@ -3,14 +3,14 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
+import algebra.algebra.restrict_scalars
 import algebra.algebra.subalgebra
 import order.liminf_limsup
 import topology.algebra.group_completion
-import topology.instances.nnreal
+import topology.instances.ennreal
+import topology.metric_space.algebra
 import topology.metric_space.completion
 import topology.sequences
-import topology.locally_constant.algebra
-import topology.continuous_function.algebra
 
 /-!
 # Normed spaces
@@ -23,7 +23,7 @@ variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
 noncomputable theory
 open filter metric
-open_locale topological_space big_operators nnreal ennreal uniformity
+open_locale topological_space big_operators nnreal ennreal uniformity pointwise
 
 /-- Auxiliary class, endowing a type `α` with a function `norm : α → ℝ`. This class is designed to
 be extended in more interesting classes specifying the properties of the norm. -/
@@ -187,6 +187,18 @@ lemma norm_sum_le_of_le {β} (s : finset β) {f : β → α} {n : β → ℝ} (h
   ∥∑ b in s, f b∥ ≤ ∑ b in s, n b :=
 le_trans (norm_sum_le s f) (finset.sum_le_sum h)
 
+lemma dist_sum_sum_le_of_le {β} (s : finset β) {f g : β → α} {d : β → ℝ}
+  (h : ∀ b ∈ s, dist (f b) (g b) ≤ d b) :
+  dist (∑ b in s, f b) (∑ b in s, g b) ≤ ∑ b in s, d b :=
+begin
+  simp only [dist_eq_norm, ← finset.sum_sub_distrib] at *,
+  exact norm_sum_le_of_le s h
+end
+
+lemma dist_sum_sum_le {β} (s : finset β) (f g : β → α) :
+  dist (∑ b in s, f b) (∑ b in s, g b) ≤ ∑ b in s, dist (f b) (g b) :=
+dist_sum_sum_le_of_le s (λ _ _, le_rfl)
+
 lemma norm_sub_le (g h : α) : ∥g - h∥ ≤ ∥g∥ + ∥h∥ :=
 by simpa [dist_eq_norm] using dist_triangle g 0 h
 
@@ -213,7 +225,7 @@ calc ∥v∥ = ∥u - (u - v)∥ : by abel
 lemma norm_le_insert' (u v : α) : ∥u∥ ≤ ∥v∥ + ∥u - v∥ :=
 by { rw norm_sub_rev, exact norm_le_insert v u }
 
-lemma ball_0_eq (ε : ℝ) : ball (0:α) ε = {x | ∥x∥ < ε} :=
+lemma ball_zero_eq (ε : ℝ) : ball (0:α) ε = {x | ∥x∥ < ε} :=
 set.ext $ assume a, by simp
 
 lemma mem_ball_iff_norm {g h : α} {r : ℝ} :
@@ -228,7 +240,7 @@ lemma mem_ball_iff_norm' {g h : α} {r : ℝ} :
   h ∈ ball g r ↔ ∥g - h∥ < r :=
 by rw [mem_ball', dist_eq_norm]
 
-@[simp] lemma mem_ball_0_iff {ε : ℝ} {x : α} : x ∈ ball (0 : α) ε ↔ ∥x∥ < ε :=
+@[simp] lemma mem_ball_zero_iff {ε : ℝ} {x : α} : x ∈ ball (0 : α) ε ↔ ∥x∥ < ε :=
 by rw [mem_ball, dist_zero_right]
 
 lemma mem_closed_ball_iff_norm {g h : α} {r : ℝ} :
@@ -271,6 +283,21 @@ begin
   exact exists_congr (λ r, by simp [(⊆), set.subset]),
 end
 
+lemma preimage_add_ball (x y : α) (r : ℝ) : ((+) y) ⁻¹' (ball x r) = ball (x - y) r :=
+begin
+  ext z,
+  simp only [dist_eq_norm, set.mem_preimage, mem_ball],
+  abel
+end
+
+lemma preimage_add_closed_ball (x y : α) (r : ℝ) :
+  ((+) y) ⁻¹' (closed_ball x r) = closed_ball (x - y) r :=
+begin
+  ext z,
+  simp only [dist_eq_norm, set.mem_preimage, mem_closed_ball],
+  abel
+end
+
 @[simp] lemma mem_sphere_iff_norm (v w : α) (r : ℝ) : w ∈ sphere v r ↔ ∥w - v∥ = r :=
 by simp [dist_eq_norm]
 
@@ -279,6 +306,14 @@ by simp [dist_eq_norm]
 
 @[simp] lemma norm_eq_of_mem_sphere {r : ℝ} (x : sphere (0:α) r) : ∥(x:α)∥ = r :=
 mem_sphere_zero_iff_norm.mp x.2
+
+lemma preimage_add_sphere (x y : α) (r : ℝ) :
+  ((+) y) ⁻¹' (sphere x r) = sphere (x - y) r :=
+begin
+  ext z,
+  simp only [set.mem_preimage, mem_sphere_iff_norm],
+  abel
+end
 
 lemma ne_zero_of_norm_pos {g : α} : 0 < ∥ g ∥ → g ≠ 0 :=
 begin
@@ -533,7 +568,7 @@ by rw [edist_dist, dist_eq_norm, of_real_norm_eq_coe_nnnorm]
 lemma edist_eq_coe_nnnorm (x : β) : edist x 0 = (∥x∥₊ : ℝ≥0∞) :=
 by rw [edist_eq_coe_nnnorm_sub, _root_.sub_zero]
 
-lemma mem_emetric_ball_0_iff {x : β} {r : ℝ≥0∞} : x ∈ emetric.ball (0 : β) r ↔ ↑∥x∥₊ < r :=
+lemma mem_emetric_ball_zero_iff {x : β} {r : ℝ≥0∞} : x ∈ emetric.ball (0 : β) r ↔ ↑∥x∥₊ < r :=
 by rw [emetric.mem_ball, edist_eq_coe_nnnorm]
 
 lemma nndist_add_add_le (g₁ g₂ h₁ h₂ : α) :
@@ -580,8 +615,8 @@ lemma antilipschitz_with.add_lipschitz_with {α : Type*} [pseudo_metric_space α
 begin
   refine antilipschitz_with.of_le_mul_dist (λ x y, _),
   rw [nnreal.coe_inv, ← div_eq_inv_mul],
-  rw le_div_iff (nnreal.coe_pos.2 $ nnreal.sub_pos.2 hK),
-  rw [mul_comm, nnreal.coe_sub (le_of_lt hK), sub_mul],
+  rw le_div_iff (nnreal.coe_pos.2 $ sub_pos_iff_lt.2 hK),
+  rw [mul_comm, nnreal.coe_sub hK.le, sub_mul],
   calc ↑Kf⁻¹ * dist x y - Kg * dist x y ≤ dist (f x) (f y) - dist (g x) (g y) :
     sub_le_sub (hf.mul_le_dist x y) (hg.dist_le_mul x y)
   ... ≤ _ : le_trans (le_abs_self _) (abs_dist_sub_le_dist_add_add _ _ _ _)
@@ -800,15 +835,16 @@ begin
   exact not_le_of_lt zero_lt_one (add_le_iff_nonpos_left.1 hy)
 end
 
+@[priority 100] -- see Note [lower instance priority]
+instance semi_normed_group.has_lipschitz_add : has_lipschitz_add α :=
+{ lipschitz_add := ⟨2, lipschitz_with.prod_fst.add lipschitz_with.prod_snd⟩ }
+
 /-- A seminormed group is a uniform additive group, i.e., addition and subtraction are uniformly
 continuous. -/
 @[priority 100] -- see Note [lower instance priority]
 instance normed_uniform_group : uniform_add_group α :=
 ⟨(lipschitz_with.prod_fst.sub lipschitz_with.prod_snd).uniform_continuous⟩
 
-@[priority 100] -- see Note [lower instance priority]
-instance normed_top_monoid : has_continuous_add α :=
-by apply_instance -- short-circuit type class inference
 @[priority 100] -- see Note [lower instance priority]
 instance normed_top_group : topological_add_group α :=
 by apply_instance -- short-circuit type class inference
@@ -1180,10 +1216,7 @@ instance semi_normed_ring_top_monoid [semi_normed_ring α] : has_continuous_mul 
 
 /-- A seminormed ring is a topological ring. -/
 @[priority 100] -- see Note [lower instance priority]
-instance semi_normed_top_ring [semi_normed_ring α] : topological_ring α :=
-⟨ continuous_iff_continuous_at.2 $ λ x, tendsto_iff_norm_tendsto_zero.2 $
-    have ∀ e : α, -e - -x = -(e - x), by intro; simp,
-    by simp only [this, norm_neg]; apply tendsto_norm_sub_self ⟩
+instance semi_normed_top_ring [semi_normed_ring α] : topological_ring α := { }
 
 /-- A normed field is a field with a norm satisfying ∥x y∥ = ∥x∥ ∥y∥. -/
 class normed_field (α : Type*) extends has_norm α, field α, metric_space α :=
@@ -1349,6 +1382,22 @@ nnreal.eq $ norm_of_nonneg hx
 lemma ennnorm_eq_of_real {x : ℝ} (hx : 0 ≤ x) : (∥x∥₊ : ℝ≥0∞) = ennreal.of_real x :=
 by { rw [← of_real_norm_eq_coe_nnnorm, norm_of_nonneg hx] }
 
+lemma of_real_le_ennnorm (x : ℝ) : ennreal.of_real x ≤ ∥x∥₊ :=
+begin
+  by_cases hx : 0 ≤ x,
+  { rw real.ennnorm_eq_of_real hx, refl' },
+  { rw [ennreal.of_real_eq_zero.2 (le_of_lt (not_le.1 hx))],
+    exact bot_le }
+end
+
+/-- If `E` is a nontrivial topological module over `ℝ`, then `E` has no isolated points.
+This is a particular case of `module.punctured_nhds_ne_bot`. -/
+instance punctured_nhds_module_ne_bot
+  {E : Type*} [add_comm_group E] [topological_space E] [has_continuous_add E] [nontrivial E]
+  [module ℝ E] [has_continuous_smul ℝ E] (x : E) :
+  ne_bot (𝓝[{x}ᶜ] x) :=
+module.punctured_nhds_ne_bot ℝ E x
+
 end real
 
 namespace nnreal
@@ -1485,6 +1534,13 @@ end prio
 
 variables [normed_field α] [semi_normed_group β]
 
+@[priority 100] -- see Note [lower instance priority]
+instance semi_normed_space.has_bounded_smul [semi_normed_space α β] : has_bounded_smul α β :=
+{ dist_smul_pair' := λ x y₁ y₂,
+    by simpa [dist_eq_norm, smul_sub] using semi_normed_space.norm_smul_le x (y₁ - y₂),
+  dist_pair_smul' := λ x₁ x₂ y,
+    by simpa [dist_eq_norm, sub_smul] using semi_normed_space.norm_smul_le (x₁ - x₂) y }
+
 instance normed_field.to_normed_space : normed_space α α :=
 { norm_smul_le := λ a b, le_of_eq (normed_field.norm_mul a b) }
 
@@ -1518,23 +1574,6 @@ lemma norm_smul_of_nonneg [semi_normed_space ℝ β] {t : ℝ} (ht : 0 ≤ t) (x
 
 variables {E : Type*} [semi_normed_group E] [semi_normed_space α E]
 variables {F : Type*} [semi_normed_group F] [semi_normed_space α F]
-
-@[priority 100] -- see Note [lower instance priority]
-instance semi_normed_space.has_continuous_smul : has_continuous_smul α E :=
-begin
-  refine { continuous_smul := continuous_iff_continuous_at.2 $
-    λ p, tendsto_iff_norm_tendsto_zero.2 _ },
-  refine squeeze_zero (λ _, norm_nonneg _) _ _,
-  { exact λ q, ∥q.1 - p.1∥ * ∥q.2∥ + ∥p.1∥ * ∥q.2 - p.2∥ },
-  { intro q,
-    rw [← sub_add_sub_cancel, ← norm_smul, ← norm_smul, smul_sub, sub_smul],
-    exact norm_add_le _ _ },
-  { conv { congr, skip, skip, congr, rw [← zero_add (0:ℝ)], congr,
-      rw [← zero_mul ∥p.2∥], skip, rw [← mul_zero ∥p.1∥] },
-    exact ((tendsto_iff_norm_tendsto_zero.1 (continuous_fst.tendsto p)).mul
-      (continuous_snd.tendsto p).norm).add
-        (tendsto_const_nhds.mul (tendsto_iff_norm_tendsto_zero.1 (continuous_snd.tendsto p))) }
-end
 
 theorem eventually_nhds_norm_smul_sub_lt (c : α) (x : E) {ε : ℝ} (h : 0 < ε) :
   ∀ᶠ y in 𝓝 x, ∥c • (y - x)∥ < ε :=
@@ -1589,6 +1628,33 @@ theorem frontier_closed_ball [semi_normed_space ℝ E] (x : E) {r : ℝ} (hr : 0
 by rw [frontier, closure_closed_ball, interior_closed_ball x hr,
   closed_ball_diff_ball]
 
+theorem smul_ball {c : α} (hc : c ≠ 0) (x : E) (r : ℝ) :
+  c • ball x r = ball (c • x) (∥c∥ * r) :=
+begin
+  ext y,
+  rw mem_smul_set_iff_inv_smul_mem' hc,
+  conv_lhs { rw ←inv_smul_smul' hc x },
+  simp [← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hc), mul_comm _ r, dist_smul],
+end
+
+theorem smul_closed_ball' {c : α} (hc : c ≠ 0) (x : E) (r : ℝ) :
+  c • closed_ball x r = closed_ball (c • x) (∥c∥ * r) :=
+begin
+  ext y,
+  rw mem_smul_set_iff_inv_smul_mem' hc,
+  conv_lhs { rw ←inv_smul_smul' hc x },
+  simp [dist_smul, ← div_eq_inv_mul, div_le_iff (norm_pos_iff.2 hc), mul_comm _ r],
+end
+
+theorem smul_closed_ball {E : Type*} [normed_group E] [normed_space α E]
+  (c : α) (x : E) {r : ℝ} (hr : 0 ≤ r) :
+  c • closed_ball x r = closed_ball (c • x) (∥c∥ * r) :=
+begin
+  rcases eq_or_ne c 0 with rfl|hc,
+  { simp [hr, zero_smul_set, set.singleton_zero, ← nonempty_closed_ball] },
+  { exact smul_closed_ball' hc x r }
+end
+
 variables (α)
 
 lemma ne_neg_of_mem_sphere [char_zero α] {r : ℝ} (hr : 0 < r) (x : sphere (0:E) r) : x ≠ - x :=
@@ -1622,7 +1688,7 @@ instance submodule.semi_normed_space {𝕜 R : Type*} [has_scalar 𝕜 R] [norme
   semi_normed_space 𝕜 s :=
 { norm_smul_le := λc x, le_of_eq $ norm_smul c (x : E) }
 
-/-- If there is a scalar `c` with `∥c∥>1`, then any element of with norm different from `0` can be
+/-- If there is a scalar `c` with `∥c∥>1`, then any element with nonzero norm can be
 moved by scalar multiplication to any shell of width `∥c∥`. Also recap information on the norm of
 the rescaling element that shows up in applications. -/
 lemma rescale_to_shell_semi_normed {c : α} (hc : 1 < ∥c∥) {ε : ℝ} (εpos : 0 < ε) {x : E}
@@ -1663,21 +1729,8 @@ theorem interior_closed_ball' [normed_space ℝ E] [nontrivial E] (x : E) (r : �
   interior (closed_ball x r) = ball x r :=
 begin
   rcases lt_trichotomy r 0 with hr|rfl|hr,
-  { simp [closed_ball_eq_empty_iff_neg.2 hr, ball_eq_empty_iff_nonpos.2 (le_of_lt hr)] },
-  { suffices : x ∉ interior {x},
-    { rw [ball_zero, closed_ball_zero, ← set.subset_empty_iff],
-      intros y hy,
-      obtain rfl : y = x := set.mem_singleton_iff.1 (interior_subset hy),
-      exact this hy },
-    rw [← set.mem_compl_iff, ← closure_compl],
-    rcases exists_ne (0 : E) with ⟨z, hz⟩,
-    suffices : (λ c : ℝ, x + c • z) 0 ∈ closure ({x}ᶜ : set E),
-      by simpa only [zero_smul, add_zero] using this,
-    have : (0:ℝ) ∈ closure (set.Ioi (0:ℝ)), by simp [closure_Ioi],
-    refine (continuous_const.add (continuous_id.smul
-      continuous_const)).continuous_within_at.mem_closure this _,
-    intros c hc,
-    simp [smul_eq_zero, hz, ne_of_gt hc] },
+  { simp [closed_ball_eq_empty.2 hr, ball_eq_empty.2 hr.le] },
+  { rw [closed_ball_zero, ball_zero, interior_singleton] },
   { exact interior_closed_ball x hr }
 end
 
@@ -1755,6 +1808,25 @@ instance semi_normed_algebra.to_semi_normed_space [h : semi_normed_algebra 𝕜 
     ... = ∥s∥ * ∥x∥ : by rw norm_algebra_map_eq,
   ..h }
 
+/-- While this may appear identical to `semi_normed_algebra.to_semi_normed_space`, it contains an
+implicit argument involving `normed_ring.to_semi_normed_ring` that typeclass inference has trouble
+inferring.
+
+Specifically, the following instance cannot be found without this
+`semi_normed_algebra.to_semi_normed_space'`:
+```lean
+example
+  (𝕜 ι : Type*) (E : ι → Type*)
+  [normed_field 𝕜] [Π i, normed_ring (E i)] [Π i, normed_algebra 𝕜 (E i)] :
+  Π i, module 𝕜 (E i) := by apply_instance
+```
+
+See `semi_normed_space.to_module'` for a similar situation. -/
+@[priority 100]
+instance semi_normed_algebra.to_semi_normed_space' (𝕜 : Type*) [normed_field 𝕜] (𝕜' : Type*)
+  [normed_ring 𝕜'] [semi_normed_algebra 𝕜 𝕜'] :
+  semi_normed_space 𝕜 𝕜' := by apply_instance
+
 @[priority 100]
 instance normed_algebra.to_normed_space (𝕜 : Type*) [normed_field 𝕜] (𝕜' : Type*)
   [normed_ring 𝕜'] [h : normed_algebra 𝕜 𝕜'] : normed_space 𝕜 𝕜' :=
@@ -1812,7 +1884,7 @@ Please consider using `is_scalar_tower` instead.
 `𝕜`-normed space structure induced by a `𝕜'`-normed space structure when `𝕜'` is a
 normed algebra over `𝕜`. Not registered as an instance as `𝕜'` can not be inferred.
 
-The type synonym `module.restrict_scalars 𝕜 𝕜' E` will be endowed with this instance by default.
+The type synonym `restrict_scalars 𝕜 𝕜' E` will be endowed with this instance by default.
 -/
 def normed_space.restrict_scalars : normed_space 𝕜 E :=
 { norm_smul_le := λc x, le_of_eq $ begin
@@ -1853,7 +1925,7 @@ lemma cauchy_seq_finset_iff_vanishing_norm {f : ι → α} :
     ∀ε > (0 : ℝ), ∃s:finset ι, ∀t, disjoint t s → ∥ ∑ i in t, f i ∥ < ε :=
 begin
   rw [cauchy_seq_finset_iff_vanishing, nhds_basis_ball.forall_iff],
-  { simp only [ball_0_eq, set.mem_set_of_eq] },
+  { simp only [ball_zero_eq, set.mem_set_of_eq] },
   { rintros s t hst ⟨s', hs'⟩,
     exact ⟨s', λ t' ht', hst $ hs' _ ht'⟩ }
 end
@@ -1966,6 +2038,127 @@ summable_of_nnnorm_bounded _ hf (assume i, le_refl _)
 
 end summable
 
+section cauchy_product
+
+/-! ## Multiplying two infinite sums in a normed ring
+
+In this section, we prove various results about `(∑' x : ι, f x) * (∑' y : ι', g y)` in a normed
+ring. There are similar results proven in `topology/algebra/infinite_sum` (e.g `tsum_mul_tsum`),
+but in a normed ring we get summability results which aren't true in general.
+
+We first establish results about arbitrary index types, `β` and `γ`, and then we specialize to
+`β = γ = ℕ` to prove the Cauchy product formula
+(see `tsum_mul_tsum_eq_tsum_sum_antidiagonal_of_summable_norm`).
+
+### Arbitrary index types
+-/
+
+variables {ι' : Type*} [normed_ring α]
+
+open finset
+open_locale classical
+
+lemma summable.mul_of_nonneg {f : ι → ℝ} {g : ι' → ℝ}
+  (hf : summable f) (hg : summable g) (hf' : 0 ≤ f) (hg' : 0 ≤ g) :
+  summable (λ (x : ι × ι'), f x.1 * g x.2) :=
+let ⟨s, hf⟩ := hf in
+let ⟨t, hg⟩ := hg in
+suffices this : ∀ u : finset (ι × ι'), ∑ x in u, f x.1 * g x.2 ≤ s*t,
+  from summable_of_sum_le (λ x, mul_nonneg (hf' _) (hg' _)) this,
+assume u,
+calc  ∑ x in u, f x.1 * g x.2
+    ≤ ∑ x in (u.image prod.fst).product (u.image prod.snd), f x.1 * g x.2 :
+      sum_mono_set_of_nonneg (λ x, mul_nonneg (hf' _) (hg' _)) subset_product
+... = ∑ x in u.image prod.fst, ∑ y in u.image prod.snd, f x * g y : sum_product
+... = ∑ x in u.image prod.fst, f x * ∑ y in u.image prod.snd, g y :
+      sum_congr rfl (λ x _, mul_sum.symm)
+... ≤ ∑ x in u.image prod.fst, f x * t :
+      sum_le_sum
+        (λ x _, mul_le_mul_of_nonneg_left (sum_le_has_sum _ (λ _ _, hg' _) hg) (hf' _))
+... = (∑ x in u.image prod.fst, f x) * t : sum_mul.symm
+... ≤ s * t :
+      mul_le_mul_of_nonneg_right (sum_le_has_sum _ (λ _ _, hf' _) hf) (hg.nonneg $ λ _, hg' _)
+
+lemma summable.mul_norm {f : ι → α} {g : ι' → α}
+  (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
+  summable (λ (x : ι × ι'), ∥f x.1 * g x.2∥) :=
+summable_of_nonneg_of_le (λ x, norm_nonneg (f x.1 * g x.2)) (λ x, norm_mul_le (f x.1) (g x.2))
+  (hf.mul_of_nonneg hg (λ x, norm_nonneg $ f x) (λ x, norm_nonneg $ g x) : _)
+
+lemma summable_mul_of_summable_norm [complete_space α] {f : ι → α} {g : ι' → α}
+  (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
+  summable (λ (x : ι × ι'), f x.1 * g x.2) :=
+summable_of_summable_norm (hf.mul_norm hg)
+
+/-- Product of two infinites sums indexed by arbitrary types.
+    See also `tsum_mul_tsum` if `f` and `g` are *not* absolutely summable. -/
+lemma tsum_mul_tsum_of_summable_norm [complete_space α] {f : ι → α} {g : ι' → α}
+  (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
+  (∑' x, f x) * (∑' y, g y) = (∑' z : ι × ι', f z.1 * g z.2) :=
+tsum_mul_tsum (summable_of_summable_norm hf) (summable_of_summable_norm hg)
+  (summable_mul_of_summable_norm hf hg)
+
+/-! ### `ℕ`-indexed families (Cauchy product)
+
+We prove two versions of the Cauchy product formula. The first one is
+`tsum_mul_tsum_eq_tsum_sum_range_of_summable_norm`, where the `n`-th term is a sum over
+`finset.range (n+1)` involving `nat` substraction.
+In order to avoid `nat` substraction, we also provide
+`tsum_mul_tsum_eq_tsum_sum_antidiagonal_of_summable_norm`,
+where the `n`-th term is a sum over all pairs `(k, l)` such that `k+l=n`, which corresponds to the
+`finset` `finset.nat.antidiagonal n`. -/
+
+section nat
+
+open finset.nat
+
+lemma summable_norm_sum_mul_antidiagonal_of_summable_norm {f g : ℕ → α}
+  (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
+  summable (λ n, ∥∑ kl in antidiagonal n, f kl.1 * g kl.2∥) :=
+begin
+  have := summable_sum_mul_antidiagonal_of_summable_mul
+    (summable.mul_of_nonneg hf hg (λ _, norm_nonneg _) (λ _, norm_nonneg _)),
+  refine summable_of_nonneg_of_le (λ _, norm_nonneg _) _ this,
+  intros n,
+  calc  ∥∑ kl in antidiagonal n, f kl.1 * g kl.2∥
+      ≤ ∑ kl in antidiagonal n, ∥f kl.1 * g kl.2∥ : norm_sum_le _ _
+  ... ≤ ∑ kl in antidiagonal n, ∥f kl.1∥ * ∥g kl.2∥ : sum_le_sum (λ i _, norm_mul_le _ _)
+end
+
+/-- The Cauchy product formula for the product of two infinite sums indexed by `ℕ`,
+    expressed by summing on `finset.nat.antidiagonal`.
+    See also `tsum_mul_tsum_eq_tsum_sum_antidiagonal` if `f` and `g` are
+    *not* absolutely summable. -/
+lemma tsum_mul_tsum_eq_tsum_sum_antidiagonal_of_summable_norm [complete_space α] {f g : ℕ → α}
+  (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
+  (∑' n, f n) * (∑' n, g n) = ∑' n, ∑ kl in antidiagonal n, f kl.1 * g kl.2 :=
+tsum_mul_tsum_eq_tsum_sum_antidiagonal (summable_of_summable_norm hf) (summable_of_summable_norm hg)
+  (summable_mul_of_summable_norm hf hg)
+
+lemma summable_norm_sum_mul_range_of_summable_norm {f g : ℕ → α}
+  (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
+  summable (λ n, ∥∑ k in range (n+1), f k * g (n - k)∥) :=
+begin
+  simp_rw ← sum_antidiagonal_eq_sum_range_succ (λ k l, f k * g l),
+  exact summable_norm_sum_mul_antidiagonal_of_summable_norm hf hg
+end
+
+/-- The Cauchy product formula for the product of two infinite sums indexed by `ℕ`,
+    expressed by summing on `finset.range`.
+    See also `tsum_mul_tsum_eq_tsum_sum_range` if `f` and `g` are
+    *not* absolutely summable. -/
+lemma tsum_mul_tsum_eq_tsum_sum_range_of_summable_norm [complete_space α] {f g : ℕ → α}
+  (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
+  (∑' n, f n) * (∑' n, g n) = ∑' n, ∑ k in range (n+1), f k * g (n - k) :=
+begin
+  simp_rw ← sum_antidiagonal_eq_sum_range_succ (λ k l, f k * g l),
+  exact tsum_mul_tsum_eq_tsum_sum_antidiagonal_of_summable_norm hf hg
+end
+
+end nat
+
+end cauchy_product
+
 namespace uniform_space
 namespace completion
 
@@ -1994,38 +2187,3 @@ instance [semi_normed_group V] : normed_group (completion V) :=
 
 end completion
 end uniform_space
-
-namespace locally_constant
-
-variables {X Y : Type*} [topological_space X] [topological_space Y] (f : locally_constant X Y)
-
-/-- The inclusion of locally-constant functions into continuous functions as a multiplicative
-monoid hom. -/
-@[to_additive "The inclusion of locally-constant functions into continuous functions as an
-additive monoid hom.", simps]
-def to_continuous_map_monoid_hom [monoid Y] [has_continuous_mul Y] :
-  locally_constant X Y →* C(X, Y) :=
-{ to_fun    := coe,
-  map_one' := by { ext, simp, },
-  map_mul'  := λ x y, by { ext, simp, }, }
-
-/-- The inclusion of locally-constant functions into continuous functions as a linear map. -/
-@[simps] def to_continuous_map_linear_map (R : Type*) [semiring R] [topological_space R]
-  [add_comm_monoid Y] [module R Y] [has_continuous_add Y] [has_continuous_smul R Y] :
-  locally_constant X Y →ₗ[R] C(X, Y) :=
-{ to_fun    := coe,
-  map_add'  := λ x y, by { ext, simp, },
-  map_smul' := λ x y, by { ext, simp, }, }
-
-/-- The inclusion of locally-constant functions into continuous functions as an algebra map. -/
-@[simps] def to_continuous_map_alg_hom (R : Type*) [comm_semiring R] [topological_space R]
-  [semiring Y] [algebra R Y] [topological_semiring Y] [has_continuous_smul R Y] :
-  locally_constant X Y →ₐ[R] C(X, Y) :=
-{ to_fun    := coe,
-  map_one'  := by { ext, simp, },
-  map_mul'  := λ x y, by { ext, simp, },
-  map_zero' := by { ext, simp, },
-  map_add'  := λ x y, by { ext, simp, },
-  commutes' := λ r, by { ext x, simp [algebra.smul_def], }, }
-
-end locally_constant

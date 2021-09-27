@@ -53,16 +53,16 @@ begin
   rw [add_monoid_hom.comp_assoc, finsupp.to_free_abelian_group_comp_single_add_hom],
   simp only [to_finsupp, add_monoid_hom.coe_comp, finsupp.single_add_hom_apply,
     function.comp_app, one_smul, lift.of, add_monoid_hom.flip_apply,
-    smul_add_hom_one, add_monoid_hom.id_apply],
+    smul_add_hom_apply, add_monoid_hom.id_apply],
 end
 
 @[simp] lemma finsupp.to_free_abelian_group_comp_to_finsupp :
   to_free_abelian_group.comp to_finsupp = add_monoid_hom.id (free_abelian_group X) :=
 begin
   ext,
-  simp only [to_free_abelian_group, to_finsupp, finsupp.lift_add_hom_apply_single,
-    add_monoid_hom.coe_comp, function.comp_app, one_smul, add_monoid_hom.id_apply, lift.of,
-    add_monoid_hom.flip_apply, smul_add_hom_one],
+  rw [to_free_abelian_group, to_finsupp, add_monoid_hom.comp_apply, lift.of,
+    lift_add_hom_apply_single, add_monoid_hom.flip_apply, smul_add_hom_apply, one_smul,
+    add_monoid_hom.id_apply],
 end
 
 @[simp] lemma finsupp.to_free_abelian_group_to_finsupp {X} (x : free_abelian_group X) :

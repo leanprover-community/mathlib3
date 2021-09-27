@@ -69,12 +69,39 @@ nat.sub_add_cancel (le_of_lt h) ▸
   tendsto_add_one_pow_at_top_at_top_of_pos (nat.sub_pos_of_lt h)
 
 lemma tendsto_norm_zero' {𝕜 : Type*} [normed_group 𝕜] :
-  tendsto (norm : 𝕜 → ℝ) (𝓝[{x | x ≠ 0}] 0) (𝓝[set.Ioi 0] 0) :=
+  tendsto (norm : 𝕜 → ℝ) (𝓝[{0}ᶜ] 0) (𝓝[set.Ioi 0] 0) :=
 tendsto_norm_zero.inf $ tendsto_principal_principal.2 $ λ x hx, norm_pos_iff.2 hx
 
-lemma normed_field.tendsto_norm_inverse_nhds_within_0_at_top {𝕜 : Type*} [normed_field 𝕜] :
-  tendsto (λ x:𝕜, ∥x⁻¹∥) (𝓝[{x | x ≠ 0}] 0) at_top :=
+namespace normed_field
+
+lemma tendsto_norm_inverse_nhds_within_0_at_top {𝕜 : Type*} [normed_field 𝕜] :
+  tendsto (λ x:𝕜, ∥x⁻¹∥) (𝓝[{0}ᶜ] 0) at_top :=
 (tendsto_inv_zero_at_top.comp tendsto_norm_zero').congr $ λ x, (normed_field.norm_inv x).symm
+
+lemma tendsto_norm_fpow_nhds_within_0_at_top {𝕜 : Type*} [normed_field 𝕜] {m : ℤ}
+  (hm : m < 0) :
+  tendsto (λ x : 𝕜, ∥x ^ m∥) (𝓝[{0}ᶜ] 0) at_top :=
+begin
+  rcases neg_surjective m with ⟨m, rfl⟩,
+  rw neg_lt_zero at hm, lift m to ℕ using hm.le, rw int.coe_nat_pos at hm,
+  simp only [normed_field.norm_pow, fpow_neg, gpow_coe_nat, ← inv_pow'],
+  exact (tendsto_pow_at_top hm).comp normed_field.tendsto_norm_inverse_nhds_within_0_at_top
+end
+
+@[simp] lemma continuous_at_fpow {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {m : ℤ} {x : 𝕜} :
+  continuous_at (λ x, x ^ m) x ↔ x ≠ 0 ∨ 0 ≤ m :=
+begin
+  refine ⟨_, continuous_at_fpow _ _⟩,
+  contrapose!, rintro ⟨rfl, hm⟩ hc,
+  exact not_tendsto_at_top_of_tendsto_nhds (hc.tendsto.mono_left nhds_within_le_nhds).norm
+      (tendsto_norm_fpow_nhds_within_0_at_top hm)
+end
+
+@[simp] lemma continuous_at_inv {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {x : 𝕜} :
+  continuous_at has_inv.inv x ↔ x ≠ 0 :=
+by simpa [(@zero_lt_one ℤ _ _).not_le] using @continuous_at_fpow _ _ (-1) x
+
+end normed_field
 
 lemma tendsto_pow_at_top_nhds_0_of_lt_1 {𝕜 : Type*} [linear_ordered_field 𝕜] [archimedean 𝕜]
   [topological_space 𝕜] [order_topology 𝕜] {r : 𝕜} (h₁ : 0 ≤ r) (h₂ : r < 1) :
@@ -373,14 +400,12 @@ begin
   { rcases ennreal.lt_iff_exists_coe.1 hr with ⟨r, rfl, hr'⟩,
     norm_cast at *,
     convert ennreal.tsum_coe_eq (nnreal.has_sum_geometric hr),
-    rw [ennreal.coe_inv $ ne_of_gt $ nnreal.sub_pos.2 hr] },
+    rw [ennreal.coe_inv $ ne_of_gt $ sub_pos_iff_lt.2 hr] },
   { rw [ennreal.sub_eq_zero_of_le hr, ennreal.inv_zero, ennreal.tsum_eq_supr_nat, supr_eq_top],
     refine λ a ha, (ennreal.exists_nat_gt (lt_top_iff_ne_top.1 ha)).imp
       (λ n hn, lt_of_lt_of_le hn _),
-    have : ∀ k:ℕ, 1 ≤ r^k,
-      by simpa using canonically_ordered_comm_semiring.pow_le_pow_of_le_left hr,
-    calc (n:ℝ≥0∞) = (∑ i in range n, 1) : by rw [sum_const, nsmul_one, card_range]
-    ... ≤ ∑ i in range n, r ^ i : sum_le_sum (λ k _, this k) }
+    calc (n:ℝ≥0∞) = ∑ i in range n, 1     : by rw [sum_const, nsmul_one, card_range]
+              ... ≤ ∑ i in range n, r ^ i : sum_le_sum (λ k _, one_le_pow_of_one_le' hr k) }
 end
 
 variables {K : Type*} [normed_field K] {ξ : K}
@@ -431,7 +456,7 @@ lemma summable_norm_pow_mul_geometric_of_norm_lt_1 {R : Type*} [normed_ring R]
   (k : ℕ) {r : R} (hr : ∥r∥ < 1) : summable (λ n : ℕ, ∥(n ^ k * r ^ n : R)∥) :=
 begin
   rcases exists_between hr with ⟨r', hrr', h⟩,
-  exact summable_of_is_O_nat _ (summable_geometric_of_lt_1 ((norm_nonneg _).trans hrr'.le) h)
+  exact summable_of_is_O_nat (summable_geometric_of_lt_1 ((norm_nonneg _).trans hrr'.le) h)
     (is_o_pow_const_mul_const_pow_const_pow_of_norm_lt _ hrr').is_O.norm_left
 end
 
@@ -490,7 +515,7 @@ begin
   refine cauchy_seq_of_edist_le_of_tsum_ne_top _ hu _,
   rw [ennreal.tsum_mul_left, ennreal.tsum_geometric],
   refine ennreal.mul_ne_top hC (ennreal.inv_ne_top.2 _),
-  exact ne_of_gt (ennreal.zero_lt_sub_iff_lt.2 hr)
+  exact (ennreal.sub_pos.2 hr).ne'
 end
 
 omit hr hC
@@ -875,11 +900,33 @@ begin
   { assume n, exact le_refl _ }
 end
 
+lemma set.countable.exists_pos_has_sum_le {ι : Type*} {s : set ι} (hs : s.countable)
+  {ε : ℝ} (hε : 0 < ε) :
+  ∃ ε' : ι → ℝ, (∀ i, 0 < ε' i) ∧ ∃ c, has_sum (λ i : s, ε' i) c ∧ c ≤ ε :=
+begin
+  haveI := hs.to_encodable,
+  rcases pos_sum_of_encodable hε s with ⟨f, hf0, ⟨c, hfc, hcε⟩⟩,
+  refine ⟨λ i, if h : i ∈ s then f ⟨i, h⟩ else 1, λ i, _, ⟨c, _, hcε⟩⟩,
+  { split_ifs, exacts [hf0 _, zero_lt_one] },
+  { simpa only [subtype.coe_prop, dif_pos, subtype.coe_eta] }
+end
+
+lemma set.countable.exists_pos_forall_sum_le {ι : Type*} {s : set ι} (hs : s.countable)
+  {ε : ℝ} (hε : 0 < ε) :
+  ∃ ε' : ι → ℝ, (∀ i, 0 < ε' i) ∧ ∀ t : finset ι, ↑t ⊆ s → ∑ i in t, ε' i ≤ ε :=
+begin
+  rcases hs.exists_pos_has_sum_le hε with ⟨ε', hpos, c, hε'c, hcε⟩,
+  refine ⟨ε', hpos, λ t ht, _⟩,
+  rw [← sum_subtype_of_mem _ ht],
+  refine (sum_le_has_sum _ _ hε'c).trans hcε,
+  exact λ _ _, (hpos _).le
+end
+
 namespace nnreal
 
-theorem exists_pos_sum_of_encodable {ε : ℝ≥0} (hε : 0 < ε) (ι) [encodable ι] :
+theorem exists_pos_sum_of_encodable {ε : ℝ≥0} (hε : ε ≠ 0) (ι) [encodable ι] :
   ∃ ε' : ι → ℝ≥0, (∀ i, 0 < ε' i) ∧ ∃c, has_sum ε' c ∧ c < ε :=
-let ⟨a, a0, aε⟩ := exists_between hε in
+let ⟨a, a0, aε⟩ := exists_between (pos_iff_ne_zero.2 hε) in
 let ⟨ε', hε', c, hc, hcε⟩ := pos_sum_of_encodable a0 ι in
 ⟨ λi, ⟨ε' i, le_of_lt $ hε' i⟩, assume i, nnreal.coe_lt_coe.2 $ hε' i,
   ⟨c, has_sum_le (assume i, le_of_lt $ hε' i) has_sum_zero hc ⟩, nnreal.has_sum_coe.1 hc,
@@ -889,19 +936,33 @@ end nnreal
 
 namespace ennreal
 
-theorem exists_pos_sum_of_encodable {ε : ℝ≥0∞} (hε : 0 < ε) (ι) [encodable ι] :
+theorem exists_pos_sum_of_encodable {ε : ℝ≥0∞} (hε : ε ≠ 0) (ι) [encodable ι] :
   ∃ ε' : ι → ℝ≥0, (∀ i, 0 < ε' i) ∧ ∑' i, (ε' i : ℝ≥0∞) < ε :=
 begin
-  rcases exists_between hε with ⟨r, h0r, hrε⟩,
+  rcases exists_between (pos_iff_ne_zero.2 hε) with ⟨r, h0r, hrε⟩,
   rcases lt_iff_exists_coe.1 hrε with ⟨x, rfl, hx⟩,
-  rcases nnreal.exists_pos_sum_of_encodable (coe_lt_coe.1 h0r) ι with ⟨ε', hp, c, hc, hcr⟩,
+  rcases nnreal.exists_pos_sum_of_encodable (coe_pos.1 h0r).ne' ι with ⟨ε', hp, c, hc, hcr⟩,
   exact ⟨ε', hp, (ennreal.tsum_coe_eq hc).symm ▸ lt_trans (coe_lt_coe.2 hcr) hrε⟩
 end
 
-theorem exists_pos_sum_of_encodable' {ε : ℝ≥0∞} (hε : 0 < ε) (ι) [encodable ι] :
+theorem exists_pos_sum_of_encodable' {ε : ℝ≥0∞} (hε : ε ≠ 0) (ι) [encodable ι] :
   ∃ ε' : ι → ℝ≥0∞, (∀ i, 0 < ε' i) ∧ (∑' i, ε' i) < ε :=
 let ⟨δ, δpos, hδ⟩ := exists_pos_sum_of_encodable hε ι in
   ⟨λ i, δ i, λ i, ennreal.coe_pos.2 (δpos i), hδ⟩
+
+theorem exists_pos_tsum_mul_lt_of_encodable {ε : ℝ≥0∞} (hε : ε ≠ 0) {ι} [encodable ι]
+  (w : ι → ℝ≥0∞) (hw : ∀ i, w i ≠ ∞) :
+  ∃ δ : ι → ℝ≥0, (∀ i, 0 < δ i) ∧ ∑' i, (w i * δ i : ℝ≥0∞) < ε :=
+begin
+  lift w to ι → ℝ≥0 using hw,
+  rcases exists_pos_sum_of_encodable hε ι with ⟨δ', Hpos, Hsum⟩,
+  have : ∀ i, 0 < max 1 (w i), from λ i, zero_lt_one.trans_le (le_max_left _ _),
+  refine ⟨λ i, δ' i / max 1 (w i), λ i, nnreal.div_pos (Hpos _) (this i), _⟩,
+  refine lt_of_le_of_lt (ennreal.tsum_le_tsum $ λ i, _) Hsum,
+  rw [coe_div (this i).ne'],
+  refine mul_le_of_le_div' (ennreal.mul_le_mul le_rfl $ ennreal.inv_le_inv.2 _),
+  exact coe_le_coe.2 (le_max_right _ _)
+end
 
 end ennreal
 
@@ -930,3 +991,46 @@ tendsto_of_tendsto_of_tendsto_of_le_of_le'
     { refine mul_nonneg _ (inv_nonneg.mpr _); norm_cast; linarith },
     { refine (div_le_one $ by exact_mod_cast hn).mpr _, norm_cast, linarith }
   end
+
+/-!
+### Ceil and floor
+-/
+
+section
+
+variables {R : Type*} [topological_space R] [linear_ordered_field R] [order_topology R]
+[floor_ring R]
+
+lemma tendsto_nat_floor_mul_div_at_top {a : R} (ha : 0 ≤ a) :
+  tendsto (λ x, (⌊a * x⌋₊ : R) / x) at_top (𝓝 a) :=
+begin
+  have A : tendsto (λ (x : R), a - x⁻¹) at_top (𝓝 (a - 0)) :=
+    tendsto_const_nhds.sub tendsto_inv_at_top_zero,
+  rw sub_zero at A,
+  apply tendsto_of_tendsto_of_tendsto_of_le_of_le' A tendsto_const_nhds,
+  { refine eventually_at_top.2 ⟨1, λ x hx, _⟩,
+    simp only [le_div_iff (zero_lt_one.trans_le hx), sub_mul,
+      inv_mul_cancel (zero_lt_one.trans_le hx).ne'],
+    have := lt_nat_floor_add_one (a * x),
+    linarith },
+  { refine eventually_at_top.2 ⟨1, λ x hx, _⟩,
+    rw div_le_iff (zero_lt_one.trans_le hx),
+    simp [nat_floor_le (mul_nonneg ha (zero_le_one.trans hx))] }
+end
+
+lemma tendsto_nat_ceil_mul_div_at_top {a : R} (ha : 0 ≤ a) :
+  tendsto (λ x, (⌈a * x⌉₊ : R) / x) at_top (𝓝 a) :=
+begin
+  have A : tendsto (λ (x : R), a + x⁻¹) at_top (𝓝 (a + 0)) :=
+    tendsto_const_nhds.add tendsto_inv_at_top_zero,
+  rw add_zero at A,
+  apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds A,
+  { refine eventually_at_top.2 ⟨1, λ x hx, _⟩,
+    rw le_div_iff (zero_lt_one.trans_le hx),
+    exact le_nat_ceil _ },
+  { refine eventually_at_top.2 ⟨1, λ x hx, _⟩,
+    simp [div_le_iff (zero_lt_one.trans_le hx), inv_mul_cancel (zero_lt_one.trans_le hx).ne',
+      (nat_ceil_lt_add_one ((mul_nonneg ha (zero_le_one.trans hx)))).le, add_mul] }
+end
+
+end

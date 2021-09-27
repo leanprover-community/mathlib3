@@ -335,9 +335,9 @@ begin
     exact dvd.intro (gcd_a' a b) (h₁.trans (mul_comm _ _)).symm,
     exact dvd.intro (gcd_b' a b) (h₂.trans (mul_comm _ _)).symm},
   { have h₇ : (gcd a b : ℕ) ∣ (gcd_z a b) * a :=
-      dvd_trans (nat.gcd_dvd_left a b) (dvd_mul_left _ _),
+      (nat.gcd_dvd_left a b).trans (dvd_mul_left _ _),
     have h₈ : (gcd a b : ℕ) ∣ (gcd_x a b) * b :=
-      dvd_trans (nat.gcd_dvd_right a b) (dvd_mul_left _ _),
+      (nat.gcd_dvd_right a b).trans (dvd_mul_left _ _),
     rw[h₅] at h₇, rw dvd_iff,
     exact (nat.dvd_add_iff_right h₈).mpr h₇,}
 end

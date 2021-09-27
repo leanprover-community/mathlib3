@@ -206,7 +206,7 @@ by { cases i, exacts [h₂, h₁] }
 
 @[simp] lemma measurable_set.disjointed {f : ℕ → set α} (h : ∀ i, measurable_set (f i)) (n) :
   measurable_set (disjointed f n) :=
-disjointed_induct (h n) (assume t i ht, measurable_set.diff ht $ h _)
+disjointed_rec (λ t i ht, measurable_set.diff ht $ h _) (h n)
 
 @[simp] lemma measurable_set.const (p : Prop) : measurable_set {a : α | p} :=
 by { by_cases p; simp [h, measurable_set.empty]; apply measurable_set.univ }
@@ -363,12 +363,11 @@ iff.rfl
 
 @[simp] theorem measurable_set_Inf {ms : set (measurable_space α)} {s : set α} :
   @measurable_set _ (Inf ms) s ↔ ∀ m ∈ ms, @measurable_set _ m s :=
-show s ∈ (⋂ m ∈ ms, {t | @measurable_set _ m t }) ↔ _, by simp
+show s ∈ (⋂₀ _) ↔ _, by simp
 
 @[simp] theorem measurable_set_infi {ι} {m : ι → measurable_space α} {s : set α} :
   @measurable_set _ (infi m) s ↔ ∀ i, @measurable_set _ (m i) s :=
-show s ∈ (λ m, {s | @measurable_set _ m s }) (infi m) ↔ _,
-by { rw (@gi_generate_from α).gc.u_infi, simp }
+by rw [infi, measurable_set_Inf, forall_range_iff]
 
 theorem measurable_set_sup {m₁ m₂ : measurable_space α} {s : set α} :
   @measurable_set _ (m₁ ⊔ m₂) s ↔ generate_measurable (m₁.measurable_set' ∪ m₂.measurable_set') s :=
@@ -378,17 +377,14 @@ theorem measurable_set_Sup {ms : set (measurable_space α)} {s : set α} :
   @measurable_set _ (Sup ms) s ↔
     generate_measurable {s : set α | ∃ m ∈ ms, @measurable_set _ m s} s :=
 begin
-  change @measurable_set' _ (generate_from $ ⋃ m ∈ ms, _) _ ↔ _,
+  change @measurable_set' _ (generate_from $ ⋃₀ _) _ ↔ _,
   simp [generate_from, ← set_of_exists]
 end
 
 theorem measurable_set_supr {ι} {m : ι → measurable_space α} {s : set α} :
   @measurable_set _ (supr m) s ↔
     generate_measurable {s : set α | ∃ i, @measurable_set _ (m i) s} s :=
-begin
-  convert @measurable_set_Sup _ (range m) s,
-  simp,
-end
+by simp only [supr, measurable_set_Sup, exists_range_iff]
 
 end complete_lattice
 
@@ -403,6 +399,8 @@ open measurable_space
   measurable set is measurable. -/
 def measurable [measurable_space α] [measurable_space β] (f : α → β) : Prop :=
 ∀ ⦃t : set β⦄, measurable_set t → measurable_set (f ⁻¹' t)
+
+localized "notation `measurable[` m `]` := @measurable _ _ m _" in measure_theory
 
 variables [measurable_space α] [measurable_space β] [measurable_space γ]
 

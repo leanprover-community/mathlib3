@@ -54,6 +54,12 @@ instance {R : Type*} [normed_field R] [normed_algebra R ℝ] : normed_algebra R 
 { norm_algebra_map_eq := λ x, (abs_of_real $ algebra_map R ℝ x).trans (norm_algebra_map_eq ℝ x),
   to_algebra := complex.algebra }
 
+/-- The module structure from `module.complex_to_real` is a normed space. -/
+@[priority 900] -- see Note [lower instance priority]
+instance _root_.normed_space.complex_to_real {E : Type*} [normed_group E] [normed_space ℂ E] :
+  normed_space ℝ E :=
+normed_space.restrict_scalars ℝ ℂ E
+
 @[simp] lemma norm_eq_abs (z : ℂ) : ∥z∥ = abs z := rfl
 
 lemma dist_eq (z w : ℂ) : dist z w = abs (z - w) := rfl

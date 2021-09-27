@@ -230,7 +230,7 @@ begin
   apply nat.dvd_gcd (int.prime.dvd_nat_abs_of_coe_dvd_sq hp _ _) hpy,
   rw [sq, eq_sub_of_add_eq h],
   rw [← int.coe_nat_dvd_left] at hpy hpz,
-  exact dvd_sub (dvd_mul_of_dvd_left (hpz) _) (dvd_mul_of_dvd_left (hpy) _),
+  exact dvd_sub ((hpz).mul_right _) ((hpy).mul_right _),
 end
 
 end pythagorean_triple
@@ -330,20 +330,18 @@ begin
     { have hp2' : p = 2 := (nat.le_of_dvd zero_lt_two hp2).antisymm hp.two_le,
       revert hp1, rw hp2',
       apply mt int.mod_eq_zero_of_dvd,
-      norm_num [sq, int.sub_mod, int.mul_mod, hm, hn],
-    },
+      norm_num [sq, int.sub_mod, int.mul_mod, hm, hn] },
     apply mt (int.dvd_gcd (int.coe_nat_dvd_left.mpr hpm)) hnp,
     apply (or_self _).mp, apply int.prime.dvd_mul' hp,
     rw (by ring : n * n = - (m ^ 2 - n ^ 2) + m * m),
     apply dvd_add (dvd_neg_of_dvd hp1),
-    exact dvd_mul_of_dvd_left (int.coe_nat_dvd_left.mpr hpm) m
-  },
+    exact dvd_mul_of_dvd_left (int.coe_nat_dvd_left.mpr hpm) m },
   rw int.gcd_comm at hnp,
   apply mt (int.dvd_gcd (int.coe_nat_dvd_left.mpr hpn)) hnp,
   apply (or_self _).mp, apply int.prime.dvd_mul' hp,
   rw (by ring : m * m = (m ^ 2 - n ^ 2) + n * n),
   apply dvd_add hp1,
-  exact dvd_mul_of_dvd_left (int.coe_nat_dvd_left.mpr hpn) n
+  exact (int.coe_nat_dvd_left.mpr hpn).mul_right n
 end
 
 private lemma coprime_sq_sub_mul_of_odd_even {m n : ℤ} (h : int.gcd m n = 1)

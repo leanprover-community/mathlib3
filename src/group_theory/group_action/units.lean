@@ -32,6 +32,14 @@ instance [monoid M] [has_scalar M α] : has_scalar (units M) α :=
 lemma smul_def [monoid M] [has_scalar M α] (m : units M) (a : α) :
   m • a = (m : M) • a := rfl
 
+lemma _root_.is_unit.inv_smul [monoid α] {a : α} (h : is_unit a) :
+  (h.unit)⁻¹ • a = 1 :=
+h.coe_inv_mul
+
+@[to_additive]
+instance [monoid M] [has_scalar M α] [has_faithful_scalar M α] : has_faithful_scalar (units M) α :=
+{ eq_of_smul_eq_smul := λ u₁ u₂ h, units.ext $ eq_of_smul_eq_smul h, }
+
 @[to_additive]
 instance [monoid M] [mul_action M α] : mul_action (units M) α :=
 { one_smul := (one_smul M : _),
@@ -40,6 +48,10 @@ instance [monoid M] [mul_action M α] : mul_action (units M) α :=
 instance [monoid M] [add_monoid α] [distrib_mul_action M α] : distrib_mul_action (units M) α :=
 { smul_add := λ m, smul_add (m : M),
   smul_zero := λ m, smul_zero m, }
+
+instance [monoid M] [monoid α] [mul_distrib_mul_action M α] : mul_distrib_mul_action (units M) α :=
+{ smul_mul := λ m, smul_mul' (m : M),
+  smul_one := λ m, smul_one m, }
 
 instance smul_comm_class_left [monoid M] [has_scalar M α] [has_scalar N α]
   [smul_comm_class M N α] : smul_comm_class (units M) N α :=

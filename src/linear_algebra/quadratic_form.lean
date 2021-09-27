@@ -379,7 +379,12 @@ def lin_mul_lin (f g : M →ₗ[R₁] R₁) : quadratic_form R₁ M :=
 mk_left (f * g)
   (λ a x, by { simp, ring })
   (λ x x' y, by { simp [polar], ring })
-  (λ a x y, by { simp [polar], ring })
+  (λ a x y,
+    begin
+      dsimp [polar],
+      simp only [linear_map.map_add, linear_map.map_smul, smul_eq_mul],
+      ring,
+    end)
 
 @[simp]
 lemma lin_mul_lin_apply (f g : M →ₗ[R₁] R₁) (x) : lin_mul_lin f g x = f x * g x := rfl
@@ -978,7 +983,7 @@ begin
   apply_instance
 end
 
-/-- Sylvester's law of inertia: A nondegenerate real quadratic form is equivalent to a weighted
+/-- **Sylvester's law of inertia**: A nondegenerate real quadratic form is equivalent to a weighted
 sum of squares with the weights being ±1. -/
 theorem equivalent_one_neg_one_weighted_sum_squared
   {M : Type*} [add_comm_group M] [module ℝ M] [finite_dimensional ℝ M]

@@ -7,6 +7,7 @@ import order.conditionally_complete_lattice
 import data.real.cau_seq_completion
 import algebra.archimedean
 import algebra.star.basic
+import algebra.bounds
 
 /-!
 # Real numbers from Cauchy sequences
@@ -15,6 +16,8 @@ This file defines `ℝ` as the type of equivalence classes of Cauchy sequences o
 This choice is motivated by how easy it is to prove that `ℝ` is a commutative ring, by simply
 lifting everything to `ℚ`.
 -/
+
+open_locale pointwise
 
 /-- The type `ℝ` of real numbers constructed as equivalence classes of Cauchy sequences of rational
 numbers. -/
@@ -394,90 +397,42 @@ begin
 end
 
 noncomputable instance : has_Sup ℝ :=
-⟨λ S, if h : (∃ x, x ∈ S) ∧ (∃ x, ∀ y ∈ S, y ≤ x)
-  then classical.some (exists_is_lub S h.1 h.2) else 0⟩
+⟨λ S, if h : S.nonempty ∧ bdd_above S then classical.some (exists_is_lub S h.1 h.2) else 0⟩
 
 lemma Sup_def (S : set ℝ) :
-  Sup S = if h : (∃ x, x ∈ S) ∧ (∃ x, ∀ y ∈ S, y ≤ x)
+  Sup S = if h : S.nonempty ∧ bdd_above S
     then classical.some (exists_is_lub S h.1 h.2) else 0 := rfl
 
-theorem Sup_le (S : set ℝ) (h₁ : ∃ x, x ∈ S) (h₂ : ∃ x, ∀ y ∈ S, y ≤ x)
-  {y} : Sup S ≤ y ↔ ∀ z ∈ S, z ≤ y :=
-by simp only [Sup_def, dif_pos (and.intro h₁ h₂)]; exact
-is_lub_le_iff (classical.some_spec (exists_is_lub S h₁ h₂))
+protected theorem is_lub_Sup (S : set ℝ) (h₁ : S.nonempty) (h₂ : bdd_above S) : is_lub S (Sup S) :=
+by { simp only [Sup_def, dif_pos (and.intro h₁ h₂)], apply classical.some_spec }
 
-theorem lt_Sup (S : set ℝ) (h₁ : ∃ x, x ∈ S) (h₂ : ∃ x, ∀ y ∈ S, y ≤ x)
-  {y} : y < Sup S ↔ ∃ z ∈ S, y < z :=
-by simpa [not_forall] using not_congr (@Sup_le S h₁ h₂ y)
+noncomputable instance : has_Inf ℝ := ⟨λ S, -Sup (-S)⟩
 
-theorem le_Sup (S : set ℝ) (h₂ : ∃ x, ∀ y ∈ S, y ≤ x) {x} (xS : x ∈ S) : x ≤ Sup S :=
-(Sup_le S ⟨_, xS⟩ h₂).1 (le_refl _) _ xS
+lemma Inf_def (S : set ℝ) : Inf S = -Sup (-S) := rfl
 
-theorem Sup_le_ub (S : set ℝ) (h₁ : ∃ x, x ∈ S) {ub} (h₂ : ∀ y ∈ S, y ≤ ub) : Sup S ≤ ub :=
-(Sup_le S h₁ ⟨_, h₂⟩).2 h₂
-
-protected lemma is_lub_Sup {s : set ℝ} {a b : ℝ} (ha : a ∈ s) (hb : b ∈ upper_bounds s) :
-  is_lub s (Sup s) :=
-⟨λ x xs, real.le_Sup s ⟨_, hb⟩ xs,
- λ u h, real.Sup_le_ub _ ⟨_, ha⟩ h⟩
-
-noncomputable instance : has_Inf ℝ := ⟨λ S, -Sup {x | -x ∈ S}⟩
-
-lemma Inf_def (S : set ℝ) : Inf S = -Sup {x | -x ∈ S} := rfl
-
-theorem le_Inf (S : set ℝ) (h₁ : ∃ x, x ∈ S) (h₂ : ∃ x, ∀ y ∈ S, x ≤ y)
-  {y} : y ≤ Inf S ↔ ∀ z ∈ S, y ≤ z :=
+protected theorem is_glb_Inf (S : set ℝ) (h₁ : S.nonempty) (h₂ : bdd_below S) :
+  is_glb S (Inf S) :=
 begin
-  refine le_neg.trans ((Sup_le _ _ _).trans _),
-  { cases h₁ with x xS, exact ⟨-x, by simp [xS]⟩ },
-  { cases h₂ with ub h, exact ⟨-ub, λ y hy, le_neg.1 $ h _ hy⟩ },
-  split; intros H z hz,
-  { exact neg_le_neg_iff.1 (H _ $ by simp [hz]) },
-  { exact le_neg.2 (H _ hz) }
+  rw [Inf_def, ← is_lub_neg', neg_neg],
+  exact real.is_lub_Sup _ h₁.neg h₂.neg
 end
-
-section
--- this proof times out without this
-local attribute [instance, priority 1000] classical.prop_decidable
-theorem Inf_lt (S : set ℝ) (h₁ : ∃ x, x ∈ S) (h₂ : ∃ x, ∀ y ∈ S, x ≤ y)
-  {y} : Inf S < y ↔ ∃ z ∈ S, z < y :=
-by simpa [not_forall] using not_congr (@le_Inf S h₁ h₂ y)
-end
-
-theorem Inf_le (S : set ℝ) (h₂ : ∃ x, ∀ y ∈ S, x ≤ y) {x} (xS : x ∈ S) : Inf S ≤ x :=
-(le_Inf S ⟨_, xS⟩ h₂).1 (le_refl _) _ xS
-
-theorem lb_le_Inf (S : set ℝ) (h₁ : ∃ x, x ∈ S) {lb} (h₂ : ∀ y ∈ S, lb ≤ y) : lb ≤ Inf S :=
-(le_Inf S h₁ ⟨_, h₂⟩).2 h₂
 
 noncomputable instance : conditionally_complete_linear_order ℝ :=
 { Sup := has_Sup.Sup,
   Inf := has_Inf.Inf,
-  le_cSup :=
-    assume (s : set ℝ) (a : ℝ) (_ : bdd_above s) (_ : a ∈ s),
-    show a ≤ Sup s,
-      from le_Sup s ‹bdd_above s› ‹a ∈ s›,
-  cSup_le :=
-    assume (s : set ℝ) (a : ℝ) (_ : s.nonempty) (H : ∀b∈s, b ≤ a),
-    show Sup s ≤ a,
-      from Sup_le_ub s ‹s.nonempty› H,
-  cInf_le :=
-    assume (s : set ℝ) (a : ℝ) (_ : bdd_below s) (_ : a ∈ s),
-    show Inf s ≤ a,
-      from Inf_le s ‹bdd_below s› ‹a ∈ s›,
-  le_cInf :=
-    assume (s : set ℝ) (a : ℝ) (_ : s.nonempty) (H : ∀b∈s, a ≤ b),
-    show a ≤ Inf s,
-      from lb_le_Inf s ‹s.nonempty› H,
+  le_cSup := λ s a hs ha, (real.is_lub_Sup s ⟨a, ha⟩ hs).1 ha,
+  cSup_le := λ s a hs ha, (real.is_lub_Sup s hs ⟨a, ha⟩).2 ha,
+  cInf_le := λ s a hs ha, (real.is_glb_Inf s ⟨a, ha⟩ hs).1 ha,
+  le_cInf := λ s a hs ha, (real.is_glb_Inf s hs ⟨a, ha⟩).2 ha,
  ..real.linear_order, ..real.lattice}
 
-lemma lt_Inf_add_pos {s : set ℝ} (h : bdd_below s) (h' : s.nonempty) {ε : ℝ} (hε : 0 < ε) :
+lemma lt_Inf_add_pos {s : set ℝ} (h : s.nonempty) {ε : ℝ} (hε : 0 < ε) :
   ∃ a ∈ s, a < Inf s + ε :=
-(Inf_lt _ h' h).1 $ lt_add_of_pos_right _ hε
+exists_lt_of_cInf_lt h $ lt_add_of_pos_right _ hε
 
-lemma add_neg_lt_Sup {s : set ℝ} (h : bdd_above s) (h' : s.nonempty) {ε : ℝ} (hε : ε < 0) :
+lemma add_neg_lt_Sup {s : set ℝ} (h : s.nonempty) {ε : ℝ} (hε : ε < 0) :
   ∃ a ∈ s, Sup s + ε < a :=
-(real.lt_Sup _ h' h).1 $ add_lt_iff_neg_left.mpr hε
+exists_lt_of_lt_cSup h $ add_lt_iff_neg_left.2 hε
 
 lemma Inf_le_iff {s : set ℝ} (h : bdd_below s) (h' : s.nonempty) {a : ℝ} :
   Inf s ≤ a ↔ ∀ ε, 0 < ε → ∃ x ∈ s, x < a + ε :=
@@ -511,10 +466,7 @@ real.Sup_of_not_bdd_above $ λ ⟨x, h⟩, not_le_of_lt (lt_add_one _) $ h (set.
 by simp [Inf_def, Sup_empty]
 
 theorem Inf_of_not_bdd_below {s : set ℝ} (hs : ¬ bdd_below s) : Inf s = 0 :=
-have bdd_above {x | -x ∈ s} → bdd_below s, from
-  assume ⟨b, hb⟩, ⟨-b, assume x hxs, neg_le.2 $ hb $ by simp [hxs]⟩,
-have ¬ bdd_above {x | -x ∈ s}, from mt this hs,
-neg_eq_zero.2 $ Sup_of_not_bdd_above $ this
+neg_eq_zero.2 $ Sup_of_not_bdd_above $ mt bdd_above_neg.1 hs
 
 /--
 As `0` is the default value for `real.Sup` of the empty set or sets which are not bounded above, it
@@ -534,7 +486,7 @@ bounded above by `0` to show that `Sup S ≤ 0`.
 lemma Sup_nonpos (S : set ℝ) (hS : ∀ x ∈ S, x ≤ (0:ℝ)) : Sup S ≤ 0 :=
 begin
   rcases S.eq_empty_or_nonempty with rfl | hS₂,
-  exacts [Sup_empty.le, Sup_le_ub _ hS₂ hS],
+  exacts [Sup_empty.le, cSup_le hS₂ hS],
 end
 
 /--
@@ -544,7 +496,7 @@ bounded below by `0` to show that `0 ≤ Inf S`.
 lemma Inf_nonneg (S : set ℝ) (hS : ∀ x ∈ S, (0:ℝ) ≤ x) : 0 ≤ Inf S :=
 begin
   rcases S.eq_empty_or_nonempty with rfl | hS₂,
-  exacts [Inf_empty.ge, lb_le_Inf S hS₂ hS]
+  exacts [Inf_empty.ge, le_cInf hS₂ hS]
 end
 
 /--
@@ -575,15 +527,13 @@ begin
   refine ⟨Sup S,
     ((lt_total _ _).resolve_left (λ h, _)).resolve_right (λ h, _)⟩,
   { rcases h with ⟨ε, ε0, i, ih⟩,
-    refine not_lt_of_le (Sup_le_ub S lb (ub' _ _))
-      (sub_lt_self _ (half_pos ε0)),
+    refine (cSup_le lb (ub' _ _)).not_lt (sub_lt_self _ (half_pos ε0)),
     refine ⟨_, half_pos ε0, i, λ j ij, _⟩,
     rw [sub_apply, const_apply, sub_right_comm,
       le_sub_iff_add_le, add_halves],
     exact ih _ ij },
   { rcases h with ⟨ε, ε0, i, ih⟩,
-    refine not_lt_of_le (le_Sup S ub _)
-      ((lt_add_iff_pos_left _).2 (half_pos ε0)),
+    refine (le_cSup ub _).not_lt ((lt_add_iff_pos_left _).2 (half_pos ε0)),
     refine ⟨_, half_pos ε0, i, λ j ij, _⟩,
     rw [sub_apply, const_apply, add_comm, ← sub_sub,
       le_sub_iff_add_le, add_halves],

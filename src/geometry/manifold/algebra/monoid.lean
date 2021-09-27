@@ -249,7 +249,7 @@ begin
   rcases hfin x with ⟨U, hxU, hUf⟩,
   have : smooth_at I' I (λ x, ∏ i in hUf.to_finset, f i x) x,
     from smooth_finset_prod (λ i hi, h i) x,
-  refine this.congr_of_eventually_eq (mem_sets_of_superset hxU $ λ y hy, _),
+  refine this.congr_of_eventually_eq (mem_of_superset hxU $ λ y hy, _),
   refine finprod_eq_prod_of_mul_support_subset _ (λ i hi, _),
   rw [hUf.coe_to_finset],
   exact ⟨y, hi, hy⟩

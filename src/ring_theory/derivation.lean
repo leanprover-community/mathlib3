@@ -5,6 +5,7 @@ Authors: Nicolò Cavalleri
 -/
 
 import algebra.lie.of_associative
+import ring_theory.adjoin.basic
 import ring_theory.algebra_tower
 
 /-!
@@ -24,7 +25,7 @@ non-commutative case. Any development on the theory of derivations is discourage
 definitive definition of derivation will be implemented.
 -/
 
-open algebra ring_hom
+open algebra
 
 -- to match `linear_map`
 set_option old_structure_cmd true
@@ -87,7 +88,19 @@ begin
 end
 
 @[simp] lemma map_algebra_map : D (algebra_map R A r) = 0 :=
-by rw [←mul_one r, ring_hom.map_mul, map_one, ←smul_def, map_smul, map_one_eq_zero, smul_zero]
+by rw [←mul_one r, ring_hom.map_mul, ring_hom.map_one, ←smul_def, map_smul, map_one_eq_zero,
+  smul_zero]
+
+lemma eq_on_adjoin {s : set A} (h : set.eq_on D1 D2 s) : set.eq_on D1 D2 (adjoin R s) :=
+λ x hx, algebra.adjoin_induction hx h
+  (λ r, (D1.map_algebra_map r).trans (D2.map_algebra_map r).symm)
+  (λ x y hx hy, by simp only [map_add, *])
+  (λ x y hx hy, by simp only [leibniz, *])
+
+/-- If adjoin of a set is the whole algebra, then any two derivations equal on this set are equal
+on the whole algebra. -/
+lemma ext_of_adjoin_eq_top (s : set A) (hs : adjoin R s = ⊤) (h : set.eq_on D1 D2 s) : D1 = D2 :=
+ext $ λ a, eq_on_adjoin h $ hs.symm ▸ trivial
 
 /- Data typeclasses -/
 

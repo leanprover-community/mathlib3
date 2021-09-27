@@ -22,7 +22,7 @@ This is useful in multiple ways:
   return `none`.
 * `option` is a monad. We love monads.
 
-`roption` is an alternative to `option` that can be seen as the type of `true`/`false` values
+`part` is an alternative to `option` that can be seen as the type of `true`/`false` values
 along with a term `a : α` if the value is `true`.
 
 ## Implementation notes
@@ -71,7 +71,7 @@ theorem mem_unique {o : option α} {a b : α} (ha : a ∈ o) (hb : b ∈ o) : a 
 option.some.inj $ ha.symm.trans hb
 
 theorem mem.left_unique : relator.left_unique ((∈) : α → option α → Prop) :=
-⟨λ a o b, mem_unique⟩
+λ a o b, mem_unique
 
 theorem some_injective (α : Type*) : function.injective (@some α) :=
 λ _ _, some_inj.mp
@@ -439,13 +439,18 @@ lemma choice_is_some_iff_nonempty {α : Type*} : (choice α).is_some ↔ nonempt
 begin
   fsplit,
   { intro h, exact ⟨option.get h⟩, },
-  { rintro ⟨a⟩,
-    dsimp [choice],
-    rw dif_pos,
-    fsplit,
-    exact ⟨a⟩, },
+  { intro h,
+    dsimp only [choice],
+    rw dif_pos h,
+    exact is_some_some },
 end
 
 end
+
+@[simp] lemma to_list_some (a : α) : (a : option α).to_list = [a] :=
+rfl
+
+@[simp] lemma to_list_none (α : Type*) : (none : option α).to_list = [] :=
+rfl
 
 end option

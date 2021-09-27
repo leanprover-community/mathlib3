@@ -27,7 +27,7 @@ lemma smul_eq_map [mul_semiring_action M R] (m : M) :
   ((•) m) = map (mul_semiring_action.to_ring_hom M R m) :=
 begin
   suffices :
-    distrib_mul_action.to_add_monoid_hom M (polynomial R) m =
+    distrib_mul_action.to_add_monoid_hom (polynomial R) m =
       (map_ring_hom (mul_semiring_action.to_ring_hom M R m)).to_add_monoid_hom,
   { ext1 r, exact add_monoid_hom.congr_fun this r, },
   ext n r : 2,
@@ -43,15 +43,6 @@ noncomputable instance [mul_semiring_action M R] : mul_semiring_action M (polyno
   smul_mul := λ m p q, (smul_eq_map R m).symm ▸ map_mul (mul_semiring_action.to_ring_hom M R m),
   ..polynomial.distrib_mul_action }
 
-noncomputable instance [faithful_mul_semiring_action M R] :
-  faithful_mul_semiring_action M (polynomial R) :=
-{ eq_of_smul_eq_smul' := λ m₁ m₂ h, eq_of_smul_eq_smul R $ λ s, C_inj.1 $
-    calc  C (m₁ • s)
-        = m₁ • C s : (smul_C _ _).symm
-    ... = m₂ • C s : h (C s)
-    ... = C (m₂ • s) : smul_C _ _,
-  .. polynomial.mul_semiring_action M R }
-
 variables {M R}
 
 variables [mul_semiring_action M R]
@@ -66,8 +57,8 @@ theorem smul_eval_smul (m : M) (f : polynomial S) (x : S) :
 polynomial.induction_on f
   (λ r, by rw [smul_C, eval_C, eval_C])
   (λ f g ihf ihg, by rw [smul_add, eval_add, ihf, ihg, eval_add, smul_add])
-  (λ n r ih, by rw [smul_mul', smul_pow, smul_C, smul_X, eval_mul, eval_C, eval_pow, eval_X,
-      eval_mul, eval_C, eval_pow, eval_X, smul_mul', smul_pow])
+  (λ n r ih, by rw [smul_mul', smul_pow', smul_C, smul_X, eval_mul, eval_C, eval_pow, eval_X,
+      eval_mul, eval_C, eval_pow, eval_X, smul_mul', smul_pow'])
 
 variables (G : Type*) [group G]
 
@@ -104,7 +95,7 @@ theorem prod_X_sub_smul.eval (x : R) : (prod_X_sub_smul G R x).eval x = 0 :=
 
 theorem prod_X_sub_smul.smul (x : R) (g : G) :
   g • prod_X_sub_smul G R x = prod_X_sub_smul G R x :=
-(smul_prod _ _ _ _ _).trans $ fintype.prod_bijective _ (mul_action.bijective g) _ _
+finset.smul_prod.trans $ fintype.prod_bijective _ (mul_action.bijective g) _ _
   (λ g', by rw [of_quotient_stabilizer_smul, smul_sub, polynomial.smul_X, polynomial.smul_C])
 
 theorem prod_X_sub_smul.coeff (x : R) (g : G) (n : ℕ) :
@@ -126,9 +117,9 @@ protected noncomputable def polynomial (g : P →+*[M] Q) : polynomial P →+*[M
   map_smul' := λ m p, polynomial.induction_on p
     (λ b, by rw [smul_C, map_C, coe_fn_coe, g.map_smul, map_C, coe_fn_coe, smul_C])
     (λ p q ihp ihq, by rw [smul_add, polynomial.map_add, ihp, ihq, polynomial.map_add, smul_add])
-    (λ n b ih, by rw [smul_mul', smul_C, smul_pow, smul_X, polynomial.map_mul, map_C,
+    (λ n b ih, by rw [smul_mul', smul_C, smul_pow', smul_X, polynomial.map_mul, map_C,
         polynomial.map_pow, map_X, coe_fn_coe, g.map_smul, polynomial.map_mul, map_C,
-        polynomial.map_pow, map_X, smul_mul', smul_C, smul_pow, smul_X, coe_fn_coe]),
+        polynomial.map_pow, map_X, smul_mul', smul_C, smul_pow', smul_X, coe_fn_coe]),
   map_zero' := polynomial.map_zero g,
   map_add' := λ p q, polynomial.map_add g,
   map_one' := polynomial.map_one g,

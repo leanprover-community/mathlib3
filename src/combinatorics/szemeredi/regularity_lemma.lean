@@ -335,7 +335,7 @@ lemma mk_equitable_aux2 {m a b : ℕ} (hs : a*m + b*(m+1) = s.card) (A : finset 
 begin
   subst h,
   simp only [mul_one, zero_add, mul_zero] at hs,
-  simp only [exists_prop, card_eq_zero, zero_add, le_zero_iff, sdiff_eq_empty_iff_subset],
+  simp only [exists_prop, finset.card_eq_zero, zero_add, le_zero_iff, sdiff_eq_empty_iff_subset],
   refine ⟨s.image singleton, by simp, _, by simp, _, by simp, _⟩,
   { intros x hx i hi,
     simp only [mem_bUnion, mem_image, exists_prop, mem_filter, id.def],
@@ -372,7 +372,7 @@ begin
     push_neg at h,
     simp only [le_zero_iff] at h,
     rw [h.1, h.2] at hs,
-    simp only [add_zero, zero_mul, eq_comm, card_eq_zero] at hs,
+    simp only [add_zero, zero_mul, eq_comm, finset.card_eq_zero] at hs,
     exact hs_ne.ne_empty hs },
   set p'_size := if 0 < a then m else m+1 with h',
   have : 0 < p'_size,
@@ -1065,7 +1065,7 @@ begin
           ((A.bUnion id).card/(m/(m + 1)) * ((B.bUnion id).card/(m/(m + 1))))
         : begin
             unfold simple_graph.edge_density pairs_density,
-            simp only [←div_div_eq_div_mul],
+            simp_rw [←div_div_eq_div_mul],
             rw [div_div_eq_mul_div, div_div_eq_mul_div],
             ring,
           end
@@ -1163,7 +1163,34 @@ begin
             exact add_le_add_left (mul_le_of_le_one_right (div_nonneg hε.le (by norm_num))
               (G.edge_density_le_one _ _)) _,
           end,
+end.
+
+lemma sq_density_sub_eps_le_sum_sq_density_div_card [nonempty α] (hPα : P.size * 16^P.size ≤ card α)
+  (hPε : 100 ≤ 4^P.size * ε^5) (m_pos : 0 < m)
+  {U W : finset α} {hU : U ∈ P.parts} {hW : W ∈ P.parts} {A B : finset (finset α)}
+  (hA : A ⊆ (hP.chunk_increment G ε hU).parts) (hB : B ⊆ (hP.chunk_increment G ε hW).parts) :
+  G.edge_density U W^2 - ε^5/25 ≤
+  (∑ ab in (hP.chunk_increment G ε hU).parts.product (hP.chunk_increment G ε hW).parts, G.edge_density ab.1 ab.2)/16^P.size :=
+begin
+  calc
+    G.edge_density U W^2 - ε^5/25
+        ≤ G.edge_density U W^2 - ε^5/25 + ε^10/50^2
+        : sorry
+    ... = (G.edge_density U W - ε^5/50)^2
+        : sorry
+    ... = (G.edge_density ((hP.chunk_increment G ε hU).parts.bUnion id)
+            ((hP.chunk_increment G ε hW).parts.bUnion id) - ε^5/50)^2
+        : sorry
+    ... ≤ 0
+        : sorry -- sq monotone
+    ... ≤ 0
+        : sorry -- Cauchy-Schwarz
+    ... = (∑ ab in (hP.chunk_increment G ε hU).parts.product (hP.chunk_increment G ε hW).parts,
+            G.edge_density ab.1 ab.2)/16^P.size
+        : sorry
 end
+
+#exit
 
 end chunk_increment
 
@@ -1220,7 +1247,7 @@ begin
         ≤ index G P - ε^5/25 + 1/P.size^2 * ε * (P.size.choose 2) * ε^4/3
         : begin
           have hP₀ : (0 : ℝ) < P.size := nat.cast_pos.2 ((nat.zero_lt_succ _).trans_le hP₁₀₀),
-          rw [sub_eq_add_neg, add_assoc, ←neg_div, nat.cast_choose_two_right],
+          rw [sub_eq_add_neg, add_assoc, ←neg_div, nat.cast_choose_two],
           refine add_le_add_left _ _,
           calc
             - ε^5/25 + 1/P.size^2 * ε * (P.size * (P.size - 1)/2) * ε^4/3

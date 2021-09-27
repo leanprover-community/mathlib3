@@ -17,16 +17,12 @@ open finset fintype function
 
 variable {α : Type u}
 
-lemma between_nat_iff {a t : ℕ} :
-  (a = t ∨ a = t+1) ↔ (t ≤ a ∧ a ≤ t+1) :=
+lemma nat.le_le_add_one_iff {x a : ℕ} :
+  a ≤ x ∧ x ≤ a + 1 ↔ x = a ∨ x = a + 1 :=
 begin
-  split,
-  { rintro (rfl | rfl);
-    simp },
-  rintro ⟨h₁, h₂⟩,
-  obtain h | h := h₁.eq_or_lt,
-  { exact or.inl h.symm },
-  exact or.inr (le_antisymm h₂ (nat.succ_le_of_lt h)),
+  rw [nat.le_add_one_iff, and_or_distrib_left, ←le_antisymm_iff, eq_comm, and_iff_right_of_imp],
+  rintro rfl,
+  exact a.le_succ,
 end
 
 namespace real
@@ -64,24 +60,6 @@ end
 
 alias nat.desc_factorial_eq_zero_iff_lt ↔ _ nat.desc_factorial_of_lt
 
-lemma pochhammer_nat_eq_desc_factorial (a b : ℕ) :
-  (pochhammer ℕ b).eval a = (a + b - 1).desc_factorial b :=
-begin
-  cases b,
-  { rw [nat.desc_factorial_zero, pochhammer_zero, polynomial.eval_one] },
-  rw [nat.succ_sub_succ, nat.sub_zero],
-  cases a,
-  { rw [pochhammer_ne_zero_eval_zero _ b.succ_ne_zero, zero_add,
-    nat.desc_factorial_of_lt b.lt_succ_self] },
-  { rw [nat.succ_add, ←nat.add_succ, nat.add_desc_factorial_eq_asc_factorial,
-      pochhammer_nat_eq_asc_factorial] }
-end
-
-lemma pochhammer_succ_eval (S : Type*) [comm_semiring S] (n : ℕ) (k : S) :
-  (pochhammer S n.succ).eval k = (pochhammer S n).eval k * (k + ↑n) :=
-by rw [pochhammer_succ_right, polynomial.eval_mul, polynomial.eval_add, polynomial.eval_X,
-    polynomial.eval_nat_cast]
-
 namespace nat
 
 lemma lt_div_mul_add {a b : ℕ} (hb : 0 < b) : a < a/b*b + b :=
@@ -93,41 +71,6 @@ end
 lemma succ_sub_self : ∀ {n : ℕ}, n.succ - n = 1
 | 0       := rfl
 | (n + 1) := by rw [succ_sub_succ, succ_sub_self]
-
-@[simp] theorem factorial_two : 2! = 2 := rfl
-
-lemma cast_asc_factorial (S : Type*) [semiring S] (a b : ℕ) :
-  (a.asc_factorial b : S) = (pochhammer S b).eval (a + 1) :=
-by rw [←pochhammer_nat_eq_asc_factorial, pochhammer_eval_cast, nat.cast_add, nat.cast_one]
-
-lemma cast_desc_factorial (S : Type*) [semiring S] (a b : ℕ) :
-  (a.desc_factorial b : S) = (pochhammer S b).eval (a - (b - 1) : ℕ) :=
-begin
-  rw [←pochhammer_eval_cast, pochhammer_nat_eq_desc_factorial],
-  cases b,
-  { simp_rw desc_factorial_zero },
-  simp_rw succ_sub_one,
-  obtain h | h := le_total a b,
-  { rw [desc_factorial_of_lt (lt_succ_of_le h), desc_factorial_of_lt (lt_succ_of_le _)],
-    rw [sub_eq_zero_of_le h, zero_add] },
-  { rw nat.sub_add_cancel h }
-end
-
-lemma cast_choose' (K : Type*) [division_ring K] [char_zero K] (a b : ℕ) :
-  (a.choose b : K) = (pochhammer K b).eval (a - (b - 1) : ℕ) / b.factorial :=
-by rw [eq_div_iff_mul_eq (nat.cast_ne_zero.2 b.factorial_ne_zero : (b.factorial : K) ≠ 0),
-  ←nat.cast_mul, mul_comm, ←nat.desc_factorial_eq_factorial_mul_choose, ←cast_desc_factorial]
-
-lemma cast_choose_two_right (K : Type*) [division_ring K] [char_zero K] (a : ℕ) :
-  (a.choose 2 : K) = a * (a - 1) / 2 :=
-begin
-  rw [cast_choose', factorial_two, cast_two],
-  cases a,
-  { rw [nat.zero_sub, cast_zero, pochhammer_ne_zero_eval_zero _ (two_ne_zero), zero_mul] },
-  { rw [succ_sub_succ, nat.sub_zero, cast_succ, add_sub_cancel, pochhammer_succ_right,
-      pochhammer_one, polynomial.X_mul, polynomial.eval_mul_X, polynomial.eval_add,
-      polynomial.eval_X, cast_one, polynomial.eval_one] }
-end
 
 end nat
 
@@ -204,7 +147,7 @@ begin
   suffices : b = (∑ i in s, f i) / s.card,
   { simp_rw [←this],
     apply hb },
-  simp_rw between_nat_iff at hb,
+  simp_rw ←nat.le_le_add_one_iff at hb,
   symmetry,
   refine nat.div_eq_of_lt_le (le_trans (by simp [mul_comm]) (sum_le_sum (λ a ha, (hb a ha).1)))
     ((sum_lt_sum (λ a ha, (hb a ha).2) ⟨_, hx₁, (hb _ hx₁).2.lt_of_ne hx₂⟩).trans_le _),
@@ -215,7 +158,7 @@ end
 lemma equitable_on_finset_iff {s : finset α} {f : α → ℕ} :
   equitable_on (s : set α) f ↔
     ∀ a ∈ s, (∑ i in s, f i) / s.card ≤ f a ∧ f a ≤ (∑ i in s, f i) / s.card + 1 :=
-by simp_rw [equitable_on_finset_iff_eq_average, between_nat_iff]
+by simp_rw [equitable_on_finset_iff_eq_average, ←nat.le_le_add_one_iff]
 
 /-! ## pairs_finset and pairs_density -/
 
@@ -396,7 +339,7 @@ lemma edge_density_eq_edge_count_div_card (U W : finset α) :
   G.edge_density U W = G.edge_count U W/(U.card * W.card) := rfl
 
 lemma edge_density_comm (U W : finset α) : G.edge_density U W = G.edge_density W U :=
-pairs_density_comm G.sym U W
+pairs_density_comm G.symm U W
 
 lemma edge_density_nonneg (U W : finset α) :
   0 ≤ G.edge_density U W :=

@@ -229,38 +229,29 @@ end
 /-- The limit cone in order to glue the sections obtained via `get_section`. -/
 private def glued_limit_cone : limits.cone ((structured_arrow.proj (op U) (F.op)) ⋙ ℱ.val) := by {
   let get_section := get_section ℱ hS hx HF,
-  let F_iso : _ ⟶ ℱ.val ⋙ _ := hom_sh F ℱ X,
   exact {
     X := X,
     π := {
       app := λ Y, classical.some (get_section Y),
       naturality' := λ Y Z f, by {
-    simp only [functor.comp_map,
- structured_arrow.proj_map,
- functor.const.obj_map],
-    change 𝟙 X ≫ classical.some (get_section Z) = classical.some (get_section Y) ≫ ℱ.val.map f.right,
-    erw category.id_comp,
-    apply lem1 (λ x, classical.some (get_section Z) = x ≫ ℱ.val.map f.right),
-    rintros t₁ ⟨Pt₁, _⟩,
-    symmetry,
-    apply lem2,
-    intros W fw hw,
-    have eq := congr_arg quiver.hom.unop f.w,
-    erw category.id_comp at eq,
-    have := Pt₁ (fw ≫ f.right.unop) (by {
-      change S (F.map _ ≫ Y.hom.unop),
-      rw eq at hw,
-      simpa using hw,
-    }),
-    convert this using 1,
-    { tidy },
-    {
-      dsimp only [comp_presheaf_map,
-        family_of_elements.functor_pullback, family_of_elements.pullback],
-      congr' 2,
-      rw eq,
-      simp
-    }
+        simp only [functor.comp_map, structured_arrow.proj_map, functor.const.obj_map],
+        erw category.id_comp,
+        apply lem1 (λ x, classical.some (get_section Z) = x ≫ ℱ.val.map f.right),
+        rintros t₁ ⟨Pt₁, _⟩,
+        symmetry,
+        apply lem2,
+        intros W fw hw,
+        dsimp only [comp_presheaf_map,
+            family_of_elements.functor_pullback, family_of_elements.pullback],
+        have eq := congr_arg quiver.hom.unop f.w,
+        erw category.id_comp at eq,
+        convert Pt₁ (fw ≫ f.right.unop) (by {
+          change S (F.map _ ≫ Y.hom.unop),
+          rw eq at hw,
+          simpa using hw,
+        }) using 3,
+        { tidy },
+        { simp[eq] }
       }
     }
   }

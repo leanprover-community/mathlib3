@@ -1798,20 +1798,20 @@ end
 
 section real
 
-lemma radon_nikodym_deriv_ae_eq_condexp {f : α → ℝ} (hf : integrable f μ) :
-  @signed_measure.radon_nikodym_deriv α m
+lemma rn_deriv_ae_eq_condexp {f : α → ℝ} (hf : integrable f μ) :
+  @signed_measure.rn_deriv α m
     ((μ.with_densityᵥ f).trim hm) (μ.trim hm) =ᵐ[μ] μ[f | hm] :=
 begin
   refine ae_eq_condexp_of_forall_set_integral_eq hm hf _ _ _,
   { intros,
-    exact (integrable_of_integrable_trim hm (@signed_measure.integrable_radon_nikodym_deriv α m
-        ((μ.with_densityᵥ f).trim hm) (μ.trim hm))).integrable_on },
+    exact (integrable_of_integrable_trim hm (@signed_measure.integrable_rn_deriv α m
+      ((μ.with_densityᵥ f).trim hm) (μ.trim hm))).integrable_on },
   { intros s hs hlt,
     conv_rhs { rw [← hf.with_densityᵥ_trim_eq_integral hm hs,
-                   ← @signed_measure.with_densityᵥ_radon_nikodym_deriv_eq α m
+                   ← @signed_measure.with_densityᵥ_rn_deriv_eq α m
                      ((μ.with_densityᵥ f).trim hm) (μ.trim hm) _
                      (hf.with_densityᵥ_trim_absolutely_continuous hm)] },
-    rw [with_densityᵥ_apply (@signed_measure.integrable_radon_nikodym_deriv α m
+    rw [with_densityᵥ_apply (@signed_measure.integrable_rn_deriv α m
           ((μ.with_densityᵥ f).trim hm) (μ.trim hm)), ← set_integral_trim hm],
     measurability },
   { refine measurable.ae_measurable' _,

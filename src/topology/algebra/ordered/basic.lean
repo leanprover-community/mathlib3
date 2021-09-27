@@ -2166,7 +2166,7 @@ begin
     { exact h },
     { exact (not_mem hl).elim } },
   obtain ⟨s, hs⟩ : ∃ s : ℕ → set α, (𝓝 x).has_basis (λ (_x : ℕ), true) s :=
-    let ⟨s, hs⟩ := hx.exists_antimono_basis in ⟨s, hs.to_has_basis⟩,
+    let ⟨s, hs⟩ := hx.exists_antitone_basis in ⟨s, hs.to_has_basis⟩,
   have : ∀ n k, k < x → ∃ y, Icc y x ⊆ s n ∧ k < y ∧ y < x ∧ y ∈ t,
   { assume n k hk,
     obtain ⟨L, hL, h⟩ : ∃ (L : α) (hL : L ∈ Ico k x), Ioc L x ⊆ s n :=
@@ -2267,12 +2267,12 @@ lemma is_glb.exists_seq_monotone_tendsto [first_countable_topology α]
                         tendsto u at_top (𝓝 x) ∧ (∀ n, u n ∈ t) :=
 htx.exists_seq_monotone_tendsto' ht (is_countably_generated_nhds x)
 
-lemma exists_seq_strict_antimono_tendsto' [densely_ordered α]
+lemma exists_seq_strict_antitone_tendsto' [densely_ordered α]
   [first_countable_topology α] {x y : α} (hy : x < y) :
   ∃ u : ℕ → α, (∀ m n, m < n → u n < u m) ∧ (∀ n, x < u n) ∧ tendsto u at_top (𝓝 x) :=
 @exists_seq_strict_mono_tendsto' (order_dual α) _ _ _ _ _ x y hy
 
-lemma exists_seq_strict_antimono_tendsto [densely_ordered α] [no_top_order α]
+lemma exists_seq_strict_antitone_tendsto [densely_ordered α] [no_top_order α]
   [first_countable_topology α] (x : α) :
   ∃ u : ℕ → α, (∀ m n, m < n → u n < u m) ∧ (∀ n, x < u n) ∧ tendsto u at_top (𝓝 x) :=
 @exists_seq_strict_mono_tendsto (order_dual α) _ _ _ _ _ _ x

@@ -858,8 +858,8 @@ begin
 end
 
 lemma uniform_space.has_seq_basis (h : is_countably_generated $ 𝓤 α) :
-  ∃ V : ℕ → set (α × α), has_antimono_basis (𝓤 α) (λ _, true) V ∧ ∀ n, symmetric_rel (V n) :=
-let ⟨U, hsym, hbasis⟩ := h.exists_antimono_subbasis uniform_space.has_basis_symmetric
+  ∃ V : ℕ → set (α × α), has_antitone_basis (𝓤 α) (λ _, true) V ∧ ∀ n, symmetric_rel (V n) :=
+let ⟨U, hsym, hbasis⟩ := h.exists_antitone_subbasis uniform_space.has_basis_symmetric
 in ⟨U, hbasis, λ n, (hsym n).2⟩
 
 /-! ### Uniform continuity -/

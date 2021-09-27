@@ -992,9 +992,7 @@ lemma abs_eq_sup_neg {α : Type*} [has_neg α] [lattice α] (a : α) : abs a = a
 rfl
 
 lemma abs_eq_max_neg {α : Type*} [has_neg α] [linear_order α] (a : α) : abs a = max a (-a) :=
-begin
-  exact rfl,
-end
+rfl
 
 lemma abs_choice (x : α) : abs x = x ∨ abs x = -x := max_choice _ _
 

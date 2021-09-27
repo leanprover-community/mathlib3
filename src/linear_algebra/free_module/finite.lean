@@ -14,6 +14,16 @@ import ring_theory.finiteness
 
 We provide some instances for finite and free modules.
 
+## Main results
+
+* `module.free.pi` : the product of finitely many free modules is free.
+* `module.free.matrix` : the module of (finite) matrices is free.
+* `module.free.choose_basis_index.fintype` : If a free module is finite, then any basis is
+  finite.
+* `module.free.linear_map.free ` : if `M` and `N` are finite and free, then `M →ₗ[R] N` is free.
+* `module.finite.of_basis` : A free module with a basis indexed by a `fintype` is finite.
+* `module.free.linear_map.module.finite` : if `M` and `N` are finite and free, then `M →ₗ[R] N`
+  is finite.
 -/
 
 universes u v w
@@ -66,6 +76,7 @@ end
 
 variables {R M}
 
+/-- A free module with a basis indexed by a `fintype` is finite. -/
 lemma _root_.module.finite.of_basis {R : Type*} {M : Type*} {ι : Type*} [comm_ring R]
   [add_comm_group M] [module R M] [fintype ι] (b : basis ι R M) : module.finite R M :=
 begin

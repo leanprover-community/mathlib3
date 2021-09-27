@@ -515,10 +515,10 @@ ext $ λ _, h.map_add _ _
 instance : add_comm_monoid (M →ₛₗ[σ₁₂] M₂) :=
 { zero := 0,
   add := (+),
-  add_assoc := by intros; ext; simp [add_comm, add_left_comm],
-  zero_add := by intros; ext; simp [add_comm, add_left_comm],
-  add_zero := by intros; ext; simp [add_comm, add_left_comm],
-  add_comm := by intros; ext; simp [add_comm, add_left_comm],
+  add_assoc := λ f g h, linear_map.ext $ λ x, add_assoc _ _ _,
+  zero_add := λ f, linear_map.ext $ λ x, zero_add _,
+  add_zero := λ f, linear_map.ext $ λ x, add_zero _,
+  add_comm := λ f g, linear_map.ext $ λ x, add_comm _ _,
   nsmul := λ n f,
   { to_fun := λ x, n • (f x),
     map_add' := λ x y, by rw [f.map_add, smul_add],
@@ -527,12 +527,8 @@ instance : add_comm_monoid (M →ₛₗ[σ₁₂] M₂) :=
       rw [f.map_smulₛₗ],
       simp [smul_comm n (σ₁₂ c) (f x)],
     end },
-  nsmul_zero' := λ f, by { ext x, change 0 • f x = 0, simp only [zero_smul] },
-  nsmul_succ' := λ n f, linear_map.ext $ λ x,
-  begin
-    change n.succ • (f x) = f x + n • (f x),
-    simp [nat.succ_eq_one_add, add_nsmul],
-  end }
+  nsmul_zero' := λ f, linear_map.ext $ λ x, add_comm_monoid.nsmul_zero' _,
+  nsmul_succ' := λ n f, linear_map.ext $ λ x, add_comm_monoid.nsmul_succ' _ _ }
 
 /-- The negation of a linear map is linear. -/
 instance : has_neg (M →ₛₗ[σ₁₂] N₂) :=
@@ -660,8 +656,11 @@ lemma coe_one : ⇑(1 : module.End R M) = _root_.id := rfl
 lemma coe_mul (f g : module.End R M) : ⇑(f * g) = f ∘ g := rfl
 
 instance _root_.module.End.monoid : monoid (module.End R M) :=
-by refine_struct { mul := (*), one := (1 : M →ₗ[R] M), npow := @npow_rec _ ⟨1⟩ ⟨(*)⟩ };
-intros; try { refl }; apply linear_map.ext; simp {proj := ff}
+{ mul := (*),
+  one := (1 : M →ₗ[R] M),
+  mul_assoc := λ f g h, linear_map.ext $ λ x, rfl,
+  mul_one := comp_id,
+  one_mul := id_comp }
 
 instance _root_.module.End.semiring : semiring (module.End R M) :=
 { mul := (*),

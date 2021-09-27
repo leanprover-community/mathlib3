@@ -16,7 +16,7 @@ In any decidable linear order `α`, we define the set of elements lying between 
 interval as defined in this file is always the set of things lying between `a` and `b`, regardless
 of the relative order of `a` and `b`.
 
-For real numbers, `Icc (min a b) (max a b)` is the same as `segment a b`.
+For real numbers, `Icc (min a b) (max a b)` is the same as `segment ℝ a b`.
 
 ## Notation
 
@@ -37,7 +37,7 @@ variables {α : Type u} [linear_order α] {a a₁ a₂ b b₁ b₂ x : α}
 /-- `interval a b` is the set of elements lying between `a` and `b`, with `a` and `b` included. -/
 def interval (a b : α) := Icc (min a b) (max a b)
 
-localized "notation `[`a `, ` b `]` := interval a b" in interval
+localized "notation `[`a `, ` b `]` := set.interval a b" in interval
 
 @[simp] lemma interval_of_le (h : a ≤ b) : [a, b] = Icc a b :=
 by rw [interval, min_eq_left h, max_eq_right h]
@@ -119,7 +119,7 @@ end
 def interval_oc : α → α → set α := λ a b, Ioc (min a b) (max a b)
 
 -- Below is a capital iota
-localized "notation `Ι` := interval_oc" in interval
+localized "notation `Ι` := set.interval_oc" in interval
 
 lemma interval_oc_of_le (h : a ≤ b) : Ι a b = Ioc a b :=
 by simp [interval_oc, h]

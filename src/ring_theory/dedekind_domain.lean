@@ -9,6 +9,7 @@ import ring_theory.ideal.over
 import ring_theory.integrally_closed
 import ring_theory.polynomial.rational_root
 import ring_theory.trace
+import algebra.associated
 
 /-!
 # Dedekind domains
@@ -280,18 +281,16 @@ lemma is_dedekind_domain_inv_iff [algebra A K] [is_fraction_ring A K] :
   is_dedekind_domain_inv A ↔
     (∀ I ≠ (⊥ : fractional_ideal A⁰ K), I * I⁻¹ = 1) :=
 begin
-  set h : fraction_ring A ≃ₐ[A] K := fraction_ring.alg_equiv A K,
+  set h := fraction_ring.alg_equiv A K,
   split; rintros hi I hI,
-  { have := hi (fractional_ideal.map h.symm.to_alg_hom I)
-               (fractional_ideal.map_ne_zero h.symm.to_alg_hom hI),
-    convert congr_arg (fractional_ideal.map h.to_alg_hom) this;
-      simp only [alg_equiv.to_alg_hom_eq_coe, map_symm_map, map_one,
-                 fractional_ideal.map_mul, fractional_ideal.map_div, inv_eq] },
-  { have := hi (fractional_ideal.map h.to_alg_hom I)
-               (fractional_ideal.map_ne_zero h.to_alg_hom hI),
-    convert congr_arg (fractional_ideal.map h.symm.to_alg_hom) this;
-      simp only [alg_equiv.to_alg_hom_eq_coe, map_map_symm, map_one,
-                 fractional_ideal.map_mul, fractional_ideal.map_div, inv_eq] },
+  { refine fractional_ideal.map_injective h.symm.to_alg_hom h.symm.injective _,
+    rw [alg_equiv.to_alg_hom_eq_coe, inv_eq, fractional_ideal.map_mul,
+        fractional_ideal.map_one_div, fractional_ideal.map_one, ← inv_eq, hi],
+    exact fractional_ideal.map_ne_zero _ hI },
+  { refine fractional_ideal.map_injective h.to_alg_hom h.injective _,
+    rw [alg_equiv.to_alg_hom_eq_coe, inv_eq, fractional_ideal.map_mul,
+        fractional_ideal.map_one_div, fractional_ideal.map_one, ← inv_eq, hi],
+    exact fractional_ideal.map_ne_zero _ hI },
 end
 
 lemma fractional_ideal.adjoin_integral_eq_one_of_is_unit [algebra A K] [is_fraction_ring A K]
@@ -510,24 +509,22 @@ begin
   { letI := hNF.to_field A, rcases hI1 (I.eq_bot_or_top.resolve_left hI0) },
   -- We'll show a contradiction with `exists_not_mem_one_of_ne_bot`:
   -- `J⁻¹ = (I * I⁻¹)⁻¹` cannot have an element `x ∉ 1`, so it must equal `1`.
-  by_contradiction h_abs,
   obtain ⟨J, hJ⟩ : ∃ (J : ideal A), (J : fractional_ideal A⁰ K) = I * I⁻¹ :=
     le_one_iff_exists_coe_ideal.mp mul_one_div_le_one,
   by_cases hJ0 : J = ⊥,
   { subst hJ0,
-    apply hI0,
+    refine absurd _ hI0,
     rw [eq_bot_iff, ← coe_ideal_le_coe_ideal K, hJ],
     exact coe_ideal_le_self_mul_inv K I,
     apply_instance },
-  have hJ1 : J ≠ ⊤,
-  { rintro rfl,
-    rw [← hJ, coe_ideal_top] at h_abs,
-    exact h_abs rfl },
+  by_cases hJ1 : J = ⊤,
+  { rw [← hJ, hJ1, coe_ideal_top] },
   obtain ⟨x, hx, hx1⟩ : ∃ (x : K),
     x ∈ (J : fractional_ideal A⁰ K)⁻¹ ∧ x ∉ (1 : fractional_ideal A⁰ K) :=
     exists_not_mem_one_of_ne_bot hNF hJ0 hJ1,
+  contrapose! hx1 with h_abs,
   rw hJ at hx,
-  exact hx1 (hI hx)
+  exact hI hx,
 end
 
 /-- Nonzero integral ideals in a Dedekind domain are invertible.
@@ -662,19 +659,20 @@ instance : wf_dvd_monoid (ideal A) :=
 instance ideal.unique_factorization_monoid :
   unique_factorization_monoid (ideal A) :=
 { irreducible_iff_prime := λ P,
-    ⟨λ hirr, ⟨hirr.ne_zero, hirr.not_unit, λ I J, begin
-      have : P.is_maximal,
-      { use mt ideal.is_unit_iff.mpr hirr.not_unit,
-        intros J hJ,
-        obtain ⟨J_ne, H, hunit, P_eq⟩ := ideal.dvd_not_unit_iff_lt.mpr hJ,
-        exact ideal.is_unit_iff.mp ((hirr.is_unit_or_is_unit P_eq).resolve_right hunit) },
-      simp only [ideal.dvd_iff_le, has_le.le, preorder.le, partial_order.le],
-      contrapose!,
-      rintros ⟨⟨x, x_mem, x_not_mem⟩, ⟨y, y_mem, y_not_mem⟩⟩,
-      exact ⟨x * y, ideal.mul_mem_mul x_mem y_mem,
-             mt this.is_prime.mem_or_mem (not_or x_not_mem y_not_mem)⟩,
-    end⟩,
-    prime.irreducible⟩,
+  ⟨λ hirr, ⟨hirr.ne_zero, hirr.not_unit, λ I J, begin
+    have : P.is_maximal,
+    { refine ⟨⟨mt ideal.is_unit_iff.mpr hirr.not_unit, _⟩⟩,
+      intros J hJ,
+      obtain ⟨J_ne, H, hunit, P_eq⟩ := ideal.dvd_not_unit_iff_lt.mpr hJ,
+      exact ideal.is_unit_iff.mp ((hirr.is_unit_or_is_unit P_eq).resolve_right hunit) },
+    rw [ideal.dvd_iff_le, ideal.dvd_iff_le, ideal.dvd_iff_le,
+        set_like.le_def, set_like.le_def, set_like.le_def],
+    contrapose!,
+    rintros ⟨⟨x, x_mem, x_not_mem⟩, ⟨y, y_mem, y_not_mem⟩⟩,
+    exact ⟨x * y, ideal.mul_mem_mul x_mem y_mem,
+           mt this.is_prime.mem_or_mem (not_or x_not_mem y_not_mem)⟩,
+   end⟩,
+   prime.irreducible⟩,
   .. ideal.wf_dvd_monoid }
 
 noncomputable instance ideal.normalization_monoid : normalization_monoid (ideal A) :=
@@ -899,3 +897,52 @@ instance integral_closure.is_dedekind_domain_fraction_ring
 integral_closure.is_dedekind_domain A (fraction_ring A) L
 
 end is_integral_closure
+
+section is_dedekind_domain
+
+variables {T : Type*} [integral_domain T] [is_dedekind_domain T] (I J : ideal T)
+open_locale classical
+open multiset unique_factorization_monoid ideal
+
+lemma prod_factors_eq_self {I : ideal T} (hI : I ≠ ⊥) : (factors I).prod = I :=
+associated_iff_eq.1 (factors_prod hI)
+
+lemma factors_prod_factors_eq_factors {α : multiset (ideal T)}
+  (h : ∀ p ∈ α, prime p) : factors α.prod = α :=
+by { simp_rw [← multiset.rel_eq, ← associated_eq_eq],
+     exact prime_factors_unique (prime_of_factor) h (factors_prod
+       (α.prod_ne_zero_of_prime h)) }
+
+lemma count_le_of_ideal_ge {I J : ideal T} (h : I ≤ J) (hI : I ≠ ⊥) (K : ideal T) :
+  count K (factors J) ≤ count K (factors I) :=
+le_iff_count.1 ((dvd_iff_factors_le_factors (ne_bot_of_le_ne_bot hI h) hI).1 (dvd_iff_le.2 h)) _
+
+lemma sup_eq_prod_inf_factors (hI : I ≠ ⊥) (hJ : J ≠ ⊥) : I ⊔ J = (factors I ∩ factors J).prod :=
+begin
+  have H : factors (factors I ∩ factors J).prod = factors I ∩ factors J,
+  { apply factors_prod_factors_eq_factors,
+    intros p hp,
+    rw mem_inter at hp,
+    exact prime_of_factor p hp.left },
+  have := (multiset.prod_ne_zero_of_prime (factors I ∩ factors J)
+      (λ _ h, prime_of_factor _ (multiset.mem_inter.1 h).1)),
+  apply le_antisymm,
+  { rw [sup_le_iff, ← dvd_iff_le, ← dvd_iff_le],
+    split,
+    { rw [dvd_iff_factors_le_factors this hI, H],
+      exact inf_le_left },
+    { rw [dvd_iff_factors_le_factors this hJ, H],
+      exact inf_le_right } },
+  { rw [← dvd_iff_le, dvd_iff_factors_le_factors, factors_prod_factors_eq_factors, le_iff_count],
+    { intro a,
+      rw multiset.count_inter,
+      exact le_min (count_le_of_ideal_ge le_sup_left hI a)
+        (count_le_of_ideal_ge le_sup_right hJ a) },
+    { intros p hp,
+      rw mem_inter at hp,
+      exact prime_of_factor p hp.left },
+    { exact ne_bot_of_le_ne_bot hI le_sup_left },
+    { exact this } },
+end
+
+end is_dedekind_domain

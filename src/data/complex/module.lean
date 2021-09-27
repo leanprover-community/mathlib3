@@ -49,8 +49,7 @@ instance : has_scalar R ℂ :=
 lemma smul_re (r : R) (z : ℂ) : (r • z).re = r • z.re := by simp [(•)]
 lemma smul_im (r : R) (z : ℂ) : (r • z).im = r • z.im := by simp [(•)]
 
-@[simp] lemma smul_coe {x : ℝ} {z : ℂ} : x • z = x * z :=
-by ext; simp [smul_re, smul_im]
+@[simp] lemma real_smul {x : ℝ} {z : ℂ} : x • z = x * z := rfl
 
 end
 
@@ -79,8 +78,7 @@ instance [comm_semiring R] [algebra R ℝ] : algebra R ℂ :=
   commutes' := λ r ⟨xr, xi⟩, by ext; simp [smul_re, smul_im, algebra.commutes],
   ..complex.of_real.comp (algebra_map R ℝ) }
 
-/-- Note that when applied the RHS is further simplified by `complex.of_real_eq_coe`. -/
-@[simp] lemma coe_algebra_map : ⇑(algebra_map ℝ ℂ) = complex.of_real := rfl
+@[simp] lemma coe_algebra_map : (algebra_map ℝ ℂ : ℝ → ℂ) = coe := rfl
 
 section
 variables {A : Type*} [semiring A] [algebra ℝ A]
@@ -119,7 +117,7 @@ lemma complex_ordered_smul : ordered_smul ℝ ℂ :=
     { subst h, exfalso, apply lt_irrefl 0 h₂, },
     { refine lt_def.mpr ⟨y / x, div_pos l h₂, _⟩,
       replace e := congr_arg (λ z, (x⁻¹ : ℂ) * z) e,
-      simp only [mul_add, ←mul_assoc, h, one_mul, of_real_eq_zero, smul_coe, ne.def,
+      simp only [mul_add, ←mul_assoc, h, one_mul, of_real_eq_zero, real_smul, ne.def,
         not_false_iff, inv_mul_cancel] at e,
       convert e,
       simp only [div_eq_iff_mul_eq, h, of_real_eq_zero, of_real_div, ne.def, not_false_iff],
@@ -162,7 +160,7 @@ by rw [finrank_eq_card_basis basis_one_I, fintype.card_fin]
 @[simp] lemma dim_real_complex : module.rank ℝ ℂ = 2 :=
 by simp [← finrank_eq_dim, finrank_real_complex]
 
-lemma {u} dim_real_complex' : cardinal.lift.{0 u} (module.rank ℝ ℂ) = 2 :=
+lemma {u} dim_real_complex' : cardinal.lift.{u} (module.rank ℝ ℂ) = 2 :=
 by simp [← finrank_eq_dim, finrank_real_complex, bit0]
 
 /-- `fact` version of the dimension of `ℂ` over `ℝ`, locally useful in the definition of the
@@ -180,6 +178,11 @@ restrict_scalars.module ℝ ℂ E
 instance module.real_complex_tower (E : Type*) [add_comm_group E] [module ℂ E] :
   is_scalar_tower ℝ ℂ E :=
 restrict_scalars.is_scalar_tower ℝ ℂ E
+
+@[simp, norm_cast] lemma complex.coe_smul {E : Type*} [add_comm_group E] [module ℂ E]
+  (x : ℝ) (y : E) :
+  (x : ℂ) • y = x • y :=
+rfl
 
 @[priority 100]
 instance finite_dimensional.complex_to_real (E : Type*) [add_comm_group E] [module ℂ E]

@@ -6,6 +6,7 @@ Authors: Kenny Lau
 
 import linear_algebra.smodeq
 import ring_theory.ideal.operations
+import ring_theory.jacobson_ideal
 
 /-!
 # Completion of a module with respect to an ideal.
@@ -209,5 +210,42 @@ protected theorem subsingleton (h : is_adic_complete (⊤ : ideal R) M) : subsin
 h.1.subsingleton
 
 @[priority 100] instance of_subsingleton [subsingleton M] : is_adic_complete I M := {}
+
+open_locale big_operators
+
+lemma le_jacobson_bot [is_adic_complete I R] : I ≤ (⊥ : ideal R).jacobson :=
+begin
+  intros x hx,
+  rw [← ideal.neg_mem_iff, ideal.mem_jacobson_bot],
+  intros y,
+  rw add_comm,
+  let f : ℕ → R := geom_sum (x * y),
+  have hf : ∀ m n, m ≤ n → f m ≡ f n [SMOD I ^ m • (⊤ : submodule R R)],
+  { intros m n h,
+    simp only [f, geom_sum_def, algebra.id.smul_eq_mul, ideal.mul_top, smodeq.sub_mem],
+    rw [← nat.add_sub_cancel' h, finset.sum_range_add, ← sub_sub, sub_self, zero_sub, neg_mem_iff],
+    apply submodule.sum_mem,
+    intros n hn,
+    rw [mul_pow, pow_add, mul_assoc],
+    exact ideal.mul_mem_right _ (I ^ m) (ideal.pow_mem_pow hx m) },
+  obtain ⟨L, hL⟩ := is_precomplete.prec to_is_precomplete hf,
+  { rw is_unit_iff_exists_inv,
+    use L,
+    rw [← sub_eq_zero, neg_mul_eq_neg_mul_symm],
+    apply is_Hausdorff.haus (to_is_Hausdorff : is_Hausdorff I R),
+    intros n,
+    specialize hL n,
+    rw [smodeq.sub_mem, algebra.id.smul_eq_mul, ideal.mul_top] at ⊢ hL,
+    rw sub_zero,
+    suffices : (1 - x * y) * (f n) - 1 ∈ I ^ n,
+    { convert (ideal.sub_mem _ this (ideal.mul_mem_left _ (1 + - (x * y)) hL)) using 1,
+      ring },
+    cases n,
+    { simp only [ideal.one_eq_top, pow_zero] },
+    { dsimp [f],
+      rw [← neg_sub _ (1:R), neg_mul_eq_neg_mul_symm, mul_geom_sum, neg_sub,
+        sub_sub, add_comm, ← sub_sub, sub_self, zero_sub, neg_mem_iff, mul_pow],
+      exact ideal.mul_mem_right _ (I ^ _) (ideal.pow_mem_pow hx _), } },
+end
 
 end is_adic_complete

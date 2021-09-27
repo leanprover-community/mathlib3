@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Lacker, Heather Macbeth
 -/
 
-import analysis.special_functions.trigonometric
+import analysis.special_functions.trigonometric.complex
 
 /-!
 # IMO 1962 Q4

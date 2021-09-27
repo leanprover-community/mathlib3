@@ -44,11 +44,11 @@ include dec_ι
 
 /-- `dfinsupp.mk` as a `linear_map`. -/
 def lmk (s : finset ι) : (Π i : (↑s : set ι), M i) →ₗ[R] Π₀ i, M i :=
-{ to_fun := mk s, map_add' := λ _ _, mk_add, map_smul' := λ c x, mk_smul R x }
+{ to_fun := mk s, map_add' := λ _ _, mk_add, map_smul' := λ c x, mk_smul c x}
 
 /-- `dfinsupp.single` as a `linear_map` -/
 def lsingle (i) : M i →ₗ[R] Π₀ i, M i :=
-{ to_fun := single i, map_smul' := λ r x, single_smul _, .. dfinsupp.single_add_hom _ _ }
+{ to_fun := single i, map_smul' := single_smul, .. dfinsupp.single_add_hom _ _ }
 
 /-- Two `R`-linear maps from `Π₀ i, M i` which agree on each `single i x` agree everywhere. -/
 lemma lhom_ext ⦃φ ψ : (Π₀ i, M i) →ₗ[R] N⦄
@@ -99,7 +99,7 @@ we have with the `Π i, has_zero (M i →ₗ[R] N)` instance which appears as a 
 `dfinsupp` type. -/
 instance module_of_linear_map [semiring S] [module S N] [smul_comm_class R S N] :
   module S (Π₀ (i : ι), M i →ₗ[R] N) :=
-@dfinsupp.module _ (λ i, M i →ₗ[R] N) _ _ _ _
+@dfinsupp.module _ _ (λ i, M i →ₗ[R] N) _ _ _
 
 variables (S)
 
@@ -115,6 +115,7 @@ def lsum [semiring S] [module S N] [smul_comm_class R S N] :
     to_fun := sum_add_hom (λ i, (F i).to_add_monoid_hom),
     map_add' := (lift_add_hom (λ i, (F i).to_add_monoid_hom)).map_add,
     map_smul' := λ c f, by {
+      dsimp,
       apply dfinsupp.induction f,
       { rw [smul_zero, add_monoid_hom.map_zero, smul_zero] },
       { intros a b f ha hb hf,
@@ -206,6 +207,7 @@ end dfinsupp
 include dec_ι
 
 namespace submodule
+open dfinsupp
 
 lemma dfinsupp_sum_mem {β : ι → Type*} [Π i, has_zero (β i)]
   [Π i (x : β i), decidable (x ≠ 0)] (S : submodule R N)
@@ -231,6 +233,29 @@ begin
     exact dfinsupp_sum_add_hom_mem _ v _ (λ i _, (le_supr p i : p i ≤ _) (v i).prop) }
 end
 
+/-- The bounded supremum of a family of commutative additive submonoids is equal to the range of
+`dfinsupp.sum_add_hom` composed with `dfinsupp.filter_add_monoid_hom`; that is, every element in the
+bounded `supr` can be produced from taking a finite number of non-zero elements from the `S i` that
+satisfy `p i`, coercing them to `γ`, and summing them. -/
+lemma bsupr_eq_range_dfinsupp_lsum (p : ι → Prop)
+  [decidable_pred p] (S : ι → submodule R N) :
+  (⨆ i (h : p i), S i) =
+    ((dfinsupp.lsum ℕ (λ i, (S i).subtype)).comp (dfinsupp.filter_linear_map R _ p)).range :=
+begin
+  apply le_antisymm,
+  { apply bsupr_le _,
+    intros i hi y hy,
+    refine ⟨dfinsupp.single i ⟨y, hy⟩, _⟩,
+    rw [linear_map.comp_apply, filter_linear_map_apply, filter_single_pos _ _ hi],
+    exact dfinsupp.sum_add_hom_single _ _ _, },
+  { rintros x ⟨v, rfl⟩,
+    refine dfinsupp_sum_add_hom_mem _ _ _ (λ i hi, _),
+    refine mem_supr_of_mem i _,
+    by_cases hp : p i,
+    { simp [hp], },
+    { simp [hp] }, }
+end
+
 lemma mem_supr_iff_exists_dfinsupp (p : ι → submodule R N) (x : N) :
   x ∈ supr p ↔ ∃ f : Π₀ i, p i, dfinsupp.lsum ℕ (λ i, (p i).subtype) f = x :=
 set_like.ext_iff.mp (supr_eq_range_dfinsupp_lsum p) x
@@ -244,5 +269,11 @@ begin
   simp_rw [dfinsupp.lsum_apply_apply, dfinsupp.sum_add_hom_apply],
   congr',
 end
+
+lemma mem_bsupr_iff_exists_dfinsupp (p : ι → Prop) [decidable_pred p] (S : ι → submodule R N)
+  (x : N) :
+  x ∈ (⨆ i (h : p i), S i) ↔
+    ∃ f : Π₀ i, S i, dfinsupp.lsum ℕ (λ i, (S i).subtype) (f.filter p) = x :=
+set_like.ext_iff.mp (bsupr_eq_range_dfinsupp_lsum p S) x
 
 end submodule

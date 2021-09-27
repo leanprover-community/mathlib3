@@ -47,6 +47,7 @@ def to_fun_right_linear (a : A) : matrix n n R →ₗ[R] matrix n n A :=
     dsimp only [to_fun],
     ext,
     simp only [pi.smul_apply, ring_hom.map_mul, algebra.id.smul_eq_mul],
+    dsimp,
     rw [algebra.smul_def r, ←_root_.mul_assoc, ←_root_.mul_assoc, algebra.commutes],
   end, }
 
@@ -177,7 +178,7 @@ rfl
   matrix_equiv_tensor R A n (std_basis_matrix i j x) =
     x ⊗ₜ (std_basis_matrix i j 1) :=
 begin
-  have t : ∀ (p : n × n), (p.1 = i ∧ p.2 = j) ↔ (p = (i, j)) := by tidy,
+  have t : ∀ (p : n × n), (i = p.1 ∧ j = p.2) ↔ (p = (i, j)) := by tidy,
   simp [ite_tmul, t, std_basis_matrix],
 end
 

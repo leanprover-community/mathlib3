@@ -118,4 +118,18 @@ set.inclusion $ λ s hs, hs.2.is_closed
 
 end nonempty_compacts
 
+section positive_compacts
+
+variable (α)
+/-- In a nonempty locally compact space, there exists a compact set with nonempty interior. -/
+instance nonempty_positive_compacts [locally_compact_space α] [nonempty α] :
+  nonempty (positive_compacts α) :=
+begin
+  inhabit α,
+  rcases exists_compact_subset is_open_univ (mem_univ (default α)) with ⟨K, hK⟩,
+  exact ⟨⟨K, hK.1, ⟨_, hK.2.1⟩⟩⟩
+end
+
+end positive_compacts
+
 end topological_space

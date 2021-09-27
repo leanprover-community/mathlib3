@@ -276,13 +276,41 @@ begin
   apply is_closed_map.of_nonempty, intros s hs h2s, simp_rw [h2s.image_const, is_closed_singleton]
 end
 
+lemma finite.is_closed {α} [topological_space α] [t1_space α] {s : set α} (hs : set.finite s) :
+  is_closed s :=
+begin
+  rw ← bUnion_of_singleton s,
+  exact is_closed_bUnion hs (λ i hi, is_closed_singleton)
+end
+
+/-- If the punctured neighborhoods of a point form a nontrivial filter, then any neighborhood is
+infinite. -/
+lemma infinite_of_mem_nhds {α} [topological_space α] [t1_space α] (x : α) [hx : ne_bot (𝓝[{x}ᶜ] x)]
+  {s : set α} (hs : s ∈ 𝓝 x) : set.infinite s :=
+begin
+  unfreezingI { contrapose! hx },
+  rw set.not_infinite at hx,
+  have A : is_closed (s \ {x}) := finite.is_closed (hx.subset (diff_subset _ _)),
+  have B : (s \ {x})ᶜ ∈ 𝓝 x,
+  { apply is_open.mem_nhds,
+    { apply is_open_compl_iff.2 A },
+    { simp only [not_true, not_false_iff, mem_diff, and_false, mem_compl_eq, mem_singleton] } },
+  have C : {x} ∈ 𝓝 x,
+  { apply filter.mem_of_superset (filter.inter_mem hs B),
+    assume y hy,
+    simp only [mem_singleton_iff, mem_inter_eq, not_and, not_not, mem_diff, mem_compl_eq] at hy,
+    simp only [hy.right hy.left, mem_singleton] },
+  have D : {x}ᶜ ∈ 𝓝[{x}ᶜ] x := self_mem_nhds_within,
+  simpa [← empty_mem_iff_bot] using filter.inter_mem (mem_nhds_within_of_mem_nhds C) D
+end
+
 lemma discrete_of_t1_of_finite {X : Type*} [topological_space X] [t1_space X] [fintype X] :
   discrete_topology X :=
 begin
   apply singletons_open_iff_discrete.mp,
   intros x,
-  rw [← is_closed_compl_iff, ← bUnion_of_singleton ({x} : set X)ᶜ],
-  exact is_closed_bUnion (finite.of_fintype _) (λ y _, is_closed_singleton)
+  rw [← is_closed_compl_iff],
+  exact finite.is_closed (finite.of_fintype _)
 end
 
 lemma singleton_mem_nhds_within_of_mem_discrete {s : set α} [discrete_topology s]
@@ -716,6 +744,10 @@ is_open_compl_iff.1 $ is_open_iff_forall_mem_open.mpr $ assume x hx,
   have v ⊆ sᶜ, from
     subset_compl_comm.mp (subset.trans su (subset_compl_iff_disjoint.mpr uv)),
 ⟨v, this, vo, by simpa using xv⟩
+
+@[simp] lemma filter.coclosed_compact_eq_cocompact [t2_space α] :
+  coclosed_compact α = cocompact α :=
+by simp [coclosed_compact, cocompact, infi_and', and_iff_right_of_imp is_compact.is_closed]
 
 /-- If `V : ι → set α` is a decreasing family of compact sets then any neighborhood of
 `⋂ i, V i` contains some `V i`. This is a version of `exists_subset_nhd_of_compact'` where we

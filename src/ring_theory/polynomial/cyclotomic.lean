@@ -45,8 +45,8 @@ not the standard one unless there is a primitive `n`th root of unity in `R`. For
 To get the standard cyclotomic polynomials, we use `int_coeff_of_cycl`, with `R = ℂ`, to get a
 polynomial with integer coefficients and then we map it to `polynomial R`, for any ring `R`.
 To prove `cyclotomic.irreducible`, the irreducibility of `cyclotomic n ℤ`, we show in
-`minpoly_primitive_root_eq_cyclotomic` that `cyclotomic n ℤ` is the minimal polynomial of
-any `n`-th primitive root of unity `μ : K`, where `K` is a field of characteristic `0`.
+`cyclotomic_eq_minpoly` that `cyclotomic n ℤ` is the minimal polynomial of any `n`-th primitive root
+of unity `μ : K`, where `K` is a field of characteristic `0`.
 -/
 
 open_locale classical big_operators
@@ -598,7 +598,7 @@ end
 
 /-- If `(a : ℕ)` is a root of `cyclotomic n (zmod p)`, where `p` is a prime that does not divide
 `n`, then the multiplicative order of `a` modulo `p` is exactly `n`. -/
-lemma order_of_root_cyclotomic {n : ℕ} (hpos : 0 < n) {p : ℕ} [fact p.prime] {a : ℕ}
+lemma order_of_root_cyclotomic_eq {n : ℕ} (hpos : 0 < n) {p : ℕ} [fact p.prime] {a : ℕ}
   (hn : ¬ p ∣ n) (hroot : is_root (cyclotomic n (zmod p)) (nat.cast_ring_hom (zmod p) a)) :
   order_of (zmod.unit_of_coprime a (coprime_of_root_cyclotomic hpos hroot)) = n :=
 begin
@@ -633,7 +633,7 @@ begin
   simp only [map_nat_cast, map_X, map_sub] at habs,
   replace habs := degree_eq_zero_of_is_unit habs,
   rw [← C_eq_nat_cast, degree_X_sub_C] at habs,
-  norm_cast at habs
+  exact one_ne_zero habs
 end
 
 end order
@@ -643,7 +643,7 @@ section minpoly
 open is_primitive_root complex
 
 /-- The minimal polynomial of a primitive `n`-th root of unity `μ` divides `cyclotomic n ℤ`. -/
-lemma minpoly_primitive_root_dvd_cyclotomic {n : ℕ} {K : Type*} [field K] {μ : K}
+lemma _root_.minpoly_dvd_cyclotomic {n : ℕ} {K : Type*} [field K] {μ : K}
   (h : is_primitive_root μ n) (hpos : 0 < n) [char_zero K] :
   minpoly ℤ μ ∣ cyclotomic n ℤ :=
 begin
@@ -657,7 +657,7 @@ lemma cyclotomic_eq_minpoly {n : ℕ} {K : Type*} [field K] {μ : K}
   cyclotomic n ℤ = minpoly ℤ μ :=
 begin
   refine eq_of_monic_of_dvd_of_nat_degree_le (minpoly.monic (is_integral h hpos))
-    (cyclotomic.monic n ℤ) (minpoly_primitive_root_dvd_cyclotomic h hpos) _,
+    (cyclotomic.monic n ℤ) (minpoly_dvd_cyclotomic h hpos) _,
   simpa [nat_degree_cyclotomic n ℤ] using totient_le_degree_minpoly h hpos
 end
 

@@ -58,7 +58,7 @@ end
   map_smul' := λ c p,
   begin
     rw [sum_eq_of_subset _ (λ n r, f n r) (λ n, (f n).map_zero) _ (support_smul c p)],
-    simp only [sum_def, finset.smul_sum, coeff_smul, linear_map.map_smul],
+    simp only [sum_def, finset.smul_sum, coeff_smul, linear_map.map_smul, ring_hom.id_apply]
   end }
 
 variable (R)
@@ -205,6 +205,8 @@ by simp [bit0, add_mul]
 lemma coeff_bit1_mul (P Q : polynomial R) (n : ℕ) :
   coeff (bit1 P * Q) n = 2 * coeff (P * Q) n + coeff Q n :=
 by simp [bit1, add_mul, coeff_bit0_mul]
+
+lemma smul_eq_C_mul (a : R) : a • p = C a * p := by simp [ext_iff]
 
 end coeff
 

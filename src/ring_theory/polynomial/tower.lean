@@ -10,8 +10,9 @@ import data.polynomial.algebra_map
 /-!
 # Algebra towers for polynomial
 
-This file defines the algebra tower structure for the type `polynomial R`,
-and proves some basic results.
+This file proves some basic results about the algebra tower structure for the type `polynomial R`.
+
+This structure itself is provided elsewhere as `polynomial.is_scalar_tower`
 -/
 
 universes u v w u₁
@@ -25,12 +26,7 @@ variables [comm_semiring R] [comm_semiring S] [semiring A] [semiring B]
 variables [algebra R S] [algebra S A] [algebra S B] [algebra R A] [algebra R B]
 variables [is_scalar_tower R S A] [is_scalar_tower R S B]
 
-variables (R) {S A B}
-
-instance polynomial : is_scalar_tower R S (polynomial A) :=
-of_algebra_map_eq $ λ x, congr_arg polynomial.C $ algebra_map_apply R S A x
-
-variables (R S A)
+variables (R S A) {B}
 theorem aeval_apply (x : A) (p : polynomial R) : polynomial.aeval x p =
   polynomial.aeval x (polynomial.map (algebra_map R S) p) :=
 by rw [polynomial.aeval_def, polynomial.aeval_def, polynomial.eval₂_map, algebra_map_eq R S A]

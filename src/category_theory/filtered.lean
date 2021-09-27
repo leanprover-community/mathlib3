@@ -46,8 +46,6 @@ categories.
 In `category_theory.limits.filtered_colimit_commutes_finite_limit` we show that filtered colimits
 commute with finite limits.
 
-## Future work
-* Forgetful functors for algebraic categories typically preserve filtered colimits.
 -/
 
 universes v v₁ u u₁-- declare the `v`'s first; see `category_theory.category` for an explanation

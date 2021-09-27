@@ -7,6 +7,7 @@ import tactic.apply_fun
 import ring_theory.matrix_algebra
 import ring_theory.polynomial_algebra
 import linear_algebra.matrix.nonsingular_inverse
+import linear_algebra.matrix.reindex
 import tactic.squeeze
 
 /-!
@@ -67,11 +68,26 @@ begin
     split_ifs; simp [h], }
 end
 
+lemma charmatrix_reindex {m : Type v} [decidable_eq m] [fintype m] (e : n ≃ m)
+  (M : matrix n n R) : charmatrix (reindex e e M) = reindex e e (charmatrix M) :=
+begin
+  ext i j x,
+  by_cases h : i = j,
+  all_goals { simp [h] }
+end
+
 /--
 The characteristic polynomial of a matrix `M` is given by $\det (t I - M)$.
 -/
 def matrix.charpoly (M : matrix n n R) : polynomial R :=
 (charmatrix M).det
+
+lemma matrix.charpoly_reindex {m : Type v} [decidable_eq m] [fintype m] (e : n ≃ m)
+  (M : matrix n n R) : (reindex e e M).charpoly = M.charpoly :=
+begin
+  unfold matrix.charpoly,
+  rw [charmatrix_reindex, matrix.det_reindex_self]
+end
 
 /--
 The **Cayley-Hamilton Theorem**, that the characteristic polynomial of a matrix,
@@ -80,7 +96,7 @@ applied to the matrix itself, is zero.
 This holds over any commutative ring.
 -/
 -- This proof follows http://drorbn.net/AcademicPensieve/2015-12/CayleyHamilton.pdf
-theorem aeval_self_charpoly (M : matrix n n R) :
+theorem matrix.aeval_self_charpoly (M : matrix n n R) :
   aeval M M.charpoly = 0 :=
 begin
   -- We begin with the fact $χ_M(t) I = adjugate (t I - M) * (t I - M)$,

@@ -5,7 +5,7 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import analysis.convex.extreme
 import analysis.convex.function
-import analysis.normed_space.basic
+import analysis.normed_space.ordered
 
 /-!
 # Exposed sets
@@ -13,7 +13,7 @@ import analysis.normed_space.basic
 This file defines exposed sets and exposed points for sets in a real vector space.
 
 An exposed subset of `A` is a subset of `A` that is the set of all maximal points of a functional
-(a continuous linear map `E → ℝ`) over `A`. By convention, `∅` is an exposed subset of all sets.
+(a continuous linear map `E → 𝕜`) over `A`. By convention, `∅` is an exposed subset of all sets.
 This allows for better functioriality of the definition (the intersection of two exposed subsets is
 exposed, faces of a polytope form a bounded lattice).
 This is an analytic notion of "being on the side of". It is stronger than being extreme (see
@@ -25,7 +25,7 @@ on mathlib!).
 
 ## Main declarations
 
-* `is_exposed A B`: States that `B` is an exposed set of `A` (in the literature, `A` is often
+* `is_exposed 𝕜 A B`: States that `B` is an exposed set of `A` (in the literature, `A` is often
   implicit).
 * `is_exposed.is_extreme`: An exposed set is also extreme.
 
@@ -35,9 +35,9 @@ See chapter 8 of [Barry Simon, *Convexity*][simon2011]
 
 ## TODO
 
-* define convex independence, intrinsic frontier/interior and prove the lemmas related to exposed
-  sets and points.
-* generalise to Locally Convex Topological Vector Spaces™
+Define intrinsic frontier/interior and prove the lemmas related to exposed sets and points.
+
+Generalise to Locally Convex Topological Vector Spaces™
 
 More not-yet-PRed stuff is available on the branch `sperner_again`.
 -/
@@ -45,38 +45,39 @@ More not-yet-PRed stuff is available on the branch `sperner_again`.
 open_locale classical affine big_operators
 open set
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B C : set E}
-  {X : finset E} {l : E →L[ℝ] ℝ}
+variables (𝕜 : Type*) {E : Type*} [normed_linear_ordered_field 𝕜] [normed_group E]
+  [normed_space 𝕜 E] {l : E →L[𝕜] 𝕜} {A B C : set E} {X : finset E} {x : E}
 
 /-- A set `B` is exposed with respect to `A` iff it maximizes some functional over `A` (and contains
-all points maximizing it). Written `is_exposed A B`. -/
+all points maximizing it). Written `is_exposed 𝕜 A B`. -/
 def is_exposed (A B : set E) : Prop :=
-B.nonempty → ∃ l : E →L[ℝ] ℝ, B = {x ∈ A | ∀ y ∈ A, l y ≤ l x}
+B.nonempty → ∃ l : E →L[𝕜] 𝕜, B = {x ∈ A | ∀ y ∈ A, l y ≤ l x}
 
+variables {𝕜}
 
 /-- A useful way to build exposed sets from intersecting `A` with halfspaces (modelled by an
 inequality with a functional). -/
-def continuous_linear_map.to_exposed (l : E →L[ℝ] ℝ) (A : set E) : set E :=
+def continuous_linear_map.to_exposed (l : E →L[𝕜] 𝕜) (A : set E) : set E :=
 {x ∈ A | ∀ y ∈ A, l y ≤ l x}
 
-lemma continuous_linear_map.to_exposed.is_exposed : is_exposed A (l.to_exposed A) := λ h, ⟨l, rfl⟩
+lemma continuous_linear_map.to_exposed.is_exposed : is_exposed 𝕜 A (l.to_exposed A) := λ h, ⟨l, rfl⟩
 
-lemma is_exposed_empty : is_exposed A ∅ :=
+lemma is_exposed_empty : is_exposed 𝕜 A ∅ :=
 λ ⟨x, hx⟩, by { exfalso, exact hx }
 
 namespace is_exposed
 
-protected lemma subset (hAB : is_exposed A B) : B ⊆ A :=
+protected lemma subset (hAB : is_exposed 𝕜 A B) : B ⊆ A :=
 begin
   rintro x hx,
   obtain ⟨_, rfl⟩ := hAB ⟨x, hx⟩,
   exact hx.1,
 end
 
-@[refl] lemma refl (A : set E) : is_exposed A A :=
+@[refl] lemma refl (A : set E) : is_exposed 𝕜 A A :=
 λ ⟨w, hw⟩, ⟨0, subset.antisymm (λ x hx, ⟨hx, λ y hy, by exact le_refl 0⟩) (λ x hx, hx.1)⟩
 
-lemma antisymm (hB : is_exposed A B) (hA : is_exposed B A) :
+lemma antisymm (hB : is_exposed 𝕜 A B) (hA : is_exposed 𝕜 B A) :
   A = B :=
 hA.subset.antisymm hB.subset
 
@@ -85,8 +86,8 @@ hA.subset.antisymm hB.subset
 of `A₀₀₀A₀₀₁A₀₁₀` which is an exposed subset of the cube, but `A₀₀₁A₀₁₀` is not itself an exposed
 subset of the cube. -/
 
-protected lemma mono (hC : is_exposed A C) (hBA : B ⊆ A) (hCB : C ⊆ B) :
-  is_exposed B C :=
+protected lemma mono (hC : is_exposed 𝕜 A C) (hBA : B ⊆ A) (hCB : C ⊆ B) :
+  is_exposed 𝕜 B C :=
 begin
   rintro ⟨w, hw⟩,
   obtain ⟨l, rfl⟩ := hC ⟨w, hw⟩,
@@ -97,8 +98,8 @@ end
 /-- If `B` is an exposed subset of `A`, then `B` is the intersection of `A` with some closed
 halfspace. The converse is *not* true. It would require that the corresponding open halfspace
 doesn't intersect `A`. -/
-lemma eq_inter_halfspace (hAB : is_exposed A B) :
-  ∃ l : E →L[ℝ] ℝ, ∃ a, B = {x ∈ A | a ≤ l x} :=
+lemma eq_inter_halfspace (hAB : is_exposed 𝕜 A B) :
+  ∃ l : E →L[𝕜] 𝕜, ∃ a, B = {x ∈ A | a ≤ l x} :=
 begin
   obtain hB | hB := B.eq_empty_or_nonempty,
   { refine ⟨0, 1, _⟩,
@@ -112,8 +113,8 @@ begin
     (λ x hx, ⟨hx.1, λ y hy, (hw.2 y hy).trans hx.2⟩)⟩,
 end
 
-lemma inter (hB : is_exposed A B) (hC : is_exposed A C) :
-  is_exposed A (B ∩ C) :=
+lemma inter (hB : is_exposed 𝕜 A B) (hC : is_exposed 𝕜 A C) :
+  is_exposed 𝕜 A (B ∩ C) :=
 begin
   rintro ⟨w, hwB, hwC⟩,
   obtain ⟨l₁, rfl⟩ := hB ⟨w, hwB⟩,
@@ -130,8 +131,8 @@ begin
 end
 
 lemma sInter {F : finset (set E)} (hF : F.nonempty)
-  (hAF : ∀ B ∈ F, is_exposed A B) :
-  is_exposed A (⋂₀ F) :=
+  (hAF : ∀ B ∈ F, is_exposed 𝕜 A B) :
+  is_exposed 𝕜 A (⋂₀ F) :=
 begin
   revert hF F,
   refine finset.induction _ _,
@@ -147,8 +148,8 @@ begin
     hCF B(finset.mem_insert_of_mem hB))),
 end
 
-lemma inter_left (hC : is_exposed A C) (hCB : C ⊆ B) :
-  is_exposed (A ∩ B) C :=
+lemma inter_left (hC : is_exposed 𝕜 A C) (hCB : C ⊆ B) :
+  is_exposed 𝕜 (A ∩ B) C :=
 begin
   rintro ⟨w, hw⟩,
   obtain ⟨l, rfl⟩ := hC ⟨w, hw⟩,
@@ -156,19 +157,19 @@ begin
     (λ x ⟨⟨hxC, _⟩, hx⟩, ⟨hxC, λ y hy, (hw.2 y hy).trans (hx w ⟨hC.subset hw, hCB hw⟩)⟩)⟩,
 end
 
-lemma inter_right (hC : is_exposed B C) (hCA : C ⊆ A) :
-  is_exposed (A ∩ B) C :=
+lemma inter_right (hC : is_exposed 𝕜 B C) (hCA : C ⊆ A) :
+  is_exposed 𝕜 (A ∩ B) C :=
 begin
   rw inter_comm,
   exact hC.inter_left hCA,
 end
 
-protected lemma is_extreme (hAB : is_exposed A B) :
-  is_extreme A B :=
+protected lemma is_extreme (hAB : is_exposed 𝕜 A B) :
+  is_extreme 𝕜 A B :=
 begin
   refine ⟨hAB.subset, λ x₁ x₂ hx₁A hx₂A x hxB hx, _⟩,
   obtain ⟨l, rfl⟩ := hAB ⟨x, hxB⟩,
-  have hl : convex_on univ l := l.to_linear_map.convex_on convex_univ,
+  have hl : convex_on 𝕜 univ l := l.to_linear_map.convex_on convex_univ,
   have hlx₁ := hxB.2 x₁ hx₁A,
   have hlx₂ := hxB.2 x₂ hx₂A,
   refine ⟨⟨hx₁A, λ y hy, _⟩, ⟨hx₂A, λ y hy, _⟩⟩,
@@ -178,43 +179,55 @@ begin
     exact hxB.2 y hy }
 end
 
-protected lemma is_convex (hAB : is_exposed A B) (hA : convex ℝ A) :
-  convex ℝ B :=
+protected lemma convex (hAB : is_exposed 𝕜 A B) (hA : convex 𝕜 A) :
+  convex 𝕜 B :=
 begin
   obtain rfl | hB := B.eq_empty_or_nonempty,
   { exact convex_empty },
   obtain ⟨l, rfl⟩ := hAB hB,
   exact λ x₁ x₂ hx₁ hx₂ a b ha hb hab, ⟨hA hx₁.1 hx₂.1 ha hb hab, λ y hy,
-    ((l.to_linear_map.concave_on convex_univ).concave_le _
+    ((l.to_linear_map.concave_on convex_univ).concave_ge _
     ⟨mem_univ _, hx₁.2 y hy⟩ ⟨mem_univ _, hx₂.2 y hy⟩ ha hb hab).2⟩,
 end
 
-lemma is_closed (hAB : is_exposed A B) (hA : is_closed A) :
+lemma is_closed [normed_space ℝ E] (hAB : is_exposed ℝ A B) (hA : is_closed A) :
   is_closed B :=
 begin
   obtain ⟨l, a, rfl⟩ := hAB.eq_inter_halfspace,
   exact hA.is_closed_le continuous_on_const l.continuous.continuous_on,
 end
 
-lemma is_compact (hAB : is_exposed A B) (hA : is_compact A) :
+lemma is_compact [normed_space ℝ E] (hAB : is_exposed ℝ A B) (hA : is_compact A) :
   is_compact B :=
 compact_of_is_closed_subset hA (hAB.is_closed hA.is_closed) hAB.subset
 
 end is_exposed
 
+variables (𝕜)
+
 /-- A point is exposed with respect to `A` iff there exists an hyperplane whose intersection with
 `A` is exactly that point. -/
 def set.exposed_points (A : set E) :
   set E :=
-{x ∈ A | ∃ l : E →L[ℝ] ℝ, ∀ y ∈ A, l y ≤ l x ∧ (l x ≤ l y → y = x)}
+{x ∈ A | ∃ l : E →L[𝕜] 𝕜, ∀ y ∈ A, l y ≤ l x ∧ (l x ≤ l y → y = x)}
+
+variables {𝕜}
 
 lemma exposed_point_def :
-  x ∈ A.exposed_points ↔ x ∈ A ∧ ∃ l : E →L[ℝ] ℝ, ∀ y ∈ A, l y ≤ l x ∧ (l x ≤ l y → y = x) :=
+  x ∈ A.exposed_points 𝕜 ↔ x ∈ A ∧ ∃ l : E →L[𝕜] 𝕜, ∀ y ∈ A, l y ≤ l x ∧ (l x ≤ l y → y = x) :=
 iff.rfl
+
+lemma exposed_points_subset :
+  A.exposed_points 𝕜 ⊆ A :=
+λ x hx, hx.1
+
+@[simp] lemma exposed_points_empty :
+  (∅ : set E).exposed_points 𝕜 = ∅ :=
+subset_empty_iff.1 exposed_points_subset
 
 /-- Exposed points exactly correspond to exposed singletons. -/
 lemma mem_exposed_points_iff_exposed_singleton :
-  x ∈ A.exposed_points ↔ is_exposed A {x} :=
+  x ∈ A.exposed_points 𝕜 ↔ is_exposed 𝕜 A {x} :=
 begin
   use λ ⟨hxA, l, hl⟩ h, ⟨l, eq.symm $ eq_singleton_iff_unique_mem.2 ⟨⟨hxA, λ y hy, (hl y hy).1⟩,
     λ z hz, (hl z hz.1).2 (hz.2 x hxA)⟩⟩,
@@ -224,15 +237,7 @@ begin
   exact ⟨hl.1.1, l, λ y hy, ⟨hl.1.2 y hy, λ hxy, hl.2 y ⟨hy, λ z hz, (hl.1.2 z hz).trans hxy⟩⟩⟩,
 end
 
-lemma exposed_points_subset :
-  A.exposed_points ⊆ A :=
-λ x hx, hx.1
-
-lemma exposed_points_subset_extreme_points :
-  A.exposed_points ⊆ A.extreme_points :=
+lemma exposed_points_subset_extreme_points [normed_space ℝ E] :
+  A.exposed_points ℝ ⊆ A.extreme_points ℝ :=
 λ x hx, mem_extreme_points_iff_extreme_singleton.2
   (mem_exposed_points_iff_exposed_singleton.1 hx).is_extreme
-
-@[simp] lemma exposed_points_empty :
-  (∅ : set E).exposed_points = ∅ :=
-subset_empty_iff.1 exposed_points_subset

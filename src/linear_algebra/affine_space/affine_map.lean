@@ -490,6 +490,8 @@ lemma homothety_eq_line_map (c : P1) (r : k) (p : P1) : homothety c r p = line_m
 @[simp] lemma homothety_one (c : P1) : homothety c (1:k) = id k P1 :=
 by { ext p, simp [homothety_apply] }
 
+@[simp] lemma homothety_apply_same (c : P1) (r : k) : homothety c r c = c := line_map_same_apply c r
+
 lemma homothety_mul (c : P1) (r₁ r₂ : k) :
   homothety c (r₁ * r₂) = (homothety c r₁).comp (homothety c r₂) :=
 by { ext p, simp [homothety_apply, mul_smul] }

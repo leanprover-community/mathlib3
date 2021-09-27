@@ -310,16 +310,23 @@ lemma high_scores [linear_order β] [no_top_order β] {u : ℕ → β}
   (hu : tendsto u at_top at_top) : ∀ N, ∃ n ≥ N, ∀ k < n, u k < u n :=
 begin
   intros N,
-  obtain ⟨k, hkn, hku⟩ : ∃ k ≤ N, ∀ l ≤ N, u l ≤ u k,
+  obtain ⟨k : ℕ, hkn : k ≤ N, hku : ∀ l ≤ N, u l ≤ u k⟩ : ∃ k ≤ N, ∀ l ≤ N, u l ≤ u k,
     from exists_max_image _ u (finite_le_nat N) ⟨N, le_refl N⟩,
   have ex : ∃ n ≥ N, u k < u n,
     from exists_lt_of_tendsto_at_top hu _ _,
-  obtain ⟨M, hMN, hMk, hM_min⟩ : ∃ M ≥ N, u k < u M ∧ ∀ m, m < M → N ≤ m → u m ≤ u k,
-  { rcases nat.find_x ex with ⟨M, ⟨hMN, hMk⟩, hM_min⟩,
-    push_neg at hM_min,
-    exact ⟨M, hMN, hMk, hM_min⟩ },
-  refine ⟨M, hMN, λ l hl, lt_of_le_of_lt _ hMk⟩,
-  exact (le_total l N).elim (hku _) (hM_min l hl)
+  obtain ⟨n : ℕ, hnN : n ≥ N, hnk : u k < u n, hn_min : ∀ m, m < n → N ≤ m → u m ≤ u k⟩ :
+    ∃ n ≥ N, u k < u n ∧ ∀ m, m < n → N ≤ m → u m ≤ u k,
+  { rcases nat.find_x ex with ⟨n, ⟨hnN, hnk⟩, hn_min⟩,
+    push_neg at hn_min,
+    exact ⟨n, hnN, hnk, hn_min⟩ },
+  use [n, hnN],
+  rintros (l : ℕ) (hl : l < n),
+  have hlk : u l ≤ u k,
+  { cases (le_total l N : l ≤ N ∨ N ≤ l) with H H,
+    { exact hku l H },
+    { exact hn_min l hl H } },
+  calc u l ≤ u k : hlk
+       ... < u n : hnk
 end
 
 /--
@@ -1201,8 +1208,8 @@ by rw [map_at_top_eq, map_at_top_eq];
 from (le_infi $ assume b, let ⟨v, hv⟩ := h_eq b in infi_le_of_le v $
   by simp [set.image_subset_iff]; exact hv)
 
-lemma has_antimono_basis.tendsto [semilattice_sup ι] [nonempty ι] {l : filter α}
-  {p : ι → Prop} {s : ι → set α} (hl : l.has_antimono_basis p s) {φ : ι → α}
+lemma has_antitone_basis.tendsto [semilattice_sup ι] [nonempty ι] {l : filter α}
+  {p : ι → Prop} {s : ι → set α} (hl : l.has_antitone_basis p s) {φ : ι → α}
   (h : ∀ i : ι, φ i ∈ s i) : tendsto φ at_top l  :=
 (at_top_basis.tendsto_iff hl.to_has_basis).2 $ assume i hi,
   ⟨i, trivial, λ j hij, hl.decreasing hi (hl.mono hij hi) hij (h j)⟩
@@ -1218,7 +1225,7 @@ lemma tendsto_iff_seq_tendsto {f : α → β} {k : filter α} {l : filter β}
 suffices (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) → tendsto f k l,
   from ⟨by intros; apply tendsto.comp; assumption, by assumption⟩,
 begin
-  rcases hcb.exists_antimono_basis with ⟨g, gbasis, gmon, -⟩,
+  rcases hcb.exists_antitone_basis with ⟨g, gbasis, gmon, -⟩,
   contrapose,
   simp only [not_forall, gbasis.tendsto_left_iff, exists_const, not_exists, not_imp],
   rintro ⟨B, hBl, hfBk⟩,
@@ -1242,7 +1249,7 @@ lemma subseq_tendsto {f : filter α} (hf : is_countably_generated f)
   (hx : ne_bot (f ⊓ map u at_top)) :
   ∃ (θ : ℕ → ℕ), (strict_mono θ) ∧ (tendsto (u ∘ θ) at_top f) :=
 begin
-  rcases hf.exists_antimono_basis with ⟨B, h⟩,
+  rcases hf.exists_antitone_basis with ⟨B, h⟩,
   have : ∀ N, ∃ n ≥ N, u n ∈ B N,
     from λ N, filter.inf_map_at_top_ne_bot_iff.mp hx _ (h.to_has_basis.mem_of_mem trivial) N,
   choose φ hφ using this,

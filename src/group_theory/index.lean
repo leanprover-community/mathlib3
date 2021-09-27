@@ -58,7 +58,7 @@ variables {H} {K : subgroup G}
 
 @[to_additive] lemma index_eq_mul_of_le (h : H ≤ K) :
   H.index = K.index * (H.subgroup_of K).index :=
-(congr_arg cardinal.to_nat (by exact cardinal.eq_congr (quotient_equiv_prod_of_le h))).trans
+(congr_arg cardinal.to_nat (by exact (quotient_equiv_prod_of_le h).cardinal_eq)).trans
   (cardinal.to_nat_mul _ _)
 
 @[to_additive] lemma index_dvd_of_le (h : H ≤ K) : K.index ∣ H.index :=

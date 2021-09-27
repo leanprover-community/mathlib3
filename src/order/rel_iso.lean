@@ -64,13 +64,12 @@ theorem map_rel (f : r →r s) : ∀ {a b}, r a b → s (f a) (f b) := f.map_rel
 
 @[simp] theorem coe_fn_to_fun (f : r →r s) : (f.to_fun : α → β) = f := rfl
 
-/-- The map `coe_fn : (r →r s) → (α → β)` is injective. We can't use `function.injective`
-here but mimic its signature by using `⦃e₁ e₂⦄`. -/
-theorem coe_fn_inj : ∀ ⦃e₁ e₂ : r →r s⦄, (e₁ : α → β) = e₂ → e₁ = e₂
+/-- The map `coe_fn : (r →r s) → (α → β)` is injective. -/
+theorem coe_fn_injective : @function.injective (r →r s) (α → β) coe_fn
 | ⟨f₁, o₁⟩ ⟨f₂, o₂⟩ h := by { congr, exact h }
 
 @[ext] theorem ext ⦃f g : r →r s⦄ (h : ∀ x, f x = g x) : f = g :=
-coe_fn_inj (funext h)
+coe_fn_injective (funext h)
 
 theorem ext_iff {f g : r →r s} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
@@ -203,13 +202,12 @@ theorem map_rel_iff (f : r ↪r s) : ∀ {a b}, s (f a) (f b) ↔ r a b := f.map
 
 @[simp] theorem coe_fn_to_embedding (f : r ↪r s) : (f.to_embedding : α → β) = f := rfl
 
-/-- The map `coe_fn : (r ↪r s) → (α → β)` is injective. We can't use `function.injective`
-here but mimic its signature by using `⦃e₁ e₂⦄`. -/
-theorem coe_fn_inj : ∀ ⦃e₁ e₂ : r ↪r s⦄, (e₁ : α → β) = e₂ → e₁ = e₂
+/-- The map `coe_fn : (r ↪r s) → (α → β)` is injective. -/
+theorem coe_fn_injective : @function.injective (r ↪r s) (α → β) coe_fn
 | ⟨⟨f₁, h₁⟩, o₁⟩ ⟨⟨f₂, h₂⟩, o₂⟩ h := by { congr, exact h }
 
 @[ext] theorem ext ⦃f g : r ↪r s⦄ (h : ∀ x, f x = g x) : f = g :=
-coe_fn_inj (funext h)
+coe_fn_injective (funext h)
 
 theorem ext_iff {f g : r ↪r s} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
@@ -685,6 +683,15 @@ def set.univ : (set.univ : set α) ≃o α :=
 { to_equiv := equiv.set.univ α,
   map_rel_iff' := λ x y, iff.rfl }
 
+/-- Order isomorphism between `α → β` and `β`, where `α` has a unique element. -/
+@[simps to_equiv apply] def fun_unique (α β : Type*) [unique α] [preorder β] :
+  (α → β) ≃o β :=
+{ to_equiv := equiv.fun_unique α β,
+  map_rel_iff' := λ f g, by simp [pi.le_def, unique.forall_iff] }
+
+@[simp] lemma fun_unique_symm_apply {α β : Type*} [unique α] [preorder β] :
+  ((fun_unique α β).symm : β → α → β) = function.const α := rfl
+
 end order_iso
 
 namespace equiv
@@ -707,8 +714,8 @@ end equiv
 
 /-- If a function `f` is strictly monotone on a set `s`, then it defines an order isomorphism
 between `s` and its image. -/
-protected noncomputable def strict_mono_incr_on.order_iso {α β} [linear_order α] [preorder β]
-  (f : α → β) (s : set α) (hf : strict_mono_incr_on f s) :
+protected noncomputable def strict_mono_on.order_iso {α β} [linear_order α] [preorder β]
+  (f : α → β) (s : set α) (hf : strict_mono_on f s) :
   s ≃o f '' s :=
 { to_equiv := hf.inj_on.bij_on_image.equiv _,
   map_rel_iff' := λ x y, hf.le_iff_le x.2 y.2 }

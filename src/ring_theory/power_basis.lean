@@ -100,7 +100,7 @@ begin
     refine ⟨f, _, hy⟩,
     by_cases hf : f = 0,
     { simp only [hf, nat_degree_zero, degree_zero] at h ⊢,
-      exact lt_of_le_of_ne (nat.zero_le d) hd.symm <|> exact with_bot.bot_lt_some d },
+      exact lt_of_le_of_ne (nat.zero_le d) hd.symm <|> exact with_bot.bot_lt_coe d },
     simpa only [degree_eq_nat_degree hf, with_bot.coe_lt_coe] using h },
 end
 

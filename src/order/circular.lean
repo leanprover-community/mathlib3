@@ -24,8 +24,9 @@ This file defines circular preorders, circular partial orders and circular order
 * A `circular_preorder` further drops antisymmetry.
 
 The mind picture is that a circular order is a circle and `btw a b c` means that going around
-clockwise from `a` you reach `b` before `c`. A circular partial order is several, potentially
-intersecting, circles. A circular preorder is more of a mess.
+clockwise from `a` you reach `b` before `c` (`b` is between `a` and `c` is meaningless on an
+unoriented circle). A circular partial order is several, potentially intersecting, circles. A
+circular preorder is more of a mess.
 
 One can translate from usual orders to circular ones by "closing the necklace at infinity". See
 `has_le.to_has_btw` and `has_lt.to_has_sbtw`. Going the other way involves "cutting the necklace" or
@@ -50,7 +51,8 @@ There's an unsolved diamond here. The instances `has_le α → has_btw (order_du
   `has_le α` → `has_le (order_dual α)` → `has_btw (order_dual α)`
 * `has_lt α` → `has_sbtw α` → `has_sbtw (order_dual α)` vs
   `has_lt α` → `has_lt (order_dual α)` → `has_sbtw (order_dual α)`
-The fields are propeq, but not defeq.
+The fields are propeq, but not defeq. It is temporarily fixed by turning the circularizing instances
+into definitions.
 
 ## TODO
 
@@ -251,10 +253,10 @@ namespace set
 section circular_preorder
 variables {α : Type*} [circular_preorder α]
 
-/-- Circular interval closed-closed -/
+/-- Closed-closed circular interval -/
 def cIcc (a b : α) : set α := {x | btw a x b}
 
-/-- Circular interval open-open -/
+/-- Open-open circular interval -/
 def cIoo (a b : α) : set α := {x | sbtw a x b}
 
 @[simp] lemma mem_cIcc {a b x : α} : x ∈ cIcc a b ↔ btw a x b := iff.rfl
@@ -287,15 +289,21 @@ end set
 
 /-! ### Circularizing instances -/
 
-/-- The betweenness relation obtained from "looping around" `≤`. -/
+/-- The betweenness relation obtained from "looping around" `≤`.
+See note [reducible non-instances]. -/
+@[reducible]
 def has_le.to_has_btw (α : Type*) [has_le α] : has_btw α :=
 { btw := λ a b c, (a ≤ b ∧ b ≤ c) ∨ (b ≤ c ∧ c ≤ a) ∨ (c ≤ a ∧ a ≤ b) }
 
-/-- The strict betweenness relation obtained from "looping around" `<`. -/
+/-- The strict betweenness relation obtained from "looping around" `<`.
+See note [reducible non-instances]. -/
+@[reducible]
 def has_lt.to_has_sbtw (α : Type*) [has_lt α] : has_sbtw α :=
 { sbtw := λ a b c, (a < b ∧ b < c) ∨ (b < c ∧ c < a) ∨ (c < a ∧ a < b) }
 
-/-- The circular preorder obtained from "looping around" a preorder. -/
+/-- The circular preorder obtained from "looping around" a preorder.
+See note [reducible non-instances]. -/
+@[reducible]
 def preorder.to_circular_preorder (α : Type*) [preorder α] : circular_preorder α :=
 { btw := λ a b c, (a ≤ b ∧ b ≤ c) ∨ (b ≤ c ∧ c ≤ a) ∨ (c ≤ a ∧ a ≤ b),
   sbtw := λ a b c, (a < b ∧ b < c) ∨ (b < c ∧ c < a) ∨ (c < a ∧ a < b),
@@ -328,7 +336,9 @@ def preorder.to_circular_preorder (α : Type*) [preorder α] : circular_preorder
     tauto!,
   end }
 
-/-- The circular partial order obtained from "looping around" a partial order. -/
+/-- The circular partial order obtained from "looping around" a partial order.
+See note [reducible non-instances]. -/
+@[reducible]
 def partial_order.to_circular_partial_order (α : Type*) [partial_order α] :
   circular_partial_order α :=
 { btw_antisymm := λ a b c, begin
@@ -345,7 +355,9 @@ def partial_order.to_circular_partial_order (α : Type*) [partial_order α] :
   end,
   .. preorder.to_circular_preorder α }
 
-/-- The circular order obtained from "looping around" a linear order. -/
+/-- The circular order obtained from "looping around" a linear order.
+See note [reducible non-instances]. -/
+@[reducible]
 def linear_order.to_circular_order (α : Type*) [linear_order α] :
   circular_order α :=
 { btw_total := λ a b c, begin

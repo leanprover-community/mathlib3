@@ -52,6 +52,8 @@ end semiring
 section ring
 variables [ring S] (a b : ℕ)
 
+/-- Convenience lemma. The `a - 1` is not using truncated substraction, as opposed to the definition
+of `nat.desc_factorial` as a natural. -/
 lemma cast_desc_factorial_two :
   (a.desc_factorial 2 : S) = a * (a - 1) :=
 begin

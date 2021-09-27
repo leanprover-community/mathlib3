@@ -56,7 +56,7 @@ variables [second_countable_topology 𝕜] [complete_space 𝕜] [borel_space �
 lemma pdf_ae_eq_of_cdf (X : α → 𝕜) (h : differentiable ℝ (cdf X ℙ)) :
   (λ x, (pdf X ℙ μ x).to_real) =ᵐ[μ] deriv (cdf X ℙ) :=
 begin
-
+  sorry
 end
 
 end

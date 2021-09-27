@@ -723,6 +723,13 @@ theorem map_repeat (f : α → β) (a : α) (k : ℕ) : (repeat a k).map f = rep
 @[simp] theorem map_add (f : α → β) (s t) : map f (s + t) = map f s + map f t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ map_append _ _ _
 
+/-- If each element of `s : multiset α` can be lifted to `β`, then `s` can be lifted to
+`multiset β`. -/
+instance [can_lift α β] : can_lift (multiset α) (multiset β) :=
+{ cond := λ s, ∀ x ∈ s, can_lift.cond β x,
+  coe := map can_lift.coe,
+  prf := by { rintro ⟨l⟩ hl, lift l to list β using hl, exact ⟨l, coe_map _ _⟩ } }
+
 /-- `multiset.map` as an `add_monoid_hom`. -/
 def map_add_monoid_hom (f : α → β) : multiset α →+ multiset β :=
 { to_fun := map f,
@@ -2153,6 +2160,18 @@ begin
   by_cases x = a,
     simp only [min_comm, h, if_true, eq_self_iff_true],
     simp only [h, if_false, zero_min],
+end
+
+/-- `multiset.map f` preserves `count` if `f` is injective on the set of elements contained in
+the multiset -/
+theorem count_map_eq_count [decidable_eq β] (f : α → β) (s : multiset α)
+ (hf : set.inj_on f {x : α | x ∈ s}) (x ∈ s) : (s.map f).count (f x) = s.count x :=
+begin
+  suffices : (filter (λ (a : α), f x = f a) s).count x = card (filter (λ (a : α), f x = f a) s),
+  { rw [count, countp_map, ← this],
+    exact count_filter_of_pos rfl },
+  { rw eq_repeat.2 ⟨rfl, λ b hb, eq_comm.1 ((hf H (mem_filter.1 hb).left) (mem_filter.1 hb).right)⟩,
+    simp only [count_repeat, eq_self_iff_true, if_true, card_repeat]},
 end
 
 end

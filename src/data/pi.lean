@@ -44,6 +44,7 @@ instance has_mul [∀ i, has_mul $ f i] :
   has_inv (Π i : I, f i) :=
   ⟨λ f i, (f i)⁻¹⟩
 @[simp, to_additive] lemma inv_apply [∀ i, has_inv $ f i] : x⁻¹ i = (x i)⁻¹ := rfl
+@[to_additive] lemma inv_def [Π i, has_inv $ f i] : x⁻¹ = λ i, (x i)⁻¹ := rfl
 
 @[to_additive] instance has_div [Π i, has_div $ f i] :
   has_div (Π i : I, f i) :=
@@ -113,6 +114,35 @@ function.update_injective _ i
 
 end
 end pi
+
+section extend
+
+namespace function
+
+variables {α β γ : Type*}
+
+@[to_additive]
+lemma extend_one [has_one γ] (f : α → β) :
+  function.extend f (1 : α → γ) (1 : β → γ) = 1 :=
+funext $ λ _, by apply if_t_t _ _
+
+@[to_additive]
+lemma extend_mul [has_mul γ] (f : α → β) (g₁ g₂ : α → γ) (e₁ e₂ : β → γ) :
+  function.extend f (g₁ * g₂) (e₁ * e₂) = function.extend f g₁ e₁ * function.extend f g₂ e₂ :=
+funext $ λ _, by convert (apply_dite2 (*) _ _ _ _ _).symm
+
+@[to_additive]
+lemma extend_inv [has_inv γ] (f : α → β) (g : α → γ) (e : β → γ) :
+  function.extend f (g⁻¹) (e⁻¹) = (function.extend f g e)⁻¹ :=
+funext $ λ _, by convert (apply_dite has_inv.inv _ _ _).symm
+
+@[to_additive]
+lemma extend_div [has_div γ] (f : α → β) (g₁ g₂ : α → γ) (e₁ e₂ : β → γ) :
+  function.extend f (g₁ / g₂) (e₁ / e₂) = function.extend f g₁ e₁ / function.extend f g₂ e₂ :=
+funext $ λ _, by convert (apply_dite2 (/) _ _ _ _ _).symm
+
+end function
+end extend
 
 lemma subsingleton.pi_single_eq {α : Type*} [decidable_eq I] [subsingleton I] [has_zero α]
   (i : I) (x : α) :

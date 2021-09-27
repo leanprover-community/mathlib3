@@ -88,7 +88,8 @@ basis.of_repr
       by { ext ⟨i, x⟩,
            simp only [coe_mk, linear_equiv.apply_symm_apply, comap_domain_apply] },
     map_add' := λ g h, by { ext ⟨i, x⟩, simp only [coe_mk, add_apply, linear_equiv.map_add] },
-    map_smul' := λ c h, by { ext ⟨i, x⟩, simp only [coe_mk, smul_apply, linear_equiv.map_smul] } }
+    map_smul' := λ c h, by { ext ⟨i, x⟩, simp only [coe_mk, smul_apply, linear_equiv.map_smul,
+                                                    ring_hom.id_apply] } }
 
 @[simp] lemma basis_repr {φ : ι → Type*} (b : ∀ i, basis (φ i) R M)
   (g : ι →₀ M) (ix) :

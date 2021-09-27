@@ -132,7 +132,8 @@ theorem bijective_of_ne_zero [is_simple_module R M] [is_simple_module R N]
 f.bijective_or_eq_zero.resolve_right h
 
 /-- Schur's Lemma makes the endomorphism ring of a simple module a division ring. -/
-noncomputable instance [decidable_eq (module.End R M)] [is_simple_module R M] :
+noncomputable instance _root_.module.End.division_ring
+  [decidable_eq (module.End R M)] [is_simple_module R M] :
   division_ring (module.End R M) :=
 { inv := λ f, if h : f = 0 then 0 else (linear_map.inverse f
     (equiv.of_bijective _ (bijective_of_ne_zero h)).inv_fun

@@ -984,11 +984,8 @@ variables {T : Type*} [integral_domain T] [is_dedekind_domain T] (I : ideal T)
 
 open ideal unique_factorization_monoid
 
-/--The quotient multiplicity of `p` is the least natural number `n` such that the sequence of
- powers `(p')^m` for `m ≥ n` is constant, where `p'` is the image of `p` in `R/I` -/
-@[simp]
-def quotient_multiplicity (p : ideal T) : ℕ :=
-  Inf {n : ℕ | ∀ m : ℕ, m ≥ n → (map I^.quotient.mk p)^n = (map I^.quotient.mk p)^m}
+def shifted_seq_pow_constant (p : ideal T) : ℕ → Prop := λ n, ∀ m : ℕ, n ≤ m →
+  (map I^.quotient.mk p)^n = (map I^.quotient.mk p)^m
 
 /--The sequence of powers `(p')^m` is eventually constant, where `p'` is the image of `p` in `R/I`-/
 lemma seq_pow_eventually_constant (hI : I ≠ ⊥) (p : ideal T) (Hp : p ∈ factors I) (n : ℕ)
@@ -1001,11 +998,6 @@ begin
   rw sup_dvd_of_ge I hI p Hp n hn at H,
   exact H,
 end
-
--- This lemma could maybe be removed as it only shows up once in the following code
-lemma quotient_multiplicity_well_defined (hI : I ≠ ⊥) (p : ideal T) (Hp : p ∈ factors I) :
-  {n : ℕ | ∀ m : ℕ, m ≥ n → (map I^.quotient.mk p)^n = (map I^.quotient.mk p)^m}.nonempty :=
-by {use (factors I).count p, intros m hm, exact (seq_pow_eventually_constant I hI p Hp m hm).symm}
 
 lemma pow_map_gt_of_exponent_lt (hI : I ≠ ⊥) (p : ideal T) (Hp : p ∈ factors I) (n : ℕ)
   (hn : n < (factors I).count p) :
@@ -1030,35 +1022,61 @@ begin
   rw ← ideal.dvd_not_unit_iff_lt,
   split,
   { exact pow_ne_zero n (prime_of_factor p Hp).ne_zero },
-  { exact ⟨ p^((factors I).count p -n), not_unit_of_not_unit_dvd (prime_of_factor p Hp).not_unit
+  { exact ⟨ p^((factors I).count p - n), not_unit_of_not_unit_dvd (prime_of_factor p Hp).not_unit
       (dvd_pow (dvd_refl p) (ne_of_gt (sub_pos_iff_lt.mpr hn))), H'⟩ }
 end
 
+lemma shifted_seq_pow_constant_iff_ge_count (hI : I ≠ ⊥) (p: ideal T) (hp : p ∈ factors I) (n : ℕ) :
+  shifted_seq_pow_constant I p n ↔ (factors I).count p ≤ n :=
+begin
+  split,
+  { intro H,
+    by_contradiction hc,
+    have H₄ := pow_map_gt_of_exponent_lt I hI p hp n (not_le.1 hc),
+    rw (H ((factors I).count p) (le_of_lt (not_le.1 hc))).symm at H₄,
+    apply false_of_ne,
+    exact ne_of_lt H₄ },
+  { rw shifted_seq_pow_constant,
+    intro hn,
+    intros m hm,
+    rw [seq_pow_eventually_constant I hI p hp n hn,
+    seq_pow_eventually_constant I hI p hp m (le_trans hn hm)] }
+end
+
+instance (hI : I ≠ ⊥) (p : ideal  T) (hp : p ∈ factors I) : decidable_pred
+  (shifted_seq_pow_constant I p) :=
+begin
+  intro n,
+  by_cases h : (factors I).count p ≤ n,
+  { rw ← shifted_seq_pow_constant_iff_ge_count I hI p hp at h,
+    exact is_true h  },
+  { rw ← shifted_seq_pow_constant_iff_ge_count I hI p hp at h,
+    exact is_false h  }
+end
+
+lemma seq_pow_eventually_constant' (hI : I ≠ ⊥) (p : ideal T) (hp : p ∈ factors I) :
+  shifted_seq_pow_constant I p ((factors I).count p) :=
+(shifted_seq_pow_constant_iff_ge_count I hI p hp ((factors I).count p)).2
+  (le_refl ((factors I).count p))
+
+
+/--The quotient multiplicity of `p` is the least natural number `n` such that the sequence of
+ powers `(p')^m` for `m ≥ n` is constant, where `p'` is the image of `p` in `R/I` -/
+def quotient_multiplicity (hI : I ≠ ⊥) (p : ideal T) (hp : p ∈ factors I) : ℕ :=
+  nat.find (exists.intro ((factors I).count p) (seq_pow_eventually_constant' I hI p hp))
+
 /--The quotient multiplicity of a prime factor `p` of `I ≠ 0` is equal to the multiplicity of `p`
   in the factorisation of `I` -/
-lemma quotient_multiplicity_eq_count (hI : I ≠ ⊥) (p : ideal T) (Hp : p ∈ factors I) :
- quotient_multiplicity I p = (factors I).count p :=
+lemma quotient_multiplicity_eq_count (hI : I ≠ 0) (p : ideal T) (hp : p ∈ factors I) :
+ quotient_multiplicity I hI p hp = (factors I).count p :=
 begin
   apply le_antisymm,
   { rw quotient_multiplicity,
-    apply nat.Inf_le,
-    exact (λ m hm, (seq_pow_eventually_constant I hI p Hp m hm).symm) },
-  { suffices H₃ : ∀ n : ℕ, n ∈ {n : ℕ | ∀ m : ℕ, m ≥ n →  (map I^.quotient.mk p)^n =
-    (map I^.quotient.mk p)^m}
-    → n ≥ (factors I).count p,
-    { specialize H₃ (quotient_multiplicity I p),
-      rw quotient_multiplicity,
-      apply H₃ (nat.Inf_mem (quotient_multiplicity_well_defined I hI p Hp)) },
-    intros n hn,
-      by_contradiction hc,
-      rw not_le at hc,
-      have H₄ := pow_map_gt_of_exponent_lt I hI p Hp n hc,
-      specialize hn ((factors I).count p) (le_of_lt hc),
-      rw ← hn at H₄,
-      apply false_of_ne,
-      exact ne_of_lt H₄ },
+    exact nat.find_min' (exists.intro ((factors I).count p)
+    (seq_pow_eventually_constant' I hI p hp)) (seq_pow_eventually_constant' I hI p hp) },
+  { rw [← shifted_seq_pow_constant_iff_ge_count I hI p hp, quotient_multiplicity],
+    exact nat.find_spec (exists.intro ((factors I).count p)
+      (seq_pow_eventually_constant' I hI p hp)) },
 end
-
-
 
 end quotient_multiplicity

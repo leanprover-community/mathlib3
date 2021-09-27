@@ -7,7 +7,7 @@ The Kleisli construction on the Type category
 
 TODO: generalise this to work with category_theory.monad
 -/
-import category_theory.category
+import category_theory.basic
 
 /-!
 # The Kleisli construction on the Type category

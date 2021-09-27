@@ -407,7 +407,7 @@ s.complete_of_finite_dimensional.is_closed
 lemma linear_equiv.closed_embedding_of_injective {f : E →ₗ[𝕜] F} (hf : f.ker = ⊥)
   [finite_dimensional 𝕜 E] :
   closed_embedding ⇑f :=
-let g := linear_equiv.of_injective f hf in
+let g := linear_equiv.of_injective f (linear_map.ker_eq_bot.mp hf) in
 { closed_range := begin
     haveI := f.finite_dimensional_range,
     simpa [f.range_coe] using f.range.closed_of_finite_dimensional

@@ -313,56 +313,23 @@ lemma neg_neg_iff (x y : R) : is_coprime (-x) (-y) ↔ is_coprime x y :=
 
 end comm_ring
 
-end is_coprime
-
-/-- A pair of integers is a `coprime_pair` if they satisfy `is_coprime` -/
-abbreviation coprime_pair :=
-{p : ℤ × ℤ // is_coprime p.1 p.2}
-
-namespace coprime_pair
-
-/-- Make a coprime pair from a pair of coprime integers -/
-def mk (p : ℤ × ℤ) (h : is_coprime p.1 p.2) : coprime_pair := subtype.mk p h
-
-@[simp] lemma mk_eq_mk (p p' : ℤ × ℤ) (h : is_coprime p.1 p.2) (h' : is_coprime p'.1 p'.2) :
-  mk p h = mk p' h' ↔ p = p' :=
-subtype.mk_eq_mk
-
-lemma coe_injective : function.injective (coe : coprime_pair → ℤ × ℤ) := subtype.coe_injective
-
-instance : inhabited coprime_pair := ⟨⟨(1, 1), is_coprime_one_left⟩⟩
-
-/-- The first term in a coprime pair -/
-def c (p : coprime_pair) : ℤ := p.1.1
-
-/-- The second term in a coprime pair -/
-def d (p : coprime_pair) : ℤ := p.1.2
-
-@[simp] lemma fst_coe (p : coprime_pair) : (p : ℤ × ℤ).1 = p.c := rfl
-@[simp] lemma snd_coe (p : coprime_pair) : (p : ℤ × ℤ).2 = p.d := rfl
-
-@[simp] lemma c_mk (p : ℤ × ℤ) (h : is_coprime p.1 p.2) : (coprime_pair.mk p h).c = p.1 := rfl
-@[simp] lemma d_mk (p : ℤ × ℤ) (h : is_coprime p.1 p.2) : (coprime_pair.mk p h).d = p.2 := rfl
-
-protected lemma is_coprime (p : coprime_pair) : is_coprime p.c p.d := p.2
-
-/-- If `p=(c,d)` is a `coprime_pair`, then the vector `![c,d] ≠ 0` (the matrix notation is not yet
+/-- If `is_coprime a b`, then the vector `![a, b] ≠ 0` (the matrix notation is not yet
   defined, so we write it out definitionally) -/
-lemma ne_zero (p : coprime_pair) :
-  (fin.cons p.c (fin.cons p.d fin_zero_elim : (fin 1) → ℤ) : (fin 2) → ℤ) ≠ 0 :=
+lemma ne_zero {a b : ℤ} (h : is_coprime a b) :
+  (fin.cons a (fin.cons b fin_zero_elim : (fin 1) → ℤ) : (fin 2) → ℤ) ≠ 0 :=
 begin
-  intros h,
-  have c_eq_zero : p.c = 0 := congr_arg (λ (v: fin 2 → ℤ), v 0) h,
-  have d_eq_zero : p.d = 0 := congr_arg (λ (v: fin 2 → ℤ), v 1) h,
-  simpa [c_eq_zero, d_eq_zero] using p.is_coprime,
+  intros h',
+  have a_eq_zero : a = 0 := congr_arg (λ (v: fin 2 → ℤ), v 0) h',
+  have b_eq_zero : b = 0 := congr_arg (λ (v: fin 2 → ℤ), v 1) h',
+  simpa [a_eq_zero, b_eq_zero] using h,
 end
 
-lemma sq_add_sq_ne_zero (p : coprime_pair) : p.c ^ 2 + p.d ^ 2 ≠ 0 :=
+lemma sq_add_sq_ne_zero {a b : ℤ} (h : is_coprime a b) : a ^ 2 + b ^ 2 ≠ 0 :=
 begin
-  intros h,
-  have hc : p.c = 0 := by nlinarith,
-  have hd : p.d = 0 := by nlinarith,
-  simpa [prod.ext_iff, hc, hd] using p.is_coprime
+  intros h',
+  have ha : a = 0 := by nlinarith,
+  have hb : b = 0 := by nlinarith,
+  simpa [ha, hb] using h
 end
 
-end coprime_pair
+end is_coprime

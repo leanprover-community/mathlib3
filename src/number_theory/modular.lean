@@ -39,6 +39,8 @@ noncomputable theory
 
 local notation `|` x `|` := _root_.abs x
 local notation `SL(` n `, ` R `)`:= special_linear_group (fin n) R
+local prefix `↑ₘ`:1024 := @coe _ (matrix (fin 2) (fin 2) ℤ) _
+
 
 open_locale upper_half_plane
 
@@ -65,41 +67,32 @@ lemma im_smul_eq_div_norm_sq (g : SL(2, ℤ)) (z : ℍ) :
   (g • z).im = z.im / (complex.norm_sq (denom g z)) :=
 im_smul_eq_div_norm_sq g z
 
+@[simp] lemma foo (g : SL(2, ℤ)) (z : ℍ) : denom g z = ↑ₘg 1 0 * z + ↑ₘg 1 1 := by simp
+
 end upper_half_plane_action
 
 section bottom_row
 
 /-- The `bottom_row` of `g=[[*,*],[c,d]]` in `SL(2,ℤ)` is the `coprime_pair` `(c,d)`. -/
-def bottom_row (g : SL(2, ℤ)) : coprime_pair :=
-coprime_pair.mk
-  (@coe _ (matrix (fin 2) (fin 2) ℤ) _ g 1 0, @coe _ (matrix (fin 2) (fin 2) ℤ) _ g 1 1)
-  begin
-    use [- g 0 1, g 0 0],
-    have := det_fin_two g,
-    have := g.det_coe,
-    simp only [coe_fn_eq_coe] at *,
-    linarith
-  end
-
-lemma bottom_row_surj : function.surjective bottom_row :=
+lemma bottom_row_coprime (g : SL(2, ℤ)) : is_coprime (↑ₘg 1 0) (↑ₘg 1 1) :=
 begin
-  intros cd,
-  obtain ⟨b₀, a, gcd_eqn⟩ := cd.is_coprime,
-  let A := ![![a, -b₀], ![cd.c, cd.d]],
-  have det_A_1 : det A = 1,
-  { convert gcd_eqn,
-    simp [A, det_fin_two, (by ring : a * cd.d + b₀ * cd.c = b₀ * cd.c + a * cd.d)] },
-  use ⟨A, det_A_1⟩,
-  ext; simp [A, bottom_row]
+  use [- g 0 1, g 0 0],
+  have := det_fin_two g,
+  have := g.det_coe,
+  simp only [coe_fn_eq_coe] at *,
+  linarith
 end
 
-lemma denom_eq_mul_bottom_row_add_bottom_row (g : SL(2, ℤ)) (z : ℍ) :
-  denom g z = (bottom_row g).c * z + (bottom_row g).d :=
-by simp [bottom_row]
-
-lemma denom_eq_of_bottom_row_eq {g h : SL(2,ℤ)} (z : ℍ) (bot_eq : bottom_row g = bottom_row h) :
-  denom g z = denom h z :=
-by simp [denom_eq_mul_bottom_row_add_bottom_row, bot_eq]
+lemma bottom_row_surj : set.surj_on (λ g : SL(2, ℤ), ↑ₘg 1) set.univ {cd | is_coprime (cd 0) (cd 1)} :=
+begin
+  rintros cd ⟨b₀, a, gcd_eqn⟩,
+  let A := ![![a, -b₀], cd],
+  have det_A_1 : det A = 1,
+  { convert gcd_eqn,
+    simp [A, det_fin_two, (by ring : a * (cd 1) + b₀ * (cd 0) = b₀ * (cd 0) + a * (cd 1))] },
+  refine ⟨⟨A, det_A_1⟩, set.mem_univ _, _⟩,
+  ext; simp [A]
+end
 
 end bottom_row
 
@@ -108,62 +101,69 @@ section tendsto_lemmas
 open filter continuous_linear_map
 
 /-- The function `(c,d) → |cz+d|^2` is proper, that is, preimages of bounded-above sets are finite.
-  The proof would work for `ℤ×ℤ` but is pharsed for `coprime_pair` since this is needed later in
-  the main argument.
- -/
+-/
 lemma tendsto_norm_sq_coprime_pair (z : ℍ) :
-  filter.tendsto (λ p : coprime_pair, ((p.c : ℂ) * z + p.d).norm_sq)
+  filter.tendsto (λ p : fin 2 → ℤ, ((p 0 : ℂ) * z + p 1).norm_sq)
   cofinite at_top :=
 begin
-  let f : ℝ × ℝ →ₗ[ℝ] ℂ := (linear_map.fst ℝ ℝ ℝ).smul_right (z:ℂ)
-    + (linear_map.snd ℝ ℝ ℝ).smul_right 1,
+  let f : (fin 2 → ℝ) →ₗ[ℝ] ℂ := (linear_map.proj 0 : (fin 2 → ℝ) →ₗ[ℝ] ℝ).smul_right (z:ℂ)
+    + (linear_map.proj 1 : (fin 2 → ℝ) →ₗ[ℝ] ℝ).smul_right 1,
+  have : (λ (p : fin 2 → ℤ), norm_sq ((p 0 : ℂ) * ↑z + ↑(p 1)))
+    = norm_sq ∘ f ∘ (λ p : fin 2 → ℤ, (coe : ℤ → ℝ) ∘ p),
+  { ext,
+    simp only [linear_map.coe_proj, mul_one, complex.smul_coe, function.comp_app, of_real_int_cast,
+      linear_map.coe_smul_right, linear_map.add_apply]},
+  rw this,
   have hf : f.ker = ⊥,
-  { let g : ℂ →ₗ[ℝ] ℝ × ℝ := im_lm.prod (im_lm.comp (((z:ℂ) • conj_ae ))),
+  { let g : ℂ →ₗ[ℝ] (fin 2 → ℝ) := linear_map.pi ![im_lm, (im_lm.comp (((z:ℂ) • conj_ae )))],
     suffices : ((z:ℂ).im⁻¹ • g).comp f = linear_map.id,
     { exact linear_map.ker_eq_bot_of_inverse this },
     apply linear_map.ext,
-    rintros ⟨c₁, c₂⟩,
+    intros c,
     have hz : 0 < (z:ℂ).im := z.2,
     have : (z:ℂ).im ≠ 0 := hz.ne.symm,
+    ext i,
+    fin_cases i,
+    { field_simp },
     field_simp,
     ring },
   have h₁ := (linear_equiv.closed_embedding_of_injective hf).tendsto_cocompact,
-  have h₂ : tendsto (λ p : ℤ × ℤ, ((p.1 : ℝ), (p.2 : ℝ))) cofinite (cocompact _),
-  { convert int.tendsto_coe_cofinite.prod_map_coprod int.tendsto_coe_cofinite;
-    simp [coprod_cocompact, coprod_cofinite] },
-  convert tendsto_norm_sq_cocompact_at_top.comp
-    (h₁.comp (h₂.comp coprime_pair.coe_injective.tendsto_cofinite)),
-  ext,
-  simp [f],
+  have h₂ : tendsto (λ p : fin 2 → ℤ, (coe : ℤ → ℝ) ∘ p) cofinite (cocompact _),
+  { convert tendsto.pi_map_Coprod (λ i, int.tendsto_coe_cofinite),
+    { rw Coprod_cofinite },
+    { rw Coprod_cocompact } },
+  exact tendsto_norm_sq_cocompact_at_top.comp (h₁.comp h₂)
 end
 
 
 /-- Given `coprime_pair` `p=(c,d)`, the matrix `[[a,b],[*,*]]` is sent to `a*c+b*d`.
   This is the linear map version of this operation.
 -/
-def acbd (p : coprime_pair) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ℝ :=
-(p.c • linear_map.proj 0 + p.d • linear_map.proj 1 : (fin 2 → ℝ) →ₗ[ℝ] ℝ).comp (linear_map.proj 0)
+def acbd (p : fin 2 → ℤ) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ℝ :=
+(p 0 • linear_map.proj 0 + p 1 • linear_map.proj 1 : (fin 2 → ℝ) →ₗ[ℝ] ℝ).comp (linear_map.proj 0)
 
-@[simp] lemma acbd_apply (p : coprime_pair) (g : matrix (fin 2) (fin 2) ℝ) :
-  acbd p g = p.c * g 0 0 + p.d * g 0 1 :=
+@[simp] lemma acbd_apply (p : fin 2 → ℤ) (g : matrix (fin 2) (fin 2) ℝ) :
+  acbd p g = p 0 * g 0 0 + p 1 * g 0 1 :=
 by simp [acbd]
 
 
 /-- Linear map sending the matrix [a b; c d] to `(ac₀+bd₀ , ad₀ - bc₀, c, d)`, for some fixed
   `(c₀, d₀)`.
 -/
-def acbd_extend (cd : coprime_pair) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ((fin 2 → ℝ) × (fin 2 → ℝ))
-:= ((matrix.mul_vec_lin ![![(cd.c:ℝ), cd.d], ![cd.d,-cd.c]]).comp
+def acbd_extend (cd : fin 2 → ℤ) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ((fin 2 → ℝ) × (fin 2 → ℝ)) :=
+((matrix.mul_vec_lin ![![(cd 0:ℝ), cd 1], ![cd 1,-cd 0]]).comp
   (linear_map.proj 0 : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] _)).prod
   (linear_map.proj 1)
 
-lemma acbd_extend_ker_eq_bot (cd : coprime_pair) : (acbd_extend cd).ker = ⊥ :=
+lemma acbd_extend_ker_eq_bot {cd : fin 2 → ℤ} (hcd : is_coprime (cd 0) (cd 1)) :
+  (acbd_extend cd).ker = ⊥ :=
 begin
   rw linear_map.ker_eq_bot,
-  have nonZ : ((cd.c)^2+(cd.d)^2:ℝ) ≠ 0,
+  have nonZ : ((cd 0)^2+(cd 1)^2:ℝ) ≠ 0,
   { norm_cast,
-    exact cd.sq_add_sq_ne_zero },
-  let F : matrix (fin 2) (fin 2) ℝ := ((cd.c)^2+(cd.d)^2:ℝ)⁻¹ • ![![cd.c, cd.d], ![cd.d, -cd.c]],
+    sorry }, -- lemma for `is_coprime`
+    -- exact cd.sq_add_sq_ne_zero },
+  let F : matrix (fin 2) (fin 2) ℝ := ((cd 0)^2+(cd 1)^2:ℝ)⁻¹ • ![![cd 0, cd 1], ![cd 1, -cd 0]],
   let f₁ : (fin 2 → ℝ) → (fin 2 → ℝ) := F.mul_vec_lin,
   let f : (fin 2 → ℝ) × (fin 2 → ℝ) → matrix (fin 2) (fin 2) ℝ := λ ⟨x , cd⟩, ![f₁ x, cd],
   have : function.left_inverse f (acbd_extend cd),
@@ -172,12 +172,16 @@ begin
     ext i j,
     fin_cases i,
     { fin_cases j,
-      { change (↑(cd.c) ^ 2 + ↑(cd.d) ^ 2)⁻¹ * ↑(cd.c) * (↑(cd.c) * g 0 0 + ↑(cd.d) * g 0 1) +
-          (↑(cd.c) ^ 2 + ↑(cd.d) ^ 2)⁻¹ * ↑(cd.d) * (↑(cd.d) * g 0 0 + -(↑(cd.c) * g 0 1)) = _,
+      { change (↑(cd 0) ^ 2 + ↑(cd 1) ^ 2)⁻¹ * ↑(cd 0)
+          * (↑(cd 0) * g 0 0 + ↑(cd 1) * g 0 1)
+        + (↑(cd 0) ^ 2 + ↑(cd 1) ^ 2)⁻¹ * ↑(cd 1)
+          * (↑(cd 1) * g 0 0 + -(↑(cd 0) * g 0 1)) = _,
         field_simp,
         ring },
-      { change (↑(cd.c) ^ 2 + ↑(cd.d) ^ 2)⁻¹ * ↑(cd.d) * (↑(cd.c) * g 0 0 + ↑(cd.d) * g 0 1) +
-          -((↑(cd.c) ^ 2 + ↑(cd.d) ^ 2)⁻¹ * ↑(cd.c) * (↑(cd.d) * g 0 0 + -(↑(cd.c) * g 0 1))) = _,
+      { change (↑(cd 0) ^ 2 + ↑(cd 1) ^ 2)⁻¹ * ↑(cd 1)
+          * (↑(cd 0) * g 0 0 + ↑(cd 1) * g 0 1)
+        + -((↑(cd 0) ^ 2 + ↑(cd 1) ^ 2)⁻¹ * ↑(cd 0)
+          * (↑(cd 1) * g 0 0 + -(↑(cd 0) * g 0 1))) = _,
         field_simp,
         ring } },
     { fin_cases j; refl } },
@@ -185,10 +189,10 @@ begin
 end
 
 /-- The map `acbd` is proper, that is, preimages of cocompact sets are finite in `[[*,*],[c,d]]`.-/
-theorem tendsto_acbd (cd : coprime_pair) :
-  tendsto (λ g : bottom_row ⁻¹' {cd}, acbd cd ↑(↑g : SL(2, ℝ))) cofinite (cocompact ℝ) :=
+theorem tendsto_acbd {cd : fin 2 → ℤ} (hcd : is_coprime (cd 0) (cd 1)) :
+  tendsto (λ g : {g : SL(2, ℤ) // g 1 = cd}, acbd cd ↑(↑g : SL(2, ℝ))) cofinite (cocompact ℝ) :=
 begin
-  let mB : ℝ → ((fin 2 → ℝ) × (fin 2 → ℝ)) := λ t, (![t, 1], ![(cd.c:ℝ), cd.d]),
+  let mB : ℝ → ((fin 2 → ℝ) × (fin 2 → ℝ)) := λ t, (![t, 1], coe ∘ cd),
   have hmB : continuous mB,
   { refine continuous.prod_mk (continuous_pi _) continuous_const,
     intros i,
@@ -207,12 +211,11 @@ begin
   have hf₁ : tendsto f₁ cofinite (cocompact _) :=
     cocompact_ℝ_to_cofinite_ℤ_matrix.comp subtype.coe_injective.tendsto_cofinite,
   have hf₂ := (linear_equiv.closed_embedding_of_injective
-    (acbd_extend_ker_eq_bot cd)).tendsto_cocompact,
+    (acbd_extend_ker_eq_bot hcd)).tendsto_cocompact,
   convert hf₂.comp (hf₁.comp subtype.coe_injective.tendsto_cofinite) using 1,
   funext g,
   obtain ⟨g, hg⟩ := g,
   simp [mB, f₁, acbd_extend], -- squeeze_simp fails here for some reason
-  simp only [bottom_row, set.mem_preimage, set.mem_singleton_iff] at hg,
   split,
   { ext i,
     fin_cases i,
@@ -233,37 +236,37 @@ end
 
   which does not
   need to be decomposed depending on whether `c = 0`. -/
-lemma smul_eq_acbd_add (p : coprime_pair) (z : ℍ) {g : SL(2,ℤ)} (hg : bottom_row g = p) :
-  ↑(g • z) = ((acbd p ↑(g : SL(2, ℝ))) : ℂ ) / (p.c ^ 2 + p.d ^ 2)
-    + ((p.d : ℂ) * z - p.c) / ((p.c ^ 2 + p.d ^ 2) * (p.c * z + p.d)) :=
+lemma smul_eq_acbd_add {p : fin 2 → ℤ} (hp : is_coprime (p 0) (p 1)) (z : ℍ) {g : SL(2,ℤ)}
+  (hg : ↑ₘg 1 = p) :
+  ↑(g • z) = ((acbd p ↑(g : SL(2, ℝ))) : ℂ ) / (p 0 ^ 2 + p 1 ^ 2)
+    + ((p 1 : ℂ) * z - p 0) / ((p 0 ^ 2 + p 1 ^ 2) * (p 0 * z + p 1)) :=
 begin
-  have nonZ1 : (p.c : ℂ) ^ 2 + (p.d) ^ 2 ≠ 0 := by exact_mod_cast p.sq_add_sq_ne_zero,
-  have : (coe : ℤ → ℝ) ∘ ![p.c, p.d] ≠ 0 :=
-    λ h, (p.ne_zero ∘ (@int.cast_injective ℝ _ _ _).comp_left) h,
-  have nonZ2 : (p.c : ℂ) * z + p.d ≠ 0 := by simpa using linear_ne_zero _ z this,
-  field_simp [nonZ1, nonZ2, denom_ne_zero, -upper_half_plane.denom],
-  rw (by simp : (p.d : ℂ) * z - p.c = ((p.d) * z - p.c) * ↑(det (↑g : matrix (fin 2) (fin 2) ℤ))),
+  have nonZ1 : (p 0 : ℂ) ^ 2 + (p 1) ^ 2 ≠ 0 := by exact_mod_cast hp.sq_add_sq_ne_zero,
+  have : (coe : ℤ → ℝ) ∘ p ≠ 0 := λ h, (hp.ne_zero ∘ (@int.cast_injective ℝ _ _ _).comp_left) h,
+  have nonZ2 : (p 0 : ℂ) * z + p 1 ≠ 0 := by simpa using linear_ne_zero _ z this,
+  field_simp [nonZ1, nonZ2, denom_ne_zero, -upper_half_plane.denom, -foo],
+  rw (by simp : (p 1 : ℂ) * z - p 0 = ((p 1) * z - p 0) * ↑(det (↑g : matrix (fin 2) (fin 2) ℤ))),
   rw [←hg, det_fin_two],
-  simp only [bottom_row, int.coe_cast_ring_hom, coprime_pair.d_mk, coe_matrix_coe, coe_fn_eq_coe,
-    int.cast_mul, of_real_int_cast, coprime_pair.c_mk, map_apply, denom, int.cast_sub],
+  simp only [int.coe_cast_ring_hom, coe_matrix_coe, coe_fn_eq_coe,
+    int.cast_mul, of_real_int_cast, map_apply, denom, int.cast_sub],
   ring,
 end
 
-lemma tendsto_abs_re_smul (z:ℍ) (p : coprime_pair) :
-  tendsto (λ g : bottom_row ⁻¹' {p}, _root_.abs (((g : SL(2, ℤ)) • z).re)) cofinite at_top :=
+lemma tendsto_abs_re_smul (z:ℍ) {p : fin 2 → ℤ} (hp : is_coprime (p 0) (p 1)) :
+  tendsto (λ g : {g : SL(2, ℤ) // g 1 = p}, _root_.abs (((g : SL(2, ℤ)) • z).re)) cofinite at_top :=
 begin
-  suffices : tendsto (λ g : bottom_row ⁻¹' {p}, (((g : SL(2, ℤ)) • z).re)) cofinite (cocompact ℝ),
+  suffices : tendsto (λ g : (λ g : SL(2, ℤ), g 1) ⁻¹' {p}, (((g : SL(2, ℤ)) • z).re)) cofinite (cocompact ℝ),
   { exact tendsto_norm_cocompact_at_top.comp this },
-  have : ((p.c : ℝ) ^ 2 + p.d ^ 2)⁻¹ ≠ 0,
+  have : ((p 0 : ℝ) ^ 2 + p 1 ^ 2)⁻¹ ≠ 0,
   { apply inv_ne_zero,
-    exact_mod_cast p.sq_add_sq_ne_zero },
+    exact_mod_cast hp.sq_add_sq_ne_zero },
   let f := homeomorph.mul_right' _ this,
-  let ff := homeomorph.add_right (((p.d:ℂ)* z - p.c) / ((p.c ^ 2 + p.d ^ 2) * (p.c * z + p.d))).re,
-  convert ((f.trans ff).closed_embedding.tendsto_cocompact).comp (tendsto_acbd p),
+  let ff := homeomorph.add_right (((p 1:ℂ)* z - p 0) / ((p 0 ^ 2 + p 1 ^ 2) * (p 0 * z + p 1))).re,
+  convert ((f.trans ff).closed_embedding.tendsto_cocompact).comp (tendsto_acbd hp),
   ext g,
-  change ((g : SL(2, ℤ)) • z).re = (acbd p ↑(↑g : SL(2, ℝ))) / (p.c ^ 2 + p.d ^ 2)
-  + (((p.d:ℂ )* z - p.c) / ((p.c ^ 2 + p.d ^ 2) * (p.c * z + p.d))).re,
-  exact_mod_cast (congr_arg complex.re (smul_eq_acbd_add p z g.2))
+  change ((g : SL(2, ℤ)) • z).re = (acbd p ↑(↑g : SL(2, ℝ))) / (p 0 ^ 2 + p 1 ^ 2)
+  + (((p 1:ℂ )* z - p 0) / ((p 0 ^ 2 + p 1 ^ 2) * (p 0 * z + p 1))).re,
+  exact_mod_cast (congr_arg complex.re (smul_eq_acbd_add hp z g.2))
 end
 
 end tendsto_lemmas
@@ -272,14 +275,17 @@ section fundamental_domain
 
 /-- For `z : ℍ`, there is a `g : SL(2,ℤ)` maximizing `(g•z).im` -/
 lemma exists_g_with_max_im (z : ℍ) :
-  ∃ g : SL(2,ℤ), ∀ g' : SL(2,ℤ), (g' • z).im ≤ (g • z).im :=
+  ∃ g : SL(2, ℤ), ∀ g' : SL(2, ℤ), (g' • z).im ≤ (g • z).im :=
 begin
-  obtain ⟨p, hp⟩ := (tendsto_norm_sq_coprime_pair z).exists_forall_le,
-  obtain ⟨g, hg⟩ := bottom_row_surj p,
+  let s : set (fin 2 → ℤ) := {cd | is_coprime (cd 0) (cd 1)},
+  have hs : s.nonempty := ⟨![1, 1], is_coprime_one_left⟩,
+  obtain ⟨p, hp_coprime, hp⟩ :=
+    filter.tendsto.exists_within_forall_le hs (tendsto_norm_sq_coprime_pair z),
+  obtain ⟨g, hg⟩ := bottom_row_surj hp_coprime,
   use g,
   intros g',
   rw [im_smul_eq_div_norm_sq, im_smul_eq_div_norm_sq, div_le_div_left],
-  { simpa [← hg] using hp (bottom_row g') },
+  { simpa [← hg] using hp (g' 1) (bottom_row_coprime g') },
   { exact z.im_pos },
   { exact norm_sq_denom_pos g' z },
   { exact norm_sq_denom_pos g z },
@@ -287,15 +293,15 @@ end
 
 /-- Given `z : ℍ` and a bottom row `(c,d)`, among the `g : SL(2,ℤ)` with this bottom row, minimize
   `|(g•z).re|`.  -/
-lemma exists_g_with_given_cd_and_min_re (z:ℍ) (cd : coprime_pair) :
-  ∃ g : SL(2,ℤ), bottom_row g = cd ∧ (∀ g' : SL(2,ℤ), bottom_row g = bottom_row g' →
+lemma exists_g_with_given_cd_and_min_re (z:ℍ) {cd : fin 2 → ℤ} (hcd : is_coprime (cd 0) (cd 1)) :
+  ∃ g : SL(2,ℤ), ↑ₘg 1 = cd ∧ (∀ g' : SL(2,ℤ), ↑ₘg 1 = ↑ₘg' 1 →
   _root_.abs ((g • z).re) ≤ _root_.abs ((g' • z).re)) :=
 begin
-  haveI : nonempty (bottom_row ⁻¹' {cd}) := let ⟨x, hx⟩ := bottom_row_surj cd in ⟨⟨x, hx⟩⟩,
-  obtain ⟨g, hg⟩  := filter.tendsto.exists_forall_le (tendsto_abs_re_smul z cd),
+  haveI : nonempty {g : SL(2, ℤ) // g 1 = cd} := let ⟨x, hx⟩ := bottom_row_surj hcd in ⟨⟨x, hx.2⟩⟩,
+  obtain ⟨g, hg⟩ := filter.tendsto.exists_forall_le (tendsto_abs_re_smul z hcd),
   refine ⟨g, g.2, _⟩,
   { intros g1 hg1,
-    have : g1 ∈ (bottom_row ⁻¹' {cd}),
+    have : g1 ∈ ((λ g : SL(2, ℤ), g 1) ⁻¹' {cd}),
     { rw [set.mem_preimage, set.mem_singleton_iff],
       exact eq.trans hg1.symm (set.mem_singleton_iff.mp (set.mem_preimage.mp g.2)) },
     exact hg ⟨g1, this⟩ },
@@ -334,13 +340,12 @@ begin
   -- obtain a g₀ which maximizes im (g • z),
   obtain ⟨g₀, hg₀⟩ := exists_g_with_max_im z,
   -- then among those, minimize re
-  obtain ⟨g, hg, hg'⟩ := exists_g_with_given_cd_and_min_re z (bottom_row g₀),
+  obtain ⟨g, hg, hg'⟩ := exists_g_with_given_cd_and_min_re z (bottom_row_coprime g₀),
   use g,
   -- `g` has same max im property as `g₀`
   have hg₀' : ∀ (g' : SL(2,ℤ)), (g' • z).im ≤ (g • z).im,
   { have hg'' : (g • z).im = (g₀ • z).im,
-    { rw [im_smul_eq_div_norm_sq, im_smul_eq_div_norm_sq,
-        denom_eq_of_bottom_row_eq _ hg] },
+    { rw [im_smul_eq_div_norm_sq, im_smul_eq_div_norm_sq, foo, foo, hg] },
     simpa only [hg''] using hg₀ },
   split,
   { -- Claim: `|g•z| > 1`. If not, then `S•g•z` has larger imaginary part
@@ -354,7 +359,7 @@ begin
     { contrapose! hg',
       refine ⟨T * g, _, _⟩,
       { -- goal: `bottom_row (T * g) = bottom_row g`.
-        simp [bottom_row, T, vec_head, vec_tail], },
+        simp [T, vec_head, vec_tail], },
       rw mul_action.mul_smul,
       change (g • z).re < _ at hg',
       have : |(g • z).re + 1| < |(g • z).re| :=
@@ -365,7 +370,7 @@ begin
     { contrapose! hg',
       refine ⟨T' * g, _, _⟩,
       { -- goal: `bottom_row (T' * g) = bottom_row g`.
-        simp [bottom_row, T', vec_head, vec_tail] },
+        simp [T', vec_head, vec_tail] },
       rw mul_action.mul_smul,
       change _ < (g • z).re at hg',
       have : |(g • z).re - 1| < |(g • z).re| :=

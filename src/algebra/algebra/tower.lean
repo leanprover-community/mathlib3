@@ -133,7 +133,7 @@ variables (R)
 
 @[simp, priority 900] lemma _root_.alg_hom.comp_algebra_map_of_tower (f : A →ₐ[S] B) :
   (f : A →+* B).comp (algebra_map R A) = algebra_map R B :=
-ring_hom.ext f.commutes_of_tower
+ring_hom.ext f.map_algebra_map
 
 variables (R) {S A B}
 

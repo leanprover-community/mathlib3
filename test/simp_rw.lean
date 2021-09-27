@@ -7,7 +7,7 @@ import data.nat.basic
 import data.set.basic
 import tactic.simp_rw
 
-/--
+/-!
 # Tests for `simp_rw` extensions
 -/
 

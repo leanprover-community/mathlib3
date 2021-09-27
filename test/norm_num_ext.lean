@@ -6,7 +6,7 @@ Authors: Mario Carneiro
 import data.int.gcd
 import data.nat.prime
 
-/--
+/-!
 # Tests for `norm_num` extensions
 -/
 

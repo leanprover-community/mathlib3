@@ -6,7 +6,7 @@ Authors: Simon Hudon, Mario Carneiro
 
 import tactic.norm_num
 
-/--
+/-!
 # Tests for `norm_num` extensions
 -/
 

@@ -181,7 +181,7 @@ section normed_space
 variables [normed_group E] [normed_space ℝ E]
 
 lemma convex_on_dist (z : E) (s : set E) (hs : convex ℝ s) :
-  convex_on s (λz', dist z' z) :=
+  convex_on ℝ s (λz', dist z' z) :=
 and.intro hs $
 assume x y hx hy a b ha hb hab,
 calc

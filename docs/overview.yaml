@@ -165,7 +165,7 @@ Linear algebra:
   Endomorphism polynomials:
     minimal polynomial: 'minpoly'
     characteristic polynomial: 'matrix.charpoly'
-    Cayley-Hamilton theorem: 'aeval_self_charpoly'
+    Cayley-Hamilton theorem: 'matrix.aeval_self_charpoly'
   Structure theory of endomorphisms:
     eigenvalue: 'module.End.has_eigenvalue'
     eigenvector: 'module.End.has_eigenvector'
@@ -294,7 +294,7 @@ Analysis:
     Stieltjes measure: 'stieltjes_function.measure'
     Lebesgue measure: 'real.measure_space'
     Hausdorff measure: 'measure_theory.measure.hausdorff_measure'
-    Hausdorff dimension: 'measure_theory.dimH'
+    Hausdorff dimension: 'dimH'
     Giry monad: 'measure_theory.measure.measurable_space'
     integral of positive measurable functions: 'measure_theory.lintegral'
     monotone convergence theorem: 'measure_theory.lintegral_infi_ae'

@@ -236,8 +236,8 @@ begin
     exactI ⟨have_lebesgue_decomposition_of_has_pdf, map_absolutely_continuous⟩, },
   { rintros ⟨h_decomp, h⟩,
     haveI := h_decomp,
-    refine ⟨⟨hX, (measure.map X ℙ).radon_nikodym_deriv μ, measurable_radon_nikodym_deriv _ _, _⟩⟩,
-    rwa with_density_radon_nikodym_deriv_eq }
+    refine ⟨⟨hX, (measure.map X ℙ).rn_deriv μ, measurable_rn_deriv _ _, _⟩⟩,
+    rwa with_density_rn_deriv_eq }
 end
 
 section

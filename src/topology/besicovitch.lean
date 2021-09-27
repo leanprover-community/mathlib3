@@ -68,7 +68,7 @@ Sup {N | ∃ s : finset E, s.card = N ∧ (∀ c ∈ s, ∥c∥ ≤ 2) ∧ (∀ 
 
 variables {E : Type*} [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
 
-lemma besicovitch.card_le_of_separated
+lemma card_le_of_separated
   (s : finset E) (hs : ∀ c ∈ s, ∥c∥ ≤ 2) (h : ∀ (c ∈ s) (d ∈ s), c ≠ d → 1 ≤ ∥c - d∥) :
   s.card ≤ 5 ^ (finrank ℝ E) :=
 begin
@@ -136,50 +136,44 @@ begin
 end
 
 variable (E)
-lemma exists_good_τ : ∃ (τ : ℝ), 1 < τ ∧ ∀ (s : finset E), (∀ c ∈ s, ∥c∥ ≤ 2 * τ) →
-  (∀ (c ∈ s) (d ∈ s), c ≠ d → τ⁻¹ ≤ ∥c - d∥) → s.card ≤ multiplicity E :=
+lemma exists_good_δ : ∃ (δ : ℝ), 0 < δ ∧ δ ≤ 1 ∧ ∀ (s : finset E), (∀ c ∈ s, ∥c∥ ≤ 2) →
+  (∀ (c ∈ s) (d ∈ s), c ≠ d → 1 - δ ≤ ∥c - d∥) → s.card ≤ multiplicity E :=
 begin
   classical,
   by_contradiction h,
   push_neg at h,
   set N := multiplicity E + 1 with hN,
-  have : ∀ (τ : ℝ), 1 < τ → ∃ f : fin N → E, (∀ (i : fin N), ∥f i∥ ≤ 2 * τ)
-    ∧ (∀ i j, i ≠ j → τ⁻¹ ≤ ∥f i - f j∥),
-  { assume τ hτ,
-    rcases h τ hτ with ⟨s, hs, h's, s_card⟩,
-    obtain ⟨f, f_inj, hfs⟩ : ∃ (f : fin N → E), function.injective f ∧ range f ⊆ ↑s :=
-      fin.exists_injective_of_le_card_finset s_card,
-    simp only [range_subset_iff, finset.mem_coe] at hfs,
-    refine ⟨f, λ i, hs _ (hfs i), λ i j hij, h's _ (hfs i) _ (hfs j) (f_inj.ne hij)⟩ },
+  have : ∀ (δ : ℝ), 0 < δ → ∃ f : fin N → E, (∀ (i : fin N), ∥f i∥ ≤ 2)
+    ∧ (∀ i j, i ≠ j → 1 - δ ≤ ∥f i - f j∥),
+  { assume δ hδ,
+    rcases le_total δ 1 with hδ'|hδ',
+    { rcases h δ hδ hδ' with ⟨s, hs, h's, s_card⟩,
+      obtain ⟨f, f_inj, hfs⟩ : ∃ (f : fin N → E), function.injective f ∧ range f ⊆ ↑s :=
+        fin.exists_injective_of_le_card_finset s_card,
+      simp only [range_subset_iff, finset.mem_coe] at hfs,
+      refine ⟨f, λ i, hs _ (hfs i), λ i j hij, h's _ (hfs i) _ (hfs j) (f_inj.ne hij)⟩ },
+    { exact ⟨λ i, 0, λ i, by simp, λ i j hij, by simpa only [norm_zero, sub_nonpos, sub_self]⟩ } },
   choose! F hF using this,
   have : ∃ f : fin N → E, (∀ (i : fin N), ∥f i∥ ≤ 2) ∧ (∀ i j, i ≠ j → 1 ≤ ∥f i - f j∥),
-  { obtain ⟨u, u_mono, one_lt_u, hu⟩ : ∃ (u : ℕ → ℝ), (∀ (m n : ℕ), m < n → u n < u m)
-      ∧ (∀ (n : ℕ), 1 < u n) ∧ filter.tendsto u filter.at_top (𝓝 1) :=
-        exists_seq_strict_antimono_tendsto (1 : ℝ),
-    have A : ∀ n, F (u n) ∈ closed_ball (0 : fin N → E) (2 * u 0),
+  { obtain ⟨u, u_mono, zero_lt_u, hu⟩ : ∃ (u : ℕ → ℝ), (∀ (m n : ℕ), m < n → u n < u m)
+      ∧ (∀ (n : ℕ), 0 < u n) ∧ filter.tendsto u filter.at_top (𝓝 0) :=
+        exists_seq_strict_antimono_tendsto (0 : ℝ),
+    have A : ∀ n, F (u n) ∈ closed_ball (0 : fin N → E) 2,
     { assume n,
-      have : 0 ≤ 2 * u 0 :=
-        mul_nonneg zero_le_two (zero_le_one.trans (one_lt_u 0).le),
-      simp only [pi_norm_le_iff this, mem_closed_ball, dist_zero_right],
-      assume i,
-      apply ((hF (u n) (one_lt_u n)).1 i).trans,
-      refine (mul_le_mul_left zero_lt_two).2 _,
-      cases n, { exact le_rfl }, { exact (u_mono 0 n.succ (nat.succ_pos _)).le } },
-    obtain ⟨f, -, φ, φ_mono, hf⟩ : ∃ (f ∈ closed_ball (0 : fin N → E) (2 * u 0)) (φ : ℕ → ℕ),
+      simp only [pi_norm_le_iff zero_le_two, mem_closed_ball, dist_zero_right,
+                 (hF (u n) (zero_lt_u n)).left, forall_const], },
+    obtain ⟨f, fmem, φ, φ_mono, hf⟩ : ∃ (f ∈ closed_ball (0 : fin N → E) 2) (φ : ℕ → ℕ),
       strict_mono φ ∧ tendsto ((F ∘ u) ∘ φ) at_top (𝓝 f) :=
         is_compact.tendsto_subseq (proper_space.is_compact_closed_ball _ _) A,
     refine ⟨f, λ i, _, λ i j hij, _⟩,
-    { have A : tendsto (λ n, ∥F (u (φ n)) i∥) at_top (𝓝 (∥f i∥)) := (hf.apply i).norm,
-      have B : tendsto (λ n, 2 * u (φ n)) at_top (𝓝 (2 * 1)) :=
-        (hu.comp φ_mono.tendsto_at_top).const_mul _,
-      rw mul_one at B,
-      exact le_of_tendsto_of_tendsto' A B (λ n, (hF (u (φ n)) (one_lt_u _)).1 i) },
+    { simp only [pi_norm_le_iff zero_le_two, mem_closed_ball, dist_zero_right] at fmem,
+      exact fmem i },
     { have A : tendsto (λ n, ∥F (u (φ n)) i - F (u (φ n)) j∥) at_top (𝓝 (∥f i - f j∥)) :=
         ((hf.apply i).sub (hf.apply j)).norm,
-      have B : tendsto (λ n, (u (φ n))⁻¹) at_top (𝓝 (1⁻¹)) :=
-        (hu.comp φ_mono.tendsto_at_top).inv' one_ne_zero,
-      rw inv_one at B,
-      exact le_of_tendsto_of_tendsto' B A (λ n, (hF (u (φ n)) (one_lt_u _)).2 i j hij) } },
+      have B : tendsto (λ n, 1 - u (φ n)) at_top (𝓝 (1 - 0)) :=
+        tendsto_const_nhds.sub (hu.comp φ_mono.tendsto_at_top),
+      rw sub_zero at B,
+      exact le_of_tendsto_of_tendsto' B A (λ n, (hF (u (φ n)) (zero_lt_u _)).2 i j hij) } },
   rcases this with ⟨f, hf, h'f⟩,
   have finj : function.injective f,
   { assume i j hij,
@@ -204,120 +198,294 @@ begin
   exact lt_irrefl _ ((nat.lt_succ_self (multiplicity E)).trans_le this),
 end
 
-def good_τ : ℝ := classical.some (exists_good_τ E)
+def good_δ : ℝ := classical.some (exists_good_δ E)
 
-lemma one_lt_good_τ : 1 < good_τ E := (classical.some_spec (exists_good_τ E)).1
+def good_τ : ℝ := 1 + classical.some (exists_good_δ E) / 4
 
-lemma card_le_multiplicity_τ {s : finset E} (hs : ∀ c ∈ s, ∥c∥ ≤ 2 * good_τ E)
-  (h's : ∀ (c ∈ s) (d ∈ s), c ≠ d → (good_τ E)⁻¹ ≤ ∥c - d∥) :
+lemma one_lt_good_τ : 1 < good_τ E :=
+by { dsimp [good_τ], linarith [(classical.some_spec (exists_good_δ E)).1] }
+
+lemma card_le_multiplicity_τ {s : finset E} (hs : ∀ c ∈ s, ∥c∥ ≤ 2)
+  (h's : ∀ (c ∈ s) (d ∈ s), c ≠ d → 1 - good_δ E ≤ ∥c - d∥) :
   s.card ≤ multiplicity E :=
-(classical.some_spec (exists_good_τ E)).2 s hs h's
+(classical.some_spec (exists_good_δ E)).2.2 s hs h's
 
-lemma zoug {E : Type*} [normed_group E] [normed_space ℝ E] {N : ℕ} (c : ℕ → E) (r : ℕ → ℝ)
-  (δ : ℝ) (τ : ℝ)
-  (oneτ : 1 ≤ τ)
-  (hcN : c N = 0)
-  (hrN : r N = 1)
-  (hcr : ∀ i < N, ∥c i∥ ≤ r i + 1)
-  (hτ : ∀ i < N, τ⁻¹ ≤ r i)
-  (hcr' : ∀ i < N, r i ≤ ∥c i∥)
-  (hc : ∀ (i ≤ N) (j ≤ N),
-    (r i ≤ ∥c j - c i∥ ∧ r j ≤ τ * r i) ∨ (r j ≤ ∥c i - c j∥ ∧ r i ≤ τ * r j))
-  (hδ1 : τ ≤ 1 + δ / 4)
-  (hδ2 : δ ≤ 1) :
-  ∃ (c' : ℕ → E), (∀ n ≤ N, ∥c' n∥ ≤ 2) ∧ (∀ i ≤ N, ∀ j ≤ N, i ≠ j → 1 - δ ≤ ∥c' i - c' j∥) :=
+open fin
+
+structure satellite_config (N : ℕ) (τ : ℝ) :=
+(c : fin N.succ → E)
+(r : fin N.succ → ℝ )
+(rpos : ∀ i, 0 < r i)
+(h : ∀ i j, i ≠ j → (r i ≤ dist (c i) (c j) ∧ r j ≤ τ * r i) ∨
+                    (r j ≤ dist (c j) (c i) ∧ r i ≤ τ * r j))
+(hlast : ∀ i < last N, r i ≤ dist (c i) (c (last N)) ∧ r (last N) ≤ τ * r i)
+(inter : ∀ i < last N, dist (c i) (c (last N)) ≤ r i + r (last N))
+(oneτ : 1 ≤ τ)
+
+namespace satellite_config
+variables {E} {N : ℕ} {τ : ℝ} (a : satellite_config E N τ)
+
+/-- Rescaling a satellite configuration in a vector space, to put the basepoint at `0` and the base
+radius at `1`. -/
+def center_and_rescale :
+  satellite_config E N τ :=
+{ c := λ i, (a.r (last N))⁻¹ • (a.c i - a.c (last N)),
+  r := λ i, (a.r (last N))⁻¹ * a.r i,
+  rpos := λ i, mul_pos (inv_pos.2 (a.rpos _)) (a.rpos _),
+  h := λ i j hij, begin
+    rcases a.h i j hij with H|H,
+    { left,
+      split,
+      { rw [dist_eq_norm, ← smul_sub, norm_smul, real.norm_eq_abs,
+          abs_of_nonneg (inv_nonneg.2 ((a.rpos _)).le)],
+        refine mul_le_mul_of_nonneg_left _ (inv_nonneg.2 ((a.rpos _)).le),
+        rw [dist_eq_norm] at H,
+        convert H.1 using 2,
+        abel },
+      { rw [← mul_assoc, mul_comm τ, mul_assoc],
+        refine mul_le_mul_of_nonneg_left _ (inv_nonneg.2 ((a.rpos _)).le),
+        exact H.2 } },
+    { right,
+      split,
+      { rw [dist_eq_norm, ← smul_sub, norm_smul, real.norm_eq_abs,
+          abs_of_nonneg (inv_nonneg.2 ((a.rpos _)).le)],
+        refine mul_le_mul_of_nonneg_left _ (inv_nonneg.2 ((a.rpos _)).le),
+        rw [dist_eq_norm] at H,
+        convert H.1 using 2,
+        abel },
+      { rw [← mul_assoc, mul_comm τ, mul_assoc],
+        refine mul_le_mul_of_nonneg_left _ (inv_nonneg.2 ((a.rpos _)).le),
+        exact H.2 } },
+  end,
+  hlast := λ i hi, begin
+    have H := a.hlast i hi,
+    split,
+    { rw [dist_eq_norm, ← smul_sub, norm_smul, real.norm_eq_abs,
+        abs_of_nonneg (inv_nonneg.2 ((a.rpos _)).le)],
+      refine mul_le_mul_of_nonneg_left _ (inv_nonneg.2 ((a.rpos _)).le),
+      rw [dist_eq_norm] at H,
+      convert H.1 using 2,
+      abel },
+    { rw [← mul_assoc, mul_comm τ, mul_assoc],
+      refine mul_le_mul_of_nonneg_left _ (inv_nonneg.2 ((a.rpos _)).le),
+      exact H.2 }
+  end,
+  inter := λ i hi, begin
+    have H := a.inter i hi,
+    rw [dist_eq_norm, ← smul_sub, norm_smul, real.norm_eq_abs,
+        abs_of_nonneg (inv_nonneg.2 ((a.rpos _)).le), ← mul_add],
+    refine mul_le_mul_of_nonneg_left _ (inv_nonneg.2 ((a.rpos _)).le),
+    rw dist_eq_norm at H,
+    convert H using 2,
+    abel
+  end,
+  oneτ := a.oneτ }
+
+lemma center_and_rescale_center :
+  a.center_and_rescale.c (last N) = 0 :=
+by simp [satellite_config.center_and_rescale]
+
+lemma center_and_rescale_radius {N : ℕ} {τ : ℝ} (a : satellite_config E N τ) :
+  a.center_and_rescale.r (last N) = 1 :=
+by simp [satellite_config.center_and_rescale, inv_mul_cancel (a.rpos _).ne']
+
+lemma inter' (i : fin N.succ) : dist (a.c i) (a.c (last N)) ≤ a.r i + a.r (last N) :=
 begin
-  have δnonneg : 0 ≤ δ := by linarith only [oneτ, hδ1],
-  have τnonneg : 0 ≤ τ := zero_le_one.trans oneτ,
-  have hτ' : ∀ i ≤ N, τ⁻¹ ≤ r i := sorry,
-  have hcr' : ∀ i ≤ N, ∥c i∥ ≤ r i + 1 := sorry,
-  let c' : ℕ → E := λ i, if ∥c i∥ ≤ 2 then c i else (2 / ∥c i∥) • c i,
-  have norm_c'_le : ∀ i, ∥c' i∥ ≤ 2, sorry,
-  /-{ assume i,
+  rcases lt_or_le i (last N) with H|H,
+  { exact a.inter i H },
+  { have I : i = last N := top_le_iff.1 H,
+    have := (a.rpos (last N)).le,
+    simp only [I, add_nonneg this this, dist_self] }
+end
+
+lemma hlast' (i : fin N.succ) : a.r (last N) ≤ τ * a.r i :=
+begin
+  rcases lt_or_le i (last N) with H|H,
+  { exact (a.hlast i H).2 },
+  { have : i = last N := top_le_iff.1 H,
+    rw this,
+    exact le_mul_of_one_le_left (a.rpos _).le a.oneτ }
+end
+
+lemma exists_normalized_aux1 {N : ℕ} {τ : ℝ} (a : satellite_config E N τ)
+  (lastr : a.r (last N) = 1) (δ : ℝ) (hδ1 : τ ≤ 1 + δ / 4) (hδ2 : δ ≤ 1)
+  (i j : fin N.succ) (inej : i ≠ j) :
+  1 - δ ≤ ∥a.c i - a.c j∥ :=
+begin
+  have ah : ∀ i j, i ≠ j → (a.r i ≤ ∥a.c i - a.c j∥ ∧ a.r j ≤ τ * a.r i) ∨
+                          (a.r j ≤ ∥a.c j - a.c i∥ ∧ a.r i ≤ τ * a.r j),
+    by simpa only [dist_eq_norm] using a.h,
+  have δnonneg : 0 ≤ δ := by linarith only [a.oneτ, hδ1],
+  have D : 0 ≤ 1 - δ / 4, by linarith only [hδ2],
+  have τpos : 0 < τ := zero_lt_one.trans_le a.oneτ,
+  have I : (1 - δ / 4) * τ ≤ 1 := calc
+    (1 - δ / 4) * τ ≤ (1 - δ / 4) * (1 + δ / 4) : mul_le_mul_of_nonneg_left hδ1 D
+    ... = 1 - δ^2 / 16 : by ring
+    ... ≤ 1 : (by linarith only [sq_nonneg δ]),
+  have J : 1 - δ ≤ 1 - δ / 4, by linarith only [δnonneg],
+  have K : 1 - δ / 4 ≤ τ⁻¹, by { rw [inv_eq_one_div, le_div_iff τpos], exact I },
+  suffices L : τ⁻¹ ≤ ∥a.c i - a.c j∥, by linarith only [J, K, L],
+  have hτ' : ∀ k, τ⁻¹ ≤ a.r k,
+  { assume k,
+    rw [inv_eq_one_div, div_le_iff τpos, ← lastr, mul_comm],
+    exact a.hlast' k },
+  rcases ah i j inej with H|H,
+  { apply le_trans _ H.1,
+    exact hτ' i },
+  { rw norm_sub_rev,
+    apply le_trans _ H.1,
+    exact hτ' j }
+end
+
+lemma exists_normalized_aux2 {N : ℕ} {τ : ℝ} (a : satellite_config E N τ)
+  (lastc : a.c (last N) = 0) (lastr : a.r (last N) = 1)
+  (δ : ℝ) (hδ1 : τ ≤ 1 + δ / 4) (hδ2 : δ ≤ 1)
+  (i j : fin N.succ) (inej : i ≠ j) (hi : ∥a.c i∥ ≤ 2) (hj : 2 < ∥a.c j∥) :
+  1 - δ ≤ ∥a.c i - (2 / ∥a.c j∥) • a.c j∥ :=
+begin
+  have ah : ∀ i j, i ≠ j → (a.r i ≤ ∥a.c i - a.c j∥ ∧ a.r j ≤ τ * a.r i) ∨
+                          (a.r j ≤ ∥a.c j - a.c i∥ ∧ a.r i ≤ τ * a.r j),
+    by simpa only [dist_eq_norm] using a.h,
+  have δnonneg : 0 ≤ δ := by linarith only [a.oneτ, hδ1],
+  have D : 0 ≤ 1 - δ / 4, by linarith only [hδ2],
+  have τpos : 0 < τ := zero_lt_one.trans_le a.oneτ,
+  have hcrj : ∥a.c j∥ ≤ a.r j + 1,
+    by simpa only [lastc, lastr, dist_zero_right] using a.inter' j,
+  have I : a.r i ≤ 2,
+  { rcases lt_or_le i (last N) with H|H,
+    { apply (a.hlast i H).1.trans,
+      simpa only [dist_eq_norm, lastc, sub_zero] using hi },
+    { have : i = last N := top_le_iff.1 H,
+      rw [this, lastr],
+      exact one_le_two } },
+  have J : (1 - δ / 4) * τ ≤ 1 := calc
+    (1 - δ / 4) * τ ≤ (1 - δ / 4) * (1 + δ / 4) : mul_le_mul_of_nonneg_left hδ1 D
+    ... = 1 - δ^2 / 16 : by ring
+    ... ≤ 1 : (by linarith only [sq_nonneg δ]),
+  have A : a.r j - δ ≤ ∥a.c i - a.c j∥,
+  { rcases ah j i inej.symm with H|H, { rw norm_sub_rev, linarith [H.1] },
+    have C : a.r j ≤ 4 := calc
+      a.r j ≤ τ * a.r i : H.2
+      ... ≤ τ * 2 : mul_le_mul_of_nonneg_left I τpos.le
+      ... ≤ (5/4) * 2 : mul_le_mul_of_nonneg_right (by linarith only [hδ1, hδ2]) zero_le_two
+      ... ≤ 4 : by norm_num,
+    calc a.r j - δ ≤ a.r j - (a.r j / 4) * δ : begin
+        refine sub_le_sub le_rfl _,
+        refine mul_le_of_le_one_left δnonneg _,
+        linarith only [C],
+      end
+    ... = (1 - δ / 4) * a.r j : by ring
+    ... ≤ (1 - δ / 4) * (τ * a.r i) :
+      mul_le_mul_of_nonneg_left (H.2) D
+    ... ≤ 1 * a.r i : by { rw [← mul_assoc], apply mul_le_mul_of_nonneg_right J (a.rpos _).le }
+    ... ≤ ∥a.c i - a.c j∥ : by { rw [one_mul], exact H.1 } },
+  set d := (2 / ∥a.c j∥) • a.c j with hd,
+  have : a.r j - δ ≤ ∥a.c i - d∥ + (a.r j - 1) := calc
+    a.r j - δ ≤ ∥a.c i - a.c j∥ : A
+    ... ≤ ∥a.c i - d∥ + ∥d - a.c j∥ : by simp only [← dist_eq_norm, dist_triangle]
+    ... ≤ ∥a.c i - d∥ + (a.r j - 1) : begin
+      apply add_le_add_left,
+      have A : 0 ≤ 1 - 2 / ∥a.c j∥, by simpa [div_le_iff (zero_le_two.trans_lt hj)] using hj.le,
+      rw [← one_smul ℝ (a.c j), hd, ← sub_smul, norm_smul, norm_sub_rev, real.norm_eq_abs,
+          abs_of_nonneg A, sub_mul],
+      field_simp [(zero_le_two.trans_lt hj).ne'],
+      linarith only [hcrj]
+    end,
+  linarith only [this]
+end
+
+lemma exists_normalized_aux3 {N : ℕ} {τ : ℝ} (a : satellite_config E N τ)
+  (lastc : a.c (last N) = 0) (lastr : a.r (last N) = 1)
+  (δ : ℝ) (hδ1 : τ ≤ 1 + δ / 4)
+  (i j : fin N.succ) (inej : i ≠ j) (hi : 2 < ∥a.c i∥) (hij : ∥a.c i∥ ≤ ∥a.c j∥) :
+  1 - δ ≤ ∥(2 / ∥a.c i∥) • a.c i - (2 / ∥a.c j∥) • a.c j∥ :=
+begin
+  have ah : ∀ i j, i ≠ j → (a.r i ≤ ∥a.c i - a.c j∥ ∧ a.r j ≤ τ * a.r i) ∨
+                          (a.r j ≤ ∥a.c j - a.c i∥ ∧ a.r i ≤ τ * a.r j),
+    by simpa only [dist_eq_norm] using a.h,
+  have δnonneg : 0 ≤ δ := by linarith only [a.oneτ, hδ1],
+  have τpos : 0 < τ := zero_lt_one.trans_le a.oneτ,
+  have hcrj : ∥a.c j∥ ≤ a.r j + 1,
+    by simpa only [lastc, lastr, dist_zero_right] using a.inter' j,
+  have A : a.r i ≤ ∥a.c i∥,
+  { have : i < last N,
+    { apply lt_top_iff_ne_top.2,
+      assume iN,
+      change i = last N at iN,
+      rw [iN, lastc, norm_zero] at hi,
+      exact lt_irrefl _ (zero_le_two.trans_lt hi) },
+    convert (a.hlast i this).1,
+    rw [dist_eq_norm, lastc, sub_zero] },
+  have hj : 2 < ∥a.c j∥ := hi.trans_le hij,
+  set s := ∥a.c i∥ with hs,
+  have spos : 0 < s := zero_lt_two.trans hi,
+  set d := (s/∥a.c j∥) • a.c j with hd,
+  have I : ∥a.c j - a.c i∥ ≤ ∥a.c j∥ - s + ∥d - a.c i∥ := calc
+    ∥a.c j - a.c i∥ ≤ ∥a.c j - d∥ + ∥d - a.c i∥ : by simp [← dist_eq_norm, dist_triangle]
+    ... = ∥a.c j∥ - ∥a.c i∥ + ∥d - a.c i∥ : begin
+      nth_rewrite 0 ← one_smul ℝ (a.c j),
+      rw [add_left_inj, hd, ← sub_smul, norm_smul, real.norm_eq_abs, abs_of_nonneg, sub_mul,
+          one_mul, div_mul_cancel _ (zero_le_two.trans_lt hj).ne'],
+      rwa [sub_nonneg, div_le_iff (zero_lt_two.trans hj), one_mul],
+    end,
+  have J : a.r j - ∥a.c j - a.c i∥ ≤ s / 2 * δ := calc
+    a.r j - ∥a.c j - a.c i∥ ≤ s * (τ - 1) : begin
+      rcases ah j i inej.symm with H|H,
+      { calc a.r j - ∥a.c j - a.c i∥ ≤ 0 : sub_nonpos.2 H.1
+        ... ≤ s * (τ - 1) : mul_nonneg spos.le (sub_nonneg.2 a.oneτ) },
+      { rw norm_sub_rev at H,
+        calc a.r j - ∥a.c j - a.c i∥ ≤ τ * a.r i - a.r i : sub_le_sub H.2 H.1
+        ... = a.r i * (τ - 1) : by ring
+        ... ≤ s * (τ - 1) : mul_le_mul_of_nonneg_right A (sub_nonneg.2 a.oneτ) }
+    end
+    ... ≤ s * (δ / 2) : mul_le_mul_of_nonneg_left (by linarith only [δnonneg, hδ1]) spos.le
+    ... = s / 2 * δ : by ring,
+  have invs_nonneg : 0 ≤ 2 / s := (div_nonneg zero_le_two (zero_le_two.trans hi.le)),
+  calc 1 - δ = (2 / s) * (s / 2 - (s / 2) * δ) : by { field_simp [spos.ne'], ring }
+  ... ≤ (2 / s) * ∥d - a.c i∥ :
+    mul_le_mul_of_nonneg_left (by linarith only [hcrj, I, J, hi]) invs_nonneg
+  ... = ∥(2 / s) • a.c i - (2 / ∥a.c j∥) • a.c j∥ : begin
+    conv_lhs { rw [norm_sub_rev, ← abs_of_nonneg invs_nonneg] },
+    rw [← real.norm_eq_abs, ← norm_smul, smul_sub, hd, smul_smul],
+    congr' 3,
+    field_simp [spos.ne'],
+  end
+end
+
+lemma exists_normalized {N : ℕ} {τ : ℝ} (a : satellite_config E N τ)
+  (lastc : a.c (last N) = 0) (lastr : a.r (last N) = 1)
+  (δ : ℝ) (hδ1 : τ ≤ 1 + δ / 4) (hδ2 : δ ≤ 1) :
+  ∃ (c' : fin N.succ → E), (∀ n, ∥c' n∥ ≤ 2) ∧ (∀ i j, i ≠ j → 1 - δ ≤ ∥c' i - c' j∥) :=
+begin
+  let c' : fin N.succ → E := λ i, if ∥a.c i∥ ≤ 2 then a.c i else (2 / ∥a.c i∥) • a.c i,
+  have norm_c'_le : ∀ i, ∥c' i∥ ≤ 2,
+  { assume i,
     simp only [c'],
     split_ifs, { exact h },
-    by_cases hi : ∥c i∥ = 0;
-    field_simp [norm_smul, hi] },-/
-  refine ⟨c', λ n hn, norm_c'_le n, λ i hi j hj hij, _⟩,
+    by_cases hi : ∥a.c i∥ = 0;
+    field_simp [norm_smul, hi] },
+  refine ⟨c', λ n, norm_c'_le n, λ i j inej, _⟩,
   -- up to exchanging `i` and `j`, one can assume `∥c i∥ ≤ ∥c j∥`.
-  wlog hij : ∥c i∥ ≤ ∥c j∥ := le_total (∥c i∥) (∥c j∥) using [i j, j i] tactic.skip, swap,
-  { assume hi hj i_ne_j,
+  wlog hij : ∥a.c i∥ ≤ ∥a.c j∥ := le_total (∥a.c i∥) (∥a.c j∥) using [i j, j i] tactic.skip, swap,
+  { assume i_ne_j,
     rw norm_sub_rev,
-    exact this hj hi i_ne_j.symm },
-  rcases le_or_lt (∥c j∥) 2 with Hj|Hj,
+    exact this i_ne_j.symm },
+  rcases le_or_lt (∥a.c j∥) 2 with Hj|Hj,
   -- case `∥c j∥ ≤ 2` (and therefore also `∥c i∥ ≤ 2`)
-  { sorry,
-    /- simp_rw [c', Hj, hij.trans Hj, if_true],
-    refine le_trans hδ1 _,
-    rcases hc i hi j hj with H|H,
-    { rw norm_sub_rev,
-      apply le_trans _ H.1,
-      exact hτ' i hi },
-    { apply le_trans _ H.1,
-      exact hτ' j hj }-/ },
-  -- case `∥c j∥ > 2`
-  have H'j : (∥c j∥ ≤ 2) ↔ false, by simpa only [not_le, iff_false] using Hj,
-  rcases le_or_lt (∥c i∥) 2 with Hi|Hi,
-  sorry,
-  /-{ -- case `∥c i∥ ≤ 2`
-    simp_rw [c', Hi, if_true, H'j, if_false],
-    have A : r j - δ ≤ ∥c i - c j∥,
-    { rcases hc j hj i hi with H|H, { linarith [H.1] },
-      have B : r j ≤ 2 * τ^2,
-      { have I : r i ≤ τ * ∥c i∥,
-        { rcases hc i hi N le_rfl with H'|H',
-          { apply H'.1.trans,
-            simp only [hcN, zero_sub, norm_neg],
-            exact le_mul_of_one_le_left (norm_nonneg _) oneτ },
-          { apply H'.2.trans,
-            apply mul_le_mul_of_nonneg_left _ (zero_le_one.trans oneτ),
-            simpa [hcN] using H'.1 } },
-        calc
-          r j ≤ τ * r i : H.2
-          ... ≤ τ * (τ * ∥c i∥) : mul_le_mul_of_nonneg_left I τnonneg
-          ... ≤ τ * (τ * 2) :
-            by apply_rules [mul_le_mul_of_nonneg_left _ τnonneg]
-          ... = 2 * τ^2 : by ring_exp },
-      have C : r j ≤ 4 := calc
-        r j ≤ 2 * τ^2 : B
-        ... ≤ 2 * (5/4)^2 : begin
-          have D : τ ≤ 5/4, by linarith only [hδ1, hδ2],
-          apply mul_le_mul_of_nonneg_left _ zero_le_two,
-          rw [pow_two, pow_two],
-          exact mul_le_mul D D τnonneg (by norm_num),
-        end
-        ... ≤ 4 : by norm_num,
-      have D : 0 ≤ 1 - δ / 4, by linarith only [hδ2],
-      have E : 0 ≤ r i := le_trans (inv_nonneg.2 τnonneg) (hτ' i hi),
-      calc r j - δ ≤ r j - (r j / 4) * δ : begin
-          refine sub_le_sub le_rfl _,
-          refine mul_le_of_le_one_left δnonneg _,
-          linarith only [C],
-        end
-      ... = (1 - δ / 4) * r j : by ring
-      ... ≤ (1 - δ / 4) * ((1 + δ / 4) * r i) :
-        mul_le_mul_of_nonneg_left (H.2.trans (mul_le_mul_of_nonneg_right hδ1 E)) D
-      ... = (1 - δ^2 / 16) * r i : by ring
-      ... ≤ r i : mul_le_of_le_one_left E (by linarith only [sq_nonneg δ])
-      ... ≤ ∥c i - c j∥ : by { rw norm_sub_rev, exact H.1 } },
-    set d := (2 / ∥c j∥) • c j with hd,
-    have : r j - δ ≤ ∥c i - d∥ + (r j - 1) := calc
-      r j - δ ≤ ∥c i - c j∥ : A
-      ... ≤ ∥c i - d∥ + ∥d - c j∥ : by simp only [← dist_eq_norm, dist_triangle]
-      ... ≤ ∥c i - d∥ + (r j - 1) : begin
-        apply add_le_add_left,
-        have A : 0 ≤ 1 - 2 / ∥c j∥, by simpa [div_le_iff (zero_le_two.trans_lt Hj)] using Hj.le,
-        rw [← one_smul ℝ (c j), hd, ← sub_smul, norm_smul, norm_sub_rev, real.norm_eq_abs,
-            abs_of_nonneg A, sub_mul],
-        field_simp [(zero_le_two.trans_lt Hj).ne'],
-        linarith [hcr' j hj]
-      end,
-    linarith only [this] },-/
-  -- case `∥c i∥ > 2` and `∥c j∥ > 2`
-  have H'i : (∥c i∥ ≤ 2) ↔ false, by simpa only [not_le, iff_false] using Hi,
-  simp_rw [c', H'i, if_false, H'j, if_false],
-  sorry,
+  { simp_rw [c', Hj, hij.trans Hj, if_true],
+    exact exists_normalized_aux1 a lastr δ hδ1 hδ2 i j inej },
+  -- case `2 < ∥c j∥`
+  { have H'j : (∥a.c j∥ ≤ 2) ↔ false, by simpa only [not_le, iff_false] using Hj,
+    rcases le_or_lt (∥a.c i∥) 2 with Hi|Hi,
+    { -- case `∥c i∥ ≤ 2`
+      simp_rw [c', Hi, if_true, H'j, if_false],
+      exact exists_normalized_aux2 a lastc lastr δ hδ1 hδ2 i j inej Hi Hj },
+    { -- case `2 < ∥c i∥`
+      have H'i : (∥a.c i∥ ≤ 2) ↔ false, by simpa only [not_le, iff_false] using Hi,
+      simp_rw [c', H'i, if_false, H'j, if_false],
+      exact exists_normalized_aux3 a lastc lastr δ hδ1 i j inej Hi hij } }
 end
+
 
 #exit
 

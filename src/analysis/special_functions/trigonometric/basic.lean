@@ -1281,29 +1281,29 @@ match (le_total x (π / 2) : x ≤ π / 2 ∨ π / 2 ≤ x), le_total y (π / 2)
   apply cos_lt_cos_of_nonneg_of_le_pi_div_two; linarith)
 end
 
-lemma strict_mono_decr_on_cos : strict_mono_decr_on cos (Icc 0 π) :=
+lemma strict_anti_on_cos : strict_anti_on cos (Icc 0 π) :=
 λ x hx y hy hxy, cos_lt_cos_of_nonneg_of_le_pi hx.1 hy.2 hxy
 
 lemma cos_le_cos_of_nonneg_of_le_pi {x y : ℝ} (hx₁ : 0 ≤ x) (hy₂ : y ≤ π) (hxy : x ≤ y) :
   cos y ≤ cos x :=
-(strict_mono_decr_on_cos.le_iff_le ⟨hx₁.trans hxy, hy₂⟩ ⟨hx₁, hxy.trans hy₂⟩).2 hxy
+(strict_anti_on_cos.le_iff_le ⟨hx₁.trans hxy, hy₂⟩ ⟨hx₁, hxy.trans hy₂⟩).2 hxy
 
 lemma sin_lt_sin_of_lt_of_le_pi_div_two {x y : ℝ} (hx₁ : -(π / 2) ≤ x)
   (hy₂ : y ≤ π / 2) (hxy : x < y) : sin x < sin y :=
 by rw [← cos_sub_pi_div_two, ← cos_sub_pi_div_two, ← cos_neg (x - _), ← cos_neg (y - _)];
   apply cos_lt_cos_of_nonneg_of_le_pi; linarith
 
-lemma strict_mono_incr_on_sin : strict_mono_incr_on sin (Icc (-(π / 2)) (π / 2)) :=
+lemma strict_mono_on_sin : strict_mono_on sin (Icc (-(π / 2)) (π / 2)) :=
 λ x hx y hy hxy, sin_lt_sin_of_lt_of_le_pi_div_two hx.1 hy.2 hxy
 
 lemma sin_le_sin_of_le_of_le_pi_div_two {x y : ℝ} (hx₁ : -(π / 2) ≤ x)
   (hy₂ : y ≤ π / 2) (hxy : x ≤ y) : sin x ≤ sin y :=
-(strict_mono_incr_on_sin.le_iff_le ⟨hx₁, hxy.trans hy₂⟩ ⟨hx₁.trans hxy, hy₂⟩).2 hxy
+(strict_mono_on_sin.le_iff_le ⟨hx₁, hxy.trans hy₂⟩ ⟨hx₁.trans hxy, hy₂⟩).2 hxy
 
 lemma inj_on_sin : inj_on sin (Icc (-(π / 2)) (π / 2)) :=
-strict_mono_incr_on_sin.inj_on
+strict_mono_on_sin.inj_on
 
-lemma inj_on_cos : inj_on cos (Icc 0 π) := strict_mono_decr_on_cos.inj_on
+lemma inj_on_cos : inj_on cos (Icc 0 π) := strict_anti_on_cos.inj_on
 
 lemma surj_on_sin : surj_on sin (Icc (-(π / 2)) (π / 2)) (Icc (-1) 1) :=
 by simpa only [sin_neg, sin_pi_div_two]
@@ -1661,7 +1661,7 @@ end angle
 
 /-- `real.sin` as an `order_iso` between `[-(π / 2), π / 2]` and `[-1, 1]`. -/
 def sin_order_iso : Icc (-(π / 2)) (π / 2) ≃o Icc (-1:ℝ) 1 :=
-(strict_mono_incr_on_sin.order_iso _ _).trans $ order_iso.set_congr _ _ bij_on_sin.image_eq
+(strict_mono_on_sin.order_iso _ _).trans $ order_iso.set_congr _ _ bij_on_sin.image_eq
 
 @[simp] lemma coe_sin_order_iso_apply (x : Icc (-(π / 2)) (π / 2)) :
   (sin_order_iso x : ℝ) = sin x := rfl
@@ -1723,11 +1723,11 @@ match le_total x 0, le_total y 0 with
 | or.inr hx0, or.inr hy0 := tan_lt_tan_of_nonneg_of_lt_pi_div_two hx0 hy₂ hxy
 end
 
-lemma strict_mono_incr_on_tan : strict_mono_incr_on tan (Ioo (-(π / 2)) (π / 2)) :=
+lemma strict_mono_on_tan : strict_mono_on tan (Ioo (-(π / 2)) (π / 2)) :=
 λ x hx y hy, tan_lt_tan_of_lt_of_lt_pi_div_two hx.1 hy.2
 
 lemma inj_on_tan : inj_on tan (Ioo (-(π / 2)) (π / 2)) :=
-strict_mono_incr_on_tan.inj_on
+strict_mono_on_tan.inj_on
 
 lemma tan_inj_of_lt_of_lt_pi_div_two {x y : ℝ} (hx₁ : -(π / 2) < x) (hx₂ : x < π / 2)
   (hy₁ : -(π / 2) < y) (hy₂ : y < π / 2) (hxy : tan x = tan y) : x = y :=

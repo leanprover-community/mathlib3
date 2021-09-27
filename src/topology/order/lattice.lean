@@ -48,7 +48,7 @@ instance has_continuous_inf_dual_has_continuous_sup
 (L : Type*) [topological_space L] [has_sup L] [h: has_continuous_inf (order_dual L)] :
   has_continuous_sup  L :=
 { continuous_sup :=
-    @has_continuous_inf.continuous_inf  (order_dual L) _ _ h }
+    @has_continuous_inf.continuous_inf (order_dual L) _ _ h }
 
 /--
 Let `L` be a lattice equipped with a topology such that `L` has continuous infimum and supremum.

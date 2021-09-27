@@ -11,7 +11,8 @@ import data.equiv.mul_add
 
 Definition and basic properties of endomorphisms and automorphisms of an object in a category.
 
-We provide `End X` for each `X : C`, with a monoid structure, and `Aut X` with a group structure.
+For each `X : C`, we provide `End X := X ⟶ X` with a monoid structure,
+and `Aut X := X ≅ X ` with a group structure.
 -/
 
 universes v v' u u'

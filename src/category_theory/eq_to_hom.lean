@@ -22,7 +22,6 @@ You have two options:
 
 This file introduces various `simp` lemmas which in favourable circumstances
 result in the various `eq_to_hom` morphisms to drop out at the appropriate moment!
-
 -/
 
 universes v₁ v₂ u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].

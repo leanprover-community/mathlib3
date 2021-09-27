@@ -10,6 +10,8 @@ import category_theory.equivalence
 # Opposite categories
 
 We provide a category instance on `Cᵒᵖ`.
+The morphisms `X ⟶ Y` are defined to be the morphisms `unop Y ⟶ unop X` in `C`.
+
 Here `Cᵒᵖ` is an irreducible typeclass synonym for `C`
 (it is the same one used in the algebra library).
 

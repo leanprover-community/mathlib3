@@ -9,7 +9,6 @@ import linear_algebra.matrix.to_lin
 import ring_theory.finiteness
 
 /-!
-
 # Finite and free modules
 
 We provide some instances for finite and free modules.

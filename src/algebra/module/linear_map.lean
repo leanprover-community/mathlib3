@@ -103,9 +103,8 @@ instance {σ : R →+* S} : has_coe_to_fun (M →ₛₗ[σ] M₃) := ⟨_, to_fu
 
 initialize_simps_projections linear_map (to_fun → apply)
 
-@[simp] lemma coe_mk (f : M → M₂) (h₁ h₂) :
-  ((linear_map.mk f h₁ h₂ : M →ₗ[R] M₂) : M → M₂) = f := rfl
-
+@[simp] lemma coe_mk {σ : R →+* S} (f : M → M₃) (h₁ h₂) :
+  ⇑(linear_map.mk f h₁ h₂ : M →ₛₗ[σ] M₃) = f := rfl
 
 /-- Identity map as a `linear_map` -/
 def id : M →ₗ[R] M :=

@@ -7,7 +7,7 @@ import data.list.tfae
 import tactic.scc
 
 /-!
-# The Following Are Equivalent
+# The Following Are Equivalent (TFAE)
 
 This file provides the tactics `tfae_have` and `tfae_finish` for proving the pairwise equivalence of
 propositions in a set using various implications between them.

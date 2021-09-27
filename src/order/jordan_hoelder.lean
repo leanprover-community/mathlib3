@@ -431,21 +431,26 @@ begin
     ... = _ : congr_arg s₁ (by simp [fin.ext_iff, this]) }
 end
 
-lemma append_cast_add_right_aux
+lemma append_nat_add_aux
   {s₁ s₂ : composition_series X}
   (i : fin s₂.length) :
   fin.append (nat.add_succ _ _).symm (s₁ ∘ fin.cast_succ) s₂
-  (fin.cast_add_right s₁.length i).cast_succ = s₂ i.cast_succ :=
-by { cases i, simp [fin.append, *] }
+  (fin.nat_add s₁.length i).cast_succ = s₂ i.cast_succ :=
+begin
+  cases i,
+  simp only [fin.append, nat.not_lt_zero, fin.nat_add_mk, add_lt_iff_neg_left,
+    nat.add_sub_cancel_left, dif_neg, fin.cast_succ_mk, not_false_iff, fin.coe_mk]
+end
 
-lemma append_succ_cast_add_right_aux
+lemma append_succ_nat_add_aux
   {s₁ s₂ : composition_series X}
   (i : fin s₂.length) :
   fin.append (nat.add_succ _ _).symm (s₁ ∘ fin.cast_succ) s₂
-  (fin.cast_add_right s₁.length i).succ = s₂ i.succ :=
+  (fin.nat_add s₁.length i).succ = s₂ i.succ :=
 begin
   cases i with i hi,
-  simp [fin.append, add_assoc]
+  simp only [fin.append, add_assoc, nat.not_lt_zero, fin.nat_add_mk, add_lt_iff_neg_left,
+    nat.add_sub_cancel_left, fin.succ_mk, dif_neg, not_false_iff, fin.coe_mk]
 end
 
 /-- Append two composition series `s₁` and `s₂` such that
@@ -461,7 +466,7 @@ the least element of `s₁` is the maximum element of `s₂`. -/
       rw [append_succ_cast_add_aux _ h, append_cast_add_aux],
       exact s₁.step i },
     { intro i,
-      rw [append_cast_add_right_aux, append_succ_cast_add_right_aux],
+      rw [append_nat_add_aux, append_succ_nat_add_aux],
       exact s₂.step i }
   end }
 
@@ -479,19 +484,19 @@ append_cast_add_aux i
   append s₁ s₂ h (fin.cast_add s₂.length i).succ = s₁ i.succ :=
 append_succ_cast_add_aux i h
 
-@[simp] lemma append_cast_add_right
+@[simp] lemma append_nat_add
   {s₁ s₂ : composition_series X}
   (h : s₁.top = s₂.bot)
   (i : fin s₂.length) :
-  append s₁ s₂ h (fin.cast_add_right s₁.length i).cast_succ = s₂ i.cast_succ :=
-append_cast_add_right_aux i
+  append s₁ s₂ h (fin.nat_add s₁.length i).cast_succ = s₂ i.cast_succ :=
+append_nat_add_aux i
 
-@[simp] lemma append_succ_cast_add_right
+@[simp] lemma append_succ_nat_add
   {s₁ s₂ : composition_series X}
   (h : s₁.top = s₂.bot)
   (i : fin s₂.length) :
-  append s₁ s₂ h (fin.cast_add_right s₁.length i).succ = s₂ i.succ :=
-append_succ_cast_add_right_aux i
+  append s₁ s₂ h (fin.nat_add s₁.length i).succ = s₂ i.succ :=
+append_succ_nat_add_aux i
 
 /-- Add an element to the top of a `composition_series` -/
 @[simps length] def snoc

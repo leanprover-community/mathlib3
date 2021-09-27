@@ -1,5 +1,5 @@
 /- Will be moved under structure_sheaf.lean ; not yet documentated -/
-import algebraic_geometry.locally_ringed_space
+import algebraic_geometry.Scheme
 import algebra.category.CommRing
 import algebraic_geometry.Spec
 
@@ -8,7 +8,7 @@ universe u
 noncomputable theory
 open category_theory
 open opposite
-open algebraic_geometry.LocallyRingedSpace
+open algebraic_geometry.Scheme
 open topological_space
 
 namespace algebraic_geometry
@@ -47,24 +47,24 @@ def global_iso (R : CommRing) : R ≅ (structure_sheaf R).presheaf.obj (op ⊤)
 /- The remaing stuff will probably go into Spec.lean -/
 
 /- Lean complains with CommRing.of R.α not equal to R without this type annotation -/
-def to_Spec_Γ (R : CommRing) : R ⟶ Γ.obj (op (Spec.to_LocallyRingedSpace.obj (op R)))
+def to_Spec_Γ (R : CommRing) : R ⟶ Γ.obj (op (Spec.obj (op R)))
   := structure_sheaf.to_open R ⊤
 
 instance is_iso_Spec_Γ (R : CommRing) : is_iso (to_Spec_Γ R)
   := by convert iso_to_global R; cases R; refl
 
-def iso_Spec_Γ (R : CommRing) : R ≅ Γ.obj (op (Spec.to_LocallyRingedSpace.obj (op R)))
+def iso_Spec_Γ (R : CommRing) : R ≅ Γ.obj (op (Spec.obj (op R)))
   := global_iso R
 
 lemma Spec_Γ_naturality {R S : CommRing} (f : R ⟶ S)
-  : f ≫ to_Spec_Γ S = to_Spec_Γ R ≫ Γ.map (Spec.to_LocallyRingedSpace.map f.op).op
+  : f ≫ to_Spec_Γ S = to_Spec_Γ R ≫ Γ.map (Spec.map f.op).op
 := by ext x p; symmetry; apply localization.local_ring_hom_to_map
 
 
 /- without this, `Spec_Γ_identity` takes forever. (It still takes forever though.) -/
-local attribute[irreducible] Spec.to_LocallyRingedSpace Γ
+local attribute[irreducible] Spec Γ
 
-def Spec_Γ_identity : Spec.to_LocallyRingedSpace.right_op ⋙ Γ ≅ 𝟭 _ := by {
+def Spec_Γ_identity : Spec.right_op ⋙ Γ ≅ 𝟭 _ := by {
   symmetry,
   apply nat_iso.of_components,
   swap, intro R,

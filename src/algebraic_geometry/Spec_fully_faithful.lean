@@ -2,6 +2,7 @@
 import algebraic_geometry.locally_ringed_space
 import algebra.category.CommRing
 import algebraic_geometry.Spec
+import algebraic_geometry.Scheme
 import algebraic_geometry.morphism_into_affine
 
 universe u
@@ -9,7 +10,7 @@ universe u
 noncomputable theory
 open category_theory
 open opposite
-open algebraic_geometry.LocallyRingedSpace
+open algebraic_geometry.Scheme
 open topological_space
 
 namespace algebraic_geometry
@@ -17,11 +18,11 @@ namespace algebraic_geometry
 namespace Spec
 
 
-instance : faithful Spec.to_LocallyRingedSpace := by {
+instance : faithful Spec := by {
   haveI Spec_op_faithful := faithful.of_comp_iso Spec_Γ_identity,
-  haveI Spec_faithful : faithful Spec.to_LocallyRingedSpace.right_op.left_op
+  haveI Spec_faithful : faithful Spec.right_op.left_op
     := @functor.left_op_faithful _ _ _ _ _ Spec_op_faithful,
-  exactI @faithful.of_iso _ _ _ _ _ _ Spec_faithful (functor.right_op_left_op_iso Spec.to_LocallyRingedSpace),
+  exactI @faithful.of_iso _ _ _ _ _ _ Spec_faithful (functor.right_op_left_op_iso Spec),
 }
 
 @[elementwise]
@@ -60,13 +61,13 @@ lemma not_in_prime_iff_stalk_unit {R : CommRing} (p : prime_spectrum R) {x : R}
   }
 
 
-variables {R S : CommRing.{u}} (f : Spec.to_LocallyRingedSpace.obj (op R) ⟶ Spec.to_LocallyRingedSpace.obj (op S))
+variables {R S : CommRing.{u}} (f : Spec.obj (op R) ⟶ Spec.obj (op S))
 
 /- Should I make this definition private? -/
 include f
 def top_map_of : Top_obj R ⟶ Top_obj S := by {
   refine (eq_to_hom _) ≫ f.val.base ≫ (eq_to_hom _);
-  dsimp only [to_LocallyRingedSpace, LocallyRingedSpace_obj, opposite.unop_op];
+  dsimp only [Spec, to_LocallyRingedSpace, LocallyRingedSpace_obj, opposite.unop_op];
   refl
 }
 
@@ -96,25 +97,26 @@ lemma Γ_Spec_map_top :
     erw structure_sheaf.germ_to_open S _ _ x,
   }
 
+
 /- Show that `f` coicides with `Γ.map (f.op)` after composing with the canonical isomorphisms. -/
 lemma Γ_Spec_map:
-  Spec.to_LocallyRingedSpace.map ((to_Spec_Γ S) ≫ Γ.map (f.op)).op
-    = Spec.to_LocallyRingedSpace.map (to_Spec_Γ R).op ≫ f := by {
-  apply hom_to_affine_eq_if_global_eq, exact Γ_Spec_map_top f,
-  conv_rhs { rw [op_comp, Γ.map_comp] },
+  Spec.map ((to_Spec_Γ S) ≫ Γ.map (f.op)).op
+    = Spec.map (to_Spec_Γ R).op ≫ f := by {
+  apply Scheme.hom_to_affine_eq_if_global_eq, exact Γ_Spec_map_top f,
+  conv_rhs { erw [op_comp, Γ.map_comp] },
   rw ← is_iso.comp_inv_eq,
   simp only [← functor.map_inv, ← op_inv, ← functor.map_comp, ← op_comp],
   generalize H : (to_Spec_Γ S ≫ Γ.map f.op) ≫ inv (to_Spec_Γ R) = φ,
-  have : Γ.map f.op = inv (to_Spec_Γ S) ≫ φ ≫ (to_Spec_Γ R) := by simp[← H],
+  have : Γ.map f.op = inv (to_Spec_Γ S) ≫ φ ≫ (to_Spec_Γ R) := by simp[← H, -Γ_map],
   rw this,
   rw is_iso.eq_inv_comp,
   exact (Spec_Γ_naturality φ).symm,
 }
 
+omit f
+local attribute[irreducible] Spec Γ
 
-local attribute[irreducible] Spec.to_LocallyRingedSpace Γ
-
-instance : full Spec.to_LocallyRingedSpace := {
+instance : full Spec := {
   preimage := λ R S f, (to_Spec_Γ (unop S) ≫ Γ.map f.op ≫ inv (to_Spec_Γ (unop R))).op,
   witness' := λ R S f, by {
     rw [← category.assoc, op_comp, op_inv, functor.map_comp, functor.map_inv],

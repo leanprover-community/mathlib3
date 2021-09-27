@@ -126,5 +126,14 @@ lemma hom_to_affine_eq_if_global_eq : f = g := by {
   rw h1,
 }
 
+
+lemma Scheme.hom_to_affine_eq_if_global_eq {R : CommRing} {X : Scheme}
+  {f g : X ⟶ Scheme.Spec.obj (op R)}
+  (h1 : f.val.base = g.val.base) (h2 : Scheme.Γ.map f.op = Scheme.Γ.map g.op)
+  : f = g := by {
+    apply hom_to_affine_eq_if_global_eq,
+    exacts [h1, h2],
+  }
+
 end Spec
 end algebraic_geometry

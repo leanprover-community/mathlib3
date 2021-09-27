@@ -8,7 +8,7 @@ import algebra.polynomial.big_operators
 import data.matrix.char_p
 import field_theory.finite.basic
 import group_theory.perm.cycles
-import linear_algebra.charpoly.basic
+import linear_algebra.matrix.charpoly.basic
 import linear_algebra.matrix.trace
 import ring_theory.polynomial.basic
 import ring_theory.power_basis
@@ -20,12 +20,12 @@ We give methods for computing coefficients of the characteristic polynomial.
 
 ## Main definitions
 
-- `charpoly_degree_eq_dim` proves that the degree of the characteristic polynomial
+- `matrix.charpoly_degree_eq_dim` proves that the degree of the characteristic polynomial
   over a nonzero ring is the dimension of the matrix
-- `det_eq_sign_charpoly_coeff` proves that the determinant is the constant term of the
+- `matrix.det_eq_sign_charpoly_coeff` proves that the determinant is the constant term of the
   characteristic polynomial, up to sign.
-- `trace_eq_neg_charpoly_coeff` proves that the trace is the negative of the (d-1)th coefficient of
-  the characteristic polynomial, where d is the dimension of the matrix.
+- `matrix.trace_eq_neg_charpoly_coeff` proves that the trace is the negative of the (d-1)th
+  coefficient of the characteristic polynomial, where d is the dimension of the matrix.
   For a nonzero ring, this is the second-highest coefficient.
 
 -/
@@ -43,7 +43,6 @@ variables {α β : Type v} [decidable_eq α]
 
 
 open finset
-open polynomial
 
 variable {M : matrix n n R}
 
@@ -54,6 +53,8 @@ by { by_cases i = j; simp [h, ← degree_eq_iff_nat_degree_eq_of_pos (nat.succ_p
 lemma charmatrix_apply_nat_degree_le (i j : n) :
   (charmatrix M i j).nat_degree ≤ ite (i = j) 1 0 :=
 by split_ifs; simp [h, nat_degree_X_sub_C_le]
+
+namespace matrix
 
 variable (M)
 lemma charpoly_sub_diagonal_degree_lt :
@@ -116,7 +117,7 @@ begin
 end
 
 theorem trace_eq_neg_charpoly_coeff [nonempty n] (M : matrix n n R) :
-  (matrix.trace n R R) M = -M.charpoly.coeff (fintype.card n - 1) :=
+  (trace n R R) M = -M.charpoly.coeff (fintype.card n - 1) :=
 begin
   nontriviality,
   rw charpoly_coeff_eq_prod_coeff_of_le, swap, refl,
@@ -131,8 +132,8 @@ begin
   unfold polynomial.eval, unfold eval₂,
   transitivity polynomial.sum (mat_poly_equiv M) (λ (e : ℕ) (a : matrix n n R),
     (a * (scalar n) r ^ e) i j),
-  { unfold polynomial.sum, rw matrix.sum_apply, dsimp, refl },
-  { simp_rw [←ring_hom.map_pow, ←(matrix.scalar.commute _ _).eq],
+  { unfold polynomial.sum, rw sum_apply, dsimp, refl },
+  { simp_rw [←ring_hom.map_pow, ←(scalar.commute _ _).eq],
     simp only [coe_scalar, matrix.one_mul, ring_hom.id_apply,
       pi.smul_apply, smul_eq_mul, mul_eq_mul, algebra.smul_mul_assoc],
     have h : ∀ x : ℕ, (λ (e : ℕ) (a : R), r ^ e * a) x 0 = 0 := by simp,
@@ -144,7 +145,7 @@ begin
 end
 
 lemma eval_det (M : matrix n n (polynomial R)) (r : R) :
-  polynomial.eval r M.det = (polynomial.eval (matrix.scalar n r) (mat_poly_equiv M)).det :=
+  polynomial.eval r M.det = (polynomial.eval (scalar n r) (mat_poly_equiv M)).det :=
 begin
   rw [polynomial.eval, ← coe_eval₂_ring_hom, ring_hom.map_det],
   apply congr_arg det, ext, symmetry, convert mat_poly_equiv_eval _ _ _ _,
@@ -156,6 +157,8 @@ begin
   rw [coeff_zero_eq_eval_zero, charpoly, eval_det, mat_poly_equiv_charmatrix, ← det_smul],
   simp
 end
+
+end matrix
 
 variables {p : ℕ} [fact p.prime]
 
@@ -178,8 +181,8 @@ begin
       not_false_iff] }
 end
 
-@[simp] lemma finite_field.charpoly_pow_card {K : Type*} [field K] [fintype K] (M : matrix n n K) :
-  (M ^ (fintype.card K)).charpoly = M.charpoly :=
+@[simp] lemma finite_field.matrix.charpoly_pow_card {K : Type*} [field K] [fintype K]
+  (M : matrix n n K) : (M ^ (fintype.card K)).charpoly = M.charpoly :=
 begin
   casesI (is_empty_or_nonempty n).symm,
   { cases char_p.exists K with p hp, letI := hp,
@@ -197,18 +200,18 @@ begin
     { exact (id (mat_poly_equiv_eq_X_pow_sub_C (p ^ k) M) : _) },
     { exact (C M).commute_X } },
   { -- TODO[gh-6025]: remove this `haveI` once `subsingleton_of_empty_right` is a global instance
-    haveI : subsingleton (matrix n n K) := matrix.subsingleton_of_empty_right,
+    haveI : subsingleton (matrix n n K) := subsingleton_of_empty_right,
     exact congr_arg _ (subsingleton.elim _ _), },
 end
 
 @[simp] lemma zmod.charpoly_pow_card (M : matrix n n (zmod p)) :
   (M ^ p).charpoly = M.charpoly :=
-by { have h := finite_field.charpoly_pow_card M, rwa zmod.card at h, }
+by { have h := finite_field.matrix.charpoly_pow_card M, rwa zmod.card at h, }
 
 lemma finite_field.trace_pow_card {K : Type*} [field K] [fintype K] [nonempty n]
   (M : matrix n n K) : trace n K K (M ^ (fintype.card K)) = (trace n K K M) ^ (fintype.card K) :=
-by rw [trace_eq_neg_charpoly_coeff, trace_eq_neg_charpoly_coeff,
-       finite_field.charpoly_pow_card, finite_field.pow_card]
+by rw [matrix.trace_eq_neg_charpoly_coeff, matrix.trace_eq_neg_charpoly_coeff,
+       finite_field.matrix.charpoly_pow_card, finite_field.pow_card]
 
 lemma zmod.trace_pow_card {p:ℕ} [fact p.prime] [nonempty n] (M : matrix n n (zmod p)) :
   trace n (zmod p) (zmod p) (M ^ p) = (trace n (zmod p) (zmod p) M)^p :=
@@ -239,11 +242,11 @@ lemma charpoly_left_mul_matrix {K S : Type*} [field K] [comm_ring S] [algebra K 
   (left_mul_matrix h.basis h.gen).charpoly = minpoly K h.gen :=
 begin
   apply minpoly.unique,
-  { apply charpoly_monic },
+  { apply matrix.charpoly_monic },
   { apply (left_mul_matrix _).injective_iff.mp (left_mul_matrix_injective h.basis),
     rw [← polynomial.aeval_alg_hom_apply, aeval_self_charpoly] },
   { intros q q_monic root_q,
-    rw [charpoly_degree_eq_dim, fintype.card_fin, degree_eq_nat_degree q_monic.ne_zero],
+    rw [matrix.charpoly_degree_eq_dim, fintype.card_fin, degree_eq_nat_degree q_monic.ne_zero],
     apply with_bot.some_le_some.mpr,
     exact h.dim_le_nat_degree_of_root q_monic.ne_zero root_q }
 end

@@ -16,6 +16,7 @@ variables {X Y : Top.{u}} (f : X ⟶ Y)
 
 namespace topological_space
 
+/-- The type of open neighbourhoods of a point `x` in a (bundled) topological space. -/
 def open_nhds (x : X) := { U : opens X // x ∈ U }
 
 namespace open_nhds
@@ -61,6 +62,8 @@ The inclusion `U ⊓ V ⟶ V` as a morphism in the category of open sets.
 def inf_le_right {x : X} (U V : open_nhds x) : U ⊓ V ⟶ V :=
 hom_of_le inf_le_right
 
+/-- The inclusion functor from open neighbourhoods of `x`
+to open sets in the ambient topological space. -/
 def inclusion (x : X) : open_nhds x ⥤ opens X :=
 full_subcategory_inclusion _
 
@@ -85,6 +88,8 @@ by simp
 @[simp] lemma op_map_id_obj (x : X) (U : (open_nhds x)ᵒᵖ) : (map (𝟙 X) x).op.obj U = U :=
 by simp
 
+/-- `opens.map f` and `open_nhds.map f` form a commuting square (up to natural isomorphism)
+with the inclusion functors into `opens X`. -/
 def inclusion_map_iso (x : X) : inclusion (f x) ⋙ opens.map f ≅ map f x ⋙ inclusion x :=
 nat_iso.of_components
   (λ U, begin split, exact 𝟙 _, exact 𝟙 _ end)

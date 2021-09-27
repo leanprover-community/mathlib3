@@ -5,7 +5,7 @@ Authors: Frédéric Dupuis, Eric Wieser
 -/
 
 import group_theory.congruence
-import linear_algebra.multilinear
+import linear_algebra.multilinear.tensor_product
 
 /-!
 # Tensor product of an indexed family of modules over commutative semirings
@@ -452,7 +452,8 @@ tensor_product.lift
   { to_fun := λ a, pi_tensor_product.lift $ pi_tensor_product.lift
       (multilinear_map.curry_sum_equiv R _ _ M _ (tprod R)) a,
     map_add' := λ a b, by simp only [linear_equiv.map_add, linear_map.map_add],
-    map_smul' := λ r a, by simp only [linear_equiv.map_smul, linear_map.map_smul], }
+    map_smul' := λ r a, by simp only [linear_equiv.map_smul, linear_map.map_smul,
+                                      ring_hom.id_apply], }
 
 private lemma tmul_apply (a : ι → M) (b : ι₂ → M) :
   tmul ((⨂ₜ[R] i, a i) ⊗ₜ[R] (⨂ₜ[R] i, b i)) = ⨂ₜ[R] i, sum.elim a b i :=

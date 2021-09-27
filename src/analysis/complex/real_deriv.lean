@@ -5,7 +5,7 @@ Authors: Sébastien Gouëzel, Yourong Zang
 -/
 import analysis.calculus.times_cont_diff
 import analysis.complex.conformal
-import analysis.calculus.conformal
+import analysis.calculus.conformal.normed_space
 
 /-! # Real differentiability of complex-differentiable functions
 

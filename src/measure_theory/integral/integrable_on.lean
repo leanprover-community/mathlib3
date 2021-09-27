@@ -171,6 +171,11 @@ by { delta integrable_on, rw measure.restrict_add, exact hμ.integrable.add_meas
   h.mono_measure (measure.le_add_left (le_refl _))⟩,
   λ h, h.1.add_measure h.2⟩
 
+lemma integrable_on_map_equiv [measurable_space β] (e : α ≃ᵐ β) {f : β → E} {μ : measure α}
+  {s : set β} :
+  integrable_on f s (measure.map e μ) ↔ integrable_on (f ∘ e) (e ⁻¹' s) μ :=
+by simp only [integrable_on, e.restrict_map, integrable_map_equiv e]
+
 lemma integrable_indicator_iff (hs : measurable_set s) :
   integrable (indicator s f) μ ↔ integrable_on f s μ :=
 by simp [integrable_on, integrable, has_finite_integral, nnnorm_indicator_eq_indicator_nnnorm,
@@ -454,7 +459,7 @@ begin
     exact integrable_on_empty }
 end
 
-lemma integrable_on_compact_of_antimono_on (hmono : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f y ≤ f x) :
+lemma integrable_on_compact_of_antitone_on (hmono : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f y ≤ f x) :
   integrable_on f s μ :=
 @integrable_on_compact_of_monotone_on α (order_dual E) _ _ ‹_› _ _ ‹_› _ _ _ _ ‹_› _ _ _ hs _
   hmono
@@ -465,7 +470,7 @@ integrable_on_compact_of_monotone_on hs (λ x y _ _ hxy, hmono hxy)
 
 alias integrable_on_compact_of_monotone ← monotone.integrable_on_compact
 
-lemma integrable_on_compact_of_antimono (hmono : ∀ ⦃x y⦄, x ≤ y → f y ≤ f x) :
+lemma integrable_on_compact_of_antitone (hmono : ∀ ⦃x y⦄, x ≤ y → f y ≤ f x) :
   integrable_on f s μ :=
 @integrable_on_compact_of_monotone α (order_dual E) _ _ ‹_› _ _ ‹_› _ _ _ _ ‹_› _ _ _ hs _
   hmono

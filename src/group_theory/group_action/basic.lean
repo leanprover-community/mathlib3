@@ -465,14 +465,6 @@ end
 section
 variables [monoid α] [monoid β] [mul_distrib_mul_action α β]
 
-@[simp] lemma smul_pow (x : α) (m : β) (n : ℕ) :
-  x • m ^ n = (x • m) ^ n :=
-begin
-  induction n with n ih,
-  { rw [pow_zero, pow_zero], exact smul_one x },
-  { rw [pow_succ, pow_succ], exact (smul_mul' x m (m ^ n)).trans (congr_arg _ ih) }
-end
-
 lemma list.smul_prod {r : α} {l : list β} :
   r • l.prod = (l.map ((•) r)).prod :=
 (mul_distrib_mul_action.to_monoid_hom β r).map_list_prod l

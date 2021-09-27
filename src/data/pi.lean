@@ -44,6 +44,7 @@ instance has_mul [∀ i, has_mul $ f i] :
   has_inv (Π i : I, f i) :=
   ⟨λ f i, (f i)⁻¹⟩
 @[simp, to_additive] lemma inv_apply [∀ i, has_inv $ f i] : x⁻¹ i = (x i)⁻¹ := rfl
+@[to_additive] lemma inv_def [Π i, has_inv $ f i] : x⁻¹ = λ i, (x i)⁻¹ := rfl
 
 @[to_additive] instance has_div [Π i, has_div $ f i] :
   has_div (Π i : I, f i) :=

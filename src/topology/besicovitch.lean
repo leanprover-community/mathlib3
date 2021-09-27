@@ -63,6 +63,8 @@ noncomputable theory
 
 namespace besicovitch
 
+/-- The maximum cardinality of a `1`-separated set in the ball of radius `2`. This is also the
+optimal number of families in the Besicovitch covering theorem. -/
 def multiplicity (E : Type*) [normed_group E] :=
 Sup {N | ∃ s : finset E, s.card = N ∧ (∀ c ∈ s, ∥c∥ ≤ 2) ∧ (∀ c ∈ s, ∀ d ∈ s, c ≠ d → 1 ≤ ∥c - d∥)}
 
@@ -136,7 +138,7 @@ begin
 end
 
 variable (E)
-lemma exists_good_δ : ∃ (δ : ℝ), 0 < δ ∧ δ ≤ 1 ∧ ∀ (s : finset E), (∀ c ∈ s, ∥c∥ ≤ 2) →
+lemma exists_good_δ : ∃ (δ : ℝ), 0 < δ ∧ δ < 1 ∧ ∀ (s : finset E), (∀ c ∈ s, ∥c∥ ≤ 2) →
   (∀ (c ∈ s) (d ∈ s), c ≠ d → 1 - δ ≤ ∥c - d∥) → s.card ≤ multiplicity E :=
 begin
   classical,
@@ -146,7 +148,7 @@ begin
   have : ∀ (δ : ℝ), 0 < δ → ∃ f : fin N → E, (∀ (i : fin N), ∥f i∥ ≤ 2)
     ∧ (∀ i j, i ≠ j → 1 - δ ≤ ∥f i - f j∥),
   { assume δ hδ,
-    rcases le_total δ 1 with hδ'|hδ',
+    rcases lt_or_le δ 1 with hδ'|hδ',
     { rcases h δ hδ hδ' with ⟨s, hs, h's, s_card⟩,
       obtain ⟨f, f_inj, hfs⟩ : ∃ (f : fin N → E), function.injective f ∧ range f ⊆ ↑s :=
         fin.exists_injective_of_le_card_finset s_card,
@@ -198,20 +200,73 @@ begin
   exact lt_irrefl _ ((nat.lt_succ_self (multiplicity E)).trans_le this),
 end
 
+/-- A small positive number such that any `1 - δ` separated set in the ball of radius `2` has
+cardinality at most `besicovitch.multiplicity E`. -/
 def good_δ : ℝ := classical.some (exists_good_δ E)
 
+lemma good_δ_lt_one : good_δ E < 1 := (classical.some_spec (exists_good_δ E)).2.1
+
+/-- A number `τ > 1`, but chosen close enough to `1` so that the construction in the Besicovitch
+covering theorem using this parameter `τ` will give the smallest possible number of covering
+families. -/
 def good_τ : ℝ := 1 + classical.some (exists_good_δ E) / 4
 
 lemma one_lt_good_τ : 1 < good_τ E :=
 by { dsimp [good_τ], linarith [(classical.some_spec (exists_good_δ E)).1] }
 
-lemma card_le_multiplicity_τ {s : finset E} (hs : ∀ c ∈ s, ∥c∥ ≤ 2)
+variable {E}
+
+lemma card_le_multiplicity_of_δ {s : finset E} (hs : ∀ c ∈ s, ∥c∥ ≤ 2)
   (h's : ∀ (c ∈ s) (d ∈ s), c ≠ d → 1 - good_δ E ≤ ∥c - d∥) :
   s.card ≤ multiplicity E :=
 (classical.some_spec (exists_good_δ E)).2.2 s hs h's
 
+lemma le_multiplicity_of_δ_of_fin {n : ℕ} (f : fin n → E) (h : ∀ i, ∥f i∥ ≤ 2)
+  (h' : ∀ i j, i ≠ j → 1 - good_δ E ≤ ∥f i - f j∥) :
+  n ≤ multiplicity E :=
+begin
+  classical,
+  have finj : function.injective f,
+  { assume i j hij,
+    by_contra,
+    have : 1 - good_δ E ≤ ∥f i - f j∥ := h' i j h,
+    simp only [hij, norm_zero, sub_self] at this,
+    linarith [good_δ_lt_one E] },
+  let s := finset.image f finset.univ,
+  have s_card : s.card = n,
+    by { rw finset.card_image_of_injective _ finj, exact finset.card_fin n },
+  have hs : ∀ c ∈ s, ∥c∥ ≤ 2,
+    by simp only [h, forall_apply_eq_imp_iff', forall_const, forall_exists_index, finset.mem_univ,
+                  finset.mem_image, implies_true_iff],
+  have h's : ∀ (c ∈ s) (d ∈ s), c ≠ d → 1 - good_δ E ≤ ∥c - d∥,
+  { simp only [s, forall_apply_eq_imp_iff', forall_exists_index, finset.mem_univ, finset.mem_image,
+      ne.def, exists_true_left, forall_apply_eq_imp_iff', forall_true_left],
+    assume i j hij,
+    have : i ≠ j := λ h, by { rw h at hij, exact hij rfl },
+    exact h' i j this },
+  have : s.card ≤ multiplicity E := card_le_multiplicity_of_δ hs h's,
+  rwa [s_card] at this,
+end
+
 open fin
 
+variable (E)
+
+/-- A satellite configuration is a configuration of `N+1` points that shows up in the inductive
+construction for the Besicovitch covering theorem. It depends on some parameter `τ ≥ 1`.
+
+This is a family of balls (indexed by `i : fin N.succ`, with center `c i` and radius `r i`) such
+that the last ball intersects all the other balls (condition `inter`),
+and given any two balls there is an order between them, ensuring that the first ball does not
+contain the center of the other one, and the radius of the second ball can not be larger than
+the radius of the first ball (up to a factor `τ`). This order corresponds to the order of choice
+in the inductive construction: otherwise, the second ball would have been chosen before.
+This is the  condition `h`.
+
+Finally, the last ball is chosen after all the other ones, meaning that `h` can be strengthened
+by keeping only one side of the alternative in `hlast`.
+-/
+@[nolint has_inhabited_instance]
 structure satellite_config (N : ℕ) (τ : ℝ) :=
 (c : fin N.succ → E)
 (r : fin N.succ → ℝ )
@@ -486,9 +541,23 @@ begin
       exact exists_normalized_aux3 a lastc lastr δ hδ1 i j inej Hi hij } }
 end
 
+variable (E)
+
+/-- In a normed vector space `E`, there can be no satellite configuration with `multiplicity E + 1`
+points and the parameter `good_τ E`. This will ensure that in the inductive construction to get
+the Besicovitch covering families, there will never be more than `multiplicity E` nonempty
+families.-/
+theorem is_empty_satellite_config_multiplicity :
+  is_empty (satellite_config E (multiplicity E) (good_τ E)) :=
+⟨begin
+  assume a,
+  let b := a.center_and_rescale,
+  rcases b.exists_normalized (a.center_and_rescale_center) (a.center_and_rescale_radius)
+    (good_δ E) le_rfl (good_δ_lt_one E).le with ⟨c', c'_le_two, hc'⟩,
+  exact lt_irrefl _ ((nat.lt_succ_self _).trans_le (le_multiplicity_of_δ_of_fin c' c'_le_two hc'))
+end⟩
 
 #exit
-
 
 namespace besicovitch
 

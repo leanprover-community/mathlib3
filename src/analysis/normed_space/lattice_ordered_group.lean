@@ -169,13 +169,6 @@ end
 ⟩
 
 /--
-Let `α` be a normed lattice ordered group. Then the supremum is jointly continuous.
--/
-lemma normed_lattice_add_comm_group_has_continuous_sup {α : Type*}
-  [h: normed_lattice_add_comm_group α] : has_continuous_sup α :=
-infer_instance
-
-/--
 Let `α` be a normed lattice ordered group. Then `α` is a topological lattice in the norm topology.
 -/
 @[priority 100] -- see Note [lower instance priority]

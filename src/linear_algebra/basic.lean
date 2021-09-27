@@ -443,7 +443,7 @@ lemma comp_sub (f g : M →ₛₗ[σ₁₃] M₃) (h : M₃ →ₛₗ[σ₃₄] 
 omit σ₁₄
 
 /-- The type of linear maps is an additive group. -/
-instance [module R M₃] : add_comm_group (M →ₛₗ[σ₁₃] M₃) :=
+instance : add_comm_group (M →ₛₗ[σ₁₃] M₃) :=
 { zero := 0,
   add := (+),
   neg := has_neg.neg,

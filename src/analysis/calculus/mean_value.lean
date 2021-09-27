@@ -974,7 +974,7 @@ theorem convex_on_of_deriv_mono {D : set ℝ} (hD : convex ℝ D) {f : ℝ → �
   (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
   (hf'_mono : ∀ x y ∈ interior D, x ≤ y → deriv f x ≤ deriv f y) :
   convex_on ℝ D f :=
-convex_on_real_of_slope_mono_adjacent hD
+convex_on_of_slope_mono_adjacent hD
 begin
   intros x y z hx hz hxy hyz,
   -- First we prove some trivial inclusions
@@ -1005,8 +1005,7 @@ begin
   { intros x y hx hy hxy,
     convert neg_le_neg (hf'_mono x y hx hy hxy);
     convert deriv.neg },
-  exact (neg_convex_on_iff D f).mp (convex_on_of_deriv_mono hD
-    hf.neg hf'.neg this),
+  exact neg_convex_on_iff.mp (convex_on_of_deriv_mono hD hf.neg hf'.neg this),
 end
 
 /-- If a function `f` is differentiable and `f'` is monotone on `ℝ` then `f` is convex. -/

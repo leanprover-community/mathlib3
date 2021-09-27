@@ -45,7 +45,7 @@ supremum is continuous.
 -/
 @[priority 100] -- see Note [lower instance priority]
 instance has_continuous_inf_dual_has_continuous_sup
-(L : Type*) [topological_space L] [has_sup L] [h: has_continuous_inf (order_dual L)] :
+  (L : Type*) [topological_space L] [has_sup L] [h: has_continuous_inf (order_dual L)] :
   has_continuous_sup  L :=
 { continuous_sup :=
     @has_continuous_inf.continuous_inf (order_dual L) _ _ h }

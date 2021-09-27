@@ -2,13 +2,18 @@
 Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
-
-Case bashing:
-* on `x ∈ A`, for `A : finset α` or `A : list α`, or
-* on `x : A`, with `[fintype A]`.
 -/
 import data.fintype.basic
 import tactic.norm_num
+
+/-!
+# Case bash
+
+This file provides the tactic `fin_cases`. `fin_cases x` performs case analysis on `x`, that is
+creates one goal for each possible value of `x`, where either:
+* `x : α`, where `[fintype α]`
+* `x ∈ A`, where `A : finset α`, `A : multiset α` or `A : list α`.
+-/
 
 namespace tactic
 open lean.parser

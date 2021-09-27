@@ -37,12 +37,6 @@ One can translate from usual orders to circular ones by "closing the necklace at
 * `set.cIcc`: Closed-closed circular interval.
 * `set.cIoo`: Open-open circular interval.
 
-## Notation
-
-We provide the following two notations:
-* `[a ≤ b ≤ c]` for `btw a b c`.
-* `[a < b < c]` for `sbtw a b c`.
-
 ## Notes
 
 There's an unsolved diamond here. The instances `has_le α → has_btw (order_dual α)` and
@@ -79,15 +73,11 @@ class has_btw (α : Type*) :=
 
 export has_btw (btw)
 
-notation `[` a ` ≤ ` b ` ≤ ` c `]` := btw a b c
-
 /-- Syntax typeclass for a strict betweenness relation. -/
 class has_sbtw (α : Type*) :=
 (sbtw : α → α → α → Prop)
 
 export has_sbtw (sbtw)
-
-notation `[` a ` < ` b ` < ` c `]` := sbtw a b c
 
 /-- A circular preorder is the analogue of a preorder where you can loop around. `≤` and `<` are
 replaced by ternary relations `btw` and `sbtw`. `btw` is reflexive and cyclic. `sbtw` is transitive.

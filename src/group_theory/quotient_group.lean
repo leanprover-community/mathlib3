@@ -416,18 +416,12 @@ end third_iso_thm
 
 section trivial
 
-/-These first few lemmas should maybe go somewhere else, where?-/
-
 lemma quot_by_top_is_subsingleton : subsingleton (quotient_group.quotient (⊤ : subgroup G)) :=
 trunc.subsingleton
 
-lemma setoid.eq_top_iff {α : Type*} {s : setoid α} : s = (⊤ : setoid α) ↔ ∀ x y : α, s.rel x y :=
-by simp [eq_top_iff, setoid.le_def, setoid.top_def, top_apply]
-
 /-- If the quotient by a subgroup gives a singleton then the subgroup is the whole group. -/
 lemma subgroup_eq_top_of_subsingleton (H : subgroup G) (h : subsingleton
-  (quotient_group.quotient H)) :
-  H = ⊤ :=
+  (quotient_group.quotient H)) : H = ⊤ :=
 top_unique $ λ x _,
   have this : 1⁻¹ * x ∈ H := quotient_group.eq.1 (subsingleton.elim _ _),
   by rwa [one_inv, one_mul] at this

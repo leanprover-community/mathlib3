@@ -3828,7 +3828,6 @@ continuous_at_iff_continuous_left_right.2
 
 /-- If a function `f` with a densely ordered codomain is monotone on a neighborhood of `a` and the
 image of this neighborhood under `f` is a neighborhood of `f a`, then `f` is continuous at `a`. -/
-continuous at `a`. -/
 lemma continuous_at_of_mono_incr_on_of_image_mem_nhds [densely_ordered β] {f : α → β}
   {s : set α} {a : α} (h_mono : ∀ (x ∈ s) (y ∈ s), x ≤ y → f x ≤ f y) (hs : s ∈ 𝓝 a)
   (hfs : f '' s ∈ 𝓝 (f a)) :

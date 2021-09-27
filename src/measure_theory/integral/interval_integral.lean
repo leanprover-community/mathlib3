@@ -2212,7 +2212,7 @@ begin
   { rw [continuous_on_update_iff, continuous_on_update_iff, Icc_diff_right, Ico_diff_left],
     refine ⟨⟨λ z hz, (hderiv z hz).continuous_at.continuous_within_at, _⟩, _⟩,
     { exact λ _, ha.mono_left (nhds_within_mono _ Ioo_subset_Ioi_self) },
-    { intro H, clear H,
+    { rintro -,
       refine (hb.congr' _).mono_left (nhds_within_mono _ Ico_subset_Iio_self),
       filter_upwards [Ioo_mem_nhds_within_Iio (right_mem_Ioc.2 hab)],
       exact λ z hz, (update_noteq hz.1.ne' _ _).symm } },

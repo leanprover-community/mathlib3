@@ -55,7 +55,7 @@ A `jordan_hoelder_lattice` is the class for which the Jordan Hölder theorem is 
 Jordan Hölder lattice is a lattice equipped with a notion of maximality, `is_maximal`, and a notion
 of isomorphism of pairs `iso`. In the example of subgroups of a group, `is_maximal H K` means that
 `H` is a maximal normal subgroup of `K`, and `iso (H₁, K₁) (H₂, K₂)` means that the quotient
-`H₁ / K₁` is isomorphic to the quotient `H₂ / K₂`. `iso` be symmetric and transitive and must
+`H₁ / K₁` is isomorphic to the quotient `H₂ / K₂`. `iso` must be symmetric and transitive and must
 satisfy the second isomorphism theorem `iso (H, H ⊔ K) (H ⊓ K, K)`.
 Examples include `subgroup G` if `G` is a group, and `submodule R M` if `M` is an `R`-module
 -/

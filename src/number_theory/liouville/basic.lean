@@ -146,7 +146,7 @@ begin
   { exact λ a, one_le_pow_of_one_le ((le_add_iff_nonneg_left 1).mpr a.cast_nonneg) _ },
   -- 2: the polynomial `fR` is Lipschitz at `α` -- as its derivative continuous;
   { rw mul_comm,
-    rw closed_ball_Icc at hy,
+    rw real.closed_ball_eq at hy,
     -- apply the Mean Value Theorem: the bound on the derivative comes from differentiability.
     refine convex.norm_image_sub_le_of_norm_deriv_le (λ _ _, fR.differentiable_at)
       (λ y h, by { rw fR.deriv, exact hM _ h }) (convex_Icc _ _) hy (mem_Icc_iff_abs_le.mp _),

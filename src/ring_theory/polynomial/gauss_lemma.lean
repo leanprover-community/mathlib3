@@ -23,7 +23,7 @@ Gauss's Lemma is one of a few results pertaining to irreducibility of primitive 
 
 -/
 
-local notation R`⁰`:9000 := non_zero_divisors R
+open_locale non_zero_divisors
 
 variables {R : Type*} [integral_domain R]
 
@@ -145,12 +145,13 @@ begin
     apply map_injective (algebra_map R K) (is_fraction_ring.injective _ _),
     rw [map_mul, map_mul, hs, hr, mul_assoc, mul_comm r],
     simp },
-  rw [← hp.dvd_prim_part_iff_dvd, prim_part_mul, hq.prim_part_eq, dvd_iff_dvd_of_rel_right] at h,
+  rw [← hp.dvd_prim_part_iff_dvd, prim_part_mul, hq.prim_part_eq,
+      associated.dvd_iff_dvd_right] at h,
   { exact h },
   { symmetry,
     rcases is_unit_prim_part_C s with ⟨u, hu⟩,
     use u,
-    simp [hu], },
+    rw hu },
   iterate 2 { apply mul_ne_zero hq.ne_zero,
     rw [ne.def, C_eq_zero],
     contrapose! s0,

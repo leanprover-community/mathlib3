@@ -117,8 +117,7 @@ have hf : uniform_continuous f, from uniform_continuous_of_continuous hf',
 
 instance top_ring_compl : topological_ring (completion α) :=
 { continuous_add := continuous_add,
-  continuous_mul := continuous_mul,
-  continuous_neg := continuous_neg }
+  continuous_mul := continuous_mul }
 
 /-- The completion map as a ring morphism. -/
 def map_ring_hom (hf : continuous f) : completion α →+* completion β :=

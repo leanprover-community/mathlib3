@@ -98,8 +98,8 @@ theorem prod_eq_fold [comm_monoid β] (s : finset α) (f : α → β) :
 rfl
 
 @[simp] lemma sum_multiset_singleton (s : finset α) :
-  s.sum (λ x, x ::ₘ 0) = s.val :=
-by simp [sum_eq_multiset_sum]
+  s.sum (λ x, {x}) = s.val :=
+by simp only [sum_eq_multiset_sum, multiset.sum_map_singleton]
 
 end finset
 
@@ -230,6 +230,15 @@ lemma prod_union [decidable_eq α] (h : disjoint s₁ s₂) :
   (∏ x in (s₁ ∪ s₂), f x) = (∏ x in s₁, f x) * (∏ x in s₂, f x) :=
 by rw [←prod_union_inter, (disjoint_iff_inter_eq_empty.mp h)]; exact (mul_one _).symm
 
+@[to_additive]
+lemma prod_filter_mul_prod_filter_not (s : finset α) (p : α → Prop) [decidable_pred p]
+  [decidable_pred (λ x, ¬p x)] (f : α → β) :
+  (∏ x in s.filter p, f x) * (∏ x in s.filter (λ x, ¬p x), f x) = ∏ x in s, f x :=
+begin
+  haveI := classical.dec_eq α,
+  rw [← prod_union (filter_inter_filter_neg_eq p s).le, filter_union_filter_neg_eq]
+end
+
 end comm_monoid
 
 end finset
@@ -250,7 +259,10 @@ namespace finset
 section comm_monoid
 variables [comm_monoid β]
 
-@[to_additive]
+/-- Multiplying the products of a function over `s` and over `sᶜ` gives the whole product.
+For a version expressed with subtypes, see `fintype.prod_subtype_mul_prod_subtype`. -/
+@[to_additive "Adding the sums of a function over `s` and over `sᶜ` gives the whole sum.
+For a version expressed with subtypes, see `fintype.sum_subtype_add_sum_subtype`. "]
 lemma prod_mul_prod_compl [fintype α] [decidable_eq α] (s : finset α) (f : α → β) :
   (∏ i in s, f i) * (∏ i in sᶜ, f i) = ∏ i, f i :=
 is_compl_compl.prod_mul_prod f
@@ -379,12 +391,22 @@ lemma prod_hom_rel [comm_monoid γ] {r : β → γ → Prop} {f : α → β} {g 
 by { delta finset.prod, apply multiset.prod_hom_rel; assumption }
 
 @[to_additive]
+lemma prod_eq_one {f : α → β} {s : finset α} (h : ∀ x ∈ s, f x = 1) : (∏ x in s, f x) = 1 :=
+calc (∏ x in s, f x) = ∏ x in s, 1 : finset.prod_congr rfl h
+  ... = 1 : finset.prod_const_one
+
+@[to_additive]
+lemma prod_subset_one_on_sdiff [decidable_eq α] (h : s₁ ⊆ s₂) (hg : ∀ x ∈ (s₂ \ s₁), g x = 1)
+  (hfg : ∀ x ∈ s₁, f x = g x) : ∏ i in s₁, f i = ∏ i in s₂, g i :=
+begin
+  rw [← prod_sdiff h, prod_eq_one hg, one_mul],
+  exact prod_congr rfl hfg
+end
+
+@[to_additive]
 lemma prod_subset (h : s₁ ⊆ s₂) (hf : ∀ x ∈ s₂, x ∉ s₁ → f x = 1) :
   (∏ x in s₁, f x) = ∏ x in s₂, f x :=
-by haveI := classical.dec_eq α; exact
-have ∏ x in s₂ \ s₁, f x = ∏ x in s₂ \ s₁, 1,
-  from prod_congr rfl $ by simpa only [mem_sdiff, and_imp],
-by rw [←prod_sdiff h]; simp only [this, prod_const_one, one_mul]
+by haveI := classical.dec_eq α; exact prod_subset_one_on_sdiff h (by simpa) (λ _ _, rfl)
 
 @[to_additive]
 lemma prod_filter_of_ne {p : α → Prop} [decidable_pred p] (hp : ∀ x ∈ s, f x ≠ 1 → p x) :
@@ -488,9 +510,7 @@ by haveI := classical.dec_eq α; exact
 lemma prod_subtype_eq_prod_filter (f : α → β) {p : α → Prop} [decidable_pred p] :
   ∏ x in s.subtype p, f x = ∏ x in s.filter p, f x :=
 begin
-  conv_lhs {
-    erw ←prod_map (s.subtype p) (function.embedding.subtype _) f
-  },
+  conv_lhs { erw ←prod_map (s.subtype p) (function.embedding.subtype _) f },
   exact prod_congr (subtype_map _) (λ x hx, rfl)
 end
 
@@ -527,23 +547,16 @@ lemma prod_subtype {p : α → Prop} {F : fintype (subtype p)} (s : finset α)
   ∏ a in s, f a = ∏ a : subtype p, f a :=
 have (∈ s) = p, from set.ext h, by { substI p, rw [←prod_finset_coe], congr }
 
-@[to_additive]
-lemma prod_eq_one {f : α → β} {s : finset α} (h : ∀ x ∈ s, f x = 1) : (∏ x in s, f x) = 1 :=
-calc (∏ x in s, f x) = ∏ x in s, 1 : finset.prod_congr rfl h
-  ... = 1 : finset.prod_const_one
-
 @[to_additive] lemma prod_apply_dite {s : finset α} {p : α → Prop} {hp : decidable_pred p}
-  (f : Π (x : α), p x → γ) (g : Π (x : α), ¬p x → γ) (h : γ → β) :
+  [decidable_pred (λ x, ¬ p x)] (f : Π (x : α), p x → γ) (g : Π (x : α), ¬p x → γ)
+  (h : γ → β) :
   (∏ x in s, h (if hx : p x then f x hx else g x hx)) =
   (∏ x in (s.filter p).attach, h (f x.1 (mem_filter.mp x.2).2)) *
     (∏ x in (s.filter (λ x, ¬ p x)).attach, h (g x.1 (mem_filter.mp x.2).2)) :=
-by letI := classical.dec_eq α; exact
 calc ∏ x in s, h (if hx : p x then f x hx else g x hx)
-    = ∏ x in s.filter p ∪ s.filter (λ x, ¬ p x), h (if hx : p x then f x hx else g x hx) :
-  by rw [filter_union_filter_neg_eq]
-... = (∏ x in s.filter p, h (if hx : p x then f x hx else g x hx)) *
+    = (∏ x in s.filter p, h (if hx : p x then f x hx else g x hx)) *
     (∏ x in s.filter (λ x, ¬ p x), h (if hx : p x then f x hx else g x hx)) :
-  prod_union (by simp [disjoint_right] {contextual := tt})
+  (prod_filter_mul_prod_filter_not s p _).symm
 ... = (∏ x in (s.filter p).attach, h (if hx : p x.1 then f x.1 hx else g x.1 hx)) *
     (∏ x in (s.filter (λ x, ¬ p x)).attach, h (if hx : p x.1 then f x.1 hx else g x.1 hx)) :
   congr_arg2 _ prod_attach.symm prod_attach.symm
@@ -717,6 +730,20 @@ calc (∏ x in s, f x) = ∏ x in (s.filter $ λ x, f x ≠ 1), f x : prod_filte
         let ⟨a, ha₁, ha₂, eq⟩ := i_surj b h₁ h₂ in ⟨a, mem_filter.mpr ⟨ha₁, ha₂⟩, eq⟩)
   ... = (∏ x in t, g x) : prod_filter_ne_one
 
+@[to_additive] lemma prod_dite_of_false {p : α → Prop} {hp : decidable_pred p}
+  (h : ∀ x ∈ s, ¬ p x) (f : Π (x : α), p x → β) (g : Π (x : α), ¬p x → β) :
+  (∏ x in s, if hx : p x then f x hx else g x hx) =
+  ∏ (x : s), g x.val (h x.val x.property) :=
+prod_bij (λ x hx, ⟨x,hx⟩) (λ x hx, by simp) (λ a ha, by { dsimp, rw dif_neg })
+  (λ a₁ a₂ h₁ h₂ hh, congr_arg coe hh) (λ b hb, ⟨b.1, b.2, by simp⟩)
+
+@[to_additive] lemma prod_dite_of_true {p : α → Prop} {hp : decidable_pred p}
+  (h : ∀ x ∈ s, p x) (f : Π (x : α), p x → β) (g : Π (x : α), ¬p x → β) :
+  (∏ x in s, if hx : p x then f x hx else g x hx) =
+  ∏ (x : s), f x.val (h x.val x.property) :=
+prod_bij (λ x hx, ⟨x,hx⟩) (λ x hx, by simp) (λ a ha, by { dsimp, rw dif_pos })
+  (λ a₁ a₂ h₁ h₂ hh, congr_arg coe hh) (λ b hb, ⟨b.1, b.2, by simp⟩)
+
 @[to_additive]
 lemma nonempty_of_prod_ne_one (h : (∏ x in s, f x) ≠ 1) : s.nonempty :=
 s.eq_empty_or_nonempty.elim (λ H, false.elim $ h $ H.symm ▸ prod_empty) id
@@ -728,14 +755,6 @@ begin
   rw ← prod_filter_ne_one at h,
   rcases nonempty_of_prod_ne_one h with ⟨x, hx⟩,
   exact ⟨x, (mem_filter.1 hx).1, (mem_filter.1 hx).2⟩
-end
-
-@[to_additive]
-lemma prod_subset_one_on_sdiff [decidable_eq α] (h : s₁ ⊆ s₂) (hg : ∀ x ∈ (s₂ \ s₁), g x = 1)
-  (hfg : ∀ x ∈ s₁, f x = g x) : ∏ i in s₁, f i = ∏ i in s₂, g i :=
-begin
-  rw [← prod_sdiff h, prod_eq_one hg, one_mul],
-  exact prod_congr rfl hfg
 end
 
 @[to_additive]
@@ -777,6 +796,12 @@ begin
 end
 
 @[to_additive]
+lemma prod_range_add_div_prod_range {α : Type*} [comm_group α] (f : ℕ → α) (n m : ℕ) :
+  (∏ k in range (n + m), f k) / (∏ k in range n, f k) = ∏ k in finset.range m, f (n + k) :=
+div_eq_of_eq_mul' (prod_range_add f n m)
+
+
+@[to_additive]
 lemma prod_range_zero (f : ℕ → β) :
   ∏ k in range 0, f k = 1 :=
 by rw [range_zero, prod_empty]
@@ -816,6 +841,15 @@ attribute [to_additive] prod_multiset_map_count
 lemma prod_multiset_count [decidable_eq α] [comm_monoid α] (s : multiset α) :
   s.prod = ∏ m in s.to_finset, m ^ (s.count m) :=
 by { convert prod_multiset_map_count s id, rw map_id }
+
+@[to_additive] lemma prod_mem_multiset [decidable_eq α]
+  (m : multiset α) (f : {x // x ∈ m} → β) (g : α → β)
+  (hfg : ∀ x, f x = g x) :
+  ∏ (x : {x // x ∈ m}), f x = ∏ x in m.to_finset, g x :=
+prod_bij (λ x _, x.1) (λ x _, multiset.mem_to_finset.mpr x.2)
+  (λ _ _, hfg _)
+  (λ _ _ _ _ h, by { ext, assumption })
+  (λ y hy, ⟨⟨y, multiset.mem_to_finset.mp hy⟩, finset.mem_univ _, rfl⟩)
 
 /--
 To prove a property of a product, it suffices to prove that
@@ -1286,6 +1320,18 @@ end
 
 end comm_group_with_zero
 
+@[to_additive]
+lemma prod_unique_nonempty {α β : Type*} [comm_monoid β] [unique α]
+  (s : finset α) (f : α → β) (h : s.nonempty) :
+  (∏ x in s, f x) = f (default α) :=
+begin
+  obtain ⟨a, ha⟩ := h,
+  have : s = {a},
+  { ext b,
+    simpa [subsingleton.elim a b] using ha },
+  rw [this, finset.prod_singleton, subsingleton.elim a (default α)]
+end
+
 end finset
 
 namespace fintype
@@ -1329,6 +1375,32 @@ lemma prod_finset_coe [comm_monoid β] :
   ∏ (i : (s : set α)), f i = ∏ i in s, f i :=
 (finset.prod_subtype s (λ _, iff.rfl) f).symm
 
+@[to_additive]
+lemma prod_unique {α β : Type*} [comm_monoid β] [unique α] (f : α → β) :
+  (∏ x : α, f x) = f (default α) :=
+by rw [univ_unique, prod_singleton]
+
+@[to_additive]
+lemma prod_subsingleton {α β : Type*} [comm_monoid β] [subsingleton α] (f : α → β) (a : α) :
+  (∏ x : α, f x) = f a :=
+begin
+  haveI : unique α := unique_of_subsingleton a,
+  convert prod_unique f
+end
+
+@[to_additive]
+lemma prod_subtype_mul_prod_subtype {α β : Type*} [fintype α] [comm_monoid β]
+  (p : α → Prop) (f : α → β) [decidable_pred p] :
+  (∏ (i : {x // p x}), f i) * (∏ i : {x // ¬ p x}, f i) = ∏ i, f i :=
+begin
+  classical,
+  let s := {x | p x}.to_finset,
+  rw [← finset.prod_subtype s, ← finset.prod_subtype sᶜ],
+  { exact finset.prod_mul_prod_compl _ _ },
+  { simp },
+  { simp }
+end
+
 end fintype
 
 namespace list
@@ -1342,10 +1414,6 @@ namespace list
 end list
 
 namespace multiset
-
-lemma abs_sum_le_sum_abs [linear_ordered_add_comm_group α] {s : multiset α} :
-  abs s.sum ≤ (s.map abs).sum :=
-le_sum_of_subadditive _ abs_zero abs_add s
 
 variables [decidable_eq α]
 
@@ -1376,12 +1444,12 @@ lemma count_sum' {s : finset β} {a : α} {f : β → multiset α} :
 by { dunfold finset.sum, rw count_sum }
 
 @[simp] lemma to_finset_sum_count_nsmul_eq (s : multiset α) :
-  (∑ a in s.to_finset, s.count a • (a ::ₘ 0)) = s :=
+  (∑ a in s.to_finset, s.count a • {a}) = s :=
 begin
   apply ext', intro b,
   rw count_sum',
-  have h : count b s = count b (count b s • (b ::ₘ 0)),
-  { rw [singleton_coe, count_nsmul, ← singleton_coe, count_singleton, mul_one] },
+  have h : count b s = count b (count b s • {b}),
+  { rw [count_nsmul, count_singleton_self, mul_one] },
   rw h, clear h,
   apply finset.sum_eq_single b,
   { intros c h hcb, rw count_nsmul, convert mul_zero (count c s),
@@ -1389,15 +1457,16 @@ begin
   { intro hb, rw [count_eq_zero_of_not_mem (mt mem_to_finset.2 hb), count_nsmul, zero_mul]}
 end
 
-theorem exists_smul_of_dvd_count (s : multiset α) {k : ℕ} (h : ∀ (a : α), k ∣ multiset.count a s) :
+theorem exists_smul_of_dvd_count (s : multiset α) {k : ℕ}
+  (h : ∀ (a : α), a ∈ s → k ∣ multiset.count a s) :
   ∃ (u : multiset α), s = k • u :=
 begin
-  use ∑ a in s.to_finset, (s.count a / k) • (a ::ₘ 0),
-  have h₂ : ∑ (x : α) in s.to_finset, k • (count x s / k) • (x ::ₘ 0) =
-    ∑ (x : α) in s.to_finset, count x s • (x ::ₘ 0),
-  { refine congr_arg s.to_finset.sum _,
-    apply funext, intro x,
-    rw [← mul_nsmul, nat.mul_div_cancel' (h x)] },
+  use ∑ a in s.to_finset, (s.count a / k) • {a},
+  have h₂ : ∑ (x : α) in s.to_finset, k • (count x s / k) • ({x} : multiset α) =
+    ∑ (x : α) in s.to_finset, count x s • {x},
+  { apply finset.sum_congr rfl,
+    intros x hx,
+    rw [← mul_nsmul, nat.mul_div_cancel' (h x (mem_to_finset.mp hx))] },
   rw [← finset.sum_nsmul, h₂, to_finset_sum_count_nsmul_eq]
 end
 

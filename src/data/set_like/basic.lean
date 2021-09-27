@@ -7,9 +7,23 @@ import data.set.basic
 import tactic.monotonicity.basic
 
 /-!
-# Typeclass for a type `A` with an injective map to `set B`
+# Typeclass for types with a set-like extensionality property
 
-This typeclass is primarily for use by subobjects like `submonoid` and `submodule`.
+The `has_mem` typeclass is used to let terms of a type have elements.
+Many instances of `has_mem` have a set-like extensionality property:
+things are equal iff they have the same elements.  The `set_like`
+typeclass provides a unified interface to define a `has_mem` that is
+extensional in this way.
+
+The main use of `set_like` is for algebraic subobjects (such as
+`submonoid` and `submodule`), whose non-proof data consists only of a
+carrier set.  In such a situation, the projection to the carrier set
+is injective.
+
+In general, a type `A` is `set_like` with elements of type `B` if it
+has an injective map to `set B`.  This module provides standard
+boilerplate for every `set_like`: a `coe_sort`, a `coe` to set, a
+`partial_order`, and various extensionality and simp lemmas.
 
 A typical subobject should be declared as:
 ```
@@ -29,7 +43,7 @@ instance : set_like (my_subobject X) X :=
 @[ext] theorem ext {p q : my_subobject X} (h : ∀ x, x ∈ p ↔ x ∈ q) : p = q := set_like.ext h
 
 /-- Copy of a `my_subobject` with a new `carrier` equal to the old one. Useful to fix definitional
-equalities. -/
+equalities. See Note [range copy pattern]. -/
 protected def copy (p : my_subobject X) (s : set X) (hs : s = ↑p) : my_subobject X :=
 { carrier := s,
   op_mem' := hs.symm ▸ p.op_mem' }
@@ -37,13 +51,30 @@ protected def copy (p : my_subobject X) (s : set X) (hs : s = ↑p) : my_subobje
 end my_subobject
 ```
 
-This file will then provide a `coe_sort`, a `coe` to set, a `partial_order`, and various
-extensionality and simp lemmas.
+An alternative to `set_like` could have been an extensional `has_mem` typeclass:
+```
+class has_ext_mem (α : out_param $ Type u) (β : Type v) extends has_mem α β :=
+(ext_iff : ∀ {s t : β}, s = t ↔ ∀ (x : α), x ∈ s ↔ x ∈ t)
+```
+While this is equivalent, `set_like` conveniently uses a carrier set projection directly.
 
+## Tags
+
+subobjects
 -/
 set_option old_structure_cmd true
 
-/-- A class to indicate that there is a canonical injection between `A` and `set B`. -/
+/-- A class to indicate that there is a canonical injection between `A` and `set B`.
+
+This has the effect of giving terms of `A` elements of type `B` (through a `has_mem`
+instance) and a compatible coercion to `Type*` as a subtype.
+
+Note: if `set_like.coe` is a projection, implementers should create a simp lemma such as
+```
+@[simp] lemma mem_carrier {p : my_subobject X} : x ∈ p.carrier ↔ x ∈ (p : set X) := iff.rfl
+```
+to normalize terms.
+-/
 @[protect_proj]
 class set_like (A : Type*) (B : out_param $ Type*) :=
 (coe : A → set B)

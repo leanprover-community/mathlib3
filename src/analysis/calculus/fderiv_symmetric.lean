@@ -52,7 +52,7 @@ open_locale topological_space
 
 variables {E F : Type*} [normed_group E] [normed_space ℝ E]
 [normed_group F] [normed_space ℝ F]
-{s : set E} (s_conv : convex s)
+{s : set E} (s_conv : convex ℝ s)
 {f : E → F} {f' : E → (E →L[ℝ] F)} {f'' : E →L[ℝ] (E →L[ℝ] F)}
 (hf : ∀ x ∈ interior s, has_fderiv_at f (f' x) x)
 {x : E} (xs : x ∈ s) (hx : has_fderiv_within_at f' f'' (interior s) x)
@@ -283,7 +283,7 @@ omit s_conv xs hx hf
 /-- If a function is differentiable inside a convex set with nonempty interior, and has a second
 derivative at a point of this convex set, then this second derivative is symmetric. -/
 theorem convex.second_derivative_within_at_symmetric
-  {s : set E} (s_conv : convex s) (hne : (interior s).nonempty)
+  {s : set E} (s_conv : convex ℝ s) (hne : (interior s).nonempty)
   {f : E → F} {f' : E → (E →L[ℝ] F)} {f'' : E →L[ℝ] (E →L[ℝ] F)}
   (hf : ∀ x ∈ interior s, has_fderiv_at f (f' x) x)
   {x : E} (xs : x ∈ s) (hx : has_fderiv_within_at f' f'' (interior s) x) (v w : E) :
@@ -321,7 +321,7 @@ begin
     simp only [continuous_linear_map.map_add, continuous_linear_map.map_smul, add_right_inj,
       continuous_linear_map.add_apply, pi.smul_apply, continuous_linear_map.coe_smul', add_zero,
       continuous_linear_map.zero_apply, smul_zero, continuous_linear_map.map_zero] at this,
-    exact smul_left_injective F (tpos m).ne' this },
+    exact smul_right_injective F (tpos m).ne' this },
   -- applying `second_derivative_within_at_symmetric_of_mem_interior` to the vectors `z + (t v) v`
   -- and `z + (t w) w`, we deduce that `f'' v w = f'' w v`. Cross terms involving `z` can be
   -- eliminated thanks to the fact proved above that `f'' m z = f'' z m`.
@@ -332,7 +332,7 @@ begin
   rw ← sub_eq_zero at this,
   abel at this,
   simp only [one_gsmul, neg_smul, sub_eq_zero, mul_comm, ← sub_eq_add_neg] at this,
-  apply smul_left_injective F _ this,
+  apply smul_right_injective F _ this,
   simp [(tpos v).ne', (tpos w).ne']
 end
 
@@ -346,7 +346,7 @@ theorem second_derivative_symmetric_of_eventually
 begin
   rcases metric.mem_nhds_iff.1 hf with ⟨ε, εpos, hε⟩,
   have A : (interior (metric.ball x ε)).nonempty,
-    by { rw metric.is_open_ball.interior_eq, exact metric.nonempty_ball εpos },
+    by rwa [metric.is_open_ball.interior_eq, metric.nonempty_ball],
   exact convex.second_derivative_within_at_symmetric (convex_ball x ε) A
     (λ y hy, hε (interior_subset hy)) (metric.mem_ball_self εpos) hx.has_fderiv_within_at v w,
 end

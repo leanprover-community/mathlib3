@@ -200,8 +200,7 @@ begin
     ((λ z, z * x) ⁻¹' E).indicator (λ (b : G), 1) y,
   { intros x y, symmetry, convert indicator_comp_right (λ y, y * x), ext1 z, refl },
   have h3E : ∀ y, ν ((λ x, x * y) ⁻¹' E) ≠ ∞ :=
-  λ y, ennreal.lt_top_iff_ne_top.mp (regular.lt_top_of_is_compact $
-    (homeomorph.mul_right _).compact_preimage.mpr hE),
+    λ y, (regular.lt_top_of_is_compact $ (homeomorph.mul_right _).compact_preimage.mpr hE).ne,
   simp_rw [this, lintegral_mul_const _ (mE _), lintegral_indicator _ (measurable_mul_const _ Em),
     set_lintegral_one, g, inv_inv,
     ennreal.mul_div_cancel' (measure_mul_right_ne_zero hν Em h2E _) (h3E _)]

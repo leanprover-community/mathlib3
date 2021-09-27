@@ -221,4 +221,9 @@ instance CommRing.forget_reflects_isos : reflects_isomorphisms (forget CommRing.
     exact ⟨(is_iso.of_iso e.to_CommRing_iso).1⟩,
   end }
 
+-- It would be nice if we could have the following,
+-- but it requires making `reflects_isomorphisms_forget₂` an instance,
+-- which can cause typeclass loops:
+
+local attribute [priority 50,instance] reflects_isomorphisms_forget₂
 example : reflects_isomorphisms (forget₂ Ring AddCommGroup) := by apply_instance

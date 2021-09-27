@@ -322,9 +322,8 @@ instance is_simple_group_five : is_simple_group (alternating_group (fin 5)) :=
   { -- The case `n = 4` leads to contradiction, as no element of $A_5$ includes a 4-cycle.
     have con := mem_alternating_group.1 gA,
     contrapose! con,
-    rw [sign_of_cycle_type, cycle_type_of_card_le_mem_cycle_type_add_two dec_trivial ng],
-    simp only [multiset.singleton_eq_singleton, multiset.map_cons, mul_one, multiset.prod_cons,
-      units.neg_mul, multiset.prod_zero, multiset.map_zero],
+    rw [sign_of_cycle_type, cycle_type_of_card_le_mem_cycle_type_add_two dec_trivial ng,
+      multiset.map_singleton, multiset.prod_singleton],
     dec_trivial },
   { -- If `n = 5`, then `g` is itself a 5-cycle, conjugate to `fin_rotate 5`.
     refine (is_conj_iff_cycle_type_eq.2 _).normal_closure_eq_top_of

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import topology.sheaves.presheaf
-import category_theory.limits.cofinal
+import category_theory.limits.final
 import topology.sheaves.sheaf_condition.pairwise_intersections
 
 /-!
@@ -143,7 +143,7 @@ of all opens contained in some `U i`.
 -/
 -- This is a case bash: for each pair of types of objects in `pairwise ι`,
 -- we have to explicitly construct a zigzag.
-instance : cofinal (pairwise_to_opens_le_cover U) :=
+instance : functor.final (pairwise_to_opens_le_cover U) :=
 ⟨λ V, is_connected_of_zigzag $ λ A B, begin
   rcases A with ⟨⟨⟩, ⟨i⟩|⟨i,j⟩, a⟩;
   rcases B with ⟨⟨⟩, ⟨i'⟩|⟨i',j'⟩, b⟩;
@@ -222,7 +222,7 @@ def sheaf_condition_opens_le_cover_equiv_sheaf_condition_pairwise_intersections 
 equiv.Pi_congr_right $ λ ι, equiv.Pi_congr_right $ λ U,
 calc is_limit (F.map_cone (opens_le_cover_cocone U).op)
     ≃ is_limit ((F.map_cone (opens_le_cover_cocone U).op).whisker (pairwise_to_opens_le_cover U).op)
-        : (cofinal.is_limit_whisker_equiv (pairwise_to_opens_le_cover U) _).symm
+        : (functor.initial.is_limit_whisker_equiv (pairwise_to_opens_le_cover U).op _).symm
 ... ≃ is_limit (F.map_cone ((opens_le_cover_cocone U).op.whisker (pairwise_to_opens_le_cover U).op))
         : is_limit.equiv_iso_limit F.map_cone_whisker.symm
 ... ≃ is_limit ((cones.postcompose_equivalence _).functor.obj

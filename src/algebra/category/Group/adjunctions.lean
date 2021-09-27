@@ -93,7 +93,7 @@ def free : Type u ⥤ Group :=
 def adj : free ⊣ forget Group.{u} :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X G, free_group.lift.symm,
-  hom_equiv_naturality_left_symm' := λ X Y G f g, begin ext1, refl end  }
+  hom_equiv_naturality_left_symm' := λ X Y G f g, by { ext1, refl } }
 
 instance : is_right_adjoint (forget Group.{u}) := ⟨_, adj⟩
 

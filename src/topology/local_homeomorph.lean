@@ -868,7 +868,7 @@ on the left is continuous on the corresponding set. -/
 lemma continuous_on_iff_continuous_on_comp_left {f : γ → α} {s : set γ} (h : s ⊆ f ⁻¹' e.source) :
   continuous_on f s ↔ continuous_on (e ∘ f) s :=
 forall_congr $ λ x, forall_congr $ λ hx, e.continuous_within_at_iff_continuous_within_at_comp_left
-  (h hx) (mem_sets_of_superset self_mem_nhds_within h)
+  (h hx) (mem_of_superset self_mem_nhds_within h)
 
 end continuity
 

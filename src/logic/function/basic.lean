@@ -381,6 +381,11 @@ end
 @[simp] lemma update_same (a : α) (v : β a) (f : Πa, β a) : update f a v a = v :=
 dif_pos rfl
 
+lemma surjective_eval {α : Sort u} {β : α → Sort v} [h : Π a, nonempty (β a)] (a : α) :
+  surjective (eval a : (Π a, β a) → β a) :=
+λ b, ⟨@update _ _ (classical.dec_eq α) (λ a, (h a).some) a b,
+  @update_same _ _ (classical.dec_eq α) _ _ _⟩
+
 lemma update_injective (f : Πa, β a) (a' : α) : injective (update f a') :=
 λ v v' h, have _ := congr_fun h a', by rwa [update_same, update_same] at this
 
@@ -390,10 +395,7 @@ dif_neg h
 
 lemma forall_update_iff (f : Π a, β a) {a : α} {b : β a} (p : Π a, β a → Prop) :
   (∀ x, p x (update f a b x)) ↔ p a b ∧ ∀ x ≠ a, p x (f x) :=
-calc (∀ x, p x (update f a b x)) ↔ ∀ x, (x = a ∨ x ≠ a) → p x (update f a b x) :
-  by simp only [ne.def, classical.em, forall_prop_of_true]
-... ↔ p a b ∧ ∀ x ≠ a, p x (f x) :
-  by simp [or_imp_distrib, forall_and_distrib] { contextual := tt }
+by { rw [← and_forall_ne a, update_same], simp { contextual := tt } }
 
 lemma update_eq_iff {a : α} {b : β a} {f g : Π a, β a} :
   update f a b = g ↔ b = g a ∧ ∀ x ≠ a, f x = g x :=
@@ -481,6 +483,20 @@ by { unfold extend, congr }
 begin
   simp only [extend_def, dif_pos, exists_apply_eq_apply],
   exact congr_arg g (hf $ classical.some_spec (exists_apply_eq_apply f a))
+end
+
+@[simp] lemma extend_apply' (g : α → γ) (e' : β → γ) (b : β) (hb : ¬∃ a, f a = b) :
+  extend f g e' b = e' b :=
+by simp [function.extend_def, hb]
+
+lemma extend_injective (hf : injective f) (e' : β → γ) :
+  injective (λ g, extend f g e') :=
+begin
+  intros g₁ g₂ hg,
+  refine funext (λ x, _),
+  have H := congr_fun hg (f x),
+  simp only [hf, extend_apply] at H,
+  exact H
 end
 
 @[simp] lemma extend_comp (hf : injective f) (g : α → γ) (e' : β → γ) :

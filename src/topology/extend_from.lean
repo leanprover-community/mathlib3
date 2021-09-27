@@ -67,14 +67,14 @@ begin
     rcases (nhds_within_basis_open x A).tendsto_left_iff.mp this V' V'_in with ⟨V, ⟨hxV, V_op⟩, hV⟩,
     use [V, is_open.mem_nhds V_op hxV, V_op, hV] },
   suffices : ∀ y ∈ V ∩ B, φ y ∈ V',
-    from mem_sets_of_superset (inter_mem_inf_sets V_in $ mem_principal_self B) this,
+    from mem_of_superset (inter_mem_inf V_in $ mem_principal_self B) this,
   rintros y ⟨hyV, hyB⟩,
   haveI := mem_closure_iff_nhds_within_ne_bot.mp (hB hyB),
   have limy : tendsto f (𝓝[A] y) (𝓝 $ φ y) := tendsto_extend_from (hf y hyB),
   have hVy : V ∈ 𝓝 y := is_open.mem_nhds V_op hyV,
   have : V ∩ A ∈ (𝓝[A] y),
     by simpa [inter_comm] using inter_mem_nhds_within _ hVy,
-  exact V'_closed.mem_of_tendsto limy (mem_sets_of_superset this hV)
+  exact V'_closed.mem_of_tendsto limy (mem_of_superset this hV)
 end
 
 /-- If a function `f` to a regular space `Y` has a limit within a

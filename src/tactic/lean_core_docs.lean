@@ -730,7 +730,8 @@ add_tactic_doc
 Navigate into the contents of top-level `λ` binders.
 A target of `| λ a, a + b` will turn into the target `| a + b` and introduce `a` into the local
 context.
-If there are multiple binders, all of them will be entered, and if there are none, this tactic is a no-op.
+If there are multiple binders, all of them will be entered, and if there are none, this tactic is a
+no-op.
 -/
 add_tactic_doc
 { name       := "conv: funext",
@@ -763,7 +764,8 @@ add_tactic_doc
   tags       := ["conv"] }
 
 /--
-End conversion of the current goal. This is often what is needed when muscle memory would type `sorry`.
+End conversion of the current goal. This is often what is needed when muscle memory would type
+`sorry`.
 -/
 add_tactic_doc
 { name       := "conv: skip",

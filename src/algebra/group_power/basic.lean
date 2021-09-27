@@ -3,7 +3,7 @@ Copyright (c) 2015 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
-import algebra.ordered_ring
+import algebra.order.ring
 import tactic.monotonicity.basic
 import group_theory.group_action.defs
 
@@ -233,15 +233,20 @@ monoid, considered as a morphism of additive monoids.", simps]
 def pow_monoid_hom (n : ℕ) : M →* M :=
 { to_fun := (^ n),
   map_one' := one_pow _,
-  map_mul' := λ a b ,mul_pow a b n }
+  map_mul' := λ a b, mul_pow a b n }
 
 -- the below line causes the linter to complain :-/
 -- attribute [simps] pow_monoid_hom nsmul_add_monoid_hom
 
-lemma dvd_pow {x y : M} :
-  ∀ {n : ℕ} (hxy : x ∣ y) (hn : n ≠ 0), x ∣ y^n
-| 0     hxy hn := (hn rfl).elim
-| (n+1) hxy hn := by { rw [pow_succ], exact dvd_mul_of_dvd_left hxy _ }
+lemma dvd_pow {x y : M} (hxy : x ∣ y) :
+  ∀ {n : ℕ} (hn : n ≠ 0), x ∣ y^n
+| 0       hn := (hn rfl).elim
+| (n + 1) hn := by { rw pow_succ, exact hxy.mul_right _ }
+
+alias dvd_pow ← has_dvd.dvd.pow
+
+lemma dvd_pow_self (a : M) {n : ℕ} (hn : n ≠ 0) : a ∣ a^n :=
+dvd_rfl.pow hn
 
 end comm_monoid
 
@@ -450,8 +455,8 @@ variables [semiring R]
 lemma min_pow_dvd_add {n m : ℕ} {a b c : R} (ha : c ^ n ∣ a) (hb : c ^ m ∣ b) :
   c ^ (min n m) ∣ a + b :=
 begin
-  replace ha := dvd.trans (pow_dvd_pow c (min_le_left n m)) ha,
-  replace hb := dvd.trans (pow_dvd_pow c (min_le_right n m)) hb,
+  replace ha := (pow_dvd_pow c (min_le_left n m)).trans ha,
+  replace hb := (pow_dvd_pow c (min_le_right n m)).trans hb,
   exact dvd_add ha hb
 end
 

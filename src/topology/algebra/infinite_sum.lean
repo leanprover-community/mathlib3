@@ -83,6 +83,14 @@ lemma summable_empty [is_empty β] : summable f := has_sum_empty.summable
 lemma tsum_eq_zero_of_not_summable (h : ¬ summable f) : ∑'b, f b = 0 :=
 by simp [tsum, h]
 
+lemma summable_congr (hfg : ∀b, f b = g b) :
+  summable f ↔ summable g :=
+iff_of_eq (congr_arg summable $ funext hfg)
+
+lemma summable.congr (hf : summable f) (hfg : ∀b, f b = g b) :
+  summable g :=
+(summable_congr hfg).mp hf
+
 lemma has_sum.has_sum_of_sum_eq {g : γ → α}
   (h_eq : ∀u:finset γ, ∃v:finset β, ∀v', v ⊆ v' → ∃u', u ⊆ u' ∧ ∑ x in u', g x = ∑ b in v', f b)
   (hf : has_sum g a) :
@@ -715,8 +723,8 @@ end subtype
 
 end topological_group
 
-section topological_semiring
-variables [semiring α] [topological_space α] [topological_semiring α]
+section topological_ring
+variables [semiring α] [topological_space α] [topological_ring α]
 variables {f g : β → α} {a a₁ a₂ : α}
 lemma has_sum.mul_left (a₂) (h : has_sum f a₁) : has_sum (λb, a₂ * f b) (a₂ * a₁) :=
 by simpa only using h.map (add_monoid_hom.mul_left a₂) (continuous_const.mul continuous_id)
@@ -741,7 +749,7 @@ lemma summable.tsum_mul_right (a) (hf : summable f) : (∑'b, f b * a) = (∑'b,
 
 end tsum
 
-end topological_semiring
+end topological_ring
 
 section has_continuous_smul
 variables {R : Type*}
@@ -751,7 +759,7 @@ variables {R : Type*}
 {f : β → α}
 
 lemma has_sum.smul {a : α} {r : R} (hf : has_sum f a) : has_sum (λ z, r • f z) (r • a) :=
-hf.map (const_smul_hom α r) (continuous_const.smul continuous_id)
+hf.map (distrib_mul_action.to_add_monoid_hom α r) (continuous_const.smul continuous_id)
 
 lemma summable.smul {r : R} (hf : summable f) : summable (λ z, r • f z) :=
 hf.has_sum.smul.summable
@@ -763,7 +771,7 @@ end has_continuous_smul
 
 section division_ring
 
-variables [division_ring α] [topological_space α] [topological_semiring α]
+variables [division_ring α] [topological_space α] [topological_ring α]
 {f g : β → α} {a a₁ a₂ : α}
 
 lemma has_sum.div_const (h : has_sum f a) (b : α) : has_sum (λ x, f x / b) (a / b) :=
@@ -1170,11 +1178,10 @@ begin
   refine (metric.cauchy_seq_iff'.1 hd ε (nnreal.coe_pos.2 εpos)).imp (λ N hN n hn, _),
   have hsum := hN n hn,
   -- We simplify the known inequality
-  rw [dist_nndist, nnreal.nndist_eq, ← sum_range_add_sum_Ico _ hn, nnreal.add_sub_cancel'] at hsum,
+  rw [dist_nndist, nnreal.nndist_eq, ← sum_range_add_sum_Ico _ hn, add_sub_cancel_left] at hsum,
   norm_cast at hsum,
   replace hsum := lt_of_le_of_lt (le_max_left _ _) hsum,
   rw edist_comm,
-
   -- Then use `hf` to simplify the goal to the same form
   apply lt_of_le_of_lt (edist_le_Ico_sum_of_edist_le hn (λ k _ _, hf k)),
   assumption_mod_cast
@@ -1248,7 +1255,7 @@ We first establish results about arbitrary index types, `β` and `γ`, and then 
 
 section tsum_mul_tsum
 
-variables [topological_space α] [regular_space α] [semiring α] [topological_semiring α]
+variables [topological_space α] [regular_space α] [semiring α] [topological_ring α]
   {f : β → α} {g : γ → α} {s t u : α}
 
 lemma has_sum.mul_eq (hf : has_sum f s) (hg : has_sum g t)
@@ -1301,7 +1308,7 @@ lemma summable_mul_prod_iff_summable_mul_sigma_antidiagonal {f g : ℕ → α} :
   summable (λ x : (Σ (n : ℕ), nat.antidiagonal n), f (x.2 : ℕ × ℕ).1 * g (x.2 : ℕ × ℕ).2) :=
 nat.sigma_antidiagonal_equiv_prod.summable_iff.symm
 
-variables [regular_space α] [topological_semiring α]
+variables [regular_space α] [topological_ring α]
 
 lemma summable_sum_mul_antidiagonal_of_summable_mul {f g : ℕ → α}
   (h : summable (λ x : ℕ × ℕ, f x.1 * g x.2)) :

@@ -142,6 +142,19 @@ def adjunction [∀ X, has_limits_of_shape (structured_arrow X ι) D] :
   (whiskering_left _ _ D).obj ι ⊣ Ran ι :=
 adjunction.adjunction_of_equiv_right _ _
 
+lemma reflective [full ι] [faithful ι] [∀ X, has_limits_of_shape (structured_arrow X ι) D] :
+  is_iso (adjunction D ι).counit :=
+begin
+  apply nat_iso.is_iso_of_is_iso_app _,
+  intros F,
+  apply nat_iso.is_iso_of_is_iso_app _,
+  intros X,
+  dsimp [adjunction],
+  simp only [category.id_comp],
+  exact is_iso.of_iso ((limit.is_limit _).cone_point_unique_up_to_iso
+    (limit_of_diagram_initial structured_arrow.mk_id_initial _)),
+end
+
 end Ran
 
 namespace Lan
@@ -261,6 +274,19 @@ variable (D)
 def adjunction [∀ X, has_colimits_of_shape (costructured_arrow ι X) D] :
   Lan ι ⊣ (whiskering_left _ _ D).obj ι :=
 adjunction.adjunction_of_equiv_left _ _
+
+lemma coreflective [full ι] [faithful ι] [∀ X, has_colimits_of_shape (costructured_arrow ι X) D] :
+  is_iso (adjunction D ι).unit :=
+begin
+  apply nat_iso.is_iso_of_is_iso_app _,
+  intros F,
+  apply nat_iso.is_iso_of_is_iso_app _,
+  intros X,
+  dsimp [adjunction],
+  simp only [category.comp_id],
+  exact is_iso.of_iso ((colimit.is_colimit _).cocone_point_unique_up_to_iso
+    (colimit_of_diagram_terminal costructured_arrow.mk_id_terminal _)).symm,
+end
 
 end Lan
 

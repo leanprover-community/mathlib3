@@ -367,8 +367,7 @@ meta def search (prove : context → prop → state_t ℕ option proof) :
               a ← fresh_name,
               p₁ ← Γ.with_add A₁ (proof.hyp a) A₂ $ λ Γ_A₁ A₂,
                 Γ_A₁.with_add (prop.imp A₂ C) (proof.imp_imp_simp a p) A₂ prove,
-              Γ.with_add C (p.app (proof.intro a p₁)) B prove
-            } : state_t ℕ option proof).1 n
+              Γ.with_add C (p.app (proof.intro a p₁)) B prove } : state_t ℕ option proof).1 n
           | _ := none
           end
         end

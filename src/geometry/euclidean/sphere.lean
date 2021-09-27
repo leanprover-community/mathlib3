@@ -68,9 +68,8 @@ begin
     ... = 0                         : sub_eq_zero.mpr hk.symm },
 
   have hzy : ⟪z, y⟫ = 0,
-  { rw [← eq_of_sq_eq_sq (norm_nonneg (z - y)) (norm_nonneg (z + y)),
-        norm_add_sq_real, norm_sub_sq_real] at h₂,
-    linarith },
+    by rwa [inner_eq_zero_iff_angle_eq_pi_div_two, ← norm_add_eq_norm_sub_iff_angle_eq_pi_div_two,
+      eq_comm],
 
   have hzx : ⟪z, x⟫ = 0 := by rw [hxy, inner_smul_right, hzy, mul_zero],
 

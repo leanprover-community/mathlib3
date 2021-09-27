@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard, Johan Commelin, Patrick Massot
 -/
 
-import algebra.linear_ordered_comm_group_with_zero
+import algebra.order.with_zero
 import algebra.group_power
 import ring_theory.ideal.operations
 import algebra.punit_instances
@@ -431,7 +431,7 @@ def add_valuation := valuation R (multiplicative (order_dual Γ₀))
 end add_monoid
 
 namespace add_valuation
-variables {Γ₀   : Type*} {Γ'₀  : Type*}
+variables {Γ₀ : Type*} {Γ'₀ : Type*}
 
 section basic
 

@@ -3,7 +3,7 @@ Copyright (c) 2021 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import analysis.normed_space.inner_product
+import analysis.inner_product_space.basic
 import measure_theory.integral.set_integral
 
 /-! # `L^2` space
@@ -89,11 +89,11 @@ private lemma norm_sq_eq_inner' (f : α →₂[μ] E) : ∥f∥ ^ 2 = is_R_or_C.
 begin
   have h_two : (2 : ℝ≥0∞).to_real = 2 := by simp,
   rw [inner_def, integral_inner_eq_sq_snorm, norm_def, ← ennreal.to_real_pow, is_R_or_C.of_real_re,
-    ennreal.to_real_eq_to_real (ennreal.pow_lt_top (Lp.snorm_lt_top f) 2) _],
+    ennreal.to_real_eq_to_real (ennreal.pow_ne_top (Lp.snorm_ne_top f)) _],
   { rw [←ennreal.rpow_nat_cast, snorm_eq_snorm' ennreal.two_ne_zero ennreal.two_ne_top, snorm',
       ← ennreal.rpow_mul, one_div, h_two],
     simp, },
-  { refine lintegral_rpow_nnnorm_lt_top_of_snorm'_lt_top zero_lt_two _,
+  { refine (lintegral_rpow_nnnorm_lt_top_of_snorm'_lt_top zero_lt_two _).ne,
     rw [← h_two, ← snorm_eq_snorm' ennreal.two_ne_zero ennreal.two_ne_top],
     exact Lp.snorm_lt_top f, },
 end
@@ -195,7 +195,7 @@ section inner_continuous
 
 variables {α : Type*} [topological_space α] [measure_space α] [borel_space α] {𝕜 : Type*}
   [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
-variables (μ : measure α) [finite_measure μ]
+variables (μ : measure α) [is_finite_measure μ]
 
 open_locale bounded_continuous_function
 

@@ -6,6 +6,7 @@ Authors: Reid Barton, Scott Morrison
 import category_theory.fin_category
 import category_theory.limits.cones
 import category_theory.adjunction.basic
+import category_theory.category.preorder
 import order.bounded_lattice
 
 /-!
@@ -34,14 +35,17 @@ This formulation is often more useful in practice and is available via `sup_exis
 which takes a finset of objects, and an indexed family (indexed by source and target)
 of finsets of morphisms.
 
-We also provide all of the above API for cofiltered categories.
+Furthermore, we give special support for two diagram categories: The `bowtie` and the `tulip`.
+This is because these shapes show up in the proofs that forgetful functors of algebraic categories
+(e.g. `Mon`, `CommRing`, ...) preserve filtered colimits.
+
+All of the above API, except for the `bowtie` and the `tulip`, is also provided for cofiltered
+categories.
 
 ## See also
 In `category_theory.limits.filtered_colimit_commutes_finite_limit` we show that filtered colimits
 commute with finite limits.
 
-## Future work
-* Forgetful functors for algebraic categories typically preserve filtered colimits.
 -/
 
 universes v v₁ u u₁-- declare the `v`'s first; see `category_theory.category` for an explanation
@@ -274,6 +278,165 @@ of_right_adjoint (adjunction.of_right_adjoint R)
 /-- Being filtered is preserved by equivalence of categories. -/
 lemma of_equivalence (h : C ≌ D) : is_filtered D :=
 of_right_adjoint h.symm.to_adjunction
+
+section special_shapes
+
+/--
+`max₃ j₁ j₂ j₃` is an arbitrary choice of object to the right of `j₁`, `j₂` and `j₃`,
+whose existence is ensured by `is_filtered`.
+-/
+noncomputable def max₃ (j₁ j₂ j₃ : C) : C := max (max j₁ j₂) j₃
+
+/--
+`first_to_max₃ j₁ j₂ j₃` is an arbitrarily choice of morphism from `j₁` to `max₃ j₁ j₂ j₃`,
+whose existence is ensured by `is_filtered`.
+-/
+noncomputable def first_to_max₃ (j₁ j₂ j₃ : C) : j₁ ⟶ max₃ j₁ j₂ j₃ :=
+left_to_max j₁ j₂ ≫ left_to_max (max j₁ j₂) j₃
+
+/--
+`second_to_max₃ j₁ j₂ j₃` is an arbitrarily choice of morphism from `j₂` to `max₃ j₁ j₂ j₃`,
+whose existence is ensured by `is_filtered`.
+-/
+noncomputable def second_to_max₃ (j₁ j₂ j₃ : C) : j₂ ⟶ max₃ j₁ j₂ j₃ :=
+right_to_max j₁ j₂ ≫ left_to_max (max j₁ j₂) j₃
+
+/--
+`third_to_max₃ j₁ j₂ j₃` is an arbitrarily choice of morphism from `j₃` to `max₃ j₁ j₂ j₃`,
+whose existence is ensured by `is_filtered`.
+-/
+noncomputable def third_to_max₃ (j₁ j₂ j₃ : C) : j₃ ⟶ max₃ j₁ j₂ j₃ :=
+right_to_max (max j₁ j₂) j₃
+
+/--
+`coeq₃ f g h`, for morphisms `f g h : j₁ ⟶ j₂`, is an arbitrary choice of object
+which admits a morphism `coeq₃_hom f g h : j₂ ⟶ coeq₃ f g h` such that
+`coeq₃_condition₁`, `coeq₃_condition₂` and `coeq₃_condition₃` are satisfied.
+Its existence is ensured by `is_filtered`.
+-/
+noncomputable def coeq₃ {j₁ j₂ : C} (f g h : j₁ ⟶ j₂) : C :=
+coeq (coeq_hom f g ≫ left_to_max (coeq f g) (coeq g h))
+  (coeq_hom g h ≫ right_to_max (coeq f g) (coeq g h))
+
+/--
+`coeq₃_hom f g h`, for morphisms `f g h : j₁ ⟶ j₂`, is an arbitrary choice of morphism
+`j₂ ⟶ coeq₃ f g h` such that `coeq₃_condition₁`, `coeq₃_condition₂` and `coeq₃_condition₃`
+are satisfied. Its existence is ensured by `is_filtered`.
+-/
+noncomputable def coeq₃_hom {j₁ j₂ : C} (f g h : j₁ ⟶ j₂) : j₂ ⟶ coeq₃ f g h :=
+coeq_hom f g ≫ left_to_max (coeq f g) (coeq g h) ≫
+coeq_hom (coeq_hom f g ≫ left_to_max (coeq f g) (coeq g h))
+  (coeq_hom g h ≫ right_to_max (coeq f g) (coeq g h))
+
+lemma coeq₃_condition₁ {j₁ j₂ : C} (f g h : j₁ ⟶ j₂) :
+  f ≫ coeq₃_hom f g h = g ≫ coeq₃_hom f g h :=
+begin
+  dsimp [coeq₃_hom],
+  slice_lhs 1 2 { rw coeq_condition f g },
+  simp only [category.assoc],
+end
+
+lemma coeq₃_condition₂ {j₁ j₂ : C} (f g h : j₁ ⟶ j₂) :
+  g ≫ coeq₃_hom f g h = h ≫ coeq₃_hom f g h :=
+begin
+  dsimp [coeq₃_hom],
+  slice_lhs 2 4 { rw [← category.assoc, coeq_condition _ _] },
+  slice_rhs 2 4 { rw [← category.assoc, coeq_condition _ _] },
+  slice_lhs 1 3 { rw [← category.assoc, coeq_condition _ _] },
+  simp only [category.assoc],
+end
+
+lemma coeq₃_condition₃ {j₁ j₂ : C} (f g h : j₁ ⟶ j₂) :
+  f ≫ coeq₃_hom f g h = h ≫ coeq₃_hom f g h :=
+eq.trans (coeq₃_condition₁ f g h) (coeq₃_condition₂ f g h)
+
+/--
+Given a "bowtie" of morphisms
+```
+ j₁   j₂
+ |\  /|
+ | \/ |
+ | /\ |
+ |/  \∣
+ vv  vv
+ k₁  k₂
+```
+in a filtered category, we can construct an object `s` and two morphisms from `k₁` and `k₂` to `s`,
+making the resulting squares commute.
+-/
+lemma bowtie {j₁ j₂ k₁ k₂ : C}
+  (f₁ : j₁ ⟶ k₁) (g₁ : j₁ ⟶ k₂) (f₂ : j₂ ⟶ k₁) (g₂ : j₂ ⟶ k₂) :
+  ∃ (s : C) (α : k₁ ⟶ s) (β : k₂ ⟶ s), f₁ ≫ α = g₁ ≫ β ∧ f₂ ≫ α = g₂ ≫ β :=
+begin
+  let sa := max k₁ k₂,
+  let sb := coeq (f₁ ≫ left_to_max _ _) (g₁ ≫ right_to_max _ _),
+  let sc := coeq (f₂ ≫ left_to_max _ _) (g₂ ≫ right_to_max _ _),
+  let sd := max sb sc,
+  let s := coeq ((coeq_hom _ _ : sa ⟶ sb) ≫ left_to_max _ _)
+    ((coeq_hom _ _ : sa ⟶ sc) ≫ right_to_max _ _),
+  use s,
+  fsplit,
+  exact left_to_max k₁ k₂ ≫ coeq_hom _ _ ≫ left_to_max sb sc ≫ coeq_hom _ _,
+  fsplit,
+  exact right_to_max k₁ k₂ ≫ coeq_hom _ _ ≫ right_to_max sb sc ≫ coeq_hom _ _,
+  fsplit,
+  { slice_lhs 1 3 { rw [←category.assoc, coeq_condition], },
+    slice_lhs 3 5 { rw [←category.assoc, coeq_condition], },
+    simp only [category.assoc], },
+  { slice_lhs 3 5 { rw [←category.assoc, coeq_condition], },
+    slice_lhs 1 3 { rw [←category.assoc, coeq_condition], },
+    simp only [category.assoc], }
+end
+
+/--
+Given a "tulip" of morphisms
+```
+ j₁    j₂    j₃
+ |\   / \   / |
+ | \ /   \ /  |
+ |  vv    vv  |
+ \  k₁    k₂ /
+  \         /
+   \       /
+    \     /
+     \   /
+      v v
+       l
+```
+in a filtered category, we can construct an object `s` and three morphisms from `k₁`, `k₂` and `l`
+to `s`, making the resulting sqaures commute.
+-/
+lemma tulip {j₁ j₂ j₃ k₁ k₂ l : C} (f₁ : j₁ ⟶ k₁) (f₂ : j₂ ⟶ k₁) (f₃ : j₂ ⟶ k₂) (f₄ : j₃ ⟶ k₂)
+  (g₁ : j₁ ⟶ l) (g₂ : j₃ ⟶ l) :
+  ∃ (s : C) (α : k₁ ⟶ s) (β : l ⟶ s) (γ : k₂ ⟶ s),
+    f₁ ≫ α = g₁ ≫ β ∧ f₂ ≫ α = f₃ ≫ γ ∧ f₄ ≫ γ = g₂ ≫ β :=
+begin
+  let sa := max₃ k₁ l k₂,
+  let sb := coeq (f₁ ≫ first_to_max₃ k₁ l k₂) (g₁ ≫ second_to_max₃ k₁ l k₂),
+  let sc := coeq (f₂ ≫ first_to_max₃ k₁ l k₂) (f₃ ≫ third_to_max₃ k₁ l k₂),
+  let sd := coeq (f₄ ≫ third_to_max₃ k₁ l k₂) (g₂ ≫ second_to_max₃ k₁ l k₂),
+  let se := max₃ sb sc sd,
+  let sf := coeq₃ (coeq_hom _ _ ≫ first_to_max₃ sb sc sd)
+    (coeq_hom _ _ ≫ second_to_max₃ sb sc sd) (coeq_hom _ _ ≫ third_to_max₃ sb sc sd),
+  use sf,
+  use first_to_max₃ k₁ l k₂ ≫ coeq_hom _ _ ≫ first_to_max₃ sb sc sd ≫ coeq₃_hom _ _ _,
+  use second_to_max₃ k₁ l k₂ ≫ coeq_hom _ _ ≫ second_to_max₃ sb sc sd ≫ coeq₃_hom _ _ _,
+  use third_to_max₃ k₁ l k₂ ≫ coeq_hom _ _ ≫ third_to_max₃ sb sc sd ≫ coeq₃_hom _ _ _,
+  fsplit,
+  slice_lhs 1 3 { rw [← category.assoc, coeq_condition] },
+  slice_lhs 3 6 { rw [← category.assoc, coeq₃_condition₁] },
+  simp only [category.assoc],
+  fsplit,
+  slice_lhs 3 6 { rw [← category.assoc, coeq₃_condition₁] },
+  slice_lhs 1 3 { rw [← category.assoc, coeq_condition] },
+  slice_rhs 3 6 { rw [← category.assoc, ← coeq₃_condition₂] },
+  simp only [category.assoc],
+  slice_rhs 3 6 { rw [← category.assoc, coeq₃_condition₂] },
+  slice_rhs 1 3 { rw [← category.assoc, ← coeq_condition] },
+  simp only [category.assoc],
+end
+
+end special_shapes
 
 end is_filtered
 

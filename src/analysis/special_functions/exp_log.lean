@@ -462,10 +462,10 @@ end
 lemma log_nonpos (hx : 0 ≤ x) (h'x : x ≤ 1) : log x ≤ 0 :=
 (log_nonpos_iff' hx).2 h'x
 
-lemma strict_mono_incr_on_log : strict_mono_incr_on log (set.Ioi 0) :=
+lemma strict_mono_on_log : strict_mono_on log (set.Ioi 0) :=
 λ x hx y hy hxy, log_lt_log hx hxy
 
-lemma strict_mono_decr_on_log : strict_mono_decr_on log (set.Iio 0) :=
+lemma strict_anti_on_log : strict_anti_on log (set.Iio 0) :=
 begin
   rintros x (hx : x < 0) y (hy : y < 0) hxy,
   rw [← log_abs y, ← log_abs x],
@@ -474,7 +474,7 @@ begin
 end
 
 lemma log_inj_on_pos : set.inj_on log (set.Ioi 0) :=
-strict_mono_incr_on_log.inj_on
+strict_mono_on_log.inj_on
 
 lemma eq_one_of_pos_of_log_eq_zero {x : ℝ} (h₁ : 0 < x) (h₂ : log x = 0) : x = 1 :=
 log_inj_on_pos (set.mem_Ioi.2 h₁) (set.mem_Ioi.2 zero_lt_one) (h₂.trans real.log_one.symm)
@@ -759,7 +759,7 @@ lemma tendsto_mul_log_one_plus_div_at_top (t : ℝ) :
 begin
   have h₁ : tendsto (λ h, h⁻¹ * log (1 + t * h)) (𝓝[{0}ᶜ] 0) (𝓝 t),
   { simpa [has_deriv_at_iff_tendsto_slope] using
-      ((has_deriv_at_const _ 1).add ((has_deriv_at_id 0).const_mul t)).log (by simp) },
+      ((has_deriv_at_const _ 1).add ((has_deriv_at_id (0 : ℝ)).const_mul t)).log (by simp) },
   have h₂ : tendsto (λ x : ℝ, x⁻¹) at_top (𝓝[{0}ᶜ] 0) :=
     tendsto_inv_at_top_zero'.mono_right (nhds_within_mono _ (λ x hx, (set.mem_Ioi.mp hx).ne')),
   convert h₁.comp h₂,

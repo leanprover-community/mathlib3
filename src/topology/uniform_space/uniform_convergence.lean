@@ -126,7 +126,7 @@ lemma tendsto_uniformly_on.tendsto_locally_uniformly_on
 
 lemma tendsto_uniformly.tendsto_locally_uniformly
   (h : tendsto_uniformly F f p) : tendsto_locally_uniformly F f p :=
-λ u hu x, ⟨univ, univ_mem_sets, by simpa using h u hu⟩
+λ u hu x, ⟨univ, univ_mem, by simpa using h u hu⟩
 
 lemma tendsto_locally_uniformly_on.mono (h : tendsto_locally_uniformly_on F f p s) (h' : s' ⊆ s) :
   tendsto_locally_uniformly_on F f p s' :=
@@ -233,7 +233,7 @@ end
 lemma continuous_of_uniform_approx_of_continuous (L : ∀ u ∈ 𝓤 β, ∃ N, ∀ y, (f y, F N y) ∈ u) :
   (∀ n, continuous (F n)) → continuous f :=
 continuous_of_locally_uniform_approx_of_continuous $ λx u hu,
-  ⟨univ, by simpa [filter.univ_mem_sets] using L u hu⟩
+  ⟨univ, by simpa [filter.univ_mem] using L u hu⟩
 
 /-!
 ### Uniform limits

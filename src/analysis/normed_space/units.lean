@@ -277,10 +277,10 @@ begin
     ∃ (u : set R), u ∈ 𝓝 ↑x ∧ ∃ (v : set Rᵒᵖ), v ∈ 𝓝 (opposite.op ↑x⁻¹) ∧ u.prod v ⊆ t,
   { simpa [embed_product, mem_nhds_prod_iff] using ht },
   have : u ∩ (op ∘ ring.inverse) ⁻¹' v ∩ (set.range (coe : units R → R)) ∈ 𝓝 ↑x,
-  { refine inter_mem_sets (inter_mem_sets hu _) (units.nhds x),
+  { refine inter_mem (inter_mem hu _) (units.nhds x),
     refine (continuous_op.continuous_at.comp (inverse_continuous_at x)).preimage_mem_nhds _,
     simpa using hv },
-  refine mem_sets_of_superset this _,
+  refine mem_of_superset this _,
   rintros _ ⟨⟨huy, hvy⟩, ⟨y, rfl⟩⟩,
   have : embed_product R y ∈ u.prod v := ⟨huy, by simpa using hvy⟩,
   simpa using hts (huvt this)

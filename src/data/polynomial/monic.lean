@@ -5,6 +5,7 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.reverse
 import algebra.associated
+import algebra.regular.smul
 
 /-!
 # Theory of monic polynomials
@@ -332,7 +333,6 @@ end nonzero_semiring
 section not_zero_divisor
 
 -- TODO: using gh-8537, rephrase lemmas that involve commutation around `*` using the op-ring
--- TODO: using gh-8561, rephrase using regular elements
 
 variables [semiring R] {p : polynomial R}
 
@@ -385,8 +385,18 @@ begin
   simp [h.mul_left_ne_zero, hq]
 end
 
-lemma degree_smul_of_non_zero_divisor {S : Type*} [monoid S] [distrib_mul_action S R]
-  (p : polynomial R) (k : S) (h : ∀ (x : R), k • x = 0 → x = 0) :
+lemma monic.is_regular {R : Type*} [ring R] {p : polynomial R} (hp : monic p) : is_regular p :=
+begin
+  split,
+  { intros q r h,
+    rw [←sub_eq_zero, ←hp.mul_right_eq_zero_iff, mul_sub, h, sub_self] },
+  { intros q r h,
+    simp only at h,
+    rw [←sub_eq_zero, ←hp.mul_left_eq_zero_iff, sub_mul, h, sub_self] }
+end
+
+lemma degree_smul_of_smul_regular {S : Type*} [monoid S] [distrib_mul_action S R]
+  {k : S} (p : polynomial R) (h : is_smul_regular R k) :
   (k • p).degree = p.degree :=
 begin
   refine le_antisymm _ _,
@@ -397,38 +407,35 @@ begin
   { rw degree_le_iff_coeff_zero,
     intros m hm,
     rw degree_lt_iff_coeff_zero at hm,
-    refine h _ _,
+    refine h _,
     simpa using hm m le_rfl },
 end
 
-lemma nat_degree_smul_of_non_zero_divisor {S : Type*} [monoid S] [distrib_mul_action S R]
-  (p : polynomial R) (k : S) (h : ∀ (x : R), k • x = 0 → x = 0) :
+lemma nat_degree_smul_of_smul_regular {S : Type*} [monoid S] [distrib_mul_action S R]
+  {k : S} (p : polynomial R) (h : is_smul_regular R k) :
   (k • p).nat_degree = p.nat_degree :=
 begin
   by_cases hp : p = 0,
   { simp [hp] },
   rw [←with_bot.coe_eq_coe, ←degree_eq_nat_degree hp, ←degree_eq_nat_degree,
-      degree_smul_of_non_zero_divisor _ _ h],
+      degree_smul_of_smul_regular p h],
   contrapose! hp,
-  rw polynomial.ext_iff at hp ⊢,
-  simp only [coeff_smul, coeff_zero] at hp,
-  intro n,
-  simp [h _ (hp n)]
+  rw ←smul_zero k at hp,
+  exact h.polynomial hp
 end
 
-lemma leading_coeff_smul_of_non_zero_divisor {S : Type*} [monoid S] [distrib_mul_action S R]
-  (p : polynomial R) (k : S) (h : ∀ (x : R), k • x = 0 → x = 0) :
+lemma leading_coeff_smul_of_smul_regular {S : Type*} [monoid S] [distrib_mul_action S R]
+  {k : S} (p : polynomial R) (h : is_smul_regular R k) :
   (k • p).leading_coeff = k • p.leading_coeff :=
-by rw [leading_coeff, leading_coeff, coeff_smul, nat_degree_smul_of_non_zero_divisor _ _ h]
+by rw [leading_coeff, leading_coeff, coeff_smul, nat_degree_smul_of_smul_regular p h]
 
 lemma monic_of_is_unit_leading_coeff_inv_smul (h : is_unit p.leading_coeff) :
   monic (h.unit⁻¹ • p) :=
 begin
-  rw [monic.def, leading_coeff_smul_of_non_zero_divisor, units.smul_def],
-  { obtain ⟨k, hk⟩ := h,
-    simp only [←hk, smul_eq_mul, ←units.coe_mul, units.coe_eq_one, inv_mul_eq_iff_eq_mul],
-    simp [units.ext_iff, is_unit.unit_spec] },
-  { simp [smul_eq_zero_iff_eq] }
+  rw [monic.def, leading_coeff_smul_of_smul_regular _ (is_smul_regular_of_group _), units.smul_def],
+  obtain ⟨k, hk⟩ := h,
+  simp only [←hk, smul_eq_mul, ←units.coe_mul, units.coe_eq_one, inv_mul_eq_iff_eq_mul],
+  simp [units.ext_iff, is_unit.unit_spec]
 end
 
 lemma is_unit_leading_coeff_mul_right_eq_zero_iff (h : is_unit p.leading_coeff) {q : polynomial R} :
@@ -437,13 +444,13 @@ begin
   split,
   { intro hp,
     rw ←smul_eq_zero_iff_eq (h.unit)⁻¹ at hp,
-    { have : (h.unit)⁻¹ • (p * q) = ((h.unit)⁻¹ • p) * q,
-      { ext,
-        simp only [units.smul_def, coeff_smul, coeff_mul, smul_eq_mul, mul_sum],
-        refine sum_congr rfl (λ x hx, _),
-        rw ←mul_assoc },
-      rwa [this, monic.mul_right_eq_zero_iff] at hp,
-      exact monic_of_is_unit_leading_coeff_inv_smul _ } },
+    have : (h.unit)⁻¹ • (p * q) = ((h.unit)⁻¹ • p) * q,
+    { ext,
+      simp only [units.smul_def, coeff_smul, coeff_mul, smul_eq_mul, mul_sum],
+      refine sum_congr rfl (λ x hx, _),
+      rw ←mul_assoc },
+    rwa [this, monic.mul_right_eq_zero_iff] at hp,
+    exact monic_of_is_unit_leading_coeff_inv_smul _ },
   { rintro rfl,
     simp }
 end

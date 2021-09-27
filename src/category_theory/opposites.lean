@@ -78,6 +78,11 @@ def op_op_equivalence : Cᵒᵖᵒᵖ ≌ C :=
 
 end
 
+/-- If `f` is an isomorphism, so is `f.op` -/
+instance is_iso_op {X Y : C} (f : X ⟶ Y) [is_iso f] : is_iso f.op :=
+⟨⟨(inv f).op,
+  ⟨quiver.hom.unop_inj (by tidy), quiver.hom.unop_inj (by tidy)⟩⟩⟩
+
 /--
 If `f.op` is an isomorphism `f` must be too.
 (This cannot be an instance as it would immediately loop!)
@@ -85,6 +90,9 @@ If `f.op` is an isomorphism `f` must be too.
 lemma is_iso_of_op {X Y : C} (f : X ⟶ Y) [is_iso f.op] : is_iso f :=
 ⟨⟨(inv (f.op)).unop,
   ⟨quiver.hom.op_inj (by simp), quiver.hom.op_inj (by simp)⟩⟩⟩
+
+@[simp] lemma op_inv {X Y : C} (f : X ⟶ Y) [f_iso : is_iso f] : (inv f).op = inv f.op :=
+by { ext, rw [← op_comp, is_iso.inv_hom_id, op_id] }
 
 namespace functor
 
@@ -415,14 +423,6 @@ instance subsingleton_of_unop (A B : Cᵒᵖ) [subsingleton (unop B ⟶ unop A)]
 
 instance decidable_eq_of_unop (A B : Cᵒᵖ) [decidable_eq (unop B ⟶ unop A)] : decidable_eq (A ⟶ B) :=
 (op_equiv A B).decidable_eq
-
-universes v
-variables {α : Type v} [preorder α]
-
-/-- Construct a morphism in the opposite of a preorder category from an inequality. -/
-def op_hom_of_le {U V : αᵒᵖ} (h : unop V ≤ unop U) : U ⟶ V := h.hom.op
-
-lemma le_of_op_hom {U V : αᵒᵖ} (h : U ⟶ V) : unop V ≤ unop U := h.unop.le
 
 namespace functor
 

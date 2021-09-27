@@ -28,13 +28,14 @@ ring_hom, nonzero, domain, integral_domain
 
 ## Implementation notes
 
-There's a coercion from bundled homs to fun, and the canonical
-notation is to use the bundled hom as a function via this coercion.
+* There's a coercion from bundled homs to fun, and the canonical notation is to
+  use the bundled hom as a function via this coercion.
 
-There is no `semiring_hom` -- the idea is that `ring_hom` is used.
-The constructor for a `ring_hom` between semirings needs a proof of `map_zero`, `map_one` and
-`map_add` as well as `map_mul`; a separate constructor `ring_hom.mk'` will construct ring homs
-between rings from monoid homs given only a proof that addition is preserved.
+* There is no `semiring_hom` -- the idea is that `ring_hom` is used.
+  The constructor for a `ring_hom` between semirings needs a proof of `map_zero`,
+  `map_one` and `map_add` as well as `map_mul`; a separate constructor
+  `ring_hom.mk'` will construct ring homs between rings from monoid homs given
+  only a proof that addition is preserved.
 
 ## Tags
 
@@ -285,6 +286,18 @@ dvd.elim h₁ (λ d hd, dvd.elim h₂ (λ e he, dvd.intro (d + e) (by simp [left
 
 end semiring
 
+namespace add_hom
+
+/-- Left multiplication by an element of a type with distributive multiplication is an `add_hom`. -/
+@[simps { fully_applied := ff}] def mul_left {R : Type*} [distrib R] (r : R) : add_hom R R :=
+⟨(*) r, mul_add r⟩
+
+/-- Left multiplication by an element of a type with distributive multiplication is an `add_hom`. -/
+@[simps { fully_applied := ff}] def mul_right {R : Type*} [distrib R] (r : R) : add_hom R R :=
+⟨λ a, a * r, λ _ _, add_mul _ _ r⟩
+
+end add_hom
+
 namespace add_monoid_hom
 
 /-- Left multiplication by an element of a (semi)ring is an `add_monoid_hom` -/
@@ -529,6 +542,9 @@ variables [semiring α] {a : α}
 
 @[simp] theorem two_dvd_bit0 : 2 ∣ bit0 a := ⟨a, bit0_eq_two_mul _⟩
 
+lemma ring_hom.map_dvd [semiring β] (f : α →+* β) {a b : α} : a ∣ b → f a ∣ f b :=
+f.to_monoid_hom.map_dvd
+
 end semiring
 
 /-- A commutative semiring is a `semiring` with commutative multiplication. In other words, it is a
@@ -565,9 +581,6 @@ protected def function.surjective.comm_semiring [has_zero γ] [has_one γ] [has_
 
 lemma add_mul_self_eq (a b : α) : (a + b) * (a + b) = a*a + 2*a*b + b*b :=
 by simp only [two_mul, add_mul, mul_add, add_assoc, mul_comm b]
-
-lemma ring_hom.map_dvd (f : α →+* β) {a b : α} : a ∣ b → f a ∣ f b :=
-λ ⟨z, hz⟩, ⟨f z, by rw [hz, f.map_mul]⟩
 
 end comm_semiring
 
@@ -828,6 +841,17 @@ end
 @[simp] theorem even_neg (a : α) : even (-a) ↔ even a :=
 dvd_neg _ _
 
+lemma odd.neg {a : α} (hp : odd a) : odd (-a) :=
+begin
+  obtain ⟨k, hk⟩ := hp,
+  use -(k + 1),
+  rw [mul_neg_eq_neg_mul_symm, mul_add, neg_add, add_assoc, two_mul (1 : α), neg_add,
+    neg_add_cancel_right, ←neg_add, hk],
+end
+
+@[simp] lemma odd_neg (a : α) : odd (-a) ↔ odd a :=
+⟨λ h, neg_neg a ▸ h.neg, odd.neg⟩
+
 end ring
 
 section comm_ring
@@ -880,7 +904,7 @@ end
 lemma dvd_mul_sub_mul {k a b x y : α} (hab : k ∣ a - b) (hxy : k ∣ x - y) :
   k ∣ a * x - b * y :=
 begin
-  convert dvd_add (dvd_mul_of_dvd_right hxy a) (dvd_mul_of_dvd_left hab y),
+  convert dvd_add (hxy.mul_left a) (hab.mul_right y),
   rw [mul_sub_left_distrib, mul_sub_right_distrib],
   simp only [sub_eq_add_neg, add_assoc, neg_add_cancel_left],
 end
@@ -920,7 +944,7 @@ lemma is_regular_of_ne_zero' [ring α] [no_zero_divisors α] {k : α} (hk : k �
   is_regular k :=
 ⟨is_left_regular_of_non_zero_divisor k
   (λ x h, (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_left hk),
-  is_right_regular_of_non_zero_divisor k
+ is_right_regular_of_non_zero_divisor k
   (λ x h, (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_right hk)⟩
 
 /-- A domain is a ring with no zero divisors, i.e. satisfying

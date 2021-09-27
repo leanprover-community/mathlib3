@@ -284,13 +284,23 @@ lemma dvd_map_of_is_scalar_tower (A K : Type*) {R : Type*} [comm_ring A] [field 
   minpoly K x ∣ (minpoly A x).map (algebra_map A K) :=
 by { refine minpoly.dvd K x _, rw [← is_scalar_tower.aeval_apply, minpoly.aeval] }
 
+/-- If `y` is a conjugate of `x` over a field `K`, then it is a conjugate over a subring `R`. -/
+lemma aeval_of_is_scalar_tower (R : Type*) {K T U : Type*} [comm_ring R] [field K] [comm_ring T]
+  [algebra R K] [algebra K T] [algebra R T] [is_scalar_tower R K T]
+  [comm_semiring U] [algebra K U] [algebra R U] [is_scalar_tower R K U]
+  (x : T) (y : U)
+  (hy : polynomial.aeval y (minpoly K x) = 0) : polynomial.aeval y (minpoly R x) = 0 :=
+by { rw is_scalar_tower.aeval_apply R K,
+     exact eval₂_eq_zero_of_dvd_of_eval₂_eq_zero (algebra_map K U) y
+        (minpoly.dvd_map_of_is_scalar_tower R K x) hy }
+
 variables {A x}
 
 theorem unique' [nontrivial B] {p : polynomial A} (hp1 : _root_.irreducible p)
   (hp2 : polynomial.aeval x p = 0) (hp3 : p.monic) : p = minpoly A x :=
 let ⟨q, hq⟩ := dvd A x hp2 in
 eq_of_monic_of_associated hp3 (monic ⟨p, ⟨hp3, hp2⟩⟩) $
-mul_one (minpoly A x) ▸ hq.symm ▸ associated_mul_mul (associated.refl _) $
+mul_one (minpoly A x) ▸ hq.symm ▸ associated.mul_left _ $
 associated_one_iff_is_unit.2 $ (hp1.is_unit_or_is_unit hq).resolve_left $ not_is_unit A x
 
 lemma unique'' [nontrivial B] {p : polynomial A}
@@ -299,7 +309,7 @@ lemma unique'' [nontrivial B] {p : polynomial A}
 begin
   have : p.leading_coeff ≠ 0 := leading_coeff_ne_zero.mpr hp1.ne_zero,
   apply unique',
-  { exact irreducible_of_associated ⟨⟨C p.leading_coeff⁻¹, C p.leading_coeff,
+  { exact associated.irreducible ⟨⟨C p.leading_coeff⁻¹, C p.leading_coeff,
       by rwa [←C_mul, inv_mul_cancel, C_1], by rwa [←C_mul, mul_inv_cancel, C_1]⟩, rfl⟩ hp1 },
   { rw [aeval_mul, hp2, zero_mul] },
   { rwa [polynomial.monic, leading_coeff_mul, leading_coeff_C, mul_inv_cancel] },
@@ -399,7 +409,7 @@ lemma root {x : B} (hx : is_integral A x) {y : A} (h : is_root (minpoly A x) y) 
   algebra_map A B y = x :=
 have key : minpoly A x = X - C y :=
 eq_of_monic_of_associated (monic hx) (monic_X_sub_C y) (associated_of_dvd_dvd
-  (dvd_symm_of_irreducible (irreducible_X_sub_C y) (irreducible hx) (dvd_iff_is_root.2 h))
+  ((irreducible_X_sub_C y).dvd_symm (irreducible hx) (dvd_iff_is_root.2 h))
   (dvd_iff_is_root.2 h)),
 by { have := aeval A x, rwa [key, alg_hom.map_sub, aeval_X, aeval_C, sub_eq_zero, eq_comm] at this }
 

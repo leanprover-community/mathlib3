@@ -268,11 +268,10 @@ have h : ∑ m in (range d.succ).filter (∣ d.succ),
   finset.sum_congr rfl
     (λ m hm, have hmd : m < d.succ, from mem_range.1 (mem_filter.1 hm).1,
       have hm : m ∣ d.succ, from (mem_filter.1 hm).2,
-      card_order_of_eq_totient_aux₁ (dvd.trans hm hd) (finset.card_pos.2
+      card_order_of_eq_totient_aux₁ (hm.trans hd) (finset.card_pos.2
         ⟨a ^ (d.succ / m), mem_filter.2 ⟨mem_univ _,
           by { rw [order_of_pow a, ha, gcd_eq_right (div_dvd_of_dvd hm),
-                nat.div_div_self hm (succ_pos _)]
-                }⟩⟩)),
+                nat.div_div_self hm (succ_pos _)] }⟩⟩)),
 have hinsert : insert d.succ ((range d.succ).filter (∣ d.succ))
     = (range d.succ.succ).filter (∣ d.succ),
   from (finset.ext $ λ x, ⟨λ h, (mem_insert.1 h).elim (λ h, by simp [h, range_succ])
@@ -332,7 +331,7 @@ lt_irrefl c $
 lemma is_cyclic_of_card_pow_eq_one_le : is_cyclic α :=
 have (univ.filter (λ a : α, order_of a = fintype.card α)).nonempty,
 from (card_pos.1 $
-  by rw [card_order_of_eq_totient_aux₂ hn (dvd_refl _)];
+  by rw [card_order_of_eq_totient_aux₂ hn dvd_rfl];
   exact totient_pos (fintype.card_pos_iff.2 ⟨1⟩)),
 let ⟨x, hx⟩ := this in
 is_cyclic_of_order_of_eq_card x (finset.mem_filter.1 hx).2

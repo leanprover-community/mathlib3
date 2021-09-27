@@ -333,8 +333,7 @@ begin
     rw [pow_succ, ih],
     symmetry,
     apply r.sound,
-    simp only [pow_succ, (frobenius _ _).iterate_map_mul]
-  }
+    simp only [pow_succ, (frobenius _ _).iterate_map_mul] }
 end
 
 /-- Embedding of `K` into `perfect_closure K p` -/

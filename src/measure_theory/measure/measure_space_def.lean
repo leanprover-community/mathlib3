@@ -220,7 +220,7 @@ begin
 end
 
 lemma measure_bUnion_lt_top {s : set β} {f : β → set α} (hs : finite s)
-  (hfin : ∀ i ∈ s, μ (f i) < ∞) : μ (⋃ i ∈ s, f i) < ∞ :=
+  (hfin : ∀ i ∈ s, μ (f i) ≠ ∞) : μ (⋃ i ∈ s, f i) < ∞ :=
 begin
   convert (measure_bUnion_finset_le hs.to_finset f).trans_lt _,
   { ext, rw [finite.mem_to_finset] },
@@ -248,6 +248,39 @@ lemma measure_union_null : μ s₁ = 0 → μ s₂ = 0 → μ (s₁ ∪ s₂) = 
 lemma measure_union_null_iff : μ (s₁ ∪ s₂) = 0 ↔ μ s₁ = 0 ∧ μ s₂ = 0:=
 ⟨λ h, ⟨measure_mono_null (subset_union_left _ _) h, measure_mono_null (subset_union_right _ _) h⟩,
   λ h, measure_union_null h.1 h.2⟩
+
+lemma measure_union_lt_top (hs : μ s < ∞) (ht : μ t < ∞) : μ (s ∪ t) < ∞ :=
+(measure_union_le s t).trans_lt (ennreal.add_lt_top.mpr ⟨hs, ht⟩)
+
+lemma measure_union_lt_top_iff : μ (s ∪ t) < ∞ ↔ μ s < ∞ ∧ μ t < ∞ :=
+begin
+  refine ⟨λ h, ⟨_, _⟩, λ h, measure_union_lt_top h.1 h.2⟩,
+  { exact (measure_mono (set.subset_union_left s t)).trans_lt h, },
+  { exact (measure_mono (set.subset_union_right s t)).trans_lt h, },
+end
+
+lemma measure_union_ne_top (hs : μ s ≠ ∞) (ht : μ t ≠ ∞) : μ (s ∪ t) ≠ ∞ :=
+((measure_union_le s t).trans_lt (lt_top_iff_ne_top.mpr (ennreal.add_ne_top.mpr ⟨hs, ht⟩))).ne
+
+lemma exists_measure_pos_of_not_measure_Union_null [encodable β] {s : β → set α}
+  (hs : μ (⋃ n, s n) ≠ 0) : ∃ n, 0 < μ (s n) :=
+begin
+  by_contra, push_neg at h,
+  simp_rw nonpos_iff_eq_zero at h,
+  exact hs (measure_Union_null h),
+end
+
+lemma measure_inter_lt_top_of_left_ne_top (hs_finite : μ s ≠ ∞) : μ (s ∩ t) < ∞ :=
+(measure_mono (set.inter_subset_left s t)).trans_lt hs_finite.lt_top
+
+lemma measure_inter_lt_top_of_right_ne_top (ht_finite : μ t ≠ ∞) : μ (s ∩ t) < ∞ :=
+inter_comm t s ▸ measure_inter_lt_top_of_left_ne_top ht_finite
+
+lemma measure_inter_null_of_null_right (S : set α) {T : set α} (h : μ T = 0) : μ (S ∩ T) = 0 :=
+measure_mono_null (inter_subset_right S T) h
+
+lemma measure_inter_null_of_null_left {S : set α} (T : set α) (h : μ S = 0) : μ (S ∩ T) = 0 :=
+measure_mono_null (inter_subset_left S T) h
 
 /-! ### The almost everywhere filter -/
 
@@ -313,6 +346,14 @@ h.symm
 lemma ae_eq_trans {f g h: α → δ} (h₁ : f =ᵐ[μ] g) (h₂ : g =ᵐ[μ] h) :
   f =ᵐ[μ] h :=
 h₁.trans h₂
+
+lemma ae_le_of_ae_lt {f g : α → ℝ≥0∞} (h : ∀ᵐ x ∂μ, f x < g x) : f ≤ᵐ[μ] g :=
+begin
+  rw [filter.eventually_le, ae_iff],
+  rw ae_iff at h,
+  refine measure_mono_null (λ x hx, _) h,
+  exact not_lt.2 (le_of_lt (not_le.1 hx)),
+end
 
 @[simp] lemma ae_eq_empty : s =ᵐ[μ] (∅ : set α) ↔ μ s = 0 :=
 eventually_eq_empty.trans $ by simp [ae_iff]

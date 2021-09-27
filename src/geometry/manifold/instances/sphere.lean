@@ -5,6 +5,7 @@ Authors: Heather Macbeth
 -/
 import geometry.manifold.instances.real
 import analysis.complex.circle
+import analysis.inner_product_space.calculus
 
 /-!
 # Manifold structure on the sphere
@@ -58,7 +59,7 @@ noncomputable theory
 open metric finite_dimensional
 open_locale manifold
 
-local attribute [instance] finite_dimensional_of_finrank_eq_succ
+local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
 
 section stereographic_projection
 variables (v : E)

@@ -188,7 +188,8 @@ meta def parse_assoc_chain' (f : expr) : expr → tactic (dlist expr)
 meta def parse_assoc_chain (f : expr) : expr → tactic (list expr) :=
 map dlist.to_list ∘ parse_assoc_chain' f
 
-meta def fold_assoc (op : expr) : option (expr × expr × expr) → list expr → option (expr × list expr)
+meta def fold_assoc (op : expr) :
+  option (expr × expr × expr) → list expr → option (expr × list expr)
 | _ (x::xs) := some (foldl (expr.app ∘ expr.app op) x xs, [])
 | none []   := none
 | (some (l_id,r_id,x₀)) [] := some (x₀,[l_id,r_id])
@@ -408,8 +409,8 @@ do tgt ← target,
    t ← infer_type v,
    tgt' ← do {
      ⟨tgt', _⟩ ← solve_aux tgt (tactic.generalize v x >> target),
-     to_expr ``(λ y : %%t, Π x, y = x → %%(tgt'.binding_body.lift_vars 0 1))
-     } <|> to_expr ``(λ y : %%t, Π x, %%v = x → %%tgt),
+     to_expr ``(λ y : %%t, Π x, y = x → %%(tgt'.binding_body.lift_vars 0 1)) }
+   <|> to_expr ``(λ y : %%t, Π x, %%v = x → %%tgt),
    t ← head_beta (tgt' v) >>= assert h,
    swap,
    r ← mk_eq_refl v,
@@ -464,9 +465,11 @@ do t ← target,
      do lmms ← r.mmap (λ ⟨l,gs,_⟩,
           do ts ← gs.mmap infer_type,
              msg ← ts.mmap pp,
-             pure $ foldl compose "\n\n" (list.intersperse "\n" $ to_fmt l.get_app_fn.const_name :: msg)),
+             pure $ foldl compose "\n\n" $
+               list.intersperse "\n" $ to_fmt l.get_app_fn.const_name :: msg),
         let msg := foldl compose "" lmms,
-        fail format!"ambiguous match: {msg}\n\nTip: try asserting a side condition to distinguish between the lemmas"
+        fail format!("ambiguous match: {msg}\n\n" ++
+          "Tip: try asserting a side condition to distinguish between the lemmas")
    end
 
 meta def mono_aux (dir : parse side) :
@@ -487,7 +490,8 @@ do t ← target >>= instantiate_mvars,
     - left:  `x ≤ w` and `y < z` or
     - right: `x < w` and `y ≤ z`
 - `mono using [rule1,rule2]` calls `simp [rule1,rule2]` before applying mono.
-- The general syntax is `mono '*'? ('with' hyp | 'with' [hyp1,hyp2])? ('using' [hyp1,hyp2])? mono_cfg?
+- The general syntax is
+  `mono '*'? ('with' hyp | 'with' [hyp1,hyp2])? ('using' [hyp1,hyp2])? mono_cfg?`
 
 To use it, first import `tactic.monotonicity`.
 
@@ -619,9 +623,9 @@ monotonic function `f` to `x ≺ y`.
 `ac_mono^k`, for some literal number `k` applies monotonicity `k`
 times.
 
-`ac_mono h`, with `h` a hypothesis, unwraps monotonic functions and
+`ac_mono := h`, with `h` a hypothesis, unwraps monotonic functions and
 uses `h` to solve the remaining goal. Can be combined with `*` or `^k`:
-`ac_mono* h`
+`ac_mono* := h`
 
 `ac_mono : p` asserts `p` and uses it to discharge the goal result
 unwrapping a series of monotonic functions. Can be combined with * or
@@ -651,7 +655,7 @@ end
 ```
 
 As with `mono*`, `ac_mono*` solves the goal in one go and so does
-`ac_mono* h₁`. The latter syntax becomes especially interesting in the
+`ac_mono* := h₁`. The latter syntax becomes especially interesting in the
 following example:
 
 ```lean
@@ -659,7 +663,7 @@ example (x y z k m n : ℕ)
   (h₀ : z ≥ 0)
   (h₁ : m + x + n ≤ y + n + m) :
   (m + x + n) * z + k ≤ z * (y + n + m) + k :=
-by ac_mono* h₁.
+by ac_mono* := h₁.
 ```
 
 By giving `ac_mono` the assumption `h₁`, we are asking `ac_refl` to
@@ -677,7 +681,7 @@ do h ← i_to_expr t >>= assert `h,
    tactic.swap,
    focus1 $ repeat_or_not rep (ac_mono_aux opt) (some $ done <|> ac_refine h)
 /-
-TODO(Simon): with `ac_mono h` and `ac_mono : p` split the remaining
+TODO(Simon): with `ac_mono := h` and `ac_mono : p` split the remaining
   gaol if the provided rule does not solve it completely.
 -/
 

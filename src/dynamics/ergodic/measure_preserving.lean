@@ -134,7 +134,7 @@ end
 `x ∈ s` comes back to `s` under iterations of `f`. Actually, a.e. point of `s` comes back to `s`
 infinitely many times, see `measure_theory.measure_preserving.conservative` and theorems about
 `measure_theory.conservative`. -/
-lemma exists_mem_image_mem [finite_measure μ] (hf : measure_preserving f μ μ)
+lemma exists_mem_image_mem [is_finite_measure μ] (hf : measure_preserving f μ μ)
   (hs : measurable_set s) (hs' : μ s ≠ 0) :
   ∃ (x ∈ s) (m ≠ 0), f^[m] x ∈ s :=
 begin

@@ -295,8 +295,7 @@ meta def get_constructor_info (iname : name) (num_params : ℕ) (c : name) :
       non_param_args := non_param_args,
       num_non_param_args := non_param_args.length,
       rec_args := rec_args,
-      num_rec_args := rec_args.length
-    }
+      num_rec_args := rec_args.length }
 
 /--
 Get information about an inductive type `I`, given `I`'s name.
@@ -612,8 +611,7 @@ meta def constructor_renames (generate_induction_hyps : bool)
       -- Some of the arg hyps may have been cleared by earlier simplification
       -- steps, so get_local may fail.
       (some old) ← try_core $ get_local old_ppname | pure none,
-      pure $ some (old.local_uniq_name, new)
-  },
+      pure $ some (old.local_uniq_name, new) },
   let arg_renames := rb_map.of_list arg_renames,
   arg_hyp_map ← rename_fresh arg_renames mk_name_set,
   let new_arg_hyps := arg_hyp_map.filter_map $ λ ⟨old, new⟩,
@@ -639,8 +637,7 @@ meta def constructor_renames (generate_induction_hyps : bool)
         else [ih_name arg_hyp.local_pp_name])
       | clear_dependent_if_exists ih_hyp_ppname >> pure none,
     (some ih_hyp) ← try_core $ get_local ih_hyp_ppname | pure none,
-    pure $ some (ih_hyp.local_uniq_name, new)
-  },
+    pure $ some (ih_hyp.local_uniq_name, new) },
   ih_hyp_map ← rename_fresh (rb_map.of_list ih_renames) mk_name_set,
   let new_ih_hyps := ih_hyp_map.filter_map $ λ ⟨old, new⟩,
     if ih_pp_name_set.contains old.local_pp_name then some new else none,
@@ -723,8 +720,7 @@ meta def to_generalize (major_premise : expr) :
     of the major_premise's index args. (But the overapproximation seems to work
     okay in practice as well.)
     -/
-    pure $ if rev then some h_name else none
-  },
+    pure $ if rev then some h_name else none },
   pure $ name_set.of_list to_revert
 
 end generalization_mode
@@ -809,8 +805,7 @@ focus1 $ do
     -- TODO We need a variant of `kdepends_on` that takes local defs into account.
     pure $
       (dep_on_major_premise ∧ h ≠ major_premise) ∨
-      (dep_of_index ∧ ¬ dep_of_major_premise)
-  },
+      (dep_of_index ∧ ¬ dep_of_major_premise) },
   ⟨relevant_ctx_size, relevant_ctx⟩ ← unfreezing $ do {
     r ← revert_lst' relevant_ctx,
     revert major_premise,
@@ -823,8 +818,7 @@ focus1 $ do
           J ← infer_type j,
           k ← mk_local' `index binder_info.default J,
           ks ← ks.mmap $ λ k', kreplace k' j k,
-          pure $ k :: ks
-        },
+          pure $ k :: ks },
   ks ← js.mfoldr go [],
 
   let js_ks := js.zip ks,
@@ -1250,8 +1244,7 @@ focus1 $ do
         ih ← get_local ih,
         (some num_leading_pis) ← pure arg_info.recursive_leading_pis
           | fail! "eliminate_hyp: internal error: unexpected non-recursive argument info",
-        simplify_ih num_leading_pis num_auto_generalized num_index_vars ih
-      },
+        simplify_ih num_leading_pis num_auto_generalized num_index_vars ih },
 
       trace_state_eliminate_hyp
         "State after simplifying IHs and before clearing index variables:",
@@ -1278,8 +1271,7 @@ focus1 $ do
       -- that index variables and index equations are not renamable. This may be
       -- counterintuitive in some cases, but it's surprisingly difficult to
       -- catch exactly the relevant hyps here.
-      pure $ some (cinfo.cname, constructor_arg_hyps ++ ih_hyps)
-    },
+      pure $ some (cinfo.cname, constructor_arg_hyps ++ ih_hyps) },
 
   set_cases_tags in_tag cases.reduce_option,
 

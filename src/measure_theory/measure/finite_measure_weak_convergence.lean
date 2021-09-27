@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kalle Kytölä
 -/
 import measure_theory.measure.measure_space
+import measure_theory.integral.bochner
+import topology.continuous_function.bounded
 
 /-!
 # Weak convergence of (finite) measures
@@ -73,7 +75,8 @@ noncomputable theory
 open measure_theory
 open set
 open filter
-open_locale topological_space ennreal nnreal
+open bounded_continuous_function
+open_locale topological_space ennreal nnreal bounded_continuous_function
 
 namespace measure_theory
 
@@ -154,6 +157,83 @@ def coe_add_monoid_hom : finite_measure α →+ measure α :=
 instance {α : Type*} [measurable_space α] : module ℝ≥0 (finite_measure α) :=
 function.injective.module _ coe_add_monoid_hom finite_measure.coe_injective coe_smul
 
+variables [topological_space α]
+
+/-- The pairing of a finite (Borel) measure `μ` with a nonnegative bounded continuous
+function is obtained by (Lebesgue) integrating the (test) function against the measure. This
+is `finite_measure.test_against'`. -/
+abbreviation test_against_nn
+  (μ : finite_measure α) (f : α →ᵇ nnreal) : ℝ≥0 :=
+(lintegral (μ : measure α) ((coe : ℝ≥0 → ℝ≥0∞) ∘ f)).to_nnreal
+
+-- Ok, how to reorganize `lintegral_lt_top_of_bounded_continuous_to_nnreal` meaningfully???
+lemma _root_.is_finite_measure.lintegral_lt_top_of_bounded_to_ennreal {α : Type*}
+  [measurable_space α] (μ : measure α) [μ_fin : is_finite_measure μ]
+  {f : α → ℝ≥0∞} (f_bdd : ∃ (c : ℝ≥0), ∀ (x : α), f(x) ≤ c) :
+  lintegral μ f < ⊤ :=
+begin
+  cases f_bdd with c hc,
+  have le : f ≤ (λ (x : α), (c : ℝ≥0∞)) := hc,
+  apply lt_of_le_of_lt (@lintegral_mono _ _ μ _ _ le),
+  rw lintegral_const,
+  exact ennreal.mul_lt_top ennreal.coe_lt_top.ne μ_fin.measure_univ_lt_top.ne,
+end
+
+lemma _root_.is_finite_measure.lintegral_lt_top_of_bounded_to_nnreal {α : Type*}
+  [measurable_space α] (μ : measure α) [μ_fin : is_finite_measure μ]
+  {f : α → ℝ≥0} (f_bdd : ∃ (c : ℝ≥0), ∀ (x : α), f(x) ≤ c) :
+  lintegral μ ((coe : ℝ≥0 → ℝ≥0∞) ∘ f) < ⊤ :=
+begin
+  have f_bdd' : ∃ (c : ℝ≥0), ∀ (x : α), ((coe : ℝ≥0 → ℝ≥0∞) ∘ f)(x) ≤ c,
+  { cases f_bdd with c hc,
+    use c,
+    intros x,
+    simp only [hc, ennreal.coe_le_coe], },
+  exact is_finite_measure.lintegral_lt_top_of_bounded_to_ennreal μ f_bdd',
+end
+
+lemma nnreal.val_eq_dist_zero : ∀ (z : ℝ≥0), (z : ℝ) = dist 0 z :=
+by { intros z, simp only [nnreal.dist_eq, nnreal.coe_zero, zero_sub, nnreal.abs_eq, abs_neg], }
+
+lemma nnreal.val_eq_dist_zero' : ∀ (z : ℝ≥0), (z : ℝ) = dist z 0 :=
+by { intros z, have key := nnreal.val_eq_dist_zero z, rwa dist_comm at key, }
+
+lemma bounded_continuous_function.nnreal.upper_bound {α : Type*} [topological_space α]
+  (f : α →ᵇ ℝ≥0) : ∀ x, f(x) ≤ (dist f 0).to_nnreal :=
+begin
+  intros x,
+  have key := @bounded_continuous_function.dist_coe_le_dist α ℝ≥0 _ _ f 0 x,
+  simp only [bounded_continuous_function.coe_zero, pi.zero_apply] at key,
+  rw ←nnreal.val_eq_dist_zero' at key,
+  apply (@real.le_to_nnreal_iff_coe_le (f x) _ dist_nonneg).mpr key,
+end
+
+lemma lintegral_lt_top_of_bounded_continuous_to_nnreal (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
+  lintegral (μ : measure α) ((coe : ℝ≥0 → ℝ≥0∞) ∘ f) < ⊤ :=
+begin
+  have key := bounded_continuous_function.nnreal.upper_bound f,
+  have tada : ∃ (c : ℝ≥0), ∀ (x : α), ((coe : ℝ≥0 → ℝ≥0∞) ∘ f)(x) ≤ c,
+  { use dist f 0,
+    exact dist_nonneg,
+    intros x,
+    specialize key x,
+    rw ennreal.coe_le_coe,
+    --tidy?,
+    sorry, },
+  have le' : (coe : ℝ≥0 → ℝ≥0∞) ∘ f ≤ (λ (x : α), c),
+  by { intros x, simp only [hc, ennreal.coe_le_coe], },
+  apply lt_of_le_of_lt (@lintegral_mono _ _ μ _ _ le'),
+  rw lintegral_const,
+  exact ennreal.mul_lt_top ennreal.coe_lt_top μ_fin.measure_univ_lt_top,
+end
+
+lemma test_against_nn_coe_eq {μ : finite_measure α} {f : α →ᵇ nnreal} :
+  (μ.test_against_nn f : ℝ≥0∞) = lintegral (μ : measure α) ((coe : ℝ≥0 → ℝ≥0∞) ∘ f) :=
+begin
+  have key_lt := lintegral_lt_top_of_bounded_continuous_to_nnreal μ f,
+  exact ennreal.coe_to_nnreal (ennreal.lt_top_iff_ne_top.mp key_lt),
+end
+
 end finite_measure
 
 /-- Probability measures are defined as the subtype of measures that have the property of being
@@ -201,6 +281,15 @@ by { rw [← coe_fn_comp_to_finite_measure_eq_coe_fn,
 
 @[simp] lemma mass_to_finite_measure (μ : probability_measure α) :
   μ.to_finite_measure.mass = 1 := μ.coe_fn_univ
+
+variables [topological_space α]
+
+/-- The pairing of a (Borel) probability measure `μ` with a nonnegative bounded continuous
+function is obtained by (Lebesgue) integrating the (test) function against the measure. This
+is `probability_measure.test_against'`. -/
+abbreviation test_against_nn
+  (μ : probability_measure α) (f : α →ᵇ nnreal) : ℝ≥0 :=
+(lintegral (μ : measure α) ((coe : ℝ≥0 → ℝ≥0∞) ∘ f)).to_nnreal
 
 end probability_measure
 

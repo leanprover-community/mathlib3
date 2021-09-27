@@ -1278,6 +1278,10 @@ begin
     mul_one, mul_neg_eq_neg_mul_symm, neg_add_rev, neg_neg],
 end
 
+end linear_ordered_comm_ring
+section
+variables [ring α] [linear_order α] {a b : α}
+
 @[simp] lemma abs_dvd (a b : α) : abs a ∣ b ↔ a ∣ b :=
 by { cases abs_choice a with h h; simp only [h, neg_dvd] }
 
@@ -1295,6 +1299,15 @@ lemma abs_dvd_abs (a b : α) : abs a ∣ abs b ↔ a ∣ b :=
 
 lemma even_abs {a : α} : even (abs a) ↔ even a :=
 dvd_abs _ _
+
+lemma odd_abs {a : α} : odd (abs a) ↔ odd a :=
+by { cases abs_choice a with h h; simp only [h, odd_neg] }
+
+end
+
+section linear_ordered_comm_ring
+
+variables [linear_ordered_comm_ring α]
 
 /-- Pullback a `linear_ordered_comm_ring` under an injective map.
 See note [reducible non-instances]. -/

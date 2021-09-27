@@ -300,7 +300,7 @@ begin
   { intros k₁ k₂ h₁₂ h₁,
     suffices : derived_series_of_ideal R L k₂ I ≤ ⊥, { exact eq_bot_iff.mpr this, },
     change derived_series_of_ideal R L k₁ I = ⊥ at h₁, rw ← h₁,
-    exact derived_series_of_ideal_antitone I h₁₂ },
+    exact derived_series_of_ideal_antitone I h₁₂, },
   exact nat.Inf_upward_closed_eq_succ_iff hs k,
 end
 

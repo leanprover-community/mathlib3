@@ -31,9 +31,9 @@ lemma cast_add_choose {a b : ℕ} :
   ((a + b).choose a : K) = (a + b)! / (a! * b!) :=
 by rw [cast_choose K (le_add_right le_rfl), nat.add_sub_cancel_left]
 
-lemma cast_choose' (a b : ℕ) :
-  (a.choose b : K) = (pochhammer K b).eval (a - (b - 1) : ℕ) / b.factorial :=
-by rw [eq_div_iff_mul_eq (nat.cast_ne_zero.2 b.factorial_ne_zero : (b.factorial : K) ≠ 0),
+lemma cast_choose_eq_pochhammer_div (a b : ℕ) :
+  (a.choose b : K) = (pochhammer K b).eval (a - (b - 1) : ℕ) / b! :=
+by rw [eq_div_iff_mul_eq (nat.cast_ne_zero.2 b.factorial_ne_zero : (b! : K) ≠ 0),
   ←nat.cast_mul, mul_comm, ←nat.desc_factorial_eq_factorial_mul_choose, ←cast_desc_factorial]
 
 lemma cast_choose_two (a : ℕ) :

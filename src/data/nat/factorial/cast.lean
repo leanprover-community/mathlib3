@@ -10,6 +10,11 @@ import ring_theory.polynomial.pochhammer
 
 This file allows calculating factorials (including ascending and descending ones) as elements of a
 semiring.
+
+This is particularly crucial for `nat.desc_factorial` as substraction on `ℕ` does **not** correspond
+to substraction on a general semiring. For example, we can't rely on existing cast lemmas to prove
+`↑(a.desc_factorial 2) = ↑a * (↑a - 1)`. We must use the fact that, whenever `↑(a - 1)` is not equal
+to `↑a - 1`, the other factor is `0` anyway.
 -/
 
 open_locale nat

@@ -6,6 +6,7 @@ Authors: Kalle Kytölä
 import measure_theory.measure.measure_space
 import measure_theory.integral.bochner
 import topology.continuous_function.bounded
+import topology.algebra.weak_dual_topology
 
 /-!
 # Weak convergence of (finite) measures
@@ -166,7 +167,9 @@ abbreviation test_against_nn
   (μ : finite_measure α) (f : α →ᵇ nnreal) : ℝ≥0 :=
 (lintegral (μ : measure α) ((coe : ℝ≥0 → ℝ≥0∞) ∘ f)).to_nnreal
 
--- Ok, how to reorganize `lintegral_lt_top_of_bounded_continuous_to_nnreal` meaningfully???
+-- Where to place?
+-- (I believe the formulation is generally useful, except maybe the exact form
+-- of the assumption `f_bdd`.)
 lemma _root_.is_finite_measure.lintegral_lt_top_of_bounded_to_ennreal {α : Type*}
   [measurable_space α] (μ : measure α) [μ_fin : is_finite_measure μ]
   {f : α → ℝ≥0∞} (f_bdd : ∃ (c : ℝ≥0), ∀ (x : α), f(x) ≤ c) :
@@ -179,6 +182,8 @@ begin
   exact ennreal.mul_lt_top ennreal.coe_lt_top.ne μ_fin.measure_univ_lt_top.ne,
 end
 
+-- Where to place?
+-- (This may be a bit less useful generally, but still reasonable?)
 lemma _root_.is_finite_measure.lintegral_lt_top_of_bounded_to_nnreal {α : Type*}
   [measurable_space α] (μ : measure α) [μ_fin : is_finite_measure μ]
   {f : α → ℝ≥0} (f_bdd : ∃ (c : ℝ≥0), ∀ (x : α), f(x) ≤ c) :
@@ -192,12 +197,60 @@ begin
   exact is_finite_measure.lintegral_lt_top_of_bounded_to_ennreal μ f_bdd',
 end
 
-lemma nnreal.val_eq_dist_zero : ∀ (z : ℝ≥0), (z : ℝ) = dist 0 z :=
+-- I believe these two could be useful... (1) (Only the second one is used below, though.)
+lemma _root_.nnreal.val_eq_dist_zero : ∀ (z : ℝ≥0), (z : ℝ) = dist 0 z :=
 by { intros z, simp only [nnreal.dist_eq, nnreal.coe_zero, zero_sub, nnreal.abs_eq, abs_neg], }
 
-lemma nnreal.val_eq_dist_zero' : ∀ (z : ℝ≥0), (z : ℝ) = dist z 0 :=
+-- I believe these two could be useful... (2)
+lemma _root_.nnreal.val_eq_dist_zero' : ∀ (z : ℝ≥0), (z : ℝ) = dist z 0 :=
 by { intros z, have key := nnreal.val_eq_dist_zero z, rwa dist_comm at key, }
 
+-- Is there a simpler way for the following? I think this might be useful (it is used below).
+lemma _root_.nnreal.le_add_dist (a b : ℝ≥0) : a ≤ b + (dist a b).to_nnreal :=
+begin
+  suffices : (a : ℝ) ≤ (b : ℝ) + (dist a b),
+  { have coe_eq : (coe : ℝ≥0 → ℝ) (b + (dist a b).to_nnreal) = (b : ℝ) + dist a b,
+    { rw nnreal.coe_add,
+      simp only [real.coe_to_nnreal', max_eq_left_iff, add_right_inj],
+      exact dist_nonneg, },
+    rw ←coe_eq at this,
+    apply nnreal.coe_le_coe.mp this, },
+  have key : abs (a-b : ℝ) ≤ (dist a b) := by refl,
+  linarith [le_of_abs_le key],
+end
+
+-- These four are specific but useful at least in this file... (1)
+private lemma continuous_bounded_nn_add_comp_coe {β : Type*} [topological_space β]
+  {f₁ f₂ : β →ᵇ ℝ≥0} :
+  (coe : ℝ≥0 → ℝ≥0∞) ∘ (f₁ + f₂) = ( ((coe : ℝ≥0 → ℝ≥0∞) ∘ f₁) + ((coe : ℝ≥0 → ℝ≥0∞) ∘ f₂)) :=
+by { funext x, simp only [ennreal.coe_add, pi.add_apply, function.comp_app], }
+
+-- These four are specific but useful at least in this file... (2)
+private lemma continuous_bounded_nn_smul_comp_coe {β : Type*} [topological_space β] {c : ℝ≥0}
+  {f : β →ᵇ ℝ≥0} : (coe : ℝ≥0 → ℝ≥0∞) ∘ (c • f) = c • ( ((coe : ℝ≥0 → ℝ≥0∞) ∘ f)) :=
+begin
+  funext x,
+  simpa only [algebra.id.smul_eq_mul, function.comp_app, pi.smul_apply, ennreal.coe_mul],
+end
+
+-- These four are specific but useful at least in this file... (3)
+lemma bounded_continuous_function.nnreal.smul_eq {β : Type*} [topological_space β]
+  {c : ℝ≥0} {f : β →ᵇ ℝ≥0} : (c • (f : β → ℝ≥0)) = ((c • f) : β →ᵇ ℝ≥0) := by refl
+
+-- These four are specific but useful at least in this file... (4)
+private lemma continuous_bounded_nn_smul_comp_coe' {β : Type*} [topological_space β] {c : ℝ≥0} {f : β →ᵇ ℝ≥0} :
+  (coe : ℝ≥0 → ℝ≥0∞) ∘ (c • f) = c • ( ((coe : ℝ≥0 → ℝ≥0∞) ∘ f)) :=
+begin
+  funext x,
+  simpa only [algebra.id.smul_eq_mul, function.comp_app, pi.smul_apply, ennreal.coe_mul],
+end
+
+lemma _root_.bounded_continuous_function.nnreal.coe_comp_measurable {α : Type*}
+  [topological_space α] [measurable_space α] [opens_measurable_space α] (f : α →ᵇ ℝ≥0) :
+  measurable ((coe : ℝ≥0 → ℝ≥0∞) ∘ f) :=
+measurable.comp measurable_coe_nnreal_ennreal (continuous.measurable f.continuous)
+
+-- This does not seem unreasonable to me, although it may be a bit specific.
 lemma bounded_continuous_function.nnreal.upper_bound {α : Type*} [topological_space α]
   (f : α →ᵇ ℝ≥0) : ∀ x, f(x) ≤ (dist f 0).to_nnreal :=
 begin
@@ -208,31 +261,155 @@ begin
   apply (@real.le_to_nnreal_iff_coe_le (f x) _ dist_nonneg).mpr key,
 end
 
+-- This is the formulation I prefer in the present context.
 lemma lintegral_lt_top_of_bounded_continuous_to_nnreal (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
   lintegral (μ : measure α) ((coe : ℝ≥0 → ℝ≥0∞) ∘ f) < ⊤ :=
 begin
-  have key := bounded_continuous_function.nnreal.upper_bound f,
-  have tada : ∃ (c : ℝ≥0), ∀ (x : α), ((coe : ℝ≥0 → ℝ≥0∞) ∘ f)(x) ≤ c,
-  { use dist f 0,
-    exact dist_nonneg,
-    intros x,
-    specialize key x,
-    rw ennreal.coe_le_coe,
-    --tidy?,
-    sorry, },
-  have le' : (coe : ℝ≥0 → ℝ≥0∞) ∘ f ≤ (λ (x : α), c),
-  by { intros x, simp only [hc, ennreal.coe_le_coe], },
-  apply lt_of_le_of_lt (@lintegral_mono _ _ μ _ _ le'),
-  rw lintegral_const,
-  exact ennreal.mul_lt_top ennreal.coe_lt_top μ_fin.measure_univ_lt_top,
+  apply is_finite_measure.lintegral_lt_top_of_bounded_to_ennreal,
+  use dist f 0,
+  { exact dist_nonneg, },
+  intros x,
+  have key := bounded_continuous_function.nnreal.upper_bound f x,
+  rw ennreal.coe_le_coe,
+  have eq : (dist f 0).to_nnreal = ⟨dist f 0, dist_nonneg⟩,
+  { ext,
+    simp only [real.coe_to_nnreal', max_eq_left_iff, subtype.coe_mk],
+    exact dist_nonneg, },
+  rwa eq at key,
 end
 
 lemma test_against_nn_coe_eq {μ : finite_measure α} {f : α →ᵇ nnreal} :
   (μ.test_against_nn f : ℝ≥0∞) = lintegral (μ : measure α) ((coe : ℝ≥0 → ℝ≥0∞) ∘ f) :=
+ennreal.coe_to_nnreal (lintegral_lt_top_of_bounded_continuous_to_nnreal μ f).ne
+
+lemma test_against_nn_const (μ : finite_measure α) (c : ℝ≥0) :
+  μ.test_against_nn (bounded_continuous_function.const α c) = c * μ.mass :=
 begin
-  have key_lt := lintegral_lt_top_of_bounded_continuous_to_nnreal μ f,
-  exact ennreal.coe_to_nnreal (ennreal.lt_top_iff_ne_top.mp key_lt),
+  dunfold test_against_nn,
+  have eq : (coe : ℝ≥0 → ℝ≥0∞) ∘ (bounded_continuous_function.const α c) = (λ x, (c : ennreal)),
+  by refl,
+  rw [eq, lintegral_const, ennreal.to_nnreal_mul],
+  simp only [mul_eq_mul_left_iff, ennreal.to_nnreal_coe],
+  left,
+  refl,
 end
+
+lemma test_against_nn_mono (μ : finite_measure α)
+  {f g : α →ᵇ ℝ≥0} (f_le_g : (f : α → ℝ≥0) ≤ g) :
+  μ.test_against_nn f ≤ μ.test_against_nn g :=
+begin
+  repeat { rw finite_measures.test_against_nn_def, },
+  apply ennreal.coe_le_coe.mp,
+  repeat { rw ennreal.coe_to_nnreal, },
+  { apply lintegral_mono,
+    intros x,
+    apply ennreal.coe_mono,
+    exact f_le_g x, },
+  repeat { exact (lintegral_lt_top_of_bounded_continuous_to_nnreal μ _).ne, },
+end
+
+variables [opens_measurable_space α]
+
+lemma test_against_nn_add (μ : finite_measure α) (f₁ f₂ : α →ᵇ ℝ≥0) :
+  μ.test_against_nn (f₁ + f₂) = μ.test_against_nn f₁ + μ.test_against_nn f₂ :=
+begin
+  rw ← ennreal.to_nnreal_add
+    (lintegral_lt_top_of_bounded_continuous_to_nnreal μ f₁).ne
+    (lintegral_lt_top_of_bounded_continuous_to_nnreal μ f₂).ne,
+  rw ← @lintegral_add _ _ (μ : measure α) _ _
+     (bounded_continuous_function.nnreal.coe_comp_measurable f₁)
+     (bounded_continuous_function.nnreal.coe_comp_measurable f₂),
+  refl,
+end
+
+-- NOTE: Eh, what is the right way to do this `nnreal_mul_ennreal_to_nnreal`?
+-- If this deserves to be added, then perhaps in `data.real.ennreal`?
+-- It seems like a typical coercion issue to me, although it is only used once here.
+lemma _root_.ennreal.nnreal_mul_ennreal_to_nnreal (c : ℝ≥0) (z : ℝ≥0∞) :
+  c * z.to_nnreal = ((c : ℝ≥0∞) * z).to_nnreal :=
+begin
+  by_cases z_infty : z = ⊤,
+  { rw z_infty,
+    simp only [ennreal.top_to_nnreal, ennreal.to_nnreal_mul_top, mul_zero], },
+  { have z_lt_top : z < ⊤ := ne.lt_top z_infty,
+    simp only [ennreal.to_nnreal_mul, ennreal.to_nnreal_coe], },
+end
+
+lemma test_against_nn_smul (μ : finite_measure α) (c : ℝ≥0) (f : α →ᵇ ℝ≥0) :
+  μ.test_against_nn (c • f) = c * μ.test_against_nn f :=
+begin
+  have key_smul := @lintegral_mul_const _ _ (μ : measure α) c _
+                   (bounded_continuous_function.nnreal.coe_comp_measurable f),
+  simp_rw mul_comm at key_smul,
+  repeat { dunfold finite_measure.test_against_nn, },
+  rw [ennreal.nnreal_mul_ennreal_to_nnreal, ←key_smul,
+      ← bounded_continuous_function.nnreal.smul_eq, @continuous_bounded_nn_smul_comp_coe _ _ c f],
+  refl,
+end
+
+/-- Integration against a finite_measure defines a linear map from nonnegative bounded continuous
+functions to nonnegative real numbers. -/
+def test_against_nn_linear_map (μ : finite_measure α) : (α →ᵇ ℝ≥0) →ₗ[ℝ≥0] ℝ≥0 :=
+{ to_fun := μ.test_against_nn,
+  map_add' := test_against_nn_add μ,
+  map_smul' := test_against_nn_smul μ, }
+
+lemma test_against_nn_lipschitz_estimate (μ : finite_measure α) (f g : α →ᵇ ℝ≥0) :
+  μ.test_against_nn f ≤ μ.test_against_nn g + (dist f g).to_nnreal * μ.mass :=
+begin
+  have coe_eq : ennreal.of_real (dist f g) = ((dist f g).to_nnreal : ℝ≥0∞) := by refl,
+  rw ←test_against_nn_const μ (dist f g).to_nnreal,
+  rw ←test_against_nn_add,
+  repeat { dunfold test_against_nn, },
+  apply ennreal.coe_le_coe.mp,
+  repeat { rw ennreal.coe_to_nnreal, },
+  { apply lintegral_mono,
+    have le_dist : ∀ x, dist (f x) (g x) ≤ (dist f g)
+    := bounded_continuous_function.dist_coe_le_dist,
+    have le' : ∀ x, f(x) ≤ g(x) + (dist f g).to_nnreal,
+    { intros x,
+      apply (nnreal.le_add_dist (f x) (g x)).trans,
+      rw add_le_add_iff_left,
+      exact real.to_nnreal_mono (le_dist x), },
+    have le : ∀ x, (f(x) : ℝ≥0∞) ≤ (g(x) : ℝ≥0∞) + ennreal.of_real (dist f g),
+    { intros x,
+      rw [coe_eq, ←ennreal.coe_add],
+      exact ennreal.coe_mono (le' x), },
+    exact le, },
+  repeat { exact (lintegral_lt_top_of_bounded_continuous_to_nnreal μ _).ne},
+end
+
+lemma test_against_nn_lipschitz (μ : finite_measure α) :
+  lipschitz_with μ.mass μ.test_against_nn :=
+begin
+  rw lipschitz_with_iff_dist_le_mul,
+  intros f₁ f₂,
+  suffices : abs (μ.test_against_nn f₁ - μ.test_against_nn f₂ : ℝ) ≤ μ.mass * (dist f₁ f₂),
+  { rwa nnreal.dist_eq, },
+  apply (@abs_le ℝ _ _ _ _ _).mpr,
+  split,
+  { have key' := μ.test_against_nn_lipschitz_estimate f₂ f₁,
+    rw mul_comm at key',
+    suffices : ↑(μ.test_against_nn f₂) ≤ ↑(μ.test_against_nn f₁) + ↑(μ.mass) * dist f₁ f₂,
+    { linarith, },
+    have key := nnreal.coe_mono key',
+    rwa [nnreal.coe_add, nnreal.coe_mul, real.coe_to_nnreal, dist_comm] at key,
+    exact dist_nonneg, },
+  { have key' := μ.test_against_nn_lipschitz_estimate f₁ f₂,
+    rw mul_comm at key',
+    suffices : ↑(μ.test_against_nn f₁) ≤ ↑(μ.test_against_nn f₂) + ↑(μ.mass) * dist f₁ f₂,
+    { linarith, },
+    have key := nnreal.coe_mono key',
+    rwa [nnreal.coe_add, nnreal.coe_mul, real.coe_to_nnreal] at key,
+    exact dist_nonneg, },
+end
+
+def to_weak_dual_of_bounded_continuous_nnreal (μ : finite_measure α) :
+  weak_dual ℝ≥0 (α →ᵇ ℝ≥0) :=
+{ to_fun := μ.test_against_nn,
+  map_add' := test_against_nn_add μ,
+  map_smul' := test_against_nn_smul μ,
+  cont := μ.test_against_nn_lipschitz.continuous, }
 
 end finite_measure
 
@@ -290,6 +467,52 @@ is `probability_measure.test_against'`. -/
 abbreviation test_against_nn
   (μ : probability_measure α) (f : α →ᵇ nnreal) : ℝ≥0 :=
 (lintegral (μ : measure α) ((coe : ℝ≥0 → ℝ≥0∞) ∘ f)).to_nnreal
+
+lemma lintegral_lt_top_of_bounded_continuous_to_nnreal (μ : probability_measure α) (f : α →ᵇ ℝ≥0) :
+  lintegral (μ : measure α) ((coe : ℝ≥0 → ℝ≥0∞) ∘ f) < ⊤ :=
+μ.to_finite_measure.lintegral_lt_top_of_bounded_continuous_to_nnreal f
+
+lemma test_against_nn_coe_eq {μ : probability_measure α} {f : α →ᵇ nnreal} :
+  (μ.test_against_nn f : ℝ≥0∞) = lintegral (μ : measure α) ((coe : ℝ≥0 → ℝ≥0∞) ∘ f) :=
+ennreal.coe_to_nnreal (lintegral_lt_top_of_bounded_continuous_to_nnreal μ f).ne
+
+@[simp]
+lemma to_finite_measure_test_against_nn_eq_test_against_nn (α : Type*)
+  [measurable_space α] [topological_space α] {μ : probability_measure α} {f : α →ᵇ nnreal} :
+  μ.to_finite_measure.test_against_nn f = μ.test_against_nn f := rfl
+
+lemma test_against_nn_const (μ : probability_measure α) (c : ℝ≥0) :
+  μ.test_against_nn (bounded_continuous_function.const α c) = c :=
+begin
+  have key := finite_measure.test_against_nn_const μ.to_finite_measure c,
+  simp only [mul_one, mass_to_finite_measure] at key,
+  exact key,
+end
+
+lemma test_against_nn_mono (μ : probability_measure α)
+  {f g : α →ᵇ ℝ≥0} (f_le_g : (f : α → ℝ≥0) ≤ g) :
+  μ.test_against_nn f ≤ μ.test_against_nn g :=
+begin
+  have key := finite_measure.test_against_nn_mono μ.to_finite_measure f_le_g,
+  simp only [to_finite_measure_test_against_nn_eq_test_against_nn] at key,
+  exact key,
+end
+
+variables [opens_measurable_space α]
+
+lemma test_against_nn_lipschitz (μ : probability_measure α) :
+  lipschitz_with 1 μ.test_against_nn :=
+begin
+  have key := μ.to_finite_measure.test_against_nn_lipschitz,
+  rwa μ.mass_to_finite_measure at key,
+end
+
+def to_weak_dual_of_bounded_continuous_nnreal (μ : probability_measure α) :
+  weak_dual ℝ≥0 (α →ᵇ ℝ≥0) :=
+{ to_fun := μ.test_against_nn,
+  map_add' := μ.to_finite_measure.test_against_nn_add,
+  map_smul' := μ.to_finite_measure.test_against_nn_smul,
+  cont := μ.test_against_nn_lipschitz.continuous, }
 
 end probability_measure
 

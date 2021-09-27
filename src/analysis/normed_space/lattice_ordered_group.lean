@@ -46,6 +46,9 @@ class normed_lattice_add_comm_group (α : Type*)
 (add_le_add_left : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
 (solid : ∀ a b : α, |a| ≤ |b| → ∥a∥ ≤ ∥b∥)
 
+lemma solid {α : Type*} [normed_lattice_add_comm_group α] {a b : α} (h : |a| ≤ |b|) : ∥a∥ ≤ ∥b∥ :=
+  normed_lattice_add_comm_group.solid a b h
+
 /--
 A normed lattice ordered group is an ordered additive commutative group
 -/
@@ -72,7 +75,7 @@ lemma dual_solid {α : Type*} [h: normed_lattice_add_comm_group α] : ∀ a b : 
   ∥a∥ ≤ ∥b∥ :=
 begin
   intros a b h₁,
-  apply h.solid,
+  apply solid,
   rw abs_eq_sup_neg,
   nth_rewrite 0 ← neg_neg a,
   rw ← neg_inf_eq_sup_neg,

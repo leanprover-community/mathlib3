@@ -239,7 +239,8 @@ begin
   let g₂ : P → V := λ i, w i • (i -ᵥ classical.choice S.nonempty),
   change univ.sum g₁ = (image f univ).sum g₂,
   have hgf : g₁ = g₂ ∘ f, { ext, simp, },
-  rw [hgf, sum_comp_of_injective g₂ f hf],
+  rw [hgf, sum_image],
+  exact λ _ _ _ _ hxy, hf hxy,
 end
 
 lemma attach_affine_combination_coe (s : finset P) (w : P → k) :

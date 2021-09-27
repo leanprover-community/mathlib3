@@ -1002,7 +1002,7 @@ finset.strong_induction_on s
 
 /-- The product of the composition of functions `f` and `g`, is the product
 over `b ∈ s.image g` of `f b` to the power of the cardinality of the fibre of `b`. See also
-`finset.prod_comp_of_injective`. -/
+`finset.prod_image`. -/
 lemma prod_comp [decidable_eq γ] (f : γ → β) (g : α → γ) :
   ∏ a in s, f (g a) = ∏ b in s.image g, f b ^ (s.filter (λ a, g a = b)).card  :=
 calc ∏ a in s, f (g a)
@@ -1013,11 +1013,6 @@ calc ∏ a in s, f (g a)
   prod_congr rfl (λ b hb, prod_congr rfl (by simp {contextual := tt}))
 ... = ∏ b in s.image g, f b ^ (s.filter (λ a, g a = b)).card :
   prod_congr rfl (λ _ _, prod_const _)
-
-@[to_additive]
-lemma prod_comp_of_injective [decidable_eq γ] (f : γ → β) (g : α → γ) (hg : function.injective g) :
-  s.prod (f ∘ g) = (s.image g).prod f :=
-by { erw [← s.prod_map ⟨g, hg⟩ f, map_eq_image], congr, }
 
 @[to_additive]
 lemma prod_piecewise [decidable_eq α] (s t : finset α) (f g : α → β) :
@@ -1199,7 +1194,7 @@ lemma sum_comp [add_comm_monoid β] [decidable_eq γ] (f : γ → β) (g : α �
 @prod_comp (multiplicative β) _ _ _ _ _ _ _
 attribute [to_additive "The sum of the composition of functions `f` and `g`, is the sum
 over `b ∈ s.image g` of `f b` times of the cardinality of the fibre of `b`. See also
-`finset.sum_comp_of_injective`."] prod_comp
+`finset.sum_image`."] prod_comp
 
 lemma eq_sum_range_sub [add_comm_group β] (f : ℕ → β) (n : ℕ) :
   f n = f 0 + ∑ i in range n, (f (i+1) - f i) :=

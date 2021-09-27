@@ -1,4 +1,4 @@
-import analysis.special_functions.trigonometric
+import analysis.special_functions.trigonometric.basic
 
 namespace real
 

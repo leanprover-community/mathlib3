@@ -953,6 +953,13 @@ noncomputable def pi_measurable_equiv_tprod {l : list δ'} (hnd : l.nodup) (h : 
   measurable_to_fun := measurable_tprod_mk l,
   measurable_inv_fun := measurable_tprod_elim' h }
 
+/-- If `α` has a unique term, then the type of function `α → β` is measurably equivalent to `β`. -/
+@[simps {fully_applied := ff}] def fun_unique (α β : Type*) [unique α] [measurable_space β] :
+  (α → β) ≃ᵐ β :=
+{ to_equiv := equiv.fun_unique α β,
+  measurable_to_fun := measurable_pi_apply _,
+  measurable_inv_fun := measurable_pi_iff.2 $ λ b, measurable_id }
+
 end measurable_equiv
 
 namespace filter

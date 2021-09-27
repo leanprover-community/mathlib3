@@ -3,7 +3,6 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import linear_algebra.basic
 import linear_algebra.basis
 import linear_algebra.pi
 import data.matrix.basis
@@ -82,7 +81,7 @@ begin
   simp only [(ker_comp _ _).symm, eq_top_iff, set_like.le_def, mem_ker, comap_infi, mem_infi],
   assume b hb j hj,
   have : i ≠ j := assume eq, h ⟨hi, eq.symm ▸ hj⟩,
-  rw [proj_std_basis_ne R φ j i this.symm, zero_apply]
+  rw [mem_comap, mem_ker, ← comp_apply, proj_std_basis_ne R φ j i this.symm, zero_apply]
 end
 
 lemma infi_ker_proj_le_supr_range_std_basis {I : finset ι} {J : set ι} (hu : set.univ ⊆ ↑I ∪ J) :

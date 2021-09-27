@@ -143,7 +143,7 @@ lemma top_def : (⊤ : setoid α).rel = ⊤ := rfl
 @[simp]
 lemma bot_def : (⊥ : setoid α).rel = (=) := rfl
 
-lemma eq_top_iff {α : Type*} {s : setoid α} : s = (⊤ : setoid α) ↔ ∀ x y : α, s.rel x y :=
+lemma eq_top_iff {s : setoid α} : s = (⊤ : setoid α) ↔ ∀ x y : α, s.rel x y :=
 by simp [eq_top_iff, setoid.le_def, setoid.top_def, top_apply]
 
 /-- The inductively defined equivalence closure of a binary relation r is the infimum

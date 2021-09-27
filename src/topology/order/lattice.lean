@@ -56,3 +56,22 @@ Then `L` is said to be a *topological lattice*.
 -/
 class topological_lattice (L : Type*) [topological_space L] [lattice L]
   extends has_continuous_inf L, has_continuous_sup L
+
+variables {L : Type*} [topological_space L]
+variables {X : Type*} [topological_space X]
+
+lemma continuous_inf [has_inf L] [has_continuous_inf L] : continuous (λp:L×L, p.1 ⊓ p.2) :=
+has_continuous_inf.continuous_inf
+
+lemma continuous.inf [has_inf L] [has_continuous_inf L]
+  {f g : X → L} (hf : continuous f) (hg : continuous g) :
+  continuous (λx, f x ⊓ g x) :=
+continuous_inf.comp (hf.prod_mk hg : _)
+
+lemma continuous_sup [has_sup L] [has_continuous_sup L] : continuous (λp:L×L, p.1 ⊔ p.2) :=
+has_continuous_sup.continuous_sup
+
+lemma continuous.sup [has_sup L] [has_continuous_sup L]
+  {f g : X → L} (hf : continuous f) (hg : continuous g) :
+  continuous (λx, f x ⊔ g x) :=
+continuous_sup.comp (hf.prod_mk hg : _)

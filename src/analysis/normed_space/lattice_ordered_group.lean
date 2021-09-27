@@ -67,14 +67,18 @@ Let `α` be a normed group with a partial order. Then the order dual is also a n
 -/
 instance {α : Type*} : Π [normed_group α], normed_group (order_dual α) := id
 
+lemma test {α : Type*} [h: normed_lattice_add_comm_group α] (a b : α) : a ≤ b ↔ -b ≤ -a :=
+begin
+  exact neg_le_neg_iff.symm,
+end
+
 /--
 Let `α` be a normed lattice ordered group and let `a` and `b` be elements of `α`. Then `a⊓-a ≥ b⊓-b`
 implies `∥a∥ ≤ ∥b∥`.
 -/
-lemma dual_solid {α : Type*} [h: normed_lattice_add_comm_group α] : ∀ a b : α, b⊓-b ≤ a⊓-a →
+lemma dual_solid {α : Type*} [normed_lattice_add_comm_group α] (a b : α) (h: b⊓-b ≤ a⊓-a) :
   ∥a∥ ≤ ∥b∥ :=
 begin
-  intros a b h₁,
   apply solid,
   rw abs_eq_sup_neg,
   nth_rewrite 0 ← neg_neg a,

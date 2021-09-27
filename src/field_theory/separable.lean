@@ -599,8 +599,12 @@ end
 -- See: https://en.wikipedia.org/wiki/Separable_extension#Separability_of_transcendental_extensions
 
 /-- Typeclass for separable field extension: `K` is a separable field extension of `F` iff
-the minimal polynomial of every `x : K` is separable. -/
-class is_separable (F K : Sort*) [field F] [field K] [algebra F K] : Prop :=
+the minimal polynomial of every `x : K` is separable.
+
+We define this for general (commutative) rings and only assume `F` and `K` are fields if this
+is needed for a proof.
+-/
+class is_separable (F K : Sort*) [comm_ring F] [ring K] [algebra F K] : Prop :=
 (is_integral' (x : K) : is_integral F x)
 (separable' (x : K) : (minpoly F x).separable)
 

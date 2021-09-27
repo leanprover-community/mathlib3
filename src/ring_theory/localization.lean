@@ -1958,10 +1958,14 @@ end integral_closure
 
 end algebra
 
-variables (A)
+variables (R A)
 
-/-- The fraction field of an integral domain as a quotient type. -/
-@[reducible] def fraction_ring := localization (non_zero_divisors A)
+/-- The fraction ring of a commutative ring `R` as a quotient type.
+
+We instantiate this definition as generally as possible, and assume that the
+commutative ring `R` is an integral domain only when this is needed for proving.
+-/
+@[reducible] def fraction_ring := localization (non_zero_divisors R)
 
 namespace fraction_ring
 

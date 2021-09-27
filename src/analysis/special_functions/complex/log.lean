@@ -156,6 +156,37 @@ lemma times_cont_diff_at_log {x : ℂ} (h : 0 < x.re ∨ x.im ≠ 0) {n : with_t
 exp_local_homeomorph.times_cont_diff_at_symm_deriv (exp_ne_zero $ log x) h
   (has_deriv_at_exp _) times_cont_diff_exp.times_cont_diff_at
 
+lemma tendsto_log_nhds_within_im_neg_of_re_neg_of_im_zero
+  {z : ℂ} (hre : z.re < 0) (him : z.im = 0) :
+  tendsto log (𝓝[{z : ℂ | z.im < 0}] z) (𝓝 $ real.log (abs z) - π * I) :=
+begin
+  have := (continuous_of_real.continuous_at.comp_continuous_within_at
+    (continuous_abs.continuous_within_at.log _)).tendsto.add
+    (((continuous_of_real.tendsto _).comp $
+    tendsto_arg_nhds_within_im_neg_of_re_neg_of_im_zero hre him).mul tendsto_const_nhds),
+  convert this,
+  { simp [sub_eq_add_neg] },
+  { lift z to ℝ using him, simpa using hre.ne }
+end
+
+lemma continuous_within_at_log_of_re_neg_of_im_zero
+  {z : ℂ} (hre : z.re < 0) (him : z.im = 0) :
+  continuous_within_at log {z : ℂ | 0 ≤ z.im} z :=
+begin
+  have := (continuous_of_real.continuous_at.comp_continuous_within_at
+    (continuous_abs.continuous_within_at.log _)).tendsto.add
+    ((continuous_of_real.continuous_at.comp_continuous_within_at $
+    continuous_within_at_arg_of_re_neg_of_im_zero hre him).mul tendsto_const_nhds),
+  convert this,
+  { lift z to ℝ using him, simpa using hre.ne }
+end
+
+lemma tendsto_log_nhds_within_im_nonneg_of_re_neg_of_im_zero
+  {z : ℂ} (hre : z.re < 0) (him : z.im = 0) :
+  tendsto log (𝓝[{z : ℂ | 0 ≤ z.im}] z) (𝓝 $ real.log (abs z) + π * I) :=
+by simpa only [log, arg_eq_pi_iff.2 ⟨hre, him⟩]
+  using (continuous_within_at_log_of_re_neg_of_im_zero hre him).tendsto
+
 end complex
 
 section log_deriv

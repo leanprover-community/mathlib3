@@ -120,7 +120,7 @@ univ_subset_iff.1 surj_on_tan
 
 /-- `real.tan` as an `order_iso` between `(-(π / 2), π / 2)` and `ℝ`. -/
 def tan_order_iso : Ioo (-(π / 2)) (π / 2) ≃o ℝ :=
-(strict_mono_incr_on_tan.order_iso _ _).trans $ (order_iso.set_congr _ _ image_tan_Ioo).trans
+(strict_mono_on_tan.order_iso _ _).trans $ (order_iso.set_congr _ _ image_tan_Ioo).trans
   order_iso.set.univ
 
 /-- Inverse of the `tan` function, returns values in the range `-π / 2 < arctan x` and

@@ -58,7 +58,8 @@ These containers are deployed to the Docker registry, so anyone can just
 `docker run -it leanprovercommunity/mathlib` to get a local lean+mathlib environment.
 
 There is a local script in `scripts/docker_push.sh` for deployment, which requires
-credentials currently managed by @semorrison.
+logging in to the leanprovercommunity account at hub.docker.com
+(credentials available to maintainers).
 
 ### Remote containers for VSCode
 

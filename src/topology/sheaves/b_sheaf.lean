@@ -6,10 +6,11 @@ import category_theory.full_subcategory
 import category_theory.equivalence
 import tactic.elementwise
 
-universe u
+universes v u
 
 open topological_space
 open category_theory
+open opposite
 
 namespace topological_space
 
@@ -26,7 +27,7 @@ def opens_basis (X : Top) : topological_basis X :=
 ⟨{ U : set X | is_open U }, is_topological_basis_opens⟩
 
 namespace topological_basis
-variables {X : Top} {B : topological_basis X}
+variables {X : Top.{u}} {B : topological_basis X}
 
 def to_open (U : B) : opens X := ⟨U.val, is_topological_basis.is_open B.property U.property⟩
 

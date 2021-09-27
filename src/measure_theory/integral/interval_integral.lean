@@ -164,7 +164,7 @@ integral, fundamental theorem of calculus, FTC-1, FTC-2, change of variables in 
 
 noncomputable theory
 open topological_space (second_countable_topology)
-open measure_theory set classical filter
+open measure_theory set classical filter function
 
 open_locale classical topological_space filter ennreal big_operators
 
@@ -840,13 +840,13 @@ begin
     simp only [integrable_on_const, measure_lt_top, or_true]
 end
 
-lemma integral_eq_integral_of_support_subset {f : α → E} {a b} (h : function.support f ⊆ Ioc a b) :
+lemma integral_eq_integral_of_support_subset {f : α → E} {a b} (h : support f ⊆ Ioc a b) :
   ∫ x in a..b, f x ∂μ = ∫ x, f x ∂μ :=
 begin
   cases le_total a b with hab hab,
   { rw [integral_of_le hab, ← integral_indicator measurable_set_Ioc, indicator_eq_self.2 h];
     apply_instance },
-  { rw [Ioc_eq_empty hab.not_lt, subset_empty_iff, function.support_eq_empty_iff] at h,
+  { rw [Ioc_eq_empty hab.not_lt, subset_empty_iff, support_eq_empty_iff] at h,
     simp [h] }
 end
 
@@ -1120,7 +1120,7 @@ end
 
 lemma integral_pos_iff_support_of_nonneg_ae'
   (hf : 0 ≤ᵐ[μ.restrict (Ioc a b ∪ Ioc b a)] f) (hfi : interval_integrable f μ a b) :
-  0 < ∫ x in a..b, f x ∂μ ↔ a < b ∧ 0 < μ (function.support f ∩ Ioc a b) :=
+  0 < ∫ x in a..b, f x ∂μ ↔ a < b ∧ 0 < μ (support f ∩ Ioc a b) :=
 begin
   obtain hab | hab := le_total b a;
     simp only [Ioc_eq_empty hab.not_lt, empty_union, union_empty] at hf ⊢,
@@ -1136,7 +1136,7 @@ end
 
 lemma integral_pos_iff_support_of_nonneg_ae
   (hf : 0 ≤ᵐ[μ] f) (hfi : interval_integrable f μ a b) :
-  0 < ∫ x in a..b, f x ∂μ ↔ a < b ∧ 0 < μ (function.support f ∩ Ioc a b) :=
+  0 < ∫ x in a..b, f x ∂μ ↔ a < b ∧ 0 < μ (support f ∩ Ioc a b) :=
 integral_pos_iff_support_of_nonneg_ae' (ae_mono measure.restrict_le_self hf) hfi
 
 variable (hab : a ≤ b)
@@ -2196,6 +2196,28 @@ theorem integral_eq_sub_of_has_deriv_at
   ∫ y in a..b, f' y = f b - f a :=
 integral_eq_sub_of_has_deriv_right (has_deriv_at.continuous_on hderiv)
   (λ x hx, (hderiv _ (mem_Icc_of_Ioo hx)).has_deriv_within_at) hint
+
+theorem integral_eq_sub_of_has_deriv_at_of_tendsto (hab : a < b) {fa fb}
+  (hderiv : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) (hint : interval_integrable f' volume a b)
+  (ha : tendsto f (𝓝[Ioi a] a) (𝓝 fa)) (hb : tendsto f (𝓝[Iio b] b) (𝓝 fb)) :
+  ∫ y in a..b, f' y = fb - fa :=
+begin
+  set F : ℝ → E := update (update f a fa) b fb,
+  have Fderiv : ∀ x ∈ Ioo a b, has_deriv_at F (f' x) x,
+  { refine λ x hx, (hderiv x hx).congr_of_eventually_eq _,
+    filter_upwards [Ioo_mem_nhds hx.1 hx.2],
+    intros y hy, simp only [F],
+    rw [update_noteq hy.2.ne, update_noteq hy.1.ne'] },
+  have hcont : continuous_on F (Icc a b),
+  { rw [continuous_on_update_iff, continuous_on_update_iff, Icc_diff_right, Ico_diff_left],
+    refine ⟨⟨λ z hz, (hderiv z hz).continuous_at.continuous_within_at, _⟩, _⟩,
+    { exact λ _, ha.mono_left (nhds_within_mono _ Ioo_subset_Ioi_self) },
+    { intro H, clear H,
+      refine (hb.congr' _).mono_left (nhds_within_mono _ Ico_subset_Iio_self),
+      filter_upwards [Ioo_mem_nhds_within_Iio (right_mem_Ioc.2 hab)],
+      exact λ z hz, (update_noteq hz.1.ne' _ _).symm } },
+  simpa [F, hab.ne, hab.ne'] using integral_eq_sub_of_has_deriv_at_of_le hab.le hcont Fderiv hint
+end
 
 /-- Fundamental theorem of calculus-2: If `f : ℝ → E` is differentiable at every `x` in `[a, b]` and
   its derivative is integrable on `[a, b]`, then `∫ y in a..b, deriv f y` equals `f b - f a`. -/

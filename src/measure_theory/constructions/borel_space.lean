@@ -600,7 +600,6 @@ begin
   { exact (measure_lt_top μ _).ne }
 end
 
-
 end linear_order
 
 section linear_order

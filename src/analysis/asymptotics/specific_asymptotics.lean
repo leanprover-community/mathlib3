@@ -30,7 +30,7 @@ lemma coe_nat_is_O_coe_nat_real (R : Type*) [semi_normed_ring R] [norm_one_class
 asymptotics.is_O_of_le filter.at_top
   (λ n, le_trans (norm_coe_nat_le_coe_nat_real R n) (le_abs.2 (or.inl le_rfl)))
 
-lemma nat_coe_tendsto_at_top (R : Type*) [ordered_semiring R] [nontrivial R] [archimedean R] :
+lemma coe_nat_tendsto_at_top (R : Type*) [ordered_semiring R] [nontrivial R] [archimedean R] :
   filter.tendsto (λ (n : ℕ), (↑n : R)) filter.at_top filter.at_top :=
 filter.tendsto_at_top.2 (λ x, let ⟨m, hm⟩ := exists_nat_ge x in
   filter.eventually_at_top.2 ⟨m, λ y hy, hm.trans $ nat.cast_le.2 hy⟩)

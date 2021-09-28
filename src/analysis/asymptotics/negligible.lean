@@ -10,7 +10,7 @@ import data.polynomial.eval
 /-!
 # Negligible Functions
 
-This file defines a predicate `negligible f` on functions `f` from `ℕ` to a normed field.
+This file defines a predicate `negligible f` on functions `f` from `ℕ` to a normed field `𝕜`.
 
 The main theorem is `negligible_polynomial_mul` that says the product of a polynomial
   and a negligible function is still a negligible function
@@ -20,16 +20,21 @@ namespace asymptotics
 
 /-- Definition of negligible functions over an arbitrary `normed_field`.
   Note that the second function always has type `ℕ → ℝ`, which generally gives better lemmas. -/
-def negligible {𝕜 : Type*} [normed_field 𝕜]
-  (f : ℕ → 𝕜) :=
+def negligible {𝕜 : Type*} [normed_ring 𝕜] (f : ℕ → 𝕜) :=
 ∀ (c : ℤ), is_O f (λ n, (n : ℝ) ^ c) filter.at_top
 
-variables {𝕜 : Type*} [normed_field 𝕜]
-variables {f g : ℕ → 𝕜}
+section normed_ring
+
+variables {R : Type*} [normed_ring R]
+variables {f g : ℕ → R}
 
 lemma negligible_of_is_O (hg : negligible g)
   (h : is_O f g filter.at_top) : negligible f :=
 λ c, h.trans $ hg c
+
+lemma negligible_of_le (hg : negligible g)
+  (h : ∀ n, ∥f n∥ ≤ ∥g n∥) : negligible f :=
+negligible_of_is_O hg (is_O_of_le filter.at_top h)
 
 lemma negligible_of_eventually_le (hg : negligible g)
   (h : ∀ᶠ n in filter.at_top, ∥f n∥ ≤ ∥g n∥) : negligible f :=
@@ -62,35 +67,36 @@ lemma negligible_of_is_O_fpow_lt (C : ℤ)
 negligible_of_is_O_fpow_le C.pred
   (λ c hc, h c (lt_of_le_of_lt hc (int.pred_self_lt C)))
 
+/-- A negligible function must tend to zero in the base ring (not just in norm) -/
 lemma tendsto_zero_of_negligible (hf : negligible f) :
   filter.tendsto f filter.at_top (nhds 0) :=
 begin
   refine is_O.trans_tendsto (hf (-1)) _,
-  have : (λ (n : ℕ), (n : ℝ) ^ (-1 : ℤ)) = (has_inv.inv : ℝ → ℝ) ∘ (coe : ℕ → ℝ),
+  have : (has_inv.inv : ℝ → ℝ) ∘ (coe : ℕ → ℝ) = (λ (n : ℕ), (n : ℝ) ^ (-1 : ℤ)),
   by simp only [gpow_one, fpow_neg],
-  rw this,
-  refine filter.tendsto.comp (tendsto_inv_at_top_zero) (nat_coe_tendsto_at_top ℝ),
+  exact this ▸ filter.tendsto.comp (tendsto_inv_at_top_zero) (coe_nat_tendsto_at_top ℝ),
 end
 
+/-- A negligible function eventually has norm less than any positive bound -/
 lemma norm_eventually_le_of_negligible
-  (hf : negligible f) (x₀ : ℝ) (hx₀ : 0 < x₀) :
-  ∀ᶠ (n : ℕ) in filter.at_top, ∥f n∥ ≤ x₀ :=
+  (hf : negligible f) (ε : ℝ) (hε : 0 < ε) :
+  ∀ᶠ (n : ℕ) in filter.at_top, ∥f n∥ ≤ ε :=
 begin
   obtain ⟨c, hc⟩ := is_O_iff.1 (hf (-1)),
-  have : ∀ᶠ (n : ℕ) in filter.at_top, c * ∥(n : ℝ) ^ (-1 : ℤ)∥ ≤ x₀,
-  { obtain ⟨a, ha⟩ := exists_nat_ge (c * x₀⁻¹),
+  have : ∀ᶠ (n : ℕ) in filter.at_top, c * ∥(n : ℝ) ^ (-1 : ℤ)∥ ≤ ε,
+  { obtain ⟨a, ha⟩ := exists_nat_ge (c * ε⁻¹),
     refine filter.eventually_at_top.2 ⟨max a 1, λ b hb, _⟩,
     have hb0 : 0 < (b : ℝ) := nat.cast_pos.2 (le_trans (le_max_right a 1) hb),
     have hba : (a : ℝ) ≤ (b : ℝ) := nat.cast_le.2 (le_trans (le_max_left a 1) hb),
     rw [fpow_neg, gpow_one, normed_field.norm_inv, real.norm_coe_nat,
-      mul_inv_le_iff hb0, mul_comm _ x₀],
-    calc c ≤ x₀ * (a : ℝ) : (mul_inv_le_iff hx₀).1 ha
-      ... ≤ x₀ * (b : ℝ) : mul_le_mul le_rfl hba (nat.cast_nonneg a) (le_of_lt hx₀) },
-  refine filter.eventually.mp hc (filter.eventually.mono this (λ x hx hx', le_trans hx' hx)),
+      mul_inv_le_iff hb0, mul_comm _ ε],
+    calc c ≤ ε * (a : ℝ) : (mul_inv_le_iff hε).1 ha
+      ... ≤ ε * (b : ℝ) : mul_le_mul le_rfl hba (nat.cast_nonneg a) (le_of_lt hε) },
+  exact filter.eventually.mp hc (filter.eventually.mono this (λ x hx hx', le_trans hx' hx)),
 end
 
 @[simp]
-lemma negligible_zero : negligible (function.const ℕ (0 : 𝕜)) :=
+lemma negligible_zero : negligible (function.const ℕ (0 : R)) :=
 λ c, is_O_zero _ _
 
 lemma negligible_add (hf : negligible f) (hg : negligible g) :
@@ -103,36 +109,49 @@ begin
   suffices : is_O (f * g) f filter.at_top,
   from λ c, this.trans (hf c),
   refine is_O.of_bound 1 ((norm_eventually_le_of_negligible hg 1 (zero_lt_one)).mono (λ x hx, _)),
-  rw [pi.mul_apply, normed_field.norm_mul, mul_comm 1 ∥f x∥],
+  rw [pi.mul_apply, mul_comm 1 ∥f x∥],
+  refine le_trans (normed_ring.norm_mul (f x) (g x)) _,
   exact mul_le_mul le_rfl hx (norm_nonneg $ g x) (norm_nonneg $ f x),
 end
 
 @[simp]
-lemma negligible_const_iff [t1_space 𝕜] (x : 𝕜) :
+lemma negligible_const_iff [t1_space R] (x : R) :
   negligible (function.const ℕ x) ↔ x = 0 :=
 begin
   refine ⟨λ h, not_not.1 (λ hx, _), λ h, h.symm ▸ negligible_zero⟩,
   have : (function.const ℕ x ⁻¹' {x}ᶜ) ∈ filter.at_top :=
     (tendsto_nhds.1 $ tendsto_zero_of_negligible h) {x}ᶜ (is_open_ne) (ne.symm hx),
-  rw [set.preimage_const_of_not_mem (by simp : x ∉ ({x} : set 𝕜)ᶜ)] at this,
+  rw [set.preimage_const_of_not_mem (by simp : x ∉ ({x} : set R)ᶜ)] at this,
   exact filter.at_top.empty_not_mem this,
 end
 
-lemma negligible_const_mul (hf : negligible f) (c : 𝕜) :
+lemma negligible_const_mul (hf : negligible f) (c : R) :
   negligible (λ n, c * f n) :=
 (negligible_of_is_O hf (is_O_const_mul_self c f filter.at_top))
+
+lemma negligible_const_mul_iff_of_is_unit {c : R} (hc : is_unit c) :
+  negligible (λ n, c * f n) ↔ (negligible f) :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { exact (negligible_of_is_O h (is_O_self_const_mul' hc f filter.at_top)) },
+  { exact negligible_const_mul h c },
+end
+
+end normed_ring
+
+section normed_field
+
+variables {𝕜 : Type*} [normed_field 𝕜]
+variables {f g : ℕ → 𝕜}
 
 @[simp]
 lemma negligible_const_mul_iff (f : ℕ → 𝕜) (c : 𝕜) :
   negligible (λ n, c * f n) ↔ (c = 0) ∨ (negligible f) :=
 begin
-  refine ⟨λ h, _, λ h, _⟩,
-  { by_cases hc : c = 0,
-    { exact or.inl hc },
-    { exact or.inr (negligible_of_is_O h (is_O_self_const_mul c hc f filter.at_top)) } },
-  { cases h,
-    { simp only [h, zero_mul, negligible_const_iff] },
-    { exact negligible_const_mul h c } }
+  by_cases hc0 : c = 0,
+  { simp [hc0] },
+  { exact (negligible_const_mul_iff_of_is_unit (is_unit.mk0 c hc0)).trans
+      ⟨or.inr, or.rec (λ hc0', absurd hc0' hc0) id⟩ }
 end
 
 -- TODO: The lemmas below can be generalized to `iff` statements if `∥(n : 𝕜)∥` doesn't tend to 0
@@ -179,5 +198,7 @@ begin
   { simp_rw [polynomial.eval_monomial, mul_assoc],
     exact negligible_const_mul (negligible_coe_nat_pow_mul hf m) x }
 end
+
+end normed_field
 
 end asymptotics

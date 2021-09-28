@@ -495,10 +495,10 @@ lemma one_hom.cancel_left [has_one M] [has_one N] [has_one P]
 ⟨λ h, one_hom.ext $ λ x, hg $ by rw [← one_hom.comp_apply, h, one_hom.comp_apply],
  λ h, h ▸ rfl⟩
 @[to_additive]
-lemma mul_hom.cancel_left [has_one M] [has_one N] [has_one P]
-  {g : one_hom N P} {f₁ f₂ : one_hom M N} (hg : function.injective g) :
+lemma mul_hom.cancel_left [has_mul M] [has_mul N] [has_mul P]
+  {g : mul_hom N P} {f₁ f₂ : mul_hom M N} (hg : function.injective g) :
   g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
-⟨λ h, one_hom.ext $ λ x, hg $ by rw [← one_hom.comp_apply, h, one_hom.comp_apply],
+⟨λ h, mul_hom.ext $ λ x, hg $ by rw [← mul_hom.comp_apply, h, mul_hom.comp_apply],
  λ h, h ▸ rfl⟩
 @[to_additive]
 lemma monoid_hom.cancel_left [mul_one_class M] [mul_one_class N] [mul_one_class P]

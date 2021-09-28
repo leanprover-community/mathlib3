@@ -714,8 +714,8 @@ end equiv
 
 /-- If a function `f` is strictly monotone on a set `s`, then it defines an order isomorphism
 between `s` and its image. -/
-protected noncomputable def strict_mono_incr_on.order_iso {α β} [linear_order α] [preorder β]
-  (f : α → β) (s : set α) (hf : strict_mono_incr_on f s) :
+protected noncomputable def strict_mono_on.order_iso {α β} [linear_order α] [preorder β]
+  (f : α → β) (s : set α) (hf : strict_mono_on f s) :
   s ≃o f '' s :=
 { to_equiv := hf.inj_on.bij_on_image.equiv _,
   map_rel_iff' := λ x y, hf.le_iff_le x.2 y.2 }

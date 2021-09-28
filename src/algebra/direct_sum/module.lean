@@ -2,8 +2,6 @@
 Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
-
-Direct sum of modules over commutative rings, indexed by a discrete type.
 -/
 import algebra.direct_sum.basic
 import linear_algebra.dfinsupp

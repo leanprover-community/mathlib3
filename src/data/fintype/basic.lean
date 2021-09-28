@@ -130,6 +130,9 @@ set.ext $ λ x, mem_compl
 @[simp] theorem union_compl [decidable_eq α] (s : finset α) : s ∪ sᶜ = finset.univ :=
 sup_compl_eq_top
 
+@[simp] theorem insert_compl_self [decidable_eq α] (x : α) : insert x ({x}ᶜ : finset α) = univ :=
+by { ext y, simp [eq_or_ne] }
+
 @[simp] lemma compl_filter [decidable_eq α] (p : α → Prop) [decidable_pred p]
   [Π x, decidable (¬p x)] :
   (univ.filter p)ᶜ = univ.filter (λ x, ¬p x) :=
@@ -661,57 +664,32 @@ by simpa only [fintype.card_fin] using s.card_le_univ
 lemma fin.equiv_iff_eq {m n : ℕ} : nonempty (fin m ≃ fin n) ↔ m = n :=
   ⟨λ ⟨h⟩, by simpa using fintype.card_congr h, λ h, ⟨equiv.cast $ h ▸ rfl ⟩ ⟩
 
+@[simp] lemma fin.image_succ_above_univ {n : ℕ} (i : fin (n + 1)) :
+  univ.image i.succ_above = {i}ᶜ :=
+by { ext m, simp }
+
+@[simp] lemma fin.image_succ_univ (n : ℕ) : (univ : finset (fin n)).image fin.succ = {0}ᶜ :=
+by rw [← fin.succ_above_zero, fin.image_succ_above_univ]
+
+@[simp] lemma fin.image_cast_succ (n : ℕ) :
+  (univ : finset (fin n)).image fin.cast_succ = {fin.last n}ᶜ :=
+by rw [← fin.succ_above_last, fin.image_succ_above_univ]
+
 /-- Embed `fin n` into `fin (n + 1)` by prepending zero to the `univ` -/
 lemma fin.univ_succ (n : ℕ) :
   (univ : finset (fin (n + 1))) = insert 0 (univ.image fin.succ) :=
-begin
-  ext m,
-  simp only [mem_univ, mem_insert, true_iff, mem_image, exists_prop],
-  exact fin.cases (or.inl rfl) (λ i, or.inr ⟨i, trivial, rfl⟩) m
-end
+by simp
 
 /-- Embed `fin n` into `fin (n + 1)` by appending a new `fin.last n` to the `univ` -/
 lemma fin.univ_cast_succ (n : ℕ) :
   (univ : finset (fin (n + 1))) = insert (fin.last n) (univ.image fin.cast_succ) :=
-begin
-  ext m,
-  simp only [mem_univ, mem_insert, true_iff, mem_image, exists_prop, true_and],
-  by_cases h : m.val < n,
-  { right,
-    use fin.cast_lt m h,
-    rw fin.cast_succ_cast_lt },
-  { left,
-    exact fin.eq_last_of_not_lt h }
-end
+by simp
 
 /-- Embed `fin n` into `fin (n + 1)` by inserting
 around a specified pivot `p : fin (n + 1)` into the `univ` -/
 lemma fin.univ_succ_above (n : ℕ) (p : fin (n + 1)) :
   (univ : finset (fin (n + 1))) = insert p (univ.image (fin.succ_above p)) :=
-begin
-  obtain hl | rfl := (fin.le_last p).lt_or_eq,
-  { ext m,
-    simp only [finset.mem_univ, finset.mem_insert, true_iff, finset.mem_image, exists_prop],
-    refine or_iff_not_imp_left.mpr (λ h, _),
-    cases n,
-    { have : m = p := by simp,
-      exact absurd this h },
-    use p.cast_pred.pred_above m,
-    rw fin.pred_above,
-    split_ifs with H,
-    { simp only [fin.coe_cast_succ, true_and, fin.coe_coe_eq_self, coe_coe],
-      rw fin.lt_last_iff_coe_cast_pred at hl,
-      rw fin.succ_above_above,
-      { simp },
-      { simp only [fin.lt_iff_coe_lt_coe, fin.coe_cast_succ] at H,
-        simpa [fin.le_iff_coe_le_coe, ←hl] using nat.le_pred_of_lt H } },
-    { rw fin.succ_above_below,
-      { simp },
-      { simp only [fin.cast_succ_cast_pred hl, not_lt] at H,
-        simpa using lt_of_le_of_ne H h } } },
-  { rw fin.succ_above_last,
-    exact fin.univ_cast_succ n }
-end
+by simp
 
 @[instance, priority 10] def unique.fintype {α : Type*} [unique α] : fintype α :=
 fintype.of_subsingleton (default α)

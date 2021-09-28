@@ -91,8 +91,8 @@ instance : inhabited stieltjes_function := ⟨stieltjes_function.id⟩
 
 /-! ### The outer measure associated to a Stieltjes function -/
 
-/-- Length of an interval. This is the largest monotonic function which correctly
-  measures all intervals. -/
+/-- Length of an interval. This is the largest monotone function which correctly measures all
+intervals. -/
 def length (s : set ℝ) : ℝ≥0∞ := ⨅a b (h : s ⊆ Ioc a b), of_real (f b - f a)
 
 @[simp] lemma length_empty : f.length ∅ = 0 :=

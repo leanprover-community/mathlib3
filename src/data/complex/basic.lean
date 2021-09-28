@@ -57,6 +57,11 @@ lemma of_real_def (r : ℝ) : (r : ℂ) = ⟨r, 0⟩ := rfl
 @[simp, norm_cast] theorem of_real_inj {z w : ℝ} : (z : ℂ) = w ↔ z = w :=
 ⟨congr_arg re, congr_arg _⟩
 
+instance : can_lift ℂ ℝ :=
+{ cond := λ z, z.im = 0,
+  coe := coe,
+  prf := λ z hz, ⟨z.re, ext rfl hz.symm⟩ }
+
 instance : has_zero ℂ := ⟨(0 : ℝ)⟩
 instance : inhabited ℂ := ⟨0⟩
 

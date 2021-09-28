@@ -2,7 +2,6 @@
 Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
-
 -/
 import data.dfinsupp
 import group_theory.submonoid.operations

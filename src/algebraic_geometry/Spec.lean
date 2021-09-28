@@ -222,8 +222,8 @@ instance is_iso_to_Spec_Γ (R : CommRing) : is_iso (to_Spec_Γ R) :=
 by { cases R, apply is_iso_to_global }
 
 lemma Spec_Γ_naturality {R S : CommRing} (f : R ⟶ S)
-  : f ≫ to_Spec_Γ S = to_Spec_Γ R ≫ Γ.map (Spec.to_LocallyRingedSpace.map f.op).op
-:= by ext x p; symmetry; apply localization.local_ring_hom_to_map
+  : f ≫ to_Spec_Γ S = to_Spec_Γ R ≫ Γ.map (Spec.to_LocallyRingedSpace.map f.op).op :=
+by { ext, symmetry, apply localization.local_ring_hom_to_map }
 
 /-- The counit of the adjunction `Γ ⊣ Spec` is an isomorphism. -/
 def Spec_Γ_identity : Spec.to_LocallyRingedSpace.right_op ⋙ Γ ≅ 𝟭 _ := by {

@@ -22,6 +22,8 @@ a convex set.
 
 * `convex_on 𝕜 s f`: The function `f` is convex on `s` with scalars `𝕜`.
 * `concave_on 𝕜 s f`: The function `f` is concave on `s` with scalars `𝕜`.
+* `strict_convex_on 𝕜 s f`: The function `f` is strictly convex on `s` with scalars `𝕜`.
+* `strict_concave_on 𝕜 s f`: The function `f` is strictly concave on `s` with scalars `𝕜`.
 * `convex_on.map_center_mass_le` `convex_on.map_sum_le`: Convex Jensen's inequality.
 -/
 
@@ -34,24 +36,34 @@ section ordered_semiring
 variables [ordered_semiring 𝕜] [add_comm_monoid E] [add_comm_monoid F]
 
 section ordered_add_comm_monoid
-variables (𝕜) [ordered_add_comm_monoid β]
+variables [ordered_add_comm_monoid β]
+
+section has_scalar
+variables (𝕜) [has_scalar 𝕜 E] [has_scalar 𝕜 β] (s : set E) (f : E → β)
 
 /-- Convexity of functions -/
-def convex_on [has_scalar 𝕜 E] [has_scalar 𝕜 β] (s : set E) (f : E → β) : Prop :=
+def convex_on : Prop :=
 convex 𝕜 s ∧
   ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → a + b = 1 →
     f (a • x + b • y) ≤ a • f x + b • f y
 
 /-- Concavity of functions -/
-def concave_on [has_scalar 𝕜 E] [has_scalar 𝕜 β] (s : set E) (f : E → β) : Prop :=
+def concave_on : Prop :=
 convex 𝕜 s ∧
   ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → a + b = 1 →
     a • f x + b • f y ≤ f (a • x + b • y)
 
-variables {𝕜}
+/-- Strict convexity of functions -/
+def strict_convex_on : Prop :=
+  convex 𝕜 s ∧ ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → x ≠ y → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1
+    → f (a • x + b • y) < a • f x + b • f y
 
-section has_scalar
-variables [has_scalar 𝕜 E] [has_scalar 𝕜 β] {s : set E}
+/-- Strict concavity of functions -/
+def strict_concave_on : Prop :=
+  convex 𝕜 s ∧ ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → x ≠ y → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1
+    → a • f x + b • f y < f (a • x + b • y)
+
+variables {𝕜 s f}
 
 lemma convex_on_id {s : set 𝕜} (hs : convex 𝕜 s) : convex_on 𝕜 s id := ⟨hs, by { intros, refl }⟩
 

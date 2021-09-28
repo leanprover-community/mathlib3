@@ -36,7 +36,7 @@ section semiring
 variables [semiring R]
 
 instance pi {ι : Type*} [fintype ι] {M : ι → Type*} [Π (i : ι), add_comm_group (M i)]
-[Π (i : ι), module R (M i)] [Π (i : ι), module.free R (M i)] : module.free R (Π i, M i) :=
+  [Π (i : ι), module R (M i)] [Π (i : ι), module.free R (M i)] : module.free R (Π i, M i) :=
 of_basis $ pi.basis $ λ i, choose_basis R (M i)
 
 instance matrix {n : Type*} [fintype n] {m : Type*} [fintype m] :

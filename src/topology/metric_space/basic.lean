@@ -410,9 +410,26 @@ by simp [dist_comm]
 theorem ball_subset_ball (h : ε₁ ≤ ε₂) : ball x ε₁ ⊆ ball x ε₂ :=
 λ y (yx : _ < ε₁), lt_of_lt_of_le yx h
 
+lemma ball_subset_ball' (h : ε₁ + dist x y ≤ ε₂) : ball x ε₁ ⊆ ball y ε₂ :=
+begin
+  assume z hz,
+  calc dist z y ≤ dist z x + dist x y : dist_triangle _ _ _
+  ... < ε₁ + dist x y : add_lt_add_right hz _
+  ... ≤ ε₂ : h
+end
+
 theorem closed_ball_subset_closed_ball (h : ε₁ ≤ ε₂) :
   closed_ball x ε₁ ⊆ closed_ball x ε₂ :=
 λ y (yx : _ ≤ ε₁), le_trans yx h
+
+lemma closed_ball_subset_closed_ball' (h : ε₁ + dist x y ≤ ε₂) :
+  closed_ball x ε₁ ⊆ closed_ball y ε₂ :=
+begin
+  assume z hz,
+  calc dist z y ≤ dist z x + dist x y : dist_triangle _ _ _
+  ... ≤ ε₁ + dist x y : add_le_add_right hz _
+  ... ≤ ε₂ : h
+end
 
 theorem closed_ball_subset_ball (h : ε₁ < ε₂) :
   closed_ball x ε₁ ⊆ ball x ε₂ :=
@@ -1449,7 +1466,7 @@ end
 lemma tendsto_dist_right_cocompact_at_top [proper_space α] (x : α) :
   tendsto (λ y, dist y x) (cocompact α) at_top :=
 (has_basis_cocompact.tendsto_iff at_top_basis).2 $ λ r hr,
-  ⟨closed_ball x r, proper_space.is_compact_closed_ball x r, 
+  ⟨closed_ball x r, proper_space.is_compact_closed_ball x r,
     λ y hy, (not_le.1 $ mt mem_closed_ball.2 hy).le⟩
 
 lemma tendsto_dist_left_cocompact_at_top [proper_space α] (x : α) :

@@ -21,44 +21,6 @@ open metric set finite_dimensional measure_theory filter
 
 open_locale ennreal topological_space
 
-lemma ball_subset_ball' {E : Type*} [normed_group E]
-  (x y : E) (rx ry : ℝ) (h : rx + dist x y ≤ ry) :
-  ball x rx ⊆ ball y ry :=
-begin
-  assume z hz,
-  calc dist z y ≤ dist z x + dist x y : dist_triangle _ _ _
-  ... < rx + dist x y : add_lt_add_right hz _
-  ... ≤ ry : h
-end
-
-namespace ennreal
-
-@[simp, norm_cast] lemma to_nnreal_nat (n : ℕ) : (n : ℝ≥0∞).to_nnreal = n :=
-by conv_lhs { rw [← ennreal.coe_nat n, ennreal.to_nnreal_coe] }
-
-@[simp, norm_cast] lemma to_real_nat (n : ℕ) : (n : ℝ≥0∞).to_real = n :=
-by conv_lhs { rw [← ennreal.of_real_coe_nat n, ennreal.to_real_of_real (nat.cast_nonneg _)] }
-
-end ennreal
-
-namespace fin
-
-lemma exists_injective_of_le_card_fintype
-  {α : Type*} [fintype α] {k : ℕ} (hk : k ≤ fintype.card α) :
-  ∃ (f : fin k → α), function.injective f :=
-⟨_, (fintype.equiv_fin α).symm.injective.comp (fin.cast_le hk).injective⟩
-
-lemma exists_injective_of_le_card_finset {α : Type*} {s : finset α} {k : ℕ} (hk : k ≤ s.card) :
-  ∃ (f : fin k → α), function.injective f ∧ range f ⊆ s :=
-begin
-  rw ← fintype.card_coe at hk,
-  rcases fin.exists_injective_of_le_card_fintype hk with ⟨f, hf⟩,
-  exact ⟨(λ x, (f x : α)), function.injective.comp subtype.coe_injective hf,
-    by simp [range_subset_iff]⟩
-end
-
-end fin
-
 noncomputable theory
 
 namespace besicovitch
@@ -151,7 +113,11 @@ begin
     rcases lt_or_le δ 1 with hδ'|hδ',
     { rcases h δ hδ hδ' with ⟨s, hs, h's, s_card⟩,
       obtain ⟨f, f_inj, hfs⟩ : ∃ (f : fin N → E), function.injective f ∧ range f ⊆ ↑s :=
-        fin.exists_injective_of_le_card_finset s_card,
+        begin -- have Z := fin.exists_injective_of_le_card_finset s_card,
+          have : fintype.card (fin N) ≤ s.card, by { simp only [fintype.card_fin], exact s_card },
+          rcases function.embedding.exists_of_card_le_finset this with ⟨f, hf⟩,
+          exact ⟨f, f.injective, hf⟩
+        end,
       simp only [range_subset_iff, finset.mem_coe] at hfs,
       refine ⟨f, λ i, hs _ (hfs i), λ i j hij, h's _ (hfs i) _ (hfs j) (f_inj.ne hij)⟩ },
     { exact ⟨λ i, 0, λ i, by simp, λ i j hij, by simpa only [norm_zero, sub_nonpos, sub_self]⟩ } },
@@ -159,7 +125,7 @@ begin
   have : ∃ f : fin N → E, (∀ (i : fin N), ∥f i∥ ≤ 2) ∧ (∀ i j, i ≠ j → 1 ≤ ∥f i - f j∥),
   { obtain ⟨u, u_mono, zero_lt_u, hu⟩ : ∃ (u : ℕ → ℝ), (∀ (m n : ℕ), m < n → u n < u m)
       ∧ (∀ (n : ℕ), 0 < u n) ∧ filter.tendsto u filter.at_top (𝓝 0) :=
-        exists_seq_strict_antimono_tendsto (0 : ℝ),
+        exists_seq_strict_antitone_tendsto (0 : ℝ),
     have A : ∀ n, F (u n) ∈ closed_ball (0 : fin N → E) 2,
     { assume n,
       simp only [pi_norm_le_iff zero_le_two, mem_closed_ball, dist_zero_right,

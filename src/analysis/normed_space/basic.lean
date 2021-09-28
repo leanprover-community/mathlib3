@@ -1278,7 +1278,7 @@ nnreal.eq $ norm_mul a b
 (nnnorm_hom : monoid_with_zero_hom α ℝ≥0).map_div a b
 
 @[simp] lemma norm_inv (a : α) : ∥a⁻¹∥ = ∥a∥⁻¹ :=
-(norm_hom : monoid_with_zero_hom α ℝ).map_inv' a
+(norm_hom : monoid_with_zero_hom α ℝ).map_inv₀ a
 
 @[simp] lemma nnnorm_inv (a : α) : ∥a⁻¹∥₊ = ∥a∥₊⁻¹ :=
 nnreal.eq $ by simp
@@ -1632,7 +1632,7 @@ theorem smul_ball {c : α} (hc : c ≠ 0) (x : E) (r : ℝ) :
   c • ball x r = ball (c • x) (∥c∥ * r) :=
 begin
   ext y,
-  rw mem_smul_set_iff_inv_smul_mem' hc,
+  rw mem_smul_set_iff_inv_smul_mem₀ hc,
   conv_lhs { rw ←inv_smul_smul' hc x },
   simp [← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hc), mul_comm _ r, dist_smul],
 end
@@ -1641,7 +1641,7 @@ theorem smul_closed_ball' {c : α} (hc : c ≠ 0) (x : E) (r : ℝ) :
   c • closed_ball x r = closed_ball (c • x) (∥c∥ * r) :=
 begin
   ext y,
-  rw mem_smul_set_iff_inv_smul_mem' hc,
+  rw mem_smul_set_iff_inv_smul_mem₀ hc,
   conv_lhs { rw ←inv_smul_smul' hc x },
   simp [dist_smul, ← div_eq_inv_mul, div_le_iff (norm_pos_iff.2 hc), mul_comm _ r],
 end

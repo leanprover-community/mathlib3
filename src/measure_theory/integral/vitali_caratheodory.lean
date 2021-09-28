@@ -493,7 +493,7 @@ begin
   { apply lower_semicontinuous.add',
     { exact continuous_coe_ennreal_ereal.comp_lower_semicontinuous gpcont
         (λ x y hxy, ereal.coe_ennreal_le_coe_ennreal_iff.2 hxy) },
-    { apply ereal.continuous_neg.comp_upper_semicontinuous_antimono _
+    { apply ereal.continuous_neg.comp_upper_semicontinuous_antitone _
         (λ x y hxy, ereal.neg_le_neg_iff.2 hxy),
       dsimp,
       apply continuous_coe_ennreal_ereal.comp_upper_semicontinuous _
@@ -517,7 +517,7 @@ begin
     with ⟨g, g_lt_f, gcont, g_integrable, g_lt_top, gint⟩,
   refine ⟨λ x, - g x, _, _, _, _, _⟩,
   { exact  λ x, ereal.neg_lt_iff_neg_lt.1 (by simpa only [ereal.coe_neg] using g_lt_f x) },
-  { exact ereal.continuous_neg.comp_lower_semicontinuous_antimono gcont
+  { exact ereal.continuous_neg.comp_lower_semicontinuous_antitone gcont
       (λ x y hxy, ereal.neg_le_neg_iff.2 hxy) },
   { convert g_integrable.neg,
     ext x,

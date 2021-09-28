@@ -259,11 +259,11 @@ lemma mul_self_lt_mul_self (h1 : 0 ≤ a) (h2 : a < b) : a * a < b * b :=
 mul_lt_mul' h2.le h2 h1 $ h1.trans_lt h2
 
 -- See Note [decidable namespace]
-protected lemma decidable.strict_mono_incr_on_mul_self [@decidable_rel α (≤)] :
-  strict_mono_incr_on (λ x : α, x * x) (set.Ici 0) :=
+protected lemma decidable.strict_mono_on_mul_self [@decidable_rel α (≤)] :
+  strict_mono_on (λ x : α, x * x) (set.Ici 0) :=
 λ x hx y hy hxy, decidable.mul_self_lt_mul_self hx hxy
 
-lemma strict_mono_incr_on_mul_self : strict_mono_incr_on (λ x : α, x * x) (set.Ici 0) :=
+lemma strict_mono_on_mul_self : strict_mono_on (λ x : α, x * x) (set.Ici 0) :=
 λ x hx y hy hxy, mul_self_lt_mul_self hx hxy
 
 -- See Note [decidable namespace]
@@ -1122,11 +1122,11 @@ by haveI := @linear_order.decidable_le α _; exact
 
 lemma mul_self_lt_mul_self_iff {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a < b ↔ a * a < b * b :=
 by haveI := @linear_order.decidable_le α _; exact
-((@decidable.strict_mono_incr_on_mul_self α _ _).lt_iff_lt h1 h2).symm
+((@decidable.strict_mono_on_mul_self α _ _).lt_iff_lt h1 h2).symm
 
 lemma mul_self_inj {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a * a = b * b ↔ a = b :=
 by haveI := @linear_order.decidable_le α _; exact
-(@decidable.strict_mono_incr_on_mul_self α _ _).inj_on.eq_iff h1 h2
+(@decidable.strict_mono_on_mul_self α _ _).inj_on.eq_iff h1 h2
 
 @[simp] lemma mul_le_mul_left_of_neg {a b c : α} (h : c < 0) : c * a ≤ c * b ↔ b ≤ a :=
 by haveI := @linear_order.decidable_le α _; exact
@@ -1278,6 +1278,10 @@ begin
     mul_one, mul_neg_eq_neg_mul_symm, neg_add_rev, neg_neg],
 end
 
+end linear_ordered_comm_ring
+section
+variables [ring α] [linear_order α] {a b : α}
+
 @[simp] lemma abs_dvd (a b : α) : abs a ∣ b ↔ a ∣ b :=
 by { cases abs_choice a with h h; simp only [h, neg_dvd] }
 
@@ -1295,6 +1299,15 @@ lemma abs_dvd_abs (a b : α) : abs a ∣ abs b ↔ a ∣ b :=
 
 lemma even_abs {a : α} : even (abs a) ↔ even a :=
 dvd_abs _ _
+
+lemma odd_abs {a : α} : odd (abs a) ↔ odd a :=
+by { cases abs_choice a with h h; simp only [h, odd_neg] }
+
+end
+
+section linear_ordered_comm_ring
+
+variables [linear_ordered_comm_ring α]
 
 /-- Pullback a `linear_ordered_comm_ring` under an injective map.
 See note [reducible non-instances]. -/

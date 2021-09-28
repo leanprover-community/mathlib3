@@ -1397,46 +1397,49 @@ end prod_map
 end cartesian_product
 
 section const_smul
-/-! ### Derivative of a function multiplied by a constant -/
 
-theorem has_strict_fderiv_at.const_smul (h : has_strict_fderiv_at f f' x) (c : 𝕜) :
+variables {R : Type*} [semiring R] [module R F] [topological_space R] [smul_comm_class 𝕜 R F]
+  [has_continuous_smul R F]
+
+/-! ### Derivative of a function multiplied by a constant -/
+theorem has_strict_fderiv_at.const_smul (h : has_strict_fderiv_at f f' x) (c : R) :
   has_strict_fderiv_at (λ x, c • f x) (c • f') x :=
 (c • (1 : F →L[𝕜] F)).has_strict_fderiv_at.comp x h
 
-theorem has_fderiv_at_filter.const_smul (h : has_fderiv_at_filter f f' x L) (c : 𝕜) :
+theorem has_fderiv_at_filter.const_smul (h : has_fderiv_at_filter f f' x L) (c : R) :
   has_fderiv_at_filter (λ x, c • f x) (c • f') x L :=
 (c • (1 : F →L[𝕜] F)).has_fderiv_at_filter.comp x h
 
-theorem has_fderiv_within_at.const_smul (h : has_fderiv_within_at f f' s x) (c : 𝕜) :
+theorem has_fderiv_within_at.const_smul (h : has_fderiv_within_at f f' s x) (c : R) :
   has_fderiv_within_at (λ x, c • f x) (c • f') s x :=
 h.const_smul c
 
-theorem has_fderiv_at.const_smul (h : has_fderiv_at f f' x) (c : 𝕜) :
+theorem has_fderiv_at.const_smul (h : has_fderiv_at f f' x) (c : R) :
   has_fderiv_at (λ x, c • f x) (c • f') x :=
 h.const_smul c
 
-lemma differentiable_within_at.const_smul (h : differentiable_within_at 𝕜 f s x) (c : 𝕜) :
+lemma differentiable_within_at.const_smul (h : differentiable_within_at 𝕜 f s x) (c : R) :
   differentiable_within_at 𝕜 (λy, c • f y) s x :=
 (h.has_fderiv_within_at.const_smul c).differentiable_within_at
 
-lemma differentiable_at.const_smul (h : differentiable_at 𝕜 f x) (c : 𝕜) :
+lemma differentiable_at.const_smul (h : differentiable_at 𝕜 f x) (c : R) :
   differentiable_at 𝕜 (λy, c • f y) x :=
 (h.has_fderiv_at.const_smul c).differentiable_at
 
-lemma differentiable_on.const_smul (h : differentiable_on 𝕜 f s) (c : 𝕜) :
+lemma differentiable_on.const_smul (h : differentiable_on 𝕜 f s) (c : R) :
   differentiable_on 𝕜 (λy, c • f y) s :=
 λx hx, (h x hx).const_smul c
 
-lemma differentiable.const_smul (h : differentiable 𝕜 f) (c : 𝕜) :
+lemma differentiable.const_smul (h : differentiable 𝕜 f) (c : R) :
   differentiable 𝕜 (λy, c • f y) :=
 λx, (h x).const_smul c
 
 lemma fderiv_within_const_smul (hxs : unique_diff_within_at 𝕜 s x)
-  (h : differentiable_within_at 𝕜 f s x) (c : 𝕜) :
+  (h : differentiable_within_at 𝕜 f s x) (c : R) :
   fderiv_within 𝕜 (λy, c • f y) s x = c • fderiv_within 𝕜 f s x :=
 (h.has_fderiv_within_at.const_smul c).fderiv_within hxs
 
-lemma fderiv_const_smul (h : differentiable_at 𝕜 f x) (c : 𝕜) :
+lemma fderiv_const_smul (h : differentiable_at 𝕜 f x) (c : R) :
   fderiv 𝕜 (λy, c • f y) x = c • fderiv 𝕜 f x :=
 (h.has_fderiv_at.const_smul c).fderiv
 
@@ -2085,18 +2088,6 @@ lemma is_bounded_bilinear_map.differentiable_on (h : is_bounded_bilinear_map �
   differentiable_on 𝕜 b u :=
 h.differentiable.differentiable_on
 
-lemma is_bounded_bilinear_map.continuous (h : is_bounded_bilinear_map 𝕜 b) :
-  continuous b :=
-h.differentiable.continuous
-
-lemma is_bounded_bilinear_map.continuous_left (h : is_bounded_bilinear_map 𝕜 b) {f : F} :
-  continuous (λe, b (e, f)) :=
-h.continuous.comp (continuous_id.prod_mk continuous_const)
-
-lemma is_bounded_bilinear_map.continuous_right (h : is_bounded_bilinear_map 𝕜 b) {e : E} :
-  continuous (λf, b (e, f)) :=
-h.continuous.comp (continuous_const.prod_mk continuous_id)
-
 end bilinear_map
 
 section clm_comp_apply
@@ -2203,41 +2194,6 @@ lemma fderiv_clm_apply (hc : differentiable_at 𝕜 c x) (hu : differentiable_at
 (hc.has_fderiv_at.clm_apply hu.has_fderiv_at).fderiv
 
 end clm_comp_apply
-
-namespace continuous_linear_equiv
-
-/-!
-### The set of continuous linear equivalences between two Banach spaces is open
-
-In this section we establish that the set of continuous linear equivalences between two Banach
-spaces is an open subset of the space of linear maps between them.  These facts are placed here
-because the proof uses `is_bounded_bilinear_map.continuous_left`, proved just above as a consequence
-of its differentiability.
--/
-
-protected lemma is_open [complete_space E] : is_open (range (coe : (E ≃L[𝕜] F) → (E →L[𝕜] F))) :=
-begin
-  nontriviality E,
-  rw [is_open_iff_mem_nhds, forall_range_iff],
-  refine λ e, is_open.mem_nhds _ (mem_range_self _),
-  let O : (E →L[𝕜] F) → (E →L[𝕜] E) := λ f, (e.symm : F →L[𝕜] E).comp f,
-  have h_O : continuous O := is_bounded_bilinear_map_comp.continuous_left,
-  convert units.is_open.preimage h_O using 1,
-  ext f',
-  split,
-  { rintros ⟨e', rfl⟩,
-    exact ⟨(e'.trans e.symm).to_unit, rfl⟩ },
-  { rintros ⟨w, hw⟩,
-    use (units_equiv 𝕜 E w).trans e,
-    ext x,
-    simp [hw] }
-end
-
-protected lemma nhds [complete_space E] (e : E ≃L[𝕜] F) :
-  (range (coe : (E ≃L[𝕜] F) → (E →L[𝕜] F))) ∈ 𝓝 (e : E →L[𝕜] F) :=
-is_open.mem_nhds continuous_linear_equiv.is_open (by simp)
-
-end continuous_linear_equiv
 
 section smul
 /-! ### Derivative of the product of a scalar-valued function and a vector-valued function

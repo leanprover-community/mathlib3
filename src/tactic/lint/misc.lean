@@ -390,7 +390,7 @@ meta def find_unused_have_suffices_macros : expr → tactic (list string)
       ["unnecessary suffices " ++ ppnm.to_string ++ " : " ++ vt.to_string]
     else []) <$>
   ((++) <$> find_unused_have_suffices_macros l <*> find_unused_have_suffices_macros arg)
-| (macro md l) := do ls ← l.mmap find_unused_have_suffices_macros, return ls.join
+| (macro md l) := list.join <$> l.mmap find_unused_have_suffices_macros
 | _ := return []
 
 /--

@@ -131,9 +131,9 @@ by refine_struct
   zero  := (0 : ℤ_[p]),
   one   := 1,
   sub   := has_sub.sub,
-  npow  := @npow_rec _ ⟨1⟩ ⟨(*)⟩,
-  nsmul := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩,
-  gsmul := @gsmul_rec _ ⟨0⟩ ⟨(+)⟩ ⟨has_neg.neg⟩ };
+  npow  := @npow_rec _ ⟨(1 : ℤ_[p])⟩ ⟨(*)⟩,
+  nsmul := @nsmul_rec _ ⟨(0 : ℤ_[p])⟩ ⟨(+)⟩,
+  gsmul := @gsmul_rec _ ⟨(0 : ℤ_[p])⟩ ⟨(+)⟩ ⟨has_neg.neg⟩ };
 intros; try { refl }; ext; simp; ring
 
 /-- The coercion from ℤ[p] to ℚ[p] as a ring homomorphism. -/

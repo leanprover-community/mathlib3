@@ -428,11 +428,6 @@ lemma is_preconnected.measurable_set
   (h : is_preconnected s) : measurable_set s :=
 h.ord_connected.measurable_set
 
-lemma exists_dense_seq_lt {α : Type*} [nonempty α] [topological_space α] [separable_space α]
-  [linear_order α] [order_topology α] [no_bot_order α] (x : α) :
-  ∃ n, dense_seq α n < x :=
-exists_dense_seq_mem α (no_bot x) is_open_Iio
-
 lemma Union_Ico_dense_seq {α : Type*} [nonempty α] [topological_space α] [separable_space α]
   [linear_order α] [order_topology α] [no_bot_order α] (x : α) :
   (⋃ n, Ico (dense_seq α n) x) = Iio x :=

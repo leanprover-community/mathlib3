@@ -227,9 +227,7 @@ by { ext, symmetry, apply localization.local_ring_hom_to_map }
 
 /-- The counit of the adjunction `Γ ⊣ Spec` is an isomorphism. -/
 @[simps] def Spec_Γ_identity : Spec.to_LocallyRingedSpace.right_op ⋙ Γ ≅ 𝟭 _ :=
-iso.symm $ nat_iso.of_components
-  (λ R, as_iso (to_Spec_Γ R) : _)
-  (λ _ _ f, Spec_Γ_naturality f)
+iso.symm $ nat_iso.of_components (λ R, as_iso (to_Spec_Γ R) : _) (λ _ _, Spec_Γ_naturality)
 
 end Spec_Γ
 

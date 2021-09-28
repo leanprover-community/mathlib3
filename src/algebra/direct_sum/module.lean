@@ -183,6 +183,7 @@ lemma submodule_is_internal.to_add_subgroup {R M : Type*}
   submodule_is_internal A ↔ add_subgroup_is_internal (λ i, (A i).to_add_subgroup) :=
 iff.rfl
 
+/-- If a direct sum of submodules is internal then the submodules span the module. -/
 lemma submodule_is_internal.supr_eq_top {R M : Type*}
   [semiring R] [add_comm_monoid M] [module R M] {A : ι → submodule R M}
   (h : submodule_is_internal A) : supr A = ⊤ :=
@@ -191,8 +192,9 @@ begin
   exact function.bijective.surjective h,
 end
 
+/-- If a direct sum of submodules is internal then the submodules are independent. -/
 lemma submodule_is_internal.independent {R M : Type*}
-  [ring R] [add_comm_monoid M] [module R M] {A : ι → submodule R M}
+  [semiring R] [add_comm_monoid M] [module R M] {A : ι → submodule R M}
   (h : submodule_is_internal A) : complete_lattice.independent A :=
 complete_lattice.independent_of_dfinsupp_lsum_injective _ h.injective
 
@@ -200,16 +202,8 @@ complete_lattice.independent_of_dfinsupp_lsum_injective _ h.injective
 lemma submodule_is_internal_of_independent_of_supr_eq_top {R M : Type*}
   [ring R] [add_comm_group M] [module R M] {A : ι → submodule R M}
   (hi : complete_lattice.independent A) (hs : supr A = ⊤) : submodule_is_internal A :=
-begin
-  letI : add_comm_group (⨁ i, A i) := direct_sum.add_comm_group (λ i, A i),
-  split,
-  { refine linear_map.ker_eq_bot.1 _,
-    rw complete_lattice.independent_iff_dfinsupp_lsum_ker at hi,
-    exact hi },
-  { refine linear_map.range_eq_top.1 _,
-    rw submodule.supr_eq_range_dfinsupp_lsum at hs,
-    exact hs }
-end
+⟨hi.dfinsupp_lsum_injective, linear_map.range_eq_top.1 $
+  (submodule.supr_eq_range_dfinsupp_lsum _).symm.trans hs⟩
 
 /-- `iff` version of `direct_sum.submodule_is_internal_of_independent_of_supr_eq_top`,
 `direct_sum.submodule_is_internal.independent`, and `direct_sum.submodule_is_internal.supr_eq_top`.

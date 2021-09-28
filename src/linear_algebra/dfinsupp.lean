@@ -128,6 +128,13 @@ def lsum [semiring S] [module S N] [smul_comm_class R S N] :
   map_add' := λ F G, by { ext x y, simp },
   map_smul' := λ c F, by { ext, simp } }
 
+/-- While `simp` can prove this, it is often convenient to avoid unfolding `lsum` into `sum_add_hom`
+with `dfinsupp.lsum_apply_apply`. -/
+lemma lsum_single [semiring S] [module S N] [smul_comm_class R S N]
+  (F : Π i, M i →ₗ[R] N) (i) (x : M i) :
+  lsum S F (single i x) = F i x :=
+sum_add_hom_single _ _ _
+
 end lsum
 
 /-! ### Bundled versions of `dfinsupp.map_range`
@@ -278,48 +285,24 @@ set_like.ext_iff.mp (bsupr_eq_range_dfinsupp_lsum p S) x
 
 end submodule
 
-/- Old proof:
-
-/-- If a family of submodules are independent, then `dfinsupp.lsum` applied with
-`submodule.subtype` is injective. -/
-lemma lsum_ker_of_independent {R M : Type*} [ring R]
-  [add_comm_group M] [module R M] (p : ι → submodule R M) (h_ind : complete_lattice.independent p) :
-  (lsum ℕ (λ (i : ι), (p i).subtype)).ker = ⊥ :=
-begin
-  -- Lean can't find this without our help
-  letI : add_comm_group (Π₀ i, p i) := @dfinsupp.add_comm_group _ (λ i, p i) _,
-  rw linear_map.ker_eq_bot',
-  intros x hx,
-  ext1 i,
-  -- extract `x i` from the sum
-  replace hx : lsum ℕ (λ (i : ι), (p i).subtype) (x.filter (≠ i)) + x i = 0,
-  { rw [←erase_add_single i x, ←filter_ne_eq_erase, linear_map.map_add] at hx,
-    convert hx using 2,
-    rw [lsum_apply_apply, dfinsupp.sum_add_hom_single],
-    refl, },
-  rw [zero_apply, ←submodule.mem_right_iff_eq_zero_of_disjoint (h_ind i),
-    submodule.bsupr_eq_mrange_dfinsupp_lsum],
-  refine ⟨-x, _⟩,
-  rw [linear_map.map_neg, neg_eq_iff_add_eq_zero],
-  exact hx,
-end
-
--/
-
 namespace complete_lattice
 
 open dfinsupp
 
-/-- Independence of a family of submodules can be expressed as a quantifier over `dfinsupp`s. -/
+/-- Independence of a family of submodules can be expressed as a quantifier over `dfinsupp`s.
+
+This is an intermediate result used to prove
+`complete_lattice.independent_of_dfinsupp_lsum_injective` and
+`complete_lattice.independent.dfinsupp_lsum_injective`. -/
 lemma independent_iff_forall_dfinsupp {R M : Type*}
-  [ring R] [add_comm_monoid M] [module R M] (p : ι → submodule R M) :
+  [semiring R] [add_comm_monoid M] [module R M] (p : ι → submodule R M) :
   independent p ↔
     ∀ i (x : p i) (v : Π₀ (i : ι), ↥(p i)), lsum ℕ (λ i, (p i).subtype) (erase i v) = x → x = 0 :=
 begin
   simp_rw [complete_lattice.independent_def, submodule.disjoint_def,
     submodule.mem_bsupr_iff_exists_dfinsupp, exists_imp_distrib, filter_ne_eq_erase],
   apply forall_congr (λ i, _),
-  convert subtype.forall',
+  refine subtype.forall'.trans _,
   simp_rw submodule.coe_eq_zero,
   refl,
 end
@@ -327,52 +310,49 @@ end
 /- If `dfinsupp.lsum` applied with `submodule.subtype` is injective then the submodules are
 independent. -/
 lemma independent_of_dfinsupp_lsum_injective {R M : Type*}
-  [ring R] [add_comm_monoid M] [module R M] (p : ι → submodule R M)
+  [semiring R] [add_comm_monoid M] [module R M] (p : ι → submodule R M)
   (h : function.injective (lsum ℕ (λ i, (p i).subtype))) :
   independent p :=
 begin
   rw independent_iff_forall_dfinsupp,
   intros i x v hv,
   replace hv : lsum ℕ (λ i, (p i).subtype) (erase i v) = lsum ℕ (λ i, (p i).subtype) (single i x),
-  { simpa only [lsum_apply_apply, sum_add_hom_single] using hv, },
+  { simpa only [lsum_single] using hv, },
   have := dfinsupp.ext_iff.mp (h hv) i,
   simpa [eq_comm] using this,
+end
+
+/-- The canonical map out of a direct sum of a family of submodules is injective when the submodules
+are `complete_lattice.independent`.
+
+TODO: relax the assumptions to `add_comm_monoid M` if possible. -/
+lemma independent.dfinsupp_lsum_injective {R M : Type*}
+  [ring R] [add_comm_group M] [module R M] {p : ι → submodule R M}
+  (h : independent p) : function.injective (lsum ℕ (λ i, (p i).subtype)) :=
+begin
+  -- simplify everything down to binders over equalities in `M`
+  rw independent_iff_forall_dfinsupp at h,
+  suffices : (lsum ℕ (λ i, (p i).subtype)).ker = ⊥,
+  { -- Lean can't find this without our help
+    letI : add_comm_group (Π₀ i, p i) := @dfinsupp.add_comm_group _ (λ i, p i) _,
+    rw linear_map.ker_eq_bot at this, exact this },
+  rw linear_map.ker_eq_bot',
+  intros m hm,
+  ext i : 1,
+  -- split `m` into the piece at `i` and the pieces elsewhere, to match `h`
+  rw [dfinsupp.zero_apply, ←neg_eq_zero],
+  refine h i (-m i) m _,
+  rwa [←erase_add_single i m, linear_map.map_add, lsum_single, submodule.subtype_apply,
+    add_eq_zero_iff_eq_neg, ←submodule.coe_neg] at hm,
 end
 
 /-- A family of submodules over an additive group are independent if and only iff `dfinsupp.lsum`
 applied with `submodule.subtype` is injective.
 
 TODO: relax the assumptions to `add_comm_monoid M`. -/
-lemma independent_iff_dfinsupp_lsum_ker {R M : Type*}
+lemma independent_iff_dfinsupp_lsum_injective {R M : Type*}
   [ring R] [add_comm_group M] [module R M] (p : ι → submodule R M) :
-  independent p ↔ (lsum ℕ (λ i, (p i).subtype)).ker = ⊥ :=
-begin
-  -- Lean can't find this without our help
-  letI : add_comm_group (Π₀ i, p i) := @dfinsupp.add_comm_group _ (λ i, p i) _,
-  -- simplify everything down to binders over equalities in `M`
-  rw [linear_map.ker_eq_bot'],
-  rw independent_iff_forall_dfinsupp,
-  simp_rw [dfinsupp.ext_iff, dfinsupp.zero_apply],
-  -- we can't seem to rewrite the iff with this, but we use it in both directions.
-  have h_lsum : ∀ (m : Π₀ i, p i) {i} (x : p i),
-    lsum ℕ (λ i, (p i).subtype) (erase i m) = x ↔
-      lsum ℕ (λ i, (p i).subtype) (erase i m - single i x) = 0,
-  { intros m i x,
-    simp only [add_monoid_hom.map_sub, lsum_apply_apply, sum_add_hom_single, sub_eq_zero,
-      linear_map.to_add_monoid_hom_coe, submodule.subtype_apply], },
-  split,
-  { intros h m hm i,
-    refine h i (m i) (-m) _,
-    rw h_lsum (-m) (m i),
-    rw [@erase_neg _ _ (λ i, p i) _ _ m, ←neg_add', linear_map.map_neg, erase_add_single, hm,
-      neg_zero], },
-  { intros h i x m hm,
-    rw h_lsum m x at hm,
-    have := h _ hm i,
-    rw [sub_eq_add_neg, add_apply, erase_same, zero_add] at this,
-    rw @neg_apply _ (λ i, p i) _ (single i x) at this,
-    rw [neg_eq_zero, single_eq_same] at this,
-    exact this, },
-end
+  independent p ↔ function.injective (lsum ℕ (λ i, (p i).subtype)) :=
+⟨independent.dfinsupp_lsum_injective, independent_of_dfinsupp_lsum_injective p⟩
 
 end complete_lattice

@@ -70,12 +70,21 @@ variables {k}
 theorem exists_root [is_alg_closed k] (p : polynomial k) (hp : p.degree ≠ 0) : ∃ x, is_root p x :=
 exists_root_of_splits _ (is_alg_closed.splits p) hp
 
-theorem exists_eval₂_eq_zero {R : Type*} [field R] [is_alg_closed k] (f : R →+* k)
-  (p : polynomial R) (hp : p.degree ≠ 0) : ∃ x, p.eval₂ f x = 0 :=
-let ⟨x, hx⟩ := exists_root (p.map f) (by rwa [degree_map]) in
+theorem exists_eval₂_eq_zero_of_injective {R : Type*} [ring R] [is_alg_closed k] (f : R →+* k)
+  (hf : function.injective f) (p : polynomial R) (hp : p.degree ≠ 0) : ∃ x, p.eval₂ f x = 0 :=
+let ⟨x, hx⟩ := exists_root (p.map f) (by rwa [degree_map_eq_of_injective hf]) in
 ⟨x, by rwa [eval₂_eq_eval_map, ← is_root]⟩
 
+theorem exists_eval₂_eq_zero {R : Type*} [field R] [is_alg_closed k] (f : R →+* k)
+  (p : polynomial R) (hp : p.degree ≠ 0) : ∃ x, p.eval₂ f x = 0 :=
+exists_eval₂_eq_zero_of_injective f f.injective p hp
+
 variables (k)
+
+theorem exists_aeval_eq_zero_of_injective {R : Type*} [comm_ring R] [is_alg_closed k] [algebra R k]
+  (hinj : function.injective (algebra_map R k)) (p : polynomial R) (hp : p.degree ≠ 0) :
+  ∃ x : k, aeval x p = 0 :=
+exists_eval₂_eq_zero_of_injective (algebra_map R k) hinj p hp
 
 theorem exists_aeval_eq_zero {R : Type*} [field R] [is_alg_closed k] [algebra R k]
   (p : polynomial R) (hp : p.degree ≠ 0) : ∃ x : k, aeval x p = 0 :=
@@ -121,13 +130,14 @@ algebra_map_surjective_of_is_integral ((is_algebraic_iff_is_integral' k).mp hf)
 end is_alg_closed
 
 /-- Typeclass for an extension being an algebraic closure. -/
-class is_alg_closure (K : Type v) [field K] [algebra k K] : Prop :=
+class is_alg_closure (R : Type u) (K : Type v) [comm_ring R] [field K] [algebra R K] : Prop :=
 (alg_closed : is_alg_closed K)
-(algebraic : algebra.is_algebraic k K)
+(algebraic : algebra.is_algebraic R K)
+(injective : function.injective (algebra_map R K))
 
 theorem is_alg_closure_iff (K : Type v) [field K] [algebra k K] :
   is_alg_closure k K ↔ is_alg_closed K ∧ algebra.is_algebraic k K :=
-⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
+⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2, ring_hom.injective _⟩⟩
 
 /--
 Every element `f` in a nontrivial finite-dimensional algebra `A`
@@ -154,30 +164,34 @@ namespace lift
 /- In this section, the homomorphism from any algebraic extension into an algebraically
   closed extension is proven to exist. The assumption that M is algebraically closed could probably
   easily be switched to an assumption that M contains all the roots of polynomials in K -/
-variables {K : Type u} {L : Type v} {M : Type w} [field K] [field L] [algebra K L]
+variables {K : Type u} {L : Type v} {M : Type w} [comm_ring K] [integral_domain L] [algebra K L]
   [field M] [algebra K M] [is_alg_closed M] (hL : algebra.is_algebraic K L)
+  (hinjKL : function.injective (algebra_map K L))
+  (hinjKM : function.injective (algebra_map K M))
 
 variables (K L M)
-include hL
+include hL hinjKL hinjKM
 open zorn subalgebra alg_hom function
 
 /-- This structure is used to prove the existence of a homomorphism from any algebraic extension
 into an algebraic closure -/
-structure subfield_with_hom :=
+@[protect_proj] structure subring_with_hom :=
 (carrier : subalgebra K L)
 (emb : carrier →ₐ[K] M)
+(injective : injective emb)
 
-variables {K L M hL}
+variables {K L M hL hinjKL hinjKM}
 
-namespace subfield_with_hom
-variables {E₁ E₂ E₃ : subfield_with_hom K L M hL}
+namespace subring_with_hom
+variables {E₁ E₂ E₃ : subring_with_hom K L M hL hinjKL hinjKM}
 
-instance : has_le (subfield_with_hom K L M hL) :=
+instance : has_le (subring_with_hom K L M hL hinjKL hinjKM) :=
 { le := λ E₁ E₂, ∃ h : E₁.carrier ≤ E₂.carrier, ∀ x, E₂.emb (inclusion h x) = E₁.emb x }
 
-noncomputable instance : inhabited (subfield_with_hom K L M hL) :=
+noncomputable instance : inhabited (subring_with_hom K L M hL hinjKL hinjKM) :=
 ⟨{ carrier := ⊥,
-   emb := (algebra.of_id K M).comp (algebra.bot_equiv K L).to_alg_hom }⟩
+   emb := (algebra.of_id K M).comp (algebra.bot_equiv_of_injective hinjKL).to_alg_hom,
+   injective := function.injective.comp hinjKM (alg_equiv.injective _) }⟩
 
 lemma le_def : E₁ ≤ E₂ ↔ ∃ h : E₁.carrier ≤ E₂.carrier, ∀ x, E₂.emb (inclusion h x) = E₁.emb x :=
 iff.rfl
@@ -185,7 +199,7 @@ iff.rfl
 lemma compat (h : E₁ ≤ E₂) : ∀ x, E₂.emb (inclusion h.fst x) = E₁.emb x :=
 by { rw le_def at h, cases h, assumption }
 
-instance : preorder (subfield_with_hom K L M hL) :=
+instance : preorder (subring_with_hom K L M hL hinjKL hinjKM) :=
 { le := (≤),
   le_refl := λ E, ⟨le_refl _, by simp⟩,
   le_trans := λ E₁ E₂ E₃ h₁₂ h₂₃,
@@ -194,17 +208,17 @@ instance : preorder (subfield_with_hom K L M hL) :=
 
 open lattice
 
-lemma maximal_subfield_with_hom_chain_bounded (c : set (subfield_with_hom K L M hL))
+lemma maximal_subring_with_hom_chain_bounded (c : set (subring_with_hom K L M hL hinjKL hinjKM))
   (hc : chain (≤) c) (hcn  : c.nonempty) :
-  ∃ ub : subfield_with_hom K L M hL, ∀ N, N ∈ c → N ≤ ub :=
-let ub : subfield_with_hom K L M hL :=
+  ∃ ub : subring_with_hom K L M hL hinjKL hinjKM, ∀ N, N ∈ c → N ≤ ub :=
+let ub : subring_with_hom K L M hL hinjKL hinjKM :=
 by haveI : nonempty c := set.nonempty.to_subtype hcn; exact
-{ carrier := ⨆ i : c, (i : subfield_with_hom K L M hL).carrier,
+{ carrier := ⨆ i : c, (i : subring_with_hom K L M hL hinjKL hinjKM).carrier,
   emb := subalgebra.supr_lift
-    (λ i : c, (i : subfield_with_hom K L M hL).carrier)
+    (λ i : c, (i : subring_with_hom K L M hL hinjKL hinjKM).carrier)
     (λ i j, let ⟨k, hik, hjk⟩ := directed_on_iff_directed.1 hc.directed_on i j in
       ⟨k, hik.fst, hjk.fst⟩)
-    (λ i, (i : subfield_with_hom K L M hL).emb)
+    (λ i, (i : subring_with_hom K L M hL hinjKL hinjKM).emb)
     begin
       assume i j h,
       ext x,
@@ -212,68 +226,80 @@ by haveI : nonempty c := set.nonempty.to_subtype hcn; exact
       { simp [← hij.snd x] },
       { erw [alg_hom.comp_apply, ← hji.snd (inclusion h x),
           inclusion_inclusion, inclusion_self, alg_hom.id_apply x] }
-    end _ rfl } in
-⟨ub, λ N hN, ⟨(le_supr (λ i : c, (i : subfield_with_hom K L M hL).carrier) ⟨N, hN⟩ : _),
+    end _ rfl,
+  injective := sorry } in
+⟨ub, λ N hN, ⟨(le_supr (λ i : c, (i : subring_with_hom K L M hL hinjKL hinjKM).carrier) ⟨N, hN⟩ : _),
   begin
     intro x,
     simp [ub],
     refl
   end⟩⟩
 
-variables (hL M)
+variables (hL hinjKL hinjKM M)
 
-lemma exists_maximal_subfield_with_hom : ∃ E : subfield_with_hom K L M hL,
+lemma exists_maximal_subring_with_hom : ∃ E : subring_with_hom K L M hL hinjKL hinjKM,
   ∀ N, E ≤ N → N ≤ E :=
 zorn.exists_maximal_of_nonempty_chains_bounded
-  maximal_subfield_with_hom_chain_bounded (λ _ _ _, le_trans)
+  maximal_subring_with_hom_chain_bounded (λ _ _ _, le_trans)
 
-/-- The maximal `subfield_with_hom`. We later prove that this is equal to `⊤`. -/
-noncomputable def maximal_subfield_with_hom : subfield_with_hom K L M hL :=
-classical.some (exists_maximal_subfield_with_hom M hL)
+/-- The maximal `subring_with_hom`. We later prove that this is equal to `⊤`. -/
+noncomputable def maximal_subring_with_hom : subring_with_hom K L M hL hinjKL hinjKM :=
+classical.some (exists_maximal_subring_with_hom M hL hinjKL hinjKM)
 
-lemma maximal_subfield_with_hom_is_maximal :
-  ∀ (N : subfield_with_hom K L M hL),
-    (maximal_subfield_with_hom M hL) ≤ N → N ≤ (maximal_subfield_with_hom M hL) :=
-classical.some_spec (exists_maximal_subfield_with_hom M hL)
-
-lemma maximal_subfield_with_hom_eq_top :
-  (maximal_subfield_with_hom M hL).carrier = ⊤ :=
+lemma maximal_subring_with_hom_is_maximal :
+  ∀ (N : subring_with_hom K L M hL hinjKL hinjKM),
+    (maximal_subring_with_hom M hL hinjKL hinjKM) ≤ N →
+      N ≤ (maximal_subring_with_hom M hL hinjKL hinjKM) :=
+classical.some_spec (exists_maximal_subring_with_hom M hL hinjKL hinjKM)
+--#print minpoly.degree_pos
+#print fraction_ring
+lemma maximal_subring_with_hom_eq_top :
+  (maximal_subring_with_hom M hL hinjKL hinjKM).carrier = ⊤ :=
 begin
   rw [eq_top_iff],
   intros x _,
-  let p := minpoly K x,
-  let N : subalgebra K L := (maximal_subfield_with_hom M hL).carrier,
-  letI : field N := is_field.to_field _ (subalgebra.is_field_of_algebraic N hL),
-  letI : algebra N M := (maximal_subfield_with_hom M hL).emb.to_ring_hom.to_algebra,
-  cases is_alg_closed.exists_aeval_eq_zero M (minpoly N x)
-    (ne_of_gt (minpoly.degree_pos
-      ((is_algebraic_iff_is_integral _).1
-        (algebra.is_algebraic_of_larger_base _ _ hL x)))) with y hy,
-  let O : subalgebra N L := algebra.adjoin N {(x : L)},
-  let larger_emb := ((adjoin_root.lift_hom (minpoly N x) y hy).comp
-     (alg_equiv.adjoin_singleton_equiv_adjoin_root_minpoly N x).to_alg_hom),
-  have hNO : N ≤ N.under O,
-  { intros z hz,
-    show algebra_map N L ⟨z, hz⟩ ∈ O,
-    exact O.algebra_map_mem _ },
-  let O' : subfield_with_hom K L M hL :=
-  { carrier := N.under O,
-    emb := larger_emb.restrict_scalars K },
-  have hO' : maximal_subfield_with_hom M hL ≤ O',
-  { refine ⟨hNO, _⟩,
-    intros z,
-    show O'.emb (algebra_map N O z) = algebra_map N M z,
-    simp only [O', restrict_scalars_apply, alg_hom.commutes] },
-  refine (maximal_subfield_with_hom_is_maximal M hL O' hO').fst _,
-  exact algebra.subset_adjoin (set.mem_singleton x),
+  cases hL x with p hp,
+  let N : subalgebra K L := (maximal_subring_with_hom M hL hinjKL hinjKM).carrier,
+  --letI : field N := is_field.to_field _ (subalgebra.is_field_of_algebraic N hL),
+  letI : algebra N M := (maximal_subring_with_hom M hL hinjKL hinjKM).emb.to_ring_hom.to_algebra,
+  have hinjNM : function.injective (algebra_map N M),
+    from (maximal_subring_with_hom M hL hinjKL hinjKM).injective,
+  have hinjKN : function.injective (algebra_map K N), from sorry,
+  have hinjNL : function.injective (algebra_map N L), from subtype.val_injective,
+  -- let p' : polynomial N := minpoly N x,
+  -- have hp' : p'.degree ≠ 0,
+  -- { intro h,
+  --   have : aeval x p' = 0,
+  --   { sorry },
+  --   refine not_not.2 this _,
+  --   rw [eq_C_of_degree_eq_zero h, aeval_C, (algebra_map N L).injective_iff'.1 hinjNL],
+  --   exact coeff_ne_zero_of_eq_degree h },
+  -- cases is_alg_closed.exists_aeval_eq_zero_of_injective M hinjNM p' hp' with y hy,
+  -- let O : subalgebra N L := algebra.adjoin N {(x : L)},
+  -- let larger_emb := ((adjoin_root.lift_hom p' y hy).comp
+  --    (alg_equiv.adjoin_singleton_equiv_adjoin_root_minpoly N x).to_alg_hom),
+  -- have hNO : N ≤ N.under O,
+  -- { intros z hz,
+  --   show algebra_map N L ⟨z, hz⟩ ∈ O,
+  --   exact O.algebra_map_mem _ },
+  -- let O' : subring_with_hom K L M hL hinjKL hinjKM :=
+  -- { carrier := N.under O,
+  --   emb := larger_emb.restrict_scalars K },
+  -- have hO' : maximal_subring_with_hom M hL hinjKL hinjKM ≤ O',
+  -- { refine ⟨hNO, _⟩,
+  --   intros z,
+  --   show O'.emb (algebra_map N O z) = algebra_map N M z,
+  --   simp only [O', restrict_scalars_apply, alg_hom.commutes] },
+  -- refine (maximal_subring_with_hom_is_maximal M hL O' hO').fst _,
+  -- exact algebra.subset_adjoin (set.mem_singleton x),
 end
 
-end subfield_with_hom
+end subring_with_hom
 end lift
 
 namespace is_alg_closed
 
-variables {K : Type u} [field K] {L : Type v} {M : Type w} [field L] [algebra K L]
+variables {K : Type u} [comm_ring K] {L : Type v} {M : Type w} [comm_ring L] [algebra K L]
   [field M] [algebra K M] [is_alg_closed M] (hL : algebra.is_algebraic K L)
 
 variables (K L M)
@@ -281,8 +307,8 @@ include hL
 
 /-- A (random) hom from an algebraic extension of K into an algebraically closed extension of K -/
 @[irreducible] noncomputable def lift : L →ₐ[K] M :=
-(lift.subfield_with_hom.maximal_subfield_with_hom M hL).emb.comp $
-  eq.rec_on (lift.subfield_with_hom.maximal_subfield_with_hom_eq_top M hL).symm algebra.to_top
+(lift.subring_with_hom.maximal_subring_with_hom M hL hinjKL hinjKM).emb.comp $
+  eq.rec_on (lift.subring_with_hom.maximal_subring_with_hom_eq_top M hL).symm algebra.to_top
 
 end is_alg_closed
 

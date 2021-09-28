@@ -164,6 +164,33 @@ complex.times_cont_diff_exp.times_cont_diff_at.comp_times_cont_diff_within_at x 
 
 end
 
+section
+
+variable {α : Type*}
+
+open complex
+
+lemma filter.tendsto.cexp {l : filter α} {f : α → ℂ} {z : ℂ} (hf : tendsto f l (𝓝 z)) :
+  tendsto (λ x, exp (f x)) l (𝓝 (exp z)) :=
+(continuous_exp.tendsto _).comp hf
+
+variables [topological_space α] {f : α → ℂ} {s : set α} {x : α}
+
+lemma continuous_within_at.cexp (h : continuous_within_at f s x) :
+  continuous_within_at (λ y, exp (f y)) s x :=
+h.cexp
+
+lemma continuous_at.cexp (h : continuous_at f x) : continuous_at (λ y, exp (f y)) x :=
+h.cexp
+
+lemma continuous_on.cexp (h : continuous_on f s) : continuous_on (λ y, exp (f y)) s :=
+λ x hx, (h x hx).cexp
+
+lemma continuous.cexp (h : continuous f) : continuous (λ y, exp (f y)) :=
+continuous_iff_continuous_at.2 $ λ x, h.continuous_at.cexp
+
+end
+
 namespace real
 
 variables {x y z : ℝ}

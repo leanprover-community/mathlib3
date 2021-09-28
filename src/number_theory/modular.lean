@@ -16,9 +16,9 @@ import analysis.complex.upper_half_plane
 
   Standard proofs make use of the identity
 
-  `g•z = a/c - 1/(c(cz+d))`
+  `g • z = a / c - 1 / (c (cz + d))`
 
-  for `g=[[a,b],[c,d]]` in `SL(2)`, but this requires separate handling of whether `c = 0`.
+  for `g = [[a, b], [c, d]]` in `SL(2)`, but this requires separate handling of whether `c = 0`.
   Instead, our proof makes use of the following perhaps novel identity (see
   `modular_group.smul_eq_acbd_add`):
 
@@ -67,13 +67,13 @@ lemma im_smul_eq_div_norm_sq (g : SL(2, ℤ)) (z : ℍ) :
   (g • z).im = z.im / (complex.norm_sq (denom g z)) :=
 im_smul_eq_div_norm_sq g z
 
-@[simp] lemma foo (g : SL(2, ℤ)) (z : ℍ) : denom g z = ↑ₘg 1 0 * z + ↑ₘg 1 1 := by simp
+@[simp] lemma denom_apply (g : SL(2, ℤ)) (z : ℍ) : denom g z = ↑ₘg 1 0 * z + ↑ₘg 1 1 := by simp
 
 end upper_half_plane_action
 
 section bottom_row
 
-/-- The `bottom_row` of `g=[[*,*],[c,d]]` in `SL(2,ℤ)` is the `coprime_pair` `(c,d)`. -/
+/-- The two numbers `c`, `d` in the "bottom_row" of `g=[[*,*],[c,d]]` in `SL(2, ℤ)` are coprime. -/
 lemma bottom_row_coprime (g : SL(2, ℤ)) : is_coprime (↑ₘg 1 0) (↑ₘg 1 1) :=
 begin
   use [- g 0 1, g 0 0],
@@ -83,7 +83,10 @@ begin
   linarith
 end
 
-lemma bottom_row_surj : set.surj_on (λ g : SL(2, ℤ), ↑ₘg 1) set.univ {cd | is_coprime (cd 0) (cd 1)} :=
+/-- Every pair `![c, d]` of coprime integers is the "bottom_row" of some element `g=[[*,*],[c,d]]`
+of `SL(2,ℤ)`. -/
+lemma bottom_row_surj :
+  set.surj_on (λ g : SL(2, ℤ), ↑ₘg 1) set.univ {cd | is_coprime (cd 0) (cd 1)} :=
 begin
   rintros cd ⟨b₀, a, gcd_eqn⟩,
   let A := ![![a, -b₀], cd],
@@ -111,11 +114,12 @@ begin
   have : (λ (p : fin 2 → ℤ), norm_sq ((p 0 : ℂ) * ↑z + ↑(p 1)))
     = norm_sq ∘ f ∘ (λ p : fin 2 → ℤ, (coe : ℤ → ℝ) ∘ p),
   { ext,
-    simp only [linear_map.coe_proj, mul_one, complex.smul_coe, function.comp_app, of_real_int_cast,
-      linear_map.coe_smul_right, linear_map.add_apply]},
+    simp only [linear_map.coe_proj, mul_one, real_smul, function.comp_app, of_real_int_cast,
+      linear_map.coe_smul_right, linear_map.add_apply] },
   rw this,
   have hf : f.ker = ⊥,
-  { let g : ℂ →ₗ[ℝ] (fin 2 → ℝ) := linear_map.pi ![im_lm, (im_lm.comp (((z:ℂ) • conj_ae )))],
+  { let g : ℂ →ₗ[ℝ] (fin 2 → ℝ) :=
+      linear_map.pi ![im_lm, im_lm.comp ((z:ℂ) • (conj_ae  : ℂ →ₗ[ℝ] ℂ))],
     suffices : ((z:ℂ).im⁻¹ • g).comp f = linear_map.id,
     { exact linear_map.ker_eq_bot_of_inverse this },
     apply linear_map.ext,
@@ -125,6 +129,7 @@ begin
     ext i,
     fin_cases i,
     { field_simp },
+    dsimp [g],
     field_simp,
     ring },
   have h₁ := (linear_equiv.closed_embedding_of_injective hf).tendsto_cocompact,
@@ -161,8 +166,7 @@ begin
   rw linear_map.ker_eq_bot,
   have nonZ : ((cd 0)^2+(cd 1)^2:ℝ) ≠ 0,
   { norm_cast,
-    sorry }, -- lemma for `is_coprime`
-    -- exact cd.sq_add_sq_ne_zero },
+    exact hcd.sq_add_sq_ne_zero },
   let F : matrix (fin 2) (fin 2) ℝ := ((cd 0)^2+(cd 1)^2:ℝ)⁻¹ • ![![cd 0, cd 1], ![cd 1, -cd 0]],
   let f₁ : (fin 2 → ℝ) → (fin 2 → ℝ) := F.mul_vec_lin,
   let f : (fin 2 → ℝ) × (fin 2 → ℝ) → matrix (fin 2) (fin 2) ℝ := λ ⟨x , cd⟩, ![f₁ x, cd],
@@ -238,13 +242,13 @@ end
   need to be decomposed depending on whether `c = 0`. -/
 lemma smul_eq_acbd_add {p : fin 2 → ℤ} (hp : is_coprime (p 0) (p 1)) (z : ℍ) {g : SL(2,ℤ)}
   (hg : ↑ₘg 1 = p) :
-  ↑(g • z) = ((acbd p ↑(g : SL(2, ℝ))) : ℂ ) / (p 0 ^ 2 + p 1 ^ 2)
+  ↑(g • z) = ((acbd p ↑(g : SL(2, ℝ))) : ℂ) / (p 0 ^ 2 + p 1 ^ 2)
     + ((p 1 : ℂ) * z - p 0) / ((p 0 ^ 2 + p 1 ^ 2) * (p 0 * z + p 1)) :=
 begin
   have nonZ1 : (p 0 : ℂ) ^ 2 + (p 1) ^ 2 ≠ 0 := by exact_mod_cast hp.sq_add_sq_ne_zero,
   have : (coe : ℤ → ℝ) ∘ p ≠ 0 := λ h, (hp.ne_zero ∘ (@int.cast_injective ℝ _ _ _).comp_left) h,
   have nonZ2 : (p 0 : ℂ) * z + p 1 ≠ 0 := by simpa using linear_ne_zero _ z this,
-  field_simp [nonZ1, nonZ2, denom_ne_zero, -upper_half_plane.denom, -foo],
+  field_simp [nonZ1, nonZ2, denom_ne_zero, -upper_half_plane.denom, -denom_apply],
   rw (by simp : (p 1 : ℂ) * z - p 0 = ((p 1) * z - p 0) * ↑(det (↑g : matrix (fin 2) (fin 2) ℤ))),
   rw [←hg, det_fin_two],
   simp only [int.coe_cast_ring_hom, coe_matrix_coe, coe_fn_eq_coe,
@@ -277,13 +281,13 @@ section fundamental_domain
 lemma exists_g_with_max_im (z : ℍ) :
   ∃ g : SL(2, ℤ), ∀ g' : SL(2, ℤ), (g' • z).im ≤ (g • z).im :=
 begin
+  classical,
   let s : set (fin 2 → ℤ) := {cd | is_coprime (cd 0) (cd 1)},
   have hs : s.nonempty := ⟨![1, 1], is_coprime_one_left⟩,
   obtain ⟨p, hp_coprime, hp⟩ :=
     filter.tendsto.exists_within_forall_le hs (tendsto_norm_sq_coprime_pair z),
-  obtain ⟨g, hg⟩ := bottom_row_surj hp_coprime,
-  use g,
-  intros g',
+  obtain ⟨g, -, hg⟩ := bottom_row_surj hp_coprime,
+  refine ⟨g, λ g', _⟩,
   rw [im_smul_eq_div_norm_sq, im_smul_eq_div_norm_sq, div_le_div_left],
   { simpa [← hg] using hp (g' 1) (bottom_row_coprime g') },
   { exact z.im_pos },
@@ -341,16 +345,16 @@ begin
   obtain ⟨g₀, hg₀⟩ := exists_g_with_max_im z,
   -- then among those, minimize re
   obtain ⟨g, hg, hg'⟩ := exists_g_with_given_cd_and_min_re z (bottom_row_coprime g₀),
-  use g,
+  refine ⟨g, _⟩,
   -- `g` has same max im property as `g₀`
   have hg₀' : ∀ (g' : SL(2,ℤ)), (g' • z).im ≤ (g • z).im,
   { have hg'' : (g • z).im = (g₀ • z).im,
-    { rw [im_smul_eq_div_norm_sq, im_smul_eq_div_norm_sq, foo, foo, hg] },
+    { rw [im_smul_eq_div_norm_sq, im_smul_eq_div_norm_sq, denom_apply, denom_apply, hg] },
     simpa only [hg''] using hg₀ },
   split,
   { -- Claim: `|g•z| > 1`. If not, then `S•g•z` has larger imaginary part
     contrapose! hg₀',
-    use S * g,
+    refine ⟨S * g, _⟩,
     rw mul_action.mul_smul,
     exact im_lt_im_S hg₀' },
   { -- Claim: `|Re(g•z)| < 1/2`; if not, then either `T` or `T'` decrease |Re|.

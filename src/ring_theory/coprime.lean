@@ -313,14 +313,13 @@ lemma neg_neg_iff (x y : R) : is_coprime (-x) (-y) ↔ is_coprime x y :=
 
 end comm_ring
 
-/-- If `is_coprime a b`, then the vector `![a, b] ≠ 0` (the matrix notation is not yet
-  defined, so we write it out definitionally) -/
-lemma ne_zero {a b : ℤ} (h : is_coprime a b) :
-  (fin.cons a (fin.cons b fin_zero_elim : (fin 1) → ℤ) : (fin 2) → ℤ) ≠ 0 :=
+/-- If a 2-vector `p` satisfies `is_coprime (p 0) (p 1)`, then `p ≠ 0`. -/
+lemma ne_zero {p : fin 2 → ℤ} (h : is_coprime (p 0) (p 1)) :
+  p ≠ 0 :=
 begin
   intros h',
-  have a_eq_zero : a = 0 := congr_arg (λ (v: fin 2 → ℤ), v 0) h',
-  have b_eq_zero : b = 0 := congr_arg (λ (v: fin 2 → ℤ), v 1) h',
+  have a_eq_zero : p 0 = 0 := congr_arg (λ (v: fin 2 → ℤ), v 0) h',
+  have b_eq_zero : p 1 = 0 := congr_arg (λ (v: fin 2 → ℤ), v 1) h',
   simpa [a_eq_zero, b_eq_zero] using h,
 end
 

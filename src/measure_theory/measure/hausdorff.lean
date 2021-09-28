@@ -71,7 +71,7 @@ measures.
   on an extended metric space `X` (that is, it is additive on pairs of metric separated sets), then
   every Borel set is Caratheodory measurable (hence, `μ` defines an actual
   `measure_theory.measure`). See also `measure_theory.measure.mk_metric`.
-* `measure_theory.measure.hausdorff_measure_mono`: `μH[d] s` is a monotonically decreasing function
+* `measure_theory.measure.hausdorff_measure_mono`: `μH[d] s` is an antitone function
   of `d`.
 * `measure_theory.measure.hausdorff_measure_zero_or_top`: if `d₁ < d₂`, then for any `s`, either
   `μH[d₂] s = 0` or `μH[d₁] s = ∞`. Together with the previous lemma, this means that `μH[d] s` is

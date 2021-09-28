@@ -347,6 +347,14 @@ lemma ae_eq_trans {f g h: α → δ} (h₁ : f =ᵐ[μ] g) (h₂ : g =ᵐ[μ] h)
   f =ᵐ[μ] h :=
 h₁.trans h₂
 
+lemma ae_le_of_ae_lt {f g : α → ℝ≥0∞} (h : ∀ᵐ x ∂μ, f x < g x) : f ≤ᵐ[μ] g :=
+begin
+  rw [filter.eventually_le, ae_iff],
+  rw ae_iff at h,
+  refine measure_mono_null (λ x hx, _) h,
+  exact not_lt.2 (le_of_lt (not_le.1 hx)),
+end
+
 @[simp] lemma ae_eq_empty : s =ᵐ[μ] (∅ : set α) ↔ μ s = 0 :=
 eventually_eq_empty.trans $ by simp [ae_iff]
 

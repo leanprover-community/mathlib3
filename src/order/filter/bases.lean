@@ -48,8 +48,8 @@ and consequences are derived.
   of bases.
 * `has_basis.tendsto_right_iff`, `has_basis.tendsto_left_iff`, `has_basis.tendsto_iff` : restate
   `tendsto f l l'` in terms of bases.
-* `is_countably_generated_iff_exists_antimono_basis` : proves a filter is
-  countably generated if and only if it admis a basis parametrized by a
+* `is_countably_generated_iff_exists_antitone_basis` : proves a filter is
+  countably generated if and only if it admits a basis parametrized by a
   decreasing sequence of sets indexed by `ℕ`.
 * `tendsto_iff_seq_tendsto ` : an abstract version of "sequentially continuous implies continuous".
 
@@ -591,16 +591,16 @@ end
 
 variables {ι'' : Type*} [preorder ι''] (l) (p'' : ι'' → Prop) (s'' : ι'' → set α)
 
-/-- `is_antimono_basis p s` means the image of `s` bounded by `p` is a filter basis
+/-- `is_antitone_basis p s` means the image of `s` bounded by `p` is a filter basis
 such that `s` is decreasing and `p` is increasing, ie `i ≤ j → p i → p j`. -/
-structure is_antimono_basis extends is_basis p'' s'' : Prop :=
+structure is_antitone_basis extends is_basis p'' s'' : Prop :=
 (decreasing : ∀ {i j}, p'' i → p'' j → i ≤ j → s'' j ⊆ s'' i)
 (mono : monotone p'')
 
-/-- We say that a filter `l` has a antimono basis `s : ι → set α` bounded by `p : ι → Prop`,
+/-- We say that a filter `l` has an antitone basis `s : ι → set α` bounded by `p : ι → Prop`,
 if `t ∈ l` if and only if `t` includes `s i` for some `i` such that `p i`,
 and `s` is decreasing and `p` is increasing, ie `i ≤ j → p i → p j`. -/
-structure has_antimono_basis (l : filter α) (p : ι'' → Prop) (s : ι'' → set α)
+structure has_antitone_basis (l : filter α) (p : ι'' → Prop) (s : ι'' → set α)
   extends has_basis l p s : Prop :=
 (decreasing : ∀ {i j}, p i → p j → i ≤ j → s j ⊆ s i)
 (mono : monotone p)
@@ -697,7 +697,7 @@ instance nat.inhabited_countable_filter_basis : inhabited (countable_filter_basi
 ⟨{ countable := countable_range (λ n, Ici n),
    ..(default $ filter_basis ℕ),}⟩
 
-lemma antimono_seq_of_seq (s : ℕ → set α) :
+lemma antitone_seq_of_seq (s : ℕ → set α) :
   ∃ t : ℕ → set α, (∀ i j, i ≤ j → t j ⊆ t i) ∧ (⨅ i, 𝓟 $ s i) = ⨅ i, 𝓟 (t i) :=
 begin
   use λ n, ⋂ m ≤ n, s m, split,
@@ -788,9 +788,9 @@ end
 enumerated by natural numbers such that all sets have the form `s i`. More precisely, there is a
 sequence `i n` such that `p (i n)` for all `n` and `s (i n)` is a decreasing sequence of sets which
 forms a basis of `f`-/
-lemma exists_antimono_subbasis {f : filter α} (cblb : f.is_countably_generated)
+lemma exists_antitone_subbasis {f : filter α} (cblb : f.is_countably_generated)
   {p : ι → Prop} {s : ι → set α} (hs : f.has_basis p s) :
-  ∃ x : ℕ → ι, (∀ i, p (x i)) ∧ f.has_antimono_basis (λ _, true) (λ i, s (x i)) :=
+  ∃ x : ℕ → ι, (∀ i, p (x i)) ∧ f.has_antitone_basis (λ _, true) (λ i, s (x i)) :=
 begin
   rcases cblb.exists_seq with ⟨x', hx'⟩,
   have : ∀ i, x' i ∈ f := λ i, hx'.symm ▸ (infi_le (λ i, 𝓟 (x' i)) i) (mem_principal_self _),
@@ -805,7 +805,7 @@ begin
   { rintro (_|i),
     exacts [hs.set_index_subset _, subset.trans (hs.set_index_subset _) (inter_subset_left _ _)] },
   refine ⟨λ i, x i, λ i, (x i).2, _⟩,
-  have : (⨅ i, 𝓟 (s (x i))).has_antimono_basis (λ _, true) (λ i, s (x i)) :=
+  have : (⨅ i, 𝓟 (s (x i))).has_antitone_basis (λ _, true) (λ i, s (x i)) :=
     ⟨has_basis_infi_principal (directed_of_sup x_mono), λ i j _ _ hij, x_mono hij, monotone_const⟩,
   convert this,
   exact le_antisymm (le_infi $ λ i, le_principal_iff.2 $ by cases i; apply hs.set_index_mem)
@@ -813,11 +813,10 @@ begin
       this.to_has_basis.mem_iff.2 ⟨i, trivial, x_subset i⟩))
 end
 
-/-- A countably generated filter admits a basis formed by a monotonically decreasing sequence of
-sets. -/
-lemma exists_antimono_basis {f : filter α} (cblb : f.is_countably_generated) :
-  ∃ x : ℕ → set α, f.has_antimono_basis (λ _, true) x :=
-let ⟨x, hxf, hx⟩ := cblb.exists_antimono_subbasis f.basis_sets in ⟨x, hx⟩
+/-- A countably generated filter admits a basis formed by an antitone sequence of sets. -/
+lemma exists_antitone_basis {f : filter α} (cblb : f.is_countably_generated) :
+  ∃ x : ℕ → set α, f.has_antitone_basis (λ _, true) x :=
+let ⟨x, hxf, hx⟩ := cblb.exists_antitone_subbasis f.basis_sets in ⟨x, hx⟩
 
 end is_countably_generated
 
@@ -828,7 +827,7 @@ lemma has_countable_basis.is_countably_generated {f : filter α} {p : ι → Pro
 
 lemma is_countably_generated_seq (x : ℕ → set α) : is_countably_generated (⨅ i, 𝓟 $ x i) :=
 begin
-  rcases antimono_seq_of_seq x with ⟨y, am, h⟩,
+  rcases antitone_seq_of_seq x with ⟨y, am, h⟩,
   rw h,
   use [range y, countable_range _],
   rw (has_basis_infi_principal _).eq_generate,
@@ -845,11 +844,11 @@ lemma is_countably_generated_binfi_principal {B : set $ set α} (h : countable B
   is_countably_generated (⨅ (s ∈ B), 𝓟 s) :=
 is_countably_generated_of_seq (countable_binfi_principal_eq_seq_infi h)
 
-lemma is_countably_generated_iff_exists_antimono_basis {f : filter α} :
-  is_countably_generated f ↔ ∃ x : ℕ → set α, f.has_antimono_basis (λ _, true) x :=
+lemma is_countably_generated_iff_exists_antitone_basis {f : filter α} :
+  is_countably_generated f ↔ ∃ x : ℕ → set α, f.has_antitone_basis (λ _, true) x :=
 begin
   split,
-  { exact λ h, h.exists_antimono_basis },
+  { exact λ h, h.exists_antitone_basis },
   { rintros ⟨x, h⟩,
     rw h.to_has_basis.eq_infi,
     exact is_countably_generated_seq x },
@@ -866,7 +865,7 @@ namespace is_countably_generated
 lemma inf {f g : filter α} (hf : is_countably_generated f) (hg : is_countably_generated g) :
   is_countably_generated (f ⊓ g) :=
 begin
-  rw is_countably_generated_iff_exists_antimono_basis at hf hg,
+  rw is_countably_generated_iff_exists_antitone_basis at hf hg,
   rcases hf with ⟨s, hs⟩,
   rcases hg with ⟨t, ht⟩,
   exact has_countable_basis.is_countably_generated
@@ -877,14 +876,14 @@ lemma inf_principal {f : filter α} (h : is_countably_generated f) (s : set α) 
   is_countably_generated (f ⊓ 𝓟 s) :=
 h.inf (filter.is_countably_generated_principal s)
 
-lemma exists_antimono_seq' {f : filter α} (cblb : f.is_countably_generated) :
+lemma exists_antitone_seq' {f : filter α} (cblb : f.is_countably_generated) :
   ∃ x : ℕ → set α, (∀ i j, i ≤ j → x j ⊆ x i) ∧ ∀ {s}, (s ∈ f ↔ ∃ i, x i ⊆ s) :=
-let ⟨x, hx⟩ := is_countably_generated_iff_exists_antimono_basis.mp cblb in
+let ⟨x, hx⟩ := is_countably_generated_iff_exists_antitone_basis.mp cblb in
 ⟨x, λ i j, hx.decreasing trivial trivial, λ s, by simp [hx.to_has_basis.mem_iff]⟩
 
 protected lemma comap {l : filter β} (h : l.is_countably_generated) (f : α → β) :
   (comap f l).is_countably_generated :=
-let ⟨x, hx_mono⟩ := h.exists_antimono_basis in
+let ⟨x, hx_mono⟩ := h.exists_antitone_basis in
 is_countably_generated_of_seq ⟨_, (hx_mono.to_has_basis.comap _).eq_infi⟩
 
 end is_countably_generated

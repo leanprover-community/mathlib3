@@ -39,6 +39,8 @@ variables {m n : ℕ}
 
 @[simp] theorem factorial_one : 1! = 1 := rfl
 
+@[simp] theorem factorial_two : 2! = 2 := rfl
+
 theorem mul_factorial_pred (hn : 0 < n) : n * (n - 1)! = n! :=
 nat.sub_add_cancel hn ▸ rfl
 
@@ -309,6 +311,8 @@ lemma desc_factorial_self : ∀ n : ℕ, n.desc_factorial n = n!
     nat.sub_eq_zero_iff_le, lt_iff_le_and_ne, or_iff_left_iff_imp, and_imp],
   exact λ h _, h,
 end
+
+alias nat.desc_factorial_eq_zero_iff_lt ↔ _ nat.desc_factorial_of_lt
 
 lemma add_desc_factorial_eq_asc_factorial (n : ℕ) :
   ∀ k : ℕ, (n + k).desc_factorial k = n.asc_factorial k

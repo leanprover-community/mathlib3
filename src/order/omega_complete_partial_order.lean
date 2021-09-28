@@ -340,7 +340,7 @@ variables {α : Type*} {β : α → Type*} {γ : Type*}
 open omega_complete_partial_order omega_complete_partial_order.chain
 
 instance [∀a, omega_complete_partial_order (β a)] : omega_complete_partial_order (Πa, β a) :=
-{ ωSup    := λc a, ωSup (c.map (preorder_hom.eval a)),
+{ ωSup    := λc a, ωSup (c.map (pi.eval_preorder_hom a)),
   ωSup_le := assume c f hf a, ωSup_le _ _ $ by { rintro i, apply hf },
   le_ωSup := assume c i x, le_ωSup_of_le _ $ le_refl _ }
 

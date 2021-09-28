@@ -165,9 +165,10 @@ of monotone maps to `β` and `γ`. -/
 
 variables {ι : Type*} {π : ι → Type*} [Π i, preorder (π i)]
 
-/-- Evaluation of an unbundled function at a point as a `preorder_hom`. -/
+/-- Evaluation of an unbundled function at a point (`function.eval`) as a `preorder_hom`. -/
 @[simps {fully_applied := ff}]
-def eval (i : ι) : (Π j, π j) →ₘ π i := ⟨function.eval i, function.monotone_eval i⟩
+def _root_.pi.eval_preorder_hom (i : ι) : (Π j, π j) →ₘ π i :=
+⟨function.eval i, function.monotone_eval i⟩
 
 /-- The "forgetful functor" from `α →ₘ β` to `α → β` that takes the underlying function,
 is monotone. -/
@@ -176,9 +177,9 @@ is monotone. -/
   monotone' := λ x y h, h }
 
 /-- Function application `λ f, f a` (for fixed `a`) is a monotone function from the
-monotone function space `α →ₘ β` to `β`. See also `preorder_hom.eval`.  -/
+monotone function space `α →ₘ β` to `β`. See also `pi.eval_preorder_hom`.  -/
 @[simps {fully_applied := ff}] def apply (x : α) : (α →ₘ β) →ₘ β :=
-(eval x).comp to_fun_hom
+(pi.eval_preorder_hom x).comp to_fun_hom
 
 /-- Construct a bundled monotone map `α →ₘ Π i, π i` from a family of monotone maps
 `f i : α →ₘ π i`. -/
@@ -188,7 +189,7 @@ monotone function space `α →ₘ β` to `β`. See also `preorder_hom.eval`.  -
 /-- Order isomorphism between bundled monotone maps `α →ₘ Π i, π i` and families of bundled monotone
 maps `Π i, α →ₘ π i`. -/
 @[simps] def pi_iso : (α →ₘ Π i, π i) ≃o Π i, α →ₘ π i :=
-{ to_fun := λ f i, (eval i).comp f,
+{ to_fun := λ f i, (pi.eval_preorder_hom i).comp f,
   inv_fun := pi,
   left_inv := λ f, by { ext x i, refl },
   right_inv := λ f, by { ext x i, refl },

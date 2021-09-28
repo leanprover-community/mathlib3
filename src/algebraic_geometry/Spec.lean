@@ -215,25 +215,21 @@ section Spec_Γ
 open algebraic_geometry.LocallyRingedSpace
 
 /-- The morphism `R ⟶ Γ(Spec R)` given by `algebraic_geometry.structure_sheaf.to_open`.  -/
-def to_Spec_Γ (R : CommRing) : R ⟶ Γ.obj (op (Spec.to_LocallyRingedSpace.obj (op R))) :=
+@[simps] def to_Spec_Γ (R : CommRing) : R ⟶ Γ.obj (op (Spec.to_LocallyRingedSpace.obj (op R))) :=
   structure_sheaf.to_open R ⊤
 
 instance is_iso_to_Spec_Γ (R : CommRing) : is_iso (to_Spec_Γ R) :=
-by { cases R, apply is_iso_to_global }
+by { cases R, apply structure_sheaf.is_iso_to_global }
 
 lemma Spec_Γ_naturality {R S : CommRing} (f : R ⟶ S)
   : f ≫ to_Spec_Γ S = to_Spec_Γ R ≫ Γ.map (Spec.to_LocallyRingedSpace.map f.op).op :=
 by { ext, symmetry, apply localization.local_ring_hom_to_map }
 
 /-- The counit of the adjunction `Γ ⊣ Spec` is an isomorphism. -/
-def Spec_Γ_identity : Spec.to_LocallyRingedSpace.right_op ⋙ Γ ≅ 𝟭 _ := by {
-  symmetry,
-  apply nat_iso.of_components,
-  swap, intro R,
-    convert global_sections_iso R; cases R; dsimp; refl,
-  intros R S f,
-  convert Spec_Γ_naturality f; cases R; cases S; dsimp; refl
-}
+@[simps] def Spec_Γ_identity : Spec.to_LocallyRingedSpace.right_op ⋙ Γ ≅ 𝟭 _ :=
+iso.symm $ nat_iso.of_components
+  (λ R, @as_iso _ _ _ _ _ (algebraic_geometry.is_iso_to_Spec_Γ R))
+  (λ _ _ f, Spec_Γ_naturality f)
 
 end Spec_Γ
 

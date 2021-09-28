@@ -976,10 +976,11 @@ section quotient_multiplicity
 noncomputable theory
 open_locale classical
 variables {T : Type*} [integral_domain T] [is_dedekind_domain T] (I : ideal T)
-
 open ideal unique_factorization_monoid
 
-def shifted_seq_pow_constant (p : ideal T) : ℕ → Prop := λ n, ∀ m : ℕ, n ≤ m →
+/-- The predicate that the sequence of powers `(p')^m` for `n ≤ m` is constant,
+    where `p'` is the image of `p` in `R/I` -/
+def shifted_seq_pow_constant {R : Type u_1} [comm_ring R] (I : ideal R) (p : ideal R) : ℕ → Prop := λ n, ∀ m : ℕ, n ≤ m →
   (map I^.quotient.mk p)^n = (map I^.quotient.mk p)^m
 
 /--The sequence of powers `(p')^m` is eventually constant, where `p'` is the image of `p` in `R/I`-/
@@ -1036,17 +1037,6 @@ begin
     intros m hm,
     rw [seq_pow_eventually_constant I hI p hp n hn,
     seq_pow_eventually_constant I hI p hp m (le_trans hn hm)] }
-end
-
-instance (hI : I ≠ ⊥) (p : ideal  T) (hp : p ∈ factors I) : decidable_pred
-  (shifted_seq_pow_constant I p) :=
-begin
-  intro n,
-  by_cases h : (factors I).count p ≤ n,
-  { rw ← shifted_seq_pow_constant_iff_ge_count I hI p hp at h,
-    exact is_true h  },
-  { rw ← shifted_seq_pow_constant_iff_ge_count I hI p hp at h,
-    exact is_false h  }
 end
 
 lemma seq_pow_eventually_constant' (hI : I ≠ ⊥) (p : ideal T) (hp : p ∈ factors I) :

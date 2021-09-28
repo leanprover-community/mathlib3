@@ -267,7 +267,7 @@ local attribute [instance, priority 2000] is_scalar_tower.right
 The algebra isomorphism between multivariable polynomials in `option S₁` and
 polynomials with coefficients in `mv_polynomial S₁ R`.
 -/
-@[simps] def option_equiv_left : 
+@[simps] def option_equiv_left :
   mv_polynomial (option S₁) R ≃ₐ[R] polynomial (mv_polynomial S₁ R) :=
 alg_equiv.of_alg_hom
   (mv_polynomial.aeval (λ o, o.elim polynomial.X (λ s, polynomial.C (X s))))
@@ -300,8 +300,10 @@ lemma fin_succ_equiv_eq (n : ℕ) :
   eval₂_hom (polynomial.C.comp (C : R →+* mv_polynomial (fin n) R))
     (λ i : fin (n+1), fin.cases polynomial.X (λ k, polynomial.C (X k)) i) :=
 begin
-  ext,
-  { simp [fin_succ_equiv],
+  ext : 2,
+  { simp only [fin_succ_equiv, option_equiv_left_apply, aeval_C, alg_equiv.coe_trans,
+      alg_equiv.coe_alg_hom, coe_eval₂_hom, alg_hom.coe_to_ring_hom, comp_app, rename_equiv_apply,
+      eval₂_C, ring_hom.coe_comp, coe_coe, rename_C],
     refl },
   { intro i,
     refine fin.cases _ _ i;

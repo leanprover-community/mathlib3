@@ -5,7 +5,7 @@ Authors: Frédéric Dupuis, Eric Wieser
 -/
 
 import group_theory.congruence
-import linear_algebra.multilinear
+import linear_algebra.multilinear.tensor_product
 
 /-!
 # Tensor product of an indexed family of modules over commutative semirings

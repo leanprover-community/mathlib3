@@ -502,9 +502,8 @@ theorem cinfi_eq_of_forall_ge_of_forall_gt_exists_lt [nonempty ι] {f : ι → �
   (h₂ : ∀ w, b < w → (∃ i, f i < w)) : (⨅ (i : ι), f i) = b :=
 @csupr_eq_of_forall_le_of_forall_lt_exists_gt (order_dual α) _ _ _ _ ‹_› ‹_› ‹_›
 
-/-- Nested intervals lemma: if `f` is a monotonically increasing sequence, `g` is a monotonically
-decreasing sequence, and `f n ≤ g n` for all `n`, then `⨆ n, f n` belongs to all the intervals
-`[f n, g n]`. -/
+/-- Nested intervals lemma: if `f` is a monotone sequence, `g` is an antitone sequence, and
+`f n ≤ g n` for all `n`, then `⨆ n, f n` belongs to all the intervals `[f n, g n]`. -/
 lemma monotone.csupr_mem_Inter_Icc_of_antitone [nonempty β] [semilattice_sup β]
   {f g : β → α} (hf : monotone f) (hg : antitone g) (h : ∀ n, f n ≤ g n) :
   (⨆ n, f n) ∈ ⋂ n, Icc (f n) (g n) :=
@@ -514,7 +513,7 @@ begin
     csupr_le $ λ m, _⟩); exact hf.forall_le_of_antitone hg h _ _
 end
 
-/-- Nested intervals lemma: if `[f n, g n]` is a monotonically decreasing sequence of nonempty
+/-- Nested intervals lemma: if `[f n, g n]` is an antitone sequence of nonempty
 closed intervals, then `⨆ n, f n` belongs to all the intervals `[f n, g n]`. -/
 lemma csupr_mem_Inter_Icc_of_antitone_Icc [nonempty β] [semilattice_sup β]
   {f g : β → α} (h : antitone (λ n, Icc (f n) (g n))) (h' : ∀ n, f n ≤ g n) :

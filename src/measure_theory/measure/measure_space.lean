@@ -176,6 +176,19 @@ begin
   rw [← measure_union disjoint_diff h₂ (h₁.diff h₂), union_diff_cancel h]
 end
 
+lemma le_measure_diff : μ s₁ - μ s₂ ≤ μ (s₁ \ s₂) :=
+ennreal.sub_le_iff_le_add'.2 $
+calc μ s₁ ≤ μ (s₂ ∪ s₁)        : measure_mono (subset_union_right _ _)
+      ... = μ (s₂ ∪ s₁ \ s₂)   : congr_arg μ union_diff_self.symm
+      ... ≤ μ s₂ + μ (s₁ \ s₂) : measure_union_le _ _
+
+lemma measure_diff_lt_of_lt_add (hs : measurable_set s) (ht : measurable_set t) (hst : s ⊆ t)
+  (hs' : μ s ≠ ∞) {ε : ℝ≥0∞} (h : μ t < μ s + ε) : μ (t \ s) < ε :=
+begin
+  rw [measure_diff hst ht hs hs'], rw add_comm at h,
+  exact ennreal.sub_lt_of_lt_add (measure_mono hst) h
+end
+
 lemma meas_eq_meas_of_null_diff {s t : set α}
   (hst : s ⊆ t) (h_nulldiff : μ (t.diff s) = 0) : μ s = μ t :=
 by { rw [←diff_diff_cancel_left hst, ←@measure_diff_null _ _ _ t _ h_nulldiff], refl, }
@@ -1603,6 +1616,24 @@ lemma measure_lt_top (μ : measure α) [is_finite_measure μ] (s : set α) : μ 
 lemma measure_ne_top (μ : measure α) [is_finite_measure μ] (s : set α) : μ s ≠ ∞ :=
 ne_of_lt (measure_lt_top μ s)
 
+lemma measure_compl_le_add_of_le_add [is_finite_measure μ] (hs : measurable_set s)
+  (ht : measurable_set t) {ε : ℝ≥0∞} (h : μ s ≤ μ t + ε) :
+  μ tᶜ ≤ μ sᶜ + ε :=
+begin
+  rw [measure_compl ht (measure_ne_top μ _), measure_compl hs (measure_ne_top μ _),
+    ennreal.sub_le_iff_le_add],
+  calc μ univ = μ univ - μ s + μ s :
+    (ennreal.sub_add_cancel_of_le $ measure_mono s.subset_univ).symm
+  ... ≤ μ univ - μ s + (μ t + ε) : add_le_add_left h _
+  ... = _ : by rw [add_right_comm, add_assoc]
+end
+
+lemma measure_compl_le_add_iff [is_finite_measure μ] (hs : measurable_set s)
+  (ht : measurable_set t) {ε : ℝ≥0∞} :
+  μ sᶜ ≤ μ tᶜ + ε ↔ μ t ≤ μ s + ε :=
+⟨λ h, compl_compl s ▸ compl_compl t ▸ measure_compl_le_add_of_le_add hs.compl ht.compl h,
+  measure_compl_le_add_of_le_add ht hs⟩
+
 /-- The measure of the whole space with respect to a finite measure, considered as `ℝ≥0`. -/
 def measure_univ_nnreal (μ : measure α) : ℝ≥0 := (μ univ).to_nnreal
 
@@ -1924,9 +1955,15 @@ namespace finite_spanning_sets_in
 
 variables {C D : set (set α)}
 
+/-- If `μ` has finite spanning sets in `C` and `C ∩ {s | μ s < ∞} ⊆ D` then `μ` has finite spanning
+sets in `D`. -/
+protected def mono' (h : μ.finite_spanning_sets_in C) (hC : C ∩ {s | μ s < ∞} ⊆ D) :
+  μ.finite_spanning_sets_in D :=
+⟨h.set, λ i, hC ⟨h.set_mem i, h.finite i⟩, h.finite, h.spanning⟩
+
 /-- If `μ` has finite spanning sets in `C` and `C ⊆ D` then `μ` has finite spanning sets in `D`. -/
 protected def mono (h : μ.finite_spanning_sets_in C) (hC : C ⊆ D) : μ.finite_spanning_sets_in D :=
-⟨h.set, λ i, hC (h.set_mem i), h.finite, h.spanning⟩
+h.mono' (λ s hs, hC hs.1)
 
 /-- If `μ` has finite spanning sets in the collection of measurable sets `C`, then `μ` is σ-finite.
 -/
@@ -1941,7 +1978,7 @@ protected lemma ext {ν : measure α} {C : set (set α)} (hA : ‹_› = generat
 ext_of_generate_from_of_Union C _ hA hC h.spanning h.set_mem (λ i, (h.finite i).ne) h_eq
 
 protected lemma is_countably_spanning (h : μ.finite_spanning_sets_in C) : is_countably_spanning C :=
-⟨_, h.set_mem, h.spanning⟩
+⟨h.set, h.set_mem, h.spanning⟩
 
 end finite_spanning_sets_in
 

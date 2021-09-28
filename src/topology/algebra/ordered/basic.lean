@@ -3591,7 +3591,7 @@ section linear_order
 variables [linear_order α] [topological_space α] [order_topology α]
 variables [linear_order β] [topological_space β] [order_topology β]
 
-/-- If `f` is a function strictly monotonically increasing on a right neighborhood of `a` and the
+/-- If `f` is a function strictly monotone on a right neighborhood of `a` and the
 image of this neighborhood under `f` meets every interval `(f a, b]`, `b > f a`, then `f` is
 continuous at `a` from the right.
 
@@ -3616,9 +3616,8 @@ begin
     exact ((h_mono.lt_iff_lt hx hcs).2 hxc).trans_le hcb }
 end
 
-/-- If `f` is a function monotonically increasing function on a right neighborhood of `a` and the
-image of this neighborhood under `f` meets every interval `(f a, b)`, `b > f a`, then `f` is
-continuous at `a` from the right.
+/-- If `f` is a monotone function on a right neighborhood of `a` and the image of this neighborhood
+under `f` meets every interval `(f a, b)`, `b > f a`, then `f` is continuous at `a` from the right.
 
 The assumption `hfs : ∀ b > f a, ∃ c ∈ s, f c ∈ Ioo (f a) b` cannot be replaced by the weaker
 assumption `hfs : ∀ b > f a, ∃ c ∈ s, f c ∈ Ioc (f a) b` we use for strictly monotone functions
@@ -3641,9 +3640,9 @@ begin
     exact (h_mono hx hcs hxc.le).trans_lt hcb }
 end
 
-/-- If a function `f` with a densely ordered codomain is monotonically increasing on a right
-neighborhood of `a` and the closure of the image of this neighborhood under `f` is a right
-neighborhood of `f a`, then `f` is continuous at `a` from the right. -/
+/-- If a function `f` with a densely ordered codomain is monotone on a right neighborhood of `a` and
+the closure of the image of this neighborhood under `f` is a right neighborhood of `f a`, then `f`
+is continuous at `a` from the right. -/
 lemma continuous_at_right_of_monotone_on_of_closure_image_mem_nhds_within [densely_ordered β]
   {f : α → β} {s : set α} {a : α} (h_mono : monotone_on f s)
   (hs : s ∈ 𝓝[Ici a] a) (hfs : closure (f '' s) ∈ 𝓝[Ici (f a)] (f a)) :
@@ -3657,9 +3656,9 @@ begin
   exact ⟨c, hcs, hc.1, hc.2.trans_le hbb'⟩
 end
 
-/-- If a function `f` with a densely ordered codomain is monotonically increasing on a right
-neighborhood of `a` and the image of this neighborhood under `f` is a right neighborhood of `f a`,
-then `f` is continuous at `a` from the right. -/
+/-- If a function `f` with a densely ordered codomain is monotone on a right neighborhood of `a` and
+the image of this neighborhood under `f` is a right neighborhood of `f a`, then `f` is continuous at
+`a` from the right. -/
 lemma continuous_at_right_of_monotone_on_of_image_mem_nhds_within [densely_ordered β] {f : α → β}
   {s : set α} {a : α} (h_mono : monotone_on f s) (hs : s ∈ 𝓝[Ici a] a)
   (hfs : f '' s ∈ 𝓝[Ici (f a)] (f a)) :
@@ -3667,9 +3666,9 @@ lemma continuous_at_right_of_monotone_on_of_image_mem_nhds_within [densely_order
 continuous_at_right_of_monotone_on_of_closure_image_mem_nhds_within h_mono hs $
   mem_of_superset hfs subset_closure
 
-/-- If a function `f` with a densely ordered codomain is strictly monotonically increasing on a
-right neighborhood of `a` and the closure of the image of this neighborhood under `f` is a right
-neighborhood of `f a`, then `f` is continuous at `a` from the right. -/
+/-- If a function `f` with a densely ordered codomain is strictly monotone on a right neighborhood
+of `a` and the closure of the image of this neighborhood under `f` is a right neighborhood of `f a`,
+then `f` is continuous at `a` from the right. -/
 lemma strict_mono_on.continuous_at_right_of_closure_image_mem_nhds_within [densely_ordered β]
   {f : α → β} {s : set α} {a : α} (h_mono : strict_mono_on f s) (hs : s ∈ 𝓝[Ici a] a)
   (hfs : closure (f '' s) ∈ 𝓝[Ici (f a)] (f a)) :
@@ -3677,9 +3676,9 @@ lemma strict_mono_on.continuous_at_right_of_closure_image_mem_nhds_within [dense
 continuous_at_right_of_monotone_on_of_closure_image_mem_nhds_within
   (λ x hx y hy, (h_mono.le_iff_le hx hy).2) hs hfs
 
-/-- If a function `f` with a densely ordered codomain is strictly monotonically increasing on a
-right neighborhood of `a` and the image of this neighborhood under `f` is a right neighborhood of
-`f a`, then `f` is continuous at `a` from the right. -/
+/-- If a function `f` with a densely ordered codomain is strictly monotone on a right neighborhood
+of `a` and the image of this neighborhood under `f` is a right neighborhood of `f a`, then `f` is
+continuous at `a` from the right. -/
 lemma strict_mono_on.continuous_at_right_of_image_mem_nhds_within [densely_ordered β]
   {f : α → β} {s : set α} {a : α} (h_mono : strict_mono_on f s) (hs : s ∈ 𝓝[Ici a] a)
   (hfs : f '' s ∈ 𝓝[Ici (f a)] (f a)) :
@@ -3687,18 +3686,17 @@ lemma strict_mono_on.continuous_at_right_of_image_mem_nhds_within [densely_order
 h_mono.continuous_at_right_of_closure_image_mem_nhds_within hs
   (mem_of_superset hfs subset_closure)
 
-/-- If a function `f` is strictly monotonically increasing on a right neighborhood of `a` and the
-image of this neighborhood under `f` includes `Ioi (f a)`, then `f` is continuous at `a` from the
-right. -/
+/-- If a function `f` is strictly monotone on a right neighborhood of `a` and the image of this
+neighborhood under `f` includes `Ioi (f a)`, then `f` is continuous at `a` from the right. -/
 lemma strict_mono_on.continuous_at_right_of_surj_on {f : α → β} {s : set α} {a : α}
   (h_mono : strict_mono_on f s) (hs : s ∈ 𝓝[Ici a] a) (hfs : surj_on f s (Ioi (f a))) :
   continuous_within_at f (Ici a) a :=
 h_mono.continuous_at_right_of_exists_between hs $ λ b hb, let ⟨c, hcs, hcb⟩ := hfs hb in
 ⟨c, hcs, hcb.symm ▸ hb, hcb.le⟩
 
-/-- If `f` is a function strictly monotonically increasing on a left neighborhood of `a` and the
-image of this neighborhood under `f` meets every interval `[b, f a)`, `b < f a`, then `f` is
-continuous at `a` from the left.
+/-- If `f` is a strictly monotone function on a left neighborhood of `a` and the image of this
+neighborhood under `f` meets every interval `[b, f a)`, `b < f a`, then `f` is continuous at `a`
+from the left.
 
 The assumption `hfs : ∀ b < f a, ∃ c ∈ s, f c ∈ Ico b (f a)` is required because otherwise the
 function `f : ℝ → ℝ` given by `f x = if x < 0 then x else x + 1` would be a counter-example at
@@ -3710,9 +3708,8 @@ lemma strict_mono_on.continuous_at_left_of_exists_between {f : α → β} {s : s
 h_mono.dual.continuous_at_right_of_exists_between hs $
   λ b hb, let ⟨c, hcs, hcb, hca⟩ := hfs b hb in ⟨c, hcs, hca, hcb⟩
 
-/-- If `f` is a function monotonically increasing function on a left neighborhood of `a` and the
-image of this neighborhood under `f` meets every interval `(b, f a)`, `b < f a`, then `f` is
-continuous at `a` from the left.
+/-- If `f` is a monotone function on a left neighborhood of `a` and the image of this neighborhood
+under `f` meets every interval `(b, f a)`, `b < f a`, then `f` is continuous at `a` from the left.
 
 The assumption `hfs : ∀ b < f a, ∃ c ∈ s, f c ∈ Ioo b (f a)` cannot be replaced by the weaker
 assumption `hfs : ∀ b < f a, ∃ c ∈ s, f c ∈ Ico b (f a)` we use for strictly monotone functions
@@ -3725,9 +3722,9 @@ lemma continuous_at_left_of_monotone_on_of_exists_between {f : α → β} {s : s
   f s a hf.dual hs $
   λ b hb, let ⟨c, hcs, hcb, hca⟩ := hfs b hb in ⟨c, hcs, hca, hcb⟩
 
-/-- If a function `f` with a densely ordered codomain is monotonically increasing on a left
-neighborhood of `a` and the closure of the image of this neighborhood under `f` is a left
-neighborhood of `f a`, then `f` is continuous at `a` from the left -/
+/-- If a function `f` with a densely ordered codomain is monotone on a left neighborhood of `a` and
+the closure of the image of this neighborhood under `f` is a left neighborhood of `f a`, then `f` is
+continuous at `a` from the left -/
 lemma continuous_at_left_of_monotone_on_of_closure_image_mem_nhds_within [densely_ordered β]
   {f : α → β} {s : set α} {a : α} (hf : monotone_on f s)
   (hs : s ∈ 𝓝[Iic a] a) (hfs : closure (f '' s) ∈ 𝓝[Iic (f a)] (f a)) :
@@ -3735,9 +3732,9 @@ lemma continuous_at_left_of_monotone_on_of_closure_image_mem_nhds_within [densel
 @continuous_at_right_of_monotone_on_of_closure_image_mem_nhds_within (order_dual α) (order_dual β)
   _ _ _ _ _ _ _ f s a hf.dual hs hfs
 
-/-- If a function `f` with a densely ordered codomain is monotonically increasing on a left
-neighborhood of `a` and the image of this neighborhood under `f` is a left neighborhood of `f a`,
-then `f` is continuous at `a` from the left. -/
+/-- If a function `f` with a densely ordered codomain is monotone on a left neighborhood of `a` and
+the image of this neighborhood under `f` is a left neighborhood of `f a`, then `f` is continuous at
+`a` from the left. -/
 lemma continuous_at_left_of_monotone_on_of_image_mem_nhds_within [densely_ordered β]
   {f : α → β} {s : set α} {a : α} (h_mono : monotone_on f s)
   (hs : s ∈ 𝓝[Iic a] a) (hfs : f '' s ∈ 𝓝[Iic (f a)] (f a)) :
@@ -3745,34 +3742,33 @@ lemma continuous_at_left_of_monotone_on_of_image_mem_nhds_within [densely_ordere
 continuous_at_left_of_monotone_on_of_closure_image_mem_nhds_within h_mono hs
   (mem_of_superset hfs subset_closure)
 
-/-- If a function `f` with a densely ordered codomain is strictly monotonically increasing on a
-left neighborhood of `a` and the closure of the image of this neighborhood under `f` is a left
-neighborhood of `f a`, then `f` is continuous at `a` from the left. -/
+/-- If a function `f` with a densely ordered codomain is strictly monotone on a left neighborhood of
+`a` and the closure of the image of this neighborhood under `f` is a left neighborhood of `f a`,
+then `f` is continuous at `a` from the left. -/
 lemma strict_mono_on.continuous_at_left_of_closure_image_mem_nhds_within [densely_ordered β]
   {f : α → β} {s : set α} {a : α} (h_mono : strict_mono_on f s) (hs : s ∈ 𝓝[Iic a] a)
   (hfs : closure (f '' s) ∈ 𝓝[Iic (f a)] (f a)) :
   continuous_within_at f (Iic a) a :=
 h_mono.dual.continuous_at_right_of_closure_image_mem_nhds_within hs hfs
 
-/-- If a function `f` with a densely ordered codomain is strictly monotonically increasing on a
-left neighborhood of `a` and the image of this neighborhood under `f` is a left neighborhood of
-`f a`, then `f` is continuous at `a` from the left. -/
+/-- If a function `f` with a densely ordered codomain is strictly monotone on a left neighborhood of
+`a` and the image of this neighborhood under `f` is a left neighborhood of `f a`, then `f` is
+continuous at `a` from the left. -/
 lemma strict_mono_on.continuous_at_left_of_image_mem_nhds_within [densely_ordered β]
   {f : α → β} {s : set α} {a : α} (h_mono : strict_mono_on f s) (hs : s ∈ 𝓝[Iic a] a)
   (hfs : f '' s ∈ 𝓝[Iic (f a)] (f a)) :
   continuous_within_at f (Iic a) a :=
 h_mono.dual.continuous_at_right_of_image_mem_nhds_within hs hfs
 
-/-- If a function `f` is strictly monotonically increasing on a left neighborhood of `a` and the
-image of this neighborhood under `f` includes `Iio (f a)`, then `f` is continuous at `a` from the
-left. -/
+/-- If a function `f` is strictly monotone on a left neighborhood of `a` and the image of this
+neighborhood under `f` includes `Iio (f a)`, then `f` is continuous at `a` from the left. -/
 lemma strict_mono_on.continuous_at_left_of_surj_on {f : α → β} {s : set α} {a : α}
   (h_mono : strict_mono_on f s) (hs : s ∈ 𝓝[Iic a] a) (hfs : surj_on f s (Iio (f a))) :
   continuous_within_at f (Iic a) a :=
 h_mono.dual.continuous_at_right_of_surj_on hs hfs
 
-/-- If a function `f` is strictly monotonically increasing on a neighborhood of `a` and the image of
-this neighborhood under `f` meets every interval `[b, f a)`, `b < f a`, and every interval
+/-- If a function `f` is strictly monotone on a neighborhood of `a` and the image of this
+neighborhood under `f` meets every interval `[b, f a)`, `b < f a`, and every interval
 `(f a, b]`, `b > f a`, then `f` is continuous at `a`. -/
 lemma strict_mono_on.continuous_at_of_exists_between {f : α → β} {s : set α} {a : α}
   (h_mono : strict_mono_on f s) (hs : s ∈ 𝓝 a)
@@ -3782,9 +3778,9 @@ continuous_at_iff_continuous_left_right.2
   ⟨h_mono.continuous_at_left_of_exists_between (mem_nhds_within_of_mem_nhds hs) hfs_l,
    h_mono.continuous_at_right_of_exists_between (mem_nhds_within_of_mem_nhds hs) hfs_r⟩
 
-/-- If a function `f` with a densely ordered codomain is strictly monotonically increasing on a
-neighborhood of `a` and the closure of the image of this neighborhood under `f` is a neighborhood of
-`f a`, then `f` is continuous at `a`. -/
+/-- If a function `f` with a densely ordered codomain is strictly monotone on a neighborhood of `a`
+and the closure of the image of this neighborhood under `f` is a neighborhood of `f a`, then `f` is
+continuous at `a`. -/
 lemma strict_mono_on.continuous_at_of_closure_image_mem_nhds [densely_ordered β] {f : α → β}
   {s : set α} {a : α} (h_mono : strict_mono_on f s) (hs : s ∈ 𝓝 a)
   (hfs : closure (f '' s) ∈ 𝓝 (f a)) :
@@ -3795,17 +3791,16 @@ continuous_at_iff_continuous_left_right.2
    h_mono.continuous_at_right_of_closure_image_mem_nhds_within (mem_nhds_within_of_mem_nhds hs)
      (mem_nhds_within_of_mem_nhds hfs)⟩
 
-/-- If a function `f` with a densely ordered codomain is strictly monotonically increasing on a
-neighborhood of `a` and the image of this set under `f` is a neighborhood of `f a`, then `f` is
-continuous at `a`. -/
+/-- If a function `f` with a densely ordered codomain is strictly monotone on a neighborhood of `a`
+and the image of this set under `f` is a neighborhood of `f a`, then `f` is continuous at `a`. -/
 lemma strict_mono_on.continuous_at_of_image_mem_nhds [densely_ordered β] {f : α → β}
   {s : set α} {a : α} (h_mono : strict_mono_on f s) (hs : s ∈ 𝓝 a) (hfs : f '' s ∈ 𝓝 (f a)) :
   continuous_at f a :=
 h_mono.continuous_at_of_closure_image_mem_nhds hs (mem_of_superset hfs subset_closure)
 
-/-- If `f` is a function monotonically increasing function on a neighborhood of `a` and the image of
-this neighborhood under `f` meets every interval `(b, f a)`, `b < f a`, and every interval `(f a,
-b)`, `b > f a`, then `f` is continuous at `a`. -/
+/-- If `f` is a monotone function on a neighborhood of `a` and the image of this neighborhood under
+`f` meets every interval `(b, f a)`, `b < f a`, and every interval `(f a, b)`, `b > f a`, then `f`
+is continuous at `a`. -/
 lemma continuous_at_of_monotone_on_of_exists_between {f : α → β} {s : set α} {a : α}
   (h_mono : monotone_on f s) (hs : s ∈ 𝓝 a)
   (hfs_l : ∀ b < f a, ∃ c ∈ s, f c ∈ Ioo b (f a)) (hfs_r : ∀ b > f a, ∃ c ∈ s, f c ∈ Ioo (f a) b) :
@@ -3816,9 +3811,9 @@ continuous_at_iff_continuous_left_right.2
    continuous_at_right_of_monotone_on_of_exists_between h_mono
      (mem_nhds_within_of_mem_nhds hs) hfs_r⟩
 
-/-- If a function `f` with a densely ordered codomain is monotonically increasing on a neighborhood
-of `a` and the closure of the image of this neighborhood under `f` is a neighborhood of `f a`, then
-`f` is continuous at `a`. -/
+/-- If a function `f` with a densely ordered codomain is monotone on a neighborhood of `a` and the
+closure of the image of this neighborhood under `f` is a neighborhood of `f a`, then `f` is
+continuous at `a`. -/
 lemma continuous_at_of_monotone_on_of_closure_image_mem_nhds [densely_ordered β] {f : α → β}
   {s : set α} {a : α} (h_mono : monotone_on f s) (hs : s ∈ 𝓝 a)
   (hfs : closure (f '' s) ∈ 𝓝 (f a)) :
@@ -3829,9 +3824,8 @@ continuous_at_iff_continuous_left_right.2
    continuous_at_right_of_monotone_on_of_closure_image_mem_nhds_within h_mono
      (mem_nhds_within_of_mem_nhds hs) (mem_nhds_within_of_mem_nhds hfs)⟩
 
-/-- If a function `f` with a densely ordered codomain is monotonically increasing on a neighborhood
-of `a` and the image of this neighborhood under `f` is a neighborhood of `f a`, then `f` is
-continuous at `a`. -/
+/-- If a function `f` with a densely ordered codomain is monotone on a neighborhood of `a` and the
+image of this neighborhood under `f` is a neighborhood of `f a`, then `f` is continuous at `a`. -/
 lemma continuous_at_of_monotone_on_of_image_mem_nhds [densely_ordered β] {f : α → β}
   {s : set α} {a : α} (h_mono : monotone_on f s) (hs : s ∈ 𝓝 a)
   (hfs : f '' s ∈ 𝓝 (f a)) :
@@ -3847,7 +3841,7 @@ continuous_iff_continuous_at.mpr $ λ a,
   continuous_at_of_monotone_on_of_closure_image_mem_nhds (λ x hx y hy hxy, h_mono hxy)
     univ_mem $ by simp only [image_univ, h_dense.closure_eq, univ_mem]
 
-/-- A monotone surjective function with a densely ordered codomain is surjective. -/
+/-- A monotone surjective function with a densely ordered codomain is continuous. -/
 lemma monotone.continuous_of_surjective [densely_ordered β] {f : α → β} (h_mono : monotone f)
   (h_surj : function.surjective f) :
   continuous f :=

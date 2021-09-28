@@ -115,7 +115,7 @@ by simpa only [one_div] using interval_integrable_one_div_one_add_sq
 
 @[simp]
 lemma integral_const_mul : ∫ x in a..b, c * f x = c * ∫ x in a..b, f x :=
-integral_smul c
+integral_smul c f
 
 @[simp]
 lemma integral_mul_const : ∫ x in a..b, f x * c = (∫ x in a..b, f x) * c :=

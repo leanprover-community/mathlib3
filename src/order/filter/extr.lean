@@ -32,7 +32,7 @@ Similar predicates with `_on` suffix are particular cases for `l = 𝓟 s`.
 
 * `is_*_*.comp_mono` : if `x` is an extremum for `f` and `g` is a monotone function,
   then `x` is an extremum for `g ∘ f`;
-* `is_*_*.comp_antitone` : similarly for the case of monotonically decreasing `g`;
+* `is_*_*.comp_antitone` : similarly for the case of antitone `g`;
 * `is_*_*.bicomp_mono` : if `x` is an extremum of the same type for `f` and `g`
   and a binary operation `op` is monotone in both arguments, then `x` is an extremum
   of the same type for `λ x, op (f x) (g x)`.

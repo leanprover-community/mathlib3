@@ -26,17 +26,15 @@ Many of the relevant definitions, including `module`, `submodule`, and `linear_m
 
 * Many constructors for (semi)linear maps
 * `submodule.span s` is defined to be the smallest submodule containing the set `s`.
-* If `p` is a submodule of `M`, `submodule.quotient p` is the quotient of `M` with respect to `p`:
-  that is, elements of `M` are identified if their difference is in `p`. This is itself a module.
 * The kernel `ker` and range `range` of a linear map are submodules of the domain and codomain
   respectively.
 * The general linear group is defined to be the group of invertible linear maps from `M` to itself.
 
-## Main statements
+See `linear_algebra.quotient` for quotients by submodules.
 
-* The first, second and third isomorphism laws for modules are proved as
-  `linear_map.quot_ker_equiv_range`, `linear_map.quotient_inf_equiv_sup_quotient` and
-  `submodule.quotient_quotient_equiv_quotient`.
+## Main theorems
+
+See `linear_algebra.isomorphisms` for Noether's three isomorphism theorems for modules.
 
 ## Notations
 
@@ -249,11 +247,12 @@ def eval_add_monoid_hom (a : M) : (M →ₛₗ[σ₁₂] M₂) →+ M₂ :=
   map_add' := λ f g, linear_map.add_apply f g a,
   map_zero' := rfl }
 
-lemma add_comp (g : M₂ →ₛₗ[σ₂₃] M₃) (h : M₂ →ₛₗ[σ₂₃] M₃) :
+lemma add_comp (f : M →ₛₗ[σ₁₂] M₂)(g h : M₂ →ₛₗ[σ₂₃] M₃) :
   ((h + g).comp f : M →ₛₗ[σ₁₃] M₃) = h.comp f + g.comp f := rfl
 
-lemma comp_add (g : M →ₛₗ[σ₁₂] M₂) (h : M₂ →ₛₗ[σ₂₃] M₃) :
-  (h.comp (f + g) : M →ₛₗ[σ₁₃] M₃)  = h.comp f + h.comp g := by { ext, simp }
+lemma comp_add (f g : M →ₛₗ[σ₁₂] M₂) (h : M₂ →ₛₗ[σ₂₃] M₃) :
+  (h.comp (f + g) : M →ₛₗ[σ₁₃] M₃) = h.comp f + h.comp g :=
+ext $ λ _, h.map_add _ _
 
 /-- `linear_map.to_add_monoid_hom` promoted to an `add_monoid_hom` -/
 def to_add_monoid_hom' : (M →ₛₗ[σ₁₂] M₂) →+ (M →+ M₂) :=
@@ -408,42 +407,47 @@ end add_comm_monoid
 section add_comm_group
 
 variables [semiring R] [semiring R₂] [semiring R₃] [semiring R₄]
-  [add_comm_monoid M] [add_comm_group M₂] [add_comm_group M₃] [add_comm_group M₄]
+  [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_group M₃] [add_comm_group M₄]
   [module R M] [module R₂ M₂] [module R₃ M₃] [module R₄ M₄]
-  {σ₁₂ : R →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R →+* R₃}
+  {σ₁₂ : R →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₃₄ : R₃ →+* R₄} {σ₁₃ : R →+* R₃} {σ₁₄ : R →+* R₄}
   [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
-  (f g : M →ₛₗ[σ₁₂] M₂)
+  [ring_hom_comp_triple σ₁₃ σ₃₄ σ₁₄]
 
 /-- The negation of a linear map is linear. -/
-instance : has_neg (M →ₛₗ[σ₁₂] M₂) :=
+instance : has_neg (M →ₛₗ[σ₁₃] M₃) :=
 ⟨λ f, { to_fun := -f, map_add' := by simp [add_comm], map_smul' := by simp }⟩
 
-@[simp] lemma neg_apply (x : M) : (- f) x = - f x := rfl
+@[simp] lemma neg_apply (f : M →ₛₗ[σ₁₃] M₃) (x : M) : (- f) x = - f x := rfl
 
 include σ₁₃
-@[simp] lemma comp_neg (g : M₂ →ₛₗ[σ₂₃] M₃) : g.comp (- f) = - g.comp f := by { ext, simp }
+@[simp] lemma neg_comp (f : M →ₛₗ[σ₁₂] M₂) (g : M₂ →ₛₗ[σ₂₃] M₃) : (- g).comp f = - g.comp f := rfl
 omit σ₁₃
 
+include σ₁₄
+@[simp] lemma comp_neg (f : M →ₛₗ[σ₁₃] M₃) (g : M₃ →ₛₗ[σ₃₄] M₄) : g.comp (- f) = - g.comp f :=
+ext $ λ _, g.map_neg _
+omit σ₁₄
+
 /-- The negation of a linear map is linear. -/
-instance : has_sub (M →ₛₗ[σ₁₂] M₂) :=
+instance : has_sub (M →ₛₗ[σ₁₃] M₃) :=
 ⟨λ f g, { to_fun := f - g,
           map_add' := λ x y, by simp only [pi.sub_apply, map_add, add_sub_comm],
           map_smul' := λ r x, by simp [pi.sub_apply, map_smul, smul_sub] }⟩
 
-@[simp] lemma sub_apply (x : M) : (f - g) x = f x - g x := rfl
+@[simp] lemma sub_apply (f g : M →ₛₗ[σ₁₃] M₃) (x : M) : (f - g) x = f x - g x := rfl
 
 include σ₁₃
-lemma sub_comp (g : M₂ →ₛₗ[σ₂₃] M₃) (h : M₂ →ₛₗ[σ₂₃] M₃) :
+lemma sub_comp (f : M →ₛₗ[σ₁₂] M₂) (g h : M₂ →ₛₗ[σ₂₃] M₃) :
   (g - h).comp f = g.comp f - h.comp f := rfl
 omit σ₁₃
 
-include σ₁₃
-lemma comp_sub (g : M →ₛₗ[σ₁₂] M₂) (h : M₂ →ₛₗ[σ₂₃] M₃) :
+include σ₁₄
+lemma comp_sub (f g : M →ₛₗ[σ₁₃] M₃) (h : M₃ →ₛₗ[σ₃₄] M₄) :
   h.comp (g - f) = h.comp g - h.comp f := by { ext, simp }
-omit σ₁₃
+omit σ₁₄
 
 /-- The type of linear maps is an additive group. -/
-instance [module R M₂] : add_comm_group (M →ₗ[R] M₂) :=
+instance [module R M₃] : add_comm_group (M →ₗ[R] M₃) :=
 by refine
 { zero := 0,
   add := (+),
@@ -503,6 +507,22 @@ instance : distrib_mul_action S (M →ₗ[R] M₂) :=
 theorem smul_comp (a : S) (g : M₃ →ₗ[R] M₂) (f : M →ₗ[R] M₃) : (a • g).comp f = a • (g.comp f) :=
 rfl
 
+instance _root_.module.End.is_scalar_tower :
+  is_scalar_tower S (module.End R M₂) (module.End R M₂) := ⟨smul_comp⟩
+
+theorem comp_smul [distrib_mul_action S M₃] [smul_comm_class R S M₃] [compatible_smul M₂ M₃ S R]
+  (g : M₂ →ₗ[R] M₃) (a : S) :
+  g.comp (a • f) = a • (g.comp f) :=
+ext $ λ _, g.map_smul_of_tower _ _
+
+instance _root_.module.End.smul_comm_class [has_scalar S R] [is_scalar_tower S R M₂] :
+  smul_comm_class S (module.End R M₂) (module.End R M₂) :=
+⟨λ s _ _, (comp_smul _ _ s).symm⟩
+
+instance _root_.module.End.smul_comm_class' [has_scalar S R] [is_scalar_tower S R M₂] :
+  smul_comm_class (module.End R M₂) S (module.End R M₂) :=
+smul_comm_class.symm _ _ _
+
 end has_scalar
 
 section module
@@ -561,9 +581,6 @@ variables [comm_semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [add_comm
 variables [module R M] [module R M₂] [module R M₃]
 variables (f g : M →ₗ[R] M₂)
 include R
-
-theorem comp_smul (g : M₂ →ₗ[R] M₃) (a : R) : g.comp (a • f) = a • (g.comp f) :=
-ext $ assume b, by rw [comp_apply, smul_apply, g.map_smul]; refl
 
 /-- Composition by `f : M₂ → M₃` is a linear map from the space of linear maps `M → M₂`
 to the space of linear maps `M₂ → M₃`. -/
@@ -1448,112 +1465,6 @@ begin
   { rintro ⟨a, h⟩, exact ⟨-a, _, h, by simp [add_comm, add_left_comm]⟩ }
 end
 
--- TODO(Mario): Factor through add_subgroup
-/-- The equivalence relation associated to a submodule `p`, defined by `x ≈ y` iff `y - x ∈ p`. -/
-def quotient_rel : setoid M :=
-⟨λ x y, x - y ∈ p, λ x, by simp,
- λ x y h, by simpa using neg_mem _ h,
- λ x y z h₁ h₂, by simpa [sub_eq_add_neg, add_left_comm, add_assoc] using add_mem _ h₁ h₂⟩
-
-/-- The quotient of a module `M` by a submodule `p ⊆ M`. -/
-def quotient : Type* := quotient (quotient_rel p)
-
-namespace quotient
-
-/-- Map associating to an element of `M` the corresponding element of `M/p`,
-when `p` is a submodule of `M`. -/
-def mk {p : submodule R M} : M → quotient p := quotient.mk'
-
-@[simp] theorem mk_eq_mk {p : submodule R M} (x : M) :
-  (@_root_.quotient.mk _ (quotient_rel p) x) = mk x := rfl
-@[simp] theorem mk'_eq_mk {p : submodule R M} (x : M) : (quotient.mk' x : quotient p) = mk x := rfl
-@[simp] theorem quot_mk_eq_mk {p : submodule R M} (x : M) : (quot.mk _ x : quotient p) = mk x := rfl
-
-protected theorem eq {x y : M} : (mk x : quotient p) = mk y ↔ x - y ∈ p := quotient.eq'
-
-instance : has_zero (quotient p) := ⟨mk 0⟩
-instance : inhabited (quotient p) := ⟨0⟩
-
-@[simp] theorem mk_zero : mk 0 = (0 : quotient p) := rfl
-
-@[simp] theorem mk_eq_zero : (mk x : quotient p) = 0 ↔ x ∈ p :=
-by simpa using (quotient.eq p : mk x = 0 ↔ _)
-
-instance : has_add (quotient p) :=
-⟨λ a b, quotient.lift_on₂' a b (λ a b, mk (a + b)) $
-  λ a₁ a₂ b₁ b₂ h₁ h₂, (quotient.eq p).2 $
-    by simpa [sub_eq_add_neg, add_left_comm, add_comm] using add_mem p h₁ h₂⟩
-
-@[simp] theorem mk_add : (mk (x + y) : quotient p) = mk x + mk y := rfl
-
-instance : has_neg (quotient p) :=
-⟨λ a, quotient.lift_on' a (λ a, mk (-a)) $
- λ a b h, (quotient.eq p).2 $ by simpa using neg_mem p h⟩
-
-@[simp] theorem mk_neg : (mk (-x) : quotient p) = -mk x := rfl
-
-instance : has_sub (quotient p) :=
-⟨λ a b, quotient.lift_on₂' a b (λ a b, mk (a - b)) $
-  λ a₁ a₂ b₁ b₂ h₁ h₂, (quotient.eq p).2 $
-  by simpa [sub_eq_add_neg, add_left_comm, add_comm] using add_mem p h₁ (neg_mem p h₂)⟩
-
-@[simp] theorem mk_sub : (mk (x - y) : quotient p) = mk x - mk y := rfl
-
-instance : add_comm_group (quotient p) :=
-{ zero := (0 : quotient p),
-  add := (+),
-  neg := has_neg.neg,
-  sub := has_sub.sub,
-  add_assoc := by { rintros ⟨x⟩ ⟨y⟩ ⟨z⟩, simp only [←mk_add p, quot_mk_eq_mk, add_assoc] },
-  zero_add := by { rintro ⟨x⟩, simp only [←mk_zero p, ←mk_add p, quot_mk_eq_mk, zero_add] },
-  add_zero := by { rintro ⟨x⟩, simp only [←mk_zero p, ←mk_add p, add_zero, quot_mk_eq_mk] },
-  add_comm := by { rintros ⟨x⟩ ⟨y⟩, simp only [←mk_add p, quot_mk_eq_mk, add_comm] },
-  add_left_neg := by { rintro ⟨x⟩,
-    simp only [←mk_zero p, ←mk_add p, ←mk_neg p, quot_mk_eq_mk, add_left_neg] },
-  sub_eq_add_neg := by { rintros ⟨x⟩ ⟨y⟩,
-    simp only [←mk_add p, ←mk_neg p, ←mk_sub p, sub_eq_add_neg, quot_mk_eq_mk] },
-  nsmul := λ n x, quotient.lift_on' x (λ x, mk (n • x)) $
-     λ x y h, (quotient.eq p).2 $ by simpa [smul_sub] using smul_of_tower_mem p n h,
-  nsmul_zero' := by { rintros ⟨⟩, simp only [mk_zero, quot_mk_eq_mk, zero_smul], refl },
-  nsmul_succ' := by { rintros n ⟨⟩,
-    simp only [nat.succ_eq_one_add, add_nsmul, mk_add, quot_mk_eq_mk, one_nsmul], refl },
-  gsmul := λ n x, quotient.lift_on' x (λ x, mk (n • x)) $
-     λ x y h, (quotient.eq p).2 $ by simpa [smul_sub] using smul_of_tower_mem p n h,
-  gsmul_zero' := by { rintros ⟨⟩, simp only [mk_zero, quot_mk_eq_mk, zero_smul], refl },
-  gsmul_succ' := by { rintros n ⟨⟩,
-    simp [nat.succ_eq_add_one, add_nsmul, mk_add, quot_mk_eq_mk, one_nsmul, add_smul, add_comm],
-    refl },
-  gsmul_neg' := by { rintros n ⟨x⟩, simp_rw [gsmul_neg_succ_of_nat, gsmul_coe_nat], refl }, }
-
-instance : has_scalar R (quotient p) :=
-⟨λ a x, quotient.lift_on' x (λ x, mk (a • x)) $
- λ x y h, (quotient.eq p).2 $ by simpa [smul_sub] using smul_mem p a h⟩
-
-@[simp] theorem mk_smul : (mk (r • x) : quotient p) = r • mk x := rfl
-
-@[simp] theorem mk_nsmul (n : ℕ) : (mk (n • x) : quotient p) = n • mk x := rfl
-
-instance : module R (quotient p) :=
-module.of_core $ by refine {smul := (•), ..};
-  repeat {rintro ⟨⟩ <|> intro}; simp [smul_add, add_smul, smul_smul,
-    -mk_add, (mk_add p).symm, -mk_smul, (mk_smul p).symm]
-
-lemma mk_surjective : function.surjective (@mk _ _ _ _ _ p) :=
-by { rintros ⟨x⟩, exact ⟨x, rfl⟩ }
-
-lemma nontrivial_of_lt_top (h : p < ⊤) : nontrivial (p.quotient) :=
-begin
-  obtain ⟨x, _, not_mem_s⟩ := set_like.exists_of_lt h,
-  refine ⟨⟨mk x, 0, _⟩⟩,
-  simpa using not_mem_s
-end
-
-end quotient
-
-lemma quot_hom_ext ⦃f g : quotient p →ₗ[R] M₂⦄ (h : ∀ x, f (quotient.mk x) = g (quotient.mk x)) :
-  f = g :=
-linear_map.ext $ λ x, quotient.induction_on' x h
-
 end submodule
 
 namespace submodule
@@ -1570,7 +1481,6 @@ lemma map_smul (f : V →ₗ[K] V₂) (p : submodule K V) (a : K) (h : a ≠ 0) 
 le_antisymm
   begin rw [map_le_iff_le_comap, comap_smul f _ a h, ← map_le_iff_le_comap], exact le_refl _ end
   begin rw [map_le_iff_le_comap, ← comap_smul f _ a h, ← map_le_iff_le_comap], exact le_refl _ end
-
 
 lemma comap_smul' (f : V →ₗ[K] V₂) (p : submodule K V₂) (a : K) :
   p.comap (a • f) = (⨅ h : a ≠ 0, p.comap f) :=
@@ -2095,120 +2005,6 @@ def map_subtype.order_embedding :
 @[simp] lemma map_subtype_embedding_eq (p' : submodule R p) :
   map_subtype.order_embedding p p' = map p.subtype p' := rfl
 
-/-- The map from a module `M` to the quotient of `M` by a submodule `p` as a linear map. -/
-def mkq : M →ₗ[R] p.quotient :=
-{ to_fun := quotient.mk, map_add' := by simp, map_smul' := by simp }
-
-@[simp] theorem mkq_apply (x : M) : p.mkq x = quotient.mk x := rfl
-
-/-- Two `linear_map`s from a quotient module are equal if their compositions with
-`submodule.mkq` are equal.
-
-See note [partially-applied ext lemmas]. -/
-@[ext]
-lemma linear_map_qext ⦃f g : p.quotient →ₛₗ[τ₁₂] M₂⦄ (h : f.comp p.mkq = g.comp p.mkq) : f = g :=
-linear_map.ext $ λ x, quotient.induction_on' x $ (linear_map.congr_fun h : _)
-
-/-- The map from the quotient of `M` by a submodule `p` to `M₂` induced by a linear map `f : M → M₂`
-vanishing on `p`, as a linear map. -/
-def liftq (f : M →ₛₗ[τ₁₂] M₂) (h : p ≤ f.ker) : p.quotient →ₛₗ[τ₁₂] M₂ :=
-{ to_fun := λ x, _root_.quotient.lift_on' x f $
-    λ a b (ab : a - b ∈ p), eq_of_sub_eq_zero $ by simpa using h ab,
-  map_add' := by rintro ⟨x⟩ ⟨y⟩; exact f.map_add x y,
-  map_smul' := by rintro a ⟨x⟩; exact f.map_smulₛₗ a x }
-
-@[simp] theorem liftq_apply (f : M →ₛₗ[τ₁₂] M₂) {h} (x : M) :
-  p.liftq f h (quotient.mk x) = f x := rfl
-
-@[simp] theorem liftq_mkq (f : M →ₛₗ[τ₁₂] M₂) (h) : (p.liftq f h).comp p.mkq = f :=
-by ext; refl
-
-@[simp] theorem range_mkq : p.mkq.range = ⊤ :=
-eq_top_iff'.2 $ by rintro ⟨x⟩; exact ⟨x, rfl⟩
-
-@[simp] theorem ker_mkq : p.mkq.ker = p :=
-by ext; simp
-
-lemma le_comap_mkq (p' : submodule R p.quotient) : p ≤ comap p.mkq p' :=
-by simpa using (comap_mono bot_le : p.mkq.ker ≤ comap p.mkq p')
-
-@[simp] theorem mkq_map_self : map p.mkq p = ⊥ :=
-by rw [eq_bot_iff, map_le_iff_le_comap, comap_bot, ker_mkq]; exact le_refl _
-
-@[simp] theorem comap_map_mkq : comap p.mkq (map p.mkq p') = p ⊔ p' :=
-by simp [comap_map_eq, sup_comm]
-
-@[simp] theorem map_mkq_eq_top : map p.mkq p' = ⊤ ↔ p ⊔ p' = ⊤ :=
-by simp only [map_eq_top_iff p.range_mkq, sup_comm, ker_mkq]
-
-/-- The map from the quotient of `M` by submodule `p` to the quotient of `M₂` by submodule `q` along
-`f : M → M₂` is linear. -/
-def mapq (f : M →ₛₗ[τ₁₂] M₂) (h : p ≤ comap f q) :
-  p.quotient →ₛₗ[τ₁₂] q.quotient :=
-p.liftq (q.mkq.comp f) $ by simpa [ker_comp] using h
-
-@[simp] theorem mapq_apply (f : M →ₛₗ[τ₁₂] M₂) {h} (x : M) :
-  mapq p q f h (quotient.mk x) = quotient.mk (f x) := rfl
-
-theorem mapq_mkq (f : M →ₛₗ[τ₁₂] M₂) {h} : (mapq p q f h).comp p.mkq = q.mkq.comp f :=
-by ext x; refl
-
-theorem comap_liftq (f : M →ₛₗ[τ₁₂] M₂) (h) :
-  q.comap (p.liftq f h) = (q.comap f).map (mkq p) :=
-le_antisymm
-  (by rintro ⟨x⟩ hx; exact ⟨_, hx, rfl⟩)
-  (by rw [map_le_iff_le_comap, ← comap_comp, liftq_mkq]; exact le_refl _)
-
-theorem map_liftq [ring_hom_surjective τ₁₂] (f : M →ₛₗ[τ₁₂] M₂) (h) (q : submodule R (quotient p)) :
-  q.map (p.liftq f h) = (q.comap p.mkq).map f :=
-le_antisymm
-  (by rintro _ ⟨⟨x⟩, hxq, rfl⟩; exact ⟨x, hxq, rfl⟩)
-  (by rintro _ ⟨x, hxq, rfl⟩; exact ⟨quotient.mk x, hxq, rfl⟩)
-
-theorem ker_liftq (f : M →ₛₗ[τ₁₂] M₂) (h) :
-  ker (p.liftq f h) = (ker f).map (mkq p) := comap_liftq _ _ _ _
-
-theorem range_liftq [ring_hom_surjective τ₁₂] (f : M →ₛₗ[τ₁₂] M₂) (h) :
-  range (p.liftq f h) = range f :=
-by simpa only [range_eq_map] using map_liftq _ _ _ _
-
-theorem ker_liftq_eq_bot (f : M →ₛₗ[τ₁₂] M₂) (h) (h' : ker f ≤ p) : ker (p.liftq f h) = ⊥ :=
-by rw [ker_liftq, le_antisymm h h', mkq_map_self]
-
-/-- The correspondence theorem for modules: there is an order isomorphism between submodules of the
-quotient of `M` by `p`, and submodules of `M` larger than `p`. -/
-def comap_mkq.rel_iso :
-  submodule R p.quotient ≃o {p' : submodule R M // p ≤ p'} :=
-{ to_fun    := λ p', ⟨comap p.mkq p', le_comap_mkq p _⟩,
-  inv_fun   := λ q, map p.mkq q,
-  left_inv  := λ p', map_comap_eq_self $ by simp,
-  right_inv := λ ⟨q, hq⟩, subtype.ext_val $ by simpa [comap_map_mkq p],
-  map_rel_iff'      := λ p₁ p₂, comap_le_comap_iff $ range_mkq _ }
-
-/-- The ordering on submodules of the quotient of `M` by `p` embeds into the ordering on submodules
-of `M`. -/
-def comap_mkq.order_embedding :
-  submodule R p.quotient ↪o submodule R M :=
-(rel_iso.to_rel_embedding $ comap_mkq.rel_iso p).trans (subtype.rel_embedding _ _)
-
-@[simp] lemma comap_mkq_embedding_eq (p' : submodule R p.quotient) :
-  comap_mkq.order_embedding p p' = comap p.mkq p' := rfl
-
-lemma span_preimage_eq [ring_hom_surjective τ₁₂] {f : M →ₛₗ[τ₁₂] M₂} {s : set M₂} (h₀ : s.nonempty)
-  (h₁ : s ⊆ range f) :
-  span R (f ⁻¹' s) = (span R₂ s).comap f :=
-begin
-  suffices : (span R₂ s).comap f ≤ span R (f ⁻¹' s),
-  { exact le_antisymm (span_preimage_le f s) this, },
-  have hk : ker f ≤ span R (f ⁻¹' s),
-  { let y := classical.some h₀, have hy : y ∈ s, { exact classical.some_spec h₀, },
-    rw ker_le_iff, use [y, h₁ hy], rw ← set.singleton_subset_iff at hy,
-    exact set.subset.trans subset_span (span_mono (set.preimage_mono hy)), },
-  rw ← left_eq_sup at hk, rw f.range_coe at h₁,
-  rw [hk, ← map_le_map_iff, map_span, map_comap_eq, set.image_preimage_eq_of_subset h₁],
-  exact inf_le_right,
-end
-
 end ring
 
 end submodule
@@ -2243,32 +2039,6 @@ lemma ker_comp_of_ker_eq_bot (f : M →ₛₗ[τ₁₂] M₂) {g : M₂ →ₛ�
 by rw [ker_comp, hg, submodule.comap_bot]
 
 end semiring
-
-section ring
-
-variables [ring R] [ring R₂] [ring R₃]
-variables [add_comm_monoid M] [add_comm_group M₂] [add_comm_monoid M₃]
-variables [module R M] [module R₂ M₂] [module R₃ M₃]
-variables {τ₁₂ : R →+* R₂} {τ₂₃ : R₂ →+* R₃} {τ₁₃ : R →+* R₃}
-variables [ring_hom_comp_triple τ₁₂ τ₂₃ τ₁₃] [ring_hom_surjective τ₁₂]
-
-lemma range_mkq_comp (f : M →ₛₗ[τ₁₂] M₂) : f.range.mkq.comp f = 0 :=
-linear_map.ext $ λ x, by simp
-
-lemma ker_le_range_iff {f : M →ₛₗ[τ₁₂] M₂} {g : M₂ →ₛₗ[τ₂₃] M₃} :
-  g.ker ≤ f.range ↔ f.range.mkq.comp g.ker.subtype = 0 :=
-by rw [←range_le_ker_iff, submodule.ker_mkq, submodule.range_subtype]
-
-/-- An epimorphism is surjective. -/
-lemma range_eq_top_of_cancel {f : M →ₛₗ[τ₁₂] M₂}
-  (h : ∀ (u v : M₂ →ₗ[R₂] f.range.quotient), u.comp f = v.comp f → u = v) : f.range = ⊤ :=
-begin
-  have h₁ : (0 : M₂ →ₗ[R₂] f.range.quotient).comp f = 0 := zero_comp _,
-  rw [←submodule.ker_mkq f.range, ←h 0 f.range.mkq (eq.trans h₁ (range_mkq_comp _).symm)],
-  exact ker_zero
-end
-
-end ring
 
 end linear_map
 
@@ -2811,38 +2581,6 @@ def comap_subtype_equiv_of_le {p q : submodule R M} (hpq : p ≤ q) :
 
 end module
 
-variables [ring R] [add_comm_group M] [module R M]
-variables (p : submodule R M)
-
-open linear_map
-
-/-- If `p = ⊥`, then `M / p ≃ₗ[R] M`. -/
-def quot_equiv_of_eq_bot (hp : p = ⊥) : p.quotient ≃ₗ[R] M :=
-linear_equiv.of_linear (p.liftq id $ hp.symm ▸ bot_le) p.mkq (liftq_mkq _ _ _) $
-  p.quot_hom_ext $ λ x, rfl
-
-@[simp] lemma quot_equiv_of_eq_bot_apply_mk (hp : p = ⊥) (x : M) :
-  p.quot_equiv_of_eq_bot hp (quotient.mk x) = x := rfl
-
-@[simp] lemma quot_equiv_of_eq_bot_symm_apply (hp : p = ⊥) (x : M) :
-  (p.quot_equiv_of_eq_bot hp).symm x = quotient.mk x := rfl
-
-@[simp] lemma coe_quot_equiv_of_eq_bot_symm (hp : p = ⊥) :
-  ((p.quot_equiv_of_eq_bot hp).symm : M →ₗ[R] p.quotient) = p.mkq := rfl
-
-variables (q : submodule R M)
-
-/-- Quotienting by equal submodules gives linearly equivalent quotients. -/
-def quot_equiv_of_eq (h : p = q) : p.quotient ≃ₗ[R] q.quotient :=
-{ map_add' := by { rintros ⟨x⟩ ⟨y⟩, refl }, map_smul' := by { rintros x ⟨y⟩, refl },
-  ..@quotient.congr _ _ (quotient_rel p) (quotient_rel q) (equiv.refl _) $
-    λ a b, by { subst h, refl } }
-
-@[simp]
-lemma quot_equiv_of_eq_mk (h : p = q) (x : M) :
-  submodule.quot_equiv_of_eq p q h (submodule.quotient.mk x) = submodule.quotient.mk x :=
-rfl
-
 end submodule
 
 namespace submodule
@@ -2902,13 +2640,6 @@ def compatible_maps : submodule R (N →ₗ[R] N₂) :=
                                  rw le_inf_iff, exact ⟨h₁, h₂⟩, },
   smul_mem' := λ c fₗ h, le_trans h (comap_le_comap_smul qₗ fₗ c), }
 
-/-- Given modules `M`, `M₂` over a commutative ring, together with submodules `p ⊆ M`, `q ⊆ M₂`,
-the natural map $\{f ∈ Hom(M, M₂) | f(p) ⊆ q \} \to Hom(M/p, M₂/q)$ is linear. -/
-def mapq_linear : compatible_maps pₗ qₗ →ₗ[R] pₗ.quotient →ₗ[R] qₗ.quotient :=
-{ to_fun    := λ f, mapq _ _ f.val f.property,
-  map_add'  := λ x y, by { ext, refl, },
-  map_smul' := λ c f, by { ext, refl, } }
-
 end submodule
 
 namespace equiv
@@ -2936,95 +2667,6 @@ rfl
 rfl
 
 end add_equiv
-
-namespace linear_map
-
-open submodule
-
-section isomorphism_laws
-
-variables [ring R] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃]
-variables [module R M] [module R M₂] [module R M₃]
-variables (f : M →ₗ[R] M₂)
-
-/-- The first isomorphism law for modules. The quotient of `M` by the kernel of `f` is linearly
-equivalent to the range of `f`. -/
-noncomputable def quot_ker_equiv_range : f.ker.quotient ≃ₗ[R] f.range :=
-(linear_equiv.of_injective (f.ker.liftq f $ le_refl _) $
-  ker_eq_bot.mp $ submodule.ker_liftq_eq_bot _ _ _ (le_refl f.ker)).trans
-  (linear_equiv.of_eq _ _ $ submodule.range_liftq _ _ _)
-
-/-- The first isomorphism theorem for surjective linear maps. -/
-noncomputable def quot_ker_equiv_of_surjective
-  (f : M →ₗ[R] M₂) (hf : function.surjective f) : f.ker.quotient ≃ₗ[R] M₂ :=
-f.quot_ker_equiv_range.trans
-  (linear_equiv.of_top f.range (linear_map.range_eq_top.2 hf))
-
-@[simp] lemma quot_ker_equiv_range_apply_mk (x : M) :
-  (f.quot_ker_equiv_range (submodule.quotient.mk x) : M₂) = f x :=
-rfl
-
-@[simp] lemma quot_ker_equiv_range_symm_apply_image (x : M) (h : f x ∈ f.range) :
-  f.quot_ker_equiv_range.symm ⟨f x, h⟩ = f.ker.mkq x :=
-f.quot_ker_equiv_range.symm_apply_apply (f.ker.mkq x)
-
-/--
-Canonical linear map from the quotient `p/(p ∩ p')` to `(p+p')/p'`, mapping `x + (p ∩ p')`
-to `x + p'`, where `p` and `p'` are submodules of an ambient module.
--/
-def quotient_inf_to_sup_quotient (p p' : submodule R M) :
-  (comap p.subtype (p ⊓ p')).quotient →ₗ[R] (comap (p ⊔ p').subtype p').quotient :=
-(comap p.subtype (p ⊓ p')).liftq
-  ((comap (p ⊔ p').subtype p').mkq.comp (of_le le_sup_left)) begin
-rw [ker_comp, of_le, comap_cod_restrict, ker_mkq, map_comap_subtype],
-exact comap_mono (inf_le_inf_right _ le_sup_left) end
-
-/--
-Second Isomorphism Law : the canonical map from `p/(p ∩ p')` to `(p+p')/p'` as a linear isomorphism.
--/
-noncomputable def quotient_inf_equiv_sup_quotient (p p' : submodule R M) :
-  (comap p.subtype (p ⊓ p')).quotient ≃ₗ[R] (comap (p ⊔ p').subtype p').quotient :=
-linear_equiv.of_bijective (quotient_inf_to_sup_quotient p p')
-  begin
-    rw [← ker_eq_bot, quotient_inf_to_sup_quotient, ker_liftq_eq_bot],
-    rw [ker_comp, ker_mkq],
-    exact λ ⟨x, hx1⟩ hx2, ⟨hx1, hx2⟩
-  end
-  begin
-    rw [← range_eq_top, quotient_inf_to_sup_quotient, range_liftq, eq_top_iff'],
-    rintros ⟨x, hx⟩, rcases mem_sup.1 hx with ⟨y, hy, z, hz, rfl⟩,
-    use [⟨y, hy⟩], apply (submodule.quotient.eq _).2,
-    change y - (y + z) ∈ p',
-    rwa [sub_add_eq_sub_sub, sub_self, zero_sub, neg_mem_iff]
-  end
-
-@[simp] lemma coe_quotient_inf_to_sup_quotient (p p' : submodule R M) :
-  ⇑(quotient_inf_to_sup_quotient p p') = quotient_inf_equiv_sup_quotient p p' := rfl
-
-@[simp] lemma quotient_inf_equiv_sup_quotient_apply_mk (p p' : submodule R M) (x : p) :
-  quotient_inf_equiv_sup_quotient p p' (submodule.quotient.mk x) =
-    submodule.quotient.mk (of_le (le_sup_left : p ≤ p ⊔ p') x) :=
-rfl
-
-lemma quotient_inf_equiv_sup_quotient_symm_apply_left (p p' : submodule R M)
-  (x : p ⊔ p') (hx : (x:M) ∈ p) :
-  (quotient_inf_equiv_sup_quotient p p').symm (submodule.quotient.mk x) =
-    submodule.quotient.mk ⟨x, hx⟩ :=
-(linear_equiv.symm_apply_eq _).2 $ by simp [of_le_apply]
-
-@[simp] lemma quotient_inf_equiv_sup_quotient_symm_apply_eq_zero_iff {p p' : submodule R M}
-  {x : p ⊔ p'} :
-  (quotient_inf_equiv_sup_quotient p p').symm (submodule.quotient.mk x) = 0 ↔ (x:M) ∈ p' :=
-(linear_equiv.symm_apply_eq _).trans $ by simp [of_le_apply]
-
-lemma quotient_inf_equiv_sup_quotient_symm_apply_right (p p' : submodule R M) {x : p ⊔ p'}
-  (hx : (x:M) ∈ p') :
-  (quotient_inf_equiv_sup_quotient p p').symm (submodule.quotient.mk x) = 0 :=
-quotient_inf_equiv_sup_quotient_symm_apply_eq_zero_iff.2 hx
-
-end isomorphism_laws
-
-end linear_map
 
 section fun_left
 variables (R M) [semiring R] [add_comm_monoid M] [module R M]
@@ -3213,35 +2855,5 @@ instance : is_modular_lattice (submodule R M) :=
   rw [← add_sub_cancel c b, add_comm],
   apply z.sub_mem haz (xz hb),
 end⟩
-
-section third_iso_thm
-
-variables (S T : submodule R M) (h : S ≤ T)
-
-/-- The map from the third isomorphism theorem for modules: `(M / S) / (T / S) → M / T`. -/
-def quotient_quotient_equiv_quotient_aux :
-  quotient (T.map S.mkq) →ₗ[R] quotient T :=
-liftq _ (mapq S T linear_map.id h)
-  (by { rintro _ ⟨x, hx, rfl⟩, rw [linear_map.mem_ker, mkq_apply, mapq_apply],
-        exact (quotient.mk_eq_zero _).mpr hx })
-
-@[simp] lemma quotient_quotient_equiv_quotient_aux_mk (x : S.quotient) :
-  quotient_quotient_equiv_quotient_aux S T h (quotient.mk x) = mapq S T linear_map.id h x :=
-liftq_apply _ _ _
-
-@[simp] lemma quotient_quotient_equiv_quotient_aux_mk_mk (x : M) :
-  quotient_quotient_equiv_quotient_aux S T h (quotient.mk (quotient.mk x)) = quotient.mk x :=
-by rw [quotient_quotient_equiv_quotient_aux_mk, mapq_apply, linear_map.id_apply]
-
-/-- **Noether's third isomorphism theorem** for modules: `(M / S) / (T / S) ≃ M / T`. -/
-def quotient_quotient_equiv_quotient :
-  quotient (T.map S.mkq) ≃ₗ[R] quotient T :=
-{ to_fun := quotient_quotient_equiv_quotient_aux S T h,
-  inv_fun := mapq _ _ (mkq S) (le_comap_map _ _),
-  left_inv := λ x, quotient.induction_on' x $ λ x, quotient.induction_on' x $ λ x, by simp,
-  right_inv := λ x, quotient.induction_on' x $ λ x, by simp,
-  .. quotient_quotient_equiv_quotient_aux S T h }
-
-end third_iso_thm
 
 end submodule

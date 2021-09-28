@@ -248,7 +248,7 @@ lemma monoid_with_zero_hom.map_fpow {G₀ G₀' : Type*} [group_with_zero G₀] 
 | (n : ℕ) := by { rw [gpow_coe_nat, gpow_coe_nat], exact f.to_monoid_hom.map_pow x n }
 | -[1+n] := begin
     rw [gpow_neg_succ_of_nat, gpow_neg_succ_of_nat],
-    exact ((f.map_inv' _).trans $ congr_arg _ $ f.to_monoid_hom.map_pow x _)
+    exact ((f.map_inv₀ _).trans $ congr_arg _ $ f.to_monoid_hom.map_pow x _)
   end
 
 -- I haven't been able to find a better home for this:

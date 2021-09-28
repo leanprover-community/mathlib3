@@ -34,15 +34,15 @@ variables [linear_ordered_field α] {a b c d e : α}
 
 section
 
-/-- `equiv.mul_left'` as an order_iso. -/
+/-- `equiv.mul_left₀` as an order_iso. -/
 @[simps {simp_rhs := tt}]
-def order_iso.mul_left' (a : α) (ha : 0 < a) : α ≃o α :=
-{ map_rel_iff' := λ _ _, mul_le_mul_left ha, ..equiv.mul_left' a ha.ne' }
+def order_iso.mul_left₀ (a : α) (ha : 0 < a) : α ≃o α :=
+{ map_rel_iff' := λ _ _, mul_le_mul_left ha, ..equiv.mul_left₀ a ha.ne' }
 
-/-- `equiv.mul_right'` as an order_iso. -/
+/-- `equiv.mul_right₀` as an order_iso. -/
 @[simps {simp_rhs := tt}]
-def order_iso.mul_right' (a : α) (ha : 0 < a) : α ≃o α :=
-{ map_rel_iff' := λ _ _, mul_le_mul_right ha, ..equiv.mul_right' a ha.ne' }
+def order_iso.mul_right₀ (a : α) (ha : 0 < a) : α ≃o α :=
+{ map_rel_iff' := λ _ _, mul_le_mul_right ha, ..equiv.mul_right₀ a ha.ne' }
 
 end
 
@@ -692,7 +692,7 @@ lemma abs_one_div (a : α) : abs (1 / a) = 1 / abs a :=
 by rw [abs_div, abs_one]
 
 lemma abs_inv (a : α) : abs a⁻¹ = (abs a)⁻¹ :=
-(abs_hom : monoid_with_zero_hom α α).map_inv' a
+(abs_hom : monoid_with_zero_hom α α).map_inv₀ a
 
 -- TODO: add lemmas with `a⁻¹`.
 lemma one_div_strict_anti_on : strict_anti_on (λ x : α, 1 / x) (set.Ioi 0) :=

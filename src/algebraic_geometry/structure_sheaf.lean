@@ -800,17 +800,17 @@ def basic_open_iso (f : R) : (structure_sheaf R).presheaf.obj (op (basic_open f)
 (as_iso (show CommRing.of _ ⟶ _, from to_basic_open R f)).symm
 
 @[elementwise] lemma to_global_factors : to_open R ⊤ =
-  @category_struct.comp CommRing _ (CommRing.of R) (CommRing.of _) (CommRing.of _)
-    (show CommRing.of _ ⟶ CommRing.of _, from (algebra_map R (localization.away (1 : R))))
-  (to_basic_open R (1 : R)) ≫  (structure_sheaf R).presheaf.map (eq_to_hom (by simp)).op :=
+  (CommRing.of_hom (algebra_map R (localization.away (1 : R)))) ≫ (to_basic_open R (1 : R)) ≫
+  (structure_sheaf R).presheaf.map (eq_to_hom (basic_open_one.symm)).op :=
 begin
   change to_open R ⊤ = (to_basic_open R 1).comp _ ≫ _,
+  unfold CommRing.of_hom,
   rw [localization_to_basic_open R, to_open_res],
 end
 
 instance is_iso_to_global : is_iso (to_open R ⊤) :=
 begin
-  let hom : CommRing.of _ ⟶ CommRing.of _ := algebra_map R (localization.away (1 : R)),
+  let hom := CommRing.of_hom (algebra_map R (localization.away (1 : R))),
   haveI : is_iso hom := is_iso.of_iso
     ((is_localization.at_one R (localization.away (1 : R))).to_ring_equiv.to_CommRing_iso),
   rw to_global_factors R,

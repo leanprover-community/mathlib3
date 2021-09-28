@@ -127,6 +127,9 @@ attribute [derive [has_coe_to_sort, large_category, concrete_category]] CommRing
 /-- Construct a bundled CommRing from the underlying type and typeclass. -/
 def of (R : Type u) [comm_ring R] : CommRing := bundled.of R
 
+/-- Construct a bundled hom from the underlying ring_hom. -/
+def of_hom {R S : Type u} [comm_ring R] [comm_ring S] (f : R →+* S) : of R ⟶ of S := f
+
 instance : inhabited CommRing := ⟨of punit⟩
 
 instance (R : CommRing) : comm_ring R := R.str

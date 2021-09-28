@@ -286,7 +286,7 @@ begin
   obtain ⟨C, (Cpos : 0 < C), hC⟩ := h.bound,
   rw continuous_iff_continuous_at,
   intros x,
-  have H :  ∀ (a:E) (b:F), ∥f (a, b)∥ ≤ C * ∥∥a∥ * ∥b∥∥,
+  have H : ∀ (a:E) (b:F), ∥f (a, b)∥ ≤ C * ∥∥a∥ * ∥b∥∥,
   { intros a b,
     simpa [mul_assoc] using hC a b },
   have h₁ : asymptotics.is_o (λ e : E × F, f (e.1 - x.1, e.2)) (λ e, (1:ℝ)) (𝓝 x),

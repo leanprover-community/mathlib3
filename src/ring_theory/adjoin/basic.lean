@@ -26,12 +26,11 @@ adjoin, algebra, finitely-generated algebra
 
 universes u v w
 
-open submodule
 open_locale pointwise
 
-namespace algebra
-
 variables {R : Type u} {A : Type v} {B : Type w}
+
+namespace algebra
 
 section semiring
 variables [comm_semiring R] [semiring A] [semiring B]
@@ -76,6 +75,7 @@ show adjoin R ⊥ = ⊥, by { apply galois_connection.l_bot, exact algebra.gc }
 eq_top_iff.2 $ λ x, subset_adjoin $ set.mem_univ _
 
 variables (R) {A} (s)
+open submodule
 
 theorem adjoin_eq_span : (adjoin R s).to_submodule = span R (submonoid.closure s) :=
 begin
@@ -230,3 +230,15 @@ subring.ext $ λ x, mem_adjoin_iff
 end ring
 
 end algebra
+
+open algebra subalgebra
+
+namespace alg_hom
+
+variables [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B]
+
+lemma map_adjoin (φ : A →ₐ[R] B) (s : set A) :
+  (adjoin R s).map φ = adjoin R (φ '' s) :=
+eq_of_forall_ge_iff $ λ c, by simp only [map_le, adjoin_le_iff, coe_comap, set.image_subset_iff]
+
+end alg_hom

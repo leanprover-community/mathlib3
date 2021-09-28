@@ -35,59 +35,50 @@ open set
 open_locale big_operators classical
 
 namespace finset
-
-/-- Linear combination of a finite collection of points with prescribed weights. -/
-def linear_combination {𝕜 E ι : Type*} [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E]
-  (s : finset ι) (p : ι → E) (w : ι → 𝕜) : E :=
-∑ i in s, w i • p i
-
 section ordered_semiring
 variables {𝕜 E ι ι' : Type*} [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E]
   (i j : ι) (c : 𝕜) (s : finset ι) (p : ι → E) (w : ι → 𝕜)
 
-lemma linear_combination_empty : (∅ : finset ι).linear_combination p w = 0 :=
-by simp only [linear_combination, sum_empty, smul_zero]
-
 lemma linear_combination_pair (hne : i ≠ j) :
-  ({i, j} : finset ι).linear_combination p w = w i • p i + w j • p j :=
-by rw [linear_combination, sum_pair hne]
+  ({i, j} : finset ι).sum (w • p) = w i • p i + w j • p j :=
+by rw [sum_pair hne, pi.smul_apply', pi.smul_apply']
 
 variable {w}
 
 lemma linear_combination_singleton :
-  ({i} : finset ι).linear_combination p w = w i • p i :=
-by rw [linear_combination, sum_singleton]
+  ({i} : finset ι).sum (w • p) = w i • p i :=
+by rw [sum_singleton, pi.smul_apply']
 
 lemma linear_combination_insert (ha : i ∉ s) :
-  (insert i s).linear_combination p w = w i • p i + s.linear_combination p w :=
-by rw [linear_combination, linear_combination, sum_insert ha]
-
-lemma linear_combination_const_left (x : E) :
-  s.linear_combination (λ _, x) w = (∑ i in s, w i) • x :=
-by rw [linear_combination, finset.sum_smul]
+  (insert i s).sum (w • p) = w i • p i + s.sum (w • p) :=
+by rw [sum_insert ha, pi.smul_apply']
 
 /-- A convex combination of two centers of mass is a center of mass as well. This version
 deals with two different index types. -/
 lemma linear_combination_segment' (s : finset ι) (t : finset ι') (ws : ι → 𝕜) (ps : ι → E)
   (wt : ι' → 𝕜) (pt : ι' → E) (a b : 𝕜) :
-  a • s.linear_combination ps ws + b • t.linear_combination pt wt =
-    (s.map function.embedding.inl ∪ t.map function.embedding.inr).linear_combination
-      (sum.elim ps pt)
-      (sum.elim (λ i, a * ws i) (λ j, b * wt j)) :=
+  a • s.sum (ws • ps) + b • t.sum (wt • pt) =
+    (s.map function.embedding.inl ∪ t.map function.embedding.inr).sum
+      ((sum.elim (a • ws) (b • wt)) • (sum.elim ps pt)) :=
 begin
-  unfold linear_combination,
   rw [smul_sum, smul_sum, ← sum_sum_elim],
-  { congr' with ⟨⟩; simp only [sum.elim_inl, sum.elim_inr, mul_smul] }
+  congr' with ⟨⟩,
+  { simp_rw [pi.smul_apply', sum.elim_inl, pi.smul_apply, smul_assoc] },
+  { simp_rw [pi.smul_apply', sum.elim_inr, pi.smul_apply, smul_assoc] }
 end
 
 /-- A convex combination of two centers of mass is a center of mass as well. This version
 works if two centers of mass share the set of original points. -/
 lemma linear_combination_segment (s : finset ι) (w₁ w₂ : ι → 𝕜) (p : ι → E) (a b : 𝕜) :
-  a • s.linear_combination p w₁ + b • s.linear_combination p w₂ =
-    s.linear_combination p (λ i, a * w₁ i + b * w₂ i) :=
+  a • s.sum (w₁ • p) + b • s.sum (w₂ • p) =
+    s.sum ((a • w₁ + b • w₂) • p) :=
 begin
-  unfold linear_combination,
-  simp only [linear_combination, smul_sum, sum_add_distrib, add_smul, mul_smul, *],
+  rw [add_smul],
+  change _ = ∑ x in s, _,
+  rw [sum_add_distrib, smul_sum, smul_sum],
+  simp_rw [smul_assoc],
+  simp_rw [←smul_assoc],
+  refl,
 end
 
 lemma linear_combination_ite_eq (hi : i ∈ s) :
@@ -100,21 +91,21 @@ begin
 end
 
 lemma linear_combination_smul_right :
-  s.linear_combination p (c • w) = c • s.linear_combination p w :=
-by simp_rw [linear_combination, smul_sum, pi.smul_apply, smul_assoc]
+  s.linear_combination p (c • w) = c • s.sum (w • p) :=
+by simp_rw [smul_sum, pi.smul_apply, smul_assoc]
 
 variables {s w}
 
 lemma linear_combination_subset {t : finset ι} (ht : s ⊆ t)
   (h : ∀ i ∈ t, i ∉ s → w i = 0) :
-  s.linear_combination p w = t.linear_combination p w :=
+  s.sum (w • p) = t.sum (w • p) :=
 begin
-  rw [linear_combination, linear_combination],
+  rw [linear_combination],
   exact sum_subset ht (λ i hit his, by rw [h i hit his, zero_smul]),
 end
 
 lemma linear_combination_filter_ne_zero :
-  (s.filter (λ i, w i ≠ 0)).linear_combination p w = s.linear_combination p w :=
+  (s.filter (λ i, w i ≠ 0)).sum (w • p) = s.sum (w • p) :=
 linear_combination_subset p (filter_subset _ _) $ λ i hit hit',
   by simpa only [hit, mem_filter, true_and, ne.def, not_not] using hit'
 
@@ -127,8 +118,8 @@ variables {𝕜 E ι ι' : Type*} [ordered_comm_semiring 𝕜] [add_comm_monoid 
   (c : 𝕜) (s : finset ι) (p : ι → E) {w : ι → 𝕜}
 
 lemma linear_combination_smul_left :
-  s.linear_combination (c • p) w = c • s.linear_combination p w :=
-by simp_rw [linear_combination, smul_sum, pi.smul_apply, smul_comm c]
+  s.linear_combination (c • p) w = c • s.sum (w • p) :=
+by simp_rw [smul_sum, pi.smul_apply, smul_comm c]
 
 end ordered_comm_semiring
 
@@ -137,13 +128,13 @@ variables {𝕜 E ι ι' : Type*} [linear_ordered_field 𝕜] [add_comm_monoid E
   {s : set E} {t : finset ι} {p : ι → E} {w : ι → 𝕜}
 
 lemma linear_combination_normalize  (hw : ∑ i in t, w i ≠ 0) :
-  t.linear_combination p w = (∑ i in t, w i) • t.linear_combination p ((∑ i in t, w i)⁻¹ • w) :=
+  t.sum (w • p) = (∑ i in t, w i) • t.linear_combination p ((∑ i in t, w i)⁻¹ • w) :=
 by rw [linear_combination_smul_right, smul_inv_smul' hw]
 
 /-- The linear combination of a finite subset of a convex set belongs to the set
 provided that all weights are non-negative, and the total weight is `1`. -/
 lemma _root_.convex.linear_combination_mem (hs : convex 𝕜 s) :
-  (∀ i ∈ t, 0 ≤ w i) → (∑ i in t, w i = 1) → (∀ i ∈ t, p i ∈ s) → t.linear_combination p w ∈ s :=
+  (∀ i ∈ t, 0 ≤ w i) → (∑ i in t, w i = 1) → (∀ i ∈ t, p i ∈ s) → t.sum (w • p) ∈ s :=
 begin
   induction t using finset.induction with i t hi ht generalizing w, { simp [lt_irrefl] },
   intros h₀ h₁ hmem,
@@ -153,7 +144,7 @@ begin
   rw linear_combination_insert _ _ _ hi,
   by_cases hsum_t : ∑ j in t, w j = 0,
   { have wt : ∀ j ∈ t, w j = 0, from (sum_eq_zero_iff_of_nonneg ht₀).1 hsum_t,
-    have wp : t.linear_combination p w = 0, from sum_eq_zero (λ i hi, by simp [wt i hi]),
+    have wp : t.sum (w • p) = 0, from sum_eq_zero (λ i hi, by simp [wt i hi]),
     rw [hsum_t, add_zero] at h₁,
     rw [wp, add_zero, h₁, one_smul],
     exact hpi },
@@ -167,7 +158,7 @@ end
 
 lemma _root_.convex.linear_combination_mem' (hs : convex 𝕜 s) (h₀ : ∀ i ∈ t, 0 ≤ w i)
   (h₁ : ∑ i in t, w i ≠ 0) (hp : ∀ i ∈ t, p i ∈ s) :
-  (∑ i in t, w i)⁻¹ • t.linear_combination p w ∈ s :=
+  (∑ i in t, w i)⁻¹ • t.sum (w • p) ∈ s :=
 begin
   rw [linear_combination_normalize h₁, inv_smul_smul' h₁],
   refine hs.linear_combination_mem (λ i hi, mul_nonneg (inv_nonneg.2 $ sum_nonneg h₀)
@@ -195,7 +186,7 @@ end
 
 lemma linear_combination_mem_convex_hull (t : finset ι) {w : ι → 𝕜} (hw₀ : ∀ i ∈ t, 0 ≤ w i)
   (hwt : ∑ i in t, w i = 1) {p : ι → E} (hp : ∀ i ∈ t, p i ∈ s) :
-  t.linear_combination p w ∈ convex_hull 𝕜 s :=
+  t.sum (w • p) ∈ convex_hull 𝕜 s :=
 (convex_convex_hull 𝕜 s).linear_combination_mem hw₀ hwt (λ i hi, subset_convex_hull 𝕜 s $ hp i hi)
 
 -- TODO : Do we need other versions of the next lemma?
@@ -205,13 +196,13 @@ where `p '' t ⊆ s`. This version allows finsets in any type in any universe. -
 lemma _root_.convex_hull_eq (s : set E) :
   convex_hull 𝕜 s = {x : E | ∃ (ι : Type*) (t : finset ι) (w : ι → 𝕜) (p : ι → E)
     (hw₀ : ∀ i ∈ t, 0 ≤ w i) (hw₁ : ∑ i in t, w i = 1) (hp : ∀ i ∈ t, p i ∈ s),
-    t.linear_combination p w = x} :=
+    t.sum (w • p) = x} :=
 begin
   refine (convex_hull_min _ _).antisymm _,
   { intros x hx,
     use [punit, {punit.star}, λ _, 1, λ _, x, λ _ _, zero_le_one,
       finset.sum_singleton, λ _ _, hx],
-    simp only [finset.linear_combination, finset.sum_singleton, inv_one, one_smul] },
+    simp only [finset.sum_singleton, inv_one, one_smul] },
   { rintros x y ⟨ι, sx, wx, zx, hwx₀, hwx₁, hzx, rfl⟩ ⟨ι', sy, wy, zy, hwy₀, hwy₁, hzy, rfl⟩
       a b ha hb hab,
     rw [finset.linear_combination_segment' _ _ _ _ _ _ _ _],

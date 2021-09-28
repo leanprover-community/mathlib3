@@ -66,6 +66,12 @@ rfl
 variables {s s₁ s₂ : set α} {t t₁ t₂ : set β} {p : set γ} {f f₁ f₂ f₃ : α → β} {g : β → γ}
   {f' f₁' f₂' : β → α} {g' : γ → β}
 
+@[simp] lemma injective_cod_restrict (h : ∀ x, f x ∈ t) :
+  injective (cod_restrict f t h) ↔ injective f :=
+by simp only [injective, subtype.ext_iff, coe_cod_restrict_apply]
+
+alias injective_cod_restrict ↔ _ function.injective.cod_restrict
+
 /-! ### Equality on a set -/
 
 /-- Two functions `f₁ f₂ : α → β` are equal on `s`

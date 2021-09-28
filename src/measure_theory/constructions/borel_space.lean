@@ -439,7 +439,7 @@ begin
     intro x,
     by_cases hnlb : ∀ x : α, ∃ y, y < x,
     { haveI : no_bot_order α := ⟨hnlb⟩,
-      rw ← Union_Ico_dense_seq x,
+      rw ← Union_Ico_dense_seq_eq_Iio x,
       refine @measurable_set.Union _ _ (generate_from {S | ∃ l u, l < u ∧ Ico l u = S}) _ _ _,
       intro n,
       by_cases hlt : dense_seq α n < x,
@@ -490,7 +490,7 @@ begin
   { exact ⟨u, l, hlt, dual_Ioc⟩ }
 end
 
-/-- Two measures on a Borel space are equal if they agree on all closed-open intervals. -/
+/-- Two finite measures on a Borel space are equal if they agree on all closed-open intervals. -/
 lemma ext_of_Ico {α : Type*} [nonempty α] [topological_space α] {m : measurable_space α}
   [second_countable_topology α] [linear_order α] [order_topology α] [borel_space α]
   (μ ν : measure α) [is_finite_measure μ] (hμν : μ univ = ν univ)
@@ -502,7 +502,46 @@ begin
     exact h hlt }
 end
 
-/-- Two measures on a Borel space are equal if they agree on all open-closed intervals. -/
+/-- Two measures which are finite on closed-open intervals are equal if the agree on all
+closed-open intervals. -/
+lemma ext_of_Ico' {α : Type*} [hα : nonempty α] [topological_space α] {m : measurable_space α}
+  [second_countable_topology α] [linear_order α] [order_topology α] [borel_space α]
+  [no_top_order α] [no_bot_order α]
+  (μ ν : measure α) (hμ : ∀ ⦃a b⦄, a < b → μ (Ico a b) ≠ ∞)
+  (h : ∀ ⦃a b⦄, a < b → μ (Ico a b) = ν (Ico a b)) : μ = ν :=
+begin
+  refine measure.ext_of_generate_from_of_cover
+    ((borel_eq_generate_Ico α ▸ borel_space.measurable_eq) :
+      ‹_› = measurable_space.generate_from {S | ∃ l u, l < u ∧ Ico l u = S})
+    (countable_Ico_dense_seq hα.some) (is_pi_system_Ico α) _
+    (sUnion_Ico_dense_seq hα.some) _ _ _,
+  { rintro - ⟨n, (rfl | rfl)⟩;
+    { apply measurable_set_Ico } },
+  { rintro - ⟨n, (rfl | rfl)⟩,
+    { by_cases hlt : dense_seq α n < hα.some,
+      { exact hμ hlt },
+      { simp [Ico_eq_empty hlt] } },
+    { by_cases hlt : hα.some < dense_seq α n,
+      { exact hμ hlt },
+      { simp [Ico_eq_empty hlt] } } },
+  { rintro - ⟨n₁, (rfl | rfl)⟩ - ⟨l, u, hlt, rfl⟩;
+    rw Ico_inter_Ico,
+    { by_cases hlt : l ⊔ dense_seq α n₁ < u ⊓ hα.some,
+      { exact h hlt },
+      { simp [Ico_eq_empty hlt] } },
+    { by_cases hlt : l ⊔ hα.some < u ⊓ dense_seq α n₁,
+      { exact h hlt },
+      { simp [Ico_eq_empty hlt] } } },
+  { rintro - ⟨n, (rfl | rfl)⟩,
+    { by_cases hlt : dense_seq α n < hα.some,
+      { exact h hlt },
+      { simp [Ico_eq_empty hlt] } },
+    { by_cases hlt : hα.some < dense_seq α n,
+      { exact h hlt },
+      { simp [Ico_eq_empty hlt] } } }
+end
+
+/-- Two finite measures on a Borel space are equal if they agree on all open-closed intervals. -/
 lemma ext_of_Ioc {α : Type*} [nonempty α] [topological_space α] {m : measurable_space α}
   [second_countable_topology α] [linear_order α] [order_topology α] [borel_space α]
   (μ ν : measure α) [is_finite_measure μ] (hμν : μ univ = ν univ)
@@ -514,7 +553,26 @@ begin
     exact h hlt }
 end
 
-/-- Two measures on a Borel space are equal if they agree on all left-infinite right-closed
+/-- Two measures which are finite on open-closed intervals are equal if the agree on all
+open-closed intervals. -/
+lemma ext_of_Ioc' {α : Type*} [hα : nonempty α] [topological_space α] {m : measurable_space α}
+  [second_countable_topology α] [linear_order α] [order_topology α] [borel_space α]
+  [no_top_order α] [no_bot_order α]
+  (μ ν : measure α) (hμ : ∀ ⦃a b⦄, a < b → μ (Ioc a b) ≠ ∞)
+  (h : ∀ ⦃a b⦄, a < b → μ (Ioc a b) = ν (Ioc a b)) : μ = ν :=
+begin
+  convert @ext_of_Ico' (order_dual α) _ _ _
+    (infer_instance : second_countable_topology α) _ _
+    (infer_instance : borel_space α) _ _ μ ν _ _,
+  { intros a b hlt,
+    rw ← dual_Ioc,
+    exact hμ hlt },
+  { intros a b hlt,
+    rw ← dual_Ioc,
+    exact h hlt }
+end
+
+/-- Two finite measures on a Borel space are equal if they agree on all left-infinite right-closed
 intervals. -/
 lemma ext_of_Iic {α : Type*} [nonempty α] [topological_space α] {m : measurable_space α}
   [second_countable_topology α] [linear_order α] [order_topology α] [borel_space α]
@@ -528,7 +586,7 @@ begin
   { exact (measure_lt_top μ _).ne }
 end
 
-/-- Two measures on a Borel space are equal if they agree on all left-closed right-open
+/-- Two finite measures on a Borel space are equal if they agree on all left-closed right-open
 intervals. -/
 lemma ext_of_Ici {α : Type*} [nonempty α] [topological_space α] {m : measurable_space α}
   [second_countable_topology α] [linear_order α] [order_topology α] [borel_space α]

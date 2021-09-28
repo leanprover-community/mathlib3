@@ -1125,7 +1125,7 @@ lemma exists_dense_seq_lt {α : Type*} [nonempty α] [topological_space α] [sep
   ∃ n, dense_seq α n < x :=
 exists_dense_seq_mem α (no_bot x) is_open_Iio
 
-lemma Union_Ico_dense_seq {α : Type*} [nonempty α] [topological_space α] [separable_space α]
+lemma Union_Ico_dense_seq_eq_Iio {α : Type*} [nonempty α] [topological_space α] [separable_space α]
   [linear_order α] [order_topology α] [no_bot_order α] (x : α) :
   (⋃ n, Ico (dense_seq α n) x) = Iio x :=
 begin
@@ -1143,6 +1143,57 @@ lemma exists_dense_seq_gt {α : Type*} [nonempty α] [topological_space α] [sep
   [linear_order α] [order_topology α] [no_top_order α] (x : α) :
   ∃ n, x < dense_seq α n :=
 exists_dense_seq_mem α (no_top x) is_open_Ioi
+
+lemma Union_Ico_dense_seq_eq_Ici {α : Type*} [nonempty α] [topological_space α] [separable_space α]
+  [linear_order α] [order_topology α] [no_top_order α] (x : α) :
+  (⋃ n, Ico x (dense_seq α n)) = Ici x :=
+begin
+  ext y,
+  rw [mem_Ici, mem_Union],
+  split,
+  { rintro ⟨n, hmem⟩,
+    exact hmem.1 },
+  { intro h,
+    obtain ⟨n, hn⟩ := exists_dense_seq_gt y,
+    exact ⟨n, h, hn⟩ }
+end
+
+lemma Union_Ico_dense_seq {α : Type*} [nonempty α] [topological_space α] [separable_space α]
+  [linear_order α] [order_topology α] [no_top_order α] [no_bot_order α] (x : α) :
+  (⋃ n, Ico (dense_seq α n) x) ∪ (⋃ n, Ico x (dense_seq α n)) = univ :=
+by rw [Union_Ico_dense_seq_eq_Iio, Union_Ico_dense_seq_eq_Ici, Iio_union_Ici]
+
+lemma sUnion_Ico_dense_seq {α : Type*} [nonempty α] [topological_space α] [separable_space α]
+  [linear_order α] [order_topology α] [no_top_order α] [no_bot_order α] (x : α) :
+  ⋃₀ {S : set α | ∃ n, S = Ico (dense_seq α n) x ∨ S = Ico x (dense_seq α n)} = univ :=
+begin
+  rw [← Union_Ico_dense_seq x, ← Union_union_distrib],
+  ext y,
+  rw [mem_sUnion, mem_Union],
+  split,
+  { rintro ⟨-, ⟨n, (rfl | rfl)⟩, hxt⟩,
+    { exact ⟨n, or.inl hxt⟩ },
+    { exact ⟨n, or.inr hxt⟩ } },
+  { rintro ⟨n, (hn | hn)⟩,
+    { exact ⟨_, ⟨n, or.inl rfl⟩, hn⟩ },
+    { exact ⟨_, ⟨n, or.inr rfl⟩, hn⟩ } }
+end
+
+lemma countable_Ico_dense_seq {α : Type*} [nonempty α] [topological_space α] [separable_space α]
+  [preorder α] (x : α) :
+  countable {S : set α | ∃ n, S = Ico (dense_seq α n) x ∨ S = Ico x (dense_seq α n)} :=
+begin
+  suffices : {S : set α | ∃ n, S = Ico (dense_seq α n) x ∨ S = Ico x (dense_seq α n)} =
+    ⋃ n, {S : set α | S = Ico (dense_seq α n) x} ∪ {S : set α | S = Ico x (dense_seq α n)},
+  { rw this,
+    exact countable_Union (λ n, countable.union (countable_singleton _) (countable_singleton _)) },
+  ext y,
+  rw mem_Union,
+  split;
+  { rintro ⟨n, (hn | hn)⟩,
+    { exact ⟨n, or.inl hn⟩ },
+    { exact ⟨n, or.inr hn⟩ } }
+end
 
 /-- A set is a neighborhood of `a` if and only if it contains an interval `(l, u)` containing `a`,
 provided `a` is neither a bottom element nor a top element. -/

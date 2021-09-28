@@ -73,8 +73,8 @@ variables {M : Type*} [add_comm_monoid M] [topological_space M]
 
 include m
 
-instance : has_coe_to_fun (vector_measure α M) :=
-⟨λ _, set α → M, vector_measure.measure_of'⟩
+instance : has_coe_to_fun (vector_measure α M) (λ _, set α → M) :=
+⟨vector_measure.measure_of'⟩
 
 initialize_simps_projections vector_measure (measure_of' → apply)
 

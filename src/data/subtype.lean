@@ -38,10 +38,6 @@ lemma prop (x : subtype p) : p x := x.2
 
 @[simp] lemma val_eq_coe {x : subtype p} : x.1 = ↑x := rfl
 
-@[simp] lemma subtype_val_eq_coe {α : Sort*} {p : α → Prop} :
-  subtype.val = (coe : subtype p → α) :=
-rfl
-
 @[simp] protected theorem «forall» {q : {a // p a} → Prop} :
   (∀ x, q x) ↔ (∀ a b, q ⟨a, b⟩) :=
 ⟨assume h a b, h ⟨a, b⟩, assume h ⟨a, b⟩, h a b⟩

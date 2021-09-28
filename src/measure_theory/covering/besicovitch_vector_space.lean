@@ -3,34 +3,191 @@ Copyright (c) 2021 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import topology.metric_space.basic
-import tactic.induction
-import analysis.normed_space.basic
-import analysis.normed_space.finite_dimension
+
 import measure_theory.measure.haar_lebesgue
 
 /-!
-# Besicovitch covering lemma
+# Satellite configurations for Besicovitch covering lemma in vector spaces
 
-We show that vector spaces have a bounded cardinality of satellite configurations
+The Besicovitch covering theorem ensures that, in a nice metric space, there exists a number `N`
+such that, from any family of balls with bounded radii, one can extract `N` families, each made of
+disjoint balls, covering together all the centers of the initial family.
+
+A key tool in the proof of this theorem is the notion of a satellite configuration, i.e., a family
+of `N + 1` balls, where the first `N` balls all intersect the last one, but none of them contains
+the center of another one and their radii are controlled. This is a technical notion, but it shows
+up naturally in the proof of the Besicovitch theorem (which goes through a greedy algorithm): to
+ensure that in the end one needs at most `N` families of balls, the crucial property of the
+underlying metric space is that there should be no satellite configuration of `N + 1` points.
+
+This file is devoted to the study of this property in vector spaces: we prove the main result
+of [Füredi and Loeb, On the best constant for the Besicovitch covering theorem][furedi-loeb1994],
+which shows that the optimal such `N` in a vector space coincides with the maximal number
+of points one can put inside the unit ball of radius `2` under the condition that their distances
+are bounded below by `1`.
+In particular, this number is bounded by `5 ^ dim` by a straightforward measure argument.
+
+## Main definitions and results
+
+* `satellite_config α N τ` is the type of all satellite configurations of `N+1` points
+  in the metric space `α`, with parameter `τ`.
+* `has_besicovitch_covering` is a class recording that there exist `N` and `τ > 1` such that
+  there is no satellite configuration of `N+1` points with parameter `τ`. We show that
+  finite-dimensional real vector spaces satisfy this property.
+* `multiplicity E` is the maximal number of points one can put inside the unit ball
+  of radius `2` in the vector space `E`, under the condition that their distances
+  are bounded below by `1`.
+* `multiplicity_le E` shows that `multiplicity E ≤ 5 ^ (dim E)`.
+* `good_τ E` is a constant `> 1`, but close enough to `1` that satellite configurations
+  with this parameter `τ` are not worst than for `τ = 1`.
+* `is_empty_satellite_config_multiplicity` is the main theorem, saying that there are
+  no satellite configurations of `(multiplicity E) + 1` points, for the parameter `good_τ E`.
 -/
 
 universe u
-open metric set finite_dimensional measure_theory filter
+open metric set finite_dimensional measure_theory filter fin
 
 open_locale ennreal topological_space
 
 noncomputable theory
 
+/-- A satellite configuration is a configuration of `N+1` points that shows up in the inductive
+construction for the Besicovitch covering theorem. It depends on some parameter `τ ≥ 1`.
+
+This is a family of balls (indexed by `i : fin N.succ`, with center `c i` and radius `r i`) such
+that the last ball intersects all the other balls (condition `inter`),
+and given any two balls there is an order between them, ensuring that the first ball does not
+contain the center of the other one, and the radius of the second ball can not be larger than
+the radius of the first ball (up to a factor `τ`). This order corresponds to the order of choice
+in the inductive construction: otherwise, the second ball would have been chosen before.
+This is the  condition `h`.
+
+Finally, the last ball is chosen after all the other ones, meaning that `h` can be strengthened
+by keeping only one side of the alternative in `hlast`.
+-/
+@[nolint has_inhabited_instance]
+structure besicovitch.satellite_config (α : Type*) [metric_space α] (N : ℕ) (τ : ℝ) :=
+(c : fin N.succ → α)
+(r : fin N.succ → ℝ )
+(rpos : ∀ i, 0 < r i)
+(h : ∀ i j, i ≠ j → (r i ≤ dist (c i) (c j) ∧ r j ≤ τ * r i) ∨
+                    (r j ≤ dist (c j) (c i) ∧ r i ≤ τ * r j))
+(hlast : ∀ i < last N, r i ≤ dist (c i) (c (last N)) ∧ r (last N) ≤ τ * r i)
+(inter : ∀ i < last N, dist (c i) (c (last N)) ≤ r i + r (last N))
+
+/-- A metric space has the Besicovitch covering property if there exist `N` and `τ > 1` such that
+there are no satellite configuration of parameter `τ` with `N+1` points. This is the condition that
+guarantees that the Besicovitch covering theorem holds. It is satified by finite-dimensional
+real vector spaces. -/
+class has_besicovitch_covering (α : Type*) [metric_space α] : Prop :=
+(no_satellite_config : ∃ (N : ℕ) (τ : ℝ), 1 < τ ∧ is_empty (besicovitch.satellite_config α N τ))
+
 namespace besicovitch
+
+
+variables {E : Type*} [normed_group E]
+
+namespace satellite_config
+variables {N : ℕ} {τ : ℝ} (a : satellite_config E N τ)
+
+lemma inter' (i : fin N.succ) : dist (a.c i) (a.c (last N)) ≤ a.r i + a.r (last N) :=
+begin
+  rcases lt_or_le i (last N) with H|H,
+  { exact a.inter i H },
+  { have I : i = last N := top_le_iff.1 H,
+    have := (a.rpos (last N)).le,
+    simp only [I, add_nonneg this this, dist_self] }
+end
+
+lemma hlast' (i : fin N.succ) (h : 1 ≤ τ) : a.r (last N) ≤ τ * a.r i :=
+begin
+  rcases lt_or_le i (last N) with H|H,
+  { exact (a.hlast i H).2 },
+  { have : i = last N := top_le_iff.1 H,
+    rw this,
+    exact le_mul_of_one_le_left (a.rpos _).le h }
+end
+
+variable [normed_space ℝ E]
+
+/-- Rescaling a satellite configuration in a vector space, to put the basepoint at `0` and the base
+radius at `1`. -/
+def center_and_rescale :
+  satellite_config E N τ :=
+{ c := λ i, (a.r (last N))⁻¹ • (a.c i - a.c (last N)),
+  r := λ i, (a.r (last N))⁻¹ * a.r i,
+  rpos := λ i, mul_pos (inv_pos.2 (a.rpos _)) (a.rpos _),
+  h := λ i j hij, begin
+    rcases a.h i j hij with H|H,
+    { left,
+      split,
+      { rw [dist_eq_norm, ← smul_sub, norm_smul, real.norm_eq_abs,
+          abs_of_nonneg (inv_nonneg.2 ((a.rpos _)).le)],
+        refine mul_le_mul_of_nonneg_left _ (inv_nonneg.2 ((a.rpos _)).le),
+        rw [dist_eq_norm] at H,
+        convert H.1 using 2,
+        abel },
+      { rw [← mul_assoc, mul_comm τ, mul_assoc],
+        refine mul_le_mul_of_nonneg_left _ (inv_nonneg.2 ((a.rpos _)).le),
+        exact H.2 } },
+    { right,
+      split,
+      { rw [dist_eq_norm, ← smul_sub, norm_smul, real.norm_eq_abs,
+          abs_of_nonneg (inv_nonneg.2 ((a.rpos _)).le)],
+        refine mul_le_mul_of_nonneg_left _ (inv_nonneg.2 ((a.rpos _)).le),
+        rw [dist_eq_norm] at H,
+        convert H.1 using 2,
+        abel },
+      { rw [← mul_assoc, mul_comm τ, mul_assoc],
+        refine mul_le_mul_of_nonneg_left _ (inv_nonneg.2 ((a.rpos _)).le),
+        exact H.2 } },
+  end,
+  hlast := λ i hi, begin
+    have H := a.hlast i hi,
+    split,
+    { rw [dist_eq_norm, ← smul_sub, norm_smul, real.norm_eq_abs,
+        abs_of_nonneg (inv_nonneg.2 ((a.rpos _)).le)],
+      refine mul_le_mul_of_nonneg_left _ (inv_nonneg.2 ((a.rpos _)).le),
+      rw [dist_eq_norm] at H,
+      convert H.1 using 2,
+      abel },
+    { rw [← mul_assoc, mul_comm τ, mul_assoc],
+      refine mul_le_mul_of_nonneg_left _ (inv_nonneg.2 ((a.rpos _)).le),
+      exact H.2 }
+  end,
+  inter := λ i hi, begin
+    have H := a.inter i hi,
+    rw [dist_eq_norm, ← smul_sub, norm_smul, real.norm_eq_abs,
+        abs_of_nonneg (inv_nonneg.2 ((a.rpos _)).le), ← mul_add],
+    refine mul_le_mul_of_nonneg_left _ (inv_nonneg.2 ((a.rpos _)).le),
+    rw dist_eq_norm at H,
+    convert H using 2,
+    abel
+  end }
+
+lemma center_and_rescale_center :
+  a.center_and_rescale.c (last N) = 0 :=
+by simp [satellite_config.center_and_rescale]
+
+lemma center_and_rescale_radius {N : ℕ} {τ : ℝ} (a : satellite_config E N τ) :
+  a.center_and_rescale.r (last N) = 1 :=
+by simp [satellite_config.center_and_rescale, inv_mul_cancel (a.rpos _).ne']
+
+end satellite_config
+
+/-! ### Disjoint balls of radius close to `1` in the radius `2` ball. -/
 
 /-- The maximum cardinality of a `1`-separated set in the ball of radius `2`. This is also the
 optimal number of families in the Besicovitch covering theorem. -/
 def multiplicity (E : Type*) [normed_group E] :=
 Sup {N | ∃ s : finset E, s.card = N ∧ (∀ c ∈ s, ∥c∥ ≤ 2) ∧ (∀ c ∈ s, ∀ d ∈ s, c ≠ d → 1 ≤ ∥c - d∥)}
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
+section
+variables [normed_space ℝ E]  [finite_dimensional ℝ E]
 
+/-- Any `1`-separated set in the ball of radius `2` has cardinality at most `5 ^ dim`. This is
+useful to show that the supremum in the definition of `besicovitch.multiplicity E` is
+well behaved. -/
 lemma card_le_of_separated
   (s : finset E) (hs : ∀ c ∈ s, ∥c∥ ≤ 2) (h : ∀ (c ∈ s) (d ∈ s), c ≠ d → 1 ≤ ∥c - d∥) :
   s.card ≤ 5 ^ (finrank ℝ E) :=
@@ -99,9 +256,16 @@ begin
 end
 
 variable (E)
+
+/-- If `δ` is small enough, a `(1-δ)`-separated set in the ball of radius `2` also has cardinality
+at most `multiplicity E`. -/
 lemma exists_good_δ : ∃ (δ : ℝ), 0 < δ ∧ δ < 1 ∧ ∀ (s : finset E), (∀ c ∈ s, ∥c∥ ≤ 2) →
   (∀ (c ∈ s) (d ∈ s), c ≠ d → 1 - δ ≤ ∥c - d∥) → s.card ≤ multiplicity E :=
 begin
+  /- This follows from a compactness argument: otherwise, one could extract a converging
+  subsequence, to obtain a `1`-separated set in the ball of radius `2` with cardinality
+  `N = multiplicity E + 1`. To formalize this, we work with functions `fin N → E`.
+   -/
   classical,
   by_contradiction h,
   push_neg at h,
@@ -112,7 +276,7 @@ begin
     rcases lt_or_le δ 1 with hδ'|hδ',
     { rcases h δ hδ hδ' with ⟨s, hs, h's, s_card⟩,
       obtain ⟨f, f_inj, hfs⟩ : ∃ (f : fin N → E), function.injective f ∧ range f ⊆ ↑s :=
-        begin -- have Z := fin.exists_injective_of_le_card_finset s_card,
+        begin
           have : fintype.card (fin N) ≤ s.card, by { simp only [fintype.card_fin], exact s_card },
           rcases function.embedding.exists_of_card_le_finset this with ⟨f, hf⟩,
           exact ⟨f, f.injective, hf⟩
@@ -120,7 +284,10 @@ begin
       simp only [range_subset_iff, finset.mem_coe] at hfs,
       refine ⟨f, λ i, hs _ (hfs i), λ i j hij, h's _ (hfs i) _ (hfs j) (f_inj.ne hij)⟩ },
     { exact ⟨λ i, 0, λ i, by simp, λ i j hij, by simpa only [norm_zero, sub_nonpos, sub_self]⟩ } },
+  -- For `δ > 0`, `F δ` is a function from `fin N` to the ball of radius `2` for which two points
+  -- in the image are separated by `1 - δ`.
   choose! F hF using this,
+  -- Choose a converging subsequence when `δ → 0`.
   have : ∃ f : fin N → E, (∀ (i : fin N), ∥f i∥ ≤ 2) ∧ (∀ i j, i ≠ j → 1 ≤ ∥f i - f j∥),
   { obtain ⟨u, u_mono, zero_lt_u, hu⟩ : ∃ (u : ℕ → ℝ), (∀ (m n : ℕ), m < n → u n < u m)
       ∧ (∀ (n : ℕ), 0 < u n) ∧ filter.tendsto u filter.at_top (𝓝 0) :=
@@ -142,6 +309,7 @@ begin
       rw sub_zero at B,
       exact le_of_tendsto_of_tendsto' B A (λ n, (hF (u (φ n)) (zero_lt_u _)).2 i j hij) } },
   rcases this with ⟨f, hf, h'f⟩,
+  -- the range of `f` contradicts the definition of `multiplicity E`.
   have finj : function.injective f,
   { assume i j hij,
     by_contra,
@@ -165,7 +333,7 @@ begin
   exact lt_irrefl _ ((nat.lt_succ_self (multiplicity E)).trans_le this),
 end
 
-/-- A small positive number such that any `1 - δ` separated set in the ball of radius `2` has
+/-- A small positive number such that any `1 - δ`-separated set in the ball of radius `2` has
 cardinality at most `besicovitch.multiplicity E`. -/
 def good_δ : ℝ := classical.some (exists_good_δ E)
 
@@ -213,115 +381,24 @@ begin
   rwa [s_card] at this,
 end
 
-open fin
-
-/-- A satellite configuration is a configuration of `N+1` points that shows up in the inductive
-construction for the Besicovitch covering theorem. It depends on some parameter `τ ≥ 1`.
-
-This is a family of balls (indexed by `i : fin N.succ`, with center `c i` and radius `r i`) such
-that the last ball intersects all the other balls (condition `inter`),
-and given any two balls there is an order between them, ensuring that the first ball does not
-contain the center of the other one, and the radius of the second ball can not be larger than
-the radius of the first ball (up to a factor `τ`). This order corresponds to the order of choice
-in the inductive construction: otherwise, the second ball would have been chosen before.
-This is the  condition `h`.
-
-Finally, the last ball is chosen after all the other ones, meaning that `h` can be strengthened
-by keeping only one side of the alternative in `hlast`.
--/
-@[nolint has_inhabited_instance]
-structure satellite_config (α : Type*) [metric_space α] (N : ℕ) (τ : ℝ) :=
-(c : fin N.succ → α)
-(r : fin N.succ → ℝ )
-(rpos : ∀ i, 0 < r i)
-(h : ∀ i j, i ≠ j → (r i ≤ dist (c i) (c j) ∧ r j ≤ τ * r i) ∨
-                    (r j ≤ dist (c j) (c i) ∧ r i ≤ τ * r j))
-(hlast : ∀ i < last N, r i ≤ dist (c i) (c (last N)) ∧ r (last N) ≤ τ * r i)
-(inter : ∀ i < last N, dist (c i) (c (last N)) ≤ r i + r (last N))
+end
 
 namespace satellite_config
-variables {E} {N : ℕ} {τ : ℝ} (a : satellite_config E N τ)
 
-/-- Rescaling a satellite configuration in a vector space, to put the basepoint at `0` and the base
-radius at `1`. -/
-def center_and_rescale :
-  satellite_config E N τ :=
-{ c := λ i, (a.r (last N))⁻¹ • (a.c i - a.c (last N)),
-  r := λ i, (a.r (last N))⁻¹ * a.r i,
-  rpos := λ i, mul_pos (inv_pos.2 (a.rpos _)) (a.rpos _),
-  h := λ i j hij, begin
-    rcases a.h i j hij with H|H,
-    { left,
-      split,
-      { rw [dist_eq_norm, ← smul_sub, norm_smul, real.norm_eq_abs,
-          abs_of_nonneg (inv_nonneg.2 ((a.rpos _)).le)],
-        refine mul_le_mul_of_nonneg_left _ (inv_nonneg.2 ((a.rpos _)).le),
-        rw [dist_eq_norm] at H,
-        convert H.1 using 2,
-        abel },
-      { rw [← mul_assoc, mul_comm τ, mul_assoc],
-        refine mul_le_mul_of_nonneg_left _ (inv_nonneg.2 ((a.rpos _)).le),
-        exact H.2 } },
-    { right,
-      split,
-      { rw [dist_eq_norm, ← smul_sub, norm_smul, real.norm_eq_abs,
-          abs_of_nonneg (inv_nonneg.2 ((a.rpos _)).le)],
-        refine mul_le_mul_of_nonneg_left _ (inv_nonneg.2 ((a.rpos _)).le),
-        rw [dist_eq_norm] at H,
-        convert H.1 using 2,
-        abel },
-      { rw [← mul_assoc, mul_comm τ, mul_assoc],
-        refine mul_le_mul_of_nonneg_left _ (inv_nonneg.2 ((a.rpos _)).le),
-        exact H.2 } },
-  end,
-  hlast := λ i hi, begin
-    have H := a.hlast i hi,
-    split,
-    { rw [dist_eq_norm, ← smul_sub, norm_smul, real.norm_eq_abs,
-        abs_of_nonneg (inv_nonneg.2 ((a.rpos _)).le)],
-      refine mul_le_mul_of_nonneg_left _ (inv_nonneg.2 ((a.rpos _)).le),
-      rw [dist_eq_norm] at H,
-      convert H.1 using 2,
-      abel },
-    { rw [← mul_assoc, mul_comm τ, mul_assoc],
-      refine mul_le_mul_of_nonneg_left _ (inv_nonneg.2 ((a.rpos _)).le),
-      exact H.2 }
-  end,
-  inter := λ i hi, begin
-    have H := a.inter i hi,
-    rw [dist_eq_norm, ← smul_sub, norm_smul, real.norm_eq_abs,
-        abs_of_nonneg (inv_nonneg.2 ((a.rpos _)).le), ← mul_add],
-    refine mul_le_mul_of_nonneg_left _ (inv_nonneg.2 ((a.rpos _)).le),
-    rw dist_eq_norm at H,
-    convert H using 2,
-    abel
-  end }
+/-!
+### Relating satellite configurations to separated points in the ball of radius `2`.
 
-lemma center_and_rescale_center :
-  a.center_and_rescale.c (last N) = 0 :=
-by simp [satellite_config.center_and_rescale]
+We prove that the number of points in a satellite configuration is bounded by the maximal number
+of `1`-separated points in the ball of radius `2`. For this, start from a satellite congifuration
+`c`. Without loss of generality, one can assume that the last ball is centered at `0` and of
+radius `1`. Define `c' i = c i` if `∥c i∥ ≤ 2`, and `c' i = (2/∥c i∥) • c i` if `∥c i∥ > 2`. It turns
+out that these points are `1 - δ`-separated, where `δ` is arbitrarily small if `τ` is close enough
+to `1`. The number of such configurations is bounded by `multiplicity E` if `δ` is suitably small.
 
-lemma center_and_rescale_radius {N : ℕ} {τ : ℝ} (a : satellite_config E N τ) :
-  a.center_and_rescale.r (last N) = 1 :=
-by simp [satellite_config.center_and_rescale, inv_mul_cancel (a.rpos _).ne']
-
-lemma inter' (i : fin N.succ) : dist (a.c i) (a.c (last N)) ≤ a.r i + a.r (last N) :=
-begin
-  rcases lt_or_le i (last N) with H|H,
-  { exact a.inter i H },
-  { have I : i = last N := top_le_iff.1 H,
-    have := (a.rpos (last N)).le,
-    simp only [I, add_nonneg this this, dist_self] }
-end
-
-lemma hlast' (i : fin N.succ) (h : 1 ≤ τ) : a.r (last N) ≤ τ * a.r i :=
-begin
-  rcases lt_or_le i (last N) with H|H,
-  { exact (a.hlast i H).2 },
-  { have : i = last N := top_le_iff.1 H,
-    rw this,
-    exact le_mul_of_one_le_left (a.rpos _).le h }
-end
+To check that the points `c' i` are `1 - δ`-separated, one treats separately the cases where
+both `∥c i∥` and `∥c j∥` are `≤ 2`, where one of them is `≤ 2` and the other one is `` > 2`, and
+where both of them are `> 2`.
+-/
 
 lemma exists_normalized_aux1 {N : ℕ} {τ : ℝ} (a : satellite_config E N τ)
   (lastr : a.r (last N) = 1) (hτ : 1 ≤ τ) (δ : ℝ) (hδ1 : τ ≤ 1 + δ / 4) (hδ2 : δ ≤ 1)
@@ -352,6 +429,8 @@ begin
     apply le_trans _ H.1,
     exact hτ' j }
 end
+
+variable [normed_space ℝ E]
 
 lemma exists_normalized_aux2 {N : ℕ} {τ : ℝ} (a : satellite_config E N τ)
   (lastc : a.c (last N) = 0) (lastr : a.r (last N) = 1)
@@ -504,12 +583,12 @@ end
 
 end satellite_config
 
-variable (E)
+variables (E) [normed_space ℝ E] [finite_dimensional ℝ E]
 
 /-- In a normed vector space `E`, there can be no satellite configuration with `multiplicity E + 1`
 points and the parameter `good_τ E`. This will ensure that in the inductive construction to get
 the Besicovitch covering families, there will never be more than `multiplicity E` nonempty
-families.-/
+families. -/
 theorem is_empty_satellite_config_multiplicity :
   is_empty (satellite_config E (multiplicity E) (good_τ E)) :=
 ⟨begin
@@ -519,5 +598,9 @@ theorem is_empty_satellite_config_multiplicity :
     (one_lt_good_τ E).le (good_δ E) le_rfl (good_δ_lt_one E).le with ⟨c', c'_le_two, hc'⟩,
   exact lt_irrefl _ ((nat.lt_succ_self _).trans_le (le_multiplicity_of_δ_of_fin c' c'_le_two hc'))
 end⟩
+
+@[priority 100]
+instance : has_besicovitch_covering E :=
+⟨⟨multiplicity E, good_τ E, one_lt_good_τ E, is_empty_satellite_config_multiplicity E⟩⟩
 
 end besicovitch

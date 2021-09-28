@@ -389,6 +389,8 @@ begin
     exact dist_nonneg, },
 end
 
+/-- Finite measures yield elements of the `weak_dual` of bounded continuous nonnegative
+functions via `finite_measure.test_against_nn`, i.e., integration. -/
 def to_weak_dual_of_bounded_continuous_nnreal (μ : finite_measure α) :
   weak_dual ℝ≥0 (α →ᵇ ℝ≥0) :=
 { to_fun := μ.test_against_nn,
@@ -492,6 +494,8 @@ begin
   rwa μ.mass_to_finite_measure at key,
 end
 
+/-- Probability measures yield elements of the `weak_dual` of bounded continuous nonnegative
+functions via `probability_measure.test_against_nn`, i.e., integration. -/
 def to_weak_dual_of_bounded_continuous_nnreal (μ : probability_measure α) :
   weak_dual ℝ≥0 (α →ᵇ ℝ≥0) :=
 { to_fun := μ.test_against_nn,
@@ -502,3 +506,5 @@ def to_weak_dual_of_bounded_continuous_nnreal (μ : probability_measure α) :
 end probability_measure
 
 end measure_theory
+
+#lint

@@ -15,6 +15,7 @@ This file contains the definition and lemmas about `mv_polynomial.supported`.
 
 * `mv_polynomial.supported` : Given a set `s : set σ`, `supported R s` is the subalgebra of
   `mv_polynomial σ R` consisting of polynomials whose set of variables is contained in `s`.
+  This subalgebra is isomorphic to `mv_polynomial s R`
 
 ## Tags
 variables, polynomial, vars
@@ -41,6 +42,20 @@ open algebra
 lemma supported_eq_range_rename (s : set σ) :
   supported R s = (rename (coe : s → σ)).range :=
 by rw [supported, set.image_eq_range, adjoin_range_eq_range_aeval, rename]
+
+noncomputable def supported_equiv_mv_polynomial (s : set σ) :
+  supported R s ≃ₐ[R] mv_polynomial s R :=
+(subalgebra.equiv_of_eq _ _ (supported_eq_range_rename s)).trans
+(alg_equiv.of_injective (rename (coe : s → σ))
+  (rename_injective _ subtype.val_injective)).symm
+
+@[simp] lemma supported_equiv_mv_polynomial_symm_C (s : set σ) (x : R) :
+  (supported_equiv_mv_polynomial s).symm (C x) = algebra_map R (supported R s) x :=
+by simp [supported_equiv_mv_polynomial]
+
+@[simp] lemma supported_equiv_mv_polynomial_symm_X (s : set σ) (i : s) :
+  ((supported_equiv_mv_polynomial s).symm (X i) : A) = X i :=
+by simp [supported_equiv_mv_polynomial]
 
 variables {s t : set σ}
 

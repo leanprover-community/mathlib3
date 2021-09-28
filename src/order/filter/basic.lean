@@ -2589,7 +2589,6 @@ end prod
 /-! ### Coproducts of filters -/
 
 section coprod
-
 variables {f : filter α} {g : filter β}
 
 /-- Coproduct of filters. -/

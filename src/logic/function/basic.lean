@@ -485,6 +485,20 @@ begin
   exact congr_arg g (hf $ classical.some_spec (exists_apply_eq_apply f a))
 end
 
+@[simp] lemma extend_apply' (g : α → γ) (e' : β → γ) (b : β) (hb : ¬∃ a, f a = b) :
+  extend f g e' b = e' b :=
+by simp [function.extend_def, hb]
+
+lemma extend_injective (hf : injective f) (e' : β → γ) :
+  injective (λ g, extend f g e') :=
+begin
+  intros g₁ g₂ hg,
+  refine funext (λ x, _),
+  have H := congr_fun hg (f x),
+  simp only [hf, extend_apply] at H,
+  exact H
+end
+
 @[simp] lemma extend_comp (hf : injective f) (g : α → γ) (e' : β → γ) :
   extend f g e' ∘ f = g :=
 funext $ λ a, extend_apply hf g e' a

@@ -44,7 +44,7 @@ variables [fintype ι]
 
 /-- Every vector in `std_simplex ι` has `max`-norm at most `1`. -/
 lemma std_simplex_subset_closed_ball :
-  std_simplex ι ⊆ metric.closed_ball 0 1 :=
+  std_simplex ι ℝ ⊆ metric.closed_ball 0 1 :=
 begin
   assume f hf,
   rw [metric.mem_closed_ball, dist_zero_right],
@@ -57,17 +57,17 @@ end
 variable (ι)
 
 /-- `std_simplex ι` is bounded. -/
-lemma bounded_std_simplex : metric.bounded (std_simplex ι) :=
+lemma bounded_std_simplex : metric.bounded (std_simplex ι ℝ) :=
 (metric.bounded_iff_subset_ball 0).2 ⟨1, std_simplex_subset_closed_ball⟩
 
 /-- `std_simplex ι` is closed. -/
-lemma is_closed_std_simplex : is_closed (std_simplex ι) :=
-(std_simplex_eq_inter ι).symm ▸ is_closed.inter
+lemma is_closed_std_simplex : is_closed (std_simplex ι ℝ) :=
+(std_simplex_eq_inter ι ℝ).symm ▸ is_closed.inter
   (is_closed_Inter $ λ i, is_closed_le continuous_const (continuous_apply i))
   (is_closed_eq (continuous_finset_sum _ $ λ x _, continuous_apply x) continuous_const)
 
 /-- `std_simplex ι` is compact. -/
-lemma compact_std_simplex : is_compact (std_simplex ι) :=
+lemma compact_std_simplex : is_compact (std_simplex ι ℝ) :=
 metric.compact_iff_closed_bounded.2 ⟨is_closed_std_simplex ι, bounded_std_simplex ι⟩
 
 end std_simplex
@@ -181,7 +181,7 @@ section normed_space
 variables [normed_group E] [normed_space ℝ E]
 
 lemma convex_on_dist (z : E) (s : set E) (hs : convex ℝ s) :
-  convex_on s (λz', dist z' z) :=
+  convex_on ℝ s (λz', dist z' z) :=
 and.intro hs $
 assume x y hx hy a b ha hb hab,
 calc

@@ -316,6 +316,21 @@ begin
   convert mul_le_mul_left' (one_le_iff_ne_zero.mpr h') _, rw [mul_one],
 end
 
+theorem mul_le_max (a b : cardinal) : a * b ≤ max (max a b) ω :=
+begin
+  by_cases ha0 : a = 0,
+  { simp [ha0] },
+  by_cases hb0 : b = 0,
+  { simp [hb0] },
+  by_cases ha : ω ≤ a,
+  { rw [mul_eq_max_of_omega_le_left ha hb0],
+    exact le_max_left _ _ },
+  { by_cases hb : ω ≤ b,
+    { rw [mul_comm, mul_eq_max_of_omega_le_left hb ha0, max_comm],
+      exact le_max_left _ _ },
+    { exact le_max_of_le_right (le_of_lt (mul_lt_omega (lt_of_not_ge ha) (lt_of_not_ge hb))) } }
+end
+
 lemma mul_eq_left {a b : cardinal} (ha : omega ≤ a) (hb : b ≤ a) (hb' : b ≠ 0) : a * b = a :=
 by { rw [mul_eq_max_of_omega_le_left ha hb', max_eq_left hb] }
 
@@ -367,6 +382,17 @@ le_antisymm
   (add_eq_self (le_trans ha (le_max_left a b)) ▸
     add_le_add (le_max_left _ _) (le_max_right _ _)) $
 max_le (self_le_add_right _ _) (self_le_add_left _ _)
+
+theorem add_le_max (a b : cardinal) : a + b ≤ max (max a b) ω :=
+begin
+  by_cases ha : ω ≤ a,
+  { rw [add_eq_max ha],
+    exact le_max_left _ _ },
+  { by_cases hb : ω ≤ b,
+    { rw [add_comm, add_eq_max hb, max_comm],
+      exact le_max_left _ _ },
+    { exact le_max_of_le_right (le_of_lt (add_lt_omega (lt_of_not_ge ha) (lt_of_not_ge hb))) } }
+end
 
 theorem add_lt_of_lt {a b c : cardinal} (hc : omega ≤ c)
   (h1 : a < c) (h2 : b < c) : a + b < c :=
@@ -449,8 +475,20 @@ begin
   { convert power_le_power_right (le_trans (le_of_lt $ nat_lt_omega 2) h), apply nat.cast_two.symm }
 end
 
+lemma nat_power_eq {c : cardinal.{u}} (h : omega ≤ c) {n : ℕ} (hn : 2 ≤ n) :
+  (n : cardinal.{u}) ^ c = 2 ^ c :=
+le_antisymm (power_self_eq h ▸ power_le_power_right ((nat_lt_omega n).le.trans h))
+  (power_le_power_right $ by assumption_mod_cast)
+
 lemma power_nat_le {c : cardinal.{u}} {n : ℕ} (h  : omega ≤ c) : c ^ (n : cardinal.{u}) ≤ c :=
 pow_le h (nat_lt_omega n)
+
+lemma power_nat_le_max {c : cardinal.{u}} {n : ℕ} : c ^ (n : cardinal.{u}) ≤ max c ω :=
+begin
+  by_cases hc : ω ≤ c,
+  { exact le_max_of_le_left (power_nat_le hc) },
+  { exact le_max_of_le_right (le_of_lt (power_lt_omega (lt_of_not_ge hc) (nat_lt_omega _))) }
+end
 
 lemma powerlt_omega {c : cardinal} (h : omega ≤ c) : c ^< omega = c :=
 begin
@@ -619,7 +657,7 @@ by { norm_cast, norm_num }
 ```
 -/
 
-@[simp] lemma bit0_ne_zero (a : cardinal) : ¬bit0 a = 0 ↔ ¬a = 0 :=
+lemma bit0_ne_zero (a : cardinal) : ¬bit0 a = 0 ↔ ¬a = 0 :=
 by simp [bit0]
 
 @[simp] lemma bit1_ne_zero (a : cardinal) : ¬bit1 a = 0 :=

@@ -429,12 +429,12 @@ lemma is_preconnected.measurable_set
 h.ord_connected.measurable_set
 
 lemma exists_dense_seq_lt {α : Type*} [nonempty α] [topological_space α] [separable_space α]
-  [linear_order α] [order_topology α] (hnlb : ∀ x : α, ∃ y, y < x) (x : α) :
+  [linear_order α] [order_topology α] [no_bot_order α] (x : α) :
   ∃ n, dense_seq α n < x :=
-exists_dense_seq_mem α (hnlb x) is_open_Iio
+exists_dense_seq_mem α (no_bot x) is_open_Iio
 
 lemma Union_Ico_dense_seq {α : Type*} [nonempty α] [topological_space α] [separable_space α]
-  [linear_order α] [order_topology α] (hnlb : ∀ x : α, ∃ y, y < x) (x : α) :
+  [linear_order α] [order_topology α] [no_bot_order α] (x : α) :
   (⋃ n, Ico (dense_seq α n) x) = Iio x :=
 begin
   ext y,
@@ -443,7 +443,7 @@ begin
   { rintro ⟨n, hmem⟩,
     exact hmem.2 },
   { intro h,
-    obtain ⟨n, hn⟩ := exists_dense_seq_lt hnlb y,
+    obtain ⟨n, hn⟩ := exists_dense_seq_lt y,
     refine ⟨n, le_of_lt hn, h⟩ }
 end
 
@@ -457,7 +457,8 @@ begin
     rw forall_range_iff,
     intro x,
     by_cases hnlb : ∀ x : α, ∃ y, y < x,
-    { rw ← Union_Ico_dense_seq hnlb x,
+    { haveI : no_bot_order α := ⟨hnlb⟩,
+      rw ← Union_Ico_dense_seq x,
       refine @measurable_set.Union _ _ (generate_from {S | ∃ l u, l < u ∧ Ico l u = S}) _ _ _,
       intro n,
       by_cases hlt : dense_seq α n < x,

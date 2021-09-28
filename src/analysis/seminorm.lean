@@ -145,7 +145,7 @@ begin
   { rw [←image_smul, image_union],
     apply union_subset_union,
     { rw [image_singleton, smul_zero] },
-    { calc a • interior A ⊆ interior (a • A) : (is_open_map_smul' h).image_interior_subset A
+    { calc a • interior A ⊆ interior (a • A) : (is_open_map_smul₀ h).image_interior_subset A
                       ... ⊆ interior A       : interior_mono (hA _ ha) } }
 end
 

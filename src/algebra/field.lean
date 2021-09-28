@@ -100,7 +100,7 @@ calc
 lemma neg_div (a b : K) : (-b) / a = - (b / a) :=
 by rw [neg_eq_neg_one_mul, mul_div_assoc, ← neg_eq_neg_one_mul]
 
-@[field_simps] lemma neg_div' {K : Type*} [division_ring K] (a b : K) : - (b / a) = (-b) / a :=
+@[field_simps] lemma neg_div' (a b : K) : - (b / a) = (-b) / a :=
 by simp [neg_div]
 
 lemma neg_div_neg_eq (a b : K) : (-a) / (-b) = a / b :=

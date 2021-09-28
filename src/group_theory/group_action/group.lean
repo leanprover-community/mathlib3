@@ -115,7 +115,7 @@ end group
 /-- `monoid.to_mul_action` is faithful on nontrivial cancellative monoids with zero. -/
 instance cancel_monoid_with_zero.to_has_faithful_scalar [cancel_monoid_with_zero α] [nontrivial α] :
   has_faithful_scalar α α :=
-⟨λ x y h, mul_left_injective' one_ne_zero (h 1)⟩
+⟨λ x y h, mul_left_injective₀ one_ne_zero (h 1)⟩
 
 section gwz
 variables [group_with_zero α] [mul_action α β]

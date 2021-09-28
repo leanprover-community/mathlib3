@@ -2005,7 +2005,7 @@ lemma exp_periodic : function.periodic exp (2 * π * I) :=
 (mul_assoc (2:ℂ) π I).symm ▸ exp_antiperiodic.periodic
 
 lemma exp_mul_I_antiperiodic : function.antiperiodic (λ x, exp (x * I)) π :=
-by simpa only [mul_inv_cancel_right' I_ne_zero] using exp_antiperiodic.mul_const I_ne_zero
+by simpa only [mul_inv_cancel_right₀ I_ne_zero] using exp_antiperiodic.mul_const I_ne_zero
 
 lemma exp_mul_I_periodic : function.periodic (λ x, exp (x * I)) (2 * π) :=
 exp_mul_I_antiperiodic.periodic

@@ -444,7 +444,7 @@ begin
     exact hmem.2 },
   { intro h,
     obtain ⟨n, hn⟩ := exists_dense_seq_lt y,
-    refine ⟨n, le_of_lt hn, h⟩ }
+    exact ⟨n, le_of_lt hn, h⟩ }
 end
 
 lemma borel_eq_generate_Ico (α : Type*) [nonempty α] [topological_space α]

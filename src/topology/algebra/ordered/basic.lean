@@ -1120,6 +1120,16 @@ instance order_topology.regular_space : regular_space α :=
       by rw [nhds_within_union, ht₁a, ht₂a, bot_sup_eq]⟩,
   ..order_topology.t2_space }
 
+lemma exists_dense_seq_lt {α : Type*} [nonempty α] [topological_space α] [separable_space α]
+  [linear_order α] [order_topology α] [no_bot_order α] (x : α) :
+  ∃ n, dense_seq α n < x :=
+exists_dense_seq_mem α (no_bot x) is_open_Iio
+
+lemma exists_dense_seq_gt {α : Type*} [nonempty α] [topological_space α] [separable_space α]
+  [linear_order α] [order_topology α] [no_top_order α] (x : α) :
+  ∃ n, x < dense_seq α n :=
+exists_dense_seq_mem α (no_top x) is_open_Ioi
+
 /-- A set is a neighborhood of `a` if and only if it contains an interval `(l, u)` containing `a`,
 provided `a` is neither a bottom element nor a top element. -/
 lemma mem_nhds_iff_exists_Ioo_subset' {a : α} {s : set α} (hl : ∃ l, l < a) (hu : ∃ u, a < u) :

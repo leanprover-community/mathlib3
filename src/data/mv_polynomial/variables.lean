@@ -620,7 +620,7 @@ begin
   rw h i this this,
 end
 
-/-- If `f₁` and `f₂` are ring homs out of the poylnomial ring and `p₁` and `p₂` are polynomials,
+/-- If `f₁` and `f₂` are ring homs out of the polynomial ring and `p₁` and `p₂` are polynomials,
   then `f₁ p₁ = f₂ p₂` if `p₁ = p₂` and `f₁` and `f₂` are equal on `R` and on the variables
   of `p₁`.  -/
 lemma hom_congr_vars {f₁ f₂ : mv_polynomial σ R →+* S} {p₁ p₂ : mv_polynomial σ R}

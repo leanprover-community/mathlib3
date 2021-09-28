@@ -49,7 +49,7 @@ and consequences are derived.
 * `has_basis.tendsto_right_iff`, `has_basis.tendsto_left_iff`, `has_basis.tendsto_iff` : restate
   `tendsto f l l'` in terms of bases.
 * `is_countably_generated_iff_exists_antitone_basis` : proves a filter is
-  countably generated if and only if it admis a basis parametrized by a
+  countably generated if and only if it admits a basis parametrized by a
   decreasing sequence of sets indexed by `ℕ`.
 * `tendsto_iff_seq_tendsto ` : an abstract version of "sequentially continuous implies continuous".
 
@@ -597,7 +597,7 @@ structure is_antitone_basis extends is_basis p'' s'' : Prop :=
 (decreasing : ∀ {i j}, p'' i → p'' j → i ≤ j → s'' j ⊆ s'' i)
 (mono : monotone p'')
 
-/-- We say that a filter `l` has a antitone basis `s : ι → set α` bounded by `p : ι → Prop`,
+/-- We say that a filter `l` has an antitone basis `s : ι → set α` bounded by `p : ι → Prop`,
 if `t ∈ l` if and only if `t` includes `s i` for some `i` such that `p i`,
 and `s` is decreasing and `p` is increasing, ie `i ≤ j → p i → p j`. -/
 structure has_antitone_basis (l : filter α) (p : ι'' → Prop) (s : ι'' → set α)
@@ -813,8 +813,7 @@ begin
       this.to_has_basis.mem_iff.2 ⟨i, trivial, x_subset i⟩))
 end
 
-/-- A countably generated filter admits a basis formed by a monotonically decreasing sequence of
-sets. -/
+/-- A countably generated filter admits a basis formed by an antitone sequence of sets. -/
 lemma exists_antitone_basis {f : filter α} (cblb : f.is_countably_generated) :
   ∃ x : ℕ → set α, f.has_antitone_basis (λ _, true) x :=
 let ⟨x, hxf, hx⟩ := cblb.exists_antitone_subbasis f.basis_sets in ⟨x, hx⟩

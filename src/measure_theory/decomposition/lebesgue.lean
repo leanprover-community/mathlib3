@@ -258,7 +258,7 @@ begin
     rw [← smul_add, ← have_lebesgue_decomposition_add μ ν] },
   { rw [singular_part, singular_part, dif_neg hl, dif_neg, smul_zero],
     refine λ hl', hl _,
-    rw ← inv_smul_smul' hr μ,
+    rw ← inv_smul_smul₀ hr μ,
     exact @measure.have_lebesgue_decomposition_smul _ _ _ _ hl' _ }
 end
 

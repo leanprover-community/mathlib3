@@ -544,7 +544,7 @@ begin
   { have h' : (n! : 𝕂') ≠ 0 := λ hyp, h (key.mpr hyp),
     suffices : (n! : 𝕂) • (n!⁻¹ : 𝕂') = (n! : 𝕂) • ((n!⁻¹ : 𝕂) • 1),
     { apply_fun (λ (x : 𝕂'), (n!⁻¹ : 𝕂) • x) at this,
-      rwa [inv_smul_smul' h, inv_smul_smul' h] at this },
+      rwa [inv_smul_smul₀ h, inv_smul_smul₀ h] at this },
     rw [← smul_assoc, ← nsmul_eq_smul_cast, nsmul_eq_smul_cast 𝕂' _ (_ : 𝕂')],
     field_simp [h, h'] }
 end

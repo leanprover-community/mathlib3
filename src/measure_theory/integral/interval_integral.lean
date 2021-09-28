@@ -584,7 +584,7 @@ variables {a b c d : ℝ} (f : ℝ → E)
 @[simp] lemma integral_comp_mul_right (hc : c ≠ 0) :
   ∫ x in a..b, f (x * c) = c⁻¹ • ∫ x in a*c..b*c, f x :=
 begin
-  have A : closed_embedding (λ x, x * c) := (homeomorph.mul_right' c hc).closed_embedding,
+  have A : closed_embedding (λ x, x * c) := (homeomorph.mul_right₀ c hc).closed_embedding,
   conv_rhs { rw [← real.smul_map_volume_mul_right hc] },
   simp_rw [integral_smul_measure, interval_integral,
           set_integral_map_of_closed_embedding measurable_set_Ioc A,

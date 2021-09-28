@@ -250,7 +250,7 @@ by conv_rhs { rw [← real.smul_map_volume_mul_left h, smul_smul,
 @[simp] lemma volume_preimage_mul_left {a : ℝ} (h : a ≠ 0) (s : set ℝ) :
   volume (((*) a) ⁻¹' s) = ennreal.of_real (abs a⁻¹) * volume s :=
 calc volume (((*) a) ⁻¹' s) = measure.map ((*) a) volume s :
-  ((homeomorph.mul_left' a h).to_measurable_equiv.map_apply s).symm
+  ((homeomorph.mul_left₀ a h).to_measurable_equiv.map_apply s).symm
 ... = ennreal.of_real (abs a⁻¹) * volume s : by { rw map_volume_mul_left h, refl }
 
 lemma smul_map_volume_mul_right {a : ℝ} (h : a ≠ 0) :
@@ -264,7 +264,7 @@ by simpa only [mul_comm] using real.map_volume_mul_left h
 @[simp] lemma volume_preimage_mul_right {a : ℝ} (h : a ≠ 0) (s : set ℝ) :
   volume ((* a) ⁻¹' s) = ennreal.of_real (abs a⁻¹) * volume s :=
 calc volume ((* a) ⁻¹' s) = measure.map (* a) volume s :
-  ((homeomorph.mul_right' a h).to_measurable_equiv.map_apply s).symm
+  ((homeomorph.mul_right₀ a h).to_measurable_equiv.map_apply s).symm
 ... = ennreal.of_real (abs a⁻¹) * volume s : by { rw map_volume_mul_right h, refl }
 
 @[simp] lemma map_volume_neg : measure.map has_neg.neg (volume : measure ℝ) = volume :=

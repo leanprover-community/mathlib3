@@ -43,6 +43,7 @@ lemma supported_eq_range_rename (s : set σ) :
   supported R s = (rename (coe : s → σ)).range :=
 by rw [supported, set.image_eq_range, adjoin_range_eq_range_aeval, rename]
 
+/--The isomorphism between the subalgebra of polynomials supported by `s` and `mv_polynomial s R`-/
 noncomputable def supported_equiv_mv_polynomial (s : set σ) :
   supported R s ≃ₐ[R] mv_polynomial s R :=
 (subalgebra.equiv_of_eq _ _ (supported_eq_range_rename s)).trans

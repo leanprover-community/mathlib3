@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import algebra.algebra.basic
 import algebra.star.basic
 import algebra.star.pi
+import algebra.opposites
 
 /-!
 # Star algebras
@@ -14,6 +15,8 @@ Introduces the notion of a star algebra over a star ring.
 -/
 
 universes u v w
+
+open opposite
 
 /--
 A star algebra `A` over a star ring `R` is an algebra which is a star ring,
@@ -31,6 +34,22 @@ class star_algebra (R : Type u) (A : Type v)
   (r : R) (a : A) :
   star (r • a) = star r • star a :=
 star_algebra.star_smul r a
+
+instance {R₁ R₂ : Type*} [semiring R₁] [semiring R₂] (e : R₁ ≃+* R₂) :
+  ring_hom_inv_pair (↑e : R₁ →+* R₂) ↑e.symm :=
+⟨e.symm_to_ring_hom_comp_to_ring_hom, e.symm.symm_to_ring_hom_comp_to_ring_hom⟩
+
+/-- If `A` is a left- and right- algebra over `R` with compatible algebra maps, then `star` is a
+semilinear equivalence. -/
+@[simps]
+def star_linear_equiv {R : Type u} {A : Type v}
+  [comm_semiring R] [star_ring R] [semiring A] [star_ring A]
+  [algebra R A] [star_algebra R A]
+  [algebra Rᵒᵖ A] [star_algebra Rᵒᵖ A] (h : ∀ (r : R) (a : A), r • a = op r • a) :
+    A ≃ₛₗ[(↑(star_ring_equiv : R ≃+* Rᵒᵖ) : R →+* Rᵒᵖ)] A :=
+{ to_fun := star,
+  map_smul' := λ r a, (star_smul r a).trans (h _ _),
+  .. star_add_equiv }
 
 namespace pi
 

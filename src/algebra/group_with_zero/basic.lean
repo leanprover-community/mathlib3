@@ -1032,7 +1032,7 @@ section group_with_zero
 variables (f : monoid_with_zero_hom G₀ G₀') (a b : G₀)
 
 /-- A monoid homomorphism between groups with zeros sending `0` to `0` sends `a⁻¹` to `(f a)⁻¹`. -/
-@[simp] lemma map_inv₀ : f a⁻¹ = (f a)⁻¹ :=
+@[simp] lemma map_inv : f a⁻¹ = (f a)⁻¹ :=
 begin
   by_cases h : a = 0, by simp [h],
   apply eq_inv_of_mul_left_eq_one,
@@ -1040,7 +1040,7 @@ begin
 end
 
 @[simp] lemma map_div : f (a / b) = f a / f b :=
-by simpa only [div_eq_mul_inv] using ((f.map_mul _ _).trans $ _root_.congr_arg _ $ f.map_inv₀ b)
+by simpa only [div_eq_mul_inv] using ((f.map_mul _ _).trans $ _root_.congr_arg _ $ f.map_inv b)
 
 end group_with_zero
 

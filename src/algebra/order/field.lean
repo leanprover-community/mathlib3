@@ -692,7 +692,7 @@ lemma abs_one_div (a : α) : abs (1 / a) = 1 / abs a :=
 by rw [abs_div, abs_one]
 
 lemma abs_inv (a : α) : abs a⁻¹ = (abs a)⁻¹ :=
-(abs_hom : monoid_with_zero_hom α α).map_inv₀ a
+(abs_hom : monoid_with_zero_hom α α).map_inv a
 
 -- TODO: add lemmas with `a⁻¹`.
 lemma one_div_strict_anti_on : strict_anti_on (λ x : α, 1 / x) (set.Ioi 0) :=

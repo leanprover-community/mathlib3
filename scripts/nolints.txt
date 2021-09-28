@@ -970,9 +970,6 @@ apply_nolint topological_space.open_nhds.map doc_blame
 -- topology/category/TopCommRing.lean
 apply_nolint TopCommRing has_inhabited_instance
 
--- topology/compact_open.lean
-apply_nolint continuous_map.induced doc_blame
-
 -- topology/maps.lean
 apply_nolint inducing doc_blame
 

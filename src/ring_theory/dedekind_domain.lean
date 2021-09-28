@@ -985,8 +985,8 @@ open ideal unique_factorization_monoid
 
 /-- The predicate that the sequence of powers `(p')^m` for `n ≤ m` is constant,
     where `p'` is the image of `p` in `R/I` -/
-def shifted_seq_pow_constant {R : Type u_1} [comm_ring R] (I : ideal R) (p : ideal R) : ℕ → Prop := λ n, ∀ m : ℕ, n ≤ m →
-  (map I^.quotient.mk p)^n = (map I^.quotient.mk p)^m
+def shifted_seq_pow_constant {R : Type u_1} [comm_ring R] (I : ideal R) (p : ideal R) : ℕ → Prop :=
+  λ n, ∀ m : ℕ, n ≤ m → (map I^.quotient.mk p)^n = (map I^.quotient.mk p)^m
 
 /--The sequence of powers `(p')^m` is eventually constant, where `p'` is the image of `p` in `R/I`-/
 lemma seq_pow_eventually_constant (hI : I ≠ ⊥) (p : ideal T) (Hp : p ∈ factors I) (n : ℕ)
@@ -1027,7 +1027,7 @@ begin
       (dvd_pow (dvd_refl p) (ne_of_gt (sub_pos_iff_lt.mpr hn))), H'⟩ }
 end
 
-lemma shifted_seq_pow_constant_iff_ge_count (hI : I ≠ ⊥) (p: ideal T) (hp : p ∈ factors I) (n : ℕ) :
+lemma shifted_seq_pow_constant_iff_ge_count (hI : I ≠ ⊥) (p: ideal T) (hp : p ∈ factors I) (n : ℕ):
   shifted_seq_pow_constant I p n ↔ (factors I).count p ≤ n :=
 begin
   split,

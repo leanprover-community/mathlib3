@@ -500,7 +500,7 @@ begin
     use ((v x) • 1 : C(α, 𝕜)),
     { apply s.smul_mem,
       apply s.one_mem, },
-    { simp, }, },
+    { simp [coe_fn_coe_base'] }, },
   obtain ⟨f, ⟨f, ⟨m, rfl⟩⟩, w⟩ := h n,
   replace w : f x - f y ≠ 0 := sub_ne_zero_of_ne w,
   let a := v x,
@@ -514,8 +514,8 @@ begin
     solve_by_elim
       [subalgebra.add_mem, subalgebra.smul_mem, subalgebra.sub_mem, subalgebra.algebra_map_mem]
       { max_depth := 6 }, },
-  { simp [f'], },
-  { simp [f', inv_mul_cancel_right' w], },
+  { simp [f', coe_fn_coe_base'], },
+  { simp [f', coe_fn_coe_base', inv_mul_cancel_right' w], },
 end
 
 end continuous_map

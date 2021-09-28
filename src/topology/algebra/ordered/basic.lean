@@ -1125,6 +1125,20 @@ lemma exists_dense_seq_lt {α : Type*} [nonempty α] [topological_space α] [sep
   ∃ n, dense_seq α n < x :=
 exists_dense_seq_mem α (no_bot x) is_open_Iio
 
+lemma Union_Ico_dense_seq {α : Type*} [nonempty α] [topological_space α] [separable_space α]
+  [linear_order α] [order_topology α] [no_bot_order α] (x : α) :
+  (⋃ n, Ico (dense_seq α n) x) = Iio x :=
+begin
+  ext y,
+  rw [mem_Iio, mem_Union],
+  split,
+  { rintro ⟨n, hmem⟩,
+    exact hmem.2 },
+  { intro h,
+    obtain ⟨n, hn⟩ := exists_dense_seq_lt y,
+    exact ⟨n, le_of_lt hn, h⟩ }
+end
+
 lemma exists_dense_seq_gt {α : Type*} [nonempty α] [topological_space α] [separable_space α]
   [linear_order α] [order_topology α] [no_top_order α] (x : α) :
   ∃ n, x < dense_seq α n :=

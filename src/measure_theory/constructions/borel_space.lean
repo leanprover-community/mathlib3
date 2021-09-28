@@ -428,20 +428,6 @@ lemma is_preconnected.measurable_set
   (h : is_preconnected s) : measurable_set s :=
 h.ord_connected.measurable_set
 
-lemma Union_Ico_dense_seq {α : Type*} [nonempty α] [topological_space α] [separable_space α]
-  [linear_order α] [order_topology α] [no_bot_order α] (x : α) :
-  (⋃ n, Ico (dense_seq α n) x) = Iio x :=
-begin
-  ext y,
-  rw [mem_Iio, mem_Union],
-  split,
-  { rintro ⟨n, hmem⟩,
-    exact hmem.2 },
-  { intro h,
-    obtain ⟨n, hn⟩ := exists_dense_seq_lt y,
-    exact ⟨n, le_of_lt hn, h⟩ }
-end
-
 lemma borel_eq_generate_Ico (α : Type*) [nonempty α] [topological_space α]
   [second_countable_topology α] [linear_order α] [order_topology α] :
   borel α = generate_from {S | ∃ l u, l < u ∧ Ico l u = S} :=

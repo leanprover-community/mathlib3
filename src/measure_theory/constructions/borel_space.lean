@@ -491,6 +491,24 @@ begin
   { exact ⟨u, l, hlt, dual_Ioc⟩ }
 end
 
+lemma is_pi_system_Ico (α : Type*) [linear_order α] :
+  is_pi_system {S : set α| ∃ l u, l < u ∧ Ico l u = S} :=
+begin
+  rintro - - ⟨l₁, u₁, hle₁, rfl⟩ ⟨l₂, u₂, hle₂, rfl⟩ ⟨x, hx⟩,
+  rw Ico_inter_Ico at ⊢ hx,
+  exact ⟨l₁ ⊔ l₂, u₁ ⊓ u₂, lt_of_le_of_lt hx.1 hx.2, rfl⟩
+end
+
+lemma is_pi_system_Ioc (α : Type*) [linear_order α] :
+  is_pi_system {S : set α| ∃ l u, l < u ∧ Ioc l u = S} :=
+begin
+  convert @is_pi_system_Ico (order_dual α) _,
+  ext s,
+  split; rintro ⟨l, u, hlt, rfl⟩,
+  { exact ⟨u, l, hlt, dual_Ico⟩ },
+  { exact ⟨u, l, hlt, dual_Ioc⟩ }
+end
+
 /-- Two measures on a Borel space are equal if they agree on all closed-open intervals. -/
 lemma ext_of_Ico {α : Type*} [nonempty α] [topological_space α] {m : measurable_space α}
   [second_countable_topology α] [linear_order α] [order_topology α] [borel_space α]
@@ -498,11 +516,7 @@ lemma ext_of_Ico {α : Type*} [nonempty α] [topological_space α] {m : measurab
   (h : ∀ ⦃a b⦄, a < b → μ (Ico a b) = ν (Ico a b)) : μ = ν :=
 begin
   refine ext_of_generate_finite {S | ∃ l u, l < u ∧ Ico l u = S}
-    (borel_eq_generate_Ico α ▸ borel_space.measurable_eq) _ _ hμν,
-  { rintro - - ⟨a, b, hab, rfl⟩ ⟨c, d, hcd, rfl⟩ hnempty,
-    rw Ico_inter_Ico at hnempty ⊢,
-    cases hnempty with x hx,
-    exact ⟨a ⊔ c, b ⊓ d, lt_of_le_of_lt hx.1 hx.2, rfl⟩ },
+    (borel_eq_generate_Ico α ▸ borel_space.measurable_eq) (is_pi_system_Ico α) _ hμν,
   { rintro - ⟨a, b, hlt, rfl⟩,
     exact h hlt }
 end
@@ -514,11 +528,7 @@ lemma ext_of_Ioc {α : Type*} [nonempty α] [topological_space α] {m : measurab
   (h : ∀ ⦃a b⦄, a < b → μ (Ioc a b) = ν (Ioc a b)) : μ = ν :=
 begin
   refine ext_of_generate_finite {S | ∃ l u, l < u ∧ Ioc l u = S}
-    (borel_eq_generate_Ioc α ▸ borel_space.measurable_eq) _ _ hμν,
-  { rintro - - ⟨a, b, hab, rfl⟩ ⟨c, d, hcd, rfl⟩ hnempty,
-    rw Ioc_inter_Ioc at hnempty ⊢,
-    cases hnempty with x hx,
-    refine ⟨a ⊔ c, b ⊓ d, lt_of_lt_of_le hx.1 hx.2, rfl⟩ },
+    (borel_eq_generate_Ioc α ▸ borel_space.measurable_eq) (is_pi_system_Ioc α) _ hμν,
   { rintro - ⟨a, b, hlt, rfl⟩,
     exact h hlt }
 end

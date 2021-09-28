@@ -1122,8 +1122,8 @@ section add_comm_monoid
 
 variables [partial_order Γ] [add_comm_monoid R] {α : Type*}
 
-instance : has_coe_to_fun (summable_family Γ R α) :=
-⟨λ _, (α → hahn_series Γ R), to_fun⟩
+instance : has_coe_to_fun (summable_family Γ R α) (λ _, α → hahn_series Γ R):=
+⟨to_fun⟩
 
 lemma is_pwo_Union_support (s : summable_family Γ R α) : set.is_pwo (⋃ (a : α), (s a).support) :=
 s.is_pwo_Union_support'

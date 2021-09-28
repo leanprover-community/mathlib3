@@ -48,14 +48,69 @@ def cdf [preorder 𝕜] (X : α → 𝕜) (ℙ : measure α) (x : 𝕜) :=
 
 section
 
-variables {ℙ : measure α} {μ : measure 𝕜}
+variables [preorder 𝕜] {ℙ : measure α} [is_finite_measure ℙ] {X : α → 𝕜}
+
+lemma cdf_mono (hX : measurable X) : monotone (cdf X ℙ) :=
+begin
+  haveI := is_finite_measure_map ℙ hX,
+  intros x y hle,
+  exact ennreal.to_real_mono (measure_lt_top _ _).ne (measure_mono (Iic_subset_Iic.2 hle))
+end
+
+end
+
+section
+
+variables {ℙ : measure α} [is_finite_measure ℙ] {μ : measure 𝕜}
 
 variables [second_countable_topology 𝕜] [complete_space 𝕜] [borel_space 𝕜] [normed_space ℝ 𝕜]
   [linear_order 𝕜] [order_topology 𝕜]
+#check mono_of_deriv_nonneg
+lemma deriv_nonneg_of_mono {f : 𝕜 → ℝ}
+  (hf : differentiable ℝ f) (hfmono : monotone f) (x : 𝕜) :
+  0 ≤ deriv f x :=
+begin
+  sorry
+end
+
+lemma pdf_integrable (X : α → 𝕜) :
+  integrable (λ x, (pdf X ℙ μ x).to_real) μ :=
+begin
+  refine integrable_to_real_of_lintegral_ne_top (measurable_pdf X ℙ μ).ae_measurable _,
+  by_cases hpdf : has_pdf X ℙ μ,
+  { haveI := hpdf,
+    rw measure.pdf.lintegral_eq_measure_univ,
+    exact (measure_lt_top ℙ _).ne },
+  { simp_rw [pdf, dif_neg hpdf, lintegral_zero_fun],
+    exact ennreal.zero_ne_top }
+end
+
+#check ennreal.to_real_of_real
+lemma foo (X : α → 𝕜) (h : differentiable ℝ (cdf X ℙ)) {s : set 𝕜}
+  (hs : measurable_set s) (hμs : μ s < ∞) :
+  ∫ (x : 𝕜) in s, (pdf X ℙ μ x).to_real ∂μ = ∫ (x : 𝕜) in s, deriv (cdf X ℙ) x ∂μ :=
+begin
+  rw integral_to_real (measurable_pdf X ℙ μ).ae_measurable,
+  {
+    sorry
+
+  },
+  { refine ae_lt_top (measurable_pdf X ℙ μ)
+      (ne_of_lt (lt_of_le_of_lt (lintegral_mono_set (set.subset_univ _)) _)),
+    rw set_lintegral_univ,
+    by_cases hpdf : has_pdf X ℙ μ,
+    { haveI := hpdf,
+      rw measure.pdf.lintegral_eq_measure_univ,
+      exact measure_lt_top ℙ _ },
+    { simp_rw [pdf, dif_neg hpdf],
+      rw lintegral_zero_fun,
+      exact with_top.zero_lt_top } }
+end
 
 lemma pdf_ae_eq_of_cdf (X : α → 𝕜) (h : differentiable ℝ (cdf X ℙ)) :
   (λ x, (pdf X ℙ μ x).to_real) =ᵐ[μ] deriv (cdf X ℙ) :=
 begin
+  refine integrable.ae_eq_of_forall_set_integral_eq _ _ (pdf_integrable X) _ _;
   sorry
 end
 

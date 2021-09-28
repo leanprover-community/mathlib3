@@ -37,7 +37,7 @@ lemma sum_mul_sq_le_sq_mul_sq (s : finset α) (f g : α → ℝ) :
   (∑ i in s, f i * g i)^2 ≤ (∑ i in s, (f i)^2) * (∑ i in s, (g i)^2) :=
 begin
   have : 0 ≤ ∑ i in s, (g i)^2 := sum_nonneg (λ i hi, sq_nonneg _),
-  cases eq_or_lt_of_le this with h h,
+  cases this.eq_or_lt with h h,
   { rw [eq_comm, sum_eq_zero_iff_of_nonneg] at h,
     { simp only [nat.succ_pos', pow_eq_zero_iff] at h,
       rw [finset.sum_congr rfl (show ∀ i ∈ s, f i * g i = 0, from λ i hi, by simp [h i hi]),
@@ -57,8 +57,6 @@ begin
   rw div_le_iff h at this,
   assumption
 end
-
-alias nat.desc_factorial_eq_zero_iff_lt ↔ _ nat.desc_factorial_of_lt
 
 namespace nat
 

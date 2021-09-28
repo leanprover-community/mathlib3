@@ -2037,12 +2037,12 @@ iff.intro
   (assume ⟨i, hi, ha⟩,
     ⟨i, by rw [int.mod_eq_of_lt (int.coe_zero_le _) (int.coe_nat_lt_coe_nat_of_lt hi), ha]⟩)
 
+@[simp] lemma attach_image_coe [decidable_eq α] {s : finset α} : s.attach.image coe = s :=
+eq_of_veq $ by rw [← subtype_val_eq_coe, image_val, attach_val, multiset.attach_map_val,
+  erase_dup_eq_self]
 
 lemma attach_image_val [decidable_eq α] {s : finset α} : s.attach.image subtype.val = s :=
-eq_of_veq $ by rw [image_val, attach_val, multiset.attach_map_val, erase_dup_eq_self]
-
-@[simp] lemma attach_image_coe [decidable_eq α] {s : finset α} : s.attach.image coe = s :=
-finset.attach_image_val
+by simp
 
 @[simp] lemma attach_insert [decidable_eq α] {a : α} {s : finset α} :
   attach (insert a s) = insert (⟨a, mem_insert_self a s⟩ : {x // x ∈ insert a s})

@@ -82,16 +82,15 @@ begin
 end
 
 lemma linear_combination_ite_eq (hi : i ∈ s) :
-  s.linear_combination p (λ j, if (i = j) then (1 : 𝕜) else 0) = p i :=
+  s.sum ((λ j, if (i = j) then (1 : 𝕜) else 0) • p) = p i :=
 begin
-  rw linear_combination,
   transitivity ∑ j in s, if (i = j) then p i else 0,
-  { congr' with i, split_ifs, exacts [h ▸ one_smul _ _, zero_smul _ _] },
+  { congr' with k, dsimp, split_ifs, exacts [h ▸ one_smul _ _, zero_smul _ _] },
   { rw [sum_ite_eq, if_pos hi] }
 end
 
 lemma linear_combination_smul_right :
-  s.linear_combination p (c • w) = c • s.sum (w • p) :=
+  s.sum ((c • w) • p) = c • s.sum (w • p) :=
 by simp_rw [smul_sum, pi.smul_apply, smul_assoc]
 
 variables {s w}
@@ -99,10 +98,7 @@ variables {s w}
 lemma linear_combination_subset {t : finset ι} (ht : s ⊆ t)
   (h : ∀ i ∈ t, i ∉ s → w i = 0) :
   s.sum (w • p) = t.sum (w • p) :=
-begin
-  rw [linear_combination],
-  exact sum_subset ht (λ i hit his, by rw [h i hit his, zero_smul]),
-end
+sum_subset ht (λ i hit his, by rw [h i hit his, zero_smul])
 
 lemma linear_combination_filter_ne_zero :
   (s.filter (λ i, w i ≠ 0)).sum (w • p) = s.sum (w • p) :=
@@ -118,7 +114,7 @@ variables {𝕜 E ι ι' : Type*} [ordered_comm_semiring 𝕜] [add_comm_monoid 
   (c : 𝕜) (s : finset ι) (p : ι → E) {w : ι → 𝕜}
 
 lemma linear_combination_smul_left :
-  s.linear_combination (c • p) w = c • s.sum (w • p) :=
+  s.sum (w • (c • p)) = c • s.sum (w • p) :=
 by simp_rw [smul_sum, pi.smul_apply, smul_comm c]
 
 end ordered_comm_semiring
@@ -128,7 +124,7 @@ variables {𝕜 E ι ι' : Type*} [linear_ordered_field 𝕜] [add_comm_monoid E
   {s : set E} {t : finset ι} {p : ι → E} {w : ι → 𝕜}
 
 lemma linear_combination_normalize  (hw : ∑ i in t, w i ≠ 0) :
-  t.sum (w • p) = (∑ i in t, w i) • t.linear_combination p ((∑ i in t, w i)⁻¹ • w) :=
+  t.sum (w • p) = (∑ i in t, w i) • t.sum (((∑ i in t, w i)⁻¹ • w) • p) :=
 by rw [linear_combination_smul_right, smul_inv_smul' hw]
 
 /-- The linear combination of a finite subset of a convex set belongs to the set
@@ -224,7 +220,7 @@ end
 
 protected lemma convex_hull_eq (s : finset E) :
   convex_hull 𝕜 ↑s = {x : E | ∃ (w : E → 𝕜) (hw₀ : ∀ y ∈ s, 0 ≤ w y) (hw₁ : ∑ y in s, w y = 1),
-    s.linear_combination id w = x} :=
+    s.sum (w • id) = x} :=
 begin
   refine (convex_hull_min _ _).antisymm _,
   { intros x hx,
@@ -245,7 +241,7 @@ end
 
 protected lemma _root_.set.finite.convex_hull_eq {s : set E} (hs : finite s) :
   convex_hull 𝕜 s = {x : E | ∃ (w : E → 𝕜) (hw₀ : ∀ y ∈ s, 0 ≤ w y)
-    (hw₁ : ∑ y in hs.to_finset, w y = 1), hs.to_finset.linear_combination id w = x} :=
+    (hw₁ : ∑ y in hs.to_finset, w y = 1), hs.to_finset.sum (w • id) = x} :=
 by simpa only [set.finite.coe_to_finset, set.finite.mem_to_finset, exists_prop]
   using hs.to_finset.convex_hull_eq
 

@@ -27,7 +27,7 @@ open set
 open_locale big_operators classical
 
 universes u u'
-variables {R E ι ι' : Type*} [linear_ordered_field R] [add_comm_monoid E] [module R E] {s : set E}
+variables {R E ι ι' : Type*} [linear_ordered_field R] [add_comm_group E] [module R E] {s : set E}
 
 /-- Center of mass of a finite collection of points with prescribed weights.
 Note that we require neither `0 ≤ w i` nor `∑ w = 1`. -/
@@ -182,26 +182,22 @@ lemma finset.center_mass_id_mem_convex_hull (t : finset E) {w : E → R} (hw₀ 
   t.center_mass w id ∈ convex_hull R (t : set E) :=
 t.center_mass_mem_convex_hull hw₀ hws (λ i, mem_coe.2)
 
-section add_comm_group
-
-variables {F : Type*} [add_comm_group F] [module R F]
-
-lemma affine_combination_eq_center_mass {ι : Type*} {t : finset ι} {p : ι → F} {w : ι → R}
+lemma affine_combination_eq_center_mass {ι : Type*} {t : finset ι} {p : ι → E} {w : ι → R}
   (hw₂ : ∑ i in t, w i = 1) :
   affine_combination t p w = center_mass t w p :=
 begin
-  rw [affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one _ w _ hw₂ (0 : F),
+  rw [affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one _ w _ hw₂ (0 : E),
     finset.weighted_vsub_of_point_apply, vadd_eq_add, add_zero, t.center_mass_eq_of_sum_1 _ hw₂],
   simp_rw [vsub_eq_sub, sub_zero],
 end
 
 /-- The centroid can be regarded as a center of mass. -/
-@[simp] lemma finset.centroid_eq_center_mass (s : finset ι) (hs : s.nonempty) (p : ι → F) :
+@[simp] lemma finset.centroid_eq_center_mass (s : finset ι) (hs : s.nonempty) (p : ι → E) :
   s.centroid R p = s.center_mass (s.centroid_weights R) p :=
 affine_combination_eq_center_mass (s.sum_centroid_weights_eq_one_of_nonempty R hs)
 
-lemma finset.centroid_mem_convex_hull (s : finset F) (hs : s.nonempty) :
-  s.centroid R id ∈ convex_hull R (s : set F) :=
+lemma finset.centroid_mem_convex_hull (s : finset E) (hs : s.nonempty) :
+  s.centroid R id ∈ convex_hull R (s : set E) :=
 begin
   rw s.centroid_eq_center_mass hs,
   apply s.center_mass_id_mem_convex_hull,
@@ -210,8 +206,6 @@ begin
     simp only [hs_card, finset.sum_const, nsmul_eq_mul, mul_inv_cancel, ne.def, not_false_iff,
       finset.centroid_weights_apply, zero_lt_one] }
 end
-
-end add_comm_group
 
 -- TODO : Do we need other versions of the next lemma?
 

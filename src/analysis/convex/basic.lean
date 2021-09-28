@@ -18,7 +18,7 @@ In a 𝕜-vector space, we define the following objects and properties.
 * `convex_hull 𝕜 s`: The minimal convex set that includes `s`. In order theory speak, this is a
   closure operator.
 * Standard simplex `std_simplex ι [fintype ι]` is the intersection of the positive quadrant with
-  the hyperplane `s.sum = 1` in the space `ι → ℝ`.
+  the hyperplane `s.sum = 1` in the space `ι → 𝕜`.
 
 We also provide various equivalent versions of the definitions above, prove that some specific sets
 are convex.
@@ -119,7 +119,7 @@ begin
   exact h (mem_open_segment_of_ne_left_right 𝕜 hxz hyz hz),
 end
 
-lemma convex.combo_self {x y : 𝕜} (h : x + y = 1) (a : 𝕜) : x • a + y • a = a :=
+lemma convex.combo_self {x y : 𝕜} (h : x + y = 1) (a : E) : x • a + y • a = a :=
 by rw [←add_smul, h, one_smul]
 
 end ordered_semiring

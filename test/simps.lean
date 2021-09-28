@@ -574,7 +574,7 @@ run_cmd do e ← get_env,
 "Invalid custom projection:
   λ {α : Type u} {β : Type v} (e : α ≃ β), ⇑(e.symm)
 Expression has different type than faulty_universes.equiv.inv_fun. Given type:
-  Π {α : Type u} {β : Type v} (e : α ≃ β), has_coe_to_fun.F e.symm
+  Π {α : Type u} {β : Type v} (e : α ≃ β), (λ (_x : β ≃ α), β → α) e.symm
 Expected type:
   Π (α : Sort u) (β : Sort v), α ≃ β → β → α"
 
@@ -653,7 +653,7 @@ local infix ` ≃ `:25 := prefix_projection_names.equiv
 
 variables {α β γ : Sort*}
 
-instance : has_coe_to_fun $ α ≃ β := ⟨_, equiv.to_fun⟩
+instance : has_coe_to_fun (α ≃ β) (λ _, α → β) := ⟨equiv.to_fun⟩
 
 def equiv.symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun⟩
 
@@ -876,7 +876,7 @@ end
 
 section comp_projs
 
-instance {α β} : has_coe_to_fun (α ≃ β) := ⟨λ _, α → β, equiv.to_fun⟩
+instance {α β} : has_coe_to_fun (α ≃ β) (λ _, α → β) := ⟨equiv.to_fun⟩
 
 @[simps] protected def equiv.symm {α β} (f : α ≃ β) : β ≃ α :=
 ⟨f.inv_fun, f, f.right_inv, f.left_inv⟩
@@ -885,7 +885,7 @@ structure decorated_equiv (α : Sort*) (β : Sort*) extends equiv α β :=
 (P_to_fun    : function.injective to_fun )
 (P_inv_fun   : function.injective inv_fun)
 
-instance {α β} : has_coe_to_fun (decorated_equiv α β) := ⟨λ _, α → β, λ f, f.to_equiv⟩
+instance {α β} : has_coe_to_fun (decorated_equiv α β) (λ _, α → β) := ⟨λ f, f.to_equiv⟩
 
 def decorated_equiv.symm {α β : Sort*} (e : decorated_equiv α β) : decorated_equiv β α :=
 { to_equiv := e.to_equiv.symm,
@@ -923,8 +923,8 @@ structure further_decorated_equiv (α : Sort*) (β : Sort*) extends decorated_eq
 (Q_to_fun    : function.surjective to_fun )
 (Q_inv_fun   : function.surjective inv_fun )
 
-instance {α β} : has_coe_to_fun (further_decorated_equiv α β) :=
-⟨λ _, α → β, λ f, f.to_decorated_equiv⟩
+instance {α β} : has_coe_to_fun (further_decorated_equiv α β) (λ _, α → β) :=
+⟨λ f, f.to_decorated_equiv⟩
 
 def further_decorated_equiv.symm {α β : Sort*} (e : further_decorated_equiv α β) :
   further_decorated_equiv β α :=
@@ -962,8 +962,8 @@ def ffoo4 (α : Type) : further_decorated_equiv α α :=
 
 structure one_more (α : Sort*) (β : Sort*) extends further_decorated_equiv α β
 
-instance {α β} : has_coe_to_fun (one_more α β) :=
-⟨λ _, α → β, λ f, f.to_further_decorated_equiv⟩
+instance {α β} : has_coe_to_fun (one_more α β) (λ _, α → β) :=
+⟨λ f, f.to_further_decorated_equiv⟩
 
 def one_more.symm {α β : Sort*} (e : one_more α β) :
   one_more β α :=

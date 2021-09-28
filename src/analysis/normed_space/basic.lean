@@ -1549,7 +1549,7 @@ begin
   by_cases h : s = 0,
   { simp [h] },
   { refine le_antisymm (semi_normed_space.norm_smul_le s x) _,
-    calc ∥s∥ * ∥x∥ = ∥s∥ * ∥s⁻¹ • s • x∥     : by rw [inv_smul_smul' h]
+    calc ∥s∥ * ∥x∥ = ∥s∥ * ∥s⁻¹ • s • x∥     : by rw [inv_smul_smul₀ h]
                ... ≤ ∥s∥ * (∥s⁻¹∥ * ∥s • x∥) :
       mul_le_mul_of_nonneg_left (semi_normed_space.norm_smul_le _ _) (norm_nonneg _)
                ... = ∥s • x∥                 :
@@ -1633,7 +1633,7 @@ theorem smul_ball {c : α} (hc : c ≠ 0) (x : E) (r : ℝ) :
 begin
   ext y,
   rw mem_smul_set_iff_inv_smul_mem₀ hc,
-  conv_lhs { rw ←inv_smul_smul' hc x },
+  conv_lhs { rw ←inv_smul_smul₀ hc x },
   simp [← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hc), mul_comm _ r, dist_smul],
 end
 
@@ -1642,7 +1642,7 @@ theorem smul_closed_ball' {c : α} (hc : c ≠ 0) (x : E) (r : ℝ) :
 begin
   ext y,
   rw mem_smul_set_iff_inv_smul_mem₀ hc,
-  conv_lhs { rw ←inv_smul_smul' hc x },
+  conv_lhs { rw ←inv_smul_smul₀ hc x },
   simp [dist_smul, ← div_eq_inv_mul, div_le_iff (norm_pos_iff.2 hc), mul_comm _ r],
 end
 

@@ -82,7 +82,7 @@ begin
   by_cases hbc : b = c, { subst hbc, simp [sub_ne_zero.2 (ne.symm hab)] },
   rw [add_comm],
   simp_rw [slope, div_eq_inv_mul, mul_smul, ← smul_add,
-    smul_inv_smul' (sub_ne_zero.2 $ ne.symm hab), smul_inv_smul' (sub_ne_zero.2 $ ne.symm hbc),
+    smul_inv_smul₀ (sub_ne_zero.2 $ ne.symm hab), smul_inv_smul₀ (sub_ne_zero.2 $ ne.symm hbc),
     vsub_add_vsub_cancel],
 end
 
@@ -282,7 +282,7 @@ begin
   sub_le_iff_le_add, mul_inv_rev₀, mul_smul, mul_smul, ←smul_sub, ←smul_sub, ←smul_add, smul_smul,
   ← mul_inv_rev₀, smul_le_iff_of_pos (inv_pos.2 h), inv_inv₀, smul_smul,
   mul_inv_cancel_right₀ (right_ne_zero_of_mul h.ne'), smul_add,
-  smul_inv_smul' (left_ne_zero_of_mul h.ne')],
+  smul_inv_smul₀ (left_ne_zero_of_mul h.ne')],
   apply_instance
 end
 

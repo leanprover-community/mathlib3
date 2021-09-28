@@ -218,8 +218,8 @@ open algebraic_geometry.LocallyRingedSpace
 def to_Spec_Γ (R : CommRing) : R ⟶ Γ.obj (op (Spec.to_LocallyRingedSpace.obj (op R))) :=
   structure_sheaf.to_open R ⊤
 
-instance is_iso_to_Spec_Γ (R : CommRing) : is_iso (to_Spec_Γ R)
-  := by convert is_iso_to_global R; cases R; refl
+instance is_iso_to_Spec_Γ (R : CommRing) : is_iso (to_Spec_Γ R) :=
+by { cases R, apply is_iso_to_global }
 
 lemma Spec_Γ_naturality {R S : CommRing} (f : R ⟶ S)
   : f ≫ to_Spec_Γ S = to_Spec_Γ R ≫ Γ.map (Spec.to_LocallyRingedSpace.map f.op).op

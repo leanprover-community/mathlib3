@@ -799,8 +799,7 @@ def basic_open_iso (f : R) : (structure_sheaf R).presheaf.obj (op (basic_open f)
   CommRing.of (localization.away f) :=
 (as_iso (show CommRing.of _ ⟶ _, from to_basic_open R f)).symm
 
-@[instance]
-lemma is_iso_to_global (R : CommRing) : is_iso (structure_sheaf.to_open R ⊤ : R ⟶ _) :=
+instance is_iso_to_global (R : CommRing) : is_iso (structure_sheaf.to_open R ⊤ : R ⟶ _) :=
 begin
   let hom : CommRing.of _ ⟶ CommRing.of _ := algebra_map R (localization.away (1 : R)),
   haveI : is_iso hom := is_iso.of_iso

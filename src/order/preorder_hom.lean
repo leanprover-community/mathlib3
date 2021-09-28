@@ -13,6 +13,50 @@ import tactic.monotonicity
 
 This file defines preorder homomorphisms, which are bundled monotone functions. A preorder
 homomorphism `f : α →ₘ β` is a function `α → β` along with a proof that `∀ x y, x ≤ y → f x ≤ f y`.
+
+## Main definitions
+
+In this file we define `preorder_hom α β` a.k.a. `α →ₘ β` to be a bundled monotone map.
+
+We also define many `preorder_hom`s. In some cases we define two versions, one with `ₘ` suffix and
+one without it (e.g., `preorder_hom.compₘ` and `preorder_hom.comp`). This means that the former
+function is a "more bundled" version of the latter. We can't just drop the "less bundled" version
+because the more bundled version usually does not work with dot notation.
+
+* `preorder_hom.id`: identity map as `α →ₘ α`;
+* `preorder_hom.curry`: an order isomorphism between `α × β →ₘ γ` and `α →ₘ β →ₘ γ`;
+* `preorder_hom.comp`: composition of two bundled monotone maps;
+* `preorder_hom.compₘ`: composition of bundled monotone maps as a bundled monotone map;
+* `preorder_hom.const`: constant function as a bundled monotone map;
+* `preorder_hom.prod`: combine `α →ₘ β` and `α →ₘ γ` into `α →ₘ β × γ`;
+* `preorder_hom.prodₘ`: a more bundled version of `preorder_hom.prod`;
+* `preorder_hom.prod_iso`: order isomorphism between `α →ₘ β × γ` and `(α →ₘ β) × (α →ₘ γ)`;
+* `preorder_hom.diag`: diagonal embedding of `α` into `α × α` as a bundled monotone map;
+* `preorder_hom.on_diag`: restrict a monotone map `α →ₘ α →ₘ β` to the diagonal;
+* `preorder_hom.fst`: projection `prod.fst : α × β → α` as a bundled monotone map;
+* `preorder_hom.snd`: projection `prod.snd : α × β → β` as a bundled monotone map;
+* `preorder_hom.prod_map`: `prod.map f g` as a bundled monotone map;
+* `pi.eval_preorder_hom`: evaluation of a function at a point `function.eval i` as a bundled
+  monotone map;
+* `preorder_hom.coe_fn_hom`: coercion to function as a bundled monotone map;
+* `preorder_hom.apply`: application of a `preorder_hom` at a point as a bundled monotone map;
+* `preorder_hom.pi`: combine a family of monotone maps `f i : α →ₘ π i` into a monotone map
+  `α →ₘ Π i, π i`;
+* `preorder_hom.pi_iso`: order isomorphism between `α →ₘ Π i, π i` and `Π i, α →ₘ π i`;
+* `preorder_hom.subtyle.val`: embedding `subtype.val : subtype p → α` as a bundled monotone map;
+* `preorder_hom.dual`: reinterpret a monotone map `α →ₘ β` as a monotone map
+  `order_dual α →ₘ order_dual β`;
+* `preorder_hom.dual_iso`: order isomorphism between `α →ₘ β` and
+  `order_dual (order_dual α →ₘ order_dual β)`;
+
+We also define two functions to convert other bundled maps to `α →ₘ β`:
+
+* `order_embedding.to_preorder_hom`: convert `α ↪o β` to `α →ₘ β`;
+* `rel_hom.to_preorder_hom`: conver a `rel_hom` between strict orders to a `preorder_hom`.
+
+## Tags
+
+monotone map, bundled morphism
 -/
 
 /-- Bundled monotone (aka, increasing) function -/
@@ -172,14 +216,14 @@ def _root_.pi.eval_preorder_hom (i : ι) : (Π j, π j) →ₘ π i :=
 
 /-- The "forgetful functor" from `α →ₘ β` to `α → β` that takes the underlying function,
 is monotone. -/
-@[simps {fully_applied := ff}] def to_fun_hom : (α →ₘ β) →ₘ (α → β) :=
+@[simps {fully_applied := ff}] def coe_fn_hom : (α →ₘ β) →ₘ (α → β) :=
 { to_fun := λ f, f,
   monotone' := λ x y h, h }
 
 /-- Function application `λ f, f a` (for fixed `a`) is a monotone function from the
 monotone function space `α →ₘ β` to `β`. See also `pi.eval_preorder_hom`.  -/
 @[simps {fully_applied := ff}] def apply (x : α) : (α →ₘ β) →ₘ β :=
-(pi.eval_preorder_hom x).comp to_fun_hom
+(pi.eval_preorder_hom x).comp coe_fn_hom
 
 /-- Construct a bundled monotone map `α →ₘ Π i, π i` from a family of monotone maps
 `f i : α →ₘ π i`. -/

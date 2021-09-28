@@ -484,7 +484,7 @@ protected def ωSup (c : chain (α →ₘ β)) : α →ₘ β :=
 
 @[simps ωSup_coe]
 instance omega_complete_partial_order : omega_complete_partial_order (α →ₘ β) :=
-omega_complete_partial_order.lift preorder_hom.to_fun_hom preorder_hom.ωSup
+omega_complete_partial_order.lift preorder_hom.coe_fn_hom preorder_hom.ωSup
   (λ x y h, h) (λ c, rfl)
 
 end preorder_hom

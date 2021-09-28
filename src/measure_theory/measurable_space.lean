@@ -965,7 +965,8 @@ noncomputable def pi_measurable_equiv_tprod {l : list δ'} (hnd : l.nodup) (h : 
   (Π i, α i) ≃ᵐ α 0 × α 1 :=
 { to_equiv := pi_fin_two_equiv α,
   measurable_to_fun := measurable.prod (measurable_pi_apply _) (measurable_pi_apply _),
-  measurable_inv_fun := measurable_pi_iff.2 $ fin.forall_fin_two.2 ⟨measurable_fst, measurable_snd⟩ }
+  measurable_inv_fun := measurable_pi_iff.2 $
+    fin.forall_fin_two.2 ⟨measurable_fst, measurable_snd⟩ }
 
 /-- The space `fin 2 → α` is measurably equivalent to `α × α`. -/
 @[simps {fully_applied := ff}] def fin_two_arrow : (fin 2 → α) ≃ᵐ α × α := pi_fin_two (λ _, α)

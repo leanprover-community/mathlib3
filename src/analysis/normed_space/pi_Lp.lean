@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.mean_inequalities
-import analysis.normed_space.inner_product
+import analysis.inner_product_space.projection
 
 /-!
 # `L^p` distance on finite products of metric spaces

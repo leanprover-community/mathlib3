@@ -10,7 +10,7 @@ import data.polynomial.eval
 # The Pochhammer polynomials
 
 We define and prove some basic relations about
-`pochhammer S n : polynomial S = X * (X+1) * ... * (X + n - 1)`
+`pochhammer S n : polynomial S := X * (X + 1) * ... * (X + n - 1)`
 which is also known as the rising factorial. A version of this definition
 that is focused on `nat` can be found in `data.nat.factorial` as `asc_factorial`.
 
@@ -29,7 +29,7 @@ universes u v
 
 open polynomial
 
-section
+section semiring
 variables (S : Type u) [semiring S]
 
 /--
@@ -112,9 +112,32 @@ lemma pochhammer_nat_eq_asc_factorial (n : ℕ) :
   rw [nat.asc_factorial_succ, add_right_comm, mul_comm]
 end
 
+lemma pochhammer_nat_eq_desc_factorial (a b : ℕ) :
+  (pochhammer ℕ b).eval a = (a + b - 1).desc_factorial b :=
+begin
+  cases b,
+  { rw [nat.desc_factorial_zero, pochhammer_zero, polynomial.eval_one] },
+  rw [nat.add_succ, nat.succ_sub_succ, nat.sub_zero],
+  cases a,
+  { rw [pochhammer_ne_zero_eval_zero _ b.succ_ne_zero, zero_add,
+    nat.desc_factorial_of_lt b.lt_succ_self] },
+  { rw [nat.succ_add, ←nat.add_succ, nat.add_desc_factorial_eq_asc_factorial,
+      pochhammer_nat_eq_asc_factorial] }
 end
 
-section
+end semiring
+
+section comm_semiring
+variables {S : Type*} [comm_semiring S]
+
+lemma pochhammer_succ_eval (n : ℕ) (k : S) :
+  (pochhammer S n.succ).eval k = (pochhammer S n).eval k * (k + ↑n) :=
+by rw [pochhammer_succ_right, polynomial.eval_mul, polynomial.eval_add, polynomial.eval_X,
+    polynomial.eval_nat_cast]
+
+end comm_semiring
+
+section ordered_semiring
 variables {S : Type*} [ordered_semiring S] [nontrivial S]
 
 lemma pochhammer_pos (n : ℕ) (s : S) (h : 0 < s) : 0 < (pochhammer S n).eval s :=
@@ -127,7 +150,7 @@ begin
       (lt_of_lt_of_le h ((le_add_iff_nonneg_right _).mpr (nat.cast_nonneg n))), }
 end
 
-end
+end ordered_semiring
 
 section factorial
 

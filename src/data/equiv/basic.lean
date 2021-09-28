@@ -1229,17 +1229,11 @@ calc bool × α ≃ (unit ⊕ unit) × α       : prod_congr bool_equiv_punit_su
       ...     ≃ α ⊕ α                   : sum_congr (punit_prod _) (punit_prod _)
 
 /-- The function type `bool → α` is equivalent to `α × α`. -/
-def bool_to_equiv_prod (α : Type u) : (bool → α) ≃ α × α :=
-calc (bool → α) ≃ ((unit ⊕ unit) → α) : (arrow_congr bool_equiv_punit_sum_punit (equiv.refl α))
-     ...        ≃ (unit → α) × (unit → α) : sum_arrow_equiv_prod_arrow _ _ _
-     ...        ≃ α × α : prod_congr (punit_arrow_equiv _) (punit_arrow_equiv _)
-
-@[simp] lemma bool_to_equiv_prod_apply {α : Type u} (f : bool → α) :
-  bool_to_equiv_prod α f = (f ff, f tt) := rfl
-@[simp] lemma bool_to_equiv_prod_symm_apply_ff {α : Type u} (p : α × α) :
-  (bool_to_equiv_prod α).symm p ff = p.1 := rfl
-@[simp] lemma bool_to_equiv_prod_symm_apply_tt {α : Type u} (p : α × α) :
-  (bool_to_equiv_prod α).symm p tt = p.2 := rfl
+@[simps] def bool_arrow_equiv_prod (α : Type u) : (bool → α) ≃ α × α :=
+{ to_fun := λ f, (f tt, f ff),
+  inv_fun := λ p b, cond b p.1 p.2,
+  left_inv := λ f, funext $ bool.forall_bool.2 ⟨rfl, rfl⟩,
+  right_inv := λ ⟨x, y⟩, rfl }
 
 end
 

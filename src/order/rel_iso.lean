@@ -683,6 +683,15 @@ def set.univ : (set.univ : set α) ≃o α :=
 { to_equiv := equiv.set.univ α,
   map_rel_iff' := λ x y, iff.rfl }
 
+/-- Order isomorphism between `α → β` and `β`, where `α` has a unique element. -/
+@[simps to_equiv apply] def fun_unique (α β : Type*) [unique α] [preorder β] :
+  (α → β) ≃o β :=
+{ to_equiv := equiv.fun_unique α β,
+  map_rel_iff' := λ f g, by simp [pi.le_def, unique.forall_iff] }
+
+@[simp] lemma fun_unique_symm_apply {α β : Type*} [unique α] [preorder β] :
+  ((fun_unique α β).symm : β → α → β) = function.const α := rfl
+
 end order_iso
 
 namespace equiv
@@ -705,8 +714,8 @@ end equiv
 
 /-- If a function `f` is strictly monotone on a set `s`, then it defines an order isomorphism
 between `s` and its image. -/
-protected noncomputable def strict_mono_incr_on.order_iso {α β} [linear_order α] [preorder β]
-  (f : α → β) (s : set α) (hf : strict_mono_incr_on f s) :
+protected noncomputable def strict_mono_on.order_iso {α β} [linear_order α] [preorder β]
+  (f : α → β) (s : set α) (hf : strict_mono_on f s) :
   s ≃o f '' s :=
 { to_equiv := hf.inj_on.bij_on_image.equiv _,
   map_rel_iff' := λ x y, hf.le_iff_le x.2 y.2 }

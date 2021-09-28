@@ -18,7 +18,8 @@ This file defines several small linters:
   - `check_type` checks that the statement of a declaration is well-typed.
   - `check_univs` checks that there are no bad `max u v` universe levels.
   - `syn_taut` checks that declarations are not syntactic tautologies.
-  - `` checks that declarations produced via term mode do not have ineffectual `have` or `suffices`
+  - `unused_haves_suffices` checks that declarations produced via term mode do not have
+    ineffectual `have` or `suffices` statements
 -/
 
 open tactic expr
@@ -414,7 +415,6 @@ meta def has_unused_haves_suffices (d : declaration) : tactic (option string) :=
 /-- A linter for checking that declarations don't have unused term mode have statements. We do not
 tag this as `@[linter]` so that it is not in the default linter set as it is slow and an uncommon
 problem. -/
-@[linter] -- TODO remove
 meta def linter.unused_haves_suffices : linter :=
 { test := has_unused_haves_suffices,
   auto_decls := ff,

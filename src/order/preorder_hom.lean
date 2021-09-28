@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import logic.function.iterate
-import order.basic
 import order.bounded_lattice
 import order.complete_lattice
 import tactic.monotonicity
@@ -12,7 +11,8 @@ import tactic.monotonicity
 /-!
 # Preorder homomorphisms
 
-Bundled monotone functions, `x ≤ y → f x ≤ f y`.
+This file defines preorder homomorphisms, which are bundled monotone functions. A preorder
+homomorphism `f : α →ₘ β` is a function `α → β` along with a proof that `∀ x y, x ≤ y → f x ≤ f y`.
 -/
 
 /-- Bundled monotone (aka, increasing) function -/

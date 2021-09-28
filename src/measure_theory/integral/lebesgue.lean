@@ -113,6 +113,10 @@ theorem const_apply (a : α) (b : β) : (const α b) a = b := rfl
   (const α b).range = {b} :=
 finset.coe_injective $ by simp
 
+lemma range_const_subset (α) [measurable_space α] (b : β) :
+  (const α b).range ⊆ {b} :=
+finset.coe_subset.1 $ by simp
+
 lemma measurable_set_cut (r : α → β → Prop) (f : α →ₛ β)
   (h : ∀b, measurable_set {a | r a b}) : measurable_set {a | r a (f a)} :=
 begin
@@ -1582,6 +1586,52 @@ begin
   exact ennreal.sub_add_cancel_of_le hx
 end
 
+lemma lintegral_sub_le (f g : α → ℝ≥0∞)
+  (hf : measurable f) (hg : measurable g) (h : f ≤ᵐ[μ] g) :
+  ∫⁻ x, g x ∂μ - ∫⁻ x, f x ∂μ ≤ ∫⁻ x, g x - f x ∂μ :=
+begin
+  by_cases hfi : ∫⁻ x, f x ∂μ = ∞,
+  { rw [hfi, ennreal.sub_top],
+    exact bot_le },
+  { rw lintegral_sub hg hf hfi h,
+    refl' }
+end
+
+lemma lintegral_strict_mono_of_ae_le_of_ae_lt_on {f g : α → ℝ≥0∞}
+  (hf : measurable f) (hg : measurable g) (hfi : ∫⁻ x, f x ∂μ ≠ ∞) (h_le : f ≤ᵐ[μ] g)
+  {s : set α} (hμs : μ s ≠ 0) (h : ∀ᵐ x ∂μ, x ∈ s → f x < g x) :
+  ∫⁻ x, f x ∂μ < ∫⁻ x, g x ∂μ :=
+begin
+  rw [← ennreal.sub_pos, ← lintegral_sub hg hf hfi h_le],
+  by_contra hnlt,
+  rw [not_lt, nonpos_iff_eq_zero, lintegral_eq_zero_iff (hg.sub hf), filter.eventually_eq] at hnlt,
+  simp only [ae_iff, ennreal.sub_eq_zero_iff_le, pi.zero_apply, not_lt, not_le] at hnlt h,
+  refine hμs _,
+  push_neg at h,
+  have hs_eq : s = {a : α | a ∈ s ∧ g a ≤ f a} ∪ {a : α | a ∈ s ∧ f a < g a},
+  { ext1 x,
+    simp_rw [set.mem_union, set.mem_set_of_eq, ← not_le],
+    tauto, },
+  rw hs_eq,
+  refine measure_union_null h (measure_mono_null _ hnlt),
+  simp,
+end
+
+lemma lintegral_strict_mono {f g : α → ℝ≥0∞} (hμ : μ ≠ 0)
+  (hf : measurable f) (hg : measurable g) (hfi : ∫⁻ x, f x ∂μ ≠ ∞) (h : ∀ᵐ x ∂μ, f x < g x) :
+  ∫⁻ x, f x ∂μ < ∫⁻ x, g x ∂μ :=
+begin
+  rw [ne.def, ← measure.measure_univ_eq_zero] at hμ,
+  refine lintegral_strict_mono_of_ae_le_of_ae_lt_on hf hg hfi (ae_le_of_ae_lt h) hμ _,
+  simpa using h,
+end
+
+lemma set_lintegral_strict_mono {f g : α → ℝ≥0∞} {s : set α}
+  (hsm : measurable_set s) (hs : μ s ≠ 0) (hf : measurable f) (hg : measurable g)
+  (hfi : ∫⁻ x in s, f x ∂μ ≠ ∞) (h : ∀ᵐ x ∂μ, x ∈ s → f x < g x) :
+  ∫⁻ x in s, f x ∂μ < ∫⁻ x in s, g x ∂μ :=
+lintegral_strict_mono (by simp [hs]) hf hg hfi ((ae_restrict_iff' hsm).mpr h)
+
 /-- Monotone convergence theorem for nonincreasing sequences of functions -/
 lemma lintegral_infi_ae
   {f : ℕ → α → ℝ≥0∞} (h_meas : ∀n, measurable (f n))
@@ -1984,6 +2034,27 @@ begin
   ext1 t ht,
   rw [with_density_apply _ ht, lintegral_indicator _ hs,
       restrict_comm hs ht, ← with_density_apply _ ht]
+end
+
+lemma with_density_of_real_mutually_singular {f : α → ℝ} (hf : measurable f) :
+  μ.with_density (λ x, ennreal.of_real $ f x) ⊥ₘ μ.with_density (λ x, ennreal.of_real $ -f x) :=
+begin
+  set S : set α := { x | f x < 0 } with hSdef,
+  have hS : measurable_set S := measurable_set_lt hf measurable_const,
+  refine ⟨S, hS, _, _⟩,
+  { rw [with_density_apply _ hS, hSdef],
+    have hf0 : ∀ᵐ x ∂μ, x ∈ S → ennreal.of_real (f x) = 0,
+    { refine ae_of_all _ (λ _ hx, _),
+      rw [ennreal.of_real_eq_zero.2 (le_of_lt hx)] },
+    rw set_lintegral_congr_fun hS hf0,
+    exact lintegral_zero },
+  { rw [with_density_apply _ hS.compl, hSdef],
+    have hf0 : ∀ᵐ x ∂μ, x ∈ Sᶜ → ennreal.of_real (-f x) = 0,
+    { refine ae_of_all _ (λ x hx, _),
+      rw ennreal.of_real_eq_zero.2,
+      rwa [neg_le, neg_zero, ← not_lt] },
+    rw set_lintegral_congr_fun hS.compl hf0,
+    exact lintegral_zero },
 end
 
 lemma restrict_with_density {s : set α} (hs : measurable_set s) (f : α → ℝ≥0∞) :

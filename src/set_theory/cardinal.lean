@@ -487,14 +487,14 @@ theorem prod_eq_zero {ι} (f : ι → cardinal) : prod f = 0 ↔ ∃ i, f i = 0 
 not_iff_not.1 $ by simpa using prod_ne_zero f
 
 /-- The universe lift operation on cardinals. You can specify the universes explicitly with
-  `lift.{u v} : cardinal.{u} → cardinal.{max u v}` -/
-def lift (c : cardinal.{u}) : cardinal.{max u v} :=
+  `lift.{u v} : cardinal.{v} → cardinal.{max v u}` -/
+def lift (c : cardinal.{v}) : cardinal.{max v u} :=
 quotient.lift_on c (λ α, ⟦ulift α⟧) $ λ α β ⟨e⟩,
 quotient.sound ⟨equiv.ulift.trans $ e.trans equiv.ulift.symm⟩
 
-theorem lift_mk (α) : lift.{u v} (#α) = #(ulift.{v u} α) := rfl
+theorem lift_mk (α) : lift.{v} (#α) = #(ulift.{v u} α) := rfl
 
-theorem lift_umax : lift.{u (max u v)} = lift.{u v} :=
+theorem lift_umax : lift.{(max u v) u} = lift.{v u} :=
 funext $ λ a, quot.induction_on a $ λ α,
 quotient.sound ⟨equiv.ulift.trans equiv.ulift.symm⟩
 
@@ -504,12 +504,12 @@ quot.induction_on a $ λ α, quot.sound ⟨equiv.ulift⟩
 @[simp] theorem lift_id : ∀ a, lift.{u u} a = a := lift_id'.{u u}
 
 @[simp] theorem lift_lift (a : cardinal) :
-  lift.{(max u v) w} (lift.{u v} a) = lift.{u (max v w)} a :=
+  lift.{w} (lift.{v} a) = lift.{(max v w)} a :=
 quot.induction_on a $ λ α,
 quotient.sound ⟨equiv.ulift.trans $ equiv.ulift.trans equiv.ulift.symm⟩
 
 theorem lift_mk_le {α : Type u} {β : Type v} :
-  lift.{u (max v w)} (#α) ≤ lift.{v (max u w)} (#β) ↔ nonempty (α ↪ β) :=
+  lift.{(max v w)} (#α) ≤ lift.{(max u w)} (#β) ↔ nonempty (α ↪ β) :=
 ⟨λ ⟨f⟩, ⟨embedding.congr equiv.ulift equiv.ulift f⟩,
  λ ⟨f⟩, ⟨embedding.congr equiv.ulift.symm equiv.ulift.symm f⟩⟩
 
@@ -518,11 +518,11 @@ Because Lean often can not realize it should use this specialization itself,
 we provide this statement separately so you don't have to solve the specialization problem either.
 -/
 theorem lift_mk_le' {α : Type u} {β : Type v} :
-  lift.{u v} (#α) ≤ lift.{v u} (#β) ↔ nonempty (α ↪ β) :=
+  lift.{v} (#α) ≤ lift.{u} (#β) ↔ nonempty (α ↪ β) :=
 lift_mk_le.{u v 0}
 
 theorem lift_mk_eq {α : Type u} {β : Type v} :
-  lift.{u (max v w)} (#α) = lift.{v (max u w)} (#β) ↔ nonempty (α ≃ β) :=
+  lift.{(max v w)} (#α) = lift.{(max u w)} (#β) ↔ nonempty (α ≃ β) :=
 quotient.eq.trans
 ⟨λ ⟨f⟩, ⟨equiv.ulift.symm.trans $ f.trans equiv.ulift⟩,
  λ ⟨f⟩, ⟨equiv.ulift.trans $ f.trans equiv.ulift.symm⟩⟩
@@ -532,7 +532,7 @@ Because Lean often can not realize it should use this specialization itself,
 we provide this statement separately so you don't have to solve the specialization problem either.
 -/
 theorem lift_mk_eq' {α : Type u} {β : Type v} :
-  lift.{u v} (#α) = lift.{v u} (#β) ↔ nonempty (α ≃ β) :=
+  lift.{v} (#α) = lift.{u} (#β) ↔ nonempty (α ≃ β) :=
 lift_mk_eq.{u v 0}
 
 @[simp] theorem lift_le {a b : cardinal} : lift a ≤ lift b ↔ a ≤ b :=
@@ -602,18 +602,17 @@ le_antisymm
   (succ_le.2 $ lift_lt.2 $ lt_succ_self _)
 
 @[simp] theorem lift_max {a : cardinal.{u}} {b : cardinal.{v}} :
-  lift.{u (max v w)} a = lift.{v (max u w)} b ↔ lift.{u v} a = lift.{v u} b :=
-calc lift.{u (max v w)} a = lift.{v (max u w)} b
-  ↔ lift.{(max u v) w} (lift.{u v} a)
-    = lift.{(max u v) w} (lift.{v u} b) : by simp
-  ... ↔ lift.{u v} a = lift.{v u} b : lift_inj
+  lift.{(max v w)} a = lift.{(max u w)} b ↔ lift.{v} a = lift.{u} b :=
+calc lift.{(max v w)} a = lift.{(max u w)} b
+  ↔ lift.{w} (lift.{v} a) = lift.{w} (lift.{u} b) : by simp
+  ... ↔ lift.{v} a = lift.{u} b : lift_inj
 
 theorem mk_prod {α : Type u} {β : Type v} :
-  #(α × β) = lift.{u v} (#α) * lift.{v u} (#β) :=
+  #(α × β) = lift.{v} (#α) * lift.{u} (#β) :=
 quotient.sound ⟨equiv.prod_congr (equiv.ulift).symm (equiv.ulift).symm⟩
 
 theorem sum_const_eq_lift_mul (ι : Type u) (a : cardinal.{v}) :
-  sum (λ _:ι, a) = lift.{u v} (#ι) * lift.{v u} a :=
+  sum (λ _:ι, a) = lift.{v} (#ι) * lift.{u} a :=
 begin
   apply quotient.induction_on a,
   intro α,
@@ -628,8 +627,7 @@ protected lemma le_sup_iff {ι : Type v} {f : ι → cardinal.{max v w}} {c : ca
 
 /-- The lift of a supremum is the supremum of the lifts. -/
 lemma lift_sup {ι : Type v} (f : ι → cardinal.{max v w}) :
-  lift.{(max v w) u} (sup.{v w} f) =
-    sup.{v (max u w)} (λ i : ι, lift.{(max v w) u} (f i)) :=
+  lift.{u} (sup.{v w} f) = sup.{v (max u w)} (λ i : ι, lift.{u} (f i)) :=
 begin
   apply le_antisymm,
   { rw [cardinal.le_sup_iff], intros c hc, by_contra h,
@@ -642,12 +640,12 @@ end
 /-- To prove that the lift of a supremum is bounded by some cardinal `t`,
 it suffices to show that the lift of each cardinal is bounded by `t`. -/
 lemma lift_sup_le {ι : Type v} (f : ι → cardinal.{max v w})
-  (t : cardinal.{max u v w}) (w : ∀ i, lift.{_ u} (f i) ≤ t) :
-  lift.{(max v w) u} (sup f) ≤ t :=
+  (t : cardinal.{max u v w}) (w : ∀ i, lift.{u} (f i) ≤ t) :
+  lift.{u} (sup f) ≤ t :=
 by { rw lift_sup, exact sup_le.mpr w, }
 
 @[simp] lemma lift_sup_le_iff {ι : Type v} (f : ι → cardinal.{max v w}) (t : cardinal.{max u v w}) :
-  lift.{(max v w) u} (sup f) ≤ t ↔ ∀ i, lift.{_ u} (f i) ≤ t :=
+  lift.{u} (sup f) ≤ t ↔ ∀ i, lift.{u} (f i) ≤ t :=
 ⟨λ h i, (lift_le.mpr (le_sup f i)).trans h,
  λ h, lift_sup_le f t h⟩
 
@@ -660,8 +658,8 @@ if bounded by the lift of some cardinal from the larger supremum.
 -/
 lemma lift_sup_le_lift_sup
   {ι : Type v} {ι' : Type v'} (f : ι → cardinal.{max v w}) (f' : ι' → cardinal.{max v' w'})
-  (g : ι → ι') (h : ∀ i, lift.{_ (max v' w')} (f i) ≤ lift.{_ (max v w)} (f' (g i))) :
-  lift.{_ (max v' w')} (sup f) ≤ lift.{_ (max v w)} (sup f') :=
+  (g : ι → ι') (h : ∀ i, lift.{(max v' w')} (f i) ≤ lift.{(max v w)} (f' (g i))) :
+  lift.{(max v' w')} (sup f) ≤ lift.{(max v w)} (sup f') :=
 begin
   apply lift_sup_le.{(max v' w')} f,
   intro i,
@@ -674,8 +672,8 @@ end
 This is sometimes necessary to avoid universe unification issues. -/
 lemma lift_sup_le_lift_sup'
   {ι : Type v} {ι' : Type v'} (f : ι → cardinal.{v}) (f' : ι' → cardinal.{v'})
-  (g : ι → ι') (h : ∀ i, lift.{_ v'} (f i) ≤ lift.{_ v} (f' (g i))) :
-  lift.{_ v'} (sup.{v v} f) ≤ lift.{_ v} (sup.{v' v'} f') :=
+  (g : ι → ι') (h : ∀ i, lift.{v'} (f i) ≤ lift.{v} (f' (g i))) :
+  lift.{v'} (sup.{v v} f) ≤ lift.{v} (sup.{v' v'} f') :=
 lift_sup_le_lift_sup f f' g h
 
 /-- `ω` is the smallest infinite cardinal, also known as ℵ₀. -/
@@ -703,11 +701,11 @@ pos_iff_ne_zero.2 omega_ne_zero
 @[simp] theorem lift_nat_cast (n : ℕ) : lift n = n :=
 by induction n; simp *
 
-lemma lift_eq_nat_iff {a : cardinal.{u}} {n : ℕ} : lift.{u v} a = n ↔ a = n :=
+lemma lift_eq_nat_iff {a : cardinal.{u}} {n : ℕ} : lift.{v} a = n ↔ a = n :=
 by rw [← lift_nat_cast.{u v} n, lift_inj]
 
 lemma nat_eq_lift_eq_iff {n : ℕ} {a : cardinal.{u}} :
-  (n : cardinal) = lift.{u v} a ↔ (n : cardinal) = a :=
+  (n : cardinal) = lift.{v} a ↔ (n : cardinal) = a :=
 by rw [← lift_nat_cast.{u v} n, lift_inj]
 
 theorem lift_mk_fin (n : ℕ) : lift (#(fin n)) = n := by simp
@@ -1128,21 +1126,21 @@ theorem mk_image_le {α β : Type u} {f : α → β} {s : set α} : #(f '' s) �
 mk_le_of_surjective surjective_onto_image
 
 theorem mk_image_le_lift {α : Type u} {β : Type v} {f : α → β} {s : set α} :
-  lift.{v u} (#(f '' s)) ≤ lift.{u v} (#s) :=
+  lift.{u} (#(f '' s)) ≤ lift.{v} (#s) :=
 lift_mk_le.{v u 0}.mpr ⟨embedding.of_surjective _ surjective_onto_image⟩
 
 theorem mk_range_le {α β : Type u} {f : α → β} : #(range f) ≤ #α :=
 mk_le_of_surjective surjective_onto_range
 
 theorem mk_range_le_lift {α : Type u} {β : Type v} {f : α → β} :
-  lift.{v u} (#(range f)) ≤ lift.{u v} (#α) :=
+  lift.{u} (#(range f)) ≤ lift.{v} (#α) :=
 lift_mk_le.{v u 0}.mpr ⟨embedding.of_surjective _ surjective_onto_range⟩
 
 lemma mk_range_eq (f : α → β) (h : injective f) : #(range f) = #α :=
 quotient.sound ⟨(equiv.of_injective f h).symm⟩
 
 lemma mk_range_eq_of_injective {α : Type u} {β : Type v} {f : α → β} (hf : injective f) :
-  lift.{v u} (#(range f)) = lift.{u v} (#α) :=
+  lift.{u} (#(range f)) = lift.{v} (#α) :=
 begin
   have := (@lift_mk_eq.{v u max u v} (range f) α).2 ⟨(equiv.of_injective f hf).symm⟩,
   simp only [lift_umax.{u v}, lift_umax.{v u}] at this,
@@ -1150,7 +1148,7 @@ begin
 end
 
 lemma mk_range_eq_lift {α : Type u} {β : Type v} {f : α → β} (hf : injective f) :
-  lift.{v (max u w)} (# (range f)) = lift.{u (max v w)} (# α) :=
+  lift.{(max u w)} (# (range f)) = lift.{(max v w)} (# α) :=
 lift_mk_eq.mpr ⟨(equiv.of_injective f hf).symm⟩
 
 theorem mk_image_eq {α β : Type u} {f : α → β} {s : set α} (hf : injective f) :
@@ -1222,11 +1220,11 @@ lemma mk_set_le (s : set α) : #s ≤ #α :=
 mk_subtype_le s
 
 lemma mk_image_eq_lift {α : Type u} {β : Type v} (f : α → β) (s : set α) (h : injective f) :
-  lift.{v u} (#(f '' s)) = lift.{u v} (#s) :=
+  lift.{u} (#(f '' s)) = lift.{v} (#s) :=
 lift_mk_eq.{v u 0}.mpr ⟨(equiv.set.image f s h).symm⟩
 
 lemma mk_image_eq_of_inj_on_lift {α : Type u} {β : Type v} (f : α → β) (s : set α)
-  (h : inj_on f s) : lift.{v u} (#(f '' s)) = lift.{u v} (#s) :=
+  (h : inj_on f s) : lift.{u} (#(f '' s)) = lift.{v} (#s) :=
 lift_mk_eq.{v u 0}.mpr ⟨(equiv.set.image_of_inj_on f s h).symm⟩
 
 lemma mk_image_eq_of_inj_on {α β : Type u} (f : α → β) (s : set α) (h : inj_on f s) :
@@ -1241,14 +1239,14 @@ lemma mk_sep (s : set α) (t : α → Prop) : #({ x ∈ s | t x } : set α) = #{
 quotient.sound ⟨equiv.set.sep s t⟩
 
 lemma mk_preimage_of_injective_lift {α : Type u} {β : Type v} (f : α → β) (s : set β)
-  (h : injective f) : lift.{u v} (#(f ⁻¹' s)) ≤ lift.{v u} (#s) :=
+  (h : injective f) : lift.{v} (#(f ⁻¹' s)) ≤ lift.{u} (#s) :=
 begin
   rw lift_mk_le.{u v 0}, use subtype.coind (λ x, f x.1) (λ x, x.2),
   apply subtype.coind_injective, exact h.comp subtype.val_injective
 end
 
 lemma mk_preimage_of_subset_range_lift {α : Type u} {β : Type v} (f : α → β) (s : set β)
-  (h : s ⊆ range f) : lift.{v u} (#s) ≤ lift.{u v} (#(f ⁻¹' s)) :=
+  (h : s ⊆ range f) : lift.{u} (#s) ≤ lift.{v} (#(f ⁻¹' s)) :=
 begin
   rw lift_mk_le.{v u 0},
   refine ⟨⟨_, _⟩⟩,
@@ -1260,7 +1258,7 @@ begin
 end
 
 lemma mk_preimage_of_injective_of_subset_range_lift {β : Type v} (f : α → β) (s : set β)
-  (h : injective f) (h2 : s ⊆ range f) : lift.{u v} (#(f ⁻¹' s)) = lift.{v u} (#s) :=
+  (h : injective f) (h2 : s ⊆ range f) : lift.{v} (#(f ⁻¹' s)) = lift.{u} (#s) :=
 le_antisymm (mk_preimage_of_injective_lift f s h) (mk_preimage_of_subset_range_lift f s h2)
 
 lemma mk_preimage_of_injective (f : α → β) (s : set β) (h : injective f) :
@@ -1277,7 +1275,7 @@ by { convert mk_preimage_of_injective_of_subset_range_lift.{u u} f s h h2 using 
 
 lemma mk_subset_ge_of_subset_image_lift {α : Type u} {β : Type v} (f : α → β) {s : set α}
   {t : set β} (h : t ⊆ f '' s) :
-    lift.{v u} (#t) ≤ lift.{u v} (#({ x ∈ s | f x ∈ t } : set α)) :=
+    lift.{u} (#t) ≤ lift.{v} (#({ x ∈ s | f x ∈ t } : set α)) :=
 by { rw [image_eq_range] at h, convert mk_preimage_of_subset_range_lift _ _ h using 1,
      rw [mk_sep], refl }
 

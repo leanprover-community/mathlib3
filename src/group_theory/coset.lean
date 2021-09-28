@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mitchell Rowett, Scott Morrison
 -/
 
-import group_theory.subgroup
+import group_theory.subgroup.basic
 
 /-!
 # Cosets

@@ -629,7 +629,7 @@ begin
         map_add' := λ y z, _,
         map_smul' := λ c y, _ }⟩,
     { rw [finsupp.add_apply, add_smul] },
-    { rw [finsupp.smul_apply, smul_assoc] },
+    { rw [finsupp.smul_apply, smul_assoc], simp },
     { refine smul_left_injective _ nz _,
       simp only [finsupp.single_eq_same],
       exact (w (f (default ι) • x)).some_spec },
@@ -665,10 +665,10 @@ variables [fintype ι] (b : basis ι R M)
 -/
 def basis.equiv_fun : M ≃ₗ[R] (ι → R) :=
 linear_equiv.trans b.repr
-  { to_fun := coe_fn,
-    map_add' := finsupp.coe_add,
-    map_smul' := finsupp.coe_smul,
-    ..finsupp.equiv_fun_on_fintype }
+  ({ to_fun := coe_fn,
+     map_add' := finsupp.coe_add,
+     map_smul' := finsupp.coe_smul,
+     ..finsupp.equiv_fun_on_fintype } : (ι →₀ R) ≃ₗ[R] (ι → R))
 
 /-- A module over a finite ring that admits a finite basis is finite. -/
 def module.fintype_of_fintype [fintype R] : fintype M :=

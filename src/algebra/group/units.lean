@@ -338,6 +338,17 @@ noncomputable def is_unit.unit [monoid M] {a : M} (h : is_unit a) : units M :=
 lemma is_unit.unit_spec [monoid M] {a : M} (h : is_unit a) : ↑h.unit = a :=
 rfl
 
+lemma is_unit.coe_inv_mul [monoid M] {a : M} (h : is_unit a) :
+  ↑(h.unit)⁻¹ * a = 1 :=
+units.mul_inv _
+
+lemma is_unit.mul_coe_inv [monoid M] {a : M} (h : is_unit a) :
+  a * ↑(h.unit)⁻¹ = 1 :=
+begin
+  convert units.mul_inv _,
+  simp [h.unit_spec]
+end
+
 end is_unit
 
 section noncomputable_defs

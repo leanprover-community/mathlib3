@@ -5,7 +5,7 @@ Authors: Mario Carneiro, Kevin Kappelmann
 -/
 import tactic.linarith
 import tactic.abel
-import algebra.ordered_group
+import algebra.order.group
 import data.set.intervals.basic
 
 /-!

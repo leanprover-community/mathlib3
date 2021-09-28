@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
-import algebra.absolute_value
+import algebra.order.absolute_value
 import algebra.big_operators.basic
 
 /-!

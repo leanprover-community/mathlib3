@@ -46,7 +46,7 @@ def lsmul : A →ₐ[R] module.End R M :=
 
 @[simp] lemma lsmul_coe (a : A) : (lsmul R M a : M → M) = (•) a := rfl
 
-@[simp] lemma lmul_algebra_map (x : R) :
+lemma lmul_algebra_map (x : R) :
   lmul R A (algebra_map R A x) = algebra.lsmul R A x :=
 eq.symm $ linear_map.ext $ smul_def'' x
 
@@ -122,6 +122,18 @@ ring_hom.ext $ λ _, rfl
 
 @[simp] lemma coe_to_alg_hom' : (to_alg_hom R S A : S → A) = algebra_map S A :=
 rfl
+
+variables {R S A B}
+
+@[simp, priority 900] lemma _root_.alg_hom.map_algebra_map (f : A →ₐ[S] B) (r : R) :
+  f (algebra_map R A r) = algebra_map R B r :=
+by rw [algebra_map_apply R S A r, f.commutes, ← algebra_map_apply R S B]
+
+variables (R)
+
+@[simp, priority 900] lemma _root_.alg_hom.comp_algebra_map_of_tower (f : A →ₐ[S] B) :
+  (f : A →+* B).comp (algebra_map R A) = algebra_map R B :=
+ring_hom.ext f.map_algebra_map
 
 variables (R) {S A B}
 

@@ -5,6 +5,7 @@ Authors: Anatole Dedecker
 -/
 import algebra.char_p.algebra
 import analysis.calculus.deriv
+import analysis.calculus.fderiv_analytic
 import analysis.specific_limits
 import data.complex.exponential
 import analysis.complex.basic

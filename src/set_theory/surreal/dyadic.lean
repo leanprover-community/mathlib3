@@ -179,9 +179,9 @@ end
 
 /-- The map `dyadic_map` sends ⟦⟨m, 2^n⟩⟧ to m • half ^ n. -/
 def dyadic_map (x : localization (submonoid.powers (2 : ℤ))) : surreal :=
-quotient.lift_on' x (λ x : _ × _, x.1 • pow_half (submonoid.log x.2)) $
+localization.lift_on x (λ x y, x • pow_half (submonoid.log y)) $
 begin
-  rintros ⟨m₁, n₁⟩ ⟨m₂, n₂⟩ h₁,
+  intros m₁ m₂ n₁ n₂ h₁,
   obtain ⟨⟨n₃, y₃, hn₃⟩, h₂⟩ := localization.r_iff_exists.mp h₁,
   simp only [subtype.coe_mk, mul_eq_mul_right_iff] at h₂,
   cases h₂,

@@ -2602,6 +2602,8 @@ by simp [filter.coprod]
   f₁.coprod g₁ ≤ f₂.coprod g₂ :=
 sup_le_sup (comap_mono hf) (comap_mono hg)
 
+variables {f : filter α} {g : filter β}
+
 lemma coprod_ne_bot_iff : (f.coprod g).ne_bot ↔ f.ne_bot ∧ nonempty β ∨ nonempty α ∧ g.ne_bot :=
 by simp [filter.coprod]
 

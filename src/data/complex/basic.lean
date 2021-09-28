@@ -562,7 +562,7 @@ With `z ≤ w` iff `w - z` is real and nonnegative, `ℂ` is an ordered ring.
 -/
 protected def ordered_comm_ring : ordered_comm_ring ℂ :=
 { zero_le_one := ⟨zero_le_one, rfl⟩,
-  add_le_add_left := λ w z h y, ⟨add_le_add_left h.1 _, congr_arg2 (+) rfl h.2⟩ ,
+  add_le_add_left := λ w z h y, ⟨add_le_add_left h.1 _, congr_arg2 (+) rfl h.2⟩,
   mul_pos := λ z w hz hw,
     by simp [lt_def, mul_re, mul_im, ← hz.2, ← hw.2, mul_pos hz.1 hw.1],
   .. complex.partial_order,

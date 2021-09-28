@@ -805,8 +805,7 @@ def basic_open_iso (f : R) : (structure_sheaf R).presheaf.obj (op (basic_open f)
   (to_basic_open R (1 : R)) ≫  (structure_sheaf R).presheaf.map (eq_to_hom (by simp)).op :=
 begin
   change to_open R ⊤ = (to_basic_open R 1).comp _ ≫ _,
-  rw localization_to_basic_open R 1,
-  rw to_open_res
+  rw [localization_to_basic_open R, to_open_res],
 end
 
 instance is_iso_to_global : is_iso (to_open R ⊤) :=

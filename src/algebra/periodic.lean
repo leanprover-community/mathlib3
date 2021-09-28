@@ -75,7 +75,7 @@ lemma periodic.const_smul₀ [add_comm_monoid α] [division_ring γ] [module γ 
 begin
   intro x,
   by_cases ha : a = 0, { simp only [ha, zero_smul] },
-  simpa only [smul_add, smul_inv_smul' ha] using h (a • x),
+  simpa only [smul_add, smul_inv_smul₀ ha] using h (a • x),
 end
 
 lemma periodic.const_mul [division_ring α]
@@ -356,7 +356,7 @@ lemma antiperiodic.const_smul [add_monoid α] [has_neg β] [group γ] [distrib_m
 lemma antiperiodic.const_smul₀ [add_comm_monoid α] [has_neg β] [division_ring γ] [module γ α]
   (h : antiperiodic f c) {a : γ} (ha : a ≠ 0) :
   antiperiodic (λ x, f (a • x)) (a⁻¹ • c) :=
-λ x, by simpa only [smul_add, smul_inv_smul' ha] using h (a • x)
+λ x, by simpa only [smul_add, smul_inv_smul₀ ha] using h (a • x)
 
 lemma antiperiodic.const_mul [division_ring α] [has_neg β]
   (h : antiperiodic f c) {a : α} (ha : a ≠ 0) :

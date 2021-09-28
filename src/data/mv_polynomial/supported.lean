@@ -51,10 +51,13 @@ noncomputable def supported_equiv_mv_polynomial (s : set σ) :
 
 @[simp] lemma supported_equiv_mv_polynomial_symm_C (s : set σ) (x : R) :
   (supported_equiv_mv_polynomial s).symm (C x) = algebra_map R (supported R s) x :=
-by simp [supported_equiv_mv_polynomial]
+begin
+  ext1,
+  simp [supported_equiv_mv_polynomial, mv_polynomial.algebra_map_eq],
+end
 
 @[simp] lemma supported_equiv_mv_polynomial_symm_X (s : set σ) (i : s) :
-  ((supported_equiv_mv_polynomial s).symm (X i) : A) = X i :=
+  (↑((supported_equiv_mv_polynomial s).symm (X i : mv_polynomial s R)) : mv_polynomial σ R) = X i :=
 by simp [supported_equiv_mv_polynomial]
 
 variables {s t : set σ}

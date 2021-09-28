@@ -52,12 +52,14 @@ lemma solid {α : Type*} [normed_lattice_add_comm_group α] {a b : α} (h : |a| 
 /--
 A normed lattice ordered group is an ordered additive commutative group
 -/
+@[priority 100] -- see Note [lower instance priority]
 instance normed_lattice_add_comm_group_to_ordered_add_comm_group {α : Type*}
   [h : normed_lattice_add_comm_group α] : ordered_add_comm_group α := { ..h }
 
 /--
 A normed lattice ordered group is a lattice ordered group
 -/
+@[priority 100] -- see Note [lower instance priority]
 instance normed_lattice_add_comm_group_to_covariant_class {α : Type*}
   [h : normed_lattice_add_comm_group α] : covariant_class α α (+) (≤) :=
 {elim := λ a b c bc,  normed_lattice_add_comm_group.add_le_add_left _ _ bc a}
@@ -65,6 +67,7 @@ instance normed_lattice_add_comm_group_to_covariant_class {α : Type*}
 /--
 Let `α` be a normed group with a partial order. Then the order dual is also a normed group.
 -/
+@[priority 100] -- see Note [lower instance priority]
 instance {α : Type*} : Π [normed_group α], normed_group (order_dual α) := id
 
 lemma test {α : Type*} [h: normed_lattice_add_comm_group α] (a b : α) : a ≤ b ↔ -b ≤ -a :=
@@ -93,6 +96,7 @@ end
 Let `α` be a normed lattice ordered group, then the order dual is also a
 normed lattice ordered group.
 -/
+@[priority 100] -- see Note [lower instance priority]
 instance {α : Type*} [h: normed_lattice_add_comm_group α] :
   normed_lattice_add_comm_group (order_dual α) :=
   { add_le_add_left := begin

@@ -7,86 +7,15 @@ noncomputable theory
 open category_theory
 open opposite
 
-
-section
-variables {C : Type u} [category.{v} C] {D : Type u} [category.{v} D]
-variables {P Q Q' : Dᵒᵖ ⥤ Type v} (F : C ⥤ D)
-open category_theory.presieve
-
-namespace category_theory
-namespace presieve
-def functor_pullback {X : C} (R : presieve (F.obj X)) : presieve X := λ Y f, R (F.map f)
-
-end presieve
-
-namespace sieve
-def functor_pullback {X : C} (R : sieve (F.obj X)) : sieve X := {
-  arrows := presieve.functor_pullback F R,
-  downward_closed' := λ _ _ f hf g, by {
-    unfold presieve.functor_pullback,
-    rw F.map_comp,
-    exact R.downward_closed hf (F.map g),
-  }
-}
-end sieve
-
-namespace presieve
-namespace family_of_elements
-section functor_pullback
-variables {X : C} {R : presieve (F.obj X)} {x : family_of_elements P R}
-
-def functor_pullback (x : family_of_elements P R) :
-  family_of_elements (F.op ⋙ P) (R.functor_pullback F) := λ Y f hf, x (F.map f) hf
-
-lemma compatible.functor_pullback (h : x.compatible) : (x.functor_pullback F).compatible :=
-begin
-  intros Z₁ Z₂ W g₁ g₂ f₁ f₂ h₁ h₂ eq,
-  exact h (F.map g₁) (F.map g₂) h₁ h₂ (by simp only [← F.map_comp, eq])
-end
-
-end functor_pullback
-
-section pullback
-def pullback {X Y: D} (f : Y ⟶ X) {R : sieve X} (x : family_of_elements P R) :
-  family_of_elements P (R.pullback f) := λ _ g hg, x (g ≫ f) hg
-
-lemma compatible.pullback {X Y: D} (f : Y ⟶ X) {R : sieve X}
-  {x : family_of_elements P R} (h : x.compatible) : (x.pullback f).compatible :=
-begin
-  simp only [compatible_iff_sieve_compatible] at h ⊢,
-  intros W Z f₁ f₂ hf,
-  refine eq.trans _ (h (f₁ ≫ f) f₂ hf),
-  unfold pullback,
-  simp only [category.assoc],
-end
-
-end pullback
-
-
-def comp_presheaf_map {X : D} {R : presieve X} (f : P ⟶ Q) (x : family_of_elements P R) :
-  family_of_elements Q R := λ Y g hg, f.app (op Y) (x g hg)
-
-lemma compatible.comp_presheaf_map {X : D} {R : presieve X} (f : P ⟶ Q) {x : family_of_elements P R}
-  (h : x.compatible) : (x.comp_presheaf_map f).compatible :=
-begin
-  intros Z₁ Z₂ W g₁ g₂ f₁ f₂ h₁ h₂ eq,
-  change (f.app _ ≫ Q.map _) _ = (f.app _ ≫ Q.map _) _,
-  simp only [← f.naturality],
-  exact congr_arg (f.app (op W)) (h g₁ g₂ h₁ h₂ eq)
-end
-
-end family_of_elements
-end presieve
-end category_theory
-end
-
 /- Can't find these stuff anywhere. -/
+private
 lemma lem1 {α : Sort*} {P : α → Prop} (Q : α → Prop) (H : ∀ x, P x → Q x)
   (h : ∃ x, P x) : Q (classical.some h) :=
 begin
   apply H, apply classical.some_spec,
 end
 
+private
 lemma lem2 {α : Sort*} {P : α → Prop} {h : ∃! x, P x} {y : α} (H : P y) : y = classical.some h :=
 begin
   apply lem1,
@@ -95,15 +24,6 @@ begin
 end
 
 variables {C D A : Type u} [category.{u} C] [category.{u} D] [category.{u} A] [limits.has_limits A]
-
-/--
-Given a structured arrow `X ⟶ F(U)`, and an arrow `U ⟶ Y`, we can construct a structured
-arrow given by `X ⟶ F(U) ⟶ F(Y)`.
--/
-def structured_arrow.hom_mk' {F : C ⥤ D} {X : D} {Y : C}
-(U : structured_arrow X F) (f : U.right ⟶ Y) :
-U ⟶ structured_arrow.mk (U.hom ≫ F.map f) := { right := f }
-
 
 /-
 This is equivalent to the definition found in https://stacks.math.columbia.edu/tag/00XI

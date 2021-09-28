@@ -25,12 +25,12 @@ import data.set.lattice
 sieve, pullback
 -/
 
-universes v u
+universes v₁ v₂ u₁ u₂
 namespace category_theory
 
 open category limits
 
-variables {C : Type u} [category.{v} C]
+variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D] (F : C ⥤ D)
 variables {X Y Z : C} (f : Y ⟶ X)
 
 /-- A set of arrows all with codomain `X`. -/
@@ -138,13 +138,16 @@ begin
     exact bind_comp _ (of_arrows.mk _) (of_arrows.mk _) }
 end
 
+/-- Given a presieve on `F(X)`, we can define a presieve on `X` by taking the preimage via `F`. -/
+def functor_pullback {X : C} (R : presieve (F.obj X)) : presieve X := λ Y f, R (F.map f)
+
 end presieve
 
 /--
 For an object `X` of a category `C`, a `sieve X` is a set of morphisms to `X` which is closed under
 left-composition.
 -/
-structure sieve {C : Type u} [category.{v} C] (X : C) :=
+structure sieve {C : Type u₁} [category.{v₁} C] (X : C) :=
 (arrows : presieve X)
 (downward_closed' : ∀ {Y Z f} (hf : arrows f) (g : Z ⟶ Y), arrows (g ≫ f))
 
@@ -438,9 +441,21 @@ begin
     exact ⟨_, _, _, presieve.pullback_arrows.mk _ _ hk, pullback.lift_snd _ _ comm⟩ },
 end
 
+/--
+If `R` is a sieve, then the `category_theory.presieve.functor_pullback` of `R` is actually a sieve.
+-/
+def functor_pullback {X : C} (R : sieve (F.obj X)) : sieve X := {
+  arrows := presieve.functor_pullback F R,
+  downward_closed' := λ _ _ f hf g, by {
+    unfold presieve.functor_pullback,
+    rw F.map_comp,
+    exact R.downward_closed hf (F.map g),
+  }
+}
+
 /-- A sieve induces a presheaf. -/
 @[simps]
-def functor (S : sieve X) : Cᵒᵖ ⥤ Type v :=
+def functor (S : sieve X) : Cᵒᵖ ⥤ Type v₁ :=
 { obj := λ Y, {g : Y.unop ⟶ X // S g},
   map := λ Y Z f g, ⟨f.unop ≫ g.1, downward_closed _ g.2 _⟩ }
 

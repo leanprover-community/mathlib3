@@ -65,6 +65,14 @@ def hom_mk {f f' : structured_arrow S T} (g : f.right ⟶ f'.right) (w : f.hom �
   w' := by { dsimp, simpa using w.symm, }, }
 
 /--
+Given a structured arrow `X ⟶ F(U)`, and an arrow `U ⟶ Y`, we can construct a morphism of
+structured arrow given by `(X ⟶ F(U)) ⟶ (X ⟶ F(U) ⟶ F(Y))`.
+-/
+def hom_mk' {F : C ⥤ D} {X : D} {Y : C}
+(U : structured_arrow X F) (f : U.right ⟶ Y) :
+U ⟶ mk (U.hom ≫ F.map f) := { right := f }
+
+/--
 To construct an isomorphism of structured arrows,
 we need an isomorphism of the objects underlying the target,
 and to check that the triangle commutes.

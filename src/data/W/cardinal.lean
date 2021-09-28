@@ -12,10 +12,9 @@ This file proves some theorems about the cardinality of W-types. The main result
 `cardinal_mk_le_max_omega_of_fintype` which says that if for any `a : α`,
 `β a` is finite, then the cardinality of `W_type β` is at most the maximum of the
 cardinality of `α` or `cardinal.omega`.
-This has applications in first order logic, and can be used to prove that in the
-cardinality of the set of terms in a language with is bound by the cardinality
-of the set of function and constant symbols if that set is infinite, and the set of terms is
-countable if there are finitely many constant and function symbols.
+This can be used to prove theorems about the cardinality of algebraic constructions such as
+polynomials. There is a surjection from a `W_type` to `mv_polynomial` for example, and
+this surjection can be used to put an upper bound on the cardinality of `mv_polynomial`.
 
 ## Tags
 

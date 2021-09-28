@@ -453,6 +453,9 @@ def functor_pullback {X : C} (R : sieve (F.obj X)) : sieve X := {
   }
 }
 
+@[simp] lemma functor_pullback_id {X : C} (R : sieve X) : R.functor_pullback (𝟭 _) = R :=
+by { cases R, unfold functor_pullback, congr }
+
 /-- A sieve induces a presheaf. -/
 @[simps]
 def functor (S : sieve X) : Cᵒᵖ ⥤ Type v₁ :=

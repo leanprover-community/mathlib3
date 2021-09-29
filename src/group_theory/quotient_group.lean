@@ -416,12 +416,12 @@ end third_iso_thm
 
 section trivial
 
-lemma quot_by_top_is_subsingleton : subsingleton (quotient_group.quotient (⊤ : subgroup G)) :=
+lemma subsingleton_quotient_top : subsingleton (quotient_group.quotient (⊤ : subgroup G)) :=
 trunc.subsingleton
 
 /-- If the quotient by a subgroup gives a singleton then the subgroup is the whole group. -/
-lemma subgroup_eq_top_of_subsingleton (H : subgroup G) (h : subsingleton
-  (quotient_group.quotient H)) : H = ⊤ :=
+lemma subgroup_eq_top_of_subsingleton (H : subgroup G)
+  (h : subsingleton (quotient_group.quotient H)) : H = ⊤ :=
 top_unique $ λ x _,
   have this : 1⁻¹ * x ∈ H := quotient_group.eq.1 (subsingleton.elim _ _),
   by rwa [one_inv, one_mul] at this

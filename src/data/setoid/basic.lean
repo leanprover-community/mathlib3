@@ -368,8 +368,10 @@ def correspondence (r : setoid α) : {s // r ≤ s} ≃o setoid (quotient r) :=
       t.1.trans' (t.1.symm' $ t.2 $ eq_rel.1 hx) $ t.1.trans' ht $ t.2 $ eq_rel.1 hy,
       λ h x y hs, let ⟨a, b, hx, hy, Hs⟩ := hs in ⟨a, b, hx, hy, h Hs⟩⟩ }
 
+end setoid
+
 @[simp]
-lemma subsingleton_quotient_iff_eq_top  {s : setoid α} :
+lemma quotient.subsingleton_iff  {s : setoid α} :
   subsingleton (quotient s) ↔ s = ⊤ :=
 begin
   simp only [subsingleton_iff, eq_top_iff, setoid.le_def, setoid.top_def, top_apply, forall_const],
@@ -378,7 +380,7 @@ begin
   exact quotient.eq',
 end
 
-lemma _root_.subsingleton_quot_iff (r : α → α → Prop) : subsingleton (quot r) ↔ eqv_gen r = ⊤ :=
+lemma quot.subsingleton_iff (r : α → α → Prop) : subsingleton (quot r) ↔ eqv_gen r = ⊤ :=
 begin
   simp only [subsingleton_iff, _root_.eq_top_iff, pi.le_def, top_apply, forall_const],
   refine (surjective_quot_mk _).forall.trans (forall_congr $ λ a, _),
@@ -386,5 +388,3 @@ begin
   rw quot.eq,
   simp only [forall_const, le_Prop_eq],
 end
-
-end setoid

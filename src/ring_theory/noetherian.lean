@@ -663,6 +663,11 @@ begin
   refine (submodule.restrict_scalars_embedding R S M).dual.well_founded h
 end
 
+instance ideal.quotient.is_noetherian_ring {R : Type*} [comm_ring R] [h : is_noetherian_ring R]
+  (p : ideal R) : is_noetherian_ring p.quotient :=
+is_noetherian_ring_iff.mpr $ is_noetherian_of_tower R $
+  is_noetherian_of_quotient_of_noetherian _ _ _ (is_noetherian_ring_iff.mp h)
+
 theorem is_noetherian_of_fg_of_noetherian {R M} [ring R] [add_comm_group M] [module R M]
   (N : submodule R M) [is_noetherian_ring R] (hN : N.fg) : is_noetherian R N :=
 let ⟨s, hs⟩ := hN in

@@ -65,10 +65,20 @@ variables {ℙ : measure α} [is_finite_measure ℙ] {μ : measure 𝕜}
 
 variables [second_countable_topology 𝕜] [complete_space 𝕜] [borel_space 𝕜] [normed_space ℝ 𝕜]
   [linear_order 𝕜] [order_topology 𝕜]
-#check mono_of_deriv_nonneg
+
 lemma deriv_nonneg_of_mono {f : 𝕜 → ℝ}
   (hf : differentiable ℝ f) (hfmono : monotone f) (x : 𝕜) :
   0 ≤ deriv f x :=
+begin
+  sorry
+end
+
+lemma deriv_cdf_nonneg {X : α → 𝕜} (hX : measurable X) (h : differentiable ℝ (cdf X ℙ)) (x : 𝕜) :
+  0 ≤ deriv (cdf X ℙ) x :=
+deriv_nonneg_of_mono h (cdf_mono hX) x
+
+lemma integral_deriv_cdf {X : α → 𝕜} (hX : measurable X) (h : differentiable ℝ (cdf X ℙ)) :
+  ∫ x, deriv (cdf X ℙ) x ∂μ = (ℙ set.univ).to_real :=
 begin
   sorry
 end
@@ -86,15 +96,34 @@ begin
 end
 
 #check ennreal.to_real_of_real
-lemma foo (X : α → 𝕜) (h : differentiable ℝ (cdf X ℙ)) {s : set 𝕜}
-  (hs : measurable_set s) (hμs : μ s < ∞) :
+#check is_finite_measure_with_density
+
+-- don't need `hX`
+lemma set_integral_pdf_eq_set_integral_deriv_cdf {X : α → 𝕜} (hX : measurable X)
+  (h : differentiable ℝ (cdf X ℙ)) {s : set 𝕜} (hs : measurable_set s) (hμs : μ s < ∞) :
   ∫ (x : 𝕜) in s, (pdf X ℙ μ x).to_real ∂μ = ∫ (x : 𝕜) in s, deriv (cdf X ℙ) x ∂μ :=
 begin
-  rw integral_to_real (measurable_pdf X ℙ μ).ae_measurable,
-  {
-    sorry
-
+  have : deriv (cdf X ℙ) = λ x, (ennreal.of_real (deriv (cdf X ℙ) x)).to_real,
+  { ext x,
+    rw ennreal.to_real_of_real,
+    exact deriv_cdf_nonneg hX h x },
+  rw [this, integral_to_real (measurable_pdf X ℙ μ).ae_measurable, integral_to_real],
+  { rw [← with_density_apply _ hs, ← with_density_apply _ hs],
+    suffices : μ.with_density (pdf X ℙ μ) =
+      μ.with_density (λ x, ennreal.of_real (deriv (cdf X ℙ) x)),
+    { rw this },
+    haveI : is_finite_measure ( μ.with_density (pdf X ℙ μ)),
+    { refine is_finite_measure_with_density _,
+      by_cases hpdf : has_pdf X ℙ μ,
+      { haveI := hpdf,
+        rw measure.pdf.lintegral_eq_measure_univ,
+        exact (measure_lt_top ℙ _).ne },
+      { simp_rw [pdf, dif_neg hpdf, lintegral_zero_fun],
+        exact ennreal.zero_ne_top } },
+    refine ext_of_Ioc _ _ _ _; sorry
   },
+  { sorry },
+  { exact ae_of_all _ (λ _, ennreal.of_real_lt_top) },
   { refine ae_lt_top (measurable_pdf X ℙ μ)
       (ne_of_lt (lt_of_le_of_lt (lintegral_mono_set (set.subset_univ _)) _)),
     rw set_lintegral_univ,

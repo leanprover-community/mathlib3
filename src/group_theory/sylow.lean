@@ -90,7 +90,7 @@ instance sylow.pointwise_mul_action {α : Type*} [group α] [mul_distrib_mul_act
   mul_smul := λ g h P, sylow.ext (mul_smul g h P) }
 
 instance sylow.mul_action : mul_action G (sylow p G) :=
-mul_action.comp_hom _ mul_aut.conj
+comp_hom _ mul_aut.conj
 
 lemma sylow.coe_subgroup_smul {g : G} {P : sylow p G} :
   ↑(g • P) = mul_aut.conj g • (P : subgroup G) := rfl
@@ -179,7 +179,7 @@ of_equiv (sylow p G) (sylow_equiv_quotient_normalizer P)
 
 lemma card_sylow_eq_card_quotient_normalizer [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
   card (sylow p G) = card (quotient_group.quotient P.1.normalizer) :=
-fintype.card_congr (sylow_equiv_quotient_normalizer P)
+card_congr (sylow_equiv_quotient_normalizer P)
 
 lemma card_sylow_eq_index_normalizer [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
   card (sylow p G) = P.1.normalizer.index :=

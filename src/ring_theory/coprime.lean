@@ -64,6 +64,14 @@ is_coprime_comm.trans is_coprime_zero_left
 lemma not_coprime_zero_zero [nontrivial R] : ¬ is_coprime (0 : R) 0 :=
 mt is_coprime_zero_right.mp not_is_unit_zero
 
+/-- If a 2-vector `p` satisfies `is_coprime (p 0) (p 1)`, then `p ≠ 0`. -/
+lemma ne_zero [nontrivial R] {p : fin 2 → R} (h : is_coprime (p 0) (p 1)) : p ≠ 0 :=
+begin
+  intros h',
+  rw [h'] at h,
+  exact not_coprime_zero_zero h,
+end
+
 theorem is_coprime_one_left : is_coprime 1 x :=
 ⟨1, 0, by rw [one_mul, zero_mul, add_zero]⟩
 
@@ -313,20 +321,11 @@ lemma neg_neg_iff (x y : R) : is_coprime (-x) (-y) ↔ is_coprime x y :=
 
 end comm_ring
 
-/-- If a 2-vector `p` satisfies `is_coprime (p 0) (p 1)`, then `p ≠ 0`. -/
-lemma ne_zero {p : fin 2 → ℤ} (h : is_coprime (p 0) (p 1)) :
-  p ≠ 0 :=
+lemma sq_add_sq_ne_zero {R : Type*} [linear_ordered_comm_ring R] {a b : R} (h : is_coprime a b) :
+  a ^ 2 + b ^ 2 ≠ 0 :=
 begin
   intros h',
-  have a_eq_zero : p 0 = 0 := congr_arg (λ (v: fin 2 → ℤ), v 0) h',
-  have b_eq_zero : p 1 = 0 := congr_arg (λ (v: fin 2 → ℤ), v 1) h',
-  simpa [a_eq_zero, b_eq_zero] using h,
-end
-
-lemma sq_add_sq_ne_zero {a b : ℤ} (h : is_coprime a b) : a ^ 2 + b ^ 2 ≠ 0 :=
-begin
-  intros h',
-  have ha : a = 0 := by nlinarith,
+  have ha : a = 0 := by library_search,
   have hb : b = 0 := by nlinarith,
   simpa [ha, hb] using h
 end

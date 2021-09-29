@@ -18,7 +18,7 @@ In a 𝕜-vector space, we define the following objects and properties.
 * `convex_hull 𝕜 s`: The minimal convex set that includes `s`. In order theory speak, this is a
   closure operator.
 * Standard simplex `std_simplex ι [fintype ι]` is the intersection of the positive quadrant with
-  the hyperplane `s.sum = 1` in the space `ι → ℝ`.
+  the hyperplane `s.sum = 1` in the space `ι → 𝕜`.
 
 We also provide various equivalent versions of the definitions above, prove that some specific sets
 are convex.
@@ -119,7 +119,7 @@ begin
   exact h (mem_open_segment_of_ne_left_right 𝕜 hxz hyz hz),
 end
 
-lemma convex.combo_self {x y : 𝕜} (h : x + y = 1) (a : 𝕜) : x • a + y • a = a :=
+lemma convex.combo_self {x y : 𝕜} (h : x + y = 1) (a : E) : x • a + y • a = a :=
 by rw [←add_smul, h, one_smul]
 
 end ordered_semiring
@@ -401,14 +401,14 @@ section ordered_semiring
 variables [ordered_semiring 𝕜]
 
 section add_comm_monoid
-variables [add_comm_monoid E] [module 𝕜 E] [add_comm_monoid F] [module 𝕜 F]
+variables [add_comm_monoid E]
 
 /-- Convexity of sets. -/
-def convex (s : set E) :=
+def convex [has_scalar 𝕜 E] (s : set E) :=
 ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → a + b = 1 →
   a • x + b • y ∈ s
 
-variables {𝕜} {s : set E}
+variables {𝕜} [module 𝕜 E] [add_comm_monoid F] [module 𝕜 F] {s : set E}
 
 lemma convex_iff_forall_pos :
   convex 𝕜 s ↔ ∀ ⦃x y⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1

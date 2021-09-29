@@ -11,11 +11,10 @@ import data.W.basic
 This file proves some theorems about the cardinality of W-types. The main result is
 `cardinal_mk_le_max_omega_of_fintype` which says that if for any `a : α`,
 `β a` is finite, then the cardinality of `W_type β` is at most the maximum of the
-cardinality of `α` or `cardinal.omega`.
-This has applications in first order logic, and can be used to prove that in the
-cardinality of the set of terms in a language with is bound by the cardinality
-of the set of function and constant symbols if that set is infinite, and the set of terms is
-countable if there are finitely many constant and function symbols.
+cardinality of `α` and `cardinal.omega`.
+This can be used to prove theorems about the cardinality of algebraic constructions such as
+polynomials. There is a surjection from a `W_type` to `mv_polynomial` for example, and
+this surjection can be used to put an upper bound on the cardinality of `mv_polynomial`.
 
 ## Tags
 
@@ -33,16 +32,14 @@ open_locale cardinal
 
 open cardinal
 
-lemma cardinal_mk_eq_sum : #(W_type β) =
-  sum (λ a : α, #(W_type β) ^ #(β a)) :=
+lemma cardinal_mk_eq_sum : #(W_type β) = sum (λ a : α, #(W_type β) ^ #(β a)) :=
 begin
   simp only [cardinal.lift_mk, cardinal.power_def, cardinal.sum_mk],
   exact cardinal.eq.2 ⟨equiv_sigma β⟩
 end
 
-/-- `W_type β` is the least cardinal `κ` such that `sum (λ a : α, κ ^ #(β a)) ≤ κ` -/
-lemma cardinal_mk_le_of_le {κ : cardinal.{u}}
-  (hκ : sum (λ a : α, κ ^ #(β a)) ≤ κ) :
+/-- `#(W_type β)` is the least cardinal `κ` such that `sum (λ a : α, κ ^ #(β a)) ≤ κ` -/
+lemma cardinal_mk_le_of_le {κ : cardinal.{u}} (hκ : sum (λ a : α, κ ^ #(β a)) ≤ κ) :
   #(W_type β) ≤ κ :=
 begin
   conv_rhs { rw ← cardinal.mk_out κ},
@@ -86,6 +83,5 @@ calc cardinal.sum (λ a : α, m ^ #(β a))
       exact power_le_power_left (pos_iff_ne_zero.1
         (lt_of_lt_of_le omega_pos (le_max_right _ _))) (zero_le _)
     end))
-
 
 end W_type

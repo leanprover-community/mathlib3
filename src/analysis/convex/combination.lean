@@ -26,9 +26,7 @@ open set
 open_locale big_operators classical
 
 universes u u'
-variables {R E F ι ι' : Type*}
-  [linear_ordered_field R] [add_comm_group E] [module R E] [add_comm_group F] [module R F]
-  {s : set E}
+variables {R E ι ι' : Type*} [linear_ordered_field R] [add_comm_group E] [module R E] {s : set E}
 
 /-- Center of mass of a finite collection of points with prescribed weights.
 Note that we require neither `0 ≤ w i` nor `∑ w = 1`. -/

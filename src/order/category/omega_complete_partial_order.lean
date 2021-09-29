@@ -58,7 +58,7 @@ namespace has_products
 
 /-- The pi-type gives a cone for a product. -/
 def product {J : Type v} (f : J → ωCPO.{v}) : fan f :=
-fan.mk (of (Π j, f j)) (λ j, continuous_hom.of_mono (pi.monotone_apply j : _) (λ c, rfl))
+fan.mk (of (Π j, f j)) (λ j, continuous_hom.of_mono (pi.eval_preorder_hom j) (λ c, rfl))
 
 /-- The pi-type is a limit cone for the product. -/
 def is_product (J : Type v) (f : J → ωCPO) : is_limit (product f) :=

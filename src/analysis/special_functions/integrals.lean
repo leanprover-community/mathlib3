@@ -115,7 +115,7 @@ by simpa only [one_div] using interval_integrable_one_div_one_add_sq
 
 @[simp]
 lemma integral_const_mul : ∫ x in a..b, c * f x = c * ∫ x in a..b, f x :=
-integral_smul c
+integral_smul c f
 
 @[simp]
 lemma integral_mul_const : ∫ x in a..b, f x * c = (∫ x in a..b, f x) * c :=
@@ -341,7 +341,7 @@ begin
   linarith,
 end
 
-lemma integral_sin_pow_antimono : ∫ x in 0..π, sin x ^ (n + 1) ≤ ∫ x in 0..π, sin x ^ n :=
+lemma integral_sin_pow_antitone : ∫ x in 0..π, sin x ^ (n + 1) ≤ ∫ x in 0..π, sin x ^ n :=
 let H := λ x h, pow_le_pow_of_le_one (sin_nonneg_of_mem_Icc h) (sin_le_one x) (n.le_add_right 1) in
 by refine integral_mono_on pi_pos.le _ _ H; exact (continuous_sin.pow _).interval_integrable 0 π
 

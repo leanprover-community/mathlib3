@@ -760,10 +760,9 @@ lemma exists_bilin_form_self_neq_zero [htwo : invertible (2 : R)] [nontrivial M]
   {B : bilin_form R M} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) :
   ∃ x, ¬ B.is_ortho x x :=
 begin
-  have : B.to_quadratic_form.associated'.nondegenerate,
-  { simpa [quadratic_form.associated_left_inverse _ hB₂] using hB₁ },
-  obtain ⟨x, hx⟩ := quadratic_form.exists_quadratic_form_neq_zero this,
-  refine ⟨x, λ h, hx (B.to_quadratic_form_apply x ▸ h)⟩,
+  lift B to quadratic_form R M using hB₂ with Q,
+  obtain ⟨x, hx⟩ := quadratic_form.exists_quadratic_form_neq_zero hB₁,
+  exact ⟨x, λ h, hx (Q.associated_eq_self_apply ℕ x ▸ h)⟩,
 end
 
 open finite_dimensional

@@ -50,7 +50,7 @@ instance [has_star R] : has_star (Rᵒᵖ) :=
 { star := λ r, op (star (r.unop)) }
 
 @[simp] lemma unop_star [has_star R] (r : Rᵒᵖ) : unop (star r) = star (unop r) := rfl
-@[simp] lemma op_star [has_star R] (r : R) : star (op r) = op (star r) := rfl
+@[simp] lemma op_star [has_star R] (r : R) : op (star r) = star (op r) := rfl
 
 /--
 Typeclass for a star operation with is involutive.
@@ -101,11 +101,21 @@ instance [monoid R] [star_monoid R] : star_monoid (Rᵒᵖ) :=
 
 /--
 Any commutative monoid admits the trivial `*`-structure.
+
+See note [reducible non-instances].
 -/
+@[reducible]
 def star_monoid_of_comm {R : Type*} [comm_monoid R] : star_monoid R :=
 { star := id,
   star_involutive := λ x, rfl,
   star_mul := mul_comm }
+
+section
+local attribute [instance] star_monoid_of_comm
+
+@[simp] lemma star_id_of_comm {R : Type*} [comm_semiring R] {x : R} : star x = x := rfl
+
+end
 
 /--
 A `*`-ring `R` is a (semi)ring with an involutive `star` operation which is additive
@@ -166,18 +176,14 @@ by simp [bit1]
 
 /--
 Any commutative semiring admits the trivial `*`-structure.
+
+See note [reducible non-instances].
 -/
+@[reducible]
 def star_ring_of_comm {R : Type*} [comm_semiring R] : star_ring R :=
 { star := id,
   star_add := λ x y, rfl,
   ..star_monoid_of_comm }
-
-section
-local attribute [instance] star_ring_of_comm
-
-@[simp] lemma star_id_of_comm {R : Type*} [comm_semiring R] {x : R} : star x = x := rfl
-
-end
 
 /--
 An ordered `*`-ring is a ring which is both an ordered ring and a `*`-ring,

@@ -282,9 +282,11 @@ The algebra isomorphism between multivariable polynomials in `option S₁` and
 multivariable polynomials with coefficients in polynomials.
 -/
 def option_equiv_right : mv_polynomial (option S₁) R ≃ₐ[R] mv_polynomial S₁ (polynomial R) :=
-(rename_equiv R $ equiv.option_equiv_sum_punit.{0} S₁).trans $
-(sum_alg_equiv R S₁ unit).trans $
-map_alg_equiv _ (punit_alg_equiv R)
+alg_equiv.of_alg_hom
+  (mv_polynomial.aeval (λ o, o.elim (C polynomial.X) X))
+  (mv_polynomial.aeval_tower (polynomial.aeval (X none)) (λ i, X (option.some i)))
+  (by ext : 2; simp [mv_polynomial.algebra_map_eq])
+  (by ext i : 2; cases i; simp)
 
 /--
 The algebra isomorphism between multivariable polynomials in `fin (n + 1)` and

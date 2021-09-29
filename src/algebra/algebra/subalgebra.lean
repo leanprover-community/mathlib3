@@ -868,6 +868,28 @@ instance to_algebra {R A : Type*} [comm_semiring R] [comm_semiring A] [semiring 
   [algebra R A] [algebra A α] (S : subalgebra R A) : algebra S α :=
 algebra.of_subsemiring S.to_subsemiring
 
+@[simp] lemma srange_algebra_map {R A : Type*} [comm_semiring R] [comm_semiring A]
+  [algebra R A] (S : subalgebra R A) :
+  (algebra_map S A).srange = S.to_subsemiring :=
+begin
+  ext x,
+  rw [ring_hom.mem_srange, subalgebra.mem_to_subsemiring],
+  split,
+  { rintro ⟨⟨_, hx⟩, rfl⟩, exact hx },
+  { exact λ hx, ⟨⟨x, hx⟩, rfl⟩ }
+end
+
+@[simp] lemma range_algebra_map {R A : Type*} [comm_ring R] [comm_ring A]
+  [algebra R A] (S : subalgebra R A) :
+  (algebra_map S A).range = S.to_subring :=
+begin
+  ext x,
+  rw [ring_hom.mem_range, subalgebra.mem_to_subring],
+  split,
+  { rintro ⟨⟨_, hx⟩, rfl⟩, exact hx },
+  { exact λ hx, ⟨⟨x, hx⟩, rfl⟩ }
+end
+
 instance no_zero_smul_divisors_top [no_zero_divisors A] (S : subalgebra R A) :
   no_zero_smul_divisors S A :=
 ⟨λ c x h,

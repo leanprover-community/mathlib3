@@ -491,7 +491,8 @@ instance : has_zero (M →ₛₗ[σ₁₂] M₂) :=
 @[simp] theorem comp_zero (g : M₂ →ₛₗ[σ₂₃] M₃) : (g.comp (0 : M →ₛₗ[σ₁₂] M₂) : M →ₛₗ[σ₁₃] M₃) = 0 :=
 ext $ assume c, by rw [comp_apply, zero_apply, zero_apply, g.map_zero]
 
-@[simp] theorem zero_comp (f : M →ₛₗ[σ₁₂] M₂) : ((0 : M₂ →ₛₗ[σ₂₃] M₃).comp f : M →ₛₗ[σ₁₃] M₃) = 0 := rfl
+@[simp] theorem zero_comp (f : M →ₛₗ[σ₁₂] M₂) : ((0 : M₂ →ₛₗ[σ₂₃] M₃).comp f : M →ₛₗ[σ₁₃] M₃) = 0 :=
+rfl
 
 instance : inhabited (M →ₛₗ[σ₁₂] M₂) := ⟨0⟩
 

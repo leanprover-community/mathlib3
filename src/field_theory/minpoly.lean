@@ -69,6 +69,36 @@ begin
   { exact aeval_zero _ }
 end
 
+/-- A minimal polynomial is not `1`.
+
+See also `minpoly.not_is_unit` (which also assumes `A` is nontrivial).
+-/
+lemma ne_one [nontrivial B] : minpoly A x ≠ 1 :=
+begin
+  intro h,
+  refine (one_ne_zero : (1 : B) ≠ 0) _,
+  simpa using congr_arg (polynomial.aeval x) h
+end
+
+lemma map_ne_one [nontrivial B] {R : Type*} [semiring R] [nontrivial R] (f : A →+* R) :
+  (minpoly A x).map f ≠ 1 :=
+begin
+  by_cases hx : is_integral A x,
+  { exact mt ((monic hx).eq_one_of_map_eq_one f) (ne_one A x) },
+  { rw [eq_zero hx, polynomial.map_zero], exact zero_ne_one },
+end
+
+/-- A minimal polynomial is not a unit.
+
+See also `minpoly.ne_one` (which doesn't need to assume `A` is nontrivial).
+-/
+lemma not_is_unit [nontrivial A] [nontrivial B] : ¬ is_unit (minpoly A x) :=
+begin
+  by_cases hx : is_integral A x,
+  { exact mt (eq_one_of_is_unit_of_monic (monic hx)) (ne_one A x) },
+  { rw [eq_zero hx], exact not_is_unit_zero }
+end
+
 lemma mem_range_of_degree_eq_one (hx : (minpoly A x).degree = 1) : x ∈ (algebra_map A B).range :=
 begin
   have h : is_integral A x,
@@ -144,16 +174,6 @@ begin
     exact (hf hroot) },
   rw hrw,
   simp only [h0, ring_hom.map_neg, sub_eq_add_neg],
-end
-
-variables (A x)
-
-/-- A minimal polynomial is not a unit. -/
-lemma not_is_unit : ¬ is_unit (minpoly A x) :=
-begin
-  by_cases hx : is_integral A x,
-  { assume H, exact (ne_of_lt (degree_pos hx)).symm (degree_eq_zero_of_is_unit H) },
-  { delta minpoly, rw dif_neg hx, simp only [not_is_unit_zero, not_false_iff] }
 end
 
 end ring

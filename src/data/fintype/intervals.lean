@@ -19,9 +19,41 @@ instance Ico_ℕ_fintype (l u : ℕ) : fintype (Ico l u) :=
 fintype.of_finset (finset.Ico l u) $
   (λ n, by { simp only [mem_Ico, finset.Ico.mem], })
 
+instance Ioo_ℕ_fintype (l u : ℕ) : fintype (Ioo l u) :=
+fintype.of_finset (finset.Ico (l+1) u) $ λ n,
+  by simp only [mem_Ioo, finset.Ico.mem, nat.add_one_le_iff, iff_self, implies_true_iff]
+
+instance Icc_ℕ_fintype (l u : ℕ) : fintype (Icc l u) :=
+fintype.of_finset (finset.Ico l (u+1)) $ λ n,
+  by simp only [mem_Icc, finset.Ico.mem, nat.lt_add_one_iff, iff_self, implies_true_iff]
+
+instance Ioc_ℕ_fintype (l u : ℕ) : fintype (Ioc l u) :=
+fintype.of_finset (finset.Ico (l+1) (u+1)) $ λ n,
+  by simp only [mem_Ioc, mem_Ico, finset.Ico.mem, nat.add_one_le_iff, nat.lt_add_one_iff,
+    iff_self, implies_true_iff]
+
+lemma Ico_ℕ_finite (l u : ℕ) : set.finite (Ico l u) := ⟨set.Ico_ℕ_fintype l u⟩
+lemma Ioo_ℕ_finite (l u : ℕ) : set.finite (Ioo l u) := ⟨set.Ioo_ℕ_fintype l u⟩
+lemma Icc_ℕ_finite (l u : ℕ) : set.finite (Icc l u) := ⟨set.Icc_ℕ_fintype l u⟩
+lemma Ioc_ℕ_finite (l u : ℕ) : set.finite (Ioc l u) := ⟨set.Ioc_ℕ_fintype l u⟩
+
 @[simp] lemma Ico_ℕ_card (l u : ℕ) : fintype.card (Ico l u) = u - l :=
 calc fintype.card (Ico l u) = (finset.Ico l u).card : fintype.card_of_finset _ _
                         ... = u - l                 : finset.Ico.card l u
+
+@[simp] lemma Ioo_ℕ_card (l u : ℕ) : fintype.card (Ioo l u) = u - l - 1 :=
+calc fintype.card (Ioo l u) = (finset.Ico (l+1) u).card : fintype.card_of_finset _ _
+                        ... = u - (l+1)                 : finset.Ico.card (l+1) u
+                        ... = u - l - 1                 : sub_add_eq_sub_sub'
+
+@[simp] lemma Icc_ℕ_card (l u : ℕ) : fintype.card (Icc l u) = u + 1 - l :=
+calc fintype.card (Icc l u) = (finset.Ico l (u+1)).card : fintype.card_of_finset _ _
+                        ... = u + 1 - l                 : finset.Ico.card l (u+1)
+
+@[simp] lemma Ioc_ℕ_card (l u : ℕ) : fintype.card (Ioc l u) = u - l :=
+calc fintype.card (Ioc l u) = (finset.Ico (l+1) (u+1)).card : fintype.card_of_finset _ _
+                        ... = u + 1 - (l+1)                 : finset.Ico.card (l+1) (u+1)
+                        ... = u - l                         : nat.succ_sub_succ u l
 
 instance Ico_pnat_fintype (l u : ℕ+) : fintype (Ico l u) :=
 fintype.of_finset (pnat.Ico l u) $

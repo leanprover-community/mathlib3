@@ -378,6 +378,14 @@ theorem is_noetherian_of_linear_equiv (f : M ≃ₗ[R] P)
   [is_noetherian R M] : is_noetherian R P :=
 is_noetherian_of_surjective _ f.to_linear_map f.range
 
+lemma is_noetherian_top_iff :
+  is_noetherian R (⊤ : submodule R M) ↔ is_noetherian R M :=
+begin
+  unfreezingI { split; assume h },
+  { exact is_noetherian_of_linear_equiv (linear_equiv.of_top (⊤ : submodule R M) rfl) },
+  { exact is_noetherian_of_linear_equiv (linear_equiv.of_top (⊤ : submodule R M) rfl).symm },
+end
+
 lemma is_noetherian_of_injective [is_noetherian R P] (f : M →ₗ[R] P) (hf : f.ker = ⊥) :
   is_noetherian R M :=
 is_noetherian_of_linear_equiv (linear_equiv.of_injective f $ linear_map.ker_eq_bot.mp hf).symm

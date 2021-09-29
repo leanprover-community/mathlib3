@@ -706,7 +706,7 @@ k = 0 ∧ m = 1 ∨ 0 < k ∧
   refine (nat.eq_zero_or_pos n).elim
     (λn0, by rw [n0, zero_pow kpos]; exact or.inl ⟨rfl, rfl⟩)
     (λnpos, or.inr ⟨npos, _⟩); exact
-  let w := _root_.max n k in
+  let w := max n k in
   have nw : n ≤ w, from le_max_left _ _,
   have kw : k ≤ w, from le_max_right _ _,
   have wpos : 0 < w, from lt_of_lt_of_le npos nw,

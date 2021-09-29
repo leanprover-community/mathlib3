@@ -135,13 +135,13 @@ lemma inner_content_mono ⦃U V : set G⦄ (hU : is_open U) (hV : is_open V)
 supr_le_supr $ λ K, supr_le_supr_const $ λ hK, subset.trans hK h2
 
 lemma inner_content_exists_compact {U : opens G}
-  (hU : μ.inner_content U < ∞) {ε : ℝ≥0} (hε : 0 < ε) :
+  (hU : μ.inner_content U ≠ ∞) {ε : ℝ≥0} (hε : ε ≠ 0) :
   ∃ K : compacts G, K.1 ⊆ U ∧ μ.inner_content U ≤ μ K + ε :=
 begin
-  have h'ε := ennreal.zero_lt_coe_iff.2 hε,
+  have h'ε := ennreal.coe_ne_zero.2 hε,
   cases le_or_lt (μ.inner_content U) ε,
-  { exact ⟨⊥, empty_subset _, le_trans h (le_add_of_nonneg_left (zero_le _))⟩ },
-  have := ennreal.sub_lt_self (ne_of_lt hU) (ne_of_gt $ lt_trans h'ε h) h'ε,
+  { exact ⟨⊥, empty_subset _, le_add_left h⟩ },
+  have := ennreal.sub_lt_self hU h.ne_bot h'ε,
   conv at this {to_rhs, rw inner_content }, simp only [lt_supr_iff] at this,
   rcases this with ⟨U, h1U, h2U⟩, refine ⟨U, h1U, _⟩,
   rw [← ennreal.sub_le_iff_le_add], exact le_of_lt h2U
@@ -196,13 +196,13 @@ by convert μ.inner_content_comap (homeomorph.mul_left g) (λ K, h g) U
 @[to_additive]
 lemma inner_content_pos_of_is_mul_left_invariant [t2_space G] [group G] [topological_group G]
   (h3 : ∀ (g : G) {K : compacts G}, μ (K.map _ $ continuous_mul_left g) = μ K)
-  (K : compacts G) (hK : 0 < μ K) (U : opens G) (hU : (U : set G).nonempty) :
+  (K : compacts G) (hK : μ K ≠ 0) (U : opens G) (hU : (U : set G).nonempty) :
   0 < μ.inner_content U :=
 begin
   have : (interior (U : set G)).nonempty, rwa [U.prop.interior_eq],
   rcases compact_covered_by_mul_left_translates K.2 this with ⟨s, hs⟩,
   suffices : μ K ≤ s.card * μ.inner_content U,
-  { exact (ennreal.mul_pos.mp $ lt_of_lt_of_le hK this).2 },
+  { exact (ennreal.mul_pos_iff.mp $ hK.bot_lt.trans_le this).2 },
   have : K.1 ⊆ ↑⨆ (g ∈ s), U.comap $ continuous_mul_left g,
   { simpa only [opens.supr_def, opens.coe_comap, subtype.coe_mk] },
   refine (μ.le_inner_content _ _ this).trans _,
@@ -249,18 +249,19 @@ lemma outer_measure_interior_compacts (K : compacts G) : μ.outer_measure (inter
 le_trans (le_of_eq $ μ.outer_measure_opens (opens.interior K.1))
          (μ.inner_content_le _ _ interior_subset)
 
-lemma outer_measure_exists_compact {U : opens G} (hU : μ.outer_measure U < ∞) {ε : ℝ≥0}
-  (hε : 0 < ε) : ∃ K : compacts G, K.1 ⊆ U ∧ μ.outer_measure U ≤ μ.outer_measure K.1 + ε :=
+lemma outer_measure_exists_compact {U : opens G} (hU : μ.outer_measure U ≠ ∞) {ε : ℝ≥0}
+  (hε : ε ≠ 0) : ∃ K : compacts G, K.1 ⊆ U ∧ μ.outer_measure U ≤ μ.outer_measure K.1 + ε :=
 begin
   rw [μ.outer_measure_opens] at hU ⊢,
   rcases μ.inner_content_exists_compact hU hε with ⟨K, h1K, h2K⟩,
   exact ⟨K, h1K, le_trans h2K $ add_le_add_right (μ.le_outer_measure_compacts K) _⟩,
 end
 
-lemma outer_measure_exists_open {A : set G} (hA : μ.outer_measure A < ∞) {ε : ℝ≥0} (hε : 0 < ε) :
+lemma outer_measure_exists_open {A : set G} (hA : μ.outer_measure A ≠ ∞) {ε : ℝ≥0} (hε : ε ≠ 0) :
   ∃ U : opens G, A ⊆ U ∧ μ.outer_measure U ≤ μ.outer_measure A + ε :=
 begin
-  rcases induced_outer_measure_exists_set _ _ μ.inner_content_mono hA.ne hε with ⟨U, hU, h2U, h3U⟩,
+  rcases induced_outer_measure_exists_set _ _ μ.inner_content_mono hA (ennreal.coe_ne_zero.2 hε)
+    with ⟨U, hU, h2U, h3U⟩,
   exact ⟨⟨U, hU⟩, h2U, h3U⟩, swap, exact μ.inner_content_Union_nat
 end
 
@@ -302,7 +303,7 @@ end
 @[to_additive]
 lemma outer_measure_pos_of_is_mul_left_invariant [group G] [topological_group G]
   (h3 : ∀ (g : G) {K : compacts G}, μ (K.map _ $ continuous_mul_left g) = μ K)
-  (K : compacts G) (hK : 0 < μ K) {U : set G} (h1U : is_open U) (h2U : U.nonempty) :
+  (K : compacts G) (hK : μ K ≠ 0) {U : set G} (h1U : is_open U) (h2U : U.nonempty) :
   0 < μ.outer_measure U :=
 by { convert μ.inner_content_pos_of_is_mul_left_invariant h3 K hK ⟨U, h1U⟩ h2U,
      exact μ.outer_measure_opens ⟨U, h1U⟩ }
@@ -337,7 +338,7 @@ begin
 end
 
 /-- The measure induced by the outer measure coming from a content, on the Borel sigma-algebra. -/
-def measure : measure G := μ.outer_measure.to_measure μ.borel_le_caratheodory
+protected def measure : measure G := μ.outer_measure.to_measure μ.borel_le_caratheodory
 
 lemma measure_apply {s : set G} (hs : measurable_set s) : μ.measure s = μ.outer_measure s :=
 to_measure_apply _ _ hs
@@ -345,24 +346,23 @@ to_measure_apply _ _ hs
 /-- In a locally compact space, any measure constructed from a content is regular. -/
 instance regular [locally_compact_space G] : μ.measure.regular :=
 begin
+  haveI : μ.measure.outer_regular,
+  { refine ⟨λ A hA r (hr : _ < _), _⟩,
+    rw [μ.measure_apply hA, outer_measure_eq_infi] at hr,
+    simp only [infi_lt_iff] at hr,
+    rcases hr with ⟨U, hUo, hAU, hr⟩,
+    rw [← μ.outer_measure_of_is_open U hUo, ← μ.measure_apply hUo.measurable_set] at hr,
+    exact ⟨U, hAU, hUo, hr⟩ },
   split,
   { intros K hK,
     rw [measure_apply _ hK.measurable_set],
     exact μ.outer_measure_lt_top_of_is_compact hK },
-  { intros A hA,
-    rw [measure_apply _ hA, outer_measure_eq_infi],
-    refine binfi_le_binfi _,
-    intros U hU,
-    refine infi_le_infi _,
-    intro h2U,
-    rw [measure_apply _ hU.measurable_set, μ.outer_measure_of_is_open U hU],
-    refl' },
-  { intros U hU,
-    rw [measure_apply _ hU.measurable_set, μ.outer_measure_of_is_open U hU],
-    dsimp only [inner_content], refine bsupr_le (λ K hK, _),
-    refine le_supr_of_le K.1 _, refine le_supr_of_le K.2 _, refine le_supr_of_le hK _,
-    rw [measure_apply _ K.2.measurable_set],
-    apply le_outer_measure_compacts },
+  { intros U hU r hr,
+    rw [measure_apply _ hU.measurable_set, μ.outer_measure_of_is_open U hU] at hr,
+    simp only [inner_content, lt_supr_iff] at hr,
+    rcases hr with ⟨K, hKU, hr⟩,
+    refine ⟨K.1, hKU, K.2, hr.trans_le _⟩,
+    exact (μ.le_outer_measure_compacts K).trans (le_to_measure_apply _ _ _) },
 end
 
 end content

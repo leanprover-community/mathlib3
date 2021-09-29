@@ -217,7 +217,7 @@ lemma summable_norm_apply (p : formal_multilinear_series 𝕜 E F)
   {x : E} (hx : x ∈ emetric.ball (0 : E) p.radius) :
   summable (λ n : ℕ, ∥p n (λ _, x)∥) :=
 begin
-  rw mem_emetric_ball_0_iff at hx,
+  rw mem_emetric_ball_zero_iff at hx,
   refine summable_of_nonneg_of_le (λ _, norm_nonneg _) (λ n, ((p n).le_op_norm _).trans_eq _)
     (p.summable_norm_mul_pow hx),
   simp
@@ -438,10 +438,10 @@ begin
   obtain ⟨a, ha, C, hC, hp⟩ : ∃ (a ∈ Ioo (0 : ℝ) 1) (C > 0), ∀ n, ∥p n∥ * r' ^n ≤ C * a^n :=
     p.norm_mul_pow_le_mul_pow_of_lt_radius (h.trans_le hf.r_le),
   refine ⟨a, ha, C / (1 - a), div_pos hC (sub_pos.2 ha.2), λ y hy n, _⟩,
-  have yr' : ∥y∥ < r', by { rw ball_0_eq at hy, exact hy },
+  have yr' : ∥y∥ < r', by { rw ball_zero_eq at hy, exact hy },
   have hr'0 : 0 < (r' : ℝ), from (norm_nonneg _).trans_lt yr',
   have : y ∈ emetric.ball (0 : E) r,
-  { refine mem_emetric_ball_0_iff.2 (lt_trans _ h),
+  { refine mem_emetric_ball_zero_iff.2 (lt_trans _ h),
     exact_mod_cast yr' },
   rw [norm_sub_rev, ← mul_div_right_comm],
   have ya : a * (∥y∥ / ↑r') ≤ a,
@@ -471,7 +471,7 @@ begin
     (∀ y ∈ metric.ball (0 : E) r', ∀ n, ∥f (x + y) - p.partial_sum n y∥ ≤ C * (a * (∥y∥ / r')) ^ n),
     from hf.uniform_geometric_approx' h,
   refine ⟨a, ha, C, hC, λ y hy n, (hp y hy n).trans _⟩,
-  have yr' : ∥y∥ < r', by rwa ball_0_eq at hy,
+  have yr' : ∥y∥ < r', by rwa ball_zero_eq at hy,
   refine mul_le_mul_of_nonneg_left (pow_le_pow_of_le_left _ _ _) hC.lt.le,
   exacts [mul_nonneg ha.1.le (div_nonneg (norm_nonneg y) r'.coe_nonneg),
     mul_le_of_le_one_right ha.1.le (div_le_one_of_le yr'.le r'.coe_nonneg)]
@@ -893,12 +893,12 @@ theorem change_origin_eval (h : (∥x∥₊ + ∥y∥₊ : ℝ≥0∞) < p.radiu
 begin
   have radius_pos : 0 < p.radius := lt_of_le_of_lt (zero_le _) h,
   have x_mem_ball : x ∈ emetric.ball (0 : E) p.radius,
-    from mem_emetric_ball_0_iff.2 ((le_add_right le_rfl).trans_lt h),
+    from mem_emetric_ball_zero_iff.2 ((le_add_right le_rfl).trans_lt h),
   have y_mem_ball : y ∈ emetric.ball (0 : E) (p.change_origin x).radius,
-  { refine mem_emetric_ball_0_iff.2 (lt_of_lt_of_le _ p.change_origin_radius),
+  { refine mem_emetric_ball_zero_iff.2 (lt_of_lt_of_le _ p.change_origin_radius),
     rwa [ennreal.lt_sub_iff_add_lt, add_comm] },
   have x_add_y_mem_ball : x + y ∈ emetric.ball (0 : E) p.radius,
-  { refine mem_emetric_ball_0_iff.2 (lt_of_le_of_lt _ h),
+  { refine mem_emetric_ball_zero_iff.2 (lt_of_le_of_lt _ h),
     exact_mod_cast nnnorm_add_le x y },
   set f : (Σ (k l : ℕ), {s : finset (fin (k + l)) // s.card = l}) → F :=
     λ s, p.change_origin_series_term s.1 s.2.1 s.2.2 s.2.2.2 (λ _, x) (λ _, y),
@@ -916,7 +916,7 @@ begin
       { simp only [change_origin_series, continuous_multilinear_map.sum_apply],
         apply has_sum_fintype },
       { refine summable_of_nnnorm_bounded _ (p.change_origin_series_summable_aux₂
-          (mem_emetric_ball_0_iff.1 x_mem_ball) k) (λ s, _),
+          (mem_emetric_ball_zero_iff.1 x_mem_ball) k) (λ s, _),
         refine (continuous_multilinear_map.le_op_nnnorm _ _).trans_eq _,
         simp } } },
   refine hf.unique (change_origin_index_equiv.symm.has_sum_iff.1 _),
@@ -954,9 +954,9 @@ theorem has_fpower_series_on_ball.change_origin
   r_pos := by simp [h],
   has_sum := λ z hz, begin
     convert (p.change_origin y).has_sum _,
-    { rw [mem_emetric_ball_0_iff, ennreal.lt_sub_iff_add_lt, add_comm] at hz,
+    { rw [mem_emetric_ball_zero_iff, ennreal.lt_sub_iff_add_lt, add_comm] at hz,
       rw [p.change_origin_eval (hz.trans_le hf.r_le), add_assoc, hf.sum],
-      refine mem_emetric_ball_0_iff.2 (lt_of_le_of_lt _ hz),
+      refine mem_emetric_ball_zero_iff.2 (lt_of_le_of_lt _ hz),
       exact_mod_cast nnnorm_add_le y z },
     { refine emetric.ball_subset_ball (le_trans _ p.change_origin_radius) hz,
       exact ennreal.sub_le_sub hf.r_le le_rfl }

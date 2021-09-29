@@ -755,7 +755,7 @@ variables (𝕜)
 def eval_clm (x : α) : (α →ᵇ β) →L[𝕜] β :=
 { to_fun := λ f, f x,
   map_add' := λ f g, by simp only [pi.add_apply, coe_add],
-  map_smul' := λ c f, by simp only [coe_smul] }
+  map_smul' := λ c f, by simp only [coe_smul, ring_hom.id_apply] }
 
 @[simp] lemma eval_clm_apply (x : α) (f : α →ᵇ β) :
   eval_clm 𝕜 x f = f x := rfl

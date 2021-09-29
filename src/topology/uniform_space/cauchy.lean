@@ -486,7 +486,7 @@ def set_seq_aux (n : ℕ) : {s : set α // ∃ (_ : s ∈ f), s.prod s ⊆ U n }
 indefinite_description _ $ (cauchy_iff.1 hf).2 (U n) (U_mem n)
 
 /-- Given a Cauchy filter `f` and a sequence `U` of entourages, `set_seq` provides
-a sequence of monotonically decreasing sets `s n ∈ f` such that `(s n).prod (s n) ⊆ U`. -/
+an antitone sequence of sets `s n ∈ f` such that `(s n).prod (s n) ⊆ U`. -/
 def set_seq (n : ℕ) : set α :=  ⋂ m ∈ Iic n, (set_seq_aux hf U_mem m).val
 
 lemma set_seq_mem (n : ℕ) : set_seq hf U_mem n ∈ f :=
@@ -508,8 +508,8 @@ begin
   exact set_seq_mono hf U_mem hn hp.2
 end
 
-/-- A sequence of points such that `seq n ∈ set_seq n`. Here `set_seq` is a monotonically
-decreasing sequence of sets `set_seq n ∈ f` with diameters controlled by a given sequence
+/-- A sequence of points such that `seq n ∈ set_seq n`. Here `set_seq` is an antitone
+sequence of sets `set_seq n ∈ f` with diameters controlled by a given sequence
 of entourages. -/
 def seq (n : ℕ) : α := some $ hf.1.nonempty_of_mem (set_seq_mem hf U_mem n)
 
@@ -556,7 +556,7 @@ theorem complete_of_convergent_controlled_sequences (U : ℕ → set (α × α))
   (HU : ∀ u : ℕ → α, (∀ N m n, N ≤ m → N ≤ n → (u m, u n) ∈ U N) → ∃ a, tendsto u at_top (𝓝 a)) :
   complete_space α :=
 begin
-  rcases H.exists_antimono_seq' with ⟨U', U'_mono, hU'⟩,
+  rcases H.exists_antitone_seq' with ⟨U', U'_mono, hU'⟩,
   have Hmem : ∀ n, U n ∩ U' n ∈ 𝓤 α,
     from λ n, inter_mem (U_mem n) (hU'.2 ⟨n, subset.refl _⟩),
   refine ⟨λ f hf, (HU (seq hf Hmem) (λ N m n hm hn, _)).imp $
@@ -571,7 +571,7 @@ complete. -/
 theorem complete_of_cauchy_seq_tendsto
   (H' : ∀ u : ℕ → α, cauchy_seq u → ∃a, tendsto u at_top (𝓝 a)) :
   complete_space α :=
-let ⟨U', U'_mono, hU'⟩ := H.exists_antimono_seq' in
+let ⟨U', U'_mono, hU'⟩ := H.exists_antitone_seq' in
 complete_of_convergent_controlled_sequences H U' (λ n, hU'.2 ⟨n, subset.refl _⟩)
   (λ u hu, H' u $ cauchy_seq_of_controlled U' (λ s hs, hU'.1 hs) hu)
 
@@ -580,7 +580,7 @@ protected lemma first_countable_topology : first_countable_topology α :=
 
 /-- A separable uniform space with countably generated uniformity filter is second countable:
 one obtains a countable basis by taking the balls centered at points in a dense subset,
-and with rational "radii" from a countable open symmetric antimono basis of `𝓤 α`. We do not
+and with rational "radii" from a countable open symmetric antitone basis of `𝓤 α`. We do not
 register this as an instance, as there is already an instance going in the other direction
 from second countable spaces to separable spaces, and we want to avoid loops. -/
 lemma second_countable_of_separable [separable_space α] : second_countable_topology α :=
@@ -588,8 +588,8 @@ begin
   rcases exists_countable_dense α with ⟨s, hsc, hsd⟩,
   obtain ⟨t : ℕ → set (α × α),
     hto : ∀ (i : ℕ), t i ∈ (𝓤 α).sets ∧ is_open (t i) ∧ symmetric_rel (t i),
-    h_basis : (𝓤 α).has_antimono_basis (λ _, true) t⟩ :=
-    H.exists_antimono_subbasis uniformity_has_basis_open_symmetric,
+    h_basis : (𝓤 α).has_antitone_basis (λ _, true) t⟩ :=
+    H.exists_antitone_subbasis uniformity_has_basis_open_symmetric,
   refine ⟨⟨⋃ (x ∈ s), range (λ k, ball x (t k)), hsc.bUnion (λ x hx, countable_range _), _⟩⟩,
   refine (is_topological_basis_of_open_of_nhds _ _).eq_generate_from,
   { simp only [mem_bUnion_iff, mem_range],

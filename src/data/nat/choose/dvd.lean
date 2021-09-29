@@ -38,16 +38,4 @@ end
 
 end prime
 
-lemma cast_choose (K : Type*) [division_ring K] [char_zero K] {a b : ℕ} (h : a ≤ b) :
-  (b.choose a : K) = b! / (a! * (b - a)!) :=
-begin
-  have : ∀ {n : ℕ}, (n! : K) ≠ 0 := λ n, nat.cast_ne_zero.2 (factorial_ne_zero _),
-  rw [eq_div_iff_mul_eq (mul_ne_zero this this)],
-  rw_mod_cast [← mul_assoc, choose_mul_factorial_mul_factorial h],
-end
-
-lemma cast_add_choose (K : Type*) [division_ring K] [char_zero K] {a b : ℕ} :
-  ((a + b).choose a : K) = (a + b)! / (a! * b!) :=
-by rw [cast_choose K (le_add_right le_rfl), nat.add_sub_cancel_left]
-
 end nat

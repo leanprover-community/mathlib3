@@ -814,7 +814,8 @@ noncomputable def gcd_monoid_of_gcd [decidable_eq α] (gcd : α → α → α)
     apply or.resolve_left (mul_eq_zero.1 _) a0',
     rw [h, mul_zero] } }
 
-noncomputable def normalized_gcd_monoid_of_gcd [normalization_monoid α] [decidable_eq α] (gcd : α → α → α)
+noncomputable def normalized_gcd_monoid_of_gcd [normalization_monoid α] [decidable_eq α]
+  (gcd : α → α → α)
   (gcd_dvd_left   : ∀a b, gcd a b ∣ a)
   (gcd_dvd_right  : ∀a b, gcd a b ∣ b)
   (dvd_gcd        : ∀{a b c}, a ∣ c → a ∣ b → a ∣ gcd c b)
@@ -928,7 +929,8 @@ let exists_gcd := λ a b, lcm_dvd (dvd.intro b rfl) (dvd.intro_left a rfl) in
     rw [mul_comm, mul_dvd_mul_iff_right h_1.2],
     apply ac } }
 
-noncomputable def normalized_gcd_monoid_of_lcm [normalization_monoid α] [decidable_eq α] (lcm : α → α → α)
+noncomputable def normalized_gcd_monoid_of_lcm [normalization_monoid α] [decidable_eq α]
+  (lcm : α → α → α)
   (dvd_lcm_left   : ∀a b, a ∣ lcm a b)
   (dvd_lcm_right  : ∀a b, b ∣ lcm a b)
   (lcm_dvd        : ∀{a b c}, c ∣ a → b ∣ a → lcm c b ∣ a)

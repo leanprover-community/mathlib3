@@ -423,8 +423,8 @@ protected lemma antitone.antitone_on (hf : antitone f) (s : set α) : antitone_o
 lemma monotone_on_univ : monotone_on f set.univ ↔ monotone f :=
 ⟨λ h a b hab, h trivial trivial hab, λ h, h.monotone_on _⟩
 
-lemma antitone_on_univ : monotone_on f set.univ ↔ monotone f :=
-⟨λ h a b hab, h trivial trivial hab, λ h, h.monotone_on _⟩
+lemma antitone_on_univ : antitone_on f set.univ ↔ antitone f :=
+⟨λ h a b hab, h trivial trivial hab, λ h, h.antitone_on _⟩
 
 protected lemma strict_mono.strict_mono_on (hf : strict_mono f) (s : set α) : strict_mono_on f s :=
 λ a _ b _ h, hf h

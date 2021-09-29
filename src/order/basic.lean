@@ -170,12 +170,12 @@ lemma strict_mono_id [has_lt α] : strict_mono (id : α → α) := λ a b, id
 
 /-- A function `f` is strictly monotone increasing on `t` if `x < y` for `x,y ∈ t` implies
 `f x < f y`. -/
-def strict_mono_incr_on [has_lt α] [has_lt β] (f : α → β) (t : set α) : Prop :=
+def strict_mono_on [has_lt α] [has_lt β] (f : α → β) (t : set α) : Prop :=
 ∀ ⦃x⦄ (hx : x ∈ t) ⦃y⦄ (hy : y ∈ t), x < y → f x < f y
 
 /-- A function `f` is strictly monotone decreasing on `t` if `x < y` for `x,y ∈ t` implies
 `f y < f x`. -/
-def strict_mono_decr_on [has_lt α] [has_lt β] (f : α → β) (t : set α) : Prop :=
+def strict_anti_on [has_lt α] [has_lt β] (f : α → β) (t : set α) : Prop :=
 ∀ ⦃x⦄ (hx : x ∈ t) ⦃y⦄ (hy : y ∈ t), x < y → f y < f x
 
 /-- Type tag for a set with dual order: `≤` means `≥` and `<` means `>`. -/
@@ -241,80 +241,80 @@ theorem cmp_le_flip {α} [has_le α] [@decidable_rel α (≤)] (x y : α) :
 
 end order_dual
 
-namespace strict_mono_incr_on
+namespace strict_mono_on
 
 section dual
 
 variables [preorder α] [preorder β] {f : α → β} {s : set α}
 
-protected lemma dual (H : strict_mono_incr_on f s) :
-  @strict_mono_incr_on (order_dual α) (order_dual β) _ _ f s :=
+protected lemma dual (H : strict_mono_on f s) :
+  @strict_mono_on (order_dual α) (order_dual β) _ _ f s :=
 λ x hx y hy, H hy hx
 
-protected lemma dual_right (H : strict_mono_incr_on f s) :
-  @strict_mono_decr_on α (order_dual β) _ _ f s :=
+protected lemma dual_right (H : strict_mono_on f s) :
+  @strict_anti_on α (order_dual β) _ _ f s :=
 H
 
 end dual
 
 variables [linear_order α] [preorder β] {f : α → β} {s : set α} {x y : α}
 
-lemma le_iff_le (H : strict_mono_incr_on f s) (hx : x ∈ s) (hy : y ∈ s) :
+lemma le_iff_le (H : strict_mono_on f s) (hx : x ∈ s) (hy : y ∈ s) :
   f x ≤ f y ↔ x ≤ y :=
 ⟨λ h, le_of_not_gt $ λ h', not_le_of_lt (H hy hx h') h,
  λ h, h.lt_or_eq_dec.elim (λ h', le_of_lt (H hx hy h')) (λ h', h' ▸ le_refl _)⟩
 
-lemma lt_iff_lt (H : strict_mono_incr_on f s) (hx : x ∈ s) (hy : y ∈ s) :
+lemma lt_iff_lt (H : strict_mono_on f s) (hx : x ∈ s) (hy : y ∈ s) :
   f x < f y ↔ x < y :=
 by simp only [H.le_iff_le, hx, hy, lt_iff_le_not_le]
 
-protected theorem compares (H : strict_mono_incr_on f s) (hx : x ∈ s) (hy : y ∈ s) :
+protected theorem compares (H : strict_mono_on f s) (hx : x ∈ s) (hy : y ∈ s) :
   ∀ {o}, ordering.compares o (f x) (f y) ↔ ordering.compares o x y
 | ordering.lt := H.lt_iff_lt hx hy
 | ordering.eq := ⟨λ h, ((H.le_iff_le hx hy).1 h.le).antisymm ((H.le_iff_le hy hx).1 h.symm.le),
                    congr_arg _⟩
 | ordering.gt := H.lt_iff_lt hy hx
 
-end strict_mono_incr_on
+end strict_mono_on
 
-namespace strict_mono_decr_on
+namespace strict_anti_on
 
 section dual
 
 variables [preorder α] [preorder β] {f : α → β} {s : set α}
 
-protected lemma dual (H : strict_mono_decr_on f s) :
-  @strict_mono_decr_on (order_dual α) (order_dual β) _ _ f s :=
+protected lemma dual (H : strict_anti_on f s) :
+  @strict_anti_on (order_dual α) (order_dual β) _ _ f s :=
 λ x hx y hy, H hy hx
 
-protected lemma dual_right (H : strict_mono_decr_on f s) :
-  @strict_mono_incr_on α (order_dual β) _ _ f s :=
+protected lemma dual_right (H : strict_anti_on f s) :
+  @strict_mono_on α (order_dual β) _ _ f s :=
 H
 
 end dual
 
 variables [linear_order α] [preorder β] {f : α → β} {s : set α} {x y : α}
 
-lemma le_iff_le (H : strict_mono_decr_on f s) (hx : x ∈ s) (hy : y ∈ s) :
+lemma le_iff_le (H : strict_anti_on f s) (hx : x ∈ s) (hy : y ∈ s) :
   f x ≤ f y ↔ y ≤ x :=
 H.dual_right.le_iff_le hy hx
 
-lemma lt_iff_lt (H : strict_mono_decr_on f s) (hx : x ∈ s) (hy : y ∈ s) :
+lemma lt_iff_lt (H : strict_anti_on f s) (hx : x ∈ s) (hy : y ∈ s) :
   f x < f y ↔ y < x :=
 H.dual_right.lt_iff_lt hy hx
 
-protected theorem compares (H : strict_mono_decr_on f s) (hx : x ∈ s) (hy : y ∈ s) {o : ordering} :
+protected theorem compares (H : strict_anti_on f s) (hx : x ∈ s) (hy : y ∈ s) {o : ordering} :
   ordering.compares o (f x) (f y) ↔ ordering.compares o y x :=
 order_dual.dual_compares.trans $ H.dual_right.compares hy hx
 
-end strict_mono_decr_on
+end strict_anti_on
 
 namespace strict_mono
 open ordering function
 
-protected lemma strict_mono_incr_on [has_lt α] [has_lt β] {f : α → β} (hf : strict_mono f)
+protected lemma strict_mono_on [has_lt α] [has_lt β] {f : α → β} (hf : strict_mono f)
   (s : set α) :
-  strict_mono_incr_on f s :=
+  strict_mono_on f s :=
 λ x hx y hy hxy, hf hxy
 
 lemma comp [has_lt α] [has_lt β] [has_lt γ] {g : β → γ} {f : α → β}
@@ -354,17 +354,17 @@ section
 variables [linear_order α] [preorder β] {f : α → β}
 
 lemma lt_iff_lt (H : strict_mono f) {a b} : f a < f b ↔ a < b :=
-(H.strict_mono_incr_on set.univ).lt_iff_lt trivial trivial
+(H.strict_mono_on set.univ).lt_iff_lt trivial trivial
 
 protected theorem compares (H : strict_mono f) {a b} {o} :
   compares o (f a) (f b) ↔ compares o a b :=
-(H.strict_mono_incr_on set.univ).compares trivial trivial
+(H.strict_mono_on set.univ).compares trivial trivial
 
 lemma injective (H : strict_mono f) : injective f :=
 λ x y h, show compares eq x y, from H.compares.1 h
 
 lemma le_iff_le (H : strict_mono f) {a b} : f a ≤ f b ↔ a ≤ b :=
-(H.strict_mono_incr_on set.univ).le_iff_le trivial trivial
+(H.strict_mono_on set.univ).le_iff_le trivial trivial
 
 lemma top_preimage_top (H : strict_mono f) {a} (h_top : ∀ p, p ≤ f a) (x : α) : x ≤ a :=
 H.le_iff_le.mp (h_top (f x))

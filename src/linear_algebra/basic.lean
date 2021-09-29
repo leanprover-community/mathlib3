@@ -222,10 +222,10 @@ instance : has_add (M →ₛₗ[σ₁₂] M₂) :=
 instance : add_comm_monoid (M →ₛₗ[σ₁₂] M₂) :=
 { zero := 0,
   add := (+),
-  add_assoc := by intros; ext; simp [add_comm, add_left_comm],
-  zero_add := by intros; ext; simp [add_comm, add_left_comm],
-  add_zero := by intros; ext; simp [add_comm, add_left_comm],
-  add_comm := by intros; ext; simp [add_comm, add_left_comm],
+  add_assoc := λ f g h, linear_map.ext $ λ x, add_assoc _ _ _,
+  zero_add := λ f, linear_map.ext $ λ x, zero_add _,
+  add_zero := λ f, linear_map.ext $ λ x, add_zero _,
+  add_comm := λ f g, linear_map.ext $ λ x, add_comm _ _,
   nsmul := λ n f,
   { to_fun := λ x, n • (f x),
     map_add' := λ x y, by rw [f.map_add, smul_add],
@@ -234,12 +234,8 @@ instance : add_comm_monoid (M →ₛₗ[σ₁₂] M₂) :=
       rw [f.map_smulₛₗ],
       simp [smul_comm n (σ₁₂ c) (f x)],
     end },
-  nsmul_zero' := λ f, by { ext x, change 0 • f x = 0, simp only [zero_smul] },
-  nsmul_succ' := λ n f, linear_map.ext $ λ x,
-  begin
-    change n.succ • (f x) = f x + n • (f x),
-    simp [nat.succ_eq_one_add, add_nsmul],
-  end }
+  nsmul_zero' := λ f, linear_map.ext $ λ x, add_comm_monoid.nsmul_zero' _,
+  nsmul_succ' := λ n f, linear_map.ext $ λ x, add_comm_monoid.nsmul_succ' _ _ }
 
 /-- Evaluation of a `σ₁₂`-linear map at a fixed `a`, as an `add_monoid_hom`. -/
 def eval_add_monoid_hom (a : M) : (M →ₛₗ[σ₁₂] M₂) →+ M₂ :=
@@ -447,28 +443,25 @@ lemma comp_sub (f g : M →ₛₗ[σ₁₃] M₃) (h : M₃ →ₛₗ[σ₃₄] 
 omit σ₁₄
 
 /-- The type of linear maps is an additive group. -/
-instance [module R M₃] : add_comm_group (M →ₗ[R] M₃) :=
-by refine
+instance : add_comm_group (M →ₛₗ[σ₁₃] M₃) :=
 { zero := 0,
   add := (+),
   neg := has_neg.neg,
   sub := has_sub.sub,
-  sub_eq_add_neg := _,
-  add_left_neg := _,
+  sub_eq_add_neg := λ f g, linear_map.ext $ λ m, sub_eq_add_neg _ _,
+  add_left_neg := λ f, linear_map.ext $ λ m, add_left_neg _,
   nsmul := λ n f, {
     to_fun := λ x, n • (f x),
     map_add' := λ x y, by rw [f.map_add, smul_add],
-    map_smul' := λ c x, by dsimp; rw [f.map_smul, smul_comm n c (f x)] },
+    map_smul' := λ c x, by rw [f.map_smulₛₗ, smul_comm n (σ₁₃ c) (f x)] },
   gsmul := λ n f, {
     to_fun := λ x, n • (f x),
     map_add' := λ x y, by rw [f.map_add, smul_add],
-    map_smul' := λ c x, by dsimp; rw [f.map_smul, smul_comm n c (f x)] },
-  gsmul_zero' := _,
-  gsmul_succ' := _,
-  gsmul_neg' := _,
-  .. linear_map.add_comm_monoid };
-intros; apply linear_map.ext;
-simp [add_comm, add_left_comm, sub_eq_add_neg, add_smul, nat.succ_eq_add_one]
+    map_smul' := λ c x, by rw [f.map_smulₛₗ, smul_comm n (σ₁₃ c) (f x)] },
+  gsmul_zero' := λ a, linear_map.ext $ λ m, zero_smul _ _,
+  gsmul_succ' := λ n a, linear_map.ext $ λ m, add_comm_group.gsmul_succ' n _,
+  gsmul_neg' := λ n a, linear_map.ext $ λ m, add_comm_group.gsmul_neg' n _,
+  .. linear_map.add_comm_monoid }
 
 end add_comm_group
 

@@ -159,12 +159,10 @@ end
 
 variables {p} {G}
 
-lemma orbit_sylow_eq_top [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
-  orbit G P = ⊤ :=
+lemma orbit_sylow_eq_top [fact p.prime] [fintype (sylow p G)] (P : sylow p G) : orbit G P = ⊤ :=
 top_le_iff.mp (λ Q hQ, exists_smul_eq G P Q)
 
-lemma stabilizer_sylow_eq_normalizer [fintype (sylow p G)] (P : sylow p G) :
-  stabilizer G P = normalizer P.1 :=
+lemma stabilizer_sylow_eq_normalizer (P : sylow p G) : stabilizer G P = P.1.normalizer :=
 ext (λ g, sylow.smul_eq_iff_mem_normalizer)
 
 /-- Sylow `p`-subgroups are in bijection with cosets of the normalizer of a Sylow `p`-subgroup -/
@@ -177,18 +175,18 @@ calc sylow p G ≃ (⊤ : set (sylow p G)) : (equiv.set.univ (sylow p G)).symm
 
 noncomputable instance [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
   fintype (quotient_group.quotient P.1.normalizer) :=
-fintype.of_equiv (sylow p G) (sylow_equiv_quotient_normalizer P)
+of_equiv (sylow p G) (sylow_equiv_quotient_normalizer P)
 
 lemma card_sylow_eq_card_quotient_normalizer [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
-  fintype.card (sylow p G) = fintype.card (quotient_group.quotient P.1.normalizer) :=
+  card (sylow p G) = card (quotient_group.quotient P.1.normalizer) :=
 fintype.card_congr (sylow_equiv_quotient_normalizer P)
 
 lemma card_sylow_eq_index_normalizer [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
-  fintype.card (sylow p G) = P.1.normalizer.index :=
+  card (sylow p G) = P.1.normalizer.index :=
 (card_sylow_eq_card_quotient_normalizer P).trans P.1.normalizer.index_eq_card.symm
 
 lemma card_sylow_dvd_index [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
-  fintype.card (sylow p G) ∣ P.1.index :=
+  card (sylow p G) ∣ P.1.index :=
 ((congr_arg _ (card_sylow_eq_index_normalizer P)).mp dvd_rfl).trans (index_dvd_of_le le_normalizer)
 
 end infinite_sylow

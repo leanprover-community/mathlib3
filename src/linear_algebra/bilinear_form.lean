@@ -1377,6 +1377,16 @@ not currently provided in mathlib. In finite dimension either definition implies
 def nondegenerate (B : bilin_form R M) : Prop :=
 ∀ m : M, (∀ n : M, B m n = 0) → m = 0
 
+section
+variables (R M)
+/-- In a non-trivial module, zero is not non-degenerate. -/
+lemma not_nondegenerate_zero [nontrivial M] : ¬(0 : bilin_form R M).nondegenerate :=
+let ⟨m, hm⟩ := exists_ne (0 : M) in λ h, hm (h m $ λ n, rfl)
+end
+
+lemma nondegenerate.ne_zero [nontrivial M] {B : bilin_form R M} (h : B.nondegenerate) : B ≠ 0 :=
+λ h0, not_nondegenerate_zero R M $ h0 ▸ h
+
 /-- A bilinear form is nondegenerate if and only if it has a trivial kernel. -/
 theorem nondegenerate_iff_ker_eq_bot {B : bilin_form R₂ M₂} :
   B.nondegenerate ↔ B.to_lin.ker = ⊥ :=

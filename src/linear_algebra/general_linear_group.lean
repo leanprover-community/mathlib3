@@ -7,9 +7,8 @@ import linear_algebra.matrix
 import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.special_linear_group
 import linear_algebra.determinant
-import algebra.ordered_ring
 import ring_theory.subsemiring
-import group_theory.subgroup
+
 
 /-!
 # The General Linear group $GL(n, R)$

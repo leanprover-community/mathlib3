@@ -602,7 +602,7 @@ end linear_ordered_field
 /-! ### Jensen's inequality -/
 
 section jensen
-variables [linear_ordered_field 𝕜] [add_comm_monoid E] [ordered_add_comm_monoid β] [module 𝕜 E]
+variables [linear_ordered_field 𝕜] [add_comm_group E] [ordered_add_comm_group β] [module 𝕜 E]
   [module 𝕜 β] [ordered_smul 𝕜 β] {s : set E} {f : E → β} {t : finset ι} {w : ι → 𝕜} {p : ι → E}
 
 /-- Convex **Jensen's inequality**, `finset.center_mass` version. -/
@@ -641,7 +641,7 @@ end jensen
 /-! ### Maximum principle -/
 
 section maximum_principle
-variables [linear_ordered_field 𝕜] [add_comm_monoid E] [linear_ordered_add_comm_group β]
+variables [linear_ordered_field 𝕜] [add_comm_group E] [linear_ordered_add_comm_group β]
   [module 𝕜 E] [module 𝕜 β] [ordered_smul 𝕜 β] {s : set E} {f : E → β} {t : finset ι} {w : ι → 𝕜}
   {p : ι → E}
 

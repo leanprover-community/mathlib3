@@ -851,8 +851,8 @@ end
 line of `f` on `[x, y]` is less than the slope of the secant line of `f` on `[x, z]`. -/
 lemma convex_on_iff_slope_mono_adjacent {f : 𝕜 → 𝕜} :
   convex_on 𝕜 s f ↔ convex 𝕜 s ∧
-  (∀ ⦃x y z : 𝕜⦄, x ∈ s → z ∈ s → x < y → y < z →
-    (f y - f x) / (y - x) ≤ (f z - f y) / (z - y)) :=
+    ∀ ⦃x y z : 𝕜⦄, x ∈ s → z ∈ s → x < y → y < z →
+      (f y - f x) / (y - x) ≤ (f z - f y) / (z - y) :=
 ⟨λ h, ⟨h.1, λ x y z, h.slope_mono_adjacent⟩, λ h, convex_on_of_slope_mono_adjacent h.1 h.2⟩
 
 /-- If for any three points `x < y < z`, the slope of the secant line of `f : 𝕜 → 𝕜` on `[x, y]` is
@@ -883,8 +883,8 @@ end
 line of `f` on `[x, y]` is greater than the slope of the secant line of `f` on `[x, z]`. -/
 lemma concave_on_iff_slope_anti_adjacent {f : 𝕜 → 𝕜} :
   concave_on 𝕜 s f ↔ convex 𝕜 s ∧
-  (∀ ⦃x y z : 𝕜⦄, x ∈ s → z ∈ s → x < y → y < z →
-    (f z - f y) / (z - y) ≤ (f y - f x) / (y - x)) :=
+    ∀ ⦃x y z : 𝕜⦄, x ∈ s → z ∈ s → x < y → y < z →
+      (f z - f y) / (z - y) ≤ (f y - f x) / (y - x) :=
 ⟨λ h, ⟨h.1, λ x y z, h.slope_anti_adjacent⟩, λ h, concave_on_of_slope_anti_adjacent h.1 h.2⟩
 
 /-- If for any three points `x < y < z`, the slope of the secant line of `f : 𝕜 → 𝕜` on `[x, y]` is
@@ -948,8 +948,8 @@ the secant line of `f` on `[x, y]` is strictly less than the slope of the secant
 `[x, z]`. -/
 lemma strict_convex_on_iff_slope_strict_mono_adjacent {f : 𝕜 → 𝕜} :
   strict_convex_on 𝕜 s f ↔ convex 𝕜 s ∧
-  (∀ ⦃x y z : 𝕜⦄, x ∈ s → z ∈ s → x < y → y < z →
-    (f y - f x) / (y - x) < (f z - f y) / (z - y)) :=
+    ∀ ⦃x y z : 𝕜⦄, x ∈ s → z ∈ s → x < y → y < z →
+      (f y - f x) / (y - x) < (f z - f y) / (z - y) :=
 ⟨λ h, ⟨h.1, λ x y z, h.slope_strict_mono_adjacent⟩,
   λ h, strict_convex_on_of_slope_strict_mono_adjacent h.1 h.2⟩
 
@@ -982,10 +982,10 @@ end
 /-- A function `f : 𝕜 → 𝕜` is strictly concave iff for any three points `x < y < z` the slope of
 the secant line of `f` on `[x, y]` is strictly greater than the slope of the secant line of `f` on
 `[x, z]`. -/
-lemma strict_concave_on_iff_slope_anti_adjacent (hs : convex 𝕜 s) {f : 𝕜 → 𝕜} :
+lemma strict_concave_on_iff_slope_strict_anti_adjacent {f : 𝕜 → 𝕜} :
   strict_concave_on 𝕜 s f ↔ convex 𝕜 s ∧
-  (∀ ⦃x y z : 𝕜⦄, x ∈ s → z ∈ s → x < y → y < z →
-    (f z - f y) / (z - y) < (f y - f x) / (y - x)) :=
+    ∀ ⦃x y z : 𝕜⦄, x ∈ s → z ∈ s → x < y → y < z →
+      (f z - f y) / (z - y) < (f y - f x) / (y - x) :=
 ⟨λ h, ⟨h.1, λ x y z, h.slope_anti_adjacent⟩,
   λ h, strict_concave_on_of_slope_strict_anti_adjacent h.1 h.2⟩
 

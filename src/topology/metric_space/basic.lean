@@ -435,6 +435,16 @@ theorem closed_ball_subset_ball (h : ε₁ < ε₂) :
   closed_ball x ε₁ ⊆ ball x ε₂ :=
 λ y (yh : dist y x ≤ ε₁), lt_of_le_of_lt yh h
 
+lemma dist_le_add_of_nonempty_closed_ball_inter_closed_ball
+  {α : Type*} [pseudo_metric_space α] {x y : α} {rx ry : ℝ}
+  (h : (closed_ball x rx ∩ closed_ball y ry).nonempty) :
+  dist x y ≤ rx + ry :=
+begin
+  rcases h with ⟨z, hz⟩,
+  calc dist x y ≤ dist z x + dist z y : dist_triangle_left _ _ _
+  ... ≤ rx + ry : add_le_add hz.1 hz.2
+end
+
 @[simp] lemma Union_closed_ball_nat (x : α) : (⋃ n : ℕ, closed_ball x n) = univ :=
 Union_eq_univ_iff.2 $ λ y, exists_nat_ge (dist y x)
 

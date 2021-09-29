@@ -3,58 +3,24 @@ Copyright (c) 2021 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import topology.besicovitch_vector_space
+import measure_theory.covering.besicovitch_vector_space
+
 /-!
-# Besicovitch covering lemma
+# Besicovitch covering theorem
 
-We prove the Besicovith covering theorem
+The Besicovitch covering theorem ensures that, in a nice metric space, there exists a number `N`
+such that, from any family of balls with bounded radii, one can extract `N` families, each made of
+disjoint balls, covering together all the centers of the initial family.
+
+By "nice metric space", we mean a technical property stated as follows: there exists no satellite
+configuration of `N+1` points (with a given parameter `τ > 1`). Such a configuration is a family
+of `N + 1` balls, where the first `N` balls all intersect the last one, but none of them contains
+the center of another one and their radii are controlled. This property is for instance
+satisfied by finite-dimensional real vector spaces.
+
+In this file, we prove the Besicovitch covering theorem,
+in `besicovitch.exist_disjoint_covering_families`.
 -/
-
-universe u
-
-
-namespace metric
-
-lemma nonempty_closed_ball_inter_closed_ball
-  {α : Type*} [pseudo_metric_space α] {x y : α} {rx ry : ℝ}
-  (h : (closed_ball x rx ∩ closed_ball y ry).nonempty) :
-  dist x y ≤ rx + ry :=
-begin
-  rcases h with ⟨z, hz⟩,
-  calc dist x y ≤ dist z x + dist z y : dist_triangle_left _ _ _
-  ... ≤ rx + ry : add_le_add hz.1 hz.2
-end
-
-end metric
-
--- a mettre à côté de not_disjoint_iff
-lemma not_disjoint_iff_nonempty_inter {α : Type*} {s t : set α} :
-  ¬disjoint s t ↔ (s ∩ t).nonempty :=
-by simp [set.not_disjoint_iff, set.nonempty_def]
-
-section
-
-lemma {v} up_injective {X : Type u} :
-  function.injective (ulift.up.{v} : X → ulift X) :=
-begin
-  rintros x1 x2 h, cc,
-end
-
-lemma not_injective_of_ordinal {X : Type u} (f : ordinal.{u} → X) :
-  ¬ function.injective f :=
-begin
-  let g : ordinal.{u} → ulift.{u+1} X := λ o, ulift.up (f o),
-  suffices : ¬ function.injective g,
-  { intro hf, exact this (up_injective.comp hf) },
-  intro hg,
-  replace hg := cardinal.mk_le_of_injective hg,
-  rw ← cardinal.lift_mk at hg,
-  replace hg := lt_of_le_of_lt hg (cardinal.lift_lt_univ _),
-  contrapose! hg,
-  rw cardinal.univ_id
-end
-
-end
 
 open metric set finite_dimensional measure_theory filter
 

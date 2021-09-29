@@ -267,8 +267,7 @@ dvd_antisymm_of_normalize_eq (normalize_gcd _ _) (normalize_gcd _ _)
     (dvd_gcd (gcd_dvd_left m (gcd n k)) ((gcd_dvd_right m (gcd n k)).trans (gcd_dvd_left n k)))
     ((gcd_dvd_right m (gcd n k)).trans (gcd_dvd_right n k)))
 
-theorem gcd_assoc' [normalized_gcd_monoid α] (m n k : α) :
-  associated (gcd (gcd m n) k) (gcd m (gcd n k)) :=
+theorem gcd_assoc' [gcd_monoid α] (m n k : α) : associated (gcd (gcd m n) k) (gcd m (gcd n k)) :=
 associated_of_dvd_dvd
   (dvd_gcd
     ((gcd_dvd_left (gcd m n) k).trans (gcd_dvd_left m n))
@@ -551,8 +550,22 @@ dvd_antisymm_of_normalize_eq (normalize_lcm _ _) (normalize_lcm _ _)
   (lcm_dvd (dvd_lcm_right _ _) (dvd_lcm_left _ _))
   (lcm_dvd (dvd_lcm_right _ _) (dvd_lcm_left _ _))
 
+theorem lcm_comm' [gcd_monoid α] (a b : α) : associated (lcm a b) (lcm b a) :=
+associated_of_dvd_dvd
+  (lcm_dvd (dvd_lcm_right _ _) (dvd_lcm_left _ _))
+  (lcm_dvd (dvd_lcm_right _ _) (dvd_lcm_left _ _))
+
 theorem lcm_assoc [normalized_gcd_monoid α] (m n k : α) : lcm (lcm m n) k = lcm m (lcm n k) :=
 dvd_antisymm_of_normalize_eq (normalize_lcm _ _) (normalize_lcm _ _)
+  (lcm_dvd
+    (lcm_dvd (dvd_lcm_left _ _) ((dvd_lcm_left _ _).trans (dvd_lcm_right _ _)))
+    ((dvd_lcm_right _ _).trans (dvd_lcm_right _ _)))
+  (lcm_dvd
+    ((dvd_lcm_left _ _).trans (dvd_lcm_left _ _))
+    (lcm_dvd ((dvd_lcm_right _ _).trans (dvd_lcm_left _ _)) (dvd_lcm_right _ _)))
+
+theorem lcm_assoc' [gcd_monoid α] (m n k : α) : associated (lcm (lcm m n) k) (lcm m (lcm n k)) :=
+associated_of_dvd_dvd
   (lcm_dvd
     (lcm_dvd (dvd_lcm_left _ _) ((dvd_lcm_left _ _).trans (dvd_lcm_right _ _)))
     ((dvd_lcm_right _ _).trans (dvd_lcm_right _ _)))

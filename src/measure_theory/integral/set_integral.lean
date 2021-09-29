@@ -480,7 +480,7 @@ variables {μ : measure α}
   [measurable_space E] [normed_group E] [borel_space E] [complete_space E] [normed_space ℝ E]
   [second_countable_topology E] {s : ℕ → set α} {f : α → E}
 
-lemma tendsto_set_integral_of_antimono (hsm : ∀ i, measurable_set (s i))
+lemma tendsto_set_integral_of_antitone (hsm : ∀ i, measurable_set (s i))
   (h_mono : ∀ i j, i ≤ j → s j ⊆ s i) (hfi : integrable_on f (s 0) μ) :
   tendsto (λi, ∫ a in s i, f a ∂μ) at_top (𝓝 (∫ a in (⋂ n, s n), f a ∂μ)) :=
 begin
@@ -500,7 +500,7 @@ begin
   { simp_rw norm_indicator_eq_indicator_norm,
     refine λ n, eventually_of_forall (λ x, _),
     exact indicator_le_indicator_of_subset (h_mono 0 n (zero_le n)) (λ a, norm_nonneg _) _, },
-  { filter_upwards [] λa, le_trans (tendsto_indicator_of_antimono _ h_mono _ _) (pure_le_nhds _), },
+  { filter_upwards [] λa, le_trans (tendsto_indicator_of_antitone _ h_mono _ _) (pure_le_nhds _), },
 end
 
 end tendsto_mono

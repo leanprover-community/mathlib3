@@ -1009,7 +1009,7 @@ begin
   { intros x hx y hy hxy,
     convert neg_le_neg (h_anti hx hy hxy);
     convert deriv.neg },
-  exact neg_convex_on_iff.mp (convex_on_of_deriv_mono hD hf.neg hf'.neg this),
+  exact neg_convex_on_iff.mp (convex_on_of_deriv_monotone_on hD hf.neg hf'.neg this),
 end
 
 /-- If a function `f` is differentiable and `f'` is monotone on `ℝ` then `f` is convex. -/

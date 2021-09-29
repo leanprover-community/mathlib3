@@ -23,6 +23,15 @@ In this file we define
 * `is_linear_map R f` : predicate saying that `f : M → M₂` is a linear map. (Note that this
   was not generalized to semilinear maps.)
 
+We then provide `linear_map` with the following instances:
+
+* `linear_map.add_comm_monoid` and `linear_map.add_comm_group`: the elementwise addition structures
+  corresponding to addition in the codomain
+* `linear_map.distrib_mul_action` and `linear_map.module`: the elementwise scalar action structures
+  corresponding to applying the action in the codomain.
+* `module.End.semiring` and `module.End.ring`: the (semi)ring of endomorphisms formed by taking the
+  additive structure above with composition as multiplication.
+
 ## Implementation notes
 
 To ensure that composition works smoothly for semilinear maps, we use the typeclasses
@@ -37,15 +46,6 @@ To ensure that composition works smoothly for semilinear maps, we use the typecl
 ## TODO
 
 * Parts of this file have not yet been generalized to semilinear maps (i.e. `compatible_smul`)
-
-We then provide `linear_map` with the following instances:
-
-* `linear_map.add_comm_monoid` and `linear_map.add_comm_group`: the elementwise addition structures
-  corresponding to addition in the codomain
-* `linear_map.distrib_mul_action` and `linear_map.module`: the elementwise scalar action structures
-  corresponding to applying the action in the codomain.
-* `module.End.semiring` and `module.End.ring`: the (semi)ring of endomorphisms formed by taking the
-  additive structure above with composition as multiplication.
 
 ## Tags
 

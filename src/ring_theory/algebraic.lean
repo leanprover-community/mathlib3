@@ -123,17 +123,18 @@ end
 
 variables (K L)
 
-/-- If A is an algebraic algebra over K, then A is algebraic over L when L is an extension of K -/
-lemma is_algebraic_of_larger_base (A_alg : is_algebraic K A) : is_algebraic L A :=
-λ x, let ⟨p, hp⟩ := A_alg x in
-⟨p.map (algebra_map _ _), map_ne_zero hp.1, by simp [hp.2]⟩
-
+/-- If A is an algebraic algebra over R, then A is algebraic over A when S is an extension of R,
+  and the map from `R` to `S` is injective. -/
 lemma is_algebraic_of_larger_base_of_injective (hinj : function.injective (algebra_map R S))
   (A_alg : is_algebraic R A) : is_algebraic S A :=
 λ x, let ⟨p, hp₁, hp₂⟩ := A_alg x in
 ⟨p.map (algebra_map _ _),
   by rwa [ne.def, ← degree_eq_bot, degree_map' hinj, degree_eq_bot],
   by simpa⟩
+
+/-- If A is an algebraic algebra over K, then A is algebraic over L when L is an extension of K -/
+lemma is_algebraic_of_larger_base (A_alg : is_algebraic K A) : is_algebraic L A :=
+is_algebraic_of_larger_base_of_injective (algebra_map K L).injective A_alg
 
 variables {R S K L}
 

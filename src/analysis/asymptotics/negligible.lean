@@ -10,15 +10,13 @@ import data.polynomial.eval
 /-!
 # Negligible Functions
 
-This file defines a predicate `negligible f` on functions `f` from `ℕ` to a normed field `𝕜`.
-A negligible function `f` is a function satisfying one of following equivalent definitions:
+This file defines a predicate `negligible f` for a function satisfying
+  one of following equivalent definitions (The definition is in terms of the first condition):
 
 * `f` is `O(x ^ c)` for all (or equivalently sufficiently small) integers `c`
 * `f` is `O(p(x)⁻¹)` for all (or equivalently sufficiently large) polynomials `p`
 * `p(x) * f` is bounded for all polynomials `p`
 * `p(x) * f` tends to `𝓝 0` for all polynomials `p`
-
-The definition used here is given in terms of the first condition.
 
 The main theorem is `negligible_polynomial_mul` that says the product of a polynomial
   and a negligible function is still a negligible function.
@@ -31,12 +29,16 @@ open filter
 
 /-- Definition of negligible functions over an arbitrary `normed_field`.
   Note that the second function always has type `ℕ → ℝ`, which generally gives better lemmas. -/
-def negligible {𝕜 : Type*} [normed_ring 𝕜] (f : ℕ → 𝕜) :=
+def negligible {𝕜 : Type*} [has_norm 𝕜] (f : ℕ → 𝕜) :=
 ∀ (c : ℤ), is_O f (λ n, (n : ℝ) ^ c) at_top
 
-section normed_ring
+lemma negligible.ext {𝕜 : Type*} [has_norm 𝕜] {f g : ℕ → 𝕜}
+  (hf : negligible f) (h : ∀ x, f x = g x) : negligible g :=
+(funext h : f = g) ▸ hf
 
-variables {R : Type*} [normed_ring R]
+section normed_group
+
+variables {R : Type*} [normed_group R]
 variables {f g : ℕ → R}
 
 lemma is_O.trans_negligible (h : is_O f g at_top)
@@ -44,10 +46,6 @@ lemma is_O.trans_negligible (h : is_O f g at_top)
 λ c, h.trans $ hg c
 
 alias is_O.trans_negligible ← negligible.is_O_mono
-
-lemma negligible.ext (hf : negligible f)
-  (h : ∀ x, f x = g x) : negligible g :=
-(funext h : f = g) ▸ hf
 
 lemma negligible.mono (hf : negligible f)
   (h : ∀ n, ∥g n∥ ≤ ∥f n∥) : negligible g :=
@@ -117,6 +115,13 @@ begin
   rw [set.preimage_const_of_not_mem (by simp : x ∉ ({x} : set R)ᶜ)] at this,
   exact at_top.empty_not_mem this,
 end
+
+end normed_group
+
+section normed_ring
+
+variables {R : Type*} [normed_ring R]
+variables {f g : ℕ → R}
 
 lemma negligible.const_mul (hf : negligible f) (c : R) :
   negligible (λ n, c * f n) :=

@@ -187,6 +187,10 @@ lemma card_sylow_eq_index_normalizer [fact p.prime] [fintype (sylow p G)] (P : s
   fintype.card (sylow p G) = P.1.normalizer.index :=
 (card_sylow_eq_card_quotient_normalizer P).trans P.1.normalizer.index_eq_card.symm
 
+lemma card_sylow_dvd_index [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
+  fintype.card (sylow p G) ∣ P.1.index :=
+((congr_arg _ (card_sylow_eq_index_normalizer P)).mp dvd_rfl).trans (index_dvd_of_le le_normalizer)
+
 end infinite_sylow
 
 open equiv equiv.perm finset function list quotient_group

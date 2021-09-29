@@ -117,8 +117,13 @@ lemma sub_right (x y z : M₁) : B₁ x (y - z) = B₁ x y - B₁ x z :=
 by rw [sub_eq_add_neg, sub_eq_add_neg, add_right, neg_right]
 
 variable {D : bilin_form R M}
+
 @[ext] lemma ext (H : ∀ (x y : M), B x y = D x y) : B = D :=
 by { cases B, cases D, congr, funext, exact H _ _ }
+
+lemma congr_fun (h : B = D) (x y : M) : B x y = D x y := h ▸ rfl
+
+lemma ext_iff : B = D ↔ (∀ x y, B x y = D x y) := ⟨congr_fun, ext⟩
 
 instance : add_comm_monoid (bilin_form R M) :=
 { add := λ B D, { bilin := λ x y, B x y + D x y,

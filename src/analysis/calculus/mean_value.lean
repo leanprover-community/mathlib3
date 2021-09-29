@@ -934,8 +934,8 @@ theorem convex.monotone_on_of_deriv_nonneg {D : set ℝ} (hD : convex ℝ D) {f 
 `f` is a monotone function. -/
 theorem monotone_of_deriv_nonneg {f : ℝ → ℝ} (hf : differentiable ℝ f) (hf' : ∀ x, 0 ≤ deriv f x) :
   monotone f :=
-λ x y hxy, convex_univ.monotone_on_of_deriv_nonneg hf.continuous.continuous_on hf.differentiable_on
-  (λ x _, hf' x) trivial trivial hxy
+monotone_on_univ.1 $ convex_univ.monotone_on_of_deriv_nonneg hf.continuous.continuous_on
+  hf.differentiable_on (λ x _, hf' x)
 
 /-- Let `f` be a function continuous on a convex (or, equivalently, connected) subset `D`
 of the real line. If `f` is differentiable on the interior of `D` and `f'` is negative, then
@@ -1005,9 +1005,11 @@ theorem concave_on_of_deriv_antitone_on {D : set ℝ} (hD : convex ℝ D) {f : �
   (h_anti : antitone_on (deriv f) (interior D)) :
   concave_on ℝ D f :=
 begin
-  refine neg_convex_on_iff.mp (convex_on_of_deriv_monotone_on hD hf.neg hf'.neg _),
-  convert h_anti.neg,
-  simp,
+  have : monotone_on (deriv (-f)) (interior D),
+  { intros x hx y hy hxy,
+    convert neg_le_neg (h_anti hx hy hxy);
+    convert deriv.neg },
+  exact neg_convex_on_iff.mp (convex_on_of_deriv_mono hD hf.neg hf'.neg this),
 end
 
 /-- If a function `f` is differentiable and `f'` is monotone on `ℝ` then `f` is convex. -/

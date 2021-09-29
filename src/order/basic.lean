@@ -415,16 +415,16 @@ section preorder
 variables [preorder β] {f : α → β}
 
 protected lemma monotone.monotone_on (hf : monotone f) (s : set α) : monotone_on f s :=
-λ a _ b _, @hf a b
+λ a _ b _ h, hf h
 
 protected lemma antitone.antitone_on (hf : antitone f) (s : set α) : antitone_on f s :=
-λ a _ b _, @hf a b
+λ a _ b _ h, hf h
 
 lemma monotone_on_univ : monotone_on f set.univ ↔ monotone f :=
-⟨λ h a b hab, h trivial trivial hab, λ h, h.monotone_on _⟩
+⟨λ h a b, h trivial trivial, λ h, h.monotone_on _⟩
 
 lemma antitone_on_univ : antitone_on f set.univ ↔ antitone f :=
-⟨λ h a b hab, h trivial trivial hab, λ h, h.antitone_on _⟩
+⟨λ h a b, h trivial trivial, λ h, h.antitone_on _⟩
 
 protected lemma strict_mono.strict_mono_on (hf : strict_mono f) (s : set α) : strict_mono_on f s :=
 λ a _ b _ h, hf h
@@ -433,10 +433,10 @@ protected lemma strict_anti.strict_anti_on (hf : strict_anti f) (s : set α) : s
 λ a _ b _ h, hf h
 
 lemma strict_mono_on_univ : strict_mono_on f set.univ ↔ strict_mono f :=
-⟨λ h a b hab, h trivial trivial hab, λ h, h.strict_mono_on _⟩
+⟨λ h a b, h trivial trivial, λ h, h.strict_mono_on _⟩
 
 lemma strict_anti_on_univ : strict_anti_on f set.univ ↔ strict_anti f :=
-⟨λ h a b hab, h trivial trivial hab, λ h, h.strict_anti_on _⟩
+⟨λ h a b, h trivial trivial, λ h, h.strict_anti_on _⟩
 
 end preorder
 

@@ -911,11 +911,11 @@ lemma not_injective_of_ordinal {α : Type u} (f : ordinal.{u} → α) :
 begin
   let g : ordinal.{u} → ulift.{u+1} α := λ o, ulift.up (f o),
   suffices : ¬ function.injective g,
-  { intro hf, exact this (up_injective.comp hf) },
+  { intro hf, exact this (equiv.ulift.symm.injective.comp hf) },
   intro hg,
   replace hg := cardinal.mk_le_of_injective hg,
   rw ← cardinal.lift_mk at hg,
-  replace hg := lt_of_le_of_lt hg (cardinal.lift_lt_univ _),
-  contrapose! hg,
-  rw cardinal.univ_id
+  have := hg.trans_lt (cardinal.lift_lt_univ _),
+  rw cardinal.univ_id at this,
+  exact lt_irrefl _ this
 end

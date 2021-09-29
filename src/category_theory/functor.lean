@@ -12,7 +12,8 @@ import tactic.monotonicity
 Defines a functor between categories, extending a `prefunctor` between quivers.
 
 Introduces notation `C ⥤ D` for the type of all functors from `C` to `D`.
-(Unfortunately the `⇒` arrow (`\functor`) is taken by core, but in mathlib4 we should switch to this.)
+(Unfortunately the `⇒` arrow (`\functor`) is taken by core, 
+but in mathlib4 we should switch to this.)
 -/
 
 namespace category_theory

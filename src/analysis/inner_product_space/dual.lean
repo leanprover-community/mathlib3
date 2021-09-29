@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis
 -/
 import analysis.inner_product_space.projection
-import analysis.normed_space.bounded_linear_maps
 import analysis.normed_space.dual
 
 /-!

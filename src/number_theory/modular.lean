@@ -102,6 +102,7 @@ end bottom_row
 section tendsto_lemmas
 
 open filter continuous_linear_map
+local attribute [instance] matrix.normed_group matrix.normed_space
 
 /-- The function `(c,d) → |cz+d|^2` is proper, that is, preimages of bounded-above sets are finite.
 -/
@@ -257,9 +258,11 @@ begin
 end
 
 lemma tendsto_abs_re_smul (z:ℍ) {p : fin 2 → ℤ} (hp : is_coprime (p 0) (p 1)) :
-  tendsto (λ g : {g : SL(2, ℤ) // g 1 = p}, _root_.abs (((g : SL(2, ℤ)) • z).re)) cofinite at_top :=
+  tendsto (λ g : {g : SL(2, ℤ) // g 1 = p}, _root_.abs (((g : SL(2, ℤ)) • z).re))
+    cofinite at_top :=
 begin
-  suffices : tendsto (λ g : (λ g : SL(2, ℤ), g 1) ⁻¹' {p}, (((g : SL(2, ℤ)) • z).re)) cofinite (cocompact ℝ),
+  suffices : tendsto (λ g : (λ g : SL(2, ℤ), g 1) ⁻¹' {p}, (((g : SL(2, ℤ)) • z).re))
+    cofinite (cocompact ℝ),
   { exact tendsto_norm_cocompact_at_top.comp this },
   have : ((p 0 : ℝ) ^ 2 + p 1 ^ 2)⁻¹ ≠ 0,
   { apply inv_ne_zero,

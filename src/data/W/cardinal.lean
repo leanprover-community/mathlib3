@@ -11,7 +11,7 @@ import data.W.basic
 This file proves some theorems about the cardinality of W-types. The main result is
 `cardinal_mk_le_max_omega_of_fintype` which says that if for any `a : α`,
 `β a` is finite, then the cardinality of `W_type β` is at most the maximum of the
-cardinality of `α` or `cardinal.omega`.
+cardinality of `α` and `cardinal.omega`.
 This can be used to prove theorems about the cardinality of algebraic constructions such as
 polynomials. There is a surjection from a `W_type` to `mv_polynomial` for example, and
 this surjection can be used to put an upper bound on the cardinality of `mv_polynomial`.
@@ -38,7 +38,7 @@ begin
   exact cardinal.eq.2 ⟨equiv_sigma β⟩
 end
 
-/-- `W_type β` is the least cardinal `κ` such that `sum (λ a : α, κ ^ #(β a)) ≤ κ` -/
+/-- `#(W_type β)` is the least cardinal `κ` such that `sum (λ a : α, κ ^ #(β a)) ≤ κ` -/
 lemma cardinal_mk_le_of_le {κ : cardinal.{u}} (hκ : sum (λ a : α, κ ^ #(β a)) ≤ κ) :
   #(W_type β) ≤ κ :=
 begin

@@ -39,6 +39,9 @@ attribute [to_additive] Group.has_coe_to_sort Group.large_category Group.concret
 /-- Construct a bundled `Group` from the underlying type and typeclass. -/
 @[to_additive] def of (X : Type u) [group X] : Group := bundled.of X
 
+/-- Construct a bundled hom from the underlying monoid_hom. -/
+@[to_additive] def of_hom {X Y : Type u} [group X] [group Y] (f : X →* Y) : of X ⟶ of Y := f
+
 /-- Construct a bundled `AddGroup` from the underlying type and typeclass. -/
 add_decl_doc AddGroup.of
 
@@ -97,6 +100,10 @@ attribute [to_additive] CommGroup.has_coe_to_sort CommGroup.large_category
 
 /-- Construct a bundled `AddCommGroup` from the underlying type and typeclass. -/
 add_decl_doc AddCommGroup.of
+
+/-- Construct a bundled hom from the underlying monoid_hom. -/
+@[to_additive] def of_hom {X Y : Type u} [comm_group X] [comm_group Y] (f : X →* Y) :
+  of X ⟶ of Y := f
 
 @[to_additive]
 instance comm_group_instance (G : CommGroup) : comm_group G := G.str

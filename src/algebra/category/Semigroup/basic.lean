@@ -52,6 +52,10 @@ def of (M : Type u) [has_mul M] : Magma := bundled.of M
 /-- Construct a bundled `Magma` from the underlying type and typeclass. -/
 add_decl_doc AddMagma.of
 
+/-- Construct a bundled hom from the underlying mul_hom. -/
+@[to_additive] def of_hom {X Y : Type u} [has_mul X] [has_mul Y] (f : mul_hom X Y) :
+  of X ⟶ of Y := f
+
 @[to_additive]
 instance : inhabited Magma := ⟨Magma.of pempty⟩
 
@@ -84,6 +88,10 @@ def of (M : Type u) [semigroup M] : Semigroup := bundled.of M
 
 /-- Construct a bundled `AddSemigroup` from the underlying type and typeclass. -/
 add_decl_doc AddSemigroup.of
+
+/-- Construct a bundled hom from the underlying mul_hom. -/
+@[to_additive] def of_hom {X Y : Type u} [semigroup X] [semigroup Y] (f : mul_hom X Y) :
+  of X ⟶ of Y := f
 
 @[to_additive]
 instance : inhabited Semigroup := ⟨Semigroup.of pempty⟩

@@ -55,6 +55,10 @@ def of (M : Type u) [monoid M] : Mon := bundled.of M
 /-- Construct a bundled `Mon` from the underlying type and typeclass. -/
 add_decl_doc AddMon.of
 
+/-- Construct a bundled hom from the underlying monoid_map. -/
+@[to_additive] def of_hom {X Y : Type u} [monoid X] [monoid Y] (f : X →* Y) :
+  of X ⟶ of Y := f
+
 @[to_additive]
 instance : inhabited Mon :=
 -- The default instance for `monoid punit` is derived via `punit.comm_ring`,

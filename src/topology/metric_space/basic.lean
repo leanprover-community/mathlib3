@@ -410,13 +410,60 @@ by simp [dist_comm]
 theorem ball_subset_ball (h : ε₁ ≤ ε₂) : ball x ε₁ ⊆ ball x ε₂ :=
 λ y (yx : _ < ε₁), lt_of_lt_of_le yx h
 
+lemma ball_subset_ball' (h : ε₁ + dist x y ≤ ε₂) : ball x ε₁ ⊆ ball y ε₂ :=
+begin
+  assume z hz,
+  calc dist z y ≤ dist z x + dist x y : dist_triangle _ _ _
+  ... < ε₁ + dist x y : add_lt_add_right hz _
+  ... ≤ ε₂ : h
+end
+
 theorem closed_ball_subset_closed_ball (h : ε₁ ≤ ε₂) :
   closed_ball x ε₁ ⊆ closed_ball x ε₂ :=
 λ y (yx : _ ≤ ε₁), le_trans yx h
 
+lemma closed_ball_subset_closed_ball' (h : ε₁ + dist x y ≤ ε₂) :
+  closed_ball x ε₁ ⊆ closed_ball y ε₂ :=
+begin
+  assume z hz,
+  calc dist z y ≤ dist z x + dist x y : dist_triangle _ _ _
+  ... ≤ ε₁ + dist x y : add_le_add_right hz _
+  ... ≤ ε₂ : h
+end
+
 theorem closed_ball_subset_ball (h : ε₁ < ε₂) :
   closed_ball x ε₁ ⊆ ball x ε₂ :=
 λ y (yh : dist y x ≤ ε₁), lt_of_le_of_lt yh h
+
+lemma dist_le_add_of_nonempty_closed_ball_inter_closed_ball
+  (h : (closed_ball x ε₁ ∩ closed_ball y ε₂).nonempty) :
+  dist x y ≤ ε₁ + ε₂ :=
+begin
+  rcases h with ⟨z, hz⟩,
+  calc dist x y ≤ dist z x + dist z y : dist_triangle_left _ _ _
+  ... ≤ ε₁ + ε₂ : add_le_add hz.1 hz.2
+end
+
+lemma dist_lt_add_of_nonempty_closed_ball_inter_ball (h : (closed_ball x ε₁ ∩ ball y ε₂).nonempty) :
+  dist x y < ε₁ + ε₂ :=
+begin
+  rcases h with ⟨z, hz⟩,
+  calc dist x y ≤ dist z x + dist z y : dist_triangle_left _ _ _
+  ... < ε₁ + ε₂ : add_lt_add_of_le_of_lt hz.1 hz.2
+end
+
+lemma dist_lt_add_of_nonempty_ball_inter_closed_ball (h : (ball x ε₁ ∩ closed_ball y ε₂).nonempty) :
+  dist x y < ε₁ + ε₂ :=
+begin
+  rw inter_comm at h,
+  rw [add_comm, dist_comm],
+  exact dist_lt_add_of_nonempty_closed_ball_inter_ball h
+end
+
+lemma dist_lt_add_of_nonempty_ball_inter_ball (h : (ball x ε₁ ∩ ball y ε₂).nonempty) :
+  dist x y < ε₁ + ε₂ :=
+dist_lt_add_of_nonempty_closed_ball_inter_ball $
+  h.mono (inter_subset_inter ball_subset_closed_ball subset.rfl)
 
 @[simp] lemma Union_closed_ball_nat (x : α) : (⋃ n : ℕ, closed_ball x n) = univ :=
 Union_eq_univ_iff.2 $ λ y, exists_nat_ge (dist y x)
@@ -1449,7 +1496,7 @@ end
 lemma tendsto_dist_right_cocompact_at_top [proper_space α] (x : α) :
   tendsto (λ y, dist y x) (cocompact α) at_top :=
 (has_basis_cocompact.tendsto_iff at_top_basis).2 $ λ r hr,
-  ⟨closed_ball x r, proper_space.is_compact_closed_ball x r, 
+  ⟨closed_ball x r, proper_space.is_compact_closed_ball x r,
     λ y hy, (not_le.1 $ mt mem_closed_ball.2 hy).le⟩
 
 lemma tendsto_dist_left_cocompact_at_top [proper_space α] (x : α) :

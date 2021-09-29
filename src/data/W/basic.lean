@@ -61,7 +61,7 @@ variable (β)
 
 /-- The canonical bijection with the sigma type, showing that `W_type` is a fixed point of
   the polynomial `Σ a : α, β a → W_type β`.  -/
-def equiv_sigma : W_type β ≃ Σ a : α, β a → W_type β :=
+@[simps] def equiv_sigma : W_type β ≃ Σ a : α, β a → W_type β :=
 { to_fun := to_sigma,
   inv_fun := of_sigma,
   left_inv := of_sigma_to_sigma,

@@ -16,7 +16,8 @@ useful when the domain of `f` is `ℕ` or `ℤ` (or more generally a successor o
 
 ## TODO
 
-`ℕ` can be replaced by any `succ_order`, but we don't have those yet.
+`ℕ` can be replaced by any `succ_order` + `conditionally_complete_monoid`, but we don't have either
+of those yet.
 -/
 
 open_locale big_operators
@@ -49,6 +50,10 @@ begin
   rw (nat.succ_le_of_lt hwx).antisymm (hs hx hw),
   exact hs hx hy,
 end
+
+lemma equitable_on_iff_exists_image_subset_Icc {s : set α} {f : α → ℕ} :
+  s.equitable_on f ↔ ∃ b, f '' s ⊆ Icc b (b + 1) :=
+by simpa only [image_subset_iff] using equitable_on_iff_exists_le_le_add_one
 
 lemma equitable_on_iff_exists_eq_eq_add_one {s : set α} {f : α → ℕ} :
   s.equitable_on f ↔ ∃ b, ∀ a ∈ s, f a = b ∨ f a = b + 1 :=

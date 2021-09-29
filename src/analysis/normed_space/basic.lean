@@ -1181,8 +1181,9 @@ instance prod.semi_normed_ring [semi_normed_ring β] : semi_normed_ring (α × �
         ... = (∥x∥*∥y∥) : rfl,
   ..prod.semi_normed_group }
 
-/-- seminormed group instance on a matrix with values in a seminormed group,
-using the sup norm -/
+/-- Seminormed group instance (using sup norm of sup norm) for matrices over a seminormed ring. Not
+declared as an instance because there are several natural choices for defining the norm of a
+matrix. -/
 def matrix.semi_normed_group {n m : Type*} [fintype n] [fintype m] :
   semi_normed_group (matrix n m α) :=
 pi.semi_normed_group
@@ -1208,6 +1209,9 @@ instance prod.normed_ring [normed_ring β] : normed_ring (α × β) :=
 { norm_mul := norm_mul_le,
   ..prod.semi_normed_group }
 
+/-- Normed group instance (using sup norm of sup norm) for matrices over a normed ring.  Not
+declared as an instance because there are several natural choices for defining the norm of a
+matrix. -/
 def matrix.normed_group {n m : Type*} [fintype n] [fintype m] : normed_group (matrix n m α) :=
 pi.normed_group
 
@@ -1775,6 +1779,9 @@ instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, normed_group (E 
 section
 local attribute [instance] matrix.normed_group
 
+/-- Normed space instance (using sup norm of sup norm) for matrices over a normed field.  Not
+declared as an instance because there are several natural choices for defining the norm of a
+matrix. -/
 def matrix.normed_space {α : Type*} [normed_field α] {n m : Type*} [fintype n] [fintype m] :
   normed_space α (matrix n m α) :=
 pi.normed_space

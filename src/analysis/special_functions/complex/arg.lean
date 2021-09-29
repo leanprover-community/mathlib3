@@ -17,7 +17,8 @@ noncomputable theory
 
 namespace complex
 
-open_locale real
+open_locale real topological_space
+open filter
 
 /-- `arg` returns values in the range (-π, π], such that for `x ≠ 0`,
   `sin (arg x) = x.im / x.abs` and `cos (arg x) = x.re / x.abs`,
@@ -233,5 +234,46 @@ end
 
 lemma arg_of_real_of_neg {x : ℝ} (hx : x < 0) : arg x = π :=
 arg_eq_pi_iff.2 ⟨hx, rfl⟩
+
+lemma tendsto_arg_nhds_within_im_neg_of_re_neg_of_im_zero
+  {z : ℂ} (hre : z.re < 0) (him : z.im = 0) :
+  tendsto arg (𝓝[{z : ℂ | z.im < 0}] z) (𝓝 (-π)) :=
+begin
+  suffices H :
+    tendsto (λ x : ℂ, real.arcsin ((-x).im / x.abs) - π) (𝓝[{z : ℂ | z.im < 0}] z) (𝓝 (-π)),
+  { refine H.congr' _,
+    have : ∀ᶠ x : ℂ in 𝓝 z, x.re < 0, from continuous_re.tendsto z (gt_mem_nhds hre),
+    filter_upwards [self_mem_nhds_within, mem_nhds_within_of_mem_nhds this],
+    intros w him hre,
+    rw [arg, if_neg hre.not_le, if_neg him.not_le] },
+  convert (real.continuous_at_arcsin.comp_continuous_within_at
+    ((continuous_im.continuous_at.comp_continuous_within_at continuous_within_at_neg).div
+      continuous_abs.continuous_within_at _)).sub tendsto_const_nhds,
+  { simp [him] },
+  { lift z to ℝ using him, simpa using hre.ne }
+end
+
+lemma continuous_within_at_arg_of_re_neg_of_im_zero
+  {z : ℂ} (hre : z.re < 0) (him : z.im = 0) :
+  continuous_within_at arg {z : ℂ | 0 ≤ z.im} z :=
+begin
+  have : arg =ᶠ[𝓝[{z : ℂ | 0 ≤ z.im}] z] λ x, real.arcsin ((-x).im / x.abs) + π,
+  { have : ∀ᶠ x : ℂ in 𝓝 z, x.re < 0, from continuous_re.tendsto z (gt_mem_nhds hre),
+    filter_upwards [self_mem_nhds_within, mem_nhds_within_of_mem_nhds this],
+    intros w him hre,
+    rw [arg, if_neg hre.not_le, if_pos him] },
+  refine continuous_within_at.congr_of_eventually_eq _ this _,
+  { refine (real.continuous_at_arcsin.comp_continuous_within_at
+      ((continuous_im.continuous_at.comp_continuous_within_at continuous_within_at_neg).div
+        continuous_abs.continuous_within_at _)).add tendsto_const_nhds,
+    lift z to ℝ using him, simpa using hre.ne },
+  { rw [arg, if_neg hre.not_le, if_pos him.ge] }
+end
+
+lemma tendsto_arg_nhds_within_im_nonneg_of_re_neg_of_im_zero
+  {z : ℂ} (hre : z.re < 0) (him : z.im = 0) :
+  tendsto arg (𝓝[{z : ℂ | 0 ≤ z.im}] z) (𝓝 π) :=
+by simpa only [arg_eq_pi_iff.2 ⟨hre, him⟩]
+  using (continuous_within_at_arg_of_re_neg_of_im_zero hre him).tendsto
 
 end complex

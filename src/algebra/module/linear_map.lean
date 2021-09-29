@@ -115,7 +115,7 @@ instance {σ : R →+* S} : has_coe_to_fun (M →ₛₗ[σ] M₃) := ⟨_, to_fu
 initialize_simps_projections linear_map (to_fun → apply)
 
 @[simp] lemma coe_mk {σ : R →+* S} (f : M → M₃) (h₁ h₂) :
-  ((linear_map.mk f h₁ h₂ : M →ₛₗ[σ] M₃) : M → M₃) = f := rfl
+  ⇑(linear_map.mk f h₁ h₂ : M →ₛₗ[σ] M₃) = f := rfl
 
 /-- Identity map as a `linear_map` -/
 def id : M →ₗ[R] M :=
@@ -677,6 +677,22 @@ instance _root_.module.End.semiring : semiring (module.End R M) :=
 
 instance _root_.module.End.ring : ring (N₁ →ₗ[R] N₁) :=
 { ..module.End.semiring, ..linear_map.add_comm_group }
+
+section
+variables [monoid S] [distrib_mul_action S M] [smul_comm_class R S M]
+
+instance _root_.module.End.is_scalar_tower :
+  is_scalar_tower S (module.End R M) (module.End R M) := ⟨smul_comp⟩
+
+instance _root_.module.End.smul_comm_class [has_scalar S R] [is_scalar_tower S R M] :
+  smul_comm_class S (module.End R M) (module.End R M) :=
+⟨λ s _ _, (comp_smul _ s _).symm⟩
+
+instance _root_.module.End.smul_comm_class' [has_scalar S R] [is_scalar_tower S R M] :
+  smul_comm_class (module.End R M) S (module.End R M) :=
+smul_comm_class.symm _ _ _
+
+end
 
 /-! ### Action by a module endomorphism. -/
 

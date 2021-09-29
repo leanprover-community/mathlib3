@@ -102,12 +102,25 @@ lemma countable.mono {s₁ s₂ : set α} (h : s₁ ⊆ s₂) : countable s₂ �
 | ⟨H⟩ := ⟨@of_inj _ _ H _ (embedding_of_subset _ _ h).2⟩
 
 lemma countable.image {s : set α} (hs : countable s) (f : α → β) : countable (f '' s) :=
-let f' : s → f '' s := λ⟨a, ha⟩, ⟨f a, mem_image_of_mem f ha⟩ in
-have hf' : surjective f', from assume ⟨b, a, ha, hab⟩, ⟨⟨a, ha⟩, subtype.eq hab⟩,
-⟨@encodable.of_inj _ _ hs.to_encodable (surj_inv hf') (injective_surj_inv hf')⟩
+have surjective ((maps_to_image f s).restrict _ _ _), from surjective_maps_to_image_restrict f s,
+⟨@encodable.of_inj _ _ hs.to_encodable (surj_inv this) (injective_surj_inv this)⟩
 
 lemma countable_range [encodable α] (f : α → β) : countable (range f) :=
 by rw ← image_univ; exact (countable_encodable _).image _
+
+lemma maps_to.countable_of_inj_on {s : set α} {t : set β} {f : α → β}
+  (hf : maps_to f s t) (hf' : inj_on f s) (ht : countable t) :
+  countable s :=
+have injective (hf.restrict f s t), from (inj_on_iff_injective.1 hf').cod_restrict _,
+⟨@encodable.of_inj _ _ ht.to_encodable _ this⟩
+
+lemma countable.preimage_of_inj_on {s : set β} (hs : countable s) {f : α → β}
+  (hf : inj_on f (f ⁻¹' s)) : countable (f ⁻¹' s) :=
+(maps_to_preimage f s).countable_of_inj_on hf hs
+
+protected lemma countable.preimage {s : set β} (hs : countable s) {f : α → β} (hf : injective f) :
+  countable (f ⁻¹' s) :=
+hs.preimage_of_inj_on (hf.inj_on _)
 
 lemma exists_seq_supr_eq_top_iff_countable [complete_lattice α] {p : α → Prop} (h : ∃ x, p x) :
   (∃ s : ℕ → α, (∀ n, p (s n)) ∧ (⨆ n, s n) = ⊤) ↔

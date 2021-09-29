@@ -811,6 +811,16 @@ begin
   { simp }
 end
 
+@[simp]
+lemma nth_le_tail (l : list α) (i) (h : i < l.tail.length)
+  (h' : i + 1 < l.length := by simpa [←lt_sub_iff_right] using h) :
+  l.tail.nth_le i h = l.nth_le (i + 1) h' :=
+begin
+  cases l,
+  { cases h, },
+  { simpa }
+end
+
 /-! ### Induction from the right -/
 
 /-- Induction principle from the right for lists: if a property holds for the empty list, and
@@ -3733,6 +3743,9 @@ theorem tail_suffix (l : list α) : tail l <:+ l := by rw ← drop_one; apply dr
 lemma tail_sublist (l : list α) : l.tail <+ l := sublist_of_suffix (tail_suffix l)
 
 theorem tail_subset (l : list α) : tail l ⊆ l := (tail_sublist l).subset
+
+lemma mem_of_mem_tail {l : list α} {a : α} (h : a ∈ l.tail) : a ∈ l :=
+tail_subset l h
 
 theorem prefix_iff_eq_append {l₁ l₂ : list α} : l₁ <+: l₂ ↔ l₁ ++ drop (length l₁) l₂ = l₂ :=
 ⟨by rintros ⟨r, rfl⟩; rw drop_left, λ e, ⟨_, e⟩⟩

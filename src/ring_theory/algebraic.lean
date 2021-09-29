@@ -65,7 +65,7 @@ begin
   simp only [algebra.mem_top, forall_prop_of_true, iff_self],
 end
 
-lemma is_algebraic_iff_not_injective {x : A} : is_algebraic R x ↔ 
+lemma is_algebraic_iff_not_injective {x : A} : is_algebraic R x ↔
   ¬ function.injective (polynomial.aeval x : polynomial R →ₐ[R] A) :=
 by simp only [is_algebraic, alg_hom.injective_iff, not_forall, and.comm, exists_prop]
 
@@ -107,9 +107,10 @@ lemma is_algebraic_iff_is_integral' :
 end field
 
 namespace algebra
-variables {K : Type*} {L : Type*} {A : Type*}
-variables [field K] [field L] [comm_ring A]
+variables {K : Type*} {L : Type*} {R : Type*} {S : Type*} {A : Type*}
+variables [field K] [field L] [comm_ring R] [comm_ring S] [comm_ring A]
 variables [algebra K L] [algebra L A] [algebra K A] [is_scalar_tower K L A]
+variables [algebra R S] [algebra S A] [algebra R A] [is_scalar_tower R S A]
 
 /-- If L is an algebraic field extension of K and A is an algebraic algebra over L,
 then A is algebraic over K. -/
@@ -122,12 +123,20 @@ end
 
 variables (K L)
 
+/-- If A is an algebraic algebra over R, then A is algebraic over A when S is an extension of R,
+  and the map from `R` to `S` is injective. -/
+lemma is_algebraic_of_larger_base_of_injective (hinj : function.injective (algebra_map R S))
+  (A_alg : is_algebraic R A) : is_algebraic S A :=
+λ x, let ⟨p, hp₁, hp₂⟩ := A_alg x in
+⟨p.map (algebra_map _ _),
+  by rwa [ne.def, ← degree_eq_bot, degree_map' hinj, degree_eq_bot],
+  by simpa⟩
+
 /-- If A is an algebraic algebra over K, then A is algebraic over L when L is an extension of K -/
 lemma is_algebraic_of_larger_base (A_alg : is_algebraic K A) : is_algebraic L A :=
-λ x, let ⟨p, hp⟩ := A_alg x in
-⟨p.map (algebra_map _ _), map_ne_zero hp.1, by simp [hp.2]⟩
+is_algebraic_of_larger_base_of_injective (algebra_map K L).injective A_alg
 
-variables {K L}
+variables {R S K L}
 
 /-- A field extension is algebraic if it is finite. -/
 lemma is_algebraic_of_finite [finite : finite_dimensional K L] : is_algebraic K L :=

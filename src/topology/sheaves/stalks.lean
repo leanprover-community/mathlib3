@@ -286,44 +286,49 @@ lemma app_injective_iff_stalk_functor_map_injective {F : sheaf C X}
   (∀ U : opens X, function.injective (f.app (op U))) :=
 ⟨app_injective_of_stalk_functor_map_injective f, stalk_functor_map_injective_of_app_injective f⟩
 
+/-- For surjectivity, we are given an arbitrary section `t` and need to find a preimage for it.
+We claim that it suffices to find preimages *locally*. That is, for each `x : U` we construct
+a neighborhood `V ≤ U` and a section `s : F.obj (op V))` such that `f.app (op V) s` and `t`
+agree on `V`. -/
+lemma app_surjective_of_injective_of_locally_surjective {F G : sheaf C X} (f : F ⟶ G)
+  (hinj : ∀ x : X, function.injective ((stalk_functor C x).map f)) (U : opens X)
+  (hsurj : ∀ (t) (x : U), ∃ (V : opens X) (m : x.1 ∈ V) (iVU : V ⟶ U) (s : F.presheaf.obj (op V)),
+    f.app (op V) s = G.presheaf.map iVU.op t) :
+  function.surjective (f.app (op U)) :=
+begin
+  intro t,
+  -- We use the axiom of choice to pick around each point `x` an open neighborhood `V` and a
+  -- preimage under `f` on `V`.
+  choose V mV iVU sf heq using hsurj t,
+  -- These neighborhoods clearly cover all of `U`.
+  have V_cover : U ≤ supr V,
+  { intros x hxU,
+    rw [subtype.val_eq_coe, opens.mem_coe, opens.mem_supr],
+    exact ⟨⟨x, hxU⟩, mV ⟨x, hxU⟩⟩ },
+  -- Since `F` is a sheaf, we can glue all the local preimages together to get a global preimage.
+  obtain ⟨s, s_spec, -⟩ := F.exists_unique_gluing' V U iVU V_cover sf _,
+  { use s,
+    apply G.eq_of_locally_eq' V U iVU V_cover,
+    intro x,
+    rw [← comp_apply, ← f.naturality, comp_apply, s_spec, heq] },
+  { intros x y,
+    -- What's left to show here is that the secions `sf` are compatible, i.e. they agree on
+    -- the intersections `V x ⊓ V y`. We prove this by showing that all germs are equal.
+    apply section_ext,
+    intro z,
+    -- Here, we need to use injectivity of the stalk maps.
+    apply (hinj z),
+    erw [stalk_functor_map_germ_apply, stalk_functor_map_germ_apply],
+    dsimp,
+    simp_rw [← comp_apply, f.naturality, comp_apply, heq, ← comp_apply, ← G.presheaf.map_comp],
+    refl }
+end
+
 lemma app_surjective_of_stalk_functor_map_bijective {F G : sheaf C X} (f : F ⟶ G)
   (h : ∀ x : X, function.bijective ((stalk_functor C x).map f)) (U : opens X) :
   function.surjective (f.app (op U)) :=
 begin
-  intro t,
-  -- For surjectivity, we are given an arbitrary section `t` and need to find a preimage for it.
-  -- We claim that it suffices to find preimages *locally*. That is, for each `x : U` we construct
-  -- a neighborhood `V ≤ U` and a section `s : F.obj (op V))` such that `f.app (op V) s` and `t`
-  -- agree on `V`.
-  suffices : ∀ x : U, ∃ (V : opens X) (m : x.1 ∈ V) (iVU : V ⟶ U) (s : F.presheaf.obj (op V)),
-    f.app (op V) s = G.presheaf.map iVU.op t,
-  { -- We use the axiom of choice to pick around each point `x` an open neighborhood `V` and a
-    -- preimage under `f` on `V`.
-    choose V mV iVU sf heq using this,
-    -- These neighborhoods clearly cover all of `U`.
-    have V_cover : U ≤ supr V,
-    { intros x hxU,
-      rw [subtype.val_eq_coe, opens.mem_coe, opens.mem_supr],
-      exact ⟨⟨x, hxU⟩, mV ⟨x, hxU⟩⟩ },
-    -- Since `F` is a sheaf, we can glue all the local preimages together to get a global preimage.
-    obtain ⟨s, s_spec, -⟩ := F.exists_unique_gluing' V U iVU V_cover sf _,
-    { use s,
-      apply G.eq_of_locally_eq' V U iVU V_cover,
-      intro x,
-      rw [← comp_apply, ← f.naturality, comp_apply, s_spec, heq] },
-    { intros x y,
-      -- What's left to show here is that the secions `sf` are compatible, i.e. they agree on
-      -- the intersections `V x ⊓ V y`. We prove this by showing that all germs are equal.
-      apply section_ext,
-      intro z,
-      -- Here, we need to use injectivity of the stalk maps.
-      apply (h z).1,
-      erw [stalk_functor_map_germ_apply, stalk_functor_map_germ_apply],
-      dsimp,
-      simp_rw [← comp_apply, f.naturality, comp_apply, heq, ← comp_apply, ← G.presheaf.map_comp],
-      refl, } },
-
-  intro x,
+  refine app_surjective_of_injective_of_locally_surjective f (λ x, (h x).1) U (λ t x, _),
   -- Now we need to prove our initial claim: That we can find preimages of `t` locally.
   -- Since `f` is surjective on stalks, we can find a preimage `s₀` of the germ of `t` at `x`
   obtain ⟨s₀,hs₀⟩ := (h x).2 (G.presheaf.germ x t),

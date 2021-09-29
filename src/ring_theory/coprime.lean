@@ -65,7 +65,7 @@ lemma not_coprime_zero_zero [nontrivial R] : ¬ is_coprime (0 : R) 0 :=
 mt is_coprime_zero_right.mp not_is_unit_zero
 
 /-- If a 2-vector `p` satisfies `is_coprime (p 0) (p 1)`, then `p ≠ 0`. -/
-lemma ne_zero [nontrivial R] {p : fin 2 → R} (h : is_coprime (p 0) (p 1)) : p ≠ 0 :=
+lemma is_coprime.ne_zero [nontrivial R] {p : fin 2 → R} (h : is_coprime (p 0) (p 1)) : p ≠ 0 :=
 begin
   intros h',
   rw [h'] at h,
@@ -325,9 +325,8 @@ lemma sq_add_sq_ne_zero {R : Type*} [linear_ordered_comm_ring R] {a b : R} (h : 
   a ^ 2 + b ^ 2 ≠ 0 :=
 begin
   intros h',
-  have ha : a = 0 := by library_search,
-  have hb : b = 0 := by nlinarith,
-  simpa [ha, hb] using h
+  refine @not_coprime_zero_zero R _ _ _,
+  convert h; nlinarith
 end
 
 end is_coprime

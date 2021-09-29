@@ -135,30 +135,13 @@ begin
   { exact h.const_mul c },
 end
 
-end normed_ring
-
-section normed_field
-
-variables {𝕜 : Type*} [normed_field 𝕜]
-variables {f g : ℕ → 𝕜}
-
-@[simp]
-lemma negligible_const_mul_iff (f : ℕ → 𝕜) (c : 𝕜) :
-  negligible (λ n, c * f n) ↔ (c = 0) ∨ (negligible f) :=
-begin
-  by_cases hc0 : c = 0,
-  { simp [hc0] },
-  { exact (negligible_const_mul_iff_of_is_unit (is_unit.mk0 c hc0)).trans
-      ⟨or.inr, or.rec (λ hc0', absurd hc0' hc0) id⟩ }
-end
-
--- TODO: The lemmas below can be generalized to `iff` statements if `∥(n : 𝕜)∥` doesn't tend to 0
+variable [norm_one_class R]
 
 lemma negligible.coe_nat_mul (hf : negligible f) :
-  negligible (λ n, (n : 𝕜) * f n) :=
+  negligible (λ n, (n : R) * f n) :=
 begin
   refine negligible_of_is_O_fpow_lt 0 (λ c hc, _),
-  refine is_O.trans (is_O.mul (coe_nat_is_O_coe_nat_real 𝕜) (hf (c - 1)))
+  refine is_O.trans (is_O.mul (coe_nat_is_O_coe_nat_real R) (hf (c - 1)))
     (is_O_of_le _ (λ x, le_of_eq (congr_arg _ _))),
   by_cases hx : (x : ℝ) = 0,
   { simp_rw [hx, zero_mul],
@@ -169,7 +152,7 @@ begin
 end
 
 lemma negligible.coe_nat_pow_mul (hf : negligible f) (p : ℕ) :
-  negligible (λ n, (n : 𝕜) ^ p * f n) :=
+  negligible (λ n, (n : R) ^ p * f n) :=
 begin
   induction p with p hp,
   { simp_rw [pow_zero, one_mul],
@@ -186,8 +169,7 @@ lemma negligible.pow_nsmul (hf : negligible f) (p : ℕ) :
   negligible (λ n, (n ^ p) • f n) :=
 by simpa [nsmul_eq_mul] using hf.coe_nat_pow_mul p
 
-theorem negligible.polynomial_mul {𝕜 : Type*} [normed_field 𝕜]
-  {f : ℕ → 𝕜} (hf : negligible f) (p : polynomial 𝕜) :
+theorem negligible.polynomial_mul (hf : negligible f) (p : polynomial R) :
   negligible (λ n, (p.eval n) * f n) :=
 begin
   refine polynomial.induction_on' p (λ p q hp hq, _) (λ m x, _),
@@ -195,6 +177,23 @@ begin
     exact hp.add hq },
   { simp_rw [polynomial.eval_monomial, mul_assoc],
     exact (hf.coe_nat_pow_mul m).const_mul x }
+end
+
+end normed_ring
+
+section normed_field
+
+variables {𝕜 : Type*} [normed_field 𝕜]
+variables {f g : ℕ → 𝕜}
+
+@[simp]
+lemma negligible_const_mul_iff (f : ℕ → 𝕜) (c : 𝕜) :
+  negligible (λ n, c * f n) ↔ (c = 0) ∨ (negligible f) :=
+begin
+  by_cases hc0 : c = 0,
+  { simp [hc0] },
+  { exact (negligible_const_mul_iff_of_is_unit (is_unit.mk0 c hc0)).trans
+      ⟨or.inr, or.rec (λ hc0', absurd hc0' hc0) id⟩ }
 end
 
 lemma negligible.mul_is_O_polynomial (hf : negligible f) (p : polynomial 𝕜)

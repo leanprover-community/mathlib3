@@ -168,9 +168,9 @@ lemma bijective.of_comp_iff' {f : α → β} (hf : bijective f) (g : γ → α) 
   function.bijective (f ∘ g) ↔ function.bijective g :=
 and_congr (injective.of_comp_iff hf.injective _) (surjective.of_comp_iff' hf _)
 
-lemma {v} up_injective {α : Type u} :
+lemma up_injective {α : Type u} :
   function.injective (ulift.up.{v} : α → ulift α) :=
-by { rintros x1 x2 h, cc }
+by { intros x1 x2 h, cc }
 
 /-- **Cantor's diagonal argument** implies that there are no surjective functions from `α`
 to `set α`. -/

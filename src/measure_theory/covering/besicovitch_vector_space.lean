@@ -391,9 +391,10 @@ namespace satellite_config
 We prove that the number of points in a satellite configuration is bounded by the maximal number
 of `1`-separated points in the ball of radius `2`. For this, start from a satellite congifuration
 `c`. Without loss of generality, one can assume that the last ball is centered at `0` and of
-radius `1`. Define `c' i = c i` if `∥c i∥ ≤ 2`, and `c' i = (2/∥c i∥) • c i` if `∥c i∥ > 2`. It turns
-out that these points are `1 - δ`-separated, where `δ` is arbitrarily small if `τ` is close enough
-to `1`. The number of such configurations is bounded by `multiplicity E` if `δ` is suitably small.
+radius `1`. Define `c' i = c i` if `∥c i∥ ≤ 2`, and `c' i = (2/∥c i∥) • c i` if `∥c i∥ > 2`.
+It turns out that these points are `1 - δ`-separated, where `δ` is arbitrarily small if `τ` is
+close enough to `1`. The number of such configurations is bounded by `multiplicity E` if `δ` is
+suitably small.
 
 To check that the points `c' i` are `1 - δ`-separated, one treats separately the cases where
 both `∥c i∥` and `∥c j∥` are `≤ 2`, where one of them is `≤ 2` and the other one is `` > 2`, and

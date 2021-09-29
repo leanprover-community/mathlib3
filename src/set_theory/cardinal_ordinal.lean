@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 
 import set_theory.ordinal_arithmetic
 import tactic.linarith
+import logic.small
 
 /-!
 # Cardinals and ordinals
@@ -918,4 +919,12 @@ begin
   have := hg.trans_lt (cardinal.lift_lt_univ _),
   rw cardinal.univ_id at this,
   exact lt_irrefl _ this
+end
+
+lemma not_injective_of_ordinal' {α : Type v} [small.{u} α] (f : ordinal.{u} → α) :
+  ¬ function.injective f :=
+begin
+  intro hf,
+  apply not_injective_of_ordinal (equiv_shrink α ∘ f),
+  exact (equiv_shrink _).injective.comp hf,
 end

@@ -675,7 +675,7 @@ instance _root_.module.End.semiring : semiring (module.End R M) :=
   .. _root_.module.End.monoid,
   .. linear_map.add_comm_monoid }
 
-instance _root_.module.End.ring : ring (N₁ →ₗ[R] N₁) :=
+instance _root_.module.End.ring : ring (module.End R N₁) :=
 { ..module.End.semiring, ..linear_map.add_comm_group }
 
 section

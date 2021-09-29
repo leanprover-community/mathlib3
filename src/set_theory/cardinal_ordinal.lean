@@ -475,6 +475,11 @@ begin
   { convert power_le_power_right (le_trans (le_of_lt $ nat_lt_omega 2) h), apply nat.cast_two.symm }
 end
 
+lemma nat_power_eq {c : cardinal.{u}} (h : omega ≤ c) {n : ℕ} (hn : 2 ≤ n) :
+  (n : cardinal.{u}) ^ c = 2 ^ c :=
+le_antisymm (power_self_eq h ▸ power_le_power_right ((nat_lt_omega n).le.trans h))
+  (power_le_power_right $ by assumption_mod_cast)
+
 lemma power_nat_le {c : cardinal.{u}} {n : ℕ} (h  : omega ≤ c) : c ^ (n : cardinal.{u}) ≤ c :=
 pow_le h (nat_lt_omega n)
 
@@ -652,7 +657,7 @@ by { norm_cast, norm_num }
 ```
 -/
 
-@[simp] lemma bit0_ne_zero (a : cardinal) : ¬bit0 a = 0 ↔ ¬a = 0 :=
+lemma bit0_ne_zero (a : cardinal) : ¬bit0 a = 0 ↔ ¬a = 0 :=
 by simp [bit0]
 
 @[simp] lemma bit1_ne_zero (a : cardinal) : ¬bit1 a = 0 :=

@@ -618,6 +618,17 @@ lemma continuous_within_at.diff_iff {f : α → β} {s t : set α} {x : α}
   continuous_within_at f (s \ {x}) x ↔ continuous_within_at f s x :=
 continuous_within_at_singleton.diff_iff
 
+lemma continuous_within_at_update_same [decidable_eq α] {f : α → β} {s : set α} {x : α} {y : β} :
+  continuous_within_at (function.update f x y) s x ↔ tendsto f (𝓝[s \ {x}] x) (𝓝 y) :=
+calc continuous_within_at (function.update f x y) s x
+    ↔ continuous_within_at (function.update f x y) (s \ {x}) x :
+  continuous_within_at_diff_self.symm
+... ↔ tendsto (function.update f x y) (𝓝[s \ {x}] x) (𝓝 y) :
+  by rw [continuous_within_at, function.update_same]
+... ↔ tendsto f (𝓝[s \ {x}] x) (𝓝 y) :
+  tendsto_congr' $ mem_of_superset self_mem_nhds_within $
+    λ z hz, by rw [mem_set_of_eq, function.update_noteq hz.2]
+
 theorem is_open_map.continuous_on_image_of_left_inv_on {f : α → β} {s : set α}
   (h : is_open_map (s.restrict f)) {finv : β → α} (hleft : left_inv_on finv f s) :
   continuous_on finv (f '' s) :=
@@ -755,10 +766,15 @@ lemma continuous_within_at.preimage_mem_nhds_within' {f : α → β} {x : α} {s
   f ⁻¹' t ∈ 𝓝[s] x :=
 h.tendsto_nhds_within (maps_to_image _ _) ht
 
+lemma filter.eventually_eq.congr_continuous_within_at {f g : α → β} {s : set α} {x : α}
+  (h : f =ᶠ[𝓝[s] x] g) (hx : f x = g x) :
+  continuous_within_at f s x ↔ continuous_within_at g s x :=
+by rw [continuous_within_at, hx, tendsto_congr' h, continuous_within_at]
+
 lemma continuous_within_at.congr_of_eventually_eq {f f₁ : α → β} {s : set α} {x : α}
   (h : continuous_within_at f s x) (h₁ : f₁ =ᶠ[𝓝[s] x] f) (hx : f₁ x = f x) :
   continuous_within_at f₁ s x :=
-by rwa [continuous_within_at, filter.tendsto, hx, filter.map_congr h₁]
+(h₁.congr_continuous_within_at hx).2 h
 
 lemma continuous_within_at.congr {f f₁ : α → β} {s : set α} {x : α}
   (h : continuous_within_at f s x) (h₁ : ∀y∈s, f₁ y = f y) (hx : f₁ x = f x) :

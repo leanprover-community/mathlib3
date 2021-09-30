@@ -241,7 +241,7 @@ assume ⟨b, hb⟩,
 
 /-- If `f` is monotone, `g` is antitone, and `f a ≤ g a` for all `a`, then for all `a`, `b` we have
 `f a ≤ g b`. -/
-theorem forall_le_of_monotone_of_antitone {β : Type*} [preorder β]
+theorem monotone.forall_le_of_antitone {β : Type*} [preorder β]
   {f g : α → β} (hf : monotone f) (hg : ∀ ⦃m n⦄, m ≤ n → g n ≤ g m)
   (h : ∀ n, f n ≤ g n) (m n : α) : f m ≤ g n :=
 calc f m ≤ f (m ⊔ n) : hf le_sup_left

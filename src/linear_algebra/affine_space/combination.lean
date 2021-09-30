@@ -352,6 +352,22 @@ begin
   exact eq_weighted_vsub_of_point_subset_iff_eq_weighted_vsub_of_point_subtype
 end
 
+variables {k V}
+
+/-- Affine maps commute with affine combinations. -/
+lemma map_affine_combination {V₂ P₂ : Type*} [add_comm_group V₂] [module k V₂] [affine_space V₂ P₂]
+  (p : ι → P) (w : ι → k) (hw : s.sum w = 1) (f : P →ᵃ[k] P₂) :
+  f (s.affine_combination p w) = s.affine_combination (f ∘ p) w :=
+begin
+  have b := classical.choice (infer_instance : affine_space V P).nonempty,
+  have b₂ := classical.choice (infer_instance : affine_space V₂ P₂).nonempty,
+  rw [s.affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one w p hw b,
+      s.affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one w (f ∘ p) hw b₂,
+      ← s.weighted_vsub_of_point_vadd_eq_of_sum_eq_one w (f ∘ p) hw (f b) b₂],
+  simp only [weighted_vsub_of_point_apply, ring_hom.id_apply, affine_map.map_vadd,
+    linear_map.map_smulₛₗ, affine_map.linear_map_vsub, linear_map.map_sum],
+end
+
 end finset
 
 namespace finset

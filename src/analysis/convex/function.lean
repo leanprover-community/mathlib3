@@ -22,6 +22,8 @@ a convex set.
 
 * `convex_on 𝕜 s f`: The function `f` is convex on `s` with scalars `𝕜`.
 * `concave_on 𝕜 s f`: The function `f` is concave on `s` with scalars `𝕜`.
+* `strict_convex_on 𝕜 s f`: The function `f` is strictly convex on `s` with scalars `𝕜`.
+* `strict_concave_on 𝕜 s f`: The function `f` is strictly concave on `s` with scalars `𝕜`.
 * `convex_on.map_center_mass_le` `convex_on.map_sum_le`: Convex Jensen's inequality.
 -/
 
@@ -34,24 +36,36 @@ section ordered_semiring
 variables [ordered_semiring 𝕜] [add_comm_monoid E] [add_comm_monoid F]
 
 section ordered_add_comm_monoid
-variables (𝕜) [ordered_add_comm_monoid β]
+variables [ordered_add_comm_monoid β]
+
+section has_scalar
+variables (𝕜) [has_scalar 𝕜 E] [has_scalar 𝕜 β] (s : set E) (f : E → β)
 
 /-- Convexity of functions -/
-def convex_on [has_scalar 𝕜 E] [has_scalar 𝕜 β] (s : set E) (f : E → β) : Prop :=
+def convex_on : Prop :=
 convex 𝕜 s ∧
   ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → a + b = 1 →
     f (a • x + b • y) ≤ a • f x + b • f y
 
 /-- Concavity of functions -/
-def concave_on [has_scalar 𝕜 E] [has_scalar 𝕜 β] (s : set E) (f : E → β) : Prop :=
+def concave_on : Prop :=
 convex 𝕜 s ∧
   ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → a + b = 1 →
     a • f x + b • f y ≤ f (a • x + b • y)
 
-variables {𝕜}
+/-- Strict convexity of functions -/
+def strict_convex_on : Prop :=
+convex 𝕜 s ∧
+  ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → x ≠ y → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 →
+    f (a • x + b • y) < a • f x + b • f y
 
-section has_scalar
-variables [has_scalar 𝕜 E] [has_scalar 𝕜 β] {s : set E}
+/-- Strict concavity of functions -/
+def strict_concave_on : Prop :=
+convex 𝕜 s ∧
+  ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → x ≠ y → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 → 
+    a • f x + b • f y < f (a • x + b • y)
+
+variables {𝕜 s f}
 
 lemma convex_on_id {s : set 𝕜} (hs : convex 𝕜 s) : convex_on 𝕜 s id := ⟨hs, by { intros, refl }⟩
 
@@ -484,110 +498,6 @@ lemma concave_on_iff_div {f : E → β} :
   concave_on 𝕜 s f ↔ convex 𝕜 s ∧ ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b
   → 0 < a + b → (a/(a+b)) • f x + (b/(a+b)) • f y ≤ f ((a/(a+b)) • x + (b/(a+b)) • y) :=
 @convex_on_iff_div _ _ (order_dual β) _ _ _ _ _ _ _
-
-/-- For a function `f` defined on a convex subset `D` of `𝕜`, if for any three points `x < y < z`
-the slope of the secant line of `f` on `[x, y]` is less than or equal to the slope
-of the secant line of `f` on `[x, z]`, then `f` is convex on `D`. This way of proving convexity
-of a function is used in the proof of convexity of a function with a monotone derivative. -/
-lemma convex_on_of_slope_mono_adjacent {s : set 𝕜} (hs : convex 𝕜 s) {f : 𝕜 → 𝕜}
-  (hf : ∀ {x y z : 𝕜}, x ∈ s → z ∈ s → x < y → y < z →
-    (f y - f x) / (y - x) ≤ (f z - f y) / (z - y)) :
-  convex_on 𝕜 s f :=
-linear_order.convex_on_of_lt hs
-begin
-  assume x z hx hz hxz a b ha hb hab,
-  let y := a * x + b * z,
-  have hxy : x < y,
-  { rw [← one_mul x, ← hab, add_mul],
-    exact add_lt_add_left ((mul_lt_mul_left hb).2 hxz) _ },
-  have hyz : y < z,
-  { rw [← one_mul z, ← hab, add_mul],
-    exact add_lt_add_right ((mul_lt_mul_left ha).2 hxz) _ },
-  have : (f y - f x) * (z - y) ≤ (f z - f y) * (y - x),
-    from (div_le_div_iff (sub_pos.2 hxy) (sub_pos.2 hyz)).1 (hf hx hz hxy hyz),
-  have hxz : 0 < z - x, from sub_pos.2 (hxy.trans hyz),
-  have ha : (z - y) / (z - x) = a,
-  { rw [eq_comm, ← sub_eq_iff_eq_add'] at hab,
-    simp_rw [div_eq_iff hxz.ne', y, ←hab], ring },
-  have hb : (y - x) / (z - x) = b,
-  { rw [eq_comm, ← sub_eq_iff_eq_add] at hab,
-    simp_rw [div_eq_iff hxz.ne', y, ←hab], ring },
-  rwa [sub_mul, sub_mul, sub_le_iff_le_add', ← add_sub_assoc, le_sub_iff_add_le, ← mul_add,
-    sub_add_sub_cancel, ← le_div_iff hxz, add_div, mul_div_assoc, mul_div_assoc, mul_comm (f x),
-    mul_comm (f z), ha, hb] at this,
-end
-
-/-- For a function `f` defined on a subset `D` of `𝕜`, if `f` is convex on `D`, then for any three
-points `x < y < z`, the slope of the secant line of `f` on `[x, y]` is less than or equal to the
-slope of the secant line of `f` on `[x, z]`. -/
-lemma convex_on.slope_mono_adjacent {s : set 𝕜} {f : 𝕜 → 𝕜} (hf : convex_on 𝕜 s f)
-  {x y z : 𝕜} (hx : x ∈ s) (hz : z ∈ s) (hxy : x < y) (hyz : y < z) :
-  (f y - f x) / (y - x) ≤ (f z - f y) / (z - y) :=
-begin
-  have h₁ : 0 < y - x := by linarith,
-  have h₂ : 0 < z - y := by linarith,
-  have h₃ : 0 < z - x := by linarith,
-  suffices : f y / (y - x) + f y / (z - y) ≤ f x / (y - x) + f z / (z - y),
-  { ring_nf at this ⊢, linarith },
-  set a := (z - y) / (z - x),
-  set b := (y - x) / (z - x),
-  have heqz : a • x + b • z = y, by { field_simp, rw div_eq_iff; [ring, linarith] },
-  have key, from
-    hf.2 hx hz
-      (show 0 ≤ a, by apply div_nonneg; linarith)
-      (show 0 ≤ b, by apply div_nonneg; linarith)
-      (show a + b = 1, by { field_simp, rw div_eq_iff; [ring, linarith] }),
-  rw heqz at key,
-  replace key := mul_le_mul_of_nonneg_left key h₃.le,
-  field_simp [h₁.ne', h₂.ne', h₃.ne', mul_comm (z - x) _] at key ⊢,
-  rw div_le_div_right,
-  { linarith },
-  { nlinarith }
-end
-
-/-- For a function `f` defined on a convex subset `D` of `𝕜`, `f` is convex on `D` iff, for any
-three points `x < y < z` the slope of the secant line of `f` on `[x, y]` is less than or equal to
-the slope,of the secant line of `f` on `[x, z]`. -/
-lemma convex_on_iff_slope_mono_adjacent {s : set 𝕜} (hs : convex 𝕜 s) {f : 𝕜 → 𝕜} :
-  convex_on 𝕜 s f ↔
-  (∀ {x y z : 𝕜}, x ∈ s → z ∈ s → x < y → y < z →
-    (f y - f x) / (y - x) ≤ (f z - f y) / (z - y)) :=
-⟨convex_on.slope_mono_adjacent, convex_on_of_slope_mono_adjacent hs⟩
-
-/-- For a function `f` defined on a convex subset `D` of `𝕜`, if for any three points `x < y < z`
-the slope of the secant line of `f` on `[x, y]` is greater than or equal to the slope
-of the secant line of `f` on `[x, z]`, then `f` is concave on `D`. -/
-lemma concave_on_of_slope_mono_adjacent {s : set 𝕜} (hs : convex 𝕜 s) {f : 𝕜 → 𝕜}
-  (hf : ∀ {x y z : 𝕜}, x ∈ s → z ∈ s → x < y → y < z →
-    (f z - f y) / (z - y) ≤ (f y - f x) / (y - x)) : concave_on 𝕜 s f :=
-begin
-  rw ←neg_convex_on_iff,
-  refine convex_on_of_slope_mono_adjacent hs (λ x y z hx hz hxy hyz, _),
-  rw ←neg_le_neg_iff,
-  simp_rw [←neg_div, neg_sub, pi.neg_apply, neg_sub_neg],
-  exact hf hx hz hxy hyz,
-end
-
-/-- For a function `f` defined on a subset `D` of `𝕜`, if `f` is concave on `D`, then for any three
-points `x < y < z`, the slope of the secant line of `f` on `[x, y]` is greater than or equal to the
-slope of the secant line of `f` on `[x, z]`. -/
-lemma concave_on.slope_mono_adjacent {s : set 𝕜} {f : 𝕜 → 𝕜} (hf : concave_on 𝕜 s f)
-  {x y z : 𝕜} (hx : x ∈ s) (hz : z ∈ s) (hxy : x < y) (hyz : y < z) :
-  (f z - f y) / (z - y) ≤ (f y - f x) / (y - x) :=
-begin
-  rw [←neg_le_neg_iff, ←neg_sub_neg (f x), ←neg_sub_neg (f y)],
-  simp_rw [←pi.neg_apply, ←neg_div, neg_sub],
-  exact convex_on.slope_mono_adjacent hf.neg hx hz hxy hyz,
-end
-
-/-- For a function `f` defined on a convex subset `D` of `𝕜`, `f` is concave on `D` iff for any
-three points `x < y < z` the slope of the secant line of `f` on `[x, y]` is greater than or equal to
-the slope of the secant line of `f` on `[x, z]`. -/
-lemma concave_on_iff_slope_mono_adjacent {s : set 𝕜} (hs : convex 𝕜 s) {f : 𝕜 → 𝕜} :
-  concave_on 𝕜 s f ↔
-  (∀ {x y z : 𝕜}, x ∈ s → z ∈ s → x < y → y < z →
-    (f z - f y) / (z - y) ≤ (f y - f x) / (y - x)) :=
-⟨concave_on.slope_mono_adjacent, concave_on_of_slope_mono_adjacent hs⟩
 
 end has_scalar
 end ordered_add_comm_monoid

@@ -8,7 +8,7 @@ import measure_theory.decomposition.radon_nikodym
 
 /-! # Notations for probability theory -/
 
-open measure_theory topological_space
+open measure_theory measure_theory.measure topological_space
 
 -- The related notation `ℙ[ X | hm] := measure_theory.condexp hm ℙ X` is defined in
 -- measure_theory.function.conditional_expectation.
@@ -40,5 +40,13 @@ example : 𝔼[X] = volume[X] := rfl
 example : X =ₐₛ Y ↔ X =ᵐ[volume] Y := iff.rfl
 
 example : ∂ℙ/∂ℙ' = ℙ.rn_deriv ℙ' := rfl
+
+/-- TODO: how may I remove the parentheses? -/
+example [have_lebesgue_decomposition ℙ ℙ'] (h : ℙ ≪ ℙ') : ∫⁻ a, (∂ℙ/∂ℙ') a ∂ℙ' = ℙ set.univ :=
+begin
+  obtain ⟨-, -, hadd⟩ := have_lebesgue_decomposition_spec ℙ ℙ',
+  rw [← set_lintegral_univ, ← with_density_apply _ measurable_set.univ],
+  rw with_density_rn_deriv_eq _ _ h,
+end
 
 end examples

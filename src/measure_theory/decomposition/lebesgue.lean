@@ -168,7 +168,7 @@ instance [sigma_finite μ] :
   sigma_finite (ν.with_density $ rn_deriv μ ν) :=
 sigma_finite_of_le μ $ with_density_rn_deriv_le μ ν
 
-lemma lintegral_rn_deriv_lt_top {m : measurable_space α}
+lemma lintegral_rn_deriv_lt_top
   (μ ν : measure α) [is_finite_measure μ] :
   ∫⁻ x, μ.rn_deriv ν x ∂ν < ∞ :=
 begin
@@ -240,8 +240,7 @@ begin
   { measurability }
 end
 
-lemma singular_part_zero (ν : measure α) :
-  (0 : measure α).singular_part ν = 0 :=
+lemma singular_part_zero (ν : measure α) : (0 : measure α).singular_part ν = 0 :=
 begin
   refine (eq_singular_part measurable_zero mutually_singular.zero.symm _).symm,
   rw [zero_add, with_density_zero],
@@ -343,7 +342,7 @@ open vector_measure signed_measure
 a measurable set `E`, such that `ν(E) > 0` and `E` is positive with respect to `μ - εν`.
 
 This lemma is useful for the Lebesgue decomposition theorem. -/
-lemma exists_positive_of_not_mutually_singular {m : measurable_space α}
+lemma exists_positive_of_not_mutually_singular
   (μ ν : measure α) [is_finite_measure μ] [is_finite_measure ν] (h : ¬ μ ⊥ₘ ν) :
   ∃ ε : ℝ≥0, 0 < ε ∧ ∃ E : set α, measurable_set E ∧ 0 < ν E ∧
   0 ≤[E] μ.to_signed_measure - (ε • ν).to_signed_measure :=
@@ -669,7 +668,7 @@ instance {S : μ.finite_spanning_sets_in {s : set α | measurable_set s}} (n : �
 `have_lebesgue_decomposition`. That is to say, there exist a measure `ξ` and a measurable function
 `f`, such that `ξ` is mutually singular with respect to `ν` and `μ = ξ + ν.with_density f` -/
 @[priority 100] -- see Note [lower instance priority]
-instance have_lebesgue_decomposition_of_sigma_finite {m : measurable_space α}
+instance have_lebesgue_decomposition_of_sigma_finite
   (μ ν : measure α) [sigma_finite μ] [sigma_finite ν] :
   have_lebesgue_decomposition μ ν :=
 ⟨begin

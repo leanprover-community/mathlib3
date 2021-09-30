@@ -16,7 +16,11 @@ A ring `R` is *Henselian* at an ideal `I` if the following conditions hold:
 * `I` is contained in the Jacobson radical of `R`
 * for every polynomial `f` over `R`, with a *simple* root `a₀` over the quotient ring `R/I`,
   there exists a lift `a : R` of `a₀` that is a root of `f`.
-  (Here, saying that a root `a` is *simple* means that `f.derivative.eval a` is a unit.)
+
+(Here, saying that a root `b` of a polynomial `g` is *simple* means that `g.derivative.eval b` is a
+unit. Warning: if `R/I` is not a field then it is not enough to assume that `g` has a factorization
+into monic linear factors in which `X - b` shows up only once; for example `1` is not a simple root
+of `X^2-1` over `ℤ/4ℤ`.)
 
 A local ring `R` is *Henselian* if it is Henselian at its maximal ideal.
 In this case the first condition is automatic, and in the second condition we may ask for
@@ -86,7 +90,11 @@ end
 /-- A ring `R` is *Henselian* at an ideal `I` if the following condition holds:
 for every polynomial `f` over `R`, with a *simple* root `a₀` over the quotient ring `R/I`,
 there exists a lift `a : R` of `a₀` that is a root of `f`.
-(Here, saying that a root `a` is *simple* means that `f.derivative.eval a` is a unit.) -/
+
+(Here, saying that a root `b` of a polynomial `g` is *simple* means that `g.derivative.eval b` is a
+unit. Warning: if `R/I` is not a field then it is not enough to assume that `g` has a factorization
+into monic linear factors in which `X - b` shows up only once; for example `1` is not a simple root
+of `X^2-1` over `ℤ/4ℤ`.) -/
 class henselian_ring (R : Type*) [comm_ring R] (I : ideal R) : Prop :=
 (jac : I ≤ ideal.jacobson ⊥)
 (is_henselian : ∀ (f : polynomial R) (hf : f.monic) (a₀ : R) (h₁ : f.eval a₀ ∈ I)
@@ -96,7 +104,8 @@ class henselian_ring (R : Type*) [comm_ring R] (I : ideal R) : Prop :=
 /-- A local ring `R` is *Henselian* if the following condition holds:
 for every polynomial `f` over `R`, with a *simple* root `a₀` over the residue field,
 there exists a lift `a : R` of `a₀` that is a root of `f`.
-(Recall that a root `a` is *simple* if it is not a double root, so `f.derivative.eval a ≠ 0`.)
+(Recall that a root `b` of a polynomial `g` is *simple* if it is not a double root, so if
+`g.derivative.eval b ≠ 0`.)
 
 In other words, `R` is local Henselian if it is Henselian at the ideal `I`,
 in the sense of `henselian_ring`. -/
@@ -173,16 +182,17 @@ instance is_adic_complete.henselian_ring
     intros f hf a₀ h₁ h₂,
     classical,
     let f' := f.derivative,
-    -- in the following line, `f'.eval b` is a unit,
-    -- because `b` has the same residue class as `a₀`
-    let c : ℕ → R := λ n, nat.rec_on n a₀ (λ k b, b - f.eval b * ring.inverse (f'.eval b)),
+    -- we define a sequence `c n` by starting at `a₀` and then continually
+    -- applying the function sending `b` to `b - f(b)/f'(b)` (Newton's method).
+    -- Note that `f'.eval b` is a unit, because `b` has the same residue as `a₀` modulo `I`.
+    let c : ℕ → R := λ n, nat.rec_on n a₀ (λ _ b, b - f.eval b * ring.inverse (f'.eval b)),
     have hc : ∀ n, c (n+1) = c n - f.eval (c n) * ring.inverse (f'.eval (c n)),
     { intro n, dsimp only [c, nat.rec_add_one], refl, },
     -- we now spend some time determining properties of the sequence `c : ℕ → R`
-    -- `hc'`: for every `n`, we have `c n ≡ a₀ [SMOD I]`
-    -- `hfc`: for every `n`, `f'.eval (c n)` is a unit
-    -- `Hc` : for every `n`, `f.eval (c n)` is contained in `I ^ (n+1)`
-    have hc' : ∀ n, c n ≡ a₀ [SMOD I],
+    -- `hc_mod`: for every `n`, we have `c n ≡ a₀ [SMOD I]`
+    -- `hf'c`  : for every `n`, `f'.eval (c n)` is a unit
+    -- `hfcI`  : for every `n`, `f.eval (c n)` is contained in `I ^ (n+1)`
+    have hc_mod : ∀ n, c n ≡ a₀ [SMOD I],
     { intro n, induction n with n ih, { refl },
       rw [nat.succ_eq_add_one, hc, sub_eq_add_neg, ← add_zero a₀],
       refine ih.add _,
@@ -190,13 +200,13 @@ instance is_adic_complete.henselian_ring
       refine I.mul_mem_right _ _,
       rw [← smodeq.zero] at h₁ ⊢,
       exact (ih.eval f).trans h₁, },
-    have hfc : ∀ n, is_unit (f'.eval (c n)),
+    have hf'c : ∀ n, is_unit (f'.eval (c n)),
     { intro n,
       haveI := is_local_ring_hom_of_le_jacobson_bot I (is_adic_complete.le_jacobson_bot I),
       apply is_unit_of_map_unit (ideal.quotient.mk I),
       convert h₂ using 1,
-      exact smodeq.def.mp ((hc' n).eval _), },
-    have Hc : ∀ n, f.eval (c n) ∈ I ^ (n+1),
+      exact smodeq.def.mp ((hc_mod n).eval _), },
+    have hfcI : ∀ n, f.eval (c n) ∈ I ^ (n+1),
     { intro n,
       induction n with n ih, { simpa only [pow_one] },
       simp only [nat.succ_eq_add_one],
@@ -208,7 +218,7 @@ instance is_adic_complete.henselian_ring
       refine ideal.add_mem _ _ _,
       { simp only [finset.sum_range_succ, taylor_coeff_one, mul_one, pow_one, taylor_coeff_zero,
           mul_neg_eq_neg_mul_symm, finset.sum_singleton, finset.range_one, pow_zero],
-        rw [mul_left_comm, ring.mul_inverse_cancel _ (hfc n), mul_one, add_neg_self],
+        rw [mul_left_comm, ring.mul_inverse_cancel _ (hf'c n), mul_one, add_neg_self],
         exact ideal.zero_mem _ },
       { refine submodule.sum_mem _ _, simp only [finset.Ico.mem],
         rintro i ⟨h2i, hi⟩,
@@ -225,7 +235,7 @@ instance is_adic_complete.henselian_ring
       rw [nat.succ_eq_add_one, ← add_assoc, hc, ← add_zero (c m), sub_eq_add_neg],
       refine ih.add _, symmetry,
       rw [smodeq.zero, ideal.neg_mem_iff],
-      refine ideal.mul_mem_right _ _ (ideal.pow_le_pow _ (Hc _)),
+      refine ideal.mul_mem_right _ _ (ideal.pow_le_pow _ (hfcI _)),
       rw [add_assoc], exact le_self_add },
     -- hence the sequence converges to some limit point `a`, which is the `a` we are looking for
     obtain ⟨a, ha⟩ := is_precomplete.prec' c aux,
@@ -236,7 +246,7 @@ instance is_adic_complete.henselian_ring
       rw [← ideal.one_eq_top, algebra.id.smul_eq_mul, mul_one] at ha ⊢,
       refine (ha.symm.eval f).trans _,
       rw [smodeq.zero],
-      exact ideal.pow_le_pow le_self_add (Hc _), },
+      exact ideal.pow_le_pow le_self_add (hfcI _), },
     { show a - a₀ ∈ I,
       specialize ha 1,
       rw [hc, pow_one, ← ideal.one_eq_top, algebra.id.smul_eq_mul, mul_one, sub_eq_add_neg] at ha,

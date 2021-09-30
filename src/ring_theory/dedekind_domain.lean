@@ -1054,7 +1054,7 @@ lemma seq_pow_eventually_constant' (hI : I ≠ ⊥) (p : ideal T) (hp : p ∈ fa
 /--The quotient multiplicity of `p` is the least natural number `n` such that the sequence of
  powers `(p')^m` for `m ≥ n` is constant, where `p'` is the image of `p` in `R/I` -/
 def quotient_multiplicity (hI : I ≠ ⊥) (p : ideal T) (hp : p ∈ factors I) : ℕ :=
-  nat.find (exists.intro ((factors I).count p) (seq_pow_eventually_constant' I hI p hp))
+nat.find ⟨(factors I).count p, seq_pow_eventually_constant' I hI p hp⟩
 
 /--The quotient multiplicity of a prime factor `p` of `I ≠ 0` is equal to the multiplicity of `p`
   in the factorisation of `I` -/

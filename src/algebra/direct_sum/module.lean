@@ -198,7 +198,8 @@ lemma submodule_is_internal.independent {R M : Type*}
   (h : submodule_is_internal A) : complete_lattice.independent A :=
 complete_lattice.independent_of_dfinsupp_lsum_injective _ h.injective
 
-/-- TODO: relax `add_comm_group M` to `add_comm_monoid`. -/
+/-- Note that this is not generally true for `[semiring R]`; see
+`complete_lattice.independent.dfinsupp_lsum_injective` for details. -/
 lemma submodule_is_internal_of_independent_of_supr_eq_top {R M : Type*}
   [ring R] [add_comm_group M] [module R M] {A : ι → submodule R M}
   (hi : complete_lattice.independent A) (hs : supr A = ⊤) : submodule_is_internal A :=

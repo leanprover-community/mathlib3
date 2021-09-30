@@ -325,7 +325,10 @@ end
 /-- The canonical map out of a direct sum of a family of submodules is injective when the submodules
 are `complete_lattice.independent`.
 
-TODO: relax the assumptions to `add_comm_monoid M` if possible. -/
+Note that this is not generally true for `[semiring R]`, for instance when `A` is the
+`ℕ`-submodules of the positive and negative integers.
+
+See `counterexamples/direct_sum_is_internal.lean` for a proof of this fact. -/ -/
 lemma independent.dfinsupp_lsum_injective {R M : Type*}
   [ring R] [add_comm_group M] [module R M] {p : ι → submodule R M}
   (h : independent p) : function.injective (lsum ℕ (λ i, (p i).subtype)) :=
@@ -349,7 +352,8 @@ end
 /-- A family of submodules over an additive group are independent if and only iff `dfinsupp.lsum`
 applied with `submodule.subtype` is injective.
 
-TODO: relax the assumptions to `add_comm_monoid M`. -/
+Note that this is not generally true for `[semiring R]`; see
+`complete_lattice.independent.dfinsupp_lsum_injective` for details. -/
 lemma independent_iff_dfinsupp_lsum_injective {R M : Type*}
   [ring R] [add_comm_group M] [module R M] (p : ι → submodule R M) :
   independent p ↔ function.injective (lsum ℕ (λ i, (p i).subtype)) :=

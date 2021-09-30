@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard, Johan Commelin, Patrick Massot
 -/
 
-import algebra.linear_ordered_comm_group_with_zero
+import algebra.order.with_zero
 import algebra.group_power
 import ring_theory.ideal.operations
 import algebra.punit_instances

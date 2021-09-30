@@ -202,63 +202,86 @@ Currently this linter does not check whether the metavariables only occur in arg
 "with `out_param`, in which case this linter gives a false positive.",
   auto_decls := tt }
 
-/-- Applies expression `e` to local constants, but lifts all the arguments that are `Sort`-valued to
-  `Type`-valued sorts. -/
-meta def apply_to_fresh_variables (e : expr) : tactic expr := do
-t ← infer_type e,
-(xs, b) ← open_pis t,
-xs.mmap' $ λ x, try $ do {
-  u ← mk_meta_univ,
-  tx ← infer_type x,
-  ttx ← infer_type tx,
-  unify ttx (expr.sort u.succ) },
-return $ e.app_of_list xs
+/-- Auxilliary definition for `find_nondep` -/
+meta def find_nondep_aux : list expr → expr_set → tactic expr_set
+| []      r := return r
+| (h::hs) r :=
+  do type ← infer_type h,
+    find_nondep_aux hs $ r.union type.list_local_consts'
 
-/-- Tests whether type-class inference search for a class will end quickly when applied to
-  variables. This tactic succeeds if `mk_instance` succeeds quickly or fails quickly with the error
-  message that it cannot find an instance. It fails if the tactic takes too long, or if any other
-  error message is raised.
-  We make sure that we apply the tactic to variables living in `Type u` instead of `Sort u`,
-  because many instances only apply in that special case, and we do want to catch those loops. -/
-meta def fails_quickly (max_steps : ℕ) (d : declaration) : tactic (option string) := do
-  e ← mk_const d.to_name,
-  tt ← is_class e | return none,
-  e' ← apply_to_fresh_variables e,
-  sum.inr msg ← retrieve_or_report_error $ tactic.try_for max_steps $
-    succeeds_or_fails_with_msg (mk_instance e')
-      $ λ s, "tactic.mk_instance failed to generate instance for".is_prefix_of s | return none,
-  return $ some $
-    if msg = "try_for tactic failed, timeout" then "type-class inference timed out" else msg
+/-- Finds all hypotheses that don't occur in the target or other hypotheses. -/
+meta def find_nondep : tactic (list expr) := do
+  ctx ← local_context,
+  tgt ← target,
+  lconsts ← find_nondep_aux ctx tgt.list_local_consts',
+  return $ ctx.filter $ λ e, !lconsts.contains e
 
-/-- A linter object for `fails_quickly`. If we want to increase the maximum number of steps
-  type-class inference is allowed to take, we can increase the number `3000` in the definition.
-  As of 5 Mar 2020 the longest trace (for `is_add_hom`) takes 2900-3000 "heartbeats". -/
+/--
+Tests whether type-class inference search will end quickly on certain unsolvable
+type-class problems. This is to detect loops or very slow searches, which are problematic
+(recall that normal type-class search often creates unsolvable subproblems, which have to fail
+quickly for type-class inference to perform well.
+We create these type-class problems by taking an instance, and removing the last hypothesis that
+doesn't appear in the goal (or a later hypothesis). Note: this argument is necessarily an
+instance-implicit argument if it passes the `linter.incorrect_type_class_argument`.
+This tactic succeeds if `mk_instance` succeeds quickly or fails quickly with the error
+message that it cannot find an instance. It fails if the tactic takes too long, or if any other
+error message is raised (usually a maximum depth in the search).
+-/
+meta def fails_quickly (max_steps : ℕ) (d : declaration) : tactic (option string) := retrieve $ do
+  tt ← is_instance d.to_name | return none,
+  let e := d.type,
+  g ← mk_meta_var e,
+  set_goals [g],
+  intros,
+  l@(_::_) ← find_nondep | return none, -- if all arguments occur in the goal, this instance is ok
+  clear l.ilast,
+  reset_instance_cache,
+  state ← read,
+  let state_msg := "\nState:\n" ++ to_string state,
+  tgt ← target >>= instantiate_mvars,
+  sum.inr msg ← retrieve_or_report_error $ tactic.try_for max_steps $ mk_instance tgt |
+    return none, /- it's ok if type-class inference can find an instance with fewer hypotheses.
+    This happens a lot for `has_sizeof` and `has_well_founded`, but can also happen if there is a
+    noncomputable instance with fewer assumptions. -/
+  return $ if "tactic.mk_instance failed to generate instance for".is_prefix_of msg then none else
+    some $ (++ state_msg) $
+      if msg = "try_for tactic failed, timeout" then "type-class inference timed out" else msg
+
+/--
+A linter object for `fails_quickly`.
+We currently set the number of steps in the type-class search pretty high.
+Some instances take quite some time to fail, and we seem to run against the caching issue in
+https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/odd.20repeated.20type.20class.20search
+-/
 @[linter] meta def linter.fails_quickly : linter :=
-{ test := fails_quickly 3000,
+{ test := fails_quickly 10000,
   auto_decls := tt,
   no_errors_found := "No type-class searches timed out.",
   errors_found := "TYPE CLASS SEARCHES TIMED OUT.
-For the following classes, there is an instance that causes a loop, or an excessively long search.
-It is common that this instance is for a very different class than the one flagged below.
+The following instances are part of a loop, or an excessively long search.
+It is common that the loop occurs in a different class than the one flagged below,
+but usually an instance that is part of the loop is also flagged.
 To debug:
 (1) run `scripts/mk_all.sh` and create a file with `import all` and
 `set_option trace.class_instances true`
-(2) Create an example where you are proving the class on a type with no extra information
-(other than the classes needed to write down this class) and try to prove it using
-`by apply_instance`. For example, if `topological_group` raises an error, run
+(2) Recreate the state shown in the error message. You can do this easily by copying the type of
+the instance (the output of `#check @my_instance`), turning this into an example and removing the
+last argument in square brackets. Prove the example using `by apply_instance`.
+For example, if `additive.topological_add_group` raises an error, run
 ```
-example (G : Type*) [topological_space G] [group G] : topological_group G :=
+example {G : Type*} [topological_space G] [group G] : topological_add_group (additive G) :=
 by apply_instance
 ```
 (3) What error do you get?
-(3a) The expected error is \"tactic.mk_instance failed to generate instance\"
-If you get this error, there might be nothing wrong. Check the trace to see if type-class inference
-takes any unnecessary long unexpected turns. If not, feel free to increase the value in the
-definition of the linter `fails_quickly`.
+(3a) If the error is \"tactic.mk_instance failed to generate instance\",
+there might be nothing wrong. But it might take unreasonably long for the type-class inference to
+fail. Check the trace to see if type-class inference takes any unnecessary long unexpected turns.
+If not, feel free to increase the value in the definition of the linter `fails_quickly`.
 (3b) If the error is \"maximum class-instance resolution depth has been reached\" there is almost
 certainly a loop in the type-class inference. Find which instance causes the type-class inference to
 go astray, and fix that instance.",
-  is_fast := tt }
+  is_fast := ff }
 
 /-- Checks that all uses of the `@[class]` attribute apply to structures or inductive types.
   This is future-proofing for lean 4, which no longer supports `@[class] def`. -/

@@ -230,11 +230,11 @@ by rw [← cast_zero, cast_lt]
 
 @[simp, norm_cast] theorem cast_min [linear_ordered_field α] {a b : ℚ} :
   (↑(min a b) : α) = min a b :=
-by by_cases a ≤ b; simp [h, min]
+by by_cases a ≤ b; simp [h, min_def]
 
 @[simp, norm_cast] theorem cast_max [linear_ordered_field α] {a b : ℚ} :
   (↑(max a b) : α) = max a b :=
-by by_cases b ≤ a; simp [h, max]
+by by_cases b ≤ a; simp [h, max_def]
 
 @[simp, norm_cast] theorem cast_abs [linear_ordered_field α] {q : ℚ} :
   ((abs q : ℚ) : α) = abs q :=

@@ -272,7 +272,7 @@ end
 
 /-- `R` is finitely presented as `R`-algebra. -/
 lemma self : finite_presentation R R :=
-equiv (mv_polynomial R pempty) (mv_polynomial.pempty_alg_equiv R)
+equiv (mv_polynomial R pempty) (mv_polynomial.is_empty_alg_equiv R pempty)
 
 variable {R}
 

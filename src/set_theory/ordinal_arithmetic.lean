@@ -316,7 +316,7 @@ begin
 end
 
 lemma type_subrel_lt (o : ordinal.{u}) :
-  type (subrel (<) {o' : ordinal | o' < o}) = ordinal.lift.{u u+1} o :=
+  type (subrel (<) {o' : ordinal | o' < o}) = ordinal.lift.{u+1} o :=
 begin
   refine quotient.induction_on o _,
   rintro ⟨α, r, wo⟩, resetI, apply quotient.sound,
@@ -324,7 +324,7 @@ begin
 end
 
 lemma mk_initial_seg (o : ordinal.{u}) :
-  #{o' : ordinal | o' < o} = cardinal.lift.{u u+1} o.card :=
+  #{o' : ordinal | o' < o} = cardinal.lift.{u+1} o.card :=
 by rw [lift_card, ←type_subrel_lt, card_type]
 
 /-! ### Normal ordinal functions -/

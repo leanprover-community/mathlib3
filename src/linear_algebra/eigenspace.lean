@@ -4,10 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp
 -/
 
-import field_theory.algebraic_closure
+import field_theory.is_alg_closed.basic
 import linear_algebra.finsupp
 import linear_algebra.matrix.to_lin
 import order.preorder_hom
+import linear_algebra.charpoly
 
 /-!
 # Eigenvectors and eigenvalues
@@ -92,7 +93,7 @@ calc
       = (q.leading_coeff • f - algebra_map K (End K V) (- q.coeff 0)).ker
     : by { rw eigenspace_div, intro h, rw leading_coeff_eq_zero_iff_deg_eq_bot.1 h at hq, cases hq }
   ... = (aeval f (C q.leading_coeff * X + C (q.coeff 0))).ker
-    : by { rw [C_mul', aeval_def], simpa [algebra_map, algebra.to_ring_hom], }
+    : by { rw [C_mul', aeval_def], simp [algebra_map, algebra.to_ring_hom], }
   ... = (aeval f q).ker
      : by { congr, apply (eq_X_add_C_of_degree_eq_one hq).symm }
 
@@ -129,9 +130,6 @@ begin
 end
 
 variables [finite_dimensional K V] (f : End K V)
-
-protected theorem is_integral : is_integral K f :=
-is_integral_of_noetherian (by apply_instance) f
 
 variables {f} {μ : K}
 
@@ -406,8 +404,8 @@ begin
   induction k with k ih,
   { rw [pow_zero, pow_zero, linear_map.one_eq_id],
     apply (submodule.ker_subtype _).symm },
-  { erw [pow_succ', pow_succ', linear_map.ker_comp,
-      ih, ←linear_map.ker_comp, linear_map.comp_assoc], }
+  { erw [pow_succ', pow_succ', linear_map.ker_comp, linear_map.ker_comp, ih,
+      ← linear_map.ker_comp, ← linear_map.ker_comp, linear_map.comp_assoc] },
 end
 
 /-- Generalized eigenrange and generalized eigenspace for exponent `finrank K V` are disjoint. -/
@@ -518,7 +516,3 @@ end
 
 end End
 end module
-variables {K V : Type*} [field K] [add_comm_group V] [module K V] [finite_dimensional K V]
-
-protected lemma linear_map.is_integral (f : V →ₗ[K] V) : is_integral K f :=
-module.End.is_integral f

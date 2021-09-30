@@ -274,7 +274,7 @@ lemma op_norm_le_of_ball {f : E →L[𝕜] F} {ε : ℝ} {C : ℝ} (ε_pos : 0 <
 begin
   rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
   refine op_norm_le_of_shell ε_pos hC hc (λ x _ hx, hf x _),
-  rwa ball_0_eq
+  rwa ball_zero_eq
 end
 
 lemma op_norm_le_of_nhds_zero {f : E →L[𝕜] F} {C : ℝ} (hC : 0 ≤ C)
@@ -288,7 +288,7 @@ begin
   by_cases h0 : c = 0,
   { refine op_norm_le_of_ball ε_pos hC (λ x hx, hf x _ _),
     { simp [h0] },
-    { rwa ball_0_eq at hx } },
+    { rwa ball_zero_eq at hx } },
   { rw [← inv_inv' c, normed_field.norm_inv,
       inv_lt_one_iff_of_pos (norm_pos_iff.2 $ inv_ne_zero h0)] at hc,
     refine op_norm_le_of_shell ε_pos hC hc _,

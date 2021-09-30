@@ -3,8 +3,8 @@ Copyright (c) 2014 Floris van Doorn (c) 2016 Microsoft Corporation. All rights r
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
-import algebra.ordered_ring
-import algebra.ordered_sub
+import algebra.order.ring
+import algebra.order.sub
 
 /-!
 # Basic operations on the natural numbers
@@ -15,6 +15,7 @@ This file contains:
 - extra recursors:
   * `le_rec_on`, `le_induction`: recursion and induction principles starting at non-zero numbers
   * `decreasing_induction`: recursion growing downwards
+  * `le_rec_on'`, `decreasing_induction'`: versions with slightly weaker assumptions
   * `strong_rec'`: recursion based on strong inequalities
 - decidability instances on predicates about the natural numbers
 
@@ -87,10 +88,9 @@ instance : semiring nat           := by apply_instance
 instance : ordered_semiring nat   := by apply_instance
 
 instance : canonically_ordered_comm_semiring ℕ :=
-{ le_iff_exists_add := assume a b,
-  ⟨assume h, let ⟨c, hc⟩ := nat.le.dest h in ⟨c, hc.symm⟩,
-    assume ⟨c, hc⟩, hc.symm ▸ nat.le_add_right _ _⟩,
-  eq_zero_or_eq_zero_of_mul_eq_zero   := assume a b, nat.eq_zero_of_mul_eq_zero,
+{ le_iff_exists_add := λ a b, ⟨λ h, let ⟨c, hc⟩ := nat.le.dest h in ⟨c, hc.symm⟩,
+                               λ ⟨c, hc⟩, hc.symm ▸ nat.le_add_right _ _⟩,
+  eq_zero_or_eq_zero_of_mul_eq_zero   := λ a b, nat.eq_zero_of_mul_eq_zero,
   bot               := 0,
   bot_le            := nat.zero_le,
   .. nat.nontrivial,
@@ -188,8 +188,8 @@ add_units.ext $ (nat.eq_zero_of_add_eq_zero u.val_neg).1
 
 @[simp] protected theorem is_unit_iff {n : ℕ} : is_unit n ↔ n = 1 :=
 iff.intro
-  (assume ⟨u, hu⟩, match n, u, hu, nat.units_eq_one u with _, _, rfl, rfl := rfl end)
-  (assume h, h.symm ▸ ⟨1, rfl⟩)
+  (λ ⟨u, hu⟩, match n, u, hu, nat.units_eq_one u with _, _, rfl, rfl := rfl end)
+  (λ h, h.symm ▸ ⟨1, rfl⟩)
 
 instance unique_units : unique (units ℕ) :=
 { default := 1, uniq := nat.units_eq_one }
@@ -221,7 +221,7 @@ lemma eq_zero_of_mul_le {a b : ℕ} (hb : 2 ≤ b) (h : b * a ≤ a) : a = 0 :=
 eq_zero_of_double_le $ le_trans (nat.mul_le_mul_right _ hb) h
 
 theorem le_zero_iff {i : ℕ} : i ≤ 0 ↔ i = 0 :=
-⟨nat.eq_zero_of_le_zero, assume h, h ▸ le_refl i⟩
+⟨nat.eq_zero_of_le_zero, λ h, h ▸ le_refl i⟩
 
 lemma zero_max {m : ℕ} : max 0 m = m :=
 max_eq_right (zero_le _)
@@ -417,12 +417,12 @@ lemma add_eq_one_iff : ∀ {a b : ℕ}, a + b = 1 ↔ (a = 0 ∧ b = 1) ∨ (a =
 | _     (b+2) := by rw [← add_assoc]; simp only [nat.succ_inj', nat.succ_ne_zero]; simp
 
 theorem le_add_one_iff {i j : ℕ} : i ≤ j + 1 ↔ (i ≤ j ∨ i = j + 1) :=
-⟨assume h,
+⟨λ h,
   match nat.eq_or_lt_of_le h with
   | or.inl h := or.inr h
   | or.inr h := or.inl $ nat.le_of_succ_le_succ h
   end,
-  or.rec (assume h, le_trans h $ nat.le_add_right _ _) le_of_eq⟩
+  or.rec (λ h, le_trans h $ nat.le_add_right _ _) le_of_eq⟩
 
 lemma add_succ_lt_add {a b c d : ℕ} (hab : a < b) (hcd : c < d) : a + c + 1 < b + d :=
 begin
@@ -717,7 +717,8 @@ rfl
 rfl
 
 /-- Recursion starting at a non-zero number: given a map `C k → C (k+1)` for each `k`,
-there is a map from `C n` to each `C m`, `n ≤ m`. -/
+there is a map from `C n` to each `C m`, `n ≤ m`. For a version where the assumption is only made
+when `k ≥ n`, see `le_rec_on'`. -/
 @[elab_as_eliminator]
 def le_rec_on {C : ℕ → Sort u} {n : ℕ} : Π {m : ℕ}, n ≤ m → (Π {k}, C k → C (k+1)) → C n → C m
 | 0     H next x := eq.rec_on (nat.eq_zero_of_le_zero H) x
@@ -788,7 +789,8 @@ by { simp only [strong_rec_on'], rw nat.strong_rec' }
 by apply nat.less_than_or_equal.rec h0; exact h1
 
 /-- Decreasing induction: if `P (k+1)` implies `P k`, then `P n` implies `P m` for all `m ≤ n`.
-Also works for functions to `Sort*`. -/
+Also works for functions to `Sort*`. For a version assuming only the assumption for `k < n`, see
+`decreasing_induction'`. -/
 @[elab_as_eliminator]
 def decreasing_induction {P : ℕ → Sort*} (h : ∀n, P (n+1) → P n) {m n : ℕ} (mn : m ≤ n)
   (hP : P n) : P m :=
@@ -819,6 +821,30 @@ lemma decreasing_induction_succ_left {P : ℕ → Sort*} (h : ∀n, P (n+1) → 
   (decreasing_induction h mn hP : P m) = h m (decreasing_induction h smn hP) :=
 by { rw [subsingleton.elim mn (le_trans (le_succ m) smn), decreasing_induction_trans,
          decreasing_induction_succ'] }
+
+/-- Recursion starting at a non-zero number: given a map `C k → C (k+1)` for each `k ≥ n`,
+there is a map from `C n` to each `C m`, `n ≤ m`. -/
+@[elab_as_eliminator]
+def le_rec_on' {C : ℕ → Sort*} {n : ℕ} :
+  Π {m : ℕ}, n ≤ m → (Π ⦃k⦄, n ≤ k → C k → C (k+1)) → C n → C m
+| 0     H next x := eq.rec_on (nat.eq_zero_of_le_zero H) x
+| (m+1) H next x := or.by_cases (of_le_succ H) (λ h : n ≤ m, next h $ le_rec_on' h next x)
+  (λ h : n = m + 1, eq.rec_on h x)
+
+/-- Decreasing induction: if `P (k+1)` implies `P k` for all `m ≤ k < n`, then `P n` implies `P m`.
+Also works for functions to `Sort*`. Weakens the assumptions of `decreasing_induction`. -/
+@[elab_as_eliminator]
+def decreasing_induction' {P : ℕ → Sort*} {m n : ℕ} (h : ∀ k < n, m ≤ k → P (k+1) → P k)
+  (mn : m ≤ n) (hP : P n) : P m :=
+begin
+  -- induction mn using nat.le_rec_on' generalizing h hP -- this doesn't work unfortunately
+  refine le_rec_on' mn _ _ h hP; clear h hP mn n,
+  { intros n mn ih h hP,
+    apply ih,
+    { exact λ k hk, h k hk.step },
+    { exact h n (lt_succ_self n) mn hP } },
+  { intros h hP, exact hP }
+end
 
 /-! ### `div` -/
 

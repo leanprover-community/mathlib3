@@ -70,7 +70,7 @@ sending each section to its germs.
 -/
 def to_sheafify : F ⟶ F.sheafify.presheaf :=
 { app := λ U f, ⟨λ x, F.germ x f, prelocal_predicate.sheafify_of ⟨f, λ x, rfl⟩⟩,
-  naturality' := λ U U' f, by { ext x ⟨u, m⟩, apply germ_res_apply', }, }
+  naturality' := λ U U' f, by { ext x ⟨u, m⟩, exact germ_res_apply F f.unop ⟨u, m⟩ x } }
 
 /--
 The natural morphism from the stalk of the sheafification to the original stalk.
@@ -101,6 +101,7 @@ begin
   have wVx := wV ⟨x, mV⟩,
   dsimp at wVx, erw wVx at e, clear wVx,
   rcases F.germ_eq x mU mV gU gV e with ⟨W, mW, iU', iV', e'⟩,
+  dsimp at e',
   use ⟨W ⊓ (U' ⊓ V'), ⟨mW, mU, mV⟩⟩,
   refine ⟨_, _, _⟩,
   { change W ⊓ (U' ⊓ V') ⟶ U.val,
@@ -113,8 +114,8 @@ begin
     dsimp at wU,
     specialize wV ⟨w.1, w.2.2.2⟩,
     dsimp at wV,
-    erw [wU, ←F.germ_res_apply iU' ⟨w, w.2.1⟩ gU, e', F.germ_res_apply, ←wV],
-    refl, },
+    erw [wU, ←F.germ_res iU' ⟨w, w.2.1⟩, wV, ←F.germ_res iV' ⟨w, w.2.1⟩,
+      category_theory.types_comp_apply, category_theory.types_comp_apply, e'] },
 end
 
 /--

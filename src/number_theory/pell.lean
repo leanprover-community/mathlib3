@@ -35,7 +35,7 @@ numbers but instead Davis' variant of using solutions to Pell's equation.
 
 ## References
 
-* [M. Carneiro, _A Lean formalization of Matiyasiv's theorem_][carneiro2018matiysevic]
+* [M. Carneiro, _A Lean formalization of Matiyasevič's theorem_][carneiro2018matiyasevic]
 * [M. Davis, _Hilbert's tenth problem is unsolvable_][MR317916]
 
 ## Tags
@@ -44,7 +44,6 @@ Pell's equation, Matiyasevic's theorem, Hilbert's tenth problem
 
 ## TODO
 
-* Please the unused arguments linter.
 * Provide solutions to Pell's equation for the case of arbitrary `d` (not just `d = a ^ 2 - 1` like
   in the current version) and furthermore also for `x ^ 2 - d * y ^ 2 = -1`.
 * Connect solutions to the continued fraction expansion of `√d`.
@@ -89,8 +88,14 @@ show pell n = ((pell n).1, (pell n).2), from match pell n with (a, b) := rfl end
 def xz (n : ℕ) : ℤ := xn n
 /-- The Pell `y` sequence, considered as an integer sequence.-/
 def yz (n : ℕ) : ℤ := yn n
+
+section
+omit a1
+
 /-- The element `a` such that `d = a ^ 2 - 1`, considered as an integer.-/
 def az : ℤ := a
+
+end
 
 theorem asq_pos : 0 < a*a :=
 le_trans (le_of_lt a1) (by have := @nat.mul_le_mul_left 1 a a (le_of_lt a1); rwa mul_one at this)
@@ -339,7 +344,7 @@ by rw ke; exact dvd_mul_of_dvd_right
 theorem pell_zd_succ_succ (n) : pell_zd (n + 2) + pell_zd n = (2 * a : ℕ) * pell_zd (n + 1) :=
 have (1:ℤ√d) + ⟨a, 1⟩ * ⟨a, 1⟩ = ⟨a, 1⟩ * (2 * a),
 by { rw zsqrtd.coe_nat_val, change (⟨_,_⟩:ℤ√(d a1))=⟨_,_⟩,
-    rw dz_val, change az a1 with a, rw zsqrtd.ext, dsimp, split; ring },
+    rw dz_val, dsimp [az], rw zsqrtd.ext, dsimp, split; ring },
 by simpa [mul_add, mul_comm, mul_left_comm, add_comm] using congr_arg (* pell_zd a1 n) this
 
 theorem xy_succ_succ (n) : xn (n + 2) + xn n = (2 * a) * xn (n + 1) ∧
@@ -377,9 +382,14 @@ theorem yn_modeq_two : ∀ n, yn n ≡ n [MOD 2]
     exact (dvd_mul_right 2 _).modeq_zero_nat.trans (dvd_mul_right 2 _).zero_modeq_nat,
   end
 
+section
+
+omit a1
 lemma x_sub_y_dvd_pow_lem (y2 y1 y0 yn1 yn0 xn1 xn0 ay a2 : ℤ) :
   (a2 * yn1 - yn0) * ay + y2 - (a2 * xn1 - xn0) =
     y2 - a2 * y1 + y0 + a2 * (yn1 * ay + y1 - xn1) - (yn0 * ay + y0 - xn0) := by ring
+
+end
 
 theorem x_sub_y_dvd_pow (y : ℕ) :
   ∀ n, (2*a*y - y*y - 1 : ℤ) ∣ yz n * (a - y) + ↑(y^n) - xz n
@@ -389,7 +399,7 @@ theorem x_sub_y_dvd_pow (y : ℕ) :
   have (2*a*y - y*y - 1 : ℤ) ∣ ↑(y^(n + 2)) - ↑(2 * a) * ↑(y^(n + 1)) + ↑(y^n), from
   ⟨-↑(y^n), by { simp [pow_succ, mul_add, int.coe_nat_mul,
       show ((2:ℕ):ℤ) = 2, from rfl, mul_comm, mul_left_comm], ring }⟩,
-  by { rw [xz_succ_succ, yz_succ_succ, x_sub_y_dvd_pow_lem a1 ↑(y^(n+2)) ↑(y^(n+1)) ↑(y^n)],
+  by { rw [xz_succ_succ, yz_succ_succ, x_sub_y_dvd_pow_lem ↑(y^(n+2)) ↑(y^(n+1)) ↑(y^n)],
   exact
     dvd_sub (dvd_add this $ (x_sub_y_dvd_pow (n+1)).mul_left _) (x_sub_y_dvd_pow n) }
 
@@ -706,7 +716,7 @@ k = 0 ∧ m = 1 ∨ 0 < k ∧
   refine (nat.eq_zero_or_pos n).elim
     (λn0, by rw [n0, zero_pow kpos]; exact or.inl ⟨rfl, rfl⟩)
     (λnpos, or.inr ⟨npos, _⟩); exact
-  let w := _root_.max n k in
+  let w := max n k in
   have nw : n ≤ w, from le_max_left _ _,
   have kw : k ≤ w, from le_max_right _ _,
   have wpos : 0 < w, from lt_of_lt_of_le npos nw,

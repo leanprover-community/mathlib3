@@ -54,6 +54,12 @@ instance {R : Type*} [normed_field R] [normed_algebra R ℝ] : normed_algebra R 
 { norm_algebra_map_eq := λ x, (abs_of_real $ algebra_map R ℝ x).trans (norm_algebra_map_eq ℝ x),
   to_algebra := complex.algebra }
 
+/-- The module structure from `module.complex_to_real` is a normed space. -/
+@[priority 900] -- see Note [lower instance priority]
+instance _root_.normed_space.complex_to_real {E : Type*} [normed_group E] [normed_space ℂ E] :
+  normed_space ℝ E :=
+normed_space.restrict_scalars ℝ ℂ E
+
 @[simp] lemma norm_eq_abs (z : ℂ) : ∥z∥ = abs z := rfl
 
 lemma dist_eq (z w : ℂ) : dist z w = abs (z - w) := rfl
@@ -77,6 +83,16 @@ by rw [norm_int, _root_.abs_of_nonneg]; exact int.cast_nonneg.2 hn
 
 @[continuity] lemma continuous_norm_sq : continuous norm_sq :=
 by simpa [← norm_sq_eq_abs] using continuous_abs.pow 2
+
+/-- The `abs` function on `ℂ` is proper. -/
+lemma tendsto_abs_cocompact_at_top : filter.tendsto abs (filter.cocompact ℂ) filter.at_top :=
+tendsto_norm_cocompact_at_top
+
+/-- The `norm_sq` function on `ℂ` is proper. -/
+lemma tendsto_norm_sq_cocompact_at_top :
+  filter.tendsto norm_sq (filter.cocompact ℂ) filter.at_top :=
+by simpa [mul_self_abs] using
+  tendsto_abs_cocompact_at_top.at_top_mul_at_top tendsto_abs_cocompact_at_top
 
 open continuous_linear_map
 

@@ -779,8 +779,7 @@ open measure
 /-- A signed measure `s` is said to `have_lebesgue_decomposition` with respect to a measure `μ`
 if the positive part and the negative part of `s` both `have_lebesgue_decomposition` with
 respect to `μ`. -/
-class have_lebesgue_decomposition (s : signed_measure α) (μ : measure α) :
-  Prop :=
+class have_lebesgue_decomposition (s : signed_measure α) (μ : measure α) : Prop :=
 (pos_part : s.to_jordan_decomposition.pos_part.have_lebesgue_decomposition μ)
 (neg_part : s.to_jordan_decomposition.neg_part.have_lebesgue_decomposition μ)
 
@@ -844,8 +843,7 @@ end
 /-- Given a signed measure `s` and a measure `μ`, `s.singular_part μ` is the signed measure
 such that `s.singular_part μ + μ.with_densityᵥ (s.rn_deriv μ) = s` and
 `s.singular_part μ` is mutually singular with respect to `μ`. -/
-def singular_part(s : signed_measure α) (μ : measure α) :
-  signed_measure α :=
+def singular_part(s : signed_measure α) (μ : measure α) : signed_measure α :=
 (s.to_jordan_decomposition.pos_part.singular_part μ).to_signed_measure -
 (s.to_jordan_decomposition.neg_part.singular_part μ).to_signed_measure
 
@@ -1061,8 +1059,7 @@ begin
     rwa [with_densityᵥ_zero, add_zero] }
 end
 
-lemma singular_part_zero (μ : measure α) :
-  (0 : signed_measure α).singular_part μ = 0 :=
+lemma singular_part_zero (μ : measure α) : (0 : signed_measure α).singular_part μ = 0 :=
 begin
   refine (eq_singular_part 0 0
     vector_measure.mutually_singular.zero_left _).symm,
@@ -1083,8 +1080,7 @@ begin
   rw [singular_part, singular_part, neg_sub, h₁, h₂],
 end
 
-lemma singular_part_smul_nnreal (s : signed_measure α) (μ : measure α)
-  (r : ℝ≥0) :
+lemma singular_part_smul_nnreal (s : signed_measure α) (μ : measure α) (r : ℝ≥0) :
   (r • s).singular_part μ = r • s.singular_part μ :=
 begin
   rw [singular_part, singular_part, smul_sub, ← to_signed_measure_smul, ← to_signed_measure_smul],

@@ -259,11 +259,11 @@ lemma mul_self_lt_mul_self (h1 : 0 ≤ a) (h2 : a < b) : a * a < b * b :=
 mul_lt_mul' h2.le h2 h1 $ h1.trans_lt h2
 
 -- See Note [decidable namespace]
-protected lemma decidable.strict_mono_incr_on_mul_self [@decidable_rel α (≤)] :
-  strict_mono_incr_on (λ x : α, x * x) (set.Ici 0) :=
+protected lemma decidable.strict_mono_on_mul_self [@decidable_rel α (≤)] :
+  strict_mono_on (λ x : α, x * x) (set.Ici 0) :=
 λ x hx y hy hxy, decidable.mul_self_lt_mul_self hx hxy
 
-lemma strict_mono_incr_on_mul_self : strict_mono_incr_on (λ x : α, x * x) (set.Ici 0) :=
+lemma strict_mono_on_mul_self : strict_mono_on (λ x : α, x * x) (set.Ici 0) :=
 λ x hx y hy hxy, mul_self_lt_mul_self hx hxy
 
 -- See Note [decidable namespace]
@@ -962,7 +962,13 @@ section ordered_comm_ring
 /-- An `ordered_comm_ring α` is a commutative ring `α` with a partial order such that
 addition is monotone and multiplication by a positive number is strictly monotone. -/
 @[protect_proj]
-class ordered_comm_ring (α : Type u) extends ordered_ring α, ordered_comm_semiring α, comm_ring α
+class ordered_comm_ring (α : Type u) extends ordered_ring α, comm_ring α
+
+@[priority 100] -- See note [lower instance priority]
+instance ordered_comm_ring.to_ordered_comm_semiring {α : Type u} [ordered_comm_ring α] :
+  ordered_comm_semiring α :=
+{ .. (by apply_instance : ordered_semiring α),
+  .. ‹ordered_comm_ring α› }
 
 /-- Pullback an `ordered_comm_ring` under an injective map.
 See note [reducible non-instances]. -/
@@ -973,8 +979,7 @@ def function.injective.ordered_comm_ring [ordered_comm_ring α] {β : Type*}
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (- x) = - f x) (sub : ∀ x y, f (x - y) = f x - f y) :
   ordered_comm_ring β :=
-{ ..hf.ordered_comm_semiring f zero one add mul,
-  ..hf.ordered_ring f zero one add mul neg sub,
+{ ..hf.ordered_ring f zero one add mul neg sub,
   ..hf.comm_ring f zero one add mul neg sub }
 
 end ordered_comm_ring
@@ -1122,11 +1127,11 @@ by haveI := @linear_order.decidable_le α _; exact
 
 lemma mul_self_lt_mul_self_iff {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a < b ↔ a * a < b * b :=
 by haveI := @linear_order.decidable_le α _; exact
-((@decidable.strict_mono_incr_on_mul_self α _ _).lt_iff_lt h1 h2).symm
+((@decidable.strict_mono_on_mul_self α _ _).lt_iff_lt h1 h2).symm
 
 lemma mul_self_inj {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a * a = b * b ↔ a = b :=
 by haveI := @linear_order.decidable_le α _; exact
-(@decidable.strict_mono_incr_on_mul_self α _ _).inj_on.eq_iff h1 h2
+(@decidable.strict_mono_on_mul_self α _ _).inj_on.eq_iff h1 h2
 
 @[simp] lemma mul_le_mul_left_of_neg {a b c : α} (h : c < 0) : c * a ≤ c * b ↔ b ≤ a :=
 by haveI := @linear_order.decidable_le α _; exact
@@ -1223,17 +1228,7 @@ class linear_ordered_comm_ring (α : Type u) extends linear_ordered_ring α, com
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_comm_ring.to_ordered_comm_ring [d : linear_ordered_comm_ring α] :
   ordered_comm_ring α :=
--- One might hope that `{ ..linear_ordered_ring.to_linear_ordered_semiring, ..d }`
--- achieved the same result here.
--- Unfortunately with that definition we see mismatched instances in `algebra.star.chsh`.
-let s : linear_ordered_semiring α := @linear_ordered_ring.to_linear_ordered_semiring α _ in
-{ zero_mul                   := @linear_ordered_semiring.zero_mul α s,
-  mul_zero                   := @linear_ordered_semiring.mul_zero α s,
-  add_left_cancel            := @linear_ordered_semiring.add_left_cancel α s,
-  le_of_add_le_add_left      := @linear_ordered_semiring.le_of_add_le_add_left α s,
-  mul_lt_mul_of_pos_left     := @linear_ordered_semiring.mul_lt_mul_of_pos_left α s,
-  mul_lt_mul_of_pos_right    := @linear_ordered_semiring.mul_lt_mul_of_pos_right α s,
-  ..d }
+{ ..d }
 
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_comm_ring.to_integral_domain [s : linear_ordered_comm_ring α] :
@@ -1243,18 +1238,7 @@ instance linear_ordered_comm_ring.to_integral_domain [s : linear_ordered_comm_ri
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_comm_ring.to_linear_ordered_semiring [d : linear_ordered_comm_ring α] :
    linear_ordered_semiring α :=
--- One might hope that `{ ..linear_ordered_ring.to_linear_ordered_semiring, ..d }`
--- achieved the same result here.
--- Unfortunately with that definition we see mismatched `preorder ℝ` instances in
--- `topology.metric_space.basic`.
-let s : linear_ordered_semiring α := @linear_ordered_ring.to_linear_ordered_semiring α _ in
-{ zero_mul                   := @linear_ordered_semiring.zero_mul α s,
-  mul_zero                   := @linear_ordered_semiring.mul_zero α s,
-  add_left_cancel            := @linear_ordered_semiring.add_left_cancel α s,
-  le_of_add_le_add_left      := @linear_ordered_semiring.le_of_add_le_add_left α s,
-  mul_lt_mul_of_pos_left     := @linear_ordered_semiring.mul_lt_mul_of_pos_left α s,
-  mul_lt_mul_of_pos_right    := @linear_ordered_semiring.mul_lt_mul_of_pos_right α s,
-  ..d }
+{ .. d, ..linear_ordered_ring.to_linear_ordered_semiring }
 
 section linear_ordered_comm_ring
 

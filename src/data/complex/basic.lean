@@ -57,6 +57,11 @@ lemma of_real_def (r : ℝ) : (r : ℂ) = ⟨r, 0⟩ := rfl
 @[simp, norm_cast] theorem of_real_inj {z w : ℝ} : (z : ℂ) = w ↔ z = w :=
 ⟨congr_arg re, congr_arg _⟩
 
+instance : can_lift ℂ ℝ :=
+{ cond := λ z, z.im = 0,
+  coe := coe,
+  prf := λ z hz, ⟨z.re, ext rfl hz.symm⟩ }
+
 instance : has_zero ℂ := ⟨(0 : ℝ)⟩
 instance : inhabited ℂ := ⟨0⟩
 
@@ -228,10 +233,12 @@ lemma eq_conj_iff_im {z : ℂ} : conj z = z ↔ z.im = 0 :=
   λ h, ext rfl (neg_eq_iff_add_eq_zero.mpr (add_self_eq_zero.mpr h))⟩
 
 instance : star_ring ℂ :=
-{ star := λ z, conj z,
-  star_involutive := λ z, by simp,
-  star_mul := λ r s, by { ext; simp [mul_comm], },
-  star_add := by simp, }
+{ star := (conj : ℂ → ℂ),
+  star_involutive := conj_conj,
+  star_mul := λ a b, (conj.map_mul a b).trans (mul_comm _ _),
+  star_add := conj.map_add }
+
+@[simp] lemma star_def : (has_star.star : ℂ → ℂ) = conj := rfl
 
 /-! ### Norm squared -/
 
@@ -528,126 +535,45 @@ by rw [abs, sq, real.mul_self_sqrt (norm_sq_nonneg _)]
 We put a partial order on ℂ so that `z ≤ w` exactly if `w - z` is real and nonnegative.
 Complex numbers with different imaginary parts are incomparable.
 -/
-def complex_order : partial_order ℂ :=
-{ le := λ z w, ∃ x : ℝ, 0 ≤ x ∧ w = z + x,
-  le_refl := λ x, ⟨0, by simp⟩,
-  le_trans := λ x y z h₁ h₂,
-  begin
-    obtain ⟨w₁, l₁, rfl⟩ := h₁,
-    obtain ⟨w₂, l₂, rfl⟩ := h₂,
-    refine ⟨w₁ + w₂, _, _⟩,
-    { linarith, },
-    { simp [add_assoc], },
-  end,
-  le_antisymm := λ z w h₁ h₂,
-  begin
-    obtain ⟨w₁, l₁, rfl⟩ := h₁,
-    obtain ⟨w₂, l₂, e⟩ := h₂,
-    have h₃ : w₁ + w₂ = 0,
-    { symmetry,
-      rw add_assoc at e,
-      apply of_real_inj.mp,
-      apply add_left_cancel,
-      convert e; simp, },
-    have h₄ : w₁ = 0, linarith,
-    simp [h₄],
-  end, }
-
-localized "attribute [instance] complex_order" in complex_order
+protected def partial_order : partial_order ℂ :=
+{ le := λ z w, z.re ≤ w.re ∧ z.im = w.im,
+  lt := λ z w, z.re < w.re ∧ z.im = w.im,
+  lt_iff_le_not_le := λ z w, by { dsimp, rw lt_iff_le_not_le, tauto },
+  le_refl := λ x, ⟨le_rfl, rfl⟩,
+  le_trans := λ x y z h₁ h₂, ⟨h₁.1.trans h₂.1, h₁.2.trans h₂.2⟩,
+  le_antisymm := λ z w h₁ h₂, ext (h₁.1.antisymm h₂.1) h₁.2 }
 
 section complex_order
-open_locale complex_order
 
-lemma le_def {z w : ℂ} : z ≤ w ↔ ∃ x : ℝ, 0 ≤ x ∧ w = z + x := iff.refl _
-lemma lt_def {z w : ℂ} : z < w ↔ ∃ x : ℝ, 0 < x ∧ w = z + x :=
-begin
-  rw [lt_iff_le_not_le],
-  fsplit,
-  { rintro ⟨⟨x, l, rfl⟩, h⟩,
-    by_cases hx : x = 0,
-    { simpa [hx] using h },
-    { replace l : 0 < x := l.lt_of_ne (ne.symm hx),
-      exact ⟨x, l, rfl⟩, } },
-  { rintro ⟨x, l, rfl⟩,
-    fsplit,
-    { exact ⟨x, l.le, rfl⟩, },
-    { rintro ⟨x', l', e⟩,
-      rw [add_assoc] at e,
-      replace e := add_left_cancel (by { convert e, simp }),
-      norm_cast at e,
-      linarith, } }
-end
+localized "attribute [instance] complex.partial_order" in complex_order
 
-@[simp, norm_cast] lemma real_le_real {x y : ℝ} : (x : ℂ) ≤ (y : ℂ) ↔ x ≤ y :=
-begin
-  rw [le_def],
-  fsplit,
-  { rintro ⟨r, l, e⟩,
-    norm_cast at e,
-    subst e,
-    exact le_add_of_nonneg_right l, },
-  { intro h,
-    exact ⟨y - x, sub_nonneg.mpr h, (by simp)⟩, },
-end
-@[simp, norm_cast] lemma real_lt_real {x y : ℝ} : (x : ℂ) < (y : ℂ) ↔ x < y :=
-begin
-  rw [lt_def],
-  fsplit,
-  { rintro ⟨r, l, e⟩,
-    norm_cast at e,
-    subst e,
-    exact lt_add_of_pos_right x l, },
-  { intro h,
-    exact ⟨y - x, sub_pos.mpr h, (by simp)⟩, },
-end
+lemma le_def {z w : ℂ} : z ≤ w ↔ z.re ≤ w.re ∧ z.im = w.im := iff.rfl
+lemma lt_def {z w : ℂ} : z < w ↔ z.re < w.re ∧ z.im = w.im := iff.rfl
+
+@[simp, norm_cast] lemma real_le_real {x y : ℝ} : (x : ℂ) ≤ (y : ℂ) ↔ x ≤ y := by simp [le_def]
+
+@[simp, norm_cast] lemma real_lt_real {x y : ℝ} : (x : ℂ) < (y : ℂ) ↔ x < y := by simp [lt_def]
+
 @[simp, norm_cast] lemma zero_le_real {x : ℝ} : (0 : ℂ) ≤ (x : ℂ) ↔ 0 ≤ x := real_le_real
 @[simp, norm_cast] lemma zero_lt_real {x : ℝ} : (0 : ℂ) < (x : ℂ) ↔ 0 < x := real_lt_real
+
+lemma not_le_iff {z w : ℂ} : ¬(z ≤ w) ↔ w.re < z.re ∨ z.im ≠ w.im :=
+by rw [le_def, not_and_distrib, not_le]
+
+lemma not_le_zero_iff {z : ℂ} : ¬z ≤ 0 ↔ 0 < z.re ∨ z.im ≠ 0 := not_le_iff
 
 /--
 With `z ≤ w` iff `w - z` is real and nonnegative, `ℂ` is an ordered ring.
 -/
-def complex_ordered_comm_ring : ordered_comm_ring ℂ :=
-{ zero_le_one := ⟨1, zero_le_one, by simp⟩,
-  add_le_add_left := λ w z h y,
-  begin
-    obtain ⟨x, l, rfl⟩ := h,
-    exact ⟨x, l, by simp [add_assoc]⟩,
-  end,
+protected def ordered_comm_ring : ordered_comm_ring ℂ :=
+{ zero_le_one := ⟨zero_le_one, rfl⟩,
+  add_le_add_left := λ w z h y, ⟨add_le_add_left h.1 _, congr_arg2 (+) rfl h.2⟩,
   mul_pos := λ z w hz hw,
-  begin
-    obtain ⟨zx, lz, rfl⟩ := lt_def.mp hz,
-    obtain ⟨wx, lw, rfl⟩ := lt_def.mp hw,
-    norm_cast,
-    simp only [mul_pos, lz, lw, zero_add],
-  end,
-  le_of_add_le_add_left := λ u v z h,
-  begin
-    obtain ⟨x, l, e⟩ := h,
-    rw add_assoc at e,
-    exact ⟨x, l, add_left_cancel e⟩,
-  end,
-  mul_lt_mul_of_pos_left := λ u v z h₁ h₂,
-  begin
-    obtain ⟨x₁, l₁, rfl⟩ := lt_def.mp h₁,
-    obtain ⟨x₂, l₂, rfl⟩ := lt_def.mp h₂,
-    simp only [mul_add, zero_add],
-    exact lt_def.mpr ⟨x₂ * x₁, mul_pos l₂ l₁, (by norm_cast)⟩,
-  end,
-  mul_lt_mul_of_pos_right := λ u v z h₁ h₂,
-  begin
-    obtain ⟨x₁, l₁, rfl⟩ := lt_def.mp h₁,
-    obtain ⟨x₂, l₂, rfl⟩ := lt_def.mp h₂,
-    simp only [add_mul, zero_add],
-    exact lt_def.mpr ⟨x₁ * x₂, mul_pos l₁ l₂, (by norm_cast)⟩,
-  end,
--- we need more instances here because comm_ring doesn't have zero_add et al as fields,
--- they are derived as lemmas
-  ..(by apply_instance : partial_order ℂ),
-  ..(by apply_instance : comm_ring ℂ),
-  ..(by apply_instance : comm_semiring ℂ),
-  ..(by apply_instance : add_cancel_monoid ℂ) }
+    by simp [lt_def, mul_re, mul_im, ← hz.2, ← hw.2, mul_pos hz.1 hw.1],
+  .. complex.partial_order,
+  .. complex.comm_ring }
 
-localized "attribute [instance] complex_ordered_comm_ring" in complex_order
+localized "attribute [instance] complex.ordered_comm_ring" in complex_order
 
 /--
 With `z ≤ w` iff `w - z` is real and nonnegative, `ℂ` is a star ordered ring.
@@ -657,16 +583,10 @@ In fact, the nonnegative elements are precisely those of this form.
 This hold in any `C^*`-algebra, e.g. `ℂ`,
 but we don't yet have `C^*`-algebras in mathlib.
 -/
-def complex_star_ordered_ring : star_ordered_ring ℂ :=
-{ star_mul_self_nonneg := λ z,
-  begin
-    refine ⟨z.abs^2, pow_nonneg (abs_nonneg z) 2, _⟩,
-    simp only [has_star.star, of_real_pow, zero_add],
-    norm_cast,
-    rw [←norm_sq_eq_abs, norm_sq_eq_conj_mul_self],
-  end, }
+protected def star_ordered_ring : star_ordered_ring ℂ :=
+{ star_mul_self_nonneg := λ z, ⟨by simp [add_nonneg, mul_self_nonneg], by simp [mul_comm]⟩ }
 
-localized "attribute [instance] complex_star_ordered_ring" in complex_order
+localized "attribute [instance] complex.star_ordered_ring" in complex_order
 
 end complex_order
 

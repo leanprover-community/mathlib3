@@ -982,6 +982,7 @@ section covariant_add_le
 
 section has_neg
 
+/-- `abs a` is the absolute value of `a`. -/
 @[to_additive, priority 100] -- see Note [lower instance priority]
 instance has_inv_lattice_has_abs [has_inv α] [lattice α] : has_abs (α)  := ⟨λa, a ⊔ (a⁻¹)⟩
 

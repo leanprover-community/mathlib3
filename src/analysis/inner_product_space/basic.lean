@@ -4,13 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Sébastien Gouëzel, Frédéric Dupuis
 -/
 import analysis.complex.basic
+import analysis.normed_space.bounded_linear_maps
 import linear_algebra.bilinear_form
 import linear_algebra.sesquilinear_form
 
 /-!
-# Inner Product Space
+# Inner product space
 
-This file defines inner product spaces and proves its basic properties.
+This file defines inner product spaces and proves the basic properties.  We do not formally
+define Hilbert spaces, but they can be obtained using the pair of assumptions
+`[inner_product_space E] [complete_space E]`.
 
 An inner product space is a vector space endowed with an inner product. It generalizes the notion of
 dot product in `ℝ^n` and provides the means of defining the length of a vector and the angle between
@@ -18,17 +21,24 @@ two vectors. In particular vectors `x` and `y` are orthogonal if their inner pro
 We define both the real and complex cases at the same time using the `is_R_or_C` typeclass.
 
 This file proves general results on inner product spaces. For the specific construction of an inner
-product structure on `n → 𝕜` for `𝕜 = ℝ` or `ℂ`, see `euclidean_space` in `analysis.pi_Lp`.
+product structure on `n → 𝕜` for `𝕜 = ℝ` or `ℂ`, see `euclidean_space` in
+`analysis.inner_product_space.pi_L2`.
 
 ## Main results
 
 - We define the class `inner_product_space 𝕜 E` extending `normed_space 𝕜 E` with a number of basic
   properties, most notably the Cauchy-Schwarz inequality. Here `𝕜` is understood to be either `ℝ`
   or `ℂ`, through the `is_R_or_C` typeclass.
-- We show that if `f i` is an inner product space for each `i`, then so is `Π i, f i`
+- We show that the inner product is continuous, `continuous_inner`.
 - We define `orthonormal`, a predicate on a function `v : ι → E`, and prove the existence of a
-  maximal orthonormal set, `exists_maximal_orthonormal`.  For the existence of orthonormal
-  bases, Hilbert bases, etc., see the file `analysis.inner_product_space.projection`.
+  maximal orthonormal set, `exists_maximal_orthonormal`.  Bessel's inequality,
+  `orthonormal.tsum_inner_products_le`, states that given an orthonormal set `v` and a vector `x`,
+  the sum of the norm-squares of the inner products `⟪v i, x⟫` is no more than the norm-square of
+  `x`. For the existence of orthonormal bases, Hilbert bases, etc., see the file
+  `analysis.inner_product_space.projection`.
+- The `orthogonal_complement` of a submodule `K` is defined, and basic API established.  Some of
+  the more subtle results about the orthogonal complement are delayed to
+  `analysis.inner_product_space.projection`.
 
 ## Notation
 
@@ -45,7 +55,7 @@ in the second.
 
 ## Tags
 
-inner product space, norm
+inner product space, Hilbert space, norm
 
 ## References
 *  [Clément & Martin, *The Lax-Milgram Theorem. A detailed proof to be formalized in Coq*]
@@ -1382,6 +1392,25 @@ linear_map.mk_continuous
 
 @[simp] lemma inner_right_apply (v w : E) : inner_right v w = ⟪v, w⟫ := rfl
 
+/-- When an inner product space `E` over `𝕜` is considered as a real normed space, its inner
+product satisfies `is_bounded_bilinear_map`.
+
+In order to state these results, we need a `normed_space ℝ E` instance. We will later establish
+such an instance by restriction-of-scalars, `inner_product_space.is_R_or_C_to_real 𝕜 E`, but this
+instance may be not definitionally equal to some other “natural” instance. So, we assume
+`[normed_space ℝ E]` and `[is_scalar_tower ℝ 𝕜 E]`. In both interesting cases `𝕜 = ℝ` and `𝕜 = ℂ`
+we have these instances.
+-/
+lemma is_bounded_bilinear_map_inner [normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E] :
+  is_bounded_bilinear_map ℝ (λ p : E × E, ⟪p.1, p.2⟫) :=
+{ add_left := λ _ _ _, inner_add_left,
+  smul_left := λ r x y,
+    by simp only [← algebra_map_smul 𝕜 r x, algebra_map_eq_of_real, inner_smul_real_left],
+  add_right := λ _ _ _, inner_add_right,
+  smul_right := λ r x y,
+    by simp only [← algebra_map_smul 𝕜 r y, algebra_map_eq_of_real, inner_smul_real_right],
+  bound := ⟨1, zero_lt_one, λ x y,
+    by { rw [one_mul], exact norm_inner_le_norm x y, }⟩ }
 end norm
 
 section bessels_inequality
@@ -1501,6 +1530,48 @@ instance inner_product_space.complex_to_real [inner_product_space ℂ G] : inner
 inner_product_space.is_R_or_C_to_real ℂ G
 
 end is_R_or_C_to_real
+
+section continuous
+
+/-!
+### Continuity of the inner product
+-/
+
+lemma continuous_inner : continuous (λ p : E × E, ⟪p.1, p.2⟫) :=
+begin
+  letI : inner_product_space ℝ E := inner_product_space.is_R_or_C_to_real 𝕜 E,
+  letI : is_scalar_tower ℝ 𝕜 E := restrict_scalars.is_scalar_tower _ _ _,
+  exact is_bounded_bilinear_map_inner.continuous
+end
+
+variables {α : Type*}
+
+lemma filter.tendsto.inner {f g : α → E} {l : filter α} {x y : E} (hf : tendsto f l (𝓝 x))
+  (hg : tendsto g l (𝓝 y)) :
+  tendsto (λ t, ⟪f t, g t⟫) l (𝓝 ⟪x, y⟫) :=
+(continuous_inner.tendsto _).comp (hf.prod_mk_nhds hg)
+
+variables [topological_space α] {f g : α → E} {x : α} {s : set α}
+
+include 𝕜
+
+lemma continuous_within_at.inner (hf : continuous_within_at f s x)
+  (hg : continuous_within_at g s x) :
+  continuous_within_at (λ t, ⟪f t, g t⟫) s x :=
+hf.inner hg
+
+lemma continuous_at.inner (hf : continuous_at f x) (hg : continuous_at g x) :
+  continuous_at (λ t, ⟪f t, g t⟫) x :=
+hf.inner hg
+
+lemma continuous_on.inner (hf : continuous_on f s) (hg : continuous_on g s) :
+  continuous_on (λ t, ⟪f t, g t⟫) s :=
+λ x hx, (hf x hx).inner (hg x hx)
+
+lemma continuous.inner (hf : continuous f) (hg : continuous g) : continuous (λ t, ⟪f t, g t⟫) :=
+continuous_iff_continuous_at.2 $ λ x, hf.continuous_at.inner hg.continuous_at
+
+end continuous
 
 section orthogonal
 variables (K : submodule 𝕜 E)

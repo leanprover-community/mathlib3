@@ -595,25 +595,38 @@ begin
   intro hf2, rw [hf2, C_0] at hf1, exact absurd hf1 hf.ne_zero
 end
 
+section comm_ring
+
+variables (F K : Type*) [comm_ring F] [ring K] [algebra F K]
+
 -- TODO: refactor to allow transcendental extensions?
 -- See: https://en.wikipedia.org/wiki/Separable_extension#Separability_of_transcendental_extensions
 
 /-- Typeclass for separable field extension: `K` is a separable field extension of `F` iff
-the minimal polynomial of every `x : K` is separable. -/
-class is_separable (F K : Sort*) [field F] [field K] [algebra F K] : Prop :=
+the minimal polynomial of every `x : K` is separable.
+
+We define this for general (commutative) rings and only assume `F` and `K` are fields if this
+is needed for a proof.
+-/
+class is_separable : Prop :=
 (is_integral' (x : K) : is_integral F x)
 (separable' (x : K) : (minpoly F x).separable)
 
-theorem is_separable.is_integral (F) {K} [field F] [field K] [algebra F K] [is_separable F K] :
+variables (F) {K}
+
+theorem is_separable.is_integral [is_separable F K] :
   ∀ x : K, is_integral F x := is_separable.is_integral'
 
-theorem is_separable.separable (F) {K} [field F] [field K] [algebra F K] [is_separable F K] :
+theorem is_separable.separable [is_separable F K] :
   ∀ x : K, (minpoly F x).separable := is_separable.separable'
 
-theorem is_separable_iff {F K} [field F] [field K] [algebra F K] : is_separable F K ↔
-  ∀ x : K, is_integral F x ∧ (minpoly F x).separable :=
+variables {F K}
+
+theorem is_separable_iff : is_separable F K ↔ ∀ x : K, is_integral F x ∧ (minpoly F x).separable :=
 ⟨λ h x, ⟨@@is_separable.is_integral F _ _ _ h x, @@is_separable.separable F _ _ _ h x⟩,
  λ h, ⟨λ x, (h x).1, λ x, (h x).2⟩⟩
+
+end comm_ring
 
 instance is_separable_self (F : Type*) [field F] : is_separable F F :=
 ⟨λ x, is_integral_algebra_map, λ x, by { rw minpoly.eq_X_sub_C', exact separable_X_sub_C }⟩

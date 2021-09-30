@@ -15,6 +15,7 @@ hyperbolic sine, hyperbolic cosine, and hyperbolic tangent functions.
 
 -/
 
+local notation `abs'` := has_abs.abs
 open is_absolute_value
 open_locale classical big_operators nat
 

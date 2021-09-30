@@ -384,24 +384,20 @@ lemma monotone_on.interval_integrable {u : ι → E} {a b : ι} (hu : monotone_o
   interval_integrable u μ a b :=
 begin
   rw interval_integrable_iff,
-  exact (integrable_on_compact_of_monotone_on is_compact_interval hu).mono_set Ioc_subset_Icc_self,
+  exact (monotone_on.integrable_on_compact is_compact_interval hu).mono_set Ioc_subset_Icc_self,
 end
 
 lemma antitone_on.interval_integrable {u : ι → E} {a b : ι} (hu : antitone_on u (interval a b)) :
   interval_integrable u μ a b :=
 @monotone_on.interval_integrable (order_dual E) _ ‹_› ι _ _ _ _ _ _ _ _ _ ‹_› ‹_› u a b hu
 
-lemma interval_integrable_of_monotone {u : ι → E} {a b : ι} (hu : monotone u) :
+lemma monotone.interval_integrable {u : ι → E} {a b : ι} (hu : monotone u) :
   interval_integrable u μ a b :=
 (hu.monotone_on _).interval_integrable
 
-alias interval_integrable_of_monotone ← monotone.interval_integrable
-
-lemma interval_integrable_of_antitone {u : ι → E} {a b : ι} (hu : antitone u) :
+lemma antitone.interval_integrable {u : ι → E} {a b : ι} (hu :antitone u) :
   interval_integrable u μ a b :=
 (hu.antitone_on _).interval_integrable
-
-alias interval_integrable_of_antitone ← antitone.interval_integrable
 
 end
 

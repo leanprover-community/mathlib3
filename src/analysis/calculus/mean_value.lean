@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
 import analysis.calculus.local_extr
+import analysis.convex.slope
 import analysis.convex.topology
 import data.complex.is_R_or_C
 
@@ -1031,9 +1032,8 @@ theorem convex_on_of_deriv2_nonneg {D : set ℝ} (hD : convex ℝ D) {f : ℝ �
   (hf'' : differentiable_on ℝ (deriv f) (interior D))
   (hf''_nonneg : ∀ x ∈ interior D, 0 ≤ (deriv^[2] f x)) :
   convex_on ℝ D f :=
-convex_on_of_deriv_monotone_on hD hf hf' $ λ x hx y hy hxy,
-hD.interior.monotone_on_of_deriv_nonneg hf''.continuous_on (by rwa interior_interior)
-  (by rwa interior_interior) hx hy hxy
+convex_on_of_deriv_monotone_on hD hf hf' $ hD.interior.monotone_on_of_deriv_nonneg
+  hf''.continuous_on (by rwa interior_interior) (by rwa interior_interior)
 
 /-- If a function `f` is continuous on a convex set `D ⊆ ℝ`, is twice differentiable on its
 interior, and `f''` is nonpositive on the interior, then `f` is concave on `D`. -/
@@ -1042,9 +1042,8 @@ theorem concave_on_of_deriv2_nonpos {D : set ℝ} (hD : convex ℝ D) {f : ℝ �
   (hf'' : differentiable_on ℝ (deriv f) (interior D))
   (hf''_nonpos : ∀ x ∈ interior D, (deriv^[2] f x) ≤ 0) :
   concave_on ℝ D f :=
-concave_on_of_deriv_antitone_on hD hf hf' $ λ x hx y hy hxy,
-hD.interior.antitone_on_of_deriv_nonpos hf''.continuous_on (by rwa [interior_interior])
-  (by rwa [interior_interior]) hx hy hxy
+concave_on_of_deriv_antitone_on hD hf hf' $ hD.interior.antitone_on_of_deriv_nonpos
+  hf''.continuous_on (by rwa interior_interior) (by rwa interior_interior) hx hy hxy
 
 /-- If a function `f` is twice differentiable on a open convex set `D ⊆ ℝ` and
 `f''` is nonnegative on `D`, then `f` is convex on `D`. -/

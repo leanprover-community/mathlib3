@@ -932,14 +932,16 @@ end
 section complex
 
 /-- The isometry between a weighted sum of squares on the complex numbers and the
-sum of squares, i.e. `weighted_sum_squares` with weight `λ i : ι, 1`. -/
-noncomputable def isometry_sum_squares [decidable_eq ι] (w : ι → units ℂ) :
-  isometry (weighted_sum_squares ℂ w) (weighted_sum_squares ℂ (1 : ι → ℂ)) :=
+sum of squares, i.e. `weighted_sum_squares` with weights 1 or 0. -/
+noncomputable def isometry_sum_squares [decidable_eq ι] (w' : ι → ℂ) :
+  isometry (weighted_sum_squares ℂ w')
+    (weighted_sum_squares ℂ (λ i, if w' i = 0 then 0 else 1 : ι → ℂ)) :=
 begin
+  let w := λ i, if h : w' i = 0 then (1 : units ℂ) else units.mk0 (w' i) h,
   have hw' : ∀ i : ι, (w i : ℂ) ^ - (1 / 2 : ℂ) ≠ 0,
   { intros i hi,
     exact (w i).ne_zero ((complex.cpow_eq_zero_iff _ _).1 hi).1 },
-  convert (weighted_sum_squares ℂ w).isometry_basis_repr
+  convert (weighted_sum_squares ℂ w').isometry_basis_repr
     ((pi.basis_fun ℂ ι).units_smul (λ i, (is_unit_iff_ne_zero.2 $ hw' i).unit)),
   ext1 v,
   erw [basis_repr_apply, weighted_sum_squares_apply, weighted_sum_squares_apply],
@@ -956,10 +958,28 @@ begin
     intro hj', exact false.elim (hj' hj) },
   simp_rw basis.units_smul_apply,
   erw [hsum, smul_eq_mul],
-  suffices : 1 * v j * v j =  w j ^ - (1 / 2 : ℂ) * w j ^ - (1 / 2 : ℂ) * w j * v j * v j,
-  { erw [pi.one_apply, ← mul_assoc, this, smul_eq_mul, smul_eq_mul], ring },
+  split_ifs,
+  { simp only [h, zero_smul, zero_mul]},
+  have hww' : w' j = w j,
+  { simp only [w, dif_neg h, units.coe_mk0] },
+  simp only [hww', one_mul],
+  change v j * v j = ↑(w j) * ((v j * ↑(w j) ^ -(1 / 2 : ℂ)) * (v j * ↑(w j) ^ -(1 / 2 : ℂ))),
+  suffices : v j * v j = w j ^ - (1 / 2 : ℂ) * w j ^ - (1 / 2 : ℂ) * w j * v j * v j,
+  { rw [this], ring },
   rw [← complex.cpow_add _ _ (w j).ne_zero, show - (1 / 2 : ℂ) + - (1 / 2) = -1, by ring,
-      complex.cpow_neg_one, inv_mul_cancel (w j).ne_zero],
+      complex.cpow_neg_one, inv_mul_cancel (w j).ne_zero, one_mul],
+end
+
+/-- The isometry between a weighted sum of squares on the complex numbers and the
+sum of squares, i.e. `weighted_sum_squares` with weight `λ i : ι, 1`. -/
+noncomputable def isometry_sum_squares_units [decidable_eq ι] (w : ι → units ℂ) :
+  isometry (weighted_sum_squares ℂ w) (weighted_sum_squares ℂ (1 : ι → ℂ)) :=
+begin
+  have hw1 : (λ i, if (w i : ℂ) = 0 then 0 else 1 : ι → ℂ) = 1,
+  { ext i : 1, exact dif_neg (w i).ne_zero },
+  have := isometry_sum_squares (coe ∘ w),
+  rw hw1 at this,
+  exact this,
 end
 
 /-- A nondegenerate quadratic form on the complex numbers is equivalent to
@@ -968,7 +988,7 @@ theorem equivalent_sum_squares {M : Type*} [add_comm_group M] [module ℂ M]
   [finite_dimensional ℂ M] (Q : quadratic_form ℂ M) (hQ : (associated Q).nondegenerate) :
   equivalent Q (weighted_sum_squares ℂ (1 : fin (finite_dimensional.finrank ℂ M) → ℂ)) :=
 let ⟨w, ⟨hw₁⟩⟩ := Q.equivalent_weighted_sum_squares_units_of_nondegenerate' hQ in
-  ⟨hw₁.trans (isometry_sum_squares w)⟩
+  ⟨hw₁.trans (isometry_sum_squares_units w)⟩
 
 end complex
 
@@ -979,13 +999,14 @@ open real
 /-- The isometry between a weighted sum of squares with weights `u` on the
 (non-zero) real numbers and the weighted sum of squares with weights `sign ∘ u`. -/
 noncomputable def isometry_sign_weighted_sum_squares
-  [decidable_eq ι] (u : ι → units ℝ) :
-  isometry (weighted_sum_squares ℝ u) (weighted_sum_squares ℝ (sign ∘ coe ∘ u)) :=
+  [decidable_eq ι] (w : ι → ℝ) :
+  isometry (weighted_sum_squares ℝ w) (weighted_sum_squares ℝ (sign ∘ w)) :=
 begin
+  let u := λ i, if h : w i = 0 then (1 : units ℝ) else units.mk0 (w i) h,
   have hu' : ∀ i : ι, (sign (u i) * u i) ^ - (1 / 2 : ℝ) ≠ 0,
   { intro i, refine (ne_of_lt (real.rpow_pos_of_pos
       (sign_mul_pos_of_ne_zero _ $ units.ne_zero _) _)).symm},
-  convert ((weighted_sum_squares ℝ u).isometry_basis_repr
+  convert ((weighted_sum_squares ℝ w).isometry_basis_repr
     ((pi.basis_fun ℝ ι).units_smul (λ i, (is_unit_iff_ne_zero.2 $ hu' i).unit))),
   ext1 v,
   rw [basis_repr_apply, weighted_sum_squares_apply, weighted_sum_squares_apply],
@@ -1002,9 +1023,15 @@ begin
     intro hj', exact false.elim (hj' hj) },
   simp_rw basis.units_smul_apply,
   erw [hsum, smul_eq_mul],
-  suffices : (sign ∘ coe ∘ u) j * v j * v j = (sign (u j) * u j) ^ - (1 / 2 : ℝ) *
+  dsimp [u],
+  split_ifs,
+  { simp only [h, zero_smul, zero_mul, sign_zero]},
+  have hwu : w j = u j,
+  { simp only [u, dif_neg h, units.coe_mk0] },
+  simp only [hwu, units.coe_mk0],
+  suffices : (u j : ℝ).sign * v j * v j = (sign (u j) * u j) ^ - (1 / 2 : ℝ) *
     (sign (u j) * u j) ^ - (1 / 2 : ℝ) * u j * v j * v j,
-  { erw [← mul_assoc, this, smul_eq_mul, smul_eq_mul], ring },
+  { erw [← mul_assoc, this], ring },
   rw [← real.rpow_add (sign_mul_pos_of_ne_zero _ $ units.ne_zero _),
       show - (1 / 2 : ℝ) + - (1 / 2) = -1, by ring, real.rpow_neg_one, _root_.mul_inv',
       inv_sign, mul_assoc (sign (u j)) (u j)⁻¹,
@@ -1022,6 +1049,18 @@ theorem equivalent_one_neg_one_weighted_sum_squared
 let ⟨w, ⟨hw₁⟩⟩ := Q.equivalent_weighted_sum_squares_units_of_nondegenerate' hQ in
   ⟨sign ∘ coe ∘ w,
    λ i, sign_apply_eq_of_ne_zero (w i) (w i).ne_zero,
+   ⟨hw₁.trans (isometry_sign_weighted_sum_squares (coe ∘ w))⟩⟩
+
+/-- **Sylvester's law of inertia**: A real quadratic form is equivalent to a weighted
+sum of squares with the weights being ±1 or 0. -/
+theorem equivalent_one_zero_neg_one_weighted_sum_squared
+  {M : Type*} [add_comm_group M] [module ℝ M] [finite_dimensional ℝ M]
+  (Q : quadratic_form ℝ M) :
+  ∃ w : fin (finite_dimensional.finrank ℝ M) → ℝ,
+  (∀ i, w i = -1 ∨ w i = 0 ∨ w i = 1) ∧ equivalent Q (weighted_sum_squares ℝ w) :=
+let ⟨w, ⟨hw₁⟩⟩ := Q.equivalent_weighted_sum_squares in
+  ⟨sign ∘ coe ∘ w,
+   λ i, sign_apply_eq (w i),
    ⟨hw₁.trans (isometry_sign_weighted_sum_squares w)⟩⟩
 
 end real

@@ -824,8 +824,6 @@ begin
   simpa [quot_mk_eq_mk, prod_mk, mk_eq_mk_iff_associated] using eq
 end
 
-variables [nontrivial α]
-
 private theorem forall_map_mk_factors_irreducible [decidable_eq α] (x : α) (hx : x ≠ 0) :
   ∀(a : associates α), a ∈ multiset.map associates.mk (factors'' x) → irreducible a :=
 begin
@@ -834,7 +832,7 @@ begin
   exact (irreducible_mk c).2 (irreducible_of_factor'' _ hc)
 end
 
-theorem prod_le_prod_iff_le {p q : multiset (associates α)}
+theorem prod_le_prod_iff_le [nontrivial α] {p q : multiset (associates α)}
   (hp : ∀a∈p, irreducible a) (hq : ∀a∈q, irreducible a) :
   p.prod ≤ q.prod ↔ p ≤ q :=
 iff.intro
@@ -904,7 +902,7 @@ dif_pos rfl
   (associates.mk a).factors = factors' a :=
 by { classical, apply dif_neg, apply (mt mk_eq_zero.1 h) }
 
-theorem prod_factors : ∀(s : factor_set α), s.prod.factors = s
+theorem prod_factors [nontrivial α] : ∀(s : factor_set α), s.prod.factors = s
 | none     := by simp [factor_set.prod]; refl
 | (some s) :=
   begin
@@ -945,7 +943,7 @@ by rwa [factors_prod, factors_prod] at this
 
 omit dec dec'
 
-theorem eq_of_prod_eq_prod {a b : factor_set α} (h : a.prod = b.prod) : a = b :=
+theorem eq_of_prod_eq_prod [nontrivial α] {a b : factor_set α} (h : a.prod = b.prod) : a = b :=
 begin
   classical,
   have : a.prod.factors = b.prod.factors, by rw h,
@@ -954,14 +952,15 @@ end
 
 include dec dec'
 
-@[simp] theorem factors_mul (a b : associates α) : (a * b).factors = a.factors + b.factors :=
+@[simp] theorem factors_mul [nontrivial α] (a b : associates α) :
+  (a * b).factors = a.factors + b.factors :=
 eq_of_prod_eq_prod $ eq_of_factors_eq_factors $
   by rw [prod_add, factors_prod, factors_prod, factors_prod]
 
-theorem factors_mono : ∀{a b : associates α}, a ≤ b → a.factors ≤ b.factors
+theorem factors_mono [nontrivial α] : ∀{a b : associates α}, a ≤ b → a.factors ≤ b.factors
 | s t ⟨d, rfl⟩ := by rw [factors_mul] ; exact le_add_of_nonneg_right bot_le
 
-theorem factors_le {a b : associates α} : a.factors ≤ b.factors ↔ a ≤ b :=
+theorem factors_le [nontrivial α] {a b : associates α} : a.factors ≤ b.factors ↔ a ≤ b :=
 iff.intro
   (assume h, have a.factors.prod ≤ b.factors.prod, from prod_mono h,
     by rwa [factors_prod, factors_prod] at this)
@@ -969,7 +968,7 @@ iff.intro
 
 omit dec dec'
 
-theorem prod_le {a b : factor_set α} : a.prod ≤ b.prod ↔ a ≤ b :=
+theorem prod_le [nontrivial α] {a b : factor_set α} : a.prod ≤ b.prod ↔ a ≤ b :=
 begin
   classical,
   exact iff.intro
@@ -983,7 +982,7 @@ include dec dec'
 noncomputable instance : has_sup (associates α) := ⟨λa b, (a.factors ⊔ b.factors).prod⟩
 noncomputable instance : has_inf (associates α) := ⟨λa b, (a.factors ⊓ b.factors).prod⟩
 
-noncomputable instance : bounded_lattice (associates α) :=
+noncomputable instance [nontrivial α] : bounded_lattice (associates α) :=
 { sup          := (⊔),
   inf          := (⊓),
   sup_le       :=
@@ -1002,7 +1001,7 @@ noncomputable instance : bounded_lattice (associates α) :=
   .. associates.order_top,
   .. associates.order_bot }
 
-lemma sup_mul_inf (a b : associates α) : (a ⊔ b) * (a ⊓ b) = a * b :=
+lemma sup_mul_inf [nontrivial α] (a b : associates α) : (a ⊔ b) * (a ⊓ b) = a * b :=
 show (a.factors ⊔ b.factors).prod * (a.factors ⊓ b.factors).prod = a * b,
 begin
   refine eq_of_factors_eq_factors _,
@@ -1028,7 +1027,7 @@ omit dec'
 lemma dvd_of_mem_factors' {a : α} {p : associates α} {hp : irreducible p} {hz : a ≠ 0}
   (h_mem : subtype.mk p hp ∈ factors' a) : p ∣ associates.mk a :=
 by { haveI := classical.dec_eq (associates α),
-  apply @dvd_of_mem_factors _ _ _ _ _ _ _ _ _ hp,
+  apply @dvd_of_mem_factors _ _ _ _ _ _ _ _ hp,
   rw factors_mk _ hz,
   apply mem_factor_set_some.2 h_mem }
 
@@ -1092,7 +1091,7 @@ begin
     apply hb }
 end
 
-theorem coprime_iff_inf_one {a b : α} (ha0 : a ≠ 0) (hb0 : b ≠ 0) :
+theorem coprime_iff_inf_one [nontrivial α] {a b : α} (ha0 : a ≠ 0) (hb0 : b ≠ 0) :
   (associates.mk a) ⊓ (associates.mk b) = 1 ↔ ∀ {d : α}, d ∣ a → d ∣ b → ¬ prime d :=
 begin
   split,
@@ -1108,14 +1107,14 @@ end
 
 omit dec_irr
 
-theorem factors_prime_pow {p : associates α} (hp : irreducible p)
+theorem factors_prime_pow [nontrivial α] {p : associates α} (hp : irreducible p)
   (k : ℕ) : factors (p ^ k) = some (multiset.repeat ⟨p, hp⟩ k) :=
 eq_of_prod_eq_prod (by rw [associates.factors_prod, factor_set.prod, multiset.map_repeat,
                            multiset.prod_repeat, subtype.coe_mk])
 
 include dec_irr
 
-theorem prime_pow_dvd_iff_le {m p : associates α} (h₁ : m ≠ 0)
+theorem prime_pow_dvd_iff_le [nontrivial α] {m p : associates α} (h₁ : m ≠ 0)
   (h₂ : irreducible p) {k : ℕ} : p ^ k ≤ m ↔ k ≤ count p m.factors :=
 begin
   obtain ⟨a, nz, rfl⟩ := associates.exists_non_zero_rep h₁,
@@ -1124,7 +1123,7 @@ begin
   exact with_top.coe_le_coe
 end
 
-theorem le_of_count_ne_zero {m p : associates α} (h0 : m ≠ 0)
+theorem le_of_count_ne_zero [nontrivial α] {m p : associates α} (h0 : m ≠ 0)
   (hp : irreducible p) : count p m.factors ≠ 0 → p ≤ m :=
 begin
   rw [← pos_iff_ne_zero],
@@ -1134,7 +1133,7 @@ begin
   simpa only
 end
 
-theorem count_mul {a : associates α} (ha : a ≠ 0) {b : associates α} (hb : b ≠ 0)
+theorem count_mul [nontrivial α] {a : associates α} (ha : a ≠ 0) {b : associates α} (hb : b ≠ 0)
   {p : associates α} (hp : irreducible p) :
   count p (factors (a * b)) = count p a.factors + count p b.factors :=
 begin
@@ -1145,7 +1144,8 @@ begin
       multiset.count_add, count_some hp, count_some hp]
 end
 
-theorem count_of_coprime {a : associates α} (ha : a ≠ 0) {b : associates α} (hb : b ≠ 0)
+theorem count_of_coprime [nontrivial α] {a : associates α} (ha : a ≠ 0) {b : associates α}
+  (hb : b ≠ 0)
   (hab : ∀ d, d ∣ a → d ∣ b → ¬ prime d) {p : associates α} (hp : irreducible p) :
   count p a.factors = 0 ∨ count p b.factors = 0 :=
 begin
@@ -1156,7 +1156,8 @@ begin
     (irreducible_iff_prime.mp hp)⟩,
 end
 
-theorem count_mul_of_coprime {a : associates α} (ha : a ≠ 0) {b : associates α} (hb : b ≠ 0)
+theorem count_mul_of_coprime [nontrivial α] {a : associates α} (ha : a ≠ 0) {b : associates α}
+  (hb : b ≠ 0)
   {p : associates α} (hp : irreducible p) (hab : ∀ d, d ∣ a → d ∣ b → ¬ prime d) :
   count p a.factors = 0 ∨ count p a.factors = count p (a * b).factors :=
 begin
@@ -1165,7 +1166,8 @@ begin
   rw [count_mul ha hb hp, hb0, add_zero]
 end
 
-theorem count_mul_of_coprime' {a : associates α} (ha : a ≠ 0) {b : associates α} (hb : b ≠ 0)
+theorem count_mul_of_coprime' [nontrivial α] {a : associates α} (ha : a ≠ 0) {b : associates α}
+  (hb : b ≠ 0)
   {p : associates α} (hp : irreducible p) (hab : ∀ d, d ∣ a → d ∣ b → ¬ prime d) :
   count p (a * b).factors = count p a.factors
   ∨ count p (a * b).factors = count p b.factors :=
@@ -1176,7 +1178,7 @@ begin
   { apply or.intro_left, rw [hb0, add_zero] }
 end
 
-theorem dvd_count_of_dvd_count_mul {a b : associates α} (ha : a ≠ 0) (hb : b ≠ 0)
+theorem dvd_count_of_dvd_count_mul [nontrivial α] {a b : associates α} (ha : a ≠ 0) (hb : b ≠ 0)
   {p : associates α} (hp : irreducible p) (hab : ∀ d, d ∣ a → d ∣ b → ¬ prime d)
   {k : ℕ} (habk : k ∣ count p (a * b).factors) : k ∣ count p a.factors :=
 begin
@@ -1187,14 +1189,15 @@ end
 
 omit dec_irr
 
-@[simp] lemma factors_one : factors (1 : associates α) = 0 :=
+@[simp] lemma factors_one [nontrivial α] : factors (1 : associates α) = 0 :=
 begin
   apply eq_of_prod_eq_prod,
   rw associates.factors_prod,
   exact multiset.prod_zero,
 end
 
-@[simp] theorem pow_factors {a : associates α} {k : ℕ} : (a ^ k).factors = k • a.factors :=
+@[simp] theorem pow_factors [nontrivial α] {a : associates α} {k : ℕ} :
+  (a ^ k).factors = k • a.factors :=
 begin
   induction k with n h,
   { rw [zero_nsmul, pow_zero], exact factors_one },
@@ -1203,7 +1206,8 @@ end
 
 include dec_irr
 
-lemma count_pow {a : associates α} (ha : a ≠ 0) {p : associates α} (hp : irreducible p)
+lemma count_pow [nontrivial α] {a : associates α} (ha : a ≠ 0) {p : associates α}
+  (hp : irreducible p)
   (k : ℕ) : count p (a ^ k).factors = k * count p a.factors :=
 begin
   induction k with n h,
@@ -1211,10 +1215,11 @@ begin
   { rw [pow_succ, count_mul ha (pow_ne_zero _ ha) hp, h, nat.succ_eq_add_one], ring }
 end
 
-theorem dvd_count_pow {a : associates α} (ha : a ≠ 0) {p : associates α} (hp : irreducible p)
+theorem dvd_count_pow [nontrivial α] {a : associates α} (ha : a ≠ 0) {p : associates α}
+  (hp : irreducible p)
   (k : ℕ) : k ∣ count p (a ^ k).factors := by { rw count_pow ha hp, apply dvd_mul_right }
 
-theorem is_pow_of_dvd_count {a : associates α} (ha : a ≠ 0) {k : ℕ}
+theorem is_pow_of_dvd_count [nontrivial α] {a : associates α} (ha : a ≠ 0) {k : ℕ}
   (hk : ∀ (p : associates α) (hp : irreducible p), k ∣ count p a.factors) :
   ∃ (b : associates α), a = b ^ k :=
 begin
@@ -1235,7 +1240,7 @@ omit dec
 omit dec_irr
 omit dec'
 
-theorem eq_pow_of_mul_eq_pow {a b c : associates α} (ha : a ≠ 0) (hb : b ≠ 0)
+theorem eq_pow_of_mul_eq_pow [nontrivial α] {a b c : associates α} (ha : a ≠ 0) (hb : b ≠ 0)
   (hab : ∀ d, d ∣ a → d ∣ b → ¬ prime d) {k : ℕ} (h : a * b = c ^ k) :
   ∃ (d : associates α), a = d ^ k :=
 begin

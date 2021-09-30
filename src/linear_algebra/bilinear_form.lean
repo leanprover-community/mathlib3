@@ -550,10 +550,10 @@ lemma ne_zero_of_not_is_ortho_self {B : bilin_form K V}
 if for all `i ≠ j`, `B (v i) (v j) = 0`. For orthogonality between two elements, use
 `bilin_form.is_ortho` -/
 def is_Ortho {n : Type w} (B : bilin_form R M) (v : n → M) : Prop :=
-∀ i j : n, i ≠ j → B.is_ortho (v j) (v i)
+pairwise (B.is_ortho on v)
 
 lemma is_Ortho_def {n : Type w} {B : bilin_form R M} {v : n → M} :
-  B.is_Ortho v ↔ ∀ i j : n, i ≠ j → B (v j) (v i) = 0 := iff.rfl
+  B.is_Ortho v ↔ ∀ i j : n, i ≠ j → B (v i) (v j) = 0 := iff.rfl
 
 section
 
@@ -600,7 +600,7 @@ begin
   have hsum : s.sum (λ (j : n), w j * B (v j) (v i)) = w i * B (v i) (v i),
   { apply finset.sum_eq_single_of_mem i hi,
     intros j hj hij,
-    rw [is_Ortho_def.1 hv₁ _ _ hij.symm, mul_zero], },
+    rw [is_Ortho_def.1 hv₁ _ _ hij, mul_zero], },
   simp_rw [sum_left, smul_left, hsum] at this,
   exact eq_zero_of_ne_zero_of_mul_right_eq_zero (hv₂ i) this,
 end
@@ -1427,7 +1427,7 @@ begin
   convert mul_zero _ using 2,
   obtain rfl | hij := eq_or_ne i j,
   { exact ho },
-  { exact h j i hij.symm },
+  { exact h i j hij },
 end
 
 /-- Given an orthogonal basis with respect to a bilinear form, the bilinear form is nondegenerate
@@ -1445,7 +1445,7 @@ begin
   simp_rw [basis.repr_symm_apply, finsupp.total_apply, finsupp.sum, sum_left, smul_left] at hB,
   rw finset.sum_eq_single i at hB,
   { exact eq_zero_of_ne_zero_of_mul_right_eq_zero (ho i) hB, },
-  { intros j hj hij, convert mul_zero _ using 2, exact hO i j hij.symm, },
+  { intros j hj hij, convert mul_zero _ using 2, exact hO j i hij, },
   { intros hi, convert zero_mul _ using 2, exact finsupp.not_mem_support_iff.mp hi }
 end
 

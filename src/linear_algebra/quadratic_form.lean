@@ -813,11 +813,11 @@ begin
   { rw basis.coe_mk_fin_cons,
     intros j i,
     refine fin.cases _ (λ i, _) i; refine fin.cases _ (λ j, _) j; intro hij;
-      simp only [fin.cons_zero, fin.cons_succ, function.comp_apply],
+      simp only [function.on_fun, fin.cons_zero, fin.cons_succ, function.comp_apply],
     { exact (hij rfl).elim },
-    { exact (v' j).prop _ (submodule.mem_span_singleton_self x) },
     { rw [is_ortho, hB₂],
-      exact (v' i).prop _ (submodule.mem_span_singleton_self x) },
+      exact (v' j).prop _ (submodule.mem_span_singleton_self x) },
+    { exact (v' i).prop _ (submodule.mem_span_singleton_self x) },
     { exact hv₁ _ _ (ne_of_apply_ne _ hij), }, }
 end
 
@@ -869,7 +869,7 @@ begin
   { rw [smul_left, smul_right], ring },
   { intros i _ hij,
     rw [smul_left, smul_right,
-        show (associated_hom R₁) Q (v j) (v i) = 0, by exact hv₂ i j hij,
+        show associated_hom R₁ Q (v j) (v i) = 0, from hv₂ j i hij.symm,
         mul_zero, mul_zero] },
   { contradiction }
 end

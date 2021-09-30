@@ -10,7 +10,7 @@ import data.polynomial.eval
 /-!
 # Negligible Functions
 
-This file defines a predicate `negligible f` for a function satisfying
+This file defines a predicate `asymptotics.negligible f` for a function satisfying
   one of following equivalent definitions (The definition is in terms of the first condition):
 
 * `f` is `O(x ^ c)` for all (or equivalently sufficiently small) integers `c`
@@ -183,6 +183,20 @@ lemma negligible_of_is_O_fpow_lt (hα : ∀ᶠ (x : α) in at_top, 1 ≤ ∥alge
 negligible_of_is_O_fpow_le hα C.pred
   (λ c hc, h c (lt_of_le_of_lt hc (int.pred_self_lt C)))
 
+lemma negligible_of_fpow_mul_tendsto_zero [nontrivial α] [no_zero_smul_divisors α 𝕜]
+  (hα : ∀ᶠ (x : α) in at_top, 1 ≤ ∥algebra_map α 𝕜 x∥)
+  (hf : ∀ (c : ℤ), tendsto (λ x, (algebra_map α 𝕜 x) ^ c * f x) at_top (𝓝 0)) :
+  negligible f :=
+begin
+  refine negligible_of_is_O_fpow_lt hα 0 (λ c hc, is_O_of_div_tendsto_nhds _ 0 _),
+  { refine at_top.sets_of_superset (mem_at_top 1) (λ x hx hx', absurd (fpow_eq_zero hx') _),
+    rw [algebra.algebra_map_eq_smul_one, smul_eq_zero, not_or_distrib],
+    exact ⟨ne_of_gt (lt_of_lt_of_le zero_lt_one hx), zero_ne_one.symm⟩ },
+  { convert hf (-c),
+    ext x,
+    rw [pi.div_apply, fpow_neg, div_eq_mul_inv, mul_comm (f x)] }
+end
+
 section order_topology
 
 variable [order_topology 𝕜]
@@ -193,7 +207,8 @@ lemma negligible.tendsto_zero (hα : tendsto (algebra_map α 𝕜) at_top at_top
   (hf : negligible f) : tendsto f at_top (𝓝 0) :=
 begin
   refine is_O.trans_tendsto (hf (-1)) _,
-  have : (has_inv.inv : 𝕜 → 𝕜) ∘ (algebra_map α 𝕜 : α → 𝕜) = (λ (n : α), (algebra_map α 𝕜 n) ^ (-1 : ℤ)),
+  have : (has_inv.inv : 𝕜 → 𝕜) ∘ (algebra_map α 𝕜 : α → 𝕜)
+    = (λ (n : α), (algebra_map α 𝕜 n) ^ (-1 : ℤ)),
   by simp only [gpow_one, fpow_neg],
   refine this ▸ (tendsto_inv_at_top_zero).comp (hα),
 end

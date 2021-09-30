@@ -1800,8 +1800,7 @@ end
 section real
 
 lemma rn_deriv_ae_eq_condexp {f : α → ℝ} (hf : integrable f μ) :
-  @signed_measure.rn_deriv α m
-    ((μ.with_densityᵥ f).trim hm) (μ.trim hm) =ᵐ[μ] μ[f | hm] :=
+  signed_measure.rn_deriv ((μ.with_densityᵥ f).trim hm) (μ.trim hm) =ᵐ[μ] μ[f | hm] :=
 begin
   refine ae_eq_condexp_of_forall_set_integral_eq hm hf _ _ _,
   { intros,

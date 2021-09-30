@@ -69,10 +69,7 @@ begin
   { exact aeval_zero _ }
 end
 
-/-- A minimal polynomial is not `1`.
-
-See also `minpoly.not_is_unit` (which also assumes `A` is nontrivial).
--/
+/-- A minimal polynomial is not `1`. -/
 lemma ne_one [nontrivial B] : minpoly A x ≠ 1 :=
 begin
   intro h,
@@ -88,12 +85,10 @@ begin
   { rw [eq_zero hx, polynomial.map_zero], exact zero_ne_one },
 end
 
-/-- A minimal polynomial is not a unit.
-
-See also `minpoly.ne_one` (which doesn't need to assume `A` is nontrivial).
--/
-lemma not_is_unit [nontrivial A] [nontrivial B] : ¬ is_unit (minpoly A x) :=
+/-- A minimal polynomial is not a unit. -/
+lemma not_is_unit [nontrivial B] : ¬ is_unit (minpoly A x) :=
 begin
+  haveI : nontrivial A := (algebra_map A B).domain_nontrivial,
   by_cases hx : is_integral A x,
   { exact mt (eq_one_of_is_unit_of_monic (monic hx)) (ne_one A x) },
   { rw [eq_zero hx], exact not_is_unit_zero }

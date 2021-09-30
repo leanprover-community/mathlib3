@@ -145,16 +145,12 @@ begin
           by {apply lattice_ordered_comm_group.abs_triangle,}
         ... ≤ |p.fst - q.fst | + |p.snd - q.snd| : by {
           apply add_le_add,
-          apply
+          exact
             (sup_le_iff.elim_left (lattice_ordered_comm_group.Birkhoff_inequalities _ _ _)).right,
-          -- Should I be surprised that this isn't infered automatically?
-          apply normed_lattice_add_comm_group_to_covariant_class,
           rw inf_comm,
           nth_rewrite 1 inf_comm,
-          apply
+          exact
             (sup_le_iff.elim_left (lattice_ordered_comm_group.Birkhoff_inequalities _ _ _)).right,
-          -- Should I be surprised that this isn't infered automatically?
-          apply normed_lattice_add_comm_group_to_covariant_class,
         }, },
     { apply add_nonneg,
       apply lattice_ordered_comm_group.abs_pos,

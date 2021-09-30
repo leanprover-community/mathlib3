@@ -164,7 +164,7 @@ integral, fundamental theorem of calculus, FTC-1, FTC-2, change of variables in 
 
 noncomputable theory
 open topological_space (second_countable_topology)
-open measure_theory set classical filter
+open measure_theory set classical filter function
 
 open_locale classical topological_space filter ennreal big_operators
 
@@ -389,7 +389,7 @@ begin
   exact (integrable_on_compact_of_monotone_on is_compact_interval hu).mono_set Ioc_subset_Icc_self,
 end
 
-lemma interval_integrable_of_antimono_on {u : ι → E} {a b : ι}
+lemma interval_integrable_of_antitone_on {u : ι → E} {a b : ι}
   (hu : ∀ ⦃x y⦄, x ∈ interval a b → y ∈ interval a b → x ≤ y → u y ≤ u x) :
   interval_integrable u μ a b :=
 @interval_integrable_of_monotone_on (order_dual E) _ ‹_› ι _ _ _ _ _ _ _ _ _ ‹_› ‹_› u a b hu
@@ -400,7 +400,7 @@ interval_integrable_of_monotone_on (λ x y _ _ hxy, hu hxy)
 
 alias interval_integrable_of_monotone ← monotone.interval_integrable
 
-lemma interval_integrable_of_antimono {u : ι → E} {a b : ι}
+lemma interval_integrable_of_antitone {u : ι → E} {a b : ι}
   (hu : ∀ ⦃x y⦄, x ≤ y → u y ≤ u x) :
   interval_integrable u μ a b :=
 @interval_integrable_of_monotone (order_dual E) _ ‹_› ι _ _ _ _ _ _ _ _ _ ‹_› ‹_› u a b hu
@@ -840,13 +840,13 @@ begin
     simp only [integrable_on_const, measure_lt_top, or_true]
 end
 
-lemma integral_eq_integral_of_support_subset {f : α → E} {a b} (h : function.support f ⊆ Ioc a b) :
+lemma integral_eq_integral_of_support_subset {f : α → E} {a b} (h : support f ⊆ Ioc a b) :
   ∫ x in a..b, f x ∂μ = ∫ x, f x ∂μ :=
 begin
   cases le_total a b with hab hab,
   { rw [integral_of_le hab, ← integral_indicator measurable_set_Ioc, indicator_eq_self.2 h];
     apply_instance },
-  { rw [Ioc_eq_empty hab.not_lt, subset_empty_iff, function.support_eq_empty_iff] at h,
+  { rw [Ioc_eq_empty hab.not_lt, subset_empty_iff, support_eq_empty_iff] at h,
     simp [h] }
 end
 
@@ -1120,7 +1120,7 @@ end
 
 lemma integral_pos_iff_support_of_nonneg_ae'
   (hf : 0 ≤ᵐ[μ.restrict (Ioc a b ∪ Ioc b a)] f) (hfi : interval_integrable f μ a b) :
-  0 < ∫ x in a..b, f x ∂μ ↔ a < b ∧ 0 < μ (function.support f ∩ Ioc a b) :=
+  0 < ∫ x in a..b, f x ∂μ ↔ a < b ∧ 0 < μ (support f ∩ Ioc a b) :=
 begin
   obtain hab | hab := le_total b a;
     simp only [Ioc_eq_empty hab.not_lt, empty_union, union_empty] at hf ⊢,
@@ -1136,7 +1136,7 @@ end
 
 lemma integral_pos_iff_support_of_nonneg_ae
   (hf : 0 ≤ᵐ[μ] f) (hfi : interval_integrable f μ a b) :
-  0 < ∫ x in a..b, f x ∂μ ↔ a < b ∧ 0 < μ (function.support f ∩ Ioc a b) :=
+  0 < ∫ x in a..b, f x ∂μ ↔ a < b ∧ 0 < μ (support f ∩ Ioc a b) :=
 integral_pos_iff_support_of_nonneg_ae' (ae_mono measure.restrict_le_self hf) hfi
 
 variable (hab : a ≤ b)
@@ -2197,6 +2197,28 @@ theorem integral_eq_sub_of_has_deriv_at
 integral_eq_sub_of_has_deriv_right (has_deriv_at.continuous_on hderiv)
   (λ x hx, (hderiv _ (mem_Icc_of_Ioo hx)).has_deriv_within_at) hint
 
+theorem integral_eq_sub_of_has_deriv_at_of_tendsto (hab : a < b) {fa fb}
+  (hderiv : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) (hint : interval_integrable f' volume a b)
+  (ha : tendsto f (𝓝[Ioi a] a) (𝓝 fa)) (hb : tendsto f (𝓝[Iio b] b) (𝓝 fb)) :
+  ∫ y in a..b, f' y = fb - fa :=
+begin
+  set F : ℝ → E := update (update f a fa) b fb,
+  have Fderiv : ∀ x ∈ Ioo a b, has_deriv_at F (f' x) x,
+  { refine λ x hx, (hderiv x hx).congr_of_eventually_eq _,
+    filter_upwards [Ioo_mem_nhds hx.1 hx.2],
+    intros y hy, simp only [F],
+    rw [update_noteq hy.2.ne, update_noteq hy.1.ne'] },
+  have hcont : continuous_on F (Icc a b),
+  { rw [continuous_on_update_iff, continuous_on_update_iff, Icc_diff_right, Ico_diff_left],
+    refine ⟨⟨λ z hz, (hderiv z hz).continuous_at.continuous_within_at, _⟩, _⟩,
+    { exact λ _, ha.mono_left (nhds_within_mono _ Ioo_subset_Ioi_self) },
+    { rintro -,
+      refine (hb.congr' _).mono_left (nhds_within_mono _ Ico_subset_Iio_self),
+      filter_upwards [Ioo_mem_nhds_within_Iio (right_mem_Ioc.2 hab)],
+      exact λ z hz, (update_noteq hz.1.ne' _ _).symm } },
+  simpa [F, hab.ne, hab.ne'] using integral_eq_sub_of_has_deriv_at_of_le hab.le hcont Fderiv hint
+end
+
 /-- Fundamental theorem of calculus-2: If `f : ℝ → E` is differentiable at every `x` in `[a, b]` and
   its derivative is integrable on `[a, b]`, then `∫ y in a..b, deriv f y` equals `f b - f a`. -/
 theorem integral_deriv_eq_sub (hderiv : ∀ x ∈ interval a b, differentiable_at ℝ f x)
@@ -2244,21 +2266,23 @@ end
 ### Integration by substitution / Change of variables
 -/
 
+section smul
+
 /--
 Change of variables, general form. If `f` is continuous on `[a, b]` and has
 continuous right-derivative `f'` in `(a, b)`, and `g` is continuous on `f '' [a, b]` then we can
-substitute `u = f x` to get `∫ x in a..b, (g ∘ f) x * f' x = ∫ u in f a..f b, g u`.
+substitute `u = f x` to get `∫ x in a..b, f' x • (g ∘ f) x = ∫ u in f a..f b, g u`.
 
 We could potentially slightly weaken the conditions, by not requiring that `f'` and `g` are
 continuous on the endpoints of these intervals, but in that case we need to additionally assume that
 the functions are integrable on that interval.
 -/
-theorem integral_comp_mul_deriv'' {f f' g : ℝ → ℝ}
+theorem integral_comp_smul_deriv'' {f f' : ℝ → ℝ} {g : ℝ → E}
   (hf : continuous_on f [a, b])
   (hff' : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_within_at f (f' x) (Ioi x) x)
   (hf' : continuous_on f' [a, b])
   (hg : continuous_on g (f '' [a, b])) :
-  ∫ x in a..b, (g ∘ f) x * f' x = ∫ u in f a..f b, g u :=
+  ∫ x in a..b, f' x • (g ∘ f) x= ∫ u in f a..f b, g u :=
 begin
   have h_cont : continuous_on (λ u, ∫ t in f a..f u, g t) [a, b],
   { rw [real.image_interval hf] at hg,
@@ -2266,7 +2290,7 @@ begin
     { rw [← real.image_interval hf], exact mem_image_of_mem f left_mem_interval },
     { rw [← image_subset_iff], exact (real.image_interval hf).subset } },
   have h_der : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_within_at
-    (λ u, ∫ t in f a..f u, g t) ((g ∘ f) x * f' x) (Ioi x) x,
+    (λ u, ∫ t in f a..f u, g t) (f' x • ((g ∘ f) x)) (Ioi x) x,
   { intros x hx,
     let I := [Inf (f '' [a, b]), Sup (f '' [a, b])],
     have hI : f '' [a, b] = I := real.image_interval hf,
@@ -2280,13 +2304,76 @@ begin
     haveI : fact (f x ∈ I) := ⟨h2x⟩,
     have : has_deriv_within_at (λ u, ∫ x in f a..u, g x) (g (f x)) I (f x) :=
     integral_has_deriv_within_at_right h2g h3g (hg (f x) h2x),
-    refine (this.comp x ((hff' x hx).Ioo_of_Ioi hx.2) _).Ioi_of_Ioo hx.2,
+    refine (this.scomp x ((hff' x hx).Ioo_of_Ioi hx.2) _).Ioi_of_Ioo hx.2,
     dsimp only [I], rw [← image_subset_iff, ← real.image_interval hf],
     refine image_subset f (Ioo_subset_Icc_self.trans $ Icc_subset_Icc_left hx.1.le) },
-  have h_int : interval_integrable (λ (x : ℝ), (g ∘ f) x * f' x) volume a b :=
-  ((hg.comp hf $ subset_preimage_image f _).mul hf').interval_integrable,
+  have h_int : interval_integrable (λ (x : ℝ), f' x • (g ∘ f) x) volume a b :=
+  (hf'.smul (hg.comp hf $ subset_preimage_image f _)).interval_integrable,
   simp_rw [integral_eq_sub_of_has_deriv_right h_cont h_der h_int, integral_same, sub_zero],
 end
+
+/--
+Change of variables. If `f` is has continuous derivative `f'` on `[a, b]`,
+and `g` is continuous on `f '' [a, b]`, then we can substitute `u = f x` to get
+`∫ x in a..b, f' x • (g ∘ f) x = ∫ u in f a..f b, g u`.
+Compared to `interval_integral.integral_comp_smul_deriv` we only require that `g` is continuous on
+`f '' [a, b]`.
+-/
+theorem integral_comp_smul_deriv' {f f' : ℝ → ℝ} {g : ℝ → E}
+  (h : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
+  (h' : continuous_on f' (interval a b)) (hg : continuous_on g (f '' [a, b])) :
+  ∫ x in a..b, f' x • (g ∘ f) x = ∫ x in f a..f b, g x :=
+integral_comp_smul_deriv'' (λ x hx, (h x hx).continuous_at.continuous_within_at)
+  (λ x hx, (h x $ Ioo_subset_Icc_self hx).has_deriv_within_at) h' hg
+
+/--
+Change of variables, most common version. If `f` is has continuous derivative `f'` on `[a, b]`,
+and `g` is continuous, then we can substitute `u = f x` to get
+`∫ x in a..b, f' x • (g ∘ f) x = ∫ u in f a..f b, g u`.
+-/
+theorem integral_comp_smul_deriv {f f' : ℝ → ℝ} {g : ℝ → E}
+  (h : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
+  (h' : continuous_on f' (interval a b)) (hg : continuous g) :
+  ∫ x in a..b, f' x • (g ∘ f) x = ∫ x in f a..f b, g x :=
+integral_comp_smul_deriv' h h' hg.continuous_on
+
+theorem integral_deriv_comp_smul_deriv' {f f' : ℝ → ℝ} {g g' : ℝ → E}
+  (hf : continuous_on f [a, b])
+  (hff' : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_within_at f (f' x) (Ioi x) x)
+  (hf' : continuous_on f' [a, b])
+  (hg : continuous_on g [f a, f b])
+  (hgg' : ∀ x ∈ Ioo (min (f a) (f b)) (max (f a) (f b)), has_deriv_within_at g (g' x) (Ioi x) x)
+  (hg' : continuous_on g' (f '' [a, b])) :
+  ∫ x in a..b, f' x • (g' ∘ f) x = (g ∘ f) b - (g ∘ f) a :=
+begin
+  rw [integral_comp_smul_deriv'' hf hff' hf' hg',
+  integral_eq_sub_of_has_deriv_right hg hgg' (hg'.mono _).interval_integrable],
+  exact real.interval_subset_image_interval hf left_mem_interval right_mem_interval,
+end
+
+theorem integral_deriv_comp_smul_deriv {f f' : ℝ → ℝ} {g g' : ℝ → E}
+  (hf : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
+  (hg : ∀ x ∈ interval a b, has_deriv_at g (g' (f x)) (f x))
+  (hf' : continuous_on f' (interval a b)) (hg' : continuous g') :
+  ∫ x in a..b, f' x • (g' ∘ f) x = (g ∘ f) b - (g ∘ f) a :=
+integral_eq_sub_of_has_deriv_at (λ x hx, (hg x hx).scomp x $ hf x hx)
+  (hf'.smul (hg'.comp_continuous_on $ has_deriv_at.continuous_on hf)).interval_integrable
+
+end smul
+section mul
+
+/--
+Change of variables, general form for scalar functions. If `f` is continuous on `[a, b]` and has
+continuous right-derivative `f'` in `(a, b)`, and `g` is continuous on `f '' [a, b]` then we can
+substitute `u = f x` to get `∫ x in a..b, (g ∘ f) x * f' x = ∫ u in f a..f b, g u`.
+-/
+theorem integral_comp_mul_deriv'' {f f' g : ℝ → ℝ}
+  (hf : continuous_on f [a, b])
+  (hff' : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_within_at f (f' x) (Ioi x) x)
+  (hf' : continuous_on f' [a, b])
+  (hg : continuous_on g (f '' [a, b])) :
+  ∫ x in a..b, (g ∘ f) x * f' x = ∫ u in f a..f b, g u :=
+by simpa [mul_comm] using integral_comp_smul_deriv'' hf hff' hf' hg
 
 /--
 Change of variables. If `f` is has continuous derivative `f'` on `[a, b]`,
@@ -2299,8 +2386,7 @@ theorem integral_comp_mul_deriv' {f f' g : ℝ → ℝ}
   (h : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
   (h' : continuous_on f' (interval a b)) (hg : continuous_on g (f '' [a, b])) :
   ∫ x in a..b, (g ∘ f) x * f' x = ∫ x in f a..f b, g x :=
-integral_comp_mul_deriv'' (λ x hx, (h x hx).continuous_at.continuous_within_at)
-  (λ x hx, (h x $ Ioo_subset_Icc_self hx).has_deriv_within_at) h' hg
+by simpa [mul_comm] using integral_comp_smul_deriv' h h' hg
 
 /--
 Change of variables, most common version. If `f` is has continuous derivative `f'` on `[a, b]`,
@@ -2321,18 +2407,15 @@ theorem integral_deriv_comp_mul_deriv' {f f' g g' : ℝ → ℝ}
   (hgg' : ∀ x ∈ Ioo (min (f a) (f b)) (max (f a) (f b)), has_deriv_within_at g (g' x) (Ioi x) x)
   (hg' : continuous_on g' (f '' [a, b])) :
   ∫ x in a..b, (g' ∘ f) x * f' x = (g ∘ f) b - (g ∘ f) a :=
-begin
-  rw [integral_comp_mul_deriv'' hf hff' hf' hg',
-  integral_eq_sub_of_has_deriv_right hg hgg' (hg'.mono _).interval_integrable],
-  exact real.interval_subset_image_interval hf left_mem_interval right_mem_interval,
-end
+by simpa [mul_comm] using integral_deriv_comp_smul_deriv' hf hff' hf' hg hgg' hg'
 
 theorem integral_deriv_comp_mul_deriv {f f' g g' : ℝ → ℝ}
   (hf : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
   (hg : ∀ x ∈ interval a b, has_deriv_at g (g' (f x)) (f x))
   (hf' : continuous_on f' (interval a b)) (hg' : continuous g') :
   ∫ x in a..b, (g' ∘ f) x * f' x = (g ∘ f) b - (g ∘ f) a :=
-integral_eq_sub_of_has_deriv_at (λ x hx, (hg x hx).comp x $ hf x hx)
-  ((hg'.comp_continuous_on $ has_deriv_at.continuous_on hf).mul hf').interval_integrable
+by simpa [mul_comm] using integral_deriv_comp_smul_deriv hf hg hf' hg'
+
+end mul
 
 end interval_integral

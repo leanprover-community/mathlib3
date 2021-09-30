@@ -94,19 +94,19 @@ normed lattice ordered group.
 @[priority 100] -- see Note [lower instance priority]
 instance {α : Type*} [h: normed_lattice_add_comm_group α] :
   normed_lattice_add_comm_group (order_dual α) :=
-  { add_le_add_left := begin
-    intros a b h₁ c,
-    rw ← order_dual.dual_le,
-    rw ← order_dual.dual_le at h₁,
-    apply h.add_le_add_left,
-    exact h₁,
-  end,
-  solid := begin
-    intros a b h₂,
-    apply dual_solid,
-    rw ← order_dual.dual_le at h₂,
-    finish,
-  end, }
+{ add_le_add_left := begin
+  intros a b h₁ c,
+  rw ← order_dual.dual_le,
+  rw ← order_dual.dual_le at h₁,
+  apply h.add_le_add_left,
+  exact h₁,
+end,
+solid := begin
+  intros a b h₂,
+  apply dual_solid,
+  rw ← order_dual.dual_le at h₂,
+  finish,
+end, }
 
 /--
 Let `α` be a normed lattice ordered group, let `a` be an element of `α` and let `|a|` be the

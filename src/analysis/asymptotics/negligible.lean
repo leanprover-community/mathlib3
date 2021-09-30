@@ -17,7 +17,6 @@ This file defines a predicate `asymptotics.negligible f` for a function satisfyi
 * `f` is `O(p(x)⁻¹)` for all (or equivalently sufficiently large) polynomials `p`
 * `p(x) * f` is bounded for all polynomials `p`
 * `p(x) * f` tends to `𝓝 0` for all polynomials `p`
-
 -/
 
 namespace asymptotics
@@ -220,7 +219,6 @@ lemma negligible.eventually_le (hα : tendsto (algebra_map α 𝕜) at_top at_to
 by simpa only [dist_zero_right] using
   (hf.tendsto_zero hα).eventually (metric.closed_ball_mem_nhds (0 : 𝕜) hε)
 
-@[simp]
 lemma negligible_const_iff [(at_top : filter α).ne_bot]
   (hα : tendsto (algebra_map α 𝕜) at_top at_top)
   (x : 𝕜) : negligible (function.const α x) ↔ x = 0 :=

@@ -179,10 +179,7 @@ lemma symm_apply {f₀ f₁ : C(X, Y)} (F : homotopy_with f₀ f₁ P) (x : I ×
 
 @[simp]
 lemma symm_symm {f₀ f₁ : C(X, Y)} (F : homotopy_with f₀ f₁ P) : F.symm.symm = F :=
-begin
-  ext x,
-  simp,
-end
+by { ext, simp }
 
 /--
 Given `homotopy_with f₀ f₁ P` and `homotopy_with f₁ f₂ P`, we can define a `homotopy_with f₀ f₂ P`
@@ -223,14 +220,8 @@ lemma trans_apply {f₀ f₁ f₂ : C(X, Y)} (F : homotopy_with f₀ f₁ P) (G 
     F (⟨2 * x.1, (unit_interval.mul_pos_mem_iff zero_lt_two).2 ⟨x.1.2.1, h⟩⟩, x.2)
   else
     G (⟨2 * x.1 - 1, unit_interval.two_mul_sub_one_mem_iff.2 ⟨(not_le.1 h).le, x.1.2.2⟩⟩, x.2) :=
-begin
-  change ite _ _ _ = _,
-  split_ifs,
-  { rw [extend, continuous_map.coe_Icc_extend, set.Icc_extend_of_mem],
-    refl },
-  { rw [extend, continuous_map.coe_Icc_extend, set.Icc_extend_of_mem],
-    refl }
-end
+show ite _ _ _ = _,
+by split_ifs; { rw [extend, continuous_map.coe_Icc_extend, set.Icc_extend_of_mem], refl }
 
 lemma symm_trans {f₀ f₁ f₂ : C(X, Y)} (F : homotopy_with f₀ f₁ P) (G : homotopy_with f₁ f₂ P) :
   (F.trans G).symm = G.symm.trans F.symm :=

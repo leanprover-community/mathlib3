@@ -411,12 +411,10 @@ theorem ball_subset_ball (h : ε₁ ≤ ε₂) : ball x ε₁ ⊆ ball x ε₂ :
 λ y (yx : _ < ε₁), lt_of_lt_of_le yx h
 
 lemma ball_subset_ball' (h : ε₁ + dist x y ≤ ε₂) : ball x ε₁ ⊆ ball y ε₂ :=
-begin
-  assume z hz,
-  calc dist z y ≤ dist z x + dist x y : dist_triangle _ _ _
+λ z hz, calc
+  dist z y ≤ dist z x + dist x y : dist_triangle _ _ _
   ... < ε₁ + dist x y : add_lt_add_right hz _
   ... ≤ ε₂ : h
-end
 
 theorem closed_ball_subset_closed_ball (h : ε₁ ≤ ε₂) :
   closed_ball x ε₁ ⊆ closed_ball x ε₂ :=
@@ -424,12 +422,10 @@ theorem closed_ball_subset_closed_ball (h : ε₁ ≤ ε₂) :
 
 lemma closed_ball_subset_closed_ball' (h : ε₁ + dist x y ≤ ε₂) :
   closed_ball x ε₁ ⊆ closed_ball y ε₂ :=
-begin
-  assume z hz,
-  calc dist z y ≤ dist z x + dist x y : dist_triangle _ _ _
+λ z hz, calc
+  dist z y ≤ dist z x + dist x y : dist_triangle _ _ _
   ... ≤ ε₁ + dist x y : add_le_add_right hz _
   ... ≤ ε₂ : h
-end
 
 theorem closed_ball_subset_ball (h : ε₁ < ε₂) :
   closed_ball x ε₁ ⊆ ball x ε₂ :=
@@ -438,19 +434,15 @@ theorem closed_ball_subset_ball (h : ε₁ < ε₂) :
 lemma dist_le_add_of_nonempty_closed_ball_inter_closed_ball
   (h : (closed_ball x ε₁ ∩ closed_ball y ε₂).nonempty) :
   dist x y ≤ ε₁ + ε₂ :=
-begin
-  rcases h with ⟨z, hz⟩,
-  calc dist x y ≤ dist z x + dist z y : dist_triangle_left _ _ _
+let ⟨z, hz⟩ := h in calc
+  dist x y ≤ dist z x + dist z y : dist_triangle_left _ _ _
   ... ≤ ε₁ + ε₂ : add_le_add hz.1 hz.2
-end
 
 lemma dist_lt_add_of_nonempty_closed_ball_inter_ball (h : (closed_ball x ε₁ ∩ ball y ε₂).nonempty) :
   dist x y < ε₁ + ε₂ :=
-begin
-  rcases h with ⟨z, hz⟩,
-  calc dist x y ≤ dist z x + dist z y : dist_triangle_left _ _ _
+let ⟨z, hz⟩ := h in calc
+  dist x y ≤ dist z x + dist z y : dist_triangle_left _ _ _
   ... < ε₁ + ε₂ : add_lt_add_of_le_of_lt hz.1 hz.2
-end
 
 lemma dist_lt_add_of_nonempty_ball_inter_closed_ball (h : (ball x ε₁ ∩ closed_ball y ε₂).nonempty) :
   dist x y < ε₁ + ε₂ :=

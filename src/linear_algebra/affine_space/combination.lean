@@ -229,6 +229,36 @@ lemma affine_combination_vsub (w₁ w₂ : ι → k) (p : ι → P) :
   s.affine_combination p w₁ -ᵥ s.affine_combination p w₂ = s.weighted_vsub p (w₁ - w₂) :=
 by rw [←affine_map.linear_map_vsub, affine_combination_linear, vsub_eq_sub]
 
+lemma attach_affine_combination_of_injective
+  (s : finset P) (w : P → k) (f : s → P) (hf : function.injective f) :
+  s.attach.affine_combination f (w ∘ f) = (image f univ).affine_combination id w :=
+begin
+  simp only [affine_combination, weighted_vsub_of_point_apply, id.def, vadd_right_cancel_iff,
+    function.comp_app, affine_map.coe_mk],
+  let g₁ : s → V := λ i, w (f i) • (f i -ᵥ classical.choice S.nonempty),
+  let g₂ : P → V := λ i, w i • (i -ᵥ classical.choice S.nonempty),
+  change univ.sum g₁ = (image f univ).sum g₂,
+  have hgf : g₁ = g₂ ∘ f, { ext, simp, },
+  rw [hgf, sum_image],
+  exact λ _ _ _ _ hxy, hf hxy,
+end
+
+lemma attach_affine_combination_coe (s : finset P) (w : P → k) :
+  s.attach.affine_combination (coe : s → P) (w ∘ coe) = s.affine_combination id w :=
+by rw [attach_affine_combination_of_injective s w (coe : s → P) subtype.coe_injective,
+  univ_eq_attach, attach_image_coe]
+
+omit S
+
+/-- Viewing a module as an affine space modelled on itself, affine combinations are just linear
+combinations. -/
+@[simp] lemma affine_combination_eq_linear_combination (s : finset ι) (p : ι → V) (w : ι → k)
+  (hw : ∑ i in s, w i = 1) :
+  s.affine_combination p w = ∑ i in s, w i • p i :=
+by simp [s.affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one w p hw 0]
+
+include S
+
 /-- An `affine_combination` equals a point if that point is in the set
 and has weight 1 and the other points in the set have weight 0. -/
 @[simp] lemma affine_combination_of_eq_one_of_eq_zero (w : ι → k) (p : ι → P) {i : ι}
@@ -381,6 +411,10 @@ s.affine_combination p (s.centroid_weights k)
 lemma centroid_def (p : ι → P) :
   s.centroid k p = s.affine_combination p (s.centroid_weights k) :=
 rfl
+
+lemma centroid_univ (s : finset P) :
+  univ.centroid k (coe : s → P) = s.centroid k id :=
+by { rw [centroid, centroid, ← s.attach_affine_combination_coe], congr, ext, simp, }
 
 /-- The centroid of a single point. -/
 @[simp] lemma centroid_singleton (p : ι → P) (i : ι) :

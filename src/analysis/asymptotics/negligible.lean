@@ -96,7 +96,7 @@ section no_zero_smul_divisors
 
 variables [nontrivial α] [no_zero_smul_divisors α 𝕜]
 
-lemma negligible.coe_nat_mul (hf : negligible f) :
+lemma negligible.algebra_map_mul (hf : negligible f) :
   negligible (λ n, (algebra_map α 𝕜 n) * f n) :=
 begin
   refine λ c, (is_O.mul (is_O_refl (algebra_map α 𝕜) at_top) (hf (c - 1))).trans _,
@@ -110,14 +110,14 @@ begin
     mul_comm (algebra_map α 𝕜 x), mul_assoc, inv_mul_cancel hx', mul_one],
 end
 
-lemma negligible.coe_nat_pow_mul (hf : negligible f) (p : ℕ) :
+lemma negligible.algebra_map_pow_mul (hf : negligible f) (p : ℕ) :
   negligible (λ n, (algebra_map α 𝕜 n) ^ p * f n) :=
 begin
   induction p with p hp,
   { simp_rw [pow_zero, one_mul],
     exact hf },
   { simp_rw [pow_succ, mul_assoc],
-    exact hp.coe_nat_mul }
+    exact hp.algebra_map_mul }
 end
 
 theorem negligible.polynomial_mul (hf : negligible f) (p : polynomial 𝕜) :
@@ -127,7 +127,7 @@ begin
   { simp_rw [polynomial.eval_add, add_mul],
     exact hp.add hq },
   { simp_rw [polynomial.eval_monomial, mul_assoc],
-    exact (hf.coe_nat_pow_mul m).const_mul x }
+    exact (hf.algebra_map_pow_mul m).const_mul x }
 end
 
 /-- If `f` is negligible, and `g` is `O(p)` for some polynomial `p`, then `f * g` is negligible -/
@@ -140,7 +140,7 @@ lemma negligible.mul_is_O_polynomial (hf : negligible f) (p : polynomial 𝕜)
 lemma negligible.mul_is_O (hf : negligible f) (c : ℕ)
   (hg : is_O g (λ n, (algebra_map α 𝕜 n) ^ c) at_top) : negligible (f * g) :=
 (is_O.mul (is_O_refl f at_top) hg).trans_negligible
-  ((hf.coe_nat_pow_mul c).mono $ λ x, le_of_eq (congr_arg _ $ mul_comm _ _))
+  ((hf.algebra_map_pow_mul c).mono $ λ x, le_of_eq (congr_arg _ $ mul_comm _ _))
 
 lemma negligible.mul (hf : negligible f) (hg : negligible g) :
   negligible (f * g) :=

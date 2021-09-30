@@ -311,12 +311,12 @@ end
 /-- If `X` is a real-valued random variable that has pdf `f`, then the expectation of `X` equals
 `∫ x, x * f x ∂λ` where `λ` is the Lebesgue measure. -/
 lemma integral_mul_eq_integral [has_pdf X ℙ] :
-  ∫ x, x * (pdf X ℙ volume x).to_real ∂(volume) = ∫ x, X x ∂ℙ :=
+  ∫ x, x * (pdf X ℙ volume x).to_real = ∫ x, X x ∂ℙ :=
 integral_mul_eq_integral' measurable_id
 
 lemma has_finite_integral_mul {f : ℝ → ℝ} {g : ℝ → ℝ≥0∞}
-  (hg : pdf X ℙ =ᵐ[volume] g) (hgi : ∫⁻ x, ∥f x∥₊ * g x ∂(volume) < ∞) :
-  has_finite_integral (λ x, f x * (pdf X ℙ volume x).to_real) volume :=
+  (hg : pdf X ℙ =ᵐ[volume] g) (hgi : ∫⁻ x, ∥f x∥₊ * g x < ∞) :
+  has_finite_integral (λ x, f x * (pdf X ℙ volume x).to_real) :=
 begin
   rw has_finite_integral,
   have : (λ x, ↑∥f x∥₊ * g x) =ᵐ[volume] (λ x, ∥f x * (pdf X ℙ volume x).to_real∥₊),

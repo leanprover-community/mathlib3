@@ -177,5 +177,5 @@ Let `α` be a normed lattice ordered group. Then `α` is a topological lattice i
 -/
 @[priority 100] -- see Note [lower instance priority]
 instance normed_lattice_add_comm_group_topological_lattice {α : Type*}
-  [h: normed_lattice_add_comm_group α] : topological_lattice α :=
+  [normed_lattice_add_comm_group α] : topological_lattice α :=
 topological_lattice.mk

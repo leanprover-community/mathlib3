@@ -10,8 +10,6 @@ import measure_theory.decomposition.radon_nikodym
 
 open measure_theory measure_theory.measure topological_space
 
-localized "notation `ℙ` := volume" in probability_theory
-
 -- The related notation `P[ X | hm] := measure_theory.condexp hm P X` is defined in
 -- measure_theory.function.conditional_expectation.
 localized "notation `𝔼[` X `|` hm `]` := measure_theory.condexp hm volume X" in probability_theory
@@ -37,11 +35,7 @@ variables {α E : Type*} [measure_space α] {P P' : measure α} [measurable_spac
 
 example : P[X] = ∫ a, X a ∂P := rfl
 
-example : ℙ[X] = ∫ a, X a := rfl
-
 example : 𝔼[X] = volume[X] := rfl
-
-example : 𝔼[X] = ℙ[X] := rfl
 
 example : X =ₐₛ Y ↔ X =ᵐ[volume] Y := iff.rfl
 

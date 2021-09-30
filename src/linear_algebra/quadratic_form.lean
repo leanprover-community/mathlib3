@@ -899,7 +899,7 @@ begin
 end
 
 variables {V : Type*} {K : Type*} [field K] [invertible (2 : K)]
-variables [add_comm_group V] [module K V] [finite_dimensional K V]
+variables [add_comm_group V] [module K V]
 
 /-- Given an orthogonal basis, a quadratic form is isometric with a weighted sum of squares. -/
 noncomputable def isometry_weighted_sum_squares (Q : quadratic_form K V)
@@ -912,6 +912,8 @@ begin
   convert iso.map_app m,
   rw basis_repr_eq_of_is_Ortho _ _ hv₁,
 end
+
+variables [finite_dimensional K V]
 
 lemma equivalent_weighted_sum_squares (Q : quadratic_form K V) :
   ∃ w : fin (finite_dimensional.finrank K V) → K, equivalent Q (weighted_sum_squares K w) :=

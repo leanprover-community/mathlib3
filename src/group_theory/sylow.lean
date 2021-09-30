@@ -178,17 +178,17 @@ noncomputable instance [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
   fintype (quotient_group.quotient P.1.normalizer) :=
 of_equiv (sylow p G) P.equiv_quotient_normalizer
 
-lemma sylow.card_eq_card_quotient_normalizer [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
+lemma card_sylow_eq_card_quotient_normalizer [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
   card (sylow p G) = card (quotient_group.quotient P.1.normalizer) :=
 card_congr P.equiv_quotient_normalizer
 
-lemma sylow.card_eq_index_normalizer [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
+lemma card_sylow_eq_index_normalizer [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
   card (sylow p G) = P.1.normalizer.index :=
-P.card_eq_card_quotient_normalizer.trans P.1.normalizer.index_eq_card.symm
+(card_sylow_eq_card_quotient_normalizer P).trans P.1.normalizer.index_eq_card.symm
 
-lemma sylow.card_dvd_index [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
+lemma card_sylow_dvd_index [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
   card (sylow p G) ∣ P.1.index :=
-((congr_arg _ P.card_eq_index_normalizer).mp dvd_rfl).trans (index_dvd_of_le le_normalizer)
+((congr_arg _ (card_sylow_eq_index_normalizer P)).mp dvd_rfl).trans (index_dvd_of_le le_normalizer)
 
 end infinite_sylow
 

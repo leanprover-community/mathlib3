@@ -66,11 +66,7 @@ mt is_coprime_zero_right.mp not_is_unit_zero
 
 /-- If a 2-vector `p` satisfies `is_coprime (p 0) (p 1)`, then `p ≠ 0`. -/
 lemma is_coprime.ne_zero [nontrivial R] {p : fin 2 → R} (h : is_coprime (p 0) (p 1)) : p ≠ 0 :=
-begin
-  intros h',
-  rw [h'] at h,
-  exact not_coprime_zero_zero h,
-end
+by { rintro rfl, exact not_coprime_zero_zero h }
 
 theorem is_coprime_one_left : is_coprime 1 x :=
 ⟨1, 0, by rw [one_mul, zero_mul, add_zero]⟩

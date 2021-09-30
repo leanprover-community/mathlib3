@@ -1803,19 +1803,17 @@ lemma rn_deriv_ae_eq_condexp {f : α → ℝ} (hf : integrable f μ) :
   signed_measure.rn_deriv ((μ.with_densityᵥ f).trim hm) (μ.trim hm) =ᵐ[μ] μ[f | hm] :=
 begin
   refine ae_eq_condexp_of_forall_set_integral_eq hm hf _ _ _,
-  { intros,
-    exact (integrable_of_integrable_trim hm (@signed_measure.integrable_rn_deriv α m
+  { exact λ _ _ _, (integrable_of_integrable_trim hm (signed_measure.integrable_rn_deriv
       ((μ.with_densityᵥ f).trim hm) (μ.trim hm))).integrable_on },
   { intros s hs hlt,
     conv_rhs { rw [← hf.with_densityᵥ_trim_eq_integral hm hs,
-                   ← @signed_measure.with_densityᵥ_rn_deriv_eq α m
-                     ((μ.with_densityᵥ f).trim hm) (μ.trim hm) _
-                     (hf.with_densityᵥ_trim_absolutely_continuous hm)] },
-    rw [with_densityᵥ_apply (@signed_measure.integrable_rn_deriv α m
-          ((μ.with_densityᵥ f).trim hm) (μ.trim hm)), ← set_integral_trim hm],
+      ← signed_measure.with_densityᵥ_rn_deriv_eq ((μ.with_densityᵥ f).trim hm) (μ.trim hm)
+        (hf.with_densityᵥ_trim_absolutely_continuous hm)], },
+    rw [with_densityᵥ_apply
+        (signed_measure.integrable_rn_deriv ((μ.with_densityᵥ f).trim hm) (μ.trim hm)) hs,
+      ← set_integral_trim hm _ hs],
     measurability },
-  { refine measurable.ae_measurable' _,
-    measurability }
+  { exact measurable.ae_measurable' (by measurability), },
 end
 
 end real

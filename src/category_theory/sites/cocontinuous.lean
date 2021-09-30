@@ -196,8 +196,9 @@ end Ran_is_sheaf_of_cocontinuous
 
 /--
 If `u` is cocontinuous, then `Ran u.op` pushes sheaves to sheaves.
-Basically https://stacks.math.columbia.edu/tag/00XK but without the condition that C or D
-has pullbacks
+
+This result is basically https://stacks.math.columbia.edu/tag/00XK,
+but without the condition that `C` or `D` has pullbacks.
 -/
 theorem Ran_is_sheaf_of_cocontinuous {u : C ⥤ D} (hu : cocontinuous J K u) (ℱ : Sheaf J A) :
   presheaf.is_sheaf K ((Ran u.op).obj ℱ.val) :=

@@ -84,6 +84,16 @@ by rw [norm_int, _root_.abs_of_nonneg]; exact int.cast_nonneg.2 hn
 @[continuity] lemma continuous_norm_sq : continuous norm_sq :=
 by simpa [← norm_sq_eq_abs] using continuous_abs.pow 2
 
+/-- The `abs` function on `ℂ` is proper. -/
+lemma tendsto_abs_cocompact_at_top : filter.tendsto abs (filter.cocompact ℂ) filter.at_top :=
+tendsto_norm_cocompact_at_top
+
+/-- The `norm_sq` function on `ℂ` is proper. -/
+lemma tendsto_norm_sq_cocompact_at_top :
+  filter.tendsto norm_sq (filter.cocompact ℂ) filter.at_top :=
+by simpa [mul_self_abs] using
+  tendsto_abs_cocompact_at_top.at_top_mul_at_top tendsto_abs_cocompact_at_top
+
 open continuous_linear_map
 
 /-- Continuous linear map version of the real part function, from `ℂ` to `ℝ`. -/

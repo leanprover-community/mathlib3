@@ -167,8 +167,8 @@ lemma times_cont_diff_cosh {n} : times_cont_diff ℂ n cosh :=
 lemma differentiable_cosh : differentiable ℂ cosh :=
 λx, (has_deriv_at_cosh x).differentiable_at
 
-lemma differentiable_at_cosh {x : ℂ} : differentiable_at ℂ cos x :=
-differentiable_cos x
+lemma differentiable_at_cosh {x : ℂ} : differentiable_at ℂ cosh x :=
+differentiable_cosh x
 
 @[simp] lemma deriv_cosh : deriv cosh = sinh :=
 funext $ λ x, (has_deriv_at_cosh x).deriv

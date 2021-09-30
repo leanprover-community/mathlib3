@@ -55,8 +55,9 @@ by simpa only [div_eq_mul_inv] using hf.mul tendsto_const_nhds
 
 variables [topological_space α]
 
-lemma continuous_at.div_const (hf : continuous f) {y : G₀} : continuous (λ x, f x / y) :=
-by simpa only [div_eq_mul_inv] using hf.mul continuous_const
+lemma continuous_at.div_const {a : α} (hf : continuous_at f a) {y : G₀} :
+  continuous_at (λ x, f x / y) a :=
+by simpa only [div_eq_mul_inv] using hf.mul continuous_at_const
 
 lemma continuous_within_at.div_const {a} (hf : continuous_within_at f s a) {y : G₀} :
   continuous_within_at (λ x, f x / y) s a :=

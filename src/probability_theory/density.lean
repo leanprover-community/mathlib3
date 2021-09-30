@@ -78,6 +78,16 @@ lemma pdf_undef {m : measurable_space α} {ℙ : measure α} {μ : measure E} {X
   pdf X ℙ μ = 0 :=
 by simp only [pdf, dif_neg h]
 
+lemma pdf_eq_zero_of_not_measurable {m : measurable_space α}
+  {ℙ : measure α} {μ : measure E} {X : α → E} (hX : ¬ measurable X) :
+  pdf X ℙ μ = 0 :=
+pdf_undef (λ hpdf, hX hpdf.pdf'.1)
+
+lemma measurable_of_pdf_ne_zero {m : measurable_space α}
+  {ℙ : measure α} {μ : measure E} (X : α → E) (h : pdf X ℙ μ ≠ 0) :
+  measurable X :=
+by { by_contra hX, exact h (pdf_eq_zero_of_not_measurable hX) }
+
 @[measurability]
 lemma measurable_pdf {m : measurable_space α}
   (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac) :
@@ -103,16 +113,6 @@ lemma map_eq_set_lintegral_pdf {m : measurable_space α}
   {s : set E} (hs : measurable_set s) :
   measure.map X ℙ s = ∫⁻ x in s, pdf X ℙ μ x ∂μ :=
 by rw [← with_density_apply _ hs, map_eq_with_density_pdf X ℙ μ]
-
-lemma pdf_eq_zero_of_not_measurable {m : measurable_space α}
-  {ℙ : measure α} {μ : measure E} {X : α → E} (hX : ¬ measurable X) :
-  pdf X ℙ μ = 0 :=
-pdf_undef (λ hpdf, hX hpdf.pdf'.1)
-
-lemma measurable_of_pdf_ne_zero {m : measurable_space α}
-  {ℙ : measure α} {μ : measure E} (X : α → E) (h : pdf X ℙ μ ≠ 0) :
-  measurable X :=
-by { by_contra hX, exact h (pdf_eq_zero_of_not_measurable hX) }
 
 namespace pdf
 

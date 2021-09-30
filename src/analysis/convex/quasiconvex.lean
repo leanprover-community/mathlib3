@@ -25,10 +25,7 @@ quasiconcavity, and monotonicity implies quasilinearity.
 -/
 
 open finset linear_map set
-open_locale big_operators classical convex pointwise
-
-lemma and_and_and_comm (a b c d : Prop) : (a ∧ b) ∧ c ∧ d ↔ (a ∧ c) ∧ b ∧ d :=
-by rw [and_assoc, and_assoc, @and.left_comm b]
+open_locale big_operators convex pointwise
 
 variables {𝕜 E F β : Type*}
 
@@ -70,6 +67,10 @@ lemma quasilinear_on.dual (hf : quasilinear_on 𝕜 s f) :
   @quasilinear_on 𝕜 E (order_dual β) _ _ _ _ _ s f :=
 ⟨hf.2, hf.1⟩
 
+lemma convex.quasiconvex_on_of_convex_le (hs : convex 𝕜 s) (h : ∀ r, convex 𝕜 {x | f x ≤ r}) :
+  quasiconvex_on 𝕜 s f :=
+λ r, hs.inter (h r)
+
 end has_scalar
 end ordered_add_comm_monoid
 
@@ -77,11 +78,24 @@ section linear_ordered_add_comm_monoid
 variables [linear_ordered_add_comm_monoid β]
 
 section has_scalar
-variables [has_scalar 𝕜 E] [has_scalar 𝕜 β] {s : set E} {f : E → β}
+variables [has_scalar 𝕜 E] [has_scalar 𝕜 β] {s : set E} {f g : E → β}
 
 -- This only requires `directed_order β` but we don't have `directed_ordered_add_comm_monoid`
 lemma quasiconvex_on.convex (hf : quasiconvex_on 𝕜 s f) : convex 𝕜 s :=
 λ x y hx hy a b ha hb hab,  (hf _ ⟨hx, le_max_left _ _⟩ ⟨hy, le_max_right _ _⟩ ha hb hab).1
+
+lemma quasiconcave_on.convex (hf : quasiconcave_on 𝕜 s f) : convex 𝕜 s :=
+@quasiconvex_on.convex 𝕜 E (order_dual β) _ _ _ _ _ _ _ hf
+
+lemma quasiconvex_on.sup (hf : quasiconvex_on 𝕜 s f) (hg : quasiconvex_on 𝕜 s g) :
+  quasiconvex_on 𝕜 s (f ⊔ g) :=
+begin
+  refine λ r, _,
+  refine  hf.convex.inter _,
+  refine λ r x y hx hy a b ha hb hab, _,
+end
+
+lemma quasiconcave_on.sup (hf : quasiconcave_on 𝕜 s f) (hg : quasiconcave_on 𝕜 s g) :
 
 lemma quasiconvex_on_iff_le_max :
   quasiconvex_on 𝕜 s f ↔ convex 𝕜 s ∧
@@ -170,7 +184,7 @@ lemma monotone_on.quasilinear_on (hf : monotone f) (hs : convex 𝕜 s) : quasil
 ⟨hf.quasiconvex_on, hf.quasiconcave_on⟩
 
 lemma quasilinear_on.monotone_on_or_antitone_on (hf : quasilinear_on 𝕜 univ f) :
-  monotone f ∨ antitone f :=
+  monotone_on s f ∨ antitone_on s f :=
 begin
   rintro x y h,
   sorry

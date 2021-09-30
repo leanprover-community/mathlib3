@@ -14,8 +14,8 @@ This shows that while `ℤ≤0` and `ℤ≥0` are complementary `ℕ`-submodules
 implies as a collection they are `complete_lattice.independent` and that they span all of `ℤ`, they
 do not permit a decomposition into a direct sum.
 
-This file demonstrates why `direct_sum.submodule_is_internal_of_independent_of_supr_eq_top` must take
-`ring R` and not `semiring R`.
+This file demonstrates why `direct_sum.submodule_is_internal_of_independent_of_supr_eq_top` must
+take `ring R` and not `semiring R`.
 -/
 
 lemma units_int.one_ne_neg_one : (1 : units ℤ) ≠ -1 :=

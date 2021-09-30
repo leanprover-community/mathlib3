@@ -63,14 +63,14 @@ convex 𝕜 s ∧
 /-- Strict concavity of functions -/
 def strict_concave_on : Prop :=
 convex 𝕜 s ∧
-  ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → x ≠ y → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 → 
+  ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → x ≠ y → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 →
     a • f x + b • f y < f (a • x + b • y)
 
 variables {𝕜 s f}
 
-lemma convex_on_id {s : set 𝕜} (hs : convex 𝕜 s) : convex_on 𝕜 s id := ⟨hs, by { intros, refl }⟩
+lemma convex_on_id {s : set β} (hs : convex 𝕜 s) : convex_on 𝕜 s id := ⟨hs, by { intros, refl }⟩
 
-lemma concave_on_id {s : set 𝕜} (hs : convex 𝕜 s) : concave_on 𝕜 s id := ⟨hs, by { intros, refl }⟩
+lemma concave_on_id {s : set β} (hs : convex 𝕜 s) : concave_on 𝕜 s id := ⟨hs, by { intros, refl }⟩
 
 lemma convex_on.subset {f : E → β} {t : set E} (hf : convex_on 𝕜 t f) (hst : s ⊆ t)
   (hs : convex 𝕜 s) : convex_on 𝕜 s f :=
@@ -123,7 +123,7 @@ lemma convex_on.convex_le (hf : convex_on 𝕜 s f) (r : β) :
                                                   (smul_le_smul_of_nonneg hy.2 hb)
                   ... = r                     : convex.combo_self hab r⟩
 
-lemma concave_on.concave_ge (hf : concave_on 𝕜 s f) (r : β) :
+lemma concave_on.convex_ge (hf : concave_on 𝕜 s f) (r : β) :
   convex 𝕜 {x ∈ s | r ≤ f x} :=
 @convex_on.convex_le 𝕜 E (order_dual β) _ _ _ _ _ _ _ f hf r
 

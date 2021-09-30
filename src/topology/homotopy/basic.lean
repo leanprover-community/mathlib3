@@ -233,8 +233,7 @@ end
 lemma symm_trans {f₀ f₁ f₂ : C(X, Y)} (F : homotopy_with f₀ f₁ P) (G : homotopy_with f₁ f₂ P) :
   (F.trans G).symm = G.symm.trans F.symm :=
 begin
-  ext,
-  cases x with t x,
+  ext ⟨t, x⟩,
   simp only [symm_apply, trans_apply],
   split_ifs with h₁ h₂,
   { change (t : ℝ) ≤ _ at h₂,

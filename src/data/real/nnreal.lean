@@ -522,7 +522,7 @@ end mul
 
 section pow
 
-lemma pow_mono_decr_exp {a : ℝ≥0} (m n : ℕ) (mn : m ≤ n) (a1 : a ≤ 1) :
+lemma pow_antitone_exp {a : ℝ≥0} (m n : ℕ) (mn : m ≤ n) (a1 : a ≤ 1) :
   a ^ n ≤ a ^ m :=
 begin
   rcases le_iff_exists_add.mp mn with ⟨k, rfl⟩,

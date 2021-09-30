@@ -53,14 +53,14 @@ inj_on_sin (arcsin_mem_Icc _) hx $ by rw [sin_arcsin (neg_one_le_sin _) (sin_le_
 lemma arcsin_sin {x : ℝ} (hx₁ : -(π / 2) ≤ x) (hx₂ : x ≤ π / 2) : arcsin (sin x) = x :=
 arcsin_sin' ⟨hx₁, hx₂⟩
 
-lemma strict_mono_incr_on_arcsin : strict_mono_incr_on arcsin (Icc (-1) 1) :=
-(subtype.strict_mono_coe _).comp_strict_mono_incr_on $
-  sin_order_iso.symm.strict_mono.strict_mono_incr_on_Icc_extend _
+lemma strict_mono_on_arcsin : strict_mono_on arcsin (Icc (-1) 1) :=
+(subtype.strict_mono_coe _).comp_strict_mono_on $
+  sin_order_iso.symm.strict_mono.strict_mono_on_Icc_extend _
 
 lemma monotone_arcsin : monotone arcsin :=
 (subtype.mono_coe _).comp $ sin_order_iso.symm.monotone.Icc_extend _
 
-lemma inj_on_arcsin : inj_on arcsin (Icc (-1) 1) := strict_mono_incr_on_arcsin.inj_on
+lemma inj_on_arcsin : inj_on arcsin (Icc (-1) 1) := strict_mono_on_arcsin.inj_on
 
 lemma arcsin_inj {x y : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) (hy₁ : -1 ≤ y) (hy₂ : y ≤ 1) :
   arcsin x = arcsin y ↔ x = y :=
@@ -109,7 +109,7 @@ end
 
 lemma arcsin_le_iff_le_sin {x y : ℝ} (hx : x ∈ Icc (-1 : ℝ) 1) (hy : y ∈ Icc (-(π / 2)) (π / 2)) :
   arcsin x ≤ y ↔ x ≤ sin y :=
-by rw [← arcsin_sin' hy, strict_mono_incr_on_arcsin.le_iff_le hx (sin_mem_Icc _), arcsin_sin' hy]
+by rw [← arcsin_sin' hy, strict_mono_on_arcsin.le_iff_le hx (sin_mem_Icc _), arcsin_sin' hy]
 
 lemma arcsin_le_iff_le_sin' {x y : ℝ} (hy : y ∈ Ico (-(π / 2)) (π / 2)) :
   arcsin x ≤ y ↔ x ≤ sin y :=
@@ -355,10 +355,10 @@ by rw [arccos, cos_pi_div_two_sub, sin_arcsin hx₁ hx₂]
 lemma arccos_cos {x : ℝ} (hx₁ : 0 ≤ x) (hx₂ : x ≤ π) : arccos (cos x) = x :=
 by rw [arccos, ← sin_pi_div_two_sub, arcsin_sin]; simp [sub_eq_add_neg]; linarith
 
-lemma strict_mono_decr_on_arccos : strict_mono_decr_on arccos (Icc (-1) 1) :=
-λ x hx y hy h, sub_lt_sub_left (strict_mono_incr_on_arcsin hx hy h) _
+lemma strict_anti_on_arccos : strict_anti_on arccos (Icc (-1) 1) :=
+λ x hx y hy h, sub_lt_sub_left (strict_mono_on_arcsin hx hy h) _
 
-lemma arccos_inj_on : inj_on arccos (Icc (-1) 1) := strict_mono_decr_on_arccos.inj_on
+lemma arccos_inj_on : inj_on arccos (Icc (-1) 1) := strict_anti_on_arccos.inj_on
 
 lemma arccos_inj {x y : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) (hy₁ : -1 ≤ y) (hy₂ : y ≤ 1) :
   arccos x = arccos y ↔ x = y :=

@@ -61,8 +61,8 @@ typeclasses. -/
 def of (X : Type v) [ring X] [algebra R X] : Algebra.{v} R := ⟨X⟩
 
 /-- Construct a bundled hom from the underlying alg_hom. -/
-def of_hom {X Y : Type v} [ring X] [algebra R X] [ring Y] [algebra R Y] (f : X →ₐ[R] Y) :
-  of R X ⟶ of R Y := f
+def of_hom {R : Type u} [comm_ring R] {X Y : Type v} [ring X] [algebra R X] [ring Y] [algebra R Y]
+  (f : X →ₐ[R] Y) : of R X ⟶ of R Y := f
 
 instance : inhabited (Algebra R) := ⟨of R R⟩
 

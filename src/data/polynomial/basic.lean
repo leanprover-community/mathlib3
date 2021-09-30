@@ -617,8 +617,7 @@ by rw [coeff_update, function.update_apply]
   (p.update n a).coeff n = a :=
 by rw [p.coeff_update_apply, if_pos rfl]
 
-lemma coeff_update_ne (p : polynomial R) {n : ℕ} (a : R)
-  {i : ℕ} (h : i ≠ n) :
+lemma coeff_update_ne (p : polynomial R) {n : ℕ} (a : R) {i : ℕ} (h : i ≠ n) :
   (p.update n a).coeff i = p.coeff i :=
 by rw [p.coeff_update_apply, if_neg h]
 
@@ -630,7 +629,7 @@ lemma support_update (p : polynomial R) (n : ℕ) (a : R) [decidable (a = 0)] :
   support (p.update n a) = if a = 0 then p.support.erase n else insert n p.support :=
 by { cases p, simp only [support, update, support_update], congr }
 
-lemma support_update_zero (p : polynomial R) (n : ℕ) :
+@[simp] lemma support_update_zero (p : polynomial R) (n : ℕ) :
   support (p.update n 0) = p.support.erase n :=
 by classical; rw [support_update, if_pos rfl]
 

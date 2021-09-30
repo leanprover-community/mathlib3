@@ -25,6 +25,10 @@ theorem is_unit_of_dvd_unit {α} [comm_monoid α] {x y : α}
   (xy : x ∣ y) (hu : is_unit y) : is_unit x :=
 is_unit_iff_dvd_one.2 $ xy.trans $ is_unit_iff_dvd_one.1 hu
 
+lemma not_is_unit_of_not_is_unit_dvd [comm_monoid α] {a b : α} (ha : ¬is_unit a) (hb : a ∣ b) :
+  ¬ is_unit b :=
+mt (is_unit_of_dvd_unit hb) ha
+
 lemma is_unit_of_dvd_one [comm_monoid α] : ∀a ∣ 1, is_unit (a:α)
 | a ⟨b, eq⟩ := ⟨units.mk_of_mul_eq_one a b eq.symm, rfl⟩
 
@@ -46,10 +50,6 @@ begin
     rwa [mul_dvd_mul_iff_left, ← is_unit_iff_dvd_one] at this, apply pow_ne_zero m h0 },
   { apply pow_dvd_pow }
 end
-
-lemma not_unit_of_not_unit_dvd [comm_monoid α] {a b : α} (ha : ¬is_unit a) (hb : a ∣ b) :
-  ¬ is_unit b :=
-by by_contra h ; exact ha (is_unit_of_dvd_unit hb h)
 
 section prime
 variables [comm_monoid_with_zero α]

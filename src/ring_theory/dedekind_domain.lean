@@ -1018,7 +1018,8 @@ begin
   rw ← ideal.dvd_not_unit_iff_lt,
   split,
   { exact pow_ne_zero n (prime_of_factor p Hp).ne_zero },
-  { exact ⟨ p^((factors I).count p - n), not_unit_of_not_unit_dvd (prime_of_factor p Hp).not_unit
+  { exact ⟨p^((factors I).count p - n),
+      not_is_unit_of_not_is_unit_dvd (prime_of_factor p Hp).not_unit
       (dvd_pow (dvd_refl p) (ne_of_gt (sub_pos_iff_lt.mpr hn))), H'⟩ }
 end
 

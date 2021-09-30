@@ -27,7 +27,7 @@ begin
   simp only [hbb, true_and],
   rw ← hx,
   simp_rw ← mul_assoc,
-  simp,
+  simp only [one_mul, mul_left_inv, mul_inv_cancel_right],
   intros x y z,
   simp only [and_imp, exists_prop, forall_exists_index],
   intros a ha b hb hxy c hc d hd hyz,

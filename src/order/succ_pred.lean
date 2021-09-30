@@ -50,7 +50,7 @@ open function
 
 /-! ### Successor order -/
 
-variables {α : Type*}
+variables {α : Type*} {a b c : α}
 
 /-- Order equipped with a sensible successor function. -/
 @[ext] class succ_order (α : Type*) [preorder α] :=
@@ -94,33 +94,27 @@ end
 
 lemma succ_mono : monotone (succ : α → α) := λ a b, succ_le_succ
 
-lemma lt_succ_of_not_maximal {a b : α} (h : a < b) :
-  a < succ a :=
+lemma lt_succ_of_not_maximal {a b : α} (h : a < b) : a < succ a :=
 (le_succ a).lt_of_not_le (λ ha, maximal_of_succ_le ha h)
 
 section no_top_order
 variables [no_top_order α]
 
-lemma lt_succ (a : α) :
-  a < succ a :=
+lemma lt_succ (a : α) : a < succ a :=
 (le_succ a).lt_of_not_le (λ h, not_exists.2 (maximal_of_succ_le h) (no_top a))
 
-lemma lt_succ_iff {a b : α} :
-  a < succ b ↔ a ≤ b :=
+lemma lt_succ_iff {a b : α} : a < succ b ↔ a ≤ b :=
 ⟨le_of_lt_succ, λ h, h.trans_lt $ lt_succ b⟩
 
-lemma succ_le_iff {a b : α} :
-  succ a ≤ b ↔ a < b :=
+lemma succ_le_iff {a b : α} : succ a ≤ b ↔ a < b :=
 ⟨(lt_succ a).trans_le, succ_le_of_lt⟩
 
-@[simp] lemma succ_le_succ_iff {a b : α} :
-  succ a ≤ succ b ↔ a ≤ b :=
+@[simp] lemma succ_le_succ_iff {a b : α} : succ a ≤ succ b ↔ a ≤ b :=
 ⟨λ h, le_of_lt_succ $ (lt_succ a).trans_le h, λ h, succ_le_of_lt $ h.trans_lt $ lt_succ b⟩
 
 alias succ_le_succ_iff ↔ le_of_succ_le_succ _
 
-@[simp] lemma succ_lt_succ_iff {a b : α} :
-  succ a < succ b ↔ a < b :=
+@[simp] lemma succ_lt_succ_iff {a b : α} : succ a < succ b ↔ a < b :=
 by simp_rw [lt_iff_le_not_le, succ_le_succ_iff]
 
 alias succ_lt_succ_iff ↔ lt_of_succ_lt_succ succ_lt_succ
@@ -165,16 +159,14 @@ end
 section no_top_order
 variables [no_top_order α]
 
-lemma succ_injective :
-  injective (succ : α → α) :=
+lemma succ_injective : injective (succ : α → α) :=
 begin
   rintro a b,
   simp_rw [eq_iff_le_not_lt, succ_le_succ_iff, succ_lt_succ_iff],
   exact id,
 end
 
-lemma succ_eq_succ_iff {a b : α} :
-  succ a = succ b ↔ a = b :=
+lemma succ_eq_succ_iff {a b : α} : succ a = succ b ↔ a = b :=
 succ_injective.eq_iff
 
 lemma succ_ne_succ_iff {a b : α} :

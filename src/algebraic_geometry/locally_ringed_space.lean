@@ -56,6 +56,8 @@ instance : has_coe_to_sort LocallyRingedSpace :=
 { S := Type u,
   coe := λ X : LocallyRingedSpace, (X.to_Top : Type u), }
 
+-- PROJECT: how about a typeclass "has_structure_sheaf" to mediate the 𝒪 notation, rather
+-- than defining it over and over for PresheafedSpace, LRS, Scheme, etc.
 /-- The structure sheaf of a locally ringed space. -/
 def 𝒪 : sheaf CommRing X.to_Top := X.to_SheafedSpace.sheaf
 

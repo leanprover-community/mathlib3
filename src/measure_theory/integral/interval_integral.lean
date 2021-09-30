@@ -3,13 +3,12 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov, Patrick Massot, Sébastien Gouëzel
 -/
-import measure_theory.integral.set_integral
-import measure_theory.measure.lebesgue
-import analysis.calculus.fderiv_measurable
 import analysis.calculus.extend_deriv
-import measure_theory.integral.vitali_caratheodory
+import analysis.calculus.fderiv_measurable
 import analysis.normed_space.dual
-
+import measure_theory.integral.set_integral
+import measure_theory.integral.vitali_caratheodory
+import measure_theory.measure.lebesgue
 
 /-!
 # Integral over an interval
@@ -394,13 +393,13 @@ lemma antitone_on.interval_integrable {u : ι → E} {a b : ι} (hu : antitone_o
 
 lemma interval_integrable_of_monotone {u : ι → E} {a b : ι} (hu : monotone u) :
   interval_integrable u μ a b :=
-hu.monotone_on.interval_integrable
+(hu.monotone_on _).interval_integrable
 
 alias interval_integrable_of_monotone ← monotone.interval_integrable
 
 lemma interval_integrable_of_antitone {u : ι → E} {a b : ι} (hu : antitone u) :
   interval_integrable u μ a b :=
-hu.antitone_on.interval_integrable
+(hu.antitone_on _).interval_integrable
 
 alias interval_integrable_of_antitone ← antitone.interval_integrable
 

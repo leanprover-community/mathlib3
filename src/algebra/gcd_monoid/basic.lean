@@ -224,8 +224,8 @@ corresponding `lcm` facts from `gcd`.
 /-- TODO -/
 class normalized_gcd_monoid (α : Type*) [comm_cancel_monoid_with_zero α] [nontrivial α]
   extends normalization_monoid α, gcd_monoid α :=
-(normalize_gcd  : ∀a b, normalize (gcd a b) = gcd a b)
-(normalize_lcm  : ∀a b, normalize (lcm a b) = lcm a b)
+(normalize_gcd : ∀a b, normalize (gcd a b) = gcd a b)
+(normalize_lcm : ∀a b, normalize (lcm a b) = lcm a b)
 
 
 export gcd_monoid (gcd lcm gcd_dvd_left gcd_dvd_right dvd_gcd  lcm_zero_left lcm_zero_right)

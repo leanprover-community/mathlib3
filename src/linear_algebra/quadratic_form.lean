@@ -454,6 +454,11 @@ def to_quadratic_form (B : bilin_form R M) : quadratic_form R M :=
   B.to_quadratic_form x = B x x :=
 rfl
 
+section
+variables (R M)
+@[simp] lemma to_quadratic_form_zero : (0 : bilin_form R M).to_quadratic_form = 0 := rfl
+end
+
 end bilin_form
 
 namespace quadratic_form
@@ -542,17 +547,14 @@ instance : can_lift (bilin_form R M) (quadratic_form R M) :=
   prf := λ B hB, ⟨B.to_quadratic_form, associated_left_inverse _ hB⟩ }
 
 /-- There exists a non-null vector with respect to any quadratic form `Q` whose associated
-bilinear form is non-degenerate, i.e. there exists `x` such that `Q x ≠ 0`. -/
-lemma exists_quadratic_form_neq_zero [nontrivial M]
-  {Q : quadratic_form R M} (hB₁ : Q.associated'.nondegenerate) :
+bilinear form is non-zero, i.e. there exists `x` such that `Q x ≠ 0`. -/
+lemma exists_quadratic_form_neq_zero {Q : quadratic_form R M} (hB₁ : Q.associated' ≠ 0) :
   ∃ x, Q x ≠ 0 :=
 begin
-  rw nondegenerate at hB₁,
-  contrapose! hB₁,
-  obtain ⟨x, hx⟩ := exists_ne (0 : M),
-  refine ⟨x, λ y, _, hx⟩,
-  have : Q = 0 := quadratic_form.ext hB₁,
-  simp [this]
+  rw ←not_forall,
+  intro h,
+  apply hB₁,
+  rw [(quadratic_form.ext h : Q = 0), linear_map.map_zero],
 end
 
 end associated_hom
@@ -753,11 +755,11 @@ lemma nondegenerate_of_anisotropic
   {B : bilin_form R M} (hB : B.to_quadratic_form.anisotropic) : B.nondegenerate :=
 λ x hx, hB _ (hx x)
 
-/-- There exists a non-null vector with respect to any symmetric, nondegenerate bilinear form `B`
-on a nontrivial module `M` over a ring `R` with invertible `2`, i.e. there exists some
+/-- There exists a non-null vector with respect to any symmetric, nonzero bilinear form `B`
+on a module `M` over a ring `R` with invertible `2`, i.e. there exists some
 `x : M` such that `B x x ≠ 0`. -/
-lemma exists_bilin_form_self_neq_zero [htwo : invertible (2 : R)] [nontrivial M]
-  {B : bilin_form R M} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) :
+lemma exists_bilin_form_self_neq_zero [htwo : invertible (2 : R)]
+  {B : bilin_form R M} (hB₁ : B ≠ 0) (hB₂ : sym_bilin_form.is_sym B) :
   ∃ x, ¬ B.is_ortho x x :=
 begin
   lift B to quadratic_form R M using hB₂ with Q,
@@ -770,63 +772,54 @@ open finite_dimensional
 variables {V : Type u} {K : Type v} [field K] [add_comm_group V] [module K V]
 variable [finite_dimensional K V]
 
--- We start proving that symmetric nondegenerate bilinear forms are diagonalisable, or equivalently
--- there exists a orthogonal basis with respect to any symmetric nondegenerate bilinear form.
-
-lemma exists_orthogonal_basis' [hK : invertible (2 : K)]
-  {B : bilin_form K V} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) :
-  ∃ (v : basis (fin (finrank K V)) K V),
-    B.is_Ortho v ∧ ∀ i, B (v i) (v i) ≠ 0 :=
+/-- Given a symmetric bilinear form `B` on some vector space `V` over the
+field `K` with invertible `2`, there exists an orthogonal basis with respect to `B`. -/
+lemma exists_orthogonal_basis [hK : invertible (2 : K)]
+  {B : bilin_form K V} (hB₂ : sym_bilin_form.is_sym B) :
+  ∃ (v : basis (fin (finrank K V)) K V), B.is_Ortho v :=
 begin
   tactic.unfreeze_local_instances,
   induction hd : finrank K V with d ih generalizing V,
-  { exact ⟨basis_of_finrank_zero hd, λ _ _ _, zero_left _, fin.elim0⟩ },
+  { exact ⟨basis_of_finrank_zero hd, λ _ _ _, zero_left _⟩ },
   haveI := finrank_pos_iff.1 (hd.symm ▸ nat.succ_pos d : 0 < finrank K V),
-  cases exists_bilin_form_self_neq_zero hB₁ hB₂ with x hx,
-  have hd' := hd,
-  rw [← submodule.finrank_add_eq_of_is_compl
-        (is_compl_span_singleton_orthogonal hx).symm,
+  -- either the bilinear form is trivial or we can pick a non-null `x`
+  obtain rfl | hB₁ := eq_or_ne B 0,
+  { let b := finite_dimensional.fin_basis K V,
+    rw hd at b,
+    refine ⟨b, λ i j hij, rfl⟩, },
+  obtain ⟨x, hx⟩ := exists_bilin_form_self_neq_zero hB₁ hB₂,
+  rw [← submodule.finrank_add_eq_of_is_compl (is_compl_span_singleton_orthogonal hx).symm,
       finrank_span_singleton (ne_zero_of_not_is_ortho_self x hx)] at hd,
-  rcases @ih (B.orthogonal $ K ∙ x) _ _ _
-    (B.restrict _) (B.restrict_orthogonal_span_singleton_nondegenerate hB₁ hB₂ hx)
-    (B.restrict_sym hB₂ _) (nat.succ.inj hd) with ⟨v', hv₁, hv₃⟩,
-
-  set v := (λ (i : fin _), if h : i = 0 then x else coe (v' (i.pred h))) with v_def,
-  have : ∀ i j (hij : i ≠ j), B.is_ortho (v i) (v j),
-  { intros i j hij,
-    simp only [v_def],
-    split_ifs with hi hj hj,
-    { have : i = j := hi.trans hj.symm, contradiction },
-    { exact (v' (j.pred hj)).2 _ (submodule.mem_span_singleton_self x) },
+  let B' := B.restrict (B.orthogonal $ K ∙ x),
+  obtain ⟨v', hv₁⟩ := ih (B.restrict_sym hB₂ _ : sym_bilin_form.is_sym B') (nat.succ.inj hd),
+  -- concatenate `x` with the basis obtained by induction
+  let b := basis.mk_fin_cons x v'
+    (begin
+      rintros c y hy hc,
+      rw add_eq_zero_iff_neg_eq at hc,
+      rw [← hc, submodule.neg_mem_iff] at hy,
+      have := (is_compl_span_singleton_orthogonal hx).disjoint,
+      rw submodule.disjoint_def at this,
+      have := this (c • x) (submodule.smul_mem _ _ $ submodule.mem_span_singleton_self _) hy,
+      exact (smul_eq_zero.1 this).resolve_right (λ h, hx $ h.symm ▸ zero_left _),
+    end)
+    (begin
+      intro y,
+      refine ⟨-B x y/B x x, λ z hz, _⟩,
+      obtain ⟨c, rfl⟩ := submodule.mem_span_singleton.1 hz,
+      rw [is_ortho, smul_left, add_right, smul_right, div_mul_cancel _ hx, add_neg_self, mul_zero],
+    end),
+  refine ⟨b, _⟩,
+  { rw basis.coe_mk_fin_cons,
+    intros j i,
+    refine fin.cases _ (λ i, _) i; refine fin.cases _ (λ j, _) j; intro hij;
+      simp only [fin.cons_zero, fin.cons_succ, function.comp_apply],
+    { exact (hij rfl).elim },
+    { exact (v' j).prop _ (submodule.mem_span_singleton_self x) },
     { rw [is_ortho, hB₂],
-      exact (v' (i.pred hi)).2 _ (submodule.mem_span_singleton_self x) },
-    { exact hv₁ (j.pred hj) (i.pred hi) (by simpa using hij.symm) } },
-
-  refine ⟨@basis_of_linear_independent_of_card_eq_finrank _ _ _ _ _ _ _ _
-      v
-      (@linear_independent_of_is_Ortho _ _ _ _ _ _ B v (λ i j hij, this j i hij.symm) _)
-      (by rw [hd', fintype.card_fin]), _, _⟩,
-  { intro i,
-    simp only [v_def],
-    split_ifs with hi,
-    { exact hx },
-    { exact hv₃ (i.pred hi) } },
-  { intros i j hij,
-    simp only [v_def, basis_of_linear_independent_of_card_eq_finrank, basis.mk_apply],
-    exact this j i hij.symm },
-  { intro i,
-    simp only [v_def, basis_of_linear_independent_of_card_eq_finrank, basis.mk_apply],
-    split_ifs with hi,
-    { exact hx },
-    { exact hv₃ (i.pred hi) } }
-end .
-
-/-- Given a nondegenerate symmetric bilinear form `B` on some vector space `V` over the
-  field `K` with invertible `2`, there exists an orthogonal basis with respect to `B`. -/
-theorem exists_orthogonal_basis [hK : invertible (2 : K)]
-  {B : bilin_form K V} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) :
-  ∃ v : basis (fin (finrank K V)) K V, B.is_Ortho v :=
-let ⟨v, hv₁, _⟩ := exists_orthogonal_basis' hB₁ hB₂ in ⟨v, hv₁⟩
+      exact (v' i).prop _ (submodule.mem_span_singleton_self x) },
+    { exact hv₁ _ _ (ne_of_apply_ne _ hij), }, }
+end
 
 end bilin_form
 
@@ -909,7 +902,8 @@ lemma equivalent_weighted_sum_squares_of_nondegenerate'
   ∃ w : fin (finite_dimensional.finrank K V) → units K,
     equivalent Q (weighted_sum_squares K w) :=
 begin
-  obtain ⟨v, hv₁, hv₂⟩ := exists_orthogonal_basis' hQ (associated_is_sym _ _),
+  obtain ⟨v, hv₁⟩ := exists_orthogonal_basis (associated_is_sym _ Q),
+  have hv₂ := hv₁.not_is_ortho_basis_self_of_nondegenerate hQ,
   refine ⟨λ i, units.mk0 _ (hv₂ i), nonempty.intro _⟩,
   convert Q.isometry_basis_repr v,
   ext w,

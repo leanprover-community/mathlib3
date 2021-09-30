@@ -223,12 +223,24 @@ lemma have_lebesgue_decomposition_of_has_pdf {X : α → E} [hX' : has_pdf X ℙ
   by simp only [zero_add, measurable_pdf X ℙ μ, true_and, mutually_singular.zero.symm,
     map_eq_with_density_pdf X ℙ μ] ⟩⟩
 
-lemma has_pdf_iff {X : α → E} (hX : measurable X) :
+lemma has_pdf_iff {X : α → E} :
+  has_pdf X ℙ μ ↔ measurable X ∧ (map X ℙ).have_lebesgue_decomposition μ ∧ map X ℙ ≪ μ :=
+begin
+  split,
+  { intro hX',
+    exactI ⟨hX'.pdf'.1, have_lebesgue_decomposition_of_has_pdf, map_absolutely_continuous⟩ },
+  { rintros ⟨hX, h_decomp, h⟩,
+    haveI := h_decomp,
+    refine ⟨⟨hX, (measure.map X ℙ).rn_deriv μ, measurable_rn_deriv _ _, _⟩⟩,
+    rwa with_density_rn_deriv_eq }
+end
+
+lemma has_pdf_iff_of_measurable {X : α → E} (hX : measurable X) :
   has_pdf X ℙ μ ↔ (map X ℙ).have_lebesgue_decomposition μ ∧ map X ℙ ≪ μ :=
 begin
   split,
   { intro hX',
-    exactI ⟨have_lebesgue_decomposition_of_has_pdf, map_absolutely_continuous⟩, },
+    exactI ⟨have_lebesgue_decomposition_of_has_pdf, map_absolutely_continuous⟩ },
   { rintros ⟨h_decomp, h⟩,
     haveI := h_decomp,
     refine ⟨⟨hX, (measure.map X ℙ).rn_deriv μ, measurable_rn_deriv _ _, _⟩⟩,
@@ -250,9 +262,8 @@ lemma quasi_measure_preserving_has_pdf {X : α → E} [has_pdf X ℙ μ]
   (hmap : (map g (map X ℙ)).have_lebesgue_decomposition ν) :
   has_pdf (g ∘ X) ℙ ν :=
 begin
-  rw [has_pdf_iff (hg.measurable.comp (has_pdf.measurable X ℙ μ)),
-      ← map_map hg.measurable (has_pdf.measurable X ℙ μ)],
-  refine ⟨hmap, _⟩,
+  rw [has_pdf_iff, ← map_map hg.measurable (has_pdf.measurable X ℙ μ)],
+  refine ⟨hg.measurable.comp (has_pdf.measurable X ℙ μ), hmap, _⟩,
   rw [map_eq_with_density_pdf X ℙ μ],
   refine absolutely_continuous.mk (λ s hsm hs, _),
   rw [map_apply hg.measurable hsm, with_density_apply _ (hg.measurable hsm)],
@@ -279,11 +290,22 @@ variables [is_finite_measure ℙ] {X : α → ℝ}
 
 /-- A real-valued random variable `X` `has_pdf X ℙ λ` (where `λ` is the Lebesgue measure) if and
 only if the push-forward measure of `ℙ` along `X` is absolutely continuous with respect to `λ`. -/
-lemma real.has_pdf_iff (hX : measurable X) : has_pdf X ℙ ↔ map X ℙ ≪ volume :=
+lemma real.has_pdf_iff_of_measurable (hX : measurable X) : has_pdf X ℙ ↔ map X ℙ ≪ volume :=
 begin
-  haveI : is_finite_measure ((map X) ℙ) := is_finite_measure_map ℙ hX,
-  rw [has_pdf_iff hX, and_iff_right_iff_imp],
+  haveI : is_finite_measure (map X ℙ) := is_finite_measure_map ℙ hX,
+  rw [has_pdf_iff_of_measurable hX, and_iff_right_iff_imp],
   exact λ h, infer_instance,
+end
+
+lemma real.has_pdf_iff : has_pdf X ℙ ↔ measurable X ∧ map X ℙ ≪ volume :=
+begin
+  by_cases hX : measurable X,
+  { rw [real.has_pdf_iff_of_measurable hX, iff_and_self],
+    exact λ h, hX,
+    apply_instance },
+  { split,
+    { exact λ h, false.elim (hX h.pdf'.1) },
+    { exact λ h, false.elim (hX h.1) } }
 end
 
 /-- If `X` is a real-valued random variable that has pdf `f`, then the expectation of `X` equals

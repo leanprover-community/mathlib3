@@ -362,7 +362,7 @@ unique_factorization_monoid.of_exists_prime_factors (by
     simp_rw irreducible_iff_prime_of_exists_unique_irreducible_factors eif uif })
 
 namespace unique_factorization_monoid
-variables [comm_cancel_monoid_with_zero α] [decidable_eq α] [nontrivial α]
+variables [comm_cancel_monoid_with_zero α] [decidable_eq α]
 variables [unique_factorization_monoid α]
 /-- Noncomputably determines the multiset of prime factors. -/
 noncomputable def factors'' (a : α) : multiset α := if h : a = 0 then 0 else

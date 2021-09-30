@@ -221,6 +221,7 @@ corresponding `lcm` facts from `gcd`.
 (lcm_zero_left  : ∀a, lcm 0 a = 0)
 (lcm_zero_right : ∀a, lcm a 0 = 0)
 
+/-- TODO -/
 class normalized_gcd_monoid (α : Type*) [comm_cancel_monoid_with_zero α] [nontrivial α]
   extends normalization_monoid α, gcd_monoid α :=
 (normalize_gcd  : ∀a b, normalize (gcd a b) = gcd a b)
@@ -814,6 +815,7 @@ noncomputable def gcd_monoid_of_gcd [decidable_eq α] (gcd : α → α → α)
     apply or.resolve_left (mul_eq_zero.1 _) a0',
     rw [h, mul_zero] } }
 
+/-- TODO -/
 noncomputable def normalized_gcd_monoid_of_gcd [normalization_monoid α] [decidable_eq α]
   (gcd : α → α → α)
   (gcd_dvd_left   : ∀a b, gcd a b ∣ a)
@@ -929,6 +931,7 @@ let exists_gcd := λ a b, lcm_dvd (dvd.intro b rfl) (dvd.intro_left a rfl) in
     rw [mul_comm, mul_dvd_mul_iff_right h_1.2],
     apply ac } }
 
+/-- TODO -/
 noncomputable def normalized_gcd_monoid_of_lcm [normalization_monoid α] [decidable_eq α]
   (lcm : α → α → α)
   (dvd_lcm_left   : ∀a b, a ∣ lcm a b)
@@ -1018,6 +1021,7 @@ gcd_monoid_of_gcd
     (((classical.some_spec (h a b) (classical.some (h a b))).2 dvd_rfl)).2)
   (λ a b c ac ab, ((classical.some_spec (h c b) a).1 ⟨ac, ab⟩))
 
+/-- TODO -/
 noncomputable def normalized_gcd_monoid_of_exists_gcd [normalization_monoid α] [decidable_eq α]
   (h : ∀ a b : α, ∃ c : α, ∀ d : α, d ∣ a ∧ d ∣ b ↔ d ∣ c) :
   normalized_gcd_monoid α :=
@@ -1042,6 +1046,7 @@ gcd_monoid_of_lcm
     (((classical.some_spec (h a b) (classical.some (h a b))).2 dvd_rfl)).2)
   (λ a b c ac ab, ((classical.some_spec (h c b) a).1 ⟨ac, ab⟩))
 
+/-- TODO -/
 noncomputable def normalized_gcd_monoid_of_exists_lcm [normalization_monoid α] [decidable_eq α]
   (h : ∀ a b : α, ∃ c : α, ∀ d : α, a ∣ d ∧ b ∣ d ↔ c ∣ d) :
   normalized_gcd_monoid α :=

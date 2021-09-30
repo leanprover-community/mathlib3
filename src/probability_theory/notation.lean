@@ -44,7 +44,6 @@ example : ∂ℙ/∂ℙ' = ℙ.rn_deriv ℙ' := rfl
 /-- TODO: how may I remove the parentheses? -/
 example [have_lebesgue_decomposition ℙ ℙ'] (h : ℙ ≪ ℙ') : ∫⁻ a, (∂ℙ/∂ℙ') a ∂ℙ' = ℙ set.univ :=
 begin
-  obtain ⟨-, -, hadd⟩ := have_lebesgue_decomposition_spec ℙ ℙ',
   rw [← set_lintegral_univ, ← with_density_apply _ measurable_set.univ],
   rw with_density_rn_deriv_eq _ _ h,
 end

@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 
+import group_theory.index
 import group_theory.group_action
 import group_theory.order_of_element
-import group_theory.quotient_group
 
 /-!
 # Complements
@@ -237,9 +237,9 @@ begin
 end
 
 lemma smul_diff [H.normal] (h : H) :
-  diff (h • α) β = h ^ (fintype.card (quotient_group.quotient H)) * diff α β :=
+  diff (h • α) β = h ^ H.index * diff α β :=
 begin
-  rw [diff, diff, ←finset.card_univ, ←finset.prod_const, ←finset.prod_mul_distrib],
+  rw [diff, diff, index_eq_card, ←finset.card_univ, ←finset.prod_const, ←finset.prod_mul_distrib],
   refine finset.prod_congr rfl (λ q _, _),
   rw [subtype.ext_iff, coe_mul, coe_mk, coe_mk, ←mul_assoc, mul_right_cancel_iff],
   rw [show h • α = (h : G) • α, from rfl, smul_symm_apply_eq_mul_symm_apply_inv_smul],
@@ -271,7 +271,7 @@ instance [H.normal] : mul_action G H.quotient_diff :=
 variables [fintype H]
 
 lemma exists_smul_eq [H.normal] (α β : H.quotient_diff)
-  (hH : nat.coprime (fintype.card H) (fintype.card (quotient_group.quotient H))) :
+  (hH : nat.coprime (fintype.card H) H.index) :
   ∃ h : H, h • α = β :=
 quotient.induction_on α (quotient.induction_on β
   (λ β α, exists_imp_exists (λ n, quotient.sound)
@@ -282,7 +282,7 @@ quotient.induction_on α (quotient.induction_on β
       rw [equiv.apply_symm_apply, inv_mul_self] }⟩))
 
 lemma smul_left_injective [H.normal] (α : H.quotient_diff)
-  (hH : nat.coprime (fintype.card H) (fintype.card (quotient_group.quotient H))) :
+  (hH : nat.coprime (fintype.card H) H.index) :
   function.injective (λ h : H, h • α) :=
 λ h₁ h₂, begin
   refine quotient.induction_on α (λ α hα, _),
@@ -292,7 +292,7 @@ lemma smul_left_injective [H.normal] (α : H.quotient_diff)
 end
 
 lemma is_complement_stabilizer_of_coprime [fintype G] [H.normal] {α : H.quotient_diff}
-  (hH : nat.coprime (fintype.card H) (fintype.card (quotient_group.quotient H))) :
+  (hH : nat.coprime (fintype.card H) H.index) :
   is_complement (H : set G) (mul_action.stabilizer G α : set G) :=
 begin
   classical,
@@ -303,7 +303,7 @@ begin
   rw ← fintype.card_congr (ϕ.trans (mul_action.orbit_equiv_quotient_stabilizer G α)) at key,
   apply is_complement_of_coprime key.symm,
   rw [card_eq_card_quotient_mul_card_subgroup H, mul_comm, mul_right_inj'] at key,
-  { rw ← key, convert hH },
+  { rwa [←key, ←index_eq_card] },
   { rw [←pos_iff_ne_zero, fintype.card_pos_iff],
     apply_instance },
 end
@@ -312,7 +312,7 @@ end
   If `H : subgroup G` is abelian, normal, and has order coprime to its index, then there exists
   a subgroup `K` which is a (right) complement of `H`. -/
 theorem exists_right_complement_of_coprime [fintype G] [H.normal]
-  (hH : nat.coprime (fintype.card H) (fintype.card (quotient_group.quotient H))) :
+  (hH : nat.coprime (fintype.card H) H.index) :
   ∃ K : subgroup G, is_complement (H : set G) (K : set G) :=
 nonempty_of_inhabited.elim
   (λ α : H.quotient_diff, ⟨mul_action.stabilizer G α, is_complement_stabilizer_of_coprime hH⟩)
@@ -321,7 +321,7 @@ nonempty_of_inhabited.elim
   If `H : subgroup G` is abelian, normal, and has order coprime to its index, then there exists
   a subgroup `K` which is a (left) complement of `H`. -/
 theorem exists_left_complement_of_coprime [fintype G] [H.normal]
-  (hH : nat.coprime (fintype.card H) (fintype.card (quotient_group.quotient H))) :
+  (hH : nat.coprime (fintype.card H) H.index) :
   ∃ K : subgroup G, is_complement (K : set G) (H : set G) :=
 Exists.imp (λ _, is_complement.symm) (exists_right_complement_of_coprime hH)
 

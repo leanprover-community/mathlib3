@@ -70,11 +70,6 @@ Let `α` be a normed group with a partial order. Then the order dual is also a n
 @[priority 100] -- see Note [lower instance priority]
 instance {α : Type*} : Π [normed_group α], normed_group (order_dual α) := id
 
-lemma test {α : Type*} [h: normed_lattice_add_comm_group α] (a b : α) : a ≤ b ↔ -b ≤ -a :=
-begin
-  exact neg_le_neg_iff.symm,
-end
-
 /--
 Let `α` be a normed lattice ordered group and let `a` and `b` be elements of `α`. Then `a⊓-a ≥ b⊓-b`
 implies `∥a∥ ≤ ∥b∥`.

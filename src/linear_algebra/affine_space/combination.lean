@@ -355,7 +355,7 @@ end
 variables {k V}
 
 /-- Affine maps commute with affine combinations. -/
-lemma affine_map_combination {V₂ P₂ : Type*} [add_comm_group V₂] [module k V₂] [affine_space V₂ P₂]
+lemma map_affine_combination {V₂ P₂ : Type*} [add_comm_group V₂] [module k V₂] [affine_space V₂ P₂]
   (p : ι → P) (w : ι → k) (hw : s.sum w = 1) (f : P →ᵃ[k] P₂) :
   f (s.affine_combination p w) = s.affine_combination (f ∘ p) w :=
 begin

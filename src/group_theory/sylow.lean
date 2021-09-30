@@ -159,27 +159,28 @@ end
 
 variables {p} {G}
 
-lemma orbit_sylow_eq_top [fact p.prime] [fintype (sylow p G)] (P : sylow p G) : orbit G P = ⊤ :=
+@[simp] lemma sylow.orbit_eq_top [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
+  orbit G P = ⊤ :=
 top_le_iff.mp (λ Q hQ, exists_smul_eq G P Q)
 
-lemma stabilizer_sylow_eq_normalizer (P : sylow p G) : stabilizer G P = P.1.normalizer :=
+lemma sylow.stabilizer_eq_normalizer (P : sylow p G) : stabilizer G P = P.1.normalizer :=
 ext (λ g, sylow.smul_eq_iff_mem_normalizer)
 
 /-- Sylow `p`-subgroups are in bijection with cosets of the normalizer of a Sylow `p`-subgroup -/
-noncomputable def sylow_equiv_quotient_normalizer [fact p.prime] [fintype (sylow p G)]
+noncomputable def sylow.equiv_quotient_normalizer [fact p.prime] [fintype (sylow p G)]
   (P : sylow p G) : sylow p G ≃ quotient_group.quotient P.1.normalizer :=
 calc sylow p G ≃ (⊤ : set (sylow p G)) : (equiv.set.univ (sylow p G)).symm
-... ≃ orbit G P : by rw orbit_sylow_eq_top
+... ≃ orbit G P : by rw P.orbit_eq_top
 ... ≃ quotient_group.quotient (stabilizer G P) : orbit_equiv_quotient_stabilizer G P
-... ≃ quotient_group.quotient P.1.normalizer : by rw stabilizer_sylow_eq_normalizer
+... ≃ quotient_group.quotient P.1.normalizer : by rw P.stabilizer_eq_normalizer
 
 noncomputable instance [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
   fintype (quotient_group.quotient P.1.normalizer) :=
-of_equiv (sylow p G) (sylow_equiv_quotient_normalizer P)
+of_equiv (sylow p G) P.equiv_quotient_normalizer
 
 lemma card_sylow_eq_card_quotient_normalizer [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
   card (sylow p G) = card (quotient_group.quotient P.1.normalizer) :=
-card_congr (sylow_equiv_quotient_normalizer P)
+card_congr P.equiv_quotient_normalizer
 
 lemma card_sylow_eq_index_normalizer [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
   card (sylow p G) = P.1.normalizer.index :=

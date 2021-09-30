@@ -145,12 +145,12 @@ begin
           by {apply lattice_ordered_comm_group.abs_triangle,}
         ... ≤ |p.fst - q.fst | + |p.snd - q.snd| : by {
           apply add_le_add,
-          exact
-            (sup_le_iff.elim_left (lattice_ordered_comm_group.Birkhoff_inequalities _ _ _)).right,
-          rw inf_comm,
+          { exact
+            (sup_le_iff.elim_left (lattice_ordered_comm_group.Birkhoff_inequalities _ _ _)).right },
+          { rw inf_comm,
           nth_rewrite 1 inf_comm,
           exact
-            (sup_le_iff.elim_left (lattice_ordered_comm_group.Birkhoff_inequalities _ _ _)).right,
+            (sup_le_iff.elim_left (lattice_ordered_comm_group.Birkhoff_inequalities _ _ _)).right }
         }, },
     { apply add_nonneg,
       apply lattice_ordered_comm_group.abs_pos,

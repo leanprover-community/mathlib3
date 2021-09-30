@@ -88,7 +88,7 @@ namespace tau_package
 variables [nonempty β] (p : tau_package β α)
 include p
 
-/-- Choose inductively large balls whose centers that are not contained in the union of already
+/-- Choose inductively large balls with centers that are not contained in the union of already
 chosen balls. This is a transfinite induction. -/
 noncomputable def f : ordinal.{u} → β
 | i :=
@@ -96,8 +96,8 @@ noncomputable def f : ordinal.{u} → β
     let Z := ⋃ (j : {j // j < i}), ball (p.c (f j)) (p.r (f j)),
     -- `R` is the supremum of the radii of balls with centers not in `Z`
     R := supr (λ b : {b : β // p.c b ∉ Z}, p.r b) in
-    -- return an color `b` for which the center `c b` is not in `Z`, and the radius is at
-    -- least `R / τ`, if such an color exists (and garbage otherwise).
+    -- return a color `b` for which the center `c b` is not in `Z`, and the radius is at
+    -- least `R / τ`, if such a color exists (and garbage otherwise).
     classical.epsilon (λ b : β, p.c b ∉ Z ∧ R ≤ p.τ * p.r b)
 using_well_founded {dec_tac := `[exact j.2]}
 
@@ -247,7 +247,7 @@ begin
   have Gab : ∀ (a b : fin (nat.succ N)), G a < G b →
     p.r (p.f (G a)) ≤ dist (p.c (p.f (G a))) (p.c (p.f (G b)))
       ∧ p.r (p.f (G b)) ≤ p.τ * p.r (p.f (G a)),
-   { assume a b G_lt,
+  { assume a b G_lt,
     have ha : (a : ℕ) ≤ N := nat.lt_succ_iff.1 a.2,
     have hb : (b : ℕ) ≤ N := nat.lt_succ_iff.1 b.2,
     split,
@@ -314,7 +314,7 @@ theorem exist_disjoint_covering_families {N : ℕ} {τ : ℝ}
       (range q.c ⊆ ⋃ (i : fin N), ⋃ (j ∈ s i), ball (q.c j) (q.r j)) :=
 begin
   -- first exclude the trivial case where `β` is empty (we need non-emptiness for the transfinite
-  -- induction, to be able to choose garbage when there was no point left).
+  -- induction, to be able to choose garbage when there is no point left).
   casesI is_empty_or_nonempty β,
   { refine ⟨λ i, ∅, λ i, by simp, _⟩,
     rw [← image_univ, eq_empty_of_is_empty (univ : set β)],

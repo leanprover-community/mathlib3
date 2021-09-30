@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 
 import data.polynomial.eval
 import data.finsupp.antidiagonal
+import algebra.algebra.tower
 
 /-!
 # Multivariate polynomials
@@ -297,10 +298,18 @@ lemma is_id (f : mv_polynomial σ R →+* mv_polynomial σ R)
   f p = p :=
 hom_eq_hom f (ring_hom.id _) hC hX p
 
+@[ext] lemma alg_hom_ext' {A B : Type*} [comm_semiring A] [comm_semiring B]
+  [algebra R A] [algebra R B] {f g : mv_polynomial σ A →ₐ[R] B}
+  (h₁ : f.comp (is_scalar_tower.to_alg_hom R A (mv_polynomial σ A)) =
+        g.comp (is_scalar_tower.to_alg_hom R A (mv_polynomial σ A)))
+  (h₂ : ∀ i, f (X i) = g (X i)) : f = g :=
+alg_hom.coe_ring_hom_injective (mv_polynomial.ring_hom_ext'
+  (congr_arg alg_hom.to_ring_hom h₁) h₂)
+
 @[ext] lemma alg_hom_ext {A : Type*} [comm_semiring A] [algebra R A]
   {f g : mv_polynomial σ R →ₐ[R] A} (hf : ∀ i : σ, f (X i) = g (X i)) :
   f = g :=
-by { ext, exact hf _ }
+add_monoid_algebra.alg_hom_ext' (mul_hom_ext' (λ (x : σ), monoid_hom.ext_mnat (hf x)))
 
 @[simp] lemma alg_hom_C (f : mv_polynomial σ R →ₐ[R] mv_polynomial σ R) (r : R) :
   f (C r) = C r :=
@@ -890,8 +899,8 @@ section aeval
 
 /-! ### The algebra of multivariate polynomials -/
 
-variables (f : σ → S₁)
 variables [algebra R S₁] [comm_semiring S₂]
+variables (f : σ → S₁)
 
 /-- A map `σ → S₁` where `S₁` is an algebra over `R` generates an `R`-algebra homomorphism
 from multivariate polynomials over `σ` to `S₁`. -/
@@ -964,6 +973,52 @@ lemma aeval_eq_zero [algebra R S₂] (f : σ → S₂) (φ : mv_polynomial σ R)
 eval₂_hom_eq_zero _ _ _ h
 
 end aeval
+
+section aeval_tower
+
+variables {S A B : Type*} [comm_semiring S] [comm_semiring A] [comm_semiring B]
+variables [algebra S R] [algebra S A] [algebra S B]
+
+/-- Version of `aeval` for defining algebra homs out of `mv_polynomial σ R` over a smaller base ring
+  than `R`. -/
+def aeval_tower (f : R →ₐ[S] A) (x : σ → A) : mv_polynomial σ R →ₐ[S] A :=
+{ commutes' := λ r,
+    by simp [is_scalar_tower.algebra_map_eq S R (mv_polynomial σ R), algebra_map_eq],
+  ..eval₂_hom ↑f x }
+
+variables (g : R →ₐ[S] A) (y : σ → A)
+
+@[simp] lemma aeval_tower_X (i : σ): aeval_tower g y (X i) = y i := eval₂_X _ _ _
+
+@[simp] lemma aeval_tower_C (x : R) : aeval_tower g y (C x) = g x := eval₂_C _ _ _
+
+@[simp] lemma aeval_tower_comp_C : ((aeval_tower g y : mv_polynomial σ R →+* A).comp C) = g :=
+ring_hom.ext $ aeval_tower_C _ _
+
+@[simp] lemma aeval_tower_algebra_map (x : R) :
+  aeval_tower g y (algebra_map R (mv_polynomial σ R) x) = g x := eval₂_C _ _ _
+
+@[simp] lemma aeval_tower_comp_algebra_map :
+  (aeval_tower g y : mv_polynomial σ R →+* A).comp (algebra_map R (mv_polynomial σ R)) = g :=
+aeval_tower_comp_C _ _
+
+lemma aeval_tower_to_alg_hom (x : R) :
+  aeval_tower g y (is_scalar_tower.to_alg_hom S R (mv_polynomial σ R) x) = g x :=
+aeval_tower_algebra_map _ _ _
+
+@[simp] lemma aeval_tower_comp_to_alg_hom :
+  (aeval_tower g y).comp (is_scalar_tower.to_alg_hom S R (mv_polynomial σ R)) = g :=
+alg_hom.coe_ring_hom_injective $ aeval_tower_comp_algebra_map _ _
+
+@[simp] lemma aeval_tower_id : aeval_tower (alg_hom.id S S) =
+  (aeval : (σ → S) → (mv_polynomial σ S →ₐ[S] S)) :=
+by { ext, simp only [aeval_tower_X, aeval_X] }
+
+@[simp] lemma aeval_tower_of_id : aeval_tower (algebra.of_id S A) =
+  (aeval : (σ → A) → (mv_polynomial σ S →ₐ[S] A)) :=
+by { ext, simp only [aeval_X, aeval_tower_X] }
+
+end aeval_tower
 
 end comm_semiring
 

@@ -1289,6 +1289,9 @@ instance set.fintype [fintype α] : fintype (set α) :=
   apply (coe_filter _ _).trans, rw [coe_univ, set.sep_univ], refl
 end⟩
 
+@[simp] lemma fintype.card_set [fintype α] : fintype.card (set α) = 2 ^ fintype.card α :=
+(finset.card_map _).trans (finset.card_powerset _)
+
 instance pfun_fintype (p : Prop) [decidable p] (α : p → Type*)
   [Π hp, fintype (α hp)] : fintype (Π hp : p, α hp) :=
 if hp : p then fintype.of_equiv (α hp) ⟨λ a _, a, λ f, f hp, λ _, rfl, λ _, rfl⟩

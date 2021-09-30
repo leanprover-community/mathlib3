@@ -20,7 +20,8 @@ between categories as functors preserving small colimits.
 
 ## Main definitions
 
-* `category_theory.sites.cocontinuous`: a functor between sites is cocontinuous if it pulls back covering sieves to covering sieves
+* `category_theory.sites.cocontinuous`: a functor between sites is cocontinuous if it
+pulls back covering sieves to covering sieves
 
 ## Main results
 - `category_theory.sites.Ran_is_sheaf_of_cocontinuous`: If `u : C ⥤ D` is cocontinuous, then

@@ -157,6 +157,9 @@ def refl (f : C(X, Y)) (hP : P f) : homotopy_with f f P :=
     ext, refl,
   end }
 
+@[simp]
+lemma refl_apply {f : C(X, Y)} (hP : P f) (x : I × X) : refl f hP x = f x.2 := rfl
+
 instance : inhabited (homotopy_with (continuous_map.id : C(X, X)) continuous_map.id (λ f, true)) :=
 ⟨homotopy_with.refl continuous_map.id trivial⟩
 
@@ -171,13 +174,13 @@ def symm {f₀ f₁ : C(X, Y)} (F : homotopy_with f₀ f₁ P) : homotopy_with f
   prop' := λ t, by simpa using F.prop' (σ t) }
 
 @[simp]
-lemma symm_apply {f₀ f₁ : C(X, Y)} (F : homotopy_with f₀ f₁ P) (x : X) (t : I) :
-  F.symm (t, x) = F (σ t, x) := rfl
+lemma symm_apply {f₀ f₁ : C(X, Y)} (F : homotopy_with f₀ f₁ P) (x : I × X) :
+  F.symm x = F (σ x.1, x.2) := rfl
 
 @[simp]
 lemma symm_symm {f₀ f₁ : C(X, Y)} (F : homotopy_with f₀ f₁ P) : F.symm.symm = F :=
 begin
-  ext ⟨t, x⟩,
+  ext x,
   simp,
 end
 
@@ -232,12 +235,12 @@ end
 lemma symm_trans {f₀ f₁ f₂ : C(X, Y)} (F : homotopy_with f₀ f₁ P) (G : homotopy_with f₁ f₂ P) :
   (F.trans G).symm = G.symm.trans F.symm :=
 begin
-  ext ⟨t, x⟩,
+  ext x,
   simp only [symm_apply, trans_apply],
   split_ifs with h₁ h₂,
-  { change (t : ℝ) ≤ _ at h₂,
-    change (1 : ℝ) - t ≤ _ at h₁,
-    have ht : (t : ℝ) = 1/2,
+  { change (x.1 : ℝ) ≤ _ at h₂,
+    change (1 : ℝ) - x.1 ≤ _ at h₁,
+    have ht : (x.1 : ℝ) = 1/2,
     { linarith },
     norm_num [ht] },
   { congr' 2,
@@ -248,8 +251,8 @@ begin
     apply subtype.ext,
     simp only [unit_interval.coe_symm_eq, subtype.coe_mk],
     linarith },
-  { change ¬ (t : ℝ) ≤ _ at h,
-    change ¬ (1 : ℝ) - t ≤ _ at h₁,
+  { change ¬ (x.1 : ℝ) ≤ _ at h,
+    change ¬ (1 : ℝ) - x.1 ≤ _ at h₁,
     exfalso, linarith }
 end
 

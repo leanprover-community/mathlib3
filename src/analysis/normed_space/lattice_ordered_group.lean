@@ -152,9 +152,8 @@ begin
           exact
             (sup_le_iff.elim_left (lattice_ordered_comm_group.Birkhoff_inequalities _ _ _)).right }
         }, },
-    { apply add_nonneg,
-      apply lattice_ordered_comm_group.abs_pos,
-      apply lattice_ordered_comm_group.abs_pos, }
+    { exact add_nonneg (lattice_ordered_comm_group.abs_pos (p.fst - q.fst))
+        (lattice_ordered_comm_group.abs_pos (p.snd - q.snd)), }
   },
   refine squeeze_zero (λ e, norm_nonneg _) this _,
   convert (((continuous_fst.tendsto q).sub tendsto_const_nhds).norm).add

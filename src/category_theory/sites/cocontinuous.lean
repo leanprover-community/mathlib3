@@ -9,10 +9,10 @@ import category_theory.limits.kan_extension
 /-!
 # Cocontinuous functors between sites.
 
-We define cocontinuous functors between sites as functors that pulls covering sieves back to
-covering sieves. This seems stronger that the definition found in stacks project,
-but they are actually equivalent via `category_theory.grothendieck_topology.superset_covering`
-(The precise statement not formalized, but follows from it quite trivially).
+We define cocontinuous functors between sites as functors that pull covering sieves back to
+covering sieves. This seems stronger than the definition found in stacks project,
+but they are actually equivalent via `category_theory.grothendieck_topology.superset_covering`.
+(The precise statement is not formalized, but follows from it quite trivially).
 
 This concept is also called the "covering lifting property" as defined in [MM92] Chapter VII,
 Section 10, and should not be confused with the general definition of cocontinuous functors

@@ -41,7 +41,7 @@ example : X =ₐₛ Y ↔ X =ᵐ[volume] Y := iff.rfl
 
 example : ∂P/∂P' = P.rn_deriv P' := rfl
 
-/-- TODO: how may I remove the parentheses? -/
+/-- TODO: how may I remove the parentheses? Also: is this an existing lemma? -/
 example [have_lebesgue_decomposition P P'] (h : P ≪ P') : ∫⁻ a, (∂P/∂P') a ∂P' = P set.univ :=
 by rw [← set_lintegral_univ, ← with_density_apply _ measurable_set.univ,
   with_density_rn_deriv_eq _ _ h]

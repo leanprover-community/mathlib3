@@ -473,24 +473,23 @@ end ae_eq_of_forall_set_integral_eq
 
 section lintegral
 
-lemma ae_eq_of_to_real_ae_eq {f g : α → ℝ≥0∞}
-  (hfi : ∀ᵐ x ∂μ, f x < ∞) (hgi : ∀ᵐ x ∂μ, g x < ∞)
-  (hfg : (λ x, (f x).to_real) =ᵐ[μ] (λ x, (g x).to_real)) :
-  f =ᵐ[μ] g :=
+-- move the next two lemmas once I figure out if `eventually_ne_of_lt` exists already
+-- if not, it might be useful to make some API for eventually lt
+lemma ae_eq_of_to_real_ae_eq {l : filter α} {f g : α → ℝ≥0∞}
+  (hfi : ∀ᶠ x in l, f x ≠ ∞) (hgi : ∀ᶠ x in l, g x ≠ ∞)
+  (hfg : (λ x, (f x).to_real) =ᶠ[l] (λ x, (g x).to_real)) :
+  f =ᶠ[l] g :=
 begin
-  rw [filter.eventually_eq, ae_iff] at hfg ⊢,
-  simp_rw [ae_iff, not_lt, top_le_iff] at hfi hgi,
-  have : {x | f x ≠ g x} ⊆ {x | (f x).to_real ≠ (g x).to_real} ∪ ({x | f x = ∞} ∪ {x | g x = ∞}),
-  { intros x hx,
-    simp only [set.mem_union_eq, or_iff_not_imp_left],
-    intro hx', by_contra h, push_neg at h,
-    refine hx _,
-    rw ← ennreal.to_real_eq_to_real h.1 h.2,
-    exact not_not.1 hx' },
-  refine measure_mono_null this (nonpos_iff_eq_zero.1 (le_trans (measure_union_le _ _) _)),
-  rw [hfg, zero_add],
-  exact le_trans (measure_union_le _ _)
-    (hfi.symm ▸ hgi.symm ▸ (zero_add (0 : ℝ≥0∞)).symm ▸ le_refl _),
+  filter_upwards [hfi, hgi, hfg],
+  intros x hfx hgx hfgx,
+  rwa ← ennreal.to_real_eq_to_real hfx hgx,
+end
+
+lemma eventually_ne_of_lt {β} [preorder β] {l : filter α} {f : α → β} {b : β}
+  (hlt : ∀ᶠ x in l, f x < b) : ∀ᶠ x in l, f x ≠ b :=
+begin
+  filter_upwards [hlt],
+  exact λ x hx, hx.ne
 end
 
 lemma ae_measurable.ae_eq_of_forall_set_lintegral_eq {f g : α → ℝ≥0∞}
@@ -499,14 +498,15 @@ lemma ae_measurable.ae_eq_of_forall_set_lintegral_eq {f g : α → ℝ≥0∞}
   (hfg : ∀ ⦃s⦄, measurable_set s → μ s < ∞ → ∫⁻ x in s, f x ∂μ = ∫⁻ x in s, g x ∂μ) :
   f =ᵐ[μ] g :=
 begin
-  refine ae_eq_of_to_real_ae_eq (ae_lt_top' hf hfi) (ae_lt_top' hg hgi)
+  refine ae_eq_of_to_real_ae_eq
+    (eventually_ne_of_lt $ ae_lt_top' hf hfi) (eventually_ne_of_lt $ ae_lt_top' hg hgi)
     (integrable.ae_eq_of_forall_set_integral_eq _ _
       (integrable_to_real_of_lintegral_ne_top hf hfi)
       (integrable_to_real_of_lintegral_ne_top hg hgi) (λ s hs hs', _)),
   rw [integral_eq_lintegral_of_nonneg_ae, integral_eq_lintegral_of_nonneg_ae],
   { congr' 1,
-    rw [lintegral_congr_ae (ennreal.of_real_to_real_ae_eq _),
-        lintegral_congr_ae (ennreal.of_real_to_real_ae_eq _)],
+    rw [lintegral_congr_ae (of_real_to_real_ae_eq _),
+        lintegral_congr_ae (of_real_to_real_ae_eq _)],
     { exact hfg hs hs' },
     { refine (ae_lt_top' hg.restrict (ne_of_lt (lt_of_le_of_lt _ hgi.lt_top))),
       exact @set_lintegral_univ α _ μ g ▸ lintegral_mono_set (set.subset_univ _) },

@@ -17,8 +17,8 @@ In a 𝕜-vector space, we define the following objects and properties.
 * `convex 𝕜 s`: A set `s` is convex if for any two points `x y ∈ s` it includes `segment 𝕜 x y`.
 * `convex_hull 𝕜 s`: The minimal convex set that includes `s`. In order theory speak, this is a
   closure operator.
-* Standard simplex `std_simplex ι [fintype ι]` is the intersection of the positive quadrant with
-  the hyperplane `s.sum = 1` in the space `ι → 𝕜`.
+* `std_simplex 𝕜 ι`: The standard simplex in `ι → 𝕜` (currently requires `fintype ι`). It is the
+  intersection of the positive quadrant with the hyperplane `s.sum = 1`.
 
 We also provide various equivalent versions of the definitions above, prove that some specific sets
 are convex.

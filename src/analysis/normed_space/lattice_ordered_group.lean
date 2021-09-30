@@ -62,7 +62,7 @@ A normed lattice ordered group is a lattice ordered group
 @[priority 100] -- see Note [lower instance priority]
 instance normed_lattice_add_comm_group_to_covariant_class {α : Type*}
   [h : normed_lattice_add_comm_group α] : covariant_class α α (+) (≤) :=
-{elim := λ a b c bc,  normed_lattice_add_comm_group.add_le_add_left _ _ bc a}
+{ elim := λ a b c bc, normed_lattice_add_comm_group.add_le_add_left _ _ bc a }
 
 /--
 Let `α` be a normed group with a partial order. Then the order dual is also a normed group.

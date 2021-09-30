@@ -27,8 +27,6 @@ random variables with this distribution.
 * `measure_theory.measure.pdf` : If `X` is a random variable that `has_pdf X ℙ μ`, then `pdf X`
   is the measurable function `f` such that the push-forward measure of `ℙ` along `X` equals
   `μ.with_density f`.
-* `measure_theory.measure.pdf.uniform` : A random variable `X` is said to follow the uniform
-  distribution if it has a constant probability density function with a compact, non-null support.
 
 ## Main results
 
@@ -37,9 +35,6 @@ random variables with this distribution.
   all measurable `g : E → ℝ`.
 * `measure_theory.measure.pdf.integral_mul_eq_integral` : A real-valued random variable `X` with
   pdf `f` has expectation `∫ x, x * f x dx`.
-* `measure_theory.measure.pdf.uniform.integral_eq` : If `X` follows the uniform distribution with
-  its pdf having support `s`, then `X` has expectation `(λ s)⁻¹ * ∫ x in s, x dx` where `λ`
-  is the Lebesgue measure.
 
 ## TODOs
 

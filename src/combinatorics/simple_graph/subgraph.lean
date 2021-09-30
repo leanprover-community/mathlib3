@@ -184,7 +184,7 @@ def union (x y : subgraph G) : subgraph G :=
   adj := x.adj ⊔ y.adj,
   adj_sub := λ v w h, or.cases_on h (λ h, x.adj_sub h) (λ h, y.adj_sub h),
   edge_vert := λ v w h, or.cases_on h (λ h, or.inl (x.edge_vert h)) (λ h, or.inr (y.edge_vert h)),
-  symm := λ v w h, by rwa [sup_apply, sup_apply, x.adj_comm, y.adj_comm] }
+  symm := λ v w h, by rwa [pi.sup_apply, pi.sup_apply, x.adj_comm, y.adj_comm] }
 
 /-- The intersection of two subgraphs. -/
 def inter (x y : subgraph G) : subgraph G :=
@@ -192,7 +192,7 @@ def inter (x y : subgraph G) : subgraph G :=
   adj := x.adj ⊓ y.adj,
   adj_sub := λ v w h, x.adj_sub h.1,
   edge_vert := λ v w h, ⟨x.edge_vert h.1, y.edge_vert h.2⟩,
-  symm := λ v w h, by rwa [inf_apply, inf_apply, x.adj_comm, y.adj_comm] }
+  symm := λ v w h, by rwa [pi.inf_apply, pi.inf_apply, x.adj_comm, y.adj_comm] }
 
 /-- The `top` subgraph is `G` as a subgraph of itself. -/
 def top : subgraph G :=

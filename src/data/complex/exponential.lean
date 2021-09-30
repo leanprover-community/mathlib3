@@ -15,7 +15,7 @@ hyperbolic sine, hyperbolic cosine, and hyperbolic tangent functions.
 
 -/
 
-local notation `abs'` := _root_.abs
+local notation `abs'` := has_abs.abs
 open is_absolute_value
 open_locale classical big_operators nat
 
@@ -330,7 +330,7 @@ open cau_seq
 
 namespace complex
 
-lemma is_cau_abs_exp (z : ℂ) : is_cau_seq _root_.abs
+lemma is_cau_abs_exp (z : ℂ) : is_cau_seq has_abs.abs
   (λ n, ∑ m in range n, abs (z ^ m / m!)) :=
 let ⟨n, hn⟩ := exists_nat_gt (abs z) in
 have hn0 : (0 : ℝ) < n, from lt_of_le_of_lt (abs_nonneg _) hn,
@@ -1525,14 +1525,13 @@ lemma abs_cos_add_sin_mul_I (x : ℝ) : abs (cos x + sin x * I) = 1 :=
 have _ := real.sin_sq_add_cos_sq x,
 by simp [add_comm, abs, norm_sq, sq, *, sin_of_real_re, cos_of_real_re, mul_re] at *
 
-lemma abs_exp_eq_iff_re_eq {x y : ℂ} : abs (exp x) = abs (exp y) ↔ x.re = y.re :=
-by rw [exp_eq_exp_re_mul_sin_add_cos, exp_eq_exp_re_mul_sin_add_cos y,
-    abs_mul, abs_mul, abs_cos_add_sin_mul_I, abs_cos_add_sin_mul_I,
-    ← of_real_exp, ← of_real_exp, abs_of_nonneg (le_of_lt (real.exp_pos _)),
-    abs_of_nonneg (le_of_lt (real.exp_pos _)), mul_one, mul_one];
-  exact ⟨λ h, real.exp_injective h, congr_arg _⟩
-
 @[simp] lemma abs_exp_of_real (x : ℝ) : abs (exp x) = real.exp x :=
 by rw [← of_real_exp]; exact abs_of_nonneg (le_of_lt (real.exp_pos _))
+
+lemma abs_exp (z : ℂ) : abs (exp z) = real.exp (z.re) :=
+by rw [exp_eq_exp_re_mul_sin_add_cos, abs_mul, abs_exp_of_real, abs_cos_add_sin_mul_I, mul_one]
+
+lemma abs_exp_eq_iff_re_eq {x y : ℂ} : abs (exp x) = abs (exp y) ↔ x.re = y.re :=
+by rw [abs_exp, abs_exp, real.exp_eq_exp]
 
 end complex

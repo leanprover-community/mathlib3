@@ -5,6 +5,7 @@ Authors: Johan Commelin, Scott Morrison
 -/
 import analysis.convex.combination
 import linear_algebra.affine_space.independent
+import data.real.basic
 
 /-!
 # Carathéodory's convexity theorem

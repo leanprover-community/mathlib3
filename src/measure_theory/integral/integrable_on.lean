@@ -145,7 +145,7 @@ begin
   simp,
 end
 
-@[simp] lemma integrable_on_finite_union {s : set β} (hs : finite s)
+@[simp] lemma integrable_on_finite_Union {s : set β} (hs : finite s)
   {t : β → set α} : integrable_on f (⋃ i ∈ s, t i) μ ↔ ∀ i ∈ s, integrable_on f (t i) μ :=
 begin
   apply hs.induction_on,
@@ -153,9 +153,13 @@ begin
   { intros a s ha hs hf, simp [hf, or_imp_distrib, forall_and_distrib] }
 end
 
-@[simp] lemma integrable_on_finset_union  {s : finset β} {t : β → set α} :
+@[simp] lemma integrable_on_finset_Union {s : finset β} {t : β → set α} :
   integrable_on f (⋃ i ∈ s, t i) μ ↔ ∀ i ∈ s, integrable_on f (t i) μ :=
-integrable_on_finite_union s.finite_to_set
+integrable_on_finite_Union s.finite_to_set
+
+@[simp] lemma integrable_on_fintype_Union [fintype β] {t : β → set α} :
+  integrable_on f (⋃ i, t i) μ ↔ ∀ i, integrable_on f (t i) μ :=
+by simpa using @integrable_on_finset_Union _ _ _ _ _ _ f μ finset.univ t
 
 lemma integrable_on.add_measure (hμ : integrable_on f s μ) (hν : integrable_on f s ν) :
   integrable_on f s (μ + ν) :=
@@ -166,6 +170,11 @@ by { delta integrable_on, rw measure.restrict_add, exact hμ.integrable.add_meas
 ⟨λ h, ⟨h.mono_measure (measure.le_add_right (le_refl _)),
   h.mono_measure (measure.le_add_left (le_refl _))⟩,
   λ h, h.1.add_measure h.2⟩
+
+lemma integrable_on_map_equiv [measurable_space β] (e : α ≃ᵐ β) {f : β → E} {μ : measure α}
+  {s : set β} :
+  integrable_on f s (measure.map e μ) ↔ integrable_on (f ∘ e) (e ⁻¹' s) μ :=
+by simp only [integrable_on, e.restrict_map, integrable_map_equiv e]
 
 lemma integrable_indicator_iff (hs : measurable_set s) :
   integrable (indicator s f) μ ↔ integrable_on f s μ :=
@@ -431,7 +440,7 @@ variables
 
 include hs
 
-lemma integrable_on_compact_of_monotone_on (hmono : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f x ≤ f y) :
+lemma monotone_on.integrable_on_compact (hmono : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f x ≤ f y) :
   integrable_on f s μ :=
 begin
   by_cases h : s.nonempty,
@@ -450,20 +459,18 @@ begin
     exact integrable_on_empty }
 end
 
-lemma integrable_on_compact_of_antimono_on (hmono : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f y ≤ f x) :
+lemma antitone_on.integrable_on_compact (hanti : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f y ≤ f x) :
   integrable_on f s μ :=
-@integrable_on_compact_of_monotone_on α (order_dual E) _ _ ‹_› _ _ ‹_› _ _ _ _ ‹_› _ _ _ hs _
-  hmono
+@monotone_on.integrable_on_compact α (order_dual E) _ _ ‹_› _ _ ‹_› _ _ _ _ ‹_› _ _ _ hs _
+  hanti
 
-lemma integrable_on_compact_of_monotone (hmono : monotone f) :
+lemma monotone.integrable_on_compact (hmono : monotone f) :
   integrable_on f s μ :=
-integrable_on_compact_of_monotone_on hs (λ x y _ _ hxy, hmono hxy)
+monotone_on.integrable_on_compact hs (λ x y _ _ hxy, hmono hxy)
 
-alias integrable_on_compact_of_monotone ← monotone.integrable_on_compact
-
-lemma integrable_on_compact_of_antimono (hmono : ∀ ⦃x y⦄, x ≤ y → f y ≤ f x) :
+lemma antitone.integrable_on_compact (hanti : ∀ ⦃x y⦄, x ≤ y → f y ≤ f x) :
   integrable_on f s μ :=
-@integrable_on_compact_of_monotone α (order_dual E) _ _ ‹_› _ _ ‹_› _ _ _ _ ‹_› _ _ _ hs _
-  hmono
+@monotone.integrable_on_compact α (order_dual E) _ _ ‹_› _ _ ‹_› _ _ _ _ ‹_› _ _ _ hs _
+  hanti
 
 end monotone

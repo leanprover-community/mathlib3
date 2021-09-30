@@ -66,6 +66,12 @@ rfl
 variables {s s₁ s₂ : set α} {t t₁ t₂ : set β} {p : set γ} {f f₁ f₂ f₃ : α → β} {g : β → γ}
   {f' f₁' f₂' : β → α} {g' : γ → β}
 
+@[simp] lemma injective_cod_restrict (h : ∀ x, f x ∈ t) :
+  injective (cod_restrict f t h) ↔ injective f :=
+by simp only [injective, subtype.ext_iff, coe_cod_restrict_apply]
+
+alias injective_cod_restrict ↔ _ function.injective.cod_restrict
+
 /-! ### Equality on a set -/
 
 /-- Two functions `f₁ f₂ : α → β` are equal on `s`
@@ -795,26 +801,26 @@ by simp
 
 end set
 
-lemma strict_mono_incr_on.inj_on [linear_order α] [preorder β] {f : α → β} {s : set α}
-  (H : strict_mono_incr_on f s) :
+lemma strict_mono_on.inj_on [linear_order α] [preorder β] {f : α → β} {s : set α}
+  (H : strict_mono_on f s) :
   s.inj_on f :=
 λ x hx y hy hxy, show ordering.eq.compares x y, from (H.compares hx hy).1 hxy
 
-lemma strict_mono_decr_on.inj_on [linear_order α] [preorder β] {f : α → β} {s : set α}
-  (H : strict_mono_decr_on f s) :
+lemma strict_anti_on.inj_on [linear_order α] [preorder β] {f : α → β} {s : set α}
+  (H : strict_anti_on f s) :
   s.inj_on f :=
-@strict_mono_incr_on.inj_on α (order_dual β) _ _ f s H
+@strict_mono_on.inj_on α (order_dual β) _ _ f s H
 
-lemma strict_mono_incr_on.comp [preorder α] [preorder β] [preorder γ]
-  {g : β → γ} {f : α → β} {s : set α} {t : set β} (hg : strict_mono_incr_on g t)
-  (hf : strict_mono_incr_on f s) (hs : set.maps_to f s t) :
-  strict_mono_incr_on (g ∘ f) s :=
+lemma strict_mono_on.comp [preorder α] [preorder β] [preorder γ]
+  {g : β → γ} {f : α → β} {s : set α} {t : set β} (hg : strict_mono_on g t)
+  (hf : strict_mono_on f s) (hs : set.maps_to f s t) :
+  strict_mono_on (g ∘ f) s :=
 λ x hx y hy hxy, hg (hs hx) (hs hy) $ hf hx hy hxy
 
-lemma strict_mono.comp_strict_mono_incr_on [preorder α] [preorder β] [preorder γ]
+lemma strict_mono.comp_strict_mono_on [preorder α] [preorder β] [preorder γ]
   {g : β → γ} {f : α → β} {s : set α} (hg : strict_mono g)
-  (hf : strict_mono_incr_on f s) :
-  strict_mono_incr_on (g ∘ f) s :=
+  (hf : strict_mono_on f s) :
+  strict_mono_on (g ∘ f) s :=
 λ x hx y hy hxy, hg $ hf hx hy hxy
 
 lemma strict_mono.cod_restrict [preorder α] [preorder β] {f : α → β} (hf : strict_mono f)

@@ -8,7 +8,7 @@ import linear_algebra.matrix.basis
 import linear_algebra.matrix.diagonal
 import linear_algebra.matrix.to_linear_equiv
 import linear_algebra.matrix.reindex
-import linear_algebra.multilinear
+import linear_algebra.multilinear.basic
 import linear_algebra.dual
 import ring_theory.algebra_tower
 
@@ -251,7 +251,7 @@ by simp only [← zero_smul 𝕜 (1 : M →ₗ[𝕜] M), det_smul, mul_one, mono
 /-- Conjugating a linear map by a linear equiv does not change its determinant. -/
 @[simp] lemma det_conj {N : Type*} [add_comm_group N] [module A N]
   (f : M →ₗ[A] M) (e : M ≃ₗ[A] N) :
-  linear_map.det ((e : M →ₗ[A] N).comp (f.comp e.symm)) = linear_map.det f :=
+  linear_map.det ((e : M →ₗ[A] N) ∘ₗ (f ∘ₗ (e.symm : N →ₗ[A] M))) = linear_map.det f :=
 begin
   classical,
   by_cases H : ∃ (s : finset M), nonempty (basis s A M),

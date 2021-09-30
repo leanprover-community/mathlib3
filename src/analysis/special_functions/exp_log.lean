@@ -164,6 +164,33 @@ complex.times_cont_diff_exp.times_cont_diff_at.comp_times_cont_diff_within_at x 
 
 end
 
+section
+
+variable {α : Type*}
+
+open complex
+
+lemma filter.tendsto.cexp {l : filter α} {f : α → ℂ} {z : ℂ} (hf : tendsto f l (𝓝 z)) :
+  tendsto (λ x, exp (f x)) l (𝓝 (exp z)) :=
+(continuous_exp.tendsto _).comp hf
+
+variables [topological_space α] {f : α → ℂ} {s : set α} {x : α}
+
+lemma continuous_within_at.cexp (h : continuous_within_at f s x) :
+  continuous_within_at (λ y, exp (f y)) s x :=
+h.cexp
+
+lemma continuous_at.cexp (h : continuous_at f x) : continuous_at (λ y, exp (f y)) x :=
+h.cexp
+
+lemma continuous_on.cexp (h : continuous_on f s) : continuous_on (λ y, exp (f y)) s :=
+λ x hx, (h x hx).cexp
+
+lemma continuous.cexp (h : continuous f) : continuous (λ y, exp (f y)) :=
+continuous_iff_continuous_at.2 $ λ x, h.continuous_at.cexp
+
+end
+
 namespace real
 
 variables {x y z : ℝ}
@@ -462,10 +489,10 @@ end
 lemma log_nonpos (hx : 0 ≤ x) (h'x : x ≤ 1) : log x ≤ 0 :=
 (log_nonpos_iff' hx).2 h'x
 
-lemma strict_mono_incr_on_log : strict_mono_incr_on log (set.Ioi 0) :=
+lemma strict_mono_on_log : strict_mono_on log (set.Ioi 0) :=
 λ x hx y hy hxy, log_lt_log hx hxy
 
-lemma strict_mono_decr_on_log : strict_mono_decr_on log (set.Iio 0) :=
+lemma strict_anti_on_log : strict_anti_on log (set.Iio 0) :=
 begin
   rintros x (hx : x < 0) y (hy : y < 0) hxy,
   rw [← log_abs y, ← log_abs x],
@@ -474,7 +501,7 @@ begin
 end
 
 lemma log_inj_on_pos : set.inj_on log (set.Ioi 0) :=
-strict_mono_incr_on_log.inj_on
+strict_mono_on_log.inj_on
 
 lemma eq_one_of_pos_of_log_eq_zero {x : ℝ} (h₁ : 0 < x) (h₂ : log x = 0) : x = 1 :=
 log_inj_on_pos (set.mem_Ioi.2 h₁) (set.mem_Ioi.2 zero_lt_one) (h₂.trans real.log_one.symm)

@@ -3,8 +3,8 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johannes Hölzl, Sander Dahmen, Scott Morrison
 -/
-import linear_algebra.basis
 import linear_algebra.std_basis
+import linear_algebra.isomorphisms
 import set_theory.cofinality
 import linear_algebra.invariant_basis_number
 
@@ -461,6 +461,11 @@ begin
       infinite_basis_le_maximal_linear_independent' v' _ v.linear_independent v.maximal,
     exact le_antisymm w₁ w₂, }
 end
+
+/-- Given two basis indexed by `ι` and `ι'` of an `R`-module, where `R` satisfies the invariant
+basis number property, an equiv `ι ≃ ι' `. -/
+def basis.index_equiv (v : basis ι R M) (v' : basis ι' R M) : ι ≃ ι' :=
+nonempty.some (cardinal.lift_mk_eq.1 (cardinal.lift_max.2 (mk_eq_mk_of_basis v v')))
 
 theorem mk_eq_mk_of_basis' {ι' : Type w} (v : basis ι R M) (v' : basis ι' R M) :
   #ι = #ι' :=

@@ -259,7 +259,10 @@ namespace finset
 section comm_monoid
 variables [comm_monoid β]
 
-@[to_additive]
+/-- Multiplying the products of a function over `s` and over `sᶜ` gives the whole product.
+For a version expressed with subtypes, see `fintype.prod_subtype_mul_prod_subtype`. -/
+@[to_additive "Adding the sums of a function over `s` and over `sᶜ` gives the whole sum.
+For a version expressed with subtypes, see `fintype.sum_subtype_add_sum_subtype`. "]
 lemma prod_mul_prod_compl [fintype α] [decidable_eq α] (s : finset α) (f : α → β) :
   (∏ i in s, f i) * (∏ i in sᶜ, f i) = ∏ i, f i :=
 is_compl_compl.prod_mul_prod f
@@ -998,8 +1001,9 @@ finset.strong_induction_on s
 
 
 /-- The product of the composition of functions `f` and `g`, is the product
-over `b ∈ s.image g` of `f b` to the power of the cardinality of the fibre of `b` -/
-lemma prod_comp [decidable_eq γ] {s : finset α} (f : γ → β) (g : α → γ) :
+over `b ∈ s.image g` of `f b` to the power of the cardinality of the fibre of `b`. See also
+`finset.prod_image`. -/
+lemma prod_comp [decidable_eq γ] (f : γ → β) (g : α → γ) :
   ∏ a in s, f (g a) = ∏ b in s.image g, f b ^ (s.filter (λ a, g a = b)).card  :=
 calc ∏ a in s, f (g a)
     = ∏ x in (s.image g).sigma (λ b : γ, s.filter (λ a, g a = b)), f (g x.2) :
@@ -1185,11 +1189,12 @@ lemma sum_boole {s : finset α} {p : α → Prop} [non_assoc_semiring β] {hp : 
   (∑ x in s, if p x then (1 : β) else (0 : β)) = (s.filter p).card :=
 by simp [sum_ite]
 
-lemma sum_comp [add_comm_monoid β] [decidable_eq γ] {s : finset α} (f : γ → β) (g : α → γ) :
+lemma sum_comp [add_comm_monoid β] [decidable_eq γ] (f : γ → β) (g : α → γ) :
   ∑ a in s, f (g a) = ∑ b in s.image g, (s.filter (λ a, g a = b)).card • (f b) :=
 @prod_comp (multiplicative β) _ _ _ _ _ _ _
 attribute [to_additive "The sum of the composition of functions `f` and `g`, is the sum
-over `b ∈ s.image g` of `f b` times of the cardinality of the fibre of `b`"] prod_comp
+over `b ∈ s.image g` of `f b` times of the cardinality of the fibre of `b`. See also
+`finset.sum_image`."] prod_comp
 
 lemma eq_sum_range_sub [add_comm_group β] (f : ℕ → β) (n : ℕ) :
   f n = f 0 + ∑ i in range n, (f (i+1) - f i) :=
@@ -1383,6 +1388,19 @@ lemma prod_subsingleton {α β : Type*} [comm_monoid β] [subsingleton α] (f : 
 begin
   haveI : unique α := unique_of_subsingleton a,
   convert prod_unique f
+end
+
+@[to_additive]
+lemma prod_subtype_mul_prod_subtype {α β : Type*} [fintype α] [comm_monoid β]
+  (p : α → Prop) (f : α → β) [decidable_pred p] :
+  (∏ (i : {x // p x}), f i) * (∏ i : {x // ¬ p x}, f i) = ∏ i, f i :=
+begin
+  classical,
+  let s := {x | p x}.to_finset,
+  rw [← finset.prod_subtype s, ← finset.prod_subtype sᶜ],
+  { exact finset.prod_mul_prod_compl _ _ },
+  { simp },
+  { simp }
 end
 
 end fintype

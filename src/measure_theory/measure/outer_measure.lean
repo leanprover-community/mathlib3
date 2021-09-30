@@ -602,6 +602,9 @@ theorem bounded_by_eq (s : set α) (m_empty : m ∅ = 0) (m_mono : ∀ ⦃t : se
   (m_subadd : ∀ (s : ℕ → set α), m (⋃i, s i) ≤ ∑'i, m (s i)) : bounded_by m s = m s :=
 by rw [bounded_by_eq_of_function m_empty, of_function_eq s m_mono m_subadd]
 
+@[simp] theorem bounded_by_eq_self (m : outer_measure α) : bounded_by m = m :=
+ext $ λ s, bounded_by_eq _ m.empty' (λ t ht, m.mono' ht) m.Union
+
 theorem le_bounded_by {μ : outer_measure α} : μ ≤ bounded_by m ↔ ∀ s, μ s ≤ m s :=
 begin
   rw [bounded_by, le_of_function, forall_congr], intro s,

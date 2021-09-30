@@ -313,6 +313,8 @@ protected def nonempty (s : finset α) : Prop := ∃ x:α, x ∈ s
 
 @[simp, norm_cast] lemma coe_nonempty {s : finset α} : (s:set α).nonempty ↔ s.nonempty := iff.rfl
 
+@[simp] lemma nonempty_coe_sort (s : finset α) : nonempty ↥s ↔ s.nonempty := nonempty_subtype
+
 alias coe_nonempty ↔ _ finset.nonempty.to_set
 
 lemma nonempty.bex {s : finset α} (h : s.nonempty) : ∃ x:α, x ∈ s := h
@@ -977,7 +979,8 @@ mem_erase_iff_of_nodup s.2
 
 theorem not_mem_erase (a : α) (s : finset α) : a ∉ erase s a := mem_erase_of_nodup s.2
 
-@[simp] theorem erase_empty (a : α) : erase ∅ a = ∅ := rfl
+-- While this can be solved by `simp`, this lemma is eligible for `dsimp`
+@[nolint simp_nf, simp] theorem erase_empty (a : α) : erase ∅ a = ∅ := rfl
 
 theorem ne_of_mem_erase {a b : α} {s : finset α} : b ∈ erase s a → b ≠ a :=
 by simp only [mem_erase]; exact and.left
@@ -1016,6 +1019,7 @@ lemma erase_ssubset {a : α} {s : finset α} (h : a ∈ s) : s.erase a ⊂ s :=
 calc s.erase a ⊂ insert a (s.erase a) : ssubset_insert $ not_mem_erase _ _
   ... = _ : insert_erase h
 
+@[simp]
 theorem erase_eq_of_not_mem {a : α} {s : finset α} (h : a ∉ s) : erase s a = s :=
 eq_of_veq $ erase_of_not_mem h
 
@@ -1907,6 +1911,17 @@ by simp only [mem_def, image_val, mem_erase_dup, multiset.mem_map, exists_prop]
 theorem mem_image_of_mem (f : α → β) {a} {s : finset α} (h : a ∈ s) : f a ∈ s.image f :=
 mem_image.2 ⟨_, h, rfl⟩
 
+instance [can_lift β α] : can_lift (finset β) (finset α) :=
+{ cond := λ s, ∀ x ∈ s, can_lift.cond α x,
+  coe := image can_lift.coe,
+  prf :=
+    begin
+      rintro ⟨⟨l⟩, hd : l.nodup⟩ hl,
+      lift l to list α using hl,
+      refine ⟨⟨l, list.nodup_of_nodup_map _ hd⟩, ext $ λ a, _⟩,
+      simp
+    end }
+
 lemma _root_.function.injective.mem_finset_image {f : α → β} (hf : function.injective f)
   {s : finset α} {x : α} :
   f x ∈ s.image f ↔ x ∈ s :=
@@ -1946,6 +1961,8 @@ multiset.erase_dup_eq_self.2 (nodup_map_on H s.2)
 @[simp]
 theorem image_id [decidable_eq α] : s.image id = s :=
 ext $ λ _, by simp only [mem_image, exists_prop, id, exists_eq_right]
+
+@[simp] theorem image_id' [decidable_eq α] : s.image (λ x, x) = s := image_id
 
 theorem image_image [decidable_eq γ] {g : β → γ} : (s.image f).image g = s.image (g ∘ f) :=
 eq_of_veq $ by simp only [image_val, erase_dup_map_erase_dup_eq, multiset.map_map]
@@ -2021,8 +2038,11 @@ iff.intro
     ⟨i, by rw [int.mod_eq_of_lt (int.coe_zero_le _) (int.coe_nat_lt_coe_nat_of_lt hi), ha]⟩)
 
 
-lemma attach_image_val [decidable_eq α] {s : finset α} : s.attach.image subtype.val = s :=
+@[simp] lemma attach_image_val [decidable_eq α] {s : finset α} : s.attach.image subtype.val = s :=
 eq_of_veq $ by rw [image_val, attach_val, multiset.attach_map_val, erase_dup_eq_self]
+
+@[simp] lemma attach_image_coe [decidable_eq α] {s : finset α} : s.attach.image coe = s :=
+finset.attach_image_val
 
 @[simp] lemma attach_insert [decidable_eq α] {a : α} {s : finset α} :
   attach (insert a s) = insert (⟨a, mem_insert_self a s⟩ : {x // x ∈ insert a s})
@@ -2242,6 +2262,7 @@ begin
   { simp [finset.singleton_inter_of_mem h] },
 end
 
+@[simp]
 theorem card_erase_of_mem [decidable_eq α] {a : α} {s : finset α} :
   a ∈ s → card (erase s a) = pred (card s) := card_erase_of_mem
 
@@ -2258,6 +2279,10 @@ begin
   { rw [card_erase_of_mem h], refl },
   { rw [erase_eq_of_not_mem h], apply nat.sub_le }
 end
+
+/-- If `a ∈ s` is known, see also `finset.card_erase_of_mem` and `finset.erase_eq_of_not_mem`. -/
+theorem card_erase_eq_ite [decidable_eq α] {a : α} {s : finset α} :
+  card (erase s a) = if a ∈ s then pred (card s) else card s := card_erase_eq_ite
 
 @[simp] theorem card_range (n : ℕ) : card (range n) = n := card_range n
 
@@ -2666,6 +2691,13 @@ lemma erase_bUnion (f : α → finset β) (s : finset α) (b : β) :
   (s.bUnion f).erase b = s.bUnion (λ x, (f x).erase b) :=
 by { ext, simp only [finset.mem_bUnion, iff_self, exists_and_distrib_left, finset.mem_erase] }
 
+@[simp] lemma bUnion_nonempty : (s.bUnion t).nonempty ↔ ∃ x ∈ s, (t x).nonempty :=
+by simp [finset.nonempty, ← exists_and_distrib_left, @exists_swap α]
+
+lemma nonempty.bUnion (hs : s.nonempty) (ht : ∀ x ∈ s, (t x).nonempty) :
+  (s.bUnion t).nonempty :=
+bUnion_nonempty.2 $ hs.imp $ λ x hx, ⟨hx, ht x hx⟩
+
 end bUnion
 
 /-! ### prod -/
@@ -2845,6 +2877,9 @@ by rw [← card_union_add_card_inter, disjoint_iff_inter_eq_empty.1 h, card_empt
 theorem card_sdiff {s t : finset α} (h : s ⊆ t) : card (t \ s) = card t - card s :=
 suffices card (t \ s) = card ((t \ s) ∪ s) - card s, by rwa sdiff_union_of_subset h at this,
 by rw [card_disjoint_union sdiff_disjoint, nat.add_sub_cancel]
+
+lemma card_sdiff_add_card {s t : finset α} : (s \ t).card + t.card = (s ∪ t).card :=
+by rw [← card_disjoint_union sdiff_disjoint, sdiff_union_self_eq_union]
 
 lemma disjoint_filter {s : finset α} {p q : α → Prop} [decidable_pred p] [decidable_pred q] :
     disjoint (s.filter p) (s.filter q) ↔ (∀ x ∈ s, p x → ¬ q x) :=

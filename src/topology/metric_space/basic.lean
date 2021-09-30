@@ -378,6 +378,17 @@ assume y (hy : _ < _), le_of_lt hy
 theorem sphere_subset_closed_ball : sphere x ε ⊆ closed_ball x ε :=
 λ y, le_of_eq
 
+lemma ball_disjoint_ball (x y : α) (rx ry : ℝ) (h : rx + ry ≤ dist x y) :
+  disjoint (ball x rx) (ball y ry) :=
+begin
+  rw disjoint_left,
+  assume a ax ay,
+  apply lt_irrefl (dist x y),
+  calc dist x y ≤ dist x a + dist a y : dist_triangle _ _ _
+  ... < rx + ry : add_lt_add (mem_ball'.1 ax) (mem_ball.1 ay)
+  ... ≤ dist x y : h
+end
+
 theorem sphere_disjoint_ball : disjoint (sphere x ε) (ball x ε) :=
 λ y ⟨hy₁, hy₂⟩, absurd hy₁ $ ne_of_lt hy₂
 
@@ -399,13 +410,52 @@ by simp [dist_comm]
 theorem ball_subset_ball (h : ε₁ ≤ ε₂) : ball x ε₁ ⊆ ball x ε₂ :=
 λ y (yx : _ < ε₁), lt_of_lt_of_le yx h
 
+lemma ball_subset_ball' (h : ε₁ + dist x y ≤ ε₂) : ball x ε₁ ⊆ ball y ε₂ :=
+λ z hz, calc
+  dist z y ≤ dist z x + dist x y : dist_triangle _ _ _
+  ... < ε₁ + dist x y : add_lt_add_right hz _
+  ... ≤ ε₂ : h
+
 theorem closed_ball_subset_closed_ball (h : ε₁ ≤ ε₂) :
   closed_ball x ε₁ ⊆ closed_ball x ε₂ :=
 λ y (yx : _ ≤ ε₁), le_trans yx h
 
+lemma closed_ball_subset_closed_ball' (h : ε₁ + dist x y ≤ ε₂) :
+  closed_ball x ε₁ ⊆ closed_ball y ε₂ :=
+λ z hz, calc
+  dist z y ≤ dist z x + dist x y : dist_triangle _ _ _
+  ... ≤ ε₁ + dist x y : add_le_add_right hz _
+  ... ≤ ε₂ : h
+
 theorem closed_ball_subset_ball (h : ε₁ < ε₂) :
   closed_ball x ε₁ ⊆ ball x ε₂ :=
 λ y (yh : dist y x ≤ ε₁), lt_of_le_of_lt yh h
+
+lemma dist_le_add_of_nonempty_closed_ball_inter_closed_ball
+  (h : (closed_ball x ε₁ ∩ closed_ball y ε₂).nonempty) :
+  dist x y ≤ ε₁ + ε₂ :=
+let ⟨z, hz⟩ := h in calc
+  dist x y ≤ dist z x + dist z y : dist_triangle_left _ _ _
+  ... ≤ ε₁ + ε₂ : add_le_add hz.1 hz.2
+
+lemma dist_lt_add_of_nonempty_closed_ball_inter_ball (h : (closed_ball x ε₁ ∩ ball y ε₂).nonempty) :
+  dist x y < ε₁ + ε₂ :=
+let ⟨z, hz⟩ := h in calc
+  dist x y ≤ dist z x + dist z y : dist_triangle_left _ _ _
+  ... < ε₁ + ε₂ : add_lt_add_of_le_of_lt hz.1 hz.2
+
+lemma dist_lt_add_of_nonempty_ball_inter_closed_ball (h : (ball x ε₁ ∩ closed_ball y ε₂).nonempty) :
+  dist x y < ε₁ + ε₂ :=
+begin
+  rw inter_comm at h,
+  rw [add_comm, dist_comm],
+  exact dist_lt_add_of_nonempty_closed_ball_inter_ball h
+end
+
+lemma dist_lt_add_of_nonempty_ball_inter_ball (h : (ball x ε₁ ∩ ball y ε₂).nonempty) :
+  dist x y < ε₁ + ε₂ :=
+dist_lt_add_of_nonempty_closed_ball_inter_ball $
+  h.mono (inter_subset_inter ball_subset_closed_ball subset.rfl)
 
 @[simp] lemma Union_closed_ball_nat (x : α) : (⋃ n : ℕ, closed_ball x n) = univ :=
 Union_eq_univ_iff.2 $ λ y, exists_nat_ge (dist y x)
@@ -1408,12 +1458,12 @@ open metric
 
 /-- A pseudometric space is proper if all closed balls are compact. -/
 class proper_space (α : Type u) [pseudo_metric_space α] : Prop :=
-(compact_ball : ∀x:α, ∀r, is_compact (closed_ball x r))
+(is_compact_closed_ball : ∀x:α, ∀r, is_compact (closed_ball x r))
 
 /-- In a proper pseudometric space, all spheres are compact. -/
 lemma is_compact_sphere {α : Type*} [pseudo_metric_space α] [proper_space α] (x : α) (r : ℝ) :
   is_compact (sphere x r) :=
-compact_of_is_closed_subset (proper_space.compact_ball x r) is_closed_sphere
+compact_of_is_closed_subset (proper_space.is_compact_closed_ball x r) is_closed_sphere
   sphere_subset_closed_ball
 
 /-- In a proper pseudometric space, any sphere is a `compact_space` when considered as a subtype. -/
@@ -1430,7 +1480,7 @@ begin
   -- add an instance for `sigma_compact_space`.
   suffices : sigma_compact_space α, by exactI emetric.second_countable_of_sigma_compact α,
   rcases em (nonempty α) with ⟨⟨x⟩⟩|hn,
-  { exact ⟨⟨λ n, closed_ball x n, λ n, proper_space.compact_ball _ _,
+  { exact ⟨⟨λ n, closed_ball x n, λ n, proper_space.is_compact_closed_ball _ _,
       Union_closed_ball_nat _⟩⟩ },
   { exact ⟨⟨λ n, ∅, λ n, is_compact_empty, Union_eq_univ_iff.2 $ λ x, (hn ⟨x⟩).elim⟩⟩ }
 end
@@ -1438,7 +1488,8 @@ end
 lemma tendsto_dist_right_cocompact_at_top [proper_space α] (x : α) :
   tendsto (λ y, dist y x) (cocompact α) at_top :=
 (has_basis_cocompact.tendsto_iff at_top_basis).2 $ λ r hr,
-  ⟨closed_ball x r, proper_space.compact_ball x r, λ y hy, (not_le.1 $ mt mem_closed_ball.2 hy).le⟩
+  ⟨closed_ball x r, proper_space.is_compact_closed_ball x r,
+    λ y hy, (not_le.1 $ mt mem_closed_ball.2 hy).le⟩
 
 lemma tendsto_dist_left_cocompact_at_top [proper_space α] (x : α) :
   tendsto (dist x) (cocompact α) at_top :=
@@ -1471,7 +1522,7 @@ instance proper_of_compact [compact_space α] : proper_space α :=
 instance locally_compact_of_proper [proper_space α] :
   locally_compact_space α :=
 locally_compact_space_of_has_basis (λ x, nhds_basis_closed_ball) $
-  λ x ε ε0, proper_space.compact_ball _ _
+  λ x ε ε0, proper_space.is_compact_closed_ball _ _
 
 /-- A proper space is complete -/
 @[priority 100] -- see Note [lower instance priority]
@@ -1484,7 +1535,7 @@ instance complete_of_proper [proper_space α] : complete_space α :=
     (metric.cauchy_iff.1 hf).2 1 zero_lt_one,
   rcases hf.1.nonempty_of_mem t_fset with ⟨x, xt⟩,
   have : closed_ball x 1 ∈ f := mem_of_superset t_fset (λ y yt, (ht y x yt xt).le),
-  rcases (compact_iff_totally_bounded_complete.1 (proper_space.compact_ball x 1)).2 f hf
+  rcases (compact_iff_totally_bounded_complete.1 (proper_space.is_compact_closed_ball x 1)).2 f hf
     (le_principal_iff.2 this) with ⟨y, -, hy⟩,
   exact ⟨y, hy⟩
 end⟩
@@ -1496,7 +1547,7 @@ begin
   refine proper_space_of_compact_closed_ball_of_le 0 (λx r hr, _),
   rw closed_ball_pi _ hr,
   apply is_compact_univ_pi (λb, _),
-  apply (h b).compact_ball
+  apply (h b).is_compact_closed_ball
 end
 
 variables [proper_space α] {x : α} {r : ℝ} {s : set α}
@@ -1509,7 +1560,7 @@ begin
   unfreezingI { rcases eq_empty_or_nonempty s with rfl|hne },
   { exact ⟨r / 2, ⟨half_pos hr, half_lt_self hr⟩, empty_subset _⟩ },
   have : is_compact s,
-    from compact_of_is_closed_subset (proper_space.compact_ball x r) hs
+    from compact_of_is_closed_subset (proper_space.is_compact_closed_ball x r) hs
       (subset.trans h ball_subset_closed_ball),
   obtain ⟨y, hys, hy⟩ : ∃ y ∈ s, s ⊆ closed_ball x (dist y x),
     from this.exists_forall_ge hne (continuous_id.dist continuous_const).continuous_on,
@@ -1685,7 +1736,7 @@ begin
   unfreezingI { rcases eq_empty_or_nonempty s with (rfl|⟨x, hx⟩) },
   { exact is_compact_empty },
   { rcases hb.subset_ball x with ⟨r, hr⟩,
-    exact compact_of_is_closed_subset (proper_space.compact_ball x r) hc hr }
+    exact compact_of_is_closed_subset (proper_space.is_compact_closed_ball x r) hc hr }
 end
 
 /-- The Heine–Borel theorem:

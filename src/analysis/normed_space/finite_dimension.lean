@@ -42,10 +42,70 @@ then the identities from `E` to `E'` and from `E'`to `E` are continuous thanks t
 
 universes u v w x
 
+noncomputable theory
+
 open set finite_dimensional topological_space filter asymptotics
 open_locale classical big_operators filter topological_space asymptotics
 
-noncomputable theory
+namespace linear_isometry
+
+open linear_map
+
+variables {R : Type*} [semiring R]
+
+variables {F E₁ : Type*} [semi_normed_group F]
+  [normed_group E₁] [module R E₁]
+
+variables {R₁ : Type*} [field R₁] [module R₁ E₁] [module R₁ F]
+  [finite_dimensional R₁ E₁] [finite_dimensional R₁ F]
+
+/-- A linear isometry between finite dimensional spaces of equal dimension can be upgraded
+    to a linear isometry equivalence. -/
+def to_linear_isometry_equiv
+  (li : E₁ →ₗᵢ[R₁] F) (h : finrank R₁ E₁ = finrank R₁ F) : E₁ ≃ₗᵢ[R₁] F :=
+{ to_linear_equiv :=
+    li.to_linear_map.linear_equiv_of_injective li.injective h,
+  norm_map' := li.norm_map' }
+
+@[simp] lemma coe_to_linear_isometry_equiv
+  (li : E₁ →ₗᵢ[R₁] F) (h : finrank R₁ E₁ = finrank R₁ F) :
+  (li.to_linear_isometry_equiv h : E₁ → F) = li := rfl
+
+@[simp] lemma to_linear_isometry_equiv_apply
+  (li : E₁ →ₗᵢ[R₁] F) (h : finrank R₁ E₁ = finrank R₁ F) (x : E₁) :
+  (li.to_linear_isometry_equiv h) x = li x := rfl
+
+end linear_isometry
+
+namespace affine_isometry
+
+open affine_map
+
+variables {𝕜 : Type*} {V₁ V₂  : Type*} {P₁ P₂ : Type*}
+  [normed_field 𝕜]
+  [normed_group V₁] [semi_normed_group V₂]
+  [normed_space 𝕜 V₁] [semi_normed_space 𝕜 V₂]
+  [metric_space P₁] [pseudo_metric_space P₂]
+  [normed_add_torsor V₁ P₁] [semi_normed_add_torsor V₂ P₂]
+
+variables [finite_dimensional 𝕜 V₁] [finite_dimensional 𝕜 V₂]
+
+/-- An affine isometry between finite dimensional spaces of equal dimension can be upgraded
+    to an affine isometry equivalence. -/
+def to_affine_isometry_equiv [inhabited P₁]
+  (li : P₁ →ᵃⁱ[𝕜] P₂) (h : finrank 𝕜 V₁ = finrank 𝕜 V₂) : P₁ ≃ᵃⁱ[𝕜] P₂ :=
+affine_isometry_equiv.mk' li (li.linear_isometry.to_linear_isometry_equiv h) (arbitrary P₁)
+  (λ p, by simp)
+
+@[simp] lemma coe_to_affine_isometry_equiv [inhabited P₁]
+  (li : P₁ →ᵃⁱ[𝕜] P₂) (h : finrank 𝕜 V₁ = finrank 𝕜 V₂) :
+  (li.to_affine_isometry_equiv h : P₁ → P₂) = li := rfl
+
+@[simp] lemma to_affine_isometry_equiv_apply [inhabited P₁]
+  (li : P₁ →ᵃⁱ[𝕜] P₂) (h : finrank 𝕜 V₁ = finrank 𝕜 V₂) (x : P₁) :
+  (li.to_affine_isometry_equiv h) x = li x := rfl
+
+end affine_isometry
 
 /-- A linear map on `ι → 𝕜` (where `ι` is a fintype) is continuous -/
 lemma linear_map.continuous_on_pi {ι : Type w} [fintype ι] {𝕜 : Type u} [normed_field 𝕜]
@@ -490,6 +550,17 @@ end
 
 end riesz
 
+/-- An injective linear map with finite-dimensional domain is a closed embedding. -/
+lemma linear_equiv.closed_embedding_of_injective {f : E →ₗ[𝕜] F} (hf : f.ker = ⊥)
+  [finite_dimensional 𝕜 E] :
+  closed_embedding ⇑f :=
+let g := linear_equiv.of_injective f (linear_map.ker_eq_bot.mp hf) in
+{ closed_range := begin
+    haveI := f.finite_dimensional_range,
+    simpa [f.range_coe] using f.range.closed_of_finite_dimensional
+  end,
+  .. embedding_subtype_coe.comp g.to_continuous_linear_equiv.to_homeomorph.embedding }
+
 lemma continuous_linear_map.exists_right_inverse_of_surjective [finite_dimensional 𝕜 F]
   (f : E →L[𝕜] F) (hf : f.range = ⊤) :
   ∃ g : F →L[𝕜] E, f.comp g = continuous_linear_map.id 𝕜 F :=
@@ -497,16 +568,7 @@ let ⟨g, hg⟩ := (f : E →ₗ[𝕜] F).exists_right_inverse_of_surjective hf 
 ⟨g.to_continuous_linear_map, continuous_linear_map.ext $ linear_map.ext_iff.1 hg⟩
 
 lemma closed_embedding_smul_left {c : E} (hc : c ≠ 0) : closed_embedding (λ x : 𝕜, x • c) :=
-begin
-  haveI : finite_dimensional 𝕜 (submodule.span 𝕜 {c}) :=
-    finite_dimensional.span_of_finite 𝕜 (finite_singleton c),
-  have m1 : closed_embedding (coe : submodule.span 𝕜 {c} → E) :=
-  (submodule.span 𝕜 {c}).closed_of_finite_dimensional.closed_embedding_subtype_coe,
-  have m2 : closed_embedding
-    (linear_equiv.to_span_nonzero_singleton 𝕜 E c hc : 𝕜 → submodule.span 𝕜 {c}) :=
-  (continuous_linear_equiv.to_span_nonzero_singleton 𝕜 c hc).to_homeomorph.closed_embedding,
-  exact m1.comp m2
-end
+linear_equiv.closed_embedding_of_injective (linear_equiv.ker_to_span_singleton 𝕜 E hc)
 
 /- `smul` is a closed map in the first argument. -/
 lemma is_closed_map_smul_left (c : E) : is_closed_map (λ x : 𝕜, x • c) :=

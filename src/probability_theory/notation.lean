@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 import measure_theory.function.conditional_expectation
+import measure_theory.decomposition.radon_nikodym
 
 /-! # Notations for probability theory -/
 
@@ -23,11 +24,13 @@ localized "notation X `=ₐₛ`:50 Y:50 := X =ᵐ[volume] Y" in probability_theo
 
 localized "notation X `≤ₐₛ`:50 Y:50 := X ≤ᵐ[volume] Y" in probability_theory
 
+localized "notation `∂` ℙ `/∂`:50 ℙ':50 := ℙ.rn_deriv ℙ'" in probability_theory
+
 section examples
 
 open_locale probability_theory
 
-variables {α E : Type*} [measure_space α] {ℙ : measure α} [measurable_space E] [normed_group E]
+variables {α E : Type*} [measure_space α] {ℙ ℙ' : measure α} [measurable_space E] [normed_group E]
   [normed_space ℝ E] [borel_space E] [second_countable_topology E] [complete_space E] {X Y : α → E}
 
 example : ℙ[X] = ∫ a, X a ∂ℙ := rfl
@@ -35,5 +38,7 @@ example : ℙ[X] = ∫ a, X a ∂ℙ := rfl
 example : 𝔼[X] = volume[X] := rfl
 
 example : X =ₐₛ Y ↔ X =ᵐ[volume] Y := iff.rfl
+
+example : ∂ℙ/∂ℙ' = ℙ.rn_deriv ℙ' := rfl
 
 end examples

@@ -408,6 +408,25 @@ begin
     exact ⟨max_eq_left (le_of_lt h), h⟩ }
 end
 
+lemma junk0929 (a b c d : set ℝ ) : a = b → c = d → a∪ c = b ∪ d :=
+begin
+  exact congr_arg2 (λ (a c : set ℝ), a ∪ c),
+end
+
+/-- Move elsewhere -/
+lemma Ico_translate (a b x : ℝ) : has_add.add x ⁻¹' Ico a b = Ico (a-x) (b-x) :=
+begin
+  -- compare to set.Ico_add_bij  ??? Turn `=` into `bij_on`?? (When image sets are same `Type`??)
+  ext1 y,
+  split,
+  { intros hy,
+    simp only [preimage_const_add_Ico, mem_Ico, sub_neg_eq_add] at hy,
+    exact mem_Ico.mpr hy, },
+  { intros hy,
+    simp only [preimage_const_add_Ico, mem_Ico, sub_neg_eq_add],
+    exact mem_Ico.mp hy, },
+end
+
 
 lemma something1
 --(S : set ℝ ) (hS : measurable_set S)
@@ -421,7 +440,8 @@ begin
   { apply continuous.measurable,
     exact continuous_quotient_mk, },
   let S := Ico (0:ℝ) 1,
-  haveI : finite_measure (measure.restrict volume (Ico (0:ℝ) 1)) := ⟨ by simp ⟩,
+  have Smeas : measurable_set S := measurable_set_Ico,
+  haveI : finite_measure (measure.restrict volume (Ico (0:ℝ) 1)) := ⟨by simp⟩,
   haveI : finite_measure (measure.map (quotient_add_group.mk : (ℝ → ℝmodℤ))
     (measure.restrict volume (Ico (0:ℝ) 1))),
   { refine measure_theory.measure.is_finite_measure_map _ _,
@@ -438,71 +458,133 @@ begin
       { exact meas1, },
       { exact measurable_set.univ, }, },
     { simp, }, },
-  { rw ←  measure_theory.measure.map_add_left_eq_self,
+  { rw ←measure_theory.measure.map_add_left_eq_self,
     intros x,
     ext1 A hA,
-    rw measure_theory.measure.map_apply,
-    rw measure_theory.measure.map_apply,
-    rw measure_theory.measure.map_apply,
+    rw [measure_theory.measure.map_apply, measure_theory.measure.map_apply,
+      measure_theory.measure.map_apply],
 
-    -- make this a lemma for the group theory library! ...
-    obtain ⟨x0, hx0⟩ := @quotient.exists_rep _ (quotient_add_group.left_rel (add_subgroup.gmultiples (1:ℝ))) x,
-
-    obtain ⟨x1, ⟨n, ⟨ hx11, hx12⟩ , hn⟩, hx1'⟩ := RmodZuniqueRep x0,
-
-    have xeqx1 : x= ↑x1,
-    { rw ← hx0,
-      rw hn,
-      refine quotient_add_group.eq.mpr _,
-      use -n,
-      simp, },
-
-    let A1 := (quotient_add_group.mk ⁻¹' A) ∩ Ico (0:ℝ) ((1:ℝ)-x1),
-    let A2 := (quotient_add_group.mk ⁻¹' A) ∩ Ico (1-x1) 1,
-    have A1A2dis : disjoint A1 A2,
     {
-      dsimp only [A1, A2],
-      apply disjoint.inter,
-      rw set.Ico_disjoint_Ico,
+      -- make this a lemma for the group theory library! ...
+      obtain ⟨x0, hx0⟩ := @quotient.exists_rep _
+        (quotient_add_group.left_rel (add_subgroup.gmultiples (1:ℝ))) x,
 
-      cases (min_cases (1 - x1) 1); cases (max_cases  0 (1 - x1)); linarith,
+      obtain ⟨x1, ⟨n, ⟨hx11, hx12⟩ , hn⟩, hx1'⟩ := RmodZuniqueRep x0,
+
+      have xqoutx1 : x = quotient_add_group.mk x1,
+      { rw ← hx0,
+        rw hn,
+        refine quotient_add_group.eq.mpr _,
+        use -n,
+        simp, },
+      have is_a_homo : ∀ y, quotient_add_group.mk (x1 + y) = x + quotient_add_group.mk y,
+      { intros y,
+        -- HELP
+        -- need quotient_add_group.mk is a homomorphism
+        -- simp
+        -- library_search
+        sorry, },
+      have two_quotients : quotient_add_group.mk ⁻¹' (has_add.add x ⁻¹' A) =
+        has_add.add x1 ⁻¹' (quotient_add_group.mk ⁻¹' A),
+      { ext1 y,
+        split,
+        { intros hy,
+          simp only [mem_preimage] at hy,
+          simp only [mem_preimage],
+          rw is_a_homo,
+          exact hy, },
+        { intros hy,
+          simp only [mem_preimage],
+          simp only [mem_preimage] at hy,
+          rw ← is_a_homo,
+          exact hy, }, },
+      let A1 := (quotient_add_group.mk ⁻¹' A) ∩ Ico x1 1,
+      have A1meas : measurable_set A1 := measurable_set.inter (measurable_set_preimage meas1 hA)
+        measurable_set_Ico,
+      let A2 := (quotient_add_group.mk ⁻¹' A) ∩ Ico 0 x1,
+      have A2meas : measurable_set A2 := measurable_set.inter (measurable_set_preimage meas1 hA)
+        measurable_set_Ico,
+      have A1A2dis : disjoint A1 A2,
+      { dsimp only [A1, A2],
+        apply disjoint.inter,
+        rw set.Ico_disjoint_Ico,
+        cases (min_cases 1 x1); cases (max_cases x1 0); linarith, },
+      have A1A2 : (quotient_add_group.mk ⁻¹' A) ∩ Ico 0 1 = A1 ∪ A2,
+      { convert set.inter_union_distrib_left using 2,
+        rw set.union_comm,
+        refine (set.Ico_union_Ico_eq_Ico _ _).symm; linarith, },
+      let B1 : set ℝ :=  has_add.add x1 ⁻¹' A1,
+      have B1meas : measurable_set B1 := measurable_set_preimage (measurable_const_add _) A1meas,
+      let B2 : set ℝ := has_add.add (x1-1) ⁻¹' A2,
+      have B2meas : measurable_set B2 := measurable_set_preimage (measurable_const_add _) A2meas,
+      have B1B2dis : disjoint B1 B2,
+      { have B1sub : B1 ⊆ has_add.add x1 ⁻¹' (Ico x1 1),
+        { rw set.preimage_subset_preimage_iff,
+          { exact (quotient_add_group.mk ⁻¹' A).inter_subset_right _, },
+          { convert set.subset_univ A1 using 1,
+            sorry, -- range has.add x1 = univ (translation by x1 is onto!!!? ) HELP?
+          }, },
+        have B2sub : B2 ⊆ has_add.add (x1-1) ⁻¹' (Ico 0 x1),
+        { rw set.preimage_subset_preimage_iff,
+          { exact (quotient_add_group.mk ⁻¹' A).inter_subset_right _, },
+          { convert set.subset_univ A2 using 1,
+            sorry, -- range has.add x1 = univ (translation by x1 is onto!!!? ) HELP?
+          }, },
+        refine set.disjoint_of_subset B1sub B2sub _,
+        rw (by convert Ico_translate _ _ x1; ring :
+          has_add.add x1 ⁻¹' Ico x1 1 = Ico 0 (1-x1)),
+        rw (by convert Ico_translate _ _ (x1-1) using 2; ring :
+          has_add.add (x1-1) ⁻¹' Ico 0 x1 = Ico (1-x1) 1),
+        rw set.Ico_disjoint_Ico,
+        cases (min_cases (1-x1) 1); cases (max_cases 0 (1-x1)); linarith, },
+      have B1B2 :  (quotient_add_group.mk ⁻¹' (has_add.add x ⁻¹' A)) ∩ S = B1 ∪ B2,
+      { rw two_quotients,
+        rw (by rw set.Ico_union_Ico_eq_Ico; linarith : S = Ico 0 (1-x1) ∪ (Ico (1-x1) 1)),
+        rw set.inter_distrib_left,
+
+        have B1is : has_add.add x1 ⁻¹' (quotient_add_group.mk ⁻¹' A) ∩ Ico 0 (1 - x1) = B1 :=
+          by rw [← (by convert Ico_translate _ _ x1; ring :
+            has_add.add x1 ⁻¹' Ico x1 1 = Ico 0 (1-x1)), ← set.preimage_inter],
+        have B2is : has_add.add x1 ⁻¹' (quotient_add_group.mk ⁻¹' A) ∩ Ico (1 - x1) 1 = B2,
+        {
+          rw [(_ : has_add.add x1 ⁻¹' (quotient_add_group.mk ⁻¹' A)
+            = has_add.add (x1-1) ⁻¹' (quotient_add_group.mk ⁻¹' A) ),
+            ←(by convert Ico_translate _ _ (x1-1) using 2; ring :
+            has_add.add (x1-1) ⁻¹' Ico 0 x1 = Ico (1-x1) 1),
+             ← set.preimage_inter],
 
 
+          sorry,
 
---      rw (_ : min (1 - x1) 1 = 1-x1),
---      rw (_ : max 0 (1 - x1) = 1-x1),
+        },
 
+        exact congr_arg2 (λ (a c : set ℝ), a ∪ c) B1is B2is, },
+      rw [measure_theory.measure.restrict_apply', measure_theory.measure.restrict_apply'],
+      {
+        rw [A1A2,
+          B1B2],
+        dsimp only [B1, B2],
+        rw [measure_theory.measure_union, measure_theory.measure_union,
+          real.volume_preimage_add_left, real.volume_preimage_add_left],
+
+        { exact A1A2dis, },
+        { exact A1meas, },
+        { exact A2meas, },
+        { exact B1B2dis, },
+        { exact B1meas, },
+        { exact B2meas, },
+      },
+      { exact Smeas, },
+      { exact Smeas, },
     },
-    have A1A2 : (quotient_add_group.mk ⁻¹' A) ∩ Ico 0 1 = A1 ∪ A2,
-    { convert set.inter_union_distrib_left using 2,
-      refine (set.Ico_union_Ico_eq_Ico _ _).symm; linarith, },
-    let B1 : set ℝ :=  (has_add.add x1 ⁻¹' A1),
-    let B2 : set ℝ :=  (has_add.add x1 ⁻¹' A2),
-    have B1B2 :  (quotient_add_group.mk ⁻¹' (has_add.add x ⁻¹' A)) ∩ S = B1 ∪ B2,
-    {
-      sorry,
+    { exact meas1, },
+    { exact hA, },
+    { exact meas1, },
+    { sorry, --  measurable_set (has_add.add x ⁻¹' A)
     },
-    {
-      rw measure_theory.measure.restrict_apply',
-      rw measure_theory.measure.restrict_apply',
-      rw A1A2,
-      rw B1B2,
-      dsimp only [B1, B2],
-      rw measure_theory.measure_union,
-      rw measure_theory.measure_union,
-      rw real.volume_preimage_add_left,
-      rw real.volume_preimage_add_left,
+    { sorry, -- measurable (has_add.add x)
     },
-
-    have := measure_theory.measure_union ,
-
-    have := real.map_volume_add_left,
-    -- ALEX homework
-
---    have : (quotient_add_group.mk ⁻¹' (has_add.add x ⁻¹' A)) ∩ Ico 0 1 = (A2-x1) ⊔ (A1+(1-x1???))
-
-  },
-  sorry,
+    { exact hA, }, },
 end
 
 lemma integral_Union {ι : Type*} [encodable ι] {s : ι → set ℝ } (f : ℝ  → ℂ )

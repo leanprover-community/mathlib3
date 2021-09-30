@@ -2,8 +2,6 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Chris Hughes
-
-Adjoining roots of polynomials
 -/
 import data.polynomial.field_division
 import linear_algebra.finite_dimensional
@@ -101,7 +99,7 @@ polynomial.induction_on p (λ x, by { rw aeval_C, refl })
 
 theorem adjoin_root_eq_top : algebra.adjoin R ({root f} : set (adjoin_root f)) = ⊤ :=
 algebra.eq_top_iff.2 $ λ x, induction_on f x $ λ p,
-(algebra.adjoin_singleton_eq_range R (root f)).symm ▸ ⟨p, aeval_eq p⟩
+(algebra.adjoin_singleton_eq_range_aeval R (root f)).symm ▸ ⟨p, aeval_eq p⟩
 
 @[simp] lemma eval₂_root (f : polynomial R) : f.eval₂ (of f) (root f) = 0 :=
 by rw [← algebra_map_eq, ← aeval_def, aeval_eq, mk_self]

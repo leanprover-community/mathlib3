@@ -184,6 +184,22 @@ by {rw mul_comm, exact norm_smul _ _}
 def to_span_singleton (x : E) : 𝕜 →L[𝕜] E :=
 of_homothety (linear_map.to_span_singleton 𝕜 E x) ∥x∥ (to_span_singleton_homothety 𝕜 x)
 
+lemma to_span_singleton_apply (x : E) (r : 𝕜) : to_span_singleton 𝕜 x r = r • x :=
+by simp [to_span_singleton, of_homothety, linear_map.to_span_singleton]
+
+lemma to_span_singleton_add (x y : E) :
+  to_span_singleton 𝕜 (x + y) = to_span_singleton 𝕜 x + to_span_singleton 𝕜 y :=
+by { ext1, simp [to_span_singleton_apply], }
+
+lemma to_span_singleton_smul' (𝕜') [nondiscrete_normed_field 𝕜'] [semi_normed_space 𝕜' E]
+  [smul_comm_class 𝕜 𝕜' E] (c : 𝕜') (x : E) :
+  to_span_singleton 𝕜 (c • x) = c • to_span_singleton 𝕜 x :=
+by { ext1, rw [to_span_singleton_apply, smul_apply, to_span_singleton_apply, smul_comm], }
+
+lemma to_span_singleton_smul (c : 𝕜) (x : E) :
+  to_span_singleton 𝕜 (c • x) = c • to_span_singleton 𝕜 x :=
+to_span_singleton_smul' 𝕜 𝕜 c x
+
 end
 
 section op_norm
@@ -258,7 +274,7 @@ lemma op_norm_le_of_ball {f : E →L[𝕜] F} {ε : ℝ} {C : ℝ} (ε_pos : 0 <
 begin
   rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
   refine op_norm_le_of_shell ε_pos hC hc (λ x _ hx, hf x _),
-  rwa ball_0_eq
+  rwa ball_zero_eq
 end
 
 lemma op_norm_le_of_nhds_zero {f : E →L[𝕜] F} {C : ℝ} (hC : 0 ≤ C)
@@ -272,7 +288,7 @@ begin
   by_cases h0 : c = 0,
   { refine op_norm_le_of_ball ε_pos hC (λ x hx, hf x _ _),
     { simp [h0] },
-    { rwa ball_0_eq at hx } },
+    { rwa ball_zero_eq at hx } },
   { rw [← inv_inv' c, normed_field.norm_inv,
       inv_lt_one_iff_of_pos (norm_pos_iff.2 $ inv_ne_zero h0)] at hc,
     refine op_norm_le_of_shell ε_pos hC hc _,
@@ -621,6 +637,19 @@ variables (𝕜) (𝕜' : Type*) [normed_field 𝕜'] [normed_algebra 𝕜 𝕜'
 def lsmul : 𝕜' →L[𝕜] E →L[𝕜] E :=
 ((algebra.lsmul 𝕜 E).to_linear_map : 𝕜' →ₗ[𝕜] E →ₗ[𝕜] E).mk_continuous₂ 1 $
   λ c x, by simpa only [one_mul] using (norm_smul c x).le
+
+@[simp] lemma lsmul_apply (c : 𝕜') (x : E) : lsmul 𝕜 𝕜' c x = c • x := rfl
+
+variables {𝕜'}
+
+lemma norm_to_span_singleton (x : E) : ∥to_span_singleton 𝕜 x∥ = ∥x∥ :=
+begin
+  refine op_norm_eq_of_bounds (norm_nonneg _) (λ x, _) (λ N hN_nonneg h, _),
+  { rw [to_span_singleton_apply, norm_smul, mul_comm], },
+  { specialize h 1,
+    rw [to_span_singleton_apply, norm_smul, mul_comm] at h,
+    exact (mul_le_mul_right (by simp)).mp h, },
+end
 
 end smul_linear
 

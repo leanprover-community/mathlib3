@@ -9,7 +9,14 @@ import data.list.zip
 import logic.relation
 
 /-!
-# List permutations
+# List Permutations
+
+This file introduces the `list.perm` relation, which is true if two lists are permutations of one
+another.
+
+## Notation
+
+The notation `~` is used for permutation equivalence.
 -/
 
 open_locale nat
@@ -289,7 +296,7 @@ this ▸ hbd
 lemma rel_perm (hr : bi_unique r) : (forall₂ r ⇒ forall₂ r ⇒ (↔)) perm perm :=
 assume a b hab c d hcd, iff.intro
   (rel_perm_imp hr.2 hab hcd)
-  (rel_perm_imp (left_unique_flip hr.1) hab.flip hcd.flip)
+  (rel_perm_imp hr.left.flip hab.flip hcd.flip)
 
 end rel
 

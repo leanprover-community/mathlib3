@@ -3,8 +3,10 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 -/
+
+import ring_theory.ideal.operations
+import algebra.algebra.basic
 import algebra.category.CommRing.basic
-import ring_theory.ideal.basic
 
 /-!
 
@@ -236,7 +238,10 @@ noncomputable instance : inhabited (residue_field R) := ⟨37⟩
 def residue : R →+* (residue_field R) :=
 ideal.quotient.mk _
 
+noncomputable instance residue_field.algebra : algebra R (residue_field R) := (residue R).to_algebra
+
 namespace residue_field
+
 
 variables {R S}
 /-- The map on residue fields induced by a local homomorphism between local rings -/
@@ -250,6 +255,12 @@ begin
 end
 
 end residue_field
+
+variables {R}
+
+lemma ker_eq_maximal_ideal {K : Type*} [field K]
+  (φ : R →+* K) (hφ : function.surjective φ) : φ.ker = maximal_ideal R :=
+local_ring.eq_maximal_ideal $ φ.ker_is_maximal_of_surjective hφ
 
 end local_ring
 

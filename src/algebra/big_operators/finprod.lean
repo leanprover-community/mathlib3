@@ -217,7 +217,7 @@ f.map_finprod_plift g (finite.of_fintype _)
 begin
   by_cases hg : (mul_support $ g ∘ plift.down).finite, { exact f.map_finprod_plift g hg },
   rw [finprod, dif_neg, f.map_one, finprod, dif_neg],
-  exacts [infinite_mono (λ x hx, mt (hf (g x.down)) hx) hg, hg]
+  exacts [infinite.mono (λ x hx, mt (hf (g x.down)) hx) hg, hg]
 end
 
 @[to_additive] lemma monoid_hom.map_finprod_of_injective (g : M →* N) (hg : injective g)
@@ -482,7 +482,7 @@ over `i ∈ t`. -/
 @[to_additive] lemma finprod_mem_union_inter (hs : s.finite) (ht : t.finite) :
   (∏ᶠ i ∈ s ∪ t, f i) * ∏ᶠ i ∈ s ∩ t, f i = (∏ᶠ i ∈ s, f i) * ∏ᶠ i ∈ t, f i :=
 begin
-  unfreezingI { lift s to finset α using hs, lift t to finset α using ht },
+  lift s to finset α using hs, lift t to finset α using ht,
   classical,
   rw [← finset.coe_union, ← finset.coe_inter],
   simp only [finprod_mem_coe_finset, finset.prod_union_inter]
@@ -661,7 +661,7 @@ of the products of `f a` over `a ∈ t i`. -/
   (h : pairwise (disjoint on t)) (ht : ∀ i, (t i).finite) :
   ∏ᶠ a ∈ (⋃ i : ι, t i), f a = ∏ᶠ i, (∏ᶠ a ∈ t i, f a) :=
 begin
-  unfreezingI { lift t to ι → finset α using ht },
+  lift t to ι → finset α using ht,
   classical,
   rw [← bUnion_univ, ← finset.coe_univ, ← finset.coe_bUnion,
     finprod_mem_coe_finset, finset.prod_bUnion],
@@ -695,7 +695,7 @@ with the product over `t`. -/
   (f : α → β → M) (hs : s.finite) (ht : t.finite) :
   ∏ᶠ i ∈ s, ∏ᶠ j ∈ t, f i j = ∏ᶠ j ∈ t, ∏ᶠ i ∈ s, f i j :=
 begin
-  unfreezingI { lift s to finset α using hs, lift t to finset β using ht },
+  lift s to finset α using hs, lift t to finset β using ht,
   simp only [finprod_mem_coe_finset],
   exact finset.prod_comm
 end

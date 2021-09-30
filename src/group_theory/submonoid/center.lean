@@ -86,6 +86,22 @@ begin
   exact center_units_subset (inv_mem_center (subset_center_units ha)),
 end
 
+@[simp, to_additive sub_mem_add_center]
+lemma div_mem_center [group M] {a b : M} (ha : a ∈ set.center M) (hb : b ∈ set.center M) :
+  a / b ∈ set.center M :=
+begin
+  rw [div_eq_mul_inv],
+  exact mul_mem_center ha (inv_mem_center hb),
+end
+
+@[simp]
+lemma div_mem_center' [group_with_zero M] {a b : M} (ha : a ∈ set.center M)
+  (hb : b ∈ set.center M) : a / b ∈ set.center M :=
+begin
+  rw div_eq_mul_inv,
+  exact mul_mem_center ha (inv_mem_center' hb),
+end
+
 variables (M)
 
 @[simp, to_additive add_center_eq_univ]

@@ -123,7 +123,7 @@ begin
   { rw [← multiplicity.finite_iff_dom, multiplicity.finite_nat_iff],
     exact ⟨hp.1.ne_one, nat.choose_pos hj⟩, },
   rw [← enat.coe_get aux, enat.coe_le_coe, nat.sub_le_left_iff_le_add,
-      ← enat.coe_le_coe, enat.coe_add, pnat_multiplicity, enat.coe_get, enat.coe_get, add_comm],
+      ← enat.coe_le_coe, nat.cast_add, pnat_multiplicity, enat.coe_get, enat.coe_get, add_comm],
   exact (hp.1.multiplicity_choose_prime_pow hj j.succ_pos).ge,
 end
 

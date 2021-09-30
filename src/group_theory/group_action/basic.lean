@@ -5,9 +5,8 @@ Authors: Chris Hughes
 -/
 import group_theory.group_action.defs
 import group_theory.group_action.group
-import group_theory.coset
+import group_theory.quotient_group
 import data.setoid.basic
-import data.set_like.fintype
 import data.fintype.card
 
 /-!
@@ -133,6 +132,16 @@ variables {α} {β}
     show (y * x⁻¹) • a = c, by
       conv {to_rhs, rw [← hy, ← mul_one y, ← inv_mul_self x, ← mul_assoc,
         mul_action.mul_smul, hx]}⟩⟩)⟩
+
+@[to_additive] instance {b : β} : mul_action α (orbit α b) :=
+{ smul := λ a b', ⟨a • b', orbit_eq_iff.mp (eq.trans (orbit_eq_iff.mpr (mem_orbit b' a))
+    (orbit_eq_iff.mpr b'.2))⟩,
+  one_smul := λ a, subtype.ext (one_smul α a),
+  mul_smul := λ a a' b', subtype.ext (mul_smul a a' b') }
+
+@[simp, to_additive] lemma orbit.coe_smul {b : β} {a : α} {b' : orbit α b} :
+  ↑(a • b') = a • (b' : β) :=
+rfl
 
 @[to_additive] lemma mem_fixed_points_iff_card_orbit_eq_one {a : β}
   [fintype (orbit α a)] : a ∈ fixed_points α β ↔ fintype.card (orbit α a) = 1 :=
@@ -454,6 +463,15 @@ end
 end
 
 section
+variables [monoid α] [monoid β] [mul_distrib_mul_action α β]
+
+lemma list.smul_prod {r : α} {l : list β} :
+  r • l.prod = (l.map ((•) r)).prod :=
+(mul_distrib_mul_action.to_monoid_hom β r).map_list_prod l
+
+end
+
+section
 variables [monoid α] [add_comm_monoid β] [distrib_mul_action α β]
 
 lemma multiset.smul_sum {r : α} {s : multiset β} :
@@ -465,3 +483,42 @@ lemma finset.smul_sum {r : α} {f : γ → β} {s : finset γ} :
 (distrib_mul_action.to_add_monoid_hom β r).map_sum f s
 
 end
+
+section
+variables [monoid α] [comm_monoid β] [mul_distrib_mul_action α β]
+
+lemma multiset.smul_prod {r : α} {s : multiset β} :
+  r • s.prod = (s.map ((•) r)).prod :=
+(mul_distrib_mul_action.to_monoid_hom β r).map_multiset_prod s
+
+lemma finset.smul_prod {r : α} {f : γ → β} {s : finset γ} :
+  r • ∏ x in s, f x = ∏ x in s, r • f x :=
+(mul_distrib_mul_action.to_monoid_hom β r).map_prod f s
+
+end
+
+namespace subgroup
+
+variables {G : Type*} [group G] (H : subgroup G)
+
+lemma normal_core_eq_ker :
+  H.normal_core = (mul_action.to_perm_hom G (quotient_group.quotient H)).ker :=
+begin
+  refine le_antisymm (λ g hg, equiv.perm.ext (λ q, quotient_group.induction_on q
+    (λ g', (mul_action.quotient.smul_mk H g g').trans (quotient_group.eq.mpr _))))
+    (subgroup.normal_le_normal_core.mpr (λ g hg, _)),
+  { rw [mul_inv_rev, ←inv_inv g', inv_inv],
+    exact H.normal_core.inv_mem hg g'⁻¹ },
+  { rw [←H.inv_mem_iff, ←mul_one g⁻¹, ←quotient_group.eq, ←mul_one g],
+    exact (mul_action.quotient.smul_mk H g 1).symm.trans (equiv.perm.ext_iff.mp hg (1 : G)) },
+end
+
+noncomputable instance fintype_quotient_normal_core [fintype (quotient_group.quotient H)] :
+  fintype (quotient_group.quotient H.normal_core) :=
+begin
+  rw H.normal_core_eq_ker,
+  classical,
+  exact fintype.of_equiv _ (quotient_group.quotient_ker_equiv_range _).symm.to_equiv,
+end
+
+end subgroup

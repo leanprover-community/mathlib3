@@ -89,7 +89,7 @@ the depth of recursive applications.
   `x : α ⊢ f x = g x`.
 -/
 meta def congr' (n : parse (with_desc "n" small_nat)?) :
-  parse (tk "with" *> prod.mk <$> (rcases_patt_parse tt)* <*> (tk ":" *> small_nat)?)? →
+  parse (tk "with" *> prod.mk <$> rcases_patt_parse_hi* <*> (tk ":" *> small_nat)?)? →
   tactic unit
 | none         := tactic.congr' n
 | (some ⟨p, m⟩) := focus1 (tactic.congr' n >> all_goals' (tactic.ext p m $> ()))
@@ -121,7 +121,7 @@ and `congr' with x` (or `congr', ext x`) would produce
 x : α ⊢ f x + 3 = g x + 3
 ```
 -/
-meta def rcongr : parse (rcases_patt_parse tt)* → tactic unit
+meta def rcongr : parse rcases_patt_parse_hi* → tactic unit
 | ps := do
   t ← target,
   qs ← try_core (tactic.ext ps none),

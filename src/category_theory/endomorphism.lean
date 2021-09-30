@@ -57,9 +57,7 @@ end End
 
 lemma is_unit_iff_is_iso {C : Type u} [category.{v} C] {X : C} (f : End X) :
   is_unit (f : End X) ↔ is_iso f :=
-⟨λ h, { out := ⟨h.unit.inv,
-  ⟨by { convert h.unit.inv_val, exact h.unit_spec.symm, },
-    by { convert h.unit.val_inv, exact h.unit_spec.symm, }⟩⟩ },
+⟨λ h, { out := ⟨h.unit.inv, ⟨h.unit.inv_val, h.unit.val_inv⟩⟩ },
   λ h, by exactI ⟨⟨f, inv f, by simp, by simp⟩, rfl⟩⟩
 
 variables {C : Type u} [category.{v} C] (X : C)

@@ -96,7 +96,9 @@ do
   else return [],
   -- Finally, run all of the tactics: any that return an expression without metavariables can safely
   -- be replaced by a `return` tactic.
-  hs ← hs.mmap (λ h : tactic expr, do e ← h, if e.has_meta_var then return h else return (return e)),
+  hs ← hs.mmap (λ h : tactic expr, do
+    e ← h,
+    if e.has_meta_var then return h else return (return e)),
   return (hs, locals)
 
 /--
@@ -157,8 +159,9 @@ else
 /--
 The internal implementation of `solve_by_elim`, with a limiting counter.
 -/
-meta def solve_by_elim_aux (opt : basic_opt)
-  (original_goals : list expr) (lemmas : list (tactic expr)) (ctx : tactic (list expr)) : ℕ → tactic unit
+meta def solve_by_elim_aux (opt : basic_opt) (original_goals : list expr)
+  (lemmas : list (tactic expr)) (ctx : tactic (list expr)) :
+  ℕ → tactic unit
 | n := do
   -- First, check that progress so far is `accept`able.
   lock_tactic_state (original_goals.mmap instantiate_mvars >>= opt.accept),
@@ -172,7 +175,8 @@ meta def solve_by_elim_aux (opt : basic_opt)
     -- try either applying a lemma and recursing,
     (on_success, on_failure) ← trace_hooks (opt.max_depth - n),
     ctx_lemmas ← ctx,
-    (apply_any_thunk (lemmas ++ (ctx_lemmas.map return)) opt.to_apply_any_opt (solve_by_elim_aux (n-1))
+    (apply_any_thunk (lemmas ++ (ctx_lemmas.map return)) opt.to_apply_any_opt
+      (solve_by_elim_aux (n-1))
       on_success on_failure) <|>
     -- or if that doesn't work, run the discharger and recurse.
      (opt.discharger >> solve_by_elim_aux (n-1)))

@@ -166,7 +166,26 @@ lemma generate_from_mono {α} {g₁ g₂ : set (set α)} (h : g₁ ⊆ g₂) :
   topological_space.generate_from g₁ ≤ topological_space.generate_from g₂ :=
 (gi_generate_from _).gc.monotone_l h
 
-/-- The complete lattice of topological spaces, but built on the inclusion ordering. -/
+lemma generate_from_set_of_is_open (t : topological_space α) :
+  topological_space.generate_from {s | t.is_open s} = t :=
+(gi_generate_from α).l_u_eq t
+
+lemma left_inverse_generate_from :
+  function.left_inverse topological_space.generate_from
+    (λ t : topological_space α, {s | t.is_open s}) :=
+(gi_generate_from α).left_inverse_l_u
+
+lemma generate_from_surjective :
+  function.surjective (topological_space.generate_from : set (set α) → topological_space α) :=
+(gi_generate_from α).l_surjective
+
+lemma set_of_is_open_injective :
+  function.injective (λ t : topological_space α, {s | t.is_open s}) :=
+(gi_generate_from α).u_injective
+
+/-- The "temporary" order `tmp_order` on `topological_space α`, i.e. the inclusion order, is a
+complete lattice.  (Note that later `topological_space α` will equipped with the dual order to
+`tmp_order`). -/
 def tmp_complete_lattice {α : Type u} : complete_lattice (topological_space α) :=
 (gi_generate_from α).lift_complete_lattice
 
@@ -188,6 +207,10 @@ generate_from_le_iff_subset_is_open
   topology whose open sets are those sets open in every member of the collection. -/
 instance : complete_lattice (topological_space α) :=
 @order_dual.complete_lattice _ tmp_complete_lattice
+
+lemma is_open_implies_is_open_iff {a b : topological_space α} :
+  (∀ s, a.is_open s → b.is_open s) ↔ b ≤ a :=
+@galois_insertion.u_le_u_iff _ (order_dual (topological_space α)) _ _ _ _ (gi_generate_from α) a b
 
 /-- A topological space is discrete if every set is open, that is,
   its topology equals the discrete topology `⊥`. -/
@@ -664,15 +687,67 @@ continuous_Prop.symm
 end sierpinski
 
 section infi
-variables {α : Type u} {ι : Type v} {t : ι → topological_space α}
+variables {α : Type u} {ι : Sort v}
+
+lemma generate_from_union (a₁ a₂ : set (set α)) :
+  topological_space.generate_from (a₁ ∪ a₂) =
+    topological_space.generate_from a₁ ⊓ topological_space.generate_from a₂ :=
+@galois_connection.l_sup _ (order_dual (topological_space α)) a₁ a₂ _ _ _ _
+  (λ g t, generate_from_le_iff_subset_is_open)
+
+lemma set_of_is_open_sup (t₁ t₂ : topological_space α) :
+  {s | (t₁ ⊔ t₂).is_open s} = {s | t₁.is_open s} ∩ {s | t₂.is_open s} :=
+@galois_connection.u_inf _ (order_dual (topological_space α)) t₁ t₂ _ _ _ _
+  (λ g t, generate_from_le_iff_subset_is_open)
+
+lemma generate_from_Union {f : ι → set (set α)} :
+  topological_space.generate_from (⋃ i, f i) = (⨅ i, topological_space.generate_from (f i)) :=
+@galois_connection.l_supr _ (order_dual (topological_space α)) _ _ _ _ _
+  (λ g t, generate_from_le_iff_subset_is_open) f
+
+lemma set_of_is_open_supr {t : ι → topological_space α} :
+  {s | (⨆ i, t i).is_open s} = ⋂ i, {s | (t i).is_open s} :=
+@galois_connection.u_infi _ (order_dual (topological_space α)) _ _ _ _ _
+  (λ g t, generate_from_le_iff_subset_is_open) t
+
+lemma generate_from_sUnion {S : set (set (set α))} :
+  topological_space.generate_from (⋃₀ S) = (⨅ s ∈ S, topological_space.generate_from s) :=
+@galois_connection.l_Sup _ (order_dual (topological_space α)) _ _ _ _
+  (λ g t, generate_from_le_iff_subset_is_open) S
+
+lemma set_of_is_open_Sup {T : set (topological_space α)} :
+  {s | (Sup T).is_open s} = ⋂ t ∈ T, {s | (t : topological_space α).is_open s} :=
+@galois_connection.u_Inf _ (order_dual (topological_space α)) _ _ _ _
+  (λ g t, generate_from_le_iff_subset_is_open) T
+
+lemma generate_from_union_is_open (a b : topological_space α) :
+  topological_space.generate_from ({s | a.is_open s} ∪ {s | b.is_open s}) = a ⊓ b :=
+@galois_insertion.l_sup_u _ (order_dual (topological_space α)) _ _ _ _ (gi_generate_from α) a b
+
+lemma generate_from_Union_is_open (f : ι → topological_space α) :
+  topological_space.generate_from (⋃ i, {s | (f i).is_open s}) = ⨅ i, (f i) :=
+@galois_insertion.l_supr_u _ (order_dual (topological_space α)) _ _ _ _ (gi_generate_from α) _ f
+
+lemma generate_from_inter (a b : topological_space α) :
+  topological_space.generate_from ({s | a.is_open s} ∩ {s | b.is_open s}) = a ⊔ b :=
+@galois_insertion.l_inf_u _ (order_dual (topological_space α)) _ _ _ _
+  (gi_generate_from α) a b
+
+lemma generate_from_Inter (f : ι → topological_space α) :
+  topological_space.generate_from (⋂ i, {s | (f i).is_open s}) = ⨆ i, (f i) :=
+@galois_insertion.l_infi_u _ (order_dual (topological_space α)) _ _ _ _ (gi_generate_from α) _ f
+
+lemma generate_from_Inter_of_generate_from_eq_self (f : ι → set (set α))
+  (hf : ∀ i, {s | (topological_space.generate_from (f i)).is_open s} = f i) :
+  topological_space.generate_from (⋂ i, (f i)) = ⨆ i, topological_space.generate_from (f i) :=
+@galois_insertion.l_infi_of_ul_eq_self _ (order_dual (topological_space α)) _ _ _ _
+  (gi_generate_from α) _ f hf
+
+variables {t : ι → topological_space α}
 
 lemma is_open_supr_iff {s : set α} : @is_open _ (⨆ i, t i) s ↔ ∀ i, @is_open _ (t i) s :=
-begin
-  -- s defines a map from α to Prop, which is continuous iff s is open.
-  suffices : @continuous _ _ (⨆ i, t i) _ s ↔ ∀ i, @continuous _ _ (t i) _ s,
-  { simpa only [continuous_Prop] using this },
-  simp only [continuous_iff_le_induced, supr_le_iff]
-end
+show s ∈ set_of (supr t).is_open ↔ s ∈ {x : set α | ∀ (i : ι), (t i).is_open x},
+by simp [set_of_is_open_supr]
 
 lemma is_closed_infi_iff {s : set α} : @is_closed _ (⨆ i, t i) s ↔ ∀ i, @is_closed _ (t i) s :=
 by simp [← is_open_compl_iff, is_open_supr_iff]

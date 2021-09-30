@@ -38,12 +38,12 @@ jobs:
   style_lint:
     if: github.repository == 'leanprover-community/mathlib'
     name: Lint style
-    runs-on: pr
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
 
       - name: install Python
-        if: ${{ ! 1 }}
+        if: ${{ 'ubuntu-latest' == 'ubuntu-latest' }}
         uses: actions/setup-python@v2
         with:
           python-version: 3.8

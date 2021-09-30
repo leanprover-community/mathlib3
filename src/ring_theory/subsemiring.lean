@@ -820,6 +820,11 @@ instance [add_monoid α] [distrib_mul_action R' α] (S : subsemiring R') : distr
 S.to_submonoid.distrib_mul_action
 
 /-- The action by a subsemiring is the action by the underlying semiring. -/
+instance [monoid α] [mul_distrib_mul_action R' α] (S : subsemiring R') :
+  mul_distrib_mul_action S α :=
+S.to_submonoid.mul_distrib_mul_action
+
+/-- The action by a subsemiring is the action by the underlying semiring. -/
 instance [add_comm_monoid α] [module R' α] (S : subsemiring R') : module S α :=
 { smul := (•), .. module.comp_hom _ S.subtype }
 

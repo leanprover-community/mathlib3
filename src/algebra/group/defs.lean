@@ -707,8 +707,8 @@ attribute [to_additive] group
 
 Useful because it corresponds to the fact that `Grp` is a subcategory of `Mon`.
 Not an instance since it duplicates `@div_inv_monoid.to_monoid _ (@group.to_div_inv_monoid _ _)`.
--/
-@[to_additive
+See note [reducible non-instances]. -/
+@[reducible, to_additive
 "Abbreviation for `@sub_neg_monoid.to_add_monoid _ (@add_group.to_sub_neg_monoid _ _)`.
 
 Useful because it corresponds to the fact that `AddGroup` is a subcategory of `AddMon`.

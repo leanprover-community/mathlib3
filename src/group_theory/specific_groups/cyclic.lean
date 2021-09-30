@@ -331,7 +331,7 @@ lt_irrefl c $
 lemma is_cyclic_of_card_pow_eq_one_le : is_cyclic α :=
 have (univ.filter (λ a : α, order_of a = fintype.card α)).nonempty,
 from (card_pos.1 $
-  by rw [card_order_of_eq_totient_aux₂ hn (dvd_refl _)];
+  by rw [card_order_of_eq_totient_aux₂ hn dvd_rfl];
   exact totient_pos (fintype.card_pos_iff.2 ⟨1⟩)),
 let ⟨x, hx⟩ := this in
 is_cyclic_of_order_of_eq_card x (finset.mem_filter.1 hx).2

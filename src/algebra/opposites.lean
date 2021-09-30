@@ -183,11 +183,14 @@ instance [non_assoc_semiring α] : non_assoc_semiring (opposite α) :=
 instance [semiring α] : semiring (opposite α) :=
 { .. opposite.non_unital_semiring α, .. opposite.non_assoc_semiring α }
 
+instance [comm_semiring α] : comm_semiring (opposite α) :=
+{ .. opposite.semiring α, .. opposite.comm_semigroup α }
+
 instance [ring α] : ring (opposite α) :=
 { .. opposite.add_comm_group α, .. opposite.monoid α, .. opposite.semiring α }
 
 instance [comm_ring α] : comm_ring (opposite α) :=
-{ .. opposite.ring α, .. opposite.comm_semigroup α }
+{ .. opposite.ring α, .. opposite.comm_semiring α }
 
 instance [has_zero α] [has_mul α] [no_zero_divisors α] : no_zero_divisors (opposite α) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ x y (H : op (_ * _) = op (0:α)),
@@ -220,6 +223,12 @@ instance (R : Type*) [monoid R] [add_monoid α] [distrib_mul_action R α] :
   distrib_mul_action R (opposite α) :=
 { smul_add := λ r x₁ x₂, unop_injective $ smul_add r (unop x₁) (unop x₂),
   smul_zero := λ r, unop_injective $ smul_zero r,
+  ..opposite.mul_action α R }
+
+instance (R : Type*) [monoid R] [monoid α] [mul_distrib_mul_action R α] :
+  mul_distrib_mul_action R (opposite α) :=
+{ smul_mul := λ r x₁ x₂, unop_injective $ smul_mul' r (unop x₂) (unop x₁),
+  smul_one := λ r, unop_injective $ smul_one r,
   ..opposite.mul_action α R }
 
 /-- Like `has_mul.to_has_scalar`, but multiplies on the right.

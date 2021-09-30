@@ -163,7 +163,6 @@ instance : inhabited (homotopy_with (continuous_map.id : C(X, X)) continuous_map
 /--
 Given a `homotopy_with f₀ f₁ P`, we can define a `homotopy_with f₁ f₀ P` by reversing the homotopy.
 -/
-@[simps?]
 def symm {f₀ f₁ : C(X, Y)} (F : homotopy_with f₀ f₁ P) : homotopy_with f₁ f₀ P :=
 { to_fun := λ x, F (σ x.1, x.2),
   continuous_to_fun := by continuity,

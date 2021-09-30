@@ -921,7 +921,7 @@ begin
   exact lt_irrefl _ this
 end
 
-lemma not_injective_of_ordinal' {α : Type v} [small.{u} α] (f : ordinal.{u} → α) :
+lemma not_injective_of_ordinal_of_small {α : Type v} [small.{u} α] (f : ordinal.{u} → α) :
   ¬ function.injective f :=
 begin
   intro hf,

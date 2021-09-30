@@ -480,7 +480,7 @@ variables {μ : measure α}
   [measurable_space E] [normed_group E] [borel_space E] [complete_space E] [normed_space ℝ E]
   [second_countable_topology E] {s : ℕ → set α} {f : α → E}
 
-lemma tendsto_set_integral_of_antitone (hsm : ∀ i, measurable_set (s i))
+lemma _root_.antitone.tendsto_set_integral (hsm : ∀ i, measurable_set (s i))
   (h_mono : ∀ i j, i ≤ j → s j ⊆ s i) (hfi : integrable_on f (s 0) μ) :
   tendsto (λi, ∫ a in s i, f a ∂μ) at_top (𝓝 (∫ a in (⋂ n, s n), f a ∂μ)) :=
 begin
@@ -500,16 +500,16 @@ begin
   { simp_rw norm_indicator_eq_indicator_norm,
     refine λ n, eventually_of_forall (λ x, _),
     exact indicator_le_indicator_of_subset (h_mono 0 n (zero_le n)) (λ a, norm_nonneg _) _, },
-  { filter_upwards [] λa, le_trans (tendsto_indicator_of_antitone _ h_mono _ _) (pure_le_nhds _), },
+  { filter_upwards [] λa, le_trans (antitone.tendsto_indicator _ h_mono _ _) (pure_le_nhds _), },
 end
 
 end tendsto_mono
 
-section continuous_set_integral
 /-! ### Continuity of the set integral
 
 We prove that for any set `s`, the function `λ f : α →₁[μ] E, ∫ x in s, f x ∂μ` is continuous. -/
 
+section continuous_set_integral
 variables [normed_group E] [measurable_space E] [second_countable_topology E] [borel_space E]
   {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜]
   [normed_group F] [measurable_space F] [second_countable_topology F] [borel_space F]

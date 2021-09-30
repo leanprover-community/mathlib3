@@ -3,9 +3,11 @@ Copyright (c) 2019 Alexander Bentkamp. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, François Dupuis
 -/
-import analysis.convex.combination
-import data.real.basic
+import analysis.convex.basic
 import algebra.module.ordered
+import tactic.field_simp
+import tactic.linarith
+import tactic.ring
 
 /-!
 # Convex and concave functions
@@ -22,7 +24,8 @@ a convex set.
 
 * `convex_on 𝕜 s f`: The function `f` is convex on `s` with scalars `𝕜`.
 * `concave_on 𝕜 s f`: The function `f` is concave on `s` with scalars `𝕜`.
-* `convex_on.map_center_mass_le` `convex_on.map_sum_le`: Convex Jensen's inequality.
+* `strict_convex_on 𝕜 s f`: The function `f` is strictly convex on `s` with scalars `𝕜`.
+* `strict_concave_on 𝕜 s f`: The function `f` is strictly concave on `s` with scalars `𝕜`.
 -/
 
 open finset linear_map set
@@ -34,24 +37,36 @@ section ordered_semiring
 variables [ordered_semiring 𝕜] [add_comm_monoid E] [add_comm_monoid F]
 
 section ordered_add_comm_monoid
-variables (𝕜) [ordered_add_comm_monoid β]
+variables [ordered_add_comm_monoid β]
+
+section has_scalar
+variables (𝕜) [has_scalar 𝕜 E] [has_scalar 𝕜 β] (s : set E) (f : E → β)
 
 /-- Convexity of functions -/
-def convex_on [has_scalar 𝕜 E] [has_scalar 𝕜 β] (s : set E) (f : E → β) : Prop :=
+def convex_on : Prop :=
 convex 𝕜 s ∧
   ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → a + b = 1 →
     f (a • x + b • y) ≤ a • f x + b • f y
 
 /-- Concavity of functions -/
-def concave_on [has_scalar 𝕜 E] [has_scalar 𝕜 β] (s : set E) (f : E → β) : Prop :=
+def concave_on : Prop :=
 convex 𝕜 s ∧
   ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → a + b = 1 →
     a • f x + b • f y ≤ f (a • x + b • y)
 
-variables {𝕜}
+/-- Strict convexity of functions -/
+def strict_convex_on : Prop :=
+convex 𝕜 s ∧
+  ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → x ≠ y → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 →
+    f (a • x + b • y) < a • f x + b • f y
 
-section has_scalar
-variables [has_scalar 𝕜 E] [has_scalar 𝕜 β] {s : set E}
+/-- Strict concavity of functions -/
+def strict_concave_on : Prop :=
+convex 𝕜 s ∧
+  ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → x ≠ y → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 →
+    a • f x + b • f y < f (a • x + b • y)
+
+variables {𝕜 s f}
 
 lemma convex_on_id {s : set 𝕜} (hs : convex 𝕜 s) : convex_on 𝕜 s id := ⟨hs, by { intros, refl }⟩
 
@@ -485,208 +500,6 @@ lemma concave_on_iff_div {f : E → β} :
   → 0 < a + b → (a/(a+b)) • f x + (b/(a+b)) • f y ≤ f ((a/(a+b)) • x + (b/(a+b)) • y) :=
 @convex_on_iff_div _ _ (order_dual β) _ _ _ _ _ _ _
 
-/-- For a function `f` defined on a convex subset `D` of `𝕜`, if for any three points `x < y < z`
-the slope of the secant line of `f` on `[x, y]` is less than or equal to the slope
-of the secant line of `f` on `[x, z]`, then `f` is convex on `D`. This way of proving convexity
-of a function is used in the proof of convexity of a function with a monotone derivative. -/
-lemma convex_on_of_slope_mono_adjacent {s : set 𝕜} (hs : convex 𝕜 s) {f : 𝕜 → 𝕜}
-  (hf : ∀ {x y z : 𝕜}, x ∈ s → z ∈ s → x < y → y < z →
-    (f y - f x) / (y - x) ≤ (f z - f y) / (z - y)) :
-  convex_on 𝕜 s f :=
-linear_order.convex_on_of_lt hs
-begin
-  assume x z hx hz hxz a b ha hb hab,
-  let y := a * x + b * z,
-  have hxy : x < y,
-  { rw [← one_mul x, ← hab, add_mul],
-    exact add_lt_add_left ((mul_lt_mul_left hb).2 hxz) _ },
-  have hyz : y < z,
-  { rw [← one_mul z, ← hab, add_mul],
-    exact add_lt_add_right ((mul_lt_mul_left ha).2 hxz) _ },
-  have : (f y - f x) * (z - y) ≤ (f z - f y) * (y - x),
-    from (div_le_div_iff (sub_pos.2 hxy) (sub_pos.2 hyz)).1 (hf hx hz hxy hyz),
-  have hxz : 0 < z - x, from sub_pos.2 (hxy.trans hyz),
-  have ha : (z - y) / (z - x) = a,
-  { rw [eq_comm, ← sub_eq_iff_eq_add'] at hab,
-    simp_rw [div_eq_iff hxz.ne', y, ←hab], ring },
-  have hb : (y - x) / (z - x) = b,
-  { rw [eq_comm, ← sub_eq_iff_eq_add] at hab,
-    simp_rw [div_eq_iff hxz.ne', y, ←hab], ring },
-  rwa [sub_mul, sub_mul, sub_le_iff_le_add', ← add_sub_assoc, le_sub_iff_add_le, ← mul_add,
-    sub_add_sub_cancel, ← le_div_iff hxz, add_div, mul_div_assoc, mul_div_assoc, mul_comm (f x),
-    mul_comm (f z), ha, hb] at this,
-end
-
-/-- For a function `f` defined on a subset `D` of `𝕜`, if `f` is convex on `D`, then for any three
-points `x < y < z`, the slope of the secant line of `f` on `[x, y]` is less than or equal to the
-slope of the secant line of `f` on `[x, z]`. -/
-lemma convex_on.slope_mono_adjacent {s : set 𝕜} {f : 𝕜 → 𝕜} (hf : convex_on 𝕜 s f)
-  {x y z : 𝕜} (hx : x ∈ s) (hz : z ∈ s) (hxy : x < y) (hyz : y < z) :
-  (f y - f x) / (y - x) ≤ (f z - f y) / (z - y) :=
-begin
-  have h₁ : 0 < y - x := by linarith,
-  have h₂ : 0 < z - y := by linarith,
-  have h₃ : 0 < z - x := by linarith,
-  suffices : f y / (y - x) + f y / (z - y) ≤ f x / (y - x) + f z / (z - y),
-  { ring_nf at this ⊢, linarith },
-  set a := (z - y) / (z - x),
-  set b := (y - x) / (z - x),
-  have heqz : a • x + b • z = y, by { field_simp, rw div_eq_iff; [ring, linarith] },
-  have key, from
-    hf.2 hx hz
-      (show 0 ≤ a, by apply div_nonneg; linarith)
-      (show 0 ≤ b, by apply div_nonneg; linarith)
-      (show a + b = 1, by { field_simp, rw div_eq_iff; [ring, linarith] }),
-  rw heqz at key,
-  replace key := mul_le_mul_of_nonneg_left key h₃.le,
-  field_simp [h₁.ne', h₂.ne', h₃.ne', mul_comm (z - x) _] at key ⊢,
-  rw div_le_div_right,
-  { linarith },
-  { nlinarith }
-end
-
-/-- For a function `f` defined on a convex subset `D` of `𝕜`, `f` is convex on `D` iff, for any
-three points `x < y < z` the slope of the secant line of `f` on `[x, y]` is less than or equal to
-the slope,of the secant line of `f` on `[x, z]`. -/
-lemma convex_on_iff_slope_mono_adjacent {s : set 𝕜} (hs : convex 𝕜 s) {f : 𝕜 → 𝕜} :
-  convex_on 𝕜 s f ↔
-  (∀ {x y z : 𝕜}, x ∈ s → z ∈ s → x < y → y < z →
-    (f y - f x) / (y - x) ≤ (f z - f y) / (z - y)) :=
-⟨convex_on.slope_mono_adjacent, convex_on_of_slope_mono_adjacent hs⟩
-
-/-- For a function `f` defined on a convex subset `D` of `𝕜`, if for any three points `x < y < z`
-the slope of the secant line of `f` on `[x, y]` is greater than or equal to the slope
-of the secant line of `f` on `[x, z]`, then `f` is concave on `D`. -/
-lemma concave_on_of_slope_mono_adjacent {s : set 𝕜} (hs : convex 𝕜 s) {f : 𝕜 → 𝕜}
-  (hf : ∀ {x y z : 𝕜}, x ∈ s → z ∈ s → x < y → y < z →
-    (f z - f y) / (z - y) ≤ (f y - f x) / (y - x)) : concave_on 𝕜 s f :=
-begin
-  rw ←neg_convex_on_iff,
-  refine convex_on_of_slope_mono_adjacent hs (λ x y z hx hz hxy hyz, _),
-  rw ←neg_le_neg_iff,
-  simp_rw [←neg_div, neg_sub, pi.neg_apply, neg_sub_neg],
-  exact hf hx hz hxy hyz,
-end
-
-/-- For a function `f` defined on a subset `D` of `𝕜`, if `f` is concave on `D`, then for any three
-points `x < y < z`, the slope of the secant line of `f` on `[x, y]` is greater than or equal to the
-slope of the secant line of `f` on `[x, z]`. -/
-lemma concave_on.slope_mono_adjacent {s : set 𝕜} {f : 𝕜 → 𝕜} (hf : concave_on 𝕜 s f)
-  {x y z : 𝕜} (hx : x ∈ s) (hz : z ∈ s) (hxy : x < y) (hyz : y < z) :
-  (f z - f y) / (z - y) ≤ (f y - f x) / (y - x) :=
-begin
-  rw [←neg_le_neg_iff, ←neg_sub_neg (f x), ←neg_sub_neg (f y)],
-  simp_rw [←pi.neg_apply, ←neg_div, neg_sub],
-  exact convex_on.slope_mono_adjacent hf.neg hx hz hxy hyz,
-end
-
-/-- For a function `f` defined on a convex subset `D` of `𝕜`, `f` is concave on `D` iff for any
-three points `x < y < z` the slope of the secant line of `f` on `[x, y]` is greater than or equal to
-the slope of the secant line of `f` on `[x, z]`. -/
-lemma concave_on_iff_slope_mono_adjacent {s : set 𝕜} (hs : convex 𝕜 s) {f : 𝕜 → 𝕜} :
-  concave_on 𝕜 s f ↔
-  (∀ {x y z : 𝕜}, x ∈ s → z ∈ s → x < y → y < z →
-    (f z - f y) / (z - y) ≤ (f y - f x) / (y - x)) :=
-⟨concave_on.slope_mono_adjacent, concave_on_of_slope_mono_adjacent hs⟩
-
 end has_scalar
 end ordered_add_comm_monoid
 end linear_ordered_field
-
-
-
-
-
-
-
-/-! ### Jensen's inequality -/
-
-section jensen
-variables [linear_ordered_field 𝕜] [add_comm_monoid E] [ordered_add_comm_monoid β] [module 𝕜 E]
-  [module 𝕜 β] [ordered_smul 𝕜 β] {s : set E} {f : E → β} {t : finset ι} {w : ι → 𝕜} {p : ι → E}
-
-/-- Convex **Jensen's inequality**, `finset.center_mass` version. -/
-lemma convex_on.map_center_mass_le (hf : convex_on 𝕜 s f) (h₀ : ∀ i ∈ t, 0 ≤ w i)
-  (h₁ : 0 < ∑ i in t, w i) (hmem : ∀ i ∈ t, p i ∈ s) :
-  f (t.center_mass w p) ≤ t.center_mass w (f ∘ p) :=
-begin
-  have hmem' : ∀ i ∈ t, (p i, (f ∘ p) i) ∈ {p : E × β | p.1 ∈ s ∧ f p.1 ≤ p.2},
-    from λ i hi, ⟨hmem i hi, le_rfl⟩,
-  convert (hf.convex_epigraph.center_mass_mem h₀ h₁ hmem').2;
-    simp only [center_mass, function.comp, prod.smul_fst, prod.fst_sum,
-      prod.smul_snd, prod.snd_sum],
-end
-
-/-- Concave **Jensen's inequality**, `finset.center_mass` version. -/
-lemma concave_on.le_map_center_mass (hf : concave_on 𝕜 s f) (h₀ : ∀ i ∈ t, 0 ≤ w i)
-  (h₁ : 0 < ∑ i in t, w i) (hmem : ∀ i ∈ t, p i ∈ s) :
-  t.center_mass w (f ∘ p) ≤ f (t.center_mass w p) :=
-@convex_on.map_center_mass_le 𝕜 E (order_dual β) _ _ _ _ _ _ _ _ _ _ _ _ hf h₀ h₁ hmem
-
-/-- Convex **Jensen's inequality**, `finset.sum` version. -/
-lemma convex_on.map_sum_le (hf : convex_on 𝕜 s f) (h₀ : ∀ i ∈ t, 0 ≤ w i) (h₁ : ∑ i in t, w i = 1)
-  (hmem : ∀ i ∈ t, p i ∈ s) :
-  f (∑ i in t, w i • p i) ≤ ∑ i in t, w i • f (p i) :=
-by simpa only [center_mass, h₁, inv_one, one_smul]
-  using hf.map_center_mass_le h₀ (h₁.symm ▸ zero_lt_one) hmem
-
-/-- Concave **Jensen's inequality**, `finset.sum` version. -/
-lemma concave_on.le_map_sum (hf : concave_on 𝕜 s f) (h₀ : ∀ i ∈ t, 0 ≤ w i) (h₁ : ∑ i in t, w i = 1)
-  (hmem : ∀ i ∈ t, p i ∈ s) :
-  ∑ i in t, w i • f (p i) ≤ f (∑ i in t, w i • p i) :=
-@convex_on.map_sum_le 𝕜 E (order_dual β) _ _ _ _ _ _ _ _ _ _ _ _ hf h₀ h₁ hmem
-
-end jensen
-
-/-! ### Maximum principle -/
-
-section maximum_principle
-variables [linear_ordered_field 𝕜] [add_comm_monoid E] [linear_ordered_add_comm_group β]
-  [module 𝕜 E] [module 𝕜 β] [ordered_smul 𝕜 β] {s : set E} {f : E → β} {t : finset ι} {w : ι → 𝕜}
-  {p : ι → E}
-
-/-- If a function `f` is convex on `s`, then the value it takes at some center of mass of points of
-`s` is less than the value it takes on one of those points. -/
-lemma convex_on.exists_ge_of_center_mass (h : convex_on 𝕜 s f)
-  (hw₀ : ∀ i ∈ t, 0 ≤ w i) (hw₁ : 0 < ∑ i in t, w i) (hp : ∀ i ∈ t, p i ∈ s) :
-  ∃ i ∈ t, f (t.center_mass w p) ≤ f (p i) :=
-begin
-  set y := t.center_mass w p,
-  suffices h : ∃ i ∈ t.filter (λ i, w i ≠ 0), w i • f y ≤ w i • (f ∘ p) i,
-  { obtain ⟨i, hi, hfi⟩ := h,
-    rw mem_filter at hi,
-    exact ⟨i, hi.1, (smul_le_smul_iff_of_pos $ (hw₀ i hi.1).lt_of_ne hi.2.symm).1 hfi⟩ },
-  have hw' : (0 : 𝕜) < ∑ i in filter (λ i, w i ≠ 0) t, w i := by rwa sum_filter_ne_zero,
-  refine exists_le_of_sum_le (nonempty_of_sum_ne_zero hw'.ne') _,
-  rw [←sum_smul, ←smul_le_smul_iff_of_pos (inv_pos.2 hw'), inv_smul_smul₀ hw'.ne',
-    ←finset.center_mass, finset.center_mass_filter_ne_zero],
-  exact h.map_center_mass_le hw₀ hw₁ hp,
-  apply_instance,
-end
-
-/-- If a function `f` is concave on `s`, then the value it takes at some center of mass of points of
-`s` is greater than the value it takes on one of those points. -/
-lemma concave_on.exists_le_of_center_mass (h : concave_on 𝕜 s f)
-  (hw₀ : ∀ i ∈ t, 0 ≤ w i) (hw₁ : 0 < ∑ i in t, w i) (hp : ∀ i ∈ t, p i ∈ s) :
-  ∃ i ∈ t, f (p i) ≤ f (t.center_mass w p) :=
-@convex_on.exists_ge_of_center_mass 𝕜 E (order_dual β) _ _ _ _ _ _ _ _ _ _ _ _ h hw₀ hw₁ hp
-
-/-- Maximum principle for convex functions. If a function `f` is convex on the convex hull of `s`,
-then the eventual maximum of `f` on `convex_hull 𝕜 s` lies in `s`. -/
-lemma convex_on.exists_ge_of_mem_convex_hull (hf : convex_on 𝕜 (convex_hull 𝕜 s) f) {x}
-  (hx : x ∈ convex_hull 𝕜 s) : ∃ y ∈ s, f x ≤ f y :=
-begin
-  rw _root_.convex_hull_eq at hx,
-  obtain ⟨α, t, w, p, hw₀, hw₁, hp, rfl⟩ := hx,
-  rcases hf.exists_ge_of_center_mass hw₀ (hw₁.symm ▸ zero_lt_one)
-    (λ i hi, subset_convex_hull 𝕜 s (hp i hi)) with ⟨i, hit, Hi⟩,
-  exact ⟨p i, hp i hit, Hi⟩
-end
-
-/-- Minimum principle for concave functions. If a function `f` is concave on the convex hull of `s`,
-then the eventual minimum of `f` on `convex_hull 𝕜 s` lies in `s`. -/
-lemma concave_on.exists_le_of_mem_convex_hull (hf : concave_on 𝕜 (convex_hull 𝕜 s) f) {x}
-  (hx : x ∈ convex_hull 𝕜 s) : ∃ y ∈ s, f y ≤ f x :=
-@convex_on.exists_ge_of_mem_convex_hull 𝕜 E (order_dual β) _ _ _ _ _ _ _ _ hf _ hx
-
-end maximum_principle

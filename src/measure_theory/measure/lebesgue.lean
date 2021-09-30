@@ -18,6 +18,9 @@ are translation invariant.
 
 We show that, on `ℝⁿ`, a linear map acts on Lebesgue measure by rescaling it through the absolute
 value of its determinant, in `real.map_linear_map_volume_pi_eq_smul_volume_pi`.
+
+More properties of the Lebesgue measure are deduced from this in `haar_lebesgue.lean`, where they
+are proved more generally for any additive Haar measure on a finite-dimensional real vector space.
 -/
 
 noncomputable theory
@@ -207,7 +210,7 @@ calc volume s ≤ ∏ i : ι, emetric.diam (function.eval i '' s) : volume_pi_le
   by simp only [ennreal.coe_one, one_mul, finset.prod_const, fintype.card]
 
 /-!
-### Images of the Lebesgue measure under translation/multiplication/...
+### Images of the Lebesgue measure under translation/multiplication in ℝ
 -/
 
 lemma map_volume_add_left (a : ℝ) : measure.map ((+) a) volume = volume :=

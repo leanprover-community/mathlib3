@@ -51,7 +51,7 @@ indicator_rel_indicator (le_refl _) h
 
 end order
 
-lemma tendsto_indicator_of_monotone {ι} [preorder ι] [has_zero β]
+lemma monotone.tendsto_indicator {ι} [preorder ι] [has_zero β]
   (s : ι → set α) (hs : monotone s) (f : α → β) (a : α) :
   tendsto (λi, indicator (s i) f a) at_top (pure $ indicator (⋃ i, s i) f a) :=
 begin
@@ -65,7 +65,7 @@ begin
     apply indicator_of_not_mem, simpa only [not_exists, mem_Union] }
 end
 
-lemma tendsto_indicator_of_antitone {ι} [preorder ι] [has_zero β]
+lemma antitone.tendsto_indicator {ι} [preorder ι] [has_zero β]
   (s : ι → set α) (hs : ∀⦃i j⦄, i ≤ j → s j ⊆ s i) (f : α → β) (a : α) :
   tendsto (λi, indicator (s i) f a) at_top (pure $ indicator (⋂ i, s i) f a) :=
 begin
@@ -83,6 +83,6 @@ lemma tendsto_indicator_bUnion_finset {ι} [has_zero β] (s : ι → set α) (f 
   tendsto (λ (n : finset ι), indicator (⋃i∈n, s i) f a) at_top (pure $ indicator (Union s) f a) :=
 begin
   rw Union_eq_Union_finset s,
-  refine tendsto_indicator_of_monotone (λ n : finset ι, ⋃ i ∈ n, s i) _ f a,
+  refine monotone.tendsto_indicator (λ n : finset ι, ⋃ i ∈ n, s i) _ f a,
   exact λ t₁ t₂, bUnion_subset_bUnion_left
 end

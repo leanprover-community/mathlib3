@@ -3,11 +3,10 @@ Copyright (c) 2014 Robert Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Mario Carneiro, Floris van Doorn
 -/
-import algebra.order.ring
 import algebra.field
-import tactic.monotonicity.basic
 import algebra.group_power.order
-import order.order_dual
+import algebra.order.ring
+import tactic.monotonicity.basic
 
 /-!
 # Linear ordered fields

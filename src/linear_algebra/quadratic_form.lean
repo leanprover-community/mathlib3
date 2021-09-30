@@ -194,8 +194,13 @@ by rw [←is_scalar_tower.algebra_map_smul R a y, polar_smul_right, algebra.smul
 end of_tower
 
 variable {Q' : quadratic_form R M}
+
 @[ext] lemma ext (H : ∀ (x : M), Q x = Q' x) : Q = Q' :=
 by { cases Q, cases Q', congr, funext, apply H }
+
+lemma congr_fun (h : Q = Q') (x : M) : Q x = Q' x := h ▸ rfl
+
+lemma ext_iff : Q = Q' ↔ (∀ x, Q x = Q' x) := ⟨congr_fun, ext⟩
 
 instance : has_zero (quadratic_form R M) :=
 ⟨ { to_fun := λ x, 0,
@@ -471,17 +476,17 @@ def associated_hom : quadratic_form R M →ₗ[S] bilin_form R M :=
     bilin_add_left := λ x y z, by rw [← mul_add, polar_add_left],
     bilin_smul_left := λ x y z, begin
       have htwo : x * ⅟2 = ⅟2 * x := (commute.one_right x).bit0_right.inv_of_right,
-      simp [polar_smul_left, ← mul_assoc, htwo]
+      simp only [polar_smul_left, ← mul_assoc, htwo]
     end,
     bilin_add_right := λ x y z, by rw [← mul_add, polar_add_right],
     bilin_smul_right := λ x y z, begin
       have htwo : x * ⅟2 = ⅟2 * x := (commute.one_right x).bit0_right.inv_of_right,
-      simp [polar_smul_left, ← mul_assoc, htwo]
+      simp only [polar_smul_right, ← mul_assoc, htwo]
     end },
   map_add' := λ Q Q', by { ext, simp [bilin_form.add_apply, polar_add, mul_add] },
   map_smul' := λ s Q, by { ext, simp [polar_smul, algebra.mul_smul_comm] } }
 
-variables {Q : quadratic_form R M} {S}
+variables (Q : quadratic_form R M) (S)
 
 @[simp] lemma associated_apply (x y : M) :
   associated_hom S Q x y = ⅟2 * (Q (x + y) - Q x - Q y) := rfl
@@ -502,11 +507,18 @@ lemma associated_left_inverse (h : is_sym B₁) :
 bilin_form.ext $ λ x y,
 by rw [associated_to_quadratic_form, sym h x y, ←two_mul, ←mul_assoc, inv_of_mul_self, one_mul]
 
-lemma associated_right_inverse : (associated_hom S Q).to_quadratic_form = Q :=
+lemma to_quadratic_form_associated : (associated_hom S Q).to_quadratic_form = Q :=
 quadratic_form.ext $ λ x,
   calc (associated_hom S Q).to_quadratic_form x
       = ⅟2 * (Q x + Q x) : by simp [map_add_self, bit0, add_mul, add_assoc]
   ... = Q x : by rw [← two_mul (Q x), ←mul_assoc, inv_of_mul_self, one_mul]
+
+-- note: usually `right_inverse` lemmas are named the other way around, but this is consistent
+-- with historical naming in this file.
+lemma associated_right_inverse :
+  function.right_inverse (associated_hom S)
+    (bilin_form.to_quadratic_form : _ → quadratic_form R M) :=
+λ Q, to_quadratic_form_associated S Q
 
 lemma associated_eq_self_apply (x : M) : associated_hom S Q x x = Q x :=
 begin
@@ -522,6 +534,12 @@ end
 associated symmetric bilinear form. -/
 abbreviation associated' : quadratic_form R M →ₗ[ℤ] bilin_form R M :=
 associated_hom ℤ
+
+/-- Symmetric bilinear forms can be lifted to quadratic forms -/
+instance : can_lift (bilin_form R M) (quadratic_form R M) :=
+{ coe := associated_hom ℕ,
+  cond := is_sym,
+  prf := λ B hB, ⟨B.to_quadratic_form, associated_left_inverse _ hB⟩ }
 
 /-- There exists a non-null vector with respect to any quadratic form `Q` whose associated
 bilinear form is non-degenerate, i.e. there exists `x` such that `Q x ≠ 0`. -/
@@ -573,7 +591,7 @@ begin
   intros x hx,
   refine hB _ _,
   rw ← hx x,
-  exact (associated_eq_self_apply x).symm,
+  exact (associated_eq_self_apply _ _ x).symm,
 end
 
 end anisotropic
@@ -742,10 +760,9 @@ lemma exists_bilin_form_self_neq_zero [htwo : invertible (2 : R)] [nontrivial M]
   {B : bilin_form R M} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) :
   ∃ x, ¬ B.is_ortho x x :=
 begin
-  have : B.to_quadratic_form.associated'.nondegenerate,
-  { simpa [quadratic_form.associated_left_inverse hB₂] using hB₁ },
-  obtain ⟨x, hx⟩ := quadratic_form.exists_quadratic_form_neq_zero this,
-  refine ⟨x, λ h, hx (B.to_quadratic_form_apply x ▸ h)⟩,
+  lift B to quadratic_form R M using hB₂ with Q,
+  obtain ⟨x, hx⟩ := quadratic_form.exists_quadratic_form_neq_zero hB₁,
+  exact ⟨x, λ h, hx (Q.associated_eq_self_apply ℕ x ▸ h)⟩,
 end
 
 open finite_dimensional
@@ -892,7 +909,7 @@ lemma equivalent_weighted_sum_squares_of_nondegenerate'
   ∃ w : fin (finite_dimensional.finrank K V) → units K,
     equivalent Q (weighted_sum_squares K w) :=
 begin
-  obtain ⟨v, hv₁, hv₂⟩ := exists_orthogonal_basis' hQ associated_is_sym,
+  obtain ⟨v, hv₁, hv₂⟩ := exists_orthogonal_basis' hQ (associated_is_sym _ _),
   refine ⟨λ i, units.mk0 _ (hv₂ i), nonempty.intro _⟩,
   convert Q.isometry_basis_repr v,
   ext w,

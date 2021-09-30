@@ -168,7 +168,7 @@ begin
   { refine (hC C le_rfl).trans (is_O.of_bound 1 (_)),
     refine at_top.sets_of_superset hα (λ x hx, _),
     simp only [one_mul, normed_field.norm_fpow, set.mem_set_of_eq],
-    refine fpow_le_of_le hx (le_of_not_le hc) }
+    exact fpow_le_of_le hx (le_of_not_le hc) }
 end
 
 lemma negligible_of_is_O_fpow_le (hα : ∀ᶠ (x : α) in at_top, 1 ≤ ∥algebra_map α 𝕜 x∥)
@@ -209,7 +209,7 @@ begin
   have : (has_inv.inv : 𝕜 → 𝕜) ∘ (algebra_map α 𝕜 : α → 𝕜)
     = (λ (n : α), (algebra_map α 𝕜 n) ^ (-1 : ℤ)),
   by simp only [gpow_one, fpow_neg],
-  refine this ▸ (tendsto_inv_at_top_zero).comp (hα),
+  exact this ▸ (tendsto_inv_at_top_zero).comp (hα)
 end
 
 /-- A negligible function eventually has norm less than any positive bound,
@@ -227,7 +227,7 @@ begin
   have : (function.const α x ⁻¹' {x}ᶜ) ∈ at_top :=
     (tendsto_nhds.1 $ h.tendsto_zero hα) {x}ᶜ (is_open_ne) (ne.symm hx),
   rw [set.preimage_const_of_not_mem (by simp : x ∉ ({x} : set 𝕜)ᶜ)] at this,
-  exact at_top.empty_not_mem this,
+  exact at_top.empty_not_mem this
 end
 
 end order_topology

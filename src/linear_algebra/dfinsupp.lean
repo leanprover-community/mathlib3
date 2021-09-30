@@ -328,7 +328,7 @@ are `complete_lattice.independent`.
 Note that this is not generally true for `[semiring R]`, for instance when `A` is the
 `ℕ`-submodules of the positive and negative integers.
 
-See `counterexamples/direct_sum_is_internal.lean` for a proof of this fact. -/ -/
+See `counterexamples/direct_sum_is_internal.lean` for a proof of this fact. -/
 lemma independent.dfinsupp_lsum_injective {R M : Type*}
   [ring R] [add_comm_group M] [module R M] {p : ι → submodule R M}
   (h : independent p) : function.injective (lsum ℕ (λ i, (p i).subtype)) :=

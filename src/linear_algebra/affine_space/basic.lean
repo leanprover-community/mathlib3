@@ -34,9 +34,6 @@ Some key definitions are not yet present.
 * Affine frames.  An affine frame might perhaps be represented as an `affine_equiv` to a `finsupp`
   (in the general case) or function type (in the finite-dimensional case) that gives the
   coordinates, with appropriate proofs of existence when `k` is a field.
-
-* Although results on affine combinations implicitly provide barycentric frames and coordinates,
-  there is no explicit representation of the map from a point to its coordinates.
  -/
 
 localized "notation `affine_space` := add_torsor" in affine

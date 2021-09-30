@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp
 -/
 import algebra.big_operators.finsupp
+import algebra.big_operators.finprod
 import data.fintype.card
 import linear_algebra.finsupp
 import linear_algebra.linear_independent
@@ -157,13 +158,35 @@ with respect to the basis `b`.
 finite-dimensional spaces it is the `ι`th basis vector of the dual space.
 -/
 @[simps]
-def coord (i : ι) : M →ₗ[R] R := (finsupp.lapply i) ∘ₗ ↑b.repr
+def coord : M →ₗ[R] R := (finsupp.lapply i) ∘ₗ ↑b.repr
 
 lemma forall_coord_eq_zero_iff {x : M} :
   (∀ i, b.coord i x = 0) ↔ x = 0 :=
 iff.trans
   (by simp only [b.coord_apply, finsupp.ext_iff, finsupp.zero_apply])
   b.repr.map_eq_zero_iff
+
+/-- The sum of the coordinates of an element `m : M` with respect to a basis. -/
+noncomputable def sum_coords : M →ₗ[R] R :=
+finsupp.lsum ℕ (λ i, linear_map.id) ∘ₗ (b.repr : M →ₗ[R] ι →₀ R)
+
+@[simp] lemma coe_sum_coords : (b.sum_coords : M → R) = λ m, (b.repr m).sum (λ i, id) :=
+rfl
+
+/-- It's even easier to see what `sum_coords` does using the language of `finsum`. -/
+lemma coe_sum_coords_eq_finsum : (b.sum_coords : M → R) = λ m, ∑ᶠ i, b.coord i m :=
+begin
+  ext m,
+  simp only [basis.sum_coords, basis.coord, finsupp.lapply_apply, linear_map.id_coe,
+    linear_equiv.coe_coe, function.comp_app, finsupp.coe_lsum, linear_map.coe_comp,
+    finsum_eq_sum _ (b.repr m).finite_support, finsupp.sum, finset.finite_to_set_to_finset,
+    id.def, finsupp.fun_support_eq],
+end
+
+@[simp] lemma sum_coords_self_apply : b.sum_coords (b i) = 1 :=
+by simp only [basis.sum_coords, linear_map.id_coe, linear_equiv.coe_coe, id.def, basis.repr_self,
+  function.comp_app, finsupp.coe_lsum, linear_map.coe_comp, finsupp.sum_single_index]
+
 
 end coord
 

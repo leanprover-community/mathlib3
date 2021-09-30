@@ -57,7 +57,7 @@ by simpa only [image_subset_iff] using equitable_on_iff_exists_le_le_add_one
 
 lemma equitable_on_iff_exists_eq_eq_add_one {s : set α} {f : α → ℕ} :
   s.equitable_on f ↔ ∃ b, ∀ a ∈ s, f a = b ∨ f a = b + 1 :=
-by simp_rw [equitable_on_iff_exists_le_le_add_one, nat.le_le_add_one_iff]
+by simp_rw [equitable_on_iff_exists_le_le_add_one, nat.le_and_le_add_one_iff]
 
 end set
 
@@ -91,6 +91,6 @@ end
 lemma equitable_on_iff {s : finset α} {f : α → ℕ} :
   equitable_on (s : set α) f ↔
     ∀ a ∈ s, f a = (∑ i in s, f i) / s.card ∨ f a = (∑ i in s, f i) / s.card + 1 :=
-by simp_rw [equitable_on_iff_le_le_add_one, nat.le_le_add_one_iff]
+by simp_rw [equitable_on_iff_le_le_add_one, nat.le_and_le_add_one_iff]
 
 end finset

@@ -424,7 +424,7 @@ theorem le_add_one_iff {i j : ℕ} : i ≤ j + 1 ↔ (i ≤ j ∨ i = j + 1) :=
   end,
   or.rec (λ h, le_trans h $ nat.le_add_right _ _) le_of_eq⟩
 
-lemma le_le_add_one_iff {x a : ℕ} :
+lemma le_and_le_add_one_iff {x a : ℕ} :
   a ≤ x ∧ x ≤ a + 1 ↔ x = a ∨ x = a + 1 :=
 begin
   rw [le_add_one_iff, and_or_distrib_left, ←le_antisymm_iff, eq_comm, and_iff_right_of_imp],

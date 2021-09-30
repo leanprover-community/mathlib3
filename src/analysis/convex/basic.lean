@@ -721,7 +721,7 @@ section ordered_comm_semiring
 variables [ordered_comm_semiring 𝕜]
 
 section add_comm_monoid
-variables [add_comm_monoid E] [module 𝕜 E] [add_comm_monoid F] [module 𝕜 F] {s : set E}
+variables [add_comm_monoid E] [add_comm_monoid F] [module 𝕜 E] [module 𝕜 F] {s : set E}
 
 lemma convex.smul (hs : convex 𝕜 s) (c : 𝕜) : convex 𝕜 (c • s) :=
 hs.linear_image (linear_map.lsmul _ _ c)
@@ -928,7 +928,7 @@ section ordered_semiring
 variables [ordered_semiring 𝕜]
 
 section add_comm_monoid
-variables (𝕜) [add_comm_monoid E] [module 𝕜 E] [add_comm_monoid F] [module 𝕜 F]
+variables (𝕜) [add_comm_monoid E] [add_comm_monoid F] [module 𝕜 E] [module 𝕜 F]
 
 /-- The convex hull of a set `s` is the minimal convex set that includes `s`. -/
 def convex_hull : closure_operator (set E) :=

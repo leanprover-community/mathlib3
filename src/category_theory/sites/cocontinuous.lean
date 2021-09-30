@@ -18,6 +18,10 @@ This concept is also called the "covering lifting property" as defined in [MM92]
 Section 10, and should not be confused with the general definition of cocontinuous functors
 between categories as functors preserving small colimits.
 
+## Main definitions
+
+* `category_theory.sites.cocontinuous`: a functor between sites is cocontinuous if it pulls back covering sieves to covering sieves
+
 ## Main Results
 - `category_theory.sites.Ran_is_sheaf_of_cocontinuous`: If `u : C ⥤ D` is cocontinuous, then
 `Ran u.op` (`ₚu`) as a functor `(Cᵒᵖ ⥤ A) ⥤ (Dᵒᵖ ⥤ A)` of presheaves maps sheaves to sheaves.

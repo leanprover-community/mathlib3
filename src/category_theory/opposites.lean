@@ -6,6 +6,22 @@ Authors: Stephen Morgan, Scott Morrison
 import category_theory.types
 import category_theory.equivalence
 
+/-!
+# Opposite categories
+
+We provide a category instance on `Cᵒᵖ`.
+The morphisms `X ⟶ Y` are defined to be the morphisms `unop Y ⟶ unop X` in `C`.
+
+Here `Cᵒᵖ` is an irreducible typeclass synonym for `C`
+(it is the same one used in the algebra library).
+
+We also provide various mechanisms for constructing opposite morphisms, functors,
+and natural transformations.
+
+Unfortunately, because we do not have a definitional equality `op (op X) = X`,
+there are quite a few variations that are needed in practice.
+-/
+
 universes v₁ v₂ u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
 
 open opposite

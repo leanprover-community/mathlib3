@@ -629,12 +629,12 @@ lemma support_update (p : polynomial R) (n : ℕ) (a : R) [decidable (a = 0)] :
   support (p.update n a) = if a = 0 then p.support.erase n else insert n p.support :=
 by { cases p, simp only [support, update, support_update], congr }
 
-@[simp] lemma support_update_zero (p : polynomial R) (n : ℕ) :
+lemma support_update_zero (p : polynomial R) (n : ℕ) :
   support (p.update n 0) = p.support.erase n :=
-by classical; rw [support_update, if_pos rfl]
+by rw [update_zero_eq_erase, support_erase]
 
-lemma support_update_ne_zero (p : polynomial R) (n : ℕ) {a : R}
-  (ha : a ≠ 0) : support (p.update n a) = insert n p.support :=
+lemma support_update_ne_zero (p : polynomial R) (n : ℕ) {a : R} (ha : a ≠ 0) :
+  support (p.update n a) = insert n p.support :=
 by classical; rw [support_update, if_neg ha]
 
 end update

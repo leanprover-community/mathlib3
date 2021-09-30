@@ -649,15 +649,15 @@ end
 
 /-- The symmetric verion of Tonelli's Theorem: For `ℝ≥0∞`-valued almost everywhere measurable
 functions on `α × β`,  the integral of `f` is equal to the iterated integral, in reverse order. -/
-lemma lintegral_prod_symm' [sigma_finite μ] (f : α × β → ℝ≥0∞)
+lemma lintegral_prod_symm [sigma_finite μ] (f : α × β → ℝ≥0∞)
   (hf : ae_measurable f (μ.prod ν)) : ∫⁻ z, f z ∂(μ.prod ν) = ∫⁻ y, ∫⁻ x, f (x, y) ∂μ ∂ν :=
 by { simp_rw [← lintegral_prod_swap f hf], exact lintegral_prod _ hf.prod_swap }
 
 /-- The symmetric verion of Tonelli's Theorem: For `ℝ≥0∞`-valued measurable
 functions on `α × β`,  the integral of `f` is equal to the iterated integral, in reverse order. -/
-lemma lintegral_prod_symm [sigma_finite μ] (f : α × β → ℝ≥0∞)
+lemma lintegral_prod_symm' [sigma_finite μ] (f : α × β → ℝ≥0∞)
   (hf : measurable f) : ∫⁻ z, f z ∂(μ.prod ν) = ∫⁻ y, ∫⁻ x, f (x, y) ∂μ ∂ν :=
-lintegral_prod_symm' f hf.ae_measurable
+lintegral_prod_symm f hf.ae_measurable
 
 /-- The reversed version of **Tonelli's Theorem**. In this version `f` is in curried form, which
 makes it easier for the elaborator to figure out `f` automatically. -/
@@ -671,13 +671,13 @@ curried form, which makes it easier for the elaborator to figure out `f` automat
 lemma lintegral_lintegral_symm [sigma_finite μ] ⦃f : α → β → ℝ≥0∞⦄
   (hf : ae_measurable (uncurry f) (μ.prod ν)) :
   ∫⁻ x, ∫⁻ y, f x y ∂ν ∂μ = ∫⁻ z, f z.2 z.1 ∂(ν.prod μ) :=
-(lintegral_prod_symm' _ hf.prod_swap).symm
+(lintegral_prod_symm _ hf.prod_swap).symm
 
 /-- Change the order of Lebesgue integration. -/
 lemma lintegral_lintegral_swap [sigma_finite μ] ⦃f : α → β → ℝ≥0∞⦄
   (hf : ae_measurable (uncurry f) (μ.prod ν)) :
   ∫⁻ x, ∫⁻ y, f x y ∂ν ∂μ = ∫⁻ y, ∫⁻ x, f x y ∂μ ∂ν :=
-(lintegral_lintegral hf).trans (lintegral_prod_symm' _ hf)
+(lintegral_lintegral hf).trans (lintegral_prod_symm _ hf)
 
 lemma lintegral_prod_mul {f : α → ℝ≥0∞} {g : β → ℝ≥0∞}
   (hf : ae_measurable f μ) (hg : ae_measurable g ν) :

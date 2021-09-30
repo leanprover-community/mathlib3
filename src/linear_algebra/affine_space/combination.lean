@@ -67,6 +67,20 @@ def weighted_vsub_of_point (p : ι → P) (b : P) : (ι → k) →ₗ[k] V :=
   s.weighted_vsub_of_point p b w = ∑ i in s, w i • (p i -ᵥ b) :=
 by simp [weighted_vsub_of_point, linear_map.sum_apply]
 
+/-- Given a family of points, if we use a member of the family as a base point, the
+`weighted_vsub_of_point` does not depend on the value of the weights at this point. -/
+lemma weighted_vsub_of_point_eq_of_weights_eq
+  (p : ι → P) (j : ι) (w₁ w₂ : ι → k) (hw : ∀ i, i ≠ j → w₁ i = w₂ i) :
+  s.weighted_vsub_of_point p (p j) w₁ = s.weighted_vsub_of_point p (p j) w₂ :=
+begin
+  simp only [finset.weighted_vsub_of_point_apply],
+  congr,
+  ext i,
+  cases eq_or_ne i j with h h,
+  { simp [h], },
+  { simp [hw i h], },
+end
+
 /-- The weighted sum is independent of the base point when the sum of
 the weights is 0. -/
 lemma weighted_vsub_of_point_eq_of_sum_eq_zero (w : ι → k) (p : ι → P) (h : ∑ i in s, w i = 0)
@@ -113,7 +127,7 @@ end
 
 /-- The weighted sum is unaffected by adding the base point, whether
 or not present, to the set of points. -/
-@[simp] lemma weighted_vsub_of_point_insert (w : ι → k) (p : ι → P) (i : ι) :
+@[simp] lemma weighted_vsub_of_point_insert [decidable_eq ι] (w : ι → k) (p : ι → P) (i : ι) :
   (insert i s).weighted_vsub_of_point p (p i) w = s.weighted_vsub_of_point p (p i) w :=
 begin
   rw [weighted_vsub_of_point_apply, weighted_vsub_of_point_apply],
@@ -715,6 +729,52 @@ begin
   { exact eq_affine_combination_of_mem_affine_span },
   { rintros ⟨s, w, hw, rfl⟩,
     exact affine_combination_mem_affine_span hw p }
+end
+
+/-- Given a family of points together with a chosen base point in that family, membership of the
+affine span of this family corresponds to an identity in terms of `weighted_vsub_of_point`, with
+weights that are not required to sum to 1. -/
+lemma mem_affine_span_iff_eq_weighted_vsub_of_point_vadd
+  [nontrivial k] (p : ι → P) (j : ι) (q : P) :
+  q ∈ affine_span k (set.range p) ↔
+  ∃ (s : finset ι) (w : ι → k), q = s.weighted_vsub_of_point p (p j) w +ᵥ (p j) :=
+begin
+  split,
+  { intros hq,
+    obtain ⟨s, w, hw, rfl⟩ := eq_affine_combination_of_mem_affine_span hq,
+    exact ⟨s, w, s.affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one w p hw (p j)⟩, },
+  { rintros ⟨s, w, rfl⟩,
+    classical,
+    let w' : ι → k := function.update w j (1 - (s \ {j}).sum w),
+    have h₁ : (insert j s).sum w' = 1,
+    { by_cases hj : j ∈ s,
+      { simp [finset.sum_update_of_mem hj, finset.insert_eq_of_mem hj], },
+      { simp [w', finset.sum_insert hj, finset.sum_update_of_not_mem hj, hj], }, },
+    have hww : ∀ i, i ≠ j → w i = w' i, { intros i hij, simp [w', hij], },
+    rw [s.weighted_vsub_of_point_eq_of_weights_eq p j w w' hww,
+      ← s.weighted_vsub_of_point_insert w' p j,
+      ← (insert j s).affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one w' p h₁ (p j)],
+    exact affine_combination_mem_affine_span h₁ p, },
+end
+
+variables {k V}
+
+/-- Given a set of points, together with a chosen base point in this set, if we affinely transport
+all other members of the set along the line joining them to this base point, the affine span is
+unchanged. -/
+lemma affine_span_eq_affine_span_line_map_units [nontrivial k]
+  {s : set P} {p : P} (hp : p ∈ s) (w : s → units k) :
+  affine_span k (set.range (λ (q : s), affine_map.line_map p ↑q (w q : k))) = affine_span k s :=
+begin
+  have : s = set.range (coe : s → P), { simp, },
+  conv_rhs { rw this, },
+  apply le_antisymm;
+  intros q hq;
+  erw mem_affine_span_iff_eq_weighted_vsub_of_point_vadd k V _ (⟨p, hp⟩ : s) q at hq ⊢;
+  obtain ⟨t, μ, rfl⟩ := hq;
+  use t;
+  [use λ x, (μ x) * ↑(w x), use λ x, (μ x) * ↑(w x)⁻¹];
+  simp [smul_smul],
 end
 
 end affine_space'

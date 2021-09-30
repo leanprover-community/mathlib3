@@ -16,27 +16,6 @@ theory developped in `analysis.asymptotics.asymptotics`.
 open filter asymptotics
 open_locale topological_space
 
-section nat_coe
-
--- TODO: Is there some better place to put these lemmas?
-
-lemma norm_coe_nat_le_coe_nat_real (R : Type*) [semi_normed_ring R] [norm_one_class R] :
-  ∀ (n : ℕ), ∥(n : R)∥ ≤ (n : ℝ)
-| 0 := by simp only [norm_zero, nat.cast_zero]
-| (n+1) := (norm_add_le _ _).trans (add_le_add (norm_coe_nat_le_coe_nat_real n) (le_of_eq norm_one))
-
-lemma coe_nat_is_O_coe_nat_real (R : Type*) [semi_normed_ring R] [norm_one_class R] :
-  asymptotics.is_O (coe : ℕ → R) (coe : ℕ → ℝ) filter.at_top :=
-asymptotics.is_O_of_le filter.at_top
-  (λ n, le_trans (norm_coe_nat_le_coe_nat_real R n) (le_abs.2 (or.inl le_rfl)))
-
-lemma coe_nat_tendsto_at_top (R : Type*) [ordered_semiring R] [nontrivial R] [archimedean R] :
-  filter.tendsto (λ (n : ℕ), (↑n : R)) filter.at_top filter.at_top :=
-filter.tendsto_at_top.2 (λ x, let ⟨m, hm⟩ := exists_nat_ge x in
-  filter.eventually_at_top.2 ⟨m, λ y hy, hm.trans $ nat.cast_le.2 hy⟩)
-
-end nat_coe
-
 section linear_ordered_field
 
 variables {𝕜 : Type*} [linear_ordered_field 𝕜]

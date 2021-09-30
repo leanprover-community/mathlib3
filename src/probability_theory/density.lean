@@ -315,7 +315,7 @@ lemma integral_mul_eq_integral [has_pdf X ℙ] :
 integral_mul_eq_integral' measurable_id
 
 lemma has_finite_integral_mul {f : ℝ → ℝ} {g : ℝ → ℝ≥0∞}
-  (hg : pdf X ℙ =ᵐ[volume] g) (hgi : ∫⁻ x, ∥f x∥₊ * g x < ∞) :
+  (hg : pdf X ℙ =ᵐ[volume] g) (hgi : ∫⁻ x, ∥f x∥₊ * g x ≠ ∞) :
   has_finite_integral (λ x, f x * (pdf X ℙ volume x).to_real) :=
 begin
   rw has_finite_integral,
@@ -327,7 +327,7 @@ begin
     convert ae_eq_refl _,
     ext1 x,
     exact real.ennnorm_eq_of_real ennreal.to_real_nonneg },
-  rwa ← lintegral_congr_ae this,
+  rwa [lt_top_iff_ne_top, ← lintegral_congr_ae this],
 end
 
 end real

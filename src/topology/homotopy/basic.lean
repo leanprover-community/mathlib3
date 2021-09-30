@@ -30,6 +30,10 @@ HOL-Analysis. With this, we get `homotopy` as a special case of `homotopy_with`.
   `homotopy_with f₀ f₁ (λ f, ∀ x ∈ S, f x = f₀ x ∧ f x = f₁ x)`. That is, a homotopy between `f₀`
   and `f₁` which is fixed on the points in `S`.
 * `homotopy_rel.refl` is a variant of `homotopy_with.refl` with the proof of `P f` filled in.
+
+## References
+
+- [HOL-Analysis formalisation](https://isabelle.in.tum.de/library/HOL/HOL-Analysis/Homotopy.html)
 -/
 
 noncomputable theory
@@ -154,11 +158,12 @@ def refl (f : C(X, Y)) (hP : P f) : homotopy_with f f P :=
   end }
 
 instance : inhabited (homotopy_with (continuous_map.id : C(X, X)) continuous_map.id (λ f, true)) :=
-  ⟨homotopy_with.refl continuous_map.id trivial⟩
+⟨homotopy_with.refl continuous_map.id trivial⟩
 
 /--
 Given a `homotopy_with f₀ f₁ P`, we can define a `homotopy_with f₁ f₀ P` by reversing the homotopy.
 -/
+@[simps?]
 def symm {f₀ f₁ : C(X, Y)} (F : homotopy_with f₀ f₁ P) : homotopy_with f₁ f₀ P :=
 { to_fun := λ x, F (σ x.1, x.2),
   continuous_to_fun := by continuity,
@@ -173,8 +178,7 @@ lemma symm_apply {f₀ f₁ : C(X, Y)} (F : homotopy_with f₀ f₁ P) (x : X) (
 @[simp]
 lemma symm_symm {f₀ f₁ : C(X, Y)} (F : homotopy_with f₀ f₁ P) : F.symm.symm = F :=
 begin
-  ext x,
-  cases x,
+  ext ⟨t, x⟩,
   simp,
 end
 

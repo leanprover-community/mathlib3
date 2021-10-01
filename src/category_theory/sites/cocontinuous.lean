@@ -87,7 +87,7 @@ variables (hx : x.compatible)
 
 /-- The family of morphisms `X ⟶ 𝒢(u(Y')) ⟶ ℱ(Y')` defined on `{ Y' ⊆ Y : u(Y') ⊆ U ∈ S}`. -/
 @[reducible] def pullbacked_family (Y : structured_arrow (op U) u.op) :=
-(((x.pullback Y.3.unop).functor_pullback u).comp_presheaf_map
+(((x.pullback Y.hom.unop).functor_pullback u).comp_presheaf_map
   (show _ ⟶ _, from whisker_right ((Ran.adjunction A u.op).counit.app ℱ.val)
     (coyoneda.obj (op X))))
 

@@ -2,8 +2,6 @@
 Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
-
-Notation for vectors and matrices
 -/
 
 import data.fintype.card
@@ -149,6 +147,12 @@ set.ext $ λ y, by simp [fin.exists_fin_succ, eq_comm]
 
 @[simp] lemma range_empty (u : fin 0 → α) : set.range u = ∅ :=
 set.range_eq_empty _
+
+@[simp] lemma vec_cons_const (a : α) : vec_cons a (λ k : fin n, a) = λ _, a :=
+funext $ fin.forall_fin_succ.2 ⟨rfl, cons_val_succ _ _⟩
+
+lemma vec_single_eq_const (a : α) : ![a] = λ _, a :=
+funext $ unique.forall_iff.2 rfl
 
 /-- `![a, b, ...] 1` is equal to `b`.
 

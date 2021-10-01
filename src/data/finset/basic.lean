@@ -1172,6 +1172,9 @@ sup_sdiff_right_self
 lemma sdiff_singleton_eq_erase (a : α) (s : finset α) : s \ singleton a = erase s a :=
 by { ext, rw [mem_erase, mem_sdiff, mem_singleton], tauto }
 
+@[simp] lemma sdiff_singleton_not_mem_eq_self (s : finset α) {a : α} (ha : a ∉ s) : s \ {a} = s :=
+by simp only [sdiff_singleton_eq_erase, ha, erase_eq_of_not_mem, not_false_iff]
+
 lemma sdiff_sdiff_self_left (s t : finset α) : s \ (s \ t) = s ∩ t :=
 sdiff_sdiff_right_self
 
@@ -2038,8 +2041,11 @@ iff.intro
     ⟨i, by rw [int.mod_eq_of_lt (int.coe_zero_le _) (int.coe_nat_lt_coe_nat_of_lt hi), ha]⟩)
 
 
-lemma attach_image_val [decidable_eq α] {s : finset α} : s.attach.image subtype.val = s :=
+@[simp] lemma attach_image_val [decidable_eq α] {s : finset α} : s.attach.image subtype.val = s :=
 eq_of_veq $ by rw [image_val, attach_val, multiset.attach_map_val, erase_dup_eq_self]
+
+@[simp] lemma attach_image_coe [decidable_eq α] {s : finset α} : s.attach.image coe = s :=
+finset.attach_image_val
 
 @[simp] lemma attach_insert [decidable_eq α] {a : α} {s : finset α} :
   attach (insert a s) = insert (⟨a, mem_insert_self a s⟩ : {x // x ∈ insert a s})

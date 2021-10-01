@@ -35,10 +35,8 @@ begin
 
   letI := module.finite.of_basis (pi.basis_fun R (fin (n + 1))),
 
--- We consider `g: (fin (n + 1) → R) →ₗ[R] fin (n + 1) → R` induced by `f`. It is injective.
-  let g := (extend_by_zero.linear_map R cast_succ).comp f,
-  have hg : injective g :=
-    (extend_injective (rel_embedding.injective cast_succ) 0).comp hf,
+  let g : (fin (n + 1) → R) →ₗ[R] fin (n + 1) → R := (extend_by_zero.linear_map R cast_succ).comp f,
+  have hg : injective g := (extend_injective (rel_embedding.injective cast_succ) 0).comp hf,
 
   have hnex : ¬∃ i : fin n, fin.cast_succ i = fin.last n :=
     λ ⟨i, hi⟩, ne_of_lt (fin.cast_succ_lt_last i) hi,

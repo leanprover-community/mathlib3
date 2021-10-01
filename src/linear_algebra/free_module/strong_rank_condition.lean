@@ -35,7 +35,8 @@ begin
 
   letI := module.finite.of_basis (pi.basis_fun R (fin (n + 1))),
 
-  let g : (fin (n + 1) → R) →ₗ[R] fin (n + 1) → R := (extend_by_zero.linear_map R cast_succ).comp f,
+  let g : (fin (n + 1) → R) →ₗ[R] fin (n + 1) → R :=
+    (extend_by_zero.linear_map R cast_succ).comp f,
   have hg : injective g := (extend_injective (rel_embedding.injective cast_succ) 0).comp hf,
 
   have hnex : ¬∃ i : fin n, fin.cast_succ i = fin.last n :=

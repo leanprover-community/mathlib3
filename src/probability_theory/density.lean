@@ -48,12 +48,10 @@ open_locale classical measure_theory nnreal ennreal
 
 namespace measure_theory
 
-open topological_space
+open topological_space measure_theory.measure
 
 variables {α E : Type*} [normed_group E] [measurable_space E] [second_countable_topology E]
   [normed_space ℝ E] [complete_space E] [borel_space E]
-
-namespace measure
 
 /-- A random variable `X : α → E` is said to `has_pdf` with respect to the measure `ℙ` on `α` and
 `μ` on `E` if there exists a measurable function `f` such that the push-forward measure of `ℙ`
@@ -125,8 +123,7 @@ begin
       measure.map_apply (has_pdf.measurable X ℙ μ) measurable_set.univ, set.preimage_univ],
 end
 
-lemma ae_lt_top {m : measurable_space α}
-  (ℙ : measure α) [is_finite_measure ℙ] {μ : measure E} {X : α → E} :
+lemma ae_lt_top [is_finite_measure ℙ] {μ : measure E} {X : α → E} :
   ∀ᵐ x ∂μ, pdf X ℙ μ x < ∞ :=
 begin
   by_cases hpdf : has_pdf X ℙ μ,
@@ -142,7 +139,7 @@ lemma of_real_to_real_ae_eq [is_finite_measure ℙ] {X : α → E} :
   (λ x, ennreal.of_real (pdf X ℙ μ x).to_real) =ᵐ[μ] pdf X ℙ μ :=
 begin
   by_cases hpdf : has_pdf X ℙ μ,
-  { exactI of_real_to_real_ae_eq (ae_lt_top _) },
+  { exactI of_real_to_real_ae_eq ae_lt_top },
   { convert ae_eq_refl _,
     ext1 x,
     rw [pdf, dif_neg hpdf, pi.zero_apply, ennreal.zero_to_real, ennreal.of_real_zero] }
@@ -154,7 +151,7 @@ lemma integrable_iff_integrable_mul_pdf [is_finite_measure ℙ] {X : α → E} [
 begin
   rw [← integrable_map_measure hf.ae_measurable (has_pdf.measurable X ℙ μ),
       map_eq_with_density_pdf X ℙ μ,
-      integrable_with_density_iff (measurable_pdf _ _ _) (ae_lt_top _) hf],
+      integrable_with_density_iff (measurable_pdf _ _ _) ae_lt_top hf],
   apply_instance
 end
 
@@ -203,19 +200,13 @@ begin
     all_goals { apply_instance } }
 end
 
-/-- A random variable that `has_pdf` is quasi-measure preserving. -/
-lemma to_quasi_measure_preserving {X : α → E} [has_pdf X ℙ μ] :
-  quasi_measure_preserving X ℙ μ :=
-{ measurable := has_pdf.measurable X ℙ μ,
-  absolutely_continuous :=
-  begin
-    rw map_eq_with_density_pdf X ℙ μ,
-    exact with_density_absolutely_continuous _ _,
-  end }
+lemma map_absolutely_continuous {X : α → E} [has_pdf X ℙ μ] : map X ℙ ≪ μ :=
+by { rw map_eq_with_density_pdf X ℙ μ, exact with_density_absolutely_continuous _ _, }
 
-lemma map_absolutely_continuous {X : α → E} [has_pdf X ℙ μ] :
-  map X ℙ ≪ μ :=
-to_quasi_measure_preserving.absolutely_continuous
+/-- A random variable that `has_pdf` is quasi-measure preserving. -/
+lemma to_quasi_measure_preserving {X : α → E} [has_pdf X ℙ μ] : quasi_measure_preserving X ℙ μ :=
+{ measurable := has_pdf.measurable X ℙ μ,
+  absolutely_continuous := map_absolutely_continuous, }
 
 lemma have_lebesgue_decomposition_of_has_pdf {X : α → E} [hX' : has_pdf X ℙ μ] :
   (map X ℙ).have_lebesgue_decomposition μ :=
@@ -237,15 +228,7 @@ end
 
 lemma has_pdf_iff_of_measurable {X : α → E} (hX : measurable X) :
   has_pdf X ℙ μ ↔ (map X ℙ).have_lebesgue_decomposition μ ∧ map X ℙ ≪ μ :=
-begin
-  split,
-  { intro hX',
-    exactI ⟨have_lebesgue_decomposition_of_has_pdf, map_absolutely_continuous⟩ },
-  { rintros ⟨h_decomp, h⟩,
-    haveI := h_decomp,
-    refine ⟨⟨hX, (measure.map X ℙ).rn_deriv μ, measurable_rn_deriv _ _, _⟩⟩,
-    rwa with_density_rn_deriv_eq }
-end
+by { rw has_pdf_iff, simp only [hX, true_and], }
 
 section
 
@@ -303,9 +286,7 @@ begin
   { rw [real.has_pdf_iff_of_measurable hX, iff_and_self],
     exact λ h, hX,
     apply_instance },
-  { split,
-    { exact λ h, false.elim (hX h.pdf'.1) },
-    { exact λ h, false.elim (hX h.1) } }
+  { exact ⟨λ h, false.elim (hX h.pdf'.1), λ h, false.elim (hX h.1)⟩, }
 end
 
 /-- If `X` is a real-valued random variable that has pdf `f`, then the expectation of `X` equals
@@ -333,7 +314,5 @@ end
 end real
 
 end pdf
-
-end measure
 
 end measure_theory

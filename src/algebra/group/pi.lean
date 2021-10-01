@@ -234,6 +234,15 @@ lemma pi.single_mul [Π i, mul_zero_class $ f i] (i : I) (x y : f i) :
   single i (x * y) = single i x * single i y :=
 (mul_hom.single f i).map_mul x y
 
+lemma pi.update_eq_sub_add_single [Π i, add_group $ f i] (g : Π (i : I), f i) (x : f i) :
+  function.update g i x = g - single i (g i) + single i x :=
+begin
+  ext j,
+  rcases eq_or_ne i j with rfl|h,
+  { simp },
+  { simp [function.update_noteq h.symm, h] }
+end
+
 end single
 
 section piecewise

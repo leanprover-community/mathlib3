@@ -167,8 +167,8 @@ lemma times_cont_diff_cosh {n} : times_cont_diff ℂ n cosh :=
 lemma differentiable_cosh : differentiable ℂ cosh :=
 λx, (has_deriv_at_cosh x).differentiable_at
 
-lemma differentiable_at_cosh {x : ℂ} : differentiable_at ℂ cos x :=
-differentiable_cos x
+lemma differentiable_at_cosh {x : ℂ} : differentiable_at ℂ cosh x :=
+differentiable_cosh x
 
 @[simp] lemma deriv_cosh : deriv cosh = sinh :=
 funext $ λ x, (has_deriv_at_cosh x).deriv
@@ -1342,8 +1342,8 @@ by { rw real.range_sin, exact Icc.infinite (by norm_num) }
 lemma sin_lt {x : ℝ} (h : 0 < x) : sin x < x :=
 begin
   cases le_or_gt x 1 with h' h',
-  { have hx : abs x = x := abs_of_nonneg (le_of_lt h),
-    have : abs x ≤ 1, rwa [hx],
+  { have hx : |x| = x := abs_of_nonneg (le_of_lt h),
+    have : |x| ≤ 1, rwa [hx],
     have := sin_bound this, rw [abs_le] at this,
     have := this.2, rw [sub_le_iff_le_add', hx] at this,
     apply lt_of_le_of_lt this, rw [sub_add], apply lt_of_lt_of_le _ (le_of_eq (sub_zero x)),
@@ -1358,8 +1358,8 @@ end
    note 2: this is also true for x > 1, but it's nontrivial for x just above 1. -/
 lemma sin_gt_sub_cube {x : ℝ} (h : 0 < x) (h' : x ≤ 1) : x - x ^ 3 / 4 < sin x :=
 begin
-  have hx : abs x = x := abs_of_nonneg (le_of_lt h),
-  have : abs x ≤ 1, rwa [hx],
+  have hx : |x| = x := abs_of_nonneg (le_of_lt h),
+  have : |x| ≤ 1, rwa [hx],
   have := sin_bound this, rw [abs_le] at this,
   have := this.1, rw [le_sub_iff_add_le, hx] at this,
   refine lt_of_lt_of_le _ this,
@@ -2005,7 +2005,7 @@ lemma exp_periodic : function.periodic exp (2 * π * I) :=
 (mul_assoc (2:ℂ) π I).symm ▸ exp_antiperiodic.periodic
 
 lemma exp_mul_I_antiperiodic : function.antiperiodic (λ x, exp (x * I)) π :=
-by simpa only [mul_inv_cancel_right' I_ne_zero] using exp_antiperiodic.mul_const I_ne_zero
+by simpa only [mul_inv_cancel_right₀ I_ne_zero] using exp_antiperiodic.mul_const I_ne_zero
 
 lemma exp_mul_I_periodic : function.periodic (λ x, exp (x * I)) (2 * π) :=
 exp_mul_I_antiperiodic.periodic

@@ -367,7 +367,7 @@ end
 /-- Continuity from above: the measure of the intersection of a decreasing sequence of measurable
 sets is the limit of the measures. -/
 lemma tendsto_measure_Inter [encodable ι] [semilattice_sup ι] {s : ι → set α}
-  (hs : ∀ n, measurable_set (s n)) (hm : ∀ ⦃n m⦄, n ≤ m → s m ⊆ s n) (hf : ∃ i, μ (s i) ≠ ∞) :
+  (hs : ∀ n, measurable_set (s n)) (hm : antitone s) (hf : ∃ i, μ (s i) ≠ ∞) :
   tendsto (μ ∘ s) at_top (𝓝 (μ (⋂ n, s n))) :=
 begin
   rw measure_Inter_eq_infi hs (directed_of_sup hm) hf,

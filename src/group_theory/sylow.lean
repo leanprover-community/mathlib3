@@ -90,7 +90,7 @@ instance sylow.pointwise_mul_action {α : Type*} [group α] [mul_distrib_mul_act
   mul_smul := λ g h P, sylow.ext (mul_smul g h P) }
 
 instance sylow.mul_action : mul_action G (sylow p G) :=
-mul_action.comp_hom _ mul_aut.conj
+comp_hom _ mul_aut.conj
 
 lemma sylow.coe_subgroup_smul {g : G} {P : sylow p G} :
   ↑(g • P) = mul_aut.conj g • (P : subgroup G) := rfl
@@ -156,6 +156,39 @@ begin
   have : card (fixed_points P.1 (sylow p G)) = 1 := by convert set.card_singleton P,
   exact (P.2.card_modeq_card_fixed_points (sylow p G)).trans (by rw this),
 end
+
+variables {p} {G}
+
+@[simp] lemma sylow.orbit_eq_top [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
+  orbit G P = ⊤ :=
+top_le_iff.mp (λ Q hQ, exists_smul_eq G P Q)
+
+lemma sylow.stabilizer_eq_normalizer (P : sylow p G) : stabilizer G P = P.1.normalizer :=
+ext (λ g, sylow.smul_eq_iff_mem_normalizer)
+
+/-- Sylow `p`-subgroups are in bijection with cosets of the normalizer of a Sylow `p`-subgroup -/
+noncomputable def sylow.equiv_quotient_normalizer [fact p.prime] [fintype (sylow p G)]
+  (P : sylow p G) : sylow p G ≃ quotient_group.quotient P.1.normalizer :=
+calc sylow p G ≃ (⊤ : set (sylow p G)) : (equiv.set.univ (sylow p G)).symm
+... ≃ orbit G P : by rw P.orbit_eq_top
+... ≃ quotient_group.quotient (stabilizer G P) : orbit_equiv_quotient_stabilizer G P
+... ≃ quotient_group.quotient P.1.normalizer : by rw P.stabilizer_eq_normalizer
+
+noncomputable instance [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
+  fintype (quotient_group.quotient P.1.normalizer) :=
+of_equiv (sylow p G) P.equiv_quotient_normalizer
+
+lemma card_sylow_eq_card_quotient_normalizer [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
+  card (sylow p G) = card (quotient_group.quotient P.1.normalizer) :=
+card_congr P.equiv_quotient_normalizer
+
+lemma card_sylow_eq_index_normalizer [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
+  card (sylow p G) = P.1.normalizer.index :=
+(card_sylow_eq_card_quotient_normalizer P).trans P.1.normalizer.index_eq_card.symm
+
+lemma card_sylow_dvd_index [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
+  card (sylow p G) ∣ P.1.index :=
+((congr_arg _ (card_sylow_eq_index_normalizer P)).mp dvd_rfl).trans (index_dvd_of_le le_normalizer)
 
 end infinite_sylow
 

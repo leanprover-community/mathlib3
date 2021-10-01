@@ -546,10 +546,10 @@ lemma continuous.ae_measurable2 [second_countable_topology α] [second_countable
 h.measurable.comp_ae_measurable (hf.prod_mk hg)
 
 @[priority 100]
-instance has_continuous_inv'.has_measurable_inv [group_with_zero γ] [t1_space γ]
-  [has_continuous_inv' γ] :
+instance has_continuous_inv₀.has_measurable_inv [group_with_zero γ] [t1_space γ]
+  [has_continuous_inv₀ γ] :
   has_measurable_inv γ :=
-⟨measurable_of_continuous_on_compl_singleton 0 continuous_on_inv'⟩
+⟨measurable_of_continuous_on_compl_singleton 0 continuous_on_inv₀⟩
 
 @[priority 100, to_additive]
 instance has_continuous_mul.has_measurable_mul₂ [second_countable_topology γ] [has_mul γ]
@@ -812,28 +812,26 @@ begin
   exact ⟨hg.exists.some, hg.mono (λ y hy, is_glb.unique hy hg.exists.some_spec)⟩,
 end
 
-lemma measurable_of_monotone [linear_order β] [order_closed_topology β] {f : β → α}
+protected lemma monotone.measurable [linear_order β] [order_closed_topology β] {f : β → α}
   (hf : monotone f) : measurable f :=
 suffices h : ∀ x, ord_connected (f ⁻¹' Ioi x),
   from measurable_of_Ioi (λ x, (h x).measurable_set),
 λ x, ord_connected_def.mpr (λ a ha b hb c hc, lt_of_lt_of_le ha (hf hc.1))
 
-alias measurable_of_monotone ← monotone.measurable
-
 lemma ae_measurable_restrict_of_monotone_on [linear_order β] [order_closed_topology β]
-  {μ : measure β} {s : set β} (hs : measurable_set s) {f : β → α}
-  (hf : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f x ≤ f y) : ae_measurable f (μ.restrict s) :=
+  {μ : measure β} {s : set β} (hs : measurable_set s) {f : β → α} (hf : monotone_on f s) :
+  ae_measurable f (μ.restrict s) :=
 have this : monotone (f ∘ coe : s → α), from λ ⟨x, hx⟩ ⟨y, hy⟩ (hxy : x ≤ y), hf hx hy hxy,
 ae_measurable_restrict_of_measurable_subtype hs this.measurable
 
-lemma measurable_of_antitone [linear_order β] [order_closed_topology β] {f : β → α}
-  (hf : ∀ ⦃x y : β⦄, x ≤ y → f y ≤ f x) :
+protected lemma antitone.measurable [linear_order β] [order_closed_topology β] {f : β → α}
+  (hf : antitone f) :
   measurable f :=
-@measurable_of_monotone (order_dual α) β _ _ ‹_› _ _ _ _ _ ‹_› _ _ _ hf
+@monotone.measurable (order_dual α) β _ _ ‹_› _ _ _ _ _ ‹_› _ _ _ hf
 
 lemma ae_measurable_restrict_of_antitone_on [linear_order β] [order_closed_topology β]
-  {μ : measure β} {s : set β} (hs : measurable_set s) {f : β → α}
-  (hf : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f y ≤ f x) : ae_measurable f (μ.restrict s) :=
+  {μ : measure β} {s : set β} (hs : measurable_set s) {f : β → α} (hf : antitone_on f s) :
+  ae_measurable f (μ.restrict s) :=
 @ae_measurable_restrict_of_monotone_on (order_dual α) β _ _ ‹_› _ _ _ _ _ ‹_› _ _ _ _ hs _ hf
 
 end linear_order
@@ -1118,7 +1116,7 @@ def finite_spanning_sets_in_Ioo_rat (μ : measure ℝ) [is_locally_finite_measur
     calc μ (Ioo _ _) ≤ μ (Icc _ _) : μ.mono Ioo_subset_Icc_self
                  ... < ∞           : is_compact_Icc.is_finite_measure,
   spanning := Union_eq_univ_iff.2 $ λ x,
-    ⟨⌊abs x⌋₊, neg_lt.1 ((neg_le_abs_self x).trans_lt (lt_nat_floor_add_one _)),
+    ⟨⌊|x|⌋₊, neg_lt.1 ((neg_le_abs_self x).trans_lt (lt_nat_floor_add_one _)),
       (le_abs_self x).trans_lt (lt_nat_floor_add_one _)⟩ }
 
 lemma measure_ext_Ioo_rat {μ ν : measure ℝ} [is_locally_finite_measure μ]

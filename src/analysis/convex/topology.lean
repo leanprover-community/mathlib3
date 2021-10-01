@@ -42,14 +42,14 @@ section std_simplex
 
 variables [fintype ι]
 
-/-- Every vector in `std_simplex ℝ ι` has `max`-norm at most `1`. -/
+/-- Every vector in `std_simplex 𝕜 ι` has `max`-norm at most `1`. -/
 lemma std_simplex_subset_closed_ball :
   std_simplex ℝ ι ⊆ metric.closed_ball 0 1 :=
 begin
   assume f hf,
   rw [metric.mem_closed_ball, dist_zero_right],
   refine (nnreal.coe_one ▸ nnreal.coe_le_coe.2 $ finset.sup_le $ λ x hx, _),
-  change abs (f x) ≤ 1,
+  change |f x| ≤ 1,
   rw [abs_of_nonneg $ hf.1 x],
   exact (mem_Icc_of_mem_std_simplex hf x).2
 end
@@ -87,10 +87,10 @@ convex_iff_pointwise_add_subset.mpr $ λ a b ha hb hab,
   (λ heq,
     have hne : b ≠ 0, by { rw [heq, zero_add] at hab, rw hab, exact one_ne_zero },
     by { rw ← image_smul,
-         exact (is_open_map_smul' hne _ is_open_interior).add_left } )
+         exact (is_open_map_smul₀ hne _ is_open_interior).add_left } )
   (λ hne,
     by { rw ← image_smul,
-         exact (is_open_map_smul' hne _ is_open_interior).add_right }),
+         exact (is_open_map_smul₀ hne _ is_open_interior).add_right }),
   (subset_interior_iff_subset_of_open h).mpr $ subset.trans
     (by { simp only [← image_smul], apply add_subset_add; exact image_subset _ interior_subset })
     (convex_iff_pointwise_add_subset.mp hs ha hb hab)

@@ -3,9 +3,9 @@ Copyright (c) 2019 Yury Kudriashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudriashov
 -/
-import analysis.convex.basic
-import linear_algebra.affine_space.combination
 import algebra.big_operators.order
+import analysis.convex.hull
+import linear_algebra.affine_space.combination
 
 /-!
 # Linear combinations
@@ -304,7 +304,7 @@ section linear_ordered_field
 variables (𝕜 E ι : Type*) [linear_ordered_field 𝕜] [add_comm_monoid E] [module 𝕜 E] [fintype ι]
   (s : finset ι)
 
-/-- `std_simplex ι` is the convex hull of the canonical basis in `ι → 𝕜`. -/
+/-- `std_simplex 𝕜 ι` is the convex hull of the canonical basis in `ι → 𝕜`. -/
 lemma convex_hull_basis_eq_std_simplex :
   convex_hull 𝕜 (range $ λ(i j:ι), if i = j then (1:𝕜) else (0 : 𝕜)) = std_simplex 𝕜 ι :=
 begin

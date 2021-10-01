@@ -971,3 +971,13 @@ S.to_subsemiring.module
 end subring
 
 end actions
+
+-- while this definition is not about subrings, this is the earliest we have
+-- both ordered ring structures and submonoids available
+
+/--The subgroup of positive units of a linear ordered commutative ring-/
+def units.pos_subgroup {R : Type*} [linear_ordered_comm_ring R] [nontrivial R] :
+subgroup (units R) :=
+{ carrier := {x | (0 : R) < x},
+  inv_mem' := λ x (hx : (0 : R) < x), (zero_lt_mul_left hx).mp $ x.mul_inv.symm ▸ zero_lt_one,
+  ..pos_submonoid.comap (units.coe_hom R)}

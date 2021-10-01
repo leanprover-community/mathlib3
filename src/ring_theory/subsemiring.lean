@@ -831,3 +831,13 @@ instance [add_comm_monoid α] [module R' α] (S : subsemiring R') : module S α 
 end subsemiring
 
 end actions
+
+-- while this definition is not about subrings, this is the earliest we have
+-- both ordered ring structures and submonoids available
+
+
+/--Submonoid of positive elements of an ordered semiring-/
+def pos_submonoid {R : Type*} [ordered_semiring R] [nontrivial R] : submonoid R :=
+{ carrier := {x | 0 < x},
+  one_mem' := show (0 : R) < 1, from zero_lt_one,
+  mul_mem' := λ x y (hx : 0 < x) (hy : 0 < y), mul_pos hx hy }

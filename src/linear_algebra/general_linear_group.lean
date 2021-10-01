@@ -27,20 +27,6 @@ universes u v
 open_locale matrix
 open linear_map
 
---TODO: Move this somewhere else.
-/--Submonoid of positive elements of an ordered semiring-/
-def pos_submonoid {R : Type*} [ordered_semiring R] [nontrivial R] : submonoid R :=
-{ carrier := {x | 0 < x},
-  one_mem' := show (0 : R) < 1, from zero_lt_one,
-  mul_mem' := λ x y (hx : 0 < x) (hy : 0 < y), mul_pos hx hy }
-
-/--The subgroup of positive units of a linear ordered commutative ring-/
-def units.pos_subgroup {R : Type*} [linear_ordered_comm_ring R] [nontrivial R] :
-subgroup (units R) :=
-{ carrier := {x | (0 : R) < x},
-  inv_mem' := λ x (hx : (0 : R) < x), (zero_lt_mul_left hx).mp $ x.mul_inv.symm ▸ zero_lt_one,
-  ..pos_submonoid.comap (units.coe_hom R)}
-
 /-- `GL n R` is the group of `n` by `n` `R`-matrices with unit determinant.
 Defined as a subtype of matrices-/
 abbreviation general_linear_group (n : Type u) (R : Type v)

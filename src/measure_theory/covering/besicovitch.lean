@@ -39,7 +39,7 @@ supremum). Then, remove all balls whose center is covered by the first ball, and
 remaining ones a ball with radius close to maximum. Go on forever until there is no available
 center (this is a transfinite induction in general).
 
-Define then inductively colors on balls. A ball will be of color `i` if it intersects
+Then define inductively a coloring of the balls. A ball will be of color `i` if it intersects
 already chosen balls of color `0`, ..., `i - 1`, but none of color `i`. In this way, balls of the
 same color form a disjoint family, and the space is covered by the families of the different colors.
 
@@ -71,7 +71,7 @@ and given any two balls there is an order between them, ensuring that the first 
 contain the center of the other one, and the radius of the second ball can not be larger than
 the radius of the first ball (up to a factor `τ`). This order corresponds to the order of choice
 in the inductive construction: otherwise, the second ball would have been chosen before.
-This is the  condition `h`.
+This is the condition `h`.
 
 Finally, the last ball is chosen after all the other ones, meaning that `h` can be strengthened
 by keeping only one side of the alternative in `hlast`.
@@ -79,7 +79,7 @@ by keeping only one side of the alternative in `hlast`.
 @[nolint has_inhabited_instance]
 structure besicovitch.satellite_config (α : Type*) [metric_space α] (N : ℕ) (τ : ℝ) :=
 (c : fin N.succ → α)
-(r : fin N.succ → ℝ )
+(r : fin N.succ → ℝ)
 (rpos : ∀ i, 0 < r i)
 (h : ∀ i j, i ≠ j → (r i ≤ dist (c i) (c j) ∧ r j ≤ τ * r i) ∨
                     (r j ≤ dist (c j) (c i) ∧ r i ≤ τ * r j))
@@ -118,7 +118,7 @@ end
 
 end satellite_config
 
-/-! ### Extracting disjoints subfamilies from a ball covering -/
+/-! ### Extracting disjoint subfamilies from a ball covering -/
 
 /-- A ball package is a family of balls in a metric space with positive bounded radii. -/
 structure ball_package (β : Type*) (α : Type*) :=

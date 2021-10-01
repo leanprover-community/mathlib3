@@ -1043,7 +1043,7 @@ theorem concave_on_of_deriv2_nonpos {D : set ℝ} (hD : convex ℝ D) {f : ℝ �
   (hf''_nonpos : ∀ x ∈ interior D, (deriv^[2] f x) ≤ 0) :
   concave_on ℝ D f :=
 concave_on_of_deriv_antitone_on hD hf hf' $ hD.interior.antitone_on_of_deriv_nonpos
-  hf''.continuous_on (by rwa interior_interior) (by rwa interior_interior) hx hy hxy
+  hf''.continuous_on (by rwa interior_interior) (by rwa interior_interior)
 
 /-- If a function `f` is twice differentiable on a open convex set `D ⊆ ℝ` and
 `f''` is nonnegative on `D`, then `f` is convex on `D`. -/
@@ -1053,7 +1053,7 @@ theorem convex_on_open_of_deriv2_nonneg {D : set ℝ} (hD : convex ℝ D) (hD₂
 convex_on_of_deriv2_nonneg hD hf'.continuous_on (by simpa [hD₂.interior_eq] using hf')
   (by simpa [hD₂.interior_eq] using hf'') (by simpa [hD₂.interior_eq] using hf''_nonneg)
 
-/-- If a function `f` is twice differentiable on a open convex set `D ⊆ ℝ` and
+/-- If a function `f` is twice differentiable on an open convex set `D ⊆ ℝ` and
 `f''` is nonpositive on `D`, then `f` is concave on `D`. -/
 theorem concave_on_open_of_deriv2_nonpos {D : set ℝ} (hD : convex ℝ D) (hD₂ : is_open D) {f : ℝ → ℝ}
   (hf' : differentiable_on ℝ f D) (hf'' : differentiable_on ℝ (deriv f) D)

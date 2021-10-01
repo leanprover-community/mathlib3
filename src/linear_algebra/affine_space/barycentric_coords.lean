@@ -23,11 +23,12 @@ barycentric coordinate of `q : P` is `1 - fᵢ (q -ᵥ p i)`.
 
 ## Main definitions
 
- * `barycentric_coord`
- * `barycentric_coord_apply_eq`
- * `barycentric_coord_apply_neq`
- * `barycentric_coord_apply`
- * `barycentric_coord_apply_combination`
+ * `barycentric_coord`: the map `P →ᵃ[k] k` corresponding to `i : ι`.
+ * `barycentric_coord_apply_eq`: the behaviour of `barycentric_coord i` on `p i`.
+ * `barycentric_coord_apply_neq`: the behaviour of `barycentric_coord i` on `p j` when `j ≠ i`.
+ * `barycentric_coord_apply`: the behaviour of `barycentric_coord i` on `p j` for general `j`.
+ * `barycentric_coord_apply_combination`: the characterisation of `barycentric_coord i` in terms
+    of affine combinations, i.e., `barycentric_coord i (w₀ p₀ + w₁ p₁ + ⋯) = wᵢ`.
 
 ## TODO
 
@@ -46,7 +47,10 @@ variables {p : ι → P} (h_ind : affine_independent k p) (h_tot : affine_span k
 include V h_ind h_tot
 
 /-- Given an affine-independent family of points spanning the point space `P`, if we single out one
-member of the family, we obtain a basis for the model space `V`. -/
+member of the family, we obtain a basis for the model space `V`.
+
+The basis correpsonding to the singled-out member `i : ι` is indexed by `{j : ι // j ≠ i}` and its
+`j`th element is `p j -ᵥ p i`. (See `basis_of_aff_ind_span_eq_top_apply`.) -/
 noncomputable def basis_of_aff_ind_span_eq_top (i : ι) : basis {j : ι // j ≠ i} k V :=
 basis.mk ((affine_independent_iff_linear_independent_vsub k p i).mp h_ind)
 begin

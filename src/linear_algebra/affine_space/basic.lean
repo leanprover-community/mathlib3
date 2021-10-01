@@ -25,7 +25,8 @@ files:
 * `affine_equiv`: an equivalence between affine spaces that preserves the affine structure;
 * `affine_subspace`: a subset of an affine space closed w.r.t. affine combinations of points;
 * `affine_combination`: an affine combination of points;
-* `affine_independent`: affine independent set of points.
+* `affine_independent`: affine independent set of points;
+* `barycentric_coord`: the barycentric coordinate of a point.
 
 ## TODO
 

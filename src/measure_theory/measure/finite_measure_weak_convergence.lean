@@ -257,24 +257,6 @@ end
 
 -- This is the formulation I prefer in the present context, naturally uses the more general ones.
 lemma lintegral_lt_top_of_bounded_continuous_to_nnreal (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
-  ∫⁻ x, ((coe : ℝ≥0 → ℝ≥0∞) ∘ f) x ∂(μ : measure α) < ∞ :=
-begin
-  apply is_finite_measure.lintegral_lt_top_of_bounded_to_ennreal,
-  use dist f 0,
-  { exact dist_nonneg, },
-  intros x,
-  have key := bounded_continuous_function.nnreal.upper_bound f x,
-  rw ennreal.coe_le_coe,
-  have eq : (dist f 0).to_nnreal = ⟨dist f 0, dist_nonneg⟩,
-  { ext,
-    simp only [real.coe_to_nnreal', max_eq_left_iff, subtype.coe_mk],
-    exact dist_nonneg, },
-  rwa eq at key,
-end
-
--- Update: Perhaps this is in fact the formulation I prefer in the present context, naturally
--- uses the more general ones.
-lemma lintegral_lt_top_of_bounded_continuous_to_nnreal' (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
   ∫⁻ x, f x ∂(μ : measure α) < ∞ :=
 begin
   apply is_finite_measure.lintegral_lt_top_of_bounded_to_ennreal,
@@ -388,7 +370,7 @@ begin
       rw ←ennreal.coe_add,
       exact ennreal.coe_mono (le' x), },
     exact le, },
-  { exact (lintegral_lt_top_of_bounded_continuous_to_nnreal' μ (g + const α (nndist f g))).ne, },
+  { exact (lintegral_lt_top_of_bounded_continuous_to_nnreal μ (g + const α (nndist f g))).ne, },
   exact (lintegral_lt_top_of_bounded_continuous_to_nnreal μ f).ne,
 end
 

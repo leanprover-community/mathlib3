@@ -104,6 +104,15 @@ begin
   simp only [mul_one, set.preimage_mul_left_singleton, eq_self_iff_true,
     inv_inv, set.singleton_eq_singleton_iff],
 end
+
+@[to_additive]
+lemma discrete_topology_iff_open_singleton_one : discrete_topology G ↔ is_open ({1} : set G) :=
+begin
+  split ; intro h,
+  { exact forall_open_iff_discrete.mpr h {1} },
+  { exact discrete_topology_of_open_singleton_one h },
+end
+
 end continuous_mul_group
 
 section topological_group

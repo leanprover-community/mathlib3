@@ -60,7 +60,7 @@ instance has_forget_to_Module : has_forget₂ (Algebra.{v} R) (Module.{v} R) :=
 typeclasses. -/
 def of (X : Type v) [ring X] [algebra R X] : Algebra.{v} R := ⟨X⟩
 
-/-- Construct a bundled hom from the underlying alg_hom. -/
+/-- Typecheck a `alg_hom` as a morphism in `Algebra R`. -/
 def of_hom {R : Type u} [comm_ring R] {X Y : Type v} [ring X] [algebra R X] [ring Y] [algebra R Y]
   (f : X →ₐ[R] Y) : of R X ⟶ of R Y := f
 

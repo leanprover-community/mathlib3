@@ -24,7 +24,7 @@ A `jordan_holder_lattice` is the class for which the Jordan Hölder theorem is p
 Jordan Hölder lattice is a lattice equipped with a notion of maximality, `is_maximal`, and a notion
 of isomorphism of pairs `iso`. In the example of subgroups of a group, `is_maximal H K` means that
 `H` is a maximal normal subgroup of `K`, and `iso (H₁, K₁) (H₂, K₂)` means that the quotient
-`H₁ / K₁` is isomorphic to the quotient `H₂ / K₂`. `iso` be symmetric and transitive and must
+`H₁ / K₁` is isomorphic to the quotient `H₂ / K₂`. `iso` must be symmetric and transitive and must
 satisfy the second isomorphism theorem `iso (H, H ⊔ K) (H ⊓ K, K)`.
 
 A `composition_series X` is a finite nonempty series of elements of the lattice `X` such that
@@ -36,11 +36,11 @@ and `s.bot` is the least element.
 
 Two `composition_series X`, `s₁` and `s₂` are equivalent if there is a bijection
 `e : fin s₁.length ≃ fin s₂.length` such that for any `i`,
-`iso (s₁ i) (s₁ i.succ) (s₂ (e i), s₂ (e i.succ))`
+`iso (s₁ i, s₁ i.succ) (s₂ (e i), s₂ (e i.succ))`
 
 ## Main theorems
 
-The main theorem is `jordan_holder`, which says that if two composition
+The main theorem is `composition_series.jordan_holder`, which says that if two composition
 series have the same least element and the same largest element,
 then they are `equivalent`.
 -/
@@ -56,7 +56,7 @@ of isomorphism of pairs `iso`. In the example of subgroups of a group, `is_maxim
 `H` is a maximal normal subgroup of `K`, and `iso (H₁, K₁) (H₂, K₂)` means that the quotient
 `H₁ / K₁` is isomorphic to the quotient `H₂ / K₂`. `iso` must be symmetric and transitive and must
 satisfy the second isomorphism theorem `iso (H, H ⊔ K) (H ⊓ K, K)`.
-Examples include `subgroup G` if `G` is a group, and `submodule R M` if `M` is an `R`-module
+Examples include `subgroup G` if `G` is a group, and `submodule R M` if `M` is an `R`-module.
 -/
 class jordan_holder_lattice (X : Type u) [lattice X] :=
 (is_maximal : X → X → Prop)
@@ -76,7 +76,7 @@ variables {X : Type u} [lattice X] [jordan_holder_lattice X]
 
 lemma is_maximal_inf_right_of_is_maximal_sup {x y : X}
   (hxz : is_maximal x (x ⊔ y)) (hyz : is_maximal y (x ⊔ y)) :
-   is_maximal (x ⊓ y) y :=
+  is_maximal (x ⊓ y) y :=
 begin
   rw [inf_comm],
   rw [sup_comm] at hxz hyz,
@@ -84,8 +84,7 @@ begin
 end
 
 lemma is_maximal_of_eq_inf (x b : X) {a y : X}
-  (ha : x ⊓ y = a) (hxy : x ≠ y)
-  (hxb : is_maximal x b) (hyb : is_maximal y b) :
+  (ha : x ⊓ y = a) (hxy : x ≠ y) (hxb : is_maximal x b) (hyb : is_maximal y b) :
   is_maximal a y :=
 begin
   have hb : x ⊔ y = b,
@@ -94,7 +93,7 @@ begin
   exact is_maximal_inf_right_of_is_maximal_sup hxb hyb
 end
 
-lemma second_iso_of_eq {x y a b: X} (hm : is_maximal x a) (ha : x ⊔ y = a) (hb : x ⊓ y = b) :
+lemma second_iso_of_eq {x y a b : X} (hm : is_maximal x a) (ha : x ⊔ y = a) (hb : x ⊓ y = b) :
   iso (x, a) (b, y) :=
 by substs a b; exact second_iso hm
 

@@ -54,7 +54,7 @@ which are used to deduce corresponding results for Euclidean affine spaces.
 
 lemma mul_norm_eq_abs_sub_sq_norm {x y z : V}
   (h₁ : ∃ k : ℝ, k ≠ 1 ∧ x + y = k • (x - y)) (h₂ : ∥z - y∥ = ∥z + y∥) :
-  ∥x - y∥ * ∥x + y∥ = abs (∥z + y∥ ^ 2 - ∥z - x∥ ^ 2) :=
+  ∥x - y∥ * ∥x + y∥ = |∥z + y∥ ^ 2 - ∥z - x∥ ^ 2| :=
 begin
   obtain ⟨k, hk_ne_one, hk⟩ := h₁,
   let r := (k - 1)⁻¹ * (k + 1),
@@ -77,10 +77,10 @@ begin
       = ∥(r - 1) • y∥ * ∥(r + 1) • y∥      : by simp [sub_smul, add_smul, hxy]
   ... = ∥r - 1∥ * ∥y∥ * (∥r + 1∥ * ∥y∥)      : by simp_rw [norm_smul]
   ... = ∥r - 1∥ * ∥r + 1∥ * ∥y∥ ^ 2         : by ring
-  ... = abs ((r - 1) * (r + 1) * ∥y∥ ^ 2) : by simp [abs_mul, norm_eq_abs]
-  ... = abs (r ^ 2 * ∥y∥ ^ 2 - ∥y∥ ^ 2)    : by ring_nf
-  ... = abs (∥x∥ ^ 2 - ∥y∥ ^ 2)            : by simp [hxy, norm_smul, mul_pow, norm_eq_abs, sq_abs]
-  ... = abs (∥z + y∥ ^ 2 - ∥z - x∥ ^ 2)    : by simp [norm_add_sq_real, norm_sub_sq_real,
+  ... = |(r - 1) * (r + 1) * ∥y∥ ^ 2| : by simp [abs_mul, norm_eq_abs]
+  ... = |r ^ 2 * ∥y∥ ^ 2 - ∥y∥ ^ 2|    : by ring_nf
+  ... = |∥x∥ ^ 2 - ∥y∥ ^ 2|            : by simp [hxy, norm_smul, mul_pow, norm_eq_abs, sq_abs]
+  ... = |∥z + y∥ ^ 2 - ∥z - x∥ ^ 2|    : by simp [norm_add_sq_real, norm_sub_sq_real,
                                                     hzy, hzx, abs_sub_comm],
 end
 
@@ -103,7 +103,7 @@ include V
 `AP * BP = abs (BQ ^ 2 - PQ ^ 2)`. -/
 lemma mul_dist_eq_abs_sub_sq_dist {a b p q : P}
   (hp : ∃ k : ℝ, k ≠ 1 ∧ b -ᵥ p = k • (a -ᵥ p)) (hq : dist a q = dist b q) :
-  dist a p * dist b p = abs (dist b q ^ 2 - dist p q ^ 2) :=
+  dist a p * dist b p = |dist b q ^ 2 - dist p q ^ 2| :=
 begin
   let m : P := midpoint ℝ a b,
   obtain ⟨v, h1, h2, h3⟩ := ⟨vsub_sub_vsub_cancel_left, v a p m, v p q m, v a q m⟩,

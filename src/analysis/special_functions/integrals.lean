@@ -345,6 +345,9 @@ lemma integral_sin_pow_succ_le : ∫ x in 0..π, sin x ^ (n + 1) ≤ ∫ x in 0.
 let H := λ x h, pow_le_pow_of_le_one (sin_nonneg_of_mem_Icc h) (sin_le_one x) (n.le_add_right 1) in
 by refine integral_mono_on pi_pos.le _ _ H; exact (continuous_sin.pow _).interval_integrable 0 π
 
+lemma integral_sin_pow_antitone : antitone (λ n : ℕ, ∫ x in 0..π, sin x ^ n) :=
+antitone_nat_of_succ_le integral_sin_pow_succ_le
+
 /-! ### Integral of `cos x ^ n` -/
 
 lemma integral_cos_pow_aux :

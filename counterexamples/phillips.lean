@@ -156,7 +156,7 @@ and show that such an object can be split into a discrete part and a continuous 
 structure bounded_additive_measure (α : Type u) :=
 (to_fun : set α → ℝ)
 (additive' : ∀ s t, disjoint s t → to_fun (s ∪ t) = to_fun s + to_fun t)
-(exists_bound : ∃ (C : ℝ), ∀ s, abs (to_fun s) ≤ C)
+(exists_bound : ∃ (C : ℝ), ∀ s, |to_fun s| ≤ C)
 
 instance : inhabited (bounded_additive_measure α) :=
 ⟨{ to_fun := λ s, 0,
@@ -175,7 +175,7 @@ lemma additive (f : bounded_additive_measure α) (s t : set α)
 f.additive' s t h
 
 lemma abs_le_bound (f : bounded_additive_measure α) (s : set α) :
-  abs (f s) ≤ f.C :=
+  |f s| ≤ f.C :=
 f.exists_bound.some_spec s
 
 lemma le_bound (f : bounded_additive_measure α) (s : set α) :

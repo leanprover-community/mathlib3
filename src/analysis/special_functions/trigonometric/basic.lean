@@ -1342,8 +1342,8 @@ by { rw real.range_sin, exact Icc.infinite (by norm_num) }
 lemma sin_lt {x : ℝ} (h : 0 < x) : sin x < x :=
 begin
   cases le_or_gt x 1 with h' h',
-  { have hx : abs x = x := abs_of_nonneg (le_of_lt h),
-    have : abs x ≤ 1, rwa [hx],
+  { have hx : |x| = x := abs_of_nonneg (le_of_lt h),
+    have : |x| ≤ 1, rwa [hx],
     have := sin_bound this, rw [abs_le] at this,
     have := this.2, rw [sub_le_iff_le_add', hx] at this,
     apply lt_of_le_of_lt this, rw [sub_add], apply lt_of_lt_of_le _ (le_of_eq (sub_zero x)),
@@ -1358,8 +1358,8 @@ end
    note 2: this is also true for x > 1, but it's nontrivial for x just above 1. -/
 lemma sin_gt_sub_cube {x : ℝ} (h : 0 < x) (h' : x ≤ 1) : x - x ^ 3 / 4 < sin x :=
 begin
-  have hx : abs x = x := abs_of_nonneg (le_of_lt h),
-  have : abs x ≤ 1, rwa [hx],
+  have hx : |x| = x := abs_of_nonneg (le_of_lt h),
+  have : |x| ≤ 1, rwa [hx],
   have := sin_bound this, rw [abs_le] at this,
   have := this.1, rw [le_sub_iff_add_le, hx] at this,
   refine lt_of_lt_of_le _ this,

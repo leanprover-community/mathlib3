@@ -698,14 +698,14 @@ instance le.sampleable {y : α} [sampleable α] [linear_ordered_add_comm_group �
   slim_check.sampleable { x : α // x ≤ y } :=
 { sample :=
          do { x ← sample α,
-              pure ⟨y - abs x, sub_le_self _ (abs_nonneg _) ⟩ },
+              pure ⟨y - |x|, sub_le_self _ (abs_nonneg _) ⟩ },
   shrink := λ _, lazy_list.nil }
 
 instance ge.sampleable {x : α}  [sampleable α] [linear_ordered_add_comm_group α] :
   slim_check.sampleable { y : α // x ≤ y } :=
 { sample :=
          do { y ← sample α,
-              pure ⟨x + abs y, by norm_num [abs_nonneg]⟩ },
+              pure ⟨x + |y|, by norm_num [abs_nonneg]⟩ },
   shrink := λ _, lazy_list.nil }
 
 

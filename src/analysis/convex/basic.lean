@@ -818,7 +818,7 @@ lemma convex.mem_smul_of_zero_mem (h : convex 𝕜 s) {x : E} (zero_mem : (0 : E
   (hx : x ∈ s) {t : 𝕜} (ht : 1 ≤ t) :
   x ∈ t • s :=
 begin
-  rw mem_smul_set_iff_inv_smul_mem' (zero_lt_one.trans_le ht).ne',
+  rw mem_smul_set_iff_inv_smul_mem₀ (zero_lt_one.trans_le ht).ne',
   exact h.smul_mem_of_zero_mem zero_mem hx ⟨inv_nonneg.2 (zero_le_one.trans ht), inv_le_one ht⟩,
 end
 

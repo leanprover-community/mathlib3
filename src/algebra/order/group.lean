@@ -986,12 +986,13 @@ section has_neg
 @[to_additive, priority 100] -- see Note [lower instance priority]
 instance has_inv_lattice_has_abs [has_inv α] [lattice α] : has_abs (α)  := ⟨λa, a ⊔ (a⁻¹)⟩
 
+lemma abs_eq_sup_neg {α : Type*} [has_neg α] [lattice α] (a : α) : abs a = a ⊔ (-a) :=
+rfl
+
 variables [has_neg α] [linear_order α] {a b: α}
 
-lemma abs_eq_max_neg (a : α) : abs a = max a (-a) :=
-begin
-  exact rfl,
-end
+lemma abs_eq_max_neg : abs a = max a (-a) :=
+rfl
 
 lemma abs_choice (x : α) : abs x = x ∨ abs x = -x := max_choice _ _
 

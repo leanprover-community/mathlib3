@@ -191,7 +191,7 @@ variables [linear_ordered_comm_group_with_zero Γ₀] {R} {Γ₀} (v : valuation
 
 @[simp] lemma map_inv {K : Type*} [division_ring K]
   (v : valuation K Γ₀) {x : K} : v x⁻¹ = (v x)⁻¹ :=
-v.to_monoid_with_zero_hom.map_inv' x
+v.to_monoid_with_zero_hom.map_inv x
 
 lemma map_units_inv (x : units R) : v (x⁻¹ : units R) = (v x)⁻¹ :=
 v.to_monoid_with_zero_hom.to_monoid_hom.map_units_inv x
@@ -302,7 +302,7 @@ begin
   intros x y,
   by_cases hy : y = 0, { simp [hy, zero_iff], },
   rw show y = 1 * y, by rw one_mul,
-  rw [← (inv_mul_cancel_right' hy x)],
+  rw [← (inv_mul_cancel_right₀ hy x)],
   iterate 2 {rw [v.map_mul _ y, v'.map_mul _ y]},
   rw [v.map_one, v'.map_one],
   split; intro H,

@@ -1354,7 +1354,7 @@ lemma eventually_le.le_iff_eq [partial_order β] {l : filter α} {f g : α → �
   g ≤ᶠ[l] f ↔ g =ᶠ[l] f :=
 ⟨λ h', h'.antisymm h, eventually_eq.le⟩
 
-lemma eventually.ne_of_lt [partial_order β] {l : filter α} {f g : α → β}
+lemma eventually.ne_of_lt [preorder β] {l : filter α} {f g : α → β}
   (h : ∀ᶠ x in l, f x < g x) : ∀ᶠ x in l, f x ≠ g x :=
 h.mono (λ x hx, hx.ne)
 

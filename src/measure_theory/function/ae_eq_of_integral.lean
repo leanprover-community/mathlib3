@@ -480,7 +480,7 @@ lemma ae_measurable.ae_eq_of_forall_set_lintegral_eq {f g : α → ℝ≥0∞}
   f =ᵐ[μ] g :=
 begin
   refine ennreal.eventually_eq_of_to_real_eventually_eq
-    (eventually.ne_of_lt $ ae_lt_top' hf hfi) (eventually.ne_of_lt $ ae_lt_top' hg hgi)
+    (ae_lt_top' hf hfi).ne_of_lt (ae_lt_top' hg hgi).ne_of_lt
     (integrable.ae_eq_of_forall_set_integral_eq _ _
       (integrable_to_real_of_lintegral_ne_top hf hfi)
       (integrable_to_real_of_lintegral_ne_top hg hgi) (λ s hs hs', _)),

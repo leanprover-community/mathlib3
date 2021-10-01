@@ -832,8 +832,8 @@ end subsemiring
 
 end actions
 
--- while this definition is not about subrings, this is the earliest we have
--- both ordered ring structures and submonoids available
+-- While this definition is not about `subsemiring`s, this is the earliest we have
+-- both `ordered_semiring` and `submonoid` available.
 
 
 /--Submonoid of positive elements of an ordered semiring-/

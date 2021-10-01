@@ -155,7 +155,7 @@ end
 /-- **The Law of the Unconscious Statistician**: Given a random variable `X` and a measurable
 function `f`, `f ∘ X` is a random variable with expectation `∫ x, f x * pdf X ∂μ`
 where `μ` is a measure on the codomain of `X`. -/
-lemma integral_mul_eq_integral' [is_finite_measure ℙ]
+lemma integral_fun_mul_eq_integral [is_finite_measure ℙ]
   {X : α → E} [has_pdf X ℙ μ] {f : E → ℝ} (hf : measurable f) :
   ∫ x, f x * (pdf X ℙ μ x).to_real ∂μ = ∫ x, f (X x) ∂ℙ :=
 begin
@@ -290,7 +290,7 @@ end
 `∫ x, x * f x ∂λ` where `λ` is the Lebesgue measure. -/
 lemma integral_mul_eq_integral [has_pdf X ℙ] :
   ∫ x, x * (pdf X ℙ volume x).to_real = ∫ x, X x ∂ℙ :=
-integral_mul_eq_integral' measurable_id
+integral_fun_mul_eq_integral measurable_id
 
 lemma has_finite_integral_mul {f : ℝ → ℝ} {g : ℝ → ℝ≥0∞}
   (hg : pdf X ℙ =ᵐ[volume] g) (hgi : ∫⁻ x, ∥f x∥₊ * g x ≠ ∞) :

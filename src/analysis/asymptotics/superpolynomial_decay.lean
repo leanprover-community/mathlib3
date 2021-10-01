@@ -20,8 +20,15 @@ This file defines a predicate `asymptotics.superpolynomial_decay f` for a functi
 
 The definition of superpolynomial decay for a function `f : α → 𝕜`
   is made relative to an algebra structure `[algebra α 𝕜]`.
-Negligibility then means the function `f x` decays faster than `(p.eval (algebra_map α 𝕜 x))⁻¹`
-  for all polynomials `p : polynomial 𝕜`.
+Super-polynomial decay then means the function `f x` decays faster than
+  `(p.eval (algebra_map α 𝕜 x))⁻¹` for all polynomials `p : polynomial 𝕜`.
+
+When the algebra structure is given by `n ↦ ↑n : ℕ → ℝ` this defines negligible functions:
+https://en.wikipedia.org/wiki/Negligible_function
+
+When the algebra structure is given by `(r₁,...,rₙ) ↦ r₁*...*rₙ : ℝⁿ → ℝ` this is equivalent
+  to the definition of rapidly decreasing functions given here:
+https://ncatlab.org/nlab/show/rapidly+decreasing+function
 -/
 
 namespace asymptotics
@@ -99,11 +106,12 @@ by simp [mul_comm _ c]
 
 section no_zero_smul_divisors
 
-variables [nontrivial α] [no_zero_smul_divisors α 𝕜]
+variables [no_zero_smul_divisors α 𝕜]
 
 lemma superpolynomial_decay.algebra_map_mul (hf : superpolynomial_decay f) :
   superpolynomial_decay (λ n, (algebra_map α 𝕜 n) * f n) :=
 begin
+  haveI : nontrivial α := (algebra_map α 𝕜).domain_nontrivial,
   refine λ c, (is_O.mul (is_O_refl (algebra_map α 𝕜) at_top) (hf (c - 1))).trans _,
   refine is_O_of_div_tendsto_nhds (eventually_of_forall
     (λ x hx, mul_eq_zero_of_left (fpow_eq_zero hx) _)) 1 (tendsto_nhds.2 _),
@@ -162,7 +170,7 @@ section normed_linear_ordered_field
 variables {α 𝕜 : Type*} [ordered_comm_semiring α] [normed_linear_ordered_field 𝕜] [algebra α 𝕜]
 variables {f g : α → 𝕜}
 
-/-- It suffices to check the negligiblity condition for only sufficiently small exponents `c`,
+/-- It suffices to check the decay condition for only sufficiently small exponents `c`,
   assuing algebra_map eventually has norm at least `1` -/
 lemma superpolynomial_decay_of_eventually_is_O (hα : ∀ᶠ (x : α) in at_top, 1 ≤ ∥algebra_map α 𝕜 x∥)
   (h : ∀ᶠ (c : ℤ) in at_bot, is_O f (λ x, (algebra_map α 𝕜 x) ^ c) at_top) :

@@ -44,8 +44,8 @@ begin
 -- Since `g` is injective, its minimal polynomial `P` has nonzero constant term `a₀`, but evaluating
 -- `P(g)` at the vector `(0,...,0,1)` gives `a₀ = 0`, a contradiction.
   let heval := minpoly.aeval R g,
-  obtain ⟨P, hP⟩ := X_dvd_iff.2 (erase_same (minpoly R g) 0),
-  rw [← monomial_add_erase (minpoly R g) 0, hP, linear_map.ext_iff] at heval,
+  obtain ⟨P₁, hP₁⟩ := X_dvd_iff.2 (erase_same (minpoly R g) 0),
+  rw [← monomial_add_erase (minpoly R g) 0, hP₁, linear_map.ext_iff] at heval,
   replace heval := congr_fun (heval (pi.single (fin.last n) 1)) (fin.last n),
   simpa [hnex, charpoly_coeff_zero_of_injective hg] using heval
 end

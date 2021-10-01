@@ -392,5 +392,3 @@ end
 end homotopy_rel
 
 end continuous_map
-
-#lint

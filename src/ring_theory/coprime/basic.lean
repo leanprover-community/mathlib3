@@ -15,6 +15,7 @@ import algebra.ring.basic
 that `a * x + b * y = 1`. Note that elements with no common divisors are not necessarily coprime,
 e.g., the multivariate polynomials `x₁` and `x₂` are not coprime.
 
+See also `ring_theory.coprime.lemmas` for further development of coprime elements.
 -/
 
 open_locale classical
@@ -87,8 +88,6 @@ begin
   { rw [mul_comm b, ← mul_assoc],
     exact (mul_dvd_mul_right H1 _).mul_right _ }
 end
-
--- variables {I : Type v} {s : I → R} {t : finset I}
 
 
 theorem is_coprime.of_mul_left_left (H : is_coprime (x * y) z) : is_coprime x z :=

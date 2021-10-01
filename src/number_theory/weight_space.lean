@@ -644,10 +644,15 @@ a.to_seq (sequence_limit_index' a)
 lemma sequence_limit_eq {α : Type*} (a : @eventually_constant_seq α) (m : ℕ)
   (hm : sequence_limit_index' a ≤ m) : sequence_limit a = a.to_seq m := sorry
 
-def equi_class (n m : ℕ) (h : n < m) (a : zmod (p^n)) :=
- {b : zmod (d * p^m) | (b : zmod (p^n)) = a}
+def equi_class (n m : ℕ) (h : n < m) (a : zmod (d * p^n)) :=
+ {b : zmod (d * p^m) | (b : zmod (d * p^n)) = a}
 
-instance (n m : ℕ) (h : n < m) (a : zmod (p^n)) : fintype (equi_class p d n m h a) := sorry
+lemma mem_equi_class (n m : ℕ) (h : n < m) (a : zmod (d * p^n)) (b : zmod (d * p^m)) :
+  b ∈ equi_class p d n m h a ↔ (b : zmod (d * p^n)) = a :=
+⟨λ hb, begin rw equi_class at hb, simp at hb, exact hb, end,
+  λ hb, begin rw equi_class, simp, exact hb, end⟩
+
+instance (n m : ℕ) (h : n < m) (a : zmod (d * p^n)) : fintype (equi_class p d n m h a) := sorry
 
 /-- For m > n, E_c(χ_(b,a,n)) = ∑_{j, b_j = a mod p^n} E_c(χ_(b,b_j,m)) -/
 lemma sum_char_fn_dependent_Ec (m : ℕ) (a : zmod (p^m)) (b : zmod d) (hc : gcd c p = 1) :
@@ -688,44 +693,68 @@ def zmod' (n : ℕ) (h : 0 < n) : finset (zmod n) :=
 --def zmod' (n : ℕ) (h : fact (0 < n)) : finset (zmod n) :=
 --  @set.to_finset _ (@set.univ (zmod n)) (@set_fintype _ (@zmod.fintype n h) set.univ _)
 
-lemma coe_sort_eq (m : ℕ) : zmod (d * p ^ m) = (zmod' (d * p ^ m) (mul_prime_pow_pos p d m)) :=
+lemma succ_eq_bUnion_equi_class : zmod' (d*p^m.succ) (mul_prime_pow_pos p d m.succ) =
+  (zmod' (d*p^m) (mul_prime_pow_pos p d m)).bUnion
+    (λ a : zmod (d * p ^ m), set.to_finset ((equi_class p d m m.succ (lt_add_one m)) a)) :=
+sorry
+
+lemma equi_class_eq (f : locally_constant (zmod d × ℤ_[p]) R) (x : zmod (d * p^m))
+  (y : zmod (d * p^m.succ))
+  (hy : y ∈ ((λ a : zmod (d * p ^ m), set.to_finset ((equi_class p d m m.succ (lt_add_one m)) a)) x)) :
+  f y = f x := sorry
+
+lemma E_c_sum_equi_class (x : zmod (d * p^m)) (hc : gcd c p = 1) :
+∑ (x : zmod (d * p ^ m.succ)) in (λ a : zmod (d * p ^ m), set.to_finset ((equi_class p d m m.succ (lt_add_one m)) a)) x,
+  ((E_c p d hc m.succ x) : R) = (E_c p d hc m x) :=
 begin
-  unfold zmod', rw ←finset.coe_sort_coe,
+  rw E_c, simp, rw finset.sum_add_distrib, rw finset.sum_const,
+  sorry
 end
 #exit
+
+lemma inter_nonempty_of_not_disjoint {α : Type*} {s t : set α} (h : ¬disjoint s t) :
+  ∃ x, x ∈ s ∧ x ∈ t :=
+begin
+  contrapose h, push_neg at h, rw not_not, rw disjoint_iff, simp [h], ext, split,
+  { intro h', rw set.mem_inter_iff at h', specialize h x h'.1, simp, apply h h'.2, },
+  { simp, },
+end
+
+lemma inter_nonempty_of_not_disjoint' {α : Type*} {s t : finset α} [decidable_eq α] (h : ¬disjoint s t) : ∃ x, x ∈ s ∧ x ∈ t :=
+begin
+  suffices : finset.nonempty (s ⊓ t),
+  cases this with x hx, use x,
+  rw ←finset.mem_inter, convert hx,
+  rw finset.inf_eq_inter,
+  rw finset.nonempty_iff_ne_empty,
+  contrapose h, push_neg at h, rw not_not,
+  rw disjoint, simp, -- simp does not work without rw disjoint
+  rw finset.subset_empty, rw h,
+end
+
 noncomputable def g (hc : gcd c p = 1) (hd : 0 < d) (f : locally_constant (zmod d × ℤ_[p]) R) :
   @eventually_constant_seq R :=
 { to_seq := λ (n : ℕ),
-    have hpos : 0 < d * p^n := mul_pos hd (pow_pos (nat.prime.pos (fact_iff.1 _inst_3)) n),
-    by
-       letI : fintype (zmod (d * p^n)) := @zmod.fintype _ ⟨hpos⟩; exact
-    ∑ a : (zmod' (d * p^n) (mul_prime_pow_pos p d n)), f(a) • ((E_c p d hc n a) : R),
+    --have hpos : 0 < d * p^n := mul_pos hd (pow_pos (nat.prime.pos (fact_iff.1 _inst_3)) n),
+    --by
+       --letI : fintype (zmod (d * p^n)) := @zmod.fintype _ ⟨hpos⟩; exact
+    ∑ a in (zmod' (d * p^n) (mul_prime_pow_pos p d n)), f(a) • ((E_c p d hc n a) : R),
   is_eventually_const := ⟨classical.some (factor_F p d R f),
   begin
   simp, rintros m hm, -- why is the simp needed?
   set t := λ a : zmod (d * p ^ m), set.to_finset ((equi_class p d m m.succ (lt_add_one m)) a) with ht,
-  have : zmod' (d*p^m.succ) (mul_prime_pow_pos p d m.succ) = (zmod' (d*p^m) (mul_prime_pow_pos p d m)).bUnion t,
-  { sorry, },
-  rw this,
-  convert_to ∑ (x : zmod (d * p ^ m.succ)) in ((zmod' (d * p ^ m) (mul_prime_pow_pos p d m)).bUnion t), ((f x) * ↑(E_c p d hc m.succ ↑x)) = _,
-  { sorry, },
+  rw succ_eq_bUnion_equi_class,
   rw @finset.sum_bUnion _ _ _ _ _ _ (zmod' (d*p^m) (mul_prime_pow_pos p d m)) t _,
-  { simp only [zmod.cast_id', id.def, pow_pos],
-    have : ∀ (x : zmod (d * p^m)) (y : zmod (d * p^m.succ)), y ∈ (t x) → f y = f x,
-    sorry,
-    have f1 : ∀ (x : zmod (d * p^m)), ∑ (x : zmod (d * p ^ m.succ)) in t x, ((E_c p d hc m.succ x) : R) = (E_c p d hc m x), sorry,
-    conv_lhs { apply_congr, skip, conv { apply_congr, skip, rw this x x_1 H_1, }, rw [←finset.mul_sum], rw [f1 x], },
-    congr,
-    {
-      unfold zmod', rw finset.univ, sorry, },
-    { sorry, },
-    { sorry, }, },
-  { sorry, }, end⟩, }
+  { conv_lhs { apply_congr, skip, conv { apply_congr, skip, rw equi_class_eq p d R m f x x_1 H_1, },
+    rw [←finset.mul_sum], rw [E_c_sum_equi_class p d R m x hc], }, },
+  { rintros x hx y hy hxy, contrapose hxy, push_neg,
+    obtain ⟨z, hz⟩ := inter_nonempty_of_not_disjoint' hxy,
+    rw ht at hz, simp at hz, rw mem_equi_class p d m m.succ at hz,
+    rw mem_equi_class p d m m.succ at hz, cases hz with h1 h2, rw h1 at h2,
+    exact h2, }, end⟩, }
 
-#exit
-
-lemma g_def (hc : gcd c p = 1) (f : locally_constant (zmod d × ℤ_[p]) R) (n : ℕ) :
-  (g p d R hc f).to_seq n = ∑ a in (finset.range (d * p^n)),f(a) • ((E_c p d hc n a) : R) := rfl
+lemma g_def (hc : gcd c p = 1) (hd : 0 < d) (f : locally_constant (zmod d × ℤ_[p]) R) (n : ℕ) :
+  (g p d R hc hd f).to_seq n = ∑ a in (finset.range (d * p^n)),f(a) • ((E_c p d hc n a) : R) := sorry
 
 /-
 def clopen_basis' :=
@@ -767,25 +796,27 @@ lemma bernoulli_measure_nonempty (hc : gcd c p = 1) [hd : ∀ n : ℕ, fact (0 <
   nonempty (@bernoulli_measure p _ d R _ _ _ _ hc) :=
 begin
   refine mem_nonempty _,
-  refine { to_fun := λ f, sequence_limit (g p d R hc f),
+  have hd' : 0 < d, sorry,
+  refine { to_fun := λ f, sequence_limit (g p d R hc _ f),
   map_add' := _,
   map_smul' := _ },
+  { sorry, },
   { rintros,
-    set n := (sequence_limit_index' (g p d R hc (x + y))) ⊔ (sequence_limit_index' (g p d R hc x))
-      ⊔ (sequence_limit_index' (g p d R hc y)) with hn,
+    set n := (sequence_limit_index' (g p d R hc hd' (x + y))) ⊔ (sequence_limit_index' (g p d R hc hd' x))
+      ⊔ (sequence_limit_index' (g p d R hc hd' y)) with hn,
     --rw sequence_limit_eq (g p d R hc (x + y)) n _,
-    repeat { rw sequence_limit_eq (g p d R hc _) n _, },
-    { repeat { rw g_def p d R hc _ n, }, simp only [algebra.id.smul_eq_mul, pi.add_apply, locally_constant.coe_add], rw ←finset.sum_add_distrib,
+    repeat { rw sequence_limit_eq (g p d R hc hd' _) n _, },
+    { repeat { rw g_def p d R hc hd' _ n, }, simp only [algebra.id.smul_eq_mul, pi.add_apply, locally_constant.coe_add], rw ←finset.sum_add_distrib,
       apply finset.sum_congr, refl,
       rintros, rw add_mul, },
     { rw le_sup_iff, right, apply le_refl, },
     { rw le_sup_iff, left, rw le_sup_iff, right, apply le_refl, },
     { rw le_sup_iff, left, rw le_sup_iff, left, apply le_refl, }, },
   { rintros m x,
-    set n := (sequence_limit_index' (g p d R hc x)) ⊔ (sequence_limit_index' (g p d R hc (m • x)))
+    set n := (sequence_limit_index' (g p d R hc hd' x)) ⊔ (sequence_limit_index' (g p d R hc hd' (m • x)))
       with hn,
-    repeat { rw sequence_limit_eq (g p d R hc _) n _, },
-    { repeat { rw g_def p d R hc _ n, }, simp only [algebra.id.smul_eq_mul, locally_constant.coe_smul, pi.smul_apply], rw finset.mul_sum,
+    repeat { rw sequence_limit_eq (g p d R hc hd' _) n _, },
+    { repeat { rw g_def p d R hc hd' _ n, }, simp only [algebra.id.smul_eq_mul, locally_constant.coe_smul, pi.smul_apply], rw finset.mul_sum,
       apply finset.sum_congr, refl,
       rintros, rw mul_assoc, },
     { rw le_sup_iff, left, apply le_refl, },
@@ -809,8 +840,9 @@ begin
       rw ←hn, rw ←ha,
       show _ = E_c p d hc n a, -/
 --      change' _ = E_c p d hc n _,
-      rw sequence_limit_eq (g p d R hc _) n _,
-      { rw g_def p d R hc _ n,
+      have hd' : 0 < d, sorry,
+      rw sequence_limit_eq (g p d R hc hd' _) n _,
+      { rw g_def p d R hc hd' _ n,
         rw finset.sum_eq_add_sum_diff_singleton, swap 3, exact a.val,
         swap, simp,
         have := @zmod.val_lt (d * p^(n)) (hd n) a,
@@ -826,7 +858,6 @@ begin
         refine finset.sum_eq_single _ _ _, },
       sorry, },
 end
-
 
 noncomputable
 def linear_map_from_span (η : S → N)

@@ -158,13 +158,13 @@ def coe_add_monoid_hom : finite_measure α →+ measure α :=
 instance {α : Type*} [measurable_space α] : module ℝ≥0 (finite_measure α) :=
 function.injective.module _ coe_add_monoid_hom finite_measure.coe_injective coe_smul
 
-variables [topological_space α]
-
 /-- The pairing of a finite (Borel) measure `μ` with a nonnegative bounded continuous
 function is obtained by (Lebesgue) integrating the (test) function against the measure.
 This is `finite_measure.test_against'`. -/
 abbreviation test_against_nn (μ : finite_measure α) (f : α → nnreal) : ℝ≥0 :=
 (∫⁻ x, f x ∂(μ : measure α)).to_nnreal
+
+variables [topological_space α]
 
 -- I believe the formulation is generally useful, except maybe the exact form
 -- of the assumption `f_bdd`.
@@ -224,8 +224,7 @@ lemma lintegral_lt_top_of_bounded_continuous_to_nnreal (μ : finite_measure α) 
   ∫⁻ x, f x ∂(μ : measure α) < ∞ :=
 begin
   apply is_finite_measure.lintegral_lt_top_of_bounded_to_ennreal,
-  use dist f 0,
-  { exact dist_nonneg, },
+  use nndist f 0,
   intros x,
   have key := bounded_continuous_function.nnreal.upper_bound f x,
   rw ennreal.coe_le_coe,
@@ -417,14 +416,14 @@ by { rw [← coe_fn_comp_to_finite_measure_eq_coe_fn,
 @[simp] lemma mass_to_finite_measure (μ : probability_measure α) :
   μ.to_finite_measure.mass = 1 := μ.coe_fn_univ
 
-variables [topological_space α]
-
 /-- The pairing of a (Borel) probability measure `μ` with a nonnegative bounded continuous
 function is obtained by (Lebesgue) integrating the (test) function against the measure. This
 is `probability_measure.test_against'`. -/
 abbreviation test_against_nn
-  (μ : probability_measure α) (f : α →ᵇ nnreal) : ℝ≥0 :=
+  (μ : probability_measure α) (f : α → nnreal) : ℝ≥0 :=
 (lintegral (μ : measure α) ((coe : ℝ≥0 → ℝ≥0∞) ∘ f)).to_nnreal
+
+variables [topological_space α]
 
 lemma lintegral_lt_top_of_bounded_continuous_to_nnreal (μ : probability_measure α) (f : α →ᵇ ℝ≥0) :
   ∫⁻ x, f x ∂(μ : measure α) < ∞ :=
@@ -459,7 +458,7 @@ end
 variables [opens_measurable_space α]
 
 lemma test_against_nn_lipschitz (μ : probability_measure α) :
-  lipschitz_with 1 μ.test_against_nn :=
+  lipschitz_with 1 (λ (f : α →ᵇ ℝ≥0), μ.test_against_nn f) :=
 begin
   have key := μ.to_finite_measure.test_against_nn_lipschitz,
   rwa μ.mass_to_finite_measure at key,
@@ -469,7 +468,7 @@ end
 functions via `probability_measure.test_against_nn`, i.e., integration. -/
 def to_weak_dual_of_bounded_continuous_nnreal (μ : probability_measure α) :
   weak_dual ℝ≥0 (α →ᵇ ℝ≥0) :=
-{ to_fun := μ.test_against_nn,
+{ to_fun := λ f, μ.test_against_nn f,
   map_add' := μ.to_finite_measure.test_against_nn_add,
   map_smul' := μ.to_finite_measure.test_against_nn_smul,
   cont := μ.test_against_nn_lipschitz.continuous, }
@@ -477,5 +476,3 @@ def to_weak_dual_of_bounded_continuous_nnreal (μ : probability_measure α) :
 end probability_measure
 
 end measure_theory
-
-#lint

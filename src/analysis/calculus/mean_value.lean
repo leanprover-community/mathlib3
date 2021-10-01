@@ -943,15 +943,15 @@ of the real line. If `f` is differentiable on the interior of `D` and `f'` is ne
 theorem convex.strict_anti_of_deriv_neg {D : set ℝ} (hD : convex ℝ D) {f : ℝ → ℝ}
   (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
   (hf'_neg : ∀ x ∈ interior D, deriv f x < 0) :
-  strict_anti_on f D :=
-λ x hx y, by simpa only [zero_mul, sub_lt_zero]
-  using hD.image_sub_lt_mul_sub_of_deriv_lt hf hf' hf'_neg x y hx
+  ∀ x y ∈ D, x < y → f y < f x :=
+by simpa only [zero_mul, sub_lt_zero] using hD.image_sub_lt_mul_sub_of_deriv_lt hf hf' hf'_neg
 
 /-- Let `f : ℝ → ℝ` be a differentiable function. If `f'` is negative, then
-`f` is a strictly monotonically decreasing function. -/
+`f` is a strictly antitone function. -/
 theorem strict_anti_of_deriv_neg {f : ℝ → ℝ} (hf : differentiable ℝ f)
   (hf' : ∀ x, deriv f x < 0) :
-  strict_anti f :=
+  ∀ ⦃x y⦄, x < y → f y < f x :=
+λ x y hxy, convex_univ.strict_anti_of_deriv_neg hf.continuous.continuous_on hf.differentiable_on
   (λ x _, hf' x) x y trivial trivial hxy
 
 /-- Let `f` be a function continuous on a convex (or, equivalently, connected) subset `D`

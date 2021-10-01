@@ -164,32 +164,31 @@ variables [topological_space α]
 function is obtained by (Lebesgue) integrating the (test) function against the measure. This
 is `finite_measure.test_against'`. -/
 abbreviation test_against_nn (μ : finite_measure α) (f : α →ᵇ nnreal) : ℝ≥0 :=
-(lintegral (μ : measure α) ((coe : ℝ≥0 → ℝ≥0∞) ∘ f)).to_nnreal
+(∫⁻ x, f x ∂(μ : measure α)).to_nnreal
 
 -- I believe the formulation is generally useful, except maybe the exact form
 -- of the assumption `f_bdd`.
 -- Where to place?
 lemma _root_.is_finite_measure.lintegral_lt_top_of_bounded_to_ennreal {α : Type*}
   [measurable_space α] (μ : measure α) [μ_fin : is_finite_measure μ]
-  {f : α → ℝ≥0∞} (f_bdd : ∃ (c : ℝ≥0), ∀ (x : α), f(x) ≤ c) :
-  lintegral μ f < ⊤ :=
+  {f : α → ℝ≥0∞} (f_bdd : ∃ c : ℝ≥0, ∀ x, f x ≤ c) :
+  ∫⁻ x, f x ∂μ < ∞ :=
 begin
   cases f_bdd with c hc,
-  have le : f ≤ (λ (x : α), (c : ℝ≥0∞)) := hc,
-  apply lt_of_le_of_lt (@lintegral_mono _ _ μ _ _ le),
+  apply lt_of_le_of_lt (@lintegral_mono _ _ μ _ _ hc),
   rw lintegral_const,
   exact ennreal.mul_lt_top ennreal.coe_lt_top.ne μ_fin.measure_univ_lt_top.ne,
 end
 
 -- I believe these two could be useful... (1) (Only the second one is used below, though.)
 -- Where to place?
-lemma _root_.nnreal.val_eq_dist_zero : ∀ (z : ℝ≥0), (z : ℝ) = dist 0 z :=
-by { intros z, simp only [nnreal.dist_eq, nnreal.coe_zero, zero_sub, nnreal.abs_eq, abs_neg], }
+lemma _root_.nnreal.val_eq_dist_zero (z : ℝ≥0) : (z : ℝ) = dist 0 z :=
+by simp only [nnreal.dist_eq, nnreal.coe_zero, zero_sub, nnreal.abs_eq, abs_neg]
 
 -- I believe these two could be useful... (2)
 -- Where to place?
-lemma _root_.nnreal.val_eq_dist_zero' : ∀ (z : ℝ≥0), (z : ℝ) = dist z 0 :=
-by { intros z, have key := nnreal.val_eq_dist_zero z, rwa dist_comm at key, }
+lemma _root_.nnreal.val_eq_dist_zero' (z : ℝ≥0) : (z : ℝ) = dist z 0 :=
+by { rw dist_comm, exact nnreal.val_eq_dist_zero z }
 
 -- Is there a simpler way for the following? I think this might be useful (it is used below).
 -- Where to place?
@@ -231,7 +230,7 @@ lemma bounded_continuous_function.nnreal.smul_eq {β : Type*} [topological_space
 lemma _root_.bounded_continuous_function.nnreal.coe_comp_measurable {α : Type*}
   [topological_space α] [measurable_space α] [opens_measurable_space α] (f : α →ᵇ ℝ≥0) :
   measurable ((coe : ℝ≥0 → ℝ≥0∞) ∘ f) :=
-measurable.comp measurable_coe_nnreal_ennreal (continuous.measurable f.continuous)
+measurable_coe_nnreal_ennreal.comp f.continuous.measurable
 
 -- This does not seem unreasonable to me, although it may be a bit specific.
 -- Where to place?

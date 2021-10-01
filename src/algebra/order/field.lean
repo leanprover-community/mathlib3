@@ -33,15 +33,15 @@ variables [linear_ordered_field α] {a b c d e : α}
 
 section
 
-/-- `equiv.mul_left'` as an order_iso. -/
+/-- `equiv.mul_left₀` as an order_iso. -/
 @[simps {simp_rhs := tt}]
-def order_iso.mul_left' (a : α) (ha : 0 < a) : α ≃o α :=
-{ map_rel_iff' := λ _ _, mul_le_mul_left ha, ..equiv.mul_left' a ha.ne' }
+def order_iso.mul_left₀ (a : α) (ha : 0 < a) : α ≃o α :=
+{ map_rel_iff' := λ _ _, mul_le_mul_left ha, ..equiv.mul_left₀ a ha.ne' }
 
-/-- `equiv.mul_right'` as an order_iso. -/
+/-- `equiv.mul_right₀` as an order_iso. -/
 @[simps {simp_rhs := tt}]
-def order_iso.mul_right' (a : α) (ha : 0 < a) : α ≃o α :=
-{ map_rel_iff' := λ _ _, mul_le_mul_right ha, ..equiv.mul_right' a ha.ne' }
+def order_iso.mul_right₀ (a : α) (ha : 0 < a) : α ≃o α :=
+{ map_rel_iff' := λ _ _, mul_le_mul_right ha, ..equiv.mul_right₀ a ha.ne' }
 
 end
 
@@ -51,7 +51,7 @@ end
 
 @[simp] lemma inv_pos : 0 < a⁻¹ ↔ 0 < a :=
 suffices ∀ a : α, 0 < a → 0 < a⁻¹,
-from ⟨λ h, inv_inv' a ▸ this _ h, this a⟩,
+from ⟨λ h, inv_inv₀ a ▸ this _ h, this a⟩,
 assume a ha, flip lt_of_mul_lt_mul_left ha.le $ by simp [ne_of_gt ha, zero_lt_one]
 
 @[simp] lemma inv_nonneg : 0 ≤ a⁻¹ ↔ 0 ≤ a :=
@@ -242,13 +242,13 @@ by rw [← one_div, div_le_iff ha, ← div_eq_inv_mul, le_div_iff hb, one_mul]
 /-- In a linear ordered field, for positive `a` and `b` we have `a⁻¹ ≤ b ↔ b⁻¹ ≤ a`.
 See also `inv_le_of_inv_le` for a one-sided implication with one fewer assumption. -/
 lemma inv_le (ha : 0 < a) (hb : 0 < b) : a⁻¹ ≤ b ↔ b⁻¹ ≤ a :=
-by rw [← inv_le_inv hb (inv_pos.2 ha), inv_inv']
+by rw [← inv_le_inv hb (inv_pos.2 ha), inv_inv₀]
 
 lemma inv_le_of_inv_le (ha : 0 < a) (h : a⁻¹ ≤ b) : b⁻¹ ≤ a :=
 (inv_le ha ((inv_pos.2 ha).trans_le h)).1 h
 
 lemma le_inv (ha : 0 < a) (hb : 0 < b) : a ≤ b⁻¹ ↔ b ≤ a⁻¹ :=
-by rw [← inv_le_inv (inv_pos.2 hb) ha, inv_inv']
+by rw [← inv_le_inv (inv_pos.2 hb) ha, inv_inv₀]
 
 lemma inv_lt_inv (ha : 0 < a) (hb : 0 < b) : a⁻¹ < b⁻¹ ↔ b < a :=
 lt_iff_lt_of_le_iff_le (inv_le_inv hb ha)
@@ -268,10 +268,10 @@ lemma inv_le_inv_of_neg (ha : a < 0) (hb : b < 0) : a⁻¹ ≤ b⁻¹ ↔ b ≤ 
 by rw [← one_div, div_le_iff_of_neg ha, ← div_eq_inv_mul, div_le_iff_of_neg hb, one_mul]
 
 lemma inv_le_of_neg (ha : a < 0) (hb : b < 0) : a⁻¹ ≤ b ↔ b⁻¹ ≤ a :=
-by rw [← inv_le_inv_of_neg hb (inv_lt_zero.2 ha), inv_inv']
+by rw [← inv_le_inv_of_neg hb (inv_lt_zero.2 ha), inv_inv₀]
 
 lemma le_inv_of_neg (ha : a < 0) (hb : b < 0) : a ≤ b⁻¹ ↔ b ≤ a⁻¹ :=
-by rw [← inv_le_inv_of_neg (inv_lt_zero.2 hb) ha, inv_inv']
+by rw [← inv_le_inv_of_neg (inv_lt_zero.2 hb) ha, inv_inv₀]
 
 lemma inv_lt_inv_of_neg (ha : a < 0) (hb : b < 0) : a⁻¹ < b⁻¹ ↔ b < a :=
 lt_iff_lt_of_le_iff_le (inv_le_inv_of_neg hb ha)
@@ -295,7 +295,7 @@ lemma one_le_inv (h₁ : 0 < a) (h₂ : a ≤ 1) : 1 ≤ a⁻¹ :=
 by rwa [le_inv (@zero_lt_one α _ _) h₁, inv_one]
 
 lemma inv_lt_one_iff_of_pos (h₀ : 0 < a) : a⁻¹ < 1 ↔ 1 < a :=
-⟨λ h₁, inv_inv' a ▸ one_lt_inv (inv_pos.2 h₀) h₁, inv_lt_one⟩
+⟨λ h₁, inv_inv₀ a ▸ one_lt_inv (inv_pos.2 h₀) h₁, inv_lt_one⟩
 
 lemma inv_lt_one_iff : a⁻¹ < 1 ↔ a ≤ 0 ∨ 1 < a :=
 begin
@@ -305,17 +305,17 @@ begin
 end
 
 lemma one_lt_inv_iff : 1 < a⁻¹ ↔ 0 < a ∧ a < 1 :=
-⟨λ h, ⟨inv_pos.1 (zero_lt_one.trans h), inv_inv' a ▸ inv_lt_one h⟩, and_imp.2 one_lt_inv⟩
+⟨λ h, ⟨inv_pos.1 (zero_lt_one.trans h), inv_inv₀ a ▸ inv_lt_one h⟩, and_imp.2 one_lt_inv⟩
 
 lemma inv_le_one_iff : a⁻¹ ≤ 1 ↔ a ≤ 0 ∨ 1 ≤ a :=
 begin
   rcases em (a = 1) with (rfl|ha),
   { simp [le_rfl] },
-  { simp only [ne.le_iff_lt (ne.symm ha), ne.le_iff_lt (mt inv_eq_one'.1 ha), inv_lt_one_iff] }
+  { simp only [ne.le_iff_lt (ne.symm ha), ne.le_iff_lt (mt inv_eq_one₀.1 ha), inv_lt_one_iff] }
 end
 
 lemma one_le_inv_iff : 1 ≤ a⁻¹ ↔ 0 < a ∧ a ≤ 1 :=
-⟨λ h, ⟨inv_pos.1 (zero_lt_one.trans_le h), inv_inv' a ▸ inv_le_one h⟩, and_imp.2 one_le_inv⟩
+⟨λ h, ⟨inv_pos.1 (zero_lt_one.trans_le h), inv_inv₀ a ▸ inv_le_one h⟩, and_imp.2 one_le_inv⟩
 
 /-!
 ### Relating two divisions.
@@ -586,7 +586,7 @@ lemma sub_one_div_inv_le_two (a2 : 2 ≤ a) :
   (1 - 1 / a)⁻¹ ≤ 2 :=
 begin
   -- Take inverses on both sides to obtain `2⁻¹ ≤ 1 - 1 / a`
-  refine trans (inv_le_inv_of_le (inv_pos.mpr zero_lt_two) _) (inv_inv' (2 : α)).le,
+  refine trans (inv_le_inv_of_le (inv_pos.mpr zero_lt_two) _) (inv_inv₀ (2 : α)).le,
   -- move `1 / a` to the left and `1 - 1 / 2 = 1 / 2` to the right to obtain `1 / a ≤ ⅟ 2`
   refine trans ((le_sub_iff_add_le.mpr ((_ : _ + 2⁻¹ = _ ).le))) ((sub_le_sub_iff_left 1).mpr _),
   { -- show 2⁻¹ + 2⁻¹ = 1
@@ -691,7 +691,7 @@ lemma abs_one_div (a : α) : abs (1 / a) = 1 / abs a :=
 by rw [abs_div, abs_one]
 
 lemma abs_inv (a : α) : abs a⁻¹ = (abs a)⁻¹ :=
-(abs_hom : monoid_with_zero_hom α α).map_inv' a
+(abs_hom : monoid_with_zero_hom α α).map_inv a
 
 -- TODO: add lemmas with `a⁻¹`.
 lemma one_div_strict_anti_on : strict_anti_on (λ x : α, 1 / x) (set.Ioi 0) :=

@@ -63,7 +63,7 @@ convex 𝕜 s ∧
 /-- Strict concavity of functions -/
 def strict_concave_on : Prop :=
 convex 𝕜 s ∧
-  ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → x ≠ y → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 → 
+  ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → x ≠ y → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 →
     a • f x + b • f y < f (a • x + b • y)
 
 variables {𝕜 s f}

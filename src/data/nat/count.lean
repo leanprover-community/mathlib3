@@ -200,7 +200,8 @@ begin
   rwa [←set.finite.to_finset.nonempty hp'', ←finset.card_pos, hk]
 end
 
-lemma nth_set_card {n : ℕ} (hp : (set_of p).finite) (hp' : {i : ℕ | p i ∧ ∀ k < n, nth p k < i}.finite) :
+lemma nth_set_card {n : ℕ} (hp : (set_of p).finite)
+  (hp' : {i : ℕ | p i ∧ ∀ k < n, nth p k < i}.finite) :
   hp'.to_finset.card = hp.to_finset.card - n :=
 begin
   obtain hn | hn := le_or_lt n hp.to_finset.card,

@@ -15,6 +15,11 @@ sense of `Icc`/`Ico`/`Ioc`/`Ioo` as lists, multisets, or finsets.
 Further, if the order is bounded above (resp. below), then we can also make sense of the
 "unbounded" intervals `Ici`/`Ioi` (resp. `Iic`/`Iio`).
 
+## Examples
+
+Naturally occurring locally finite orders are `ℕ`, `ℤ`, `ℕ+`, `fin n`, `α × β` the product of two
+locally finite orders, `α →₀ β` the finitely supported functions to a locally finite order `β`...
+
 ## Main declarations
 
 In a `locally_finite_order`,
@@ -44,16 +49,21 @@ When it's also an `order_bot`,
 A `locally_finite_order` instance can be built
 * for a subtype of a locally finite order. See `subtype.locally_finite_order`.
 * for the product of two locally finite orders. See `prod.locally_finite_order`.
-* for any fintype (but it is noncomputable). See `fintype.locally_finite_order`.
+* for any fintype (but it is noncomputable). See `fintype.to_locally_finite_order`.
 * from a definition of `finset.Icc` alone. See `locally_finite_order.of_Icc`.
 * by pulling back `locally_finite_order β` through an order embedding `f : α →o β`. See
   `order_embedding.locally_finite_order`.
 
 ## TODO
 
-`multiset.Ico` hasn't been generalized yet. All of `data.multiset.intervals` should be generalized.
+`finset.Ico` and `multiset.Ico` haven't been generalized yet. All of `data.finset.intervals` and
+`data.multiset.intervals` should be generalized.
 
-Provide the `locally_finite_order` instance for `lex α β`.
+Provide the `locally_finite_order` instance for `lex α β` where `locally_finite_order α` and
+`fintype β`.
+
+Provide the `locally_finite_order` instance for `α →₀ β` where `β` is locally finite. Provide the
+`locally_finite_order` instance for `Π₀ i, β i` where all the `β i` are locally finite.
 
 From `linear_order α`, `no_top_order α`, `locally_finite_order α`, we can also define an
 order isomorphism `α ≃ ℕ` or `α ≃ ℤ`, depending on whether we have `order_bot α` or
@@ -99,7 +109,8 @@ class locally_finite_order (α : Type*) [preorder α] :=
 (finset_mem_Ioo : ∀ a b x : α, x ∈ finset_Ioo a b ↔ a < x ∧ x < b)
 
 /-- A constructor from a definition of `finset.Icc` alone, the other ones being derived by removing
-the ends. This one requires `decidable_rel (≤)` but only `preorder`. -/
+the ends. As opposed to `locally_finite_order.of_Icc`, this one requires `decidable_rel (≤)` but
+only `preorder`. -/
 def locally_finite_order.of_Icc' (α : Type*) [preorder α] [decidable_rel ((≤) : α → α → Prop)]
   (finset_Icc : α → α → finset α) (mem_Icc : ∀ a b x, x ∈ finset_Icc a b ↔ a ≤ x ∧ x ≤ b) :
   locally_finite_order α :=
@@ -114,7 +125,8 @@ def locally_finite_order.of_Icc' (α : Type*) [preorder α] [decidable_rel ((≤
     lt_iff_le_not_le] }
 
 /-- A constructor from a definition of `finset.Icc` alone, the other ones being derived by removing
-the ends. This one requires `partial_order` but only `decidable_eq`. -/
+the ends. As opposed to `locally_finite_order.of_Icc`, this one requires `partial_order` but only
+`decidable_eq`. -/
 def locally_finite_order.of_Icc (α : Type*) [partial_order α] [decidable_eq α]
   (finset_Icc : α → α → finset α) (mem_Icc : ∀ a b x, x ∈ finset_Icc a b ↔ a ≤ x ∧ x ≤ b) :
   locally_finite_order α :=

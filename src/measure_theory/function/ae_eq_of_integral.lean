@@ -473,33 +473,14 @@ end ae_eq_of_forall_set_integral_eq
 
 section lintegral
 
--- move the next two lemmas once I figure out if `eventually_ne_of_lt` exists already
--- if not, it might be useful to make some API for eventually lt
-lemma ae_eq_of_to_real_ae_eq {l : filter α} {f g : α → ℝ≥0∞}
-  (hfi : ∀ᶠ x in l, f x ≠ ∞) (hgi : ∀ᶠ x in l, g x ≠ ∞)
-  (hfg : (λ x, (f x).to_real) =ᶠ[l] (λ x, (g x).to_real)) :
-  f =ᶠ[l] g :=
-begin
-  filter_upwards [hfi, hgi, hfg],
-  intros x hfx hgx hfgx,
-  rwa ← ennreal.to_real_eq_to_real hfx hgx,
-end
-
-lemma eventually_ne_of_lt {β} [preorder β] {l : filter α} {f : α → β} {b : β}
-  (hlt : ∀ᶠ x in l, f x < b) : ∀ᶠ x in l, f x ≠ b :=
-begin
-  filter_upwards [hlt],
-  exact λ x hx, hx.ne
-end
-
 lemma ae_measurable.ae_eq_of_forall_set_lintegral_eq {f g : α → ℝ≥0∞}
   (hf : ae_measurable f μ) (hg : ae_measurable g μ)
   (hfi : ∫⁻ x, f x ∂μ ≠ ∞) (hgi : ∫⁻ x, g x ∂μ ≠ ∞)
   (hfg : ∀ ⦃s⦄, measurable_set s → μ s < ∞ → ∫⁻ x in s, f x ∂μ = ∫⁻ x in s, g x ∂μ) :
   f =ᵐ[μ] g :=
 begin
-  refine ae_eq_of_to_real_ae_eq
-    (eventually_ne_of_lt $ ae_lt_top' hf hfi) (eventually_ne_of_lt $ ae_lt_top' hg hgi)
+  refine ennreal.eventually_eq_of_to_real_eventually_eq
+    (eventually.ne_of_lt $ ae_lt_top' hf hfi) (eventually.ne_of_lt $ ae_lt_top' hg hgi)
     (integrable.ae_eq_of_forall_set_integral_eq _ _
       (integrable_to_real_of_lintegral_ne_top hf hfi)
       (integrable_to_real_of_lintegral_ne_top hg hgi) (λ s hs hs', _)),

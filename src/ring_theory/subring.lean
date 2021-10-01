@@ -487,7 +487,7 @@ section
 
 variables (R)
 
-/-- The center of a semiring `R` is the set of elements that commute with everything in `R` -/
+/-- The center of a ring `R` is the set of elements that commute with everything in `R` -/
 def center : subring R :=
 { carrier := set.center R,
   neg_mem' := λ a, set.neg_mem_center,

@@ -7,34 +7,35 @@ import category_theory.sites.sheaf
 import category_theory.limits.kan_extension
 
 /-!
-# Cocontinuous functors between sites.
+# Cover-lifting functors between sites.
 
-We define cocontinuous functors between sites as functors that pull covering sieves back to
-covering sieves. This seems stronger than the definition found in stacks project,
+We define cover-lifting functors between sites as functors that pull covering sieves back to
+covering sieves. This concept is also known as *cocontinuous functors*, but we have chosen this
+name following [Elephant] in order to avoid naming collision or confusion with the general
+definition of cover_lifting functors between categories as functors preserving small colimits.
+
+The definition given here seems stronger than the definition found elsewhere,
 but they are actually equivalent via `category_theory.grothendieck_topology.superset_covering`.
 (The precise statement is not formalized, but follows from it quite trivially).
 
-This concept is also called the "covering lifting property" as defined in [MM92] Chapter VII,
-Section 10, and should not be confused with the general definition of cocontinuous functors
-between categories as functors preserving small colimits.
-
 ## Main definitions
 
-* `category_theory.sites.cocontinuous`: a functor between sites is cocontinuous if it
+* `category_theory.sites.cover_lifting`: a functor between sites is cover_lifting if it
 pulls back covering sieves to covering sieves
 
 ## Main results
-- `category_theory.sites.Ran_is_sheaf_of_cocontinuous`: If `u : C ⥤ D` is cocontinuous, then
+- `category_theory.sites.Ran_is_sheaf_of_cover_lifting`: If `u : C ⥤ D` is cover_lifting, then
 `Ran u.op` (`ₚu`) as a functor `(Cᵒᵖ ⥤ A) ⥤ (Dᵒᵖ ⥤ A)` of presheaves maps sheaves to sheaves.
 
 ## References
 
+* [Elephant]: *Sketches of an Elephant*, P. T. Johnstone: C2.3.
 * [S. MacLane, I. Moerdijk, *Sheaves in Geometry and Logic*][MM92]
 * https://stacks.math.columbia.edu/tag/00XI
 
 -/
 
-universes u
+universes u v
 noncomputable theory
 
 open category_theory
@@ -44,23 +45,30 @@ open category_theory.presieve
 open category_theory.limits
 
 namespace category_theory
-namespace sites
-variables {C D A : Type u} [category.{u} C] [category.{u} D] [category.{u} A] [has_limits A]
+section cover_lifting
+variables {C : Type*} [category C] {D : Type*} [category D] {E : Type*} [category E]
 variables {J : grothendieck_topology C} {K : grothendieck_topology D}
+variables {L : grothendieck_topology E}
 
 /--
-A functor `u : (C, J) ⥤ (D, K)` between sites is called cocontinuous if for all covering sieves
-`R` in `D`, `R.pullback u` is a covering sieve in `C`.
+A functor `u : (C, J) ⥤ (D, K)` between sites is called to have the cover-lifting property
+if for all covering sieves `R` in `D`, `R.pullback u` is a covering sieve in `C`.
 -/
-structure cocontinuous (J : grothendieck_topology C) (K : grothendieck_topology D) (u : C ⥤ D) :=
+@[nolint has_inhabited_instance]
+structure cover_lifting (J : grothendieck_topology C) (K : grothendieck_topology D) (u : C ⥤ D) :=
 (cover_lift : ∀ {U : C} {S : sieve (u.obj U)} (hS : S ∈ K (u.obj U)), S.functor_pullback u ∈ J U)
 
-/-- A trivial example to make the inhabited linter happy. -/
-instance id_cocontinuous : inhabited (cocontinuous J J (𝟭 _)) :=
-⟨⟨λ _ S h, by { convert h, simp }⟩⟩
+/-- The identity functor on a site is cover-lifting. -/
+def id_cover_lifting : cover_lifting J J (𝟭 _) := ⟨λ _ _ h, by simpa using h⟩
+
+/-- The composition of two cover-lifting functors are cover-lifting -/
+def comp_cover_lifting {u} (hu : cover_lifting J K u) {v} (hv : cover_lifting K L v) :
+  cover_lifting J L (u ⋙ v) := ⟨λ _ S h, hu.cover_lift (hv.cover_lift h)⟩
+
+end cover_lifting
 
 /-!
-We will now prove that `Ran u.op` (`ₚu`) maps sheaves to sheaves if `u` is cocontinuous. This can
+We will now prove that `Ran u.op` (`ₚu`) maps sheaves to sheaves if `u` is cover-lifting. This can
 be found in https://stacks.math.columbia.edu/tag/00XK. However, the proof given here uses the
 amalgamation definition of sheaves, and thus does not require that `C` or `D` has categorical
 pullbacks.
@@ -73,14 +81,18 @@ we can glue them into a morphism `X ⟶ 𝒢(U)`.
 Since the presheaf `𝒢 := (Ran u.op).obj ℱ.val` is defined via `𝒢(U) = lim_{u(V) ⊆ U} ℱ(V)`, for
 gluing the family `x` into a `X ⟶ 𝒢(U)`, it suffices to provide a `X ⟶ ℱ(Y)` for each
 `u(Y) ⊆ U`. This can be done since `{ Y' ⊆ Y : u(Y') ⊆ U ∈ S}` is a covering sieve for `Y` on
-`C` (by the cocontinuity of `u`). Thus the morphisms `X ⟶ 𝒢(u(Y')) ⟶ ℱ(Y')` can be glued into
-a morphism `X ⟶ ℱ(Y)`. This is done in `get_sections`.
+`C` (by the cover-lifting property of `u`). Thus the morphisms `X ⟶ 𝒢(u(Y')) ⟶ ℱ(Y')` can be
+glued into a morphism `X ⟶ ℱ(Y)`. This is done in `get_sections`.
 
 In `glued_limit_cone`, we verify these obtained sections are indeed compatible, and thus we obtain
 A `X ⟶ 𝒢(U)`. The remaining work is to verify that this is indeed the amalgamation and is unique.
 -/
-namespace Ran_is_sheaf_of_cocontinuous
-variables {u : C ⥤ D} (hu : cocontinuous J K u) (ℱ : Sheaf J A)
+variables {C D : Type u} [category.{u} C] [category.{u} D]
+variables {A : Type v} [category.{u} A] [has_limits A]
+variables {J : grothendieck_topology C} {K : grothendieck_topology D}
+
+namespace Ran_is_sheaf_of_cover_lifting
+variables {u : C ⥤ D} (hu : cover_lifting J K u) (ℱ : Sheaf J A)
 variables {X : A} {U : D} (S : sieve U) (hS : S ∈ K U)
 variables (x : S.arrows.family_of_elements ((Ran u.op).obj ℱ.val ⋙ coyoneda.obj (op X)))
 variables (hx : x.compatible)
@@ -195,24 +207,23 @@ begin
     erw category.comp_id }
 end
 
-end Ran_is_sheaf_of_cocontinuous
+end Ran_is_sheaf_of_cover_lifting
 
 /--
-If `u` is cocontinuous, then `Ran u.op` pushes sheaves to sheaves.
+If `u` is cover_lifting, then `Ran u.op` pushes sheaves to sheaves.
 
 This result is basically https://stacks.math.columbia.edu/tag/00XK,
 but without the condition that `C` or `D` has pullbacks.
 -/
-theorem Ran_is_sheaf_of_cocontinuous {u : C ⥤ D} (hu : cocontinuous J K u) (ℱ : Sheaf J A) :
+theorem Ran_is_sheaf_of_cover_lifting {u : C ⥤ D} (hu : cover_lifting J K u) (ℱ : Sheaf J A) :
   presheaf.is_sheaf K ((Ran u.op).obj ℱ.val) :=
 begin
   intros X U S hS x hx,
   split, swap,
-  { apply Ran_is_sheaf_of_cocontinuous.glued_section hu ℱ hS hx },
+  { apply Ran_is_sheaf_of_cover_lifting.glued_section hu ℱ hS hx },
   split,
-  { apply Ran_is_sheaf_of_cocontinuous.glued_section_is_amalgamation },
-  { apply Ran_is_sheaf_of_cocontinuous.glued_section_is_unique }
+  { apply Ran_is_sheaf_of_cover_lifting.glued_section_is_amalgamation },
+  { apply Ran_is_sheaf_of_cover_lifting.glued_section_is_unique }
 end
 
-end sites
 end category_theory

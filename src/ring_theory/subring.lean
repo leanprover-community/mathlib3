@@ -981,3 +981,6 @@ subgroup (units R) :=
 { carrier := {x | (0 : R) < x},
   inv_mem' := λ x (hx : (0 : R) < x), (zero_lt_mul_left hx).mp $ x.mul_inv.symm ▸ zero_lt_one,
   ..pos_submonoid.comap (units.coe_hom R)}
+
+@[simp] lemma units.mem_pos_subgroup (u : units R) :
+  u \mem units.pos_subgroup R \iff (0 : R) < u := iff.rfl

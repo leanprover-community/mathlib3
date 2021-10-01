@@ -70,7 +70,7 @@ We also provide equivalent conditions to satisfy alternate definitions given in 
 
 ## Implementation
 
-The sheaf condition is given as a proposition, rather than a subsingleton in `Type (max u v)`.
+The sheaf condition is given as a proposition, rather than a subsingleton in `Type (max u₁ v)`.
 This doesn't seem to make a big difference, other than making a couple of definitions noncomputable,
 but it means that equivalent conditions can be given as `↔` statements rather than `≃` statements,
 which can be convenient.
@@ -85,14 +85,14 @@ which can be convenient.
 
 -/
 
-universes v u
+universes v u₁ u₂
 namespace category_theory
 
 open opposite category_theory category limits sieve classical
 
 namespace presieve
 
-variables {C D : Type u} [category.{v} C] [category.{v} D] (F : D ⥤ C)
+variables {C : Type u₁} [category.{v} C] {D : Type u₂} [category.{v} D] (F : D ⥤ C)
 
 variables {P Q : Cᵒᵖ ⥤ Type v}
 variables {X Y : C} {S : sieve X} {R : presieve X}
@@ -944,12 +944,12 @@ end
 end presieve
 end equalizer
 
-variables {C : Type u} [category.{v} C]
+variables {C : Type u₁} [category.{v} C]
 variables (J : grothendieck_topology C)
 
 /-- The category of sheaves on a grothendieck topology. -/
 @[derive category]
-def SheafOfTypes (J : grothendieck_topology C) : Type (max u (v+1)) :=
+def SheafOfTypes (J : grothendieck_topology C) : Type (max u₁ (v+1)) :=
 {P : Cᵒᵖ ⥤ Type v // presieve.is_sheaf J P}
 
 /-- The inclusion functor from sheaves to presheaves. -/

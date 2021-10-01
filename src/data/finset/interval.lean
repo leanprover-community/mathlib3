@@ -16,10 +16,6 @@ This file provides basic results about all the `finset.Ixx`, which are defined i
 Bring the lemmas about `finset.Ico` in `data.finset.intervals` here and in `data.nat.intervals`.
 -/
 
-lemma finset.coe_eq_singleton {α : Type*} {s : finset α} {a : α} :
-  (s : set α) = {a} ↔ s = {a} :=
-by rw [←finset.coe_singleton, finset.coe_inj]
-
 namespace finset
 variables {α : Type*}
 section preorder

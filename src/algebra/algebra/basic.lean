@@ -239,7 +239,9 @@ variables {R A}
 
 namespace id
 
-@[simp] lemma map_eq_self (x : R) : algebra_map R R x = x := rfl
+@[simp] lemma map_eq_id : algebra_map R R = ring_hom.id _ := rfl
+
+lemma map_eq_self (x : R) : algebra_map R R x = x := rfl
 
 @[simp] lemma smul_eq_mul (x y : R) : x • y = x * y := rfl
 

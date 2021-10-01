@@ -5,11 +5,11 @@ Authors: Anne Baanen
 -/
 
 import linear_algebra.bilinear_form
-import linear_algebra.charpoly.coeff
+import linear_algebra.matrix.charpoly.coeff
 import linear_algebra.determinant
 import linear_algebra.vandermonde
 import linear_algebra.trace
-import field_theory.algebraic_closure
+import field_theory.is_alg_closed.algebraic_closure
 import field_theory.primitive_element
 import ring_theory.power_basis
 

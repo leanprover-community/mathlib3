@@ -113,6 +113,10 @@ theorem const_apply (a : α) (b : β) : (const α b) a = b := rfl
   (const α b).range = {b} :=
 finset.coe_injective $ by simp
 
+lemma range_const_subset (α) [measurable_space α] (b : β) :
+  (const α b).range ⊆ {b} :=
+finset.coe_subset.1 $ by simp
+
 lemma measurable_set_cut (r : α → β → Prop) (f : α →ₛ β)
   (h : ∀b, measurable_set {a | r a b}) : measurable_set {a | r a (f a)} :=
 begin
@@ -1582,6 +1586,52 @@ begin
   exact ennreal.sub_add_cancel_of_le hx
 end
 
+lemma lintegral_sub_le (f g : α → ℝ≥0∞)
+  (hf : measurable f) (hg : measurable g) (h : f ≤ᵐ[μ] g) :
+  ∫⁻ x, g x ∂μ - ∫⁻ x, f x ∂μ ≤ ∫⁻ x, g x - f x ∂μ :=
+begin
+  by_cases hfi : ∫⁻ x, f x ∂μ = ∞,
+  { rw [hfi, ennreal.sub_top],
+    exact bot_le },
+  { rw lintegral_sub hg hf hfi h,
+    refl' }
+end
+
+lemma lintegral_strict_mono_of_ae_le_of_ae_lt_on {f g : α → ℝ≥0∞}
+  (hf : measurable f) (hg : measurable g) (hfi : ∫⁻ x, f x ∂μ ≠ ∞) (h_le : f ≤ᵐ[μ] g)
+  {s : set α} (hμs : μ s ≠ 0) (h : ∀ᵐ x ∂μ, x ∈ s → f x < g x) :
+  ∫⁻ x, f x ∂μ < ∫⁻ x, g x ∂μ :=
+begin
+  rw [← ennreal.sub_pos, ← lintegral_sub hg hf hfi h_le],
+  by_contra hnlt,
+  rw [not_lt, nonpos_iff_eq_zero, lintegral_eq_zero_iff (hg.sub hf), filter.eventually_eq] at hnlt,
+  simp only [ae_iff, ennreal.sub_eq_zero_iff_le, pi.zero_apply, not_lt, not_le] at hnlt h,
+  refine hμs _,
+  push_neg at h,
+  have hs_eq : s = {a : α | a ∈ s ∧ g a ≤ f a} ∪ {a : α | a ∈ s ∧ f a < g a},
+  { ext1 x,
+    simp_rw [set.mem_union, set.mem_set_of_eq, ← not_le],
+    tauto, },
+  rw hs_eq,
+  refine measure_union_null h (measure_mono_null _ hnlt),
+  simp,
+end
+
+lemma lintegral_strict_mono {f g : α → ℝ≥0∞} (hμ : μ ≠ 0)
+  (hf : measurable f) (hg : measurable g) (hfi : ∫⁻ x, f x ∂μ ≠ ∞) (h : ∀ᵐ x ∂μ, f x < g x) :
+  ∫⁻ x, f x ∂μ < ∫⁻ x, g x ∂μ :=
+begin
+  rw [ne.def, ← measure.measure_univ_eq_zero] at hμ,
+  refine lintegral_strict_mono_of_ae_le_of_ae_lt_on hf hg hfi (ae_le_of_ae_lt h) hμ _,
+  simpa using h,
+end
+
+lemma set_lintegral_strict_mono {f g : α → ℝ≥0∞} {s : set α}
+  (hsm : measurable_set s) (hs : μ s ≠ 0) (hf : measurable f) (hg : measurable g)
+  (hfi : ∫⁻ x in s, f x ∂μ ≠ ∞) (h : ∀ᵐ x ∂μ, x ∈ s → f x < g x) :
+  ∫⁻ x in s, f x ∂μ < ∫⁻ x in s, g x ∂μ :=
+lintegral_strict_mono (by simp [hs]) hf hg hfi ((ae_restrict_iff' hsm).mpr h)
+
 /-- Monotone convergence theorem for nonincreasing sequences of functions -/
 lemma lintegral_infi_ae
   {f : ℕ → α → ℝ≥0∞} (h_meas : ∀n, measurable (f n))
@@ -1616,9 +1666,9 @@ calc
 /-- Monotone convergence theorem for nonincreasing sequences of functions -/
 lemma lintegral_infi
   {f : ℕ → α → ℝ≥0∞} (h_meas : ∀n, measurable (f n))
-  (h_mono : ∀ ⦃m n⦄, m ≤ n → f n ≤ f m) (h_fin : ∫⁻ a, f 0 a ∂μ ≠ ∞) :
+  (h_anti : antitone f) (h_fin : ∫⁻ a, f 0 a ∂μ ≠ ∞) :
   ∫⁻ a, ⨅n, f n a ∂μ = ⨅n, ∫⁻ a, f n a ∂μ :=
-lintegral_infi_ae h_meas (λ n, ae_of_all _ $ h_mono $ le_of_lt n.lt_succ_self) h_fin
+lintegral_infi_ae h_meas (λ n, ae_of_all _ $ h_anti n.le_succ) h_fin
 
 /-- Known as Fatou's lemma, version with `ae_measurable` functions -/
 lemma lintegral_liminf_le' {f : ℕ → α → ℝ≥0∞} (h_meas : ∀n, ae_measurable (f n) μ) :
@@ -1986,6 +2036,35 @@ begin
       restrict_comm hs ht, ← with_density_apply _ ht]
 end
 
+lemma with_density_of_real_mutually_singular {f : α → ℝ} (hf : measurable f) :
+  μ.with_density (λ x, ennreal.of_real $ f x) ⊥ₘ μ.with_density (λ x, ennreal.of_real $ -f x) :=
+begin
+  set S : set α := { x | f x < 0 } with hSdef,
+  have hS : measurable_set S := measurable_set_lt hf measurable_const,
+  refine ⟨S, hS, _, _⟩,
+  { rw [with_density_apply _ hS, hSdef],
+    have hf0 : ∀ᵐ x ∂μ, x ∈ S → ennreal.of_real (f x) = 0,
+    { refine ae_of_all _ (λ _ hx, _),
+      rw [ennreal.of_real_eq_zero.2 (le_of_lt hx)] },
+    rw set_lintegral_congr_fun hS hf0,
+    exact lintegral_zero },
+  { rw [with_density_apply _ hS.compl, hSdef],
+    have hf0 : ∀ᵐ x ∂μ, x ∈ Sᶜ → ennreal.of_real (-f x) = 0,
+    { refine ae_of_all _ (λ x hx, _),
+      rw ennreal.of_real_eq_zero.2,
+      rwa [neg_le, neg_zero, ← not_lt] },
+    rw set_lintegral_congr_fun hS.compl hf0,
+    exact lintegral_zero },
+end
+
+lemma restrict_with_density {s : set α} (hs : measurable_set s) (f : α → ℝ≥0∞) :
+  (μ.with_density f).restrict s = (μ.restrict s).with_density f :=
+begin
+  ext1 t ht,
+  rw [restrict_apply ht, with_density_apply _ ht,
+      with_density_apply _ (ht.inter hs), restrict_restrict ht],
+end
+
 end lintegral
 
 end measure_theory
@@ -2016,6 +2095,10 @@ end
 
 namespace measure_theory
 
+variables {α : Type*} {m m0 : measurable_space α}
+
+include m
+
 /-- This is Exercise 1.2.1 from [tao2010]. It allows you to express integration of a measurable
 function with respect to `(μ.with_density f)` as an integral with respect to `μ`, called the base
 measure. `μ` is often the Lebesgue measure, and in this circumstance `f` is the probability density
@@ -2025,7 +2108,7 @@ the exponential distribution, the Beta distribution, or the Cauchy distribution 
 of [wasserman2004]). Thus, this method shows how to one can calculate expectations, variances,
 and other moments as a function of the probability density function.
  -/
-lemma lintegral_with_density_eq_lintegral_mul {α} [measurable_space α] (μ : measure α)
+lemma lintegral_with_density_eq_lintegral_mul (μ : measure α)
   {f : α → ℝ≥0∞} (h_mf : measurable f) : ∀ {g : α → ℝ≥0∞}, measurable g →
   ∫⁻ a, g a ∂(μ.with_density f) = ∫⁻ a, (f * g) a ∂μ :=
 begin
@@ -2039,10 +2122,15 @@ begin
     simp [lintegral_supr, ennreal.mul_supr, h_mf.mul (h_mea_g _), *] }
 end
 
+lemma set_lintegral_with_density_eq_set_lintegral_mul (μ : measure α) {f g : α → ℝ≥0∞}
+  (hf : measurable f) (hg : measurable g) {s : set α} (hs : measurable_set s) :
+  ∫⁻ x in s, g x ∂μ.with_density f = ∫⁻ x in s, (f * g) x ∂μ :=
+by rw [restrict_with_density hs, lintegral_with_density_eq_lintegral_mul _ hf hg]
+
 /-- In a sigma-finite measure space, there exists an integrable function which is
 positive everywhere (and with an arbitrarily small integral). -/
 lemma exists_pos_lintegral_lt_of_sigma_finite
-  {α} [measurable_space α] (μ : measure α) [sigma_finite μ] {ε : ℝ≥0∞} (ε0 : ε ≠ 0) :
+  (μ : measure α) [sigma_finite μ] {ε : ℝ≥0∞} (ε0 : ε ≠ 0) :
   ∃ g : α → ℝ≥0, (∀ x, 0 < g x) ∧ measurable g ∧ (∫⁻ x, g x ∂μ < ε) :=
 begin
   /- Let `s` be a covering of `α` by pairwise disjoint measurable sets of finite measure. Let
@@ -2061,7 +2149,7 @@ begin
     lintegral_encodable, measurable_spanning_sets_index, mul_comm] using δsum,
 end
 
-lemma lintegral_trim {α : Type*} {m m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0)
+lemma lintegral_trim {μ : measure α} (hm : m ≤ m0)
   {f : α → ℝ≥0∞} (hf : @measurable _ _ m _ f) :
   ∫⁻ a, f a ∂(μ.trim hm) = ∫⁻ a, f a ∂μ :=
 begin
@@ -2082,7 +2170,7 @@ begin
     exact funext (λ n, hf_prop n), },
 end
 
-lemma lintegral_trim_ae {α : Type*} {m m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0)
+lemma lintegral_trim_ae {μ : measure α} (hm : m ≤ m0)
   {f : α → ℝ≥0∞} (hf : ae_measurable f (μ.trim hm)) :
   ∫⁻ a, f a ∂(μ.trim hm) = ∫⁻ a, f a ∂μ :=
 by rw [lintegral_congr_ae (ae_eq_of_ae_eq_trim hf.ae_eq_mk),
@@ -2090,7 +2178,7 @@ by rw [lintegral_congr_ae (ae_eq_of_ae_eq_trim hf.ae_eq_mk),
 
 section sigma_finite
 
-variables {α E : Type*} {m m0 : measurable_space α} [normed_group E] [measurable_space E]
+variables {E : Type*} [normed_group E] [measurable_space E]
   [opens_measurable_space E]
 
 lemma univ_le_of_forall_fin_meas_le {μ : measure α} (hm : m ≤ m0) [@sigma_finite _ m (μ.trim hm)]
@@ -2166,6 +2254,8 @@ begin
   rw lintegral_congr_ae hf_meas.ae_eq_mk,
   exact lintegral_le_of_forall_fin_meas_le_of_measurable hm C hf_meas.measurable_mk hf',
 end
+
+omit m
 
 /-- If the Lebesgue integral of a function is bounded by some constant on all sets with finite
 measure and the measure is σ-finite, then the integral over the whole space is bounded by that same

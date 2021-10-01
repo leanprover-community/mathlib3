@@ -3,7 +3,7 @@ Copyright (c) 2014 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import algebra.ordered_field
+import algebra.order.field
 import data.nat.basic
 
 /-!
@@ -211,7 +211,7 @@ end
 (@mono_cast α _).map_max
 
 @[simp, norm_cast] theorem abs_cast [linear_ordered_ring α] (a : ℕ) :
-  abs (a : α) = a :=
+  |(a : α)| = a :=
 abs_of_nonneg (cast_nonneg a)
 
 lemma coe_nat_dvd [comm_semiring α] {m n : ℕ} (h : m ∣ n) :

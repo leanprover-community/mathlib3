@@ -70,10 +70,34 @@ if some_def.in_namespace then x * x else x
 run_cmd do
   dict ← to_additive.aux_attr.get_cache,
   success_if_fail
-    (transform_decl_with_prefix_dict dict ff tt mk_name_map mk_name_map `some_def `add_some_def []),
+    (transform_decl_with_prefix_dict dict ff tt mk_name_map mk_name_map mk_name_map
+      `some_def `add_some_def []),
   skip
 
 attribute [to_additive some_other_name] some_def.in_namespace
 attribute [to_additive add_some_def] some_def
 
 run_cmd success_if_fail (get_decl `add_some_def.in_namespace)
+
+-- test @[to_additive_relevant_args] and to_additive.first_multiplicative_arg
+
+-- first multiplicative argument: f
+def foo_mul {I J K : Type*} (n : ℕ) {f : I → Type*} (L : Type*) [∀ i (n : ℕ), bool → has_one (f i)]
+  [has_add I] [has_mul L] : true :=
+trivial
+
+@[to_additive]
+instance pi.has_one {I : Type*} {f : I → Type*} [∀ i, has_one $ f i] : has_one (Π i : I, f i) :=
+⟨λ _, 1⟩
+
+run_cmd do
+  n ← to_additive.first_multiplicative_arg `pi.has_one,
+  guard $ n = 2,
+  n ← to_additive.first_multiplicative_arg `foo_mul,
+  guard $ n = 5
+
+@[to_additive]
+def nat_pi_has_one {α : Type*} [has_one α] : has_one (Π x : ℕ, α) := by apply_instance
+
+@[to_additive]
+def pi_nat_has_one {I : Type*} : has_one (Π x : I, ℕ) := by apply_instance

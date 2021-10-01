@@ -88,7 +88,8 @@ basis.of_repr
       by { ext ⟨i, x⟩,
            simp only [coe_mk, linear_equiv.apply_symm_apply, comap_domain_apply] },
     map_add' := λ g h, by { ext ⟨i, x⟩, simp only [coe_mk, add_apply, linear_equiv.map_add] },
-    map_smul' := λ c h, by { ext ⟨i, x⟩, simp only [coe_mk, smul_apply, linear_equiv.map_smul] } }
+    map_smul' := λ c h, by { ext ⟨i, x⟩, simp only [coe_mk, smul_apply, linear_equiv.map_smul,
+                                                    ring_hom.id_apply] } }
 
 @[simp] lemma basis_repr {φ : ι → Type*} (b : ∀ i, basis (φ i) R M)
   (g : ι →₀ M) (ix) :
@@ -154,7 +155,7 @@ open module
 
 
 lemma equiv_of_dim_eq_lift_dim
-  (h : cardinal.lift.{v w} (module.rank K V) = cardinal.lift.{w v} (module.rank K V')) :
+  (h : cardinal.lift.{w} (module.rank K V) = cardinal.lift.{v} (module.rank K V')) :
   nonempty (V ≃ₗ[K] V') :=
 begin
   haveI := classical.dec_eq V,
@@ -178,7 +179,7 @@ end
 def fin_dim_vectorspace_equiv (n : ℕ)
   (hn : (module.rank K V) = n) : V ≃ₗ[K] (fin n → K) :=
 begin
-  have : cardinal.lift.{v u} (n : cardinal.{v}) = cardinal.lift.{u v} (n : cardinal.{u}),
+  have : cardinal.lift.{u} (n : cardinal.{v}) = cardinal.lift.{v} (n : cardinal.{u}),
     by simp,
   have hn := cardinal.lift_inj.{v u}.2 hn,
   rw this at hn,

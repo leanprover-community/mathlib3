@@ -125,7 +125,7 @@ begin
     intro con,
     apply hp.ne_zero (map_injective (algebra_map R K) (is_fraction_ring.injective _ _) _),
     simp [con] },
-  rcases hi.is_unit_or_is_unit (mul_left_cancel' hcd0 h1).symm with h | h,
+  rcases hi.is_unit_or_is_unit (mul_left_cancel₀ hcd0 h1).symm with h | h,
   { right,
     apply is_unit_or_eq_zero_of_is_unit_integer_normalization_prim_part h0.2
       (is_unit_of_mul_is_unit_right h) },

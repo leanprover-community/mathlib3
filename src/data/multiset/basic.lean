@@ -117,6 +117,7 @@ quotient.hrec_on m (@list.rec α (λl, C ⟦l⟧) C_0 (λa l b, C_cons a ⟦l⟧
     (assume a l l' b b' hl, have ⟦l⟧ = ⟦l'⟧, from quot.sound hl, by cc)
     (assume a a' l, C_cons_heq a a' ⟦l⟧)
 
+/-- Companion to `multiset.rec` with more convenient argument order. -/
 @[elab_as_eliminator]
 protected def rec_on (m : multiset α)
   (C_0 : C 0)
@@ -499,6 +500,10 @@ pos_iff_ne_zero.trans $ not_congr card_eq_zero
 theorem card_pos_iff_exists_mem {s : multiset α} : 0 < card s ↔ ∃ a, a ∈ s :=
 quot.induction_on s $ λ l, length_pos_iff_exists_mem
 
+/-- A strong induction principle for multisets:
+If you construct a value for a particular multiset given values for all strictly smaller multisets,
+you can construct a value for any multiset.
+-/
 @[elab_as_eliminator] def strong_induction_on {p : multiset α → Sort*} :
   ∀ (s : multiset α), (∀ s, (∀t < s, p t) → p s) → p s
 | s := λ ih, ih s $ λ t h,
@@ -682,6 +687,14 @@ theorem card_erase_lt_of_mem {a : α} {s : multiset α} : a ∈ s → card (s.er
 theorem card_erase_le {a : α} {s : multiset α} : card (s.erase a) ≤ card s :=
 card_le_of_le (erase_le a s)
 
+theorem card_erase_eq_ite {a : α} {s : multiset α} :
+  card (s.erase a) = if a ∈ s then pred (card s) else card s :=
+begin
+  by_cases h : a ∈ s,
+  { rwa [card_erase_of_mem h, if_pos] },
+  { rwa [erase_of_not_mem h, if_neg] }
+end
+
 end erase
 
 @[simp] theorem coe_reverse (l : list α) : (reverse l : multiset α) = l :=
@@ -714,6 +727,13 @@ theorem map_repeat (f : α → β) (a : α) (k : ℕ) : (repeat a k).map f = rep
 
 @[simp] theorem map_add (f : α → β) (s t) : map f (s + t) = map f s + map f t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ map_append _ _ _
+
+/-- If each element of `s : multiset α` can be lifted to `β`, then `s` can be lifted to
+`multiset β`. -/
+instance [can_lift α β] : can_lift (multiset α) (multiset β) :=
+{ cond := λ s, ∀ x ∈ s, can_lift.cond β x,
+  coe := map can_lift.coe,
+  prf := by { rintro ⟨l⟩ hl, lift l to list β using hl, exact ⟨l, coe_map _ _⟩ } }
 
 /-- `multiset.map` as an `add_monoid_hom`. -/
 def map_add_monoid_hom (f : α → β) : multiset α →+ multiset β :=
@@ -890,7 +910,8 @@ foldl_induction' f H x p p s p_f px p_s
 
 /-- Product of a multiset given a commutative monoid structure on `α`.
   `prod {a, b, c} = a * b * c` -/
-@[to_additive]
+@[to_additive "Sum of a multiset given a commutative additive monoid structure on `α`.
+  `sum {a, b, c} = a + b + c`"]
 def prod [comm_monoid α] : multiset α → α :=
 foldr (*) (λ x y z, by simp [mul_left_comm]) 1
 
@@ -1423,6 +1444,8 @@ quotient.induction_on m $ assume l, congr_arg coe $ congr_arg (list.cons _) $
 section decidable_pi_exists
 variables {m : multiset α}
 
+/-- If `p` is a decidable predicate,
+so is the predicate that all elements of a multiset satisfy `p`. -/
 protected def decidable_forall_multiset {p : α → Prop} [hp : ∀a, decidable (p a)] :
   decidable (∀a∈m, p a) :=
 quotient.rec_on_subsingleton m (λl, decidable_of_iff (∀a∈l, p a) $ by simp)
@@ -1438,6 +1461,8 @@ instance decidable_eq_pi_multiset {β : α → Type*} [h : ∀a, decidable_eq (�
   decidable_eq (Πa∈m, β a) :=
 assume f g, decidable_of_iff (∀a (h : a ∈ m), f a h = g a h) (by simp [function.funext_iff])
 
+/-- If `p` is a decidable predicate,
+so is the existence of an element in a multiset satisfying `p`. -/
 def decidable_exists_multiset {p : α → Prop} [decidable_pred p] :
   decidable (∃ x ∈ m, p x) :=
 quotient.rec_on_subsingleton m list.decidable_exists_mem
@@ -2145,6 +2170,18 @@ begin
   by_cases x = a,
     simp only [min_comm, h, if_true, eq_self_iff_true],
     simp only [h, if_false, zero_min],
+end
+
+/-- `multiset.map f` preserves `count` if `f` is injective on the set of elements contained in
+the multiset -/
+theorem count_map_eq_count [decidable_eq β] (f : α → β) (s : multiset α)
+ (hf : set.inj_on f {x : α | x ∈ s}) (x ∈ s) : (s.map f).count (f x) = s.count x :=
+begin
+  suffices : (filter (λ (a : α), f x = f a) s).count x = card (filter (λ (a : α), f x = f a) s),
+  { rw [count, countp_map, ← this],
+    exact count_filter_of_pos rfl },
+  { rw eq_repeat.2 ⟨rfl, λ b hb, eq_comm.1 ((hf H (mem_filter.1 hb).left) (mem_filter.1 hb).right)⟩,
+    simp only [count_repeat, eq_self_iff_true, if_true, card_repeat]},
 end
 
 end

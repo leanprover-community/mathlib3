@@ -374,7 +374,8 @@ end setoid
 lemma quotient.subsingleton_iff  {s : setoid α} :
   subsingleton (quotient s) ↔ s = ⊤ :=
 begin
-  simp only [subsingleton_iff, eq_top_iff, setoid.le_def, setoid.top_def, pi.top_apply, forall_const],
+  simp only [subsingleton_iff, eq_top_iff, setoid.le_def, setoid.top_def,
+    pi.top_apply, forall_const],
   refine (surjective_quotient_mk _).forall.trans (forall_congr $ λ a, _),
   refine (surjective_quotient_mk _).forall.trans (forall_congr $ λ b, _),
   exact quotient.eq',

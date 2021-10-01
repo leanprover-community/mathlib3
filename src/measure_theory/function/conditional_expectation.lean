@@ -41,12 +41,9 @@ The conditional expectation and its properties
   expectation verifies `∫ x in s, condexp hm μ f x ∂μ = ∫ x in s, f x ∂μ` for any `m`-measurable
   set `s`.
 
-<<<<<<< HEAD
-=======
 While `condexp` is function-valued, we also define `condexp_L1` with value in `L1` and a continuous
 linear map `condexp_L1_clm` from `L1` to `L1`. `condexp` should be used in most cases.
 
->>>>>>> origin/master
 Uniqueness of the conditional expectation
 
 * `Lp.ae_eq_of_forall_set_integral_eq'`: two `Lp` functions verifying the equality of integrals
@@ -54,11 +51,8 @@ Uniqueness of the conditional expectation
 * `ae_eq_of_forall_set_integral_eq_of_sigma_finite'`: two functions verifying the equality of
   integrals defining the conditional expectation are equal everywhere.
   Requires `[sigma_finite (μ.trim hm)]`.
-<<<<<<< HEAD
-=======
 * `ae_eq_condexp_of_forall_set_integral_eq`: an a.e. `m`-measurable function which verifies the
   equality of integrals is a.e. equal to `condexp`.
->>>>>>> origin/master
 
 ## Notations
 
@@ -66,8 +60,6 @@ For a measure `μ` defined on a measurable space structure `m0`, another measura
 `m` with `hm : m ≤ m0` (a sub-sigma-algebra) and a function `f`, we define the notation
 * `μ[f|hm] = condexp hm μ f`.
 
-<<<<<<< HEAD
-=======
 ## Implementation notes
 
 Most of the results in this file are valid for a second countable, borel, real normed space `F`.
@@ -76,7 +68,6 @@ However, some lemmas also use `𝕜 : is_R_or_C`:
 * results about scalar multiplication are stated not only for `ℝ` but also for `𝕜` if we happen to
   have `normed_space 𝕜 F` and `is_scalar_tower ℝ 𝕜 F'`.
 
->>>>>>> origin/master
 ## Tags
 
 conditional expectation, conditional expected value

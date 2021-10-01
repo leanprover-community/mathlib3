@@ -381,29 +381,27 @@ variables {ι : Type*} [topological_space ι] [conditionally_complete_linear_ord
   [is_locally_finite_measure μ] [conditionally_complete_linear_order E] [order_topology E]
   [second_countable_topology E] [borel_space E]
 
-lemma interval_integrable_of_monotone_on {u : ι → E} {a b : ι}
+lemma monotone_on.interval_integrable {u : ι → E} {a b : ι}
   (hu : ∀ ⦃x y⦄, x ∈ interval a b → y ∈ interval a b → x ≤ y → u x ≤ u y) :
   interval_integrable u μ a b :=
 begin
   rw interval_integrable_iff,
-  exact (integrable_on_compact_of_monotone_on is_compact_interval hu).mono_set Ioc_subset_Icc_self,
+  exact (monotone_on.integrable_on_compact is_compact_interval hu).mono_set Ioc_subset_Icc_self,
 end
 
-lemma interval_integrable_of_antitone_on {u : ι → E} {a b : ι}
+lemma antitone_on.interval_integrable {u : ι → E} {a b : ι}
   (hu : ∀ ⦃x y⦄, x ∈ interval a b → y ∈ interval a b → x ≤ y → u y ≤ u x) :
   interval_integrable u μ a b :=
-@interval_integrable_of_monotone_on (order_dual E) _ ‹_› ι _ _ _ _ _ _ _ _ _ ‹_› ‹_› u a b hu
+@monotone_on.interval_integrable (order_dual E) _ ‹_› ι _ _ _ _ _ _ _ _ _ ‹_› ‹_› u a b hu
 
-lemma interval_integrable_of_monotone {u : ι → E} {a b : ι} (hu : monotone u) :
+lemma monotone.interval_integrable {u : ι → E} {a b : ι} (hu : monotone u) :
   interval_integrable u μ a b :=
-interval_integrable_of_monotone_on (λ x y _ _ hxy, hu hxy)
+monotone_on.interval_integrable (λ x y _ _ hxy, hu hxy)
 
-alias interval_integrable_of_monotone ← monotone.interval_integrable
-
-lemma interval_integrable_of_antitone {u : ι → E} {a b : ι}
+lemma antitone.interval_integrable {u : ι → E} {a b : ι}
   (hu : ∀ ⦃x y⦄, x ≤ y → u y ≤ u x) :
   interval_integrable u μ a b :=
-@interval_integrable_of_monotone (order_dual E) _ ‹_› ι _ _ _ _ _ _ _ _ _ ‹_› ‹_› u a b hu
+@monotone.interval_integrable (order_dual E) _ ‹_› ι _ _ _ _ _ _ _ _ _ ‹_› ‹_› u a b hu
 
 end
 
@@ -584,7 +582,7 @@ variables {a b c d : ℝ} (f : ℝ → E)
 @[simp] lemma integral_comp_mul_right (hc : c ≠ 0) :
   ∫ x in a..b, f (x * c) = c⁻¹ • ∫ x in a*c..b*c, f x :=
 begin
-  have A : closed_embedding (λ x, x * c) := (homeomorph.mul_right' c hc).closed_embedding,
+  have A : closed_embedding (λ x, x * c) := (homeomorph.mul_right₀ c hc).closed_embedding,
   conv_rhs { rw [← real.smul_map_volume_mul_right hc] },
   simp_rw [integral_smul_measure, interval_integral,
           set_integral_map_of_closed_embedding measurable_set_Ioc A,
@@ -608,7 +606,7 @@ by by_cases hc : c = 0; simp [hc]
 
 @[simp] lemma integral_comp_div (hc : c ≠ 0) :
   ∫ x in a..b, f (x / c) = c • ∫ x in a/c..b/c, f x :=
-by simpa only [inv_inv'] using integral_comp_mul_right f (inv_ne_zero hc)
+by simpa only [inv_inv₀] using integral_comp_mul_right f (inv_ne_zero hc)
 
 @[simp] lemma inv_smul_integral_comp_div (c) :
   c⁻¹ • ∫ x in a..b, f (x / c) = ∫ x in a/c..b/c, f x :=
@@ -644,7 +642,7 @@ by by_cases hc : c = 0; simp [hc]
 
 @[simp] lemma integral_comp_div_add (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (x / c + d) = c • ∫ x in a/c+d..b/c+d, f x :=
-by simpa only [div_eq_inv_mul, inv_inv'] using integral_comp_mul_add f (inv_ne_zero hc) d
+by simpa only [div_eq_inv_mul, inv_inv₀] using integral_comp_mul_add f (inv_ne_zero hc) d
 
 @[simp] lemma inv_smul_integral_comp_div_add (c d) :
   c⁻¹ • ∫ x in a..b, f (x / c + d) = ∫ x in a/c+d..b/c+d, f x :=
@@ -652,7 +650,7 @@ by by_cases hc : c = 0; simp [hc]
 
 @[simp] lemma integral_comp_add_div (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (d + x / c) = c • ∫ x in d+a/c..d+b/c, f x :=
-by simpa only [div_eq_inv_mul, inv_inv'] using integral_comp_add_mul f (inv_ne_zero hc) d
+by simpa only [div_eq_inv_mul, inv_inv₀] using integral_comp_add_mul f (inv_ne_zero hc) d
 
 @[simp] lemma inv_smul_integral_comp_add_div (c d) :
   c⁻¹ • ∫ x in a..b, f (d + x / c) = ∫ x in d+a/c..d+b/c, f x :=
@@ -680,7 +678,7 @@ by by_cases hc : c = 0; simp [hc]
 
 @[simp] lemma integral_comp_div_sub (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (x / c - d) = c • ∫ x in a/c-d..b/c-d, f x :=
-by simpa only [div_eq_inv_mul, inv_inv'] using integral_comp_mul_sub f (inv_ne_zero hc) d
+by simpa only [div_eq_inv_mul, inv_inv₀] using integral_comp_mul_sub f (inv_ne_zero hc) d
 
 @[simp] lemma inv_smul_integral_comp_div_sub (c d) :
   c⁻¹ • ∫ x in a..b, f (x / c - d) = ∫ x in a/c-d..b/c-d, f x  :=
@@ -688,7 +686,7 @@ by by_cases hc : c = 0; simp [hc]
 
 @[simp] lemma integral_comp_sub_div (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (d - x / c) = c • ∫ x in d-b/c..d-a/c, f x :=
-by simpa only [div_eq_inv_mul, inv_inv'] using integral_comp_sub_mul f (inv_ne_zero hc) d
+by simpa only [div_eq_inv_mul, inv_inv₀] using integral_comp_sub_mul f (inv_ne_zero hc) d
 
 @[simp] lemma inv_smul_integral_comp_sub_div (c d) :
   c⁻¹ • ∫ x in a..b, f (d - x / c) = ∫ x in d-b/c..d-a/c, f x :=

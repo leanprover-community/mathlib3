@@ -1557,8 +1557,6 @@ section linear_ordered_add_comm_group
 variables [topological_space α] [linear_ordered_add_comm_group α] [order_topology α]
 variables {l : filter β} {f g : β → α}
 
-local notation `|` x `|` := abs x
-
 lemma nhds_eq_infi_abs_sub (a : α) : 𝓝 a = (⨅r>0, 𝓟 {b | |a - b| < r}) :=
 begin
   simp only [le_antisymm_iff, nhds_eq_order, le_inf_iff, le_infi_iff, le_principal_iff, mem_Ioi,
@@ -1608,7 +1606,7 @@ instance linear_ordered_add_comm_group.topological_add_group : topological_add_g
         ... < δ + (ε - δ) : add_lt_add hx hy
         ... = ε : add_sub_cancel'_right _ _ },
       { -- Otherewise `ε`-nhd of each point `a` is `{a}`
-        have hε : ∀ {x y}, abs (x - y) < ε → x = y,
+        have hε : ∀ {x y}, |x - y| < ε → x = y,
         { intros x y h,
           simpa [sub_eq_zero] using h₂ _ h },
         filter_upwards [prod_is_open.mem_nhds (eventually_abs_sub_lt a ε0)
@@ -1643,18 +1641,18 @@ lemma nhds_basis_Ioo_pos [no_bot_order α] [no_top_order α] (a : α) :
 end⟩
 
 lemma nhds_basis_abs_sub_lt [no_bot_order α] [no_top_order α] (a : α) :
-  (𝓝 a).has_basis (λ ε : α, (0 : α) < ε) (λ ε, {b | abs (b - a) < ε}) :=
+  (𝓝 a).has_basis (λ ε : α, (0 : α) < ε) (λ ε, {b | |b - a| < ε}) :=
 begin
   convert nhds_basis_Ioo_pos a,
   { ext ε,
-    change abs (x - a) < ε ↔ a - ε < x ∧ x < a + ε,
+    change |x - a| < ε ↔ a - ε < x ∧ x < a + ε,
     simp [abs_lt, sub_lt_iff_lt_add, add_comm ε a, add_comm x ε] }
 end
 
 variable (α)
 
 lemma nhds_basis_zero_abs_sub_lt [no_bot_order α] [no_top_order α] :
-  (𝓝 (0 : α)).has_basis (λ ε : α, (0 : α) < ε) (λ ε, {b | abs b < ε}) :=
+  (𝓝 (0 : α)).has_basis (λ ε : α, (0 : α) < ε) (λ ε, {b | |b| < ε}) :=
 by simpa using nhds_basis_abs_sub_lt (0 : α)
 
 variable {α}
@@ -1728,19 +1726,19 @@ section continuous_mul
 lemma mul_tendsto_nhds_zero_right (x : α) :
   tendsto (uncurry ((*) : α → α → α)) (𝓝 0 ×ᶠ 𝓝 x) $ 𝓝 0 :=
 begin
-  have hx : 0 < 2 * (1 + abs x) := (mul_pos (zero_lt_two) $
+  have hx : 0 < 2 * (1 + |x|) := (mul_pos (zero_lt_two) $
     lt_of_lt_of_le zero_lt_one $ le_add_of_le_of_nonneg le_rfl (abs_nonneg x)),
   rw ((nhds_basis_zero_abs_sub_lt α).prod $ nhds_basis_abs_sub_lt x).tendsto_iff
      (nhds_basis_zero_abs_sub_lt α),
-  refine λ ε ε_pos, ⟨(ε/(2 * (1 + abs x)), 1), ⟨div_pos ε_pos hx, zero_lt_one⟩, _⟩,
-  suffices : ∀ (a b : α), abs a < ε / (2 * (1 + abs x)) → abs (b - x) < 1 → (abs a) * (abs b) < ε,
+  refine λ ε ε_pos, ⟨(ε/(2 * (1 + |x|)), 1), ⟨div_pos ε_pos hx, zero_lt_one⟩, _⟩,
+  suffices : ∀ (a b : α), |a| < ε / (2 * (1 + |x|)) → |b - x| < 1 → |a| * |b| < ε,
   by simpa only [and_imp, prod.forall, mem_prod, ← abs_mul],
   intros a b h h',
   refine lt_of_le_of_lt (mul_le_mul_of_nonneg_left _ (abs_nonneg a)) ((lt_div_iff hx).1 h),
-  calc abs b = abs ((b - x) + x) : by rw sub_add_cancel b x
-    ... ≤ abs (b - x) + abs x : abs_add (b - x) x
-    ... ≤ 1 + abs x : add_le_add_right (le_of_lt h') (abs x)
-    ... ≤ 2 * (1 + abs x) : by linarith,
+  calc |b| = |(b - x) + x| : by rw sub_add_cancel b x
+    ... ≤ |b - x| + |x| : abs_add (b - x) x
+    ... ≤ 1 + |x| : add_le_add_right (le_of_lt h') (|x|)
+    ... ≤ 2 * (1 + |x|) : by linarith,
 end
 
 lemma mul_tendsto_nhds_zero_left (x : α) :
@@ -1757,25 +1755,25 @@ end
 lemma nhds_eq_map_mul_left_nhds_one {x₀ : α} (hx₀ : x₀ ≠ 0) :
   𝓝 x₀ = map (λ x, x₀*x) (𝓝 1) :=
 begin
-  have hx₀' : 0 < abs x₀ := abs_pos.2 hx₀,
+  have hx₀' : 0 < |x₀| := abs_pos.2 hx₀,
   refine filter.ext (λ t, _),
   simp only [exists_prop, set_of_subset_set_of, (nhds_basis_abs_sub_lt x₀).mem_iff,
     (nhds_basis_abs_sub_lt (1 : α)).mem_iff, filter.mem_map'],
   refine ⟨λ h, _, λ h, _⟩,
   { obtain ⟨i, hi, hit⟩ := h,
-    refine ⟨i / (abs x₀), div_pos hi (abs_pos.2 hx₀), λ x hx, hit _⟩,
-    calc abs (x₀ * x - x₀) = abs (x₀ * (x - 1)) : congr_arg abs (by ring_nf)
-      ... = abs x₀ * abs (x - 1) : abs_mul x₀ (x - 1)
-      ... < abs x₀ * (i / abs x₀) : mul_lt_mul' le_rfl hx (abs_nonneg (x - 1)) (abs_pos.2 hx₀)
-      ... = abs x₀ * i / abs x₀ : by ring
+    refine ⟨i / (|x₀|), div_pos hi (abs_pos.2 hx₀), λ x hx, hit _⟩,
+    calc |x₀ * x - x₀| = |x₀ * (x - 1)| : congr_arg abs (by ring_nf)
+      ... = |x₀| * |x - 1| : abs_mul x₀ (x - 1)
+      ... < |x₀| * (i / |x₀|) : mul_lt_mul' le_rfl hx (abs_nonneg (x - 1)) (abs_pos.2 hx₀)
+      ... = |x₀| * i / |x₀| : by ring
       ... = i : mul_div_cancel_left i (λ h, hx₀ (abs_eq_zero.1 h)) },
   { obtain ⟨i, hi, hit⟩ := h,
-    refine ⟨i * (abs x₀), mul_pos hi (abs_pos.2 hx₀), λ x hx, _⟩,
-    have : abs (x / x₀ - 1) < i,
-    calc abs (x / x₀ - 1) = abs (x / x₀ - x₀ / x₀) : (by rw div_self hx₀)
-    ... = abs ((x - x₀) / x₀) : congr_arg abs (sub_div x x₀ x₀).symm
-    ... = abs (x - x₀) / abs x₀ : abs_div (x - x₀) x₀
-    ... < i * abs x₀ / abs x₀ : div_lt_div hx le_rfl
+    refine ⟨i * |x₀|, mul_pos hi (abs_pos.2 hx₀), λ x hx, _⟩,
+    have : |x / x₀ - 1| < i,
+    calc |x / x₀ - 1| = |x / x₀ - x₀ / x₀| : (by rw div_self hx₀)
+    ... = |(x - x₀) / x₀| : congr_arg abs (sub_div x x₀ x₀).symm
+    ... = |x - x₀| / |x₀| : abs_div (x - x₀) x₀
+    ... < i * |x₀| / |x₀| : div_lt_div hx le_rfl
       (mul_nonneg (le_of_lt hi) (abs_nonneg x₀)) (abs_pos.2 hx₀)
     ... = i : by rw [← mul_div_assoc', div_self (ne_of_lt $ abs_pos.2 hx₀).symm, mul_one],
     specialize hit (x / x₀) this,

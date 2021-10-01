@@ -165,7 +165,7 @@ end
 lemma nth_zero_of_exists [decidable_pred p] (h : ∃ n, p n) : nth p 0 = nat.find h :=
 by { rw [nth_zero], convert nat.Inf_def h }
 
-lemma nth_set_card_aux {n : ℕ} (hp : set.finite p)
+lemma nth_set_card_aux {n : ℕ} (hp : (set_of p).finite)
   (hp' : {i : ℕ | p i ∧ ∀ t < n, nth p t < i}.finite) (hle : n ≤ hp.to_finset.card) :
   hp'.to_finset.card = hp.to_finset.card - n :=
 begin
@@ -200,7 +200,7 @@ begin
   rwa [←set.finite.to_finset.nonempty hp'', ←finset.card_pos, hk]
 end
 
-lemma nth_set_card {n : ℕ} (hp : set.finite p) (hp' : {i : ℕ | p i ∧ ∀ k < n, nth p k < i}.finite) :
+lemma nth_set_card {n : ℕ} (hp : (set_of p).finite) (hp' : {i : ℕ | p i ∧ ∀ k < n, nth p k < i}.finite) :
   hp'.to_finset.card = hp.to_finset.card - n :=
 begin
   obtain hn | hn := le_or_lt n hp.to_finset.card,
@@ -216,7 +216,7 @@ begin
   exact λ x hx, ⟨hx.1, λ k hk, hx.2 _ (hk.trans hn)⟩,
 end
 
-lemma nth_set_nonempty_of_lt_card {n : ℕ} (hp : set.finite p) (hlt: n < hp.to_finset.card) :
+lemma nth_set_nonempty_of_lt_card {n : ℕ} (hp : (set_of p).finite) (hlt: n < hp.to_finset.card) :
   {i : ℕ | p i ∧ ∀ k < n, nth p k < i}.nonempty :=
 begin
   have hp': {i : ℕ | p i ∧ ∀ (k : ℕ), k < n → nth p k < i}.finite,
@@ -225,7 +225,7 @@ begin
   exact nat.sub_pos_of_lt hlt,
 end
 
-lemma nth_mem_of_lt_card_finite_aux (n : ℕ) (hp : set.finite p) (hlt : n < hp.to_finset.card) :
+lemma nth_mem_of_lt_card_finite_aux (n : ℕ) (hp : (set_of p).finite) (hlt : n < hp.to_finset.card) :
   nth p n ∈ {i : ℕ | p i ∧ ∀ k < n, nth p k < i} :=
 begin
   rw nth,
@@ -233,14 +233,14 @@ begin
   apply nth_set_nonempty_of_lt_card _ _ hlt,
 end
 
-lemma nth_mem_of_lt_card_finite {n : ℕ} (hp : set.finite p) (hlt : n < hp.to_finset.card) :
+lemma nth_mem_of_lt_card_finite {n : ℕ} (hp : (set_of p).finite) (hlt : n < hp.to_finset.card) :
   p (nth p n) := (nth_mem_of_lt_card_finite_aux p n hp hlt).1
 
-lemma nth_strict_mono_of_finite {m n : ℕ} (hp : set.finite p)
+lemma nth_strict_mono_of_finite {m n : ℕ} (hp : (set_of p).finite)
   (hlt : n < hp.to_finset.card) (hmn : m < n) : nth p m < nth p n :=
 (nth_mem_of_lt_card_finite_aux p _ hp hlt).2 _ hmn
 
-lemma nth_mem_of_infinite_aux (hp : set.infinite p) (n : ℕ) :
+lemma nth_mem_of_infinite_aux (hp : (set_of p).infinite) (n : ℕ) :
   nth p n ∈ { i : ℕ | p i ∧ ∀ k < n, nth p k < i } :=
 begin
   rw nth,
@@ -253,16 +253,16 @@ begin
   exact λ k h, set.finite_le_nat _,
 end
 
-lemma nth_mem_of_infinite (hp : set.infinite p) (n : ℕ) : p (nth p n) :=
+lemma nth_mem_of_infinite (hp : (set_of p).infinite) (n : ℕ) : p (nth p n) :=
 (nth_mem_of_infinite_aux p hp n).1
 
-lemma nth_strict_mono (hp : set.infinite p) : strict_mono (nth p) :=
+lemma nth_strict_mono (hp : (set_of p).infinite) : strict_mono (nth p) :=
 λ a b, (nth_mem_of_infinite_aux p hp b).2 _
 
-lemma nth_monotone (hp : set.infinite p) : monotone (nth p) :=
+lemma nth_monotone (hp : (set_of p).infinite) : monotone (nth p) :=
 (nth_strict_mono p hp).monotone
 
-lemma nth_mono_of_finite {a b : ℕ} (hp : set.finite p) (hb : b < hp.to_finset.card)
+lemma nth_mono_of_finite {a b : ℕ} (hp : (set_of p).finite) (hb : b < hp.to_finset.card)
   (hab : a ≤ b) : nth p a ≤ nth p b :=
 begin
   obtain rfl | h := hab.eq_or_lt,
@@ -270,7 +270,7 @@ begin
   { exact (nth_strict_mono_of_finite p hp hb h).le }
 end
 
-lemma le_nth_of_lt_nth_succ_finite {k a : ℕ} (hp : set.finite p)
+lemma le_nth_of_lt_nth_succ_finite {k a : ℕ} (hp : (set_of p).finite)
   (hlt : k.succ < hp.to_finset.card) (h : a < nth p k.succ) (ha : p a) :
   a ≤ nth p k :=
 begin
@@ -283,7 +283,7 @@ begin
   exact nth_mono_of_finite p hp (k.le_succ.trans_lt hlt) (le_of_lt_succ hn),
 end
 
-lemma le_nth_of_lt_nth_succ_infinite {k a : ℕ} (hp : set.infinite p)
+lemma le_nth_of_lt_nth_succ_infinite {k a : ℕ} (hp : (set_of p).infinite)
   (h : a < nth p k.succ) (ha : p a) :
   a ≤ nth p k :=
 begin
@@ -307,7 +307,7 @@ begin
   exact ha.not_le (nat.Inf_le hp),
 end
 
-lemma filter_range_nth_eq_insert_of_finite (hp : set.finite p) {k : ℕ}
+lemma filter_range_nth_eq_insert_of_finite (hp : (set_of p).finite) {k : ℕ}
   (hlt : k.succ < hp.to_finset.card) :
   finset.filter p (finset.range (nth p k.succ)) =
     insert (nth p k) (finset.filter p (finset.range (nth p k))) :=
@@ -327,7 +327,7 @@ begin
     exact nth_strict_mono_of_finite p hp hlt (lt_add_one _) }
 end
 
-lemma count_nth_of_lt_card_finite {n : ℕ} (hp : set.finite p)
+lemma count_nth_of_lt_card_finite {n : ℕ} (hp : (set_of p).finite)
   (hlt : n < hp.to_finset.card) : count p (nth p n) = n :=
 begin
   induction n with k hk,
@@ -337,7 +337,7 @@ begin
   { simp }
 end
 
-lemma filter_range_nth_eq_insert_of_infinite (hp : set.infinite p) (k : ℕ) :
+lemma filter_range_nth_eq_insert_of_infinite (hp : (set_of p).infinite) (k : ℕ) :
   (finset.range (nth p k.succ)).filter p = insert (nth p k) ((finset.range (nth p k)).filter p) :=
 begin
   ext a,
@@ -352,7 +352,7 @@ begin
     { exact ⟨ha.trans (nth_strict_mono p hp (lt_succ_self k)), hpa⟩ } }
 end
 
-lemma count_nth_of_infinite (hp : set.infinite p) (n : ℕ) : count p (nth p n) = n :=
+lemma count_nth_of_infinite (hp : (set_of p).infinite) (n : ℕ) : count p (nth p n) = n :=
 begin
   induction n with k hk,
   { exact count_nth_zero _ },
@@ -380,7 +380,7 @@ begin
   { simpa [heq] using count_strict_mono _ hm hmn }
 end
 
-lemma count_lt_card {n : ℕ} (hp : set.finite p) (hpn : p n) :
+lemma count_lt_card {n : ℕ} (hp : (set_of p).finite) (hpn : p n) :
   count p n < hp.to_finset.card :=
 begin
   rw count_eq_card_filter_range,
@@ -391,7 +391,7 @@ end
 
 lemma nth_count {n : ℕ} (hpn : p n) : nth p (count p n) = n :=
 begin
-  obtain hp | hp := em (set.finite p),
+  obtain hp | hp := em (set_of p).finite,
   { refine count_injective p _ hpn _,
     { apply nth_mem_of_lt_card_finite p hp,
       exact count_lt_card p hp hpn },
@@ -414,13 +414,13 @@ begin
     rwa [nth_count p hpa, lt_self_iff_false] at hn },
   { apply (count_monotone p).reflect_lt,
     convert hk,
-    obtain hp | hp : set.finite p ∨ set.infinite p := em (set.finite p),
+    obtain hp | hp : (set_of p).finite ∨ (set_of p).infinite := em (set_of p).finite,
     { rw count_nth_of_lt_card_finite _ hp,
       exact hk.trans ((count_monotone _ hn).trans_lt (count_lt_card _ hp hpa)) },
     { apply count_nth_of_infinite p hp } }
 end
 
-lemma nth_count_le (hp : set.infinite p) (n : ℕ) : n ≤ nth p (count p n) :=
+lemma nth_count_le (hp : (set_of p).infinite) (n : ℕ) : n ≤ nth p (count p n) :=
 begin
   rw nth_count_eq_Inf,
   suffices h : Inf {i : ℕ | p i ∧ n ≤ i} ∈ {i : ℕ | p i ∧ n ≤ i},
@@ -430,7 +430,7 @@ begin
   exact ⟨m, hp, hn.le⟩
 end
 
-lemma count_nth_gc (hp : set.infinite p) : galois_connection (count p) (nth p) :=
+lemma count_nth_gc (hp : (set_of p).infinite) : galois_connection (count p) (nth p) :=
 begin
   rintro x y,
   rw [nth, le_cInf_iff ⟨0, λ _ _, nat.zero_le _⟩ ⟨nth p y, nth_mem_of_infinite_aux p hp y⟩],
@@ -450,15 +450,15 @@ begin
       λ k hk, nth_strict_mono p hp hk⟩) }
 end
 
-lemma count_le_iff_le_nth (hp : set.infinite p) {a b : ℕ} :
+lemma count_le_iff_le_nth (hp : (set_of p).infinite) {a b : ℕ} :
   count p a ≤ b ↔ a ≤ nth p b := count_nth_gc p hp _ _
 
-lemma lt_nth_iff_count_lt (hp : set.infinite p) {a b : ℕ} :
+lemma lt_nth_iff_count_lt (hp : (set_of p).infinite) {a b : ℕ} :
   a < count p b ↔ nth p a < b := lt_iff_lt_of_le_iff_le $ count_le_iff_le_nth p hp
 
 lemma nth_lt_of_lt_count (n k : ℕ) (h : k < count p n) : nth p k < n :=
 begin
-  obtain hp | hp := em (set.finite p),
+  obtain hp | hp := em (set_of p).finite,
   { refine (count_monotone p).reflect_lt _,
     rwa count_nth_of_lt_card_finite p hp,
     refine h.trans_le _,

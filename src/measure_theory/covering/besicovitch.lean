@@ -9,9 +9,9 @@ import set_theory.cardinal_ordinal
 /-!
 # Besicovitch covering theorem
 
-The Besicovitch covering theorem ensures that, in a nice metric space, there exists a number `N`
-such that, from any family of balls with bounded radii, one can extract `N` families, each made of
-disjoint balls, covering together all the centers of the initial family.
+The topological Besicovitch covering theorem ensures that, in a nice metric space, there exists a
+number `N` such that, from any family of balls with bounded radii, one can extract `N` families,
+each made of disjoint balls, covering together all the centers of the initial family.
 
 By "nice metric space", we mean a technical property stated as follows: there exists no satellite
 configuration of `N+1` points (with a given parameter `τ > 1`). Such a configuration is a family
@@ -19,7 +19,7 @@ of `N + 1` balls, where the first `N` balls all intersect the last one, but none
 the center of another one and their radii are controlled. This property is for instance
 satisfied by finite-dimensional real vector spaces.
 
-In this file, we prove the Besicovitch covering theorem,
+In this file, we prove the topological Besicovitch covering theorem,
 in `besicovitch.exist_disjoint_covering_families`.
 
 ## Main definitions and results
@@ -28,8 +28,8 @@ in `besicovitch.exist_disjoint_covering_families`.
   in the metric space `α`, with parameter `τ`.
 * `has_besicovitch_covering` is a class recording that there exist `N` and `τ > 1` such that
   there is no satellite configuration of `N+1` points with parameter `τ`.
-* `exist_disjoint_covering_families` is the Besicovitch covering theorem: from any family of
-  balls one can extract finitely many disjoint subfamilies covering the same set.
+* `exist_disjoint_covering_families` is the topological Besicovitch covering theorem: from any
+  family of balls one can extract finitely many disjoint subfamilies covering the same set.
 
 ## Implementation
 
@@ -48,6 +48,16 @@ the first time this happens. Then the corresponding ball intersects `N` balls of
 colors. Moreover, the inductive construction ensures that the radii of all the balls are controlled:
 they form a satellite configuration with `N+1` balls (essentially by definition of satellite
 configurations). Since we assume that there are no such configurations, this is a contradiction.
+
+## Todo
+
+Deduce the measurable Besicovitch theorem: consider a set `s` of finite measure, and for each `c`
+in `s` a set of balls centered at `c` of arbitrarily small radius. Then one can choose among
+all these balls a disjoint family covering almost all `s`.
+
+While the value of `N` is relevant for the precise statement of the topological Besicovitch theorem,
+it becomes irrelevant for the measurable one. Therefore, this statement will be expressed using the
+`Prop`-valued typeclass `has_besicovitch_covering` (which is currently introduced, but not used).
 -/
 
 noncomputable theory
@@ -55,8 +65,7 @@ noncomputable theory
 universe u
 
 open metric set filter fin
-open_locale ennreal topological_space
-
+open_locale topological_space
 
 /-!
 ### Satellite configurations
@@ -88,8 +97,8 @@ structure besicovitch.satellite_config (α : Type*) [metric_space α] (N : ℕ) 
 
 /-- A metric space has the Besicovitch covering property if there exist `N` and `τ > 1` such that
 there are no satellite configuration of parameter `τ` with `N+1` points. This is the condition that
-guarantees that the Besicovitch covering theorem holds. It is satified by finite-dimensional
-real vector spaces. -/
+guarantees that the measurable Besicovitch covering theorem holds. It is satified by
+finite-dimensional real vector spaces. -/
 class has_besicovitch_covering (α : Type*) [metric_space α] : Prop :=
 (no_satellite_config : ∃ (N : ℕ) (τ : ℝ), 1 < τ ∧ is_empty (besicovitch.satellite_config α N τ))
 
@@ -161,20 +170,20 @@ include p
 
 /-- Choose inductively large balls with centers that are not contained in the union of already
 chosen balls. This is a transfinite induction. -/
-noncomputable def f : ordinal.{u} → β
+noncomputable def index : ordinal.{u} → β
 | i :=
     -- `Z` is the set of points that are covered by already constructed balls
-    let Z := ⋃ (j : {j // j < i}), ball (p.c (f j)) (p.r (f j)),
+    let Z := ⋃ (j : {j // j < i}), ball (p.c (index j)) (p.r (index j)),
     -- `R` is the supremum of the radii of balls with centers not in `Z`
     R := supr (λ b : {b : β // p.c b ∉ Z}, p.r b) in
-    -- return a color `b` for which the center `c b` is not in `Z`, and the radius is at
-    -- least `R / τ`, if such a color exists (and garbage otherwise).
+    -- return an index `b` for which the center `c b` is not in `Z`, and the radius is at
+    -- least `R / τ`, if such an index exists (and garbage otherwise).
     classical.epsilon (λ b : β, p.c b ∉ Z ∧ R ≤ p.τ * p.r b)
 using_well_founded {dec_tac := `[exact j.2]}
 
 /-- The set of points that are covered by the union of balls selected at steps `< i`. -/
 def Union_up_to (i : ordinal.{u}) : set α :=
-⋃ (j : {j // j < i}), ball (p.c (p.f j)) (p.r (p.f j))
+⋃ (j : {j // j < i}), ball (p.c (p.index j)) (p.r (p.index j))
 
 lemma monotone_Union_up_to : monotone p.Union_up_to :=
 begin
@@ -193,8 +202,8 @@ supr (λ b : {b : β // p.c b ∉ p.Union_up_to i}, p.r b)
 it does not intersect any already chosen ball of this color. -/
 noncomputable def color : ordinal.{u} → ℕ
 | i := let A : set ℕ := ⋃ (j : {j // j < i})
-          (hj : (closed_ball (p.c (p.f j)) (p.r (p.f j))
-            ∩ closed_ball (p.c (p.f i)) (p.r (p.f i))).nonempty), {color j} in
+          (hj : (closed_ball (p.c (p.index j)) (p.r (p.index j))
+            ∩ closed_ball (p.c (p.index i)) (p.r (p.index i))).nonempty), {color j} in
        Inf (univ \ A)
 using_well_founded {dec_tac := `[exact j.2]}
 
@@ -207,23 +216,23 @@ lemma last_step_nonempty :
   {i | ¬ ∃ (b : β), p.c b ∉ p.Union_up_to i ∧ p.R i ≤ p.τ * p.r b}.nonempty :=
 begin
   by_contra,
-  suffices H : function.injective p.f, from not_injective_of_ordinal p.f H,
+  suffices H : function.injective p.index, from not_injective_of_ordinal p.index H,
   assume x y hxy,
   wlog x_le_y : x ≤ y := le_total x y using [x y, y x],
   rcases eq_or_lt_of_le x_le_y with rfl|H, { refl },
   simp only [nonempty_def, not_exists, exists_prop, not_and, not_lt, not_le, mem_set_of_eq,
     not_forall] at h,
   specialize h y,
-  have A : p.c (p.f y) ∉ p.Union_up_to y,
-  { have : p.f y = classical.epsilon (λ b : β, p.c b ∉ p.Union_up_to y ∧ p.R y ≤ p.τ * p.r b),
-      by { rw [tau_package.f], refl },
+  have A : p.c (p.index y) ∉ p.Union_up_to y,
+  { have : p.index y = classical.epsilon (λ b : β, p.c b ∉ p.Union_up_to y ∧ p.R y ≤ p.τ * p.r b),
+      by { rw [tau_package.index], refl },
     rw this,
     exact (classical.epsilon_spec h).1 },
   simp only [Union_up_to, not_exists, exists_prop, mem_Union, mem_closed_ball, not_and, not_le,
               subtype.exists, subtype.coe_mk] at A,
   specialize A x H,
   simp [hxy] at A,
-  exact (lt_irrefl _ ((p.rpos (p.f y)).trans_le A)).elim
+  exact (lt_irrefl _ ((p.rpos (p.index y)).trans_le A)).elim
 end
 
 /-- Every point is covered by chosen balls, before `p.last_step`. -/
@@ -266,8 +275,8 @@ begin
   the assumption `hN`. -/
   induction i using ordinal.induction with i IH,
   let A : set ℕ := ⋃ (j : {j // j < i})
-         (hj : (closed_ball (p.c (p.f j)) (p.r (p.f j))
-            ∩ closed_ball (p.c (p.f i)) (p.r (p.f i))).nonempty), {p.color j},
+         (hj : (closed_ball (p.c (p.index j)) (p.r (p.index j))
+            ∩ closed_ball (p.c (p.index i)) (p.r (p.index i))).nonempty), {p.color j},
   have color_i : p.color i = Inf (univ \ A), by rw [color],
   rw color_i,
   have N_mem : N ∈ univ \ A,
@@ -281,7 +290,8 @@ begin
     { exact (this H).elim } },
   assume Inf_eq_N,
   have : ∀ k, k < N → ∃ j, j < i
-    ∧ (closed_ball (p.c (p.f j)) (p.r (p.f j)) ∩ closed_ball (p.c (p.f i)) (p.r (p.f i))).nonempty
+    ∧ (closed_ball (p.c (p.index j)) (p.r (p.index j))
+        ∩ closed_ball (p.c (p.index i)) (p.r (p.index i))).nonempty
     ∧ k = p.color j,
   { assume k hk,
     rw ← Inf_eq_N at hk,
@@ -305,10 +315,10 @@ begin
     { simp only [G], simp only [hi, if_true, eq_self_iff_true], },
     { simp only [G], simp only [H.ne, (hg n H).left.trans hi, if_false] } },
   have fGn : ∀ n, n ≤ N →
-    p.c (p.f (G n)) ∉ p.Union_up_to (G n) ∧ p.R (G n) ≤ p.τ * p.r (p.f (G n)),
+    p.c (p.index (G n)) ∉ p.Union_up_to (G n) ∧ p.R (G n) ≤ p.τ * p.r (p.index (G n)),
   { assume n hn,
-    have: p.f (G n) = classical.epsilon
-      (λ t, p.c t ∉ p.Union_up_to (G n) ∧ p.R (G n) ≤ p.τ * p.r t), by { rw f, refl },
+    have: p.index (G n) = classical.epsilon
+      (λ t, p.c t ∉ p.Union_up_to (G n) ∧ p.R (G n) ≤ p.τ * p.r t), by { rw index, refl },
     rw this,
     have : ∃ t, p.c t ∉ p.Union_up_to (G n) ∧ p.R (G n) ≤ p.τ * p.r t,
       by simpa only [not_exists, exists_prop, not_and, not_lt, not_le, mem_set_of_eq,
@@ -316,8 +326,8 @@ begin
     exact classical.epsilon_spec this },
   -- the balls with indices `G k` satisfy the characteristic property of satellite configurations.
   have Gab : ∀ (a b : fin (nat.succ N)), G a < G b →
-    p.r (p.f (G a)) ≤ dist (p.c (p.f (G a))) (p.c (p.f (G b)))
-      ∧ p.r (p.f (G b)) ≤ p.τ * p.r (p.f (G a)),
+    p.r (p.index (G a)) ≤ dist (p.c (p.index (G a))) (p.c (p.index (G b)))
+      ∧ p.r (p.index (G b)) ≤ p.τ * p.r (p.index (G a)),
   { assume a b G_lt,
     have ha : (a : ℕ) ≤ N := nat.lt_succ_iff.1 a.2,
     have hb : (b : ℕ) ≤ N := nat.lt_succ_iff.1 b.2,
@@ -327,9 +337,9 @@ begin
         not_le, subtype.exists, subtype.coe_mk] at this,
       simpa only [dist_comm, mem_ball, not_lt] using this (G a) G_lt },
     { apply le_trans _ (fGn a ha).2,
-      have B : p.c (p.f (G b)) ∉ p.Union_up_to (G a),
+      have B : p.c (p.index (G b)) ∉ p.Union_up_to (G a),
       { assume H, exact (fGn b hb).1 (p.monotone_Union_up_to G_lt.le H) },
-      let b' : {t // p.c t ∉ p.Union_up_to (G a)} := ⟨p.f (G b), B⟩,
+      let b' : {t // p.c t ∉ p.Union_up_to (G a)} := ⟨p.index (G b), B⟩,
       apply @le_csupr _ _ _ (λ t : {t // p.c t ∉ p.Union_up_to (G a)}, p.r t) _ b',
       refine ⟨p.r_bound, λ t ht, _⟩,
       simp only [exists_prop, mem_range, subtype.exists, subtype.coe_mk] at ht,
@@ -338,9 +348,9 @@ begin
       exact p.r_le _ } },
   -- therefore, one may use them to construct a satellite configuration with `N+1` points
   let sc : satellite_config α N p.τ :=
-  { c := λ k, p.c (p.f (G k)),
-    r := λ k, p.r (p.f (G k)),
-    rpos := λ k, p.rpos (p.f (G k)),
+  { c := λ k, p.c (p.index (G k)),
+    r := λ k, p.r (p.index (G k)),
+    rpos := λ k, p.rpos (p.index (G k)),
     h := begin
       assume a b a_ne_b,
       wlog G_le : G a ≤ G b := le_total (G a) (G b) using [a b, b a] tactic.skip,
@@ -375,9 +385,9 @@ end tau_package
 
 open tau_package
 
-/-- The Besicovitch covering theorem: there exist finitely many families of disjoint balls covering
-all the centers in a package. More specifically, one can use `N` families if there are no
-satellite configurations with `N+1` points. -/
+/-- The topological Besicovitch covering theorem: there exist finitely many families of disjoint
+balls covering all the centers in a package. More specifically, one can use `N` families if there
+are no satellite configurations with `N+1` points. -/
 theorem exist_disjoint_covering_families {N : ℕ} {τ : ℝ}
   (hτ : 1 < τ) (hN : is_empty (satellite_config α N τ)) (q : ball_package β α) :
   ∃ s : fin N → set β,
@@ -394,15 +404,17 @@ begin
   let p : tau_package β α := { τ := τ, one_lt_tau := hτ, .. q },
   -- we use for `s i` the balls of color `i`.
   let s := λ (i : fin N),
-    ⋃ (k : ordinal.{u}) (hk : k < p.last_step) (h'k : p.color k = i), ({p.f k} : set β),
+    ⋃ (k : ordinal.{u}) (hk : k < p.last_step) (h'k : p.color k = i), ({p.index k} : set β),
   refine ⟨s, λ i, _, _⟩,
   { -- show that balls of the same color are disjoint
     simp only [function.on_fun],
     assume x hx y hy x_ne_y,
-    obtain ⟨jx, jx_lt, jxi, rfl⟩ : ∃ (jx : ordinal), jx < p.last_step ∧ p.color jx = i ∧ x = p.f jx,
-      by simpa only [exists_prop, mem_Union, mem_singleton_iff] using hx,
-    obtain ⟨jy, jy_lt, jyi, rfl⟩ : ∃ (jy : ordinal), jy < p.last_step ∧ p.color jy = i ∧ y = p.f jy,
-      by simpa only [exists_prop, mem_Union, mem_singleton_iff] using hy,
+    obtain ⟨jx, jx_lt, jxi, rfl⟩ :
+      ∃ (jx : ordinal), jx < p.last_step ∧ p.color jx = i ∧ x = p.index jx,
+        by simpa only [exists_prop, mem_Union, mem_singleton_iff] using hx,
+    obtain ⟨jy, jy_lt, jyi, rfl⟩ :
+      ∃ (jy : ordinal), jy < p.last_step ∧ p.color jy = i ∧ y = p.index jy,
+        by simpa only [exists_prop, mem_Union, mem_singleton_iff] using hy,
     wlog jxy : jx ≤ jy := le_total jx jy using [jx jy, jy jx] tactic.skip,
     swap,
     { assume h1 h2 h3 h4 h5 h6 h7,
@@ -411,8 +423,8 @@ begin
     replace jxy : jx < jy,
       by { rcases lt_or_eq_of_le jxy with H|rfl, { exact H }, { exact (x_ne_y rfl).elim } },
     let A : set ℕ := ⋃ (j : {j // j < jy})
-         (hj : (closed_ball (p.c (p.f j)) (p.r (p.f j))
-            ∩ closed_ball (p.c (p.f jy)) (p.r (p.f jy))).nonempty), {p.color j},
+         (hj : (closed_ball (p.c (p.index j)) (p.r (p.index j))
+            ∩ closed_ball (p.c (p.index jy)) (p.r (p.index jy))).nonempty), {p.color j},
     have color_j : p.color jy = Inf (univ \ A), by rw [tau_package.color],
     have : p.color jy ∈ univ \ A,
     { rw color_j,
@@ -429,12 +441,13 @@ begin
     simpa only [jxi, jyi, and_true, eq_self_iff_true, ← not_disjoint_iff_nonempty_inter] },
   { -- show that the balls of color at most `N` cover every center.
     refine range_subset_iff.2 (λ b, _),
-    obtain ⟨a, ha⟩ : ∃ (a : ordinal), a < p.last_step ∧ dist (p.c b) (p.c (p.f a)) < p.r (p.f a),
+    obtain ⟨a, ha⟩ :
+      ∃ (a : ordinal), a < p.last_step ∧ dist (p.c b) (p.c (p.index a)) < p.r (p.index a),
       by simpa only [Union_up_to, exists_prop, mem_Union, mem_ball, subtype.exists, subtype.coe_mk]
         using p.mem_Union_up_to_last_step b,
     simp only [exists_prop, mem_Union, mem_ball, mem_singleton_iff, bUnion_and', exists_eq_left,
       Union_exists, exists_and_distrib_left],
-    exact ⟨⟨p.color a, p.color_lt ha.1 hN⟩, p.f a, ⟨a, rfl, ha.1, rfl⟩, ha.2⟩ }
+    exact ⟨⟨p.color a, p.color_lt ha.1 hN⟩, p.index a, ⟨a, rfl, ha.1, rfl⟩, ha.2⟩ }
 end
 
 end besicovitch

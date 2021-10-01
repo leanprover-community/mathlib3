@@ -139,7 +139,10 @@ begin
 end
 
 /-- Given a presieve on `F(X)`, we can define a presieve on `X` by taking the preimage via `F`. -/
-def functor_pullback {X : C} (R : presieve (F.obj X)) : presieve X := λ Y f, R (F.map f)
+def functor_pullback {X : C} (R : presieve (F.obj X)) : presieve X := λ _ f, R (F.map f)
+
+@[simp] lemma functor_pullback_apply {X : C} (R : presieve (F.obj X)) {Y} (f : Y ⟶ X) :
+  R.functor_pullback F f ↔ R (F.map f) := by unfold functor_pullback
 
 end presieve
 
@@ -444,17 +447,17 @@ end
 /--
 If `R` is a sieve, then the `category_theory.presieve.functor_pullback` of `R` is actually a sieve.
 -/
-def functor_pullback {X : C} (R : sieve (F.obj X)) : sieve X := 
-{ arrows := presieve.functor_pullback F R,
-  downward_closed' := λ _ _ f hf g, by {
+def functor_pullback {X : C} (R : sieve (F.obj X)) : sieve X := {
+  arrows := presieve.functor_pullback F R,
+  downward_closed' := λ _ _ f hf g,
+  begin
     unfold presieve.functor_pullback,
     rw F.map_comp,
     exact R.downward_closed hf (F.map g),
-  }
-}
+  end }
 
 @[simp] lemma functor_pullback_id {X : C} (R : sieve X) : R.functor_pullback (𝟭 _) = R :=
-by { cases R, unfold functor_pullback, congr }
+by { ext, simpa }
 
 /-- A sieve induces a presheaf. -/
 @[simps]

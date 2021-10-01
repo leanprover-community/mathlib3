@@ -29,9 +29,9 @@ open polynomial function fin nat linear_map
 
 instance comm_ring_strong_rank_condition : strong_rank_condition R :=
 begin
--- It is enough to prove that for all `n`, any `f: (fin (n + 1) → R) →ₗ[R] fin n → R`
--- is not injective. By contradiction, we assume that `f` is injective.
-  apply (strong_rank_condition_iff_succ R).2 (λ n f hf, _),
+  suffices : ∀ n, ∀ f : (fin (n + 1) → R) →ₗ[R] fin n → R, ¬injective f,
+  { rwa strong_rank_condition_iff_succ R },
+  intros n f, by_contradiction hf,
 
   letI := module.finite.of_basis (pi.basis_fun R (fin (n + 1))),
 

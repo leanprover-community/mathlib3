@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 
-import topology.opens
-import category_theory.sites.grothendieck
-import category_theory.sites.pretopology
+import topology.sheaves.sheaf
+import category_theory.sites.sheaf
 import category_theory.limits.lattice
 
 /-!
@@ -32,12 +31,13 @@ We define the two separately, rather than defining the Grothendieck topology as 
 by the pretopology for the purpose of having nice definitional properties for the sieves.
 -/
 
-universe u
+universes u v
+
+open category_theory topological_space Top Top.presheaf category_theory.limits
 
 namespace opens
-variables (T : Type u) [topological_space T]
 
-open category_theory topological_space category_theory.limits
+variables (T : Type u) [topological_space T]
 
 /-- The Grothendieck topology associated to a topological space. -/
 def grothendieck_topology : grothendieck_topology (opens T) :=
@@ -92,3 +92,88 @@ begin
 end
 
 end opens
+
+noncomputable theory
+
+namespace is_sheaf_spaces_of_is_sheaf_sites
+
+open Top.presheaf.sheaf_condition_equalizer_products
+open opposite
+
+variables {C : Type u} [category.{v} C] [has_products C]
+variables {X : Top.{v}} (F : presheaf C X)
+variables (U : opens X) (R : presieve U)
+
+def covering_of_presieve : (Σ V, {f : V ⟶ U // R f}) ⟶ opens X :=
+λ f, f.1
+
+@[simp]
+lemma covering_of_presieve_eq (f : Σ V, {f : V ⟶ U // R f}) : covering_of_presieve U R f = f.1 :=
+rfl
+
+def first_obj_iso_pi_opens : presheaf.first_obj R F ≅ pi_opens F (covering_of_presieve U R) :=
+eq_to_iso rfl
+
+lemma first_obj_iso_pi_opens_π (f : Σ V, {f : V ⟶ U // R f}) :
+  (first_obj_iso_pi_opens F U R).hom ≫ limit.π _ f = limit.π _ f :=
+begin dsimp [first_obj_iso_pi_opens], rw category.id_comp, end
+
+def second_obj_iso_pi_inters :
+  presheaf.second_obj R F ≅ pi_inters F (covering_of_presieve U R) :=
+has_limit.iso_of_nat_iso $ discrete.nat_iso $ λ i, eq_to_iso $
+begin
+  dsimp,
+  rw complete_lattice.pullback_eq_inf,
+end
+
+lemma second_obj_iso_pi_inters_π (f g : Σ V, {f : V ⟶ U // R f}) :
+  (second_obj_iso_pi_inters F U R).hom ≫ limit.π _ (f, g) =
+  limit.π _ (f, g) ≫ eq_to_hom
+    (begin congr, ext fg, rw complete_lattice.pullback_eq_inf, refl end) :=
+begin
+  dsimp [second_obj_iso_pi_inters],
+  rw has_limit.iso_of_nat_iso_hom_π,
+  refl,
+end
+
+lemma res_pullback_fst_comp_eq_to_hom_eq (f g : Σ V, {f : V ⟶ U // R f}) :
+  F.map pullback.fst.op ≫ eq_to_hom (show F.obj (op (pullback f.2.1 g.2.1)) = _,
+    by { congr, rw complete_lattice.pullback_eq_inf }) =
+  F.map (opens.inf_le_left f.1 g.1).op :=
+begin
+  rw [← eq_to_hom_map F, ← eq_to_hom_op, ← F.map_comp], refl,
+  rw complete_lattice.pullback_eq_inf,
+end
+
+lemma res_pullback_snd_comp_eq_to_hom_eq (f g : Σ V, {f : V ⟶ U // R f}) :
+  F.map pullback.snd.op ≫ eq_to_hom (show F.obj (op (pullback f.2.1 g.2.1)) = _,
+    by { congr, rw complete_lattice.pullback_eq_inf }) =
+  F.map (opens.inf_le_right f.1 g.1).op :=
+begin
+  rw [← eq_to_hom_map F, ← eq_to_hom_op, ← F.map_comp], refl,
+  rw complete_lattice.pullback_eq_inf,
+end
+
+lemma first_obj_iso_comp_left_res_eq :
+  (first_obj_iso_pi_opens F U R).hom ≫ left_res F (covering_of_presieve U R) =
+  presheaf.first_map R F ≫ (second_obj_iso_pi_inters F U R).hom :=
+begin
+  ext ⟨f, g⟩,
+  rw [category.assoc, category.assoc, second_obj_iso_pi_inters_π],
+  dsimp [left_res, presheaf.first_map],
+  rw [limit.lift_π, fan.mk_π_app, limit.lift_π_assoc, fan.mk_π_app, ← category.assoc],
+  erw [first_obj_iso_pi_opens_π, category.assoc, res_pullback_fst_comp_eq_to_hom_eq],
+end
+
+lemma first_obj_iso_comp_right_res_eq :
+  (first_obj_iso_pi_opens F U R).hom ≫ right_res F (covering_of_presieve U R) =
+  presheaf.second_map R F ≫ (second_obj_iso_pi_inters F U R).hom :=
+begin
+  ext ⟨f, g⟩,
+  rw [category.assoc, category.assoc, second_obj_iso_pi_inters_π],
+  dsimp [right_res, presheaf.second_map],
+  rw [limit.lift_π, fan.mk_π_app, limit.lift_π_assoc, fan.mk_π_app, ← category.assoc],
+  erw [first_obj_iso_pi_opens_π, category.assoc, res_pullback_snd_comp_eq_to_hom_eq],
+end
+
+end is_sheaf_spaces_of_is_sheaf_sites

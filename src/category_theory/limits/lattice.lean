@@ -106,7 +106,7 @@ calc limits.coprod x y = colimit (pair x y) : rfl
 The pullback in the category of a `semilattice_inf_top` is the same as the infimum over the objects.
 -/
 @[simp]
-lemma pullback_eq_inf [semilattice_inf_top α] (x y z : α) (f : x ⟶ z) (g : y ⟶ z) :
+lemma pullback_eq_inf [semilattice_inf_top α] {x y z : α} (f : x ⟶ z) (g : y ⟶ z) :
   pullback f g = x ⊓ y :=
 calc pullback f g = limit (cospan f g) : rfl
 ... = finset.univ.inf (cospan f g).obj : by rw finite_limit_eq_finset_univ_inf

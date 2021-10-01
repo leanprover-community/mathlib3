@@ -47,6 +47,7 @@ jobs:
 
   style_lint:
     if: github.repository == 'leanprover-community/mathlib'
+    needs: cancel
     name: Lint style
     runs-on: ubuntu-latest
     steps:
@@ -64,6 +65,7 @@ jobs:
 
   build:
     if: github.repository == 'leanprover-community/mathlib'
+    needs: cancel
     name: Build mathlib
     runs-on: pr
     env:
@@ -244,7 +246,7 @@ jobs:
   final:
     name: Post-CI job
     if: always() && github.repository == 'leanprover-community/mathlib'
-    needs: [build, lint, tests]
+    needs: [style_lint, build, lint, tests]
     runs-on: ubuntu-latest
     steps:
       - id: remove_labels

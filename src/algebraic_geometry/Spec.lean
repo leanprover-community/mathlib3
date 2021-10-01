@@ -23,9 +23,14 @@ We define $Spec$ in three consecutive steps, each with more structure than the l
 Additionally, we provide `Spec.to_PresheafedSpace` as a composition of `Spec.to_SheafedSpace` with
 a forgetful functor.
 
-## Future work
+## In progress
 
-Adjunction between `Γ` and `Spec`
+Adjunction between `Γ` and `Spec`: Currently, the counit of the adjunction is proven to be a
+natural transformation in `Spec_Γ_naturality`, and realized as a natural isomorphism in
+`Spec_Γ_identity`.
+
+TODO: provide the unit, and prove the triangle identities.
+
 
 -/
 
@@ -211,5 +216,24 @@ Spec, as a contravariant functor from commutative rings to locally ringed spaces
   map_id' := λ R, by rw [unop_id, Spec.LocallyRingedSpace_map_id],
   map_comp' := λ R S T f g, by rw [unop_comp, Spec.LocallyRingedSpace_map_comp] }
 
+section Spec_Γ
+open algebraic_geometry.LocallyRingedSpace
+
+/-- The morphism `R ⟶ Γ(Spec R)` given by `algebraic_geometry.structure_sheaf.to_open`.  -/
+@[simps] def to_Spec_Γ (R : CommRing) : R ⟶ Γ.obj (op (Spec.to_LocallyRingedSpace.obj (op R))) :=
+structure_sheaf.to_open R ⊤
+
+instance is_iso_to_Spec_Γ (R : CommRing) : is_iso (to_Spec_Γ R) :=
+by { cases R, apply structure_sheaf.is_iso_to_global }
+
+lemma Spec_Γ_naturality {R S : CommRing} (f : R ⟶ S) :
+  f ≫ to_Spec_Γ S = to_Spec_Γ R ≫ Γ.map (Spec.to_LocallyRingedSpace.map f.op).op :=
+by { ext, symmetry, apply localization.local_ring_hom_to_map }
+
+/-- The counit of the adjunction `Γ ⊣ Spec` is an isomorphism. -/
+@[simps] def Spec_Γ_identity : Spec.to_LocallyRingedSpace.right_op ⋙ Γ ≅ 𝟭 _ :=
+iso.symm $ nat_iso.of_components (λ R, as_iso (to_Spec_Γ R) : _) (λ _ _, Spec_Γ_naturality)
+
+end Spec_Γ
 
 end algebraic_geometry

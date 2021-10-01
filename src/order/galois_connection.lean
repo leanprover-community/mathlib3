@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import order.complete_lattice
-import order.rel_iso
 import order.order_dual
 /-!
 # Galois connections, insertions and coinsertions
@@ -89,7 +88,7 @@ lemma monotone_u : monotone u :=
 λ a b H, gc.le_u ((gc.l_u_le a).trans H)
 
 lemma monotone_l : monotone l :=
-gc.dual.monotone_u.order_dual
+gc.dual.monotone_u.dual
 
 lemma upper_bounds_l_image (s : set α) : upper_bounds (l '' s) = u ⁻¹' upper_bounds s :=
 set.ext $ λ b, by simp [upper_bounds, gc _ _]
@@ -461,7 +460,7 @@ def galois_coinsertion.monotone_intro [preorder α] [preorder β] {l : α → β
   (hu : monotone u) (hl : monotone l) (hlu : ∀ b, l (u b) ≤ b)
   (hul : ∀ a, u (l a) = a) :
   galois_coinsertion l u :=
-galois_coinsertion.of_dual (galois_insertion.monotone_intro hl.order_dual hu.order_dual hlu hul)
+galois_coinsertion.of_dual (galois_insertion.monotone_intro hl.dual hu.dual hlu hul)
 
 /-- Make a `galois_coinsertion l u` from a `galois_connection l u` such that `∀ b, b ≤ l (u b)` -/
 def galois_connection.to_galois_coinsertion {α β : Type*} [preorder α] [preorder β]

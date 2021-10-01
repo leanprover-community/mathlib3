@@ -234,7 +234,7 @@ begin
     abel },
   have hvww : x + (v + w) + w ∈ interior s,
   { convert s_conv.interior.add_smul_sub_mem h2w h2v2w B using 1,
-    simp only [one_div, add_sub_cancel', inv_smul_smul', add_sub_add_right_eq_sub, ne.def,
+    simp only [one_div, add_sub_cancel', inv_smul_smul₀, add_sub_add_right_eq_sub, ne.def,
       not_false_iff, bit0_eq_zero, one_ne_zero],
     rw two_smul,
     abel },

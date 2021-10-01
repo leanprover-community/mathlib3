@@ -262,6 +262,22 @@ lemma to_quotient_map {f : α → β}
       exact open_map _ h }
   end⟩
 
+lemma interior_preimage_subset_preimage_interior {s : set β} (hf : is_open_map f) :
+  interior (f⁻¹' s) ⊆ f⁻¹' (interior s) :=
+begin
+  rw ← set.image_subset_iff,
+  refine interior_maximal _ (hf _ is_open_interior),
+  rw set.image_subset_iff,
+  exact interior_subset,
+end
+
+lemma preimage_interior_eq_interior_preimage {s : set β}
+  (hf₁ : continuous f) (hf₂ : is_open_map f) :
+  f⁻¹' (interior s) = interior (f⁻¹' s) :=
+subset.antisymm
+  (preimage_interior_subset_interior_preimage hf₁)
+  (interior_preimage_subset_preimage_interior hf₂)
+
 end is_open_map
 
 lemma is_open_map_iff_nhds_le [topological_space α] [topological_space β] {f : α → β} :

@@ -106,7 +106,7 @@ instance : has_continuous_sub ℝ≥0 :=
   ((continuous_coe.comp continuous_fst).sub
    (continuous_coe.comp continuous_snd)).max continuous_const⟩
 
-instance : has_continuous_inv' ℝ≥0 :=
+instance : has_continuous_inv₀ ℝ≥0 :=
 ⟨λ x hx, tendsto_coe.1 $ (real.tendsto_inv $ nnreal.coe_ne_zero.2 hx).comp
   continuous_coe.continuous_at⟩
 

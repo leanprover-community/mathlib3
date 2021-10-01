@@ -776,8 +776,8 @@ open finite_dimensional
 variables {V : Type u} {K : Type v} [field K] [add_comm_group V] [module K V]
 variable [finite_dimensional K V]
 
-/-- Given a symmetric bilinear form `B` on some vector space `V` over the
-field `K` with invertible `2`, there exists an orthogonal basis with respect to `B`. -/
+/-- Given a symmetric bilinear form `B` on some vector space `V` over a field `K`
+in which `2` is invertible, there exists an orthogonal basis with respect to `B`. -/
 lemma exists_orthogonal_basis [hK : invertible (2 : K)]
   {B : bilin_form K V} (hB₂ : sym_bilin_form.is_sym B) :
   ∃ (v : basis (fin (finrank K V)) K V), B.is_Ortho v :=

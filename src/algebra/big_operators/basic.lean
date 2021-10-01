@@ -1316,7 +1316,7 @@ begin
   { push_neg at h,
     have h' := prod_ne_zero_iff.mpr h,
     have hf : ∀ x ∈ s, (f x)⁻¹ * f x = 1 := λ x hx, inv_mul_cancel (h x hx),
-    apply mul_right_cancel' h',
+    apply mul_right_cancel₀ h',
     simp [h, h', ← finset.prod_mul_distrib, prod_congr rfl hf] }
 end
 

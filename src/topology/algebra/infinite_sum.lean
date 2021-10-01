@@ -285,7 +285,7 @@ lemma has_sum.even_add_odd {f : ℕ → α} (he : has_sum (λ k, f (2 * k)) a)
   (ho : has_sum (λ k, f (2 * k + 1)) b) :
   has_sum f (a + b) :=
 begin
-  have := mul_right_injective' (@two_ne_zero ℕ _ _),
+  have := mul_right_injective₀ (@two_ne_zero ℕ _ _),
   replace he := this.has_sum_range_iff.2 he,
   replace ho := ((add_left_injective 1).comp this).has_sum_range_iff.2 ho,
   refine he.add_is_compl _ ho,
@@ -781,16 +781,16 @@ lemma summable.div_const (h : summable f) (b : α) : summable (λ x, f x / b) :=
 (h.has_sum.div_const b).summable
 
 lemma has_sum_mul_left_iff (h : a₂ ≠ 0) : has_sum f a₁ ↔ has_sum (λb, a₂ * f b) (a₂ * a₁) :=
-⟨has_sum.mul_left _, λ H, by simpa only [inv_mul_cancel_left' h] using H.mul_left a₂⁻¹⟩
+⟨has_sum.mul_left _, λ H, by simpa only [inv_mul_cancel_left₀ h] using H.mul_left a₂⁻¹⟩
 
 lemma has_sum_mul_right_iff (h : a₂ ≠ 0) : has_sum f a₁ ↔ has_sum (λb, f b * a₂) (a₁ * a₂) :=
-⟨has_sum.mul_right _, λ H, by simpa only [mul_inv_cancel_right' h] using H.mul_right a₂⁻¹⟩
+⟨has_sum.mul_right _, λ H, by simpa only [mul_inv_cancel_right₀ h] using H.mul_right a₂⁻¹⟩
 
 lemma summable_mul_left_iff (h : a ≠ 0) : summable f ↔ summable (λb, a * f b) :=
-⟨λ H, H.mul_left _, λ H, by simpa only [inv_mul_cancel_left' h] using H.mul_left a⁻¹⟩
+⟨λ H, H.mul_left _, λ H, by simpa only [inv_mul_cancel_left₀ h] using H.mul_left a⁻¹⟩
 
 lemma summable_mul_right_iff (h : a ≠ 0) : summable f ↔ summable (λb, f b * a) :=
-⟨λ H, H.mul_right _, λ H, by simpa only [mul_inv_cancel_right' h] using H.mul_right a⁻¹⟩
+⟨λ H, H.mul_right _, λ H, by simpa only [mul_inv_cancel_right₀ h] using H.mul_right a⁻¹⟩
 
 lemma tsum_mul_left [t2_space α] : (∑' x, a * f x) = a * ∑' x, f x :=
 if hf : summable f then hf.tsum_mul_left a

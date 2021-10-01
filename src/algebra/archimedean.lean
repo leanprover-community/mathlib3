@@ -185,7 +185,7 @@ begin
   { use 1, simp only [pow_one], linarith, },
   rw [not_le] at y_pos,
   rcases pow_unbounded_of_one_lt (x⁻¹) (one_lt_inv y_pos hy) with ⟨q, hq⟩,
-  exact ⟨q, by rwa [inv_pow', inv_lt_inv hx (pow_pos y_pos _)] at hq⟩
+  exact ⟨q, by rwa [inv_pow₀, inv_lt_inv hx (pow_pos y_pos _)] at hq⟩
 end
 
 /-- Given `x` and `y` between `0` and `1`, `x` is between two successive powers of `y`.
@@ -197,8 +197,8 @@ begin
   rcases exists_nat_pow_near (one_le_inv_iff.2 ⟨xpos, hx⟩) (one_lt_inv_iff.2 ⟨ypos, hy⟩)
     with ⟨n, hn, h'n⟩,
   refine ⟨n, _, _⟩,
-  { rwa [inv_pow', inv_lt_inv xpos (pow_pos ypos _)] at h'n },
-  { rwa [inv_pow', inv_le_inv (pow_pos ypos _) xpos] at hn }
+  { rwa [inv_pow₀, inv_lt_inv xpos (pow_pos ypos _)] at h'n },
+  { rwa [inv_pow₀, inv_le_inv (pow_pos ypos _) xpos] at hn }
 end
 
 variables [floor_ring α]

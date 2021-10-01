@@ -447,7 +447,7 @@ lemma smul_set_inter [group α] [mul_action α β] {s t : set β} :
   a • (s ∩ t) = a • s ∩ a • t :=
 (image_inter $ mul_action.injective a).symm
 
-lemma smul_set_inter' [group_with_zero α] [mul_action α β] {s t : set β} (ha : a ≠ 0) :
+lemma smul_set_inter₀ [group_with_zero α] [mul_action α β] {s t : set β} (ha : a ≠ 0) :
   a • (s ∩ t) = a • s ∩ a • t :=
 show units.mk0 a ha • _ = _, from smul_set_inter
 
@@ -662,32 +662,32 @@ end group
 section group_with_zero
 variables [group_with_zero α] [mul_action α β]
 
-@[simp] lemma smul_mem_smul_set_iff' {a : α} (ha : a ≠ 0) (A : set β)
+@[simp] lemma smul_mem_smul_set_iff₀ {a : α} (ha : a ≠ 0) (A : set β)
   (x : β) : a • x ∈ a • A ↔ x ∈ A :=
 show units.mk0 a ha • _ ∈ _ ↔ _, from smul_mem_smul_set_iff
 
-lemma mem_smul_set_iff_inv_smul_mem' {a : α} (ha : a ≠ 0) (A : set β) (x : β) :
+lemma mem_smul_set_iff_inv_smul_mem₀ {a : α} (ha : a ≠ 0) (A : set β) (x : β) :
   x ∈ a • A ↔ a⁻¹ • x ∈ A :=
 show _ ∈ units.mk0 a ha • _ ↔ _, from mem_smul_set_iff_inv_smul_mem
 
-lemma mem_inv_smul_set_iff' {a : α} (ha : a ≠ 0) (A : set β) (x : β) : x ∈ a⁻¹ • A ↔ a • x ∈ A :=
+lemma mem_inv_smul_set_iff₀ {a : α} (ha : a ≠ 0) (A : set β) (x : β) : x ∈ a⁻¹ • A ↔ a • x ∈ A :=
 show _ ∈ (units.mk0 a ha)⁻¹ • _ ↔ _, from mem_inv_smul_set_iff
 
-lemma preimage_smul' {a : α} (ha : a ≠ 0) (t : set β) : (λ x, a • x) ⁻¹' t = a⁻¹ • t :=
+lemma preimage_smul₀ {a : α} (ha : a ≠ 0) (t : set β) : (λ x, a • x) ⁻¹' t = a⁻¹ • t :=
 preimage_smul (units.mk0 a ha) t
 
-lemma preimage_smul_inv' {a : α} (ha : a ≠ 0) (t : set β) :
+lemma preimage_smul_inv₀ {a : α} (ha : a ≠ 0) (t : set β) :
   (λ x, a⁻¹ • x) ⁻¹' t = a • t :=
 preimage_smul ((units.mk0 a ha)⁻¹) t
 
-@[simp] lemma set_smul_subset_set_smul_iff' {a : α} (ha : a ≠ 0) {A B : set β} :
+@[simp] lemma set_smul_subset_set_smul_iff₀ {a : α} (ha : a ≠ 0) {A B : set β} :
   a • A ⊆ a • B ↔ A ⊆ B :=
 show units.mk0 a ha • _ ⊆ _ ↔ _, from set_smul_subset_set_smul_iff
 
-lemma set_smul_subset_iff' {a : α} (ha : a ≠ 0) {A B : set β} : a • A ⊆ B ↔ A ⊆ a⁻¹ • B :=
+lemma set_smul_subset_iff₀ {a : α} (ha : a ≠ 0) {A B : set β} : a • A ⊆ B ↔ A ⊆ a⁻¹ • B :=
 show units.mk0 a ha • _ ⊆ _ ↔ _, from set_smul_subset_iff
 
-lemma subset_set_smul_iff' {a : α} (ha : a ≠ 0) {A B : set β} : A ⊆ a • B ↔ a⁻¹ • A ⊆ B :=
+lemma subset_set_smul_iff₀ {a : α} (ha : a ≠ 0) {A B : set β} : A ⊆ a • B ↔ a⁻¹ • A ⊆ B :=
 show _ ⊆ units.mk0 a ha • _ ↔ _, from subset_set_smul_iff
 
 end group_with_zero

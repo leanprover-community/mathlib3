@@ -115,23 +115,23 @@ end group
 /-- `monoid.to_mul_action` is faithful on nontrivial cancellative monoids with zero. -/
 instance cancel_monoid_with_zero.to_has_faithful_scalar [cancel_monoid_with_zero α] [nontrivial α] :
   has_faithful_scalar α α :=
-⟨λ x y h, mul_left_injective' one_ne_zero (h 1)⟩
+⟨λ x y h, mul_left_injective₀ one_ne_zero (h 1)⟩
 
 section gwz
 variables [group_with_zero α] [mul_action α β]
 
 @[simp]
-lemma inv_smul_smul' {c : α} (hc : c ≠ 0) (x : β) : c⁻¹ • c • x = x :=
+lemma inv_smul_smul₀ {c : α} (hc : c ≠ 0) (x : β) : c⁻¹ • c • x = x :=
 inv_smul_smul (units.mk0 c hc) x
 
 @[simp]
-lemma smul_inv_smul' {c : α} (hc : c ≠ 0) (x : β) : c • c⁻¹ • x = x :=
+lemma smul_inv_smul₀ {c : α} (hc : c ≠ 0) (x : β) : c • c⁻¹ • x = x :=
 smul_inv_smul (units.mk0 c hc) x
 
-lemma inv_smul_eq_iff' {a : α} (ha : a ≠ 0) {x y : β} : a⁻¹ • x = y ↔ x = a • y :=
+lemma inv_smul_eq_iff₀ {a : α} (ha : a ≠ 0) {x y : β} : a⁻¹ • x = y ↔ x = a • y :=
 (mul_action.to_perm (units.mk0 a ha)).symm_apply_eq
 
-lemma eq_inv_smul_iff' {a : α} (ha : a ≠ 0) {x y : β} : x = a⁻¹ • y ↔ a • x = y :=
+lemma eq_inv_smul_iff₀ {a : α} (ha : a ≠ 0) {x y : β} : x = a⁻¹ • y ↔ a • x = y :=
 (mul_action.to_perm (units.mk0 a ha)).eq_symm_apply
 
 end gwz

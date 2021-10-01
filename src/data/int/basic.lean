@@ -980,7 +980,7 @@ begin
   subst hk,
   rw [int.mul_div_cancel_left _ hb],
   rw mul_assoc at h,
-  apply mul_left_cancel' hb h
+  apply mul_left_cancel₀ hb h
 end
 
 /-- If an integer with larger absolute value divides an integer, it is

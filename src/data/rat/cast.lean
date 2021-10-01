@@ -88,7 +88,7 @@ end
   suffices : (n₁ * (d₂ * (d₂⁻¹ * d₁⁻¹)) +
     n₂ * (d₁ * d₂⁻¹) * d₁⁻¹ : α) = n₁ * d₁⁻¹ + n₂ * d₂⁻¹,
   { rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero, cast_mk_of_ne_zero],
-    { simpa [division_def, left_distrib, right_distrib, mul_inv_rev', d₁0, d₂0, mul_assoc] },
+    { simpa [division_def, left_distrib, right_distrib, mul_inv_rev₀, d₁0, d₂0, mul_assoc] },
     all_goals {simp [d₁0, d₂0]} },
   rw [← mul_assoc (d₂:α), mul_inv_cancel d₂0, one_mul,
       (nat.cast_commute _ _).eq], simp [d₁0, mul_assoc]
@@ -111,9 +111,9 @@ by simp [sub_eq_add_neg, (cast_add_of_ne_zero m0 this)]
   rw [num_denom', num_denom', mul_def d₁0' d₂0'],
   suffices : (n₁ * ((n₂ * d₂⁻¹) * d₁⁻¹) : α) = n₁ * (d₁⁻¹ * (n₂ * d₂⁻¹)),
   { rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero, cast_mk_of_ne_zero],
-    { simpa [division_def, mul_inv_rev', d₁0, d₂0, mul_assoc] },
+    { simpa [division_def, mul_inv_rev₀, d₁0, d₂0, mul_assoc] },
     all_goals {simp [d₁0, d₂0]} },
-  rw [(d₁.commute_cast (_:α)).inv_right'.eq]
+  rw [(d₁.commute_cast (_:α)).inv_right₀.eq]
 end
 
 @[norm_cast] theorem cast_inv_of_ne_zero : ∀ {n : ℚ},
@@ -146,7 +146,7 @@ by rw [division_def, cast_mul_of_ne_zero md (mt this nn), cast_inv_of_ne_zero nn
   have d₂a : (d₂:α) ≠ 0 := nat.cast_ne_zero.2 d₂0,
   rw [num_denom', num_denom'] at h ⊢,
   rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero] at h; simp [d₁0, d₂0] at h ⊢,
-  rwa [eq_div_iff_mul_eq d₂a, division_def, mul_assoc, (d₁.cast_commute (d₂:α)).inv_left'.eq,
+  rwa [eq_div_iff_mul_eq d₂a, division_def, mul_assoc, (d₁.cast_commute (d₂:α)).inv_left₀.eq,
     ← mul_assoc, ← division_def, eq_comm, eq_div_iff_mul_eq d₁a, eq_comm,
     ← int.cast_coe_nat, ← int.cast_mul, ← int.cast_coe_nat, ← int.cast_mul,
     int.cast_inj, ← mk_eq (int.coe_nat_ne_zero.2 d₁0) (int.coe_nat_ne_zero.2 d₂0)] at h

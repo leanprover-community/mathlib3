@@ -369,7 +369,7 @@ of_real.map_fpow r n
 by simp [inv_eq_one_div]
 
 @[simp] lemma norm_sq_inv (z : ℂ) : norm_sq z⁻¹ = (norm_sq z)⁻¹ :=
-norm_sq.map_inv' z
+norm_sq.map_inv z
 
 @[simp] lemma norm_sq_div (z w : ℂ) : norm_sq (z / w) = norm_sq z / norm_sq w :=
 norm_sq.map_div z w

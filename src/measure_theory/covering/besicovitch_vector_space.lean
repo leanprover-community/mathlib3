@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 
 import measure_theory.measure.haar_lebesgue
+import measure_theory.covering.besicovitch
 
 /-!
 # Satellite configurations for Besicovitch covering lemma in vector spaces
@@ -29,11 +30,6 @@ In particular, this number is bounded by `5 ^ dim` by a straightforward measure 
 
 ## Main definitions and results
 
-* `satellite_config α N τ` is the type of all satellite configurations of `N+1` points
-  in the metric space `α`, with parameter `τ`.
-* `has_besicovitch_covering` is a class recording that there exist `N` and `τ > 1` such that
-  there is no satellite configuration of `N+1` points with parameter `τ`. We show that
-  finite-dimensional real vector spaces satisfy this property.
 * `multiplicity E` is the maximal number of points one can put inside the unit ball
   of radius `2` in the vector space `E`, under the condition that their distances
   are bounded below by `1`.
@@ -51,64 +47,12 @@ open_locale ennreal topological_space
 
 noncomputable theory
 
-/-- A satellite configuration is a configuration of `N+1` points that shows up in the inductive
-construction for the Besicovitch covering theorem. It depends on some parameter `τ ≥ 1`.
-
-This is a family of balls (indexed by `i : fin N.succ`, with center `c i` and radius `r i`) such
-that the last ball intersects all the other balls (condition `inter`),
-and given any two balls there is an order between them, ensuring that the first ball does not
-contain the center of the other one, and the radius of the second ball can not be larger than
-the radius of the first ball (up to a factor `τ`). This order corresponds to the order of choice
-in the inductive construction: otherwise, the second ball would have been chosen before.
-This is the  condition `h`.
-
-Finally, the last ball is chosen after all the other ones, meaning that `h` can be strengthened
-by keeping only one side of the alternative in `hlast`.
--/
-@[nolint has_inhabited_instance]
-structure besicovitch.satellite_config (α : Type*) [metric_space α] (N : ℕ) (τ : ℝ) :=
-(c : fin N.succ → α)
-(r : fin N.succ → ℝ )
-(rpos : ∀ i, 0 < r i)
-(h : ∀ i j, i ≠ j → (r i ≤ dist (c i) (c j) ∧ r j ≤ τ * r i) ∨
-                    (r j ≤ dist (c j) (c i) ∧ r i ≤ τ * r j))
-(hlast : ∀ i < last N, r i ≤ dist (c i) (c (last N)) ∧ r (last N) ≤ τ * r i)
-(inter : ∀ i < last N, dist (c i) (c (last N)) ≤ r i + r (last N))
-
-/-- A metric space has the Besicovitch covering property if there exist `N` and `τ > 1` such that
-there are no satellite configuration of parameter `τ` with `N+1` points. This is the condition that
-guarantees that the Besicovitch covering theorem holds. It is satified by finite-dimensional
-real vector spaces. -/
-class has_besicovitch_covering (α : Type*) [metric_space α] : Prop :=
-(no_satellite_config : ∃ (N : ℕ) (τ : ℝ), 1 < τ ∧ is_empty (besicovitch.satellite_config α N τ))
-
 namespace besicovitch
-
 
 variables {E : Type*} [normed_group E]
 
 namespace satellite_config
-variables {N : ℕ} {τ : ℝ} (a : satellite_config E N τ)
-
-lemma inter' (i : fin N.succ) : dist (a.c i) (a.c (last N)) ≤ a.r i + a.r (last N) :=
-begin
-  rcases lt_or_le i (last N) with H|H,
-  { exact a.inter i H },
-  { have I : i = last N := top_le_iff.1 H,
-    have := (a.rpos (last N)).le,
-    simp only [I, add_nonneg this this, dist_self] }
-end
-
-lemma hlast' (i : fin N.succ) (h : 1 ≤ τ) : a.r (last N) ≤ τ * a.r i :=
-begin
-  rcases lt_or_le i (last N) with H|H,
-  { exact (a.hlast i H).2 },
-  { have : i = last N := top_le_iff.1 H,
-    rw this,
-    exact le_mul_of_one_le_left (a.rpos _).le h }
-end
-
-variable [normed_space ℝ E]
+variables [normed_space ℝ E] {N : ℕ} {τ : ℝ} (a : satellite_config E N τ)
 
 /-- Rescaling a satellite configuration in a vector space, to put the basepoint at `0` and the base
 radius at `1`. -/

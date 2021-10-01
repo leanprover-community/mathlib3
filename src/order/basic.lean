@@ -916,7 +916,7 @@ no_bot_order.no_bot
 
 /-- `a : α` is a bottom element of `α` if it is less than or equal to any other element of `α`.
 This predicate is useful, e.g., to make some statements and proofs work in both cases
-`[order_top α]` and `[no_top_order α]`. -/
+`[order_bot α]` and `[no_bot_order α]`. -/
 def is_bot {α : Type u} [has_le α] (a : α) : Prop := ∀ b, a ≤ b
 
 @[simp] lemma not_is_bot {α : Type u} [preorder α] [no_bot_order α] (a : α) : ¬is_bot a :=

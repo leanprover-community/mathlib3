@@ -34,9 +34,15 @@ class star_algebra (R : Type u) (A : Type v) [has_star R] [has_star A] [has_scal
   star (r • a) = star r • star a :=
 star_algebra.star_smul r a
 
-instance {R₁ R₂ : Type*} [semiring R₁] [semiring R₂] (e : R₁ ≃+* R₂) :
-  ring_hom_inv_pair (↑e : R₁ →+* R₂) ↑e.symm :=
-⟨e.symm_to_ring_hom_comp_to_ring_hom, e.symm.symm_to_ring_hom_comp_to_ring_hom⟩
+-- this doesn't work:
+/--
+instance star_ring_equiv.ring_hom_inv_pair {R : Type*} [semiring R] [star_ring R] :
+  ring_hom_inv_pair (↑(star_ring_equiv : R ≃+* Rᵒᵖ) : R →+* Rᵒᵖ) ↑star_ring_equiv.symm :=
+ring_hom_inv_pair.of_ring_equiv _
+-/
+
+-- this does
+attribute [instance] ring_hom_inv_pair.of_ring_equiv
 
 /-- If `A` is a left- and right- module over `R` with compatible actions, then `star` is a
 semilinear equivalence. -/

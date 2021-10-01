@@ -2848,13 +2848,38 @@ namespace is_compact
 
 variables [topological_space α] [measurable_space α] {μ : measure α} {s : set α}
 
-lemma is_finite_measure_of_nhds_within (hs : is_compact s) :
-  (∀ a ∈ s, μ.finite_at_filter (𝓝[s] a)) → μ s < ∞ :=
-by simpa only [← measure.compl_mem_cofinite, measure.finite_at_filter]
-  using hs.compl_mem_sets_of_nhds_within
+/-- If `s` is a compact set and `μ` is finite at `𝓝 x` for every `x ∈ s`, then `s` admits an open
+superset of finite measure. -/
+lemma exists_open_superset_measure_lt_top' (h : is_compact s)
+  (hμ : ∀ x ∈ s, μ.finite_at_filter (𝓝 x)) :
+  ∃ U ⊇ s, is_open U ∧ μ U < ∞ :=
+begin
+  refine is_compact.induction_on h _ _ _ _,
+  { use ∅, simp [superset] },
+  { rintro s t hst ⟨U, htU, hUo, hU⟩, exact ⟨U, hst.trans htU, hUo, hU⟩ },
+  { rintro s t ⟨U, hsU, hUo, hU⟩ ⟨V, htV, hVo, hV⟩,
+    refine ⟨U ∪ V, union_subset_union hsU htV, hUo.union hVo,
+      (measure_union_le _ _).trans_lt $ ennreal.add_lt_top.2 ⟨hU, hV⟩⟩ },
+  { intros x hx,
+    rcases (hμ x hx).exists_mem_basis (nhds_basis_opens _) with ⟨U, ⟨hx, hUo⟩, hU⟩,
+    exact ⟨U, nhds_within_le_nhds (hUo.mem_nhds hx), U, subset.rfl, hUo, hU⟩ }
+end
 
-lemma is_finite_measure [is_locally_finite_measure μ] (hs : is_compact s) : μ s < ∞ :=
-hs.is_finite_measure_of_nhds_within $ λ a ha, μ.finite_at_nhds_within _ _
+/-- If `s` is a compact set and `μ` is a locally finite measure, then `s` admits an open superset of
+finite measure. -/
+lemma exists_open_superset_measure_lt_top (h : is_compact s)
+  (μ : measure α) [is_locally_finite_measure μ] :
+  ∃ U ⊇ s, is_open U ∧ μ U < ∞ :=
+h.exists_open_superset_measure_lt_top' $ λ x hx, μ.finite_at_nhds x
+
+lemma measure_lt_top_of_nhds_within (h : is_compact s) (hμ : ∀ x ∈ s, μ.finite_at_filter (𝓝[s] x)) :
+  μ s < ∞ :=
+is_compact.induction_on h (by simp) (λ s t hst ht, (measure_mono hst).trans_lt ht)
+  (λ s t hs ht, (measure_union_le s t).trans_lt (ennreal.add_lt_top.2 ⟨hs, ht⟩)) hμ
+
+lemma measure_lt_top (h : is_compact s) {μ : measure α} [is_locally_finite_measure μ] :
+  μ s < ∞ :=
+h.measure_lt_top_of_nhds_within $ λ x hx, μ.finite_at_nhds_within _ _
 
 lemma measure_zero_of_nhds_within (hs : is_compact s) :
   (∀ a ∈ s, ∃ t ∈ 𝓝[s] a, μ t = 0) → μ s = 0 :=
@@ -2862,13 +2887,54 @@ by simpa only [← compl_mem_ae_iff] using hs.compl_mem_sets_of_nhds_within
 
 end is_compact
 
-lemma metric.bounded.is_finite_measure [metric_space α] [proper_space α]
+/-- Compact covering of a `σ`-compact topological space as
+`measure_theory.measure.finite_spanning_sets_in`. -/
+def measure_theory.measure.finite_spanning_sets_in_compact [topological_space α]
+  [sigma_compact_space α] {m : measurable_space α} (μ : measure α) [is_locally_finite_measure μ] :
+  μ.finite_spanning_sets_in {K | is_compact K} :=
+{ set := compact_covering α,
+  set_mem := is_compact_compact_covering α,
+  finite := λ n, (is_compact_compact_covering α n).measure_lt_top,
+  spanning := Union_compact_covering α }
+
+/-- A locally finite measure on a `σ`-compact topological space admits a finite spanning sequence
+of open sets. -/
+def measure_theory.measure.finite_spanning_sets_in_open [topological_space α]
+  [sigma_compact_space α] {m : measurable_space α} (μ : measure α) [is_locally_finite_measure μ] :
+  μ.finite_spanning_sets_in {K | is_open K} :=
+{ set := λ n, ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some,
+  set_mem := λ n,
+    ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.snd.1,
+  finite := λ n,
+    ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.snd.2,
+  spanning := eq_univ_of_subset (Union_subset_Union $ λ n,
+    ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.fst)
+    (Union_compact_covering α) }
+
+section measure_Ixx
+
+variables [conditionally_complete_linear_order α] [topological_space α] [order_topology α]
+  {m : measurable_space α} {μ : measure α} [is_locally_finite_measure μ] {a b : α}
+
+lemma measure_Icc_lt_top : μ (Icc a b) < ∞ := is_compact_Icc.measure_lt_top
+
+lemma measure_Ico_lt_top : μ (Ico a b) < ∞ :=
+(measure_mono Ico_subset_Icc_self).trans_lt measure_Icc_lt_top
+
+lemma measure_Ioc_lt_top : μ (Ioc a b) < ∞ :=
+(measure_mono Ioc_subset_Icc_self).trans_lt measure_Icc_lt_top
+
+lemma measure_Ioo_lt_top : μ (Ioo a b) < ∞ :=
+(measure_mono Ioo_subset_Icc_self).trans_lt measure_Icc_lt_top
+
+end measure_Ixx
+
+lemma metric.bounded.measure_lt_top [metric_space α] [proper_space α]
   [measurable_space α] {μ : measure α} [is_locally_finite_measure μ] {s : set α}
   (hs : metric.bounded s) :
   μ s < ∞ :=
 (measure_mono subset_closure).trans_lt (metric.compact_iff_closed_bounded.2
-  ⟨is_closed_closure, metric.bounded_closure_of_bounded hs⟩).is_finite_measure
-
+  ⟨is_closed_closure, metric.bounded_closure_of_bounded hs⟩).measure_lt_top
 
 section piecewise
 

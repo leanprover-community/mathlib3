@@ -3,13 +3,12 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov, Patrick Massot, Sébastien Gouëzel
 -/
-import measure_theory.integral.set_integral
-import measure_theory.measure.lebesgue
-import analysis.calculus.fderiv_measurable
 import analysis.calculus.extend_deriv
-import measure_theory.integral.vitali_caratheodory
+import analysis.calculus.fderiv_measurable
 import analysis.normed_space.dual
-
+import measure_theory.integral.set_integral
+import measure_theory.integral.vitali_caratheodory
+import measure_theory.measure.lebesgue
 
 /-!
 # Integral over an interval
@@ -381,27 +380,24 @@ variables {ι : Type*} [topological_space ι] [conditionally_complete_linear_ord
   [is_locally_finite_measure μ] [conditionally_complete_linear_order E] [order_topology E]
   [second_countable_topology E] [borel_space E]
 
-lemma monotone_on.interval_integrable {u : ι → E} {a b : ι}
-  (hu : ∀ ⦃x y⦄, x ∈ interval a b → y ∈ interval a b → x ≤ y → u x ≤ u y) :
+lemma monotone_on.interval_integrable {u : ι → E} {a b : ι} (hu : monotone_on u (interval a b)) :
   interval_integrable u μ a b :=
 begin
   rw interval_integrable_iff,
   exact (monotone_on.integrable_on_compact is_compact_interval hu).mono_set Ioc_subset_Icc_self,
 end
 
-lemma antitone_on.interval_integrable {u : ι → E} {a b : ι}
-  (hu : ∀ ⦃x y⦄, x ∈ interval a b → y ∈ interval a b → x ≤ y → u y ≤ u x) :
+lemma antitone_on.interval_integrable {u : ι → E} {a b : ι} (hu : antitone_on u (interval a b)) :
   interval_integrable u μ a b :=
 @monotone_on.interval_integrable (order_dual E) _ ‹_› ι _ _ _ _ _ _ _ _ _ ‹_› ‹_› u a b hu
 
 lemma monotone.interval_integrable {u : ι → E} {a b : ι} (hu : monotone u) :
   interval_integrable u μ a b :=
-monotone_on.interval_integrable (λ x y _ _ hxy, hu hxy)
+(hu.monotone_on _).interval_integrable
 
-lemma antitone.interval_integrable {u : ι → E} {a b : ι}
-  (hu : ∀ ⦃x y⦄, x ≤ y → u y ≤ u x) :
+lemma antitone.interval_integrable {u : ι → E} {a b : ι} (hu :antitone u) :
   interval_integrable u μ a b :=
-@monotone.interval_integrable (order_dual E) _ ‹_› ι _ _ _ _ _ _ _ _ _ ‹_› ‹_› u a b hu
+(hu.antitone_on _).interval_integrable
 
 end
 

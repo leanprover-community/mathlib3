@@ -105,10 +105,10 @@ lemma ne.lt_top' (h : ⊤ ≠ a) : a < ⊤ := h.symm.lt_top
 
 end order_top
 
-lemma strict_mono.maximal_preimage_top' [linear_order α] [order_top β]
+lemma strict_mono.maximal_preimage_top [linear_order α] [order_top β]
   {f : α → β} (H : strict_mono f) {a} (h_top : f a = ⊤) (x : α) :
   x ≤ a :=
-H.maximal_preimage_top (λ p, by { rw h_top, exact le_top }) x
+H.maximal_of_maximal_image (λ p, by { rw h_top, exact le_top }) x
 
 theorem order_top.ext_top {α} {A B : order_top α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) :
@@ -175,10 +175,10 @@ lemma ne.bot_lt' (h : ⊥ ≠ a) : ⊥ < a := h.symm.bot_lt
 
 end order_bot
 
-lemma strict_mono.minimal_preimage_bot' [linear_order α] [order_bot β]
+lemma strict_mono.minimal_preimage_bot [linear_order α] [order_bot β]
   {f : α → β} (H : strict_mono f) {a} (h_bot : f a = ⊥) (x : α) :
   a ≤ x :=
-H.minimal_preimage_bot (λ p, by { rw h_bot, exact bot_le }) x
+H.minimal_of_minimal_image (λ p, by { rw h_bot, exact bot_le }) x
 
 theorem order_bot.ext_bot {α} {A B : order_bot α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) :

@@ -4,8 +4,14 @@ import data.set.basic
 
 variables {G : Type*} [group G] {α : Type*} [has_mul α]
 
+namespace double_coset
+
 def double_coset_rel (H K : subgroup G) : G → G → Prop :=
 λ x y, (∃ (a ∈  H) (b ∈  K), a*x*b=y)
+
+@[simp]
+lemma rel_iff (H K : subgroup G) (x y : G) :
+  double_coset_rel H K x y  ↔  (∃ (a ∈  H) (b ∈  K), a*x*b=y) := iff.rfl
 
 lemma double_coset_rel_is_equiv  (H K : subgroup G) : equivalence (double_coset_rel H K) :=
 begin
@@ -126,3 +132,37 @@ begin
   apply sub_doset H K b a ha,
   apply sub_doset H K a b hb,
 end
+
+def quot_to_doset (H K : subgroup G) (q : double_coset_quotient H K ) : set G :=  (doset H.1 K q.out')
+
+abbreviation mk (H K : subgroup G) (a : G) : double_coset_quotient H K  :=
+quotient.mk' a
+
+lemma eq (H K : subgroup G) (a b : G): mk H K a = mk H K b ↔ ∃ (h ∈ H) (k ∈  K), h*a*k=b :=
+begin
+rw quotient.eq',
+apply  rel_iff H K a b,
+end
+
+lemma mk_out'_eq_mul  (H K : subgroup G)  (g : G) :
+  ∃ (h k : G), (h ∈ H) ∧ (k ∈ K) ∧   (mk H K g :  double_coset_quotient H K).out' = h * g * k :=
+begin
+sorry,
+end
+
+lemma top_eq_union_dosets (H K : subgroup G) : (⊤ : set G) = ⋃ q, quot_to_doset H K q :=
+begin
+simp,
+ext,
+simp,
+use quotient.mk' x,
+rw quot_to_doset,
+simp,
+use 1,
+simp [H.one_mem],
+use 1,
+simp [K.one_mem],
+sorry,
+end
+
+end double_coset

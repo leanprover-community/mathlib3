@@ -82,7 +82,7 @@ begin
   by_cases hbc : b = c, { subst hbc, simp [sub_ne_zero.2 (ne.symm hab)] },
   rw [add_comm],
   simp_rw [slope, div_eq_inv_mul, mul_smul, ← smul_add,
-    smul_inv_smul' (sub_ne_zero.2 $ ne.symm hab), smul_inv_smul' (sub_ne_zero.2 $ ne.symm hbc),
+    smul_inv_smul₀ (sub_ne_zero.2 $ ne.symm hab), smul_inv_smul₀ (sub_ne_zero.2 $ ne.symm hbc),
     vsub_add_vsub_cancel],
 end
 
@@ -279,10 +279,10 @@ begin
   rw [line_map_apply, line_map_apply, slope, slope,
   vsub_eq_sub, vsub_eq_sub, vsub_eq_sub, vadd_eq_add, vadd_eq_add,
   smul_eq_mul, add_sub_cancel, smul_sub, smul_sub, smul_sub,
-  sub_le_iff_le_add, mul_inv_rev', mul_smul, mul_smul, ←smul_sub, ←smul_sub, ←smul_add, smul_smul,
-  ← mul_inv_rev', smul_le_iff_of_pos (inv_pos.2 h), inv_inv', smul_smul,
-  mul_inv_cancel_right' (right_ne_zero_of_mul h.ne'), smul_add,
-  smul_inv_smul' (left_ne_zero_of_mul h.ne')],
+  sub_le_iff_le_add, mul_inv_rev₀, mul_smul, mul_smul, ←smul_sub, ←smul_sub, ←smul_add, smul_smul,
+  ← mul_inv_rev₀, smul_le_iff_of_pos (inv_pos.2 h), inv_inv₀, smul_smul,
+  mul_inv_cancel_right₀ (right_ne_zero_of_mul h.ne'), smul_add,
+  smul_inv_smul₀ (left_ne_zero_of_mul h.ne')],
   apply_instance
 end
 
@@ -313,8 +313,8 @@ begin
   rw [← line_map_apply_one_sub, ← line_map_apply_one_sub _ _ r],
   revert h, generalize : 1 - r = r', clear r, intro h,
   simp_rw [line_map_apply, slope, vsub_eq_sub, vadd_eq_add, smul_eq_mul],
-  rw [sub_add_eq_sub_sub_swap, sub_self, zero_sub, le_smul_iff_of_pos, inv_inv', smul_smul,
-    neg_mul_eq_mul_neg, neg_sub, mul_inv_cancel_right', le_sub, ← neg_sub (f b), smul_neg,
+  rw [sub_add_eq_sub_sub_swap, sub_self, zero_sub, le_smul_iff_of_pos, inv_inv₀, smul_smul,
+    neg_mul_eq_mul_neg, neg_sub, mul_inv_cancel_right₀, le_sub, ← neg_sub (f b), smul_neg,
     neg_add_eq_sub],
   { exact right_ne_zero_of_mul h.ne' },
   { simpa [mul_sub] using h }

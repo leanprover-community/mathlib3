@@ -17,7 +17,7 @@ namespace complex
 
 open set filter
 
-open_locale real
+open_locale real topological_space
 
 /-- Inverse of the `exp` function. Returns values such that `(log x).im > - π` and `(log x).im ≤ π`.
   `log 0 = 0`-/
@@ -36,7 +36,7 @@ by rw [log, exp_add_mul_I, ← of_real_sin, sin_arg, ← of_real_cos, cos_arg hx
   mul_div_cancel' _ (of_real_ne_zero.2 (mt abs_eq_zero.1 hx)), ← mul_assoc,
   mul_div_cancel' _ (of_real_ne_zero.2 (mt abs_eq_zero.1 hx)), re_add_im]
 
-lemma range_exp : range exp = {x | x ≠ 0} :=
+@[simp] lemma range_exp : range exp = {0}ᶜ :=
 set.ext $ λ x, ⟨by { rintro ⟨x, rfl⟩, exact exp_ne_zero x }, λ hx, ⟨log x, exp_log hx⟩⟩
 
 lemma exp_inj_of_neg_pi_lt_of_le_pi {x y : ℂ} (hx₁ : -π < x.im) (hx₂ : x.im ≤ π)
@@ -118,6 +118,22 @@ by rw [exp_sub, div_eq_one_iff_eq (exp_ne_zero _)]
 lemma exp_eq_exp_iff_exists_int {x y : ℂ} : exp x = exp y ↔ ∃ n : ℤ, x = y + n * ((2 * π) * I) :=
 by simp only [exp_eq_exp_iff_exp_sub_eq_one, exp_eq_one_iff, sub_eq_iff_eq_add']
 
+@[simp] lemma countable_preimage_exp {s : set ℂ} : countable (exp ⁻¹' s) ↔ countable s :=
+begin
+  refine ⟨λ hs, _, λ hs, _⟩,
+  { refine ((hs.image exp).insert 0).mono _,
+    rw [image_preimage_eq_inter_range, range_exp, ← diff_eq, ← union_singleton, diff_union_self],
+    exact subset_union_left _ _ },
+  { rw ← bUnion_preimage_singleton,
+    refine hs.bUnion (λ z hz, _),
+    rcases em (∃ w, exp w = z) with ⟨w, rfl⟩|hne,
+    { simp only [preimage, mem_singleton_iff, exp_eq_exp_iff_exists_int, set_of_exists],
+      exact countable_Union (λ m, countable_singleton _) },
+    { push_neg at hne, simp [preimage, hne] } }
+end
+
+alias countable_preimage_exp ↔ _ set.countable.preimage_cexp
+
 /-- `complex.exp` as a `local_homeomorph` with `source = {z | -π < im z < π}` and
 `target = {z | 0 < re z} ∪ {z | im z ≠ 0}`. This definition is used to prove that `complex.log`
 is complex differentiable at all points but the negative real semi-axis. -/
@@ -155,6 +171,37 @@ lemma times_cont_diff_at_log {x : ℂ} (h : 0 < x.re ∨ x.im ≠ 0) {n : with_t
   times_cont_diff_at ℂ n log x :=
 exp_local_homeomorph.times_cont_diff_at_symm_deriv (exp_ne_zero $ log x) h
   (has_deriv_at_exp _) times_cont_diff_exp.times_cont_diff_at
+
+lemma tendsto_log_nhds_within_im_neg_of_re_neg_of_im_zero
+  {z : ℂ} (hre : z.re < 0) (him : z.im = 0) :
+  tendsto log (𝓝[{z : ℂ | z.im < 0}] z) (𝓝 $ real.log (abs z) - π * I) :=
+begin
+  have := (continuous_of_real.continuous_at.comp_continuous_within_at
+    (continuous_abs.continuous_within_at.log _)).tendsto.add
+    (((continuous_of_real.tendsto _).comp $
+    tendsto_arg_nhds_within_im_neg_of_re_neg_of_im_zero hre him).mul tendsto_const_nhds),
+  convert this,
+  { simp [sub_eq_add_neg] },
+  { lift z to ℝ using him, simpa using hre.ne }
+end
+
+lemma continuous_within_at_log_of_re_neg_of_im_zero
+  {z : ℂ} (hre : z.re < 0) (him : z.im = 0) :
+  continuous_within_at log {z : ℂ | 0 ≤ z.im} z :=
+begin
+  have := (continuous_of_real.continuous_at.comp_continuous_within_at
+    (continuous_abs.continuous_within_at.log _)).tendsto.add
+    ((continuous_of_real.continuous_at.comp_continuous_within_at $
+    continuous_within_at_arg_of_re_neg_of_im_zero hre him).mul tendsto_const_nhds),
+  convert this,
+  { lift z to ℝ using him, simpa using hre.ne }
+end
+
+lemma tendsto_log_nhds_within_im_nonneg_of_re_neg_of_im_zero
+  {z : ℂ} (hre : z.re < 0) (him : z.im = 0) :
+  tendsto log (𝓝[{z : ℂ | 0 ≤ z.im}] z) (𝓝 $ real.log (abs z) + π * I) :=
+by simpa only [log, arg_eq_pi_iff.2 ⟨hre, him⟩]
+  using (continuous_within_at_log_of_re_neg_of_im_zero hre him).tendsto
 
 end complex
 

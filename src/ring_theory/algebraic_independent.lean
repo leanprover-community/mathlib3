@@ -64,6 +64,10 @@ theorem algebraic_independent_iff : algebraic_independent R x ↔
   ∀p : mv_polynomial ι R, mv_polynomial.aeval (x : ι → A) p = 0 → p = 0 :=
 ring_hom.injective_iff _
 
+theorem algebraic_independent.eq_zero_of_aeval_eq_zero (h : algebraic_independent R x) :
+  ∀p : mv_polynomial ι R, mv_polynomial.aeval (x : ι → A) p = 0 → p = 0 :=
+algebraic_independent_iff.1 h
+
 theorem algebraic_independent_iff_injective_aeval :
   algebraic_independent R x ↔ injective (mv_polynomial.aeval x : mv_polynomial ι R →ₐ[R] A) :=
 iff.rfl

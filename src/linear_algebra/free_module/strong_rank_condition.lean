@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca
 -/
 
-import linear_algebra.charpoly
+import linear_algebra.charpoly.basic
 import linear_algebra.invariant_basis_number
 
 /-!

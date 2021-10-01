@@ -160,15 +160,11 @@ function.injective.module _ coe_add_monoid_hom finite_measure.coe_injective coe_
 
 variables [topological_space α]
 
--- TODO: Remove continuity and boundedness assumptions?
 /-- The pairing of a finite (Borel) measure `μ` with a nonnegative bounded continuous
-function is obtained by (Lebesgue) integrating the (test) function against the measure. This
-is `finite_measure.test_against'`. -/
+function is obtained by (Lebesgue) integrating the (test) function against the measure.
+This is `finite_measure.test_against'`. -/
 abbreviation test_against_nn (μ : finite_measure α) (f : α → nnreal) : ℝ≥0 :=
 (∫⁻ x, f x ∂(μ : measure α)).to_nnreal
-
---abbreviation test_against_nn (μ : finite_measure α) (f : α →ᵇ nnreal) : ℝ≥0 :=
---(∫⁻ x, f x ∂(μ : measure α)).to_nnreal
 
 -- I believe the formulation is generally useful, except maybe the exact form
 -- of the assumption `f_bdd`.
@@ -183,16 +179,6 @@ begin
   exact ennreal.mul_lt_top ennreal.coe_lt_top.ne μ_fin.measure_univ_lt_top.ne,
 end
 
--- I believe these two could be useful... (1) (Only the second one is used below, though.)
--- Where to place?
-lemma _root_.nnreal.val_eq_dist_zero (z : ℝ≥0) : (z : ℝ) = dist 0 z :=
-by simp only [nnreal.dist_eq, nnreal.coe_zero, zero_sub, nnreal.abs_eq, abs_neg]
-
--- I believe these two could be useful... (2)
--- Where to place?
-lemma _root_.nnreal.val_eq_dist_zero' (z : ℝ≥0) : (z : ℝ) = dist z 0 :=
-by { rw dist_comm, exact nnreal.val_eq_dist_zero z }
-
 -- Switched to using `nndist`, and believe these two could be useful... (1)
 -- Where to place?
 lemma _root_.nnreal.val_eq_nndist_zero (z : ℝ≥0) : z = nndist 0 z :=
@@ -203,9 +189,9 @@ by { simp only [nnreal.nndist_eq, max_eq_right, zero_sub', sub_zero', zero_le'],
 lemma _root_.nnreal.val_eq_nndist_zero' (z : ℝ≥0) : z = nndist z 0 :=
 by { rw nndist_comm, exact nnreal.val_eq_nndist_zero z, }
 
--- Is there a simpler way for the following? I think this might be useful (it is used below).
+-- I think this might be occasionally useful (it is used below).
 -- Where to place?
-lemma _root_.nnreal.le_add_nndist (a b : ℝ≥0) : --a ≤ b + (dist a b).to_nnreal :=
+lemma _root_.nnreal.le_add_nndist (a b : ℝ≥0) :
   a ≤ b + nndist a b :=
 begin
   suffices : (a : ℝ) ≤ (b : ℝ) + (dist a b),
@@ -213,38 +199,6 @@ begin
   have key : abs (a-b : ℝ) ≤ (dist a b) := by refl,
   linarith [le_of_abs_le key],
 end
-
--- These two are specific but useful at least in this file... (1)
-private lemma continuous_bounded_nn_to_ennreal_comp_add {β : Type*} [topological_space β]
-  {f₁ f₂ : β →ᵇ ℝ≥0} :
-  (coe : ℝ≥0 → ℝ≥0∞) ∘ (f₁ + f₂) = ( ((coe : ℝ≥0 → ℝ≥0∞) ∘ f₁) + ((coe : ℝ≥0 → ℝ≥0∞) ∘ f₂)) :=
-by { funext x, simp only [ennreal.coe_add, pi.add_apply, function.comp_app], }
-
--- These two are specific but useful at least in this file... (2)
-private lemma continuous_bounded_nn_to_ennreal_comp_smul {β : Type*} [topological_space β]
-  {c : ℝ≥0} {f : β →ᵇ ℝ≥0} :
-  (coe : ℝ≥0 → ℝ≥0∞) ∘ (c • f) = c • ( ((coe : ℝ≥0 → ℝ≥0∞) ∘ f)) :=
-begin
-  funext x,
-  simpa only [algebra.id.smul_eq_mul, function.comp_app, pi.smul_apply, ennreal.coe_mul],
-end
-
-private lemma continuous_bounded_nn_to_ennreal_comp_smul₉ {β : Type*} [topological_space β]
-  {c : ℝ≥0} {f : β →ᵇ ℝ≥0} :
-  (coe : ℝ≥0 → ℝ≥0∞) ∘ (c • f) = c • ( ((coe : ℝ≥0 → ℝ≥0∞) ∘ f)) :=
-begin
-  funext x,
-  simpa only [algebra.id.smul_eq_mul, function.comp_app, pi.smul_apply, ennreal.coe_mul],
-end
-
--- This was useful for rewriting. Should it be kept as such or generalized?
--- [Update: Perhaps no longer needed... The lemma below works instead.]
--- Where to place?
-lemma bounded_continuous_function.nnreal.smul_eq {β : Type*} [topological_space β]
-  {c : ℝ≥0} {f : β →ᵇ ℝ≥0} : (c • (f : β → ℝ≥0)) = ((c • f) : β →ᵇ ℝ≥0) := by refl
-
-lemma smul_nnreal_valued_eq {β : Type*} [topological_space β]
-  {c : ℝ≥0} {f : β → ℝ≥0} {x : β} : (c • f) x = c * (f x) := by refl
 
 -- Only useful here or more generally?
 -- Where to place?

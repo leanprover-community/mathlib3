@@ -206,7 +206,7 @@ Bilinear and Quadratic Forms Over a Vector Space:
   Orthogonality:
     orthogonal elements: 'bilin_form.is_ortho'
     adjoint endomorphism: 'bilin_form.left_adjoint_of_nondegenerate'
-    Sylvester's law of inertia: 'quadratic_form.equivalent_one_neg_one_weighted_sum_squared'
+    Sylvester's law of inertia: 'quadratic_form.equivalent_one_zero_neg_one_weighted_sum_squared'
     real classification:
     complex classification:
     Gram-Schmidt orthogonalisation:

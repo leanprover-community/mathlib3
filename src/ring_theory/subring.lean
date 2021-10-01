@@ -517,9 +517,9 @@ section division_ring
 variables {K : Type u} [division_ring K]
 
 instance : field (center K) :=
-{ inv := λ a, ⟨a⁻¹, set.inv_mem_center' a.prop⟩,
+{ inv := λ a, ⟨a⁻¹, set.inv_mem_center₀ a.prop⟩,
   mul_inv_cancel := λ ⟨a, ha⟩ h, subtype.ext $ mul_inv_cancel $ subtype.coe_injective.ne h,
-  div := λ a b, ⟨a / b, set.div_mem_center' a.prop b.prop⟩,
+  div := λ a b, ⟨a / b, set.div_mem_center₀ a.prop b.prop⟩,
   div_eq_mul_inv := λ a b, subtype.ext $ div_eq_mul_inv _ _,
   inv_zero := subtype.ext inv_zero,
   ..(center K).nontrivial,

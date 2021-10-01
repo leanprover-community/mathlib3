@@ -799,6 +799,31 @@ def basic_open_iso (f : R) : (structure_sheaf R).presheaf.obj (op (basic_open f)
   CommRing.of (localization.away f) :=
 (as_iso (show CommRing.of _ ⟶ _, from to_basic_open R f)).symm
 
+@[elementwise] lemma to_global_factors : to_open R ⊤ =
+  (CommRing.of_hom (algebra_map R (localization.away (1 : R)))) ≫ (to_basic_open R (1 : R)) ≫
+  (structure_sheaf R).presheaf.map (eq_to_hom (basic_open_one.symm)).op :=
+begin
+  change to_open R ⊤ = (to_basic_open R 1).comp _ ≫ _,
+  unfold CommRing.of_hom,
+  rw [localization_to_basic_open R, to_open_res],
+end
+
+instance is_iso_to_global : is_iso (to_open R ⊤) :=
+begin
+  let hom := CommRing.of_hom (algebra_map R (localization.away (1 : R))),
+  haveI : is_iso hom := is_iso.of_iso
+    ((is_localization.at_one R (localization.away (1 : R))).to_ring_equiv.to_CommRing_iso),
+  rw to_global_factors R,
+  apply_instance
+end
+
+/-- The ring isomorphism between the ring `R` and the global sections `Γ(X, 𝒪ₓ)`. -/
+@[simps] def global_sections_iso : CommRing.of R ≅ (structure_sheaf R).presheaf.obj (op ⊤) :=
+as_iso (to_open R ⊤)
+
+@[simp] lemma global_sections_iso_hom (R : CommRing) :
+  (global_sections_iso R).hom = to_open R ⊤ := rfl
+
 section comap
 
 variables {R} {S : Type u} [comm_ring S] {P : Type u} [comm_ring P]

@@ -16,7 +16,7 @@ This file defines algebraic independence of a family of element of an `R` algebr
 
 ## Main definitions
 
-* `algebraic_independent` - `algebraic_independent R v` states the family of vectors `v`
+* `algebraic_independent` - `algebraic_independent R x` states the family of elements `x`
   is algebraically independent over `R`, meaning that the canonical map out of the multivariable
   polynomial ring is injective.
 
@@ -43,34 +43,38 @@ universes x u v w
 
 variables {ι : Type*} {ι' : Type*} (R : Type*) {K : Type*}
 variables {A : Type*} {A' A'' : Type*} {V : Type u} {V' : Type*}
-variables (v : ι → A)
+variables (x : ι → A)
 variables [comm_ring R] [comm_ring A] [comm_ring A'] [comm_ring A'']
 variables [algebra R A] [algebra R A'] [algebra R A'']
-variables {a b : R} {x y : A}
+variables {a b : R}
 
-/-- `algebraic_independent R v` states the family of vectors `v`
+/-- `algebraic_independent R x` states the family of elements `x`
   is algebraically independent over `R`, meaning that the canonical
   map out of the multivariable polynomial ring is injective. -/
 def algebraic_independent : Prop :=
-injective (mv_polynomial.aeval v : mv_polynomial ι R →ₐ[R] A)
+injective (mv_polynomial.aeval x : mv_polynomial ι R →ₐ[R] A)
 
-variables {R} {v}
+variables {R} {x}
 
-theorem algebraic_independent_iff_ker_eq_bot : algebraic_independent R v ↔
-  (mv_polynomial.aeval v : mv_polynomial ι R →ₐ[R] A).to_ring_hom.ker = ⊥ :=
+theorem algebraic_independent_iff_ker_eq_bot : algebraic_independent R x ↔
+  (mv_polynomial.aeval x : mv_polynomial ι R →ₐ[R] A).to_ring_hom.ker = ⊥ :=
 ring_hom.injective_iff_ker_eq_bot _
 
-theorem algebraic_independent_iff : algebraic_independent R v ↔
-  ∀p : mv_polynomial ι R, mv_polynomial.aeval (v : ι → A) p = 0 → p = 0 :=
+theorem algebraic_independent_iff : algebraic_independent R x ↔
+  ∀p : mv_polynomial ι R, mv_polynomial.aeval (x : ι → A) p = 0 → p = 0 :=
 ring_hom.injective_iff _
 
+theorem algebraic_independent.eq_zero_of_aeval_eq_zero (h : algebraic_independent R x) :
+  ∀p : mv_polynomial ι R, mv_polynomial.aeval (x : ι → A) p = 0 → p = 0 :=
+algebraic_independent_iff.1 h
+
 theorem algebraic_independent_iff_injective_aeval :
-  algebraic_independent R v ↔ injective (mv_polynomial.aeval v : mv_polynomial ι R →ₐ[R] A) :=
+  algebraic_independent R x ↔ injective (mv_polynomial.aeval x : mv_polynomial ι R →ₐ[R] A) :=
 iff.rfl
 
 @[simp] lemma algebraic_independent_empty_type_iff [is_empty ι] :
-  algebraic_independent R v ↔ injective (algebra_map R A) :=
-have aeval v = (algebra.of_id R A).comp (@is_empty_alg_equiv R ι _ _).to_alg_hom,
+  algebraic_independent R x ↔ injective (algebra_map R A) :=
+have aeval x = (algebra.of_id R A).comp (@is_empty_alg_equiv R ι _ _).to_alg_hom,
   by { ext i, exact is_empty.elim' ‹is_empty ι› i },
 begin
   rw [algebraic_independent, this,
@@ -80,63 +84,63 @@ end
 
 namespace algebraic_independent
 
-variables (hv : algebraic_independent R v)
+variables (hx : algebraic_independent R x)
 
-include hv
+include hx
 
 lemma algebra_map_injective : injective (algebra_map R A) :=
 by simpa [← mv_polynomial.algebra_map_eq, function.comp] using
     (injective.of_comp_iff
-      (algebraic_independent_iff_injective_aeval.1 hv) (mv_polynomial.C)).2
+      (algebraic_independent_iff_injective_aeval.1 hx) (mv_polynomial.C)).2
     (mv_polynomial.C_injective _ _)
 
-lemma linear_independent : linear_independent R v :=
+lemma linear_independent : linear_independent R x :=
 begin
   rw [linear_independent_iff_injective_total],
-  have : finsupp.total ι A R v =
-    (mv_polynomial.aeval v).to_linear_map.comp (finsupp.total ι _ R X),
+  have : finsupp.total ι A R x =
+    (mv_polynomial.aeval x).to_linear_map.comp (finsupp.total ι _ R X),
   { ext, simp },
   rw this,
-  refine hv.comp _,
+  refine hx.comp _,
   rw [← linear_independent_iff_injective_total],
   exact linear_independent_X _ _
 end
 
-protected lemma injective [nontrivial R] : injective v :=
-hv.linear_independent.injective
+protected lemma injective [nontrivial R] : injective x :=
+hx.linear_independent.injective
 
-lemma ne_zero [nontrivial R] (i : ι) : v i ≠ 0 :=
-hv.linear_independent.ne_zero i
+lemma ne_zero [nontrivial R] (i : ι) : x i ≠ 0 :=
+hx.linear_independent.ne_zero i
 
-lemma comp (f : ι' → ι) (hf : function.injective f) : algebraic_independent R (v ∘ f) :=
-λ p q, by simpa [aeval_rename, (rename_injective f hf).eq_iff] using @hv (rename f p) (rename f q)
+lemma comp (f : ι' → ι) (hf : function.injective f) : algebraic_independent R (x ∘ f) :=
+λ p q, by simpa [aeval_rename, (rename_injective f hf).eq_iff] using @hx (rename f p) (rename f q)
 
-lemma coe_range : algebraic_independent R (coe : range v → A) :=
-by simpa using hv.comp _ (range_splitting_injective v)
+lemma coe_range : algebraic_independent R (coe : range x → A) :=
+by simpa using hx.comp _ (range_splitting_injective x)
 
-lemma map {f : A →ₐ[R] A'} (hf_inj : set.inj_on f (adjoin R (range v))) :
-  algebraic_independent R (f ∘ v) :=
-have aeval (f ∘ v) = f.comp (aeval v), by ext; simp,
-have h : ∀ x : mv_polynomial ι R, aeval v x ∈ (@aeval R _ _ _ _ (coe : range v → A) _).range,
-  { intro x,
+lemma map {f : A →ₐ[R] A'} (hf_inj : set.inj_on f (adjoin R (range x))) :
+  algebraic_independent R (f ∘ x) :=
+have aeval (f ∘ x) = f.comp (aeval x), by ext; simp,
+have h : ∀ p : mv_polynomial ι R, aeval x p ∈ (@aeval R _ _ _ _ (coe : range x → A) _).range,
+  { intro p,
     rw [alg_hom.mem_range],
-    refine ⟨mv_polynomial.rename (cod_restrict v (range v) (mem_range_self)) x, _⟩,
+    refine ⟨mv_polynomial.rename (cod_restrict x (range x) (mem_range_self)) p, _⟩,
     simp [function.comp, aeval_rename] },
 begin
   intros x y hxy,
   rw [this] at hxy,
   rw [adjoin_eq_range] at hf_inj,
-  exact hv (hf_inj (h x) (h y) hxy)
+  exact hx (hf_inj (h x) (h y) hxy)
 end
 
-lemma map' {f : A →ₐ[R] A'} (hf_inj : injective f) : algebraic_independent R (f ∘ v) :=
-hv.map (inj_on_of_injective hf_inj _)
+lemma map' {f : A →ₐ[R] A'} (hf_inj : injective f) : algebraic_independent R (f ∘ x) :=
+hx.map (inj_on_of_injective hf_inj _)
 
-omit hv
+omit hx
 
-lemma of_comp (f : A →ₐ[R] A') (hfv : algebraic_independent R (f ∘ v)) :
-  algebraic_independent R v :=
-have aeval (f ∘ v) = f.comp (aeval v), by ext; simp,
+lemma of_comp (f : A →ₐ[R] A') (hfv : algebraic_independent R (f ∘ x)) :
+  algebraic_independent R x :=
+have aeval (f ∘ x) = f.comp (aeval x), by ext; simp,
 by rw [algebraic_independent, this] at hfv; exact hfv.of_comp
 
 end algebraic_independent
@@ -144,11 +148,11 @@ end algebraic_independent
 open algebraic_independent
 
 lemma alg_hom.algebraic_independent_iff (f : A →ₐ[R] A') (hf : injective f) :
-  algebraic_independent R (f ∘ v) ↔ algebraic_independent R v :=
+  algebraic_independent R (f ∘ x) ↔ algebraic_independent R x :=
 ⟨λ h, h.of_comp f, λ h, h.map (inj_on_of_injective hf _)⟩
 
 @[nontriviality]
-lemma algebraic_independent_of_subsingleton [subsingleton R] : algebraic_independent R v :=
+lemma algebraic_independent_of_subsingleton [subsingleton R] : algebraic_independent R x :=
 by haveI := @mv_polynomial.unique R ι;
   exact algebraic_independent_iff.2 (λ l hl, subsingleton.elim _ _)
 
@@ -171,26 +175,23 @@ theorem algebraic_independent_image {ι} {s : set ι} {f : ι → A} (hf : set.i
   algebraic_independent R (λ x : s, f x) ↔ algebraic_independent R (λ x : f '' s, (x : A)) :=
 algebraic_independent_equiv' (equiv.set.image_of_inj_on _ _ hf) rfl
 
-lemma algebraic_independent_adjoin (hs : algebraic_independent R v) :
-  @algebraic_independent ι R (adjoin R (range v))
-      (λ i : ι, ⟨v i, subset_adjoin (mem_range_self i)⟩) _ _ _ :=
-algebraic_independent.of_comp (adjoin R (range v)).val hs
+lemma algebraic_independent_adjoin (hs : algebraic_independent R x) :
+  @algebraic_independent ι R (adjoin R (range x))
+      (λ i : ι, ⟨x i, subset_adjoin (mem_range_self i)⟩) _ _ _ :=
+algebraic_independent.of_comp (adjoin R (range x)).val hs
 
-/-- A set of algebraically independent vectors in an algebra `A` over a ring `K` is also
-algebraically independent over a subring `R` of `K`.
-The implementation uses minimal assumptions about the relationship between `R`, `K` and `A`.
-The version where `K` is an `R`-algebra is `algebraic_independent.restrict_scalars_algebras`.
- -/
+/-- A set of algebraically independent elements in an algebra `A` over a ring `K` is also
+algebraically independent over a subring `R` of `K`. -/
 lemma algebraic_independent.restrict_scalars {K : Type*} [comm_ring K] [algebra R K]
    [algebra K A] [is_scalar_tower R K A]
-  (hinj : function.injective (algebra_map R K)) (ai : algebraic_independent K v) :
-  algebraic_independent R v :=
-have (aeval v : mv_polynomial ι K →ₐ[K] A).to_ring_hom.comp
+  (hinj : function.injective (algebra_map R K)) (ai : algebraic_independent K x) :
+  algebraic_independent R x :=
+have (aeval x : mv_polynomial ι K →ₐ[K] A).to_ring_hom.comp
     (mv_polynomial.map (algebra_map R K)) =
-    (aeval v : mv_polynomial ι R →ₐ[R] A).to_ring_hom,
+    (aeval x : mv_polynomial ι R →ₐ[R] A).to_ring_hom,
   by { ext; simp [algebra_map_eq_smul_one] },
 begin
-  show injective (aeval v).to_ring_hom,
+  show injective (aeval x).to_ring_hom,
   rw [← this],
   exact injective.comp ai (mv_polynomial.map_injective _ hinj)
 end
@@ -233,8 +234,8 @@ end
 section subtype
 
 lemma algebraic_independent.restrict_of_comp_subtype {s : set ι}
-  (hs : algebraic_independent R (v ∘ coe : s → A)) :
-  algebraic_independent R (s.restrict v) :=
+  (hs : algebraic_independent R (x ∘ coe : s → A)) :
+  algebraic_independent R (s.restrict x) :=
 hs
 
 variables (R A)
@@ -244,8 +245,8 @@ by simp
 variables {R A}
 
 lemma algebraic_independent.mono {t s : set A} (h : t ⊆ s)
-  (hv : algebraic_independent R (λ x, x : s → A)) : algebraic_independent R (λ x, x : t → A) :=
-by simpa [function.comp] using hv.comp (inclusion h) (inclusion_injective h)
+  (hx : algebraic_independent R (λ x, x : s → A)) : algebraic_independent R (λ x, x : t → A) :=
+by simpa [function.comp] using hx.comp (inclusion h) (inclusion_injective h)
 
 end subtype
 
@@ -262,10 +263,10 @@ theorem algebraic_independent.to_subtype_range' {ι} {f : ι → A} (hf : algebr
 ht ▸ hf.to_subtype_range
 
 theorem algebraic_independent_comp_subtype {s : set ι} :
-  algebraic_independent R (v ∘ coe : s → A) ↔
-  ∀ p ∈ (mv_polynomial.supported R s), aeval v p = 0 → p = 0 :=
-have (aeval (v ∘ coe : s → A) : _ →ₐ[R] _) =
-  (aeval v).comp (rename coe), by ext; simp,
+  algebraic_independent R (x ∘ coe : s → A) ↔
+  ∀ p ∈ (mv_polynomial.supported R s), aeval x p = 0 → p = 0 :=
+have (aeval (x ∘ coe : s → A) : _ →ₐ[R] _) =
+  (aeval x).comp (rename coe), by ext; simp,
 have ∀ p : mv_polynomial s R, rename (coe : s → ι) p = 0 ↔ p = 0,
   from (ring_hom.injective_iff' (rename (coe : s → ι) : mv_polynomial s R →ₐ[R] _).to_ring_hom).1
     (rename_injective _ subtype.val_injective),
@@ -321,8 +322,8 @@ lemma exists_maximal_algebraic_independent
   (s t : set A) (hst : s ⊆ t)
   (hs : algebraic_independent R (coe : s → A)) :
   ∃ u : set A, algebraic_independent R (coe : u → A) ∧ s ⊆ u ∧ u ⊆ t ∧
-    ∀ v : set A, algebraic_independent R (coe : v → A) →
-      u ⊆ v → v ⊆ t → v = u :=
+    ∀ x : set A, algebraic_independent R (coe : x → A) →
+      u ⊆ x → x ⊆ t → x = u :=
 begin
   rcases zorn.zorn_subset_nonempty
       { u : set A | algebraic_independent R (coe : u → A) ∧ s ⊆ u ∧ u ⊆ t }
@@ -330,34 +331,34 @@ begin
       refine ⟨⟨algebraic_independent_sUnion_of_directed hcn
         chainc.directed_on
         (λ a ha, (hc ha).1), _, _⟩, _⟩,
-      { cases hcn with v hv,
-        exact subset_sUnion_of_subset _ v (hc hv).2.1 hv },
-      { exact sUnion_subset (λ v hv, (hc hv).2.2) },
+      { cases hcn with x hx,
+        exact subset_sUnion_of_subset _ x (hc hx).2.1 hx },
+      { exact sUnion_subset (λ x hx, (hc hx).2.2) },
       { intros s,
         exact subset_sUnion_of_mem }
     end⟩)
-  s ⟨hs, set.subset.refl s, hst⟩ with ⟨u, ⟨huai, hsu, hut⟩, hsu, hv⟩,
+  s ⟨hs, set.subset.refl s, hst⟩ with ⟨u, ⟨huai, hsu, hut⟩, hsu, hx⟩,
   use [u, huai, hsu, hut],
-  intros v hvai huv hvt,
-  exact hv _ ⟨hvai, trans hsu huv, hvt⟩ huv,
+  intros x hxai huv hxt,
+  exact hx _ ⟨hxai, trans hsu huv, hxt⟩ huv,
 end
 
 section repr
-variables (hv : algebraic_independent R v)
+variables (hx : algebraic_independent R x)
 
-/-- Canonical isomorphism between polynomial and the subalgebra generated by
+/-- Canonical isomorphism between polynomials and the subalgebra generated by
   algebraically independent elements. -/
-@[simps] def algebraic_independent.aeval_equiv (hv : algebraic_independent R v) :
-  (mv_polynomial ι R) ≃ₐ[R] algebra.adjoin R (range v) :=
+@[simps] def algebraic_independent.aeval_equiv (hx : algebraic_independent R x) :
+  (mv_polynomial ι R) ≃ₐ[R] algebra.adjoin R (range x) :=
 begin
   apply alg_equiv.of_bijective
-    (alg_hom.cod_restrict (@aeval R A ι _ _ v _) (algebra.adjoin R (range v)) _),
+    (alg_hom.cod_restrict (@aeval R A ι _ _ x _) (algebra.adjoin R (range x)) _),
   swap,
   { intros x,
     rw [adjoin_range_eq_range_aeval],
     exact alg_hom.mem_range_self _ _ },
   { split,
-    { exact (alg_hom.injective_cod_restrict _ _ _).2 hv },
+    { exact (alg_hom.injective_cod_restrict _ _ _).2 hx },
     { rintros ⟨x, hx⟩,
       rw [adjoin_range_eq_range_aeval] at hx,
       rcases hx with ⟨y, rfl⟩,
@@ -372,18 +373,18 @@ end
 
 /-- The canonical map from the subalgebra generated by an algebraic independent family
   into the polynomial ring.  -/
-def algebraic_independent.repr (hv : algebraic_independent R v) :
-  algebra.adjoin R (range v) →ₐ[R] mv_polynomial ι R := hv.aeval_equiv.symm
+def algebraic_independent.repr (hx : algebraic_independent R x) :
+  algebra.adjoin R (range x) →ₐ[R] mv_polynomial ι R := hx.aeval_equiv.symm
 
-@[simp] lemma algebraic_independent.aeval_repr (x) : aeval v (hv.repr x) = x :=
-subtype.ext_iff.1 (alg_equiv.apply_symm_apply hv.aeval_equiv x)
+@[simp] lemma algebraic_independent.aeval_repr (p) : aeval x (hx.repr p) = p :=
+subtype.ext_iff.1 (alg_equiv.apply_symm_apply hx.aeval_equiv p)
 
 lemma algebraic_independent.aeval_comp_repr :
-  (aeval v).comp hv.repr = subalgebra.val _ :=
-alg_hom.ext $ hv.aeval_repr
+  (aeval x).comp hx.repr = subalgebra.val _ :=
+alg_hom.ext $ hx.aeval_repr
 
 lemma algebraic_independent.repr_ker :
-  (hv.repr : adjoin R (range v) →+* mv_polynomial ι R).ker = ⊥ :=
+  (hx.repr : adjoin R (range x) →+* mv_polynomial ι R).ker = ⊥ :=
 (ring_hom.injective_iff_ker_eq_bot _).1 (alg_equiv.injective _)
 
 end repr
@@ -429,9 +430,9 @@ variable (R)
 /--
   A family is a transcendence basis if it is a maximal algebraically independent subset.
 -/
-def is_transcendence_basis (v : ι → A) : Prop :=
-algebraic_independent R v ∧
-  ∀ (s : set A) (i' : algebraic_independent R (coe : s → A)) (h : range v ≤ s), range v = s
+def is_transcendence_basis (x : ι → A) : Prop :=
+algebraic_independent R x ∧
+  ∀ (s : set A) (i' : algebraic_independent R (coe : s → A)) (h : range x ≤ s), range x = s
 
 lemma exists_is_transcendence_basis (h : injective (algebra_map R A)) :
   ∃ s : set A, is_transcendence_basis R (coe : s → A) :=
@@ -447,9 +448,9 @@ end
 variable {R}
 lemma algebraic_independent.is_transcendence_basis_iff
   {ι : Type w} {R : Type u} [comm_ring R] [nontrivial R]
-  {A : Type v} [comm_ring A] [algebra R A] {v : ι → A} (i : algebraic_independent R v) :
-  is_transcendence_basis R v ↔ ∀ (κ : Type v) (w : κ → A) (i' : algebraic_independent R w)
-    (j : ι → κ) (h : w ∘ j = v), surjective j :=
+  {A : Type v} [comm_ring A] [algebra R A] {x : ι → A} (i : algebraic_independent R x) :
+  is_transcendence_basis R x ↔ ∀ (κ : Type v) (w : κ → A) (i' : algebraic_independent R w)
+    (j : ι → κ) (h : w ∘ j = x), surjective j :=
 begin
   fsplit,
   { rintros p κ w i' j rfl,
@@ -460,7 +461,7 @@ begin
     use i,
     intros w i' h,
     specialize p w (coe : w → A) i'
-      (λ i, ⟨v i, range_subset_iff.mp h i⟩)
+      (λ i, ⟨x i, range_subset_iff.mp h i⟩)
       (by { ext, simp, }),
     have q := congr_arg (λ s, (coe : w → A) '' s) p.range_eq,
     dsimp at q,
@@ -490,7 +491,7 @@ section field
 variables [field K] [algebra K A]
 
 @[simp] lemma algebraic_independent_empty_type [is_empty ι] [nontrivial A] :
-  algebraic_independent K v :=
+  algebraic_independent K x :=
 begin
   rw [algebraic_independent_empty_type_iff],
   exact ring_hom.injective _,

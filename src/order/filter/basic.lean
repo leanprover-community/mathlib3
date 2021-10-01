@@ -2258,6 +2258,15 @@ lemma tendsto_comap'_iff {m : α → β} {f : filter α} {g : filter β} {i : γ
   (h : range i ∈ f) : tendsto (m ∘ i) (comap i f) g ↔ tendsto m f g :=
 by { rw [tendsto, ← map_compose], simp only [(∘), map_comap_of_mem h, tendsto] }
 
+lemma tendsto.of_tendsto_comp {f : α → β} {g : β → γ} {a : filter α} {b : filter β} {c : filter γ}
+  (hfg : tendsto (g ∘ f) a c) (hg : comap g c ≤ b) :
+  tendsto f a b :=
+begin
+  rw tendsto_iff_comap at hfg ⊢,
+  calc a ≤ comap (g ∘ f) c : hfg
+  ... ≤ comap f b : by simpa [comap_comap] using comap_mono hg
+end
+
 lemma comap_eq_of_inverse {f : filter α} {g : filter β} {φ : α → β} (ψ : β → α)
   (eq : ψ ∘ φ = id) (hφ : tendsto φ f g) (hψ : tendsto ψ g f) : comap φ g = f :=
 begin
@@ -2580,7 +2589,7 @@ end prod
 /-! ### Coproducts of filters -/
 
 section coprod
-variables {s : set α} {t : set β} {f : filter α} {g : filter β}
+variables {f : filter α} {g : filter β}
 
 /-- Coproduct of filters. -/
 protected def coprod (f : filter α) (g : filter β) : filter (α × β) :=

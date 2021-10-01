@@ -111,41 +111,51 @@ variables {x} {S}
 include hu hS hx
 
 /-- Given a `u(Y) ⊆ U`, we can find a unique section `X ⟶ ℱ(Y)` that agrees with `x`. -/
-lemma get_section (Y : structured_arrow (op U) u.op) :
- ∃! t, (pulledback_family ℱ S x Y).is_amalgamation t :=
+def get_section (Y : structured_arrow (op U) u.op) : X ⟶ ℱ.val.obj Y.right :=
 begin
   let hom_sh := whisker_right ((Ran.adjunction A u.op).counit.app ℱ.val) (coyoneda.obj (op X)),
   have S' := (K.pullback_stable Y.hom.unop hS),
   have hs' := ((hx.pullback Y.3.unop).functor_pullback u).comp_presheaf_map hom_sh,
-  exact ℱ.2 X _ (hu.cover_lift S') _ hs',
+  exact (ℱ.2 X _ (hu.cover_lift S')).amalgamate _ hs'
+end
+
+lemma get_section_is_amalgamation (Y : structured_arrow (op U) u.op) :
+  (pulledback_family ℱ S x Y).is_amalgamation (get_section hu ℱ hS hx Y) :=
+is_sheaf_for.is_amalgamation _ _
+
+lemma get_section_is_unique (Y : structured_arrow (op U) u.op)
+  {y} (H : (pulledback_family ℱ S x Y).is_amalgamation y) : y = get_section hu ℱ hS hx Y :=
+begin
+  apply is_sheaf_for.is_separated_for _ (pulledback_family ℱ S x Y),
+  { exact H },
+  { apply get_section_is_amalgamation },
+  { exact ℱ.2 X _ (hu.cover_lift (K.pullback_stable Y.hom.unop hS)) }
+end
+
+@[simp] lemma get_section_commute {Y Z : structured_arrow (op U) u.op} (f : Y ⟶ Z) :
+  get_section hu ℱ hS hx Y ≫ ℱ.val.map f.right = get_section hu ℱ hS hx Z :=
+begin
+  apply get_section_is_unique,
+  intros V' fV' hV',
+  have eq : Z.hom = Y.hom ≫ (u.map f.right.unop).op,
+  { convert f.w, erw category.id_comp },
+  rw eq at hV',
+  convert get_section_is_amalgamation hu ℱ hS hx Y (fV' ≫ f.right.unop) _ using 1,
+  { tidy },
+  { simp [eq] },
+  { change S (u.map _ ≫ Y.hom.unop),
+    simpa using hV' }
 end
 
 /-- The limit cone in order to glue the sections obtained via `get_section`. -/
 def glued_limit_cone : limits.cone (Ran.diagram u.op ℱ.val (op U)) :=
-{ X := X,
-  π :=
-  { app := λ Y, classical.some (get_section hu ℱ hS hx Y),
-    naturality' := λ Y Z f, by
-    { simp only [functor.comp_map, structured_arrow.proj_map, functor.const.obj_map],
-      erw category.id_comp,
-      obtain ⟨Pt₁, _⟩ := classical.some_spec (get_section hu ℱ hS hx Y),
-      generalize ht₁ : classical.some (get_section hu ℱ hS hx Y) = t₁,
-      rw ht₁ at Pt₁,
-      apply unique_of_exists_unique
-          (get_section hu ℱ hS hx Z) (classical.some_spec (get_section hu ℱ hS hx Z)).1,
-      intros W fw hw,
-      have eq := congr_arg quiver.hom.unop f.w,
-      erw category.id_comp at eq,
-      convert Pt₁ (fw ≫ f.right.unop) (by {
-        change S (u.map _ ≫ Y.hom.unop),
-        rw eq at hw,
-        simpa using hw,
-      }) using 1,
-      { tidy },
-      { simp [eq] } } } }
+{ X := X, π := { app := λ Y, get_section hu ℱ hS hx Y, naturality' := λ Y Z f, by tidy } }
+
+@[simp] lemma glued_limit_cone_π_app (W) : (glued_limit_cone hu ℱ hS hx).π.app W =
+  get_section hu ℱ hS hx W := rfl
 
 /-- The section obtained by passing `glued_limit_cone` into `category_theory.limits.limit.lift`. -/
-@[reducible] def glued_section : X ⟶ ((Ran u.op).obj ℱ.val).obj (op U) :=
+def glued_section : X ⟶ ((Ran u.op).obj ℱ.val).obj (op U) :=
 limit.lift _ (glued_limit_cone hu ℱ hS hx)
 
 /--
@@ -159,18 +169,18 @@ lemma helper {V} (f : V ⟶ U) (y : X ⟶ ((Ran u.op).obj ℱ.val).obj (op V)) (
   y ≫ limit.π (Ran.diagram u.op ℱ.val (op V)) W =
     (glued_limit_cone hu ℱ hS hx).π.app ((structured_arrow.map f.op).obj W) :=
 begin
-  apply unique_of_exists_unique
-    (get_section hu ℱ hS hx ((structured_arrow.map f.op).obj W)) _
-    (classical.some_spec (get_section hu ℱ hS hx ((structured_arrow.map f.op).obj W))).1,
+  dsimp only [glued_limit_cone_π_app],
+  apply get_section_is_unique hu ℱ hS hx ((structured_arrow.map f.op).obj W),
   intros V' fV' hV',
   dsimp only [Ran.adjunction, Ran.equiv, pulledback_family_apply],
-  delta structured_arrow.map comma.map_left at hV' ⊢,
-  change S _ at hV',
-  simp only [quiver.hom.unop_op, functor.const.map_app, unop_comp, ← category.assoc] at hV' ⊢,
-  erw ← H hV',
-  simp only [adjunction.adjunction_of_equiv_right_counit_app,
-    Ran_obj_map, quiver.hom.op_unop, equiv.symm_symm, equiv.coe_fn_mk,
-    whisker_right_app, functor.comp_map, coyoneda_obj_map, category.assoc],
+  erw [adjunction.adjunction_of_equiv_right_counit_app],
+  have : y ≫ ((Ran u.op).obj ℱ.val).map (u.map fV' ≫ W.hom.unop).op =
+    x (u.map fV' ≫ W.hom.unop ≫ f) (by simpa using hV'),
+  { convert H (show S ((u.map fV' ≫ W.hom.unop) ≫ f), by simpa using hV') using 2,
+    simp },
+  simp only [quiver.hom.unop_op, equiv.symm_symm, structured_arrow.map_obj_hom, unop_comp,
+    equiv.coe_fn_mk, functor.comp_map, coyoneda_obj_map, category.assoc, ← this, op_comp,
+    Ran_obj_map, nat_trans.id_app],
   erw category.id_comp,
   erw limit.pre_π,
   congr,

@@ -236,7 +236,7 @@ begin
 end
 
 lemma test_against_nn_coe_eq {μ : finite_measure α} {f : α →ᵇ nnreal} :
-  (μ.test_against_nn f : ℝ≥0∞) = lintegral (μ : measure α) ((coe : ℝ≥0 → ℝ≥0∞) ∘ f) :=
+  (μ.test_against_nn f : ℝ≥0∞) = ∫⁻ x, f x ∂(μ : measure α) :=
 ennreal.coe_to_nnreal (lintegral_lt_top_of_bounded_continuous_to_nnreal μ f).ne
 
 lemma test_against_nn_const (μ : finite_measure α) (c : ℝ≥0) :
@@ -427,11 +427,11 @@ abbreviation test_against_nn
 (lintegral (μ : measure α) ((coe : ℝ≥0 → ℝ≥0∞) ∘ f)).to_nnreal
 
 lemma lintegral_lt_top_of_bounded_continuous_to_nnreal (μ : probability_measure α) (f : α →ᵇ ℝ≥0) :
-  lintegral (μ : measure α) ((coe : ℝ≥0 → ℝ≥0∞) ∘ f) < ∞ :=
+  ∫⁻ x, f x ∂(μ : measure α) < ∞ :=
 μ.to_finite_measure.lintegral_lt_top_of_bounded_continuous_to_nnreal f
 
 lemma test_against_nn_coe_eq {μ : probability_measure α} {f : α →ᵇ nnreal} :
-  (μ.test_against_nn f : ℝ≥0∞) = lintegral (μ : measure α) ((coe : ℝ≥0 → ℝ≥0∞) ∘ f) :=
+  (μ.test_against_nn f : ℝ≥0∞) = ∫⁻ x, f x ∂(μ : measure α) :=
 ennreal.coe_to_nnreal (lintegral_lt_top_of_bounded_continuous_to_nnreal μ f).ne
 
 @[simp]

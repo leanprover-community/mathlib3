@@ -83,7 +83,7 @@ calc
   ... = (f - b⁻¹ • a • linear_map.id).ker : by rw smul_smul
   ... = (f - b⁻¹ • algebra_map K (End K V) a).ker : rfl
   ... = (b • (f - b⁻¹ • algebra_map K (End K V) a)).ker : by rw linear_map.ker_smul _ b hb
-  ... = (b • f - algebra_map K (End K V) a).ker : by rw [smul_sub, smul_inv_smul' hb]
+  ... = (b • f - algebra_map K (End K V) a).ker : by rw [smul_sub, smul_inv_smul₀ hb]
 
 lemma eigenspace_aeval_polynomial_degree_1
   (f : End K V) (q : polynomial K) (hq : degree q = 1) :

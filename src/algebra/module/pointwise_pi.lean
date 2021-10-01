@@ -45,6 +45,6 @@ lemma smul_pi [group K] [∀ i, mul_action K (R i)] (r : K) (S : set ι) (t : Π
 subset.antisymm (smul_pi_subset _ _ _) $ λ x h,
   ⟨r⁻¹ • x, λ i hiS, mem_smul_set_iff_inv_smul_mem.mp (h i hiS), smul_inv_smul _ _⟩
 
-lemma smul_pi' [group_with_zero K] [∀ i, mul_action K (R i)] {r : K} (S : set ι)
+lemma smul_pi₀ [group_with_zero K] [∀ i, mul_action K (R i)] {r : K} (S : set ι)
   (t : Π i, set (R i)) (hr : r ≠ 0) : r • S.pi t = S.pi (r • t) :=
 smul_pi (units.mk0 r hr) S t

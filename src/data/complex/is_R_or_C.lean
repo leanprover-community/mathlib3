@@ -365,7 +365,7 @@ end
 by { by_cases h : (I : K) = 0; field_simp [h] }
 
 @[simp] lemma norm_sq_inv (z : K) : norm_sq z⁻¹ = (norm_sq z)⁻¹ :=
-(@norm_sq K _).map_inv' z
+(@norm_sq K _).map_inv z
 
 @[simp] lemma norm_sq_div (z w : K) : norm_sq (z / w) = norm_sq z / norm_sq w :=
 (@norm_sq K _).map_div z w

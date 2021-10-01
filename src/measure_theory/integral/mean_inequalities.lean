@@ -261,7 +261,7 @@ begin
     have hpp2 : p * p2 = q,
     { symmetry, rw [mul_comm, ←div_eq_iff hp0_ne], },
     have hpq2 : p * q2 = r,
-    { rw [← inv_inv' r, ← one_div, ← one_div, h_one_div_r],
+    { rw [← inv_inv₀ r, ← one_div, ← one_div, h_one_div_r],
       field_simp [q2, real.conjugate_exponent, p2, hp0_ne, hq0_ne] },
     simp_rw [div_mul_div, mul_one, mul_comm p2, mul_comm q2, hpp2, hpq2],
   end

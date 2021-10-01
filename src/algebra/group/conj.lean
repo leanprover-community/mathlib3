@@ -86,7 +86,7 @@ lemma conj_injective {x : α} : function.injective (λ (g : α), x * g * x⁻¹)
 
 end group
 
-@[simp] lemma is_conj_iff' [group_with_zero α] {a b : α} :
+@[simp] lemma is_conj_iff₀ [group_with_zero α] {a b : α} :
   is_conj a b ↔ ∃ c : α, c ≠ 0 ∧ c * a * c⁻¹ = b :=
 ⟨λ ⟨c, hc⟩, ⟨c, begin
     rw [← units.coe_inv', units.mul_inv_eq_iff_eq_mul],

@@ -983,4 +983,4 @@ subgroup (units R) :=
   ..pos_submonoid.comap (units.coe_hom R)}
 
 @[simp] lemma units.mem_pos_subgroup (u : units R) :
-  u \mem units.pos_subgroup R \iff (0 : R) < u := iff.rfl
+  u ∈ units.pos_subgroup R ↔  (0 : R) < u := iff.rfl

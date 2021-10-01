@@ -366,10 +366,10 @@ lemma injective (H : strict_mono f) : injective f :=
 lemma le_iff_le (H : strict_mono f) {a b} : f a ≤ f b ↔ a ≤ b :=
 (H.strict_mono_on set.univ).le_iff_le trivial trivial
 
-lemma top_preimage_top (H : strict_mono f) {a} (h_top : ∀ p, p ≤ f a) (x : α) : x ≤ a :=
+lemma maximal_preimage_top (H : strict_mono f) {a} (h_top : ∀ p, p ≤ f a) (x : α) : x ≤ a :=
 H.le_iff_le.mp (h_top (f x))
 
-lemma bot_preimage_bot (H : strict_mono f) {a} (h_bot : ∀ p, f a ≤ p) (x : α) : a ≤ x :=
+lemma minimal_preimage_bot (H : strict_mono f) {a} (h_bot : ∀ p, f a ≤ p) (x : α) : a ≤ x :=
 H.le_iff_le.mp (h_bot (f x))
 
 end
@@ -404,7 +404,7 @@ lemma injective_of_le_imp_le [partial_order α] [preorder β] (f : α → β)
   (h : ∀ {x y}, f x ≤ f y → x ≤ y) : injective f :=
 λ x y hxy, (h hxy.le).antisymm (h hxy.ge)
 
-lemma strict_mono_of_monotone_of_injective [partial_order α] [partial_order β] {f : α → β}
+lemma monotone.strict_mono_of_injective [partial_order α] [partial_order β] {f : α → β}
   (h₁ : monotone f) (h₂ : injective f) : strict_mono f :=
 λ a b h,
 begin
@@ -414,7 +414,7 @@ end
 
 lemma monotone.strict_mono_iff_injective [linear_order α] [partial_order β] {f : α → β}
   (h : monotone f) : strict_mono f ↔ injective f :=
-⟨λ h, h.injective, strict_mono_of_monotone_of_injective h⟩
+⟨λ h, h.injective, h.strict_mono_of_injective⟩
 
 lemma strict_mono_of_le_iff_le [preorder α] [preorder β] {f : α → β}
   (h : ∀ x y, x ≤ y ↔ f x ≤ f y) : strict_mono f :=

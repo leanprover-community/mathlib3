@@ -12,7 +12,8 @@ import linear_algebra.matrix.charpoly.coeff
 # Characteristic polynomial
 
 We define the characteristic polynomial of `f : M →ₗ[R] M`, where `M` is a finite and
-free `R`-module.
+free `R`-module. The proof that `f.charpoly` is the characteristic polynomial of the matrix of `f`
+in any basis is in `linear_algebra/charpoly/to_matrix`.
 
 ## Main definition
 

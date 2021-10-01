@@ -7,6 +7,17 @@ Authors: Riccardo Brasca
 import linear_algebra.charpoly.basic
 import linear_algebra.matrix.basis
 
+/-!
+
+# Characteristic polynomial
+
+## Main result
+
+* `linear_map.charpoly_to_matrix f` : `charpoly f` is the characteristic polynomial of the matrix
+of `f` in any basis.
+
+-/
+
 universes u v w
 
 variables {R : Type u} {M : Type v} [comm_ring R] [nontrivial R]

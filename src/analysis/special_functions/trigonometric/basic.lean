@@ -167,8 +167,8 @@ lemma times_cont_diff_cosh {n} : times_cont_diff ℂ n cosh :=
 lemma differentiable_cosh : differentiable ℂ cosh :=
 λx, (has_deriv_at_cosh x).differentiable_at
 
-lemma differentiable_at_cosh {x : ℂ} : differentiable_at ℂ cos x :=
-differentiable_cos x
+lemma differentiable_at_cosh {x : ℂ} : differentiable_at ℂ cosh x :=
+differentiable_cosh x
 
 @[simp] lemma deriv_cosh : deriv cosh = sinh :=
 funext $ λ x, (has_deriv_at_cosh x).deriv
@@ -1026,46 +1026,46 @@ by simp [sin_add]
 lemma sin_periodic : function.periodic sin (2 * π) :=
 sin_antiperiodic.periodic
 
-lemma sin_add_pi (x : ℝ) : sin (x + π) = -sin x :=
+@[simp] lemma sin_add_pi (x : ℝ) : sin (x + π) = -sin x :=
 sin_antiperiodic x
 
-lemma sin_add_two_pi (x : ℝ) : sin (x + 2 * π) = sin x :=
+@[simp] lemma sin_add_two_pi (x : ℝ) : sin (x + 2 * π) = sin x :=
 sin_periodic x
 
-lemma sin_sub_pi (x : ℝ) : sin (x - π) = -sin x :=
+@[simp] lemma sin_sub_pi (x : ℝ) : sin (x - π) = -sin x :=
 sin_antiperiodic.sub_eq x
 
-lemma sin_sub_two_pi (x : ℝ) : sin (x - 2 * π) = sin x :=
+@[simp] lemma sin_sub_two_pi (x : ℝ) : sin (x - 2 * π) = sin x :=
 sin_periodic.sub_eq x
 
-lemma sin_pi_sub (x : ℝ) : sin (π - x) = sin x :=
+@[simp] lemma sin_pi_sub (x : ℝ) : sin (π - x) = sin x :=
 neg_neg (sin x) ▸ sin_neg x ▸ sin_antiperiodic.sub_eq'
 
-lemma sin_two_pi_sub (x : ℝ) : sin (2 * π - x) = -sin x :=
+@[simp] lemma sin_two_pi_sub (x : ℝ) : sin (2 * π - x) = -sin x :=
 sin_neg x ▸ sin_periodic.sub_eq'
 
-lemma sin_nat_mul_pi (n : ℕ) : sin (n * π) = 0 :=
+@[simp] lemma sin_nat_mul_pi (n : ℕ) : sin (n * π) = 0 :=
 sin_antiperiodic.nat_mul_eq_of_eq_zero sin_zero n
 
-lemma sin_int_mul_pi (n : ℤ) : sin (n * π) = 0 :=
+@[simp] lemma sin_int_mul_pi (n : ℤ) : sin (n * π) = 0 :=
 sin_antiperiodic.int_mul_eq_of_eq_zero sin_zero n
 
-lemma sin_add_nat_mul_two_pi (x : ℝ) (n : ℕ) : sin (x + n * (2 * π)) = sin x :=
+@[simp] lemma sin_add_nat_mul_two_pi (x : ℝ) (n : ℕ) : sin (x + n * (2 * π)) = sin x :=
 sin_periodic.nat_mul n x
 
-lemma sin_add_int_mul_two_pi (x : ℝ) (n : ℤ) : sin (x + n * (2 * π)) = sin x :=
+@[simp] lemma sin_add_int_mul_two_pi (x : ℝ) (n : ℤ) : sin (x + n * (2 * π)) = sin x :=
 sin_periodic.int_mul n x
 
-lemma sin_sub_nat_mul_two_pi (x : ℝ) (n : ℕ) : sin (x - n * (2 * π)) = sin x :=
+@[simp] lemma sin_sub_nat_mul_two_pi (x : ℝ) (n : ℕ) : sin (x - n * (2 * π)) = sin x :=
 sin_periodic.sub_nat_mul_eq n
 
-lemma sin_sub_int_mul_two_pi (x : ℝ) (n : ℤ) : sin (x - n * (2 * π)) = sin x :=
+@[simp] lemma sin_sub_int_mul_two_pi (x : ℝ) (n : ℤ) : sin (x - n * (2 * π)) = sin x :=
 sin_periodic.sub_int_mul_eq n
 
-lemma sin_nat_mul_two_pi_sub (x : ℝ) (n : ℕ) : sin (n * (2 * π) - x) = -sin x :=
+@[simp] lemma sin_nat_mul_two_pi_sub (x : ℝ) (n : ℕ) : sin (n * (2 * π) - x) = -sin x :=
 sin_neg x ▸ sin_periodic.nat_mul_sub_eq n
 
-lemma sin_int_mul_two_pi_sub (x : ℝ) (n : ℤ) : sin (n * (2 * π) - x) = -sin x :=
+@[simp] lemma sin_int_mul_two_pi_sub (x : ℝ) (n : ℤ) : sin (n * (2 * π) - x) = -sin x :=
 sin_neg x ▸ sin_periodic.int_mul_sub_eq n
 
 lemma cos_antiperiodic : function.antiperiodic cos π :=
@@ -1074,58 +1074,58 @@ by simp [cos_add]
 lemma cos_periodic : function.periodic cos (2 * π) :=
 cos_antiperiodic.periodic
 
-lemma cos_add_pi (x : ℝ) : cos (x + π) = -cos x :=
+@[simp] lemma cos_add_pi (x : ℝ) : cos (x + π) = -cos x :=
 cos_antiperiodic x
 
-lemma cos_add_two_pi (x : ℝ) : cos (x + 2 * π) = cos x :=
+@[simp] lemma cos_add_two_pi (x : ℝ) : cos (x + 2 * π) = cos x :=
 cos_periodic x
 
-lemma cos_sub_pi (x : ℝ) : cos (x - π) = -cos x :=
+@[simp] lemma cos_sub_pi (x : ℝ) : cos (x - π) = -cos x :=
 cos_antiperiodic.sub_eq x
 
-lemma cos_sub_two_pi (x : ℝ) : cos (x - 2 * π) = cos x :=
+@[simp] lemma cos_sub_two_pi (x : ℝ) : cos (x - 2 * π) = cos x :=
 cos_periodic.sub_eq x
 
-lemma cos_pi_sub (x : ℝ) : cos (π - x) = -cos x :=
+@[simp] lemma cos_pi_sub (x : ℝ) : cos (π - x) = -cos x :=
 cos_neg x ▸ cos_antiperiodic.sub_eq'
 
-lemma cos_two_pi_sub (x : ℝ) : cos (2 * π - x) = cos x :=
+@[simp] lemma cos_two_pi_sub (x : ℝ) : cos (2 * π - x) = cos x :=
 cos_neg x ▸ cos_periodic.sub_eq'
 
-lemma cos_nat_mul_two_pi (n : ℕ) : cos (n * (2 * π)) = 1 :=
+@[simp] lemma cos_nat_mul_two_pi (n : ℕ) : cos (n * (2 * π)) = 1 :=
 (cos_periodic.nat_mul_eq n).trans cos_zero
 
-lemma cos_int_mul_two_pi (n : ℤ) : cos (n * (2 * π)) = 1 :=
+@[simp] lemma cos_int_mul_two_pi (n : ℤ) : cos (n * (2 * π)) = 1 :=
 (cos_periodic.int_mul_eq n).trans cos_zero
 
-lemma cos_add_nat_mul_two_pi (x : ℝ) (n : ℕ) : cos (x + n * (2 * π)) = cos x :=
+@[simp] lemma cos_add_nat_mul_two_pi (x : ℝ) (n : ℕ) : cos (x + n * (2 * π)) = cos x :=
 cos_periodic.nat_mul n x
 
-lemma cos_add_int_mul_two_pi (x : ℝ) (n : ℤ) : cos (x + n * (2 * π)) = cos x :=
+@[simp] lemma cos_add_int_mul_two_pi (x : ℝ) (n : ℤ) : cos (x + n * (2 * π)) = cos x :=
 cos_periodic.int_mul n x
 
-lemma cos_sub_nat_mul_two_pi (x : ℝ) (n : ℕ) : cos (x - n * (2 * π)) = cos x :=
+@[simp] lemma cos_sub_nat_mul_two_pi (x : ℝ) (n : ℕ) : cos (x - n * (2 * π)) = cos x :=
 cos_periodic.sub_nat_mul_eq n
 
-lemma cos_sub_int_mul_two_pi (x : ℝ) (n : ℤ) : cos (x - n * (2 * π)) = cos x :=
+@[simp] lemma cos_sub_int_mul_two_pi (x : ℝ) (n : ℤ) : cos (x - n * (2 * π)) = cos x :=
 cos_periodic.sub_int_mul_eq n
 
-lemma cos_nat_mul_two_pi_sub (x : ℝ) (n : ℕ) : cos (n * (2 * π) - x) = cos x :=
+@[simp] lemma cos_nat_mul_two_pi_sub (x : ℝ) (n : ℕ) : cos (n * (2 * π) - x) = cos x :=
 cos_neg x ▸ cos_periodic.nat_mul_sub_eq n
 
-lemma cos_int_mul_two_pi_sub (x : ℝ) (n : ℤ) : cos (n * (2 * π) - x) = cos x :=
+@[simp] lemma cos_int_mul_two_pi_sub (x : ℝ) (n : ℤ) : cos (n * (2 * π) - x) = cos x :=
 cos_neg x ▸ cos_periodic.int_mul_sub_eq n
 
-lemma cos_nat_mul_two_pi_add_pi (n : ℕ) : cos (n * (2 * π) + π) = -1 :=
+@[simp] lemma cos_nat_mul_two_pi_add_pi (n : ℕ) : cos (n * (2 * π) + π) = -1 :=
 by simpa only [cos_zero] using (cos_periodic.nat_mul n).add_antiperiod_eq cos_antiperiodic
 
-lemma cos_int_mul_two_pi_add_pi (n : ℤ) : cos (n * (2 * π) + π) = -1 :=
+@[simp] lemma cos_int_mul_two_pi_add_pi (n : ℤ) : cos (n * (2 * π) + π) = -1 :=
 by simpa only [cos_zero] using (cos_periodic.int_mul n).add_antiperiod_eq cos_antiperiodic
 
-lemma cos_nat_mul_two_pi_sub_pi (n : ℕ) : cos (n * (2 * π) - π) = -1 :=
+@[simp] lemma cos_nat_mul_two_pi_sub_pi (n : ℕ) : cos (n * (2 * π) - π) = -1 :=
 by simpa only [cos_zero] using (cos_periodic.nat_mul n).sub_antiperiod_eq cos_antiperiodic
 
-lemma cos_int_mul_two_pi_sub_pi (n : ℤ) : cos (n * (2 * π) - π) = -1 :=
+@[simp] lemma cos_int_mul_two_pi_sub_pi (n : ℤ) : cos (n * (2 * π) - π) = -1 :=
 by simpa only [cos_zero] using (cos_periodic.int_mul n).sub_antiperiod_eq cos_antiperiodic
 
 lemma sin_pos_of_pos_of_lt_pi {x : ℝ} (h0x : 0 < x) (hxp : x < π) : 0 < sin x :=

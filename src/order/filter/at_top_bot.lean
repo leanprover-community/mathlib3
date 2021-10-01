@@ -1225,7 +1225,7 @@ lemma tendsto_iff_seq_tendsto {f : α → β} {k : filter α} {l : filter β}
 suffices (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) → tendsto f k l,
   from ⟨by intros; apply tendsto.comp; assumption, by assumption⟩,
 begin
-  rcases hcb.exists_antitone_basis with ⟨g, gbasis, gmon, -⟩,
+  obtain ⟨g, gbasis, gmon, -⟩ := hcb.exists_antitone_basis,
   contrapose,
   simp only [not_forall, gbasis.tendsto_left_iff, exists_const, not_exists, not_imp],
   rintro ⟨B, hBl, hfBk⟩,
@@ -1249,7 +1249,7 @@ lemma subseq_tendsto {f : filter α} (hf : is_countably_generated f)
   (hx : ne_bot (f ⊓ map u at_top)) :
   ∃ (θ : ℕ → ℕ), (strict_mono θ) ∧ (tendsto (u ∘ θ) at_top f) :=
 begin
-  rcases hf.exists_antitone_basis with ⟨B, h⟩,
+  obtain ⟨B, h⟩ := hf.exists_antitone_basis,
   have : ∀ N, ∃ n ≥ N, u n ∈ B N,
     from λ N, filter.inf_map_at_top_ne_bot_iff.mp hx _ (h.to_has_basis.mem_of_mem trivial) N,
   choose φ hφ using this,

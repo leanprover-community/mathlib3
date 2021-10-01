@@ -74,6 +74,16 @@ end
   is_complement (H : set G) (K : set G) ↔ is_complement (K : set G) (H : set G) :=
 ⟨is_complement.symm, is_complement.symm⟩
 
+@[to_additive] lemma is_complement_top_singleton {g : G} :
+  is_complement (⊤ : set G) {g} :=
+⟨λ ⟨x, _, rfl⟩ ⟨y, _, rfl⟩ h, prod.ext (subtype.ext (mul_right_cancel h)) rfl,
+  λ x, ⟨⟨⟨x * g⁻¹, ⟨⟩⟩, g, rfl⟩, inv_mul_cancel_right x g⟩⟩
+
+@[to_additive] lemma is_complement_singleton_top {g : G} :
+  is_complement ({g} : set G) (⊤ : set G) :=
+⟨λ ⟨⟨_, rfl⟩, x⟩ ⟨⟨_, rfl⟩, y⟩ h, prod.ext rfl (subtype.ext (mul_left_cancel h)),
+  λ x, ⟨⟨⟨g, rfl⟩, g⁻¹ * x, ⟨⟩⟩, mul_inv_cancel_left g x⟩⟩
+
 @[to_additive] lemma mem_left_transversals_iff_exists_unique_inv_mul_mem :
   S ∈ left_transversals T ↔ ∀ g : G, ∃! s : S, (s : G)⁻¹ * g ∈ T :=
 begin

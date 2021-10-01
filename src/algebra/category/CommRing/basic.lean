@@ -41,7 +41,7 @@ attribute [derive [has_coe_to_sort, large_category, concrete_category]] SemiRing
 /-- Construct a bundled SemiRing from the underlying type and typeclass. -/
 def of (R : Type u) [semiring R] : SemiRing := bundled.of R
 
-/-- Construct a bundled hom from the underlying ring_hom. -/
+/-- Typecheck a `ring_hom` as a morphism in `SemiRing`. -/
 def of_hom {R S : Type u} [semiring R] [semiring S] (f : R →+* S) : of R ⟶ of S := f
 
 instance : inhabited SemiRing := ⟨of punit⟩
@@ -75,7 +75,7 @@ attribute [derive [has_coe_to_sort, large_category, concrete_category]] Ring
 /-- Construct a bundled Ring from the underlying type and typeclass. -/
 def of (R : Type u) [ring R] : Ring := bundled.of R
 
-/-- Construct a bundled hom from the underlying ring_hom. -/
+/-- Typecheck a `ring_hom` as a morphism in `Ring`. -/
 def of_hom {R S : Type u} [ring R] [ring S] (f : R →+* S) : of R ⟶ of S := f
 
 instance : inhabited Ring := ⟨of punit⟩
@@ -105,7 +105,7 @@ attribute [derive [has_coe_to_sort, large_category, concrete_category]] CommSemi
 /-- Construct a bundled CommSemiRing from the underlying type and typeclass. -/
 def of (R : Type u) [comm_semiring R] : CommSemiRing := bundled.of R
 
-/-- Construct a bundled hom from the underlying ring_hom. -/
+/-- Typecheck a `ring_hom` as a morphism in `CommSemiRing`. -/
 def of_hom {R S : Type u} [comm_semiring R] [comm_semiring S] (f : R →+* S) : of R ⟶ of S := f
 
 instance : inhabited CommSemiRing := ⟨of punit⟩
@@ -136,7 +136,7 @@ attribute [derive [has_coe_to_sort, large_category, concrete_category]] CommRing
 /-- Construct a bundled CommRing from the underlying type and typeclass. -/
 def of (R : Type u) [comm_ring R] : CommRing := bundled.of R
 
-/-- Construct a bundled hom from the underlying ring_hom. -/
+/-- Typecheck a `ring_hom` as a morphism in `CommRing`. -/
 def of_hom {R S : Type u} [comm_ring R] [comm_ring S] (f : R →+* S) : of R ⟶ of S := f
 
 instance : inhabited CommRing := ⟨of punit⟩

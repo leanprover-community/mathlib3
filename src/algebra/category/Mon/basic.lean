@@ -55,11 +55,11 @@ def of (M : Type u) [monoid M] : Mon := bundled.of M
 /-- Construct a bundled `Mon` from the underlying type and typeclass. -/
 add_decl_doc AddMon.of
 
-/-- Construct a bundled hom from the underlying monoid_map. -/
+/-- Typecheck a `monoid_hom` as a morphism in `Mon`. -/
 @[to_additive] def of_hom {X Y : Type u} [monoid X] [monoid Y] (f : X →* Y) :
   of X ⟶ of Y := f
 
-/-- Construct a bundled hom from the underlying monoid_map. -/
+/-- Typecheck a `add_monoid_hom` as a morphism in `AddMon`. -/
 add_decl_doc AddMon.of_hom
 
 @[to_additive]

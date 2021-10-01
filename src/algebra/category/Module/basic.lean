@@ -93,7 +93,7 @@ instance has_forget_to_AddCommGroup : has_forget₂ (Module R) AddCommGroup :=
 /-- The object in the category of R-modules associated to an R-module -/
 def of (X : Type v) [add_comm_group X] [module R X] : Module R := ⟨X⟩
 
-/-- Construct a bundled hom from the underlying linear_map. -/
+/-- Typecheck a `linear_map` as a morphism in `Module R`. -/
 def of_hom {R : Type u} [ring R] {X Y : Type u} [add_comm_group X] [module R X] [add_comm_group Y]
   [module R Y] (f : X →ₗ[R] Y) : of R X ⟶ of R Y := f
 

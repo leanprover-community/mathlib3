@@ -112,6 +112,9 @@ instance : Π [topological_space α], topological_space (order_dual α) := id
 instance [topological_space α] [h : first_countable_topology α] :
   first_countable_topology (order_dual α) := h
 
+instance [topological_space α] [h : second_countable_topology α] :
+  second_countable_topology (order_dual α) := h
+
 @[to_additive]
 instance [topological_space α] [has_mul α] [h : has_continuous_mul α] :
   has_continuous_mul (order_dual α) := h

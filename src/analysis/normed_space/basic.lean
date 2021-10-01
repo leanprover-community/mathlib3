@@ -1265,7 +1265,7 @@ instance to_normed_comm_ring : normed_comm_ring α :=
 
 @[priority 900]
 instance to_norm_one_class : norm_one_class α :=
-⟨mul_left_cancel' (mt norm_eq_zero.1 (@one_ne_zero α _ _)) $
+⟨mul_left_cancel₀ (mt norm_eq_zero.1 (@one_ne_zero α _ _)) $
   by rw [← norm_mul, mul_one, mul_one]⟩
 
 @[simp] lemma nnnorm_mul (a b : α) : ∥a * b∥₊ = ∥a∥₊ * ∥b∥₊ :=
@@ -1299,7 +1299,7 @@ nnreal.eq $ norm_mul a b
 (nnnorm_hom : monoid_with_zero_hom α ℝ≥0).map_div a b
 
 @[simp] lemma norm_inv (a : α) : ∥a⁻¹∥ = ∥a∥⁻¹ :=
-(norm_hom : monoid_with_zero_hom α ℝ).map_inv' a
+(norm_hom : monoid_with_zero_hom α ℝ).map_inv a
 
 @[simp] lemma nnnorm_inv (a : α) : ∥a⁻¹∥₊ = ∥a∥₊⁻¹ :=
 nnreal.eq $ by simp
@@ -1311,7 +1311,7 @@ nnreal.eq $ by simp
 (nnnorm_hom : monoid_with_zero_hom α ℝ≥0).map_fpow
 
 @[priority 100] -- see Note [lower instance priority]
-instance : has_continuous_inv' α :=
+instance : has_continuous_inv₀ α :=
 begin
   refine ⟨λ r r0, tendsto_iff_norm_tendsto_zero.2 _⟩,
   have r0' : 0 < ∥r∥ := norm_pos_iff.2 r0,
@@ -1570,7 +1570,7 @@ begin
   by_cases h : s = 0,
   { simp [h] },
   { refine le_antisymm (semi_normed_space.norm_smul_le s x) _,
-    calc ∥s∥ * ∥x∥ = ∥s∥ * ∥s⁻¹ • s • x∥     : by rw [inv_smul_smul' h]
+    calc ∥s∥ * ∥x∥ = ∥s∥ * ∥s⁻¹ • s • x∥     : by rw [inv_smul_smul₀ h]
                ... ≤ ∥s∥ * (∥s⁻¹∥ * ∥s • x∥) :
       mul_le_mul_of_nonneg_left (semi_normed_space.norm_smul_le _ _) (norm_nonneg _)
                ... = ∥s • x∥                 :
@@ -1653,8 +1653,8 @@ theorem smul_ball {c : α} (hc : c ≠ 0) (x : E) (r : ℝ) :
   c • ball x r = ball (c • x) (∥c∥ * r) :=
 begin
   ext y,
-  rw mem_smul_set_iff_inv_smul_mem' hc,
-  conv_lhs { rw ←inv_smul_smul' hc x },
+  rw mem_smul_set_iff_inv_smul_mem₀ hc,
+  conv_lhs { rw ←inv_smul_smul₀ hc x },
   simp [← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hc), mul_comm _ r, dist_smul],
 end
 
@@ -1662,8 +1662,8 @@ theorem smul_closed_ball' {c : α} (hc : c ≠ 0) (x : E) (r : ℝ) :
   c • closed_ball x r = closed_ball (c • x) (∥c∥ * r) :=
 begin
   ext y,
-  rw mem_smul_set_iff_inv_smul_mem' hc,
-  conv_lhs { rw ←inv_smul_smul' hc x },
+  rw mem_smul_set_iff_inv_smul_mem₀ hc,
+  conv_lhs { rw ←inv_smul_smul₀ hc x },
   simp [dist_smul, ← div_eq_inv_mul, div_le_iff (norm_pos_iff.2 hc), mul_comm _ r],
 end
 
@@ -1727,12 +1727,12 @@ begin
     exact (div_lt_iff εpos).1 (hn.2) },
   show ε / ∥c∥ ≤ ∥(c ^ (n + 1))⁻¹ • x∥,
   { rw [div_le_iff cpos, norm_smul, norm_inv, norm_fpow, fpow_add (ne_of_gt cpos),
-        gpow_one, mul_inv_rev', mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel (ne_of_gt cpos),
+        gpow_one, mul_inv_rev₀, mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel (ne_of_gt cpos),
         one_mul, ← div_eq_inv_mul, le_div_iff (fpow_pos_of_pos cpos _), mul_comm],
     exact (le_div_iff εpos).1 hn.1 },
   show ∥(c ^ (n + 1))⁻¹∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥,
   { have : ε⁻¹ * ∥c∥ * ∥x∥ = ε⁻¹ * ∥x∥ * ∥c∥, by ring,
-    rw [norm_inv, inv_inv', norm_fpow, fpow_add (ne_of_gt cpos), gpow_one, this, ← div_eq_inv_mul],
+    rw [norm_inv, inv_inv₀, norm_fpow, fpow_add (ne_of_gt cpos), gpow_one, this, ← div_eq_inv_mul],
     exact mul_le_mul_of_nonneg_right hn.1 (norm_nonneg _) }
 end
 

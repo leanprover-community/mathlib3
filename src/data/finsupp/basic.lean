@@ -815,15 +815,29 @@ See `finsupp.lapply` for the stronger version as a linear map. -/
 @[simps apply]
 def apply_add_hom (a : α) : (α →₀ M) →+ M := ⟨λ g, g a, zero_apply, λ _ _, add_apply _ _ _⟩
 
+lemma update_eq_single_add_erase (f : α →₀ M) (a : α) (b : M) :
+  f.update a b = single a b + f.erase a :=
+begin
+  ext j,
+  rcases eq_or_ne a j with rfl|h,
+  { simp },
+  { simp [function.update_noteq h.symm, single_apply, h, erase_ne, h.symm] }
+end
+
+lemma update_eq_erase_add_single (f : α →₀ M) (a : α) (b : M) :
+  f.update a b = f.erase a + single a b :=
+begin
+  ext j,
+  rcases eq_or_ne a j with rfl|h,
+  { simp },
+  { simp [function.update_noteq h.symm, single_apply, h, erase_ne, h.symm] }
+end
+
 lemma single_add_erase (a : α) (f : α →₀ M) : single a (f a) + f.erase a = f :=
-ext $ λ a',
-if h : a = a' then by subst h; simp only [add_apply, single_eq_same, erase_same, add_zero]
-else by simp only [add_apply, single_eq_of_ne h, zero_add, erase_ne (ne.symm h)]
+by rw [←update_eq_single_add_erase, update_self]
 
 lemma erase_add_single (a : α) (f : α →₀ M) : f.erase a + single a (f a) = f :=
-ext $ λ a',
-if h : a = a' then by subst h; simp only [add_apply, single_eq_same, erase_same, zero_add]
-else by simp only [add_apply, single_eq_of_ne h, add_zero, erase_ne (ne.symm h)]
+by rw [←update_eq_erase_add_single, update_self]
 
 @[simp] lemma erase_add (a : α) (f f' : α →₀ M) : erase a (f + f') = erase a f + erase a f' :=
 begin
@@ -1088,6 +1102,19 @@ finset.subset.antisymm
   support_map_range
   (calc support f = support (- (- f)) : congr_arg support (neg_neg _).symm
      ... ⊆ support (- f) : support_map_range)
+
+lemma erase_eq_sub_single [add_group G] (f : α →₀ G) (a : α) :
+  f.erase a = f - single a (f a) :=
+begin
+  ext a',
+  rcases eq_or_ne a a' with rfl|h,
+  { simp },
+  { simp [erase_ne h.symm, single_eq_of_ne h] }
+end
+
+lemma update_eq_sub_add_single [add_group G] (f : α →₀ G) (a : α) (b : G) :
+  f.update a b = f - single a (f a) + single a b :=
+by rw [update_eq_erase_add_single, erase_eq_sub_single]
 
 @[simp] lemma sum_apply [has_zero M] [add_comm_monoid N]
   {f : α →₀ M} {g : α → M → β →₀ N} {a₂ : β} :

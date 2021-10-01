@@ -167,8 +167,8 @@ lemma times_cont_diff_cosh {n} : times_cont_diff ℂ n cosh :=
 lemma differentiable_cosh : differentiable ℂ cosh :=
 λx, (has_deriv_at_cosh x).differentiable_at
 
-lemma differentiable_at_cosh {x : ℂ} : differentiable_at ℂ cos x :=
-differentiable_cos x
+lemma differentiable_at_cosh {x : ℂ} : differentiable_at ℂ cosh x :=
+differentiable_cosh x
 
 @[simp] lemma deriv_cosh : deriv cosh = sinh :=
 funext $ λ x, (has_deriv_at_cosh x).deriv
@@ -2005,7 +2005,7 @@ lemma exp_periodic : function.periodic exp (2 * π * I) :=
 (mul_assoc (2:ℂ) π I).symm ▸ exp_antiperiodic.periodic
 
 lemma exp_mul_I_antiperiodic : function.antiperiodic (λ x, exp (x * I)) π :=
-by simpa only [mul_inv_cancel_right' I_ne_zero] using exp_antiperiodic.mul_const I_ne_zero
+by simpa only [mul_inv_cancel_right₀ I_ne_zero] using exp_antiperiodic.mul_const I_ne_zero
 
 lemma exp_mul_I_periodic : function.periodic (λ x, exp (x * I)) (2 * π) :=
 exp_mul_I_antiperiodic.periodic

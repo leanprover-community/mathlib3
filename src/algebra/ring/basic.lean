@@ -1063,17 +1063,35 @@ than partially) defined inverse function for some purposes, including for calcul
 Note that while this is in the `ring` namespace for brevity, it requires the weaker assumption
 `monoid_with_zero M₀` instead of `ring M₀`. -/
 noncomputable def inverse : M₀ → M₀ :=
-λ x, if h : is_unit x then (((classical.some h)⁻¹ : units M₀) : M₀) else 0
+λ x, if h : is_unit x then ((h.unit⁻¹ : units M₀) : M₀) else 0
 
 /-- By definition, if `x` is invertible then `inverse x = x⁻¹`. -/
 @[simp] lemma inverse_unit (u : units M₀) : inverse (u : M₀) = (u⁻¹ : units M₀) :=
 begin
   simp only [units.is_unit, inverse, dif_pos],
-  exact units.inv_unique (classical.some_spec u.is_unit)
+  exact units.inv_unique rfl
 end
 
 /-- By definition, if `x` is not invertible then `inverse x = 0`. -/
 @[simp] lemma inverse_non_unit (x : M₀) (h : ¬(is_unit x)) : inverse x = 0 := dif_neg h
+
+lemma mul_inverse_cancel (x : M₀) (h : is_unit x) : x * inverse x = 1 :=
+by { rcases h with ⟨u, rfl⟩, rw [inverse_unit, units.mul_inv], }
+
+lemma inverse_mul_cancel (x : M₀) (h : is_unit x) : inverse x * x = 1 :=
+by { rcases h with ⟨u, rfl⟩, rw [inverse_unit, units.inv_mul], }
+
+lemma mul_inverse_cancel_right (x y : M₀) (h : is_unit x) : y * x * inverse x = y :=
+by rw [mul_assoc, mul_inverse_cancel x h, mul_one]
+
+lemma inverse_mul_cancel_right (x y : M₀) (h : is_unit x) : y * inverse x * x = y :=
+by rw [mul_assoc, inverse_mul_cancel x h, mul_one]
+
+lemma mul_inverse_cancel_left (x y : M₀) (h : is_unit x) : x * (inverse x * y) = y :=
+by rw [← mul_assoc, mul_inverse_cancel x h, one_mul]
+
+lemma inverse_mul_cancel_left (x y : M₀) (h : is_unit x) : inverse x * (x * y) = y :=
+by rw [← mul_assoc, inverse_mul_cancel x h, one_mul]
 
 end ring
 

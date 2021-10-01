@@ -183,10 +183,17 @@ begin
     id.def, finsupp.fun_support_eq],
 end
 
+@[simp] lemma coe_sum_coords_of_fintype [fintype ι] : (b.sum_coords : M → R) = ∑ i, b.coord i :=
+begin
+  ext m,
+  simp only [sum_coords, finsupp.sum_fintype, linear_map.id_coe, linear_equiv.coe_coe, coord_apply,
+    id.def, fintype.sum_apply, implies_true_iff, eq_self_iff_true, finsupp.coe_lsum,
+    linear_map.coe_comp],
+end
+
 @[simp] lemma sum_coords_self_apply : b.sum_coords (b i) = 1 :=
 by simp only [basis.sum_coords, linear_map.id_coe, linear_equiv.coe_coe, id.def, basis.repr_self,
   function.comp_app, finsupp.coe_lsum, linear_map.coe_comp, finsupp.sum_single_index]
-
 
 end coord
 

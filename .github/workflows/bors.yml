@@ -27,6 +27,16 @@ jobs:
           all_but_latest: true
           access_token: ${{ github.token }}
 
+      # This unrelated step is included in this job to avoid having to spawn another runner
+      - id: remove_labels
+        name: Remove "has-oleans"
+        # we use curl rather than octokit/request-action so that the job won't fail
+        # (and send an annoying email) if the labels don't exist
+        run: |
+          curl --request DELETE \
+            --url https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/labels/has-oleans \
+            --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}'
+
   style_lint:
     if: github.repository == 'leanprover-community/mathlib'
     name: Lint style
@@ -93,6 +103,18 @@ jobs:
           find src/ -name "*.olean" -o -name ".noisy_files" | tar cJf "$archive_name" -T -
           azcopy copy "$archive_name" "${{ secrets.AZURE_SAS_TOKEN }}" --block-size-mb 99 --overwrite false
 
+      - name: Add "has-oleans" label
+        if: always() && github.repository == 'leanprover-community/mathlib' && steps.build.outputs.started == 'true'
+        uses: octokit/request-action@v2.x
+        id: add_label
+        with:
+          route: POST /repos/:repository/issues/:issue_number/labels
+          repository: ${{ github.repository }}
+          issue_number: ${{ github.event.issue.number }}
+          labels: '["has-oleans"]'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: setup precompiled zip file
         if: always() && steps.build.outputs.started == 'true'
         id: setup_precompiled
@@ -101,6 +123,7 @@ jobs:
           tar -cf workspace.tar --exclude=*.tar* .
           git_hash="$(git log -1 --pretty=format:%h)"
           echo "::set-output name=artifact_name::precompiled-mathlib-$short_lean_version-$git_hash"
+
       - name: upload precompiled mathlib zip file
         if: always() && steps.build.outputs.started == 'true'
         uses: actions/upload-artifact@v2
@@ -208,3 +231,18 @@ jobs:
           python scripts/yaml_check.py docs/100.yaml docs/overview.yaml docs/undergrad.yaml
           bash scripts/mk_all.sh
           lean --run scripts/yaml_check.lean
+
+  final:
+    name: Post-CI job
+    if: always() && github.repository == 'leanprover-community/mathlib'
+    needs: [build, lint, tests]
+    runs-on: ubuntu-latest
+    steps:
+      - id: remove_labels
+        name: Remove "awaiting-CI"
+        # we use curl rather than octokit/request-action so that the job won't fail
+        # (and send an annoying email) if the labels don't exist
+        run: |
+          curl --request DELETE \
+            --url https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/labels/awaiting-CI \
+            --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}'

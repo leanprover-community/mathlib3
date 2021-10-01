@@ -152,6 +152,11 @@ mem_right_transversals_iff_exists_unique_quotient_mk'_eq.trans
 { rintros ⟨_, q₁, rfl⟩ ⟨_, q₂, rfl⟩ hg,
   rw (q₁.out_eq'.symm.trans hg).trans q₂.out_eq' }, λ q, ⟨⟨q.out', q, rfl⟩, quotient.out_eq' q⟩⟩⟩⟩
 
+lemma is_complement.card_mul [fintype G] [fintype H] [fintype K]
+  (h : is_complement (H : set G) (K : set G)) :
+  fintype.card H * fintype.card K = fintype.card G :=
+(fintype.card_prod _ _).symm.trans (fintype.card_of_bijective h)
+
 lemma is_complement_of_disjoint [fintype G] [fintype H] [fintype K]
   (h1 : fintype.card H * fintype.card K = fintype.card G)
   (h2 : disjoint H K) :

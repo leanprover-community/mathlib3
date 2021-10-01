@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Anne Baanen, Kexing Ying
+Authors: Anne Baanen, Kexing Ying, Eric Wieser
 -/
 
 import algebra.invertible
@@ -454,6 +454,11 @@ def to_quadratic_form (B : bilin_form R M) : quadratic_form R M :=
   B.to_quadratic_form x = B x x :=
 rfl
 
+section
+variables (R M)
+@[simp] lemma to_quadratic_form_zero : (0 : bilin_form R M).to_quadratic_form = 0 := rfl
+end
+
 end bilin_form
 
 namespace quadratic_form
@@ -542,17 +547,14 @@ instance : can_lift (bilin_form R M) (quadratic_form R M) :=
   prf := λ B hB, ⟨B.to_quadratic_form, associated_left_inverse _ hB⟩ }
 
 /-- There exists a non-null vector with respect to any quadratic form `Q` whose associated
-bilinear form is non-degenerate, i.e. there exists `x` such that `Q x ≠ 0`. -/
-lemma exists_quadratic_form_neq_zero [nontrivial M]
-  {Q : quadratic_form R M} (hB₁ : Q.associated'.nondegenerate) :
+bilinear form is non-zero, i.e. there exists `x` such that `Q x ≠ 0`. -/
+lemma exists_quadratic_form_ne_zero {Q : quadratic_form R M} (hB₁ : Q.associated' ≠ 0) :
   ∃ x, Q x ≠ 0 :=
 begin
-  rw nondegenerate at hB₁,
-  contrapose! hB₁,
-  obtain ⟨x, hx⟩ := exists_ne (0 : M),
-  refine ⟨x, λ y, _, hx⟩,
-  have : Q = 0 := quadratic_form.ext hB₁,
-  simp [this]
+  rw ←not_forall,
+  intro h,
+  apply hB₁,
+  rw [(quadratic_form.ext h : Q = 0), linear_map.map_zero],
 end
 
 end associated_hom
@@ -703,8 +705,12 @@ variables {Q₁ : quadratic_form R M₁} {Q₂ : quadratic_form R M₂} {Q₃ : 
 
 instance : has_coe (Q₁.isometry Q₂) (M₁ ≃ₗ[R] M₂) := ⟨isometry.to_linear_equiv⟩
 
+@[simp] lemma to_linear_equiv_eq_coe (f : Q₁.isometry Q₂) : f.to_linear_equiv = f := rfl
+
 instance : has_coe_to_fun (Q₁.isometry Q₂) :=
 { F := λ _, M₁ → M₂, coe := λ f, ⇑(f : M₁ ≃ₗ[R] M₂) }
+
+@[simp] lemma coe_to_linear_equiv (f : Q₁.isometry Q₂) : ⇑(f : M₁ ≃ₗ[R] M₂) = f := rfl
 
 @[simp] lemma map_app (f : Q₁.isometry Q₂) (m : M₁) : Q₂ (f m) = Q₁ m := f.map_app' m
 
@@ -753,15 +759,15 @@ lemma nondegenerate_of_anisotropic
   {B : bilin_form R M} (hB : B.to_quadratic_form.anisotropic) : B.nondegenerate :=
 λ x hx, hB _ (hx x)
 
-/-- There exists a non-null vector with respect to any symmetric, nondegenerate bilinear form `B`
-on a nontrivial module `M` over a ring `R` with invertible `2`, i.e. there exists some
+/-- There exists a non-null vector with respect to any symmetric, nonzero bilinear form `B`
+on a module `M` over a ring `R` with invertible `2`, i.e. there exists some
 `x : M` such that `B x x ≠ 0`. -/
-lemma exists_bilin_form_self_neq_zero [htwo : invertible (2 : R)] [nontrivial M]
-  {B : bilin_form R M} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) :
+lemma exists_bilin_form_self_ne_zero [htwo : invertible (2 : R)]
+  {B : bilin_form R M} (hB₁ : B ≠ 0) (hB₂ : sym_bilin_form.is_sym B) :
   ∃ x, ¬ B.is_ortho x x :=
 begin
   lift B to quadratic_form R M using hB₂ with Q,
-  obtain ⟨x, hx⟩ := quadratic_form.exists_quadratic_form_neq_zero hB₁,
+  obtain ⟨x, hx⟩ := quadratic_form.exists_quadratic_form_ne_zero hB₁,
   exact ⟨x, λ h, hx (Q.associated_eq_self_apply ℕ x ▸ h)⟩,
 end
 
@@ -770,63 +776,54 @@ open finite_dimensional
 variables {V : Type u} {K : Type v} [field K] [add_comm_group V] [module K V]
 variable [finite_dimensional K V]
 
--- We start proving that symmetric nondegenerate bilinear forms are diagonalisable, or equivalently
--- there exists a orthogonal basis with respect to any symmetric nondegenerate bilinear form.
-
-lemma exists_orthogonal_basis' [hK : invertible (2 : K)]
-  {B : bilin_form K V} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) :
-  ∃ (v : basis (fin (finrank K V)) K V),
-    B.is_Ortho v ∧ ∀ i, B (v i) (v i) ≠ 0 :=
+/-- Given a symmetric bilinear form `B` on some vector space `V` over a field `K`
+in which `2` is invertible, there exists an orthogonal basis with respect to `B`. -/
+lemma exists_orthogonal_basis [hK : invertible (2 : K)]
+  {B : bilin_form K V} (hB₂ : sym_bilin_form.is_sym B) :
+  ∃ (v : basis (fin (finrank K V)) K V), B.is_Ortho v :=
 begin
   tactic.unfreeze_local_instances,
   induction hd : finrank K V with d ih generalizing V,
-  { exact ⟨basis_of_finrank_zero hd, λ _ _ _, zero_left _, fin.elim0⟩ },
+  { exact ⟨basis_of_finrank_zero hd, λ _ _ _, zero_left _⟩ },
   haveI := finrank_pos_iff.1 (hd.symm ▸ nat.succ_pos d : 0 < finrank K V),
-  cases exists_bilin_form_self_neq_zero hB₁ hB₂ with x hx,
-  have hd' := hd,
-  rw [← submodule.finrank_add_eq_of_is_compl
-        (is_compl_span_singleton_orthogonal hx).symm,
+  -- either the bilinear form is trivial or we can pick a non-null `x`
+  obtain rfl | hB₁ := eq_or_ne B 0,
+  { let b := finite_dimensional.fin_basis K V,
+    rw hd at b,
+    refine ⟨b, λ i j hij, rfl⟩, },
+  obtain ⟨x, hx⟩ := exists_bilin_form_self_ne_zero hB₁ hB₂,
+  rw [← submodule.finrank_add_eq_of_is_compl (is_compl_span_singleton_orthogonal hx).symm,
       finrank_span_singleton (ne_zero_of_not_is_ortho_self x hx)] at hd,
-  rcases @ih (B.orthogonal $ K ∙ x) _ _ _
-    (B.restrict _) (B.restrict_orthogonal_span_singleton_nondegenerate hB₁ hB₂ hx)
-    (B.restrict_sym hB₂ _) (nat.succ.inj hd) with ⟨v', hv₁, hv₃⟩,
-
-  set v := (λ (i : fin _), if h : i = 0 then x else coe (v' (i.pred h))) with v_def,
-  have : ∀ i j (hij : i ≠ j), B.is_ortho (v i) (v j),
-  { intros i j hij,
-    simp only [v_def],
-    split_ifs with hi hj hj,
-    { have : i = j := hi.trans hj.symm, contradiction },
-    { exact (v' (j.pred hj)).2 _ (submodule.mem_span_singleton_self x) },
+  let B' := B.restrict (B.orthogonal $ K ∙ x),
+  obtain ⟨v', hv₁⟩ := ih (B.restrict_sym hB₂ _ : sym_bilin_form.is_sym B') (nat.succ.inj hd),
+  -- concatenate `x` with the basis obtained by induction
+  let b := basis.mk_fin_cons x v'
+    (begin
+      rintros c y hy hc,
+      rw add_eq_zero_iff_neg_eq at hc,
+      rw [← hc, submodule.neg_mem_iff] at hy,
+      have := (is_compl_span_singleton_orthogonal hx).disjoint,
+      rw submodule.disjoint_def at this,
+      have := this (c • x) (submodule.smul_mem _ _ $ submodule.mem_span_singleton_self _) hy,
+      exact (smul_eq_zero.1 this).resolve_right (λ h, hx $ h.symm ▸ zero_left _),
+    end)
+    (begin
+      intro y,
+      refine ⟨-B x y/B x x, λ z hz, _⟩,
+      obtain ⟨c, rfl⟩ := submodule.mem_span_singleton.1 hz,
+      rw [is_ortho, smul_left, add_right, smul_right, div_mul_cancel _ hx, add_neg_self, mul_zero],
+    end),
+  refine ⟨b, _⟩,
+  { rw basis.coe_mk_fin_cons,
+    intros j i,
+    refine fin.cases _ (λ i, _) i; refine fin.cases _ (λ j, _) j; intro hij;
+      simp only [function.on_fun, fin.cons_zero, fin.cons_succ, function.comp_apply],
+    { exact (hij rfl).elim },
     { rw [is_ortho, hB₂],
-      exact (v' (i.pred hi)).2 _ (submodule.mem_span_singleton_self x) },
-    { exact hv₁ (j.pred hj) (i.pred hi) (by simpa using hij.symm) } },
-
-  refine ⟨@basis_of_linear_independent_of_card_eq_finrank _ _ _ _ _ _ _ _
-      v
-      (@linear_independent_of_is_Ortho _ _ _ _ _ _ B v (λ i j hij, this j i hij.symm) _)
-      (by rw [hd', fintype.card_fin]), _, _⟩,
-  { intro i,
-    simp only [v_def],
-    split_ifs with hi,
-    { exact hx },
-    { exact hv₃ (i.pred hi) } },
-  { intros i j hij,
-    simp only [v_def, basis_of_linear_independent_of_card_eq_finrank, basis.mk_apply],
-    exact this j i hij.symm },
-  { intro i,
-    simp only [v_def, basis_of_linear_independent_of_card_eq_finrank, basis.mk_apply],
-    split_ifs with hi,
-    { exact hx },
-    { exact hv₃ (i.pred hi) } }
-end .
-
-/-- Given a nondegenerate symmetric bilinear form `B` on some vector space `V` over the
-  field `K` with invertible `2`, there exists an orthogonal basis with respect to `B`. -/
-theorem exists_orthogonal_basis [hK : invertible (2 : K)]
-  {B : bilin_form K V} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) :
-  ∃ v : basis (fin (finrank K V)) K V, B.is_Ortho v :=
-let ⟨v, hv₁, _⟩ := exists_orthogonal_basis' hB₁ hB₂ in ⟨v, hv₁⟩
+      exact (v' j).prop _ (submodule.mem_span_singleton_self x) },
+    { exact (v' i).prop _ (submodule.mem_span_singleton_self x) },
+    { exact hv₁ _ _ (ne_of_apply_ne _ hij), }, }
+end
 
 end bilin_form
 
@@ -865,22 +862,6 @@ noncomputable def isometry_basis_repr (Q : quadratic_form R M) (v : basis ι R M
   isometry Q (Q.basis_repr v) :=
 isometry_of_comp_linear_equiv Q v.equiv_fun.symm
 
-lemma isometry_of_is_Ortho_apply [invertible (2 : R₁)]
-  (Q : quadratic_form R₁ M) (v : basis ι R₁ M)
-  (hv₂ : (associated Q).is_Ortho v) (w : ι → R₁) :
-  Q.basis_repr v w = ∑ i : ι, associated Q (v i) (v i) * (w i * w i) :=
-begin
-  rw [basis_repr_apply, ← @associated_eq_self_apply R₁, sum_left],
-  refine sum_congr rfl (λ j hj, _),
-  rw [sum_right, sum_eq_single j],
-  { rw [smul_left, smul_right], ring },
-  { intros i _ hij,
-    rw [smul_left, smul_right,
-        show (associated_hom R₁) Q (v j) (v i) = 0, by exact hv₂ i j hij,
-        mul_zero, mul_zero] },
-  { contradiction }
-end
-
 section
 
 variable (R₁)
@@ -901,33 +882,68 @@ lemma weighted_sum_squares_apply [monoid S] [distrib_mul_action S R₁] [smul_co
   weighted_sum_squares R₁ w v = ∑ i : ι, w i • (v i * v i) :=
 quadratic_form.sum_apply _ _ _
 
-variables {V : Type*} {K : Type*} [field K] [invertible (2 : K)]
-variables [add_comm_group V] [module K V] [finite_dimensional K V]
+/-- On an orthogonal basis, the basis representation of `Q` is just a sum of squares. -/
+lemma basis_repr_eq_of_is_Ortho [invertible (2 : R₁)]
+  (Q : quadratic_form R₁ M) (v : basis ι R₁ M) (hv₂ : (associated Q).is_Ortho v) :
+  Q.basis_repr v = weighted_sum_squares _ (λ i, Q (v i)) :=
+begin
+  ext w,
+  rw [basis_repr_apply, ←@associated_eq_self_apply R₁, sum_left, weighted_sum_squares_apply],
+  refine sum_congr rfl (λ j hj, _),
+  rw [←@associated_eq_self_apply R₁, sum_right, sum_eq_single_of_mem j hj],
+  { rw [smul_left, smul_right, smul_eq_mul], ring },
+  { intros i _ hij,
+    rw [smul_left, smul_right,
+        show associated_hom R₁ Q (v j) (v i) = 0, from hv₂ j i hij.symm,
+        mul_zero, mul_zero] },
+end
 
-lemma equivalent_weighted_sum_squares_of_nondegenerate'
+variables {V : Type*} {K : Type*} [field K] [invertible (2 : K)]
+variables [add_comm_group V] [module K V]
+
+/-- Given an orthogonal basis, a quadratic form is isometric with a weighted sum of squares. -/
+noncomputable def isometry_weighted_sum_squares (Q : quadratic_form K V)
+  (v : basis (fin (finite_dimensional.finrank K V)) K V)
+  (hv₁ : (associated Q).is_Ortho v):
+  Q.isometry (weighted_sum_squares K (λ i, Q (v i))) :=
+begin
+  let iso := Q.isometry_basis_repr v,
+  refine ⟨iso, λ m, _⟩,
+  convert iso.map_app m,
+  rw basis_repr_eq_of_is_Ortho _ _ hv₁,
+end
+
+variables [finite_dimensional K V]
+
+lemma equivalent_weighted_sum_squares (Q : quadratic_form K V) :
+  ∃ w : fin (finite_dimensional.finrank K V) → K, equivalent Q (weighted_sum_squares K w) :=
+let ⟨v, hv₁⟩ := exists_orthogonal_basis (associated_is_sym _ Q) in
+  ⟨_, ⟨Q.isometry_weighted_sum_squares v hv₁⟩⟩
+
+lemma equivalent_weighted_sum_squares_units_of_nondegenerate'
   (Q : quadratic_form K V) (hQ : (associated Q).nondegenerate) :
   ∃ w : fin (finite_dimensional.finrank K V) → units K,
     equivalent Q (weighted_sum_squares K w) :=
 begin
-  obtain ⟨v, hv₁, hv₂⟩ := exists_orthogonal_basis' hQ (associated_is_sym _ _),
-  refine ⟨λ i, units.mk0 _ (hv₂ i), nonempty.intro _⟩,
-  convert Q.isometry_basis_repr v,
-  ext w,
-  rw [isometry_of_is_Ortho_apply Q v hv₁, weighted_sum_squares_apply],
-  refl
+  obtain ⟨v, hv₁⟩ := exists_orthogonal_basis (associated_is_sym _ Q),
+  have hv₂ := hv₁.not_is_ortho_basis_self_of_nondegenerate hQ,
+  simp_rw [is_ortho, associated_eq_self_apply] at hv₂,
+  exact ⟨λ i, units.mk0 _ (hv₂ i), ⟨Q.isometry_weighted_sum_squares v hv₁⟩⟩,
 end
 
 section complex
 
 /-- The isometry between a weighted sum of squares on the complex numbers and the
-sum of squares, i.e. `weighted_sum_squares` with weight `λ i : ι, 1`. -/
-noncomputable def isometry_sum_squares [decidable_eq ι] (w : ι → units ℂ) :
-  isometry (weighted_sum_squares ℂ w) (weighted_sum_squares ℂ (1 : ι → ℂ)) :=
+sum of squares, i.e. `weighted_sum_squares` with weights 1 or 0. -/
+noncomputable def isometry_sum_squares [decidable_eq ι] (w' : ι → ℂ) :
+  isometry (weighted_sum_squares ℂ w')
+    (weighted_sum_squares ℂ (λ i, if w' i = 0 then 0 else 1 : ι → ℂ)) :=
 begin
+  let w := λ i, if h : w' i = 0 then (1 : units ℂ) else units.mk0 (w' i) h,
   have hw' : ∀ i : ι, (w i : ℂ) ^ - (1 / 2 : ℂ) ≠ 0,
   { intros i hi,
     exact (w i).ne_zero ((complex.cpow_eq_zero_iff _ _).1 hi).1 },
-  convert (weighted_sum_squares ℂ w).isometry_basis_repr
+  convert (weighted_sum_squares ℂ w').isometry_basis_repr
     ((pi.basis_fun ℂ ι).units_smul (λ i, (is_unit_iff_ne_zero.2 $ hw' i).unit)),
   ext1 v,
   erw [basis_repr_apply, weighted_sum_squares_apply, weighted_sum_squares_apply],
@@ -944,10 +960,28 @@ begin
     intro hj', exact false.elim (hj' hj) },
   simp_rw basis.units_smul_apply,
   erw [hsum, smul_eq_mul],
-  suffices : 1 * v j * v j =  w j ^ - (1 / 2 : ℂ) * w j ^ - (1 / 2 : ℂ) * w j * v j * v j,
-  { erw [pi.one_apply, ← mul_assoc, this, smul_eq_mul, smul_eq_mul], ring },
+  split_ifs,
+  { simp only [h, zero_smul, zero_mul]},
+  have hww' : w' j = w j,
+  { simp only [w, dif_neg h, units.coe_mk0] },
+  simp only [hww', one_mul],
+  change v j * v j = ↑(w j) * ((v j * ↑(w j) ^ -(1 / 2 : ℂ)) * (v j * ↑(w j) ^ -(1 / 2 : ℂ))),
+  suffices : v j * v j = w j ^ - (1 / 2 : ℂ) * w j ^ - (1 / 2 : ℂ) * w j * v j * v j,
+  { rw [this], ring },
   rw [← complex.cpow_add _ _ (w j).ne_zero, show - (1 / 2 : ℂ) + - (1 / 2) = -1, by ring,
-      complex.cpow_neg_one, inv_mul_cancel (w j).ne_zero],
+      complex.cpow_neg_one, inv_mul_cancel (w j).ne_zero, one_mul],
+end
+
+/-- The isometry between a weighted sum of squares on the complex numbers and the
+sum of squares, i.e. `weighted_sum_squares` with weight `λ i : ι, 1`. -/
+noncomputable def isometry_sum_squares_units [decidable_eq ι] (w : ι → units ℂ) :
+  isometry (weighted_sum_squares ℂ w) (weighted_sum_squares ℂ (1 : ι → ℂ)) :=
+begin
+  have hw1 : (λ i, if (w i : ℂ) = 0 then 0 else 1 : ι → ℂ) = 1,
+  { ext i : 1, exact dif_neg (w i).ne_zero },
+  have := isometry_sum_squares (coe ∘ w),
+  rw hw1 at this,
+  exact this,
 end
 
 /-- A nondegenerate quadratic form on the complex numbers is equivalent to
@@ -955,8 +989,8 @@ the sum of squares, i.e. `weighted_sum_squares` with weight `λ i : ι, 1`. -/
 theorem equivalent_sum_squares {M : Type*} [add_comm_group M] [module ℂ M]
   [finite_dimensional ℂ M] (Q : quadratic_form ℂ M) (hQ : (associated Q).nondegenerate) :
   equivalent Q (weighted_sum_squares ℂ (1 : fin (finite_dimensional.finrank ℂ M) → ℂ)) :=
-let ⟨w, ⟨hw₁⟩⟩ := Q.equivalent_weighted_sum_squares_of_nondegenerate' hQ in
-  ⟨hw₁.trans (isometry_sum_squares w)⟩
+let ⟨w, ⟨hw₁⟩⟩ := Q.equivalent_weighted_sum_squares_units_of_nondegenerate' hQ in
+  ⟨hw₁.trans (isometry_sum_squares_units w)⟩
 
 end complex
 
@@ -967,13 +1001,14 @@ open real
 /-- The isometry between a weighted sum of squares with weights `u` on the
 (non-zero) real numbers and the weighted sum of squares with weights `sign ∘ u`. -/
 noncomputable def isometry_sign_weighted_sum_squares
-  [decidable_eq ι] (u : ι → units ℝ) :
-  isometry (weighted_sum_squares ℝ u) (weighted_sum_squares ℝ (sign ∘ coe ∘ u)) :=
+  [decidable_eq ι] (w : ι → ℝ) :
+  isometry (weighted_sum_squares ℝ w) (weighted_sum_squares ℝ (sign ∘ w)) :=
 begin
+  let u := λ i, if h : w i = 0 then (1 : units ℝ) else units.mk0 (w i) h,
   have hu' : ∀ i : ι, (sign (u i) * u i) ^ - (1 / 2 : ℝ) ≠ 0,
   { intro i, refine (ne_of_lt (real.rpow_pos_of_pos
       (sign_mul_pos_of_ne_zero _ $ units.ne_zero _) _)).symm},
-  convert ((weighted_sum_squares ℝ u).isometry_basis_repr
+  convert ((weighted_sum_squares ℝ w).isometry_basis_repr
     ((pi.basis_fun ℝ ι).units_smul (λ i, (is_unit_iff_ne_zero.2 $ hu' i).unit))),
   ext1 v,
   rw [basis_repr_apply, weighted_sum_squares_apply, weighted_sum_squares_apply],
@@ -990,11 +1025,17 @@ begin
     intro hj', exact false.elim (hj' hj) },
   simp_rw basis.units_smul_apply,
   erw [hsum, smul_eq_mul],
-  suffices : (sign ∘ coe ∘ u) j * v j * v j = (sign (u j) * u j) ^ - (1 / 2 : ℝ) *
+  dsimp [u],
+  split_ifs,
+  { simp only [h, zero_smul, zero_mul, sign_zero]},
+  have hwu : w j = u j,
+  { simp only [u, dif_neg h, units.coe_mk0] },
+  simp only [hwu, units.coe_mk0],
+  suffices : (u j : ℝ).sign * v j * v j = (sign (u j) * u j) ^ - (1 / 2 : ℝ) *
     (sign (u j) * u j) ^ - (1 / 2 : ℝ) * u j * v j * v j,
-  { erw [← mul_assoc, this, smul_eq_mul, smul_eq_mul], ring },
+  { erw [← mul_assoc, this], ring },
   rw [← real.rpow_add (sign_mul_pos_of_ne_zero _ $ units.ne_zero _),
-      show - (1 / 2 : ℝ) + - (1 / 2) = -1, by ring, real.rpow_neg_one, _root_.mul_inv',
+      show - (1 / 2 : ℝ) + - (1 / 2) = -1, by ring, real.rpow_neg_one, mul_inv₀,
       inv_sign, mul_assoc (sign (u j)) (u j)⁻¹,
       inv_mul_cancel (units.ne_zero _), mul_one],
   apply_instance
@@ -1007,9 +1048,21 @@ theorem equivalent_one_neg_one_weighted_sum_squared
   (Q : quadratic_form ℝ M) (hQ : (associated Q).nondegenerate) :
   ∃ w : fin (finite_dimensional.finrank ℝ M) → ℝ,
   (∀ i, w i = -1 ∨ w i = 1) ∧ equivalent Q (weighted_sum_squares ℝ w) :=
-let ⟨w, ⟨hw₁⟩⟩ := Q.equivalent_weighted_sum_squares_of_nondegenerate' hQ in
+let ⟨w, ⟨hw₁⟩⟩ := Q.equivalent_weighted_sum_squares_units_of_nondegenerate' hQ in
   ⟨sign ∘ coe ∘ w,
    λ i, sign_apply_eq_of_ne_zero (w i) (w i).ne_zero,
+   ⟨hw₁.trans (isometry_sign_weighted_sum_squares (coe ∘ w))⟩⟩
+
+/-- **Sylvester's law of inertia**: A real quadratic form is equivalent to a weighted
+sum of squares with the weights being ±1 or 0. -/
+theorem equivalent_one_zero_neg_one_weighted_sum_squared
+  {M : Type*} [add_comm_group M] [module ℝ M] [finite_dimensional ℝ M]
+  (Q : quadratic_form ℝ M) :
+  ∃ w : fin (finite_dimensional.finrank ℝ M) → ℝ,
+  (∀ i, w i = -1 ∨ w i = 0 ∨ w i = 1) ∧ equivalent Q (weighted_sum_squares ℝ w) :=
+let ⟨w, ⟨hw₁⟩⟩ := Q.equivalent_weighted_sum_squares in
+  ⟨sign ∘ coe ∘ w,
+   λ i, sign_apply_eq (w i),
    ⟨hw₁.trans (isometry_sign_weighted_sum_squares w)⟩⟩
 
 end real

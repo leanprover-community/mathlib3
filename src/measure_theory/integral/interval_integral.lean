@@ -3,13 +3,12 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov, Patrick Massot, Sébastien Gouëzel
 -/
-import measure_theory.integral.set_integral
-import measure_theory.measure.lebesgue
-import analysis.calculus.fderiv_measurable
 import analysis.calculus.extend_deriv
-import measure_theory.integral.vitali_caratheodory
+import analysis.calculus.fderiv_measurable
 import analysis.normed_space.dual
-
+import measure_theory.integral.set_integral
+import measure_theory.integral.vitali_caratheodory
+import measure_theory.measure.lebesgue
 
 /-!
 # Integral over an interval
@@ -277,7 +276,7 @@ lemma norm [opens_measurable_space E] (h : interval_integrable f μ a b) :
 ⟨h.1.norm, h.2.norm⟩
 
 lemma abs {f : α → ℝ} (h : interval_integrable f μ a b) :
-  interval_integrable (λ x, abs (f x)) μ a b  :=
+  interval_integrable (λ x, |f x|) μ a b  :=
 h.norm
 
 lemma mono
@@ -381,27 +380,24 @@ variables {ι : Type*} [topological_space ι] [conditionally_complete_linear_ord
   [is_locally_finite_measure μ] [conditionally_complete_linear_order E] [order_topology E]
   [second_countable_topology E] [borel_space E]
 
-lemma monotone_on.interval_integrable {u : ι → E} {a b : ι}
-  (hu : ∀ ⦃x y⦄, x ∈ interval a b → y ∈ interval a b → x ≤ y → u x ≤ u y) :
+lemma monotone_on.interval_integrable {u : ι → E} {a b : ι} (hu : monotone_on u (interval a b)) :
   interval_integrable u μ a b :=
 begin
   rw interval_integrable_iff,
   exact (monotone_on.integrable_on_compact is_compact_interval hu).mono_set Ioc_subset_Icc_self,
 end
 
-lemma antitone_on.interval_integrable {u : ι → E} {a b : ι}
-  (hu : ∀ ⦃x y⦄, x ∈ interval a b → y ∈ interval a b → x ≤ y → u y ≤ u x) :
+lemma antitone_on.interval_integrable {u : ι → E} {a b : ι} (hu : antitone_on u (interval a b)) :
   interval_integrable u μ a b :=
 @monotone_on.interval_integrable (order_dual E) _ ‹_› ι _ _ _ _ _ _ _ _ _ ‹_› ‹_› u a b hu
 
 lemma monotone.interval_integrable {u : ι → E} {a b : ι} (hu : monotone u) :
   interval_integrable u μ a b :=
-monotone_on.interval_integrable (λ x y _ _ hxy, hu hxy)
+(hu.monotone_on _).interval_integrable
 
-lemma antitone.interval_integrable {u : ι → E} {a b : ι}
-  (hu : ∀ ⦃x y⦄, x ≤ y → u y ≤ u x) :
+lemma antitone.interval_integrable {u : ι → E} {a b : ι} (hu :antitone u) :
   interval_integrable u μ a b :=
-@monotone.interval_integrable (order_dual E) _ ‹_› ι _ _ _ _ _ _ _ _ _ ‹_› ‹_› u a b hu
+(hu.antitone_on _).interval_integrable
 
 end
 
@@ -513,7 +509,7 @@ calc ∥∫ x in a..b, f x ∂μ∥ = ∥∫ x in Ioc (min a b) (max a b), f x �
 ... ≤ ∫ x in Ioc (min a b) (max a b), ∥f x∥ ∂μ :
   norm_integral_le_integral_norm f
 
-lemma norm_integral_le_abs_integral_norm : ∥∫ x in a..b, f x ∂μ∥ ≤ abs (∫ x in a..b, ∥f x∥ ∂μ) :=
+lemma norm_integral_le_abs_integral_norm : ∥∫ x in a..b, f x ∂μ∥ ≤ |∫ x in a..b, ∥f x∥ ∂μ| :=
 begin
   simp only [← real.norm_eq_abs, norm_integral_eq_norm_integral_Ioc],
   exact le_trans (norm_integral_le_integral_norm _) (le_abs_self _)
@@ -521,7 +517,7 @@ end
 
 lemma norm_integral_le_of_norm_le_const_ae {a b C : ℝ} {f : ℝ → E}
   (h : ∀ᵐ x, x ∈ Ioc (min a b) (max a b) → ∥f x∥ ≤ C) :
-  ∥∫ x in a..b, f x∥ ≤ C * abs (b - a) :=
+  ∥∫ x in a..b, f x∥ ≤ C * |b - a| :=
 begin
   rw [norm_integral_eq_norm_integral_Ioc],
   convert norm_set_integral_le_of_norm_le_const_ae'' _ measurable_set_Ioc h,
@@ -531,7 +527,7 @@ end
 
 lemma norm_integral_le_of_norm_le_const {a b C : ℝ} {f : ℝ → E}
   (h : ∀ x ∈ Ioc (min a b) (max a b), ∥f x∥ ≤ C) :
-  ∥∫ x in a..b, f x∥ ≤ C * abs (b - a) :=
+  ∥∫ x in a..b, f x∥ ≤ C * |b - a| :=
 norm_integral_le_of_norm_le_const_ae $ eventually_of_forall h
 
 @[simp] lemma integral_add (hf : interval_integrable f μ a b) (hg : interval_integrable g μ a b) :
@@ -582,7 +578,7 @@ variables {a b c d : ℝ} (f : ℝ → E)
 @[simp] lemma integral_comp_mul_right (hc : c ≠ 0) :
   ∫ x in a..b, f (x * c) = c⁻¹ • ∫ x in a*c..b*c, f x :=
 begin
-  have A : closed_embedding (λ x, x * c) := (homeomorph.mul_right' c hc).closed_embedding,
+  have A : closed_embedding (λ x, x * c) := (homeomorph.mul_right₀ c hc).closed_embedding,
   conv_rhs { rw [← real.smul_map_volume_mul_right hc] },
   simp_rw [integral_smul_measure, interval_integral,
           set_integral_map_of_closed_embedding measurable_set_Ioc A,
@@ -606,7 +602,7 @@ by by_cases hc : c = 0; simp [hc]
 
 @[simp] lemma integral_comp_div (hc : c ≠ 0) :
   ∫ x in a..b, f (x / c) = c • ∫ x in a/c..b/c, f x :=
-by simpa only [inv_inv'] using integral_comp_mul_right f (inv_ne_zero hc)
+by simpa only [inv_inv₀] using integral_comp_mul_right f (inv_ne_zero hc)
 
 @[simp] lemma inv_smul_integral_comp_div (c) :
   c⁻¹ • ∫ x in a..b, f (x / c) = ∫ x in a/c..b/c, f x :=
@@ -642,7 +638,7 @@ by by_cases hc : c = 0; simp [hc]
 
 @[simp] lemma integral_comp_div_add (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (x / c + d) = c • ∫ x in a/c+d..b/c+d, f x :=
-by simpa only [div_eq_inv_mul, inv_inv'] using integral_comp_mul_add f (inv_ne_zero hc) d
+by simpa only [div_eq_inv_mul, inv_inv₀] using integral_comp_mul_add f (inv_ne_zero hc) d
 
 @[simp] lemma inv_smul_integral_comp_div_add (c d) :
   c⁻¹ • ∫ x in a..b, f (x / c + d) = ∫ x in a/c+d..b/c+d, f x :=
@@ -650,7 +646,7 @@ by by_cases hc : c = 0; simp [hc]
 
 @[simp] lemma integral_comp_add_div (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (d + x / c) = c • ∫ x in d+a/c..d+b/c, f x :=
-by simpa only [div_eq_inv_mul, inv_inv'] using integral_comp_add_mul f (inv_ne_zero hc) d
+by simpa only [div_eq_inv_mul, inv_inv₀] using integral_comp_add_mul f (inv_ne_zero hc) d
 
 @[simp] lemma inv_smul_integral_comp_add_div (c d) :
   c⁻¹ • ∫ x in a..b, f (d + x / c) = ∫ x in d+a/c..d+b/c, f x :=
@@ -678,7 +674,7 @@ by by_cases hc : c = 0; simp [hc]
 
 @[simp] lemma integral_comp_div_sub (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (x / c - d) = c • ∫ x in a/c-d..b/c-d, f x :=
-by simpa only [div_eq_inv_mul, inv_inv'] using integral_comp_mul_sub f (inv_ne_zero hc) d
+by simpa only [div_eq_inv_mul, inv_inv₀] using integral_comp_mul_sub f (inv_ne_zero hc) d
 
 @[simp] lemma inv_smul_integral_comp_div_sub (c d) :
   c⁻¹ • ∫ x in a..b, f (x / c - d) = ∫ x in a/c-d..b/c-d, f x  :=
@@ -686,7 +682,7 @@ by by_cases hc : c = 0; simp [hc]
 
 @[simp] lemma integral_comp_sub_div (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (d - x / c) = c • ∫ x in d-b/c..d-a/c, f x :=
-by simpa only [div_eq_inv_mul, inv_inv'] using integral_comp_sub_mul f (inv_ne_zero hc) d
+by simpa only [div_eq_inv_mul, inv_inv₀] using integral_comp_sub_mul f (inv_ne_zero hc) d
 
 @[simp] lemma inv_smul_integral_comp_sub_div (c d) :
   c⁻¹ • ∫ x in a..b, f (d - x / c) = ∫ x in d-b/c..d-a/c, f x :=
@@ -1165,7 +1161,7 @@ norm_integral_le_abs_integral_norm.trans_eq $
   abs_of_nonneg $ integral_nonneg_of_forall hab $ λ x, norm_nonneg _
 
 lemma abs_integral_le_integral_abs :
-  abs (∫ x in a..b, f x ∂μ) ≤ ∫ x in a..b, abs (f x) ∂μ :=
+  |∫ x in a..b, f x ∂μ| ≤ ∫ x in a..b, |f x| ∂μ :=
 norm_integral_le_integral_norm hab
 
 section mono

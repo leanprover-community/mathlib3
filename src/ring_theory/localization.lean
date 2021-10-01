@@ -1083,7 +1083,7 @@ begin
       ideal.quotient.eq_zero_iff_mem, ← ideal.quotient.eq_zero_iff_mem, ring_hom.map_sub,
       sub_eq_zero, mk'_eq_mul_mk'_one],
     simp only [mul_eq_mul_left_iff, ring_hom.map_mul],
-    exact or.inl (mul_left_cancel' (λ hn, hM (ideal.quotient.eq_zero_iff_mem.2
+    exact or.inl (mul_left_cancel₀ (λ hn, hM (ideal.quotient.eq_zero_iff_mem.2
       (ideal.mem_comap.2 (ideal.quotient.eq_zero_iff_mem.1 hn)))) (trans hn
       (by rw [← ring_hom.map_mul, ← mk'_eq_mul_mk'_one, mk'_self, ring_hom.map_one]))) }
 end
@@ -1767,7 +1767,7 @@ begin
       (mem_non_zero_divisors_iff_ne_zero.mp b_nonzero),
   obtain ⟨c'_nonzero, b'_nonzero⟩ := mul_mem_non_zero_divisors.mp b_nonzero,
   refine ⟨a', ⟨b', b'_nonzero⟩, @no_factor, _⟩,
-  refine mul_left_cancel'
+  refine mul_left_cancel₀
     (is_fraction_ring.to_map_ne_zero_of_mem_non_zero_divisors b_nonzero) _,
   simp only [subtype.coe_mk, ring_hom.map_mul, algebra.smul_def] at *,
   erw [←hab, mul_assoc, mk'_spec' _ a' ⟨b', b'_nonzero⟩],
@@ -1816,7 +1816,7 @@ begin
   use ↑d⁻¹ * num A x,
   refine trans _ (mk'_num_denom A x),
   rw [ring_hom.map_mul, ring_hom.map_units_inv, hd],
-  apply mul_left_cancel' d_ne_zero,
+  apply mul_left_cancel₀ d_ne_zero,
   rw [←mul_assoc, mul_inv_cancel d_ne_zero, one_mul, mk'_spec']
 end
 
@@ -1955,7 +1955,7 @@ lemma is_fraction_ring_of_algebraic (alg : is_algebraic A L)
           (by rw [is_scalar_tower.algebra_map_apply A C L, h, ring_hom.map_zero])))⟩,
      by rw [set_like.coe_mk, algebra_map_mk', ← is_scalar_tower.algebra_map_apply A C L, hxy]⟩,
   eq_iff_exists := λ x y, ⟨λ h, ⟨1, by simpa using algebra_map_injective C A L h⟩, λ ⟨c, hc⟩,
-    congr_arg (algebra_map _ L) (mul_right_cancel' (mem_non_zero_divisors_iff_ne_zero.mp c.2) hc)⟩ }
+    congr_arg (algebra_map _ L) (mul_right_cancel₀ (mem_non_zero_divisors_iff_ne_zero.mp c.2) hc)⟩ }
 
 variables (K L)
 

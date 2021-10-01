@@ -42,6 +42,12 @@ attribute [to_additive] Group.has_coe_to_sort Group.large_category Group.concret
 /-- Construct a bundled `AddGroup` from the underlying type and typeclass. -/
 add_decl_doc AddGroup.of
 
+/-- Typecheck a `monoid_hom` as a morphism in `Group`. -/
+@[to_additive] def of_hom {X Y : Type u} [group X] [group Y] (f : X →* Y) : of X ⟶ of Y := f
+
+/-- Typecheck a `add_monoid_hom` as a morphism in `AddGroup`. -/
+add_decl_doc AddGroup.of_hom
+
 @[to_additive]
 instance (G : Group) : group G := G.str
 
@@ -97,6 +103,13 @@ attribute [to_additive] CommGroup.has_coe_to_sort CommGroup.large_category
 
 /-- Construct a bundled `AddCommGroup` from the underlying type and typeclass. -/
 add_decl_doc AddCommGroup.of
+
+/-- Typecheck a `monoid_hom` as a morphism in `CommGroup`. -/
+@[to_additive] def of_hom {X Y : Type u} [comm_group X] [comm_group Y] (f : X →* Y) :
+  of X ⟶ of Y := f
+
+/-- Typecheck a `add_monoid_hom` as a morphism in `AddCommGroup`. -/
+add_decl_doc AddCommGroup.of_hom
 
 @[to_additive]
 instance comm_group_instance (G : CommGroup) : comm_group G := G.str

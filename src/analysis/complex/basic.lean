@@ -72,8 +72,8 @@ by rw [norm_real, real.norm_eq_abs]
 
 @[simp] lemma norm_nat (n : ℕ) : ∥(n : ℂ)∥ = n := abs_of_nat _
 
-@[simp] lemma norm_int {n : ℤ} : ∥(n : ℂ)∥ = has_abs.abs n :=
-suffices ∥((n : ℝ) : ℂ)∥ = has_abs.abs n, by simpa,
+@[simp] lemma norm_int {n : ℤ} : ∥(n : ℂ)∥ = |n| :=
+suffices ∥((n : ℝ) : ℂ)∥ = |n|, by simpa,
 by rw [norm_real, real.norm_eq_abs]
 
 lemma norm_int_of_nonneg {n : ℤ} (hn : 0 ≤ n) : ∥(n : ℂ)∥ = n :=

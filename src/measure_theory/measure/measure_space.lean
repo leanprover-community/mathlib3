@@ -2911,6 +2911,24 @@ def measure_theory.measure.finite_spanning_sets_in_open [topological_space α]
     ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.fst)
     (Union_compact_covering α) }
 
+section measure_Ixx
+
+variables [conditionally_complete_linear_order α] [topological_space α] [order_topology α]
+  {m : measurable_space α} {μ : measure α} [is_locally_finite_measure μ] {a b : α}
+
+lemma measure_Icc_lt_top : μ (Icc a b) < ∞ := is_compact_Icc.measure_lt_top
+
+lemma measure_Ico_lt_top : μ (Ico a b) < ∞ :=
+(measure_mono Ico_subset_Icc_self).trans_lt measure_Icc_lt_top
+
+lemma measure_Ioc_lt_top : μ (Ioc a b) < ∞ :=
+(measure_mono Ioc_subset_Icc_self).trans_lt measure_Icc_lt_top
+
+lemma measure_Ioo_lt_top : μ (Ioo a b) < ∞ :=
+(measure_mono Ioo_subset_Icc_self).trans_lt measure_Icc_lt_top
+
+end measure_Ixx
+
 lemma metric.bounded.measure_lt_top [metric_space α] [proper_space α]
   [measurable_space α] {μ : measure α} [is_locally_finite_measure μ] {s : set α}
   (hs : metric.bounded s) :

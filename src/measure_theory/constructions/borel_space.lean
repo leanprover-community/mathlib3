@@ -1112,9 +1112,7 @@ def finite_spanning_sets_in_Ioo_rat (μ : measure ℝ) [is_locally_finite_measur
       refine ⟨-(n + 1), n + 1, _, by norm_cast⟩,
       exact (neg_nonpos.2 (@nat.cast_nonneg ℚ _ (n + 1))).trans_lt n.cast_add_one_pos
     end,
-  finite := λ n,
-    calc μ (Ioo _ _) ≤ μ (Icc _ _) : μ.mono Ioo_subset_Icc_self
-                 ... < ∞           : is_compact_Icc.is_finite_measure,
+  finite := λ n, measure_Ioo_lt_top,
   spanning := Union_eq_univ_iff.2 $ λ x,
     ⟨⌊abs x⌋₊, neg_lt.1 ((neg_le_abs_self x).trans_lt (lt_nat_floor_add_one _)),
       (le_abs_self x).trans_lt (lt_nat_floor_add_one _)⟩ }

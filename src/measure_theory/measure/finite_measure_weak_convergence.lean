@@ -193,6 +193,16 @@ by simp only [nnreal.dist_eq, nnreal.coe_zero, zero_sub, nnreal.abs_eq, abs_neg]
 lemma _root_.nnreal.val_eq_dist_zero' (z : ℝ≥0) : (z : ℝ) = dist z 0 :=
 by { rw dist_comm, exact nnreal.val_eq_dist_zero z }
 
+-- Switched to using `nndist`, and believe these two could be useful... (1)
+-- Where to place?
+lemma _root_.nnreal.val_eq_nndist_zero (z : ℝ≥0) : z = nndist 0 z :=
+by { simp only [nnreal.nndist_eq, max_eq_right, zero_sub', sub_zero', zero_le'], }
+
+-- Switched to using `nndist`, and believe these two could be useful... (2)
+-- Where to place?
+lemma _root_.nnreal.val_eq_nndist_zero' (z : ℝ≥0) : z = nndist z 0 :=
+by { rw nndist_comm, exact nnreal.val_eq_nndist_zero z, }
+
 -- Is there a simpler way for the following? I think this might be useful (it is used below).
 -- Where to place?
 lemma _root_.nnreal.le_add_nndist (a b : ℝ≥0) : --a ≤ b + (dist a b).to_nnreal :=
@@ -246,13 +256,13 @@ measurable_coe_nnreal_ennreal.comp f.continuous.measurable
 -- This does not seem unreasonable to me, although it may be a bit specific.
 -- Where to place?
 lemma bounded_continuous_function.nnreal.upper_bound {α : Type*} [topological_space α]
-  (f : α →ᵇ ℝ≥0) : ∀ x, f(x) ≤ (dist f 0).to_nnreal :=
+  (f : α →ᵇ ℝ≥0) : ∀ x, f(x) ≤ (nndist f 0) :=
 begin
   intros x,
-  have key := @bounded_continuous_function.dist_coe_le_dist α ℝ≥0 _ _ f 0 x,
-  simp only [bounded_continuous_function.coe_zero, pi.zero_apply] at key,
-  rw ←nnreal.val_eq_dist_zero' at key,
-  apply (@real.le_to_nnreal_iff_coe_le (f x) _ dist_nonneg).mpr key,
+  have key' : nndist (f x) ((0 : α →ᵇ ℝ≥0) x) ≤ nndist f 0,
+  { exact @bounded_continuous_function.dist_coe_le_dist α ℝ≥0 _ _ f 0 x, },
+  simp only [bounded_continuous_function.coe_zero, pi.zero_apply] at key',
+  rwa ← nnreal.val_eq_nndist_zero' (f x) at key',
 end
 
 -- This is the formulation I prefer in the present context, naturally uses the more general ones.
@@ -265,10 +275,9 @@ begin
   intros x,
   have key := bounded_continuous_function.nnreal.upper_bound f x,
   rw ennreal.coe_le_coe,
-  have eq : (dist f 0).to_nnreal = ⟨dist f 0, dist_nonneg⟩,
+  have eq : nndist f 0 = ⟨dist f 0, dist_nonneg⟩,
   { ext,
-    simp only [real.coe_to_nnreal', max_eq_left_iff, subtype.coe_mk],
-    exact dist_nonneg, },
+    simp only [real.coe_to_nnreal', max_eq_left_iff, subtype.coe_mk, coe_nndist], },
   rwa eq at key,
 end
 

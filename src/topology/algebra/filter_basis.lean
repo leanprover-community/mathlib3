@@ -108,9 +108,8 @@ is discrete. -/
 topology is discrete."]
 instance : inhabited (group_filter_basis G) :=
 ⟨begin
-  refine { sets := {{1}}, ..},
-  all_goals { try { dsimp only }, try { simp only [exists_prop, mem_singleton_iff] } },
-  { exact ⟨{1}, mem_singleton {1}⟩ },
+  refine { sets := {{1}}, nonempty := singleton_nonempty _, .. },
+  all_goals { simp only [exists_prop, mem_singleton_iff] },
   { rintros - - rfl rfl,
     use {1},
     simp },
@@ -262,7 +261,7 @@ def topology : topological_space R := B.to_add_group_filter_basis.topology
 a ring filter basis then it's a topological ring. -/
 @[priority 100]
 instance is_topological_ring {R : Type u} [ring R] (B : ring_filter_basis R) :
-  @topological_ring R B.to_add_group_filter_basis.topology _ :=
+  @topological_ring R B.topology _ :=
 begin
   let B' := B.to_add_group_filter_basis,
   letI := B'.topology,
@@ -353,7 +352,7 @@ def topology' {R M : Type*} [comm_ring R] {tR : topological_space R}
 a module filter basis then it's a topological module. -/
 @[priority 100]
 instance has_continuous_smul [topological_ring R] :
-  @has_continuous_smul R M _ _ B.to_add_group_filter_basis.topology  :=
+  @has_continuous_smul R M _ _ B.topology  :=
 begin
   let B' := B.to_add_group_filter_basis,
   letI := B'.topology,

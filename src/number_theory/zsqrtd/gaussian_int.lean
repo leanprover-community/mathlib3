@@ -125,7 +125,7 @@ lemma to_complex_div_im (x y : ℤ[i]) : ((x / y : ℤ[i]) : ℂ).im = round ((x
 by rw [div_def, ← @rat.cast_round ℝ _ _, ← @rat.cast_round ℝ _ _];
   simp [-rat.cast_round, mul_assoc, div_eq_mul_inv, mul_add, add_mul]
 
-local notation `abs'` := _root_.abs
+local notation `abs'` := has_abs.abs
 
 lemma norm_sq_le_norm_sq_of_re_le_of_im_le {x y : ℂ} (hre : abs' x.re ≤ abs' y.re)
   (him : abs' x.im ≤ abs' y.im) : x.norm_sq ≤ y.norm_sq :=

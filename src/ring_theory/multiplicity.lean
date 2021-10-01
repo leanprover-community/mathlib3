@@ -312,11 +312,11 @@ lemma finite_mul_aux {p : α} (hp : prime p) : ∀ {n m : ℕ} {a b : α},
         from nat.pos_of_ne_zero (λ hn0, by clear _fun_match _fun_match; simpa [hx, hn0] using ha),
       have wf : (n - 1) < n, from nat.sub_lt_self hn0 dec_trivial,
       have hpx : ¬ p ^ (n - 1 + 1) ∣ x,
-        from λ ⟨y, hy⟩, ha (hx.symm ▸ ⟨y, mul_right_cancel' hp.1
+        from λ ⟨y, hy⟩, ha (hx.symm ▸ ⟨y, mul_right_cancel₀ hp.1
           $ by rw [nat.sub_add_cancel hn0] at hy;
             simp [hy, pow_add, mul_comm, mul_assoc, mul_left_comm]⟩),
       have 1 ≤ n + m, from le_trans hn0 (nat.le_add_right n m),
-      finite_mul_aux hpx hb ⟨s, mul_right_cancel' hp.1 begin
+      finite_mul_aux hpx hb ⟨s, mul_right_cancel₀ hp.1 begin
           rw [← nat.sub_add_comm hn0, nat.sub_add_cancel this],
           clear _fun_match _fun_match finite_mul_aux,
           simp [*, mul_comm, mul_assoc, mul_left_comm, pow_add] at *
@@ -325,10 +325,10 @@ lemma finite_mul_aux {p : α} (hp : prime p) : ∀ {n m : ℕ} {a b : α},
         from nat.pos_of_ne_zero (λ hm0, by clear _fun_match _fun_match; simpa [hx, hm0] using hb),
       have wf : (m - 1) < m, from nat.sub_lt_self hm0 dec_trivial,
       have hpx : ¬ p ^ (m - 1 + 1) ∣ x,
-        from λ ⟨y, hy⟩, hb (hx.symm ▸ ⟨y, mul_right_cancel' hp.1
+        from λ ⟨y, hy⟩, hb (hx.symm ▸ ⟨y, mul_right_cancel₀ hp.1
           $ by rw [nat.sub_add_cancel hm0] at hy;
             simp [hy, pow_add, mul_comm, mul_assoc, mul_left_comm]⟩),
-      finite_mul_aux ha hpx ⟨s, mul_right_cancel' hp.1 begin
+      finite_mul_aux ha hpx ⟨s, mul_right_cancel₀ hp.1 begin
           rw [add_assoc, nat.sub_add_cancel hm0],
           clear _fun_match _fun_match finite_mul_aux,
           simp [*, mul_comm, mul_assoc, mul_left_comm, pow_add] at *
@@ -351,7 +351,7 @@ variable [decidable_rel ((∣) : α → α → Prop)]
   multiplicity a a = 1 :=
 by { rw ← nat.cast_one, exact
 eq_coe_iff.2 ⟨by simp, λ ⟨b, hb⟩, ha (is_unit_iff_dvd_one.2
-  ⟨b, mul_left_cancel' ha0 $ by { clear _fun_match,
+  ⟨b, mul_left_cancel₀ ha0 $ by { clear _fun_match,
     simpa [pow_succ, mul_assoc] using hb }⟩)⟩ }
 
 @[simp] lemma get_multiplicity_self {a : α} (ha : finite a a) :

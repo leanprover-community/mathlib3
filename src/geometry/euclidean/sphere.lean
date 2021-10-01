@@ -60,7 +60,7 @@ begin
   let r := (k - 1)⁻¹ * (k + 1),
 
   have hxy : x = r • y,
-  { rw [← smul_smul, eq_inv_smul_iff' (sub_ne_zero.mpr hk_ne_one), ← sub_eq_zero],
+  { rw [← smul_smul, eq_inv_smul_iff₀ (sub_ne_zero.mpr hk_ne_one), ← sub_eq_zero],
     calc  (k - 1) • x - (k + 1) • y
         = (k • x - x) - (k • y + y) : by simp_rw [sub_smul, add_smul, one_smul]
     ... = (k • x - k • y) - (x + y) : by simp_rw [← sub_sub, sub_right_comm]

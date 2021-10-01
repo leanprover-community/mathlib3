@@ -18,6 +18,9 @@ are translation invariant.
 
 We show that, on `ℝⁿ`, a linear map acts on Lebesgue measure by rescaling it through the absolute
 value of its determinant, in `real.map_linear_map_volume_pi_eq_smul_volume_pi`.
+
+More properties of the Lebesgue measure are deduced from this in `haar_lebesgue.lean`, where they
+are proved more generally for any additive Haar measure on a finite-dimensional real vector space.
 -/
 
 noncomputable theory
@@ -207,7 +210,7 @@ calc volume s ≤ ∏ i : ι, emetric.diam (function.eval i '' s) : volume_pi_le
   by simp only [ennreal.coe_one, one_mul, finset.prod_const, fintype.card]
 
 /-!
-### Images of the Lebesgue measure under translation/multiplication/...
+### Images of the Lebesgue measure under translation/multiplication in ℝ
 -/
 
 lemma map_volume_add_left (a : ℝ) : measure.map ((+) a) volume = volume :=
@@ -250,7 +253,7 @@ by conv_rhs { rw [← real.smul_map_volume_mul_left h, smul_smul,
 @[simp] lemma volume_preimage_mul_left {a : ℝ} (h : a ≠ 0) (s : set ℝ) :
   volume (((*) a) ⁻¹' s) = ennreal.of_real (abs a⁻¹) * volume s :=
 calc volume (((*) a) ⁻¹' s) = measure.map ((*) a) volume s :
-  ((homeomorph.mul_left' a h).to_measurable_equiv.map_apply s).symm
+  ((homeomorph.mul_left₀ a h).to_measurable_equiv.map_apply s).symm
 ... = ennreal.of_real (abs a⁻¹) * volume s : by { rw map_volume_mul_left h, refl }
 
 lemma smul_map_volume_mul_right {a : ℝ} (h : a ≠ 0) :
@@ -264,7 +267,7 @@ by simpa only [mul_comm] using real.map_volume_mul_left h
 @[simp] lemma volume_preimage_mul_right {a : ℝ} (h : a ≠ 0) (s : set ℝ) :
   volume ((* a) ⁻¹' s) = ennreal.of_real (abs a⁻¹) * volume s :=
 calc volume ((* a) ⁻¹' s) = measure.map (* a) volume s :
-  ((homeomorph.mul_right' a h).to_measurable_equiv.map_apply s).symm
+  ((homeomorph.mul_right₀ a h).to_measurable_equiv.map_apply s).symm
 ... = ennreal.of_real (abs a⁻¹) * volume s : by { rw map_volume_mul_right h, refl }
 
 @[simp] lemma map_volume_neg : measure.map has_neg.neg (volume : measure ℝ) = volume :=
@@ -385,7 +388,7 @@ begin
   { simp only [matrix.transvection_struct.det, ennreal.of_real_one, map_transvection_volume_pi,
       one_smul, _root_.inv_one, abs_one] },
   { rw [to_lin'_mul, det_mul, linear_map.coe_comp, ← measure.map_map, IHB, linear_map.map_smul,
-      IHA, smul_smul, ← ennreal.of_real_mul (abs_nonneg _), ← abs_mul, mul_comm, mul_inv'],
+      IHA, smul_smul, ← ennreal.of_real_mul (abs_nonneg _), ← abs_mul, mul_comm, mul_inv₀],
     { apply continuous.measurable,
       apply linear_map.continuous_on_pi },
     { apply continuous.measurable,

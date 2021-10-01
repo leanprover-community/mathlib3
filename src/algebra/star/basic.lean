@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import tactic.apply_fun
 import algebra.order.ring
+import algebra.opposites
 import algebra.big_operators.basic
 import data.equiv.ring
 
@@ -29,6 +30,8 @@ Our star rings are actually star semirings, but of course we can prove
 
 universes u v
 
+open opposite
+
 /--
 Notation typeclass (with no default notation!) for an algebraic structure with a star operation.
 -/
@@ -42,17 +45,29 @@ A star operation (e.g. complex conjugate).
 -/
 def star [has_star R] (r : R) : R := has_star.star r
 
+/-- The opposite type carries the same star operation. -/
+instance [has_star R] : has_star (Rᵒᵖ) :=
+{ star := λ r, op (star (r.unop)) }
+
+@[simp] lemma unop_star [has_star R] (r : Rᵒᵖ) : unop (star r) = star (unop r) := rfl
+@[simp] lemma op_star [has_star R] (r : R) : op (star r) = star (op r) := rfl
+
 /--
 Typeclass for a star operation with is involutive.
 -/
 class has_involutive_star (R : Type u) extends has_star R :=
 (star_involutive : function.involutive star)
 
+export has_involutive_star (star_involutive)
+
 @[simp] lemma star_star [has_involutive_star R] (r : R) : star (star r) = r :=
-has_involutive_star.star_involutive _
+star_involutive _
 
 lemma star_injective [has_involutive_star R] : function.injective (star : R → R) :=
-has_involutive_star.star_involutive.injective
+star_involutive.injective
+
+instance [has_involutive_star R] : has_involutive_star (Rᵒᵖ) :=
+{ star_involutive := λ r, unop_injective (star_star r.unop) }
 
 /--
 A `*`-monoid is a monoid `R` with an involutive operations `star`
@@ -81,6 +96,27 @@ end
 
 variables {R}
 
+instance [monoid R] [star_monoid R] : star_monoid (Rᵒᵖ) :=
+{ star_mul := λ x y, unop_injective (star_mul y.unop x.unop) }
+
+/--
+Any commutative monoid admits the trivial `*`-structure.
+
+See note [reducible non-instances].
+-/
+@[reducible]
+def star_monoid_of_comm {R : Type*} [comm_monoid R] : star_monoid R :=
+{ star := id,
+  star_involutive := λ x, rfl,
+  star_mul := mul_comm }
+
+section
+local attribute [instance] star_monoid_of_comm
+
+@[simp] lemma star_id_of_comm {R : Type*} [comm_semiring R] {x : R} : star x = x := rfl
+
+end
+
 /--
 A `*`-ring `R` is a (semi)ring with an involutive `star` operation which is additive
 which makes `R` with its multiplicative structure into a `*`-monoid
@@ -105,6 +141,9 @@ variables (R)
 (star_add_equiv : R ≃+ R).map_zero
 
 variables {R}
+
+instance [semiring R] [star_ring R] : star_ring (Rᵒᵖ) :=
+{ star_add := λ x y, unop_injective (star_add x.unop y.unop) }
 
 /-- `star` as an `ring_equiv` from `R` to `Rᵒᵖ` -/
 @[simps apply]
@@ -137,19 +176,14 @@ by simp [bit1]
 
 /--
 Any commutative semiring admits the trivial `*`-structure.
+
+See note [reducible non-instances].
 -/
+@[reducible]
 def star_ring_of_comm {R : Type*} [comm_semiring R] : star_ring R :=
 { star := id,
-  star_involutive := λ x, by simp,
-  star_mul := by simp [mul_comm],
-  star_add := by simp, }
-
-section
-local attribute [instance] star_ring_of_comm
-
-@[simp] lemma star_id_of_comm {R : Type*} [comm_semiring R] {x : R} : star x = x := rfl
-
-end
+  star_add := λ x y, rfl,
+  ..star_monoid_of_comm }
 
 /--
 An ordered `*`-ring is a ring which is both an ordered ring and a `*`-ring,

@@ -462,7 +462,7 @@ begin
   -- We found an `y` and an `a`!
   refine ⟨y', y'M, a, a_smul_y'.symm ▸ yN, _⟩,
 
-  have ϕy'_eq : ϕ ⟨y', y'M⟩ = 1 := mul_left_cancel' a_zero
+  have ϕy'_eq : ϕ ⟨y', y'M⟩ = 1 := mul_left_cancel₀ a_zero
   (calc a • ϕ ⟨y', y'M⟩ = ϕ ⟨a • y', _⟩ : (ϕ.map_smul a ⟨y', y'M⟩).symm
                     ... = ϕ ⟨y, N_le_M yN⟩ : by simp only [a_smul_y']
                     ... = a : ϕy_eq

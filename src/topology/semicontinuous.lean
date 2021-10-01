@@ -315,7 +315,7 @@ lemma continuous.comp_lower_semicontinuous_on_antitone
 lemma continuous.comp_lower_semicontinuous_antitone
   {g : γ → δ} {f : α → γ} (hg : continuous g) (hf : lower_semicontinuous f)
   (gmon : antitone g) : upper_semicontinuous (g ∘ f) :=
-λ x, (hg.continuous_at).comp_lower_semicontinuous_at_antitone (hf x) gmon
+(hg.continuous_at).comp_lower_semicontinuous_at_antitone hf gmon
 
 end
 
@@ -744,12 +744,12 @@ lemma continuous_at.comp_upper_semicontinuous_at_antitone
 lemma continuous.comp_upper_semicontinuous_on_antitone
   {g : γ → δ} {f : α → γ} (hg : continuous g) (hf : upper_semicontinuous_on f s)
   (gmon : antitone g) : lower_semicontinuous_on (g ∘ f) s :=
-λ x hx, (hg.continuous_at).comp_upper_semicontinuous_within_at_antitone (hf x hx) gmon
+(hg.continuous_at).comp_upper_semicontinuous_within_at_antitone hf gmon
 
 lemma continuous.comp_upper_semicontinuous_antitone
   {g : γ → δ} {f : α → γ} (hg : continuous g) (hf : upper_semicontinuous f)
   (gmon : antitone g) : lower_semicontinuous (g ∘ f) :=
-λ x, (hg.continuous_at).comp_upper_semicontinuous_at_antitone (hf x) gmon
+(hg.continuous_at).comp_upper_semicontinuous_at_antitone hf gmon
 
 end
 

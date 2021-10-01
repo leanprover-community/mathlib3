@@ -5,6 +5,7 @@ Authors: Patrick Massot, Johannes Hölzl
 -/
 import algebra.algebra.restrict_scalars
 import algebra.algebra.subalgebra
+import data.matrix.basic
 import order.liminf_limsup
 import topology.algebra.group_completion
 import topology.instances.ennreal
@@ -1180,6 +1181,20 @@ instance prod.semi_normed_ring [semi_normed_ring β] : semi_normed_ring (α × �
         ... = (∥x∥*∥y∥) : rfl,
   ..prod.semi_normed_group }
 
+/-- Seminormed group instance (using sup norm of sup norm) for matrices over a seminormed ring. Not
+declared as an instance because there are several natural choices for defining the norm of a
+matrix. -/
+def matrix.semi_normed_group {n m : Type*} [fintype n] [fintype m] :
+  semi_normed_group (matrix n m α) :=
+pi.semi_normed_group
+
+local attribute [instance] matrix.semi_normed_group
+
+lemma semi_norm_matrix_le_iff {n m : Type*} [fintype n] [fintype m] {r : ℝ} (hr : 0 ≤ r)
+  {A : matrix n m α} :
+  ∥A∥ ≤ r ↔ ∀ i j, ∥A i j∥ ≤ r :=
+by simp [pi_semi_norm_le_iff hr]
+
 end semi_normed_ring
 
 section normed_ring
@@ -1193,6 +1208,12 @@ norm_pos_iff.mpr (units.ne_zero x)
 instance prod.normed_ring [normed_ring β] : normed_ring (α × β) :=
 { norm_mul := norm_mul_le,
   ..prod.semi_normed_group }
+
+/-- Normed group instance (using sup norm of sup norm) for matrices over a normed ring.  Not
+declared as an instance because there are several natural choices for defining the norm of a
+matrix. -/
+def matrix.normed_group {n m : Type*} [fintype n] [fintype m] : normed_group (matrix n m α) :=
+pi.normed_group
 
 end normed_ring
 
@@ -1244,7 +1265,7 @@ instance to_normed_comm_ring : normed_comm_ring α :=
 
 @[priority 900]
 instance to_norm_one_class : norm_one_class α :=
-⟨mul_left_cancel' (mt norm_eq_zero.1 (@one_ne_zero α _ _)) $
+⟨mul_left_cancel₀ (mt norm_eq_zero.1 (@one_ne_zero α _ _)) $
   by rw [← norm_mul, mul_one, mul_one]⟩
 
 @[simp] lemma nnnorm_mul (a b : α) : ∥a * b∥₊ = ∥a∥₊ * ∥b∥₊ :=
@@ -1278,7 +1299,7 @@ nnreal.eq $ norm_mul a b
 (nnnorm_hom : monoid_with_zero_hom α ℝ≥0).map_div a b
 
 @[simp] lemma norm_inv (a : α) : ∥a⁻¹∥ = ∥a∥⁻¹ :=
-(norm_hom : monoid_with_zero_hom α ℝ).map_inv' a
+(norm_hom : monoid_with_zero_hom α ℝ).map_inv a
 
 @[simp] lemma nnnorm_inv (a : α) : ∥a⁻¹∥₊ = ∥a∥₊⁻¹ :=
 nnreal.eq $ by simp
@@ -1290,7 +1311,7 @@ nnreal.eq $ by simp
 (nnnorm_hom : monoid_with_zero_hom α ℝ≥0).map_fpow
 
 @[priority 100] -- see Note [lower instance priority]
-instance : has_continuous_inv' α :=
+instance : has_continuous_inv₀ α :=
 begin
   refine ⟨λ r r0, tendsto_iff_norm_tendsto_zero.2 _⟩,
   have r0' : 0 < ∥r∥ := norm_pos_iff.2 r0,
@@ -1549,7 +1570,7 @@ begin
   by_cases h : s = 0,
   { simp [h] },
   { refine le_antisymm (semi_normed_space.norm_smul_le s x) _,
-    calc ∥s∥ * ∥x∥ = ∥s∥ * ∥s⁻¹ • s • x∥     : by rw [inv_smul_smul' h]
+    calc ∥s∥ * ∥x∥ = ∥s∥ * ∥s⁻¹ • s • x∥     : by rw [inv_smul_smul₀ h]
                ... ≤ ∥s∥ * (∥s⁻¹∥ * ∥s • x∥) :
       mul_le_mul_of_nonneg_left (semi_normed_space.norm_smul_le _ _) (norm_nonneg _)
                ... = ∥s • x∥                 :
@@ -1632,8 +1653,8 @@ theorem smul_ball {c : α} (hc : c ≠ 0) (x : E) (r : ℝ) :
   c • ball x r = ball (c • x) (∥c∥ * r) :=
 begin
   ext y,
-  rw mem_smul_set_iff_inv_smul_mem' hc,
-  conv_lhs { rw ←inv_smul_smul' hc x },
+  rw mem_smul_set_iff_inv_smul_mem₀ hc,
+  conv_lhs { rw ←inv_smul_smul₀ hc x },
   simp [← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hc), mul_comm _ r, dist_smul],
 end
 
@@ -1641,8 +1662,8 @@ theorem smul_closed_ball' {c : α} (hc : c ≠ 0) (x : E) (r : ℝ) :
   c • closed_ball x r = closed_ball (c • x) (∥c∥ * r) :=
 begin
   ext y,
-  rw mem_smul_set_iff_inv_smul_mem' hc,
-  conv_lhs { rw ←inv_smul_smul' hc x },
+  rw mem_smul_set_iff_inv_smul_mem₀ hc,
+  conv_lhs { rw ←inv_smul_smul₀ hc x },
   simp [dist_smul, ← div_eq_inv_mul, div_le_iff (norm_pos_iff.2 hc), mul_comm _ r],
 end
 
@@ -1706,12 +1727,12 @@ begin
     exact (div_lt_iff εpos).1 (hn.2) },
   show ε / ∥c∥ ≤ ∥(c ^ (n + 1))⁻¹ • x∥,
   { rw [div_le_iff cpos, norm_smul, norm_inv, norm_fpow, fpow_add (ne_of_gt cpos),
-        gpow_one, mul_inv_rev', mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel (ne_of_gt cpos),
+        gpow_one, mul_inv_rev₀, mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel (ne_of_gt cpos),
         one_mul, ← div_eq_inv_mul, le_div_iff (fpow_pos_of_pos cpos _), mul_comm],
     exact (le_div_iff εpos).1 hn.1 },
   show ∥(c ^ (n + 1))⁻¹∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥,
   { have : ε⁻¹ * ∥c∥ * ∥x∥ = ε⁻¹ * ∥x∥ * ∥c∥, by ring,
-    rw [norm_inv, inv_inv', norm_fpow, fpow_add (ne_of_gt cpos), gpow_one, this, ← div_eq_inv_mul],
+    rw [norm_inv, inv_inv₀, norm_fpow, fpow_add (ne_of_gt cpos), gpow_one, this, ← div_eq_inv_mul],
     exact mul_le_mul_of_nonneg_right hn.1 (norm_nonneg _) }
 end
 
@@ -1754,6 +1775,18 @@ instance : normed_space α (E × F) := { ..prod.semi_normed_space }
 instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, normed_group (E i)]
   [∀i, normed_space α (E i)] : normed_space α (Πi, E i) :=
 { ..pi.semi_normed_space }
+
+section
+local attribute [instance] matrix.normed_group
+
+/-- Normed space instance (using sup norm of sup norm) for matrices over a normed field.  Not
+declared as an instance because there are several natural choices for defining the norm of a
+matrix. -/
+def matrix.normed_space {α : Type*} [normed_field α] {n m : Type*} [fintype n] [fintype m] :
+  normed_space α (matrix n m α) :=
+pi.normed_space
+
+end
 
 /-- A subspace of a normed space is also a normed space, with the restriction of the norm. -/
 instance submodule.normed_space {𝕜 R : Type*} [has_scalar 𝕜 R] [normed_field 𝕜] [ring R]

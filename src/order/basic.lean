@@ -265,15 +265,15 @@ def strict_anti [has_lt α] [has_lt β] (f : α → β) : Prop :=
 
 lemma strict_mono_id [has_lt α] : strict_mono (id : α → α) := λ a b, id
 
-/-- A function `f` is strictly monotone on `t` if, for all `a, b ∈ t`, `a < b` implies
-`f a < f b`. -/
+/-- A function `f` is strictly monotone increasing on `t` if `x < y` for `x,y ∈ t` implies
+`f x < f y`. -/
 def strict_mono_on [has_lt α] [has_lt β] (f : α → β) (t : set α) : Prop :=
-∀ ⦃a⦄ (ha : a ∈ t) ⦃b⦄ (hb : b ∈ t), a < b → f a < f b
+∀ ⦃x⦄ (hx : x ∈ t) ⦃y⦄ (hy : y ∈ t), x < y → f x < f y
 
-/-- A function `f` is strictly antitone on `t` if, for all `a, b ∈ t`, `a < b` implies
-`f b < f a`. -/
+/-- A function `f` is strictly monotone decreasing on `t` if `x < y` for `x,y ∈ t` implies
+`f y < f x`. -/
 def strict_anti_on [has_lt α] [has_lt β] (f : α → β) (t : set α) : Prop :=
-∀ ⦃a⦄ (ha : a ∈ t) ⦃b⦄ (hb : b ∈ t), a < b → f b < f a
+∀ ⦃x⦄ (hx : x ∈ t) ⦃y⦄ (hy : y ∈ t), x < y → f y < f x
 
 /-- Type tag for a set with dual order: `≤` means `≥` and `<` means `>`. -/
 def order_dual (α : Type*) : Type* := α
@@ -348,10 +348,6 @@ protected lemma dual (H : strict_mono_on f s) :
   @strict_mono_on (order_dual α) (order_dual β) _ _ f s :=
 λ x hx y hy, H hy hx
 
-protected lemma dual_left (H : strict_mono_on f s) :
-  @strict_anti_on (order_dual α) β _ _ f s :=
-λ x hx y hy, H hy hx
-
 protected lemma dual_right (H : strict_mono_on f s) :
   @strict_anti_on α (order_dual β) _ _ f s :=
 H
@@ -386,10 +382,6 @@ variables [preorder α] [preorder β] {f : α → β} {s : set α}
 
 protected lemma dual (H : strict_anti_on f s) :
   @strict_anti_on (order_dual α) (order_dual β) _ _ f s :=
-λ x hx y hy, H hy hx
-
-protected lemma dual_left (H : strict_anti_on f s) :
-  @strict_mono_on (order_dual α) β _ _ f s :=
 λ x hx y hy, H hy hx
 
 protected lemma dual_right (H : strict_anti_on f s) :
@@ -477,10 +469,10 @@ lemma injective (H : strict_mono f) : injective f :=
 lemma le_iff_le (H : strict_mono f) {a b} : f a ≤ f b ↔ a ≤ b :=
 (H.strict_mono_on set.univ).le_iff_le trivial trivial
 
-lemma top_preimage_top (H : strict_mono f) {a} (h_top : ∀ p, p ≤ f a) (x : α) : x ≤ a :=
+lemma maximal_preimage_top (H : strict_mono f) {a} (h_top : ∀ p, p ≤ f a) (x : α) : x ≤ a :=
 H.le_iff_le.mp (h_top (f x))
 
-lemma bot_preimage_bot (H : strict_mono f) {a} (h_bot : ∀ p, f a ≤ p) (x : α) : a ≤ x :=
+lemma minimal_preimage_bot (H : strict_mono f) {a} (h_bot : ∀ p, f a ≤ p) (x : α) : a ≤ x :=
 H.le_iff_le.mp (h_bot (f x))
 
 end
@@ -585,7 +577,7 @@ lemma injective_of_le_imp_le [partial_order α] [preorder β] (f : α → β)
   (h : ∀ {x y}, f x ≤ f y → x ≤ y) : injective f :=
 λ x y hxy, (h hxy.le).antisymm (h hxy.ge)
 
-lemma strict_mono_of_monotone_of_injective [partial_order α] [partial_order β] {f : α → β}
+lemma monotone.strict_mono_of_injective [partial_order α] [partial_order β] {f : α → β}
   (h₁ : monotone f) (h₂ : injective f) : strict_mono f :=
 λ a b h,
 begin
@@ -595,7 +587,7 @@ end
 
 lemma monotone.strict_mono_iff_injective [linear_order α] [partial_order β] {f : α → β}
   (h : monotone f) : strict_mono f ↔ injective f :=
-⟨λ h, h.injective, strict_mono_of_monotone_of_injective h⟩
+⟨λ h, h.injective, h.strict_mono_of_injective⟩
 
 lemma strict_mono_of_le_iff_le [preorder α] [preorder β] {f : α → β}
   (h : ∀ x y, x ≤ y ↔ f x ≤ f y) : strict_mono f :=

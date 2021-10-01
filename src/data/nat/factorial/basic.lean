@@ -39,6 +39,8 @@ variables {m n : ℕ}
 
 @[simp] theorem factorial_one : 1! = 1 := rfl
 
+@[simp] theorem factorial_two : 2! = 2 := rfl
+
 theorem mul_factorial_pred (hn : 0 < n) : n * (n - 1)! = n! :=
 nat.sub_add_cancel hn ▸ rfl
 
@@ -210,7 +212,7 @@ theorem factorial_mul_asc_factorial (n : ℕ) : ∀ k, n! * n.asc_factorial k = 
 /-- Avoid in favor of `nat.factorial_mul_asc_factorial` if you can. ℕ-division isn't worth it. -/
 lemma asc_factorial_eq_div (n k : ℕ) : n.asc_factorial k = (n + k)! / n! :=
 begin
-  apply mul_left_cancel' (factorial_ne_zero n),
+  apply mul_left_cancel₀ (factorial_ne_zero n),
   rw factorial_mul_asc_factorial,
   exact (nat.mul_div_cancel' $ factorial_dvd_factorial $ le.intro rfl).symm
 end
@@ -310,6 +312,8 @@ lemma desc_factorial_self : ∀ n : ℕ, n.desc_factorial n = n!
   exact λ h _, h,
 end
 
+alias nat.desc_factorial_eq_zero_iff_lt ↔ _ nat.desc_factorial_of_lt
+
 lemma add_desc_factorial_eq_asc_factorial (n : ℕ) :
   ∀ k : ℕ, (n + k).desc_factorial k = n.asc_factorial k
 | 0        := by rw [asc_factorial_zero, desc_factorial_zero]
@@ -328,7 +332,7 @@ theorem factorial_mul_desc_factorial : ∀ {n k : ℕ}, k ≤ n → (n - k)! * n
 /-- Avoid in favor of `nat.factorial_mul_desc_factorial` if you can. ℕ-division isn't worth it. -/
 lemma desc_factorial_eq_div {n k : ℕ} (h : k ≤ n) : n.desc_factorial k = n! / (n - k)! :=
 begin
-  apply mul_left_cancel' (factorial_ne_zero (n - k)),
+  apply mul_left_cancel₀ (factorial_ne_zero (n - k)),
   rw factorial_mul_desc_factorial h,
   exact (nat.mul_div_cancel' $ factorial_dvd_factorial $ nat.sub_le n k).symm,
 end

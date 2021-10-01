@@ -663,6 +663,18 @@ lemma is_compact.image {f : α → β} (hs : is_compact s) (hf : continuous f) :
   is_compact (f '' s) :=
 hs.image_of_continuous_on hf.continuous_on
 
+/-- The comap of the cocompact filter on `β` by a continuous function `f : α → β` is less than or
+equal to the cocompact filter on `α`.
+This is a reformulation of the fact that images of compact sets are compact. -/
+lemma filter.comap_cocompact {f : α → β} (hf : continuous f) :
+  (filter.cocompact β).comap f ≤ filter.cocompact α :=
+begin
+  rw (filter.has_basis_cocompact.comap f).le_basis_iff filter.has_basis_cocompact,
+  intros t ht,
+  refine ⟨f '' t, ht.image hf, _⟩,
+  simpa using t.subset_preimage_image f
+end
+
 lemma is_compact_range [compact_space α] {f : α → β} (hf : continuous f) :
   is_compact (range f) :=
 by rw ← image_univ; exact compact_univ.image hf

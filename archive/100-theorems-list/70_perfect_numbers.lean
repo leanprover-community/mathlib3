@@ -90,7 +90,7 @@ begin
   rcases nat.coprime.dvd_of_dvd_mul_left
     (nat.prime_two.coprime_pow_of_not_dvd (odd_mersenne_succ _)) (dvd.intro _ perf) with ⟨j, rfl⟩,
   rw [← mul_assoc, mul_comm _ (mersenne _), mul_assoc] at perf,
-  have h := mul_left_cancel' (ne_of_gt (mersenne_pos (nat.succ_pos _))) perf,
+  have h := mul_left_cancel₀ (ne_of_gt (mersenne_pos (nat.succ_pos _))) perf,
   rw [sigma_one_apply, sum_divisors_eq_sum_proper_divisors_add_self, ← succ_mersenne, add_mul,
     one_mul, add_comm] at h,
   have hj := add_left_cancel h,
@@ -100,7 +100,7 @@ begin
     simp [h_1, j1] },
   { have jcon := eq.trans hj.symm h_1,
     rw [← one_mul j, ← mul_assoc, mul_one] at jcon,
-    have jcon2 := mul_right_cancel' _ jcon,
+    have jcon2 := mul_right_cancel₀ _ jcon,
     { exfalso,
       cases k,
       { apply hm,

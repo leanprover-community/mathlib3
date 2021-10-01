@@ -278,8 +278,8 @@ begin
     exact general_commutator_normal (lower_central_series G d) ⊤ },
 end
 
-lemma lower_central_series_antitone :
-  antitone (lower_central_series G) :=
+lemma lower_central_series_antitone {m n : ℕ} (h : n ≤ m) :
+  lower_central_series G m ≤ lower_central_series G n :=
 begin
   refine antitone_nat_of_succ_le (λ n x hx, _),
   simp only [mem_lower_central_series_succ_iff, exists_prop, mem_top, exists_true_left, true_and]

@@ -7,7 +7,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 import measure_theory.measurable_space_def
 import measure_theory.tactic
 import data.tprod
-
+import data.equiv.fin
 
 /-!
 # Measurable spaces and measurable functions
@@ -959,6 +959,17 @@ noncomputable def pi_measurable_equiv_tprod {l : list δ'} (hnd : l.nodup) (h : 
 { to_equiv := equiv.fun_unique α β,
   measurable_to_fun := measurable_pi_apply _,
   measurable_inv_fun := measurable_pi_iff.2 $ λ b, measurable_id }
+
+/-- The space `Π i : fin 2, α i` is measurably equivalent to `α 0 × α 1`. -/
+@[simps {fully_applied := ff}] def pi_fin_two (α : fin 2 → Type*) [∀ i, measurable_space (α i)] :
+  (Π i, α i) ≃ᵐ α 0 × α 1 :=
+{ to_equiv := pi_fin_two_equiv α,
+  measurable_to_fun := measurable.prod (measurable_pi_apply _) (measurable_pi_apply _),
+  measurable_inv_fun := measurable_pi_iff.2 $
+    fin.forall_fin_two.2 ⟨measurable_fst, measurable_snd⟩ }
+
+/-- The space `fin 2 → α` is measurably equivalent to `α × α`. -/
+@[simps {fully_applied := ff}] def fin_two_arrow : (fin 2 → α) ≃ᵐ α × α := pi_fin_two (λ _, α)
 
 end measurable_equiv
 

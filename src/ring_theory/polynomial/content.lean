@@ -235,7 +235,7 @@ begin
   by_cases h : p = 0, { simp [h] },
   rw ← content_eq_zero_iff at h,
   rw is_primitive_iff_content_eq_one,
-  apply mul_left_cancel' h,
+  apply mul_left_cancel₀ h,
   conv_rhs { rw [p.eq_C_content_mul_prim_part, mul_one, content_C_mul, normalize_content] }
 end
 
@@ -265,7 +265,7 @@ begin
     by rw [← ring_hom.map_mul, units.inv_mul, C_1],
     by rw [← ring_hom.map_mul, units.mul_inv, C_1]⟩, _⟩,
   rw [← normalize_eq_zero, ← C_eq_zero] at h0,
-  apply mul_left_cancel' h0,
+  apply mul_left_cancel₀ h0,
   conv_rhs { rw [← content_C, ← (C r).eq_C_content_mul_prim_part], },
   simp only [units.coe_mk, normalize_apply, ring_hom.map_mul],
   rw [mul_assoc, ← ring_hom.map_mul, units.mul_inv, C_1, mul_one],
@@ -352,7 +352,7 @@ theorem prim_part_mul {p q : polynomial R} (h0 : p * q ≠ 0) :
   (p * q).prim_part = p.prim_part * q.prim_part :=
 begin
   rw [ne.def, ← content_eq_zero_iff, ← C_eq_zero] at h0,
-  apply mul_left_cancel' h0,
+  apply mul_left_cancel₀ h0,
   conv_lhs { rw [← (p * q).eq_C_content_mul_prim_part,
     p.eq_C_content_mul_prim_part, q.eq_C_content_mul_prim_part] },
   rw [content_mul, ring_hom.map_mul],

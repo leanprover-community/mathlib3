@@ -201,7 +201,7 @@ lemma integral_inv (h : (0:ℝ) ∉ interval a b) : ∫ x in a..b, x⁻¹ = log 
 begin
   have h' := λ x hx, ne_of_mem_of_not_mem hx h,
   rw [integral_deriv_eq_sub' _ deriv_log' (λ x hx, differentiable_at_log (h' x hx))
-        (continuous_on_inv'.mono $ subset_compl_singleton_iff.mpr h),
+        (continuous_on_inv₀.mono $ subset_compl_singleton_iff.mpr h),
       log_div (h' b right_mem_interval) (h' a left_mem_interval)],
 end
 
@@ -233,7 +233,7 @@ begin
   obtain ⟨h', heq⟩ := ⟨λ x hx, ne_of_mem_of_not_mem hx h, λ x hx, mul_inv_cancel (h' x hx)⟩,
   convert integral_mul_deriv_eq_deriv_mul (λ x hx, has_deriv_at_log (h' x hx))
       (λ x hx, has_deriv_at_id x)
-      (continuous_on_inv'.mono $ subset_compl_singleton_iff.mpr h).interval_integrable
+      (continuous_on_inv₀.mono $ subset_compl_singleton_iff.mpr h).interval_integrable
       continuous_on_const.interval_integrable using 1;
     simp [integral_congr heq, mul_comm, ← sub_add],
 end

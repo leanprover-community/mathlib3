@@ -23,8 +23,8 @@ The Lebesgue decomposition provides the Radon-Nikodym theorem readily.
 * `measure_theory.measure.singular_part` : If a pair of measures `have_lebesgue_decomposition`,
   then `singular_part` chooses the measure from `have_lebesgue_decomposition`, otherwise it
   returns the zero measure.
-* `measure_theory.measure.radon_nikodym_deriv` : If a pair of measures
-  `have_lebesgue_decomposition`, then `radon_nikodym_deriv` chooses the measurable function from
+* `measure_theory.measure.rn_deriv` : If a pair of measures
+  `have_lebesgue_decomposition`, then `rn_deriv` chooses the measurable function from
   `have_lebesgue_decomposition`, otherwise it returns the zero function.
 * `measure_theory.signed_measure.have_lebesgue_decomposition` : A signed measure `s` and a
   measure `μ` is said to `have_lebesgue_decomposition` if both the positive part and negative
@@ -32,7 +32,7 @@ The Lebesgue decomposition provides the Radon-Nikodym theorem readily.
 * `measure_theory.signed_measure.singular_part` : The singular part between a signed measure `s`
   and a measure `μ` is simply the singular part of the positive part of `s` with respect to `μ`
   minus the singular part of the negative part of `s` with respect to `μ`.
-* `measure_theory.signed_measure.radon_nikodym_deriv` : The Radon-Nikodym derivative of a signed
+* `measure_theory.signed_measure.rn_deriv` : The Radon-Nikodym derivative of a signed
   measure `s` with respect to a measure `μ` is the Radon-Nikodym derivative of the positive part of
   `s` with respect to `μ` minus the Radon-Nikodym derivative of the negative part of `s` with
   respect to `μ`.
@@ -44,10 +44,10 @@ The Lebesgue decomposition provides the Radon-Nikodym theorem readily.
 * `measure_theory.measure.eq_singular_part` : Given measures `μ` and `ν`, if `s` is a measure
   mutually singular to `ν` and `f` is a measurable function such that `μ = s + fν`, then
   `s = singular_part μ ν`.
-* `measure_theory.measure.eq_radon_nikodym_deriv` : Given measures `μ` and `ν`, if `s` is a
+* `measure_theory.measure.eq_rn_deriv` : Given measures `μ` and `ν`, if `s` is a
   measure mutually singular to `ν` and `f` is a measurable function such that `μ = s + fν`,
-  then `f = radon_nikodym_deriv μ ν`.
-* `measure_theory.signed_measure.singular_part_add_with_density_radon_nikodym_deriv_eq` :
+  then `f = rn_deriv μ ν`.
+* `measure_theory.signed_measure.singular_part_add_with_density_rn_deriv_eq` :
   the Lebesgue decomposition theorem between a signed measure and a σ-finite positive measure.
 
 # Tags
@@ -58,7 +58,8 @@ Lebesgue decomposition theorem
 noncomputable theory
 open_locale classical measure_theory nnreal ennreal
 
-variables {α β : Type*} [measurable_space α]
+variables {α β : Type*} {m : measurable_space α} {μ ν : measure_theory.measure α}
+include m
 
 namespace measure_theory
 
@@ -77,22 +78,24 @@ measure from `have_lebesgue_decomposition`, otherwise it returns the zero measur
 def singular_part (μ ν : measure α) : measure α :=
 if h : have_lebesgue_decomposition μ ν then (classical.some h.lebesgue_decomposition).1 else 0
 
-/-- If a pair of measures `have_lebesgue_decomposition`, then `radon_nikodym_deriv` chooses the
+/-- If a pair of measures `have_lebesgue_decomposition`, then `rn_deriv` chooses the
 measurable function from `have_lebesgue_decomposition`, otherwise it returns the zero function. -/
 @[irreducible]
-def radon_nikodym_deriv (μ ν : measure α) : α → ℝ≥0∞ :=
+def rn_deriv (μ ν : measure α) : α → ℝ≥0∞ :=
 if h : have_lebesgue_decomposition μ ν then (classical.some h.lebesgue_decomposition).2 else 0
 
-lemma have_lebesgue_decomposition_spec (μ ν : measure α) [h : have_lebesgue_decomposition μ ν] :
-  measurable (radon_nikodym_deriv μ ν) ∧ (singular_part μ ν) ⊥ₘ ν ∧
-  μ = (singular_part μ ν) + ν.with_density (radon_nikodym_deriv μ ν) :=
+lemma have_lebesgue_decomposition_spec (μ ν : measure α)
+  [h : have_lebesgue_decomposition μ ν] :
+  measurable (rn_deriv μ ν) ∧ (singular_part μ ν) ⊥ₘ ν ∧
+  μ = (singular_part μ ν) + ν.with_density (rn_deriv μ ν) :=
 begin
-  rw [singular_part, radon_nikodym_deriv, dif_pos h, dif_pos h],
+  rw [singular_part, rn_deriv, dif_pos h, dif_pos h],
   exact classical.some_spec h.lebesgue_decomposition,
 end
 
-lemma have_lebesgue_decomposition_add (μ ν : measure α) [have_lebesgue_decomposition μ ν] :
-  μ = (singular_part μ ν) + ν.with_density (radon_nikodym_deriv μ ν) :=
+lemma have_lebesgue_decomposition_add (μ ν : measure α)
+  [have_lebesgue_decomposition μ ν] :
+  μ = (singular_part μ ν) + ν.with_density (rn_deriv μ ν) :=
 (have_lebesgue_decomposition_spec μ ν).2.2
 
 instance have_lebesgue_decomposition_smul
@@ -101,7 +104,7 @@ instance have_lebesgue_decomposition_smul
 { lebesgue_decomposition :=
   begin
     obtain ⟨hmeas, hsing, hadd⟩ := have_lebesgue_decomposition_spec μ ν,
-    refine ⟨⟨r • μ.singular_part ν, r • μ.radon_nikodym_deriv ν⟩, _, hsing.smul _, _⟩,
+    refine ⟨⟨r • μ.singular_part ν, r • μ.rn_deriv ν⟩, _, hsing.smul _, _⟩,
     { change measurable ((r : ℝ≥0∞) • _), -- cannot remove this line
       exact hmeas.const_smul _ },
     { change _ = (r : ℝ≥0∞) • _ + ν.with_density ((r : ℝ≥0∞) • _),
@@ -110,12 +113,12 @@ instance have_lebesgue_decomposition_smul
   end }
 
 @[measurability]
-lemma measurable_radon_nikodym_deriv (μ ν : measure α) :
-  measurable $ radon_nikodym_deriv μ ν :=
+lemma measurable_rn_deriv (μ ν : measure α) :
+  measurable $ rn_deriv μ ν :=
 begin
   by_cases h : have_lebesgue_decomposition μ ν,
   { exactI (have_lebesgue_decomposition_spec μ ν).1 },
-  { rw [radon_nikodym_deriv, dif_neg h],
+  { rw [rn_deriv, dif_neg h],
     exact measurable_zero }
 end
 
@@ -138,36 +141,36 @@ begin
     exact measure.zero_le μ }
 end
 
-lemma with_density_radon_nikodym_deriv_le (μ ν : measure α) :
-  ν.with_density (radon_nikodym_deriv μ ν) ≤ μ :=
+lemma with_density_rn_deriv_le (μ ν : measure α) :
+  ν.with_density (rn_deriv μ ν) ≤ μ :=
 begin
   by_cases hl : have_lebesgue_decomposition μ ν,
   { casesI (have_lebesgue_decomposition_spec μ ν).2 with _ h,
     conv_rhs { rw h },
     exact measure.le_add_left (le_refl _) },
-  { rw [radon_nikodym_deriv, dif_neg hl, with_density_zero],
+  { rw [rn_deriv, dif_neg hl, with_density_zero],
     exact measure.zero_le μ }
 end
 
-instance {μ ν : measure α} [is_finite_measure μ] :
+instance  [is_finite_measure μ] :
   is_finite_measure (singular_part μ ν) :=
 is_finite_measure_of_le μ $ singular_part_le μ ν
 
-instance {μ ν : measure α} [sigma_finite μ] :
+instance [sigma_finite μ] :
   sigma_finite (singular_part μ ν) :=
 sigma_finite_of_le μ $ singular_part_le μ ν
 
-instance {μ ν : measure α} [is_finite_measure μ] :
-  is_finite_measure (ν.with_density $ radon_nikodym_deriv μ ν) :=
-is_finite_measure_of_le μ $ with_density_radon_nikodym_deriv_le μ ν
+instance [is_finite_measure μ] :
+  is_finite_measure (ν.with_density $ rn_deriv μ ν) :=
+is_finite_measure_of_le μ $ with_density_rn_deriv_le μ ν
 
-instance {μ ν : measure α} [sigma_finite μ] :
-  sigma_finite (ν.with_density $ radon_nikodym_deriv μ ν) :=
-sigma_finite_of_le μ $ with_density_radon_nikodym_deriv_le μ ν
+instance [sigma_finite μ] :
+  sigma_finite (ν.with_density $ rn_deriv μ ν) :=
+sigma_finite_of_le μ $ with_density_rn_deriv_le μ ν
 
-lemma lintegral_radon_nikodym_deriv_lt_top
+lemma lintegral_rn_deriv_lt_top
   (μ ν : measure α) [is_finite_measure μ] :
-  ∫⁻ x, μ.radon_nikodym_deriv ν x ∂ν < ∞ :=
+  ∫⁻ x, μ.rn_deriv ν x ∂ν < ∞ :=
 begin
   by_cases hl : have_lebesgue_decomposition μ ν,
   { haveI := hl,
@@ -175,10 +178,10 @@ begin
     rw [← set_lintegral_univ, ← with_density_apply _ measurable_set.univ],
     refine lt_of_le_of_lt
       (le_add_left (le_refl _) : _ ≤ μ.singular_part ν set.univ +
-        ν.with_density (μ.radon_nikodym_deriv ν) set.univ) _,
+        ν.with_density (μ.rn_deriv ν) set.univ) _,
     rw [← measure.add_apply, ← hadd],
     exact measure_lt_top _ _ },
-  { erw [measure.radon_nikodym_deriv, dif_neg hl, lintegral_zero],
+  { erw [measure.rn_deriv, dif_neg hl, lintegral_zero],
     exact with_top.zero_lt_top },
 end
 
@@ -186,10 +189,9 @@ end
 measurable function such that `μ = s + fν`, then `s = singular_part μ ν`.
 
 This theorem provides the uniqueness of the `singular_part` in the Lebesgue decomposition theorem,
-while `measure_theory.measure.eq_radon_nikodym_deriv` provides the uniqueness of the
-`radon_nikodym_deriv`. -/
-theorem eq_singular_part
-  {μ ν : measure α} {s : measure α} {f : α → ℝ≥0∞} (hf : measurable f)
+while `measure_theory.measure.eq_rn_deriv` provides the uniqueness of the
+`rn_deriv`. -/
+theorem eq_singular_part {s : measure α} {f : α → ℝ≥0∞} (hf : measurable f)
   (hs : s ⊥ₘ ν) (hadd : μ = s + ν.with_density f) :
   s = μ.singular_part ν :=
 begin
@@ -208,7 +210,7 @@ begin
     { refine with_density_absolutely_continuous ν _ _,
       rw ← nonpos_iff_eq_zero,
       exact hνinter ▸ measure_mono (set.inter_subset_right _ _) },
-    have hrn : ν.with_density (μ.radon_nikodym_deriv ν) (A ∩ (S ∩ T)ᶜ) = 0,
+    have hrn : ν.with_density (μ.rn_deriv ν) (A ∩ (S ∩ T)ᶜ) = 0,
     { refine with_density_absolutely_continuous ν _ _,
       rw ← nonpos_iff_eq_zero,
       exact hνinter ▸ measure_mono (set.inter_subset_right _ _) },
@@ -251,14 +253,14 @@ begin
   { rw [hr, zero_smul, zero_smul, singular_part_zero] },
   by_cases hl : have_lebesgue_decomposition μ ν,
   { haveI := hl,
-    refine (eq_singular_part ((measurable_radon_nikodym_deriv μ ν).const_smul (r : ℝ≥0∞))
+    refine (eq_singular_part ((measurable_rn_deriv μ ν).const_smul (r : ℝ≥0∞))
       (mutually_singular.smul r (have_lebesgue_decomposition_spec _ _).2.1) _).symm,
-    rw with_density_smul _ (measurable_radon_nikodym_deriv _ _),
+    rw with_density_smul _ (measurable_rn_deriv _ _),
     change _ = _ + r • _,
     rw [← smul_add, ← have_lebesgue_decomposition_add μ ν] },
   { rw [singular_part, singular_part, dif_neg hl, dif_neg, smul_zero],
     refine λ hl', hl _,
-    rw ← inv_smul_smul' hr μ,
+    rw ← inv_smul_smul₀ hr μ,
     exact @measure.have_lebesgue_decomposition_smul _ _ _ _ hl' _ }
 end
 
@@ -267,26 +269,25 @@ lemma singular_part_add (μ₁ μ₂ ν : measure α)
   (μ₁ + μ₂).singular_part ν = μ₁.singular_part ν + μ₂.singular_part ν :=
 begin
   refine (eq_singular_part
-    ((measurable_radon_nikodym_deriv μ₁ ν).add (measurable_radon_nikodym_deriv μ₂ ν))
+    ((measurable_rn_deriv μ₁ ν).add (measurable_rn_deriv μ₂ ν))
     ((have_lebesgue_decomposition_spec _ _).2.1.add (have_lebesgue_decomposition_spec _ _).2.1)
     _).symm,
-  erw with_density_add (measurable_radon_nikodym_deriv μ₁ ν) (measurable_radon_nikodym_deriv μ₂ ν),
+  erw with_density_add (measurable_rn_deriv μ₁ ν) (measurable_rn_deriv μ₂ ν),
   conv_rhs { rw [add_assoc, add_comm (μ₂.singular_part ν), ← add_assoc, ← add_assoc] },
   rw [← have_lebesgue_decomposition_add μ₁ ν, add_assoc,
-      add_comm (ν.with_density (μ₂.radon_nikodym_deriv ν)),
+      add_comm (ν.with_density (μ₂.rn_deriv ν)),
       ← have_lebesgue_decomposition_add μ₂ ν]
 end
 
 /-- Given measures `μ` and `ν`, if `s` is a measure mutually singular to `ν` and `f` is a
-measurable function such that `μ = s + fν`, then `f = radon_nikodym_deriv μ ν`.
+measurable function such that `μ = s + fν`, then `f = rn_deriv μ ν`.
 
-This theorem provides the uniqueness of the `radon_nikodym_deriv` in the Lebesgue decomposition
+This theorem provides the uniqueness of the `rn_deriv` in the Lebesgue decomposition
 theorem, while `measure_theory.measure.eq_singular_part` provides the uniqueness of the
 `singular_part`. -/
-theorem eq_radon_nikodym_deriv
-  {μ ν : measure α} {s : measure α} {f : α → ℝ≥0∞} (hf : measurable f)
+theorem eq_rn_deriv {s : measure α} {f : α → ℝ≥0∞} (hf : measurable f)
   (hs : s ⊥ₘ ν) (hadd : μ = s + ν.with_density f) :
-  ν.with_density f = ν.with_density (μ.radon_nikodym_deriv ν) :=
+  ν.with_density f = ν.with_density (μ.rn_deriv ν) :=
 begin
   haveI : have_lebesgue_decomposition μ ν := ⟨⟨⟨s, f⟩, hf, hs, hadd⟩⟩,
   obtain ⟨hmeas, hsing, hadd'⟩ := have_lebesgue_decomposition_spec μ ν,
@@ -298,7 +299,7 @@ begin
     rw [hT₃, hS₃, add_zero],
     exact le_refl _ },
   have heq : (ν.with_density f).restrict (S ∩ T) =
-              (ν.with_density (radon_nikodym_deriv μ ν)).restrict (S ∩ T),
+              (ν.with_density (rn_deriv μ ν)).restrict (S ∩ T),
   { ext1 A hA,
     have hs : s (A ∩ (S ∩ T)) = 0,
     { rw ← nonpos_iff_eq_zero,
@@ -323,11 +324,11 @@ begin
     { measurability },
     { measurability } },
   ext1 A hA,
-  have hνrn : ν.with_density (μ.radon_nikodym_deriv ν) (A ∩ (S ∩ T)ᶜ) = 0,
+  have hνrn : ν.with_density (μ.rn_deriv ν) (A ∩ (S ∩ T)ᶜ) = 0,
   { rw ← nonpos_iff_eq_zero,
-    exact with_density_absolutely_continuous ν (μ.radon_nikodym_deriv ν) hνinter ▸
+    exact with_density_absolutely_continuous ν (μ.rn_deriv ν) hνinter ▸
       measure_mono (set.inter_subset_right _ _) },
-  rw [heq' A hA, heq, ← add_zero ((ν.with_density (μ.radon_nikodym_deriv ν)).restrict (S ∩ T) A),
+  rw [heq' A hA, heq, ← add_zero ((ν.with_density (μ.rn_deriv ν)).restrict (S ∩ T) A),
       ← hνrn, restrict_apply hA, ← measure_union, ← set.inter_union_distrib_left,
       set.union_compl_self, set.inter_univ],
   { exact disjoint.inter_left' _ (disjoint.inter_right' _ disjoint_compl_right) },
@@ -411,8 +412,6 @@ functions `f`, such that, for all measurable sets `A`, `∫⁻ x in A, f x ∂μ
 This is useful for the Lebesgue decomposition theorem. -/
 def measurable_le (μ ν : measure α) : set (α → ℝ≥0∞) :=
 { f | measurable f ∧ ∀ (A : set α) (hA : measurable_set A), ∫⁻ x in A, f x ∂μ ≤ ν A }
-
-variables {μ ν : measure α}
 
 lemma zero_mem_measurable_le : (0 : α → ℝ≥0∞) ∈ measurable_le μ ν :=
 ⟨measurable_zero, λ A hA, by simp⟩
@@ -511,6 +510,9 @@ begin
   ext, simp
 end
 
+section supr_lemmas --TODO: these statements should be moved elsewhere
+omit m
+
 lemma supr_monotone {α : Type*} (f : ℕ → α → ℝ≥0∞) :
   monotone (λ n x, ⨆ k (hk : k ≤ n), f k x) :=
 begin
@@ -529,6 +531,8 @@ lemma supr_le_le {α : Type*} (f : ℕ → α → ℝ≥0∞) (n k : ℕ) (hk : 
   f k ≤ λ x, ⨆ k (hk : k ≤ n), f k x :=
 λ x, le_bsupr k hk
 
+end supr_lemmas
+
 /-- `measurable_le_eval μ ν` is the set of `∫⁻ x, f x ∂μ` for all `f ∈ measurable_le μ ν`. -/
 def measurable_le_eval (μ ν : measure α) : set ℝ≥0∞ :=
 (λ f : α → ℝ≥0∞, ∫⁻ x, f x ∂μ) '' measurable_le μ ν
@@ -543,8 +547,7 @@ with respect to `ν` and `μ = ξ + ν.with_density f`.
 
 This is not an instance since this is also shown for the more general σ-finite measures with
 `measure_theory.measure.have_lebesgue_decomposition_of_sigma_finite`. -/
-theorem have_lebesgue_decomposition_of_finite_measure
-  {μ ν : measure α} [is_finite_measure μ] [is_finite_measure ν] :
+theorem have_lebesgue_decomposition_of_finite_measure [is_finite_measure μ] [is_finite_measure ν] :
   have_lebesgue_decomposition μ ν :=
 ⟨begin
   have h := @exists_seq_tendsto_Sup _ _ _ _ _ (measurable_le_eval ν μ)
@@ -657,7 +660,7 @@ end⟩
 
 local attribute [instance] have_lebesgue_decomposition_of_finite_measure
 
-instance {μ : measure α} {S : μ.finite_spanning_sets_in {s : set α | measurable_set s}} (n : ℕ) :
+instance {S : μ.finite_spanning_sets_in {s : set α | measurable_set s}} (n : ℕ) :
   is_finite_measure (μ.restrict $ S.set n) :=
 ⟨by { rw [restrict_apply measurable_set.univ, set.univ_inter], exact S.finite _ }⟩
 
@@ -688,11 +691,11 @@ instance have_lebesgue_decomposition_of_sigma_finite
   -- decompositions of `μn n` and `νn n`, and `f` as the sum of the Radon-Nikodym derviatives of
   -- `μn n` and `νn n` restricted on `S n`
   set ξ := sum (λ n, singular_part (μn n) (νn n)) with hξ,
-  set f := ∑' n, (S.set n).indicator (radon_nikodym_deriv (μn n) (νn n)) with hf,
+  set f := ∑' n, (S.set n).indicator (rn_deriv (μn n) (νn n)) with hf,
   -- I claim `ξ` and `f` form a Lebesgue decomposition of `μ` and `ν`
   refine ⟨⟨ξ, f⟩, _, _, _⟩,
   { exact measurable.ennreal_tsum' (λ n, measurable.indicator
-      (measurable_radon_nikodym_deriv (μn n) (νn n)) (S.set_mem n)) },
+      (measurable_rn_deriv (μn n) (νn n)) (S.set_mem n)) },
   -- We show that `ξ` is mutually singular with respect to `ν`
   { choose A hA₁ hA₂ hA₃ using λ n, mutually_singular_singular_part (μn n) (νn n),
     simp only [hξ],
@@ -743,15 +746,15 @@ instance have_lebesgue_decomposition_of_sigma_finite
       { exact λ n, (S.set_mem n).inter (hA₁ n).compl } } },
   -- Finally, it remains to show `μ = ξ + ν.with_density f`. Since `μ = sum μn`, and
   -- `ξ + ν.with_density f = ∑ n, singular_part (μn n) (νn n)`
-  --                        `+ ν.with_density (radon_nikodym_deriv (μn n) (νn n)) ∩ (S.set n)`,
+  --                        `+ ν.with_density (rn_deriv (μn n) (νn n)) ∩ (S.set n)`,
   -- it suffices to show that the individual summands are equal. This follows by the
   -- Lebesgue decomposition properties on the individual `μn n` and `νn n`
   { simp only [hξ, hf, hμ],
     rw [with_density_tsum _, sum_add_sum],
     { refine sum_congr (λ n, _),
       conv_lhs { rw have_lebesgue_decomposition_add (μn n) (νn n) },
-      suffices heq : (νn n).with_density ((μn n).radon_nikodym_deriv (νn n)) =
-        ν.with_density ((S.set n).indicator ((μn n).radon_nikodym_deriv (νn n))),
+      suffices heq : (νn n).with_density ((μn n).rn_deriv (νn n)) =
+        ν.with_density ((S.set n).indicator ((μn n).rn_deriv (νn n))),
       { rw heq },
       rw [hν, with_density_indicator (S.set_mem n), restrict_sum _ (S.set_mem n)],
       suffices hsumeq : sum (λ (i : ℕ), (νn i).restrict (S.set n)) = νn n,
@@ -764,7 +767,7 @@ instance have_lebesgue_decomposition_of_sigma_finite
             set.disjoint_iff_inter_eq_empty.1 (h₃ m n hm), restrict_empty,
             coe_zero, pi.zero_apply] },
       { apply_instance } },
-    { exact λ n, measurable.indicator (measurable_radon_nikodym_deriv _ _) (S.set_mem n) } },
+    { exact λ n, measurable.indicator (measurable_rn_deriv _ _) (S.set_mem n) } },
 end⟩
 
 end measure
@@ -783,7 +786,8 @@ class have_lebesgue_decomposition (s : signed_measure α) (μ : measure α) : Pr
 attribute [instance] have_lebesgue_decomposition.pos_part
 attribute [instance] have_lebesgue_decomposition.neg_part
 
-lemma not_have_lebesgue_decomposition_iff (s : signed_measure α) (μ : measure α) :
+lemma not_have_lebesgue_decomposition_iff (s : signed_measure α)
+  (μ : measure α) :
   ¬ s.have_lebesgue_decomposition μ ↔
   ¬ s.to_jordan_decomposition.pos_part.have_lebesgue_decomposition μ ∨
   ¬ s.to_jordan_decomposition.neg_part.have_lebesgue_decomposition μ :=
@@ -837,17 +841,15 @@ begin
 end
 
 /-- Given a signed measure `s` and a measure `μ`, `s.singular_part μ` is the signed measure
-such that `s.singular_part μ + μ.with_densityᵥ (s.radon_nikodym_deriv μ) = s` and
+such that `s.singular_part μ + μ.with_densityᵥ (s.rn_deriv μ) = s` and
 `s.singular_part μ` is mutually singular with respect to `μ`. -/
-def singular_part (s : signed_measure α) (μ : measure α) : signed_measure α :=
+def singular_part(s : signed_measure α) (μ : measure α) : signed_measure α :=
 (s.to_jordan_decomposition.pos_part.singular_part μ).to_signed_measure -
 (s.to_jordan_decomposition.neg_part.singular_part μ).to_signed_measure
 
 section
 
-variables (s : signed_measure α) (μ : measure α)
-
-lemma singular_part_mutually_singular :
+lemma singular_part_mutually_singular (s : signed_measure α) (μ : measure α) :
   s.to_jordan_decomposition.pos_part.singular_part μ ⊥ₘ
   s.to_jordan_decomposition.neg_part.singular_part μ :=
 begin
@@ -866,7 +868,7 @@ begin
       exact mutually_singular.zero } }
 end
 
-lemma singular_part_total_variation :
+lemma singular_part_total_variation (s : signed_measure α) (μ : measure α) :
   (s.singular_part μ).total_variation =
   s.to_jordan_decomposition.pos_part.singular_part μ +
   s.to_jordan_decomposition.neg_part.singular_part μ :=
@@ -880,7 +882,7 @@ begin
   { rw [total_variation, this] },
 end
 
-lemma mutually_singular_singular_part :
+lemma mutually_singular_singular_part (s : signed_measure α) (μ : measure α) :
   singular_part s μ ⊥ᵥ μ.to_ennreal_vector_measure :=
 begin
   rw [mutually_singular_ennreal_iff, singular_part_total_variation],
@@ -894,45 +896,45 @@ end
 
 /-- The Radon-Nikodym derivative between a signed measure and a positive measure.
 
-`radon_nikodym_deriv s μ` satisfies `μ.with_densityᵥ (s.radon_nikodym_deriv μ) = s`
+`rn_deriv s μ` satisfies `μ.with_densityᵥ (s.rn_deriv μ) = s`
 if and only if `s` is absolutely continuous with respect to `μ` and this fact is known as
-`measure_theory.signed_measure.absolutely_continuous_iff_with_density_radon_nikodym_deriv_eq`
+`measure_theory.signed_measure.absolutely_continuous_iff_with_density_rn_deriv_eq`
 and can be found in `measure_theory.decomposition.radon_nikodym`. -/
-def radon_nikodym_deriv (s : signed_measure α) (μ : measure α) : α → ℝ := λ x,
-(s.to_jordan_decomposition.pos_part.radon_nikodym_deriv μ x).to_real -
-(s.to_jordan_decomposition.neg_part.radon_nikodym_deriv μ x).to_real
+def rn_deriv (s : signed_measure α) (μ : measure α) : α → ℝ := λ x,
+(s.to_jordan_decomposition.pos_part.rn_deriv μ x).to_real -
+(s.to_jordan_decomposition.neg_part.rn_deriv μ x).to_real
 
-variables {s : signed_measure α} {μ : measure α}
+variables {s t : signed_measure α}
 
 @[measurability]
-lemma measurable_radon_nikodym_deriv (s : signed_measure α) (μ : measure α) :
-  measurable (radon_nikodym_deriv s μ) :=
+lemma measurable_rn_deriv (s : signed_measure α) (μ : measure α) :
+  measurable (rn_deriv s μ) :=
 begin
-  rw [radon_nikodym_deriv],
+  rw [rn_deriv],
   measurability,
 end
 
-lemma integrable_radon_nikodym_deriv (s : signed_measure α) (μ : measure α) :
-  integrable (radon_nikodym_deriv s μ) μ :=
+lemma integrable_rn_deriv (s : signed_measure α) (μ : measure α) :
+  integrable (rn_deriv s μ) μ :=
 begin
   refine integrable.sub _ _;
   { split, measurability,
     exact has_finite_integral_to_real_of_lintegral_ne_top
-      (lintegral_radon_nikodym_deriv_lt_top _ μ).ne }
+      (lintegral_rn_deriv_lt_top _ μ).ne }
 end
 
 /-- **The Lebesgue Decomposition theorem between a signed measure and a measure**:
 Given a signed measure `s` and a σ-finite measure `μ`, there exist a signed measure `t` and a
 measurable and integrable function `f`, such that `t` is mutually singular with respect to `μ`
 and `s = t + μ.with_densityᵥ f`. In this case `t = s.singular_part μ` and
-`f = s.radon_nikodym_deriv μ`. -/
-theorem singular_part_add_with_density_radon_nikodym_deriv_eq
+`f = s.rn_deriv μ`. -/
+theorem singular_part_add_with_density_rn_deriv_eq
   [s.have_lebesgue_decomposition μ] :
-  s.singular_part μ + μ.with_densityᵥ (s.radon_nikodym_deriv μ) = s :=
+  s.singular_part μ + μ.with_densityᵥ (s.rn_deriv μ) = s :=
 begin
   conv_rhs { rw [← to_signed_measure_to_jordan_decomposition s,
                  jordan_decomposition.to_signed_measure] },
-  rw [singular_part, radon_nikodym_deriv, with_densityᵥ_sub'
+  rw [singular_part, rn_deriv, with_densityᵥ_sub'
         (integrable_to_real_of_lintegral_ne_top _ _) (integrable_to_real_of_lintegral_ne_top _ _),
       with_densityᵥ_to_real, with_densityᵥ_to_real, sub_eq_add_neg, sub_eq_add_neg,
       add_comm (s.to_jordan_decomposition.pos_part.singular_part μ).to_signed_measure, ← add_assoc,
@@ -943,11 +945,11 @@ begin
   { exact (s.to_jordan_decomposition.pos_part.have_lebesgue_decomposition_add μ) },
   { rw add_comm,
     exact (s.to_jordan_decomposition.neg_part.have_lebesgue_decomposition_add μ) },
-  all_goals { exact (lintegral_radon_nikodym_deriv_lt_top _ _).ne <|> measurability }
+  all_goals { exact (lintegral_rn_deriv_lt_top _ _).ne <|> measurability }
 end
 
 lemma jordan_decomposition_add_with_density_mutually_singular
-  {t : signed_measure α} {f : α → ℝ} (hf : measurable f) (htμ : t ⊥ᵥ μ.to_ennreal_vector_measure) :
+  {f : α → ℝ} (hf : measurable f) (htμ : t ⊥ᵥ μ.to_ennreal_vector_measure) :
   t.to_jordan_decomposition.pos_part + μ.with_density (λ (x : α), ennreal.of_real (f x)) ⊥ₘ
   t.to_jordan_decomposition.neg_part + μ.with_density (λ (x : α), ennreal.of_real (-f x)) :=
 begin
@@ -962,7 +964,7 @@ begin
 end
 
 lemma to_jordan_decomposition_eq_of_eq_add_with_density
-  {t : signed_measure α} {f : α → ℝ} (hf : measurable f) (hfi : integrable f μ)
+  {f : α → ℝ} (hf : measurable f) (hfi : integrable f μ)
   (htμ : t ⊥ᵥ μ.to_ennreal_vector_measure) (hadd : s = t + μ.with_densityᵥ f) :
   s.to_jordan_decomposition = @jordan_decomposition.mk α _
     (t.to_jordan_decomposition.pos_part + μ.with_density (λ x, ennreal.of_real (f x)))
@@ -988,7 +990,7 @@ begin
   exact (measure_lt_top _ _).ne
 end
 
-private lemma have_lebesgue_decomposition_mk' {s t : signed_measure α} (μ : measure α)
+private lemma have_lebesgue_decomposition_mk' (μ : measure α)
   {f : α → ℝ} (hf : measurable f) (hfi : integrable f μ)
   (htμ : t ⊥ᵥ μ.to_ennreal_vector_measure) (hadd : s = t + μ.with_densityᵥ f) :
   s.have_lebesgue_decomposition μ :=
@@ -1008,8 +1010,7 @@ begin
            rw to_jordan_decomposition_eq_of_eq_add_with_density hf hfi htμ' hadd } }
 end
 
-lemma have_lebesgue_decomposition_mk {s t : signed_measure α} (μ : measure α)
-  {f : α → ℝ} (hf : measurable f)
+lemma have_lebesgue_decomposition_mk (μ : measure α) {f : α → ℝ} (hf : measurable f)
   (htμ : t ⊥ᵥ μ.to_ennreal_vector_measure) (hadd : s = t + μ.with_densityᵥ f) :
   s.have_lebesgue_decomposition μ :=
 begin
@@ -1045,8 +1046,7 @@ end
 mutually singular with respect to `μ` and `s = t + μ.with_densityᵥ f`, we have
 `t = singular_part s μ`, i.e. `t` is the singular part of the Lebesgue decomposition between
 `s` and `μ`. -/
-theorem eq_singular_part
-  (t : signed_measure α) (f : α → ℝ)
+theorem eq_singular_part (t : signed_measure α) (f : α → ℝ)
   (htμ : t ⊥ᵥ μ.to_ennreal_vector_measure) (hadd : s = t + μ.with_densityᵥ f) :
   t = s.singular_part μ :=
 begin
@@ -1091,7 +1091,8 @@ begin
                  singular_part_smul] }
 end
 
-lemma singular_part_smul (s : signed_measure α) (μ : measure α) (r : ℝ) :
+lemma singular_part_smul (s : signed_measure α) (μ : measure α)
+  (r : ℝ) :
   (r • s).singular_part μ = r • s.singular_part μ :=
 begin
   by_cases hr : 0 ≤ r,
@@ -1113,12 +1114,12 @@ lemma singular_part_add (s t : signed_measure α) (μ : measure α)
   [s.have_lebesgue_decomposition μ] [t.have_lebesgue_decomposition μ] :
   (s + t).singular_part μ = s.singular_part μ + t.singular_part μ :=
 begin
-  refine (eq_singular_part _ (s.radon_nikodym_deriv μ + t.radon_nikodym_deriv μ)
+  refine (eq_singular_part _ (s.rn_deriv μ + t.rn_deriv μ)
     ((mutually_singular_singular_part s μ).add_left (mutually_singular_singular_part t μ)) _).symm,
-  erw [with_densityᵥ_add (integrable_radon_nikodym_deriv s μ) (integrable_radon_nikodym_deriv t μ)],
+  erw [with_densityᵥ_add (integrable_rn_deriv s μ) (integrable_rn_deriv t μ)],
   rw [add_assoc, add_comm (t.singular_part μ), add_assoc, add_comm _ (t.singular_part μ),
-      singular_part_add_with_density_radon_nikodym_deriv_eq, ← add_assoc,
-      singular_part_add_with_density_radon_nikodym_deriv_eq],
+      singular_part_add_with_density_rn_deriv_eq, ← add_assoc,
+      singular_part_add_with_density_rn_deriv_eq],
 end
 
 lemma singular_part_sub (s t : signed_measure α) (μ : measure α)
@@ -1128,74 +1129,70 @@ by { rw [sub_eq_add_neg, sub_eq_add_neg, singular_part_add, singular_part_neg] }
 
 /-- Given a measure `μ`, signed measures `s` and `t`, and a function `f` such that `t` is
 mutually singular with respect to `μ` and `s = t + μ.with_densityᵥ f`, we have
-`f = radon_nikodym_deriv s μ`, i.e. `f` is the Radon-Nikodym derivative of `s` and `μ`. -/
-theorem eq_radon_nikodym_deriv
-  (t : signed_measure α) (f : α → ℝ) (hfi : integrable f μ)
+`f = rn_deriv s μ`, i.e. `f` is the Radon-Nikodym derivative of `s` and `μ`. -/
+theorem eq_rn_deriv (t : signed_measure α) (f : α → ℝ) (hfi : integrable f μ)
   (htμ : t ⊥ᵥ μ.to_ennreal_vector_measure) (hadd : s = t + μ.with_densityᵥ f) :
-  f =ᵐ[μ] s.radon_nikodym_deriv μ :=
+  f =ᵐ[μ] s.rn_deriv μ :=
 begin
   set f' := hfi.1.mk f,
   have hadd' : s = t + μ.with_densityᵥ f',
   { convert hadd using 2,
     exact with_densityᵥ_eq.congr_ae hfi.1.ae_eq_mk.symm },
   haveI := have_lebesgue_decomposition_mk μ hfi.1.measurable_mk htμ hadd',
-  refine (integrable.ae_eq_of_with_densityᵥ_eq (integrable_radon_nikodym_deriv _ _) hfi _).symm,
+  refine (integrable.ae_eq_of_with_densityᵥ_eq (integrable_rn_deriv _ _) hfi _).symm,
   rw [← add_right_inj t, ← hadd, eq_singular_part _ f htμ hadd,
-      singular_part_add_with_density_radon_nikodym_deriv_eq],
+      singular_part_add_with_density_rn_deriv_eq],
 end
 
-lemma radon_nikodym_deriv_neg (s : signed_measure α) (μ : measure α)
-  [s.have_lebesgue_decomposition μ] :
-  (-s).radon_nikodym_deriv μ =ᵐ[μ] - s.radon_nikodym_deriv μ :=
+lemma rn_deriv_neg (s : signed_measure α) (μ : measure α) [s.have_lebesgue_decomposition μ] :
+  (-s).rn_deriv μ =ᵐ[μ] - s.rn_deriv μ :=
 begin
   refine integrable.ae_eq_of_with_densityᵥ_eq
-    (integrable_radon_nikodym_deriv _ _) (integrable_radon_nikodym_deriv _ _).neg _,
+    (integrable_rn_deriv _ _) (integrable_rn_deriv _ _).neg _,
   rw [with_densityᵥ_neg, ← add_right_inj ((-s).singular_part μ),
-      singular_part_add_with_density_radon_nikodym_deriv_eq, singular_part_neg, ← neg_add,
-      singular_part_add_with_density_radon_nikodym_deriv_eq]
+      singular_part_add_with_density_rn_deriv_eq, singular_part_neg, ← neg_add,
+      singular_part_add_with_density_rn_deriv_eq]
 end
 
-lemma radon_nikodym_deriv_smul
-  (s : signed_measure α) (μ : measure α) [s.have_lebesgue_decomposition μ] (r : ℝ) :
-  (r • s).radon_nikodym_deriv μ =ᵐ[μ] r • s.radon_nikodym_deriv μ :=
+lemma rn_deriv_smul (s : signed_measure α) (μ : measure α) [s.have_lebesgue_decomposition μ]
+  (r : ℝ) :
+  (r • s).rn_deriv μ =ᵐ[μ] r • s.rn_deriv μ :=
 begin
   refine integrable.ae_eq_of_with_densityᵥ_eq
-    (integrable_radon_nikodym_deriv _ _) ((integrable_radon_nikodym_deriv _ _).smul r) _,
-  change _ = μ.with_densityᵥ ((r : ℝ) • s.radon_nikodym_deriv μ),
-  rw [with_densityᵥ_smul (radon_nikodym_deriv s μ) (r : ℝ),
+    (integrable_rn_deriv _ _) ((integrable_rn_deriv _ _).smul r) _,
+  change _ = μ.with_densityᵥ ((r : ℝ) • s.rn_deriv μ),
+  rw [with_densityᵥ_smul (rn_deriv s μ) (r : ℝ),
       ← add_right_inj ((r • s).singular_part μ),
-      singular_part_add_with_density_radon_nikodym_deriv_eq, singular_part_smul],
+      singular_part_add_with_density_rn_deriv_eq, singular_part_smul],
   change _ = _ + r • _,
-  rw [← smul_add, singular_part_add_with_density_radon_nikodym_deriv_eq],
+  rw [← smul_add, singular_part_add_with_density_rn_deriv_eq],
 end
 
-lemma radon_nikodym_deriv_add
-  (s t : signed_measure α) (μ : measure α)
+lemma rn_deriv_add (s t : signed_measure α) (μ : measure α)
   [s.have_lebesgue_decomposition μ] [t.have_lebesgue_decomposition μ]
   [(s + t).have_lebesgue_decomposition μ] :
-  (s + t).radon_nikodym_deriv μ =ᵐ[μ] s.radon_nikodym_deriv μ + t.radon_nikodym_deriv μ :=
+  (s + t).rn_deriv μ =ᵐ[μ] s.rn_deriv μ + t.rn_deriv μ :=
 begin
   refine integrable.ae_eq_of_with_densityᵥ_eq
-    (integrable_radon_nikodym_deriv _ _)
-    ((integrable_radon_nikodym_deriv _ _).add (integrable_radon_nikodym_deriv _ _)) _,
+    (integrable_rn_deriv _ _)
+    ((integrable_rn_deriv _ _).add (integrable_rn_deriv _ _)) _,
   rw [← add_right_inj ((s + t).singular_part μ),
-      singular_part_add_with_density_radon_nikodym_deriv_eq,
-      with_densityᵥ_add (integrable_radon_nikodym_deriv _ _) (integrable_radon_nikodym_deriv _ _),
+      singular_part_add_with_density_rn_deriv_eq,
+      with_densityᵥ_add (integrable_rn_deriv _ _) (integrable_rn_deriv _ _),
       singular_part_add, add_assoc, add_comm (t.singular_part μ), add_assoc,
-      add_comm _ (t.singular_part μ), singular_part_add_with_density_radon_nikodym_deriv_eq,
-      ← add_assoc, singular_part_add_with_density_radon_nikodym_deriv_eq],
+      add_comm _ (t.singular_part μ), singular_part_add_with_density_rn_deriv_eq,
+      ← add_assoc, singular_part_add_with_density_rn_deriv_eq],
 end
 
-lemma radon_nikodym_deriv_sub
-  (s t : signed_measure α) (μ : measure α)
+lemma rn_deriv_sub (s t : signed_measure α) (μ : measure α)
   [s.have_lebesgue_decomposition μ] [t.have_lebesgue_decomposition μ]
   [hst : (s - t).have_lebesgue_decomposition μ] :
-  (s - t).radon_nikodym_deriv μ =ᵐ[μ] s.radon_nikodym_deriv μ - t.radon_nikodym_deriv μ :=
+  (s - t).rn_deriv μ =ᵐ[μ] s.rn_deriv μ - t.rn_deriv μ :=
 begin
   rw sub_eq_add_neg at hst,
   rw [sub_eq_add_neg, sub_eq_add_neg],
-  exactI ae_eq_trans (radon_nikodym_deriv_add _ _ _)
-    (filter.eventually_eq.add (ae_eq_refl _) (radon_nikodym_deriv_neg _ _)),
+  exactI ae_eq_trans (rn_deriv_add _ _ _)
+    (filter.eventually_eq.add (ae_eq_refl _) (rn_deriv_neg _ _)),
 end
 
 end signed_measure

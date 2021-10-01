@@ -431,7 +431,7 @@ begin
     rw [order_of_eq_card_of_forall_mem_gpowers hg, nat.gcd_eq_right_iff_dvd.1 hn,
       order_of_eq_card_of_forall_mem_gpowers, eq_comm,
       nat.div_eq_iff_eq_mul_left (nat.pos_of_dvd_of_pos hn h0) hn] at hgo,
-    { exact (mul_left_cancel' (ne_of_gt h0) ((mul_one (fintype.card α)).trans hgo)).symm },
+    { exact (mul_left_cancel₀ (ne_of_gt h0) ((mul_one (fintype.card α)).trans hgo)).symm },
     { intro x,
       rw h,
       exact subgroup.mem_top _ } },

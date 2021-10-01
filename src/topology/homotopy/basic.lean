@@ -286,7 +286,7 @@ homotopy_with.symm_trans F G
 end homotopy
 
 /--
-A `homotopy_rel f₀ f₁ S` is a homotopy bewteen `f₀` and `f₁` which is fixed on the points in `S`.
+A `homotopy_rel f₀ f₁ S` is a homotopy between `f₀` and `f₁` which is fixed on the points in `S`.
 -/
 abbreviation homotopy_rel (f₀ f₁ : C(X, Y)) (S : set X) :=
 homotopy_with f₀ f₁ (λ f, ∀ x ∈ S, f x = f₀ x ∧ f x = f₁ x)

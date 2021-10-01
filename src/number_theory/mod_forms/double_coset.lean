@@ -117,9 +117,12 @@ lemma disjoint_doset  (H K : subgroup G) (a b : G) : ¬ disjoint (doset H.1 K a 
   →  (doset H.1 K a  ) = (doset H K b) :=
 
 begin
-intro h,
-have hb :  b ∈ (doset H.1 K a), by {apply disjoint_sub _ _ _ _ h, },
- rw disjoint.comm at h,
-have ha :  a ∈ (doset H.1 K b), by {apply disjoint_sub _ _ _ _ h, },
-apply subset.antisymm,
+  intro h,
+  have hb :  b ∈ (doset H.1 K a), by {apply disjoint_sub _ _ _ _ h, },
+  rw disjoint.comm at h,
+  have ha :  a ∈ (doset H.1 K b), by {apply disjoint_sub _ _ _ _ h, },
+  rw set.subset.antisymm_iff,
+  split,
+  apply sub_doset H K b a ha,
+  apply sub_doset H K a b hb,
 end

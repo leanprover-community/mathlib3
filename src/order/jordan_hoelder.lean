@@ -11,16 +11,16 @@ import data.equiv.functor
 /-!
 # Jordan-Hölder Theorem
 
-This file proves the Jordan Hölder theorem for a `jordan_hoelder_lattice`, a class also defined in
-this file. Examples of `jordan_hoelder_lattice` include `subgroup G` if `G` is a group, and
+This file proves the Jordan Hölder theorem for a `jordan_holder_lattice`, a class also defined in
+this file. Examples of `jordan_holder_lattice` include `subgroup G` if `G` is a group, and
 `submodule R M` if `M` is an `R`-module. Using this approach the theorem need not be proved
 seperately for both groups and modules, the proof in this file can be applied to both.
 
 ## Main definitions
-The main definitions in this file are `jordan_hoelder_lattice` and `composition_series`,
+The main definitions in this file are `jordan_holder_lattice` and `composition_series`,
 and the relation `equivalent` on `composition_series`
 
-A `jordan_hoelder_lattice` is the class for which the Jordan Hölder theorem is proved. A
+A `jordan_holder_lattice` is the class for which the Jordan Hölder theorem is proved. A
 Jordan Hölder lattice is a lattice equipped with a notion of maximality, `is_maximal`, and a notion
 of isomorphism of pairs `iso`. In the example of subgroups of a group, `is_maximal H K` means that
 `H` is a maximal normal subgroup of `K`, and `iso (H₁, K₁) (H₂, K₂)` means that the quotient
@@ -40,7 +40,7 @@ Two `composition_series X`, `s₁` and `s₂` are equivalent if there is a bijec
 
 ## Main theorems
 
-The main theorem is `jordan_hoelder`, which says that if two composition
+The main theorem is `jordan_holder`, which says that if two composition
 series have the same least element and the same largest element,
 then they are `equivalent`.
 -/
@@ -50,7 +50,7 @@ universe u
 open set
 
 /--
-A `jordan_hoelder_lattice` is the class for which the Jordan Hölder theorem is proved. A
+A `jordan_holder_lattice` is the class for which the Jordan Hölder theorem is proved. A
 Jordan Hölder lattice is a lattice equipped with a notion of maximality, `is_maximal`, and a notion
 of isomorphism of pairs `iso`. In the example of subgroups of a group, `is_maximal H K` means that
 `H` is a maximal normal subgroup of `K`, and `iso (H₁, K₁) (H₂, K₂)` means that the quotient
@@ -58,7 +58,7 @@ of isomorphism of pairs `iso`. In the example of subgroups of a group, `is_maxim
 satisfy the second isomorphism theorem `iso (H, H ⊔ K) (H ⊓ K, K)`.
 Examples include `subgroup G` if `G` is a group, and `submodule R M` if `M` is an `R`-module
 -/
-class jordan_hoelder_lattice (X : Type u) [lattice X] :=
+class jordan_holder_lattice (X : Type u) [lattice X] :=
 (is_maximal : X → X → Prop)
 (lt_of_is_maximal : ∀ {x y}, is_maximal x y → x < y)
 (sup_eq_of_is_maximal : ∀ {x y z}, is_maximal x z → is_maximal y z →
@@ -70,9 +70,9 @@ class jordan_hoelder_lattice (X : Type u) [lattice X] :=
 (iso_trans : ∀ {x y z}, iso x y → iso y z → iso x z)
 (second_iso : ∀ {x y}, is_maximal x (x ⊔ y) → iso (x, x ⊔ y) (x ⊓ y, y))
 
-namespace jordan_hoelder_lattice
+namespace jordan_holder_lattice
 
-variables {X : Type u} [lattice X] [jordan_hoelder_lattice X]
+variables {X : Type u} [lattice X] [jordan_holder_lattice X]
 
 lemma is_maximal_inf_right_of_is_maximal_sup {x y : X}
   (hxz : is_maximal x (x ⊔ y)) (hyz : is_maximal y (x ⊔ y)) :
@@ -103,29 +103,29 @@ second_iso_of_eq h
   (sup_eq_right.2 (le_of_lt (lt_of_is_maximal h)))
   (inf_eq_left.2 (le_of_lt (lt_of_is_maximal h)))
 
-end jordan_hoelder_lattice
+end jordan_holder_lattice
 
-open jordan_hoelder_lattice
+open jordan_holder_lattice
 
 attribute [symm] iso_symm
 attribute [trans] iso_trans
 
 /--
 A `composition_series X` is a finite nonempty series of elements of a
-`jordan_hoelder_lattice` such that each element is maximal inside the next. The length of a
+`jordan_holder_lattice` such that each element is maximal inside the next. The length of a
 `composition_series X` is one less than the number of elements in the series.
 Note that there is no stipulation that a series start from the bottom of the lattice and finish at
 the top. For a composition series `s`, `s.top` is the largest element of the series,
 and `s.bot` is the least element.
 -/
-structure composition_series (X : Type u) [lattice X] [jordan_hoelder_lattice X] : Type u :=
+structure composition_series (X : Type u) [lattice X] [jordan_holder_lattice X] : Type u :=
 (length : ℕ)
 (series : fin (length + 1) → X)
 (step' : ∀ i : fin length, is_maximal (series i.cast_succ) (series i.succ))
 
 namespace composition_series
 
-variables {X : Type u} [lattice X] [jordan_hoelder_lattice X]
+variables {X : Type u} [lattice X] [jordan_holder_lattice X]
 
 instance : has_coe_to_fun (composition_series X) :=
 { F := _, coe := composition_series.series }
@@ -770,9 +770,9 @@ begin
           (by rw [inf_comm, htt]) } } }
 end
 
-/-- The **Jordan-Hölder** theorem, stated for any `jordan_hoelder_lattice`.
+/-- The **Jordan-Hölder** theorem, stated for any `jordan_holder_lattice`.
 If two composition series start and finish at the same place, they are equivalent. -/
-theorem jordan_hoelder (s₁ s₂ : composition_series X)
+theorem jordan_holder (s₁ s₂ : composition_series X)
   (hb : s₁.bot = s₂.bot) (ht : s₁.top = s₂.top) :
   equivalent s₁ s₂ :=
 begin

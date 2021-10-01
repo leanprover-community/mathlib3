@@ -17,9 +17,11 @@ This file defines extra structures on `comm_cancel_monoid_with_zero`s, including
 
 * `normalization_monoid`
 * `gcd_monoid`
-* `gcd_monoid_of_exists_gcd`
-* `gcd_monoid_of_exists_lcm`
-* TODO...
+* `normalized_gcd_monoid`
+* `gcd_monoid_of_gcd`, `gcd_monoid_of_exists_gcd`, `normalized_gcd_monoid_of_gcd`,
+  `normalized_gcd_monoid_of_exists_gcd`
+* `gcd_monoid_of_lcm`, `gcd_monoid_of_exists_lcm`, `normalized_gcd_monoid_of_lcm`,
+  `normalized_gcd_monoid_of_exists_lcm`
 
 For the `normalized_gcd_monoid` instances on `ℕ` and `ℤ`, see `ring_theory.int.basic`.
 
@@ -30,23 +32,25 @@ by that unit normalizes the monoid, and `normalize` is an idempotent monoid homo
 definition as currently implemented does casework on `0`.
 
 * `gcd_monoid` contains the definitions of `gcd` and `lcm` with the usual properties. They are
-  both defined up to a unit.
+  both determined up to a unit.
 
 * `normalized_gcd_monoid` extends `normalization_monoid`, so the `gcd` and `lcm` are always
   normalized. This makes `gcd`s of polynomials easier to work with, but excludes Euclidean domains,
   and monoids without zero.
 
-* `gcd_monoid_of_gcd` noncomputably constructs a `gcd_monoid` structure just from the `gcd`
-  and its properties.
+* `gcd_monoid_of_gcd` and `normalized_gcd_monoid_of_gcd` noncomputably construct a `gcd_monoid`
+  (resp. `normalized_gcd_monoid`) structure just from the `gcd` and its properties.
 
-* `gcd_monoid_of_exists_gcd` noncomputably constructs a `gcd_monoid` structure just from a proof
-  that any two elements have a (not necessarily normalized) `gcd`.
+* `gcd_monoid_of_exists_gcd` and `normalized_gcd_monoid_of_exists_gcd` noncomputably construct a
+  `gcd_monoid` (resp. `normalized_gcd_monoid`) structure just from a proof that any two elements
+  have a (not necessarily normalized) `gcd`.
 
-* `gcd_monoid_of_lcm` noncomputably constructs a `gcd_monoid` structure just from the `lcm`
-  and its properties.
+* `gcd_monoid_of_lcm` and `normalized_gcd_monoid_of_lcm` noncomputably construct a `gcd_monoid`
+  (resp. `normalized_gcd_monoid`) structure just from the `lcm` and its properties.
 
-* `gcd_monoid_of_exists_lcm` noncomputably constructs a `gcd_monoid` structure just from a proof
-  that any two elements have a (not necessarily normalized) `lcm`.
+* `gcd_monoid_of_exists_lcm` and `normalized_gcd_monoid_of_exists_lcm` noncomputably construct a
+  `gcd_monoid` (resp. `normalized_gcd_monoid`) structure just from a proof that any two elements
+  have a (not necessarily normalized) `lcm`.
 
 ## TODO
 
@@ -205,11 +209,9 @@ quotient.induction_on a normalize_idem
 
 end associates
 
-/-- GCD monoid: a `comm_cancel_monoid_with_zero` with normalization and `gcd`
-(greatest common divisor) and `lcm` (least common multiple) operations. In this setting `gcd` and
-`lcm` form a bounded lattice on the associated elements where `gcd` is the infimum, `lcm` is the
-supremum, `1` is bottom, and `0` is top. The type class focuses on `gcd` and we derive the
-corresponding `lcm` facts from `gcd`.
+/-- GCD monoid: a `comm_cancel_monoid_with_zero` with `gcd` (greatest common divisor) and
+`lcm` (least common multiple) operations, determined up to a unit. The type class focuses on `gcd`
+and we derive the corresponding `lcm` facts from `gcd`.
 -/
 @[protect_proj] class gcd_monoid (α : Type*) [comm_cancel_monoid_with_zero α] [nontrivial α] :=
 (gcd : α → α → α)
@@ -221,7 +223,12 @@ corresponding `lcm` facts from `gcd`.
 (lcm_zero_left  : ∀a, lcm 0 a = 0)
 (lcm_zero_right : ∀a, lcm a 0 = 0)
 
-/-- TODO -/
+/-- Normalized GCD monoid: a `comm_cancel_monoid_with_zero` with normalization and `gcd`
+(greatest common divisor) and `lcm` (least common multiple) operations. In this setting `gcd` and
+`lcm` form a bounded lattice on the associated elements where `gcd` is the infimum, `lcm` is the
+supremum, `1` is bottom, and `0` is top. The type class focuses on `gcd` and we derive the
+corresponding `lcm` facts from `gcd`.
+-/
 class normalized_gcd_monoid (α : Type*) [comm_cancel_monoid_with_zero α] [nontrivial α]
   extends normalization_monoid α, gcd_monoid α :=
 (normalize_gcd : ∀a b, normalize (gcd a b) = gcd a b)
@@ -674,22 +681,6 @@ dvd_antisymm_of_normalize_eq (normalize_lcm _ _) (normalize_lcm _ _)
 end lcm
 
 namespace gcd_monoid
--- TODO move
-/-
-
-  obtain ⟨u, rfl⟩ := hu,
-  exact ⟨u⁻¹, units.mul_inv_cancel_right _ _⟩,
--/
-lemma associated_mul_unit {β : Type*} [monoid β] (a u : β) (hu : is_unit u) :
-  associated (a * u) a :=
-let ⟨u', hu⟩ := hu in hu ▸ associated.symm ⟨u', rfl⟩
-
-lemma associated_unit_mul {β : Type*} [comm_monoid β] (a u : β) (hu : is_unit u) :
-  associated (u * a) a :=
-begin
-  rw mul_comm,
-  exact associated_mul_unit _ _ hu
-end
 
 theorem prime_of_irreducible [gcd_monoid α] {x : α} (hi: irreducible x) : prime x :=
 ⟨hi.ne_zero, ⟨hi.1, λ a b h,
@@ -815,7 +806,7 @@ noncomputable def gcd_monoid_of_gcd [decidable_eq α] (gcd : α → α → α)
     apply or.resolve_left (mul_eq_zero.1 _) a0',
     rw [h, mul_zero] } }
 
-/-- TODO -/
+/-- Define `normalized_gcd_monoid` on a structure just from the `gcd` and its properties. -/
 noncomputable def normalized_gcd_monoid_of_gcd [normalization_monoid α] [decidable_eq α]
   (gcd : α → α → α)
   (gcd_dvd_left   : ∀a b, gcd a b ∣ a)
@@ -931,7 +922,7 @@ let exists_gcd := λ a b, lcm_dvd (dvd.intro b rfl) (dvd.intro_left a rfl) in
     rw [mul_comm, mul_dvd_mul_iff_right h_1.2],
     apply ac } }
 
-/-- TODO -/
+/-- Define `normalized_gcd_monoid` on a structure just from the `lcm` and its properties. -/
 noncomputable def normalized_gcd_monoid_of_lcm [normalization_monoid α] [decidable_eq α]
   (lcm : α → α → α)
   (dvd_lcm_left   : ∀a b, a ∣ lcm a b)
@@ -1021,7 +1012,7 @@ gcd_monoid_of_gcd
     (((classical.some_spec (h a b) (classical.some (h a b))).2 dvd_rfl)).2)
   (λ a b c ac ab, ((classical.some_spec (h c b) a).1 ⟨ac, ab⟩))
 
-/-- TODO -/
+/-- Define a `normalized_gcd_monoid` structure on a monoid just from the existence of a `gcd`. -/
 noncomputable def normalized_gcd_monoid_of_exists_gcd [normalization_monoid α] [decidable_eq α]
   (h : ∀ a b : α, ∃ c : α, ∀ d : α, d ∣ a ∧ d ∣ b ↔ d ∣ c) :
   normalized_gcd_monoid α :=
@@ -1046,7 +1037,7 @@ gcd_monoid_of_lcm
     (((classical.some_spec (h a b) (classical.some (h a b))).2 dvd_rfl)).2)
   (λ a b c ac ab, ((classical.some_spec (h c b) a).1 ⟨ac, ab⟩))
 
-/-- TODO -/
+/-- Define a `normalized_gcd_monoid` structure on a monoid just from the existence of an `lcm`. -/
 noncomputable def normalized_gcd_monoid_of_exists_lcm [normalization_monoid α] [decidable_eq α]
   (h : ∀ a b : α, ∃ c : α, ∀ d : α, a ∣ d ∧ b ∣ d ↔ c ∣ d) :
   normalized_gcd_monoid α :=

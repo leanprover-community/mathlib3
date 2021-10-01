@@ -406,10 +406,10 @@ namespace unique_factorization_monoid
 variables [comm_cancel_monoid_with_zero α] [decidable_eq α] [nontrivial α] [normalization_monoid α]
 variables [unique_factorization_monoid α]
 
+-- TODO: this could perhaps be `multiset.map normalize $ factors' a`
 /-- Noncomputably determines the multiset of prime factors. -/
 noncomputable def factors (a : α) : multiset α := if h : a = 0 then 0 else
 multiset.map normalize $ classical.some (unique_factorization_monoid.exists_prime_factors a h)
---TODO: multiset.map normalize $ factors' a
 
 theorem factors_prod {a : α} (ane0 : a ≠ 0) : associated (factors a).prod a :=
 begin
@@ -1268,7 +1268,7 @@ lemma associates.quot_out {α : Type*} [comm_monoid α] (a : associates α):
 associates.mk (quot.out (a)) ~ᵤ a :=
 by rw [←quot_mk_eq_mk, quot.out_eq]
 
-/-- `to_gcd_monoid` constructs a GCD monoid out of a  unique factorization domain. -/
+/-- `to_gcd_monoid` constructs a GCD monoid out of a unique factorization domain. -/
 noncomputable def unique_factorization_monoid.to_gcd_monoid
   (α : Type*) [comm_cancel_monoid_with_zero α] [nontrivial α] [unique_factorization_monoid α]
   [decidable_eq (associates α)] [decidable_eq α] : gcd_monoid α :=
@@ -1301,7 +1301,7 @@ noncomputable def unique_factorization_monoid.to_gcd_monoid
     apply ((associates.mk a ⊔ associates.mk b).quot_out.mul_left _).trans,
     rw [mul_comm, sup_mul_inf, associates.mk_mul_mk] } }
 
-/-- `to_gcd_monoid` constructs a GCD monoid out of a normalization on a
+/-- `to_normalized_gcd_monoid` constructs a GCD monoid out of a normalization on a
   unique factorization domain. -/
 noncomputable def unique_factorization_monoid.to_normalized_gcd_monoid
   (α : Type*) [comm_cancel_monoid_with_zero α] [nontrivial α] [unique_factorization_monoid α]

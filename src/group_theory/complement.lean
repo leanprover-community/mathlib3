@@ -157,9 +157,12 @@ lemma is_complement.card_mul [fintype G] [fintype H] [fintype K]
   fintype.card H * fintype.card K = fintype.card G :=
 (fintype.card_prod _ _).symm.trans (fintype.card_of_bijective h)
 
-lemma is_complement_of_disjoint [fintype G] [fintype H] [fintype K]
-  (h1 : fintype.card H * fintype.card K = fintype.card G)
-  (h2 : disjoint H K) :
+lemma is_complement.disjoint (h : is_complement (H : set G) (K : set G)) : disjoint H K :=
+λ g hg, let x : H × K := ⟨⟨g, hg.1⟩, 1⟩, y : H × K := ⟨1, ⟨g, hg.2⟩⟩ in subtype.ext_iff.mp
+  (prod.ext_iff.mp (h.1 (show x.1.1 * _ = y.1.1 * _, from (mul_one g).trans (one_mul g).symm))).1
+
+lemma is_complement_of_card_mul_and_disjoint [fintype G] [fintype H] [fintype K]
+  (h1 : fintype.card H * fintype.card K = fintype.card G) (h2 : disjoint H K) :
   is_complement (H : set G) (K : set G) :=
 begin
   refine (fintype.bijective_iff_injective_and_card _).mpr
@@ -171,11 +174,16 @@ begin
   exact ⟨subtype.mem ((x.1)⁻¹ * (y.1)), (congr_arg (∈ K) h).mp (subtype.mem (x.2 * (y.2)⁻¹))⟩,
 end
 
+lemma is_complement_iff_card_mul_and_disjoint [fintype G] [fintype H] [fintype K] :
+  is_complement (H : set G) (K : set G) ↔
+    fintype.card H * fintype.card K = fintype.card G ∧ disjoint H K :=
+⟨λ h, ⟨h.card_mul, h.disjoint⟩, λ h, is_complement_of_card_mul_and_disjoint h.1 h.2⟩
+
 lemma is_complement_of_coprime [fintype G] [fintype H] [fintype K]
   (h1 : fintype.card H * fintype.card K = fintype.card G)
   (h2 : nat.coprime (fintype.card H) (fintype.card K)) :
   is_complement (H : set G) (K : set G) :=
-is_complement_of_disjoint h1 (disjoint_iff.mpr (inf_eq_bot_of_coprime h2))
+is_complement_of_card_mul_and_disjoint h1 (disjoint_iff.mpr (inf_eq_bot_of_coprime h2))
 
 section schur_zassenhaus
 

@@ -573,7 +573,7 @@ lemma mk_equitable.is_equipartition (Q : finpartition_on s) {m a b : ℕ}
   (h : a*m + b*(m+1) = s.card) :
   (Q.mk_equitable h).is_equipartition :=
 begin
-  rw [is_equipartition, equitable_on_iff_almost_eq_constant],
+  rw [is_equipartition, equitable_on_iff_exists_eq_eq_add_one],
   exact ⟨m, λ u hu, card_eq_of_mem_parts_mk_equitable h hu⟩,
 end
 
@@ -1279,7 +1279,7 @@ begin
   have hPpos : 0 < exp_bound P.size := exp_bound_pos.2 ((nat.eq_zero_or_pos _).resolve_left $ λ h,
     hPG $ finpartition_on.empty_is_uniform (by rw [←finset.card_eq_zero, ←finpartition_on.size, h])
     _ _),
-  rw [is_equipartition, equitable_on_finset_iff_eq_average] at hP,
+  rw [is_equipartition, finset.equitable_on_iff] at hP,
   rw [increment, bind_size],
   simp_rw [finpartition_on.is_equipartition.chunk_increment, apply_dite finpartition_on.size],
   rw [sum_dite, sum_const_nat, sum_const_nat, card_attach, card_attach], rotate,
@@ -1294,7 +1294,7 @@ end
 protected lemma is_equipartition (hP : P.is_equipartition) (G : simple_graph α) (ε : ℝ) :
   (hP.increment G ε).is_equipartition :=
 begin
-  rw [is_equipartition, equitable_on_iff_almost_eq_constant],
+  rw [is_equipartition, equitable_on_iff_exists_eq_eq_add_one],
   refine ⟨m, λ A hA, _⟩,
   rw [mem_coe, increment, mem_bind_parts] at hA,
   obtain ⟨U, hU, hA⟩ := hA,

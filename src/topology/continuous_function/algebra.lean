@@ -515,7 +515,7 @@ begin
       [subalgebra.add_mem, subalgebra.smul_mem, subalgebra.sub_mem, subalgebra.algebra_map_mem]
       { max_depth := 6 }, },
   { simp [f'], },
-  { simp [f', inv_mul_cancel_right' w], },
+  { simp [f', inv_mul_cancel_right₀ w], },
 end
 
 end continuous_map

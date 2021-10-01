@@ -287,11 +287,11 @@ end
 
 variables (ι) [fintype ι] {f : ι → R}
 
-/-- `std_simplex ι` is the convex hull of the canonical basis in `ι → ℝ`. -/
+/-- `std_simplex 𝕜 ι` is the convex hull of the canonical basis in `ι → 𝕜`. -/
 lemma convex_hull_basis_eq_std_simplex :
-  convex_hull R (range $ λ(i j:ι), if i = j then (1:R) else 0) = std_simplex ι R :=
+  convex_hull R (range $ λ(i j:ι), if i = j then (1:R) else 0) = std_simplex R ι :=
 begin
-  refine subset.antisymm (convex_hull_min _ (convex_std_simplex ι R)) _,
+  refine subset.antisymm (convex_hull_min _ (convex_std_simplex R ι)) _,
   { rintros _ ⟨i, rfl⟩,
     exact ite_eq_mem_std_simplex R i },
   { rintros w ⟨hw₀, hw₁⟩,
@@ -310,7 +310,7 @@ The map is defined in terms of operations on `(s → ℝ) →ₗ[ℝ] ℝ` so th
 to prove that this map is linear. -/
 lemma set.finite.convex_hull_eq_image {s : set E} (hs : finite s) :
   convex_hull R s = by haveI := hs.fintype; exact
-    (⇑(∑ x : s, (@linear_map.proj R s _ (λ i, R) _ _ x).smul_right x.1)) '' (std_simplex s R) :=
+    (⇑(∑ x : s, (@linear_map.proj R s _ (λ i, R) _ _ x).smul_right x.1)) '' (std_simplex R s) :=
 begin
   rw [← convex_hull_basis_eq_std_simplex, ← linear_map.convex_hull_image, ← set.range_comp, (∘)],
   apply congr_arg,
@@ -319,7 +319,7 @@ begin
   simp [linear_map.sum_apply, ite_smul, finset.filter_eq]
 end
 
-/-- All values of a function `f ∈ std_simplex ι` belong to `[0, 1]`. -/
-lemma mem_Icc_of_mem_std_simplex (hf : f ∈ std_simplex ι R) (x) :
+/-- All values of a function `f ∈ std_simplex 𝕜 ι` belong to `[0, 1]`. -/
+lemma mem_Icc_of_mem_std_simplex (hf : f ∈ std_simplex R ι) (x) :
   f x ∈ Icc (0 : R) 1 :=
 ⟨hf.1 x, hf.2 ▸ finset.single_le_sum (λ y hy, hf.1 y) (finset.mem_univ x)⟩

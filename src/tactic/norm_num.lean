@@ -747,7 +747,7 @@ meta def prove_clear_denom : instance_cache → expr → expr → ℚ → ℕ �
 theorem clear_denom_add {α} [division_ring α] (a a' b b' c c' d : α)
   (h₀ : d ≠ 0) (ha : a * d = a') (hb : b * d = b') (hc : c * d = c')
   (h : a' + b' = c') : a + b = c :=
-mul_right_cancel' h₀ $ by rwa [add_mul, ha, hb, hc]
+mul_right_cancel₀ h₀ $ by rwa [add_mul, ha, hb, hc]
 
 /-- Given `a`,`b`,`c` nonnegative rational numerals, returns `⊢ a + b = c`. -/
 meta def prove_add_nonneg_rat (ic : instance_cache) (a b c : expr) (na nb nc : ℚ) :
@@ -830,7 +830,7 @@ theorem clear_denom_mul {α} [field α] (a a' b b' c c' d₁ d₂ d : α)
   (ha : d₁ ≠ 0 ∧ a * d₁ = a') (hb : d₂ ≠ 0 ∧ b * d₂ = b')
   (hc : c * d = c') (hd : d₁ * d₂ = d)
   (h : a' * b' = c') : a * b = c :=
-mul_right_cancel' ha.1 $ mul_right_cancel' hb.1 $
+mul_right_cancel₀ ha.1 $ mul_right_cancel₀ hb.1 $
 by rw [mul_assoc c, hd, hc, ← h, ← ha.2, ← hb.2, ← mul_assoc, mul_right_comm a]
 
 /-- Given `a`,`b` nonnegative rational numerals, returns `(c, ⊢ a * b = c)`. -/
@@ -886,7 +886,7 @@ h ▸ by simp only [inv_eq_one_div, one_div_neg_eq_neg_one_div]
 
 theorem inv_one {α} [division_ring α] : (1 : α)⁻¹ = 1 := inv_one
 theorem inv_one_div {α} [division_ring α] (a : α) : (1 / a)⁻¹ = a :=
-by rw [one_div, inv_inv']
+by rw [one_div, inv_inv₀]
 theorem inv_div_one {α} [division_ring α] (a : α) : a⁻¹ = 1 / a :=
 inv_eq_one_div _
 theorem inv_div {α} [division_ring α] (a b : α) : (a / b)⁻¹ = b / a :=

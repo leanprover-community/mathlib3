@@ -213,6 +213,20 @@ end
 
 variables {k}
 
+/-- If we single out one member of an affine-independent family of points and affinely transport
+all others along the line joining them to this member, the resulting new family of points is affine-
+independent.
+
+This is the affine version of `linear_independent.units_smul`. -/
+lemma affine_independent.units_line_map
+  {p : ι → P} (hp : affine_independent k p) (j : ι) (w : ι → units k) :
+  affine_independent k (λ i, affine_map.line_map (p j) (p i) (w i : k)) :=
+begin
+  rw affine_independent_iff_linear_independent_vsub k _ j at hp ⊢,
+  simp only [affine_map.line_map_vsub_left, affine_map.coe_const, affine_map.line_map_same],
+  exact hp.units_smul (λ i, w i),
+end
+
 lemma affine_independent.indicator_eq_of_affine_combination_eq {p : ι → P}
   (ha : affine_independent k p) (s₁ s₂ : finset ι) (w₁ w₂ : ι → k) (hw₁ : ∑ i in s₁, w₁ i = 1)
   (hw₂ : ∑ i in s₂, w₂ i = 1) (h : s₁.affine_combination p w₁ = s₂.affine_combination p w₂) :

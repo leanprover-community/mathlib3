@@ -218,7 +218,8 @@ end
 ---------------------------- POISSON SUMMATION ---------------
 
 --@[derive [add_comm_group, topological_space]]
-notation `ℝmodℤ` := quotient_add_group.quotient (add_subgroup.gmultiples (1:ℝ))
+notation `genBy1` := add_subgroup.gmultiples (1:ℝ)
+notation `ℝmodℤ` := quotient_add_group.quotient genBy1
 
 --open_locale tsum
 
@@ -467,37 +468,24 @@ begin
     {
       -- make this a lemma for the group theory library! ...
       obtain ⟨x0, hx0⟩ := @quotient.exists_rep _
-        (quotient_add_group.left_rel (add_subgroup.gmultiples (1:ℝ))) x,
+        (quotient_add_group.left_rel genBy1) x,
 
       obtain ⟨x1, ⟨n, ⟨hx11, hx12⟩ , hn⟩, hx1'⟩ := RmodZuniqueRep x0,
 
-      have xqoutx1 : x = quotient_add_group.mk x1,
+      have xquotx1 : x = quotient_add_group.mk x1,
       { rw ← hx0,
         rw hn,
         refine quotient_add_group.eq.mpr _,
         use -n,
         simp, },
-      have is_a_homo : ∀ y, quotient_add_group.mk (x1 + y) = x + quotient_add_group.mk y,
-      { intros y,
-        -- HELP
-        -- need quotient_add_group.mk is a homomorphism
-        -- simp
-        -- library_search
-        sorry, },
+      have is_a_homo : ∀ z y, quotient_add_group.mk (z + y) = quotient_add_group.mk z
+        + quotient_add_group.mk y :=
+        add_monoid_hom.map_add (quotient_add_group.mk' genBy1),
       have two_quotients : quotient_add_group.mk ⁻¹' (has_add.add x ⁻¹' A) =
         has_add.add x1 ⁻¹' (quotient_add_group.mk ⁻¹' A),
       { ext1 y,
-        split,
-        { intros hy,
-          simp only [mem_preimage] at hy,
-          simp only [mem_preimage],
-          rw is_a_homo,
-          exact hy, },
-        { intros hy,
-          simp only [mem_preimage],
-          simp only [mem_preimage] at hy,
-          rw ← is_a_homo,
-          exact hy, }, },
+        simp only [mem_preimage],
+        rw [xquotx1, is_a_homo x1 y], },
       let A1 := (quotient_add_group.mk ⁻¹' A) ∩ Ico x1 1,
       have A1meas : measurable_set A1 := measurable_set.inter (measurable_set_preimage meas1 hA)
         measurable_set_Ico,
@@ -519,17 +507,13 @@ begin
       have B2meas : measurable_set B2 := measurable_set_preimage (measurable_const_add _) A2meas,
       have B1B2dis : disjoint B1 B2,
       { have B1sub : B1 ⊆ has_add.add x1 ⁻¹' (Ico x1 1),
-        { rw set.preimage_subset_preimage_iff,
+        { rw function.surjective.preimage_subset_preimage_iff,
           { exact (quotient_add_group.mk ⁻¹' A).inter_subset_right _, },
-          { convert set.subset_univ A1 using 1,
-            sorry, -- range has.add x1 = univ (translation by x1 is onto!!!? ) HELP?
-          }, },
+          { exact add_left_surjective _, }, },
         have B2sub : B2 ⊆ has_add.add (x1-1) ⁻¹' (Ico 0 x1),
-        { rw set.preimage_subset_preimage_iff,
+        { rw function.surjective.preimage_subset_preimage_iff,
           { exact (quotient_add_group.mk ⁻¹' A).inter_subset_right _, },
-          { convert set.subset_univ A2 using 1,
-            sorry, -- range has.add x1 = univ (translation by x1 is onto!!!? ) HELP?
-          }, },
+          { exact add_left_surjective _, }, },
         refine set.disjoint_of_subset B1sub B2sub _,
         rw (by convert Ico_translate _ _ x1; ring :
           has_add.add x1 ⁻¹' Ico x1 1 = Ico 0 (1-x1)),
@@ -553,27 +537,33 @@ begin
             has_add.add (x1-1) ⁻¹' Ico 0 x1 = Ico (1-x1) 1),
              ← set.preimage_inter],
 
+          have : has_add.add (x1 - 1) ⁻¹' (quotient_add_group.mk ⁻¹' A) =
+            has_add.add x1 ⁻¹' (has_add.add (-1) ⁻¹' (quotient_add_group.mk ⁻¹' A)),
+          { conv_rhs {rw ← set.preimage_comp,},
+            rw [comp_add_left, add_comm, sub_eq_add_neg], },
+          rw this,
 
-          sorry,
-
-        },
+          congr' 1,
+          { ext1 y,
+            simp only [mem_preimage],
+            rw is_a_homo,
+            have : @quotient_add_group.mk _ _ genBy1 (-1:ℝ) = 0,
+            { refine (quotient_add_group.eq_zero_iff (-1:ℝ)).mpr _,
+              simp, },
+            rw [this, zero_add], }, },
 
         exact congr_arg2 (λ (a c : set ℝ), a ∪ c) B1is B2is, },
       rw [measure_theory.measure.restrict_apply', measure_theory.measure.restrict_apply'],
-      {
-        rw [A1A2,
+      { rw [A1A2,
           B1B2],
-        dsimp only [B1, B2],
         rw [measure_theory.measure_union, measure_theory.measure_union,
           real.volume_preimage_add_left, real.volume_preimage_add_left],
-
         { exact A1A2dis, },
         { exact A1meas, },
         { exact A2meas, },
         { exact B1B2dis, },
         { exact B1meas, },
-        { exact B2meas, },
-      },
+        { exact B2meas, }, },
       { exact Smeas, },
       { exact Smeas, },
     },

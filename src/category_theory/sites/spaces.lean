@@ -95,17 +95,31 @@ end opens
 
 noncomputable theory
 
-namespace is_sheaf_spaces_of_is_sheaf_sites
+variables {C : Type u} [category.{v} C] [has_products C]
+variables {X : Top.{v}} (F : presheaf C X)
+
+namespace is_sheaf_sites_of_is_sheaf_spaces
 
 open Top.presheaf.sheaf_condition_equalizer_products
 open opposite
 
-variables {C : Type u} [category.{v} C] [has_products C]
-variables {X : Top.{v}} (F : presheaf C X)
 variables (U : opens X) (R : presieve U)
 
-def covering_of_presieve : (Σ V, {f : V ⟶ U // R f}) ⟶ opens X :=
+def covering_of_presieve : (Σ V, {f : V ⟶ U // R f}) → opens X :=
 λ f, f.1
+
+lemma supr_covering_of_presieve_eq (hR : sieve.generate R ∈ opens.grothendieck_topology X U) :
+  supr (covering_of_presieve U R) = U :=
+begin
+  apply le_antisymm,
+  { refine supr_le _,
+    intro f,
+    exact f.2.1.le, },
+  intros x hxU,
+  rw [subtype.val_eq_coe, opens.mem_coe, opens.mem_supr],
+  obtain ⟨V, iVU, ⟨W, iVW, iWU, hiWU, -⟩, hxV⟩ := hR x hxU,
+  exact ⟨⟨W, ⟨iWU, hiWU⟩⟩, iVW.le hxV⟩,
+end
 
 @[simp]
 lemma covering_of_presieve_eq (f : Σ V, {f : V ⟶ U // R f}) : covering_of_presieve U R f = f.1 :=
@@ -155,8 +169,8 @@ begin
 end
 
 lemma first_obj_iso_comp_left_res_eq :
-  (first_obj_iso_pi_opens F U R).hom ≫ left_res F (covering_of_presieve U R) =
-  presheaf.first_map R F ≫ (second_obj_iso_pi_inters F U R).hom :=
+  presheaf.first_map R F ≫ (second_obj_iso_pi_inters F U R).hom =
+  (first_obj_iso_pi_opens F U R).hom ≫ left_res F (covering_of_presieve U R) :=
 begin
   ext ⟨f, g⟩,
   rw [category.assoc, category.assoc, second_obj_iso_pi_inters_π],
@@ -166,8 +180,8 @@ begin
 end
 
 lemma first_obj_iso_comp_right_res_eq :
-  (first_obj_iso_pi_opens F U R).hom ≫ right_res F (covering_of_presieve U R) =
-  presheaf.second_map R F ≫ (second_obj_iso_pi_inters F U R).hom :=
+  presheaf.second_map R F ≫ (second_obj_iso_pi_inters F U R).hom =
+  (first_obj_iso_pi_opens F U R).hom ≫ right_res F (covering_of_presieve U R) :=
 begin
   ext ⟨f, g⟩,
   rw [category.assoc, category.assoc, second_obj_iso_pi_inters_π],
@@ -176,4 +190,59 @@ begin
   erw [first_obj_iso_pi_opens_π, category.assoc, res_pullback_snd_comp_eq_to_hom_eq],
 end
 
-end is_sheaf_spaces_of_is_sheaf_sites
+@[simps]
+def diagram_nat_iso : parallel_pair (presheaf.first_map R F) (presheaf.second_map R F) ≅
+  diagram F (covering_of_presieve U R) :=
+nat_iso.of_components
+  (λ i, walking_parallel_pair.cases_on i (first_obj_iso_pi_opens F U R) (second_obj_iso_pi_inters F U R))
+begin
+  intros i j f,
+  cases i,
+  { cases j,
+    { cases f, simp },
+    { cases f,
+      { exact first_obj_iso_comp_left_res_eq F U R, },
+      { exact first_obj_iso_comp_right_res_eq F U R, } } },
+  { cases j,
+    { cases f, },
+    { cases f, simp } },
+end
+
+@[simps]
+def postcompose_fork_hom (hR : sieve.generate R ∈ opens.grothendieck_topology X U) :
+  (cones.postcompose (diagram_nat_iso F U R).hom).obj (fork.of_ι _ (presheaf.w R F)) ⟶
+  fork F (covering_of_presieve U R) :=
+begin
+  refine fork.mk_hom (eq_to_hom _) _,
+  { dsimp, rw supr_covering_of_presieve_eq U R hR, },
+  dsimp,
+  sorry,
+end
+
+instance is_iso_postcompose_fork_hom_hom (hR : sieve.generate R ∈ opens.grothendieck_topology X U) :
+  is_iso (postcompose_fork_hom F U R hR).hom :=
+begin rw postcompose_fork_hom_hom, apply eq_to_hom.is_iso, end
+
+instance is_iso_postcompose_fork_hom (hR : sieve.generate R ∈ opens.grothendieck_topology X U) :
+  is_iso (postcompose_fork_hom F U R hR) :=
+cones.cone_iso_of_hom_iso _
+
+def postcompose_fork_iso (hR : sieve.generate R ∈ opens.grothendieck_topology X U) :
+  (cones.postcompose (diagram_nat_iso F U R).hom).obj (fork.of_ι _ (presheaf.w R F)) ≅
+  fork F (covering_of_presieve U R) :=
+as_iso (postcompose_fork_hom F U R hR)
+
+end is_sheaf_sites_of_is_sheaf_spaces
+
+open is_sheaf_sites_of_is_sheaf_spaces
+
+lemma is_sheaf_sites_of_is_sheaf_spaces (Fsh : F.is_sheaf) :
+  presheaf.is_sheaf (opens.grothendieck_topology X) F :=
+begin
+  rw presheaf.is_sheaf_iff_is_sheaf',
+  intros U R hR,
+  refine ⟨_⟩,
+  apply (is_limit.of_cone_equiv (cones.postcompose_equivalence (diagram_nat_iso F U R))).to_fun,
+  apply (is_limit.equiv_iso_limit (postcompose_fork_iso F U R hR)).inv_fun,
+  exact (Fsh (covering_of_presieve U R)).some,
+end

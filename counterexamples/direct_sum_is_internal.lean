@@ -18,8 +18,7 @@ This file demonstrates why `direct_sum.submodule_is_internal_of_independent_of_s
 take `ring R` and not `semiring R`.
 -/
 
-lemma units_int.one_ne_neg_one : (1 : units ℤ) ≠ -1 :=
-λ h, by simpa using units.ext_iff.1 h
+lemma units_int.one_ne_neg_one : (1 : units ℤ) ≠ -1 := dec_trivial
 
 /-- Submodules of positive and negative integers, keyed by sign. -/
 def with_sign (i : units ℤ) : submodule ℕ ℤ :=

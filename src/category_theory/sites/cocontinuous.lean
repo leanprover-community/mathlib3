@@ -130,7 +130,7 @@ end
         simpa using hw,
       }) using 1,
       { tidy },
-      { simp[eq] } } } }
+      { simp [eq] } } } }
 
 /-- The section obtained by passing `glued_limit_cone` into `category_theory.limits.limit.lift`. -/
 @[reducible] def glued_section : X ⟶ ((Ran u.op).obj ℱ.val).obj (op U) :=

@@ -110,7 +110,8 @@ end
 
 /-- The limit cone in order to glue the sections obtained via `get_section`. -/
 @[reducible] def glued_limit_cone : limits.cone (Ran.diagram u.op ℱ.val (op U)) :=
-{ X := X, π :=
+{ X := X, 
+  π :=
   { app := λ Y, classical.some (get_section hu ℱ hS hx Y),
     naturality' := λ Y Z f, by
     { simp only [functor.comp_map, structured_arrow.proj_map, functor.const.obj_map],

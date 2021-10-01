@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau
 -/
-import order.complete_lattice
+import order.preorder_hom
 import dynamics.fixed_points.basic
 
 /-!
@@ -28,40 +28,60 @@ fixed point, complete lattice, monotone function
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-open function (fixed_points)
+open function (fixed_points is_fixed_pt)
 
-section fixedpoint
-variables [complete_lattice α] {f : α → α}
+namespace preorder_hom
+
+section basic
+
+variables [complete_lattice α] (f : α →ₘ α)
 
 /-- Least fixed point of a monotone function -/
-def lfp (f : α → α) : α := Inf {a | f a ≤ a}
+def lfp : (α →ₘ α) →ₘ α :=
+{ to_fun := λ f, Inf {a | f a ≤ a},
+  monotone' := λ f g hle, Inf_le_Inf $ λ a ha, (hle a).trans ha }
+
 /-- Greatest fixed point of a monotone function -/
-def gfp (f : α → α) : α := Sup {a | a ≤ f a}
+def gfp : (α →ₘ α) →ₘ α :=
+{ to_fun := λ f, Sup {a | a ≤ f a},
+  monotone' := λ f g hle, Sup_le_Sup $ λ a ha, le_trans ha (hle a) }
 
-lemma lfp_le {a : α} (h : f a ≤ a) : lfp f ≤ a :=
-Inf_le h
+lemma lfp_le {a : α} (h : f a ≤ a) : lfp f ≤ a := Inf_le h
 
-lemma le_lfp {a : α} (h : ∀ b, f b ≤ b → a ≤ b) : a ≤ lfp f :=
-le_Inf h
+lemma lfp_le_fixed {a : α} (h : f a = a) : lfp f ≤ a := f.lfp_le h.le
 
-lemma lfp_fixed_point (hf : monotone f) : f (lfp f) = lfp f :=
-have h : f (lfp f) ≤ lfp f,
-  from le_lfp (λ b hb, (hf (lfp_le hb)).trans hb),
-h.antisymm (lfp_le (hf h))
+lemma le_lfp {a : α} (h : ∀ b, f b ≤ b → a ≤ b) : a ≤ lfp f := le_Inf h
 
-lemma lfp_induction {p : α → Prop} (hf : monotone f) (step : ∀ a, p a → a ≤ lfp f → p (f a))
+lemma map_le_lfp {a : α} (ha : a ≤ f.lfp) : f a ≤ f.lfp :=
+f.le_lfp $ λ b hb, (f.mono $ le_Inf_iff.1 ha _ hb).trans hb
+
+@[simp] lemma map_lfp : f (lfp f) = lfp f :=
+have h : f (lfp f) ≤ lfp f, from f.map_le_lfp le_rfl,
+h.antisymm $ f.lfp_le $ f.mono h
+
+lemma is_fixed_pt_lfp : is_fixed_pt f f.lfp := f.map_lfp
+
+lemma lfp_le_map {a : α} (ha : lfp f ≤ a) : lfp f ≤ f a :=
+calc lfp f = f (lfp f) : f.map_lfp.symm
+       ... ≤ f a       : f.mono ha
+
+lemma is_least_lfp_le : is_least {a | f a ≤ a} (lfp f) :=
+⟨f.map_lfp.le, λ a, f.lfp_le⟩
+
+lemma is_least_lfp : is_least (fixed_points f) (lfp f) :=
+⟨f.is_fixed_pt_lfp, λ a, f.lfp_le_fixed⟩
+
+lemma lfp_induction {p : α → Prop} (step : ∀ a, p a → a ≤ lfp f → p (f a))
   (hSup : ∀ s, (∀ a ∈ s, p a) → p (Sup s)) :
   p (lfp f) :=
 begin
-  let s := {a | a ≤ lfp f ∧ p a},
-  have hpSup := hSup s (λ a ha, ha.2),
-  have h : Sup s ≤ lfp f := le_lfp (λ a ha, Sup_le (λ b hb, hb.1.trans (lfp_le ha))),
-  rw ←h.antisymm (lfp_le (le_Sup ⟨(hf h).trans (lfp_fixed_point hf).le, step _ hpSup h⟩)),
-  exact hpSup,
+  set s := {a | a ≤ lfp f ∧ p a},
+  specialize hSup s (λ a, and.right),
+  suffices : Sup s = lfp f, from this ▸ hSup,
+  have h : Sup s ≤ lfp f := Sup_le (λ b, and.left),
+  have hmem : f (Sup s) ∈ s, from ⟨f.map_le_lfp h, step _ hSup h⟩,
+  exact h.antisymm (f.lfp_le $ le_Sup hmem)
 end
-
-lemma monotone_lfp : monotone (@lfp α _) :=
-λ f g h, le_lfp $ λ a ha, lfp_le $ (h a).trans ha
 
 lemma le_gfp {a : α} (h : a ≤ f a) : a ≤ gfp f :=
 le_Sup h
@@ -69,42 +89,42 @@ le_Sup h
 lemma gfp_le {a : α} (h : ∀ b, b ≤ f b → b ≤ a) : gfp f ≤ a :=
 Sup_le h
 
-lemma gfp_fixed_point (hf : monotone f) : f (gfp f) = gfp f :=
-have h : gfp f ≤ f (gfp f),
-  from gfp_le $ λ a ha, ha.trans (hf (le_gfp ha)),
-(le_gfp (hf h)).antisymm h
+lemma is_fixed_pt_gfp : is_fixed_pt f (gfp f) := f.dual.is_fixed_pt_lfp
 
-lemma gfp_induction {p : α → Prop} (hf : monotone f)
-  (step : ∀ a, p a → gfp f ≤ a → p (f a)) (hInf : ∀ s, (∀ a ∈ s, p a) → p (Inf s)) :
+@[simp] lemma map_gfp : f (gfp f) = gfp f := f.dual.map_lfp
+
+lemma map_le_gfp {a : α} (ha : a ≤ gfp f) : f a ≤ gfp f := f.dual.lfp_le_map ha
+
+lemma gfp_le_map {a : α} (ha : gfp f ≤ a) : gfp f ≤ f a := f.dual.map_le_lfp ha
+
+lemma is_greatest_gfp_le : is_greatest {a | a ≤ f a} (gfp f) :=
+f.dual.is_least_lfp_le
+
+lemma is_greatest_gfp : is_greatest (fixed_points f) (gfp f) :=
+f.dual.is_least_lfp
+
+lemma gfp_induction {p : α → Prop} (step : ∀ a, p a → gfp f ≤ a → p (f a))
+  (hInf : ∀ s, (∀ a ∈ s, p a) → p (Inf s)) :
   p (gfp f) :=
-begin
-  let s := {a | gfp f ≤ a ∧ p a},
-  have hpInf := hInf s (λ a ha, ha.2),
-  have h : gfp f ≤ Inf s := gfp_le (λ a ha, le_Inf (λ b hb, (le_gfp ha).trans hb.1)),
-  rw h.antisymm (le_gfp (Inf_le ⟨(gfp_fixed_point hf).ge.trans (hf h), step _ hpInf h⟩)),
-  exact hpInf,
-end
+f.dual.lfp_induction step hInf
 
-lemma monotone_gfp : monotone (@gfp α _) :=
-λ f g h, gfp_le $ λ a ha, le_gfp $ ha.trans (h a)
+end basic
 
-end fixedpoint
+section eqn
 
-section fixedpoint_eqn
-variables [complete_lattice α] [complete_lattice β] {f : β → α} {g : α → β}
+variables [complete_lattice α] [complete_lattice β] (f : β →ₘ α) (g : α →ₘ β)
 
 -- Rolling rule
-lemma lfp_comp (hf : monotone f) (hg : monotone g) : lfp (f ∘ g) = f (lfp (g ∘ f)) :=
-le_antisymm (lfp_le $ hf (lfp_fixed_point (hg.comp hf)).le)
-  (le_lfp $ λ a ha, (hf $ lfp_le $ show (g ∘ f) (g a) ≤ g a, from hg ha).trans ha)
+lemma map_lfp_comp : f (lfp (g.comp f)) = lfp (f.comp g) :=
+le_antisymm ((f.comp g).map_lfp ▸ f.mono (lfp_le_fixed _ $ congr_arg g (f.comp g).map_lfp)) $
+  lfp_le _ (congr_arg f (g.comp f).map_lfp).le
 
-lemma gfp_comp (hf : monotone f) (hg : monotone g) : gfp (f ∘ g) = f (gfp (g ∘ f)) :=
-(gfp_le $ λ a ha, ha.trans $ hf $ le_gfp $ show g a ≤ (g ∘ f) (g a), from hg ha).antisymm
-  (le_gfp $ hf (gfp_fixed_point (hg.comp hf)).ge)
+lemma map_gfp_comp : f ((g.comp f).gfp) = (f.comp g).gfp :=
+f.dual.map_lfp_comp g.dual
 
 -- Diagonal rule
-lemma lfp_lfp {h : α → α → α} (m : ∀ ⦃a b c d⦄, a ≤ b → c ≤ d → h a c ≤ h b d) :
-  lfp (lfp ∘ h) = lfp (λ x, h x x) :=
+lemma lfp_lfp (h : α →ₘ α →ₘ α) :
+  lfp (lfp.comp h) = lfp (λ x, h x x) :=
 begin
   let a := lfp (lfp ∘ h),
   refine (lfp_le _).antisymm (lfp_le (eq.le _)),

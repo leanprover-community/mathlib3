@@ -12,7 +12,7 @@ This file defines circular preorders, circular partial orders and circular order
 
 ## Hierarchy
 
-* A `circular_order` is a ternary betweenness relation `btw : α → α → α → Prop`, which is
+* A ternary "betweenness" relation `btw : α → α → α → Prop` forms a `circular_order` if it is
   - reflexive: `btw a a a`
   - cyclic: `btw a b c → btw b c a`
   - antisymmetric: `btw a b c → btw c b a → a = b ∨ b = c ∨ c = a`
@@ -23,14 +23,23 @@ This file defines circular preorders, circular partial orders and circular order
 * A `circular_partial_order` drops totality.
 * A `circular_preorder` further drops antisymmetry.
 
-The mind picture is that a circular order is a circle and `btw a b c` means that going around
+The intuition is that a circular order is a circle and `btw a b c` means that going around
 clockwise from `a` you reach `b` before `c` (`b` is between `a` and `c` is meaningless on an
 unoriented circle). A circular partial order is several, potentially intersecting, circles. A
-circular preorder is more of a mess.
+circular preorder is like a circular partial order, but several points can coexist.
+
+Note that the relations between `circular_preorder`, `circular_partial_order` and `circular_order`
+are subtler than between `preorder`, `partial_order`, `linear_order`. In particular, one cannot
+simply extend the `btw` of a `circular_partial_order` to make it a `circular_order`.
 
 One can translate from usual orders to circular ones by "closing the necklace at infinity". See
 `has_le.to_has_btw` and `has_lt.to_has_sbtw`. Going the other way involves "cutting the necklace" or
 "rolling the necklace open".
+
+## Examples
+
+Some concrete circular orders one encounters in the wild are `zmod n` for `0 < n`, `circle`,
+`real.angle`...
 
 ## Main definitions
 
@@ -54,8 +63,16 @@ Antisymmetry is quite weak in the sense that there's no way to discriminate whic
 equal. This prevents defining closed-open intervals `cIco` and `cIoc` in the neat `=`-less way. We
 currently haven't defined them at all.
 
-What's next is to define circular groups and provide instances for `zmod` and the usual circle group
-`ℝ/ℤ`.
+What is the correct generality of "rolling the necklace" open? At least, this works for `α × β` and
+`β × α` where `α` is a circular order and `β` is a linear order.
+
+What's next is to define circular groups and provide instances for `zmod n`, the usual circle group
+`circle`, `real.angle`, and `roots_of_unity M`. What conditions do we need on `M` for this last one
+to work?
+
+We should have circular order homomorphisms. The typical example is
+`days_to_month : days_of_the_year →c months_of_the_year` which relates the circular order of days
+and the circular order of months. Is `α →c β` a good notation?
 
 ## References
 

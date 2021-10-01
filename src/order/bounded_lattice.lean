@@ -83,6 +83,9 @@ theorem eq_top_iff : a = ⊤ ↔ ⊤ ≤ a :=
 @[simp] theorem not_top_lt : ¬ ⊤ < a :=
 λ h, lt_irrefl a (lt_of_le_of_lt le_top h)
 
+@[simp] theorem is_top_iff_eq_top : is_top a ↔ a = ⊤ :=
+⟨λ h, h.unique le_top, λ h b, h.symm ▸ le_top⟩
+
 theorem eq_top_mono (h : a ≤ b) (h₂ : a = ⊤) : b = ⊤ :=
 top_le_iff.1 $ h₂ ▸ h
 
@@ -147,6 +150,9 @@ theorem eq_bot_iff : a = ⊥ ↔ a ≤ ⊥ :=
 
 @[simp] theorem not_lt_bot : ¬ a < ⊥ :=
 λ h, lt_irrefl a (lt_of_lt_of_le h bot_le)
+
+@[simp] theorem is_bot_iff_eq_bot : is_bot a ↔ a = ⊥ :=
+⟨λ h, h.unique bot_le, λ h b, h.symm ▸ bot_le⟩
 
 theorem ne_bot_of_le_ne_bot {a b : α} (hb : b ≠ ⊥) (hab : b ≤ a) : a ≠ ⊥ :=
 λ ha, hb $ bot_unique $ ha ▸ hab

@@ -5,6 +5,26 @@ Authors: Reid Barton, Scott Morrison, David Wärn
 -/
 import category_theory.full_subcategory
 
+/-!
+# Groupoids
+
+We define `groupoid` as a typeclass extending `category`,
+asserting that all morphisms have inverses.
+
+The instance `is_iso.of_groupoid (f : X ⟶ Y) : is_iso f` means that you can then write
+`inv f` to access the inverse of any morphism `f`.
+
+`groupoid.iso_equiv_hom : (X ≅ Y) ≃ (X ⟶ Y)` provides the equivalence between
+isomorphisms and morphisms in a groupoid.
+
+We provide a (non-instance) constructor `groupoid.of_is_iso` from an existing category
+with `is_iso f` for every `f`.
+
+## See also
+
+See also `category_theory.core` for the groupoid of isomorphisms in a category.
+-/
+
 namespace category_theory
 
 universes v v₂ u u₂ -- morphism levels before object levels. See note [category_theory universes].

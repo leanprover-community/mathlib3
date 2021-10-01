@@ -3,7 +3,7 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 -/
-import algebra.order_functions
+import algebra.order.functions
 import data.nat.pow
 
 /-!
@@ -980,7 +980,7 @@ begin
   subst hk,
   rw [int.mul_div_cancel_left _ hb],
   rw mul_assoc at h,
-  apply mul_left_cancel' hb h
+  apply mul_left_cancel₀ hb h
 end
 
 /-- If an integer with larger absolute value divides an integer, it is

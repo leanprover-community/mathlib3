@@ -120,6 +120,10 @@ begin
   simp only [conj_transpose, from_blocks_transpose, from_blocks_map]
 end
 
+/-- A 2x2 block matrix is block diagonal if the blocks outside of the diagonal vanish -/
+def is_two_block_diagonal [has_zero α] (A : matrix (n ⊕ o) (l ⊕ m) α) : Prop :=
+to_blocks₁₂ A = 0 ∧ to_blocks₂₁ A = 0
+
 /-- Let `p` pick out certain rows and `q` pick out certain columns of a matrix `M`. Then
   `to_block M p q` is the corresponding block matrix. -/
 def to_block (M : matrix m n α) (p : m → Prop) (q : n → Prop) :

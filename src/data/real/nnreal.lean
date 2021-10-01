@@ -3,7 +3,7 @@ Copyright (c) 2018 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import algebra.linear_ordered_comm_group_with_zero
+import algebra.order.with_zero
 import algebra.big_operators.ring
 import data.real.basic
 import algebra.indicator_function
@@ -397,11 +397,11 @@ by simp only [div_eq_inv_mul, mul_finset_sup]
 
 @[simp, norm_cast] lemma coe_max (x y : ℝ≥0) :
   ((max x y : ℝ≥0) : ℝ) = max (x : ℝ) (y : ℝ) :=
-by { delta max, split_ifs; refl }
+nnreal.coe_mono.map_max
 
 @[simp, norm_cast] lemma coe_min (x y : ℝ≥0) :
   ((min x y : ℝ≥0) : ℝ) = min (x : ℝ) (y : ℝ) :=
-by { delta min, split_ifs; refl }
+nnreal.coe_mono.map_min
 
 @[simp] lemma zero_le_coe {q : ℝ≥0} : 0 ≤ (q : ℝ) := q.2
 
@@ -504,7 +504,7 @@ section mul
 lemma mul_eq_mul_left {a b c : ℝ≥0} (h : a ≠ 0) : (a * b = a * c ↔ b = c) :=
 begin
   rw [← nnreal.eq_iff, ← nnreal.eq_iff, nnreal.coe_mul, nnreal.coe_mul], split,
-  { exact mul_left_cancel' (mt (@nnreal.eq_iff a 0).1 h) },
+  { exact mul_left_cancel₀ (mt (@nnreal.eq_iff a 0).1 h) },
   { assume h, rw [h] }
 end
 
@@ -522,7 +522,7 @@ end mul
 
 section pow
 
-lemma pow_mono_decr_exp {a : ℝ≥0} (m n : ℕ) (mn : m ≤ n) (a1 : a ≤ 1) :
+lemma pow_antitone_exp {a : ℝ≥0} (m n : ℕ) (mn : m ≤ n) (a1 : a ≤ 1) :
   a ^ n ≤ a ^ m :=
 begin
   rcases le_iff_exists_add.mp mn with ⟨k, rfl⟩,
@@ -534,77 +534,23 @@ end
 end pow
 
 section sub
+/-!
+### Lemmas about subtraction
+
+In this section we provide the instance `nnreal.has_ordered_sub` and a few lemmas about subtraction
+that do not fit well into any other typeclass. For lemmas about subtraction and addition see lemmas
+about `has_ordered_sub` in the file `algebra.order.sub`. See also `mul_sub'` and `sub_mul'`. -/
 
 lemma sub_def {r p : ℝ≥0} : r - p = real.to_nnreal (r - p) := rfl
 
-lemma sub_eq_zero {r p : ℝ≥0} (h : r ≤ p) : r - p = 0 :=
-nnreal.eq $ max_eq_right $ sub_le_iff_le_add.2 $ by simpa [nnreal.coe_le_coe] using h
+lemma coe_sub_def {r p : ℝ≥0} : ↑(r - p) = max (r - p : ℝ) 0 := rfl
 
-@[simp] lemma sub_self {r : ℝ≥0} : r - r = 0 := sub_eq_zero $ le_refl r
+instance : has_ordered_sub ℝ≥0 :=
+⟨λ a b c, by simp only [← nnreal.coe_le_coe, nnreal.coe_add, coe_sub_def, max_le_iff, c.coe_nonneg,
+  and_true, sub_le_iff_le_add]⟩
 
-@[simp] lemma sub_zero {r : ℝ≥0} : r - 0 = r :=
-by rw [sub_def, nnreal.coe_zero, sub_zero, real.to_nnreal_coe]
-
-lemma sub_pos {r p : ℝ≥0} : 0 < r - p ↔ p < r :=
-to_nnreal_pos.trans $ sub_pos.trans $ nnreal.coe_lt_coe
-
-protected lemma sub_lt_self {r p : ℝ≥0} : 0 < r → 0 < p → r - p < r :=
-assume hr hp,
-begin
-  cases le_total r p,
-  { rwa [sub_eq_zero h] },
-  { rw [← nnreal.coe_lt_coe, nnreal.coe_sub h], exact sub_lt_self _ hp }
-end
-
-@[simp] lemma sub_le_iff_le_add {r p q : ℝ≥0} : r - p ≤ q ↔ r ≤ q + p :=
-match le_total p r with
-| or.inl h := by rw [← nnreal.coe_le_coe, ← nnreal.coe_le_coe, nnreal.coe_sub h, nnreal.coe_add,
-    sub_le_iff_le_add]
-| or.inr h :=
-  have r ≤ p + q, from le_add_right h,
-  by simpa [nnreal.coe_le_coe, nnreal.coe_le_coe, sub_eq_zero h, add_comm]
-end
-
-@[simp] lemma sub_le_self {r p : ℝ≥0} : r - p ≤ r :=
-sub_le_iff_le_add.2 $ le_add_right $ le_refl r
-
-lemma add_sub_cancel {r p : ℝ≥0} : (p + r) - r = p :=
-nnreal.eq $ by rw [nnreal.coe_sub, nnreal.coe_add, add_sub_cancel]; exact le_add_self
-
-lemma add_sub_cancel' {r p : ℝ≥0} : (r + p) - r = p :=
-by rw [add_comm, add_sub_cancel]
-
-lemma sub_add_eq_max {r p : ℝ≥0} : (r - p) + p = max r p :=
-nnreal.eq $ by rw [sub_def, nnreal.coe_add, coe_max, real.to_nnreal, coe_mk,
-  ← max_add_add_right, zero_add, sub_add_cancel]
-
-lemma add_sub_eq_max {r p : ℝ≥0} : p + (r - p) = max p r :=
-by rw [add_comm, sub_add_eq_max, max_comm]
-
-@[simp] lemma sub_add_cancel_of_le {a b : ℝ≥0} (h : b ≤ a) : (a - b) + b = a :=
-by rw [sub_add_eq_max, max_eq_left h]
-
-lemma sub_sub_cancel_of_le {r p : ℝ≥0} (h : r ≤ p) : p - (p - r) = r :=
-by rw [nnreal.sub_def, nnreal.sub_def, real.coe_to_nnreal _ $ sub_nonneg.2 h,
-  sub_sub_cancel, real.to_nnreal_coe]
-
-lemma lt_sub_iff_add_lt {p q r : ℝ≥0} : p < q - r ↔ p + r < q :=
-begin
-  split,
-  { assume H,
-    have : (((q - r) : ℝ≥0) : ℝ) = (q : ℝ) - (r : ℝ) :=
-      nnreal.coe_sub (le_of_lt (sub_pos.1 (lt_of_le_of_lt (zero_le _) H))),
-    rwa [← nnreal.coe_lt_coe, this, lt_sub_iff_add_lt, ← nnreal.coe_add] at H },
-  { assume H,
-    have : r ≤ q := le_trans (le_add_self) (le_of_lt H),
-    rwa [← nnreal.coe_lt_coe, nnreal.coe_sub this, lt_sub_iff_add_lt, ← nnreal.coe_add] }
-end
-
-lemma sub_lt_iff_lt_add {a b c : ℝ≥0} (h : b ≤ a) : a - b < c ↔ a < b + c :=
-by simp only [←nnreal.coe_lt_coe, nnreal.coe_sub h, nnreal.coe_add, sub_lt_iff_lt_add']
-
-lemma sub_eq_iff_eq_add {a b c : ℝ≥0} (h : b ≤ a) : a - b = c ↔ a = c + b :=
-by rw [←nnreal.eq_iff, nnreal.coe_sub h, ←nnreal.eq_iff, nnreal.coe_add, sub_eq_iff_eq_add]
+lemma sub_div (a b c : ℝ≥0) : (a - b) / c = a / c - b / c :=
+by simp only [div_eq_mul_inv, sub_mul']
 
 end sub
 
@@ -620,7 +566,7 @@ by simp [pos_iff_ne_zero]
 lemma div_pos {r p : ℝ≥0} (hr : 0 < r) (hp : 0 < p) : 0 < r / p :=
 by simpa only [div_eq_mul_inv] using mul_pos hr (inv_pos.2 hp)
 
-protected lemma mul_inv {r p : ℝ≥0} : (r * p)⁻¹ = p⁻¹ * r⁻¹ := nnreal.eq $ mul_inv_rev' _ _
+protected lemma mul_inv {r p : ℝ≥0} : (r * p)⁻¹ = p⁻¹ * r⁻¹ := nnreal.eq $ mul_inv_rev₀ _ _
 
 lemma div_self_le (r : ℝ≥0) : r / r ≤ 1 :=
 if h : r = 0 then by simp [h] else by rw [div_self h]
@@ -700,7 +646,7 @@ lemma le_of_forall_lt_one_mul_le {x y : ℝ≥0} (h : ∀a<1, a * x ≤ y) : x �
 le_of_forall_ge_of_dense $ assume a ha,
   have hx : x ≠ 0 := pos_iff_ne_zero.1 (lt_of_le_of_lt (zero_le _) ha),
   have hx' : x⁻¹ ≠ 0, by rwa [(≠), inv_eq_zero],
-  have a * x⁻¹ < 1, by rwa [← lt_inv_iff_mul_lt hx', inv_inv'],
+  have a * x⁻¹ < 1, by rwa [← lt_inv_iff_mul_lt hx', inv_inv₀],
   have (a * x⁻¹) * x ≤ y, from h _ this,
   by rwa [mul_assoc, inv_mul_cancel hx, mul_one] at this
 

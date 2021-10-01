@@ -3,7 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import algebra.order
+import algebra.order.basic
 import data.fintype.basic
 import data.pfun
 import tactic.apply_fun
@@ -605,9 +605,9 @@ theorem reaches₁_eq {σ} {f : σ → option σ} {a b c}
 trans_gen.head'_iff.trans (trans_gen.head'_iff.trans $ by rw h).symm
 
 theorem reaches_total {σ} {f : σ → option σ}
-  {a b c} : reaches f a b → reaches f a c →
+  {a b c} (hab : reaches f a b) (hac : reaches f a c) :
   reaches f b c ∨ reaches f c b :=
-refl_trans_gen.total_of_right_unique ⟨λ _ _ _, option.mem_unique⟩
+refl_trans_gen.total_of_right_unique (λ _ _ _, option.mem_unique) hab hac
 
 theorem reaches₁_fwd {σ} {f : σ → option σ}
   {a b c} (h₁ : reaches₁ f a c) (h₂ : b ∈ f a) : reaches f b c :=

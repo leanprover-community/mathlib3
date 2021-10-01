@@ -33,8 +33,10 @@ noncomputable def subobject_Module : subobject M ≃o submodule R M := order_iso
     fapply eq_mk_of_comm,
     { apply linear_equiv.to_Module_iso'_left,
       apply linear_equiv.of_bijective (linear_map.cod_restrict S.arrow.range S.arrow _),
-      { simpa only [linear_map.ker_cod_restrict] using ker_eq_bot_of_mono _ },
-      { rw [linear_map.range_cod_restrict, submodule.comap_subtype_self] },
+      { simpa only [← linear_map.ker_eq_bot, linear_map.ker_cod_restrict]
+          using ker_eq_bot_of_mono _ },
+      { rw [← linear_map.range_eq_top, linear_map.range_cod_restrict,
+          submodule.comap_subtype_self] },
       { exact linear_map.mem_range_self _ } },
     { apply linear_map.ext,
       intros x,

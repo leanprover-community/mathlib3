@@ -81,7 +81,7 @@ def contravariant : Prop := ∀ (m) {n₁ n₂}, r (μ m n₁) (μ m n₂) → r
 `covariant_class` says that "the action `μ` preserves the relation `r`.
 
 More precisely, the `covariant_class` is a class taking two Types `M N`, together with an "action"
-`μ : M → N → N` and a relation `r : N → N`.  Its unique field `elim` is the assertion that
+`μ : M → N → N` and a relation `r : N → N → Prop`.  Its unique field `elim` is the assertion that
 for all `m ∈ M` and all elements `n₁, n₂ ∈ N`, if the relation `r` holds for the pair
 `(n₁, n₂)`, then, the relation `r` also holds for the pair `(μ m n₁, μ m n₂)`,
 obtained from `(n₁, n₂)` by "acting upon it by `m`".
@@ -96,10 +96,10 @@ If `m : M` and `h : r n₁ n₂`, then `covariant_class.elim m h : r (μ m n₁)
 relation `r`, then the initial pair satisfied the relation `r`.
 
 More precisely, the `contravariant_class` is a class taking two Types `M N`, together with an
-"action" `μ : M → N → N` and a relation `r : N → N`.  Its unique field `elim` is the assertion that
-for all `m ∈ M` and all elements `n₁, n₂ ∈ N`, if the relation `r` holds for the pair
-`(μ m n₁, μ m n₂)` obtained from `(n₁, n₂)` by "acting upon it by `m`"", then, the relation `r`
-also holds for the pair `(n₁, n₂)`.
+"action" `μ : M → N → N` and a relation `r : N → N → Prop`.  Its unique field `elim` is the
+assertion that for all `m ∈ M` and all elements `n₁, n₂ ∈ N`, if the relation `r` holds for the
+pair `(μ m n₁, μ m n₂)` obtained from `(n₁, n₂)` by "acting upon it by `m`"", then, the relation
+`r` also holds for the pair `(n₁, n₂)`.
 
 If `m : M` and `h : r (μ m n₁) (μ m n₂)`, then `contravariant_class.elim m h : r n₁ n₂`.
 -/

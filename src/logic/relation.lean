@@ -257,7 +257,7 @@ begin
   { rcases IH with IH | IH,
     { rcases cases_head IH with rfl | ⟨e, be, ec⟩,
       { exact or.inr (single bd) },
-      { cases U.unique bd be, exact or.inl ec } },
+      { cases U bd be, exact or.inl ec } },
     { exact or.inr (IH.tail bd) } }
 end
 

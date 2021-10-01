@@ -55,15 +55,16 @@ A functor `u : (C, J) ⥤ (D, K)` between sites is called to have the cover-lift
 if for all covering sieves `R` in `D`, `R.pullback u` is a covering sieve in `C`.
 -/
 @[nolint has_inhabited_instance]
-structure cover_lifting (J : grothendieck_topology C) (K : grothendieck_topology D) (u : C ⥤ D) :=
+structure cover_reflecting (J : grothendieck_topology C) (K : grothendieck_topology D) (u : C ⥤ D)
+  :=
 (cover_lift : ∀ {U : C} {S : sieve (u.obj U)} (hS : S ∈ K (u.obj U)), S.functor_pullback u ∈ J U)
 
-/-- The identity functor on a site is cover-lifting. -/
-def id_cover_lifting : cover_lifting J J (𝟭 _) := ⟨λ _ _ h, by simpa using h⟩
+-- /-- The identity functor on a site is cover-lifting. -/
+-- def id_cover_lifting : cover_lifting J J (𝟭 _) := ⟨λ _ _ h, by simpa using h⟩
 
-/-- The composition of two cover-lifting functors are cover-lifting -/
-def comp_cover_lifting {u} (hu : cover_lifting J K u) {v} (hv : cover_lifting K L v) :
-  cover_lifting J L (u ⋙ v) := ⟨λ _ S h, hu.cover_lift (hv.cover_lift h)⟩
+-- /-- The composition of two cover-lifting functors are cover-lifting -/
+-- def comp_cover_lifting {u} (hu : cover_lifting J K u) {v} (hv : cover_lifting K L v) :
+--   cover_lifting J L (u ⋙ v) := ⟨λ _ S h, hu.cover_lift (hv.cover_lift h)⟩
 
 end cover_lifting
 
@@ -91,133 +92,133 @@ variables {C D : Type u} [category.{u} C] [category.{u} D]
 variables {A : Type v} [category.{u} A] [has_limits A]
 variables {J : grothendieck_topology C} {K : grothendieck_topology D}
 
-namespace Ran_is_sheaf_of_cover_lifting
-variables {u : C ⥤ D} (hu : cover_lifting J K u) (ℱ : Sheaf J A)
-variables {X : A} {U : D} (S : sieve U) (hS : S ∈ K U)
-variables (x : S.arrows.family_of_elements ((Ran u.op).obj ℱ.val ⋙ coyoneda.obj (op X)))
-variables (hx : x.compatible)
+-- namespace Ran_is_sheaf_of_cover_lifting
+-- variables {u : C ⥤ D} (hu : cover_lifting J K u) (ℱ : Sheaf J A)
+-- variables {X : A} {U : D} (S : sieve U) (hS : S ∈ K U)
+-- variables (x : S.arrows.family_of_elements ((Ran u.op).obj ℱ.val ⋙ coyoneda.obj (op X)))
+-- variables (hx : x.compatible)
 
-/-- The family of morphisms `X ⟶ 𝒢(u(Y')) ⟶ ℱ(Y')` defined on `{ Y' ⊆ Y : u(Y') ⊆ U ∈ S}`. -/
-def pulledback_family (Y : structured_arrow (op U) u.op) :=
-(((x.pullback Y.hom.unop).functor_pullback u).comp_presheaf_map
-  (show _ ⟶ _, from whisker_right ((Ran.adjunction A u.op).counit.app ℱ.val)
-    (coyoneda.obj (op X))))
+-- /-- The family of morphisms `X ⟶ 𝒢(u(Y')) ⟶ ℱ(Y')` defined on `{ Y' ⊆ Y : u(Y') ⊆ U ∈ S}`. -/
+-- def pulledback_family (Y : structured_arrow (op U) u.op) :=
+-- (((x.pullback Y.hom.unop).functor_pullback u).comp_presheaf_map
+--   (show _ ⟶ _, from whisker_right ((Ran.adjunction A u.op).counit.app ℱ.val)
+--     (coyoneda.obj (op X))))
 
-@[simp] lemma pulledback_family_apply (Y : structured_arrow (op U) u.op) {W} {f : W ⟶ _} (Hf) :
-  pulledback_family ℱ S x Y f Hf =
-    x (u.map f ≫ Y.hom.unop) Hf ≫ ((Ran.adjunction A u.op).counit.app ℱ.val).app (op W) := rfl
+-- @[simp] lemma pulledback_family_apply (Y : structured_arrow (op U) u.op) {W} {f : W ⟶ _} (Hf) :
+--   pulledback_family ℱ S x Y f Hf =
+--     x (u.map f ≫ Y.hom.unop) Hf ≫ ((Ran.adjunction A u.op).counit.app ℱ.val).app (op W) := rfl
 
-variables {x} {S}
-include hu hS hx
+-- variables {x} {S}
+-- include hu hS hx
 
-/-- Given a `u(Y) ⊆ U`, we can find a unique section `X ⟶ ℱ(Y)` that agrees with `x`. -/
-def get_section (Y : structured_arrow (op U) u.op) : X ⟶ ℱ.val.obj Y.right :=
-begin
-  let hom_sh := whisker_right ((Ran.adjunction A u.op).counit.app ℱ.val) (coyoneda.obj (op X)),
-  have S' := (K.pullback_stable Y.hom.unop hS),
-  have hs' := ((hx.pullback Y.3.unop).functor_pullback u).comp_presheaf_map hom_sh,
-  exact (ℱ.2 X _ (hu.cover_lift S')).amalgamate _ hs'
-end
+-- /-- Given a `u(Y) ⊆ U`, we can find a unique section `X ⟶ ℱ(Y)` that agrees with `x`. -/
+-- def get_section (Y : structured_arrow (op U) u.op) : X ⟶ ℱ.val.obj Y.right :=
+-- begin
+--   let hom_sh := whisker_right ((Ran.adjunction A u.op).counit.app ℱ.val) (coyoneda.obj (op X)),
+--   have S' := (K.pullback_stable Y.hom.unop hS),
+--   have hs' := ((hx.pullback Y.3.unop).functor_pullback u).comp_presheaf_map hom_sh,
+--   exact (ℱ.2 X _ (hu.cover_lift S')).amalgamate _ hs'
+-- end
 
-lemma get_section_is_amalgamation (Y : structured_arrow (op U) u.op) :
-  (pulledback_family ℱ S x Y).is_amalgamation (get_section hu ℱ hS hx Y) :=
-is_sheaf_for.is_amalgamation _ _
+-- lemma get_section_is_amalgamation (Y : structured_arrow (op U) u.op) :
+--   (pulledback_family ℱ S x Y).is_amalgamation (get_section hu ℱ hS hx Y) :=
+-- is_sheaf_for.is_amalgamation _ _
 
-lemma get_section_is_unique (Y : structured_arrow (op U) u.op)
-  {y} (H : (pulledback_family ℱ S x Y).is_amalgamation y) : y = get_section hu ℱ hS hx Y :=
-begin
-  apply is_sheaf_for.is_separated_for _ (pulledback_family ℱ S x Y),
-  { exact H },
-  { apply get_section_is_amalgamation },
-  { exact ℱ.2 X _ (hu.cover_lift (K.pullback_stable Y.hom.unop hS)) }
-end
+-- lemma get_section_is_unique (Y : structured_arrow (op U) u.op)
+--   {y} (H : (pulledback_family ℱ S x Y).is_amalgamation y) : y = get_section hu ℱ hS hx Y :=
+-- begin
+--   apply is_sheaf_for.is_separated_for _ (pulledback_family ℱ S x Y),
+--   { exact H },
+--   { apply get_section_is_amalgamation },
+--   { exact ℱ.2 X _ (hu.cover_lift (K.pullback_stable Y.hom.unop hS)) }
+-- end
 
-@[simp] lemma get_section_commute {Y Z : structured_arrow (op U) u.op} (f : Y ⟶ Z) :
-  get_section hu ℱ hS hx Y ≫ ℱ.val.map f.right = get_section hu ℱ hS hx Z :=
-begin
-  apply get_section_is_unique,
-  intros V' fV' hV',
-  have eq : Z.hom = Y.hom ≫ (u.map f.right.unop).op,
-  { convert f.w, erw category.id_comp },
-  rw eq at hV',
-  convert get_section_is_amalgamation hu ℱ hS hx Y (fV' ≫ f.right.unop) _ using 1,
-  { tidy },
-  { simp [eq] },
-  { change S (u.map _ ≫ Y.hom.unop),
-    simpa using hV' }
-end
+-- @[simp] lemma get_section_commute {Y Z : structured_arrow (op U) u.op} (f : Y ⟶ Z) :
+--   get_section hu ℱ hS hx Y ≫ ℱ.val.map f.right = get_section hu ℱ hS hx Z :=
+-- begin
+--   apply get_section_is_unique,
+--   intros V' fV' hV',
+--   have eq : Z.hom = Y.hom ≫ (u.map f.right.unop).op,
+--   { convert f.w, erw category.id_comp },
+--   rw eq at hV',
+--   convert get_section_is_amalgamation hu ℱ hS hx Y (fV' ≫ f.right.unop) _ using 1,
+--   { tidy },
+--   { simp [eq] },
+--   { change S (u.map _ ≫ Y.hom.unop),
+--     simpa using hV' }
+-- end
 
-/-- The limit cone in order to glue the sections obtained via `get_section`. -/
-def glued_limit_cone : limits.cone (Ran.diagram u.op ℱ.val (op U)) :=
-{ X := X, π := { app := λ Y, get_section hu ℱ hS hx Y, naturality' := λ Y Z f, by tidy } }
+-- /-- The limit cone in order to glue the sections obtained via `get_section`. -/
+-- def glued_limit_cone : limits.cone (Ran.diagram u.op ℱ.val (op U)) :=
+-- { X := X, π := { app := λ Y, get_section hu ℱ hS hx Y, naturality' := λ Y Z f, by tidy } }
 
-@[simp] lemma glued_limit_cone_π_app (W) : (glued_limit_cone hu ℱ hS hx).π.app W =
-  get_section hu ℱ hS hx W := rfl
+-- @[simp] lemma glued_limit_cone_π_app (W) : (glued_limit_cone hu ℱ hS hx).π.app W =
+--   get_section hu ℱ hS hx W := rfl
 
-/-- The section obtained by passing `glued_limit_cone` into `category_theory.limits.limit.lift`. -/
-def glued_section : X ⟶ ((Ran u.op).obj ℱ.val).obj (op U) :=
-limit.lift _ (glued_limit_cone hu ℱ hS hx)
+-- /-- The section obtained by passing `glued_limit_cone` into `category_theory.limits.limit.lift`. -/
+-- def glued_section : X ⟶ ((Ran u.op).obj ℱ.val).obj (op U) :=
+-- limit.lift _ (glued_limit_cone hu ℱ hS hx)
 
-/--
-A helper lemma for the following two lemmas. Basically stating that if the section `y : X ⟶ 𝒢(V)`
-coincides with `x` on `u(V')` for all `u(V') ⊆ V ∈ S`, then `X ⟶ 𝒢(V) ⟶ ℱ(W)` is indeed the
-section obtained in `get_sections`. That said, this is littered with some more categorical jargon
-in order to be applied in the following lemmas easier.
--/
-lemma helper {V} (f : V ⟶ U) (y : X ⟶ ((Ran u.op).obj ℱ.val).obj (op V)) (W)
-  (H : ∀ {V'} {fV : u.obj V' ⟶ V} (hV), y ≫ ((Ran u.op).obj ℱ.val).map fV.op = x (fV ≫ f) hV) :
-  y ≫ limit.π (Ran.diagram u.op ℱ.val (op V)) W =
-    (glued_limit_cone hu ℱ hS hx).π.app ((structured_arrow.map f.op).obj W) :=
-begin
-  dsimp only [glued_limit_cone_π_app],
-  apply get_section_is_unique hu ℱ hS hx ((structured_arrow.map f.op).obj W),
-  intros V' fV' hV',
-  dsimp only [Ran.adjunction, Ran.equiv, pulledback_family_apply],
-  erw [adjunction.adjunction_of_equiv_right_counit_app],
-  have : y ≫ ((Ran u.op).obj ℱ.val).map (u.map fV' ≫ W.hom.unop).op =
-    x (u.map fV' ≫ W.hom.unop ≫ f) (by simpa using hV'),
-  { convert H (show S ((u.map fV' ≫ W.hom.unop) ≫ f), by simpa using hV') using 2,
-    simp },
-  simp only [quiver.hom.unop_op, equiv.symm_symm, structured_arrow.map_obj_hom, unop_comp,
-    equiv.coe_fn_mk, functor.comp_map, coyoneda_obj_map, category.assoc, ← this, op_comp,
-    Ran_obj_map, nat_trans.id_app],
-  erw category.id_comp,
-  erw limit.pre_π,
-  congr,
-  convert limit.w (Ran.diagram u.op ℱ.val (op V)) (structured_arrow.hom_mk' W fV'.op),
-  rw structured_arrow.map_mk,
-  erw category.comp_id,
-  simp
-end
+-- /--
+-- A helper lemma for the following two lemmas. Basically stating that if the section `y : X ⟶ 𝒢(V)`
+-- coincides with `x` on `u(V')` for all `u(V') ⊆ V ∈ S`, then `X ⟶ 𝒢(V) ⟶ ℱ(W)` is indeed the
+-- section obtained in `get_sections`. That said, this is littered with some more categorical jargon
+-- in order to be applied in the following lemmas easier.
+-- -/
+-- lemma helper {V} (f : V ⟶ U) (y : X ⟶ ((Ran u.op).obj ℱ.val).obj (op V)) (W)
+--   (H : ∀ {V'} {fV : u.obj V' ⟶ V} (hV), y ≫ ((Ran u.op).obj ℱ.val).map fV.op = x (fV ≫ f) hV) :
+--   y ≫ limit.π (Ran.diagram u.op ℱ.val (op V)) W =
+--     (glued_limit_cone hu ℱ hS hx).π.app ((structured_arrow.map f.op).obj W) :=
+-- begin
+--   dsimp only [glued_limit_cone_π_app],
+--   apply get_section_is_unique hu ℱ hS hx ((structured_arrow.map f.op).obj W),
+--   intros V' fV' hV',
+--   dsimp only [Ran.adjunction, Ran.equiv, pulledback_family_apply],
+--   erw [adjunction.adjunction_of_equiv_right_counit_app],
+--   have : y ≫ ((Ran u.op).obj ℱ.val).map (u.map fV' ≫ W.hom.unop).op =
+--     x (u.map fV' ≫ W.hom.unop ≫ f) (by simpa using hV'),
+--   { convert H (show S ((u.map fV' ≫ W.hom.unop) ≫ f), by simpa using hV') using 2,
+--     simp },
+--   simp only [quiver.hom.unop_op, equiv.symm_symm, structured_arrow.map_obj_hom, unop_comp,
+--     equiv.coe_fn_mk, functor.comp_map, coyoneda_obj_map, category.assoc, ← this, op_comp,
+--     Ran_obj_map, nat_trans.id_app],
+--   erw category.id_comp,
+--   erw limit.pre_π,
+--   congr,
+--   convert limit.w (Ran.diagram u.op ℱ.val (op V)) (structured_arrow.hom_mk' W fV'.op),
+--   rw structured_arrow.map_mk,
+--   erw category.comp_id,
+--   simp
+-- end
 
-/-- Verify that the `glued_section` is an amalgamation of `x`. -/
-lemma glued_section_is_amalgamation : x.is_amalgamation (glued_section hu ℱ hS hx) :=
-begin
-  intros V fV hV,
-  ext W,
-  simp only [functor.comp_map, limit.lift_pre, coyoneda_obj_map, Ran_obj_map, glued_section],
-  erw limit.lift_π,
-  symmetry,
-  convert helper hu ℱ hS hx _ (x fV hV) _ _ using 1,
-  intros V' fV' hV',
-  convert hx (fV') (𝟙 _) hV hV' (by simp),
-  simp
-end
+-- /-- Verify that the `glued_section` is an amalgamation of `x`. -/
+-- lemma glued_section_is_amalgamation : x.is_amalgamation (glued_section hu ℱ hS hx) :=
+-- begin
+--   intros V fV hV,
+--   ext W,
+--   simp only [functor.comp_map, limit.lift_pre, coyoneda_obj_map, Ran_obj_map, glued_section],
+--   erw limit.lift_π,
+--   symmetry,
+--   convert helper hu ℱ hS hx _ (x fV hV) _ _ using 1,
+--   intros V' fV' hV',
+--   convert hx (fV') (𝟙 _) hV hV' (by simp),
+--   simp
+-- end
 
-/-- Verify that the amalgamation is indeed unique. -/
-lemma glued_section_is_unique (y) (hy: x.is_amalgamation y) : y = glued_section hu ℱ hS hx :=
-begin
-  unfold glued_section limit.lift,
-  ext W,
-  erw limit.lift_π,
-  convert helper hu ℱ hS hx (𝟙 _) y W _,
-  { simp },
-  { intros V' fV' hV',
-    convert hy fV' (by simpa using hV'),
-    erw category.comp_id }
-end
+-- /-- Verify that the amalgamation is indeed unique. -/
+-- lemma glued_section_is_unique (y) (hy: x.is_amalgamation y) : y = glued_section hu ℱ hS hx :=
+-- begin
+--   unfold glued_section limit.lift,
+--   ext W,
+--   erw limit.lift_π,
+--   convert helper hu ℱ hS hx (𝟙 _) y W _,
+--   { simp },
+--   { intros V' fV' hV',
+--     convert hy fV' (by simpa using hV'),
+--     erw category.comp_id }
+-- end
 
-end Ran_is_sheaf_of_cover_lifting
+-- end Ran_is_sheaf_of_cover_lifting
 
 /--
 If `u` is cover_lifting, then `Ran u.op` pushes sheaves to sheaves.

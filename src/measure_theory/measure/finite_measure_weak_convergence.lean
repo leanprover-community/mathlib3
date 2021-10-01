@@ -309,9 +309,6 @@ def test_against_nn_linear_map (μ : finite_measure α) : (α →ᵇ ℝ≥0) �
   map_add' := test_against_nn_add μ,
   map_smul' := test_against_nn_smul μ, }
 
---lemma bounded_continuous_function.coe_fn_add (f g : α →ᵇ ℝ≥0) :
---  (f : α → ℝ≥0) + (g : α → ℝ≥0) = (f+g).to_fun := rfl
-
 lemma test_against_nn_lipschitz_estimate (μ : finite_measure α) (f g : α →ᵇ ℝ≥0) :
   μ.test_against_nn f ≤ μ.test_against_nn g + (nndist f g) * μ.mass :=
 begin

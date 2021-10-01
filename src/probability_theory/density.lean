@@ -16,9 +16,6 @@ sets `S`, `ℙ(X ∈ S) = ∫ x in S, f x dx`. Probability density functions are
 the distribution of a random variable, and are useful for calculating probabilities and
 finding moments (although the latter is better achieved with moment generating functions).
 
-This file also defines the continuous uniform distribution and proves some properties about
-random variables with this distribution.
-
 ## Main definitions
 
 * `measure_theory.measure.has_pdf` : A random variable `X : α → E` is said to `has_pdf` with

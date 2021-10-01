@@ -155,11 +155,11 @@ instance : inhabited (convex_cone 𝕜 E) := ⟨⊥⟩
 end has_scalar
 
 section module
-variables [module 𝕜 E] (S T : convex_cone 𝕜 E)
+variables [module 𝕜 E] (S : convex_cone 𝕜 E)
 
 protected lemma convex : convex 𝕜 (S : set E) :=
 convex_iff_forall_pos.2 $ λ x y hx hy a b ha hb hab,
-S.add_mem (S.smul_mem ha hx) (S.smul_mem hb hy)
+  S.add_mem (S.smul_mem ha hx) (S.smul_mem hb hy)
 
 end module
 end ordered_semiring
@@ -170,13 +170,8 @@ variables [linear_ordered_field 𝕜]
 section add_comm_monoid
 variables [add_comm_monoid E] [add_comm_monoid F] [add_comm_monoid G]
 
-section has_scalar
-variables [has_scalar 𝕜 E] (S T : convex_cone 𝕜 E)
-
-end has_scalar
-
 section mul_action
-variables [mul_action 𝕜 E] (S T : convex_cone 𝕜 E)
+variables [mul_action 𝕜 E] (S : convex_cone 𝕜 E)
 
 lemma smul_mem_iff {c : 𝕜} (hc : 0 < c) {x : E} :
   c • x ∈ S ↔ x ∈ S :=
@@ -187,7 +182,7 @@ end mul_action
 section module
 variables [module 𝕜 E] [module 𝕜 F] [module 𝕜 G]
 
-/-- The image of a convex cone under an `ℝ`-linear map is a convex cone. -/
+/-- The image of a convex cone under a `𝕜`-linear map is a convex cone. -/
 def map (f : E →ₗ[𝕜] F) (S : convex_cone 𝕜 E) : convex_cone 𝕜 F :=
 { carrier := f '' S,
   smul_mem' := λ c hc y ⟨x, hx, hy⟩, hy ▸ f.map_smul c x ▸ mem_image_of_mem f (S.smul_mem hc hx),
@@ -200,7 +195,7 @@ ext' $ image_image g f S
 
 @[simp] lemma map_id (S : convex_cone 𝕜 E) : S.map linear_map.id = S := ext' $ image_id _
 
-/-- The preimage of a convex cone under an `ℝ`-linear map is a convex cone. -/
+/-- The preimage of a convex cone under a `𝕜`-linear map is a convex cone. -/
 def comap (f : E →ₗ[𝕜] F) (S : convex_cone 𝕜 F) : convex_cone 𝕜 E :=
 { carrier := f ⁻¹' S,
   smul_mem' := λ c hc x hx, by { rw [mem_preimage, f.map_smul c], exact S.smul_mem hc hx },
@@ -243,7 +238,7 @@ section ordered_semiring
 variables [ordered_semiring 𝕜]
 
 section add_comm_monoid
-variables [add_comm_monoid E] [has_scalar 𝕜 E] (S T : convex_cone 𝕜 E)
+variables [add_comm_monoid E] [has_scalar 𝕜 E] (S : convex_cone 𝕜 E)
 
 /-- A convex cone is pointed if it includes `0`. -/
 def pointed (S : convex_cone 𝕜 E) : Prop := (0 : E) ∈ S
@@ -260,13 +255,13 @@ by rw [pointed_iff_not_blunt, not_not]
 end add_comm_monoid
 
 section add_comm_group
-variables [add_comm_group E] [has_scalar 𝕜 E] (S T : convex_cone 𝕜 E)
+variables [add_comm_group E] [has_scalar 𝕜 E] (S : convex_cone 𝕜 E)
 
 /-- A convex cone is flat if it contains some nonzero vector `x` and its opposite `-x`. -/
-def flat (S : convex_cone 𝕜 E) : Prop := ∃ x ∈ S, x ≠ (0 : E) ∧ -x ∈ S
+def flat : Prop := ∃ x ∈ S, x ≠ (0 : E) ∧ -x ∈ S
 
 /-- A convex cone is salient if it doesn't include `x` and `-x` for any nonzero `x`. -/
-def salient (S : convex_cone 𝕜 E) : Prop := ∀ x ∈ S, x ≠ (0 : E) → -x ∉ S
+def salient : Prop := ∀ x ∈ S, x ≠ (0 : E) → -x ∉ S
 
 lemma salient_iff_not_flat (S : convex_cone 𝕜 E) : S.salient ↔ ¬S.flat :=
 begin
@@ -295,32 +290,32 @@ begin
 end
 
 /-- A pointed convex cone defines a preorder. -/
-def to_preorder (S : convex_cone 𝕜 E) (h₁ : S.pointed) : preorder E :=
+def to_preorder (h₁ : S.pointed) : preorder E :=
 { le := λ x y, y - x ∈ S,
   le_refl := λ x, by change x - x ∈ S; rw [sub_self x]; exact h₁,
   le_trans := λ x y z xy zy, by simpa using add_mem S zy xy }
 
 /-- A pointed and salient cone defines a partial order. -/
-def to_partial_order (S : convex_cone 𝕜 E) (h₁ : S.pointed) (h₂ : S.salient) : partial_order E :=
+def to_partial_order (h₁ : S.pointed) (h₂ : S.salient) : partial_order E :=
 { le_antisymm :=
     begin
       intros a b ab ba,
       by_contradiction h,
       have h' : b - a ≠ 0 := λ h'', h (eq_of_sub_eq_zero h'').symm,
       have H := h₂ (b-a) ab h',
-      rw [neg_sub b a] at H,
+      rw neg_sub b a at H,
       exact H ba,
     end,
   ..to_preorder S h₁ }
 
 /-- A pointed and salient cone defines an `ordered_add_comm_group`. -/
-def to_ordered_add_comm_group (S : convex_cone 𝕜 E) (h₁ : S.pointed) (h₂ : S.salient) :
+def to_ordered_add_comm_group (h₁ : S.pointed) (h₂ : S.salient) :
   ordered_add_comm_group E :=
 { add_le_add_left :=
     begin
       intros a b hab c,
       change c + b - (c + a) ∈ S,
-      rw [add_sub_add_left_eq_sub],
+      rw add_sub_add_left_eq_sub,
       exact hab,
     end,
   ..to_partial_order S h₁ h₂,
@@ -350,14 +345,11 @@ def positive_cone : convex_cone 𝕜 E :=
 
 /-- The positive cone of an ordered module is always salient. -/
 lemma salient_positive_cone : salient (positive_cone 𝕜 E) :=
-begin
-  intros x xs hx hx',
-  have := calc
+λ x xs hx hx', lt_irrefl (0 : E)
+  (calc
     0   < x         : lt_of_le_of_ne xs hx.symm
-    ... ≤ x + (-x)  : (le_add_iff_nonneg_right x).mpr hx'
-    ... = 0         : by rw [tactic.ring.add_neg_eq_sub x x]; exact sub_self x,
-  exact lt_irrefl 0 this,
-end
+    ... ≤ x + (-x)  : le_add_of_nonneg_right hx'
+    ... = 0         : add_neg_self x)
 
 /-- The positive cone of an ordered module is always pointed. -/
 lemma pointed_positive_cone : pointed (positive_cone 𝕜 E) := le_refl 0

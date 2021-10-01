@@ -182,7 +182,7 @@ begin
           refine neg_ne_zero.mpr (inv_ne_zero $ pow_ne_zero _ $ ne_of_gt hx) }),
   have := this.comp tendsto_inv_at_top_zero',
   unfold function.comp at this,
-  simpa only [inv_inv'],
+  simpa only [inv_inv₀],
 end
 
 theorem lhopital_zero_at_bot_on_Iio

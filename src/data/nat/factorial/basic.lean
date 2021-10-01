@@ -212,7 +212,7 @@ theorem factorial_mul_asc_factorial (n : ℕ) : ∀ k, n! * n.asc_factorial k = 
 /-- Avoid in favor of `nat.factorial_mul_asc_factorial` if you can. ℕ-division isn't worth it. -/
 lemma asc_factorial_eq_div (n k : ℕ) : n.asc_factorial k = (n + k)! / n! :=
 begin
-  apply mul_left_cancel' (factorial_ne_zero n),
+  apply mul_left_cancel₀ (factorial_ne_zero n),
   rw factorial_mul_asc_factorial,
   exact (nat.mul_div_cancel' $ factorial_dvd_factorial $ le.intro rfl).symm
 end
@@ -332,7 +332,7 @@ theorem factorial_mul_desc_factorial : ∀ {n k : ℕ}, k ≤ n → (n - k)! * n
 /-- Avoid in favor of `nat.factorial_mul_desc_factorial` if you can. ℕ-division isn't worth it. -/
 lemma desc_factorial_eq_div {n k : ℕ} (h : k ≤ n) : n.desc_factorial k = n! / (n - k)! :=
 begin
-  apply mul_left_cancel' (factorial_ne_zero (n - k)),
+  apply mul_left_cancel₀ (factorial_ne_zero (n - k)),
   rw factorial_mul_desc_factorial h,
   exact (nat.mul_div_cancel' $ factorial_dvd_factorial $ nat.sub_le n k).symm,
 end

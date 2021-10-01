@@ -836,7 +836,7 @@ end actions
 -- both `ordered_semiring` and `submonoid` available.
 
 
-/--Submonoid of positive elements of an ordered semiring-/
+/-- Submonoid of positive elements of an ordered semiring. -/
 def pos_submonoid {R : Type*} [ordered_semiring R] [nontrivial R] : submonoid R :=
 { carrier := {x | 0 < x},
   one_mem' := show (0 : R) < 1, from zero_lt_one,

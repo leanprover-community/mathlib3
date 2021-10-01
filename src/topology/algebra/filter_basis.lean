@@ -66,8 +66,8 @@ attribute [to_additive] group_filter_basis.inv'
 attribute [to_additive] group_filter_basis.conj'
 attribute [to_additive] group_filter_basis.to_filter_basis
 
-/-- `group_filter_basis` constructor is the commutative group case. -/
-@[to_additive "`add_group_filter_basis` constructor is the commutative group case."]
+/-- `group_filter_basis` constructor in the commutative group case. -/
+@[to_additive "`add_group_filter_basis` constructor in the commutative group case."]
 def group_filter_basis_of_comm {G : Type*} [comm_group G]
   (sets                   : set (set G))
   (nonempty               : sets.nonempty)
@@ -144,8 +144,8 @@ protected lemma has_basis (B : group_filter_basis G) (x : G) :
   has_basis (B.N x) (λ V : set G, V ∈ B) (λ V, (λ y, x*y) '' V) :=
 has_basis.map (λ y, x * y) to_filter_basis.has_basis
 
-/-- The topological space structure coming a group filter basis. -/
-@[to_additive "The topological space structure coming an additive group filter basis."]
+/-- The topological space structure coming from a group filter basis. -/
+@[to_additive "The topological space structure coming from an additive group filter basis."]
 def topology (B : group_filter_basis G) : topological_space G :=
 topological_space.mk_of_nhds B.N
 

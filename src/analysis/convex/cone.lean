@@ -180,7 +180,7 @@ variables [mul_action 𝕜 E] (S T : convex_cone 𝕜 E)
 
 lemma smul_mem_iff {c : 𝕜} (hc : 0 < c) {x : E} :
   c • x ∈ S ↔ x ∈ S :=
-⟨λ h, inv_smul_smul' hc.ne' x ▸ S.smul_mem (inv_pos.2 hc) h, S.smul_mem hc⟩
+⟨λ h, inv_smul_smul₀ hc.ne' x ▸ S.smul_mem (inv_pos.2 hc) h, S.smul_mem hc⟩
 
 end mul_action
 
@@ -368,7 +368,7 @@ end convex_cone
 /-! ### Cone over a convex set -/
 
 section cone_from_convex
-variables [linear_ordered_field 𝕜] [ordered_add_comm_group E] [module 𝕜 E] [ordered_smul 𝕜 E]
+variables [linear_ordered_field 𝕜] [ordered_add_comm_group E] [module 𝕜 E]
 
 namespace convex
 

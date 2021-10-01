@@ -135,7 +135,7 @@ begin
   have : 0 < (t : ℝ), from r.coe_nonneg.trans_lt rt,
   rw [← div_lt_one this] at rt,
   refine ⟨_, rt, C, or.inr zero_lt_one, λ n, _⟩,
-  calc abs (∥p n∥ * r ^ n) = (∥p n∥ * t ^ n) * (r / t) ^ n :
+  calc |∥p n∥ * r ^ n| = (∥p n∥ * t ^ n) * (r / t) ^ n :
     by field_simp [mul_right_comm, abs_mul, this.ne']
   ... ≤ C * (r / t) ^ n : mul_le_mul_of_nonneg_right (hC n) (pow_nonneg (div_nonneg r.2 t.2) _)
 end

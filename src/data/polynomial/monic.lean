@@ -165,6 +165,20 @@ begin
     simp [coeff_mul, nat.antidiagonal, hp.leading_coeff, hq.leading_coeff, add_comm]
 end
 
+lemma eq_one_of_map_eq_one {S : Type*} [semiring S] [nontrivial S]
+  (f : R →+* S) (hp : p.monic) (map_eq : p.map f = 1) : p = 1 :=
+begin
+  nontriviality R,
+  have hdeg : p.degree = 0,
+  { rw [← degree_map_eq_of_leading_coeff_ne_zero f _, map_eq, degree_one],
+    { rw [hp.leading_coeff, f.map_one],
+      exact one_ne_zero } },
+  have hndeg : p.nat_degree = 0 :=
+    with_bot.coe_eq_coe.mp ((degree_eq_nat_degree hp.ne_zero).symm.trans hdeg),
+  convert eq_C_of_degree_eq_zero hdeg,
+  rw [← hndeg, ← polynomial.leading_coeff, hp.leading_coeff, C.map_one]
+end
+
 end monic
 
 end semiring

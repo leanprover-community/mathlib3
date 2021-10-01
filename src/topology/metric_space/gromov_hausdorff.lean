@@ -526,7 +526,7 @@ isometric up to `ε₂`, then the Gromov-Hausdorff distance between the spaces i
 `ε₁ + ε₂/2 + ε₃`. -/
 theorem GH_dist_le_of_approx_subsets {s : set X} (Φ : s → Y) {ε₁ ε₂ ε₃ : ℝ}
   (hs : ∀ x : X, ∃ y ∈ s, dist x y ≤ ε₁) (hs' : ∀ x : Y, ∃ y : s, dist x (Φ y) ≤ ε₃)
-  (H : ∀ x y : s, abs (dist x y - dist (Φ x) (Φ y)) ≤ ε₂) :
+  (H : ∀ x y : s, |dist x y - dist (Φ x) (Φ y)| ≤ ε₂) :
   GH_dist X Y ≤ ε₁ + ε₂ / 2 + ε₃ :=
 begin
   refine le_of_forall_pos_le_add (λ δ δ0, _),
@@ -535,8 +535,8 @@ begin
   have sne : s.nonempty := ⟨xs, hxs⟩,
   letI : nonempty s := sne.to_subtype,
   have : 0 ≤ ε₂ := le_trans (abs_nonneg _) (H ⟨xs, hxs⟩ ⟨xs, hxs⟩),
-  have : ∀ p q : s, abs (dist p q - dist (Φ p) (Φ q)) ≤ 2 * (ε₂/2 + δ) := λ p q, calc
-    abs (dist p q - dist (Φ p) (Φ q)) ≤ ε₂ : H p q
+  have : ∀ p q : s, |dist p q - dist (Φ p) (Φ q)| ≤ 2 * (ε₂/2 + δ) := λ p q, calc
+    |dist p q - dist (Φ p) (Φ q)| ≤ ε₂ : H p q
     ... ≤ 2 * (ε₂/2 + δ) : by linarith,
   -- glue `X` and `Y` along the almost matching subsets
   letI : metric_space (X ⊕ Y) :=
@@ -663,7 +663,7 @@ begin
         by { simp only [Φ, Ψ], rw [C1, C2, C3], refl },
       rw this,
       exact le_of_lt hy },
-    show ∀ x y : s p, abs (dist x y - dist (Φ x) (Φ y)) ≤ ε,
+    show ∀ x y : s p, |dist x y - dist (Φ x) (Φ y)| ≤ ε,
     { /- the distance between `x` and `y` is encoded in `F p`, and the distance between
       `Φ x` and `Φ y` (two points of `s q`) is encoded in `F q`, all this up to `ε`.
       As `F p = F q`, the distances are almost equal. -/
@@ -706,14 +706,14 @@ begin
       -- deduce that the distances coincide up to `ε`, by a straightforward computation
       -- that should be automated
       have I := calc
-        abs (ε⁻¹) * abs (dist x y - dist (Ψ x) (Ψ y)) =
-          abs (ε⁻¹ * (dist x y - dist (Ψ x) (Ψ y))) : (abs_mul _ _).symm
-        ... = abs ((ε⁻¹ * dist x y) - (ε⁻¹ * dist (Ψ x) (Ψ y))) : by { congr, ring }
+        |ε⁻¹| * |dist x y - dist (Ψ x) (Ψ y)| =
+          |ε⁻¹ * (dist x y - dist (Ψ x) (Ψ y))| : (abs_mul _ _).symm
+        ... = |(ε⁻¹ * dist x y) - (ε⁻¹ * dist (Ψ x) (Ψ y))| : by { congr, ring }
         ... ≤ 1 : le_of_lt (abs_sub_lt_one_of_floor_eq_floor this),
       calc
-        abs (dist x y - dist (Ψ x) (Ψ y)) = (ε * ε⁻¹) * abs (dist x y - dist (Ψ x) (Ψ y)) :
+        |dist x y - dist (Ψ x) (Ψ y)| = (ε * ε⁻¹) * |dist x y - dist (Ψ x) (Ψ y)| :
           by rw [mul_inv_cancel (ne_of_gt εpos), one_mul]
-        ... = ε * (abs (ε⁻¹) * abs (dist x y - dist (Ψ x) (Ψ y))) :
+        ... = ε * (|ε⁻¹| * |dist x y - dist (Ψ x) (Ψ y)|) :
           by rw [abs_of_nonneg (le_of_lt (inv_pos.2 εpos)), mul_assoc]
         ... ≤ ε * 1 : mul_le_mul_of_nonneg_left I (le_of_lt εpos)
         ... = ε : mul_one _ } },
@@ -806,7 +806,7 @@ begin
         by { simp only [Φ, Ψ], rw [C1, C2, C3], refl },
       rw this,
       exact le_trans (le_of_lt hy) u_le_ε },
-    show ∀ x y : s p, abs (dist x y - dist (Φ x) (Φ y)) ≤ ε,
+    show ∀ x y : s p, |dist x y - dist (Φ x) (Φ y)| ≤ ε,
     { /- the distance between `x` and `y` is encoded in `F p`, and the distance between
       `Φ x` and `Φ y` (two points of `s q`) is encoded in `F q`, all this up to `ε`.
       As `F p = F q`, the distances are almost equal. -/
@@ -873,14 +873,14 @@ begin
       -- deduce that the distances coincide up to `ε`, by a straightforward computation
       -- that should be automated
       have I := calc
-        abs (ε⁻¹) * abs (dist x y - dist (Ψ x) (Ψ y)) =
-          abs (ε⁻¹ * (dist x y - dist (Ψ x) (Ψ y))) : (abs_mul _ _).symm
-        ... = abs ((ε⁻¹ * dist x y) - (ε⁻¹ * dist (Ψ x) (Ψ y))) : by { congr, ring }
+        |ε⁻¹| * |dist x y - dist (Ψ x) (Ψ y)| =
+          |ε⁻¹ * (dist x y - dist (Ψ x) (Ψ y))| : (abs_mul _ _).symm
+        ... = |(ε⁻¹ * dist x y) - (ε⁻¹ * dist (Ψ x) (Ψ y))| : by { congr, ring }
         ... ≤ 1 : le_of_lt (abs_sub_lt_one_of_floor_eq_floor this),
       calc
-        abs (dist x y - dist (Ψ x) (Ψ y)) = (ε * ε⁻¹) * abs (dist x y - dist (Ψ x) (Ψ y)) :
+        |dist x y - dist (Ψ x) (Ψ y)| = (ε * ε⁻¹) * |dist x y - dist (Ψ x) (Ψ y)| :
           by rw [mul_inv_cancel (ne_of_gt εpos), one_mul]
-        ... = ε * (abs (ε⁻¹) * abs (dist x y - dist (Ψ x) (Ψ y))) :
+        ... = ε * (|ε⁻¹| * |dist x y - dist (Ψ x) (Ψ y)|) :
           by rw [abs_of_nonneg (le_of_lt (inv_pos.2 εpos)), mul_assoc]
         ... ≤ ε * 1 : mul_le_mul_of_nonneg_left I (le_of_lt εpos)
         ... = ε : mul_one _ } },

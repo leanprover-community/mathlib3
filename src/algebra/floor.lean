@@ -114,7 +114,7 @@ eq.trans (by rw [int.cast_neg, sub_eq_add_neg]) (floor_add_int _ _)
 floor_sub_int x n
 
 lemma abs_sub_lt_one_of_floor_eq_floor {α : Type*} [linear_ordered_comm_ring α]
-  [floor_ring α] {x y : α} (h : ⌊x⌋ = ⌊y⌋) : abs (x - y) < 1 :=
+  [floor_ring α] {x y : α} (h : ⌊x⌋ = ⌊y⌋) : |x - y| < 1 :=
 begin
   have : x < ⌊x⌋ + 1         := lt_floor_add_one x,
   have : y < ⌊y⌋ + 1         :=  lt_floor_add_one y,

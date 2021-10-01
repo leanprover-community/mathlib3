@@ -1173,6 +1173,7 @@ lemma cluster_pt.map {x : α} {la : filter α} {lb : filter β} (H : cluster_pt 
   cluster_pt (f x) lb :=
 ⟨ne_bot_of_le_ne_bot ((map_ne_bot_iff f).2 H).ne $ hfc.tendsto.inf hf⟩
 
+/-- See also `interior_preimage_subset_preimage_interior`. -/
 lemma preimage_interior_subset_interior_preimage {f : α → β} {s : set β}
   (hf : continuous f) : f⁻¹' (interior s) ⊆ interior (f⁻¹' s) :=
 interior_maximal (preimage_mono interior_subset) (is_open_interior.preimage hf)

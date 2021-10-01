@@ -150,7 +150,7 @@ end
 lemma surjective_on_with.exists_pos {f : normed_group_hom V₁ V₂} {K : add_subgroup V₂} {C : ℝ}
   (h : f.surjective_on_with K C) : ∃ C' > 0, f.surjective_on_with K C' :=
 begin
-  refine ⟨abs C + 1, _, _⟩,
+  refine ⟨|C| + 1, _, _⟩,
   { linarith [abs_nonneg C] },
   { apply h.mono,
     linarith [le_abs_self C] }

@@ -470,6 +470,10 @@ lemma image2_smul [has_scalar α β] {t : set β} : image2 has_scalar.smul s t =
 lemma mem_smul [has_scalar α β] {t : set β} : x ∈ s • t ↔ ∃ a y, a ∈ s ∧ y ∈ t ∧ a • y = x :=
 iff.rfl
 
+lemma mem_smul_of_mem [has_scalar α β] {t : set β} {a} {b} (ha : a ∈ s) (hb : b ∈ t) :
+  a • b ∈ s • t :=
+⟨a, b, ha, hb, rfl⟩
+
 @[to_additive]
 lemma image_smul_prod [has_scalar α β] {t : set β} :
   (λ x : α × β, x.fst • x.snd) '' s.prod t = s • t :=

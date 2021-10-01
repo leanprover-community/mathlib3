@@ -6,6 +6,8 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 import algebra.gcd_monoid.basic
 import data.polynomial.derivative
 import data.polynomial.ring_division
+import data.set.pairwise
+import ring_theory.coprime.lemmas
 import ring_theory.euclidean_domain
 
 /-!

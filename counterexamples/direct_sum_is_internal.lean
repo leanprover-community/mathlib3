@@ -8,11 +8,11 @@ import algebra.direct_sum.module
 import tactic.fin_cases
 
 /-!
-# Not all complementary decompositions of a module make up a direct sum
+# Not all complementary decompositions of a module over a semiring make up a direct sum
 
 This shows that while `ℤ≤0` and `ℤ≥0` are complementary `ℕ`-submodules of `ℤ`, which in turn
 implies as a collection they are `complete_lattice.independent` and that they span all of `ℤ`, they
-do not permit a decomposition into a direct sum.
+do not form a decomposition into a direct sum.
 
 This file demonstrates why `direct_sum.submodule_is_internal_of_independent_of_supr_eq_top` must
 take `ring R` and not `semiring R`.
@@ -29,7 +29,7 @@ add_submonoid.to_nat_submodule $ show add_submonoid ℤ, from
     add_mem' := λ x y (hx : 0 ≤ i • x) (hy : 0 ≤ i • y), show _ ≤ _, begin
       rw smul_add,
       exact add_nonneg hx hy
-    end}
+    end }
 
 local notation `ℤ≥0` := with_sign 1
 local notation `ℤ≤0` := with_sign (-1)
@@ -40,7 +40,7 @@ show _ ≤ _ ↔ _, by rw one_smul
 lemma mem_with_sign_neg_one {x : ℤ} : x ∈ ℤ≤0 ↔ x ≤ 0 :=
 show _ ≤ _ ↔ _, by rw [units.neg_smul, le_neg, one_smul, neg_zero]
 
-/-- The two submodules are completements. -/
+/-- The two submodules are complements. -/
 lemma with_sign.is_compl : is_compl (ℤ≥0) (ℤ≤0) :=
 begin
   split,

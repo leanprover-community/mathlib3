@@ -240,19 +240,10 @@ attribute [simp] val_zero
 
 lemma zero_le (a : fin (n + 1)) : 0 ≤ a := zero_le a.1
 
+lemma zero_lt_one : (0 : fin (n + 2)) < 1 := nat.zero_lt_one
+
 lemma pos_iff_ne_zero (a : fin (n+1)) : 0 < a ↔ a ≠ 0 :=
-begin
-  split,
-  { rintros h rfl, exact lt_irrefl _ h, },
-  { rintros h,
-    apply (@pos_iff_ne_zero _ _ (a : ℕ)).mpr,
-    cases a,
-    rintro w,
-    apply h,
-    simp at w,
-    subst w,
-    refl, },
-end
+by rw [← coe_fin_lt, coe_zero, pos_iff_ne_zero, ne.def, ne.def, ext_iff, coe_zero]
 
 lemma eq_zero_or_eq_succ {n : ℕ} (i : fin (n+1)) : i = 0 ∨ ∃ j : fin n, i = j.succ :=
 begin
@@ -949,6 +940,15 @@ lemma exists_fin_succ {P : fin (n+1) → Prop} :
   (∃ i, P i) ↔ P 0 ∨ (∃i:fin n, P i.succ) :=
 ⟨λ ⟨i, h⟩, fin.cases or.inl (λ i hi, or.inr ⟨i, hi⟩) i h,
   λ h, or.elim h (λ h, ⟨0, h⟩) $ λ⟨i, hi⟩, ⟨i.succ, hi⟩⟩
+
+lemma forall_fin_one {p : fin 1 → Prop} : (∀ i, p i) ↔ p 0 := @unique.forall_iff (fin 1) _ p
+lemma exists_fin_one {p : fin 1 → Prop} : (∃ i, p i) ↔ p 0 := @unique.exists_iff (fin 1) _ p
+
+lemma forall_fin_two {p : fin 2 → Prop} : (∀ i, p i) ↔ p 0 ∧ p 1 :=
+forall_fin_succ.trans $ and_congr_right $ λ _, forall_fin_one
+
+lemma exists_fin_two {p : fin 2 → Prop} : (∃ i, p i) ↔ p 0 ∨ p 1 :=
+exists_fin_succ.trans $ or_congr_right exists_fin_one
 
 /--
 Define `C i` by reverse induction on `i : fin (n + 1)` via induction on the underlying `nat` value.
@@ -1809,6 +1809,16 @@ by simp [funext_iff, forall_iff_succ_above i, eq_comm]
 lemma eq_insert_nth_iff {i : fin (n + 1)} {x : α i} {p : Π j, α (i.succ_above j)} {q : Π j, α j} :
   q = i.insert_nth x p ↔ q i = x ∧ p = (λ j, q (i.succ_above j)) :=
 eq_comm.trans insert_nth_eq_iff
+
+lemma insert_nth_apply_below {i j : fin (n + 1)} (h : j < i) (x : α i)
+  (p : Π k, α (i.succ_above k)) :
+  i.insert_nth x p j = eq.rec_on (succ_above_cast_lt h) (p $ j.cast_lt _) :=
+by rw [insert_nth, succ_above_cases, dif_neg h.ne, dif_pos h]
+
+lemma insert_nth_apply_above {i j : fin (n + 1)} (h : i < j) (x : α i)
+  (p : Π k, α (i.succ_above k)) :
+  i.insert_nth x p j = eq.rec_on (succ_above_pred h) (p $ j.pred _) :=
+by rw [insert_nth, succ_above_cases, dif_neg h.ne', dif_neg h.not_lt]
 
 lemma insert_nth_zero (x : α 0) (p : Π j : fin n, α (succ_above 0 j)) :
   insert_nth 0 x p = cons x (λ j, _root_.cast (congr_arg α (congr_fun succ_above_zero j)) (p j)) :=

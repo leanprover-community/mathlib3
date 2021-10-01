@@ -61,7 +61,7 @@ is_cyclic_of_subgroup_integral_domain (units.coe_hom R) $ units.ext
 def field_of_integral_domain [decidable_eq R] [fintype R] : field R :=
 { inv := λ a, if h : a = 0 then 0
     else fintype.bij_inv (show function.bijective (* a),
-      from fintype.injective_iff_bijective.1 $ λ _ _, mul_right_cancel' h) 1,
+      from fintype.injective_iff_bijective.1 $ λ _ _, mul_right_cancel₀ h) 1,
   mul_inv_cancel := λ a ha, show a * dite _ _ _ = _, by rw [dif_neg ha, mul_comm];
     exact fintype.right_inverse_bij_inv (show function.bijective (* a), from _) 1,
   inv_zero := dif_pos rfl,

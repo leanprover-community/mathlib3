@@ -869,7 +869,7 @@ begin
       prod_congr rfl _],
     intros x hx,
     rw [dif_pos (nat.pos_of_mem_divisors (nat.snd_mem_divisors_of_mem_antidiagonal hx)),
-      units.coe_hom_apply, units.coe_gpow', units.coe_mk0] }
+      units.coe_hom_apply, units.coe_gpow₀, units.coe_mk0] }
 end
 
 end special_functions

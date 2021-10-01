@@ -546,6 +546,15 @@ by simp
 lemma erase_ne {i i' : ι} {f : Π₀ i, β i} (h : i' ≠ i) : (f.erase i) i' = f i' :=
 by simp [h]
 
+lemma erase_eq_sub_single {β : ι → Type*} [Π i, add_group (β i)] (f : Π₀ i, β i) (i : ι) :
+  f.erase i = f - single i (f i) :=
+begin
+  ext j,
+  rcases eq_or_ne i j with rfl|h,
+  { simp },
+  { simp [erase_ne h.symm, single_eq_of_ne h] }
+end
+
 @[simp] lemma erase_zero (i : ι) : erase i (0 : Π₀ i, β i) = 0 :=
 ext $ λ _, if_t_t _ _
 
@@ -613,6 +622,31 @@ begin
   { simp },
   { simp [hi.symm] }
 end
+
+lemma update_eq_single_add_erase {β : ι → Type*} [Π i, add_zero_class (β i)] (f : Π₀ i, β i) (i : ι)
+  (b : β i) [decidable (b = 0)] :
+  f.update i b = single i b + f.erase i :=
+begin
+  ext j,
+  rcases eq_or_ne i j with rfl|h,
+  { simp },
+  { simp [function.update_noteq h.symm, h, erase_ne, h.symm] }
+end
+
+lemma update_eq_erase_add_single {β : ι → Type*} [Π i, add_zero_class (β i)] (f : Π₀ i, β i) (i : ι)
+  (b : β i) [decidable (b = 0)] :
+  f.update i b = f.erase i + single i b :=
+begin
+  ext j,
+  rcases eq_or_ne i j with rfl|h,
+  { simp },
+  { simp [function.update_noteq h.symm, h, erase_ne, h.symm] }
+end
+
+lemma update_eq_sub_add_single {β : ι → Type*} [Π i, add_group (β i)] (f : Π₀ i, β i) (i : ι)
+  (b : β i) [decidable (b = 0)] :
+  f.update i b = f - single i (f i) + single i b :=
+by rw [update_eq_erase_add_single f i b, erase_eq_sub_single f i]
 
 end update
 

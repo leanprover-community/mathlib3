@@ -25,7 +25,7 @@ We follow the proof given in https://mathoverflow.net/a/47846/7845.
 
 variables (R : Type*) [comm_ring R] [nontrivial R]
 
-open polynomial function fin nat linear_map
+open polynomial function fin linear_map
 
 instance comm_ring_strong_rank_condition : strong_rank_condition R :=
 begin
@@ -39,14 +39,13 @@ begin
     (extend_by_zero.linear_map R cast_succ).comp f,
   have hg : injective g := (extend_injective (rel_embedding.injective cast_succ) 0).comp hf,
 
-  have hnex : ¬∃ i : fin n, fin.cast_succ i = fin.last n :=
-    λ ⟨i, hi⟩, ne_of_lt (fin.cast_succ_lt_last i) hi,
+  have hnex : ¬∃ i : fin n, cast_succ i = last n := λ ⟨i, hi⟩, ne_of_lt (cast_succ_lt_last i) hi,
 
 -- Since `g` is injective, its minimal polynomial `P` has nonzero constant term `a₀`, but evaluating
 -- `P(g)` at the vector `(0,...,0,1)` gives `a₀ = 0`, a contradiction.
   let heval := minpoly.aeval R g,
   obtain ⟨P₁, hP₁⟩ := X_dvd_iff.2 (erase_same (minpoly R g) 0),
   rw [← monomial_add_erase (minpoly R g) 0, hP₁, linear_map.ext_iff] at heval,
-  replace heval := congr_fun (heval (pi.single (fin.last n) 1)) (fin.last n),
+  replace heval := congr_fun (heval (pi.single (last n) 1)) (last n),
   simpa [hnex, charpoly_coeff_zero_of_injective hg] using heval
 end

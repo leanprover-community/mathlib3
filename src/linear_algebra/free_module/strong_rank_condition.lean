@@ -41,11 +41,14 @@ begin
 
   have hnex : ¬∃ i : fin n, cast_succ i = last n := λ ⟨i, hi⟩, ne_of_lt (cast_succ_lt_last i) hi,
 
--- Since `g` is injective, its minimal polynomial `P` has nonzero constant term `a₀`, but evaluating
--- `P(g)` at the vector `(0,...,0,1)` gives `a₀ = 0`, a contradiction.
-  let heval := minpoly.aeval R g,
-  obtain ⟨P₁, hP₁⟩ := X_dvd_iff.2 (erase_same (minpoly R g) 0),
-  rw [← monomial_add_erase (minpoly R g) 0, hP₁, linear_map.ext_iff] at heval,
-  replace heval := congr_fun (heval (pi.single (last n) 1)) (last n),
-  simpa [hnex, charpoly_coeff_zero_of_injective hg] using heval
+  let a₀ := (minpoly R g).coeff 0,
+  have : a₀ ≠ 0 := charpoly_coeff_zero_of_injective hg,
+  have : a₀ = 0,
+  { -- evaluate the minimal polynomial at the vector `(0,...,0,1)`
+    have heval := linear_map.congr_fun (minpoly.aeval R g) (pi.single (fin.last n) 1),
+    obtain ⟨P, hP⟩ := X_dvd_iff.2 (erase_same (minpoly R g) 0),
+    rw [← monomial_add_erase (minpoly R g) 0, hP] at heval,
+    replace heval := congr_fun heval (fin.last n),
+    simpa [hnex] using heval },
+  contradiction,
 end

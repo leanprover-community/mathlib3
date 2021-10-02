@@ -21,23 +21,23 @@ random variables with this distribution.
 
 ## Main definitions
 
-* `measure_theory.measure.has_pdf` : A random variable `X : α → E` is said to `has_pdf` with
+* `measure_theory.has_pdf` : A random variable `X : α → E` is said to `has_pdf` with
   respect to the measure `ℙ` on `α` and `μ` on `E` if there exists a measurable function `f`
   such that the push-forward measure of `ℙ` along `X` equals `μ.with_density f`.
-* `measure_theory.measure.pdf` : If `X` is a random variable that `has_pdf X ℙ μ`, then `pdf X`
+* `measure_theory.pdf` : If `X` is a random variable that `has_pdf X ℙ μ`, then `pdf X`
   is the measurable function `f` such that the push-forward measure of `ℙ` along `X` equals
   `μ.with_density f`.
-* `measure_theory.measure.pdf.uniform` : A random variable `X` is said to follow the uniform
+* `measure_theory.pdf.uniform` : A random variable `X` is said to follow the uniform
   distribution if it has a constant probability density function with a compact, non-null support.
 
 ## Main results
 
-* `measure_theory.measure.pdf.integral_mul_eq_integral'` : Law of the unconscious statistician,
+* `measure_theory.pdf.integral_fun_mul_eq_integral` : Law of the unconscious statistician,
   i.e. if a random variable `X : α → E` has pdf `f`, then `𝔼(g(X)) = ∫ x, g x * f x dx` for
   all measurable `g : E → ℝ`.
-* `measure_theory.measure.pdf.integral_mul_eq_integral` : A real-valued random variable `X` with
+* `measure_theory.pdf.integral_mul_eq_integral` : A real-valued random variable `X` with
   pdf `f` has expectation `∫ x, x * f x dx`.
-* `measure_theory.measure.pdf.uniform.integral_eq` : If `X` follows the uniform distribution with
+* `measure_theory.pdf.uniform.integral_eq` : If `X` follows the uniform distribution with
   its pdf having support `s`, then `X` has expectation `(λ s)⁻¹ * ∫ x in s, x dx` where `λ`
   is the Lebesgue measure.
 

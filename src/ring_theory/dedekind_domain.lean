@@ -950,22 +950,18 @@ begin
     { exact this } },
 end
 
-lemma sup_prime_factor (hI : I ≠ ⊥) (p : ideal T) (hp : p ∈ factors I) (n : ℕ) :
+
+-- For `unique_factorization_monoid.lean, e.g. after `factors_pow`
+theorem factors_irreducible_pow {p : α} (hp : irreducible p) (k : ℕ) :
+  factors (p ^ k) = multiset.repeat (normalize p) k :=
+by rw [factors_pow, factors_irreducible hp, multiset.nsmul_singleton]
+
+variables {I}
+
+lemma irreducible_pow_sup (hI : I ≠ ⊥) {p : ideal T} (hp : irreducible p) (n : ℕ) :
   p^n ⊔ I = p^(min ((factors I).count p) n) :=
-begin
-  suffices H : factors (p^n) = repeat p n,
-  { rw [sup_eq_prod_inf_factors (p^n) I (pow_ne_zero n (prime_of_factor p hp).ne_zero) hI,
-    ← inf_eq_inter, H, repeat_inf, prod_repeat] },
-    suffices : (factors (p^n)).prod = (repeat p n).prod,
-    { have H₁ : associated (factors (p^n)).prod (repeat p n).prod,
-        rw this,
-      have H'' := prime_factors_unique (prime_of_factor) (by {intros x hx, rw eq_of_mem_repeat hx,
-        exact prime_of_factor p hp}) H₁,
-      rw [associated_eq_eq, multiset.rel_eq] at H'',
-      exact H'' },
-    { rw [prod_factors_eq_self, prod_repeat p n],
-      apply pow_ne_zero n (prime_of_factor p hp).ne_zero },
-end
+by rw [sup_eq_prod_inf_factors (p^n) I (pow_ne_zero n hp.ne_zero) hI, ← inf_eq_inter,
+       factors_irreducible_pow hp, normalize_eq p, repeat_inf, prod_repeat]
 
 lemma sup_dvd_of_ge (hI : I ≠ ⊥) (p : ideal T) (hp : p ∈ factors I) (n : ℕ)
   (hn : (factors I).count p ≤ n) : p^n ⊔ I = p^((factors I).count p) :=

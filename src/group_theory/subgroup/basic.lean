@@ -1162,7 +1162,7 @@ lemma mem_conjugates_of_set_iff {x : G} : x ∈ conjugates_of_set s ↔ ∃ a �
 set.mem_bUnion_iff
 
 theorem subset_conjugates_of_set : s ⊆ conjugates_of_set s :=
-λ (x : G) (h : x ∈ s), mem_conjugates_of_set_iff.2 ⟨x, h, is_conj_refl _⟩
+λ (x : G) (h : x ∈ s), mem_conjugates_of_set_iff.2 ⟨x, h, is_conj.refl _⟩
 
 theorem conjugates_of_set_mono {s t : set G} (h : s ⊆ t) :
   conjugates_of_set s ⊆ conjugates_of_set t :=
@@ -1182,7 +1182,7 @@ lemma conj_mem_conjugates_of_set {x c : G} :
 λ H,
 begin
   rcases (mem_conjugates_of_set_iff.1 H) with ⟨a,h₁,h₂⟩,
-  exact mem_conjugates_of_set_iff.2 ⟨a, h₁, is_conj_trans h₂ (is_conj_iff.2 ⟨c,rfl⟩)⟩,
+  exact mem_conjugates_of_set_iff.2 ⟨a, h₁, h₂.trans (is_conj_iff.2 ⟨c,rfl⟩)⟩,
 end
 
 end group

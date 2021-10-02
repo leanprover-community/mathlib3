@@ -250,7 +250,7 @@ begin
       { rw is_conj_iff,
         use σ'⁻¹,
         simp [mul_assoc] },
-      refine is_conj_trans _ key,
+      refine is_conj.trans _ key,
       have hs : σ.cycle_type = σ'.cycle_type,
       { rw [←finset.mem_def, mem_cycle_factors_finset_iff] at hσ'l,
         rw [hσ.cycle_type, ←hσ', hσ'l.left.cycle_type] },

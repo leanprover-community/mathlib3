@@ -192,7 +192,7 @@ theorem trans_apply (e₁ : M ≃* N) (e₂ : N ≃* P) (m : M) : e₁.trans e�
 
 @[simp, to_additive] theorem symm_trans_apply (e₁ : M ≃* N) (e₂ : N ≃* P) (p : P) :
   (e₁.trans e₂).symm p = e₁.symm (e₂.symm p) := rfl
-  
+
 @[simp, to_additive] theorem apply_eq_iff_eq (e : M ≃* N) {x y : M} : e x = e y ↔ x = y :=
 e.injective.eq_iff
 
@@ -551,7 +551,7 @@ variables [group_with_zero G]
 /-- Left multiplication by a nonzero element in a `group_with_zero` is a permutation of the
 underlying type. -/
 @[simps {fully_applied := ff}]
-protected def mul_left' (a : G) (ha : a ≠ 0) : perm G :=
+protected def mul_left₀ (a : G) (ha : a ≠ 0) : perm G :=
 { to_fun := λ x, a * x,
   inv_fun := λ x, a⁻¹ * x,
   left_inv := λ x, by { dsimp, rw [← mul_assoc, inv_mul_cancel ha, one_mul] },
@@ -560,7 +560,7 @@ protected def mul_left' (a : G) (ha : a ≠ 0) : perm G :=
 /-- Right multiplication by a nonzero element in a `group_with_zero` is a permutation of the
 underlying type. -/
 @[simps {fully_applied := ff}]
-protected def mul_right' (a : G) (ha : a ≠ 0) : perm G :=
+protected def mul_right₀ (a : G) (ha : a ≠ 0) : perm G :=
 { to_fun := λ x, x * a,
   inv_fun := λ x, x * a⁻¹,
   left_inv := λ x, by { dsimp, rw [mul_assoc, mul_inv_cancel ha, mul_one] },

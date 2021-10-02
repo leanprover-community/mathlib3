@@ -112,7 +112,7 @@ begin
   let M := ∥f∥,
   let f' := attach_bound (f : C(X, ℝ)),
   let abs : C(set.Icc (-∥f∥) (∥f∥), ℝ) :=
-  { to_fun := λ x : set.Icc (-∥f∥) (∥f∥), _root_.abs (x : ℝ) },
+  { to_fun := λ x : set.Icc (-∥f∥) (∥f∥), |(x : ℝ)| },
   change (abs.comp f') ∈ A.topological_closure,
   apply comp_attach_bound_mem_closure,
 end

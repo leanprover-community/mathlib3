@@ -125,7 +125,7 @@ rfl
 
 variables {R S A B}
 
-@[simp, priority 900] lemma _root_.alg_hom.commutes_of_tower (f : A →ₐ[S] B) (r : R) :
+@[simp, priority 900] lemma _root_.alg_hom.map_algebra_map (f : A →ₐ[S] B) (r : R) :
   f (algebra_map R A r) = algebra_map R B r :=
 by rw [algebra_map_apply R S A r, f.commutes, ← algebra_map_apply R S B]
 
@@ -133,7 +133,7 @@ variables (R)
 
 @[simp, priority 900] lemma _root_.alg_hom.comp_algebra_map_of_tower (f : A →ₐ[S] B) :
   (f : A →+* B).comp (algebra_map R A) = algebra_map R B :=
-ring_hom.ext f.commutes_of_tower
+ring_hom.ext f.map_algebra_map
 
 variables (R) {S A B}
 

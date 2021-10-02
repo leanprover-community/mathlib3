@@ -188,7 +188,7 @@ begin
   rw [←C_eq_coe_nat],
   simp only [←ring_hom.map_pow, ←C_mul],
   rw C_inj,
-  simp only [inv_of_eq_inv, ring_hom.eq_int_cast, inv_pow', int.cast_coe_nat, nat.cast_mul],
+  simp only [inv_of_eq_inv, ring_hom.eq_int_cast, inv_pow₀, int.cast_coe_nat, nat.cast_mul],
   rw [rat.coe_nat_div _ _ (map_frobenius_poly.key₁ p (n - i) j hj)],
   simp only [nat.cast_pow, pow_add, pow_one],
   suffices : ((p ^ (n - i)).choose (j + 1) * p ^ (j - v p ⟨j + 1, j.succ_pos⟩) * p * p ^ n : ℚ) =

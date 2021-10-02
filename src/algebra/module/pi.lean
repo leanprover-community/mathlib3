@@ -154,12 +154,12 @@ single_op (λ i : I, ((•) r : f i → f i)) (λ j, smul_zero _) _ _
 
 /-- A version of `pi.single_smul` for non-dependent functions. It is useful in cases Lean fails
 to apply `pi.single_smul`. -/
-lemma single_smul'' {α β} [monoid α] [add_monoid β]
+lemma single_smul' {α β} [monoid α] [add_monoid β]
   [distrib_mul_action α β] [decidable_eq I] (i : I) (r : α) (x : β) :
   single i (r • x) = r • single i x :=
 single_smul i r x
 
-lemma single_smul' {g : I → Type*} [Π i, monoid_with_zero (f i)] [Π i, add_monoid (g i)]
+lemma single_smul₀ {g : I → Type*} [Π i, monoid_with_zero (f i)] [Π i, add_monoid (g i)]
   [Π i, distrib_mul_action (f i) (g i)] [decidable_eq I] (i : I) (r : f i) (x : g i) :
   single i (r • x) = single i r • single i x :=
 single_op₂ (λ i : I, ((•) : f i → g i → g i)) (λ j, smul_zero _) _ _ _

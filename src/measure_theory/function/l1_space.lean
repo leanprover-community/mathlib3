@@ -344,7 +344,7 @@ hf.mono $ eventually_of_forall $ λ x, by simp [real.norm_eq_abs, abs_le, abs_no
 lemma has_finite_integral.min_zero {f : α → ℝ} (hf : has_finite_integral f μ) :
   has_finite_integral (λa, min (f a) 0) μ :=
 hf.mono $ eventually_of_forall $ λ x,
-  by simp [real.norm_eq_abs, abs_le, abs_nonneg, neg_le, neg_le_abs_self]
+  by simp [real.norm_eq_abs, abs_le, abs_nonneg, neg_le, neg_le_abs_self, abs_eq_max_neg, le_total]
 
 end pos_part
 
@@ -570,45 +570,37 @@ begin
   simp [real.norm_eq_abs, ennreal.of_real_le_of_real, abs_le, abs_nonneg, le_abs_self],
 end
 
-lemma ennreal.of_real_to_real_ae_eq {f : α → ℝ≥0∞} (hflt : ∀ᵐ x ∂μ, f x < ∞) :
+lemma of_real_to_real_ae_eq {f : α → ℝ≥0∞} (hf : ∀ᵐ x ∂μ, f x < ∞) :
   (λ x, ennreal.of_real (f x).to_real) =ᵐ[μ] f :=
 begin
-  have : ∀ x, ennreal.of_real (f x).to_real ≠ f x ↔ f x = ∞,
-  { intro x,
-    split; intro h,
-    { by_contra htop,
-      rw [← ne.def, ← lt_top_iff_ne_top] at htop,
-      exact h (ennreal.of_real_to_real htop.ne) },
-    { rw h, simp } },
-  change μ {x | ennreal.of_real (f x).to_real ≠ f x} = 0,
-  simp_rw this,
-  suffices hne : ∀ᵐ x ∂μ, f x ≠ ∞,
-  { simp_rw [ae_iff, not_not] at hne, exact hne },
-  simp_rw [← lt_top_iff_ne_top],
-  exact hflt
+  rw ae_iff at hf,
+  rw [filter.eventually_eq, ae_iff],
+  have : {x | ¬ ennreal.of_real (f x).to_real = f x} = {x | f x = ∞},
+  { ext x,
+    simp only [ne.def, set.mem_set_of_eq],
+    split; intro hx,
+    { by_contra hntop,
+      exact hx (ennreal.of_real_to_real hntop) },
+    { rw hx, simp } },
+  rw this,
+  simpa using hf,
 end
 
-lemma integrable.with_density_iff {f : α → ℝ≥0∞} (hf : measurable f)
+lemma integrable_with_density_iff {f : α → ℝ≥0∞} (hf : measurable f)
   (hflt : ∀ᵐ x ∂μ, f x < ∞) {g : α → ℝ} (hg : measurable g) :
   integrable g (μ.with_density f) ↔ integrable (λ x, g x * (f x).to_real) μ :=
 begin
-  have : (λ x, (f * λ x, ↑∥g x∥₊) x) =ᵐ[μ] (λ x, ∥g x * (f x).to_real∥₊),
-    { simp_rw [← smul_eq_mul, nnnorm_smul, ennreal.coe_mul],
-      rw [smul_eq_mul, mul_comm],
-      refine filter.eventually_eq.mul (ae_eq_refl _)
-        (ae_eq_trans (ennreal.of_real_to_real_ae_eq hflt).symm _),
-      convert ae_eq_refl _,
-      ext1 x,
-      exact real.ennnorm_eq_of_real ennreal.to_real_nonneg },
-  split; intro hi,
-  { refine ⟨hg.ae_measurable.mul hf.ae_measurable.ennreal_to_real, _⟩,
-    rw [has_finite_integral, lintegral_congr_ae this.symm,
-        ← lintegral_with_density_eq_lintegral_mul _ hf hg.nnnorm.coe_nnreal_ennreal],
-    exact hi.2 },
-  { refine ⟨hg.ae_measurable, _⟩,
-    rw [has_finite_integral, lintegral_with_density_eq_lintegral_mul _
-          hf hg.nnnorm.coe_nnreal_ennreal, lintegral_congr_ae this],
-    exact hi.2 }
+  simp only [integrable, has_finite_integral, hg.ae_measurable.mul hf.ae_measurable.ennreal_to_real,
+    hg.ae_measurable, true_and, coe_mul, normed_field.nnnorm_mul],
+  suffices h_int_eq : ∫⁻ a, ∥g a∥₊ ∂μ.with_density f = ∫⁻ a, ∥g a∥₊ * ∥(f a).to_real∥₊ ∂μ,
+    by rw h_int_eq,
+  rw lintegral_with_density_eq_lintegral_mul _ hf hg.nnnorm.coe_nnreal_ennreal,
+  refine lintegral_congr_ae _,
+  rw mul_comm,
+  refine filter.eventually_eq.mul (ae_eq_refl _) ((of_real_to_real_ae_eq hflt).symm.trans _),
+  convert ae_eq_refl _,
+  ext1 x,
+  exact real.ennnorm_eq_of_real ennreal.to_real_nonneg,
 end
 
 lemma mem_ℒ1_to_real_of_lintegral_ne_top
@@ -645,7 +637,7 @@ lemma integrable.smul [borel_space β] (c : 𝕜) {f : α → β}
 
 lemma integrable_smul_iff [borel_space β] {c : 𝕜} (hc : c ≠ 0) (f : α → β) :
   integrable (c • f) μ ↔ integrable f μ :=
-and_congr (ae_measurable_const_smul_iff' hc) (has_finite_integral_smul_iff hc f)
+and_congr (ae_measurable_const_smul_iff₀ hc) (has_finite_integral_smul_iff hc f)
 
 lemma integrable.const_mul {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
   integrable (λ x, c * f x) μ :=

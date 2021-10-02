@@ -3,7 +3,7 @@ Copyright (c) 2021 Ashvni Narayanan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ashvni Narayanan
 -/
-
+import data.nat.choose.cast
 import number_theory.bernoulli
 
 /-!
@@ -171,7 +171,7 @@ begin
   -- finally cancel the Bernoulli polynomial and the algebra_map
   congr',
   apply congr_arg,
-  rw [mul_assoc, div_eq_mul_inv, ← mul_inv'],
+  rw [mul_assoc, div_eq_mul_inv, ← mul_inv₀],
 end
 
 end bernoulli_poly

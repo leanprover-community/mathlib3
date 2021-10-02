@@ -74,8 +74,7 @@ variable [partial_order α]
 /-- The identity function as a closure operator. -/
 @[simps]
 def id : closure_operator α :=
-{ to_fun := λ x, x,
-  monotone' := λ _ _ h, h,
+{ to_preorder_hom := preorder_hom.id,
   le_closure' := λ _, le_rfl,
   idempotent' := λ _, rfl }
 

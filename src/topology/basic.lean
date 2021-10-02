@@ -270,6 +270,19 @@ subset.antisymm
   (interior_maximal (inter_subset_inter interior_subset interior_subset) $
     is_open.inter is_open_interior is_open_interior)
 
+@[simp] lemma finset.interior_Inter {ι : Type*} (s : finset ι) (f : ι → set α) :
+  interior (⋂ i ∈ s, f i) = ⋂ i ∈ s, interior (f i) :=
+begin
+  classical,
+  refine s.induction_on (by simp) _,
+  intros i s h₁ h₂,
+  simp [h₂],
+end
+
+@[simp] lemma interior_Inter_of_fintype {ι : Type*} [fintype ι] (f : ι → set α) :
+  interior (⋂ i, f i) = ⋂ i, interior (f i) :=
+by { convert finset.univ.interior_Inter f; simp, }
+
 lemma interior_union_is_closed_of_interior_empty {s t : set α} (h₁ : is_closed s)
   (h₂ : interior t = ∅) :
   interior (s ∪ t) = interior s :=
@@ -361,6 +374,19 @@ subset.antisymm
   (closure_minimal (union_subset_union subset_closure subset_closure) $
     is_closed.union is_closed_closure is_closed_closure)
   ((monotone_closure α).le_map_sup s t)
+
+@[simp] lemma finset.closure_Union {ι : Type*} (s : finset ι) (f : ι → set α) :
+  closure (⋃ i ∈ s, f i) = ⋃ i ∈ s, closure (f i) :=
+begin
+  classical,
+  refine s.induction_on (by simp) _,
+  intros i s h₁ h₂,
+  simp [h₂],
+end
+
+@[simp] lemma closure_Union_of_fintype {ι : Type*} [fintype ι] (f : ι → set α) :
+  closure (⋃ i, f i) = ⋃ i, closure (f i) :=
+by { convert finset.univ.closure_Union f; simp, }
 
 lemma interior_subset_closure {s : set α} : interior s ⊆ closure s :=
 subset.trans interior_subset subset_closure

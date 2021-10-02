@@ -706,7 +706,7 @@ by rw [div_eq_inv_mul, div_eq_inv_mul, real.to_nnreal_mul (inv_nonneg.2 hy), rea
 
 end inv
 
-@[simp] lemma abs_eq (x : ℝ≥0) : abs (x : ℝ) = x :=
+@[simp] lemma abs_eq (x : ℝ≥0) : |(x : ℝ)| = x :=
 abs_of_nonneg x.property
 
 end nnreal
@@ -715,18 +715,18 @@ namespace real
 
 /-- The absolute value on `ℝ` as a map to `ℝ≥0`. -/
 @[pp_nodot] def nnabs : monoid_with_zero_hom ℝ ℝ≥0 :=
-{ to_fun := λ x, ⟨abs x, abs_nonneg x⟩,
+{ to_fun := λ x, ⟨|x|, abs_nonneg x⟩,
   map_zero' := by { ext, simp },
   map_one' := by { ext, simp },
   map_mul' := λ x y, by { ext, simp [abs_mul] } }
 
-@[norm_cast, simp] lemma coe_nnabs (x : ℝ) : (nnabs x : ℝ) = abs x :=
+@[norm_cast, simp] lemma coe_nnabs (x : ℝ) : (nnabs x : ℝ) = |x| :=
 by simp [nnabs]
 
 @[simp] lemma nnabs_of_nonneg {x : ℝ} (h : 0 ≤ x) : nnabs x = to_nnreal x :=
 by { ext, simp [coe_to_nnreal x h, abs_of_nonneg h] }
 
-lemma coe_to_nnreal_le (x : ℝ) : (to_nnreal x : ℝ) ≤ abs x :=
+lemma coe_to_nnreal_le (x : ℝ) : (to_nnreal x : ℝ) ≤ |x| :=
 max_le (le_abs_self _) (abs_nonneg _)
 
 lemma cast_nat_abs_eq_nnabs_cast (n : ℤ) :

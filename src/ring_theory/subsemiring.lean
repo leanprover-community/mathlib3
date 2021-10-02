@@ -843,4 +843,4 @@ def pos_submonoid (R : Type*) [ordered_semiring R] [nontrivial R] : submonoid R 
   mul_mem' := λ x y (hx : 0 < x) (hy : 0 < y), mul_pos hx hy }
 
 @[simp] lemma mem_pos_monoid {R : Type*} [ordered_semiring R] [nontrivial R] (u : units R) :
-  u.1 ∈  pos_submonoid R ↔  (0 : R) < u := iff.rfl
+  u.1 ∈ pos_submonoid R ↔ (0 : R) < u := iff.rfl

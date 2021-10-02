@@ -159,6 +159,20 @@ iff.trans (by rw one_mul) (mul_le_mul_iff_right b)
 
 end has_le
 
+lemma exists_square_le {α : Type*} [mul_one_class α] [linear_order α] [covariant_class α α (*) (<)]
+  (a : α) : ∃ (b : α), b * b ≤ a :=
+begin
+  by_cases h : a < 1,
+  { use a,
+    have : a*a < a*1,
+    exact mul_lt_mul_left' h a,
+    rw mul_one at this,
+    exact le_of_lt this },
+  { use 1,
+    push_neg at h,
+    rwa mul_one }
+end
+
 section has_lt
 variable [has_lt α]
 

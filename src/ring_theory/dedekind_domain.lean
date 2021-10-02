@@ -995,60 +995,90 @@ def shifted_seq_pow_constant {R : Type u_1} [comm_ring R] (I : ideal R) (p : ide
   λ n, ∀ m : ℕ, n ≤ m → (map I^.quotient.mk p)^n = (map I^.quotient.mk p)^m
 
 /--The sequence of powers `(p')^m` is eventually constant, where `p'` is the image of `p` in `R/I`-/
-lemma seq_pow_eventually_constant (hI : I ≠ ⊥) (p : ideal T) (Hp : p ∈ factors I) (n : ℕ)
- (hn : (unique_factorization_monoid.factors I).count p ≤ n):
-  (map I^.quotient.mk p)^n = (map I^.quotient.mk p)^((factors I).count p) :=
+lemma pow_map_eq_of_exponent_ge (hI : I ≠ ⊥) {p : ideal T} (hp : irreducible p) (n : ℕ)
+  (hn : multiplicity p I ≤ n) :
+  (map I^.quotient.mk p)^n =
+    (map I^.quotient.mk p)^((multiplicity p I).get (enat.dom_of_le_coe hn)) :=
 begin
   rw [← map_pow, ← map_pow],
-  have H : map I^.quotient.mk ((p^n)) = map I^.quotient.mk (p^n ⊔ I),
+  have H : map I^.quotient.mk (p^n) = map I^.quotient.mk (p^n ⊔ I),
   { rw [map_sup, map_mk_eq_bot_of_le (le_refl I), sup_bot_eq] },
-  rw sup_dvd_of_ge I hI p Hp n hn at H,
+  rw irreducible_pow_sup_of_le hI hp n hn at H,
   exact H,
 end
 
-lemma pow_map_gt_of_exponent_lt (hI : I ≠ ⊥) (p : ideal T) (Hp : p ∈ factors I) (n : ℕ)
-  (hn : n < (factors I).count p) :
-  (map I^.quotient.mk p)^(factors I).count p < (map I^.quotient.mk p)^n :=
+-- Can go to `ideal/operations.lean`, probably somewhere after `comap_map_of_surjective`.
+lemma ideal.map_strict_mono_of_surjective {R S : Type*} [ring R] [ring S]
+  (f : R →+* S) (hf : function.surjective f) {I J : ideal R}
+  (hI : f.ker ≤ I) (hJ : f.ker ≤ J) (h : I < J) :
+  map f I < map f J :=
+lt_of_le_of_ne (map_mono h.le) (λ hIJ, h.ne $ calc
+  I = I ⊔ comap f ⊥ : by rw [← f.ker_eq_comap_bot, sup_eq_left.mpr hI]
+    ... = comap f (map f I) : (comap_map_of_surjective f hf I).symm
+    ... = comap f (map f J) : by rw hIJ
+    ... = J ⊔ comap f ⊥ : comap_map_of_surjective f hf J
+    ... = J : by rw [← f.ker_eq_comap_bot, sup_eq_left.mpr hJ] )
+
+lemma pow_map_mk_lt' (hI : I ≠ ⊥) {p : ideal T} (hp : irreducible p) {k n : ℕ}
+  (hlt : n < k) (hle : ↑k ≤ multiplicity p I) :
+  (map I^.quotient.mk p)^k < (map I^.quotient.mk p)^n :=
 begin
-  suffices H : p^(factors I).count p < p^n,
-  { have H₁ : (map I^.quotient.mk p)^(factors I).count p = (map I^.quotient.mk p)^n *
-    (map I^.quotient.mk p)^((factors I).count p - n),
-    { by rw [← pow_add, nat.add_sub_cancel' (le_of_lt hn)] },
-    apply lt_of_le_of_ne (le_of_dvd ⟨(map I^.quotient.mk p)^((factors I).count p - n), H₁⟩),
-    by_contra hcontra,
-    { rw [ne.def, not_not] at hcontra,
-      apply_fun (comap I^.quotient.mk) at hcontra,
-      rw [← map_pow, ← map_pow, comap_map_of_surjective I^.quotient.mk quotient.mk_surjective,
-        comap_map_of_surjective I^.quotient.mk quotient.mk_surjective, ← ring_hom.ker_eq_comap_bot,
-        mk_ker, sup_dvd_of_ge I hI p Hp ((factors I).count p) (le_refl ((factors I).count p)),
-        sup_dvd_of_lt I hI Hp n hn] at hcontra,
-      rw hcontra at H,
-      exact false_of_ne (ne_of_lt H) } },
-  have H' : p^(factors I).count p = p^n * p^((factors I).count p - n) :=
-    by rw [← pow_add, nat.add_sub_cancel' (le_of_lt hn)],
+  rw [← ideal.map_pow, ← ideal.map_pow],
+  refine ideal.map_strict_mono_of_surjective _ quotient.mk_surjective _ _ _;
+    try { rw mk_ker, apply le_of_dvd, apply multiplicity.pow_dvd_of_le_multiplicity },
+  { assumption }, { exact ((enat.coe_lt_coe.mpr hlt).trans_le hle).le },
   rw ← ideal.dvd_not_unit_iff_lt,
   split,
-  { exact pow_ne_zero n (prime_of_factor p Hp).ne_zero },
-  { exact ⟨p^((factors I).count p - n),
-      not_is_unit_of_not_is_unit_dvd (prime_of_factor p Hp).not_unit
-      (dvd_pow (dvd_refl p) (ne_of_gt (sub_pos_iff_lt.mpr hn))), H'⟩ }
+  { exact pow_ne_zero n hp.ne_zero },
+  { refine ⟨ p^(k - n), not_unit_of_not_unit_dvd hp.not_unit
+      (dvd_pow (dvd_refl p) (ne_of_gt (sub_pos_iff_lt.mpr hlt))), _⟩,
+    rw [← pow_add, nat.add_sub_cancel' hlt.le] }
 end
 
-lemma shifted_seq_pow_constant_iff_ge_count (hI : I ≠ ⊥) (p: ideal T) (hp : p ∈ factors I) (n : ℕ):
-  shifted_seq_pow_constant I p n ↔ (factors I).count p ≤ n :=
+lemma pow_map_mk_lt (hI : I ≠ ⊥) {p : ideal T} (hp : irreducible p) {k n : ℕ}
+  (hlt : n < k) (hn : ↑n < multiplicity p I) :
+  (map I^.quotient.mk p)^k < (map I^.quotient.mk p)^n :=
+begin
+  cases le_total ↑k (multiplicity p I) with hk hk,
+  { exact pow_map_mk_lt' hI hp hlt hk },
+  { rw pow_map_eq_of_exponent_ge hI hp _ hk,
+    refine pow_map_mk_lt' hI hp (enat.coe_lt_coe.mp _) (le_of_eq _);
+      rwa enat.coe_get },
+end
+
+-- For somewhere near the start of `unique_factorization_domain.lean`
+lemma multiplicity.finite_prime_left {R : Type*} [comm_cancel_monoid_with_zero R]
+  [wf_dvd_monoid R] {a b : R} (ha : prime a) (hb : b ≠ 0) :
+  multiplicity.finite a b :=
+begin
+  revert hb,
+  refine wf_dvd_monoid.induction_on_irreducible b _ _ _,
+  { contradiction },
+  { intros u hu hu',
+    rw [multiplicity.finite_iff_dom, multiplicity.is_unit_right ha.not_unit hu],
+    exact enat.dom_coe 0 },
+  { intros b p hb hp ih hpb,
+    refine multiplicity.finite_mul ha
+      (multiplicity.finite_iff_dom.mpr (enat.dom_of_le_coe (show multiplicity a p ≤ ↑1, from _)))
+      (ih hb),
+    norm_cast,
+    exact (((multiplicity.squarefree_iff_multiplicity_le_one p).mp hp.squarefree a)
+      .resolve_right ha.not_unit) }
+end
+
+lemma pow_map_mk_constant_iff_multiplicity_le (hI : I ≠ ⊥) {p : ideal T} (hp : irreducible p)
+  {n : ℕ} : (∀ m, n ≤ m → (map I^.quotient.mk p)^n = (map I^.quotient.mk p)^m) ↔
+    multiplicity p I ≤ n :=
 begin
   split,
-  { intro H,
-    by_contradiction hc,
-    have H₄ := pow_map_gt_of_exponent_lt I hI p hp n (not_le.1 hc),
-    rw (H ((factors I).count p) (le_of_lt (not_le.1 hc))).symm at H₄,
-    apply false_of_ne,
-    exact ne_of_lt H₄ },
-  { rw shifted_seq_pow_constant,
-    intro hn,
-    intros m hm,
-    rw [seq_pow_eventually_constant I hI p hp n hn,
-    seq_pow_eventually_constant I hI p hp m (le_trans hn hm)] }
+  { contrapose!, intro H,
+    have := multiplicity.finite_prime_left (irreducible_iff_prime.mp hp) hI,
+    have H' : n < (multiplicity p I).get this,
+    { simpa only [← enat.coe_lt_coe, enat.coe_get] using H },
+    exact ⟨(multiplicity p I).get this, H'.le, (pow_map_mk_lt hI hp H' H).ne'⟩ },
+  { intros hn m hm,
+    rw [pow_map_eq_of_exponent_ge hI hp n hn, pow_map_eq_of_exponent_ge hI hp m],
+    exact hn.trans (enat.coe_le_coe.mpr hm) }
 end
 
 lemma seq_pow_eventually_constant' (hI : I ≠ ⊥) (p : ideal T) (hp : p ∈ factors I) :

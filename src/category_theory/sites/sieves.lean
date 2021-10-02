@@ -451,8 +451,8 @@ end
 /--
 If `R` is a sieve, then the `category_theory.presieve.functor_pullback` of `R` is actually a sieve.
 -/
-def functor_pullback {X : C} (R : sieve (F.obj X)) : sieve X := {
-  arrows := presieve.functor_pullback F R,
+def functor_pullback {X : C} (R : sieve (F.obj X)) : sieve X :=
+{ arrows := presieve.functor_pullback F R,
   downward_closed' := λ _ _ f hf g,
   begin
     unfold presieve.functor_pullback,

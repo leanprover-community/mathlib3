@@ -48,7 +48,7 @@ def lsmul : A →ₐ[R] module.End R M :=
 
 lemma lmul_algebra_map (x : R) :
   lmul R A (algebra_map R A x) = algebra.lsmul R A x :=
-eq.symm $ linear_map.ext $ smul_def'' x
+eq.symm $ linear_map.ext $ smul_def x
 
 end algebra
 

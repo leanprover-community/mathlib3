@@ -116,7 +116,7 @@ section semiring
 variables [comm_semiring R] [comm_semiring S]
 variables [semiring A] [algebra R A] [semiring B] [algebra R B]
 
-lemma smul_def'' (r : R) (x : A) : r • x = algebra_map R A r * x :=
+lemma smul_def (r : R) (x : A) : r • x = algebra_map R A r * x :=
 algebra.smul_def' r x
 
 /--
@@ -134,7 +134,7 @@ begin
   congr,
   { funext r a,
     replace w := congr_arg (λ s, s * a) (w r),
-    simp only [←algebra.smul_def''] at w,
+    simp only [←algebra.smul_def] at w,
     apply w, },
   { ext r,
     exact w r, },
@@ -144,18 +144,15 @@ end
 
 @[priority 200] -- see Note [lower instance priority]
 instance to_module : module R A :=
-{ one_smul := by simp [smul_def''],
-  mul_smul := by simp [smul_def'', mul_assoc],
-  smul_add := by simp [smul_def'', mul_add],
-  smul_zero := by simp [smul_def''],
-  add_smul := by simp [smul_def'', add_mul],
-  zero_smul := by simp [smul_def''] }
+{ one_smul := by simp [smul_def],
+  mul_smul := by simp [smul_def, mul_assoc],
+  smul_add := by simp [smul_def, mul_add],
+  smul_zero := by simp [smul_def],
+  add_smul := by simp [smul_def, add_mul],
+  zero_smul := by simp [smul_def] }
 
 -- from now on, we don't want to use the following instance anymore
 attribute [instance, priority 0] algebra.to_has_scalar
-
-lemma smul_def (r : R) (x : A) : r • x = algebra_map R A r * x :=
-algebra.smul_def' r x
 
 lemma algebra_map_eq_smul_one (r : R) : algebra_map R A r = r • 1 :=
 calc algebra_map R A r = algebra_map R A r * 1 : (mul_one _).symm
@@ -943,7 +940,7 @@ noncomputable def of_bijective (f : A₁ →ₐ[R] A₂) (hf : function.bijectiv
 /-- Forgetting the multiplicative structures, an equivalence of algebras is a linear equivalence. -/
 @[simps apply] def to_linear_equiv (e : A₁ ≃ₐ[R] A₂) : A₁ ≃ₗ[R] A₂ :=
 { to_fun    := e,
-  map_smul' := λ r x, by simp [algebra.smul_def''],
+  map_smul' := λ r x, by simp [algebra.smul_def],
   inv_fun   := e.symm,
   .. e }
 
@@ -1283,7 +1280,7 @@ instance algebra {r : comm_semiring R}
   [s : ∀ i, semiring (f i)] [∀ i, algebra R (f i)] :
   algebra R (Π i : I, f i) :=
 { commutes' := λ a f, begin ext, simp [algebra.commutes], end,
-  smul_def' := λ a f, begin ext, simp [algebra.smul_def''], end,
+  smul_def' := λ a f, begin ext, simp [algebra.smul_def], end,
   ..(pi.ring_hom (λ i, algebra_map R (f i)) : R →+* Π i : I, f i) }
 
 @[simp] lemma algebra_map_apply {r : comm_semiring R}

@@ -157,29 +157,32 @@ end closure
 definition, although in applications `M` and `M₂` will be topological modules over the topological
 ring `R`. -/
 structure continuous_linear_map
-  (R : Type*) [semiring R]
+  {R : Type*} {S : Type*} [semiring R] [semiring S] (σ : R →+* S)
   (M : Type*) [topological_space M] [add_comm_monoid M]
   (M₂ : Type*) [topological_space M₂] [add_comm_monoid M₂]
-  [module R M] [module R M₂]
-  extends M →ₗ[R] M₂ :=
+  [module R M] [module S M₂]
+  extends M →ₛₗ[σ] M₂ :=
 (cont : continuous to_fun . tactic.interactive.continuity')
 
-notation M ` →L[`:25 R `] ` M₂ := continuous_linear_map R M M₂
+notation M ` →SL[`:25 σ `] ` M₂ := continuous_linear_map σ M M₂
+notation M ` →L[`:25 R `] ` M₂ := continuous_linear_map (ring_hom.id R) M M₂
 
 /-- Continuous linear equivalences between modules. We only put the type classes that are necessary
 for the definition, although in applications `M` and `M₂` will be topological modules over the
 topological ring `R`. -/
 @[nolint has_inhabited_instance]
 structure continuous_linear_equiv
-  (R : Type*) [semiring R]
+  {R : Type*} {S : Type*} [semiring R] [semiring S] (σ : R →+* S)
+  {σ' : S →+* R} [ring_hom_inv_pair σ σ'] [ring_hom_inv_pair σ' σ]
   (M : Type*) [topological_space M] [add_comm_monoid M]
   (M₂ : Type*) [topological_space M₂] [add_comm_monoid M₂]
-  [module R M] [module R M₂]
-  extends M ≃ₗ[R] M₂ :=
+  [module R M] [module S M₂]
+  extends M ≃ₛₗ[σ] M₂ :=
 (continuous_to_fun  : continuous to_fun . tactic.interactive.continuity')
 (continuous_inv_fun : continuous inv_fun . tactic.interactive.continuity')
 
-notation M ` ≃L[`:50 R `] ` M₂ := continuous_linear_equiv R M M₂
+notation M ` ≃SL[`:50 σ `] ` M₂ := continuous_linear_equiv σ M M₂
+notation M ` ≃L[`:50 R `] ` M₂ := continuous_linear_equiv (ring_hom.id R) M M₂
 
 namespace continuous_linear_map
 
@@ -189,51 +192,54 @@ section semiring
 -/
 
 variables
-{R : Type*} [semiring R]
-{M : Type*} [topological_space M] [add_comm_monoid M]
+{R₁ : Type*} [semiring R₁]
+{R₂ : Type*} [semiring R₂]
+{R₃ : Type*} [semiring R₃]
+{σ₁₂ : R₁ →+* R₂} {σ₂₃ : R₂ →+* R₃}
+{M₁ : Type*} [topological_space M₁] [add_comm_monoid M₁]
 {M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂]
 {M₃ : Type*} [topological_space M₃] [add_comm_monoid M₃]
 {M₄ : Type*} [topological_space M₄] [add_comm_monoid M₄]
-[module R M] [module R M₂] [module R M₃] [module R M₄]
+[module R₁ M₁] [module R₂ M₂] [module R₃ M₃] --[module R M₄]
 
 /-- Coerce continuous linear maps to linear maps. -/
-instance : has_coe (M →L[R] M₂) (M →ₗ[R] M₂) := ⟨to_linear_map⟩
+instance : has_coe (M₁ →SL[σ₁₂] M₂) (M₁ →ₛₗ[σ₁₂] M₂) := ⟨to_linear_map⟩
 
 -- make the coercion the preferred form
-@[simp] lemma to_linear_map_eq_coe (f : M →L[R] M₂) : f.to_linear_map = f := rfl
+@[simp] lemma to_linear_map_eq_coe (f : M₁ →SL[σ₁₂] M₂) : f.to_linear_map = f := rfl
 
 /-- Coerce continuous linear maps to functions. -/
 -- see Note [function coercion]
-instance to_fun : has_coe_to_fun $ M →L[R] M₂ := ⟨λ _, M → M₂, λ f, f⟩
+instance to_fun : has_coe_to_fun $ M₁ →SL[σ₁₂] M₂ := ⟨λ _, M₁ → M₂, λ f, f⟩
 
-@[simp] lemma coe_mk (f : M →ₗ[R] M₂) (h) : (mk f h : M →ₗ[R] M₂) = f := rfl
-@[simp] lemma coe_mk' (f : M →ₗ[R] M₂) (h) : (mk f h : M → M₂) = f := rfl
+@[simp] lemma coe_mk (f : M₁ →ₛₗ[σ₁₂] M₂) (h) : (mk f h : M₁ →ₛₗ[σ₁₂] M₂) = f := rfl
+@[simp] lemma coe_mk' (f : M₁ →ₛₗ[σ₁₂] M₂) (h) : (mk f h : M₁ → M₂) = f := rfl
 
 @[continuity]
-protected lemma continuous (f : M →L[R] M₂) : continuous f := f.2
+protected lemma continuous (f : M₁ →SL[σ₁₂] M₂) : continuous f := f.2
 
-theorem coe_injective : function.injective (coe : (M →L[R] M₂) → (M →ₗ[R] M₂)) :=
+theorem coe_injective : function.injective (coe : (M₁ →SL[σ₁₂] M₂) → (M₁ →ₛₗ[σ₁₂] M₂)) :=
 by { intros f g H, cases f, cases g, congr' }
 
-@[simp, norm_cast] lemma coe_inj {f g : M →L[R] M₂} :
-  (f : M →ₗ[R] M₂) = g ↔ f = g :=
+@[simp, norm_cast] lemma coe_inj {f g : M₁ →SL[σ₁₂] M₂} :
+  (f : M₁ →ₛₗ[σ₁₂] M₂) = g ↔ f = g :=
 coe_injective.eq_iff
 
-theorem coe_fn_injective : @function.injective (M →L[R] M₂) (M → M₂) coe_fn :=
+theorem coe_fn_injective : @function.injective (M₁ →SL[σ₁₂] M₂) (M₁ → M₂) coe_fn :=
 linear_map.coe_injective.comp coe_injective
 
-@[ext] theorem ext {f g : M →L[R] M₂} (h : ∀ x, f x = g x) : f = g :=
+@[ext] theorem ext {f g : M₁ →SL[σ₁₂] M₂} (h : ∀ x, f x = g x) : f = g :=
 coe_fn_injective $ funext h
 
-theorem ext_iff {f g : M →L[R] M₂} : f = g ↔ ∀ x, f x = g x :=
+theorem ext_iff {f g : M₁ →SL[σ₁₂] M₂} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, by rw h, by ext⟩
 
-variables (f g : M →L[R] M₂) (c : R) (h : M₂ →L[R] M₃) (x y z : M)
+variables (f g : M₁ →SL[σ₁₂] M₂) (c : R₁) (h : M₂ →SL[σ₂₃] M₃) (x y z : M₁)
 
 -- make some straightforward lemmas available to `simp`.
-@[simp] lemma map_zero : f (0 : M) = 0 := (to_linear_map _).map_zero
+@[simp] lemma map_zero : f (0 : M₁) = 0 := (to_linear_map _).map_zero
 @[simp] lemma map_add  : f (x + y) = f x + f y := (to_linear_map _).map_add _ _
-@[simp] lemma map_smul : f (c • x) = c • f x := (to_linear_map _).map_smul _ _
+@[simp] lemma map_smulₛₗ : f (c • x) = (σ₁₂ c) • f x := (to_linear_map _).map_smulₛₗ _ _
 
 @[simp, priority 900]
 lemma map_smul_of_tower {R S : Type*} [semiring S] [has_scalar R M]

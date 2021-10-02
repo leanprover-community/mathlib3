@@ -426,7 +426,7 @@ by simp only [sub_conj, of_real_mul, of_real_one, of_real_bit0, mul_right_comm,
 
 local notation `abs'` := has_abs.abs
 
-@[simp, norm_cast] lemma abs_of_real (r : ℝ) : abs r = abs' r :=
+@[simp, norm_cast] lemma abs_of_real (r : ℝ) : abs r = |r| :=
 by simp [abs, norm_sq_of_real, real.sqrt_mul_self_eq_abs]
 
 lemma abs_of_nonneg {r : ℝ} (h : 0 ≤ r) : abs r = r :=
@@ -462,12 +462,12 @@ by simp [abs]
 @[simp] lemma abs_mul (z w : ℂ) : abs (z * w) = abs z * abs w :=
 by rw [abs, norm_sq_mul, real.sqrt_mul (norm_sq_nonneg _)]; refl
 
-lemma abs_re_le_abs (z : ℂ) : abs' z.re ≤ abs z :=
+lemma abs_re_le_abs (z : ℂ) : |z.re| ≤ abs z :=
 by rw [mul_self_le_mul_self_iff (_root_.abs_nonneg z.re) (abs_nonneg _),
        abs_mul_abs_self, mul_self_abs];
    apply re_sq_le_norm_sq
 
-lemma abs_im_le_abs (z : ℂ) : abs' z.im ≤ abs z :=
+lemma abs_im_le_abs (z : ℂ) : |z.im| ≤ abs z :=
 by rw [mul_self_le_mul_self_iff (_root_.abs_nonneg z.im) (abs_nonneg _),
        abs_mul_abs_self, mul_self_abs];
    apply im_sq_le_norm_sq
@@ -498,7 +498,7 @@ instance : is_absolute_value abs :=
   abv_mul     := abs_mul }
 open is_absolute_value
 
-@[simp] lemma abs_abs (z : ℂ) : abs' (abs z) = abs z :=
+@[simp] lemma abs_abs (z : ℂ) : |(abs z)| = abs z :=
 _root_.abs_of_nonneg (abs_nonneg _)
 
 @[simp] lemma abs_pos {z : ℂ} : 0 < abs z ↔ z ≠ 0 := abv_pos abs
@@ -508,24 +508,24 @@ lemma abs_sub_le : ∀ a b c, abs (a - c) ≤ abs (a - b) + abs (b - c) := abv_s
 @[simp] theorem abs_inv : ∀ z, abs z⁻¹ = (abs z)⁻¹ := abv_inv abs
 @[simp] theorem abs_div : ∀ z w, abs (z / w) = abs z / abs w := abv_div abs
 
-lemma abs_abs_sub_le_abs_sub : ∀ z w, abs' (abs z - abs w) ≤ abs (z - w) :=
+lemma abs_abs_sub_le_abs_sub : ∀ z w, |abs z - abs w| ≤ abs (z - w) :=
 abs_abv_sub_le_abv_sub abs
 
-lemma abs_le_abs_re_add_abs_im (z : ℂ) : abs z ≤ abs' z.re + abs' z.im :=
+lemma abs_le_abs_re_add_abs_im (z : ℂ) : abs z ≤ |z.re| + |z.im| :=
 by simpa [re_add_im] using abs_add z.re (z.im * I)
 
-lemma abs_re_div_abs_le_one (z : ℂ) : abs' (z.re / z.abs) ≤ 1 :=
+lemma abs_re_div_abs_le_one (z : ℂ) : |z.re / z.abs| ≤ 1 :=
 if hz : z = 0 then by simp [hz, zero_le_one]
 else by { simp_rw [_root_.abs_div, abs_abs, div_le_iff (abs_pos.2 hz), one_mul, abs_re_le_abs] }
 
-lemma abs_im_div_abs_le_one (z : ℂ) : abs' (z.im / z.abs) ≤ 1 :=
+lemma abs_im_div_abs_le_one (z : ℂ) : |z.im / z.abs| ≤ 1 :=
 if hz : z = 0 then by simp [hz, zero_le_one]
 else by { simp_rw [_root_.abs_div, abs_abs, div_le_iff (abs_pos.2 hz), one_mul, abs_im_le_abs] }
 
 @[simp, norm_cast] lemma abs_cast_nat (n : ℕ) : abs (n : ℂ) = n :=
 by rw [← of_real_nat_cast, abs_of_nonneg (nat.cast_nonneg n)]
 
-@[simp, norm_cast] lemma int_cast_abs (n : ℤ) : ↑(abs' n) = abs n :=
+@[simp, norm_cast] lemma int_cast_abs (n : ℤ) : ↑|n| = abs n :=
 by rw [← of_real_int_cast, abs_of_real, int.cast_abs]
 
 lemma norm_sq_eq_abs (x : ℂ) : norm_sq x = abs x ^ 2 :=

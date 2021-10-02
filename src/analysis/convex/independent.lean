@@ -42,10 +42,10 @@ independence, convex position
 
 open_locale affine big_operators classical
 open finset function
-variables (𝕜 : Type*) {E : Type*}
+variables {𝕜 E ι : Type*}
 
 section ordered_semiring
-variables [ordered_semiring 𝕜] [add_comm_group E] [module 𝕜 E] {ι : Type*} {s t : set E}
+variables (𝕜) [ordered_semiring 𝕜] [add_comm_group E] [module 𝕜 E] {s t : set E}
 
 /-- An indexed family is said to be convex independent if every point only belongs to convex hulls
 of sets containing it. -/
@@ -53,34 +53,6 @@ def convex_independent (p : ι → E) : Prop :=
 ∀ (s : set ι) (x : ι), p x ∈ convex_hull 𝕜 (p '' s) → x ∈ s
 
 variables {𝕜}
-
-/-- To check convex independence, one only has to check finsets thanks to Carathéodory's theorem. -/
-lemma convex_independent_iff_finset [module ℝ E] {p : ι → E} :
-  convex_independent ℝ p
-  ↔ ∀ (s : finset ι) (x : ι), p x ∈ convex_hull ℝ (s.image p : set E) → x ∈ s :=
-begin
-  refine ⟨λ hc s x hx, hc s x _, λ h s x hx, _⟩,
-  { rwa finset.coe_image at hx },
-  have hp : injective p,
-  { rintro a b hab,
-    rw ←mem_singleton,
-    refine h {b} a _,
-    rw [hab, image_singleton, coe_singleton, convex_hull_singleton],
-    exact set.mem_singleton _ },
-  let s' : finset ι :=
-    (caratheodory.min_card_finset_of_mem_convex_hull hx).preimage p (hp.inj_on _),
-  suffices hs' : x ∈ s',
-  { rw ←hp.mem_set_image,
-    rw [finset.mem_preimage, ←mem_coe] at hs',
-    exact caratheodory.min_card_finset_of_mem_convex_hull_subseteq hx hs' },
-  refine h s' x _,
-  have : s'.image p = caratheodory.min_card_finset_of_mem_convex_hull hx,
-  { rw [image_preimage, filter_true_of_mem],
-    exact λ y hy, set.image_subset_range _ s
-      (caratheodory.min_card_finset_of_mem_convex_hull_subseteq hx $ mem_coe.2 hy) },
-  rw this,
-  exact caratheodory.mem_min_card_finset_of_mem_convex_hull hx,
-end
 
 /-- A family with at most one point is convex independent. -/
 lemma subsingleton.convex_independent [subsingleton ι] (p : ι → E) :
@@ -193,10 +165,38 @@ end
 
 end ordered_semiring
 
-/-! ### Extreme points -/
-
 section linear_ordered_field
 variables [linear_ordered_field 𝕜] [add_comm_group E] [module 𝕜 E] {s : set E}
+
+/-- To check convex independence, one only has to check finsets thanks to Carathéodory's theorem. -/
+lemma convex_independent_iff_finset {p : ι → E} :
+  convex_independent 𝕜 p
+  ↔ ∀ (s : finset ι) (x : ι), p x ∈ convex_hull 𝕜 (s.image p : set E) → x ∈ s :=
+begin
+  refine ⟨λ hc s x hx, hc s x _, λ h s x hx, _⟩,
+  { rwa finset.coe_image at hx },
+  have hp : injective p,
+  { rintro a b hab,
+    rw ←mem_singleton,
+    refine h {b} a _,
+    rw [hab, image_singleton, coe_singleton, convex_hull_singleton],
+    exact set.mem_singleton _ },
+  let s' : finset ι :=
+    (caratheodory.min_card_finset_of_mem_convex_hull hx).preimage p (hp.inj_on _),
+  suffices hs' : x ∈ s',
+  { rw ←hp.mem_set_image,
+    rw [finset.mem_preimage, ←mem_coe] at hs',
+    exact caratheodory.min_card_finset_of_mem_convex_hull_subseteq hx hs' },
+  refine h s' x _,
+  have : s'.image p = caratheodory.min_card_finset_of_mem_convex_hull hx,
+  { rw [image_preimage, filter_true_of_mem],
+    exact λ y hy, set.image_subset_range _ s
+      (caratheodory.min_card_finset_of_mem_convex_hull_subseteq hx $ mem_coe.2 hy) },
+  rw this,
+  exact caratheodory.mem_min_card_finset_of_mem_convex_hull hx,
+end
+
+/-! ### Extreme points -/
 
 lemma convex.convex_independent_extreme_points (hs : convex 𝕜 s) :
   convex_independent 𝕜 (λ p, p : s.extreme_points 𝕜 → E) :=

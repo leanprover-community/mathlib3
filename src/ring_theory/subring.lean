@@ -980,7 +980,7 @@ def units.pos_subgroup (R : Type*) [linear_ordered_comm_ring R] [nontrivial R] :
 subgroup (units R) :=
 { carrier := {x | (0 : R) < x},
   inv_mem' := λ x (hx : (0 : R) < x), (zero_lt_mul_left hx).mp $ x.mul_inv.symm ▸ zero_lt_one,
-  ..pos_submonoid.comap (units.coe_hom R)}
+  ..(pos_submonoid R).comap (units.coe_hom R)}
 
-@[simp] lemma units.mem_pos_subgroup (u : units R) :
-  u ∈ units.pos_subgroup R ↔  (0 : R) < u := iff.rfl
+@[simp] lemma units.mem_pos_subgroup (R : Type*) [linear_ordered_comm_ring R] [nontrivial R]
+  (u : units R) : u ∈ units.pos_subgroup R ↔  (0 : R) < u := iff.rfl

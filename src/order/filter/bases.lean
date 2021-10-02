@@ -277,6 +277,10 @@ by erw [(filter_basis.of_sets s).generate, ← (has_basis_generate s).filter_eq]
 lemma of_sets_filter_eq_generate (s : set (set α)) : (filter_basis.of_sets s).filter = generate s :=
 by rw [← (filter_basis.of_sets s).generate, generate_eq_generate_inter s] ; refl
 
+protected lemma _root_.filter_basis.has_basis {α : Type*} (B : filter_basis α) :
+  has_basis (B.filter) (λ s : set α, s ∈ B) id :=
+⟨λ t, B.mem_filter_iff⟩
+
 lemma has_basis.to_has_basis' (hl : l.has_basis p s) (h : ∀ i, p i → ∃ i', p' i' ∧ s' i' ⊆ s i)
   (h' : ∀ i', p' i' → s' i' ∈ l) : l.has_basis p' s' :=
 begin

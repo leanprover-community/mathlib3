@@ -385,11 +385,8 @@ begin
     exact mem_erase_top_of_ne_of_mem h.1 h.2 }
 end
 
-lemma lt_top_of_mem_erase_top
-  {s : composition_series X} {x : X}
-  (h : 0 < s.length)
-  (hx : x ∈ s.erase_top) :
-  x < s.top :=
+lemma lt_top_of_mem_erase_top {s : composition_series X} {x : X} (h : 0 < s.length)
+  (hx : x ∈ s.erase_top) : x < s.top :=
 lt_of_le_of_ne
   (le_top_of_mem ((mem_erase_top h).1 hx).2)
   ((mem_erase_top h).1 hx).1
@@ -455,8 +452,7 @@ end
 /-- Append two composition series `s₁` and `s₂` such that
 the least element of `s₁` is the maximum element of `s₂`. -/
 @[simps length] def append (s₁ s₂ : composition_series X)
-  (h : s₁.top = s₂.bot) :
-  composition_series X :=
+  (h : s₁.top = s₂.bot) : composition_series X :=
 { length := s₁.length + s₂.length,
   series := fin.append (nat.add_succ _ _).symm (s₁ ∘ fin.cast_succ) s₂,
   step' := λ i, begin
@@ -469,40 +465,29 @@ the least element of `s₁` is the maximum element of `s₂`. -/
       exact s₂.step i }
   end }
 
-@[simp] lemma append_cast_add
-  {s₁ s₂ : composition_series X}
-  (h : s₁.top = s₂.bot)
-  (i : fin s₁.length) :
+@[simp] lemma append_cast_add {s₁ s₂ : composition_series X}
+  (h : s₁.top = s₂.bot) (i : fin s₁.length) :
   append s₁ s₂ h (fin.cast_add s₂.length i).cast_succ = s₁ i.cast_succ :=
 append_cast_add_aux i
 
-@[simp] lemma append_succ_cast_add
-  {s₁ s₂ : composition_series X}
-  (h : s₁.top = s₂.bot)
-  (i : fin s₁.length) :
+@[simp] lemma append_succ_cast_add {s₁ s₂ : composition_series X}
+  (h : s₁.top = s₂.bot) (i : fin s₁.length) :
   append s₁ s₂ h (fin.cast_add s₂.length i).succ = s₁ i.succ :=
 append_succ_cast_add_aux i h
 
-@[simp] lemma append_nat_add
-  {s₁ s₂ : composition_series X}
-  (h : s₁.top = s₂.bot)
-  (i : fin s₂.length) :
+@[simp] lemma append_nat_add {s₁ s₂ : composition_series X}
+  (h : s₁.top = s₂.bot) (i : fin s₂.length) :
   append s₁ s₂ h (fin.nat_add s₁.length i).cast_succ = s₂ i.cast_succ :=
 append_nat_add_aux i
 
-@[simp] lemma append_succ_nat_add
-  {s₁ s₂ : composition_series X}
-  (h : s₁.top = s₂.bot)
-  (i : fin s₂.length) :
+@[simp] lemma append_succ_nat_add {s₁ s₂ : composition_series X}
+  (h : s₁.top = s₂.bot) (i : fin s₂.length) :
   append s₁ s₂ h (fin.nat_add s₁.length i).succ = s₂ i.succ :=
 append_succ_nat_add_aux i
 
 /-- Add an element to the top of a `composition_series` -/
-@[simps length] def snoc
-  (s : composition_series X)
-  (x : X)
-  (hsat : is_maximal s.top x) :
-  composition_series X :=
+@[simps length] def snoc (s : composition_series X) (x : X)
+  (hsat : is_maximal s.top x) : composition_series X :=
 { length := s.length + 1,
   series := fin.snoc s x,
   step' := λ i, begin
@@ -513,39 +498,24 @@ append_succ_nat_add_aux i
       exact s.step _ }
   end }
 
-@[simp] lemma top_snoc
-  (s : composition_series X)
-  (x : X)
-  (hsat : is_maximal s.top x) :
-  (snoc s x hsat).top = x :=
+@[simp] lemma top_snoc (s : composition_series X) (x : X)
+  (hsat : is_maximal s.top x) : (snoc s x hsat).top = x :=
 fin.snoc_last _ _
 
-@[simp] lemma snoc_last
-  (s : composition_series X)
-  (x : X)
-  (hsat : is_maximal s.top x) :
+@[simp] lemma snoc_last (s : composition_series X) (x : X) (hsat : is_maximal s.top x) :
   snoc s x hsat (fin.last (s.length + 1)) = x :=
 fin.snoc_last _ _
 
-@[simp] lemma snoc_cast_succ
-  (s : composition_series X)
-  (x : X)
-  (hsat : is_maximal s.top x) (i : fin (s.length + 1)) :
-  snoc s x hsat (i.cast_succ) = s i :=
+@[simp] lemma snoc_cast_succ (s : composition_series X) (x : X) (hsat : is_maximal s.top x)
+  (i : fin (s.length + 1)) : snoc s x hsat (i.cast_succ) = s i :=
 fin.snoc_cast_succ _ _ _
 
-@[simp] lemma bot_snoc
-  (s : composition_series X)
-  (x : X)
-  (hsat : is_maximal s.top x) :
+@[simp] lemma bot_snoc (s : composition_series X) (x : X) (hsat : is_maximal s.top x) :
   (snoc s x hsat).bot = s.bot :=
 by rw [bot, bot, ← fin.cast_succ_zero, snoc_cast_succ]
 
-lemma mem_snoc
-  {s : composition_series X}
-  {x y: X}
-  {hsat : is_maximal s.top x} :
-  y ∈ snoc s x hsat ↔ y ∈ s ∨ y = x :=
+lemma mem_snoc {s : composition_series X} {x y: X}
+  {hsat : is_maximal s.top x} : y ∈ snoc s x hsat ↔ y ∈ s ∨ y = x :=
 begin
   simp only [snoc, mem_def],
   split,
@@ -559,11 +529,8 @@ begin
     { use (fin.last _), simp } }
 end
 
-lemma eq_snoc_erase_top
-  {s : composition_series X}
-  (h : 0 < s.length) :
-  s = snoc (erase_top s) s.top
-    (is_maximal_erase_top_top h) :=
+lemma eq_snoc_erase_top {s : composition_series X} (h : 0 < s.length) :
+  s = snoc (erase_top s) s.top (is_maximal_erase_top_top h) :=
 begin
   ext x,
   simp [mem_snoc, mem_erase_top h],
@@ -571,8 +538,7 @@ begin
 end
 
 @[simp] lemma snoc_erase_top_top {s : composition_series X}
-  (h : is_maximal s.erase_top.top s.top) :
-  s.erase_top.snoc s.top h = s :=
+  (h : is_maximal s.erase_top.top s.top) : s.erase_top.snoc s.top h = s :=
 have h : 0 < s.length,
   from nat.pos_of_ne_zero begin
     assume hs,

@@ -95,7 +95,7 @@ end
 instance has_no_atoms_volume : has_no_atoms (volume : measure ℝ) :=
 ⟨λ x, volume_singleton⟩
 
-@[simp] lemma volume_interval {a b : ℝ} : volume (interval a b) = of_real (abs (b - a)) :=
+@[simp] lemma volume_interval {a b : ℝ} : volume (interval a b) = of_real (|b - a|) :=
 by rw [interval, volume_Icc, max_sub_min_eq_abs]
 
 @[simp] lemma volume_Ioi {a : ℝ} : volume (Ioi a) = ∞ :=
@@ -231,7 +231,7 @@ calc volume ((+ a) ⁻¹' s) = measure.map (+ a) volume s :
 ... = volume s : by rw map_volume_add_right
 
 lemma smul_map_volume_mul_left {a : ℝ} (h : a ≠ 0) :
-  ennreal.of_real (abs a) • measure.map ((*) a) volume = volume :=
+  ennreal.of_real (|a|) • measure.map ((*) a) volume = volume :=
 begin
   refine (real.measure_ext_Ioo_rat $ λ p q, _).symm,
   cases lt_or_gt_of_ne h with h h,
@@ -245,7 +245,7 @@ begin
 end
 
 lemma map_volume_mul_left {a : ℝ} (h : a ≠ 0) :
-  measure.map ((*) a) volume = ennreal.of_real (abs a⁻¹) • volume :=
+  measure.map ((*) a) volume = ennreal.of_real (|a⁻¹|) • volume :=
 by conv_rhs { rw [← real.smul_map_volume_mul_left h, smul_smul,
   ← ennreal.of_real_mul (abs_nonneg _), ← abs_mul, inv_mul_cancel h, abs_one, ennreal.of_real_one,
   one_smul] }
@@ -253,21 +253,21 @@ by conv_rhs { rw [← real.smul_map_volume_mul_left h, smul_smul,
 @[simp] lemma volume_preimage_mul_left {a : ℝ} (h : a ≠ 0) (s : set ℝ) :
   volume (((*) a) ⁻¹' s) = ennreal.of_real (abs a⁻¹) * volume s :=
 calc volume (((*) a) ⁻¹' s) = measure.map ((*) a) volume s :
-  ((homeomorph.mul_left' a h).to_measurable_equiv.map_apply s).symm
+  ((homeomorph.mul_left₀ a h).to_measurable_equiv.map_apply s).symm
 ... = ennreal.of_real (abs a⁻¹) * volume s : by { rw map_volume_mul_left h, refl }
 
 lemma smul_map_volume_mul_right {a : ℝ} (h : a ≠ 0) :
-  ennreal.of_real (abs a) • measure.map (* a) volume = volume :=
+  ennreal.of_real (|a|) • measure.map (* a) volume = volume :=
 by simpa only [mul_comm] using real.smul_map_volume_mul_left h
 
 lemma map_volume_mul_right {a : ℝ} (h : a ≠ 0) :
-  measure.map (* a) volume = ennreal.of_real (abs a⁻¹) • volume :=
+  measure.map (* a) volume = ennreal.of_real (|a⁻¹|) • volume :=
 by simpa only [mul_comm] using real.map_volume_mul_left h
 
 @[simp] lemma volume_preimage_mul_right {a : ℝ} (h : a ≠ 0) (s : set ℝ) :
   volume ((* a) ⁻¹' s) = ennreal.of_real (abs a⁻¹) * volume s :=
 calc volume ((* a) ⁻¹' s) = measure.map (* a) volume s :
-  ((homeomorph.mul_right' a h).to_measurable_equiv.map_apply s).symm
+  ((homeomorph.mul_right₀ a h).to_measurable_equiv.map_apply s).symm
 ... = ennreal.of_real (abs a⁻¹) * volume s : by { rw map_volume_mul_right h, refl }
 
 @[simp] lemma map_volume_neg : measure.map has_neg.neg (volume : measure ℝ) = volume :=
@@ -388,7 +388,7 @@ begin
   { simp only [matrix.transvection_struct.det, ennreal.of_real_one, map_transvection_volume_pi,
       one_smul, _root_.inv_one, abs_one] },
   { rw [to_lin'_mul, det_mul, linear_map.coe_comp, ← measure.map_map, IHB, linear_map.map_smul,
-      IHA, smul_smul, ← ennreal.of_real_mul (abs_nonneg _), ← abs_mul, mul_comm, mul_inv'],
+      IHA, smul_smul, ← ennreal.of_real_mul (abs_nonneg _), ← abs_mul, mul_comm, mul_inv₀],
     { apply continuous.measurable,
       apply linear_map.continuous_on_pi },
     { apply continuous.measurable,

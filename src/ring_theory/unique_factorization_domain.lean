@@ -829,8 +829,8 @@ begin
   simpa [quot_mk_eq_mk, prod_mk, mk_eq_mk_iff_associated] using eq
 end
 
-private theorem forall_map_mk_normalized_factors_irreducible [decidable_eq α] (x : α) (hx : x ≠ 0) :
-  ∀(a : associates α), a ∈ multiset.map associates.mk (normalized_factors x) → irreducible a :=
+private theorem forall_map_mk_factors_irreducible [decidable_eq α] (x : α) (hx : x ≠ 0) :
+  ∀(a : associates α), a ∈ multiset.map associates.mk (factors x) → irreducible a :=
 begin
   assume a ha,
   rcases multiset.mem_map.1 ha with ⟨c, hc, rfl⟩,
@@ -855,7 +855,7 @@ iff.intro
     { assume x hx,
       rcases multiset.mem_add.1 hx with h | h,
       exact hp x h,
-      exact forall_map_mk_normalized_factors_irreducible c ‹c ≠ 0› _ h },
+      exact forall_map_mk_factors_irreducible c ‹c ≠ 0› _ h },
     { simp [multiset.prod_add, prod_mk, *] at * }
   end
   prod_le_prod
@@ -927,7 +927,7 @@ theorem prod_factors [nontrivial α] : ∀(s : factor_set α), s.prod.factors = 
       simpa [(multiset.map_eq_map subtype.coe_injective).symm] },
 
     refine unique'
-      (forall_map_mk_normalized_factors_irreducible _ ha)
+      (forall_map_mk_factors_irreducible _ ha)
       (assume a ha, let ⟨⟨x, hx⟩, ha, eq⟩ := multiset.mem_map.1 ha in eq ▸ hx)
       _,
     rw [prod_mk, eq_a, mk_eq_mk_iff_associated],

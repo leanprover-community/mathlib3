@@ -827,7 +827,7 @@ lemma has_countable_basis.is_countably_generated {f : filter α} {p : ι → Pro
 
 lemma is_countably_generated_seq (x : ℕ → set α) : is_countably_generated (⨅ i, 𝓟 $ x i) :=
 begin
-  rcases antitone_seq_of_seq x with ⟨y, am, h⟩,
+  obtain ⟨y, am, h⟩ := antitone_seq_of_seq x,
   rw h,
   use [range y, countable_range _],
   rw (has_basis_infi_principal _).eq_generate,

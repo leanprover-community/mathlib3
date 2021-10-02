@@ -261,7 +261,7 @@ begin
   rcases norm_le_div_pow_of_pos_of_lt_radius p rpos rlt with ⟨C, Cpos, hCp⟩,
   refine ⟨C, r ⁻¹, Cpos, by simp [rpos], λ n, _⟩,
   convert hCp n,
-  exact inv_pow' _ _,
+  exact inv_pow₀ _ _,
 end
 
 /-- The radius of the sum of two formal series is at least the minimum of their two radii. -/
@@ -830,7 +830,7 @@ lemma change_origin_series_summable_aux₂ (hr : (r : ℝ≥0∞) < p.radius) (k
   summable (λ s : Σ l : ℕ, {s : finset (fin (k + l)) // s.card = l}, ∥p (k + s.1)∥₊ * r ^ s.1) :=
 begin
   rcases ennreal.lt_iff_exists_add_pos_lt.1 hr with ⟨r', h0, hr'⟩,
-  simpa only [mul_inv_cancel_right' (pow_pos h0 _).ne']
+  simpa only [mul_inv_cancel_right₀ (pow_pos h0 _).ne']
     using ((nnreal.summable_sigma.1
       (p.change_origin_series_summable_aux₁ hr')).1 k).mul_right (r' ^ k)⁻¹
 end

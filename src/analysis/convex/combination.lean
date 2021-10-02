@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudriashov
 -/
 import analysis.convex.basic
+import linear_algebra.affine_space.combination
 import algebra.big_operators.order
 
 /-!
@@ -26,7 +27,7 @@ open set
 open_locale big_operators classical
 
 universes u u'
-variables {R E ι ι' : Type*} [linear_ordered_field R] [add_comm_monoid E] [module R E] {s : set E}
+variables {R E ι ι' : Type*} [linear_ordered_field R] [add_comm_group E] [module R E] {s : set E}
 
 /-- Center of mass of a finite collection of points with prescribed weights.
 Note that we require neither `0 ≤ w i` nor `∑ w = 1`. -/
@@ -174,6 +175,38 @@ lemma finset.center_mass_mem_convex_hull (t : finset ι) {w : ι → R} (hw₀ :
   t.center_mass w z ∈ convex_hull R s :=
 (convex_convex_hull R s).center_mass_mem hw₀ hws (λ i hi, subset_convex_hull R s $ hz i hi)
 
+/-- A refinement of `finset.center_mass_mem_convex_hull` when the indexed family is a `finset` of
+the space. -/
+lemma finset.center_mass_id_mem_convex_hull (t : finset E) {w : E → R} (hw₀ : ∀ i ∈ t, 0 ≤ w i)
+  (hws : 0 < ∑ i in t, w i) :
+  t.center_mass w id ∈ convex_hull R (t : set E) :=
+t.center_mass_mem_convex_hull hw₀ hws (λ i, mem_coe.2)
+
+lemma affine_combination_eq_center_mass {ι : Type*} {t : finset ι} {p : ι → E} {w : ι → R}
+  (hw₂ : ∑ i in t, w i = 1) :
+  affine_combination t p w = center_mass t w p :=
+begin
+  rw [affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one _ w _ hw₂ (0 : E),
+    finset.weighted_vsub_of_point_apply, vadd_eq_add, add_zero, t.center_mass_eq_of_sum_1 _ hw₂],
+  simp_rw [vsub_eq_sub, sub_zero],
+end
+
+/-- The centroid can be regarded as a center of mass. -/
+@[simp] lemma finset.centroid_eq_center_mass (s : finset ι) (hs : s.nonempty) (p : ι → E) :
+  s.centroid R p = s.center_mass (s.centroid_weights R) p :=
+affine_combination_eq_center_mass (s.sum_centroid_weights_eq_one_of_nonempty R hs)
+
+lemma finset.centroid_mem_convex_hull (s : finset E) (hs : s.nonempty) :
+  s.centroid R id ∈ convex_hull R (s : set E) :=
+begin
+  rw s.centroid_eq_center_mass hs,
+  apply s.center_mass_id_mem_convex_hull,
+  { simp only [inv_nonneg, implies_true_iff, nat.cast_nonneg, finset.centroid_weights_apply], },
+  { have hs_card : (s.card : R) ≠ 0, { simp [finset.nonempty_iff_ne_empty.mp hs] },
+    simp only [hs_card, finset.sum_const, nsmul_eq_mul, mul_inv_cancel, ne.def, not_false_iff,
+      finset.centroid_weights_apply, zero_lt_one] }
+end
+
 -- TODO : Do we need other versions of the next lemma?
 
 /-- Convex hull of `s` is equal to the set of all centers of masses of `finset`s `t`, `z '' t ⊆ s`.
@@ -254,11 +287,11 @@ end
 
 variables (ι) [fintype ι] {f : ι → R}
 
-/-- `std_simplex ι` is the convex hull of the canonical basis in `ι → ℝ`. -/
+/-- `std_simplex 𝕜 ι` is the convex hull of the canonical basis in `ι → 𝕜`. -/
 lemma convex_hull_basis_eq_std_simplex :
-  convex_hull R (range $ λ(i j:ι), if i = j then (1:R) else 0) = std_simplex ι R :=
+  convex_hull R (range $ λ(i j:ι), if i = j then (1:R) else 0) = std_simplex R ι :=
 begin
-  refine subset.antisymm (convex_hull_min _ (convex_std_simplex ι R)) _,
+  refine subset.antisymm (convex_hull_min _ (convex_std_simplex R ι)) _,
   { rintros _ ⟨i, rfl⟩,
     exact ite_eq_mem_std_simplex R i },
   { rintros w ⟨hw₀, hw₁⟩,
@@ -277,7 +310,7 @@ The map is defined in terms of operations on `(s → ℝ) →ₗ[ℝ] ℝ` so th
 to prove that this map is linear. -/
 lemma set.finite.convex_hull_eq_image {s : set E} (hs : finite s) :
   convex_hull R s = by haveI := hs.fintype; exact
-    (⇑(∑ x : s, (@linear_map.proj R s _ (λ i, R) _ _ x).smul_right x.1)) '' (std_simplex s R) :=
+    (⇑(∑ x : s, (@linear_map.proj R s _ (λ i, R) _ _ x).smul_right x.1)) '' (std_simplex R s) :=
 begin
   rw [← convex_hull_basis_eq_std_simplex, ← linear_map.convex_hull_image, ← set.range_comp, (∘)],
   apply congr_arg,
@@ -286,7 +319,7 @@ begin
   simp [linear_map.sum_apply, ite_smul, finset.filter_eq]
 end
 
-/-- All values of a function `f ∈ std_simplex ι` belong to `[0, 1]`. -/
-lemma mem_Icc_of_mem_std_simplex (hf : f ∈ std_simplex ι R) (x) :
+/-- All values of a function `f ∈ std_simplex 𝕜 ι` belong to `[0, 1]`. -/
+lemma mem_Icc_of_mem_std_simplex (hf : f ∈ std_simplex R ι) (x) :
   f x ∈ Icc (0 : R) 1 :=
 ⟨hf.1 x, hf.2 ▸ finset.single_le_sum (λ y hy, hf.1 y) (finset.mem_univ x)⟩

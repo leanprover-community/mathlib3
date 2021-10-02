@@ -61,19 +61,6 @@ end
 lemma max_eq_iff : max a b = c ↔ a = c ∧ b ≤ a ∨ b = c ∧ a ≤ b :=
 @min_eq_iff (order_dual α) _ a b c
 
-lemma min_rec {p : α → Prop} {x y : α} (hx : x ≤ y → p x) (hy : y ≤ x → p y) : p (min x y) :=
-(le_total x y).rec (λ h, (min_eq_left h).symm.subst (hx h))
-  (λ h, (min_eq_right h).symm.subst (hy h))
-
-lemma max_rec {p : α → Prop} {x y : α} (hx : y ≤ x → p x) (hy : x ≤ y → p y) : p (max x y) :=
-@min_rec (order_dual α) _ _ _ _ hx hy
-
-lemma min_rec' (p : α → Prop) {x y : α} (hx : p x) (hy : p y) : p (min x y) :=
-min_rec (λ _, hx) (λ _, hy)
-
-lemma max_rec' (p : α → Prop) {x y : α} (hx : p x) (hy : p y) : p (max x y) :=
-max_rec (λ _, hx) (λ _, hy)
-
 /-- An instance asserting that `max a a = a` -/
 instance max_idem : is_idempotent α max := by apply_instance -- short-circuit type class inference
 
@@ -140,6 +127,19 @@ by cases le_total a b; simp [h, hf h]
 
 lemma antitone.map_min (hf : antitone f) : f (min a b) = max (f a) (f b) :=
 hf.dual.map_max
+
+lemma min_rec {p : α → Prop} {x y : α} (hx : x ≤ y → p x) (hy : y ≤ x → p y) : p (min x y) :=
+(le_total x y).rec (λ h, (min_eq_left h).symm.subst (hx h))
+  (λ h, (min_eq_right h).symm.subst (hy h))
+
+lemma max_rec {p : α → Prop} {x y : α} (hx : y ≤ x → p x) (hy : x ≤ y → p y) : p (max x y) :=
+@min_rec (order_dual α) _ _ _ _ hx hy
+
+lemma min_rec' (p : α → Prop) {x y : α} (hx : p x) (hy : p y) : p (min x y) :=
+min_rec (λ _, hx) (λ _, hy)
+
+lemma max_rec' (p : α → Prop) {x y : α} (hx : p x) (hy : p y) : p (max x y) :=
+max_rec (λ _, hx) (λ _, hy)
 
 theorem min_choice (a b : α) : min a b = a ∨ min a b = b :=
 by cases le_total a b; simp *

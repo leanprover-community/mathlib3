@@ -60,11 +60,38 @@ variables {α : Type*} (β : Type*) [linear_ordered_field α] [ordered_add_comm_
 @[simps] def order_iso.smul_left {a : α} (ha : 0 < a) : β ≃o β :=
 { to_fun := λ b, a • b,
   inv_fun := λ b, a⁻¹ • b,
-  left_inv := inv_smul_smul' ha.ne',
-  right_inv := smul_inv_smul' ha.ne',
+  left_inv := inv_smul_smul₀ ha.ne',
+  right_inv := smul_inv_smul₀ ha.ne',
   map_rel_iff' := λ b₁ b₂, smul_le_smul_iff_of_pos ha }
 
 end stuff
+
+section
+variables {α β γ : Type*} [conditionally_complete_lattice α]
+
+lemma csupr_subtype {s : set β} {f : β → α} : (⨆ x : s, f x) = Sup (f '' s) :=
+begin
+  rw supr,
+  congr,
+  ext,
+  rw [mem_image, mem_range, set_coe.exists],
+  simp_rw [subtype.coe_mk, exists_prop],
+end
+
+lemma cinfi_subtype {s : set β} {f : β → α} : (⨅ x : s, f x) = Inf (f '' s) :=
+@csupr_subtype (order_dual α) _ _ _ _
+
+variables [conditionally_complete_lattice β]
+
+lemma order_iso.map_cSup' (e : α ≃o β) {s : set α} (hne : s.nonempty) (hbdd : bdd_above s) :
+  e (Sup s) = Sup (e '' s) :=
+by rw [e.map_cSup hne hbdd, csupr_subtype]
+
+lemma order_iso.map_cInf' (e : α ≃o β) {s : set α} (hne : s.nonempty) (hbdd : bdd_below s) :
+  e (Inf s) = Inf (e '' s) :=
+by rw [e.map_cInf hne hbdd, cinfi_subtype]
+
+end
 
 section
 variables {α : Type*} [linear_ordered_field α] [module α ℝ] [ordered_smul α ℝ]
@@ -78,10 +105,9 @@ begin
   { rw [zero_smul_set hs, zero_smul],
     exact cInf_singleton 0 },
   by_cases bdd_below s,
-  { rw [←order_iso.smul_left_apply _ ha', (order_iso.smul_left ℝ ha').map_cInf hs h],
-    simp,
-    sorry
-  },
+  { rw [←order_iso.smul_left_apply _ ha', (order_iso.smul_left ℝ ha').map_cInf' hs h],
+    refl },
+  rw [real.Inf_of_not_bdd_below, real.Inf_of_not_bdd_below h, smul_zero],
   sorry
 end
 
@@ -94,9 +120,9 @@ begin
   { rw [zero_smul_set hs, zero_smul],
     exact cSup_singleton 0 },
   by_cases bdd_above s,
-  { rw [←order_iso.smul_left_apply _ ha', (order_iso.smul_left ℝ ha').map_cSup hs h],
-    sorry
-  },
+  { rw [←order_iso.smul_left_apply _ ha', (order_iso.smul_left ℝ ha').map_cSup' hs h],
+    refl },
+  rw [real.Sup_of_not_bdd_above, real.Sup_of_not_bdd_above h, smul_zero],
   sorry
 end
 
@@ -306,11 +332,9 @@ section gauge
 noncomputable theory
 variables {E : Type*} [add_comm_group E] [module ℝ E]
 
-/--
-Given a subset `s` of a real vector space, we have a functional (sometimes called the Minkowski
+/-- Given a subset `s` of a real vector space, we have a functional (sometimes called the Minkowski
 functional) which sends `x : E` to `Inf {y ∈ set.Ioi 0 | x ∈ y • s}`, essentially the smallest
-`y` such that `x` is in `s` expanded by `y`.
--/
+`y` such that `x` is in `s` expanded by `y`. -/
 def gauge (s : set E) (x : E) : ℝ :=
 Inf {y : ℝ | 0 < y ∧ x ∈ y • s}
 
@@ -318,15 +342,14 @@ variables {s : set E} {x : E}
 
 lemma gauge_def : gauge s x = Inf {y ∈ set.Ioi 0 | x ∈ y • s} := rfl
 
-/-- An alternate definition of the gauge which can be useful in certain situations. -/
+/-- An alternative definition of the gauge using scalar multiplication on the element rather than on
+the set. -/
 lemma gauge_def' : gauge s x = Inf {y ∈ set.Ioi 0 | y⁻¹ • x ∈ s} :=
 begin
-  rw gauge_def,
+  unfold gauge,
   congr' 1,
   ext y,
-  apply and_congr_right,
-  intro hy,
-  apply mem_smul_set_iff_inv_smul_mem (ne_of_gt hy),
+  exact and_congr_right (λ hy, mem_smul_set_iff_inv_smul_mem₀ hy.ne' _ _),
 end
 
 private lemma gauge_set_bdd_below :
@@ -374,11 +397,11 @@ begin
   split,
   { intros h θ hθ,
     have hθ' := zero_lt_one.trans hθ,
-    rw mem_smul_set_iff_inv_smul_mem hθ'.ne',
+    rw mem_smul_set_iff_inv_smul_mem₀ hθ'.ne',
     obtain ⟨δ, δ_pos, hδθ, hδ⟩ := exists_lt_of_gauge_lt absorbs (h.trans_lt hθ),
     suffices : (θ⁻¹ * δ) • δ⁻¹ • x ∈ s,
-    { rwa [smul_smul, mul_inv_cancel_right' δ_pos.ne'] at this },
-    rw mem_smul_set_iff_inv_smul_mem δ_pos.ne' at hδ,
+    { rwa [smul_smul, mul_inv_cancel_right₀ δ_pos.ne'] at this },
+    rw mem_smul_set_iff_inv_smul_mem₀ δ_pos.ne' at hδ,
     refine hs.smul_mem_of_zero_mem zero_mem hδ
       ⟨mul_nonneg (inv_nonneg.2 hθ'.le) δ_pos.le, _⟩,
     rw [inv_mul_le_iff hθ', mul_one],
@@ -459,7 +482,7 @@ begin
     right,
     linarith },
   refine (gauge_le_of_mem (inv_pos.2 hε₁) _).trans_lt this,
-  rw mem_inv_smul_set_iff hε₁.ne',
+  rw mem_inv_smul_set_iff₀ hε₁.ne',
   exact interior_subset
     (hε ⟨(sub_le_self _ hε₀.le).trans ((le_add_iff_nonneg_right _).2 hε₀.le), le_rfl⟩),
 end
@@ -512,16 +535,16 @@ begin
   { rintro ⟨hβ, hx⟩,
     simp_rw [mem_Ioi] at ⊢ hβ,
     have := smul_pos (inv_pos.2 hθ') hβ,
-    refine ⟨θ⁻¹ • β, ⟨this, _⟩, smul_inv_smul' hθ'.ne' _⟩,
-    rw ←mem_smul_set_iff_inv_smul_mem at ⊢ hx,
-    rwa [smul_assoc, mem_smul_set_iff_inv_smul_mem (inv_ne_zero hθ'.ne'), inv_inv'],
+    refine ⟨θ⁻¹ • β, ⟨this, _⟩, smul_inv_smul₀ hθ'.ne' _⟩,
+    rw ←mem_smul_set_iff_inv_smul_mem₀ at ⊢ hx,
+    rwa [smul_assoc, mem_smul_set_iff_inv_smul_mem₀ (inv_ne_zero hθ'.ne'), inv_inv₀],
     { exact this.ne' },
     { exact hβ.ne' } },
   { rintro ⟨β, ⟨hβ, hx⟩, rfl⟩,
     rw mem_Ioi at ⊢ hβ,
     have := smul_pos hθ' hβ,
     refine ⟨this, _⟩,
-    rw ←mem_smul_set_iff_inv_smul_mem at ⊢ hx,
+    rw ←mem_smul_set_iff_inv_smul_mem₀ at ⊢ hx,
     rw smul_assoc,
     exact smul_mem_smul_set hx,
     { exact this.ne' },
@@ -547,8 +570,8 @@ begin
     (lt_add_of_pos_right (gauge s x) (half_pos hε)),
   obtain ⟨b, hb, hb', hy⟩ := exists_lt_of_gauge_lt absorbs
     (lt_add_of_pos_right (gauge s y) (half_pos hε)),
-  rw mem_smul_set_iff_inv_smul_mem ha.ne' at hx,
-  rw mem_smul_set_iff_inv_smul_mem hb.ne' at hy,
+  rw mem_smul_set_iff_inv_smul_mem₀ ha.ne' at hx,
+  rw mem_smul_set_iff_inv_smul_mem₀ hb.ne' at hy,
   suffices : gauge s (x + y) ≤ a + b,
   { linarith },
   have hab : 0 < a + b := add_pos ha hb,
@@ -556,7 +579,7 @@ begin
   have := convex_iff_div.1 hs hx hy ha.le hb.le hab,
   rwa [smul_smul, smul_smul, mul_comm_div', mul_comm_div', ←mul_div_assoc, ←mul_div_assoc,
     mul_inv_cancel ha.ne', mul_inv_cancel hb.ne', ←smul_add, one_div,
-    ←mem_smul_set_iff_inv_smul_mem hab.ne'] at this,
+    ←mem_smul_set_iff_inv_smul_mem₀ hab.ne'] at this,
 end
 
 /-- If `s` is symmetric, convex and absorbent, its `gauge` is a seminorm. -/

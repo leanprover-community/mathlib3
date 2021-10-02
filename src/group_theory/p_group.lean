@@ -171,17 +171,38 @@ hH.to_le inf_le_left
 lemma to_inf_right {H K : subgroup G} (hK : is_p_group p K) : is_p_group p (H ⊓ K : subgroup G) :=
 hK.to_le inf_le_right
 
+lemma map {H : subgroup G} (hH : is_p_group p H) {K : Type*} [group K]
+  (ϕ : G →* K) : is_p_group p (H.map ϕ) :=
+begin
+  rw [←H.subtype_range, monoid_hom.map_range],
+  exact hH.of_surjective (ϕ.restrict H).range_restrict (ϕ.restrict H).range_restrict_surjective,
+end
+
+lemma comap_ker_is_p_group {H : subgroup G} (hH : is_p_group p H) {K : Type*} [group K]
+  (ϕ : K →* G) (hϕ : is_p_group p ϕ.ker) : is_p_group p (H.comap ϕ) :=
+begin
+  intro g,
+  obtain ⟨j, hj⟩ := hH ⟨ϕ g.1, g.2⟩,
+  rw [subtype.ext_iff, H.coe_pow, subtype.coe_mk, ←ϕ.map_pow] at hj,
+  obtain ⟨k, hk⟩ := hϕ ⟨g.1 ^ p ^ j, hj⟩,
+  rwa [subtype.ext_iff, ϕ.ker.coe_pow, subtype.coe_mk, ←pow_mul, ←pow_add] at hk,
+  exact ⟨j + k, by rwa [subtype.ext_iff, (H.comap ϕ).coe_pow]⟩,
+end
+
+lemma comap_injective {H : subgroup G} (hH : is_p_group p H) {K : Type*} [group K]
+  (ϕ : K →* G) (hϕ : function.injective ϕ) : is_p_group p (H.comap ϕ) :=
+begin
+  apply hH.comap_ker_is_p_group ϕ,
+  rw ϕ.ker_eq_bot_iff.mpr hϕ,
+  exact is_p_group.of_bot,
+end
+
 lemma to_sup_of_normal_right {H K : subgroup G} (hH : is_p_group p H) (hK : is_p_group p K)
   [K.normal] : is_p_group p (H ⊔ K : subgroup G) :=
 begin
-  intro g,
-  obtain ⟨j, hj⟩ := (hH.to_quotient ((H ⊓ K).comap H.subtype)).of_equiv
-    (quotient_group.quotient_inf_equiv_prod_normal_quotient H K) g,
-  obtain ⟨k, hk⟩ := hK ⟨g ^ (p ^ j), (congr_arg (∈ K) ((H ⊔ K).coe_pow g (p ^ j))).mp
-    ((quotient_group.eq_one_iff (g ^ (p ^ j))).mp
-      ((quotient_group.coe_pow (K.comap (H ⊔ K).subtype) g (p ^ j)).trans hj))⟩,
-  rw [subtype.ext_iff, K.coe_pow, subtype.coe_mk, ←pow_mul, ←pow_add] at hk,
-  refine ⟨j + k, by rwa [subtype.ext_iff, (H ⊔ K).coe_pow]⟩,
+  rw [←quotient_group.ker_mk K, ←subgroup.comap_map_eq],
+  apply (hH.map (quotient_group.mk' K)).comap_ker_is_p_group,
+  rwa quotient_group.ker_mk,
 end
 
 lemma to_sup_of_normal_left {H K : subgroup G} (hH : is_p_group p H) (hK : is_p_group p K)
@@ -199,22 +220,5 @@ let hHK' := to_sup_of_normal_right (hH.of_equiv (subgroup.comap_subtype_equiv_of
 lemma to_sup_of_normal_left' {H K : subgroup G} (hH : is_p_group p H) (hK : is_p_group p K)
   (hHK : K ≤ H.normalizer) : is_p_group p (H ⊔ K : subgroup G) :=
 (congr_arg (λ H : subgroup G, is_p_group p H) sup_comm).mp (to_sup_of_normal_right' hK hH hHK)
-
-lemma map {H : subgroup G} (hH : is_p_group p H) {K : Type*} [group K]
-  (ϕ : G →* K) : is_p_group p (H.map ϕ) :=
-begin
-  rw [←H.subtype_range, monoid_hom.map_range],
-  exact hH.of_surjective (ϕ.restrict H).range_restrict (ϕ.restrict H).range_restrict_surjective,
-end
-
-lemma comap_injective {H : subgroup G} (hH : is_p_group p H) {K : Type*} [group K]
-  (ϕ : K →* G) (hϕ : function.injective ϕ) : is_p_group p (H.comap ϕ) :=
-begin
-  refine (hH.to_le _).of_injective (ϕ.restrict (H.comap ϕ)).range_restrict _,
-  { rw [monoid_hom.restrict, ←monoid_hom.map_range, subgroup.subtype_range],
-    exact H.map_comap_le ϕ },
-  { rw [←monoid_hom.ker_eq_bot_iff, monoid_hom.range_restrict_ker, monoid_hom.ker_eq_bot_iff],
-    exact function.injective.comp hϕ subtype.coe_injective },
-end
 
 end is_p_group

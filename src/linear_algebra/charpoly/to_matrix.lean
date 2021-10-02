@@ -6,6 +6,7 @@ Authors: Riccardo Brasca
 
 import linear_algebra.charpoly.basic
 import linear_algebra.matrix.basis
+import linear_algebra.free_module.strong_rank_condition
 
 /-!
 

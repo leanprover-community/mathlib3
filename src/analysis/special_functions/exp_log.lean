@@ -32,6 +32,105 @@ noncomputable theory
 open finset filter metric asymptotics set function
 open_locale classical topological_space
 
+
+section continuity
+
+namespace complex
+
+variables {z y x : ℝ}
+
+lemma exp_bound_sq (x z : ℂ) (hz : ∥z∥ ≤ 1) :
+  ∥exp (x + z) - exp x - z • exp x∥ ≤ ∥exp x∥ * ∥z∥ ^ 2 :=
+calc ∥exp (x + z) - exp x - z * exp x∥
+    = ∥exp x * (exp z - 1 - z)∥ : by { congr, rw [exp_add], ring }
+... = ∥exp x∥ * ∥exp z - 1 - z∥ : normed_field.norm_mul _ _
+... ≤ ∥exp x∥ * ∥z∥^2 : mul_le_mul_of_nonneg_left (abs_exp_sub_one_sub_id_le hz) (norm_nonneg _)
+
+@[continuity] lemma continuous_exp : continuous exp :=
+begin
+  refine continuous_iff.mpr (λ x ε hε_pos, _),
+  simp_rw dist_eq_norm,
+  have h_sq : ∀ z, ∥z∥ ≤ 1 → ∥exp (x + z) - exp x∥ ≤ ∥z∥ * ∥exp x∥ + ∥exp x∥ * ∥z∥ ^ 2,
+  { intros z hz,
+    have : ∥exp (x + z) - exp x - z • exp x∥ ≤ ∥exp x∥ * ∥z∥ ^ 2, from exp_bound_sq x z hz,
+    rw [← sub_le_iff_le_add',  ← norm_smul z],
+    exact (norm_sub_norm_le _ _).trans this, },
+  -- introduce small enough `δ'`
+  let δ' := min 1 ((ε/2) / (2 * ∥exp x∥)),
+  have hδ'_right_pos : 0 < (ε/2) / (2 * ∥exp x∥),
+    by { refine div_pos (half_pos hε_pos) _, simp [exp_ne_zero],},
+  have hδ'_pos : 0 < δ',
+    by { simp only [true_and, gt_iff_lt, lt_min_iff, zero_lt_one, hδ'_right_pos], },
+  have hδ'_sq_le : δ' ^ 2 ≤ δ',
+  { rw [← inv_le_inv hδ'_pos (sq_pos_of_ne_zero _ hδ'_pos.ne.symm), ← inv_pow₀],
+    nth_rewrite 0 ← pow_one δ'⁻¹,
+    exact pow_le_pow (one_le_inv hδ'_pos (min_le_left _ _)) one_le_two, },
+  refine ⟨δ', hδ'_pos, λ y hyδ', _⟩,
+  have hy_eq : y = x + (y - x), by abel,
+  have hyx_le_one : ∥y - x∥ ≤ 1, from hyδ'.le.trans (min_le_left _ _),
+  -- now compute the difference, check that it is `< ε`
+  calc ∥exp y - exp x∥ = ∥exp (x + (y - x)) - exp x∥ : by nth_rewrite 0 hy_eq
+  ... ≤ ∥y - x∥ * ∥exp x∥ + ∥exp x∥ * ∥y - x∥ ^ 2 : h_sq (y - x) hyx_le_one
+  ... ≤ δ' * ∥exp x∥ + ∥exp x∥ * δ' ^ 2 : begin
+    refine add_le_add (mul_le_mul hyδ'.le le_rfl (norm_nonneg _) hδ'_pos.le)
+      (mul_le_mul le_rfl (sq_le_sq _) (sq_nonneg _) (norm_nonneg _)),
+    rw [abs_eq_self.mpr (norm_nonneg _), abs_eq_self.mpr hδ'_pos.le],
+    exact hyδ'.le,
+  end
+  ... ≤ δ' * ∥exp x∥ + ∥exp x∥ * δ' :
+    add_le_add le_rfl (mul_le_mul le_rfl hδ'_sq_le (sq_nonneg _) (norm_nonneg _))
+  ... = δ' * (2 * ∥exp x∥) : by ring
+  ... ≤ ((ε/2) / (2 * ∥exp x∥)) * (2 * ∥exp x∥) :
+    mul_le_mul (min_le_right _ _) le_rfl (mul_nonneg zero_le_two (norm_nonneg _)) hδ'_right_pos.le
+  ... = ε / 2 : div_mul_cancel _ (mul_ne_zero two_ne_zero (by simp [exp_ne_zero]))
+  ... < ε : half_lt_self hε_pos,
+end
+
+lemma continuous_on_exp {s : set ℂ} : continuous_on exp s :=
+continuous_exp.continuous_on
+
+end complex
+
+section complex_continuous_exp_comp
+
+variable {α : Type*}
+
+open complex
+
+lemma filter.tendsto.cexp {l : filter α} {f : α → ℂ} {z : ℂ} (hf : tendsto f l (𝓝 z)) :
+  tendsto (λ x, exp (f x)) l (𝓝 (exp z)) :=
+(continuous_exp.tendsto _).comp hf
+
+variables [topological_space α] {f : α → ℂ} {s : set α} {x : α}
+
+lemma continuous_within_at.cexp (h : continuous_within_at f s x) :
+  continuous_within_at (λ y, exp (f y)) s x :=
+h.cexp
+
+lemma continuous_at.cexp (h : continuous_at f x) : continuous_at (λ y, exp (f y)) x :=
+h.cexp
+
+lemma continuous_on.cexp (h : continuous_on f s) : continuous_on (λ y, exp (f y)) s :=
+λ x hx, (h x hx).cexp
+
+lemma continuous.cexp (h : continuous f) : continuous (λ y, exp (f y)) :=
+continuous_iff_continuous_at.2 $ λ x, h.continuous_at.cexp
+
+end complex_continuous_exp_comp
+
+namespace real
+
+@[continuity] lemma continuous_exp : continuous exp :=
+complex.continuous_re.comp (complex.continuous_exp.comp complex.continuous_of_real)
+
+lemma continuous_on_exp {s : set ℝ} : continuous_on exp s :=
+continuous_exp.continuous_on
+
+end real
+
+end continuity
+
+
 namespace complex
 
 /-- The complex exponential is everywhere differentiable, with the derivative `exp x`. -/
@@ -42,12 +141,7 @@ begin
   refine (is_O.of_bound (∥exp x∥) _).trans_is_o (is_o_pow_id this),
   filter_upwards [metric.ball_mem_nhds (0 : ℂ) zero_lt_one],
   simp only [metric.mem_ball, dist_zero_right, normed_field.norm_pow],
-  intros z hz,
-  calc ∥exp (x + z) - exp x - z * exp x∥
-    = ∥exp x * (exp z - 1 - z)∥ : by { congr, rw [exp_add], ring }
-    ... = ∥exp x∥ * ∥exp z - 1 - z∥ : normed_field.norm_mul _ _
-    ... ≤ ∥exp x∥ * ∥z∥^2 :
-      mul_le_mul_of_nonneg_left (abs_exp_sub_one_sub_id_le (le_of_lt hz)) (norm_nonneg _)
+  exact λ z hz, exp_bound_sq x z hz.le,
 end
 
 lemma differentiable_exp : differentiable ℂ exp :=
@@ -62,12 +156,6 @@ funext $ λ x, (has_deriv_at_exp x).deriv
 @[simp] lemma iter_deriv_exp : ∀ n : ℕ, (deriv^[n] exp) = exp
 | 0 := rfl
 | (n+1) := by rw [iterate_succ_apply, deriv_exp, iter_deriv_exp n]
-
-@[continuity] lemma continuous_exp : continuous exp :=
-differentiable_exp.continuous
-
-lemma continuous_on_exp {s : set ℂ} : continuous_on exp s :=
-continuous_exp.continuous_on
 
 lemma times_cont_diff_exp : ∀ {n}, times_cont_diff ℂ n exp :=
 begin
@@ -164,33 +252,6 @@ complex.times_cont_diff_exp.times_cont_diff_at.comp_times_cont_diff_within_at x 
 
 end
 
-section
-
-variable {α : Type*}
-
-open complex
-
-lemma filter.tendsto.cexp {l : filter α} {f : α → ℂ} {z : ℂ} (hf : tendsto f l (𝓝 z)) :
-  tendsto (λ x, exp (f x)) l (𝓝 (exp z)) :=
-(continuous_exp.tendsto _).comp hf
-
-variables [topological_space α] {f : α → ℂ} {s : set α} {x : α}
-
-lemma continuous_within_at.cexp (h : continuous_within_at f s x) :
-  continuous_within_at (λ y, exp (f y)) s x :=
-h.cexp
-
-lemma continuous_at.cexp (h : continuous_at f x) : continuous_at (λ y, exp (f y)) x :=
-h.cexp
-
-lemma continuous_on.cexp (h : continuous_on f s) : continuous_on (λ y, exp (f y)) s :=
-λ x hx, (h x hx).cexp
-
-lemma continuous.cexp (h : continuous f) : continuous (λ y, exp (f y)) :=
-continuous_iff_continuous_at.2 $ λ x, h.continuous_at.cexp
-
-end
-
 namespace real
 
 variables {x y z : ℝ}
@@ -216,12 +277,6 @@ funext $ λ x, (has_deriv_at_exp x).deriv
 @[simp] lemma iter_deriv_exp : ∀ n : ℕ, (deriv^[n] exp) = exp
 | 0 := rfl
 | (n+1) := by rw [iterate_succ_apply, deriv_exp, iter_deriv_exp n]
-
-@[continuity] lemma continuous_exp : continuous exp :=
-differentiable_exp.continuous
-
-lemma continuous_on_exp {s : set ℝ} : continuous_on exp s :=
-continuous_exp.continuous_on
 
 end real
 

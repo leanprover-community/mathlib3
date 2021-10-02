@@ -53,6 +53,7 @@ def star (l : language α) : language α :=
 lemma star_def (l : language α) :
   l.star = { x | ∃ S : list (list α), x = S.join ∧ ∀ y ∈ S, y ∈ l} := rfl
 
+lemma not_mem_zero (x : list α) : x ∉ (0 : language α) := id
 @[simp] lemma mem_one (x : list α) : x ∈ (1 : language α) ↔ x = [] := by refl
 @[simp] lemma mem_add (l m : language α) (x : list α) : x ∈ l + m ↔ x ∈ l ∨ x ∈ m :=
 by simp [add_def]

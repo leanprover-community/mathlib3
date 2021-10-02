@@ -16,6 +16,8 @@ Since this definition allows for automata with infinite states, a `fintype` inst
 supplied for true `ε_NFA`'s.
 -/
 
+open set
+
 universes u v
 
 /-- An `ε_NFA` is a set of states (`σ`), a transition function from state to state labelled by the
@@ -33,10 +35,8 @@ variables {α : Type u} {σ σ' : Type v} (M : ε_NFA α σ)
 
 namespace ε_NFA
 
-instance : inhabited (ε_NFA α σ) := ⟨ ε_NFA.mk (λ _ _, ∅) ∅ ∅ ⟩
-
 /-- The `ε_closure` of a set is the set of states which can be reached by taking a finite string of
-  ε-transitions from an element of the the set -/
+  ε-transitions from an element of the set -/
 inductive ε_closure : set σ → set σ
 | base : ∀ S (s ∈ S), ε_closure S s
 | step : ∀ S s (t ∈ M.step s none), ε_closure S s → ε_closure S t
@@ -45,18 +45,109 @@ inductive ε_closure : set σ → set σ
 def step_set : set σ → α → set σ :=
 λ S a, S >>= (λ s, M.ε_closure (M.step s a))
 
-/-- `M.eval_from S x` computes all possible paths though `M` with input `x` starting at an element
+/-- `M.eval_from S x` computes all possible paths through `M` with input `x` starting at an element
   of `S`. -/
 def eval_from (start : set σ) : list α → set σ :=
 list.foldl M.step_set (M.ε_closure start)
 
-/-- `M.eval x` computes all possible paths though `M` with input `x` starting at an element of
+/-- `M.eval x` computes all possible paths through `M` with input `x` starting at an element of
   `M.start`. -/
 def eval := M.eval_from M.start
 
 /-- `M.accepts` is the language of `x` such that there is an accept state in `M.eval x`. -/
 def accepts : language α :=
 λ x, ∃ S ∈ M.accept, S ∈ M.eval x
+
+/-! ### Regex-like operations -/
+
+variables (α σ)
+
+protected def zero : ε_NFA α σ :=
+ε_NFA.mk (λ _ _, ∅) ∅ ∅
+
+instance : has_zero (ε_NFA α σ) := ⟨ε_NFA.zero α σ⟩
+
+protected def one : ε_NFA α σ :=
+{ step := λ _ _, univ,
+  start := univ,
+  accept := univ }
+
+instance : has_one (ε_NFA α σ) := ⟨ε_NFA.one α σ⟩
+
+variables {α σ} (P : ε_NFA α σ) (Q : ε_NFA α σ')
+
+def char [decidable_eq α] (a : α) : ε_NFA α (option unit) :=
+{ step := λ s b, if (a ∈ b ∧ s = none) then {some ()} else ∅,
+    start := set.univ,
+    accept := set.univ }
+
+def add : ε_NFA α (σ × σ') :=
+{ step := λ s a, (P.step s.1 a).prod (Q.step s.2 a),
+  start := P.start.prod Q.start,
+  accept := {ab | ab.1 ∈ P.accept ∨ ab.2 ∈ Q.accept} }
+
+protected def mul : ε_NFA α (σ × σ') :=
+{ step := λ s a, (P.step s.1 a).prod (Q.step s.2 a),
+  start := P.start.prod Q.start,
+  accept := P.accept.prod Q.accept }
+
+
+def star [Π s, decidable (s ∈ P.accept)] : ε_NFA α (option σ) :=
+{ step := λ s a, match s with
+    | none := match a with
+      | none := coe '' P.start
+      | (some a) := ∅
+      end
+    | (some s) :=  match a with
+      | none := (coe '' P.step s none) ∪ (if (s ∈ P.accept) then {none} else ∅)
+      | (some a) := coe '' P.step s a
+      end
+    end,
+  start := {none},
+  accept := {none} }
+
+lemma accept_zero : (0 : ε_NFA α σ).accept = ∅ := rfl
+
+lemma accepts_zero : (0 : ε_NFA α σ).accepts = 0 :=
+begin
+  ext,
+  refine iff_of_false _ (language.not_mem_zero _),
+  rintro ⟨s, h, _⟩,
+  exact set.not_mem_empty _ h,
+end
+
+lemma accepts_one : (1 : ε_NFA α σ).accepts = 1 :=
+begin
+  ext,
+  rw language.mem_one,
+  split,
+  {
+    rintro ⟨s, h, hs⟩,
+    sorry,
+  },
+  rintro rfl,
+  sorry
+end
+
+lemma accepts_add : (P.add Q).accepts = P.accepts + Q.accepts :=
+begin
+  ext,
+  rw language.mem_add,
+end
+
+lemma accepts_mul : (P.mul Q).accepts = P.accepts * Q.accepts :=
+begin
+  ext,
+  rw language.mem_mul,
+end
+
+lemma accepts_star [Π s, decidable (s ∈ P.accept)] : P.star.accepts = P.accepts.star :=
+begin
+  ext,
+  rw language.mem_star,
+end
+
+/-! ### Conversions between `ε_NFA` and `NFA` -/
 
 /-- `M.to_NFA` is an `NFA` constructed from an `ε_NFA` `M`. -/
 def to_NFA : NFA α σ :=

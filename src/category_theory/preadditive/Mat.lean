@@ -182,6 +182,7 @@ instance has_finite_biproducts : has_finite_biproducts (Mat_ C) :=
         { refl, },
       end, }
     begin
+      dsimp,
       funext i₁,
       dsimp at i₁ ⊢,
       rcases i₁ with ⟨j₁, i₁⟩,

@@ -11,6 +11,9 @@ import linear_algebra.linear_independent
 import tactic.linarith
 import algebra.algebra.basic
 import ring_theory.noetherian
+import ring_theory.jacobson_ideal
+import ring_theory.nilpotent
+import ring_theory.nakayama
 
 /-!
 # Artinian rings and modules
@@ -192,12 +195,20 @@ theorem set_has_minimal_iff_artinian :
   is_artinian R M :=
 by rw [is_artinian_iff_well_founded, well_founded.well_founded_iff_has_min']
 
-/-- A module is Noetherian iff every decreasing chain of submodules stabilizes. -/
+theorem is_artinian.set_has_minimal [is_artinian R M] (a : set $ submodule R M) (ha : a.nonempty) :
+  ∃ M' ∈ a, ∀ I ∈ a, I ≤ M' → I = M' :=
+set_has_minimal_iff_artinian.mpr ‹_› a ha
+
+/-- A module is Artinian iff every decreasing chain of submodules stabilizes. -/
 theorem monotone_stabilizes_iff_artinian :
   (∀ (f : ℕ →ₘ order_dual (submodule R M)), ∃ n, ∀ m, n ≤ m → f n = f m)
     ↔ is_artinian R M :=
 by rw [is_artinian_iff_well_founded];
   exact (well_founded.monotone_chain_condition (order_dual (submodule R M))).symm
+
+theorem is_artinian.monotone_stabilizes [is_artinian R M] (f : ℕ →ₘ order_dual (submodule R M)) :
+  ∃ n, ∀ m, n ≤ m → f n = f m :=
+monotone_stabilizes_iff_artinian.mpr ‹_› f
 
 /-- If `∀ I > J, P I` implies `P J`, then `P` holds for all submodules. -/
 lemma is_artinian.induction [is_artinian R M] {P : submodule R M → Prop}
@@ -378,3 +389,47 @@ is_artinian_ring_of_surjective R f.range f.range_restrict
 theorem is_artinian_ring_of_ring_equiv (R) [comm_ring R] {S} [comm_ring S]
   (f : R ≃+* S) [is_artinian_ring R] : is_artinian_ring S :=
 is_artinian_ring_of_surjective R S f.to_ring_hom f.to_equiv.surjective
+
+namespace is_artinian_ring
+
+open is_artinian
+
+variables {R : Type*} [comm_ring R] [is_artinian_ring R]
+
+lemma is_nilpotent_jacobson_bot : is_nilpotent (ideal.jacobson (⊥ : ideal R)) :=
+begin
+  let Jac := ideal.jacobson (⊥ : ideal R),
+  let f : ℕ →ₘ order_dual (ideal R) := ⟨λ n, Jac ^ n, λ _ _ h, ideal.pow_le_pow h⟩,
+  obtain ⟨n, hn⟩ : ∃ n, ∀ m, n ≤ m → Jac ^ n = Jac ^ m := is_artinian.monotone_stabilizes f,
+  refine ⟨n, _⟩,
+  let J : ideal R := annihilator (Jac ^ n),
+  suffices : J = ⊤,
+  { have hJ : J • Jac ^ n = ⊥ := annihilator_smul (Jac ^ n),
+    simpa only [this, top_smul, ideal.zero_eq_bot] using hJ },
+  by_contradiction hJ, change J ≠ ⊤ at hJ,
+  rcases is_artinian.set_has_minimal {J' : ideal R | J < J'} ⟨⊤, hJ.lt_top⟩
+    with ⟨J', hJJ' : J < J', hJ' : ∀ I, J < I → I ≤ J' → I = J'⟩,
+  rcases set_like.exists_of_lt hJJ' with ⟨x, hxJ', hxJ⟩,
+  obtain rfl : J ⊔ ideal.span {x} = J',
+  { refine hJ' (J ⊔ ideal.span {x}) _ _,
+    { rw set_like.lt_iff_le_and_exists,
+      exact ⟨le_sup_left, ⟨x, mem_sup_right (mem_span_singleton_self x), hxJ⟩⟩ },
+    { exact (sup_le hJJ'.le (span_le.2 (singleton_subset_iff.2 hxJ'))) } },
+  have : J ⊔ Jac • ideal.span {x} ≤ J ⊔ ideal.span {x},
+    from sup_le_sup_left (smul_le.2 (λ _ _ _, submodule.smul_mem _ _)) _,
+  have : Jac * ideal.span {x} ≤ J, --Need version 4 of Nakayamas lemma on Stacks
+  { classical, by_contradiction H,
+    refine H (smul_sup_le_of_le_smul_of_le_jacobson_bot
+      (fg_span_singleton _) le_rfl (hJ' _ _ this).ge),
+    exact lt_of_le_of_ne le_sup_left (λ h, H $ h.symm ▸ le_sup_right) },
+  have : ideal.span {x} * Jac ^ (n + 1) ≤ ⊥,
+    calc ideal.span {x} * Jac ^ (n + 1) = ideal.span {x} * Jac * Jac ^ n :
+      by rw [pow_succ, ← mul_assoc]
+    ... ≤ J * Jac ^ n : mul_le_mul (by rwa mul_comm) (le_refl _)
+    ... = ⊥ : by simp [J],
+  refine hxJ (mem_annihilator.2 (λ y hy, (mem_bot R).1 _)),
+  refine this (mul_mem_mul (mem_span_singleton_self x) _),
+  rwa [← hn (n + 1) (nat.le_succ _)]
+end
+
+end is_artinian_ring

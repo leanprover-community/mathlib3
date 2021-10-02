@@ -47,6 +47,8 @@ protected theorem is_asymm.is_antisymm (r) [is_asymm α r] : is_antisymm α r :=
 ⟨λ x y h₁ h₂, (asymm h₁ h₂).elim⟩
 protected theorem is_asymm.is_irrefl [is_asymm α r] : is_irrefl α r :=
 ⟨λ a h, asymm h h⟩
+protected theorem is_total.is_trichotomous (r) [is_total α r] : is_trichotomous α r :=
+⟨λ a b, or.left_comm.1 (or.inr $ total_of r a b)⟩
 
 /- Convert algebraic structure style to explicit relation style typeclasses -/
 instance [preorder α] : is_refl α (≤) := ⟨le_refl⟩
@@ -78,6 +80,8 @@ instance [linear_order α] : is_linear_order α (≤) := {}
 instance [linear_order α] : is_linear_order α (≥) := {}
 instance [linear_order α] : is_trichotomous α (<) := ⟨lt_trichotomy⟩
 instance [linear_order α] : is_trichotomous α (>) := is_trichotomous.swap _
+instance [linear_order α] : is_trichotomous α (≤) := is_total.is_trichotomous _
+instance [linear_order α] : is_trichotomous α (≥) := is_total.is_trichotomous _
 
 instance order_dual.is_total_le [has_le α] [is_total α (≤)] : is_total (order_dual α) (≤) :=
 @is_total.swap α _ _

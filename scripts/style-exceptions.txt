@@ -1,14 +1,8 @@
-src/category_theory/adjunction/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too late
+src/category_theory/adjunction/basic.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/adjunction/fully_faithful.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/adjunction/limits.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/category_theory/endomorphism.lean : line 11 : ERR_MOD : Module docstring missing, or too late
-src/category_theory/epi_mono.lean : line 15 : ERR_MOD : Module docstring missing, or too late
-src/category_theory/eq_to_hom.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/full_subcategory.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/fully_faithful.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/category_theory/functor.lean : line 18 : ERR_MOD : Module docstring missing, or too late
-src/category_theory/functor_category.lean : line 8 : ERR_MOD : Module docstring missing, or too late
-src/category_theory/groupoid.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/limits/cones.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/limits/creates.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/limits/functor_category.lean : line 8 : ERR_MOD : Module docstring missing, or too late
@@ -18,10 +12,7 @@ src/category_theory/limits/shapes/finite_products.lean : line 10 : ERR_MOD : Mod
 src/category_theory/limits/types.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/monad/adjunction.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/monad/basic.lean : line 10 : ERR_MOD : Module docstring missing, or too late
-src/category_theory/natural_transformation.lean : line 16 : ERR_MOD : Module docstring missing, or too late
-src/category_theory/opposites.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/products/bifunctor.lean : line 8 : ERR_MOD : Module docstring missing, or too late
-src/category_theory/whiskering.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/computability/partrec_code.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/control/applicative.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/control/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too late
@@ -65,12 +56,10 @@ src/tactic/core.lean : line 17 : ERR_MOD : Module docstring missing, or too late
 src/tactic/delta_instance.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/elide.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/ext.lean : line 10 : ERR_MOD : Module docstring missing, or too late
-src/tactic/fin_cases.lean : line 13 : ERR_MOD : Module docstring missing, or too late
 src/tactic/find.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/hint.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/tactic/induction.lean : line 1329 : ERR_RNT : Reserved notation outside tactic.reserved_notation
 src/tactic/interactive.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/tactic/interval_cases.lean : line 32 : ERR_MOD : Module docstring missing, or too late
 src/tactic/lint/default.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/tactic/local_cache.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/monotonicity/basic.lean : line 8 : ERR_MOD : Module docstring missing, or too late
@@ -110,7 +99,6 @@ src/tactic/split_ifs.lean : line 10 : ERR_MOD : Module docstring missing, or too
 src/tactic/squeeze.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/tactic/subtype_instance.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/tactic/tauto.lean : line 8 : ERR_MOD : Module docstring missing, or too late
-src/tactic/tfae.lean : line 13 : ERR_MOD : Module docstring missing, or too late
 src/tactic/tidy.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/tactic/transfer.lean : line 6 : ERR_MOD : Module docstring missing, or too late
 src/tactic/transform_decl.lean : line 8 : ERR_MOD : Module docstring missing, or too late

@@ -6,6 +6,7 @@ Authors: Scott Morrison, Nicolò Cavalleri
 import topology.algebra.module
 import topology.continuous_function.basic
 import algebra.algebra.subalgebra
+import tactic.field_simp
 
 /-!
 # Algebraic structures over continuous functions
@@ -514,7 +515,7 @@ begin
       [subalgebra.add_mem, subalgebra.smul_mem, subalgebra.sub_mem, subalgebra.algebra_map_mem]
       { max_depth := 6 }, },
   { simp [f'], },
-  { simp [f', inv_mul_cancel_right' w], },
+  { simp [f', inv_mul_cancel_right₀ w], },
 end
 
 end continuous_map
@@ -585,25 +586,16 @@ section
 variables {R : Type*} [linear_ordered_field R]
 
 -- TODO:
--- This lemma (and the next) could go all the way back in `algebra.ordered_field`,
+-- This lemma (and the next) could go all the way back in `algebra.order.field`,
 -- except that it is tedious to prove without tactics.
 -- Rather than stranding it at some intermediate location,
 -- it's here, immediately prior to the point of use.
-lemma min_eq_half_add_sub_abs_sub {x y : R} : min x y = 2⁻¹ * (x + y - abs (x - y)) :=
-begin
-  rw abs_eq_max_neg,
-  dsimp [min, max],
-  simp  [abs_eq_max_neg, neg_le_self_iff, if_congr, sub_nonneg, neg_sub],
-  split_ifs; ring_nf; linarith,
-end
+lemma min_eq_half_add_sub_abs_sub {x y : R} : min x y = 2⁻¹ * (x + y - |x - y|) :=
+by cases le_total x y with h h; field_simp [h, abs_of_nonneg, abs_of_nonpos, mul_two]; abel
 
-lemma max_eq_half_add_add_abs_sub {x y : R} : max x y = 2⁻¹ * (x + y + abs (x - y)) :=
-begin
-  rw abs_eq_max_neg,
-  dsimp [min, max],
-  simp only [neg_le_self_iff, if_congr, sub_nonneg, neg_sub],
-  split_ifs; ring_nf; linarith,
-end
+lemma max_eq_half_add_add_abs_sub {x y : R} : max x y = 2⁻¹ * (x + y + |x - y|) :=
+by cases le_total x y with h h; field_simp [h, abs_of_nonneg, abs_of_nonpos, mul_two]; abel
+
 end
 
 namespace continuous_map
@@ -613,11 +605,11 @@ variables {α : Type*} [topological_space α]
 variables {β : Type*} [linear_ordered_field β] [topological_space β]
   [order_topology β] [topological_ring β]
 
-lemma inf_eq (f g : C(α, β)) : f ⊓ g = (2⁻¹ : β) • (f + g - (f - g).abs) :=
+lemma inf_eq (f g : C(α, β)) : f ⊓ g = (2⁻¹ : β) • (f + g - |f - g|) :=
 ext (λ x, by simpa using min_eq_half_add_sub_abs_sub)
 
 -- Not sure why this is grosser than `inf_eq`:
-lemma sup_eq (f g : C(α, β)) : f ⊔ g = (2⁻¹ : β) • (f + g + (f - g).abs) :=
+lemma sup_eq (f g : C(α, β)) : f ⊔ g = (2⁻¹ : β) • (f + g + |f - g|) :=
 ext (λ x, by simpa [mul_add] using @max_eq_half_add_add_abs_sub _ _ (f x) (g x))
 
 end lattice

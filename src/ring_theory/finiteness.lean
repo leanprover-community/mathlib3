@@ -90,7 +90,20 @@ variables (R)
 instance self : finite R R :=
 ⟨⟨{1}, by simpa only [finset.coe_singleton] using ideal.span_singleton_one⟩⟩
 
-variables {R}
+variable (M)
+
+lemma of_restrict_scalars_finite [module A M] [is_scalar_tower R A M] [hM : finite R M] :
+  finite A M :=
+begin
+  rw [finite_def, fg_def] at hM ⊢,
+  obtain ⟨S, hSfin, hSgen⟩ := hM,
+  refine ⟨S, hSfin, eq_top_iff.2 _⟩,
+  have := submodule.span_le_restrict_scalars R A M S,
+  rw hSgen at this,
+  exact this
+end
+
+variables {R M}
 
 instance prod [hM : finite R M] [hN : finite R N] : finite R (M × N) :=
 ⟨begin
@@ -140,6 +153,15 @@ protected lemma mv_polynomial (ι : Type*) [fintype ι] : finite_type R (mv_poly
   exact subalgebra.mul_mem _ ih
     (subalgebra.pow_mem _ (subset_adjoin $ finset.mem_image_of_mem _ $ finset.mem_univ _) _)
 end⟩⟩
+end
+
+lemma of_restrict_scalars_finite_type [algebra A B] [is_scalar_tower R A B] [hB : finite_type R B] :
+  finite_type A B :=
+begin
+  obtain ⟨S, hS⟩ := hB.out,
+  refine ⟨⟨S, eq_top_iff.2 (λ b, _)⟩⟩,
+  convert (algebra.adjoin_le algebra.subset_adjoin :
+    adjoin R (S : set B) ≤  subalgebra.restrict_scalars R (adjoin A S)) (eq_top_iff.1 hS b)
 end
 
 variables {R A B}
@@ -414,6 +436,16 @@ hf hg
 lemma finite_type {f : A →+* B} (hf : f.finite) : finite_type f :=
 @module.finite.finite_type _ _ _ _ f.to_algebra hf
 
+lemma of_comp_finite {f : A →+* B} {g : B →+* C} (h : (g.comp f).finite) : g.finite :=
+begin
+  letI := f.to_algebra,
+  letI := g.to_algebra,
+  letI := (g.comp f).to_algebra,
+  letI : is_scalar_tower A B C := restrict_scalars.is_scalar_tower A B C,
+  letI : module.finite A C := h,
+  exact module.finite.of_restrict_scalars_finite A B C
+end
+
 end finite
 
 namespace finite_type
@@ -445,6 +477,17 @@ hf hg
 
 lemma of_finite_presentation {f : A →+* B} (hf : f.finite_presentation) : f.finite_type :=
 @algebra.finite_type.of_finite_presentation A B _ _ f.to_algebra hf
+
+lemma of_comp_finite_type {f : A →+* B} {g : B →+* C} (h : (g.comp f).finite_type) :
+  g.finite_type :=
+begin
+  letI := f.to_algebra,
+  letI := g.to_algebra,
+  letI := (g.comp f).to_algebra,
+  letI : is_scalar_tower A B C := restrict_scalars.is_scalar_tower A B C,
+  letI : algebra.finite_type A C := h,
+  exact algebra.finite_type.of_restrict_scalars_finite_type A B C
+end
 
 end finite_type
 
@@ -515,6 +558,9 @@ ring_hom.finite.of_surjective f hf
 lemma finite_type {f : A →ₐ[R] B} (hf : f.finite) : finite_type f :=
 ring_hom.finite.finite_type hf
 
+lemma of_comp_finite {f : A →ₐ[R] B} {g : B →ₐ[R] C} (h : (g.comp f).finite) : g.finite :=
+ring_hom.finite.of_comp_finite h
+
 end finite
 
 namespace finite_type
@@ -538,6 +584,10 @@ ring_hom.finite_type.of_surjective f hf
 
 lemma of_finite_presentation {f : A →ₐ[R] B} (hf : f.finite_presentation) : f.finite_type :=
 ring_hom.finite_type.of_finite_presentation hf
+
+lemma of_comp_finite_type {f : A →ₐ[R] B} {g : B →ₐ[R] C} (h : (g.comp f).finite_type) :
+g.finite_type :=
+ring_hom.finite_type.of_comp_finite_type h
 
 end finite_type
 

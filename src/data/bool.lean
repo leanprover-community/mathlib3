@@ -95,6 +95,9 @@ decidable_of_decidable_of_iff or.decidable exists_bool.symm
   cond (to_bool p) t e = if p then t else e :=
 by by_cases p; simp *
 
+@[simp] theorem cond_bnot {α} (b : bool) (t e : α) : cond (!b) t e = cond b e t :=
+by cases b; refl
+
 theorem coe_bool_iff : ∀ {a b : bool}, (a ↔ b) ↔ a = b := dec_trivial
 
 theorem eq_tt_of_ne_ff : ∀ {a : bool}, a ≠ ff → a = tt := dec_trivial
@@ -150,8 +153,6 @@ lemma bxor_iff_ne : ∀ {x y : bool}, bxor x y = tt ↔ x ≠ y := dec_trivial
 
 lemma bnot_inj : ∀ {a b : bool}, !a = !b → a = b := dec_trivial
 
-end bool
-
 instance : linear_order bool :=
 { le := λ a b, a = ff ∨ b = tt,
   le_refl := dec_trivial,
@@ -160,9 +161,11 @@ instance : linear_order bool :=
   le_total := dec_trivial,
   decidable_le := infer_instance,
   decidable_eq := infer_instance,
-  decidable_lt := infer_instance }
-
-namespace bool
+  decidable_lt := infer_instance,
+  max := bor,
+  max_def := by { funext x y, revert x y, exact dec_trivial },
+  min := band,
+  min_def := by { funext x y, revert x y, exact dec_trivial } }
 
 @[simp] lemma ff_le {x : bool} : ff ≤ x := or.intro_left _ rfl
 

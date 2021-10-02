@@ -121,7 +121,7 @@ by simpa using hx.comp _ (range_splitting_injective x)
 lemma map {f : A →ₐ[R] A'} (hf_inj : set.inj_on f (adjoin R (range x))) :
   algebraic_independent R (f ∘ x) :=
 have aeval (f ∘ x) = f.comp (aeval x), by ext; simp,
-have h : ∀ p : mv_polynomial ι R, aeval x p ∈ (@aeval R _ _ _ _ (coe : range x → A) _).range,
+have h : ∀ p : mv_polynomial ι R, aeval x p ∈ (@aeval R _ _ _ _ _ (coe : range x → A)).range,
   { intro p,
     rw [alg_hom.mem_range],
     refine ⟨mv_polynomial.rename (cod_restrict x (range x) (mem_range_self)) p, _⟩,
@@ -352,7 +352,7 @@ variables (hx : algebraic_independent R x)
   (mv_polynomial ι R) ≃ₐ[R] algebra.adjoin R (range x) :=
 begin
   apply alg_equiv.of_bijective
-    (alg_hom.cod_restrict (@aeval R A ι _ _ x _) (algebra.adjoin R (range x)) _),
+    (alg_hom.cod_restrict (@aeval R A ι _ _ _ x) (algebra.adjoin R (range x)) _),
   swap,
   { intros x,
     rw [adjoin_range_eq_range_aeval],

@@ -84,14 +84,14 @@ by apply_instance
 
 @[simp] lemma add_neg_one (i : ℤ) : i + -1 = i - 1 := rfl
 
-theorem abs_eq_nat_abs : ∀ a : ℤ, abs a = nat_abs a
+theorem abs_eq_nat_abs : ∀ a : ℤ, |a| = nat_abs a
 | (n : ℕ) := abs_of_nonneg $ coe_zero_le _
 | -[1+ n] := abs_of_nonpos $ le_of_lt $ neg_succ_lt_zero _
 
-theorem nat_abs_abs (a : ℤ) : nat_abs (abs a) = nat_abs a :=
+theorem nat_abs_abs (a : ℤ) : nat_abs (|a|) = nat_abs a :=
 by rw [abs_eq_nat_abs]; refl
 
-theorem sign_mul_abs (a : ℤ) : sign a * abs a = a :=
+theorem sign_mul_abs (a : ℤ) : sign a * |a| = a :=
 by rw [abs_eq_nat_abs, sign_mul_nat_abs]
 
 @[simp] lemma default_eq_zero : default ℤ = 0 := rfl
@@ -140,7 +140,7 @@ lemma coe_nat_ne_zero_iff_pos {n : ℕ} : (n : ℤ) ≠ 0 ↔ 0 < n :=
 
 lemma coe_nat_succ_pos (n : ℕ) : 0 < (n.succ : ℤ) := int.coe_nat_pos.2 (succ_pos n)
 
-@[simp, norm_cast] theorem coe_nat_abs (n : ℕ) : abs (n : ℤ) = n :=
+@[simp, norm_cast] theorem coe_nat_abs (n : ℕ) : |(n : ℤ)| = n :=
 abs_of_nonneg (coe_nat_nonneg n)
 
 /-! ### succ and pred -/
@@ -200,7 +200,7 @@ sub_lt_iff_lt_add.trans lt_add_one_iff
 theorem le_sub_one_iff {a b : ℤ} : a ≤ b - 1 ↔ a < b :=
 le_sub_iff_add_le
 
-@[simp] lemma eq_zero_iff_abs_lt_one {a : ℤ} : abs a < 1 ↔ a = 0 :=
+@[simp] lemma eq_zero_iff_abs_lt_one {a : ℤ} : |a| < 1 ↔ a = 0 :=
 ⟨λ a0, let ⟨hn, hp⟩ := abs_lt.mp a0 in (le_of_lt_add_one (by exact hp)).antisymm hn,
   λ a0, (abs_eq_zero.mpr a0).le.trans_lt zero_lt_one⟩
 
@@ -392,8 +392,8 @@ match a, b, eq_coe_of_zero_le H1, eq_succ_of_zero_lt (lt_of_le_of_lt H1 H2), H2 
   congr_arg of_nat $ nat.div_eq_of_lt $ lt_of_coe_nat_lt_coe_nat H2
 end
 
-theorem div_eq_zero_of_lt_abs {a b : ℤ} (H1 : 0 ≤ a) (H2 : a < abs b) : a / b = 0 :=
-match b, abs b, abs_eq_nat_abs b, H2 with
+theorem div_eq_zero_of_lt_abs {a b : ℤ} (H1 : 0 ≤ a) (H2 : a < |b|) : a / b = 0 :=
+match b, |b|, abs_eq_nat_abs b, H2 with
 | (n : ℕ), ._, rfl, H2 := div_eq_zero_of_lt H1 H2
 | -[1+ n], ._, rfl, H2 := neg_injective $ by rw [← int.div_neg]; exact div_eq_zero_of_lt H1 H2
 end
@@ -479,7 +479,7 @@ match b, eq_succ_of_zero_lt bpos with ._, ⟨n, rfl⟩ := rfl end
 | (m : ℕ) n := @congr_arg ℕ ℤ _ _ (λ i, ↑(m % i)) (nat_abs_neg _)
 | -[1+ m] n := @congr_arg ℕ ℤ _ _ (λ i, sub_nat_nat i (nat.succ (m % i))) (nat_abs_neg _)
 
-@[simp] theorem mod_abs (a b : ℤ) : a % (abs b) = a % b :=
+@[simp] theorem mod_abs (a b : ℤ) : a % (|b|) = a % b :=
 abs_by_cases (λ i, a % i = a % b) rfl (mod_neg _ _)
 
 local attribute [simp] -- Will be generalized to Euclidean domains.
@@ -512,7 +512,7 @@ match a, b, eq_succ_of_zero_lt H with
 | -[1+ m], ._, ⟨n, rfl⟩ := sub_lt_self _ (coe_nat_lt_coe_nat_of_lt $ nat.succ_pos _)
 end
 
-theorem mod_lt (a : ℤ) {b : ℤ} (H : b ≠ 0) : a % b < abs b :=
+theorem mod_lt (a : ℤ) {b : ℤ} (H : b ≠ 0) : a % b < |b| :=
 by rw [← mod_abs]; exact mod_lt_of_pos _ (abs_pos.2 H)
 
 theorem mod_add_div_aux (m n : ℕ) : (n - (m % n + 1) - (n * (m / n) + n) : ℤ) = -[1+ m] :=
@@ -672,8 +672,8 @@ theorem lt_div_add_one_mul_self (a : ℤ) {b : ℤ} (H : 0 < b) : a < (a / b + 1
 by { rw [add_mul, one_mul, mul_comm, ← sub_lt_iff_lt_add', ← mod_def],
   exact mod_lt_of_pos _ H }
 
-theorem abs_div_le_abs : ∀ (a b : ℤ), abs (a / b) ≤ abs a :=
-suffices ∀ (a : ℤ) (n : ℕ), abs (a / n) ≤ abs a, from
+theorem abs_div_le_abs : ∀ (a b : ℤ), |a / b| ≤ |a| :=
+suffices ∀ (a : ℤ) (n : ℕ), |a / n| ≤ |a|, from
 λ a b, match b, eq_coe_or_neg b with
 | ._, ⟨n, or.inl rfl⟩ := this _ _
 | ._, ⟨n, or.inr rfl⟩ := by rw [int.div_neg, abs_neg]; apply this
@@ -831,7 +831,7 @@ theorem div_sign : ∀ a b, a / sign b = a * sign b
 | -[1+ m] (n+1:ℕ) := rfl
 | -[1+ m] -[1+ n] := rfl
 
-protected theorem sign_eq_div_abs (a : ℤ) : sign a = a / (abs a) :=
+protected theorem sign_eq_div_abs (a : ℤ) : sign a = a / |a| :=
 if az : a = 0 then by simp [az] else
 (int.div_eq_of_eq_mul_left (mt abs_eq_zero.1 az)
   (sign_mul_abs _).symm).symm

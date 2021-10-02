@@ -273,8 +273,8 @@ section functor_pullback
 variables {Z : D} {T : presieve (F.obj Z)} {x : family_of_elements P T}
 
 /--
-Given a family of elements of a sieve `S` on `F(X)`, we can obtain a family of elements of
-`S.pullback F` by taking the same elements.
+Given a family of elements of a sieve `S` on `F(X)`, we can realize it as a family of elements of
+`S.functor_pullback F`.
 -/
 def functor_pullback (x : family_of_elements P T) :
   family_of_elements (F.op ⋙ P) (T.functor_pullback F) := λ Y f hf, x (F.map f) hf

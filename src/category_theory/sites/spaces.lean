@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 
-import topology.sheaves.sheaf
-import category_theory.sites.sheaf
+import topology.opens
+import category_theory.sites.grothendieck
+import category_theory.sites.pretopology
 import category_theory.limits.lattice
 
 /-!
@@ -31,13 +32,12 @@ We define the two separately, rather than defining the Grothendieck topology as 
 by the pretopology for the purpose of having nice definitional properties for the sieves.
 -/
 
-universes u v
-
-open category_theory topological_space Top Top.presheaf category_theory.limits
+universes u
 
 namespace opens
-
 variables (T : Type u) [topological_space T]
+
+open category_theory topological_space category_theory.limits
 
 /-- The Grothendieck topology associated to a topological space. -/
 def grothendieck_topology : grothendieck_topology (opens T) :=
@@ -92,151 +92,3 @@ begin
 end
 
 end opens
-
-noncomputable theory
-
-variables {C : Type u} [category.{v} C] [has_products C]
-variables {X : Top.{v}} (F : presheaf C X)
-
-namespace is_sheaf_sites_of_is_sheaf_spaces
-
-open Top.presheaf.sheaf_condition_equalizer_products
-open opposite
-
-variables (U : opens X) (R : presieve U)
-
-def covering_of_presieve : (Σ V, {f : V ⟶ U // R f}) → opens X :=
-λ f, f.1
-
-@[simp]
-lemma covering_of_presieve_apply (f : Σ V, {f : V ⟶ U // R f}) :
-  covering_of_presieve U R f = f.1 := rfl
-
-lemma supr_covering_of_presieve_eq (hR : sieve.generate R ∈ opens.grothendieck_topology X U) :
-  supr (covering_of_presieve U R) = U :=
-begin
-  apply le_antisymm,
-  { refine supr_le _,
-    intro f,
-    exact f.2.1.le, },
-  intros x hxU,
-  rw [subtype.val_eq_coe, opens.mem_coe, opens.mem_supr],
-  obtain ⟨V, iVU, ⟨W, iVW, iWU, hiWU, -⟩, hxV⟩ := hR x hxU,
-  exact ⟨⟨W, ⟨iWU, hiWU⟩⟩, iVW.le hxV⟩,
-end
-
-def first_obj_iso_pi_opens : presheaf.first_obj R F ≅ pi_opens F (covering_of_presieve U R) :=
-eq_to_iso rfl
-
-lemma first_obj_iso_pi_opens_π (f : Σ V, {f : V ⟶ U // R f}) :
-  (first_obj_iso_pi_opens F U R).hom ≫ limit.π _ f = limit.π _ f :=
-begin dsimp [first_obj_iso_pi_opens], rw category.id_comp, end
-
-def second_obj_iso_pi_inters :
-  presheaf.second_obj R F ≅ pi_inters F (covering_of_presieve U R) :=
-has_limit.iso_of_nat_iso $ discrete.nat_iso $ λ i, eq_to_iso $
-begin
-  dsimp,
-  rw complete_lattice.pullback_eq_inf,
-end
-
-lemma second_obj_iso_pi_inters_π (f g : Σ V, {f : V ⟶ U // R f}) :
-  (second_obj_iso_pi_inters F U R).hom ≫ limit.π _ (f, g) =
-  limit.π _ (f, g) ≫ F.map (eq_to_hom (complete_lattice.pullback_eq_inf f.2.1 g.2.1).symm).op :=
-begin
-  dsimp [second_obj_iso_pi_inters],
-  rw [has_limit.iso_of_nat_iso_hom_π, eq_to_hom_op, eq_to_hom_map],
-  refl,
-end
-
-lemma fork_map_comp_first_obj_iso_pi_opens_eq
-  (hR : sieve.generate R ∈ opens.grothendieck_topology X U) :
-  presheaf.fork_map R F ≫ (first_obj_iso_pi_opens F U R).hom =
-  F.map (eq_to_hom (supr_covering_of_presieve_eq U R hR)).op ≫ res F (covering_of_presieve U R) :=
-begin
-  ext f,
-  rw [category.assoc, category.assoc],
-  rw first_obj_iso_pi_opens_π,
-  dsimp [presheaf.fork_map, res],
-  rw [limit.lift_π, fan.mk_π_app, limit.lift_π, fan.mk_π_app, ← F.map_comp],
-  congr,
-end
-
-lemma first_obj_iso_comp_left_res_eq :
-  presheaf.first_map R F ≫ (second_obj_iso_pi_inters F U R).hom =
-  (first_obj_iso_pi_opens F U R).hom ≫ left_res F (covering_of_presieve U R) :=
-begin
-  ext ⟨f, g⟩,
-  rw [category.assoc, category.assoc, second_obj_iso_pi_inters_π],
-  dsimp [left_res, presheaf.first_map],
-  rw [limit.lift_π, fan.mk_π_app, limit.lift_π_assoc, fan.mk_π_app, ← category.assoc],
-  erw [first_obj_iso_pi_opens_π, category.assoc, ← F.map_comp],
-  refl,
-end
-
-lemma first_obj_iso_comp_right_res_eq :
-  presheaf.second_map R F ≫ (second_obj_iso_pi_inters F U R).hom =
-  (first_obj_iso_pi_opens F U R).hom ≫ right_res F (covering_of_presieve U R) :=
-begin
-  ext ⟨f, g⟩,
-  rw [category.assoc, category.assoc, second_obj_iso_pi_inters_π],
-  dsimp [right_res, presheaf.second_map],
-  rw [limit.lift_π, fan.mk_π_app, limit.lift_π_assoc, fan.mk_π_app, ← category.assoc],
-  erw [first_obj_iso_pi_opens_π, category.assoc, ← F.map_comp],
-  refl,
-end
-
-@[simps]
-def diagram_nat_iso : parallel_pair (presheaf.first_map R F) (presheaf.second_map R F) ≅
-  diagram F (covering_of_presieve U R) :=
-nat_iso.of_components
-  (λ i, walking_parallel_pair.cases_on i (first_obj_iso_pi_opens F U R) (second_obj_iso_pi_inters F U R))
-begin
-  intros i j f,
-  cases i,
-  { cases j,
-    { cases f, simp },
-    { cases f,
-      { exact first_obj_iso_comp_left_res_eq F U R, },
-      { exact first_obj_iso_comp_right_res_eq F U R, } } },
-  { cases j,
-    { cases f, },
-    { cases f, simp } },
-end
-
-@[simps]
-def postcompose_diagram_fork_hom (hR : sieve.generate R ∈ opens.grothendieck_topology X U) :
-  (cones.postcompose (diagram_nat_iso F U R).hom).obj (fork.of_ι _ (presheaf.w R F)) ⟶
-  fork F (covering_of_presieve U R) :=
-fork.mk_hom (F.map (eq_to_hom (supr_covering_of_presieve_eq U R hR)).op)
-  (fork_map_comp_first_obj_iso_pi_opens_eq F U R hR).symm
-
-instance is_iso_postcompose_diagram_fork_hom_hom
-  (hR : sieve.generate R ∈ opens.grothendieck_topology X U) :
-  is_iso (postcompose_diagram_fork_hom F U R hR).hom :=
-begin rw postcompose_diagram_fork_hom_hom, apply eq_to_hom.is_iso, end
-
-instance is_iso_postcompose_diagram_fork_hom
-  (hR : sieve.generate R ∈ opens.grothendieck_topology X U) :
-  is_iso (postcompose_diagram_fork_hom F U R hR) :=
-cones.cone_iso_of_hom_iso _
-
-def postcompose_diagram_fork_iso (hR : sieve.generate R ∈ opens.grothendieck_topology X U) :
-  (cones.postcompose (diagram_nat_iso F U R).hom).obj (fork.of_ι _ (presheaf.w R F)) ≅
-  fork F (covering_of_presieve U R) :=
-as_iso (postcompose_diagram_fork_hom F U R hR)
-
-end is_sheaf_sites_of_is_sheaf_spaces
-
-open is_sheaf_sites_of_is_sheaf_spaces
-
-lemma is_sheaf_sites_of_is_sheaf_spaces (Fsh : F.is_sheaf) :
-  presheaf.is_sheaf (opens.grothendieck_topology X) F :=
-begin
-  rw presheaf.is_sheaf_iff_is_sheaf',
-  intros U R hR,
-  refine ⟨_⟩,
-  apply (is_limit.of_cone_equiv (cones.postcompose_equivalence (diagram_nat_iso F U R))).to_fun,
-  apply (is_limit.equiv_iso_limit (postcompose_diagram_fork_iso F U R hR)).inv_fun,
-  exact (Fsh (covering_of_presieve U R)).some,
-end

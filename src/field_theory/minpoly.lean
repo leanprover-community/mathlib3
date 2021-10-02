@@ -311,19 +311,20 @@ by { rw is_scalar_tower.aeval_apply R K,
 
 variables {A x}
 
-theorem unique' [nontrivial B] {p : polynomial A} (hp1 : _root_.irreducible p)
+theorem eq_of_irreducible_of_monic
+  [nontrivial B] {p : polynomial A} (hp1 : _root_.irreducible p)
   (hp2 : polynomial.aeval x p = 0) (hp3 : p.monic) : p = minpoly A x :=
 let ⟨q, hq⟩ := dvd A x hp2 in
 eq_of_monic_of_associated hp3 (monic ⟨p, ⟨hp3, hp2⟩⟩) $
 mul_one (minpoly A x) ▸ hq.symm ▸ associated.mul_left _ $
 associated_one_iff_is_unit.2 $ (hp1.is_unit_or_is_unit hq).resolve_left $ not_is_unit A x
 
-lemma unique'' [nontrivial B] {p : polynomial A}
+lemma eq_of_irreducible [nontrivial B] {p : polynomial A}
   (hp1 : _root_.irreducible p) (hp2 : polynomial.aeval x p = 0) :
   p * C p.leading_coeff⁻¹ = minpoly A x :=
 begin
   have : p.leading_coeff ≠ 0 := leading_coeff_ne_zero.mpr hp1.ne_zero,
-  apply unique',
+  apply eq_of_irreducible_of_monic,
   { exact associated.irreducible ⟨⟨C p.leading_coeff⁻¹, C p.leading_coeff,
       by rwa [←C_mul, inv_mul_cancel, C_1], by rwa [←C_mul, mul_inv_cancel, C_1]⟩, rfl⟩ hp1 },
   { rw [aeval_mul, hp2, zero_mul] },
@@ -356,7 +357,7 @@ lemma gcd_domain_eq_field_fractions {A R : Type*} (K : Type*) [integral_domain A
   minpoly K x = (minpoly A x).map (algebra_map A K) :=
 begin
   symmetry,
-  refine unique' _ _ _,
+  refine eq_of_irreducible_of_monic _ _ _,
   { exact (polynomial.is_primitive.irreducible_iff_irreducible_map_fraction_map
       (polynomial.monic.is_primitive (monic hx))).1 (irreducible hx) },
   { have htower := is_scalar_tower.aeval_apply A K R x (minpoly A x),

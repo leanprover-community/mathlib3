@@ -224,7 +224,7 @@ theorem is_integral : is_integral (fixed_points.subfield G F) x :=
 
 theorem minpoly_eq_minpoly :
   minpoly G F x = _root_.minpoly (fixed_points.subfield G F) x :=
-minpoly.unique' (minpoly.irreducible G F x)
+minpoly.eq_of_irreducible_of_monic (minpoly.irreducible G F x)
   (minpoly.eval₂ G F x) (minpoly.monic G F x)
 
 instance normal : normal (fixed_points.subfield G F) F :=

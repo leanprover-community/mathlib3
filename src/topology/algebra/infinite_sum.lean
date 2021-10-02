@@ -1148,11 +1148,11 @@ tendsto_at_top_is_lub (finset.sum_mono_set f) hf
 
 lemma summable_abs_iff [linear_ordered_add_comm_group β] [uniform_space β]
   [uniform_add_group β] [complete_space β] {f : α → β} :
-  summable (λ x, abs (f x)) ↔ summable f :=
-have h1 : ∀ x : {x | 0 ≤ f x}, abs (f x) = f x := λ x, abs_of_nonneg x.2,
-have h2 : ∀ x : {x | 0 ≤ f x}ᶜ, abs (f x) = -f x := λ x, abs_of_neg (not_le.1 x.2),
-calc summable (λ x, abs (f x)) ↔
-  summable (λ x : {x | 0 ≤ f x}, abs (f x)) ∧ summable (λ x : {x | 0 ≤ f x}ᶜ, abs (f x)) :
+  summable (λ x, |f x|) ↔ summable f :=
+have h1 : ∀ x : {x | 0 ≤ f x}, |f x| = f x := λ x, abs_of_nonneg x.2,
+have h2 : ∀ x : {x | 0 ≤ f x}ᶜ, |f x| = -f x := λ x, abs_of_neg (not_le.1 x.2),
+calc summable (λ x, |f x|) ↔
+  summable (λ x : {x | 0 ≤ f x}, |f x|) ∧ summable (λ x : {x | 0 ≤ f x}ᶜ, |f x|) :
   summable_subtype_and_compl.symm
 ... ↔ summable (λ x : {x | 0 ≤ f x}, f x) ∧ summable (λ x : {x | 0 ≤ f x}ᶜ, -f x) :
   by simp only [h1, h2]
@@ -1200,7 +1200,7 @@ begin
   rw [real.dist_eq, ← sum_Ico_eq_sub _ hn] at hsum,
   calc dist (f n) (f N) = dist (f N) (f n) : dist_comm _ _
   ... ≤ ∑ x in Ico N n, d x : dist_le_Ico_sum_of_dist_le hn (λ k _ _, hf k)
-  ... ≤ abs (∑ x in Ico N n, d x) : le_abs_self _
+  ... ≤ |∑ x in Ico N n, d x| : le_abs_self _
   ... < ε : hsum
 end
 

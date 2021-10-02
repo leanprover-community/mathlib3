@@ -505,7 +505,7 @@ theorem cinfi_eq_of_forall_ge_of_forall_gt_exists_lt [nonempty ι] {f : ι → �
 /-- Nested intervals lemma: if `f` is a monotone sequence, `g` is an antitone sequence, and
 `f n ≤ g n` for all `n`, then `⨆ n, f n` belongs to all the intervals `[f n, g n]`. -/
 lemma monotone.csupr_mem_Inter_Icc_of_antitone [nonempty β] [semilattice_sup β]
-  {f g : β → α} (hf : monotone f) (hg : ∀ ⦃m n⦄, m ≤ n → g n ≤ g m) (h : ∀ n, f n ≤ g n) :
+  {f g : β → α} (hf : monotone f) (hg : antitone g) (h : f ≤ g) :
   (⨆ n, f n) ∈ ⋂ n, Icc (f n) (g n) :=
 begin
   inhabit β,
@@ -516,7 +516,7 @@ end
 /-- Nested intervals lemma: if `[f n, g n]` is an antitone sequence of nonempty
 closed intervals, then `⨆ n, f n` belongs to all the intervals `[f n, g n]`. -/
 lemma csupr_mem_Inter_Icc_of_antitone_Icc [nonempty β] [semilattice_sup β]
-  {f g : β → α} (h : ∀ ⦃m n⦄, m ≤ n → Icc (f n) (g n) ⊆ Icc (f m) (g m)) (h' : ∀ n, f n ≤ g n) :
+  {f g : β → α} (h : antitone (λ n, Icc (f n) (g n))) (h' : ∀ n, f n ≤ g n) :
   (⨆ n, f n) ∈ ⋂ n, Icc (f n) (g n) :=
 monotone.csupr_mem_Inter_Icc_of_antitone (λ m n hmn, ((Icc_subset_Icc_iff (h' n)).1 (h hmn)).1)
   (λ m n hmn, ((Icc_subset_Icc_iff (h' n)).1 (h hmn)).2) h'

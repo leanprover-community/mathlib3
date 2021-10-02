@@ -481,7 +481,7 @@ variables {μ : measure α}
   [second_countable_topology E] {s : ℕ → set α} {f : α → E}
 
 lemma _root_.antitone.tendsto_set_integral (hsm : ∀ i, measurable_set (s i))
-  (h_mono : ∀ i j, i ≤ j → s j ⊆ s i) (hfi : integrable_on f (s 0) μ) :
+  (h_anti : antitone s) (hfi : integrable_on f (s 0) μ) :
   tendsto (λi, ∫ a in s i, f a ∂μ) at_top (𝓝 (∫ a in (⋂ n, s n), f a ∂μ)) :=
 begin
   let bound : α → ℝ := indicator (s 0) (λ a, ∥f a∥),
@@ -492,15 +492,15 @@ begin
   refine tendsto_integral_of_dominated_convergence bound _ _ _ _ _,
   { intro n,
     rw ae_measurable_indicator_iff (hsm n),
-    exact (integrable_on.mono_set hfi (h_mono 0 n (zero_le n))).1, },
+    exact (integrable_on.mono_set hfi (h_anti (zero_le n))).1 },
   { rw ae_measurable_indicator_iff (measurable_set.Inter hsm),
     exact (integrable_on.mono_set hfi (set.Inter_subset s 0)).1, },
   { rw integrable_indicator_iff (hsm 0),
     exact hfi.norm, },
   { simp_rw norm_indicator_eq_indicator_norm,
     refine λ n, eventually_of_forall (λ x, _),
-    exact indicator_le_indicator_of_subset (h_mono 0 n (zero_le n)) (λ a, norm_nonneg _) _, },
-  { filter_upwards [] λa, le_trans (antitone.tendsto_indicator _ h_mono _ _) (pure_le_nhds _), },
+    exact indicator_le_indicator_of_subset (h_anti (zero_le n)) (λ a, norm_nonneg _) _ },
+  { filter_upwards [] λ a, le_trans (h_anti.tendsto_indicator _ _ _) (pure_le_nhds _) }
 end
 
 end tendsto_mono

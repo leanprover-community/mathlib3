@@ -6,16 +6,27 @@ Authors: Rémy Degenne
 import measure_theory.function.conditional_expectation
 import measure_theory.decomposition.radon_nikodym
 
-/-! # Notations for probability theory -/
+/-! # Notations for probability theory
 
-open measure_theory measure_theory.measure topological_space
+This file defines the following notations, for functions `X,Y`, measures `P, Q` defined on a
+measurable space `m0`, and another measurable space structure `m` with `hm : m ≤ m0`,
+- `P[X] = ∫ a, X a ∂P`
+- `𝔼[X] = ∫ a, X a`
+- `𝔼[X|hm]`: conditional expectation of `X` with respect to the measure `volume` and the
+  measurable space `m`. The similar `P[X|hm]` for a measure `P` is defined in
+  measure_theory.function.conditional_expectation.
+- `X =ₐₛ Y`: `X =ᵐ[volume] Y`
+- `X ≤ₐₛ Y`: `X ≤ᵐ[volume] Y`
+- `∂P/∂Q = P.rn_deriv Q`
 
--- The related notation `P[ X | hm] := measure_theory.condexp hm P X` is defined in
--- measure_theory.function.conditional_expectation.
+TODO: define the notation `ℙ s` for the probability of a set `s`, and decide whether it should be a
+value in `ℝ`, `ℝ≥0` or `ℝ≥0∞`.
+-/
+
+open measure_theory
+
 localized "notation `𝔼[` X `|` hm `]` := measure_theory.condexp hm volume X" in probability_theory
 
--- The usual expectation notation `𝔼[X]` does not carry information about the measure used, hence
--- we reserve it for the `volume` measure, and use the similar `P[X]` for the expectation under `P`.
 localized "notation P `[` X `]` := ∫ x, X x ∂P" in probability_theory
 
 localized "notation `𝔼[` X `]` := ∫ a, X a" in probability_theory
@@ -24,26 +35,4 @@ localized "notation X `=ₐₛ`:50 Y:50 := X =ᵐ[volume] Y" in probability_theo
 
 localized "notation X `≤ₐₛ`:50 Y:50 := X ≤ᵐ[volume] Y" in probability_theory
 
-localized "notation `∂` P `/∂`:50 P':50 := P.rn_deriv P'" in probability_theory
-
-section examples
-
-open_locale probability_theory
-
-variables {α E : Type*} [measure_space α] {P P' : measure α} [measurable_space E] [normed_group E]
-  [normed_space ℝ E] [borel_space E] [second_countable_topology E] [complete_space E] {X Y : α → E}
-
-example : P[X] = ∫ a, X a ∂P := rfl
-
-example : 𝔼[X] = volume[X] := rfl
-
-example : X =ₐₛ Y ↔ X =ᵐ[volume] Y := iff.rfl
-
-example : ∂P/∂P' = P.rn_deriv P' := rfl
-
-/-- TODO: how may I remove the parentheses? Also: is this an existing lemma? -/
-example [have_lebesgue_decomposition P P'] (h : P ≪ P') : ∫⁻ a, (∂P/∂P') a ∂P' = P set.univ :=
-by rw [← set_lintegral_univ, ← with_density_apply _ measurable_set.univ,
-  with_density_rn_deriv_eq _ _ h]
-
-end examples
+localized "notation `∂` P `/∂`:50 Q:50 := P.rn_deriv Q" in probability_theory

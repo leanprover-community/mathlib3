@@ -245,7 +245,7 @@ begin
   by_contra,
   rcases A x with H|H, { exact h H },
   have Rpos : 0 < p.R p.last_step,
-  { apply lt_trans (mul_pos (zero_lt_one.trans p.one_lt_tau) (p.rpos _)) H },
+  { apply lt_trans (mul_pos (_root_.zero_lt_one.trans p.one_lt_tau) (p.rpos _)) H },
   have B : p.τ⁻¹ * p.R p.last_step < p.R p.last_step,
   { conv_rhs { rw ← one_mul (p.R p.last_step) },
     exact mul_lt_mul (inv_lt_one p.one_lt_tau) le_rfl Rpos zero_le_one },
@@ -258,7 +258,7 @@ begin
   rcases A y with Hy|Hy,
   { exact hy1 Hy },
   { rw ← div_eq_inv_mul at hy2,
-    have := (div_le_iff' (zero_lt_one.trans p.one_lt_tau)).1 hy2.le,
+    have := (div_le_iff' (_root_.zero_lt_one.trans p.one_lt_tau)).1 hy2.le,
     exact lt_irrefl _ (Hy.trans_le this) }
 end
 

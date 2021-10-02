@@ -34,14 +34,6 @@ class star_algebra (R : Type u) (A : Type v) [has_star R] [has_star A] [has_scal
   star (r • a) = star r • star a :=
 star_algebra.star_smul r a
 
--- this doesn't work:
-/--
-instance star_ring_equiv.ring_hom_inv_pair {R : Type*} [semiring R] [star_ring R] :
-  ring_hom_inv_pair (↑(star_ring_equiv : R ≃+* Rᵒᵖ) : R →+* Rᵒᵖ) ↑star_ring_equiv.symm :=
-ring_hom_inv_pair.of_ring_equiv _
--/
-
--- this does
 attribute [instance] ring_hom_inv_pair.of_ring_equiv
 
 /-- If `A` is a left- and right- module over `R` with compatible actions, then `star` is a

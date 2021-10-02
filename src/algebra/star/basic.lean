@@ -9,6 +9,7 @@ import algebra.opposites
 import algebra.big_operators.basic
 import data.equiv.ring_aut
 import data.equiv.mul_add_aut
+import algebra.ring.comp_typeclasses
 
 /-!
 # Star monoids and star rings
@@ -213,3 +214,14 @@ class star_ordered_ring (R : Type u) [ordered_semiring R] extends star_ring R :=
 
 lemma star_mul_self_nonneg [ordered_semiring R] [star_ordered_ring R] {r : R} : 0 ≤ star r * r :=
 star_ordered_ring.star_mul_self_nonneg r
+
+namespace ring_hom_inv_pair
+
+/-- Instance needed to define star-linear maps over a commutative star ring
+(ex: conjugate-linear maps when R = ℂ).  -/
+instance [comm_semiring R] [star_ring R] :
+  ring_hom_inv_pair ((star_ring_aut : ring_aut R) : R →+* R)
+    ((star_ring_aut : ring_aut R) : ring_aut R) :=
+⟨ring_hom.ext star_star, ring_hom.ext star_star⟩
+
+end ring_hom_inv_pair

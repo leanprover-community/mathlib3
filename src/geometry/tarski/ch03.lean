@@ -32,6 +32,7 @@ lemma betw.antisymm_right (h₁ : betw A B C) (h₂ : betw A C B) : B = C :=
 h₂.symm.antisymm_left h₁.symm
 
 -- between_exchange3
+-- B ∈ AC, C ∈ AD → C ∈ BD
 lemma betw.left_cancel (h₁ : betw A B C) (h₂ : betw A C D) : betw B C D :=
 begin
   obtain ⟨x, hx₁, hx₂⟩ := inner_pasch h₂.symm h₁.symm,
@@ -63,6 +64,7 @@ begin
   apply betw.trans (h₁.right_cancel h₂) h₂ nBC,
 end
 
+-- B ∈ AC → C ∈ AD → B ∈ AD
 lemma betw.left_trans (h₁ : betw A B C) (h₂ : betw A C D) : betw A B D :=
 (h₂.symm.right_trans h₁.symm).symm
 

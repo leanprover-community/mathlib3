@@ -981,7 +981,7 @@ end is_dedekind_domain
 section quotient_multiplicity
 noncomputable theory
 open_locale classical
-variables {T : Type*} [integral_domain T] [is_dedekind_domain T] (I : ideal T)
+variables {T : Type*} [integral_domain T] [is_dedekind_domain T] {I : ideal T}
 open ideal unique_factorization_monoid
 
 /-- The predicate that the sequence of powers `(p')^m` for `n ≤ m` is constant,

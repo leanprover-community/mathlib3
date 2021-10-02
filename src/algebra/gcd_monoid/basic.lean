@@ -364,7 +364,7 @@ begin
     { cases h with b hb,
       use b,
       rw mul_assoc at hb,
-      apply mul_left_cancel' h0 hb },
+      apply mul_left_cancel₀ h0 hb },
     rw ← ha,
     exact dvd_gcd_mul_of_dvd_mul H }
 end
@@ -670,13 +670,13 @@ def normalization_monoid_of_monoid_hom_right_inverse [decidable_eq α] (f : asso
     suffices : (a * b) * ↑(classical.some (associated_map_mk hinv (a * b))) =
       (a * ↑(classical.some (associated_map_mk hinv a))) *
       (b * ↑(classical.some (associated_map_mk hinv b))),
-    { apply mul_left_cancel' (mul_ne_zero ha hb) _,
+    { apply mul_left_cancel₀ (mul_ne_zero ha hb) _,
       simpa only [mul_assoc, mul_comm, mul_left_comm] using this },
     rw [map_mk_unit_aux hinv a, map_mk_unit_aux hinv (a * b), map_mk_unit_aux hinv b,
         ← monoid_hom.map_mul, associates.mk_mul_mk] },
   norm_unit_coe_units := λ u, by {
     rw [if_neg (units.ne_zero u), units.ext_iff],
-    apply mul_left_cancel' (units.ne_zero u),
+    apply mul_left_cancel₀ (units.ne_zero u),
     rw [units.mul_inv, map_mk_unit_aux hinv u,
       associates.mk_eq_mk_iff_associated.2 (associated_one_iff_is_unit.2 ⟨u, rfl⟩),
       associates.mk_one, monoid_hom.map_one] } }
@@ -742,7 +742,7 @@ let exists_gcd := λ a b, dvd_normalize_iff.2 (lcm_dvd (dvd.intro b rfl) (dvd.in
       have h := lcm_dvd (dvd.intro b rfl) (dvd.intro_left a rfl),
       rw [con, zero_dvd_iff, mul_eq_zero] at h,
       cases h; tauto },
-    apply mul_left_cancel' h0,
+    apply mul_left_cancel₀ h0,
     refine trans _ (classical.some_spec (exists_gcd a b)),
     conv_lhs { congr, rw [← normalize_lcm a b] },
     erw [← normalize.map_mul, ← classical.some_spec (exists_gcd a b), normalize_idem] },

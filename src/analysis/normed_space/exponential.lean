@@ -349,8 +349,8 @@ begin
         = (∥x∥^n * ∥x∥) * (∥(n! : ℝ)∥⁻¹ * ∥((n+1 : ℕ) : ℝ)∥⁻¹) * ((∥x∥^n)⁻¹ * ∥(n! : ℝ)∥) :
           by rw [ normed_field.norm_div, normed_field.norm_div,
                   normed_field.norm_pow, normed_field.norm_pow, pow_add, pow_one,
-                  div_eq_mul_inv, div_eq_mul_inv, div_eq_mul_inv, mul_inv', inv_inv',
-                  nat.factorial_succ, nat.cast_mul, normed_field.norm_mul, mul_inv_rev' ]
+                  div_eq_mul_inv, div_eq_mul_inv, div_eq_mul_inv, mul_inv₀, inv_inv₀,
+                  nat.factorial_succ, nat.cast_mul, normed_field.norm_mul, mul_inv_rev₀ ]
     ... = (∥x∥ * ∥((n+1 : ℕ) : ℝ)∥⁻¹) * (∥x∥^n * (∥x∥^n)⁻¹) * (∥(n! : ℝ)∥ * ∥(n! : ℝ)∥⁻¹) :
           by linarith --faster than ac_refl !
     ... = (∥x∥ * ∥((n+1 : ℕ) : ℝ)∥⁻¹) * 1 * 1 :
@@ -544,7 +544,7 @@ begin
   { have h' : (n! : 𝕂') ≠ 0 := λ hyp, h (key.mpr hyp),
     suffices : (n! : 𝕂) • (n!⁻¹ : 𝕂') = (n! : 𝕂) • ((n!⁻¹ : 𝕂) • 1),
     { apply_fun (λ (x : 𝕂'), (n!⁻¹ : 𝕂) • x) at this,
-      rwa [inv_smul_smul' h, inv_smul_smul' h] at this },
+      rwa [inv_smul_smul₀ h, inv_smul_smul₀ h] at this },
     rw [← smul_assoc, ← nsmul_eq_smul_cast, nsmul_eq_smul_cast 𝕂' _ (_ : 𝕂')],
     field_simp [h, h'] }
 end

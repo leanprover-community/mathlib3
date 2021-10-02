@@ -644,7 +644,7 @@ end⟩
 lemma ideal.dvd_not_unit_iff_lt {I J : ideal A} :
   dvd_not_unit I J ↔ J < I :=
 ⟨λ ⟨hI, H, hunit, hmul⟩, lt_of_le_of_ne (ideal.dvd_iff_le.mp ⟨H, hmul⟩)
-   (mt (λ h, have H = 1, from mul_left_cancel' hI (by rw [← hmul, h, mul_one]),
+   (mt (λ h, have H = 1, from mul_left_cancel₀ hI (by rw [← hmul, h, mul_one]),
    show is_unit H, from this.symm ▸ is_unit_one) hunit),
  λ h, dvd_not_unit_of_dvd_of_not_dvd (ideal.dvd_iff_le.mpr (le_of_lt h))
    (mt ideal.dvd_iff_le.mp (not_le_of_lt h))⟩
@@ -812,8 +812,8 @@ begin
                         right_inv := _,
                         .. algebra.lmul _ _ (algebra_map A L y) },
           _⟩,
-  { intros x, simp only [inv_mul_cancel_left' hy'] },
-  { intros x, simp only [mul_inv_cancel_left' hy'] },
+  { intros x, simp only [inv_mul_cancel_left₀ hy'] },
+  { intros x, simp only [mul_inv_cancel_left₀ hy'] },
   { rintros ⟨x', hx'⟩,
     simp only [algebra.smul_def, finset.mem_image, exists_prop, finset.mem_univ, true_and] at his',
     simp only [basis.map_apply, linear_equiv.coe_mk],

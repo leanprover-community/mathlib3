@@ -154,9 +154,9 @@ set.ext $ λ x, not_congr inv_eq_one
   mul_support (f⁻¹) = mul_support f :=
 mul_support_inv f
 
-@[simp] lemma mul_support_inv' [group_with_zero G₀] (f : α → G₀) :
+@[simp] lemma mul_support_inv₀ [group_with_zero G₀] (f : α → G₀) :
   mul_support (λ x, (f x)⁻¹) = mul_support f :=
-set.ext $ λ x, not_congr inv_eq_one'
+set.ext $ λ x, not_congr inv_eq_one₀
 
 @[to_additive] lemma mul_support_mul_inv [group G] (f g : α → G) :
   mul_support (λ x, f x * (g x)⁻¹) ⊆ mul_support f ∪ mul_support g :=

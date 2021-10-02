@@ -235,7 +235,7 @@ begin
   have : ∃ f : fin N → E, (∀ (i : fin N), ∥f i∥ ≤ 2) ∧ (∀ i j, i ≠ j → 1 ≤ ∥f i - f j∥),
   { obtain ⟨u, u_mono, zero_lt_u, hu⟩ : ∃ (u : ℕ → ℝ), (∀ (m n : ℕ), m < n → u n < u m)
       ∧ (∀ (n : ℕ), 0 < u n) ∧ filter.tendsto u filter.at_top (𝓝 0) :=
-        exists_seq_strict_antitone_tendsto (0 : ℝ),
+        exists_seq_strict_anti_tendsto (0 : ℝ),
     have A : ∀ n, F (u n) ∈ closed_ball (0 : fin N → E) 2,
     { assume n,
       simp only [pi_norm_le_iff zero_le_two, mem_closed_ball, dist_zero_right,
@@ -355,7 +355,7 @@ begin
     by simpa only [dist_eq_norm] using a.h,
   have δnonneg : 0 ≤ δ := by linarith only [hτ, hδ1],
   have D : 0 ≤ 1 - δ / 4, by linarith only [hδ2],
-  have τpos : 0 < τ := zero_lt_one.trans_le hτ,
+  have τpos : 0 < τ := _root_.zero_lt_one.trans_le hτ,
   have I : (1 - δ / 4) * τ ≤ 1 := calc
     (1 - δ / 4) * τ ≤ (1 - δ / 4) * (1 + δ / 4) : mul_le_mul_of_nonneg_left hδ1 D
     ... = 1 - δ^2 / 16 : by ring
@@ -388,7 +388,7 @@ begin
     by simpa only [dist_eq_norm] using a.h,
   have δnonneg : 0 ≤ δ := by linarith only [hτ, hδ1],
   have D : 0 ≤ 1 - δ / 4, by linarith only [hδ2],
-  have τpos : 0 < τ := zero_lt_one.trans_le hτ,
+  have τpos : 0 < τ := _root_.zero_lt_one.trans_le hτ,
   have hcrj : ∥a.c j∥ ≤ a.r j + 1,
     by simpa only [lastc, lastr, dist_zero_right] using a.inter' j,
   have I : a.r i ≤ 2,
@@ -444,7 +444,7 @@ begin
                           (a.r j ≤ ∥a.c j - a.c i∥ ∧ a.r i ≤ τ * a.r j),
     by simpa only [dist_eq_norm] using a.h,
   have δnonneg : 0 ≤ δ := by linarith only [hτ, hδ1],
-  have τpos : 0 < τ := zero_lt_one.trans_le hτ,
+  have τpos : 0 < τ := _root_.zero_lt_one.trans_le hτ,
   have hcrj : ∥a.c j∥ ≤ a.r j + 1,
     by simpa only [lastc, lastr, dist_zero_right] using a.inter' j,
   have A : a.r i ≤ ∥a.c i∥,

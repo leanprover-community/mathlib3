@@ -10,9 +10,10 @@ import category_theory.limits.kan_extension
 # Cover-lifting functors between sites.
 
 We define cover-lifting functors between sites as functors that pull covering sieves back to
-covering sieves. This concept is also known as *cocontinuous functors*, but we have chosen this
-name following [Elephant] in order to avoid naming collision or confusion with the general
-definition of cover_lifting functors between categories as functors preserving small colimits.
+covering sieves. This concept is also known as *cocontinuous functors* or
+*cover-reflecting functors*, but we have chosen this name following [MM92] in order to avoid
+potential naming collision or confusion with the general definition of cocontinuous functors
+between categories as functors preserving small colimits.
 
 The definition given here seems stronger than the definition found elsewhere,
 but they are actually equivalent via `category_theory.grothendieck_topology.superset_covering`.
@@ -181,8 +182,7 @@ begin
   simp only [quiver.hom.unop_op, equiv.symm_symm, structured_arrow.map_obj_hom, unop_comp,
     equiv.coe_fn_mk, functor.comp_map, coyoneda_obj_map, category.assoc, ← this, op_comp,
     Ran_obj_map, nat_trans.id_app],
-  erw category.id_comp,
-  erw limit.pre_π,
+  erw [category.id_comp, limit.pre_π],
   congr,
   convert limit.w (Ran.diagram u.op ℱ.val (op V)) (structured_arrow.hom_mk' W fV'.op),
   rw structured_arrow.map_mk,

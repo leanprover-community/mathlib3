@@ -983,4 +983,4 @@ subgroup (units R) :=
   ..(pos_submonoid R).comap (units.coe_hom R)}
 
 @[simp] lemma units.mem_pos_subgroup {R : Type*} [linear_ordered_comm_ring R] [nontrivial R]
-  (u : units R) : u ∈ units.pos_subgroup R ↔  (0 : R) < u := iff.rfl
+  (u : units R) : u ∈ units.pos_subgroup R ↔ (0 : R) < u := iff.rfl

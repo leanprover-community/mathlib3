@@ -25,7 +25,7 @@ A Liouville number is a real number `x` such that for every natural number `n`, 
 `a, b ∈ ℤ` with `1 < b` such that `0 < |x - a/b| < 1/bⁿ`.
 In the implementation, the condition `x ≠ a/b` replaces the traditional equivalent `0 < |x - a/b|`.
 -/
-def liouville (x : ℝ) := ∀ n : ℕ, ∃ a b : ℤ, 1 < b ∧ x ≠ a / b ∧ abs (x - a / b) < 1 / b ^ n
+def liouville (x : ℝ) := ∀ n : ℕ, ∃ a b : ℤ, 1 < b ∧ x ≠ a / b ∧ |x - a / b| < 1 / b ^ n
 
 namespace liouville
 
@@ -36,14 +36,14 @@ begin
   -- clear up the mess of constructions of rationals
   change (liouville (a / b)) at h,
   -- Since `a / b` is a Liouville number, there are `p, q ∈ ℤ`, with `q1 : 1 < q`,
-  -- `a0 : a / b ≠ p / q` and `a1 : abs (a / b - p / q) < 1 / q ^ (b + 1)`
+  -- `a0 : a / b ≠ p / q` and `a1 : |a / b - p / q| < 1 / q ^ (b + 1)`
   rcases h (b + 1) with ⟨p, q, q1, a0, a1⟩,
   -- A few useful inequalities
   have qR0 : (0 : ℝ) < q := int.cast_pos.mpr (zero_lt_one.trans q1),
   have b0 : (b : ℝ) ≠ 0 := ne_of_gt (nat.cast_pos.mpr bN0),
   have bq0 : (0 : ℝ) < b * q := mul_pos (nat.cast_pos.mpr bN0) qR0,
   -- At a1, clear denominators...
-  replace a1 : abs (a * q - b * p) * q ^ (b + 1) < b * q, by
+  replace a1 : |a * q - b * p| * q ^ (b + 1) < b * q, by
     rwa [div_sub_div _ _ b0 (ne_of_gt qR0), abs_div, div_lt_div_iff (abs_pos.mpr (ne_of_gt bq0))
       (pow_pos qR0 _), abs_of_pos bq0, one_mul,
       -- ... and revert to integers
@@ -58,9 +58,9 @@ begin
   lift q to ℕ using (zero_lt_one.trans q1).le,
   -- Looks innocuous, but we now have an integer with non-zero absolute value: this is at
   -- least one away from zero.  The gain here is what gets the proof going.
-  have ap : 0 < abs (a * ↑q - ↑b * p) := abs_pos.mpr a0,
+  have ap : 0 < |a * ↑q - ↑b * p| := abs_pos.mpr a0,
   -- Actually, the absolute value of an integer is a natural number
-  lift (abs (a * ↑q - ↑b * p)) to ℕ using (abs_nonneg (a * ↑q - ↑b * p)),
+  lift (|a * ↑q - ↑b * p|) to ℕ using (abs_nonneg (a * ↑q - ↑b * p)),
   -- At a1, revert to natural numbers
   rw [← int.coe_nat_mul, ← int.coe_nat_pow, ← int.coe_nat_mul, int.coe_nat_lt] at a1,
   -- Recall this is by contradiction: we obtained the inequality `b * q ≤ x * q ^ (b + 1)`, so
@@ -119,7 +119,7 @@ end
 lemma exists_pos_real_of_irrational_root {α : ℝ} (ha : irrational α)
   {f : polynomial ℤ} (f0 : f ≠ 0) (fa : eval α (map (algebra_map ℤ ℝ) f) = 0):
   ∃ A : ℝ, 0 < A ∧
-    ∀ (a : ℤ), ∀ (b : ℕ), (1 : ℝ) ≤ (b + 1) ^ f.nat_degree * (abs (α - (a / (b + 1))) * A) :=
+    ∀ (a : ℤ), ∀ (b : ℕ), (1 : ℝ) ≤ (b + 1) ^ f.nat_degree * (|α - (a / (b + 1))| * A) :=
 begin
   -- `fR` is `f` viewed as a polynomial with `ℝ` coefficients.
   set fR : polynomial ℝ := map (algebra_map ℤ ℝ) f,
@@ -135,13 +135,13 @@ begin
     @exists_closed_ball_inter_eq_singleton_of_discrete _ _ _ discrete_of_t1_of_finite _ ar,
   -- Since `fR` is continuous, it is bounded on the interval above.
   obtain ⟨xm, -, hM⟩ : ∃ (xm : ℝ) (H : xm ∈ Icc (α - ζ) (α + ζ)), ∀ (y : ℝ),
-    y ∈ Icc (α - ζ) (α + ζ) → abs (fR.derivative.eval y) ≤ abs (fR.derivative.eval xm) :=
+    y ∈ Icc (α - ζ) (α + ζ) → |fR.derivative.eval y| ≤ |fR.derivative.eval xm| :=
     is_compact.exists_forall_ge is_compact_Icc
     ⟨α, (sub_lt_self α z0).le, (lt_add_of_pos_right α z0).le⟩
     (continuous_abs.comp fR.derivative.continuous_aeval).continuous_on,
   -- Use the key lemma `exists_one_le_pow_mul_dist`: we are left to show that ...
   refine @exists_one_le_pow_mul_dist ℤ ℕ ℝ _ _ _ (λ y, fR.eval y) α ζ
-    (abs (fR.derivative.eval xm)) _ z0 (λ y hy, _) (λ z a hq, _),
+    (|fR.derivative.eval xm|) _ z0 (λ y hy, _) (λ z a hq, _),
   -- 1: the denominators are positive -- essentially by definition;
   { exact λ a, one_le_pow_of_one_le ((le_add_iff_nonneg_left 1).mpr a.cast_nonneg) _ },
   -- 2: the polynomial `fR` is Lipschitz at `α` -- as its derivative continuous;
@@ -152,7 +152,7 @@ begin
       (λ y h, by { rw fR.deriv, exact hM _ h }) (convex_Icc _ _) hy (mem_Icc_iff_abs_le.mp _),
     exact @mem_closed_ball_self ℝ _ α ζ (le_of_lt z0) },
   -- 3: the weird inequality of Liouville type with powers of the denominators.
-  { show 1 ≤ (a + 1 : ℝ) ^ f.nat_degree * abs (eval α fR - eval (z / (a + 1)) fR),
+  { show 1 ≤ (a + 1 : ℝ) ^ f.nat_degree * |eval α fR - eval (z / (a + 1)) fR|,
     rw [fa, zero_sub, abs_neg],
     -- key observation: the right-hand side of the inequality is an *integer*.  Therefore,
     -- if its absolute value is not at least one, then it vanishes.  Proceed by contradiction
@@ -178,21 +178,21 @@ begin
   -- There is a "large" real number `A` such that `(b + 1) ^ (deg f) * |f (x - a / (b + 1))| * A`
   -- is at least one.  This is obtained from lemma `exists_pos_real_of_irrational_root`.
   obtain ⟨A, hA, h⟩ : ∃ (A : ℝ), 0 < A ∧
-    ∀ (a : ℤ) (b : ℕ), (1 : ℝ) ≤ (b.succ) ^ f.nat_degree * (abs (x - a / (b.succ)) * A) :=
+    ∀ (a : ℤ) (b : ℕ), (1 : ℝ) ≤ (b.succ) ^ f.nat_degree * (|x - a / (b.succ)| * A) :=
     exists_pos_real_of_irrational_root lx.irrational f0 ef0,
   -- Since the real numbers are Archimedean, a power of `2` exceeds `A`: `hn : A < 2 ^ r`.
   rcases pow_unbounded_of_one_lt A (lt_add_one 1) with ⟨r, hn⟩,
   -- Use the Liouville property, with exponent `r +  deg f`.
   obtain ⟨a, b, b1, -, a1⟩ : ∃ (a b : ℤ), 1 < b ∧ x ≠ a / b ∧
-    abs (x - a / b) < 1 / b ^ (r + f.nat_degree) := lx (r + f.nat_degree),
+    |x - a / b| < 1 / b ^ (r + f.nat_degree) := lx (r + f.nat_degree),
   have b0 : (0 : ℝ) < b := zero_lt_one.trans (by { rw ← int.cast_one, exact int.cast_lt.mpr b1 }),
   -- Prove that `b ^ f.nat_degree * abs (x - a / b)` is strictly smaller than itself
   -- recall, this is a proof by contradiction!
-  refine lt_irrefl ((b : ℝ) ^ f.nat_degree * abs (x - ↑a / ↑b)) _,
+  refine lt_irrefl ((b : ℝ) ^ f.nat_degree * |x - ↑a / ↑b|) _,
   -- clear denominators at `a1`
   rw [lt_div_iff' (pow_pos b0 _), pow_add, mul_assoc] at a1,
   -- split the inequality via `1 / A`.
-  refine ((_  : (b : ℝ) ^ f.nat_degree * abs (x - a / b) < 1 / A).trans_le _),
+  refine ((_  : (b : ℝ) ^ f.nat_degree * |x - a / b| < 1 / A).trans_le _),
   -- This branch of the proof uses the Liouville condition and the Archimedean property
   { refine (lt_div_iff' hA).mpr _,
     refine lt_of_le_of_lt _ a1,

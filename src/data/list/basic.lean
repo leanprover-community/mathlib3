@@ -181,6 +181,19 @@ lemma map_bind (g : β → list γ) (f : α → β) :
 | [] := rfl
 | (a::l) := by simp only [cons_bind, map_cons, map_bind l]
 
+/-- If each element of a list can be lifted to some type, then the whole list can be lifted to this
+type. -/
+instance [h : can_lift α β] : can_lift (list α) (list β) :=
+{ coe := list.map h.coe,
+  cond := λ l, ∀ x ∈ l, can_lift.cond β x,
+  prf  := λ l H,
+    begin
+      induction l with a l ihl, { exact ⟨[], rfl⟩ },
+      rcases ihl (λ x hx, H x (or.inr hx)) with ⟨l, rfl⟩,
+      rcases can_lift.prf a (H a (or.inl rfl)) with ⟨a, rfl⟩,
+      exact ⟨a :: l, rfl⟩
+    end}
+
 /-! ### length -/
 
 theorem length_eq_zero {l : list α} : length l = 0 ↔ l = [] :=
@@ -796,6 +809,16 @@ begin
   cases l,
   { contradiction },
   { simp }
+end
+
+@[simp]
+lemma nth_le_tail (l : list α) (i) (h : i < l.tail.length)
+  (h' : i + 1 < l.length := by simpa [←lt_sub_iff_right] using h) :
+  l.tail.nth_le i h = l.nth_le (i + 1) h' :=
+begin
+  cases l,
+  { cases h, },
+  { simpa }
 end
 
 /-! ### Induction from the right -/
@@ -3720,6 +3743,9 @@ theorem tail_suffix (l : list α) : tail l <:+ l := by rw ← drop_one; apply dr
 lemma tail_sublist (l : list α) : l.tail <+ l := sublist_of_suffix (tail_suffix l)
 
 theorem tail_subset (l : list α) : tail l ⊆ l := (tail_sublist l).subset
+
+lemma mem_of_mem_tail {l : list α} {a : α} (h : a ∈ l.tail) : a ∈ l :=
+tail_subset l h
 
 theorem prefix_iff_eq_append {l₁ l₂ : list α} : l₁ <+: l₂ ↔ l₁ ++ drop (length l₁) l₂ = l₂ :=
 ⟨by rintros ⟨r, rfl⟩; rw drop_left, λ e, ⟨_, e⟩⟩

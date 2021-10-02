@@ -97,7 +97,7 @@ lemma second_iso_of_eq {x y a b : X} (hm : is_maximal x a) (ha : x ⊔ y = a) (h
   iso (x, a) (b, y) :=
 by substs a b; exact second_iso hm
 
-lemma iso_refl_of_is_maximal {x y : X} (h : is_maximal x y) : iso (x, y) (x, y) :=
+lemma is_maximal.iso_refl {x y : X} (h : is_maximal x y) : iso (x, y) (x, y) :=
 second_iso_of_eq h
   (sup_eq_right.2 (le_of_lt (lt_of_is_maximal h)))
   (inf_eq_left.2 (le_of_lt (lt_of_is_maximal h)))
@@ -593,7 +593,7 @@ def equivalent (s₁ s₂ : composition_series X) : Prop :=
 namespace equivalent
 
 @[refl] lemma refl (s : composition_series X) : equivalent s s :=
-⟨equiv.refl _, λ _, iso_refl_of_is_maximal (s.step _)⟩
+⟨equiv.refl _, λ _, (s.step _).iso_refl⟩
 
 @[symm] lemma symm {s₁ s₂ : composition_series X} (h : equivalent s₁ s₂) :
   equivalent s₂ s₁ :=
@@ -683,7 +683,7 @@ have h2 : ∀ {i : fin s.length},
     { erw [equiv.swap_apply_of_ne_of_ne h2 h1, snoc_cast_succ, snoc_cast_succ,
         snoc_cast_succ, snoc_cast_succ, fin.succ_cast_succ, snoc_cast_succ,
         fin.succ_cast_succ, snoc_cast_succ, snoc_cast_succ, snoc_cast_succ],
-      exact iso_refl_of_is_maximal (s.step i) } }
+      exact (s.step i).iso_refl } }
 end⟩
 
 end equivalent
@@ -753,8 +753,7 @@ begin
         (by simpa using is_maximal_erase_top_top h0s)),
       { conv_lhs { rw eq_snoc_erase_top h0s },
         exact equivalent.snoc hteqv
-          (by simpa using iso_refl_of_is_maximal
-            (is_maximal_erase_top_top h0s)) },
+          (by simpa using (is_maximal_erase_top_top h0s).iso_refl) },
       refine this.trans _,
       refine equivalent.snoc_snoc_swap _ _,
       { exact iso_symm (second_iso_of_eq hm
@@ -787,7 +786,7 @@ begin
     conv_rhs { rw [eq_snoc_erase_top h0s₂] },
     simp only [ht],
     exact equivalent.snoc this
-      (by simp [htt, iso_refl_of_is_maximal (is_maximal_erase_top_top h0s₂)]) }
+      (by simp [htt, (is_maximal_erase_top_top h0s₂).iso_refl]) }
 end
 
 end composition_series

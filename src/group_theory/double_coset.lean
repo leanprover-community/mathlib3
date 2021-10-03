@@ -1,5 +1,6 @@
 import data.setoid.basic
 import group_theory.subgroup.basic
+import group_theory.coset
 import data.set.basic
 
 variables {G : Type*} [group G] {α : Type*} [has_mul α]
@@ -221,5 +222,73 @@ begin
   simp_rw ← mul_assoc,
   simp only [one_mul, mul_left_inv, mul_inv_cancel_right],
 end
+
+lemma doset_union_right_coset (H K : subgroup G) (a : G):
+  (doset H.1 K a) = ⋃ (k : K), (right_coset H (a*k)) :=
+begin
+  ext,
+  simp only [mem_right_coset_iff, exists_prop, mul_inv_rev, set.mem_Union, doset_mem,
+    subgroup.mem_carrier, set_like.mem_coe],
+  split,
+  intro h,
+  have h1:=classical.some_spec h,
+  let l:=classical.some h,
+  have h2:=h1.2,
+  let r:=classical.some h2,
+  have h3:=classical.some_spec h2,
+  use r,
+  simp [h3.1],
+  simp_rw ← r at h3,
+  simp_rw ← l at h3,
+  have := h3.2,
+  simp_rw this,
+  simp_rw ← mul_assoc,
+  simp only [mul_inv_cancel_right, subgroup.coe_mk],
+  apply h1.1,
+  intro h,
+  let r:=classical.some h,
+  have hh:=classical.some_spec h,
+  use x*r⁻¹*a⁻¹,
+  simp_rw ← r at hh,
+  simp_rw ← mul_assoc at *,
+  simp only [hh, true_and, inv_mul_cancel_right],
+  use r,
+  simp only [set_like.coe_mem, eq_self_iff_true, and_self, inv_mul_cancel_right],
+end
+
+lemma doset_union_left_coset (H K : subgroup G) (a : G):
+  (doset H.1 K a) = ⋃ (h : H), (left_coset (h*a) K) :=
+begin
+  ext,
+  simp only [mem_left_coset_iff, exists_prop, mul_inv_rev, set.mem_Union, doset_mem,
+    subgroup.mem_carrier, set_like.mem_coe],
+  split,
+  intro h,
+  have h1:=classical.some_spec h,
+  let l:=classical.some h,
+  have h2:=h1.2,
+  let r:=classical.some h2,
+  have h3:=classical.some_spec h2,
+  use l,
+  simp [h1.1],
+  simp_rw ← r at h3,
+  simp_rw ← l at h3,
+  have := h3.2,
+  simp_rw this,
+  simp_rw ← mul_assoc,
+  simp only [one_mul, mul_left_inv, subgroup.coe_mk, inv_mul_cancel_right],
+  apply h3.1,
+  intro h,
+  let r:=classical.some h,
+  have hh:=classical.some_spec h,
+  use r ,
+  simp_rw ← r at hh,
+  simp only [true_and, set_like.coe_mem],
+  use a⁻¹*r⁻¹*x,
+  simp only [hh, true_and],
+  simp_rw ← mul_assoc at *,
+  simp only [one_mul, mul_right_inv, mul_inv_cancel_right],
+end
+
 
 end double_coset

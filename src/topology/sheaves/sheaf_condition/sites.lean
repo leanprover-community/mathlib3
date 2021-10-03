@@ -207,19 +207,6 @@ as_iso (postcompose_diagram_fork_hom F U R hR)
 
 end is_sheaf_sites_of_is_sheaf_spaces
 
-open is_sheaf_sites_of_is_sheaf_spaces
-
-lemma is_sheaf_sites_of_is_sheaf_spaces (Fsh : F.is_sheaf) :
-  presheaf.is_sheaf (opens.grothendieck_topology X) F :=
-begin
-  rw presheaf.is_sheaf_iff_is_sheaf',
-  intros U R hR,
-  refine ⟨_⟩,
-  apply (is_limit.of_cone_equiv (cones.postcompose_equivalence (diagram_nat_iso F U R))).to_fun,
-  apply (is_limit.equiv_iso_limit (postcompose_diagram_fork_iso F U R hR)).inv_fun,
-  exact (Fsh (covering_of_presieve U R)).some,
-end
-
 namespace is_sheaf_spaces_of_is_sheaf_sites
 
 variables {ι : Type v} (U : ι → opens X)
@@ -316,23 +303,38 @@ begin
   refl,
 end
 
-def fork_sites_of_fork_spaces (α : limits.fork (left_res F U) (right_res F U)) :
-  limits.fork (presheaf.first_map (presieve_of_covering U) F)
-    (presheaf.second_map (presieve_of_covering U) F) :=
-fork.of_ι (α.ι ≫ pi_opens_to_first_obj F U) (by rw [category.assoc, category.assoc,
-  pi_opens_to_first_obj_comp_fist_map_eq, pi_opens_to_first_obj_comp_second_map_eq,
-  ← category.assoc, ← category.assoc, α.condition])
+lemma res_comp_pi_opens_to_first_obj_eq :
+  res F U ≫ pi_opens_to_first_obj F U = presheaf.fork_map (presieve_of_covering U) F :=
+begin
+  ext f,
+  dsimp [res, pi_opens_to_first_obj, presheaf.fork_map],
+  rw [category.assoc, limit.lift_π, fan.mk_π_app, limit.lift_π, fan.mk_π_app, ← category.assoc,
+    limit.lift_π, fan.mk_π_app, ← F.map_comp],
+  congr,
+end
 
 end is_sheaf_spaces_of_is_sheaf_sites
 
+open is_sheaf_sites_of_is_sheaf_spaces
 open is_sheaf_spaces_of_is_sheaf_sites
+
+lemma is_sheaf_sites_of_is_sheaf_spaces (Fsh : F.is_sheaf) :
+  presheaf.is_sheaf (opens.grothendieck_topology X) F :=
+begin
+  rw presheaf.is_sheaf_iff_is_sheaf',
+  intros U R hR,
+  refine ⟨_⟩,
+  apply (is_limit.of_cone_equiv (cones.postcompose_equivalence (diagram_nat_iso F U R))).to_fun,
+  apply (is_limit.equiv_iso_limit (postcompose_diagram_fork_iso F U R hR)).inv_fun,
+  exact (Fsh (covering_of_presieve U R)).some,
+end
 
 lemma is_sheaf_spaces_of_is_sheaf_sites
   (Fsh : presheaf.is_sheaf (opens.grothendieck_topology X) F) :
   F.is_sheaf :=
 begin
-  rw presheaf.is_sheaf_iff_is_sheaf' at Fsh,
   intros ι U,
+  rw presheaf.is_sheaf_iff_is_sheaf' at Fsh,
   obtain ⟨h_limit⟩ := Fsh (supr U) (presieve_of_covering U) (presieve_of_covering_mem_grothendieck_topology U),
   refine ⟨fork.is_limit.mk' _ _⟩,
 
@@ -341,17 +343,29 @@ begin
   obtain ⟨l, hl⟩ := fork.is_limit.lift' h_limit (s.ι ≫ pi_opens_to_first_obj F U) _,
   swap,
   { rw [category.assoc, category.assoc, pi_opens_to_first_obj_comp_fist_map_eq,
-    pi_opens_to_first_obj_comp_second_map_eq, ← category.assoc, ← category.assoc, s.condition], },
-
-  use l,
-  split,
+    pi_opens_to_first_obj_comp_second_map_eq, ← category.assoc, ← category.assoc, s.condition] },
+  refine ⟨l, _, _⟩,
   { rw [← fork_ι_comp_pi_opens_to_first_obj_to_pi_opens_eq F U s, ← category.assoc, ← hl,
     category.assoc, fork.ι_of_ι, fork_map_comp_first_map_to_pi_opens_eq], refl },
   { intros m hm,
-    rw [← fork_ι_comp_pi_opens_to_first_obj_to_pi_opens_eq F U s, ← category.assoc] at hm,
-    sorry
-   },
+    apply fork.is_limit.hom_ext h_limit,
+    rw fork.ι_of_ι at ⊢ hl,
+    rw hl,
+    simp_rw ← res_comp_pi_opens_to_first_obj_eq,
+    rw ← category.assoc,
+    erw hm, },
+end
 
+lemma is_sheaf_sites_iff_is_sheaf_spaces :
+  presheaf.is_sheaf (opens.grothendieck_topology X) F ↔ F.is_sheaf :=
+iff.intro (is_sheaf_spaces_of_is_sheaf_sites F) (is_sheaf_sites_of_is_sheaf_spaces F)
+
+lemma Sheaf_eq_sheaf : Sheaf (opens.grothendieck_topology X) C = sheaf C X :=
+begin
+  dunfold sheaf Sheaf,
+  congr,
+  ext F,
+  exact is_sheaf_sites_iff_is_sheaf_spaces F,
 end
 
 end Top.presheaf

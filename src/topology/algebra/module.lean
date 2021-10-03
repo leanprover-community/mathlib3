@@ -242,8 +242,8 @@ variables (f g : M₁ →SL[σ₁₂] M₂) (c : R₁) (h : M₂ →SL[σ₂₃]
 @[simp] lemma map_add  : f (x + y) = f x + f y := (to_linear_map _).map_add _ _
 @[simp] lemma map_smulₛₗ : f (c • x) = (σ₁₂ c) • f x := (to_linear_map _).map_smulₛₗ _ _
 
-@[simp] lemma map_smul [module R₁ M₂] (f : M₁ →ₗ[R₁] M₂)(c : R₁) (x : M₁) : f (c • x) = c • f x :=
-by simp only [ring_hom.id_apply, linear_map.map_smulₛₗ]
+@[simp] lemma map_smul [module R₁ M₂] (f : M₁ →L[R₁] M₂)(c : R₁) (x : M₁) : f (c • x) = c • f x :=
+by simp only [ring_hom.id_apply, map_smulₛₗ]
 
 @[simp, priority 900]
 lemma map_smul_of_tower {R S : Type*} [semiring S] [has_scalar R M₁]
@@ -1056,7 +1056,7 @@ e.to_homeomorph.map_nhds_eq x
 @[simp] lemma map_add (e : M ≃L[R] M₂) (x y : M) : e (x + y) = e x + e y :=
 (e : M →L[R] M₂).map_add x y
 @[simp] lemma map_smul (e : M ≃L[R] M₂) (c : R) (x : M) : e (c • x) = c • (e x) :=
-continuous_linear_map.map_smul (e : M →L[R] M₂) c x -- SLFIXME not sure why dot notation fails here
+(e : M →L[R] M₂).map_smul c x
 @[simp] lemma map_eq_zero_iff (e : M ≃L[R] M₂) {x : M} : e x = 0 ↔ x = 0 :=
 e.to_linear_equiv.map_eq_zero_iff
 

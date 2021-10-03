@@ -118,15 +118,15 @@ lemma mem_carrier {s : subgroup G} {x : G} : x ∈ s.carrier ↔ x ∈ s := iff.
 
 @[simp, to_additive]
 lemma mem_mk {s : set G} {x : G} (h_one) (h_mul) (h_inv) :
-  x ∈ subgroup.mk s h_one h_mul h_inv ↔ x ∈ s := iff.rfl
+  x ∈ mk s h_one h_mul h_inv ↔ x ∈ s := iff.rfl
 
 @[simp, to_additive]
 lemma coe_set_mk {s : set G} {x : G} (h_one) (h_mul) (h_inv) :
-  (subgroup.mk s h_one h_mul h_inv : set G) = s := rfl
+  (mk s h_one h_mul h_inv : set G) = s := rfl
 
 @[simp, to_additive]
 lemma mk_le_mk {s t : set G} (h_one) (h_mul) (h_inv) (h_one') (h_mul') (h_inv') :
-  subgroup.mk s h_one h_mul h_inv ≤ subgroup.mk t h_one' h_mul' h_inv' ↔ s ⊆ t := iff.rfl
+  mk s h_one h_mul h_inv ≤ mk t h_one' h_mul' h_inv' ↔ s ⊆ t := iff.rfl
 
 /-- See Note [custom simps projection] -/
 @[to_additive "See Note [custom simps projection]"]

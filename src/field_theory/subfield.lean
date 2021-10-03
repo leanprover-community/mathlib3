@@ -117,9 +117,6 @@ protected def copy (S : subfield K) (s : set K) (hs : s = ↑S) : subfield K :=
 @[simp] lemma coe_to_subring (s : subfield K) : (s.to_subring : set K) = s :=
 rfl
 
-@[simp] lemma mem_mk (s : set K) (ho hm hz ha hn hi) (x : K) :
-  x ∈ subfield.mk s ho hm hz ha hn hi ↔ x ∈ s := iff.rfl
-
 @[simp] lemma mem_to_subring (s : subfield K) (x : K) :
   x ∈ s.to_subring ↔ x ∈ s := iff.rfl
 

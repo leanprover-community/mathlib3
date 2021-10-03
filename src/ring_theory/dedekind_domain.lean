@@ -904,10 +904,11 @@ variables {T : Type*} [integral_domain T] [is_dedekind_domain T] (I J : ideal T)
 open_locale classical
 open multiset unique_factorization_monoid ideal
 
-lemma prod_factors_eq_self {I : ideal T} (hI : I ≠ ⊥) : (normalized_factors I).prod = I :=
+lemma prod_normalized_factors_eq_self {I : ideal T} (hI : I ≠ ⊥) :
+  (normalized_factors I).prod = I :=
 associated_iff_eq.1 (normalized_factors_prod hI)
 
-lemma factors_prod_factors_eq_factors {α : multiset (ideal T)}
+lemma normalized_factors_prod {α : multiset (ideal T)}
   (h : ∀ p ∈ α, prime p) : normalized_factors α.prod = α :=
 by { simp_rw [← multiset.rel_eq, ← associated_eq_eq],
      exact prime_factors_unique (prime_of_normalized_factor) h
@@ -923,7 +924,7 @@ lemma sup_eq_prod_inf_factors (hI : I ≠ ⊥) (hJ : J ≠ ⊥) :
 begin
   have H : normalized_factors (normalized_factors I ∩ normalized_factors J).prod =
     normalized_factors I ∩ normalized_factors J,
-  { apply factors_prod_factors_eq_factors,
+  { apply _root_.normalized_factors_prod,
     intros p hp,
     rw mem_inter at hp,
     exact prime_of_normalized_factor p hp.left },
@@ -937,7 +938,7 @@ begin
     { rw [dvd_iff_normalized_factors_le_normalized_factors this hJ, H],
       exact inf_le_right } },
   { rw [← dvd_iff_le, dvd_iff_normalized_factors_le_normalized_factors,
-      factors_prod_factors_eq_factors, le_iff_count],
+      _root_.normalized_factors_prod, le_iff_count],
     { intro a,
       rw multiset.count_inter,
       exact le_min (count_le_of_ideal_ge le_sup_left hI a)

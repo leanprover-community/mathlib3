@@ -1275,7 +1275,7 @@ lemma sub_mem_Ioo_iff_right : a - b ∈ set.Ioo c d ↔ b ∈ set.Ioo (a - d) (a
 -- I think that symmetric intervals deserve attention and API: they arise all the time,
 -- for instance when considering metric balls in `ℝ`.
 lemma mem_Icc_iff_abs_le {R : Type*} [linear_ordered_add_comm_group R] {x y z : R} :
-  abs (x - y) ≤ z ↔ y ∈ Icc (x - z) (x + z) :=
+  |x - y| ≤ z ↔ y ∈ Icc (x - z) (x + z) :=
 abs_le.trans $ (and_comm _ _).trans $ and_congr sub_le neg_le_sub_iff_le_add
 
 end ordered_add_comm_group
@@ -1328,6 +1328,30 @@ by simp [← Ioi_inter_Iic]
 
 @[simp] lemma preimage_Ioo (e : α ≃o β) (a b : β) : e ⁻¹' (Ioo a b) = Ioo (e.symm a) (e.symm b) :=
 by simp [← Ioi_inter_Iio]
+
+@[simp] lemma image_Iic (e : α ≃o β) (a : α) : e '' (Iic a) = Iic (e a) :=
+by rw [e.image_eq_preimage, e.symm.preimage_Iic, e.symm_symm]
+
+@[simp] lemma image_Ici (e : α ≃o β) (a : α) : e '' (Ici a) = Ici (e a) :=
+e.dual.image_Iic a
+
+@[simp] lemma image_Iio (e : α ≃o β) (a : α) : e '' (Iio a) = Iio (e a) :=
+by rw [e.image_eq_preimage, e.symm.preimage_Iio, e.symm_symm]
+
+@[simp] lemma image_Ioi (e : α ≃o β) (a : α) : e '' (Ioi a) = Ioi (e a) :=
+e.dual.image_Iio a
+
+@[simp] lemma image_Ioo (e : α ≃o β) (a b : α) : e '' (Ioo a b) = Ioo (e a) (e b) :=
+by rw [e.image_eq_preimage, e.symm.preimage_Ioo, e.symm_symm]
+
+@[simp] lemma image_Ioc (e : α ≃o β) (a b : α) : e '' (Ioc a b) = Ioc (e a) (e b) :=
+by rw [e.image_eq_preimage, e.symm.preimage_Ioc, e.symm_symm]
+
+@[simp] lemma image_Ico (e : α ≃o β) (a b : α) : e '' (Ico a b) = Ico (e a) (e b) :=
+by rw [e.image_eq_preimage, e.symm.preimage_Ico, e.symm_symm]
+
+@[simp] lemma image_Icc (e : α ≃o β) (a b : α) : e '' (Icc a b) = Icc (e a) (e b) :=
+by rw [e.image_eq_preimage, e.symm.preimage_Icc, e.symm_symm]
 
 end preorder
 

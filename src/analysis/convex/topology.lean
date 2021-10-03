@@ -3,7 +3,7 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Yury Kudriashov
 -/
-import analysis.convex.function
+import analysis.convex.jensen
 import analysis.normed_space.finite_dimension
 import topology.path_connected
 import topology.algebra.affine
@@ -42,32 +42,32 @@ section std_simplex
 
 variables [fintype ι]
 
-/-- Every vector in `std_simplex ι` has `max`-norm at most `1`. -/
+/-- Every vector in `std_simplex 𝕜 ι` has `max`-norm at most `1`. -/
 lemma std_simplex_subset_closed_ball :
-  std_simplex ι ℝ ⊆ metric.closed_ball 0 1 :=
+  std_simplex ℝ ι ⊆ metric.closed_ball 0 1 :=
 begin
   assume f hf,
   rw [metric.mem_closed_ball, dist_zero_right],
   refine (nnreal.coe_one ▸ nnreal.coe_le_coe.2 $ finset.sup_le $ λ x hx, _),
-  change abs (f x) ≤ 1,
+  change |f x| ≤ 1,
   rw [abs_of_nonneg $ hf.1 x],
   exact (mem_Icc_of_mem_std_simplex hf x).2
 end
 
 variable (ι)
 
-/-- `std_simplex ι` is bounded. -/
-lemma bounded_std_simplex : metric.bounded (std_simplex ι ℝ) :=
+/-- `std_simplex ℝ ι` is bounded. -/
+lemma bounded_std_simplex : metric.bounded (std_simplex ℝ ι) :=
 (metric.bounded_iff_subset_ball 0).2 ⟨1, std_simplex_subset_closed_ball⟩
 
-/-- `std_simplex ι` is closed. -/
-lemma is_closed_std_simplex : is_closed (std_simplex ι ℝ) :=
-(std_simplex_eq_inter ι ℝ).symm ▸ is_closed.inter
+/-- `std_simplex ℝ ι` is closed. -/
+lemma is_closed_std_simplex : is_closed (std_simplex ℝ ι) :=
+(std_simplex_eq_inter ℝ ι).symm ▸ is_closed.inter
   (is_closed_Inter $ λ i, is_closed_le continuous_const (continuous_apply i))
   (is_closed_eq (continuous_finset_sum _ $ λ x _, continuous_apply x) continuous_const)
 
-/-- `std_simplex ι` is compact. -/
-lemma compact_std_simplex : is_compact (std_simplex ι ℝ) :=
+/-- `std_simplex ℝ ι` is compact. -/
+lemma compact_std_simplex : is_compact (std_simplex ℝ ι) :=
 metric.compact_iff_closed_bounded.2 ⟨is_closed_std_simplex ι, bounded_std_simplex ι⟩
 
 end std_simplex
@@ -87,10 +87,10 @@ convex_iff_pointwise_add_subset.mpr $ λ a b ha hb hab,
   (λ heq,
     have hne : b ≠ 0, by { rw [heq, zero_add] at hab, rw hab, exact one_ne_zero },
     by { rw ← image_smul,
-         exact (is_open_map_smul' hne _ is_open_interior).add_left } )
+         exact (is_open_map_smul₀ hne _ is_open_interior).add_left } )
   (λ hne,
     by { rw ← image_smul,
-         exact (is_open_map_smul' hne _ is_open_interior).add_right }),
+         exact (is_open_map_smul₀ hne _ is_open_interior).add_right }),
   (subset_interior_iff_subset_of_open h).mpr $ subset.trans
     (by { simp only [← image_smul], apply add_subset_add; exact image_subset _ interior_subset })
     (convex_iff_pointwise_add_subset.mp hs ha hb hab)

@@ -182,7 +182,7 @@ begin
 end
 
 lemma sqrt_two_inv_mul_self : √2⁻¹ * √2⁻¹ = (2⁻¹ : ℝ) :=
-by { rw [←mul_inv'], norm_num, }
+by { rw [←mul_inv₀], norm_num, }
 
 end tsirelson_inequality
 open tsirelson_inequality
@@ -226,7 +226,7 @@ begin
       int.cast_one, one_smul, int.cast_neg, add_right_inj, neg_smul, ← add_smul],
     -- just look at the coefficients now:
     congr,
-    exact mul_left_cancel' (by norm_num) tsirelson_inequality_aux, },
+    exact mul_left_cancel₀ (by norm_num) tsirelson_inequality_aux, },
   have pos : 0 ≤ √2⁻¹ • (P^2 + Q^2), {
     have P_sa : star P = P,
     { dsimp [P],

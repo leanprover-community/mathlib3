@@ -239,7 +239,9 @@ variables {R A}
 
 namespace id
 
-@[simp] lemma map_eq_self (x : R) : algebra_map R R x = x := rfl
+@[simp] lemma map_eq_id : algebra_map R R = ring_hom.id _ := rfl
+
+lemma map_eq_self (x : R) : algebra_map R R x = x := rfl
 
 @[simp] lemma smul_eq_mul (x y : R) : x • y = x * y := rfl
 
@@ -862,6 +864,9 @@ def trans (e₁ : A₁ ≃ₐ[R] A₂) (e₂ : A₂ ≃ₐ[R] A₃) : A₁ ≃�
 
 @[simp] lemma symm_apply_apply (e : A₁ ≃ₐ[R] A₂) : ∀ x, e.symm (e x) = x :=
   e.to_equiv.symm_apply_apply
+
+@[simp] lemma symm_trans_apply (e₁ : A₁ ≃ₐ[R] A₂) (e₂ : A₂ ≃ₐ[R] A₃) (x : A₃) :
+  (e₁.trans e₂).symm x = e₁.symm (e₂.symm x) := rfl
 
 @[simp] lemma coe_trans (e₁ : A₁ ≃ₐ[R] A₂) (e₂ : A₂ ≃ₐ[R] A₃) :
   ⇑(e₁.trans e₂) = e₂ ∘ e₁ := rfl

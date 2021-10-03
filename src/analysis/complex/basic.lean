@@ -66,14 +66,14 @@ lemma dist_eq (z w : ℂ) : dist z w = abs (z - w) := rfl
 
 @[simp] lemma norm_real (r : ℝ) : ∥(r : ℂ)∥ = ∥r∥ := abs_of_real _
 
-@[simp] lemma norm_rat (r : ℚ) : ∥(r : ℂ)∥ = _root_.abs (r : ℝ) :=
-suffices ∥((r : ℝ) : ℂ)∥ = _root_.abs r, by simpa,
+@[simp] lemma norm_rat (r : ℚ) : ∥(r : ℂ)∥ = |(r : ℝ)| :=
+suffices ∥((r : ℝ) : ℂ)∥ = |r|, by simpa,
 by rw [norm_real, real.norm_eq_abs]
 
 @[simp] lemma norm_nat (n : ℕ) : ∥(n : ℂ)∥ = n := abs_of_nat _
 
-@[simp] lemma norm_int {n : ℤ} : ∥(n : ℂ)∥ = _root_.abs n :=
-suffices ∥((n : ℝ) : ℂ)∥ = _root_.abs n, by simpa,
+@[simp] lemma norm_int {n : ℤ} : ∥(n : ℂ)∥ = |n| :=
+suffices ∥((n : ℝ) : ℂ)∥ = |n|, by simpa,
 by rw [norm_real, real.norm_eq_abs]
 
 lemma norm_int_of_nonneg {n : ℤ} (hn : 0 ≤ n) : ∥(n : ℂ)∥ = n :=
@@ -83,6 +83,16 @@ by rw [norm_int, _root_.abs_of_nonneg]; exact int.cast_nonneg.2 hn
 
 @[continuity] lemma continuous_norm_sq : continuous norm_sq :=
 by simpa [← norm_sq_eq_abs] using continuous_abs.pow 2
+
+/-- The `abs` function on `ℂ` is proper. -/
+lemma tendsto_abs_cocompact_at_top : filter.tendsto abs (filter.cocompact ℂ) filter.at_top :=
+tendsto_norm_cocompact_at_top
+
+/-- The `norm_sq` function on `ℂ` is proper. -/
+lemma tendsto_norm_sq_cocompact_at_top :
+  filter.tendsto norm_sq (filter.cocompact ℂ) filter.at_top :=
+by simpa [mul_self_abs] using
+  tendsto_abs_cocompact_at_top.at_top_mul_at_top tendsto_abs_cocompact_at_top
 
 open continuous_linear_map
 

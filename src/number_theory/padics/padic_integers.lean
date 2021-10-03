@@ -314,7 +314,7 @@ begin
   obtain ⟨k, hk⟩ := exists_nat_gt ε⁻¹,
   use k,
   rw ← inv_lt_inv hε (_root_.fpow_pos_of_pos _ _),
-  { rw [fpow_neg, inv_inv', gpow_coe_nat],
+  { rw [fpow_neg, inv_inv₀, gpow_coe_nat],
     apply lt_of_lt_of_le hk,
     norm_cast,
     apply le_of_lt,

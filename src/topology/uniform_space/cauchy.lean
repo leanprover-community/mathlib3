@@ -486,7 +486,7 @@ def set_seq_aux (n : ℕ) : {s : set α // ∃ (_ : s ∈ f), s.prod s ⊆ U n }
 indefinite_description _ $ (cauchy_iff.1 hf).2 (U n) (U_mem n)
 
 /-- Given a Cauchy filter `f` and a sequence `U` of entourages, `set_seq` provides
-a sequence of monotonically decreasing sets `s n ∈ f` such that `(s n).prod (s n) ⊆ U`. -/
+an antitone sequence of sets `s n ∈ f` such that `(s n).prod (s n) ⊆ U`. -/
 def set_seq (n : ℕ) : set α :=  ⋂ m ∈ Iic n, (set_seq_aux hf U_mem m).val
 
 lemma set_seq_mem (n : ℕ) : set_seq hf U_mem n ∈ f :=
@@ -508,8 +508,8 @@ begin
   exact set_seq_mono hf U_mem hn hp.2
 end
 
-/-- A sequence of points such that `seq n ∈ set_seq n`. Here `set_seq` is a monotonically
-decreasing sequence of sets `set_seq n ∈ f` with diameters controlled by a given sequence
+/-- A sequence of points such that `seq n ∈ set_seq n`. Here `set_seq` is an antitone
+sequence of sets `set_seq n ∈ f` with diameters controlled by a given sequence
 of entourages. -/
 def seq (n : ℕ) : α := some $ hf.1.nonempty_of_mem (set_seq_mem hf U_mem n)
 
@@ -556,7 +556,7 @@ theorem complete_of_convergent_controlled_sequences (U : ℕ → set (α × α))
   (HU : ∀ u : ℕ → α, (∀ N m n, N ≤ m → N ≤ n → (u m, u n) ∈ U N) → ∃ a, tendsto u at_top (𝓝 a)) :
   complete_space α :=
 begin
-  rcases H.exists_antitone_seq' with ⟨U', U'_mono, hU'⟩,
+  obtain ⟨U', U'_mono, hU'⟩ := H.exists_antitone_seq',
   have Hmem : ∀ n, U n ∩ U' n ∈ 𝓤 α,
     from λ n, inter_mem (U_mem n) (hU'.2 ⟨n, subset.refl _⟩),
   refine ⟨λ f hf, (HU (seq hf Hmem) (λ N m n hm hn, _)).imp $

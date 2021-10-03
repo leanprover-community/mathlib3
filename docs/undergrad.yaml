@@ -206,7 +206,7 @@ Bilinear and Quadratic Forms Over a Vector Space:
   Orthogonality:
     orthogonal elements: 'bilin_form.is_ortho'
     adjoint endomorphism: 'bilin_form.left_adjoint_of_nondegenerate'
-    Sylvester's law of inertia: 'quadratic_form.equivalent_one_neg_one_weighted_sum_squared'
+    Sylvester's law of inertia: 'quadratic_form.equivalent_one_zero_neg_one_weighted_sum_squared'
     real classification:
     complex classification:
     Gram-Schmidt orthogonalisation:
@@ -308,7 +308,7 @@ Single Variable Real Analysis:
     limits: 'filter.tendsto'
     intermediate value theorem: 'intermediate_value_Icc'
     image of a segment: 'real.image_Icc'
-    continuity of monotonic functions: 'order_iso.continuous'
+    continuity of monotone functions: 'order_iso.continuous'
     continuity of inverse functions: 'order_iso.to_homeomorph'
   Differentiability:
     derivative at a point: 'has_deriv_at'

@@ -32,7 +32,7 @@ Similar predicates with `_on` suffix are particular cases for `l = 𝓟 s`.
 
 * `is_*_*.comp_mono` : if `x` is an extremum for `f` and `g` is a monotone function,
   then `x` is an extremum for `g ∘ f`;
-* `is_*_*.comp_antitone` : similarly for the case of monotonically decreasing `g`;
+* `is_*_*.comp_antitone` : similarly for the case of antitone `g`;
 * `is_*_*.bicomp_mono` : if `x` is an extremum of the same type for `f` and `g`
   and a binary operation `op` is monotone in both arguments, then `x` is an extremum
   of the same type for `λ x, op (f x) (g x)`.
@@ -231,17 +231,17 @@ lemma is_extr_filter.comp_mono (hf : is_extr_filter f l a) {g : β → γ} (hg :
 hf.elim (λ hf, (hf.comp_mono hg).is_extr)  (λ hf, (hf.comp_mono hg).is_extr)
 
 lemma is_min_filter.comp_antitone (hf : is_min_filter f l a) {g : β → γ}
-  (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
+  (hg : antitone g) :
   is_max_filter (g ∘ f) l a :=
 hf.dual.comp_mono (λ x y h, hg h)
 
 lemma is_max_filter.comp_antitone (hf : is_max_filter f l a) {g : β → γ}
-  (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
+  (hg : antitone g) :
   is_min_filter (g ∘ f) l a :=
 hf.dual.comp_mono (λ x y h, hg h)
 
 lemma is_extr_filter.comp_antitone (hf : is_extr_filter f l a) {g : β → γ}
-  (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
+  (hg : antitone g) :
   is_extr_filter (g ∘ f) l a :=
 hf.dual.comp_mono (λ x y h, hg h)
 
@@ -258,17 +258,17 @@ lemma is_extr_on.comp_mono (hf : is_extr_on f s a) {g : β → γ} (hg : monoton
 hf.comp_mono hg
 
 lemma is_min_on.comp_antitone (hf : is_min_on f s a) {g : β → γ}
-  (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
+  (hg : antitone g) :
   is_max_on (g ∘ f) s a :=
 hf.comp_antitone hg
 
 lemma is_max_on.comp_antitone (hf : is_max_on f s a) {g : β → γ}
-  (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
+  (hg : antitone g) :
   is_min_on (g ∘ f) s a :=
 hf.comp_antitone hg
 
 lemma is_extr_on.comp_antitone (hf : is_extr_on f s a) {g : β → γ}
-  (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
+  (hg : antitone g) :
   is_extr_on (g ∘ f) s a :=
 hf.comp_antitone hg
 

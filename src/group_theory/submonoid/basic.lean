@@ -93,7 +93,7 @@ lemma mem_carrier {s : submonoid M} {x : M} : x ∈ s.carrier ↔ x ∈ s := iff
 lemma mem_mk {s : set M} {x : M} (h_one) (h_mul) : x ∈ mk s h_one h_mul ↔ x ∈ s := iff.rfl
 
 @[simp, to_additive]
-lemma coe_set_mk {s : set M} {x : M} (h_one) (h_mul) : (mk s h_one h_mul : set M) = s := rfl
+lemma coe_set_mk {s : set M} (h_one) (h_mul) : (mk s h_one h_mul : set M) = s := rfl
 
 @[simp, to_additive]
 lemma mk_le_mk {s t : set M} (h_one) (h_mul) (h_one') (h_mul') :

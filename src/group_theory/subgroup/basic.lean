@@ -121,7 +121,7 @@ lemma mem_mk {s : set G} {x : G} (h_one) (h_mul) (h_inv) :
   x ∈ mk s h_one h_mul h_inv ↔ x ∈ s := iff.rfl
 
 @[simp, to_additive]
-lemma coe_set_mk {s : set G} {x : G} (h_one) (h_mul) (h_inv) :
+lemma coe_set_mk {s : set G} (h_one) (h_mul) (h_inv) :
   (mk s h_one h_mul h_inv : set G) = s := rfl
 
 @[simp, to_additive]

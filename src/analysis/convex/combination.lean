@@ -367,7 +367,7 @@ lemma mem_Icc_of_mem_std_simplex (hf : f ∈ std_simplex R ι) (x) :
 
 /-- The convex hull of an affine basis is the intersection of the half-spaces defined by the
 corresponding barycentric coordinates. -/
-lemma convex_hull_affine_basis_eq_nonneg_barycentric
+lemma convex_hull_affine_basis_eq_nonneg_barycentric {ι : Type*}
   {p : ι → E} (h_ind : affine_independent R p) (h_tot : affine_span R (range p) = ⊤) :
   convex_hull R (range p) = { x | ∀ i, 0 ≤ barycentric_coord h_ind h_tot i x } :=
 begin

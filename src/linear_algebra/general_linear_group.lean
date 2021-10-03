@@ -8,8 +8,6 @@ import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.special_linear_group
 import linear_algebra.determinant
 
-
-
 /-!
 # The General Linear group $GL(n, R)$
 This file defines the elements of the General Linear group `general_linear_group n R`,
@@ -112,12 +110,10 @@ variables (n R)
 /-- This is the subgroup of `nxn` matrices with entries over a
 linear ordered ring and positive determinant. -/
 def GL_pos : subgroup (GL n R) :=
-units.pos_subgroup.comap general_linear_group.det
-
+(units.pos_subgroup R).comap general_linear_group.det
 end
 
 @[simp] lemma mem_GL_pos (A : GL n R) : A ∈ GL_pos n R ↔ 0 < (A.det : R) := iff.rfl
-
 end
 
 section has_neg
@@ -140,7 +136,6 @@ instance : has_neg (GL_pos n R) :=
     simp only [mem_GL_pos, general_linear_group.coe_det_apply, subtype.val_eq_coe] at gdet,
     exact gdet,
   end⟩⟩
-
 
 @[simp] lemma GL_pos_coe_neg (g : GL_pos n R) : ↑(- g) = - (↑g : matrix n n R) :=
 rfl

@@ -716,13 +716,6 @@ instance normalization_monoid_of_unique_units : normalization_monoid α :=
 
 @[simp] lemma normalize_eq (x : α) : normalize x = x := mul_one x
 
-
-instance normalized_gcd_monoid_of_unique_units [gcd_monoid α] : normalized_gcd_monoid α := {
-  normalize_gcd := λ a b, normalize_eq _,
-  normalize_lcm := λ a b, normalize_eq _,
-  ..‹gcd_monoid α›,
-  ..(infer_instance : normalization_monoid α) }
-
 end unique_unit
 
 section integral_domain

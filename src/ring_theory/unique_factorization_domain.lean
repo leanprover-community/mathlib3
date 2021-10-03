@@ -848,14 +848,14 @@ iff.intro
       assume (hc : quot.mk setoid.r c = 0),
       have (0 : associates α) ∈ q, from prod_eq_zero_iff.1 $ eqc.symm ▸ hc.symm ▸ mul_zero _,
       not_irreducible_zero ((irreducible_mk 0).1 $ hq _ this)),
-    have : associates.mk (factors c).prod = quot.mk setoid.r c,
-      from mk_eq_mk_iff_associated.2 (factors_prod this),
+    have : associates.mk (normalized_factors c).prod = quot.mk setoid.r c,
+      from mk_eq_mk_iff_associated.2 (normalized_factors_prod this),
 
-    refine multiset.le_iff_exists_add.2 ⟨(factors c).map associates.mk, unique' hq _ _⟩,
+    refine multiset.le_iff_exists_add.2 ⟨(normalized_factors c).map associates.mk, unique' hq _ _⟩,
     { assume x hx,
       rcases multiset.mem_add.1 hx with h | h,
       exact hp x h,
-      exact forall_map_mk_factors_irreducible c ‹c ≠ 0› _ h },
+      exact forall_map_mk_normalized_factors_irreducible c ‹c ≠ 0› _ h },
     { simp [multiset.prod_add, prod_mk, *] at * }
   end
   prod_le_prod
@@ -867,18 +867,18 @@ include dec
   a multiset of irreducible associates `with_top`. -/
 noncomputable def factors' (a : α) :
   multiset { a : associates α // irreducible a } :=
-(factors a).pmap (λa ha, ⟨associates.mk a, (irreducible_mk _).2 ha⟩)
-  (irreducible_of_factor)
+(normalized_factors a).pmap (λa ha, ⟨associates.mk a, (irreducible_mk _).2 ha⟩)
+  (irreducible_of_normalized_factor)
 
 @[simp] theorem map_subtype_coe_factors' {a : α} :
-  (factors' a).map coe = (factors a).map associates.mk :=
+  (factors' a).map coe = (normalized_factors a).map associates.mk :=
 by simp [factors', multiset.map_pmap, multiset.pmap_eq_map]
 
 theorem factors'_cong {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) (h : a ~ᵤ b) :
   factors' a = factors' b :=
-have multiset.rel associated (factors a) (factors b), from
-  factors_unique irreducible_of_factor irreducible_of_factor
-    ((factors_prod ha).trans $ h.trans $ (factors_prod hb).symm),
+have multiset.rel associated (normalized_factors a) (normalized_factors b), from
+  factors_unique irreducible_of_normalized_factor irreducible_of_normalized_factor
+    ((normalized_factors_prod ha).trans $ h.trans $ (normalized_factors_prod hb).symm),
 by simpa [(multiset.map_eq_map subtype.coe_injective).symm, rel_associated_iff_map_eq_map.symm]
 
 include dec'
@@ -921,17 +921,17 @@ theorem prod_factors [nontrivial α] : ∀(s : factor_set α), s.prod.factors = 
       have irreducible (0 : associates α), from eq ▸ ha,
       not_irreducible_zero ((irreducible_mk _).1 this),
     have ha : a ≠ 0, by simp [*] at *,
-    suffices : (unique_factorization_monoid.factors a).map associates.mk = s.map coe,
+    suffices : (normalized_factors a).map associates.mk = s.map coe,
     { rw [factors_mk a ha],
       apply congr_arg some _,
       simpa [(multiset.map_eq_map subtype.coe_injective).symm] },
 
     refine unique'
-      (forall_map_mk_factors_irreducible _ ha)
+      (forall_map_mk_normalized_factors_irreducible _ ha)
       (assume a ha, let ⟨⟨x, hx⟩, ha, eq⟩ := multiset.mem_map.1 ha in eq ▸ hx)
       _,
     rw [prod_mk, eq_a, mk_eq_mk_iff_associated],
-    exact factors_prod ha
+    exact normalized_factors_prod ha
   end
 
 @[simp]
@@ -940,7 +940,8 @@ quotient.induction_on a $ assume a, decidable.by_cases
   (assume : associates.mk a = 0, by simp [quotient_mk_eq_mk, this])
   (assume : associates.mk a ≠ 0,
     have a ≠ 0, by simp * at *,
-    by simp [this, quotient_mk_eq_mk, prod_mk, mk_eq_mk_iff_associated.2 (factors_prod this)])
+    by simp [this, quotient_mk_eq_mk, prod_mk,
+      mk_eq_mk_iff_associated.2 (normalized_factors_prod this)])
 
 theorem eq_of_factors_eq_factors {a b : associates α} (h : a.factors = b.factors) : a = b :=
 have a.factors.prod = b.factors.prod, by rw h,
@@ -1041,7 +1042,7 @@ omit dec_irr
 lemma mem_factors'_of_dvd {a p : α} (ha0 : a ≠ 0) (hp : irreducible p) (hd : p ∣ a) :
   subtype.mk (associates.mk p) ((irreducible_mk _).2 hp) ∈ factors' a :=
 begin
-  obtain ⟨q, hq, hpq⟩ := exists_mem_factors_of_dvd ha0 hp hd,
+  obtain ⟨q, hq, hpq⟩ := exists_mem_normalized_factors_of_dvd ha0 hp hd,
   apply multiset.mem_pmap.mpr, use q, use hq,
   exact subtype.eq (eq.symm (mk_eq_mk_iff_associated.mpr hpq))
 end

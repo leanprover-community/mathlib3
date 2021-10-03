@@ -263,7 +263,7 @@ theorem gsmul_lt_gsmul' {n : ℤ} (hn : 0 < n) {a₁ a₂ : A} (h : a₁ < a₂)
 gsmul_strict_mono_right A hn h
 
 lemma abs_nsmul {α : Type*} [linear_ordered_add_comm_group α] (n : ℕ) (a : α) :
-  abs (n • a) = n • abs a :=
+  |n • a| = n • |a| :=
 begin
   cases le_total a 0 with hneg hpos,
   { rw [abs_of_nonpos hneg, ← abs_neg, ← neg_nsmul, abs_of_nonneg],
@@ -273,7 +273,7 @@ begin
 end
 
 lemma abs_gsmul {α : Type*} [linear_ordered_add_comm_group α] (n : ℤ) (a : α) :
-  abs (n • a) = (abs n) • abs a :=
+  |n • a| = |n| • |a| :=
 begin
   by_cases n0 : 0 ≤ n,
   { lift n to ℕ using n0,
@@ -285,15 +285,15 @@ begin
 end
 
 lemma abs_add_eq_add_abs_le {α : Type*} [linear_ordered_add_comm_group α] {a b : α} (hle : a ≤ b) :
-  abs (a + b) = abs a + abs b ↔ (0 ≤ a ∧ 0 ≤ b ∨ a ≤ 0 ∧ b ≤ 0) :=
+  |a + b| = |a| + |b| ↔ (0 ≤ a ∧ 0 ≤ b ∨ a ≤ 0 ∧ b ≤ 0) :=
 begin
   by_cases a0 : 0 ≤ a; by_cases b0 : 0 ≤ b,
   { simp [a0, b0, abs_of_nonneg, add_nonneg a0 b0] },
   { exact (lt_irrefl (0 : α) (a0.trans_lt (hle.trans_lt (not_le.mp b0)))).elim },
   any_goals { simp [(not_le.mp a0).le, (not_le.mp b0).le, abs_of_nonpos, add_nonpos, add_comm] },
   obtain F := (not_le.mp a0),
-  have : (abs (a + b) = -a + b ↔ b ≤ 0) ↔ (abs (a + b) =
-    abs a + abs b ↔ 0 ≤ a ∧ 0 ≤ b ∨ a ≤ 0 ∧ b ≤ 0),
+  have : (|a + b| = -a + b ↔ b ≤ 0) ↔ (|a + b| =
+    |a| + |b| ↔ 0 ≤ a ∧ 0 ≤ b ∨ a ≤ 0 ∧ b ≤ 0),
   { simp [a0, b0, abs_of_neg, abs_of_nonneg, F, F.le] },
   refine this.mp ⟨λ h, _, λ h, by simp only [le_antisymm h b0, abs_of_neg F, add_zero]⟩,
   by_cases ba : a + b ≤ 0,
@@ -305,7 +305,7 @@ begin
 end
 
 lemma abs_add_eq_add_abs_iff {α : Type*} [linear_ordered_add_comm_group α] (a b : α) :
-  abs (a + b) = abs a + abs b ↔ (0 ≤ a ∧ 0 ≤ b ∨ a ≤ 0 ∧ b ≤ 0) :=
+  |a + b| = |a| + |b| ↔ (0 ≤ a ∧ 0 ≤ b ∨ a ≤ 0 ∧ b ≤ 0) :=
 begin
   by_cases ab : a ≤ b,
   { exact abs_add_eq_add_abs_le ab },
@@ -516,7 +516,7 @@ section linear_ordered_ring
 
 variables [linear_ordered_ring R] {a : R} {n : ℕ}
 
-@[simp] lemma abs_pow (a : R) (n : ℕ) : abs (a ^ n) = abs a ^ n :=
+@[simp] lemma abs_pow (a : R) (n : ℕ) : |a ^ n| = |a| ^ n :=
 (pow_abs a n).symm
 
 @[simp] theorem pow_bit1_neg_iff : a ^ bit1 n < 0 ↔ a < 0 :=
@@ -551,14 +551,14 @@ theorem pow_odd_neg (ha : a < 0) (hn : odd n) : a ^ n < 0:=
 by cases hn with k hk; simpa only [hk, two_mul] using pow_bit1_neg_iff.mpr ha
 
 lemma pow_even_abs (a : R) {p : ℕ} (hp : even p) :
-  abs a ^ p = a ^ p :=
+  |a| ^ p = a ^ p :=
 begin
   rw [←abs_pow, abs_eq_self],
   exact pow_even_nonneg _ hp
 end
 
 @[simp] lemma pow_bit0_abs (a : R) (p : ℕ) :
-  abs a ^ bit0 p = a ^ bit0 p :=
+  |a| ^ bit0 p = a ^ bit0 p :=
 pow_even_abs _ (even_bit0 _)
 
 lemma strict_mono_pow_bit1 (n : ℕ) : strict_mono (λ a : R, a ^ bit1 n) :=

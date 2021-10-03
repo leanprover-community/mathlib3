@@ -66,7 +66,7 @@ begin
 end
 
 lemma antitone.tendsto_indicator {ι} [preorder ι] [has_zero β]
-  (s : ι → set α) (hs : ∀⦃i j⦄, i ≤ j → s j ⊆ s i) (f : α → β) (a : α) :
+  (s : ι → set α) (hs : antitone s) (f : α → β) (a : α) :
   tendsto (λi, indicator (s i) f a) at_top (pure $ indicator (⋂ i, s i) f a) :=
 begin
   by_cases h : ∃i, a ∉ s i,

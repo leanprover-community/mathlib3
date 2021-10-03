@@ -268,7 +268,6 @@ begin
   exact t.restrict (le_generate R),
 end
 
-namespace family_of_elements
 section functor_pullback
 variables {Z : D} {T : presieve (F.obj Z)} {x : family_of_elements P T}
 
@@ -276,10 +275,11 @@ variables {Z : D} {T : presieve (F.obj Z)} {x : family_of_elements P T}
 Given a family of elements of a sieve `S` on `F(X)`, we can realize it as a family of elements of
 `S.functor_pullback F`.
 -/
-def functor_pullback (x : family_of_elements P T) :
+def family_of_elements.functor_pullback (x : family_of_elements P T) :
   family_of_elements (F.op ⋙ P) (T.functor_pullback F) := λ Y f hf, x (F.map f) hf
 
-lemma compatible.functor_pullback (h : x.compatible) : (x.functor_pullback F).compatible :=
+lemma family_of_elements.compatible.functor_pullback (h : x.compatible) :
+  (x.functor_pullback F).compatible :=
 begin
   intros Z₁ Z₂ W g₁ g₂ f₁ f₂ h₁ h₂ eq,
   exact h (F.map g₁) (F.map g₂) h₁ h₂ (by simp only [← F.map_comp, eq])
@@ -293,15 +293,15 @@ section pullback
 Given a family of elements of a sieve `S` on `X`, and a map `Y ⟶ X`, we can obtain a
 family of elements of `S.pullback f` by taking the same elements.
 -/
-def pullback (f : Y ⟶ X)  (x : family_of_elements P S) :
+def family_of_elements.pullback (f : Y ⟶ X)  (x : family_of_elements P S) :
   family_of_elements P (S.pullback f) := λ _ g hg, x (g ≫ f) hg
 
-lemma compatible.pullback (f : Y ⟶ X) {x : family_of_elements P S}
+lemma family_of_elements.compatible.pullback (f : Y ⟶ X) {x : family_of_elements P S}
   (h : x.compatible) : (x.pullback f).compatible :=
 begin
   simp only [compatible_iff_sieve_compatible] at h ⊢,
   intros W Z f₁ f₂ hf,
-  unfold pullback,
+  unfold family_of_elements.pullback,
   rw ← (h (f₁ ≫ f) f₂ hf),
   simp only [category.assoc],
 end
@@ -312,18 +312,17 @@ end pullback
 Given a morphism of presheaves `f : P ⟶ Q`, we can take a family of elements valued in `P` to a
 family of elements valued in `Q` by composing with `f`.
 -/
-def comp_presheaf_map (f : P ⟶ Q) (x : family_of_elements P R) :
+def family_of_elements.comp_presheaf_map (f : P ⟶ Q) (x : family_of_elements P R) :
   family_of_elements Q R := λ Y g hg, f.app (op Y) (x g hg)
 
-lemma compatible.comp_presheaf_map (f : P ⟶ Q) {x : family_of_elements P R}
+lemma family_of_elements.compatible.comp_presheaf_map (f : P ⟶ Q) {x : family_of_elements P R}
   (h : x.compatible) : (x.comp_presheaf_map f).compatible :=
 begin
   intros Z₁ Z₂ W g₁ g₂ f₁ f₂ h₁ h₂ eq,
-  unfold comp_presheaf_map,
+  unfold family_of_elements.comp_presheaf_map,
   rwa [← functor_to_types.naturality, ← functor_to_types.naturality, h],
 end
 
-end family_of_elements
 
 /--
 The given element `t` of `P.obj (op X)` is an *amalgamation* for the family of elements `x` if every

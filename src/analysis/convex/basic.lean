@@ -507,6 +507,20 @@ begin
   exact h hx hy ha hb hab
 end
 
+lemma convex_iff_pairwise_on_pos :
+  convex 𝕜 s ↔ s.pairwise_on (λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 → a • x + b • y ∈ s) :=
+begin
+  refine ⟨λ h x hx y hy _ a b ha hb hab, h hx hy ha.le hb.le hab, _⟩,
+  intros h x y hx hy a b ha hb hab,
+  obtain rfl | ha' := ha.eq_or_lt,
+  { rw [zero_add] at hab, rwa [hab, zero_smul, one_smul, zero_add] },
+  obtain rfl | hb' := hb.eq_or_lt,
+  { rw [add_zero] at hab, rwa [hab, zero_smul, one_smul, add_zero] },
+  obtain rfl | hxy := eq_or_ne x y,
+  { rwa convex.combo_self hab },
+  exact h _ hx _ hy hxy ha' hb' hab,
+end
+
 lemma convex_iff_open_segment_subset :
   convex 𝕜 s ↔ ∀ ⦃x y⦄, x ∈ s → y ∈ s → open_segment 𝕜 x y ⊆ s :=
 begin

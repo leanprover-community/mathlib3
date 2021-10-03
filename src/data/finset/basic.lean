@@ -412,6 +412,10 @@ theorem singleton_inj {a b : α} : ({a} : finset α) = {b} ↔ a = b :=
 @[simp, norm_cast] lemma coe_singleton (a : α) : (({a} : finset α) : set α) = {a} :=
 by { ext, simp }
 
+@[simp, norm_cast] lemma coe_eq_singleton {α : Type*} {s : finset α} {a : α} :
+  (s : set α) = {a} ↔ s = {a} :=
+by rw [←finset.coe_singleton, finset.coe_inj]
+
 lemma eq_singleton_iff_unique_mem {s : finset α} {a : α} :
   s = {a} ↔ a ∈ s ∧ ∀ x ∈ s, x = a :=
 begin

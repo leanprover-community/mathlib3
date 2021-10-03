@@ -142,7 +142,9 @@ end
 def functor_pullback {X : C} (R : presieve (F.obj X)) : presieve X := λ _ f, R (F.map f)
 
 @[simp] lemma functor_pullback_mem {X : C} (R : presieve (F.obj X)) {Y} (f : Y ⟶ X) :
-  R.functor_pullback F f ↔ R (F.map f) := iff.rfl
+  R.functor_pullback F f = R (F.map f) := rfl
+
+@[simp] lemma functor_pullback_id {X : C} (R : presieve X) : R.functor_pullback (𝟭 _) = R := rfl
 
 end presieve
 

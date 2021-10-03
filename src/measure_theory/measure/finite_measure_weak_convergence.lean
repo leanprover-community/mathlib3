@@ -166,26 +166,10 @@ abbreviation test_against_nn (μ : finite_measure α) (f : α → ℝ≥0) : ℝ
 
 variables [topological_space α]
 
-#check bdd_above
-#check set_lintegral_lt_top_of_bdd_above
-
 -- I believe the formulation is generally useful, except maybe the exact form
 -- of the assumption `f_bdd`.
 -- Where to place?
 lemma _root_.is_finite_measure.lintegral_lt_top_of_bounded_to_ennreal {α : Type*}
-  [measurable_space α] (μ : measure α) [μ_fin : is_finite_measure μ]
-  {f : α → ℝ≥0∞} (f_bdd : bdd_above (range f)) : ∫⁻ x, f x ∂μ < ∞ :=
-begin
-  cases f_bdd with c hc,
-  have c_bound : ∀ x, f x ≤ c,
-  {
-    sorry, },
-  apply lt_of_le_of_lt (@lintegral_mono _ _ μ _ _ c_bound),
-  rw lintegral_const,
-  exact ennreal.mul_lt_top ennreal.coe_lt_top.ne μ_fin.measure_univ_lt_top.ne,
-end
-
-lemma _root_.is_finite_measure.lintegral_lt_top_of_bounded_to_ennreal₀ {α : Type*}
   [measurable_space α] (μ : measure α) [μ_fin : is_finite_measure μ]
   {f : α → ℝ≥0∞} (f_bdd : ∃ c : ℝ≥0, ∀ x, f x ≤ c) : ∫⁻ x, f x ∂μ < ∞ :=
 begin
@@ -230,7 +214,7 @@ begin
   have key' : nndist (f x) ((0 : α →ᵇ ℝ≥0) x) ≤ nndist f 0,
   { exact @bounded_continuous_function.dist_coe_le_dist α ℝ≥0 _ _ f 0 x, },
   simp only [bounded_continuous_function.coe_zero, pi.zero_apply] at key',
-  rwa ← nnreal.val_eq_nndist_zero' (f x) at key',
+  rwa nnreal.nndist_zero_eq_val' (f x) at key',
 end
 
 -- This is the formulation I prefer in the present context, naturally uses the more general ones.

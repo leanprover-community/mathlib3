@@ -158,13 +158,13 @@ def coe_add_monoid_hom : finite_measure α →+ measure α :=
 instance {α : Type*} [measurable_space α] : module ℝ≥0 (finite_measure α) :=
 function.injective.module _ coe_add_monoid_hom finite_measure.coe_injective coe_smul
 
+variables [topological_space α]
+
 /-- The pairing of a finite (Borel) measure `μ` with a nonnegative bounded continuous
 function is obtained by (Lebesgue) integrating the (test) function against the measure.
 This is `finite_measure.test_against'`. -/
-abbreviation test_against_nn (μ : finite_measure α) (f : α → ℝ≥0) : ℝ≥0 :=
+abbreviation test_against_nn (μ : finite_measure α) (f : α →ᵇ ℝ≥0) : ℝ≥0 :=
 (∫⁻ x, f x ∂(μ : measure α)).to_nnreal
-
-variables [topological_space α]
 
 -- I believe the formulation is generally useful, except maybe the exact form
 -- of the assumption `f_bdd`.
@@ -232,7 +232,7 @@ begin
   rwa eq at key,
 end
 
-lemma test_against_nn_coe_eq {μ : finite_measure α} {f : α →ᵇ nnreal} :
+@[simp] lemma test_against_nn_coe_eq {μ : finite_measure α} {f : α →ᵇ ℝ≥0} :
   (μ.test_against_nn f : ℝ≥0∞) = ∫⁻ x, f x ∂(μ : measure α) :=
 ennreal.coe_to_nnreal (lintegral_lt_top_of_bounded_continuous_to_nnreal μ f).ne
 
@@ -252,14 +252,9 @@ lemma test_against_nn_mono (μ : finite_measure α)
   {f g : α →ᵇ ℝ≥0} (f_le_g : (f : α → ℝ≥0) ≤ g) :
   μ.test_against_nn f ≤ μ.test_against_nn g :=
 begin
-  repeat { rw finite_measures.test_against_nn_def, },
-  apply ennreal.coe_le_coe.mp,
-  repeat { rw ennreal.coe_to_nnreal, },
-  { apply lintegral_mono,
-    intros x,
-    apply ennreal.coe_mono,
-    exact f_le_g x, },
-  repeat { exact (lintegral_lt_top_of_bounded_continuous_to_nnreal μ _).ne, },
+  simp only [←ennreal.coe_le_coe, test_against_nn_coe_eq],
+  apply lintegral_mono,
+  exact λ x, ennreal.coe_mono (f_le_g x),
 end
 
 variables [opens_measurable_space α]
@@ -267,13 +262,10 @@ variables [opens_measurable_space α]
 lemma test_against_nn_add (μ : finite_measure α) (f₁ f₂ : α →ᵇ ℝ≥0) :
   μ.test_against_nn (f₁ + f₂) = μ.test_against_nn f₁ + μ.test_against_nn f₂ :=
 begin
-  rw ← ennreal.to_nnreal_add
-    (lintegral_lt_top_of_bounded_continuous_to_nnreal μ f₁).ne
-    (lintegral_lt_top_of_bounded_continuous_to_nnreal μ f₂).ne,
-  rw ← @lintegral_add _ _ (μ : measure α) _ _
-     (bounded_continuous_function.nnreal.to_ennreal_comp_measurable f₁)
-     (bounded_continuous_function.nnreal.to_ennreal_comp_measurable f₂),
-  refl,
+  simp only [←ennreal.coe_eq_coe, bounded_continuous_function.coe_add, ennreal.coe_add,
+             pi.add_apply, test_against_nn_coe_eq],
+  apply lintegral_add,
+  repeat { exact (bounded_continuous_function.nnreal.to_ennreal_comp_measurable _), },
 end
 
 -- Hmmm, what is the right way to do this `nnreal_mul_ennreal_to_nnreal`?
@@ -292,12 +284,12 @@ end
 lemma test_against_nn_smul (μ : finite_measure α) (c : ℝ≥0) (f : α →ᵇ ℝ≥0) :
   μ.test_against_nn (c • f) = c * μ.test_against_nn f :=
 begin
+  simp only [←ennreal.coe_eq_coe, algebra.id.smul_eq_mul, bounded_continuous_function.coe_smul,
+             test_against_nn_coe_eq, ennreal.coe_mul],
   have key_smul := @lintegral_mul_const _ _ (μ : measure α) c _
                    (bounded_continuous_function.nnreal.to_ennreal_comp_measurable f),
   simp_rw mul_comm at key_smul,
-  repeat { dunfold finite_measure.test_against_nn, },
-  simp_rw [ennreal.nnreal_mul_ennreal_to_nnreal, ←key_smul],
-  simp only [algebra.id.smul_eq_mul, pi.smul_apply, ennreal.coe_mul],
+  exact key_smul,
 end
 
 /-- Integration against a finite_measure defines a linear map from nonnegative bounded continuous
@@ -310,25 +302,19 @@ def test_against_nn_linear_map (μ : finite_measure α) : (α →ᵇ ℝ≥0) �
 lemma test_against_nn_lipschitz_estimate (μ : finite_measure α) (f g : α →ᵇ ℝ≥0) :
   μ.test_against_nn f ≤ μ.test_against_nn g + (nndist f g) * μ.mass :=
 begin
-  rw [←test_against_nn_const μ (nndist f g), ←test_against_nn_add],
-  repeat { dunfold test_against_nn, },
-  apply ennreal.coe_le_coe.mp,
-  repeat { rw ennreal.coe_to_nnreal, },
-  { apply lintegral_mono,
-    have le_dist : ∀ x, dist (f x) (g x) ≤ (nndist f g)
-    := bounded_continuous_function.dist_coe_le_dist,
-    have le' : ∀ x, f(x) ≤ g(x) + (nndist f g),
-    { intros x,
-      apply (nnreal.le_add_nndist (f x) (g x)).trans,
-      rw add_le_add_iff_left,
-      exact dist_le_coe.mp (le_dist x), },
-    have le : ∀ x, (f(x) : ℝ≥0∞) ≤ (g(x) : ℝ≥0∞) + (nndist f g),
-    { intros x,
-      rw ←ennreal.coe_add,
-      exact ennreal.coe_mono (le' x), },
-    exact le, },
-  { exact (lintegral_lt_top_of_bounded_continuous_to_nnreal μ (g + const α (nndist f g))).ne, },
-  exact (lintegral_lt_top_of_bounded_continuous_to_nnreal μ f).ne,
+  simp [←test_against_nn_const μ (nndist f g), ←test_against_nn_add, ←ennreal.coe_le_coe],
+  apply lintegral_mono,
+  have le_dist : ∀ x, dist (f x) (g x) ≤ (nndist f g),
+  by exact bounded_continuous_function.dist_coe_le_dist,
+  intros x,
+  have le' : f(x) ≤ g(x) + (nndist f g),
+  { apply (nnreal.le_add_nndist (f x) (g x)).trans,
+    rw add_le_add_iff_left,
+    exact dist_le_coe.mp (le_dist x), },
+  have le : (f(x) : ℝ≥0∞) ≤ (g(x) : ℝ≥0∞) + (nndist f g),
+  { rw ←ennreal.coe_add,
+    exact ennreal.coe_mono le', },
+  rwa [coe_nnreal_ennreal_nndist] at le,
 end
 
 lemma test_against_nn_lipschitz (μ : finite_measure α) :
@@ -411,35 +397,30 @@ by { rw [← coe_fn_comp_to_finite_measure_eq_coe_fn,
 @[simp] lemma mass_to_finite_measure (μ : probability_measure α) :
   μ.to_finite_measure.mass = 1 := μ.coe_fn_univ
 
+variables [topological_space α]
+
 /-- The pairing of a (Borel) probability measure `μ` with a nonnegative bounded continuous
 function is obtained by (Lebesgue) integrating the (test) function against the measure. This
 is `probability_measure.test_against'`. -/
 abbreviation test_against_nn
-  (μ : probability_measure α) (f : α → nnreal) : ℝ≥0 :=
+  (μ : probability_measure α) (f : α →ᵇ nnreal) : ℝ≥0 :=
 (lintegral (μ : measure α) ((coe : ℝ≥0 → ℝ≥0∞) ∘ f)).to_nnreal
-
-variables [topological_space α]
 
 lemma lintegral_lt_top_of_bounded_continuous_to_nnreal (μ : probability_measure α) (f : α →ᵇ ℝ≥0) :
   ∫⁻ x, f x ∂(μ : measure α) < ∞ :=
 μ.to_finite_measure.lintegral_lt_top_of_bounded_continuous_to_nnreal f
 
-lemma test_against_nn_coe_eq {μ : probability_measure α} {f : α →ᵇ nnreal} :
+@[simp] lemma test_against_nn_coe_eq {μ : probability_measure α} {f : α →ᵇ ℝ≥0} :
   (μ.test_against_nn f : ℝ≥0∞) = ∫⁻ x, f x ∂(μ : measure α) :=
 ennreal.coe_to_nnreal (lintegral_lt_top_of_bounded_continuous_to_nnreal μ f).ne
 
-@[simp]
-lemma to_finite_measure_test_against_nn_eq_test_against_nn
+@[simp] lemma to_finite_measure_test_against_nn_eq_test_against_nn
   {μ : probability_measure α} {f : α →ᵇ nnreal} :
   μ.to_finite_measure.test_against_nn f = μ.test_against_nn f := rfl
 
 lemma test_against_nn_const (μ : probability_measure α) (c : ℝ≥0) :
   μ.test_against_nn (bounded_continuous_function.const α c) = c :=
-begin
-  have key := finite_measure.test_against_nn_const μ.to_finite_measure c,
-  simp only [mul_one, mass_to_finite_measure] at key,
-  exact key,
-end
+by simp [← ennreal.coe_eq_coe, (measure_theory.is_probability_measure μ).measure_univ]
 
 lemma test_against_nn_mono (μ : probability_measure α)
   {f g : α →ᵇ ℝ≥0} (f_le_g : (f : α → ℝ≥0) ≤ g) :

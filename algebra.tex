@@ -1,0 +1,116 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb,tikz-cd}
+\usepackage[landscape, paperwidth=15cm, paperheight=35cm, margin=0mm]{geometry}
+\usetikzlibrary{positioning, arrows.meta}
+
+\begin{document}
+
+
+\begin{tikzpicture}
+  \node(has_mul){\textbf{has\_mul}};
+  \node[right of=has_mul, node distance=10cm](has_add){\textbf{has\_add}};
+  \node[left of=has_mul, node distance=6cm](has_one){\textbf{has\_one}};
+  \node[right of=has_add, node distance=6cm](has_zero){\textbf{has\_zero}};
+  \node[below of=has_mul](semigroup){\text{semigroup}};
+  \node[below of=has_add](add_semigroup){\text{add\_semigroup}};
+  \node[below right=0.1em and 0.1em of semigroup](comm_semigroup){\text{comm\_semigroup}};
+  \node[below left=0.1em and 0.1em of add_semigroup](add_comm_semigroup){\text{add\_comm\_semigroup}};
+  \node[right of=has_mul, node distance=5cm](is_commutative){\text{is\_commutative}};
+  \node[below left=1cm and 0.1em of semigroup](left_cancel_semigroup){\text{left\_cancel\_semigroup}};
+  \node[below left=1cm and 0.1em of add_semigroup](add_left_cancel_semigroup){\text{add\_left\_cancel\_semigroup}};
+  \node[below right=1cm and 0.1em of semigroup](right_cancel_semigroup){\text{right\_cancel\_semigroup}};
+  \node[below right=1cm and 0.1em of add_semigroup](add_right_cancel_semigroup){\text{add\_right\_cancel\_semigroup}};
+  \node[below of=has_one](mul_one_class){\text{mul\_one\_class}};
+  \node[above left=0.1em and 1cm of mul_one_class](is_left_id){\text{is\_left\_id}};
+  \node[below left=0.1em and 1cm of mul_one_class](is_right_id){\text{is\_right\_id}};
+  \node[below of=has_zero](add_zero_class){\text{add\_zero\_class}};
+  \node[below=3cm of add_zero_class](add_monoid){\textbf{add\_monoid}};
+  \node[below=3cm of mul_one_class](monoid){\textbf{monoid}};
+  \node[below right=0.1em and 0.1em of monoid](comm_monoid){\text{comm\_monoid}};
+  \node[below left=0.1em and 0.1em of add_monoid](add_comm_monoid){\text{add\_comm\_monoid}};
+  \node[below=3cm of add_left_cancel_semigroup](add_left_cancel_monoid){\text{add\_left\_cancel\_monoid}};
+  \node[below=3cm of left_cancel_semigroup](left_cancel_monoid){\text{left\_cancel\_monoid}};
+  \node[below=3cm of add_right_cancel_semigroup](add_right_cancel_monoid){\text{add\_right\_cancel\_monoid}};
+  \node[below=3cm of right_cancel_semigroup](right_cancel_monoid){\text{right\_cancel\_monoid}};
+  \node[below=6cm of add_semigroup](add_cancel_monoid){\text{add\_cancel\_monoid}};
+  \node[below=6cm of semigroup](cancel_monoid){\text{cancel\_monoid}};
+  \node[below right=0.1em and 0.1em of cancel_monoid](cancel_comm_monoid){\text{cancel\_comm\_monoid}};
+  \node[below right=0.1em and 0.1em of add_cancel_monoid](add_cancel_comm_monoid){\text{add\_cancel\_comm\_monoid}};
+  \node[below=5cm of monoid](div_inv_monoid){\textbf{div\_inv\_monoid}};
+  \node[below=5cm of add_monoid](sub_neg_monoid){\textbf{sub\_neg\_monoid}};
+  \node[above left=of div_inv_monoid](has_inv){\textbf{has\_inv}};
+  \node[left=of div_inv_monoid](has_div){\textbf{has\_div}};
+  \node[above right=of sub_neg_monoid](has_neg){\textbf{has\_neg}};
+  \node[right=of sub_neg_monoid](has_sub){\textbf{has\_sub}};
+  \node[below=of div_inv_monoid](group){\text{group}};
+  \node[below=of sub_neg_monoid](add_group){\text{add\_group}};
+  \node[below right=0.1em and 0.1em of group](comm_group){\text{comm\_group}};
+  \node[below left=0.1em and 0.1em of add_group](add_comm_group){\text{add\_comm\_group}};
+
+  \path[->] (has_mul) edge (semigroup)
+            (has_add) edge (add_semigroup)
+            (semigroup) edge[dashed] (comm_semigroup)
+            (add_semigroup) edge[dashed] (add_comm_semigroup)
+            (comm_semigroup) edge[dotted] (is_commutative)
+            (add_comm_semigroup) edge[dotted, draw=red] (is_commutative)
+            (semigroup) edge[dashed] (left_cancel_semigroup)
+            (add_semigroup) edge[dashed] (add_left_cancel_semigroup)
+            (semigroup) edge[dashed] (right_cancel_semigroup)
+            (add_semigroup) edge[dashed] (add_right_cancel_semigroup)
+            (has_one) edge (mul_one_class)
+            (has_mul) edge (mul_one_class)
+            (has_zero) edge (add_zero_class)
+            (has_add) edge (add_zero_class)
+            (mul_one_class) edge[dotted] (is_left_id)
+            (mul_one_class) edge[dotted] (is_right_id)
+            (add_zero_class) edge[dotted, draw=red] (is_left_id)
+            (add_zero_class) edge[dotted, draw=red] (is_right_id)
+            (add_zero_class) edge (add_monoid)
+            (add_semigroup) edge[dashed] (add_monoid)
+            (mul_one_class) edge (monoid)
+            (semigroup) edge[dashed] (monoid)
+            (monoid) edge[dashed] (comm_monoid)
+            (add_monoid) edge[dashed] (add_comm_monoid)
+            (comm_semigroup) edge[dashed] (comm_monoid)
+            (add_comm_semigroup) edge[dashed] (add_comm_monoid)
+            (add_left_cancel_semigroup) edge[dashed] (add_left_cancel_monoid)
+            (add_monoid) edge (add_left_cancel_monoid)
+            (left_cancel_semigroup) edge[dashed] (left_cancel_monoid)
+            (monoid) edge (left_cancel_monoid)
+            (add_right_cancel_semigroup) edge[dashed] (add_right_cancel_monoid)
+            (add_monoid) edge (add_right_cancel_monoid)
+            (right_cancel_semigroup) edge[dashed] (right_cancel_monoid)
+            (monoid) edge (right_cancel_monoid)
+            (add_left_cancel_monoid) edge (add_cancel_monoid)
+            (add_right_cancel_monoid) edge (add_cancel_monoid)
+            (left_cancel_monoid) edge (cancel_monoid)
+            (right_cancel_monoid) edge (cancel_monoid)
+            (add_left_cancel_monoid) edge[dashed] (add_cancel_comm_monoid)
+            (add_comm_monoid) edge[dashed] (add_cancel_comm_monoid)
+            (left_cancel_monoid) edge[dashed] (cancel_comm_monoid)
+            (comm_monoid) edge[dashed] (cancel_comm_monoid)
+            (cancel_comm_monoid) edge[dotted] (cancel_monoid)
+            (add_cancel_comm_monoid) edge[dotted, draw=red] (add_cancel_monoid)
+            (monoid) edge (div_inv_monoid)
+            (has_inv) edge (div_inv_monoid)
+            (has_div) edge (div_inv_monoid)
+            (add_monoid) edge (sub_neg_monoid)
+            (has_neg) edge (sub_neg_monoid)
+            (has_sub) edge (sub_neg_monoid)
+            (div_inv_monoid) edge (group)
+            (sub_neg_monoid) edge (add_group)
+            (group) edge[-{Bar}, dotted, out=45, in=-45] (monoid)
+            (add_group) edge[-{Bar}, dotted, out=45, in=-45, draw=red] (add_monoid)
+            (group) edge[dotted] (cancel_monoid)
+            (add_group) edge[dotted, draw=red] (add_cancel_monoid)
+            (group) edge[dashed] (comm_group)
+            (comm_monoid) edge[dashed] (comm_group)
+            (add_group) edge[dashed] (add_comm_group)
+            (add_comm_monoid) edge[dashed] (add_comm_group)
+            (add_comm_group) edge[dotted, out=45, in=-45] (add_comm_monoid)
+            (comm_group) edge[dotted] (cancel_comm_monoid)
+            (add_comm_group) edge[dotted, draw=red] (add_cancel_comm_monoid)
+            ;
+\end{tikzpicture}
+
+\end{document}

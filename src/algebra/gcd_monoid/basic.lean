@@ -690,7 +690,7 @@ begin
     exact (associated_unit_mul_left _ _ hu).dvd },
   { left,
     rw hy,
-    exact dvd_trans (associated_mul_unit _ _ hu).dvd (gcd_dvd_right x a) }
+    exact dvd_trans (associated_mul_unit_left _ _ hu).dvd (gcd_dvd_right x a) }
 end ⟩⟩
 
 theorem irreducible_iff_prime [gcd_monoid α] {p : α} : irreducible p ↔ prime p :=
@@ -715,6 +715,13 @@ instance normalization_monoid_of_unique_units : normalization_monoid α :=
 @[simp] lemma norm_unit_eq_one (x : α) : norm_unit x = 1 := rfl
 
 @[simp] lemma normalize_eq (x : α) : normalize x = x := mul_one x
+
+
+instance normalized_gcd_monoid_of_unique_units [gcd_monoid α] : normalized_gcd_monoid α := {
+  normalize_gcd := λ a b, normalize_eq _,
+  normalize_lcm := λ a b, normalize_eq _,
+  ..‹gcd_monoid α›,
+  ..(infer_instance : normalization_monoid α) }
 
 end unique_unit
 

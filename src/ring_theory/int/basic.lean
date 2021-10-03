@@ -96,12 +96,6 @@ instance : gcd_monoid ℕ :=
   lcm_zero_left := nat.lcm_zero_left,
   lcm_zero_right := nat.lcm_zero_right }
 
-instance : normalized_gcd_monoid ℕ :=
-{ normalize_gcd := λ a b, normalize_eq _,
-  normalize_lcm := λ a b, normalize_eq _,
-  .. (infer_instance : gcd_monoid ℕ),
-  .. (infer_instance : normalization_monoid ℕ) }
-
 lemma gcd_eq_nat_gcd (m n : ℕ) : gcd m n = nat.gcd m n := rfl
 
 lemma lcm_eq_nat_lcm (m n : ℕ) : lcm m n = nat.lcm m n := rfl

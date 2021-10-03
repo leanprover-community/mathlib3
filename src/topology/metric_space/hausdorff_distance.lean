@@ -460,11 +460,20 @@ lemma mem_closure_iff_inf_dist_zero (h : s.nonempty) : x ∈ closure s ↔ inf_d
 by simp [mem_closure_iff_inf_edist_zero, inf_dist, ennreal.to_real_eq_zero_iff, inf_edist_ne_top h]
 
 /-- Given a closed set `s`, a point belongs to `s` iff its infimum distance to this set vanishes -/
-lemma mem_iff_inf_dist_zero_of_closed (h : is_closed s) (hs : s.nonempty) :
+lemma _root_.is_closed.mem_iff_inf_dist_zero (h : is_closed s) (hs : s.nonempty) :
   x ∈ s ↔ inf_dist x s = 0 :=
 begin
   have := @mem_closure_iff_inf_dist_zero _ _ s x hs,
   rwa h.closure_eq at this
+end
+
+/-- Given a closed set `s`, a point belongs to `s` iff its infimum distance to this set vanishes -/
+lemma _root_.is_closed.not_mem_iff_inf_dist_pos (h : is_closed s) (hs : s.nonempty) :
+  x ∉ s ↔ 0 < inf_dist x s :=
+begin
+  rw ← not_iff_not,
+  push_neg,
+  simp [h.mem_iff_inf_dist_zero hs, le_antisymm_iff, inf_dist_nonneg],
 end
 
 /-- The infimum distance is invariant under isometries -/
@@ -706,7 +715,7 @@ by simp [Hausdorff_edist_zero_iff_closure_eq_closure.symm, Hausdorff_dist,
          ennreal.to_real_eq_zero_iff, fin]
 
 /-- Two closed sets are at zero Hausdorff distance if and only if they coincide -/
-lemma Hausdorff_dist_zero_iff_eq_of_closed (hs : is_closed s) (ht : is_closed t)
+lemma _root_.is_closed.Hausdorff_dist_zero_iff_eq (hs : is_closed s) (ht : is_closed t)
   (fin : Hausdorff_edist s t ≠ ⊤) : Hausdorff_dist s t = 0 ↔ s = t :=
 by simp [(Hausdorff_edist_zero_iff_eq_of_closed hs ht).symm, Hausdorff_dist,
          ennreal.to_real_eq_zero_iff, fin]

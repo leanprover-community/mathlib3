@@ -65,8 +65,8 @@ noncomputable theory
 
 universe u
 
-open metric set filter fin
-open_locale topological_space
+open metric set filter fin measure_theory topological_space
+open_locale topological_space classical big_operators ennreal
 
 /-!
 ### Satellite configurations
@@ -102,6 +102,16 @@ guarantees that the measurable Besicovitch covering theorem holds. It is satifie
 finite-dimensional real vector spaces. -/
 class has_besicovitch_covering (α : Type*) [metric_space α] : Prop :=
 (no_satellite_config : ∃ (N : ℕ) (τ : ℝ), 1 < τ ∧ is_empty (besicovitch.satellite_config α N τ))
+
+/-- There is always a satellite configuration with a single point. -/
+instance {α : Type*} {τ : ℝ} [inhabited α] [metric_space α] :
+  inhabited (besicovitch.satellite_config α 0 τ) :=
+⟨{ c := λ i, default α,
+  r := λ i, 1,
+  rpos := λ i, zero_lt_one,
+  h := λ i j hij, (hij (subsingleton.elim i j)).elim,
+  hlast := λ i hi, by { rw subsingleton.elim i (last 0) at hi, exact (lt_irrefl _ hi).elim },
+  inter := λ i hi, by { rw subsingleton.elim i (last 0) at hi, exact (lt_irrefl _ hi).elim } }⟩
 
 namespace besicovitch
 
@@ -451,94 +461,24 @@ begin
     exact ⟨⟨p.color a, p.color_lt ha.1 hN⟩, p.index a, ⟨a, rfl, ha.1, rfl⟩, ha.2⟩ }
 end
 
-.
-
-open measure_theory topological_space
-
-/-- In a separable space, a family of nonempty disjoint open sets is countable. -/
-lemma countable_of_is_open_of_disjoint [separable_space α] {β : Type*}
-  (s : β → set α) {t : set β} (hs : ∀ i ∈ t, is_open (s i)) (h's : ∀ i ∈ t, (s i).nonempty)
-  (h : t.pairwise_on (disjoint on s)) :
-  countable t :=
-begin
-  rcases eq_empty_or_nonempty t with rfl|ht, { exact countable_empty },
-  haveI : inhabited α,
-  { choose i it using ht,
-    choose y hy using h's i it,
-    exact ⟨y⟩ },
-  rcases exists_countable_dense α with ⟨u, u_count, u_dense⟩,
-  have : ∀ i, i ∈ t → ∃ y, y ∈ s i ∩ u :=
-    λ i hi, dense_iff_inter_open.1 u_dense (s i) (hs i hi) (h's i hi),
-  choose! f hf using this,
-  have f_inj : inj_on f t,
-  { assume i hi j hj hij,
-    have : ¬disjoint (s i) (s j),
-    { rw not_disjoint_iff_nonempty_inter,
-      refine ⟨f i, (hf i hi).1, _⟩,
-      rw hij,
-      exact (hf j hj).1 },
-    contrapose! this,
-    exact h i hi j hj this },
-  apply countable_of_injective_of_countable_image f_inj,
-  apply u_count.mono _,
-  exact image_subset_iff.2 (λ i hi, (hf i hi).2)
-end
-
-lemma countable_of_nonempty_interior_of_disjoint [separable_space α] {β : Type*}
-  (s : β → set α) {t : set β} (hs : ∀ i ∈ t, (interior (s i)).nonempty)
-  (h : t.pairwise_on (disjoint on s)) :
-  countable t :=
-begin
-  have : t.pairwise_on (disjoint on (λ i, interior (s i))),
-  { assume i hi j hj hij,
-    have Z := (h i hi j hj hij),
-    dsimp [function.on_fun] at Z ⊢,
-    apply disjoint.mono _ _ Z;
-    exact interior_subset },
-  exact countable_of_is_open_of_disjoint (λ i, interior (s i)) (λ i hi, is_open_interior) hs this,
-end
-
-open_locale big_operators ennreal
-
-theorem ennreal.sum_lt_sum_of_nonempty {ι : Type*} {s : finset ι} (hs : s.nonempty)
-  {f g : ι → ℝ≥0∞} (Hlt : ∀ i ∈ s, f i < g i) :
-  ∑ i in s, f i < ∑ i in s, g i :=
-begin
-  classical,
-  induction s using finset.induction_on with a s as IH,
-  { exact (finset.not_nonempty_empty hs).elim },
-  { rcases finset.eq_empty_or_nonempty s with rfl|h's,
-    { simp [Hlt _ (finset.mem_singleton_self _)] },
-    { simp only [as, finset.sum_insert, not_false_iff],
-      exact ennreal.add_lt_add (Hlt _ (finset.mem_insert_self _ _))
-        (IH h's (λ i hi, Hlt _ (finset.mem_insert_of_mem hi))) } }
-end
-
-theorem ennreal.exists_le_of_sum_le {ι : Type*} {f g : ι → ℝ≥0∞} {s : finset ι}
-  (hs : s.nonempty) (Hle : ∑ i in s, f i ≤ ∑ i in s, g i) :
-  ∃ i ∈ s, f i ≤ g i :=
-begin
-  contrapose! Hle,
-  apply ennreal.sum_lt_sum_of_nonempty hs Hle,
-end
-
-@[simp] lemma finset.coe_empty {ι : Type*} : ((finset.empty : finset ι) : set ι) = ∅ := rfl
-
-open_locale classical
-
-theorem measurable_besicovitch [second_countable_topology α] {N : ℕ} {τ : ℝ} (Npos : N ≠ 0)
-  (hτ : 1 < τ) (hN : is_empty (satellite_config α N τ)) (s : set α)
-  (r : α → ℝ) (rpos : ∀ x ∈ s, 0 < r x) (rle : ∀ x ∈ s, r x ≤ 1)
-  [measurable_space α] [borel_space α] (μ : measure α) [is_finite_measure μ]
-  (smeas : measurable_set s) :
+lemma exist_finset_disjoint_balls_large_measure
+  [second_countable_topology α] [measurable_space α] [borel_space α]
+  (μ : measure α) [is_finite_measure μ] {N : ℕ} {τ : ℝ}
+  (hτ : 1 < τ) (hN : is_empty (satellite_config α N τ)) (s : set α) (smeas : measurable_set s)
+  (r : α → ℝ) (rpos : ∀ x ∈ s, 0 < r x) (rle : ∀ x ∈ s, r x ≤ 1) :
   ∃ (t : finset α), (↑t ⊆ s) ∧ μ (s \ (⋃ (x ∈ t), closed_ball x (r x))) ≤ N/(N+1) * μ s
     ∧ (t : set α).pairwise_on (disjoint on (λ x, closed_ball x (r x))) :=
 begin
   rcases le_or_lt (μ s) 0 with hμs|hμs,
   { have : μ s = 0 := le_bot_iff.1 hμs,
-    refine ⟨finset.empty, by simp, _, _⟩,
+    refine ⟨∅, by simp only [finset.coe_empty, empty_subset], _, _⟩,
     { simp only [this, diff_empty, Union_false, Union_empty, nonpos_iff_eq_zero, mul_zero] },
     { simp only [finset.coe_empty, pairwise_on_empty], } },
+  casesI is_empty_or_nonempty α,
+  { simp only [eq_empty_of_is_empty s, measure_empty] at hμs,
+    exact (lt_irrefl _ hμs).elim },
+  inhabit α,
+  have Npos : N ≠ 0, by { unfreezingI { rintros rfl }, exact (not_is_empty_of_nonempty _) hN },
   let a : ball_package s α :=
   { c := λ x, x,
     r := λ x, r x,
@@ -554,7 +494,6 @@ begin
   let v : fin N → set α := λ i, ⋃ (x : s) (hx : x ∈ u i), closed_ball x (r x),
   have : ∀ i, measurable_set (v i) :=
     λ i, measurable_set.bUnion (u_count i) (λ b hb, measurable_set_closed_ball),
-  /-
   have A : s = ⋃ (i : fin N), s ∩ v i,
   { refine subset.antisymm _ (Union_subset (λ i, inter_subset_left _ _)),
     assume x hx,
@@ -562,8 +501,7 @@ begin
     { have : x ∈ range a.c, by simpa only [subtype.range_coe_subtype, set_of_mem_eq],
       simpa only [mem_Union] using hu' this },
     refine mem_Union.2 ⟨i, ⟨hx, _⟩⟩,
-    simp only [v, exists_prop, mem_Union, set_coe.exists,
-      exists_and_distrib_right, subtype.coe_mk],
+    simp only [v, exists_prop, mem_Union, set_coe.exists, exists_and_distrib_right, subtype.coe_mk],
     exact ⟨y, ⟨y.2, by simpa only [subtype.coe_eta]⟩, ball_subset_closed_ball h'⟩ },
   have S : ∑ (i : fin N), μ s / N ≤ ∑ i, μ (s ∩ v i) := calc
     ∑ (i : fin N), μ s / N = μ s : begin
@@ -572,99 +510,103 @@ begin
       { simp only [Npos, ne.def, nat.cast_eq_zero, not_false_iff] },
       { exact ennreal.coe_nat_ne_top }
     end
-    ... ≤ ∑ i, μ (s ∩ v i) : by { conv_lhs { rw A }, apply measure_Union_fintype_le },-/
-  obtain ⟨i, -, hi⟩ : ∃ (i : fin N) (hi : i ∈ finset.univ), μ s / N ≤ μ (s ∩ v i) := sorry,
-  /-{ apply ennreal.exists_le_of_sum_le _ S,
+    ... ≤ ∑ i, μ (s ∩ v i) : by { conv_lhs { rw A }, apply measure_Union_fintype_le },
+  obtain ⟨i, -, hi⟩ : ∃ (i : fin N) (hi : i ∈ finset.univ), μ s / N ≤ μ (s ∩ v i),
+  { apply ennreal.exists_le_of_sum_le _ S,
     exact ⟨⟨0, bot_lt_iff_ne_bot.2 Npos⟩, finset.mem_univ _⟩ },
   replace hi : μ s / (N + 1) < μ (s ∩ v i),
-  /-{ apply lt_of_lt_of_le _ hi,
-    rw ennreal.div_lt_iff, rotate,
-    { simp only [hμs.ne', ne.def, not_false_iff, and_false, or_true] },
-    { simp only [(measure_lt_top μ s).ne, ne.def, not_false_iff, or_true], },
-    rw [mul_comm, ← mul_div_assoc, ennreal.lt_div_iff_mul_lt], rotate,
-    { simp only [(measure_lt_top μ s).ne, ne.def, not_false_iff, or_true], },
-    { simp only [hμs.ne', ne.def, not_false_iff, and_false, or_true], },
-    rw [mul_comm (μ s), add_mul, one_mul],
-    conv_lhs { rw ← add_zero ((N : ℝ≥0∞) * μ s), },
-    apply ennreal.add_lt_add_left _ hμs,
-    simp only [(measure_lt_top μ s).ne, ennreal.nat_ne_top, with_top.mul_eq_top_iff, ne.def,
-      not_false_iff, and_false, false_and, or_self] },-/
+  { apply lt_of_lt_of_le _ hi,
+    apply (ennreal.mul_lt_mul_left hμs.ne' (measure_lt_top μ s).ne).2,
+    rw ennreal.inv_lt_inv,
+    conv_lhs {rw ← add_zero (N : ℝ≥0∞) },
+    exact ennreal.add_lt_add_left (ennreal.nat_ne_top N) ennreal.zero_lt_one },
   have B : μ (s ∩ v i) = ∑' (x : u i), μ (s ∩ closed_ball x (r x)),
   { have : s ∩ v i = ⋃ (x : s) (hx : x ∈ u i), s ∩ closed_ball x (r x), by simp only [inter_Union],
     rw [this, measure_bUnion (u_count i)],
     { refl },
-    { assume b hb b' hb' hbb',
-      have Z := hu i b hb b' hb' hbb',
-      dsimp [function.on_fun] at Z ⊢,
-      apply disjoint.mono _ _ Z;
-      exact inter_subset_right _ _ },
-    { exact λ b hb, smeas.inter measurable_set_closed_ball } },-/
+    { exact pairwise_on_disjoint_on_mono (hu i) (λ k hk, inter_subset_right _ _) },
+    { exact λ b hb, smeas.inter measurable_set_closed_ball } },
   obtain ⟨w, hw⟩ : ∃ (w : finset ↥(u i)),
-    μ s / (↑N + 1) < ∑ (x : ↥(u i)) in w, μ (s ∩ closed_ball ↑↑x (r ↑↑x)) := sorry,
-  /- { have C : has_sum (λ (x : u i), μ (s ∩ closed_ball x (r x))) (μ (s ∩ (v i))),
+    μ s / (↑N + 1) < ∑ (x : ↥(u i)) in w, μ (s ∩ closed_ball (x : α) (r (x : α))),
+  { have C : has_sum (λ (x : u i), μ (s ∩ closed_ball x (r x))) (μ (s ∩ (v i))),
       by { rw B, exact ennreal.summable.has_sum },
-    have := ((tendsto_order.1 C).1 _ hi).exists,
-    dsimp at this,
-    exact this, },-/
-
-
+    have D := ((tendsto_order.1 C).1 _ hi).exists,
+    dsimp at D,
+    exact D, },
+  refine ⟨finset.image (λ (x : u i), x) w, _, _, _⟩,
+  { simp only [image_subset_iff, coe_coe, finset.coe_image],
+    assume y hy,
+    simp only [subtype.coe_prop, mem_preimage] },
+  { rw [← finset.set_bUnion_coe, finset.coe_image, bUnion_image, finset.set_bUnion_coe,
+      ← diff_inter_self_eq_diff,
+      measure_diff_le_iff_le_add _ smeas (inter_subset_right _ _) ((measure_lt_top μ _).ne)], swap,
+    { apply measurable_set.inter _ smeas,
+      haveI : encodable (u i) := (u_count i).to_encodable,
+      exact measurable_set.Union
+        (λ b, measurable_set.Union_Prop (λ hb, measurable_set_closed_ball)) },
+    calc μ s = 1/(N+1) * μ s + N/(N+1) * μ s :
+      by { rw [← add_mul, ennreal.div_add_div_same, add_comm, ennreal.div_self, one_mul]; simp }
+    ... ≤ μ ((⋃ (x ∈ w), closed_ball ↑x (r ↑x)) ∩ s) + N/(N+1) * μ s : begin
+      refine add_le_add _ le_rfl,
+      rw [div_eq_mul_inv, one_mul, mul_comm, ← div_eq_mul_inv],
+      apply hw.le.trans (le_of_eq _),
+      rw [← finset.set_bUnion_coe, inter_comm _ s, inter_bUnion, finset.set_bUnion_coe,
+          measure_bUnion_finset],
+      { have : (w : set (u i)).pairwise_on
+            (disjoint on (λ (b : u i), closed_ball (b : α) (r (b : α)))),
+          by { assume k hk l hl hkl, exact hu i k k.2 l l.2 (subtype.coe_injective.ne hkl) },
+        exact pairwise_on_disjoint_on_mono this (λ k hk, inter_subset_right _ _) },
+      { assume b hb,
+        apply smeas.inter measurable_set_closed_ball }
+    end },
+  { assume k hk l hl hkl,
+    obtain ⟨k', k'w, hk'⟩ : ∃ (k' : ↥(u i)), k' ∈ w ∧ ↑↑k' = k,
+      by simpa only [mem_image, finset.mem_coe, coe_coe, finset.coe_image] using hk,
+    obtain ⟨l', l'w, hl'⟩ : ∃ (l' : ↥(u i)), l' ∈ w ∧ ↑↑l' = l,
+      by simpa only [mem_image, finset.mem_coe, coe_coe, finset.coe_image] using hl,
+    change disjoint (closed_ball k (r k)) (closed_ball l (r l)),
+    rw [← hk', ← hl'] at ⊢ hkl,
+    have k'nel' : (k' : s) ≠ l',
+      by { assume h, rw h at hkl, exact hkl rfl },
+    exact hu i k' k'.2 l' l'.2 k'nel' }
 end
 
-#exit
+.
 
-theorem measurable_besicovitch [second_countable_topology α] {N : ℕ} {τ : ℝ} (Npos : N ≠ 0)
+theorem measurable_besicovitch
+  [second_countable_topology α] [measurable_space α] [borel_space α]
+  (μ : measure α) [is_finite_measure μ] {N : ℕ} {τ : ℝ}
   (hτ : 1 < τ) (hN : is_empty (satellite_config α N τ))
-  (f : α → set ℝ) (s : set α)
+  (f : α → set ℝ) (s : set α) (smeas : measurable_set s)
   (hf : ∀ x ∈ s, (f x).nonempty) (hf' : ∀ x ∈ s, f x ⊆ Ioi 0)
-  (hf'' : ∀ x ∈ s, Inf (f x) = 0)
-  [measurable_space α] [borel_space α] (μ : measure α) [is_finite_measure μ] :
+  (hf'' : ∀ x ∈ s, Inf (f x) = 0) :
   ∃ (t : set α) (r : α → ℝ), (countable t) ∧ (∀ x ∈ s, r x ∈ f x) ∧
   μ (s \ (⋃ (x ∈ t), ball x (r x))) = 0 ∧ t.pairwise_on (disjoint on (λ x, ball x (r x))) :=
 begin
-  have : ∃ (t : finset α) (r : α → ℝ), ↑t ⊆ s ∧ (∀ x ∈ t, r x ∈ f x)
-    ∧ μ (s \ (⋃ (x ∈ t), ball x (r x))) ≤ (1-1/(N+1)) * μ s
-    ∧ (t : set α).pairwise_on (disjoint on (λ x, ball x (r x))),
-  { have : ∀ x ∈ s, ∃ r ∈ f x, r < (1 : ℝ),
+  let P : finset (α × ℝ) → Prop := λ t,
+    (t : set (α × ℝ)).pairwise_on (disjoint on (λ p, ball p.1 p.2)) ∧
+    (∀ (p : α × ℝ), p ∈ t → p.1 ∈ s) ∧ (∀ (p : α × ℝ), p ∈ t → p.2 ∈ f p.1),
+  have : ∀ (t : finset (α × ℝ)), P t → ∃ (u : finset (α × ℝ)), t ⊆ u ∧ P u ∧
+    μ (s \ (⋃ (p : α × ℝ) (hp : p ∈ u), closed_ball p.1 p.2)) ≤
+      N/(N+1) * μ (s \ (⋃ (p : α × ℝ) (hp : p ∈ t), closed_ball p.1 p.2)),
+  { assume t ht,
+    let B := ⋃ (p : α × ℝ) (hp : p ∈ t), closed_ball p.1 p.2,
+    have : is_closed B :=
+      is_closed_bUnion (finset.finite_to_set _) (λ i hi, is_closed_ball),
+    let s' := s \ B,
+    have : ∀ x ∈ s', ∃ r ∈ f x, r ≤ 1 ∧ disjoint B (closed_ball x r),
     { assume x hx,
-      have A : Inf (f x) < 1, by { rw hf'' x hx, exact zero_lt_one },
-      exact exists_lt_of_cInf_lt (hf x hx) A },
-    choose! r hr using this,
-    let a : ball_package s α :=
-    { c := λ x, x,
-      r := λ x, r x,
-      rpos := λ x, hf' x x.2 (hr x x.2).1,
-      r_bound := 1,
-      r_le := λ x, (hr x x.2).2.le },
-    rcases exist_disjoint_covering_families hτ hN a with ⟨u, hu, hu'⟩,
-    have u_count : ∀ i, countable (u i),
-    { assume i,
-      refine countable_of_nonempty_interior_of_disjoint _ (λ j hj, _) (hu i),
-      have : (ball (j : α) (r j)).nonempty := nonempty_ball.2 (a.rpos _),
-      exact this.mono ball_subset_interior_closed_ball },
-    let v : fin N → set α := λ i, ⋃ (x : s) (hx : x ∈ u i), closed_ball x (r x),
-    have : ∀ i, measurable_set (v i) :=
-      λ i, measurable_set.bUnion (u_count i) (λ b hb, measurable_set_closed_ball),
-    have A : s = ⋃ (i : fin N), s ∩ v i,
-    { refine subset.antisymm _ (Union_subset (λ i, inter_subset_left _ _)),
-      assume x hx,
-      obtain ⟨i, y, hxy, h'⟩ : ∃ (i : fin N) (i_1 : ↥s) (i : i_1 ∈ u i), x ∈ ball ↑i_1 (r ↑i_1),
-      { have : x ∈ range a.c, by simpa only [subtype.range_coe_subtype, set_of_mem_eq],
-        simpa only [mem_Union] using hu' this },
-      refine mem_Union.2 ⟨i, ⟨hx, _⟩⟩,
-      simp only [v, exists_prop, mem_Union, set_coe.exists,
-        exists_and_distrib_right, subtype.coe_mk],
-      exact ⟨y, ⟨y.2, by simpa only [subtype.coe_eta]⟩, ball_subset_closed_ball h'⟩ },
-    have S : ∑ (i : fin N), μ s / N ≤ ∑ i, μ (s ∩ v i) := calc
-      ∑ (i : fin N), μ s / N = μ s : begin
-        simp only [finset.card_fin, finset.sum_const, nsmul_eq_mul],
-        rw ennreal.mul_div_cancel',
-        { simp only [Npos, ne.def, nat.cast_eq_zero, not_false_iff] },
-        { exact ennreal.coe_nat_ne_top }
-      end
-      ... ≤ ∑ i, μ (s ∩ v i) : by { conv_lhs { rw A }, apply measure_Union_fintype_le },
-    obtain ⟨i, -, hi⟩ : ∃ (i : fin N) (hi : i ∈ finset.univ), μ s / N ≤ μ (s ∩ v i),
-    { apply ennreal.exists_le_of_sum_le _ S,
-      exact ⟨⟨0, bot_lt_iff_ne_bot.2 Npos⟩, finset.mem_univ _⟩ },
+      by_cases hB : B.nonempty,
+      { let R := inf_dist x B,
+        have : 0 < R,
+        {
+
+        }
+      }
+
+    }
+
+
   }
 end
 

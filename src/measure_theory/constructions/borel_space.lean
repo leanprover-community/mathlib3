@@ -315,12 +315,12 @@ variables {α' : Type*} [topological_space α'] [measurable_space α']
 
 lemma meas_interior_of_null_bdry {μ : measure α'} {s : set α'}
   (h_nullbdry : μ (frontier s) = 0) : μ (interior s) = μ s :=
-meas_eq_meas_smaller_of_between_null_diff
+measure_eq_measure_smaller_of_between_null_diff
   interior_subset subset_closure h_nullbdry
 
 lemma meas_closure_of_null_bdry {μ : measure α'} {s : set α'}
   (h_nullbdry : μ (frontier s) = 0) : μ (closure s) = μ s :=
-(meas_eq_meas_larger_of_between_null_diff
+(measure_eq_measure_larger_of_between_null_diff
   interior_subset subset_closure h_nullbdry).symm
 
 section preorder
@@ -1453,7 +1453,7 @@ begin
     rw [tendsto_pi], rw [tendsto_pi] at lim, intro x,
     exact ((continuous_inf_nndist_pt s).tendsto (g x)).comp (lim x) },
   have h4s : g ⁻¹' s = (λ x, inf_nndist (g x) s) ⁻¹' {0},
-  { ext x, simp [h1s, ← mem_iff_inf_dist_zero_of_closed h1s h2s, ← nnreal.coe_eq_zero] },
+  { ext x, simp [h1s, ← h1s.mem_iff_inf_dist_zero h2s, ← nnreal.coe_eq_zero] },
   rw [h4s], exact this (measurable_set_singleton 0),
 end
 

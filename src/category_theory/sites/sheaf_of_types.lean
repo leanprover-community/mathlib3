@@ -319,9 +319,8 @@ lemma compatible.comp_presheaf_map (f : P ⟶ Q) {x : family_of_elements P R}
   (h : x.compatible) : (x.comp_presheaf_map f).compatible :=
 begin
   intros Z₁ Z₂ W g₁ g₂ f₁ f₂ h₁ h₂ eq,
-  change (f.app _ ≫ Q.map _) _ = (f.app _ ≫ Q.map _) _,
-  simp only [← f.naturality],
-  exact congr_arg (f.app (op W)) (h g₁ g₂ h₁ h₂ eq)
+  unfold comp_presheaf_map,
+  rwa [← functor_to_types.naturality, ← functor_to_types.naturality, h],
 end
 
 end family_of_elements

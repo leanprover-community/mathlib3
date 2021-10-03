@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex J. Best
 -/
 import order.rel_iso
-import algebra.ordered_ring
+import algebra.order.ring
 
 /-!
 # Ordered ring homomorphisms

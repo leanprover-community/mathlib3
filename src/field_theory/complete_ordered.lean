@@ -90,19 +90,18 @@ open real
 lemma exists_rat_sqr_btwn_rat_aux (x y : ℝ) (h : x < y) (hx : 0 ≤ x) :
   ∃ q : ℚ, 0 ≤ q ∧ x < q^2 ∧ ↑q^2 < y :=
 begin
-  have hy : (0 : ℝ) ≤ y := by linarith,
-  rw ← sqrt_lt hx at h,
+  have hy : (0 : ℝ) ≤ y,
+  { linarith, },
+  rw ← sqrt_lt_sqrt_iff hx at h,
   obtain ⟨q, hqx, hqy⟩ := exists_rat_btwn h,
-  have hq : (0 : ℝ) ≤ q :=
-  begin
-    transitivity x.sqrt,
+  have hq : (0 : ℝ) ≤ q,
+  { transitivity x.sqrt,
     exact real.sqrt_nonneg x,
-    exact le_of_lt hqx,
-  end,
+    exact le_of_lt hqx, },
   refine ⟨q, _, _, _⟩,
   { assumption_mod_cast, },
-  { rwa [← real.sqrt_lt hx, real.sqrt_sq hq], },
-  { rwa [← real.sqrt_lt (pow_nonneg hq 2), real.sqrt_sq hq], },
+  { rwa [← real.sqrt_lt_sqrt_iff hx, real.sqrt_sq hq], },
+  { rwa [← real.sqrt_lt_sqrt_iff (pow_nonneg hq 2), real.sqrt_sq hq], },
 end
 
 lemma exists_rat_sqr_btwn_rat {x y : ℚ} (h : x < y) (hx : 0 ≤ x) :
@@ -211,14 +210,11 @@ begin
   { exact cut_image_subset F K (le_of_lt h), },
   { obtain ⟨q, hqx, hqy⟩ := exists_rat_btwn h,
     have hy : (q : K) ∈ cut_image K y := mem_cut_image_iff'.mpr hqy,
-    have hx : (q : K) ∉ cut_image K x := begin
-      intro hh,
+    have hx : (q : K) ∉ cut_image K x,
+    { intro hh,
       rw mem_cut_image_iff' at hh,
       apply lt_irrefl x,
-      transitivity (q : F),
-      exact hqx,
-      exact hh,
-    end,
+      exact hqx.trans hh, },
     intro ha,
     rw ← ha at hy,
     exact hx hy, }, -- TODO couldn't get ne_of_mem_of_not_mem to work ?
@@ -246,6 +242,8 @@ begin
   { rcases h with ⟨⟨q2, rfl⟩, hq⟩,
     use [q2, rfl, rat.cast_lt.mp hq], },
 end
+
+open_locale pointwise
 
 lemma cut_image_add (F K : Type*) [linear_ordered_field F] [archimedean F] [linear_ordered_field K]
   (x y : F) : cut_image K (x + y) = cut_image K x + cut_image K y :=
@@ -291,19 +289,15 @@ archimedean_iff_nat_lt.mpr
   begin
     by_contra h,
     push_neg at h,
-    have : ∀ (b : F), b ∈ set.range (coe : ℕ → F) → b ≤ Sup (set.range (coe : ℕ → F)) - 1 :=
-    begin
-      obtain ⟨x, h⟩ := h,
-      have : bdd_above (set.range (coe : ℕ → F)) :=
-      begin
-        use x,
+    have : ∀ (b : F), b ∈ set.range (coe : ℕ → F) → b ≤ Sup (set.range (coe : ℕ → F)) - 1,
+    { obtain ⟨x, h⟩ := h,
+      have : bdd_above (set.range (coe : ℕ → F)),
+      { use x,
         rintros _ ⟨n, rfl⟩,
-        exact h n,
-      end,
+        exact h n, },
       rintro b ⟨n, rfl⟩,
       rw le_sub_iff_add_le,
-      exact le_cSup _ _ this ⟨n + 1, nat.cast_succ n⟩,
-    end,
+      exact le_cSup _ _ this ⟨n + 1, nat.cast_succ n⟩, },
     replace := cSup_le _ _ (set.range_nonempty (coe : ℕ → F)) this,
     linarith,
   end
@@ -440,11 +434,9 @@ begin
     obtain ⟨q3, hq23, hh⟩ := this,
     rw pow_two,
     push_cast,
-    have : (q2 : F) < x :=
-    begin
-      transitivity (q3 : F),
-      assumption_mod_cast,
-    end,
+    have : (q2 : F) < x,
+    { transitivity (q3 : F);
+      assumption_mod_cast, },
     apply mul_lt_mul'' this this,
     assumption_mod_cast,
     assumption_mod_cast,
@@ -454,7 +446,7 @@ begin
     rw lt_induced_map_iff,
     obtain ⟨q3, q30, q3x⟩ := exists_rat_btwn hpos,
     use q3,
-    split,
+    split;
     assumption_mod_cast, },
   { use ((0 : ℚ) : K),
     split,
@@ -475,24 +467,27 @@ def induced_ordered_ring_hom (F K : Type*) [linear_ordered_field F] [archimedean
       -- reduce to the case of 0 < x
       suffices : ∀ (x : F) (hpos : 0 < x),
         induced_add_hom F K (x * x) = induced_add_hom F K x * induced_add_hom F K x,
-      begin
-        rcases lt_trichotomy x 0 with h|rfl|h,
+      { rcases lt_trichotomy x 0 with h|rfl|h,
         { rw ← neg_pos at h,
           convert this (-x) h using 1,
           { simp only [neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_symm, neg_neg], },
           { simp only [neg_mul_eq_neg_mul_symm, add_monoid_hom.map_neg, mul_neg_eq_neg_mul_symm,
               neg_neg], }, },
         { simp only [mul_zero, add_monoid_hom.map_zero], },
-        { exact this x h, },
-      end,
+        { exact this x h, }, },
       clear x,
       intros x hpos,
-      -- prove that the (Sup of rationals less than x) ^ 2 is the Sup of the set of rationals less
-      -- than (x ^ 2) by showing it is an upper bound and any smaller number is not an upper bound
-      apply cSup_eq_of_forall_le_of_forall_lt_exists_gt (cut_image_nonempty F K _),
-      exact le_induced_mul_self_of_mem_cut_image F K x hpos,
-      exact exists_mem_cut_image_mul_self_of_lt_induced_map_mul_self F K x hpos,
-    end two_ne_zero begin convert induced_map_rat F K 1; rw [rat.cast_one], refl, end }
+    -- prove that the (Sup of rationals less than x) ^ 2 is the Sup of the set of rationals less
+    -- than (x ^ 2) by showing it is an upper bound and any smaller number is not an upper bound
+    apply cSup_eq_of_forall_le_of_forall_lt_exists_gt (cut_image_nonempty F K _),
+    exact le_induced_mul_self_of_mem_cut_image F K x hpos,
+    exact exists_mem_cut_image_mul_self_of_lt_induced_map_mul_self F K x hpos,
+  end two_ne_zero
+  begin
+    convert induced_map_rat F K 1;
+    rw [rat.cast_one],
+    refl,
+  end }
 
 @[simp]
 lemma induced_map_inv_self (F K : Type*) [conditionally_complete_linear_ordered_field F]
@@ -618,8 +613,7 @@ theorem ordered_ring_equiv_unique {F K : Type*} [linear_ordered_field F]
   [conditionally_complete_linear_ordered_field K] (f g : F ≃+*o K) : f = g :=
 begin
   ext,
-  have := ordered_ring_hom.congr_fun (ordered_ring_hom_unique (f : F →+*o K) (g : F →+*o K)) x,
-  exact_mod_cast this,
+  exact ordered_ring_hom.congr_fun (ordered_ring_hom_unique (f : F →+*o K) (g : F →+*o K)) x,
 end
 
 instance {F K : Type*} [conditionally_complete_linear_ordered_field F]

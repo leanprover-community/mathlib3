@@ -238,7 +238,7 @@ ennreal.coe_to_nnreal (lintegral_lt_top_of_bounded_continuous_to_nnreal μ f).ne
 
 lemma test_against_nn_const (μ : finite_measure α) (c : ℝ≥0) :
   μ.test_against_nn (bounded_continuous_function.const α c) = c * μ.mass :=
-begin
+by simp [← ennreal.coe_eq_coe]
   dunfold test_against_nn,
   have eq : ∀ x, (coe : ℝ≥0 → ℝ≥0∞) ((bounded_continuous_function.const α c) x) = (c : ennreal),
   by { intros x, refl, },

@@ -108,7 +108,7 @@ lemma is_Gδ_set_of_continuous_at_of_countably_generated_uniformity
   [uniform_space β] (hU : is_countably_generated (𝓤 β)) (f : α → β) :
   is_Gδ {x | continuous_at f x} :=
 begin
-  rcases hU.exists_antitone_subbasis uniformity_has_basis_open_symmetric with ⟨U, hUo, hU⟩,
+  obtain ⟨U, hUo, hU⟩ := hU.exists_antitone_subbasis uniformity_has_basis_open_symmetric,
   simp only [uniform.continuous_at_iff_prod, nhds_prod_eq],
   simp only [(nhds_basis_opens _).prod_self.tendsto_iff hU.to_has_basis, forall_prop_of_true,
     set_of_forall, id],

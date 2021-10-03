@@ -129,7 +129,6 @@ end bernstein
 open bernstein
 
 local postfix `/ₙ`:2000 := z
-local notation `|`x`|` := abs x
 
 /--
 The `n`-th approximation of a continuous function on `[0,1]` by Bernstein polynomials,

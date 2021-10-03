@@ -7,7 +7,8 @@ import tactic.apply_fun
 import algebra.order.ring
 import algebra.opposites
 import algebra.big_operators.basic
-import data.equiv.ring
+import data.equiv.ring_aut
+import data.equiv.mul_add_aut
 
 /-!
 # Star monoids and star rings
@@ -86,6 +87,13 @@ def star_mul_equiv [monoid R] [star_monoid R] : R ≃* Rᵒᵖ :=
   map_mul' := λ x y, (star_mul x y).symm ▸ (opposite.op_mul _ _),
   ..(has_involutive_star.star_involutive.to_equiv star).trans opposite.equiv_to_opposite}
 
+/-- `star` as a `mul_aut` for commutative `R`. -/
+@[simps apply]
+def star_mul_aut [comm_monoid R] [star_monoid R] : mul_aut R :=
+{ to_fun := star,
+  map_mul' := λ x y, (star_mul x y).trans (mul_comm _ _),
+  ..(has_involutive_star.star_involutive.to_equiv star) }
+
 variables (R)
 
 @[simp] lemma star_one [monoid R] [star_monoid R] : star (1 : R) = 1 :=
@@ -151,6 +159,13 @@ def star_ring_equiv [semiring R] [star_ring R] : R ≃+* Rᵒᵖ :=
 { to_fun := λ x, opposite.op (star x),
   ..star_add_equiv.trans (opposite.op_add_equiv : R ≃+ Rᵒᵖ),
   ..star_mul_equiv}
+
+/-- `star` as a `ring_aut` for commutative `R`. -/
+@[simps apply]
+def star_ring_aut [comm_semiring R] [star_ring R] : ring_aut R :=
+{ to_fun := star,
+  ..star_add_equiv,
+  ..star_mul_aut }
 
 section
 open_locale big_operators

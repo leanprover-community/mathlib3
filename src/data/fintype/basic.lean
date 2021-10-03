@@ -992,11 +992,14 @@ have injective (e.symm ∘ f) ↔ surjective (e.symm ∘ f), from injective_iff_
 λ hsurj, by simpa [function.comp] using
   e.injective.comp (this.2 (e.symm.surjective.comp hsurj))⟩
 
+lemma card_of_bijective {f : α → β} (hf : bijective f) : card α = card β :=
+card_congr (equiv.of_bijective f hf)
+
 lemma bijective_iff_injective_and_card (f : α → β) :
   bijective f ↔ injective f ∧ card α = card β :=
 begin
   split,
-  { intro h, exact ⟨h.1, card_congr (equiv.of_bijective f h)⟩ },
+  { intro h, exact ⟨h.1, card_of_bijective h⟩ },
   { rintro ⟨hf, h⟩,
     refine ⟨hf, _⟩,
     rwa ←injective_iff_surjective_of_equiv (equiv_of_card_eq h) }
@@ -1006,7 +1009,7 @@ lemma bijective_iff_surjective_and_card (f : α → β) :
   bijective f ↔ surjective f ∧ card α = card β :=
 begin
   split,
-  { intro h, exact ⟨h.2, card_congr (equiv.of_bijective f h)⟩, },
+  { intro h, exact ⟨h.2, card_of_bijective h⟩ },
   { rintro ⟨hf, h⟩,
     refine ⟨_, hf⟩,
     rwa injective_iff_surjective_of_equiv (equiv_of_card_eq h) }

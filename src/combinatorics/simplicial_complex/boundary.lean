@@ -12,15 +12,15 @@ import combinatorics.simplicial_complex.subdivision
 
 namespace affine
 open set
-variables {m n : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E] {S : simplicial_complex E}
+variables {m n : ℕ} {E : Type*} [normed_group E] [normed_space 𝕜 E] {S : simplicial_complex 𝕜 E}
   {X Y : finset E} {A : set (finset E)}
 
-def simplicial_complex.on_boundary (S : simplicial_complex E) (X : finset E) :
+def simplicial_complex.on_boundary (S : simplicial_complex 𝕜 E) (X : finset E) :
   Prop :=
 ∃ (Z ∈ S.faces), X ⊂ Z ∧ ∀ {Z'}, Z' ∈ S.faces → X ⊂ Z' → Z = Z'
 
-def simplicial_complex.boundary (S : simplicial_complex E) :
-  simplicial_complex E :=
+def simplicial_complex.boundary (S : simplicial_complex 𝕜 E) :
+  simplicial_complex 𝕜 E :=
 simplicial_complex.of_surcomplex
   {X | ∃ Y ∈ S.faces, X ⊆ Y ∧ S.on_boundary Y}
   (λ X ⟨Y, hY, hXY, _⟩, S.down_closed hY hXY)
@@ -186,7 +186,7 @@ begin
   }
 end
 
-lemma boundary_boundary [finite_dimensional ℝ E] (hS : S.pure_of n) (hS' : ∀ {X}, X ∈ S.faces →
+lemma boundary_boundary [finite_dimensional 𝕜 E] (hS : S.pure_of n) (hS' : ∀ {X}, X ∈ S.faces →
   (X : finset E).card = n - 1 → equiv {Y | Y ∈ S.faces ∧ X ⊆ Y} (fin 2)) :
   S.boundary.boundary.faces = ∅ :=
 begin
@@ -198,7 +198,7 @@ begin
   sorry
 end
 
-lemma boundary_mono {S₁ S₂ : simplicial_complex E} (hS : S₁ ≤ S₂) :
+lemma boundary_mono {S₁ S₂ : simplicial_complex 𝕜 E} (hS : S₁ ≤ S₂) :
   S₁.boundary ≤ S₂.boundary :=
 begin
   /-cases S₂.faces.eq_empty_or_nonempty with hS₂empty hS₂nonempty,
@@ -283,7 +283,7 @@ begin
 end
 
 --other attempt using subdivision_iff_partition
-lemma boundary_mono' {S₁ S₂ : simplicial_complex E} (hS : S₁ ≤ S₂) :
+lemma boundary_mono' {S₁ S₂ : simplicial_complex 𝕜 E} (hS : S₁ ≤ S₂) :
   S₁.boundary ≤ S₂.boundary :=
 begin
   rw subdivision_iff_partition,
@@ -310,7 +310,7 @@ A m-simplex is on the boundary of a full dimensional complex iff it belongs to e
 Dull?
 -/
 lemma boundary_subcell_iff_one_surface (hS : S.full_dimensional)
-  (hXcard : X.card = finite_dimensional.finrank ℝ E) :
+  (hXcard : X.card = finite_dimensional.finrank 𝕜 E) :
   X ∈ S.boundary.faces ↔ nat.card {Y | Y ∈ S.faces ∧ X ⊂ Y} = 1 :=
   -- It's probably a bad idea to use `nat.card` since it's incredibly underdeveloped for doing
   -- actual maths in
@@ -327,7 +327,7 @@ begin
     sorry--rw nat.card_eq_fintype_card,
   },
   -- have aux_lemma : ∀ {a b : E}, a ≠ b → a ∉ X → b ∉ X → X ∪ {a} ∈ S.faces → X ∪ {b} ∈ S.faces →
-  --   ∃ w : E → ℝ, w a < 0 ∧ ∑ y in X ∪ {a}, w y = 1 ∧ (X ∪ {a}).center_mass w id = b,
+  --   ∃ w : E → 𝕜, w a < 0 ∧ ∑ y in X ∪ {a}, w y = 1 ∧ (X ∪ {a}).center_mass w id = b,
   -- {
   --   sorry
   -- },
@@ -339,7 +339,7 @@ A m-simplex is not on the boundary of a full dimensional complex iff it belongs 
 cells.
 -/
 lemma not_boundary_subcell_iff_two_surfaces (hS : S.full_dimensional)
-  (hXcard : X.card = finite_dimensional.finrank ℝ E) :
+  (hXcard : X.card = finite_dimensional.finrank 𝕜 E) :
   X ∉ S.boundary.faces ↔ nat.card {Y | Y ∈ S.faces ∧ X ⊂ Y} = 2 :=
   -- It's probably a bad idea to use `nat.card` since it's incredibly underdeveloped for doing
   -- actual maths in
@@ -347,7 +347,7 @@ lemma not_boundary_subcell_iff_two_surfaces (hS : S.full_dimensional)
   -- subset of the set we know is finite, so we can convert to a finset and use normal card
 begin
   -- have aux_lemma : ∀ {a b : E}, a ≠ b → a ∉ X → b ∉ X → X ∪ {a} ∈ S.faces → X ∪ {b} ∈ S.faces →
-  --   ∃ w : E → ℝ, w a < 0 ∧ ∑ y in X ∪ {a}, w y = 1 ∧ (X ∪ {a}).center_mass w id = b,
+  --   ∃ w : E → 𝕜, w a < 0 ∧ ∑ y in X ∪ {a}, w y = 1 ∧ (X ∪ {a}).center_mass w id = b,
   -- {
   --   sorry
   -- },

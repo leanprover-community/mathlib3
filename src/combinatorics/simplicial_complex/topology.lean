@@ -17,8 +17,8 @@ namespace affine
 
 open_locale classical affine big_operators
 open set
-variables {m n : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E] {S : simplicial_complex E}
-  {X : finset E}
+variables {𝕜 E : Type*} [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] {m n : ℕ}
+  {S : simplicial_complex 𝕜 E} {X : finset E}
 
 lemma boundary_space_eq_space_frontier_of_full_dimensional (hS : S.full_dimensional) :
   S.boundary.space = frontier S.space :=
@@ -53,8 +53,8 @@ begin
 end
 
 lemma space_frontier_eq :
-  frontier S.space = (⋃ (X ∈ S.facets) (H : (X : finset E).card ≤ finite_dimensional.finrank ℝ E),
-  convex_hull ↑X) ∪ (⋃ (X ∈ S.boundary.faces), combi_interior X) :=
+  frontier S.space = (⋃ (X ∈ S.facets) (H : (X : finset E).card ≤ finite_dimensional.finrank 𝕜 E),
+  convex_hull 𝕜 ↑X) ∪ (⋃ (X ∈ S.boundary.faces), combi_interior X) :=
 begin
   sorry
 end
@@ -73,7 +73,7 @@ begin
 end
 
 /-A simplicial complex is connected iff its space is-/
-def simplicial_complex.connected (S : simplicial_complex E) :
+def simplicial_complex.connected (S : simplicial_complex 𝕜 E) :
   Prop :=
 connected_space S.space
 
@@ -110,7 +110,7 @@ begin
   }
 end
 
---def simplicial_complex.nonsingular (S : simplicial_complex E) {X : finset (fin m → ℝ)} : Prop :=
+--def simplicial_complex.nonsingular (S : simplicial_complex 𝕜 E) {X : finset (fin m → 𝕜)} : Prop :=
 --  homeomorph (S.link {X}).space (metric.ball (0 : E) 1)
 
 end affine

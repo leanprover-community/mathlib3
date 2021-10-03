@@ -14,17 +14,16 @@ namespace affine
 
 open_locale classical affine big_operators
 open set
-variables {n : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E] {S S₁ S₂ : simplicial_complex E}
-  {v : E}
+variables {𝕜 E : Type*} [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] {n : ℕ}
+  {S S₁ S₂ : simplicial_complex 𝕜 E} {v : E}
 
-/--
-The pyramid of a vertex v with respect to a simplicial complex S is the surcomplex consisting of
-all faces of S along with all faces of S with v added. Defined to be S itself if some face of S is
-already full dimensional or if v belongs to the convex hull of the space of X.
--/
-noncomputable def simplicial_complex.pyramid (S : simplicial_complex E) (v : E) :
-  simplicial_complex E :=
-if v ∈ convex_hull S.space ∨ ∃ X ∈ S.faces, (X : finset E).card = finite_dimensional.finrank ℝ E + 1 then S else
+/-- The pyramid of a vertex `v` with respect to a simplicial complex `S` is the surcomplex
+consisting of all faces of `S` along with all faces of `S` with `v` added. Defined to be `S` itself
+if some face of S is already full dimensional or if `v` belongs to the convex hull of the space of
+`S`. -/
+noncomputable def simplicial_complex.pyramid (S : simplicial_complex 𝕜 E) (v : E) :
+  simplicial_complex 𝕜 E :=
+if v ∈ convex_hull S.space ∨ ∃ X ∈ S.faces, (X : finset E).card = finite_dimensional.finrank 𝕜 E + 1 then S else
 { faces := {X' | ∃ X ∈ S.faces, X' ⊆ X ∪ {v}},
   indep := begin
     rintro X' ⟨X, hX, hX'X⟩,
@@ -40,7 +39,7 @@ lemma subcomplex_pyramid :
   S.faces ⊆ (S.pyramid v).faces :=
 begin
   by_cases v ∈ convex_hull S.space ∨ ∃ X ∈ S.faces,
-    (X : finset E).card = finite_dimensional.finrank ℝ E + 1,
+    (X : finset E).card = finite_dimensional.finrank 𝕜 E + 1,
   {
     sorry
   },
@@ -52,7 +51,7 @@ lemma pyramid_mono (hS : S₁ ≤ S₂) :
    S₁.pyramid v ≤ S₂.pyramid v :=
 begin
   by_cases v ∈ convex_hull S₁.space ∨ ∃ X ∈ S₁.faces,
-    (X : finset E).card = finite_dimensional.finrank ℝ E  + 1,
+    (X : finset E).card = finite_dimensional.finrank 𝕜 E  + 1,
   {
     sorry --easy case
   },
@@ -78,7 +77,7 @@ begin
   }
 end
 
-lemma pure_pyramid_of_pure [finite_dimensional ℝ E] (hn : n ≤ finite_dimensional.finrank ℝ E)
+lemma pure_pyramid_of_pure [finite_dimensional 𝕜 E] (hn : n ≤ finite_dimensional.finrank 𝕜 E)
   (hv : v ∉ convex_hull S.space) (hS : S.pure_of n) :
   (S.pyramid v).pure_of (n + 1) :=
 begin

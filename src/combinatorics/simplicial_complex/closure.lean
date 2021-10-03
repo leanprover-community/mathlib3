@@ -14,14 +14,12 @@ open set
 
 namespace affine
 
-variables {m n : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E] {S : simplicial_complex E}
-  {x : E} {X Y : finset E} {A B : set (finset E)}
+variables {𝕜 E : Type*} [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] {m n : ℕ}
+  {E : Type*} {S : simplicial_complex 𝕜 E} {x : E} {X Y : finset E} {A B : set (finset E)}
 
-/--
-The closure of a set of faces is the set of their subfaces
--/
-def simplicial_complex.closure (S : simplicial_complex E) (A : set (finset E)) :
-  simplicial_complex E :=
+/-- The closure of a set of faces is the set of their subfaces. -/
+def simplicial_complex.closure (S : simplicial_complex 𝕜 E) (A : set (finset E)) :
+  simplicial_complex 𝕜 E :=
 simplicial_complex.of_surcomplex
   {X | X ∈ S.faces ∧ ∃ {X'}, X' ∈ A ∧ X ⊆ X'}
   (λ X ⟨hX, _⟩, hX)

@@ -12,11 +12,11 @@ import combinatorics.simplicial_complex.star
 
 namespace affine
 open set
-variables {m n k : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E]
-  {S : simplicial_complex E} {X Y : finset E} {A : set (finset E)}
+variables {𝕜 E : Type*} [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] {m n k : ℕ}
+  {S : simplicial_complex 𝕜 E} {X Y : finset E} {A : set (finset E)}
 
-def simplicial_complex.link (S : simplicial_complex E) (A : set (finset E)) :
-  simplicial_complex E :=
+def simplicial_complex.link (S : simplicial_complex 𝕜 E) (A : set (finset E)) :
+  simplicial_complex 𝕜 E :=
 { faces := {X | (∀ {W}, W ∈ A → disjoint W X) ∧ ∃ {Y Z}, Y ∈ A ∧ Z ∈ S.faces ∧ X ⊆ Z ∧ Y ⊆ Z},
   indep := λ X ⟨hXdisj, Y, Z, hY, hZ, hXZ, hYZ⟩, S.indep (S.down_closed hZ hXZ),
   down_closed := begin
@@ -107,7 +107,7 @@ lemma link_subset :
   (S.link A).faces ⊆ S.faces :=
 λ X ⟨hXdisj, Y, Z, hY, hZ, hXZ, hYZ⟩, S.down_closed hZ hXZ
 
-lemma link_eq_Star_sub_star_closure {S : simplicial_complex E} {A : set (finset E)} :
+lemma link_eq_Star_sub_star_closure {S : simplicial_complex 𝕜 E} {A : set (finset E)} :
   (S.link A).faces = (S.Star A).faces \ S.star ((S.closure A).faces \ {∅}) :=
 begin
   ext X,
@@ -148,7 +148,7 @@ begin
 end
 /-
 
-lemma link_facet_iff {S : simplicial_complex E} {A : set (finset E)} {n k : ℕ}
+lemma link_facet_iff {S : simplicial_complex 𝕜 E} {A : set (finset E)} {n k : ℕ}
   (hS : S.pure_of n) {X : finset E} (hA : ∀ {W}, W ∈ A → (W : finset _).card = k) :
   X ∈ (S.link A).facets ↔ ∃ {W Y}, W ∈ A ∧ Y ∈ S.facets ∧ W ⊆ Y ∧ X = Y \ W :=-/
 

@@ -12,14 +12,12 @@ import combinatorics.simplicial_complex.closure
 
 namespace affine
 open set
-variables {m n : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E] {S : simplicial_complex E}
-  {X Y : finset E} {A B : set (finset E)}
+variables {𝕜 E : Type*} [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] {m n : ℕ}
+  {S : simplicial_complex 𝕜 E} {X Y : finset E} {A B : set (finset E)}
 
-/--
-The open star of a set of faces is the union of their surfaces. Note that the star is all of the
-original complex as soon as A contains the empty set.
--/
-def simplicial_complex.star (S : simplicial_complex E) :
+/-- The open star of a set of faces is the union of their surfaces. Note that the star is all of the
+original complex as soon as A contains the empty set. -/
+def simplicial_complex.star (S : simplicial_complex 𝕜 E) :
   set (finset E) → set (finset E) :=
 λ A, {X | X ∈ S.faces ∧ ∃ {Y}, Y ∈ A ∧ Y ⊆ X}
 
@@ -109,8 +107,8 @@ end
 The closed star of a complex S and a set A is the complex whose faces are in S and share a surface
 with some face in A
 -/
-def simplicial_complex.Star (S : simplicial_complex E) (A : set (finset E)) :
-  simplicial_complex E :=
+def simplicial_complex.Star (S : simplicial_complex 𝕜 E) (A : set (finset E)) :
+  simplicial_complex 𝕜 E :=
 simplicial_complex.of_surcomplex {X | ∃ {Y Z}, Y ∈ A ∧ Z ∈ S.faces ∧ X ⊆ Z ∧ Y ⊆ Z}
   (λ X ⟨_, Z, _, hZ, hXZ, _⟩, S.down_closed hZ hXZ)
   (λ X W ⟨Y, Z, hY, hZ, hXZ, hYZ⟩ hWX, ⟨Y, Z, hY, hZ, subset.trans hWX hXZ, hYZ⟩)
@@ -210,7 +208,7 @@ lemma pure_Star_of_pure (hS : S.pure_of n) :
   (S.Star A).pure_of n :=
 λ X hX, hS (Star_facet_iff.1 hX).1
 
-lemma Star_pureness_eq_pureness [finite_dimensional ℝ E] (hS : S.pure)
+lemma Star_pureness_eq_pureness [finite_dimensional 𝕜 E] (hS : S.pure)
   (hSA : (S.Star A).faces.nonempty) :
   (S.Star A).pureness = S.pureness :=
 begin

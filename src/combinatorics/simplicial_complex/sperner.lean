@@ -15,14 +15,14 @@ namespace affine
 open_locale classical affine big_operators
 open set
 variables {m n : ℕ}
-local notation `E` := fin m → ℝ
-variables {S : simplicial_complex E} {f : E → fin m}
+local notation `E` := fin m → 𝕜
+variables {S : simplicial_complex 𝕜 E} {f : E → fin m}
 
-def is_sperner_colouring (S : simplicial_complex E)
+def is_sperner_colouring (S : simplicial_complex 𝕜 E)
   (f : E → fin m) : Prop :=
 ∀ (x : E) i, x ∈ S.points → x i = 0 → f x ≠ i
 
-def panchromatic (f : (fin n → ℝ) → fin m) (X : finset (fin n → ℝ)) :=
+def panchromatic (f : (fin n → 𝕜) → fin m) (X : finset (fin n → 𝕜)) :=
   X.image f = finset.univ
 
 lemma panchromatic_iff (f : E → fin m) (X : finset E) :
@@ -38,7 +38,7 @@ begin
 end
 
 lemma std_simplex_one :
-  std_simplex (fin 1) = { ![(1 : ℝ)]} :=
+  std_simplex (fin 1) = { ![(1 : 𝕜)]} :=
 begin
   ext x,
   simp [std_simplex_eq_inter],
@@ -54,19 +54,19 @@ begin
     apply zero_le_one }
 end
 
-lemma strong_sperner_zero_aux {S : simplicial_complex (fin 1 → ℝ)}
+lemma strong_sperner_zero_aux {S : simplicial_complex (fin 1 → 𝕜)}
   (hS₁ : S.space = std_simplex (fin 1)) :
   S.faces = {∅, { ![1]}} :=
 begin
-  have X_subs : ∀ X ∈ S.faces, X ⊆ { ![(1:ℝ)]},
+  have X_subs : ∀ X ∈ S.faces, X ⊆ { ![(1:𝕜)]},
   { rintro X hX,
     have := face_subset_space hX,
     rw [hS₁, std_simplex_one] at this,
     rintro x hx,
     simpa using this hx },
-  have : ∃ X ∈ S.faces, X = { ![(1:ℝ)]},
+  have : ∃ X ∈ S.faces, X = { ![(1:𝕜)]},
   { have std_eq := hS₁,
-    have one_mem : ![(1:ℝ)] ∈ std_simplex (fin 1),
+    have one_mem : ![(1:𝕜)] ∈ std_simplex (fin 1),
     { rw std_simplex_one,
       simp },
     rw [←std_eq, simplicial_complex.space, set.mem_bUnion_iff] at one_mem,
@@ -89,12 +89,12 @@ begin
     exact S.down_closed hY₁ hX },
 end
 
-theorem strong_sperner_zero {S : simplicial_complex (fin 1 → ℝ)}
+theorem strong_sperner_zero {S : simplicial_complex (fin 1 → 𝕜)}
   (hS₁ : S.space = std_simplex (fin 1)) (hS₂ : S.finite)
-  (f : (fin 1 → ℝ) → fin 1) :
+  (f : (fin 1 → 𝕜) → fin 1) :
   odd ((S.faces_finset hS₂).filter (panchromatic f)).card :=
 begin
-  have : (S.faces_finset hS₂).filter (panchromatic f) = {{ ![(1:ℝ)]}},
+  have : (S.faces_finset hS₂).filter (panchromatic f) = {{ ![(1:𝕜)]}},
   { ext X,
     simp only [mem_faces_finset, finset.mem_singleton, finset.mem_filter,
       strong_sperner_zero_aux hS₁, mem_insert_iff, mem_singleton_iff],
@@ -115,22 +115,22 @@ begin
   simp,
 end
 
--- { faces := {X ∈ S.faces | ∀ (x : fin (m+1) → ℝ), x ∈ X → x 0 = 0 },
+-- { faces := {X ∈ S.faces | ∀ (x : fin (m+1) → 𝕜), x ∈ X → x 0 = 0 },
 -- := finset.image matrix.vec_tail '' S.faces,
 
 lemma affine_independent_proj {ι : Type*}
-  {p : ι → fin (n+1) → ℝ}
+  {p : ι → fin (n+1) → 𝕜}
   (hp₁ : ∀ i, p i 0 = 0)
-  (hp₂ : affine_independent ℝ p) :
-  affine_independent ℝ (matrix.vec_tail ∘ p) :=
+  (hp₂ : affine_independent 𝕜 p) :
+  affine_independent 𝕜 (matrix.vec_tail ∘ p) :=
 begin
   rw affine_independent_def,
   intros s w hw hs i hi,
-  rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ hw (0:fin n → ℝ) at hs,
+  rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ hw (0:fin n → 𝕜) at hs,
   rw finset.weighted_vsub_of_point_apply at hs,
   simp only [vsub_eq_sub, function.comp_app, sub_zero] at hs,
-  have : s.weighted_vsub p w = (0:fin (n+1) → ℝ),
-  { rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ hw (0:fin (n+1) → ℝ),
+  have : s.weighted_vsub p w = (0:fin (n+1) → 𝕜),
+  { rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ hw (0:fin (n+1) → 𝕜),
     rw finset.weighted_vsub_of_point_apply,
     simp only [vsub_eq_sub, sub_zero],
     ext j,
@@ -150,7 +150,7 @@ begin
 end
 
 lemma is_linear_map_matrix_vec_tail :
-  is_linear_map ℝ (matrix.vec_tail : (fin n.succ → ℝ) → (fin n → ℝ)) :=
+  is_linear_map 𝕜 (matrix.vec_tail : (fin n.succ → 𝕜) → (fin n → 𝕜)) :=
 { map_add := by simp,
   map_smul := λ c x,
   begin
@@ -159,9 +159,9 @@ lemma is_linear_map_matrix_vec_tail :
   end }
 
 -- TODO: this generalises to affine subspaces
-lemma convex_hull_affine {X : finset (fin m.succ → ℝ)}
-  (hX₂ : ∀ (x : fin (m + 1) → ℝ), x ∈ X → x 0 = 0)
-  {x : fin m.succ → ℝ} (hx : x ∈ convex_hull (X : set (fin m.succ → ℝ))) :
+lemma convex_hull_affine {X : finset (fin m.succ → 𝕜)}
+  (hX₂ : ∀ (x : fin (m + 1) → 𝕜), x ∈ X → x 0 = 0)
+  {x : fin m.succ → 𝕜} (hx : x ∈ convex_hull (X : set (fin m.succ → 𝕜))) :
   x 0 = 0 :=
 begin
   rw finset.convex_hull_eq at hx,
@@ -178,10 +178,10 @@ begin
   simp,
 end
 
-noncomputable def simplicial_complex.dimension_drop (S : simplicial_complex (fin m.succ → ℝ)) :
-  simplicial_complex E :=
+noncomputable def simplicial_complex.dimension_drop (S : simplicial_complex (fin m.succ → 𝕜)) :
+  simplicial_complex 𝕜 E :=
 { faces := {Y | ∃ X ∈ S.faces, finset.image matrix.vec_tail X = Y ∧
-    ∀ (x : fin (m+1) → ℝ), x ∈ X → x 0 = 0 },
+    ∀ (x : fin (m+1) → 𝕜), x ∈ X → x 0 = 0 },
   down_closed :=
   begin
     rintro _ Y ⟨X, hX₁, rfl, hX₂⟩ YX,
@@ -208,7 +208,7 @@ noncomputable def simplicial_complex.dimension_drop (S : simplicial_complex (fin
   indep :=
   begin
     rintro _ ⟨X, hX₁, rfl, hX₂⟩,
-    let f : ((finset.image matrix.vec_tail X : set (fin m → ℝ))) → (X : set (fin (m+1) → ℝ)),
+    let f : ((finset.image matrix.vec_tail X : set (fin m → 𝕜))) → (X : set (fin (m+1) → 𝕜)),
     { intro t,
       refine ⟨matrix.vec_cons 0 t.1, _⟩,
       rcases t with ⟨t, ht⟩,
@@ -262,7 +262,7 @@ noncomputable def simplicial_complex.dimension_drop (S : simplicial_complex (fin
     apply is_linear_map_matrix_vec_tail,
   end }
 
-theorem strong_sperner {S : simplicial_complex (fin (m+1) → ℝ)} {f}
+theorem strong_sperner {S : simplicial_complex (fin (m+1) → 𝕜)} {f}
   (hS₁ : S.space = std_simplex (fin (m+1))) (hS₂ : S.finite) (hS₃ : S.full_dimensional)
   (hf : is_sperner_colouring S f) :
   odd ((S.faces_finset hS₂).filter (panchromatic f)).card :=
@@ -273,7 +273,7 @@ begin
   sorry
 end
 
-theorem sperner {S : simplicial_complex (fin (m+1) → ℝ)}
+theorem sperner {S : simplicial_complex (fin (m+1) → 𝕜)}
   (hS₁ : S.space = std_simplex (fin (m+1))) (hS₂ : S.finite) (hS₃ : S.full_dimensional)
   {f} (hf : is_sperner_colouring S f) :
   ∃ X ∈ S.faces, panchromatic f X :=

@@ -11,15 +11,15 @@ import combinatorics.simplicial_complex.basic
 
 namespace affine
 open set
-variables {m n : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E] {S : simplicial_complex E}
-  {X Y : finset E}
+variables {𝕜 E : Type*} [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E]
+  {S : simplicial_complex 𝕜 E} {X Y : finset E}
 
 /--
 A simplicial complex is finite iff it has finitely many faces.
 -/
-def simplicial_complex.finite (S : simplicial_complex E) : Prop := S.faces.finite
+def simplicial_complex.finite (S : simplicial_complex 𝕜 E) : Prop := S.faces.finite
 
-noncomputable def simplicial_complex.faces_finset (S : simplicial_complex E) (hS : S.finite) :
+noncomputable def simplicial_complex.faces_finset (S : simplicial_complex 𝕜 E) (hS : S.finite) :
   finset (finset E) :=
 hS.to_finset
 
@@ -32,14 +32,14 @@ set.finite.mem_to_finset _
 A simplicial complex `S` is locally finite at the face `X` iff `X` is a subface of finitely many
 faces in `S`.
 -/
-def simplicial_complex.locally_finite_at (S : simplicial_complex E) (X : finset E) : Prop :=
+def simplicial_complex.locally_finite_at (S : simplicial_complex 𝕜 E) (X : finset E) : Prop :=
 set.finite {Y ∈ S.faces | X ⊆ Y}
 
 /--
 A simplicial complex `S` is locally finite at the face `X` iff `X` is a subface of infinitely many
 faces in `S`.
 -/
-def simplicial_complex.locally_infinite_at (S : simplicial_complex E) (X : finset E) : Prop :=
+def simplicial_complex.locally_infinite_at (S : simplicial_complex 𝕜 E) (X : finset E) : Prop :=
 set.infinite {Y ∈ S.faces | X ⊆ Y}
 
 lemma simplicial_complex.locally_finite_at_iff_not_locally_infinite_at :
@@ -49,7 +49,7 @@ not_not
 /--
 A simplicial complex is locally finite iff each of its nonempty faces belongs to finitely many faces.
 -/
-def simplicial_complex.locally_finite (S : simplicial_complex E) : Prop :=
+def simplicial_complex.locally_finite (S : simplicial_complex 𝕜 E) : Prop :=
 ∀ {X : finset _}, X ∈ S.faces → X.nonempty → S.locally_finite_at X
 
 example {α : Type*} {s : set α} {p q : α → Prop} (h : ∀ x, p x → q x) :

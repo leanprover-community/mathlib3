@@ -12,24 +12,22 @@ import combinatorics.simplicial_complex.basic
 namespace affine
 open set
 open_locale classical
-variables {a b m n : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E] {S : simplicial_complex E}
-  {X : finset E}
+variables {𝕜 E : Type*} [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] {a b m n : ℕ}
+  {S : simplicial_complex 𝕜 E} {X : finset E}
 
-/--
-A simplicial complex is pure of dimension n iff all its facets have dimension n.
--/
-def simplicial_complex.pure_of (S : simplicial_complex E) (n : ℕ) :
+/-- A simplicial complex is pure of dimension `n` iff all its facets have dimension `n`. -/
+def simplicial_complex.pure_of (S : simplicial_complex 𝕜 E) (n : ℕ) :
   Prop :=
 ∀ ⦃X⦄, X ∈ S.facets → (X : finset _).card = n
 
 /--
 A simplicial complex is pure iff all its facets have the same dimension.
 -/
-def simplicial_complex.pure (S : simplicial_complex E) :
+def simplicial_complex.pure (S : simplicial_complex 𝕜 E) :
   Prop :=
 ∃ n : ℕ, S.pure_of n
 
-def simplicial_complex.full_dimensional (S : simplicial_complex E) :
+def simplicial_complex.full_dimensional (S : simplicial_complex 𝕜 E) :
   Prop :=
 S.pure_of (S.dim + 1)
 
@@ -37,7 +35,7 @@ S.pure_of (S.dim + 1)
 The pureness of a pure simplicial complex is the cardinality of its facets. Set to 0 for non pure
 complexes.
 -/
-noncomputable def simplicial_complex.pureness (S : simplicial_complex E) :
+noncomputable def simplicial_complex.pureness (S : simplicial_complex 𝕜 E) :
   ℕ :=
 if hS : S.pure then nat.find hS else 0
 
@@ -113,7 +111,7 @@ begin
     exact hYcard }
 end
 
-lemma facets_subset_facets_of_pureness_eq_pureness_of_subcomplex {S₁ S₂ : simplicial_complex E}
+lemma facets_subset_facets_of_pureness_eq_pureness_of_subcomplex {S₁ S₂ : simplicial_complex 𝕜 E}
   (hS : S₁.faces ⊆ S₂.faces) (hS₁ : S₁.pure_of n) (hS₂ : S₂.pure_of n) :
   S₁.facets ⊆ S₂.facets :=
 begin

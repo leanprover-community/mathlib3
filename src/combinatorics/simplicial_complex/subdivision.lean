@@ -13,16 +13,16 @@ import set_theory.fincard
 
 open affine set
 
-variables {m : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E]
-  {S₁ S₂ : simplicial_complex E}
+variables {𝕜 E : Type*} [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] {m : ℕ}
+  {S₁ S₂ : simplicial_complex 𝕜 E}
 
 /--
 S₁ ≤ S₂ (S₁ is a subdivision of S₂) iff their underlying space is the same and each face of S₁ is
 contained in some face of S₂
 -/
-instance : has_le (simplicial_complex E) := ⟨λ S₁ S₂, S₁.space = S₂.space ∧
+instance : has_le (simplicial_complex 𝕜 E) := ⟨λ S₁ S₂, S₁.space = S₂.space ∧
   ∀ {X₁ : finset  E}, X₁ ∈ S₁.faces → ∃ X₂ ∈ S₂.faces,
-  convex_hull (X₁ : set E) ⊆ convex_hull (X₂ : set E)⟩
+  convex_hull 𝕜 (X₁ : set E) ⊆ convex_hull 𝕜 (X₂ : set E)⟩
 
 lemma subdivision_iff_combi_interiors_subset_combi_interiors :
   S₁ ≤ S₂ ↔ S₂.space ⊆ S₁.space ∧
@@ -127,7 +127,7 @@ begin
       exact hx }}
 end
 
-instance : partial_order (simplicial_complex E) :=
+instance : partial_order (simplicial_complex 𝕜 E) :=
 { le := λ S₁ S₂, S₁ ≤ S₂,
   le_refl := (λ S, ⟨rfl, (λ X hX, ⟨X, hX, subset.refl _⟩)⟩),
   le_trans := begin
@@ -139,7 +139,7 @@ instance : partial_order (simplicial_complex E) :=
     exact ⟨X₃, hX₃, subset.trans hX₁₂ hX₂₃⟩,
   end,
   le_antisymm := begin
-    suffices aux_lemma : ∀ {S₁ S₂ : simplicial_complex E}, S₁ ≤ S₂ → S₂ ≤ S₁ → ∀ {X},
+    suffices aux_lemma : ∀ {S₁ S₂ : simplicial_complex 𝕜 E}, S₁ ≤ S₂ → S₂ ≤ S₁ → ∀ {X},
       X ∈ S₁.faces → X ∈ S₂.faces,
     { rintro S₁ S₂ h₁ h₂,
       ext X,
@@ -169,13 +169,13 @@ instance : partial_order (simplicial_complex E) :=
       exact subset_bUnion_of_mem hY }
   end }
 
-/-def simplicial_complex.mesh_size (S : simplicial_complex E) : ℝ := sorry --max diameter of simplices
+/-def simplicial_complex.mesh_size (S : simplicial_complex 𝕜 E) : 𝕜 := sorry --max diameter of simplices
 
-def barycentrisation : list (fin m → ℝ) → fin m → ℝ :=
+def barycentrisation : list (fin m → 𝕜) → fin m → 𝕜 :=
   λ L,
 
-def simplicial_complex.barycentric_subdivision (S : simplicial_complex E) : simplicial_complex E :=
-{ faces := {X | ∃ {L : list (fin m → ℝ)}, list.to_finset L ∈ S.faces ∧ X = },
+def simplicial_complex.barycentric_subdivision (S : simplicial_complex 𝕜 E) : simplicial_complex 𝕜 E :=
+{ faces := {X | ∃ {L : list (fin m → 𝕜)}, list.to_finset L ∈ S.faces ∧ X = },
   indep := _,
   down_closed := _,
   disjoint := _ }-/

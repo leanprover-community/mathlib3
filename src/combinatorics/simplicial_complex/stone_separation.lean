@@ -11,13 +11,14 @@ import combinatorics.simplicial_complex.convex_join
 
 open set
 
-variables {E : Type*} [add_comm_group E] [module ℝ E] {x y : E} {A B : set E} {c : set (set E)}
+variables {𝕜 E ι : Type*} [linear_ordered_field 𝕜] [add_comm_monoid E] [module 𝕜 E] {x y : E}
+  {A B : set E} {c : set (set E)}
 
 /-- Stone's Separation Theorem -/
-lemma subsets_compl_convexes (hA : convex A) (hB : convex B) (hAB : disjoint A B) :
-  ∃ C : set E, convex C ∧ convex Cᶜ ∧ A ⊆ C ∧ B ⊆ Cᶜ :=
+lemma subsets_compl_convexes (hA : convex 𝕜 A) (hB : convex 𝕜 B) (hAB : disjoint A B) :
+  ∃ C : set E, convex 𝕜 C ∧ convex 𝕜 Cᶜ ∧ A ⊆ C ∧ B ⊆ Cᶜ :=
 begin
-  let S : set (set E) := {C | convex C ∧ C ⊆ Bᶜ},
+  let S : set (set E) := {C | convex 𝕜 C ∧ C ⊆ Bᶜ},
   obtain ⟨C, hC, hAC, hCmax⟩ := zorn.zorn_subset_nonempty S
     (λ c hcS hc ⟨B, hB⟩, ⟨⋃₀c, ⟨(zorn.chain.directed_on hc).convex_sUnion (λ A hA, (hcS hA).1),
     sUnion_subset (λ C hC, (hcS hC).2)⟩, λ s, subset_sUnion_of_mem⟩) A

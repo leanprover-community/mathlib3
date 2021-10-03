@@ -13,8 +13,8 @@ import combinatorics.simplicial_complex.closure
 namespace affine
 open set relation
 open_locale classical
-variables {a b m n : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E]
-  {S S' S₁ S₂ : simplicial_complex E} {X Y Z : finset E}
+variables {𝕜 E : Type*} [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] {a b m n : ℕ}
+  {S S' S₁ S₂ : simplicial_complex 𝕜 E} {X Y Z : finset E}
 
 --to add to mathlib?
 lemma curry_eq_of_symmetric_transitive {α : Type*} {R : α → α → Prop} {a b : α}
@@ -45,7 +45,7 @@ lemma card_eq_of_adjacent (hX : X ∈ S.faces) (hY : adjacent X Y) :
   Y.card = X.card :=
 eq.trans hY.2 hY.1.symm
 
-def simplicial_complex.glued (S : simplicial_complex E) :
+def simplicial_complex.glued (S : simplicial_complex 𝕜 E) :
   finset E → finset E → Prop :=
 refl_trans_gen (λ X Y, adjacent X Y ∧ X ∈ S.facets ∧ Y ∈ S.facets)
 
@@ -121,8 +121,8 @@ begin
   rw [card_eq_of_glued hY, card_eq_of_glued hZ],
 end
 
-def simplicial_complex.pure_decomp (S : simplicial_complex E) :
-  set (simplicial_complex E) :=
+def simplicial_complex.pure_decomp (S : simplicial_complex 𝕜 E) :
+  set (simplicial_complex 𝕜 E) :=
 (λ X, S.closure (set_of (S.glued X))) '' S.facets
 
 lemma pure_decomp_faces_subset (hS : S' ∈ S.pure_decomp) :
@@ -164,7 +164,7 @@ begin
 end
 
 lemma pure_decomp_cover_facets (hX : X ∈ S.facets) :
-  ∃ {S' : simplicial_complex E}, S' ∈ S.pure_decomp ∧ X ∈ S'.facets :=
+  ∃ {S' : simplicial_complex 𝕜 E}, S' ∈ S.pure_decomp ∧ X ∈ S'.facets :=
 begin
   use S.closure (set_of (S.glued X)),
   split,
@@ -187,8 +187,8 @@ begin
     (glued.trans hX₁ (glued.symmetric hX₂)),
 end
 
-lemma pure_decomp_cover [finite_dimensional ℝ E] (hX : X ∈ S.faces) :
-  ∃ {S' : simplicial_complex E}, S' ∈ S.pure_decomp ∧ X ∈ S'.faces :=
+lemma pure_decomp_cover [finite_dimensional 𝕜 E] (hX : X ∈ S.faces) :
+  ∃ {S' : simplicial_complex 𝕜 E}, S' ∈ S.pure_decomp ∧ X ∈ S'.faces :=
 begin
   obtain ⟨Y, hY, hXY⟩ := subfacet hX,
   obtain ⟨S', hS', hYS'⟩ := pure_decomp_cover_facets hY,
@@ -220,7 +220,7 @@ begin
 end
 
 lemma pure_decomp_space_subset_space :
-  (⋃ (S' ∈ S.pure_decomp), (S' : simplicial_complex E).space) ⊆ S.space :=
+  (⋃ (S' ∈ S.pure_decomp), (S' : simplicial_complex 𝕜 E).space) ⊆ S.space :=
 begin
   rintro x hx,
   rw mem_bUnion_iff at hx,
@@ -229,8 +229,8 @@ begin
   exact mem_space_iff.2 ⟨X, pure_decomp_faces_subset hS' hX, hxX⟩,
 end
 
-lemma pure_decomp_space_eq_space [finite_dimensional ℝ E] :
-  (⋃ (S' ∈ S.pure_decomp), (S' : simplicial_complex E).space) = S.space :=
+lemma pure_decomp_space_eq_space [finite_dimensional 𝕜 E] :
+  (⋃ (S' ∈ S.pure_decomp), (S' : simplicial_complex 𝕜 E).space) = S.space :=
 begin
   apply subset.antisymm pure_decomp_space_subset_space,
   rintro x hx,

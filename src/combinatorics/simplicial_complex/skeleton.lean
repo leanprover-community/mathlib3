@@ -11,15 +11,15 @@ import combinatorics.simplicial_complex.pure
 
 namespace affine
 open set
-variables {m n k : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E]
-  {S : simplicial_complex E} {X Y : finset E} {A : set (finset E)}
+variables {𝕜 E : Type*} [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] {m n k : ℕ}
+  {S : simplicial_complex 𝕜 E} {X Y : finset E} {A : set (finset E)}
 
 /--
 The k-skeleton of a simplicial complex is the simplicial complex made of its simplices of dimension
 less than k.
 -/
-def simplicial_complex.skeleton (S : simplicial_complex E) (k : ℕ) :
-  simplicial_complex E :=
+def simplicial_complex.skeleton (S : simplicial_complex 𝕜 E) (k : ℕ) :
+  simplicial_complex 𝕜 E :=
 simplicial_complex.of_surcomplex
   {X ∈ S.faces | finset.card X ≤ k + 1}
   (λ X ⟨hX, _⟩, hX)
@@ -38,7 +38,7 @@ begin
     exact ⟨∅, S.down_closed hX X.empty_subset, nat.zero_le _⟩ }
 end
 
-lemma pure_skeleton_of_pure [finite_dimensional ℝ E] (hS : S.pure_of n) :
+lemma pure_skeleton_of_pure [finite_dimensional 𝕜 E] (hS : S.pure_of n) :
   (S.skeleton k).pure_of (min n (k + 1)) :=
 begin
   cases le_or_gt n (k + 1) with hmin hmin,
@@ -65,7 +65,7 @@ begin
     exact hZcard, }
 end
 
-lemma skeleton_pureness_eq_min_pureness_dimension [finite_dimensional ℝ E] (hS : S.pure)
+lemma skeleton_pureness_eq_min_pureness_dimension [finite_dimensional 𝕜 E] (hS : S.pure)
   (hS' : S.faces.nonempty) :
   (S.skeleton k).pureness = min S.pureness (k + 1) :=
 begin

@@ -9,58 +9,54 @@ import combinatorics.simplicial_complex.simplex
 open_locale classical affine big_operators
 open set
 
+variables {𝕜 E ι : Type*} [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E]
+
 namespace affine
 
-/--
-A simplicial complex in `R^m`.
-TODO: generalise to normed affine spaces `E`, so this is `simplicial_complex E`.
--/
-@[ext] structure simplicial_complex (E : Type*) [normed_group E] [normed_space ℝ E] :=
+variables (𝕜 E)
+
+/-- A simplicial complex in a `𝕜`-module. -/
+@[ext] structure simplicial_complex :=
 (faces : set (finset E))
-(indep : ∀ {X}, X ∈ faces → affine_independent ℝ (λ p, p : (X : set E) → E))
+(indep : ∀ {X}, X ∈ faces → affine_independent 𝕜 (λ p, p : (X : set E) → E))
 (down_closed : ∀ {X Y}, X ∈ faces → Y ⊆ X → Y ∈ faces)
 (disjoint : ∀ {X Y}, X ∈ faces → Y ∈ faces →
-  convex_hull ↑X ∩ convex_hull ↑Y ⊆ convex_hull (X ∩ Y : set E))
+  convex_hull 𝕜 ↑X ∩ convex_hull 𝕜 ↑Y ⊆ convex_hull 𝕜 (X ∩ Y : set E))
 
-variables {m n : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E] {S : simplicial_complex E}
-  {x y : E} {X Y : finset E} {A : set (finset E)}
---local notation `E` := E
+variables {𝕜 E} {S : simplicial_complex 𝕜 E} {x y : E} {X Y : finset E} {A : set (finset E)}
+  {m n : ℕ}
 
-/--
-A constructor for simplicial complexes by specifying a surcomplex whose set of faces is
-downward closed.
--/
+/-- A constructor for simplicial complexes by specifying a surcomplex whose set of faces is
+downward closed. -/
 @[simp] def simplicial_complex.of_surcomplex
   (faces : set (finset E)) (subset_surcomplex : faces ⊆ S.faces)
   (down_closed : ∀ {X Y}, X ∈ faces → Y ⊆ X → Y ∈ faces) :
-  simplicial_complex E :=
+  simplicial_complex 𝕜 E :=
 { faces := faces,
   indep := λ X hX, S.indep (subset_surcomplex hX),
   down_closed := λ X Y hX hYX, down_closed hX hYX,
   disjoint := λ X Y hX hY, S.disjoint (subset_surcomplex hX) (subset_surcomplex hY) }
 
-/--
-A constructor for simplicial complexes by specifying a set of faces to close downward.
--/
+/-- A constructor for simplicial complexes by specifying a set of faces to close downward. -/
 @[simp] def simplicial_complex.of_set_closure
-  (indep : ∀ {X}, X ∈ A → affine_independent ℝ (λ p, p : (X : set E) → E))
+  (indep : ∀ {X}, X ∈ A → affine_independent 𝕜 (λ p, p : (X : set E) → E))
   (disjoint : ∀ {X Y}, X ∈ A → Y ∈ A →
-    convex_hull ↑X ∩ convex_hull ↑Y ⊆ convex_hull (X ∩ Y : set E)) :
-  simplicial_complex E :=
+    convex_hull 𝕜 ↑X ∩ convex_hull 𝕜 ↑Y ⊆ convex_hull 𝕜 (X ∩ Y : set E)) :
+  simplicial_complex 𝕜 E :=
 { faces := {X | ∃ Y, Y ∈ A ∧ X ⊆ Y},
   indep := λ X ⟨Y, hY, hXY⟩, affine_independent_of_subset_affine_independent (indep hY) hXY,
   down_closed := λ X Y ⟨Z, hZ, hXZ⟩ hYX, ⟨Z, hZ, subset.trans hYX hXZ⟩,
   disjoint :=
   begin
     rintro W X ⟨Y, hY, hWY⟩ ⟨Z, hZ, hXZ⟩ x ⟨hxW, hxX⟩,
-    have hxYZ : x ∈ convex_hull (Y ∩ Z : set E) :=
+    have hxYZ : x ∈ convex_hull 𝕜 (Y ∩ Z : set E) :=
       disjoint hY hZ ⟨convex_hull_mono hWY hxW, convex_hull_mono hXZ hxX⟩,
-    have hxWZ : x ∈ convex_hull (W ∩ Z : set E),
+    have hxWZ : x ∈ convex_hull 𝕜 (W ∩ Z : set E),
     { have := disjoint_convex_hull_of_subsets (indep hY) hWY (finset.inter_subset_left Y Z),
       norm_cast at this hxYZ,
       exact_mod_cast convex_hull_mono
         (finset.inter_subset_inter_left (finset.inter_subset_right Y Z)) (this ⟨hxW, hxYZ⟩), },
-    have hxYX : x ∈ convex_hull (Y ∩ X : set E),
+    have hxYX : x ∈ convex_hull 𝕜 (Y ∩ X : set E),
     { have := disjoint_convex_hull_of_subsets (indep hZ) (finset.inter_subset_right Y Z) hXZ,
       norm_cast at this hxYZ,
       exact_mod_cast convex_hull_mono
@@ -79,15 +75,15 @@ A constructor for simplicial complexes by specifying a set of faces to close dow
 A constructor for simplicial complexes by specifying a face to close downward.
 -/
 @[simp] def simplicial_complex.of_simplex
-  (indep : affine_independent ℝ (λ p, p : (X : set E) → E)) :
-  simplicial_complex E :=
+  (indep : affine_independent 𝕜 (λ p, p : (X : set E) → E)) :
+  simplicial_complex 𝕜 E :=
 simplicial_complex.of_set_closure
   begin rintro Y (hY : Y = X), rw hY, exact indep end
   begin rintro Y Z (hY : Y = X) (hZ : Z = X), rw [hY, hZ, inter_self _, inter_self _],
     exact subset.refl _ end
 
 lemma mem_simplex_complex_iff
-  (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) :
+  (hX : affine_independent 𝕜 (λ p, p : (X : set E) → E)) :
   Y ∈ (simplicial_complex.of_simplex hX).faces ↔ Y ⊆ X :=
 begin
   split,
@@ -98,16 +94,16 @@ begin
     exact ⟨X, rfl, hYX⟩ }
 end
 
-/--
-The empty simplicial complex is made up of only the empty simplex
--/
-def empty_simplicial_complex (E : Type*) [normed_group E] [normed_space ℝ E] :
-  simplicial_complex E :=
+variables (𝕜 E)
+
+/-- The empty simplicial complex is made up of only the empty simplex. -/
+def empty_simplicial_complex :
+  simplicial_complex 𝕜 E :=
 { faces := {∅},
   indep :=
   begin
     rintro X (rfl : _ = _),
-    apply affine_independent_of_subsingleton ℝ _,
+    apply affine_independent_of_subsingleton 𝕜 _,
     simp,
   end,
   down_closed := λ X Y hX, hX.symm ▸ finset.subset_empty.1,
@@ -115,62 +111,62 @@ def empty_simplicial_complex (E : Type*) [normed_group E] [normed_space ℝ E] :
   begin
     rintro X _ (rfl : X = ∅) (rfl : Y = ∅),
     simp,
-  end, }
+  end }
+
+variables {𝕜 E}
 
 lemma empty_mem_faces_of_nonempty :
   (S.faces).nonempty → ∅ ∈ S.faces :=
 λ ⟨X, hX⟩, S.down_closed hX (empty_subset X)
 
-/--
-The underlying space of a simplicial complex.
--/
-def simplicial_complex.space (S : simplicial_complex E) :
+/-- The underlying space of a simplicial complex. -/
+def simplicial_complex.space (S : simplicial_complex 𝕜 E) :
   set E :=
-⋃ X ∈ S.faces, convex_hull (X : set E)
+⋃ X ∈ S.faces, convex_hull 𝕜 (X : set E)
 
 lemma mem_space_iff :
-  x ∈ S.space ↔ ∃ X ∈ S.faces, x ∈ convex_hull (X : set E) :=
+  x ∈ S.space ↔ ∃ X ∈ S.faces, x ∈ convex_hull 𝕜 (X : set E) :=
 begin
   unfold simplicial_complex.space,
   rw mem_bUnion_iff,
 end
 
 lemma empty_space_of_empty_simplicial_complex :
-  (empty_simplicial_complex E).space = ∅ :=
+  (empty_simplicial_complex 𝕜 E).space = ∅ :=
 begin
   unfold empty_simplicial_complex simplicial_complex.space,
   simp,
 end
 
 lemma convex_hull_face_subset_space (hX : X ∈ S.faces) :
-  convex_hull ↑X ⊆ S.space :=
+  convex_hull 𝕜 ↑X ⊆ S.space :=
 λ x hx, mem_bUnion hX hx
 
 lemma face_subset_space (hX : X ∈ S.faces) :
   (X : set E) ⊆ S.space :=
-set.subset.trans (subset_convex_hull _) (convex_hull_face_subset_space hX)
+set.subset.trans (subset_convex_hull 𝕜 _) (convex_hull_face_subset_space hX)
 
-def simplicial_complex.points (S : simplicial_complex E) :
+def simplicial_complex.points (S : simplicial_complex 𝕜 E) :
   set E :=
 ⋃ k ∈ S.faces, (k : set E)
 
 lemma points_subset_space :
   S.points ⊆ S.space :=
-bUnion_subset_bUnion_right (λ x hx, subset_convex_hull x)
+bUnion_subset_bUnion_right (λ x hx, subset_convex_hull 𝕜 x)
 
---noncomputable def simplicial_complex.dim (S : simplicial_complex E) :
+--noncomputable def simplicial_complex.dim (S : simplicial_complex 𝕜 E) :
 --  ℕ :=
 
 -- Dumb bug in mathlib, see
 --https://leanprover.zulipchat.com/#narrow/stream/217875-Is-there.20code.20for.20X.3F/topic/R.5Em.20is.20finite.20dimensional.20over.20R/near/231748016
---instance {m : ℕ} : finite_dimensional ℝ E := sorry
+--instance {m : ℕ} : finite_dimensional 𝕜 E := sorry
 
 --Refinement of `size_bound`
-lemma face_dimension_le_space_dimension [finite_dimensional ℝ E] (hX : X ∈ S.faces) :
-  finset.card X ≤ finite_dimensional.finrank ℝ E + 1 :=
+lemma face_dimension_le_space_dimension [finite_dimensional 𝕜 E] (hX : X ∈ S.faces) :
+  finset.card X ≤ finite_dimensional.finrank 𝕜 E + 1 :=
 size_bound (S.indep hX)
 
-def simplicial_complex.facets (S : simplicial_complex E) :
+def simplicial_complex.facets (S : simplicial_complex 𝕜 E) :
   set (finset E) :=
 {X | X ∈ S.faces ∧ (∀ {Y}, Y ∈ S.faces → X ⊆ Y → X = Y)}
 
@@ -190,7 +186,7 @@ begin
   exact hY.2.2 (subset.refl Y),
 end
 
-lemma subfacet [finite_dimensional ℝ E] (hX : X ∈ S.faces) :
+lemma subfacet [finite_dimensional 𝕜 E] (hX : X ∈ S.faces) :
   ∃ {Y}, Y ∈ S.facets ∧ X ⊆ Y :=
 begin
   have := id hX,
@@ -212,7 +208,7 @@ begin
   exact facets_subset,
 end
 
-lemma facets_empty_iff_faces_empty [finite_dimensional ℝ E] :
+lemma facets_empty_iff_faces_empty [finite_dimensional 𝕜 E] :
   S.facets = ∅ ↔ S.faces = ∅ :=
 begin
   classical,
@@ -244,11 +240,11 @@ facets_singleton hS
 /--
 The cells of a simplicial complex are its simplices whose dimension matches the one of the space.
 -/
-def simplicial_complex.cells (S : simplicial_complex E) :
+def simplicial_complex.cells (S : simplicial_complex 𝕜 E) :
   set (finset E) :=
-{X | X ∈ S.faces ∧ X.card = finite_dimensional.finrank ℝ E + 1}
+{X | X ∈ S.faces ∧ X.card = finite_dimensional.finrank 𝕜 E + 1}
 
-lemma cells_subset_facets [finite_dimensional ℝ E] :
+lemma cells_subset_facets [finite_dimensional 𝕜 E] :
   S.cells ⊆ S.facets :=
 begin
   rintro X ⟨hX, hXcard⟩,
@@ -263,16 +259,16 @@ end
 The subcells of a simplicial complex are its simplices whose cardinality matches the dimension of
 the space. They are thus one smaller than cells.
 -/
-def simplicial_complex.subcells (S : simplicial_complex E) :
+def simplicial_complex.subcells (S : simplicial_complex 𝕜 E) :
   set (finset E) :=
-{X | X ∈ S.faces ∧ X.card = finite_dimensional.finrank ℝ E}
+{X | X ∈ S.faces ∧ X.card = finite_dimensional.finrank 𝕜 E}
 
-def simplicial_complex.vertices (S : simplicial_complex E) :
+def simplicial_complex.vertices (S : simplicial_complex 𝕜 E) :
   set E :=
 {x | {x} ∈ S.faces}
 
 lemma mem_of_mem_convex_hull (hx : {x} ∈ S.faces) (hX : X ∈ S.faces)
-  (hxX : x ∈ convex_hull (X : set E)) :
+  (hxX : x ∈ convex_hull 𝕜 (X : set E)) :
   x ∈ X :=
 begin
   have h := S.disjoint hx hX ⟨by simp, hxX⟩,
@@ -284,10 +280,10 @@ begin
 end
 
 lemma subset_of_convex_hull_subset_convex_hull (hX : X ∈ S.faces) (hY : Y ∈ S.faces)
-  (hXY : convex_hull (X : set E) ⊆ convex_hull ↑Y) :
+  (hXY : convex_hull 𝕜 (X : set E) ⊆ convex_hull 𝕜 ↑Y) :
   X ⊆ Y :=
 λ x hxX, mem_of_mem_convex_hull (S.down_closed hX (finset.singleton_subset_iff.2 hxX)) hY
-  (hXY (subset_convex_hull ↑X hxX))
+  (hXY (subset_convex_hull 𝕜 ↑X hxX))
 
 lemma disjoint_interiors (hX : X ∈ S.faces) (hY : Y ∈ S.faces) (hxX : x ∈ combi_interior X)
   (hxY : x ∈ combi_interior Y) :
@@ -341,7 +337,7 @@ begin
 end
 
 lemma mem_convex_hull_iff :
-  x ∈ convex_hull (X : set E) ↔ ∃ Y ⊆ X, x ∈ combi_interior Y :=
+  x ∈ convex_hull 𝕜 (X : set E) ↔ ∃ Y ⊆ X, x ∈ combi_interior Y :=
 begin
   simp [simplex_combi_interiors_cover],
 end
@@ -362,7 +358,7 @@ begin
 end
 
 lemma subset_of_combi_interior_inter_convex_hull_nonempty (hX : X ∈ S.faces) (hY : Y ∈ S.faces)
-  (hXY : (combi_interior X ∩ convex_hull (Y : set E)).nonempty) :
+  (hXY : (combi_interior X ∩ convex_hull 𝕜 (Y : set E)).nonempty) :
   X ⊆ Y :=
 begin
   obtain ⟨x, hxX, hxY⟩ := hXY,
@@ -371,18 +367,18 @@ begin
   exact hZY,
 end
 
-lemma simplex_combi_interiors_split_interiors (hY : affine_independent ℝ (λ p, p : (Y : set E) → E))
-  (hXY : convex_hull (X : set E) ⊆ convex_hull ↑Y) :
+lemma simplex_combi_interiors_split_interiors (hY : affine_independent 𝕜 (λ p, p : (Y : set E) → E))
+  (hXY : convex_hull 𝕜 (X : set E) ⊆ convex_hull 𝕜 ↑Y) :
   ∃ Z ⊆ Y, combi_interior X ⊆ combi_interior Z :=
 begin
   let S := simplicial_complex.of_simplex hY,
-  let F := Y.powerset.filter (λ W : finset E, (X : set E) ⊆ convex_hull W),
+  let F := Y.powerset.filter (λ W : finset E, (X : set E) ⊆ convex_hull 𝕜 W),
   sorry
   /-obtain ⟨Z, hZ, hZmin⟩ := finset.inf' _
   (begin
     use Y,
     simp only [true_and, finset.mem_powerset_self, finset.mem_filter],
-    exact subset.trans (subset_convex_hull _) hXY,
+    exact subset.trans (subset_convex_hull 𝕜 _) hXY,
   end : F.nonempty)
   begin
     rintro A B hA hB,
@@ -394,7 +390,7 @@ begin
   simp at hZ,
   use [Z, hZ.1],
   rintro x hxX,
-  use convex_hull_min hZ.2 (convex_convex_hull _) hxX.1,
+  use convex_hull_min hZ.2 (convex_convex_hull 𝕜 _) hxX.1,
   rintro hxZ,
   rw mem_combi_frontier_iff' at hxZ,
   obtain ⟨W, hWZ, hxW⟩ := hxZ,
@@ -404,7 +400,7 @@ begin
   rw finset.convex_hull_eq _ at ⊢ hZ,
   obtain ⟨v, hvpos, hvsum, hvcenter⟩ := combi_interior_subset_positive_weighings hxX,
   obtain ⟨w, hwpos, hwsum, hwcenter⟩ := combi_interior_subset_positive_weighings hxW,
-  let u : E → E → ℝ := λ a, if ha : a ∈ X then classical.some (hZ.2 ha) else (λ b, 0),
+  let u : E → E → 𝕜 := λ a, if ha : a ∈ X then classical.some (hZ.2 ha) else (λ b, 0),
   have hupos : ∀ {a}, a ∈ X → ∀ (b : E), b ∈ Z → 0 < u a b,
   {
     rintro a ha,
@@ -419,7 +415,7 @@ begin
   {
     sorry
   },
-  let t : E → ℝ := λ b, if hb : b ∈ Z then ∑ (a : E) in X, v a * u a b else 0,-/
+  let t : E → 𝕜 := λ b, if hb : b ∈ Z then ∑ (a : E) in X, v a * u a b else 0,-/
   /-rintro y (hyX : y ∈ X),
   obtain ⟨v, hvpos, hvsum, hvcenter⟩ := combi_interior_subset_positive_weighings hxX,
   obtain ⟨w, hwpos, hwsum, hwcenter⟩ := combi_interior_subset_positive_weighings hxW,-/
@@ -428,7 +424,7 @@ begin
   obtain ⟨y, hyX, hyW⟩ := not_subset.1 hXW,-/
   /-apply hxX.2,
   rw mem_combi_frontier_iff at ⊢,
-  use [X.filter (λ w : E, w ∈ convex_hull (W : set E)), finset.filter_subset _ _],
+  use [X.filter (λ w : E, w ∈ convex_hull 𝕜 (W : set E)), finset.filter_subset _ _],
   {
     rintro hXW,
     apply hWZ.2 (hZmin W _),
@@ -444,7 +440,7 @@ begin
     apply convex_hull_mono (subset_inter (subset.refl _) _) hxX.1,
     by_contra hXW,
     rw not_subset at hXW,
-    /-suffices hXW : ↑X ⊆ convex_hull ↑W,
+    /-suffices hXW : ↑X ⊆ convex_hull 𝕜 ↑W,
     {
       apply convex_hull_mono (subset_inter (subset.refl _) hXW) hxX.1,
     },-/

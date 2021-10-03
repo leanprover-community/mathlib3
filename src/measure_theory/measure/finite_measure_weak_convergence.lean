@@ -161,7 +161,7 @@ function.injective.module _ coe_add_monoid_hom finite_measure.coe_injective coe_
 /-- The pairing of a finite (Borel) measure `μ` with a nonnegative bounded continuous
 function is obtained by (Lebesgue) integrating the (test) function against the measure.
 This is `finite_measure.test_against'`. -/
-abbreviation test_against_nn (μ : finite_measure α) (f : α → nnreal) : ℝ≥0 :=
+abbreviation test_against_nn (μ : finite_measure α) (f : α → ℝ≥0) : ℝ≥0 :=
 (∫⁻ x, f x ∂(μ : measure α)).to_nnreal
 
 variables [topological_space α]
@@ -196,23 +196,21 @@ lemma _root_.nnreal.le_add_nndist (a b : ℝ≥0) :
 begin
   suffices : (a : ℝ) ≤ (b : ℝ) + (dist a b),
   { exact nnreal.coe_le_coe.mp this,},
-  have key : abs (a-b : ℝ) ≤ (dist a b) := by refl,
-  linarith [le_of_abs_le key],
+  linarith [le_of_abs_le (by refl : abs (a-b : ℝ) ≤ (dist a b))],
 end
 
 -- Only useful here or more generally?
 -- Where to place?
 lemma _root_.bounded_continuous_function.nnreal.coe_comp_measurable {α : Type*}
   [topological_space α] [measurable_space α] [opens_measurable_space α] (f : α →ᵇ ℝ≥0) :
-  measurable ((coe : ℝ≥0 → ℝ≥0∞) ∘ f) :=
+  measurable (λ x, (f x : ℝ≥0∞)) :=
 measurable_coe_nnreal_ennreal.comp f.continuous.measurable
 
 -- This does not seem unreasonable to me, although it may be a bit specific.
 -- Where to place?
 lemma bounded_continuous_function.nnreal.upper_bound {α : Type*} [topological_space α]
-  (f : α →ᵇ ℝ≥0) : ∀ x, f(x) ≤ (nndist f 0) :=
+  (f : α →ᵇ ℝ≥0) (x : α) : f x ≤ nndist f 0 :=
 begin
-  intros x,
   have key' : nndist (f x) ((0 : α →ᵇ ℝ≥0) x) ≤ nndist f 0,
   { exact @bounded_continuous_function.dist_coe_le_dist α ℝ≥0 _ _ f 0 x, },
   simp only [bounded_continuous_function.coe_zero, pi.zero_apply] at key',

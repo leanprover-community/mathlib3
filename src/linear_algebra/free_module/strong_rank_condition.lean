@@ -35,6 +35,8 @@ variables (R : Type*) [comm_ring R] [nontrivial R]
 
 open polynomial function fin linear_map
 
+/-- Any commutative ring as satisfies the `strong_rank_condition`. -/
+@[priority 100]
 instance comm_ring_strong_rank_condition : strong_rank_condition R :=
 begin
   suffices : ∀ n, ∀ f : (fin (n + 1) → R) →ₗ[R] fin n → R, ¬injective f,

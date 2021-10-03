@@ -116,6 +116,17 @@ begin
   exact h.closure_eq
 end
 
+lemma disjoint_closed_ball_of_lt_inf_edist {r : ℝ≥0∞} (h : r < inf_edist x s) :
+  disjoint (closed_ball x r) s :=
+begin
+  rw disjoint_left,
+  assume y hy h'y,
+  apply lt_irrefl (inf_edist x s),
+  calc inf_edist x s ≤ edist x y : inf_edist_le_edist_of_mem h'y
+  ... ≤ r : by rwa [mem_closed_ball, edist_comm] at hy
+  ... < inf_edist x s : h
+end
+
 /-- The infimum edistance is invariant under isometries -/
 lemma inf_edist_image (hΦ : isometry Φ) :
   inf_edist (Φ x) (Φ '' t) = inf_edist x t :=
@@ -431,6 +442,17 @@ begin
         ennreal.to_real_le_to_real (inf_edist_ne_top hs)],
     { apply inf_edist_le_inf_edist_add_edist },
     { simp [ennreal.add_eq_top, inf_edist_ne_top hs, edist_ne_top] }}
+end
+
+lemma disjoint_closed_ball_of_lt_inf_edist {r : ℝ} (h : r < inf_dist x s) :
+  disjoint (closed_ball x r) s :=
+begin
+  rw disjoint_left,
+  assume y hy h'y,
+  apply lt_irrefl (inf_dist x s),
+  calc inf_dist x s ≤ dist x y : inf_dist_le_dist_of_mem h'y
+  ... ≤ r : by rwa [mem_closed_ball, dist_comm] at hy
+  ... < inf_dist x s : h
 end
 
 variable (s)

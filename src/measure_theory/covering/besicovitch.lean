@@ -584,27 +584,66 @@ theorem measurable_besicovitch
   μ (s \ (⋃ (x ∈ t), ball x (r x))) = 0 ∧ t.pairwise_on (disjoint on (λ x, ball x (r x))) :=
 begin
   let P : finset (α × ℝ) → Prop := λ t,
-    (t : set (α × ℝ)).pairwise_on (disjoint on (λ p, ball p.1 p.2)) ∧
+    (t : set (α × ℝ)).pairwise_on (disjoint on (λ p, closed_ball p.1 p.2)) ∧
     (∀ (p : α × ℝ), p ∈ t → p.1 ∈ s) ∧ (∀ (p : α × ℝ), p ∈ t → p.2 ∈ f p.1),
   have : ∀ (t : finset (α × ℝ)), P t → ∃ (u : finset (α × ℝ)), t ⊆ u ∧ P u ∧
     μ (s \ (⋃ (p : α × ℝ) (hp : p ∈ u), closed_ball p.1 p.2)) ≤
       N/(N+1) * μ (s \ (⋃ (p : α × ℝ) (hp : p ∈ t), closed_ball p.1 p.2)),
   { assume t ht,
-    let B := ⋃ (p : α × ℝ) (hp : p ∈ t), closed_ball p.1 p.2,
-    have : is_closed B :=
+    set B := ⋃ (p : α × ℝ) (hp : p ∈ t), closed_ball p.1 p.2 with hB,
+    have B_closed : is_closed B :=
       is_closed_bUnion (finset.finite_to_set _) (λ i hi, is_closed_ball),
     let s' := s \ B,
-    have : ∀ x ∈ s', ∃ r ∈ f x, r ≤ 1 ∧ disjoint B (closed_ball x r),
-    { assume x hx,
-      by_cases hB : B.nonempty,
+    have s'meas : measurable_set s' := smeas.diff B_closed.measurable_set,
+    have : ∀ x ∈ s', ∃ r ∈ f x, r ≤ 1 ∧ disjoint B (closed_ball x r), sorry,
+    /-{ assume x hx,
+      have xs : x ∈ s := ((mem_diff x).1 hx).1,
+      rcases eq_empty_or_nonempty B with hB|hB,
+      { have : (0 : ℝ) < 1 := zero_lt_one,
+        rw ← hf'' x xs at this,
+        rcases exists_lt_of_cInf_lt (hf x xs) this with ⟨r, hr, h'r⟩,
+        exact ⟨r, hr, h'r.le, by simp only [hB, empty_disjoint]⟩ },
       { let R := inf_dist x B,
-        have : 0 < R,
-        {
+        have : 0 < min R 1 :=
+          lt_min ((B_closed.not_mem_iff_inf_dist_pos hB).1 ((mem_diff x).1 hx).2) zero_lt_one,
+        rw ← hf'' x xs at this,
+        rcases exists_lt_of_cInf_lt (hf x xs) this with ⟨r, hr, h'r⟩,
+        refine ⟨r, hr, h'r.le.trans (min_le_right _ _), _⟩,
+        rw disjoint.comm,
+        exact disjoint_closed_ball_of_lt_inf_edist (h'r.trans_le (min_le_left _ _)) } },-/
+    choose! r hr using this,
+    obtain ⟨v, vs', hμv, hv⟩ : ∃ (v : finset α), ↑v ⊆ s'
+      ∧ μ (s' \ ⋃ (x ∈ v), closed_ball x (r x)) ≤ N/(N+1) * μ s'
+      ∧ (v : set α).pairwise_on (disjoint on λ (x : α), closed_ball x (r x)),
+    { have rpos : ∀ x ∈ s', 0 < r x := λ x hx, hf' x ((mem_diff x).1 hx).1 (hr x hx).1,
+      have rle : ∀ x ∈ s', r x ≤ 1 := λ x hx, (hr x hx).2.1,
+      exact exist_finset_disjoint_balls_large_measure μ hτ hN s' s'meas r rpos rle },
+    refine ⟨t ∪ (finset.image (λ x, (x, r x)) v), finset.subset_union_left _ _, ⟨_, _, _⟩, _⟩,
+    sorry,
+    /-{ simp only [finset.coe_union, pairwise_on_union, ht.1, true_and, finset.coe_image],
+      split,
+      { assume p hp q hq hpq,
+        rcases (mem_image _ _ _).1 hp with ⟨p', p'v, hp'⟩,
+        rcases (mem_image _ _ _).1 hq with ⟨q', q'v, hq'⟩,
+        simp only [← hp', ← hq', function.on_fun],
+        refine hv p' p'v q' q'v (λ hp'q', _),
+        rw [← hp', ← hq', ← hp'q'] at hpq,
+        exact hpq rfl },
+      { simp only [function.on_fun, disjoint.comm, and_self],
+        assume p hp q hq hpq,
+        rcases (mem_image _ _ _).1 hq with ⟨q', q'v, hq'⟩,
+        simp only [← hq'],
+        apply disjoint_of_subset_left _ (hr q' (vs' q'v)).2.2,
+        rw [hB, ← finset.set_bUnion_coe],
+        exact subset_bUnion_of_mem hp } },-/
+    sorry,
+    /-{ assume p hp,
+      rcases finset.mem_union.1 hp with h'p|h'p,
+      { exact ht.2.1 p h'p },
+      { rcases finset.mem_image.1 h'p with ⟨p', p'v, hp'⟩,
+        rw ← hp',
+        exact ((mem_diff _).1 (vs' (finset.mem_coe.2 p'v))).1 } },-/
 
-        }
-      }
-
-    }
 
 
   }
@@ -612,3 +651,13 @@ end
 
 
 end besicovitch
+
+#exit
+
+exist_finset_disjoint_balls_large_measure
+  [second_countable_topology α] [measurable_space α] [borel_space α]
+  (μ : measure α) [is_finite_measure μ] {N : ℕ} {τ : ℝ}
+  (hτ : 1 < τ) (hN : is_empty (satellite_config α N τ)) (s : set α) (smeas : measurable_set s)
+  (r : α → ℝ) (rpos : ∀ x ∈ s, 0 < r x) (rle : ∀ x ∈ s, r x ≤ 1) :
+  ∃ (t : finset α), (↑t ⊆ s) ∧ μ (s \ (⋃ (x ∈ t), closed_ball x (r x))) ≤ N/(N+1) * μ s
+    ∧ (t : set α).pairwise_on (disjoint on (λ x, closed_ball x (r x)))

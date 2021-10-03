@@ -220,11 +220,9 @@ begin
     rcases lt_or_le δ 1 with hδ'|hδ',
     { rcases h δ hδ hδ' with ⟨s, hs, h's, s_card⟩,
       obtain ⟨f, f_inj, hfs⟩ : ∃ (f : fin N → E), function.injective f ∧ range f ⊆ ↑s :=
-        begin
-          have : fintype.card (fin N) ≤ s.card, by { simp only [fintype.card_fin], exact s_card },
-          rcases function.embedding.exists_of_card_le_finset this with ⟨f, hf⟩,
-          exact ⟨f, f.injective, hf⟩
-        end,
+      { have : fintype.card (fin N) ≤ s.card, { simp only [fintype.card_fin], exact s_card },
+        rcases function.embedding.exists_of_card_le_finset this with ⟨f, hf⟩,
+        exact ⟨f, f.injective, hf⟩ },
       simp only [range_subset_iff, finset.mem_coe] at hfs,
       refine ⟨f, λ i, hs _ (hfs i), λ i j hij, h's _ (hfs i) _ (hfs j) (f_inj.ne hij)⟩ },
     { exact ⟨λ i, 0, λ i, by simp, λ i j hij, by simpa only [norm_zero, sub_nonpos, sub_self]⟩ } },
@@ -279,17 +277,17 @@ end
 
 /-- A small positive number such that any `1 - δ`-separated set in the ball of radius `2` has
 cardinality at most `besicovitch.multiplicity E`. -/
-def good_δ : ℝ := classical.some (exists_good_δ E)
+def good_δ : ℝ := (exists_good_δ E).some
 
-lemma good_δ_lt_one : good_δ E < 1 := (classical.some_spec (exists_good_δ E)).2.1
+lemma good_δ_lt_one : good_δ E < 1 := (exists_good_δ E).some_spec.2.1
 
 /-- A number `τ > 1`, but chosen close enough to `1` so that the construction in the Besicovitch
 covering theorem using this parameter `τ` will give the smallest possible number of covering
 families. -/
-def good_τ : ℝ := 1 + classical.some (exists_good_δ E) / 4
+def good_τ : ℝ := 1 + (good_δ E) / 4
 
 lemma one_lt_good_τ : 1 < good_τ E :=
-by { dsimp [good_τ], linarith [(classical.some_spec (exists_good_δ E)).1] }
+by { dsimp [good_τ, good_δ], linarith [(exists_good_δ E).some_spec.1] }
 
 variable {E}
 

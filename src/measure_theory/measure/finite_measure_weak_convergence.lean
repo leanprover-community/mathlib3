@@ -166,10 +166,26 @@ abbreviation test_against_nn (μ : finite_measure α) (f : α → ℝ≥0) : ℝ
 
 variables [topological_space α]
 
+#check bdd_above
+#check set_lintegral_lt_top_of_bdd_above
+
 -- I believe the formulation is generally useful, except maybe the exact form
 -- of the assumption `f_bdd`.
 -- Where to place?
 lemma _root_.is_finite_measure.lintegral_lt_top_of_bounded_to_ennreal {α : Type*}
+  [measurable_space α] (μ : measure α) [μ_fin : is_finite_measure μ]
+  {f : α → ℝ≥0∞} (f_bdd : bdd_above (range f)) : ∫⁻ x, f x ∂μ < ∞ :=
+begin
+  cases f_bdd with c hc,
+  have c_bound : ∀ x, f x ≤ c,
+  {
+    sorry, },
+  apply lt_of_le_of_lt (@lintegral_mono _ _ μ _ _ c_bound),
+  rw lintegral_const,
+  exact ennreal.mul_lt_top ennreal.coe_lt_top.ne μ_fin.measure_univ_lt_top.ne,
+end
+
+lemma _root_.is_finite_measure.lintegral_lt_top_of_bounded_to_ennreal₀ {α : Type*}
   [measurable_space α] (μ : measure α) [μ_fin : is_finite_measure μ]
   {f : α → ℝ≥0∞} (f_bdd : ∃ c : ℝ≥0, ∀ x, f x ≤ c) : ∫⁻ x, f x ∂μ < ∞ :=
 begin
@@ -181,13 +197,13 @@ end
 
 -- Switched to using `nndist`, and believe these two could be useful... (1)
 -- Where to place?
-lemma _root_.nnreal.val_eq_nndist_zero (z : ℝ≥0) : z = nndist 0 z :=
+lemma _root_.nnreal.nndist_zero_eq_val (z : ℝ≥0) : nndist 0 z = z :=
 by { simp only [nnreal.nndist_eq, max_eq_right, zero_sub', sub_zero', zero_le'], }
 
 -- Switched to using `nndist`, and believe these two could be useful... (2)
 -- Where to place?
-lemma _root_.nnreal.val_eq_nndist_zero' (z : ℝ≥0) : z = nndist z 0 :=
-by { rw nndist_comm, exact nnreal.val_eq_nndist_zero z, }
+lemma _root_.nnreal.nndist_zero_eq_val' (z : ℝ≥0) : nndist z 0 = z :=
+by { rw nndist_comm, exact nnreal.nndist_zero_eq_val z, }
 
 -- I think this might be occasionally useful (it is used below).
 -- Where to place?
@@ -201,7 +217,7 @@ end
 
 -- Only useful here or more generally?
 -- Where to place?
-lemma _root_.bounded_continuous_function.nnreal.coe_comp_measurable {α : Type*}
+lemma _root_.bounded_continuous_function.nnreal.to_ennreal_comp_measurable {α : Type*}
   [topological_space α] [measurable_space α] [opens_measurable_space α] (f : α →ᵇ ℝ≥0) :
   measurable (λ x, (f x : ℝ≥0∞)) :=
 measurable_coe_nnreal_ennreal.comp f.continuous.measurable
@@ -271,8 +287,8 @@ begin
     (lintegral_lt_top_of_bounded_continuous_to_nnreal μ f₁).ne
     (lintegral_lt_top_of_bounded_continuous_to_nnreal μ f₂).ne,
   rw ← @lintegral_add _ _ (μ : measure α) _ _
-     (bounded_continuous_function.nnreal.coe_comp_measurable f₁)
-     (bounded_continuous_function.nnreal.coe_comp_measurable f₂),
+     (bounded_continuous_function.nnreal.to_ennreal_comp_measurable f₁)
+     (bounded_continuous_function.nnreal.to_ennreal_comp_measurable f₂),
   refl,
 end
 
@@ -293,7 +309,7 @@ lemma test_against_nn_smul (μ : finite_measure α) (c : ℝ≥0) (f : α →ᵇ
   μ.test_against_nn (c • f) = c * μ.test_against_nn f :=
 begin
   have key_smul := @lintegral_mul_const _ _ (μ : measure α) c _
-                   (bounded_continuous_function.nnreal.coe_comp_measurable f),
+                   (bounded_continuous_function.nnreal.to_ennreal_comp_measurable f),
   simp_rw mul_comm at key_smul,
   repeat { dunfold finite_measure.test_against_nn, },
   simp_rw [ennreal.nnreal_mul_ennreal_to_nnreal, ←key_smul],

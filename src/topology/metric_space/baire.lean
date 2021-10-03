@@ -51,7 +51,7 @@ begin
   to any n, x, δ, δpos a center and a positive radius such that
   `closed_ball center radius` is included both in `f n` and in `closed_ball x δ`.
   We can also require `radius ≤ (1/2)^(n+1)`, to ensure we get a Cauchy sequence later. -/
-  have : ∀n x δ, δ > 0 → ∃y r, r > 0 ∧ r ≤ B (n+1) ∧ closed_ball y r ⊆ (closed_ball x δ) ∩ f n,
+  have : ∀n x δ, δ ≠ 0 → ∃y r, 0 < r ∧ r ≤ B (n+1) ∧ closed_ball y r ⊆ (closed_ball x δ) ∩ f n,
   { assume n x δ δpos,
     have : x ∈ closure (f n) := hd n x,
     rcases emetric.mem_closure_iff.1 this (δ/2) (ennreal.half_pos δpos) with ⟨y, ys, xy⟩,
@@ -70,7 +70,7 @@ begin
     show z ∈ f n, from hr (calc
       edist z y ≤ min (min (δ / 2) r) (B (n+1)) : hz
       ... ≤ r : le_trans (min_le_left _ _) (min_le_right _ _)) },
-  choose! center radius H using this,
+  choose! center radius Hpos HB Hball using this,
   refine λ x, (mem_closure_iff_nhds_basis nhds_basis_closed_eball).2 (λ ε εpos, _),
   /- `ε` is positive. We have to find a point in the ball of radius `ε` around `x` belonging to all
   `f n`. For this, we construct inductively a sequence `F n = (c n, r n)` such that the closed ball
@@ -81,18 +81,19 @@ begin
                               (λn p, prod.mk (center n p.1 p.2) (radius n p.1 p.2)),
   let c : ℕ → α := λn, (F n).1,
   let r : ℕ → ℝ≥0∞ := λn, (F n).2,
-  have rpos : ∀n, r n > 0,
+  have rpos : ∀ n, 0 < r n,
   { assume n,
     induction n with n hn,
     exact lt_min εpos (Bpos 0),
-    exact (H n (c n) (r n) hn).1 },
+    exact Hpos n (c n) (r n) hn.ne' },
+  have r0 : ∀ n, r n ≠ 0 := λ n, (rpos n).ne', 
   have rB : ∀n, r n ≤ B n,
   { assume n,
     induction n with n hn,
     exact min_le_right _ _,
-    exact (H n (c n) (r n) (rpos n)).2.1 },
+    exact HB n (c n) (r n) (r0 n) },
   have incl : ∀n, closed_ball (c (n+1)) (r (n+1)) ⊆ (closed_ball (c n) (r n)) ∩ (f n) :=
-    λn, (H n (c n) (r n) (rpos n)).2.2,
+    λ n, Hball n (c n) (r n) (r0 n),
   have cdist : ∀n, edist (c n) (c (n+1)) ≤ B n,
   { assume n,
     rw edist_comm,

@@ -173,7 +173,7 @@ lemma mod_coprime {a b : ℕ} (hab : nat.coprime a b) : ∃ y : ℤ, a * y ≡ 1
 
 lemma exists_unique_equiv (a : ℤ) {b : ℤ} (hb : 0 < b) : ∃ z : ℤ, 0 ≤ z ∧ z < b ∧ z ≡ a [ZMOD b] :=
 ⟨ a % b, mod_nonneg _ (ne_of_gt hb),
-  have a % b < abs b, from mod_lt _ (ne_of_gt hb),
+  have a % b < |b|, from mod_lt _ (ne_of_gt hb),
   by rwa abs_of_pos hb at this,
   by simp [modeq] ⟩
 

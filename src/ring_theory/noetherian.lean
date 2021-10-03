@@ -378,6 +378,14 @@ theorem is_noetherian_of_linear_equiv (f : M ≃ₗ[R] P)
   [is_noetherian R M] : is_noetherian R P :=
 is_noetherian_of_surjective _ f.to_linear_map f.range
 
+lemma is_noetherian_top_iff :
+  is_noetherian R (⊤ : submodule R M) ↔ is_noetherian R M :=
+begin
+  unfreezingI { split; assume h },
+  { exact is_noetherian_of_linear_equiv (linear_equiv.of_top (⊤ : submodule R M) rfl) },
+  { exact is_noetherian_of_linear_equiv (linear_equiv.of_top (⊤ : submodule R M) rfl).symm },
+end
+
 lemma is_noetherian_of_injective [is_noetherian R P] (f : M →ₗ[R] P) (hf : f.ker = ⊥) :
   is_noetherian R M :=
 is_noetherian_of_linear_equiv (linear_equiv.of_injective f $ linear_map.ker_eq_bot.mp hf).symm
@@ -638,8 +646,8 @@ begin
   exact order_embedding.well_founded (submodule.map_subtype.order_embedding N).dual h,
 end
 
-theorem is_noetherian_of_quotient_of_noetherian (R) [ring R] (M) [add_comm_group M] [module R M]
-  (N : submodule R M) (h : is_noetherian R M) : is_noetherian R N.quotient :=
+instance submodule.quotient.is_noetherian {R} [ring R] {M} [add_comm_group M] [module R M]
+  (N : submodule R M) [h : is_noetherian R M] : is_noetherian R N.quotient :=
 begin
   rw is_noetherian_iff_well_founded at h ⊢,
   exact order_embedding.well_founded (submodule.comap_mkq.order_embedding N).dual h,
@@ -654,6 +662,10 @@ begin
   rw is_noetherian_iff_well_founded at h ⊢,
   refine (submodule.restrict_scalars_embedding R S M).dual.well_founded h
 end
+
+instance ideal.quotient.is_noetherian_ring {R : Type*} [comm_ring R] [h : is_noetherian_ring R]
+  (I : ideal R) : is_noetherian_ring I.quotient :=
+is_noetherian_ring_iff.mpr $ is_noetherian_of_tower R $ submodule.quotient.is_noetherian _
 
 theorem is_noetherian_of_fg_of_noetherian {R M} [ring R] [add_comm_group M] [module R M]
   (N : submodule R M) [is_noetherian_ring R] (hN : N.fg) : is_noetherian R N :=

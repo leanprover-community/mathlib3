@@ -3,7 +3,8 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import algebra.algebra.basic
+import algebra.algebra.bilinear
+import algebra.module.submodule_pointwise
 
 /-!
 # Multiplication and division of submodules of an algebra.

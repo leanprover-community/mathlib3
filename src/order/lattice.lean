@@ -66,6 +66,8 @@ section
 @le_antisymm _ _
 end
 
+instance [h : nontrivial α] : nontrivial (order_dual α) := h
+
 /- TODO: automatic construction of dual definitions / theorems -/
 
 /-- Typeclass for the `⊔` (`\lub`) notation -/
@@ -420,7 +422,7 @@ semilattice_inf.ext $ λ _ _, iff.rfl
 
 theorem exists_lt_of_inf (α : Type*) [semilattice_inf α] [nontrivial α] :
   ∃ a b : α, a < b :=
-let ⟨a, b, h⟩ := exists_lt_of_sup (order_dual α) in _
+let ⟨a, b, h⟩ := exists_lt_of_sup (order_dual α) in ⟨b, a, h⟩
 
 end semilattice_inf
 

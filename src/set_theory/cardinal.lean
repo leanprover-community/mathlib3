@@ -91,6 +91,9 @@ def mk : Type u → cardinal := quotient.mk
 
 localized "notation `#` := cardinal.mk" in cardinal
 
+instance can_lift_cardinal_Type : can_lift cardinal.{u} (Type u) :=
+⟨mk, λ c, true, λ c _, quot.induction_on c $ λ α, ⟨α, rfl⟩⟩
+
 protected lemma eq : #α = #β ↔ nonempty (α ≃ β) := quotient.eq
 
 @[simp] theorem mk_def (α : Type u) : @eq cardinal ⟦α⟧ (#α) := rfl
@@ -563,8 +566,23 @@ quotient.sound ⟨equiv.ulift.trans (equiv.prod_congr equiv.ulift equiv.ulift).s
 quotient.induction_on₂ a b $ λ α β,
 quotient.sound ⟨equiv.ulift.trans (equiv.arrow_congr equiv.ulift equiv.ulift).symm⟩
 
-@[simp] theorem lift_two_power (a) : lift (2 ^ a) = 2 ^ lift a :=
-by simp [bit0]
+@[simp] theorem lift_bit0 (a : cardinal) : lift (bit0 a) = bit0 (lift a) :=
+lift_add a a
+
+@[simp] theorem lift_bit1 (a : cardinal) : lift (bit1 a) = bit1 (lift a) :=
+by simp [bit1]
+
+theorem lift_two : lift.{u v} 2 = 2 := by simp
+
+theorem lift_two_power (a) : lift (2 ^ a) = 2 ^ lift a := by simp
+
+@[simp] theorem lift_prod {ι : Type u} (c : ι → cardinal.{v}) :
+  lift.{w} (prod c) = prod (λ i, lift.{w} (c i)) :=
+begin
+  lift c to ι → Type v using λ _, trivial,
+  simp only [prod_mk, lift_mk],
+  exact cardinal.mk_congr (equiv.ulift.trans $ equiv.Pi_congr_right $ λ i, equiv.ulift.symm)
+end
 
 @[simp] theorem lift_min {ι I} (f : ι → cardinal) : lift (min I f) = min I (lift ∘ f) :=
 le_antisymm (le_min.2 $ λ a, lift_le.2 $ min_le _ a) $
@@ -690,6 +708,12 @@ theorem omega_pos : 0 < ω :=
 pos_iff_ne_zero.2 omega_ne_zero
 
 @[simp] theorem lift_omega : lift ω = ω := lift_lift _
+
+@[simp] theorem omega_le_lift {c : cardinal.{u}} : ω ≤ lift.{v} c ↔ ω ≤ c :=
+by rw [← lift_omega, lift_le]
+
+@[simp] theorem lift_le_omega {c : cardinal.{u}} : lift.{v} c ≤ ω ↔ c ≤ ω :=
+by rw [← lift_omega, lift_le]
 
 /- properties about the cast from nat -/
 
@@ -875,9 +899,20 @@ end
 theorem infinite_iff {α : Type u} : infinite α ↔ ω ≤ #α :=
 by rw [←not_lt, lt_omega_iff_fintype, not_nonempty_iff, is_empty_fintype]
 
+lemma omega_le_mk (α : Type u) [infinite α] : ω ≤ #α := infinite_iff.1 ‹_›
+
+lemma encodable_iff {α : Type u} : nonempty (encodable α) ↔ #α ≤ ω :=
+⟨λ ⟨h⟩, ⟨(@encodable.encode' α h).trans equiv.ulift.symm.to_embedding⟩,
+  λ ⟨h⟩, ⟨encodable.of_inj _ (h.trans equiv.ulift.to_embedding).injective⟩⟩
+
+@[simp] lemma mk_le_omega [encodable α] : #α ≤ ω := encodable_iff.1 ⟨‹_›⟩
+
 lemma denumerable_iff {α : Type u} : nonempty (denumerable α) ↔ #α = ω :=
 ⟨λ⟨h⟩, quotient.sound $ by exactI ⟨ (denumerable.eqv α).trans equiv.ulift.symm ⟩,
  λ h, by { cases quotient.exact h with f, exact ⟨denumerable.mk' $ f.trans equiv.ulift⟩ }⟩
+
+@[simp] lemma mk_denumerable (α : Type u) [denumerable α] : #α = ω :=
+denumerable_iff.1 ⟨‹_›⟩
 
 lemma countable_iff (s : set α) : countable s ↔ #s ≤ ω :=
 begin
@@ -885,9 +920,6 @@ begin
   rintro ⟨f, hf⟩, exact ⟨embedding.trans ⟨f, hf⟩ equiv.ulift.symm.to_embedding⟩,
   rintro ⟨f'⟩, cases embedding.trans f' equiv.ulift.to_embedding with f hf, exact ⟨f, hf⟩
 end
-
-lemma not_countable_of_two_pow_omega_le_mk (s : set α) (hs : 2 ^ omega ≤ #s) : ¬countable s :=
-by { rw [countable_iff, not_le], exact (cantor _).trans_le hs }
 
 /-- This function sends finite cardinals to the corresponding natural, and infinite cardinals
   to 0. -/
@@ -1011,11 +1043,9 @@ end
 lemma mk_to_enat_eq_coe_card [fintype α] : (#α).to_enat = fintype.card α :=
 by simp [fintype_card]
 
-lemma mk_int : #ℤ = ω :=
-denumerable_iff.mp ⟨by apply_instance⟩
+lemma mk_int : #ℤ = ω := mk_denumerable ℤ
 
-lemma mk_pnat : #ℕ+ = ω :=
-denumerable_iff.mp ⟨by apply_instance⟩
+lemma mk_pnat : #ℕ+ = ω := mk_denumerable ℕ+
 
 lemma two_le_iff : (2 : cardinal) ≤ #α ↔ ∃x y : α, x ≠ y :=
 begin

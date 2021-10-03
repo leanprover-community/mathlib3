@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import data.set.intervals.ord_connected
+import data.set.intervals.nontrivial
 
 /-!
 # Theory of conditionally complete lattices.
@@ -520,6 +521,12 @@ lemma csupr_mem_Inter_Icc_of_antitone_Icc [nonempty β] [semilattice_sup β]
   (⨆ n, f n) ∈ ⋂ n, Icc (f n) (g n) :=
 monotone.csupr_mem_Inter_Icc_of_antitone (λ m n hmn, ((Icc_subset_Icc_iff (h' n)).1 (h hmn)).1)
   (λ m n hmn, ((Icc_subset_Icc_iff (h' n)).1 (h hmn)).2) h'
+
+lemma csupr_mem_Inter_Icc_of_antitone_nontrivial_interval [nonempty β] [semilattice_sup β]
+  {f : β → nontrivial_interval α} (h : antitone f) :
+  (⨆ n, (f n).left) ∈ ⋂ n, (f n).Icc :=
+csupr_mem_Inter_Icc_of_antitone_Icc (nontrivial_interval.Icc.monotone.comp_antitone h) $
+  λ n, (f n).left_le_right
 
 lemma finset.nonempty.sup'_eq_cSup_image {s : finset β} (hs : s.nonempty) (f : β → α) :
   s.sup' hs f = Sup (f '' s) :=

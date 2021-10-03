@@ -3,13 +3,14 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import set_theory.cardinal_ordinal
+import set_theory.continuum
 import data.stream
 import data.setoid.basic
-import tactic.wlog
 import order.pilex
 import order.conditionally_complete_lattice
 
+/-- A binary fraction is a sequence of zeros and ones. We use a map `ℕ → bool` to represent it, with
+`ff` encoding zero and `tt` encoding one. -/
 def binary_fraction : Type := ℕ → bool
 
 variables {x y z : binary_fraction}
@@ -19,8 +20,13 @@ open cardinal function set bool
 
 namespace binary_fraction
 
+instance : inhabited binary_fraction := pi.inhabited _
+
 noncomputable instance : linear_order binary_fraction := pilex.linear_order nat.lt_wf
 
+/-- Two binary fractions `x` and `y` are related by `binary_fraction.tail_rel` if they have the form
+`x = x₀...xₙ ff tt tt tt tt ...` and `y = x₀...xₙ tt ff ff ff ff ...`. Two fractions related by
+`tail_rel` define the same real number. -/
 def tail_rel (x y : binary_fraction) :=
 ∃ k, (∀ i < k, x i = y i) ∧ x k = ff ∧ y k = tt ∧ (∀ i > k, x i = tt) ∧ (∀ i > k, y i = ff)
 
@@ -142,38 +148,52 @@ section preorder
 
 variable [preorder α]
 
-structure nonempty_interval (α : Type*) [preorder α] :=
-(left right : α) (hlt : left < right)
+variable (choice : Π I : nontrivial_interval α, I.Ioo)
 
-def nonempty_interval.Icc (I : nonempty_interval α) : set α := Icc I.left I.right
-
-variable (choice : Π I : nonempty_interval α, (Ioo I.left I.right))
-def next_interval (b : bool) (I : nonempty_interval α) : nonempty_interval α :=
+/-- Given a choice function `choice : Π I : nontrivial_interval α, I.Ioo`, a boolean value `b`, and
+a nontrivial interval `I`, returns either `[I.left, choice I]` (if `b = ff`), or
+`[choice I, I.right]` (if `b = tt`). -/
+def next_interval (b : bool) (I : nontrivial_interval α) : nontrivial_interval α :=
 cond b ⟨choice I, I.right, (choice I).2.2⟩ ⟨I.left, choice I, (choice I).2.1⟩
 
-lemma next_interval_subset (b : bool) (I : nonempty_interval α) :
-  (next_interval choice b I).Icc ⊆ I.Icc :=
-begin
-  cases b,
-  exacts [Icc_subset_Icc_right (choice I).2.2.le, Icc_subset_Icc_left (choice I).2.1.le]
-end
+lemma next_interval_lt (I : nontrivial_interval α) :
+  ∀ b, next_interval choice b I < I
+| ff := ⟨⟨le_rfl, (choice I).2.2.le⟩, λ h, h.2.not_lt (choice I).2.2⟩
+| tt := ⟨⟨(choice I).2.1.le, le_rfl⟩, λ h, h.1.not_lt (choice I).2.1⟩
 
-def nth_interval (x : binary_fraction) (I : nonempty_interval α) : ℕ → nonempty_interval α
+/-- Given a choice function `choice : Π I : nontrivial_interval α, I.Ioo`, a binary fraction `x`
+and an initial interval `I`, returns the strictly antitone sequence of nontrivial intervals given by
+`nth_interval choice x I 0 = I` and
+`nth_interval choice x I (n + 1) = next_interval choice (x n) (nth_interval choice x I n)`. -/
+def nth_interval (x : binary_fraction) (I : nontrivial_interval α) : ℕ → nontrivial_interval α
 | 0 := I
 | (n + 1) := next_interval choice (x n) (nth_interval n)
 
-lemma nth_interval_succ_subset (x : binary_fraction) (I : nonempty_interval α) (n : ℕ) :
-    (x.nth_interval choice I (n + 1)).Icc ⊆ (x.nth_interval choice I n).Icc :=
-next_interval_subset _ _ _
+@[simp] lemma nth_interval_zero (x : binary_fraction) (I : nontrivial_interval α) :
+  nth_interval choice x I 0 = I := rfl
 
-lemma nth_interval_antimono (x : binary_fraction) (I : nonempty_interval α) :
-  ∀ ⦃m n⦄, m ≤ n → (x.nth_interval choice I n).Icc ⊆ (x.nth_interval choice I m).Icc :=
+lemma nth_interval_succ (x : binary_fraction) (I : nontrivial_interval α) (n : ℕ) :
+  nth_interval choice x I (n + 1) = next_interval choice (x n) (nth_interval choice x I n) :=
+rfl
+
+lemma nth_interval_succ' (x : binary_fraction) (I : nontrivial_interval α) (n : ℕ) :
+  nth_interval choice x I (n + 1) =
+    nth_interval choice (stream.tail x) (next_interval choice (x 0) I) n :=
 begin
-  refine @monotone_nat_of_le_succ (order_dual (set α)) _ _ (λ n, _),
-  apply nth_interval_succ_subset
+  induction n with n ihn generalizing I, { refl },
+  rw [nth_interval_succ, nat.succ_eq_add_one, ihn, nth_interval_succ],
+  refl
 end
 
-lemma nth_interval_congr (n : ℕ) (h : ∀ k < n, x k = y k) (I : nonempty_interval α) :
+lemma strict_anti_nth_interval (x : binary_fraction) (I : nontrivial_interval α) :
+  strict_anti (x.nth_interval choice I) :=
+strict_anti_nat_of_succ_lt $ λ n, next_interval_lt _ _ _
+
+lemma antitone_nth_interval (x : binary_fraction) (I : nontrivial_interval α) :
+  antitone (x.nth_interval choice I) :=
+(strict_anti_nth_interval choice x I).antitone
+
+lemma nth_interval_congr (n : ℕ) (h : ∀ k < n, x k = y k) (I : nontrivial_interval α) :
   x.nth_interval choice I n = y.nth_interval choice I n :=
 begin
   induction n with n ihn, { refl },
@@ -183,57 +203,70 @@ end
 
 end preorder
 
-variables [conditionally_complete_lattice α]
-  (choice : Π I : nonempty_interval α, (Ioo I.left I.right))
+variables [conditionally_complete_lattice α] (choice : Π I : nontrivial_interval α, I.Ioo)
 
-def decode (I : nonempty_interval α) (x : binary_fraction) : α :=
+/-- “Decode” an element of a conditionally complete lattice `α` encoded by `x : binary_fraction`
+given a choice function and an initial interval. In the case of real numbers,
+`I = ⟨0, 1, zero_lt_one⟩`, and `(choice J : ℝ) = (J.left + J.right) / 2`, this corresponds to the
+classical binary representation of a real number. -/
+def decode (I : nontrivial_interval α) (x : binary_fraction) : α :=
 ⨆ n, (x.nth_interval choice I n).left
 
-lemma decode_mem_Inter_Icc (I : nonempty_interval α) (x : binary_fraction) :
+lemma decode_mem_Inter_Icc (I : nontrivial_interval α) (x : binary_fraction) :
   x.decode choice I ∈ ⋂ n, (x.nth_interval choice I n).Icc :=
-csupr_mem_Inter_Icc_of_mono_decr_Icc_nat (x.nth_interval_succ_subset choice I)
-  (λ n, (x.nth_interval choice I n).hlt.le)
+csupr_mem_Inter_Icc_of_antitone_nontrivial_interval (x.antitone_nth_interval choice I)
 
-lemma decode_mem_Icc (I : nonempty_interval α) (x : binary_fraction) (n : ℕ) :
+lemma decode_mem_Icc (I : nontrivial_interval α) (x : binary_fraction) (n : ℕ) :
   x.decode choice I ∈ (x.nth_interval choice I n).Icc :=
 by convert mem_Inter.1 (x.decode_mem_Inter_Icc choice I) n
 
-lemma decode_lt_of_lt_not_equiv (I : nonempty_interval α) (h₁ : x < y) (h₂ : ¬ x ≈ y) :
+lemma decode_lt_of_lt_not_equiv (I : nontrivial_interval α) (h₁ : x < y) (h₂ : ¬ x ≈ y) :
   x.decode choice I < y.decode choice I :=
 begin
   rcases h₁ with ⟨N, lt_N, xy_N⟩,
   rw bool.lt_iff at xy_N,
-  by_cases Hx : ∃ n > N, x n = ff,
-  { rcases Hx with ⟨n, hNn, hxn⟩,
-    calc x.decode choice I ≤ (x.nth_interval choice I (n + 1)).right :
+  rcases em (∃ n > N, x n = ff) with ⟨n, hNn, hxn⟩|Hx,
+  { calc x.decode choice I ≤ (x.nth_interval choice I (n + 1)).right :
       (x.decode_mem_Icc choice I _).2
     ... < (x.nth_interval choice I n).right :
       by { rw [nth_interval, hxn], exact (choice _).2.2 }
     ... ≤ (x.nth_interval choice I (N + 1)).right :
-      (x.nth_interval_antimono _ _ hNn.lt $ right_mem_Icc.2 (nth_interval _ _ _ _).hlt.le).2
+      nontrivial_interval.monotone_right $ antitone_nth_interval _ _ _ hNn
     ... = (y.nth_interval choice I (N + 1)).left :
       by { rw [nth_interval, nth_interval, xy_N.1, xy_N.2, nth_interval_congr _ _ lt_N], refl }
     ... ≤ y.decode choice I : (y.decode_mem_Icc choice I _).1 },
-  { by_cases Hy : ∃ n > N, y n = tt,
-    { rcases Hy with ⟨n, hNn, hyn⟩, from
-    calc x.decode choice I ≤ (x.nth_interval choice I (N + 1)).right :
-      (x.decode_mem_Icc choice I _).2
-    ... = (y.nth_interval choice I (N + 1)).left :
-      by { rw [nth_interval, nth_interval, xy_N.1, xy_N.2, nth_interval_congr _ _ lt_N], refl }
-    ... ≤ (y.nth_interval choice I n).left :
-      (y.nth_interval_antimono _ _ hNn.lt $ left_mem_Icc.2 (nth_interval _ _ _ _).hlt.le).1
-    ... < (y.nth_interval choice I (n + 1)).left :
-      by { rw [nth_interval, hyn], exact (choice _).2.1 }
-    ... ≤ y.decode choice I : (y.decode_mem_Icc choice I _).1 },
+  { rcases em (∃ n > N, y n = tt) with ⟨n, hNn, hyn⟩|Hy,
+    { calc x.decode choice I ≤ (x.nth_interval choice I (N + 1)).right :
+        (x.decode_mem_Icc choice I _).2
+      ... = (y.nth_interval choice I (N + 1)).left :
+        by { rw [nth_interval, nth_interval, xy_N.1, xy_N.2, nth_interval_congr _ _ lt_N], refl }
+      ... ≤ (y.nth_interval choice I n).left :
+        nontrivial_interval.antitone_left $ antitone_nth_interval _ _ _ hNn
+      ... < (y.nth_interval choice I (n + 1)).left :
+        by { rw [nth_interval, hyn], exact (choice _).2.1 }
+      ... ≤ y.decode choice I : (y.decode_mem_Icc choice I _).1 },
     suffices : tail_rel x y, from (h₂ this.equiv).elim,
     push_neg at Hx Hy,
     exact ⟨N, lt_N, xy_N.1, xy_N.2, λ i hi, eq_tt_of_ne_ff (Hx i hi),
       λ i hi, eq_ff_of_ne_tt (Hy i hi)⟩ }
 end
 
-lemma strict_mono_decode_out (I : nonempty_interval α) :
+lemma strict_mono_decode_out (I : nontrivial_interval α) :
   strict_mono (λ x : quotient binary_fraction.setoid, x.out.decode choice I) :=
 λ x y h, decode_lt_of_lt_not_equiv _ _ h $ λ H, h.ne $ quotient.out_equiv_out.1 H
+
+instance : has_card_continuum binary_fraction :=
+⟨by rw [binary_fraction, ← power_def, mk_nat, mk_bool, continuum]⟩
+
+instance : has_card_continuum (quotient binary_fraction.setoid) :=
+⟨begin
+  rw ← mk_eq_continuum binary_fraction,
+  refine mk_quotient_le.antisymm _,
+  set f : binary_fraction → quotient binary_fraction.setoid :=
+    λ x, quotient.mk (x ⋈ (λ _, ff)),
+  have inj : injective f := λ x y h, eq_of_eqv_interleave (quotient.exact h),
+  exact mk_le_of_injective inj
+end⟩
 
 end binary_fraction
 
@@ -241,85 +274,104 @@ namespace cardinal
 
 open binary_fraction
 
-@[simp] lemma mk_binary_fraction : #binary_fraction = 2 ^ omega.{0} :=
-by rw [binary_fraction, ← power_def, mk_nat, mk_bool]
-
-@[simp] lemma mk_binary_fraction_quotient : #(quotient binary_fraction.setoid) = 2 ^ omega.{0} :=
-begin
-  rw ← mk_binary_fraction,
-  refine mk_quotient_le.antisymm _,
-  set f : binary_fraction → quotient binary_fraction.setoid :=
-    λ x, quotient.mk (x ⋈ (λ _, ff)),
-  have inj : injective f := λ x y h, eq_of_eqv_interleave (quotient.exact h),
-  exact mk_le_of_injective inj
-end
-
 universe u
 
 variables {α : Type u} [conditionally_complete_lattice α] [densely_ordered α]
 
-lemma le_mk_Icc {a b : α} (h : a < b) :
-  (2 : cardinal.{u}) ^ omega.{u} ≤ #(Icc a b) :=
+section
+
+variables {a b : α}
+
+lemma continuum_le_mk_Icc (h : a < b) : 𝔠 ≤ #(Icc a b) :=
 begin
-  set c : Π I : nonempty_interval α, (Ioo I.left I.right) :=
-    λ I, classical.indefinite_description _ (nonempty_Ioo.2 I.hlt),
+  set c : Π I : nontrivial_interval α, I.Ioo :=
+    λ I, classical.indefinite_description _ I.nonempty_Ioo,
   set f : quotient binary_fraction.setoid → Icc a b :=
     λ x, ⟨x.out.decode c ⟨a, b, h⟩, x.out.decode_mem_Icc _ _ 0⟩,
   have hf : strict_mono f := strict_mono_decode_out c _,
-  have := mk_le_of_injective (equiv.ulift.{0 u}.symm.injective.comp $
-    hf.injective.comp equiv.ulift.{u 0}.injective),
-  simpa [← lift_mk, ← lift_le.{u 0}] using this
+  simpa using lift_mk_le'.2 ⟨⟨f, hf.injective⟩⟩,
 end
 
-lemma omega_lt_mk_Icc {a b : α} (h : a < b) : omega.{u} < #(Icc a b) :=
-(cantor _).trans_le (le_mk_Icc h)
-
-lemma le_mk_Ioo {a b : α} (h : a < b) :
-  (2 : cardinal.{u}) ^ omega.{u} ≤ #(Ioo a b) :=
+lemma continuum_le_mk_Ioo (h : a < b) : 𝔠 ≤ #(Ioo a b) :=
 begin
-  refine (le_mk_Icc h).trans_eq (cardinal.eq_of_add_eq_add_right _ one_lt_omega),
-  rw add_one_eq (omega_lt_mk_Icc h).le,
-  refine cardinal.eq_of_add_eq_add_right _ one_lt_omega,
-  rw [add_one_eq (omega_lt_mk_Icc h).le, ← Ico_union_right h.le, union_singleton, mk_insert,
-    ← Ioo_union_left h, union_singleton, mk_insert]; simp
+  rcases exists_between h with ⟨a₁, ha, hlt⟩, rcases exists_between hlt with ⟨b₁, hab, hb⟩,
+  calc 𝔠 ≤ #(Icc a₁ b₁) : continuum_le_mk_Icc hab
+  ... ≤ #(Ioo a b) : mk_le_mk_of_subset (Icc_subset_Ioo ha hb)
 end
 
-lemma le_mk_Ico {a b : α} (h : a < b) :
-  (2 : cardinal.{u}) ^ omega.{u} ≤ #(Ico a b) :=
-(le_mk_Ioo h).trans (mk_le_mk_of_subset Ioo_subset_Ico_self)
+lemma continuum_le_mk_Ico (h : a < b) : 𝔠 ≤ #(Ico a b) :=
+(continuum_le_mk_Ioo h).trans (mk_le_mk_of_subset Ioo_subset_Ico_self)
 
-lemma le_mk_Ioc {a b : α} (h : a < b) :
-  (2 : cardinal.{u}) ^ omega.{u} ≤ #(Ioc a b) :=
-(le_mk_Ioo h).trans (mk_le_mk_of_subset Ioo_subset_Ioc_self)
+lemma continuum_le_mk_Ioc (h : a < b) : 𝔠 ≤ #(Ioc a b) :=
+(continuum_le_mk_Ioo h).trans (mk_le_mk_of_subset Ioo_subset_Ioc_self)
 
-lemma le_mk_Ioi' {a : α} (h : (Ioi a).nonempty) : (2 : cardinal.{u}) ^ omega.{u} ≤ #(Ioi a) :=
-exists.elim h $ λ b hb, (le_mk_Ioo hb).trans $ mk_le_mk_of_subset Ioo_subset_Ioi_self
+lemma continuum_le_mk_Ioi' (h : (Ioi a).nonempty) : 𝔠 ≤ #(Ioi a) :=
+exists.elim h $ λ b hb, (continuum_le_mk_Ioo hb).trans $ mk_le_mk_of_subset Ioo_subset_Ioi_self
 
-lemma le_mk_Ioi [no_top_order α] (a : α) : (2 : cardinal.{u}) ^ omega.{u} ≤ #(Ioi a) :=
-le_mk_Ioi' (no_top a)
+lemma continuum_le_mk_Ioi [no_top_order α] (a : α) : 𝔠 ≤ #(Ioi a) :=
+continuum_le_mk_Ioi' (no_top a)
 
-lemma le_mk_Ici' {a : α} (h : (Ioi a).nonempty) : (2 : cardinal.{u}) ^ omega.{u} ≤ #(Ici a) :=
-(le_mk_Ioi' h).trans $ mk_le_mk_of_subset Ioi_subset_Ici_self
+lemma continuum_le_mk_Ici' (h : (Ioi a).nonempty) : 𝔠 ≤ #(Ici a) :=
+(continuum_le_mk_Ioi' h).trans $ mk_le_mk_of_subset Ioi_subset_Ici_self
 
-lemma le_mk_Ici [no_top_order α] (a : α) : (2 : cardinal.{u}) ^ omega.{u} ≤ #(Ici a) :=
-le_mk_Ici' (no_top a)
+lemma continuum_le_mk_Ici [no_top_order α] (a : α) : 𝔠 ≤ #(Ici a) :=
+continuum_le_mk_Ici' (no_top a)
 
-lemma le_mk_Iio' {a : α} (h : (Iio a).nonempty) : (2 : cardinal.{u}) ^ omega.{u} ≤ #(Iio a) :=
-@le_mk_Ioi' (order_dual α) _ _ a h
+lemma continuum_le_mk_Iio' (h : (Iio a).nonempty) : 𝔠 ≤ #(Iio a) :=
+@continuum_le_mk_Ioi' (order_dual α) _ _ a h
 
-lemma le_mk_Iio [no_bot_order α] (a : α) : (2 : cardinal.{u}) ^ omega.{u} ≤ #(Iio a) :=
-@le_mk_Ioi (order_dual α) _ _ _ a
+lemma continuum_le_mk_Iio [no_bot_order α] (a : α) : 𝔠 ≤ #(Iio a) :=
+@continuum_le_mk_Ioi (order_dual α) _ _ _ a
 
-lemma le_mk_Iic' {a : α} (h : (Iio a).nonempty) : (2 : cardinal.{u}) ^ omega.{u} ≤ #(Iic a) :=
-@le_mk_Ici' (order_dual α) _ _ a h
+lemma continuum_le_mk_Iic' (h : (Iio a).nonempty) : 𝔠 ≤ #(Iic a) :=
+@continuum_le_mk_Ici' (order_dual α) _ _ a h
 
-lemma le_mk_Iic [no_bot_order α] (a : α) : (2 : cardinal.{u}) ^ omega.{u} ≤ #(Iic a) :=
-@le_mk_Ici (order_dual α) _ _ _ a
+lemma continuum_le_mk_Iic [no_bot_order α] (a : α) : 𝔠 ≤ #(Iic a) :=
+@continuum_le_mk_Ici (order_dual α) _ _ _ a
 
 variable (α)
 
-lemma le_mk_of_conditionally_complete_lattice [nontrivial α] :
-  (2 : cardinal.{u}) ^ omega.{u} ≤ #α :=
-let ⟨a, b, h⟩ := exists_lt_of_inf α in (le_mk_Icc h).trans $ mk_set_le _
+lemma continuum_le_mk [nontrivial α] : 𝔠 ≤ #α :=
+let ⟨a, b, h⟩ := exists_lt_of_inf α in (continuum_le_mk_Icc h).trans $ mk_set_le _
+
+end
+
+variables [has_card_continuum α] {a b : α}
+
+@[simp] lemma mk_Icc_eq_continuum (h : a < b) : #(Icc a b) = 𝔠 :=
+le_antisymm ((mk_set_le _).trans_eq $ mk_eq_continuum α) (continuum_le_mk_Icc h)
+
+@[simp] lemma mk_Ico_eq_continuum (h : a < b) : #(Ico a b) = 𝔠 :=
+le_antisymm ((mk_set_le _).trans_eq $ mk_eq_continuum α) (continuum_le_mk_Ico h)
+
+@[simp] lemma mk_Ioc_eq_continuum (h : a < b) : #(Ioc a b) = 𝔠 :=
+le_antisymm ((mk_set_le _).trans_eq $ mk_eq_continuum α) (continuum_le_mk_Ioc h)
+
+@[simp] lemma mk_Ioo_eq_continuum (h : a < b) : #(Ioo a b) = 𝔠 :=
+le_antisymm ((mk_set_le _).trans_eq $ mk_eq_continuum α) (continuum_le_mk_Ioo h)
+
+lemma mk_Ici_eq_continuum' (h : (Ioi a).nonempty) : #(Ici a) = 𝔠 :=
+le_antisymm ((mk_set_le _).trans_eq $ mk_eq_continuum α) (continuum_le_mk_Ici' h)
+
+@[simp] lemma mk_Ici_eq_continuum [no_top_order α] (a : α) : #(Ici a) = 𝔠 :=
+mk_Ici_eq_continuum' (no_top a)
+
+lemma mk_Ioi_eq_continuum' (h : (Ioi a).nonempty) : #(Ioi a) = 𝔠 :=
+le_antisymm ((mk_set_le _).trans_eq $ mk_eq_continuum α) (continuum_le_mk_Ioi' h)
+
+@[simp] lemma mk_Ioi_eq_continuum [no_top_order α] (a : α) : #(Ioi a) = 𝔠 :=
+mk_Ioi_eq_continuum' (no_top a)
+
+lemma mk_Iic_eq_continuum' (h : (Iio a).nonempty) : #(Iic a) = 𝔠 :=
+le_antisymm ((mk_set_le _).trans_eq $ mk_eq_continuum α) (continuum_le_mk_Iic' h)
+
+@[simp] lemma mk_Iic_eq_continuum [no_bot_order α] (a : α) : #(Iic a) = 𝔠 :=
+mk_Iic_eq_continuum' (no_bot a)
+
+lemma mk_Iio_eq_continuum' (h : (Iio a).nonempty) : #(Iio a) = 𝔠 :=
+le_antisymm ((mk_set_le _).trans_eq $ mk_eq_continuum α) (continuum_le_mk_Iio' h)
+
+@[simp] lemma mk_Iio_eq_continuum [no_bot_order α] (a : α) : #(Iio a) = 𝔠 :=
+mk_Iio_eq_continuum' (no_bot a)
 
 end cardinal

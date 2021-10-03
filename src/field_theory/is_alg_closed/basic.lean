@@ -70,12 +70,21 @@ variables {k}
 theorem exists_root [is_alg_closed k] (p : polynomial k) (hp : p.degree ≠ 0) : ∃ x, is_root p x :=
 exists_root_of_splits _ (is_alg_closed.splits p) hp
 
-theorem exists_eval₂_eq_zero {R : Type*} [field R] [is_alg_closed k] (f : R →+* k)
-  (p : polynomial R) (hp : p.degree ≠ 0) : ∃ x, p.eval₂ f x = 0 :=
-let ⟨x, hx⟩ := exists_root (p.map f) (by rwa [degree_map]) in
+theorem exists_eval₂_eq_zero_of_injective {R : Type*} [ring R] [is_alg_closed k] (f : R →+* k)
+  (hf : function.injective f) (p : polynomial R) (hp : p.degree ≠ 0) : ∃ x, p.eval₂ f x = 0 :=
+let ⟨x, hx⟩ := exists_root (p.map f) (by rwa [degree_map_eq_of_injective hf]) in
 ⟨x, by rwa [eval₂_eq_eval_map, ← is_root]⟩
 
+theorem exists_eval₂_eq_zero {R : Type*} [field R] [is_alg_closed k] (f : R →+* k)
+  (p : polynomial R) (hp : p.degree ≠ 0) : ∃ x, p.eval₂ f x = 0 :=
+exists_eval₂_eq_zero_of_injective f f.injective p hp
+
 variables (k)
+
+theorem exists_aeval_eq_zero_of_injective {R : Type*} [comm_ring R] [is_alg_closed k] [algebra R k]
+  (hinj : function.injective (algebra_map R k)) (p : polynomial R) (hp : p.degree ≠ 0) :
+  ∃ x : k, aeval x p = 0 :=
+exists_eval₂_eq_zero_of_injective (algebra_map R k) hinj p hp
 
 theorem exists_aeval_eq_zero {R : Type*} [field R] [is_alg_closed k] [algebra R k]
   (p : polynomial R) (hp : p.degree ≠ 0) : ∃ x : k, aeval x p = 0 :=

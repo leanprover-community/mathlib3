@@ -895,12 +895,36 @@ instance nonempty_gt {α : Type u} [preorder α] [no_top_order α] (a : α) :
   nonempty {x // a < x} :=
 nonempty_subtype.2 (no_top a)
 
+/-- `a : α` is a top element of `α` if it is greater than or equal to any other element of `α`.
+This predicate is useful, e.g., to make some statements and proofs work in both cases
+`[order_top α]` and `[no_top_order α]`. -/
+def is_top {α : Type u} [has_le α] (a : α) : Prop := ∀ b, b ≤ a
+
+@[simp] lemma not_is_top {α : Type u} [preorder α] [no_top_order α] (a : α) : ¬is_top a :=
+λ h, let ⟨b, hb⟩ := no_top a in hb.not_le (h b)
+
+lemma is_top.unique {α : Type u} [partial_order α] {a b : α} (ha : is_top a) (hb : a ≤ b) :
+  a = b :=
+le_antisymm hb (ha b)
+
 /-- Order without a minimal element. Sometimes called coinitial or dense. -/
 class no_bot_order (α : Type u) [preorder α] : Prop :=
 (no_bot : ∀ a : α, ∃ a', a' < a)
 
 lemma no_bot [preorder α] [no_bot_order α] : ∀ a : α, ∃ a', a' < a :=
 no_bot_order.no_bot
+
+/-- `a : α` is a bottom element of `α` if it is less than or equal to any other element of `α`.
+This predicate is useful, e.g., to make some statements and proofs work in both cases
+`[order_bot α]` and `[no_bot_order α]`. -/
+def is_bot {α : Type u} [has_le α] (a : α) : Prop := ∀ b, a ≤ b
+
+@[simp] lemma not_is_bot {α : Type u} [preorder α] [no_bot_order α] (a : α) : ¬is_bot a :=
+λ h, let ⟨b, hb⟩ := no_bot a in hb.not_le (h b)
+
+lemma is_bot.unique {α : Type u} [partial_order α] {a b : α} (ha : is_bot a) (hb : b ≤ a) :
+  a = b :=
+le_antisymm (ha b) hb
 
 instance order_dual.no_top_order (α : Type u) [preorder α] [no_bot_order α] :
   no_top_order (order_dual α) :=

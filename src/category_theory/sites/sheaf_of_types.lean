@@ -92,7 +92,7 @@ open opposite category_theory category limits sieve classical
 
 namespace presieve
 
-variables {C : Type u₁} [category.{v} C] {D : Type u₂} [category.{v} D] (F : D ⥤ C)
+variables {C : Type u₁} [category.{v} C]
 
 variables {P Q : Cᵒᵖ ⥤ Type v}
 variables {X Y : C} {S : sieve X} {R : presieve X}
@@ -269,7 +269,8 @@ begin
 end
 
 section functor_pullback
-variables {Z : D} {T : presieve (F.obj Z)} {x : family_of_elements P T}
+variables {D : Type u₂} [category.{v} D] (F : D ⥤ C) {Z : D}
+variables {T : presieve (F.obj Z)} {x : family_of_elements P T}
 
 /--
 Given a family of elements of a sieve `S` on `F(X)`, we can realize it as a family of elements of

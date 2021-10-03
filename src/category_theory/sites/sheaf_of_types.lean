@@ -301,8 +301,8 @@ lemma compatible.pullback (f : Y ⟶ X) {x : family_of_elements P S}
 begin
   simp only [compatible_iff_sieve_compatible] at h ⊢,
   intros W Z f₁ f₂ hf,
-  refine eq.trans _ (h (f₁ ≫ f) f₂ hf),
   unfold pullback,
+  rw ← (h (f₁ ≫ f) f₂ hf),
   simp only [category.assoc],
 end
 

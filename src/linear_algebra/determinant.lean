@@ -11,7 +11,6 @@ import linear_algebra.matrix.reindex
 import linear_algebra.multilinear.basic
 import linear_algebra.dual
 import ring_theory.algebra_tower
-import linear_algebra.free_module.strong_rank_condition
 
 /-!
 # Determinant of families of vectors

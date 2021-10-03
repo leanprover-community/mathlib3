@@ -6,6 +6,7 @@ Authors: Riccardo Brasca
 
 import linear_algebra.free_module.finite
 import linear_algebra.matrix.charpoly.coeff
+import linear_algebra.matrix.basis
 import linear_algebra.invariant_basis_number
 
 /-!

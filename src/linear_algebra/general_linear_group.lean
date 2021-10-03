@@ -81,7 +81,7 @@ variables (A B : GL n R)
 
 @[simp] lemma coe_one : ↑(1 : GL n R) = (1 : matrix n n R) := rfl
 
-@[simp] lemma coe_inv : ↑(A⁻¹) = (↑A : matrix n n R)⁻¹ :=
+lemma coe_inv : ↑(A⁻¹) = (↑A : matrix n n R)⁻¹ :=
 begin
   letI := A.invertible,
   exact inv_eq_nonsing_inv_of_invertible (↑A : matrix n n R),

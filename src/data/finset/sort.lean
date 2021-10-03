@@ -43,6 +43,9 @@ multiset.mem_sort _
 @[simp] theorem length_sort {s : finset α} : (sort r s).length = s.card :=
 multiset.length_sort _
 
+lemma sort_perm_to_list (s : finset α) : sort r s ~ s.to_list :=
+by { rw ←multiset.coe_eq_coe, simp only [coe_to_list, sort_eq] }
+
 end sort
 
 section sort_linear_order
@@ -97,7 +100,7 @@ sorted_last_eq_max'_aux _ _ _
 
 lemma max'_eq_sorted_last {s : finset α} {h : s.nonempty} :
   s.max' h = (s.sort (≤)).nth_le ((s.sort (≤)).length - 1)
-    (by simpa using sub_lt (card_pos.mpr h) zero_lt_one) :=
+    (by simpa using nat.sub_lt (card_pos.mpr h) zero_lt_one) :=
 (sorted_last_eq_max'_aux _ _ _).symm
 
 /-- Given a finset `s` of cardinality `k` in a linear order `α`, the map `order_iso_of_fin s h`

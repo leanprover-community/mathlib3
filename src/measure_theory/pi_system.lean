@@ -294,12 +294,12 @@ def to_measurable_space (h_inter : ∀ s₁ s₂, d.has s₁ → d.has s₂ → 
   measurable_set'      := d.has,
   measurable_set_empty := d.has_empty,
   measurable_set_compl := assume s h, d.has_compl h,
-  measurable_set_Union := assume f hf,
-    have ∀ n, d.has (disjointed f n),
-      from assume n, disjointed_induct (hf n)
-        (assume t i h, h_inter _ _ h $ d.has_compl $ hf i),
-    have d.has (⋃ n, disjointed f n), from d.has_Union disjoint_disjointed this,
-    by rwa [Union_disjointed] at this }
+  measurable_set_Union := λ f hf,
+    begin
+      rw ←Union_disjointed,
+      exact d.has_Union (disjoint_disjointed _)
+        (λ n, disjointed_rec (λ t i h, h_inter _ _ h $ d.has_compl $ hf i) (hf n)),
+    end }
 
 lemma of_measurable_space_to_measurable_space
   (h_inter : ∀ s₁ s₂, d.has s₁ → d.has s₂ → d.has (s₁ ∩ s₂)) :

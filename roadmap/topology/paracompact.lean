@@ -59,7 +59,7 @@ begin
   refine ⟨s, λ b, u b.val, λ b, uo b.val, _, _, λ b, ⟨b.val, subset.refl _⟩⟩,
   { todo },
   { intro x,
-    refine ⟨univ, univ_mem_sets, _⟩,
+    refine ⟨univ, univ_mem, _⟩,
     todo },
 end
 

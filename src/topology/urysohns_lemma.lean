@@ -196,7 +196,7 @@ begin
 end
 
 lemma approx_mono (c : CU X) (x : X) : monotone (λ n, c.approx n x) :=
-monotone_of_monotone_nat $ λ n, c.approx_le_succ n x
+monotone_nat_of_le_succ $ λ n, c.approx_le_succ n x
 
 /-- A continuous function `f : X → ℝ` such that
 

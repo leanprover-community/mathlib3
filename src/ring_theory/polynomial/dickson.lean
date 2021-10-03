@@ -182,10 +182,10 @@ begin
   -- Since `X ^ p` also satisfies this property in characteristic `p`,
   -- we can use a variant on `polynomial.funext` to conclude that these polynomials are equal.
   -- For this argument, we need an arbitrary infinite field of characteristic `p`.
-  obtain ⟨K, _, _, H⟩ : ∃ (K : Type) [field K], by exactI ∃ [char_p K p], infinite K,
+  obtain ⟨K, _, _, H⟩ : ∃ (K : Type) (_ : field K), by exactI ∃ (_ : char_p K p), infinite K,
   { let K := fraction_ring (polynomial (zmod p)),
     let f : zmod p →+* K := (algebra_map _ (fraction_ring _)).comp C,
-    haveI : char_p K p := by { rw ← f.char_p_iff_char_p, apply_instance },
+    haveI : char_p K p, { rw ← f.char_p_iff_char_p, apply_instance },
     haveI : infinite K :=
     infinite.of_injective (algebra_map (polynomial (zmod p)) (fraction_ring (polynomial (zmod p))))
       (is_fraction_ring.injective _ _),
@@ -195,10 +195,10 @@ begin
   rw [map_dickson, map_pow, map_X],
   apply eq_of_infinite_eval_eq,
   -- The two polynomials agree on all `x` of the form `x = y + y⁻¹`.
-  apply @set.infinite_mono _ {x : K | ∃ y, x = y + y⁻¹ ∧ y ≠ 0},
+  apply @set.infinite.mono _ {x : K | ∃ y, x = y + y⁻¹ ∧ y ≠ 0},
   { rintro _ ⟨x, rfl, hx⟩,
     simp only [eval_X, eval_pow, set.mem_set_of_eq, @add_pow_char K _ p,
-      dickson_one_one_eval_add_inv _ _ (mul_inv_cancel hx), inv_pow', zmod.cast_hom_apply,
+      dickson_one_one_eval_add_inv _ _ (mul_inv_cancel hx), inv_pow₀, zmod.cast_hom_apply,
       zmod.cast_one'] },
   -- Now we need to show that the set of such `x` is infinite.
   -- If the set is finite, then we will show that `K` is also finite.
@@ -225,7 +225,7 @@ begin
       ext1 y,
       simp only [multiset.mem_to_finset, set.mem_set_of_eq, finset.mem_coe, multiset.mem_union,
         mem_roots hφ, is_root, eval_add, eval_sub, eval_pow, eval_mul, eval_X, eval_C, eval_one,
-        multiset.mem_singleton, multiset.singleton_eq_singleton],
+        multiset.mem_singleton],
       by_cases hy : y = 0,
       { simp only [hy, eq_self_iff_true, or_true] },
       apply or_congr _ iff.rfl,

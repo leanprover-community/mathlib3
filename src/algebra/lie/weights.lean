@@ -8,6 +8,7 @@ import algebra.lie.tensor_product
 import algebra.lie.character
 import algebra.lie.cartan_subalgebra
 import linear_algebra.eigenspace
+import ring_theory.tensor_product
 
 /-!
 # Weights and roots of Lie modules and Lie algebras
@@ -109,7 +110,7 @@ begin
   /- Eliminate `g` from the picture. -/
   let f₁ : module.End R (M₁ ⊗[R] M₂) := (to_endomorphism R L M₁ x - (χ₁ x) • 1).rtensor M₂,
   let f₂ : module.End R (M₁ ⊗[R] M₂) := (to_endomorphism R L M₂ x - (χ₂ x) • 1).ltensor M₁,
-  have h_comm_square : F.comp ↑g = (g : M₁ ⊗[R] M₂ →ₗ[R] M₃).comp (f₁ + f₂),
+  have h_comm_square : F ∘ₗ ↑g = (g : M₁ ⊗[R] M₂ →ₗ[R] M₃).comp (f₁ + f₂),
   { ext m₁ m₂, simp only [← g.map_lie x (m₁ ⊗ₜ m₂), add_smul, sub_tmul, tmul_sub, smul_tmul,
       lie_tmul_right, tmul_smul, to_endomorphism_apply_apply, lie_module_hom.map_smul,
       linear_map.one_apply, lie_module_hom.coe_to_linear_map, linear_map.smul_apply,
@@ -300,8 +301,13 @@ lift_lie R H (root_space H χ₁) (weight_space M χ₂) (weight_space M χ₃)
   map_add'  := λ x y, by ext m; rw [linear_map.add_apply, linear_map.coe_mk, linear_map.coe_mk,
     linear_map.coe_mk, subtype.coe_mk, lie_submodule.coe_add, lie_submodule.coe_add, add_lie,
     subtype.coe_mk, subtype.coe_mk],
-  map_smul' := λ t x, by ext m; rw [linear_map.smul_apply, linear_map.coe_mk, linear_map.coe_mk,
-    subtype.coe_mk, lie_submodule.coe_smul, smul_lie, lie_submodule.coe_smul, subtype.coe_mk],
+  map_smul' := λ t x,
+  begin
+    simp only [ring_hom.id_apply],
+    ext m,
+    rw [linear_map.smul_apply, linear_map.coe_mk, linear_map.coe_mk,
+      subtype.coe_mk, lie_submodule.coe_smul, smul_lie, lie_submodule.coe_smul, subtype.coe_mk],
+  end,
   map_lie'  := λ x y, by ext m; rw [lie_hom.lie_apply, lie_submodule.coe_sub, linear_map.coe_mk,
     linear_map.coe_mk, subtype.coe_mk, subtype.coe_mk, lie_submodule.coe_bracket,
     lie_submodule.coe_bracket, subtype.coe_mk, lie_subalgebra.coe_bracket_of_module,

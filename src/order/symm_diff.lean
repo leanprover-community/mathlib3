@@ -168,6 +168,13 @@ calc a Δ b = a ↔ a Δ b = a Δ ⊥ : by rw symm_diff_bot
 calc a Δ b = ⊥ ↔ a Δ b = a Δ a : by rw symm_diff_self
            ... ↔     a = b     : by rw [symm_diff_right_inj, eq_comm]
 
+lemma disjoint.disjoint_symm_diff_of_disjoint {a b c : α} (ha : disjoint a c) (hb : disjoint b c) :
+  disjoint (a Δ b) c :=
+begin
+  rw symm_diff_eq_sup_sdiff_inf,
+  exact (ha.sup_left hb).disjoint_sdiff_left,
+end
+
 end generalized_boolean_algebra
 
 section boolean_algebra
@@ -206,13 +213,5 @@ calc a Δ (b Δ c) = (a ⊓ ((b ⊓ c) ⊔ (bᶜ ⊓ cᶜ))) ⊔
                                                          rw [inf_comm, inf_assoc], },
                                                        { apply inf_left_right_swap }
                                                      end
-
--- TODO: move this to generalized_boolean_algebra when we have a distrib_lattice_with_bot typeclass
-lemma disjoint.disjoint_symm_diff_of_disjoint {a b c : α} (h1 : disjoint a c) (h2 : disjoint b c) :
-  disjoint (a Δ b) c :=
-begin
-  rw [symm_diff_eq_sup_sdiff_inf],
-  exact (h1.sup_left h2).disjoint_sdiff_left,
-end
 
 end boolean_algebra

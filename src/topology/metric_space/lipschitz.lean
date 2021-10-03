@@ -91,19 +91,20 @@ section emetric
 variables [pseudo_emetric_space α] [pseudo_emetric_space β] [pseudo_emetric_space γ]
 variables {K : ℝ≥0} {f : α → β}
 
+protected lemma lipschitz_on_with (h : lipschitz_with K f) (s : set α) : lipschitz_on_with K f s :=
+λ x _ y _, h x y
+
 lemma edist_le_mul (h : lipschitz_with K f) (x y : α) : edist (f x) (f y) ≤ K * edist x y := h x y
 
-lemma edist_lt_top (hf : lipschitz_with K f) {x y : α} (h : edist x y < ⊤) :
+lemma edist_lt_top (hf : lipschitz_with K f) {x y : α} (h : edist x y ≠ ⊤) :
   edist (f x) (f y) < ⊤ :=
-lt_of_le_of_lt (hf x y) $ ennreal.mul_lt_top ennreal.coe_lt_top h
+lt_of_le_of_lt (hf x y) $ ennreal.mul_lt_top ennreal.coe_ne_top h
 
 lemma mul_edist_le (h : lipschitz_with K f) (x y : α) :
   (K⁻¹ : ℝ≥0∞) * edist (f x) (f y) ≤ edist x y :=
 begin
-  have := h x y,
-  rw [mul_comm] at this,
-  replace := ennreal.div_le_of_le_mul this,
-  rwa [div_eq_mul_inv, mul_comm] at this
+  rw [mul_comm, ← div_eq_mul_inv],
+  exact ennreal.div_le_of_le_mul' (h x y)
 end
 
 protected lemma of_edist_le (h : ∀ x y, edist (f x) (f y) ≤ edist x y) :
@@ -152,6 +153,10 @@ lipschitz_with.of_edist_le $ assume x y, le_refl _
 
 protected lemma subtype_coe (s : set α) : lipschitz_with 1 (coe : s → α) :=
 lipschitz_with.subtype_val s
+
+protected lemma eval {α : ι → Type u} [Π i, pseudo_emetric_space (α i)] [fintype ι] (i : ι) :
+  lipschitz_with 1 (function.eval i : (Π i, α i) → α i) :=
+lipschitz_with.of_edist_le $ λ f g, by convert edist_le_pi_edist f g i
 
 protected lemma restrict (hf : lipschitz_with K f) (s : set α) :
   lipschitz_with K (s.restrict f) :=

@@ -3,11 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import tactic.ring_exp
-import tactic.chain
-import algebra.monoid_algebra
-import data.finset.sort
-import tactic.ring
+import algebra.monoid_algebra.basic
 
 /-!
 # Theory of univariate polynomials
@@ -109,6 +105,10 @@ lemma mul_to_finsupp {a b} : (⟨a⟩ * ⟨b⟩ : polynomial R) = ⟨a * b⟩ :=
 lemma smul_to_finsupp {S : Type*} [monoid S] [distrib_mul_action S R] {a : S} {b} :
   (a • ⟨b⟩ : polynomial R) = ⟨a • b⟩ := rfl
 
+lemma _root_.is_smul_regular.polynomial {S : Type*} [monoid S] [distrib_mul_action S R] {a : S}
+  (ha : is_smul_regular R a) : is_smul_regular (polynomial R) a
+| ⟨x⟩ ⟨y⟩ h := congr_arg _ $ ha.finsupp (polynomial.of_finsupp.inj h)
+
 instance : inhabited (polynomial R) := ⟨0⟩
 
 instance : semiring (polynomial R) :=
@@ -131,6 +131,10 @@ instance {S} [monoid S] [distrib_mul_action S R] : distrib_mul_action S (polynom
   mul_smul := by { rintros _ _ ⟨⟩, simp [smul_to_finsupp, mul_smul], },
   smul_add := by { rintros _ ⟨⟩ ⟨⟩, simp [smul_to_finsupp, add_to_finsupp] },
   smul_zero := by { rintros _, simp [← zero_to_finsupp, smul_to_finsupp] } }
+
+instance {S} [monoid S] [distrib_mul_action S R] [has_faithful_scalar S R] :
+  has_faithful_scalar S (polynomial R) :=
+{ eq_of_smul_eq_smul := λ s₁ s₂ h, eq_of_smul_eq_smul $ λ a : ℕ →₀ R, congr_arg to_finsupp (h ⟨a⟩) }
 
 instance {S} [semiring S] [module S R] : module S (polynomial R) :=
 { smul := (•),
@@ -162,6 +166,11 @@ def to_finsupp_iso : polynomial R ≃+* add_monoid_algebra R ℕ :=
   right_inv := λ p, rfl,
   map_mul' := by { rintros ⟨⟩ ⟨⟩, simp [mul_to_finsupp] },
   map_add' := by { rintros ⟨⟩ ⟨⟩, simp [add_to_finsupp] } }
+
+/-- Ring isomorphism between `(polynomial R)ᵒᵖ` and `polynomial Rᵒᵖ`. -/
+@[simps]
+def op_ring_equiv : (polynomial R)ᵒᵖ ≃+* polynomial Rᵒᵖ :=
+((to_finsupp_iso R).op.trans add_monoid_algebra.op_ring_equiv).trans (to_finsupp_iso _).symm
 
 variable {R}
 
@@ -225,6 +234,18 @@ by simp [to_finsupp_iso, monomial, monomial_fun]
 
 @[simp] lemma to_finsupp_iso_symm_single : (to_finsupp_iso R).symm (single n a) = monomial n a :=
 by simp [to_finsupp_iso, monomial, monomial_fun]
+
+lemma monomial_injective (n : ℕ) :
+  function.injective (monomial n : R → polynomial R) :=
+begin
+  convert (to_finsupp_iso R).symm.injective.comp (single_injective n),
+  ext,
+  simp
+end
+
+@[simp] lemma monomial_eq_zero_iff (t : R) (n : ℕ) :
+  monomial n t = 0 ↔ t = 0 :=
+linear_map.map_eq_zero_iff _ (polynomial.monomial_injective n)
 
 lemma support_add : (p + q).support ⊆ p.support ∪ q.support :=
 begin
@@ -569,6 +590,54 @@ by simp [coeff_erase]
 @[simp] lemma erase_ne (p : polynomial R) (n i : ℕ) (h : i ≠ n) :
   coeff (p.erase n) i = coeff p i :=
 by simp [coeff_erase, h]
+
+section update
+
+/-- Replace the coefficient of a `p : polynomial p` at a given degree `n : ℕ`
+by a given value `a : R`. If `a = 0`, this is equal to `p.erase n`
+If `p.nat_degree < n` and `a ≠ 0`, this increases the degree to `n`.  -/
+def update (p : polynomial R) (n : ℕ) (a : R) :
+  polynomial R :=
+polynomial.of_finsupp (p.to_finsupp.update n a)
+
+lemma coeff_update (p : polynomial R) (n : ℕ) (a : R) :
+  (p.update n a).coeff = function.update p.coeff n a :=
+begin
+  ext,
+  cases p,
+  simp only [coeff, update, function.update_apply, coe_update],
+  congr
+end
+
+lemma coeff_update_apply (p : polynomial R) (n : ℕ) (a : R) (i : ℕ) :
+  (p.update n a).coeff i = if (i = n) then a else p.coeff i :=
+by rw [coeff_update, function.update_apply]
+
+@[simp] lemma coeff_update_same (p : polynomial R) (n : ℕ) (a : R) :
+  (p.update n a).coeff n = a :=
+by rw [p.coeff_update_apply, if_pos rfl]
+
+lemma coeff_update_ne (p : polynomial R) {n : ℕ} (a : R) {i : ℕ} (h : i ≠ n) :
+  (p.update n a).coeff i = p.coeff i :=
+by rw [p.coeff_update_apply, if_neg h]
+
+@[simp] lemma update_zero_eq_erase (p : polynomial R) (n : ℕ) :
+  p.update n 0 = p.erase n :=
+by { ext, rw [coeff_update_apply, coeff_erase] }
+
+lemma support_update (p : polynomial R) (n : ℕ) (a : R) [decidable (a = 0)] :
+  support (p.update n a) = if a = 0 then p.support.erase n else insert n p.support :=
+by { cases p, simp only [support, update, support_update], congr }
+
+lemma support_update_zero (p : polynomial R) (n : ℕ) :
+  support (p.update n 0) = p.support.erase n :=
+by rw [update_zero_eq_erase, support_erase]
+
+lemma support_update_ne_zero (p : polynomial R) (n : ℕ) {a : R} (ha : a ≠ 0) :
+  support (p.update n a) = insert n p.support :=
+by classical; rw [support_update, if_neg ha]
+
+end update
 
 end semiring
 

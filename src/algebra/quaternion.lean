@@ -156,6 +156,29 @@ instance : algebra R ℍ[R, c₁, c₂] :=
 @[simp] lemma smul_mk (re im_i im_j im_k : R) :
   r • (⟨re, im_i, im_j, im_k⟩ : ℍ[R, c₁, c₂]) = ⟨r • re, r • im_i, r • im_j, r • im_k⟩ := rfl
 
+lemma algebra_map_eq (r : R) : algebra_map R ℍ[R,c₁,c₂] r = ⟨r, 0, 0, 0⟩ := rfl
+
+section
+variables (R c₁ c₂)
+
+/-- `quaternion_algebra.re` as a `linear_map`-/
+@[simps] def re_lm : ℍ[R, c₁, c₂] →ₗ[R] R :=
+{ to_fun := re, map_add' := λ x y, rfl, map_smul' := λ r x, rfl }
+
+/-- `quaternion_algebra.im_i` as a `linear_map`-/
+@[simps] def im_i_lm : ℍ[R, c₁, c₂] →ₗ[R] R :=
+{ to_fun := im_i, map_add' := λ x y, rfl, map_smul' := λ r x, rfl }
+
+/-- `quaternion_algebra.im_j` as a `linear_map`-/
+@[simps] def im_j_lm : ℍ[R, c₁, c₂] →ₗ[R] R :=
+{ to_fun := im_j, map_add' := λ x y, rfl, map_smul' := λ r x, rfl }
+
+/-- `quaternion_algebra.im_k` as a `linear_map`-/
+@[simps] def im_k_lm : ℍ[R, c₁, c₂] →ₗ[R] R :=
+{ to_fun := im_k, map_add' := λ x y, rfl, map_smul' := λ r x, rfl }
+
+end
+
 @[norm_cast, simp] lemma coe_add : ((x + y : R) : ℍ[R, c₁, c₂]) = x + y :=
 (algebra_map R ℍ[R, c₁, c₂]).map_add x y
 
@@ -193,6 +216,10 @@ linear_equiv.of_involutive
 @[simp] lemma im_i_conj : (conj a).im_i = - a.im_i := rfl
 @[simp] lemma im_j_conj : (conj a).im_j = - a.im_j := rfl
 @[simp] lemma im_k_conj : (conj a).im_k = - a.im_k := rfl
+
+@[simp] lemma conj_mk (a₁ a₂ a₃ a₄ : R) :
+  conj (mk a₁ a₂ a₃ a₄ : ℍ[R, c₁, c₂]) = ⟨a₁, -a₂, -a₃, -a₄⟩ :=
+rfl
 
 @[simp] lemma conj_conj : a.conj.conj = a := ext _ _ rfl (neg_neg _) (neg_neg _) (neg_neg _)
 
@@ -535,7 +562,7 @@ instance : division_ring ℍ[R] :=
   .. quaternion.domain }
 
 @[simp] lemma norm_sq_inv : norm_sq a⁻¹ = (norm_sq a)⁻¹ :=
-monoid_with_zero_hom.map_inv' norm_sq _
+monoid_with_zero_hom.map_inv norm_sq _
 
 @[simp] lemma norm_sq_div : norm_sq (a / b) = norm_sq a / norm_sq b :=
 monoid_with_zero_hom.map_div norm_sq a b

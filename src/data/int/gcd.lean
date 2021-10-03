@@ -153,7 +153,7 @@ begin
   calc
   nat_abs (a / b) = nat_abs (a / b) * 1 : by rw mul_one
     ... = nat_abs (a / b) * (nat_abs b / nat_abs b) : by rw nat.div_self h
-    ... = nat_abs (a / b) * nat_abs b / nat_abs b : by rw (nat.mul_div_assoc _ (dvd_refl _))
+    ... = nat_abs (a / b) * nat_abs b / nat_abs b : by rw (nat.mul_div_assoc _ dvd_rfl)
     ... = nat_abs (a / b * b) / nat_abs b : by rw (nat_abs_mul (a / b) b)
     ... = nat_abs a / nat_abs b : by rw int.div_mul_cancel H,
 end
@@ -175,7 +175,7 @@ hsd.elim
   (λ hsd2, or.inr begin apply int.dvd_nat_abs.1, apply int.coe_nat_dvd.2 hsd2 end)
 
 theorem dvd_of_mul_dvd_mul_left {i j k : ℤ} (k_non_zero : k ≠ 0) (H : k * i ∣ k * j) : i ∣ j :=
-dvd.elim H (λl H1, by rw mul_assoc at H1; exact ⟨_, mul_left_cancel' k_non_zero H1⟩)
+dvd.elim H (λl H1, by rw mul_assoc at H1; exact ⟨_, mul_left_cancel₀ k_non_zero H1⟩)
 
 theorem dvd_of_mul_dvd_mul_right {i j k : ℤ} (k_non_zero : k ≠ 0) (H : i * k ∣ j * k) : i ∣ j :=
 by rw [mul_comm i k, mul_comm j k] at H; exact dvd_of_mul_dvd_mul_left k_non_zero H
@@ -256,10 +256,10 @@ begin
 end
 
 theorem gcd_dvd_gcd_of_dvd_left {i k : ℤ} (j : ℤ) (H : i ∣ k) : gcd i j ∣ gcd k j :=
-int.coe_nat_dvd.1 $ dvd_gcd (dvd.trans (gcd_dvd_left i j) H) (gcd_dvd_right i j)
+int.coe_nat_dvd.1 $ dvd_gcd ((gcd_dvd_left i j).trans H) (gcd_dvd_right i j)
 
 theorem gcd_dvd_gcd_of_dvd_right {i k : ℤ} (j : ℤ) (H : i ∣ k) : gcd j i ∣ gcd j k :=
-int.coe_nat_dvd.1 $ dvd_gcd (gcd_dvd_left j i) (dvd.trans (gcd_dvd_right j i) H)
+int.coe_nat_dvd.1 $ dvd_gcd (gcd_dvd_left j i) ((gcd_dvd_right j i).trans H)
 
 theorem gcd_dvd_gcd_mul_left (i j k : ℤ) : gcd i j ∣ gcd (k * i) j :=
 gcd_dvd_gcd_of_dvd_left _ (dvd_mul_left _ _)
@@ -275,7 +275,7 @@ gcd_dvd_gcd_of_dvd_right _ (dvd_mul_right _ _)
 
 theorem gcd_eq_left {i j : ℤ} (H : i ∣ j) : gcd i j = nat_abs i :=
 nat.dvd_antisymm (by unfold gcd; exact nat.gcd_dvd_left _ _)
-                 (by unfold gcd; exact nat.dvd_gcd (dvd_refl _) (nat_abs_dvd_abs_iff.mpr H))
+                 (by unfold gcd; exact nat.dvd_gcd dvd_rfl (nat_abs_dvd_abs_iff.mpr H))
 
 theorem gcd_eq_right {i j : ℤ} (H : j ∣ i) : gcd i j = nat_abs j :=
 by rw [gcd_comm, gcd_eq_left H]
@@ -376,8 +376,8 @@ begin
   refine nat.dvd_antisymm _ (int.coe_nat_dvd.1 (int.dvd_gcd h₁ h₂)),
   rw [← int.coe_nat_dvd, ← h₃],
   apply dvd_add,
-  { exact dvd_mul_of_dvd_left (int.gcd_dvd_left _ _) _ },
-  { exact dvd_mul_of_dvd_left (int.gcd_dvd_right _ _) _ }
+  { exact (int.gcd_dvd_left _ _).mul_right _ },
+  { exact (int.gcd_dvd_right _ _).mul_right _ }
 end
 
 lemma nat_gcd_helper_dvd_left (x y a : ℕ) (h : x * a = y) : nat.gcd x y = x :=

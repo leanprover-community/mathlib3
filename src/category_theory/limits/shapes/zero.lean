@@ -210,11 +210,24 @@ def zero_morphisms_of_zero_object : has_zero_morphisms C :=
   comp_zero' := λ X Y Z f, by { dunfold has_zero.zero, rw ←category.assoc, congr, }}
 
 /-- A zero object is in particular initial. -/
-lemma has_initial : has_initial C :=
+def zero_is_initial : is_initial (0 : C) :=
+is_initial.of_unique 0
+/-- A zero object is in particular terminal. -/
+def zero_is_terminal : is_terminal (0 : C) :=
+is_terminal.of_unique 0
+
+/-- A zero object is in particular initial. -/
+@[priority 10]
+instance has_initial : has_initial C :=
 has_initial_of_unique 0
 /-- A zero object is in particular terminal. -/
-lemma has_terminal : has_terminal C :=
+@[priority 10]
+instance has_terminal : has_terminal C :=
 has_terminal_of_unique 0
+
+@[priority 100]
+instance has_strict_initial : initial_mono_class C :=
+initial_mono_class.of_is_initial zero_is_initial (λ X, category_theory.mono _)
 
 open_locale zero_object
 
@@ -380,8 +393,7 @@ def is_iso_zero_self_equiv_iso_zero (X : C) : is_iso (0 : X ⟶ X) ≃ (X ≅ 0)
 end is_iso
 
 /-- If there are zero morphisms, any initial object is a zero object. -/
-@[priority 50]
-instance has_zero_object_of_has_initial_object
+def has_zero_object_of_has_initial_object
   [has_zero_morphisms C] [has_initial C] : has_zero_object C :=
 { zero := ⊥_ C,
   unique_to := λ X, ⟨⟨0⟩, by tidy⟩,
@@ -393,8 +405,7 @@ instance has_zero_object_of_has_initial_object
   ⟩ }
 
 /-- If there are zero morphisms, any terminal object is a zero object. -/
-@[priority 50]
-instance has_zero_object_of_has_terminal_object
+def has_zero_object_of_has_terminal_object
   [has_zero_morphisms C] [has_terminal C] : has_zero_object C :=
 { zero := ⊤_ C,
   unique_from := λ X, ⟨⟨0⟩, by tidy⟩,

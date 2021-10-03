@@ -3,7 +3,7 @@ Copyright (c) 2021 Benjamin Davidson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Davidson
 -/
-import measure_theory.interval_integral
+import measure_theory.integral.interval_integral
 
 /-!
 # Integration of specific interval integrals
@@ -35,7 +35,7 @@ variables {a b : ℝ} (n : ℕ)
 
 namespace interval_integral
 open measure_theory
-variables {f : ℝ → ℝ} {μ ν : measure ℝ} [locally_finite_measure μ] (c d : ℝ)
+variables {f : ℝ → ℝ} {μ ν : measure ℝ} [is_locally_finite_measure μ] (c d : ℝ)
 
 /-! ### Interval integrability -/
 
@@ -115,7 +115,7 @@ by simpa only [one_div] using interval_integrable_one_div_one_add_sq
 
 @[simp]
 lemma integral_const_mul : ∫ x in a..b, c * f x = c * ∫ x in a..b, f x :=
-integral_smul c
+integral_smul c f
 
 @[simp]
 lemma integral_mul_const : ∫ x in a..b, f x * c = (∫ x in a..b, f x) * c :=
@@ -201,7 +201,7 @@ lemma integral_inv (h : (0:ℝ) ∉ interval a b) : ∫ x in a..b, x⁻¹ = log 
 begin
   have h' := λ x hx, ne_of_mem_of_not_mem hx h,
   rw [integral_deriv_eq_sub' _ deriv_log' (λ x hx, differentiable_at_log (h' x hx))
-        (continuous_on_inv'.mono $ subset_compl_singleton_iff.mpr h),
+        (continuous_on_inv₀.mono $ subset_compl_singleton_iff.mpr h),
       log_div (h' b right_mem_interval) (h' a left_mem_interval)],
 end
 
@@ -232,8 +232,10 @@ lemma integral_log (h : (0:ℝ) ∉ interval a b) :
 begin
   obtain ⟨h', heq⟩ := ⟨λ x hx, ne_of_mem_of_not_mem hx h, λ x hx, mul_inv_cancel (h' x hx)⟩,
   convert integral_mul_deriv_eq_deriv_mul (λ x hx, has_deriv_at_log (h' x hx))
-    (λ x hx, has_deriv_at_id x) (continuous_on_inv'.mono $ subset_compl_singleton_iff.mpr h)
-      continuous_on_const using 1; simp [integral_congr heq, mul_comm, ← sub_add],
+      (λ x hx, has_deriv_at_id x)
+      (continuous_on_inv₀.mono $ subset_compl_singleton_iff.mpr h).interval_integrable
+      continuous_on_const.interval_integrable using 1;
+    simp [integral_congr heq, mul_comm, ← sub_add],
 end
 
 @[simp]
@@ -257,7 +259,8 @@ by rw integral_deriv_eq_sub'; norm_num [continuous_on_cos]
 lemma integral_cos_sq_sub_sin_sq :
   ∫ x in a..b, cos x ^ 2 - sin x ^ 2 = sin b * cos b - sin a * cos a :=
 by simpa only [sq, sub_eq_add_neg, neg_mul_eq_mul_neg] using integral_deriv_mul_eq_sub
-  (λ x hx, has_deriv_at_sin x) (λ x hx, has_deriv_at_cos x) continuous_on_cos continuous_on_sin.neg
+  (λ x hx, has_deriv_at_sin x) (λ x hx, has_deriv_at_cos x) continuous_on_cos.interval_integrable
+  continuous_on_sin.neg.interval_integrable
 
 @[simp]
 lemma integral_inv_one_add_sq : ∫ x : ℝ in a..b, (1 + x^2)⁻¹ = arctan b - arctan a :=
@@ -293,7 +296,7 @@ begin
                                                                           ← pow_add, add_comm]
   ... = C + (n + 1) * (∫ x in a..b, sin x ^ n) - (n + 1) * ∫ x in a..b, sin x ^ (n + 2) :
     by rw [integral_sub, mul_sub, add_sub_assoc]; apply continuous.interval_integrable; continuity,
-  all_goals { apply continuous.continuous_on, continuity },
+  all_goals { apply continuous.interval_integrable, continuity },
 end
 
 /-- The reduction formula for the integral of `sin x ^ n` for any natural `n ≥ 2`. -/
@@ -338,9 +341,12 @@ begin
   linarith,
 end
 
-lemma integral_sin_pow_antimono : ∫ x in 0..π, sin x ^ (n + 1) ≤ ∫ x in 0..π, sin x ^ n :=
+lemma integral_sin_pow_succ_le : ∫ x in 0..π, sin x ^ (n + 1) ≤ ∫ x in 0..π, sin x ^ n :=
 let H := λ x h, pow_le_pow_of_le_one (sin_nonneg_of_mem_Icc h) (sin_le_one x) (n.le_add_right 1) in
 by refine integral_mono_on pi_pos.le _ _ H; exact (continuous_sin.pow _).interval_integrable 0 π
+
+lemma integral_sin_pow_antitone : antitone (λ n : ℕ, ∫ x in 0..π, sin x ^ n) :=
+antitone_nat_of_succ_le integral_sin_pow_succ_le
 
 /-! ### Integral of `cos x ^ n` -/
 
@@ -361,7 +367,7 @@ begin
                                                                           ← pow_add, add_comm]
   ... = C + (n + 1) * (∫ x in a..b, cos x ^ n) - (n + 1) * ∫ x in a..b, cos x ^ (n + 2) :
     by rw [integral_sub, mul_sub, add_sub_assoc]; apply continuous.interval_integrable; continuity,
-  all_goals { apply continuous.continuous_on, continuity },
+  all_goals { apply continuous.interval_integrable, continuity },
 end
 
 /-- The reduction formula for the integral of `cos x ^ n` for any natural `n ≥ 2`. -/

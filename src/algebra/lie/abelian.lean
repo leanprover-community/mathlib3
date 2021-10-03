@@ -213,7 +213,9 @@ abbreviation center : lie_ideal R L := lie_module.max_triv_submodule R L L
 
 instance : is_lie_abelian (center R L) := infer_instance
 
-lemma center_eq_adjoint_kernel : center R L = lie_module.ker R L L :=
+@[simp] lemma ad_ker_eq_self_module_ker : (ad R L).ker = lie_module.ker R L L := rfl
+
+@[simp] lemma self_module_ker_eq_center : lie_module.ker R L L = center R L :=
 begin
   ext y,
   simp only [lie_module.mem_max_triv_submodule, lie_module.mem_ker, ← lie_skew _ y, neg_eq_zero],

@@ -105,8 +105,8 @@ begin
   induction x using clifford_algebra.induction,
   case h_grade0 : { simp },
   case h_grade1 : { simp },
-  case h_mul : a b ha hb { simp [ha, hb], },
-  case h_add : a b ha hb { simp [ha, hb], },
+  case h_mul : a b ha hb { simp only [ha, hb, reverse.map_mul, alg_hom.map_mul], },
+  case h_add : a b ha hb { simp only [ha, hb, reverse.map_add, alg_hom.map_add], },
 end
 
 /-- `clifford_algebra.reverse` and `clifford_algebra.inverse` commute. Note that the composition

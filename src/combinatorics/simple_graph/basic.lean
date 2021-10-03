@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jalex Stark, Kyle Miller, Alena Gusakov, Hunter Monroe
 -/
 import data.fintype.basic
-import data.sym2
 import data.set.finite
+import data.sym.sym2
+
 /-!
 # Simple graphs
 
@@ -63,10 +64,10 @@ finitely many vertices.
 * Upgrade `simple_graph.boolean_algebra` to a `complete_boolean_algebra`.
 
 * This is the simplest notion of an unoriented graph.  This should
-eventually fit into a more complete combinatorics hierarchy which
-includes multigraphs and directed graphs.  We begin with simple graphs
-in order to start learning what the combinatorics hierarchy should
-look like.
+  eventually fit into a more complete combinatorics hierarchy which
+  includes multigraphs and directed graphs.  We begin with simple graphs
+  in order to start learning what the combinatorics hierarchy should
+  look like.
 -/
 open finset
 universes u v w
@@ -80,7 +81,7 @@ see `simple_graph.edge_set` for the corresponding edge set.
 @[ext]
 structure simple_graph (V : Type u) :=
 (adj : V → V → Prop)
-(sym : symmetric adj . obviously)
+(symm : symmetric adj . obviously)
 (loopless : irreflexive adj . obviously)
 
 /--
@@ -89,7 +90,7 @@ symmetrizes the relation and makes it irreflexive.
 -/
 def simple_graph.from_rel {V : Type u} (r : V → V → Prop) : simple_graph V :=
 { adj := λ a b, (a ≠ b) ∧ (r a b ∨ r b a),
-  sym := λ a b ⟨hn, hr⟩, ⟨hn.symm, hr.symm⟩,
+  symm := λ a b ⟨hn, hr⟩, ⟨hn.symm, hr.symm⟩,
   loopless := λ a ⟨hn, _⟩, hn rfl }
 
 noncomputable instance {V : Type u} [fintype V] : fintype (simple_graph V) :=
@@ -113,9 +114,9 @@ variables {V : Type u} {W : Type v} {X : Type w} (G : simple_graph V) (G' : simp
 
 @[simp] lemma irrefl {v : V} : ¬G.adj v v := G.loopless v
 
-lemma adj_comm (u v : V) : G.adj u v ↔ G.adj v u := ⟨λ x, G.sym x, λ x, G.sym x⟩
+lemma adj_comm (u v : V) : G.adj u v ↔ G.adj v u := ⟨λ x, G.symm x, λ x, G.symm x⟩
 
-@[symm] lemma adj_symm {u v : V} (h : G.adj u v) : G.adj v u := G.sym h
+@[symm] lemma adj_symm {u v : V} (h : G.adj u v) : G.adj v u := G.symm h
 
 lemma ne_of_adj {a b : V} (hab : G.adj a b) : a ≠ b :=
 by { rintro rfl, exact G.irrefl hab }
@@ -134,7 +135,7 @@ rfl
 /-- The supremum of two graphs `x ⊔ y` has edges where either `x` or `y` have edges. -/
 instance : has_sup (simple_graph V) := ⟨λ x y,
   { adj := x.adj ⊔ y.adj,
-    sym := λ v w h, by rwa [sup_apply, sup_apply, x.adj_comm, y.adj_comm] }⟩
+    symm := λ v w h, by rwa [pi.sup_apply, pi.sup_apply, x.adj_comm, y.adj_comm] }⟩
 
 @[simp] lemma sup_adj (x y : simple_graph V) (v w : V) : (x ⊔ y).adj v w ↔ x.adj v w ∨ y.adj v w :=
 iff.rfl
@@ -142,7 +143,7 @@ iff.rfl
 /-- The infinum of two graphs `x ⊓ y` has edges where both `x` and `y` have edges. -/
 instance : has_inf (simple_graph V) := ⟨λ x y,
   { adj := x.adj ⊓ y.adj,
-    sym := λ v w h, by rwa [inf_apply, inf_apply, x.adj_comm, y.adj_comm] }⟩
+    symm := λ v w h, by rwa [pi.inf_apply, pi.inf_apply, x.adj_comm, y.adj_comm] }⟩
 
 @[simp] lemma inf_adj (x y : simple_graph V) (v w : V) : (x ⊓ y).adj v w ↔ x.adj v w ∧ y.adj v w :=
 iff.rfl
@@ -154,7 +155,7 @@ are adjacent in the complement, and every nonadjacent pair of vertices is adjace
 -/
 instance : has_compl (simple_graph V) := ⟨λ G,
   { adj := λ v w, v ≠ w ∧ ¬G.adj v w,
-    sym := λ v w ⟨hne, _⟩, ⟨hne.symm, by rwa adj_comm⟩,
+    symm := λ v w ⟨hne, _⟩, ⟨hne.symm, by rwa adj_comm⟩,
     loopless := λ v ⟨hne, _⟩, (hne rfl).elim }⟩
 
 @[simp] lemma compl_adj (G : simple_graph V) (v w : V) : Gᶜ.adj v w ↔ v ≠ w ∧ ¬G.adj v w := iff.rfl
@@ -162,7 +163,7 @@ instance : has_compl (simple_graph V) := ⟨λ G,
 /-- The difference of two graphs `x / y` has the edges of `x` with the edges of `y` removed. -/
 instance : has_sdiff (simple_graph V) := ⟨λ x y,
   { adj := x.adj \ y.adj,
-    sym := λ v w h, by change x.adj w v ∧ ¬ y.adj w v; rwa [x.adj_comm, y.adj_comm] }⟩
+    symm := λ v w h, by change x.adj w v ∧ ¬ y.adj w v; rwa [x.adj_comm, y.adj_comm] }⟩
 
 @[simp] lemma sdiff_adj (x y : simple_graph V) (v w : V) :
   (x \ y).adj v w ↔ (x.adj v w ∧ ¬ y.adj v w) := iff.rfl
@@ -240,7 +241,7 @@ The edges of G consist of the unordered pairs of vertices related by
 The way `edge_set` is defined is such that `mem_edge_set` is proved by `refl`.
 (That is, `⟦(v, w)⟧ ∈ G.edge_set` is definitionally equal to `G.adj v w`.)
 -/
-def edge_set : set (sym2 V) := sym2.from_rel G.sym
+def edge_set : set (sym2 V) := sym2.from_rel G.symm
 
 /--
 The `incidence_set` is the set of edges incident to a given vertex.

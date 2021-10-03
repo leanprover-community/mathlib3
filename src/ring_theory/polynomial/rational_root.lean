@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 
+import ring_theory.integrally_closed
 import ring_theory.polynomial.scale_roots
-import ring_theory.localization
 
 /-!
 # Rational root theorem and integral root theorem
@@ -100,7 +100,7 @@ begin
   intros j hj,
   by_cases h : j < p.nat_degree,
   { rw coeff_scale_roots,
-    refine dvd_mul_of_dvd_left (dvd_mul_of_dvd_right _ _) _,
+    refine (dvd_mul_of_dvd_right _ _).mul_right _,
     convert pow_dvd_pow _ (nat.succ_le_iff.mpr (nat.lt_sub_left_of_add_lt _)),
     { exact (pow_one _).symm },
     simpa using h },
@@ -122,8 +122,9 @@ lemma integer_of_integral {x : K} :
   is_integral A x → is_integer A x :=
 λ ⟨p, hp, hx⟩, is_integer_of_is_root_of_monic hp hx
 
-lemma integrally_closed : integral_closure A K = ⊥ :=
-eq_bot_iff.mpr (λ x hx, algebra.mem_bot.mpr (integer_of_integral hx))
+@[priority 100] -- See library note [lower instance priority]
+instance : is_integrally_closed A :=
+⟨λ x, integer_of_integral⟩
 
 end unique_factorization_monoid
 

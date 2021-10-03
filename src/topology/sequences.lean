@@ -65,7 +65,7 @@ show A = sequential_closure A, from subset.antisymm
 The converse is not true. -/
 lemma sequential_closure_subset_closure (M : set α) : sequential_closure M ⊆ closure M :=
 assume p ⟨x, xM, xp⟩,
-mem_closure_of_tendsto xp (univ_mem_sets' xM)
+mem_closure_of_tendsto xp (univ_mem' xM)
 
 /-- A set is sequentially closed if it is closed. -/
 lemma is_seq_closed_of_is_closed (M : set α) (_ : is_closed M) : is_seq_closed M :=
@@ -153,7 +153,7 @@ instance : sequential_space α :=
   assume (p : α) (hp : p ∈ closure M),
   -- Since we are in a first-countable space, the neighborhood filter around `p` has a decreasing
   -- basis `U` indexed by `ℕ`.
-  let ⟨U, hU⟩ := (nhds_generated_countable p).exists_antimono_basis in
+  let ⟨U, hU⟩ := (nhds_generated_countable p).exists_antitone_basis in
   -- Since `p ∈ closure M`, there is an element in each `M ∩ U i`
   have hp : ∀ (i : ℕ), ∃ (y : α), y ∈ M ∧ y ∈ U i,
     by simpa using (mem_closure_iff_nhds_basis hU.1).mp hp,
@@ -205,7 +205,7 @@ open topological_space.first_countable_topology
 lemma is_compact.is_seq_compact {s : set α} (hs : is_compact s) : is_seq_compact s :=
 λ u u_in,
 let ⟨x, x_in, hx⟩ := @hs (map u at_top) _
-  (le_principal_iff.mpr (univ_mem_sets' u_in : _)) in ⟨x, x_in, tendsto_subseq hx⟩
+  (le_principal_iff.mpr (univ_mem' u_in : _)) in ⟨x, x_in, tendsto_subseq hx⟩
 
 lemma is_compact.tendsto_subseq' {s : set α} {u : ℕ → α} (hs : is_compact s)
   (hu : ∃ᶠ n in at_top, u n ∈ s) :
@@ -241,7 +241,7 @@ lemma lebesgue_number_lemma_seq {ι : Type*} {c : ι → set β}
 begin
   classical,
   obtain ⟨V, hV, Vsymm⟩ :
-    ∃ V : ℕ → set (β × β), (𝓤 β).has_antimono_basis (λ _, true) V ∧  ∀ n, swap ⁻¹' V n = V n,
+    ∃ V : ℕ → set (β × β), (𝓤 β).has_antitone_basis (λ _, true) V ∧  ∀ n, swap ⁻¹' V n = V n,
       from uniform_space.has_seq_basis hU, clear hU,
   suffices : ∃ n, ∀ x ∈ s, ∃ i, ball x (V n) ⊆ c i,
   { cases this with n hn,

@@ -173,8 +173,23 @@ e.to_equiv.image_eq_preimage s
 
 end basic
 
-section comm_semiring
+section opposite
 open opposite
+
+/-- A ring iso `α ≃+* β` can equivalently be viewed as a ring iso `αᵒᵖ ≃+* βᵒᵖ`. -/
+@[simps]
+protected def op {α β} [has_add α] [has_mul α] [has_add β] [has_mul β] :
+  (α ≃+* β) ≃ (αᵒᵖ ≃+* βᵒᵖ) :=
+{ to_fun    := λ f, { ..f.to_add_equiv.op, ..f.to_mul_equiv.op},
+  inv_fun   := λ f, { ..(add_equiv.op.symm f.to_add_equiv), ..(mul_equiv.op.symm f.to_mul_equiv) },
+  left_inv  := λ f, by { ext, refl },
+  right_inv := λ f, by { ext, refl } }
+
+/-- The 'unopposite' of a ring iso `αᵒᵖ ≃+* βᵒᵖ`. Inverse to `ring_equiv.op`. -/
+@[simp] protected def unop {α β} [has_add α] [has_mul α] [has_add β] [has_mul β] :
+  (αᵒᵖ ≃+* βᵒᵖ) ≃ (α ≃+* β) := ring_equiv.op.symm
+
+section comm_semiring
 
 variables (R) [comm_semiring R]
 
@@ -191,6 +206,8 @@ lemma to_opposite_apply (r : R) : to_opposite R r = op r := rfl
 lemma to_opposite_symm_apply (r : Rᵒᵖ) : (to_opposite R).symm r = unop r := rfl
 
 end comm_semiring
+
+end opposite
 
 section non_unital_semiring
 
@@ -224,6 +241,12 @@ lemma map_ne_one_iff : f x ≠ 1 ↔ x ≠ 1 := (f : R ≃* S).map_ne_one_iff
 /-- Produce a ring isomorphism from a bijective ring homomorphism. -/
 noncomputable def of_bijective (f : R →+* S) (hf : function.bijective f) : R ≃+* S :=
 { .. equiv.of_bijective f hf, .. f }
+
+@[simp] lemma coe_of_bijective (f : R →+* S) (hf : function.bijective f) :
+  (of_bijective f hf : R → S) = f := rfl
+
+lemma of_bijective_apply (f : R →+* S) (hf : function.bijective f) (x : R) :
+  of_bijective f hf x = f x := rfl
 
 end semiring
 

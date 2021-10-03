@@ -333,9 +333,6 @@ coe_int_inj $ by simp only [norm_eq_mul_conj, conj_neg, neg_mul_eq_neg_mul_symm,
 @[simp] lemma norm_conj (x : ℤ√d) : x.conj.norm = x.norm :=
 coe_int_inj $ by simp only [norm_eq_mul_conj, conj_conj, mul_comm]
 
-instance : is_monoid_hom norm :=
-{ map_one := norm_one, map_mul := norm_mul }
-
 lemma norm_nonneg (hd : d ≤ 0) (n : ℤ√d) : 0 ≤ n.norm :=
 add_nonneg (mul_self_nonneg _)
   (by rw [mul_assoc, neg_mul_eq_neg_mul];
@@ -645,11 +642,11 @@ protected theorem eq_zero_or_eq_zero_of_mul_eq_zero : Π {a b : ℤ√d}, a * b 
   if z0 : z = 0 then if w0 : w = 0 then
     or.inr (match z, w, z0, w0 with ._, ._, rfl, rfl := rfl end)
   else
-     or.inl $ fin $ mul_right_cancel' w0 $ calc
+     or.inl $ fin $ mul_right_cancel₀ w0 $ calc
        x * x * w = -y * (x * z) : by simp [h2, mul_assoc, mul_left_comm]
              ... = d * y * y * w : by simp [h1, mul_assoc, mul_left_comm]
   else
-     or.inl $ fin $ mul_right_cancel' z0 $ calc
+     or.inl $ fin $ mul_right_cancel₀ z0 $ calc
        x * x * z = d * -y * (x * w) : by simp [h1, mul_assoc, mul_left_comm]
              ... = d * y * y * z : by simp [h2, mul_assoc, mul_left_comm]
 

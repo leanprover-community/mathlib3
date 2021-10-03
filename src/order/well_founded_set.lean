@@ -44,6 +44,8 @@ A well-founded subset of an ordered type is one on which the relation `<` is wel
  * [Nash-Williams, *On Well-Quasi-Ordering Finite Trees*][Nash-Williams63]
 -/
 
+open_locale pointwise
+
 variables {α : Type*}
 
 namespace set
@@ -88,13 +90,11 @@ theorem well_founded_on_iff_no_descending_seq {s : set α} {r : α → α → Pr
   s.well_founded_on r ↔ ∀ (f : ((>) : ℕ → ℕ → Prop) ↪r r), ¬ (range f) ⊆ s :=
 begin
   rw [well_founded_on_iff, rel_embedding.well_founded_iff_no_descending_seq],
-  refine ⟨λ h f con, h begin
-    use f,
-      { exact f.injective },
-      { intros a b,
-        simp only [con (mem_range_self a), con (mem_range_self b), and_true, gt_iff_lt,
-          function.embedding.coe_fn_mk, f.map_rel_iff] }
-    end, λ h con, _⟩,
+  refine ⟨λ h f con, begin
+      refine h.elim' ⟨⟨f, f.injective⟩, λ a b, _⟩,
+       simp only [con (mem_range_self a), con (mem_range_self b), and_true, gt_iff_lt,
+        function.embedding.coe_fn_mk, f.map_rel_iff]
+    end, λ h, ⟨λ con, _⟩⟩,
   rcases con with ⟨f, hf⟩,
   have hfs' : ∀ n : ℕ, f n ∈ s := λ n, (hf.2 n.lt_succ_self).2.2,
   refine h ⟨f, λ a b, _⟩ (λ n hn, _),
@@ -132,8 +132,7 @@ theorem is_wf_iff_no_descending_seq :
 begin
   haveI : is_strict_order α (λ (a b : α), a < b ∧ a ∈ s ∧ b ∈ s) := {
     to_is_irrefl := ⟨λ x con, lt_irrefl x con.1⟩,
-    to_is_trans := ⟨λ a b c ab bc, ⟨lt_trans ab.1 bc.1, ab.2.1, bc.2.2⟩⟩,
-  },
+    to_is_trans := ⟨λ a b c ab bc, ⟨lt_trans ab.1 bc.1, ab.2.1, bc.2.2⟩⟩, },
   rw [is_wf, well_founded_on_iff_no_descending_seq],
   exact ⟨λ h f, h f.lt_embedding, λ h f, h (order_embedding.of_strict_mono
     f (λ _ _, f.map_rel_iff.2))⟩,

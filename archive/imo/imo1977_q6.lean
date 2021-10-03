@@ -28,7 +28,7 @@ begin
          ... < f n           : nat.sub_add_cancel
         (le_trans (nat.succ_le_succ (nat.zero_le _)) hk) ▸ h _ } },
   have hf : ∀ n, n ≤ f n := λ n, h' n n rfl.le,
-  have hf_mono : strict_mono f := strict_mono.nat (λ _, lt_of_le_of_lt (hf _) (h _)),
+  have hf_mono : strict_mono f := strict_mono_nat_of_lt_succ (λ _, lt_of_le_of_lt (hf _) (h _)),
   intro,
   exact nat.eq_of_le_of_lt_succ (hf _) (hf_mono.lt_iff_lt.mp (h _))
 end

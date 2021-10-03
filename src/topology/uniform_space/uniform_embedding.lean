@@ -78,7 +78,7 @@ theorem uniform_embedding_def' {f : α → β} :
 by simp only [uniform_embedding_def, uniform_continuous_def]; exact
 ⟨λ ⟨I, H⟩, ⟨I, λ s su, (H _).2 ⟨s, su, λ x y, id⟩, λ s, (H s).1⟩,
  λ ⟨I, H₁, H₂⟩, ⟨I, λ s, ⟨H₂ s,
-   λ ⟨t, tu, h⟩, mem_sets_of_superset (H₁ t tu) (λ ⟨a, b⟩, h a b)⟩⟩⟩
+   λ ⟨t, tu, h⟩, mem_of_superset (H₁ t tu) (λ ⟨a, b⟩, h a b)⟩⟩⟩
 
 lemma uniform_inducing.uniform_continuous {f : α → β}
   (hf : uniform_inducing f) : uniform_continuous f :=
@@ -135,7 +135,7 @@ have ∀b' (s' : set (β × β)), (b, b') ∈ t → s' ∈ 𝓤 β →
   ({y : β | (b', y) ∈ s'} ∩ e '' {a' : α | (a, a') ∈ s}).nonempty,
   from assume b' s' hb' hs',
   have preimage e {b'' | (b', b'') ∈ s' ∩ t} ∈ comap e (𝓝 b'),
-    from preimage_mem_comap $ mem_nhds_left b' $ inter_mem_sets hs' htu,
+    from preimage_mem_comap $ mem_nhds_left b' $ inter_mem hs' htu,
   let ⟨a₂, ha₂s', ha₂t⟩ := (he₂.comap_nhds_ne_bot _).nonempty_of_mem this in
   have (e a, e a₂) ∈ t₁,
     from ht₂c $ prod_mk_mem_comp_rel (ht₂s ha) $ htc $ prod_mk_mem_comp_rel hb' ha₂t,
@@ -238,7 +238,7 @@ have mp₁ : ∀{s}, monotone (p s),
 have f ≤ g, from
   le_infi $ assume s, le_infi $ assume hs, le_infi $ assume t, le_infi $ assume ht,
   le_principal_iff.mpr $
-  mem_sets_of_superset ht $ assume x hx, ⟨x, hx, refl_mem_uniformity hs⟩,
+  mem_of_superset ht $ assume x hx, ⟨x, hx, refl_mem_uniformity hs⟩,
 
 have ne_bot g, from hf.left.mono this,
 
@@ -249,11 +249,11 @@ have ne_bot (comap m g), from comap_ne_bot $ assume t ht,
   have h₀ : ne_bot (𝓝[range m] x),
     from dense.nhds_within_ne_bot x,
   have h₁ : {y | (x, y) ∈ t'} ∈ 𝓝[range m] x,
-    from @mem_inf_sets_of_left α (𝓝 x) (𝓟 (range m)) _ $ mem_nhds_left x ht',
+    from @mem_inf_of_left α (𝓝 x) (𝓟 (range m)) _ $ mem_nhds_left x ht',
   have h₂ : range m ∈ 𝓝[range m] x,
-    from @mem_inf_sets_of_right α (𝓝 x) (𝓟 (range m)) _ $ subset.refl _,
+    from @mem_inf_of_right α (𝓝 x) (𝓟 (range m)) _ $ subset.refl _,
   have {y | (x, y) ∈ t'} ∩ range m ∈ 𝓝[range m] x,
-    from @inter_mem_sets α (𝓝[range m] x) _ _ h₁ h₂,
+    from @inter_mem α (𝓝[range m] x) _ _ h₁ h₂,
   let ⟨y, xyt', b, b_eq⟩ := h₀.nonempty_of_mem this in
   ⟨b, b_eq.symm ▸ ht'_sub ⟨x, hx, xyt'⟩⟩,
 
@@ -292,7 +292,7 @@ lemma totally_bounded_preimage {f : α → β} {s : set β} (hf : uniform_embedd
   (hs : totally_bounded s) : totally_bounded (f ⁻¹' s) :=
 λ t ht, begin
   rw ← hf.comap_uniformity at ht,
-  rcases mem_comap_sets.2 ht with ⟨t', ht', ts⟩,
+  rcases mem_comap.2 ht with ⟨t', ht', ts⟩,
   rcases totally_bounded_iff_subset.1
     (totally_bounded_subset (image_preimage_subset f s) hs) _ ht' with ⟨c, cs, hfc, hct⟩,
   refine ⟨f ⁻¹' c, hfc.preimage (hf.inj.inj_on _), λ x h, _⟩,
@@ -397,9 +397,9 @@ have h_pnt : ∀{a m}, m ∈ 𝓝 a → ∃c, c ∈ f '' preimage e m ∧ (c, ψ
   have nb : ne_bot (map f (comap e (𝓝 a))),
     from ((h_e.dense_inducing h_dense).comap_nhds_ne_bot _).map _,
   have (f '' preimage e m) ∩ ({c | (c, ψ a) ∈ s } ∩ {c | (ψ a, c) ∈ s }) ∈ map f (comap e (𝓝 a)),
-    from inter_mem_sets (image_mem_map $ preimage_mem_comap $ hm)
+    from inter_mem (image_mem_map $ preimage_mem_comap $ hm)
       (uniformly_extend_spec h_e h_dense h_f _
-        (inter_mem_sets (mem_nhds_right _ hs) (mem_nhds_left _ hs))),
+        (inter_mem (mem_nhds_right _ hs) (mem_nhds_left _ hs))),
   nb.nonempty_of_mem this,
 have preimage (λp:β×β, (f p.1, f p.2)) s ∈ 𝓤 β,
   from h_f hs,

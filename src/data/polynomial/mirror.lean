@@ -5,7 +5,6 @@ Authors: Thomas Browning
 -/
 
 import data.polynomial.ring_division
-import algebra.big_operators.nat_antidiagonal
 
 /-!
 # "Mirror" of a univariate polynomial

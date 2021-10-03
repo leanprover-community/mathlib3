@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mitchell Rowett, Scott Morrison
 -/
 
-import group_theory.subgroup
+import group_theory.subgroup.basic
 
 /-!
 # Cosets
@@ -181,51 +181,67 @@ theorem normal_of_eq_cosets (h : ∀ g : α, g *l s = s *r g) : s.normal :=
 theorem normal_iff_eq_cosets : s.normal ↔ ∀ g : α, g *l s = s *r g :=
 ⟨@eq_cosets_of_normal _ _ s, normal_of_eq_cosets s⟩
 
+@[to_additive left_add_coset_eq_iff]
+lemma left_coset_eq_iff {x y : α} : left_coset x s = left_coset y s ↔ x⁻¹ * y ∈ s :=
+begin
+  rw set.ext_iff,
+  simp_rw [mem_left_coset_iff, set_like.mem_coe],
+  split,
+  { intro h, apply (h y).mpr, rw mul_left_inv, exact s.one_mem },
+  { intros h z, rw ←mul_inv_cancel_right x⁻¹ y, rw mul_assoc, exact s.mul_mem_cancel_left h },
+end
+
+@[to_additive right_add_coset_eq_iff]
+lemma right_coset_eq_iff {x y : α} : right_coset ↑s x = right_coset s y ↔ y * x⁻¹ ∈ s :=
+begin
+  rw set.ext_iff,
+  simp_rw [mem_right_coset_iff, set_like.mem_coe],
+  split,
+  { intro h, apply (h y).mpr, rw mul_right_inv, exact s.one_mem },
+  { intros h z, rw ←inv_mul_cancel_left y x⁻¹, rw ←mul_assoc, exact s.mul_mem_cancel_right h },
+end
+
 end coset_subgroup
 
 run_cmd to_additive.map_namespace `quotient_group `quotient_add_group
 
 namespace quotient_group
 
+variables [group α] (s : subgroup α)
+
 /-- The equivalence relation corresponding to the partition of a group by left cosets
 of a subgroup.-/
 @[to_additive "The equivalence relation corresponding to the partition of a group by left cosets
 of a subgroup."]
-def left_rel [group α] (s : subgroup α) : setoid α :=
-⟨λ x y, x⁻¹ * y ∈ s,
-  assume x, by simp [s.one_mem],
-  assume x y hxy,
-    have (x⁻¹ * y)⁻¹ ∈ s, from s.inv_mem hxy,
-    by simpa using this,
-  assume x y z hxy hyz,
-    have x⁻¹ * y * (y⁻¹ * z) ∈ s, from s.mul_mem hxy hyz,
-    by simpa [mul_assoc] using this⟩
+def left_rel : setoid α :=
+⟨λ x y, x⁻¹ * y ∈ s, by { simp_rw ←left_coset_eq_iff, exact left_coset_equivalence_rel s }⟩
+
+lemma left_rel_r_eq_left_coset_equivalence :
+  @setoid.r _ (quotient_group.left_rel s) = left_coset_equivalence s :=
+by { ext, exact (left_coset_eq_iff s).symm }
 
 @[to_additive]
-instance left_rel_decidable [group α] (s : subgroup α) [d : decidable_pred (∈ s)] :
-  decidable_rel (left_rel s).r := λ _ _, d _
+instance left_rel_decidable [decidable_pred (∈ s)] :
+  decidable_rel (left_rel s).r := λ x y, ‹decidable_pred (∈ s)› _
 
 /-- `quotient s` is the quotient type representing the left cosets of `s`.
   If `s` is a normal subgroup, `quotient s` is a group -/
-def quotient [group α] (s : subgroup α) : Type* := quotient (left_rel s)
+def quotient : Type* := quotient (left_rel s)
 
 /-- The equivalence relation corresponding to the partition of a group by right cosets of a
 subgroup. -/
 @[to_additive "The equivalence relation corresponding to the partition of a group by right cosets of
 a subgroup."]
-def right_rel [group α] (s : subgroup α) : setoid α :=
-⟨λ x y, y * x⁻¹ ∈ s,
-  assume x, by simp [s.one_mem],
-  assume x y hxy,
-    have (y * x⁻¹)⁻¹ ∈ s, from s.inv_mem hxy,
-    by simpa using this,
-  assume x y z hxy hyz,
-    have (z * y⁻¹) * (y * x⁻¹) ∈ s, from s.mul_mem hyz hxy,
-    by simpa [mul_assoc] using this⟩
+def right_rel : setoid α :=
+⟨λ x y, y * x⁻¹ ∈ s, by { simp_rw ←right_coset_eq_iff, exact right_coset_equivalence_rel s }⟩
+
+lemma right_rel_r_eq_right_coset_equivalence :
+  @setoid.r _ (quotient_group.right_rel s) = right_coset_equivalence s :=
+by { ext, exact (right_coset_eq_iff s).symm }
 
 @[to_additive]
-instance right_rel_decidable [group α] (s : subgroup α) [d : decidable_pred (∈ s)] :
-  decidable_rel (left_rel s).r := λ _ _, d _
+instance right_rel_decidable [decidable_pred (∈ s)] :
+  decidable_rel (right_rel s).r := λ x y, ‹decidable_pred (∈ s)› _
 
 end quotient_group
 
@@ -267,6 +283,11 @@ lemma induction_on' {C : quotient s → Prop} (x : quotient s)
 quotient.induction_on' x H
 
 @[to_additive]
+lemma forall_coe {C : quotient s → Prop} :
+  (∀ x : quotient s, C x) ↔ ∀ x : α, C x :=
+⟨λ hx x, hx _, quot.ind⟩
+
+@[to_additive]
 instance (s : subgroup α) : inhabited (quotient s) :=
 ⟨((1 : α) : quotient s)⟩
 
@@ -274,10 +295,34 @@ instance (s : subgroup α) : inhabited (quotient s) :=
 protected lemma eq {a b : α} : (a : quotient s) = b ↔ a⁻¹ * b ∈ s :=
 quotient.eq'
 
+@[to_additive quotient_add_group.eq']
+lemma eq' {a b : α} : (mk a : quotient s) = mk b ↔ a⁻¹ * b ∈ s :=
+quotient_group.eq
+
+@[to_additive quotient_add_group.out_eq']
+lemma out_eq' (a : quotient s) : mk a.out' = a :=
+quotient.out_eq' a
+
+variables (s)
+
+/- It can be useful to write `obtain ⟨h, H⟩ := mk_out'_eq_mul ...`, and then `rw [H]` or
+  `simp_rw [H]` or `simp only [H]`. In order for `simp_rw` and `simp only` to work, this lemma is
+  stated in terms of an arbitrary `h : s`, rathern that the specific `h = g⁻¹ * (mk g).out'`. -/
+@[to_additive quotient_add_group.mk_out'_eq_mul]
+lemma mk_out'_eq_mul (g : α) : ∃ h : s, (mk g : quotient s).out' = g * h :=
+⟨⟨g⁻¹ * (mk g).out', eq'.mp (mk g).out_eq'.symm⟩, by rw [s.coe_mk, mul_inv_cancel_left]⟩
+
+variables {s}
+
+@[to_additive quotient_add_group.mk_mul_of_mem]
+lemma mk_mul_of_mem (g₁ g₂ : α) (hg₂ : g₂ ∈ s) : (mk (g₁ * g₂) : quotient s) = mk g₁ :=
+by rwa [eq', mul_inv_rev, inv_mul_cancel_right, s.inv_mem_iff]
+
 @[to_additive]
 lemma eq_class_eq_left_coset (s : subgroup α) (g : α) :
   {x : α | (x : quotient s) = g} = left_coset g s :=
-set.ext $ λ z, by { rw [mem_left_coset_iff, set.mem_set_of_eq, eq_comm, quotient_group.eq], simp }
+set.ext $ λ z,
+  by rw [mem_left_coset_iff, set.mem_set_of_eq, eq_comm, quotient_group.eq, set_like.mem_coe]
 
 @[to_additive]
 lemma preimage_image_coe (N : subgroup α) (s : set α) :
@@ -331,8 +376,45 @@ calc α ≃ Σ L : quotient s, {x : α // (x : quotient s) = L} :
     ... ≃ quotient s × s :
   equiv.sigma_equiv_prod _ _
 
-lemma card_eq_card_quotient_mul_card_subgroup [fintype α] (s : subgroup α) [fintype s]
-  [decidable_pred (λ a, a ∈ s)] : fintype.card α = fintype.card (quotient s) * fintype.card s :=
+variables {t : subgroup α}
+
+/-- If `H ≤ K`, then `G/H ≃ G/K × K/H` constructively, using the provided right inverse
+of the quotient map `G → G/K`. The classical version is `quotient_equiv_prod_of_le`. -/
+@[to_additive "If `H ≤ K`, then `G/H ≃ G/K × K/H` constructively, using the provided right inverse
+of the quotient map `G → G/K`. The classical version is `quotient_equiv_prod_of_le`.", simps]
+def quotient_equiv_prod_of_le' (h_le : s ≤ t)
+  (f : quotient t → α) (hf : function.right_inverse f quotient_group.mk) :
+  quotient s ≃ quotient t × quotient (s.subgroup_of t) :=
+{ to_fun := λ a, ⟨a.map' id (λ b c h, h_le h),
+    a.map' (λ g : α, ⟨(f (quotient.mk' g))⁻¹ * g, quotient.exact' (hf g)⟩) (λ b c h, by
+    { change ((f b)⁻¹ * b)⁻¹ * ((f c)⁻¹ * c) ∈ s,
+      have key : f b = f c := congr_arg f (quotient.sound' (h_le h)),
+      rwa [key, mul_inv_rev, inv_inv, mul_assoc, mul_inv_cancel_left] })⟩,
+  inv_fun := λ a, a.2.map' (λ b, f a.1 * b) (λ b c h, by
+  { change (f a.1 * b)⁻¹ * (f a.1 * c) ∈ s,
+    rwa [mul_inv_rev, mul_assoc, inv_mul_cancel_left] }),
+  left_inv := by
+  { refine quotient.ind' (λ a, _),
+    simp_rw [quotient.map'_mk', id.def, t.coe_mk, mul_inv_cancel_left] },
+  right_inv := by
+  { refine prod.rec _,
+    refine quotient.ind' (λ a, _),
+    refine quotient.ind' (λ b, _),
+    have key : quotient.mk' (f (quotient.mk' a) * b) = quotient.mk' a :=
+      (quotient_group.mk_mul_of_mem (f a) ↑b b.2).trans (hf a),
+    simp_rw [quotient.map'_mk', id.def, key, inv_mul_cancel_left, subtype.coe_eta] } }
+
+/-- If `H ≤ K`, then `G/H ≃ G/K × K/H` nonconstructively.
+The constructive version is `quotient_equiv_prod_of_le'`. -/
+@[to_additive "If `H ≤ K`, then `G/H ≃ G/K × K/H` nonconstructively.
+The constructive version is `quotient_equiv_prod_of_le'`.", simps]
+noncomputable def quotient_equiv_prod_of_le (h_le : s ≤ t) :
+  quotient s ≃ quotient t × quotient (s.subgroup_of t) :=
+quotient_equiv_prod_of_le' h_le quotient.out' quotient.out_eq'
+
+@[to_additive] lemma card_eq_card_quotient_mul_card_subgroup
+  [fintype α] (s : subgroup α) [fintype s] [decidable_pred (λ a, a ∈ s)] :
+  fintype.card α = fintype.card (quotient s) * fintype.card s :=
 by rw ← fintype.card_prod;
   exact fintype.card_congr (subgroup.group_equiv_quotient_times_subgroup)
 
@@ -344,6 +426,28 @@ by haveI := classical.prop_decidable; simp [card_eq_card_quotient_mul_card_subgr
 lemma card_quotient_dvd_card [fintype α] (s : subgroup α) [decidable_pred (λ a, a ∈ s)]
   [fintype s] : fintype.card (quotient s) ∣ fintype.card α :=
 by simp [card_eq_card_quotient_mul_card_subgroup s]
+
+open fintype
+
+variables {H : Type*} [group H]
+
+lemma card_dvd_of_injective [fintype α] [fintype H] (f : α →* H) (hf : function.injective f) :
+  card α ∣ card H :=
+by classical;
+calc card α = card (f.range : subgroup H) : card_congr (equiv.of_injective f hf)
+...∣ card H : card_subgroup_dvd_card _
+
+lemma card_dvd_of_le {H K : subgroup α} [fintype H] [fintype K] (hHK : H ≤ K) : card H ∣ card K :=
+card_dvd_of_injective (inclusion hHK) (inclusion_injective hHK)
+
+lemma card_comap_dvd_of_injective (K : subgroup H) [fintype K]
+  (f : α →* H) [fintype (K.comap f)] (hf : function.injective f) :
+  fintype.card (K.comap f) ∣ fintype.card K :=
+by haveI : fintype ((K.comap f).map f) :=
+  fintype.of_equiv _ (equiv_map_of_injective _ _ hf).to_equiv;
+calc fintype.card (K.comap f) = fintype.card ((K.comap f).map f) :
+       fintype.card_congr (equiv_map_of_injective _ _ hf).to_equiv
+... ∣ fintype.card K : card_dvd_of_le (map_comap_le _ _)
 
 end subgroup
 

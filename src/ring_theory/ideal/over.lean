@@ -110,7 +110,7 @@ lemma exists_nonzero_mem_of_ne_bot {P : ideal (polynomial R)}
 begin
   obtain ⟨m, hm⟩ := submodule.nonzero_mem_of_bot_lt (bot_lt_iff_ne_bot.mpr Pb),
   refine ⟨m, submodule.coe_mem m, λ pp0, hm (submodule.coe_eq_zero.mp _)⟩,
-  refine (is_add_group_hom.injective_iff (polynomial.map (quotient.mk (P.comap C)))).mp _ _ pp0,
+  refine (ring_hom.injective_iff (polynomial.map_ring_hom (quotient.mk (P.comap C)))).mp _ _ pp0,
   refine map_injective _ ((quotient.mk (P.comap C)).injective_iff_ker_eq_bot.mpr _),
   rw [mk_ker],
   exact (submodule.eq_bot_iff _).mpr (λ x hx, hP x (mem_comap.mp hx)),
@@ -225,25 +225,50 @@ lemma is_maximal_comap_of_is_integral_of_is_maximal' {R S : Type*} [comm_ring R]
   (f : R →+* S) (hf : f.is_integral) (I : ideal S) (hI : I.is_maximal) : is_maximal (I.comap f) :=
 @is_maximal_comap_of_is_integral_of_is_maximal R _ S _ f.to_algebra hf I hI
 
+section is_integral_closure
+
+variables (S) {A : Type*} [integral_domain A]
+variables [algebra R A] [algebra A S] [is_scalar_tower R A S] [is_integral_closure A R S]
+
+lemma is_integral_closure.comap_ne_bot [nontrivial R] {I : ideal A}
+  (I_ne_bot : I ≠ ⊥) : I.comap (algebra_map R A) ≠ ⊥ :=
+let ⟨x, x_mem, x_ne_zero⟩ := I.ne_bot_iff.mp I_ne_bot in
+comap_ne_bot_of_integral_mem x_ne_zero x_mem (is_integral_closure.is_integral R S x)
+
+lemma is_integral_closure.eq_bot_of_comap_eq_bot [nontrivial R] {I : ideal A} :
+  I.comap (algebra_map R A) = ⊥ → I = ⊥ :=
+imp_of_not_imp_not _ _ (is_integral_closure.comap_ne_bot S)
+
+lemma is_integral_closure.comap_lt_comap {I J : ideal A} [I.is_prime]
+  (I_lt_J : I < J) :
+  I.comap (algebra_map R A) < J.comap (algebra_map _ _) :=
+let ⟨I_le_J, x, hxJ, hxI⟩ := set_like.lt_iff_le_and_exists.mp I_lt_J in
+comap_lt_comap_of_integral_mem_sdiff I_le_J ⟨hxJ, hxI⟩ (is_integral_closure.is_integral R S x)
+
+lemma is_integral_closure.is_maximal_of_is_maximal_comap
+  (I : ideal A) [I.is_prime]
+  (hI : is_maximal (I.comap (algebra_map R A))) : is_maximal I :=
+is_maximal_of_is_integral_of_is_maximal_comap (λ x, is_integral_closure.is_integral R S x) I hI
+
+end is_integral_closure
+
 lemma integral_closure.comap_ne_bot [nontrivial R] {I : ideal (integral_closure R S)}
   (I_ne_bot : I ≠ ⊥) : I.comap (algebra_map R (integral_closure R S)) ≠ ⊥ :=
-let ⟨x, x_mem, x_ne_zero⟩ := I.ne_bot_iff.mp I_ne_bot in
-comap_ne_bot_of_integral_mem x_ne_zero x_mem (integral_closure.is_integral x)
+is_integral_closure.comap_ne_bot S I_ne_bot
 
 lemma integral_closure.eq_bot_of_comap_eq_bot [nontrivial R] {I : ideal (integral_closure R S)} :
   I.comap (algebra_map R (integral_closure R S)) = ⊥ → I = ⊥ :=
-imp_of_not_imp_not _ _ integral_closure.comap_ne_bot
+is_integral_closure.eq_bot_of_comap_eq_bot S
 
 lemma integral_closure.comap_lt_comap {I J : ideal (integral_closure R S)} [I.is_prime]
   (I_lt_J : I < J) :
   I.comap (algebra_map R (integral_closure R S)) < J.comap (algebra_map _ _) :=
-let ⟨I_le_J, x, hxJ, hxI⟩ := set_like.lt_iff_le_and_exists.mp I_lt_J in
-comap_lt_comap_of_integral_mem_sdiff I_le_J ⟨hxJ, hxI⟩ (integral_closure.is_integral x)
+is_integral_closure.comap_lt_comap S I_lt_J
 
 lemma integral_closure.is_maximal_of_is_maximal_comap
   (I : ideal (integral_closure R S)) [I.is_prime]
   (hI : is_maximal (I.comap (algebra_map R (integral_closure R S)))) : is_maximal I :=
-is_maximal_of_is_integral_of_is_maximal_comap (λ x, integral_closure.is_integral x) I hI
+is_integral_closure.is_maximal_of_is_maximal_comap S I hI
 
 /-- `comap (algebra_map R S)` is a surjection from the prime spec of `R` to prime spec of `S`.
 `hP : (algebra_map R S).ker ≤ P` is a slight generalization of the extension being injective -/
@@ -257,7 +282,7 @@ begin
   let Rₚ := localization P.prime_compl,
   let Sₚ := localization (algebra.algebra_map_submonoid S P.prime_compl),
   letI : integral_domain (localization (algebra.algebra_map_submonoid S P.prime_compl)) :=
-    is_localization.integral_domain_localization (le_non_zero_divisors_of_domain hP0),
+    is_localization.integral_domain_localization (le_non_zero_divisors_of_no_zero_divisors hP0),
   obtain ⟨Qₚ : ideal Sₚ, Qₚ_maximal⟩ := exists_maximal Sₚ,
   haveI Qₚ_max : is_maximal (comap _ Qₚ) := @is_maximal_comap_of_is_integral_of_is_maximal Rₚ _ Sₚ _
     (localization_algebra P.prime_compl S)

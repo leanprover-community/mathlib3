@@ -370,8 +370,7 @@ def cartesian_closed_of_equiv (e : C ≌ D) [h : cartesian_closed C] : cartesian
         dsimp [prod_comparison],
         simp [prod.comp_lift, ← e.inverse.map_comp, ← e.inverse.map_comp_assoc],
           -- I wonder if it would be a good idea to make `map_comp` a simp lemma the other way round
-        dsimp, simp -- See note [dsimp, simp]
-        },
+        dsimp, simp }, -- See note [dsimp, simp]
       { have : is_left_adjoint (e.functor ⋙ prod.functor.obj X ⋙ e.inverse) :=
           by exactI adjunction.left_adjoint_of_nat_iso this.symm,
         have : is_left_adjoint (e.inverse ⋙ e.functor ⋙ prod.functor.obj X ⋙ e.inverse) :=

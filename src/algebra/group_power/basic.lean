@@ -3,9 +3,8 @@ Copyright (c) 2015 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
-import algebra.ordered_ring
+import algebra.order.ring
 import tactic.monotonicity.basic
-import deprecated.group
 import group_theory.group_action.defs
 
 /-!
@@ -191,11 +190,6 @@ theorem monoid_hom.map_pow (f : M →* N) (a : M) : ∀(n : ℕ), f (a ^ n) = (f
 | 0     := by rw [pow_zero, pow_zero, f.map_one]
 | (n+1) := by rw [pow_succ, pow_succ, f.map_mul, monoid_hom.map_pow]
 
-@[to_additive is_add_monoid_hom.map_nsmul]
-theorem is_monoid_hom.map_pow (f : M → N) [is_monoid_hom f] (a : M) :
-  ∀(n : ℕ), f (a ^ n) = (f a) ^ n :=
-(monoid_hom.of f).map_pow a
-
 @[to_additive]
 lemma commute.mul_pow {a b : M} (h : commute a b) (n : ℕ) : (a * b) ^ n = a ^ n * b ^ n :=
 nat.rec_on n (by simp only [pow_zero, one_mul]) $ λ n ihn,
@@ -231,14 +225,28 @@ variables [comm_monoid M] [add_comm_monoid A]
 theorem mul_pow (a b : M) (n : ℕ) : (a * b)^n = a^n * b^n :=
 (commute.all a b).mul_pow n
 
-@[to_additive nsmul.is_add_monoid_hom]
-instance pow.is_monoid_hom (n : ℕ) : is_monoid_hom ((^ n) : M → M) :=
-{ map_mul := λ _ _, mul_pow _ _ _, map_one := one_pow _ }
 
-lemma dvd_pow {x y : M} :
-  ∀ {n : ℕ} (hxy : x ∣ y) (hn : n ≠ 0), x ∣ y^n
-| 0     hxy hn := (hn rfl).elim
-| (n+1) hxy hn := by { rw [pow_succ], exact dvd_mul_of_dvd_left hxy _ }
+/-- The `n`th power map on a commutative monoid for a natural `n`, considered as a morphism of
+monoids. -/
+@[to_additive nsmul_add_monoid_hom "Multiplication by a natural `n` on a commutative additive
+monoid, considered as a morphism of additive monoids.", simps]
+def pow_monoid_hom (n : ℕ) : M →* M :=
+{ to_fun := (^ n),
+  map_one' := one_pow _,
+  map_mul' := λ a b, mul_pow a b n }
+
+-- the below line causes the linter to complain :-/
+-- attribute [simps] pow_monoid_hom nsmul_add_monoid_hom
+
+lemma dvd_pow {x y : M} (hxy : x ∣ y) :
+  ∀ {n : ℕ} (hn : n ≠ 0), x ∣ y^n
+| 0       hn := (hn rfl).elim
+| (n + 1) hn := by { rw pow_succ, exact hxy.mul_right _ }
+
+alias dvd_pow ← has_dvd.dvd.pow
+
+lemma dvd_pow_self (a : M) {n : ℕ} (hn : n ≠ 0) : a ∣ a^n :=
+dvd_rfl.pow hn
 
 end comm_monoid
 
@@ -341,9 +349,14 @@ theorem mul_gpow (a b : G) (n : ℤ) : (a * b)^n = a^n * b^n := (commute.all a b
 theorem div_gpow (a b : G) (n : ℤ) : (a / b) ^ n = a ^ n / b ^ n :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, mul_gpow, inv_gpow]
 
-@[to_additive gsmul.is_add_group_hom]
-instance gpow.is_group_hom (n : ℤ) : is_group_hom ((^ n) : G → G) :=
-{ map_mul := λ _ _, mul_gpow _ _ n }
+/-- The `n`th power map (`n` an integer) on a commutative group, considered as a group
+homomorphism. -/
+@[to_additive "Multiplication by an integer `n` on a commutative additive group, considered as an
+additive group homomorphism.", simps]
+def gpow_group_hom (n : ℤ) : G →* G :=
+{ to_fun := (^ n),
+  map_one' := one_gpow n,
+  map_mul' := λ a b, mul_gpow a b n }
 
 end comm_group
 
@@ -442,8 +455,8 @@ variables [semiring R]
 lemma min_pow_dvd_add {n m : ℕ} {a b c : R} (ha : c ^ n ∣ a) (hb : c ^ m ∣ b) :
   c ^ (min n m) ∣ a + b :=
 begin
-  replace ha := dvd.trans (pow_dvd_pow c (min_le_left n m)) ha,
-  replace hb := dvd.trans (pow_dvd_pow c (min_le_right n m)) hb,
+  replace ha := (pow_dvd_pow c (min_le_left n m)).trans ha,
+  replace hb := (pow_dvd_pow c (min_le_right n m)).trans hb,
   exact dvd_add ha hb
 end
 

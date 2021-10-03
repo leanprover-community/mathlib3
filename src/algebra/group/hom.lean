@@ -362,6 +362,14 @@ let ⟨y, hy⟩ := hx in ⟨f y, f.map_mul_eq_one hy⟩
 
 end monoid_hom
 
+/-- Inversion on a commutative group, considered as a monoid homomorphism. -/
+@[to_additive "Inversion on a commutative additive group, considered as an additive
+monoid homomorphism."]
+def comm_group.inv_monoid_hom {G : Type*} [comm_group G] : G →* G :=
+{ to_fun := has_inv.inv,
+  map_one' := one_inv,
+  map_mul' := mul_inv }
+
 /-- The identity map from a type with 1 to itself. -/
 @[to_additive, simps]
 def one_hom.id (M : Type*) [has_one M] : one_hom M M :=
@@ -487,10 +495,10 @@ lemma one_hom.cancel_left [has_one M] [has_one N] [has_one P]
 ⟨λ h, one_hom.ext $ λ x, hg $ by rw [← one_hom.comp_apply, h, one_hom.comp_apply],
  λ h, h ▸ rfl⟩
 @[to_additive]
-lemma mul_hom.cancel_left [has_one M] [has_one N] [has_one P]
-  {g : one_hom N P} {f₁ f₂ : one_hom M N} (hg : function.injective g) :
+lemma mul_hom.cancel_left [has_mul M] [has_mul N] [has_mul P]
+  {g : mul_hom N P} {f₁ f₂ : mul_hom M N} (hg : function.injective g) :
   g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
-⟨λ h, one_hom.ext $ λ x, hg $ by rw [← one_hom.comp_apply, h, one_hom.comp_apply],
+⟨λ h, mul_hom.ext $ λ x, hg $ by rw [← mul_hom.comp_apply, h, mul_hom.comp_apply],
  λ h, h ▸ rfl⟩
 @[to_additive]
 lemma monoid_hom.cancel_left [mul_one_class M] [mul_one_class N] [mul_one_class P]
@@ -693,6 +701,11 @@ eq_inv_of_mul_eq_one $ f.map_mul_eq_one $ inv_mul_self g
 theorem map_mul_inv {G H} [group G] [group H] (f : G →* H) (g h : G) :
   f (g * h⁻¹) = (f g) * (f h)⁻¹ := by rw [f.map_mul, f.map_inv]
 
+/-- Group homomorphisms preserve division. -/
+@[simp, to_additive /-" Additive group homomorphisms preserve subtraction. "-/]
+theorem map_div {G H} [group G] [group H] (f : G →* H) (g h : G) : f (g / h) = (f g) / (f h) :=
+by rw [div_eq_mul_inv, div_eq_mul_inv, f.map_mul_inv g h]
+
 /-- A homomorphism from a group to a monoid is injective iff its kernel is trivial.
 For the iff statement on the triviality of the kernel, see `monoid_hom.injective_iff'`.  -/
 @[to_additive /-" A homomorphism from an additive group to an additive monoid is injective iff
@@ -725,6 +738,7 @@ def mk' (f : M → G) (map_mul : ∀ a b : M, f (a * b) = f a * f b) : M →* G 
 omit mM
 
 /-- Makes a group homomorphism from a proof that the map preserves right division `λ x y, x * y⁻¹`.
+See also `monoid_hom.of_map_div` for a version using `λ x y, x / y`.
 -/
 @[to_additive "Makes an additive group homomorphism from a proof that the map preserves
 the operation `λ a b, a + -b`. See also `add_monoid_hom.of_map_sub` for a version using
@@ -739,6 +753,16 @@ calc f (x * y) = f x * (f $ 1 * 1⁻¹ * y⁻¹)⁻¹ : by simp only [one_mul, o
 @[simp, to_additive] lemma coe_of_map_mul_inv {H : Type*} [group H] (f : G → H)
   (map_div : ∀ a b : G, f (a * b⁻¹) = f a * (f b)⁻¹) :
   ⇑(of_map_mul_inv f map_div) = f :=
+rfl
+
+/-- Define a morphism of additive groups given a map which respects ratios. -/
+@[to_additive /-"Define a morphism of additive groups given a map which respects difference."-/]
+def of_map_div {H : Type*} [group H] (f : G → H) (hf : ∀ x y, f (x / y) = f x / f y) : G →* H :=
+of_map_mul_inv f (by simpa only [div_eq_mul_inv] using hf)
+
+@[simp, to_additive]
+lemma coe_of_map_div {H : Type*} [group H] (f : G → H) (hf : ∀ x y, f (x / y) = f x / f y) :
+  ⇑(of_map_div f hf) = f :=
 rfl
 
 /-- If `f` is a monoid homomorphism to a commutative group, then `f⁻¹` is the homomorphism sending
@@ -779,24 +803,6 @@ add_decl_doc add_monoid_hom.has_sub
   (f / g) x = f x / g x := rfl
 
 end monoid_hom
-
-namespace add_monoid_hom
-
-variables {A B : Type*} [add_zero_class A] [add_comm_group B] [add_group G] [add_group H]
-
-/-- Additive group homomorphisms preserve subtraction. -/
-@[simp] theorem map_sub (f : G →+ H) (g h : G) : f (g - h) = (f g) - (f h) :=
-by rw [sub_eq_add_neg, sub_eq_add_neg, f.map_add_neg g h]
-
-/-- Define a morphism of additive groups given a map which respects difference. -/
-def of_map_sub (f : G → H) (hf : ∀ x y, f (x - y) = f x - f y) : G →+ H :=
-of_map_add_neg f (by simpa only [sub_eq_add_neg] using hf)
-
-@[simp] lemma coe_of_map_sub (f : G → H) (hf : ∀ x y, f (x - y) = f x - f y) :
-  ⇑(of_map_sub f hf) = f :=
-rfl
-
-end add_monoid_hom
 
 section commute
 

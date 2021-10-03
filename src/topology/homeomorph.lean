@@ -170,6 +170,22 @@ h.embedding.is_compact_iff_is_compact_image.symm
 lemma compact_preimage {s : set β} (h : α ≃ₜ β) : is_compact (h ⁻¹' s) ↔ is_compact s :=
 by rw ← image_symm; exact h.symm.compact_image
 
+lemma compact_space [compact_space α] (h : α ≃ₜ β) : compact_space β :=
+{ compact_univ := by { rw [← image_univ_of_surjective h.surjective, h.compact_image],
+    apply compact_space.compact_univ } }
+
+lemma t2_space [t2_space α] (h : α ≃ₜ β) : t2_space β :=
+{ t2 :=
+  begin
+    intros x y hxy,
+    obtain ⟨u, v, hu, hv, hxu, hyv, huv⟩ := t2_separation (h.symm.injective.ne hxy),
+    refine ⟨h.symm ⁻¹' u, h.symm ⁻¹' v,
+      h.symm.continuous.is_open_preimage _ hu,
+      h.symm.continuous.is_open_preimage _ hv,
+      hxu, hyv, _⟩,
+    rw [← preimage_inter, huv, preimage_empty],
+  end }
+
 protected lemma dense_embedding (h : α ≃ₜ β) : dense_embedding h :=
 { dense   := h.surjective.dense_range,
   .. h.embedding }

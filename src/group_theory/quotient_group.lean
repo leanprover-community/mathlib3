@@ -6,6 +6,7 @@ Authors: Kevin Buzzard, Patrick Massot
 This file is to a certain extent based on `quotient_module.lean` by Johannes Hölzl.
 -/
 import group_theory.coset
+import data.setoid.basic
 
 /-!
 # Quotients of groups by normal subgroups
@@ -84,6 +85,19 @@ lemma coe_mk' : (mk' N : G → quotient N) = coe := rfl
 @[to_additive, simp]
 lemma mk'_apply (x : G) : mk' N x = x := rfl
 
+/-- Two `monoid_hom`s from a quotient group are equal if their compositions with
+`quotient_group.mk'` are equal.
+
+See note [partially-applied ext lemmas]. -/
+@[to_additive /-" Two `add_monoid_hom`s from an additive quotient group are equal if their
+compositions with `add_quotient_group.mk'` are equal.
+
+See note [partially-applied ext lemmas]. "-/, ext]
+lemma monoid_hom_ext ⦃f g : quotient N →* H⦄ (h : f.comp (mk' N) = g.comp (mk' N)) : f = g :=
+monoid_hom.ext $ λ x, quotient_group.induction_on x $ (monoid_hom.congr_fun h : _)
+
+attribute [ext] quotient_add_group.add_monoid_hom_ext
+
 @[simp, to_additive quotient_add_group.eq_zero_iff]
 lemma eq_one_iff {N : subgroup G} [nN : N.normal] (x : G) : (x : quotient N) = 1 ↔ x ∈ N :=
 begin
@@ -141,9 +155,9 @@ monoid_hom.mk'
   (λ q : Q, q.lift_on' φ $ assume a b (hab : a⁻¹ * b ∈ N),
   (calc φ a = φ a * 1           : (mul_one _).symm
   ...       = φ a * φ (a⁻¹ * b) : HN (a⁻¹ * b) hab ▸ rfl
-  ...       = φ (a * (a⁻¹ * b)) : (is_mul_hom.map_mul φ a (a⁻¹ * b)).symm
+  ...       = φ (a * (a⁻¹ * b)) : (φ.map_mul a (a⁻¹ * b)).symm
   ...       = φ b               : by rw mul_inv_cancel_left))
-  (λ q r, quotient.induction_on₂' q r $ is_mul_hom.map_mul φ)
+  (λ q r, quotient.induction_on₂' q r $ φ.map_mul)
 
 @[simp, to_additive quotient_add_group.lift_mk]
 lemma lift_mk {φ : G →* H} (HN : ∀x∈N, φ x = 1) (g : G) :
@@ -204,7 +218,7 @@ lemma ker_lift_injective : injective (ker_lift φ) :=
 assume a b, quotient.induction_on₂' a b $
   assume a b (h : φ a = φ b), quotient.sound' $
 show a⁻¹ * b ∈ ker φ, by rw [mem_ker,
-  is_mul_hom.map_mul φ, ← h, is_group_hom.map_inv φ, inv_mul_self]
+  φ.map_mul, ← h, φ.map_inv, inv_mul_self]
 
 -- Note that `ker φ` isn't definitionally `ker (φ.range_restrict)`
 -- so there is a bit of annoying code duplication here
@@ -250,6 +264,13 @@ def quotient_ker_equiv_of_right_inverse (ψ : H → G) (hφ : function.right_inv
   right_inv := hφ,
   .. ker_lift φ }
 
+/-- The canonical isomorphism `G/⊥ ≃* G`. -/
+@[to_additive quotient_add_group.quotient_ker_equiv_of_right_inverse
+"The canonical isomorphism `G/⊥ ≃+ G`.",
+  simps]
+def quotient_bot : quotient (⊥ : subgroup G) ≃* G :=
+quotient_ker_equiv_of_right_inverse (monoid_hom.id G) id (λ x, rfl)
+
 /-- The canonical isomorphism `G/(ker φ) ≃* H` induced by a surjection `φ : G →* H`.
 
 For a `computable` version, see `quotient_group.quotient_ker_equiv_of_right_inverse`.
@@ -274,6 +295,11 @@ def equiv_quotient_of_eq {M N : subgroup G} [M.normal] [N.normal] (h : M = N) :
   right_inv := λ x, x.induction_on' $ by { intro, refl },
   map_mul' := λ x y, by rw map_mul }
 
+@[simp, to_additive]
+lemma equiv_quotient_of_eq_mk {M N : subgroup G} [M.normal] [N.normal] (h : M = N) (x : G) :
+  quotient_group.equiv_quotient_of_eq h (quotient_group.mk x) = (quotient_group.mk x) :=
+rfl
+
 /-- Let `A', A, B', B` be subgroups of `G`. If `A' ≤ B'` and `A ≤ B`,
 then there is a map `A / (A' ⊓ A) →* B / (B' ⊓ B)` induced by the inclusions. -/
 @[to_additive "Let `A', A, B', B` be subgroups of `G`. If `A' ≤ B'` and `A ≤ B`,
@@ -285,8 +311,14 @@ def quotient_map_subgroup_of_of_le {A' A B' B : subgroup G}
 map _ _ (subgroup.inclusion h) $
   by simp [subgroup.subgroup_of, subgroup.comap_comap]; exact subgroup.comap_mono h'
 
+@[simp, to_additive]
+lemma quotient_map_subgroup_of_of_le_coe {A' A B' B : subgroup G}
+  [hAN : (A'.subgroup_of A).normal] [hBN : (B'.subgroup_of B).normal]
+  (h' : A' ≤ B') (h : A ≤ B) (x : A) :
+  quotient_map_subgroup_of_of_le h' h x = ↑(subgroup.inclusion h x : B) := rfl
+
 /-- Let `A', A, B', B` be subgroups of `G`.
-If `A' = B'` and `A = B`, then the quotients `A / (A' ⊓ A)` and `B / (B' ⊓ B)` are isomorphic. 
+If `A' = B'` and `A = B`, then the quotients `A / (A' ⊓ A)` and `B / (B' ⊓ B)` are isomorphic.
 
 Applying this equiv is nicer than rewriting along the equalities, since the type of
 `(A'.subgroup_of A : subgroup A)` depends on on `A`.
@@ -301,9 +333,10 @@ def equiv_quotient_subgroup_of_of_eq {A' A B' B : subgroup G}
   [hAN : (A'.subgroup_of A).normal] [hBN : (B'.subgroup_of B).normal]
   (h' : A' = B') (h : A = B) :
   quotient (A'.subgroup_of A) ≃* quotient (B'.subgroup_of B) :=
-by apply monoid_hom.to_mul_equiv
-    (quotient_map_subgroup_of_of_le h'.le h.le) (quotient_map_subgroup_of_of_le h'.ge h.ge);
-  { ext ⟨x⟩, simp [quotient_map_subgroup_of_of_le, map, lift, mk', subgroup.inclusion], refl }
+monoid_hom.to_mul_equiv
+  (quotient_map_subgroup_of_of_le h'.le h.le) (quotient_map_subgroup_of_of_le h'.ge h.ge)
+  (by { ext ⟨x, hx⟩, refl })
+  (by { ext ⟨x, hx⟩, refl })
 
 section snd_isomorphism_thm
 
@@ -372,13 +405,27 @@ quotient_group.lift_mk' _ _ x
 "**Noether's third isomorphism theorem** for additive groups: `(A / N) / (M / N) ≃ A / M`."]
 def quotient_quotient_equiv_quotient :
   quotient_group.quotient (M.map (quotient_group.mk' N)) ≃* quotient_group.quotient M :=
-{ to_fun := quotient_quotient_equiv_quotient_aux N M h,
-  inv_fun := quotient_group.map _ _ (quotient_group.mk' N) (subgroup.le_comap_map _ _),
-  left_inv := λ x, quotient_group.induction_on' x $ λ x, quotient_group.induction_on' x $
-    λ x, by simp,
-  right_inv := λ x, quotient_group.induction_on' x $ λ x, by simp,
-  map_mul' := monoid_hom.map_mul _ }
+monoid_hom.to_mul_equiv
+  (quotient_quotient_equiv_quotient_aux N M h)
+  (quotient_group.map _ _ (quotient_group.mk' N) (subgroup.le_comap_map _ _))
+  (by { ext, simp })
+  (by { ext, simp })
 
 end third_iso_thm
+
+
+section trivial
+
+lemma subsingleton_quotient_top : subsingleton (quotient_group.quotient (⊤ : subgroup G)) :=
+trunc.subsingleton
+
+/-- If the quotient by a subgroup gives a singleton then the subgroup is the whole group. -/
+lemma subgroup_eq_top_of_subsingleton (H : subgroup G)
+  (h : subsingleton (quotient_group.quotient H)) : H = ⊤ :=
+top_unique $ λ x _,
+  have this : 1⁻¹ * x ∈ H := quotient_group.eq.1 (subsingleton.elim _ _),
+  by rwa [one_inv, one_mul] at this
+
+end trivial
 
 end quotient_group

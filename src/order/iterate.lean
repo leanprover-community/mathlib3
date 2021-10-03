@@ -3,7 +3,6 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import order.basic
 import logic.function.iterate
 import data.nat.basic
 
@@ -48,7 +47,7 @@ end
 lemma seq_pos_lt_seq_of_le_of_lt (hf : monotone f) {n : ℕ} (hn : 0 < n) (h₀ : x 0 ≤ y 0)
   (hx : ∀ k < n, x (k + 1) ≤ f (x k)) (hy : ∀ k < n, f (y k) < y (k + 1)) :
   x n < y n :=
-hf.order_dual.seq_pos_lt_seq_of_lt_of_le hn h₀ hy hx
+hf.dual.seq_pos_lt_seq_of_lt_of_le hn h₀ hy hx
 
 lemma seq_lt_seq_of_lt_of_le (hf : monotone f) (n : ℕ) (h₀ : x 0 < y 0)
   (hx : ∀ k < n, x (k + 1) < f (x k)) (hy : ∀ k < n, f (y k) ≤ y (k + 1)) :
@@ -58,7 +57,7 @@ by { cases n, exacts [h₀, hf.seq_pos_lt_seq_of_lt_of_le n.zero_lt_succ h₀.le
 lemma seq_lt_seq_of_le_of_lt (hf : monotone f) (n : ℕ) (h₀ : x 0 < y 0)
   (hx : ∀ k < n, x (k + 1) ≤ f (x k)) (hy : ∀ k < n, f (y k) < y (k + 1)) :
   x n < y n :=
-hf.order_dual.seq_lt_seq_of_lt_of_le n h₀ hy hx
+hf.dual.seq_lt_seq_of_lt_of_le n h₀ hy hx
 
 end monotone
 
@@ -113,7 +112,7 @@ by refine hf.seq_pos_lt_seq_of_le_of_lt hn _ (λ k hk, _) (λ k hk, _);
 lemma iterate_pos_lt_of_map_lt' (h : commute f g) (hf : strict_mono f) (hg : monotone g)
   {x} (hx : f x < g x) {n} (hn : 0 < n) :
   f^[n] x < (g^[n]) x :=
-@iterate_pos_lt_of_map_lt (order_dual α) _ g f h.symm hg.order_dual hf.order_dual x hx n hn
+@iterate_pos_lt_of_map_lt (order_dual α) _ g f h.symm hg.dual hf.dual x hx n hn
 
 end preorder
 
@@ -132,7 +131,7 @@ end
 lemma iterate_pos_lt_iff_map_lt' (h : commute f g) (hf : strict_mono f)
   (hg : monotone g) {x n} (hn : 0 < n) :
   f^[n] x < (g^[n]) x ↔ f x < g x :=
-@iterate_pos_lt_iff_map_lt (order_dual α) _ _ _ h.symm hg.order_dual hf.order_dual x n hn
+@iterate_pos_lt_iff_map_lt (order_dual α) _ _ _ h.symm hg.dual hf.dual x n hn
 
 lemma iterate_pos_le_iff_map_le (h : commute f g) (hf : monotone f)
   (hg : strict_mono g) {x n} (hn : 0 < n) :
@@ -156,18 +155,32 @@ end function
 
 namespace monotone
 
-variables [preorder α] {f g : α → α}
-
 open function
+
+section
+
+variables {β : Type*} [preorder β] {f : α → α} {g : β → β} {h : α → β}
+
+lemma le_iterate_comp_of_le (hg : monotone g) (H : ∀ x, h (f x) ≤ g (h x)) (n : ℕ) (x : α) :
+  h (f^[n] x) ≤ (g^[n] (h x)) :=
+by refine hg.seq_le_seq n _ (λ k hk, _) (λ k hk, _); simp [iterate_succ', H _]
+
+lemma iterate_comp_le_of_le (hg : monotone g) (H : ∀ x, g (h x) ≤ h (f x)) (n : ℕ) (x : α) :
+  g^[n] (h x) ≤ h (f^[n] x) :=
+hg.dual.le_iterate_comp_of_le H n x
+
+end
+
+variables [preorder α] {f g : α → α}
 
 /-- If `f ≤ g` and `f` is monotone, then `f^[n] ≤ g^[n]`. -/
 lemma iterate_le_of_le (hf : monotone f) (h : f ≤ g) (n : ℕ) :
   f^[n] ≤ (g^[n]) :=
-λ x, by refine hf.seq_le_seq n _ (λ k hk, _) (λ k hk, _); simp [iterate_succ', h _]
+hf.iterate_comp_le_of_le h n
 
 /-- If `f ≤ g` and `f` is monotone, then `f^[n] ≤ g^[n]`. -/
 lemma iterate_ge_of_ge (hg : monotone g) (h : f ≤ g) (n : ℕ) :
   f^[n] ≤ (g^[n]) :=
-hg.order_dual.iterate_le_of_le h n
+hg.dual.iterate_le_of_le h n
 
 end monotone

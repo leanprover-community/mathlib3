@@ -95,9 +95,9 @@ begin
 end
 
 lemma abs_is_bounded_under_iff :
-  is_bounded_under (≤) at_top (λ x, abs (eval x P)) ↔ P.degree ≤ 0 :=
+  is_bounded_under (≤) at_top (λ x, |eval x P|) ↔ P.degree ≤ 0 :=
 begin
-  refine ⟨λ h, _, λ h, ⟨abs (P.coeff 0), eventually_map.mpr (eventually_of_forall
+  refine ⟨λ h, _, λ h, ⟨|P.coeff 0|, eventually_map.mpr (eventually_of_forall
     (forall_imp (λ _, le_of_eq) (λ x, congr_arg abs $ trans (congr_arg (eval x)
     (eq_C_of_degree_le_zero h)) (eval_C))))⟩⟩,
   contrapose! h,
@@ -226,7 +226,7 @@ div_tendsto_at_bot_of_degree_gt' P Q hdeg ratio_neg
 
 lemma abs_div_tendsto_at_top_of_degree_gt (hdeg : Q.degree < P.degree)
   (hQ : Q ≠ 0) :
-  tendsto (λ x, abs ((eval x P)/(eval x Q))) at_top at_top :=
+  tendsto (λ x, |(eval x P)/(eval x Q)|) at_top at_top :=
 begin
   by_cases h : 0 ≤ P.leading_coeff/Q.leading_coeff,
   { exact tendsto_abs_at_top_at_top.comp (P.div_tendsto_at_top_of_degree_gt Q hdeg hQ h) },
@@ -243,7 +243,7 @@ begin
   { simpa [hp] using is_O_zero (λ x, eval x Q) filter.at_top },
   { have hq : Q ≠ 0 := ne_zero_of_degree_ge_degree h hp,
     have hPQ : ∀ᶠ (x : 𝕜) in at_top, eval x Q = 0 → eval x P = 0 :=
-      filter.mem_sets_of_superset (polynomial.eventually_no_roots Q hq) (λ x h h', absurd h' h),
+      filter.mem_of_superset (polynomial.eventually_no_roots Q hq) (λ x h h', absurd h' h),
     cases le_iff_lt_or_eq.mp h with h h,
     { exact is_O_of_div_tendsto_nhds hPQ 0 (div_tendsto_zero_of_degree_lt P Q h) },
     { exact is_O_of_div_tendsto_nhds hPQ _ (div_tendsto_leading_coeff_div_of_degree_eq P Q h) } }

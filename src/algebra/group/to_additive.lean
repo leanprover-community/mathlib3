@@ -42,6 +42,7 @@ that have been processed by `to_additive`. -/
 meta def aux_attr : user_attribute (name_map name) name :=
 { name      := `to_additive_aux,
   descr     := "Auxiliary attribute for `to_additive`. DON'T USE IT",
+  parser    := failed,
   cache_cfg := ⟨λ ns,
                 ns.mfoldl
                   (λ dict n', do
@@ -51,8 +52,7 @@ meta def aux_attr : user_attribute (name_map name) name :=
                             end,
                     param ← aux_attr.get_param_untyped n',
                     pure $ dict.insert n param.app_arg.const_name)
-                  mk_name_map, []⟩,
-  parser    := lean.parser.ident }
+                  mk_name_map, []⟩ }
 
 end performance_hack
 
@@ -76,6 +76,42 @@ meta def ignore_args_attr : user_attribute (name_map $ list ℕ) (list ℕ) :=
         return $ dict.insert n (param.to_list expr.to_nat).iget)
       mk_name_map, []⟩,
   parser    := (lean.parser.small_nat)* }
+
+/--
+An attribute that is automatically added to declarations tagged with `@[to_additive]`, if needed.
+
+This attribute tells which argument is the type where this declaration uses the multiplicative
+structure. If there are multiple argument, we typically tag the first one.
+If this argument contains a fixed type, this declaration will note be additivized.
+See the Heuristics section of `to_additive.attr` for more details.
+
+If a declaration is not tagged, it is presumed that the first argument is relevant.
+`@[to_additive]` uses the function `to_additive.first_multiplicative_arg` to automatically tag
+declarations. It is ok to update it manually if the automatic tagging made an error.
+
+Implementation note: we only allow exactly 1 relevant argument, even though some declarations
+(like `prod.group`) have multiple arguments with a multiplicative structure on it.
+The reason is that whether we additivize a declaration is an all-or-nothing decision, and if
+we will not be able to additivize declarations that (e.g.) talk about multiplication on `ℕ × α`
+anyway.
+
+Warning: adding `@[to_additive_reorder]` with an equal or smaller number than the number in this
+attribute is currently not supported.
+-/
+@[user_attribute]
+meta def relevant_arg_attr : user_attribute (name_map ℕ) ℕ :=
+{ name      := `to_additive_relevant_arg,
+  descr     :=
+    "Auxiliary attribute for `to_additive` stating which arguments are the types with a " ++
+    "multiplicative structure.",
+  cache_cfg :=
+    ⟨λ ns, ns.mfoldl
+      (λ dict n, do
+        param ← relevant_arg_attr.get_param_untyped n, -- see Note [user attribute parameters]
+        -- we subtract 1 from the values provided by the user.
+        return $ dict.insert n $ param.to_nat.iget.pred)
+      mk_name_map, []⟩,
+  parser    := lean.parser.small_nat }
 
 /--
 An attribute that stores all the declarations that needs their arguments reordered when
@@ -104,6 +140,23 @@ meta def reorder_attr : user_attribute (name_map $ list ℕ) (list ℕ) :=
 
 end extra_attributes
 
+/--
+Find the first argument of `nm` that has a multiplicative type-class on it.
+Returns 1 if there are no types with a multiplicative class as arguments.
+E.g. `prod.group` returns 1, and `pi.has_one` returns 2.
+-/
+meta def first_multiplicative_arg (nm : name) : tactic ℕ := do
+  d ← get_decl nm,
+  let (es, _) := d.type.pi_binders,
+  l ← es.mmap_with_index $ λ n bi, do {
+    let tgt := bi.type.pi_codomain,
+    let n_bi := bi.type.pi_binders.fst.length,
+    tt ← has_attribute' `to_additive tgt.get_app_fn.const_name | return none,
+    let n2 := tgt.get_app_args.head.get_app_fn.match_var.map $ λ m, n + n_bi - m,
+    return $ n2 },
+  let l := l.reduce_option,
+  return $ if l = [] then 1 else l.foldr min l.head
+
 /-- A command that can be used to have future uses of `to_additive` change the `src` namespace
 to the `tgt` namespace.
 
@@ -127,6 +180,8 @@ do let n := src.mk_string "_to_additive",
 * `trace`: output the generated additive declaration.
 * `tgt : name`: the name of the target (the additive declaration).
 * `doc`: an optional doc string.
+* if `allow_auto_name` is `ff` (default) then `@[to_additive]` will check whether the given name
+  can be auto-generated.
 -/
 @[derive has_reflect, derive inhabited]
 structure value_type : Type :=
@@ -134,10 +189,11 @@ structure value_type : Type :=
 (trace : bool)
 (tgt : name)
 (doc : option string)
+(allow_auto_name : bool)
 
 /-- `add_comm_prefix x s` returns `"comm_" ++ s` if `x = tt` and `s` otherwise. -/
 meta def add_comm_prefix : bool → string → string
-| tt s := ("comm_" ++ s)
+| tt s := "comm_" ++ s
 | ff s := s
 
 /-- Dictionary used by `to_additive.guess_name` to autogenerate names. -/
@@ -163,6 +219,8 @@ meta def tr : bool → list string → list string
 | is_comm ("subgroup" :: s)    := ("add_" ++ add_comm_prefix is_comm "subgroup")  :: tr ff s
 | is_comm ("semigroup" :: s)   := ("add_" ++ add_comm_prefix is_comm "semigroup") :: tr ff s
 | is_comm ("magma" :: s)       := ("add_" ++ add_comm_prefix is_comm "magma")     :: tr ff s
+| is_comm ("haar" :: s)        := ("add_" ++ add_comm_prefix is_comm "haar")      :: tr ff s
+| is_comm ("prehaar" :: s)     := ("add_" ++ add_comm_prefix is_comm "prehaar")   :: tr ff s
 | is_comm ("comm" :: s)        := tr tt s
 | is_comm (x :: s)             := (add_comm_prefix is_comm x :: tr ff s)
 | tt []                        := ["comm"]
@@ -175,8 +233,9 @@ string.map_tokens ''' $
 tr ff (s.split_on '_')
 
 /-- Return the provided target name or autogenerate one if one was not provided. -/
-meta def target_name (src tgt : name) (dict : name_map name) : tactic name :=
-(if tgt.get_prefix ≠ name.anonymous -- `tgt` is a full name
+meta def target_name (src tgt : name) (dict : name_map name) (allow_auto_name : bool) :
+  tactic name :=
+(if tgt.get_prefix ≠ name.anonymous ∨ allow_auto_name -- `tgt` is a full name
  then pure tgt
  else match src with
       | (name.mk_string s pre) :=
@@ -206,7 +265,7 @@ do
       | some pe := some <$> ((to_expr pe >>= eval_expr string) : tactic string)
       | none := pure none
       end,
-  return ⟨bang, ques, tgt.get_or_else name.anonymous, doc⟩
+  return ⟨bang, ques, tgt.get_or_else name.anonymous, doc, ff⟩
 
 private meta def proceed_fields_aux (src tgt : name) (prio : ℕ) (f : name → tactic (list string)) :
   command :=
@@ -306,10 +365,14 @@ Examples:
 The reasoning behind the heuristic is that the first argument is the type which is "additivized",
 and this usually doesn't make sense if this is on a fixed type.
 
-There are two exceptions in this heuristic:
+There are some exceptions to this heuristic:
 
 * Identifiers that have the `@[to_additive]` attribute are ignored.
   For example, multiplication in `↥Semigroup` is replaced by addition in `↥AddSemigroup`.
+* If an identifier `d` has attribute `@[to_additive_relevant_arg n]` then the argument
+  in position `n` is checked for a fixed type, instead of checking the first argument.
+  `@[to_additive]` will automatically add the attribute `@[to_additive_relevant_arg n]` to a
+  declaration when the first argument has no multiplicative type-class, but argument `n` does.
 * If an identifier has attribute `@[to_additive_ignore_args n1 n2 ...]` then all the arguments in
   positions `n1`, `n2`, ... will not be checked for unapplied identifiers (start counting from 1).
   For example, `times_cont_mdiff_map` has attribute `@[to_additive_ignore_args 21]`, which means
@@ -321,19 +384,25 @@ There are two exceptions in this heuristic:
 
 If `@[to_additive]` fails because the additive declaration raises a type mismatch, there are
 various things you can try.
-The first thing to do is to figure out what `@[to_additive]` did wrong by looking at the type 
+The first thing to do is to figure out what `@[to_additive]` did wrong by looking at the type
 mismatch error.
 
-* Option 1: It additivized a declaration `d` that should remain multiplicative. Solutions:
+* Option 1: It additivized a declaration `d` that should remain multiplicative. Solution:
   * Make sure the first argument of `d` is a type with a multiplicative structure. If not, can you
     reorder the (implicit) arguments of `d` so that the first argument becomes a type with a
     multiplicative structure (and not some indexing type)?
     The reason is that `@[to_additive]` doesn't additivize declarations if their first argument
     contains fixed types like `ℕ` or `ℝ`. See section Heuristics.
-    This is not possible if `d` is something like `pi.has_one` or `prod.group`, where the second
-    argument (also) has a multiplicative structure.
-  * Sometimes only the proof of a lemma/theorem uses these problematic declarations.
-    In some cases you can rewrite the proof a little bit to work around these declarations.
+    If the first argument is not the argument with a multiplicative type-class, `@[to_additive]`
+    should have automatically added the attribute `@[to_additive_relevant_arg]` to the declaration.
+    You can test this by running the following (where `d` is the full name of the declaration):
+    ```
+      run_cmd to_additive.relevant_arg_attr.get_param `d >>= tactic.trace
+    ```
+    The expected output is `n` where the `n`-th argument of `d` is a type (family) with a
+    multiplicative structure on it. If you get a different output (or a failure), you could add
+    the attribute `@[to_additive_relevant_arg n]` manually, where `n` is an argument with a
+    multiplicative structure.
 * Option 2: It didn't additivize a declaration that should be additivized.
   This happened because the heuristic applied, and the first argument contains a fixed type,
   like `ℕ` or `ℝ`. Solutions:
@@ -429,14 +498,17 @@ protected meta def attr : user_attribute unit value_type :=
     val ← attr.get_param src,
     dict ← aux_attr.get_cache,
     ignore ← ignore_args_attr.get_cache,
+    relevant ← relevant_arg_attr.get_cache,
     reorder ← reorder_attr.get_cache,
-    tgt ← target_name src val.tgt dict,
+    tgt ← target_name src val.tgt dict val.allow_auto_name,
     aux_attr.set src tgt tt,
     let dict := dict.insert src tgt,
+    first_mult_arg ← first_multiplicative_arg src,
+    when (first_mult_arg ≠ 1) $ relevant_arg_attr.set src first_mult_arg tt,
     if env.contains tgt
     then proceed_fields env src tgt prio
     else do
-      transform_decl_with_prefix_dict dict val.replace_all val.trace ignore reorder src tgt
+      transform_decl_with_prefix_dict dict val.replace_all val.trace relevant ignore reorder src tgt
         [`reducible, `_refl_lemma, `simp, `instance, `refl, `symm, `trans, `elab_as_eliminator,
          `no_rsimp, `measurability],
       mwhen (has_attribute' `simps src)

@@ -291,8 +291,8 @@ meta def hyps_depend_on_local_name_set (hs : list expr) (ns : name_set) :
       let go : expr → list bool × expr_set → tactic (list bool × expr_set) :=
       λ h ⟨deps, cache⟩, do {
         (h_dep, cache) ← hyp_depends_on_local_name_set' cache h ns,
-        pure (h_dep :: deps, cache)
-      } in
+        pure (h_dep :: deps, cache) }
+      in
       prod.fst <$> hs.mfoldr go ([], mk_expr_map)
     else hs.mmap $ λ h, hyp_directly_depends_on_local_name_set h ns
 
@@ -377,8 +377,8 @@ meta def hyps_depend_on_local_name_set_inclusive (hs : list expr) (ns : name_set
       let go : expr → list bool × expr_set → tactic (list bool × expr_set) :=
       λ h ⟨deps, cache⟩, do {
         (h_dep, cache) ← hyp_depends_on_local_name_set_inclusive' cache h ns,
-        pure (h_dep :: deps, cache)
-      } in
+        pure (h_dep :: deps, cache) }
+      in
       prod.fst <$> hs.mfoldr go ([], mk_expr_map)
     else
       hs.mmap $ λ h, hyp_directly_depends_on_local_name_set_inclusive h ns
@@ -424,8 +424,7 @@ meta def dependency_set_of_hyp' : expr_map expr_set → expr →
     (deps, cache) ←
       direct_deps.mfold (direct_deps, cache) $ λ h' ⟨deps, cache⟩, do {
         (deps', cache) ← dependency_set_of_hyp' cache h',
-        pure (deps.union deps', cache)
-      },
+        pure (deps.union deps', cache) },
     pure (deps, cache.insert h deps)
   end
 
@@ -469,8 +468,8 @@ meta def dependency_sets_of_hyps (hs : list expr) : tactic (list expr_set) := do
         tactic (list expr_set × expr_map expr_set) := do
       λ h ⟨deps, cache⟩, do {
           (h_deps, cache) ← dependency_set_of_hyp' cache h,
-          pure (h_deps :: deps, cache)
-      } in
+          pure (h_deps :: deps, cache) }
+      in
       prod.fst <$> hs.mfoldr go ([], mk_expr_map)
     else
       hs.mmap direct_dependency_set_of_hyp
@@ -549,8 +548,8 @@ meta def dependency_sets_of_hyps_inclusive (hs : list expr) :
         tactic (list expr_set × expr_map expr_set) :=
       λ h ⟨deps, cache⟩, do {
         (h_deps, cache) ← dependency_set_of_hyp_inclusive' cache h,
-        pure (h_deps :: deps, cache)
-      } in
+        pure (h_deps :: deps, cache) }
+      in
       prod.fst <$> hs.mfoldr go ([], mk_expr_map)
     else
       hs.mmap direct_dependency_set_of_hyp_inclusive

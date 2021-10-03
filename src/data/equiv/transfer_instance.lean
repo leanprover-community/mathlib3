@@ -8,7 +8,7 @@ import algebra.field
 import algebra.module
 import algebra.algebra.basic
 import algebra.group.type_tags
-import ring_theory.ideal.basic
+import ring_theory.ideal.local_ring
 
 /-!
 # Transfer algebraic structures across `equiv`s

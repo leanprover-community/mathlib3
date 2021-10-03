@@ -3,8 +3,8 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Morenikeji Neri
 -/
-import ring_theory.noetherian
 import ring_theory.unique_factorization_domain
+
 /-!
 # Principal ideal rings and principal ideal domains
 
@@ -56,7 +56,7 @@ class is_principal_ideal_ring (R : Type u) [ring R] : Prop :=
 attribute [instance] is_principal_ideal_ring.principal
 
 @[priority 100]
-instance division_ring.is_principal_idea_ring (K : Type u) [division_ring K] :
+instance division_ring.is_principal_ideal_ring (K : Type u) [division_ring K] :
   is_principal_ideal_ring K :=
 { principal := λ S, by rcases ideal.eq_bot_or_top S with (rfl|rfl); apply_instance }
 
@@ -74,6 +74,10 @@ classical.some (principal S)
 
 lemma span_singleton_generator (S : submodule R M) [S.is_principal] : span R {generator S} = S :=
 eq.symm (classical.some_spec (principal S))
+
+lemma _root_.ideal.span_singleton_generator (I : ideal R) [I.is_principal] :
+  ideal.span ({generator I} : set R) = I :=
+eq.symm (classical.some_spec (principal I))
 
 @[simp] lemma generator_mem (S : submodule R M) [S.is_principal] : generator S ∈ S :=
 by { conv_rhs { rw ← span_singleton_generator S }, exact subset_span (mem_singleton _) }
@@ -118,7 +122,7 @@ is_maximal_iff.2 ⟨(ne_top_iff_one S).1 hpi.1, begin
   assume T x hST hxS hxT,
   cases (mem_iff_generator_dvd _).1 (hST $ generator_mem S) with z hz,
   cases hpi.mem_or_mem (show generator T * z ∈ S, from hz ▸ generator_mem S),
-  { have hTS : T ≤ S, rwa [← span_singleton_generator T, submodule.span_le, singleton_subset_iff],
+  { have hTS : T ≤ S, rwa [← T.span_singleton_generator, ideal.span_le, singleton_subset_iff],
     exact (hxS $ hTS hxT).elim },
   cases (mem_iff_generator_dvd _).1 h with y hy,
   have : generator S ≠ 0 := mt (eq_bot_iff_generator_eq_zero _).2 hS,
@@ -160,6 +164,10 @@ instance euclidean_domain.to_principal_ideal_domain : is_principal_ideal_ring R 
       exact ⟨λ haS, by_contradiction $ λ ha0, h ⟨a, ⟨haS, ha0⟩⟩, λ h₁, h₁.symm ▸ S.zero_mem⟩⟩⟩ }
 end
 
+lemma is_field.is_principal_ideal_ring {R : Type*} [integral_domain R] (h : is_field R) :
+  is_principal_ideal_ring R :=
+@euclidean_domain.to_principal_ideal_domain R (@field.to_euclidean_domain R (h.to_field R))
+
 namespace principal_ideal_ring
 open is_principal_ideal_ring
 
@@ -189,7 +197,7 @@ variables [integral_domain R] [is_principal_ideal_ring R]
 lemma irreducible_iff_prime {p : R} : irreducible p ↔ prime p :=
 ⟨λ hp, (ideal.span_singleton_prime hp.ne_zero).1 $
     (is_maximal_of_irreducible hp).is_prime,
-  irreducible_of_prime⟩
+  prime.irreducible⟩
 
 lemma associates_irreducible_iff_prime : ∀{p : associates R}, irreducible p ↔ prime p :=
 associates.irreducible_iff_prime_iff.1 (λ _, irreducible_iff_prime)
@@ -238,3 +246,32 @@ instance to_unique_factorization_monoid : unique_factorization_monoid R :=
 end
 
 end principal_ideal_ring
+
+section surjective
+
+open submodule
+
+variables {S N : Type*} [ring R] [add_comm_group M] [add_comm_group N] [ring S]
+variables [module R M] [module R N]
+
+lemma submodule.is_principal.of_comap (f : M →ₗ[R] N) (hf : function.surjective f)
+  (S : submodule R N) [hI : is_principal (S.comap f)] :
+  is_principal S :=
+⟨⟨f (is_principal.generator (S.comap f)),
+  by rw [← set.image_singleton, ← submodule.map_span,
+      is_principal.span_singleton_generator, submodule.map_comap_eq_of_surjective hf]⟩⟩
+
+lemma ideal.is_principal.of_comap (f : R →+* S) (hf : function.surjective f)
+  (I : ideal S) [hI : is_principal (I.comap f)] :
+  is_principal I :=
+⟨⟨f (is_principal.generator (I.comap f)),
+  by rw [ideal.submodule_span_eq, ← set.image_singleton, ← ideal.map_span,
+    ideal.span_singleton_generator, ideal.map_comap_of_surjective f hf]⟩⟩
+
+/-- The surjective image of a principal ideal ring is again a principal ideal ring. -/
+lemma is_principal_ideal_ring.of_surjective [is_principal_ideal_ring R]
+  (f : R →+* S) (hf : function.surjective f) :
+  is_principal_ideal_ring S :=
+⟨λ I, ideal.is_principal.of_comap f hf I⟩
+
+end surjective

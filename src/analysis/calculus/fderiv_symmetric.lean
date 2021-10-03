@@ -52,7 +52,7 @@ open_locale topological_space
 
 variables {E F : Type*} [normed_group E] [normed_space ℝ E]
 [normed_group F] [normed_space ℝ F]
-{s : set E} (s_conv : convex s)
+{s : set E} (s_conv : convex ℝ s)
 {f : E → F} {f' : E → (E →L[ℝ] F)} {f'' : E →L[ℝ] (E →L[ℝ] F)}
 (hf : ∀ x ∈ interior s, has_fderiv_at f (f' x) x)
 {x : E} (xs : x ∈ s) (hx : has_fderiv_within_at f' f'' (interior s) x)
@@ -83,9 +83,10 @@ begin
   { have : filter.tendsto (λ h, h * (∥v∥ + ∥w∥)) (𝓝[Ioi (0:ℝ)] 0) (𝓝 (0 * (∥v∥ + ∥w∥))) :=
       (continuous_id.mul continuous_const).continuous_within_at,
     apply (tendsto_order.1 this).2 δ,
-    simpa using δpos },
+    simpa only [zero_mul] using δpos },
   have E2 : ∀ᶠ h in 𝓝[Ioi (0:ℝ)] 0, (h : ℝ) < 1 :=
-    mem_nhds_within_Ioi_iff_exists_Ioo_subset.2 ⟨(1 : ℝ), by simp, λ x hx, hx.2⟩,
+    mem_nhds_within_Ioi_iff_exists_Ioo_subset.2
+      ⟨(1 : ℝ), by simp only [mem_Ioi, zero_lt_one], λ x hx, hx.2⟩,
   filter_upwards [E1, E2, self_mem_nhds_within],
   -- we consider `h` small enough that all points under consideration belong to this ball,
   -- and also with `0 < h < 1`.
@@ -178,7 +179,7 @@ begin
     ... = ε * ((∥v∥ + ∥w∥) * ∥w∥) * h^2 :
       by { simp only [norm_smul, real.norm_eq_abs, abs_mul, abs_of_nonneg, hpos.le], ring } },
   -- conclude using the mean value inequality
-  have I : ∥g 1 - g 0∥ ≤ ε * ((∥v∥ + ∥w∥) * ∥w∥) * h^2, by simpa using
+  have I : ∥g 1 - g 0∥ ≤ ε * ((∥v∥ + ∥w∥) * ∥w∥) * h^2, by simpa only [mul_one, sub_zero] using
     norm_image_sub_le_of_norm_deriv_le_segment' g_deriv g'_bound 1 (right_mem_Icc.2 zero_le_one),
   convert I using 1,
   { congr' 1,
@@ -233,7 +234,7 @@ begin
     abel },
   have hvww : x + (v + w) + w ∈ interior s,
   { convert s_conv.interior.add_smul_sub_mem h2w h2v2w B using 1,
-    simp only [one_div, add_sub_cancel', inv_smul_smul', add_sub_add_right_eq_sub, ne.def,
+    simp only [one_div, add_sub_cancel', inv_smul_smul₀, add_sub_add_right_eq_sub, ne.def,
       not_false_iff, bit0_eq_zero, one_ne_zero],
     rw two_smul,
     abel },
@@ -282,7 +283,7 @@ omit s_conv xs hx hf
 /-- If a function is differentiable inside a convex set with nonempty interior, and has a second
 derivative at a point of this convex set, then this second derivative is symmetric. -/
 theorem convex.second_derivative_within_at_symmetric
-  {s : set E} (s_conv : convex s) (hne : (interior s).nonempty)
+  {s : set E} (s_conv : convex ℝ s) (hne : (interior s).nonempty)
   {f : E → F} {f' : E → (E →L[ℝ] F)} {f'' : E →L[ℝ] (E →L[ℝ] F)}
   (hf : ∀ x ∈ interior s, has_fderiv_at f (f' x) x)
   {x : E} (xs : x ∈ s) (hx : has_fderiv_within_at f' f'' (interior s) x) (v w : E) :
@@ -320,7 +321,7 @@ begin
     simp only [continuous_linear_map.map_add, continuous_linear_map.map_smul, add_right_inj,
       continuous_linear_map.add_apply, pi.smul_apply, continuous_linear_map.coe_smul', add_zero,
       continuous_linear_map.zero_apply, smul_zero, continuous_linear_map.map_zero] at this,
-    exact smul_left_injective F (tpos m).ne' this },
+    exact smul_right_injective F (tpos m).ne' this },
   -- applying `second_derivative_within_at_symmetric_of_mem_interior` to the vectors `z + (t v) v`
   -- and `z + (t w) w`, we deduce that `f'' v w = f'' w v`. Cross terms involving `z` can be
   -- eliminated thanks to the fact proved above that `f'' m z = f'' z m`.
@@ -331,7 +332,7 @@ begin
   rw ← sub_eq_zero at this,
   abel at this,
   simp only [one_gsmul, neg_smul, sub_eq_zero, mul_comm, ← sub_eq_add_neg] at this,
-  apply smul_left_injective F _ this,
+  apply smul_right_injective F _ this,
   simp [(tpos v).ne', (tpos w).ne']
 end
 
@@ -345,7 +346,7 @@ theorem second_derivative_symmetric_of_eventually
 begin
   rcases metric.mem_nhds_iff.1 hf with ⟨ε, εpos, hε⟩,
   have A : (interior (metric.ball x ε)).nonempty,
-    by { rw metric.is_open_ball.interior_eq, exact metric.nonempty_ball εpos },
+    by rwa [metric.is_open_ball.interior_eq, metric.nonempty_ball],
   exact convex.second_derivative_within_at_symmetric (convex_ball x ε) A
     (λ y hy, hε (interior_subset hy)) (metric.mem_ball_self εpos) hx.has_fderiv_within_at v w,
 end

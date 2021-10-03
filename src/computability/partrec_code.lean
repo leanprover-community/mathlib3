@@ -494,11 +494,11 @@ def eval : code → ℕ →. ℕ
 
 instance : has_mem (ℕ →. ℕ) code := ⟨λ f c, eval c = f⟩
 
-@[simp] theorem eval_const : ∀ n m, eval (code.const n) m = roption.some n
+@[simp] theorem eval_const : ∀ n m, eval (code.const n) m = part.some n
 | 0     m := rfl
 | (n+1) m := by simp! *
 
-@[simp] theorem eval_id (n) : eval code.id n = roption.some n := by simp! [(<*>)]
+@[simp] theorem eval_id (n) : eval code.id n = part.some n := by simp! [(<*>)]
 
 @[simp] theorem eval_curry (c n x) : eval (curry c n) x = eval c (mkpair n x) :=
 by simp! [(<*>)]
@@ -541,7 +541,7 @@ theorem exists_code {f : ℕ →. ℕ} : nat.partrec f ↔ ∃ c : code, eval c 
   case nat.partrec.rfind : f pf hf {
     rcases hf with ⟨cf, rfl⟩,
     refine ⟨comp (rfind' cf) (pair code.id zero), _⟩,
-    simp [eval, (<*>), pure, pfun.pure, roption.map_id'] },
+    simp [eval, (<*>), pure, pfun.pure, part.map_id'] },
 end, λ h, begin
   rcases h with ⟨c, rfl⟩, induction c,
   case nat.partrec.code.zero { exact nat.partrec.zero },
@@ -893,7 +893,7 @@ open partrec computable
 
 theorem eval_eq_rfind_opt (c n) :
   eval c n = nat.rfind_opt (λ k, evaln k c n) :=
-roption.ext $ λ x, begin
+part.ext $ λ x, begin
   refine evaln_complete.trans (nat.rfind_opt_mono _).symm,
   intros a m n hl, apply evaln_mono hl,
 end
@@ -905,30 +905,30 @@ theorem eval_part : partrec₂ eval :=
 
 theorem fixed_point
   {f : code → code} (hf : computable f) : ∃ c : code, eval (f c) = eval c :=
-let g (x y : ℕ) : roption ℕ :=
+let g (x y : ℕ) : part ℕ :=
   eval (of_nat code x) x >>= λ b, eval (of_nat code b) y in
 have partrec₂ g :=
   (eval_part.comp ((computable.of_nat _).comp fst) fst).bind
   (eval_part.comp ((computable.of_nat _).comp snd) (snd.comp fst)).to₂,
 let ⟨cg, eg⟩ := exists_code.1 this in
-have eg' : ∀ a n, eval cg (mkpair a n) = roption.map encode (g a n) :=
+have eg' : ∀ a n, eval cg (mkpair a n) = part.map encode (g a n) :=
   by simp [eg],
 let F (x : ℕ) : code := f (curry cg x) in
 have computable F :=
   hf.comp (curry_prim.comp (primrec.const cg) primrec.id).to_comp,
 let ⟨cF, eF⟩ := exists_code.1 this in
-have eF' : eval cF (encode cF) = roption.some (encode (F (encode cF))),
+have eF' : eval cF (encode cF) = part.some (encode (F (encode cF))),
   by simp [eF],
 ⟨curry cg (encode cF), funext (λ n,
   show eval (f (curry cg (encode cF))) n = eval (curry cg (encode cF)) n,
-  by simp [eg', eF', roption.map_id', g])⟩
+  by simp [eg', eF', part.map_id', g])⟩
 
 theorem fixed_point₂
   {f : code → ℕ →. ℕ} (hf : partrec₂ f) : ∃ c : code, eval c = f c :=
 let ⟨cf, ef⟩ := exists_code.1 hf in
 (fixed_point (curry_prim.comp
   (primrec.const cf) primrec.encode).to_comp).imp $
-λ c e, funext $ λ n, by simp [e.symm, ef, roption.map_id']
+λ c e, funext $ λ n, by simp [e.symm, ef, part.map_id']
 
 end
 

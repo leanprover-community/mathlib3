@@ -13,10 +13,18 @@ import data.polynomial.eval
 This file defines a predicate `asymptotics.superpolynomial_decay f` for a function satisfying
   one of following equivalent definitions (The definition is in terms of the first condition):
 
-* `f` is `O(x ^ c)` for all (or equivalently sufficiently small) integers `c`
-* `f` is `O(p(x)⁻¹)` for all (or equivalently sufficiently large) polynomials `p`
-* `p(x) * f` is bounded for all polynomials `p`
-* `p(x) * f` tends to `𝓝 0` for all polynomials `p`
+* `f` is `O(x ^ c)` for all (or sufficiently small) integers `c`
+* `x ^ c * f` is bounded for all (or sufficiently large) integers `c`
+* `x ^ c * f` tends to `𝓝 0` for all (or sufficiently large) integers `c`
+* `f` is `o(x ^ c)` for all (or sufficiently small) integers `c`
+
+The equivalence between the first two is given by in `superpolynomial_decay_iff_is_bounded_under`.
+The equivalence between the first and third is given in `superpolynomial_decay_iff_tendsto_zero`.
+The equivalence between the first and fourth is given in `superpolynomial_decay_iff_is_o`.
+
+These conditions are all equivalent to conditions in terms of polynomials, replacing `x ^ c` with
+  `p(x)` or `p(x)⁻¹` as appropriate, since asymptotically `p(x)` behaves like `X ^ p.nat_degree`.
+These further equivalences are not proven in mathlib but would be good future projects.
 
 The definition of superpolynomial decay for a function `f : α → 𝕜`
   is made relative to an algebra structure `[algebra α 𝕜]`.
@@ -29,6 +37,15 @@ https://en.wikipedia.org/wiki/Negligible_function
 When the algebra structure is given by `(r₁,...,rₙ) ↦ r₁*...*rₙ : ℝⁿ → ℝ` this is equivalent
   to the definition of rapidly decreasing functions given here:
 https://ncatlab.org/nlab/show/rapidly+decreasing+function
+
+# Main Theorems
+
+* `superpolynomial_decay.polynomial_mul` says that if `f(x)` is negligible,
+    then so is `p(x) * f(x)` for any polynomial `p`.
+* `superpolynomial_decay_iff_is_bounded_under` says that `f` is negligible iff
+    `p(x) * f(x)` has bounded norm for all polynomials `p(x)`.
+* `superpolynomial_decay_of_eventually_is_O` says that it suffices to check `f(x)` is `O(x ^ c)`
+    for only sufficiently small `c`, rather than all integers `c`.
 -/
 
 namespace asymptotics
@@ -46,6 +63,60 @@ section normed_field
 
 variables {α 𝕜 : Type*} [ordered_comm_semiring α] [normed_field 𝕜] [algebra α 𝕜]
 variables {f g : α → 𝕜}
+
+theorem superpolynomial_decay_iff_is_bounded_under (f : α → 𝕜)
+  (hα : ∀ᶠ (x : α) in at_top, (algebra_map α 𝕜 x) ≠ 0) :
+  superpolynomial_decay f ↔
+    ∀ (c : ℤ), is_bounded_under has_le.le at_top (λ x, ∥f x * (algebra_map α 𝕜 x) ^ c∥) :=
+begin
+  split; intros h c; specialize h (-c),
+  { simpa [div_eq_mul_inv] using div_is_bounded_under_of_is_O h },
+  { refine (is_O_iff_div_is_bounded_under _).2 _,
+    { exact hα.mono (λ x hx hx', absurd (fpow_eq_zero hx') hx) },
+    { simpa [div_eq_mul_inv] using h } }
+end
+
+theorem superpolynomial_decay_iff_is_o (f : α → 𝕜)
+  (hα : tendsto (λ x, ∥algebra_map α 𝕜 x∥) at_top at_top) :
+  superpolynomial_decay f ↔
+    ∀ (c : ℤ), is_o f (λ x, (algebra_map α 𝕜 x) ^ c) at_top :=
+begin
+  refine ⟨λ h c, _, λ h c, (h c).is_O⟩,
+  have hα' : ∀ᶠ (x : α) in at_top, (algebra_map α 𝕜 x) ≠ 0,
+  from (eventually_ne_of_tendsto_norm_at_top hα 0).mono (λ x hx hx', absurd hx' hx),
+  have : is_o (λ x, 1 : α → 𝕜) (λ x, (algebra_map α 𝕜 x)) at_top,
+  { refine is_o_of_tendsto' (hα'.mono $ λ x hx hx', absurd hx' hx)
+      (tendsto_zero_iff_norm_tendsto_zero.2 _),
+    simp only [one_div, normed_field.norm_inv],
+    exact tendsto.comp tendsto_inv_at_top_zero hα },
+  have := this.mul_is_O (h $ c - 1),
+  simp only [one_mul] at this,
+  refine this.trans_is_O (is_O.of_bound 1 (hα'.mono (λ x hx, le_of_eq _))),
+  rw [fpow_sub_one hx, mul_comm, mul_assoc, inv_mul_cancel hx, one_mul, mul_one]
+end
+
+theorem superpolynomial_decay_iff_norm_tendsto_zero (f : α → 𝕜)
+  (hα : tendsto (λ x, ∥algebra_map α 𝕜 x∥) at_top at_top) :
+  superpolynomial_decay f ↔
+    ∀ (c : ℤ), tendsto (λ x, ∥f x * (algebra_map α 𝕜 x) ^ c∥) at_top (𝓝 0) :=
+begin
+  refine ⟨λ h c, _, λ h, _⟩,
+  { refine tendsto_zero_iff_norm_tendsto_zero.1 _,
+    rw (superpolynomial_decay_iff_is_o f hα) at h,
+    simpa [div_eq_mul_inv] using (h $ -c).tendsto_0 },
+  { have hα' : ∀ᶠ (x : α) in at_top, (algebra_map α 𝕜 x) ≠ 0,
+    from (eventually_ne_of_tendsto_norm_at_top hα 0).mono (λ x hx hx', absurd hx' hx),
+    exact (superpolynomial_decay_iff_is_bounded_under f hα').2
+      (λ c, is_bounded_under_of_tendsto (tendsto_zero_iff_norm_tendsto_zero.2 $ h c)) }
+end
+
+/-- TODO: it may be better to take this equivalence as the main definition instead -/
+lemma superpolynomial_decay_iff_tendsto_zero (f : α → 𝕜)
+  (hα : tendsto (λ x, ∥algebra_map α 𝕜 x∥) at_top at_top) :
+  superpolynomial_decay f ↔
+    ∀ (c : ℤ), tendsto (λ x, f x * (algebra_map α 𝕜 x) ^ c) at_top (𝓝 0) :=
+(superpolynomial_decay_iff_norm_tendsto_zero f hα).trans
+  (by simp [tendsto_zero_iff_norm_tendsto_zero])
 
 lemma is_O.trans_superpolynomial_decay (h : is_O f g at_top)
   (hg : superpolynomial_decay g) : superpolynomial_decay f :=
@@ -196,20 +267,6 @@ lemma superpolynomial_decay_of_is_O_fpow_lt (hα : ∀ᶠ (x : α) in at_top, 1 
   superpolynomial_decay f :=
 superpolynomial_decay_of_is_O_fpow_le hα C.pred
   (λ c hc, h c (lt_of_le_of_lt hc (int.pred_self_lt C)))
-
-lemma superpolynomial_decay_of_fpow_mul_tendsto_zero [nontrivial α] [no_zero_smul_divisors α 𝕜]
-  (hα : ∀ᶠ (x : α) in at_top, 1 ≤ ∥algebra_map α 𝕜 x∥)
-  (hf : ∀ (c : ℤ), tendsto (λ x, (algebra_map α 𝕜 x) ^ c * f x) at_top (𝓝 0)) :
-  superpolynomial_decay f :=
-begin
-  refine superpolynomial_decay_of_is_O_fpow_lt hα 0 (λ c hc, is_O_of_div_tendsto_nhds _ 0 _),
-  { refine at_top.sets_of_superset (mem_at_top 1) (λ x hx hx', absurd (fpow_eq_zero hx') _),
-    rw [algebra.algebra_map_eq_smul_one, smul_eq_zero, not_or_distrib],
-    exact ⟨ne_of_gt (lt_of_lt_of_le zero_lt_one hx), zero_ne_one.symm⟩ },
-  { convert hf (-c),
-    ext x,
-    rw [pi.div_apply, fpow_neg, div_eq_mul_inv, mul_comm (f x)] }
-end
 
 section order_topology
 

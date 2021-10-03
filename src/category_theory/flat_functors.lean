@@ -202,12 +202,40 @@ variables {C D E: Type u₁} [category.{u₁} C] [category.{u₁} D] [category.{
 set_option pp.universes true
 
 #check preserves_limits_of_shape_if_evaluation
+end lem
+section trt
+variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₁} D]
+variables {K : Type v₁} [category.{v₂} K] {J : Type v₁} [small_category J]
+
+lemma preserves_limit_if_evaluation (F : D ⥤ K ⥤ C) (G : J ⥤ D)
+  (H : Π (k : K), preserves_limit G (F ⋙ (evaluation K C).obj k : D ⥤ C)) : preserves_limit G F := ⟨λ c hc,
+begin
+  apply evaluation_jointly_reflects_limits,
+  intro X,
+  haveI := H X,
+  change is_limit ((F ⋙ (evaluation K C).obj X).map_cone c),
+  exact preserves_limit.preserves hc,
+end⟩
+
+lemma preserves_limits_of_shape_if_evaluation (F : D ⥤ K ⥤ C) (J : Type v₁) [small_category J]
+  (H : Π (k : K), preserves_limits_of_shape J (F ⋙ (evaluation K C).obj k)) :
+  preserves_limits_of_shape J F :=
+⟨λ G, preserves_limit_if_evaluation F G (λ k, preserves_limits_of_shape.preserves_limit)⟩
+
+lemma preserves_limits_if_evaluation (F : D ⥤ K ⥤ C)
+  (H : Π (k : K), preserves_limits (F ⋙ (evaluation K C).obj k)) :
+  preserves_limits F :=
+⟨λ L hL, by { letI := hL,
+  exact preserves_limits_of_shape_if_evaluation
+    F L (λ k, preserves_limits.preserves_limits_of_shape) }⟩
+
+end trt
 
 def lem1 (F : C ⥤ D) [representably_flat F] (J : Type u₁) [H : small_category J] [fin_category J] :
   preserves_limits_of_shape J (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ Type u₁)) :=
 begin
   have : category.{u₁} (Dᵒᵖ ⥤ Type u₁) := infer_instance,
-  have := @preserves_limits_of_shape_if_evaluation (Dᵒᵖ ⥤ Type u₁) _ Cᵒᵖ,
+  have := @preserves_limits_of_shape_if_evaluation (Dᵒᵖ ⥤ Type u₁) _ Cᵒᵖ (Type u₁),
   -- (Lan F.op : (Cᵒᵖ ⥤ Type u₁) ⥤ (Dᵒᵖ ⥤ Type u₁)) J,
   exact
 { preserves_limit := λ K, {

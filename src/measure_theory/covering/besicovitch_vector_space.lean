@@ -219,7 +219,7 @@ begin
   { assume δ hδ,
     rcases lt_or_le δ 1 with hδ'|hδ',
     { rcases h δ hδ hδ' with ⟨s, hs, h's, s_card⟩,
-      obtain ⟨f, f_inj, hfs⟩ : ∃ (f : fin N → E), function.injective f ∧ range f ⊆ ↑s :=
+      obtain ⟨f, f_inj, hfs⟩ : ∃ (f : fin N → E), function.injective f ∧ range f ⊆ ↑s,
       { have : fintype.card (fin N) ≤ s.card, { simp only [fintype.card_fin], exact s_card },
         rcases function.embedding.exists_of_card_le_finset this with ⟨f, hf⟩,
         exact ⟨f, f.injective, hf⟩ },

@@ -296,13 +296,13 @@ end
 
 open unique_factorization_monoid
 
-theorem nat.factors_eq {n : ℕ} : factors n = n.factors :=
+theorem nat.factors_eq {n : ℕ} : normalized_factors n = n.factors :=
 begin
   cases n, { simp },
   rw [← multiset.rel_eq, ← associated_eq_eq],
-  apply factors_unique (irreducible_of_factor) _,
+  apply factors_unique (irreducible_of_normalized_factor) _,
   { rw [multiset.coe_prod, nat.prod_factors (nat.succ_pos _)],
-    apply factors_prod (nat.succ_ne_zero _) },
+    apply normalized_factors_prod (nat.succ_ne_zero _) },
   { apply_instance },
   { intros x hx,
     rw [nat.irreducible_iff_prime, ← nat.prime_iff],
@@ -311,10 +311,11 @@ end
 
 lemma nat.factors_multiset_prod_of_irreducible
   {s : multiset ℕ} (h : ∀ (x : ℕ), x ∈ s → irreducible x) :
-  unique_factorization_monoid.factors (s.prod) = s :=
+  normalized_factors (s.prod) = s :=
 begin
   rw [← multiset.rel_eq, ← associated_eq_eq],
-  apply (unique_factorization_monoid.factors_unique irreducible_of_factor h (factors_prod _)),
+  apply unique_factorization_monoid.factors_unique irreducible_of_normalized_factor h
+    (normalized_factors_prod _),
   rw [ne.def, multiset.prod_eq_zero_iff],
   intro con,
   exact not_irreducible_zero (h 0 con),

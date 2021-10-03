@@ -100,7 +100,7 @@ calc
 lemma neg_div (a b : K) : (-b) / a = - (b / a) :=
 by rw [neg_eq_neg_one_mul, mul_div_assoc, ← neg_eq_neg_one_mul]
 
-@[field_simps] lemma neg_div' {K : Type*} [division_ring K] (a b : K) : - (b / a) = (-b) / a :=
+@[field_simps] lemma neg_div' (a b : K) : - (b / a) = (-b) / a :=
 by simp [neg_div]
 
 lemma neg_div_neg_eq (a b : K) : (-a) / (-b) = a / b :=
@@ -300,7 +300,7 @@ lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 := f.to_monoid_with_zero_hom.map_ne_ze
 
 variables (x y)
 
-lemma map_inv : g x⁻¹ = (g x)⁻¹ := g.to_monoid_with_zero_hom.map_inv' x
+lemma map_inv : g x⁻¹ = (g x)⁻¹ := g.to_monoid_with_zero_hom.map_inv x
 
 lemma map_div : g (x / y) = g x / g y := g.to_monoid_with_zero_hom.map_div x y
 

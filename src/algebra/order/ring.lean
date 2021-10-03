@@ -1020,10 +1020,10 @@ instance linear_ordered_ring.to_domain : domain α :=
     end,
   .. ‹linear_ordered_ring α› }
 
-@[simp] lemma abs_one : abs (1 : α) = 1 := abs_of_pos zero_lt_one
-@[simp] lemma abs_two : abs (2 : α) = 2 := abs_of_pos zero_lt_two
+@[simp] lemma abs_one : |(1 : α)| = 1 := abs_of_pos zero_lt_one
+@[simp] lemma abs_two : |(2 : α)| = 2 := abs_of_pos zero_lt_two
 
-lemma abs_mul (a b : α) : abs (a * b) = abs a * abs b :=
+lemma abs_mul (a b : α) : |a * b| = |a| * |b| :=
 begin
   haveI := @linear_order.decidable_le α _,
   rw [abs_eq (decidable.mul_nonneg (abs_nonneg a) (abs_nonneg b))],
@@ -1035,10 +1035,10 @@ end
 /-- `abs` as a `monoid_with_zero_hom`. -/
 def abs_hom : monoid_with_zero_hom α α := ⟨abs, abs_zero, abs_one, abs_mul⟩
 
-@[simp] lemma abs_mul_abs_self (a : α) : abs a * abs a = a * a :=
+@[simp] lemma abs_mul_abs_self (a : α) : |a| * |a| = a * a :=
 abs_by_cases (λ x, x * x = a * a) rfl (neg_mul_neg a a)
 
-@[simp] lemma abs_mul_self (a : α) : abs (a * a) = a * a :=
+@[simp] lemma abs_mul_self (a : α) : |a * a| = a * a :=
 by rw [abs_mul, abs_mul_abs_self]
 
 lemma mul_pos_iff : 0 < a * b ↔ 0 < a ∧ 0 < b ∨ a < 0 ∧ b < 0 :=
@@ -1081,14 +1081,14 @@ calc a < -a ↔ -(-a) < -a : by rw neg_neg
 ... ↔ 0 < -a : neg_lt_self_iff
 ... ↔ a < 0 : neg_pos
 
-@[simp] lemma abs_eq_self : abs a = a ↔ 0 ≤ a := by simp [abs_eq_max_neg]
+@[simp] lemma abs_eq_self : |a| = a ↔ 0 ≤ a := by simp [abs_eq_max_neg]
 
-@[simp] lemma abs_eq_neg_self : abs a = -a ↔ a ≤ 0 := by simp [abs_eq_max_neg]
+@[simp] lemma abs_eq_neg_self : |a| = -a ↔ a ≤ 0 := by simp [abs_eq_max_neg]
 
 /-- For an element `a` of a linear ordered ring, either `abs a = a` and `0 ≤ a`,
     or `abs a = -a` and `a < 0`.
     Use cases on this lemma to automate linarith in inequalities -/
-lemma abs_cases (a : α) : (abs a = a ∧ 0 ≤ a) ∨ (abs a = -a ∧ a < 0) :=
+lemma abs_cases (a : α) : (|a| = a ∧ 0 ≤ a) ∨ (|a| = -a ∧ a < 0) :=
 begin
   by_cases 0 ≤ a,
   { left,
@@ -1184,25 +1184,25 @@ by rw [add_eq_zero_iff', mul_self_eq_zero, mul_self_eq_zero]; apply mul_self_non
 lemma eq_zero_of_mul_self_add_mul_self_eq_zero (h : a * a + b * b = 0) : a = 0 :=
 (mul_self_add_mul_self_eq_zero.mp h).left
 
-lemma abs_eq_iff_mul_self_eq : abs a = abs b ↔ a * a = b * b :=
+lemma abs_eq_iff_mul_self_eq : |a| = |b| ↔ a * a = b * b :=
 begin
   rw [← abs_mul_abs_self, ← abs_mul_abs_self b],
   exact (mul_self_inj (abs_nonneg a) (abs_nonneg b)).symm,
 end
 
-lemma abs_lt_iff_mul_self_lt : abs a < abs b ↔ a * a < b * b :=
+lemma abs_lt_iff_mul_self_lt : |a| < |b| ↔ a * a < b * b :=
 begin
   rw [← abs_mul_abs_self, ← abs_mul_abs_self b],
   exact mul_self_lt_mul_self_iff (abs_nonneg a) (abs_nonneg b)
 end
 
-lemma abs_le_iff_mul_self_le : abs a ≤ abs b ↔ a * a ≤ b * b :=
+lemma abs_le_iff_mul_self_le : |a| ≤ |b| ↔ a * a ≤ b * b :=
 begin
   rw [← abs_mul_abs_self, ← abs_mul_abs_self b],
   exact mul_self_le_mul_self_iff (abs_nonneg a) (abs_nonneg b)
 end
 
-lemma abs_le_one_iff_mul_self_le_one : abs a ≤ 1 ↔ a * a ≤ 1 :=
+lemma abs_le_one_iff_mul_self_le_one : |a| ≤ 1 ↔ a * a ≤ 1 :=
 by simpa only [abs_one, one_mul] using @abs_le_iff_mul_self_le α _ a 1
 
 /-- Pullback a `linear_ordered_ring` under an injective map.
@@ -1255,7 +1255,7 @@ max_le
   (by simpa [mul_comm, max_comm] using ba)
   (by simpa [mul_comm, max_comm] using cd)
 
-lemma abs_sub_sq (a b : α) : abs (a - b) * abs (a - b) = a * a + b * b - (1 + 1) * a * b :=
+lemma abs_sub_sq (a b : α) : |a - b| * |a - b| = a * a + b * b - (1 + 1) * a * b :=
 begin
   rw abs_mul_abs_self,
   simp only [mul_add, add_comm, add_left_comm, mul_comm, sub_eq_add_neg,
@@ -1266,22 +1266,22 @@ end linear_ordered_comm_ring
 section
 variables [ring α] [linear_order α] {a b : α}
 
-@[simp] lemma abs_dvd (a b : α) : abs a ∣ b ↔ a ∣ b :=
+@[simp] lemma abs_dvd (a b : α) : |a| ∣ b ↔ a ∣ b :=
 by { cases abs_choice a with h h; simp only [h, neg_dvd] }
 
-lemma abs_dvd_self (a : α) : abs a ∣ a :=
+lemma abs_dvd_self (a : α) : |a| ∣ a :=
 (abs_dvd a a).mpr (dvd_refl a)
 
-@[simp] lemma dvd_abs (a b : α) : a ∣ abs b ↔ a ∣ b :=
+@[simp] lemma dvd_abs (a b : α) : a ∣ |b| ↔ a ∣ b :=
 by { cases abs_choice b with h h; simp only [h, dvd_neg] }
 
-lemma self_dvd_abs (a : α) : a ∣ abs a :=
+lemma self_dvd_abs (a : α) : a ∣ |a| :=
 (dvd_abs a a).mpr (dvd_refl a)
 
-lemma abs_dvd_abs (a b : α) : abs a ∣ abs b ↔ a ∣ b :=
+lemma abs_dvd_abs (a b : α) : |a| ∣ |b| ↔ a ∣ b :=
 (abs_dvd _ _).trans (dvd_abs _ _)
 
-lemma even_abs {a : α} : even (abs a) ↔ even a :=
+lemma even_abs {a : α} : even (|a|) ↔ even a :=
 dvd_abs _ _
 
 lemma odd_abs {a : α} : odd (abs a) ↔ odd a :=

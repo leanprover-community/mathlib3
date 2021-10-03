@@ -104,7 +104,7 @@ lemma convex_on.add (hf : convex_on 𝕜 s f) (hg : convex_on 𝕜 s g) :
   calc
     f (a • x + b • y) + g (a • x + b • y) ≤ (a • f x + b • f y) + (a • g x + b • g y)
       : add_le_add (hf.2 hx hy ha hb hab) (hg.2 hx hy ha hb hab)
-    ... = a • (f x + g x) + b • (f y + g y) : by rw [smul_add,smul_add, add_add_add_comm]⟩
+    ... = a • (f x + g x) + b • (f y + g y) : by rw [smul_add, smul_add, add_add_add_comm]⟩
 
 lemma concave_on.add (hf : concave_on 𝕜 s f) (hg : concave_on 𝕜 s g) :
   concave_on 𝕜 s (λ x, f x + g x) :=
@@ -113,7 +113,7 @@ lemma concave_on.add (hf : concave_on 𝕜 s f) (hg : concave_on 𝕜 s g) :
 end distrib_mul_action
 
 section module
-variables [has_scalar 𝕜 E] [module 𝕜 β] {s : set E}
+variables [has_scalar 𝕜 E] [module 𝕜 β] {s : set E} {f : E → β}
 
 lemma convex_on_const (c : β) (hs : convex 𝕜 s) : convex_on 𝕜 s (λ x:E, c) :=
 ⟨hs, λ x y _ _ a b _ _ hab, (convex.combo_self hab c).ge⟩
@@ -197,6 +197,45 @@ end module
 section module
 variables [module 𝕜 E] [module 𝕜 β]
 
+lemma convex_on_iff_forall_pos {s : set E} {f : E → β} :
+  convex_on 𝕜 s f ↔ convex 𝕜 s ∧
+    ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1
+    → f (a • x + b • y) ≤ a • f x + b • f y :=
+begin
+  refine and_congr_right' ⟨λ h x y hx hy a b ha hb hab, h hx hy ha.le hb.le hab,
+    λ h x y hx hy a b ha hb hab, _⟩,
+  obtain rfl | ha' := ha.eq_or_lt,
+  { rw [zero_add] at hab, subst b, simp_rw [zero_smul, zero_add, one_smul] },
+  obtain rfl | hb' := hb.eq_or_lt,
+  { rw [add_zero] at hab, subst a, simp_rw [zero_smul, add_zero, one_smul] },
+  exact h hx hy ha' hb' hab,
+end
+
+lemma concave_on_iff_forall_pos {s : set E} {f : E → β} :
+  concave_on 𝕜 s f ↔ convex 𝕜 s ∧
+    ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1
+    → a • f x + b • f y ≤ f (a • x + b • y) :=
+@convex_on_iff_forall_pos 𝕜 E (order_dual β) _ _ _ _ _ _ _
+
+lemma convex_on_iff_forall_pos_ne {s : set E} {f : E → β} :
+  convex_on 𝕜 s f ↔ convex 𝕜 s ∧
+    s.pairwise_on (λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1
+    → f (a • x + b • y) ≤ a • f x + b • f y) :=
+begin
+  rw convex_on_iff_forall_pos,
+  refine and_congr_right' ⟨λ h x hx y hy _ a b ha hb hab, h hx hy ha hb hab,
+    λ h x y hx hy a b ha hb hab, _⟩,
+  obtain rfl | hxy := eq_or_ne x y,
+  { rw [convex.combo_self hab, convex.combo_self hab] },
+  exact h x hx y hy hxy ha hb hab,
+end
+
+lemma concave_on_iff_forall_pos_ne {s : set E} {f : E → β} :
+  concave_on 𝕜 s f ↔ convex 𝕜 s ∧
+   s.pairwise_on (λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1
+    → a • f x + b • f y ≤ f (a • x + b • y)) :=
+@convex_on_iff_forall_pos_ne 𝕜 E (order_dual β) _ _ _ _ _ _ _
+
 /-- A linear map is convex. -/
 lemma linear_map.convex_on (f : E →ₗ[𝕜] β) {s : set E} (hs : convex 𝕜 s) : convex_on 𝕜 s f :=
 ⟨hs, λ _ _ _ _ _ _ _ _ _, by rw [f.map_add, f.map_smul, f.map_smul]⟩
@@ -253,16 +292,10 @@ lemma linear_order.convex_on_of_lt (hs : convex 𝕜 s)
   (hf : ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → x < y → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 →
     f (a • x + b • y) ≤ a • f x + b • f y) : convex_on 𝕜 s f :=
 begin
-  refine ⟨hs, λ x y hx hy a b ha hb hab, _⟩,
-  wlog hxy : x ≤ y using [x y a b, y x b a],
+  refine convex_on_iff_forall_pos_ne.2 ⟨hs, λ x hx y hy hxy a b ha hb hab, _⟩,
+  wlog h : x ≤ y using [x y a b, y x b a],
   { exact le_total _ _ },
-  obtain rfl | hxy := hxy.eq_or_lt,
-  { rw [convex.combo_self hab, convex.combo_self hab] },
-  obtain rfl | ha' := ha.eq_or_lt,
-  { rw [zero_add] at hab, subst b, simp_rw [zero_smul, zero_add, one_smul] },
-  obtain rfl | hb' := hb.eq_or_lt,
-  { rw [add_zero] at hab, subst a, simp_rw [zero_smul, add_zero, one_smul] },
-  exact hf hx hy hxy ha' hb' hab,
+  exact hf hx hy (h.lt_of_ne hxy) ha hb hab,
 end
 
 /-- For a function on a convex set in a linear ordered space (where the order and the algebraic

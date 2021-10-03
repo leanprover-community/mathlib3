@@ -423,6 +423,11 @@ end
 
 alias dense_iff_inter_open ↔ dense.inter_open_nonempty _
 
+lemma dense.exists_mem_open {s : set α} (hs : dense s) {U : set α} (ho : is_open U)
+  (hne : U.nonempty) :
+  ∃ x ∈ s, x ∈ U :=
+let ⟨x, hx⟩ := hs.inter_open_nonempty U ho hne in ⟨x, hx.2, hx.1⟩
+
 lemma dense.nonempty_iff {s : set α} (hs : dense s) :
   s.nonempty ↔ nonempty α :=
 ⟨λ ⟨x, hx⟩, ⟨x⟩, λ ⟨x⟩,
@@ -1173,6 +1178,7 @@ lemma cluster_pt.map {x : α} {la : filter α} {lb : filter β} (H : cluster_pt 
   cluster_pt (f x) lb :=
 ⟨ne_bot_of_le_ne_bot ((map_ne_bot_iff f).2 H).ne $ hfc.tendsto.inf hf⟩
 
+/-- See also `interior_preimage_subset_preimage_interior`. -/
 lemma preimage_interior_subset_interior_preimage {f : α → β} {s : set β}
   (hf : continuous f) : f⁻¹' (interior s) ⊆ interior (f⁻¹' s) :=
 interior_maximal (preimage_mono interior_subset) (is_open_interior.preimage hf)
@@ -1350,6 +1356,9 @@ dense_iff_closure_eq
 lemma dense_range.closure_range (h : dense_range f) : closure (range f) = univ :=
 h.closure_eq
 
+lemma dense.dense_range_coe {s : set α} (h : dense s) : dense_range (coe : s → α) :=
+by simpa only [dense_range, subtype.range_coe_subtype]
+
 lemma continuous.range_subset_closure_image_dense {f : α → β} (hf : continuous f)
   {s : set α} (hs : dense s) :
   range f ⊆ closure (f '' s) :=
@@ -1390,6 +1399,11 @@ hf.nonempty_iff.mpr h
 /-- Given a function `f : α → β` with dense range and `b : β`, returns some `a : α`. -/
 def dense_range.some (hf : dense_range f) (b : β) : κ :=
 classical.choice $ hf.nonempty_iff.mpr ⟨b⟩
+
+lemma dense_range.exists_mem_open (hf : dense_range f) {s : set β} (ho : is_open s)
+  (hs : s.nonempty) :
+  ∃ a, f a ∈ s :=
+exists_range_iff.1 $ hf.exists_mem_open ho hs
 
 end dense_range
 

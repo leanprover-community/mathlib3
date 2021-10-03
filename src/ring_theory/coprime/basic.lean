@@ -3,11 +3,8 @@ Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Ken Lee, Chris Hughes
 -/
-import algebra.big_operators.basic
-import data.fintype.basic
-import data.int.gcd
-import data.set.pairwise
 import tactic.ring
+import algebra.ring.basic
 
 /-!
 # Coprime elements of a ring
@@ -18,9 +15,10 @@ import tactic.ring
 that `a * x + b * y = 1`. Note that elements with no common divisors are not necessarily coprime,
 e.g., the multivariate polynomials `x₁` and `x₂` are not coprime.
 
+See also `ring_theory.coprime.lemmas` for further development of coprime elements.
 -/
 
-open_locale classical big_operators
+open_locale classical
 
 universes u v
 
@@ -33,13 +31,6 @@ that `a * x + b * y = 1`. Note that elements with no common divisors are not nec
 e.g., the multivariate polynomials `x₁` and `x₂` are not coprime. -/
 @[simp] def is_coprime : Prop :=
 ∃ a b, a * x + b * y = 1
-
-theorem nat.is_coprime_iff_coprime {m n : ℕ} : is_coprime (m : ℤ) n ↔ nat.coprime m n :=
-⟨λ ⟨a, b, H⟩, nat.eq_one_of_dvd_one $ int.coe_nat_dvd.1 $ by { rw [int.coe_nat_one, ← H],
-  exact dvd_add (dvd_mul_of_dvd_right (int.coe_nat_dvd.2 $ nat.gcd_dvd_left m n) _)
-    (dvd_mul_of_dvd_right (int.coe_nat_dvd.2 $ nat.gcd_dvd_right m n) _) },
-λ H, ⟨nat.gcd_a m n, nat.gcd_b m n, by rw [mul_comm _ (m : ℤ), mul_comm _ (n : ℤ),
-    ← nat.gcd_eq_gcd_ab, show _ = _, from H, int.coe_nat_one]⟩⟩
 
 variables {x y z}
 
@@ -87,15 +78,6 @@ calc  a * c * (x * y) + (a * x * d + b * c * y + b * d * z) * z
 theorem is_coprime.mul_right (H1 : is_coprime x y) (H2 : is_coprime x z) : is_coprime x (y * z) :=
 by { rw is_coprime_comm at H1 H2 ⊢, exact H1.mul_left H2 }
 
-variables {I : Type v} {s : I → R} {t : finset I}
-
-theorem is_coprime.prod_left : (∀ i ∈ t, is_coprime (s i) x) → is_coprime (∏ i in t, s i) x :=
-finset.induction_on t (λ _, is_coprime_one_left) $ λ b t hbt ih H,
-by { rw finset.prod_insert hbt, rw finset.forall_mem_insert at H, exact H.1.mul_left (ih H.2) }
-
-theorem is_coprime.prod_right : (∀ i ∈ t, is_coprime x (s i)) → is_coprime x (∏ i in t, s i) :=
-by simpa only [is_coprime_comm] using is_coprime.prod_left
-
 theorem is_coprime.mul_dvd (H : is_coprime x y) (H1 : x ∣ z) (H2 : y ∣ z) : x * y ∣ z :=
 begin
   obtain ⟨a, b, h⟩ := H,
@@ -107,23 +89,6 @@ begin
     exact (mul_dvd_mul_right H1 _).mul_right _ }
 end
 
-theorem finset.prod_dvd_of_coprime :
-  ∀ (Hs : set.pairwise_on (↑t : set I) (is_coprime on s)) (Hs1 : ∀ i ∈ t, s i ∣ z),
-  ∏ x in t, s x ∣ z :=
-finset.induction_on t (λ _ _, one_dvd z)
-begin
-  intros a r har ih Hs Hs1,
-  rw finset.prod_insert har,
-  have aux1 : a ∈ (↑(insert a r) : set I) := finset.mem_insert_self a r,
-  refine (is_coprime.prod_right $ λ i hir, Hs a aux1 i _ (by { rintro rfl, exact har hir })).mul_dvd
-    (Hs1 a aux1) (ih (Hs.mono _) $ λ i hi, Hs1 i (finset.mem_insert_of_mem hi)),
-  { exact finset.mem_insert_of_mem hir },
-  { simp only [finset.coe_insert, set.subset_insert] }
-end
-
-theorem fintype.prod_dvd_of_coprime [fintype I] (Hs : pairwise (is_coprime on s))
-  (Hs1 : ∀ i, s i ∣ z) : ∏ x, s x ∣ z :=
-finset.prod_dvd_of_coprime (Hs.pairwise_on _) (λ i _, Hs1 i)
 
 theorem is_coprime.of_mul_left_left (H : is_coprime (x * y) z) : is_coprime x z :=
 let ⟨a, b, h⟩ := H in ⟨a * y, b, by rwa [mul_right_comm, mul_assoc]⟩
@@ -142,46 +107,6 @@ theorem is_coprime.mul_left_iff : is_coprime (x * y) z ↔ is_coprime x z ∧ is
 
 theorem is_coprime.mul_right_iff : is_coprime x (y * z) ↔ is_coprime x y ∧ is_coprime x z :=
 by rw [is_coprime_comm, is_coprime.mul_left_iff, is_coprime_comm, @is_coprime_comm _ _ z]
-
-theorem is_coprime.prod_left_iff : is_coprime (∏ i in t, s i) x ↔ ∀ i ∈ t, is_coprime (s i) x :=
-finset.induction_on t (iff_of_true is_coprime_one_left $ λ _, false.elim) $ λ b t hbt ih,
-by rw [finset.prod_insert hbt, is_coprime.mul_left_iff, ih, finset.forall_mem_insert]
-
-theorem is_coprime.prod_right_iff : is_coprime x (∏ i in t, s i) ↔ ∀ i ∈ t, is_coprime x (s i) :=
-by simpa only [is_coprime_comm] using is_coprime.prod_left_iff
-
-theorem is_coprime.of_prod_left (H1 : is_coprime (∏ i in t, s i) x) (i : I) (hit : i ∈ t) :
-  is_coprime (s i) x :=
-is_coprime.prod_left_iff.1 H1 i hit
-
-theorem is_coprime.of_prod_right (H1 : is_coprime x (∏ i in t, s i)) (i : I) (hit : i ∈ t) :
-  is_coprime x (s i) :=
-is_coprime.prod_right_iff.1 H1 i hit
-
-variables {m n : ℕ}
-
-theorem is_coprime.pow_left (H : is_coprime x y) : is_coprime (x ^ m) y :=
-by { rw [← finset.card_range m, ← finset.prod_const], exact is_coprime.prod_left (λ _ _, H) }
-
-theorem is_coprime.pow_right (H : is_coprime x y) : is_coprime x (y ^ n) :=
-by { rw [← finset.card_range n, ← finset.prod_const], exact is_coprime.prod_right (λ _ _, H) }
-
-theorem is_coprime.pow (H : is_coprime x y) : is_coprime (x ^ m) (y ^ n) :=
-H.pow_left.pow_right
-
-theorem is_coprime.pow_left_iff (hm : 0 < m) : is_coprime (x ^ m) y ↔ is_coprime x y :=
-begin
-  refine ⟨λ h, _, is_coprime.pow_left⟩,
-  rw [← finset.card_range m, ← finset.prod_const] at h,
-  exact h.of_prod_left 0 (finset.mem_range.mpr hm),
-end
-
-theorem is_coprime.pow_right_iff (hm : 0 < m) : is_coprime x (y ^ m) ↔ is_coprime x y :=
-is_coprime_comm.trans $ (is_coprime.pow_left_iff hm).trans $ is_coprime_comm
-
-theorem is_coprime.pow_iff (hm : 0 < m) (hn : 0 < n) :
-  is_coprime (x ^ m) (y ^ n) ↔ is_coprime x y :=
-(is_coprime.pow_left_iff hm).trans $ is_coprime.pow_right_iff hn
 
 theorem is_coprime.of_coprime_of_dvd_left (h : is_coprime y z) (hdvd : x ∣ y) : is_coprime x z :=
 begin

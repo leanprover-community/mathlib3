@@ -472,12 +472,11 @@ calc gcd (a ^ k) b
 ... ∣ (gcd a b) ^ k : pow_dvd_pow_of_dvd (gcd_comm' _ _).dvd _
 
 theorem pow_dvd_of_mul_eq_pow [gcd_monoid α] {a b c d₁ d₂ : α} (ha : a ≠ 0)
-  (hab : associated (gcd a b) 1) {k : ℕ} (h : a * b = c ^ k) (hc : c = d₁ * d₂)
+  (hab : is_unit (gcd a b)) {k : ℕ} (h : a * b = c ^ k) (hc : c = d₁ * d₂)
   (hd₁ : d₁ ∣ a) : d₁ ^ k ≠ 0 ∧ d₁ ^ k ∣ a :=
 begin
-  have h1 : associated (gcd (d₁ ^ k) b) 1,
-  { rw associated_one_iff_is_unit,
-    apply is_unit_of_dvd_one,
+  have h1 : is_unit (gcd (d₁ ^ k) b),
+  { apply is_unit_of_dvd_one,
     transitivity (gcd d₁ b) ^ k,
     { exact gcd_pow_left_dvd_pow_gcd },
     { apply is_unit.dvd, apply is_unit.pow, apply is_unit_of_dvd_one,
@@ -486,17 +485,15 @@ begin
   have h2 : d₁ ^ k ∣ a * b, { use d₂ ^ k, rw [h, hc], exact mul_pow d₁ d₂ k },
   rw mul_comm at h2,
   have h3 : d₁ ^ k ∣ a,
-  { rw [← one_mul a],
-    apply (dvd_gcd_mul_of_dvd_mul h2).trans,
-    apply mul_dvd_mul_right,
-    exact h1.dvd },
+  { apply (dvd_gcd_mul_of_dvd_mul h2).trans,
+    rw is_unit.mul_left_dvd _ _ _ h1 },
   have h4 : d₁ ^ k ≠ 0,
   { intro hdk, rw hdk at h3, apply absurd (zero_dvd_iff.mp h3) ha },
   exact ⟨h4, h3⟩,
 end
 
 theorem exists_associated_pow_of_mul_eq_pow [gcd_monoid α] {a b c : α}
-  (hab : associated (gcd a b) 1) {k : ℕ}
+  (hab : is_unit (gcd a b)) {k : ℕ}
   (h : a * b = c ^ k) : ∃ (d : α), associated (d ^ k) a :=
 begin
   by_cases ha : a = 0,
@@ -506,7 +503,7 @@ begin
     { rw zero_pow hk } },
   by_cases hb : b = 0,
   { use 1, rw [one_pow],
-    apply associated.trans hab.symm,
+    apply (associated_one_iff_is_unit.mpr hab).symm.trans,
     rw hb,
     exact gcd_zero_right' a },
   obtain (rfl | hk) := k.eq_zero_or_pos,
@@ -517,7 +514,8 @@ begin
   use d₁,
   obtain ⟨h0₁, ⟨a', ha'⟩⟩ := pow_dvd_of_mul_eq_pow ha hab h hc hd₁,
   rw [mul_comm] at h hc,
-  obtain ⟨h0₂, ⟨b', hb'⟩⟩ := pow_dvd_of_mul_eq_pow hb ((gcd_comm' b a).trans hab) h hc hd₂,
+  rw (gcd_comm' a b).is_unit_iff at hab,
+  obtain ⟨h0₂, ⟨b', hb'⟩⟩ := pow_dvd_of_mul_eq_pow hb hab h hc hd₂,
   rw [ha', hb', hc, mul_pow] at h,
   have h' : a' * b' = 1,
   { apply (mul_right_inj' h0₁).mp, rw mul_one,
@@ -689,7 +687,7 @@ begin
   cases hi.is_unit_or_is_unit hy with hu hu,
   { right, transitivity (gcd (x * b) (a * b)), apply dvd_gcd (dvd_mul_right x b) h,
     rw (gcd_mul_right' b x a).dvd_iff_dvd_left,
-    exact (associated_unit_mul _ _ hu).dvd },
+    exact (associated_unit_mul_left _ _ hu).dvd },
   { left,
     rw hy,
     exact dvd_trans (associated_mul_unit _ _ hu).dvd (gcd_dvd_right x a) }

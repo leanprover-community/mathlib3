@@ -255,16 +255,24 @@ theorem associated_one_of_associated_mul_one [comm_monoid α] {a b : α} :
   a * b ~ᵤ 1 → a ~ᵤ 1
 | ⟨u, h⟩ := associated_one_of_mul_eq_one (b * u) $ by simpa [mul_assoc] using h
 
-lemma associated_mul_unit {β : Type*} [monoid β] (a u : β) (hu : is_unit u) :
+lemma associated_mul_unit_left {β : Type*} [monoid β] (a u : β) (hu : is_unit u) :
   associated (a * u) a :=
 let ⟨u', hu⟩ := hu in ⟨u'⁻¹, hu ▸ units.mul_inv_cancel_right _ _⟩
 
-lemma associated_unit_mul {β : Type*} [comm_monoid β] (a u : β) (hu : is_unit u) :
+lemma associated_unit_mul_left {β : Type*} [comm_monoid β] (a u : β) (hu : is_unit u) :
   associated (u * a) a :=
 begin
   rw mul_comm,
-  exact associated_mul_unit _ _ hu
+  exact associated_mul_unit_left _ _ hu
 end
+
+lemma associated_mul_unit_right {β : Type*} [monoid β] (a u : β) (hu : is_unit u) :
+  associated a (a * u) :=
+(associated_mul_unit_left a u hu).symm
+
+lemma associated_unit_mul_right {β : Type*} [comm_monoid β] (a u : β) (hu : is_unit u) :
+  associated a (u * a) :=
+(associated_unit_mul_left a u hu).symm
 
 lemma associated.mul_mul [comm_monoid α] {a₁ a₂ b₁ b₂ : α} :
   a₁ ~ᵤ b₁ → a₂ ~ᵤ b₂ → (a₁ * a₂) ~ᵤ (b₁ * b₂)

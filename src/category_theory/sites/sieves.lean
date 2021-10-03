@@ -146,6 +146,36 @@ def functor_pullback {X : C} (R : presieve (F.obj X)) : presieve X := λ _ f, R 
 
 @[simp] lemma functor_pullback_id {X : C} (R : presieve X) : R.functor_pullback (𝟭 _) = R := rfl
 
+@[simp] lemma functor_pullback_apply {X : C} (R : presieve (F.obj X)) {Y} (f : Y ⟶ X) :
+  R.functor_pullback F f ↔ R (F.map f) := by unfold functor_pullback
+
+section functor_pushforward
+
+structure functor_pushforward_structure {X : C} {Y : D} (f : Y ⟶ F.obj X) :=
+(preobj : C) (prehom : preobj ⟶ X) (preobj_image : F.obj preobj = Y)
+(prehom_image : F.map prehom = (eq_to_hom preobj_image) ≫ f)
+
+/-- Given a presieve on `X`, we can define a presieve on `F(X)` by taking the image via `F`. -/
+def functor_pushforward {X : C} (R : presieve X) : presieve (F.obj X) :=
+λ Y f, ∃ (H : functor_pushforward_structure F f), R H.prehom
+
+variables {F} {R : presieve X} {X': D} {g : X' ⟶ F.obj X} (H : R.functor_pushforward F g)
+noncomputable
+def functor_pushforward_preobj : C := (classical.some H).preobj
+
+noncomputable
+def functor_pushforward_prehom : functor_pushforward_preobj H ⟶ X := (classical.some H).prehom
+
+@[simp] lemma functor_pushforward_preobj_image : F.obj (functor_pushforward_preobj H) = X' :=
+(classical.some H).preobj_image
+
+@[simp] lemma functor_pushforward_prehom_image :
+  F.map (functor_pushforward_prehom H) = (eq_to_hom (functor_pushforward_preobj_image H)) ≫ g :=
+(classical.some H).prehom_image
+
+lemma functor_pushforward_prehom_cover : R (functor_pushforward_prehom H) := classical.some_spec H
+
+end functor_pushforward
 end presieve
 
 /--

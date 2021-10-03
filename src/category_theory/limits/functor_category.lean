@@ -238,8 +238,53 @@ instance evaluation_preserves_limits [has_limits C] (k : K) :
   preserves_limits ((evaluation K C).obj k) :=
 { preserves_limits_of_shape := λ J 𝒥, by resetI; apply_instance }
 
+lemma preserves_limit_if_evaluation (F : J ⥤ K ⥤ C) {L : Type v} [small_category L] (G : L ⥤ J)
+  (H : Π (k : K), preserves_limit G (F ⋙ (evaluation K C).obj k)) : preserves_limit G F := ⟨λ c hc,
+begin
+  apply evaluation_jointly_reflects_limits,
+  intro X,
+  haveI := H X,
+  change is_limit ((F ⋙ (evaluation K C).obj X).map_cone c),
+  exact preserves_limit.preserves hc,
+end⟩
+
+lemma preserves_limits_of_shape_if_evaluation (F : J ⥤ K ⥤ C) (L : Type v) [small_category L]
+  (H : Π (k : K), preserves_limits_of_shape L (F ⋙ (evaluation K C).obj k)) :
+  preserves_limits_of_shape L F :=
+⟨λ G, preserves_limit_if_evaluation F G (λ k, preserves_limits_of_shape.preserves_limit)⟩
+
+lemma preserves_limits_if_evaluation (F : J ⥤ K ⥤ C)
+  (H : Π (k : K), preserves_limits (F ⋙ (evaluation K C).obj k)) :
+  preserves_limits F :=
+⟨λ L hL, by { letI := hL,
+  exact preserves_limits_of_shape_if_evaluation
+    F L (λ k, preserves_limits.preserves_limits_of_shape) }⟩
+
 instance evaluation_preserves_colimits [has_colimits C] (k : K) :
   preserves_colimits ((evaluation K C).obj k) :=
 { preserves_colimits_of_shape := λ J 𝒥, by resetI; apply_instance }
+
+lemma preserves_colimit_if_evaluation (F : J ⥤ K ⥤ C) {L : Type v} [small_category L] (G : L ⥤ J)
+  (H : Π (k), preserves_colimit G (F ⋙ (evaluation K C).obj k)) : preserves_colimit G F := ⟨λ c hc,
+begin
+  apply evaluation_jointly_reflects_colimits,
+  intro X,
+  haveI := H X,
+  change is_colimit ((F ⋙ (evaluation K C).obj X).map_cocone c),
+  exact preserves_colimit.preserves hc,
+end⟩
+
+lemma preserves_colimits_of_shape_if_evaluation (F : J ⥤ K ⥤ C) (L : Type v) [small_category L]
+  (H : Π (k : K), preserves_colimits_of_shape L (F ⋙ (evaluation K C).obj k)) :
+  preserves_colimits_of_shape L F :=
+⟨λ G, preserves_colimit_if_evaluation F G (λ k, preserves_colimits_of_shape.preserves_colimit)⟩
+
+lemma preserves_colimits_if_evaluation (F : J ⥤ K ⥤ C)
+  (H : Π (k : K), preserves_colimits (F ⋙ (evaluation K C).obj k)) :
+  preserves_colimits F :=
+⟨λ L hL, by { letI := hL,
+  exact preserves_colimits_of_shape_if_evaluation
+    F L (λ k, preserves_colimits.preserves_colimits_of_shape) }⟩
+
 
 end category_theory.limits

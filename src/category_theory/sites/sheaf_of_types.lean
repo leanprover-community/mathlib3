@@ -288,6 +288,19 @@ end
 
 end functor_pullback
 
+/--
+Given a family of elements of a presieve `S` valued in `F.op ⋙ P`,
+we can obtain a family of elements of `S.functor_pushforward F` valued in `P` by taking the same
+elements. Since the preimage is obtained by choice, this is not well-defined except when the
+preimage is unique (say if `F` is faithful), or if `x` is compatible.
+-/
+noncomputable
+def functor_pushforward {Z : D} {T : presieve Z} (x : family_of_elements (F.op ⋙ P) T) :
+  family_of_elements P (T.functor_pushforward F) := λ Y f hf,
+    (P.map (eq_to_hom (functor_pushforward_preobj_image hf).symm).op)
+      (x _ (functor_pushforward_prehom_cover hf))
+
+
 section pullback
 
 /--

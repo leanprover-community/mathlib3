@@ -22,12 +22,12 @@ well defined.
 
 ## References
 
-We follow the proof given in https://mathoverflow.net/a/47846/7845. The argument is the following:
-it is enough to prove that for all `n`, there is no injective linear map
-`(fin (n + 1) → R) →ₗ[R] fin n → R`. Given such an `f`, we get by extension an injective linear
-map `g : (fin n → R) →ₗ[R] fin n → R`. Injectivity implies that `P`, the minimal polynomial of
-`g` has non-zero constant term `a₀ ≠ 0`. But evaluating `0 = P(g)` at the vector `(0,...,0,1)` gives
-`a₀`, a contradiction.
+We follow the proof given in https://mathoverflow.net/a/47846/7845.
+The argument is the following: it is enough to prove that for all `n`, there is no injective linear
+map `(fin (n + 1) → R) →ₗ[R] fin n → R`. Given such an `f`, we get by extension an injective
+linear map `g : (fin n → R) →ₗ[R] fin n → R`. Injectivity implies that `P`, the minimal polynomial
+of `g`, has non-zero constant term `a₀ ≠ 0`. But evaluating `0 = P(g)` at the vector `(0,...,0,1)`
+gives `a₀`, contradiction.
 
 -/
 

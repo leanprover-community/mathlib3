@@ -7,11 +7,11 @@ variables {G : Type*} [group G] {α : Type*} [has_mul α]
 namespace double_coset
 
 def double_coset_rel (H K : subgroup G) : G → G → Prop :=
-λ x y, (∃ (a ∈  H) (b ∈  K), a*x*b=y)
+λ x y, (∃ (a ∈  H) (b ∈  K), y=a*x*b)
 
 @[simp]
 lemma rel_iff (H K : subgroup G) (x y : G) :
-  double_coset_rel H K x y  ↔  (∃ (a ∈  H) (b ∈  K), a*x*b=y) := iff.rfl
+  double_coset_rel H K x y  ↔  (∃ (a ∈  H) (b ∈  K), y=a*x*b) := iff.rfl
 
 lemma double_coset_rel_is_equiv  (H K : subgroup G) : equivalence (double_coset_rel H K) :=
 begin
@@ -32,7 +32,7 @@ begin
   use b⁻¹,
   have hbb:= subgroup.inv_mem K hb,
   simp only [hbb, true_and],
-  rw ← hx,
+  rw  hx,
   simp_rw ← mul_assoc,
   simp only [one_mul, mul_left_inv, mul_inv_cancel_right],
   intros x y z,
@@ -44,8 +44,8 @@ begin
   use b*d,
   have hdb:=  (K.mul_mem hb hd),
   simp only [hdb, true_and],
-  rw ← hyz,
-  rw ← hxy,
+  rw  hyz,
+  rw  hxy,
   simp_rw ← mul_assoc,
 end
 
@@ -138,31 +138,88 @@ def quot_to_doset (H K : subgroup G) (q : double_coset_quotient H K ) : set G :=
 abbreviation mk (H K : subgroup G) (a : G) : double_coset_quotient H K  :=
 quotient.mk' a
 
-lemma eq (H K : subgroup G) (a b : G): mk H K a = mk H K b ↔ ∃ (h ∈ H) (k ∈  K), h*a*k=b :=
+lemma eq (H K : subgroup G) (a b : G): mk H K a = mk H K b ↔ ∃ (h ∈ H) (k ∈  K), b=h*a*k :=
 begin
 rw quotient.eq',
-apply  rel_iff H K a b,
+apply  (rel_iff H K a b),
 end
+
+lemma out_eq' (H K : subgroup G) (q : double_coset_quotient H K ) : mk H K q.out' = q :=
+quotient.out_eq' q
 
 lemma mk_out'_eq_mul  (H K : subgroup G)  (g : G) :
   ∃ (h k : G), (h ∈ H) ∧ (k ∈ K) ∧   (mk H K g :  double_coset_quotient H K).out' = h * g * k :=
 begin
-sorry,
+have := eq  H K (mk H K g :  double_coset_quotient H K).out' g,
+rw out_eq' at this,
+simp only [exists_prop] at this,
+have h: mk H K g = mk H K g, by {refl,},
+have hh:= this.1 h,
+let l:=classical.some_spec hh,
+let le:=classical.some hh,
+have hr:= l.2,
+let r:=classical.some_spec hr,
+let re:=classical.some hr,
+use le⁻¹,
+use re⁻¹,
+simp only [H.inv_mem l.left, K.inv_mem r.left, true_and],
+have fl:=r.2,
+simp_rw ← le at fl,
+simp_rw ← re at fl,
+rw  fl,
+simp_rw ← mul_assoc,
+simp only [one_mul, mul_left_inv, mul_inv_cancel_right],
+exact congr_arg quotient.out' (congr_arg (mk H K) (eq.symm fl)),
 end
+
+lemma doset_eq_quot_eq (H K : subgroup G) (a b : G) :
+  (doset H.1 K a)= (doset H K b) → mk H K a = mk H K b :=
+begin
+intro h,
+rw eq,
+have : b ∈ doset H.1 K a, by { rw h, simp, use 1, simp, simp [H.one_mem, K.one_mem], },
+simp_rw doset at this,
+simp at *,
+apply this,
+end
+
+lemma disjoint_doset'  (H K : subgroup G) (a b : double_coset_quotient H K) :
+   a ≠ b → disjoint (doset H.1 K a.out'  ) (doset H K b.out') :=
+begin
+simp,
+contrapose,
+simp,
+intro h,
+have := disjoint_doset H K _ _ h,
+have h2:= doset_eq_quot_eq _ _ _ _ this,
+simp_rw [out_eq'] at h2,
+apply h2,
+end
+
 
 lemma top_eq_union_dosets (H K : subgroup G) : (⊤ : set G) = ⋃ q, quot_to_doset H K q :=
 begin
-simp,
-ext,
-simp,
-use quotient.mk' x,
-rw quot_to_doset,
-simp,
-use 1,
-simp [H.one_mem],
-use 1,
-simp [K.one_mem],
-sorry,
+  simp only [set.top_eq_univ],
+  ext,
+  simp only [set.mem_Union, true_iff, set.mem_univ],
+  use mk H K x,
+  rw quot_to_doset,
+  simp only [exists_prop, doset_mem, subgroup.mem_carrier, set_like.mem_coe],
+  have:= mk_out'_eq_mul H K x,
+  let l:=classical.some_spec this,
+  let le:=classical.some this,
+  let r:=classical.some_spec l,
+  let re:=classical.some l,
+  have rf:= r.2.2,
+  use le⁻¹,
+  simp only [H.inv_mem r.left, true_and],
+  use re⁻¹,
+  simp [K.inv_mem r.2.1],
+  simp_rw ← le at rf,
+  simp_rw ← re at rf,
+  rw rf,
+  simp_rw ← mul_assoc,
+  simp only [one_mul, mul_left_inv, mul_inv_cancel_right],
 end
 
 end double_coset

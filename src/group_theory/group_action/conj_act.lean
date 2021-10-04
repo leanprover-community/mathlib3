@@ -16,6 +16,7 @@ A type alias `conj_act G` is introduced for a group `G`. The group `conj_act G` 
 by conjugation.
 
 ## Implementation Notes
+
 The scalar action in defined in this file can also be written using `mul_aut.conj g • h`. This
 has the advantage of not using the type alias `conj_act`, but the downside of this approach
 is that some theorems about the group actions will not apply when since this

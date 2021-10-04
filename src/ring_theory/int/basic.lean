@@ -204,7 +204,7 @@ by rw [←gcd_eq_one_iff_coprime, nat.coprime_iff_gcd_eq_one, gcd_eq_nat_abs]
 lemma sq_of_gcd_eq_one {a b c : ℤ} (h : int.gcd a b = 1) (heq : a * b = c ^ 2) :
   ∃ (a0 : ℤ), a = a0 ^ 2 ∨ a = - (a0 ^ 2) :=
 begin
-  have h' : associated (gcd_monoid.gcd a b) 1, { rw [← coe_gcd, h, int.coe_nat_one] },
+  have h' : is_unit (gcd_monoid.gcd a b), { rw [← coe_gcd, h, int.coe_nat_one], exact is_unit_one },
   obtain ⟨d, ⟨u, hu⟩⟩ := exists_associated_pow_of_mul_eq_pow h' heq,
   use d,
   rw ← hu,

@@ -237,11 +237,11 @@ compl_supr
 compl_infi
 
 -- classical -- complete_boolean_algebra
-theorem Union_eq_comp_Inter_comp (s : ι → set β) : (⋃ i, s i) = (⋂ i, (s i)ᶜ)ᶜ :=
+theorem Union_eq_compl_Inter_compl (s : ι → set β) : (⋃ i, s i) = (⋂ i, (s i)ᶜ)ᶜ :=
 by simp only [compl_Inter, compl_compl]
 
 -- classical -- complete_boolean_algebra
-theorem Inter_eq_comp_Union_comp (s : ι → set β) : (⋂ i, s i) = (⋃ i, (s i)ᶜ)ᶜ :=
+theorem Inter_eq_compl_Union_compl (s : ι → set β) : (⋂ i, s i) = (⋃ i, (s i)ᶜ)ᶜ :=
 by simp only [compl_Union, compl_compl]
 
 theorem inter_Union (s : set β) (t : ι → set β) :
@@ -743,12 +743,30 @@ lemma sUnion_eq_univ_iff {c : set (set α)} :
 by simp only [eq_univ_iff_forall, mem_sUnion]
 
 -- classical
-lemma sInter_eq_empty_iff {c : set (set α)} :
-  ⋂₀ c = ∅ ↔ ∀ a, ∃ b ∈ c, a ∉ b :=
-by simp [set.eq_empty_iff_forall_not_mem, mem_sInter]
+lemma Inter_eq_empty_iff {f : ι → set α} : (⋂ i, f i) = ∅ ↔ ∀ x, ∃ i, x ∉ f i :=
+by simp [set.eq_empty_iff_forall_not_mem]
 
 -- classical
-@[simp] theorem sInter_nonempty_iff {c : set (set α)}:
+lemma bInter_eq_empty_iff {f : α → set β} {s : set α} :
+  (⋂ x ∈ s, f x) = ∅ ↔ ∀ y, ∃ x ∈ s, y ∉ f x :=
+by simp [set.eq_empty_iff_forall_not_mem]
+
+-- classical
+lemma sInter_eq_empty_iff {c : set (set α)} :
+  ⋂₀ c = ∅ ↔ ∀ a, ∃ b ∈ c, a ∉ b :=
+by simp [set.eq_empty_iff_forall_not_mem]
+
+-- classical
+@[simp] theorem nonempty_Inter {f : ι → set α} : (⋂ i, f i).nonempty ↔ ∃ x, ∀ i, x ∈ f i :=
+by simp [← ne_empty_iff_nonempty, Inter_eq_empty_iff]
+
+-- classical
+@[simp] theorem nonempty_bInter {f : α → set β} {s : set α} :
+  (⋂ x ∈ s, f x).nonempty ↔ ∃ y, ∀ x ∈ s, y ∈ f x :=
+by simp [← ne_empty_iff_nonempty, Inter_eq_empty_iff]
+
+-- classical
+@[simp] theorem nonempty_sInter {c : set (set α)}:
   (⋂₀ c).nonempty ↔ ∃ a, ∀ b ∈ c, a ∈ b :=
 by simp [← ne_empty_iff_nonempty, sInter_eq_empty_iff]
 
@@ -768,7 +786,7 @@ theorem compl_sInter (S : set (set α)) :
 by rw [sUnion_eq_compl_sInter_compl, compl_compl_image]
 
 -- classical
-theorem sInter_eq_comp_sUnion_compl (S : set (set α)) :
+theorem sInter_eq_compl_sUnion_compl (S : set (set α)) :
    ⋂₀ S = (⋃₀ (compl '' S))ᶜ :=
 by rw [←compl_compl (⋂₀ S), compl_sInter]
 
@@ -1410,6 +1428,10 @@ disjoint_iff
 
 lemma not_disjoint_iff : ¬disjoint s t ↔ ∃ x, x ∈ s ∧ x ∈ t :=
 not_forall.trans $ exists_congr $ λ x, not_not
+
+lemma not_disjoint_iff_nonempty_inter {α : Type*} {s t : set α} :
+  ¬disjoint s t ↔ (s ∩ t).nonempty :=
+by simp [set.not_disjoint_iff, set.nonempty_def]
 
 lemma disjoint_left : disjoint s t ↔ ∀ {a}, a ∈ s → a ∉ t :=
 show (∀ x, ¬(x ∈ s ∩ t)) ↔ _, from ⟨λ h a, not_and.1 $ h a, λ h a, not_and.2 $ h a⟩

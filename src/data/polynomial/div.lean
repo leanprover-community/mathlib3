@@ -253,7 +253,7 @@ have hq0 : q ≠ 0 := hq.ne_zero_of_polynomial_ne hp0,
 if hpq : degree p < degree q
 then begin
   rw [(div_by_monic_eq_zero_iff hq hq0).2 hpq, degree_eq_nat_degree hp0],
-  exact with_bot.bot_lt_some _
+  exact with_bot.bot_lt_coe _
 end
 else begin
   rw [← degree_add_div_by_monic hq (not_lt.1 hpq), degree_eq_nat_degree hq0,

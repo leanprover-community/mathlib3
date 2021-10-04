@@ -270,17 +270,15 @@ begin
     -- by using `nnreal.rpow_arith_mean_le_arith_mean_rpow`.
     intros h_top_rpow_sum _,
     -- show hypotheses needed to put the `.to_nnreal` inside the sums.
-    have h_top : ∀ (a : ι), a ∈ s → w a * z a < ⊤,
-    { have h_top_sum : ∑ (i : ι) in s, w i * z i < ⊤,
-      { by_contra h,
-        rw [lt_top_iff_ne_top, not_not] at h,
+    have h_top : ∀ (a : ι), a ∈ s → w a * z a ≠ ⊤,
+    { have h_top_sum : ∑ (i : ι) in s, w i * z i ≠ ⊤,
+      { intro h,
         rw [h, top_rpow_of_pos hp_pos] at h_top_rpow_sum,
         exact h_top_rpow_sum rfl, },
-      rwa sum_lt_top_iff at h_top_sum, },
-    have h_top_rpow : ∀ (a : ι), a ∈ s → w a * z a ^ p < ⊤,
+      exact λ a ha, (lt_top_of_sum_ne_top h_top_sum ha).ne },
+    have h_top_rpow : ∀ (a : ι), a ∈ s → w a * z a ^ p ≠ ⊤,
     { intros i hi,
       specialize h_top i hi,
-      rw lt_top_iff_ne_top at h_top ⊢,
       rwa [ne.def, ←h_top_iff_rpow_top i hi], },
     -- put the `.to_nnreal` inside the sums.
     simp_rw [to_nnreal_sum h_top_rpow, ←to_nnreal_rpow, to_nnreal_sum h_top, to_nnreal_mul,
@@ -290,11 +288,10 @@ begin
       _ hp,
     -- verify the hypothesis `∑ i in s, (w i).to_nnreal = 1`, using `∑ i in s, w i = 1` .
     have h_sum_nnreal : (∑ i in s, w i) = ↑(∑ i in s, (w i).to_nnreal),
-    { have hw_top : ∑ i in s, w i < ⊤, by { rw hw', exact one_lt_top, },
-      rw ←to_nnreal_sum,
-      { rw coe_to_nnreal,
-        rwa ←lt_top_iff_ne_top, },
-      { rwa sum_lt_top_iff at hw_top, }, },
+    { rw coe_finset_sum,
+      refine sum_congr rfl (λ i hi, (coe_to_nnreal _).symm),
+      refine (lt_top_of_sum_ne_top _ hi).ne,
+      exact hw'.symm ▸ ennreal.one_ne_top },
     rwa [←coe_eq_coe, ←h_sum_nnreal], },
 end
 
@@ -343,10 +340,10 @@ by simpa [← rpow_mul, ha, hb, hpq.ne_zero, hpq.symm.ne_zero, div_eq_inv_mul]
 
 /-- Young's inequality, a version for arbitrary real numbers. -/
 theorem young_inequality (a b : ℝ) {p q : ℝ} (hpq : p.is_conjugate_exponent q) :
-  a * b ≤ (abs a)^p / p + (abs b)^q / q :=
-calc a * b ≤ abs (a * b)                   : le_abs_self (a * b)
-       ... = abs a * abs b                 : abs_mul a b
-       ... ≤ (abs a)^p / p + (abs b)^q / q :
+  a * b ≤ |a|^p / p + |b|^q / q :=
+calc a * b ≤ |a * b|                   : le_abs_self (a * b)
+       ... = |a| * |b|                 : abs_mul a b
+       ... ≤ |a|^p / p + |b|^q / q :
   real.young_inequality_of_nonneg (abs_nonneg a) (abs_nonneg b) hpq
 
 end real
@@ -473,7 +470,8 @@ variables (f g : ι → ℝ)  {p q : ℝ}
 `L^p` and `L^q` norms when `p` and `q` are conjugate exponents. Version for sums over finite sets,
 with real-valued functions. -/
 theorem inner_le_Lp_mul_Lq (hpq : is_conjugate_exponent p q) :
-  ∑ i in s, f i * g i ≤ (∑ i in s, (abs $ f i)^p) ^ (1 / p) * (∑ i in s, (abs $ g i)^q) ^ (1 / q) :=
+  ∑ i in s, f i * g i ≤ (∑ i in s, (abs $ f i)^p) ^ (1 / p) *
+  (∑ i in s, (abs $ g i)^q) ^ (1 / q) :=
 begin
   have := nnreal.coe_le_coe.2 (nnreal.inner_le_Lp_mul_Lq s (λ i, ⟨_, abs_nonneg (f i)⟩)
     (λ i, ⟨_, abs_nonneg (g i)⟩) hpq),

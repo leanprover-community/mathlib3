@@ -624,6 +624,15 @@ by rw [←map_comp, g.symm_comp, map_id]
   (I.map (g.symm : P' →ₐ[R] P)).map (g : P →ₐ[R] P') = I :=
 by rw [←map_comp, g.comp_symm, map_id]
 
+lemma map_mem_map {f : P →ₐ[R] P'} (h : function.injective f) {x : P} {I : fractional_ideal S P} :
+  f x ∈ map f I ↔ x ∈ I :=
+mem_map.trans ⟨λ ⟨x', hx', x'_eq⟩, h x'_eq ▸ hx', λ h, ⟨x, h, rfl⟩⟩
+
+lemma map_injective (f : P →ₐ[R] P') (h : function.injective f) :
+  function.injective (map f : fractional_ideal S P → fractional_ideal S P') :=
+λ I J hIJ, fractional_ideal.ext (λ x, (fractional_ideal.map_mem_map h).symm.trans
+  (hIJ.symm ▸ fractional_ideal.map_mem_map h))
+
 /-- If `g` is an equivalence, `map g` is an isomorphism -/
 def map_equiv (g : P ≃ₐ[R] P') :
   fractional_ideal S P ≃+* fractional_ideal S P' :=

@@ -41,7 +41,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: install Python
-        if: ${{ ! 0 }}
+        if: ${{ 'ubuntu-latest' == 'ubuntu-latest' }}
         uses: actions/setup-python@v2
         with:
           python-version: 3.8

@@ -140,7 +140,7 @@ end mv_polynomial
 
 namespace mv_polynomial
 
-open_locale classical
+open_locale classical cardinal
 open linear_map submodule
 
 universe u
@@ -158,20 +158,20 @@ calc module.rank K (R σ K) =
   module.rank K (↥{s : σ →₀ ℕ | ∀ (n : σ), s n ≤ fintype.card K - 1} →₀ K) :
     linear_equiv.dim_eq
       (finsupp.supported_equiv_finsupp {s : σ →₀ ℕ | ∀n:σ, s n ≤ fintype.card K - 1 })
-  ... = cardinal.mk {s : σ →₀ ℕ | ∀ (n : σ), s n ≤ fintype.card K - 1} :
+  ... = #{s : σ →₀ ℕ | ∀ (n : σ), s n ≤ fintype.card K - 1} :
     by rw [finsupp.dim_eq, dim_self, mul_one]
-  ... = cardinal.mk {s : σ → ℕ | ∀ (n : σ), s n < fintype.card K } :
+  ... = #{s : σ → ℕ | ∀ (n : σ), s n < fintype.card K } :
   begin
     refine quotient.sound ⟨equiv.subtype_equiv finsupp.equiv_fun_on_fintype $ assume f, _⟩,
     refine forall_congr (assume n, nat.le_sub_right_iff_add_le _),
     exact fintype.card_pos_iff.2 ⟨0⟩
   end
-  ... = cardinal.mk (σ → {n // n < fintype.card K}) :
-    quotient.sound ⟨@equiv.subtype_pi_equiv_pi σ (λ_, ℕ) (λs n, n < fintype.card K)⟩
-  ... = cardinal.mk (σ → fin (fintype.card K)) :
-    quotient.sound ⟨equiv.arrow_congr (equiv.refl σ) (equiv.fin_equiv_subtype _).symm⟩
-  ... = cardinal.mk (σ → K) :
-    quotient.sound ⟨equiv.arrow_congr (equiv.refl σ) (fintype.equiv_fin K).symm⟩
+  ... = #(σ → {n // n < fintype.card K}) :
+    (@equiv.subtype_pi_equiv_pi σ (λ_, ℕ) (λs n, n < fintype.card K)).cardinal_eq
+  ... = #(σ → fin (fintype.card K)) :
+    (equiv.arrow_congr (equiv.refl σ) (equiv.fin_equiv_subtype _).symm).cardinal_eq
+  ... = #(σ → K) :
+    (equiv.arrow_congr (equiv.refl σ) (fintype.equiv_fin K).symm).cardinal_eq
   ... = fintype.card (σ → K) : cardinal.fintype_card _
 
 instance : finite_dimensional K (R σ K) :=

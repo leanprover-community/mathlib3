@@ -217,7 +217,7 @@ def of_factors_independent_and_supr_eq_top
   (p : ι → submodule R M) (h_ind : complete_lattice.independent p) (h_supr : supr p = ⊤) :
   decomposition ι R M :=
 { factors := p,
-  is_internal := ⟨injective_of_independent p h_ind, surjective_of_supr_eq_top p h_supr⟩ }
+  is_internal := submodule_is_internal_of_independent_of_supr_eq_top h_ind h_supr }
 
 end group
 

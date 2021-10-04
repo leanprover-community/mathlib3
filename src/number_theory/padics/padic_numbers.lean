@@ -1044,8 +1044,8 @@ begin
   rw [H.le_iff_le, H.lt_iff_lt, int.lt_add_one_iff],
 end
 
-lemma norm_lt_pow_iff_norm_le_pow_sub_one (x : ℚ_[p])
-  (n : ℤ) : ∥x∥ < p ^ n ↔ ∥x∥ ≤ p ^ (n - 1) :=
+lemma norm_lt_pow_iff_norm_le_pow_sub_one (x : ℚ_[p]) (n : ℤ) :
+  ∥x∥ < p ^ n ↔ ∥x∥ ≤ p ^ (n - 1) :=
 by rw [norm_le_pow_iff_norm_lt_pow_add_one, sub_add_cancel]
 
 end norm_le_iff

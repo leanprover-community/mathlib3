@@ -699,7 +699,7 @@ def omega : cardinal.{u} := lift (#ℕ)
 
 localized "notation `ω` := cardinal.omega" in cardinal
 
-@[simp] lemma mk_nat : #ℕ = ω := (lift_id _).symm
+lemma mk_nat : #ℕ = ω := (lift_id _).symm
 
 theorem omega_ne_zero : ω ≠ 0 :=
 ne_zero_iff_nonempty.2 ⟨⟨0⟩⟩

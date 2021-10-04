@@ -91,6 +91,19 @@ instance : set_like (subfield K) K :=
 @[simp]
 lemma mem_carrier {s : subfield K} {x : K} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
 
+@[simp]
+lemma mem_mk {S : set K} {x : K} (h₁ h₂ h₃ h₄ h₅ h₆) :
+  x ∈ (⟨S, h₁, h₂, h₃, h₄, h₅, h₆⟩ : subfield K) ↔ x ∈ S := iff.rfl
+
+@[simp] lemma coe_set_mk (S : set K) (h₁ h₂ h₃ h₄ h₅ h₆) :
+  ((⟨S, h₁, h₂, h₃, h₄, h₅, h₆⟩ : subfield K) : set K) = S := rfl
+
+@[simp]
+lemma mk_le_mk {S S' : set K} (h₁ h₂ h₃  h₄ h₅ h₆ h₁' h₂' h₃'  h₄' h₅' h₆') :
+  (⟨S, h₁, h₂, h₃, h₄, h₅, h₆⟩ : subfield K) ≤ (⟨S', h₁', h₂', h₃', h₄', h₅', h₆'⟩ : subfield K) ↔
+  S ⊆ S' :=
+iff.rfl
+
 /-- Two subfields are equal if they have the same elements. -/
 @[ext] theorem ext {S T : subfield K} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
 
@@ -103,9 +116,6 @@ protected def copy (S : subfield K) (s : set K) (hs : s = ↑S) : subfield K :=
 
 @[simp] lemma coe_to_subring (s : subfield K) : (s.to_subring : set K) = s :=
 rfl
-
-@[simp] lemma mem_mk (s : set K) (ho hm hz ha hn hi) (x : K) :
-  x ∈ subfield.mk s ho hm hz ha hn hi ↔ x ∈ s := iff.rfl
 
 @[simp] lemma mem_to_subring (s : subfield K) (x : K) :
   x ∈ s.to_subring ↔ x ∈ s := iff.rfl

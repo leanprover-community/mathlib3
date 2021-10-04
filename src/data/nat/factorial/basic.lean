@@ -222,7 +222,7 @@ lemma asc_factorial_of_sub {n k : ℕ} (h : k < n) :
 begin
   set t := n - k.succ with ht,
   suffices h' : n - k = t.succ, by rw [←ht, h', succ_asc_factorial, asc_factorial_succ],
-  rw [ht, succ_eq_add_one, ←sub_sub_assoc h (succ_pos _), succ_sub_one],
+  rw [ht, succ_eq_add_one, ←sub_sub_assoc (succ_le_of_lt h) (succ_pos _), succ_sub_one],
 end
 
 lemma pow_succ_le_asc_factorial (n : ℕ) : ∀ (k : ℕ), (n + 1)^k ≤ n.asc_factorial k

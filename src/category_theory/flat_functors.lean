@@ -65,233 +65,44 @@ variables {C D E: Type u₁} [category.{u₁} C] [category.{u₁} D] [category.{
 
 -- def functor.flat_min_comm :=
 -- (category_theory.is_cofiltered_or_empty.cocone_maps Y₁ Y₂)
--- lemma lem0 (F : C ⥤ D) (X : Dᵒᵖ) :
---   (((whiskering_left _ _ _).obj (costructured_arrow.proj F.op X)) ⋙ colim : (Cᵒᵖ ⥤ Type u₁) ⥤ _) =
---     Lan F.op ⋙ (evaluation Dᵒᵖ (Type u₁)).obj X :=
--- begin
---   apply functor.hext,
---   { intro Y, simp },
---   intros Y₁ Y₂ f,
---   simp only [functor.comp_map, evaluation_obj_map, whiskering_left_obj_map, Lan_map_app, heq_iff_eq],
---   apply (colimit.is_colimit (Lan.diagram F.op Y₁ X)).uniq { X := colimit _, ι := _ }
---     (colim.map (whisker_left (costructured_arrow.proj F.op X) f)),
---   intro Z,
---   simp only [colimit.ι_map, colimit.cocone_ι, whisker_left_app, category.comp_id, category.assoc],
---   transitivity f.app Z.left ≫ (colimit.ι (costructured_arrow.map Z.hom ⋙ Lan.diagram F.op Y₂ X :
---     costructured_arrow F.op _ ⥤ _) (costructured_arrow.mk (𝟙 (F.op.obj Z.left))) : _)
---     ≫ (colimit.pre (Lan.diagram F.op Y₂ X) (costructured_arrow.map Z.hom)),
---   { rw colimit.ι_pre,
---     congr,
---     simp only [category.id_comp, costructured_arrow.map_mk],
---     apply costructured_arrow.eq_mk },
---   { congr }
--- end
 
--- @[simps] noncomputable
--- def swap_cone (J : Type u₁) [small_category J] (F: C ⥤ D ⥤ E) (K : J ⥤ C) [has_limit K] (X : D) :
---   cone ((curry.obj (prod.swap D J ⋙ uncurry.obj (K ⋙ F))).obj X) := {
---   X := (F.obj (limit K)).obj X,
---   π := eq_to_hom (by {
---       apply functor.hext,
---       intro Y, simp,
---       intros Y₁ Y₂ f, simp, congr,
---   }) ≫ whisker_right (limit.cone K).π ((curry.obj (prod.swap _ _ ⋙ uncurry.obj F)).obj X)
--- }
-
--- -- lemma lemm (J : Type u₁) [small_category J] [fin_category J] {F: C ⥤ D ⥤ E} {K : J ⥤ C}
--- -- [has_limits_of_shape J E] [has_colimits_of_shape D E] [has_limit K] :
--- -- ((F ⋙ colim).map_cone (limit.cone K)).X =
--- --   colimit (curry.obj (prod.swap D J ⋙ uncurry.obj (K ⋙ F)) ⋙ lim)
--- -- := by {
-
--- -- }
-
--- noncomputable theory
-
--- -- lemma is_limit_swap_cone (J : Type u₁) [small_category J] (F: C ⥤ D ⥤ E) (K : J ⥤ C) [has_limit K]
--- --   (X : D) : is_limit (swap_cone J F K X) := {
--- --     lift := λ s, by {
--- --       unfold swap_cone,
--- --       simp,
--- --     }
---   -- }
-
--- local attribute[reducible] prod.swap
--- variables (J : Type u₁) [small_category J] (K : J ⥤ C) (F : C ⥤ D ⥤ E)
---   [has_limit K] [has_limits_of_shape J E]
-
-
--- def hom1 : F.obj (limit K) ⟶ curry.obj (prod.swap D J ⋙ uncurry.obj (K ⋙ F)) ⋙ lim := {
--- app := λ Y, limit.post K ((curry.obj (prod.swap D C ⋙ uncurry.obj F)).obj Y),
--- naturality' := λ Y₁ Y₂ f, by {
---   let F' := curry.obj (prod.swap D C ⋙ uncurry.obj F),
---   suffices : ((F'.map f).app (limit K)) ≫ limit.post K (F'.obj Y₂) =
---     limit.post K (F'.obj Y₁) ≫ lim_map (whisker_left K (F'.map f)),
---   { convert this using 2,
---     { simp, erw category.id_comp },
---     { simp only [functor.comp_map, lim_map_eq_lim_map], dsimp only [prod.swap],
---       congr, ext, simp, congr } },
---   ext,
---   simp only [nat_trans.naturality, limit.post_π, lim_map_π,
---     whisker_left_app, limit.post_π_assoc, category.assoc],
--- }
--- }
-
--- def hom3 : F.obj (limit K) ⟶ curry.obj (prod.swap D J ⋙ uncurry.obj (K ⋙ F)) ⋙ lim := by {
---   let Y : D, admit,
---   let G := ((curry.obj (prod.swap D C ⋙ uncurry.obj F)).obj Y),
---   have := (limit.is_limit (K ⋙ G)).lift_cone_morphism (G.map_cone (limit.cone K)),
--- -- app := λ Y, limit.post K ((curry.obj (prod.swap D C ⋙ uncurry.obj F)).obj Y),
--- -- naturality' := λ Y₁ Y₂ f, by {
--- --   let F' := curry.obj (prod.swap D C ⋙ uncurry.obj F),
--- --   suffices : ((F'.map f).app (limit K)) ≫ limit.post K (F'.obj Y₂) =
--- --     limit.post K (F'.obj Y₁) ≫ lim_map (whisker_left K (F'.map f)),
--- --   { convert this using 2,
--- --     { simp, erw category.id_comp },
--- --     { simp only [functor.comp_map, lim_map_eq_lim_map], dsimp only [prod.swap],
--- --       congr, ext, simp, congr } },
--- --   ext,
--- --   simp only [nat_trans.naturality, limit.post_π, lim_map_π,
--- --     whisker_left_app, limit.post_π_assoc, category.assoc],
--- -- }
--- }
-
--- variables [has_colimits_of_shape D E] [has_limit (K ⋙ F ⋙ colim)]
-
--- -- def hom2 : (F ⋙ colim).map_cone (limit.cone K) ⟶ limit.cone (K ⋙ F ⋙ colim) := {
--- --   hom := colim_map (hom1 _ _ _) ≫
--- --           (colimit_limit_to_limit_colimit (uncurry.obj (K ⋙ F) : _)) ≫
--- --           lim_map (whisker_right (currying.unit_iso.inv.app (K ⋙ F)) colim),
--- --   w' := λ Y, by {
--- --       ext, unfold colimit_limit_to_limit_colimit hom1, simp,
--- --       erw category.id_comp,
--- --       erw limits.limit.post_π_assoc,
--- --       congr,
--- --       simp,
--- --   }
--- -- }
-
--- -- set_option pp.universes true
-
--- def lem4 [fin_category J] [is_cofiltered D] [has_limits_of_shape J E]
---   {F : C ⥤ D ⥤ E} [has_limit (K ⋙ F ⋙ colim)] : is_limit ((F ⋙ colim).map_cone (limit.cone K)) :=
--- begin
---   have : ((F ⋙ colim).map_cone (limit.cone K)).X ≅ limit (K ⋙ F ⋙ colim),
---   simp,
---   apply is_limit.of_iso_limit (limit.is_limit _),
---   symmetry
---   -- haveI : is_iso this.hom,
---   -- {
-
---   -- }
--- end
-
--- def lemlem (J : Type u₁) [category J] (F : C ⥤ D ⥤ E) (K : J ⥤ C)
--- (H : ∀ (X : D), preserves_limit K (F ⋙ (evaluation _ _).obj X)) : preserves_limit K F := {
---   preserves := λ c hc, by {
---     apply evaluation_jointly_reflects_limits,
---     intro X,
---     have := @preserves_limit.preserves _ _ _ _ _ _ _ _ (H X) _ hc,
---     -- have := (H X).preserves (((evaluation _ _).obj X).map_cone c),
---   }
--- }
-
-
-
--- lemma
-set_option pp.universes true
-
-#check preserves_limits_of_shape_if_evaluation
-end lem
-section trt
-variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₁} D]
-variables {K : Type v₁} [category.{v₂} K] {J : Type v₁} [small_category J]
-
-lemma preserves_limit_if_evaluation (F : D ⥤ K ⥤ C) (G : J ⥤ D)
-  (H : Π (k : K), preserves_limit G (F ⋙ (evaluation K C).obj k : D ⥤ C)) : preserves_limit G F := ⟨λ c hc,
+lemma lem0 (F : C ⥤ D) (X : Dᵒᵖ) :
+  (((whiskering_left _ _ _).obj (costructured_arrow.proj F.op X)) ⋙ colim : (Cᵒᵖ ⥤ Type u₁) ⥤ _) =
+    Lan F.op ⋙ (evaluation Dᵒᵖ (Type u₁)).obj X :=
 begin
-  apply evaluation_jointly_reflects_limits,
-  intro X,
-  haveI := H X,
-  change is_limit ((F ⋙ (evaluation K C).obj X).map_cone c),
-  exact preserves_limit.preserves hc,
-end⟩
+  apply functor.hext,
+  { intro Y, simp },
+  intros Y₁ Y₂ f,
+  simp only [functor.comp_map, evaluation_obj_map, whiskering_left_obj_map, Lan_map_app, heq_iff_eq],
+  apply (colimit.is_colimit (Lan.diagram F.op Y₁ X)).uniq { X := colimit _, ι := _ }
+    (colim.map (whisker_left (costructured_arrow.proj F.op X) f)),
+  intro Z,
+  simp only [colimit.ι_map, colimit.cocone_ι, whisker_left_app, category.comp_id, category.assoc],
+  transitivity f.app Z.left ≫ (colimit.ι (costructured_arrow.map Z.hom ⋙ Lan.diagram F.op Y₂ X :
+    costructured_arrow F.op _ ⥤ _) (costructured_arrow.mk (𝟙 (F.op.obj Z.left))) : _)
+    ≫ (colimit.pre (Lan.diagram F.op Y₂ X) (costructured_arrow.map Z.hom)),
+  { rw colimit.ι_pre,
+    congr,
+    simp only [category.id_comp, costructured_arrow.map_mk],
+    apply costructured_arrow.eq_mk },
+  { congr }
+end
 
-lemma preserves_limits_of_shape_if_evaluation (F : D ⥤ K ⥤ C) (J : Type v₁) [small_category J]
-  (H : Π (k : K), preserves_limits_of_shape J (F ⋙ (evaluation K C).obj k)) :
-  preserves_limits_of_shape J F :=
-⟨λ G, preserves_limit_if_evaluation F G (λ k, preserves_limits_of_shape.preserves_limit)⟩
-
-lemma preserves_limits_if_evaluation (F : D ⥤ K ⥤ C)
-  (H : Π (k : K), preserves_limits (F ⋙ (evaluation K C).obj k)) :
-  preserves_limits F :=
-⟨λ L hL, by { letI := hL,
-  exact preserves_limits_of_shape_if_evaluation
-    F L (λ k, preserves_limits.preserves_limits_of_shape) }⟩
-
-end trt
+end lems
+noncomputable theory
+variables {C : Type u₁} [category.{u₁} C] {D : Type u₁} [category.{u₁} D]
 
 def lem1 (F : C ⥤ D) [representably_flat F] (J : Type u₁) [H : small_category J] [fin_category J] :
   preserves_limits_of_shape J (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ Type u₁)) :=
 begin
-  have : category.{u₁} (Dᵒᵖ ⥤ Type u₁) := infer_instance,
-  have := @preserves_limits_of_shape_if_evaluation (Dᵒᵖ ⥤ Type u₁) _ Cᵒᵖ (Type u₁),
-  -- (Lan F.op : (Cᵒᵖ ⥤ Type u₁) ⥤ (Dᵒᵖ ⥤ Type u₁)) J,
-  exact
-{ preserves_limit := λ K, {
-  preserves := λ c hc, by {
-    apply evaluation_jointly_reflects_limits,
-    intro X,
-    change is_limit ((Lan F.op ⋙ (evaluation Dᵒᵖ (Type u₁)).obj X).map_cone c),
-    rw ← lem0,
-    apply is_limit.of_iso_limit _ (functor.map_iso _ ((limit.is_limit _).unique_up_to_iso hc)),
-    haveI : preserves_limit K ((whiskering_left _ _ (Type u₁)).obj
-      (costructured_arrow.proj F.op X)) := {
-        preserves := λ c hc, by {
-          apply evaluation_jointly_reflects_limits,
-          intro Y,
-          change is_limit (((evaluation _ (Type u₁)).obj
-            ((costructured_arrow.proj F.op X).obj Y)).map_cone c),
-          exact preserves_limit.preserves hc,
-        }
-      },
-    generalize : (whiskering_left _ _ (Type u₁)).obj
-      (costructured_arrow.proj F.op X) = G,
-    haveI : preserves_limits G,
-    apply_instance,
-    -- let G :=
-    --   K ⋙
-    --     ((whiskering_left _ _ _).obj (costructured_arrow.proj F.op X)),
-    let := (colimit_limit_to_limit_colimit (uncurry.obj (K ⋙ G) : _)),
-    simp at this,
---     have : G ⋙ colim = K ⋙ (Lan F.op ⋙ (evaluation Dᵒᵖ (Type u₁)).obj X),
---     {
---       change K ⋙ (_ ⋙ colim) = K ⋙ _,
---       congr' 1,
---       unfold Lan, simp,
---       apply functor.hext,
---       intro Y, simp,
---       intros Y₁ Y₂ f,
---       simp only [category_theory.adjunction.left_adjoint_of_equiv_map,
---  category_theory.whiskering_left_obj_map,
---  category_theory.functor.comp_map,
---  heq_iff_eq,
---  category_theory.evaluation_obj_map],
---       ext,
---       simp?,
---       congr,
---     }
-    -- dsimp[G] at this,
-    -- simp at this,
-    -- delta evaluation functor.map_cone cones.functoriality,
-    -- have := ,
-    -- have := (structured_arrow.proj _ F).op ⋙ F,
-    -- have := colimit_limit_to_limit_colimit_is_iso,
-    -- delta Lan,
-    -- dsimp,
-    -- apply is_limit.of_iso_limit _ (as_iso (colimit_limit_to_limit_colimit _)),
-  }
-} }
+  -- have : category.{u₁} (Dᵒᵖ ⥤ Type u₁) := infer_instance,
+  apply preserves_limits_of_shape_if_evaluation (Lan F.op : (Cᵒᵖ ⥤ Type u₁) ⥤ (Dᵒᵖ ⥤ Type u₁)) J,
+  intro K,
+  rw ← lem0,
+  haveI : preserves_limits_of_shape J (colim : (costructured_arrow F.op K ⥤ Type u₁) ⥤ Type u₁),
+  swap, apply_instance,
+  haveI
+
 end
 
 theorem thm (F : C ⥤ D) : representably_flat F ↔

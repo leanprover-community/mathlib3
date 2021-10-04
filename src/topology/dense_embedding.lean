@@ -31,7 +31,7 @@ variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
 /-- `i : α → β` is "dense inducing" if it has dense range and the topology on `α`
   is the one induced by `i` from the topology on `β`. -/
-structure dense_inducing [topological_space α] [topological_space β] (i : α → β)
+@[protect_proj] structure dense_inducing [topological_space α] [topological_space β] (i : α → β)
   extends inducing i : Prop :=
 (dense : dense_range i)
 
@@ -60,6 +60,13 @@ begin
   refine mem_of_superset (hUo.mem_nhds haU) _,
   calc U ⊆ closure (i '' (i ⁻¹' U)) : di.dense.subset_closure_image_preimage_of_is_open hUo
      ... ⊆ closure (i '' s)         : closure_mono (image_subset i sub)
+end
+
+lemma dense_image (di : dense_inducing i) {s : set α} : dense (i '' s) ↔ dense s :=
+begin
+  refine ⟨λ H x, _, di.dense.dense_image di.continuous⟩,
+  rw [di.to_inducing.closure_eq_preimage_closure_image, H.closure_eq, preimage_univ],
+  trivial
 end
 
 /-- The product of two dense inducings is a dense inducing -/
@@ -223,26 +230,30 @@ protected lemma prod {e₁ : α → β} {e₂ : γ → δ} (de₁ : dense_embedd
   ..dense_inducing.prod de₁.to_dense_inducing de₂.to_dense_inducing }
 
 /-- The dense embedding of a subtype inside its closure. -/
-def subtype_emb {α : Type*} (p : α → Prop) (e : α → β) (x : {x // p x}) :
+@[simps] def subtype_emb {α : Type*} (p : α → Prop) (e : α → β) (x : {x // p x}) :
   {x // x ∈ closure (e '' {x | p x})} :=
 ⟨e x, subset_closure $ mem_image_of_mem e x.prop⟩
 
 protected lemma subtype (p : α → Prop) : dense_embedding (subtype_emb p e) :=
-{ dense_embedding .
-  dense   := assume ⟨x, hx⟩, closure_subtype.mpr $
-    have (λ (x : {x // p x}), e x) = e ∘ coe, from rfl,
+{ dense := dense_iff_closure_eq.2 $
     begin
-      rw ← image_univ,
-      simp [(image_comp _ _ _).symm, (∘), subtype_emb, -image_univ],
-      rw [this, image_comp, subtype.coe_image],
-      simp,
-      assumption
+      ext ⟨x, hx⟩,
+      rw image_eq_range at hx,
+      simpa [closure_subtype, ← range_comp, (∘)],
     end,
-  inj     := assume ⟨x, hx⟩ ⟨y, hy⟩ h, subtype.eq $ de.inj $ @@congr_arg subtype.val h,
+  inj := (de.inj.comp subtype.coe_injective).cod_restrict _,
   induced := (induced_iff_nhds_eq _).2 (assume ⟨x, hx⟩,
     by simp [subtype_emb, nhds_subtype_eq_comap, de.to_inducing.nhds_eq_comap, comap_comap, (∘)]) }
 
+lemma dense_image {s : set α} : dense (e '' s) ↔ dense s :=
+de.to_dense_inducing.dense_image
+
 end dense_embedding
+
+lemma dense.dense_embedding_coe [topological_space α] {s : set α} (hs : dense s) :
+  dense_embedding (coe : s → α) :=
+{ dense := hs.dense_range_coe,
+  .. embedding_subtype_coe }
 
 lemma is_closed_property [topological_space β] {e : α → β} {p : β → Prop}
   (he : dense_range e) (hp : is_closed {x | p x}) (h : ∀a, p (e a)) :

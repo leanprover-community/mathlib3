@@ -25,13 +25,13 @@ variables [monoid α] [monoid β]
 /-- We say that `a` is conjugate to `b` if for some unit `c` we have `c * a * c⁻¹ = b`. -/
 def is_conj (a b : α) := ∃ c : units α, semiconj_by ↑c a b
 
-@[refl] lemma is_conj_refl (a : α) : is_conj a a :=
+@[refl] lemma is_conj.refl (a : α) : is_conj a a :=
 ⟨1, semiconj_by.one_left a⟩
 
-@[symm] lemma is_conj_symm {a b : α} : is_conj a b → is_conj b a
+@[symm] lemma is_conj.symm {a b : α} : is_conj a b → is_conj b a
 | ⟨c, hc⟩ := ⟨c⁻¹, hc.units_inv_symm_left⟩
 
-@[trans] lemma is_conj_trans {a b c : α} : is_conj a b → is_conj b c → is_conj a c
+@[trans] lemma is_conj.trans {a b c : α} : is_conj a b → is_conj b c → is_conj a c
 | ⟨c₁, hc₁⟩ ⟨c₂, hc₂⟩ := ⟨c₂ * c₁, hc₂.mul_left hc₁⟩
 
 @[simp] lemma is_conj_iff_eq {α : Type*} [comm_monoid α] {a b : α} : is_conj a b ↔ a = b :=
@@ -58,7 +58,7 @@ variables [group α]
 ⟨λ ⟨c, hc⟩, mul_right_cancel (hc.symm.trans ((mul_one _).trans (one_mul _).symm)), λ h, by rw [h]⟩
 
 @[simp] lemma is_conj_one_left {a : α} : is_conj a 1 ↔ a = 1 :=
-calc is_conj a 1 ↔ is_conj 1 a : ⟨is_conj_symm, is_conj_symm⟩
+calc is_conj a 1 ↔ is_conj 1 a : ⟨is_conj.symm, is_conj.symm⟩
 ... ↔ a = 1 : is_conj_one_right
 
 @[simp] lemma conj_inv {a b : α} : (b * a * b⁻¹)⁻¹ = b * a⁻¹ * b⁻¹ :=
@@ -103,7 +103,7 @@ where possible, try to keep them in sync -/
 
 /-- The setoid of the relation `is_conj` iff there is a unit `u` such that `u * x = y * u` -/
 protected def setoid (α : Type*) [monoid α] : setoid α :=
-{ r := is_conj, iseqv := ⟨is_conj_refl, λa b, is_conj_symm, λa b c, is_conj_trans⟩ }
+{ r := is_conj, iseqv := ⟨is_conj.refl, λa b, is_conj.symm, λa b c, is_conj.trans⟩ }
 
 end is_conj
 
@@ -186,11 +186,11 @@ variables [monoid α]
 /-- Given an element `a`, `conjugates a` is the set of conjugates. -/
 def conjugates_of (a : α) : set α := {b | is_conj a b}
 
-lemma mem_conjugates_of_self {a : α} : a ∈ conjugates_of a := is_conj_refl _
+lemma mem_conjugates_of_self {a : α} : a ∈ conjugates_of a := is_conj.refl _
 
 lemma is_conj.conjugates_of_eq {a b : α} (ab : is_conj a b) :
   conjugates_of a = conjugates_of b :=
-set.ext (λ g, ⟨λ ag, is_conj_trans (is_conj_symm ab) ag, λ bg, is_conj_trans ab bg⟩)
+set.ext (λ g, ⟨λ ag, (ab.symm).trans ag, λ bg, ab.trans bg⟩)
 
 lemma is_conj_iff_conjugates_of_eq {a b : α} :
   is_conj a b ↔ conjugates_of a = conjugates_of b :=
@@ -211,7 +211,7 @@ local attribute [instance] is_conj.setoid
 def carrier : conj_classes α → set α :=
 quotient.lift conjugates_of (λ (a : α) b ab, is_conj.conjugates_of_eq ab)
 
-lemma mem_carrier_mk {a : α} : a ∈ carrier (conj_classes.mk a) := is_conj_refl _
+lemma mem_carrier_mk {a : α} : a ∈ carrier (conj_classes.mk a) := is_conj.refl _
 
 lemma mem_carrier_iff_mk_eq {a : α} {b : conj_classes α} :
   a ∈ carrier b ↔ conj_classes.mk a = b :=

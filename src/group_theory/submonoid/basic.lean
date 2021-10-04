@@ -89,6 +89,16 @@ initialize_simps_projections add_submonoid (carrier → coe)
 @[simp, to_additive]
 lemma mem_carrier {s : submonoid M} {x : M} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
 
+@[simp, to_additive]
+lemma mem_mk {s : set M} {x : M} (h_one) (h_mul) : x ∈ mk s h_one h_mul ↔ x ∈ s := iff.rfl
+
+@[simp, to_additive]
+lemma coe_set_mk {s : set M} (h_one) (h_mul) : (mk s h_one h_mul : set M) = s := rfl
+
+@[simp, to_additive]
+lemma mk_le_mk {s t : set M} (h_one) (h_mul) (h_one') (h_mul') :
+  mk s h_one h_mul ≤ mk t h_one' h_mul' ↔ s ⊆ t := iff.rfl
+
 /-- Two submonoids are equal if they have the same elements. -/
 @[ext, to_additive "Two `add_submonoid`s are equal if they have the same elements."]
 theorem ext {S T : submonoid M}

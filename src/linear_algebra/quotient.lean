@@ -101,23 +101,46 @@ instance : add_comm_group (quotient p) :=
     refl },
   gsmul_neg' := by { rintros n ⟨x⟩, simp_rw [gsmul_neg_succ_of_nat, gsmul_coe_nat], refl }, }
 
-variables {A : Type*} [ring A] [module A M] [mul_action R A] [is_scalar_tower R A M]
-variables (P : submodule A M)
+variables {S : Type*} [ring S] [mul_action S R] (P : submodule R M)
 
-instance : has_scalar R (quotient P) :=
+section has_scalar
+
+variables [has_scalar S M] [is_scalar_tower S R M]
+
+instance : has_scalar S (quotient P) :=
 ⟨λ a x, quotient.lift_on' x (λ x, mk (a • x)) $
- λ x y h, (quotient.eq P).2 $ by simpa [smul_sub] using P.smul_mem (a • 1 : A) h⟩
+ λ x y h, (quotient.eq P).2 $ by simpa [smul_sub] using P.smul_mem (a • 1 : R) h⟩
 
-@[simp] theorem mk_smul (r : R) : (mk (r • x) : quotient P) = r • mk x := rfl
+@[simp] theorem mk_smul (r : S) : (mk (r • x) : quotient P) = r • mk x := rfl
 
 @[simp] theorem mk_nsmul (n : ℕ) : (mk (n • x) : quotient P) = n • mk x := rfl
 
-instance : is_scalar_tower R A P.quotient :=
+instance : is_scalar_tower S R P.quotient :=
 { smul_assoc := by rintros x y ⟨z⟩; rw [quot_mk_eq_mk, ← mk_smul, smul_assoc, mk_smul, mk_smul] }
 
-instance : module R (quotient P) :=
+end has_scalar
+
+section module
+
+variables [module S M] [is_scalar_tower S R M]
+
+instance : module S (quotient P) :=
 module.of_core $ by refine {smul := (•), ..}; repeat {rintro ⟨⟩ <|> intro};
   simp only [quot_mk_eq_mk, ← mk_add, ← mk_smul, smul_add, add_smul, mul_smul, one_smul]
+
+/-- The quotient of `P` as an `S`-submodule is the same as the quotient of `P` as an `R`-submodule,
+where `P : submodule R M`.
+-/
+def restrict_scalars_equiv :
+  (P.restrict_scalars S).quotient ≃ₗ[S] P.quotient :=
+{ to_fun := quot.map id (λ x y, id),
+  inv_fun := quot.map id (λ x y, id),
+  left_inv := λ x, quot.induction_on x (λ x', rfl),
+  right_inv := λ x, quot.induction_on x (λ x', rfl),
+  map_add' := λ x y, quot.induction_on₂ x y (λ x' y', rfl),
+  map_smul' := λ c x, quot.induction_on x (λ x', rfl) }
+
+end module
 
 lemma mk_surjective : function.surjective (@mk _ _ _ _ _ p) :=
 by { rintros ⟨x⟩, exact ⟨x, rfl⟩ }
@@ -128,20 +151,6 @@ begin
   refine ⟨⟨mk x, 0, _⟩⟩,
   simpa using not_mem_s
 end
-
-/-- The quotient of `S` as an `R`-submodule is the same as the quotient of `S` as an `A`-submodule,
-where `S : submodule A M`.
--/
-def restrict_scalars_equiv (P : submodule A M) :
-  (P.restrict_scalars R).quotient ≃ₗ[R] P.quotient :=
-{ to_fun := quot.map id (λ x y, id),
-  inv_fun := quot.map id (λ x y, id),
-  left_inv := λ x, quot.induction_on x (λ x', rfl),
-  right_inv := λ x, quot.induction_on x (λ x', rfl),
-  map_add' := λ x y, quot.induction_on₂ x y (λ x' y', rfl),
-  map_smul' := λ c x, quot.induction_on x (λ x',
-    by { rw [quot_mk_eq_mk, ← mk_smul, ring_hom.id_apply],
-         exact submodule.quotient.mk_smul _ _ }) }
 
 end quotient
 

@@ -338,8 +338,8 @@ calc  a / 1 = a * 1⁻¹ : div_eq_mul_inv a 1
           ... = a * 1 : congr_arg _ one_inv
           ... = a     : mul_one a
 
-@[simp, to_additive]
-lemma inv_div (a b : G) : (a / b)⁻¹ = b / a :=
+@[simp, to_additive neg_sub]
+lemma inv_div' (a b : G) : (a / b)⁻¹ = b / a :=
 inv_eq_of_mul_eq_one ( by rw [div_eq_mul_inv, div_eq_mul_inv, mul_assoc, inv_mul_cancel_left,
   mul_right_inv])
 

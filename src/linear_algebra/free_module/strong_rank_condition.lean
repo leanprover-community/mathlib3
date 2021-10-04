@@ -13,8 +13,8 @@ import linear_algebra.invariant_basis_number
 
 We prove that any nontrivial commutative ring satisfies `strong_rank_condition`, meaning that
 if there is an injective linear map `(fin n → R) →ₗ[R] fin m → R`, then `n ≤ m`. This implies that
-any commutative ring satisfies `invariant_basis_number`: the rank of a finitely generated free module is
-well defined.
+any commutative ring satisfies `invariant_basis_number`: the rank of a finitely generated free
+module is well defined.
 
 ## Main result
 

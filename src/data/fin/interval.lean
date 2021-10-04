@@ -29,13 +29,16 @@ lemma Icc_eq_finset_subtype : Icc a b = (Icc (a : ℕ) b).subtype (λ x, x < n) 
 lemma Ioc_eq_finset_subtype : Ioc a b = (Ioc (a : ℕ) b).subtype (λ x, x < n) := rfl
 lemma Ioo_eq_finset_subtype : Ioo a b = (Ioo (a : ℕ) b).subtype (λ x, x < n) := rfl
 
-@[simp] lemma map_subtype_embedding_Icc : (Icc a b).map (function.embedding.subtype _) = Icc (a : ℕ) b :=
+@[simp] lemma map_subtype_embedding_Icc :
+  (Icc a b).map (function.embedding.subtype _) = Icc (a : ℕ) b :=
 map_subtype_embedding_Icc _ _ _ (λ _ c x _ hx _, hx.trans_lt)
 
-@[simp] lemma map_subtype_embedding_Ioc : (Ioc a b).map (function.embedding.subtype _) = Ioc (a : ℕ) b :=
+@[simp] lemma map_subtype_embedding_Ioc :
+  (Ioc a b).map (function.embedding.subtype _) = Ioc (a : ℕ) b :=
 map_subtype_embedding_Ioc _ _ _ (λ _ c x _ hx _, hx.trans_lt)
 
-@[simp] lemma map_subtype_embedding_Ioo : (Ioo a b).map (function.embedding.subtype _) = Ioo (a : ℕ) b :=
+@[simp] lemma map_subtype_embedding_Ioo :
+  (Ioo a b).map (function.embedding.subtype _) = Ioo (a : ℕ) b :=
 map_subtype_embedding_Ioo _ _ _ (λ _ c x _ hx _, hx.trans_lt)
 
 @[simp] lemma card_Icc : (Icc a b).card = b + 1 - a :=

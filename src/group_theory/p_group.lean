@@ -189,7 +189,7 @@ begin
   exact ⟨j + k, by rwa [subtype.ext_iff, (H.comap ϕ).coe_pow]⟩,
 end
 
-lemma comap_injective {H : subgroup G} (hH : is_p_group p H) {K : Type*} [group K]
+lemma comap_of_injective {H : subgroup G} (hH : is_p_group p H) {K : Type*} [group K]
   (ϕ : K →* G) (hϕ : function.injective ϕ) : is_p_group p (H.comap ϕ) :=
 begin
   apply hH.comap_ker_is_p_group ϕ,

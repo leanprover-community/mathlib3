@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov
 -/
+import algebra.algebra.basic
 import linear_algebra.basic
 
 /-!
@@ -122,6 +123,47 @@ begin
   refine ⟨⟨mk x, 0, _⟩⟩,
   simpa using not_mem_s
 end
+
+/-- More general, but harder to infer, instance than `submodule.quotient.module`. -/
+instance submodule.quotient.module' (R : Type*) {A : Type*} [ring A] [comm_ring R]
+  [algebra R A] [module A M] (P : submodule A M) :
+  module R P.quotient :=
+module.of_core
+{ smul := λ c x, algebra_map R A c • x, -- Note that this has to be defeq to `c • x` if `A = R`
+  smul_add := λ c x y, smul_add _ _ _,
+  add_smul := λ c c' x, by simp only [ring_hom.map_add, add_smul],
+  mul_smul := λ c c' x, by simp only [ring_hom.map_mul, mul_action.mul_smul],
+  one_smul := λ x, by simp only [ring_hom.map_one, one_smul] }
+
+@[simp] lemma smul_mk {R A : Type*} [comm_ring R] [ring A]
+  [algebra R A] [module R M] [module A M] [is_scalar_tower R A M]
+  (P : submodule A M) (c : R) (x : M) :
+  (c • submodule.quotient.mk x : P.quotient) = submodule.quotient.mk (c • x) :=
+show submodule.quotient.mk (algebra_map R A c • x) = submodule.quotient.mk (c • x),
+by rw algebra_map_smul
+
+instance {R A : Type*} [comm_ring R] [ring A] [algebra R A] [module A M]
+  (P : submodule A M) : is_scalar_tower R A P.quotient :=
+{ smul_assoc := λ x y z, show (x • y) • z = algebra_map R A x • y • z,
+    by rw [← smul_assoc, algebra_map_smul] }
+
+/-- The quotient of `S` as an `R`-submodule is the same as the quotient of `S` as an `A`-submodule,
+where `S : submodule A M`.
+-/
+def restrict_scalars_equiv (R : Type*) {A : Type*} [comm_ring R] [ring A] [algebra R A]
+  [module R M] [module A M] [is_scalar_tower R A M]
+  (S : submodule A M) [module R S.quotient] [is_scalar_tower R A S.quotient] :
+  (S.restrict_scalars R).quotient ≃ₗ[R] S.quotient :=
+{ to_fun := quot.map id (λ x y, id),
+  inv_fun := quot.map id (λ x y, id),
+  left_inv := λ x, quot.induction_on x (λ x', rfl),
+  right_inv := λ x, quot.induction_on x (λ x', rfl),
+  map_add' := λ x y, quot.induction_on₂ x y (λ x' y', rfl),
+  map_smul' := λ c x, quot.induction_on x (λ x',
+    by { rw [submodule.quotient.quot_mk_eq_mk, submodule.quotient.smul_mk, ring_hom.id_apply,
+             ← algebra_map_smul A c x', ← algebra_map_smul A c],
+         exact submodule.quotient.mk_smul _,
+         { apply_instance } }) }
 
 end quotient
 

@@ -378,7 +378,7 @@ lemma is_solvable' {α : E} {q : polynomial F} (q_irred : irreducible q)
   (q_aeval : aeval α q = 0) (hα : is_solvable_by_rad F α) :
   _root_.is_solvable q.gal :=
 begin
-  haveI : _root_.is_solvable (q * C q.leading_coeff⁻¹).gal := by
+  haveI : _root_.is_solvable (q * C q.leading_coeff⁻¹).gal,
   { rw [minpoly.unique'' q_irred q_aeval,
         ←show minpoly F (⟨α, hα⟩ : solvable_by_rad F E) = minpoly F α,
         from minpoly.eq_of_algebra_map_eq (ring_hom.injective _) (is_integral ⟨α, hα⟩) rfl],

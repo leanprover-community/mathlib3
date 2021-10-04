@@ -417,7 +417,7 @@ begin
   rw ← v_p_lt_val hv at hx hy ⊢,
   rw [ring_hom.map_pow, v.map_pow, ← rpow_lt_rpow_iff h1p, ← rpow_nat_cast, ← rpow_mul,
       mul_one_div_cancel (nat.cast_ne_zero.2 hp.1.ne_zero : (p : ℝ) ≠ 0), rpow_one] at hx hy,
-  rw [ring_hom.map_mul, v.map_mul], refine lt_of_le_of_lt _ (mul_lt_mul'''' hx hy),
+  rw [ring_hom.map_mul, v.map_mul], refine lt_of_le_of_lt _ (mul_lt_mul₀ hx hy),
   by_cases hvp : v p = 0, { rw hvp, exact zero_le _ }, replace hvp := zero_lt_iff.2 hvp,
   conv_lhs { rw ← rpow_one (v p) }, rw ← rpow_add (ne_of_gt hvp),
   refine rpow_le_rpow_of_exponent_ge hvp ((algebra_map O K).map_nat_cast p ▸ hv.2 _) _,
@@ -518,8 +518,8 @@ begin
   rw [val_aux_eq hm, val_aux_eq hn, val_aux_eq hk, ring_hom.map_add],
   cases le_max_iff.1
     (mod_p.pre_val_add (coeff _ _ (max (max m n) k) f) (coeff _ _ (max (max m n) k) g)) with h h,
-  { exact le_max_of_le_left (canonically_ordered_comm_semiring.pow_le_pow_of_le_left h _) },
-  { exact le_max_of_le_right (canonically_ordered_comm_semiring.pow_le_pow_of_le_left h _) }
+  { exact le_max_of_le_left (pow_le_pow_of_le_left' h _) },
+  { exact le_max_of_le_right (pow_le_pow_of_le_left' h _) }
 end
 
 variables (K v O hv p)

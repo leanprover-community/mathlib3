@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
+import algebra.order.absolute_value
 import algebra.big_operators.basic
 
 /-!
@@ -184,11 +185,11 @@ lemma prod_le_prod_fiberwise_of_prod_fiber_le_one' {t : finset ι'}
 end
 
 lemma abs_sum_le_sum_abs {G : Type*} [linear_ordered_add_comm_group G] (f : ι → G) (s : finset ι) :
-  abs (∑ i in s, f i) ≤ ∑ i in s, abs (f i) :=
+  |∑ i in s, f i| ≤ ∑ i in s, |f i| :=
 le_sum_of_subadditive _ abs_zero abs_add s f
 
 lemma abs_prod {R : Type*} [linear_ordered_comm_ring R] {f : ι → R} {s : finset ι} :
-  abs (∏ x in s, f x) = ∏ x in s, abs (f x) :=
+  |∏ x in s, f x| = ∏ x in s, |f x| :=
 (abs_hom.to_monoid_hom : R →* R).map_prod _ _
 
 section pigeonhole
@@ -218,6 +219,16 @@ theorem mul_card_image_le_card {f : α → β} (s : finset α)
   (n : ℕ) (hn : ∀ a ∈ s.image f, n ≤ (s.filter (λ x, f x = a)).card) :
   n * (s.image f).card ≤ s.card :=
 mul_card_image_le_card_of_maps_to (λ x, mem_image_of_mem _) n hn
+
+@[to_additive]
+lemma prod_le_of_forall_le {α β : Type*} [ordered_comm_monoid β] (s : finset α) (f : α → β)
+  (n : β) (h : ∀ (x ∈ s), f x ≤ n) :
+  s.prod f ≤ n ^ s.card :=
+begin
+  refine (multiset.prod_le_of_forall_le (s.val.map f) n _).trans _,
+  { simpa using h },
+  { simpa }
+end
 
 end pigeonhole
 
@@ -448,14 +459,16 @@ open finset
 
 /-- A product of finite numbers is still finite -/
 lemma prod_lt_top [canonically_ordered_comm_semiring R] [nontrivial R] [decidable_eq R]
-  {s : finset ι} {f : ι → with_top R} (h : ∀ i ∈ s, f i < ⊤) :
+  {s : finset ι} {f : ι → with_top R} (h : ∀ i ∈ s, f i ≠ ⊤) :
   ∏ i in s, f i < ⊤ :=
-prod_induction f (λ a, a < ⊤) (λ a b, mul_lt_top) (coe_lt_top 1) h
+prod_induction f (λ a, a < ⊤) (λ a b h₁ h₂, mul_lt_top h₁.ne h₂.ne) (coe_lt_top 1) $
+  λ a ha, lt_top_iff_ne_top.2 (h a ha)
 
 /-- A sum of finite numbers is still finite -/
-lemma sum_lt_top [ordered_add_comm_monoid M] {s : finset ι} {f : ι → with_top M} :
-  (∀ i ∈ s, f i < ⊤) → (∑ i in s, f i) < ⊤ :=
-sum_induction f (λ a, a < ⊤) (by { simp_rw add_lt_top, tauto }) zero_lt_top
+lemma sum_lt_top [ordered_add_comm_monoid M] {s : finset ι} {f : ι → with_top M}
+  (h : ∀ i ∈ s, f i ≠ ⊤) : (∑ i in s, f i) < ⊤ :=
+sum_induction f (λ a, a < ⊤) (λ a b h₁ h₂, add_lt_top.2 ⟨h₁, h₂⟩) zero_lt_top $
+  λ i hi, lt_top_iff_ne_top.2 (h i hi)
 
 /-- A sum of numbers is infinite iff one of them is infinite -/
 lemma sum_eq_top_iff [ordered_add_comm_monoid M] {s : finset ι} {f : ι → with_top M} :
@@ -464,7 +477,7 @@ begin
   classical,
   split,
   { contrapose!,
-    exact λ h, (sum_lt_top $ λ i hi, lt_top_iff_ne_top.2 (h i hi)).ne },
+    exact λ h, (sum_lt_top $ λ i hi, (h i hi)).ne },
   { rintro ⟨i, his, hi⟩,
     rw [sum_eq_add_sum_diff_singleton his, hi, top_add] }
 end
@@ -475,3 +488,25 @@ lemma sum_lt_top_iff [ordered_add_comm_monoid M] {s : finset ι} {f : ι → wit
 by simp only [lt_top_iff_ne_top, ne.def, sum_eq_top_iff, not_exists]
 
 end with_top
+
+section absolute_value
+
+variables {S : Type*}
+
+lemma absolute_value.sum_le [semiring R] [ordered_semiring S]
+  (abv : absolute_value R S) (s : finset ι) (f : ι → R) :
+  abv (∑ i in s, f i) ≤ ∑ i in s, abv (f i) :=
+begin
+  letI := classical.dec_eq ι,
+  refine finset.induction_on s _ (λ i s hi ih, _),
+  { simp },
+  { simp only [finset.sum_insert hi],
+  exact (abv.add_le _ _).trans (add_le_add (le_refl _) ih) },
+end
+
+lemma absolute_value.map_prod [comm_semiring R] [nontrivial R] [linear_ordered_comm_ring S]
+  (abv : absolute_value R S) (f : ι → R) (s : finset ι) :
+  abv (∏ i in s, f i) = ∏ i in s, abv (f i) :=
+abv.to_monoid_hom.map_prod f s
+
+end absolute_value

@@ -3,8 +3,9 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import analysis.normed_space.add_torsor
+import analysis.normed_space.affine_isometry
 import analysis.normed_space.operator_norm
+import analysis.asymptotics.asymptotic_equivalent
 import linear_algebra.finite_dimensional
 
 /-!
@@ -27,6 +28,8 @@ are continuous. Moreover, a finite-dimensional subspace is always complete and c
   resolution. It is however registered as an instance for `𝕜 = ℝ` and `𝕜 = ℂ`. As properness
   implies completeness, there is no need to also register `finite_dimensional.complete` on `ℝ` or
   `ℂ`.
+* `finite_dimensional_of_is_compact_closed_ball`: Riesz' theorem: if the closed unit ball is
+  compact, then the space is finite-dimensional.
 
 ## Implementation notes
 
@@ -39,10 +42,70 @@ then the identities from `E` to `E'` and from `E'`to `E` are continuous thanks t
 
 universes u v w x
 
-open set finite_dimensional topological_space filter
-open_locale classical big_operators filter topological_space
-
 noncomputable theory
+
+open set finite_dimensional topological_space filter asymptotics
+open_locale classical big_operators filter topological_space asymptotics
+
+namespace linear_isometry
+
+open linear_map
+
+variables {R : Type*} [semiring R]
+
+variables {F E₁ : Type*} [semi_normed_group F]
+  [normed_group E₁] [module R E₁]
+
+variables {R₁ : Type*} [field R₁] [module R₁ E₁] [module R₁ F]
+  [finite_dimensional R₁ E₁] [finite_dimensional R₁ F]
+
+/-- A linear isometry between finite dimensional spaces of equal dimension can be upgraded
+    to a linear isometry equivalence. -/
+def to_linear_isometry_equiv
+  (li : E₁ →ₗᵢ[R₁] F) (h : finrank R₁ E₁ = finrank R₁ F) : E₁ ≃ₗᵢ[R₁] F :=
+{ to_linear_equiv :=
+    li.to_linear_map.linear_equiv_of_injective li.injective h,
+  norm_map' := li.norm_map' }
+
+@[simp] lemma coe_to_linear_isometry_equiv
+  (li : E₁ →ₗᵢ[R₁] F) (h : finrank R₁ E₁ = finrank R₁ F) :
+  (li.to_linear_isometry_equiv h : E₁ → F) = li := rfl
+
+@[simp] lemma to_linear_isometry_equiv_apply
+  (li : E₁ →ₗᵢ[R₁] F) (h : finrank R₁ E₁ = finrank R₁ F) (x : E₁) :
+  (li.to_linear_isometry_equiv h) x = li x := rfl
+
+end linear_isometry
+
+namespace affine_isometry
+
+open affine_map
+
+variables {𝕜 : Type*} {V₁ V₂  : Type*} {P₁ P₂ : Type*}
+  [normed_field 𝕜]
+  [normed_group V₁] [semi_normed_group V₂]
+  [normed_space 𝕜 V₁] [semi_normed_space 𝕜 V₂]
+  [metric_space P₁] [pseudo_metric_space P₂]
+  [normed_add_torsor V₁ P₁] [semi_normed_add_torsor V₂ P₂]
+
+variables [finite_dimensional 𝕜 V₁] [finite_dimensional 𝕜 V₂]
+
+/-- An affine isometry between finite dimensional spaces of equal dimension can be upgraded
+    to an affine isometry equivalence. -/
+def to_affine_isometry_equiv [inhabited P₁]
+  (li : P₁ →ᵃⁱ[𝕜] P₂) (h : finrank 𝕜 V₁ = finrank 𝕜 V₂) : P₁ ≃ᵃⁱ[𝕜] P₂ :=
+affine_isometry_equiv.mk' li (li.linear_isometry.to_linear_isometry_equiv h) (arbitrary P₁)
+  (λ p, by simp)
+
+@[simp] lemma coe_to_affine_isometry_equiv [inhabited P₁]
+  (li : P₁ →ᵃⁱ[𝕜] P₂) (h : finrank 𝕜 V₁ = finrank 𝕜 V₂) :
+  (li.to_affine_isometry_equiv h : P₁ → P₂) = li := rfl
+
+@[simp] lemma to_affine_isometry_equiv_apply [inhabited P₁]
+  (li : P₁ →ᵃⁱ[𝕜] P₂) (h : finrank 𝕜 V₁ = finrank 𝕜 V₂) (x : P₁) :
+  (li.to_affine_isometry_equiv h) x = li x := rfl
+
+end affine_isometry
 
 /-- A linear map on `ι → 𝕜` (where `ι` is a fintype) is continuous -/
 lemma linear_map.continuous_on_pi {ι : Type w} [fintype ι] {𝕜 : Type u} [normed_field 𝕜]
@@ -111,7 +174,7 @@ begin
         { left,
           have : finrank 𝕜 f.range = 1,
           { refine le_antisymm _ (zero_lt_iff.mpr H),
-            simpa [finrank_of_field] using f.range.finrank_le },
+            simpa [finrank_self] using f.range.finrank_le },
           rw [this, add_comm, nat.add_one] at Z,
           exact nat.succ.inj Z } },
       have : is_closed (f.ker : set E),
@@ -125,7 +188,7 @@ begin
     -- basis decomposition, deduce that all such coefficients are controlled in terms of the norm
     have : ∀i:ι, ∃C, 0 ≤ C ∧ ∀(x:E), ∥ξ.equiv_fun x i∥ ≤ C * ∥x∥,
     { assume i,
-      let f : E →ₗ[𝕜] 𝕜 := (linear_map.proj i).comp ξ.equiv_fun,
+      let f : E →ₗ[𝕜] 𝕜 := (linear_map.proj i) ∘ₗ ↑ξ.equiv_fun,
       let f' : E →L[𝕜] 𝕜 := { cont := H₂ f, ..f },
       exact ⟨∥f'∥, norm_nonneg _, λx, continuous_linear_map.le_op_norm f' x⟩ },
     -- fourth step: combine the bound on each coefficient to get a global bound and the continuity
@@ -203,7 +266,8 @@ lemma linear_map.exists_antilipschitz_with [finite_dimensional 𝕜 E] (f : E �
 begin
   cases subsingleton_or_nontrivial E; resetI,
   { exact ⟨1, zero_lt_one, antilipschitz_with.of_subsingleton⟩ },
-  { let e : E ≃L[𝕜] f.range := (linear_equiv.of_injective f hf).to_continuous_linear_equiv,
+  { rw linear_map.ker_eq_bot at hf,
+    let e : E ≃L[𝕜] f.range := (linear_equiv.of_injective f hf).to_continuous_linear_equiv,
     exact ⟨_, e.nnnorm_symm_pos, e.antilipschitz⟩ }
 end
 
@@ -401,6 +465,102 @@ lemma submodule.closed_of_finite_dimensional (s : submodule 𝕜 E) [finite_dime
   is_closed (s : set E) :=
 s.complete_of_finite_dimensional.is_closed
 
+section riesz
+
+/-- In an infinite dimensional space, given a finite number of points, one may find a point
+with norm at most `R` which is at distance at least `1` of all these points. -/
+theorem exists_norm_le_le_norm_sub_of_finset {c : 𝕜} (hc : 1 < ∥c∥) {R : ℝ} (hR : ∥c∥ < R)
+  (h : ¬ (finite_dimensional 𝕜 E)) (s : finset E) :
+  ∃ (x : E), ∥x∥ ≤ R ∧ ∀ y ∈ s, 1 ≤ ∥y - x∥ :=
+begin
+  let F := submodule.span 𝕜 (s : set E),
+  haveI : finite_dimensional 𝕜 F,
+  { apply is_noetherian_span_of_finite _ (finset.finite_to_set s), apply_instance },
+  have Fclosed : is_closed (F : set E) := submodule.closed_of_finite_dimensional _,
+  have : ∃ x, x ∉ F,
+  { contrapose! h,
+    have : (⊤ : submodule 𝕜 E) = F, by { ext x, simp [h] },
+    have : finite_dimensional 𝕜 (⊤ : submodule 𝕜 E), by rwa this,
+    exact is_noetherian_top_iff.1 this },
+  obtain ⟨x, xR, hx⟩ : ∃ (x : E), ∥x∥ ≤ R ∧ ∀ (y : E), y ∈ F → 1 ≤ ∥x - y∥ :=
+    riesz_lemma_of_norm_lt hc hR Fclosed this,
+  have hx' : ∀ (y : E), y ∈ F → 1 ≤ ∥y - x∥,
+  { assume y hy, rw ← norm_neg, simpa using hx y hy },
+  exact ⟨x, xR, λ y hy, hx' _ (submodule.subset_span hy)⟩,
+end
+
+/-- In an infinite-dimensional normed space, there exists a sequence of points which are all
+bounded by `R` and at distance at least `1`. For a version not assuming `c` and `R`, see
+`exists_seq_norm_le_one_le_norm_sub`. -/
+theorem exists_seq_norm_le_one_le_norm_sub' {c : 𝕜} (hc : 1 < ∥c∥) {R : ℝ} (hR : ∥c∥ < R)
+  (h : ¬ (finite_dimensional 𝕜 E)) :
+  ∃ f : ℕ → E, (∀ n, ∥f n∥ ≤ R) ∧ (∀ m n, m ≠ n → 1 ≤ ∥f m - f n∥) :=
+begin
+  haveI : is_symm E (λ (x y : E), 1 ≤ ∥x - y∥),
+  { constructor,
+    assume x y hxy,
+    rw ← norm_neg,
+    simpa },
+  apply exists_seq_of_forall_finset_exists' (λ (x : E), ∥x∥ ≤ R) (λ (x : E) (y : E), 1 ≤ ∥x - y∥),
+  assume s hs,
+  exact exists_norm_le_le_norm_sub_of_finset hc hR h s,
+end
+
+theorem exists_seq_norm_le_one_le_norm_sub (h : ¬ (finite_dimensional 𝕜 E)) :
+  ∃ (R : ℝ) (f : ℕ → E), (1 < R) ∧ (∀ n, ∥f n∥ ≤ R) ∧ (∀ m n, m ≠ n → 1 ≤ ∥f m - f n∥) :=
+begin
+  obtain ⟨c, hc⟩ : ∃ (c : 𝕜), 1 < ∥c∥ := normed_field.exists_one_lt_norm 𝕜,
+  have A : ∥c∥ < ∥c∥ + 1, by linarith,
+  rcases exists_seq_norm_le_one_le_norm_sub' hc A h with ⟨f, hf⟩,
+  exact ⟨∥c∥ + 1, f, hc.trans A, hf.1, hf.2⟩
+end
+
+variable (𝕜)
+/-- Riesz's theorem: if the unit ball is compact in a vector space, then the space is
+finite-dimensional. -/
+theorem finite_dimensional_of_is_compact_closed_ball {r : ℝ} (rpos : 0 < r)
+  (h : is_compact (metric.closed_ball (0 : E) r)) : finite_dimensional 𝕜 E :=
+begin
+  by_contra hfin,
+  obtain ⟨R, f, Rgt, fle, lef⟩ :
+    ∃ (R : ℝ) (f : ℕ → E), (1 < R) ∧ (∀ n, ∥f n∥ ≤ R) ∧ (∀ m n, m ≠ n → 1 ≤ ∥f m - f n∥) :=
+      exists_seq_norm_le_one_le_norm_sub hfin,
+  have rRpos : 0 < r / R := div_pos rpos (zero_lt_one.trans Rgt),
+  obtain ⟨c, hc⟩ : ∃ (c : 𝕜), 0 < ∥c∥ ∧ ∥c∥ < (r / R) := normed_field.exists_norm_lt _ rRpos,
+  let g := λ (n : ℕ), c • f n,
+  have A : ∀ n, g n ∈ metric.closed_ball (0 : E) r,
+  { assume n,
+    simp only [norm_smul, dist_zero_right, metric.mem_closed_ball],
+    calc ∥c∥ * ∥f n∥ ≤ (r / R) * R : mul_le_mul hc.2.le (fle n) (norm_nonneg _) rRpos.le
+    ... = r : by field_simp [(zero_lt_one.trans Rgt).ne'] },
+  obtain ⟨x, hx, φ, φmono, φlim⟩ : ∃ (x : E) (H : x ∈ metric.closed_ball (0 : E) r) (φ : ℕ → ℕ),
+    strict_mono φ ∧ tendsto (g ∘ φ) at_top (𝓝 x) := h.tendsto_subseq A,
+  have B : cauchy_seq (g ∘ φ) := φlim.cauchy_seq,
+  obtain ⟨N, hN⟩ : ∃ (N : ℕ), ∀ (n : ℕ), N ≤ n → dist ((g ∘ φ) n) ((g ∘ φ) N) < ∥c∥ :=
+    metric.cauchy_seq_iff'.1 B (∥c∥) hc.1,
+  apply lt_irrefl (∥c∥),
+  calc ∥c∥ ≤ dist (g (φ (N+1))) (g (φ N)) : begin
+    conv_lhs { rw [← mul_one (∥c∥)] },
+    simp only [g, dist_eq_norm, ←smul_sub, norm_smul, -mul_one],
+    apply mul_le_mul_of_nonneg_left (lef _ _ (ne_of_gt _)) (norm_nonneg _),
+    exact φmono (nat.lt_succ_self N)
+  end
+  ... < ∥c∥ : hN (N+1) (nat.le_succ N)
+end
+
+end riesz
+
+/-- An injective linear map with finite-dimensional domain is a closed embedding. -/
+lemma linear_equiv.closed_embedding_of_injective {f : E →ₗ[𝕜] F} (hf : f.ker = ⊥)
+  [finite_dimensional 𝕜 E] :
+  closed_embedding ⇑f :=
+let g := linear_equiv.of_injective f (linear_map.ker_eq_bot.mp hf) in
+{ closed_range := begin
+    haveI := f.finite_dimensional_range,
+    simpa [f.range_coe] using f.range.closed_of_finite_dimensional
+  end,
+  .. embedding_subtype_coe.comp g.to_continuous_linear_equiv.to_homeomorph.embedding }
+
 lemma continuous_linear_map.exists_right_inverse_of_surjective [finite_dimensional 𝕜 F]
   (f : E →L[𝕜] F) (hf : f.range = ⊤) :
   ∃ g : F →L[𝕜] E, f.comp g = continuous_linear_map.id 𝕜 F :=
@@ -408,16 +568,7 @@ let ⟨g, hg⟩ := (f : E →ₗ[𝕜] F).exists_right_inverse_of_surjective hf 
 ⟨g.to_continuous_linear_map, continuous_linear_map.ext $ linear_map.ext_iff.1 hg⟩
 
 lemma closed_embedding_smul_left {c : E} (hc : c ≠ 0) : closed_embedding (λ x : 𝕜, x • c) :=
-begin
-  haveI : finite_dimensional 𝕜 (submodule.span 𝕜 {c}) :=
-    finite_dimensional.span_of_finite 𝕜 (finite_singleton c),
-  have m1 : closed_embedding (coe : submodule.span 𝕜 {c} → E) :=
-  (submodule.span 𝕜 {c}).closed_of_finite_dimensional.closed_embedding_subtype_coe,
-  have m2 : closed_embedding
-    (linear_equiv.to_span_nonzero_singleton 𝕜 E c hc : 𝕜 → submodule.span 𝕜 {c}) :=
-  (continuous_linear_equiv.to_span_nonzero_singleton 𝕜 c hc).to_homeomorph.closed_embedding,
-  exact m1.comp m2
-end
+linear_equiv.closed_embedding_of_injective (linear_equiv.ker_to_span_singleton 𝕜 E hc)
 
 /- `smul` is a closed map in the first argument. -/
 lemma is_closed_map_smul_left (c : E) : is_closed_map (λ x : 𝕜, x • c) :=
@@ -478,3 +629,33 @@ begin
     exact norm_nonneg (g x i) },
   { exact finset.sum_nonneg (λ _ _, norm_nonneg _) }
 end
+
+lemma summable_of_is_O' {ι E F : Type*} [normed_group E] [complete_space E] [normed_group F]
+  [normed_space ℝ F] [finite_dimensional ℝ F] {f : ι → E} {g : ι → F}
+  (hg : summable g) (h : is_O f g cofinite) : summable f :=
+summable_of_is_O (summable_norm_iff.mpr hg) h.norm_right
+
+lemma summable_of_is_O_nat' {E F : Type*} [normed_group E] [complete_space E] [normed_group F]
+  [normed_space ℝ F] [finite_dimensional ℝ F] {f : ℕ → E} {g : ℕ → F}
+  (hg : summable g) (h : is_O f g at_top) : summable f :=
+summable_of_is_O_nat (summable_norm_iff.mpr hg) h.norm_right
+
+lemma summable_of_is_equivalent {ι E : Type*} [normed_group E] [normed_space ℝ E]
+  [finite_dimensional ℝ E] {f : ι → E} {g : ι → E}
+  (hg : summable g) (h : f ~[cofinite] g) : summable f :=
+hg.trans_sub (summable_of_is_O' hg h.is_o.is_O)
+
+lemma summable_of_is_equivalent_nat {E : Type*} [normed_group E] [normed_space ℝ E]
+  [finite_dimensional ℝ E] {f : ℕ → E} {g : ℕ → E}
+  (hg : summable g) (h : f ~[at_top] g) : summable f :=
+hg.trans_sub (summable_of_is_O_nat' hg h.is_o.is_O)
+
+lemma is_equivalent.summable_iff {ι E : Type*} [normed_group E] [normed_space ℝ E]
+  [finite_dimensional ℝ E] {f : ι → E} {g : ι → E}
+  (h : f ~[cofinite] g) : summable f ↔ summable g :=
+⟨λ hf, summable_of_is_equivalent hf h.symm, λ hg, summable_of_is_equivalent hg h⟩
+
+lemma is_equivalent.summable_iff_nat {E : Type*} [normed_group E] [normed_space ℝ E]
+  [finite_dimensional ℝ E] {f : ℕ → E} {g : ℕ → E}
+  (h : f ~[at_top] g) : summable f ↔ summable g :=
+⟨λ hf, summable_of_is_equivalent_nat hf h.symm, λ hg, summable_of_is_equivalent_nat hg h⟩

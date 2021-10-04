@@ -253,14 +253,12 @@ begin
     { exact R, },
     { convert h i _ using 1,
       simp only [succ_eq_add_one, add_succ_sub_one, add_zero, length, add_lt_add_iff_right] at w,
-      simpa using w, },
-   },
+      simpa using w, } },
   { rintro h, split,
     { apply h 0, simp, },
     { intros i w, convert h (i+1) _ using 1,
       simp only [add_zero, length, add_succ_sub_one] at w,
-      simpa using w, }
-    },
+      simpa using w, } },
 end
 
 /-- If `l₁ l₂` and `l₃` are lists and `l₁ ++ l₂` and `l₂ ++ l₃` both satisfy

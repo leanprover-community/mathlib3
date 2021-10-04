@@ -402,20 +402,20 @@ begin
     lift -l to ℕ using this with l' hl',
     rw [← dvd_neg, ← hl'],
     norm_cast,
-    rw [← h.pow_eq_one_iff_dvd, ← inv_inj', ← fpow_neg, ← hl', gpow_coe_nat, inv_one] }
+    rw [← h.pow_eq_one_iff_dvd, ← inv_inj₀, ← fpow_neg, ← hl', gpow_coe_nat, inv_one] }
 end
 
 lemma inv' (h : is_primitive_root ζ k) : is_primitive_root ζ⁻¹ k :=
-{ pow_eq_one := by simp only [h.pow_eq_one, inv_one, eq_self_iff_true, inv_pow'],
+{ pow_eq_one := by simp only [h.pow_eq_one, inv_one, eq_self_iff_true, inv_pow₀],
   dvd_of_pow_eq_one :=
   begin
     intros l hl,
     apply h.dvd_of_pow_eq_one l,
-    rw [← inv_inj', ← inv_pow', hl, inv_one]
+    rw [← inv_inj₀, ← inv_pow₀, hl, inv_one]
   end }
 
 @[simp] lemma inv_iff' : is_primitive_root ζ⁻¹ k ↔ is_primitive_root ζ k :=
-by { refine ⟨_, λ h, inv' h⟩, intro h, rw [← inv_inv' ζ], exact inv' h }
+by { refine ⟨_, λ h, inv' h⟩, intro h, rw [← inv_inv₀ ζ], exact inv' h }
 
 lemma fpow_of_gcd_eq_one (h : is_primitive_root ζ k) (i : ℤ) (hi : i.gcd k = 1) :
   is_primitive_root (ζ ^ i) k :=
@@ -882,7 +882,7 @@ begin
       rw map_dvd_map (int.cast_ring_hom ℚ) int.cast_injective Pmonic,
       intro hdiv,
       refine hdiff (eq_of_monic_of_associated Pmonic Qmonic _),
-      exact associated_of_dvd_dvd hdiv (dvd_symm_of_irreducible Pirr Qirr hdiv) },
+      exact associated_of_dvd_dvd hdiv (Pirr.dvd_symm Qirr hdiv) },
     { apply (map_dvd_map (int.cast_ring_hom ℚ) int.cast_injective Pmonic).2,
       exact minpoly_dvd_X_pow_sub_one h hpos },
     { apply (map_dvd_map (int.cast_ring_hom ℚ) int.cast_injective Qmonic).2,
@@ -901,7 +901,7 @@ begin
     exact hdiv ((zmod.nat_coe_zmod_eq_zero_iff_dvd n p).1 (not_not.1 hzero)) },
   cases (multiplicity.squarefree_iff_multiplicity_le_one (X ^ n - 1)).1 hfree
     (map (int.cast_ring_hom (zmod p)) P) with hle hunit,
-  { exact not_lt_of_le hle habs },
+  { rw nat.cast_one at habs, exact hle.not_lt habs },
   { replace hunit := degree_eq_zero_of_is_unit hunit,
     rw degree_map_eq_of_leading_coeff_ne_zero (int.cast_ring_hom (zmod p)) _ at hunit,
     { exact (minpoly.degree_pos (is_integral h hpos)).ne' hunit },

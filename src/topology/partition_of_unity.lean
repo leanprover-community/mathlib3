@@ -172,7 +172,7 @@ protected def single (i : ι) (s : set X) : bump_covering ι X s :=
 { to_fun := pi.single i 1,
   locally_finite' := λ x,
     begin
-      refine ⟨univ, univ_mem_sets, (finite_singleton i).subset _⟩,
+      refine ⟨univ, univ_mem, (finite_singleton i).subset _⟩,
       rintro j ⟨x, hx, -⟩,
       contrapose! hx,
       rw [mem_singleton_iff] at hx,

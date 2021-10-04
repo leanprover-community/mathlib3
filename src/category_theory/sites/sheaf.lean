@@ -265,7 +265,7 @@ begin
   letI : reflects_limits s := reflects_limits_of_reflects_isomorphisms,
   have : is_limit (s.map_cone (fork.of_ι _ (w R P))) ≃ is_limit (fork.of_ι _ (w R (P ⋙ s))) :=
     is_sheaf_for_is_sheaf_for' P s U R,
-  rw ←equiv.nonempty_iff_nonempty this,
+  rw ←equiv.nonempty_congr this,
   split,
   { exact nonempty.map (λ t, is_limit_of_preserves s t) },
   { exact nonempty.map (λ t, is_limit_of_reflects s t) }

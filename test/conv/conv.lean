@@ -2,11 +2,12 @@
 Copyright (c) 2019 Lucas Allen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Lucas Allen
-
-Tests for the `conv` tactic inside the inveractive `conv` monad
 -/
-
 import tactic.converter.interactive
+
+/-!
+# Tests for the `conv` tactic inside the interactive `conv` monad
+-/
 
 example (a b c d : ℕ) (h₁ : b = c) (h₂ : a + c = a + d) : a + b = a + d :=
 begin

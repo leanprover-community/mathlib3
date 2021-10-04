@@ -8,11 +8,16 @@ import algebra.module.pi
 import data.polynomial.basic
 import group_theory.group_action.prod
 import group_theory.group_action.units
+import data.complex.module
 
 /-! # Tests that instances do not form diamonds -/
 
 /-! ## Scalar action instances -/
 section has_scalar
+
+example :
+  (sub_neg_monoid.has_scalar_int : has_scalar ℤ ℂ) = (complex.has_scalar : has_scalar ℤ ℂ) :=
+rfl
 
 section units
 
@@ -39,3 +44,21 @@ rfl -- fails
 end units
 
 end has_scalar
+
+/-! ## `with_top` (Type with point at infinity) instances -/
+section with_top
+
+example (R : Type*) [h : ordered_semiring R] :
+  (@with_top.add_comm_monoid R
+    (@non_unital_non_assoc_semiring.to_add_comm_monoid R
+      (@non_assoc_semiring.to_non_unital_non_assoc_semiring R
+        (@semiring.to_non_assoc_semiring R
+          (@ordered_semiring.to_semiring R h)))))
+        =
+  (@ordered_add_comm_monoid.to_add_comm_monoid (with_top R)
+    (@with_top.ordered_add_comm_monoid R
+      (@ordered_cancel_add_comm_monoid.to_ordered_add_comm_monoid R
+        (@ordered_semiring.to_ordered_cancel_add_comm_monoid R h)))) :=
+rfl
+
+end with_top

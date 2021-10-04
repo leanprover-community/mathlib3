@@ -365,7 +365,7 @@ end
 by { by_cases h : (I : K) = 0; field_simp [h] }
 
 @[simp] lemma norm_sq_inv (z : K) : norm_sq z⁻¹ = (norm_sq z)⁻¹ :=
-(@norm_sq K _).map_inv' z
+(@norm_sq K _).map_inv z
 
 @[simp] lemma norm_sq_div (z w : K) : norm_sq (z / w) = norm_sq z / norm_sq w :=
 (@norm_sq K _).map_div z w
@@ -438,7 +438,7 @@ end
 /-- The complex absolute value function, defined as the square root of the norm squared. -/
 @[pp_nodot] noncomputable def abs (z : K) : ℝ := (norm_sq z).sqrt
 
-local notation `abs'` := _root_.abs
+local notation `abs'` := has_abs.abs
 local notation `absK` := @abs K _
 
 @[simp, norm_cast] lemma abs_of_real (r : ℝ) : absK r = abs' r :=
@@ -486,6 +486,12 @@ lemma abs_im_le_abs (z : K) : abs' (im z) ≤ abs z :=
 by rw [mul_self_le_mul_self_iff (_root_.abs_nonneg (im z)) (abs_nonneg _),
        abs_mul_abs_self, mul_self_abs];
    apply im_sq_le_norm_sq
+
+lemma norm_re_le_norm (z : K) : ∥re z∥ ≤ ∥z∥ :=
+by { rw [is_R_or_C.norm_eq_abs, real.norm_eq_abs], exact is_R_or_C.abs_re_le_abs _, }
+
+lemma norm_im_le_norm (z : K) : ∥im z∥ ≤ ∥z∥ :=
+by { rw [is_R_or_C.norm_eq_abs, real.norm_eq_abs], exact is_R_or_C.abs_im_le_abs _, }
 
 lemma re_le_abs (z : K) : re z ≤ abs z :=
 (abs_le.1 (abs_re_le_abs _)).2
@@ -693,7 +699,7 @@ local notation `norm_sqR` := @is_R_or_C.norm_sq ℝ _
 @[simp] lemma conj_to_real {x : ℝ} : conjR x = x := rfl
 @[simp] lemma I_to_real : IR = 0 := rfl
 @[simp] lemma norm_sq_to_real {x : ℝ} : norm_sq x = x*x := by simp [is_R_or_C.norm_sq]
-@[simp] lemma abs_to_real {x : ℝ} : absR x = _root_.abs x :=
+@[simp] lemma abs_to_real {x : ℝ} : absR x = has_abs.abs x :=
 by simp [is_R_or_C.abs, abs, real.sqrt_mul_self_eq_abs]
 
 @[simp] lemma coe_real_eq_id : @coe ℝ ℝ _ = id := rfl

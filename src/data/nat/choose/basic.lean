@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Bhavik Mehta
 -/
-import data.nat.factorial
+import data.nat.factorial.basic
 
 /-!
 # Binomial coefficients
@@ -74,7 +74,7 @@ begin
 end
 
 lemma choose_pos : ∀ {n k}, k ≤ n → 0 < choose n k
-| 0             _ hk := by rw [eq_zero_of_le_zero hk]; exact dec_trivial
+| 0             _ hk := by rw [nat.eq_zero_of_le_zero hk]; exact dec_trivial
 | (n + 1)       0 hk := by simp; exact dec_trivial
 | (n + 1) (k + 1) hk := by rw choose_succ_succ;
     exact add_pos_of_pos_of_nonneg (choose_pos (le_of_succ_le_succ hk)) (nat.zero_le _)
@@ -88,7 +88,7 @@ lemma succ_mul_choose_eq : ∀ n k, succ n * choose n k = choose (succ n) (succ 
   ←succ_mul_choose_eq, add_right_comm, ←mul_add, ←choose_succ_succ, ←succ_mul]
 
 lemma choose_mul_factorial_mul_factorial : ∀ {n k}, k ≤ n → choose n k * k! * (n - k)! = n!
-| 0              _ hk := by simp [eq_zero_of_le_zero hk]
+| 0              _ hk := by simp [nat.eq_zero_of_le_zero hk]
 | (n + 1)        0 hk := by simp
 | (n + 1) (succ k) hk :=
 begin
@@ -101,7 +101,7 @@ begin
     have h₂ : choose n (succ k) * k.succ! * ((n - k) * (n - k.succ)!) = (n - k) * n! :=
       by rw ← choose_mul_factorial_mul_factorial (le_of_lt_succ hk₁);
       simp [factorial_succ, mul_comm, mul_left_comm, mul_assoc],
-    have h₃ : k * n! ≤ n * n! := mul_le_mul_right _ (le_of_succ_le_succ hk),
+    have h₃ : k * n! ≤ n * n! := nat.mul_le_mul_right _ (le_of_succ_le_succ hk),
   rw [choose_succ_succ, add_mul, add_mul, succ_sub_succ, h, h₁, h₂, ← add_one, add_mul,
       nat.mul_sub_right_distrib, factorial_succ, ← nat.add_sub_assoc h₃, add_assoc, ← add_mul,
       nat.add_sub_cancel_left, add_comm] },
@@ -137,10 +137,11 @@ begin
 end
 
 lemma add_choose (i j : ℕ) : (i + j).choose j = (i + j)! / (i! * j!) :=
-by rw [choose_eq_factorial_div_factorial (le_add_left j i), nat.add_sub_cancel, mul_comm]
+by rw [choose_eq_factorial_div_factorial (nat.le_add_left j i), nat.add_sub_cancel, mul_comm]
 
 lemma add_choose_mul_factorial_mul_factorial (i j : ℕ) : (i + j).choose j * i! * j! = (i + j)! :=
-by rw [← choose_mul_factorial_mul_factorial (le_add_left _ _), nat.add_sub_cancel, mul_right_comm]
+by rw [← choose_mul_factorial_mul_factorial (nat.le_add_left _ _),
+  nat.add_sub_cancel, mul_right_comm]
 
 theorem factorial_mul_factorial_dvd_factorial {n k : ℕ} (hk : k ≤ n) : k! * (n - k)! ∣ n! :=
 by rw [←choose_mul_factorial_mul_factorial hk, mul_assoc]; exact dvd_mul_left _ _
@@ -153,7 +154,7 @@ begin
 end
 
 @[simp] lemma choose_symm {n k : ℕ} (hk : k ≤ n) : choose n (n-k) = choose n k :=
-by rw [choose_eq_factorial_div_factorial hk, choose_eq_factorial_div_factorial (sub_le _ _),
+by rw [choose_eq_factorial_div_factorial hk, choose_eq_factorial_div_factorial (nat.sub_le _ _),
   nat.sub_sub_self hk, mul_comm]
 
 lemma choose_symm_of_eq_add {n a b : ℕ} (h : n = a + b) : nat.choose n a = nat.choose n b :=
@@ -183,7 +184,7 @@ begin
   induction k with k ih, { simp },
   obtain hk | hk := le_or_lt (k + 1) (n + 1),
   { rw [choose_succ_succ, add_mul, succ_sub_succ, ←choose_succ_right_eq, ←succ_sub_succ,
-      nat.mul_sub_left_distrib, nat.add_sub_cancel' (mul_le_mul_left _ hk)] },
+      nat.mul_sub_left_distrib, nat.add_sub_cancel' (nat.mul_le_mul_left _ hk)] },
   rw [choose_eq_zero_of_lt hk, choose_eq_zero_of_lt (n.lt_succ_self.trans hk), zero_mul, zero_mul],
 end
 
@@ -191,10 +192,10 @@ lemma asc_factorial_eq_factorial_mul_choose (n k : ℕ) :
   n.asc_factorial k = k! * (n + k).choose k :=
 begin
   rw mul_comm,
-  apply mul_right_cancel' (factorial_ne_zero (n + k - k)),
+  apply mul_right_cancel₀ (factorial_ne_zero (n + k - k)),
   rw [choose_mul_factorial_mul_factorial, nat.add_sub_cancel, ←factorial_mul_asc_factorial,
     mul_comm],
-  exact le_add_left k n,
+  exact nat.le_add_left k n,
 end
 
 lemma factorial_dvd_asc_factorial (n k : ℕ) : k! ∣ n.asc_factorial k :=
@@ -203,7 +204,7 @@ lemma factorial_dvd_asc_factorial (n k : ℕ) : k! ∣ n.asc_factorial k :=
 lemma choose_eq_asc_factorial_div_factorial (n k : ℕ) :
   (n + k).choose k = n.asc_factorial k / k! :=
 begin
-  apply mul_left_cancel' (factorial_ne_zero k),
+  apply mul_left_cancel₀ (factorial_ne_zero k),
   rw ←asc_factorial_eq_factorial_mul_choose,
   exact (nat.mul_div_cancel' $ factorial_dvd_asc_factorial _ _).symm,
 end
@@ -213,7 +214,7 @@ begin
   obtain h | h := nat.lt_or_ge n k,
   { rw [desc_factorial_eq_zero_iff_lt.2 h, choose_eq_zero_of_lt h, mul_zero] },
   rw mul_comm,
-  apply mul_right_cancel' (factorial_ne_zero (n - k)),
+  apply mul_right_cancel₀ (factorial_ne_zero (n - k)),
   rw [choose_mul_factorial_mul_factorial h, ←factorial_mul_desc_factorial h, mul_comm],
 end
 
@@ -222,7 +223,7 @@ lemma factorial_dvd_desc_factorial (n k : ℕ) : k! ∣ n.desc_factorial k :=
 
 lemma choose_eq_desc_factorial_div_factorial (n k : ℕ) : n.choose k = n.desc_factorial k / k! :=
 begin
-  apply mul_left_cancel' (factorial_ne_zero k),
+  apply mul_left_cancel₀ (factorial_ne_zero k),
   rw ←desc_factorial_eq_factorial_mul_choose,
   exact (nat.mul_div_cancel' $ factorial_dvd_desc_factorial _ _).symm,
 end

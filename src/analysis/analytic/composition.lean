@@ -769,7 +769,7 @@ begin
       exact Hg.continuous_on.continuous_at (is_open.mem_nhds (emetric.is_open_ball) fy_mem) },
     have B₂ : f (x + y) - f x ∈ emetric.ball (0 : F) rg,
       by simpa [edist_eq_coe_nnnorm, edist_eq_coe_nnnorm_sub] using fy_mem,
-    rw [← nhds_within_eq_of_open B₂ emetric.is_open_ball] at A,
+    rw [← emetric.is_open_ball.nhds_within_eq B₂] at A,
     convert Hg.tendsto_locally_uniformly_on.tendsto_comp B₁.continuous_within_at B₂ A,
     simp only [add_sub_cancel'_right] },
   -- Third step: the sum over all compositions in `comp_partial_sum_target 0 n n` converges to
@@ -1044,7 +1044,7 @@ def sigma_equiv_sigma_pi (n : ℕ) :
     { blocks := (of_fn (λ j, (i.2 j).blocks)).join,
       blocks_pos :=
       begin
-        simp only [and_imp, mem_join, exists_imp_distrib, forall_mem_of_fn_iff],
+        simp only [and_imp, list.mem_join, exists_imp_distrib, forall_mem_of_fn_iff],
         exact λ i j hj, composition.blocks_pos _ hj
       end,
       blocks_sum := by simp [sum_of_fn, composition.blocks_sum, composition.sum_blocks_fun] },

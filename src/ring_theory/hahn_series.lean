@@ -11,6 +11,14 @@ import ring_theory.power_series.basic
 
 /-!
 # Hahn Series
+If `Γ` is ordered and `R` has zero, then `hahn_series Γ R` consists of formal series over `Γ` with
+coefficients in `R`, whose supports are partially well-ordered. With further structure on `R` and
+`Γ`, we can add further structure on `hahn_series Γ R`, with the most studied case being when `Γ` is
+a linearly ordered abelian group and `R` is a field, in which case `hahn_series Γ R` is a
+valued field, with value group `Γ`.
+
+These generalize Laurent series (with value group `ℤ`), and Laurent series are implemented that way
+in the file `ring_theory/laurent_series`.
 
 ## Main Definitions
   * If `Γ` is ordered and `R` has zero, then `hahn_series Γ R` consists of
@@ -26,16 +34,20 @@ import ring_theory.power_series.basic
   topology, because there are topologically summable families that do not satisfy the axioms of
   `hahn_series.summable_family`, and formally summable families whose sums do not converge
   topologically.
+  * Laurent series over `R` are implemented as `hahn_series ℤ R` in the file
+    `ring_theory/laurent_series`.
 
 ## TODO
-  * Given `[linear_ordered_add_comm_group Γ]` and `[field R]`, define `field (hahn_series Γ R)`.
-  * Build an API for the variable `X`
-  * Define Laurent series
+  * Build an API for the variable `X` (defined to be `single 1 1 : hahn_series Γ R`) in analogy to
+    `X : polynomial R` and `X : power_series R`
+
+## References
+- [J. van der Hoeven, *Operators on Generalized Power Series*][van_der_hoeven]
 
 -/
 
 open finset
-open_locale big_operators classical
+open_locale big_operators classical pointwise
 noncomputable theory
 
 /-- If `Γ` is linearly ordered and `R` has zero, then `hahn_series Γ R` consists of

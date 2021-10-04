@@ -192,7 +192,7 @@ theorem of_inv (h : irrational x⁻¹) : irrational x :=
 λ ⟨q, hq⟩, h $ hq ▸ ⟨q⁻¹, q.cast_inv⟩
 
 protected theorem inv (h : irrational x) : irrational x⁻¹ :=
-of_inv $ by rwa inv_inv'
+of_inv $ by rwa inv_inv₀
 
 theorem div_cases (h : irrational (x / y)) : irrational x ∨ irrational y :=
 h.mul_cases.imp id of_inv
@@ -256,5 +256,12 @@ open irrational
 
 @[simp] theorem irrational_inv_iff : irrational x⁻¹ ↔ irrational x :=
 ⟨of_inv, irrational.inv⟩
+
+/-- There is an irrational number `r` between any two reals `x < r < y`. -/
+theorem exists_irrational_btwn {x y : ℝ} (h : x < y) :
+  ∃ r, irrational r ∧ x < r ∧ r < y :=
+let ⟨q, ⟨hq1, hq2⟩⟩ := (exists_rat_btwn ((sub_lt_sub_iff_right (real.sqrt 2)).mpr h)) in
+  ⟨q + real.sqrt 2, irrational_sqrt_two.rat_add _,
+    sub_lt_iff_lt_add.mp hq1, lt_sub_iff_add_lt.mp hq2⟩
 
 end

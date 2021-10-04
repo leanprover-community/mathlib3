@@ -66,11 +66,17 @@ rfl
 variables {s s₁ s₂ : set α} {t t₁ t₂ : set β} {p : set γ} {f f₁ f₂ f₃ : α → β} {g : β → γ}
   {f' f₁' f₂' : β → α} {g' : γ → β}
 
+@[simp] lemma injective_cod_restrict (h : ∀ x, f x ∈ t) :
+  injective (cod_restrict f t h) ↔ injective f :=
+by simp only [injective, subtype.ext_iff, coe_cod_restrict_apply]
+
+alias injective_cod_restrict ↔ _ function.injective.cod_restrict
+
 /-! ### Equality on a set -/
 
 /-- Two functions `f₁ f₂ : α → β` are equal on `s`
   if `f₁ x = f₂ x` for all `x ∈ a`. -/
-@[reducible] def eq_on (f₁ f₂ : α → β) (s : set α) : Prop :=
+def eq_on (f₁ f₂ : α → β) (s : set α) : Prop :=
 ∀ ⦃x⦄, x ∈ s → f₁ x = f₂ x
 
 @[simp] lemma eq_on_empty (f₁ f₂ : α → β) : eq_on f₁ f₂ ∅ := λ x, false.elim
@@ -120,6 +126,8 @@ lemma maps_to_iff_exists_map_subtype : maps_to f s t ↔ ∃ g : s → t, ∀ x 
 
 theorem maps_to' : maps_to f s t ↔ f '' s ⊆ t :=
 image_subset_iff.symm
+
+@[simp] theorem maps_to_singleton {x : α} : maps_to f {x} t ↔ f x ∈ t := singleton_subset_iff
 
 theorem maps_to_empty (f : α → β) (t : set β) : maps_to f ∅ t := empty_subset _
 
@@ -603,7 +611,7 @@ lemma preimage_inv_fun_of_mem [n : nonempty α] {f : α → β} (hf : injective 
 begin
   ext x,
   rcases em (x ∈ range f) with ⟨a, rfl⟩|hx,
-  { simp [left_inverse_inv_fun hf _, mem_image_of_injective hf] },
+  { simp [left_inverse_inv_fun hf _, hf.mem_set_image] },
   { simp [mem_preimage, inv_fun_neg hx, h, hx] }
 end
 
@@ -612,12 +620,28 @@ lemma preimage_inv_fun_of_not_mem [n : nonempty α] {f : α → β} (hf : inject
 begin
   ext x,
   rcases em (x ∈ range f) with ⟨a, rfl⟩|hx,
-  { rw [mem_preimage, left_inverse_inv_fun hf, mem_image_of_injective hf] },
+  { rw [mem_preimage, left_inverse_inv_fun hf, hf.mem_set_image] },
   { have : x ∉ f '' s, from λ h', hx (image_subset_range _ _ h'),
     simp only [mem_preimage, inv_fun_neg hx, h, this] },
 end
 
 end set
+
+/-! ### Monotone -/
+
+namespace monotone
+
+variables [preorder α] [preorder β] {f : α → β}
+
+protected lemma restrict (h : monotone f) (s : set α) : monotone (s.restrict f) :=
+λ x y hxy, h hxy
+
+protected lemma cod_restrict (h : monotone f) {s : set β} (hs : ∀ x, f x ∈ s) :
+  monotone (s.cod_restrict f hs) := h
+
+protected lemma range_factorization (h : monotone f) : monotone (set.range_factorization f) := h
+
+end monotone
 
 /-! ### Piecewise defined function -/
 
@@ -777,27 +801,39 @@ by simp
 
 end set
 
-lemma strict_mono_incr_on.inj_on [linear_order α] [preorder β] {f : α → β} {s : set α}
-  (H : strict_mono_incr_on f s) :
+lemma strict_mono_on.inj_on [linear_order α] [preorder β] {f : α → β} {s : set α}
+  (H : strict_mono_on f s) :
   s.inj_on f :=
 λ x hx y hy hxy, show ordering.eq.compares x y, from (H.compares hx hy).1 hxy
 
-lemma strict_mono_decr_on.inj_on [linear_order α] [preorder β] {f : α → β} {s : set α}
-  (H : strict_mono_decr_on f s) :
+lemma strict_anti_on.inj_on [linear_order α] [preorder β] {f : α → β} {s : set α}
+  (H : strict_anti_on f s) :
   s.inj_on f :=
-@strict_mono_incr_on.inj_on α (order_dual β) _ _ f s H
+@strict_mono_on.inj_on α (order_dual β) _ _ f s H
 
-lemma strict_mono_incr_on.comp [preorder α] [preorder β] [preorder γ]
-  {g : β → γ} {f : α → β} {s : set α} {t : set β} (hg : strict_mono_incr_on g t)
-  (hf : strict_mono_incr_on f s) (hs : set.maps_to f s t) :
-  strict_mono_incr_on (g ∘ f) s :=
+lemma strict_mono_on.comp [preorder α] [preorder β] [preorder γ]
+  {g : β → γ} {f : α → β} {s : set α} {t : set β} (hg : strict_mono_on g t)
+  (hf : strict_mono_on f s) (hs : set.maps_to f s t) :
+  strict_mono_on (g ∘ f) s :=
 λ x hx y hy hxy, hg (hs hx) (hs hy) $ hf hx hy hxy
 
-lemma strict_mono.comp_strict_mono_incr_on [preorder α] [preorder β] [preorder γ]
-  {g : β → γ} {f : α → β} {s : set α} (hg : strict_mono g)
-  (hf : strict_mono_incr_on f s) :
-  strict_mono_incr_on (g ∘ f) s :=
-λ x hx y hy hxy, hg $ hf hx hy hxy
+lemma strict_mono_on.comp_strict_anti_on [preorder α] [preorder β] [preorder γ]
+  {g : β → γ} {f : α → β} {s : set α} {t : set β} (hg : strict_mono_on g t)
+  (hf : strict_anti_on f s) (hs : set.maps_to f s t) :
+  strict_anti_on (g ∘ f) s :=
+λ x hx y hy hxy, hg (hs hy) (hs hx) $ hf hx hy hxy
+
+lemma strict_anti_on.comp [preorder α] [preorder β] [preorder γ]
+  {g : β → γ} {f : α → β} {s : set α} {t : set β} (hg : strict_anti_on g t)
+  (hf : strict_anti_on f s) (hs : set.maps_to f s t) :
+  strict_mono_on (g ∘ f) s :=
+λ x hx y hy hxy, hg (hs hy) (hs hx) $ hf hx hy hxy
+
+lemma strict_anti_on.comp_strict_mono_on [preorder α] [preorder β] [preorder γ]
+  {g : β → γ} {f : α → β} {s : set α} {t : set β} (hg : strict_anti_on g t)
+  (hf : strict_mono_on f s) (hs : set.maps_to f s t) :
+  strict_anti_on (g ∘ f) s :=
+λ x hx y hy hxy, hg (hs hx) (hs hy) $ hf hx hy hxy
 
 lemma strict_mono.cod_restrict [preorder α] [preorder β] {f : α → β} (hf : strict_mono f)
   {s : set β} (hs : ∀ x, f x ∈ s) :

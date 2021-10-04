@@ -3,7 +3,7 @@ Copyright (c) 2020 James Arthur. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: James Arthur, Chris Hughes, Shing Tak Lam
 -/
-import analysis.special_functions.trigonometric
+import analysis.special_functions.trigonometric.basic
 
 /-!
 # Inverse of the sinh function
@@ -42,8 +42,8 @@ end
 
 private lemma b_lt_sqrt_b_one_add_sq (b : ℝ) : b < sqrt (1 + b ^ 2) :=
 calc  b
-    ≤ sqrt (b ^ 2)     : le_sqrt_of_sq_le $ le_refl _
-... < sqrt (1 + b ^ 2) : (sqrt_lt (sq_nonneg _)).2 (lt_one_add _)
+    ≤ sqrt (b ^ 2)     : le_sqrt_of_sq_le le_rfl
+... < sqrt (1 + b ^ 2) : sqrt_lt_sqrt (sq_nonneg _) (lt_one_add _)
 
 private lemma add_sqrt_one_add_sq_pos (b : ℝ) : 0 < b + sqrt (1 + b ^ 2) :=
 by { rw [← neg_neg b, ← sub_eq_neg_add, sub_pos, sq, neg_mul_neg, ← sq],

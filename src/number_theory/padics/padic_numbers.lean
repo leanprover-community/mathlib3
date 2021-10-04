@@ -2,10 +2,9 @@
 Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
-
 -/
-import number_theory.padics.padic_norm
 import analysis.normed_space.basic
+import number_theory.padics.padic_norm
 
 /-!
 # p-adic numbers
@@ -907,7 +906,7 @@ begin
       simp only [neg_eq_zero],
       rw padic_val_rat.padic_val_rat_of_int _ hp.1.ne_one H,
       norm_cast,
-      rw [← enat.coe_inj, enat.coe_get, enat.coe_zero],
+      rw [← enat.coe_inj, enat.coe_get, nat.cast_zero],
       apply multiplicity.multiplicity_eq_zero_of_not_dvd h } },
   { rintro ⟨x, rfl⟩,
     push_cast,

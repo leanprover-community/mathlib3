@@ -37,8 +37,8 @@ def sum_embedding_equiv_prod_embedding_disjoint {α β γ : Type*} :
       rintros (a₁|b₁) (a₂|b₂) f_eq;
       simp only [equiv.coe_fn_symm_mk, sum.elim_inl, sum.elim_inr] at f_eq,
       { rw f.injective f_eq },
-      { simp! only at f_eq, exfalso, exact disj ⟨⟨a₁, by simp⟩, ⟨b₂, by simp [f_eq]⟩⟩  },
-      { simp! only at f_eq, exfalso, exact disj ⟨⟨a₂, by simp⟩, ⟨b₁, by simp [f_eq]⟩⟩  },
+      { simp! only at f_eq, exfalso, exact disj ⟨⟨a₁, by simp⟩, ⟨b₂, by simp [f_eq]⟩⟩ },
+      { simp! only at f_eq, exfalso, exact disj ⟨⟨a₂, by simp⟩, ⟨b₁, by simp [f_eq]⟩⟩ },
       { rw g.injective f_eq }
     end⟩,
   left_inv := λ f, by { dsimp only, ext, cases x; simp! },

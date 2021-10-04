@@ -162,10 +162,7 @@ begin
       { refine ⟨_, xt_mem t ⟨ht.1, ht.2.le⟩⟩,
         rw [add_assoc, add_mem_ball_iff_norm],
         exact I.trans_lt hδ },
-      have := sδ H,
-      simp only [mem_set_of_eq] at this,
-      convert this;
-      abel
+      simpa [add_assoc] using sδ H
     end
     ... ≤ (ε * (∥h • v∥ + ∥h • w∥)) * (∥h • w∥) :
     begin

@@ -340,10 +340,11 @@ calc  a / 1 = a * 1⁻¹ : div_eq_mul_inv a 1
 
 @[simp, to_additive]
 lemma inv_div (a b : G) : (a / b)⁻¹ = b / a :=
-inv_eq_of_mul_eq_one ( by rw [div_eq_mul_inv, div_eq_mul_inv, mul_assoc, inv_mul_cancel_left, mul_right_inv])
+inv_eq_of_mul_eq_one ( by rw [div_eq_mul_inv, div_eq_mul_inv, mul_assoc, inv_mul_cancel_left,
+  mul_right_inv])
 
-@[simp, to_additive]
-lemma div_mul_cancel (a b : G) : a / b * b = a :=
+@[simp, to_additive sub_add_cancel]
+lemma div_mul_cancel' (a b : G) : a / b * b = a :=
 by rw [div_eq_mul_inv, inv_mul_cancel_right a b]
 
 end group

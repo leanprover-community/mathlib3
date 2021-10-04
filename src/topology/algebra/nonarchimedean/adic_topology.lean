@@ -173,7 +173,7 @@ variables [topological_space R] [topological_ring R]
 lemma is_ideal_adic_pow {J : ideal R} (h : is_adic J) {n : ℕ} (hn : 0 < n) :
   is_adic (J^n) :=
 begin
-  rw is_ideal_adic_iff at h ⊢,
+  rw is_adic_iff at h ⊢,
   split,
   { intro m, rw ← pow_mul, apply h.left },
   { intros V hV,
@@ -189,7 +189,7 @@ end
 lemma is_bot_adic_iff {A : Type*} [comm_ring A] [topological_space A] [topological_ring A] :
 is_adic (⊥ : ideal A) ↔ discrete_topology A :=
 begin
-  rw is_ideal_adic_iff,
+  rw is_adic_iff,
   split,
   { rintro ⟨h, h'⟩,
     rw discrete_topology_iff_open_singleton_zero,

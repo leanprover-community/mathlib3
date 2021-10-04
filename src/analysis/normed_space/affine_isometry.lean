@@ -17,9 +17,6 @@ isometric equivalence between `P` and `P₂`.
 We also prove basic lemmas and provide convenience constructors.  The choice of these lemmas and
 constructors is closely modelled on those for the `linear_isometry` and `affine_map` theories.
 
-Since many elementary properties don't require `∥x∥ = 0 → x = 0` we initially set up the theory for
-`semi_normed_add_torsor` and specialize to `normed_add_torsor` only when needed.
-
 ## Notation
 
 We introduce the notation `P →ᵃⁱ[𝕜] P₂` for `affine_isometry 𝕜 P P₂`, and `P ≃ᵃⁱ[𝕜] P₂` for
@@ -33,14 +30,13 @@ open function set
 
 variables (𝕜 : Type*) {V V₁ V₂ V₃ V₄ : Type*} {P₁ : Type*} (P P₂ : Type*) {P₃ P₄ : Type*}
     [normed_field 𝕜]
-  [semi_normed_group V] [normed_group V₁] [semi_normed_group V₂] [semi_normed_group V₃]
+  [semi_normed_group V] [semi_normed_group V₁] [semi_normed_group V₂] [semi_normed_group V₃]
     [semi_normed_group V₄]
-  [semi_normed_space 𝕜 V] [normed_space 𝕜 V₁] [semi_normed_space 𝕜 V₂] [semi_normed_space 𝕜 V₃]
-    [semi_normed_space 𝕜 V₄]
-  [pseudo_metric_space P] [metric_space P₁] [pseudo_metric_space P₂] [pseudo_metric_space P₃]
+  [normed_space 𝕜 V] [normed_space 𝕜 V₁] [normed_space 𝕜 V₂] [normed_space 𝕜 V₃] [normed_space 𝕜 V₄]
+  [pseudo_metric_space P] [pseudo_metric_space P₁] [pseudo_metric_space P₂] [pseudo_metric_space P₃]
     [pseudo_metric_space P₄]
-  [semi_normed_add_torsor V P] [normed_add_torsor V₁ P₁] [semi_normed_add_torsor V₂ P₂]
-    [semi_normed_add_torsor V₃ P₃] [semi_normed_add_torsor V₄ P₄]
+  [normed_add_torsor V P] [normed_add_torsor V₁ P₁] [normed_add_torsor V₂ P₂]
+    [normed_add_torsor V₃ P₃] [normed_add_torsor V₄ P₄]
 
 include V V₂
 
@@ -108,7 +104,9 @@ end linear_isometry
 namespace affine_isometry
 
 /-- We use `f₁` when we need the domain to be a `normed_space`. -/
-variables (f : P →ᵃⁱ[𝕜] P₂) (f₁ : P₁ →ᵃⁱ[𝕜] P₂)
+variables (f : P →ᵃⁱ[𝕜] P₂)
+
+include V₂
 
 @[simp] lemma map_vadd (p : P) (v : V) : f (v +ᵥ p) = f.linear_isometry v +ᵥ f p :=
 f.to_affine_map.map_vadd p v
@@ -125,11 +123,14 @@ by rw [dist_eq_norm_vsub V₂, dist_eq_norm_vsub V, ← map_vsub, f.linear_isome
 
 protected lemma isometry : isometry f := f.edist_map
 
-protected lemma injective : injective f₁ := f₁.isometry.injective
+protected lemma injective {V P : Type*} [normed_group V] [normed_space 𝕜 V] [metric_space P]
+  [normed_add_torsor V P] (f : P →ᵃⁱ[𝕜] P₂) : injective f := f.isometry.injective
 
-@[simp] lemma map_eq_iff {x y : P₁} : f₁ x = f₁ y ↔ x = y := f₁.injective.eq_iff
+@[simp] lemma map_eq_iff {V P : Type*} [normed_group V] [normed_space 𝕜 V] [metric_space P]
+  [normed_add_torsor V P] (f : P →ᵃⁱ[𝕜] P₂) {x y : P} : f x = f y ↔ x = y := f.injective.eq_iff
 
-lemma map_ne {x y : P₁} (h : x ≠ y) : f₁ x ≠ f₁ y := f₁.injective.ne h
+lemma map_ne {V P : Type*} [normed_group V] [normed_space 𝕜 V] [metric_space P]
+  [normed_add_torsor V P] (f : P →ᵃⁱ[𝕜] P₂) {x y : P} (h : x ≠ y) : f x ≠ f y := f.injective.ne h
 
 protected lemma lipschitz : lipschitz_with 1 f := f.isometry.lipschitz
 
@@ -153,6 +154,7 @@ f.isometry.diam_range
   continuous (f ∘ g) ↔ continuous g :=
 f.isometry.comp_continuous_iff
 
+omit V₂
 include V
 /-- The identity affine isometry. -/
 def id : P →ᵃⁱ[𝕜] P := ⟨affine_map.id 𝕜 P, λ x, rfl⟩
@@ -520,7 +522,7 @@ lemma point_reflection_fixed_iff [invertible (2:𝕜)] {x y : P} :
   point_reflection 𝕜 x y = y ↔ y = x :=
 affine_equiv.point_reflection_fixed_iff_of_module 𝕜
 
-variables [semi_normed_space ℝ V]
+variables [normed_space ℝ V]
 
 lemma dist_point_reflection_self_real (x y : P) :
   dist (point_reflection ℝ x y) y = 2 * dist x y :=

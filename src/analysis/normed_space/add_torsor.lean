@@ -20,58 +20,36 @@ noncomputable theory
 open_locale nnreal topological_space
 open filter
 
-/-- A `semi_normed_add_torsor V P` is a torsor of an additive seminormed group
-action by a `semi_normed_group V` on points `P`. We bundle the pseudometric space
+/-- A `normed_add_torsor V P` is a torsor of an additive
+action by a (semi) normed group `V` on points `P`. We bundle the pseudometric space
 structure and require the distance to be the same as results from the
 norm (which in fact implies the distance yields a pseudometric space, but
 bundling just the distance and using an instance for the pseudometric space
 results in type class problems). -/
-class semi_normed_add_torsor (V : out_param $ Type*) (P : Type*)
+class normed_add_torsor (V : out_param $ Type*) (P : Type*)
   [out_param $ semi_normed_group V] [pseudo_metric_space P]
   extends add_torsor V P :=
 (dist_eq_norm' : ∀ (x y : P), dist x y = ∥(x -ᵥ y : V)∥)
 
-/-- A `normed_add_torsor V P` is a torsor of an additive normed group
-action by a `normed_group V` on points `P`. We bundle the metric space
-structure and require the distance to be the same as results from the
-norm (which in fact implies the distance yields a metric space, but
-bundling just the distance and using an instance for the metric space
-results in type class problems). -/
-class normed_add_torsor (V : out_param $ Type*) (P : Type*)
-  [out_param $ normed_group V] [metric_space P]
-  extends add_torsor V P :=
-(dist_eq_norm' : ∀ (x y : P), dist x y = ∥(x -ᵥ y : V)∥)
-
-/-- A `normed_add_torsor` is a `semi_normed_add_torsor`. -/
-@[priority 100]
-instance normed_add_torsor.to_semi_normed_add_torsor {V P : Type*} [normed_group V] [metric_space P]
-  [β : normed_add_torsor V P] : semi_normed_add_torsor V P := { ..β }
-
-variables {α V P : Type*} [semi_normed_group V] [pseudo_metric_space P] [semi_normed_add_torsor V P]
-variables {W Q : Type*} [normed_group W] [metric_space Q] [normed_add_torsor W Q]
+variables {α V P : Type*} [semi_normed_group V] [pseudo_metric_space P] [normed_add_torsor V P]
 
 /-- A `semi_normed_group` is a `semi_normed_add_torsor` over itself. -/
 @[priority 100]
-instance semi_normed_group.normed_add_torsor : semi_normed_add_torsor V V :=
-{ dist_eq_norm' := dist_eq_norm }
-
-/-- A `normed_group` is a `normed_add_torsor` over itself. -/
-@[priority 100]
-instance normed_group.normed_add_torsor : normed_add_torsor W W :=
+instance semi_normed_group.normed_add_torsor : normed_add_torsor V V :=
 { dist_eq_norm' := dist_eq_norm }
 
 include V
 
 section
 
-variables (V W)
+variables (V)
 
 /-- The distance equals the norm of subtracting two points. In this
 lemma, it is necessary to have `V` as an explicit argument; otherwise
 `rw dist_eq_norm_vsub` sometimes doesn't work. -/
 lemma dist_eq_norm_vsub (x y : P) :
   dist x y = ∥(x -ᵥ y)∥ :=
-semi_normed_add_torsor.dist_eq_norm' x y
+normed_add_torsor.dist_eq_norm' x y
 
 end
 
@@ -123,8 +101,9 @@ by { simp only [edist_nndist], apply_mod_cast nndist_vsub_vsub_le }
 omit V
 
 /-- The pseudodistance defines a pseudometric space structure on the torsor. This
-is not an instance because it depends on `V` to define a `metric_space
-P`. -/
+is not an instance because it depends on `V` to define a `metric_space P`.
+Also, in case `V = V` it produces a `uniform_space` structure that is not definitionally
+equal to the original one. -/
 def pseudo_metric_space_of_normed_group_of_add_torsor (V P : Type*) [semi_normed_group V]
   [add_torsor V P] : pseudo_metric_space P :=
 { dist := λ x y, ∥(x -ᵥ y : V)∥,
@@ -138,20 +117,14 @@ def pseudo_metric_space_of_normed_group_of_add_torsor (V P : Type*) [semi_normed
   end }
 
 /-- The distance defines a metric space structure on the torsor. This
-is not an instance because it depends on `V` to define a `metric_space
-P`. -/
+is not an instance because it depends on `V` to define a `metric_space P`.
+Also, in case `V = V` it produces a `uniform_space` structure that is not definitionally
+equal to the original one. -/
 def metric_space_of_normed_group_of_add_torsor (V P : Type*) [normed_group V] [add_torsor V P] :
   metric_space P :=
 { dist := λ x y, ∥(x -ᵥ y : V)∥,
-  dist_self := λ x, by simp,
   eq_of_dist_eq_zero := λ x y h, by simpa using h,
-  dist_comm := λ x y, by simp only [←neg_vsub_eq_vsub_rev y x, norm_neg],
-  dist_triangle := begin
-    intros x y z,
-    change ∥x -ᵥ z∥ ≤ ∥x -ᵥ y∥ + ∥y -ᵥ z∥,
-    rw ←vsub_add_vsub_cancel,
-    apply norm_add_le
-  end }
+  .. pseudo_metric_space_of_normed_group_of_add_torsor V P }
 
 include V
 
@@ -250,7 +223,7 @@ end
 
 section normed_space
 
-variables {𝕜 : Type*} [normed_field 𝕜] [semi_normed_space 𝕜 V]
+variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 V]
 
 open affine_map
 
@@ -301,12 +274,13 @@ end
 
 end normed_space
 
-variables [semi_normed_space ℝ V] [normed_space ℝ W]
+variables [normed_space ℝ V]
 
 lemma dist_midpoint_midpoint_le (p₁ p₂ p₃ p₄ : V) :
   dist (midpoint ℝ p₁ p₂) (midpoint ℝ p₃ p₄) ≤ (dist p₁ p₃ + dist p₂ p₄) / 2 :=
 by simpa using dist_midpoint_midpoint_le' p₁ p₂ p₃ p₄
 
+variables {W Q : Type*} [normed_group W] [metric_space Q] [normed_add_torsor W Q] [normed_space ℝ W]
 include W
 
 /-- A continuous map between two normed affine spaces is an affine map provided that

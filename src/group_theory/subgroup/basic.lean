@@ -116,6 +116,18 @@ instance : set_like (subgroup G) G :=
 @[simp, to_additive]
 lemma mem_carrier {s : subgroup G} {x : G} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
 
+@[simp, to_additive]
+lemma mem_mk {s : set G} {x : G} (h_one) (h_mul) (h_inv) :
+  x ∈ mk s h_one h_mul h_inv ↔ x ∈ s := iff.rfl
+
+@[simp, to_additive]
+lemma coe_set_mk {s : set G} (h_one) (h_mul) (h_inv) :
+  (mk s h_one h_mul h_inv : set G) = s := rfl
+
+@[simp, to_additive]
+lemma mk_le_mk {s t : set G} (h_one) (h_mul) (h_inv) (h_one') (h_mul') (h_inv') :
+  mk s h_one h_mul h_inv ≤ mk t h_one' h_mul' h_inv' ↔ s ⊆ t := iff.rfl
+
 /-- See Note [custom simps projection] -/
 @[to_additive "See Note [custom simps projection]"]
 def simps.coe (S : subgroup G) : set G := S
@@ -1162,7 +1174,7 @@ lemma mem_conjugates_of_set_iff {x : G} : x ∈ conjugates_of_set s ↔ ∃ a �
 set.mem_bUnion_iff
 
 theorem subset_conjugates_of_set : s ⊆ conjugates_of_set s :=
-λ (x : G) (h : x ∈ s), mem_conjugates_of_set_iff.2 ⟨x, h, is_conj_refl _⟩
+λ (x : G) (h : x ∈ s), mem_conjugates_of_set_iff.2 ⟨x, h, is_conj.refl _⟩
 
 theorem conjugates_of_set_mono {s t : set G} (h : s ⊆ t) :
   conjugates_of_set s ⊆ conjugates_of_set t :=
@@ -1182,7 +1194,7 @@ lemma conj_mem_conjugates_of_set {x c : G} :
 λ H,
 begin
   rcases (mem_conjugates_of_set_iff.1 H) with ⟨a,h₁,h₂⟩,
-  exact mem_conjugates_of_set_iff.2 ⟨a, h₁, is_conj_trans h₂ (is_conj_iff.2 ⟨c,rfl⟩)⟩,
+  exact mem_conjugates_of_set_iff.2 ⟨a, h₁, h₂.trans (is_conj_iff.2 ⟨c,rfl⟩)⟩,
 end
 
 end group

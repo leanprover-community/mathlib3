@@ -96,10 +96,12 @@ by { dsimp [colimit_limit_to_limit_colimit], simp, }
 noncomputable theory
 variables (G : J ⥤ K ⥤ C) [has_limit G]
 
-/-- Note that this does not require `K` to be small. -/
-@[simps]
-def limit_iso_swap_comp_lim : limit G ≅ curry.obj (swap K J ⋙ uncurry.obj G) ⋙ lim :=
-nat_iso.of_components (λ Y, (limit_obj_iso_limit_comp_evaluation G Y : _ ≅ limit _) ≪≫
+/--
+For a functor `G : J ⥤ K ⥤ C`, its limit `K ⥤ C` is given by `(G' : K ⥤ J ⥤ C) ⋙ lim`.
+Note that this does not require `K` to be small.
+-/
+@[simps] def limit_iso_swap_comp_lim : limit G ≅ curry.obj (swap K J ⋙ uncurry.obj G) ⋙ lim :=
+nat_iso.of_components (λ Y, limit_obj_iso_limit_comp_evaluation G Y ≪≫
   (lim.map_iso (eq_to_iso (by
   { apply functor.hext,
     { intro X, simp },
@@ -117,8 +119,8 @@ nat_iso.of_components (λ Y, (limit_obj_iso_limit_comp_evaluation G Y : _ ≅ li
       erw category.id_comp,
     end)
 
-@[simps]
-def colimit_limit_to_limit_colimit_cone :
+/-- The map `colimit_limit_to_limit_colimit` realized as a map of cones. -/
+@[simps] def colimit_limit_to_limit_colimit_cone :
   colim.map_cone (limit.cone G) ⟶ limit.cone (G ⋙ colim) :=
 { hom := colim.map (limit_iso_swap_comp_lim G).hom ≫
     colimit_limit_to_limit_colimit (uncurry.obj G : _) ≫

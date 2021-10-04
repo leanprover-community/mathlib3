@@ -319,5 +319,4 @@ begin
   exact as_iso (colimit_limit_to_limit_colimit_cone F),
 end ⟩⟩
 
-
 end category_theory.limits

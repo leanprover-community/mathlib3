@@ -1112,9 +1112,7 @@ def finite_spanning_sets_in_Ioo_rat (μ : measure ℝ) [is_locally_finite_measur
       refine ⟨-(n + 1), n + 1, _, by norm_cast⟩,
       exact (neg_nonpos.2 (@nat.cast_nonneg ℚ _ (n + 1))).trans_lt n.cast_add_one_pos
     end,
-  finite := λ n,
-    calc μ (Ioo _ _) ≤ μ (Icc _ _) : μ.mono Ioo_subset_Icc_self
-                 ... < ∞           : is_compact_Icc.is_finite_measure,
+  finite := λ n, measure_Ioo_lt_top,
   spanning := Union_eq_univ_iff.2 $ λ x,
     ⟨⌊|x|⌋₊, neg_lt.1 ((neg_le_abs_self x).trans_lt (lt_nat_floor_add_one _)),
       (le_abs_self x).trans_lt (lt_nat_floor_add_one _)⟩ }
@@ -1602,62 +1600,3 @@ lemma ae_measurable_smul_const {f : α → 𝕜} {μ : measure α} {c : E} (hc :
 ae_measurable_comp_iff_of_closed_embedding (λ y : 𝕜, y • c) (closed_embedding_smul_left hc)
 
 end normed_space
-
-/-- If `s` is a compact set and `μ` is finite at `𝓝 x` for every `x ∈ s`, then `s` admits an open
-superset of finite measure. -/
-lemma is_compact.exists_open_superset_measure_lt_top' [topological_space α]
-  {s : set α} {μ : measure α} (h : is_compact s) (hμ : ∀ x ∈ s, μ.finite_at_filter (𝓝 x)) :
-  ∃ U ⊇ s, is_open U ∧ μ U < ∞ :=
-begin
-  refine is_compact.induction_on h _ _ _ _,
-  { use ∅, simp [superset] },
-  { rintro s t hst ⟨U, htU, hUo, hU⟩, exact ⟨U, hst.trans htU, hUo, hU⟩ },
-  { rintro s t ⟨U, hsU, hUo, hU⟩ ⟨V, htV, hVo, hV⟩,
-    refine ⟨U ∪ V, union_subset_union hsU htV, hUo.union hVo,
-      (measure_union_le _ _).trans_lt $ ennreal.add_lt_top.2 ⟨hU, hV⟩⟩ },
-  { intros x hx,
-    rcases (hμ x hx).exists_mem_basis (nhds_basis_opens _) with ⟨U, ⟨hx, hUo⟩, hU⟩,
-    exact ⟨U, nhds_within_le_nhds (hUo.mem_nhds hx), U, subset.rfl, hUo, hU⟩ }
-end
-
-/-- If `s` is a compact set and `μ` is a locally finite measure, then `s` admits an open superset of
-finite measure. -/
-lemma is_compact.exists_open_superset_measure_lt_top [topological_space α]
-  {s : set α} (μ : measure α) [is_locally_finite_measure μ] (h : is_compact s) :
-  ∃ U ⊇ s, is_open U ∧ μ U < ∞ :=
-h.exists_open_superset_measure_lt_top' $ λ x hx, μ.finite_at_nhds x
-
-lemma is_compact.measure_lt_top_of_nhds_within [topological_space α]
-  {s : set α} {μ : measure α} (h : is_compact s) (hμ : ∀ x ∈ s, μ.finite_at_filter (𝓝[s] x)) :
-  μ s < ∞ :=
-is_compact.induction_on h (by simp) (λ s t hst ht, (measure_mono hst).trans_lt ht)
-  (λ s t hs ht, (measure_union_le s t).trans_lt (ennreal.add_lt_top.2 ⟨hs, ht⟩)) hμ
-
-lemma is_compact.measure_lt_top [topological_space α] {s : set α} {μ : measure α}
-  [is_locally_finite_measure μ] (h : is_compact s) :
-  μ s < ∞ :=
-h.measure_lt_top_of_nhds_within $ λ x hx, μ.finite_at_nhds_within _ _
-
-/-- Compact covering of a `σ`-compact topological space as
-`measure_theory.measure.finite_spanning_sets_in`. -/
-def measure_theory.measure.finite_spanning_sets_in_compact [topological_space α]
-  [sigma_compact_space α] (μ : measure α) [is_locally_finite_measure μ] :
-  μ.finite_spanning_sets_in {K | is_compact K} :=
-{ set := compact_covering α,
-  set_mem := is_compact_compact_covering α,
-  finite := λ n, (is_compact_compact_covering α n).measure_lt_top,
-  spanning := Union_compact_covering α }
-
-/-- A locally finite measure on a `σ`-compact topological space admits a finite spanning sequence
-of open sets. -/
-def measure_theory.measure.finite_spanning_sets_in_open [topological_space α]
-  [sigma_compact_space α] (μ : measure α) [is_locally_finite_measure μ] :
-  μ.finite_spanning_sets_in {K | is_open K} :=
-{ set := λ n, ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some,
-  set_mem := λ n,
-    ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.snd.1,
-  finite := λ n,
-    ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.snd.2,
-  spanning := eq_univ_of_subset (Union_subset_Union $ λ n,
-    ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.fst)
-    (Union_compact_covering α) }

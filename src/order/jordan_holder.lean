@@ -43,6 +43,23 @@ Two `composition_series X`, `s₁` and `s₂` are equivalent if there is a bijec
 The main theorem is `composition_series.jordan_holder`, which says that if two composition
 series have the same least element and the same largest element,
 then they are `equivalent`.
+
+## TODO
+
+Provide instances of `jordan_holder_lattice` for both submodules and subgroups, and potentially
+for modular lattices.
+
+It is not entirely clear how this should be done. Possibly there should be no global instances
+of `jordan_holder_lattice`, and the instances should only be defined locally in order to prove
+the Jordan-Hölder theorem for modules/groups and the API should be transferred because many of the
+theorems in this file will have stronger versions for modules. There will also nned to be an API for
+mapping composition series across homomorphisms. It is also probably possible to
+provide an instance of `jordan_holder_lattice` for any `modular_lattice`, and in this case the
+Jordan-Hölder theorem will say that there is a well defined notion of length of a modular lattice.
+However an instance of `jordan_holder_lattice` for a modular lattice will not be able to contain
+the correct notion of isomorphism for modules, so a seperate instance for modules will still be
+required and this will clash with the instance for modular lattices, and so at least one of these
+instances should not be a global instance.
 -/
 
 universe u

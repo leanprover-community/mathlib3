@@ -22,7 +22,7 @@ is that when `C = Type`, filtered colimits commute with finite limits.
 * [Stacks: Filtered colimits](https://stacks.math.columbia.edu/tag/002W)
 -/
 
-universes v u
+universes v₂ v u
 
 open category_theory
 
@@ -100,7 +100,8 @@ variables (G : J ⥤ K ⥤ C) [has_limit G]
 For a functor `G : J ⥤ K ⥤ C`, its limit `K ⥤ C` is given by `(G' : K ⥤ J ⥤ C) ⋙ lim`.
 Note that this does not require `K` to be small.
 -/
-@[simps] def limit_iso_swap_comp_lim : limit G ≅ curry.obj (swap K J ⋙ uncurry.obj G) ⋙ lim :=
+@[simps] def limit_iso_swap_comp_lim {K : Type v} [category.{v₂} K] (G : J ⥤ K ⥤ C) [has_limit G] :
+  limit G ≅ curry.obj (swap K J ⋙ uncurry.obj G) ⋙ lim :=
 nat_iso.of_components (λ Y, limit_obj_iso_limit_comp_evaluation G Y ≪≫
   (lim.map_iso (eq_to_iso (by
   { apply functor.hext,

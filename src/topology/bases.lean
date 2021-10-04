@@ -216,6 +216,11 @@ begin
       image_subset_iff.2 hvu⟩ }
 end
 
+protected lemma is_topological_basis.continuous {β : Type*} [topological_space β]
+  {B : set (set β)} (hB : is_topological_basis B) (f : α → β) (hf : ∀ s ∈ B, is_open (f ⁻¹' s)) :
+  continuous f :=
+begin rw hB.eq_generate_from, exact continuous_generated_from hf end
+
 variables (α)
 
 /-- A separable space is one with a countable dense subset, available through
@@ -341,6 +346,13 @@ protected lemma dense_range.separable_space {α β : Type*} [topological_space �
   separable_space β :=
 let ⟨s, s_cnt, s_dense⟩ := exists_countable_dense α in
 ⟨⟨f '' s, countable.image s_cnt f, h.dense_image h' s_dense⟩⟩
+
+lemma dense.exists_countable_dense_subset {α : Type*} [topological_space α]
+  {s : set α} [separable_space s] (hs : dense s) :
+  ∃ t ⊆ s, countable t ∧ dense t :=
+let ⟨t, htc, htd⟩ := exists_countable_dense s
+in ⟨coe '' t, image_subset_iff.2 $ λ x _, mem_preimage.2 $ subtype.coe_prop _, htc.image coe,
+  hs.dense_range_coe.dense_image continuous_subtype_val htd⟩
 
 namespace topological_space
 universe u

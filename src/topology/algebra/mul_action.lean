@@ -162,25 +162,25 @@ section group_with_zero
 variables {G₀ : Type*} [topological_space G₀] [group_with_zero G₀] [mul_action G₀ α]
   [has_continuous_smul G₀ α]
 
-lemma tendsto_const_smul_iff' {f : β → α} {l : filter β} {a : α} {c : G₀} (hc : c ≠ 0) :
+lemma tendsto_const_smul_iff₀ {f : β → α} {l : filter β} {a : α} {c : G₀} (hc : c ≠ 0) :
   tendsto (λ x, c • f x) l (𝓝 $ c • a) ↔ tendsto f l (𝓝 a) :=
 tendsto_const_smul_iff (units.mk0 c hc)
 
 variables [topological_space β] {f : β → α} {b : β} {c : G₀} {s : set β}
 
-lemma continuous_within_at_const_smul_iff' (hc : c ≠ 0) :
+lemma continuous_within_at_const_smul_iff₀ (hc : c ≠ 0) :
   continuous_within_at (λ x, c • f x) s b ↔ continuous_within_at f s b :=
 tendsto_const_smul_iff (units.mk0 c hc)
 
-lemma continuous_on_const_smul_iff' (hc : c ≠ 0) :
+lemma continuous_on_const_smul_iff₀ (hc : c ≠ 0) :
   continuous_on (λ x, c • f x) s ↔ continuous_on f s :=
 continuous_on_const_smul_iff (units.mk0 c hc)
 
-lemma continuous_at_const_smul_iff' (hc : c ≠ 0) :
+lemma continuous_at_const_smul_iff₀ (hc : c ≠ 0) :
   continuous_at (λ x, c • f x) b ↔ continuous_at f b :=
 continuous_at_const_smul_iff (units.mk0 c hc)
 
-lemma continuous_const_smul_iff' (hc : c ≠ 0) :
+lemma continuous_const_smul_iff₀ (hc : c ≠ 0) :
   continuous (λ x, c • f x) ↔ continuous f :=
 continuous_const_smul_iff (units.mk0 c hc)
 
@@ -189,14 +189,14 @@ homeomorphism from `α` onto itself. -/
 protected def homeomorph.smul_of_ne_zero (c : G₀) (hc : c ≠ 0) : α ≃ₜ α :=
 homeomorph.smul (units.mk0 c hc)
 
-lemma is_open_map_smul' {c : G₀} (hc : c ≠ 0) : is_open_map (λ x : α, c • x) :=
+lemma is_open_map_smul₀ {c : G₀} (hc : c ≠ 0) : is_open_map (λ x : α, c • x) :=
 (homeomorph.smul_of_ne_zero c hc).is_open_map
 
 /-- `smul` is a closed map in the second argument.
 
 The lemma that `smul` is a closed map in the first argument (for a normed space over a complete
 normed field) is `is_closed_map_smul_left` in `analysis.normed_space.finite_dimension`. -/
-lemma is_closed_map_smul' {c : G₀} (hc : c ≠ 0) : is_closed_map (λ x : α, c • x) :=
+lemma is_closed_map_smul₀ {c : G₀} (hc : c ≠ 0) : is_closed_map (λ x : α, c • x) :=
 (homeomorph.smul_of_ne_zero c hc).is_closed_map
 
 end group_with_zero

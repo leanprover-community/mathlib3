@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import data.dfinsupp
+import data.equiv.module
 import data.finsupp.basic
-import algebra.module.linear_map
 
 /-!
 # Conversion between `finsupp` and homogenous `dfinsupp`
@@ -123,7 +123,7 @@ namespace finsupp
 
 @[simp] lemma to_dfinsupp_sub [add_group M] (f g : ι →₀ M) :
   (f - g).to_dfinsupp = f.to_dfinsupp - g.to_dfinsupp :=
-dfinsupp.coe_fn_injective (sub_eq_add_neg _ _)
+dfinsupp.coe_fn_injective rfl
 
 @[simp] lemma to_dfinsupp_smul [monoid R] [add_monoid M] [distrib_mul_action R M]
   (r : R) (f : ι →₀ M) : (r • f).to_dfinsupp = r • f.to_dfinsupp :=

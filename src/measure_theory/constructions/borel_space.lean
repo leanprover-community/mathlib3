@@ -199,6 +199,15 @@ instance subtype.opens_measurable_space {α : Type*} [topological_space α] [mea
   opens_measurable_space s :=
 ⟨by { rw [borel_comap], exact comap_mono h.1 }⟩
 
+theorem _root_.measurable_set.induction_on_open [topological_space α] [measurable_space α]
+  [borel_space α] {C : set α → Prop} (h_open : ∀ U, is_open U → C U)
+  (h_compl : ∀ t, measurable_set t → C t → C tᶜ)
+  (h_union : ∀ f : ℕ → set α, pairwise (disjoint on f) →
+    (∀ i, measurable_set (f i)) → (∀ i, C (f i)) → C (⋃ i, f i)) :
+  ∀ ⦃t⦄, measurable_set t → C t :=
+measurable_space.induction_on_inter borel_space.measurable_eq is_pi_system_is_open
+  (h_open _ is_open_empty) h_open h_compl h_union
+
 section
 variables [topological_space α] [measurable_space α] [opens_measurable_space α]
    [topological_space β] [measurable_space β] [opens_measurable_space β]
@@ -537,10 +546,10 @@ lemma continuous.ae_measurable2 [second_countable_topology α] [second_countable
 h.measurable.comp_ae_measurable (hf.prod_mk hg)
 
 @[priority 100]
-instance has_continuous_inv'.has_measurable_inv [group_with_zero γ] [t1_space γ]
-  [has_continuous_inv' γ] :
+instance has_continuous_inv₀.has_measurable_inv [group_with_zero γ] [t1_space γ]
+  [has_continuous_inv₀ γ] :
   has_measurable_inv γ :=
-⟨measurable_of_continuous_on_compl_singleton 0 continuous_on_inv'⟩
+⟨measurable_of_continuous_on_compl_singleton 0 continuous_on_inv₀⟩
 
 @[priority 100, to_additive]
 instance has_continuous_mul.has_measurable_mul₂ [second_countable_topology γ] [has_mul γ]
@@ -803,28 +812,26 @@ begin
   exact ⟨hg.exists.some, hg.mono (λ y hy, is_glb.unique hy hg.exists.some_spec)⟩,
 end
 
-lemma measurable_of_monotone [linear_order β] [order_closed_topology β] {f : β → α}
+protected lemma monotone.measurable [linear_order β] [order_closed_topology β] {f : β → α}
   (hf : monotone f) : measurable f :=
 suffices h : ∀ x, ord_connected (f ⁻¹' Ioi x),
   from measurable_of_Ioi (λ x, (h x).measurable_set),
 λ x, ord_connected_def.mpr (λ a ha b hb c hc, lt_of_lt_of_le ha (hf hc.1))
 
-alias measurable_of_monotone ← monotone.measurable
-
 lemma ae_measurable_restrict_of_monotone_on [linear_order β] [order_closed_topology β]
-  {μ : measure β} {s : set β} (hs : measurable_set s) {f : β → α}
-  (hf : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f x ≤ f y) : ae_measurable f (μ.restrict s) :=
+  {μ : measure β} {s : set β} (hs : measurable_set s) {f : β → α} (hf : monotone_on f s) :
+  ae_measurable f (μ.restrict s) :=
 have this : monotone (f ∘ coe : s → α), from λ ⟨x, hx⟩ ⟨y, hy⟩ (hxy : x ≤ y), hf hx hy hxy,
 ae_measurable_restrict_of_measurable_subtype hs this.measurable
 
-lemma measurable_of_antimono [linear_order β] [order_closed_topology β] {f : β → α}
-  (hf : ∀ ⦃x y : β⦄, x ≤ y → f y ≤ f x) :
+protected lemma antitone.measurable [linear_order β] [order_closed_topology β] {f : β → α}
+  (hf : antitone f) :
   measurable f :=
-@measurable_of_monotone (order_dual α) β _ _ ‹_› _ _ _ _ _ ‹_› _ _ _ hf
+@monotone.measurable (order_dual α) β _ _ ‹_› _ _ _ _ _ ‹_› _ _ _ hf
 
-lemma ae_measurable_restrict_of_antimono_on [linear_order β] [order_closed_topology β]
-  {μ : measure β} {s : set β} (hs : measurable_set s) {f : β → α}
-  (hf : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f y ≤ f x) : ae_measurable f (μ.restrict s) :=
+lemma ae_measurable_restrict_of_antitone_on [linear_order β] [order_closed_topology β]
+  {μ : measure β} {s : set β} (hs : measurable_set s) {f : β → α} (hf : antitone_on f s) :
+  ae_measurable f (μ.restrict s) :=
 @ae_measurable_restrict_of_monotone_on (order_dual α) β _ _ ‹_› _ _ _ _ _ ‹_› _ _ _ _ hs _ hf
 
 end linear_order
@@ -1105,11 +1112,9 @@ def finite_spanning_sets_in_Ioo_rat (μ : measure ℝ) [is_locally_finite_measur
       refine ⟨-(n + 1), n + 1, _, by norm_cast⟩,
       exact (neg_nonpos.2 (@nat.cast_nonneg ℚ _ (n + 1))).trans_lt n.cast_add_one_pos
     end,
-  finite := λ n,
-    calc μ (Ioo _ _) ≤ μ (Icc _ _) : μ.mono Ioo_subset_Icc_self
-                 ... < ∞           : is_compact_Icc.is_finite_measure,
+  finite := λ n, measure_Ioo_lt_top,
   spanning := Union_eq_univ_iff.2 $ λ x,
-    ⟨⌊abs x⌋₊, neg_lt.1 ((neg_le_abs_self x).trans_lt (lt_nat_floor_add_one _)),
+    ⟨⌊|x|⌋₊, neg_lt.1 ((neg_le_abs_self x).trans_lt (lt_nat_floor_add_one _)),
       (le_abs_self x).trans_lt (lt_nat_floor_add_one _)⟩ }
 
 lemma measure_ext_Ioo_rat {μ ν : measure ℝ} [is_locally_finite_measure μ]
@@ -1415,7 +1420,7 @@ variables [measurable_space β] [metric_space β] [borel_space β]
 open metric
 
 /-- A limit (over a general filter) of measurable `ℝ≥0` valued functions is measurable.
-The assumption `hs` can be dropped using `filter.is_countably_generated.has_antimono_basis`, but we
+The assumption `hs` can be dropped using `filter.is_countably_generated.has_antitone_basis`, but we
 don't need that case yet. -/
 lemma measurable_of_tendsto_nnreal' {ι ι'} {f : ι → α → ℝ≥0} {g : α → ℝ≥0} (u : filter ι)
   [ne_bot u] (hf : ∀ i, measurable (f i)) (lim : tendsto f u (𝓝 g)) {p : ι' → Prop}
@@ -1435,7 +1440,7 @@ lemma measurable_of_tendsto_nnreal {f : ℕ → α → ℝ≥0} {g : α → ℝ�
 measurable_of_tendsto_nnreal' at_top hf lim at_top_countable_basis (λ i, countable_encodable _)
 
 /-- A limit (over a general filter) of measurable functions valued in a metric space is measurable.
-The assumption `hs` can be dropped using `filter.is_countably_generated.has_antimono_basis`, but we
+The assumption `hs` can be dropped using `filter.is_countably_generated.has_antitone_basis`, but we
 don't need that case yet. -/
 lemma measurable_of_tendsto_metric' {ι ι'} {f : ι → α → β} {g : α → β}
   (u : filter ι) [ne_bot u] (hf : ∀ i, measurable (f i)) (lim : tendsto f u (𝓝 g)) {p : ι' → Prop}
@@ -1595,14 +1600,3 @@ lemma ae_measurable_smul_const {f : α → 𝕜} {μ : measure α} {c : E} (hc :
 ae_measurable_comp_iff_of_closed_embedding (λ y : 𝕜, y • c) (closed_embedding_smul_left hc)
 
 end normed_space
-
-lemma is_compact.measure_lt_top_of_nhds_within [topological_space α]
-  {s : set α} {μ : measure α} (h : is_compact s) (hμ : ∀ x ∈ s, μ.finite_at_filter (𝓝[s] x)) :
-  μ s < ∞ :=
-is_compact.induction_on h (by simp) (λ s t hst ht, (measure_mono hst).trans_lt ht)
-  (λ s t hs ht, (measure_union_le s t).trans_lt (ennreal.add_lt_top.2 ⟨hs, ht⟩)) hμ
-
-lemma is_compact.measure_lt_top [topological_space α] {s : set α} {μ : measure α}
-  [is_locally_finite_measure μ] (h : is_compact s) :
-  μ s < ∞ :=
-h.measure_lt_top_of_nhds_within $ λ x hx, μ.finite_at_nhds_within _ _

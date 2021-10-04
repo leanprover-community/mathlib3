@@ -4,10 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import algebraic_geometry.sheafed_space
-import algebra.category.CommRing.limits
-import algebra.category.CommRing.colimits
-import algebraic_geometry.stalks
+import algebraic_geometry.ringed_space
 import data.equiv.transfer_instance
 
 /-!
@@ -45,6 +42,12 @@ attribute [instance] LocallyRingedSpace.local_ring
 namespace LocallyRingedSpace
 
 variables (X : LocallyRingedSpace)
+
+/--
+An alias for `to_SheafedSpace`, where the result type is a `RingedSpace`.
+This allows us to use dot-notation for the `RingedSpace` namespace.
+ -/
+def to_RingedSpace : RingedSpace := X.to_SheafedSpace
 
 /-- The underlying topological space of a locally ringed space. -/
 def to_Top : Top := X.1.carrier

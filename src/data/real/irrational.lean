@@ -192,7 +192,7 @@ theorem of_inv (h : irrational x⁻¹) : irrational x :=
 λ ⟨q, hq⟩, h $ hq ▸ ⟨q⁻¹, q.cast_inv⟩
 
 protected theorem inv (h : irrational x) : irrational x⁻¹ :=
-of_inv $ by rwa inv_inv'
+of_inv $ by rwa inv_inv₀
 
 theorem div_cases (h : irrational (x / y)) : irrational x ∨ irrational y :=
 h.mul_cases.imp id of_inv

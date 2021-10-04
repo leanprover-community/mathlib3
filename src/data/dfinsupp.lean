@@ -171,11 +171,12 @@ def coe_fn_add_monoid_hom [Π i, add_zero_class (β i)] : (Π₀ i, β i) →+ (
 def eval_add_monoid_hom [Π i, add_zero_class (β i)] (i : ι) : (Π₀ i, β i) →+ β i :=
 (pi.eval_add_monoid_hom β i).comp coe_fn_add_monoid_hom
 
-instance [Π i, add_group (β i)] : has_neg (Π₀ i, β i) :=
-⟨λ f, f.map_range (λ _, has_neg.neg) (λ _, neg_zero)⟩
-
 instance [Π i, add_comm_monoid (β i)] : add_comm_monoid (Π₀ i, β i) :=
 { add_comm := λ f g, ext $ λ i, by simp only [add_apply, add_comm],
+  nsmul := λ n v, v.map_range (λ _, (•) n) (λ _, smul_zero _),
+  nsmul_zero' := λ n, ext $ λ i, by simp only [map_range_apply, zero_apply, zero_smul],
+  nsmul_succ' := λ n z, ext $ λ i, by simp only [map_range_apply, add_apply,
+    nat.succ_eq_one_add, add_smul, one_smul],
   .. dfinsupp.add_monoid }
 
 @[simp] lemma coe_finset_sum {α} [Π i, add_comm_monoid (β i)] (s : finset α) (g : α → Π₀ i, β i) :
@@ -187,27 +188,42 @@ instance [Π i, add_comm_monoid (β i)] : add_comm_monoid (Π₀ i, β i) :=
   (∑ a in s, g a) i = ∑ a in s, g a i :=
 (eval_add_monoid_hom i : _ →+ β i).map_sum g s
 
+instance [Π i, add_group (β i)] : has_neg (Π₀ i, β i) :=
+⟨λ f, f.map_range (λ _, has_neg.neg) (λ _, neg_zero)⟩
+
 lemma neg_apply [Π i, add_group (β i)] (g : Π₀ i, β i) (i : ι) : (- g) i = - g i :=
 map_range_apply _ _ g i
 
 @[simp] lemma coe_neg [Π i, add_group (β i)] (g : Π₀ i, β i) : ⇑(- g) = - g :=
 funext $ neg_apply g
 
-instance [Π i, add_group (β i)] : add_group (Π₀ i, β i) :=
-{ add_left_neg := λ f, ext $ λ i, by simp only [add_apply, neg_apply, zero_apply, add_left_neg],
-  .. dfinsupp.add_monoid,
-  .. (infer_instance : has_neg (Π₀ i, β i)) }
+instance [Π i, add_group (β i)] : has_sub (Π₀ i, β i) :=
+⟨zip_with (λ _, has_sub.sub) (λ _, sub_zero 0)⟩
 
 lemma sub_apply [Π i, add_group (β i)] (g₁ g₂ : Π₀ i, β i) (i : ι) :
   (g₁ - g₂) i = g₁ i - g₂ i :=
-by rw [sub_eq_add_neg]; simp [sub_eq_add_neg]
+zip_with_apply _ _ g₁ g₂ i
 
 @[simp] lemma coe_sub [Π i, add_group (β i)] (g₁ g₂ : Π₀ i, β i) :
   ⇑(g₁ - g₂) = g₁ - g₂ :=
 funext $ sub_apply g₁ g₂
 
+instance [Π i, add_group (β i)] : add_group (Π₀ i, β i) :=
+{ add_left_neg := λ f, ext $ λ i, by simp only [add_apply, neg_apply, zero_apply, add_left_neg],
+  sub_eq_add_neg := λ f g, ext $ λ i,
+    by simp only [sub_apply, add_apply, neg_apply, sub_eq_add_neg],
+  .. dfinsupp.add_monoid,
+  .. dfinsupp.has_sub,
+  .. dfinsupp.has_neg }
+
 instance [Π i, add_comm_group (β i)] : add_comm_group (Π₀ i, β i) :=
-{ add_comm := λ f g, ext $ λ i, by simp only [add_apply, add_comm],
+{ gsmul := λ n v, v.map_range (λ _, (•) n) (λ _, smul_zero _),
+  gsmul_neg' := λ n f, ext $ λ i, by
+    rw [neg_apply, map_range_apply, map_range_apply, gsmul_neg_succ_of_nat, nsmul_eq_smul_cast ℤ,
+      int.nat_cast_eq_coe_nat],
+  gsmul_zero' := λ n, ext $ λ i, by simp only [map_range_apply, zero_apply, zero_smul],
+  gsmul_succ' := λ n f, ext $ λ i, by simp [map_range_apply, add_smul, add_comm],
+  ..@dfinsupp.add_comm_monoid _ β _,
   ..dfinsupp.add_group }
 
 /-- Dependent functions with finite support inherit a semiring action from an action on each
@@ -487,6 +503,26 @@ begin
   simp,
 end
 
+lemma filter_single (p : ι → Prop) [decidable_pred p] (i : ι) (x : β i) :
+  (single i x).filter p = if p i then single i x else 0 :=
+begin
+  ext j,
+  have := apply_ite (λ x : Π₀ i, β i, x j) (p i) (single i x) 0,
+  dsimp at this,
+  rw [filter_apply, this],
+  obtain rfl | hij := decidable.eq_or_ne i j,
+  { refl, },
+  { rw [single_eq_of_ne hij, if_t_t, if_t_t], },
+end
+
+@[simp] lemma filter_single_pos {p : ι → Prop} [decidable_pred p] (i : ι) (x : β i) (h : p i) :
+  (single i x).filter p = single i x :=
+by rw [filter_single, if_pos h]
+
+@[simp] lemma filter_single_neg {p : ι → Prop} [decidable_pred p] (i : ι) (x : β i) (h : ¬p i) :
+  (single i x).filter p = 0 :=
+by rw [filter_single, if_neg h]
+
 /-- Equality of sigma types is sufficient (but not necessary) to show equality of `dfinsupp`s. -/
 lemma single_eq_of_sigma_eq
   {i j} {xi : β i} {xj : β j} (h : (⟨i, xi⟩ : sigma β) = ⟨j, xj⟩) :
@@ -510,6 +546,18 @@ by simp
 lemma erase_ne {i i' : ι} {f : Π₀ i, β i} (h : i' ≠ i) : (f.erase i) i' = f i' :=
 by simp [h]
 
+lemma erase_eq_sub_single {β : ι → Type*} [Π i, add_group (β i)] (f : Π₀ i, β i) (i : ι) :
+  f.erase i = f - single i (f i) :=
+begin
+  ext j,
+  rcases eq_or_ne i j with rfl|h,
+  { simp },
+  { simp [erase_ne h.symm, single_eq_of_ne h] }
+end
+
+@[simp] lemma erase_zero (i : ι) : erase i (0 : Π₀ i, β i) = 0 :=
+ext $ λ _, if_t_t _ _
+
 @[simp] lemma filter_ne_eq_erase (f : Π₀ i, β i) (i : ι) : f.filter (≠ i) = f.erase i :=
 begin
   ext1 j,
@@ -522,6 +570,16 @@ begin
   congr' with j,
   exact ne_comm,
 end
+
+lemma erase_single (j : ι) (i : ι) (x : β i) :
+  (single i x).erase j = if i = j then 0 else single i x :=
+by rw [←filter_ne_eq_erase, filter_single, ite_not]
+
+@[simp] lemma erase_single_same (i : ι) (x : β i) : (single i x).erase i = 0 :=
+by rw [erase_single, if_pos rfl]
+
+@[simp] lemma erase_single_ne {i j : ι} (x : β i) (h : i ≠ j) : (single i x).erase j = single i x :=
+by rw [erase_single, if_neg h]
 
 section update
 
@@ -565,6 +623,31 @@ begin
   { simp [hi.symm] }
 end
 
+lemma update_eq_single_add_erase {β : ι → Type*} [Π i, add_zero_class (β i)] (f : Π₀ i, β i) (i : ι)
+  (b : β i) [decidable (b = 0)] :
+  f.update i b = single i b + f.erase i :=
+begin
+  ext j,
+  rcases eq_or_ne i j with rfl|h,
+  { simp },
+  { simp [function.update_noteq h.symm, h, erase_ne, h.symm] }
+end
+
+lemma update_eq_erase_add_single {β : ι → Type*} [Π i, add_zero_class (β i)] (f : Π₀ i, β i) (i : ι)
+  (b : β i) [decidable (b = 0)] :
+  f.update i b = f.erase i + single i b :=
+begin
+  ext j,
+  rcases eq_or_ne i j with rfl|h,
+  { simp },
+  { simp [function.update_noteq h.symm, h, erase_ne, h.symm] }
+end
+
+lemma update_eq_sub_add_single {β : ι → Type*} [Π i, add_group (β i)] (f : Π₀ i, β i) (i : ι)
+  (b : β i) [decidable (b = 0)] :
+  f.update i b = f - single i (f i) + single i b :=
+by rw [update_eq_erase_add_single f i b, erase_eq_sub_single f i]
+
 end update
 
 end basic
@@ -581,13 +664,36 @@ begin
   { simp only [add_apply, single_eq_of_ne h, zero_add] }
 end
 
+@[simp] lemma erase_add (i : ι) (f₁ f₂ : Π₀ i, β i) : erase i (f₁ + f₂) = erase i f₁ + erase i f₂ :=
+ext $ λ _, by simp [ite_zero_add]
+
 variables (β)
 
 /-- `dfinsupp.single` as an `add_monoid_hom`. -/
 @[simps] def single_add_hom (i : ι) : β i →+ Π₀ i, β i :=
 { to_fun := single i, map_zero' := single_zero i, map_add' := single_add i }
 
+/-- `dfinsupp.erase` as an `add_monoid_hom`. -/
+@[simps] def erase_add_hom (i : ι) : (Π₀ i, β i) →+ Π₀ i, β i :=
+{ to_fun := erase i, map_zero' := erase_zero i, map_add' := erase_add i }
+
 variables {β}
+
+@[simp] lemma single_neg {β : ι → Type v} [Π i, add_group (β i)] (i : ι) (x : β i) :
+  single i (-x) = -single i x :=
+(single_add_hom β i).map_neg x
+
+@[simp] lemma single_sub {β : ι → Type v} [Π i, add_group (β i)] (i : ι) (x y : β i) :
+  single i (x - y) = single i x - single i y :=
+(single_add_hom β i).map_sub x y
+
+@[simp] lemma erase_neg {β : ι → Type v} [Π i, add_group (β i)] (i : ι) (f : Π₀ i, β i) :
+  (-f).erase i = -f.erase i :=
+(erase_add_hom β i).map_neg f
+
+@[simp] lemma erase_sub {β : ι → Type v} [Π i, add_group (β i)] (i : ι) (f g : Π₀ i, β i) :
+  (f - g).erase i = f.erase i - g.erase i :=
+(erase_add_hom β i).map_sub f g
 
 lemma single_add_erase (i : ι) (f : Π₀ i, β i) : single i (f i) + f.erase i = f :=
 ext $ λ i',
@@ -1108,33 +1214,62 @@ begin
 end
 
 /-- The supremum of a family of commutative additive submonoids is equal to the range of
-`finsupp.sum_add_hom`; that is, every element in the `supr` can be produced from taking a finite
-number of non-zero elements of `p i`, coercing them to `γ`, and summing them. -/
+`dfinsupp.sum_add_hom`; that is, every element in the `supr` can be produced from taking a finite
+number of non-zero elements of `S i`, coercing them to `γ`, and summing them. -/
 lemma _root_.add_submonoid.supr_eq_mrange_dfinsupp_sum_add_hom [add_comm_monoid γ]
-  (p : ι → add_submonoid γ) : supr p = (dfinsupp.sum_add_hom (λ i, (p i).subtype)).mrange :=
+  (S : ι → add_submonoid γ) : supr S = (dfinsupp.sum_add_hom (λ i, (S i).subtype)).mrange :=
 begin
   apply le_antisymm,
   { apply supr_le _,
     intros i y hy,
     exact ⟨dfinsupp.single i ⟨y, hy⟩, dfinsupp.sum_add_hom_single _ _ _⟩, },
   { rintros x ⟨v, rfl⟩,
-    exact add_submonoid.dfinsupp_sum_add_hom_mem _ v _ (λ i _, (le_supr p i : p i ≤ _) (v i).prop) }
+    exact add_submonoid.dfinsupp_sum_add_hom_mem _ v _ (λ i _, (le_supr S i : S i ≤ _) (v i).prop) }
+end
+
+/-- The bounded supremum of a family of commutative additive submonoids is equal to the range of
+`dfinsupp.sum_add_hom` composed with `dfinsupp.filter_add_monoid_hom`; that is, every element in the
+bounded `supr` can be produced from taking a finite number of non-zero elements from the `S i` that
+satisfy `p i`, coercing them to `γ`, and summing them. -/
+lemma _root_.add_submonoid.bsupr_eq_mrange_dfinsupp_sum_add_hom (p : ι → Prop)
+  [decidable_pred p] [add_comm_monoid γ] (S : ι → add_submonoid γ) :
+  (⨆ i (h : p i), S i) =
+    ((sum_add_hom (λ i, (S i).subtype)).comp (filter_add_monoid_hom _ p)).mrange :=
+begin
+  apply le_antisymm,
+  { apply bsupr_le _,
+    intros i hi y hy,
+    refine ⟨dfinsupp.single i ⟨y, hy⟩, _⟩,
+    rw [add_monoid_hom.comp_apply, filter_add_monoid_hom_apply, filter_single_pos _ _ hi],
+    exact sum_add_hom_single _ _ _, },
+  { rintros x ⟨v, rfl⟩,
+    refine add_submonoid.dfinsupp_sum_add_hom_mem _ _ _ (λ i hi, _),
+    refine add_submonoid.mem_supr_of_mem i _,
+    by_cases hp : p i,
+    { simp [hp], },
+    { simp [hp] }, }
 end
 
 lemma _root_.add_submonoid.mem_supr_iff_exists_dfinsupp [add_comm_monoid γ]
-  (p : ι → add_submonoid γ) (x : γ) :
-  x ∈ supr p ↔ ∃ f : Π₀ i, p i, dfinsupp.sum_add_hom (λ i, (p i).subtype) f = x :=
-set_like.ext_iff.mp (add_submonoid.supr_eq_mrange_dfinsupp_sum_add_hom p) x
+  (S : ι → add_submonoid γ) (x : γ) :
+  x ∈ supr S ↔ ∃ f : Π₀ i, S i, dfinsupp.sum_add_hom (λ i, (S i).subtype) f = x :=
+set_like.ext_iff.mp (add_submonoid.supr_eq_mrange_dfinsupp_sum_add_hom S) x
 
 /-- A variant of `add_submonoid.mem_supr_iff_exists_dfinsupp` with the RHS fully unfolded. -/
 lemma _root_.add_submonoid.mem_supr_iff_exists_dfinsupp' [add_comm_monoid γ]
-  (p : ι → add_submonoid γ) [Π i (x : p i), decidable (x ≠ 0)] (x : γ) :
-  x ∈ supr p ↔ ∃ f : Π₀ i, p i, f.sum (λ i xi, ↑xi) = x :=
+  (S : ι → add_submonoid γ) [Π i (x : S i), decidable (x ≠ 0)] (x : γ) :
+  x ∈ supr S ↔ ∃ f : Π₀ i, S i, f.sum (λ i xi, ↑xi) = x :=
 begin
   rw add_submonoid.mem_supr_iff_exists_dfinsupp,
   simp_rw sum_add_hom_apply,
   congr',
 end
+
+lemma _root_.add_submonoid.mem_bsupr_iff_exists_dfinsupp (p : ι → Prop)
+  [decidable_pred p] [add_comm_monoid γ] (S : ι → add_submonoid γ) (x : γ) :
+  x ∈ (⨆ i (h : p i), S i) ↔
+    ∃ f : Π₀ i, S i, dfinsupp.sum_add_hom (λ i, (S i).subtype) (f.filter p) = x :=
+set_like.ext_iff.mp (add_submonoid.bsupr_eq_mrange_dfinsupp_sum_add_hom p S) x
 
 omit dec
 lemma sum_add_hom_comm {ι₁ ι₂ : Sort*} {β₁ : ι₁ → Type*} {β₂ : ι₂ → Type*} {γ : Type*}

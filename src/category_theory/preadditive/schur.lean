@@ -6,7 +6,7 @@ Authors: Markus Himmel, Scott Morrison
 import category_theory.simple
 import category_theory.linear
 import category_theory.endomorphism
-import field_theory.algebraic_closure
+import field_theory.is_alg_closed.basic
 
 /-!
 # Schur's lemma

@@ -244,7 +244,7 @@ variables
 {M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂]
 {M₃ : Type*} [topological_space M₃] [add_comm_monoid M₃]
 {M₄ : Type*} [topological_space M₄] [add_comm_monoid M₄]
-[module R₁ M₁] [module R₂ M₂] [module R₃ M₃] --[module R M₄]
+[module R₁ M₁] [module R₂ M₂] [module R₃ M₃]
 
 /-- Coerce continuous linear maps to linear maps. -/
 instance : has_coe (M₁ →SL[σ₁₂] M₂) (M₁ →ₛₗ[σ₁₂] M₂) := ⟨to_linear_map⟩
@@ -416,8 +416,8 @@ instance : add_comm_monoid (M₁ →SL[σ₁₂] M₂) :=
     { to_fun := λ x, n • (f x),
       map_add' := by simp,
       map_smul' := by simp [smul_comm n] },
-  nsmul_zero' := λ f, by { ext, simp }, -- SLFIXME nonterminal simp, why need the `refl`?
-  nsmul_succ' := λ n f, by { ext, simp [nat.succ_eq_one_add, add_smul], refl } } -- SLFIXME
+  nsmul_zero' := λ f, by { ext, simp },
+  nsmul_succ' := λ n f, by { ext, simp [nat.succ_eq_one_add, add_smul] } }
 
 @[simp, norm_cast] lemma coe_sum {ι : Type*} (t : finset ι) (f : ι → M₁ →SL[σ₁₂] M₂) :
   ↑(∑ d in t, f d) = (∑ d in t, f d : M₁ →ₛₗ[σ₁₂] M₂) :=
@@ -773,7 +773,7 @@ variables
 {M₃ : Type*} [topological_space M₃] [add_comm_group M₃]
 {M₄ : Type*} [topological_space M₄] [add_comm_group M₄]
 [module R M] [module R₂ M₂]
-{σ₁₂ : R →+* R₂} --{σ₂₁ : R₂ →+* R}
+{σ₁₂ : R →+* R₂}
 
 section
 variables (f g : M →SL[σ₁₂] M₂) (x y : M)
@@ -841,10 +841,9 @@ by refine
     { to_fun := λ x, n • (f x),
       map_add' := by simp,
       map_smul' := by simp [smul_comm n] },
-  gsmul_zero' := λ f, by { ext, simp, refl }, -- SLFIXME nonterminal simp, why need refl here?
-  gsmul_succ' := λ n f, by { ext, simp [add_smul, add_comm], refl },
-  gsmul_neg' := λ n f, by { ext, change -[1+ n] • f x = - (↑(n.succ) • f x),
-    simp [nat.succ_eq_add_one, add_smul] }, -- SLFIXME why need change?
+  gsmul_zero' := λ f, by { ext, simp },
+  gsmul_succ' := λ n f, by { ext, simp [add_smul, add_comm] },
+  gsmul_neg' := λ n f, by { ext, simp [nat.succ_eq_add_one, add_smul] },
   .. continuous_linear_map.add_comm_monoid, .. };
 intros; ext; apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm, sub_eq_add_neg]
 
@@ -1062,7 +1061,7 @@ variables {R₁ : Type*} [semiring R₁]
 {M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂]
 {M₃ : Type*} [topological_space M₃] [add_comm_monoid M₃]
 {M₄ : Type*} [topological_space M₄] [add_comm_monoid M₄]
-[module R₁ M₁] [module R₂ M₂] [module R₃ M₃] --[module R M₄]
+[module R₁ M₁] [module R₂ M₂] [module R₃ M₃]
 {σ₁₂ : R₁ →+* R₂} {σ₂₁ : R₂ →+* R₁} [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
 {σ₂₃ : R₂ →+* R₃} {σ₃₂ : R₃ →+* R₂} [ring_hom_inv_pair σ₂₃ σ₃₂] [ring_hom_inv_pair σ₃₂ σ₂₃]
 {σ₁₃ : R₁ →+* R₃} {σ₃₁ : R₃ →+* R₁} [ring_hom_inv_pair σ₁₃ σ₃₁] [ring_hom_inv_pair σ₃₁ σ₁₃]

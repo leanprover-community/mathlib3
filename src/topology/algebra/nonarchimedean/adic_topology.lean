@@ -138,7 +138,7 @@ H = J.adic_topology
 
 /-- A topological ring is `J`-adic if and only if it admits the powers of `J` as a basis of
 open neighborhoods of zero. -/
-lemma is_ideal_adic_iff [top : topological_space R] [topological_ring R] {J : ideal R} :
+lemma is_adic_iff [top : topological_space R] [topological_ring R] {J : ideal R} :
   is_adic J ↔ (∀ n : ℕ, is_open ((J^n : ideal R) : set R)) ∧
               (∀ s ∈ 𝓝 (0 : R), ∃ n : ℕ, ((J^n : ideal R) : set R) ⊆ s) :=
 begin

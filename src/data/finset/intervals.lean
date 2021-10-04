@@ -175,7 +175,7 @@ begin
   split,
   { rintros ⟨j, ⟨hjk, hjm⟩, rfl⟩,
     split,
-    { simp only [← nat.add_sub_add_right n 1 j, nat.sub_le_sub_left, hjm] },
+    { simp only [← add_sub_add_right_eq_sub' n 1 j, nat.sub_le_sub_left, hjm] },
     { exact nat.sub_le_sub_left _ hjk } },
   { rintros ⟨hm, hk⟩,
     have hj : j ≤ n := le_trans hk (nat.sub_le_self _ _),

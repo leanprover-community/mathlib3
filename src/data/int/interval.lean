@@ -95,6 +95,15 @@ by { change (finset.map _ _).card = _, rw [finset.card_map, finset.card_range] }
 @[simp] lemma card_Ioo : (Ioo a b).card = (b - a - 1).to_nat :=
 by { change (finset.map _ _).card = _, rw [finset.card_map, finset.card_range] }
 
+lemma card_Icc_of_le (h : a ≤ b + 1) : ((Icc a b).card : ℤ) = b + 1 - a :=
+by rw [card_Icc, to_nat_sub_of_le h]
+
+lemma card_Ioc_of_le (h : a ≤ b) : ((Ioc a b).card : ℤ) = b - a :=
+by rw [card_Ioc, to_nat_sub_of_le h]
+
+lemma card_Ioo_of_lt (h : a < b) : ((Ioo a b).card : ℤ) = b - a - 1 :=
+by rw [card_Ioo, sub_sub, to_nat_sub_of_le h]
+
 @[simp] lemma card_fintype_Icc : fintype.card (set.Icc a b) = (b + 1 - a).to_nat :=
 by rw [←card_Icc, fintype.card_of_finset]
 
@@ -103,5 +112,14 @@ by rw [←card_Ioc, fintype.card_of_finset]
 
 @[simp] lemma card_fintype_Ioo : fintype.card (set.Ioo a b) = (b - a - 1).to_nat :=
 by rw [←card_Ioo, fintype.card_of_finset]
+
+lemma card_fintype_Icc_of_le (h : a ≤ b + 1) : (fintype.card (set.Icc a b) : ℤ) = b + 1 - a :=
+by rw [card_fintype_Icc, to_nat_sub_of_le h]
+
+lemma card_fintype_Ioc_of_le (h : a ≤ b) : (fintype.card (set.Ioc a b) : ℤ) = b - a :=
+by rw [card_fintype_Ioc, to_nat_sub_of_le h]
+
+lemma card_fintype_Ioo_of_lt (h : a < b) : (fintype.card (set.Ioo a b) : ℤ) = b - a - 1 :=
+by rw [card_fintype_Ioo, sub_sub, to_nat_sub_of_le h]
 
 end int

@@ -66,7 +66,8 @@ noncomputable theory
 universe u
 
 open metric set filter fin measure_theory topological_space
-open_locale topological_space classical big_operators ennreal
+open_locale topological_space classical big_operators ennreal measure_theory
+
 
 /-!
 ### Satellite configurations
@@ -461,8 +462,12 @@ begin
     exact ⟨⟨p.color a, p.color_lt ha.1 hN⟩, p.index a, ⟨a, rfl, ha.1, rfl⟩, ha.2⟩ }
 end
 
+/-!
+### Measurable Besicovitch covering theorems
+-/
+
 lemma exist_finset_disjoint_balls_large_measure
-  [second_countable_topology α] [measurable_space α] [borel_space α]
+  [second_countable_topology α] [measurable_space α] [opens_measurable_space α]
   (μ : measure α) [is_finite_measure μ] {N : ℕ} {τ : ℝ}
   (hτ : 1 < τ) (hN : is_empty (satellite_config α N τ)) (s : set α) (smeas : measurable_set s)
   (r : α → ℝ) (rpos : ∀ x ∈ s, 0 < r x) (rle : ∀ x ∈ s, r x ≤ 1) :
@@ -477,8 +482,10 @@ begin
   casesI is_empty_or_nonempty α,
   { simp only [eq_empty_of_is_empty s, measure_empty] at hμs,
     exact (lt_irrefl _ hμs).elim },
-  inhabit α,
-  have Npos : N ≠ 0, by { unfreezingI { rintros rfl }, exact (not_is_empty_of_nonempty _) hN },
+  have Npos : N ≠ 0,
+  { unfreezingI { rintros rfl },
+    inhabit α,
+    exact (not_is_empty_of_nonempty _) hN },
   let a : ball_package s α :=
   { c := λ x, x,
     r := λ x, r x,
@@ -537,8 +544,7 @@ begin
   { simp only [image_subset_iff, coe_coe, finset.coe_image],
     assume y hy,
     simp only [subtype.coe_prop, mem_preimage] },
-  { rw [← finset.set_bUnion_coe, finset.coe_image, bUnion_image, finset.set_bUnion_coe,
-      ← diff_inter_self_eq_diff,
+  { rw [finset.set_bUnion_finset_image, ← diff_inter_self_eq_diff,
       measure_diff_le_iff_le_add _ smeas (inter_subset_right _ _) ((measure_lt_top μ _).ne)], swap,
     { apply measurable_set.inter _ smeas,
       haveI : encodable (u i) := (u_count i).to_encodable,
@@ -560,12 +566,10 @@ begin
         apply smeas.inter measurable_set_closed_ball }
     end },
   { assume k hk l hl hkl,
-    obtain ⟨k', k'w, hk'⟩ : ∃ (k' : ↥(u i)), k' ∈ w ∧ ↑↑k' = k,
+    obtain ⟨k', k'w, rfl⟩ : ∃ (k' : ↥(u i)), k' ∈ w ∧ ↑↑k' = k,
       by simpa only [mem_image, finset.mem_coe, coe_coe, finset.coe_image] using hk,
-    obtain ⟨l', l'w, hl'⟩ : ∃ (l' : ↥(u i)), l' ∈ w ∧ ↑↑l' = l,
+    obtain ⟨l', l'w, rfl⟩ : ∃ (l' : ↥(u i)), l' ∈ w ∧ ↑↑l' = l,
       by simpa only [mem_image, finset.mem_coe, coe_coe, finset.coe_image] using hl,
-    change disjoint (closed_ball k (r k)) (closed_ball l (r l)),
-    rw [← hk', ← hl'] at ⊢ hkl,
     have k'nel' : (k' : s) ≠ l',
       by { assume h, rw h at hkl, exact hkl rfl },
     exact hu i k' k'.2 l' l'.2 k'nel' }
@@ -573,16 +577,26 @@ end
 
 .
 
-theorem measurable_besicovitch
-  [second_countable_topology α] [measurable_space α] [borel_space α]
-  (μ : measure α) [is_finite_measure μ] {N : ℕ} {τ : ℝ}
-  (hτ : 1 < τ) (hN : is_empty (satellite_config α N τ))
+
+/-- The measurable Besicovitch covering theorem. Assume that, for any `x` in a measurable set `s`,
+one is given a set of admissible closed balls centered at `x`, with arbitrarily small radii.
+Then there exists a disjoint covering of almost all `s` by admissible closed balls centered at some
+points of `s`.
+This version requires that the underlying measure is finite, and that the space has the Besicovitch
+covering property (which is satisfied for instance by normed real vector spaces). For a version
+assuming that the measure is sigma-finite, see `exists_disjoint_closed_ball_covering`.
+-/
+theorem exists_disjoint_closed_ball_covering_of_finite_measure
+  [second_countable_topology α] [hb : has_besicovitch_covering α]
+  [measurable_space α] [opens_measurable_space α] (μ : measure α) [is_finite_measure μ]
   (f : α → set ℝ) (s : set α) (smeas : measurable_set s)
-  (hf : ∀ x ∈ s, (f x).nonempty) (hf' : ∀ x ∈ s, f x ⊆ Ioi 0)
-  (hf'' : ∀ x ∈ s, Inf (f x) = 0) :
-  ∃ (t : set α) (r : α → ℝ), (countable t) ∧ (∀ x ∈ s, r x ∈ f x) ∧
-  μ (s \ (⋃ (x ∈ t), ball x (r x))) = 0 ∧ t.pairwise_on (disjoint on (λ x, ball x (r x))) :=
+  (hf : ∀ x ∈ s, (f x).nonempty) (hf' : ∀ x ∈ s, f x ⊆ Ioi 0) (hf'' : ∀ x ∈ s, Inf (f x) = 0) :
+  ∃ (t : set (α × ℝ)), (countable t)
+    ∧ (∀ (p : α × ℝ), p ∈ t → p.1 ∈ s) ∧ (∀ (p : α × ℝ), p ∈ t → p.2 ∈ f p.1)
+    ∧ μ (s \ (⋃ (p : α × ℝ) (hp : p ∈ t), closed_ball p.1 p.2)) = 0
+    ∧ t.pairwise_on (disjoint on (λ p, closed_ball p.1 p.2)) :=
 begin
+  rcases hb.no_satellite_config with ⟨N, τ, hτ, hN⟩,
   let P : finset (α × ℝ) → Prop := λ t,
     (t : set (α × ℝ)).pairwise_on (disjoint on (λ p, closed_ball p.1 p.2)) ∧
     (∀ (p : α × ℝ), p ∈ t → p.1 ∈ s) ∧ (∀ (p : α × ℝ), p ∈ t → p.2 ∈ f p.1),
@@ -593,10 +607,10 @@ begin
     set B := ⋃ (p : α × ℝ) (hp : p ∈ t), closed_ball p.1 p.2 with hB,
     have B_closed : is_closed B :=
       is_closed_bUnion (finset.finite_to_set _) (λ i hi, is_closed_ball),
-    let s' := s \ B,
+    set s' := s \ B with hs',
     have s'meas : measurable_set s' := smeas.diff B_closed.measurable_set,
-    have : ∀ x ∈ s', ∃ r ∈ f x, r ≤ 1 ∧ disjoint B (closed_ball x r), sorry,
-    /-{ assume x hx,
+    have : ∀ x ∈ s', ∃ r ∈ f x, r ≤ 1 ∧ disjoint B (closed_ball x r),
+    { assume x hx,
       have xs : x ∈ s := ((mem_diff x).1 hx).1,
       rcases eq_empty_or_nonempty B with hB|hB,
       { have : (0 : ℝ) < 1 := zero_lt_one,
@@ -610,7 +624,7 @@ begin
         rcases exists_lt_of_cInf_lt (hf x xs) this with ⟨r, hr, h'r⟩,
         refine ⟨r, hr, h'r.le.trans (min_le_right _ _), _⟩,
         rw disjoint.comm,
-        exact disjoint_closed_ball_of_lt_inf_edist (h'r.trans_le (min_le_left _ _)) } },-/
+        exact disjoint_closed_ball_of_lt_inf_edist (h'r.trans_le (min_le_left _ _)) } },
     choose! r hr using this,
     obtain ⟨v, vs', hμv, hv⟩ : ∃ (v : finset α), ↑v ⊆ s'
       ∧ μ (s' \ ⋃ (x ∈ v), closed_ball x (r x)) ≤ N/(N+1) * μ s'
@@ -619,45 +633,109 @@ begin
       have rle : ∀ x ∈ s', r x ≤ 1 := λ x hx, (hr x hx).2.1,
       exact exist_finset_disjoint_balls_large_measure μ hτ hN s' s'meas r rpos rle },
     refine ⟨t ∪ (finset.image (λ x, (x, r x)) v), finset.subset_union_left _ _, ⟨_, _, _⟩, _⟩,
-    sorry,
-    /-{ simp only [finset.coe_union, pairwise_on_union, ht.1, true_and, finset.coe_image],
+    { simp only [finset.coe_union, pairwise_on_union, ht.1, true_and, finset.coe_image],
       split,
       { assume p hp q hq hpq,
-        rcases (mem_image _ _ _).1 hp with ⟨p', p'v, hp'⟩,
-        rcases (mem_image _ _ _).1 hq with ⟨q', q'v, hq'⟩,
-        simp only [← hp', ← hq', function.on_fun],
+        rcases (mem_image _ _ _).1 hp with ⟨p', p'v, rfl⟩,
+        rcases (mem_image _ _ _).1 hq with ⟨q', q'v, rfl⟩,
         refine hv p' p'v q' q'v (λ hp'q', _),
-        rw [← hp', ← hq', ← hp'q'] at hpq,
+        rw [hp'q'] at hpq,
         exact hpq rfl },
       { simp only [function.on_fun, disjoint.comm, and_self],
         assume p hp q hq hpq,
-        rcases (mem_image _ _ _).1 hq with ⟨q', q'v, hq'⟩,
-        simp only [← hq'],
+        rcases (mem_image _ _ _).1 hq with ⟨q', q'v, rfl⟩,
         apply disjoint_of_subset_left _ (hr q' (vs' q'v)).2.2,
         rw [hB, ← finset.set_bUnion_coe],
-        exact subset_bUnion_of_mem hp } },-/
-    sorry,
-    /-{ assume p hp,
+        exact subset_bUnion_of_mem hp } },
+    { assume p hp,
       rcases finset.mem_union.1 hp with h'p|h'p,
       { exact ht.2.1 p h'p },
-      { rcases finset.mem_image.1 h'p with ⟨p', p'v, hp'⟩,
-        rw ← hp',
-        exact ((mem_diff _).1 (vs' (finset.mem_coe.2 p'v))).1 } },-/
-
-
-
-  }
+      { rcases finset.mem_image.1 h'p with ⟨p', p'v, rfl⟩,
+        exact ((mem_diff _).1 (vs' (finset.mem_coe.2 p'v))).1 } },
+    { assume p hp,
+      rcases finset.mem_union.1 hp with h'p|h'p,
+      { exact ht.2.2 p h'p },
+      { rcases finset.mem_image.1 h'p with ⟨p', p'v, rfl⟩,
+        dsimp,
+        exact (hr p' (vs' p'v)).1 } },
+    { convert hμv using 2,
+      rw [finset.set_bUnion_union, ← diff_diff, finset.set_bUnion_finset_image] } },
+  choose! F hF using this,
+  let u := λ n, F^[n] ∅,
+  have u_succ : ∀ (n : ℕ), u n.succ = F (u n) :=
+    λ n, by simp only [u, function.comp_app, function.iterate_succ'],
+  have Pu : ∀ n, P (u n),
+  { assume n,
+    induction n with n IH,
+    { simp only [u, P, prod.forall, id.def, function.iterate_zero],
+      simp only [finset.not_mem_empty, forall_false_left, finset.coe_empty, forall_2_true_iff,
+        and_self, pairwise_on_empty] },
+    { rw u_succ,
+      exact (hF (u n) IH).2.1 } },
+  refine ⟨⋃ n, u n, countable_Union (λ n, (u n).countable_to_set), _, _, _, _⟩,
+  { assume p hp,
+    rcases mem_Union.1 hp with ⟨n, hn⟩,
+    exact (Pu n).2.1 p (finset.mem_coe.1 hn) },
+  { assume p hp,
+    rcases mem_Union.1 hp with ⟨n, hn⟩,
+    exact (Pu n).2.2 p (finset.mem_coe.1 hn) },
+  { have A : ∀ n, μ (s \ ⋃ (p : α × ℝ) (hp : p ∈ ⋃ (n : ℕ), (u n : set (α × ℝ))),
+                     closed_ball p.fst p.snd)
+                ≤ μ (s \ ⋃ (p : α × ℝ) (hp : p ∈ u n), closed_ball p.fst p.snd),
+    { assume n,
+      apply measure_mono,
+      apply diff_subset_diff (subset.refl _),
+      exact bUnion_subset_bUnion_left (subset_Union (λ i, (u i : set (α × ℝ))) n) },
+    have B : ∀ n, μ (s \ ⋃ (p : α × ℝ) (hp : p ∈ u n), closed_ball p.fst p.snd)
+      ≤ (N/(N+1))^n * μ s,
+    { assume n,
+      induction n with n IH,
+      { simp only [le_refl, diff_empty, one_mul, Union_false, Union_empty, pow_zero] },
+      calc
+        μ (s \ ⋃ (p : α × ℝ) (hp : p ∈ u n.succ), closed_ball p.fst p.snd)
+            ≤ (N/(N+1)) * μ (s \ ⋃ (p : α × ℝ) (hp : p ∈ u n), closed_ball p.fst p.snd) :
+              by { rw u_succ, exact (hF (u n) (Pu n)).2.2 }
+        ... ≤ (N/(N+1))^n.succ * μ s :
+          by { rw [pow_succ, mul_assoc], exact ennreal.mul_le_mul le_rfl IH } },
+    have C : tendsto (λ (n : ℕ), ((N : ℝ≥0∞)/(N+1))^n * μ s) at_top (𝓝 (0 * μ s)),
+    { apply ennreal.tendsto.mul_const _ (or.inr (measure_lt_top μ s).ne),
+      apply ennreal.tendsto_pow_at_top_nhds_0_of_lt_1,
+      rw [ennreal.div_lt_iff, one_mul],
+      { conv_lhs {rw ← add_zero (N : ℝ≥0∞) },
+        exact ennreal.add_lt_add_left (ennreal.nat_ne_top N) ennreal.zero_lt_one },
+      { simp only [true_or, add_eq_zero_iff, ne.def, not_false_iff, one_ne_zero, and_false] },
+      { simp only [ennreal.nat_ne_top, ne.def, not_false_iff, or_true] } },
+    rw zero_mul at C,
+    apply le_bot_iff.1,
+    exact le_of_tendsto_of_tendsto' tendsto_const_nhds C (λ n, (A n).trans (B n)) },
+  { refine (pairwise_on_Union _).2 (λ n, (Pu n).1),
+    apply (monotone_nat_of_le_succ (λ n, _)).directed_le,
+    rw u_succ,
+    exact (hF (u n) (Pu n)).1 }
 end
 
+/-- The measurable Besicovitch covering theorem. Assume that, for any `x` in a measurable set `s`,
+one is given a set of admissible closed balls centered at `x`, with arbitrarily small radii.
+Then there exists a disjoint covering of almost all `s` by admissible closed balls centered at some
+points of `s`.
+This version requires that the underlying measure is sigma-finite, and that the space has the
+Besicovitch covering property (which is satisfied for instance by normed real vector spaces).
+-/
+theorem exists_disjoint_closed_ball_covering
+  [second_countable_topology α] [has_besicovitch_covering α]
+  [measurable_space α] [opens_measurable_space α] (μ : measure α) [sigma_finite μ]
+  (f : α → set ℝ) (s : set α) (smeas : measurable_set s)
+  (hf : ∀ x ∈ s, (f x).nonempty) (hf' : ∀ x ∈ s, f x ⊆ Ioi 0) (hf'' : ∀ x ∈ s, Inf (f x) = 0) :
+  ∃ (t : set (α × ℝ)), (countable t)
+    ∧ (∀ (p : α × ℝ), p ∈ t → p.1 ∈ s) ∧ (∀ (p : α × ℝ), p ∈ t → p.2 ∈ f p.1)
+    ∧ μ (s \ (⋃ (p : α × ℝ) (hp : p ∈ t), closed_ball p.1 p.2)) = 0
+    ∧ t.pairwise_on (disjoint on (λ p, closed_ball p.1 p.2)) :=
+begin
+  rcases exists_absolutely_continuous_is_finite_measure μ with ⟨ν, hν, hμν⟩,
+  resetI,
+  rcases exists_disjoint_closed_ball_covering_of_finite_measure ν f s smeas hf hf' hf''
+    with ⟨t, t_count, ts, tr, tν, tdisj⟩,
+  exact ⟨t, t_count, ts, tr, hμν tν, tdisj⟩,
+end
 
 end besicovitch
-
-#exit
-
-exist_finset_disjoint_balls_large_measure
-  [second_countable_topology α] [measurable_space α] [borel_space α]
-  (μ : measure α) [is_finite_measure μ] {N : ℕ} {τ : ℝ}
-  (hτ : 1 < τ) (hN : is_empty (satellite_config α N τ)) (s : set α) (smeas : measurable_set s)
-  (r : α → ℝ) (rpos : ∀ x ∈ s, 0 < r x) (rle : ∀ x ∈ s, r x ≤ 1) :
-  ∃ (t : finset α), (↑t ⊆ s) ∧ μ (s \ (⋃ (x ∈ t), closed_ball x (r x))) ≤ N/(N+1) * μ s
-    ∧ (t : set α).pairwise_on (disjoint on (λ x, closed_ball x (r x)))

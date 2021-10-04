@@ -1244,7 +1244,7 @@ end count
 def absolutely_continuous {m0 : measurable_space α} (μ ν : measure α) : Prop :=
 ∀ ⦃s : set α⦄, ν s = 0 → μ s = 0
 
-infix ` ≪ `:50 := absolutely_continuous
+localized "infix ` ≪ `:50 := measure_theory.measure.absolutely_continuous" in measure_theory
 
 lemma absolutely_continuous_of_le (h : μ ≤ ν) : μ ≪ ν :=
 λ s hs, nonpos_iff_eq_zero.1 $ hs ▸ le_iff'.1 h s
@@ -1416,6 +1416,7 @@ end mutually_singular
 end measure
 
 open measure
+open_locale measure_theory
 
 @[simp] lemma ae_eq_bot : μ.ae = ⊥ ↔ μ = 0 :=
 by rw [← empty_mem_iff_bot, mem_ae_iff, compl_empty, measure_univ_eq_zero]
@@ -2689,6 +2690,8 @@ instance is_finite_measure_trim (hm : m ≤ m0) [is_finite_measure μ] :
 end trim
 
 end measure_theory
+
+open_locale measure_theory
 
 /-!
 # Almost everywhere measurable functions

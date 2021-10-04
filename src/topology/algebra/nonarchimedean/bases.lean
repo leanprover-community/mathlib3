@@ -301,10 +301,10 @@ begin
   exact ⟨hB.open_add_subgroup i, hi⟩
 end
 
-/-- The non archimedean subgroup basis lemmas cannot be instance because some instances
+/-- The non archimedean subgroup basis lemmas cannot be instances because some instances
 (such as `measure_theory.ae_eq_fun.add_monoid ` or `topological_add_group.to_has_continuous_add`)
 cause the search for `@topological_add_group β ?m1 ?m2`, i.e. a search for a topological group where
-the topology/group are unknown. -/
+the topology/group structure are unknown. -/
 library_note "nonarchimedean non instances"
 end submodules_basis
 

@@ -308,6 +308,23 @@ the topology/group structure are unknown. -/
 library_note "nonarchimedean non instances"
 end submodules_basis
 
+section
+/-
+In this section, we check that, in a `R`-algebra `A` over a ring equipped with a topology,
+a basis of `R`-submodules which is compatible with the topology on `R` is also a submodule basis
+in the sense of `R`-modules (forgetting about the ring structure on `A`) and those two points of
+view definitionaly gives the same topology on `A`.
+-/
+variables [topological_space R] {B : ι → submodule R A} (hB : submodules_ring_basis B)
+          (hsmul : ∀ (m : A) (i : ι), ∀ᶠ (a : R) in 𝓝 0, a • m ∈ B i)
+
+lemma submodules_ring_basis.to_submodules_basis : submodules_basis B :=
+{ inter := hB.inter,
+  smul := hsmul }
+
+example [nonempty ι] : hB.topology = (hB.to_submodules_basis hsmul).topology := rfl
+end
+
 /-- Given a ring filter basis on a commutative ring `R`, define a compatibility condition
 on a family of submodules of a `R`-module `M`. This compatibility condition allows to get
 a topological module structure. -/

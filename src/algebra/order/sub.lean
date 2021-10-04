@@ -269,7 +269,7 @@ end contra
 section both
 variables [covariant_class α α (+) (≤)] [contravariant_class α α (+) (≤)]
 
-lemma add_sub_add_right_eq_sub' (a b c : α) : (a + c) - (b + c) = a - b :=
+lemma add_sub_add_right_eq_sub' (a c b : α) : (a + c) - (b + c) = a - b :=
 begin
   apply le_antisymm,
   { rw [sub_le_iff_left, add_right_comm], exact add_le_add_right le_add_sub c },

@@ -1030,6 +1030,26 @@ instance bot_normal : normal (⊥ : subgroup G) := ⟨by simp⟩
 @[priority 100, to_additive]
 instance top_normal : normal (⊤ : subgroup G) := ⟨λ _ _, mem_top⟩
 
+/-- Group conjugation on a normal subgroup. Analogous to `mul_aut.conj`. -/
+def mul_aut.conj_normal [hH : H.normal] : G →* mul_aut H :=
+{ to_fun := λ g,
+  { to_fun := λ h, ⟨g * h * g⁻¹, hH.conj_mem h h.2 g⟩,
+    inv_fun := λ h, ⟨g⁻¹ * h * g, by rw [hH.mem_comm_iff, mul_inv_cancel_left]; exact h.2⟩,
+    left_inv := λ _, by simp [mul_assoc],
+    right_inv := λ _, by simp [mul_assoc],
+    map_mul' := λ x y, by ext; simp [mul_assoc] },
+  map_mul' := λ _ _, by ext; simp [mul_assoc],
+  map_one' := by ext; simp [mul_assoc] }
+
+@[simp] lemma mul_aut.conj_normal_apply [hH : H.normal] (g : G) (h : H) :
+  ↑(mul_aut.conj_normal g h) = g * h * g⁻¹ := rfl
+
+@[simp] lemma mul_aut.conj_normal_symm_apply [hH : H.normal] (g : G) (h : H) :
+  ↑((mul_aut.conj_normal g).symm h) = g⁻¹ * h * g := rfl
+
+@[simp] lemma mul_aut.conj_normal_inv_apply [hH : H.normal] (g : G) (h : H) :
+  ↑((mul_aut.conj_normal g)⁻¹ h) = g⁻¹ * h * g := rfl
+
 variable (G)
 /-- The center of a group `G` is the set of elements that commute with everything in `G` -/
 @[to_additive "The center of an additive group `G` is the set of elements that commute with

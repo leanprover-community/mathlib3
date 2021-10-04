@@ -204,14 +204,12 @@ it suffices to check the scalar multiplications agree.
 -- We'll later use this to show `module ℕ M` and `module ℤ M` are subsingletons.
 @[ext]
 lemma module_ext {R : Type*} [semiring R] {M : Type*} [add_comm_monoid M] (P Q : module R M)
-  (w : ∀ (r : R) (m : M), by { haveI := P, exact r • m } = by { haveI := Q, exact r • m }) :
+  (w : ∀ (r : R) (m : M), by { letI := P, exact r • m } = by { letI := Q, exact r • m }) :
   P = Q :=
 begin
   unfreezingI { rcases P with ⟨⟨⟨⟨P⟩⟩⟩⟩, rcases Q with ⟨⟨⟨⟨Q⟩⟩⟩⟩ },
-  congr,
-  funext r m,
-  exact w r m,
-  all_goals { apply proof_irrel_heq },
+  obtain rfl : P = Q, by { funext r m, exact w r m },
+  congr
 end
 
 section module
@@ -256,6 +254,14 @@ instance semiring.to_opposite_module [semiring R] : module Rᵒᵖ R :=
 { smul_add := λ r x y, add_mul _ _ _,
   add_smul := λ r x y, mul_add _ _ _,
   ..monoid_with_zero.to_opposite_mul_action_with_zero R}
+
+/-- If `M` is a module over `R`, then so is `Mᵒᵖ`. -/
+@[priority 910] -- see Note [lower instance priority]
+instance (R : Type*) [semiring R] (M : Type*) [add_comm_monoid M] [module R M] :
+  module R Mᵒᵖ :=
+{ add_smul := λ r s x, opposite.unop_injective $ add_smul _ _ _,
+  zero_smul := λ x, opposite.unop_injective $ zero_smul _ _,
+  .. opposite.distrib_mul_action M R }
 
 /-- A ring homomorphism `f : R →+* M` defines a module structure by `r • x = f r * x`. -/
 def ring_hom.to_module [semiring R] [semiring S] (f : R →+* S) : module R S :=

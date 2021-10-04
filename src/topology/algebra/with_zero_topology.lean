@@ -77,38 +77,32 @@ private lemma pure_le_nhds_fun : pure ≤ nhds_fun Γ₀ :=
 
 /--For every point Γ₀, and every “neighbourhood” s of it (described by nhds_fun), there is a
 smaller “neighbourhood” t ⊆ s, such that s is a “neighbourhood“ of all the points in t.-/
-private lemma nhds_fun_ok : ∀ (x : Γ₀) (s ∈ nhds_fun Γ₀ x),
+private lemma nhds_fun_ok (x : Γ₀) {s} (s_in : s ∈ nhds_fun Γ₀ x) :
   (∃ t ∈ nhds_fun Γ₀ x, t ⊆ s ∧ ∀ y ∈ t, s ∈ nhds_fun Γ₀ y) :=
 begin
-  intros x U U_in,
   by_cases hx : x = 0,
-  { simp [hx, nhds_fun] at U_in ⊢,
-    change U ∈ ⨅ (γ₀ : units Γ₀), principal {γ : Γ₀ | γ < ↑γ₀} at U_in,
-    rw mem_infi_of_directed (directed_lt Γ₀) at U_in,
-    cases U_in with γ₀ h,
-    use {γ : Γ₀ | γ < ↑γ₀},
+  { simp only [hx, nhds_fun, exists_prop, if_true, eq_self_iff_true] at s_in ⊢,
+    cases (mem_infi_of_directed (directed_lt Γ₀) _).mp s_in with γ₀ h,
+    use {γ : Γ₀ | γ < γ₀},
     rw mem_principal at h,
     split,
     { apply mem_infi_of_mem γ₀,
       rw mem_principal },
-    { refine ⟨h, _⟩,
-      intros y y_in,
-      by_cases hy : y = 0 ; simp [hy, h y_in],
-      { apply mem_infi_of_mem γ₀,
-        rwa mem_principal } } },
-  { simp [hx, nhds_fun] at U_in ⊢,
-    use {x},
-    refine ⟨mem_singleton _, singleton_subset_iff.2 U_in, _⟩,
-    intros y y_in,
-    rw mem_singleton_iff at y_in,
-    rw y_in,
-    simpa [hx] }
+    { refine ⟨h, λ y y_in, _⟩,
+      by_cases hy : y = 0,
+      { simp only [hy, if_true, eq_self_iff_true],
+        apply mem_infi_of_mem γ₀,
+        rwa mem_principal },
+      { simp [hy, h y_in] } } },
+  { simp only [hx, nhds_fun, exists_prop, if_false, mem_pure] at s_in ⊢,
+    refine ⟨{x}, mem_singleton _, singleton_subset_iff.2 s_in, λ y y_in, _⟩,
+    simpa [mem_singleton_iff.mp y_in, hx] }
 end
 
 variables  {Γ₀}
 
 /--The neighbourhood filter of an invertible element consists of all sets containing that element.-/
-lemma nhds_coe (γ : units Γ₀) : 𝓝 (γ : Γ₀) = pure (γ : Γ₀) :=
+lemma nhds_coe_units (γ : units Γ₀) : 𝓝 (γ : Γ₀) = pure (γ : Γ₀) :=
 calc 𝓝 (γ : Γ₀) = nhds_fun Γ₀ γ : nhds_mk_of_nhds (nhds_fun Γ₀) γ (pure_le_nhds_fun Γ₀)
                                                    (nhds_fun_ok Γ₀)
               ... = pure (γ : Γ₀) : if_neg γ.ne_zero
@@ -116,7 +110,7 @@ calc 𝓝 (γ : Γ₀) = nhds_fun Γ₀ γ : nhds_mk_of_nhds (nhds_fun Γ₀) γ
 /--The neighbourhood filter of a nonzero element consists of all sets containing that element.-/
 @[simp] lemma nhds_of_ne_zero (γ : Γ₀) (h : γ ≠ 0) :
   𝓝 γ = pure γ :=
-nhds_coe (units.mk0 _ h)
+nhds_coe_units (units.mk0 _ h)
 
 /--If γ is an invertible element of a linearly ordered group with zero element adjoined,
 then {γ} is a neighbourhood of γ.-/

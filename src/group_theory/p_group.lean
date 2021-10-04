@@ -192,7 +192,7 @@ end
 lemma comap_of_injective {H : subgroup G} (hH : is_p_group p H) {K : Type*} [group K]
   (ϕ : K →* G) (hϕ : function.injective ϕ) : is_p_group p (H.comap ϕ) :=
 begin
-  apply hH.comap_ker_is_p_group ϕ,
+  apply hH.comap_of_ker_is_p_group ϕ,
   rw ϕ.ker_eq_bot_iff.mpr hϕ,
   exact is_p_group.of_bot,
 end
@@ -201,7 +201,7 @@ lemma to_sup_of_normal_right {H K : subgroup G} (hH : is_p_group p H) (hK : is_p
   [K.normal] : is_p_group p (H ⊔ K : subgroup G) :=
 begin
   rw [←quotient_group.ker_mk K, ←subgroup.comap_map_eq],
-  apply (hH.map (quotient_group.mk' K)).comap_ker_is_p_group,
+  apply (hH.map (quotient_group.mk' K)).comap_of_ker_is_p_group,
   rwa quotient_group.ker_mk,
 end
 

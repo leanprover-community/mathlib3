@@ -50,6 +50,14 @@ def to_direct_sum_map [dec_ι : decidable_eq ι] (p : ι → submodule R M) :
   (⨁ i, p i) →ₗ[R] (supr p : submodule R M) :=
 direct_sum.to_module R ι _ (λ i, submodule.of_le (le_supr p i : p i ≤ supr p))
 
+lemma supr_subtype_comp_direct_sum_map (p : ι → submodule R M) :
+  (supr p).subtype.comp (to_direct_sum_map p) = to_module R ι _ (λ i, (p i).subtype) :=
+begin
+  ext i x : 2,
+  dsimp only [linear_map.comp_apply, to_direct_sum_map],
+  simp only [to_module_lof, submodule.subtype_apply, submodule.coe_of_le],
+end
+
 @[simp] lemma to_direct_sum_map_apply (p : ι → submodule R M) (x : ⨁ (i : ι), (p i)) :
   to_direct_sum_map p x = ∑ i in x.support, ⟨x i, (le_supr p i : p i ≤ supr p) (x i).2⟩ :=
 begin
@@ -85,55 +93,23 @@ end monoid
 section group
 variables [ring R] [add_comm_group M] [module R M]
 
-lemma to_direct_sum_map_ker
-  (p : ι → submodule R M) (h : complete_lattice.independent p) : (to_direct_sum_map p).ker = ⊥ :=
+lemma to_direct_sum_map_injective
+  (p : ι → submodule R M) (h : complete_lattice.independent p) :
+  function.injective (to_direct_sum_map p) :=
 begin
-  rw ker_eq_bot',
-  intros x hx,
-  ext i,
-  simp only [to_direct_sum_map_apply, ← set_like.coe_eq_coe,
-    submodule.coe_sum, submodule.coe_mk] at hx,
-  by_contra hi,
-  have : i ∈ dfinsupp.support x, { rw dfinsupp.mem_support_iff, exact_mod_cast hi },
-  rw ← finset.sum_erase_add _ _ this at hx,
-  simp only [submodule.coe_zero, ← neg_eq_iff_add_eq_zero] at hx,
-  simp only [← hx, pi.zero_apply, submodule.coe_zero] at hi,
-  have := submodule.disjoint_def.mp (complete_lattice.independent_def.mp h i) (x i) (x i).2,
-  have h2 : ∑ (k : ι) in (dfinsupp.support x).erase i,
-    ↑(x k) ∈ ⨆ (k : ι) (H : k ∈ (dfinsupp.support x).erase i), p k,
-  { apply submodule.sum_mem_bsupr,
-    intros c hc,
-    exact (x c).2, },
-  have h3 : (⨆ (k : ι) (H : k ∈ (dfinsupp.support x).erase i), p k : submodule R M) ≤
-    ⨆ (k : ι) (H : k ≠ i), p k,
-    { refine bsupr_le_bsupr' (λ i hi, finset.ne_of_mem_erase hi), },
-  have h4 := h3 h2,
-  rw ← submodule.neg_mem_iff at h4,
-  rw hx at h4,
-  rw hx at hi,
-  have h5 := this h4,
-  contradiction,
+  suffices : function.injective ((supr p).subtype.comp $ to_direct_sum_map p),
+  { exact this.of_comp, },
+  rw supr_subtype_comp_direct_sum_map,
+  exact h.dfinsupp_lsum_injective,
 end
 
 lemma to_direct_sum_map_range (p : ι → submodule R M) : (to_direct_sum_map p).range = ⊤ :=
 begin
-  ext,
-  cases x with x hx,
-  simp only [linear_map.coe_fn_sum, submodule.mem_top, mem_range,
-    linear_map.lsum_apply, coe_proj, function.comp_app, function.eval_apply,
-    iff_true, coe_comp],
-  rw submodule.mem_supr' at hx,
-  rcases hx with ⟨v, hv, hvs⟩,
-  use direct_sum.mk (λ i, p i) v.support (λ i, ⟨v i, hv i⟩),
-  simp only [to_direct_sum_map_apply],
-  rw support_mk_support,
-  rw [← set_like.coe_eq_coe, set_like.coe_mk, ← hvs],
-  rw submodule.coe_sum,
-  refine finset.sum_congr rfl (λ i hi, _),
-  simp [direct_sum.mk],
-  split_ifs,
-  exact h.symm,
-  exact set_like.coe_mk _ _,
+  have : function.injective (supr p).subtype := subtype.coe_injective,
+  apply map_injective_of_injective this,
+  rw [submodule.map_subtype_top, ←submodule.map_top, ←map_comp, submodule.map_top,
+    supr_subtype_comp_direct_sum_map],
+  exact (supr_eq_range_dfinsupp_lsum p).symm,
 end
 
 /--
@@ -146,9 +122,8 @@ noncomputable def direct_sum_equiv_of_independent
   (⨁ i, p i) ≃ₗ[R] (supr p : submodule R M) :=
 begin
   letI : add_comm_group (⨁ (i : ι), (p i)) := direct_sum.add_comm_group (λ i, p i),
-  refine @linear_equiv.of_bijective R (⨁ i, p i) (supr p : submodule R M) _ _ _ _ _ _ _ _,
-  exact to_direct_sum_map p,
-  exact ker_eq_bot.1 (to_direct_sum_map_ker p h),
+  refine linear_equiv.of_bijective (to_direct_sum_map p) _ _,
+  exact to_direct_sum_map_injective p h,
   exact range_eq_top.1 (to_direct_sum_map_range p),
 end
 
@@ -177,37 +152,6 @@ lemma to_equiv_symm_single_apply
   (D : decomposition ι R M) (i : ι) (x : M) (hx : x ∈ D.factors i) :
   D.to_equiv.symm x = single i ⟨x, hx⟩ :=
 submodule_is_internal.to_equiv_symm_single_apply _ _ _ _
-
-lemma injective_of_independent (p : ι → submodule R M) (h_ind : complete_lattice.independent p) :
-  function.injective ⇑(to_module R ι M (λ (i : ι), (p i).subtype)) :=
-begin
-  letI : add_comm_group (⨁ i, p i) := direct_sum.add_comm_group (λ i, p i),
-  rw ← ker_eq_bot,
-  rw ker_eq_bot',
-  intros x hx,
-  ext1 i,
-  rw [dfinsupp.zero_apply],
-  by_contra hi,
-  have hs : i ∈ dfinsupp.support x, { rw dfinsupp.mem_support_iff, exact_mod_cast hi },
-  apply hi,
-  apply submodule.coe_eq_zero.1,
-  apply submodule.disjoint_def.mp (h_ind i) (x i) (x i).2,
-  have h_mem : ∑ (k : ι) in (dfinsupp.support x).erase i,
-    ↑(x k) ∈ ⨆ (k : ι) (H : k ∈ (dfinsupp.support x).erase i), p k :=
-      submodule.sum_mem_bsupr (λ c hc, (x c).prop),
-  have h_le : (⨆ k ∈ (dfinsupp.support x).erase i, p k : submodule R M) ≤
-    ⨆ k ≠ i, p k := bsupr_le_bsupr' (λ i, finset.ne_of_mem_erase),
-  have h4 := h_le h_mem,
-  rw [submodule_is_internal.apply, ← finset.sum_erase_add _ _ hs, ← neg_eq_iff_add_eq_zero] at hx,
-  rw [← submodule.neg_mem_iff, hx] at h4,
-  exact h4,
-end
-
-lemma surjective_of_supr_eq_top (p : ι → submodule R M) (h_supr : supr p = ⊤) :
-  function.surjective ⇑(to_module R ι M (λ (i : ι), (p i).subtype)) :=
-begin
-  rwa [to_module, ← range_eq_top, ← supr_eq_range_dfinsupp_lsum p],
-end
 
 /--
 Given an indexed collection of submodules of `M` and a proof that they form an internal

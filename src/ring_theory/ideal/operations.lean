@@ -400,16 +400,16 @@ mul_one r ▸ hst ▸ (mul_add r s t).symm ▸ ideal.add_mem (I * J) (mul_mem_mu
   (mul_mem_mul hri htj)
 
 variables (I)
-theorem mul_bot : I * ⊥ = ⊥ :=
+@[simp] theorem mul_bot : I * ⊥ = ⊥ :=
 submodule.smul_bot I
 
-theorem bot_mul : ⊥ * I = ⊥ :=
+@[simp] theorem bot_mul : ⊥ * I = ⊥ :=
 submodule.bot_smul I
 
-theorem mul_top : I * ⊤ = I :=
+@[simp] theorem mul_top : I * ⊤ = I :=
 ideal.mul_comm ⊤ I ▸ submodule.top_smul I
 
-theorem top_mul : ⊤ * I = I :=
+@[simp] theorem top_mul : ⊤ * I = I :=
 submodule.top_smul I
 variables {I}
 

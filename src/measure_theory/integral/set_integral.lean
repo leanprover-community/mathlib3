@@ -283,6 +283,21 @@ lemma integral_indicator_const (e : E) ⦃s : set α⦄ (s_meas : measurable_set
   ∫ (a : α), s.indicator (λ (x : α), e) a ∂μ = (μ s).to_real • e :=
 by rw [integral_indicator s_meas, ← set_integral_const]
 
+lemma set_integral_indicator_const_Lp {p : ℝ≥0∞} (hs : measurable_set s) (ht : measurable_set t)
+  (hμt : μ t ≠ ∞) (x : E) :
+  ∫ a in s, indicator_const_Lp p ht hμt x a ∂μ = (μ (t ∩ s)).to_real • x :=
+calc ∫ a in s, indicator_const_Lp p ht hμt x a ∂μ
+    = (∫ a in s, t.indicator (λ _, x) a ∂μ) :
+  by rw set_integral_congr_ae hs (indicator_const_Lp_coe_fn.mono (λ x hx hxs, hx))
+... = (μ (t ∩ s)).to_real • x : by rw [integral_indicator_const _ ht, measure.restrict_apply ht]
+
+lemma integral_indicator_const_Lp {p : ℝ≥0∞} (ht : measurable_set t) (hμt : μ t ≠ ∞) (x : E) :
+  ∫ a, indicator_const_Lp p ht hμt x a ∂μ = (μ t).to_real • x :=
+calc ∫ a, indicator_const_Lp p ht hμt x a ∂μ
+    = ∫ a in univ, indicator_const_Lp p ht hμt x a ∂μ : by rw integral_univ
+... = (μ (t ∩ univ)).to_real • x : set_integral_indicator_const_Lp measurable_set.univ ht hμt x
+... = (μ t).to_real • x : by rw inter_univ
+
 lemma set_integral_map {β} [measurable_space β] {g : α → β} {f : β → E} {s : set β}
   (hs : measurable_set s) (hf : ae_measurable f (measure.map g μ)) (hg : measurable g) :
   ∫ y in s, f y ∂(measure.map g μ) = ∫ x in g ⁻¹' s, f (g x) ∂μ :=
@@ -299,6 +314,10 @@ begin
   rw [measure.restrict_map hg.measurable hs, integral_map_of_closed_embedding hg],
   apply_instance,
 end
+
+lemma set_integral_map_equiv {β} [measurable_space β] (e : α ≃ᵐ β) (f : β → E) (s : set β) :
+  ∫ y in s, f y ∂(measure.map e μ) = ∫ x in e ⁻¹' s, f (e x) ∂μ :=
+by rw [e.restrict_map, integral_map_equiv]
 
 lemma norm_set_integral_le_of_norm_le_const_ae {C : ℝ} (hs : μ s < ∞)
   (hC : ∀ᵐ x ∂μ.restrict s, ∥f x∥ ≤ C) :
@@ -461,8 +480,8 @@ variables {μ : measure α}
   [measurable_space E] [normed_group E] [borel_space E] [complete_space E] [normed_space ℝ E]
   [second_countable_topology E] {s : ℕ → set α} {f : α → E}
 
-lemma tendsto_set_integral_of_antimono (hsm : ∀ i, measurable_set (s i))
-  (h_mono : ∀ i j, i ≤ j → s j ⊆ s i) (hfi : integrable_on f (s 0) μ) :
+lemma _root_.antitone.tendsto_set_integral (hsm : ∀ i, measurable_set (s i))
+  (h_anti : antitone s) (hfi : integrable_on f (s 0) μ) :
   tendsto (λi, ∫ a in s i, f a ∂μ) at_top (𝓝 (∫ a in (⋂ n, s n), f a ∂μ)) :=
 begin
   let bound : α → ℝ := indicator (s 0) (λ a, ∥f a∥),
@@ -473,24 +492,24 @@ begin
   refine tendsto_integral_of_dominated_convergence bound _ _ _ _ _,
   { intro n,
     rw ae_measurable_indicator_iff (hsm n),
-    exact (integrable_on.mono_set hfi (h_mono 0 n (zero_le n))).1, },
+    exact (integrable_on.mono_set hfi (h_anti (zero_le n))).1 },
   { rw ae_measurable_indicator_iff (measurable_set.Inter hsm),
     exact (integrable_on.mono_set hfi (set.Inter_subset s 0)).1, },
   { rw integrable_indicator_iff (hsm 0),
     exact hfi.norm, },
   { simp_rw norm_indicator_eq_indicator_norm,
     refine λ n, eventually_of_forall (λ x, _),
-    exact indicator_le_indicator_of_subset (h_mono 0 n (zero_le n)) (λ a, norm_nonneg _) _, },
-  { filter_upwards [] λa, le_trans (tendsto_indicator_of_antimono _ h_mono _ _) (pure_le_nhds _), },
+    exact indicator_le_indicator_of_subset (h_anti (zero_le n)) (λ a, norm_nonneg _) _ },
+  { filter_upwards [] λ a, le_trans (h_anti.tendsto_indicator _ _ _) (pure_le_nhds _) }
 end
 
 end tendsto_mono
 
-section continuous_set_integral
 /-! ### Continuity of the set integral
 
 We prove that for any set `s`, the function `λ f : α →₁[μ] E, ∫ x in s, f x ∂μ` is continuous. -/
 
+section continuous_set_integral
 variables [normed_group E] [measurable_space E] [second_countable_topology E] [borel_space E]
   {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜]
   [normed_group F] [measurable_space F] [second_countable_topology F] [borel_space F]

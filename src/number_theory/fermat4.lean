@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Paul van Wamelen
 -/
 import number_theory.pythagorean_triples
-import ring_theory.coprime
+import ring_theory.coprime.lemmas
 
 /-!
 # Fermat's Last Theorem for the case n = 4

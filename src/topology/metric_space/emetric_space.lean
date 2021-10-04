@@ -516,7 +516,7 @@ theorem ball_subset (h : edist x y + ε₁ ≤ ε₂) (h' : edist x y ≠ ∞) :
 λ z zx, calc
   edist z y ≤ edist z x + edist x y : edist_triangle _ _ _
   ... = edist x y + edist z x : add_comm _ _
-  ... < edist x y + ε₁ : (ennreal.add_lt_add_iff_left h').2 zx
+  ... < edist x y + ε₁ : ennreal.add_lt_add_left h' zx
   ... ≤ ε₂ : h
 
 theorem exists_ball_subset_ball (h : y ∈ ball x ε) : ∃ ε' > 0, ball y ε' ⊆ ball x ε :=

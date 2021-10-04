@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 
-import linear_algebra.free_module_pid
+import linear_algebra.free_module.pid
 import linear_algebra.matrix.absolute_value
 import number_theory.class_number.admissible_absolute_value
 import number_theory.function_field
@@ -389,7 +389,7 @@ begin
   choose s b hb_int using finite_dimensional.exists_is_basis_integral R K L,
   obtain ⟨n, b⟩ := submodule.basis_of_pid_of_le_span _
     (is_integral_closure.range_le_span_dual_basis S b hb_int),
-  let bS := b.map ((linear_map.quot_ker_equiv_range _).symm.trans _),
+  let bS := b.map ((linear_map.quot_ker_equiv_range _).symm ≪≫ₗ _),
   refine fintype_of_admissible_of_algebraic L bS adm
     (λ x, (is_fraction_ring.is_algebraic_iff R K).mpr (algebra.is_algebraic_of_finite x)),
   { rw linear_map.ker_eq_bot.mpr,

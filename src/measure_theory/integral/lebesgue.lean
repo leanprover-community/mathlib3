@@ -1100,6 +1100,16 @@ begin
     exact (hnt hat).elim }
 end
 
+lemma set_lintegral_mono_ae {s : set α} {f g : α → ℝ≥0∞}
+  (hf : measurable f) (hg : measurable g) (hfg : ∀ᵐ x ∂μ, x ∈ s → f x ≤ g x) :
+  ∫⁻ x in s, f x ∂μ ≤ ∫⁻ x in s, g x ∂μ :=
+lintegral_mono_ae $ (ae_restrict_iff $ measurable_set_le hf hg).2 hfg
+
+lemma set_lintegral_mono {s : set α} {f g : α → ℝ≥0∞}
+  (hf : measurable f) (hg : measurable g) (hfg : ∀ x ∈ s, f x ≤ g x) :
+  ∫⁻ x in s, f x ∂μ ≤ ∫⁻ x in s, g x ∂μ :=
+set_lintegral_mono_ae hf hg (ae_of_all _ hfg)
+
 lemma lintegral_congr_ae {f g : α → ℝ≥0∞} (h : f =ᵐ[μ] g) :
   (∫⁻ a, f a ∂μ) = (∫⁻ a, g a ∂μ) :=
 le_antisymm (lintegral_mono_ae $ h.le) (lintegral_mono_ae $ h.symm.le)
@@ -1494,7 +1504,7 @@ begin
   exact hf (measurable_set_singleton r)
 end
 
-/-- **Chebyshev's inequality** -/
+/-- **Markov's inequality** also known as **Chebyshev's first inequality**. -/
 lemma mul_meas_ge_le_lintegral {f : α → ℝ≥0∞} (hf : measurable f) (ε : ℝ≥0∞) :
   ε * μ {x | ε ≤ f x} ≤ ∫⁻ a, f a ∂μ :=
 begin
@@ -1586,6 +1596,52 @@ begin
   exact ennreal.sub_add_cancel_of_le hx
 end
 
+lemma lintegral_sub_le (f g : α → ℝ≥0∞)
+  (hf : measurable f) (hg : measurable g) (h : f ≤ᵐ[μ] g) :
+  ∫⁻ x, g x ∂μ - ∫⁻ x, f x ∂μ ≤ ∫⁻ x, g x - f x ∂μ :=
+begin
+  by_cases hfi : ∫⁻ x, f x ∂μ = ∞,
+  { rw [hfi, ennreal.sub_top],
+    exact bot_le },
+  { rw lintegral_sub hg hf hfi h,
+    refl' }
+end
+
+lemma lintegral_strict_mono_of_ae_le_of_ae_lt_on {f g : α → ℝ≥0∞}
+  (hf : measurable f) (hg : measurable g) (hfi : ∫⁻ x, f x ∂μ ≠ ∞) (h_le : f ≤ᵐ[μ] g)
+  {s : set α} (hμs : μ s ≠ 0) (h : ∀ᵐ x ∂μ, x ∈ s → f x < g x) :
+  ∫⁻ x, f x ∂μ < ∫⁻ x, g x ∂μ :=
+begin
+  rw [← ennreal.sub_pos, ← lintegral_sub hg hf hfi h_le],
+  by_contra hnlt,
+  rw [not_lt, nonpos_iff_eq_zero, lintegral_eq_zero_iff (hg.sub hf), filter.eventually_eq] at hnlt,
+  simp only [ae_iff, ennreal.sub_eq_zero_iff_le, pi.zero_apply, not_lt, not_le] at hnlt h,
+  refine hμs _,
+  push_neg at h,
+  have hs_eq : s = {a : α | a ∈ s ∧ g a ≤ f a} ∪ {a : α | a ∈ s ∧ f a < g a},
+  { ext1 x,
+    simp_rw [set.mem_union, set.mem_set_of_eq, ← not_le],
+    tauto, },
+  rw hs_eq,
+  refine measure_union_null h (measure_mono_null _ hnlt),
+  simp,
+end
+
+lemma lintegral_strict_mono {f g : α → ℝ≥0∞} (hμ : μ ≠ 0)
+  (hf : measurable f) (hg : measurable g) (hfi : ∫⁻ x, f x ∂μ ≠ ∞) (h : ∀ᵐ x ∂μ, f x < g x) :
+  ∫⁻ x, f x ∂μ < ∫⁻ x, g x ∂μ :=
+begin
+  rw [ne.def, ← measure.measure_univ_eq_zero] at hμ,
+  refine lintegral_strict_mono_of_ae_le_of_ae_lt_on hf hg hfi (ae_le_of_ae_lt h) hμ _,
+  simpa using h,
+end
+
+lemma set_lintegral_strict_mono {f g : α → ℝ≥0∞} {s : set α}
+  (hsm : measurable_set s) (hs : μ s ≠ 0) (hf : measurable f) (hg : measurable g)
+  (hfi : ∫⁻ x in s, f x ∂μ ≠ ∞) (h : ∀ᵐ x ∂μ, x ∈ s → f x < g x) :
+  ∫⁻ x in s, f x ∂μ < ∫⁻ x in s, g x ∂μ :=
+lintegral_strict_mono (by simp [hs]) hf hg hfi ((ae_restrict_iff' hsm).mpr h)
+
 /-- Monotone convergence theorem for nonincreasing sequences of functions -/
 lemma lintegral_infi_ae
   {f : ℕ → α → ℝ≥0∞} (h_meas : ∀n, measurable (f n))
@@ -1620,9 +1676,9 @@ calc
 /-- Monotone convergence theorem for nonincreasing sequences of functions -/
 lemma lintegral_infi
   {f : ℕ → α → ℝ≥0∞} (h_meas : ∀n, measurable (f n))
-  (h_mono : ∀ ⦃m n⦄, m ≤ n → f n ≤ f m) (h_fin : ∫⁻ a, f 0 a ∂μ ≠ ∞) :
+  (h_anti : antitone f) (h_fin : ∫⁻ a, f 0 a ∂μ ≠ ∞) :
   ∫⁻ a, ⨅n, f n a ∂μ = ⨅n, ∫⁻ a, f n a ∂μ :=
-lintegral_infi_ae h_meas (λ n, ae_of_all _ $ h_mono $ le_of_lt n.lt_succ_self) h_fin
+lintegral_infi_ae h_meas (λ n, ae_of_all _ $ h_anti n.le_succ) h_fin
 
 /-- Known as Fatou's lemma, version with `ae_measurable` functions -/
 lemma lintegral_liminf_le' {f : ℕ → α → ℝ≥0∞} (h_meas : ∀n, ae_measurable (f n) μ) :
@@ -1916,6 +1972,25 @@ begin
   exact (ae_lt_top hf.measurable_mk h2f_meas).mp (hf.ae_eq_mk.mono (λ x hx h, by rwa hx)),
 end
 
+lemma set_lintegral_lt_top_of_bdd_above
+  {s : set α} (hs : μ s ≠ ∞) {f : α → ℝ≥0} (hf : measurable f) (hbdd : bdd_above (f '' s)) :
+  ∫⁻ x in s, f x ∂μ < ∞ :=
+begin
+  obtain ⟨M, hM⟩ := hbdd,
+  rw mem_upper_bounds at hM,
+  refine lt_of_le_of_lt (set_lintegral_mono hf.coe_nnreal_ennreal
+    (@measurable_const _ _ _ _ ↑M) _) _,
+  { simpa using hM },
+  { rw lintegral_const,
+    refine ennreal.mul_lt_top ennreal.coe_lt_top.ne _,
+    simp [hs] }
+end
+
+lemma set_lintegral_lt_top_of_is_compact [topological_space α] [opens_measurable_space α]
+  {s : set α} (hs : μ s ≠ ∞) (hsc : is_compact s) {f : α → ℝ≥0} (hf : continuous f) :
+  ∫⁻ x in s, f x ∂μ < ∞ :=
+set_lintegral_lt_top_of_bdd_above hs hf.measurable (hsc.image hf).bdd_above
+
 /-- Given a measure `μ : measure α` and a function `f : α → ℝ≥0∞`, `μ.with_density f` is the
 measure such that for a measurable set `s` we have `μ.with_density f s = ∫⁻ a in s, f a ∂μ`. -/
 def measure.with_density {m : measurable_space α} (μ : measure α) (f : α → ℝ≥0∞) : measure α :=
@@ -2018,6 +2093,12 @@ begin
   rw [restrict_apply ht, with_density_apply _ ht,
       with_density_apply _ (ht.inter hs), restrict_restrict ht],
 end
+
+lemma with_density_eq_zero {f : α → ℝ≥0∞}
+  (hf : ae_measurable f μ) (h : μ.with_density f = 0) :
+  f =ᵐ[μ] 0 :=
+by rw [← lintegral_eq_zero_iff' hf, ← set_lintegral_univ,
+       ← with_density_apply _ measurable_set.univ, h, measure.coe_zero, pi.zero_apply]
 
 end lintegral
 

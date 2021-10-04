@@ -383,6 +383,9 @@ and.imp id h
 lemma and.right_comm : (a ∧ b) ∧ c ↔ (a ∧ c) ∧ b :=
 by simp only [and.left_comm, and.comm]
 
+lemma and_and_and_comm (a b c d : Prop) : (a ∧ b) ∧ c ∧ d ↔ (a ∧ c) ∧ b ∧ d :=
+by rw [←and_assoc, @and.right_comm a, and_assoc]
+
 lemma and.rotate : a ∧ b ∧ c ↔ b ∧ c ∧ a :=
 by simp only [and.left_comm, and.comm]
 

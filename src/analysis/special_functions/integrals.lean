@@ -115,7 +115,7 @@ by simpa only [one_div] using interval_integrable_one_div_one_add_sq
 
 @[simp]
 lemma integral_const_mul : ∫ x in a..b, c * f x = c * ∫ x in a..b, f x :=
-integral_smul c
+integral_smul c f
 
 @[simp]
 lemma integral_mul_const : ∫ x in a..b, f x * c = (∫ x in a..b, f x) * c :=
@@ -201,7 +201,7 @@ lemma integral_inv (h : (0:ℝ) ∉ interval a b) : ∫ x in a..b, x⁻¹ = log 
 begin
   have h' := λ x hx, ne_of_mem_of_not_mem hx h,
   rw [integral_deriv_eq_sub' _ deriv_log' (λ x hx, differentiable_at_log (h' x hx))
-        (continuous_on_inv'.mono $ subset_compl_singleton_iff.mpr h),
+        (continuous_on_inv₀.mono $ subset_compl_singleton_iff.mpr h),
       log_div (h' b right_mem_interval) (h' a left_mem_interval)],
 end
 
@@ -233,7 +233,7 @@ begin
   obtain ⟨h', heq⟩ := ⟨λ x hx, ne_of_mem_of_not_mem hx h, λ x hx, mul_inv_cancel (h' x hx)⟩,
   convert integral_mul_deriv_eq_deriv_mul (λ x hx, has_deriv_at_log (h' x hx))
       (λ x hx, has_deriv_at_id x)
-      (continuous_on_inv'.mono $ subset_compl_singleton_iff.mpr h).interval_integrable
+      (continuous_on_inv₀.mono $ subset_compl_singleton_iff.mpr h).interval_integrable
       continuous_on_const.interval_integrable using 1;
     simp [integral_congr heq, mul_comm, ← sub_add],
 end
@@ -341,9 +341,12 @@ begin
   linarith,
 end
 
-lemma integral_sin_pow_antimono : ∫ x in 0..π, sin x ^ (n + 1) ≤ ∫ x in 0..π, sin x ^ n :=
+lemma integral_sin_pow_succ_le : ∫ x in 0..π, sin x ^ (n + 1) ≤ ∫ x in 0..π, sin x ^ n :=
 let H := λ x h, pow_le_pow_of_le_one (sin_nonneg_of_mem_Icc h) (sin_le_one x) (n.le_add_right 1) in
 by refine integral_mono_on pi_pos.le _ _ H; exact (continuous_sin.pow _).interval_integrable 0 π
+
+lemma integral_sin_pow_antitone : antitone (λ n : ℕ, ∫ x in 0..π, sin x ^ n) :=
+antitone_nat_of_succ_le integral_sin_pow_succ_le
 
 /-! ### Integral of `cos x ^ n` -/
 

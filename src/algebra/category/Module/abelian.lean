@@ -3,6 +3,7 @@ Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
+import linear_algebra.isomorphisms
 import algebra.category.Module.kernels
 import algebra.category.Module.limits
 import category_theory.abelian.exact

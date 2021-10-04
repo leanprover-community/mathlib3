@@ -110,7 +110,6 @@ begin
       (λ c, is_bounded_under_of_tendsto (tendsto_zero_iff_norm_tendsto_zero.2 $ h c)) }
 end
 
-/-- TODO: it may be better to take this equivalence as the main definition instead -/
 lemma superpolynomial_decay_iff_tendsto_zero (f : α → 𝕜)
   (hα : tendsto (λ x, ∥algebra_map α 𝕜 x∥) at_top at_top) :
   superpolynomial_decay f ↔

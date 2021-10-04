@@ -125,7 +125,7 @@ begin
         : by rw [choose_mul_factorial_mul_factorial (nat.sub_le_sub_right hkn _),
               choose_mul_factorial_mul_factorial (hsk.trans hkn)]
     ... = n.choose s * (n - s).choose (k - s) * ((n - k)! * (k - s)! * s!)
-        : by rw [sub_sub_sub_cancel_right hsk, mul_assoc, mul_left_comm s!, mul_assoc,
+        : by rw [sub_sub_sub_cancel_right' hsk, mul_assoc, mul_left_comm s!, mul_assoc,
               mul_comm (k - s)!, mul_comm s!, mul_right_comm, ←mul_assoc]
 end
 

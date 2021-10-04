@@ -62,11 +62,13 @@ Let `α` be a normed group with a partial order. Then the order dual is also a n
 @[priority 100] -- see Note [lower instance priority]
 instance {α : Type*} : Π [normed_group α], normed_group (order_dual α) := id
 
+variables {α : Type*} [normed_lattice_add_comm_group α]
+
 /--
 Let `α` be a normed lattice ordered group and let `a` and `b` be elements of `α`. Then `a⊓-a ≥ b⊓-b`
 implies `∥a∥ ≤ ∥b∥`.
 -/
-lemma dual_solid {α : Type*} [normed_lattice_add_comm_group α] (a b : α) (h: b⊓-b ≤ a⊓-a) :
+lemma dual_solid (a b : α) (h: b⊓-b ≤ a⊓-a) :
   ∥a∥ ≤ ∥b∥ :=
 begin
   apply solid,
@@ -84,13 +86,12 @@ Let `α` be a normed lattice ordered group, then the order dual is also a
 normed lattice ordered group.
 -/
 @[priority 100] -- see Note [lower instance priority]
-instance {α : Type*} [h: normed_lattice_add_comm_group α] :
-  normed_lattice_add_comm_group (order_dual α) :=
+instance : normed_lattice_add_comm_group (order_dual α) :=
 { add_le_add_left := begin
   intros a b h₁ c,
   rw ← order_dual.dual_le,
   rw ← order_dual.dual_le at h₁,
-  apply h.add_le_add_left,
+  apply add_le_add_left,
   exact h₁,
 end,
 solid := begin
@@ -104,7 +105,7 @@ end, }
 Let `α` be a normed lattice ordered group, let `a` be an element of `α` and let `|a|` be the
 absolute value of `a`. Then `∥|a|∥ = ∥a∥`.
 -/
-lemma norm_abs_eq_norm {α : Type*} [normed_lattice_add_comm_group α] (a : α) : ∥|a|∥ = ∥a∥ :=
+lemma norm_abs_eq_norm (a : α) : ∥|a|∥ = ∥a∥ :=
 begin
   rw le_antisymm_iff,
   split,
@@ -118,8 +119,7 @@ end
 Let `α` be a normed lattice ordered group. Then the infimum is jointly continuous.
 -/
 @[priority 100] -- see Note [lower instance priority]
-instance normed_lattice_add_comm_group_has_continuous_inf {α : Type*}
-  [normed_lattice_add_comm_group α] : has_continuous_inf α :=
+instance normed_lattice_add_comm_group_has_continuous_inf : has_continuous_inf α :=
 ⟨ continuous_iff_continuous_at.2 $ λ q, tendsto_iff_norm_tendsto_zero.2 $
 begin
   have : ∀ p : α × α, ∥p.1 ⊓ p.2 - q.1 ⊓ q.2∥ ≤ ∥p.1 - q.1∥ + ∥p.2 - q.2∥,
@@ -158,6 +158,26 @@ end
 Let `α` be a normed lattice ordered group. Then `α` is a topological lattice in the norm topology.
 -/
 @[priority 100] -- see Note [lower instance priority]
-instance normed_lattice_add_comm_group_topological_lattice {α : Type*}
-  [normed_lattice_add_comm_group α] : topological_lattice α :=
+instance normed_lattice_add_comm_group_topological_lattice : topological_lattice α :=
 topological_lattice.mk
+
+lemma test  (a : ℝ) : a + a = 2*a :=
+begin
+  exact (two_mul a).symm,
+end
+
+lemma norm_abs_sub_abs (a b : α) :
+  ∥ |a| - |b| ∥ ≤ ∥a-b∥ :=
+by exact solid (lattice_ordered_comm_group.abs_abs_sub_abs_le _ _)
+
+lemma two_inf_sub_two_inf_le (a b c d: α) :
+  ∥2•(a⊓b)-2•(c⊓d)∥ ≤ 2*∥a - c∥ + 2*∥b - d∥ :=
+calc ∥2•(a⊓b) - 2•(c⊓d)∥ = ∥(a + b - |b - a|) - (c + d - |d - c|)∥ : by rw [lattice_ordered_comm_group.two_inf_eq_add_sub_abs_sub, lattice_ordered_comm_group.two_inf_eq_add_sub_abs_sub]
+  ... = ∥(a + b - |b - a|) - c - d + |d - c|∥ : by abel
+  ... = ∥(a - c + (b - d))  + (|d - c| - |b - a|)∥ : by sorry
+  ... ≤ ∥a - c + (b - d)∥ + ∥|d - c| - |b - a|∥ : by apply norm_add_le (a - c + (b - d)) (|d - c| - |b - a|)
+  ... ≤ (∥a - c∥ + ∥b - d∥) + ∥|d - c| - |b - a|∥ : by {apply add_le_add_right, apply norm_add_le, } -- convert to exact?
+  ... ≤ (∥a - c∥ + ∥b - d∥) + ∥ d - c - (b - a) ∥ : by { apply add_le_add_left, apply norm_abs_sub_abs, } -- convert to exact?
+  ... ≤ (∥a - c∥ + ∥b - d∥) + ∥ a - c - (b - d) ∥ : by sorry
+  ... ≤ (∥a - c∥ + ∥b - d∥) + (∥ a - c ∥ + ∥ b -d ∥) : by { apply add_le_add_left (norm_sub_le (a-c) (b-d) ), }
+  ... = 2*∥a - c∥ + 2*∥b - d∥ : by { rw add_assoc, nth_rewrite 1 add_comm, rw add_assoc, rw ←add_assoc, rw ←two_mul, rw ←two_mul, }

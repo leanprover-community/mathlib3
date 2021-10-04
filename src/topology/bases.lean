@@ -347,6 +347,13 @@ protected lemma dense_range.separable_space {α β : Type*} [topological_space �
 let ⟨s, s_cnt, s_dense⟩ := exists_countable_dense α in
 ⟨⟨f '' s, countable.image s_cnt f, h.dense_image h' s_dense⟩⟩
 
+lemma dense.exists_countable_dense_subset {α : Type*} [topological_space α]
+  {s : set α} [separable_space s] (hs : dense s) :
+  ∃ t ⊆ s, countable t ∧ dense t :=
+let ⟨t, htc, htd⟩ := exists_countable_dense s
+in ⟨coe '' t, image_subset_iff.2 $ λ x _, mem_preimage.2 $ subtype.coe_prop _, htc.image coe,
+  hs.dense_range_coe.dense_image continuous_subtype_val htd⟩
+
 namespace topological_space
 universe u
 variables (α : Type u) [t : topological_space α]

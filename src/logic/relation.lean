@@ -514,6 +514,9 @@ begin
   case eqv_gen.trans : a b c ih1 ih2 hab hbc { exact eqv_gen.trans _ _ _ hab hbc }
 end
 
+lemma eqv_gen_eq_of_equivalence (h : equivalence r) : eqv_gen r = r :=
+funext $ λ _, funext $ λ _, propext $ eqv_gen_iff_of_equivalence h
+
 end eqv_gen
 
 end relation

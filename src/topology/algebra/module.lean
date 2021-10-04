@@ -810,7 +810,8 @@ instance : has_neg (M →SL[σ₁₂] M₂) := ⟨λ f, ⟨-f, f.2.neg⟩⟩
 
 @[simp] lemma neg_apply : (-f) x = - (f x) := rfl
 
-@[simp, norm_cast] lemma coe_neg : (((-f) : M →SL[σ₁₂] M₂) : M →ₛₗ[σ₁₂] M₂) = -(f : M →ₛₗ[σ₁₂] M₂) :=
+@[simp, norm_cast] lemma coe_neg :
+  (((-f) : M →SL[σ₁₂] M₂) : M →ₛₗ[σ₁₂] M₂) = -(f : M →ₛₗ[σ₁₂] M₂) :=
 rfl
 @[norm_cast] lemma coe_neg' : (((-f) : M →SL[σ₁₂] M₂) : M → M₂) = -(f : M → M₂) := rfl
 
@@ -1112,7 +1113,8 @@ e.to_homeomorph.image_closure s
 lemma preimage_closure (e : M₁ ≃SL[σ₁₂] M₂) (s : set M₂) : e ⁻¹' closure s = closure (e ⁻¹' s) :=
 e.to_homeomorph.preimage_closure s
 
-@[simp] lemma is_closed_image (e : M₁ ≃SL[σ₁₂] M₂) {s : set M₁} : is_closed (e '' s) ↔ is_closed s :=
+@[simp] lemma is_closed_image (e : M₁ ≃SL[σ₁₂] M₂) {s : set M₁} :
+  is_closed (e '' s) ↔ is_closed s :=
 e.to_homeomorph.is_closed_image
 
 lemma map_nhds_eq (e : M₁ ≃SL[σ₁₂] M₂) (x : M₁) : map e (𝓝 x) = 𝓝 (e x) :=

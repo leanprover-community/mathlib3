@@ -46,6 +46,7 @@ instance has_faithful_scalar_right [nonempty α] [has_faithful_scalar M β] :
 
 end
 
+@[to_additive]
 instance smul_comm_class_both [monoid N] [monoid P] [has_scalar M N] [has_scalar M P]
   [smul_comm_class M N N] [smul_comm_class M P P] :
   smul_comm_class M (N × P) (N × P) :=

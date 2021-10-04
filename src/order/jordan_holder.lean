@@ -52,7 +52,7 @@ for modular lattices.
 It is not entirely clear how this should be done. Possibly there should be no global instances
 of `jordan_holder_lattice`, and the instances should only be defined locally in order to prove
 the Jordan-Hölder theorem for modules/groups and the API should be transferred because many of the
-theorems in this file will have stronger versions for modules. There will also nned to be an API for
+theorems in this file will have stronger versions for modules. There will also need to be an API for
 mapping composition series across homomorphisms. It is also probably possible to
 provide an instance of `jordan_holder_lattice` for any `modular_lattice`, and in this case the
 Jordan-Hölder theorem will say that there is a well defined notion of length of a modular lattice.

@@ -945,11 +945,12 @@ begin
     { exact this } },
 end
 
-
+/-
 -- For `unique_factorization_monoid.lean, e.g. after `factors_pow`
-theorem factors_irreducible_pow {p : α} (hp : irreducible p) (k : ℕ) :
+theorem factors_irreducible_pow [α : Type u_2] [comm_cancel_monoid_with_zero α] [decidable_eq α]
+  [nontrivial α] [normalization_monoid α] [unique_factorization_monoid α] {p : α} (hp : irreducible p) (k : ℕ) :
   factors (p ^ k) = multiset.repeat (normalize p) k :=
-by rw [factors_pow, factors_irreducible hp, multiset.nsmul_singleton]
+by rw [factors_pow, factors_irreducible hp, multiset.nsmul_singleton]-/
 
 variables {I}
 
@@ -981,12 +982,13 @@ end is_dedekind_domain
 section quotient_multiplicity
 noncomputable theory
 open_locale classical
-variables {T : Type*} [integral_domain T] [is_dedekind_domain T] {I : ideal T}
+variables {T : Type u_1} [integral_domain T] [is_dedekind_domain T] {I : ideal T}
+variables {S : Type u_2}  [integral_domain S] [is_dedekind_domain S] {J : ideal S}
 open ideal unique_factorization_monoid
 
 /-- The predicate that the sequence of powers `(p')^m` for `n ≤ m` is constant,
     where `p'` is the image of `p` in `R/I` -/
-def shifted_seq_pow_constant {R : Type u_1} [comm_ring R] (I : ideal R) (p : ideal R) : ℕ → Prop :=
+def shifted_seq_pow_constant {R : Type u_3} [comm_ring R] (I : ideal R) (p : ideal R) : ℕ → Prop :=
   λ n, ∀ m : ℕ, n ≤ m → (map I^.quotient.mk p)^n = (map I^.quotient.mk p)^m
 
 /--The sequence of powers `(p')^m` is eventually constant, where `p'` is the image of `p` in `R/I`-/
@@ -1025,7 +1027,7 @@ begin
   rw ← ideal.dvd_not_unit_iff_lt,
   split,
   { exact pow_ne_zero n hp.ne_zero },
-  { refine ⟨ p^(k - n), not_unit_of_not_unit_dvd hp.not_unit
+  { refine ⟨ p^(k - n), not_is_unit_of_not_is_unit_dvd hp.not_unit
       (dvd_pow (dvd_refl p) (ne_of_gt (sub_pos_iff_lt.mpr hlt))), _⟩,
     rw [← pow_add, nat.add_sub_cancel' hlt.le] }
 end
@@ -1076,29 +1078,98 @@ begin
     exact hn.trans (enat.coe_le_coe.mpr hm) }
 end
 
-lemma seq_pow_eventually_constant' (hI : I ≠ ⊥) (p : ideal T) (hp : p ∈ factors I) :
+lemma seq_pow_eventually_constant' (hI : I ≠ ⊥) {p : ideal T} (hp : irreducible p) :
   shifted_seq_pow_constant I p ((factors I).count p) :=
-(shifted_seq_pow_constant_iff_ge_count I hI p hp ((factors I).count p)).2
-  (le_refl ((factors I).count p))
-
+begin
+  refine (pow_map_mk_constant_iff_multiplicity_le hI hp).2 _,
+  rw [multiplicity_eq_count_factors hp hI, normalize_eq],
+end
 
 /--The quotient multiplicity of `p` is the least natural number `n` such that the sequence of
  powers `(p')^m` for `m ≥ n` is constant, where `p'` is the image of `p` in `R/I` -/
-def quotient_multiplicity (hI : I ≠ ⊥) (p : ideal T) (hp : p ∈ factors I) : ℕ :=
-nat.find ⟨(factors I).count p, seq_pow_eventually_constant' I hI p hp⟩
+def quotient_multiplicity (hI : I ≠ ⊥) {p : ideal T} (hp : irreducible p) : ℕ :=
+nat.find ⟨(factors I).count p, seq_pow_eventually_constant' hI hp⟩
 
 /--The quotient multiplicity of a prime factor `p` of `I ≠ 0` is equal to the multiplicity of `p`
   in the factorisation of `I` -/
-lemma quotient_multiplicity_eq_count (hI : I ≠ 0) (p : ideal T) (hp : p ∈ factors I) :
- quotient_multiplicity I hI p hp = (factors I).count p :=
+lemma quotient_multiplicity_eq_count (hI : I ≠ 0) (p : ideal T) (hp : irreducible p) :
+  multiplicity p I = quotient_multiplicity hI hp :=
 begin
   apply le_antisymm,
-  { rw quotient_multiplicity,
-    exact nat.find_min' (exists.intro ((factors I).count p)
-    (seq_pow_eventually_constant' I hI p hp)) (seq_pow_eventually_constant' I hI p hp) },
-  { rw [← shifted_seq_pow_constant_iff_ge_count I hI p hp, quotient_multiplicity],
+  { rw [quotient_multiplicity, ← pow_map_mk_constant_iff_multiplicity_le hI hp],
     exact nat.find_spec (exists.intro ((factors I).count p)
-      (seq_pow_eventually_constant' I hI p hp)) },
+      (seq_pow_eventually_constant' hI hp)) },
+  { rw [quotient_multiplicity, multiplicity_eq_count_factors hp hI, normalize_eq, enat.coe_le_coe],
+    exact nat.find_min' (exists.intro ((factors I).count p)
+    (seq_pow_eventually_constant' hI hp)) (seq_pow_eventually_constant' hI hp) }
+end
+
+lemma comap_map_map_ne_bot_of_lt  (f : I.quotient ≃+* J.quotient) {p : ideal T} (hJ : J ≠ ⊥) :
+ (comap J^.quotient.mk (map (f : I.quotient →+* J.quotient) (map I^.quotient.mk p))) ≠ ⊥ :=
+begin
+  refine ne_bot_of_le_ne_bot hJ _,
+  {  have : (J^.quotient.mk).ker ≤ comap (J^.quotient.mk) (map ↑f (map (I^.quotient.mk) p)),
+    { exact ker_le_comap (J^.quotient.mk) },
+    rw mk_ker at this,
+    exact this },
+end
+
+lemma comap_map_map_is_prime_of_is_prime_and_le {R : Type*}[comm_ring R] {S : Type*} [comm_ring S]
+  {I : ideal R} {J : ideal S} {p : ideal R} (hp₁ : I ≤ p) (hp₂ : p.is_prime)
+  (f : I.quotient ≃+* J.quotient) :
+  (comap J^.quotient.mk (map (f : I.quotient →+* J.quotient) (map I^.quotient.mk p))).is_prime :=
+begin
+  convert comap_is_prime J^.quotient.mk _,
+  convert map_is_prime_of_equiv f,
+  refine map_is_prime_of_surjective quotient.mk_surjective _,
+  rw mk_ker,
+  exact hp₁,
+end
+
+lemma comap_map_comap_irreducible_of_mem_factors (hI : I ≠ ⊥) (hJ : J ≠ ⊥)
+  (f : I.quotient ≃+* J.quotient) {p : ideal T} (hp : p ∈ factors I) :
+  irreducible (comap J^.quotient.mk (map (f : I.quotient →+* J.quotient) (map I^.quotient.mk p))) :=
+begin
+  apply prime.irreducible,
+  rw prime_iff_is_prime (comap_map_map_ne_bot_of_lt f hJ),
+  apply comap_map_map_is_prime_of_is_prime_and_le (dvd_iff_le.1 (dvd_of_mem_factors hp))
+    (is_prime_of_prime (prime_of_factor p hp)),
+end
+
+lemma temporary (hI : I ≠ ⊥) (hJ : J ≠ ⊥) (f : I.quotient ≃+* J.quotient) {p : ideal T}
+  (hp : p ∈ factors I) (n : ℕ) : shifted_seq_pow_constant I p n
+  ↔ shifted_seq_pow_constant J (comap J^.quotient.mk (map ↑f (map I^.quotient.mk p))) n :=
+begin
+  split,
+  { rw [shifted_seq_pow_constant, shifted_seq_pow_constant],
+    intros hn m hm,
+    specialize hn m hm,
+    apply_fun map (f : I.quotient →+* J.quotient) at hn,
+    rw [map_comap_of_surjective J^.quotient.mk quotient.mk_surjective, ← map_pow,
+      hn, map_pow] },
+  { rw [shifted_seq_pow_constant, shifted_seq_pow_constant],
+    intros hn m hm,
+    specialize hn m hm,
+    rw [map_comap_of_surjective J^.quotient.mk quotient.mk_surjective, ← map_pow,
+      ← map_pow _ _ m] at hn,
+    apply_fun map ↑f.symm at hn,
+    rw [map_of_equiv _ f, map_of_equiv _ f] at hn,
+    exact hn }
+end
+
+theorem multiplicity_eq_of_quot_equiv (hI : I ≠ 0) (hJ : J ≠ 0) (f : I.quotient ≃+* J.quotient)
+  {p : ideal T} (hp : p ∈ factors I): quotient_multiplicity hI (irreducible_of_factor p hp) =
+  quotient_multiplicity hJ (comap_map_comap_irreducible_of_mem_factors hI hJ f hp) :=
+begin
+  apply le_antisymm,
+  { rw [quotient_multiplicity, quotient_multiplicity],
+    apply nat.find_min',
+    rw temporary hI hJ f hp,
+    refine nat.find_spec _ },
+  { rw [quotient_multiplicity, quotient_multiplicity],
+    apply nat.find_min',
+    rw ← temporary hI hJ f hp,
+    refine nat.find_spec _ },
 end
 
 end quotient_multiplicity

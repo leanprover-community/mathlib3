@@ -472,6 +472,10 @@ begin
   rw [pow_succ, succ_nsmul, factors_mul h0 (pow_ne_zero _ h0), ih],
 end
 
+theorem factors_irreducible_pow {p : α} (hp : irreducible p) (k : ℕ) :
+  factors (p ^ k) = multiset.repeat (normalize p) k :=
+by rw [factors_pow, factors_irreducible hp, multiset.nsmul_singleton]
+
 lemma dvd_iff_factors_le_factors {x y : α} (hx : x ≠ 0) (hy : y ≠ 0) :
   x ∣ y ↔ factors x ≤ factors y :=
 begin

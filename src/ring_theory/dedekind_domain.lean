@@ -950,12 +950,6 @@ begin
     { exact this } },
 end
 
-/-
--- For `unique_factorization_monoid.lean, e.g. after `factors_pow`
-theorem factors_irreducible_pow [α : Type u_2] [comm_cancel_monoid_with_zero α] [decidable_eq α]
-  [nontrivial α] [normalization_monoid α] [unique_factorization_monoid α] {p : α} (hp : irreducible p) (k : ℕ) :
-  factors (p ^ k) = multiset.repeat (normalize p) k :=
-by rw [factors_pow, factors_irreducible hp, multiset.nsmul_singleton]-/
 
 variables {I}
 
@@ -1119,6 +1113,7 @@ begin
     exact this },
 end
 
+-- This should probably be in another file
 lemma comap_map_map_is_prime_of_is_prime_and_le {R : Type*}[comm_ring R] {S : Type*} [comm_ring S]
   {I : ideal R} {J : ideal S} {p : ideal R} (hp₁ : I ≤ p) (hp₂ : p.is_prime)
   (f : I.quotient ≃+* J.quotient) :
@@ -1133,7 +1128,7 @@ end
 
 lemma comap_map_comap_irreducible_of_mem_factors (hI : I ≠ ⊥) (hJ : J ≠ ⊥)
   (f : I.quotient ≃+* J.quotient) {p : ideal T} (hp : p ∈ factors I) :
-  irreducible (comap J^.quotient.mk (map (f : I.quotient →+* J.quotient) (map I^.quotient.mk p))) :=
+  irreducible (comap J^.quotient.mk (map (f : I.quotient →+* J.quotient) (map I^.quotient.mk p))):=
 begin
   apply prime.irreducible,
   rw prime_iff_is_prime (comap_map_map_ne_bot_of_lt f hJ),

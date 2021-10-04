@@ -182,8 +182,9 @@ calc ∥2•(a⊓b) - 2•(c⊓d)∥ = ∥(a + b - |b - a|) - (c + d - |d - c|)�
   ... = ∥(a - c + (b - d))  + (|d - c| - |b - a|)∥ : by abel
   ... ≤ ∥a - c + (b - d)∥ + ∥|d - c| - |b - a|∥    :
     by apply norm_add_le (a - c + (b - d)) (|d - c| - |b - a|)
-  ... ≤ (∥a - c∥ + ∥b - d∥) + ∥|d - c| - |b - a|∥ : by exact add_le_add_right (norm_add_le _ _) _
-  ... ≤ (∥a - c∥ + ∥b - d∥) + ∥ d - c - (b - a) ∥ : by exact add_le_add_left (norm_abs_sub_abs _ _) _
+  ... ≤ (∥a - c∥ + ∥b - d∥) + ∥|d - c| - |b - a|∥   : by exact add_le_add_right (norm_add_le _ _) _
+  ... ≤ (∥a - c∥ + ∥b - d∥) + ∥ d - c - (b - a) ∥   :
+    by exact add_le_add_left (norm_abs_sub_abs _ _) _
   ... = (∥a - c∥ + ∥b - d∥) + ∥ a - c - (b - d) ∥ :
     by { rw [sub_sub_assoc_swap, sub_sub_assoc_swap, add_comm (a-c), ← add_sub_assoc], simp, abel, }
   ... ≤ (∥a - c∥ + ∥b - d∥) + (∥ a - c ∥ + ∥ b -d ∥) :

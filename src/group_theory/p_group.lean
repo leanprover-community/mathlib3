@@ -178,7 +178,7 @@ begin
   exact hH.of_surjective (ϕ.restrict H).range_restrict (ϕ.restrict H).range_restrict_surjective,
 end
 
-lemma comap_ker_is_p_group {H : subgroup G} (hH : is_p_group p H) {K : Type*} [group K]
+lemma comap_of_ker_is_p_group {H : subgroup G} (hH : is_p_group p H) {K : Type*} [group K]
   (ϕ : K →* G) (hϕ : is_p_group p ϕ.ker) : is_p_group p (H.comap ϕ) :=
 begin
   intro g,

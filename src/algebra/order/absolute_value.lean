@@ -150,7 +150,7 @@ section field
 variables {R S : Type*} [field R] [linear_ordered_field S] (abv : absolute_value R S)
 
 @[simp] protected theorem map_inv (a : R) : abv a⁻¹ = (abv a)⁻¹ :=
-abv.to_monoid_with_zero_hom.map_inv' a
+abv.to_monoid_with_zero_hom.map_inv a
 
 @[simp] protected theorem map_div (a b : R) : abv (a / b) = abv a / abv b :=
 abv.to_monoid_with_zero_hom.map_div a b
@@ -267,7 +267,7 @@ section field
 variables {R : Type*} [field R] (abv : R → S) [is_absolute_value abv]
 
 theorem abv_inv (a : R) : abv a⁻¹ = (abv a)⁻¹ :=
-(abv_hom abv).map_inv' a
+(abv_hom abv).map_inv a
 
 theorem abv_div (a b : R) : abv (a / b) = abv a / abv b :=
 (abv_hom abv).map_div a b

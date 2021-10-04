@@ -13,7 +13,7 @@ import algebra.continued_fractions.computation.approximation_corollaries
 -/
 namespace real
 
-local notation `abs'` := _root_.abs
+local notation `abs'` := has_abs.abs
 open is_absolute_value finset cau_seq complex
 
 lemma exp_one_near_10 : abs' (exp 1 - 2244083/825552) ≤ 1/10^10 :=

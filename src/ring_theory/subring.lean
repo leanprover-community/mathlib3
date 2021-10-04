@@ -93,6 +93,18 @@ instance : set_like (subring R) R :=
 @[simp]
 lemma mem_carrier {s : subring R} {x : R} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
 
+@[simp]
+lemma mem_mk {S : set R} {x : R} (h₁ h₂ h₃ h₄ h₅) :
+  x ∈ (⟨S, h₁, h₂, h₃, h₄, h₅⟩ : subring R) ↔ x ∈ S := iff.rfl
+
+@[simp] lemma coe_set_mk (S : set R) (h₁ h₂ h₃ h₄ h₅) :
+  ((⟨S, h₁, h₂, h₃, h₄, h₅⟩ : subring R) : set R) = S := rfl
+
+@[simp]
+lemma mk_le_mk {S S' : set R} (h₁ h₂ h₃  h₄ h₅ h₁' h₂' h₃'  h₄' h₅') :
+  (⟨S, h₁, h₂, h₃, h₄, h₅⟩ : subring R) ≤ (⟨S', h₁', h₂', h₃', h₄', h₅'⟩ : subring R) ↔ S ⊆ S' :=
+iff.rfl
+
 /-- Two subrings are equal if they have the same elements. -/
 @[ext] theorem ext {S T : subring R} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
 
@@ -971,3 +983,16 @@ S.to_subsemiring.module
 end subring
 
 end actions
+
+-- while this definition is not about subrings, this is the earliest we have
+-- both ordered ring structures and submonoids available
+
+/-- The subgroup of positive units of a linear ordered commutative ring. -/
+def units.pos_subgroup (R : Type*) [linear_ordered_comm_ring R] [nontrivial R] :
+  subgroup (units R) :=
+{ carrier := {x | (0 : R) < x},
+  inv_mem' := λ x (hx : (0 : R) < x), (zero_lt_mul_left hx).mp $ x.mul_inv.symm ▸ zero_lt_one,
+  ..(pos_submonoid R).comap (units.coe_hom R)}
+
+@[simp] lemma units.mem_pos_subgroup {R : Type*} [linear_ordered_comm_ring R] [nontrivial R]
+  (u : units R) : u ∈ units.pos_subgroup R ↔ (0 : R) < u := iff.rfl

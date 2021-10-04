@@ -709,9 +709,9 @@ theorem singleton_def (a : α) : ({a} : set α) = insert a ∅ := (insert_emptyc
 
 @[simp] theorem mem_singleton_iff {a b : α} : a ∈ ({b} : set α) ↔ a = b := iff.rfl
 
-@[simp]
-lemma set_of_eq_eq_singleton {a : α} : {n | n = a} = {a} :=
-ext $ λ n, (set.mem_singleton_iff).symm
+@[simp] lemma set_of_eq_eq_singleton {a : α} : {n | n = a} = {a} := rfl
+
+@[simp] lemma set_of_eq_eq_singleton' {a : α} : {x | a = x} = {a} := ext $ λ x, eq_comm
 
 -- TODO: again, annotation needed
 @[simp] theorem mem_singleton (a : α) : a ∈ ({a} : set α) := @rfl _ _
@@ -1584,6 +1584,14 @@ lemma subsingleton_univ [subsingleton α] : (univ : set α).subsingleton :=
 
 lemma subsingleton_of_subsingleton [subsingleton α] {s : set α} : set.subsingleton s :=
 subsingleton.mono subsingleton_univ (subset_univ s)
+
+lemma subsingleton_is_top (α : Type*) [partial_order α] :
+  set.subsingleton {x : α | is_top x} :=
+λ x hx y hy, hx.unique (hy x)
+
+lemma subsingleton_is_bot (α : Type*) [partial_order α] :
+  set.subsingleton {x : α | is_bot x} :=
+λ x hx y hy, hx.unique (hy x)
 
 /-- `s`, coerced to a type, is a subsingleton type if and only if `s`
 is a subsingleton set. -/

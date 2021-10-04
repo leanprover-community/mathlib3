@@ -238,7 +238,7 @@ by convert fin_add_flip_apply_cast_add ⟨k, h⟩ n
   fin_add_flip (⟨k, h₂⟩ : fin (m + n)) = ⟨k - m, sub_le_self'.trans_lt $ add_comm m n ▸ h₂⟩ :=
 begin
   convert fin_add_flip_apply_nat_add ⟨k - m, (sub_lt_iff_right h₁).2 _⟩ m,
-  { simp [nat.add_sub_cancel' h₁] },
+  { simp [add_sub_cancel_of_le h₁] },
   { rwa add_comm }
 end
 

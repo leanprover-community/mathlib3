@@ -184,7 +184,7 @@ begin
   induction k with k ih, { simp },
   obtain hk | hk := le_or_lt (k + 1) (n + 1),
   { rw [choose_succ_succ, add_mul, succ_sub_succ, ←choose_succ_right_eq, ←succ_sub_succ,
-      nat.mul_sub_left_distrib, nat.add_sub_cancel' (nat.mul_le_mul_left _ hk)] },
+      nat.mul_sub_left_distrib, add_sub_cancel_of_le (nat.mul_le_mul_left _ hk)] },
   rw [choose_eq_zero_of_lt hk, choose_eq_zero_of_lt (n.lt_succ_self.trans hk), zero_mul, zero_mul],
 end
 
@@ -234,10 +234,10 @@ end
 lemma choose_le_succ_of_lt_half_left {r n : ℕ} (h : r < n/2) :
   choose n r ≤ choose n (r+1) :=
 begin
-  refine le_of_mul_le_mul_right _ (nat.lt_sub_left_of_add_lt (lt_of_lt_of_le h (n.div_le_self 2))),
+  refine le_of_mul_le_mul_right _ (lt_sub_iff_left.mpr (lt_of_lt_of_le h (n.div_le_self 2))),
   rw ← choose_succ_right_eq,
   apply nat.mul_le_mul_left,
-  rw [← nat.lt_iff_add_one_le, nat.lt_sub_left_iff_add_lt, ← mul_two],
+  rw [← nat.lt_iff_add_one_le, lt_sub_iff_left, ← mul_two],
   exact lt_of_lt_of_le (mul_lt_mul_of_pos_right h zero_lt_two) (n.div_mul_le_self 2),
 end
 
@@ -260,7 +260,7 @@ begin
     { rw ← choose_symm b,
       apply choose_le_middle_of_le_half_left,
       rw [div_lt_iff_lt_mul' zero_lt_two] at h,
-      rw [le_div_iff_mul_le' zero_lt_two, nat.mul_sub_right_distrib, nat.sub_le_iff,
+      rw [le_div_iff_mul_le' zero_lt_two, nat.mul_sub_right_distrib, sub_le_iff_sub_le,
           mul_two, nat.add_sub_cancel],
       exact le_of_lt h } },
   { rw choose_eq_zero_of_lt b,

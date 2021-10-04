@@ -178,11 +178,11 @@ begin
     { simp only [← add_sub_add_right_eq_sub' n 1 j, nat.sub_le_sub_left, hjm] },
     { exact nat.sub_le_sub_left _ hjk } },
   { rintros ⟨hm, hk⟩,
-    have hj : j ≤ n := le_trans hk (nat.sub_le_self _ _),
+    have hj : j ≤ n := le_trans hk sub_le_self',
     refine ⟨n - j, ⟨_, _⟩, _⟩,
-    { apply nat.le_sub_right_of_add_le,
-      rwa nat.le_sub_left_iff_add_le hkn at hk },
-    { rwa [← nat.sub_add_comm hj, nat.sub_le_iff] },
+    { apply le_sub_of_add_le_right',
+      rwa le_sub_iff_left hkn at hk },
+    { rwa [← nat.sub_add_comm hj, sub_le_iff_sub_le] },
     { exact nat.sub_sub_self hj } }
 end
 

@@ -67,7 +67,7 @@ theorem map_sub (n m k : ℕ) (h₁ : k ≤ n) : (Ico n m).map (λ x, x - k) = I
 begin
   by_cases h₂ : n < m,
   { rw [Ico, Ico],
-    rw nat.sub_sub_sub_cancel_right h₁,
+    rw sub_sub_sub_cancel_right' h₁,
     rw [map_sub_range' _ _ _ h₁] },
   { simp at h₂,
     rw [eq_nil_of_le h₂],

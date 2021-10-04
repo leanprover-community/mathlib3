@@ -38,13 +38,13 @@ if n - s*s < s then (n - s*s, s) else (s, n - s*s - s)
 @[simp] theorem mkpair_unpair (n : ℕ) : mkpair (unpair n).1 (unpair n).2 = n :=
 begin
   dsimp only [unpair], set s := sqrt n,
-  have sm : s * s + (n - s * s) = n := nat.add_sub_cancel' (sqrt_le _),
+  have sm : s * s + (n - s * s) = n := add_sub_cancel_of_le (sqrt_le _),
   split_ifs,
   { simp [mkpair, h, sm] },
   { have hl : n - s*s - s ≤ s :=
-      nat.sub_le_left_of_le_add (nat.sub_le_left_of_le_add $
+      sub_le_iff_left.mpr (sub_le_iff_left.mpr $
       by rw ← add_assoc; apply sqrt_le_add),
-    simp [mkpair, hl.not_lt, add_assoc, nat.add_sub_cancel' (le_of_not_gt h), sm] }
+    simp [mkpair, hl.not_lt, add_assoc, add_sub_cancel_of_le (le_of_not_gt h), sm] }
 end
 
 theorem mkpair_unpair' {n a b} (H : unpair n = (a, b)) : mkpair a b = n :=
@@ -73,7 +73,7 @@ let s := sqrt n in begin
   { exact lt_of_lt_of_le h (sqrt_le_self _) },
   { simp at h,
     have s0 : 0 < s := sqrt_pos.2 n1,
-    exact lt_of_le_of_lt h (nat.sub_lt_self n1 (mul_pos s0 s0)) }
+    exact lt_of_le_of_lt h (sub_lt_self' n1 (mul_pos s0 s0)) }
 end
 
 @[simp] lemma unpair_zero : unpair 0 = 0 :=

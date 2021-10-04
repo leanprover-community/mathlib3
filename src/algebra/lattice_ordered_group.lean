@@ -550,6 +550,10 @@ begin
     apply lattice_ordered_comm_group.inv_le_abs, }
 end
 
+/--
+Let `α` be a lattice ordered commutative group and let `a` and `b` be elements in `α`. Then,
+`|a - b|` the absolute value of `a - b`, is equal to `|b - a|`, the absolute value of `b - a`.
+-/
 @[to_additive]
 lemma abs_inv_invariant [covariant_class α α (*) (≤)]  (a b : α) : |a/b| = |b/a| :=
 begin
@@ -557,6 +561,11 @@ begin
   rw [inv_div' a b, ← inv_inv (a / b), inv_div', sup_comm],
 end
 
+/--
+Let `α` be a lattice ordered commutative group and let `a` and `b` be elements in `α`. Let `|a|`,
+`|b|`, `||a| - |b||` and `|a - b|` be the absolute values of `a`, `b`, `|a| - |b|` and `a - b`. Then
+ `||a| - |b||` is dominated by `|a - b|`.
+-/
 @[to_additive]
 lemma abs_abs_div_abs_le [h: covariant_class α α (*) (≤)]  (a b : α) : | |a| / |b| | ≤ |a / b| :=
 begin

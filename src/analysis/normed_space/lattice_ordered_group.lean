@@ -161,10 +161,18 @@ Let `α` be a normed lattice ordered group. Then `α` is a topological lattice i
 instance normed_lattice_add_comm_group_topological_lattice : topological_lattice α :=
 topological_lattice.mk
 
+/--
+Let `α` be a normed lattice ordered group and let `a` and `b` be elements of `α` with absolute
+values `|a|` and `|b|` respectively. Then `∥ |a| - |b| ∥` is dominated by `∥a-b∥`.
+-/
 lemma norm_abs_sub_abs (a b : α) :
   ∥ |a| - |b| ∥ ≤ ∥a-b∥ :=
 by exact solid (lattice_ordered_comm_group.abs_abs_sub_abs_le _ _)
 
+/--
+Let `α` be a normed lattice ordered group and let `a`, `b`, `c` and `d` be elements of `α`. Then
+`∥2•(a⊓b)-2•(c⊓d)∥ ≤ 2*∥a - c∥ + 2*∥b - d∥`.
+-/
 lemma two_inf_sub_two_inf_le (a b c d: α) :
   ∥2•(a⊓b)-2•(c⊓d)∥ ≤ 2*∥a - c∥ + 2*∥b - d∥ :=
 calc ∥2•(a⊓b) - 2•(c⊓d)∥ = ∥(a + b - |b - a|) - (c + d - |d - c|)∥ :

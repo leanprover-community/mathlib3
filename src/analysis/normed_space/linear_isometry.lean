@@ -6,11 +6,12 @@ Authors: Yury Kudryashov, Frédéric Dupuis, Heather Macbeth
 import analysis.normed_space.basic
 
 /-!
-# Linear isometries
+# (Semi-)linear isometries
 
-In this file we define `linear_isometry R E E₂` (notation: `E →ₗᵢ[R] E₂`) to be a (semi-)linear
-isometric embedding of `E` into `E₂` and `linear_isometry_equiv` (notation: `E ≃ₗᵢ[R] E₂`) to be a
-(semi-)linear isometric equivalence between `E` and `E₂`.
+In this file we define `linear_isometry σ₁₂ E E₂` (notation: `E →ₛₗᵢ[σ₁₂] E₂`) to be a semilinear
+isometric embedding of `E` into `E₂` and `linear_isometry_equiv` (notation: `E ≃ₛₗᵢ[σ₁₂] E₂`) to be
+a semilinear isometric equivalence between `E` and `E₂`.  The notation for the associated purely
+linear concepts is `E →ₗᵢ[R] E₂`, `E ≃ₗᵢ[R] E₂`.
 
 We also prove some trivial lemmas and provide convenience constructors.
 
@@ -186,7 +187,7 @@ ker_subtype _
 
 end submodule
 
-/-- A linear isometric equivalence between two normed vector spaces. -/
+/-- A semilinear isometric equivalence between two normed vector spaces. -/
 structure linear_isometry_equiv (σ₁₂ : R →+* R₂) {σ₂₁ : R₂ →+* R} [ring_hom_inv_pair σ₁₂ σ₂₁]
   [ring_hom_inv_pair σ₂₁ σ₁₂] (E E₂ : Type*) [semi_normed_group E] [semi_normed_group E₂]
   [module R E] [module R₂ E₂] extends E ≃ₛₗ[σ₁₂] E₂ :=

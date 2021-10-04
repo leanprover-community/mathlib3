@@ -255,14 +255,6 @@ instance semiring.to_opposite_module [semiring R] : module Rᵒᵖ R :=
   add_smul := λ r x y, mul_add _ _ _,
   ..monoid_with_zero.to_opposite_mul_action_with_zero R}
 
-/-- If `M` is a module over `R`, then so is `Mᵒᵖ`. -/
-@[priority 910] -- see Note [lower instance priority]
-instance (R : Type*) [semiring R] (M : Type*) [add_comm_monoid M] [module R M] :
-  module R Mᵒᵖ :=
-{ add_smul := λ r s x, opposite.unop_injective $ add_smul _ _ _,
-  zero_smul := λ x, opposite.unop_injective $ zero_smul _ _,
-  .. opposite.distrib_mul_action M R }
-
 /-- A ring homomorphism `f : R →+* M` defines a module structure by `r • x = f r * x`. -/
 def ring_hom.to_module [semiring R] [semiring S] (f : R →+* S) : module R S :=
 module.comp_hom S f

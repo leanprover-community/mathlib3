@@ -245,11 +245,11 @@ lemma eq_sub_of_add_eq'' (h : a + c = b) : a = b - c :=
 contravariant.add_le_cancellable.eq_sub_of_add_eq h
 
 @[simp]
-lemma add_sub_cancel_right : a + b - b = a :=
+lemma add_sub_cancel_right (a b : α) : a + b - b = a :=
 contravariant.add_le_cancellable.add_sub_cancel_right
 
 @[simp]
-lemma add_sub_cancel_left : a + b - a = b :=
+lemma add_sub_cancel_left (a b : α) : a + b - a = b :=
 contravariant.add_le_cancellable.add_sub_cancel_left
 
 lemma le_sub_of_add_le_left' (h : a + b ≤ c) : b ≤ c - a :=
@@ -269,7 +269,7 @@ end contra
 section both
 variables [covariant_class α α (+) (≤)] [contravariant_class α α (+) (≤)]
 
-lemma add_sub_add_right_eq_sub' : (a + c) - (b + c) = a - b :=
+lemma add_sub_add_right_eq_sub' (a b c : α) : (a + c) - (b + c) = a - b :=
 begin
   apply le_antisymm,
   { rw [sub_le_iff_left, add_right_comm], exact add_le_add_right le_add_sub c },
@@ -345,16 +345,16 @@ by { refine ((sub_le_sub_iff_right' h).mp h2.le).lt_of_ne _, rintro rfl, exact h
 lemma sub_eq_zero_iff_le : a - b = 0 ↔ a ≤ b :=
 by rw [← nonpos_iff_eq_zero, sub_le_iff_left, add_zero]
 
-@[simp] lemma sub_self' : a - a = 0 :=
+@[simp] lemma sub_self' (a : α) : a - a = 0 :=
 sub_eq_zero_iff_le.mpr le_rfl
 
 @[simp] lemma sub_le_self' : a - b ≤ a :=
 sub_le_iff_left.mpr $ le_add_left le_rfl
 
-@[simp] lemma sub_zero' : a - 0 = a :=
+@[simp] lemma sub_zero' (a : α) : a - 0 = a :=
 le_antisymm sub_le_self' $ le_add_sub.trans_eq $ zero_add _
 
-@[simp] lemma zero_sub' : 0 - a = 0 :=
+@[simp] lemma zero_sub' (a : α) : 0 - a = 0 :=
 sub_eq_zero_iff_le.mpr $ zero_le a
 
 lemma sub_self_add (a b : α) : a - (a + b) = 0 :=

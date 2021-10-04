@@ -555,7 +555,7 @@ Let `α` be a lattice ordered commutative group and let `a` and `b` be elements 
 `|a - b|` the absolute value of `a - b`, is equal to `|b - a|`, the absolute value of `b - a`.
 -/
 @[to_additive]
-lemma abs_inv_invariant [covariant_class α α (*) (≤)]  (a b : α) : |a/b| = |b/a| :=
+lemma abs_inv_invariant (a b : α) : |a/b| = |b/a| :=
 begin
   unfold has_abs.abs,
   rw [inv_div' a b, ← inv_inv (a / b), inv_div', sup_comm],

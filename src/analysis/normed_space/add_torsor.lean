@@ -230,6 +230,12 @@ lemma continuous_within_at.vsub {f g : α → P} {x : α} {s : set α}
   continuous_within_at (f -ᵥ g) s x :=
 hf.vsub hg
 
+@[simps] def homeomorph.vadd_const (p : P) : V ≃ₜ P :=
+{ to_fun := equiv.vadd_const p,
+  continuous_to_fun  := continuous_uncurry_right p continuous_vadd,
+  continuous_inv_fun := continuous_uncurry_right p continuous_vsub,
+  .. equiv.vadd_const p }
+
 end
 
 section
@@ -300,6 +306,30 @@ begin
 end
 
 end normed_space
+
+namespace affine_map
+
+variables {𝕜 V₂ P₂ : Type*} [normed_field 𝕜] [semi_normed_space 𝕜 V] [semi_normed_group V₂]
+variables [semi_normed_space 𝕜 V₂] [pseudo_metric_space P₂] [semi_normed_add_torsor V₂ P₂]
+include V₂
+
+lemma continuous_of_normed_iff (f : P →ᵃ[𝕜] P₂) : continuous f ↔ continuous f.linear :=
+begin
+  obtain ⟨q⟩ := (infer_instance : nonempty P),
+  have h : ⇑f.linear = (homeomorph.vadd_const (f q)).symm ∘ f ∘ (homeomorph.vadd_const q),
+  { ext v, simp [f.map_vadd, vadd_vsub_assoc], },
+  rw [h, homeomorph.comp_continuous_iff, homeomorph.comp_continuous_iff'],
+end
+
+lemma is_open_map_of_normed_iff (f : P →ᵃ[𝕜] P₂) : is_open_map f ↔ is_open_map f.linear :=
+begin
+  obtain ⟨q⟩ := (infer_instance : nonempty P),
+  have h : ⇑f.linear = (homeomorph.vadd_const (f q)).symm ∘ f ∘ (homeomorph.vadd_const q),
+  { ext v, simp [f.map_vadd, vadd_vsub_assoc], },
+  rw [h, homeomorph.comp_is_open_map_iff, homeomorph.comp_is_open_map_iff'],
+end
+
+end affine_map
 
 variables [semi_normed_space ℝ V] [normed_space ℝ W]
 

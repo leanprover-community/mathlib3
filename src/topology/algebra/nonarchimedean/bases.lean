@@ -32,7 +32,7 @@ open set filter function lattice add_group_with_zero_nhd
 open_locale topological_space filter pointwise
 
 /-- A family of additive subgroups on a ring `A` is a subgroups basis if it satisfies some
-axioms ensuring there is a topology on `A` which is compatiable with the ring structure and
+axioms ensuring there is a topology on `A` which is compatible with the ring structure and
 admits this family as a basis of neighborhoods of zero. -/
 structure ring_subgroups_basis {A ι : Type*} [ring A] (B : ι → add_subgroup A) : Prop :=
 (inter : ∀ i j, ∃ k, B k ≤ B i ⊓ B j)
@@ -45,9 +45,10 @@ namespace ring_subgroups_basis
 variables {A ι : Type*} [ring A]
 
 lemma of_comm {A ι : Type*} [comm_ring A] (B : ι → add_subgroup A)
-(inter : ∀ i j, ∃ k, B k ≤ B i ⊓ B j)
-(mul : ∀ i, ∃ j, (B j : set A) * B j ⊆ B i)
-(left_mul : ∀ x : A, ∀ i, ∃ j, (B j : set A) ⊆ (λ y : A, x*y) ⁻¹' (B i)) : ring_subgroups_basis B :=
+  (inter : ∀ i j, ∃ k, B k ≤ B i ⊓ B j)
+  (mul : ∀ i, ∃ j, (B j : set A) * B j ⊆ B i)
+  (left_mul : ∀ x : A, ∀ i, ∃ j, (B j : set A) ⊆ (λ y : A, x*y) ⁻¹' (B i)) :
+  ring_subgroups_basis B :=
 { inter := inter,
   mul := mul,
   left_mul := left_mul,
@@ -105,11 +106,11 @@ def to_ring_filter_basis [nonempty ι] {B : ι → add_subgroup A}
 variables [nonempty ι] {B : ι → add_subgroup A} (hB : ring_subgroups_basis B)
 
 lemma mem_add_group_filter_basis_iff {V : set A} :
-V ∈ hB.to_ring_filter_basis.to_add_group_filter_basis ↔ ∃ i, V = B i :=
+  V ∈ hB.to_ring_filter_basis.to_add_group_filter_basis ↔ ∃ i, V = B i :=
 iff.rfl
 
 lemma mem_add_group_filter_basis (i) :
- (B i : set A) ∈ hB.to_ring_filter_basis.to_add_group_filter_basis  :=
+  (B i : set A) ∈ hB.to_ring_filter_basis.to_add_group_filter_basis :=
 ⟨i, rfl⟩
 
 /-- The topology defined from a subgroups basis, admitting the given subgroups as a basis
@@ -182,7 +183,7 @@ end ring_subgroups_basis
 variables {ι R A : Type*} [comm_ring R] [comm_ring A] [algebra R A]
 
 /-- A family of submodules in a commutative `R`-algebra `A` is a submodules basis if it satisfies
-some axioms ensuring there is a topology on `A` which is compatiable with the ring structure and
+some axioms ensuring there is a topology on `A` which is compatible with the ring structure and
 admits this family as a basis of neighborhoods of zero. -/
 structure submodules_ring_basis (B : ι → submodule R A) : Prop :=
 (inter : ∀ i j, ∃ k, B k ≤ B i ⊓ B j)
@@ -212,8 +213,8 @@ end submodules_ring_basis
 
 variables {M : Type*} [add_comm_group M] [module R M]
 
-/-- A family of submodules in a  `R`-module `M` is a submodules basis if it satisfies
-some axioms ensuring there is a topology on `M` which is compatiable with the module structure and
+/-- A family of submodules in an `R`-module `M` is a submodules basis if it satisfies
+some axioms ensuring there is a topology on `M` which is compatible with the module structure and
 admits this family as a basis of neighborhoods of zero. -/
 structure submodules_basis [topological_space R]
   (B : ι → submodule R M) : Prop :=

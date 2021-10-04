@@ -57,7 +57,7 @@ mapping composition series across homomorphisms. It is also probably possible to
 provide an instance of `jordan_holder_lattice` for any `modular_lattice`, and in this case the
 Jordan-Hölder theorem will say that there is a well defined notion of length of a modular lattice.
 However an instance of `jordan_holder_lattice` for a modular lattice will not be able to contain
-the correct notion of isomorphism for modules, so a seperate instance for modules will still be
+the correct notion of isomorphism for modules, so a separate instance for modules will still be
 required and this will clash with the instance for modular lattices, and so at least one of these
 instances should not be a global instance.
 -/

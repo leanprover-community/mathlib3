@@ -230,6 +230,7 @@ lemma continuous_within_at.vsub {f g : α → P} {x : α} {s : set α}
   continuous_within_at (f -ᵥ g) s x :=
 hf.vsub hg
 
+/-- `v ↦ v +ᵥ p` as a homeomorphism. -/
 @[simps] def homeomorph.vadd_const (p : P) : V ≃ₜ P :=
 { to_fun := equiv.vadd_const p,
   continuous_to_fun  := continuous_uncurry_right p continuous_vadd,

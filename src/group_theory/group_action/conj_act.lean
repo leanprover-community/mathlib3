@@ -98,7 +98,7 @@ instance : mul_distrib_mul_action (conj_act G) G :=
 
 lemma smul_eq_mul_aut_conj (g : conj_act G) (h : G) : g • h = mul_aut.conj (of_conj_act g) h := rfl
 
-/-- The set of fixed points of the conj_actugation action of `G` on itself is the center of `G`. -/
+/-- The set of fixed points of the conjugation action of `G` on itself is the center of `G`. -/
 lemma fixed_points_eq_center : fixed_points (conj_act G) G = center G :=
 begin
   ext x,

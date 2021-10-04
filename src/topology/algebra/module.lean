@@ -416,7 +416,7 @@ instance : add_comm_monoid (M₁ →SL[σ₁₂] M₂) :=
     { to_fun := λ x, n • (f x),
       map_add' := by simp,
       map_smul' := by simp [smul_comm n] },
-  nsmul_zero' := λ f, by { ext, simp, refl }, -- SLFIXME nonterminal simp, why need the `refl`?
+  nsmul_zero' := λ f, by { ext, simp }, -- SLFIXME nonterminal simp, why need the `refl`?
   nsmul_succ' := λ n f, by { ext, simp [nat.succ_eq_one_add, add_smul], refl } } -- SLFIXME
 
 @[simp, norm_cast] lemma coe_sum {ι : Type*} (t : finset ι) (f : ι → M₁ →SL[σ₁₂] M₂) :

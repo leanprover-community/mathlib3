@@ -120,9 +120,8 @@ local attribute [instance] star_monoid_of_comm
 end
 
 /--
-A `*`-ring `R` is a (semi)ring with an involutive `star` operation which is additive
-which makes `R` with its multiplicative structure into a `*`-monoid
-(i.e. `star (r * s) = star s * star r`).
+A `*`-additive monoid `R` is an additive monoid with an involutive `star` operation which
+preserves addition.
 -/
 class star_add_monoid (R : Type u) [has_add R] extends has_involutive_star R :=
 (star_add : ∀ r s : R, star (r + s) = star r + star s)

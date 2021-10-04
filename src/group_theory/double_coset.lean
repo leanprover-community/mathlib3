@@ -2,6 +2,7 @@ import data.setoid.basic
 import group_theory.subgroup.basic
 import group_theory.coset
 import data.set.basic
+import data.nat.enat
 
 variables {G : Type*} [group G] {α : Type*} [has_mul α]
 
@@ -292,3 +293,14 @@ end
 
 
 end double_coset
+
+variable (H : subgroup G)
+
+namespace commensurable
+
+
+def commensurable (H K : subgroup G) : Prop :=sorry
+--finite_quotient ((H ⊓ K).comap H.subtype) ∧ finite_quotient ((H ⊓ K).comap K.subtype)
+
+
+end commensurable

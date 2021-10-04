@@ -46,7 +46,6 @@ jobs:
 
   build:
     if: github.repository == 'leanprover-community/mathlib'
-    needs: cancel
     name: Build mathlib
     runs-on: self-hosted
     env:

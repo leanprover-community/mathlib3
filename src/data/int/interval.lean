@@ -16,30 +16,30 @@ intervals as finsets and fintypes.
 open finset int
 
 instance : locally_finite_order ℤ :=
-{ finset_Icc := λ a b, (finset.range (b + 1 - a).to_nat).map
+{ finset_Icc := λ a b, (finset.range (b + 1 - a).to_nat).map $
     nat.cast_embedding.trans $ add_left_embedding a,
-  finset_Ico := λ a b, (finset.range (b - a).to_nat).map
+  finset_Ico := λ a b, (finset.range (b - a).to_nat).map $
     nat.cast_embedding.trans $ add_left_embedding a,
-  finset_Ioc := λ a b, (finset.range (b - a).to_nat).map
+  finset_Ioc := λ a b, (finset.range (b - a).to_nat).map $
     nat.cast_embedding.trans $ add_left_embedding (a + 1),
-  finset_Ioo := λ a b, (finset.range (b - a - 1).to_nat).map
+  finset_Ioo := λ a b, (finset.range (b - a - 1).to_nat).map $
     nat.cast_embedding.trans $ add_left_embedding (a + 1),
   finset_mem_Icc := λ a b x, begin
-    simp only [int.lt_to_nat, exists_prop, mem_range, add_comm, function.embedding.coe_fn_mk,
-      mem_map],
+    simp_rw [mem_map, exists_prop, mem_range, int.lt_to_nat, function.embedding.trans_apply,
+      nat.cast_embedding_apply, add_left_embedding_apply, nat_cast_eq_coe_nat],
     split,
     { rintro ⟨a, h, rfl⟩,
       rw [lt_sub_iff_add_lt, int.lt_add_one_iff, add_comm] at h,
-      refine ⟨int.le.intro rfl, h⟩ },
+      exact ⟨int.le.intro rfl, h⟩ },
     { rintro ⟨ha, hb⟩,
       use (x - a).to_nat,
-      rw to_nat_sub_of_le ha,
       rw ←lt_add_one_iff at hb,
+      rw to_nat_sub_of_le ha,
       exact ⟨sub_lt_sub_right hb _, add_sub_cancel'_right _ _⟩ }
   end,
   finset_mem_Ico := λ a b x, begin
-    simp only [int.lt_to_nat, exists_prop, mem_range, add_comm, function.embedding.coe_fn_mk,
-      mem_map],
+    simp_rw [mem_map, exists_prop, mem_range, int.lt_to_nat, function.embedding.trans_apply,
+      nat.cast_embedding_apply, add_left_embedding_apply, nat_cast_eq_coe_nat],
     split,
     { rintro ⟨a, h, rfl⟩,
       exact ⟨int.le.intro rfl, lt_sub_iff_add_lt'.mp h⟩ },
@@ -49,24 +49,24 @@ instance : locally_finite_order ℤ :=
       exact ⟨sub_lt_sub_right hb _, add_sub_cancel'_right _ _⟩ }
   end,
   finset_mem_Ioc := λ a b x, begin
-    simp only [int.lt_to_nat, exists_prop, mem_range, add_comm, function.embedding.coe_fn_mk,
-      mem_map],
+    simp_rw [mem_map, exists_prop, mem_range, int.lt_to_nat, function.embedding.trans_apply,
+      nat.cast_embedding_apply, add_left_embedding_apply, nat_cast_eq_coe_nat],
     split,
     { rintro ⟨a, h, rfl⟩,
-      refine ⟨int.le.intro rfl, _⟩,
-      rwa [←add_one_le_iff, le_sub_iff_add_le', add_comm _ (1 : ℤ), ←add_assoc] at h },
+      rw [←add_one_le_iff, le_sub_iff_add_le', add_comm _ (1 : ℤ), ←add_assoc] at h,
+      exact ⟨int.le.intro rfl, h⟩ },
     { rintro ⟨ha, hb⟩,
       use (x - (a + 1)).to_nat,
       rw [to_nat_sub_of_le ha, ←add_one_le_iff, sub_add, add_sub_cancel],
       exact ⟨sub_le_sub_right hb _, add_sub_cancel'_right _ _⟩ }
   end,
   finset_mem_Ioo := λ a b x, begin
-    simp only [int.lt_to_nat, exists_prop, mem_range, add_comm, function.embedding.coe_fn_mk,
-      mem_map],
+    simp_rw [mem_map, exists_prop, mem_range, int.lt_to_nat, function.embedding.trans_apply,
+      nat.cast_embedding_apply, add_left_embedding_apply, nat_cast_eq_coe_nat],
     split,
     { rintro ⟨a, h, rfl⟩,
-      refine ⟨int.le.intro rfl, _⟩,
-      rwa [sub_sub, lt_sub_iff_add_lt'] at h },
+      rw [sub_sub, lt_sub_iff_add_lt'] at h,
+      exact ⟨int.le.intro rfl, h⟩ },
     { rintro ⟨ha, hb⟩,
       use (x - (a + 1)).to_nat,
       rw [to_nat_sub_of_le ha, sub_sub],
@@ -76,12 +76,15 @@ instance : locally_finite_order ℤ :=
 namespace int
 variables (a b : ℤ)
 
-lemma Icc_eq_finset_map : Icc a b = (finset.range (b + 1 - a).to_nat).map ⟨λ n, n + a, inj a⟩ := rfl
-lemma Ioc_eq_finset_map : Ioc a b = (finset.range (b - a).to_nat).map ⟨λ n, n + (a + 1), inj _⟩ :=
-rfl
-lemma Ioo_eq_finset_map : Ioo a b = (finset.range (b - a - 1).to_nat).map
-  ⟨λ n, n + (a + 1), inj _⟩ :=
-rfl
+lemma Icc_eq_finset_map :
+  Icc a b = (finset.range (b + 1 - a).to_nat).map
+    (nat.cast_embedding.trans $ add_left_embedding a) := rfl
+lemma Ioc_eq_finset_map :
+  Ioc a b = (finset.range (b - a).to_nat).map
+    (nat.cast_embedding.trans $ add_left_embedding (a + 1)) := rfl
+lemma Ioo_eq_finset_map :
+  Ioo a b = (finset.range (b - a - 1).to_nat).map
+    (nat.cast_embedding.trans $ add_left_embedding (a + 1)) := rfl
 
 @[simp] lemma card_Icc : (Icc a b).card = (b + 1 - a).to_nat :=
 by { change (finset.map _ _).card = _, rw [finset.card_map, finset.card_range] }

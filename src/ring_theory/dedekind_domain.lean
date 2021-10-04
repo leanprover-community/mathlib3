@@ -956,7 +956,7 @@ variables {I}
 lemma irreducible_pow_sup (hI : I ≠ ⊥) {p : ideal T} (hp : irreducible p) (n : ℕ) :
   p^n ⊔ I = p^(min ((factors I).count p) n) :=
 by rw [sup_eq_prod_inf_factors (p^n) I (pow_ne_zero n hp.ne_zero) hI, ← inf_eq_inter,
-       factors_irreducible_pow hp, normalize_eq p, repeat_inf, prod_repeat]
+       normalized_factors_irreducible_pow hp, normalize_eq p, repeat_inf, prod_repeat]
 
 lemma irreducible_pow_sup_of_ge (hI : I ≠ ⊥) {p : ideal T} (hp : irreducible p) (n : ℕ)
   (hn : ↑n ≤ multiplicity p I) : p^n ⊔ I = p^n :=

@@ -90,11 +90,20 @@ lemma barycentric_coord_apply [decidable_eq ι] (i j : ι) :
   barycentric_coord h_ind h_tot i (p j) = if i = j then 1 else 0 :=
 by { cases eq_or_ne i j; simp [h.symm], simp [h], }
 
-@[simp] lemma barycentric_coord_apply_combination
+@[simp] lemma barycentric_coord_apply_combination_of_mem
   {s : finset ι} {i : ι} (hi : i ∈ s) {w : ι → k} (hw : s.sum w = 1) :
   barycentric_coord h_ind h_tot i (s.affine_combination p w) = w i :=
 begin
   classical,
   simp only [barycentric_coord_apply, hi, finset.affine_combination_eq_linear_combination, if_true,
+    hw, mul_boole, function.comp_app, smul_eq_mul, s.sum_ite_eq, s.map_affine_combination p w hw],
+end
+
+@[simp] lemma barycentric_coord_apply_combination_of_not_mem
+  {s : finset ι} {i : ι} (hi : i ∉ s) {w : ι → k} (hw : s.sum w = 1) :
+  barycentric_coord h_ind h_tot i (s.affine_combination p w) = 0 :=
+begin
+  classical,
+  simp only [barycentric_coord_apply, hi, finset.affine_combination_eq_linear_combination, if_false,
     hw, mul_boole, function.comp_app, smul_eq_mul, s.sum_ite_eq, s.map_affine_combination p w hw],
 end

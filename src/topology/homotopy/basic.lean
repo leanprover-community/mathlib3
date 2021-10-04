@@ -12,24 +12,26 @@ import topology.compact_open
 /-!
 # Homotopy between functions
 
-In this file, we define a homotopy between two functions `f₀` and `f₁`. For this, we use a more
-general `homotopy_with`, which is inspired by the formalisation of homotopy between functions in
-HOL-Analysis. With this, we get `homotopy` as a special case of `homotopy_with`.
+In this file, we define a homotopy between two functions `f₀` and `f₁`. First we define `homotopy`
+between the two functions, with no restrictions on the intermediate maps. Then, as in the
+formalisation in HOL-Analysis, we define `homotopy_with f₀ f₁ P`, for homotopies between `f₀` and
+`f₁`, where the intermediate maps satisfy the predicate `P`. Finally, we define
+`homotopy_rel f₀ f₁ S`, for homotopies between `f₀` and `f₁` which are fixed on `S`.
 
 ## Definitions
 
+* `homotopy f₀ f₁ P` is the type of homotopies between `f₀` and `f₁`.
 * `homotopy_with f₀ f₁ P` is the type of homotopies between `f₀` and `f₁`, where the intermediate
-  maps satisfy the predicate `P : C(X, Y) → Prop`.
-* `homotopy_with.refl` is the homotopy between `f₀` and `f₀`.
-* `homotopy_with.symm F` is defined by reversing the homotopy `F`
-* `homotopy_with.trans F G`, where `F : homotopy f₀ f₁`, `G : homotopy f₁ f₂` is a `homotopy f₀ f₂`
-  defined by putting the first homotopy on `[0, 1/2]` and the second on `[1/2, 1]`.
-* `homotopy f₀ f₁` is defined to be `homotopy_with f₀ f₁ (λ f, true)`.
-* `homotopy.refl` is a variant of `homotopy_with.refl` with the proof of `P f` filled in.
-* `homotopy_rel f₀ f₁ S` is defined to be
-  `homotopy_with f₀ f₁ (λ f, ∀ x ∈ S, f x = f₀ x ∧ f x = f₁ x)`. That is, a homotopy between `f₀`
-  and `f₁` which is fixed on the points in `S`.
-* `homotopy_rel.refl` is a variant of `homotopy_with.refl` with the proof of `P f` filled in.
+  maps satisfy the predicate `P`.
+* `homotopy_rel f₀ f₁ S` is the type of homotopies between `f₀` and `f₁` which are fixed on `S`.
+
+For each of the above, we have
+
+* `refl f`, which is the constant homotopy from `f` to `f`.
+* `symm F`, which reverses the homotopy `F`. For example, if `F : homotopy f₀ f₁`, then
+  `F.symm : homotopy f₁ f₀`.
+* `trans F G`, which concatenates the homotopies `F` and `G`. For example, if `F : homotopy f₀ f₁`
+  and `G : homotopy f₁ f₂`, then `F.trans G : homotopy f₀ f₂`.
 
 ## References
 
@@ -47,14 +49,11 @@ open_locale unit_interval
 namespace continuous_map
 
 /--
-The type of homotopies between two functions, where the intermediate maps satisfy the predicate
-`P : C(X, Y) → Prop`.
+The type of homotopies between two functions.
 -/
 structure homotopy (f₀ f₁ : C(X, Y)) extends C(I × X, Y) :=
 (to_fun_zero : ∀ x, to_fun (0, x) = f₀ x)
 (to_fun_one : ∀ x, to_fun (1, x) = f₁ x)
--- (prop' : ∀ t, P ⟨λ x, to_fun (t, x),
---   continuous.comp continuous_to_fun (continuous_const.prod_mk continuous_id')⟩)
 
 namespace homotopy
 
@@ -138,11 +137,8 @@ F.to_continuous_map.congr_arg h
 
 end
 
--- variable {P : C(X, Y) → Prop}
-
 /--
-Given a continuous function `f`, we can define a `homotopy f f` by
-`F (t, x) = f x`
+Given a continuous function `f`, we can define a `homotopy f f` by `F (t, x) = f x`
 -/
 @[simps]
 def refl (f : C(X, Y)) : homotopy f f :=
@@ -155,24 +151,22 @@ instance : inhabited (homotopy (continuous_map.id : C(X, X)) continuous_map.id) 
 ⟨homotopy.refl continuous_map.id⟩
 
 /--
-Given a `homotopy_with f₀ f₁ P`, we can define a `homotopy_with f₁ f₀ P` by reversing the homotopy.
+Given a `homotopy f₀ f₁`, we can define a `homotopy f₁ f₀` by reversing the homotopy.
 -/
 @[simps]
 def symm {f₀ f₁ : C(X, Y)} (F : homotopy f₀ f₁) : homotopy f₁ f₀ :=
 { to_fun := λ x, F (σ x.1, x.2),
   continuous_to_fun := by continuity,
   to_fun_zero := by norm_num,
-  to_fun_one := by norm_num,
-  -- prop' := λ t, by simpa using F.prop' (σ t)
-   }
+  to_fun_one := by norm_num }
 
 @[simp]
 lemma symm_symm {f₀ f₁ : C(X, Y)} (F : homotopy f₀ f₁) : F.symm.symm = F :=
 by { ext, simp }
 
 /--
-Given `homotopy_with f₀ f₁ P` and `homotopy_with f₁ f₂ P`, we can define a `homotopy_with f₀ f₂ P`
-by putting the first homotopy on `[0, 1/2]` and the second on `[1/2, 1]`.
+Given `homotopy f₀ f₁` and `homotopy f₁ f₂`, we can define a `homotopy f₀ f₂` by putting the first
+homotopy on `[0, 1/2]` and the second on `[1/2, 1]`.
 -/
 def trans {f₀ f₁ f₂ : C(X, Y)} (F : homotopy f₀ f₁) (G : homotopy f₁ f₂) :
   homotopy f₀ f₂ :=
@@ -185,14 +179,7 @@ def trans {f₀ f₁ f₂ : C(X, Y)} (F : homotopy f₀ f₁) (G : homotopy f₁
     norm_num [hx],
   end,
   to_fun_zero := λ x, by norm_num,
-  to_fun_one := λ x, by norm_num,
-  -- prop' := λ t, begin
-  --   simp only,
-  --   split_ifs,
-  --   { exact F.extend_prop _ },
-  --   { exact G.extend_prop _ },
-  -- end
-   }
+  to_fun_one := λ x, by norm_num }
 
 lemma trans_apply {f₀ f₁ f₂ : C(X, Y)} (F : homotopy f₀ f₁) (G : homotopy f₁ f₂)
   (x : I × X) : (F.trans G) x =
@@ -229,6 +216,10 @@ end
 
 end homotopy
 
+/--
+The type of homotopies between `f₀ f₁ : C(X, Y)`, where the intermediate maps satisfy the predicate
+`P : C(X, Y) → Prop`
+-/
 structure homotopy_with (f₀ f₁ : C(X, Y)) (P : C(X, Y) → Prop) extends homotopy f₀ f₁ :=
 (prop' : ∀ t, P ⟨λ x, to_fun (t, x),
   continuous.comp continuous_to_fun (continuous_const.prod_mk continuous_id')⟩)
@@ -296,11 +287,21 @@ end
 
 variable {P : C(X, Y) → Prop}
 
+/--
+Given a continuous function `f`, and a proof `h : P f`, we can define a `homotopy_with f f P` by
+`F (t, x) = f x`
+-/
 @[simps]
 def refl (f : C(X, Y)) (hf : P f) : homotopy_with f f P :=
 { prop' := λ t, by { convert hf, cases f, refl },
   ..homotopy.refl f }
 
+instance : inhabited (homotopy_with (continuous_map.id : C(X, X)) continuous_map.id (λ f, true)) :=
+⟨homotopy_with.refl _ trivial⟩
+
+/--
+Given a `homotopy_with f₀ f₁ P`, we can define a `homotopy_with f₁ f₀ P` by reversing the homotopy.
+-/
 @[simps]
 def symm {f₀ f₁ : C(X, Y)} (F : homotopy_with f₀ f₁ P) : homotopy_with f₁ f₀ P :=
 { prop' := λ t, by simpa using F.prop (σ t),
@@ -310,6 +311,10 @@ def symm {f₀ f₁ : C(X, Y)} (F : homotopy_with f₀ f₁ P) : homotopy_with f
 lemma symm_symm {f₀ f₁ : C(X, Y)} (F : homotopy_with f₀ f₁ P) : F.symm.symm = F :=
 ext $ homotopy.congr_fun $ homotopy.symm_symm _
 
+/--
+Given `homotopy_with f₀ f₁ P` and `homotopy_with f₁ f₂ P`, we can define a `homotopy_with f₀ f₂ P`
+by putting the first homotopy on `[0, 1/2]` and the second on `[1/2, 1]`.
+-/
 def trans {f₀ f₁ f₂ : C(X, Y)} (F : homotopy_with f₀ f₁ P) (G : homotopy_with f₁ f₂ P) :
   homotopy_with f₀ f₂ P :=
 { prop' := λ t, begin
@@ -335,9 +340,9 @@ ext $ homotopy.congr_fun $ homotopy.symm_trans _ _
 
 end homotopy_with
 
--- /--
--- A `homotopy_rel f₀ f₁ S` is a homotopy between `f₀` and `f₁` which is fixed on the points in `S`.
--- -/
+/--
+A `homotopy_rel f₀ f₁ S` is a homotopy between `f₀` and `f₁` which is fixed on the points in `S`.
+-/
 abbreviation homotopy_rel (f₀ f₁ : C(X, Y)) (S : set X) :=
 homotopy_with f₀ f₁ (λ f, ∀ x ∈ S, f x = f₀ x ∧ f x = f₁ x)
 

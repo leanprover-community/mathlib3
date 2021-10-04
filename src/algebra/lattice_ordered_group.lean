@@ -550,12 +550,14 @@ begin
     apply lattice_ordered_comm_group.inv_le_abs, }
 end
 
+@[to_additive]
 lemma abs_inv_invariant [covariant_class α α (*) (≤)]  (a b : α) : |a/b| = |b/a| :=
 begin
   unfold has_abs.abs,
   rw [inv_div' a b, ← inv_inv (a / b), inv_div', sup_comm],
 end
 
+@[to_additive]
 lemma abs_abs_div_abs_le [h: covariant_class α α (*) (≤)]  (a b : α) : | |a| / |b| | ≤ |a / b| :=
 begin
   unfold has_abs.abs,

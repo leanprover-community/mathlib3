@@ -12,8 +12,8 @@ import combinatorics.simplicial_complex.subdivision
 
 namespace affine
 open set
-variables {m n : ℕ} {E : Type*} [normed_group E] [normed_space 𝕜 E] {S : simplicial_complex 𝕜 E}
-  {X Y : finset E} {A : set (finset E)}
+variables {𝕜 E : Type*} [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E]
+  {S : simplicial_complex 𝕜 E} {X Y : finset E} {A : set (finset E)}
 
 def simplicial_complex.on_boundary (S : simplicial_complex 𝕜 E) (X : finset E) :
   Prop :=
@@ -274,7 +274,8 @@ begin
     rintro Z' hZ' hY₂Z',
     suffices hZ₁Z' : combi_interior Z₁ ⊆ combi_interior Z',
     {
-      obtain ⟨z, hzZ₁⟩ := nonempty_combi_interior_of_nonempty (S₁.indep hZ₁) ⟨x, hY₁Z₁.1 (hX₁Y₁ hxX₁)⟩,
+      obtain ⟨z, hzZ₁⟩ := nonempty_combi_interior_of_nonempty (S₁.indep hZ₁)
+        ⟨x, hY₁Z₁.1 (hX₁Y₁ hxX₁)⟩,
       exact disjoint_interiors hZ₂ hZ' (hZ₁Z₂ hzZ₁) (hZ₁Z' hzZ₁),
     },
 

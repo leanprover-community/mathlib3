@@ -13,7 +13,7 @@ import combinatorics.simplicial_complex.closure
 namespace affine
 open set relation
 open_locale classical
-variables {𝕜 E : Type*} [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] {a b m n : ℕ}
+variables {𝕜 E : Type*} [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E] {a b m n : ℕ}
   {S S' S₁ S₂ : simplicial_complex 𝕜 E} {X Y Z : finset E}
 
 --to add to mathlib?

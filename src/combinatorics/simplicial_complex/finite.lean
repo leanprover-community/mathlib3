@@ -11,7 +11,7 @@ import combinatorics.simplicial_complex.basic
 
 namespace affine
 open set
-variables {𝕜 E : Type*} [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E]
+variables {𝕜 E : Type*} [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E] [module 𝕜 E]
   {S : simplicial_complex 𝕜 E} {X Y : finset E}
 
 /--
@@ -46,9 +46,8 @@ lemma simplicial_complex.locally_finite_at_iff_not_locally_infinite_at :
   ¬S.locally_infinite_at X ↔ S.locally_finite_at X :=
 not_not
 
-/--
-A simplicial complex is locally finite iff each of its nonempty faces belongs to finitely many faces.
--/
+/-- A simplicial complex is locally finite iff each of its nonempty faces belongs to finitely many
+faces. -/
 def simplicial_complex.locally_finite (S : simplicial_complex 𝕜 E) : Prop :=
 ∀ {X : finset _}, X ∈ S.faces → X.nonempty → S.locally_finite_at X
 
@@ -78,7 +77,7 @@ lemma locally_finite_of_finite (hS : S.finite) :
 A simplicial complex is locally finite iff each point belongs to finitely many faces.
 -/
 lemma locally_finite_iff_mem_finitely_many_faces [decidable_eq E] :
-  S.locally_finite ↔ ∀ (x : E), finite {X | X ∈ S.faces ∧ x ∈ convex_hull (X : set E)} :=
+  S.locally_finite ↔ ∀ (x : E), finite {X | X ∈ S.faces ∧ x ∈ convex_hull 𝕜 (X : set E)} :=
 begin
   split,
   { unfold simplicial_complex.locally_finite,
@@ -94,7 +93,7 @@ begin
         simpa using hXhull },
       rintro hXlocallyfinite,
       apply hx,
-      suffices h : {X : finset E | X ∈ S.faces ∧ x ∈ convex_hull ↑X} ⊆
+      suffices h : {X : finset E | X ∈ S.faces ∧ x ∈ convex_hull 𝕜 ↑X} ⊆
         {Y : finset E | Y ∈ S.faces ∧ X ⊆ Y},
       { exact finite.subset hXlocallyfinite h },
       rintro Y ⟨hY, hYhull⟩,
@@ -110,7 +109,7 @@ begin
       exact mem_combi_frontier_iff.2 ⟨X ∩ Y, hYX, hXYhull⟩ },
     { exfalso,
       apply hx,
-      suffices h : {X : finset E | X ∈ S.faces ∧ x ∈ convex_hull ↑X} = ∅,
+      suffices h : {X : finset E | X ∈ S.faces ∧ x ∈ convex_hull 𝕜 ↑X} = ∅,
       { rw h,
         exact finite_empty },
       apply eq_empty_of_subset_empty,
@@ -119,10 +118,10 @@ begin
   { rintro hS X hX h,
     obtain ⟨x, hx⟩ := h,
     suffices h : {Y : finset E | Y ∈ S.faces ∧ X ⊆ Y} ⊆
-      {Y : finset E | Y ∈ S.faces ∧ x ∈ convex_hull ↑Y},
+      {Y : finset E | Y ∈ S.faces ∧ x ∈ convex_hull 𝕜 ↑Y},
     { exact (hS x).subset h },
     rintro Y ⟨hY, hXY⟩,
-    exact ⟨hY, subset_convex_hull Y (hXY hx)⟩ }
+    exact ⟨hY, subset_convex_hull 𝕜 Y (hXY hx)⟩ }
 end
 
 end affine

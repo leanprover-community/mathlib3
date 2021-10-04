@@ -169,12 +169,15 @@ instance : partial_order (simplicial_complex 𝕜 E) :=
       exact subset_bUnion_of_mem hY }
   end }
 
-/-def simplicial_complex.mesh_size (S : simplicial_complex 𝕜 E) : 𝕜 := sorry --max diameter of simplices
+/-
+/-- max diameter of  simplices -/
+def simplicial_complex.mesh_size (S : simplicial_complex 𝕜 E) : 𝕜 := sorry
 
 def barycentrisation : list (fin m → 𝕜) → fin m → 𝕜 :=
   λ L,
 
-def simplicial_complex.barycentric_subdivision (S : simplicial_complex 𝕜 E) : simplicial_complex 𝕜 E :=
+def simplicial_complex.barycentric_subdivision (S : simplicial_complex 𝕜 E) :
+  simplicial_complex 𝕜 E :=
 { faces := {X | ∃ {L : list (fin m → 𝕜)}, list.to_finset L ∈ S.faces ∧ X = },
   indep := _,
   down_closed := _,

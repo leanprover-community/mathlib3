@@ -12,7 +12,7 @@ import combinatorics.simplicial_complex.basic
 namespace affine
 open set
 open_locale classical
-variables {𝕜 E : Type*} [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] {a b m n : ℕ}
+variables {𝕜 E : Type*} [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E] {a b m n : ℕ}
   {S : simplicial_complex 𝕜 E} {X : finset E}
 
 /-- A simplicial complex is pure of dimension `n` iff all its facets have dimension `n`. -/

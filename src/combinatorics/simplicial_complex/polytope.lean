@@ -11,8 +11,11 @@ import combinatorics.simplicial_complex.glued
 -/
 
 open set affine
-namespace poly
-variables {𝕜 E : Type*} [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] {m n : ℕ}
+
+variables {𝕜 E : Type*}
+
+section ordered_ring
+variables [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E]
   {S : simplicial_complex 𝕜 E} {x : E} {X Y : finset E} {C : set E} {A : set (finset E)}
 
 variables (𝕜 E)
@@ -103,22 +106,23 @@ end
 
 /-lemma convex_polytope_iff_intersection_of_half_spaces {space : set E} {n : ℕ} :
   ∃ {S : simplicial_complex 𝕜 E}, S.pure ∧ space = S.space ↔ ∃ half spaces and stuff-/
+variables (𝕜 E)
 
-@[ext] structure polytopial_complex (E : Type*) [normed_group E] [normed_space 𝕜 E] :=
+@[ext] structure polytopial_complex :=
 (faces : set (finset E))
-(indep : ∀ {X}, X ∈ faces → convex_independent (λ p, p : (X : set E) → E))
+(indep : ∀ {X}, X ∈ faces → convex_independent 𝕜 (λ p, p : (X : set E) → E))
 (down_closed : ∀ {X Y}, X ∈ faces → Y ⊆ X → (Y : set E) = (X : set E) ∩ affine_span 𝕜 (Y : set E)
   → Y ∈ faces)
 (disjoint : ∀ {X Y}, X ∈ faces → Y ∈ faces →
-  convex_hull ↑X ∩ convex_hull ↑Y ⊆ convex_hull (X ∩ Y : set E))
+  convex_hull 𝕜 ↑X ∩ convex_hull 𝕜 ↑Y ⊆ convex_hull 𝕜 (X ∩ Y : set E))
 
-variables {P : polytopial_complex E}
+variables {𝕜 E} {P : polytopial_complex 𝕜 E}
 
-def polytopial_complex.polytopes (P : polytopial_complex E) :
+def polytopial_complex.polytopes (P : polytopial_complex 𝕜 E) :
   set (polytope 𝕜 E) :=
   sorry
 
-def polytopial_complex.space (P : polytopial_complex E) :
+def polytopial_complex.space (P : polytopial_complex 𝕜 E) :
   set E :=
 ⋃ (p ∈ P.polytopes), (p : polytope 𝕜 E).space
 
@@ -130,23 +134,18 @@ begin
 end
 
 def simplicial_complex.to_polytopial_complex (S : simplicial_complex 𝕜 E) :
-  polytopial_complex E :=
+  polytopial_complex 𝕜 E :=
 { faces := S.faces,
   indep := λ X hX, (S.indep hX).convex_independent,
   down_closed := λ X Y hX hYX hY, S.down_closed hX hYX,
   disjoint := S.disjoint }
 
 noncomputable def polytope.to_polytopial_complex (p : polytope 𝕜 E) :
-  polytopial_complex E :=
+  polytopial_complex 𝕜 E :=
 simplicial_complex.to_polytopial_complex p.to_simplicial_complex
 --@Bhavik I can't use dot notation here because of namespace problems. Do you have a fix?
 
-def polytopial_complex.coplanarless (P : polytopial_complex E) :
-  Prop :=
-∀ X Y ∈ P.faces, adjacent X Y → (X : set E) ⊆ affine_span 𝕜 (Y : set E) →
-  X.card = finite_dimensional.finrank 𝕜 E + 1
-
-def polytopial_complex.to_simplicial_complex (P : polytopial_complex E) :
+def polytopial_complex.to_simplicial_complex (P : polytopial_complex 𝕜 E) :
   simplicial_complex 𝕜 E :=
 { faces := ⋃ (p ∈ P.polytopes), (p : polytope 𝕜 E).to_simplicial_complex.faces,
   indep := begin
@@ -170,9 +169,19 @@ def polytopial_complex.to_simplicial_complex (P : polytopial_complex E) :
     -- causes problem as soon as their shared faces aren't simplices
   end }
 
+end ordered_ring
+
+section linear_ordered_field
+variables [linear_ordered_field 𝕜] [add_comm_group E] [module 𝕜 E] {C : set E}
+
+def polytopial_complex.coplanarless (P : polytopial_complex 𝕜 E) :
+  Prop :=
+∀ X Y ∈ P.faces, adjacent X Y → (X : set E) ⊆ affine_span 𝕜 (Y : set E) →
+  X.card = finite_dimensional.finrank 𝕜 E + 1
+
 lemma polytopial_space_iff_simplicial_space [finite_dimensional 𝕜 E] :
   (∃ (S : simplicial_complex 𝕜 E), S.space = C) ↔
-  ∃ (P : polytopial_complex E), P.space = C :=
+  ∃ (P : polytopial_complex 𝕜 E), P.space = C :=
 begin
   split,
   {
@@ -182,4 +191,4 @@ begin
   sorry
 end
 
-end poly
+end linear_ordered_field

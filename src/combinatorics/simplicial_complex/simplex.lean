@@ -26,10 +26,10 @@ The combinatorial frontier of a simplex as a subspace.
 -/
 def combi_frontier (X : finset E) :
   set E :=
-⋃ Y ⊂ X, convex_hull ↑Y
+⋃ Y ⊂ X, convex_hull 𝕜 ↑Y
 
 lemma mem_combi_frontier_iff :
-  x ∈ combi_frontier X ↔ ∃ Y, Y ⊂ X ∧ x ∈ convex_hull (Y : set E) :=
+  x ∈ combi_frontier X ↔ ∃ Y, Y ⊂ X ∧ x ∈ convex_hull 𝕜 (Y : set E) :=
 by simp [combi_frontier]
 
 lemma combi_frontier_singleton :
@@ -101,7 +101,7 @@ interior of the underlying space.
 -/
 def combi_interior (X : finset E) :
   set E :=
-convex_hull ↑X \ combi_frontier X
+convex_hull 𝕜 ↑X \ combi_frontier X
 
 lemma combi_interior_singleton :
   combi_interior ({x} : finset E) = {x} :=
@@ -124,7 +124,7 @@ begin
   exact lt_of_le_of_ne (hw₁ _ hy) (ne.symm (λ t, q w hw₁ hw₂ y hy t hw₃))
 end
 
-lemma combi_interior_eq (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) :
+lemma combi_interior_eq (hX : affine_independent 𝕜 (λ p, p : (X : set E) → E)) :
   combi_interior X =
     {x : E | ∃ (w : E → ℝ) (hw₀ : ∀ y ∈ X, 0 < w y) (hw₁ : ∑ y in X, w y = 1),
       X.center_mass w id = x} :=
@@ -141,7 +141,7 @@ begin
   exact ne_of_gt (hw₁ y hy₁) hy₂
 end
 
-lemma centroid_mem_combi_interior (hX : affine_independent ℝ (λ p, p : (X : set E) → E))
+lemma centroid_mem_combi_interior (hX : affine_independent 𝕜 (λ p, p : (X : set E) → E))
   (hXnonempty : X.nonempty) :
   X.centroid ℝ id ∈ combi_interior X :=
 begin
@@ -154,21 +154,21 @@ begin
   simpa [finset.card_pos] using hXnonempty,
 end
 
-lemma nonempty_combi_interior_of_nonempty (hX : affine_independent ℝ (λ p, p : (X : set E) → E))
+lemma nonempty_combi_interior_of_nonempty (hX : affine_independent 𝕜 (λ p, p : (X : set E) → E))
   (hXnonempty : X.nonempty) :
   (combi_interior X).nonempty :=
 ⟨X.centroid ℝ id, centroid_mem_combi_interior hX hXnonempty⟩
 
 lemma combi_interior_subset_convex_hull :
-  combi_interior X ⊆ convex_hull ↑X :=
+  combi_interior X ⊆ convex_hull 𝕜 ↑X :=
 diff_subset _ _
 
-lemma combi_interior.inj (hX : affine_independent ℝ (λ p, p : (X : set E) → E))
-  (hY : affine_independent ℝ (λ p, p : (Y : set E) → E)) (h : combi_interior X = combi_interior Y) :
+lemma combi_interior.inj (hX : affine_independent 𝕜 (λ p, p : (X : set E) → E))
+  (hY : affine_independent 𝕜 (λ p, p : (Y : set E) → E)) (h : combi_interior X = combi_interior Y) :
   X = Y := sorry
 
 lemma is_closed_convex_hull :
-  is_closed (convex_hull (X : set E)) :=
+  is_closed (convex_hull 𝕜 (X : set E)) :=
 X.finite_to_set.is_closed_convex_hull
 
 lemma is_closed_combi_frontier :
@@ -184,7 +184,7 @@ begin
     apply is_closed_convex_hull }
 end
 
-lemma subset_closure_combi_interior (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) :
+lemma subset_closure_combi_interior (hX : affine_independent 𝕜 (λ p, p : (X : set E) → E)) :
   (X : set E) ⊆ closure (combi_interior X) :=
 begin
   rintro x (hx : x ∈ X),
@@ -241,8 +241,8 @@ begin
     apply filter.tendsto_add_at_top_nat }
 end
 
-lemma convex_combi_interior (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) :
-  convex (combi_interior X) :=
+lemma convex_combi_interior (hX : affine_independent 𝕜 (λ p, p : (X : set E) → E)) :
+  convex 𝕜 (combi_interior X) :=
 begin
   rw convex_iff_forall_pos,
   intros x y hx hy t₁ t₂ ht₁ ht₂ h,
@@ -257,8 +257,8 @@ begin
 end
 
 -- Affine indep is necessary, since if not combi_interior can be empty
-lemma closure_combi_interior_eq_convex_hull (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) :
-  closure (combi_interior X) = convex_hull (X : set E) :=
+lemma closure_combi_interior_eq_convex_hull (hX : affine_independent 𝕜 (λ p, p : (X : set E) → E)) :
+  closure (combi_interior X) = convex_hull 𝕜 (X : set E) :=
 begin
   apply set.subset.antisymm,
   { rw is_closed.closure_subset_iff is_closed_convex_hull,
@@ -269,17 +269,17 @@ begin
 end
 
 lemma combi_frontier_subset_convex_hull :
-  combi_frontier X ⊆ convex_hull ↑X :=
+  combi_frontier X ⊆ convex_hull 𝕜 ↑X :=
 bUnion_subset (λ Y hY, convex_hull_mono hY.1)
 
 lemma convex_hull_eq_interior_union_combi_frontier :
-  convex_hull ↑X = combi_interior X ∪ combi_frontier X :=
+  convex_hull 𝕜 ↑X = combi_interior X ∪ combi_frontier X :=
 (diff_union_of_subset combi_frontier_subset_convex_hull).symm
 
 lemma convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior
-  (hX : affine_independent ℝ (λ p, p : (X : set E) → E))
-  (hY : affine_independent ℝ (λ p, p : (Y : set E) → E)) :
-  combi_interior X ⊆ combi_interior Y → convex_hull (X : set E) ⊆ convex_hull (Y : set E) :=
+  (hX : affine_independent 𝕜 (λ p, p : (X : set E) → E))
+  (hY : affine_independent 𝕜 (λ p, p : (Y : set E) → E)) :
+  combi_interior X ⊆ combi_interior Y → convex_hull 𝕜 (X : set E) ⊆ convex_hull 𝕜 (Y : set E) :=
 begin
   rw ← closure_combi_interior_eq_convex_hull hX,
   rw ← closure_combi_interior_eq_convex_hull hY,
@@ -288,7 +288,7 @@ begin
 end
 
 lemma simplex_combi_interiors_cover :
-  convex_hull ↑X = ⋃ (Y ⊆ X), combi_interior Y :=
+  convex_hull 𝕜 ↑X = ⋃ (Y ⊆ X), combi_interior Y :=
 begin
   apply subset.antisymm _ _,
   { apply X.strong_induction_on,
@@ -307,9 +307,9 @@ end
 
 /- combi_interior X is the topological interior iff X is of dimension m -/
 lemma interiors_agree_of_full_dimensional [finite_dimensional ℝ E]
-  (hX : affine_independent ℝ (λ p, p : (X : set E) → E))
+  (hX : affine_independent 𝕜 (λ p, p : (X : set E) → E))
   (hXcard : X.card = finite_dimensional.finrank ℝ E + 1) :
-  combi_interior X = interior (convex_hull ↑X) :=
+  combi_interior X = interior (convex_hull 𝕜 ↑X) :=
 begin
   --rw ← closure_combi_interior_eq_convex_hull,
   unfold combi_interior,
@@ -318,7 +318,7 @@ end
 
 lemma frontiers_agree_of_full_dimensional [finite_dimensional ℝ E]
   (hXcard : X.card = finite_dimensional.finrank ℝ E + 1) :
-  combi_frontier X = frontier (convex_hull ↑X) :=
+  combi_frontier X = frontier (convex_hull 𝕜 ↑X) :=
 begin
   ext x,
   split,

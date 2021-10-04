@@ -12,7 +12,7 @@ import combinatorics.simplicial_complex.star
 
 namespace affine
 open set
-variables {𝕜 E : Type*} [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] {m n k : ℕ}
+variables {𝕜 E : Type*} [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E] {m n k : ℕ}
   {S : simplicial_complex 𝕜 E} {X Y : finset E} {A : set (finset E)}
 
 def simplicial_complex.link (S : simplicial_complex 𝕜 E) (A : set (finset E)) :

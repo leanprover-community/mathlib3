@@ -14,11 +14,11 @@ namespace affine
 
 open_locale classical affine big_operators
 open set
-variables {m n : ℕ}
+variables {𝕜 : Type*} [ordered_ring 𝕜] {m n : ℕ}
 local notation `E` := fin m → 𝕜
 variables {S : simplicial_complex 𝕜 E} {f : E → fin m}
 
-def is_sperner_colouring (S : simplicial_complex 𝕜 E)
+def is_sperner_coloring (S : simplicial_complex 𝕜 E)
   (f : E → fin m) : Prop :=
 ∀ (x : E) i, x ∈ S.points → x i = 0 → f x ≠ i
 
@@ -38,7 +38,7 @@ begin
 end
 
 lemma std_simplex_one :
-  std_simplex (fin 1) = { ![(1 : 𝕜)]} :=
+  std_simplex 𝕜 (fin 1) = { ![(1 : 𝕜)]} :=
 begin
   ext x,
   simp [std_simplex_eq_inter],
@@ -55,7 +55,7 @@ begin
 end
 
 lemma strong_sperner_zero_aux {S : simplicial_complex (fin 1 → 𝕜)}
-  (hS₁ : S.space = std_simplex (fin 1)) :
+  (hS₁ : S.space = std_simplex 𝕜 (fin 1)) :
   S.faces = {∅, { ![1]}} :=
 begin
   have X_subs : ∀ X ∈ S.faces, X ⊆ { ![(1:𝕜)]},
@@ -66,7 +66,7 @@ begin
     simpa using this hx },
   have : ∃ X ∈ S.faces, X = { ![(1:𝕜)]},
   { have std_eq := hS₁,
-    have one_mem : ![(1:𝕜)] ∈ std_simplex (fin 1),
+    have one_mem : ![(1:𝕜)] ∈ std_simplex 𝕜 (fin 1),
     { rw std_simplex_one,
       simp },
     rw [←std_eq, simplicial_complex.space, set.mem_bUnion_iff] at one_mem,
@@ -90,7 +90,7 @@ begin
 end
 
 theorem strong_sperner_zero {S : simplicial_complex (fin 1 → 𝕜)}
-  (hS₁ : S.space = std_simplex (fin 1)) (hS₂ : S.finite)
+  (hS₁ : S.space = std_simplex 𝕜 (fin 1)) (hS₂ : S.finite)
   (f : (fin 1 → 𝕜) → fin 1) :
   odd ((S.faces_finset hS₂).filter (panchromatic f)).card :=
 begin
@@ -161,7 +161,7 @@ lemma is_linear_map_matrix_vec_tail :
 -- TODO: this generalises to affine subspaces
 lemma convex_hull_affine {X : finset (fin m.succ → 𝕜)}
   (hX₂ : ∀ (x : fin (m + 1) → 𝕜), x ∈ X → x 0 = 0)
-  {x : fin m.succ → 𝕜} (hx : x ∈ convex_hull (X : set (fin m.succ → 𝕜))) :
+  {x : fin m.succ → 𝕜} (hx : x ∈ convex_hull 𝕜 (X : set (fin m.succ → 𝕜))) :
   x 0 = 0 :=
 begin
   rw finset.convex_hull_eq at hx,
@@ -263,8 +263,8 @@ noncomputable def simplicial_complex.dimension_drop (S : simplicial_complex (fin
   end }
 
 theorem strong_sperner {S : simplicial_complex (fin (m+1) → 𝕜)} {f}
-  (hS₁ : S.space = std_simplex (fin (m+1))) (hS₂ : S.finite) (hS₃ : S.full_dimensional)
-  (hf : is_sperner_colouring S f) :
+  (hS₁ : S.space = std_simplex 𝕜 (fin (m+1))) (hS₂ : S.finite) (hS₃ : S.full_dimensional)
+  (hf : is_sperner_coloring S f) :
   odd ((S.faces_finset hS₂).filter (panchromatic f)).card :=
 begin
   tactic.unfreeze_local_instances,
@@ -274,8 +274,8 @@ begin
 end
 
 theorem sperner {S : simplicial_complex (fin (m+1) → 𝕜)}
-  (hS₁ : S.space = std_simplex (fin (m+1))) (hS₂ : S.finite) (hS₃ : S.full_dimensional)
-  {f} (hf : is_sperner_colouring S f) :
+  (hS₁ : S.space = std_simplex 𝕜 (fin (m+1))) (hS₂ : S.finite) (hS₃ : S.full_dimensional)
+  {f} (hf : is_sperner_coloring S f) :
   ∃ X ∈ S.faces, panchromatic f X :=
 begin
   obtain ⟨X, hX⟩ := finset.card_pos.1 (nat.odd_gt_zero (strong_sperner hS₁ hS₂ hS₃ hf)),

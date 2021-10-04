@@ -21,7 +21,7 @@ namespace affine
 The Krein-Milman lemma
 -/
 lemma has_extreme_point_of_convex_of_compact_of_nonempty (hAnemp : A.nonempty)
-  (hAcomp : is_compact A) (hAconv : convex A) :
+  (hAcomp : is_compact A) (hAconv : convex 𝕜 A) :
   A.extreme_points.nonempty :=
 begin
   let S : set (set E) := {B | B.nonempty ∧ is_closed B ∧ is_extreme A B},
@@ -63,10 +63,10 @@ end
 The Krein-Milman theorem
 -/
 lemma eq_closure_convex_hull_extreme_points_of_compact_of_convex (hAcomp : is_compact A)
-  (hAconv : convex A) :
-  A = closure (convex_hull A.extreme_points) :=
+  (hAconv : convex 𝕜 A) :
+  A = closure (convex_hull 𝕜 A.extreme_points) :=
 begin
-  let B := closure (convex_hull A.extreme_points),
+  let B := closure (convex_hull 𝕜 A.extreme_points),
   have hBA : B ⊆ A :=
     closure_minimal (convex_hull_min (λ x hx, hx.1) hAconv) (is_compact.is_closed hAcomp),
   refine subset.antisymm _ hBA,
@@ -74,7 +74,7 @@ begin
   have hABdiff : (A \ B).nonempty := nonempty_diff.2 hAB,
   obtain ⟨x, hxA, hxB⟩ := id hABdiff,
   obtain ⟨l, s, hls, hsx⟩ := geometric_hahn_banach_closed_point
-    (convex.closure (convex_convex_hull _)) is_closed_closure hxB,
+    (convex.closure (convex_convex_hull 𝕜 _)) is_closed_closure hxB,
   let C := {y ∈ A | ∀ z ∈ A, l z ≤ l y},
   have hCexp : is_exposed A C := ⟨l, rfl⟩,
   obtain ⟨y, hyC⟩ := has_extreme_point_of_convex_of_compact_of_nonempty
@@ -84,7 +84,7 @@ begin
       exact ⟨z, hzA, hz⟩,
     end
     (hCexp.is_compact hAcomp) (hCexp.is_convex hAconv),
-  linarith [hls _ (subset_closure (subset_convex_hull _
+  linarith [hls _ (subset_closure (subset_convex_hull 𝕜 _
     (hCexp.is_extreme.extreme_points_subset_extreme_points hyC))),
     hyC.1.2 x hxA],
 end
@@ -93,12 +93,12 @@ end
 Carathéodory's theorem, the extreme points way
 -/
 lemma eq_convex_hull_extreme_points_of_compact_of_convex [finite_dimensional ℝ E]
-  (hAcomp : is_compact A) (hAconv : convex A) :
-  A = convex_hull A.extreme_points :=
+  (hAcomp : is_compact A) (hAconv : convex 𝕜 A) :
+  A = convex_hull 𝕜 A.extreme_points :=
 begin
 
   sorry
-  /-let B := convex_hull A.extreme_points,
+  /-let B := convex_hull 𝕜 A.extreme_points,
   have hBA : B ⊆ A :=
     convex_hull_min (λ x hx, hx.1) hAconv,
   refine subset.antisymm _ hBA,
@@ -109,8 +109,8 @@ begin
 end
 
 lemma closed_convex_hull_extreme_points_of_compact_of_convex [finite_dimensional ℝ E]
-  (hAcomp : is_compact A) (hAconv : convex A) :
-  is_closed (convex_hull A.extreme_points) :=
+  (hAcomp : is_compact A) (hAconv : convex 𝕜 A) :
+  is_closed (convex_hull 𝕜 A.extreme_points) :=
 closure_eq_iff_is_closed.1
   (by rw [←eq_closure_convex_hull_extreme_points_of_compact_of_convex hAcomp hAconv,
      ←eq_convex_hull_extreme_points_of_compact_of_convex hAcomp hAconv])

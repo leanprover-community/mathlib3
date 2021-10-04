@@ -5,7 +5,6 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import analysis.convex.topology
 import combinatorics.simplicial_complex.to_move.default
-import data.real.basic
 import linear_algebra.affine_space.finite_dimensional
 
 /-!
@@ -15,7 +14,7 @@ import linear_algebra.affine_space.finite_dimensional
 
 open_locale classical affine big_operators
 open set
-variables {m n : ℕ} {α : Type} {E : Type*} [normed_group E] [normed_space ℝ E]
+variables {𝕜 E α : Type*} [ordered_ring 𝕜] [ordered_add_comm_group E] [module 𝕜 E] {m n : ℕ}
 /-
 MATHLIB DEPARTURE ZONE
 A few PRs to be done
@@ -30,21 +29,23 @@ THEOREMS ON SALE
 Previous attempts of Bhavik
 -/
 
--- lemma of_affine_independent_set (X : set E) (hX : affine_independent ℝ (λ p, p : X → E)) :
---   ∀ (s : finset E) (w : E → ℝ), ∑ i in s, w i = 0 → s.weighted_vsub _ w = (0 : E) → ∀ i ∈ s, w i = 0 :=
+-- lemma of_affine_independent_set (X : set E) (hX : affine_independent 𝕜 (λ p, p : X → E)) :
+--   ∀ (s : finset E) (w : E → 𝕜),
+--     ∑ i in s, w i = 0 → s.weighted_vsub _ w = (0 : E) → ∀ i ∈ s, w i = 0 :=
 -- begin
 -- end
 
 -- omit V
 -- lemma filter_attach {ι : Type*} (s : finset ι) (p : ι → Prop) :
---   s.attach.filter (λ i, p i) = (s.filter p).attach.image (λ k, ⟨k, finset.filter_subset _ _ k.2⟩) :=
+--   s.attach.filter (λ i, p i) = (s.filter p).attach.image
+--     (λ k, ⟨k, finset.filter_subset _ _ k.2⟩) :=
 -- begin
 --   ext ⟨a, ha⟩,
 --   simp [ha],
 -- end
 -- include V
 
--- lemma of_affine_independent_set (s : set P) (hp : affine_independent k (λ p, p : s → P)) :
+-- lemma of_affine_independent_set (s : set P) (hp : affine_independent 𝕜 (λ p, p : s → P)) :
 --   ∀ (t : finset ι) (w : ι → k) (z : ι → P), ∑ i in t, w i = 0 → (∀ i ∈ t, z i ∈ s) →
 --   t.weighted_vsub z w = (0:V) → ∀ i ∈ t, w i = 0 :=
 -- begin
@@ -102,15 +103,15 @@ end
 def triangulation.facets (S : triangulation s) : set (finset E) :=
 {X ∈ S.faces | ∀ Y ∈ S.faces, X ⊆ Y → X = Y}
 
-def of_facets (S : set (finset E)) (hS₁ : ∀ X ∈ S, affine_independent ℝ (λ p, p : (X : set E) → E))
-  (hS₂ : s = ⋃ (X ∈ S), convex_hull ↑X)
-  (disjoint : ∀ (X Y ∈ S), convex_hull ↑X ∩ convex_hull ↑Y ⊆ convex_hull (X ∩ Y : set E)) :
+def of_facets (S : set (finset E)) (hS₁ : ∀ X ∈ S, affine_independent 𝕜 (λ p, p : (X : set E) → E))
+  (hS₂ : s = ⋃ (X ∈ S), convex_hull 𝕜 ↑X)
+  (disjoint : ∀ (X Y ∈ S), convex_hull 𝕜 ↑X ∩ convex_hull 𝕜 ↑Y ⊆ convex_hull 𝕜 (X ∩ Y : set E)) :
   triangulation s :=
 { faces := {X | ∃ Y ∈ S, X ⊆ Y},
   indep :=
   begin
     rintro X ⟨Y, YS, XY⟩,
-    apply affine_independent_of_subset_affine_independent (hS₁ _ YS),
+    apply (hS₁ _ YS).mono,
     rwa finset.coe_subset,
   end,
   covering :=
@@ -136,7 +137,7 @@ def of_facets (S : set (finset E)) (hS₁ : ∀ X ∈ S, affine_independent ℝ 
     rintro X Y ⟨Z, ZS, XZ⟩ ⟨W, WS, YW⟩,
     rintro x ⟨hx₁, hx₂⟩,
     rw ←finset.coe_inter,
-    have : x ∈ convex_hull (Z ∩ W : set E),
+    have : x ∈ convex_hull 𝕜 (Z ∩ W : set E),
       apply disjoint _ _ ZS WS ⟨convex_hull_mono XZ hx₁, convex_hull_mono YW hx₂⟩,
     rw ←finset.coe_inter at this,
     have := disjoint_convex_hulls (hS₁ _ ZS) XZ (finset.inter_subset_left Z W) ⟨hx₁, this⟩,
@@ -155,13 +156,13 @@ def of_facets (S : set (finset E)) (hS₁ : ∀ X ∈ S, affine_independent ℝ 
     refine ⟨XZ hx₁, YW hx₂⟩,
   end }
 
-def std_basis (n : ℕ) : fin n → fin n → ℝ :=
-λ i, linear_map.std_basis ℝ (λ i, ℝ) i 1
+def std_basis (n : ℕ) : fin n → fin n → 𝕜 :=
+λ i, linear_map.std_basis 𝕜 (λ i, 𝕜) i 1
 
-def basis_with_zero (n : ℕ) : fin (n+1) → fin n → ℝ :=
+def basis_with_zero (n : ℕ) : fin (n+1) → fin n → 𝕜 :=
 begin
   refine fin.cases _ _,
-  apply (0 : fin n → ℝ),
+  apply (0 : fin n → 𝕜),
   apply std_basis n,
 end
 
@@ -171,12 +172,12 @@ by rw [basis_with_zero, fin.cases_zero]
 lemma basis_with_zero_succ {n : ℕ} (j : fin n) : basis_with_zero n j.succ = std_basis n j :=
 by rw [basis_with_zero, fin.cases_succ]
 
-lemma linear_indep {n : ℕ} : linear_independent ℝ (std_basis n) :=
-(pi.is_basis_fun ℝ (fin n)).1
+lemma linear_indep {n : ℕ} : linear_independent 𝕜 (std_basis n) :=
+(pi.is_basis_fun 𝕜 (fin n)).1
 
-lemma affine_indep {n : ℕ} : affine_independent ℝ (basis_with_zero n) :=
+lemma affine_indep {n : ℕ} : affine_independent 𝕜 (basis_with_zero n) :=
 begin
-  rw affine_independent_iff_linear_independent_vsub ℝ _ (0 : fin n.succ),
+  rw affine_independent_iff_linear_independent_vsub 𝕜 _ (0 : fin n.succ),
   simp only [basis_with_zero_zero],
   simp only [vsub_eq_sub, sub_zero],
   let g : {x : fin n.succ // x ≠ 0} → fin n := λ (j : {x : fin n.succ // x ≠ 0}), fin.pred j.1 j.2,
@@ -192,7 +193,7 @@ begin
   exact fin.pred_inj.1 hi,
 end
 
-def trivial {m : ℕ} : triangulation (std_simplex (fin (m+1))) :=
+def trivial {m : ℕ} : triangulation (std_simplex 𝕜 (fin (m+1))) :=
 of_facets
   (singleton (finset.univ.image (std_basis (m+1))))
   (begin
@@ -201,9 +202,10 @@ of_facets
     subst hX,
     rw fintype.coe_image_univ,
     apply affine_independent_set_of_affine_independent,
-    convert affine_independent_embedding_of_affine_independent (fin.succ_embedding _).to_embedding affine_indep,
+    convert affine_indep.comp_embedding (fin.succ_embedding _).to_embedding,
     ext j x,
-    simp only [function.comp_app, fin.coe_succ_embedding, rel_embedding.coe_fn_to_embedding, basis_with_zero_succ, std_basis],
+    simp only [function.comp_app, fin.coe_succ_embedding, rel_embedding.coe_fn_to_embedding,
+      basis_with_zero_succ, std_basis],
   end)
   (begin
     rw [set.bUnion_singleton, fintype.coe_image_univ],
@@ -238,7 +240,7 @@ set.finite.mem_to_finset
 def triangulation.points (S : triangulation s) : set E :=
 ⋃ k ∈ S.faces, (k : set E)
 
-lemma convex_hull_face_subset (X) (hX : X ∈ S.faces) : convex_hull ↑X ⊆ s :=
+lemma convex_hull_face_subset (X) (hX : X ∈ S.faces) : convex_hull 𝕜 ↑X ⊆ s :=
 begin
   rintro x hx,
   rw S.covering,
@@ -261,14 +263,14 @@ begin
   rw triangulation.points at hx,
   rw set.mem_bUnion_iff at hx,
   rcases hx with ⟨X, hX, hx⟩,
-  exact set.mem_bUnion hX (subset_convex_hull X hx)
+  exact set.mem_bUnion hX (subset_convex_hull 𝕜 X hx)
 end
 
-def is_sperner_colouring {s : set (fin (m+1) → ℝ)} (S : triangulation s)
-  (f : (fin (m+1) → ℝ) → fin (m+1)) : Prop :=
-∀ (X : fin (m+1) → ℝ) i, X ∈ S.points → X i = 0 → f X ≠ i
+def is_sperner_colouring {s : set (fin (m+1) → 𝕜)} (S : triangulation s)
+  (f : (fin (m+1) → 𝕜) → fin (m+1)) : Prop :=
+∀ (X : fin (m+1) → 𝕜) i, X ∈ S.points → X i = 0 → f X ≠ i
 
-def panchromatic {n m : ℕ} (f : (fin n → ℝ) → fin m) (X : finset (fin n → ℝ)) :=
+def panchromatic {n m : ℕ} (f : (fin n → 𝕜) → fin m) (X : finset (fin n → 𝕜)) :=
   X.image f = finset.univ
 
 lemma panchromatic_iff (f : E → fin m) (X : finset E) :
@@ -283,14 +285,18 @@ begin
     simp [h] }
 end
 
-def edge_of_std_simplex (m) : set (fin (m+1) → ℝ) :=
-std_simplex (fin (m+1)) ∩ {x | x 0 = 0}
+variables (𝕜)
 
-lemma convex_hull_ne_zero_points (X : set (fin (m+1) → ℝ)) (x : fin (m+1) → ℝ)
-  (hX : ∀ (y : fin (m+1) → ℝ), y ∈ X → 0 ≤ y 0)
+def edge_of_std_simplex (m) : set (fin (m+1) → 𝕜) :=
+std_simplex 𝕜 (fin (m+1)) ∩ {x | x 0 = 0}
+
+variables {𝕜}
+
+lemma convex_hull_ne_zero_points (X : set (fin (m+1) → 𝕜)) (x : fin (m+1) → 𝕜)
+  (hX : ∀ (y : fin (m+1) → 𝕜), y ∈ X → 0 ≤ y 0)
   (hx : x 0 = 0)
-  (hXx : x ∈ convex_hull X) :
-x ∈ convex_hull {y : fin (m+1) → ℝ | y ∈ X ∧ y 0 = 0} :=
+  (hXx : x ∈ convex_hull 𝕜 X) :
+x ∈ convex_hull 𝕜 {y : fin (m+1) → 𝕜 | y ∈ X ∧ y 0 = 0} :=
 begin
   rw convex_hull_eq.{37} at hXx,
   rcases hXx with ⟨ι, t, w, z, hw₀, hw₁, hz, x_eq⟩,
@@ -320,9 +326,9 @@ begin
   exact finset.center_mass_filter_ne_zero z,
 end
 
-def lower_triangulation (S : triangulation (std_simplex (fin (m+1)))) :
-  triangulation (edge_of_std_simplex m) :=
-{ faces := {X ∈ S.faces | ∀ (x : fin (m+1) → ℝ), x ∈ X → x 0 = 0 },
+def lower_triangulation (S : triangulation (std_simplex 𝕜 (fin (m+1)))) :
+  triangulation (edge_of_std_simplex 𝕜 m) :=
+{ faces := {X ∈ S.faces | ∀ (x : fin (m+1) → 𝕜), x ∈ X → x 0 = 0 },
   indep :=
   begin
     rintro X hX,
@@ -360,7 +366,7 @@ def lower_triangulation (S : triangulation (std_simplex (fin (m+1)))) :
           ext x,
           simp } },
       rintro y hy,
-      have : y ∈ std_simplex (fin (m+1)),
+      have : y ∈ std_simplex 𝕜 (fin (m+1)),
       { apply face_subset hX hy },
       rw std_simplex_eq_inter at this,
       simp only [set.mem_inter_eq, set.mem_Inter, set.mem_set_of_eq] at this,
@@ -369,7 +375,7 @@ def lower_triangulation (S : triangulation (std_simplex (fin (m+1)))) :
       rintro ⟨X, hX₁, hX₂⟩,
       simp only [set.mem_sep_eq] at hX₁,
       refine ⟨convex_hull_face_subset X hX₁.1 hX₂, _⟩,
-      have : convex_hull ↑X ⊆ {x : fin (m+1) → ℝ | x 0 = 0},
+      have : convex_hull 𝕜 ↑X ⊆ {x : fin (m+1) → 𝕜 | x 0 = 0},
       { apply convex_hull_min,
         { rintro x hx,
           exact hX₁.2 x hx },
@@ -385,7 +391,7 @@ def lower_triangulation (S : triangulation (std_simplex (fin (m+1)))) :
     apply S.disjoint _ _ hX.1 hY.1,
   end }
 
-lemma std_simplex_one : std_simplex (fin 1) = { ![(1 : ℝ)]} :=
+lemma std_simplex_one : std_simplex 𝕜 (fin 1) = { ![(1 : 𝕜)]} :=
 begin
   ext x,
   simp [std_simplex_eq_inter],
@@ -421,21 +427,21 @@ begin
     { refl } }
 end
 
-lemma convex_hull_empty : convex_hull (∅ : set E) = ∅ :=
+lemma convex_hull_empty : convex_hull 𝕜 (∅ : set E) = ∅ :=
 convex_empty.convex_hull_eq
 
-lemma strong_sperner_zero_aux (S : triangulation (std_simplex (fin 1))) :
+lemma strong_sperner_zero_aux (S : triangulation (std_simplex 𝕜 (fin 1))) :
   S.faces = {∅, { ![1]}} :=
 begin
-  have X_subs : ∀ X ∈ S.faces, X ⊆ { ![(1:ℝ)]},
+  have X_subs : ∀ X ∈ S.faces, X ⊆ { ![(1:𝕜)]},
   { rintro X hX,
     have := face_subset hX,
     rw std_simplex_one at this,
     rintro x hx,
     simpa using this hx },
-  have : ∃ X ∈ S.faces, X = { ![(1:ℝ)]},
+  have : ∃ X ∈ S.faces, X = { ![(1:𝕜)]},
   { have std_eq := S.covering,
-    have one_mem : ![(1:ℝ)] ∈ std_simplex (fin 1),
+    have one_mem : ![(1:𝕜)] ∈ std_simplex 𝕜 (fin 1),
     { rw std_simplex_one,
       simp },
     rw [std_eq, set.mem_bUnion_iff] at one_mem,
@@ -458,11 +464,11 @@ begin
     exact S.down_closed _ hY₁ X hX },
 end
 
-theorem strong_sperner_zero (S : triangulation (std_simplex (fin 1))) (hS : S.finite)
-  (f : (fin 1 → ℝ) → fin 1) :
+theorem strong_sperner_zero (S : triangulation (std_simplex 𝕜 (fin 1))) (hS : S.finite)
+  (f : (fin 1 → 𝕜) → fin 1) :
   odd ((S.faces_finset hS).filter (panchromatic f)).card :=
 begin
-  have : (S.faces_finset hS).filter (panchromatic f) = {{ ![(1:ℝ)]}},
+  have : (S.faces_finset hS).filter (panchromatic f) = {{ ![(1:𝕜)]}},
   { ext X,
     simp only [mem_faces_finset, finset.mem_singleton, finset.mem_filter, strong_sperner_zero_aux],
     simp only [set.mem_insert_iff, set.mem_singleton_iff],
@@ -483,19 +489,19 @@ begin
   simp,
 end
 
--- lemma affine_independent_image {n m : ℕ} {ι : Type*} (f : (fin n → ℝ) →ₗ[ℝ] (fin m → ℝ))
+-- lemma affine_independent_image {n m : ℕ} {ι : Type*} (f : (fin n → 𝕜) →ₗ[𝕜] (fin m → 𝕜))
 --   (hf : function.injective f)
---   (p : ι → fin n → ℝ)
---   (hp : affine_independent ℝ p) :
---   affine_independent ℝ (f ∘ p) :=
+--   (p : ι → fin n → 𝕜)
+--   (hp : affine_independent 𝕜 p) :
+--   affine_independent 𝕜 (f ∘ p) :=
 -- begin
 --   rw affine_independent_def,
 --   rintro s w hw hs i hi,
---   rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ hw (0:fin m → ℝ) at hs,
+--   rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ hw (0:fin m → 𝕜) at hs,
 --   rw finset.weighted_vsub_of_point_apply at hs,
 --   simp only [vsub_eq_sub, function.comp_app, sub_zero] at hs,
---   have : s.weighted_vsub p w = (0:fin n → ℝ),
---   { rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ hw (0:fin n → ℝ),
+--   have : s.weighted_vsub p w = (0:fin n → 𝕜),
+--   { rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ hw (0:fin n → 𝕜),
 --     rw finset.weighted_vsub_of_point_apply,
 --     simp only [vsub_eq_sub, sub_zero],
 --     apply hf,
@@ -503,7 +509,7 @@ end
 --   apply hp s w hw this _ hi,
 -- end
 
-lemma cons_inj {n : ℕ} (x y : fin (n+1) → ℝ) (h0 : x 0 = y 0)
+lemma cons_inj {n : ℕ} (x y : fin (n+1) → 𝕜) (h0 : x 0 = y 0)
   (h1 : matrix.vec_tail x = matrix.vec_tail y) :
   x = y :=
 begin
@@ -514,18 +520,18 @@ begin
 end
 
 lemma affine_independent_proj {n : ℕ} {ι : Type*}
-  {p : ι → fin (n+1) → ℝ}
+  {p : ι → fin (n+1) → 𝕜}
   (hp₁ : ∀ i, p i 0 = 0)
-  (hp₂ : affine_independent ℝ p) :
-  affine_independent ℝ (matrix.vec_tail ∘ p) :=
+  (hp₂ : affine_independent 𝕜 p) :
+  affine_independent 𝕜 (matrix.vec_tail ∘ p) :=
 begin
   rw affine_independent_def,
   rintro s w hw hs i hi,
-  rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ hw (0:fin n → ℝ) at hs,
+  rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ hw (0:fin n → 𝕜) at hs,
   rw finset.weighted_vsub_of_point_apply at hs,
   simp only [vsub_eq_sub, function.comp_app, sub_zero] at hs,
-  have : s.weighted_vsub p w = (0:fin (n+1) → ℝ),
-  { rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ hw (0:fin (n+1) → ℝ),
+  have : s.weighted_vsub p w = (0:fin (n+1) → 𝕜),
+  { rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ hw (0:fin (n+1) → 𝕜),
     rw finset.weighted_vsub_of_point_apply,
     simp only [vsub_eq_sub, sub_zero],
     ext j,
@@ -579,7 +585,7 @@ begin
     simp }
 end
 
-lemma vec_tail_smul {m : ℕ} (c : ℝ) (x : fin m.succ → ℝ) :
+lemma vec_tail_smul {m : ℕ} (c : 𝕜) (x : fin m.succ → 𝕜) :
   matrix.vec_tail (c • x) = c • matrix.vec_tail x :=
 begin
   ext i,
@@ -587,7 +593,7 @@ begin
 end
 
 lemma is_linear_map_matrix_vec_tail {n : ℕ} :
-  is_linear_map ℝ (matrix.vec_tail : (fin n.succ → ℝ) → (fin n → ℝ)) :=
+  is_linear_map 𝕜 (matrix.vec_tail : (fin n.succ → 𝕜) → (fin n → 𝕜)) :=
 { map_add := by simp,
   map_smul := λ c x,
   begin
@@ -595,8 +601,8 @@ lemma is_linear_map_matrix_vec_tail {n : ℕ} :
     simp [matrix.vec_tail],
   end }
 
-lemma vec_tail_mem_simplex_iff {n : ℕ} (y : fin n → ℝ) :
-  matrix.vec_cons 0 y ∈ edge_of_std_simplex n ↔ y ∈ std_simplex (fin n) :=
+lemma vec_tail_mem_simplex_iff {n : ℕ} (y : fin n → 𝕜) :
+  matrix.vec_cons 0 y ∈ edge_of_std_simplex 𝕜 n ↔ y ∈ std_simplex 𝕜 (fin n) :=
 begin
   rw [edge_of_std_simplex, set.mem_inter_eq, set.mem_set_of_eq, matrix.cons_val_zero,
     eq_self_iff_true, and_true, std_simplex, std_simplex, set.mem_set_of_eq, set.mem_set_of_eq,
@@ -606,16 +612,16 @@ begin
   tauto,
 end
 
--- def my_proj : (fin (n+1) → ℝ)
-def flatten_triangulation (S : triangulation (edge_of_std_simplex m)) :
-  triangulation (std_simplex (fin m)) :=
+-- def my_proj : (fin (n+1) → 𝕜)
+def flatten_triangulation (S : triangulation (edge_of_std_simplex 𝕜 m)) :
+  triangulation (std_simplex 𝕜 (fin m)) :=
 { faces := finset.image matrix.vec_tail '' S.faces,
   indep :=
   begin
     rintro X hX,
     simp only [set.mem_image] at hX,
     rcases hX with ⟨X, hX, rfl⟩,
-    let f : ((finset.image matrix.vec_tail X : set (fin m → ℝ))) → (X : set (fin (m+1) → ℝ)),
+    let f : ((finset.image matrix.vec_tail X : set (fin m → 𝕜))) → (X : set (fin (m+1) → 𝕜)),
     { intro t,
       refine ⟨matrix.vec_cons 0 t.1, _⟩,
       rcases t with ⟨t, ht⟩,
@@ -632,7 +638,7 @@ def flatten_triangulation (S : triangulation (edge_of_std_simplex m)) :
       apply_fun matrix.vec_tail at h,
       simpa using h },
     have := affine_independent_proj _ (S.indep X hX),
-    { convert affine_independent_embedding_of_affine_independent ⟨f, hf⟩ this,
+    { convert affine_independent.comp_embedding ⟨f, hf⟩ this,
       ext p,
       dsimp,
       simp },
@@ -657,7 +663,7 @@ def flatten_triangulation (S : triangulation (edge_of_std_simplex m)) :
     { ext x,
       dsimp,
       simp },
-    { exact classical.dec_eq (fin m → ℝ) },
+    { exact classical.dec_eq (fin m → 𝕜) },
   end,
   covering :=
   begin
@@ -666,7 +672,7 @@ def flatten_triangulation (S : triangulation (edge_of_std_simplex m)) :
     simp only [exists_prop, set.mem_image, exists_exists_and_eq_and, finset.coe_image],
     split,
     { intro hi,
-      have : matrix.vec_cons 0 i ∈ edge_of_std_simplex m,
+      have : matrix.vec_cons 0 i ∈ edge_of_std_simplex 𝕜 m,
       { rwa vec_tail_mem_simplex_iff },
       rw [S.covering, set.mem_bUnion_iff] at this,
       rcases this with ⟨x, hx₁, hx₂⟩,
@@ -687,7 +693,7 @@ def flatten_triangulation (S : triangulation (edge_of_std_simplex m)) :
       apply is_linear_map_matrix_vec_tail,
     }
     -- },
-    -- have : matrix.vec_cons 0 i ∈ std_simplex (fin (m+1)),
+    -- have : matrix.vec_cons 0 i ∈ std_simplex 𝕜 (fin (m+1)),
     -- have := S.covering,
   end,
   disjoint :=
@@ -713,15 +719,15 @@ def flatten_triangulation (S : triangulation (edge_of_std_simplex m)) :
     apply is_linear_map_matrix_vec_tail,
   end }
 
-def induct_down (S : triangulation (std_simplex (fin (m+1)))) :
-  triangulation (std_simplex (fin m)) :=
+def induct_down (S : triangulation (std_simplex 𝕜 (fin (m+1)))) :
+  triangulation (std_simplex 𝕜 (fin m)) :=
 flatten_triangulation (lower_triangulation S)
 
 example {α : Type*} {s : set α} (p : α → Prop) (hs : s.finite) :
   {x ∈ s | p x}.finite :=
 set.finite.subset hs (s.sep_subset p)
 
-lemma induct_down_finite (S : triangulation (std_simplex (fin (m+1)))) (hS : S.finite) :
+lemma induct_down_finite (S : triangulation (std_simplex 𝕜 (fin (m+1)))) (hS : S.finite) :
   (induct_down S).finite :=
 begin
   rw triangulation.finite,
@@ -764,11 +770,11 @@ begin
   refine ⟨Y, ⟨‹Y ∈ S.faces›, h₂⟩, ‹X ⊆ Y›⟩,
 end
 
-def is_homogeneous {m : ℕ} {s : set (fin m → ℝ)} (n : ℕ) (S : triangulation s) : Prop :=
+def is_homogeneous {m : ℕ} {s : set (fin m → 𝕜)} (n : ℕ) (S : triangulation s) : Prop :=
 ∀ X ∈ S.facets, finset.card X = n
 -- ∀ X ∈ S.faces, ∃ Y ∈ S.faces, X ⊆ Y ∧ finset.card Y = n
 
-lemma is_homogeneous_induct_down (S : triangulation (std_simplex (fin (m+1))))
+lemma is_homogeneous_induct_down (S : triangulation (std_simplex 𝕜 (fin (m+1))))
   (hS : is_homogeneous (m+1) S) :
   is_homogeneous m (induct_down S) :=
 begin
@@ -776,13 +782,13 @@ begin
   simp only [induct_down, triangulation.facets, flatten_triangulation, lower_triangulation,
     and_imp, set.mem_sep_eq, set.mem_image, exists_imp_distrib] at hX,
   rcases hX with ⟨⟨X, ⟨hX₂, hX₄⟩, rfl⟩, hX₃⟩,
-  have hX₁ : ∀ (Y ∈ S.faces), (∀ (i : fin (m+1) → ℝ), i ∈ Y → i 0 = 0) →
+  have hX₁ : ∀ (Y ∈ S.faces), (∀ (i : fin (m+1) → 𝕜), i ∈ Y → i 0 = 0) →
     finset.image matrix.vec_tail X ⊆ finset.image matrix.vec_tail Y →
     finset.image matrix.vec_tail X = finset.image matrix.vec_tail Y,
   { rintro Y hY₁ hY₂ hY₃,
     apply hX₃ _ _ hY₁ hY₂ rfl hY₃ },
   clear hX₃, -- just a less convenient form of hX₁
-  have : ∀ (x : fin (m+1) → ℝ), x ∉ X → x 0 = 0 → insert x X ∉ S.faces,
+  have : ∀ (x : fin (m+1) → 𝕜), x ∉ X → x 0 = 0 → insert x X ∉ S.faces,
   { rintro x hx₁ hx₂ t,
     have := hX₁ _ t (by simpa [hx₂] using hX₄) (finset.image_subset_image _),
 
@@ -795,11 +801,10 @@ begin
   -- rcases hX with ⟨X, ⟨hX₁, hX₂⟩, rfl⟩,
   -- rcases hS X hX₁ with ⟨Y, hY₁, hY₂, hY₃⟩,
   -- -- refine ⟨sorry, _, _⟩,
-  -- simp only [exists_prop, induct_down, flatten_triangulation, lower_triangulation, set.mem_sep_eq,
+  -- simp only [exists_prop, induct_down, flatten_triangulation, lower_triangulation,
+  --   set.mem_sep_eq,
   --   set.mem_image, exists_exists_and_eq_and],
-
   -- -- simp only [induct_down],
-
 end
 
 lemma subset_iff_eq_or_ssubset {α : Type*} {s t : finset α} :
@@ -820,15 +825,15 @@ begin
     { apply ss.1 } }
 end
 
-noncomputable def good_pairs {S : triangulation (std_simplex (fin (m+1)))} (hS : S.finite)
-  (f : (fin (m + 1) → ℝ) → fin (m + 1)) :
-  finset (finset (fin (m+1) → ℝ) × finset (fin (m+1) → ℝ)) :=
+noncomputable def good_pairs {S : triangulation (std_simplex 𝕜 (fin (m+1)))} (hS : S.finite)
+  (f : (fin (m + 1) → 𝕜) → fin (m + 1)) :
+  finset (finset (fin (m+1) → 𝕜) × finset (fin (m+1) → 𝕜)) :=
 ((S.faces_finset hS).product (S.faces_finset hS)).filter
       (λ (XY : finset _ × finset _),
           XY.2.card = m ∧ XY.1.card = m+1 ∧ XY.2.image f = finset.univ.erase 0 ∧ XY.2 ⊆ XY.1)
 
 @[simp]
-lemma mem_good_pairs {S : triangulation (std_simplex (fin (m+1)))} (hS : S.finite)
+lemma mem_good_pairs {S : triangulation (std_simplex 𝕜 (fin (m+1)))} (hS : S.finite)
   {f} (X Y : finset _) :
   (X,Y) ∈ good_pairs hS f ↔
       X ∈ S.faces
@@ -841,20 +846,20 @@ begin
   simp [good_pairs, and_assoc],
 end
 
-noncomputable def panchromatic_pairs {S : triangulation (std_simplex (fin (m+1)))} (hS : S.finite)
-  (f : (fin (m+1) → ℝ) → (fin (m+1))) :=
+noncomputable def panchromatic_pairs {S : triangulation (std_simplex 𝕜 (fin (m+1)))} (hS : S.finite)
+  (f : (fin (m+1) → 𝕜) → (fin (m+1))) :=
 (good_pairs hS f).filter (λ (XY : _ × _), panchromatic f XY.1)
 
-noncomputable def almost_panchromatic_pairs {S : triangulation (std_simplex (fin (m+1)))}
-  (hS : S.finite) (f : (fin (m+1) → ℝ) → (fin (m+1))) :=
+noncomputable def almost_panchromatic_pairs {S : triangulation (std_simplex 𝕜 (fin (m+1)))}
+  (hS : S.finite) (f : (fin (m+1) → 𝕜) → (fin (m+1))) :=
 (good_pairs hS f).filter (λ (XY : _ × _), XY.1.image f = finset.univ.erase 0)
 
-noncomputable def almost_panchromatic_simplices {S : triangulation (std_simplex (fin (m+1)))}
-  (hS : S.finite) (f : (fin (m+1) → ℝ) → (fin (m+1))) :=
+noncomputable def almost_panchromatic_simplices {S : triangulation (std_simplex 𝕜 (fin (m+1)))}
+  (hS : S.finite) (f : (fin (m+1) → 𝕜) → (fin (m+1))) :=
 (S.faces_finset hS).filter (λ (X : finset _), X.card = m+1 ∧ X.image f = finset.univ.erase 0)
 
-lemma almost_panchromatic_pairs_card_eq_twice {S : triangulation (std_simplex (fin (m+1)))}
-  (hS : S.finite) (f : (fin (m+1) → ℝ) → (fin (m+1))) :
+lemma almost_panchromatic_pairs_card_eq_twice {S : triangulation (std_simplex 𝕜 (fin (m+1)))}
+  (hS : S.finite) (f : (fin (m+1) → 𝕜) → (fin (m+1))) :
   (almost_panchromatic_pairs hS f).card = (almost_panchromatic_simplices hS f).card * 2 :=
 begin
   have H : ∀ x ∈ almost_panchromatic_pairs hS f, prod.fst x ∈ almost_panchromatic_simplices hS f,
@@ -917,8 +922,8 @@ begin
       rw [finset.card_erase_of_mem ‹_ ∈ _›, ‹X'.card = _›, nat.pred_succ, ‹Y.card = m›] } }
 end
 
-lemma panchromatic_splits {S : triangulation (std_simplex (fin (m+1)))}
-  (hS : S.finite) {f : (fin (m+1) → ℝ) → (fin (m+1))} :
+lemma panchromatic_splits {S : triangulation (std_simplex 𝕜 (fin (m+1)))}
+  (hS : S.finite) {f : (fin (m+1) → 𝕜) → (fin (m+1))} :
   panchromatic_pairs hS f ∪ almost_panchromatic_pairs hS f = good_pairs hS f :=
 begin
   rw [panchromatic_pairs, almost_panchromatic_pairs, ←finset.filter_or, finset.filter_true_of_mem],
@@ -943,8 +948,8 @@ begin
     simp only [finset.card_fin, nat.pred_succ] }
 end
 
-lemma disjoint_split {S : triangulation (std_simplex (fin (m+1)))}
-  (hS : S.finite) {f : (fin (m+1) → ℝ) → (fin (m+1))} :
+lemma disjoint_split {S : triangulation (std_simplex 𝕜 (fin (m+1)))}
+  (hS : S.finite) {f : (fin (m+1) → 𝕜) → (fin (m+1))} :
   disjoint (panchromatic_pairs hS f) (almost_panchromatic_pairs hS f) :=
 begin
   rw finset.disjoint_left,
@@ -986,7 +991,7 @@ lemma subset_erase_iff {α : Type*} [decidable_eq α] (x : α) {s t : finset α}
 -- begin
 -- end
 
-def plane : affine_subspace ℝ E :=
+def plane : affine_subspace 𝕜 E :=
 { carrier := {X | ∑ i, X i = 1},
   smul_vsub_vadd_mem :=
   begin
@@ -994,37 +999,37 @@ def plane : affine_subspace ℝ E :=
     simp [finset.sum_add_distrib, ←finset.mul_sum, hp₁, hp₂, hp₃],
   end }
 
-lemma obvious {m : ℕ} : ∑ (i : fin m), (0 : fin m → ℝ) i = 1 → false :=
+lemma obvious {m : ℕ} : ∑ (i : fin m), (0 : fin m → 𝕜) i = 1 → false :=
 begin
   simp,
 end
 
 lemma better_size_bound {X : finset E}
-  (hX₁ : affine_independent ℝ (λ p, p : (X : set E) → E))
-  (hX₂ : ∀ x ∈ X, x ∈ std_simplex (fin m)) :
+  (hX₁ : affine_independent 𝕜 (λ p, p : (X : set E) → E))
+  (hX₂ : ∀ x ∈ X, x ∈ std_simplex 𝕜 (fin m)) :
   X.card ≤ m :=
 begin
   cases nat.eq_or_lt_of_le (size_bound hX₁),
-  { have card_eq : fintype.card (X : set E) = finite_dimensional.findim ℝ (fin m → ℝ) + 1,
+  { have card_eq : fintype.card (X : set E) = finite_dimensional.findim 𝕜 (fin m → 𝕜) + 1,
     { simp [h] },
-    have : affine_span ℝ (X : set E) = ⊤,
+    have : affine_span 𝕜 (X : set E) = ⊤,
     { convert affine_span_eq_top_of_affine_independent_of_card_eq_findim_add_one hX₁ card_eq,
       simp },
-    have zero_mem : (0 : E) ∈ affine_span ℝ (X : set E),
+    have zero_mem : (0 : E) ∈ affine_span 𝕜 (X : set E),
     { rw this,
       apply affine_subspace.mem_top },
     have : (X : set E) ≤ (↑plane : set E),
     { rintro x hx,
       rw affine_subspace.mem_coe,
       apply (hX₂ _ hx).2 },
-    rw ←((affine_subspace.gi ℝ (fin m → ℝ) (fin m → ℝ)).gc (X : set E) plane) at this,
+    rw ←((affine_subspace.gi 𝕜 (fin m → 𝕜) (fin m → 𝕜)).gc (X : set E) plane) at this,
     have q : _ = _ := this zero_mem,
     apply (obvious q).elim },
   rwa ← nat.lt_succ_iff,
 end
 
-lemma card_eq_of_panchromatic {S : triangulation (std_simplex (fin (m+1)))}
-  (hS : S.finite) (f : (fin (m+1) → ℝ) → (fin (m+1))) {X} (hX : X ∈ S.faces)
+lemma card_eq_of_panchromatic {S : triangulation (std_simplex 𝕜 (fin (m+1)))}
+  (hS : S.finite) (f : (fin (m+1) → 𝕜) → (fin (m+1))) {X} (hX : X ∈ S.faces)
   (hf : panchromatic f X) :
   X.card = m+1 :=
 le_antisymm
@@ -1045,8 +1050,8 @@ begin
   exact ⟨_, ⟨ne_of_apply_ne f hb, hx⟩, rfl⟩,
 end
 
-lemma panchromatic_pairs_card_eq_panchromatic_card {S : triangulation (std_simplex (fin (m+1)))}
-  (hS : S.finite) (f : (fin (m+1) → ℝ) → (fin (m+1))) :
+lemma panchromatic_pairs_card_eq_panchromatic_card {S : triangulation (std_simplex 𝕜 (fin (m+1)))}
+  (hS : S.finite) (f : (fin (m+1) → 𝕜) → (fin (m+1))) :
   (panchromatic_pairs hS f).card = ((S.faces_finset hS).filter (panchromatic f)).card :=
 begin
   apply finset.card_congr _ _ _ _,
@@ -1114,14 +1119,14 @@ begin
     simp, }
 end
 
-theorem strong_sperner (S : triangulation (std_simplex (fin (m+1)))) (hS : S.finite)
+theorem strong_sperner (S : triangulation (std_simplex 𝕜 (fin (m+1)))) (hS : S.finite)
   {f} (hf : is_sperner_colouring S f) (hS₂ : is_homogeneous (m+1) S):
   odd ((S.faces_finset hS).filter (panchromatic f)).card :=
 begin
   tactic.unfreeze_local_instances,
   induction m with n ih generalizing f,
   { apply strong_sperner_zero _ },
-  let f' : (fin (n + 1) → ℝ) → fin (n + 1),
+  let f' : (fin (n + 1) → 𝕜) → fin (n + 1),
   { intro x,
     apply fin.pred_above 0 (f (matrix.vec_cons 0 x)) },
   have hf' : is_sperner_colouring (induct_down S) f',

@@ -13,18 +13,23 @@ import combinatorics.simplicial_complex.to_move.default
 
 open set
 
-variables {E : Type*} [add_comm_group E] [module ℝ E] {x y : E} {A B C D : set E} {c : set (set E)}
+variables {𝕜 E : Type*} [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] {x y : E}
+  {A B C D : set E} {c : set (set E)}
+
+variables (𝕜)
 
 def convex_join (A B : set E) :
   set E :=
 A ∪ B ∪ ⋃ a b (ha : a ∈ A) (hb : b ∈ B), open_segment a b
 
+variables {𝕜}
+
 /-The three other possible defs of `convex_join`. They are *not* equivalent.
 
 
 This one is the weakest, not even respecting
-`convex_hull (A ∪ B) = convex_join (convex_hull A) (convex_hull B)` as it doesn't cope well with
-`A = ∅` or `B = ∅`.
+`convex_hull 𝕜 (A ∪ B) = convex_join 𝕜 (convex_hull 𝕜 A) (convex_hull 𝕜 B)` as it doesn't cope
+well with `A = ∅` or `B = ∅`.
 
 def convex_join (A B : set E) :
   set E :=
@@ -32,9 +37,9 @@ def convex_join (A B : set E) :
 
 
 That one is stronger than the one I went for. It respects
-`convex_hull (A ∪ B) = convex_join (convex_hull A) (convex_hull B)` and even adds some segments, but
-doesn't unfold nicely as it breaks into four cases `(a ∈ A ∨ a ∈ B) ∧ (b ∈ A ∨ b ∈ B)` two of which
-are hard but essentially the same.
+`convex_hull 𝕜 (A ∪ B) = convex_join 𝕜 (convex_hull 𝕜 A) (convex_hull 𝕜 B)` and even adds some
+segments, but doesn't unfold nicely as it breaks into four cases
+`(a ∈ A ∨ a ∈ B) ∧ (b ∈ A ∨ b ∈ B)` two of which are hard but essentially the same.
 
 def convex_join (A B : set E) :
   set E :=
@@ -42,14 +47,14 @@ def convex_join (A B : set E) :
 -/
 
 lemma mem_convex_join_iff :
-  x ∈ convex_join A B ↔ x ∈ A ∪ B ∨ ∃ a b : E, a ∈ A ∧ b ∈ B ∧ x ∈ open_segment a b :=
+  x ∈ convex_join 𝕜 A B ↔ x ∈ A ∪ B ∨ ∃ a b : E, a ∈ A ∧ b ∈ B ∧ x ∈ open_segment a b :=
 begin
   unfold convex_join,
   simp,
 end
 
 lemma convex_join_comm (A B : set E) :
-  convex_join A B = convex_join B A :=
+  convex_join 𝕜 A B = convex_join 𝕜 B A :=
 begin
   ext x,
   rw [mem_convex_join_iff, mem_convex_join_iff, union_comm],
@@ -63,7 +68,7 @@ begin
 end
 
 lemma subset_convex_join_left (A B : set E) :
-  A ⊆ convex_join A B :=
+  A ⊆ convex_join 𝕜 A B :=
 begin
   rintro x hx,
   left,
@@ -72,7 +77,7 @@ begin
 end
 
 lemma subset_convex_join_right (A B : set E) :
-  B ⊆ convex_join A B :=
+  B ⊆ convex_join 𝕜 A B :=
 begin
   rintro x hx,
   left,
@@ -81,7 +86,7 @@ begin
 end
 
 lemma convex_join_subset_convex_join_left (hAB : A ⊆ B) (C : set E) :
-  convex_join A C ⊆ convex_join B C :=
+  convex_join 𝕜 A C ⊆ convex_join 𝕜 B C :=
 begin
   rintro x (hx | hx),
   { left,
@@ -93,23 +98,23 @@ begin
 end
 
 lemma convex_join_subset_convex_join_right (A : set E) (hBC : B ⊆ C) :
-  convex_join A B ⊆ convex_join A C :=
+  convex_join 𝕜 A B ⊆ convex_join 𝕜 A C :=
 begin
   rw [convex_join_comm, convex_join_comm A C],
   exact convex_join_subset_convex_join_left hBC A,
 end
 
 lemma convex_join_subset_convex_join (hAC : A ⊆ C) (hBD : B ⊆ D) :
-  convex_join A B ⊆ convex_join C D :=
+  convex_join 𝕜 A B ⊆ convex_join 𝕜 C D :=
 subset.trans (convex_join_subset_convex_join_left hAC B)
   (convex_join_subset_convex_join_right C hBD)
 
 lemma union_subset_convex_join (A B : set E) :
-  A ∪ B ⊆ convex_join A B :=
+  A ∪ B ⊆ convex_join 𝕜 A B :=
 union_subset (subset_convex_join_left A B) (subset_convex_join_right A B)
 
 lemma convex_join_empty :
-  convex_join A ∅ = A :=
+  convex_join 𝕜 A ∅ = A :=
 begin
   unfold convex_join,
   rw union_empty,
@@ -117,14 +122,14 @@ begin
 end
 
 lemma empty_convex_join :
-  convex_join ∅ B = B :=
+  convex_join 𝕜 ∅ B = B :=
 begin
   rw convex_join_comm,
   exact convex_join_empty,
 end
 
 lemma segment_subset_convex_join {a b : E} (ha : a ∈ A) (hb : b ∈ B) :
-  segment a b ⊆ convex_join A B :=
+  segment a b ⊆ convex_join 𝕜 A B :=
 begin
   rintro x hx,
   obtain rfl | rfl | hx := eq_left_or_right_or_mem_open_segment_of_mem_segment hx,
@@ -136,7 +141,7 @@ begin
 end
 
 lemma convex_join_eq_of_nonempty (hA : A.nonempty) (hB : B.nonempty) :
-  convex_join A B = ⋃ a b (ha : a ∈ A) (hb : b ∈ B), segment a b :=
+  convex_join 𝕜 A B = ⋃ a b (ha : a ∈ A) (hb : b ∈ B), segment a b :=
 begin
   ext x,
   simp only [mem_convex_join_iff, mem_Union],
@@ -158,7 +163,7 @@ begin
 end
 
 lemma convex_hull_quadruple {a b c d : E} :
-  convex_join (segment a b) (segment c d) = convex_hull {a, b, c, d} :=
+  convex_join 𝕜 (segment a b) (segment c d) = convex_hull 𝕜 {a, b, c, d} :=
 begin
   rw [finite.convex_hull_eq, convex_join_eq_of_nonempty ⟨a, left_mem_segment _ _⟩
     ⟨c, left_mem_segment _ _⟩],
@@ -255,11 +260,11 @@ begin
 end
 
 lemma convex_hull_triple {a b c : E} :
-  convex_join (segment a b) {c} = convex_hull {a, b, c} :=
+  convex_join 𝕜 (segment a b) {c} = convex_hull 𝕜 {a, b, c} :=
 by rw [←pair_eq_singleton, ←convex_hull_quadruple, segment_same, pair_eq_singleton]
 
-lemma convex_convex_join (hA : convex A) (hB : convex B) :
-  convex (convex_join A B) :=
+lemma convex_convex_join (hA : convex 𝕜 A) (hB : convex 𝕜 B) :
+  convex 𝕜 (convex_join 𝕜 A B) :=
 begin
   cases A.eq_empty_or_nonempty with hAemp hAnemp,
   { rw [hAemp, empty_convex_join],
@@ -273,10 +278,10 @@ begin
   simp only [mem_Union] at ⊢ hy hx,
   obtain ⟨ax, bx, hax, hbx, hx⟩ := hx,
   obtain ⟨ay, b_y, hay, hby, hy⟩ := hy,
-  have h : z ∈ convex_join (segment ax ay) (segment bx b_y),
+  have h : z ∈ convex_join 𝕜 (segment ax ay) (segment bx b_y),
   { have triv : ({ax, ay, bx, b_y} : set E) = {ax, bx, ay, b_y} := by simp only [set.insert_comm],
     rw [convex_hull_quadruple, triv, ←convex_hull_quadruple],
-    exact segment_subset_convex_join hx hy hz },
+    exact segment_subset_convex_join 𝕜 hx hy hz },
   rw convex_join_eq_of_nonempty ⟨ax, left_mem_segment _ _⟩ ⟨bx, left_mem_segment _ _⟩ at h,
   simp only [mem_Union] at h,
   obtain ⟨az, bz, haz, hbz, hz⟩ := h,
@@ -284,52 +289,51 @@ begin
 end
 
 lemma convex_join_subset_convex_hull_union (A B : set E) :
-  convex_join A B ⊆ convex_hull (A ∪ B) :=
+  convex_join 𝕜 A B ⊆ convex_hull 𝕜 (A ∪ B) :=
 begin
   cases A.eq_empty_or_nonempty with hAemp hAnemp,
   { rw [hAemp, empty_union, empty_convex_join],
-    exact subset_convex_hull B },
+    exact subset_convex_hull 𝕜 B },
   cases B.eq_empty_or_nonempty with hBemp hBnemp,
   { rw [hBemp, union_empty, convex_join_empty],
-    exact subset_convex_hull A },
+    exact subset_convex_hull 𝕜 A },
   rw convex_join_eq_of_nonempty hAnemp hBnemp,
   rintro x hx,
   simp only [mem_Union] at hx,
   obtain ⟨a, b, ha, hb, hx⟩ := hx,
-  exact convex_iff_segment_subset.1 (convex_convex_hull _) (convex_hull_mono
-    (subset_union_left _ _) (subset_convex_hull A ha)) (convex_hull_mono (subset_union_right _ _)
-    (subset_convex_hull B hb)) hx,
+  exact convex_iff_segment_subset.1 (convex_convex_hull 𝕜 _) (convex_hull_mono
+    (subset_union_left _ _) (subset_convex_hull 𝕜 A ha)) (convex_hull_mono (subset_union_right _ _)
+    (subset_convex_hull 𝕜 B hb)) hx,
 end
 
-lemma convex_hull_union_of_convex (hA : convex A) (hB : convex B) :
-  convex_hull (A ∪ B) = convex_join A B :=
+lemma convex_hull_union_of_convex (hA : convex 𝕜 A) (hB : convex 𝕜 B) :
+  convex_hull 𝕜 (A ∪ B) = convex_join 𝕜 A B :=
 begin
-  apply (convex_hull_min (union_subset_convex_join A B) (convex_convex_join hA hB)).antisymm,
+  apply (convex_hull_min (union_subset_convex_join A B) (convex_convex_join 𝕜 hA hB)).antisymm,
   exact (convex_join_subset_convex_hull_union A B),
 end
 
 lemma convex_hull_union (A B : set E) :
-  convex_hull (A ∪ B) = convex_join (convex_hull A) (convex_hull B) :=
+  convex_hull 𝕜 (A ∪ B) = convex_join 𝕜 (convex_hull 𝕜 A) (convex_hull 𝕜 B) :=
 begin
   rw [←convex_hull_convex_hull_union, ←convex_hull_self_union_convex_hull],
-  exact convex_hull_union_of_convex (convex_convex_hull A) (convex_convex_hull B),
+  exact convex_hull_union_of_convex (convex_convex_hull 𝕜 A) (convex_convex_hull 𝕜 B),
 end
 
 lemma convex_hull_insert (hA : A.nonempty) :
-  convex_hull (insert x A) = ⋃ a ∈ convex_hull A, segment x a :=
+  convex_hull 𝕜 (insert x A) = ⋃ a ∈ convex_hull 𝕜 A, segment x a :=
 begin
   rw [insert_eq, ←convex_hull_self_union_convex_hull, convex_hull_union_of_convex
-  (convex_singleton x) (convex_convex_hull A), convex_join_eq_of_nonempty (singleton_nonempty x)
+  (convex_singleton x) (convex_convex_hull 𝕜 A), convex_join_eq_of_nonempty (singleton_nonempty x)
   (convex_hull_nonempty_iff.2 hA)],
   ext x,
   simp,
 end
 
-lemma convex_join_min {A B C : set E} (hAC : A ⊆ C) (hBC : B ⊆ C) (hC : convex C) :
-  convex_join A B ⊆ C :=
+lemma convex_join_min {A B C : set E} (hAC : A ⊆ C) (hBC : B ⊆ C) (hC : convex 𝕜 C) :
+  convex_join 𝕜 A B ⊆ C :=
 begin
-  refine subset.trans (convex_join_subset_convex_join (subset_convex_hull A) (subset_convex_hull B))
-    _,
+  refine (convex_join_subset_convex_join (subset_convex_hull 𝕜 A) (subset_convex_hull 𝕜 B)).trans _,
   rw ←convex_hull_union,
   exact convex_hull_min (union_subset hAC hBC) hC,
 end

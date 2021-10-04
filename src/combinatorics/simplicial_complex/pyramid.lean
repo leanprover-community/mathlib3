@@ -23,7 +23,8 @@ if some face of S is already full dimensional or if `v` belongs to the convex hu
 `S`. -/
 noncomputable def simplicial_complex.pyramid (S : simplicial_complex 𝕜 E) (v : E) :
   simplicial_complex 𝕜 E :=
-if v ∈ convex_hull S.space ∨ ∃ X ∈ S.faces, (X : finset E).card = finite_dimensional.finrank 𝕜 E + 1 then S else
+if v ∈ convex_hull 𝕜 S.space ∨
+  ∃ X ∈ S.faces, (X : finset E).card = finite_dimensional.finrank 𝕜 E + 1 then S else
 { faces := {X' | ∃ X ∈ S.faces, X' ⊆ X ∪ {v}},
   indep := begin
     rintro X' ⟨X, hX, hX'X⟩,
@@ -38,7 +39,7 @@ if v ∈ convex_hull S.space ∨ ∃ X ∈ S.faces, (X : finset E).card = finite
 lemma subcomplex_pyramid :
   S.faces ⊆ (S.pyramid v).faces :=
 begin
-  by_cases v ∈ convex_hull S.space ∨ ∃ X ∈ S.faces,
+  by_cases v ∈ convex_hull 𝕜 S.space ∨ ∃ X ∈ S.faces,
     (X : finset E).card = finite_dimensional.finrank 𝕜 E + 1,
   {
     sorry
@@ -50,7 +51,7 @@ end
 lemma pyramid_mono (hS : S₁ ≤ S₂) :
    S₁.pyramid v ≤ S₂.pyramid v :=
 begin
-  by_cases v ∈ convex_hull S₁.space ∨ ∃ X ∈ S₁.faces,
+  by_cases v ∈ convex_hull 𝕜 S₁.space ∨ ∃ X ∈ S₁.faces,
     (X : finset E).card = finite_dimensional.finrank 𝕜 E  + 1,
   {
     sorry --easy case
@@ -68,8 +69,8 @@ begin
     {
       exact ⟨Z, hZ, subset.refl _⟩,
     },
-    have hXYvhull : convex_hull ↑X ⊆ convex_hull ↑(Y ∪ {v}) := convex_hull_mono hXYv,
-    have hYvZvhull : convex_hull ↑(Y ∪ {v}) ⊆ convex_hull ↑(Z ∪ {v}),
+    have hXYvhull : convex_hull 𝕜 ↑X ⊆ convex_hull 𝕜 ↑(Y ∪ {v}) := convex_hull_mono hXYv,
+    have hYvZvhull : convex_hull 𝕜 ↑(Y ∪ {v}) ⊆ convex_hull 𝕜 ↑(Z ∪ {v}),
     {
       sorry
     },
@@ -78,7 +79,7 @@ begin
 end
 
 lemma pure_pyramid_of_pure [finite_dimensional 𝕜 E] (hn : n ≤ finite_dimensional.finrank 𝕜 E)
-  (hv : v ∉ convex_hull S.space) (hS : S.pure_of n) :
+  (hv : v ∉ convex_hull 𝕜 S.space) (hS : S.pure_of n) :
   (S.pyramid v).pure_of (n + 1) :=
 begin
   sorry

@@ -14,8 +14,8 @@ open set
 
 namespace affine
 
-variables {𝕜 E : Type*} [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] {m n : ℕ}
-  {E : Type*} {S : simplicial_complex 𝕜 E} {x : E} {X Y : finset E} {A B : set (finset E)}
+variables {𝕜 E : Type*} [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E] {m n : ℕ}
+  {S : simplicial_complex 𝕜 E} {x : E} {X Y : finset E} {A B : set (finset E)}
 
 /-- The closure of a set of faces is the set of their subfaces. -/
 def simplicial_complex.closure (S : simplicial_complex 𝕜 E) (A : set (finset E)) :

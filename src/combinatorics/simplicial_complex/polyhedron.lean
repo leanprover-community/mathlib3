@@ -13,7 +13,7 @@ import combinatorics.simplicial_complex.exposed
 open set
 open_locale classical big_operators
 
-variables {𝕜 E : Type*} [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] {x : E}
+variables {𝕜 E ι : Type*} [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] {x : E}
   {X Y : finset E} {C : set E}
 
 /-! ### Polyhedrons -/
@@ -59,7 +59,9 @@ begin
   exact convex_Inter (λ l, convex_Inter (λ hl, convex_halfspace_ge l.1.is_linear l.2)),
 end
 
-protected noncomputable def std_simplex (ι : Type*) [fintype ι] : polyhedron (ι → 𝕜) :=
+variables (𝕜 ι)
+
+protected noncomputable def std_simplex [fintype ι] : polyhedron (ι → 𝕜) :=
 { carrier := std_simplex 𝕜 ι,
   hcarrier := begin
     let f : ι → ((ι → 𝕜) →L[𝕜] 𝕜) × 𝕜 := λ i, ⟨{ to_fun := λ x, x i,
@@ -102,8 +104,10 @@ protected noncomputable def std_simplex (ι : Type*) [fintype ι] : polyhedron (
     exact finset.mem_singleton_self _,
   end }
 
+variables {𝕜 ι}
+
 protected lemma std_simplex_eq (ι : Type*) [fintype ι] :
-  (polyhedron.std_simplex ι : set (ι → 𝕜)) = std_simplex ι :=
+  (polyhedron.std_simplex 𝕜 ι : set (ι → 𝕜)) = std_simplex 𝕜 ι :=
 rfl
 
 def faces (P : polyhedron 𝕜 E) : set (polyhedron 𝕜 E) :=
@@ -111,7 +115,8 @@ def faces (P : polyhedron 𝕜 E) : set (polyhedron 𝕜 E) :=
 --{Q | (Q : set E).nonempty → ∃ l : (E →L[𝕜] 𝕜) × 𝕜, Q.Hrepr = insert l P.Hrepr ∧
   --(Q : set E) = {x ∈ P | ∀ y ∈ (P : set E), l.1 y ≤ l.1 x}}
 
-lemma is_exposed_of_mem_faces {P Q : polyhedron 𝕜 E} (hQ : Q ∈ P.faces) : is_exposed (P : set E) Q :=
+lemma is_exposed_of_mem_faces {P Q : polyhedron 𝕜 E} (hQ : Q ∈ P.faces) :
+  is_exposed 𝕜 (P : set E) Q :=
 begin
   intro hQnemp,
   obtain ⟨s, hs, hQcarr⟩ := hQ hQnemp,
@@ -165,7 +170,7 @@ instance face_lattice {P : polyhedron 𝕜 E} : complete_lattice P.faces :=
     obtain ⟨sX, hX⟩ := hXY hXnemp,
     sorry
   end,
-  le_antisymm := λ ⟨X, hX⟩ ⟨Y, hY⟩ hXY hYX, polyhedron.ext (subset.antisymm (subset_of_mem_faces hXY)
+  le_antisymm := λ ⟨X, hX⟩ ⟨Y, hY⟩ hXY hYX, polyhedron.ext ((subset_of_mem_faces hXY).antisymm
     (subset_of_mem_faces hYX)),
 
   sup := λ ⟨X, hX⟩, if hXnemp : (X : set E) = ∅ then id else (λ ⟨Y, hY⟩, if hYnemp : (Y : set E) = ∅
@@ -218,7 +223,7 @@ instance face_lattice {P : polyhedron 𝕜 E} : complete_lattice P.faces :=
 
 end polyhedron
 
-def is_exposed.to_face {P : polyhedron 𝕜 E} {A : set E} (hA : is_exposed (P : set E) A) :
+def is_exposed.to_face {P : polyhedron 𝕜 E} {A : set E} (hA : is_exposed 𝕜 (P : set E) A) :
   polyhedron 𝕜 E :=
 { carrier := A,
   hcarrier := begin
@@ -228,11 +233,12 @@ def is_exposed.to_face {P : polyhedron 𝕜 E} {A : set E} (hA : is_exposed (P :
     sorry
   end }
 
-lemma is_exposed.to_face_eq {P : polyhedron 𝕜 E} {A : set E} (hA : is_exposed (P : set E) A) :
+lemma is_exposed.to_face_eq {P : polyhedron 𝕜 E} {A : set E} (hA : is_exposed 𝕜 (P : set E) A) :
   (hA.to_face : set E) = A :=
 rfl
 
-lemma is_exposed.to_face_mem_face {P : polyhedron 𝕜 E} {A : set E} (hA : is_exposed (P : set E) A) :
+lemma is_exposed.to_face_mem_face {P : polyhedron 𝕜 E} {A : set E}
+  (hA : is_exposed 𝕜 (P : set E) A) :
   hA.to_face ∈ P.faces :=
 begin
   sorry
@@ -341,7 +347,7 @@ def face_lattice_polyhedron (P : polyhedron 𝕜 E) : bounded_lattice P.faces :=
     obtain ⟨sX, hX⟩ := hXY hXnemp,
     sorry
   end,
-  le_antisymm := λ ⟨X, hX⟩ ⟨Y, hY⟩ hXY hYX, polyhedron.ext (subset.antisymm (subset_of_mem_faces hXY)
+  le_antisymm := λ ⟨X, hX⟩ ⟨Y, hY⟩ hXY hYX, polyhedron.ext ((subset_of_mem_faces hXY).antisymm
     (subset_of_mem_faces hYX)),
 
   inf := λ X Y, { carrier := X ∩ Y,
@@ -425,8 +431,8 @@ instance lattice_polytopes : lattice (polytope 𝕜 E) :=
   --bot_le := λ X, begin sorry end
   }
 
-protected noncomputable def std_simplex (ι : Type*) [fintype ι] : polytope (ι → 𝕜) :=
-{ carrier := std_simplex ι,
+protected noncomputable def std_simplex 𝕜 (ι : Type*) [fintype ι] : polytope (ι → 𝕜) :=
+{ carrier := std_simplex 𝕜 ι,
   hcarrier := ⟨finset.image (λ (i j : ι), ite (i = j) 1 0) finset.univ,
     by rw [←convex_hull_basis_eq_std_simplex, finset.coe_image, finset.coe_univ, image_univ]⟩ }
 
@@ -445,7 +451,7 @@ end linear_map
 lemma finset.convex_hull_eq_image {s : finset E} :
   convex_hull 𝕜 (s : set E) =
   (⇑(∑ x : (s : set E), (@linear_map.proj 𝕜 (s : set E) _ (λ i, 𝕜) _ _ x).smul_right x.1)) ''
-  (std_simplex (s : set E)) :=
+  (std_simplex 𝕜 (s : set E)) :=
 begin
   have := (∑ x : (s : set E),
   (@linear_map.proj 𝕜 (s : set E) _ (λ i, 𝕜) _ _ x).smul_right x.1),
@@ -462,12 +468,14 @@ protected def polyhedron (P : polytope 𝕜 E) : polyhedron 𝕜 E :=
   hcarrier := begin
     let Q :=
 continuous_linear_map.image_polyhedron (∑ x : (P.Vrepr : set E), (@continuous_linear_map.proj 𝕜 _
-  (P.Vrepr : set E) (λ i, 𝕜) _ _ _ x).smul_right x.1) (polyhedron.std_simplex (P.Vrepr : set E)),
+  (P.Vrepr : set E) (λ i, 𝕜) _ _ _ x).smul_right x.1) (polyhedron.std_simplex 𝕜 (P.Vrepr : set E)),
   use Q.Hrepr,
   rw [P.eq_convex_hull_Vrepr, finset.convex_hull_eq_image, ←Q.eq_Hrepr,
     continuous_linear_map.image_polyhedron_eq, polyhedron.std_simplex_eq],
-  --have : ⇑(∑ (x : (P.Vrepr : set E)), (@linear_map.proj 𝕜 (P.Vrepr : set E) _ (λ i, 𝕜) _ _ x).smul_right x.1) =
-  --  ⇑(∑ (x : (P.Vrepr : set E)), (@continuous_linear_map.proj 𝕜 _ (P.Vrepr : set E) (λ i, 𝕜) _ _ _ x).smul_right x.1),
+  -- have : ⇑(∑ (x : (P.Vrepr : set E)),
+  --   (@linear_map.proj 𝕜 (P.Vrepr : set E) _ (λ i, 𝕜) _ _ x).smul_right x.1) =
+  --  ⇑(∑ (x : (P.Vrepr : set E)),
+  --    (@continuous_linear_map.proj 𝕜 _ (P.Vrepr : set E) (λ i, 𝕜) _ _ _ x).smul_right x.1),
   simp,
   end }
 

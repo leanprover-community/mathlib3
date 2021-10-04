@@ -36,7 +36,7 @@ lemma intrinsic_frontier_subset (A : set E) :
   intrinsic_frontier A ⊆ A :=
 λ x hx, hx.1
 
-lemma convex.open_segment_subset_intrinsic_interior_of_mem_left (hA : convex A)
+lemma convex.open_segment_subset_intrinsic_interior_of_mem_left (hA : convex 𝕜 A)
   (x ∈ intrinsic_interior A) (y ∈ A) :
   open_segment x y ⊆ intrinsic_interior A :=
 begin
@@ -228,8 +228,8 @@ begin
   sorry
 end
 
-lemma intrinsic_frontier_convex_hull_eq (hA : affine_independent ℝ (λ p, p : A → E)) :
-  intrinsic_frontier (convex_hull A) = ⋃ B ⊂ A, convex_hull B :=
+lemma intrinsic_frontier_convex_hull_eq (hA : affine_independent 𝕜 (λ p, p : A → E)) :
+  intrinsic_frontier (convex_hull 𝕜 A) = ⋃ B ⊂ A, convex_hull 𝕜 B :=
 begin
   sorry --damn hard
 end-/

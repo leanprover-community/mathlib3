@@ -11,7 +11,7 @@ import combinatorics.simplicial_complex.link
 
 namespace affine
 open set
-variables {𝕜 E : Type*} [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E]
+variables {𝕜 E : Type*} [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E]
   {S : simplicial_complex 𝕜 E} {A : set (finset E)}
 
 /--
@@ -23,14 +23,16 @@ def simplicial_complex.erasure (S : simplicial_complex 𝕜 E) (A : set (finset 
 simplicial_complex.of_surcomplex
   {X | X ∈ S.faces ∧ ∀ {W}, W ∈ A → disjoint W X}
   (λ X hX, hX.1)
-  (λ X Y ⟨hX, hXA⟩ hYX, ⟨S.down_closed hX hYX, λ Z hZ, finset.disjoint_of_subset_right hYX (hXA hZ)⟩)
+  (λ X Y ⟨hX, hXA⟩ hYX,
+    ⟨S.down_closed hX hYX, λ Z hZ,finset.disjoint_of_subset_right hYX (hXA hZ)⟩)
 /-Previous def
 def simplicial_complex.erasure (S : simplicial_complex 𝕜 E) (A : set (finset E)) :
   simplicial_complex 𝕜 E :=
 simplicial_complex.of_surcomplex
   {X | X ∈ S.faces ∧ ∀ {Y}, Y ∈ A → disjoint X Y}
   (λ X hX, hX.1)
-  (λ X Y ⟨hX, hXA⟩ hYX, ⟨S.down_closed hX hYX, λ Z hZ, finset.disjoint_of_subset_left hYX (hXA hZ)⟩)-/
+  (λ X Y ⟨hX, hXA⟩ hYX,
+    ⟨S.down_closed hX hYX, λ Z hZ, finset.disjoint_of_subset_left hYX (hXA hZ)⟩)-/
 
 lemma erasure_subset :
   (S.erasure A).faces ⊆ S.faces :=

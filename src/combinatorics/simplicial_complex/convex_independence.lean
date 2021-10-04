@@ -13,11 +13,10 @@ import combinatorics.simplicial_complex.to_move.default
 open_locale affine big_operators classical
 open finset
 
-universes u₁ u₂
-variables {E : Type*} [add_comm_group E] [module ℝ E] {ι : Type*}
+variables {𝕜 E ι : Type*} [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E]
 
-lemma affine_independent.convex_independent {p : ι → E} (hp : affine_independent ℝ p) :
-  convex_independent p :=
+lemma affine_independent.convex_independent {p : ι → E} (hp : affine_independent 𝕜 p) :
+  convex_independent 𝕜 p :=
 begin
   intros s x hx,
   by_contra,
@@ -25,7 +24,7 @@ begin
   /-
   rw [finset.convex_hull_eq] at hx,
   rcases hx with ⟨w, hw₀, hw₁, x_eq⟩,
-  have : set.inj_on p s := λ x hx y hy h, injective_of_affine_independent hp h,
+  have : s.inj_on p := hp.injective.inj_on _,
   rw finset.center_mass_eq_of_sum_1 _ _ hw₁ at x_eq,
   rw finset.sum_image ‹set.inj_on p s› at hw₁,
   rw finset.sum_image ‹set.inj_on p s› at x_eq,

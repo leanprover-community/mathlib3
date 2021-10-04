@@ -38,7 +38,7 @@ begin
 
 end-/
 
-lemma mem_exposed_set_iff_mem_frontier (hA₁ : convex A) (hA₂ : (interior A).nonempty) :
+lemma mem_exposed_set_iff_mem_frontier (hA₁ : convex 𝕜 A) (hA₂ : (interior A).nonempty) :
   (∃ B : set E, is_exposed A B ∧ ¬A ⊆ B ∧ x ∈ B) ↔ x ∈ A ∧ x ∈ frontier A :=
 begin
   use λ ⟨B, hAB, hBA, hxB⟩, ⟨hAB.subset hxB, hAB.subset_frontier hBA hxB⟩,
@@ -55,7 +55,7 @@ begin
   exact hl w hw,
 end
 
-lemma mem_extreme_set_iff_mem_frontier (hA₁ : convex A) (hA₂ : (interior A).nonempty) :
+lemma mem_extreme_set_iff_mem_frontier (hA₁ : convex 𝕜 A) (hA₂ : (interior A).nonempty) :
   (∃ B : set E, is_extreme A B ∧ ¬A ⊆ B ∧ x ∈ B) ↔ x ∈ A ∧ x ∈ frontier A :=
 begin
   use λ ⟨B, hAB, hBA, hxB⟩, ⟨hAB.1 hxB, hAB.subset_frontier hBA hxB⟩,
@@ -67,7 +67,7 @@ end
 /-! # Harder stuff -/
 
 /-- Eidelheit's Theorem -/
-theorem eq_Inter_halfspaces (hA₁ : convex A) (hA₂ : is_closed A) :
+theorem eq_Inter_halfspaces (hA₁ : convex 𝕜 A) (hA₂ : is_closed A) :
   A = ⋂ (l : E →L[ℝ] ℝ), {x | ∃ y ∈ A, l x ≤ l y} :=
 begin
   ext,
@@ -81,14 +81,14 @@ begin
 end
 
 lemma closed_extreme_points [finite_dimensional ℝ E] (hE : finite_dimensional.finrank ℝ E = 2)
-(hA₁ : convex A) (hA₂ : is_closed A) :
+  (hA₁ : convex 𝕜 A) (hA₂ : is_closed A) :
   is_closed A.extreme_points :=
 begin
   sorry
 end
 
 --theorem of S. Straszewicz proved in 1935
-lemma limit_exposed_points_of_extreme (hA₁ : convex A) (hA₂ : is_closed A) :
+lemma limit_exposed_points_of_extreme (hA₁ : convex 𝕜 A) (hA₂ : is_closed A) :
   A.extreme_points ⊆ closure (A.exposed_points) :=
 begin
   sorry

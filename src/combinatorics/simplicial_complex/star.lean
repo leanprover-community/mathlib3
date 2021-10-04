@@ -10,9 +10,12 @@ import combinatorics.simplicial_complex.closure
 # Star in a simplicial complex
 -/
 
-namespace affine
 open set
-variables {𝕜 E : Type*} [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] {m n : ℕ}
+
+variables {𝕜 E : Type*}
+
+section ordered_ring
+variables [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E] {n : ℕ}
   {S : simplicial_complex 𝕜 E} {X Y : finset E} {A B : set (finset E)}
 
 /-- The open star of a set of faces is the union of their surfaces. Note that the star is all of the
@@ -208,6 +211,11 @@ lemma pure_Star_of_pure (hS : S.pure_of n) :
   (S.Star A).pure_of n :=
 λ X hX, hS (Star_facet_iff.1 hX).1
 
+end ordered_ring
+
+section linear_ordered_field
+variables [linear_ordered_field 𝕜]
+
 lemma Star_pureness_eq_pureness [finite_dimensional 𝕜 E] (hS : S.pure)
   (hSA : (S.Star A).faces.nonempty) :
   (S.Star A).pureness = S.pureness :=
@@ -216,5 +224,3 @@ begin
   obtain ⟨X, hX⟩ := id hSA,
   rw [pureness_def' hSA (pure_Star_of_pure hS), pureness_def' (hSA.mono Star_subset) hS],
 end
-
-end affine

@@ -3,6 +3,7 @@ Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
+import analysis.convex.combination
 import combinatorics.simplicial_complex.to_move.convex
 import linear_algebra.affine_space.finite_dimensional
 
@@ -10,7 +11,7 @@ import linear_algebra.affine_space.finite_dimensional
 # To move
 -/
 
-variables {𝕜 E ι : Type*} [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E] {m n : ℕ}
+variables {𝕜 E ι : Type*} [linear_ordered_field 𝕜] [add_comm_group E] [module 𝕜 E] {m n : ℕ}
 
 open_locale big_operators
 open finset
@@ -18,21 +19,12 @@ open finset
 lemma convex_subspace (s : affine_subspace 𝕜 E) :
   convex 𝕜 (s : set E) :=
 λ x y hxs hys a b ha hb hab,
-calc a • x + b • y = b • (y - x) + x : convex.combo_to_vadd hab
+calc a • x + b • y = b • (y - x) + x : convex.combo_eq_vadd hab
                ... ∈ s : s.2 _ hys hxs hxs
 
 lemma convex_hull_subset_span_points (X : set E) :
   convex_hull 𝕜 X ⊆ affine_span 𝕜 X :=
-convex_hull_min (subset_affine_span 𝕜 X) (convex_subspace E _)
-
-lemma affine_combination_eq_center_mass {ι : Type*} {t : finset ι} {p : ι → E} {w : ι → 𝕜}
-  (hw₂ : ∑ i in t, w i = 1) :
-  affine_combination t p w = center_mass t w p :=
-begin
-  rw affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one _ w _ hw₂ (0 : E),
-  simp only [vsub_eq_sub, add_zero, finset.weighted_vsub_of_point_apply, vadd_eq_add, sub_zero],
-  rw center_mass_eq_of_sum_1 _ _ hw₂,
-end
+convex_hull_min (subset_affine_span 𝕜 X) (convex_subspace _)
 
 -- TODO (Bhavik): move these two, and use them to prove the old versions
 lemma nontrivial_sum_of_affine_independent' {p : ι → E} {X : finset ι}

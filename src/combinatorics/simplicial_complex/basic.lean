@@ -6,12 +6,14 @@ Authors: Yaël Dillies, Bhavik Mehta
 import combinatorics.simplicial_complex.simplex
 -- import data.nat.parity
 
+/-!
+# Simplicial complexes
+-/
+
 open_locale classical affine big_operators
 open set
 
-variables {𝕜 E ι : Type*} [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E]
-
-namespace affine
+variables {𝕜 E ι : Type*} [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E]
 
 variables (𝕜 E)
 
@@ -44,7 +46,7 @@ downward closed. -/
     convex_hull 𝕜 ↑X ∩ convex_hull 𝕜 ↑Y ⊆ convex_hull 𝕜 (X ∩ Y : set E)) :
   simplicial_complex 𝕜 E :=
 { faces := {X | ∃ Y, Y ∈ A ∧ X ⊆ Y},
-  indep := λ X ⟨Y, hY, hXY⟩, affine_independent_of_subset_affine_independent (indep hY) hXY,
+  indep := λ X ⟨Y, hY, hXY⟩, (indep hY).mono hXY,
   down_closed := λ X Y ⟨Z, hZ, hXZ⟩ hYX, ⟨Z, hZ, subset.trans hYX hXZ⟩,
   disjoint :=
   begin
@@ -156,10 +158,6 @@ bUnion_subset_bUnion_right (λ x hx, subset_convex_hull 𝕜 x)
 
 --noncomputable def simplicial_complex.dim (S : simplicial_complex 𝕜 E) :
 --  ℕ :=
-
--- Dumb bug in mathlib, see
---https://leanprover.zulipchat.com/#narrow/stream/217875-Is-there.20code.20for.20X.3F/topic/R.5Em.20is.20finite.20dimensional.20over.20R/near/231748016
---instance {m : ℕ} : finite_dimensional 𝕜 E := sorry
 
 --Refinement of `size_bound`
 lemma face_dimension_le_space_dimension [finite_dimensional 𝕜 E] (hX : X ∈ S.faces) :
@@ -447,5 +445,3 @@ begin
     sorry
   }-/
 end
-
-end affine

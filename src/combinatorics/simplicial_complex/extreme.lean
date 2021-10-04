@@ -18,8 +18,8 @@ variables {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B C : set
   {X : finset E}
 
 --provable from the above by induction on C
-lemma erase_subset_convex_hull_erase (hBA : B ⊆ convex_hull A) (hxB : x ∈ convex_hull B) :
-  B \ {x} ⊆ convex_hull (A \ {x}) :=
+lemma erase_subset_convex_hull_erase (hBA : B ⊆ convex_hull 𝕜 A) (hxB : x ∈ convex_hull 𝕜 B) :
+  B \ {x} ⊆ convex_hull 𝕜 (A \ {x}) :=
 begin
   rintro y ⟨hyB, hxy⟩,
   rw mem_singleton_iff at hxy,
@@ -27,32 +27,32 @@ begin
   sorry
 end
 
-lemma convex.extreme_points_convex_independent (hA : convex A) :
-  convex_independent (λ p, p : A.extreme_points → E) :=
+lemma convex.extreme_points_convex_independent (hA : convex 𝕜 A) :
+  convex_independent 𝕜 (λ p, p : A.extreme_points → E) :=
 (convex_independent_set_iff' _).2 $ λ x hxA hx, (extreme_points_convex_hull_subset
   (inter_extreme_points_subset_extreme_points_of_subset (convex_hull_min
   ((diff_subset _ _).trans extreme_points_subset) hA) ⟨hx, hxA⟩)).2 (mem_singleton _)
 
 lemma eq_extreme_points_convex_hull_iff_convex_independent :
-  A = (convex_hull A).extreme_points ↔ convex_independent (λ p, p : A → E) :=
+  A = (convex_hull 𝕜 A).extreme_points ↔ convex_independent 𝕜 (λ p, p : A → E) :=
 begin
   split,
   { rintro h,
     rw h,
-    exact (convex_convex_hull _).extreme_points_convex_independent },
+    exact (convex_convex_hull 𝕜 _).extreme_points_convex_independent },
   rintro hA,
   rw convex_independent_set_iff' at hA,
   refine subset.antisymm _ extreme_points_convex_hull_subset,
   rintro x hxA,
-  use subset_convex_hull _ hxA,
+  use subset_convex_hull 𝕜 _ hxA,
   by_contra h,
   push_neg at h,
   obtain ⟨x₁, x₂, hx₁, hx₂, hx⟩ := h,
-  suffices h : x₁ ∈ convex_hull (A \ {x}) ∧ x₂ ∈ convex_hull (A \ {x}),
-  { exact hA _ hxA (convex_iff_open_segment_subset.1 (convex_convex_hull _) h.1 h.2 hx.1) },
-  have hx₁₂ : segment x₁ x₂ ⊆ convex_hull A := (convex_convex_hull _).segment_subset hx₁ hx₂,
-  refine ⟨erase_subset_convex_hull_erase hx₁₂ (subset_convex_hull _ $ open_segment_subset_segment
-    _ _ hx.1) _, erase_subset_convex_hull_erase hx₁₂ (subset_convex_hull _ $
+  suffices h : x₁ ∈ convex_hull 𝕜 (A \ {x}) ∧ x₂ ∈ convex_hull 𝕜 (A \ {x}),
+  { exact hA _ hxA (convex_iff_open_segment_subset.1 (convex_convex_hull 𝕜 _) h.1 h.2 hx.1) },
+  have hx₁₂ : segment x₁ x₂ ⊆ convex_hull 𝕜 A := (convex_convex_hull 𝕜 _).segment_subset hx₁ hx₂,
+  refine ⟨erase_subset_convex_hull_erase hx₁₂ (subset_convex_hull 𝕜 _ $ open_segment_subset_segment
+    _ _ hx.1) _, erase_subset_convex_hull_erase hx₁₂ (subset_convex_hull 𝕜 _ $
     open_segment_subset_segment _ _ hx.1) _⟩,
   { rw [mem_diff, mem_singleton_iff],
     refine ⟨left_mem_segment _ _, λ h, hx.2 h _⟩,
@@ -66,7 +66,7 @@ end
 
 -- beurk
 lemma inter_frontier_self_inter_convex_hull_extreme :
-  is_extreme (closure A) (closure A ∩ frontier (convex_hull A)) :=
+  is_extreme (closure A) (closure A ∩ frontier (convex_hull 𝕜 A)) :=
 begin
   refine ⟨inter_subset_left _ _, λ x₁ x₂ hx₁A hx₂A x hxA hx, ⟨⟨hx₁A, _⟩, hx₂A, _⟩⟩,
   sorry,
@@ -74,17 +74,17 @@ begin
 end
 
 -- beurk
-lemma frontier_extreme (hA₁ : convex A) (hA₂ : is_closed A) :
+lemma frontier_extreme (hA₁ : convex 𝕜 A) (hA₂ : is_closed A) :
   is_extreme A (frontier A) :=
 begin
   convert (inter_frontier_self_inter_convex_hull_extreme : is_extreme (closure A)
-    (closure A ∩ frontier (convex_hull A))),
+    (closure A ∩ frontier (convex_hull 𝕜 A))),
   { exact (is_closed.closure_eq hA₂).symm },
   rw [convex.convex_hull_eq hA₁, inter_eq_self_of_subset_right frontier_subset_closure],
 end
 
 -- interesting
-lemma convex.frontier_extreme_to_closure (hAconv : convex A) :
+lemma convex.frontier_extreme_to_closure (hAconv : convex 𝕜 A) :
   is_extreme (closure A) (frontier A) :=
 begin
   use frontier_subset_closure,
@@ -143,7 +143,7 @@ begin
   sorry
 end
 
-lemma convex.is_extreme_iff_open_segment_subset_diff (hAconv : convex A) :
+lemma convex.is_extreme_iff_open_segment_subset_diff (hAconv : convex 𝕜 A) :
   is_extreme A B ↔ B ⊆ A ∧ ∀ ⦃x y⦄, x ∈ A → y ∈ A \ B → open_segment x y ⊆ A \ B :=
 begin
   refine ⟨λ h, ⟨h.1, λ x y hx hy z hz, ⟨hAconv.open_segment_subset hx hy.1 hz, λ hzB, hy.2
@@ -159,7 +159,7 @@ end
   [sequential_space E] [topological_add_group E] [has_continuous_smul ℝ E]-/
 
 lemma closure_eq_closure_interior  {A : set E}
-  (hAconv : convex A) (hAnemp : (interior A).nonempty) :
+  (hAconv : convex 𝕜 A) (hAnemp : (interior A).nonempty) :
   closure A = closure (interior A) :=
 begin
   refine subset.antisymm (λ x hx, _) (closure_mono interior_subset),
@@ -190,8 +190,8 @@ end
 
 
 lemma convex_independent.subset_of_convex_hull_eq_convex_hull {X Y : finset E}
-  (hX : convex_independent (λ p, p : (X : set E) → E))
-  (h : convex_hull ↑X = convex_hull (Y : set E)) :
+  (hX : convex_independent 𝕜 (λ p, p : (X : set E) → E))
+  (h : convex_hull 𝕜 ↑X = convex_hull 𝕜 (Y : set E)) :
   X ⊆ Y :=
 begin
   rintro x hx,
@@ -202,19 +202,19 @@ end
 
 lemma convex_independent.eq_of_convex_hull_eq_convex_hull
   {X Y : finset E}
-  (hX : convex_independent (λ p, p : (X : set E) → E))
-  (hY : convex_independent (λ p, p : (Y : set E) → E))
-  (h : convex_hull (X : set E) = convex_hull (Y : set E)) :
+  (hX : convex_independent 𝕜 (λ p, p : (X : set E) → E))
+  (hY : convex_independent 𝕜 (λ p, p : (Y : set E) → E))
+  (h : convex_hull 𝕜 (X : set E) = convex_hull 𝕜 (Y : set E)) :
   X = Y :=
 (hX.subset_of_convex_hull_eq_convex_hull h).antisymm
   (hY.subset_of_convex_hull_eq_convex_hull h.symm)
 
 /- deprecated because generalised by `eq_extreme_points_convex_hull_iff_convex_independent`
 lemma extreme_to_convex_hull_of_affine_independent {s : finset E} (hx : x ∈ s)
-  (hs : affine_independent ℝ (λ p, p : (s : set E) → E)) :
-  x ∈ (convex_hull ↑s : set E).extreme_points :=
+  (hs : affine_independent 𝕜 (λ p, p : (s : set E) → E)) :
+  x ∈ (convex_hull 𝕜 ↑s : set E).extreme_points :=
 begin
-  refine ⟨subset_convex_hull _ hx, _⟩,
+  refine ⟨subset_convex_hull 𝕜 _ hx, _⟩,
   rintro y y' hy hy' t,
   rw finset.convex_hull_eq at hy hy',
   obtain ⟨w, hw₀, hw₁, hy⟩ := hy,

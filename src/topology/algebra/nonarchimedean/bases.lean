@@ -167,7 +167,8 @@ def open_add_subgroup (i : ι) : @open_add_subgroup A _ hB.topology:=
   end,
   ..B i }
 
-@[priority 100] instance nonarchimedean : @nonarchimedean_ring A _ hB.topology :=
+-- see Note [nonarchimedean non instances]
+lemma nonarchimedean : @nonarchimedean_ring A _ hB.topology :=
 begin
   letI := hB.topology,
   constructor,
@@ -288,8 +289,8 @@ def open_add_subgroup (i : ι) : @open_add_subgroup M _ hB.topology :=
   end,
   ..(B i).to_add_subgroup }
 
-@[priority 100]
-instance nonarchimedean (hB : submodules_basis B) : @nonarchimedean_add_group M _ hB.topology:=
+-- see Note [nonarchimedean non instances]
+lemma nonarchimedean (hB : submodules_basis B) : @nonarchimedean_add_group M _ hB.topology:=
 begin
   letI := hB.topology,
   constructor,
@@ -299,6 +300,11 @@ begin
   exact ⟨hB.open_add_subgroup i, hi⟩
 end
 
+/-- The non archimedean subgroup basis lemmas cannot be instance because some instances
+(such as `measure_theory.ae_eq_fun.add_monoid ` or `topological_add_group.to_has_continuous_add`)
+cause the search for `@topological_add_group β ?m1 ?m2`, i.e. a search for a topological group where
+the topology/group are unknown. -/
+library_note "nonarchimedean non instances"
 end submodules_basis
 
 /-- Given a ring filter basis on a commutative ring `R`, define a compatibility condition

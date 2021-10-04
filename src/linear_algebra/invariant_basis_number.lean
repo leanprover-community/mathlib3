@@ -36,7 +36,7 @@ and then use this to show every nontrivial commutative ring has the invariant ba
 
 More generally, every commutative ring satisfies the strong rank condition. This is proved in
 `linear_algebra/free_module/strong_rank_condition`. We keep
-`invariant_basis_number_of_nontrivial_of_comm_ring` here since it imports less files.
+`invariant_basis_number_of_nontrivial_of_comm_ring` here since it imports fewer files.
 
 ## Future work
 

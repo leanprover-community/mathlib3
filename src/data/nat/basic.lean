@@ -48,7 +48,9 @@ instance : comm_semiring nat :=
   nsmul          := λ m n, m * n,
   nsmul_zero'    := nat.zero_mul,
   nsmul_succ'    := λ n x,
-    by rw [nat.succ_eq_add_one, nat.add_comm, nat.right_distrib, nat.one_mul] }
+    by rw [nat.succ_eq_add_one, nat.add_comm, nat.right_distrib, nat.one_mul],
+  of_nat         := id,
+  of_nat_eq      := λ n, n.mul_one.symm }
 
 instance : linear_ordered_semiring nat :=
 { add_left_cancel            := @nat.add_left_cancel,

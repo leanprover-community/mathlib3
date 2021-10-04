@@ -568,9 +568,10 @@ finprod_mem_insert_of_eq_one_if_not_mem (λ _, h)
 
 /-- If the multiplicative support of `f` is finite, then for every `x` in the domain of `f`,
 `f x` divides `finprod f`.  -/
-lemma finprod_mem_dvd [decidable_eq α] {f : α → N} (a : α) (hf : finite (mul_support f)) :
+lemma finprod_mem_dvd {f : α → N} (a : α) (hf : finite (mul_support f)) :
   (f a) ∣ (finprod f) :=
 begin
+  classical,
   by_cases ha: a ∈ (mul_support f),
   { rw [finprod_eq_prod_of_mul_support_to_finset_subset f hf (set.subset.refl _),
       finset.prod_eq_mul_prod_diff_singleton ((finite.mem_to_finset hf).mpr ha) f],

@@ -12,7 +12,7 @@ import algebra.ring.pi
 We put a `has_star` structure on pi types that operates elementwise, such that it describes the
 complex conjugation of vectors.
 
-Note that `pi.star_algebra` is in a different file to avoid pulling in everything from
+Note that `pi.star_module` is in a different file to avoid pulling in everything from
 `algebra/algebra/basic`.
 -/
 

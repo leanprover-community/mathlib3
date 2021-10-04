@@ -40,10 +40,12 @@ class has_star (R : Type u) :=
 
 variables {R : Type u}
 
+export has_star (star)
+
 /--
 A star operation (e.g. complex conjugate).
 -/
-def star [has_star R] (r : R) : R := has_star.star r
+add_decl_doc star
 
 /-- The opposite type carries the same star operation. -/
 instance [has_star R] : has_star (Rᵒᵖ) :=
@@ -76,8 +78,8 @@ so `star (r * s) = star s * star r`.
 class star_monoid (R : Type u) [monoid R] extends has_involutive_star R :=
 (star_mul : ∀ r s : R, star (r * s) = star s * star r)
 
-@[simp] lemma star_mul [monoid R] [star_monoid R] (r s : R) : star (r * s) = star s * star r :=
-star_monoid.star_mul r s
+export star_monoid (star_mul)
+attribute [simp] star_mul
 
 /-- `star` as an `mul_equiv` from `R` to `Rᵒᵖ` -/
 @[simps apply]
@@ -122,28 +124,42 @@ A `*`-ring `R` is a (semi)ring with an involutive `star` operation which is addi
 which makes `R` with its multiplicative structure into a `*`-monoid
 (i.e. `star (r * s) = star s * star r`).
 -/
-class star_ring (R : Type u) [semiring R] extends star_monoid R :=
+class star_add_monoid (R : Type u) [has_add R] extends has_involutive_star R :=
 (star_add : ∀ r s : R, star (r + s) = star r + star s)
 
-@[simp] lemma star_add [semiring R] [star_ring R] (r s : R) : star (r + s) = star r + star s :=
-star_ring.star_add r s
+export star_add_monoid (star_add)
+attribute [simp] star_add
+
+instance [has_add R] [star_add_monoid R] : star_add_monoid (Rᵒᵖ) :=
+{ star_add := λ x y, unop_injective (star_add x.unop y.unop) }
 
 /-- `star` as an `add_equiv` -/
 @[simps apply]
-def star_add_equiv [semiring R] [star_ring R] : R ≃+ R :=
+def star_add_equiv [has_add R] [star_add_monoid R] : R ≃+ R :=
 { to_fun := star,
   map_add' := star_add,
   ..(has_involutive_star.star_involutive.to_equiv star)}
 
 variables (R)
 
-@[simp] lemma star_zero [semiring R] [star_ring R] : star (0 : R) = 0 :=
+@[simp] lemma star_zero [add_zero_class R] [star_add_monoid R] : star (0 : R) = 0 :=
 (star_add_equiv : R ≃+ R).map_zero
 
 variables {R}
 
+/--
+A `*`-ring `R` is a (semi)ring with an involutive `star` operation which is additive
+which makes `R` with its multiplicative structure into a `*`-monoid
+(i.e. `star (r * s) = star s * star r`).
+-/
+class star_ring (R : Type u) [semiring R] extends star_monoid R :=
+(star_add : ∀ r s : R, star (r + s) = star r + star s)
+
+instance star_ring.to_star_add_monoid [semiring R] [star_ring R] : star_add_monoid R :=
+{ star_add := star_ring.star_add }
+
 instance [semiring R] [star_ring R] : star_ring (Rᵒᵖ) :=
-{ star_add := λ x y, unop_injective (star_add x.unop y.unop) }
+{ .. opposite.star_add_monoid }
 
 /-- `star` as an `ring_equiv` from `R` to `Rᵒᵖ` -/
 @[simps apply]

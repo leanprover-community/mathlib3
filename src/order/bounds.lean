@@ -769,6 +769,12 @@ lemma mem_lower_bounds_image (Ha : a ∈ lower_bounds s) :
   f a ∈ lower_bounds (f '' s) :=
 ball_image_of_ball (assume x H, Hf (Ha ‹x ∈ s›))
 
+lemma image_upper_bounds_subset_upper_bounds_image :
+  f '' upper_bounds s ⊆ upper_bounds (f '' s) :=
+begin
+
+end
+
 /-- The image under a monotone function of a set which is bounded above is bounded above. -/
 lemma map_bdd_above (hf : monotone f) : bdd_above s → bdd_above (f '' s)
 | ⟨C, hC⟩ := ⟨f C, hf.mem_upper_bounds_image hC⟩

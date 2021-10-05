@@ -1,9 +1,30 @@
-import category_theory.structured_arrow
-import category_theory.filtered
-import category_theory.limits.presheaf
+/-
+Copyright (c) 2021 Andrew Yang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Andrew Yang
+-/
 import category_theory.limits.kan_extension
 import category_theory.limits.filtered_colimit_commutes_finite_limit
 import category_theory.limits.preserves.functor_category
+import category_theory.limits.presheaf
+
+/-!
+# Representably flat functors
+
+Define representably flat functors as functors such that the catetory of structured arrows over `X`
+is cofltered for each `X`. This concept is also knows as flat functors as in [Elephant],
+Remark C2.3.7, and is called representably flat as suggested by Mike Shulman at
+https://golem.ph.utexas.edu/category/2011/06/flat_functors_and_morphisms_of.html to differentiate it
+from the other notions of flatness.
+
+We
+
+## TODO
+
+* Dualise to pushouts
+* Generalise to wide pullbacks
+
+-/
 
 universes v₁ v₂ v₃ u₁ u₂ u₃
 
@@ -28,8 +49,12 @@ instance cofiltered_of_flat := u.flat_cofiltered X
 end defs
 
 section small_category
-variables {C D : Type u₁} [category.{u₁} C] [category.{u₁} D]
+variables {C D : Type u₁} [small_category C] [small_category D]
 
+/--
+(Implementation)
+The evaluation of `Lan F` at `X` is the colimit over the costrucuted arrows over `X`.
+-/
 lemma Lan_evaluation_eq_colim (E : Type u₂) [category.{u₁} E] (F : C ⥤ D) (X : D)
   [∀ (X : D), has_colimits_of_shape (costructured_arrow F X) E] :
   Lan F ⋙ (evaluation D E).obj X =
@@ -54,9 +79,13 @@ begin
   { congr }
 end
 
+/--
+If `F : C ⥤ D` is a representably flat functor between small categories, then the functor
+`Lan F.op` that takes presheaves over `C` to presheaves over `D` preserves finite limits.
+-/
 noncomputable
 def Lan_presesrves_finite_limit_of_flat (F : C ⥤ D) [representably_flat F]
-  (J : Type u₁) [H : small_category J] [fin_category J] :
+  (J : Type u₁) [small_category J] [fin_category J] :
   preserves_limits_of_shape J (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ Type u₁)) :=
 begin
   apply preserves_limits_of_shape_if_evaluation (Lan F.op : (Cᵒᵖ ⥤ Type u₁) ⥤ (Dᵒᵖ ⥤ Type u₁)) J,
@@ -66,6 +95,17 @@ begin
     is_filtered.of_equivalence (structured_arrow_op_equivalence F (unop K)),
   apply_instance
 end
+
+def preserves_finite_limit_of_flat (F : C ⥤ D) [representably_flat F]
+  (J : Type u₁) [small_category J] [fin_category J] :
+  preserves_limits_of_shape J F := by {
+  have := F ⋙ yoneda,
+  have := yoneda ⋙ (Lan F.op : _),
+  have := colimit_adj.extend_along_yoneda (F ⋙ yoneda) ≅ Lan F.op,
+  let := whisker_left yoneda (Lan.adjunction (Type u₁) F.op).unit,
+  -- simp at this,
+  -- haveI : = Lan_presesrves_finite_limit_of_flat F,
+}
 
 end small_category
 

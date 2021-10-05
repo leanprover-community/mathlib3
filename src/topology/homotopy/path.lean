@@ -47,10 +47,8 @@ namespace path
 /--
 The type of homotopies between two paths.
 -/
-structure homotopy (p₀ p₁ : path x₀ x₁) extends
-  continuous_map.homotopy p₀.to_continuous_map p₁.to_continuous_map :=
-(source' : ∀ t, to_fun (t, 0) = x₀)
-(target' : ∀ t, to_fun (t, 1) = x₁)
+abbreviation homotopy (p₀ p₁ : path x₀ x₁) :=
+continuous_map.homotopy_rel p₀.to_continuous_map p₁.to_continuous_map {0, 1}
 
 namespace homotopy
 
@@ -58,61 +56,67 @@ section
 
 variables {p₀ p₁ : path x₀ x₁}
 
-instance : has_coe_to_fun (homotopy p₀ p₁) := ⟨_, λ p, p.to_fun⟩
-
-@[simp]
-lemma coe_to_homotopy (h : homotopy p₀ p₁) : ⇑h.to_homotopy = h := rfl
-
-@[simp]
-lemma source (F : homotopy p₀ p₁) {t : I} : F (t, 0) = x₀ := F.source' t
-
-@[simp]
-lemma target (F : homotopy p₀ p₁) {t : I} : F (t, 1) = x₁ := F.target' t
+instance : has_coe_to_fun (homotopy p₀ p₁) := ⟨_, λ F, F.to_fun⟩
 
 lemma coe_fn_injective : @function.injective (homotopy p₀ p₁) (I × I → X) coe_fn :=
+continuous_map.homotopy_with.coe_fn_injective
+
+@[simp]
+lemma source (F : homotopy p₀ p₁) (t : I) : F (t, 0) = x₀ :=
 begin
-  rintros ⟨⟨⟨F, _⟩, _⟩, _⟩ ⟨⟨⟨G, _⟩, _⟩, _⟩ h,
-  congr' 3,
+  simp_rw [←p₀.source],
+  apply continuous_map.homotopy_rel.eq_fst,
+  simp,
 end
 
-@[ext]
-lemma ext {F G : homotopy p₀ p₁} (h : ∀ t, F t = G t) : F = G :=
-coe_fn_injective $ funext h
-
 @[simp]
-lemma apply_zero (F : homotopy p₀ p₁) (x : I) : F (0, x) = p₀ x := F.to_fun_zero x
-
-@[simp]
-lemma apply_one (F : homotopy p₀ p₁) (x : I) : F (1, x) = p₁ x := F.to_fun_one x
+lemma target (F : homotopy p₀ p₁) (t : I) : F (t, 1) = x₁ :=
+begin
+  simp_rw [←p₁.target],
+  apply continuous_map.homotopy_rel.eq_snd,
+  simp,
+end
 
 end
+
+variables {p₀ p₁ p₂ : path x₀ x₁}
 
 /--
 Given a path `p`, we can define a `homotopy p p` by `F (t, x) = p x`
 -/
+@[simps]
 def refl (p : path x₀ x₁) : homotopy p p :=
-{ source' := λ t, by simp,
-  target' := λ t, by simp,
-  ..continuous_map.homotopy.refl p.to_continuous_map }
-
-instance : inhabited (homotopy (path.refl ()) (path.refl ())) := ⟨homotopy.refl _⟩
+continuous_map.homotopy_rel.refl p.to_continuous_map {0, 1}
 
 /--
 Given a `homotopy p₀ p₁`, we can define a `homotopy p₁ p₀` by reversing the homotopy.
 -/
-def symm {p₀ p₁ : path x₀ x₁} (F : homotopy p₀ p₁) : homotopy p₁ p₀ :=
-{ source' := λ t, by simp,
-  target' := λ t, by simp,
-  ..F.to_homotopy.symm }
+@[simps]
+def symm (F : homotopy p₀ p₁) : homotopy p₁ p₀ :=
+continuous_map.homotopy_rel.symm F
+
+@[simp]
+lemma symm_symm (F : homotopy p₀ p₁) : F.symm.symm = F :=
+continuous_map.homotopy_rel.symm_symm F
 
 /--
 Given `homotopy p₀ p₁` and `homotopy p₁ p₂`, we can define a `homotopy p₀ p₂` by putting the first
 homotopy on `[0, 1/2]` and the second on `[1/2, 1]`.
 -/
-def trans {p₀ p₁ p₂ : path x₀ x₁} (h₀ : homotopy p₀ p₁) (h₁ : homotopy p₁ p₂) : homotopy p₀ p₂ :=
-{ source' := λ t, by simp [continuous_map.homotopy.trans_apply],
-  target' := λ t, by simp [continuous_map.homotopy.trans_apply],
-  ..h₀.to_homotopy.trans h₁.to_homotopy }
+def trans (F : homotopy p₀ p₁) (G : homotopy p₁ p₂) : homotopy p₀ p₂ :=
+continuous_map.homotopy_rel.trans F G
+
+lemma trans_apply (F : homotopy p₀ p₁) (G : homotopy p₁ p₂) (x : I × I) :
+  (F.trans G) x =
+    if h : (x.1 : ℝ) ≤ 1/2 then
+      F (⟨2 * x.1, (unit_interval.mul_pos_mem_iff zero_lt_two).2 ⟨x.1.2.1, h⟩⟩, x.2)
+    else
+      G (⟨2 * x.1 - 1, unit_interval.two_mul_sub_one_mem_iff.2 ⟨(not_le.1 h).le, x.1.2.2⟩⟩, x.2) :=
+continuous_map.homotopy_rel.trans_apply _ _ _
+
+lemma symm_trans (F : homotopy p₀ p₁) (G : homotopy p₁ p₂) :
+  (F.trans G).symm = G.symm.trans F.symm :=
+continuous_map.homotopy_rel.symm_trans _ _
 
 end homotopy
 

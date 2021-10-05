@@ -120,7 +120,7 @@ lemma convex_on_const (c : β) (hs : convex 𝕜 s) : convex_on 𝕜 s (λ x:E, 
 ⟨hs, λ x y _ _ a b _ _ hab, (convex.combo_self hab c).ge⟩
 
 lemma concave_on_const (c : β) (hs : convex 𝕜 s) : concave_on 𝕜 s (λ x:E, c) :=
-(convex_on_const c hs).dual
+@convex_on_const _ _ (order_dual β) _ _ _ _ _ _ c hs
 
 end module
 
@@ -420,7 +420,7 @@ lemma concave_on.le_right_of_left_le' (hf : concave_on 𝕜 s f) {x y : E} {a b 
   (hx : x ∈ s) (hy : y ∈ s) (ha : 0 ≤ a) (hb : 0 < b) (hab : a + b = 1)
   (hfx : f (a • x + b • y) ≤ f x) :
   f y ≤ f (a • x + b • y) :=
-hf.dual.le_right_of_left_le' hf hx hy ha hb hab hfx
+hf.dual.le_right_of_left_le' hx hy ha hb hab hfx
 
 lemma convex_on.le_left_of_right_le (hf : convex_on 𝕜 s f) {x y z : E} (hx : x ∈ s)
   (hy : y ∈ s) (hz : z ∈ open_segment 𝕜 x y) (hyz : f y ≤ f z) :

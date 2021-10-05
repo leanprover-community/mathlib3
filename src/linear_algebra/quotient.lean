@@ -109,10 +109,6 @@ instance : has_scalar S (quotient P) :=
 ⟨λ a x, quotient.lift_on' x (λ x, mk (a • x)) $
  λ x y h, (quotient.eq P).2 $ by simpa [smul_sub] using P.smul_mem (a • 1 : R) h⟩
 
-instance : has_scalar S (quotient P) :=
-⟨λ a x, quotient.lift_on' x (λ x, mk (a • x)) $
- λ x y h, (quotient.eq P).2 $ by simpa [smul_sub] using P.smul_mem (a • 1 : R) h⟩
-
 @[simp] theorem mk_smul (r : S) (x : M) : (mk (r • x) : quotient P) = r • mk x := rfl
 
 @[simp] theorem mk_nsmul (n : ℕ) : (mk (n • x) : quotient P) = n • mk x := rfl
@@ -124,16 +120,29 @@ end has_scalar
 
 section module
 
-variables [module S M] [is_scalar_tower S R M]
+variables {S : Type*}
 
-instance : module S (quotient P) :=
-module.of_core $ by refine {smul := (•), ..}; repeat {rintro ⟨⟩ <|> intro};
-  simp only [quot_mk_eq_mk, ← mk_add, ← mk_smul, smul_add, add_smul, mul_smul, one_smul]
+instance [monoid S] [has_scalar S R] [mul_action S M] [is_scalar_tower S R M]
+  (P : submodule R M) : mul_action S (quotient P) :=
+function.surjective.mul_action mk (surjective_quot_mk _) P^.quotient.mk_smul
+
+instance [monoid S] [has_scalar S R] [distrib_mul_action S M] [is_scalar_tower S R M]
+  (P : submodule R M) : distrib_mul_action S (quotient P) :=
+function.surjective.distrib_mul_action
+  ⟨mk, rfl, λ _ _, rfl⟩ (surjective_quot_mk _) P^.quotient.mk_smul
+
+instance [semiring S] [has_scalar S R] [module S M] [is_scalar_tower S R M]
+  (P : submodule R M) : module S (quotient P) :=
+function.surjective.module _
+  ⟨mk, rfl, λ _ _, rfl⟩ (surjective_quot_mk _) P^.quotient.mk_smul
+
+variables (S)
 
 /-- The quotient of `P` as an `S`-submodule is the same as the quotient of `P` as an `R`-submodule,
 where `P : submodule R M`.
 -/
-def restrict_scalars_equiv :
+def restrict_scalars_equiv [ring S] [has_scalar S R] [module S M] [is_scalar_tower S R M]
+  (P : submodule R M) :
   (P.restrict_scalars S).quotient ≃ₗ[S] P.quotient :=
 { to_fun := quot.map id (λ x y, id),
   inv_fun := quot.map id (λ x y, id),

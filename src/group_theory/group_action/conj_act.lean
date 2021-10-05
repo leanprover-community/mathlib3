@@ -96,7 +96,7 @@ instance : mul_distrib_mul_action (conj_act G) G :=
 { smul := (•),
   smul_mul := by simp [mul_assoc],
   smul_one := by simp,
-  one_smul := by simp,
+  one_smul := by simp [smul_def],
   mul_smul := by simp [mul_assoc] }
 
 lemma smul_eq_mul_aut_conj (g : conj_act G) (h : G) : g • h = mul_aut.conj (of_conj_act g) h := rfl

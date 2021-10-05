@@ -404,24 +404,19 @@ def polynomial_quotient_equiv_quotient_polynomial (I : ideal R) :
   end,
 }
 
-lemma polynomial_quotient_equiv_quotient_polynomial_map_mk (I : ideal R) (f : polynomial R) :
+@[simp] lemma polynomial_quotient_equiv_quotient_polynomial_symm_mk (I : ideal R) (f : polynomial R) :
+  (polynomial_quotient_equiv_quotient_polynomial I).symm (quotient.mk _ f) =
+    polynomial.map (quotient.mk I) f :=
+by rw [polynomial_quotient_equiv_quotient_polynomial, ring_equiv.symm_mk, ring_equiv.coe_mk,
+  ideal.quotient.lift_mk, coe_eval₂_ring_hom, eval₂_eq_eval_map, ←polynomial.map_map,
+  ←eval₂_eq_eval_map, polynomial.eval₂_C_X]
+
+@[simp] lemma polynomial_quotient_equiv_quotient_polynomial_map_mk (I : ideal R) (f : polynomial R) :
   polynomial_quotient_equiv_quotient_polynomial I (f.map I^.quotient.mk) =
-  ideal.quotient.mk (I.map polynomial.C) f :=
+  ideal.quotient.mk _ f :=
 begin
-  rw [polynomial_quotient_equiv_quotient_polynomial, ring_equiv.coe_mk, polynomial.eval₂_ring_hom,
-    ring_hom.coe_mk, add_monoid_hom.to_fun_eq_coe, polynomial.eval₂_add_monoid_hom_apply,
-    polynomial.eval₂_map, polynomial.eval₂_eq_sum, polynomial.sum],
-  suffices : ∀ n : ℕ, (quotient.lift I ((ideal.quotient.mk
-    (I.map (polynomial.C : R →+* polynomial R))).comp polynomial.C) quotient_map_C_eq_zero).comp
-    I^.quotient.mk (f.coeff n) * ((ideal.quotient.mk) (I.map (polynomial.C : R →+* polynomial R))
-    (polynomial.X)^n) = (ideal.quotient.mk (I.map (polynomial.C : R →+* polynomial R)))
-    (polynomial.C (f.coeff n) * (polynomial.X ^ n)),
-  { conv_rhs {rw polynomial.as_sum_support f},
-    rw ring_hom.map_sum,
-    simp only [this, polynomial.monomial_eq_C_mul_X] },
-  intro n,
-  simp only [ring_hom.map_mul, ring_hom.map_pow, function.comp_app, ring_hom.coe_comp,
-    quotient.lift_mk],
+  apply (polynomial_quotient_equiv_quotient_polynomial I).symm.injective,
+  rw [ring_equiv.symm_apply_apply, polynomial_quotient_equiv_quotient_polynomial_symm_mk],
 end
 
 /-- If `P` is a prime ideal of `R`, then `R[x]/(P)` is an integral domain. -/

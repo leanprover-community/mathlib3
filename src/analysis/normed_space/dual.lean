@@ -9,8 +9,8 @@ import analysis.normed_space.hahn_banach
 # The topological dual of a normed space
 
 In this file we define the topological dual `normed_space.dual` of a normed space, and the
-continuous linear map `normed_space.inclusion_in_double_dual_norm_eq` from a normed space into its
-double dual.
+continuous linear map `normed_space.inclusion_in_double_dual` from a normed space into its double
+dual.
 
 For base field `𝕜 = ℝ` or `𝕜 = ℂ`, this map is actually an isometric embedding; we provide a
 version `normed_space.inclusion_in_double_dual_li` of the map which is of type a bundled linear

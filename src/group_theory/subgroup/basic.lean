@@ -1031,7 +1031,6 @@ instance bot_normal : normal (⊥ : subgroup G) := ⟨by simp⟩
 instance top_normal : normal (⊤ : subgroup G) := ⟨λ _ _, mem_top⟩
 
 /-- Group conjugation on a normal subgroup. Analogous to `mul_aut.conj`. -/
-@[to_additive "Group conjugation on a normal subgroup. Analogous to `add_aut.conj`"]
 def mul_aut.conj_normal [hH : H.normal] : G →* mul_aut H :=
 { to_fun := λ g,
   { to_fun := λ h, ⟨g * h * g⁻¹, hH.conj_mem h h.2 g⟩,
@@ -1042,13 +1041,13 @@ def mul_aut.conj_normal [hH : H.normal] : G →* mul_aut H :=
   map_mul' := λ _ _, by ext; simp [mul_assoc],
   map_one' := by ext; simp [mul_assoc] }
 
-@[simp, to_additive] lemma mul_aut.conj_normal_apply [hH : H.normal] (g : G) (h : H) :
+@[simp] lemma mul_aut.conj_normal_apply [hH : H.normal] (g : G) (h : H) :
   ↑(mul_aut.conj_normal g h) = g * h * g⁻¹ := rfl
 
-@[simp, to_additive] lemma mul_aut.conj_normal_symm_apply [hH : H.normal] (g : G) (h : H) :
+@[simp] lemma mul_aut.conj_normal_symm_apply [hH : H.normal] (g : G) (h : H) :
   ↑((mul_aut.conj_normal g).symm h) = g⁻¹ * h * g := rfl
 
-@[simp, to_additive] lemma mul_aut.conj_normal_inv_apply [hH : H.normal] (g : G) (h : H) :
+@[simp] lemma mul_aut.conj_normal_inv_apply [hH : H.normal] (g : G) (h : H) :
   ↑((mul_aut.conj_normal g)⁻¹ h) = g⁻¹ * h * g := rfl
 
 variable (G)

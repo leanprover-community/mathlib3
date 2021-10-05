@@ -336,6 +336,7 @@ def is_uniform {m : measurable_space α} (X : α → E) (ℙ : measure α) (μ :
   (support : set E) :=
 pdf X ℙ μ =ᵐ[μ] support.indicator ((μ support)⁻¹ • 1)
 
+#exit
 namespace uniform
 
 /-- The support of the probability density function of a random variable of uniform distribution. -/

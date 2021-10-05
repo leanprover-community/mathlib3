@@ -15,7 +15,6 @@ jobs:
 
   style_lint:
     if: github.repository MAIN_OR_FORK 'leanprover-community/mathlib'
-    needs: cancel
     name: Lint styleJOB_NAME
     runs-on: STYLE_LINT_RUNNER
     steps:
@@ -33,7 +32,6 @@ jobs:
 
   build:
     if: github.repository MAIN_OR_FORK 'leanprover-community/mathlib'
-    needs: cancel
     name: Build mathlibJOB_NAME
     runs-on: RUNS_ON
     env:
@@ -80,7 +78,6 @@ jobs:
           archive_name="$(git rev-parse HEAD).tar.xz"
           find src/ -name "*.olean" -o -name ".noisy_files" | tar cJf "$archive_name" -T -
           azcopy copy "$archive_name" "${{ secrets.AZURE_SAS_TOKEN }}" --block-size-mb 99 --overwrite false
-          echo "::set-output name=uploaded::true"
 
       - name: setup precompiled zip file
         if: always() && steps.build.outputs.started == 'true'
@@ -200,8 +197,9 @@ jobs:
           lean --run scripts/yaml_check.lean
 
   final:
+    #
     name: Post-CI jobJOB_NAME
-    if: always() && github.repository MAIN_OR_FORK 'leanprover-community/mathlib'
+    if: github.repository MAIN_OR_FORK 'leanprover-community/mathlib'
     needs: [style_lint, build, lint, tests]
     runs-on: ubuntu-latest
     steps:

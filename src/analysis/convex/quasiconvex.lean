@@ -56,42 +56,18 @@ def quasiconcave_on : Prop :=
 def quasilinear_on : Prop :=
 quasiconvex_on 𝕜 s f ∧ quasiconcave_on 𝕜 s f
 
-variables {𝕜}
+variables {𝕜 s f}
 
 lemma quasiconvex_on.dual (hf : quasiconvex_on 𝕜 s f) :
-  @quasiconvex_on 𝕜 (order_dual E) (order_dual β) _ _ _ _ _ s f :=
-hf
-
-lemma quasiconvex_on.dual_left (hf : quasiconvex_on 𝕜 s f) :
-  @quasiconcave_on 𝕜 (order_dual E) β _ _ _ _ _ s f :=
-hf
-
-lemma quasiconvex_on.dual_right (hf : quasiconvex_on 𝕜 s f) :
   @quasiconcave_on 𝕜 E (order_dual β) _ _ _ _ _ s f :=
 hf
 
 lemma quasiconcave_on.dual (hf : quasiconcave_on 𝕜 s f) :
-  @quasiconcave_on 𝕜 (order_dual E) (order_dual β) _ _ _ _ _ s f :=
-hf
-
-lemma quasiconcave_on.dual_right (hf : quasiconcave_on 𝕜 s f) :
   @quasiconvex_on 𝕜 E (order_dual β) _ _ _ _ _ s f :=
 hf
 
-lemma quasiconcave_on.dual_left (hf : quasiconcave_on 𝕜 s f) :
-  @quasiconvex_on 𝕜 (order_dual E) β _ _ _ _ _ s f :=
-hf
-
 lemma quasilinear_on.dual (hf : quasilinear_on 𝕜 s f) :
-  @quasilinear_on 𝕜 (order_dual E) (order_dual β) _ _ _ _ _ s f :=
-hf
-
-lemma quasilinear_on.dual_left (hf : quasilinear_on 𝕜 s f) :
   @quasilinear_on 𝕜 E (order_dual β) _ _ _ _ _ s f :=
-⟨hf.2, hf.1⟩
-
-lemma quasilinear_on.dual_right (hf : quasilinear_on 𝕜 s f) :
-  @quasilinear_on 𝕜 (order_dual E) β _ _ _ _ _ s f :=
 ⟨hf.2, hf.1⟩
 
 lemma convex.quasiconvex_on_of_convex_le (hs : convex 𝕜 s) (h : ∀ r, convex 𝕜 {x | f x ≤ r}) :
@@ -115,7 +91,7 @@ lemma quasiconvex_on.convex (hf : quasiconvex_on 𝕜 s f) : convex 𝕜 s :=
 λ x y hx hy a b ha hb hab,  (hf _ ⟨hx, le_max_left _ _⟩ ⟨hy, le_max_right _ _⟩ ha hb hab).1
 
 lemma quasiconcave_on.convex (hf : quasiconcave_on 𝕜 s f) : convex 𝕜 s :=
-hf.dual_right.convex
+hf.dual.convex
 
 lemma quasiconvex_on.sup (hf : quasiconvex_on 𝕜 s f) (hg : quasiconvex_on 𝕜 s g) :
   quasiconvex_on 𝕜 s (f ⊔ g) :=
@@ -127,7 +103,7 @@ end
 
 lemma quasiconcave_on.inf (hf : quasiconcave_on 𝕜 s f) (hg : quasiconcave_on 𝕜 s g) :
   quasiconcave_on 𝕜 s (f ⊓ g) :=
-hf.dual_right.sup hg
+hf.dual.sup hg
 
 lemma quasiconvex_on_iff_le_max :
   quasiconvex_on 𝕜 s f ↔ convex 𝕜 s ∧
@@ -163,7 +139,7 @@ begin
 end
 
 lemma quasiconcave_on.convex_gt (hf : quasiconcave_on 𝕜 s f) (r : β) : convex 𝕜 {x ∈ s | r < f x} :=
-hf.dual_right.convex_lt r
+hf.dual.convex_lt r
 
 end has_scalar
 

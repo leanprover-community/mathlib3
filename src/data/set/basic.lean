@@ -798,7 +798,7 @@ by { ext, simp }
 @[simp] lemma sep_false : {a ∈ s | false} = ∅ :=
 by { ext, simp }
 
-lemma sep_inter_sep {α : Type*} {s : set α} {p q : α → Prop} :
+lemma sep_inter_sep {p q : α → Prop} :
   {x ∈ s | p x} ∩ {x ∈ s | q x} = {x ∈ s | p x ∧ q x} :=
 begin
   ext,

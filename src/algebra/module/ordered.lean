@@ -95,6 +95,24 @@ begin
   exact smul_neg_iff_of_pos (neg_pos_of_neg hc),
 end
 
+lemma smul_nonpos_of_nonpos_of_nonneg (hc : c ≤ 0) (ha : 0 ≤ a) : c • a ≤ 0 :=
+calc
+  c • a ≤ c • 0 : smul_le_smul_of_nonpos ha hc
+  ... = 0 : smul_zero' M c
+
+lemma smul_nonneg_of_nonpos_of_nonpos (hc : c ≤ 0) (ha : a ≤ 0) : 0 ≤ c • a :=
+@smul_nonneg_of_nonpos_of_nonpos R (order_dual M) _ _ _ _ _ _ hc ha
+
+alias smul_pos_iff_of_neg ↔ _ smul_pos_of_neg_of_neg
+alias smul_neg_iff_of_pos ↔ _ smul_neg_of_pos_of_neg
+alias smul_neg_iff_of_neg ↔ _ smul_neg_of_neg_of_pos
+
+lemma antitone_smul_left (hc : 0 ≤ c) : antitone (has_scalar.smul c : M → M) :=
+λ a b h, smul_le_smul_of_nonpos h hc
+
+lemma strict_anti_smul_left (hc : c < 0) : strict_mono (has_scalar.smul c : M → M) :=
+λ a b h, smul_lt_smul_of_neg h hc
+
 end ring
 
 section field

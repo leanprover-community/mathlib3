@@ -35,7 +35,7 @@ variables {m n : ℕ}
 
 @[simp] theorem factorial_zero : 0! = 1 := rfl
 
-@[simp] theorem factorial_succ (n : ℕ) : n.succ! = succ n * n! := rfl
+@[simp] theorem factorial_succ (n : ℕ) : n.succ! = (n + 1) * n! := rfl
 
 @[simp] theorem factorial_one : 1! = 1 := rfl
 
@@ -125,7 +125,7 @@ end
 lemma add_factorial_succ_lt_factorial_add_succ {i : ℕ} (n : ℕ) (hi : 2 ≤ i) :
   i + (n + 1)! < (i + n + 1)! :=
 begin
-  rw [factorial_succ (i + _), succ_eq_add_one, add_mul, one_mul],
+  rw [factorial_succ (i + _), add_mul, one_mul],
   have : i ≤ i + n := le.intro rfl,
   exact add_lt_add_of_lt_of_le (this.trans_lt ((lt_mul_iff_one_lt_right (zero_lt_two.trans_le
     (hi.trans this))).mpr (lt_iff_le_and_ne.mpr ⟨(i + n).factorial_pos, λ g,

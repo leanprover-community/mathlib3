@@ -204,7 +204,7 @@ it suffices to check the scalar multiplications agree.
 -- We'll later use this to show `module ℕ M` and `module ℤ M` are subsingletons.
 @[ext]
 lemma module_ext {R : Type*} [semiring R] {M : Type*} [add_comm_monoid M] (P Q : module R M)
-  (w : ∀ (r : R) (m : M), by { letI := P, exact r • m } = by { letI := Q, exact r • m }) :
+  (w : ∀ (r : R) (m : M), by { haveI := P, exact r • m } = by { haveI := Q, exact r • m }) :
   P = Q :=
 begin
   unfreezingI { rcases P with ⟨⟨⟨⟨P⟩⟩⟩⟩, rcases Q with ⟨⟨⟨⟨Q⟩⟩⟩⟩ },

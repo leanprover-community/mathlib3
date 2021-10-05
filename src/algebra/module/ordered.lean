@@ -101,7 +101,7 @@ calc
   ... = 0 : smul_zero' M c
 
 lemma smul_nonneg_of_nonpos_of_nonpos (hc : c ≤ 0) (ha : a ≤ 0) : 0 ≤ c • a :=
-@smul_nonneg_of_nonpos_of_nonpos R (order_dual M) _ _ _ _ _ _ hc ha
+@smul_nonpos_of_nonpos_of_nonneg R (order_dual M) _ _ _ _ _ _ hc ha
 
 alias smul_pos_iff_of_neg ↔ _ smul_pos_of_neg_of_neg
 alias smul_neg_iff_of_pos ↔ _ smul_neg_of_pos_of_neg

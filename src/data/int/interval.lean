@@ -76,13 +76,18 @@ instance : locally_finite_order ℤ :=
 namespace int
 variables (a b : ℤ)
 
-lemma Icc_eq_finset_map : Icc a b = (finset.range (b + 1 - a).to_nat).map ⟨λ n, n + a, inj a⟩ := rfl
-lemma Ico_eq_finset_map : Ico a b = (finset.range (b - a).to_nat).map ⟨λ n, n + a, inj a⟩ := rfl
-lemma Ioc_eq_finset_map : Ioc a b = (finset.range (b - a).to_nat).map ⟨λ n, n + (a + 1), inj _⟩ :=
-rfl
-lemma Ioo_eq_finset_map : Ioo a b = (finset.range (b - a - 1).to_nat).map
-  ⟨λ n, n + (a + 1), inj _⟩ :=
-rfl
+lemma Icc_eq_finset_map :
+  Icc a b = (finset.range (b + 1 - a).to_nat).map
+    (nat.cast_embedding.trans $ add_left_embedding a) := rfl
+lemma Ico_eq_finset_map :
+  Ico a b = (finset.range (b - a).to_nat).map
+    (nat.cast_embedding.trans $ add_left_embedding a) := rfl
+lemma Ioc_eq_finset_map :
+  Ioc a b = (finset.range (b - a).to_nat).map
+    (nat.cast_embedding.trans $ add_left_embedding (a + 1)) := rfl
+lemma Ioo_eq_finset_map :
+  Ioo a b = (finset.range (b - a - 1).to_nat).map
+    (nat.cast_embedding.trans $ add_left_embedding (a + 1)) := rfl
 
 @[simp] lemma card_Icc : (Icc a b).card = (b + 1 - a).to_nat :=
 by { change (finset.map _ _).card = _, rw [finset.card_map, finset.card_range] }

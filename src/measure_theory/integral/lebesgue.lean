@@ -2047,6 +2047,13 @@ begin
   simp [with_density_apply _ hs],
 end
 
+@[simp]
+lemma with_density_one : μ.with_density 1 = μ :=
+begin
+  ext1 s hs,
+  simp [with_density_apply _ hs],
+end
+
 lemma with_density_tsum {f : ℕ → α → ℝ≥0∞} (h : ∀ i, measurable (f i)) :
   μ.with_density (∑' n, f n) = sum (λ n, μ.with_density (f n)) :=
 begin
@@ -2155,6 +2162,14 @@ begin
   { intros g h_mea_g h_mono_g h_ind,
     have : monotone (λ n a, f a * g n a) := λ m n hmn x, ennreal.mul_le_mul le_rfl (h_mono_g hmn x),
     simp [lintegral_supr, ennreal.mul_supr, h_mf.mul (h_mea_g _), *] }
+end
+
+lemma with_density_mul (μ : measure α) {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measurable g) :
+  μ.with_density (f * g) = (μ.with_density f).with_density g :=
+begin
+  ext1 s hs,
+  simp [with_density_apply _ hs, restrict_with_density hs,
+        lintegral_with_density_eq_lintegral_mul _ hf hg],
 end
 
 lemma set_lintegral_with_density_eq_set_lintegral_mul (μ : measure α) {f g : α → ℝ≥0∞}
@@ -2300,6 +2315,25 @@ lemma lintegral_le_of_forall_fin_meas_le [measurable_space α] {μ : measure α}
   (hf : ∀ s, measurable_set s → μ s ≠ ∞ → ∫⁻ x in s, f x ∂μ ≤ C) :
   ∫⁻ x, f x ∂μ ≤ C :=
 @lintegral_le_of_forall_fin_meas_le' _ _ _ _ le_rfl (by rwa trim_eq_self) C _ hf_meas hf
+
+/-- A sigma-finite measure is absolutely continuous with respect to some finite measure. -/
+lemma exists_absolutely_continuous_is_finite_measure
+  {m : measurable_space α} (μ : measure α) [sigma_finite μ] :
+  ∃ (ν : measure α), is_finite_measure ν ∧ μ ≪ ν :=
+begin
+  obtain ⟨g, gpos, gmeas, hg⟩ : ∃ (g : α → ℝ≥0), (∀ (x : α), 0 < g x) ∧
+    measurable g ∧ ∫⁻ (x : α), ↑(g x) ∂μ < 1 :=
+      exists_pos_lintegral_lt_of_sigma_finite μ (ennreal.zero_lt_one).ne',
+  refine ⟨μ.with_density (λ x, g x), is_finite_measure_with_density hg.ne_top, _⟩,
+  have : μ = (μ.with_density (λ x, g x)).with_density (λ x, (g x)⁻¹),
+  { have A : (λ (x : α), (g x : ℝ≥0∞)) * (λ (x : α), (↑(g x))⁻¹) = 1,
+    { ext1 x,
+      exact ennreal.mul_inv_cancel (ennreal.coe_ne_zero.2 ((gpos x).ne')) ennreal.coe_ne_top },
+    rw [← with_density_mul _ gmeas.coe_nnreal_ennreal gmeas.coe_nnreal_ennreal.inv, A,
+        with_density_one] },
+  conv_lhs { rw this },
+  exact with_density_absolutely_continuous _ _,
+end
 
 end sigma_finite
 

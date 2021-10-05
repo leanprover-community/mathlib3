@@ -189,11 +189,15 @@ begin
   exact ennreal.sub_lt_of_lt_add (measure_mono hst) h
 end
 
-lemma meas_eq_meas_of_null_diff {s t : set α}
+lemma measure_diff_le_iff_le_add (hs : measurable_set s) (ht : measurable_set t) (hst : s ⊆ t)
+  (hs' : μ s ≠ ∞) {ε : ℝ≥0∞} : μ (t \ s) ≤ ε ↔ μ t ≤ μ s + ε :=
+by rwa [measure_diff hst ht hs hs', ennreal.sub_le_iff_le_add']
+
+lemma measure_eq_measure_of_null_diff {s t : set α}
   (hst : s ⊆ t) (h_nulldiff : μ (t.diff s) = 0) : μ s = μ t :=
 by { rw [←diff_diff_cancel_left hst, ←@measure_diff_null _ _ _ t _ h_nulldiff], refl, }
 
-lemma meas_eq_meas_of_between_null_diff {s₁ s₂ s₃ : set α}
+lemma measure_eq_measure_of_between_null_diff {s₁ s₂ s₃ : set α}
   (h12 : s₁ ⊆ s₂) (h23 : s₂ ⊆ s₃) (h_nulldiff : μ (s₃ \ s₁) = 0) :
   (μ s₁ = μ s₂) ∧ (μ s₂ = μ s₃) :=
 begin
@@ -206,13 +210,13 @@ begin
   exact ⟨le12.antisymm (le23.trans key), le23.antisymm (key.trans le12)⟩,
 end
 
-lemma meas_eq_meas_smaller_of_between_null_diff {s₁ s₂ s₃ : set α}
+lemma measure_eq_measure_smaller_of_between_null_diff {s₁ s₂ s₃ : set α}
   (h12 : s₁ ⊆ s₂) (h23 : s₂ ⊆ s₃) (h_nulldiff : μ (s₃.diff s₁) = 0) : μ s₁ = μ s₂ :=
-(meas_eq_meas_of_between_null_diff h12 h23 h_nulldiff).1
+(measure_eq_measure_of_between_null_diff h12 h23 h_nulldiff).1
 
-lemma meas_eq_meas_larger_of_between_null_diff {s₁ s₂ s₃ : set α}
+lemma measure_eq_measure_larger_of_between_null_diff {s₁ s₂ s₃ : set α}
   (h12 : s₁ ⊆ s₂) (h23 : s₂ ⊆ s₃) (h_nulldiff : μ (s₃.diff s₁) = 0) : μ s₂ = μ s₃ :=
-(meas_eq_meas_of_between_null_diff h12 h23 h_nulldiff).2
+(measure_eq_measure_of_between_null_diff h12 h23 h_nulldiff).2
 
 lemma measure_compl (h₁ : measurable_set s) (h_fin : μ s ≠ ∞) : μ (sᶜ) = μ univ - μ s :=
 by { rw compl_eq_univ_diff, exact measure_diff (subset_univ s) measurable_set.univ h₁ h_fin }
@@ -1240,7 +1244,7 @@ end count
 def absolutely_continuous {m0 : measurable_space α} (μ ν : measure α) : Prop :=
 ∀ ⦃s : set α⦄, ν s = 0 → μ s = 0
 
-infix ` ≪ `:50 := absolutely_continuous
+localized "infix ` ≪ `:50 := measure_theory.measure.absolutely_continuous" in measure_theory
 
 lemma absolutely_continuous_of_le (h : μ ≤ ν) : μ ≪ ν :=
 λ s hs, nonpos_iff_eq_zero.1 $ hs ▸ le_iff'.1 h s
@@ -1412,6 +1416,7 @@ end mutually_singular
 end measure
 
 open measure
+open_locale measure_theory
 
 @[simp] lemma ae_eq_bot : μ.ae = ⊥ ↔ μ = 0 :=
 by rw [← empty_mem_iff_bot, mem_ae_iff, compl_empty, measure_univ_eq_zero]
@@ -2685,6 +2690,8 @@ instance is_finite_measure_trim (hm : m ≤ m0) [is_finite_measure μ] :
 end trim
 
 end measure_theory
+
+open_locale measure_theory
 
 /-!
 # Almost everywhere measurable functions

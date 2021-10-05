@@ -137,7 +137,7 @@ section real
 variables (F : Type*) [inner_product_space ℝ F]
 
 /-- In a real inner product space `F`, the function that takes a vector `x` in `F` to its dual
-`λ y, ⟪x, y⟫` is a continuous linear map. If the space is complete (i.e. is a Hilbert space),
+`λ y, ⟪x, y⟫` is an isometric linear embedding. If the space is complete (i.e. is a Hilbert space),
 consider using `to_dual` instead. -/
 -- TODO extend to `is_R_or_C` (requires a definition of conjugate linear maps)
 def to_dual_map : F →ₗᵢ[ℝ] (normed_space.dual ℝ F) :=

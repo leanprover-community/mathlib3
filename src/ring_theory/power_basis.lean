@@ -339,12 +339,13 @@ fintype.of_equiv _ pb.lift_equiv'.symm
 
 local attribute [irreducible] power_basis.lift
 
-/-- `pb.equiv' pb' h₁ h₂` is an equivalence of algebras with the same power basis,
+/-- `pb.equiv_of_root pb' h₁ h₂` is an equivalence of algebras with the same power basis,
 where "the same" means that `pb` is a root of `pb'`s minimal polynomial and vice versa.
 
-See also `power_basis.equiv` which takes the hypothesis that the minimal polynomials are identical.
+See also `power_basis.equiv_of_minpoly` which takes the hypothesis that the
+minimal polynomials are identical.
 -/
-noncomputable def equiv'
+noncomputable def equiv_of_root
   (pb : power_basis A S) (pb' : power_basis A S')
   (h₁ : aeval pb.gen (minpoly A pb'.gen) = 0) (h₂ : aeval pb'.gen (minpoly A pb.gen) = 0) :
   S ≃ₐ[A] S' :=
@@ -355,59 +356,59 @@ alg_equiv.of_alg_hom
   (by { ext x, obtain ⟨f, hf, rfl⟩ := pb.exists_eq_aeval' x, simp })
 
 @[simp]
-lemma equiv'_aeval
+lemma equiv_of_root_aeval
   (pb : power_basis A S) (pb' : power_basis A S')
   (h₁ : aeval pb.gen (minpoly A pb'.gen) = 0) (h₂ : aeval pb'.gen (minpoly A pb.gen) = 0)
   (f : polynomial A) :
-  pb.equiv' pb' h₁ h₂ (aeval pb.gen f) = aeval pb'.gen f :=
+  pb.equiv_of_root pb' h₁ h₂ (aeval pb.gen f) = aeval pb'.gen f :=
 pb.lift_aeval _ h₂ _
 
 @[simp]
-lemma equiv'_gen
+lemma equiv_of_root_gen
   (pb : power_basis A S) (pb' : power_basis A S')
   (h₁ : aeval pb.gen (minpoly A pb'.gen) = 0) (h₂ : aeval pb'.gen (minpoly A pb.gen) = 0) :
-  pb.equiv' pb' h₁ h₂ pb.gen = pb'.gen :=
+  pb.equiv_of_root pb' h₁ h₂ pb.gen = pb'.gen :=
 pb.lift_gen _ h₂
 
 @[simp]
-lemma equiv'_symm
+lemma equiv_of_root_symm
   (pb : power_basis A S) (pb' : power_basis A S')
   (h₁ : aeval pb.gen (minpoly A pb'.gen) = 0) (h₂ : aeval pb'.gen (minpoly A pb.gen) = 0) :
-  (pb.equiv' pb' h₁ h₂).symm = pb'.equiv' pb h₂ h₁ :=
+  (pb.equiv_of_root pb' h₁ h₂).symm = pb'.equiv_of_root pb h₂ h₁ :=
 rfl
 
-/-- `pb.equiv pb' h` is an equivalence of algebras with the same power basis,
+/-- `pb.equiv_of_minpoly pb' h` is an equivalence of algebras with the same power basis,
 where "the same" means that they have identical minimal polynomials.
 
-See also `power_basis.equiv'` which takes the hypothesis that each generator is a root of the
-other basis' minimal polynomial; `power_basis.equiv'` is more general if `A` is not a field.
+See also `power_basis.equiv_of_root` which takes the hypothesis that each generator is a root of the
+other basis' minimal polynomial; `power_basis.equiv_root` is more general if `A` is not a field.
 -/
-noncomputable def equiv
+noncomputable def equiv_of_minpoly
   (pb : power_basis A S) (pb' : power_basis A S')
   (h : minpoly A pb.gen = minpoly A pb'.gen) :
   S ≃ₐ[A] S' :=
-pb.equiv' pb' (h ▸ minpoly.aeval _ _) (h.symm ▸ minpoly.aeval _ _)
+pb.equiv_of_root pb' (h ▸ minpoly.aeval _ _) (h.symm ▸ minpoly.aeval _ _)
 
 @[simp]
-lemma equiv_aeval
+lemma equiv_of_minpoly_aeval
   (pb : power_basis A S) (pb' : power_basis A S')
   (h : minpoly A pb.gen = minpoly A pb'.gen)
   (f : polynomial A) :
-  pb.equiv pb' h (aeval pb.gen f) = aeval pb'.gen f :=
-pb.equiv'_aeval pb' _ _ _
+  pb.equiv_of_minpoly pb' h (aeval pb.gen f) = aeval pb'.gen f :=
+pb.equiv_of_root_aeval pb' _ _ _
 
 @[simp]
-lemma equiv_gen
+lemma equiv_of_minpoly_gen
   (pb : power_basis A S) (pb' : power_basis A S')
   (h : minpoly A pb.gen = minpoly A pb'.gen) :
-  pb.equiv pb' h pb.gen = pb'.gen :=
-pb.equiv'_gen pb' _ _
+  pb.equiv_of_minpoly pb' h pb.gen = pb'.gen :=
+pb.equiv_of_root_gen pb' _ _
 
 @[simp]
-lemma equiv_symm
+lemma equiv_of_minpoly_symm
   (pb : power_basis A S) (pb' : power_basis A S')
   (h : minpoly A pb.gen = minpoly A pb'.gen) :
-  (pb.equiv pb' h).symm = pb'.equiv pb h.symm :=
+  (pb.equiv_of_minpoly pb' h).symm = pb'.equiv_of_minpoly pb h.symm :=
 rfl
 
 end equiv
@@ -504,10 +505,16 @@ by { dsimp only [minpoly_gen, map_dim], -- Turn `fin (pb.map e).dim` into `fin p
         alg_equiv.symm_apply_apply, sub_right_inj] }
 
 @[simp]
-lemma equiv_map (pb : power_basis A S) (e : S ≃ₐ[A] S')
-  (h : minpoly A pb.gen = minpoly A (pb.map e).gen) :
-  pb.equiv (pb.map e) h = e :=
+lemma equiv_of_root_map (pb : power_basis A S) (e : S ≃ₐ[A] S')
+  (h₁ h₂) :
+  pb.equiv_of_root (pb.map e) h₁ h₂ = e :=
 by { ext x, obtain ⟨f, rfl⟩ := pb.exists_eq_aeval' x, simp [aeval_alg_equiv] }
+
+@[simp]
+lemma equiv_of_minpoly_map (pb : power_basis A S) (e : S ≃ₐ[A] S')
+  (h : minpoly A pb.gen = minpoly A (pb.map e).gen) :
+  pb.equiv_of_minpoly (pb.map e) h = e :=
+pb.equiv_of_root_map _ _ _
 
 end map
 

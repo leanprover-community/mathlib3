@@ -382,12 +382,13 @@ def mk_left (f : M → R₁)
 /-- The product of linear forms is a quadratic form. -/
 def lin_mul_lin (f g : M →ₗ[R₁] R₁) : quadratic_form R₁ M :=
 mk_left (f * g)
-  (λ a x, by { simp, ring })
-  (λ x x' y, by { simp [polar], ring })
+  (λ a x,
+    by { simp only [smul_eq_mul, ring_hom.id_apply, pi.mul_apply, linear_map.map_smulₛₗ], ring })
+  (λ x x' y, by { simp only [polar, pi.mul_apply, linear_map.map_add], ring })
   (λ a x y,
     begin
-      dsimp [polar],
-      simp only [linear_map.map_add, linear_map.map_smul, smul_eq_mul],
+      simp only [polar, ring_hom.id_apply, pi.mul_apply, linear_map.map_smulₛₗ, linear_map.map_add,
+        linear_map.map_add, linear_map.map_smul, smul_eq_mul],
       ring,
     end)
 

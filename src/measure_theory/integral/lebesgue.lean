@@ -1100,6 +1100,16 @@ begin
     exact (hnt hat).elim }
 end
 
+lemma set_lintegral_mono_ae {s : set α} {f g : α → ℝ≥0∞}
+  (hf : measurable f) (hg : measurable g) (hfg : ∀ᵐ x ∂μ, x ∈ s → f x ≤ g x) :
+  ∫⁻ x in s, f x ∂μ ≤ ∫⁻ x in s, g x ∂μ :=
+lintegral_mono_ae $ (ae_restrict_iff $ measurable_set_le hf hg).2 hfg
+
+lemma set_lintegral_mono {s : set α} {f g : α → ℝ≥0∞}
+  (hf : measurable f) (hg : measurable g) (hfg : ∀ x ∈ s, f x ≤ g x) :
+  ∫⁻ x in s, f x ∂μ ≤ ∫⁻ x in s, g x ∂μ :=
+set_lintegral_mono_ae hf hg (ae_of_all _ hfg)
+
 lemma lintegral_congr_ae {f g : α → ℝ≥0∞} (h : f =ᵐ[μ] g) :
   (∫⁻ a, f a ∂μ) = (∫⁻ a, g a ∂μ) :=
 le_antisymm (lintegral_mono_ae $ h.le) (lintegral_mono_ae $ h.symm.le)
@@ -1494,7 +1504,7 @@ begin
   exact hf (measurable_set_singleton r)
 end
 
-/-- **Chebyshev's inequality** -/
+/-- **Markov's inequality** also known as **Chebyshev's first inequality**. -/
 lemma mul_meas_ge_le_lintegral {f : α → ℝ≥0∞} (hf : measurable f) (ε : ℝ≥0∞) :
   ε * μ {x | ε ≤ f x} ≤ ∫⁻ a, f a ∂μ :=
 begin
@@ -1962,6 +1972,25 @@ begin
   exact (ae_lt_top hf.measurable_mk h2f_meas).mp (hf.ae_eq_mk.mono (λ x hx h, by rwa hx)),
 end
 
+lemma set_lintegral_lt_top_of_bdd_above
+  {s : set α} (hs : μ s ≠ ∞) {f : α → ℝ≥0} (hf : measurable f) (hbdd : bdd_above (f '' s)) :
+  ∫⁻ x in s, f x ∂μ < ∞ :=
+begin
+  obtain ⟨M, hM⟩ := hbdd,
+  rw mem_upper_bounds at hM,
+  refine lt_of_le_of_lt (set_lintegral_mono hf.coe_nnreal_ennreal
+    (@measurable_const _ _ _ _ ↑M) _) _,
+  { simpa using hM },
+  { rw lintegral_const,
+    refine ennreal.mul_lt_top ennreal.coe_lt_top.ne _,
+    simp [hs] }
+end
+
+lemma set_lintegral_lt_top_of_is_compact [topological_space α] [opens_measurable_space α]
+  {s : set α} (hs : μ s ≠ ∞) (hsc : is_compact s) {f : α → ℝ≥0} (hf : continuous f) :
+  ∫⁻ x in s, f x ∂μ < ∞ :=
+set_lintegral_lt_top_of_bdd_above hs hf.measurable (hsc.image hf).bdd_above
+
 /-- Given a measure `μ : measure α` and a function `f : α → ℝ≥0∞`, `μ.with_density f` is the
 measure such that for a measurable set `s` we have `μ.with_density f s = ∫⁻ a in s, f a ∂μ`. -/
 def measure.with_density {m : measurable_space α} (μ : measure α) (f : α → ℝ≥0∞) : measure α :=
@@ -2018,6 +2047,13 @@ begin
   simp [with_density_apply _ hs],
 end
 
+@[simp]
+lemma with_density_one : μ.with_density 1 = μ :=
+begin
+  ext1 s hs,
+  simp [with_density_apply _ hs],
+end
+
 lemma with_density_tsum {f : ℕ → α → ℝ≥0∞} (h : ∀ i, measurable (f i)) :
   μ.with_density (∑' n, f n) = sum (λ n, μ.with_density (f n)) :=
 begin
@@ -2064,6 +2100,12 @@ begin
   rw [restrict_apply ht, with_density_apply _ ht,
       with_density_apply _ (ht.inter hs), restrict_restrict ht],
 end
+
+lemma with_density_eq_zero {f : α → ℝ≥0∞}
+  (hf : ae_measurable f μ) (h : μ.with_density f = 0) :
+  f =ᵐ[μ] 0 :=
+by rw [← lintegral_eq_zero_iff' hf, ← set_lintegral_univ,
+       ← with_density_apply _ measurable_set.univ, h, measure.coe_zero, pi.zero_apply]
 
 end lintegral
 
@@ -2120,6 +2162,14 @@ begin
   { intros g h_mea_g h_mono_g h_ind,
     have : monotone (λ n a, f a * g n a) := λ m n hmn x, ennreal.mul_le_mul le_rfl (h_mono_g hmn x),
     simp [lintegral_supr, ennreal.mul_supr, h_mf.mul (h_mea_g _), *] }
+end
+
+lemma with_density_mul (μ : measure α) {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measurable g) :
+  μ.with_density (f * g) = (μ.with_density f).with_density g :=
+begin
+  ext1 s hs,
+  simp [with_density_apply _ hs, restrict_with_density hs,
+        lintegral_with_density_eq_lintegral_mul _ hf hg],
 end
 
 lemma set_lintegral_with_density_eq_set_lintegral_mul (μ : measure α) {f g : α → ℝ≥0∞}
@@ -2265,6 +2315,25 @@ lemma lintegral_le_of_forall_fin_meas_le [measurable_space α] {μ : measure α}
   (hf : ∀ s, measurable_set s → μ s ≠ ∞ → ∫⁻ x in s, f x ∂μ ≤ C) :
   ∫⁻ x, f x ∂μ ≤ C :=
 @lintegral_le_of_forall_fin_meas_le' _ _ _ _ le_rfl (by rwa trim_eq_self) C _ hf_meas hf
+
+/-- A sigma-finite measure is absolutely continuous with respect to some finite measure. -/
+lemma exists_absolutely_continuous_is_finite_measure
+  {m : measurable_space α} (μ : measure α) [sigma_finite μ] :
+  ∃ (ν : measure α), is_finite_measure ν ∧ μ ≪ ν :=
+begin
+  obtain ⟨g, gpos, gmeas, hg⟩ : ∃ (g : α → ℝ≥0), (∀ (x : α), 0 < g x) ∧
+    measurable g ∧ ∫⁻ (x : α), ↑(g x) ∂μ < 1 :=
+      exists_pos_lintegral_lt_of_sigma_finite μ (ennreal.zero_lt_one).ne',
+  refine ⟨μ.with_density (λ x, g x), is_finite_measure_with_density hg.ne_top, _⟩,
+  have : μ = (μ.with_density (λ x, g x)).with_density (λ x, (g x)⁻¹),
+  { have A : (λ (x : α), (g x : ℝ≥0∞)) * (λ (x : α), (↑(g x))⁻¹) = 1,
+    { ext1 x,
+      exact ennreal.mul_inv_cancel (ennreal.coe_ne_zero.2 ((gpos x).ne')) ennreal.coe_ne_top },
+    rw [← with_density_mul _ gmeas.coe_nnreal_ennreal gmeas.coe_nnreal_ennreal.inv, A,
+        with_density_one] },
+  conv_lhs { rw this },
+  exact with_density_absolutely_continuous _ _,
+end
 
 end sigma_finite
 

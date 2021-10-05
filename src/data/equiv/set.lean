@@ -465,6 +465,8 @@ protected lemma preimage_sUnion {α β} (f : α ≃ β) {s : set (set β)} :
   f ⁻¹' (⋃₀ s) = ⋃₀ (_root_.set.image f ⁻¹' s) :=
 by { ext x, simp [(equiv.set.congr f).symm.exists_congr_left] }
 
+end equiv
+
 /-- If a function is a bijection between two sets `s` and `t`, then it induces an
 equivalence between the the types `↥s` and ``↥t`. -/
 noncomputable def set.bij_on.equiv {α : Type*} {β : Type*} {s : set α} {t : set β} (f : α → β)
@@ -492,5 +494,3 @@ begin
       by { contrapose! h, have : (e j : α) ∈ s := (e j).2, rwa ← h at this },
     simp [h, this] }
 end
-
-end equiv

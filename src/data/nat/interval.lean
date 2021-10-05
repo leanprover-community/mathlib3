@@ -40,7 +40,8 @@ instance : locally_finite_order ℕ :=
   finset_mem_Ioc := λ a b x, begin
     rw [list.mem_to_finset, list.mem_range'],
     cases le_or_lt a b,
-    { rw [←succ_sub_succ, add_sub_cancel_of_le (succ_le_succ h), nat.lt_succ_iff, nat.succ_le_iff] },
+    { rw [←succ_sub_succ, add_sub_cancel_of_le (succ_le_succ h), nat.lt_succ_iff,
+        nat.succ_le_iff] },
     { rw [nat.sub_eq_zero_iff_le.2 h.le, add_zero],
       exact iff_of_false (λ hx, hx.2.not_le hx.1) (λ hx, h.not_le (hx.1.le.trans hx.2)) }
   end,

@@ -107,3 +107,13 @@ begin
   simp only [barycentric_coord_apply, hi, finset.affine_combination_eq_linear_combination, if_false,
     hw, mul_boole, function.comp_app, smul_eq_mul, s.sum_ite_eq, s.map_affine_combination p w hw],
 end
+
+@[simp] lemma barycentric_coord_eq_one_of_subsingleton [subsingleton ι] (q : P) (i : ι) :
+  barycentric_coord h_ind h_tot i q = 1 :=
+begin
+  haveI := affine_subspace.subsingleton_of_span_range_eq_top_subsingleton h_tot,
+  let s : finset ι := {i},
+  have hi : i ∈ s, { simp, },
+  have hw : s.sum (function.const ι (1 : k)) = 1, { simp, },
+  convert barycentric_coord_apply_combination_of_mem h_ind h_tot hi hw,
+end

@@ -1,10 +1,11 @@
 import group_theory.index
 import group_theory.quotient_group
 import tactic.linarith
+import group_theory.subgroup.pointwise
 
 namespace commensurable
 
-
+open_locale pointwise
 
 variables {G : Type*} [group G]
 
@@ -47,8 +48,9 @@ rw h2,
 simp,
 end
 
-def conj_subgroup (g : G) (Γ : subgroup G) : subgroup G :=
-  subgroup.map (mul_equiv.to_monoid_hom (mul_aut.conj g) )  Γ
+
+def conj_subgroup (g : G) (Γ : subgroup G) : subgroup G := mul_aut.conj g •  Γ
+
 
 
 @[simp]
@@ -56,8 +58,17 @@ lemma conf_cong_mem  (g : G)  (Γ : subgroup G) (h : G) :
  (h ∈ conj_subgroup g Γ) ↔ ∃ x : Γ, g * x * g⁻¹ = h  :=
 begin
   rw conj_subgroup,
-  simp,
-  fsplit, work_on_goal 0 { intros ᾰ, cases ᾰ, cases ᾰ_h, induction ᾰ_h_right, simp at *, fsplit, work_on_goal 0 { fsplit, work_on_goal 1 { assumption } }, refl }, intros ᾰ, cases ᾰ, induction ᾰ_h, cases ᾰ_w, dsimp at *, simp at *, assumption,
+  split,
+  intro h,
+  cases h,
+  use h_w,
+  apply h_h.1,
+  simp at *,
+  apply h_h.2,
+  intro h,
+  cases h,
+  rw ← h_h,
+  sorry,
 end
 
 lemma cong_subgroup_id_eq_self (H : subgroup G) : conj_subgroup 1 H = H :=

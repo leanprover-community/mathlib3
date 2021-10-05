@@ -8,7 +8,7 @@ import field_theory.is_alg_closed.basic
 import linear_algebra.finsupp
 import linear_algebra.matrix.to_lin
 import order.preorder_hom
-import linear_algebra.charpoly
+import linear_algebra.charpoly.basic
 
 /-!
 # Eigenvectors and eigenvalues

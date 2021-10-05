@@ -197,7 +197,6 @@ jobs:
           lean --run scripts/yaml_check.lean
 
   final:
-    #
     name: Post-CI jobJOB_NAME
     if: github.repository MAIN_OR_FORK 'leanprover-community/mathlib'
     needs: [style_lint, build, lint, tests]

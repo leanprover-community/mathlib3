@@ -3,7 +3,6 @@ Copyright (c) 2019 Alexander Bentkamp. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, François Dupuis
 -/
-import algebra.module.ordered
 import analysis.convex.basic
 import tactic.field_simp
 import tactic.linarith
@@ -71,9 +70,9 @@ convex 𝕜 s ∧
 
 variables {𝕜 s f}
 
-lemma convex_on_id {s : set 𝕜} (hs : convex 𝕜 s) : convex_on 𝕜 s id := ⟨hs, by { intros, refl }⟩
+lemma convex_on_id {s : set β} (hs : convex 𝕜 s) : convex_on 𝕜 s id := ⟨hs, by { intros, refl }⟩
 
-lemma concave_on_id {s : set 𝕜} (hs : convex 𝕜 s) : concave_on 𝕜 s id := ⟨hs, by { intros, refl }⟩
+lemma concave_on_id {s : set β} (hs : convex 𝕜 s) : concave_on 𝕜 s id := ⟨hs, by { intros, refl }⟩
 
 lemma convex_on.subset {t : set E} (hf : convex_on 𝕜 t f) (hst : s ⊆ t) (hs : convex 𝕜 s) :
   convex_on 𝕜 s f :=

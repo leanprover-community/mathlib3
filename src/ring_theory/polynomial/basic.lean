@@ -307,7 +307,7 @@ section mod_by_monic
 
 variables {q : polynomial R}
 
-@[simp] lemma mem_ker_mod_by_monic [nontrivial R] (hq : q.monic) {p : polynomial R} :
+lemma mem_ker_mod_by_monic [nontrivial R] (hq : q.monic) {p : polynomial R} :
   p ∈ (mod_by_monic_hom hq).ker ↔ q ∣ p :=
 linear_map.mem_ker.trans (dvd_iff_mod_by_monic_eq_zero hq)
 

@@ -154,6 +154,7 @@ which makes `R` with its multiplicative structure into a `*`-monoid
 class star_ring (R : Type u) [semiring R] extends star_monoid R :=
 (star_add : ∀ r s : R, star (r + s) = star r + star s)
 
+@[priority 100]
 instance star_ring.to_star_add_monoid [semiring R] [star_ring R] : star_add_monoid R :=
 { star_add := star_ring.star_add }
 

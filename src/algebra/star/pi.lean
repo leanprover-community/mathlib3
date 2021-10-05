@@ -27,7 +27,7 @@ instance [Π i, has_star (f i)] : has_star (Π i, f i) :=
 
 @[simp] lemma star_apply [Π i, has_star (f i)] (x : Π i, f i) (i : I) : star x i = star (x i) := rfl
 
-lemma star_def [Π i, has_star (f i)] (x : Π i, f i) (i : I) : star x = λ i, star (x i) := rfl
+lemma star_def [Π i, has_star (f i)] (x : Π i, f i) : star x = λ i, star (x i) := rfl
 
 instance [Π i, has_involutive_star (f i)] : has_involutive_star (Π i, f i) :=
 { star_involutive := λ _, funext $ λ _, star_star _ }

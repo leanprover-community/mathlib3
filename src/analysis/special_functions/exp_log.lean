@@ -155,6 +155,10 @@ end
 lemma has_strict_deriv_at_exp (x : ℂ) : has_strict_deriv_at exp (exp x) x :=
 times_cont_diff_exp.times_cont_diff_at.has_strict_deriv_at' (has_deriv_at_exp x) le_rfl
 
+lemma has_strict_fderiv_at_exp_real (x : ℂ) :
+  has_strict_fderiv_at exp (exp x • (1 : ℂ →L[ℝ] ℂ)) x :=
+(has_strict_deriv_at_exp x).complex_to_real_fderiv
+
 lemma is_open_map_exp : is_open_map exp :=
 open_map_of_strict_deriv has_strict_deriv_at_exp exp_ne_zero
 
@@ -183,6 +187,25 @@ hf.has_deriv_within_at.cexp.deriv_within hxs
 @[simp] lemma deriv_cexp (hc : differentiable_at ℂ f x) :
   deriv (λx, complex.exp (f x)) x = complex.exp (f x) * (deriv f x) :=
 hc.has_deriv_at.cexp.deriv
+
+end
+
+section
+variables {f : ℝ → ℂ} {f' : ℂ} {x : ℝ} {s : set ℝ}
+
+open complex
+
+lemma has_strict_deriv_at.cexp_real (h : has_strict_deriv_at f f' x) :
+  has_strict_deriv_at (λ x, exp (f x)) (exp (f x) * f') x :=
+(has_strict_fderiv_at_exp_real (f x)).comp_has_strict_deriv_at x h
+
+lemma has_deriv_at.cexp_real (h : has_deriv_at f f' x) :
+  has_deriv_at (λ x, exp (f x)) (exp (f x) * f') x :=
+(has_strict_fderiv_at_exp_real (f x)).has_fderiv_at.comp_has_deriv_at x h
+
+lemma has_deriv_within_at.cexp_real (h : has_deriv_within_at f f' s x) :
+  has_deriv_within_at (λ x, exp (f x)) (exp (f x) * f') s x :=
+(has_strict_fderiv_at_exp_real (f x)).has_fderiv_at.comp_has_deriv_within_at x h
 
 end
 

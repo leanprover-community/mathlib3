@@ -87,7 +87,7 @@ lemma ext_iff {α β} {f g : embedding α β} : (∀ x, f x = g x) ↔ f = g :=
 @[simp] lemma mk_coe {α β : Type*} (f : α ↪ β) (inj) : (⟨f, inj⟩ : α ↪ β) = f :=
 by { ext, simp }
 
-theorem injective {α β} (f : α ↪ β) : injective f := f.inj'
+protected theorem injective {α β} (f : α ↪ β) : injective f := f.inj'
 
 @[simp] lemma apply_eq_iff_eq {α β : Type*} (f : α ↪ β) (x y : α) : f x = f y ↔ x = y :=
 f.injective.eq_iff

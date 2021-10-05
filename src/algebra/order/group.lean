@@ -987,7 +987,7 @@ section has_neg
 instance has_inv_lattice_has_abs [has_inv α] [lattice α] : has_abs (α)  := ⟨λa, a ⊔ (a⁻¹)⟩
 
 @[to_additive]
-lemma abs_eq_sup_inv [has_inv α] [lattice α]  (a : α) : |a| = a⊔a⁻¹ :=
+lemma abs_eq_sup_inv [has_inv α] [lattice α] (a : α) : |a| = a ⊔ a⁻¹ :=
 rfl
 
 variables [has_neg α] [linear_order α] {a b: α}

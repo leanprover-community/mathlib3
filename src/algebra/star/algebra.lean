@@ -34,8 +34,6 @@ class star_algebra (R : Type u) (A : Type v) [has_star R] [has_star A] [has_scal
   star (r • a) = star r • star a :=
 star_algebra.star_smul r a
 
-attribute [instance] ring_hom_inv_pair.of_ring_equiv
-
 /-- If `A` is a left- and right- module over a commutative `R` with compatible actions,
 then `star` is a semilinear equivalence. -/
 @[simps]

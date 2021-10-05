@@ -414,12 +414,6 @@ apply_nolint gaussian_int.mod doc_blame
 apply_nolint filter.has_add check_reducibility
 apply_nolint filter.has_mul check_reducibility
 
--- order/fixed_points.lean
-apply_nolint fixed_points.next doc_blame
-apply_nolint fixed_points.next_fixed doc_blame
-apply_nolint fixed_points.prev doc_blame
-apply_nolint fixed_points.prev_fixed doc_blame
-
 -- order/prime_ideal.lean
 apply_nolint order.ideal.is_prime.is_maximal fails_quickly
 

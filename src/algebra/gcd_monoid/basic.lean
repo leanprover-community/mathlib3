@@ -70,7 +70,7 @@ set_option old_structure_cmd true
 
 /-- Normalization monoid: multiplying with `norm_unit` gives a normal form for associated
 elements. -/
-@[protect_proj] class normalization_monoid (α : Type*) [nontrivial α]
+@[protect_proj] class normalization_monoid (α : Type*)
   [comm_cancel_monoid_with_zero α] :=
 (norm_unit : α → units α)
 (norm_unit_zero      : norm_unit 0 = 1)
@@ -82,7 +82,7 @@ export normalization_monoid (norm_unit norm_unit_zero norm_unit_mul norm_unit_co
 attribute [simp] norm_unit_coe_units norm_unit_zero norm_unit_mul
 
 section normalization_monoid
-variables [comm_cancel_monoid_with_zero α] [nontrivial α] [normalization_monoid α]
+variables [comm_cancel_monoid_with_zero α] [normalization_monoid α]
 
 @[simp] theorem norm_unit_one : norm_unit (1:α) = 1 :=
 norm_unit_coe_units 1
@@ -122,14 +122,19 @@ lemma normalize_eq_one {x : α} : normalize x = 1 ↔ is_unit x :=
 ⟨λ hx, is_unit_iff_exists_inv.2 ⟨_, hx⟩, λ ⟨u, hu⟩, hu ▸ normalize_coe_units u⟩
 
 @[simp] theorem norm_unit_mul_norm_unit (a : α) : norm_unit (a * norm_unit a) = 1 :=
-classical.by_cases (assume : a = 0, by simp only [this, norm_unit_zero, zero_mul]) $
-  assume h, by rw [norm_unit_mul h (units.ne_zero _), norm_unit_coe_units, mul_inv_eq_one]
+by {
+  nontriviality α using [subsingleton.elim a 0],
+  obtain rfl|h := eq_or_ne a 0,
+  { rw [norm_unit_zero, zero_mul, norm_unit_zero] },
+  { rw [norm_unit_mul h (units.ne_zero _), norm_unit_coe_units, mul_inv_eq_one] }
+}
 
 theorem normalize_idem (x : α) : normalize (normalize x) = normalize x := by simp
 
 theorem normalize_eq_normalize {a b : α}
   (hab : a ∣ b) (hba : b ∣ a) : normalize a = normalize b :=
 begin
+  nontriviality α,
   rcases associated_of_dvd_dvd hab hba with ⟨u, rfl⟩,
   refine classical.by_cases (by rintro rfl; simp only [zero_mul]) (assume ha : a ≠ 0, _),
   suffices : a * ↑(norm_unit a) = a * ↑u * ↑(norm_unit a) * ↑u⁻¹,
@@ -175,7 +180,7 @@ by simp [norm_unit, h0]
 end comm_group_with_zero
 
 namespace associates
-variables [comm_cancel_monoid_with_zero α] [nontrivial α] [normalization_monoid α]
+variables [comm_cancel_monoid_with_zero α] [normalization_monoid α]
 
 local attribute [instance] associated.setoid
 
@@ -213,7 +218,7 @@ end associates
 `lcm` (least common multiple) operations, determined up to a unit. The type class focuses on `gcd`
 and we derive the corresponding `lcm` facts from `gcd`.
 -/
-@[protect_proj] class gcd_monoid (α : Type*) [comm_cancel_monoid_with_zero α] [nontrivial α] :=
+@[protect_proj] class gcd_monoid (α : Type*) [comm_cancel_monoid_with_zero α] :=
 (gcd : α → α → α)
 (lcm : α → α → α)
 (gcd_dvd_left   : ∀a b, gcd a b ∣ a)
@@ -229,7 +234,7 @@ and we derive the corresponding `lcm` facts from `gcd`.
 supremum, `1` is bottom, and `0` is top. The type class focuses on `gcd` and we derive the
 corresponding `lcm` facts from `gcd`.
 -/
-class normalized_gcd_monoid (α : Type*) [comm_cancel_monoid_with_zero α] [nontrivial α]
+class normalized_gcd_monoid (α : Type*) [comm_cancel_monoid_with_zero α]
   extends normalization_monoid α, gcd_monoid α :=
 (normalize_gcd : ∀a b, normalize (gcd a b) = gcd a b)
 (normalize_lcm : ∀a b, normalize (lcm a b) = lcm a b)
@@ -240,7 +245,7 @@ export gcd_monoid (gcd lcm gcd_dvd_left gcd_dvd_right dvd_gcd  lcm_zero_left lcm
 attribute [simp] lcm_zero_left lcm_zero_right
 
 section gcd_monoid
-variables [comm_cancel_monoid_with_zero α] [nontrivial α]
+variables [comm_cancel_monoid_with_zero α]
 
 @[simp] theorem normalize_gcd [normalized_gcd_monoid α] : ∀a b:α, normalize (gcd a b) = gcd a b :=
 normalized_gcd_monoid.normalize_gcd
@@ -496,6 +501,8 @@ theorem exists_associated_pow_of_mul_eq_pow [gcd_monoid α] {a b c : α}
   (hab : is_unit (gcd a b)) {k : ℕ}
   (h : a * b = c ^ k) : ∃ (d : α), associated (d ^ k) a :=
 begin
+  casesI subsingleton_or_nontrivial α,
+  { use 0, rw [subsingleton.elim a (0 ^ k)] },
   by_cases ha : a = 0,
   { use 0, rw ha,
     obtain (rfl | hk) := k.eq_zero_or_pos,
@@ -703,8 +710,6 @@ section unique_unit
 
 variables [comm_cancel_monoid_with_zero α] [unique (units α)]
 
-variable [nontrivial α]
-
 @[priority 100] -- see Note [lower instance priority]
 instance normalization_monoid_of_unique_units : normalization_monoid α :=
 { norm_unit := λ x, 1,
@@ -748,7 +753,7 @@ noncomputable theory
 
 open associates
 
-variables [comm_cancel_monoid_with_zero α] [nontrivial α]
+variables [comm_cancel_monoid_with_zero α]
 
 private lemma map_mk_unit_aux [decidable_eq α] {f : associates α →* α}
   (hinv : function.right_inverse f associates.mk) (a : α) :
@@ -772,6 +777,7 @@ def normalization_monoid_of_monoid_hom_right_inverse [decidable_eq α] (f : asso
     rw [map_mk_unit_aux hinv a, map_mk_unit_aux hinv (a * b), map_mk_unit_aux hinv b,
         ← monoid_hom.map_mul, associates.mk_mul_mk] },
   norm_unit_coe_units := λ u, by {
+    nontriviality α,
     rw [if_neg (units.ne_zero u), units.ext_iff],
     apply mul_left_cancel₀ (units.ne_zero u),
     rw [units.mul_inv, map_mk_unit_aux hinv u,
@@ -821,7 +827,7 @@ noncomputable def normalized_gcd_monoid_of_gcd [normalization_monoid α] [decida
           ((gcd_dvd_left a b).trans (dvd.intro b rfl))),
   normalize_lcm := λ a b, by {
     split_ifs with a0,
-    { exact @normalize_zero α _ _ _ },
+    { exact @normalize_zero α _ _ },
     { have := (classical.some_spec (dvd_normalize_iff.2
                   ((gcd_dvd_left a b).trans (dvd.intro b rfl)))).symm,
       set l := classical.some (dvd_normalize_iff.2
@@ -833,7 +839,7 @@ noncomputable def normalized_gcd_monoid_of_gcd [normalization_monoid α] [decida
           rw [←zero_dvd_iff, ←ha],
           exact gcd_dvd_left _ _ },
         { rw hl,
-          exact @normalize_zero α _ _ _ } },
+          exact @normalize_zero α _ _ } },
       have h1 : gcd a b ≠ 0,
       { have hab : a * b ≠ 0 := mul_ne_zero a0 hb,
         contrapose! hab,

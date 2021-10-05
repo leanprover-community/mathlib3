@@ -274,8 +274,10 @@ variables (g : polynomial R) (pb : _root_.power_basis R S)
 /-- If `S` is an extension of `R` with power basis `pb` and `g` is a monic polynomial over `R`
 such that `pb.gen` has a minimal polynomial `g`, then `S` is isomorphic to `adjoin_root g`.
 
-Compare `power_basis.equiv'`, which would require `h₂ : aeval pb.gen (minpoly R (root g)) = 0`;
-that minimal polynomial is not guaranteed to be identical to `g`. -/
+Compare `power_basis.equiv_of_root`, which would require
+`h₂ : aeval pb.gen (minpoly R (root g)) = 0`; that minimal polynomial is not
+guaranteed to be identical to `g`. -/
+@[simps]
 def equiv' (h₁ : aeval (root g) (minpoly R pb.gen) = 0) (h₂ : aeval pb.gen g = 0) :
   adjoin_root g ≃ₐ[R] S :=
 { to_fun := adjoin_root.lift_hom g pb.gen h₂,
@@ -286,6 +288,16 @@ def equiv' (h₁ : aeval (root g) (minpoly R pb.gen) = 0) (h₂ : aeval pb.gen g
     rw [pb.lift_aeval, aeval_eq, lift_hom_mk]
   end,
   .. adjoin_root.lift_hom g pb.gen h₂ }
+
+@[simp] lemma equiv'_to_alg_hom
+  (h₁ : aeval (root g) (minpoly R pb.gen) = 0) (h₂ : aeval pb.gen g = 0) :
+  (equiv' g pb h₁ h₂).to_alg_hom = adjoin_root.lift_hom g pb.gen h₂ :=
+rfl
+
+@[simp] lemma equiv'_symm_to_alg_hom
+  (h₁ : aeval (root g) (minpoly R pb.gen) = 0) (h₂ : aeval pb.gen g = 0) :
+  (equiv' g pb h₁ h₂).symm.to_alg_hom = pb.lift (root g) h₁ :=
+rfl
 
 end integral_domain
 

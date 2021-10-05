@@ -105,8 +105,7 @@ have h0 : (0:F) ∈ closure S, from ring_closure_subset $
     classical, by_cases hp0 : p = 0, by simp [hp0, h0],
     exact ⟨q, hq, p, hp, inv_div.symm⟩
   end,
-  ..closure.is_submonoid
-   }
+  ..closure.is_submonoid }
 
 theorem mem_closure {a : F} (ha : a ∈ S) : a ∈ closure S :=
 ring_closure_subset $ ring.mem_closure ha

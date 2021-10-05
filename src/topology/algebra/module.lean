@@ -24,7 +24,7 @@ Continuous linear equivalences are denoted by `M ≃L[R] M₂`.
 -/
 
 open filter
-open_locale topological_space big_operators
+open_locale topological_space big_operators filter
 
 universes u v w u'
 
@@ -33,12 +33,55 @@ section
 variables {R : Type*} {M : Type*}
 [ring R] [topological_space R]
 [topological_space M] [add_comm_group M]
+[module R M]
+
+lemma has_continuous_smul.of_nhds_zero [topological_ring R] [topological_add_group M]
+  (hmul : tendsto (λ p : R × M, p.1 • p.2) (𝓝 0 ×ᶠ (𝓝 0)) (𝓝 0))
+  (hmulleft : ∀ m : M, tendsto (λ a : R, a • m) (𝓝 0) (𝓝 0))
+  (hmulright : ∀ a : R, tendsto (λ m : M, a • m) (𝓝 0) (𝓝 0)) : has_continuous_smul R M :=
+⟨begin
+  rw continuous_iff_continuous_at,
+  rintros ⟨a₀, m₀⟩,
+  have key : ∀ p : R × M,
+    p.1 • p.2 = a₀ • m₀ + ((p.1 - a₀) • m₀ + a₀ • (p.2 - m₀) + (p.1 - a₀) • (p.2 - m₀)),
+  { rintro ⟨a, m⟩,
+    simp [sub_smul, smul_sub],
+    abel },
+  rw funext key, clear key,
+  refine tendsto_const_nhds.add (tendsto.add (tendsto.add _ _) _),
+  { rw [sub_self, zero_smul],
+    apply (hmulleft m₀).comp,
+    rw [show (λ p : R × M, p.1 - a₀) = (λ a, a - a₀) ∘ prod.fst, by {ext, refl }, nhds_prod_eq],
+    have : tendsto (λ a, a - a₀) (𝓝 a₀) (𝓝 0),
+    { rw ← sub_self a₀,
+      exact tendsto_id.sub tendsto_const_nhds },
+    exact this.comp tendsto_fst  },
+  { rw [sub_self, smul_zero],
+    apply (hmulright a₀).comp,
+    rw [show (λ p : R × M, p.2 - m₀) = (λ m, m - m₀) ∘ prod.snd, by {ext, refl }, nhds_prod_eq],
+    have : tendsto (λ m, m - m₀) (𝓝 m₀) (𝓝 0),
+    { rw ← sub_self m₀,
+      exact tendsto_id.sub tendsto_const_nhds },
+    exact this.comp tendsto_snd },
+  { rw [sub_self, zero_smul, nhds_prod_eq,
+        show (λ p : R × M, (p.fst - a₀) • (p.snd - m₀)) =
+             (λ  p : R × M, p.1 • p.2) ∘ (prod.map (λ a, a - a₀) (λ m, m - m₀)), by { ext, refl }],
+    apply hmul.comp (tendsto.prod_map _ _);
+    { rw ← sub_self ,
+      exact tendsto_id.sub tendsto_const_nhds } },
+end⟩
+end
+
+section
+variables {R : Type*} {M : Type*}
+[ring R] [topological_space R]
+[topological_space M] [add_comm_group M] [has_continuous_add M]
 [module R M] [has_continuous_smul R M]
 
 /-- If `M` is a topological module over `R` and `0` is a limit of invertible elements of `R`, then
 `⊤` is the only submodule of `M` with a nonempty interior.
 This is the case, e.g., if `R` is a nondiscrete normed field. -/
-lemma submodule.eq_top_of_nonempty_interior' [has_continuous_add M]
+lemma submodule.eq_top_of_nonempty_interior'
   [ne_bot (𝓝[{x : R | is_unit x}] 0)]
   (s : submodule R M) (hs : (interior (s:set M)).nonempty) :
   s = ⊤ :=
@@ -54,6 +97,30 @@ begin
     with ⟨_, hu, u, rfl⟩,
   have hy' : y ∈ ↑s := mem_of_mem_nhds hy,
   exact (s.smul_mem_iff' _).1 ((s.add_mem_iff_right hy').1 hu)
+end
+
+variables (R M)
+
+/-- Let `R` be a topological ring such that zero is not an isolated point (e.g., a nondiscrete
+normed field, see `normed_field.punctured_nhds_ne_bot`). Let `M` be a nontrivial module over `R`
+such that `c • x = 0` implies `c = 0 ∨ x = 0`. Then `M` has no isolated points. We formulate this
+using `ne_bot (𝓝[{x}ᶜ] x)`.
+
+This lemma is not an instance because Lean would need to find `[has_continuous_smul ?m_1 M]` with
+unknown `?m_1`. We register this as an instance for `R = ℝ` in `real.punctured_nhds_module_ne_bot`.
+One can also use `haveI := module.punctured_nhds_ne_bot R M` in a proof.
+-/
+lemma module.punctured_nhds_ne_bot [nontrivial M] [ne_bot (𝓝[{0}ᶜ] (0 : R))]
+  [no_zero_smul_divisors R M] (x : M) :
+  ne_bot (𝓝[{x}ᶜ] x) :=
+begin
+  rcases exists_ne (0 : M) with ⟨y, hy⟩,
+  suffices : tendsto (λ c : R, x + c • y) (𝓝[{0}ᶜ] 0) (𝓝[{x}ᶜ] x), from this.ne_bot,
+  refine tendsto.inf _ (tendsto_principal_principal.2 $ _),
+  { convert tendsto_const_nhds.add ((@tendsto_id R _).smul_const y),
+    rw [zero_smul, add_zero] },
+  { intros c hc,
+    simpa [hy] using hc }
 end
 
 end
@@ -137,7 +204,7 @@ structure continuous_linear_map
   (M : Type*) [topological_space M] [add_comm_monoid M]
   (M₂ : Type*) [topological_space M₂] [add_comm_monoid M₂]
   [module R M] [module R M₂]
-  extends linear_map R M M₂ :=
+  extends M →ₗ[R] M₂ :=
 (cont : continuous to_fun . tactic.interactive.continuity')
 
 notation M ` →L[`:25 R `] ` M₂ := continuous_linear_map R M M₂
@@ -151,7 +218,7 @@ structure continuous_linear_equiv
   (M : Type*) [topological_space M] [add_comm_monoid M]
   (M₂ : Type*) [topological_space M₂] [add_comm_monoid M₂]
   [module R M] [module R M₂]
-  extends linear_equiv R M M₂ :=
+  extends M ≃ₗ[R] M₂ :=
 (continuous_to_fun  : continuous to_fun . tactic.interactive.continuity')
 (continuous_inv_fun : continuous inv_fun . tactic.interactive.continuity')
 
@@ -247,7 +314,7 @@ contained in the `topological_closure` of its image. -/
 lemma _root_.submodule.topological_closure_map [topological_space R] [has_continuous_smul R M]
   [has_continuous_add M] [has_continuous_smul R M₂] [has_continuous_add M₂] (f : M →L[R] M₂)
   (s : submodule R M) :
-  (s.topological_closure.map ↑f) ≤ (s.map (f : M →ₗ[R] M₂)).topological_closure :=
+  (s.topological_closure.map (f : M →ₗ[R] M₂)) ≤ (s.map (f : M →ₗ[R] M₂)).topological_closure :=
 image_closure_subset_closure_image f.continuous
 
 /-- Under a dense continuous linear map, a submodule whose `topological_closure` is `⊤` is sent to
@@ -357,10 +424,12 @@ end add
 
 /-- Composition of bounded linear maps. -/
 def comp (g : M₂ →L[R] M₃) (f : M →L[R] M₂) : M →L[R] M₃ :=
-⟨(g : M₂ →ₗ[R] M₃).comp f, g.2.comp f.2⟩
+⟨(g : M₂ →ₗ[R] M₃) ∘ₗ ↑f, g.2.comp f.2⟩
 
-@[simp, norm_cast] lemma coe_comp : ((h.comp f) : (M →ₗ[R] M₃)) = (h : M₂ →ₗ[R] M₃).comp f := rfl
+@[simp, norm_cast] lemma coe_comp : ((h.comp f) : (M →ₗ[R] M₃)) = (h : M₂ →ₗ[R] M₃) ∘ₗ ↑f := rfl
 @[simp, norm_cast] lemma coe_comp' : ((h.comp f) : (M → M₃)) = (h : M₂ → M₃) ∘ f := rfl
+
+lemma comp_apply (g : M₂ →L[R] M₃) (f : M →L[R] M₂) (x : M) : (g.comp f) x = g (f x) := rfl
 
 @[simp] theorem comp_id : f.comp (id R M) = f :=
 ext $ λ x, rfl
@@ -1188,7 +1257,7 @@ def skew_prod (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) (f : M →L[R] M₄)
   continuous_inv_fun := (e.continuous_inv_fun.comp continuous_fst).prod_mk
     (e'.continuous_inv_fun.comp $ continuous_snd.sub $ f.continuous.comp $
       e.continuous_inv_fun.comp continuous_fst),
-.. e.to_linear_equiv.skew_prod e'.to_linear_equiv ↑f  }
+.. e.to_linear_equiv.skew_prod e'.to_linear_equiv ↑f }
 @[simp] lemma skew_prod_apply (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) (f : M →L[R] M₄) (x) :
   e.skew_prod e' f x = (e x.1, e' x.2 + f x.1) := rfl
 

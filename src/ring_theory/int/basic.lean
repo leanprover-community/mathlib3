@@ -3,7 +3,7 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker, Aaron Anderson
 -/
-import ring_theory.coprime
+import ring_theory.coprime.basic
 import ring_theory.unique_factorization_domain
 
 /-!
@@ -39,7 +39,7 @@ begin
       cases p, { exfalso, apply h.ne_one rfl },
       exact (add_le_add_right (zero_le p) 2 : _ ) },
     { cases hm with n hn,
-      cases h.2.2 m n (hn ▸ dvd_refl _) with hpm hpn,
+      cases h.2.2 m n (hn ▸ dvd_rfl) with hpm hpn,
       { right, apply nat.dvd_antisymm (dvd.intro _ hn.symm) hpm },
       { left,
         cases n, { exfalso, rw [hn, mul_zero] at h, apply h.ne_zero rfl },
@@ -184,8 +184,8 @@ begin
     obtain ⟨p, ⟨hp, ha, hb⟩⟩ := nat.prime.not_coprime_iff_dvd.mp hg,
     apply nat.prime.not_dvd_one hp,
     rw [←coe_nat_dvd, int.coe_nat_one, ← h],
-    exact dvd_add (dvd_mul_of_dvd_right (coe_nat_dvd_left.mpr ha) _)
-      (dvd_mul_of_dvd_right (coe_nat_dvd_left.mpr hb) _) }
+    exact dvd_add ((coe_nat_dvd_left.mpr ha).mul_left _)
+      ((coe_nat_dvd_left.mpr hb).mul_left _) }
 end
 
 lemma coprime_iff_nat_coprime {a b : ℤ} : is_coprime a b ↔ nat.coprime a.nat_abs b.nat_abs :=
@@ -296,13 +296,13 @@ end
 
 open unique_factorization_monoid
 
-theorem nat.factors_eq {n : ℕ} : factors n = n.factors :=
+theorem nat.factors_eq {n : ℕ} : normalized_factors n = n.factors :=
 begin
   cases n, { simp },
   rw [← multiset.rel_eq, ← associated_eq_eq],
-  apply factors_unique (irreducible_of_factor) _,
+  apply factors_unique (irreducible_of_normalized_factor) _,
   { rw [multiset.coe_prod, nat.prod_factors (nat.succ_pos _)],
-    apply factors_prod (nat.succ_ne_zero _) },
+    apply normalized_factors_prod (nat.succ_ne_zero _) },
   { apply_instance },
   { intros x hx,
     rw [nat.irreducible_iff_prime, ← nat.prime_iff],
@@ -311,10 +311,11 @@ end
 
 lemma nat.factors_multiset_prod_of_irreducible
   {s : multiset ℕ} (h : ∀ (x : ℕ), x ∈ s → irreducible x) :
-  unique_factorization_monoid.factors (s.prod) = s :=
+  normalized_factors (s.prod) = s :=
 begin
   rw [← multiset.rel_eq, ← associated_eq_eq],
-  apply (unique_factorization_monoid.factors_unique irreducible_of_factor h (factors_prod _)),
+  apply unique_factorization_monoid.factors_unique irreducible_of_normalized_factor h
+    (normalized_factors_prod _),
   rw [ne.def, multiset.prod_eq_zero_iff],
   intro con,
   exact not_irreducible_zero (h 0 con),
@@ -349,7 +350,7 @@ begin
 end
 
 lemma int.associated_nat_abs (k : ℤ) : associated k k.nat_abs :=
-associated_of_dvd_dvd (int.coe_nat_dvd_right.mpr (dvd_refl _)) (int.nat_abs_dvd.mpr (dvd_refl _))
+associated_of_dvd_dvd (int.coe_nat_dvd_right.mpr dvd_rfl) (int.nat_abs_dvd.mpr dvd_rfl)
 
 lemma int.prime_iff_nat_abs_prime {k : ℤ} : prime k ↔ nat.prime k.nat_abs :=
 (int.associated_nat_abs k).prime_iff.trans nat.prime_iff_prime_int.symm

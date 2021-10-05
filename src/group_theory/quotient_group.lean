@@ -6,6 +6,7 @@ Authors: Kevin Buzzard, Patrick Massot
 This file is to a certain extent based on `quotient_module.lean` by Johannes Hölzl.
 -/
 import group_theory.coset
+import data.setoid.basic
 
 /-!
 # Quotients of groups by normal subgroups
@@ -263,6 +264,13 @@ def quotient_ker_equiv_of_right_inverse (ψ : H → G) (hφ : function.right_inv
   right_inv := hφ,
   .. ker_lift φ }
 
+/-- The canonical isomorphism `G/⊥ ≃* G`. -/
+@[to_additive quotient_add_group.quotient_ker_equiv_of_right_inverse
+"The canonical isomorphism `G/⊥ ≃+ G`.",
+  simps]
+def quotient_bot : quotient (⊥ : subgroup G) ≃* G :=
+quotient_ker_equiv_of_right_inverse (monoid_hom.id G) id (λ x, rfl)
+
 /-- The canonical isomorphism `G/(ker φ) ≃* H` induced by a surjection `φ : G →* H`.
 
 For a `computable` version, see `quotient_group.quotient_ker_equiv_of_right_inverse`.
@@ -404,5 +412,20 @@ monoid_hom.to_mul_equiv
   (by { ext, simp })
 
 end third_iso_thm
+
+
+section trivial
+
+lemma subsingleton_quotient_top : subsingleton (quotient_group.quotient (⊤ : subgroup G)) :=
+trunc.subsingleton
+
+/-- If the quotient by a subgroup gives a singleton then the subgroup is the whole group. -/
+lemma subgroup_eq_top_of_subsingleton (H : subgroup G)
+  (h : subsingleton (quotient_group.quotient H)) : H = ⊤ :=
+top_unique $ λ x _,
+  have this : 1⁻¹ * x ∈ H := quotient_group.eq.1 (subsingleton.elim _ _),
+  by rwa [one_inv, one_mul] at this
+
+end trivial
 
 end quotient_group

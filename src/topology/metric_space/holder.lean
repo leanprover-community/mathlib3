@@ -23,7 +23,7 @@ properties of Hölder continuous functions.
 
 We use the type `ℝ≥0` (a.k.a. `nnreal`) for `C` because this type has coercion both to `ℝ` and
 `ℝ≥0∞`, so it can be easily used both in inequalities about `dist` and `edist`. We also use `ℝ≥0`
-for `r` to ensure that `d ^ r` is monotonically increasing in `d`. It might be a good idea to use
+for `r` to ensure that `d ^ r` is monotone in `d`. It might be a good idea to use
 `ℝ>0` for `r` but we don't have this type in `mathlib` (yet).
 
 ## Tags
@@ -56,7 +56,7 @@ def holder_on_with (C r : ℝ≥0) (f : X → Y) (s : set X) : Prop :=
 λ x hx, hx.elim
 
 @[simp] lemma holder_on_with_singleton (C r : ℝ≥0) (f : X → Y) (x : X) : holder_on_with C r f {x} :=
-by { rintro a (rfl : a = x) b (rfl : b = a), rw edist_self, exact zero_le _  }
+by { rintro a (rfl : a = x) b (rfl : b = a), rw edist_self, exact zero_le _ }
 
 lemma set.subsingleton.holder_on_with {s : set X} (hs : s.subsingleton) (C r : ℝ≥0) (f : X → Y) :
   holder_on_with C r f s :=

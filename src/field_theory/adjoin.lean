@@ -530,7 +530,10 @@ lemma card_alg_hom_adjoin_integral (h : is_integral F α) (h_sep : (minpoly F α
   (h_splits : (minpoly F α).splits (algebra_map F K)) :
   @fintype.card (F⟮α⟯ →ₐ[F] K) (fintype_of_alg_hom_adjoin_integral F h) =
     (minpoly F α).nat_degree :=
-by { rw alg_hom.card_of_power_basis, all_goals { rwa [adjoin.power_basis_gen, minpoly_gen h] } }
+begin
+  rw alg_hom.card_of_power_basis;
+    simp only [adjoin.power_basis_dim, adjoin.power_basis_gen, minpoly_gen h, h_sep, h_splits],
+end
 
 end adjoin_integral_element
 

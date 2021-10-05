@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes
 -/
 import data.finset.order
-import linear_algebra.direct_sum_module
+import algebra.direct_sum.module
 import ring_theory.free_comm_ring
 import ring_theory.ideal.operations
 /-!
@@ -562,7 +562,9 @@ by rw [inv, dif_neg hp, classical.some_spec (direct_limit.exists_inv G f hp)]
 protected theorem inv_mul_cancel {p : ring.direct_limit G f} (hp : p ≠ 0) : inv G f p * p = 1 :=
 by rw [_root_.mul_comm, direct_limit.mul_inv_cancel G f hp]
 
-/-- Noncomputable field structure on the direct limit of fields. -/
+/-- Noncomputable field structure on the direct limit of fields.
+See note [reducible non-instances]. -/
+@[reducible]
 protected noncomputable def field [directed_system G (λ i j h, f' i j h)] :
   field (ring.direct_limit G (λ i j h, f' i j h)) :=
 { inv := inv G (λ i j h, f' i j h),

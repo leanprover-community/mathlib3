@@ -193,7 +193,24 @@ begin
   rw fact_iff at *, linarith,
 end
 
-lemma ring_hom.char_p_iff_char_p {K L : Type*} [field K] [field L] (f : K →+* L) (p : ℕ) :
+lemma char_p.neg_one_pow_char [comm_ring R] (p : ℕ) [char_p R p] [fact p.prime] :
+  (-1 : R) ^ p = -1 :=
+begin
+  rw eq_neg_iff_add_eq_zero,
+  nth_rewrite 1 ← one_pow p,
+  rw [← add_pow_char, add_left_neg, zero_pow (fact.out (nat.prime p)).pos],
+end
+
+lemma char_p.neg_one_pow_char_pow [comm_ring R] (p n : ℕ) [char_p R p] [fact p.prime] :
+  (-1 : R) ^ p ^ n = -1 :=
+begin
+  rw eq_neg_iff_add_eq_zero,
+  nth_rewrite 1 ← one_pow (p ^ n),
+  rw [← add_pow_char_pow, add_left_neg, zero_pow (pow_pos (fact.out (nat.prime p)).pos _)],
+end
+
+lemma ring_hom.char_p_iff_char_p {K L : Type*} [division_ring K] [semiring L] [nontrivial L]
+  (f : K →+* L) (p : ℕ) :
   char_p K p ↔ char_p L p :=
 begin
   split;
@@ -213,7 +230,7 @@ def frobenius : R →+* R :=
 { to_fun := λ x, x^p,
   map_one' := one_pow p,
   map_mul' := λ x y, mul_pow x y p,
-  map_zero' := zero_pow (lt_trans zero_lt_one (fact.out (nat.prime p)).one_lt),
+  map_zero' := zero_pow (fact.out (nat.prime p)).pos,
   map_add' := add_pow_char R }
 
 variable {R}

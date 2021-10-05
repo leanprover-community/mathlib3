@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import algebra.gcd_monoid.finset
-import data.polynomial
+import data.polynomial.field_division
 import data.polynomial.erase_lead
 import data.polynomial.cancel_leads
 
@@ -199,7 +199,7 @@ begin
 end
 
 lemma C_content_dvd (p : polynomial R) : C p.content ∣ p :=
-dvd_content_iff_C_dvd.1 (dvd_refl _)
+dvd_content_iff_C_dvd.1 dvd_rfl
 
 lemma is_primitive_iff_content_eq_one {p : polynomial R} : p.is_primitive ↔ p.content = 1 :=
 begin
@@ -235,7 +235,7 @@ begin
   by_cases h : p = 0, { simp [h] },
   rw ← content_eq_zero_iff at h,
   rw is_primitive_iff_content_eq_one,
-  apply mul_left_cancel' h,
+  apply mul_left_cancel₀ h,
   conv_rhs { rw [p.eq_C_content_mul_prim_part, mul_one, content_C_mul, normalize_content] }
 end
 
@@ -265,7 +265,7 @@ begin
     by rw [← ring_hom.map_mul, units.inv_mul, C_1],
     by rw [← ring_hom.map_mul, units.mul_inv, C_1]⟩, _⟩,
   rw [← normalize_eq_zero, ← C_eq_zero] at h0,
-  apply mul_left_cancel' h0,
+  apply mul_left_cancel₀ h0,
   conv_rhs { rw [← content_C, ← (C r).eq_C_content_mul_prim_part], },
   simp only [units.coe_mk, normalize_apply, ring_hom.map_mul],
   rw [mul_assoc, ← ring_hom.map_mul, units.mul_inv, C_1, mul_one],
@@ -335,11 +335,11 @@ begin
       ← content_eq_gcd_leading_coeff_content_erase_lead, content_prim_part],
   { rw [← heq, degree_mul, with_bot.add_lt_add_iff_right],
     { apply degree_erase_lt p.prim_part_ne_zero },
-    { rw [bot_lt_iff_ne_bot, ne.def, degree_eq_bot],
+    { rw [ne.def, degree_eq_bot],
       apply q.prim_part_ne_zero } },
   { rw [mul_comm, ← heq, degree_mul, with_bot.add_lt_add_iff_left],
     { apply degree_erase_lt q.prim_part_ne_zero },
-    { rw [bot_lt_iff_ne_bot, ne.def, degree_eq_bot],
+    { rw [ne.def, degree_eq_bot],
       apply p.prim_part_ne_zero } }
 end
 
@@ -352,7 +352,7 @@ theorem prim_part_mul {p q : polynomial R} (h0 : p * q ≠ 0) :
   (p * q).prim_part = p.prim_part * q.prim_part :=
 begin
   rw [ne.def, ← content_eq_zero_iff, ← C_eq_zero] at h0,
-  apply mul_left_cancel' h0,
+  apply mul_left_cancel₀ h0,
   conv_lhs { rw [← (p * q).eq_C_content_mul_prim_part,
     p.eq_C_content_mul_prim_part, q.eq_C_content_mul_prim_part] },
   rw [content_mul, ring_hom.map_mul],

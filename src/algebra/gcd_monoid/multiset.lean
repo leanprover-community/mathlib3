@@ -3,8 +3,8 @@ Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
+import algebra.gcd_monoid.basic
 import data.multiset.lattice
-import algebra.gcd_monoid
 
 /-!
 # GCD and LCM operations on multisets
@@ -39,7 +39,8 @@ fold_zero _ _
   (a ::ₘ s).lcm = gcd_monoid.lcm a s.lcm :=
 fold_cons_left _ _ _ _
 
-@[simp] lemma lcm_singleton {a : α} : (a ::ₘ 0).lcm = normalize a := by simp
+@[simp] lemma lcm_singleton {a : α} : ({a} : multiset α).lcm = normalize a :=
+(fold_singleton _ _ _).trans $ lcm_one_right _
 
 @[simp] lemma lcm_add (s₁ s₂ : multiset α) : (s₁ + s₂).lcm = gcd_monoid.lcm s₁.lcm s₂.lcm :=
 eq.trans (by simp [lcm]) (fold_add _ _ _ _ _)
@@ -49,7 +50,7 @@ multiset.induction_on s (by simp)
   (by simp [or_imp_distrib, forall_and_distrib, lcm_dvd_iff] {contextual := tt})
 
 lemma dvd_lcm {s : multiset α} {a : α} (h : a ∈ s) : a ∣ s.lcm :=
-lcm_dvd.1 (dvd_refl _) _ h
+lcm_dvd.1 dvd_rfl _ h
 
 lemma lcm_mono {s₁ s₂ : multiset α} (h : s₁ ⊆ s₂) : s₁.lcm ∣ s₂.lcm :=
 lcm_dvd.2 $ assume b hb, dvd_lcm (h hb)
@@ -94,7 +95,8 @@ fold_zero _ _
   (a ::ₘ s).gcd = gcd_monoid.gcd a s.gcd :=
 fold_cons_left _ _ _ _
 
-@[simp] lemma gcd_singleton {a : α} : (a ::ₘ 0).gcd = normalize a := by simp
+@[simp] lemma gcd_singleton {a : α} : ({a} : multiset α).gcd = normalize a :=
+(fold_singleton _ _ _).trans $ gcd_zero_right _
 
 @[simp] lemma gcd_add (s₁ s₂ : multiset α) : (s₁ + s₂).gcd = gcd_monoid.gcd s₁.gcd s₂.gcd :=
 eq.trans (by simp [gcd]) (fold_add _ _ _ _ _)
@@ -104,7 +106,7 @@ multiset.induction_on s (by simp)
   (by simp [or_imp_distrib, forall_and_distrib, dvd_gcd_iff] {contextual := tt})
 
 lemma gcd_dvd {s : multiset α} {a : α} (h : a ∈ s) : s.gcd ∣ a :=
-dvd_gcd.1 (dvd_refl _) _ h
+dvd_gcd.1 dvd_rfl _ h
 
 lemma gcd_mono {s₁ s₂ : multiset α} (h : s₁ ⊆ s₂) : s₂.gcd ∣ s₁.gcd :=
 dvd_gcd.2 $ assume b hb, gcd_dvd (h hb)

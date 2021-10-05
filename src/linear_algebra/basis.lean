@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp
 -/
 import algebra.big_operators.finsupp
+import algebra.big_operators.finprod
 import data.fintype.card
 import linear_algebra.finsupp
 import linear_algebra.linear_independent
@@ -157,14 +158,41 @@ with respect to the basis `b`.
 finite-dimensional spaces it is the `ι`th basis vector of the dual space.
 -/
 @[simps]
-def coord (i : ι) : M →ₗ[R] R :=
-(finsupp.lapply i).comp b.repr
+def coord : M →ₗ[R] R := (finsupp.lapply i) ∘ₗ ↑b.repr
 
 lemma forall_coord_eq_zero_iff {x : M} :
   (∀ i, b.coord i x = 0) ↔ x = 0 :=
 iff.trans
   (by simp only [b.coord_apply, finsupp.ext_iff, finsupp.zero_apply])
   b.repr.map_eq_zero_iff
+
+/-- The sum of the coordinates of an element `m : M` with respect to a basis. -/
+noncomputable def sum_coords : M →ₗ[R] R :=
+finsupp.lsum ℕ (λ i, linear_map.id) ∘ₗ (b.repr : M →ₗ[R] ι →₀ R)
+
+@[simp] lemma coe_sum_coords : (b.sum_coords : M → R) = λ m, (b.repr m).sum (λ i, id) :=
+rfl
+
+lemma coe_sum_coords_eq_finsum : (b.sum_coords : M → R) = λ m, ∑ᶠ i, b.coord i m :=
+begin
+  ext m,
+  simp only [basis.sum_coords, basis.coord, finsupp.lapply_apply, linear_map.id_coe,
+    linear_equiv.coe_coe, function.comp_app, finsupp.coe_lsum, linear_map.coe_comp,
+    finsum_eq_sum _ (b.repr m).finite_support, finsupp.sum, finset.finite_to_set_to_finset,
+    id.def, finsupp.fun_support_eq],
+end
+
+@[simp] lemma coe_sum_coords_of_fintype [fintype ι] : (b.sum_coords : M → R) = ∑ i, b.coord i :=
+begin
+  ext m,
+  simp only [sum_coords, finsupp.sum_fintype, linear_map.id_coe, linear_equiv.coe_coe, coord_apply,
+    id.def, fintype.sum_apply, implies_true_iff, eq_self_iff_true, finsupp.coe_lsum,
+    linear_map.coe_comp],
+end
+
+@[simp] lemma sum_coords_self_apply : b.sum_coords (b i) = 1 :=
+by simp only [basis.sum_coords, linear_map.id_coe, linear_equiv.coe_coe, id.def, basis.repr_self,
+  function.comp_app, finsupp.coe_lsum, linear_map.coe_comp, finsupp.sum_single_index]
 
 end coord
 
@@ -213,8 +241,8 @@ begin
   let f_i : M →ₗ[R] R :=
   { to_fun := λ x, f x i,
     map_add' := λ _ _, by rw [hadd, pi.add_apply],
-    map_smul' := λ _ _, by rw [hsmul, pi.smul_apply] },
-  have : (finsupp.lapply i).comp ↑b.repr = f_i,
+    map_smul' := λ _ _, by { simp [hsmul, pi.smul_apply] } },
+  have : (finsupp.lapply i) ∘ₗ ↑b.repr = f_i,
   { refine b.ext (λ j, _),
     show b.repr (b j) i = f (b j) i,
     rw [b.repr_self, f_eq] },
@@ -246,6 +274,35 @@ of_repr (f.symm.trans b.repr)
 @[simp] lemma map_apply (i) : b.map f i = f (b i) := rfl
 
 end map
+
+section map_coeffs
+
+variables {R' : Type*} [semiring R'] [module R' M] (f : R ≃+* R') (h : ∀ c (x : M), f c • x = c • x)
+
+include f h b
+
+/-- If `R` and `R'` are isomorphic rings that act identically on a module `M`,
+then a basis for `M` as `R`-module is also a basis for `M` as `R'`-module.
+
+See also `basis.algebra_map_coeffs` for the case where `f` is equal to `algebra_map`.
+-/
+@[simps {simp_rhs := tt}]
+def map_coeffs : basis ι R' M :=
+begin
+  letI : module R' R := module.comp_hom R (↑f.symm : R' →+* R),
+  haveI : is_scalar_tower R' R M :=
+  { smul_assoc := λ x y z, begin dsimp [(•)],  rw [mul_smul, ←h, f.apply_symm_apply], end },
+  exact (of_repr $ (b.repr.restrict_scalars R').trans $
+    finsupp.map_range.linear_equiv (module.comp_hom.to_linear_equiv f.symm).symm )
+end
+
+lemma map_coeffs_apply (i : ι) : b.map_coeffs f h i = b i :=
+apply_eq_iff.mpr $ by simp [f.to_add_equiv_eq_coe]
+
+@[simp] lemma coe_map_coeffs : (b.map_coeffs f h : ι → M) = b :=
+funext $ b.map_coeffs_apply f h
+
+end map_coeffs
 
 section reindex
 
@@ -389,6 +446,13 @@ by { rw [← b.total_repr x, finsupp.total_apply, finsupp.sum],
 protected lemma span_eq : span R (range b) = ⊤ :=
 eq_top_iff.mpr $ λ x _, b.mem_span x
 
+lemma index_nonempty (b : basis ι R M) [nontrivial M] : nonempty ι :=
+begin
+  obtain ⟨x, y, ne⟩ : ∃ (x y : M), x ≠ y := nontrivial.exists_pair_ne,
+  obtain ⟨i, _⟩ := not_forall.mp (mt b.ext_elem ne),
+  exact ⟨i⟩
+end
+
 section constr
 
 variables (S : Type*) [semiring S] [module S M']
@@ -403,7 +467,7 @@ you can recover an `add_equiv` by setting `S := ℕ`.
 See library note [bundled maps over different rings].
 -/
 def constr : (ι → M') ≃ₗ[S] (M →ₗ[R] M') :=
-{ to_fun := λ f, (finsupp.total M' M' R id).comp $ (finsupp.lmap_domain R R f).comp b.repr,
+{ to_fun := λ f, (finsupp.total M' M' R id).comp $ (finsupp.lmap_domain R R f) ∘ₗ ↑b.repr,
   inv_fun := λ f i, f (b i),
   left_inv := λ f, by { ext, simp },
   right_inv := λ f, by { refine b.ext (λ i, _), simp },
@@ -411,7 +475,7 @@ def constr : (ι → M') ≃ₗ[S] (M →ₗ[R] M') :=
   map_smul' := λ c f, by { refine b.ext (λ i, _), simp } }
 
 theorem constr_def (f : ι → M') :
-  b.constr S f = (finsupp.total M' M' R id).comp ((finsupp.lmap_domain R R f).comp b.repr) :=
+  b.constr S f = (finsupp.total M' M' R id) ∘ₗ ((finsupp.lmap_domain R R f) ∘ₗ ↑b.repr) :=
 rfl
 
 theorem constr_apply (f : ι → M') (x : M) :
@@ -594,7 +658,7 @@ begin
         map_add' := λ y z, _,
         map_smul' := λ c y, _ }⟩,
     { rw [finsupp.add_apply, add_smul] },
-    { rw [finsupp.smul_apply, smul_assoc] },
+    { rw [finsupp.smul_apply, smul_assoc], simp },
     { refine smul_left_injective _ nz _,
       simp only [finsupp.single_eq_same],
       exact (w (f (default ι) • x)).some_spec },
@@ -630,10 +694,10 @@ variables [fintype ι] (b : basis ι R M)
 -/
 def basis.equiv_fun : M ≃ₗ[R] (ι → R) :=
 linear_equiv.trans b.repr
-  { to_fun := coe_fn,
-    map_add' := finsupp.coe_add,
-    map_smul' := finsupp.coe_smul,
-    ..finsupp.equiv_fun_on_fintype }
+  ({ to_fun := coe_fn,
+     map_add' := finsupp.coe_add,
+     map_smul' := finsupp.coe_smul,
+     ..finsupp.equiv_fun_on_fintype } : (ι →₀ R) ≃ₗ[R] (ι → R))
 
 /-- A module over a finite ring that admits a finite basis is finite. -/
 def module.fintype_of_fintype [fintype R] : fintype M :=
@@ -885,10 +949,7 @@ units_smul v (λ i, (hw i).unit)
 
 lemma is_unit_smul_apply {v : basis ι R M} {w : ι → R} (hw : ∀ i, is_unit (w i)) (i : ι) :
   v.is_unit_smul hw i = w i • v i :=
-begin
-  convert units_smul_apply i,
-  exact (is_unit.unit_spec (hw i)).symm,
-end
+units_smul_apply i
 
 section fin
 
@@ -1039,7 +1100,7 @@ variables [field K] [add_comm_group V] [add_comm_group V'] [module K V] [module 
 variables {v : ι → V} {s t : set V} {x y z : V}
 
 lemma linear_map.exists_left_inverse_of_injective (f : V →ₗ[K] V')
-  (hf_inj : f.ker = ⊥) : ∃g:V' →ₗ V, g.comp f = linear_map.id :=
+  (hf_inj : f.ker = ⊥) : ∃g:V' →ₗ[K] V, g.comp f = linear_map.id :=
 begin
   let B := basis.of_vector_space_index K V,
   let hB := basis.of_vector_space K V,
@@ -1071,7 +1132,7 @@ instance module.submodule.is_complemented : is_complemented (submodule K V) :=
 ⟨submodule.exists_is_compl⟩
 
 lemma linear_map.exists_right_inverse_of_surjective (f : V →ₗ[K] V')
-  (hf_surj : f.range = ⊤) : ∃g:V' →ₗ V, f.comp g = linear_map.id :=
+  (hf_surj : f.range = ⊤) : ∃g:V' →ₗ[K] V, f.comp g = linear_map.id :=
 begin
   let C := basis.of_vector_space_index K V',
   let hC := basis.of_vector_space K V',

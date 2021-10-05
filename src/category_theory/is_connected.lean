@@ -45,6 +45,7 @@ universes v₁ v₂ u₁ u₂
 noncomputable theory
 
 open category_theory.category
+open opposite
 
 namespace category_theory
 
@@ -193,6 +194,25 @@ lemma is_connected_of_equivalent {K : Type u₁} [category.{v₂} K]
   is_connected K :=
 { is_nonempty := nonempty.map e.functor.obj (by apply_instance),
   to_is_preconnected := is_preconnected_of_equivalent e }
+
+/-- If `J` is preconnected, then `Jᵒᵖ` is preconnected as well. -/
+instance is_preconnected_op [is_preconnected J] : is_preconnected Jᵒᵖ :=
+{ iso_constant := λ α F X, ⟨
+    nat_iso.of_components
+      (λ Y, (nonempty.some $ is_preconnected.iso_constant
+        (F.right_op ⋙ (discrete.opposite α).functor) (unop X)).app (unop Y))
+      (λ Y Z f, subsingleton.elim _ _)
+  ⟩ }
+
+/-- If `J` is connected, then `Jᵒᵖ` is connected as well. -/
+instance is_connected_op [is_connected J] : is_connected Jᵒᵖ :=
+{ is_nonempty := nonempty.intro (op (classical.arbitrary J)) }
+
+lemma is_preconnected_of_is_preconnected_op [is_preconnected Jᵒᵖ] : is_preconnected J :=
+is_preconnected_of_equivalent (op_op_equivalence J)
+
+lemma is_connected_of_is_connected_op [is_connected Jᵒᵖ] : is_connected J :=
+is_connected_of_equivalent (op_op_equivalence J)
 
 /-- j₁ and j₂ are related by `zag` if there is a morphism between them. -/
 @[reducible]

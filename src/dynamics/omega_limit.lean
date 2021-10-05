@@ -123,8 +123,7 @@ begin
   split,
   { intros h _ hn _ hu,
     rcases h _ hu _ hn with ⟨_, _, _, _, ht, hx, hϕtx⟩,
-    exact ⟨_, ht, _, hx, by rwa [mem_preimage, hϕtx]⟩,
-  },
+    exact ⟨_, ht, _, hx, by rwa [mem_preimage, hϕtx]⟩, },
   { intros h _ hu _ hn,
     rcases h _ hn hu with ⟨_, ht, _, hx, hϕtx⟩,
     exact  ⟨_, hϕtx, _, _, ht, hx, rfl⟩ }

@@ -54,7 +54,7 @@ begin
     have h₁ : f m = f (m - n), from sub_eq_zero.mp h_d_eq_zero,
     have h₂ : f (m - n) ∣ f m - f n, from hdvd m n,
     rw ←h₁ at h₂,
-    exact (dvd_iff_dvd_of_dvd_sub h₂).mp (dvd_refl _) },
+    exact (dvd_iff_dvd_of_dvd_sub h₂).mp dvd_rfl },
   { -- m = n
     rw h_fm_eq_fn }
 end

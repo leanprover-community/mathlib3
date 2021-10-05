@@ -54,6 +54,15 @@ lemma char_zero_of_injective_algebra_map {R A : Type*} [comm_semiring R] [semiri
 -- `char_p.char_p_to_char_zero A _ (char_p_of_injective_algebra_map h 0)` does not work
 -- here as it would require `ring A`.
 
+section
+
+variables (K L : Type*) [field K] [comm_semiring L] [nontrivial L] [algebra K L]
+
+lemma algebra.char_p_iff (p : ℕ) : char_p K p ↔ char_p L p :=
+(algebra_map K L).char_p_iff_char_p p
+
+end
+
 namespace free_algebra
 
 variables {R X : Type*} [comm_semiring R] (p : ℕ)

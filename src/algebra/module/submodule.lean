@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
 import algebra.module.linear_map
+import data.equiv.module
 import group_theory.group_action.sub_mul_action
 /-!
 
@@ -53,8 +54,16 @@ iff.rfl
 
 variables {p q : submodule R M}
 
-@[simp] lemma mk_coe (S : set M) (h₁ h₂ h₃) :
+@[simp]
+lemma mem_mk {S : set M} {x : M} (h₁ h₂ h₃) : x ∈ (⟨S, h₁, h₂, h₃⟩ : submodule R M) ↔ x ∈ S :=
+iff.rfl
+
+@[simp] lemma coe_set_mk (S : set M) (h₁ h₂ h₃) :
   ((⟨S, h₁, h₂, h₃⟩ : submodule R M) : set M) = S := rfl
+
+@[simp]
+lemma mk_le_mk {S S' : set M} (h₁ h₂ h₃ h₁' h₂' h₃') :
+  (⟨S, h₁, h₂, h₃⟩ : submodule R M) ≤ (⟨S', h₁', h₂', h₃'⟩ : submodule R M) ↔ S ⊆ S' := iff.rfl
 
 @[ext] theorem ext (h : ∀ x, x ∈ p ↔ x ∈ q) : p = q := set_like.ext h
 
@@ -223,6 +232,14 @@ instance restrict_scalars.orig_module (p : submodule R M) :
 
 instance (p : submodule R M) : is_scalar_tower S R (p.restrict_scalars S) :=
 { smul_assoc := λ r s x, subtype.ext $ smul_assoc r s (x : M) }
+
+/-- `restrict_scalars S` is an embedding of the lattice of `R`-submodules into
+the lattice of `S`-submodules. -/
+@[simps]
+def restrict_scalars_embedding : submodule R M ↪o submodule S M :=
+{ to_fun := restrict_scalars S,
+  inj' := restrict_scalars_injective S R M,
+  map_rel_iff' := λ p q, by simp [set_like.le_def] }
 
 /-- Turning `p : submodule R M` into an `S`-submodule gives the same module structure
 as turning it into a type and adding a module structure. -/

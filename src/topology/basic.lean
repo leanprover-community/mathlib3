@@ -270,6 +270,19 @@ subset.antisymm
   (interior_maximal (inter_subset_inter interior_subset interior_subset) $
     is_open.inter is_open_interior is_open_interior)
 
+@[simp] lemma finset.interior_Inter {ι : Type*} (s : finset ι) (f : ι → set α) :
+  interior (⋂ i ∈ s, f i) = ⋂ i ∈ s, interior (f i) :=
+begin
+  classical,
+  refine s.induction_on (by simp) _,
+  intros i s h₁ h₂,
+  simp [h₂],
+end
+
+@[simp] lemma interior_Inter_of_fintype {ι : Type*} [fintype ι] (f : ι → set α) :
+  interior (⋂ i, f i) = ⋂ i, interior (f i) :=
+by { convert finset.univ.interior_Inter f; simp, }
+
 lemma interior_union_is_closed_of_interior_empty {s t : set α} (h₁ : is_closed s)
   (h₂ : interior t = ∅) :
   interior (s ∪ t) = interior s :=
@@ -362,6 +375,19 @@ subset.antisymm
     is_closed.union is_closed_closure is_closed_closure)
   ((monotone_closure α).le_map_sup s t)
 
+@[simp] lemma finset.closure_Union {ι : Type*} (s : finset ι) (f : ι → set α) :
+  closure (⋃ i ∈ s, f i) = ⋃ i ∈ s, closure (f i) :=
+begin
+  classical,
+  refine s.induction_on (by simp) _,
+  intros i s h₁ h₂,
+  simp [h₂],
+end
+
+@[simp] lemma closure_Union_of_fintype {ι : Type*} [fintype ι] (f : ι → set α) :
+  closure (⋃ i, f i) = ⋃ i, closure (f i) :=
+by { convert finset.univ.closure_Union f; simp, }
+
 lemma interior_subset_closure {s : set α} : interior s ⊆ closure s :=
 subset.trans interior_subset subset_closure
 
@@ -394,6 +420,12 @@ eq_univ_iff_forall.symm
 lemma dense.closure_eq {s : set α} (h : dense s) : closure s = univ :=
 dense_iff_closure_eq.mp h
 
+lemma interior_eq_empty_iff_dense_compl {s : set α} : interior s = ∅ ↔ dense sᶜ :=
+by rw [dense_iff_closure_eq, closure_compl, compl_univ_iff]
+
+lemma dense.interior_compl {s : set α} (h : dense s) : interior sᶜ = ∅ :=
+interior_eq_empty_iff_dense_compl.2 $ by rwa compl_compl
+
 /-- The closure of a set `s` is dense if and only if `s` is dense. -/
 @[simp] lemma dense_closure {s : set α} : dense (closure s) ↔ dense s :=
 by rw [dense, dense, closure_closure]
@@ -417,6 +449,11 @@ end
 
 alias dense_iff_inter_open ↔ dense.inter_open_nonempty _
 
+lemma dense.exists_mem_open {s : set α} (hs : dense s) {U : set α} (ho : is_open U)
+  (hne : U.nonempty) :
+  ∃ x ∈ s, x ∈ U :=
+let ⟨x, hx⟩ := hs.inter_open_nonempty U ho hne in ⟨x, hx.2, hx.1⟩
+
 lemma dense.nonempty_iff {s : set α} (hs : dense s) :
   s.nonempty ↔ nonempty α :=
 ⟨λ ⟨x, hx⟩, ⟨x⟩, λ ⟨x⟩,
@@ -430,7 +467,7 @@ lemma dense.mono {s₁ s₂ : set α} (h : s₁ ⊆ s₂) (hd : dense s₁) : de
 λ x, closure_mono h (hd x)
 
 /-- Complement to a singleton is dense if and only if the singleton is not an open set. -/
-lemma dense_compl_singleton {x : α} : dense ({x}ᶜ : set α) ↔ ¬is_open ({x} : set α) :=
+lemma dense_compl_singleton_iff_not_open {x : α} : dense ({x}ᶜ : set α) ↔ ¬is_open ({x} : set α) :=
 begin
   fsplit,
   { intros hd ho,
@@ -862,6 +899,31 @@ mem_closure_iff_frequently.trans cluster_pt_principal_iff_frequently.symm
 lemma mem_closure_iff_nhds_ne_bot {s : set α} : a ∈ closure s ↔ 𝓝 a ⊓ 𝓟 s ≠ ⊥ :=
 mem_closure_iff_cluster_pt.trans ne_bot_iff
 
+lemma mem_closure_iff_nhds_within_ne_bot {s : set α} {x : α} :
+  x ∈ closure s ↔ ne_bot (𝓝[s] x) :=
+mem_closure_iff_cluster_pt
+
+/-- If `x` is not an isolated point of a topological space, then `{x}ᶜ` is dense in the whole
+space. -/
+lemma dense_compl_singleton (x : α) [ne_bot (𝓝[{x}ᶜ] x)] : dense ({x}ᶜ : set α) :=
+begin
+  intro y,
+  unfreezingI { rcases eq_or_ne y x with rfl|hne },
+  { rwa mem_closure_iff_nhds_within_ne_bot },
+  { exact subset_closure hne }
+end
+
+/-- If `x` is not an isolated point of a topological space, then the closure of `{x}ᶜ` is the whole
+space. -/
+@[simp] lemma closure_compl_singleton (x : α) [ne_bot (𝓝[{x}ᶜ] x)] :
+  closure {x}ᶜ = (univ : set α) :=
+(dense_compl_singleton x).closure_eq
+
+/-- If `x` is not an isolated point of a topological space, then the interior of `{x}ᶜ` is empty. -/
+@[simp] lemma interior_singleton (x : α) [ne_bot (𝓝[{x}ᶜ] x)] :
+  interior {x} = (∅ : set α) :=
+interior_eq_empty_iff_dense_compl.2 (dense_compl_singleton x)
+
 lemma closure_eq_cluster_pts {s : set α} : closure s = {a | cluster_pt a (𝓟 s)} :=
 set.ext $ λ x, mem_closure_iff_cluster_pt
 
@@ -1142,6 +1204,7 @@ lemma cluster_pt.map {x : α} {la : filter α} {lb : filter β} (H : cluster_pt 
   cluster_pt (f x) lb :=
 ⟨ne_bot_of_le_ne_bot ((map_ne_bot_iff f).2 H).ne $ hfc.tendsto.inf hf⟩
 
+/-- See also `interior_preimage_subset_preimage_interior`. -/
 lemma preimage_interior_subset_interior_preimage {f : α → β} {s : set β}
   (hf : continuous f) : f⁻¹' (interior s) ⊆ interior (f⁻¹' s) :=
 interior_maximal (preimage_mono interior_subset) (is_open_interior.preimage hf)
@@ -1260,8 +1323,7 @@ begin
   { intros h x y h',
     simp only [ptendsto'_def, mem_nhds_iff],
     rintros s ⟨t, tsubs, opent, yt⟩,
-    exact ⟨f.preimage t, pfun.preimage_mono _ tsubs, h _ opent, ⟨y, yt, h'⟩⟩
-  },
+    exact ⟨f.preimage t, pfun.preimage_mono _ tsubs, h _ opent, ⟨y, yt, h'⟩⟩ },
   intros hf s os,
   rw is_open_iff_nhds,
   rintros x ⟨y, ys, fxy⟩ t,
@@ -1320,6 +1382,9 @@ dense_iff_closure_eq
 lemma dense_range.closure_range (h : dense_range f) : closure (range f) = univ :=
 h.closure_eq
 
+lemma dense.dense_range_coe {s : set α} (h : dense s) : dense_range (coe : s → α) :=
+by simpa only [dense_range, subtype.range_coe_subtype]
+
 lemma continuous.range_subset_closure_image_dense {f : α → β} (hf : continuous f)
   {s : set α} (hs : dense s) :
   range f ⊆ closure (f '' s) :=
@@ -1360,6 +1425,11 @@ hf.nonempty_iff.mpr h
 /-- Given a function `f : α → β` with dense range and `b : β`, returns some `a : α`. -/
 def dense_range.some (hf : dense_range f) (b : β) : κ :=
 classical.choice $ hf.nonempty_iff.mpr ⟨b⟩
+
+lemma dense_range.exists_mem_open (hf : dense_range f) {s : set β} (ho : is_open s)
+  (hs : s.nonempty) :
+  ∃ a, f a ∈ s :=
+exists_range_iff.1 $ hf.exists_mem_open ho hs
 
 end dense_range
 

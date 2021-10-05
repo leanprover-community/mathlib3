@@ -3,7 +3,7 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker
 -/
-import data.multiset.basic
+import algebra.big_operators.basic
 import algebra.divisibility
 import algebra.invertible
 
@@ -33,7 +33,7 @@ lemma dvd_and_not_dvd_iff [comm_cancel_monoid_with_zero α] {x y : α} :
 ⟨λ ⟨⟨d, hd⟩, hyx⟩, ⟨λ hx0, by simpa [hx0] using hyx, ⟨d,
     mt is_unit_iff_dvd_one.1 (λ ⟨e, he⟩, hyx ⟨e, by rw [hd, mul_assoc, ← he, mul_one]⟩), hd⟩⟩,
   λ ⟨hx0, d, hdu, hdx⟩, ⟨⟨d, hdx⟩, λ ⟨e, he⟩, hdu (is_unit_of_dvd_one _
-    ⟨e, mul_left_cancel' hx0 $ by conv {to_lhs, rw [he, hdx]};simp [mul_assoc]⟩)⟩⟩
+    ⟨e, mul_left_cancel₀ hx0 $ by conv {to_lhs, rw [he, hdx]};simp [mul_assoc]⟩)⟩⟩
 
 lemma pow_dvd_pow_iff [comm_cancel_monoid_with_zero α]
   {x : α} {n m : ℕ} (h0 : x ≠ 0) (h1 : ¬ is_unit x) :
@@ -56,14 +56,18 @@ p ≠ 0 ∧ ¬ is_unit p ∧ (∀a b, p ∣ a * b → p ∣ a ∨ p ∣ b)
 
 namespace prime
 variables {p : α} (hp : prime p)
+include hp
 
-lemma ne_zero (hp : prime p) : p ≠ 0 :=
+lemma ne_zero : p ≠ 0 :=
 hp.1
 
-lemma not_unit (hp : prime p) : ¬ is_unit p :=
+lemma not_unit : ¬ is_unit p :=
 hp.2.1
 
-lemma ne_one (hp : prime p) : p ≠ 1 :=
+lemma not_dvd_one : ¬ p ∣ 1 :=
+mt (is_unit_of_dvd_one _) hp.not_unit
+
+lemma ne_one : p ≠ 1 :=
 λ h, hp.2.1 (h.symm ▸ is_unit_one)
 
 lemma dvd_or_dvd (hp : prime p) {a b : α} (h : p ∣ a * b) :
@@ -84,6 +88,25 @@ begin
   exact ih dvd_pow
 end
 
+lemma exists_mem_multiset_dvd {s : multiset α} :
+  p ∣ s.prod → ∃ a ∈ s, p ∣ a :=
+multiset.induction_on s (λ h, (hp.not_dvd_one h).elim) $
+λ a s ih h,
+  have p ∣ a * s.prod, by simpa using h,
+  match hp.dvd_or_dvd this with
+  | or.inl h := ⟨a, multiset.mem_cons_self a s, h⟩
+  | or.inr h := let ⟨a, has, h⟩ := ih h in ⟨a, multiset.mem_cons_of_mem has, h⟩
+  end
+
+lemma exists_mem_multiset_map_dvd {s : multiset β} {f : β → α} :
+  p ∣ (s.map f).prod → ∃ a ∈ s, p ∣ f a :=
+λ h, by simpa only [exists_prop, multiset.mem_map, exists_exists_and_eq_and]
+  using hp.exists_mem_multiset_dvd h
+
+lemma exists_mem_finset_dvd {s : finset β} {f : β → α} :
+  p ∣ s.prod f → ∃ i ∈ s, p ∣ f i :=
+hp.exists_mem_multiset_map_dvd
+
 end prime
 
 @[simp] lemma not_prime_zero : ¬ prime (0 : α) :=
@@ -92,22 +115,12 @@ end prime
 @[simp] lemma not_prime_one : ¬ prime (1 : α) :=
 λ h, h.not_unit is_unit_one
 
-lemma exists_mem_multiset_dvd_of_prime {s : multiset α} {p : α} (hp : prime p) :
-  p ∣ s.prod → ∃a∈s, p ∣ a :=
-multiset.induction_on s (assume h, (hp.not_unit $ is_unit_of_dvd_one _ h).elim) $
-assume a s ih h,
-  have p ∣ a * s.prod, by simpa using h,
-  match hp.dvd_or_dvd this with
-  | or.inl h := ⟨a, multiset.mem_cons_self a s, h⟩
-  | or.inr h := let ⟨a, has, h⟩ := ih h in ⟨a, multiset.mem_cons_of_mem has, h⟩
-  end
-
 end prime
 
-lemma left_dvd_or_dvd_right_of_dvd_prime_mul [comm_cancel_monoid_with_zero α] {a : α} :
-  ∀ {b p : α}, prime p → a ∣ p * b → p ∣ a ∨ a ∣ b :=
+lemma prime.left_dvd_or_dvd_right_of_dvd_mul [comm_cancel_monoid_with_zero α] {p : α}
+  (hp : prime p) {a b : α} : a ∣ p * b → p ∣ a ∨ a ∣ b :=
 begin
-  rintros b p hp ⟨c, hc⟩,
+  rintro ⟨c, hc⟩,
   rcases hp.2.2 a c (hc ▸ dvd_mul_right _ _) with h | ⟨x, rfl⟩,
   { exact or.inl h },
   { rw [mul_left_comm, mul_right_inj' hp.ne_zero] at hc,
@@ -166,12 +179,12 @@ end
 protected lemma prime.irreducible [comm_cancel_monoid_with_zero α] {p : α} (hp : prime p) :
   irreducible p :=
 ⟨hp.not_unit, λ a b hab,
-  (show a * b ∣ a ∨ a * b ∣ b, from hab ▸ hp.dvd_or_dvd (hab ▸ (dvd_refl _))).elim
+  (show a * b ∣ a ∨ a * b ∣ b, from hab ▸ hp.dvd_or_dvd (hab ▸ dvd_rfl)).elim
     (λ ⟨x, hx⟩, or.inr (is_unit_iff_dvd_one.2
-      ⟨x, mul_right_cancel' (show a ≠ 0, from λ h, by simp [*, prime] at *)
+      ⟨x, mul_right_cancel₀ (show a ≠ 0, from λ h, by simp [*, prime] at *)
         $ by conv {to_lhs, rw hx}; simp [mul_comm, mul_assoc, mul_left_comm]⟩))
     (λ ⟨x, hx⟩, or.inl (is_unit_iff_dvd_one.2
-      ⟨x, mul_right_cancel' (show b ≠ 0, from λ h, by simp [*, prime] at *)
+      ⟨x, mul_right_cancel₀ (show b ≠ 0, from λ h, by simp [*, prime] at *)
         $ by conv {to_lhs, rw hx}; simp [mul_comm, mul_assoc, mul_left_comm]⟩))⟩
 
 lemma succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul [comm_cancel_monoid_with_zero α]
@@ -277,9 +290,9 @@ begin
   have hac0 : a * c ≠ 0,
   { intro con, rw [con, zero_mul] at a_eq, apply ha0 a_eq, },
   have : a * (c * d) =  a * 1 := by rw [← mul_assoc, ← a_eq, mul_one],
-  have hcd : (c * d) = 1, from mul_left_cancel' ha0 this,
+  have hcd : (c * d) = 1, from mul_left_cancel₀ ha0 this,
   have : a * c * (d * c) = a * c * 1 := by rw [← mul_assoc, ← a_eq, mul_one],
-  have hdc : d * c = 1, from mul_left_cancel' hac0 this,
+  have hdc : d * c = 1, from mul_left_cancel₀ hac0 this,
   exact ⟨⟨c, d, hcd, hdc⟩, rfl⟩
 end
 
@@ -355,7 +368,7 @@ protected lemma associated.irreducible_iff [monoid α] {p q : α} (h : p ~ᵤ q)
 lemma associated.of_mul_left [comm_cancel_monoid_with_zero α] {a b c d : α}
   (h : a * b ~ᵤ c * d) (h₁ : a ~ᵤ c) (ha : a ≠ 0) : b ~ᵤ d :=
 let ⟨u, hu⟩ := h in let ⟨v, hv⟩ := associated.symm h₁ in
-⟨u * (v : units α), mul_left_cancel' ha
+⟨u * (v : units α), mul_left_cancel₀ ha
   begin
     rw [← hv, mul_assoc c (v : α) d, mul_left_comm c, ← hu],
     simp [hv.symm, mul_assoc, mul_comm, mul_left_comm]
@@ -696,7 +709,7 @@ begin
   rintros ⟨a⟩ ⟨b⟩ ⟨c⟩ ha h,
   rcases quotient.exact' h with ⟨u, hu⟩,
   have hu : a * (b * ↑u) = a * c, { rwa [← mul_assoc] },
-  exact quotient.sound' ⟨u, mul_left_cancel' (mt mk_eq_zero.2 ha) hu⟩
+  exact quotient.sound' ⟨u, mul_left_cancel₀ (mt mk_eq_zero.2 ha) hu⟩
 end
 
 lemma eq_of_mul_eq_mul_right :
@@ -710,7 +723,7 @@ lemma le_of_mul_le_mul_left (a b c : associates α) (ha : a ≠ 0) :
 lemma one_or_eq_of_le_of_prime :
   ∀(p m : associates α), prime p → m ≤ p → (m = 1 ∨ m = p)
 | _ m ⟨hp0, hp1, h⟩ ⟨d, rfl⟩ :=
-match h m d (dvd_refl _) with
+match h m d dvd_rfl with
 | or.inl h := classical.by_cases (assume : m = 0, by simp [this]) $
   assume : m ≠ 0,
   have m * d ≤ m * 1, by simpa using h,
@@ -735,3 +748,11 @@ dvd_and_not_dvd_iff.symm
 end comm_cancel_monoid_with_zero
 
 end associates
+
+namespace multiset
+
+lemma prod_ne_zero_of_prime [comm_cancel_monoid_with_zero α] [nontrivial α]
+ (s : multiset α) (h : ∀ x ∈ s, prime x) : s.prod ≠ 0 :=
+multiset.prod_ne_zero (λ h0, prime.ne_zero (h 0 h0) rfl)
+
+end multiset

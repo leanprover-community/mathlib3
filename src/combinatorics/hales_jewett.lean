@@ -174,7 +174,7 @@ by simp_rw [line.apply, line.diagonal, option.get_or_else_none]
 for the proof. See `exists_mono_in_high_dimension` for a fully universe-polymorphic version. -/
 private theorem exists_mono_in_high_dimension' :
   ∀ (α : Type u) [fintype α] (κ : Type (max v u)) [fintype κ],
-  ∃ (ι : Type) [fintype ι], ∀ C : (ι → α) → κ, ∃ l : line α ι, l.is_mono C :=
+  ∃ (ι : Type) (_ : fintype ι), ∀ C : (ι → α) → κ, ∃ l : line α ι, l.is_mono C :=
 -- The proof proceeds by induction on `α`.
 fintype.induction_empty_option
 -- We have to show that the theorem is invariant under `α ≃ α'` for the induction to work.
@@ -196,7 +196,7 @@ begin -- Now we have to show that the theorem holds for `option α` if it holds 
     rintros (_ | ⟨a⟩), refl, exact (h ⟨a⟩).elim, },
 -- The key idea is to show that for every `r`, in high dimension we can either find
 -- `r` color focused lines or a monochromatic line.
-  suffices key : ∀ r : ℕ, ∃ (ι : Type) [fintype ι], ∀ C : (ι → (option α)) → κ,
+  suffices key : ∀ r : ℕ, ∃ (ι : Type) (_ : fintype ι), ∀ C : (ι → (option α)) → κ,
     (∃ s : color_focused C, s.lines.card = r) ∨ (∃ l, is_mono C l),
 -- Given the key claim, we simply take `r = |κ| + 1`. We cannot have this many distinct colors so
 -- we must be in the second case, where there is a monochromatic line.

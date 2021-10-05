@@ -79,7 +79,7 @@ def limit_cone (F : J ⥤ Algebra R) : cone F :=
   π :=
   { app := limit_π_alg_hom F,
     naturality' := λ j j' f,
-      alg_hom.coe_fn_inj ((types.limit_cone (F ⋙ forget _)).π.naturality f) } }
+      alg_hom.coe_fn_injective ((types.limit_cone (F ⋙ forget _)).π.naturality f) } }
 
 /--
 Witness that the limit cone in `Algebra R` is a limit cone.
@@ -94,7 +94,7 @@ begin
   { intros x y, simp only [forget_map_eq_coe, alg_hom.map_mul, functor.map_cone_π_app], refl, },
   { simp only [forget_map_eq_coe, alg_hom.map_zero, functor.map_cone_π_app], refl, },
   { intros x y, simp only [forget_map_eq_coe, alg_hom.map_add, functor.map_cone_π_app], refl, },
-  { intros r, ext j, exact (s.π.app j).commutes r,  },
+  { intros r, ext j, exact (s.π.app j).commutes r, },
 end
 
 end has_limits

@@ -37,10 +37,7 @@ lemma support_inf {f g : α →₀ γ} : (f ⊓ g).support = f.support ∩ g.sup
 begin
   ext, simp only [inf_apply, mem_support_iff,  ne.def,
     finset.mem_union, finset.mem_filter, finset.mem_inter],
-  rw [← decidable.not_or_iff_and_not, ← not_congr],
-  rw inf_eq_min, unfold min, split_ifs;
-  { try {apply or_iff_left_of_imp}, try {apply or_iff_right_of_imp}, intro con, rw con at h,
-    revert h, simp, }
+  simp only [inf_eq_min, ← nonpos_iff_eq_zero, min_le_iff, not_or_distrib]
 end
 
 instance [semilattice_sup β] : semilattice_sup (α →₀ β) :=

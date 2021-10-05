@@ -38,14 +38,4 @@ end
 
 end prime
 
-lemma cast_choose {α : Type*} [field α] [char_zero α] {a b : ℕ} (hab : a ≤ b) :
-  (b.choose a : α) = b! / (a! * (b - a)!) :=
-begin
-  rw [eq_comm, div_eq_iff],
-  norm_cast,
-  rw [←mul_assoc, choose_mul_factorial_mul_factorial hab],
-  { exact mul_ne_zero (nat.cast_ne_zero.2 $ factorial_ne_zero _)
-    (nat.cast_ne_zero.2 $ factorial_ne_zero _) }
-end
-
 end nat

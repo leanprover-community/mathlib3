@@ -34,6 +34,12 @@ localized "notation R`⁰`:9000 := non_zero_divisors R" in non_zero_divisors
 
 variables {M M' M₁ : Type*} [monoid_with_zero M] [monoid_with_zero M'] [comm_monoid_with_zero M₁]
 
+lemma non_zero_divisors.ne_zero [nontrivial M] {x} (hx : x ∈ M⁰) : x ≠ 0 :=
+λ h, one_ne_zero (hx _ $ (one_mul _).trans h)
+
+lemma non_zero_divisors.coe_ne_zero [nontrivial M] (x : M⁰) : (x : M) ≠ 0 :=
+non_zero_divisors.ne_zero x.2
+
 lemma mul_mem_non_zero_divisors {a b : M₁} :
   a * b ∈ M₁⁰ ↔ a ∈ M₁⁰ ∧ b ∈ M₁⁰ :=
 begin
@@ -58,8 +64,7 @@ or.resolve_left (eq_zero_or_eq_zero_of_mul_eq_zero hxy) hnx
 
 lemma mem_non_zero_divisors_iff_ne_zero [no_zero_divisors M] [nontrivial M] {x : M} :
   x ∈ M⁰ ↔ x ≠ 0 :=
-⟨λ hm hz, zero_ne_one (hm 1 $ by rw [hz, one_mul]).symm,
- λ hnx z, eq_zero_of_ne_zero_of_mul_right_eq_zero hnx⟩
+⟨non_zero_divisors.ne_zero, λ hnx z, eq_zero_of_ne_zero_of_mul_right_eq_zero hnx⟩
 
 lemma monoid_with_zero_hom.map_ne_zero_of_mem_non_zero_divisors [nontrivial M]
   (g : monoid_with_zero_hom M M') (hg : function.injective g)

@@ -111,6 +111,14 @@ begin
   rw [←rotate_eq_drop_append_take (n.mod_lt hl).le, rotate_mod]
 end
 
+@[simp] lemma rotate_append_length_eq (l l' : list α) : (l ++ l').rotate l.length = l' ++ l :=
+begin
+  rw rotate_eq_rotate',
+  induction l generalizing l',
+  { simp, },
+  { simp [rotate', l_ih] },
+end
+
 lemma rotate_rotate (l : list α) (n m : ℕ) : (l.rotate n).rotate m = l.rotate (n + m) :=
 by rw [rotate_eq_rotate', rotate_eq_rotate', rotate_eq_rotate', rotate'_rotate']
 
@@ -400,6 +408,9 @@ by rw [is_rotated_comm, is_rotated_singleton_iff, eq_comm]
 lemma is_rotated_concat (hd : α) (tl : list α) :
   (tl ++ [hd]) ~r (hd :: tl) :=
 is_rotated.symm ⟨1, by simp⟩
+
+lemma is_rotated_append : (l ++ l') ~r (l' ++ l) :=
+⟨l.length, by simp⟩
 
 lemma is_rotated.reverse (h : l ~r l') : l.reverse ~r l'.reverse :=
 begin

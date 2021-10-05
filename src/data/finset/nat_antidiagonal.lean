@@ -74,6 +74,22 @@ begin
   rw [hq, ← h, hp],
 end
 
+lemma antidiagonal.fst_le {n : ℕ} {kl : ℕ × ℕ} (hlk : kl ∈ antidiagonal n) :
+  kl.1 ≤ n :=
+begin
+  rw le_iff_exists_add,
+  use kl.2,
+  rwa [mem_antidiagonal, eq_comm] at hlk
+end
+
+lemma antidiagonal.snd_le {n : ℕ} {kl : ℕ × ℕ} (hlk : kl ∈ antidiagonal n) :
+  kl.2 ≤ n :=
+begin
+  rw le_iff_exists_add,
+  use kl.1,
+  rwa [mem_antidiagonal, eq_comm, add_comm] at hlk
+end
+
 section equiv_prod
 
 /-- The disjoint union of antidiagonals `Σ (n : ℕ), antidiagonal n` is equivalent to the product

@@ -356,6 +356,41 @@ by { ext, simp [finsupp.single_eq_pi_single, finsupp.equiv_fun_on_fintype], }
 
 end single
 
+/-! ### Declarations about `update` -/
+
+section update
+
+variables [has_zero M] (f : α →₀ M) (a : α) (b : M) (i : α)
+
+/-- Replace the value of a `α →₀ M` at a given point `a : α` by a given value `b : M`.
+If `b = 0`, this amounts to removing `a` from the `finsupp.support`.
+Otherwise, if `a` was not in the `finsupp.support`, it is added to it.
+
+This is the finitely-supported version of `function.update`. -/
+def update : α →₀ M :=
+⟨if b = 0 then f.support.erase a else insert a f.support,
+  function.update f a b,
+  λ i, begin
+    simp only [function.update_apply, ne.def],
+    split_ifs with hb ha ha hb;
+    simp [ha, hb]
+  end⟩
+
+@[simp] lemma coe_update : (f.update a b : α → M) = function.update f a b := rfl
+@[simp] lemma update_self : f.update a (f a) = f :=
+by { ext, simp }
+
+lemma support_update : support (f.update a b) =
+  if b = 0 then f.support.erase a else insert a f.support := rfl
+
+@[simp] lemma support_update_zero : support (f.update a 0) = f.support.erase a := if_pos rfl
+
+variables {b}
+
+lemma support_update_ne_zero (h : b ≠ 0) : support (f.update a b) = insert a f.support := if_neg h
+
+end update
+
 /-! ### Declarations about `on_finset` -/
 
 section on_finset
@@ -780,15 +815,29 @@ See `finsupp.lapply` for the stronger version as a linear map. -/
 @[simps apply]
 def apply_add_hom (a : α) : (α →₀ M) →+ M := ⟨λ g, g a, zero_apply, λ _ _, add_apply _ _ _⟩
 
+lemma update_eq_single_add_erase (f : α →₀ M) (a : α) (b : M) :
+  f.update a b = single a b + f.erase a :=
+begin
+  ext j,
+  rcases eq_or_ne a j with rfl|h,
+  { simp },
+  { simp [function.update_noteq h.symm, single_apply, h, erase_ne, h.symm] }
+end
+
+lemma update_eq_erase_add_single (f : α →₀ M) (a : α) (b : M) :
+  f.update a b = f.erase a + single a b :=
+begin
+  ext j,
+  rcases eq_or_ne a j with rfl|h,
+  { simp },
+  { simp [function.update_noteq h.symm, single_apply, h, erase_ne, h.symm] }
+end
+
 lemma single_add_erase (a : α) (f : α →₀ M) : single a (f a) + f.erase a = f :=
-ext $ λ a',
-if h : a = a' then by subst h; simp only [add_apply, single_eq_same, erase_same, add_zero]
-else by simp only [add_apply, single_eq_of_ne h, zero_add, erase_ne (ne.symm h)]
+by rw [←update_eq_single_add_erase, update_self]
 
 lemma erase_add_single (a : α) (f : α →₀ M) : f.erase a + single a (f a) = f :=
-ext $ λ a',
-if h : a = a' then by subst h; simp only [add_apply, single_eq_same, erase_same, zero_add]
-else by simp only [add_apply, single_eq_of_ne h, add_zero, erase_ne (ne.symm h)]
+by rw [←update_eq_erase_add_single, update_self]
 
 @[simp] lemma erase_add (a : α) (f f' : α →₀ M) : erase a (f + f') = erase a f + erase a f' :=
 begin
@@ -796,6 +845,11 @@ begin
   { rw [hs, add_apply, erase_same, erase_same, erase_same, add_zero] },
   rw [add_apply, erase_ne hs, erase_ne hs, erase_ne hs, add_apply],
 end
+
+/-- `finsupp.erase` as an `add_monoid_hom`. -/
+@[simps]
+def erase_add_hom (a : α) : (α →₀ M) →+ (α →₀ M) :=
+{ to_fun := erase a, map_zero' := erase_zero a, map_add' := erase_add a }
 
 @[elab_as_eliminator]
 protected theorem induction {p : (α →₀ M) → Prop} (f : α →₀ M)
@@ -987,6 +1041,8 @@ end
 
 @[simp] lemma nat_zero_sub (f : α →₀ ℕ) : 0 - f = 0 := ext $ λ x, nat.zero_sub _
 
+@[simp] lemma nat_sub_self (f : α →₀ ℕ) : f - f = 0 := ext $ λ x, nat.sub_self _
+
 end nat_sub
 
 instance [add_comm_monoid M] : add_comm_monoid (α →₀ M) :=
@@ -1046,6 +1102,19 @@ finset.subset.antisymm
   support_map_range
   (calc support f = support (- (- f)) : congr_arg support (neg_neg _).symm
      ... ⊆ support (- f) : support_map_range)
+
+lemma erase_eq_sub_single [add_group G] (f : α →₀ G) (a : α) :
+  f.erase a = f - single a (f a) :=
+begin
+  ext a',
+  rcases eq_or_ne a a' with rfl|h,
+  { simp },
+  { simp [erase_ne h.symm, single_eq_of_ne h] }
+end
+
+lemma update_eq_sub_add_single [add_group G] (f : α →₀ G) (a : α) (b : G) :
+  f.update a b = f - single a (f a) + single a b :=
+by rw [update_eq_erase_add_single, erase_eq_sub_single]
 
 @[simp] lemma sum_apply [has_zero M] [add_comm_monoid N]
   {f : α →₀ M} {g : α → M → β →₀ N} {a₂ : β} :
@@ -1853,6 +1922,19 @@ ext $ λ _, rfl
 @[simp] lemma single_sub {a : α} {b₁ b₂ : G} : single a (b₁ - b₂) = single a b₁ - single a b₂ :=
 (single_add_hom a : G →+ _).map_sub b₁ b₂
 
+@[simp] lemma erase_neg (a : α) (f : α →₀ G) : erase a (-f) = -erase a f :=
+(erase_add_hom a : (_ →₀ G) →+ _).map_neg f
+
+@[simp] lemma erase_sub (a : α) (f₁ f₂ : α →₀ G) : erase a (f₁ - f₂) = erase a f₁ - erase a f₂ :=
+(erase_add_hom a : (_ →₀ G) →+ _).map_sub f₁ f₂
+
+@[simp] lemma filter_neg (p : α → Prop) (f : α →₀ G) : filter p (-f) = -filter p f :=
+(filter_add_hom p : (_ →₀ G) →+ _).map_neg f
+
+@[simp] lemma filter_sub (p : α → Prop) (f₁ f₂ : α →₀ G) :
+  filter p (f₁ - f₂) = filter p f₁ - filter p f₂ :=
+(filter_add_hom p : (_ →₀ G) →+ _).map_sub f₁ f₂
+
 end group
 
 end subtype_domain
@@ -1866,11 +1948,12 @@ section multiset
 def to_multiset : (α →₀ ℕ) ≃+ multiset α :=
 { to_fun := λ f, f.sum (λa n, n • {a}),
   inv_fun := λ s, ⟨s.to_finset, λ a, s.count a, λ a, by simp⟩,
-  left_inv := λ f, ext $ λ a,
-    suffices (if f a = 0 then 0 else f a) = f a,
-    by simpa [finsupp.sum, multiset.count_sum', multiset.count_cons],
-    by split_ifs with h; [rw h, refl],
-  right_inv := λ s, by simp [finsupp.sum],
+  left_inv := λ f, ext $ λ a, by {
+      simp only [sum, multiset.count_sum', multiset.count_singleton, mul_boole, coe_mk,
+        multiset.mem_to_finset, iff_self, not_not, mem_support_iff, ite_eq_left_iff, ne.def,
+        multiset.count_eq_zero, multiset.count_nsmul, finset.sum_ite_eq, ite_not],
+      exact eq.symm },
+  right_inv := λ s, by simp only [sum, coe_mk, multiset.to_finset_sum_count_nsmul_eq],
   map_add' := λ f g, sum_add_index (λ a, zero_nsmul _) (λ a, add_nsmul _) }
 
 lemma to_multiset_zero : (0 : α →₀ ℕ).to_multiset = 0 :=
@@ -1896,8 +1979,7 @@ add_equiv.map_sum _ _ _
 
 lemma to_multiset_sum_single {ι : Type*} (s : finset ι) (n : ℕ) :
   finsupp.to_multiset (∑ i in s, single i n) = n • s.val :=
-by simp_rw [to_multiset_sum, finsupp.to_multiset_single, multiset.singleton_eq_singleton,
-            sum_nsmul, sum_multiset_singleton]
+by simp_rw [to_multiset_sum, finsupp.to_multiset_single, sum_nsmul, sum_multiset_singleton]
 
 lemma card_to_multiset (f : α →₀ ℕ) : f.to_multiset.card = f.sum (λa, id) :=
 by simp [to_multiset_apply, add_monoid_hom.map_finsupp_sum, function.id_def]
@@ -1921,11 +2003,10 @@ begin
   { rw [to_multiset_zero, multiset.prod_zero, finsupp.prod_zero_index] },
   { assume a n f _ _ ih,
     rw [to_multiset_add, multiset.prod_add, ih, to_multiset_single, finsupp.prod_add_index,
-      finsupp.prod_single_index, multiset.prod_nsmul, multiset.singleton_eq_singleton,
-      multiset.prod_singleton],
+      finsupp.prod_single_index, multiset.prod_nsmul, multiset.prod_singleton],
     { exact pow_zero a },
     { exact pow_zero },
-    { exact pow_add  } }
+    { exact pow_add } }
 end
 
 @[simp] lemma to_finset_to_multiset [decidable_eq α] (f : α →₀ ℕ) :
@@ -1935,9 +2016,7 @@ begin
   { rw [to_multiset_zero, multiset.to_finset_zero, support_zero] },
   { assume a n f ha hn ih,
     rw [to_multiset_add, multiset.to_finset_add, ih, to_multiset_single, support_add_eq,
-      support_single_ne_zero hn, multiset.to_finset_nsmul _ _ hn,
-      multiset.singleton_eq_singleton, multiset.to_finset_cons, multiset.to_finset_zero],
-    refl,
+      support_single_ne_zero hn, multiset.to_finset_nsmul _ _ hn, multiset.to_finset_singleton],
     refine disjoint.mono_left support_single_subset _,
     rwa [finset.singleton_disjoint] }
 end
@@ -1947,11 +2026,10 @@ end
 calc f.to_multiset.count a = f.sum (λx n, (n • {x} : multiset α).count a) :
   (multiset.count_add_monoid_hom a).map_sum _ f.support
   ... = f.sum (λx n, n * ({x} : multiset α).count a) : by simp only [multiset.count_nsmul]
-  ... = f.sum (λx n, n * (x ::ₘ 0 : multiset α).count a) : rfl
-  ... = f a * (a ::ₘ 0 : multiset α).count a : sum_eq_single _
-    (λ a' _ H, by simp only [multiset.count_cons_of_ne (ne.symm H), multiset.count_zero, mul_zero])
+  ... = f a * ({a} : multiset α).count a : sum_eq_single _
+    (λ a' _ H, by simp only [multiset.count_singleton, if_false, H.symm, mul_zero])
     (λ H, by simp only [not_mem_support_iff.1 H, zero_mul])
-  ... = f a : by simp only [multiset.count_singleton, mul_one]
+  ... = f a : by rw [multiset.count_singleton_self, mul_one]
 
 lemma mem_support_multiset_sum [add_comm_monoid M]
   {s : multiset (α →₀ M)} (a : α) :
@@ -2547,7 +2625,7 @@ lemma to_finsupp_add (s t : multiset α) :
   to_finsupp (s + t) = to_finsupp s + to_finsupp t :=
 to_finsupp.map_add s t
 
-@[simp] lemma to_finsupp_singleton (a : α) : to_finsupp (a ::ₘ 0) = finsupp.single a 1 :=
+@[simp] lemma to_finsupp_singleton (a : α) : to_finsupp ({a} : multiset α) = finsupp.single a 1 :=
 finsupp.to_multiset.symm_apply_eq.2 $ by simp
 
 @[simp] lemma to_finsupp_to_multiset (s : multiset α) :
@@ -2584,14 +2662,23 @@ instance [ordered_cancel_add_comm_monoid M] : ordered_cancel_add_comm_monoid (α
 
 lemma le_def [preorder M] [has_zero M] {f g : α →₀ M} : f ≤ g ↔ ∀ x, f x ≤ g x := iff.rfl
 
+lemma le_iff' [canonically_ordered_add_monoid M] (f g : α →₀ M)
+  {t : finset α} (hf : f.support ⊆ t) :
+  f ≤ g ↔ ∀ s ∈ t, f s ≤ g s :=
+⟨λ h s hs, h s,
+λ h s, if H : s ∈ f.support then h s (hf H) else (not_mem_support_iff.1 H).symm ▸ zero_le (g s)⟩
+
 lemma le_iff [canonically_ordered_add_monoid M] (f g : α →₀ M) :
   f ≤ g ↔ ∀ s ∈ f.support, f s ≤ g s :=
-⟨λ h s hs, h s,
-λ h s, if H : s ∈ f.support then h s H else (not_mem_support_iff.1 H).symm ▸ zero_le (g s)⟩
+le_iff' f g (subset.refl _)
 
 instance decidable_le [canonically_ordered_add_monoid M] [decidable_rel (@has_le.le M _)] :
   decidable_rel (@has_le.le (α →₀ M) _) :=
 λ f g, decidable_of_iff _ (le_iff f g).symm
+
+@[simp] lemma single_le_iff [canonically_ordered_add_monoid M] {i : α} {x : M} {f : α →₀ M} :
+  single i x ≤ f ↔ x ≤ f i :=
+(le_iff' _ _ support_single_subset).trans $ by simp
 
 @[simp] lemma add_eq_zero_iff [canonically_ordered_add_monoid M] (f g : α →₀ M) :
   f + g = 0 ↔ f = 0 ∧ g = 0 :=
@@ -2637,6 +2724,10 @@ ext $ λ a, nat.add_sub_of_le (h a)
 
 lemma nat_sub_add_cancel {f g : α →₀ ℕ} (h : f ≤ g) : g - f + f = g :=
 ext $ λ a, nat.sub_add_cancel (h a)
+
+lemma nat_add_sub_assoc {f₁ f₂ : α →₀ ℕ} (h : f₁ ≤ f₂) (f₃ : α →₀ ℕ) :
+  f₃ + f₂ - f₁ = f₃ + (f₂ - f₁) :=
+ext $ λ a, nat.add_sub_assoc (h _) _
 
 instance : canonically_ordered_add_monoid (α →₀ ℕ) :=
 { bot := 0,

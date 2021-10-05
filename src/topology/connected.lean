@@ -512,7 +512,7 @@ begin
     apply nonempty.ne_empty
       (nonempty_of_mem (mem_inter (@mem_connected_component _ _ x) Z.2.2)),
     rw inter_comm,
-    exact h  },
+    exact h },
   exact h,
 end
 

@@ -3,9 +3,11 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import algebra.gcd_monoid
+import algebra.gcd_monoid.basic
 import data.polynomial.derivative
 import data.polynomial.ring_division
+import data.set.pairwise
+import ring_theory.coprime.lemmas
 import ring_theory.euclidean_domain
 
 /-!
@@ -95,7 +97,7 @@ have hg : g ≠ 0, from λ hg, by { rw [hp, hg, mul_zero] at hp1, exact not_moni
 or.imp (λ hf, is_unit_of_mul_eq_one _ _ hf) (λ hg, is_unit_of_mul_eq_one _ _ hg) $
 hp3 (f * C f.leading_coeff⁻¹) (g * C g.leading_coeff⁻¹)
   (monic_mul_leading_coeff_inv hf) (monic_mul_leading_coeff_inv hg) $
-by rw [mul_assoc, mul_left_comm _ g, ← mul_assoc, ← C_mul, ← mul_inv', ← leading_coeff_mul,
+by rw [mul_assoc, mul_left_comm _ g, ← mul_assoc, ← C_mul, ← mul_inv₀, ← leading_coeff_mul,
     ← hp, monic.def.1 hp1, inv_one, C_1, mul_one]⟩⟩
 
 /-- Division of polynomials. See polynomial.div_by_monic for more details.-/

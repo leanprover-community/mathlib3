@@ -246,8 +246,7 @@ begin
   rw [roots_multiset_prod _ h2, multiset.bind_map,
       roots_multiset_prod _ h1, multiset.bind_map],
   simp_rw roots_X_sub_C,
-  rw [multiset.bind_cons, multiset.bind_zero, add_zero,
-      multiset.bind_cons, multiset.bind_zero, add_zero, multiset.map_id']
+  rw [multiset.bind_singleton, multiset.bind_singleton, multiset.map_id']
 end
 
 lemma eq_prod_roots_of_splits {p : polynomial K} {i : K →+* L}
@@ -267,8 +266,7 @@ begin
   have map_bind_roots_eq : (s.map (λ a, X - C a)).bind (λ a, a.roots) = s,
   { refine multiset.induction_on s (by rw [multiset.map_zero, multiset.zero_bind]) _,
     intros a s ih,
-    rw [multiset.map_cons, multiset.cons_bind, ih, roots_X_sub_C,
-        multiset.cons_add, zero_add] },
+    rw [multiset.map_cons, multiset.cons_bind, ih, roots_X_sub_C, multiset.singleton_add] },
 
   rw [hs, roots_mul prod_ne_zero, roots_C, zero_add,
       roots_multiset_prod _ zero_nmem,
@@ -329,9 +327,9 @@ if hf0 : f = 0 then or.inl hf0
 else
   or.inr $ λ p hp hdp,
     have ht : multiset.rel associated
-      (factors (f.map i)) (s.map (λ a : L, (X : polynomial L) - C a)) :=
+      (normalized_factors (f.map i)) (s.map (λ a : L, (X : polynomial L) - C a)) :=
     factors_unique
-      (λ p hp, irreducible_of_factor _ hp)
+      (λ p hp, irreducible_of_normalized_factor _ hp)
       (λ p' m, begin
           obtain ⟨a,m,rfl⟩ := multiset.mem_map.1 m,
           exact irreducible_of_degree_eq_one (degree_X_sub_C _),
@@ -341,8 +339,8 @@ else
           (units.mk0 (f.map i).leading_coeff
             (mt leading_coeff_eq_zero.1 (map_ne_zero hf0))),
           by conv_rhs { rw [hs, ← leading_coeff_map i, mul_comm] }; refl⟩
-        ... ~ᵤ _ : associated.symm (unique_factorization_monoid.factors_prod (by simpa using hf0))),
-  let ⟨q, hq, hpq⟩ := exists_mem_factors_of_dvd (by simpa) hp hdp in
+        ... ~ᵤ _ : (unique_factorization_monoid.normalized_factors_prod (by simpa using hf0)).symm),
+  let ⟨q, hq, hpq⟩ := exists_mem_normalized_factors_of_dvd (by simpa) hp hdp in
   let ⟨q', hq', hqq'⟩ := multiset.exists_mem_of_rel_of_mem ht hq in
   let ⟨a, ha⟩ := multiset.mem_map.1 hq' in
   by rw [← degree_X_sub_C a, ha.2];
@@ -456,12 +454,14 @@ alg_equiv.symm $ alg_equiv.of_bijective
   (alg_hom.cod_restrict
     (adjoin_root.lift_hom _ x $ minpoly.aeval F x) _
     (λ p, adjoin_root.induction_on _ p $ λ p,
-      (algebra.adjoin_singleton_eq_range F x).symm ▸ (polynomial.aeval _).mem_range.mpr ⟨p, rfl⟩))
+      (algebra.adjoin_singleton_eq_range_aeval F x).symm ▸
+        (polynomial.aeval _).mem_range.mpr ⟨p, rfl⟩))
   ⟨(alg_hom.injective_cod_restrict _ _ _).2 $ (alg_hom.injective_iff _).2 $ λ p,
     adjoin_root.induction_on _ p $ λ p hp, ideal.quotient.eq_zero_iff_mem.2 $
     ideal.mem_span_singleton.2 $ minpoly.dvd F x hp,
   λ y,
-    let ⟨p, hp⟩ := (set_like.ext_iff.1 (algebra.adjoin_singleton_eq_range F x) (y : R)).1 y.2 in
+    let ⟨p, hp⟩ := (set_like.ext_iff.1
+      (algebra.adjoin_singleton_eq_range_aeval F x) (y : R)).1 y.2 in
     ⟨adjoin_root.mk _ p, subtype.eq hp⟩⟩
 
 open finset
@@ -648,14 +648,14 @@ have hfn0 : f ≠ 0, by { intro h, rw h at hndf, exact hndf rfl },
 have hmf0 : map (algebra_map K (splitting_field_aux n.succ f hfn)) f ≠ 0 := map_ne_zero hfn0,
 by { rw [algebra_map_succ, ← map_map, ← X_sub_C_mul_remove_factor _ hndf, map_mul] at hmf0 ⊢,
 rw [roots_mul hmf0, map_sub, map_X, map_C, roots_X_sub_C, multiset.to_finset_add, finset.coe_union,
-    multiset.to_finset_cons, multiset.to_finset_zero, insert_emptyc_eq, finset.coe_singleton,
+    multiset.to_finset_singleton, finset.coe_singleton,
     algebra.adjoin_union_eq_under, ← set.image_singleton,
     algebra.adjoin_algebra_map K (adjoin_root f.factor)
       (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)),
     adjoin_root.adjoin_root_eq_top, algebra.map_top,
     is_scalar_tower.range_under_adjoin K (adjoin_root f.factor)
       (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)),
-    ih, subalgebra.res_top] }
+    ih, subalgebra.restrict_scalars_top] }
 
 end splitting_field_aux
 
@@ -715,7 +715,8 @@ variables {K}
 instance map (f : polynomial F) [is_splitting_field F L f] :
   is_splitting_field K L (f.map $ algebra_map F K) :=
 ⟨by { rw [splits_map_iff, ← is_scalar_tower.algebra_map_eq], exact splits L f },
- subalgebra.res_inj F $ by { rw [map_map, ← is_scalar_tower.algebra_map_eq, subalgebra.res_top,
+ subalgebra.restrict_scalars_injective F $
+  by { rw [map_map, ← is_scalar_tower.algebra_map_eq, subalgebra.restrict_scalars_top,
     eq_top_iff, ← adjoin_roots L f, algebra.adjoin_le_iff],
   exact λ x hx, @algebra.subset_adjoin K _ _ _ _ _ _ hx }⟩
 
@@ -742,7 +743,7 @@ theorem mul (f g : polynomial F) (hf : f ≠ 0) (hg : g ≠ 0) [is_splitting_fie
       roots_map (algebra_map K L) ((splits_id_iff_splits $ algebra_map F K).2 $ splits K f),
       multiset.to_finset_map, finset.coe_image, algebra.adjoin_algebra_map, adjoin_roots,
       algebra.map_top, is_scalar_tower.range_under_adjoin, ← map_map, adjoin_roots,
-      subalgebra.res_top]⟩
+      subalgebra.restrict_scalars_top]⟩
 
 end scalar_tower
 

@@ -118,8 +118,7 @@ begin
       rw digits_aux_def,
       { congr,
         { simp [nat.add_mod, nat.mod_eq_of_lt w], },
-        { simp [mul_comm (b+2), nat.add_mul_div_right, nat.div_eq_of_lt w], }
-      },
+        { simp [mul_comm (b+2), nat.add_mul_div_right, nat.div_eq_of_lt w], } },
       { apply nat.succ_pos, }, }, },
 end
 

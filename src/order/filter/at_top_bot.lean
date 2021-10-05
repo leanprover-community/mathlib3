@@ -310,30 +310,23 @@ lemma high_scores [linear_order β] [no_top_order β] {u : ℕ → β}
   (hu : tendsto u at_top at_top) : ∀ N, ∃ n ≥ N, ∀ k < n, u k < u n :=
 begin
   intros N,
-  let A := finset.image u (finset.range $ N+1), -- A = {u 0, ..., u N}
-  have Ane : A.nonempty,
-    from ⟨u 0, finset.mem_image_of_mem _ (finset.mem_range.mpr $ nat.zero_lt_succ _)⟩,
-  let M := finset.max' A Ane,
-  have ex : ∃ n ≥ N, M < u n,
+  obtain ⟨k : ℕ, hkn : k ≤ N, hku : ∀ l ≤ N, u l ≤ u k⟩ : ∃ k ≤ N, ∀ l ≤ N, u l ≤ u k,
+    from exists_max_image _ u (finite_le_nat N) ⟨N, le_refl N⟩,
+  have ex : ∃ n ≥ N, u k < u n,
     from exists_lt_of_tendsto_at_top hu _ _,
-  obtain ⟨n, hnN, hnM, hn_min⟩ : ∃ n, N ≤ n ∧ M < u n ∧ ∀ k, N ≤ k → k < n → u k ≤ M,
-  { use nat.find ex,
-    rw ← and_assoc,
-    split,
-    { simpa using nat.find_spec ex },
-    { intros k hk hk',
-      simpa [hk] using nat.find_min ex hk' } },
+  obtain ⟨n : ℕ, hnN : n ≥ N, hnk : u k < u n, hn_min : ∀ m, m < n → N ≤ m → u m ≤ u k⟩ :
+    ∃ n ≥ N, u k < u n ∧ ∀ m, m < n → N ≤ m → u m ≤ u k,
+  { rcases nat.find_x ex with ⟨n, ⟨hnN, hnk⟩, hn_min⟩,
+    push_neg at hn_min,
+    exact ⟨n, hnN, hnk, hn_min⟩ },
   use [n, hnN],
-  intros k hk,
-  by_cases H : k ≤ N,
-  { have : u k ∈ A,
-      from finset.mem_image_of_mem _ (finset.mem_range.mpr $ nat.lt_succ_of_le H),
-    have : u k ≤ M,
-      from finset.le_max' A (u k) this,
-    exact lt_of_le_of_lt this hnM },
-  { push_neg at H,
-    calc u k ≤ M   : hn_min k (le_of_lt H) hk
-         ... < u n : hnM },
+  rintros (l : ℕ) (hl : l < n),
+  have hlk : u l ≤ u k,
+  { cases (le_total l N : l ≤ N ∨ N ≤ l) with H H,
+    { exact hku l H },
+    { exact hn_min l hl H } },
+  calc u l ≤ u k : hlk
+       ... < u n : hnk
 end
 
 /--
@@ -660,7 +653,7 @@ constant (on the left) also tends to infinity. For a version working in `ℕ` or
 `filter.tendsto.const_mul_at_top'` instead. -/
 lemma tendsto.const_mul_at_top (hr : 0 < r) (hf : tendsto f l at_top) :
   tendsto (λx, r * f x) l at_top :=
-tendsto.at_top_of_const_mul (inv_pos.2 hr) $ by simpa only [inv_mul_cancel_left' hr.ne']
+tendsto.at_top_of_const_mul (inv_pos.2 hr) $ by simpa only [inv_mul_cancel_left₀ hr.ne']
 
 /-- If a function tends to infinity along a filter, then this function multiplied by a positive
 constant (on the right) also tends to infinity. For a version working in `ℕ` or `ℤ`, use
@@ -847,8 +840,8 @@ finset.range_mono.tendsto_at_top_at_top finset.exists_nat_subset_range
 lemma at_top_finset_eq_infi : (at_top : filter $ finset α) = ⨅ x : α, 𝓟 (Ici {x}) :=
 begin
   refine le_antisymm (le_infi (λ i, le_principal_iff.2 $ mem_at_top {i})) _,
-  refine le_infi (λ s, le_principal_iff.2 $ mem_infi.2 _),
-  refine ⟨↑s, s.finite_to_set, _, λ i, mem_principal_self _, _⟩,
+  refine le_infi (λ s, le_principal_iff.2 $ mem_infi_of_Inter s.finite_to_set
+                  (λ i, mem_principal_self _) _),
   simp only [subset_def, mem_Inter, set_coe.forall, mem_Ici, finset.le_iff_subset,
     finset.mem_singleton, finset.subset_iff, forall_eq], dsimp,
   exact λ t, id
@@ -976,7 +969,7 @@ end
 lemma map_at_bot_eq_of_gc [semilattice_inf α] [semilattice_inf β] {f : α → β} (g : β → α) (b' : β)
   (hf : monotone f) (gc : ∀a, ∀b≤b', b ≤ f a ↔ g b ≤ a) (hgi : ∀b≤b', f (g b) ≤ b) :
   map f at_bot = at_bot :=
-@map_at_top_eq_of_gc (order_dual α) (order_dual β) _ _ _ _ _ hf.order_dual gc hgi
+@map_at_top_eq_of_gc (order_dual α) (order_dual β) _ _ _ _ _ hf.dual gc hgi
 
 lemma map_coe_at_top_of_Ici_subset [semilattice_sup α] {a : α} {s : set α} (h : Ici a ⊆ s) :
   map (coe : s → α) at_top = at_top :=
@@ -1148,7 +1141,7 @@ below, then `tendsto u at_bot at_bot`. -/
 lemma tendsto_at_bot_at_bot_of_monotone' [preorder ι] [linear_order α]
   {u : ι → α} (h : monotone u) (H : ¬bdd_below (range u)) :
   tendsto u at_bot at_bot :=
-@tendsto_at_top_at_top_of_monotone' (order_dual ι) (order_dual α) _ _ _ h.order_dual H
+@tendsto_at_top_at_top_of_monotone' (order_dual ι) (order_dual α) _ _ _ h.dual H
 
 lemma unbounded_of_tendsto_at_top [nonempty α] [semilattice_sup α] [preorder β] [no_top_order β]
   {f : α → β} (h : tendsto f at_top at_top) :
@@ -1189,7 +1182,7 @@ it tends to `at_bot` along `at_bot`. -/
 lemma tendsto_at_bot_of_monotone_of_filter [preorder ι] [preorder α] {l : filter ι}
   {u : ι → α} (h : monotone u) [ne_bot l] (hu : tendsto u l at_bot) :
   tendsto u at_bot at_bot :=
-@tendsto_at_top_of_monotone_of_filter (order_dual ι) (order_dual α) _ _ _ _ h.order_dual _ hu
+@tendsto_at_top_of_monotone_of_filter (order_dual ι) (order_dual α) _ _ _ _ h.dual _ hu
 
 lemma tendsto_at_top_of_monotone_of_subseq [preorder ι] [preorder α] {u : ι → α}
   {φ : ι' → ι} (h : monotone u) {l : filter ι'} [ne_bot l]
@@ -1215,8 +1208,8 @@ by rw [map_at_top_eq, map_at_top_eq];
 from (le_infi $ assume b, let ⟨v, hv⟩ := h_eq b in infi_le_of_le v $
   by simp [set.image_subset_iff]; exact hv)
 
-lemma has_antimono_basis.tendsto [semilattice_sup ι] [nonempty ι] {l : filter α}
-  {p : ι → Prop} {s : ι → set α} (hl : l.has_antimono_basis p s) {φ : ι → α}
+lemma has_antitone_basis.tendsto [semilattice_sup ι] [nonempty ι] {l : filter α}
+  {p : ι → Prop} {s : ι → set α} (hl : l.has_antitone_basis p s) {φ : ι → α}
   (h : ∀ i : ι, φ i ∈ s i) : tendsto φ at_top l  :=
 (at_top_basis.tendsto_iff hl.to_has_basis).2 $ assume i hi,
   ⟨i, trivial, λ j hij, hl.decreasing hi (hl.mono hij hi) hij (h j)⟩
@@ -1232,7 +1225,7 @@ lemma tendsto_iff_seq_tendsto {f : α → β} {k : filter α} {l : filter β}
 suffices (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) → tendsto f k l,
   from ⟨by intros; apply tendsto.comp; assumption, by assumption⟩,
 begin
-  rcases hcb.exists_antimono_basis with ⟨g, gbasis, gmon, -⟩,
+  obtain ⟨g, gbasis, gmon, -⟩ := hcb.exists_antitone_basis,
   contrapose,
   simp only [not_forall, gbasis.tendsto_left_iff, exists_const, not_exists, not_imp],
   rintro ⟨B, hBl, hfBk⟩,
@@ -1256,7 +1249,7 @@ lemma subseq_tendsto {f : filter α} (hf : is_countably_generated f)
   (hx : ne_bot (f ⊓ map u at_top)) :
   ∃ (θ : ℕ → ℕ), (strict_mono θ) ∧ (tendsto (u ∘ θ) at_top f) :=
 begin
-  rcases hf.exists_antimono_basis with ⟨B, h⟩,
+  obtain ⟨B, h⟩ := hf.exists_antitone_basis,
   have : ∀ N, ∃ n ≥ N, u n ∈ B N,
     from λ N, filter.inf_map_at_top_ne_bot_iff.mp hx _ (h.to_has_basis.mem_of_mem trivial) N,
   choose φ hφ using this,

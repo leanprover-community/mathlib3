@@ -309,7 +309,8 @@ namespace continuous_linear_equiv
 to a continuous linear equivalence. -/
 noncomputable def of_bijective (f : E →L[𝕜] F) (hinj : f.ker = ⊥) (hsurj : f.range = ⊤) :
   E ≃L[𝕜] F :=
-(linear_equiv.of_bijective ↑f hinj hsurj).to_continuous_linear_equiv_of_continuous f.continuous
+(linear_equiv.of_bijective ↑f (linear_map.ker_eq_bot.mp hinj) (linear_map.range_eq_top.mp hsurj))
+.to_continuous_linear_equiv_of_continuous f.continuous
 
 @[simp] lemma coe_fn_of_bijective (f : E →L[𝕜] F) (hinj : f.ker = ⊥) (hsurj : f.range = ⊤) :
   ⇑(of_bijective f hinj hsurj) = f := rfl
@@ -351,7 +352,7 @@ lemma range_eq_map_coprod_subtypeL_equiv_of_is_compl
   (f : E →L[𝕜] F) {G : submodule 𝕜 F}
   (h : is_compl f.range G) [complete_space G] (hker : f.ker = ⊥) :
     f.range = ((⊤ : submodule 𝕜 E).prod (⊥ : submodule 𝕜 G)).map
-      (coprod_subtypeL_equiv_of_is_compl f h hker) :=
+      (f.coprod_subtypeL_equiv_of_is_compl h hker : E × G →ₗ[𝕜] F) :=
 by rw [coprod_subtypeL_equiv_of_is_compl, _root_.coe_coe, continuous_linear_equiv.coe_of_bijective,
     coe_coprod, linear_map.coprod_map_prod, submodule.map_bot, sup_bot_eq, submodule.map_top,
     range]

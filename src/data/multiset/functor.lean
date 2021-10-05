@@ -51,16 +51,16 @@ begin
 end
 
 instance : monad multiset :=
-{ pure := λ α x, x ::ₘ 0,
+{ pure := λ α x, {x},
   bind := @bind,
   .. multiset.functor }
 
-@[simp] lemma pure_def {α} : (pure : α → multiset α) = (λ x, x ::ₘ 0) := rfl
+@[simp] lemma pure_def {α} : (pure : α → multiset α) = singleton := rfl
 @[simp] lemma bind_def {α β} : (>>=) = @bind α β := rfl
 
 instance : is_lawful_monad multiset :=
 { bind_pure_comp_eq_map := λ α β f s, multiset.induction_on s rfl $ λ a s ih, by simp,
-  pure_bind := λ α β x f, by simp,
+  pure_bind := λ α β x f, by simp [pure],
   bind_assoc := @bind_assoc }
 
 open functor

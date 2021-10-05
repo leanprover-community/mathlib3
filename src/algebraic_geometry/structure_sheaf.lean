@@ -7,7 +7,6 @@ import algebraic_geometry.prime_spectrum
 import algebra.category.CommRing.colimits
 import algebra.category.CommRing.limits
 import topology.sheaves.local_predicate
-import topology.sheaves.forget
 import ring_theory.localization
 import ring_theory.subring
 
@@ -522,12 +521,12 @@ corresponding to a prime ideal in `R` and the localization of `R` at `p`. -/
     refine (structure_sheaf R).presheaf.germ_ext V hxV (hom_of_le hg) iVU _,
     erw [← hs, res_const']
   end,
-  inv_hom_id' := @is_localization.epic_of_localization_map R _ x.as_ideal.prime_compl
+  inv_hom_id' := @is_localization.ring_hom_ext R _ x.as_ideal.prime_compl
       (localization.at_prime x.as_ideal) _ _ (localization.at_prime x.as_ideal) _ _
       (ring_hom.comp (stalk_to_fiber_ring_hom R x) (localization_to_stalk R x))
       (ring_hom.id (localization.at_prime _)) $
-    λ f, by simp only [ring_hom.comp_apply, ring_hom.id_apply, localization_to_stalk_of,
-        stalk_to_fiber_ring_hom_to_stalk] }
+    by { ext f, simp only [ring_hom.comp_apply, ring_hom.id_apply, localization_to_stalk_of,
+                           stalk_to_fiber_ring_hom_to_stalk] } }
 
 /-- The canonical ring homomorphism interpreting `s ∈ R_f` as a section of the structure sheaf
 on the basic open defined by `f ∈ R`. -/
@@ -756,10 +755,7 @@ begin
   -- Annoyingly, `sheaf.eq_of_locally_eq` requires an open cover indexed by a *type*, so we need to
   -- coerce our finset `t` to a type first.
   let tt := ((t : set (basic_open f)) : Type u),
-
-  -- TODO: Add a version of `eq_of_locally_eq` for sheaves valued in representably concrete
-  -- categories. This will allow us to write `(structure_sheaf R).eq_of_locally_eq` here.
-  apply (structure_sheaf_in_Type R).eq_of_locally_eq'
+  apply (structure_sheaf R).eq_of_locally_eq'
     (λ i : tt, basic_open (h i)) (basic_open f) (λ i : tt, iDh i),
   { -- This feels a little redundant, since already have `ht_cover` as a hypothesis
     -- Unfortunately, `ht_cover` uses a bounded union over the set `t`, while here we have the
@@ -802,6 +798,31 @@ at the submonoid of powers of `f`. -/
 def basic_open_iso (f : R) : (structure_sheaf R).presheaf.obj (op (basic_open f)) ≅
   CommRing.of (localization.away f) :=
 (as_iso (show CommRing.of _ ⟶ _, from to_basic_open R f)).symm
+
+@[elementwise] lemma to_global_factors : to_open R ⊤ =
+  (CommRing.of_hom (algebra_map R (localization.away (1 : R)))) ≫ (to_basic_open R (1 : R)) ≫
+  (structure_sheaf R).presheaf.map (eq_to_hom (basic_open_one.symm)).op :=
+begin
+  change to_open R ⊤ = (to_basic_open R 1).comp _ ≫ _,
+  unfold CommRing.of_hom,
+  rw [localization_to_basic_open R, to_open_res],
+end
+
+instance is_iso_to_global : is_iso (to_open R ⊤) :=
+begin
+  let hom := CommRing.of_hom (algebra_map R (localization.away (1 : R))),
+  haveI : is_iso hom := is_iso.of_iso
+    ((is_localization.at_one R (localization.away (1 : R))).to_ring_equiv.to_CommRing_iso),
+  rw to_global_factors R,
+  apply_instance
+end
+
+/-- The ring isomorphism between the ring `R` and the global sections `Γ(X, 𝒪ₓ)`. -/
+@[simps] def global_sections_iso : CommRing.of R ≅ (structure_sheaf R).presheaf.obj (op ⊤) :=
+as_iso (to_open R ⊤)
+
+@[simp] lemma global_sections_iso_hom (R : CommRing) :
+  (global_sections_iso R).hom = to_open R ⊤ := rfl
 
 section comap
 

@@ -5,7 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import geometry.manifold.algebra.smooth_functions
 import linear_algebra.finite_dimensional
-import analysis.normed_space.pi_Lp
+import analysis.inner_product_space.pi_L2
 
 /-!
 # Constructing examples of manifolds over ℝ
@@ -260,7 +260,7 @@ instance Icc_smooth_manifold (x y : ℝ) [fact (x < y)] :
 begin
   have M : times_cont_diff_on ℝ ∞ (λz : euclidean_space ℝ (fin 1), - z + (λi, y - x)) univ,
   { rw times_cont_diff_on_univ,
-    exact times_cont_diff_id.neg.add times_cont_diff_const  },
+    exact times_cont_diff_id.neg.add times_cont_diff_const },
   apply smooth_manifold_with_corners_of_times_cont_diff_on,
   assume e e' he he',
   simp only [atlas, mem_singleton_iff, mem_insert_iff] at he he',

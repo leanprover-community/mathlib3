@@ -200,7 +200,14 @@ quotient.sound $ (pseudo_zero_aux R _).2 rfl
 /-- The zero pseudoelement is the class of a zero morphism -/
 def pseudo_zero {P : C} : P := ⟦(0 : P ⟶ P)⟧
 
-instance {P : C} : has_zero P := ⟨pseudo_zero⟩
+/--
+We can not use `pseudo_zero` as a global `has_zero` instance,
+as it would trigger on any type class search for `has_zero` applied to a `coe_sort`.
+This would be too expensive.
+-/
+def has_zero {P : C} : has_zero P := ⟨pseudo_zero⟩
+localized "attribute [instance] category_theory.abelian.pseudoelement.has_zero" in pseudoelement
+
 instance {P : C} : inhabited (pseudoelement P) := ⟨0⟩
 
 lemma pseudo_zero_def {P : C} : (0 : pseudoelement P) = ⟦(0 : P ⟶ P)⟧ := rfl
@@ -212,6 +219,8 @@ lemma pseudo_zero_iff {P : C} (a : over P) : (a : P) = 0 ↔ a.hom = 0 :=
 by { rw ←pseudo_zero_aux P a, exact quotient.eq }
 
 end zero
+
+open_locale pseudoelement
 
 /-- Morphisms map the zero pseudoelement to the zero pseudoelement -/
 @[simp] theorem apply_zero {P Q : C} (f : P ⟶ Q) : f 0 = 0 :=

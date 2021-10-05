@@ -96,9 +96,9 @@ protected lemma lipschitz_on_with (h : lipschitz_with K f) (s : set α) : lipsch
 
 lemma edist_le_mul (h : lipschitz_with K f) (x y : α) : edist (f x) (f y) ≤ K * edist x y := h x y
 
-lemma edist_lt_top (hf : lipschitz_with K f) {x y : α} (h : edist x y < ⊤) :
+lemma edist_lt_top (hf : lipschitz_with K f) {x y : α} (h : edist x y ≠ ⊤) :
   edist (f x) (f y) < ⊤ :=
-lt_of_le_of_lt (hf x y) $ ennreal.mul_lt_top ennreal.coe_lt_top h
+lt_of_le_of_lt (hf x y) $ ennreal.mul_lt_top ennreal.coe_ne_top h
 
 lemma mul_edist_le (h : lipschitz_with K f) (x y : α) :
   (K⁻¹ : ℝ≥0∞) * edist (f x) (f y) ≤ edist x y :=

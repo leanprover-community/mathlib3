@@ -16,8 +16,7 @@ import algebra.periodic
 
 noncomputable theory
 open classical set filter topological_space metric
-open_locale classical
-open_locale topological_space filter uniformity
+open_locale classical topological_space filter uniformity interval
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -25,7 +24,7 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 instance : metric_space ℚ :=
 metric_space.induced coe rat.cast_injective real.metric_space
 
-theorem rat.dist_eq (x y : ℚ) : dist x y = abs (x - y) := rfl
+theorem rat.dist_eq (x y : ℚ) : dist x y = |x - y| := rfl
 
 @[norm_cast, simp] lemma rat.dist_cast (x y : ℚ) : dist (x : ℝ) y = dist x y := rfl
 
@@ -37,7 +36,7 @@ lemma uniform_embedding_coe_real : uniform_embedding (coe : ℤ → ℝ) :=
       refine le_antisymm (le_principal_iff.2 _) (@refl_le_uniformity ℤ $
         uniform_space.comap coe (infer_instance : uniform_space ℝ)),
       refine (uniformity_basis_dist.comap _).mem_iff.2 ⟨1, zero_lt_one, _⟩,
-      rintro ⟨a, b⟩ (h : abs (a - b : ℝ) < 1),
+      rintro ⟨a, b⟩ (h : |(a - b : ℝ)| < 1),
       norm_cast at h,
       erw [@int.lt_add_one_iff _ 0, abs_nonpos_iff, sub_eq_zero] at h, assumption
     end,
@@ -45,7 +44,7 @@ lemma uniform_embedding_coe_real : uniform_embedding (coe : ℤ → ℝ) :=
 
 instance : metric_space ℤ := int.uniform_embedding_coe_real.comap_metric_space _
 
-theorem dist_eq (x y : ℤ) : dist x y = abs (x - y) := rfl
+theorem dist_eq (x y : ℤ) : dist x y = |x - y| := rfl
 
 @[norm_cast, simp] theorem dist_cast_real (x y : ℤ) : dist (x : ℝ) y = dist x y := rfl
 
@@ -122,7 +121,7 @@ instance : order_topology ℚ :=
 induced_order_topology _ (λ x y, rat.cast_lt) (@exists_rat_btwn _ _ _)
 
 instance : proper_space ℝ :=
-{ compact_ball := λx r, by { rw real.closed_ball_eq, apply is_compact_Icc } }
+{ is_compact_closed_ball := λx r, by { rw real.closed_ball_eq, apply is_compact_Icc } }
 
 instance : second_countable_topology ℝ := second_countable_of_proper
 
@@ -146,10 +145,10 @@ lemma uniform_embedding_mul_rat {q : ℚ} (hq : q ≠ 0) : uniform_embedding ((*
 _ -/
 
 lemma real.mem_closure_iff {s : set ℝ} {x : ℝ} :
-  x ∈ closure s ↔ ∀ ε > 0, ∃ y ∈ s, abs (y - x) < ε :=
+  x ∈ closure s ↔ ∀ ε > 0, ∃ y ∈ s, |y - x| < ε :=
 by simp [mem_closure_iff_nhds_basis nhds_basis_ball, real.dist_eq]
 
-lemma real.uniform_continuous_inv (s : set ℝ) {r : ℝ} (r0 : 0 < r) (H : ∀ x ∈ s, r ≤ abs x) :
+lemma real.uniform_continuous_inv (s : set ℝ) {r : ℝ} (r0 : 0 < r) (H : ∀ x ∈ s, r ≤ |x|) :
   uniform_continuous (λp:s, p.1⁻¹) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0,
 let ⟨δ, δ0, Hδ⟩ := rat_inv_continuous_lemma abs ε0 r0 in
@@ -167,8 +166,8 @@ metric.uniform_continuous_iff.2 $ λ ε ε0,
 lemma real.tendsto_inv {r : ℝ} (r0 : r ≠ 0) : tendsto (λq, q⁻¹) (𝓝 r) (𝓝 r⁻¹) :=
 by rw ← abs_pos at r0; exact
 tendsto_of_uniform_continuous_subtype
-  (real.uniform_continuous_inv {x | abs r / 2 < abs x} (half_pos r0) (λ x h, le_of_lt h))
-  (is_open.mem_nhds ((is_open_lt' (abs r / 2)).preimage continuous_abs) (half_lt_self r0))
+  (real.uniform_continuous_inv {x | |r| / 2 < |x|} (half_pos r0) (λ x h, le_of_lt h))
+  (is_open.mem_nhds ((is_open_lt' (|r| / 2)).preimage continuous_abs) (half_lt_self r0))
 
 lemma real.continuous_inv : continuous (λa:{r:ℝ // r ≠ 0}, a.val⁻¹) :=
 continuous_iff_continuous_at.mpr $ assume ⟨r, hr⟩,
@@ -181,7 +180,7 @@ show continuous ((has_inv.inv ∘ @subtype.val ℝ (λr, r ≠ 0)) ∘ λa, ⟨f
 
 lemma real.uniform_continuous_mul_const {x : ℝ} : uniform_continuous ((*) x) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0, begin
-  cases no_top (abs x) with y xy,
+  cases no_top (|x|) with y xy,
   have y0 := lt_of_le_of_lt (abs_nonneg _) xy,
   refine ⟨_, div_pos ε0 y0, λ a b h, _⟩,
   rw [real.dist_eq, ← mul_sub, abs_mul, ← mul_div_cancel' ε (ne_of_gt y0)],
@@ -189,7 +188,7 @@ metric.uniform_continuous_iff.2 $ λ ε ε0, begin
 end
 
 lemma real.uniform_continuous_mul (s : set (ℝ × ℝ))
-  {r₁ r₂ : ℝ} (H : ∀ x ∈ s, abs (x : ℝ × ℝ).1 < r₁ ∧ abs x.2 < r₂) :
+  {r₁ r₂ : ℝ} (H : ∀ x ∈ s, |(x : ℝ × ℝ).1| < r₁ ∧ |x.2| < r₂) :
   uniform_continuous (λp:s, p.1.1 * p.1.2) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0,
 let ⟨δ, δ0, Hδ⟩ := rat_mul_continuous_lemma abs ε0 in
@@ -200,12 +199,12 @@ protected lemma real.continuous_mul : continuous (λp : ℝ × ℝ, p.1 * p.2) :
 continuous_iff_continuous_at.2 $ λ ⟨a₁, a₂⟩,
 tendsto_of_uniform_continuous_subtype
   (real.uniform_continuous_mul
-    ({x | abs x < abs a₁ + 1}.prod {x | abs x < abs a₂ + 1})
+    ({x | |x| < |a₁| + 1}.prod {x | |x| < |a₂| + 1})
     (λ x, id))
   (is_open.mem_nhds
-    (((is_open_gt' (abs a₁ + 1)).preimage continuous_abs).prod
-      ((is_open_gt' (abs a₂ + 1)).preimage continuous_abs ))
-    ⟨lt_add_one (abs a₁), lt_add_one (abs a₂)⟩)
+    (((is_open_gt' (|a₁| + 1)).preimage continuous_abs).prod
+      ((is_open_gt' (|a₂| + 1)).preimage continuous_abs ))
+    ⟨lt_add_one (|a₁|), lt_add_one (|a₂|)⟩)
 
 instance : topological_ring ℝ :=
 { continuous_mul := real.continuous_mul, ..real.topological_add_group }
@@ -292,6 +291,30 @@ lemma real.image_Icc {f : ℝ → ℝ} {a b : ℝ} (hab : a ≤ b) (h : continuo
 eq_Icc_of_connected_compact ⟨(nonempty_Icc.2 hab).image f, is_preconnected_Icc.image f h⟩
   (is_compact_Icc.image_of_continuous_on h)
 
+lemma real.image_interval_eq_Icc {f : ℝ → ℝ} {a b : ℝ} (h : continuous_on f $ [a, b]) :
+  f '' [a, b] = Icc (Inf (f '' [a, b])) (Sup (f '' [a, b])) :=
+begin
+  cases le_total a b with h2 h2,
+  { simp_rw [interval_of_le h2] at h ⊢, exact real.image_Icc h2 h },
+  { simp_rw [interval_of_ge h2] at h ⊢, exact real.image_Icc h2 h },
+end
+
+lemma real.image_interval {f : ℝ → ℝ} {a b : ℝ} (h : continuous_on f $ [a, b]) :
+  f '' [a, b] = [Inf (f '' [a, b]), Sup (f '' [a, b])] :=
+begin
+  refine (real.image_interval_eq_Icc h).trans (interval_of_le _).symm,
+  rw [real.image_interval_eq_Icc h],
+  exact real.Inf_le_Sup _ bdd_below_Icc bdd_above_Icc
+end
+
+lemma real.interval_subset_image_interval {f : ℝ → ℝ} {a b x y : ℝ}
+  (h : continuous_on f [a, b]) (hx : x ∈ [a, b]) (hy : y ∈ [a, b]) :
+  [f x, f y] ⊆ f '' [a, b] :=
+begin
+  rw [real.image_interval h, interval_subset_interval_iff_mem, ← real.image_interval h],
+  exact ⟨mem_image_of_mem f hx, mem_image_of_mem f hy⟩
+end
+
 end
 
 section periodic
@@ -339,7 +362,7 @@ begin
   let G_pos := {g : ℝ | g ∈ G ∧ 0 < g},
   push_neg at H',
   intros x,
-  suffices : ∀ ε > (0 : ℝ), ∃ g ∈ G, abs (x - g) < ε,
+  suffices : ∀ ε > (0 : ℝ), ∃ g ∈ G, |x - g| < ε,
     by simpa only [real.mem_closure_iff, abs_sub_comm],
   intros ε ε_pos,
   obtain ⟨g₁, g₁_in, g₁_pos⟩ : ∃ g₁ : ℝ, g₁ ∈ G ∧ 0 < g₁,

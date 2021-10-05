@@ -259,13 +259,13 @@ begin
     -- since `t` is nonempty, so is `s`
     exact nonempty_of_Hausdorff_edist_ne_top ht.1 (ne_of_lt Dst) },
   { refine compact_iff_totally_bounded_complete.2 ⟨_, s.property.is_complete⟩,
-    refine totally_bounded_iff.2 (λε εpos, _),
+    refine totally_bounded_iff.2 (λε (εpos : 0 < ε), _),
     -- we have to show that s is covered by finitely many eballs of radius ε
     -- pick a nonempty compact set t at distance at most ε/2 of s
-    rcases mem_closure_iff.1 hs (ε/2) (ennreal.half_pos εpos) with ⟨t, ht, Dst⟩,
+    rcases mem_closure_iff.1 hs (ε/2) (ennreal.half_pos εpos.ne') with ⟨t, ht, Dst⟩,
     -- cover this space with finitely many balls of radius ε/2
     rcases totally_bounded_iff.1 (compact_iff_totally_bounded_complete.1 ht.2).1 (ε/2)
-      (ennreal.half_pos εpos) with ⟨u, fu, ut⟩,
+      (ennreal.half_pos εpos.ne') with ⟨u, fu, ut⟩,
     refine ⟨u, ⟨fu, λx hx, _⟩⟩,
     -- u : set α,  fu : finite u,  ut : t.val ⊆ ⋃ (y : α) (H : y ∈ u), eball y (ε / 2)
     -- then s is covered by the union of the balls centered at u of radius ε
@@ -321,17 +321,18 @@ begin
     { refine λt, mem_closure_iff.2 (λε εpos, _),
       -- t is a compact nonempty set, that we have to approximate uniformly by a a set in `v`.
       rcases exists_between εpos with ⟨δ, δpos, δlt⟩,
+      have δpos' : 0 < δ / 2, from ennreal.half_pos δpos.ne',
       -- construct a map F associating to a point in α an approximating point in s, up to δ/2.
       have Exy : ∀x, ∃y, y ∈ s ∧ edist x y < δ/2,
       { assume x,
-        rcases mem_closure_iff.1 (s_dense x) (δ/2) (ennreal.half_pos δpos) with ⟨y, ys, hy⟩,
+        rcases mem_closure_iff.1 (s_dense x) (δ/2) δpos' with ⟨y, ys, hy⟩,
         exact ⟨y, ⟨ys, hy⟩⟩ },
       let F := λx, some (Exy x),
       have Fspec : ∀x, F x ∈ s ∧ edist x (F x) < δ/2 := λx, some_spec (Exy x),
 
       -- cover `t` with finitely many balls. Their centers form a set `a`
       have : totally_bounded t.val := (compact_iff_totally_bounded_complete.1 t.property.2).1,
-      rcases totally_bounded_iff.1 this (δ/2) (ennreal.half_pos δpos) with ⟨a, af, ta⟩,
+      rcases totally_bounded_iff.1 this (δ/2) δpos' with ⟨a, af, ta⟩,
       -- a : set α,  af : finite a,  ta : t.val ⊆ ⋃ (y : α) (H : y ∈ a), eball y (δ / 2)
       -- replace each center by a nearby approximation in `s`, giving a new set `b`
       let b := F '' a,

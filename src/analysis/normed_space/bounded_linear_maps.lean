@@ -4,9 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
 import analysis.normed_space.multilinear
+import analysis.normed_space.units
+import analysis.asymptotics.asymptotics
 
 /-!
-# Continuous linear maps
+# Bounded linear maps
 
 This file defines a class stating that a map between normed vector spaces is (bi)linear and
 continuous.
@@ -14,7 +16,7 @@ Instead of asking for continuity, the definition takes the equivalent condition 
 is normed) that `∥f x∥` is bounded by a multiple of `∥x∥`. Hence the "bounded" in the name refers to
 `∥f x∥/∥x∥` rather than `∥f x∥` itself.
 
-## Main declarations
+## Main definitions
 
 * `is_bounded_linear_map`: Class stating that a map `f : E → F` is linear and has `∥f x∥` bounded
   by a multiple of `∥x∥`.
@@ -25,7 +27,14 @@ is normed) that `∥f x∥` is bounded by a multiple of `∥x∥`. Hence the "bo
 * `is_bounded_bilinear_map.deriv`: Derivative of a continuous bilinear map as a continuous linear
   map. The proof that it is indeed the derivative is `is_bounded_bilinear_map.has_fderiv_at` in
   `analysis.calculus.fderiv`.
+
+## Main theorems
+
+* `is_bounded_bilinear_map.continuous`: A bounded bilinear map is continuous.
 * `linear_map.norm_apply_of_isometry`: A linear isometry preserves the norm.
+* `continuous_linear_equiv.is_open`: The continuous linear equivalences are an open subset of the
+  set of continuous linear maps between a pair of Banach spaces.  Placed in this file because its
+  proof uses `is_bounded_bilinear_map.continuous`.
 
 ## Notes
 
@@ -270,6 +279,45 @@ calc f (x, y - z) = f (x, y + (-1 : 𝕜) • z) : by simp [sub_eq_add_neg]
 ... = f (x, y) + (-1 : 𝕜) • f (x, z) : by simp only [h.add_right, h.smul_right]
 ... = f (x, y) - f (x, z) : by simp [sub_eq_add_neg]
 
+lemma is_bounded_bilinear_map.continuous (h : is_bounded_bilinear_map 𝕜 f) :
+  continuous f :=
+begin
+  have one_ne : (1:ℝ) ≠ 0 := by simp,
+  obtain ⟨C, (Cpos : 0 < C), hC⟩ := h.bound,
+  rw continuous_iff_continuous_at,
+  intros x,
+  have H : ∀ (a:E) (b:F), ∥f (a, b)∥ ≤ C * ∥∥a∥ * ∥b∥∥,
+  { intros a b,
+    simpa [mul_assoc] using hC a b },
+  have h₁ : asymptotics.is_o (λ e : E × F, f (e.1 - x.1, e.2)) (λ e, (1:ℝ)) (𝓝 x),
+  { refine (asymptotics.is_O_of_le' (𝓝 x) (λ e, H (e.1 - x.1) e.2)).trans_is_o _,
+    rw asymptotics.is_o_const_iff one_ne,
+    convert ((continuous_fst.sub continuous_const).norm.mul continuous_snd.norm).continuous_at,
+    { simp },
+    apply_instance },
+  have h₂ : asymptotics.is_o (λ e : E × F, f (x.1, e.2 - x.2)) (λ e, (1:ℝ)) (𝓝 x),
+  { refine (asymptotics.is_O_of_le' (𝓝 x) (λ e, H x.1 (e.2 - x.2))).trans_is_o _,
+    rw asymptotics.is_o_const_iff one_ne,
+    convert (continuous_const.mul (continuous_snd.sub continuous_const).norm).continuous_at,
+    { simp },
+    apply_instance },
+  have := h₁.add h₂,
+  rw asymptotics.is_o_const_iff one_ne at this,
+  change tendsto _ _ _,
+  convert this.add_const (f x),
+  { ext e,
+    simp [h.map_sub_left, h.map_sub_right], },
+  { simp }
+end
+
+lemma is_bounded_bilinear_map.continuous_left (h : is_bounded_bilinear_map 𝕜 f) {e₂ : F} :
+  continuous (λe₁, f (e₁, e₂)) :=
+h.continuous.comp (continuous_id.prod_mk continuous_const)
+
+lemma is_bounded_bilinear_map.continuous_right (h : is_bounded_bilinear_map 𝕜 f) {e₁ : E} :
+  continuous (λe₂, f (e₁, e₂)) :=
+h.continuous.comp (continuous_const.prod_mk continuous_id)
+
 lemma is_bounded_bilinear_map.is_bounded_linear_map_left (h : is_bounded_bilinear_map 𝕜 f) (y : F) :
   is_bounded_linear_map 𝕜 (λ x, f (x, y)) :=
 { map_add  := λ x x', h.add_left _ _ _,
@@ -460,3 +508,38 @@ def continuous_linear_equiv.of_isometry (f : E →ₗ[𝕜] F) (hf : isometry f)
 continuous_linear_equiv.of_homothety
   (linear_equiv.of_bijective f (isometry.injective hf) (linear_map.range_eq_top.mp hfr))
   1 zero_lt_one (λ _, by simp [one_mul, f.norm_apply_of_isometry hf])
+
+namespace continuous_linear_equiv
+
+open set
+
+/-!
+### The set of continuous linear equivalences between two Banach spaces is open
+
+In this section we establish that the set of continuous linear equivalences between two Banach
+spaces is an open subset of the space of linear maps between them.
+-/
+
+protected lemma is_open [complete_space E] : is_open (range (coe : (E ≃L[𝕜] F) → (E →L[𝕜] F))) :=
+begin
+  nontriviality E,
+  rw [is_open_iff_mem_nhds, forall_range_iff],
+  refine λ e, is_open.mem_nhds _ (mem_range_self _),
+  let O : (E →L[𝕜] F) → (E →L[𝕜] E) := λ f, (e.symm : F →L[𝕜] E).comp f,
+  have h_O : continuous O := is_bounded_bilinear_map_comp.continuous_left,
+  convert units.is_open.preimage h_O using 1,
+  ext f',
+  split,
+  { rintros ⟨e', rfl⟩,
+    exact ⟨(e'.trans e.symm).to_unit, rfl⟩ },
+  { rintros ⟨w, hw⟩,
+    use (units_equiv 𝕜 E w).trans e,
+    ext x,
+    simp [hw] }
+end
+
+protected lemma nhds [complete_space E] (e : E ≃L[𝕜] F) :
+  (range (coe : (E ≃L[𝕜] F) → (E →L[𝕜] F))) ∈ 𝓝 (e : E →L[𝕜] F) :=
+is_open.mem_nhds continuous_linear_equiv.is_open (by simp)
+
+end continuous_linear_equiv

@@ -27,24 +27,19 @@ variables {R : Type*} [integral_domain R] [infinite R]
 private lemma funext_fin {n : ℕ} {p : mv_polynomial (fin n) R}
   (h : ∀ x : fin n → R, eval x p = 0) : p = 0 :=
 begin
-  unfreezingI { revert R },
-  induction n with n ih,
-  { introsI R _ _ p h,
-    let e := (rename_equiv R fin_zero_equiv').to_ring_equiv.trans
-      (mv_polynomial.pempty_ring_equiv R),
+  unfreezingI { induction n with n ih generalizing R },
+  { let e := (mv_polynomial.is_empty_ring_equiv R (fin 0)),
     apply e.injective,
     rw ring_equiv.map_zero,
     convert h fin_zero_elim,
-    suffices : (eval₂_hom (ring_hom.id _) pempty.elim) (rename fin_zero_equiv' p) =
+    suffices : (eval₂_hom (ring_hom.id _) (is_empty.elim' fin.is_empty)) p =
       (eval fin_zero_elim : mv_polynomial (fin 0) R →+* R) p,
     { rw [← this],
-      simp only [coe_eval₂_hom, pempty_ring_equiv_apply,
-        ring_equiv.trans_apply],
-      erw alg_equiv.coe_ring_equiv, },
-    rw [eval₂_hom_rename],
+      simp only [coe_eval₂_hom, is_empty_ring_equiv_apply,
+        ring_equiv.trans_apply, aeval_eq_eval₂_hom],
+      congr },
     exact eval₂_hom_congr rfl (subsingleton.elim _ _) rfl },
-  { introsI R _ _ p h,
-    let e := (fin_succ_equiv R n).to_ring_equiv,
+  { let e := (fin_succ_equiv R n).to_ring_equiv,
     apply e.injective,
     simp only [ring_equiv.map_zero],
     apply polynomial.funext,

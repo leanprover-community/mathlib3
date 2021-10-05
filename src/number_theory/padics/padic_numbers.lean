@@ -2,10 +2,9 @@
 Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
-
 -/
-import number_theory.padics.padic_norm
 import analysis.normed_space.basic
+import number_theory.padics.padic_norm
 
 /-!
 # p-adic numbers
@@ -942,7 +941,8 @@ end normed_space
 end padic_norm_e
 
 namespace padic
-variables {p : ℕ} [fact p.prime]
+variables {p : ℕ} [hp_prime : fact p.prime]
+include hp_prime
 
 set_option eqn_compiler.zeta true
 instance complete : cau_seq.is_complete ℚ_[p] norm :=
@@ -1030,4 +1030,23 @@ begin
   { exact_mod_cast (fact.out p.prime).ne_zero }
 end
 
+section norm_le_iff
+/-! ### Various characterizations of open unit balls -/
+lemma norm_le_pow_iff_norm_lt_pow_add_one (x : ℚ_[p]) (n : ℤ) :
+  ∥x∥ ≤ p ^ n ↔ ∥x∥ < p ^ (n + 1) :=
+begin
+  have aux : ∀ n : ℤ, 0 < (p ^ n : ℝ),
+  { apply nat.fpow_pos_of_pos, exact hp_prime.1.pos },
+  by_cases hx0 : x = 0, { simp [hx0, norm_zero, aux, le_of_lt (aux _)], },
+  rw norm_eq_pow_val hx0,
+  have h1p : 1 < (p : ℝ), { exact_mod_cast hp_prime.1.one_lt },
+  have H := fpow_strict_mono h1p,
+  rw [H.le_iff_le, H.lt_iff_lt, int.lt_add_one_iff],
+end
+
+lemma norm_lt_pow_iff_norm_le_pow_sub_one (x : ℚ_[p]) (n : ℤ) :
+  ∥x∥ < p ^ n ↔ ∥x∥ ≤ p ^ (n - 1) :=
+by rw [norm_le_pow_iff_norm_lt_pow_add_one, sub_add_cancel]
+
+end norm_le_iff
 end padic

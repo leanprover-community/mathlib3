@@ -94,7 +94,7 @@ lemma tsum_one_div_pow_factorial_lt (n : ℕ) {m : ℝ} (m1 : 1 < m) :
   ∑' (i : ℕ), 1 / m ^ (i + (n + 1))! < (1 - 1 / m)⁻¹ * (1 / m ^ (n + 1)!) :=
 -- two useful inequalities
 have m0 : 0 < m := (zero_lt_one.trans m1),
-have mi : abs (1 / m) < 1 :=
+have mi : |1 / m| < 1 :=
   (le_of_eq (abs_of_pos (one_div_pos.mpr m0))).trans_lt ((div_lt_one m0).mpr m1),
 calc (∑' i, 1 / m ^ (i + (n + 1))!)
     < ∑' i, 1 / m ^ (i + (n + 1)!) :

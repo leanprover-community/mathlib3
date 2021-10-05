@@ -278,6 +278,7 @@ instance has_measurable_div₂.to_has_measurable_div [has_measurable_div₂ G] :
 attribute [measurability] measurable.sub measurable.sub' ae_measurable.sub ae_measurable.sub'
   measurable.const_sub ae_measurable.const_sub measurable.sub_const ae_measurable.sub_const
 
+@[measurability]
 lemma measurable_set_eq_fun {E} [measurable_space E] [add_group E] [measurable_singleton_class E]
   [has_measurable_sub₂ E] {f g : α → E} (hf : measurable f) (hg : measurable g) :
   measurable_set {x | f x = g x} :=
@@ -346,15 +347,15 @@ attribute [measurability] measurable.neg ae_measurable.neg
   ae_measurable (λ x, (f x)⁻¹) μ ↔ ae_measurable f μ :=
 ⟨λ h, by simpa only [inv_inv] using h.inv, λ h, h.inv⟩
 
-@[simp] lemma measurable_inv_iff' {G₀ : Type*} [group_with_zero G₀]
+@[simp] lemma measurable_inv_iff₀ {G₀ : Type*} [group_with_zero G₀]
   [measurable_space G₀] [has_measurable_inv G₀] {f : α → G₀} :
   measurable (λ x, (f x)⁻¹) ↔ measurable f :=
-⟨λ h, by simpa only [inv_inv'] using h.inv, λ h, h.inv⟩
+⟨λ h, by simpa only [inv_inv₀] using h.inv, λ h, h.inv⟩
 
-@[simp] lemma ae_measurable_inv_iff' {G₀ : Type*} [group_with_zero G₀]
+@[simp] lemma ae_measurable_inv_iff₀ {G₀ : Type*} [group_with_zero G₀]
   [measurable_space G₀] [has_measurable_inv G₀] {f : α → G₀} {μ : measure α} :
   ae_measurable (λ x, (f x)⁻¹) μ ↔ ae_measurable f μ :=
-⟨λ h, by simpa only [inv_inv'] using h.inv, λ h, h.inv⟩
+⟨λ h, by simpa only [inv_inv₀] using h.inv, λ h, h.inv⟩
 
 end inv
 
@@ -528,11 +529,11 @@ let ⟨u, hu⟩ := hc in hu ▸ ae_measurable_const_smul_iff u
 variables {G₀ : Type*} [group_with_zero G₀] [measurable_space G₀] [mul_action G₀ β]
   [has_measurable_smul G₀ β]
 
-lemma measurable_const_smul_iff' {c : G₀} (hc : c ≠ 0) :
+lemma measurable_const_smul_iff₀ {c : G₀} (hc : c ≠ 0) :
   measurable (λ x, c • f x) ↔ measurable f :=
 (is_unit.mk0 c hc).measurable_const_smul_iff
 
-lemma ae_measurable_const_smul_iff' {c : G₀} (hc : c ≠ 0) :
+lemma ae_measurable_const_smul_iff₀ {c : G₀} (hc : c ≠ 0) :
   ae_measurable (λ x, c • f x) μ ↔ ae_measurable f μ :=
 (is_unit.mk0 c hc).ae_measurable_const_smul_iff
 

@@ -620,6 +620,33 @@ begin
   rw h i this this,
 end
 
+/-- If `f₁` and `f₂` are ring homs out of the polynomial ring and `p₁` and `p₂` are polynomials,
+  then `f₁ p₁ = f₂ p₂` if `p₁ = p₂` and `f₁` and `f₂` are equal on `R` and on the variables
+  of `p₁`.  -/
+lemma hom_congr_vars {f₁ f₂ : mv_polynomial σ R →+* S} {p₁ p₂ : mv_polynomial σ R}
+  (hC : f₁.comp C = f₂.comp C) (hv : ∀ i, i ∈ p₁.vars → i ∈ p₂.vars → f₁ (X i) = f₂ (X i))
+  (hp : p₁ = p₂) : f₁ p₁ = f₂ p₂ :=
+calc f₁ p₁ = eval₂_hom (f₁.comp C) (f₁ ∘ X) p₁ : ring_hom.congr_fun (by ext; simp) _
+... = eval₂_hom (f₂.comp C) (f₂ ∘ X) p₂ :
+  eval₂_hom_congr' hC hv hp
+... = f₂ p₂ : ring_hom.congr_fun (by ext; simp) _
+
+lemma exists_rename_eq_of_vars_subset_range
+  (p : mv_polynomial σ R) (f : τ → σ)
+  (hfi : injective f) (hf : ↑p.vars ⊆ set.range f) :
+  ∃ q : mv_polynomial τ R, rename f q = p :=
+⟨bind₁ (λ i : σ, option.elim (partial_inv f i) 0 X) p,
+  begin
+    show (rename f).to_ring_hom.comp _ p = ring_hom.id _ p,
+    refine hom_congr_vars _ _ _,
+    { ext1,
+      simp [algebra_map_eq] },
+    { intros i hip _,
+      rcases hf hip with ⟨i, rfl⟩,
+      simp [partial_inv_left hfi] },
+    { refl }
+  end⟩
+
 lemma vars_bind₁ (f : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) :
   (bind₁ f φ).vars ⊆ φ.vars.bUnion (λ i, (f i).vars) :=
 begin

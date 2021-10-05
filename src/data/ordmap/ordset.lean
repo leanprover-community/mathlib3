@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.ordmap.ordnode
-import algebra.ordered_ring
+import algebra.order.ring
 import data.nat.dist
 import tactic.linarith
 

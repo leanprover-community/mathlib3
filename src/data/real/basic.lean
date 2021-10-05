@@ -306,7 +306,7 @@ begin
 end
 
 theorem mk_near_of_forall_near {f : cau_seq ℚ abs} {x : ℝ} {ε : ℝ}
-  (H : ∃ i, ∀ j ≥ i, abs ((f j : ℝ) - x) ≤ ε) : abs (mk f - x) ≤ ε :=
+  (H : ∃ i, ∀ j ≥ i, |(f j : ℝ) - x| ≤ ε) : |mk f - x| ≤ ε :=
 abs_sub_le_iff.2
   ⟨sub_le_iff_le_add'.2 $ mk_le_of_forall_le $
     H.imp $ λ i h j ij, sub_le_iff_le_add'.1 (abs_sub_le_iff.1 $ h j ij).1,
@@ -321,7 +321,8 @@ let ⟨M, M0, H⟩ := f.bounded' 0 in
 
 noncomputable instance : floor_ring ℝ := archimedean.floor_ring _
 
-theorem is_cau_seq_iff_lift {f : ℕ → ℚ} : is_cau_seq abs f ↔ is_cau_seq abs (λ i, (f i : ℝ)) :=
+theorem is_cau_seq_iff_lift {f : ℕ → ℚ} : is_cau_seq abs f ↔ is_cau_seq
+  abs (λ i, (f i : ℝ)) :=
 ⟨λ H ε ε0,
   let ⟨δ, δ0, δε⟩ := exists_pos_rat_lt ε0 in
   (H _ δ0).imp $ λ i hi j ij, lt_trans
@@ -330,7 +331,7 @@ theorem is_cau_seq_iff_lift {f : ℕ → ℚ} : is_cau_seq abs f ↔ is_cau_seq 
    λ i hi j ij, (@rat.cast_lt ℝ _ _ _).1 $ by simpa using hi _ ij⟩
 
 theorem of_near (f : ℕ → ℚ) (x : ℝ)
-  (h : ∀ ε > 0, ∃ i, ∀ j ≥ i, abs ((f j : ℝ) - x) < ε) :
+  (h : ∀ ε > 0, ∃ i, ∀ j ≥ i, |(f j : ℝ) - x| < ε) :
   ∃ h', real.mk ⟨f, h'⟩ = x :=
 ⟨is_cau_seq_iff_lift.2 (of_near _ (const abs x) h),
  sub_eq_zero.1 $ abs_eq_zero.1 $

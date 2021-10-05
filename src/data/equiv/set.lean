@@ -14,8 +14,8 @@ In this file we provide lemmas linking equivalences to sets.
 Some notable definitions are:
 
 * `equiv.of_injective`: an injective function is (noncomputably) equivalent to its range.
-* `equiv.of_bijective`: a bijective function is (noncomputably) an equivalence.
 * `equiv.set_congr`: two equal sets are equivalent as types.
+* `equiv.set.union`: a disjoint union of sets is equivalent to their `sum`.
 
 This file is separate from `equiv/basic` such that we do not require the full lattice structure
 on sets before defining what an equivalence is.
@@ -456,19 +456,6 @@ lemma of_left_inverse'_eq_of_injective {α β : Type*}
   (f : α → β) (f_inv : β → α) (hf : left_inverse f_inv f) :
   of_left_inverse' f f_inv hf = of_injective f hf.injective :=
 by { ext, simp }
-
-/-- If `f` is a bijective function, then its domain is equivalent to its codomain. -/
-@[simps apply]
-noncomputable def of_bijective {α β} (f : α → β) (hf : bijective f) : α ≃ β :=
-(of_injective f hf.1).trans $ (set_congr hf.2.range_eq).trans $ equiv.set.univ β
-
-lemma of_bijective_apply_symm_apply {α β} (f : α → β) (hf : bijective f) (x : β) :
-  f ((of_bijective f hf).symm x) = x :=
-(of_bijective f hf).apply_symm_apply x
-
-@[simp] lemma of_bijective_symm_apply_apply {α β} (f : α → β) (hf : bijective f) (x : α) :
-  (of_bijective f hf).symm (f x) = x :=
-(of_bijective f hf).symm_apply_apply x
 
 protected lemma set_forall_iff {α β} (e : α ≃ β) {p : set α → Prop} :
   (∀ a, p a) ↔ (∀ a, p (e ⁻¹' a)) :=

@@ -567,7 +567,7 @@ Let `α` be a lattice ordered commutative group and let `a` and `b` be elements 
  `||a| - |b||` is dominated by `|a - b|`.
 -/
 @[to_additive]
-lemma abs_abs_div_abs_le [h: covariant_class α α (*) (≤)]  (a b : α) : | |a| / |b| | ≤ |a / b| :=
+lemma abs_abs_div_abs_le [covariant_class α α (*) (≤)] (a b : α) : | |a| / |b| | ≤ |a / b| :=
 begin
   unfold has_abs.abs,
   rw sup_le_iff,

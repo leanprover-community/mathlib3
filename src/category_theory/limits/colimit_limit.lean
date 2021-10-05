@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import category_theory.limits.types
 import category_theory.currying
+import category_theory.limits.functor_category
 
 /-!
 # The morphism comparing a colimit of limits with the corresponding limit of colimits.
@@ -21,7 +22,7 @@ is that when `C = Type`, filtered colimits commute with finite limits.
 * [Stacks: Filtered colimits](https://stacks.math.columbia.edu/tag/002W)
 -/
 
-universes v u
+universes v₂ v u
 
 open category_theory
 
@@ -81,7 +82,7 @@ limit.lift ((curry.obj F) ⋙ colim)
 Since `colimit_limit_to_limit_colimit` is a morphism from a colimit to a limit,
 this lemma characterises it.
 -/
-@[simp] lemma ι_colimit_limit_to_limit_colimit_π (j) (k) :
+@[simp, reassoc] lemma ι_colimit_limit_to_limit_colimit_π (j) (k) :
   colimit.ι _ k ≫ colimit_limit_to_limit_colimit F ≫ limit.π _ j =
     limit.π ((curry.obj (swap K J ⋙ F)).obj k) j ≫ colimit.ι ((curry.obj F).obj j) k :=
 by { dsimp [colimit_limit_to_limit_colimit], simp, }
@@ -91,5 +92,50 @@ by { dsimp [colimit_limit_to_limit_colimit], simp, }
      (colimit_limit_to_limit_colimit F (colimit.ι ((curry.obj (swap K J ⋙ F)) ⋙ lim) k f)) =
      colimit.ι ((curry.obj F).obj j) k (limit.π ((curry.obj (swap K J ⋙ F)).obj k) j f) :=
 by { dsimp [colimit_limit_to_limit_colimit], simp, }
+
+noncomputable theory
+variables (G : J ⥤ K ⥤ C) [has_limit G]
+
+/--
+For a functor `G : J ⥤ K ⥤ C`, its limit `K ⥤ C` is given by `(G' : K ⥤ J ⥤ C) ⋙ lim`.
+Note that this does not require `K` to be small.
+-/
+@[simps] def limit_iso_swap_comp_lim {K : Type v} [category.{v₂} K] (G : J ⥤ K ⥤ C) [has_limit G] :
+  limit G ≅ curry.obj (swap K J ⋙ uncurry.obj G) ⋙ lim :=
+nat_iso.of_components (λ Y, limit_obj_iso_limit_comp_evaluation G Y ≪≫
+  (lim.map_iso (eq_to_iso (by
+  { apply functor.hext,
+    { intro X, simp },
+    { intros X₁ X₂ f, dsimp only [swap], simp }}))))
+  (λ Y₁ Y₂ f,
+    begin
+      ext1 x,
+      dsimp only [swap],
+      simp only [limit_obj_iso_limit_comp_evaluation_hom_π_assoc, category.comp_id,
+        limit_obj_iso_limit_comp_evaluation_hom_π, eq_to_iso.hom, curry.obj_map_app,
+        nat_trans.naturality, category.id_comp, eq_to_hom_refl, functor.comp_map,
+        eq_to_hom_app, lim_map_π_assoc, lim_map_π, category.assoc,
+        uncurry.obj_map, lim_map_eq_lim_map, iso.trans_hom,
+        nat_trans.id_app, category_theory.functor.map_id, functor.map_iso_hom],
+      erw category.id_comp,
+    end)
+
+/-- The map `colimit_limit_to_limit_colimit` realized as a map of cones. -/
+@[simps] def colimit_limit_to_limit_colimit_cone :
+  colim.map_cone (limit.cone G) ⟶ limit.cone (G ⋙ colim) :=
+{ hom := colim.map (limit_iso_swap_comp_lim G).hom ≫
+    colimit_limit_to_limit_colimit (uncurry.obj G : _) ≫
+    lim.map (whisker_right (currying.unit_iso.app G).inv colim),
+  w' := λ j,
+  begin
+    ext1 k,
+    simp only [limit_obj_iso_limit_comp_evaluation_hom_π_assoc, iso.app_inv,
+      ι_colimit_limit_to_limit_colimit_π_assoc, whisker_right_app,
+      colimit.ι_map, functor.map_cone_π_app, category.id_comp,
+      eq_to_hom_refl, eq_to_hom_app, colimit.ι_map_assoc, limit.cone_π,
+      lim_map_π_assoc, lim_map_π, category.assoc, currying_unit_iso_inv_app_app_app,
+      limit_iso_swap_comp_lim_hom_app, lim_map_eq_lim_map],
+    erw category.id_comp,
+  end }
 
 end category_theory.limits

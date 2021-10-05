@@ -1504,7 +1504,7 @@ begin
   exact hf (measurable_set_singleton r)
 end
 
-/-- **Chebyshev's inequality** -/
+/-- **Markov's inequality** also known as **Chebyshev's first inequality**. -/
 lemma mul_meas_ge_le_lintegral {f : α → ℝ≥0∞} (hf : measurable f) (ε : ℝ≥0∞) :
   ε * μ {x | ε ≤ f x} ≤ ∫⁻ a, f a ∂μ :=
 begin

@@ -92,7 +92,7 @@ open opposite category_theory category limits sieve classical
 
 namespace presieve
 
-variables {C : Type u₁} [category.{v} C] {D : Type u₂} [category.{v} D] (F : D ⥤ C)
+variables {C : Type u₁} [category.{v} C]
 
 variables {P Q : Cᵒᵖ ⥤ Type v}
 variables {X Y : C} {S : sieve X} {R : presieve X}
@@ -268,18 +268,19 @@ begin
   exact t.restrict (le_generate R),
 end
 
-namespace family_of_elements
 section functor_pullback
-variables {Z : D} {T : presieve (F.obj Z)} {x : family_of_elements P T}
+variables {D : Type u₂} [category.{v} D] (F : D ⥤ C) {Z : D}
+variables {T : presieve (F.obj Z)} {x : family_of_elements P T}
 
 /--
 Given a family of elements of a sieve `S` on `F(X)`, we can realize it as a family of elements of
 `S.functor_pullback F`.
 -/
-def functor_pullback (x : family_of_elements P T) :
+def family_of_elements.functor_pullback (x : family_of_elements P T) :
   family_of_elements (F.op ⋙ P) (T.functor_pullback F) := λ Y f hf, x (F.map f) hf
 
-lemma compatible.functor_pullback (h : x.compatible) : (x.functor_pullback F).compatible :=
+lemma family_of_elements.compatible.functor_pullback (h : x.compatible) :
+  (x.functor_pullback F).compatible :=
 begin
   intros Z₁ Z₂ W g₁ g₂ f₁ f₂ h₁ h₂ eq,
   exact h (F.map g₁) (F.map g₂) h₁ h₂ (by simp only [← F.map_comp, eq])
@@ -287,22 +288,35 @@ end
 
 end functor_pullback
 
+/--
+Given a family of elements of a presieve `S` valued in `F.op ⋙ P`,
+we can obtain a family of elements of `S.functor_pushforward F` valued in `P` by taking the same
+elements. Since the preimage is obtained by choice, this is not well-defined except when the
+preimage is unique (say if `F` is faithful), or if `x` is compatible.
+-/
+noncomputable
+def functor_pushforward {Z : D} {T : presieve Z} (x : family_of_elements (F.op ⋙ P) T) :
+  family_of_elements P (T.functor_pushforward F) := λ Y f hf,
+    (P.map (eq_to_hom (functor_pushforward_preobj_image hf).symm).op)
+      (x _ (functor_pushforward_prehom_cover hf))
+
+
 section pullback
 
 /--
 Given a family of elements of a sieve `S` on `X`, and a map `Y ⟶ X`, we can obtain a
 family of elements of `S.pullback f` by taking the same elements.
 -/
-def pullback (f : Y ⟶ X)  (x : family_of_elements P S) :
+def family_of_elements.pullback (f : Y ⟶ X)  (x : family_of_elements P S) :
   family_of_elements P (S.pullback f) := λ _ g hg, x (g ≫ f) hg
 
-lemma compatible.pullback (f : Y ⟶ X) {x : family_of_elements P S}
+lemma family_of_elements.compatible.pullback (f : Y ⟶ X) {x : family_of_elements P S}
   (h : x.compatible) : (x.pullback f).compatible :=
 begin
   simp only [compatible_iff_sieve_compatible] at h ⊢,
   intros W Z f₁ f₂ hf,
-  refine eq.trans _ (h (f₁ ≫ f) f₂ hf),
-  unfold pullback,
+  unfold family_of_elements.pullback,
+  rw ← (h (f₁ ≫ f) f₂ hf),
   simp only [category.assoc],
 end
 
@@ -312,19 +326,17 @@ end pullback
 Given a morphism of presheaves `f : P ⟶ Q`, we can take a family of elements valued in `P` to a
 family of elements valued in `Q` by composing with `f`.
 -/
-def comp_presheaf_map (f : P ⟶ Q) (x : family_of_elements P R) :
+def family_of_elements.comp_presheaf_map (f : P ⟶ Q) (x : family_of_elements P R) :
   family_of_elements Q R := λ Y g hg, f.app (op Y) (x g hg)
 
-lemma compatible.comp_presheaf_map (f : P ⟶ Q) {x : family_of_elements P R}
+lemma family_of_elements.compatible.comp_presheaf_map (f : P ⟶ Q) {x : family_of_elements P R}
   (h : x.compatible) : (x.comp_presheaf_map f).compatible :=
 begin
   intros Z₁ Z₂ W g₁ g₂ f₁ f₂ h₁ h₂ eq,
-  change (f.app _ ≫ Q.map _) _ = (f.app _ ≫ Q.map _) _,
-  simp only [← f.naturality],
-  exact congr_arg (f.app (op W)) (h g₁ g₂ h₁ h₂ eq)
+  unfold family_of_elements.comp_presheaf_map,
+  rwa [← functor_to_types.naturality, ← functor_to_types.naturality, h],
 end
 
-end family_of_elements
 
 /--
 The given element `t` of `P.obj (op X)` is an *amalgamation* for the family of elements `x` if every

@@ -31,48 +31,6 @@ not hard but quite a pain to go about as there are many cases to consider.
 * https://en.wikipedia.org/wiki/Quasiconvex_function
 -/
 
-open linear_map set
-open_locale big_operators convex pointwise
-
-lemma set.sep_inter_sep {α : Type*} {s : set α} {p q : α → Prop} :
-  {x ∈ s | p x} ∩ {x ∈ s | q x} = {x ∈ s | p x ∧ q x} :=
-begin
-  ext,
-  simp_rw [mem_inter_iff, mem_sep_iff],
-  rw [and_and_and_comm, and_self],
-end
-
-lemma min_rec {α : Type*} [linear_order α] {p : α → Prop} {x y : α} (hx : x ≤ y → p x)
-  (hy : y ≤ x → p y) :
-  p (min x y) :=
-(le_total x y).rec (λ h, (min_eq_left h).symm.subst (hx h))
-  (λ h, (min_eq_right h).symm.subst (hy h))
-
-lemma max_rec {α : Type*} [linear_order α] {p : α → Prop} {x y : α} (hx : y ≤ x → p x)
-  (hy : x ≤ y → p y) :
-  p (max x y) :=
-@min_rec (order_dual α) _ _ _ _ hx hy
-
-lemma min_rec' {α : Type*} [linear_order α] (p : α → Prop) {x y : α} (hx : p x) (hy : p y) :
-  p (min x y) :=
-min_rec (λ _, hx) (λ _, hy)
-
-lemma max_rec' {α : Type*} [linear_order α] (p : α → Prop) {x y : α} (hx : p x) (hy : p y) :
-  p (max x y) :=
-max_rec (λ _, hx) (λ _, hy)
-
-lemma monotone_on_iff_lt {α β : Type*} [partial_order α] [preorder β] {f : α → β} {s : set α} :
-  monotone_on f s ↔ ∀ ⦃a : α⦄, a ∈ s → ∀ ⦃b : α⦄, b ∈ s → a < b → f a ≤ f b :=
-begin
-  refine forall_congr (λ a, forall_congr $ λ ha, forall_congr $ λ b, forall_congr $ λ hb, _),
-  rw [le_iff_lt_or_eq, or_imp_distrib],
-  exact and_iff_left (λ h, h ▸ le_rfl),
-end
-
-lemma antitone_on_iff_lt {α β : Type*} [partial_order α] [preorder β] {f : α → β} {s : set α} :
-  antitone_on f s ↔ ∀ ⦃a : α⦄, a ∈ s → ∀ ⦃b : α⦄, b ∈ s → a < b → f b ≤ f a :=
-@monotone_on_iff_lt α (order_dual β) _ _ _ _
-
 open set
 
 variables {𝕜 E F β : Type*}
@@ -101,15 +59,39 @@ quasiconvex_on 𝕜 s f ∧ quasiconcave_on 𝕜 s f
 variables {𝕜}
 
 lemma quasiconvex_on.dual (hf : quasiconvex_on 𝕜 s f) :
+  @quasiconvex_on 𝕜 (order_dual E) (order_dual β) _ _ _ _ _ s f :=
+hf
+
+lemma quasiconvex_on.dual_left (hf : quasiconvex_on 𝕜 s f) :
+  @quasiconcave_on 𝕜 (order_dual E) β _ _ _ _ _ s f :=
+hf
+
+lemma quasiconvex_on.dual_right (hf : quasiconvex_on 𝕜 s f) :
   @quasiconcave_on 𝕜 E (order_dual β) _ _ _ _ _ s f :=
 hf
 
 lemma quasiconcave_on.dual (hf : quasiconcave_on 𝕜 s f) :
+  @quasiconcave_on 𝕜 (order_dual E) (order_dual β) _ _ _ _ _ s f :=
+hf
+
+lemma quasiconcave_on.dual_right (hf : quasiconcave_on 𝕜 s f) :
   @quasiconvex_on 𝕜 E (order_dual β) _ _ _ _ _ s f :=
 hf
 
+lemma quasiconcave_on.dual_left (hf : quasiconcave_on 𝕜 s f) :
+  @quasiconvex_on 𝕜 (order_dual E) β _ _ _ _ _ s f :=
+hf
+
 lemma quasilinear_on.dual (hf : quasilinear_on 𝕜 s f) :
+  @quasilinear_on 𝕜 (order_dual E) (order_dual β) _ _ _ _ _ s f :=
+hf
+
+lemma quasilinear_on.dual_left (hf : quasilinear_on 𝕜 s f) :
   @quasilinear_on 𝕜 E (order_dual β) _ _ _ _ _ s f :=
+⟨hf.2, hf.1⟩
+
+lemma quasilinear_on.dual_right (hf : quasilinear_on 𝕜 s f) :
+  @quasilinear_on 𝕜 (order_dual E) β _ _ _ _ _ s f :=
 ⟨hf.2, hf.1⟩
 
 lemma convex.quasiconvex_on_of_convex_le (hs : convex 𝕜 s) (h : ∀ r, convex 𝕜 {x | f x ≤ r}) :
@@ -133,7 +115,7 @@ lemma quasiconvex_on.convex (hf : quasiconvex_on 𝕜 s f) : convex 𝕜 s :=
 λ x y hx hy a b ha hb hab,  (hf _ ⟨hx, le_max_left _ _⟩ ⟨hy, le_max_right _ _⟩ ha hb hab).1
 
 lemma quasiconcave_on.convex (hf : quasiconcave_on 𝕜 s f) : convex 𝕜 s :=
-@quasiconvex_on.convex 𝕜 E (order_dual β) _ _ _ _ _ _ _ hf
+hf.dual_right.convex
 
 lemma quasiconvex_on.sup (hf : quasiconvex_on 𝕜 s f) (hg : quasiconvex_on 𝕜 s g) :
   quasiconvex_on 𝕜 s (f ⊔ g) :=
@@ -145,7 +127,7 @@ end
 
 lemma quasiconcave_on.inf (hf : quasiconcave_on 𝕜 s f) (hg : quasiconcave_on 𝕜 s g) :
   quasiconcave_on 𝕜 s (f ⊓ g) :=
-@quasiconvex_on.sup 𝕜 E (order_dual β) _ _ _ _ _ _ _ _ hf hg
+hf.dual_right.sup hg
 
 lemma quasiconvex_on_iff_le_max :
   quasiconvex_on 𝕜 s f ↔ convex 𝕜 s ∧
@@ -181,7 +163,7 @@ begin
 end
 
 lemma quasiconcave_on.convex_gt (hf : quasiconcave_on 𝕜 s f) (r : β) : convex 𝕜 {x ∈ s | r < f x} :=
-@quasiconvex_on.convex_lt 𝕜 E (order_dual β) _ _ _ _ _ _ _ hf r
+hf.dual_right.convex_lt r
 
 end has_scalar
 
@@ -199,79 +181,8 @@ end linear_ordered_add_comm_monoid
 end add_comm_monoid
 
 section linear_ordered_add_comm_monoid
-variables [linear_ordered_add_comm_monoid E]
-
-section ordered_add_comm_monoid
-variables [ordered_add_comm_monoid β] [module 𝕜 E] [ordered_smul 𝕜 E] [has_scalar 𝕜 β] {s : set E}
-  {f : E → β}
-
-lemma monotone_on.convex_le (hf : monotone_on f s) (hs : convex 𝕜 s) (r : β) :
-  convex 𝕜 {x ∈ s | f x ≤ r} :=
-λ x y hx hy a b ha hb hab, ⟨hs hx.1 hy.1 ha hb hab,
-  (hf (hs hx.1 hy.1 ha hb hab) (max_rec' s hx.1 hy.1) (convex.combo_le_max x y ha hb hab)).trans
-    (max_rec' _ hx.2 hy.2)⟩
-
-lemma monotone_on.convex_lt (hf : monotone_on f s) (hs : convex 𝕜 s) (r : β) :
-  convex 𝕜 {x ∈ s | f x < r} :=
-λ x y hx hy a b ha hb hab, ⟨hs hx.1 hy.1 ha hb hab,
-  (hf (hs hx.1 hy.1 ha hb hab) (max_rec' s hx.1 hy.1) (convex.combo_le_max x y ha hb hab)).trans_lt
-    (max_rec' _ hx.2 hy.2)⟩
-
-lemma monotone_on.convex_ge (hf : monotone_on f s) (hs : convex 𝕜 s) (r : β) :
-  convex 𝕜 {x ∈ s | r ≤ f x} :=
-@monotone_on.convex_le 𝕜 (order_dual E) (order_dual β) _ _ _ _ _ _ _ _ hf.dual hs r
-
-lemma monotone_on.convex_gt (hf : monotone_on f s) (hs : convex 𝕜 s) (r : β) :
-  convex 𝕜 {x ∈ s | r < f x} :=
-@monotone_on.convex_lt 𝕜 (order_dual E) (order_dual β) _ _ _ _ _ _ _ _ hf.dual hs r
-
-lemma antitone_on.convex_le (hf : antitone_on f s) (hs : convex 𝕜 s) (r : β) :
-  convex 𝕜 {x ∈ s | f x ≤ r} :=
-@monotone_on.convex_ge 𝕜 E (order_dual β) _ _ _ _ _ _ _ _ hf hs r
-
-lemma antitone_on.convex_lt (hf : antitone_on f s) (hs : convex 𝕜 s) (r : β) :
-  convex 𝕜 {x ∈ s | f x < r} :=
-@monotone_on.convex_gt 𝕜 E (order_dual β) _ _ _ _ _ _ _ _ hf hs r
-
-lemma antitone_on.convex_ge (hf : antitone_on f s) (hs : convex 𝕜 s) (r : β) :
-  convex 𝕜 {x ∈ s | r ≤ f x} :=
-@monotone_on.convex_le 𝕜 E (order_dual β) _ _ _ _ _ _ _ _ hf hs r
-
-lemma antitone_on.convex_gt (hf : antitone_on f s) (hs : convex 𝕜 s) (r : β) :
-  convex 𝕜 {x ∈ s | r < f x} :=
-@monotone_on.convex_lt 𝕜 E (order_dual β) _ _ _ _ _ _ _ _ hf hs r
-
-lemma monotone.convex_le (hf : monotone f) (r : β) :
-  convex 𝕜 {x | f x ≤ r} :=
-set.sep_univ.subst ((hf.monotone_on univ).convex_le convex_univ r)
-
-lemma monotone.convex_lt (hf : monotone f) (r : β) :
-  convex 𝕜 {x | f x ≤ r} :=
-set.sep_univ.subst ((hf.monotone_on univ).convex_le convex_univ r)
-
-lemma monotone.convex_ge (hf : monotone f ) (r : β) :
-  convex 𝕜 {x | r ≤ f x} :=
-set.sep_univ.subst ((hf.monotone_on univ).convex_ge convex_univ r)
-
-lemma monotone.convex_gt (hf : monotone f) (r : β) :
-  convex 𝕜 {x | f x ≤ r} :=
-set.sep_univ.subst ((hf.monotone_on univ).convex_le convex_univ r)
-
-lemma antitone.convex_le (hf : antitone f) (r : β) :
-  convex 𝕜 {x | f x ≤ r} :=
-set.sep_univ.subst ((hf.antitone_on univ).convex_le convex_univ r)
-
-lemma antitone.convex_lt (hf : antitone f) (r : β) :
-  convex 𝕜 {x | f x < r} :=
-set.sep_univ.subst ((hf.antitone_on univ).convex_lt convex_univ r)
-
-lemma antitone.convex_ge (hf : antitone f) (r : β) :
-  convex 𝕜 {x | r ≤ f x} :=
-set.sep_univ.subst ((hf.antitone_on univ).convex_ge convex_univ r)
-
-lemma antitone.convex_gt (hf : antitone f) (r : β) :
-  convex 𝕜 {x | r < f x} :=
-set.sep_univ.subst ((hf.antitone_on univ).convex_gt convex_univ r)
+variables [linear_ordered_add_comm_monoid E] [ordered_add_comm_monoid β] [module 𝕜 E]
+  [ordered_smul 𝕜 E] [has_scalar 𝕜 β] {s : set E} {f : E → β}
 
 lemma monotone_on.quasiconvex_on (hf : monotone_on f s) (hs : convex 𝕜 s) : quasiconvex_on 𝕜 s f :=
 hf.convex_le hs
@@ -311,6 +222,5 @@ lemma antitone.quasiconcave_on (hf : antitone f) : quasiconcave_on 𝕜 univ f :
 lemma antitone.quasilinear_on (hf : antitone f) : quasilinear_on 𝕜 univ f :=
 ⟨hf.quasiconvex_on, hf.quasiconcave_on⟩
 
-end ordered_add_comm_monoid
 end linear_ordered_add_comm_monoid
 end ordered_semiring

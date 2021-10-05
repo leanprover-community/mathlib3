@@ -224,4 +224,12 @@ instance [comm_semiring R] [star_ring R] :
     ((star_ring_aut : ring_aut R) : R →+* R) :=
 ⟨ring_hom.ext star_star, ring_hom.ext star_star⟩
 
+instance star_ring_equiv.ring_hom_inv_pair [semiring R] [star_ring R] :
+  ring_hom_inv_pair (↑(star_ring_equiv : R ≃+* Rᵒᵖ) : R →+* Rᵒᵖ) ↑star_ring_equiv.symm :=
+ring_hom_inv_pair.of_ring_equiv _
+
+instance star_ring_equiv.symm_ring_hom_inv_pair [semiring R] [star_ring R] :
+  ring_hom_inv_pair ↑star_ring_equiv.symm (↑(star_ring_equiv : R ≃+* Rᵒᵖ) : R →+* Rᵒᵖ)  :=
+ring_hom_inv_pair.symm _ _
+
 end ring_hom_inv_pair

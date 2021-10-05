@@ -221,7 +221,7 @@ namespace ring_hom_inv_pair
 (ex: conjugate-linear maps when R = ℂ).  -/
 instance [comm_semiring R] [star_ring R] :
   ring_hom_inv_pair ((star_ring_aut : ring_aut R) : R →+* R)
-    ((star_ring_aut : ring_aut R) : ring_aut R) :=
+    ((star_ring_aut : ring_aut R) : R →+* R) :=
 ⟨ring_hom.ext star_star, ring_hom.ext star_star⟩
 
 end ring_hom_inv_pair

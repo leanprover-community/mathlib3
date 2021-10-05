@@ -974,7 +974,7 @@ variables {D : Type u} [integral_domain D] [unique_factorization_monoid D]
 instance unique_factorization_monoid : unique_factorization_monoid (polynomial D) :=
 begin
   haveI := arbitrary (normalization_monoid D),
-  haveI := to_gcd_monoid D,
+  haveI := to_normalized_gcd_monoid D,
   exact ufm_of_gcd_of_wf_dvd_monoid
 end
 

@@ -351,7 +351,7 @@ section gcd_domain
 /-- For GCD domains, the minimal polynomial over the ring is the same as the minimal polynomial
 over the fraction field. -/
 lemma gcd_domain_eq_field_fractions {A R : Type*} (K : Type*) [integral_domain A]
-  [gcd_monoid A] [field K] [integral_domain R] [algebra A K] [is_fraction_ring A K]
+  [normalized_gcd_monoid A] [field K] [integral_domain R] [algebra A K] [is_fraction_ring A K]
   [algebra K R] [algebra A R] [is_scalar_tower A K R] {x : R} (hx : is_integral A x) :
   minpoly K x = (minpoly A x).map (algebra_map A K) :=
 begin
@@ -367,7 +367,7 @@ end
 /-- For GCD domains, the minimal polynomial divides any primitive polynomial that has the integral
 element as root. -/
 lemma gcd_domain_dvd {A R : Type*} (K : Type*)
-  [integral_domain A] [gcd_monoid A] [field K] [integral_domain R] [algebra A K]
+  [integral_domain A] [normalized_gcd_monoid A] [field K] [integral_domain R] [algebra A K]
   [is_fraction_ring A K] [algebra K R] [algebra A R] [is_scalar_tower A K R]
   {x : R} (hx : is_integral A x)
   {P : polynomial A} (hprim : is_primitive P) (hroot : polynomial.aeval x P = 0) :

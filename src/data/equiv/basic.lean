@@ -1370,7 +1370,7 @@ end
 /-- The `pi`-type `Π i, π i` is equivalent to the type of sections `f : ι → Σ i, π i` of the
 `sigma` type such that for all `i` we have `(f i).fst = i`. -/
 def pi_equiv_subtype_sigma (ι : Type*) (π : ι → Type*) :
-  (Πi, π i) ≃ {f : ι → Σi, π i // ∀i, (f i).1 = i } :=
+  (Π i, π i) ≃ {f : ι → Σ i, π i // ∀ i, (f i).1 = i } :=
 ⟨ λf, ⟨λi, ⟨i, f i⟩, assume i, rfl⟩, λf i, begin rw ← f.2 i, exact (f.1 i).2 end,
   assume f, funext $ assume i, rfl,
   assume ⟨f, hf⟩, subtype.eq $ funext $ assume i, sigma.eq (hf i).symm $

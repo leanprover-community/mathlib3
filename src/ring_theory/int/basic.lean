@@ -92,10 +92,14 @@ instance : gcd_monoid ℕ :=
   gcd_dvd_left := nat.gcd_dvd_left ,
   gcd_dvd_right := nat.gcd_dvd_right,
   dvd_gcd := λ a b c, nat.dvd_gcd,
-  normalize_gcd := λ a b, normalize_eq _,
-  gcd_mul_lcm := λ a b, by rw [normalize_eq _, nat.gcd_mul_lcm],
+  gcd_mul_lcm := λ a b, by rw [nat.gcd_mul_lcm],
   lcm_zero_left := nat.lcm_zero_left,
-  lcm_zero_right := nat.lcm_zero_right,
+  lcm_zero_right := nat.lcm_zero_right }
+
+instance : normalized_gcd_monoid ℕ :=
+{ normalize_gcd := λ a b, normalize_eq _,
+  normalize_lcm := λ a b, normalize_eq _,
+  .. (infer_instance : gcd_monoid ℕ),
   .. (infer_instance : normalization_monoid ℕ) }
 
 lemma gcd_eq_nat_gcd (m n : ℕ) : gcd m n = nat.gcd m n := rfl
@@ -145,11 +149,17 @@ instance : gcd_monoid ℤ :=
   gcd_dvd_left   := assume a b, int.gcd_dvd_left _ _,
   gcd_dvd_right  := assume a b, int.gcd_dvd_right _ _,
   dvd_gcd        := assume a b c, dvd_gcd,
-  normalize_gcd  := assume a b, normalize_coe_nat _,
-  gcd_mul_lcm    := by intros; rw [← int.coe_nat_mul, gcd_mul_lcm, coe_nat_abs_eq_normalize],
+  gcd_mul_lcm    := λ a b, by {
+    rw [← int.coe_nat_mul, gcd_mul_lcm, coe_nat_abs_eq_normalize],
+    exact normalize_associated (a * b) },
   lcm_zero_left  := assume a, coe_nat_eq_zero.2 $ nat.lcm_zero_left _,
-  lcm_zero_right := assume a, coe_nat_eq_zero.2 $ nat.lcm_zero_right _,
-  .. int.normalization_monoid }
+  lcm_zero_right := assume a, coe_nat_eq_zero.2 $ nat.lcm_zero_right _}
+
+instance : normalized_gcd_monoid ℤ :=
+{ normalize_gcd  := λ a b, normalize_coe_nat _,
+  normalize_lcm  := λ a b, normalize_coe_nat _,
+  .. int.normalization_monoid,
+  .. (infer_instance : gcd_monoid ℤ) }
 
 lemma coe_gcd (i j : ℤ) : ↑(int.gcd i j) = gcd_monoid.gcd i j := rfl
 lemma coe_lcm (i j : ℤ) : ↑(int.lcm i j) = gcd_monoid.lcm i j := rfl
@@ -194,7 +204,7 @@ by rw [←gcd_eq_one_iff_coprime, nat.coprime_iff_gcd_eq_one, gcd_eq_nat_abs]
 lemma sq_of_gcd_eq_one {a b c : ℤ} (h : int.gcd a b = 1) (heq : a * b = c ^ 2) :
   ∃ (a0 : ℤ), a = a0 ^ 2 ∨ a = - (a0 ^ 2) :=
 begin
-  have h' : gcd_monoid.gcd a b = 1, { rw [← coe_gcd, h], dec_trivial },
+  have h' : is_unit (gcd_monoid.gcd a b), { rw [← coe_gcd, h, int.coe_nat_one], exact is_unit_one },
   obtain ⟨d, ⟨u, hu⟩⟩ := exists_associated_pow_of_mul_eq_pow h' heq,
   use d,
   rw ← hu,

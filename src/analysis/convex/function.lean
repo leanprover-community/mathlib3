@@ -324,7 +324,7 @@ end
 /-- For a function on a convex set in a linearly ordered space (where the order and the algebraic
 structures aren't necessarily compatible), in order to prove that it is concave it suffices to
 verify the inequality `a • f x + b • f y ≤ f (a • x + b • y)` for `x < y` and positive `a`, `b`. The
-main use case is `E = ℝ` however one can apply it, e.g., to `ℝ^n` with lexicographic order. -/
+main use case is `E = 𝕜` however one can apply it, e.g., to `𝕜^n` with lexicographic order. -/
 lemma linear_order.strict_concave_on_of_lt (hs : convex 𝕜 s)
   (hf : ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → x < y → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 →
      a • f x + b • f y < f (a • x + b • y)) : strict_concave_on 𝕜 s f :=

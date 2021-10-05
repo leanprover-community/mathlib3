@@ -122,12 +122,12 @@ lemma normalize_eq_one {x : α} : normalize x = 1 ↔ is_unit x :=
 ⟨λ hx, is_unit_iff_exists_inv.2 ⟨_, hx⟩, λ ⟨u, hu⟩, hu ▸ normalize_coe_units u⟩
 
 @[simp] theorem norm_unit_mul_norm_unit (a : α) : norm_unit (a * norm_unit a) = 1 :=
-by {
+begin
   nontriviality α using [subsingleton.elim a 0],
   obtain rfl|h := eq_or_ne a 0,
   { rw [norm_unit_zero, zero_mul, norm_unit_zero] },
   { rw [norm_unit_mul h (units.ne_zero _), norm_unit_coe_units, mul_inv_eq_one] }
-}
+end
 
 theorem normalize_idem (x : α) : normalize (normalize x) = normalize x := by simp
 

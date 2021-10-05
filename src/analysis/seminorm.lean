@@ -67,33 +67,6 @@ variables {α : Type*} (β : Type*) [linear_ordered_field α] [ordered_add_comm_
 end stuff
 
 section
-variables {α β γ : Type*} [conditionally_complete_lattice α]
-
-lemma csupr_subtype {s : set β} {f : β → α} : (⨆ x : s, f x) = Sup (f '' s) :=
-begin
-  rw supr,
-  congr,
-  ext,
-  rw [mem_image, mem_range, set_coe.exists],
-  simp_rw [subtype.coe_mk, exists_prop],
-end
-
-lemma cinfi_subtype {s : set β} {f : β → α} : (⨅ x : s, f x) = Inf (f '' s) :=
-@csupr_subtype (order_dual α) _ _ _ _
-
-variables [conditionally_complete_lattice β]
-
-lemma order_iso.map_cSup' (e : α ≃o β) {s : set α} (hne : s.nonempty) (hbdd : bdd_above s) :
-  e (Sup s) = Sup (e '' s) :=
-by rw [e.map_cSup hne hbdd, csupr_subtype]
-
-lemma order_iso.map_cInf' (e : α ≃o β) {s : set α} (hne : s.nonempty) (hbdd : bdd_below s) :
-  e (Inf s) = Inf (e '' s) :=
-by rw [e.map_cInf hne hbdd, cinfi_subtype]
-
-end
-
-section
 variables {α : Type*} [linear_ordered_field α] [module α ℝ] [ordered_smul α ℝ]
 
 lemma real.Inf_smul_of_nonneg {a : α} (ha : 0 ≤ a) (s : set ℝ) :

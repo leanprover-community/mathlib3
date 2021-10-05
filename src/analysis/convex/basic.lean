@@ -691,7 +691,7 @@ end add_comm_monoid
 
 section linear_ordered_add_comm_monoid
 variables [linear_ordered_add_comm_monoid E] [ordered_add_comm_monoid β] [module 𝕜 E]
-  [ordered_smul 𝕜 E] [has_scalar 𝕜 β] {s : set E} {f : E → β}
+  [ordered_smul 𝕜 E] {s : set E} {f : E → β}
 
 lemma monotone_on.convex_le (hf : monotone_on f s) (hs : convex 𝕜 s) (r : β) :
   convex 𝕜 {x ∈ s | f x ≤ r} :=
@@ -707,27 +707,27 @@ lemma monotone_on.convex_lt (hf : monotone_on f s) (hs : convex 𝕜 s) (r : β)
 
 lemma monotone_on.convex_ge (hf : monotone_on f s) (hs : convex 𝕜 s) (r : β) :
   convex 𝕜 {x ∈ s | r ≤ f x} :=
-@monotone_on.convex_le 𝕜 (order_dual E) (order_dual β) _ _ _ _ _ _ _ _ hf.dual hs r
+@monotone_on.convex_le 𝕜 (order_dual E) (order_dual β) _ _ _ _ _ _ _ hf.dual hs r
 
 lemma monotone_on.convex_gt (hf : monotone_on f s) (hs : convex 𝕜 s) (r : β) :
   convex 𝕜 {x ∈ s | r < f x} :=
-@monotone_on.convex_lt 𝕜 (order_dual E) (order_dual β) _ _ _ _ _ _ _ _ hf.dual hs r
+@monotone_on.convex_lt 𝕜 (order_dual E) (order_dual β) _ _ _ _ _ _ _ hf.dual hs r
 
 lemma antitone_on.convex_le (hf : antitone_on f s) (hs : convex 𝕜 s) (r : β) :
   convex 𝕜 {x ∈ s | f x ≤ r} :=
-@monotone_on.convex_ge 𝕜 E (order_dual β) _ _ _ _ _ _ _ _ hf hs r
+@monotone_on.convex_ge 𝕜 E (order_dual β) _ _ _ _ _ _ _ hf hs r
 
 lemma antitone_on.convex_lt (hf : antitone_on f s) (hs : convex 𝕜 s) (r : β) :
   convex 𝕜 {x ∈ s | f x < r} :=
-@monotone_on.convex_gt 𝕜 E (order_dual β) _ _ _ _ _ _ _ _ hf hs r
+@monotone_on.convex_gt 𝕜 E (order_dual β) _ _ _ _ _ _ _ hf hs r
 
 lemma antitone_on.convex_ge (hf : antitone_on f s) (hs : convex 𝕜 s) (r : β) :
   convex 𝕜 {x ∈ s | r ≤ f x} :=
-@monotone_on.convex_le 𝕜 E (order_dual β) _ _ _ _ _ _ _ _ hf hs r
+@monotone_on.convex_le 𝕜 E (order_dual β) _ _ _ _ _ _ _ hf hs r
 
 lemma antitone_on.convex_gt (hf : antitone_on f s) (hs : convex 𝕜 s) (r : β) :
   convex 𝕜 {x ∈ s | r < f x} :=
-@monotone_on.convex_lt 𝕜 E (order_dual β) _ _ _ _ _ _ _ _ hf hs r
+@monotone_on.convex_lt 𝕜 E (order_dual β) _ _ _ _ _ _ _ hf hs r
 
 lemma monotone.convex_le (hf : monotone f) (r : β) :
   convex 𝕜 {x | f x ≤ r} :=

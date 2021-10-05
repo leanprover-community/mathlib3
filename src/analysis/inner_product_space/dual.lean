@@ -142,30 +142,13 @@ variables {F : Type*} [inner_product_space ℝ F]
 `λ y, ⟪x, y⟫` is a continuous linear map. If the space is complete (i.e. is a Hilbert space),
 consider using `to_dual` instead. -/
 -- TODO extend to `is_R_or_C` (requires a definition of conjugate linear maps)
-def to_dual_map : F →L[ℝ] (normed_space.dual ℝ F) :=
-linear_map.mk_continuous
-  { to_fun := to_dual' ℝ,
-    map_add' := λ x y, by { ext, simp [inner_add_left] },
-    map_smul' := λ c x, by { ext, simp [inner_smul_left] } }
-  1
-  (λ x, by simp only [norm_to_dual'_apply, one_mul, linear_map.coe_mk])
+def to_dual_map : F →ₗᵢ[ℝ] (normed_space.dual ℝ F) :=
+{ to_fun := to_dual' ℝ,
+  map_add' := λ x y, by { ext, simp [inner_add_left] },
+  map_smul' := λ c x, by { ext, simp [inner_smul_left] },
+  norm_map' := norm_to_dual'_apply ℝ }
 
 @[simp] lemma to_dual_map_apply {x y : F} : to_dual_map x y = ⟪x, y⟫_ℝ := rfl
-
-/-- In an inner product space, the norm of the dual of a vector `x` is `∥x∥` -/
-@[simp] lemma norm_to_dual_map_apply (x : F) : ∥to_dual_map x∥ = ∥x∥ := norm_to_dual'_apply _ _
-
-lemma to_dual_map_isometry : isometry (@to_dual_map F _) :=
-add_monoid_hom.isometry_of_norm _ norm_to_dual_map_apply
-
-lemma to_dual_map_injective : function.injective (@to_dual_map F _) :=
-(@to_dual_map_isometry F _).injective
-
-@[simp] lemma ker_to_dual_map : (@to_dual_map F _).ker = ⊥ :=
-linear_map.ker_eq_bot.mpr to_dual_map_injective
-
-@[simp] lemma to_dual_map_eq_iff_eq {x y : F} : to_dual_map x = to_dual_map y ↔ x = y :=
-((linear_map.ker_eq_bot).mp (@ker_to_dual_map F _)).eq_iff
 
 variables [complete_space F]
 

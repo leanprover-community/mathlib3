@@ -493,7 +493,8 @@ def associated_hom : quadratic_form R M →ₗ[S] bilin_form R M :=
     end },
   map_add' := λ Q Q', by { ext, simp only [bilin_form.add_apply, coe_fn_mk, polar_add, coe_fn_add,
     mul_add] },
-  map_smul' := λ s Q, by { ext, simp only [ring_hom.id_apply, polar_smul, algebra.mul_smul_comm, coe_fn_mk, coe_fn_smul, bilin_form.smul_apply] } }
+  map_smul' := λ s Q, by { ext, simp only [ring_hom.id_apply, polar_smul, algebra.mul_smul_comm,
+    coe_fn_mk, coe_fn_smul, bilin_form.smul_apply] } }
 
 variables (Q : quadratic_form R M) (S)
 

@@ -137,6 +137,15 @@ instance complete_lattice : complete_lattice (setoid α) :=
   .. complete_lattice_of_Inf (setoid α) $ assume s,
     ⟨λ r hr x y h, h _ hr, λ r hr x y h r' hr', hr hr' h⟩ }
 
+@[simp]
+lemma top_def : (⊤ : setoid α).rel = ⊤ := rfl
+
+@[simp]
+lemma bot_def : (⊥ : setoid α).rel = (=) := rfl
+
+lemma eq_top_iff {s : setoid α} : s = (⊤ : setoid α) ↔ ∀ x y : α, s.rel x y :=
+by simp [eq_top_iff, setoid.le_def, setoid.top_def, pi.top_apply]
+
 /-- The inductively defined equivalence closure of a binary relation r is the infimum
     of the set of all equivalence relations containing r. -/
 theorem eqv_gen_eq (r : α → α → Prop) :
@@ -360,3 +369,23 @@ def correspondence (r : setoid α) : {s // r ≤ s} ≃o setoid (quotient r) :=
       λ h x y hs, let ⟨a, b, hx, hy, Hs⟩ := hs in ⟨a, b, hx, hy, h Hs⟩⟩ }
 
 end setoid
+
+@[simp]
+lemma quotient.subsingleton_iff  {s : setoid α} :
+  subsingleton (quotient s) ↔ s = ⊤ :=
+begin
+  simp only [subsingleton_iff, eq_top_iff, setoid.le_def, setoid.top_def,
+    pi.top_apply, forall_const],
+  refine (surjective_quotient_mk _).forall.trans (forall_congr $ λ a, _),
+  refine (surjective_quotient_mk _).forall.trans (forall_congr $ λ b, _),
+  exact quotient.eq',
+end
+
+lemma quot.subsingleton_iff (r : α → α → Prop) : subsingleton (quot r) ↔ eqv_gen r = ⊤ :=
+begin
+  simp only [subsingleton_iff, _root_.eq_top_iff, pi.le_def, pi.top_apply, forall_const],
+  refine (surjective_quot_mk _).forall.trans (forall_congr $ λ a, _),
+  refine (surjective_quot_mk _).forall.trans (forall_congr $ λ b, _),
+  rw quot.eq,
+  simp only [forall_const, le_Prop_eq],
+end

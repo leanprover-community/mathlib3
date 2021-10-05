@@ -1271,7 +1271,7 @@ section
 open associates unique_factorization_monoid
 
 lemma associates.quot_out {α : Type*} [comm_monoid α] (a : associates α):
-associates.mk (quot.out (a)) ~ᵤ a :=
+associates.mk (quot.out (a)) = a :=
 by rw [←quot_mk_eq_mk, quot.out_eq]
 
 /-- `to_gcd_monoid` constructs a GCD monoid out of a unique factorization domain. -/
@@ -1281,31 +1281,26 @@ noncomputable def unique_factorization_monoid.to_gcd_monoid
 { gcd := λa b, quot.out (associates.mk a ⊓ associates.mk b : associates α),
   lcm := λa b, quot.out (associates.mk a ⊔ associates.mk b : associates α),
   gcd_dvd_left := λ a b, by {
-    rw [←mk_dvd_mk, (associates.mk a ⊓ associates.mk b).quot_out.dvd_iff_dvd_left, dvd_eq_le],
+    rw [←mk_dvd_mk, (associates.mk a ⊓ associates.mk b).quot_out, dvd_eq_le],
     exact inf_le_left },
   gcd_dvd_right := λ a b, by {
-    rw [←mk_dvd_mk, (associates.mk a ⊓ associates.mk b).quot_out.dvd_iff_dvd_left, dvd_eq_le],
+    rw [←mk_dvd_mk, (associates.mk a ⊓ associates.mk b).quot_out, dvd_eq_le],
     exact inf_le_right },
   dvd_gcd := λ a b c hac hab, by {
-    rw [←mk_dvd_mk, (associates.mk c ⊓ associates.mk b).quot_out.dvd_iff_dvd_right, dvd_eq_le,
+    rw [←mk_dvd_mk, (associates.mk c ⊓ associates.mk b).quot_out, dvd_eq_le,
       le_inf_iff, mk_le_mk_iff_dvd_iff, mk_le_mk_iff_dvd_iff],
     exact ⟨hac, hab⟩ },
   lcm_zero_left := λ a, by {
     have : associates.mk (0 : α) = ⊤ := rfl,
     rw [this, top_sup_eq, ←this, ←associated_zero_iff_eq_zero, ←mk_eq_mk_iff_associated,
-      ←associated_iff_eq],
-    exact associates.quot_out _ },
+      ←associated_iff_eq, associates.quot_out] },
   lcm_zero_right := λ a, by {
     have : associates.mk (0 : α) = ⊤ := rfl,
     rw [this, sup_top_eq, ←this, ←associated_zero_iff_eq_zero, ←mk_eq_mk_iff_associated,
-      ←associated_iff_eq],
-    exact associates.quot_out _ },
+      ←associated_iff_eq, associates.quot_out] },
   gcd_mul_lcm := λ a b, by {
-    rw [←mk_eq_mk_iff_associated, ←associates.mk_mul_mk, ←associated_iff_eq],
-    have := (associates.mk a ⊓ associates.mk b).quot_out,
-    apply ((associates.mk a ⊓ associates.mk b).quot_out.mul_right _).trans,
-    apply ((associates.mk a ⊔ associates.mk b).quot_out.mul_left _).trans,
-    rw [mul_comm, sup_mul_inf, associates.mk_mul_mk] } }
+    rw [←mk_eq_mk_iff_associated, ←associates.mk_mul_mk, ←associated_iff_eq, associates.quot_out,
+      associates.quot_out, mul_comm, sup_mul_inf, associates.mk_mul_mk] } }
 
 /-- `to_normalized_gcd_monoid` constructs a GCD monoid out of a normalization on a
   unique factorization domain. -/

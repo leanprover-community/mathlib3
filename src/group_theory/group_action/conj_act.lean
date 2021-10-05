@@ -93,7 +93,7 @@ end group_with_zero
 variables [group G]
 
 instance : mul_distrib_mul_action (conj_act G) G :=
-{ smul := λ g h, of_conj_act g * h * (of_conj_act g)⁻¹,
+{ smul := (•),
   smul_mul := by simp [mul_assoc],
   smul_one := by simp,
   one_smul := by simp,

@@ -555,7 +555,7 @@ end
 
 /-- If `f` is an affine map, then its linear part is an open map iff `f` is an open map. -/
 lemma affine_map.is_open_map_linear_iff {f : P →ᵃ[𝕜] P₂} :
-  is_open_map f ↔ is_open_map f.linear :=
+  is_open_map f.linear ↔ is_open_map f :=
 begin
   inhabit P,
   have : (f.linear : V → V₂) =

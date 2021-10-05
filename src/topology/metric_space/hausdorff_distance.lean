@@ -444,7 +444,7 @@ begin
     { simp [ennreal.add_eq_top, inf_edist_ne_top hs, edist_ne_top] }}
 end
 
-lemma disjoint_closed_ball_of_lt_inf_edist {r : ℝ} (h : r < inf_dist x s) :
+lemma disjoint_closed_ball_of_lt_inf_dist {r : ℝ} (h : r < inf_dist x s) :
   disjoint (closed_ball x r) s :=
 begin
   rw disjoint_left,

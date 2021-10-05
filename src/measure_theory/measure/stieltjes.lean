@@ -266,7 +266,7 @@ end
 
 lemma borel_le_measurable : borel ℝ ≤ f.outer.caratheodory :=
 begin
-  rw borel_eq_generate_Ioi,
+  rw borel_eq_generate_from_Ioi,
   refine measurable_space.generate_from_le _,
   simp [f.measurable_set_Ioi] { contextual := tt }
 end

@@ -181,6 +181,15 @@ by { rw [set.insert_eq], exact (countable_singleton _).union h }
 lemma finite.countable {s : set α} : finite s → countable s
 | ⟨h⟩ := trunc.nonempty (by exactI trunc_encodable_of_fintype s)
 
+lemma subsingleton.countable {s : set α} (hs : s.subsingleton) : countable s :=
+hs.finite.countable
+
+lemma countable_is_top (α : Type*) [partial_order α] : countable {x : α | is_top x} :=
+(finite_is_top α).countable
+
+lemma countable_is_bot (α : Type*) [partial_order α] : countable {x : α | is_bot x} :=
+(finite_is_bot α).countable
+
 /-- The set of finite subsets of a countable set is countable. -/
 lemma countable_set_of_finite_subset {s : set α} : countable s →
   countable {t | finite t ∧ t ⊆ s} | ⟨h⟩ :=

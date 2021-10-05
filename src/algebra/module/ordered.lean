@@ -26,6 +26,14 @@ ordered module, ordered scalar, ordered smul, ordered action, ordered vector spa
 
 variables {k M N : Type*}
 
+namespace order_dual
+
+instance [semiring k] [ordered_add_comm_monoid M] [module k M] : module k (order_dual M) :=
+{ add_smul := λ r s x, order_dual.rec (add_smul _ _) x,
+  zero_smul := λ m, order_dual.rec (zero_smul _) m }
+
+end order_dual
+
 section semiring
 variables [ordered_semiring k] [ordered_add_comm_group M] [module k M] [ordered_smul k M]
   {a b : M} {c : k}
@@ -161,11 +169,3 @@ instance pi.ordered_smul' {ι : Type*} {M : Type*} [ordered_add_comm_group M]
 pi.ordered_smul
 
 end field
-
-namespace order_dual
-
-instance [semiring k] [ordered_add_comm_monoid M] [module k M] : module k (order_dual M) :=
-{ add_smul := λ r s x, order_dual.rec (add_smul _ _) x,
-  zero_smul := λ m, order_dual.rec (zero_smul _) m }
-
-end order_dual

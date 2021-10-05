@@ -68,7 +68,7 @@ variables {α : Type*} [normed_lattice_add_comm_group α]
 Let `α` be a normed lattice ordered group and let `a` and `b` be elements of `α`. Then `a⊓-a ≥ b⊓-b`
 implies `∥a∥ ≤ ∥b∥`.
 -/
-lemma dual_solid (a b : α) (h: b⊓-b ≤ a⊓-a) :
+lemma dual_solid (a b : α) (h : b ⊓ -b ≤ a ⊓ -a) :
   ∥a∥ ≤ ∥b∥ :=
 begin
   apply solid,

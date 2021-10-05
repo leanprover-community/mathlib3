@@ -119,5 +119,6 @@ begin
   let s : finset ι := {i},
   have hi : i ∈ s, { simp, },
   have hw : s.sum (function.const ι (1 : k)) = 1, { simp, },
-  convert barycentric_coord_apply_combination_of_mem h_ind h_tot hi hw,
+  have hq : q = s.affine_combination p (function.const ι (1 : k)), { simp, },
+  rw [hq, barycentric_coord_apply_combination_of_mem h_ind h_tot hi hw],
 end

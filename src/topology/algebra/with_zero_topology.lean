@@ -168,11 +168,7 @@ begin
   simpa
 end
 
-<<<<<<< HEAD
-lemma tendsto_of_ne_zero {α : Type*} {F : filter α} {f : α → Γ₀} {γ : Γ₀} (h : γ ≠ 0):
-=======
-lemma tendsto_non_zero {α : Type*} {F : filter α} {f : α → Γ₀} {γ : Γ₀} (h : γ ≠ 0) :
->>>>>>> Formatting
+lemma tendsto_of_ne_zero {α : Type*} {F : filter α} {f : α → Γ₀} {γ : Γ₀} (h : γ ≠ 0) :
   tendsto f F (𝓝 γ) ↔ { x : α | f x = γ } ∈ F :=
 @tendsto_units _ _ _ F f (units.mk0 γ h)
 

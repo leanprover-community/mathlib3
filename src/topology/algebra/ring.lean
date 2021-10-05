@@ -28,8 +28,8 @@ of topological (semi)rings.
 
 -/
 
-open classical set filter topological_space
-open_locale classical
+open classical set filter topological_space function
+open_locale classical topological_space filter
 
 section topological_ring
 variables (α : Type*)
@@ -78,6 +78,48 @@ instance {β : Type*} [semiring β] [topological_space β] [topological_ring β]
 
 instance {β : Type*} {C : β → Type*} [∀ b, topological_space (C b)]
   [Π b, semiring (C b)] [Π b, topological_ring (C b)] : topological_ring (Π b, C b) := {}
+end
+
+section
+variables {R : Type*} [ring R] [topological_space R]
+
+lemma topological_ring.of_add_group_of_nhds_zero [topological_add_group R]
+  (hmul : tendsto (uncurry ((*) : R → R → R)) ((𝓝 0) ×ᶠ (𝓝 0)) $ 𝓝 0)
+  (hmul_left : ∀ (x₀ : R), tendsto (λ x : R, x₀ * x) (𝓝 0) $ 𝓝 0)
+  (hmul_right : ∀ (x₀ : R), tendsto (λ x : R, x * x₀) (𝓝 0) $ 𝓝 0) : topological_ring R :=
+begin
+  refine {..‹topological_add_group R›, ..},
+  have hleft : ∀ x₀ : R, 𝓝 x₀ = map (λ x, x₀ + x) (𝓝 0), by simp,
+  have hadd : tendsto (uncurry ((+) : R → R → R)) ((𝓝 0) ×ᶠ (𝓝 0)) (𝓝 0),
+  { rw ← nhds_prod_eq,
+    convert continuous_add.tendsto ((0 : R), (0 : R)),
+    rw zero_add },
+  rw continuous_iff_continuous_at,
+  rintro ⟨x₀, y₀⟩,
+  rw [continuous_at, nhds_prod_eq, hleft x₀, hleft y₀, hleft (x₀*y₀), filter.prod_map_map_eq,
+      tendsto_map'_iff],
+  suffices :
+    tendsto ((λ (x : R), x + x₀ * y₀) ∘ (λ (p : R × R), p.1 + p.2) ∘
+              (λ (p : R × R), (p.1*y₀ + x₀*p.2, p.1*p.2)))
+            ((𝓝 0) ×ᶠ (𝓝 0)) (map (λ (x : R), x + x₀ * y₀) $ 𝓝 0),
+  { convert this using 1,
+    { ext, simp only [comp_app, mul_add, add_mul], abel },
+    { simp only [add_comm] } },
+  refine tendsto_map.comp (hadd.comp (tendsto.prod_mk _ hmul)),
+  exact hadd.comp (((hmul_right y₀).comp tendsto_fst).prod_mk ((hmul_left  x₀).comp tendsto_snd))
+end
+
+lemma topological_ring.of_nhds_zero
+  (hadd : tendsto (uncurry ((+) : R → R → R)) ((𝓝 0) ×ᶠ (𝓝 0)) $ 𝓝 0)
+  (hneg : tendsto (λ x, -x : R → R) (𝓝 0) (𝓝 0))
+  (hmul : tendsto (uncurry ((*) : R → R → R)) ((𝓝 0) ×ᶠ (𝓝 0)) $ 𝓝 0)
+  (hmul_left : ∀ (x₀ : R), tendsto (λ x : R, x₀ * x) (𝓝 0) $ 𝓝 0)
+  (hmul_right : ∀ (x₀ : R), tendsto (λ x : R, x * x₀) (𝓝 0) $ 𝓝 0)
+  (hleft : ∀ x₀ : R, 𝓝 x₀ = map (λ x, x₀ + x) (𝓝 0)) : topological_ring R :=
+begin
+  haveI := topological_add_group.of_comm_of_nhds_zero hadd hneg hleft,
+  exact topological_ring.of_add_group_of_nhds_zero hmul hmul_left hmul_right
+end
 
 end
 

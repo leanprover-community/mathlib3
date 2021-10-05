@@ -97,10 +97,10 @@ instance : normed_group punit :=
 @[simp] lemma punit.norm_eq_zero (r : punit) : ∥r∥ = 0 := rfl
 
 instance : normed_group ℝ :=
-{ norm := λ x, abs x,
+{ norm := λ x, |x|,
   dist_eq := assume x y, rfl }
 
-lemma real.norm_eq_abs (r : ℝ) : ∥r∥ = abs r := rfl
+lemma real.norm_eq_abs (r : ℝ) : ∥r∥ = |r| := rfl
 
 section semi_normed_group
 variables [semi_normed_group α] [semi_normed_group β]
@@ -169,7 +169,7 @@ lemma dist_sub_sub_le_of_le {g₁ g₂ h₁ h₂ : α} {d₁ d₂ : ℝ}
 le_trans (dist_sub_sub_le g₁ g₂ h₁ h₂) (add_le_add H₁ H₂)
 
 lemma abs_dist_sub_le_dist_add_add (g₁ g₂ h₁ h₂ : α) :
-  abs (dist g₁ h₁ - dist g₂ h₂) ≤ dist (g₁ + g₂) (h₁ + h₂) :=
+  |dist g₁ h₁ - dist g₂ h₂| ≤ dist (g₁ + g₂) (h₁ + h₂) :=
 by simpa only [dist_add_left, dist_add_right, dist_comm h₂]
   using abs_dist_sub_le (g₁ + g₂) (h₁ + h₂) (h₁ + g₂)
 
@@ -210,7 +210,7 @@ le_trans (norm_sub_le g₁ g₂) (add_le_add H₁ H₂)
 lemma dist_le_norm_add_norm (g h : α) : dist g h ≤ ∥g∥ + ∥h∥ :=
 by { rw dist_eq_norm, apply norm_sub_le }
 
-lemma abs_norm_sub_norm_le (g h : α) : abs(∥g∥ - ∥h∥) ≤ ∥g - h∥ :=
+lemma abs_norm_sub_norm_le (g h : α) : |∥g∥ - ∥h∥| ≤ ∥g - h∥ :=
 by simpa [dist_eq_norm] using abs_dist_sub_le g h 0
 
 lemma norm_sub_norm_le (g h : α) : ∥g∥ - ∥h∥ ≤ ∥g - h∥ :=
@@ -1265,7 +1265,7 @@ instance to_normed_comm_ring : normed_comm_ring α :=
 
 @[priority 900]
 instance to_norm_one_class : norm_one_class α :=
-⟨mul_left_cancel' (mt norm_eq_zero.1 (@one_ne_zero α _ _)) $
+⟨mul_left_cancel₀ (mt norm_eq_zero.1 (@one_ne_zero α _ _)) $
   by rw [← norm_mul, mul_one, mul_one]⟩
 
 @[simp] lemma nnnorm_mul (a b : α) : ∥a * b∥₊ = ∥a∥₊ * ∥b∥₊ :=
@@ -1299,7 +1299,7 @@ nnreal.eq $ norm_mul a b
 (nnnorm_hom : monoid_with_zero_hom α ℝ≥0).map_div a b
 
 @[simp] lemma norm_inv (a : α) : ∥a⁻¹∥ = ∥a∥⁻¹ :=
-(norm_hom : monoid_with_zero_hom α ℝ).map_inv' a
+(norm_hom : monoid_with_zero_hom α ℝ).map_inv a
 
 @[simp] lemma nnnorm_inv (a : α) : ∥a⁻¹∥₊ = ∥a∥₊⁻¹ :=
 nnreal.eq $ by simp
@@ -1311,7 +1311,7 @@ nnreal.eq $ by simp
 (nnnorm_hom : monoid_with_zero_hom α ℝ≥0).map_fpow
 
 @[priority 100] -- see Note [lower instance priority]
-instance : has_continuous_inv' α :=
+instance : has_continuous_inv₀ α :=
 begin
   refine ⟨λ r r0, tendsto_iff_norm_tendsto_zero.2 _⟩,
   have r0' : 0 < ∥r∥ := norm_pos_iff.2 r0,
@@ -1463,12 +1463,12 @@ instance : normed_comm_ring ℤ :=
 
 @[norm_cast] lemma int.norm_cast_real (m : ℤ) : ∥(m : ℝ)∥ = ∥m∥ := rfl
 
-lemma int.norm_eq_abs (n : ℤ) : ∥n∥ = abs n := rfl
+lemma int.norm_eq_abs (n : ℤ) : ∥n∥ = |n| := rfl
 
 lemma nnreal.coe_nat_abs (n : ℤ) : (n.nat_abs : ℝ≥0) = ∥n∥₊ :=
 nnreal.eq $ calc ((n.nat_abs : ℝ≥0) : ℝ)
                = (n.nat_abs : ℤ) : by simp only [int.cast_coe_nat, nnreal.coe_nat_cast]
-           ... = abs n           : by simp only [← int.abs_eq_nat_abs, int.cast_abs]
+           ... = |n|           : by simp only [← int.abs_eq_nat_abs, int.cast_abs]
            ... = ∥n∥              : rfl
 
 instance : norm_one_class ℤ :=
@@ -1570,14 +1570,14 @@ begin
   by_cases h : s = 0,
   { simp [h] },
   { refine le_antisymm (semi_normed_space.norm_smul_le s x) _,
-    calc ∥s∥ * ∥x∥ = ∥s∥ * ∥s⁻¹ • s • x∥     : by rw [inv_smul_smul' h]
+    calc ∥s∥ * ∥x∥ = ∥s∥ * ∥s⁻¹ • s • x∥     : by rw [inv_smul_smul₀ h]
                ... ≤ ∥s∥ * (∥s⁻¹∥ * ∥s • x∥) :
       mul_le_mul_of_nonneg_left (semi_normed_space.norm_smul_le _ _) (norm_nonneg _)
                ... = ∥s • x∥                 :
       by rw [normed_field.norm_inv, ← mul_assoc, mul_inv_cancel (mt norm_eq_zero.1 h), one_mul] }
 end
 
-@[simp] lemma abs_norm_eq_norm (z : β) : abs ∥z∥ = ∥z∥ :=
+@[simp] lemma abs_norm_eq_norm (z : β) : |∥z∥| = ∥z∥ :=
   (abs_eq (norm_nonneg z)).mpr (or.inl rfl)
 
 lemma dist_smul [semi_normed_space α β] (s : α) (x y : β) : dist (s • x) (s • y) = ∥s∥ * dist x y :=
@@ -1653,8 +1653,8 @@ theorem smul_ball {c : α} (hc : c ≠ 0) (x : E) (r : ℝ) :
   c • ball x r = ball (c • x) (∥c∥ * r) :=
 begin
   ext y,
-  rw mem_smul_set_iff_inv_smul_mem' hc,
-  conv_lhs { rw ←inv_smul_smul' hc x },
+  rw mem_smul_set_iff_inv_smul_mem₀ hc,
+  conv_lhs { rw ←inv_smul_smul₀ hc x },
   simp [← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hc), mul_comm _ r, dist_smul],
 end
 
@@ -1662,8 +1662,8 @@ theorem smul_closed_ball' {c : α} (hc : c ≠ 0) (x : E) (r : ℝ) :
   c • closed_ball x r = closed_ball (c • x) (∥c∥ * r) :=
 begin
   ext y,
-  rw mem_smul_set_iff_inv_smul_mem' hc,
-  conv_lhs { rw ←inv_smul_smul' hc x },
+  rw mem_smul_set_iff_inv_smul_mem₀ hc,
+  conv_lhs { rw ←inv_smul_smul₀ hc x },
   simp [dist_smul, ← div_eq_inv_mul, div_le_iff (norm_pos_iff.2 hc), mul_comm _ r],
 end
 
@@ -1727,12 +1727,12 @@ begin
     exact (div_lt_iff εpos).1 (hn.2) },
   show ε / ∥c∥ ≤ ∥(c ^ (n + 1))⁻¹ • x∥,
   { rw [div_le_iff cpos, norm_smul, norm_inv, norm_fpow, fpow_add (ne_of_gt cpos),
-        gpow_one, mul_inv_rev', mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel (ne_of_gt cpos),
+        gpow_one, mul_inv_rev₀, mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel (ne_of_gt cpos),
         one_mul, ← div_eq_inv_mul, le_div_iff (fpow_pos_of_pos cpos _), mul_comm],
     exact (le_div_iff εpos).1 hn.1 },
   show ∥(c ^ (n + 1))⁻¹∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥,
   { have : ε⁻¹ * ∥c∥ * ∥x∥ = ε⁻¹ * ∥x∥ * ∥c∥, by ring,
-    rw [norm_inv, inv_inv', norm_fpow, fpow_add (ne_of_gt cpos), gpow_one, this, ← div_eq_inv_mul],
+    rw [norm_inv, inv_inv₀, norm_fpow, fpow_add (ne_of_gt cpos), gpow_one, this, ← div_eq_inv_mul],
     exact mul_le_mul_of_nonneg_right hn.1 (norm_nonneg _) }
 end
 

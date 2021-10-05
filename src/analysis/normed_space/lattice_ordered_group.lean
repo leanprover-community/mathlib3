@@ -167,7 +167,7 @@ values `|a|` and `|b|` respectively. Then `∥ |a| - |b| ∥` is dominated by `�
 -/
 lemma norm_abs_sub_abs (a b : α) :
   ∥ |a| - |b| ∥ ≤ ∥a-b∥ :=
-by exact solid (lattice_ordered_comm_group.abs_abs_sub_abs_le _ _)
+solid (lattice_ordered_comm_group.abs_abs_sub_abs_le _ _)
 
 /--
 Let `α` be a normed lattice ordered group and let `a`, `b`, `c` and `d` be elements of `α`. Then

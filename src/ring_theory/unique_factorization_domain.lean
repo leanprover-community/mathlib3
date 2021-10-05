@@ -405,14 +405,13 @@ namespace unique_factorization_monoid
 variables [comm_cancel_monoid_with_zero α] [decidable_eq α] [nontrivial α] [normalization_monoid α]
 variables [unique_factorization_monoid α]
 
--- TODO: this could perhaps be `multiset.map normalize $ factors' a`
 /-- Noncomputably determines the multiset of prime factors. -/
-noncomputable def normalized_factors (a : α) : multiset α := if h : a = 0 then 0 else
-multiset.map normalize $ classical.some (unique_factorization_monoid.exists_prime_factors a h)
+noncomputable def normalized_factors (a : α) : multiset α :=
+multiset.map normalize $ factors a
 
 theorem normalized_factors_prod {a : α} (ane0 : a ≠ 0) : associated (normalized_factors a).prod a :=
 begin
-  rw [normalized_factors, dif_neg ane0],
+  rw [normalized_factors, factors, dif_neg ane0],
   refine associated.trans _ (classical.some_spec (exists_prime_factors a ane0)).2,
   rw [← associates.mk_eq_mk_iff_associated, ← associates.prod_mk, ← associates.prod_mk,
       multiset.map_map],
@@ -423,7 +422,7 @@ end
 
 theorem prime_of_normalized_factor {a : α} : ∀ (x : α), x ∈ normalized_factors a → prime x :=
 begin
-  rw [normalized_factors],
+  rw [normalized_factors, factors],
   split_ifs with ane0, { simp },
   intros x hx, rcases multiset.mem_map.1 hx with ⟨y, ⟨hy, rfl⟩⟩,
   rw (normalize_associated _).prime_iff,
@@ -437,7 +436,7 @@ theorem irreducible_of_normalized_factor {a : α} :
 theorem normalize_normalized_factor {a : α} :
   ∀ (x : α), x ∈ normalized_factors a → normalize x = x :=
 begin
-  rw normalized_factors,
+  rw [normalized_factors, factors],
   split_ifs with h, { simp },
   intros x hx,
   obtain ⟨y, hy, rfl⟩ := multiset.mem_map.1 hx,
@@ -470,7 +469,8 @@ have multiset.rel associated (p ::ₘ normalized_factors b) (normalized_factors 
         by rw multiset.prod_cons; exact (normalized_factors_prod hb0).symm.mul_left _),
 multiset.exists_mem_of_rel_of_mem this (by simp)
 
-@[simp] lemma normalized_factors_zero : normalized_factors (0 : α) = 0 := dif_pos rfl
+@[simp] lemma normalized_factors_zero : normalized_factors (0 : α) = 0 :=
+by simp [normalized_factors, factors]
 
 @[simp] lemma normalized_factors_one : normalized_factors (1 : α) = 0 :=
 begin

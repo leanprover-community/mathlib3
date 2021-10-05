@@ -111,7 +111,11 @@ end
 @[simp] lemma barycentric_coord_eq_one_of_subsingleton [subsingleton ι] (q : P) (i : ι) :
   barycentric_coord h_ind h_tot i q = 1 :=
 begin
-  haveI := affine_subspace.subsingleton_of_span_range_eq_top_subsingleton h_tot,
+  have hp : (range p).subsingleton,
+  { rw ← image_univ,
+    apply subsingleton.image,
+    apply subsingleton_of_subsingleton, },
+  haveI := affine_subspace.subsingleton_of_subsingleton_span_eq_top hp h_tot,
   let s : finset ι := {i},
   have hi : i ∈ s, { simp, },
   have hw : s.sum (function.const ι (1 : k)) = 1, { simp, },

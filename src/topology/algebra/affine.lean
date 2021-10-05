@@ -28,7 +28,7 @@ section ring
 variables [ring R] [module R E] [module R F]
 
 /-- An affine map is continuous iff its underlying linear map is continuous. See also
-`affine_map.continuous_of_normed_iff`. -/
+`affine_map.continuous_linear_iff`. -/
 lemma continuous_iff {f : E →ᵃ[R] F} :
   continuous f ↔ continuous f.linear :=
 begin

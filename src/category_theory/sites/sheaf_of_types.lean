@@ -288,6 +288,7 @@ end
 
 end functor_pullback
 
+<<<<<<< HEAD
 /--
 Given a family of elements of a presieve `S` valued in `F.op â‹™ P`,
 we can obtain a family of elements of `S.functor_pushforward F` valued in `P` by taking the same
@@ -301,6 +302,8 @@ def functor_pushforward {Z : D} {T : presieve Z} (x : family_of_elements (F.op â
       (x _ (functor_pushforward_prehom_cover hf))
 
 
+=======
+>>>>>>> 04916217ef25bd3010fe459a7b8c52bce8b8f4c5
 section pullback
 
 /--

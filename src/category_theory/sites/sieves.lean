@@ -146,6 +146,7 @@ def functor_pullback {X : C} (R : presieve (F.obj X)) : presieve X := λ _ f, R 
 
 @[simp] lemma functor_pullback_id {X : C} (R : presieve X) : R.functor_pullback (𝟭 _) = R := rfl
 
+<<<<<<< HEAD
 @[simp] lemma functor_pullback_apply {X : C} (R : presieve (F.obj X)) {Y} (f : Y ⟶ X) :
   R.functor_pullback F f ↔ R (F.map f) := by unfold functor_pullback
 
@@ -176,6 +177,8 @@ def functor_pushforward_prehom : functor_pushforward_preobj H ⟶ X := (classica
 lemma functor_pushforward_prehom_cover : R (functor_pushforward_prehom H) := classical.some_spec H
 
 end functor_pushforward
+=======
+>>>>>>> 04916217ef25bd3010fe459a7b8c52bce8b8f4c5
 end presieve
 
 /--

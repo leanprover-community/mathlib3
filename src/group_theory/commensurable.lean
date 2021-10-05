@@ -47,45 +47,18 @@ rw h2,
 simp,
 end
 
-def conj_subgroup (g : G)  (Γ : subgroup G) : subgroup G :={
-carrier := { h : G | ∃ γ : Γ, g⁻¹ * γ * g = h},
-one_mem' := by  {simp, use 1, simp,}  ,
-mul_mem' := by {intros a b ha hb, simp at *,
-  let aa:= classical.some ha,
-  let bb:= classical.some hb,
-  have haa:= classical.some_spec ha,
-  have hbb:= classical.some_spec hb,
-  use aa*bb, rw   ←  haa, rw ← hbb, simp, simp_rw ←  mul_assoc, simp,},
-inv_mem' := by {intros x hx, simp at *,
-  let a:= classical.some hx,
-  have ha:= classical.some_spec hx,
-  use a⁻¹ ,
-  rw ← ha,
-  simp,
-  simp_rw ←  mul_assoc,} ,
-}
+def conj_subgroup (g : G) (Γ : subgroup G) : subgroup G :=
+  subgroup.map (mul_equiv.to_monoid_hom (mul_aut.conj g) )  Γ
 
-def conj_subgroup' (g : G)  (Γ : subgroup G) : subgroup G :={
-carrier := { h : G | ∃ γ : Γ, g⁻¹ * γ * g = h},
-one_mem' := by  {simp, use 1, simp,}  ,
-mul_mem' := by {intros a b ha hb, simp at *,
-  let aa:= classical.some ha,
-  let bb:= classical.some hb,
-  have haa:= classical.some_spec ha,
-  have hbb:= classical.some_spec hb,
-  use aa*bb, rw   ←  haa, rw ← hbb, simp, simp_rw ←  mul_assoc, simp,},
-inv_mem' := by {intros x hx, simp at *,
-  let a:= classical.some hx,
-  have ha:= classical.some_spec hx,
-  use a⁻¹ ,
-  rw ← ha,
-  simp,
-  simp_rw ←  mul_assoc,} ,
-}
 
 @[simp]
 lemma conf_cong_mem  (g : G)  (Γ : subgroup G) (h : G) :
- (h ∈ conj_subgroup g Γ) ↔ ∃ x : Γ, g⁻¹ * x * g = h  :=iff.rfl
+ (h ∈ conj_subgroup g Γ) ↔ ∃ x : Γ, g * x * g⁻¹ = h  :=
+begin
+  rw conj_subgroup,
+  simp,
+  fsplit, work_on_goal 0 { intros ᾰ, cases ᾰ, cases ᾰ_h, induction ᾰ_h_right, simp at *, fsplit, work_on_goal 0 { fsplit, work_on_goal 1 { assumption } }, refl }, intros ᾰ, cases ᾰ, induction ᾰ_h, cases ᾰ_w, dsimp at *, simp at *, assumption,
+end
 
 lemma cong_subgroup_id_eq_self (H : subgroup G) : conj_subgroup 1 H = H :=
 begin

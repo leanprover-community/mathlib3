@@ -36,10 +36,21 @@ star_algebra.star_smul r a
 
 attribute [instance] ring_hom_inv_pair.of_ring_equiv
 
-/-- If `A` is a left- and right- module over `R` with compatible actions, then `star` is a
-semilinear equivalence. -/
+/-- If `A` is a left- and right- module over a commutative `R` with compatible actions,
+then `star` is a semilinear equivalence. -/
 @[simps]
 def star_linear_equiv {R : Type u} {A : Type v}
+  [comm_semiring R] [star_ring R] [semiring A] [star_ring A]
+  [module R A] [star_algebra R A] :
+    A ≃ₛₗ[((star_ring_aut : ring_aut R) : R →+* R)] A :=
+{ to_fun := star,
+  map_smul' := star_smul,
+  .. star_add_equiv }
+
+/-- If `A` is a left- and right- module over a noncommutative `R` with compatible actions,
+then `star` is a semilinear equivalence. -/
+@[simps]
+def star_linear_equiv_nc {R : Type u} {A : Type v}
   [semiring R] [star_ring R] [semiring A] [star_ring A]
   [module R A] [star_algebra R A]
   [module Rᵒᵖ A] (h : ∀ (r : R) (a : A), r • a = op r • a) :

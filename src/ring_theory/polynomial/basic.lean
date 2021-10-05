@@ -404,6 +404,21 @@ def polynomial_quotient_equiv_quotient_polynomial (I : ideal R) :
   end,
 }
 
+@[simp]
+lemma polynomial_quotient_equiv_quotient_polynomial_symm_mk (I : ideal R) (f : polynomial R) :
+  I.polynomial_quotient_equiv_quotient_polynomial.symm (quotient.mk _ f) = f.map (quotient.mk I) :=
+by rw [polynomial_quotient_equiv_quotient_polynomial, ring_equiv.symm_mk, ring_equiv.coe_mk,
+  ideal.quotient.lift_mk, coe_eval₂_ring_hom, eval₂_eq_eval_map, ←polynomial.map_map,
+  ←eval₂_eq_eval_map, polynomial.eval₂_C_X]
+
+@[simp]
+lemma polynomial_quotient_equiv_quotient_polynomial_map_mk (I : ideal R) (f : polynomial R) :
+  I.polynomial_quotient_equiv_quotient_polynomial (f.map I^.quotient.mk) = quotient.mk _ f :=
+begin
+  apply (polynomial_quotient_equiv_quotient_polynomial I).symm.injective,
+  rw [ring_equiv.symm_apply_apply, polynomial_quotient_equiv_quotient_polynomial_symm_mk],
+end
+
 /-- If `P` is a prime ideal of `R`, then `R[x]/(P)` is an integral domain. -/
 lemma is_integral_domain_map_C_quotient {P : ideal R} (H : is_prime P) :
   is_integral_domain (quotient (map C P : ideal (polynomial R))) :=

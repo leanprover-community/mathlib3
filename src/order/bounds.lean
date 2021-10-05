@@ -806,52 +806,6 @@ Hb.2 (Hf.mem_lower_bounds_image Ha.1)
 
 end monotone
 
-namespace antitone
-variables [preorder α] [preorder β] {f : α → β} (hf : antitone f) {a : α} {s : set α}
-
-lemma mem_upper_bounds_image (ha : a ∈ lower_bounds s) :
-  f a ∈ upper_bounds (f '' s) :=
-@monotone.mem_lower_bounds_image α (order_dual β) _ _ _ hf _ _ ha
-
-lemma mem_lower_bounds_image (ha : a ∈ upper_bounds s) :
-  f a ∈ lower_bounds (f '' s) :=
-@monotone.mem_upper_bounds_image α (order_dual β) _ _ _ hf _ _ ha
-
-lemma image_lower_bounds_subset_upper_bounds_image (hf : antitone f) :
-  f '' lower_bounds s ⊆ upper_bounds (f '' s) :=
-begin
-  rintro _ ⟨a, ha, rfl⟩,
-  exact hf.mem_upper_bounds_image ha,
-end
-
-lemma image_upper_bounds_subset_lower_bounds_image (hf : antitone f) :
-  f '' upper_bounds s ⊆ lower_bounds (f '' s) :=
-@image_lower_bounds_subset_upper_bounds_image (order_dual α) (order_dual β) _ _ _ _ hf.dual
-
-/-- The image under an antitone function of a set which is bounded above is bounded below. -/
-lemma map_bdd_above (hf : antitone f) : bdd_above s → bdd_below (f '' s)
-| ⟨C, hC⟩ := ⟨f C, hf.mem_lower_bounds_image hC⟩
-
-/-- The image under an antitone function of a set which is bounded below is bounded above. -/
-lemma map_bdd_below (hf : antitone f) : bdd_below s → bdd_above (f '' s)
-| ⟨C, hC⟩ := ⟨f C, hf.mem_upper_bounds_image hC⟩
-
-/-- An antitone map sends a greatest element of a set to a least element of its image. -/
-lemma map_is_greatest (ha : is_greatest s a) : is_least (f '' s) (f a) :=
-⟨mem_image_of_mem _ ha.1, hf.mem_lower_bounds_image ha.2⟩
-
-/-- An antitone map sends a least element of a set to a greatest element of its image. -/
-lemma map_is_least (ha : is_least s a) : is_greatest (f '' s) (f a) :=
-⟨mem_image_of_mem _ ha.1, hf.mem_upper_bounds_image ha.2⟩
-
-lemma is_lub_image_le (ha : is_glb s a) {b : β} (hb : is_lub (f '' s) b) : b ≤ f a :=
-hb.2 (hf.mem_upper_bounds_image ha.1)
-
-lemma le_is_glb_image (ha : is_lub s a) {b : β} (hb : is_glb (f '' s) b) : f a ≤ b :=
-hb.2 (hf.mem_lower_bounds_image ha.1)
-
-end antitone
-
 lemma is_glb.of_image [preorder α] [preorder β] {f : α → β} (hf : ∀ {x y}, f x ≤ f y ↔ x ≤ y)
   {s : set α} {x : α} (hx : is_glb (f '' s) (f x)) :
   is_glb s x :=

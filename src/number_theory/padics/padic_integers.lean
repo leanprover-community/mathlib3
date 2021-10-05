@@ -513,13 +513,7 @@ end
 lemma norm_le_pow_iff_norm_lt_pow_add_one (x : ℤ_[p]) (n : ℤ) :
   ∥x∥ ≤ p ^ n ↔ ∥x∥ < p ^ (n + 1) :=
 begin
-  have aux : ∀ n : ℤ, 0 < (p ^ n : ℝ),
-  { apply nat.fpow_pos_of_pos, exact hp_prime.1.pos },
-  by_cases hx0 : x = 0, { simp [hx0, norm_zero, aux, le_of_lt (aux _)], },
-  rw norm_eq_pow_val hx0,
-  have h1p : 1 < (p : ℝ), { exact_mod_cast hp_prime.1.one_lt },
-  have H := fpow_strict_mono h1p,
-  rw [H.le_iff_le, H.lt_iff_lt, int.lt_add_one_iff],
+  rw norm_def, exact padic.norm_le_pow_iff_norm_lt_pow_add_one _ _,
 end
 
 lemma norm_lt_pow_iff_norm_le_pow_sub_one (x : ℤ_[p]) (n : ℤ) :

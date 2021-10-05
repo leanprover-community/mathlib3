@@ -251,8 +251,7 @@ begin
   have : (f %ₘ minpoly A pb.gen).nat_degree < pb.dim,
   { rw ← pb.nat_degree_minpoly,
     apply nat_degree_lt_nat_degree hf,
-    exact degree_mod_by_monic_lt _ (minpoly.monic pb.is_integral_gen)
-      (minpoly.ne_zero pb.is_integral_gen) },
+    exact degree_mod_by_monic_lt _ (minpoly.monic pb.is_integral_gen) },
   rw [aeval_eq_sum_range' this, aeval_eq_sum_range' this, linear_map.map_sum],
   refine finset.sum_congr rfl (λ i (hi : i ∈ finset.range pb.dim), _),
   rw finset.mem_range at hi,
@@ -435,7 +434,7 @@ begin
   apply mem_span_pow'.mpr _,
   have := minpoly.monic hx,
   refine ⟨f.mod_by_monic (minpoly R x),
-      lt_of_lt_of_le (degree_mod_by_monic_lt _ this (ne_zero_of_monic this)) degree_le_nat_degree,
+      lt_of_lt_of_le (degree_mod_by_monic_lt _ this) degree_le_nat_degree,
       _⟩,
   conv_lhs { rw ← mod_by_monic_add_div f this },
   simp only [add_zero, zero_mul, minpoly.aeval, aeval_add, alg_hom.map_mul]

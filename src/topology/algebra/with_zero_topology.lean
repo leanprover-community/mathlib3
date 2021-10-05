@@ -45,8 +45,8 @@ variables (Γ₀ : Type*) [linear_ordered_comm_group_with_zero Γ₀]
 These neighbourhoods are defined as follows:
 A set s is a neighbourhood of 0 if there is an invertible γ₀ ∈ Γ₀ such that {γ | γ < γ₀} ⊆ s.
 If γ ≠ 0, then every set that contains γ is a neighbourhood of γ. -/
-def nhds_fun : Γ₀ → filter Γ₀ :=
-  (λ x : Γ₀, if x = 0 then ⨅ (γ₀ : units Γ₀), principal {γ | γ < γ₀} else pure x)
+def nhds_fun (x : Γ₀) : filter Γ₀ :=
+if x = 0 then ⨅ (γ₀ : units Γ₀), principal {γ | γ < γ₀} else pure x
 
 /--The topology on a linearly ordered commutative group with a zero element adjoined.
 A subset U is open if 0 ∉ U or if there is an invertible element γ₀ such that {γ | γ < γ₀} ⊆ U. -/
@@ -72,12 +72,12 @@ end
 
 /--At all points of a linearly ordered commutative group with a zero element adjoined,
 the pure filter is smaller than the filter given by nhds_fun.-/
-private lemma pure_le_nhds_fun : pure ≤ nhds_fun Γ₀ :=
+lemma pure_le_nhds_fun : pure ≤ nhds_fun Γ₀ :=
 λ x, by { by_cases hx : x = 0; simp [hx, nhds_fun] }
 
 /--For every point Γ₀, and every “neighbourhood” s of it (described by nhds_fun), there is a
 smaller “neighbourhood” t ⊆ s, such that s is a “neighbourhood“ of all the points in t.-/
-private lemma nhds_fun_ok (x : Γ₀) {s} (s_in : s ∈ nhds_fun Γ₀ x) :
+lemma nhds_fun_ok (x : Γ₀) {s} (s_in : s ∈ nhds_fun Γ₀ x) :
   (∃ t ∈ nhds_fun Γ₀ x, t ⊆ s ∧ ∀ y ∈ t, s ∈ nhds_fun Γ₀ y) :=
 begin
   by_cases hx : x = 0,
@@ -166,7 +166,7 @@ begin
   simpa
 end
 
-lemma tendsto_non_zero {α : Type*} {F : filter α} {f : α → Γ₀} {γ : Γ₀} (h : γ ≠ 0):
+lemma tendsto_of_ne_zero {α : Type*} {F : filter α} {f : α → Γ₀} {γ : Γ₀} (h : γ ≠ 0):
   tendsto f F (𝓝 γ) ↔ { x : α | f x = γ } ∈ F :=
 @tendsto_units _ _ _ F f (units.mk0 γ h)
 

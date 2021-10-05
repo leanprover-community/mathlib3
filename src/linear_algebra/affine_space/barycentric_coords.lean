@@ -108,9 +108,10 @@ begin
     hw, mul_boole, function.comp_app, smul_eq_mul, s.sum_ite_eq, s.map_affine_combination p w hw],
 end
 
-@[simp] lemma barycentric_coord_eq_one_of_subsingleton [subsingleton ι] (q : P) (i : ι) :
-  barycentric_coord h_ind h_tot i q = 1 :=
+@[simp] lemma coe_barycentric_coord_of_subsingleton_eq_one [subsingleton ι] (i : ι) :
+  (barycentric_coord h_ind h_tot i : P → k) = 1 :=
 begin
+  ext q,
   have hp : (range p).subsingleton,
   { rw ← image_univ,
     apply subsingleton.image,
@@ -120,5 +121,5 @@ begin
   have hi : i ∈ s, { simp, },
   have hw : s.sum (function.const ι (1 : k)) = 1, { simp, },
   have hq : q = s.affine_combination p (function.const ι (1 : k)), { simp, },
-  rw [hq, barycentric_coord_apply_combination_of_mem h_ind h_tot hi hw],
+  rw [pi.one_apply, hq, barycentric_coord_apply_combination_of_mem h_ind h_tot hi hw],
 end

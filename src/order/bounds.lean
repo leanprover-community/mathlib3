@@ -865,14 +865,6 @@ lemma lower_bounds_image {s : set α} :
   lower_bounds (f '' s) = f '' lower_bounds s :=
 @upper_bounds_image (order_dual α) (order_dual β) _ _ f.dual _
 
-@[simp] lemma bdd_above_image_iff {s : set α} :
-  bdd_above (f '' s) ↔ bdd_above s :=
-by rw [bdd_above, bdd_above, upper_bounds_image, nonempty_image_iff]
-
-@[simp] lemma bdd_below_image_iff {s : set α} :
-  bdd_below (f '' s) ↔ bdd_below s :=
-by rw [bdd_below, bdd_below, lower_bounds_image, nonempty_image_iff]
-
 @[simp] lemma is_lub_image {s : set α} {x : β} :
   is_lub (f '' s) x ↔ is_lub s (f.symm x) :=
 ⟨λ h, is_lub.of_image (λ _ _, f.le_iff_le) ((f.apply_symm_apply x).symm ▸ h),

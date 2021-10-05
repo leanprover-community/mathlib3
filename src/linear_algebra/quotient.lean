@@ -101,17 +101,19 @@ instance : add_comm_group (quotient p) :=
     refl },
   gsmul_neg' := by { rintros n ⟨x⟩, simp_rw [gsmul_neg_succ_of_nat, gsmul_coe_nat], refl }, }
 
-variables {S : Type*} [ring S] [mul_action S R] (P : submodule R M)
-
 section has_scalar
 
-variables [has_scalar S M] [is_scalar_tower S R M]
+variables {S : Type*} [has_scalar S R] [has_scalar S M] [is_scalar_tower S R M] (P : submodule R M)
 
 instance : has_scalar S (quotient P) :=
 ⟨λ a x, quotient.lift_on' x (λ x, mk (a • x)) $
  λ x y h, (quotient.eq P).2 $ by simpa [smul_sub] using P.smul_mem (a • 1 : R) h⟩
 
-@[simp] theorem mk_smul (r : S) : (mk (r • x) : quotient P) = r • mk x := rfl
+instance : has_scalar S (quotient P) :=
+⟨λ a x, quotient.lift_on' x (λ x, mk (a • x)) $
+ λ x y h, (quotient.eq P).2 $ by simpa [smul_sub] using P.smul_mem (a • 1 : R) h⟩
+
+@[simp] theorem mk_smul (r : S) (x : M) : (mk (r • x) : quotient P) = r • mk x := rfl
 
 @[simp] theorem mk_nsmul (n : ℕ) : (mk (n • x) : quotient P) = n • mk x := rfl
 

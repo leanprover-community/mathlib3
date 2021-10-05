@@ -289,7 +289,7 @@ begin
   by_contra hnz,
   have := degree_le_of_ne_zero A x hnz _,
   { contrapose! this,
-    exact degree_mod_by_monic_lt _ (monic hx) (ne_zero hx) },
+    exact degree_mod_by_monic_lt _ (monic hx) },
   { rw ← mod_by_monic_add_div p (monic hx) at hp,
     simpa using hp }
 end

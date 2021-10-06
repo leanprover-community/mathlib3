@@ -115,10 +115,20 @@ begin
   let W' : structured_arrow _ F := structured_arrow.mk m,
   let h' : W' ⟶ c0 := structured_arrow.hom_mk h hm,
   let V := is_cofiltered.cone (cospan h' (is_cofiltered.eq_hom f' g')),
-  -- have := (is_cofiltered.min_to_left m' (is_cofiltered.eq f' g') : min ⟶ m').right ≫ h,
-  let V_fork : fork f'.right g'.right := fork.of_ι
-    ((V.π.app walking_cospan.left).right ≫ h) (by simp[w]),
-  have := is_lim.uniq V_fork,
+  have : (V.π.app walking_cospan.left).right = (V.π.app walking_cospan.right).right ≫ is_lim.lift s',
+  {
+    admit
+    -- let V_fork : fork f'.right g'.right := fork.of_ι
+    --   ((V.π.app walking_cospan.left).right ≫ h) (by simp[w]),
+    -- have eq₁ := is_lim.uniq V_fork (V.π.app walking_cospan.left).right
+    --   (λ j, by { sorry /-cases j; simp-/ }),
+    -- have eq₂ := is_lim.uniq V_fork ((V.π.app walking_cospan.right).right ≫ (is_lim.lift s'))
+    --   (λ j, by { sorry /-cases j; simp-/ }),
+    },
+    convert congr_arg (λ f, V.X.hom ≫ F.map f) this using 1,
+    convert (V.π.app walking_cospan.left).w,
+    erw comp_id,
+    -- simp,
   }
 end
 

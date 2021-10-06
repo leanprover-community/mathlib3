@@ -134,7 +134,7 @@ begin
     rw [mem_Ico] at ⊢ hx,
     exact ⟨sub_le_sub_right' hx.1 _, sub_lt_sub_right_of_le (h.trans hx.1) hx.2⟩ },
   { rintro h,
-    refine ⟨x + c, _, add_sub_cancel_right⟩,
+    refine ⟨x + c, _, add_sub_cancel_right _ _⟩,
     rw mem_Ico at ⊢ h,
     exact ⟨sub_le_iff_right.1 h.1, nat.add_lt_of_lt_sub_right h.2⟩ }
 end

@@ -102,12 +102,4 @@ equivalence.mk uncurry curry
   (nat_iso.of_components (λ F, nat_iso.of_components
     (λ X, eq_to_iso (by simp)) (by tidy)) (by tidy))
 
-local attribute [ext] functor.ext
-
-lemma curry_evaluation_uncurried_eq_evaluation :
-  curry.obj (evaluation_uncurried C D) = evaluation C D := by tidy
-
-lemma curry_prod_id_comp {E' : Type*} [category E'] (F : C ⥤ D) (G : D × E ⥤ E') :
-    curry.obj (F.prod (𝟭 E) ⋙ G) = F ⋙ curry.obj G := by tidy
-
 end category_theory

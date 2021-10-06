@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import category_theory.hom_functor
 import category_theory.currying
+import category_theory.products.basic
 
 /-!
 # The Yoneda embedding
@@ -47,12 +48,6 @@ The co-Yoneda embedding, as a functor from `Cᵒᵖ` into co-presheaves on `C`.
   { obj := λ Y, unop X ⟶ Y,
     map := λ Y Y' f g, g ≫ f },
   map := λ X X' f, { app := λ Y g, f.unop ≫ g } }
-
-local attribute [ext] functor.ext
-
-lemma uncurry_coyoneda : uncurry.obj (coyoneda : Cᵒᵖ ⥤ _ ⥤ Type v₁) = functor.hom C := by tidy
-
-lemma curry_hom_functor : curry.obj (functor.hom C : Cᵒᵖ × C ⥤ Type v₁) = coyoneda := by tidy
 
 namespace yoneda
 
@@ -392,13 +387,20 @@ lemma yoneda_sections_small_inv_app_apply {C : Type u₁} [small_category C] (X 
   ((yoneda_sections_small X F).inv t).app Y f = F.map f.op t :=
 rfl
 
+local attribute[ext] functor.ext
+
+/-- The curried version of yoneda lemma when `C` is small. -/
 def curried_yoneda_lemma {C : Type u₁} [small_category C] :
   (yoneda.op ⋙ coyoneda : Cᵒᵖ ⥤ (Cᵒᵖ ⥤ Type u₁) ⥤ Type u₁) ≅ evaluation Cᵒᵖ (Type u₁) :=
-begin
-  refine eq_to_iso _ ≪≫ curry.map_iso (yoneda_lemma C ≪≫
-    iso_whisker_left (evaluation_uncurried Cᵒᵖ (Type u₁)) ulift_functor_trivial) ≪≫ eq_to_iso _,
-  { erw [curry_prod_id_comp yoneda.op, curry_hom_functor] },
-  { erw curry_evaluation_uncurried_eq_evaluation }
-end
+eq_to_iso (by tidy) ≪≫ curry.map_iso (yoneda_lemma C ≪≫
+  iso_whisker_left (evaluation_uncurried Cᵒᵖ (Type u₁)) ulift_functor_trivial) ≪≫
+    eq_to_iso (by tidy)
+
+/-- The curried version of yoneda lemma when `C` is small. -/
+def curried_yoneda_lemma' {C : Type u₁} [small_category C] :
+  yoneda ⋙ (whiskering_left Cᵒᵖ (Cᵒᵖ ⥤ Type u₁)ᵒᵖ (Type u₁)).obj yoneda.op ≅ 𝟭 (Cᵒᵖ ⥤ Type u₁) :=
+eq_to_iso (by tidy) ≪≫ curry.map_iso (iso_whisker_left (prod.swap _ _)
+  (yoneda_lemma C ≪≫ iso_whisker_left
+    (evaluation_uncurried Cᵒᵖ (Type u₁)) ulift_functor_trivial : _)) ≪≫ eq_to_iso (by tidy)
 
 end category_theory

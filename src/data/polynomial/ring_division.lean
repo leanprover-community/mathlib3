@@ -111,8 +111,6 @@ section roots
 
 open multiset
 
-local attribute [semireducible] with_zero
-
 lemma degree_eq_zero_of_is_unit (h : is_unit p) : degree p = 0 :=
 let ⟨q, hq⟩ := is_unit_iff_dvd_one.1 h in
 have hp0 : p ≠ 0, from λ hp0, by simpa [hp0] using hq,
@@ -167,7 +165,7 @@ lemma root_multiplicity_eq_zero {p : polynomial R} {x : R} (h : ¬ is_root p x) 
 begin
   rw root_multiplicity_eq_multiplicity,
   split_ifs, { refl },
-  rw [← enat.coe_inj, enat.coe_get, multiplicity.multiplicity_eq_zero_of_not_dvd, enat.coe_zero],
+  rw [← enat.coe_inj, enat.coe_get, multiplicity.multiplicity_eq_zero_of_not_dvd, nat.cast_zero],
   intro hdvd,
   exact h (dvd_iff_is_root.mp hdvd)
 end
@@ -255,8 +253,8 @@ then
     rw degree_eq_nat_degree hp at hpd,
     exact with_bot.coe_le_coe.2 (with_bot.coe_lt_coe.1 hpd)
   end,
-  have hdiv0 : p /ₘ (X - C x) ≠ 0 := mt (div_by_monic_eq_zero_iff (monic_X_sub_C x)
-    (ne_zero_of_monic (monic_X_sub_C x))).1 $ not_lt.2 hdeg,
+  have hdiv0 : p /ₘ (X - C x) ≠ 0 := mt (div_by_monic_eq_zero_iff (monic_X_sub_C x)).1 $
+    not_lt.2 hdeg,
   ⟨x ::ₘ t, calc (card (x ::ₘ t) : with_bot ℕ) = t.card + 1 :
       by exact_mod_cast card_cons _ _
     ... ≤ degree p :
@@ -579,10 +577,10 @@ begin
   have hp := mod_by_monic_add_div p hmonic,
   have hzero : (p /ₘ q) ≠ 0,
   { intro h,
-    exact not_lt_of_le hdegree ((div_by_monic_eq_zero_iff hmonic (monic.ne_zero hmonic)).1 h) },
+    exact not_lt_of_le hdegree ((div_by_monic_eq_zero_iff hmonic).1 h) },
   have deglt : (p %ₘ q).degree < (q * (p /ₘ q)).degree,
   { rw degree_mul,
-    refine lt_of_lt_of_le (degree_mod_by_monic_lt p hmonic (monic.ne_zero hmonic)) _,
+    refine lt_of_lt_of_le (degree_mod_by_monic_lt p hmonic) _,
     rw [degree_eq_nat_degree (monic.ne_zero hmonic), degree_eq_nat_degree hzero],
     norm_cast,
     simp only [zero_le, le_add_iff_nonneg_right] },

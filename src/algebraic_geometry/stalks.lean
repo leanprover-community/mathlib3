@@ -4,13 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebraic_geometry.presheafed_space
+import category_theory.limits.final
 import topology.sheaves.stalks
 
 /-!
 # Stalks for presheaved spaces
 
 This file lifts constructions of stalks and pushforwards of stalks to work with
-the category of presheafed spaces.
+the category of presheafed spaces. Additionally, we prove that restriction of
+presheafed spaces does not change the stalks.
 -/
 
 noncomputable theory
@@ -50,22 +52,36 @@ by rw [stalk_map, stalk_functor_map_germ_assoc, stalk_pushforward_germ]
 
 section restrict
 
--- PROJECT: restriction preserves stalks.
--- We'll want to define cofinal functors, show precomposing with a cofinal functor preserves
--- colimits, and (easily) verify that "open neighbourhoods of x within U" is cofinal in "open
--- neighbourhoods of x".
-/-
+/--
+For an open embedding `f : U ⟶ X` and a point `x : U`, we get an isomorphism between the stalk
+of `X` at `f x` and the stalk of the restriction of `X` along `f` at t `x`.
+-/
 def restrict_stalk_iso {U : Top} (X : PresheafedSpace C)
   (f : U ⟶ (X : Top.{v})) (h : open_embedding f) (x : U) :
   (X.restrict f h).stalk x ≅ X.stalk (f x) :=
 begin
-  dsimp only [stalk, Top.presheaf.stalk, stalk_functor],
-  dsimp [colim],
-  sorry
+  -- As a left adjoint, the functor `h.is_open_map.functor_nhds x` is initial.
+  haveI := initial_of_adjunction (h.is_open_map.adjunction_nhds x),
+  -- Typeclass resolution knows that the opposite of an initial functor is final. The result
+  -- follows from the general fact that postcomposing with a final functor doesn't change colimits.
+  exact final.colimit_iso (h.is_open_map.functor_nhds x).op
+    ((open_nhds.inclusion (f x)).op ⋙ X.presheaf),
 end
 
--- TODO `restrict_stalk_iso` is compatible with `germ`.
--/
+@[simp, elementwise, reassoc]
+lemma restrict_stalk_iso_hom_eq_germ {U : Top} (X : PresheafedSpace C) (f : U ⟶ (X : Top.{v}))
+  (h : open_embedding f) (V : opens U) (x : U) (hx : x ∈ V) :
+  (X.restrict f h).presheaf.germ ⟨x, hx⟩ ≫ (restrict_stalk_iso X f h x).hom =
+  X.presheaf.germ ⟨f x, show f x ∈ h.is_open_map.functor.obj V, from ⟨x, hx, rfl⟩⟩ :=
+colimit.ι_pre ((open_nhds.inclusion (f x)).op ⋙ X.presheaf)
+  (h.is_open_map.functor_nhds x).op (op ⟨V, hx⟩)
+
+@[simp, elementwise, reassoc]
+lemma restrict_stalk_iso_inv_eq_germ {U : Top} (X : PresheafedSpace C) (f : U ⟶ (X : Top.{v}))
+  (h : open_embedding f) (V : opens U) (x : U) (hx : x ∈ V) :
+  X.presheaf.germ ⟨f x, show f x ∈ h.is_open_map.functor.obj V, from ⟨x, hx, rfl⟩⟩ ≫
+  (restrict_stalk_iso X f h x).inv = (X.restrict f h).presheaf.germ ⟨x, hx⟩ :=
+by rw [← restrict_stalk_iso_hom_eq_germ, category.assoc, iso.hom_inv_id, category.comp_id]
 
 end restrict
 

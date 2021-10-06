@@ -16,7 +16,7 @@ The natural topology on `ℝ≥0` (the one induced from `ℝ`), and a basic API.
 Instances for the following typeclasses are defined:
 
 * `topological_space ℝ≥0`
-* `topological_semiring ℝ≥0`
+* `topological_ring ℝ≥0`
 * `second_countable_topology ℝ≥0`
 * `order_topology ℝ≥0`
 * `has_continuous_sub ℝ≥0`
@@ -52,7 +52,7 @@ open_locale nnreal big_operators filter
 
 instance : topological_space ℝ≥0 := infer_instance -- short-circuit type class inference
 
-instance : topological_semiring ℝ≥0 :=
+instance : topological_ring ℝ≥0 :=
 { continuous_mul := continuous_subtype_mk _ $
     (continuous_subtype_val.comp continuous_fst).mul (continuous_subtype_val.comp continuous_snd),
   continuous_add := continuous_subtype_mk _ $
@@ -106,7 +106,7 @@ instance : has_continuous_sub ℝ≥0 :=
   ((continuous_coe.comp continuous_fst).sub
    (continuous_coe.comp continuous_snd)).max continuous_const⟩
 
-instance : has_continuous_inv' ℝ≥0 :=
+instance : has_continuous_inv₀ ℝ≥0 :=
 ⟨λ x hx, tendsto_coe.1 $ (real.tendsto_inv $ nnreal.coe_ne_zero.2 hx).comp
   continuous_coe.continuous_at⟩
 

@@ -222,6 +222,34 @@ is_closed_singleton.is_open_compl
 lemma is_open_ne [t1_space α] {x : α} : is_open {y | y ≠ x} :=
 is_open_compl_singleton
 
+lemma ne.nhds_within_compl_singleton [t1_space α] {x y : α} (h : x ≠ y) :
+  𝓝[{y}ᶜ] x = 𝓝 x :=
+is_open_ne.nhds_within_eq h
+
+lemma continuous_within_at_update_of_ne [t1_space α] [decidable_eq α] [topological_space β]
+  {f : α → β} {s : set α} {x y : α} {z : β} (hne : y ≠ x) :
+  continuous_within_at (function.update f x z) s y ↔ continuous_within_at f s y :=
+eventually_eq.congr_continuous_within_at
+  (mem_nhds_within_of_mem_nhds $ mem_of_superset (is_open_ne.mem_nhds hne) $
+    λ y' hy', function.update_noteq hy' _ _)
+  (function.update_noteq hne _ _)
+
+lemma continuous_on_update_iff [t1_space α] [decidable_eq α] [topological_space β]
+  {f : α → β} {s : set α} {x : α} {y : β} :
+  continuous_on (function.update f x y) s ↔
+    continuous_on f (s \ {x}) ∧ (x ∈ s → tendsto f (𝓝[s \ {x}] x) (𝓝 y)) :=
+begin
+  rw [continuous_on, ← and_forall_ne x, and_comm],
+  refine and_congr ⟨λ H z hz, _, λ H z hzx hzs, _⟩ (forall_congr $ λ hxs, _),
+  { specialize H z hz.2 hz.1,
+    rw continuous_within_at_update_of_ne hz.2 at H,
+    exact H.mono (diff_subset _ _) },
+  { rw continuous_within_at_update_of_ne hzx,
+    refine (H z ⟨hzs, hzx⟩).mono_of_mem (inter_mem_nhds_within _ _),
+    exact is_open_ne.mem_nhds hzx },
+  { exact continuous_within_at_update_same }
+end
+
 instance subtype.t1_space {α : Type u} [topological_space α] [t1_space α] {p : α → Prop} :
   t1_space (subtype p) :=
 ⟨λ ⟨x, hx⟩, is_closed_induced_iff.2 $ ⟨{x}, is_closed_singleton, set.ext $ λ y,
@@ -276,13 +304,41 @@ begin
   apply is_closed_map.of_nonempty, intros s hs h2s, simp_rw [h2s.image_const, is_closed_singleton]
 end
 
+lemma finite.is_closed {α} [topological_space α] [t1_space α] {s : set α} (hs : set.finite s) :
+  is_closed s :=
+begin
+  rw ← bUnion_of_singleton s,
+  exact is_closed_bUnion hs (λ i hi, is_closed_singleton)
+end
+
+/-- If the punctured neighborhoods of a point form a nontrivial filter, then any neighborhood is
+infinite. -/
+lemma infinite_of_mem_nhds {α} [topological_space α] [t1_space α] (x : α) [hx : ne_bot (𝓝[{x}ᶜ] x)]
+  {s : set α} (hs : s ∈ 𝓝 x) : set.infinite s :=
+begin
+  unfreezingI { contrapose! hx },
+  rw set.not_infinite at hx,
+  have A : is_closed (s \ {x}) := finite.is_closed (hx.subset (diff_subset _ _)),
+  have B : (s \ {x})ᶜ ∈ 𝓝 x,
+  { apply is_open.mem_nhds,
+    { apply is_open_compl_iff.2 A },
+    { simp only [not_true, not_false_iff, mem_diff, and_false, mem_compl_eq, mem_singleton] } },
+  have C : {x} ∈ 𝓝 x,
+  { apply filter.mem_of_superset (filter.inter_mem hs B),
+    assume y hy,
+    simp only [mem_singleton_iff, mem_inter_eq, not_and, not_not, mem_diff, mem_compl_eq] at hy,
+    simp only [hy.right hy.left, mem_singleton] },
+  have D : {x}ᶜ ∈ 𝓝[{x}ᶜ] x := self_mem_nhds_within,
+  simpa [← empty_mem_iff_bot] using filter.inter_mem (mem_nhds_within_of_mem_nhds C) D
+end
+
 lemma discrete_of_t1_of_finite {X : Type*} [topological_space X] [t1_space X] [fintype X] :
   discrete_topology X :=
 begin
   apply singletons_open_iff_discrete.mp,
   intros x,
-  rw [← is_closed_compl_iff, ← bUnion_of_singleton ({x} : set X)ᶜ],
-  exact is_closed_bUnion (finite.of_fintype _) (λ y _, is_closed_singleton)
+  rw [← is_closed_compl_iff],
+  exact finite.is_closed (finite.of_fintype _)
 end
 
 lemma singleton_mem_nhds_within_of_mem_discrete {s : set α} [discrete_topology s]
@@ -716,6 +772,10 @@ is_open_compl_iff.1 $ is_open_iff_forall_mem_open.mpr $ assume x hx,
   have v ⊆ sᶜ, from
     subset_compl_comm.mp (subset.trans su (subset_compl_iff_disjoint.mpr uv)),
 ⟨v, this, vo, by simpa using xv⟩
+
+@[simp] lemma filter.coclosed_compact_eq_cocompact [t2_space α] :
+  coclosed_compact α = cocompact α :=
+by simp [coclosed_compact, cocompact, infi_and', and_iff_right_of_imp is_compact.is_closed]
 
 /-- If `V : ι → set α` is a decreasing family of compact sets then any neighborhood of
 `⋂ i, V i` contains some `V i`. This is a version of `exists_subset_nhd_of_compact'` where we

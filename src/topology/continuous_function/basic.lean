@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolò Cavalleri
 -/
 
+import data.set.Union_lift
 import topology.subset_properties
 import topology.tactic
-import topology.algebra.ordered.basic
+import topology.algebra.ordered.proj_Icc
 
 /-!
 # Continuous bundled map
@@ -111,9 +112,12 @@ variables [linear_ordered_add_comm_group β] [order_topology β]
 
 /-- The pointwise absolute value of a continuous function as a continuous function. -/
 def abs (f : C(α, β)) : C(α, β) :=
-{ to_fun := λ x, abs (f x), }
+{ to_fun := λ x, |f x|, }
 
-@[simp] lemma abs_apply (f : C(α, β)) (x : α) : f.abs x = _root_.abs (f x) :=
+@[priority 100] -- see Note [lower instance priority]
+instance : has_abs C(α, β) := ⟨λf, abs f⟩
+
+@[simp] lemma abs_apply (f : C(α, β)) (x : α) : |f| x = |f x| :=
 rfl
 
 end
@@ -206,6 +210,102 @@ lemma inf'_coe {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, �
 end inf'
 
 end lattice
+
+section restrict
+
+variables (s : set α)
+
+/-- The restriction of a continuous function `α → β` to a subset `s` of `α`. -/
+def restrict (f : C(α, β)) : C(s, β) := ⟨f ∘ coe⟩
+
+@[simp] lemma coe_restrict (f : C(α, β)) : ⇑(f.restrict s) = f ∘ coe := rfl
+
+end restrict
+
+section extend
+
+variables [linear_order α] [order_topology α] {a b : α} (h : a ≤ b)
+
+/--
+Extend a continuous function `f : C(set.Icc a b, β)` to a function `f : C(α, β)`.
+-/
+def Icc_extend (f : C(set.Icc a b, β)) : C(α, β) := ⟨set.Icc_extend h f⟩
+
+@[simp] lemma coe_Icc_extend (f : C(set.Icc a b, β)) :
+  ((Icc_extend h f : C(α, β)) : α → β) = set.Icc_extend h f := rfl
+
+end extend
+
+section gluing
+
+variables {ι : Type*}
+  (S : ι → set α)
+  (φ : Π i : ι, C(S i, β))
+  (hφ : ∀ i j (x : α) (hxi : x ∈ S i) (hxj : x ∈ S j), φ i ⟨x, hxi⟩ = φ j ⟨x, hxj⟩)
+  (hS : ∀ x : α, ∃ i, S i ∈ nhds x)
+
+include hφ hS
+
+/-- A family `φ i` of continuous maps `C(S i, β)`, where the domains `S i` contain a neighbourhood
+of each point in `α` and the functions `φ i` agree pairwise on intersections, can be glued to
+construct a continuous map in `C(α, β)`. -/
+noncomputable def lift_cover : C(α, β) :=
+begin
+  have H : (⋃ i, S i) = set.univ,
+  { rw set.eq_univ_iff_forall,
+    intros x,
+    rw set.mem_Union,
+    obtain ⟨i, hi⟩ := hS x,
+    exact ⟨i, mem_of_mem_nhds hi⟩ },
+  refine ⟨set.lift_cover S (λ i, φ i) hφ H, continuous_subtype_nhds_cover hS _⟩,
+  intros i,
+  convert (φ i).continuous,
+  ext x,
+  exact set.lift_cover_coe x,
+end
+
+variables {S φ hφ hS}
+
+@[simp] lemma lift_cover_coe {i : ι} (x : S i) : lift_cover S φ hφ hS x = φ i x :=
+set.lift_cover_coe _
+
+@[simp] lemma lift_cover_restrict {i : ι} : (lift_cover S φ hφ hS).restrict (S i) = φ i :=
+ext $ lift_cover_coe
+
+omit hφ hS
+
+variables (A : set (set α))
+  (F : Π (s : set α) (hi : s ∈ A), C(s, β))
+  (hF : ∀ s (hs : s ∈ A) t (ht : t ∈ A) (x : α) (hxi : x ∈ s) (hxj : x ∈ t),
+    F s hs ⟨x, hxi⟩ = F t ht ⟨x, hxj⟩)
+  (hA : ∀ x : α, ∃ i ∈ A, i ∈ nhds x)
+
+include hF hA
+
+/-- A family `F s` of continuous maps `C(s, β)`, where (1) the domains `s` are taken from a set `A`
+of sets in `α` which contain a neighbourhood of each point in `α` and (2) the functions `F s` agree
+pairwise on intersections, can be glued to construct a continuous map in `C(α, β)`. -/
+noncomputable def lift_cover' : C(α, β) :=
+begin
+  let S : A → set α := coe,
+  let F : Π i : A, C(i, β) := λ i, F i i.prop,
+  refine lift_cover S F (λ i j, hF i i.prop j j.prop) _,
+  intros x,
+  obtain ⟨s, hs, hsx⟩ := hA x,
+  exact ⟨⟨s, hs⟩, hsx⟩
+end
+
+variables {A F hF hA}
+
+@[simp] lemma lift_cover_coe' {s : set α} {hs : s ∈ A} (x : s) :
+  lift_cover' A F hF hA x = F s hs x :=
+let x' : (coe : A → set α) ⟨s, hs⟩ := x in lift_cover_coe x'
+
+@[simp] lemma lift_cover_restrict' {s : set α} {hs : s ∈ A} :
+  (lift_cover' A F hF hA).restrict s = F s hs :=
+ext $ lift_cover_coe'
+
+end gluing
 
 end continuous_map
 

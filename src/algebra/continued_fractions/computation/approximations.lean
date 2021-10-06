@@ -297,7 +297,7 @@ begin
   exact (le_of_succ_succ_nth_continuants_aux_b nth_part_denom_eq)
 end
 
-/-- Shows that the sequence of denominators is monotonically increasing, that is `Bₙ ≤ Bₙ₊₁`. -/
+/-- Shows that the sequence of denominators is monotone, that is `Bₙ ≤ Bₙ₊₁`. -/
 theorem of_denom_mono : (gcf.of v).denominators n ≤ (gcf.of v).denominators (n + 1) :=
 begin
   let g := gcf.of v,
@@ -470,8 +470,6 @@ begin
       ... = (-1)^n / ((pB + ifp.fr⁻¹ * B) * B)                      : by rw determinant_eq
       ... = (-1)^n / (B * (ifp.fr⁻¹ * B + pB))                      : by ac_refl }
 end
-
-local notation `|` x `|` := abs x
 
 /-- Shows that `|v - Aₙ / Bₙ| ≤ 1 / (Bₙ * Bₙ₊₁)` -/
 theorem abs_sub_convergents_le (not_terminated_at_n : ¬(gcf.of v).terminated_at n) :

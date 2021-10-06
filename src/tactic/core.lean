@@ -2191,7 +2191,8 @@ do d ← get_decl n,
      (eval_expr (tactic unit) e) >>= (λ t, t >> (name.to_string <$> strip_prefix n))
    else if (t =ₐ `(tactic string)) then
      (eval_expr (tactic string) e) >>= (λ t, t)
-   else fail!"name_to_tactic cannot take `{n} as input: its type must be `tactic string` or `tactic unit`"
+   else fail!
+     "name_to_tactic cannot take `{n} as input: its type must be `tactic string` or `tactic unit`"
 
 /-- auxiliary function for `apply_under_n_pis` -/
 private meta def apply_under_n_pis_aux (func arg : pexpr) : ℕ → ℕ → expr → pexpr
@@ -2352,8 +2353,10 @@ then do
   user_attr_const ← mk_const user_attr_nm,
   tac ← eval_pexpr (tactic unit)
     ``(user_attribute.set %%user_attr_const %%c_name (default _) %%persistent) <|>
-    fail!"Cannot set attribute @[{attr_name}]. The corresponding user attribute {user_attr_nm} has a parameter without a default value.
-Solution: provide an `inhabited` instance.",
+    fail! ("Cannot set attribute @[{attr_name}].\n" ++
+      "The corresponding user attribute {user_attr_nm} " ++
+      "has a parameter without a default value.\n" ++
+      "Solution: provide an `inhabited` instance."),
   tac
 else fail msg
 

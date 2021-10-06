@@ -177,9 +177,11 @@ begin
           ←aeval_def, minpoly.aeval F z, ring_hom.map_zero] } },
   rw [←intermediate_field.to_subalgebra_le_to_subalgebra, intermediate_field.top_to_subalgebra],
   apply ge_trans (intermediate_field.algebra_adjoin_le_adjoin C S),
-  suffices : (algebra.adjoin C S).res F = (algebra.adjoin E {adjoin_root.root q}).res F,
-  { rw [adjoin_root.adjoin_root_eq_top, subalgebra.res_top, ←@subalgebra.res_top F C] at this,
-    exact top_le_iff.mpr (subalgebra.res_inj F this) },
+  suffices : (algebra.adjoin C S).restrict_scalars F
+           = (algebra.adjoin E {adjoin_root.root q}).restrict_scalars F,
+  { rw [adjoin_root.adjoin_root_eq_top, subalgebra.restrict_scalars_top,
+      ←@subalgebra.restrict_scalars_top F C] at this,
+    exact top_le_iff.mpr (subalgebra.restrict_scalars_injective F this) },
   dsimp only [S],
   rw [←finset.image_to_finset, finset.coe_image],
   apply eq.trans (algebra.adjoin_res_eq_adjoin_res F E C D

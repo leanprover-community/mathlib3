@@ -133,7 +133,7 @@ under pointwise multiplication.
 -/
 
 instance semiring {R : Type*} [semiring R] [topological_space R]
-  [charted_space H' R] [smooth_semiring I' R] :
+  [charted_space H' R] [smooth_ring I' R] :
   semiring C^∞⟮I, N; I', R⟯ :=
 { left_distrib := λ a b c, by ext; exact left_distrib _ _ _,
   right_distrib := λ a b c, by ext; exact right_distrib _ _ _,

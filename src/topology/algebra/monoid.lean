@@ -112,6 +112,13 @@ instance pi.has_continuous_mul {C : ι → Type*} [∀ i, topological_space (C i
 { continuous_mul := continuous_pi (λ i, continuous.mul
     ((continuous_apply i).comp continuous_fst) ((continuous_apply i).comp continuous_snd)) }
 
+/-- A version of `pi.has_continuous_mul` for non-dependent functions. It is needed because sometimes
+Lean fails to use `pi.has_continuous_mul` for non-dependent functions. -/
+@[to_additive "A version of `pi.has_continuous_add` for non-dependent functions. It is needed
+because sometimes Lean fails to use `pi.has_continuous_add` for non-dependent functions."]
+instance pi.has_continuous_mul' : has_continuous_mul (ι → M) :=
+pi.has_continuous_mul
+
 @[priority 100, to_additive]
 instance has_continuous_mul_of_discrete_topology [topological_space N]
   [has_mul N] [discrete_topology N] : has_continuous_mul N :=

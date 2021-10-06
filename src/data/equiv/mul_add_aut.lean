@@ -74,14 +74,13 @@ by refine_struct { to_fun := mul_equiv.to_equiv }; intros; refl
 
 /-- The tautological action by `mul_aut M` on `M`.
 
-Note this also satisfies the axioms of `mul_semiring_action` that aren't inherited from
-`distrib_mul_action`.
-
 This generalizes `function.End.apply_mul_action`. -/
-instance apply_mul_action {M} [monoid M] : mul_action (mul_aut M) M :=
+instance apply_mul_distrib_mul_action {M} [monoid M] : mul_distrib_mul_action (mul_aut M) M :=
 { smul := ($),
   one_smul := λ _, rfl,
-  mul_smul := λ _ _ _, rfl }
+  mul_smul := λ _ _ _, rfl,
+  smul_one := mul_equiv.map_one,
+  smul_mul := mul_equiv.map_mul }
 
 @[simp] protected lemma smul_def {M} [monoid M] (f : mul_aut M) (a : M) : f • a = f a := rfl
 

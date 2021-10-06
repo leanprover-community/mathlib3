@@ -100,19 +100,12 @@ begin
     refine ⟨f, _, hy⟩,
     by_cases hf : f = 0,
     { simp only [hf, nat_degree_zero, degree_zero] at h ⊢,
-      exact lt_of_le_of_ne (nat.zero_le d) hd.symm <|> exact with_bot.bot_lt_some d },
+      exact lt_of_le_of_ne (nat.zero_le d) hd.symm <|> exact with_bot.bot_lt_coe d },
     simpa only [degree_eq_nat_degree hf, with_bot.coe_lt_coe] using h },
 end
 
-lemma dim_ne_zero [nontrivial S] (pb : power_basis R S) : pb.dim ≠ 0 :=
-λ h, one_ne_zero $
-show (1 : S) = 0,
-by { rw [← pb.basis.total_repr 1, finsupp.total_apply, finsupp.sum_fintype],
-     { refine finset.sum_eq_zero (λ x hx, _),
-       cases x with x x_lt,
-       rw h at x_lt,
-       cases x_lt },
-     { simp } }
+lemma dim_ne_zero [h : nontrivial S] (pb : power_basis R S) : pb.dim ≠ 0 :=
+λ h, not_nonempty_iff.mpr (h.symm ▸ fin.is_empty : is_empty (fin pb.dim)) pb.basis.index_nonempty
 
 lemma dim_pos [nontrivial S] (pb : power_basis R S) : 0 < pb.dim :=
 nat.pos_of_ne_zero pb.dim_ne_zero
@@ -258,8 +251,7 @@ begin
   have : (f %ₘ minpoly A pb.gen).nat_degree < pb.dim,
   { rw ← pb.nat_degree_minpoly,
     apply nat_degree_lt_nat_degree hf,
-    exact degree_mod_by_monic_lt _ (minpoly.monic pb.is_integral_gen)
-      (minpoly.ne_zero pb.is_integral_gen) },
+    exact degree_mod_by_monic_lt _ (minpoly.monic pb.is_integral_gen) },
   rw [aeval_eq_sum_range' this, aeval_eq_sum_range' this, linear_map.map_sum],
   refine finset.sum_congr rfl (λ i (hi : i ∈ finset.range pb.dim), _),
   rw finset.mem_range at hi,
@@ -442,7 +434,7 @@ begin
   apply mem_span_pow'.mpr _,
   have := minpoly.monic hx,
   refine ⟨f.mod_by_monic (minpoly R x),
-      lt_of_lt_of_le (degree_mod_by_monic_lt _ this (ne_zero_of_monic this)) degree_le_nat_degree,
+      lt_of_lt_of_le (degree_mod_by_monic_lt _ this) degree_le_nat_degree,
       _⟩,
   conv_lhs { rw ← mod_by_monic_add_div f this },
   simp only [add_zero, zero_mul, minpoly.aeval, aeval_add, alg_hom.map_mul]

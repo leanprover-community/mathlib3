@@ -5,7 +5,7 @@ Authors: Eric Wieser
 -/
 import group_theory.perm.basic
 import data.fintype.basic
-import group_theory.subgroup
+import group_theory.subgroup.basic
 /-!
 # Lemmas about subgroups within the permutations (self-equivalences) of a type `α`
 

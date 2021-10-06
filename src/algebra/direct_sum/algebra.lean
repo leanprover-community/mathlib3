@@ -80,13 +80,20 @@ instance : algebra R (⨁ i, A i) :=
     apply dfinsupp.single_eq_of_sigma_eq (galgebra.commutes r ⟨i, xi⟩),
   end,
   smul_def' := λ r x, begin
-    change const_smul_hom _ r x = add_monoid_hom.mul (direct_sum.of _ _ _) x,
+    change distrib_mul_action.to_add_monoid_hom _ r x = add_monoid_hom.mul (direct_sum.of _ _ _) x,
     apply add_monoid_hom.congr_fun _ x,
     ext i xi : 2,
-    dsimp only [add_monoid_hom.comp_apply, const_smul_hom_apply, add_monoid_hom.mul_apply],
+    dsimp only [add_monoid_hom.comp_apply, distrib_mul_action.to_add_monoid_hom_apply,
+      add_monoid_hom.mul_apply],
     rw [direct_sum.of_mul_of, ←of_smul],
     apply dfinsupp.single_eq_of_sigma_eq (galgebra.smul_def r ⟨i, xi⟩),
   end }
+
+lemma algebra_map_apply (r : R) :
+  algebra_map R (⨁ i, A i) r = direct_sum.of A 0 (galgebra.to_fun r) := rfl
+
+lemma algebra_map_to_add_monoid_hom :
+  ↑(algebra_map R (⨁ i, A i)) = (direct_sum.of A 0).comp (galgebra.to_fun : R →+ A 0) := rfl
 
 section
 -- for `simps`

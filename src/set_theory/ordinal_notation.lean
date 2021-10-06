@@ -285,7 +285,7 @@ begin
   have := mt repr_inj.1 (λ h, by injection h : oadd e n a ≠ 0),
   have L := le_of_not_lt (λ l, not_le_of_lt (h.below_of_lt l).repr_lt (le_of_dvd this d)),
   simp at d,
-  exact ⟨L, (dvd_add_iff $ dvd_mul_of_dvd_left (power_dvd_power _ L) _).1 d⟩
+  exact ⟨L, (dvd_add_iff $ (power_dvd_power _ L).mul_right _).1 d⟩
 end
 
 theorem NF.of_dvd_omega {e n a} (h : NF (oadd e n a)) :

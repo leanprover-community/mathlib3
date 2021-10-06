@@ -234,6 +234,15 @@ lemma pi.single_mul [Π i, mul_zero_class $ f i] (i : I) (x y : f i) :
   single i (x * y) = single i x * single i y :=
 (mul_hom.single f i).map_mul x y
 
+lemma pi.update_eq_sub_add_single [Π i, add_group $ f i] (g : Π (i : I), f i) (x : f i) :
+  function.update g i x = g - single i (g i) + single i x :=
+begin
+  ext j,
+  rcases eq_or_ne i j with rfl|h,
+  { simp },
+  { simp [function.update_noteq h.symm, h] }
+end
+
 end single
 
 section piecewise
@@ -257,3 +266,16 @@ lemma pi.piecewise_div [Π i, has_div (f i)] (s : set I) [Π i, decidable (i ∈
 s.piecewise_op₂ _ _ _ _ (λ _, (/))
 
 end piecewise
+
+section extend
+
+variables {ι : Type u} {η : Type v} (R : Type w) (s : ι → η)
+
+/-- `function.extend s f 1` as a bundled hom. -/
+@[to_additive function.extend_by_zero.hom "`function.extend s f 0` as a bundled hom.", simps]
+noncomputable def function.extend_by_one.hom [mul_one_class R] : (ι → R) →* (η → R) :=
+{ to_fun := λ f, function.extend s f 1,
+  map_one' := function.extend_one s,
+  map_mul' := λ f g, by { simpa using function.extend_mul s f g 1 1 } }
+
+end extend

@@ -4,11 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import algebraic_geometry.sheafed_space
-import algebra.category.CommRing.limits
-import algebra.category.CommRing.colimits
-import algebraic_geometry.stalks
-import ring_theory.ideal.local_ring
+import algebraic_geometry.ringed_space
+import data.equiv.transfer_instance
 
 /-!
 # The category of locally ringed spaces
@@ -45,6 +42,12 @@ attribute [instance] LocallyRingedSpace.local_ring
 namespace LocallyRingedSpace
 
 variables (X : LocallyRingedSpace)
+
+/--
+An alias for `to_SheafedSpace`, where the result type is a `RingedSpace`.
+This allows us to use dot-notation for the `RingedSpace` namespace.
+ -/
+def to_RingedSpace : RingedSpace := X.to_SheafedSpace
 
 /-- The underlying topological space of a locally ringed space. -/
 def to_Top : Top := X.1.carrier
@@ -160,23 +163,29 @@ instance : reflects_isomorphisms forget_to_SheafedSpace :=
     ⟨hom_of_SheafedSpace_hom_of_is_iso (category_theory.inv (forget_to_SheafedSpace.map f)),
       hom_ext _ _ (is_iso.hom_inv_id _), hom_ext _ _ (is_iso.inv_hom_id _)⟩ } }
 
--- PROJECT: once we have `PresheafedSpace.restrict_stalk_iso`
--- (that restriction doesn't change stalks) we can uncomment this.
-/-
-def restrict {U : Top} (X : LocallyRingedSpace)
-  (f : U ⟶ X.to_Top) (h : open_embedding f) : LocallyRingedSpace :=
+/--
+The restriction of a locally ringed space along an open embedding.
+-/
+@[simps]
+noncomputable def restrict {U : Top} (X : LocallyRingedSpace) (f : U ⟶ X.to_Top)
+  (h : open_embedding f) : LocallyRingedSpace :=
 { local_ring :=
   begin
     intro x,
     dsimp at *,
     -- We show that the stalk of the restriction is isomorphic to the original stalk,
-    have := X.to_SheafedSpace.to_PresheafedSpace.restrict_stalk_iso f h x,
-    -- and then transfer `local_ring` across the ring equivalence.
-    apply (this.CommRing_iso_to_ring_equiv).local_ring, -- import data.equiv.transfer_instance
-    apply X.local_ring,
+    apply @ring_equiv.local_ring _ _ _ (X.local_ring (f x)),
+    exact (X.to_PresheafedSpace.restrict_stalk_iso f h x).symm.CommRing_iso_to_ring_equiv,
   end,
-  .. X.to_SheafedSpace.restrict _ f h }
+  .. X.to_SheafedSpace.restrict f h }
+
+/--
+The restriction of a locally ringed space `X` to the top subspace is isomorphic to `X` itself.
 -/
+noncomputable def restrict_top_iso (X : LocallyRingedSpace) :
+  X.restrict (opens.inclusion ⊤) (opens.open_embedding ⊤) ≅ X :=
+@iso_of_SheafedSpace_iso (X.restrict (opens.inclusion ⊤) (opens.open_embedding ⊤)) X
+  X.to_SheafedSpace.restrict_top_iso
 
 /--
 The global sections, notated Gamma.

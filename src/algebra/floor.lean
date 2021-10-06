@@ -426,17 +426,10 @@ begin
   abel
 end
 
-/-- `ceil x` is the smallest integer `z` such that `x ≤ z` -/
+/-- `ceil x` is the smallest natural `n` such that `x ≤ n` -/
 def ceil (x : α) : ℕ := ⨅ (n : ℕ) (hn : x ≤ ↑n), n
 
 end nat
-
-
-/--
-`nat_ceil x` is the smallest nonnegative integer `n` with `x ≤ n`.
-It is the same as `⌈q⌉` when `q ≥ 0`, otherwise it is `0`.
--/
-def nat_ceil (a : α) : ℕ := int.to_nat (⌈a⌉)
 
 lemma floor_lt_ceil_of_lt {x y : α} (h : x < y) : ⌊x⌋ < ⌈y⌉ :=
 by { rw floor_lt, exact h.trans_le (le_ceil _) }
@@ -446,11 +439,7 @@ by { rw floor_lt, exact h.trans_le (le_ceil _) }
 section nat
 variables {a : α} {n : ℕ}
 
-/-- `nat_floor x` is the greatest natural `n` that is less than `x`.
-It is equal to `⌊x⌋` when `x ≥ 0`, and is `0` otherwise. It is denoted with `⌊x⌋₊`.-/
-def nat_floor (a : α) : ℕ := int.to_nat ⌊a⌋
-
-notation `⌊` x `⌋₊` := nat_floor x
+notation `⌊` x `⌋₊` := nat.floor x
 
 lemma nat_floor_of_nonpos (ha : a ≤ 0) : ⌊a⌋₊ = 0 :=
 begin

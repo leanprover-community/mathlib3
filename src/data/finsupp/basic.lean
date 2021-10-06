@@ -2621,6 +2621,10 @@ instance [ordered_cancel_add_comm_monoid M] : ordered_cancel_add_comm_monoid (α
   add_left_cancel := λ a b c h, ext $ λ s, add_left_cancel (ext_iff.1 h s),
   .. finsupp.add_comm_monoid, .. finsupp.partial_order }
 
+instance [ordered_add_comm_monoid M] [contravariant_class M M (+) (≤)] :
+  contravariant_class (α →₀ M) (α →₀ M) (+) (≤) :=
+⟨λ f g h H x, le_of_add_le_add_left $ H x⟩
+
 lemma le_def [preorder M] [has_zero M] {f g : α →₀ M} : f ≤ g ↔ ∀ x, f x ≤ g x := iff.rfl
 
 lemma le_iff' [canonically_ordered_add_monoid M] (f g : α →₀ M)
@@ -2674,9 +2678,14 @@ subrelation.wf (sum_id_lt_of_lt) $ inv_image.wf _ nat.lt_wf
 
 variable {α}
 
-/-! Declarations about subtraction on `finsupp`. -/
+/-! Declarations about subtraction on `finsupp`.
+
+Some of these lemmas are used to develop the partial derivative on `mv_polynomial`. -/
 section nat_sub
+section canonically_ordered_monoid
+
 variables [canonically_ordered_add_monoid M] [has_sub M] [has_ordered_sub M]
+
 /-- Todo: rename. It is defined more generally for `canonically_ordered_add_monoid` -/
 instance nat_sub : has_sub (α →₀ M) :=
 ⟨zip_with (λ m n, m - n) (sub_self' 0)⟩
@@ -2705,19 +2714,6 @@ end
 instance : has_ordered_sub (α →₀ M) :=
 ⟨λ n m k, finsupp.sub_le_iff_right⟩
 
--- These next two lemmas are used in developing
--- the partial derivative on `mv_polynomial`.
-
-lemma sub_single_one_add {a : α} {u u' : α →₀ ℕ} (h : u a ≠ 0) :
-  u - single a 1 + u' = u + u' - single a 1 :=
-begin
-  ext b,
-  rw [add_apply, nat_sub_apply, nat_sub_apply, add_apply],
-  by_cases h : a = b,
-  { rw [←h, single_eq_same], cases (u a), { contradiction }, { simp }, },
-  { simp [h], }
-end
-
 @[simp] lemma single_nat_sub {a : α} {n₁ n₂ : M} : single a (n₁ - n₂) = single a n₁ - single a n₂ :=
 begin
   ext f,
@@ -2726,39 +2722,43 @@ begin
   rw [nat_sub_apply, single_eq_of_ne h, single_eq_of_ne h, single_eq_of_ne h, sub_self']
 end
 
-lemma add_sub_single_one {a : α} {u u' : α →₀ ℕ} (h : u' a ≠ 0) :
-  u + (u' - single a 1) = u + u' - single a 1 :=
-begin
-  ext b,
-  rw [add_apply, nat_sub_apply, nat_sub_apply, add_apply],
-  by_cases h : a = b,
-  { rw [←h, single_eq_same], cases (u' a), { contradiction }, { simp }, },
-  { simp [h], }
-end
-
-lemma nat_zero_sub (f : α →₀ ℕ) : 0 - f = 0 :=
+lemma nat_zero_sub (f : α →₀ M) : 0 - f = 0 :=
 zero_sub' f
 
-lemma nat_sub_self (f : α →₀ ℕ) : f - f = 0 :=
+lemma nat_sub_self (f : α →₀ M) : f - f = 0 :=
 sub_self' f
 
-end nat_sub
-
-lemma nat_add_sub_cancel (f g : α →₀ ℕ) : f + g - g = f :=
-add_sub_cancel_right f g
-
-lemma nat_add_sub_cancel_left (f g : α →₀ ℕ) : f + g - f = g :=
-add_sub_cancel_left f g
-
-lemma nat_add_sub_of_le {f g : α →₀ ℕ} (h : f ≤ g) : f + (g - f) = g :=
+lemma nat_add_sub_of_le {f g : α →₀ M} (h : f ≤ g) : f + (g - f) = g :=
 add_sub_cancel_of_le h
 
-lemma nat_sub_add_cancel {f g : α →₀ ℕ} (h : f ≤ g) : g - f + f = g :=
+lemma nat_sub_add_cancel {f g : α →₀ M} (h : f ≤ g) : g - f + f = g :=
 sub_add_cancel_of_le h
 
-lemma nat_add_sub_assoc {f₁ f₂ : α →₀ ℕ} (h : f₁ ≤ f₂) (f₃ : α →₀ ℕ) :
+variables [contravariant_class M M (+) (≤)]
+
+lemma nat_add_sub_cancel (f g : α →₀ M) : f + g - g = f :=
+add_sub_cancel_right f g
+
+lemma nat_add_sub_cancel_left (f g : α →₀ M) : f + g - f = g :=
+add_sub_cancel_left f g
+
+lemma nat_add_sub_assoc {f₁ f₂ : α →₀ M} (h : f₁ ≤ f₂) (f₃ : α →₀ M) :
   f₃ + f₂ - f₁ = f₃ + (f₂ - f₁) :=
 add_sub_assoc_of_le h f₃
+
+end canonically_ordered_monoid
+
+/-! Some lemmas specifically about `ℕ`. -/
+
+lemma sub_single_one_add {a : α} {u u' : α →₀ ℕ} (h : u a ≠ 0) :
+  u - single a 1 + u' = u + u' - single a 1 :=
+sub_add_eq_add_sub' $ single_le_iff.mpr $ one_le_iff_ne_zero.mpr h
+
+lemma add_sub_single_one {a : α} {u u' : α →₀ ℕ} (h : u' a ≠ 0) :
+  u + (u' - single a 1) = u + u' - single a 1 :=
+(add_sub_assoc_of_le (single_le_iff.mpr $ one_le_iff_ne_zero.mpr h) _).symm
+
+end nat_sub
 
 end finsupp
 

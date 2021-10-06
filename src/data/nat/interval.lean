@@ -160,8 +160,8 @@ begin
     have hx : x ≤ c := (nat.le_add_left _ _).trans ha,
     refine ⟨c - x, _, nat.sub_sub_self hx⟩,
     { rw mem_Ico,
-      refine ⟨le_sub_of_add_le_right' ha, _⟩,
-      rwa [sub_lt_iff_left hx, ←succ_le_iff, sub_le_iff_right] } }
+      exact ⟨le_sub_of_add_le_right' ha, (sub_lt_iff_left hx).2 $ succ_le_iff.1 $
+        sub_le_iff_right.1 hb⟩ } }
 end
 
 lemma range_image_pred_top_sub (n : ℕ) :

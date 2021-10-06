@@ -2752,11 +2752,11 @@ end canonically_ordered_monoid
 
 lemma sub_single_one_add {a : α} {u u' : α →₀ ℕ} (h : u a ≠ 0) :
   u - single a 1 + u' = u + u' - single a 1 :=
-sub_add_eq_add_sub' $ single_le_iff.mpr $ one_le_iff_ne_zero.mpr h
+sub_add_eq_add_sub' $ single_le_iff.mpr $ nat.one_le_iff_ne_zero.mpr h
 
 lemma add_sub_single_one {a : α} {u u' : α →₀ ℕ} (h : u' a ≠ 0) :
   u + (u' - single a 1) = u + u' - single a 1 :=
-(add_sub_assoc_of_le (single_le_iff.mpr $ one_le_iff_ne_zero.mpr h) _).symm
+(add_sub_assoc_of_le (single_le_iff.mpr $ nat.one_le_iff_ne_zero.mpr h) _).symm
 
 end nat_sub
 

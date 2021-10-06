@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import topology.metric_space.baire
 import analysis.normed_space.operator_norm
+import analysis.normed_space.affine_isometry
 
 /-!
 # Banach open mapping theorem
@@ -237,6 +238,17 @@ begin
       end
     ... = ε : mul_div_cancel' _ (ne_of_gt Cpos),
   exact set.mem_image_of_mem _ (hε this)
+end
+
+lemma open_mapping_affine {P Q : Type*}
+  [metric_space P] [normed_add_torsor E P] [metric_space Q] [normed_add_torsor F Q]
+  {f : P →ᵃ[𝕜] Q} (hf : continuous f) (surj : surjective f) :
+  is_open_map f :=
+begin
+  rw ← affine_map.is_open_map_linear_iff,
+  exact open_mapping
+    { cont := affine_map.continuous_linear_iff.mpr hf, .. f.linear }
+    (f.surjective_iff_linear_surjective.mpr surj),
 end
 
 /-! ### Applications of the Banach open mapping theorem -/

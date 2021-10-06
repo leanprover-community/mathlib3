@@ -222,7 +222,7 @@ lemma asc_factorial_of_sub {n k : ℕ} (h : k < n) :
 begin
   set t := n - k.succ with ht,
   suffices h' : n - k = t.succ, by rw [←ht, h', succ_asc_factorial, asc_factorial_succ],
-  rw [ht, succ_eq_add_one, ←sub_sub_assoc h (succ_pos _), succ_sub_one],
+  rw [ht, succ_eq_add_one, ←sub_sub_assoc (succ_le_of_lt h) (succ_pos _), succ_sub_one],
 end
 
 lemma pow_succ_le_asc_factorial (n : ℕ) : ∀ (k : ℕ), (n + 1)^k ≤ n.asc_factorial k
@@ -349,7 +349,7 @@ lemma pow_sub_lt_desc_factorial' {n : ℕ} :
   ∀ {k : ℕ}, k + 2 ≤ n → (n - (k + 1))^(k + 2) < n.desc_factorial (k + 2)
 | 0 := λ h, begin
   rw [desc_factorial_succ, pow_succ, pow_one, desc_factorial_one],
-  exact nat.mul_lt_mul_of_pos_left (nat.sub_lt_self (lt_of_lt_of_le zero_lt_two h) zero_lt_one)
+  exact nat.mul_lt_mul_of_pos_left (sub_lt_self' (lt_of_lt_of_le zero_lt_two h) zero_lt_one)
     (nat.sub_pos_of_lt h),
 end
 | (k + 1) := λ h, begin
@@ -378,7 +378,7 @@ lemma desc_factorial_lt_pow {n : ℕ} (hn : 1 ≤ n) : ∀ {k : ℕ}, 2 ≤ k �
 | 1 := by rintro (_ | ⟨_, ⟨⟩⟩)
 | (k + 2) := λ _, begin
   rw [desc_factorial_succ, pow_succ', mul_comm],
-  exact nat.mul_lt_mul' (desc_factorial_le_pow _ _) (nat.sub_lt_self hn k.zero_lt_succ)
+  exact nat.mul_lt_mul' (desc_factorial_le_pow _ _) (sub_lt_self' hn k.zero_lt_succ)
     (pow_pos hn _),
 end
 

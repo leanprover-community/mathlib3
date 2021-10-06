@@ -221,7 +221,7 @@ begin
   { rw [fin.coe_mk, not_lt] at h,
     simp only [fin.ext_iff, fin.coe_add, fin.coe_mk, nat.mod_eq_sub_mod h],
     refine (nat.mod_eq_of_lt _).symm,
-    rw nat.sub_lt_left_iff_lt_add h,
+    rw sub_lt_iff_left h,
     exact add_lt_add i.property i.property }
 end
 
@@ -241,7 +241,7 @@ begin
       simp only [fin.ext_iff, fin.coe_add, fin.coe_mk, nat.mod_add_mod, fin.coe_one,
                  nat.mod_eq_sub_mod h],
       refine (nat.mod_eq_of_lt _).symm,
-      rw nat.sub_lt_left_iff_lt_add h,
+      rw sub_lt_iff_left h,
       exact nat.add_succ_lt_add i.property i.property } }
 end
 

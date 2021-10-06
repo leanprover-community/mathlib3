@@ -683,7 +683,7 @@ end
 
 theorem raised.dist_le {n m} (H : raised n m) : nat.dist n m ≤ 1 :=
 by cases raised_iff.1 H with H1 H2;
-  rwa [nat.dist_eq_sub_of_le H1, nat.sub_le_left_iff_le_add]
+  rwa [nat.dist_eq_sub_of_le H1, sub_le_iff_left]
 
 theorem raised.dist_le' {n m} (H : raised n m) : nat.dist m n ≤ 1 :=
 by rw nat.dist_comm; exact H.dist_le

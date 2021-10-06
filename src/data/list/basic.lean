@@ -1172,7 +1172,7 @@ lemma nth_le_append_right_aux {l₁ l₂ : list α} {n : ℕ}
   (h₁ : l₁.length ≤ n) (h₂ : n < (l₁ ++ l₂).length) : n - l₁.length < l₂.length :=
 begin
   rw list.length_append at h₂,
-  convert (nat.sub_lt_sub_right_iff h₁).mpr h₂,
+  convert (sub_lt_sub_iff_right' h₁).mpr h₂,
   simp,
 end
 
@@ -1203,7 +1203,7 @@ begin
   { rw [nth_le_nth hl, nth_le_nth, nth_le_append_right hn] },
   { rw [nth_len_le (le_of_not_lt hl), nth_len_le],
     rw [not_lt, length_append] at hl,
-    exact nat.le_sub_left_of_add_le hl }
+    exact le_sub_of_add_le_left' hl }
 end
 
 lemma last_eq_nth_le : ∀ (l : list α) (h : l ≠ []),
@@ -1929,7 +1929,7 @@ end
 /--  The `i + j`-th element of a list coincides with the `j`-th element of the list obtained by
 dropping the first `i` elements. Version designed to rewrite from the small list to the big list. -/
 lemma nth_le_drop' (L : list α) {i j : ℕ} (h : j < (L.drop i).length) :
-  nth_le (L.drop i) j h = nth_le L (i + j) (nat.add_lt_of_lt_sub_left ((length_drop i L) ▸ h)) :=
+  nth_le (L.drop i) j h = nth_le L (i + j) (lt_sub_iff_left.mp ((length_drop i L) ▸ h)) :=
 by rw nth_le_drop
 
 lemma nth_drop (L : list α) (i j : ℕ) :
@@ -1938,7 +1938,7 @@ begin
   ext,
   simp only [nth_eq_some, nth_le_drop', option.mem_def],
   split;
-  exact λ ⟨h, ha⟩, ⟨by simpa [nat.lt_sub_left_iff_add_lt] using h, ha⟩
+  exact λ ⟨h, ha⟩, ⟨by simpa [lt_sub_iff_left] using h, ha⟩
 end
 
 @[simp] theorem drop_drop (n : ℕ) : ∀ (m) (l : list α), drop n (drop m l) = drop (n + m) l
@@ -5049,7 +5049,7 @@ theorem to_chunks_length_le : ∀ n xs, n ≠ 0 → ∀ l : list α,
   { apply length_take_le },
   { refine IH _ _ h,
     simp only [measure, inv_image, length_drop],
-    exact nat.sub_lt_self (length_pos_iff_ne_nil.2 x0) (succ_pos _) },
+    exact sub_lt_self' (length_pos_iff_ne_nil.2 x0) (succ_pos _) },
 end
 
 end to_chunks

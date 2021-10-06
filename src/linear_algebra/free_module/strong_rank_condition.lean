@@ -25,9 +25,9 @@ module is well defined.
 We follow the proof given in https://mathoverflow.net/a/47846/7845.
 The argument is the following: it is enough to prove that for all `n`, there is no injective linear
 map `(fin (n + 1) → R) →ₗ[R] fin n → R`. Given such an `f`, we get by extension an injective
-linear map `g : (fin n → R) →ₗ[R] fin n → R`. Injectivity implies that `P`, the minimal polynomial
-of `g`, has non-zero constant term `a₀ ≠ 0`. But evaluating `0 = P(g)` at the vector `(0,...,0,1)`
-gives `a₀`, contradiction.
+linear map `g : (fin (n + 1) → R) →ₗ[R] fin (n + 1) → R`. Injectivity implies that `P`, the
+minimal polynomial of `g`, has non-zero constant term `a₀ ≠ 0`. But evaluating `0 = P(g)` at the
+vector `(0,...,0,1)` gives `a₀`, contradiction.
 
 -/
 
@@ -54,7 +54,7 @@ begin
   let a₀ := (minpoly R g).coeff 0,
   have : a₀ ≠ 0 := minpoly_coeff_zero_of_injective hg,
   have : a₀ = 0,
-  { -- evaluate the `(minpoly R g) g` at the vector `(0,...,0,1)`
+  { -- Evaluate `(minpoly R g) g` at the vector `(0,...,0,1)`
     have heval := linear_map.congr_fun (minpoly.aeval R g) (pi.single (fin.last n) 1),
     obtain ⟨P, hP⟩ := X_dvd_iff.2 (erase_same (minpoly R g) 0),
     rw [← monomial_add_erase (minpoly R g) 0, hP] at heval,

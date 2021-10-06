@@ -224,14 +224,6 @@ namespace order_iso
 
 variables [preorder α] [preorder β]
 
-@[simp] lemma upper_bounds_image (e : α ≃o β) (s : set α) :
-  upper_bounds (e '' s) = e.symm ⁻¹' upper_bounds s :=
-e.to_galois_connection.upper_bounds_l_image s
-
-@[simp] lemma lower_bounds_image (e : α ≃o β) (s : set α) :
-  lower_bounds (e '' s) = e.symm ⁻¹' lower_bounds s :=
-e.dual.upper_bounds_image s
-
 @[simp] lemma bdd_above_image (e : α ≃o β) {s : set α} : bdd_above (e '' s) ↔ bdd_above s :=
 e.to_galois_connection.bdd_above_l_image
 

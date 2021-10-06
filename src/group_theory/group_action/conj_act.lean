@@ -53,6 +53,9 @@ def of_conj_act : conj_act G ≃* G := ⟨id, id, λ _, rfl, λ _, rfl, λ _ _, 
 /-- Reinterpret `g : G` as an element of `conj_act G`. -/
 def to_conj_act : G ≃* conj_act G := of_conj_act.symm
 
+/-- A recursor for `conj_act`, for use as `induction x using conj_act.rec` when `x : conj_act G`. -/
+protected def rec {C : conj_act G → Sort*} (h : Π g, C (to_conj_act g)) : Π g, C g := h
+
 @[simp] lemma of_mul_symm_eq : (@of_conj_act G _).symm = to_conj_act := rfl
 @[simp] lemma to_mul_symm_eq : (@to_conj_act G _).symm = of_conj_act := rfl
 @[simp] lemma to_conj_act_of_conj_act (x : conj_act G) : to_conj_act (of_conj_act x) = x := rfl

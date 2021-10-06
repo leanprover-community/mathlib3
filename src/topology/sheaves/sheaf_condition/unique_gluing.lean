@@ -75,13 +75,6 @@ def is_gluing (sf : Π i : ι, F.obj (op (U i))) (s : F.obj (op (supr U))) : Pro
 ∀ i : ι, F.map (opens.le_supr U i).op s = sf i
 
 /--
-The subtype of all gluings for a given family of sections
--/
-@[nolint has_inhabited_instance]
-def gluing (sf : Π i : ι, F.obj (op (U i))) : Type v :=
-{s : F.obj (op (supr U)) // is_gluing F U sf s}
-
-/--
 The sheaf condition in terms of unique gluings. A presheaf `F : presheaf C X` satisfies this sheaf
 condition if and only if, for every compatible family of sections `sf : Π i : ι, F.obj (op (U i))`,
 there exists a unique gluing `s : F.obj (op (supr U))`.
@@ -89,10 +82,9 @@ there exists a unique gluing `s : F.obj (op (supr U))`.
 We prove this to be equivalent to the usual one below in
 `sheaf_condition_equiv_sheaf_condition_unique_gluing`
 -/
-@[derive subsingleton, nolint has_inhabited_instance]
-def sheaf_condition_unique_gluing : Type (v+1) :=
-Π ⦃ι : Type v⦄ (U : ι → opens X) (sf : Π i : ι, F.obj (op (U i))),
-  is_compatible F U sf → unique (gluing F U sf)
+def is_sheaf_unique_gluing : Prop :=
+∀ ⦃ι : Type v⦄ (U : ι → opens X) (sf : Π i : ι, F.obj (op (U i))),
+  is_compatible F U sf → ∃! s : F.obj (op (supr U)), is_gluing F U sf s
 
 end
 
@@ -150,68 +142,62 @@ end
 The "equalizer" sheaf condition can be obtained from the sheaf condition
 in terms of unique gluings.
 -/
-def sheaf_condition_of_sheaf_condition_unique_gluing_types :
-  F.sheaf_condition_unique_gluing → F.sheaf_condition := λ Fsh ι U,
+lemma is_sheaf_of_is_sheaf_unique_gluing_types (Fsh : F.is_sheaf_unique_gluing) :
+  F.is_sheaf :=
 begin
-  refine fork.is_limit.mk' _ (λ s, ⟨_, _, _⟩) ; dsimp,
+  intros ι U,
+  refine ⟨fork.is_limit.mk' _ _⟩,
+  intro s,
+  have h_compatible : ∀ x : s.X,
+    F.is_compatible U ((F.pi_opens_iso_sections_family U).hom (s.ι x)),
   { intro x,
-    refine (Fsh U ((pi_opens_iso_sections_family F U).hom (s.ι x)) _).default.1,
-    apply (compatible_iff_left_res_eq_right_res F U (s.ι x)).mpr,
+    rw compatible_iff_left_res_eq_right_res,
     convert congr_fun s.condition x, },
+  choose m m_spec m_uniq using
+    λ x : s.X, Fsh U ((pi_opens_iso_sections_family F U).hom (s.ι x)) (h_compatible x),
+  refine ⟨m, _, _⟩,
   { ext i x,
     simp [res],
-    let t : gluing F U _ := _,
-    exact t.2 i },
-  { intros m hm,
+    exact m_spec x i, },
+  { intros l hl,
     ext x,
-    refine congr_arg subtype.val
-      ((Fsh U ((pi_opens_iso_sections_family F U).hom (s.ι x)) _).uniq ⟨m x, _⟩),
-    apply (is_gluing_iff_eq_res F U _ _).mpr,
-    exact congr_fun hm x },
+    apply m_uniq,
+    rw is_gluing_iff_eq_res,
+    exact congr_fun hl x },
 end
 
 /--
 The sheaf condition in terms of unique gluings can be obtained from the usual
 "equalizer" sheaf condition.
 -/
-def sheaf_condition_unique_gluing_of_sheaf_condition_types :
-  F.sheaf_condition → F.sheaf_condition_unique_gluing := λ Fsh ι U sf hsf,
-{ default := begin
-    let sf' := (pi_opens_iso_sections_family F U).inv sf,
-    have hsf' : left_res F U sf' = right_res F U sf' := by
-      rwa [← compatible_iff_left_res_eq_right_res F U sf', inv_hom_id_apply],
-    choose s s_spec s_uniq using types.unique_of_type_equalizer _ _ (Fsh U) sf' hsf',
-    use s,
-    convert (is_gluing_iff_eq_res F U _ _).mpr s_spec,
-    rw inv_hom_id_apply
-  end,
-  uniq := begin
-    intro s,
-    /- Unfortunately, type inference doesn't yet know about the `inhabited` instance of
-    `gluing F U sf` We therefore introduce a metavariable and use unification to get our hands
-    on the default value of `gluing F U sf`. -/
-    let t : F.gluing U sf := _,
-    change s = t,
-    ext,
-    let sf' := (pi_opens_iso_sections_family F U).inv sf,
-    have hsf' : left_res F U sf' = right_res F U sf' := by
-      rwa [← compatible_iff_left_res_eq_right_res F U sf', inv_hom_id_apply],
-    choose gl gl_spec gl_uniq using types.unique_of_type_equalizer _ _ (Fsh U) sf' hsf',
-    refine eq.trans (gl_uniq s.1 _) (gl_uniq t.1 _).symm ;
-      rw [← is_gluing_iff_eq_res F U _ _, inv_hom_id_apply],
-    exacts [s.2, t.2]
-  end
-}
+lemma is_sheaf_unique_gluing_of_is_sheaf_types (Fsh : F.is_sheaf) :
+  F.is_sheaf_unique_gluing :=
+begin
+  intros ι U sf hsf,
+  let sf' := (pi_opens_iso_sections_family F U).inv sf,
+  have hsf' : left_res F U sf' = right_res F U sf',
+  { rwa [← compatible_iff_left_res_eq_right_res F U sf', inv_hom_id_apply] },
+  choose s s_spec s_uniq using types.unique_of_type_equalizer _ _ (Fsh U).some sf' hsf',
+  use s,
+  dsimp,
+  split,
+  { convert (is_gluing_iff_eq_res F U sf' _).mpr s_spec,
+    rw inv_hom_id_apply },
+  { intros y hy,
+    apply s_uniq,
+    rw ← is_gluing_iff_eq_res F U,
+    convert hy,
+    rw inv_hom_id_apply, },
+end
 
 /--
 For type-valued presheaves, the sheaf condition in terms of unique gluings is equivalent to the
 usual sheaf condition in terms of equalizer diagrams.
 -/
-def sheaf_condition_equiv_sheaf_condition_unique_gluing_types :
-  F.sheaf_condition ≃ F.sheaf_condition_unique_gluing :=
-equiv_of_subsingleton_of_subsingleton
-  F.sheaf_condition_unique_gluing_of_sheaf_condition_types
-  F.sheaf_condition_of_sheaf_condition_unique_gluing_types
+lemma is_sheaf_iff_is_sheaf_unique_gluing_types :
+  F.is_sheaf ↔ F.is_sheaf_unique_gluing :=
+iff.intro (is_sheaf_unique_gluing_of_is_sheaf_types F)
+  (is_sheaf_of_is_sheaf_unique_gluing_types F)
 
 end type_valued
 

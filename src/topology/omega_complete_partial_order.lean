@@ -24,9 +24,13 @@ open_locale classical
 universes u
 namespace Scott
 
-/--  -/
+/-- `x` is an `ω`-Sup of a chain `c` if it is the least upper bound of the range of `c`. -/
 def is_ωSup {α : Type u} [preorder α] (c : chain α) (x : α) : Prop :=
 (∀ i, c i ≤ x) ∧ (∀ y, (∀ i, c i ≤ y) → x ≤ y)
+
+lemma is_ωSup_iff_is_lub {α : Type u} [preorder α] {c : chain α} {x : α} :
+  is_ωSup c x ↔ is_lub (set.range c) x :=
+by simp [is_ωSup, is_lub, is_least, upper_bounds, lower_bounds]
 
 variables (α : Type u) [omega_complete_partial_order α]
 local attribute [irreducible] set
@@ -67,7 +71,7 @@ begin
     tauto, },
   dsimp [is_open] at *,
   apply complete_lattice.Sup_continuous' _,
-  introv ht, specialize h₀ { x | t x } _,
+  introv ht, specialize h₀ { x | f x } _,
   { simp only [flip, set.mem_image] at *,
     rcases ht with ⟨x,h₀,h₁⟩, subst h₁,
     simpa, },
@@ -106,7 +110,7 @@ begin
   apply eq_of_forall_ge_iff, intro z,
   rw ωSup_le_iff,
   simp only [ωSup_le_iff, not_below, set.mem_set_of_eq, le_Prop_eq, preorder_hom.coe_fun_mk,
-             chain.map_to_fun, function.comp_app, exists_imp_distrib, not_forall],
+             chain.map_coe, function.comp_app, exists_imp_distrib, not_forall],
 end
 
 end not_below
@@ -141,7 +145,7 @@ begin
   simp only [not_below, preorder_hom.coe_fun_mk, eq_iff_iff, set.mem_set_of_eq] at hf_h,
   rw [← not_iff_not],
   simp only [ωSup_le_iff, hf_h, ωSup, supr, Sup, complete_lattice.Sup, complete_semilattice_Sup.Sup,
-    exists_prop, set.mem_range, preorder_hom.coe_fun_mk, chain.map_to_fun, function.comp_app,
+    exists_prop, set.mem_range, preorder_hom.coe_fun_mk, chain.map_coe, function.comp_app,
     eq_iff_iff, not_forall],
   tauto,
 end

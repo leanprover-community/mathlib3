@@ -24,11 +24,11 @@ begin
     { intros, exact nat.zero_le _ },
     { intros n hk,
       apply nat.succ_le_of_lt,
-      calc k ≤ f (f (n - 1)) : h_ind _ (h_ind (n - 1) (nat.le_sub_right_of_add_le hk))
+      calc k ≤ f (f (n - 1)) : h_ind _ (h_ind (n - 1) (le_sub_of_add_le_right' hk))
          ... < f n           : nat.sub_add_cancel
         (le_trans (nat.succ_le_succ (nat.zero_le _)) hk) ▸ h _ } },
   have hf : ∀ n, n ≤ f n := λ n, h' n n rfl.le,
-  have hf_mono : strict_mono f := strict_mono.nat (λ _, lt_of_le_of_lt (hf _) (h _)),
+  have hf_mono : strict_mono f := strict_mono_nat_of_lt_succ (λ _, lt_of_le_of_lt (hf _) (h _)),
   intro,
   exact nat.eq_of_le_of_lt_succ (hf _) (hf_mono.lt_iff_lt.mp (h _))
 end

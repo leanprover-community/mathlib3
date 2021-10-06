@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 import data.polynomial.erase_lead
-import data.polynomial.degree
+import data.polynomial.eval
 
 /-!
 # Reverse of a univariate polynomial
@@ -12,7 +12,7 @@ import data.polynomial.degree
 The main definition is `reverse`.  Applying `reverse` to a polynomial `f : polynomial R` produces
 the polynomial with a reversed list of coefficients, equivalent to `X^f.nat_degree * f(1/X)`.
 
-The main result is that `reverse (f * g) = reverse (f) * reverse (g)`, provided the leading
+The main result is that `reverse (f * g) = reverse f * reverse g`, provided the leading
 coefficients of `f` and `g` do not multiply to zero.
 -/
 
@@ -205,11 +205,11 @@ begin
   by_cases hf : f = 0,
   { rw [hf, reverse_zero, nat_degree_zero, nat_trailing_degree_zero] },
   apply le_antisymm,
-  { apply nat.le_add_of_sub_le_right,
+  { refine sub_le_iff_right.mp _,
     apply le_nat_degree_of_ne_zero,
     rw [reverse, coeff_reflect, ←rev_at_le f.nat_trailing_degree_le_nat_degree, rev_at_invol],
     exact trailing_coeff_nonzero_iff_nonzero.mpr hf },
-  { rw ← nat.le_sub_left_iff_add_le f.reverse_nat_degree_le,
+  { rw ← le_sub_iff_left f.reverse_nat_degree_le,
     apply nat_trailing_degree_le_of_ne_zero,
     have key := mt leading_coeff_eq_zero.mp (mt reverse_eq_zero.mp hf),
     rwa [leading_coeff, coeff_reverse, rev_at_le f.reverse_nat_degree_le] at key },

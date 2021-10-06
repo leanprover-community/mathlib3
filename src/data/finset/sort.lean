@@ -43,6 +43,9 @@ multiset.mem_sort _
 @[simp] theorem length_sort {s : finset α} : (sort r s).length = s.card :=
 multiset.length_sort _
 
+lemma sort_perm_to_list (s : finset α) : sort r s ~ s.to_list :=
+by { rw ←multiset.coe_eq_coe, simp only [coe_to_list, sort_eq] }
+
 end sort
 
 section sort_linear_order
@@ -97,7 +100,7 @@ sorted_last_eq_max'_aux _ _ _
 
 lemma max'_eq_sorted_last {s : finset α} {h : s.nonempty} :
   s.max' h = (s.sort (≤)).nth_le ((s.sort (≤)).length - 1)
-    (by simpa using sub_lt (card_pos.mpr h) zero_lt_one) :=
+    (by simpa using nat.sub_lt (card_pos.mpr h) zero_lt_one) :=
 (sorted_last_eq_max'_aux _ _ _).symm
 
 /-- Given a finset `s` of cardinality `k` in a linear order `α`, the map `order_iso_of_fin s h`
@@ -185,7 +188,7 @@ lemma card_le_of_interleaved {s t : finset α} (h : ∀ x y ∈ s, x < y → ∃
 begin
   have h1 : ∀ i : fin (s.card - 1), ↑i + 1 < (s.sort (≤)).length,
   { intro i,
-    rw [finset.length_sort, ←nat.lt_sub_right_iff_add_lt],
+    rw [finset.length_sort, ←lt_sub_iff_right],
     exact i.2 },
   have h0 : ∀ i : fin (s.card - 1), ↑i < (s.sort (≤)).length :=
   λ i, lt_of_le_of_lt (nat.le_succ i) (h1 i),
@@ -203,7 +206,7 @@ begin
   have key := fintype.card_le_of_embedding (function.embedding.mk f (λ i j hij, le_antisymm
     (not_lt.mp (mt (hf j i) (not_lt.mpr (le_of_eq hij))))
     (not_lt.mp (mt (hf i j) (not_lt.mpr (ge_of_eq hij)))))),
-  rwa [fintype.card_fin, fintype.card_coe, nat.sub_le_right_iff_le_add] at key,
+  rwa [fintype.card_fin, fintype.card_coe, sub_le_iff_right] at key,
 end
 
 end sort_linear_order

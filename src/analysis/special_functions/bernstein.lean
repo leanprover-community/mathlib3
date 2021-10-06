@@ -5,8 +5,6 @@ Authors: Scott Morrison
 -/
 import ring_theory.polynomial.bernstein
 import topology.continuous_function.polynomial
-import algebra.floor
-import analysis.specific_limits
 
 /-!
 # Bernstein approximations and Weierstrass' theorem
@@ -131,7 +129,6 @@ end bernstein
 open bernstein
 
 local postfix `/ₙ`:2000 := z
-local notation `|`x`|` := abs x
 
 /--
 The `n`-th approximation of a continuous function on `[0,1]` by Bernstein polynomials,

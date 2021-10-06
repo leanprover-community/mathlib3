@@ -7,7 +7,6 @@ import data.equiv.encodable.basic
 import data.sigma
 import data.fintype.basic
 import data.list.min_max
-open nat
 
 /-!
 # Denumerable types
@@ -25,6 +24,8 @@ typeclass.
 /-- A denumerable type is (constructively) bijective with `ℕ`. Typeclass equivalent of `α ≃ ℕ`. -/
 class denumerable (α : Type*) extends encodable α :=
 (decode_inv : ∀ n, ∃ a ∈ decode n, encode a = n)
+
+open nat
 
 namespace denumerable
 
@@ -60,6 +61,9 @@ of_nat_of_decode (encodek _)
 /-- A denumerable type is equivalent to `ℕ`. -/
 def eqv (α) [denumerable α] : α ≃ ℕ :=
 ⟨encode, of_nat α, of_nat_encode, encode_of_nat⟩
+
+@[priority 100] -- See Note [lower instance priority]
+instance : infinite α := infinite.of_surjective _ (eqv α).surjective
 
 /-- A type equivalent to `ℕ` is denumerable. -/
 def mk' {α} (e : α ≃ ℕ) : denumerable α :=
@@ -158,7 +162,7 @@ lemma exists_succ (x : s) : ∃ n, x.1 + n + 1 ∈ s :=
 classical.by_contradiction $ λ h,
 have ∀ (a : ℕ) (ha : a ∈ s), a < x.val.succ,
   from λ a ha, lt_of_not_ge (λ hax, h ⟨a - (x.1 + 1),
-    by rwa [add_right_comm, nat.add_sub_cancel' hax]⟩),
+    by rwa [add_right_comm, add_sub_cancel_of_le hax]⟩),
 fintype.false
   ⟨(((multiset.range x.1.succ).filter (∈ s)).pmap
       (λ (y : ℕ) (hy : y ∈ s), subtype.mk y hy)
@@ -167,7 +171,7 @@ fintype.false
 
 end classical
 
-variable [decidable_pred s]
+variable [decidable_pred (∈ s)]
 
 /-- Returns the next natural in a set, according to the usual ordering of `ℕ`. -/
 def succ (x : s) : s :=
@@ -198,7 +202,7 @@ lemma lt_succ_iff_le {x y : s} : x < succ y ↔ x ≤ y :=
   λ h, lt_of_le_of_lt h (lt_succ_self _)⟩
 
 /-- Returns the `n`-th element of a set, according to the usual ordering of `ℕ`. -/
-def of_nat (s : set ℕ) [decidable_pred s] [infinite s] : ℕ → s
+def of_nat (s : set ℕ) [decidable_pred (∈ s)] [infinite s] : ℕ → s
 | 0     := ⊥
 | (n+1) := succ (of_nat n)
 
@@ -226,10 +230,10 @@ lemma of_nat_surjective : surjective (of_nat s) :=
 λ ⟨x, hx⟩, of_nat_surjective_aux hx
 
 private def to_fun_aux (x : s) : ℕ :=
-(list.range x).countp s
+(list.range x).countp (∈ s)
 
 private lemma to_fun_aux_eq (x : s) :
-  to_fun_aux x = ((finset.range x).filter s).card :=
+  to_fun_aux x = ((finset.range x).filter (∈ s)).card :=
 by rw [to_fun_aux, list.countp_eq_length_filter]; refl
 
 open finset
@@ -242,14 +246,14 @@ private lemma right_inverse_aux : ∀ n, to_fun_aux (of_nat s n) = n
   exact bot_le.not_lt (show (⟨n, hn.2⟩ : s) < ⊥, from hn.1),
 end
 | (n+1) := have ih : to_fun_aux (of_nat s n) = n, from right_inverse_aux n,
-have h₁ : (of_nat s n : ℕ) ∉ (range (of_nat s n)).filter s, by simp,
-have h₂ : (range (succ (of_nat s n))).filter s =
-  insert (of_nat s n) ((range (of_nat s n)).filter s),
+have h₁ : (of_nat s n : ℕ) ∉ (range (of_nat s n)).filter (∈ s), by simp,
+have h₂ : (range (succ (of_nat s n))).filter (∈ s) =
+  insert (of_nat s n) ((range (of_nat s n)).filter (∈ s)),
   begin
     simp only [finset.ext_iff, mem_insert, mem_range, mem_filter],
     exact λ m, ⟨λ h, by simp only [h.2, and_true]; exact or.symm
         (lt_or_eq_of_le ((@lt_succ_iff_le _ _ _ ⟨m, h.2⟩ _).1 h.1)),
-      λ h, h.elim (λ h, h.symm ▸ ⟨lt_succ_self _, subtype.property _⟩)
+      λ h, h.elim (λ h, h.symm ▸ ⟨lt_succ_self _, (of_nat s n).prop⟩)
         (λ h, ⟨h.1.trans (lt_succ_self _), h.2⟩)⟩,
   end,
 begin
@@ -258,7 +262,7 @@ begin
 end
 
 /-- Any infinite set of naturals is denumerable. -/
-def denumerable (s : set ℕ) [decidable_pred s] [infinite s] : denumerable s :=
+def denumerable (s : set ℕ) [decidable_pred (∈ s)] [infinite s] : denumerable s :=
 denumerable.of_equiv ℕ
 { to_fun := to_fun_aux,
   inv_fun := of_nat s,

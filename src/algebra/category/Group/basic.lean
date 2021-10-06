@@ -33,13 +33,20 @@ namespace Group
 @[to_additive]
 instance : bundled_hom.parent_projection group.to_monoid := ⟨⟩
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] Group AddGroup
+attribute [derive [has_coe_to_sort, large_category, concrete_category]] Group
+attribute [to_additive] Group.has_coe_to_sort Group.large_category Group.concrete_category
 
 /-- Construct a bundled `Group` from the underlying type and typeclass. -/
 @[to_additive] def of (X : Type u) [group X] : Group := bundled.of X
 
 /-- Construct a bundled `AddGroup` from the underlying type and typeclass. -/
 add_decl_doc AddGroup.of
+
+/-- Typecheck a `monoid_hom` as a morphism in `Group`. -/
+@[to_additive] def of_hom {X Y : Type u} [group X] [group Y] (f : X →* Y) : of X ⟶ of Y := f
+
+/-- Typecheck a `add_monoid_hom` as a morphism in `AddGroup`. -/
+add_decl_doc AddGroup.of_hom
 
 @[to_additive]
 instance (G : Group) : group G := G.str
@@ -87,13 +94,22 @@ namespace CommGroup
 @[to_additive]
 instance : bundled_hom.parent_projection comm_group.to_group := ⟨⟩
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] CommGroup AddCommGroup
+attribute [derive [has_coe_to_sort, large_category, concrete_category]] CommGroup
+attribute [to_additive] CommGroup.has_coe_to_sort CommGroup.large_category
+  CommGroup.concrete_category
 
 /-- Construct a bundled `CommGroup` from the underlying type and typeclass. -/
 @[to_additive] def of (G : Type u) [comm_group G] : CommGroup := bundled.of G
 
 /-- Construct a bundled `AddCommGroup` from the underlying type and typeclass. -/
 add_decl_doc AddCommGroup.of
+
+/-- Typecheck a `monoid_hom` as a morphism in `CommGroup`. -/
+@[to_additive] def of_hom {X Y : Type u} [comm_group X] [comm_group Y] (f : X →* Y) :
+  of X ⟶ of Y := f
+
+/-- Typecheck a `add_monoid_hom` as a morphism in `AddCommGroup`. -/
+add_decl_doc AddCommGroup.of_hom
 
 @[to_additive]
 instance comm_group_instance (G : CommGroup) : comm_group G := G.str

@@ -114,7 +114,7 @@ def cone_equiv_functor_obj (F : presheaf C X)
           category.assoc],
         have h := c.π.naturality (quiver.hom.op (hom.right i j)),
         dsimp at h,
-        simpa using h,  },
+        simpa using h, },
       { ext i, dsimp,
         simp only [limit.lift_π, category.id_comp, fan.mk_π_app, category_theory.functor.map_id,
           category.assoc],

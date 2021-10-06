@@ -215,7 +215,7 @@ by simp [h₂.symm, h₃.symm, h₁.symm, horner, pow_add, mul_add, mul_comm, mu
 theorem horner_add_horner_eq {α} [comm_semiring α] (a₁ x n b₁ a₂ b₂ a' b' t)
   (h₁ : a₁ + a₂ = a') (h₂ : b₁ + b₂ = b') (h₃ : horner a' x n b' = t) :
   @horner α _ a₁ x n b₁ + horner a₂ x n b₂ = t :=
-by simp [h₃.symm, h₂.symm, h₁.symm, horner, add_mul, mul_comm]; cc
+by simp [h₃.symm, h₂.symm, h₁.symm, horner, add_mul, mul_comm (x ^ n)]; cc
 
 /-- Evaluate `a + b` where `a` and `b` are already in normal form. -/
 meta def eval_add : horner_expr → horner_expr → ring_m (horner_expr × expr)

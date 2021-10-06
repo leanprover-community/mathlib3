@@ -22,14 +22,9 @@ The desired theorem is that either `f = λ x, x` or `f = λ x, 1/x`
 
 open real
 
-lemma abs_eq_one_of_pow_eq_one (x : ℝ) (n : ℕ) (hn : n ≠ 0) (h : x ^ n = 1) : abs x = 1 :=
-begin
-  let x₀ := real.to_nnreal (abs x),
-  have h' : (abs x) ^ n = 1, { rwa [pow_abs, h, abs_one] },
-  have : (x₀ : ℝ) ^ n = 1, rw (real.coe_to_nnreal (abs x) (abs_nonneg x)), exact h',
-  have : x₀ = 1 := eq_one_of_pow_eq_one hn (show x₀ ^ n = 1, by assumption_mod_cast),
-  rwa ← real.coe_to_nnreal (abs x) (abs_nonneg x), assumption_mod_cast,
-end
+lemma abs_eq_one_of_pow_eq_one (x : ℝ) (n : ℕ) (hn : n ≠ 0) (h : x ^ n = 1) : |x| = 1 :=
+by rw [← pow_left_inj (abs_nonneg x) zero_le_one (pos_iff_ne_zero.2 hn), one_pow, pow_abs, h,
+  abs_one]
 
 theorem imo2008_q4
   (f : ℝ → ℝ)

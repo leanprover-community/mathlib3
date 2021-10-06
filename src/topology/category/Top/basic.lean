@@ -58,4 +58,24 @@ def trivial : Type u ⥤ Top.{u} :=
 { obj := λ X, ⟨X, ⊤⟩,
   map := λ X Y f, { to_fun := f, continuous_to_fun := continuous_top } }
 
+/-- Any homeomorphisms induces an isomorphism in `Top`. -/
+@[simps] def iso_of_homeo {X Y : Top.{u}} (f : X ≃ₜ Y) : X ≅ Y :=
+{ hom := ⟨f⟩,
+  inv := ⟨f.symm⟩ }
+
+/-- Any isomorphism in `Top` induces a homeomorphism. -/
+@[simps] def homeo_of_iso {X Y : Top.{u}} (f : X ≅ Y) : X ≃ₜ Y :=
+{ to_fun := f.hom,
+  inv_fun := f.inv,
+  left_inv := λ x, by simp,
+  right_inv := λ x, by simp,
+  continuous_to_fun := f.hom.continuous,
+  continuous_inv_fun := f.inv.continuous }
+
+@[simp] lemma of_iso_of_homeo {X Y : Top.{u}} (f : X ≃ₜ Y) : homeo_of_iso (iso_of_homeo f) = f :=
+by { ext, refl }
+
+@[simp] lemma of_homeo_of_iso {X Y : Top.{u}} (f : X ≅ Y) : iso_of_homeo (homeo_of_iso f) = f :=
+by { ext, refl }
+
 end Top

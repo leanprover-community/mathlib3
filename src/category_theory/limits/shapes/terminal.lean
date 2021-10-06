@@ -5,6 +5,7 @@ Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.pempty
 import category_theory.limits.has_limits
+import category_theory.epi_mono
 
 /-!
 # Initial and terminal objects in a category.
@@ -83,13 +84,33 @@ t.hom_ext _ _
 @[simp] lemma is_initial.to_self {X : C} (t : is_initial X) : t.to X = 𝟙 X :=
 t.hom_ext _ _
 
+/-- Any morphism from a terminal object is split mono. -/
+def is_terminal.split_mono_from {X Y : C} (t : is_terminal X) (f : X ⟶ Y) : split_mono f :=
+⟨t.from _, t.hom_ext _ _⟩
+
+/-- Any morphism to an initial object is split epi. -/
+def is_initial.split_epi_to {X Y : C} (t : is_initial X) (f : Y ⟶ X) : split_epi f :=
+⟨t.to _, t.hom_ext _ _⟩
+
 /-- Any morphism from a terminal object is mono. -/
 lemma is_terminal.mono_from {X Y : C} (t : is_terminal X) (f : X ⟶ Y) : mono f :=
-⟨λ Z g h eq, t.hom_ext _ _⟩
+by haveI := t.split_mono_from f; apply_instance
 
 /-- Any morphism to an initial object is epi. -/
 lemma is_initial.epi_to {X Y : C} (t : is_initial X) (f : Y ⟶ X) : epi f :=
-⟨λ Z g h eq, t.hom_ext _ _⟩
+by haveI := t.split_epi_to f; apply_instance
+
+/-- If `T` and `T'` are terminal, they are isomorphic. -/
+@[simps]
+def is_terminal.unique_up_to_iso {T T' : C} (hT : is_terminal T) (hT' : is_terminal T') : T ≅ T' :=
+{ hom := hT'.from _,
+  inv := hT.from _ }
+
+/-- If `I` and `I'` are initial, they are isomorphic. -/
+@[simps]
+def is_initial.unique_up_to_iso {I I' : C} (hI : is_initial I) (hI' : is_initial I') : I ≅ I' :=
+{ hom := hI.to _,
+  inv := hI'.to _ }
 
 variable (C)
 
@@ -117,8 +138,8 @@ This object is characterized by having a unique morphism to any object.
 -/
 abbreviation initial [has_initial C] : C := colimit (functor.empty C)
 
-notation `⊤_` C:20 := terminal C
-notation `⊥_` C:20 := initial C
+notation `⊤_ ` C:20 := terminal C
+notation `⊥_ ` C:20 := initial C
 
 section
 variables {C}
@@ -167,13 +188,13 @@ def terminal_is_terminal [has_terminal C] : is_terminal (⊤_ C) :=
 def initial_is_initial [has_initial C] : is_initial (⊥_ C) :=
 { desc := λ s, initial.to _ }
 
-/-- Any morphism from a terminal object is mono. -/
-instance terminal.mono_from {Y : C} [has_terminal C] (f : ⊤_ C ⟶ Y) : mono f :=
-is_terminal.mono_from terminal_is_terminal _
+/-- Any morphism from a terminal object is split mono. -/
+instance terminal.split_mono_from {Y : C} [has_terminal C] (f : ⊤_ C ⟶ Y) : split_mono f :=
+is_terminal.split_mono_from terminal_is_terminal _
 
-/-- Any morphism to an initial object is epi. -/
-instance initial.epi_to {Y : C} [has_initial C] (f : Y ⟶ ⊥_ C) : epi f :=
-is_initial.epi_to initial_is_initial _
+/-- Any morphism to an initial object is split epi. -/
+instance initial.split_epi_to {Y : C} [has_initial C] (f : Y ⟶ ⊥_ C) : split_epi f :=
+is_initial.split_epi_to initial_is_initial _
 
 /-- An initial object is terminal in the opposite category. -/
 def terminal_op_of_initial {X : C} (t : is_initial X) : is_terminal (opposite.op X) :=
@@ -195,87 +216,68 @@ def initial_unop_of_terminal {X : Cᵒᵖ} (t : is_terminal X) : is_initial X.un
 { desc := λ s, (t.from (opposite.op s.X)).unop,
   uniq' := λ s m w, quiver.hom.op_inj (t.hom_ext _ _) }
 
-/-- From a functor `F : J ⥤ C`, given an initial object of `J`, construct a cone for `J`.
-In `limit_of_diagram_initial` we show it is a limit cone. -/
-@[simps]
-def cone_of_diagram_initial {J : Type v} [small_category J]
-  {X : J} (tX : is_initial X) (F : J ⥤ C) : cone F :=
-{ X := F.obj X,
-  π :=
-  { app := λ j, F.map (tX.to j),
-    naturality' := λ j j' k,
-    begin
-      dsimp,
-      rw [← F.map_comp, category.id_comp, tX.hom_ext (tX.to j ≫ k) (tX.to j')],
-    end } }
+/-- A category is a `initial_mono_class` if the canonical morphism of an initial object is a
+monomorphism.  In practice, this is most useful when given an arbitrary morphism out of the chosen
+initial object, see `initial.mono_from`.
+Given a terminal object, this is equivalent to the assumption that the unique morphism from initial
+to terminal is a monomorphism, which is the second of Freyd's axioms for an AT category.
 
-/-- From a functor `F : J ⥤ C`, given an initial object of `J`, show the cone
-`cone_of_diagram_initial` is a limit. -/
-def limit_of_diagram_initial {J : Type v} [small_category J]
-  {X : J} (tX : is_initial X) (F : J ⥤ C) :
-is_limit (cone_of_diagram_initial tX F) :=
-{ lift := λ s, s.π.app X,
-  uniq' := λ s m w,
-    begin
-      rw [← w X, cone_of_diagram_initial_π_app, tX.hom_ext (tX.to X) (𝟙 _)],
-      dsimp, simp -- See note [dsimp, simp]
-    end}
+TODO: This is a condition satisfied by categories with zero objects and morphisms.
+-/
+class initial_mono_class (C : Type u) [category.{v} C] : Prop :=
+(is_initial_mono_from : ∀ {I} (X : C) (hI : is_initial I), mono (hI.to X))
 
--- This is reducible to allow usage of lemmas about `cone_point_unique_up_to_iso`.
-/-- For a functor `F : J ⥤ C`, if `J` has an initial object then the image of it is isomorphic
-to the limit of `F`. -/
-@[reducible]
-def limit_of_initial {J : Type v} [small_category J] (F : J ⥤ C)
-  [has_initial J] [has_limit F] :
-limit F ≅ F.obj (⊥_ J) :=
-is_limit.cone_point_unique_up_to_iso
-  (limit.is_limit _)
-  (limit_of_diagram_initial initial_is_initial F)
-
-/-- From a functor `F : J ⥤ C`, given a terminal object of `J`, construct a cocone for `J`.
-In `colimit_of_diagram_terminal` we show it is a colimit cocone. -/
-@[simps]
-def cocone_of_diagram_terminal {J : Type v} [small_category J]
-  {X : J} (tX : is_terminal X) (F : J ⥤ C) : cocone F :=
-{ X := F.obj X,
-  ι :=
-  { app := λ j, F.map (tX.from j),
-    naturality' := λ j j' k,
-    begin
-      dsimp,
-      rw [← F.map_comp, category.comp_id, tX.hom_ext (k ≫ tX.from j') (tX.from j)],
-    end } }
-
-/-- From a functor `F : J ⥤ C`, given a terminal object of `J`, show the cocone
-`cocone_of_diagram_terminal` is a colimit. -/
-def colimit_of_diagram_terminal {J : Type v} [small_category J]
-  {X : J} (tX : is_terminal X) (F : J ⥤ C) :
-is_colimit (cocone_of_diagram_terminal tX F) :=
-{ desc := λ s, s.ι.app X,
-  uniq' := λ s m w,
-    by { rw [← w X, cocone_of_diagram_terminal_ι_app, tX.hom_ext (tX.from X) (𝟙 _)], simp } }
-
--- This is reducible to allow usage of lemmas about `cocone_point_unique_up_to_iso`.
-/-- For a functor `F : J ⥤ C`, if `J` has a terminal object then the image of it is isomorphic
-to the colimit of `F`. -/
-@[reducible]
-def colimit_of_terminal {J : Type v} [small_category J] (F : J ⥤ C)
-  [has_terminal J] [has_colimit F] :
-colimit F ≅ F.obj (⊤_ J) :=
-is_colimit.cocone_point_unique_up_to_iso
-  (colimit.is_colimit _)
-  (colimit_of_diagram_terminal terminal_is_terminal F)
-
+lemma is_initial.mono_from [initial_mono_class C] {I} {X : C} (hI : is_initial I) (f : I ⟶ X) :
+  mono f :=
+begin
+  rw hI.hom_ext f (hI.to X),
+  apply initial_mono_class.is_initial_mono_from,
 end
 
+@[priority 100]
+instance initial.mono_from [has_initial C] [initial_mono_class C] (X : C) (f : ⊥_ C ⟶ X) :
+  mono f :=
+initial_is_initial.mono_from f
+
+/-- To show a category is a `initial_mono_class` it suffices to give an initial object such that
+every morphism out of it is a monomorphism. -/
+lemma initial_mono_class.of_is_initial {I : C} (hI : is_initial I) (h : ∀ X, mono (hI.to X)) :
+  initial_mono_class C :=
+{ is_initial_mono_from := λ I' X hI',
+  begin
+    rw hI'.hom_ext (hI'.to X) ((hI'.unique_up_to_iso hI).hom ≫ hI.to X),
+    apply mono_comp,
+  end }
+
+/-- To show a category is a `initial_mono_class` it suffices to show every morphism out of the
+initial object is a monomorphism. -/
+lemma initial_mono_class.of_initial [has_initial C] (h : ∀ X : C, mono (initial.to X)) :
+  initial_mono_class C :=
+initial_mono_class.of_is_initial initial_is_initial h
+
+/-- To show a category is a `initial_mono_class` it suffices to show the unique morphism from an
+initial object to a terminal object is a monomorphism. -/
+lemma initial_mono_class.of_is_terminal {I T : C} (hI : is_initial I) (hT : is_terminal T)
+  (f : mono (hI.to T)) :
+  initial_mono_class C :=
+initial_mono_class.of_is_initial hI (λ X, mono_of_mono_fac (hI.hom_ext (_ ≫ hT.from X) (hI.to T)))
+
+/-- To show a category is a `initial_mono_class` it suffices to show the unique morphism from the
+initial object to a terminal object is a monomorphism. -/
+lemma initial_mono_class.of_terminal [has_initial C] [has_terminal C]
+  (h : mono (initial.to (⊤_ C))) :
+  initial_mono_class C :=
+initial_mono_class.of_is_terminal initial_is_initial terminal_is_terminal h
+
 section comparison
-variables {C} {D : Type u₂} [category.{v} D] (G : C ⥤ D)
+variables {D : Type u₂} [category.{v} D] (G : C ⥤ D)
 
 /--
 The comparison morphism from the image of a terminal object to the terminal object in the target
 category.
+This is an isomorphism iff `G` preserves terminal objects, see
+`category_theory.limits.preserves_terminal.of_iso_comparison`.
 -/
--- TODO: Show this is an isomorphism if and only if `G` preserves terminal objects.
 def terminal_comparison [has_terminal C] [has_terminal D] :
   G.obj (⊤_ C) ⟶ ⊤_ D :=
 terminal.from _
@@ -291,7 +293,78 @@ initial.to _
 
 end comparison
 
-variables {C} {J : Type v} [small_category J]
+variables {J : Type v} [small_category J]
+
+/-- From a functor `F : J ⥤ C`, given an initial object of `J`, construct a cone for `J`.
+In `limit_of_diagram_initial` we show it is a limit cone. -/
+@[simps]
+def cone_of_diagram_initial
+  {X : J} (tX : is_initial X) (F : J ⥤ C) : cone F :=
+{ X := F.obj X,
+  π :=
+  { app := λ j, F.map (tX.to j),
+    naturality' := λ j j' k,
+    begin
+      dsimp,
+      rw [← F.map_comp, category.id_comp, tX.hom_ext (tX.to j ≫ k) (tX.to j')],
+    end } }
+
+/-- From a functor `F : J ⥤ C`, given an initial object of `J`, show the cone
+`cone_of_diagram_initial` is a limit. -/
+def limit_of_diagram_initial
+  {X : J} (tX : is_initial X) (F : J ⥤ C) :
+is_limit (cone_of_diagram_initial tX F) :=
+{ lift := λ s, s.π.app X,
+  uniq' := λ s m w,
+    begin
+      rw [← w X, cone_of_diagram_initial_π_app, tX.hom_ext (tX.to X) (𝟙 _)],
+      dsimp, simp -- See note [dsimp, simp]
+    end}
+
+-- This is reducible to allow usage of lemmas about `cone_point_unique_up_to_iso`.
+/-- For a functor `F : J ⥤ C`, if `J` has an initial object then the image of it is isomorphic
+to the limit of `F`. -/
+@[reducible]
+def limit_of_initial (F : J ⥤ C)
+  [has_initial J] [has_limit F] :
+limit F ≅ F.obj (⊥_ J) :=
+is_limit.cone_point_unique_up_to_iso
+  (limit.is_limit _)
+  (limit_of_diagram_initial initial_is_initial F)
+
+/-- From a functor `F : J ⥤ C`, given a terminal object of `J`, construct a cocone for `J`.
+In `colimit_of_diagram_terminal` we show it is a colimit cocone. -/
+@[simps]
+def cocone_of_diagram_terminal
+  {X : J} (tX : is_terminal X) (F : J ⥤ C) : cocone F :=
+{ X := F.obj X,
+  ι :=
+  { app := λ j, F.map (tX.from j),
+    naturality' := λ j j' k,
+    begin
+      dsimp,
+      rw [← F.map_comp, category.comp_id, tX.hom_ext (k ≫ tX.from j') (tX.from j)],
+    end } }
+
+/-- From a functor `F : J ⥤ C`, given a terminal object of `J`, show the cocone
+`cocone_of_diagram_terminal` is a colimit. -/
+def colimit_of_diagram_terminal
+  {X : J} (tX : is_terminal X) (F : J ⥤ C) :
+is_colimit (cocone_of_diagram_terminal tX F) :=
+{ desc := λ s, s.ι.app X,
+  uniq' := λ s m w,
+    by { rw [← w X, cocone_of_diagram_terminal_ι_app, tX.hom_ext (tX.from X) (𝟙 _)], simp } }
+
+-- This is reducible to allow usage of lemmas about `cocone_point_unique_up_to_iso`.
+/-- For a functor `F : J ⥤ C`, if `J` has a terminal object then the image of it is isomorphic
+to the colimit of `F`. -/
+@[reducible]
+def colimit_of_terminal (F : J ⥤ C)
+  [has_terminal J] [has_colimit F] :
+colimit F ≅ F.obj (⊤_ J) :=
+is_colimit.cocone_point_unique_up_to_iso
+  (colimit.is_colimit _)
+  (colimit_of_diagram_terminal terminal_is_terminal F)
 
 /--
 If `j` is initial in the index category, then the map `limit.π F j` is an isomorphism.
@@ -314,5 +387,7 @@ lemma is_iso_ι_of_is_terminal {j : J} (I : is_terminal j) (F : J ⥤ C) [has_co
 instance is_iso_ι_terminal [has_terminal J] (F : J ⥤ C) [has_colimit F] :
   is_iso (colimit.ι F (⊤_ J)) :=
 is_iso_ι_of_is_terminal (terminal_is_terminal) F
+
+end
 
 end category_theory.limits

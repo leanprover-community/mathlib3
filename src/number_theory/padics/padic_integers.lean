@@ -5,7 +5,6 @@ Authors: Robert Y. Lewis, Mario Carneiro, Johan Commelin
 -/
 import data.int.modeq
 import data.zmod.basic
-import linear_algebra.adic_completion
 import number_theory.padics.padic_numbers
 import ring_theory.discrete_valuation_ring
 import topology.metric_space.cau_seq_filter
@@ -49,7 +48,7 @@ Coercions into `ℤ_p` are set up to work with the `norm_cast` tactic.
 p-adic, p adic, padic, p-adic integer
 -/
 
-open nat padic metric local_ring
+open padic metric local_ring
 noncomputable theory
 open_locale classical
 
@@ -158,7 +157,7 @@ def inv : ℤ_[p] → ℤ_[p]
 
 instance : char_zero ℤ_[p] :=
 { cast_injective :=
-  λ m n h, cast_injective $
+  λ m n h, nat.cast_injective $
   show (m:ℚ_[p]) = n, by { rw subtype.ext_iff at h, norm_cast at h, exact h } }
 
 @[simp, norm_cast] lemma coe_int_eq (z1 z2 : ℤ) : (z1 : ℤ_[p]) = z2 ↔ z1 = z2 :=
@@ -315,7 +314,7 @@ begin
   obtain ⟨k, hk⟩ := exists_nat_gt ε⁻¹,
   use k,
   rw ← inv_lt_inv hε (_root_.fpow_pos_of_pos _ _),
-  { rw [fpow_neg, inv_inv', gpow_coe_nat],
+  { rw [fpow_neg, inv_inv₀, gpow_coe_nat],
     apply lt_of_lt_of_le hk,
     norm_cast,
     apply le_of_lt,
@@ -479,7 +478,7 @@ begin
   have aux : ∀ n : ℕ, 0 < (p ^ n : ℝ),
   { apply pow_pos, exact_mod_cast hp_prime.1.pos },
   rw [inv_le_inv (aux _) (aux _)],
-  have : p ^ n ≤ p ^ k ↔ n ≤ k := (pow_right_strict_mono hp_prime.1.two_le).le_iff_le,
+  have : p ^ n ≤ p ^ k ↔ n ≤ k := (strict_mono_pow hp_prime.1.one_lt).le_iff_le,
   rw [← this],
   norm_cast,
 end
@@ -514,13 +513,7 @@ end
 lemma norm_le_pow_iff_norm_lt_pow_add_one (x : ℤ_[p]) (n : ℤ) :
   ∥x∥ ≤ p ^ n ↔ ∥x∥ < p ^ (n + 1) :=
 begin
-  have aux : ∀ n : ℤ, 0 < (p ^ n : ℝ),
-  { apply nat.fpow_pos_of_pos, exact hp_prime.1.pos },
-  by_cases hx0 : x = 0, { simp [hx0, norm_zero, aux, le_of_lt (aux _)], },
-  rw norm_eq_pow_val hx0,
-  have h1p : 1 < (p : ℝ), { exact_mod_cast hp_prime.1.one_lt },
-  have H := fpow_strict_mono h1p,
-  rw [H.le_iff_le, H.lt_iff_lt, int.lt_add_one_iff],
+  rw norm_def, exact padic.norm_le_pow_iff_norm_lt_pow_add_one _ _,
 end
 
 lemma norm_lt_pow_iff_norm_le_pow_sub_one (x : ℤ_[p]) (n : ℤ) :
@@ -568,7 +561,7 @@ begin
 end
 
 lemma irreducible_p : irreducible (p : ℤ_[p]) :=
-irreducible_of_prime prime_p
+prime.irreducible prime_p
 
 instance : discrete_valuation_ring ℤ_[p] :=
 discrete_valuation_ring.of_has_unit_mul_pow_irreducible_factorization
@@ -578,6 +571,27 @@ discrete_valuation_ring.of_has_unit_mul_pow_irreducible_factorization
 lemma ideal_eq_span_pow_p {s : ideal ℤ_[p]} (hs : s ≠ ⊥) :
   ∃ n : ℕ, s = ideal.span {p ^ n} :=
 discrete_valuation_ring.ideal_eq_span_pow_irreducible hs irreducible_p
+
+open cau_seq
+
+instance : is_adic_complete (maximal_ideal ℤ_[p]) ℤ_[p] :=
+{ prec' := λ x hx,
+  begin
+    simp only [← ideal.one_eq_top, smul_eq_mul, mul_one, smodeq.sub_mem, maximal_ideal_eq_span_p,
+      ideal.span_singleton_pow, ← norm_le_pow_iff_mem_span_pow] at hx ⊢,
+    let x' : cau_seq ℤ_[p] norm := ⟨x, _⟩, swap,
+    { intros ε hε, obtain ⟨m, hm⟩ := exists_pow_neg_lt p hε,
+      refine ⟨m, λ n hn, lt_of_le_of_lt _ hm⟩, rw [← neg_sub, norm_neg], exact hx hn },
+    { refine ⟨x'.lim, λ n, _⟩,
+      have : (0:ℝ) < p ^ (-n : ℤ), { apply fpow_pos_of_pos, exact_mod_cast hp_prime.1.pos },
+      obtain ⟨i, hi⟩ := equiv_def₃ (equiv_lim x') this,
+      by_cases hin : i ≤ n,
+      { exact (hi i le_rfl n hin).le, },
+      { push_neg at hin, specialize hi i le_rfl i le_rfl, specialize hx hin.le,
+        have := nonarchimedean (x n - x i) (x i - x'.lim),
+        rw [sub_add_sub_cancel] at this,
+        refine this.trans (max_le_iff.mpr ⟨hx, hi.le⟩), } },
+  end }
 
 end dvr
 

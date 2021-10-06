@@ -45,7 +45,7 @@ variables
 {E : Type*} [add_comm_group E] [module 𝕜 E]
 
 open set normed_field
-open_locale topological_space
+open_locale topological_space pointwise
 
 /-- A set `A` absorbs another set `B` if `B` is contained in scaling
 `A` by elements of sufficiently large norms. -/
@@ -65,7 +65,7 @@ lemma balanced.absorbs_self (hA : balanced 𝕜 A) : absorbs 𝕜 A A :=
 begin
   use [1, zero_lt_one],
   intros a ha x hx,
-  rw mem_smul_set_iff_inv_smul_mem,
+  rw mem_smul_set_iff_inv_smul_mem₀,
   { apply hA a⁻¹,
     { rw norm_inv, exact inv_le_one ha },
     { rw mem_smul_set, use [x, hx] }},
@@ -130,7 +130,7 @@ begin
     rw [metric.mem_ball, dist_zero_right, norm_inv],
     calc ∥a∥⁻¹ ≤ r/2 : (inv_le (half_pos hr₁) ha₂).mp ha₁
     ...       < r : half_lt_self hr₁ },
-  rw [mem_smul_set_iff_inv_smul_mem (norm_pos_iff.mp ha₂)],
+  rw [mem_smul_set_iff_inv_smul_mem₀ (norm_pos_iff.mp ha₂)],
   exact hw₁ ha₃,
 end
 
@@ -145,7 +145,7 @@ begin
   { rw [←image_smul, image_union],
     apply union_subset_union,
     { rw [image_singleton, smul_zero] },
-    { calc a • interior A ⊆ interior (a • A) : (is_open_map_smul' h).image_interior_subset A
+    { calc a • interior A ⊆ interior (a • A) : (is_open_map_smul₀ h).image_interior_subset A
                       ... ⊆ interior A       : interior_mono (hA _ ha) } }
 end
 

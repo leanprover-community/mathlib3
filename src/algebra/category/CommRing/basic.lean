@@ -26,13 +26,23 @@ def SemiRing : Type (u+1) := bundled semiring
 
 namespace SemiRing
 
-instance bundled_hom : bundled_hom @ring_hom :=
-⟨@ring_hom.to_fun, @ring_hom.id, @ring_hom.comp, @ring_hom.coe_inj⟩
+/-- `ring_hom` doesn't actually assume associativity. This alias is needed to make the category
+theory machinery work. We use the same trick in `category_theory.Mon.assoc_monoid_hom`. -/
+abbreviation assoc_ring_hom (M N : Type*) [semiring M] [semiring N] := ring_hom M N
+
+instance bundled_hom : bundled_hom assoc_ring_hom :=
+⟨λ M N [semiring M] [semiring N], by exactI @ring_hom.to_fun M N _ _,
+ λ M [semiring M], by exactI @ring_hom.id M _,
+ λ M N P [semiring M] [semiring N] [semiring P], by exactI @ring_hom.comp M N P _ _ _,
+ λ M N [semiring M] [semiring N], by exactI @ring_hom.coe_inj M N _ _⟩
 
 attribute [derive [has_coe_to_sort, large_category, concrete_category]] SemiRing
 
 /-- Construct a bundled SemiRing from the underlying type and typeclass. -/
 def of (R : Type u) [semiring R] : SemiRing := bundled.of R
+
+/-- Typecheck a `ring_hom` as a morphism in `SemiRing`. -/
+def of_hom {R S : Type u} [semiring R] [semiring S] (f : R →+* S) : of R ⟶ of S := f
 
 instance : inhabited SemiRing := ⟨of punit⟩
 
@@ -65,6 +75,9 @@ attribute [derive [has_coe_to_sort, large_category, concrete_category]] Ring
 /-- Construct a bundled Ring from the underlying type and typeclass. -/
 def of (R : Type u) [ring R] : Ring := bundled.of R
 
+/-- Typecheck a `ring_hom` as a morphism in `Ring`. -/
+def of_hom {R S : Type u} [ring R] [ring S] (f : R →+* S) : of R ⟶ of S := f
+
 instance : inhabited Ring := ⟨of punit⟩
 
 instance (R : Ring) : ring R := R.str
@@ -91,6 +104,9 @@ attribute [derive [has_coe_to_sort, large_category, concrete_category]] CommSemi
 
 /-- Construct a bundled CommSemiRing from the underlying type and typeclass. -/
 def of (R : Type u) [comm_semiring R] : CommSemiRing := bundled.of R
+
+/-- Typecheck a `ring_hom` as a morphism in `CommSemiRing`. -/
+def of_hom {R S : Type u} [comm_semiring R] [comm_semiring S] (f : R →+* S) : of R ⟶ of S := f
 
 instance : inhabited CommSemiRing := ⟨of punit⟩
 
@@ -119,6 +135,9 @@ attribute [derive [has_coe_to_sort, large_category, concrete_category]] CommRing
 
 /-- Construct a bundled CommRing from the underlying type and typeclass. -/
 def of (R : Type u) [comm_ring R] : CommRing := bundled.of R
+
+/-- Typecheck a `ring_hom` as a morphism in `CommRing`. -/
+def of_hom {R S : Type u} [comm_ring R] [comm_ring S] (f : R →+* S) : of R ⟶ of S := f
 
 instance : inhabited CommRing := ⟨of punit⟩
 
@@ -214,4 +233,9 @@ instance CommRing.forget_reflects_isos : reflects_isomorphisms (forget CommRing.
     exact ⟨(is_iso.of_iso e.to_CommRing_iso).1⟩,
   end }
 
+-- It would be nice if we could have the following,
+-- but it requires making `reflects_isomorphisms_forget₂` an instance,
+-- which can cause typeclass loops:
+
+local attribute [priority 50,instance] reflects_isomorphisms_forget₂
 example : reflects_isomorphisms (forget₂ Ring AddCommGroup) := by apply_instance

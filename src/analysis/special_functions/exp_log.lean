@@ -3,10 +3,9 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
-import data.complex.exponential
 import analysis.calculus.inverse
-import measure_theory.borel_space
 import analysis.complex.real_deriv
+import data.complex.exponential
 
 /-!
 # Complex and real exponential, real logarithm
@@ -33,13 +32,91 @@ noncomputable theory
 open finset filter metric asymptotics set function
 open_locale classical topological_space
 
+
+section continuity
+
 namespace complex
 
-lemma measurable_re : measurable re := continuous_re.measurable
+variables {z y x : ℝ}
 
-lemma measurable_im : measurable im := continuous_im.measurable
+lemma exp_bound_sq (x z : ℂ) (hz : ∥z∥ ≤ 1) :
+  ∥exp (x + z) - exp x - z • exp x∥ ≤ ∥exp x∥ * ∥z∥ ^ 2 :=
+calc ∥exp (x + z) - exp x - z * exp x∥
+    = ∥exp x * (exp z - 1 - z)∥ : by { congr, rw [exp_add], ring }
+... = ∥exp x∥ * ∥exp z - 1 - z∥ : normed_field.norm_mul _ _
+... ≤ ∥exp x∥ * ∥z∥^2 : mul_le_mul_of_nonneg_left (abs_exp_sub_one_sub_id_le hz) (norm_nonneg _)
 
-lemma measurable_of_real : measurable (coe : ℝ → ℂ) := continuous_of_real.measurable
+lemma locally_lipschitz_exp {r : ℝ} (hr_nonneg : 0 ≤ r) (hr_le : r ≤ 1) (x y : ℂ)
+  (hyx : ∥y - x∥ < r) :
+  ∥exp y - exp x∥ ≤ (1 + r) * ∥exp x∥ * ∥y - x∥ :=
+begin
+  have hy_eq : y = x + (y - x), by abel,
+  have hyx_sq_le : ∥y - x∥ ^ 2 ≤ r * ∥y - x∥,
+  { rw pow_two,
+    exact mul_le_mul hyx.le le_rfl (norm_nonneg _) hr_nonneg, },
+  have h_sq : ∀ z, ∥z∥ ≤ 1 → ∥exp (x + z) - exp x∥ ≤ ∥z∥ * ∥exp x∥ + ∥exp x∥ * ∥z∥ ^ 2,
+  { intros z hz,
+    have : ∥exp (x + z) - exp x - z • exp x∥ ≤ ∥exp x∥ * ∥z∥ ^ 2, from exp_bound_sq x z hz,
+    rw [← sub_le_iff_le_add',  ← norm_smul z],
+    exact (norm_sub_norm_le _ _).trans this, },
+  calc ∥exp y - exp x∥ = ∥exp (x + (y - x)) - exp x∥ : by nth_rewrite 0 hy_eq
+  ... ≤ ∥y - x∥ * ∥exp x∥ + ∥exp x∥ * ∥y - x∥ ^ 2 : h_sq (y - x) (hyx.le.trans hr_le)
+  ... ≤ ∥y - x∥ * ∥exp x∥ + ∥exp x∥ * (r * ∥y - x∥) :
+    add_le_add_left (mul_le_mul le_rfl hyx_sq_le (sq_nonneg _) (norm_nonneg _)) _
+  ... = (1 + r) * ∥exp x∥ * ∥y - x∥ : by ring,
+end
+
+@[continuity] lemma continuous_exp : continuous exp :=
+continuous_iff_continuous_at.mpr $
+  λ x, continuous_at_of_locally_lipschitz zero_lt_one (2 * ∥exp x∥)
+    (locally_lipschitz_exp zero_le_one le_rfl x)
+
+lemma continuous_on_exp {s : set ℂ} : continuous_on exp s :=
+continuous_exp.continuous_on
+
+end complex
+
+section complex_continuous_exp_comp
+
+variable {α : Type*}
+
+open complex
+
+lemma filter.tendsto.cexp {l : filter α} {f : α → ℂ} {z : ℂ} (hf : tendsto f l (𝓝 z)) :
+  tendsto (λ x, exp (f x)) l (𝓝 (exp z)) :=
+(continuous_exp.tendsto _).comp hf
+
+variables [topological_space α] {f : α → ℂ} {s : set α} {x : α}
+
+lemma continuous_within_at.cexp (h : continuous_within_at f s x) :
+  continuous_within_at (λ y, exp (f y)) s x :=
+h.cexp
+
+lemma continuous_at.cexp (h : continuous_at f x) : continuous_at (λ y, exp (f y)) x :=
+h.cexp
+
+lemma continuous_on.cexp (h : continuous_on f s) : continuous_on (λ y, exp (f y)) s :=
+λ x hx, (h x hx).cexp
+
+lemma continuous.cexp (h : continuous f) : continuous (λ y, exp (f y)) :=
+continuous_iff_continuous_at.2 $ λ x, h.continuous_at.cexp
+
+end complex_continuous_exp_comp
+
+namespace real
+
+@[continuity] lemma continuous_exp : continuous exp :=
+complex.continuous_re.comp (complex.continuous_exp.comp complex.continuous_of_real)
+
+lemma continuous_on_exp {s : set ℝ} : continuous_on exp s :=
+continuous_exp.continuous_on
+
+end real
+
+end continuity
+
+
+namespace complex
 
 /-- The complex exponential is everywhere differentiable, with the derivative `exp x`. -/
 lemma has_deriv_at_exp (x : ℂ) : has_deriv_at exp (exp x) x :=
@@ -49,12 +126,7 @@ begin
   refine (is_O.of_bound (∥exp x∥) _).trans_is_o (is_o_pow_id this),
   filter_upwards [metric.ball_mem_nhds (0 : ℂ) zero_lt_one],
   simp only [metric.mem_ball, dist_zero_right, normed_field.norm_pow],
-  intros z hz,
-  calc ∥exp (x + z) - exp x - z * exp x∥
-    = ∥exp x * (exp z - 1 - z)∥ : by { congr, rw [exp_add], ring }
-    ... = ∥exp x∥ * ∥exp z - 1 - z∥ : normed_field.norm_mul _ _
-    ... ≤ ∥exp x∥ * ∥z∥^2 :
-      mul_le_mul_of_nonneg_left (abs_exp_sub_one_sub_id_le (le_of_lt hz)) (norm_nonneg _)
+  exact λ z hz, exp_bound_sq x z hz.le,
 end
 
 lemma differentiable_exp : differentiable ℂ exp :=
@@ -70,12 +142,6 @@ funext $ λ x, (has_deriv_at_exp x).deriv
 | 0 := rfl
 | (n+1) := by rw [iterate_succ_apply, deriv_exp, iter_deriv_exp n]
 
-@[continuity] lemma continuous_exp : continuous exp :=
-differentiable_exp.continuous
-
-lemma continuous_on_exp {s : set ℂ} : continuous_on exp s :=
-continuous_exp.continuous_on
-
 lemma times_cont_diff_exp : ∀ {n}, times_cont_diff ℂ n exp :=
 begin
   refine times_cont_diff_all_iff_nat.2 (λ n, _),
@@ -89,10 +155,12 @@ end
 lemma has_strict_deriv_at_exp (x : ℂ) : has_strict_deriv_at exp (exp x) x :=
 times_cont_diff_exp.times_cont_diff_at.has_strict_deriv_at' (has_deriv_at_exp x) le_rfl
 
+lemma has_strict_fderiv_at_exp_real (x : ℂ) :
+  has_strict_fderiv_at exp (exp x • (1 : ℂ →L[ℝ] ℂ)) x :=
+(has_strict_deriv_at_exp x).complex_to_real_fderiv
+
 lemma is_open_map_exp : is_open_map exp :=
 open_map_of_strict_deriv has_strict_deriv_at_exp exp_ne_zero
-
-lemma measurable_exp : measurable exp := continuous_exp.measurable
 
 end complex
 
@@ -123,13 +191,28 @@ hc.has_deriv_at.cexp.deriv
 end
 
 section
+variables {f : ℝ → ℂ} {f' : ℂ} {x : ℝ} {s : set ℝ}
+
+open complex
+
+lemma has_strict_deriv_at.cexp_real (h : has_strict_deriv_at f f' x) :
+  has_strict_deriv_at (λ x, exp (f x)) (exp (f x) * f') x :=
+(has_strict_fderiv_at_exp_real (f x)).comp_has_strict_deriv_at x h
+
+lemma has_deriv_at.cexp_real (h : has_deriv_at f f' x) :
+  has_deriv_at (λ x, exp (f x)) (exp (f x) * f') x :=
+(has_strict_fderiv_at_exp_real (f x)).has_fderiv_at.comp_has_deriv_at x h
+
+lemma has_deriv_within_at.cexp_real (h : has_deriv_within_at f f' s x) :
+  has_deriv_within_at (λ x, exp (f x)) (exp (f x) * f') s x :=
+(has_strict_fderiv_at_exp_real (f x)).has_fderiv_at.comp_has_deriv_within_at x h
+
+end
+
+section
 
 variables {E : Type*} [normed_group E] [normed_space ℂ E] {f : E → ℂ} {f' : E →L[ℂ] ℂ}
   {x : E} {s : set E}
-
-lemma measurable.cexp {α : Type*} [measurable_space α] {f : α → ℂ} (hf : measurable f) :
-  measurable (λ x, complex.exp (f x)) :=
-complex.measurable_exp.comp hf
 
 lemma has_strict_fderiv_at.cexp (hf : has_strict_fderiv_at f f' x) :
   has_strict_fderiv_at (λ x, complex.exp (f x)) (complex.exp (f x) • f') x :=
@@ -203,14 +286,6 @@ funext $ λ x, (has_deriv_at_exp x).deriv
 | 0 := rfl
 | (n+1) := by rw [iterate_succ_apply, deriv_exp, iter_deriv_exp n]
 
-@[continuity] lemma continuous_exp : continuous exp :=
-differentiable_exp.continuous
-
-lemma continuous_on_exp {s : set ℝ} : continuous_on exp s :=
-continuous_exp.continuous_on
-
-lemma measurable_exp : measurable exp := continuous_exp.measurable
-
 end real
 
 
@@ -249,10 +324,6 @@ function, for standalone use and use with `simp`. -/
 
 variables {E : Type*} [normed_group E] [normed_space ℝ E] {f : E → ℝ} {f' : E →L[ℝ] ℝ}
   {x : E} {s : set E}
-
-lemma measurable.exp {α : Type*} [measurable_space α] {f : α → ℝ} (hf : measurable f) :
-  measurable (λ x, real.exp (f x)) :=
-real.measurable_exp.comp hf
 
 lemma times_cont_diff.exp {n} (hf : times_cont_diff ℝ n f) :
   times_cont_diff ℝ n (λ x, real.exp (f x)) :=
@@ -382,14 +453,14 @@ to `log |x|` for `x < 0`, and to `0` for `0`. We use this unconventional extensi
 `(-∞, 0]` as it gives the formula `log (x * y) = log x + log y` for all nonzero `x` and `y`, and
 the derivative of `log` is `1/x` away from `0`. -/
 @[pp_nodot] noncomputable def log (x : ℝ) : ℝ :=
-if hx : x = 0 then 0 else exp_order_iso.symm ⟨abs x, abs_pos.2 hx⟩
+if hx : x = 0 then 0 else exp_order_iso.symm ⟨|x|, abs_pos.2 hx⟩
 
-lemma log_of_ne_zero (hx : x ≠ 0) : log x = exp_order_iso.symm ⟨abs x, abs_pos.2 hx⟩ := dif_neg hx
+lemma log_of_ne_zero (hx : x ≠ 0) : log x = exp_order_iso.symm ⟨|x|, abs_pos.2 hx⟩ := dif_neg hx
 
 lemma log_of_pos (hx : 0 < x) : log x = exp_order_iso.symm ⟨x, hx⟩ :=
 by { rw [log_of_ne_zero hx.ne'], congr, exact abs_of_pos hx }
 
-lemma exp_log_eq_abs (hx : x ≠ 0) : exp (log x) = abs x :=
+lemma exp_log_eq_abs (hx : x ≠ 0) : exp (log x) = |x| :=
 by rw [log_of_ne_zero hx, ← coe_exp_order_iso_apply, order_iso.apply_symm_apply, subtype.coe_mk]
 
 lemma exp_log (hx : 0 < x) : exp (log x) = x :=
@@ -415,7 +486,7 @@ log_surjective.range_eq
 @[simp] lemma log_one : log 1 = 0 :=
 exp_injective $ by rw [exp_log zero_lt_one, exp_zero]
 
-@[simp] lemma log_abs (x : ℝ) : log (abs x) = log x :=
+@[simp] lemma log_abs (x : ℝ) : log (|x|) = log x :=
 begin
   by_cases h : x = 0,
   { simp [h] },
@@ -481,10 +552,10 @@ end
 lemma log_nonpos (hx : 0 ≤ x) (h'x : x ≤ 1) : log x ≤ 0 :=
 (log_nonpos_iff' hx).2 h'x
 
-lemma strict_mono_incr_on_log : strict_mono_incr_on log (set.Ioi 0) :=
+lemma strict_mono_on_log : strict_mono_on log (set.Ioi 0) :=
 λ x hx y hy hxy, log_lt_log hx hxy
 
-lemma strict_mono_decr_on_log : strict_mono_decr_on log (set.Iio 0) :=
+lemma strict_anti_on_log : strict_anti_on log (set.Iio 0) :=
 begin
   rintros x (hx : x < 0) y (hy : y < 0) hxy,
   rw [← log_abs y, ← log_abs x],
@@ -493,7 +564,7 @@ begin
 end
 
 lemma log_inj_on_pos : set.inj_on log (set.Ioi 0) :=
-strict_mono_incr_on_log.inj_on
+strict_mono_on_log.inj_on
 
 lemma eq_one_of_pos_of_log_eq_zero {x : ℝ} (h₁ : 0 < x) (h₂ : log x = 0) : x = 1 :=
 log_inj_on_pos (set.mem_Ioi.2 h₁) (set.mem_Ioi.2 zero_lt_one) (h₂.trans real.log_one.symm)
@@ -571,10 +642,6 @@ else (has_deriv_at_log hx).deriv
 
 @[simp] lemma deriv_log' : deriv log = has_inv.inv := funext deriv_log
 
-lemma measurable_log : measurable log :=
-measurable_of_measurable_on_compl_singleton 0 $ continuous.measurable $
-  continuous_on_iff_continuous_restrict.1 continuous_on_log
-
 lemma times_cont_diff_on_log {n : with_top ℕ} : times_cont_diff_on ℝ n log {0}ᶜ :=
 begin
   suffices : times_cont_diff_on ℝ ⊤ log {0}ᶜ, from this.of_le le_top,
@@ -622,10 +689,6 @@ end continuity
 section deriv
 
 variables {f : ℝ → ℝ} {x f' : ℝ} {s : set ℝ}
-
-lemma measurable.log {α : Type*} [measurable_space α] {f : α → ℝ} (hf : measurable f) :
-  measurable (λ x, log (f x)) :=
-measurable_log.comp hf
 
 lemma has_deriv_within_at.log (hf : has_deriv_within_at f f' s x) (hx : f x ≠ 0) :
   has_deriv_within_at (λ y, log (f y)) (f' / (f x)) s x :=
@@ -736,8 +799,8 @@ begin
   refine ⟨N, trivial, λ x hx, _⟩, rw mem_Ioi at hx,
   have hx₀ : 0 < x, from N.cast_nonneg.trans_lt hx,
   rw [mem_Ici, le_div_iff (pow_pos hx₀ _), ← le_div_iff' hC₀],
-  calc x ^ n ≤ (nat_ceil x) ^ n : pow_le_pow_of_le_left hx₀.le (le_nat_ceil _) _
-  ... ≤ exp (nat_ceil x) / (exp 1 * C) : (hN _ (lt_nat_ceil.2 hx).le).le
+  calc x ^ n ≤ ⌈x⌉₊ ^ n : pow_le_pow_of_le_left hx₀.le (le_nat_ceil _) _
+  ... ≤ exp ⌈x⌉₊ / (exp 1 * C) : (hN _ (lt_nat_ceil.2 hx).le).le
   ... ≤ exp (x + 1) / (exp 1 * C) : div_le_div_of_le (mul_pos (exp_pos _) hC₀).le
     (exp_le_exp.2 $ (nat_ceil_lt_add_one hx₀.le).le)
   ... = exp x / C : by rw [add_comm, exp_add, mul_div_mul_left _ _ (exp_pos _).ne']
@@ -780,14 +843,28 @@ begin
     { exact neg_zero.symm } },
 end
 
+/-- The function `x * log (1 + t / x)` tends to `t` at `+∞`. -/
+lemma tendsto_mul_log_one_plus_div_at_top (t : ℝ) :
+  tendsto (λ x, x * log (1 + t / x)) at_top (𝓝 t) :=
+begin
+  have h₁ : tendsto (λ h, h⁻¹ * log (1 + t * h)) (𝓝[{0}ᶜ] 0) (𝓝 t),
+  { simpa [has_deriv_at_iff_tendsto_slope] using
+      ((has_deriv_at_const _ 1).add ((has_deriv_at_id (0 : ℝ)).const_mul t)).log (by simp) },
+  have h₂ : tendsto (λ x : ℝ, x⁻¹) at_top (𝓝[{0}ᶜ] 0) :=
+    tendsto_inv_at_top_zero'.mono_right (nhds_within_mono _ (λ x hx, (set.mem_Ioi.mp hx).ne')),
+  convert h₁.comp h₂,
+  ext,
+  field_simp [mul_comm],
+end
+
 open_locale big_operators
 
 /-- A crude lemma estimating the difference between `log (1-x)` and its Taylor series at `0`,
 where the main point of the bound is that it tends to `0`. The goal is to deduce the series
 expansion of the logarithm, in `has_sum_pow_div_log_of_abs_lt_1`.
 -/
-lemma abs_log_sub_add_sum_range_le {x : ℝ} (h : abs x < 1) (n : ℕ) :
-  abs ((∑ i in range n, x^(i+1)/(i+1)) + log (1-x)) ≤ (abs x)^(n+1) / (1 - abs x) :=
+lemma abs_log_sub_add_sum_range_le {x : ℝ} (h : |x| < 1) (n : ℕ) :
+  |((∑ i in range n, x^(i+1)/(i+1)) + log (1-x))| ≤ (|x|)^(n+1) / (1 - |x|) :=
 begin
   /- For the proof, we show that the derivative of the function to be estimated is small,
   and then apply the mean value inequality. -/
@@ -803,21 +880,21 @@ begin
                 sub_ne_zero_of_ne (ne_of_gt hy.2), sub_ne_zero_of_ne (ne_of_lt hy.2)],
     ring },
   -- second step: show that the derivative of `F` is small
-  have B : ∀ y ∈ Icc (-abs x) (abs x), abs (deriv F y) ≤ (abs x)^n / (1 - abs x),
+  have B : ∀ y ∈ Icc (-|x|) (|x|), |deriv F y| ≤ |x|^n / (1 - |x|),
   { assume y hy,
     have : y ∈ Ioo (-(1 : ℝ)) 1 := ⟨lt_of_lt_of_le (neg_lt_neg h) hy.1, lt_of_le_of_lt hy.2 h⟩,
-    calc abs (deriv F y) = abs (-(y^n) / (1 - y)) : by rw [A y this]
-    ... ≤ (abs x)^n / (1 - abs x) :
+    calc |deriv F y| = | -(y^n) / (1 - y)| : by rw [A y this]
+    ... ≤ |x|^n / (1 - |x|) :
       begin
-        have : abs y ≤ abs x := abs_le.2 hy,
-        have : 0 < 1 - abs x, by linarith,
-        have : 1 - abs x ≤ abs (1 - y) := le_trans (by linarith [hy.2]) (le_abs_self _),
+        have : |y| ≤ |x| := abs_le.2 hy,
+        have : 0 < 1 - |x|, by linarith,
+        have : 1 - |x| ≤ |1 - y| := le_trans (by linarith [hy.2]) (le_abs_self _),
         simp only [← pow_abs, abs_div, abs_neg],
         apply_rules [div_le_div, pow_nonneg, abs_nonneg, pow_le_pow_of_le_left]
       end },
   -- third step: apply the mean value inequality
-  have C : ∥F x - F 0∥ ≤ ((abs x)^n / (1 - abs x)) * ∥x - 0∥,
-  { have : ∀ y ∈ Icc (- abs x) (abs x), differentiable_at ℝ F y,
+  have C : ∥F x - F 0∥ ≤ (|x|^n / (1 - |x|)) * ∥x - 0∥,
+  { have : ∀ y ∈ Icc (- |x|) (|x|), differentiable_at ℝ F y,
     { assume y hy,
       have : 1 - y ≠ 0 := sub_ne_zero_of_ne (ne_of_gt (lt_of_le_of_lt hy.2 h)),
       simp [F, this] },
@@ -829,7 +906,7 @@ begin
 end
 
 /-- Power series expansion of the logarithm around `1`. -/
-theorem has_sum_pow_div_log_of_abs_lt_1 {x : ℝ} (h : abs x < 1) :
+theorem has_sum_pow_div_log_of_abs_lt_1 {x : ℝ} (h : |x| < 1) :
   has_sum (λ (n : ℕ), x ^ (n + 1) / (n + 1)) (-log (1 - x)) :=
 begin
   rw summable.has_sum_iff_tendsto_nat,
@@ -837,26 +914,26 @@ begin
   { rw [tendsto_iff_norm_tendsto_zero],
     simp only [norm_eq_abs, sub_neg_eq_add],
     refine squeeze_zero (λ n, abs_nonneg _) (abs_log_sub_add_sum_range_le h) _,
-    suffices : tendsto (λ (t : ℕ), abs x ^ (t + 1) / (1 - abs x)) at_top
-      (𝓝 (abs x * 0 / (1 - abs x))), by simpa,
+    suffices : tendsto (λ (t : ℕ), |x| ^ (t + 1) / (1 - |x|)) at_top
+      (𝓝 (|x| * 0 / (1 - |x|))), by simpa,
     simp only [pow_succ],
     refine (tendsto_const_nhds.mul _).div_const,
     exact tendsto_pow_at_top_nhds_0_of_lt_1 (abs_nonneg _) h },
   show summable (λ (n : ℕ), x ^ (n + 1) / (n + 1)),
   { refine summable_of_norm_bounded _ (summable_geometric_of_lt_1 (abs_nonneg _) h) (λ i, _),
     calc ∥x ^ (i + 1) / (i + 1)∥
-    = abs x ^ (i+1) / (i+1) :
+    = |x| ^ (i+1) / (i+1) :
       begin
         have : (0 : ℝ) ≤ i + 1 := le_of_lt (nat.cast_add_one_pos i),
         rw [norm_eq_abs, abs_div, ← pow_abs, abs_of_nonneg this],
       end
-    ... ≤ abs x ^ (i+1) / (0 + 1) :
+    ... ≤ |x| ^ (i+1) / (0 + 1) :
       begin
         apply_rules [div_le_div_of_le_left, pow_nonneg, abs_nonneg, add_le_add_right,
           i.cast_nonneg],
         norm_num,
       end
-    ... ≤ abs x ^ i :
+    ... ≤ |x| ^ i :
       by simpa [pow_succ'] using mul_le_of_le_one_right (pow_nonneg (abs_nonneg x) i) (le_of_lt h) }
 end
 

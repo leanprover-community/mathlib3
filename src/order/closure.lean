@@ -3,8 +3,7 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Yaël Dillies
 -/
-import data.set_like
-import order.basic
+import data.set_like.basic
 import order.preorder_hom
 import order.galois_connection
 import tactic.monotonicity
@@ -74,8 +73,7 @@ variable [partial_order α]
 /-- The identity function as a closure operator. -/
 @[simps]
 def id : closure_operator α :=
-{ to_fun := λ x, x,
-  monotone' := λ _ _ h, h,
+{ to_preorder_hom := preorder_hom.id,
   le_closure' := λ _, le_rfl,
   idempotent' := λ _, rfl }
 

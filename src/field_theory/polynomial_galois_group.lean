@@ -97,6 +97,14 @@ instance [h : fact (p.splits (algebra_map F E))] : is_scalar_tower F p.splitting
 is_scalar_tower.of_algebra_map_eq
   (λ x, ((is_splitting_field.lift p.splitting_field p h.1).commutes x).symm)
 
+-- The `algebra p.splitting_field E` instance above behaves badly when
+-- `E := p.splitting_field`, since it may result in a unification problem
+-- `is_splitting_field.lift.to_ring_hom.to_algebra =?= algebra.id`,
+-- which takes an extremely long time to resolve, causing timeouts.
+-- Since we don't really care about this definition, marking it as irreducible
+-- causes that unification to error out early.
+attribute [irreducible] gal.algebra
+
 /-- Restrict from a superfield automorphism into a member of `gal p`. -/
 def restrict [fact (p.splits (algebra_map F E))] : (E ≃ₐ[F] E) →* p.gal :=
 alg_equiv.restrict_normal_hom p.splitting_field
@@ -222,7 +230,7 @@ monoid_hom.prod (restrict_dvd (dvd_mul_right p q)) (restrict_dvd (dvd_mul_left q
 lemma restrict_prod_injective : function.injective (restrict_prod p q) :=
 begin
   by_cases hpq : (p * q) = 0,
-  { haveI : unique (p * q).gal := by { rw hpq, apply_instance },
+  { haveI : unique (p * q).gal, { rw hpq, apply_instance },
     exact λ f g h, eq.trans (unique.eq_default f) (unique.eq_default g).symm },
   intros f g hfg,
   dsimp only [restrict_prod, restrict_dvd] at hfg,
@@ -279,7 +287,7 @@ begin
     exact splits_of_splits_of_dvd _
       (minpoly.ne_zero qx_int)
       (normal.splits h_normal _)
-      (dvd_symm_of_irreducible (minpoly.irreducible qx_int) hr (minpoly.dvd F _ hx)) },
+      ((minpoly.irreducible qx_int).dvd_symm hr (minpoly.dvd F _ hx)) },
   have key2 : ∀ {p₁ p₂ : polynomial F}, P p₁ → P p₂ → P (p₁ * p₂),
   { intros p₁ p₂ hp₁ hp₂,
     by_cases h₁ : p₁.comp q = 0,
@@ -332,7 +340,7 @@ begin
   { rw [←finite_dimensional.finrank_mul_finrank F F⟮α⟯ p.splitting_field,
         intermediate_field.adjoin.finrank hα, this] },
   suffices : minpoly F α ∣ p,
-  { have key := dvd_symm_of_irreducible (minpoly.irreducible hα) p_irr this,
+  { have key := (minpoly.irreducible hα).dvd_symm p_irr this,
     apply le_antisymm,
     { exact nat_degree_le_of_dvd this p_irr.ne_zero },
     { exact nat_degree_le_of_dvd key (minpoly.ne_zero hα) } },
@@ -351,7 +359,7 @@ local attribute [instance] splits_ℚ_ℂ
     the number of roots not fixed by complex conjugation (i.e. with some imaginary component). -/
 lemma card_complex_roots_eq_card_real_add_card_not_gal_inv (p : polynomial ℚ) :
   (p.root_set ℂ).to_finset.card = (p.root_set ℝ).to_finset.card +
-  (gal_action_hom p ℂ (restrict p ℂ (complex.conj_alg_equiv.restrict_scalars ℚ))).support.card :=
+  (gal_action_hom p ℂ (restrict p ℂ (complex.conj_ae.restrict_scalars ℚ))).support.card :=
 begin
   by_cases hp : p = 0,
   { simp_rw [hp, root_set_zero, set.to_finset_eq_empty_iff.mpr rfl, finset.card_empty, zero_add],
@@ -377,7 +385,7 @@ begin
       have key : is_scalar_tower.to_alg_hom ℚ ℝ ℂ z.re = z := by { ext, refl, rw hz2, refl },
       exact ⟨z.re, inj (by rwa [←aeval_alg_hom_apply, key, alg_hom.map_zero]), key⟩ } },
   have hc0 : ∀ w : p.root_set ℂ, gal_action_hom p ℂ
-    (restrict p ℂ (complex.conj_alg_equiv.restrict_scalars ℚ)) w = w ↔ w.val.im = 0,
+    (restrict p ℂ (complex.conj_ae.restrict_scalars ℚ)) w = w ↔ w.val.im = 0,
   { intro w,
     rw [subtype.ext_iff, gal_action_hom_restrict],
     exact complex.eq_conj_iff_im },
@@ -413,13 +421,14 @@ begin
     { exact nodup_roots ((separable_map (algebra_map ℚ ℂ)).mpr p_irr.separable) } },
   have h2 : fintype.card p.gal = fintype.card (gal_action_hom p ℂ).range :=
   fintype.card_congr (monoid_hom.of_injective (gal_action_hom_injective p ℂ)).to_equiv,
-  let conj := restrict p ℂ (complex.conj_alg_equiv.restrict_scalars ℚ),
+  let conj := restrict p ℂ (complex.conj_ae.restrict_scalars ℚ),
   refine ⟨gal_action_hom_injective p ℂ, λ x, (congr_arg (has_mem.mem x)
     (show (gal_action_hom p ℂ).range = ⊤, from _)).mpr (subgroup.mem_top x)⟩,
   apply equiv.perm.subgroup_eq_top_of_swap_mem,
   { rwa h1 },
-  { rw [h1, ←h2],
-    exact prime_degree_dvd_card p_irr p_deg },
+  { rw h1,
+    convert prime_degree_dvd_card p_irr p_deg using 1,
+    convert h2.symm },
   { exact ⟨conj, rfl⟩ },
   { rw ← equiv.perm.card_support_eq_two,
     apply nat.add_left_cancel,
@@ -436,10 +445,10 @@ lemma gal_action_hom_bijective_of_prime_degree'
 begin
   apply gal_action_hom_bijective_of_prime_degree p_irr p_deg,
   let n := (gal_action_hom p ℂ (restrict p ℂ
-    (complex.conj_alg_equiv.restrict_scalars ℚ))).support.card,
+    (complex.conj_ae.restrict_scalars ℚ))).support.card,
   have hn : 2 ∣ n :=
   equiv.perm.two_dvd_card_support (by rw [←monoid_hom.map_pow, ←monoid_hom.map_pow,
-    show alg_equiv.restrict_scalars ℚ complex.conj_alg_equiv ^ 2 = 1,
+    show alg_equiv.restrict_scalars ℚ complex.conj_ae ^ 2 = 1,
     from alg_equiv.ext complex.conj_conj, monoid_hom.map_one, monoid_hom.map_one]),
   have key := card_complex_roots_eq_card_real_add_card_not_gal_inv p,
   simp_rw [set.to_finset_card] at key,

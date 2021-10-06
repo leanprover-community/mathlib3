@@ -65,6 +65,14 @@ def hom_mk {f f' : structured_arrow S T} (g : f.right ⟶ f'.right) (w : f.hom �
   w' := by { dsimp, simpa using w.symm, }, }
 
 /--
+Given a structured arrow `X ⟶ F(U)`, and an arrow `U ⟶ Y`, we can construct a morphism of
+structured arrow given by `(X ⟶ F(U)) ⟶ (X ⟶ F(U) ⟶ F(Y))`.
+-/
+def hom_mk' {F : C ⥤ D} {X : D} {Y : C}
+(U : structured_arrow X F) (f : U.right ⟶ Y) :
+U ⟶ mk (U.hom ≫ F.map f) := { right := f }
+
+/--
 To construct an isomorphism of structured arrows,
 we need an isomorphism of the objects underlying the target,
 and to check that the triangle commutes.
@@ -207,5 +215,112 @@ def mk_id_terminal [full S] [faithful S] : is_terminal (mk (𝟙 (S.obj Y))) :=
   end }
 
 end costructured_arrow
+
+open opposite
+
+namespace structured_arrow
+
+/--
+For a functor `F : C ⥤ D` and an object `d : D`, we obtain a contravariant functor from the
+category of structured arrows `d ⟶ F.obj c` to the category of costructured arrows
+`F.op.obj c ⟶ (op d)`.
+-/
+@[simps]
+def to_costructured_arrow (F : C ⥤ D) (d : D) :
+  (structured_arrow d F)ᵒᵖ ⥤ costructured_arrow F.op (op d) :=
+{ obj := λ X, @costructured_arrow.mk _ _ _ _ _ (op X.unop.right) F.op X.unop.hom.op,
+  map := λ X Y f, costructured_arrow.hom_mk (f.unop.right.op)
+  begin
+    dsimp,
+    rw [← op_comp, ← f.unop.w, functor.const.obj_map],
+    erw category.id_comp,
+  end }
+
+/--
+For a functor `F : C ⥤ D` and an object `d : D`, we obtain a contravariant functor from the
+category of structured arrows `op d ⟶ F.op.obj c` to the category of costructured arrows
+`F.obj c ⟶ d`.
+-/
+@[simps]
+def to_costructured_arrow' (F : C ⥤ D) (d : D) :
+  (structured_arrow (op d) F.op)ᵒᵖ ⥤ costructured_arrow F d :=
+{ obj := λ X, @costructured_arrow.mk _ _ _ _ _ (unop X.unop.right) F X.unop.hom.unop,
+  map := λ X Y f, costructured_arrow.hom_mk f.unop.right.unop
+  begin
+    dsimp,
+    rw [← quiver.hom.unop_op (F.map (quiver.hom.unop f.unop.right)), ← unop_comp, ← F.op_map,
+      ← f.unop.w, functor.const.obj_map],
+    erw category.id_comp,
+  end }
+
+end structured_arrow
+
+namespace costructured_arrow
+
+/--
+For a functor `F : C ⥤ D` and an object `d : D`, we obtain a contravariant functor from the
+category of costructured arrows `F.obj c ⟶ d` to the category of structured arrows
+`op d ⟶ F.op.obj c`.
+-/
+@[simps]
+def to_structured_arrow (F : C ⥤ D) (d : D) :
+  (costructured_arrow F d)ᵒᵖ ⥤ structured_arrow (op d) F.op :=
+{ obj := λ X, @structured_arrow.mk _ _ _ _ _ (op X.unop.left) F.op X.unop.hom.op,
+  map := λ X Y f, structured_arrow.hom_mk f.unop.left.op
+  begin
+    dsimp,
+    rw [← op_comp, f.unop.w, functor.const.obj_map],
+    erw category.comp_id,
+  end }
+
+/--
+For a functor `F : C ⥤ D` and an object `d : D`, we obtain a contravariant functor from the
+category of costructured arrows `F.op.obj c ⟶ op d` to the category of structured arrows
+`d ⟶ F.obj c`.
+-/
+@[simps]
+def to_structured_arrow' (F : C ⥤ D) (d : D) :
+  (costructured_arrow F.op (op d))ᵒᵖ ⥤ structured_arrow d F :=
+{ obj := λ X, @structured_arrow.mk _ _ _ _ _ (unop X.unop.left) F X.unop.hom.unop,
+  map := λ X Y f, structured_arrow.hom_mk (f.unop.left.unop)
+  begin
+    dsimp,
+    rw [← quiver.hom.unop_op (F.map f.unop.left.unop), ← unop_comp, ← F.op_map,
+      f.unop.w, functor.const.obj_map],
+    erw category.comp_id,
+  end }
+
+end costructured_arrow
+
+/--
+For a functor `F : C ⥤ D` and an object `d : D`, the category of structured arrows `d ⟶ F.obj c`
+is contravariantly equivalent to the category of costructured arrows `F.op.obj c ⟶ op d`.
+-/
+def structured_arrow_op_equivalence (F : C ⥤ D) (d : D) :
+  (structured_arrow d F)ᵒᵖ ≌ costructured_arrow F.op (op d) :=
+equivalence.mk (structured_arrow.to_costructured_arrow F d)
+  (costructured_arrow.to_structured_arrow' F d).right_op
+  (nat_iso.of_components (λ X, (@structured_arrow.iso_mk _ _ _ _ _ _
+    (structured_arrow.mk (unop X).hom) (unop X) (iso.refl _) (by tidy)).op)
+    (λ X Y f, quiver.hom.unop_inj $ begin ext, dsimp, simp end))
+  (nat_iso.of_components (λ X, @costructured_arrow.iso_mk _ _ _ _ _ _
+    (costructured_arrow.mk X.hom) X (iso.refl _) (by tidy))
+    (λ X Y f, begin ext, dsimp, simp end))
+
+/--
+For a functor `F : C ⥤ D` and an object `d : D`, the category of costructured arrows
+`F.obj c ⟶ d` is contravariantly equivalent to the category of structured arrows
+`op d ⟶ F.op.obj c`.
+-/
+def costructured_arrow_op_equivalence (F : C ⥤ D) (d : D) :
+  (costructured_arrow F d)ᵒᵖ ≌ structured_arrow (op d) F.op :=
+equivalence.mk (costructured_arrow.to_structured_arrow F d)
+  (structured_arrow.to_costructured_arrow' F d).right_op
+  (nat_iso.of_components (λ X, (@costructured_arrow.iso_mk _ _ _ _ _ _
+    (costructured_arrow.mk (unop X).hom) (unop X) (iso.refl _) (by tidy)).op)
+    (λ X Y f, quiver.hom.unop_inj $ begin ext, dsimp, simp end))
+  (nat_iso.of_components (λ X, @structured_arrow.iso_mk _ _ _ _ _ _
+    (structured_arrow.mk X.hom) X (iso.refl _) (by tidy))
+    (λ X Y f, begin ext, dsimp, simp end))
 
 end category_theory

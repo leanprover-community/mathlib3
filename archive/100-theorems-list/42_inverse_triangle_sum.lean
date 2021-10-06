@@ -11,7 +11,7 @@ import data.real.basic
 This file proves Theorem 42 from the [100 Theorems List](https://www.cs.ru.nl/~freek/100/).
 
 We interpret “triangular numbers” as naturals of the form $\frac{k(k+1)}{2}$ for natural `k`.
-We prove that the sum of the first `n` triangular numbers is equal to $2 - \frac2n$.
+We prove that the sum of the reciprocals of the first `n` triangular numbers is $2 - \frac2n$.
 
 ## Tags
 
@@ -21,6 +21,7 @@ discrete_sum
 open_locale big_operators
 open finset
 
+/-- **Sum of the Reciprocals of the Triangular Numbers** -/
 lemma inverse_triangle_sum :
   ∀ n, ∑ k in range n, (2 : ℚ) / (k * (k + 1)) = if n = 0 then 0 else 2 - (2 : ℚ) / n :=
 begin

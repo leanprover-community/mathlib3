@@ -2,12 +2,26 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Sean Leather
-
-Functions on lists of sigma types.
 -/
 import data.list.perm
 import data.list.range
 import data.sigma
+
+/-!
+# Utilities for lists of sigmas
+
+This file includes several ways of interacting with `list (sigma β)`, treated as a key-value store.
+
+## Main Definitions
+
+- `list.keys` extracts the list of keys.
+- `list.nodupkeys` determines if the store has duplicate keys.
+- `list.lookup`/`lookup_all` accesses the value(s) of a particular key.
+- `list.kreplace` modifies a value.
+- `list.kerase` removes a value.
+- `list.kinsert` inserts a value.
+- `list.kunion` computes the union of two stores.
+-/
 
 universes u v
 
@@ -431,8 +445,7 @@ begin
     { substs h₁ h₂, cases ne.irrefl h },
     { subst h₁, simp [h₂] },
     { subst h₂, simp [h] },
-    { simp [h₁, h₂, ih] }
-  }
+    { simp [h₁, h₂, ih] } }
 end
 
 theorem kerase_append_left {a} : ∀ {l₁ l₂ : list (sigma β)},

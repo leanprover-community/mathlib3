@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 
 import set_theory.ordinal_arithmetic
 import tactic.linarith
+import logic.small
 
 /-!
 # Cardinals and ordinals
@@ -116,7 +117,7 @@ end
 @[simp] theorem type_cardinal : @ordinal.type cardinal (<) _ = ordinal.univ.{u (u+1)} :=
 by rw ordinal.univ_id; exact quotient.sound ⟨aleph_idx.rel_iso⟩
 
-@[simp] theorem mk_cardinal : mk cardinal = univ.{u (u+1)} :=
+@[simp] theorem mk_cardinal : #cardinal = univ.{u (u+1)} :=
 by simpa only [card_type, card_univ] using congr_arg card type_cardinal
 
 /-- The `aleph'` function gives the cardinals listed by their ordinal
@@ -235,7 +236,7 @@ theorem mul_eq_self {c : cardinal} (h : omega ≤ c) : c * c = c :=
 begin
   refine le_antisymm _
     (by simpa only [mul_one] using
-      canonically_ordered_semiring.mul_le_mul_left' (one_lt_omega.le.trans h) c),
+      mul_le_mul_left' (one_lt_omega.le.trans h) c),
   -- the only nontrivial part is `c * c ≤ c`. We prove it inductively.
   refine acc.rec_on (cardinal.wf.apply c) (λ c _,
     quotient.induction_on c $ λ α IH ol, _) h,
@@ -286,23 +287,23 @@ of the cardinalities of `α` and `β`. -/
 theorem mul_eq_max {a b : cardinal} (ha : omega ≤ a) (hb : omega ≤ b) : a * b = max a b :=
 le_antisymm
   (mul_eq_self (le_trans ha (le_max_left a b)) ▸
-    canonically_ordered_semiring.mul_le_mul (le_max_left _ _) (le_max_right _ _)) $
+    mul_le_mul' (le_max_left _ _) (le_max_right _ _)) $
 max_le
   (by simpa only [mul_one] using
-    canonically_ordered_semiring.mul_le_mul_left' (one_lt_omega.le.trans hb) a)
+    mul_le_mul_left' (one_lt_omega.le.trans hb) a)
   (by simpa only [one_mul] using
-    canonically_ordered_semiring.mul_le_mul_right' (one_lt_omega.le.trans ha) b)
+    mul_le_mul_right' (one_lt_omega.le.trans ha) b)
 
 theorem mul_lt_of_lt {a b c : cardinal} (hc : omega ≤ c)
   (h1 : a < c) (h2 : b < c) : a * b < c :=
-lt_of_le_of_lt (canonically_ordered_semiring.mul_le_mul (le_max_left a b) (le_max_right a b)) $
+lt_of_le_of_lt (mul_le_mul' (le_max_left a b) (le_max_right a b)) $
 (lt_or_le (max a b) omega).elim
   (λ h, lt_of_lt_of_le (mul_lt_omega h h) hc)
   (λ h, by rw mul_eq_self h; exact max_lt h1 h2)
 
 lemma mul_le_max_of_omega_le_left {a b : cardinal} (h : omega ≤ a) : a * b ≤ max a b :=
 begin
-  convert canonically_ordered_semiring.mul_le_mul (le_max_left a b) (le_max_right a b),
+  convert mul_le_mul' (le_max_left a b) (le_max_right a b),
   rw [mul_eq_self],
   refine le_trans h (le_max_left a b)
 end
@@ -313,7 +314,22 @@ begin
   cases le_or_gt omega b with hb hb, rw [mul_eq_max h hb],
   have : b ≤ a, exact le_trans (le_of_lt hb) h,
   rw [max_eq_left this],
-  convert canonically_ordered_semiring.mul_le_mul_left' (one_le_iff_ne_zero.mpr h') _, rw [mul_one],
+  convert mul_le_mul_left' (one_le_iff_ne_zero.mpr h') _, rw [mul_one],
+end
+
+theorem mul_le_max (a b : cardinal) : a * b ≤ max (max a b) ω :=
+begin
+  by_cases ha0 : a = 0,
+  { simp [ha0] },
+  by_cases hb0 : b = 0,
+  { simp [hb0] },
+  by_cases ha : ω ≤ a,
+  { rw [mul_eq_max_of_omega_le_left ha hb0],
+    exact le_max_left _ _ },
+  { by_cases hb : ω ≤ b,
+    { rw [mul_comm, mul_eq_max_of_omega_le_left hb ha0, max_comm],
+      exact le_max_left _ _ },
+    { exact le_max_of_le_right (le_of_lt (mul_lt_omega (lt_of_not_ge ha) (lt_of_not_ge hb))) } }
 end
 
 lemma mul_eq_left {a b : cardinal} (ha : omega ≤ a) (hb : b ≤ a) (hb' : b ≠ 0) : a * b = a :=
@@ -323,7 +339,7 @@ lemma mul_eq_right {a b : cardinal} (hb : omega ≤ b) (ha : a ≤ b) (ha' : a �
 by { rw [mul_comm, mul_eq_left hb ha ha'] }
 
 lemma le_mul_left {a b : cardinal} (h : b ≠ 0) : a ≤ b * a :=
-by { convert canonically_ordered_semiring.mul_le_mul_right' (one_le_iff_ne_zero.mpr h) _,
+by { convert mul_le_mul_right' (one_le_iff_ne_zero.mpr h) _,
   rw [one_mul] }
 
 lemma le_mul_right {a b : cardinal} (h : b ≠ 0) : a ≤ a * b :=
@@ -357,7 +373,7 @@ end
 theorem add_eq_self {c : cardinal} (h : omega ≤ c) : c + c = c :=
 le_antisymm
   (by simpa only [nat.cast_bit0, nat.cast_one, mul_eq_self h, two_mul] using
-     canonically_ordered_semiring.mul_le_mul_right' ((nat_lt_omega 2).le.trans h) c)
+     mul_le_mul_right' ((nat_lt_omega 2).le.trans h) c)
   (self_le_add_left c c)
 
 /-- If `α` is an infinite type, then the cardinality of `α ⊕ β` is the maximum
@@ -367,6 +383,17 @@ le_antisymm
   (add_eq_self (le_trans ha (le_max_left a b)) ▸
     add_le_add (le_max_left _ _) (le_max_right _ _)) $
 max_le (self_le_add_right _ _) (self_le_add_left _ _)
+
+theorem add_le_max (a b : cardinal) : a + b ≤ max (max a b) ω :=
+begin
+  by_cases ha : ω ≤ a,
+  { rw [add_eq_max ha],
+    exact le_max_left _ _ },
+  { by_cases hb : ω ≤ b,
+    { rw [add_comm, add_eq_max hb, max_comm],
+      exact le_max_left _ _ },
+    { exact le_max_of_le_right (le_of_lt (add_lt_omega (lt_of_not_ge ha) (lt_of_not_ge hb))) } }
+end
 
 theorem add_lt_of_lt {a b c : cardinal} (hc : omega ≤ c)
   (h1 : a < c) (h2 : b < c) : a + b < c :=
@@ -432,25 +459,54 @@ by { rw [add_comm a b, add_comm c b] at h, exact cardinal.eq_of_add_eq_add_left 
 
 /-! ### Properties about power -/
 
-theorem pow_le {κ μ : cardinal.{u}} (H1 : omega ≤ κ) (H2 : μ < omega) : κ ^ μ ≤ κ :=
+theorem pow_le {κ μ : cardinal.{u}} (H1 : ω ≤ κ) (H2 : μ < ω) : κ ^ μ ≤ κ :=
 let ⟨n, H3⟩ := lt_omega.1 H2 in
 H3.symm ▸ (quotient.induction_on κ (λ α H1, nat.rec_on n
   (le_of_lt $ lt_of_lt_of_le (by rw [nat.cast_zero, power_zero];
     from one_lt_omega) H1)
   (λ n ih, trans_rel_left _
     (by { rw [nat.cast_succ, power_add, power_one];
-      exact canonically_ordered_semiring.mul_le_mul_right' ih _ })
+      exact mul_le_mul_right' ih _ })
     (mul_eq_self H1))) H1)
 
-lemma power_self_eq {c : cardinal} (h : omega ≤ c) : c ^ c = 2 ^ c :=
+lemma power_self_eq {c : cardinal} (h : ω ≤ c) : c ^ c = 2 ^ c :=
 begin
   apply le_antisymm,
   { apply le_trans (power_le_power_right $ le_of_lt $ cantor c), rw [← power_mul, mul_eq_self h] },
   { convert power_le_power_right (le_trans (le_of_lt $ nat_lt_omega 2) h), apply nat.cast_two.symm }
 end
 
-lemma power_nat_le {c : cardinal.{u}} {n : ℕ} (h  : omega ≤ c) : c ^ (n : cardinal.{u}) ≤ c :=
+lemma prod_eq_two_power {ι : Type u} [infinite ι] {c : ι → cardinal.{v}} (h₁ : ∀ i, 2 ≤ c i)
+  (h₂ : ∀ i, lift.{u} (c i) ≤ lift.{v} (#ι)) :
+  prod c = 2 ^ lift.{v} (#ι) :=
+begin
+  rw [← lift_id' (prod c), lift_prod, ← lift_two_power],
+  apply le_antisymm,
+  { refine (prod_le_prod _ _ h₂).trans_eq _,
+    rw [← lift_prod, prod_const, power_self_eq (omega_le_mk ι)] },
+  { rw [← prod_const, lift_prod],
+    refine prod_le_prod _ _ (λ i, _),
+    rw [lift_two, ← lift_two.{u v}, lift_le],
+    exact h₁ i }
+end
+
+lemma power_eq_two_power {c₁ c₂ : cardinal} (h₁ : ω ≤ c₁) (h₂ : 2 ≤ c₂) (h₂' : c₂ ≤ c₁) :
+  c₂ ^ c₁ = 2 ^ c₁ :=
+le_antisymm (power_self_eq h₁ ▸ power_le_power_right h₂') (power_le_power_right h₂)
+
+lemma nat_power_eq {c : cardinal.{u}} (h : ω ≤ c) {n : ℕ} (hn : 2 ≤ n) :
+  (n : cardinal.{u}) ^ c = 2 ^ c :=
+power_eq_two_power h (by assumption_mod_cast) ((nat_lt_omega n).le.trans h)
+
+lemma power_nat_le {c : cardinal.{u}} {n : ℕ} (h  : ω ≤ c) : c ^ (n : cardinal.{u}) ≤ c :=
 pow_le h (nat_lt_omega n)
+
+lemma power_nat_le_max {c : cardinal.{u}} {n : ℕ} : c ^ (n : cardinal.{u}) ≤ max c ω :=
+begin
+  by_cases hc : ω ≤ c,
+  { exact le_max_of_le_left (power_nat_le hc) },
+  { exact le_max_of_le_right (le_of_lt (power_lt_omega (lt_of_not_ge hc) (nat_lt_omega _))) }
+end
 
 lemma powerlt_omega {c : cardinal} (h : omega ≤ c) : c ^< omega = c :=
 begin
@@ -468,24 +524,24 @@ end
 
 /-! ### Computing cardinality of various types -/
 
-theorem mk_list_eq_mk {α : Type u} (H1 : omega ≤ mk α) : mk (list α) = mk α :=
+theorem mk_list_eq_mk {α : Type u} (H1 : ω ≤ #α) : #(list α) = #α :=
 eq.symm $ le_antisymm ⟨⟨λ x, [x], λ x y H, (list.cons.inj H).1⟩⟩ $
-calc  mk (list α)
-    = sum (λ n : ℕ, mk α ^ (n : cardinal.{u})) : mk_list_eq_sum_pow α
-... ≤ sum (λ n : ℕ, mk α) : sum_le_sum _ _ $ λ n, pow_le H1 $ nat_lt_omega n
-... = sum (λ n : ulift.{u} ℕ, mk α) : quotient.sound
-  ⟨@sigma_congr_left _ _ (λ _, quotient.out (mk α)) equiv.ulift.symm⟩
-... = omega * mk α : sum_const _ _
-... = max (omega) (mk α) : mul_eq_max (le_refl _) H1
-... = mk α : max_eq_right H1
+calc  #(list α)
+    = sum (λ n : ℕ, #α ^ (n : cardinal.{u})) : mk_list_eq_sum_pow α
+... ≤ sum (λ n : ℕ, #α) : sum_le_sum _ _ $ λ n, pow_le H1 $ nat_lt_omega n
+... = sum (λ n : ulift.{u} ℕ, #α) : quotient.sound
+  ⟨@sigma_congr_left _ _ (λ _, quotient.out (#α)) equiv.ulift.symm⟩
+... = omega * #α : sum_const _ _
+... = max ω (#α) : mul_eq_max (le_refl _) H1
+... = #α : max_eq_right H1
 
-theorem mk_finset_eq_mk {α : Type u} (h : omega ≤ mk α) : mk (finset α) = mk α :=
+theorem mk_finset_eq_mk {α : Type u} (h : omega ≤ #α) : #(finset α) = #α :=
 eq.symm $ le_antisymm (mk_le_of_injective (λ x y, finset.singleton_inj.1)) $
-calc mk (finset α) ≤ mk (list α) : mk_le_of_surjective list.to_finset_surjective
-... = mk α : mk_list_eq_mk h
+calc #(finset α) ≤ #(list α) : mk_le_of_surjective list.to_finset_surjective
+... = #α : mk_list_eq_mk h
 
-lemma mk_bounded_set_le_of_omega_le (α : Type u) (c : cardinal) (hα : omega ≤ mk α) :
-  mk {t : set α // mk t ≤ c} ≤ mk α ^ c :=
+lemma mk_bounded_set_le_of_omega_le (α : Type u) (c : cardinal) (hα : omega ≤ #α) :
+  #{t : set α // mk t ≤ c} ≤ #α ^ c :=
 begin
   refine le_trans _ (by rw [←add_one_eq hα]), refine quotient.induction_on c _, clear c, intro β,
   fapply mk_le_of_surjective,
@@ -506,18 +562,18 @@ begin
 end
 
 lemma mk_bounded_set_le (α : Type u) (c : cardinal) :
-  mk {t : set α // mk t ≤ c} ≤ max (mk α) omega ^ c :=
+  #{t : set α // #t ≤ c} ≤ max (#α) omega ^ c :=
 begin
-  transitivity mk {t : set (ulift.{u} nat ⊕ α) // mk t ≤ c},
+  transitivity #{t : set (ulift.{u} nat ⊕ α) // #t ≤ c},
   { refine ⟨embedding.subtype_map _ _⟩, apply embedding.image,
     use sum.inr, apply sum.inr.inj, intros s hs, exact le_trans mk_image_le hs },
   refine le_trans
-    (mk_bounded_set_le_of_omega_le (ulift.{u} nat ⊕ α) c (self_le_add_right omega (mk α))) _,
+    (mk_bounded_set_le_of_omega_le (ulift.{u} nat ⊕ α) c (self_le_add_right omega (#α))) _,
   rw [max_comm, ←add_eq_max]; refl
 end
 
 lemma mk_bounded_subset_le {α : Type u} (s : set α) (c : cardinal.{u}) :
-  mk {t : set α // t ⊆ s ∧ mk t ≤ c} ≤ max (mk s) omega ^ c :=
+  #{t : set α // t ⊆ s ∧ #t ≤ c} ≤ max (#s) omega ^ c :=
 begin
   refine le_trans _ (mk_bounded_set_le s c),
   refine ⟨embedding.cod_restrict _ _ _⟩,
@@ -542,9 +598,9 @@ lemma mk_compl_eq_mk_compl_infinite {α : Type*} {s t : set α} (h : omega ≤ #
 by { rw [mk_compl_of_omega_le s h hs, mk_compl_of_omega_le t h ht] }
 
 lemma mk_compl_eq_mk_compl_finite_lift {α : Type u} {β : Type v} {s : set α} {t : set β}
-  (hα : #α < omega) (h1 : lift.{u (max v w)} (#α) = lift.{v (max u w)} (#β))
-  (h2 : lift.{u (max v w)} (#s) = lift.{v (max u w)} (#t)) :
-  lift.{u (max v w)} (#(sᶜ : set α)) = lift.{v (max u w)} (#(tᶜ : set β)) :=
+  (hα : #α < omega) (h1 : lift.{(max v w)} (#α) = lift.{(max u w)} (#β))
+  (h2 : lift.{(max v w)} (#s) = lift.{(max u w)} (#t)) :
+  lift.{(max v w)} (#(sᶜ : set α)) = lift.{(max u w)} (#(tᶜ : set β)) :=
 begin
   have hα' := hα, have h1' := h1,
   rw [← mk_sum_compl s, ← mk_sum_compl t] at h1,
@@ -619,7 +675,7 @@ by { norm_cast, norm_num }
 ```
 -/
 
-@[simp] lemma bit0_ne_zero (a : cardinal) : ¬bit0 a = 0 ↔ ¬a = 0 :=
+lemma bit0_ne_zero (a : cardinal) : ¬bit0 a = 0 ↔ ¬a = 0 :=
 by simp [bit0]
 
 @[simp] lemma bit1_ne_zero (a : cardinal) : ¬bit1 a = 0 :=
@@ -867,3 +923,25 @@ le_refl _
 end bit
 
 end cardinal
+
+lemma not_injective_of_ordinal {α : Type u} (f : ordinal.{u} → α) :
+  ¬ function.injective f :=
+begin
+  let g : ordinal.{u} → ulift.{u+1} α := λ o, ulift.up (f o),
+  suffices : ¬ function.injective g,
+  { intro hf, exact this (equiv.ulift.symm.injective.comp hf) },
+  intro hg,
+  replace hg := cardinal.mk_le_of_injective hg,
+  rw ← cardinal.lift_mk at hg,
+  have := hg.trans_lt (cardinal.lift_lt_univ _),
+  rw cardinal.univ_id at this,
+  exact lt_irrefl _ this
+end
+
+lemma not_injective_of_ordinal_of_small {α : Type v} [small.{u} α] (f : ordinal.{u} → α) :
+  ¬ function.injective f :=
+begin
+  intro hf,
+  apply not_injective_of_ordinal (equiv_shrink α ∘ f),
+  exact (equiv_shrink _).injective.comp hf,
+end

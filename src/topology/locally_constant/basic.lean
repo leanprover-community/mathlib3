@@ -6,7 +6,9 @@ Authors: Johan Commelin
 import topology.subset_properties
 import topology.connected
 import topology.algebra.monoid
+import topology.continuous_function.basic
 import tactic.tfae
+import tactic.fin_cases
 
 /-!
 # Locally constant functions
@@ -62,6 +64,14 @@ end
 lemma is_open_fiber {f : X → Y} (hf : is_locally_constant f) (y : Y) :
   is_open {x | f x = y} :=
 hf {y}
+
+lemma is_closed_fiber {f : X → Y} (hf : is_locally_constant f) (y : Y) :
+  is_closed {x | f x = y} :=
+⟨hf {y}ᶜ⟩
+
+lemma is_clopen_fiber {f : X → Y} (hf : is_locally_constant f) (y : Y) :
+  is_clopen {x | f x = y} :=
+⟨is_open_fiber hf _, is_closed_fiber hf _⟩
 
 lemma iff_exists_open (f : X → Y) :
   is_locally_constant f ↔ ∀ x, ∃ (U : set X) (hU : is_open U) (hx : x ∈ U), ∀ x' ∈ U, f x' = f x :=
@@ -160,6 +170,21 @@ lemma div [has_div Y] ⦃f g : X → Y⦄ (hf : is_locally_constant f) (hg : is_
   is_locally_constant (f / g) :=
 hf.comp₂ hg (/)
 
+/-- If a composition of a function `f` followed by an injection `g` is locally
+constant, then the locally constant property descends to `f`. -/
+lemma desc {α β : Type*} (f : X → α) (g : α → β)
+  (h : is_locally_constant (g ∘ f)) (inj : function.injective g) : is_locally_constant f :=
+begin
+  rw (is_locally_constant.tfae f).out 0 3,
+  intros a,
+  have : f ⁻¹' {a} = (g ∘ f) ⁻¹' { g a },
+  { ext x,
+    simp only [mem_singleton_iff, function.comp_app, mem_preimage],
+    exact ⟨λ h, by rw h, λ h, inj h⟩ },
+  rw this,
+  apply h,
+end
+
 end is_locally_constant
 
 /-- A (bundled) locally constant function from a topological space `X` to a type `Y`. -/
@@ -186,7 +211,7 @@ congr_arg (λ h : locally_constant X Y, h x) h
 theorem congr_arg (f : locally_constant X Y) {x y : X} (h : x = y) : f x = f y :=
 congr_arg (λ x : X, f x) h
 
-theorem coe_injective : function.injective (λ (f : locally_constant X Y) (x : X), f x)
+theorem coe_injective : @function.injective (locally_constant X Y) (X → Y) coe_fn
 | ⟨f, hf⟩ ⟨g, hg⟩ h := have f = g, from h, by subst f
 
 @[simp, norm_cast] theorem coe_inj {f g : locally_constant X Y} : (f : X → Y) = g ↔ f = g :=
@@ -198,13 +223,83 @@ coe_injective (funext h)
 theorem ext_iff {f g : locally_constant X Y} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
 
-protected lemma continuous [topological_space Y] (f : locally_constant X Y) : continuous f :=
-f.is_locally_constant.continuous
+section codomain_topological_space
+
+variables [topological_space Y] (f : locally_constant X Y)
+
+protected lemma continuous : continuous f := f.is_locally_constant.continuous
+
+/-- We can turn a locally-constant function into a bundled `continuous_map`. -/
+def to_continuous_map : C(X, Y) := ⟨f, f.continuous⟩
+
+/-- As a shorthand, `locally_constant.to_continuous_map` is available as a coercion -/
+instance : has_coe (locally_constant X Y) C(X, Y) := ⟨to_continuous_map⟩
+
+@[simp] lemma to_continuous_map_eq_coe : f.to_continuous_map = f := rfl
+
+@[simp] lemma coe_continuous_map : ((f : C(X, Y)) : X → Y) = (f : X → Y) := rfl
+
+lemma to_continuous_map_injective :
+  function.injective (to_continuous_map : locally_constant X Y → C(X, Y)) :=
+λ _ _ h, ext (continuous_map.congr_fun h)
+
+end codomain_topological_space
 
 /-- The constant locally constant function on `X` with value `y : Y`. -/
 def const (X : Type*) {Y : Type*} [topological_space X] (y : Y) :
   locally_constant X Y :=
 ⟨function.const X y, is_locally_constant.const _⟩
+
+@[simp] lemma coe_const (y : Y) : (const X y : X → Y) = function.const X y := rfl
+
+/-- The locally constant function to `fin 2` associated to a clopen set. -/
+def of_clopen {X : Type*} [topological_space X] {U : set X} [∀ x, decidable (x ∈ U)]
+  (hU : is_clopen U) : locally_constant X (fin 2) :=
+{ to_fun := λ x, if x ∈ U then 0 else 1,
+  is_locally_constant := begin
+    rw (is_locally_constant.tfae (λ x, if x ∈ U then (0 : fin 2) else 1)).out 0 3,
+    intros e,
+    fin_cases e,
+    { convert hU.1 using 1,
+      ext,
+      simp only [nat.one_ne_zero, mem_singleton_iff, fin.one_eq_zero_iff,
+        mem_preimage, ite_eq_left_iff],
+      tauto },
+    { rw ← is_closed_compl_iff,
+      convert hU.2,
+      ext,
+      simp }
+  end }
+
+@[simp] lemma of_clopen_fiber_zero {X : Type*} [topological_space X] {U : set X}
+  [∀ x, decidable (x ∈ U)] (hU : is_clopen U) : of_clopen hU ⁻¹' ({0} : set (fin 2)) = U :=
+begin
+  ext,
+  simp only [of_clopen, nat.one_ne_zero, mem_singleton_iff,
+    fin.one_eq_zero_iff, coe_mk, mem_preimage, ite_eq_left_iff],
+  tauto,
+end
+
+@[simp] lemma of_clopen_fiber_one {X : Type*} [topological_space X] {U : set X}
+  [∀ x, decidable (x ∈ U)] (hU : is_clopen U) : of_clopen hU ⁻¹' ({1} : set (fin 2)) = Uᶜ :=
+begin
+  ext,
+  simp only [of_clopen, nat.one_ne_zero, mem_singleton_iff, coe_mk,
+    fin.zero_eq_one_iff, mem_preimage, ite_eq_right_iff,
+    mem_compl_eq],
+  tauto,
+end
+
+lemma locally_constant_eq_of_fiber_zero_eq {X : Type*} [topological_space X]
+  (f g : locally_constant X (fin 2)) (h : f ⁻¹' ({0} : set (fin 2)) = g ⁻¹' {0}) : f = g :=
+begin
+  simp only [set.ext_iff, mem_singleton_iff, mem_preimage] at h,
+  ext1 x,
+  have := h x,
+  set a := f x,
+  set b := g x,
+  fin_cases a; fin_cases b; finish
+end
 
 lemma range_finite [compact_space X] (f : locally_constant X Y) :
   (set.range f).finite :=
@@ -241,6 +336,34 @@ def map (f : Y → Z) : locally_constant X Y → locally_constant X Z :=
 
 @[simp] lemma map_comp {Y₁ Y₂ Y₃ : Type*} (g : Y₂ → Y₃) (f : Y₁ → Y₂) :
   @map X _ _ _ g ∘ map f = map (g ∘ f) := by { ext, refl }
+
+/-- Given a locally constant function to `α → β`, construct a family of locally constant
+functions with values in β indexed by α. -/
+def flip {X α β : Type*} [topological_space X] (f : locally_constant X (α → β)) (a : α) :
+  locally_constant X β := f.map (λ f, f a)
+
+/-- If α is finite, this constructs a locally constant function to `α → β` given a
+family of locally constant functions with values in β indexed by α. -/
+def unflip {X α β : Type*} [fintype α] [topological_space X] (f : α → locally_constant X β) :
+  locally_constant X (α → β) :=
+{ to_fun := λ x a, f a x,
+  is_locally_constant := begin
+    rw (is_locally_constant.tfae (λ x a, f a x)).out 0 3,
+    intros g,
+    have : (λ (x : X) (a : α), f a x) ⁻¹' {g} = ⋂ (a : α), (f a) ⁻¹' {g a}, by tidy,
+    rw this,
+    apply is_open_Inter,
+    intros a,
+    apply (f a).is_locally_constant,
+  end }
+
+@[simp]
+lemma unflip_flip {X α β : Type*} [fintype α] [topological_space X]
+  (f : locally_constant X (α → β)) : unflip f.flip = f := by { ext, refl }
+
+@[simp]
+lemma flip_unflip {X α β : Type*} [fintype α] [topological_space X]
+  (f : α → locally_constant X β) : (unflip f).flip = f := by { ext, refl }
 
 section comap
 
@@ -289,5 +412,21 @@ begin
 end
 
 end comap
+
+section desc
+
+/-- If a locally constant function factors through an injection, then it factors through a locally
+constant function. -/
+def desc {X α β : Type*} [topological_space X] {g : α → β} (f : X → α) (h : locally_constant X β)
+  (cond : g ∘ f = h) (inj : function.injective g) : locally_constant X α :=
+{ to_fun := f,
+  is_locally_constant := is_locally_constant.desc _ g (by { rw cond, exact h.2 }) inj }
+
+@[simp]
+lemma coe_desc {X α β : Type*} [topological_space X] (f : X → α) (g : α → β)
+  (h : locally_constant X β) (cond : g ∘ f = h) (inj : function.injective g) :
+  ⇑(desc f h cond inj) = f := rfl
+
+end desc
 
 end locally_constant

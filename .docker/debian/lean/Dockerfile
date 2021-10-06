@@ -11,7 +11,7 @@ FROM debian as leanproject-builder
 
 USER root
 # install prerequisites
-RUN apt-get update && apt-get install curl git python3 python3-pip python3-venv -y && apt-get clean
+RUN apt-get update && apt-get install curl git python3 python3-pip python3-venv zlib1g-dev -y && apt-get clean
 # create a non-root user
 RUN useradd -m lean
 

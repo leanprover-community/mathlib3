@@ -65,6 +65,10 @@ variables {R : Type*} [add_monoid R] [has_one R] [char_zero R]
 theorem cast_injective : function.injective (coe : ℕ → R) :=
 char_zero.cast_injective
 
+/-- `nat.cast` as an embedding into monoids of characteristic `0`. -/
+@[simps]
+def cast_embedding : ℕ ↪ R := ⟨coe, cast_injective⟩
+
 @[simp, norm_cast] theorem cast_inj {m n : ℕ} : (m : R) = n ↔ m = n :=
 cast_injective.eq_iff
 
@@ -121,6 +125,12 @@ end
 
 section
 variables {R : Type*} [ring R] [no_zero_divisors R] [char_zero R]
+
+lemma neg_eq_self_iff {a : R} : -a = a ↔ a = 0 :=
+neg_eq_iff_add_eq_zero.trans add_self_eq_zero
+
+lemma eq_neg_self_iff {a : R} : a = -a ↔ a = 0 :=
+eq_neg_iff_add_eq_zero.trans add_self_eq_zero
 
 lemma nat_mul_inj {n : ℕ} {a b : R} (h : (n : R) * a = (n : R) * b) : n = 0 ∨ a = b :=
 begin

@@ -333,9 +333,6 @@ coe_int_inj $ by simp only [norm_eq_mul_conj, conj_neg, neg_mul_eq_neg_mul_symm,
 @[simp] lemma norm_conj (x : ℤ√d) : x.conj.norm = x.norm :=
 coe_int_inj $ by simp only [norm_eq_mul_conj, conj_conj, mul_comm]
 
-instance : is_monoid_hom norm :=
-{ map_one := norm_one, map_mul := norm_mul }
-
 lemma norm_nonneg (hd : d ≤ 0) (n : ℤ√d) : 0 ≤ n.norm :=
 add_nonneg (mul_self_nonneg _)
   (by rw [mul_assoc, neg_mul_eq_neg_mul];
@@ -373,7 +370,7 @@ begin
     rw [norm_def, sub_eq_add_neg, mul_assoc] at h,
     have left := mul_self_nonneg z.re,
     have right := neg_nonneg.mpr (mul_nonpos_of_nonpos_of_nonneg hd.le (mul_self_nonneg z.im)),
-    obtain ⟨ha, hb⟩ := (add_eq_zero_iff_eq_zero_of_nonneg left right).mp h,
+    obtain ⟨ha, hb⟩ := (add_eq_zero_iff' left right).mp h,
     split; apply eq_zero_of_mul_self_eq_zero,
     { exact ha },
     { rw [neg_eq_zero, mul_eq_zero] at hb,
@@ -456,7 +453,7 @@ begin
       nonnegg_pos_neg.2 (sq_le_add (nonnegg_pos_neg.1 ha) (nonnegg_pos_neg.1 hb)) },
   { exact nonneg_add_lem ha hb },
   { refine nonnegg_cases_left (λi h, sq_le_of_le _ _ (nonnegg_neg_pos.1 ha)),
-    { exact int.coe_nat_le.1 (le_of_neg_le_neg (@int.le.intro _ _ z (by simp *))) },
+    { exact int.coe_nat_le.1 (le_of_neg_le_neg (int.le.intro h)) },
     { apply nat.le_add_right } },
   { rw [add_comm, add_comm ↑y], exact nonneg_add_lem hb ha },
   { simpa [add_comm] using
@@ -645,11 +642,11 @@ protected theorem eq_zero_or_eq_zero_of_mul_eq_zero : Π {a b : ℤ√d}, a * b 
   if z0 : z = 0 then if w0 : w = 0 then
     or.inr (match z, w, z0, w0 with ._, ._, rfl, rfl := rfl end)
   else
-     or.inl $ fin $ mul_right_cancel' w0 $ calc
+     or.inl $ fin $ mul_right_cancel₀ w0 $ calc
        x * x * w = -y * (x * z) : by simp [h2, mul_assoc, mul_left_comm]
              ... = d * y * y * w : by simp [h1, mul_assoc, mul_left_comm]
   else
-     or.inl $ fin $ mul_right_cancel' z0 $ calc
+     or.inl $ fin $ mul_right_cancel₀ z0 $ calc
        x * x * z = d * -y * (x * w) : by simp [h1, mul_assoc, mul_left_comm]
              ... = d * y * y * z : by simp [h2, mul_assoc, mul_left_comm]
 

@@ -42,14 +42,22 @@ namespace Magma
 instance bundled_hom : bundled_hom @mul_hom :=
 ⟨@mul_hom.to_fun, @mul_hom.id, @mul_hom.comp, @mul_hom.coe_inj⟩
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] Magma AddMagma
+attribute [derive [has_coe_to_sort, large_category, concrete_category]] Magma
+attribute [to_additive] Magma.has_coe_to_sort Magma.large_category Magma.concrete_category
 
 /-- Construct a bundled `Magma` from the underlying type and typeclass. -/
 @[to_additive]
 def of (M : Type u) [has_mul M] : Magma := bundled.of M
 
-/-- Construct a bundled `Magma` from the underlying type and typeclass. -/
+/-- Construct a bundled `AddMagma` from the underlying type and typeclass. -/
 add_decl_doc AddMagma.of
+
+/-- Typecheck a `mul_hom` as a morphism in `Magma`. -/
+@[to_additive] def of_hom {X Y : Type u} [has_mul X] [has_mul Y] (f : mul_hom X Y) :
+  of X ⟶ of Y := f
+
+/-- Typecheck a `add_hom` as a morphism in `AddMagma`. -/
+add_decl_doc AddMagma.of_hom
 
 @[to_additive]
 instance : inhabited Magma := ⟨Magma.of pempty⟩
@@ -73,7 +81,9 @@ namespace Semigroup
 @[to_additive]
 instance : bundled_hom.parent_projection semigroup.to_has_mul := ⟨⟩
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] Semigroup AddSemigroup
+attribute [derive [has_coe_to_sort, large_category, concrete_category]] Semigroup
+attribute [to_additive] Semigroup.has_coe_to_sort Semigroup.large_category
+  Semigroup.concrete_category
 
 /-- Construct a bundled `Semigroup` from the underlying type and typeclass. -/
 @[to_additive]
@@ -81,6 +91,13 @@ def of (M : Type u) [semigroup M] : Semigroup := bundled.of M
 
 /-- Construct a bundled `AddSemigroup` from the underlying type and typeclass. -/
 add_decl_doc AddSemigroup.of
+
+/-- Typecheck a `mul_hom` as a morphism in `Semigroup`. -/
+@[to_additive] def of_hom {X Y : Type u} [semigroup X] [semigroup Y] (f : mul_hom X Y) :
+  of X ⟶ of Y := f
+
+/-- Typecheck a `add_hom` as a morphism in `AddSemigroup`. -/
+add_decl_doc AddSemigroup.of_hom
 
 @[to_additive]
 instance : inhabited Semigroup := ⟨Semigroup.of pempty⟩

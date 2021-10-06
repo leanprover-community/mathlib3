@@ -26,7 +26,7 @@ for this.)
 * [Mario Carneiro, *Formalizing computability theory via partial recursive functions*][carneiro2019]
 -/
 
-open denumerable encodable
+open denumerable encodable function
 
 namespace nat
 
@@ -80,10 +80,10 @@ theorem cases {f g} (hf : primrec f) (hg : primrec g) :
   primrec (unpaired (λ z n, n.cases (f z) (λ y, g $ mkpair z y))) :=
 (prec hf (hg.comp (pair left (left.comp right)))).of_eq $ by simp [cases]
 
-protected theorem swap : primrec (unpaired (function.swap mkpair)) :=
+protected theorem swap : primrec (unpaired (swap mkpair)) :=
 (pair right left).of_eq $ λ n, by simp
 
-theorem swap' {f} (hf : primrec (unpaired f)) : primrec (unpaired (function.swap f)) :=
+theorem swap' {f} (hf : primrec (unpaired f)) : primrec (unpaired (swap f)) :=
 (hf.comp primrec.swap).of_eq $ λ n, by simp
 
 theorem pred : primrec pred :=
@@ -421,7 +421,7 @@ variables {α : Type*} {β : Type*} {σ : Type*}
 variables [primcodable α] [primcodable β] [primcodable σ]
 open nat.primrec
 
-theorem swap {f : α → β → σ} (h : primrec₂ f) : primrec₂ (function.swap f) :=
+theorem swap {f : α → β → σ} (h : primrec₂ f) : primrec₂ (swap f) :=
 h.comp₂ primrec₂.right primrec₂.left
 
 theorem nat_iff {f : α → β → σ} : primrec₂ f ↔
@@ -569,7 +569,7 @@ by simpa using cond hc hf hg
 theorem nat_le : primrec_rel ((≤) : ℕ → ℕ → Prop) :=
 (nat_cases nat_sub (const tt) (const ff).to₂).of_eq $
 λ p, begin
-  dsimp [function.swap],
+  dsimp [swap],
   cases e : p.1 - p.2 with n,
   { simp [nat.sub_eq_zero_iff_le.1 e] },
   { simp [not_le.2 (nat.lt_of_sub_eq_succ e)] }
@@ -831,7 +831,7 @@ nat_iff.1 $ (encode_iff.2 this).of_eq $ λ n, begin
   suffices : ∀ (o : option (list ℕ)) p (_ : encode o = encode p),
     encode (option.map (list.cons (encode a)) o) =
     encode (option.map (list.cons a) p),
-  from this _ _ (IH _ (nat.unpair_le_right n)),
+  from this _ _ (IH _ (nat.unpair_right_le n)),
   intros o p IH,
   cases o; cases p; injection IH with h,
   exact congr_arg (λ k, (nat.mkpair (encode a) k).succ.succ) h

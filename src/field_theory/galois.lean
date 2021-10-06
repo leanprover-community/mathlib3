@@ -44,46 +44,37 @@ variables (F : Type*) [field F] (E : Type*) [field E] [algebra F E]
 
 /-- A field extension E/F is galois if it is both separable and normal -/
 class is_galois : Prop :=
-(separable' : is_separable F E)
-(normal' : normal F E)
+[to_is_separable : is_separable F E]
+[to_normal : normal F E]
 
 variables {F E}
 
 theorem is_galois_iff : is_galois F E ↔ is_separable F E ∧ normal F E :=
-⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
+⟨λ h, ⟨h.1, h.2⟩, λ h, { to_is_separable := h.1, to_normal := h.2 }⟩
 
-protected theorem is_galois.is_separable (h : is_galois F E) : is_separable F E := h.1
-protected theorem is_galois.normal (h : is_galois F E) : normal F E := h.2
-
-@[priority 100] -- see Note [lower instance priority]
-instance is_galois.normal'' [h : is_galois F E] : normal F E := h.2
+attribute [instance, priority 100] -- see Note [lower instance priority]
+is_galois.to_is_separable is_galois.to_normal
 
 variables (F E)
 
 namespace is_galois
 
 instance self : is_galois F F :=
-⟨is_separable_self F, normal_self F⟩
-
-@[priority 100] -- see Note [lower instance priority]
-instance to_is_separable [h : is_galois F E] : is_separable F E := h.1
-
-@[priority 100] -- see Note [lower instance priority]
-instance to_normal [h : is_galois F E] : normal F E := h.2
+⟨⟩
 
 variables (F) {E}
 
 lemma integral [is_galois F E] (x : E) : is_integral F x := normal.is_integral' x
 
-lemma separable [h : is_galois F E] (x : E) : (minpoly F x).separable := h.is_separable.separable x
+lemma separable [is_galois F E] (x : E) : (minpoly F x).separable := is_separable.separable F x
 
 lemma splits [is_galois F E] (x : E) : (minpoly F x).splits (algebra_map F E) := normal.splits' x
 
 variables (F E)
 
 instance of_fixed_field (G : Type*) [group G] [fintype G] [mul_semiring_action G E] :
-  is_galois (mul_action.fixed_points G E) E :=
-⟨fixed_points.separable G E, fixed_points.normal G E⟩
+  is_galois (fixed_points.subfield G E) E :=
+⟨⟩
 
 lemma intermediate_field.adjoin_simple.card_aut_eq_finrank
   [finite_dimensional F E] {α : E} (hα : is_integral F α)
@@ -97,10 +88,10 @@ begin
   exact fintype.card_congr (alg_equiv_equiv_alg_hom F F⟮α⟯)
 end
 
-lemma card_aut_eq_finrank [finite_dimensional F E] [h : is_galois F E] :
+lemma card_aut_eq_finrank [finite_dimensional F E] [is_galois F E] :
   fintype.card (E ≃ₐ[F] E) = finrank F E :=
 begin
-  cases field.exists_primitive_element h.1 with α hα,
+  cases field.exists_primitive_element F E with α hα,
   let iso : F⟮α⟯ ≃ₐ[F] E := {
     to_fun := λ e, e.val,
     inv_fun := λ e, ⟨e, by { rw hα, exact intermediate_field.mem_top }⟩,
@@ -133,7 +124,8 @@ variables (F K E : Type*) [field F] [field K] [field E] {E' : Type*} [field E'] 
 variables [algebra F K] [algebra F E] [algebra K E] [is_scalar_tower F K E]
 
 lemma is_galois.tower_top_of_is_galois [is_galois F E] : is_galois K E :=
-⟨is_separable_tower_top_of_is_separable F K E, normal.tower_top_of_normal F K E⟩
+{ to_is_separable := is_separable_tower_top_of_is_separable F K E,
+  to_normal := normal.tower_top_of_normal F K E }
 
 variables {F E}
 
@@ -150,7 +142,7 @@ begin
 end
 
 lemma is_galois.of_alg_equiv [h : is_galois F E] (f : E ≃ₐ[F] E') : is_galois F E' :=
-⟨is_separable.of_alg_hom F E f.symm, normal.of_alg_equiv f⟩
+{ to_is_separable := is_separable.of_alg_hom F E f.symm, to_normal := normal.of_alg_equiv f }
 
 lemma alg_equiv.transfer_galois (f : E ≃ₐ[F] E') : is_galois F E ↔ is_galois F E' :=
 ⟨λ h, by exactI is_galois.of_alg_equiv f, λ h, by exactI is_galois.of_alg_equiv f.symm⟩
@@ -170,16 +162,6 @@ variables (H : subgroup (E ≃ₐ[F] E)) (K : intermediate_field F E)
 
 namespace intermediate_field
 
-instance subgroup_action : faithful_mul_semiring_action H E :=
-{ smul := λ h x, h x,
-  smul_zero := λ _, map_zero _,
-  smul_add := λ _, map_add _,
-  one_smul := λ _, rfl,
-  smul_one := λ _, map_one _,
-  mul_smul := λ _ _ _, rfl,
-  smul_mul := λ _, map_mul _,
-  eq_of_smul_eq_smul' := λ x y z, subtype.ext (alg_equiv.ext z) }
-
 /-- The intermediate_field fixed by a subgroup -/
 def fixed_field : intermediate_field F E :=
 { carrier := mul_action.fixed_points H E,
@@ -188,7 +170,7 @@ def fixed_field : intermediate_field F E :=
   neg_mem' := λ a hx g, by rw [smul_neg g a, hx],
   one_mem' := λ g, smul_one g,
   mul_mem' := λ a b hx hy g, by rw [smul_mul' g a b, hx, hy],
-  inv_mem' := λ a hx g, by rw [smul_inv' _ g a, hx],
+  inv_mem' := λ a hx g, by rw [smul_inv'' g a, hx],
   algebra_map_mem' := λ a g, commutes g a }
 
 lemma finrank_fixed_field_eq_card [finite_dimensional F E] :
@@ -307,10 +289,10 @@ variables (F : Type*) [field F] (E : Type*) [field E] [algebra F E]
 
 namespace is_galois
 
-lemma is_separable_splitting_field [finite_dimensional F E] [h : is_galois F E] :
+lemma is_separable_splitting_field [finite_dimensional F E] [is_galois F E] :
   ∃ p : polynomial F, p.separable ∧ p.is_splitting_field F E :=
 begin
-  cases field.exists_primitive_element h.1 with α h1,
+  cases field.exists_primitive_element F E with α h1,
   use [minpoly F α, separable F α, is_galois.splits F α],
   rw [eq_top_iff, ←intermediate_field.top_to_subalgebra, ←h1],
   rw intermediate_field.adjoin_simple_to_subalgebra_of_integral F α (integral F α),

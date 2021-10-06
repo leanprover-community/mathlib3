@@ -108,9 +108,9 @@ begin
   by_cases hxy : x = y,
   { rw hxy },
   { rw [←norm_neg (y - x), neg_sub, mul_comm, mul_comm ∥y∥, div_eq_mul_inv, div_eq_mul_inv,
-        mul_inv_rev', mul_inv_rev', ←mul_assoc, ←mul_assoc] at h,
+        mul_inv_rev₀, mul_inv_rev₀, ←mul_assoc, ←mul_assoc] at h,
     replace h :=
-      mul_right_cancel' (inv_ne_zero (λ hz, hxy (eq_of_sub_eq_zero (norm_eq_zero.1 hz)))) h,
+      mul_right_cancel₀ (inv_ne_zero (λ hz, hxy (eq_of_sub_eq_zero (norm_eq_zero.1 hz)))) h,
     rw [inner_sub_right, inner_sub_right, real_inner_comm x y, real_inner_self_eq_norm_sq,
         real_inner_self_eq_norm_sq, mul_sub_right_distrib, mul_sub_right_distrib,
         mul_self_mul_inv, mul_self_mul_inv, sub_eq_sub_iff_sub_eq_sub,
@@ -125,7 +125,7 @@ begin
             ←neg_sub, ←mul_div_assoc, mul_comm, mul_div_assoc, ←mul_neg_one] at h,
         symmetry,
         by_contradiction hyx,
-        replace h := (mul_left_cancel' (sub_ne_zero_of_ne hyx) h).symm,
+        replace h := (mul_left_cancel₀ (sub_ne_zero_of_ne hyx) h).symm,
         rw [real_inner_div_norm_mul_norm_eq_neg_one_iff, ←angle_eq_pi_iff] at h,
         exact hpi h } } }
 end
@@ -142,10 +142,10 @@ begin
     have hxn : ∥x∥ ≠ 0 := (λ h, hx (norm_eq_zero.1 h)),
     have hyn : ∥y∥ ≠ 0 := (λ h, hy (norm_eq_zero.1 h)),
     have hxyn : ∥x - y∥ ≠ 0 := (λ h, hxy (eq_of_sub_eq_zero (norm_eq_zero.1 h))),
-    apply mul_right_cancel' hxn,
-    apply mul_right_cancel' hyn,
-    apply mul_right_cancel' hxyn,
-    apply mul_right_cancel' hxyn,
+    apply mul_right_cancel₀ hxn,
+    apply mul_right_cancel₀ hyn,
+    apply mul_right_cancel₀ hxyn,
+    apply mul_right_cancel₀ hxyn,
     have H1 : real.sin (angle x (x - y)) * real.sin (angle y (y - x)) *
                 ∥x∥ * ∥y∥ * ∥x - y∥ * ∥x - y∥ =
               (real.sin (angle x (x - y)) * (∥x∥ * ∥x - y∥)) *
@@ -179,10 +179,10 @@ begin
     have hxn : ∥x∥ ≠ 0 := (λ h, hx (norm_eq_zero.1 h)),
     have hyn : ∥y∥ ≠ 0 := (λ h, hy (norm_eq_zero.1 h)),
     have hxyn : ∥x - y∥ ≠ 0 := (λ h, hxy (eq_of_sub_eq_zero (norm_eq_zero.1 h))),
-    apply mul_right_cancel' hxn,
-    apply mul_right_cancel' hyn,
-    apply mul_right_cancel' hxyn,
-    apply mul_right_cancel' hxyn,
+    apply mul_right_cancel₀ hxn,
+    apply mul_right_cancel₀ hyn,
+    apply mul_right_cancel₀ hxyn,
+    apply mul_right_cancel₀ hxyn,
     have H1 : real.sin (angle x (x - y)) * (⟪y, y - x⟫ / (∥y∥ * ∥y - x∥)) * ∥x∥ * ∥y∥ * ∥x - y∥ =
                 real.sin (angle x (x - y)) * (∥x∥ * ∥x - y∥) *
                   (⟪y, y - x⟫ / (∥y∥ * ∥y - x∥)) * ∥y∥, { ring },
@@ -292,7 +292,7 @@ variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
     [normed_add_torsor V P]
 include V
 
-/-- Pythagorean theorem, if-and-only-if angle-at-point form. -/
+/-- **Pythagorean theorem**, if-and-only-if angle-at-point form. -/
 lemma dist_sq_eq_dist_sq_add_dist_sq_iff_angle_eq_pi_div_two (p1 p2 p3 : P) :
   dist p1 p3 * dist p1 p3 = dist p1 p2 * dist p1 p2 + dist p3 p2 * dist p3 p2 ↔
     ∠ p1 p2 p3 = π / 2 :=
@@ -301,7 +301,7 @@ by erw [pseudo_metric_space.dist_comm p3 p2, dist_eq_norm_vsub V p1 p3, dist_eq_
         ←norm_sub_sq_eq_norm_sq_add_norm_sq_iff_angle_eq_pi_div_two,
         vsub_sub_vsub_cancel_right p1, ←neg_vsub_eq_vsub_rev p2 p3, norm_neg]
 
-/-- Law of cosines (cosine rule), angle-at-point form. -/
+/-- **Law of cosines** (cosine rule), angle-at-point form. -/
 lemma dist_sq_eq_dist_sq_add_dist_sq_sub_two_mul_dist_mul_dist_mul_cos_angle
     (p1 p2 p3 : P) :
   dist p1 p3 * dist p1 p3 =
@@ -318,7 +318,7 @@ end
 
 alias dist_sq_eq_dist_sq_add_dist_sq_sub_two_mul_dist_mul_dist_mul_cos_angle ← law_cos
 
-/-- Pons asinorum, angle-at-point form. -/
+/-- **Isosceles Triangle Theorem**: Pons asinorum, angle-at-point form. -/
 lemma angle_eq_angle_of_dist_eq {p1 p2 p3 : P} (h : dist p1 p2 = dist p1 p3) :
   ∠ p1 p2 p3 = ∠ p1 p3 p2 :=
 begin
@@ -340,7 +340,7 @@ begin
   exact norm_eq_of_angle_sub_eq_angle_sub_rev_of_angle_ne_pi h hpi
 end
 
-/-- The sum of the angles of a possibly degenerate triangle (where the
+/-- The **sum of the angles of a triangle** (possibly degenerate, where the
 given vertex is distinct from the others), angle-at-point. -/
 lemma angle_add_angle_add_angle_eq_pi {p1 p2 p3 : P} (h2 : p2 ≠ p1) (h3 : p3 ≠ p1) :
   ∠ p1 p2 p3 + ∠ p2 p3 p1 + ∠ p3 p1 p2 = π :=
@@ -354,7 +354,7 @@ begin
                                                 (λ he, h2 (vsub_eq_zero_iff_eq.1 he))
 end
 
-/-- Stewart's Theorem. -/
+/-- **Stewart's Theorem**. -/
 theorem dist_sq_mul_dist_add_dist_sq_mul_dist (a b c p : P) (h : ∠ b p c = π) :
   dist a b ^ 2 * dist c p + dist a c ^ 2 * dist b p =
   dist b c * (dist a p ^ 2 + dist b p * dist c p) :=
@@ -365,7 +365,7 @@ begin
   ring,
 end
 
-/-- Apollonius's Theorem. -/
+/-- **Apollonius's Theorem**. -/
 theorem dist_sq_add_dist_sq_eq_two_mul_dist_midpoint_sq_add_half_dist_sq (a b c : P) :
   dist a b ^ 2 + dist a c ^ 2 = 2 * (dist a (midpoint ℝ b c) ^ 2 + (dist b c / 2) ^ 2) :=
 begin
@@ -398,7 +398,7 @@ begin
     rw [hab₁, hab'₁, dist_comm b' c', dist_comm b c, hcb] },
   { have h1 : 0 ≤ r * dist a b, { rw ← hab, exact dist_nonneg },
     have h2 : 0 ≤ r := nonneg_of_mul_nonneg_right h1 (dist_pos.mpr hab₁),
-    exact (eq_of_sq_eq_sq dist_nonneg (mul_nonneg h2 dist_nonneg)).mp h' },
+    exact (sq_eq_sq dist_nonneg (mul_nonneg h2 dist_nonneg)).mp h' },
 end
 
 end euclidean_geometry

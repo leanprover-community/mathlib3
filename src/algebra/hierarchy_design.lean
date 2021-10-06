@@ -80,11 +80,14 @@ when applicable:
 * Definitions for transferring the proof fields of instances along
   injective or surjective functions that agree on the data fields,
   like `function.injective.monoid` and `function.surjective.monoid`.
-  See ``algebra.group.inj_surj` for more examples.
+  We make these definitions `@[reducible]`, see note [reducible non-instances].
+  See `algebra.group.inj_surj` for more examples.
   ```
+  @[reducible]
   def function.injective.Z [Z M₂] (f : M₁ → M₂) (hf : injective f)
     (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) : Z M₁ := ...
 
+  @[reducible]
   def function.surjective.Z [Z M₁] (f : M₁ → M₂) (hf : surjective f)
     (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) : Z M₂ := ...
   ```
@@ -183,3 +186,21 @@ Another alternative to a TODO list in the doc-strings is adding github issues.
 
 -/
 library_note "the algebraic hierarchy"
+
+/--
+Some definitions that define objects of a class cannot be instances, because they have an
+explicit argument that does not occur in the conclusion. An example is `preorder.lift` that has a
+function `f : α → β` as an explicit argument to lift a preorder on `β` to a preorder on `α`.
+
+If these definitions are used to define instances of this class *and* this class is an argument to
+some other type-class so that type-class inference will have to unfold these instances to check
+for definitional equality, then these definitions should be marked `@[reducible]`.
+
+For example, `preorder.lift` is used to define `units.preorder` and `partial_order.lift` is used
+to define `units.partial_order`. In some cases it is important that type-class inference can
+recognize that `units.preorder` and `units.partial_order` give rise to the same `has_le` instance.
+For example, you might have another class that takes `[has_le α]` as an argument, and this argument
+sometimes comes from `units.preorder` and sometimes from `units.partial_order`.
+Therefore, `preorder.lift` and `partial_order.lift` are marked `@[reducible]`.
+-/
+library_note "reducible non-instances"

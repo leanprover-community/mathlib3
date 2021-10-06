@@ -90,7 +90,20 @@ variables (R)
 instance self : finite R R :=
 ⟨⟨{1}, by simpa only [finset.coe_singleton] using ideal.span_singleton_one⟩⟩
 
-variables {R}
+variable (M)
+
+lemma of_restrict_scalars_finite [module A M] [is_scalar_tower R A M] [hM : finite R M] :
+  finite A M :=
+begin
+  rw [finite_def, fg_def] at hM ⊢,
+  obtain ⟨S, hSfin, hSgen⟩ := hM,
+  refine ⟨S, hSfin, eq_top_iff.2 _⟩,
+  have := submodule.span_le_restrict_scalars R A M S,
+  rw hSgen at this,
+  exact this
+end
+
+variables {R M}
 
 instance prod [hM : finite R M] [hN : finite R N] : finite R (M × N) :=
 ⟨begin
@@ -142,6 +155,15 @@ protected lemma mv_polynomial (ι : Type*) [fintype ι] : finite_type R (mv_poly
 end⟩⟩
 end
 
+lemma of_restrict_scalars_finite_type [algebra A B] [is_scalar_tower R A B] [hB : finite_type R B] :
+  finite_type A B :=
+begin
+  obtain ⟨S, hS⟩ := hB.out,
+  refine ⟨⟨S, eq_top_iff.2 (λ b, _)⟩⟩,
+  convert (algebra.adjoin_le algebra.subset_adjoin :
+    adjoin R (S : set B) ≤  subalgebra.restrict_scalars R (adjoin A S)) (eq_top_iff.1 hS b)
+end
+
 variables {R A B}
 
 lemma of_surjective (hRA : finite_type R A) (f : A →ₐ[R] B) (hf : surjective f) :
@@ -169,14 +191,14 @@ begin
     intro x,
     have hrw : (↑s : set A) = (λ (x : A), x ∈ s.val) := rfl,
     rw [← set.mem_range, ← alg_hom.coe_range, ← adjoin_eq_range, ← hrw, hs],
-    exact mem_top },
+    exact set.mem_univ x },
   { rintro ⟨s, ⟨f, hsur⟩⟩,
     exact finite_type.of_surjective (finite_type.mv_polynomial R {x // x ∈ s}) f hsur }
 end
 
 /-- An algebra is finitely generated if and only if it is a quotient
 of a polynomial ring whose variables are indexed by a fintype. -/
-lemma iff_quotient_mv_polynomial' : (finite_type R A) ↔ ∃ (ι : Type u_2) [fintype ι]
+lemma iff_quotient_mv_polynomial' : (finite_type R A) ↔ ∃ (ι : Type u_2) (_ : fintype ι)
   (f : (mv_polynomial ι R) →ₐ[R] A), (surjective f) :=
 begin
   split,
@@ -212,6 +234,12 @@ begin
   apply (finite_type.iff_quotient_mv_polynomial'').2,
   exact ⟨n, f, hf.1⟩
 end
+
+instance prod [hA : finite_type R A] [hB : finite_type R B] : finite_type R (A × B) :=
+⟨begin
+  rw ← subalgebra.prod_top,
+  exact subalgebra.fg_prod hA.1 hB.1
+end⟩
 
 end finite_type
 
@@ -266,7 +294,7 @@ end
 
 /-- `R` is finitely presented as `R`-algebra. -/
 lemma self : finite_presentation R R :=
-equiv (mv_polynomial R pempty) (mv_polynomial.pempty_alg_equiv R)
+equiv (mv_polynomial R pempty) (mv_polynomial.is_empty_alg_equiv R pempty)
 
 variable {R}
 
@@ -279,7 +307,7 @@ begin
   refine ⟨n, (ideal.quotient.mkₐ R I).comp f, _, _⟩,
   { exact (ideal.quotient.mkₐ_surjective R I).comp hf.1 },
   { refine submodule.fg_ker_ring_hom_comp _ _ hf.2 _ hf.1,
-    rwa ideal.quotient.mkₐ_ker R I }
+    simp [h] }
 end
 
 /-- If `f : A →ₐ[R] B` is surjective with finitely generated kernel and `A` is finitely presented,
@@ -300,7 +328,7 @@ end
 
 /-- An algebra is finitely presented if and only if it is a quotient of a polynomial ring whose
 variables are indexed by a fintype by a finitely generated ideal. -/
-lemma iff_quotient_mv_polynomial' : finite_presentation R A ↔ ∃ (ι : Type u_2) [fintype ι]
+lemma iff_quotient_mv_polynomial' : finite_presentation R A ↔ ∃ (ι : Type u_2) (_ : fintype ι)
   (f : (_root_.mv_polynomial ι R) →ₐ[R] A), (surjective f) ∧ f.to_ring_hom.ker.fg :=
 begin
   split,
@@ -408,6 +436,16 @@ hf hg
 lemma finite_type {f : A →+* B} (hf : f.finite) : finite_type f :=
 @module.finite.finite_type _ _ _ _ f.to_algebra hf
 
+lemma of_comp_finite {f : A →+* B} {g : B →+* C} (h : (g.comp f).finite) : g.finite :=
+begin
+  letI := f.to_algebra,
+  letI := g.to_algebra,
+  letI := (g.comp f).to_algebra,
+  letI : is_scalar_tower A B C := restrict_scalars.is_scalar_tower A B C,
+  letI : module.finite A C := h,
+  exact module.finite.of_restrict_scalars_finite A B C
+end
+
 end finite
 
 namespace finite_type
@@ -439,6 +477,17 @@ hf hg
 
 lemma of_finite_presentation {f : A →+* B} (hf : f.finite_presentation) : f.finite_type :=
 @algebra.finite_type.of_finite_presentation A B _ _ f.to_algebra hf
+
+lemma of_comp_finite_type {f : A →+* B} {g : B →+* C} (h : (g.comp f).finite_type) :
+  g.finite_type :=
+begin
+  letI := f.to_algebra,
+  letI := g.to_algebra,
+  letI := (g.comp f).to_algebra,
+  letI : is_scalar_tower A B C := restrict_scalars.is_scalar_tower A B C,
+  letI : algebra.finite_type A C := h,
+  exact algebra.finite_type.of_restrict_scalars_finite_type A B C
+end
 
 end finite_type
 
@@ -509,6 +558,9 @@ ring_hom.finite.of_surjective f hf
 lemma finite_type {f : A →ₐ[R] B} (hf : f.finite) : finite_type f :=
 ring_hom.finite.finite_type hf
 
+lemma of_comp_finite {f : A →ₐ[R] B} {g : B →ₐ[R] C} (h : (g.comp f).finite) : g.finite :=
+ring_hom.finite.of_comp_finite h
+
 end finite
 
 namespace finite_type
@@ -532,6 +584,10 @@ ring_hom.finite_type.of_surjective f hf
 
 lemma of_finite_presentation {f : A →ₐ[R] B} (hf : f.finite_presentation) : f.finite_type :=
 ring_hom.finite_type.of_finite_presentation hf
+
+lemma of_comp_finite_type {f : A →ₐ[R] B} {g : B →ₐ[R] C} (h : (g.comp f).finite_type) :
+g.finite_type :=
+ring_hom.finite_type.of_comp_finite_type h
 
 end finite_type
 

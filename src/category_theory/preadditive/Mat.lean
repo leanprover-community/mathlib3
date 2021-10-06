@@ -175,16 +175,19 @@ instance has_finite_biproducts : has_finite_biproducts (Mat_ C) :=
         simp only [if_congr, if_true, dif_ctx_congr, finset.sum_dite_irrel, finset.mem_univ,
           finset.sum_const_zero, finset.sum_congr, finset.sum_dite_eq'],
         split_ifs with h h',
-        { substs h h', simp, },
-        { subst h, simp at h', simp [h'], },
+        { substs h h',
+          simp only [category_theory.eq_to_hom_refl, category_theory.Mat_.id_apply_self], },
+        { subst h,
+          simp only [id_apply_of_ne _ _ _ h', category_theory.eq_to_hom_refl], },
         { refl, },
       end, }
     begin
+      dsimp,
       funext i₁,
       dsimp at i₁ ⊢,
       rcases i₁ with ⟨j₁, i₁⟩,
       -- I'm not sure why we can't just `simp` by `finset.sum_apply`: something doesn't quite match
-      convert finset.sum_apply _ _ _,
+      convert finset.sum_apply _ _ _ using 1,
       { refl, },
       { apply heq_of_eq,
         symmetry,

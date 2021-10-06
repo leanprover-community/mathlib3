@@ -8,7 +8,7 @@ import linear_algebra.matrix.trace
 
 
 /-!
-# Trace of a matrix
+# Trace of a linear map
 
 This file defines the trace of a linear map.
 
@@ -37,7 +37,7 @@ variables (b : basis ι R M) (c : basis κ R M)
 /-- The trace of an endomorphism given a basis. -/
 def trace_aux :
   (M →ₗ[R] M) →ₗ[R] R :=
-(matrix.trace ι R R).comp $ linear_map.to_matrix b b
+(matrix.trace ι R R) ∘ₗ ↑(linear_map.to_matrix b b)
 
 -- Can't be `simp` because it would cause a loop.
 lemma trace_aux_def (b : basis ι R M) (f : M →ₗ[R] M) :
@@ -64,45 +64,36 @@ calc  matrix.trace ι R R (linear_map.to_matrix b b f)
 
 open_locale classical
 
-theorem trace_aux_reindex_range [nontrivial R] : trace_aux R b.reindex_range = trace_aux R b :=
-linear_map.ext $ λ f,
-begin
-  change ∑ i : set.range b, _ = ∑ i : ι, _, simp_rw [matrix.diag_apply], symmetry,
-  convert (equiv.of_injective _ b.injective).sum_comp _, ext i,
-  exact (linear_map.to_matrix_reindex_range b b f i i).symm
-end
-
 variables (R) (M)
 
 /-- Trace of an endomorphism independent of basis. -/
 def trace : (M →ₗ[R] M) →ₗ[R] R :=
-if H : ∃ (s : set M) (b : basis (s : set M) R M), s.finite
-then @trace_aux R _ _ _ _ _ _ (classical.choice H.some_spec.some_spec) H.some_spec.some
+if H : ∃ (s : finset M), nonempty (basis s R M)
+then trace_aux R H.some_spec.some
 else 0
 
 variables (R) {M}
 
 /-- Auxiliary lemma for `trace_eq_matrix_trace`. -/
-theorem trace_eq_matrix_trace_of_finite_set {s : set M} (b : basis s R M) (hs : fintype s)
+theorem trace_eq_matrix_trace_of_finset {s : finset M} (b : basis s R M)
   (f : M →ₗ[R] M) :
   trace R M f = matrix.trace s R R (linear_map.to_matrix b b f) :=
-have ∃ (s : set M) (b : basis (s : set M) R M), s.finite,
-from ⟨s, b, ⟨hs⟩⟩,
+have ∃ (s : finset M), nonempty (basis s R M),
+from ⟨s, ⟨b⟩⟩,
 by { rw [trace, dif_pos this, ← trace_aux_def], congr' 1, apply trace_aux_eq }
 
 theorem trace_eq_matrix_trace (f : M →ₗ[R] M) :
   trace R M f = matrix.trace ι R R (linear_map.to_matrix b b f) :=
 if hR : nontrivial R
 then by haveI := hR;
-        rw [trace_eq_matrix_trace_of_finite_set R b.reindex_range (set.fintype_range b),
-            ← trace_aux_def, ← trace_aux_def, trace_aux_reindex_range]
+        rw [trace_eq_matrix_trace_of_finset R b.reindex_finset_range,
+            ← trace_aux_def, ← trace_aux_def, trace_aux_eq R b]
 else @subsingleton.elim _ (not_nontrivial_iff_subsingleton.mp hR) _ _
 
 theorem trace_mul_comm (f g : M →ₗ[R] M) :
   trace R M (f * g) = trace R M (g * f) :=
-if H : ∃ (s : set M) (b : basis (s : set M) R M), s.finite then let ⟨s, b, hs⟩ := H in
-by { haveI := classical.choice hs,
-     simp_rw [trace_eq_matrix_trace R b, linear_map.to_matrix_mul], apply matrix.trace_mul_comm }
+if H : ∃ (s : finset M), nonempty (basis s R M) then let ⟨s, ⟨b⟩⟩ := H in
+by { simp_rw [trace_eq_matrix_trace R b, linear_map.to_matrix_mul], apply matrix.trace_mul_comm }
 else by rw [trace, dif_neg H, linear_map.zero_apply, linear_map.zero_apply]
 
 end linear_map

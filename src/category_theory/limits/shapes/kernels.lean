@@ -177,6 +177,34 @@ end⟩
 def kernel.lift' {W : C} (k : W ⟶ X) (h : k ≫ f = 0) : {l : W ⟶ kernel f // l ≫ kernel.ι f = k} :=
 ⟨kernel.lift f k h, kernel.lift_ι _ _ _⟩
 
+/-- A commuting square induces a morphism of kernels. -/
+abbreviation kernel.map {X' Y' : C} (f' : X' ⟶ Y') [has_kernel f']
+  (p : X ⟶ X') (q : Y ⟶ Y') (w : f ≫ q = p ≫ f') : kernel f ⟶ kernel f' :=
+kernel.lift f' (kernel.ι f ≫ p) (by simp [←w])
+
+/--
+Given a commutative diagram
+    X --f--> Y --g--> Z
+    |        |        |
+    |        |        |
+    v        v        v
+    X' -f'-> Y' -g'-> Z'
+with horizontal arrows composing to zero,
+then we obtain a commutative square
+   X ---> kernel g
+   |         |
+   |         | kernel.map
+   |         |
+   v         v
+   X' --> kernel g'
+-/
+lemma kernel.lift_map {X Y Z X' Y' Z' : C}
+  (f : X ⟶ Y) (g : Y ⟶ Z) [has_kernel g] (w : f ≫ g = 0)
+  (f' : X' ⟶ Y') (g' : Y' ⟶ Z') [has_kernel g'] (w' : f' ≫ g' = 0)
+  (p : X ⟶ X') (q : Y ⟶ Y') (r : Z ⟶ Z') (h₁ : f ≫ q = p ≫ f') (h₂ : g ≫ r = q ≫ g') :
+  kernel.lift g f w ≫ kernel.map g g' q r h₂ = p ≫ kernel.lift g' f' w' :=
+by { ext, simp [h₁], }
+
 /-- Every kernel of the zero morphism is an isomorphism -/
 instance kernel.ι_zero_is_iso : is_iso (kernel.ι (0 : X ⟶ Y)) :=
 equalizer.ι_of_self _
@@ -429,6 +457,34 @@ end⟩
 def cokernel.desc' {W : C} (k : Y ⟶ W) (h : f ≫ k = 0) :
   {l : cokernel f ⟶ W // cokernel.π f ≫ l = k} :=
 ⟨cokernel.desc f k h, cokernel.π_desc _ _ _⟩
+
+/-- A commuting square induces a morphism of cokernels. -/
+abbreviation cokernel.map {X' Y' : C} (f' : X' ⟶ Y') [has_cokernel f']
+  (p : X ⟶ X') (q : Y ⟶ Y') (w : f ≫ q = p ≫ f') : cokernel f ⟶ cokernel f' :=
+cokernel.desc f (q ≫ cokernel.π f') (by simp [reassoc_of w])
+
+/--
+Given a commutative diagram
+    X --f--> Y --g--> Z
+    |        |        |
+    |        |        |
+    v        v        v
+    X' -f'-> Y' -g'-> Z'
+with horizontal arrows composing to zero,
+then we obtain a commutative square
+   cokernel f ---> Z
+   |               |
+   | cokernel.map  |
+   |               |
+   v               v
+   cokernel f' --> Z'
+-/
+lemma cokernel.map_desc {X Y Z X' Y' Z' : C}
+  (f : X ⟶ Y) [has_cokernel f] (g : Y ⟶ Z) (w : f ≫ g = 0)
+  (f' : X' ⟶ Y') [has_cokernel f'] (g' : Y' ⟶ Z') (w' : f' ≫ g' = 0)
+  (p : X ⟶ X') (q : Y ⟶ Y') (r : Z ⟶ Z') (h₁ : f ≫ q = p ≫ f') (h₂ : g ≫ r = q ≫ g') :
+  cokernel.map f f' p q h₁ ≫ cokernel.desc f' g' w' = cokernel.desc f g w ≫ r :=
+by { ext, simp [h₂], }
 
 /-- The cokernel of the zero morphism is an isomorphism -/
 instance cokernel.π_zero_is_iso :

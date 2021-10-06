@@ -5,7 +5,7 @@ Authors: Damiano Testa
 -/
 import data.zmod.basic
 import ring_theory.subsemiring
-import algebra.ordered_monoid
+import algebra.order.monoid
 /-!
 
 A `canonically_ordered_comm_semiring` with two different elements `a` and `b` such that
@@ -222,9 +222,6 @@ instance order_bot : order_bot L :=
   bot_le := bot_le,
   ..(infer_instance : partial_order L) }
 
-lemma lt_of_add_lt_add_left : ∀ (a b c : L), a + b < a + c → b < c :=
-λ (a : L) {b c : L}, (add_lt_add_iff_left a).mp
-
 lemma le_iff_exists_add : ∀ (a b : L), a ≤ b ↔ ∃ (c : L), b = a + c :=
 begin
   rintros ⟨⟨an, a2⟩, ha⟩ ⟨⟨bn, b2⟩, hb⟩,
@@ -236,7 +233,7 @@ begin
       { rw [ne.def, prod.mk.inj_iff, not_and_distrib],
         exact or.inl (ne_of_gt (nat.sub_pos_of_lt h)) },
       { congr,
-        { exact (nat.add_sub_cancel' h.le).symm },
+        { exact (add_sub_cancel_of_le h.le).symm },
         { change b2 = a2 + (b2 + a2),
           rw [add_comm b2, ← add_assoc, add_self_zmod_2, zero_add] } } } },
   { rcases h with ⟨⟨⟨c, c2⟩, hc⟩, abc⟩,
@@ -271,8 +268,7 @@ begin
 end
 
 instance can : canonically_ordered_comm_semiring L :=
-{ lt_of_add_lt_add_left := lt_of_add_lt_add_left,
-  le_iff_exists_add := le_iff_exists_add,
+{ le_iff_exists_add := le_iff_exists_add,
   eq_zero_or_eq_zero_of_mul_eq_zero := eq_zero_or_eq_zero_of_mul_eq_zero,
   ..(infer_instance : order_bot L),
   ..(infer_instance : ordered_comm_semiring L) }

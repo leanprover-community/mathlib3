@@ -100,7 +100,7 @@ calc
 lemma neg_div (a b : K) : (-b) / a = - (b / a) :=
 by rw [neg_eq_neg_one_mul, mul_div_assoc, ← neg_eq_neg_one_mul]
 
-@[field_simps] lemma neg_div' {K : Type*} [division_ring K] (a b : K) : - (b / a) = (-b) / a :=
+@[field_simps] lemma neg_div' (a b : K) : - (b / a) = (-b) / a :=
 by simp [neg_div]
 
 lemma neg_div_neg_eq (a b : K) : (-a) / (-b) = a / b :=
@@ -300,7 +300,7 @@ lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 := f.to_monoid_with_zero_hom.map_ne_ze
 
 variables (x y)
 
-lemma map_inv : g x⁻¹ = (g x)⁻¹ := g.to_monoid_with_zero_hom.map_inv' x
+lemma map_inv : g x⁻¹ = (g x)⁻¹ := g.to_monoid_with_zero_hom.map_inv x
 
 lemma map_div : g (x / y) = g x / g y := g.to_monoid_with_zero_hom.map_div x y
 
@@ -326,7 +326,9 @@ noncomputable def field_of_is_unit_or_eq_zero [hR : comm_ring R]
 
 end noncomputable_defs
 
-/-- Pullback a `division_ring` along an injective function. -/
+/-- Pullback a `division_ring` along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.injective.division_ring [division_ring K] {K'}
   [has_zero K'] [has_mul K'] [has_add K'] [has_neg K'] [has_sub K'] [has_one K'] [has_inv K']
   [has_div K']
@@ -338,7 +340,9 @@ protected def function.injective.division_ring [division_ring K] {K'}
 { .. hf.group_with_zero f zero one mul inv div,
   .. hf.ring f zero one add mul neg sub }
 
-/-- Pullback a `field` along an injective function. -/
+/-- Pullback a `field` along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.injective.field [field K] {K'}
   [has_zero K'] [has_mul K'] [has_add K'] [has_neg K'] [has_sub K'] [has_one K'] [has_inv K']
   [has_div K']

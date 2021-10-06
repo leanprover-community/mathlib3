@@ -156,16 +156,16 @@ begin
       have dv := @gcd_abs_dvd_left,
       have := int.eq_mul_of_div_eq_right dv ha,
       rw ← int.mul_div_assoc _ dv at this,
-      exact int.eq_mul_of_div_eq_left (dvd_mul_of_dvd_right dv _) this.symm },
+      exact int.eq_mul_of_div_eq_left (dv.mul_left _) this.symm },
     have hb, {
       have dv := λ {a b}, nat.gcd_dvd_right (int.nat_abs a) b,
       have := nat.eq_mul_of_div_eq_right dv hb,
       rw ← nat.mul_div_assoc _ dv at this,
-      exact nat.eq_mul_of_div_eq_left (dvd_mul_of_dvd_right dv _) this.symm },
+      exact nat.eq_mul_of_div_eq_left (dv.mul_left _) this.symm },
     have m0 : (a.nat_abs.gcd b * c.nat_abs.gcd d : ℤ) ≠ 0, {
       refine int.coe_nat_ne_zero.2 (ne_of_gt _),
       apply mul_pos; apply nat.gcd_pos_of_pos_right; assumption },
-    apply mul_right_cancel' m0,
+    apply mul_right_cancel₀ m0,
     simpa [mul_comm, mul_left_comm] using
       congr (congr_arg (*) ha.symm) (congr_arg coe hb) },
   { suffices : ∀ a c, a * d = c * b →
@@ -743,6 +743,28 @@ begin
   simp only [mul_comm b, nat.mul_div_assoc c (dvd_refl b), nat.cast_mul, mul_div_assoc,
     coe_nat_div_self]
 end
+
+lemma inv_coe_int_num {a : ℤ} (ha0 : 0 < a) : (a : ℚ)⁻¹.num = 1 :=
+begin
+  rw [rat.inv_def', rat.coe_int_num, rat.coe_int_denom, nat.cast_one, ←int.cast_one],
+  apply num_div_eq_of_coprime ha0,
+  rw int.nat_abs_one,
+  exact nat.coprime_one_left _,
+end
+
+lemma inv_coe_nat_num {a : ℕ} (ha0 : 0 < a) : (a : ℚ)⁻¹.num = 1 :=
+inv_coe_int_num (by exact_mod_cast ha0 : 0 < (a : ℤ))
+
+lemma inv_coe_int_denom {a : ℤ} (ha0 : 0 < a) : ((a : ℚ)⁻¹.denom : ℤ) = a :=
+begin
+  rw [rat.inv_def', rat.coe_int_num, rat.coe_int_denom, nat.cast_one, ←int.cast_one],
+  apply denom_div_eq_of_coprime ha0,
+  rw int.nat_abs_one,
+  exact nat.coprime_one_left _,
+end
+
+lemma inv_coe_nat_denom {a : ℕ} (ha0 : 0 < a) : (a : ℚ)⁻¹.denom = a :=
+by exact_mod_cast inv_coe_int_denom (by exact_mod_cast ha0 : 0 < (a : ℤ))
 
 protected lemma «forall» {p : ℚ → Prop} : (∀ r, p r) ↔ ∀ a b : ℤ, p (a / b) :=
 ⟨λ h _ _, h _,

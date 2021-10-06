@@ -91,10 +91,23 @@ instance : set_like (subfield K) K :=
 @[simp]
 lemma mem_carrier {s : subfield K} {x : K} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
 
+@[simp]
+lemma mem_mk {S : set K} {x : K} (h₁ h₂ h₃ h₄ h₅ h₆) :
+  x ∈ (⟨S, h₁, h₂, h₃, h₄, h₅, h₆⟩ : subfield K) ↔ x ∈ S := iff.rfl
+
+@[simp] lemma coe_set_mk (S : set K) (h₁ h₂ h₃ h₄ h₅ h₆) :
+  ((⟨S, h₁, h₂, h₃, h₄, h₅, h₆⟩ : subfield K) : set K) = S := rfl
+
+@[simp]
+lemma mk_le_mk {S S' : set K} (h₁ h₂ h₃  h₄ h₅ h₆ h₁' h₂' h₃'  h₄' h₅' h₆') :
+  (⟨S, h₁, h₂, h₃, h₄, h₅, h₆⟩ : subfield K) ≤ (⟨S', h₁', h₂', h₃', h₄', h₅', h₆'⟩ : subfield K) ↔
+  S ⊆ S' :=
+iff.rfl
+
 /-- Two subfields are equal if they have the same elements. -/
 @[ext] theorem ext {S T : subfield K} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
 
-/-- Copy of a submodule with a new `carrier` equal to the old one. Useful to fix definitional
+/-- Copy of a subfield with a new `carrier` equal to the old one. Useful to fix definitional
 equalities. -/
 protected def copy (S : subfield K) (s : set K) (hs : s = ↑S) : subfield K :=
 { carrier := s,
@@ -103,9 +116,6 @@ protected def copy (S : subfield K) (s : set K) (hs : s = ↑S) : subfield K :=
 
 @[simp] lemma coe_to_subring (s : subfield K) : (s.to_subring : set K) = s :=
 rfl
-
-@[simp] lemma mem_mk (s : set K) (ho hm hz ha hn hi) (x : K) :
-  x ∈ subfield.mk s ho hm hz ha hn hi ↔ x ∈ s := iff.rfl
 
 @[simp] lemma mem_to_subring (s : subfield K) (x : K) :
   x ∈ s.to_subring ↔ x ∈ s := iff.rfl
@@ -215,6 +225,9 @@ instance to_algebra : algebra s K := ring_hom.to_algebra s.subtype
 
 @[simp] theorem coe_subtype : ⇑s.subtype = coe := rfl
 
+lemma to_subring.subtype_eq_subtype (F : Type*) [field F] (S : subfield F) :
+  S.to_subring.subtype = S.subtype := rfl
+
 /-! # Partial order -/
 
 variables (s t)
@@ -299,6 +312,12 @@ by { ext, simp }
 
 lemma map_field_range : f.field_range.map g = (g.comp f).field_range :=
 by simpa only [field_range_eq_map] using (⊤ : subfield K).map_map g f
+
+/-- The range of a morphism of fields is a fintype, if the domain is a fintype.
+
+Note that this instance can cause a diamond with `subtype.fintype` if `L` is also a fintype.-/
+instance fintype_field_range [fintype K] [decidable_eq L] (f : K →+* L) : fintype f.field_range :=
+set.fintype_range f
 
 end ring_hom
 

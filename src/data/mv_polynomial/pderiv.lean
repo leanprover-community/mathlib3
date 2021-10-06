@@ -62,7 +62,7 @@ def pderiv (i : σ) : mv_polynomial σ R →ₗ[R] mv_polynomial σ R :=
   map_smul' := begin
     intros c x,
     rw [sum_smul_index', smul_sum],
-    { simp_rw [monomial, smul_single, smul_eq_mul, mul_assoc] },
+    { dsimp, simp_rw [monomial, smul_single, smul_eq_mul, mul_assoc] },
     { intros s,
       simp only [monomial_zero, zero_mul] }
   end,
@@ -93,7 +93,8 @@ begin
   simp [mem_support_not_mem_vars_zero H h],
 end
 
-lemma pderiv_X {i j : σ} : pderiv i (X j : mv_polynomial σ R) = if i = j then 1 else 0 :=
+lemma pderiv_X [decidable_eq σ] {i j : σ} :
+  pderiv i (X j : mv_polynomial σ R) = if i = j then 1 else 0 :=
 begin
   dsimp [pderiv],
   erw finsupp.sum_single_index,

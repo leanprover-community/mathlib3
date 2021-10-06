@@ -20,11 +20,11 @@ it defines functions:
 * `re_clm`
 * `im_clm`
 * `of_real_clm`
-* `conj_clm`
+* `conj_cle`
 
 They are bundled versions of the real part, the imaginary part, the embedding of `ℝ` in `ℂ`, and
 the complex conjugate as continuous `ℝ`-linear maps. The last two are also bundled as linear
-isometries in `of_real_li` and `conj_li`.
+isometries in `of_real_li` and `conj_lie`.
 
 We also register the fact that `ℂ` is an `is_R_or_C` field.
 -/
@@ -54,24 +54,45 @@ instance {R : Type*} [normed_field R] [normed_algebra R ℝ] : normed_algebra R 
 { norm_algebra_map_eq := λ x, (abs_of_real $ algebra_map R ℝ x).trans (norm_algebra_map_eq ℝ x),
   to_algebra := complex.algebra }
 
+/-- The module structure from `module.complex_to_real` is a normed space. -/
+@[priority 900] -- see Note [lower instance priority]
+instance _root_.normed_space.complex_to_real {E : Type*} [normed_group E] [normed_space ℂ E] :
+  normed_space ℝ E :=
+normed_space.restrict_scalars ℝ ℂ E
+
 @[simp] lemma norm_eq_abs (z : ℂ) : ∥z∥ = abs z := rfl
 
 lemma dist_eq (z w : ℂ) : dist z w = abs (z - w) := rfl
 
 @[simp] lemma norm_real (r : ℝ) : ∥(r : ℂ)∥ = ∥r∥ := abs_of_real _
 
-@[simp] lemma norm_rat (r : ℚ) : ∥(r : ℂ)∥ = _root_.abs (r : ℝ) :=
-suffices ∥((r : ℝ) : ℂ)∥ = _root_.abs r, by simpa,
+@[simp] lemma norm_rat (r : ℚ) : ∥(r : ℂ)∥ = |(r : ℝ)| :=
+suffices ∥((r : ℝ) : ℂ)∥ = |r|, by simpa,
 by rw [norm_real, real.norm_eq_abs]
 
 @[simp] lemma norm_nat (n : ℕ) : ∥(n : ℂ)∥ = n := abs_of_nat _
 
-@[simp] lemma norm_int {n : ℤ} : ∥(n : ℂ)∥ = _root_.abs n :=
-suffices ∥((n : ℝ) : ℂ)∥ = _root_.abs n, by simpa,
+@[simp] lemma norm_int {n : ℤ} : ∥(n : ℂ)∥ = |n| :=
+suffices ∥((n : ℝ) : ℂ)∥ = |n|, by simpa,
 by rw [norm_real, real.norm_eq_abs]
 
 lemma norm_int_of_nonneg {n : ℤ} (hn : 0 ≤ n) : ∥(n : ℂ)∥ = n :=
 by rw [norm_int, _root_.abs_of_nonneg]; exact int.cast_nonneg.2 hn
+
+@[continuity] lemma continuous_abs : continuous abs := continuous_norm
+
+@[continuity] lemma continuous_norm_sq : continuous norm_sq :=
+by simpa [← norm_sq_eq_abs] using continuous_abs.pow 2
+
+/-- The `abs` function on `ℂ` is proper. -/
+lemma tendsto_abs_cocompact_at_top : filter.tendsto abs (filter.cocompact ℂ) filter.at_top :=
+tendsto_norm_cocompact_at_top
+
+/-- The `norm_sq` function on `ℂ` is proper. -/
+lemma tendsto_norm_sq_cocompact_at_top :
+  filter.tendsto norm_sq (filter.cocompact ℂ) filter.at_top :=
+by simpa [mul_self_abs] using
+  tendsto_abs_cocompact_at_top.at_top_mul_at_top tendsto_abs_cocompact_at_top
 
 open continuous_linear_map
 
@@ -103,37 +124,47 @@ le_antisymm (linear_map.mk_continuous_norm_le _ zero_le_one _) $
 calc 1 = ∥im_clm I∥ : by simp
    ... ≤ ∥im_clm∥ : unit_le_op_norm _ _ (by simp)
 
-/-- The complex-conjugation function from `ℂ` to itself is an isometric linear map. -/
-def conj_li : ℂ →ₗᵢ[ℝ] ℂ := ⟨conj_lm, λ x, by simp⟩
+lemma restrict_scalars_one_smul_right' {E : Type*} [normed_group E] [normed_space ℂ E] (x : E) :
+  continuous_linear_map.restrict_scalars ℝ ((1 : ℂ →L[ℂ] ℂ).smul_right x : ℂ →L[ℂ] E) =
+    re_clm.smul_right x + I • im_clm.smul_right x :=
+by { ext ⟨a, b⟩, simp [mk_eq_add_mul_I, add_smul, mul_smul, smul_comm I] }
 
-@[simp] lemma conj_li_apply (z : ℂ) : conj_li z = conj_lm z := rfl
+lemma restrict_scalars_one_smul_right (x : ℂ) :
+  continuous_linear_map.restrict_scalars ℝ ((1 : ℂ →L[ℂ] ℂ).smul_right x : ℂ →L[ℂ] ℂ) = x • 1 :=
+by { ext1 z, dsimp, apply mul_comm }
 
-/-- Continuous linear map version of the conj function, from `ℂ` to `ℂ`. -/
-def conj_clm : ℂ →L[ℝ] ℂ := conj_li.to_continuous_linear_map
+/-- The complex-conjugation function from `ℂ` to itself is an isometric linear equivalence. -/
+def conj_lie : ℂ ≃ₗᵢ[ℝ] ℂ := ⟨conj_ae.to_linear_equiv, abs_conj⟩
 
-lemma isometry_conj : isometry (conj : ℂ → ℂ) := conj_li.isometry
+@[simp] lemma conj_lie_apply (z : ℂ) : conj_lie z = conj z := rfl
 
-@[continuity] lemma continuous_conj : continuous conj := conj_clm.continuous
+lemma isometry_conj : isometry (conj : ℂ → ℂ) := conj_lie.isometry
 
-@[simp] lemma conj_clm_coe : (coe (conj_clm) : ℂ →ₗ[ℝ] ℂ) = conj_lm := rfl
+@[continuity] lemma continuous_conj : continuous conj := conj_lie.continuous
 
-@[simp] lemma conj_clm_apply (z : ℂ) : (conj_clm : ℂ → ℂ) z = z.conj := rfl
+/-- Continuous linear equiv version of the conj function, from `ℂ` to `ℂ`. -/
+def conj_cle : ℂ ≃L[ℝ] ℂ := conj_lie
 
-@[simp] lemma conj_clm_norm : ∥conj_clm∥ = 1 := conj_li.norm_to_continuous_linear_map
+@[simp] lemma conj_cle_coe : conj_cle.to_linear_equiv = conj_ae.to_linear_equiv := rfl
+
+@[simp] lemma conj_cle_apply (z : ℂ) : conj_cle z = z.conj := rfl
+
+@[simp] lemma conj_cle_norm : ∥(conj_cle : ℂ →L[ℝ] ℂ)∥ = 1 :=
+conj_lie.to_linear_isometry.norm_to_continuous_linear_map
 
 /-- Linear isometry version of the canonical embedding of `ℝ` in `ℂ`. -/
-def of_real_li : ℝ →ₗᵢ[ℝ] ℂ := ⟨of_real_lm, λ x, by simp⟩
+def of_real_li : ℝ →ₗᵢ[ℝ] ℂ := ⟨of_real_am.to_linear_map, norm_real⟩
+
+lemma isometry_of_real : isometry (coe : ℝ → ℂ) := of_real_li.isometry
+
+@[continuity] lemma continuous_of_real : continuous (coe : ℝ → ℂ) := of_real_li.continuous
 
 /-- Continuous linear map version of the canonical embedding of `ℝ` in `ℂ`. -/
 def of_real_clm : ℝ →L[ℝ] ℂ := of_real_li.to_continuous_linear_map
 
-lemma isometry_of_real : isometry (coe : ℝ → ℂ) := of_real_li.isometry
+@[simp] lemma of_real_clm_coe : (of_real_clm : ℝ →ₗ[ℝ] ℂ) = of_real_am.to_linear_map := rfl
 
-@[continuity] lemma continuous_of_real : continuous (coe : ℝ → ℂ) := isometry_of_real.continuous
-
-@[simp] lemma of_real_clm_coe : (coe (of_real_clm) : ℝ →ₗ[ℝ] ℂ) = of_real_lm := rfl
-
-@[simp] lemma of_real_clm_apply (x : ℝ) : (of_real_clm : ℝ → ℂ) x = x := rfl
+@[simp] lemma of_real_clm_apply (x : ℝ) : of_real_clm x = x := rfl
 
 @[simp] lemma of_real_clm_norm : ∥of_real_clm∥ = 1 := of_real_li.norm_to_continuous_linear_map
 

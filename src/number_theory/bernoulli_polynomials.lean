@@ -3,7 +3,7 @@ Copyright (c) 2021 Ashvni Narayanan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ashvni Narayanan
 -/
-
+import data.nat.choose.cast
 import number_theory.bernoulli
 
 /-!
@@ -100,9 +100,9 @@ begin
   simp_rw [polynomial.smul_monomial, mul_comm (bernoulli _) _, smul_eq_mul, ←mul_assoc],
   conv_lhs { apply_congr, skip, conv
     { apply_congr, skip,
-      rw [choose_mul ((nat.le_sub_left_iff_add_le (mem_range_le H)).1 (mem_range_le H_1))
-        (le.intro rfl), add_comm x x_1, nat.add_sub_cancel, mul_assoc, mul_comm, ←smul_eq_mul,
-        ←polynomial.smul_monomial], },
+      rw [← nat.cast_mul, choose_mul ((le_sub_iff_left $ mem_range_le H).1
+        $ mem_range_le H_1) (le.intro rfl), nat.cast_mul, add_comm x x_1, nat.add_sub_cancel,
+        mul_assoc, mul_comm, ←smul_eq_mul, ←polynomial.smul_monomial] },
     rw [←sum_smul], },
   rw [sum_range_succ_comm],
   simp only [add_right_eq_self, cast_succ, mul_one, cast_one, cast_add, nat.add_sub_cancel_left,
@@ -112,8 +112,7 @@ begin
   have f : ∀ x ∈ range n, ¬ n + 1 - x = 1,
   { rintros x H, rw [mem_range] at H,
     rw [eq_comm],
-    exact ne_of_lt (nat.lt_of_lt_of_le one_lt_two (nat.le_sub_left_of_add_le (succ_le_succ H))),
-  },
+    exact ne_of_lt (nat.lt_of_lt_of_le one_lt_two (le_sub_of_add_le_left' (succ_le_succ H))) },
   rw [sum_bernoulli],
   have g : (ite (n + 1 - x = 1) (1 : ℚ) 0) = 0,
     { simp only [ite_eq_right_iff, one_ne_zero],
@@ -164,16 +163,15 @@ begin
   -- The rest is just trivialities, hampered by the fact that we're coercing
   -- factorials and binomial coefficients between ℕ and ℚ and A.
   intros i hi,
-  -- NB prime.choose_eq_factorial_div_factorial' is in the wrong namespace
   -- deal with coefficients of e^X-1
-  simp only [choose_eq_factorial_div_factorial' (mem_range_le hi), coeff_mk,
+  simp only [nat.cast_choose ℚ (mem_range_le hi), coeff_mk,
     if_neg (mem_range_sub_ne_zero hi), one_div, alg_hom.map_smul, coeff_one, units.coe_mk,
     coeff_exp, sub_zero, linear_map.map_sub, algebra.smul_mul_assoc, algebra.smul_def,
     mul_right_comm _ ((aeval t) _), ←mul_assoc, ← ring_hom.map_mul, succ_eq_add_one],
   -- finally cancel the Bernoulli polynomial and the algebra_map
   congr',
   apply congr_arg,
-  rw [mul_assoc, div_eq_mul_inv, ← mul_inv'],
+  rw [mul_assoc, div_eq_mul_inv, ← mul_inv₀],
 end
 
 end bernoulli_poly

@@ -158,11 +158,11 @@ if and only if `1 < p`. -/
 @[simp] lemma real.summable_nat_rpow_inv {p : ℝ} : summable (λ n, (n ^ p)⁻¹ : ℕ → ℝ) ↔ 1 < p :=
 begin
   cases le_or_lt 0 p with hp hp,
-  /- Cauchy condensation test applies only to monotonically decreasing sequences, so we consider the
+  /- Cauchy condensation test applies only to antitone sequences, so we consider the
   cases `0 ≤ p` and `p < 0` separately. -/
   { rw ← summable_condensed_iff_of_nonneg,
     { simp_rw [nat.cast_pow, nat.cast_two, ← rpow_nat_cast, ← rpow_mul zero_lt_two.le, mul_comm _ p,
-        rpow_mul zero_lt_two.le, rpow_nat_cast, ← inv_pow', ← mul_pow,
+        rpow_mul zero_lt_two.le, rpow_nat_cast, ← inv_pow₀, ← mul_pow,
         summable_geometric_iff_norm_lt_1],
       nth_rewrite 0 [← rpow_one 2],
       rw [← division_def, ← rpow_sub zero_lt_two, norm_eq_abs,
@@ -211,7 +211,7 @@ by simpa
 lemma real.not_summable_one_div_nat_cast : ¬summable (λ n, 1 / n : ℕ → ℝ) :=
 by simpa only [inv_eq_one_div] using real.not_summable_nat_cast_inv
 
-/-- Harmonic series diverges. -/
+/-- **Divergence of the Harmonic Series** -/
 lemma real.tendsto_sum_range_one_div_nat_succ_at_top :
   tendsto (λ n, ∑ i in finset.range n, (1 / (i + 1) : ℝ)) at_top at_top :=
 begin

@@ -35,16 +35,24 @@ The following linters are run by default:
 8.  `impossible_instance` checks for instances that can never fire.
 9.  `incorrect_type_class_argument` checks for arguments in [square brackets] that are not classes.
 10. `dangerous_instance` checks for instances that generate type-class problems with metavariables.
-11. `fails_quickly` tests that type-class inference ends (relatively) quickly when applied to variables.
+11. `fails_quickly` tests that type-class inference ends (relatively) quickly when applied to
+    variables.
 12. `has_coe_variable` tests that there are no instances of type `has_coe α t` for a variable `α`.
-13. `inhabited_nonempty` checks for `inhabited` instance arguments that should be changed to `nonempty`.
+13. `inhabited_nonempty` checks for `inhabited` instance arguments that should be changed to
+    `nonempty`.
 14. `simp_nf` checks that the left-hand side of simp lemmas is in simp-normal form.
-15. `simp_var_head` checks that there are no variables as head symbol of left-hand sides of simp lemmas.
+15. `simp_var_head` checks that there are no variables as head symbol of left-hand sides of
+    simp lemmas.
 16. `simp_comm` checks that no commutativity lemmas (such as `add_comm`) are marked simp.
-17. `decidable_classical` checks for `decidable` hypotheses that are used in the proof of a proposition but not
-    in the statement, and could be removed using `classical`. Theorems in the `decidable` namespace are exempt.
-18. `has_coe_to_fun` checks that every type that coerces to a function has a direct `has_coe_to_fun` instance.
+17. `decidable_classical` checks for `decidable` hypotheses that are used in the proof of a
+    proposition but not in the statement, and could be removed using `classical`.
+    Theorems in the `decidable` namespace are exempt.
+18. `has_coe_to_fun` checks that every type that coerces to a function has a direct
+    `has_coe_to_fun` instance.
 19. `check_type` checks that the statement of a declaration is well-typed.
+20. `check_univs` checks that there are no bad `max u v` universe levels.
+21. `syn_taut` checks that declarations are not syntactic tautologies.
+22. `check_reducibility` checks whether non-instances with a class as type are reducible.
 
 Another linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
 This is not run by default.

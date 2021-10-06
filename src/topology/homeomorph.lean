@@ -5,6 +5,25 @@ Authors: Johannes Hölzl, Patrick Massot, Sébastien Gouëzel, Zhouhang Zhou, Re
 -/
 import topology.dense_embedding
 
+/-!
+# Homeomorphisms
+
+This file defines homeomorphisms between two topological spaces. They are bijections with both
+directions continuous. We denote homeomorphisms with the notation `≃ₜ`.
+
+# Main definitions
+
+* `homeomorph α β`: The type of homeomorphisms from `α` to `β`.
+  This type can be denoted using the following notation: `α ≃ₜ β`.
+
+# Main results
+
+* Pretty much every topological property is preserved under homeomorphisms.
+* `homeomorph.homeomorph_of_continuous_open`: A continuous bijection that is
+  an open map is a homeomorphism.
+
+-/
+
 open set filter
 open_locale topological_space
 
@@ -151,6 +170,22 @@ h.embedding.is_compact_iff_is_compact_image.symm
 lemma compact_preimage {s : set β} (h : α ≃ₜ β) : is_compact (h ⁻¹' s) ↔ is_compact s :=
 by rw ← image_symm; exact h.symm.compact_image
 
+lemma compact_space [compact_space α] (h : α ≃ₜ β) : compact_space β :=
+{ compact_univ := by { rw [← image_univ_of_surjective h.surjective, h.compact_image],
+    apply compact_space.compact_univ } }
+
+lemma t2_space [t2_space α] (h : α ≃ₜ β) : t2_space β :=
+{ t2 :=
+  begin
+    intros x y hxy,
+    obtain ⟨u, v, hu, hv, hxu, hyv, huv⟩ := t2_separation (h.symm.injective.ne hxy),
+    refine ⟨h.symm ⁻¹' u, h.symm ⁻¹' v,
+      h.symm.continuous.is_open_preimage _ hu,
+      h.symm.continuous.is_open_preimage _ hv,
+      hxu, hyv, _⟩,
+    rw [← preimage_inter, huv, preimage_empty],
+  end }
+
 protected lemma dense_embedding (h : α ≃ₜ β) : dense_embedding h :=
 { dense   := h.surjective.dense_range,
   .. h.embedding }
@@ -215,6 +250,24 @@ h.inducing.continuous_iff.symm
 @[simp] lemma comp_continuous_iff' (h : α ≃ₜ β) {f : β → γ} :
   continuous (f ∘ h) ↔ continuous f :=
 h.quotient_map.continuous_iff.symm
+
+@[simp] lemma comp_is_open_map_iff (h : α ≃ₜ β) {f : γ → α} :
+  is_open_map (h ∘ f) ↔ is_open_map f :=
+begin
+  refine ⟨_, λ hf, h.is_open_map.comp hf⟩,
+  intros hf,
+  rw [← function.comp.left_id f, ← h.symm_comp_self, function.comp.assoc],
+  exact h.symm.is_open_map.comp hf,
+end
+
+@[simp] lemma comp_is_open_map_iff' (h : α ≃ₜ β) {f : β → γ} :
+  is_open_map (f ∘ h) ↔ is_open_map f :=
+begin
+  refine ⟨_, λ hf, hf.comp h.is_open_map⟩,
+  intros hf,
+  rw [← function.comp.right_id f, ← h.self_comp_symm, ← function.comp.assoc],
+  exact hf.comp h.symm.is_open_map,
+end
 
 /-- If two sets are equal, then they are homeomorphic. -/
 def set_congr {s t : set α} (h : s = t) : s ≃ₜ t :=

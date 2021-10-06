@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 -/
 import algebra.big_operators.order
 import data.mv_polynomial.monad
-import data.set.disjointed
+import data.set.pairwise
 
 /-!
 # Degrees and variables of polynomials
@@ -103,7 +103,7 @@ lemma degrees_X' (n : σ) : degrees (X n : mv_polynomial σ R) ≤ {n} :=
 le_trans (degrees_monomial _ _) $ le_of_eq $ to_multiset_single _ _
 
 @[simp] lemma degrees_X [nontrivial R] (n : σ) : degrees (X n : mv_polynomial σ R) = {n} :=
-(degrees_monomial_eq _ _ one_ne_zero).trans (to_multiset_single _ _)
+(degrees_monomial_eq _ (1 : R) one_ne_zero).trans (to_multiset_single _ _)
 
 @[simp] lemma degrees_zero : degrees (0 : mv_polynomial σ R) = 0 :=
 by { rw ← C_0, exact degrees_C 0 }
@@ -115,8 +115,8 @@ begin
   refine finset.sup_le (assume b hb, _),
   have := finsupp.support_add hb, rw finset.mem_union at this,
   cases this,
-  { exact le_sup_left_of_le (finset.le_sup this) },
-  { exact le_sup_right_of_le (finset.le_sup this) },
+  { exact le_sup_of_le_left (finset.le_sup this) },
+  { exact le_sup_of_le_right (finset.le_sup this) },
 end
 
 lemma degrees_sum {ι : Type*} (s : finset ι) (f : ι → mv_polynomial σ R) :
@@ -469,8 +469,8 @@ finset.sup_le $ assume n hn,
   begin
     rw finset.mem_union at this,
     cases this,
-    { exact le_max_left_of_le (finset.le_sup this) },
-    { exact le_max_right_of_le (finset.le_sup this) }
+    { exact le_max_of_le_left (finset.le_sup this) },
+    { exact le_max_of_le_right (finset.le_sup this) }
   end
 
 lemma total_degree_mul (a b : mv_polynomial σ R) :
@@ -619,6 +619,33 @@ begin
   have : i ∈ p.vars, { rw mem_vars, exact ⟨d, hd, hi⟩ },
   rw h i this this,
 end
+
+/-- If `f₁` and `f₂` are ring homs out of the polynomial ring and `p₁` and `p₂` are polynomials,
+  then `f₁ p₁ = f₂ p₂` if `p₁ = p₂` and `f₁` and `f₂` are equal on `R` and on the variables
+  of `p₁`.  -/
+lemma hom_congr_vars {f₁ f₂ : mv_polynomial σ R →+* S} {p₁ p₂ : mv_polynomial σ R}
+  (hC : f₁.comp C = f₂.comp C) (hv : ∀ i, i ∈ p₁.vars → i ∈ p₂.vars → f₁ (X i) = f₂ (X i))
+  (hp : p₁ = p₂) : f₁ p₁ = f₂ p₂ :=
+calc f₁ p₁ = eval₂_hom (f₁.comp C) (f₁ ∘ X) p₁ : ring_hom.congr_fun (by ext; simp) _
+... = eval₂_hom (f₂.comp C) (f₂ ∘ X) p₂ :
+  eval₂_hom_congr' hC hv hp
+... = f₂ p₂ : ring_hom.congr_fun (by ext; simp) _
+
+lemma exists_rename_eq_of_vars_subset_range
+  (p : mv_polynomial σ R) (f : τ → σ)
+  (hfi : injective f) (hf : ↑p.vars ⊆ set.range f) :
+  ∃ q : mv_polynomial τ R, rename f q = p :=
+⟨bind₁ (λ i : σ, option.elim (partial_inv f i) 0 X) p,
+  begin
+    show (rename f).to_ring_hom.comp _ p = ring_hom.id _ p,
+    refine hom_congr_vars _ _ _,
+    { ext1,
+      simp [algebra_map_eq] },
+    { intros i hip _,
+      rcases hf hip with ⟨i, rfl⟩,
+      simp [partial_inv_left hfi] },
+    { refl }
+  end⟩
 
 lemma vars_bind₁ (f : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) :
   (bind₁ f φ).vars ⊆ φ.vars.bUnion (λ i, (f i).vars) :=

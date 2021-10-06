@@ -46,14 +46,16 @@ lie_module.is_trivial L L
 instance lie_ideal.is_lie_abelian_of_trivial (R : Type u) (L : Type v)
   [comm_ring R] [lie_ring L] [lie_algebra R L] (I : lie_ideal R L) [h : lie_module.is_trivial L I] :
   is_lie_abelian I :=
-{ trivial := λ x y, by apply h.trivial, }
+{ trivial := λ x y, by apply h.trivial }
 
 lemma function.injective.is_lie_abelian {R : Type u} {L₁ : Type v} {L₂ : Type w}
   [comm_ring R] [lie_ring L₁] [lie_ring L₂] [lie_algebra R L₁] [lie_algebra R L₂]
   {f : L₁ →ₗ⁅R⁆ L₂} (h₁ : function.injective f) (h₂ : is_lie_abelian L₂) :
   is_lie_abelian L₁ :=
-{ trivial := λ x y,
-    by { apply h₁, rw [lie_hom.map_lie, trivial_lie_zero, lie_hom.map_zero], } }
+{ trivial := λ x y, h₁ $
+    calc f ⁅x,y⁆ = ⁅f x, f y⁆ : lie_hom.map_lie f x y
+             ... = 0          : trivial_lie_zero _ _ _ _
+             ... = f 0        : f.map_zero.symm }
 
 lemma function.surjective.is_lie_abelian {R : Type u} {L₁ : Type v} {L₂ : Type w}
   [comm_ring R] [lie_ring L₁] [lie_ring L₂] [lie_algebra R L₁] [lie_algebra R L₂]
@@ -61,8 +63,8 @@ lemma function.surjective.is_lie_abelian {R : Type u} {L₁ : Type v} {L₂ : Ty
   is_lie_abelian L₂ :=
 { trivial := λ x y,
     begin
-      obtain ⟨u, hu⟩ := h₁ x, rw ← hu,
-      obtain ⟨v, hv⟩ := h₁ y, rw ← hv,
+      obtain ⟨u, rfl⟩ := h₁ x,
+      obtain ⟨v, rfl⟩ := h₁ y,
       rw [← lie_hom.map_lie, trivial_lie_zero, lie_hom.map_zero],
     end }
 
@@ -73,20 +75,13 @@ lemma lie_abelian_iff_equiv_lie_abelian {R : Type u} {L₁ : Type v} {L₂ : Typ
 
 lemma commutative_ring_iff_abelian_lie_ring {A : Type v} [ring A] :
   is_commutative A (*) ↔ is_lie_abelian A :=
-begin
-  have h₁ : is_commutative A (*) ↔ ∀ (a b : A), a * b = b * a := ⟨λ h, h.1, λ h, ⟨h⟩⟩,
-  have h₂ : is_lie_abelian A ↔ ∀ (a b : A), ⁅a, b⁆ = 0 := ⟨λ h, h.1, λ h, ⟨h⟩⟩,
-  simp only [h₁, h₂, lie_ring.of_associative_ring_bracket, sub_eq_zero],
-end
+have h₁ : is_commutative A (*) ↔ ∀ (a b : A), a * b = b * a := ⟨λ h, h.1, λ h, ⟨h⟩⟩,
+have h₂ : is_lie_abelian A ↔ ∀ (a b : A), ⁅a, b⁆ = 0 := ⟨λ h, h.1, λ h, ⟨h⟩⟩,
+by simp only [h₁, h₂, lie_ring.of_associative_ring_bracket, sub_eq_zero]
 
 lemma lie_algebra.is_lie_abelian_bot (R : Type u) (L : Type v)
   [comm_ring R] [lie_ring L] [lie_algebra R L] : is_lie_abelian (⊥ : lie_ideal R L) :=
-⟨begin
-  rintros ⟨x, hx⟩ ⟨y, hy⟩,
-  suffices : ⁅x, y⁆ = 0,
-  { ext, simp only [this, lie_subalgebra.coe_bracket, submodule.coe_mk, submodule.coe_zero], },
-  change x ∈ (⊥ : lie_ideal R L) at hx, rw lie_submodule.mem_bot at hx, rw [hx, zero_lie],
-end⟩
+⟨λ ⟨x, hx⟩ _, by convert zero_lie _⟩
 
 section center
 
@@ -101,11 +96,8 @@ namespace lie_module
 protected def ker : lie_ideal R L := (to_endomorphism R L M).ker
 
 @[simp] protected lemma mem_ker (x : L) : x ∈ lie_module.ker R L M ↔ ∀ (m : M), ⁅x, m⁆ = 0 :=
-begin
-  dunfold lie_module.ker,
-  simp only [lie_hom.mem_ker, linear_map.ext_iff, linear_map.zero_apply,
-    to_endomorphism_apply_apply],
-end
+by simp only [lie_module.ker, lie_hom.mem_ker, linear_map.ext_iff, linear_map.zero_apply,
+    to_endomorphism_apply_apply]
 
 /-- The largest submodule of a Lie module `M` on which the Lie algebra `L` acts trivially. -/
 def max_triv_submodule : lie_submodule R L M :=
@@ -124,11 +116,8 @@ instance : is_trivial L (max_triv_submodule R L M) :=
 
 lemma trivial_iff_le_maximal_trivial (N : lie_submodule R L M) :
   is_trivial L N ↔ N ≤ max_triv_submodule R L M :=
-begin
-  split,
-  { rintros ⟨h⟩, intros m hm x, specialize h x ⟨m, hm⟩, rw subtype.ext_iff at h, exact h, },
-  { intros h, constructor, rintros x ⟨m, hm⟩, apply subtype.ext, apply h, exact hm, },
-end
+⟨ λ h m hm x, is_trivial.dcases_on h (λ h, subtype.ext_iff.mp (h x ⟨m, hm⟩)),
+  λ h, { trivial := λ x m, subtype.ext (h m.2 x) }⟩
 
 lemma is_trivial_iff_max_triv_eq_top :
   is_trivial L M ↔ max_triv_submodule R L M = ⊤ :=
@@ -145,9 +134,8 @@ variables {R L M N}
 /-- `max_triv_submodule` is functorial. -/
 def max_triv_hom (f : M →ₗ⁅R,L⁆ N) :
   max_triv_submodule R L M →ₗ⁅R,L⁆ max_triv_submodule R L N :=
-{ to_fun    := λ m, ⟨f m, λ x, by
-    { have h := congr_arg f (m.property x),
-      rw [lie_module_hom.map_zero, lie_module_hom.map_lie] at h, exact h, }⟩,
+{ to_fun    := λ m, ⟨f m, λ x, (lie_module_hom.map_lie _ _ _).symm.trans $
+        (congr_arg f (m.property x)).trans (lie_module_hom.map_zero _)⟩,
   map_add'  := λ m n, by simpa,
   map_smul' := λ t m, by simpa,
   map_lie'  := λ x m, by simp, }
@@ -225,17 +213,18 @@ abbreviation center : lie_ideal R L := lie_module.max_triv_submodule R L L
 
 instance : is_lie_abelian (center R L) := infer_instance
 
-lemma center_eq_adjoint_kernel : center R L = lie_module.ker R L L :=
+@[simp] lemma ad_ker_eq_self_module_ker : (ad R L).ker = lie_module.ker R L L := rfl
+
+@[simp] lemma self_module_ker_eq_center : lie_module.ker R L L = center R L :=
 begin
   ext y,
-  simp only [lie_module.mem_max_triv_submodule, lie_module.mem_ker,
-    ← lie_skew _ y, neg_eq_zero],
+  simp only [lie_module.mem_max_triv_submodule, lie_module.mem_ker, ← lie_skew _ y, neg_eq_zero],
 end
 
 lemma abelian_of_le_center (I : lie_ideal R L) (h : I ≤ center R L) : is_lie_abelian I :=
 begin
-  rw ← lie_module.trivial_iff_le_maximal_trivial R L L I at h,
-  haveI := h, exact lie_ideal.is_lie_abelian_of_trivial R L I,
+  haveI : lie_module.is_trivial L I := (lie_module.trivial_iff_le_maximal_trivial R L L I).mpr h,
+  exact lie_ideal.is_lie_abelian_of_trivial R L I,
 end
 
 lemma is_lie_abelian_iff_center_eq_top : is_lie_abelian L ↔ center R L = ⊤ :=
@@ -256,7 +245,7 @@ variables (N N' : lie_submodule R L M) (I J : lie_ideal R L)
 
 @[simp] lemma lie_submodule.trivial_lie_oper_zero [lie_module.is_trivial L M] : ⁅I, N⁆ = ⊥ :=
 begin
-  suffices : ⁅I, N⁆ ≤ ⊥, { exact le_bot_iff.mp this, },
+  suffices : ⁅I, N⁆ ≤ ⊥, from le_bot_iff.mp this,
   rw [lie_ideal_oper_eq_span, lie_submodule.lie_span_le],
   rintros m ⟨x, n, h⟩, rw trivial_lie_zero at h, simp [← h],
 end
@@ -265,9 +254,9 @@ lemma lie_submodule.lie_abelian_iff_lie_self_eq_bot : is_lie_abelian I ↔ ⁅I,
 begin
   simp only [_root_.eq_bot_iff, lie_ideal_oper_eq_span, lie_submodule.lie_span_le,
     lie_submodule.bot_coe, set.subset_singleton_iff, set.mem_set_of_eq, exists_imp_distrib],
-  split; intros h,
-  { intros z x y hz, rw [← hz, ← lie_subalgebra.coe_bracket, coe_zero_iff_zero], apply h.trivial, },
-  { exact ⟨λ x y, by { rw ← coe_zero_iff_zero, apply h _ x y, refl, }⟩, },
+  refine ⟨λ h z x y hz, hz.symm.trans ((lie_subalgebra.coe_bracket _ _ _).symm.trans
+    ((coe_zero_iff_zero _ _).mpr (by apply h.trivial))),
+    λ h, ⟨λ x y, (coe_zero_iff_zero _ _).mp (h _ x y rfl)⟩⟩,
 end
 
 end ideal_operations

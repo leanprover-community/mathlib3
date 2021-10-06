@@ -3,8 +3,8 @@ Copyright (c) 2020 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import algebra.module.linear_map
 import algebra.opposites
+import data.equiv.module
 
 /-!
 # Module operations on `Mᵒᵖ`
@@ -16,28 +16,7 @@ cycles.
 namespace opposite
 universes u v
 
-variables (R : Type u) {M : Type v}
-
-/-- Like `mul_zero_class.to_smul_with_zero`, but multiplies on the right. -/
-instance mul_zero_class.to_opposite_smul_with_zero [mul_zero_class R] :
-  smul_with_zero (opposite R) R :=
-{ smul := λ c x, x * c.unop,
-  smul_zero := λ x, zero_mul _,
-  zero_smul := mul_zero }
-
-/-- Like `monoid_with_zero.to_mul_action_with_zero`, but multiplies on the right. -/
-instance monoid_with_zero.to_opposite_mul_action_with_zero [monoid_with_zero R] :
-  mul_action_with_zero (opposite R) R :=
-{ ..mul_zero_class.to_opposite_smul_with_zero R,
-  ..monoid.to_opposite_mul_action R }
-
-/-- Like `semiring.to_module`, but multiplies on the right. -/
-instance semiring.to_opposite_module [semiring R] : module (opposite R) R :=
-{ smul_add := λ r x y, add_mul _ _ _,
-  add_smul := λ r s x, mul_add _ _ _,
-  ..mul_zero_class.to_opposite_smul_with_zero R }
-
-variables [semiring R] [add_comm_monoid M] [module R M]
+variables (R : Type u) {M : Type v} [semiring R] [add_comm_monoid M] [module R M]
 
 /-- `opposite.distrib_mul_action` extends to a `module` -/
 instance : module R (opposite M) :=

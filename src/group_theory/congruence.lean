@@ -132,6 +132,10 @@ protected lemma trans : ∀ {x y z}, c x y → c y z → c x z :=
 protected lemma mul : ∀ {w x y z}, c w x → c y z → c (w * y) (x * z) :=
 λ _ _ _ _ h1 h2, c.3 h1 h2
 
+@[simp, to_additive] lemma rel_mk {r : M → M → Prop} {h₁ h₂ a b} :
+  con.mk r h₁ h₂ a b ↔ r a b :=
+iff.rfl
+
 /-- Given a type `M` with a multiplication, a congruence relation `c` on `M`, and elements of `M`
     `x, y`, `(x, y) ∈ M × M` iff `x` is related to `y` by `c`. -/
 @[to_additive "Given a type `M` with an addition, `x, y ∈ M`, and an additive congruence relation
@@ -210,12 +214,14 @@ See Note [use has_coe_t]. -/
 relation", priority 0]
 instance : has_coe_t M c.quotient := ⟨@quotient.mk _ c.to_setoid⟩
 
-/-- The quotient of a type with decidable equality by a congruence relation also has
-    decidable equality. -/
-@[to_additive "The quotient of a type with decidable equality by an additive congruence relation
-also has decidable equality."]
+/-- The quotient by a decidable congruence relation has decidable equality. -/
+@[to_additive "The quotient by a decidable additive congruence relation has decidable equality."]
 instance [d : ∀ a b, decidable (c a b)] : decidable_eq c.quotient :=
 @quotient.decidable_eq M c.to_setoid d
+
+@[simp, to_additive] lemma quot_mk_eq_coe {M : Type*} [has_mul M] (c : con M) (x : M) :
+  quot.mk c x = (x : c.quotient) :=
+rfl
 
 /-- The function on the quotient by a congruence relation `c` induced by a function that is
     constant on `c`'s equivalence classes. -/
@@ -230,6 +236,20 @@ protected def lift_on {β} {c : con M} (q : c.quotient) (f : M → β)
 induced by a binary function that is constant on `c`'s equivalence classes."]
 protected def lift_on₂ {β} {c : con M} (q r : c.quotient) (f : M → M → β)
   (h : ∀ a₁ a₂ b₁ b₂, c a₁ b₁ → c a₂ b₂ → f a₁ a₂ = f b₁ b₂) : β := quotient.lift_on₂' q r f h
+
+/-- A version of `quotient.hrec_on₂'` for quotients by `con`. -/
+@[to_additive "A version of `quotient.hrec_on₂'` for quotients by `add_con`."]
+protected def hrec_on₂ {cM : con M} {cN : con N} {φ : cM.quotient → cN.quotient → Sort*}
+  (a : cM.quotient) (b : cN.quotient)
+  (f : Π (x : M) (y : N), φ x y) (h : ∀ x y x' y', cM x x' → cN y y' → f x y == f x' y') :
+  φ a b :=
+quotient.hrec_on₂' a b f h
+
+@[simp, to_additive] lemma hrec_on₂_coe {cM : con M} {cN : con N}
+  {φ : cM.quotient → cN.quotient → Sort*} (a : M) (b : N)
+  (f : Π (x : M) (y : N), φ x y) (h : ∀ x y x' y', cM x x' → cN y y' → f x y == f x' y') :
+  con.hrec_on₂ ↑a ↑b f h = f a b :=
+rfl
 
 variables {c}
 
@@ -512,6 +532,11 @@ def comap (f : M → N) (H : ∀ x y, f (x * y) = f x * f y) (c : con N) : con M
 { mul' := λ w x y z h1 h2, show c (f (w * y)) (f (x * z)), by rw [H, H]; exact c.mul h1 h2,
   ..c.to_setoid.comap f }
 
+@[simp, to_additive] lemma comap_rel {f : M → N} (H : ∀ x y, f (x * y) = f x * f y)
+  {c : con N} {x y : M} :
+  comap f H c x y ↔ c (f x) (f y) :=
+iff.rfl
+
 section
 open quotient
 
@@ -608,7 +633,7 @@ lemma le_iff {c d : con M} : c ≤ d ↔ (c : submonoid (M × M)) ≤ d :=
 def ker (f : M →* P) : con M := mul_ker f f.3
 
 /-- The definition of the congruence relation defined by a monoid homomorphism's kernel. -/
-@[to_additive "The definition of the additive congruence relation defined by an `add_monoid`
+@[simp, to_additive "The definition of the additive congruence relation defined by an `add_monoid`
 homomorphism's kernel."]
 lemma ker_rel (f : M →* P) {x y} : ker f x y ↔ f x = f y := iff.rfl
 
@@ -639,10 +664,9 @@ variables {c}
 @[to_additive "The natural homomorphism from an `add_monoid` to its quotient by a congruence
 relation is surjective."]
 lemma mk'_surjective : surjective c.mk' :=
-λ x, by rcases x; exact ⟨x, rfl⟩
+quotient.surjective_quotient_mk'
 
-@[simp, to_additive] lemma comp_mk'_apply (g : c.quotient →* P) {x} :
-  g.comp c.mk' x = g x := rfl
+@[simp, to_additive] lemma coe_mk' : (c.mk' : M → c.quotient) = coe := rfl
 
 /-- The elements related to `x ∈ M`, `M` a monoid, by the kernel of a monoid homomorphism are
     those in the preimage of `f(x)` under `f`. -/
@@ -676,7 +700,7 @@ def lift (H : c ≤ ker f) : c.quotient →* P :=
 variables {c f}
 
 /-- The diagram describing the universal property for quotients of monoids commutes. -/
-@[simp, to_additive "The diagram describing the universal property for quotients of `add_monoid`s
+@[to_additive "The diagram describing the universal property for quotients of `add_monoid`s
 commutes."]
 lemma lift_mk' (H : c ≤ ker f) (x) :
   c.lift f H (c.mk' x) = f x := rfl
@@ -718,7 +742,7 @@ end
 @[to_additive "The uniqueness part of the universal property for quotients of `add_monoid`s."]
 theorem lift_unique (H : c ≤ ker f) (g : c.quotient →* P)
   (Hg : g.comp c.mk' = f) : g = c.lift f H :=
-lift_funext g (c.lift f H) $ λ x, by rw [lift_coe H, ←comp_mk'_apply, Hg]
+lift_funext g (c.lift f H) $ λ x, by { subst f, refl }
 
 /-- Given a congruence relation `c` on a monoid and a homomorphism `f` constant on `c`'s
     equivalence classes, `f` has the same image as the homomorphism that `f` induces on the
@@ -809,14 +833,30 @@ noncomputable def quotient_ker_equiv_range (f : M →* P) : (ker f).quotient ≃
         ⟨λ x y h, ker_lift_injective f $ by rcases x; rcases y; injections,
          λ ⟨w, z, hz⟩, ⟨z, by rcases hz; rcases _x; refl⟩⟩ }
 
-/-- The first isomorphism theorem for monoids in the case of a surjective homomorphism. -/
+/-- The first isomorphism theorem for monoids in the case of a homomorphism with right inverse. -/
+@[to_additive "The first isomorphism theorem for `add_monoid`s in the case of a homomorphism
+with right inverse.", simps]
+def quotient_ker_equiv_of_right_inverse (f : M →* P) (g : P → M)
+  (hf : function.right_inverse g f) :
+  (ker f).quotient ≃* P :=
+{ to_fun := ker_lift f,
+  inv_fun := coe ∘ g,
+  left_inv := λ x, ker_lift_injective _ (by rw [function.comp_app, ker_lift_mk, hf]),
+  right_inv := hf,
+  .. ker_lift f }
+
+/-- The first isomorphism theorem for monoids in the case of a surjective homomorphism.
+
+For a `computable` version, see `con.quotient_ker_equiv_of_right_inverse`.
+-/
 @[to_additive "The first isomorphism theorem for `add_monoid`s in the case of a surjective
-homomorphism."]
+homomorphism.
+
+For a `computable` version, see `add_con.quotient_ker_equiv_of_right_inverse`.
+"]
 noncomputable def quotient_ker_equiv_of_surjective (f : M →* P) (hf : surjective f) :
   (ker f).quotient ≃* P :=
-{ map_mul' := monoid_hom.map_mul _,
-  ..equiv.of_bijective (ker_lift f)
-      ⟨ker_lift_injective f, lift_surjective_of_surjective (le_refl _) hf⟩ }
+quotient_ker_equiv_of_right_inverse _ _ hf.has_right_inverse.some_spec
 
 /-- The second isomorphism theorem for monoids. -/
 @[to_additive "The second isomorphism theorem for `add_monoid`s."]
@@ -883,5 +923,53 @@ instance group : group c.quotient :=
   .. con.monoid c}
 
 end groups
+
+section units
+
+variables {α : Type*} [monoid M] {c : con M}
+
+/-- In order to define a function `units (con.quotient c) → α` on the units of `con.quotient c`,
+where `c : con M` is a multiplicative congruence on a monoid, it suffices to define a function `f`
+that takes elements `x y : M` with proofs of `c (x * y) 1` and `c (y * x) 1`, and returns an element
+of `α` provided that `f x y _ _ = f x' y' _ _` whenever `c x x'` and `c y y'`. -/
+@[to_additive lift_on_add_units] def lift_on_units (u : units c.quotient)
+  (f : Π (x y : M), c (x * y) 1 → c (y * x) 1 → α)
+  (Hf : ∀ x y hxy hyx x' y' hxy' hyx', c x x' → c y y' → f x y hxy hyx = f x' y' hxy' hyx') :
+  α :=
+begin
+  refine @con.hrec_on₂ M M _ _ c c (λ x y, x * y = 1 → y * x = 1 → α)
+    (u : c.quotient) (↑u⁻¹ : c.quotient)
+    (λ (x y : M) (hxy : (x * y : c.quotient) = 1) (hyx : (y * x : c.quotient) = 1),
+    f x y (c.eq.1 hxy) (c.eq.1 hyx)) (λ x y x' y' hx hy, _) u.3 u.4,
+  ext1, { rw [c.eq.2 hx, c.eq.2 hy] },
+  rintro Hxy Hxy' -,
+  ext1, { rw [c.eq.2 hx, c.eq.2 hy] },
+  rintro Hyx Hyx' -,
+  exact heq_of_eq (Hf _ _ _ _ _ _ _ _ hx hy)
+end
+
+/-- In order to define a function `units (con.quotient c) → α` on the units of `con.quotient c`,
+where `c : con M` is a multiplicative congruence on a monoid, it suffices to define a function `f`
+that takes elements `x y : M` with proofs of `c (x * y) 1` and `c (y * x) 1`, and returns an element
+of `α` provided that `f x y _ _ = f x' y' _ _` whenever `c x x'` and `c y y'`. -/
+add_decl_doc add_con.lift_on_add_units
+
+@[simp, to_additive]
+lemma lift_on_units_mk (f : Π (x y : M), c (x * y) 1 → c (y * x) 1 → α)
+  (Hf : ∀ x y hxy hyx x' y' hxy' hyx', c x x' → c y y' → f x y hxy hyx = f x' y' hxy' hyx')
+  (x y : M) (hxy hyx) :
+  lift_on_units ⟨(x : c.quotient), y, hxy, hyx⟩ f Hf = f x y (c.eq.1 hxy) (c.eq.1 hyx) :=
+rfl
+
+@[elab_as_eliminator, to_additive induction_on_add_units]
+lemma induction_on_units {p : units c.quotient → Prop} (u : units c.quotient)
+  (H : ∀ (x y : M) (hxy : c (x * y) 1) (hyx : c (y * x) 1), p ⟨x, y, c.eq.2 hxy, c.eq.2 hyx⟩) :
+  p u :=
+begin
+  rcases u with ⟨⟨x⟩, ⟨y⟩, h₁, h₂⟩,
+  exact H x y (c.eq.1 h₁) (c.eq.1 h₂)
+end
+
+end units
 
 end con

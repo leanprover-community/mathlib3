@@ -2,8 +2,6 @@
 Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
-
-Notation for vectors and matrices
 -/
 
 import data.fintype.card
@@ -71,9 +69,29 @@ v 0
 def vec_tail {n : ℕ} (v : fin n.succ → α) : fin n → α :=
 v ∘ fin.succ
 
+variables {m n : ℕ}
+
+/-- Use `![...]` notation for displaying a vector `fin n → α`, for example:
+
+```
+#eval ![1, 2] + ![3, 4] -- ![4, 6]
+```
+-/
+instance [has_repr α] : has_repr (fin n → α) :=
+{ repr := λ f, "![" ++ (string.intercalate ", " ((list.fin_range n).map (λ n, repr (f n)))) ++ "]" }
+
+/-- Use `![...]` notation for displaying a `fin`-indexed matrix, for example:
+
+```
+#eval ![![1, 2], ![3, 4]] + ![![3, 4], ![5, 6]] -- ![![4, 6], ![8, 10]]
+```
+-/
+instance [has_repr α] : has_repr (matrix (fin m) (fin n) α) :=
+(by apply_instance : has_repr (fin m → fin n → α))
+
 end matrix_notation
 
-variables {m n o : ℕ} {m' n' o' : Type*} [fintype m'] [fintype n'] [fintype o']
+variables {m n o : ℕ} {m' n' o' : Type*}
 
 lemma empty_eq (v : fin 0 → α) : v = ![] :=
 by { ext i, fin_cases i }
@@ -128,7 +146,13 @@ fin.cons_self_tail _
 set.ext $ λ y, by simp [fin.exists_fin_succ, eq_comm]
 
 @[simp] lemma range_empty (u : fin 0 → α) : set.range u = ∅ :=
-set.range_eq_empty.2 $ λ ⟨k⟩, k.elim0
+set.range_eq_empty _
+
+@[simp] lemma vec_cons_const (a : α) : vec_cons a (λ k : fin n, a) = λ _, a :=
+funext $ fin.forall_fin_succ.2 ⟨rfl, cons_val_succ _ _⟩
+
+lemma vec_single_eq_const (a : α) : ![a] = λ _, a :=
+funext $ unique.forall_iff.2 rfl
 
 /-- `![a, b, ...] 1` is equal to `b`.
 
@@ -197,7 +221,7 @@ begin
   { rw [fin.coe_mk, not_lt] at h,
     simp only [fin.ext_iff, fin.coe_add, fin.coe_mk, nat.mod_eq_sub_mod h],
     refine (nat.mod_eq_of_lt _).symm,
-    rw nat.sub_lt_left_iff_lt_add h,
+    rw sub_lt_iff_left h,
     exact add_lt_add i.property i.property }
 end
 
@@ -217,7 +241,7 @@ begin
       simp only [fin.ext_iff, fin.coe_add, fin.coe_mk, nat.mod_add_mod, fin.coe_one,
                  nat.mod_eq_sub_mod h],
       refine (nat.mod_eq_of_lt _).symm,
-      rw nat.sub_lt_left_iff_lt_add h,
+      rw sub_lt_iff_left h,
       exact nat.add_succ_lt_add i.property i.property } }
 end
 
@@ -245,7 +269,7 @@ begin
   simp_rw [vec_alt0],
   rcases i with ⟨⟨⟩ | i, hi⟩,
   { refl },
-  { simp [vec_alt0, nat.succ_add] }
+  { simp [vec_alt0, nat.add_succ, nat.succ_add] }
 end
 
 -- Although proved by simp, extracting element 8 of a five-element
@@ -262,7 +286,7 @@ begin
   simp_rw [vec_alt1],
   rcases i with ⟨⟨⟩ | i, hi⟩,
   { refl },
-  { simp [vec_alt1, nat.succ_add] }
+  { simp [vec_alt1, nat.add_succ, nat.succ_add] }
 end
 
 -- Although proved by simp, extracting element 9 of a five-element
@@ -330,7 +354,7 @@ section mul
 
 variables [semiring α]
 
-@[simp] lemma empty_mul (A : matrix (fin 0) n' α) (B : matrix n' o' α) :
+@[simp] lemma empty_mul [fintype n'] (A : matrix (fin 0) n' α) (B : matrix n' o' α) :
   A ⬝ B = ![] :=
 empty_eq _
 
@@ -338,14 +362,15 @@ empty_eq _
   A ⬝ B = 0 :=
 rfl
 
-@[simp] lemma mul_empty (A : matrix m' n' α) (B : matrix n' (fin 0) α) :
+@[simp] lemma mul_empty [fintype n'] (A : matrix m' n' α) (B : matrix n' (fin 0) α) :
   A ⬝ B = λ _, ![] :=
 funext (λ _, empty_eq _)
 
-lemma mul_val_succ (A : matrix (fin m.succ) n' α) (B : matrix n' o' α) (i : fin m) (j : o') :
+lemma mul_val_succ [fintype n']
+  (A : matrix (fin m.succ) n' α) (B : matrix n' o' α) (i : fin m) (j : o') :
   (A ⬝ B) i.succ j = (vec_tail A ⬝ B) i j := rfl
 
-@[simp] lemma cons_mul (v : n' → α) (A : matrix (fin m) n' α) (B : matrix n' o' α) :
+@[simp] lemma cons_mul [fintype n'] (v : n' → α) (A : matrix (fin m) n' α) (B : matrix n' o' α) :
   vec_cons v A ⬝ B = vec_cons (vec_mul v B) (A  ⬝ B) :=
 by { ext i j, refine fin.cases _ _ i, { refl }, simp [mul_val_succ] }
 
@@ -359,7 +384,7 @@ variables [semiring α]
   vec_mul v B = 0 :=
 rfl
 
-@[simp] lemma vec_mul_empty (v : n' → α) (B : matrix n' (fin 0) α) :
+@[simp] lemma vec_mul_empty [fintype n'] (v : n' → α) (B : matrix n' (fin 0) α) :
   vec_mul v B = ![] :=
 empty_eq _
 
@@ -377,7 +402,7 @@ section mul_vec
 
 variables [semiring α]
 
-@[simp] lemma empty_mul_vec (A : matrix (fin 0) n' α) (v : n' → α) :
+@[simp] lemma empty_mul_vec [fintype n'] (A : matrix (fin 0) n' α) (v : n' → α) :
   mul_vec A v = ![] :=
 empty_eq _
 
@@ -385,7 +410,7 @@ empty_eq _
   mul_vec A v = 0 :=
 rfl
 
-@[simp] lemma cons_mul_vec (v : n' → α) (A : fin m → n' → α) (w : n' → α) :
+@[simp] lemma cons_mul_vec [fintype n'] (v : n' → α) (A : fin m → n' → α) (w : n' → α) :
   mul_vec (vec_cons v A) w = vec_cons (dot_product v w) (mul_vec A w) :=
 by { ext i, refine fin.cases _ _ i; simp [mul_vec] }
 

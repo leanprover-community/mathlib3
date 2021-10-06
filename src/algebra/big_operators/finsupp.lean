@@ -22,7 +22,7 @@ variables {s : finset α} {f : α → (ι →₀ A)} (i : ι)
 variables (g : ι →₀ A) (k : ι → A → γ → B) (x : γ)
 
 theorem finset.sum_apply' : (∑ k in s, f k) i = ∑ k in s, f k i :=
-(s.sum_hom $ finsupp.apply_add_hom i).symm
+(finsupp.apply_add_hom i : (ι →₀ A) →+ A).map_sum f s
 
 theorem finsupp.sum_apply' : g.sum k x = g.sum (λ i b, k i b x) :=
 finset.sum_apply _ _ _
@@ -39,7 +39,7 @@ by simp_rw [finset.sum_insert has, finsupp.sum_add_index h0 h1, ih]
 end
 
 section
-variables {R S : Type*} [semiring R] [semiring S]
+variables {R S : Type*} [non_unital_non_assoc_semiring R] [non_unital_non_assoc_semiring S]
 
 lemma finsupp.sum_mul (b : S) (s : α →₀ R) {f : α → R → S} :
   (s.sum f) * b = s.sum (λ a c, (f a c) * b) :=

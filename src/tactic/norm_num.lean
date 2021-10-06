@@ -747,7 +747,7 @@ meta def prove_clear_denom : instance_cache → expr → expr → ℚ → ℕ �
 theorem clear_denom_add {α} [division_ring α] (a a' b b' c c' d : α)
   (h₀ : d ≠ 0) (ha : a * d = a') (hb : b * d = b') (hc : c * d = c')
   (h : a' + b' = c') : a + b = c :=
-mul_right_cancel' h₀ $ by rwa [add_mul, ha, hb, hc]
+mul_right_cancel₀ h₀ $ by rwa [add_mul, ha, hb, hc]
 
 /-- Given `a`,`b`,`c` nonnegative rational numerals, returns `⊢ a + b = c`. -/
 meta def prove_add_nonneg_rat (ic : instance_cache) (a b c : expr) (na nb nc : ℚ) :
@@ -830,7 +830,7 @@ theorem clear_denom_mul {α} [field α] (a a' b b' c c' d₁ d₂ d : α)
   (ha : d₁ ≠ 0 ∧ a * d₁ = a') (hb : d₂ ≠ 0 ∧ b * d₂ = b')
   (hc : c * d = c') (hd : d₁ * d₂ = d)
   (h : a' * b' = c') : a * b = c :=
-mul_right_cancel' ha.1 $ mul_right_cancel' hb.1 $
+mul_right_cancel₀ ha.1 $ mul_right_cancel₀ hb.1 $
 by rw [mul_assoc c, hd, hc, ← h, ← ha.2, ← hb.2, ← mul_assoc, mul_right_comm a]
 
 /-- Given `a`,`b` nonnegative rational numerals, returns `(c, ⊢ a * b = c)`. -/
@@ -886,7 +886,7 @@ h ▸ by simp only [inv_eq_one_div, one_div_neg_eq_neg_one_div]
 
 theorem inv_one {α} [division_ring α] : (1 : α)⁻¹ = 1 := inv_one
 theorem inv_one_div {α} [division_ring α] (a : α) : (1 / a)⁻¹ = a :=
-by rw [one_div, inv_inv']
+by rw [one_div, inv_inv₀]
 theorem inv_div_one {α} [division_ring α] (a : α) : a⁻¹ = 1 / a :=
 inv_eq_one_div _
 theorem inv_div {α} [division_ring α] (a b : α) : (a / b)⁻¹ = b / a :=
@@ -1215,7 +1215,7 @@ theorem dvd_eq_int (a b c : ℤ) (p) (h₁ : b % a = c) (h₂ : (c = 0) = p) : (
 theorem int_to_nat_pos (a : ℤ) (b : ℕ) (h : (by haveI := @nat.cast_coe ℤ; exact b : ℤ) = a) :
   a.to_nat = b := by rw ← h; simp
 theorem int_to_nat_neg (a : ℤ) (h : 0 < a) : (-a).to_nat = 0 :=
-by simp [int.to_nat_zero_of_neg, h]
+by simp only [int.to_nat_of_nonpos, h.le, neg_nonpos]
 
 theorem nat_abs_pos (a : ℤ) (b : ℕ) (h : (by haveI := @nat.cast_coe ℤ; exact b : ℤ) = a) :
   a.nat_abs = b := by rw ← h; simp
@@ -1434,8 +1434,11 @@ do x₁ ← to_expr x,
 /--
 Normalises numerical expressions. It supports the operations `+` `-` `*` `/` `^` and `%` over
 numerical types such as `ℕ`, `ℤ`, `ℚ`, `ℝ`, `ℂ`, and can prove goals of the form `A = B`, `A ≠ B`,
-`A < B` and `A ≤ B`, where `A` and `B` are
-numerical expressions. It also has a relatively simple primality prover.
+`A < B` and `A ≤ B`, where `A` and `B` are numerical expressions.
+
+Add-on tactics marked as `@[norm_num]` can extend the behavior of `norm_num` to include other
+functions. This is used to support several other functions on `nat` like `prime`, `min_fac` and
+`factors`.
 ```lean
 import data.real.basic
 

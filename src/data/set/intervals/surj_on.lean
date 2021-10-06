@@ -25,8 +25,7 @@ begin
   classical,
   intros p hp,
   rcases h_surj p with ⟨x, rfl⟩,
-  refine ⟨x, _, rfl⟩,
-  simp only [mem_Ioo],
+  refine ⟨x, mem_Ioo.2 _, rfl⟩,
   by_contra h,
   cases not_and_distrib.mp h with ha hb,
   { exact has_lt.lt.false (lt_of_lt_of_le hp.1 (h_mono (not_lt.mp ha))) },
@@ -37,23 +36,23 @@ lemma surj_on_Ico_of_monotone_surjective
   (h_mono : monotone f) (h_surj : function.surjective f) (a b : α) :
   surj_on f (Ico a b) (Ico (f a) (f b)) :=
 begin
-  rcases lt_or_ge a b with hab|hab,
+  obtain hab | hab := lt_or_le a b,
   { intros p hp,
     rcases mem_Ioo_or_eq_left_of_mem_Ico hp with hp'|hp',
     { rw hp',
-      refine ⟨a, left_mem_Ico.mpr hab, rfl⟩ },
+      exact ⟨a, left_mem_Ico.mpr hab, rfl⟩ },
     { have := surj_on_Ioo_of_monotone_surjective h_mono h_surj a b hp',
       cases this with x hx,
       exact ⟨x, Ioo_subset_Ico_self hx.1, hx.2⟩ } },
-  { rw Ico_eq_empty (h_mono hab),
-    exact surj_on_empty f _ },
+  { rw Ico_eq_empty (h_mono hab).not_lt,
+    exact surj_on_empty f _ }
 end
 
 lemma surj_on_Ioc_of_monotone_surjective
   (h_mono : monotone f) (h_surj : function.surjective f) (a b : α) :
   surj_on f (Ioc a b) (Ioc (f a) (f b)) :=
 begin
-  convert @surj_on_Ico_of_monotone_surjective _ _ _ _ _ h_mono.order_dual h_surj b a;
+  convert @surj_on_Ico_of_monotone_surjective _ _ _ _ _ h_mono.dual h_surj b a;
   simp
 end
 
@@ -93,7 +92,7 @@ end
 lemma surj_on_Iio_of_monotone_surjective
   (h_mono : monotone f) (h_surj : function.surjective f) (a : α) :
   surj_on f (Iio a) (Iio (f a)) :=
-@surj_on_Ioi_of_monotone_surjective _ _ _ _ _ (monotone.order_dual h_mono) h_surj a
+@surj_on_Ioi_of_monotone_surjective _ _ _ _ _ h_mono.dual h_surj a
 
 lemma surj_on_Ici_of_monotone_surjective
   (h_mono : monotone f) (h_surj : function.surjective f) (a : α) :
@@ -111,4 +110,4 @@ end
 lemma surj_on_Iic_of_monotone_surjective
   (h_mono : monotone f) (h_surj : function.surjective f) (a : α) :
   surj_on f (Iic a) (Iic (f a)) :=
-@surj_on_Ici_of_monotone_surjective _ _ _ _ _ (monotone.order_dual h_mono) h_surj a
+@surj_on_Ici_of_monotone_surjective _ _ _ _ _ h_mono.dual h_surj a

@@ -80,7 +80,8 @@ have ∀ i, x < i → i ≤ y → i.pred < y,
   from λ i h₀ h₁,
      show i.pred.succ ≤ y,
      by rwa succ_pred_eq_of_pos; apply lt_of_le_of_lt (nat.zero_le _) h₀,
-subtype.map pred (λ i (h : x+1 ≤ i ∧ i ≤ y), ⟨le_pred_of_lt h.1, this _ h.1 h.2⟩) <$> choose (x+1) y p
+subtype.map pred (λ i (h : x+1 ≤ i ∧ i ≤ y), ⟨le_pred_of_lt h.1, this _ h.1 h.2⟩) <$>
+  choose (x+1) y p
 
 open nat
 
@@ -130,22 +131,24 @@ def elements (xs : list α) (pos : 0 < xs.length) : gen α := do
 pure $ list.nth_le xs n h₁
 
 /--
-`freq_aux xs i _` takes a weighted list of generator and a number meant to select one of the generators.
+`freq_aux xs i _` takes a weighted list of generator and a number meant to select one of the
+generators.
 
 If we consider `freq_aux [(1, gena), (3, genb), (5, genc)] 4 _`, we choose a generator by splitting
 the interval 1-9 into 1-1, 2-4, 5-9 so that the width of each interval corresponds to one of the
 number in the list of generators. Then, we check which interval 4 falls into: it selects `genb`.
 -/
 def freq_aux : Π (xs : list (ℕ+ × gen α)) i, i < (xs.map (subtype.val ∘ prod.fst)).sum → gen α
-| [] i h := false.elim (not_lt_zero _ h)
+| [] i h := false.elim (nat.not_lt_zero _ h)
 | ((i, x) :: xs) j h :=
   if h' : j < i then x
   else freq_aux xs (j - i)
-    (by rw nat.sub_lt_right_iff_lt_add; [simpa [list.sum_cons, add_comm] using h, exact le_of_not_gt h'])
+    (by { rw sub_lt_iff_right (le_of_not_gt h'),
+      simpa [list.sum_cons, add_comm] using h })
 
 /--
 `freq [(1, gena), (3, genb), (5, genc)] _` will choose one of `gena`, `genb`, `genc` with
-probabiities proportional to the number accompanying them. In this example, the sum of
+probabilities proportional to the number accompanying them. In this example, the sum of
 those numbers is 9, `gena` will be chosen with probability ~1/9, `genb` with ~3/9 (i.e. 1/3)
 and `genc` with probability 5/9.
 -/
@@ -155,9 +158,9 @@ have ha : 1 ≤ s, from
   (le_trans pos $
     list.length_map (subtype.val ∘ prod.fst) xs ▸
       (list.length_le_sum_of_one_le _ (λ i, by { simp, intros, assumption }))),
-have 0 ≤ s - 1, from nat.le_sub_right_of_add_le ha,
+have 0 ≤ s - 1, from le_sub_of_add_le_right' ha,
 uliftable.adapt_up gen.{0} gen.{u} (choose_nat 0 (s-1) this) $ λ i,
-freq_aux xs i.1 (by rcases i with ⟨i,h₀,h₁⟩; rwa nat.le_sub_right_iff_add_le at h₁; exact ha)
+freq_aux xs i.1 (by rcases i with ⟨i,h₀,h₁⟩; rwa le_sub_iff_right at h₁; exact ha)
 
 /-- Generate a random permutation of a given list. -/
 def permutation_of {α : Type u} : Π xs : list α, gen (subtype $ list.perm xs)

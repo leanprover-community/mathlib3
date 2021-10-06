@@ -83,14 +83,7 @@ begin
   apply subtype.ext_iff_val.mpr,
   exact (is_open.inter U.2 V.2).interior_eq.symm,
 end
-/- Sup -/ (λ Us, ⟨⋃₀ (coe '' Us), is_open_sUnion $ λ U hU,
-by { rcases hU with ⟨⟨V, hV⟩, h, h'⟩, dsimp at h', subst h', exact hV}⟩)
-begin
-  funext,
-  apply subtype.ext_iff_val.mpr,
-  simp [Sup_range],
-  refl,
-end
+/- Sup -/ _ rfl
 /- Inf -/ _ rfl
 
 lemma le_def {U V : opens α} : U ≤ V ↔ (U : set α) ≤ (V : set α) :=
@@ -111,16 +104,13 @@ instance : inhabited (opens α) := ⟨∅⟩
 @[simp] lemma empty_eq : (∅ : opens α) = ⊥ := rfl
 
 @[simp] lemma Sup_s {Us : set (opens α)} : ↑(Sup Us) = ⋃₀ ((coe : _ → set α) '' Us) :=
-begin
-  rw [@galois_connection.l_Sup (opens α) (set α) _ _ (coe : opens α → set α) interior gc Us],
-  rw [set.sUnion_image]
-end
+by { rw [(@gc α _).l_Sup, set.sUnion_image], refl }
 
 lemma supr_def {ι} (s : ι → opens α) : (⨆ i, s i) = ⟨⋃ i, s i, is_open_Union $ λ i, (s i).2⟩ :=
 by { ext, simp only [supr, opens.Sup_s, sUnion_image, bUnion_range], refl }
 
 @[simp] lemma supr_mk {ι} (s : ι → set α) (h : Π i, is_open (s i)) :
-  (⨆ i, ⟨s i, h i⟩ : opens α) = ⟨⨆ i, s i, is_open_Union h⟩ :=
+  (⨆ i, ⟨s i, h i⟩ : opens α) = ⟨⋃ i, s i, is_open_Union h⟩ :=
 by { rw supr_def, simp }
 
 @[simp] lemma supr_s {ι} (s : ι → opens α) : ((⨆ i, s i : opens α) : set α) = ⋃ i, s i :=
@@ -142,6 +132,7 @@ lemma open_embedding_of_le {U V : opens α} (i : U ≤ V) :
     exact U.property.preimage continuous_subtype_val
   end, }
 
+/-- A set of `opens α` is a basis if the set of corresponding sets is a topological basis. -/
 def is_basis (B : set (opens α)) : Prop := is_topological_basis ((coe : _ → set α) '' B)
 
 lemma is_basis_iff_nbhd {B : set (opens α)} :

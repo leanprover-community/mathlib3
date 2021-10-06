@@ -686,7 +686,7 @@ begin
   split; intro h,
   { rw ← list.eq_of_sublist_of_length_eq n.factors.erase_dup_sublist h,
     apply list.nodup_erase_dup },
-  { rw list.erase_dup_eq_self.2 h,
+  { rw h.erase_dup,
     refl }
 end
 

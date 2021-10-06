@@ -86,7 +86,7 @@ variable [group_with_zero G]
 instance : mul_action (conj_act G) G :=
 { smul := (•),
   one_smul := by simp [smul_def],
-  mul_smul := by simp [smul_def, mul_assoc, mul_inv_rev'] }
+  mul_smul := by simp [smul_def, mul_assoc, mul_inv_rev₀] }
 
 end group_with_zero
 

@@ -6,6 +6,8 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 import algebra.gcd_monoid.basic
 import data.polynomial.derivative
 import data.polynomial.ring_division
+import data.set.pairwise
+import ring_theory.coprime.lemmas
 import ring_theory.euclidean_domain
 
 /-!
@@ -95,7 +97,7 @@ have hg : g ≠ 0, from λ hg, by { rw [hp, hg, mul_zero] at hp1, exact not_moni
 or.imp (λ hf, is_unit_of_mul_eq_one _ _ hf) (λ hg, is_unit_of_mul_eq_one _ _ hg) $
 hp3 (f * C f.leading_coeff⁻¹) (g * C g.leading_coeff⁻¹)
   (monic_mul_leading_coeff_inv hf) (monic_mul_leading_coeff_inv hg) $
-by rw [mul_assoc, mul_left_comm _ g, ← mul_assoc, ← C_mul, ← mul_inv', ← leading_coeff_mul,
+by rw [mul_assoc, mul_left_comm _ g, ← mul_assoc, ← C_mul, ← mul_inv₀, ← leading_coeff_mul,
     ← hp, monic.def.1 hp1, inv_one, C_1, mul_one]⟩⟩
 
 /-- Division of polynomials. See polynomial.div_by_monic for more details.-/
@@ -119,8 +121,6 @@ private lemma remainder_lt_aux (p : polynomial R) (hq : q ≠ 0) :
   degree (mod p q) < degree q :=
 by rw ← degree_mul_leading_coeff_inv q hq; exact
   degree_mod_by_monic_lt p (monic_mul_leading_coeff_inv hq)
-    (mul_ne_zero hq (mt leading_coeff_eq_zero.2 (by rw leading_coeff_C;
-      exact inv_ne_zero (mt leading_coeff_eq_zero.1 hq))))
 
 instance : has_div (polynomial R) := ⟨div⟩
 
@@ -171,7 +171,7 @@ lemma div_eq_zero_iff (hq0 : q ≠ 0) : p / q = 0 ↔ degree p < degree q :=
 λ h, have hlt : degree p < degree (q * C (leading_coeff q)⁻¹),
     by rwa degree_mul_leading_coeff_inv q hq0,
   have hm : monic (q * C (leading_coeff q)⁻¹) := monic_mul_leading_coeff_inv hq0,
-  by rw [div_def, (div_by_monic_eq_zero_iff hm (ne_zero_of_monic hm)).2 hlt, mul_zero]⟩
+  by rw [div_def, (div_by_monic_eq_zero_iff hm).2 hlt, mul_zero]⟩
 
 lemma degree_add_div (hq0 : q ≠ 0) (hpq : degree q ≤ degree p) :
   degree q + degree (p / q) = degree p :=

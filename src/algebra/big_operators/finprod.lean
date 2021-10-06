@@ -217,7 +217,7 @@ f.map_finprod_plift g (finite.of_fintype _)
 begin
   by_cases hg : (mul_support $ g ∘ plift.down).finite, { exact f.map_finprod_plift g hg },
   rw [finprod, dif_neg, f.map_one, finprod, dif_neg],
-  exacts [infinite_mono (λ x hx, mt (hf (g x.down)) hx) hg, hg]
+  exacts [infinite.mono (λ x hx, mt (hf (g x.down)) hx) hg, hg]
 end
 
 @[to_additive] lemma monoid_hom.map_finprod_of_injective (g : M →* N) (hg : injective g)

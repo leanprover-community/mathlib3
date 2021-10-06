@@ -292,6 +292,14 @@ by refine_struct { to_fun := (coe : S → A) }; intros; refl
 
 lemma val_apply (x : S) : S.val x = (x : A) := rfl
 
+@[simp] lemma to_subsemiring_subtype : S.to_subsemiring.subtype = (S.val : S →+* A) :=
+rfl
+
+@[simp] lemma to_subring_subtype {R A : Type*} [comm_ring R] [ring A]
+  [algebra R A] (S : subalgebra R A) : S.to_subring.subtype = (S.val : S →+* A) :=
+rfl
+
+
 /-- As submodules, subalgebras are idempotent. -/
 @[simp] theorem mul_self : S.to_submodule * S.to_submodule = S.to_submodule :=
 begin
@@ -521,9 +529,10 @@ lemma mem_inf {S T : subalgebra R A} {x : A} : x ∈ S ⊓ T ↔ x ∈ S ∧ x �
   (S ⊓ T).to_subsemiring = S.to_subsemiring ⊓ T.to_subsemiring := rfl
 
 @[simp, norm_cast]
-lemma coe_Inf (S : set (subalgebra R A)) : (↑(Inf S) : set A) = ⋂ s ∈ S, ↑s := rfl
+lemma coe_Inf (S : set (subalgebra R A)) : (↑(Inf S) : set A) = ⋂ s ∈ S, ↑s := Inf_image
 
-lemma mem_Inf {S : set (subalgebra R A)} {x : A} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_bInter_iff
+lemma mem_Inf {S : set (subalgebra R A)} {x : A} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p :=
+by simp only [← set_like.mem_coe, coe_Inf, set.mem_bInter_iff]
 
 @[simp] lemma Inf_to_submodule (S : set (subalgebra R A)) :
   (Inf S).to_submodule = Inf (subalgebra.to_submodule '' S) :=
@@ -535,7 +544,7 @@ set_like.coe_injective $ by simp
 
 @[simp, norm_cast]
 lemma coe_infi {ι : Sort*} {S : ι → subalgebra R A} : (↑(⨅ i, S i) : set A) = ⋂ i, S i :=
-set.bInter_range
+by simp [infi]
 
 lemma mem_infi {ι : Sort*} {S : ι → subalgebra R A} {x : A} : (x ∈ ⨅ i, S i) ↔ ∀ i, x ∈ S i :=
 by simp only [infi, mem_Inf, set.forall_range_iff]
@@ -866,6 +875,22 @@ S.to_subsemiring.module
 instance to_algebra {R A : Type*} [comm_semiring R] [comm_semiring A] [semiring α]
   [algebra R A] [algebra A α] (S : subalgebra R A) : algebra S α :=
 algebra.of_subsemiring S.to_subsemiring
+
+lemma algebra_map_eq {R A : Type*} [comm_semiring R] [comm_semiring A] [semiring α]
+  [algebra R A] [algebra A α] (S : subalgebra R A) :
+  algebra_map S α = (algebra_map A α).comp S.val := rfl
+
+@[simp] lemma srange_algebra_map {R A : Type*} [comm_semiring R] [comm_semiring A]
+  [algebra R A] (S : subalgebra R A) :
+  (algebra_map S A).srange = S.to_subsemiring :=
+by rw [algebra_map_eq, algebra.id.map_eq_id, ring_hom.id_comp, ← to_subsemiring_subtype,
+       subsemiring.srange_subtype]
+
+@[simp] lemma range_algebra_map {R A : Type*} [comm_ring R] [comm_ring A]
+  [algebra R A] (S : subalgebra R A) :
+  (algebra_map S A).range = S.to_subring :=
+by rw [algebra_map_eq, algebra.id.map_eq_id, ring_hom.id_comp, ← to_subring_subtype,
+       subring.range_subtype]
 
 instance no_zero_smul_divisors_top [no_zero_divisors A] (S : subalgebra R A) :
   no_zero_smul_divisors S A :=

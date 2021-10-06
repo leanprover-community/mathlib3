@@ -7,7 +7,6 @@ Authors: Kenny Lau
 import algebra.char_p.basic
 import data.mv_polynomial.comm_ring
 import data.mv_polynomial.equiv
-import data.polynomial.field_division
 import ring_theory.principal_ideal_domain
 import ring_theory.polynomial.content
 
@@ -378,15 +377,19 @@ def polynomial_quotient_equiv_quotient_polynomial (I : ideal R) :
     ((quotient.mk (map C I : ideal (polynomial R)) X)),
   inv_fun := quotient.lift (map C I : ideal (polynomial R))
     (eval₂_ring_hom (C.comp (quotient.mk I)) X) eval₂_C_mk_eq_zero,
-  map_mul' := λ f g, by simp,
-  map_add' := λ f g, by simp,
+  map_mul' := λ f g, by simp only [coe_eval₂_ring_hom, eval₂_mul],
+  map_add' := λ f g, by simp only [eval₂_add, coe_eval₂_ring_hom],
   left_inv := begin
     intro f,
     apply polynomial.induction_on' f,
-    { simp_intros p q hp hq,
-      rw [hp, hq] },
+    { intros p q hp hq,
+      simp only [coe_eval₂_ring_hom] at hp,
+      simp only [coe_eval₂_ring_hom] at hq,
+      simp only [coe_eval₂_ring_hom, hp, hq, ring_hom.map_add] },
     { rintros n ⟨x⟩,
-      simp [monomial_eq_smul_X, C_mul'] }
+      simp only [monomial_eq_smul_X, C_mul', quotient.lift_mk, submodule.quotient.quot_mk_eq_mk,
+        quotient.mk_eq_mk, eval₂_X_pow, eval₂_smul, coe_eval₂_ring_hom, ring_hom.map_pow,
+        eval₂_C, ring_hom.coe_comp, ring_hom.map_mul, eval₂_X] }
   end,
   right_inv := begin
     rintro ⟨f⟩,
@@ -394,9 +397,27 @@ def polynomial_quotient_equiv_quotient_polynomial (I : ideal R) :
     { simp_intros p q hp hq,
       rw [hp, hq] },
     { intros n a,
-      simp [monomial_eq_smul_X, ← C_mul' a (X ^ n)] },
+      simp only [monomial_eq_smul_X, ← C_mul' a (X ^ n), quotient.lift_mk,
+        submodule.quotient.quot_mk_eq_mk, quotient.mk_eq_mk, eval₂_X_pow,
+        eval₂_smul, coe_eval₂_ring_hom, ring_hom.map_pow, eval₂_C, ring_hom.coe_comp,
+        ring_hom.map_mul, eval₂_X] },
   end,
 }
+
+@[simp]
+lemma polynomial_quotient_equiv_quotient_polynomial_symm_mk (I : ideal R) (f : polynomial R) :
+  I.polynomial_quotient_equiv_quotient_polynomial.symm (quotient.mk _ f) = f.map (quotient.mk I) :=
+by rw [polynomial_quotient_equiv_quotient_polynomial, ring_equiv.symm_mk, ring_equiv.coe_mk,
+  ideal.quotient.lift_mk, coe_eval₂_ring_hom, eval₂_eq_eval_map, ←polynomial.map_map,
+  ←eval₂_eq_eval_map, polynomial.eval₂_C_X]
+
+@[simp]
+lemma polynomial_quotient_equiv_quotient_polynomial_map_mk (I : ideal R) (f : polynomial R) :
+  I.polynomial_quotient_equiv_quotient_polynomial (f.map I^.quotient.mk) = quotient.mk _ f :=
+begin
+  apply (polynomial_quotient_equiv_quotient_polynomial I).symm.injective,
+  rw [ring_equiv.symm_apply_apply, polynomial_quotient_equiv_quotient_polynomial_symm_mk],
+end
 
 /-- If `P` is a prime ideal of `R`, then `R[x]/(P)` is an integral domain. -/
 lemma is_integral_domain_map_C_quotient {P : ideal R} (H : is_prime P) :
@@ -968,7 +989,7 @@ variables {D : Type u} [integral_domain D] [unique_factorization_monoid D]
 instance unique_factorization_monoid : unique_factorization_monoid (polynomial D) :=
 begin
   haveI := arbitrary (normalization_monoid D),
-  haveI := to_gcd_monoid D,
+  haveI := to_normalized_gcd_monoid D,
   exact ufm_of_gcd_of_wf_dvd_monoid
 end
 

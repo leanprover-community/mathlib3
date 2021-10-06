@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Sébastien Gouëzel,
   Rémy Degenne
 -/
-import analysis.special_functions.trigonometric
+import analysis.special_functions.complex.log
 import analysis.calculus.extend_deriv
 
 /-!
@@ -418,7 +418,7 @@ lemma rpow_nonneg_of_nonneg {x : ℝ} (hx : 0 ≤ x) (y : ℝ) : 0 ≤ x ^ y :=
 by rw [rpow_def_of_nonneg hx];
   split_ifs; simp only [zero_le_one, le_refl, le_of_lt (exp_pos _)]
 
-lemma abs_rpow_le_abs_rpow (x y : ℝ) : abs (x ^ y) ≤ abs (x) ^ y :=
+lemma abs_rpow_le_abs_rpow (x y : ℝ) : |x ^ y| ≤ |x| ^ y :=
 begin
   rcases lt_trichotomy 0 x with (hx|rfl|hx),
   { rw [abs_of_pos hx, abs_of_pos (rpow_pos_of_pos hx _)] },
@@ -428,7 +428,7 @@ begin
     exact mul_le_of_le_one_right (exp_pos _).le (abs_cos_le_one _) }
 end
 
-lemma abs_rpow_le_exp_log_mul (x y : ℝ) : abs (x ^ y) ≤ exp (log x * y) :=
+lemma abs_rpow_le_exp_log_mul (x y : ℝ) : |x ^ y| ≤ exp (log x * y) :=
 begin
   refine (abs_rpow_le_abs_rpow x y).trans _,
   by_cases hx : x = 0,
@@ -436,7 +436,7 @@ begin
   { rw [rpow_def_of_pos (abs_pos.2 hx), log_abs] }
 end
 
-lemma abs_rpow_of_nonneg {x y : ℝ} (hx_nonneg : 0 ≤ x) : abs (x ^ y) = (abs x) ^ y :=
+lemma abs_rpow_of_nonneg {x y : ℝ} (hx_nonneg : 0 ≤ x) : |x ^ y| = |x| ^ y :=
 begin
   have h_rpow_nonneg : 0 ≤ x ^ y, from real.rpow_nonneg_of_nonneg hx_nonneg _,
   rw [abs_eq_self.mpr hx_nonneg, abs_eq_self.mpr h_rpow_nonneg],
@@ -1500,7 +1500,7 @@ lemma rpow_ne_top_of_nonneg {x : ℝ≥0∞} {y : ℝ} (hy0 : 0 ≤ y) (h : x �
 mt (ennreal.rpow_eq_top_of_nonneg x hy0) h
 
 lemma rpow_lt_top_of_nonneg {x : ℝ≥0∞} {y : ℝ} (hy0 : 0 ≤ y) (h : x ≠ ⊤) : x ^ y < ⊤ :=
-ennreal.lt_top_iff_ne_top.mpr (ennreal.rpow_ne_top_of_nonneg hy0 h)
+lt_top_iff_ne_top.mpr (ennreal.rpow_ne_top_of_nonneg hy0 h)
 
 lemma rpow_add {x : ℝ≥0∞} (y z : ℝ) (hx : x ≠ 0) (h'x : x ≠ ⊤) : x ^ (y + z) = x ^ y * x ^ z :=
 begin

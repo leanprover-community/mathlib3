@@ -482,6 +482,19 @@ lemma continuous_on_pi {ι : Type*} {π : ι → Type*} [∀ i, topological_spac
   continuous_on f s ↔ ∀ i, continuous_on (λ y, f y i) s :=
 ⟨λ h i x hx, tendsto_pi.1 (h x hx) i, λ h x hx, tendsto_pi.2 (λ i, h i x hx)⟩
 
+lemma continuous_within_at.fin_insert_nth {n} {π : fin (n + 1) → Type*}
+  [Π i, topological_space (π i)] (i : fin (n + 1)) {f : α → π i} {a : α} {s : set α}
+  (hf : continuous_within_at f s a)
+  {g : α → Π j : fin n, π (i.succ_above j)} (hg : continuous_within_at g s a) :
+  continuous_within_at (λ a, i.insert_nth (f a) (g a)) s a :=
+hf.fin_insert_nth i hg
+
+lemma continuous_on.fin_insert_nth {n} {π : fin (n + 1) → Type*} [Π i, topological_space (π i)]
+  (i : fin (n + 1)) {f : α → π i} {s : set α} (hf : continuous_on f s)
+  {g : α → Π j : fin n, π (i.succ_above j)} (hg : continuous_on g s) :
+  continuous_on (λ a, i.insert_nth (f a) (g a)) s :=
+λ a ha, (hf a ha).fin_insert_nth i (hg a ha)
+
 theorem continuous_on_iff {f : α → β} {s : set α} :
   continuous_on f s ↔ ∀ x ∈ s, ∀ t : set β, is_open t → f x ∈ t → ∃ u, is_open u ∧ x ∈ u ∧
     u ∩ s ⊆ f ⁻¹' t :=
@@ -604,6 +617,17 @@ lemma continuous_within_at.diff_iff {f : α → β} {s t : set α} {x : α}
 @[simp] lemma continuous_within_at_diff_self {f : α → β} {s : set α} {x : α} :
   continuous_within_at f (s \ {x}) x ↔ continuous_within_at f s x :=
 continuous_within_at_singleton.diff_iff
+
+lemma continuous_within_at_update_same [decidable_eq α] {f : α → β} {s : set α} {x : α} {y : β} :
+  continuous_within_at (function.update f x y) s x ↔ tendsto f (𝓝[s \ {x}] x) (𝓝 y) :=
+calc continuous_within_at (function.update f x y) s x
+    ↔ continuous_within_at (function.update f x y) (s \ {x}) x :
+  continuous_within_at_diff_self.symm
+... ↔ tendsto (function.update f x y) (𝓝[s \ {x}] x) (𝓝 y) :
+  by rw [continuous_within_at, function.update_same]
+... ↔ tendsto f (𝓝[s \ {x}] x) (𝓝 y) :
+  tendsto_congr' $ mem_of_superset self_mem_nhds_within $
+    λ z hz, by rw [mem_set_of_eq, function.update_noteq hz.2]
 
 theorem is_open_map.continuous_on_image_of_left_inv_on {f : α → β} {s : set α}
   (h : is_open_map (s.restrict f)) {finv : β → α} (hleft : left_inv_on finv f s) :
@@ -742,10 +766,15 @@ lemma continuous_within_at.preimage_mem_nhds_within' {f : α → β} {x : α} {s
   f ⁻¹' t ∈ 𝓝[s] x :=
 h.tendsto_nhds_within (maps_to_image _ _) ht
 
+lemma filter.eventually_eq.congr_continuous_within_at {f g : α → β} {s : set α} {x : α}
+  (h : f =ᶠ[𝓝[s] x] g) (hx : f x = g x) :
+  continuous_within_at f s x ↔ continuous_within_at g s x :=
+by rw [continuous_within_at, hx, tendsto_congr' h, continuous_within_at]
+
 lemma continuous_within_at.congr_of_eventually_eq {f f₁ : α → β} {s : set α} {x : α}
   (h : continuous_within_at f s x) (h₁ : f₁ =ᶠ[𝓝[s] x] f) (hx : f₁ x = f x) :
   continuous_within_at f₁ s x :=
-by rwa [continuous_within_at, filter.tendsto, hx, filter.map_congr h₁]
+(h₁.congr_continuous_within_at hx).2 h
 
 lemma continuous_within_at.congr {f f₁ : α → β} {s : set α} {x : α}
   (h : continuous_within_at f s x) (h₁ : ∀y∈s, f₁ y = f y) (hx : f₁ x = f x) :

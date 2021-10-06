@@ -747,14 +747,14 @@ sub_self' a -- explicit arg
 lemma zero_sub : 0 - a = 0 :=
 zero_sub' a -- explicit arg
 
-lemma sub_add_cancel_of_le (h : b ≤ a) : (a - b) + b = a :=
+protected lemma sub_add_cancel_of_le (h : b ≤ a) : (a - b) + b = a :=
 sub_add_cancel_of_le h
 
 lemma sub_le_sub (h₁ : a ≤ b) (h₂ : d ≤ c) : a - c ≤ b - d :=
 sub_le_sub' h₁ h₂
 
 -- todo: make `add_sub_cancel_of_le` a `@[simp]` lemma
-@[simp] lemma add_sub_cancel_of_le (h : b ≤ a) : b + (a - b) = a :=
+@[simp] protected lemma add_sub_cancel_of_le (h : b ≤ a) : b + (a - b) = a :=
 add_sub_cancel_of_le h
 
 lemma sub_add_self_eq_max : (a - b) + b = max a b :=

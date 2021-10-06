@@ -25,6 +25,12 @@ example (α β : Type*) [add_monoid α] [add_monoid β] :
 example (α β : Type*) [sub_neg_monoid α] [sub_neg_monoid β] :
   (prod.has_scalar : has_scalar ℤ (α × β)) = sub_neg_monoid.has_scalar_int := rfl
 
+example (α : Type*) (β : α → Type*) [Π a, add_monoid (β a)] :
+  (pi.has_scalar : has_scalar ℕ (Π a, β a)) = add_monoid.has_scalar_nat := rfl
+
+example (α : Type*) (β : α → Type*) [Π a, sub_neg_monoid (β a)] :
+  (pi.has_scalar : has_scalar ℤ (Π a, β a)) = sub_neg_monoid.has_scalar_int := rfl
+
 section units
 
 example (α : Type*) [monoid α] :

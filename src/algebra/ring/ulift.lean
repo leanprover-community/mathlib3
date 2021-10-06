@@ -35,7 +35,7 @@ tactic.pi_instance_derive_field
 
 instance non_assoc_semiring [non_assoc_semiring α] : non_assoc_semiring (ulift α) :=
 by refine_struct { zero := (0 : ulift α), one := 1, add := (+), mul := (*),
-  nsmul := λ n f, ⟨nsmul n f.down⟩ };
+  nsmul := λ n f, ⟨nsmul n f.down⟩, of_nat := λ n, ⟨non_assoc_semiring.of_nat n⟩ };
 tactic.pi_instance_derive_field
 
 instance non_unital_semiring [non_unital_semiring α] : non_unital_semiring (ulift α) :=
@@ -45,7 +45,8 @@ tactic.pi_instance_derive_field
 
 instance semiring [semiring α] : semiring (ulift α) :=
 by refine_struct { zero := (0 : ulift α), one := 1, add := (+), mul := (*),
-  nsmul := λ n f, ⟨nsmul n f.down⟩, npow := λ n f, ⟨npow n f.down⟩ };
+  nsmul := λ n f, ⟨nsmul n f.down⟩, npow := λ n f, ⟨npow n f.down⟩,
+  of_nat := λ n, ⟨non_assoc_semiring.of_nat n⟩  };
 tactic.pi_instance_derive_field
 
 /--
@@ -61,19 +62,23 @@ def ring_equiv [non_unital_non_assoc_semiring α] : ulift α ≃+* α :=
 
 instance comm_semiring [comm_semiring α] : comm_semiring (ulift α) :=
 by refine_struct { zero := (0 : ulift α), one := 1, add := (+), mul := (*),
-  nsmul := λ n f, ⟨nsmul n f.down⟩, npow := λ n f, ⟨npow n f.down⟩ };
+  nsmul := λ n f, ⟨nsmul n f.down⟩, npow := λ n f, ⟨npow n f.down⟩,
+  of_nat := λ n, ⟨non_assoc_semiring.of_nat n⟩  };
 tactic.pi_instance_derive_field
 
 instance ring [ring α] : ring (ulift α) :=
 by refine_struct { zero := (0 : ulift α), one := 1, add := (+), mul := (*), sub := has_sub.sub,
   neg := has_neg.neg, nsmul := λ n f, ⟨nsmul n f.down⟩, npow := λ n f, ⟨npow n f.down⟩,
-  gsmul := λ n f, ⟨gsmul n f.down⟩ };
+  gsmul := λ n f, ⟨gsmul n f.down⟩,
+  of_nat := λ n, ⟨non_assoc_semiring.of_nat n⟩, of_int := λ n, ⟨ring.of_int n⟩,
+  .. ulift.semiring };
 tactic.pi_instance_derive_field
 
 instance comm_ring [comm_ring α] : comm_ring (ulift α) :=
 by refine_struct { zero := (0 : ulift α), one := 1, add := (+), mul := (*), sub := has_sub.sub,
   neg := has_neg.neg, nsmul := λ n f, ⟨nsmul n f.down⟩, npow := λ n f, ⟨npow n f.down⟩,
-  gsmul := λ n f, ⟨gsmul n f.down⟩ };
+  gsmul := λ n f, ⟨gsmul n f.down⟩,
+  of_nat := λ n, ⟨non_assoc_semiring.of_nat n⟩, of_int := λ n, ⟨ring.of_int n⟩, };
 tactic.pi_instance_derive_field
 
 end ulift

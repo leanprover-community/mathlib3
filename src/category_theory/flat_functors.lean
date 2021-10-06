@@ -13,9 +13,9 @@ import category_theory.limits.presheaf
 
 Define representably flat functors as functors such that the catetory of structured arrows over `X`
 is cofltered for each `X`. This concept is also knows as flat functors as in [Elephant],
-Remark C2.3.7, and is called representably flat as suggested by Mike Shulman at
-https://golem.ph.utexas.edu/category/2011/06/flat_functors_and_morphisms_of.html to differentiate it
-from the other notions of flatness.
+Remark C2.3.7, and this name is suggested by Mike Shulman in
+https://golem.ph.utexas.edu/category/2011/06/flat_functors_and_morphisms_of.html to differentiate
+this concept from other notions of flatness.
 
 We
 

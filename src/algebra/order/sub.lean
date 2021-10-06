@@ -43,7 +43,7 @@ In other words, `a - b` is the least `c` such that `a ≤ b + c`.
 This is satisfied both by the subtraction in additive ordered groups and by truncated subtraction
 in canonically ordered monoids on many specific types.
 -/
-class has_ordered_sub (α : Type*) [preorder α] [has_add α] [has_sub α] :=
+class has_ordered_sub (α : Type*) [has_le α] [has_add α] [has_sub α] :=
 (sub_le_iff_right : ∀ a b c : α, a - b ≤ c ↔ a ≤ c + b)
 
 section has_add
@@ -712,3 +712,35 @@ lemma sub_add_min : a - b + min a b = a :=
 by { rw [← sub_min, sub_add_cancel_of_le], apply min_le_left }
 
 end canonically_linear_ordered_add_monoid
+
+namespace with_top
+
+section
+variables [has_sub α] [has_zero α]
+
+def with_top.sub : Π (a b : with_top α), with_top α
+| _ ⊤ := 0
+| (x : α) (y : α) := (x - y : α)
+| ⊤ (x : α) := ⊤
+
+instance : has_sub (with_top α) :=
+⟨with_top.sub⟩
+
+@[norm_cast] lemma coe_sub {a b : α} : ((a - b : α) : with_top α) = a - b := rfl
+@[simp] lemma top_sub_coe {a : α} : (⊤ : with_top α) - a = ⊤ := rfl
+@[simp] lemma sub_top {a : with_top α} : a - ⊤ = 0 := by { cases a; refl }
+
+end
+
+variables [canonically_ordered_add_monoid α] [has_sub α] [has_ordered_sub α]
+instance : has_ordered_sub (with_top α) :=
+begin
+  constructor,
+  rintro x y z,
+  induction y using with_top.rec_top_coe, { simp },
+  induction x using with_top.rec_top_coe, { simp },
+  induction z using with_top.rec_top_coe; simp [← coe_sub, ← coe_add, sub_le_iff_right]
+end
+
+
+end with_top

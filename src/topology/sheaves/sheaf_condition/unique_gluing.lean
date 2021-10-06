@@ -213,33 +213,10 @@ For presheaves valued in a concrete category, whose forgetful functor reflects i
 preserves limits, the sheaf condition in terms of unique gluings is equivalent to the usual one
 in terms of equalizer diagrams.
 -/
-def sheaf_condition_equiv_sheaf_condition_unique_gluing :
-  F.sheaf_condition ≃ F.sheaf_condition_unique_gluing :=
-equiv.trans (sheaf_condition_equiv_sheaf_condition_comp (forget C) F)
-  (sheaf_condition_equiv_sheaf_condition_unique_gluing_types (F ⋙ forget C))
-
-/--
-A slightly more convenient way of obtaining the sheaf condition for sheaves of algebraic structures.
--/
-def sheaf_condition_of_exists_unique_gluing
-  (h : ∀ ⦃ι : Type v⦄ (U : ι → opens X) (sf : Π i : ι, F.obj (op (U i))),
-    is_compatible F U sf → ∃! s : F.obj (op (supr U)), is_gluing F U sf s) :
-  F.sheaf_condition :=
-(sheaf_condition_equiv_sheaf_condition_unique_gluing F).inv_fun $ λ ι U sf hsf,
-{ default := begin
-    choose gl gl_spec gl_uniq using h U sf hsf,
-    exact ⟨gl, gl_spec⟩
-  end,
-  uniq := begin
-    intro s,
-    let t : F.gluing U sf := _,
-    change s = t,
-    ext,
-    choose gl gl_spec gl_uniq using h U sf hsf,
-    refine eq.trans (gl_uniq s.1 _) (gl_uniq t.1 _).symm,
-    exacts [s.2, t.2]
-  end,
-}
+lemma is_sheaf_iff_is_sheaf_unique_gluing :
+  F.is_sheaf ↔ F.is_sheaf_unique_gluing :=
+iff.trans (is_sheaf_iff_is_sheaf_comp (forget C) F)
+  (is_sheaf_iff_is_sheaf_unique_gluing_types (F ⋙ forget C))
 
 end
 
@@ -262,46 +239,41 @@ variables {X : Top.{v}} (F : sheaf C X) {ι : Type v} (U : ι → opens X)
 /--
 A more convenient way of obtaining a unique gluing of sections for a sheaf.
 -/
-lemma exists_unique_gluing (sf : Π i : ι, F.presheaf.obj (op (U i)))
-  (h : is_compatible F.presheaf U sf ) :
-  ∃! s : F.presheaf.obj (op (supr U)), is_gluing F.presheaf U sf s :=
-begin
-  have := sheaf_condition_equiv_sheaf_condition_unique_gluing _ F.sheaf_condition U sf h,
-  refine ⟨this.default.1, this.default.2, _⟩,
-  intros s hs,
-  exact congr_arg subtype.val (this.uniq ⟨s, hs⟩),
-end
+lemma exists_unique_gluing (sf : Π i : ι, F.1.obj (op (U i)))
+  (h : is_compatible F.1 U sf ) :
+  ∃! s : F.1.obj (op (supr U)), is_gluing F.1 U sf s :=
+(is_sheaf_iff_is_sheaf_unique_gluing F.1).mp F.property U sf h
 
 /--
 In this version of the lemma, the inclusion homs `iUV` can be specified directly by the user,
 which can be more convenient in practice.
 -/
 lemma exists_unique_gluing' (V : opens X) (iUV : Π i : ι, U i ⟶ V) (hcover : V ≤ supr U)
-  (sf : Π i : ι, F.presheaf.obj (op (U i))) (h : is_compatible F.presheaf U sf) :
-  ∃! s : F.presheaf.obj (op V), ∀ i : ι, F.presheaf.map (iUV i).op s = sf i :=
+  (sf : Π i : ι, F.1.obj (op (U i))) (h : is_compatible F.1 U sf) :
+  ∃! s : F.1.obj (op V), ∀ i : ι, F.1.map (iUV i).op s = sf i :=
 begin
   have V_eq_supr_U : V = supr U := le_antisymm hcover (supr_le (λ i, (iUV i).le)),
   obtain ⟨gl, gl_spec, gl_uniq⟩ := F.exists_unique_gluing U sf h,
-  refine ⟨F.presheaf.map (eq_to_hom V_eq_supr_U).op gl, _, _⟩,
+  refine ⟨F.1.map (eq_to_hom V_eq_supr_U).op gl, _, _⟩,
   { intro i,
-    rw [← comp_apply, ← F.presheaf.map_comp],
+    rw [← comp_apply, ← F.1.map_comp],
     exact gl_spec i },
   { intros gl' gl'_spec,
-    convert congr_arg _ (gl_uniq (F.presheaf.map (eq_to_hom V_eq_supr_U.symm).op gl') (λ i,_)) ;
-      rw [← comp_apply, ← F.presheaf.map_comp],
+    convert congr_arg _ (gl_uniq (F.1.map (eq_to_hom V_eq_supr_U.symm).op gl') (λ i,_)) ;
+      rw [← comp_apply, ← F.1.map_comp],
     { rw [eq_to_hom_op, eq_to_hom_op, eq_to_hom_trans, eq_to_hom_refl,
-      F.presheaf.map_id, id_apply] },
+      F.1.map_id, id_apply] },
     { convert gl'_spec i } }
 end
 
 @[ext]
-lemma eq_of_locally_eq (s t : F.presheaf.obj (op (supr U)))
-  (h : ∀ i, F.presheaf.map (opens.le_supr U i).op s = F.presheaf.map (opens.le_supr U i).op t) :
+lemma eq_of_locally_eq (s t : F.1.obj (op (supr U)))
+  (h : ∀ i, F.1.map (opens.le_supr U i).op s = F.1.map (opens.le_supr U i).op t) :
   s = t :=
 begin
-  let sf : Π i : ι, F.presheaf.obj (op (U i)) := λ i, F.presheaf.map (opens.le_supr U i).op s,
+  let sf : Π i : ι, F.1.obj (op (U i)) := λ i, F.1.map (opens.le_supr U i).op s,
   have sf_compatible : is_compatible _ U sf,
-  { intros i j, simp_rw [← comp_apply, ← F.presheaf.map_comp], refl },
+  { intros i j, simp_rw [← comp_apply, ← F.1.map_comp], refl },
   obtain ⟨gl, -, gl_uniq⟩ := F.exists_unique_gluing U sf sf_compatible,
   transitivity gl,
   { apply gl_uniq, intro i, refl },
@@ -313,18 +285,18 @@ In this version of the lemma, the inclusion homs `iUV` can be specified directly
 which can be more convenient in practice.
 -/
 lemma eq_of_locally_eq' (V : opens X) (iUV : Π i : ι, U i ⟶ V) (hcover : V ≤ supr U)
-  (s t : F.presheaf.obj (op V))
-  (h : ∀ i, F.presheaf.map (iUV i).op s = F.presheaf.map (iUV i).op t) : s = t :=
+  (s t : F.1.obj (op V))
+  (h : ∀ i, F.1.map (iUV i).op s = F.1.map (iUV i).op t) : s = t :=
 begin
   have V_eq_supr_U : V = supr U := le_antisymm hcover (supr_le (λ i, (iUV i).le)),
-  suffices : F.presheaf.map (eq_to_hom V_eq_supr_U.symm).op s =
-             F.presheaf.map (eq_to_hom V_eq_supr_U.symm).op t,
-  { convert congr_arg (F.presheaf.map (eq_to_hom V_eq_supr_U).op) this ;
-    rw [← comp_apply, ← F.presheaf.map_comp, eq_to_hom_op, eq_to_hom_op, eq_to_hom_trans,
-      eq_to_hom_refl, F.presheaf.map_id, id_apply] },
+  suffices : F.1.map (eq_to_hom V_eq_supr_U.symm).op s =
+             F.1.map (eq_to_hom V_eq_supr_U.symm).op t,
+  { convert congr_arg (F.1.map (eq_to_hom V_eq_supr_U).op) this ;
+    rw [← comp_apply, ← F.1.map_comp, eq_to_hom_op, eq_to_hom_op, eq_to_hom_trans,
+      eq_to_hom_refl, F.1.map_id, id_apply] },
   apply eq_of_locally_eq,
   intro i,
-  rw [← comp_apply, ← comp_apply, ← F.presheaf.map_comp],
+  rw [← comp_apply, ← comp_apply, ← F.1.map_comp],
   convert h i,
 end
 

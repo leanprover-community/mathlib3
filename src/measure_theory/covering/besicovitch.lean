@@ -624,7 +624,7 @@ begin
         rcases exists_lt_of_cInf_lt (hf x xs) this with ⟨r, hr, h'r⟩,
         refine ⟨r, hr, h'r.le.trans (min_le_right _ _), _⟩,
         rw disjoint.comm,
-        exact disjoint_closed_ball_of_lt_inf_edist (h'r.trans_le (min_le_left _ _)) } },
+        exact disjoint_closed_ball_of_lt_inf_dist (h'r.trans_le (min_le_left _ _)) } },
     choose! r hr using this,
     obtain ⟨v, vs', hμv, hv⟩ : ∃ (v : finset α), ↑v ⊆ s'
       ∧ μ (s' \ ⋃ (x ∈ v), closed_ball x (r x)) ≤ N/(N+1) * μ s'

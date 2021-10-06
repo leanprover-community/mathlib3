@@ -46,7 +46,7 @@ instance : has_sub prime_multiset :=
 by { dsimp [prime_multiset], apply_instance }
 
 theorem add_sub_of_le {u v : prime_multiset} : u ≤ v → u + (v - u) = v :=
-multiset.add_sub_of_le
+add_sub_cancel_of_le
 
 /-- The multiset consisting of a single prime -/
 def of_prime (p : nat.primes) : prime_multiset := ({p} : multiset nat.primes)
@@ -303,7 +303,7 @@ begin
     rw [← prod_factor_multiset m, ← prod_factor_multiset m],
     apply dvd.intro (n.factor_multiset - m.factor_multiset).prod,
     rw [← prime_multiset.prod_add, prime_multiset.factor_multiset_prod,
-        prime_multiset.add_sub_of_le h, prod_factor_multiset] },
+        prime_add_sub_cancel_of_le h, prod_factor_multiset] },
   { intro  h,
     rw [← mul_div_exact h, factor_multiset_mul],
     exact le_self_add }

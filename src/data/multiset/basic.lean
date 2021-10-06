@@ -1551,20 +1551,20 @@ instance : has_union (multiset α) := ⟨union⟩
 
 theorem union_def (s t : multiset α) : s ∪ t = s - t + t := rfl
 
-theorem le_union_left (s t : multiset α) : s ≤ s ∪ t := multiset.le_sub_add _ _
+theorem le_union_left (s t : multiset α) : s ≤ s ∪ t := le_sub_add
 
 theorem le_union_right (s t : multiset α) : t ≤ s ∪ t := le_add_left _ _
 
-theorem eq_union_left : t ≤ s → s ∪ t = s := multiset.sub_add_cancel
+theorem eq_union_left : t ≤ s → s ∪ t = s := sub_add_cancel_of_le
 
 theorem union_le_union_right (h : s ≤ t) (u) : s ∪ u ≤ t ∪ u :=
-add_le_add_right (multiset.sub_le_sub_right h _) u
+add_le_add_right (sub_le_sub_right' h _) u
 
 theorem union_le (h₁ : s ≤ u) (h₂ : t ≤ u) : s ∪ t ≤ u :=
 by rw ← eq_union_left h₂; exact union_le_union_right h₁ t
 
 @[simp] theorem mem_union : a ∈ s ∪ t ↔ a ∈ s ∨ a ∈ t :=
-⟨λ h, (mem_add.1 h).imp_left (mem_of_le $ multiset.sub_le_self _ _),
+⟨λ h, (mem_add.1 h).imp_left (mem_of_le sub_le_self'),
  or.rec (mem_of_le $ le_union_left _ _) (mem_of_le $ le_union_right _ _)⟩
 
 @[simp] theorem map_union [decidable_eq β] {f : α → β} (finj : function.injective f)
@@ -1659,7 +1659,7 @@ union_le (le_add_right _ _) (le_add_left _ _)
 
 theorem union_add_distrib (s t u : multiset α) : (s ∪ t) + u = (s + u) ∪ (t + u) :=
 by simpa [(∪), union, eq_comm, add_assoc] using show s + u - (t + u) = s - t,
-by rw [add_comm t, multiset.sub_add', multiset.add_sub_cancel]
+by rw [add_comm t, sub_add_eq_sub_sub', add_sub_cancel_right]
 
 theorem add_union_distrib (s t u : multiset α) : s + (t ∪ u) = (s + t) ∪ (s + u) :=
 by rw [add_comm, union_add_distrib, add_comm s, add_comm s]
@@ -1706,8 +1706,7 @@ begin
 end
 
 theorem sub_inter (s t : multiset α) : s - (s ∩ t) = s - t :=
-add_right_cancel $
-by rw [sub_add_inter s t, multiset.sub_add_cancel (inter_le_left _ _)]
+add_right_cancel $ by rw [sub_add_inter s t, sub_add_cancel_of_le (inter_le_left s t)]
 
 end
 

@@ -1453,7 +1453,7 @@ begin
     rw [tendsto_pi], rw [tendsto_pi] at lim, intro x,
     exact ((continuous_inf_nndist_pt s).tendsto (g x)).comp (lim x) },
   have h4s : g ⁻¹' s = (λ x, inf_nndist (g x) s) ⁻¹' {0},
-  { ext x, simp [h1s, ← mem_iff_inf_dist_zero_of_closed h1s h2s, ← nnreal.coe_eq_zero] },
+  { ext x, simp [h1s, ← h1s.mem_iff_inf_dist_zero h2s, ← nnreal.coe_eq_zero] },
   rw [h4s], exact this (measurable_set_singleton 0),
 end
 

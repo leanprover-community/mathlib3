@@ -2027,6 +2027,11 @@ lemma pairwise_on_pair_of_symmetric {r : α → α → Prop} {x y : α} (hr : sy
   pairwise_on {x, y} r ↔ (x ≠ y → r x y) :=
 by simp [pairwise_on_insert_of_symmetric hr]
 
+lemma pairwise_on_disjoint_on_mono {s : set α} {f g : α → set β}
+  (h : s.pairwise_on (disjoint on f)) (h' : ∀ x ∈ s, g x ⊆ f x) :
+  s.pairwise_on (disjoint on g) :=
+λ i hi j hj hij, disjoint.mono (h' i hi) (h' j hj) (h i hi j hj hij)
+
 end set
 
 open set

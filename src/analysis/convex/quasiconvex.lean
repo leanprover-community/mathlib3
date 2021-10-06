@@ -42,7 +42,7 @@ section add_comm_monoid
 variables [add_comm_monoid E] [add_comm_monoid F]
 
 section ordered_add_comm_monoid
-variables (𝕜) [ordered_add_comm_monoid β] [has_scalar 𝕜 E] [has_scalar 𝕜 β] (s : set E) (f : E → β)
+variables (𝕜) [ordered_add_comm_monoid β] [has_scalar 𝕜 E] (s : set E) (f : E → β)
 
 /-- Quasiconvexity of functions -/
 def quasiconvex_on : Prop :=
@@ -84,7 +84,7 @@ section linear_ordered_add_comm_monoid
 variables [linear_ordered_add_comm_monoid β]
 
 section has_scalar
-variables [has_scalar 𝕜 E] [has_scalar 𝕜 β] {s : set E} {f g : E → β}
+variables [has_scalar 𝕜 E] {s : set E} {f g : E → β}
 
 -- This only requires `directed_order β` but we don't have `directed_ordered_add_comm_monoid`
 lemma quasiconvex_on.convex (hf : quasiconvex_on 𝕜 s f) : convex 𝕜 s :=
@@ -158,7 +158,7 @@ end add_comm_monoid
 
 section linear_ordered_add_comm_monoid
 variables [linear_ordered_add_comm_monoid E] [ordered_add_comm_monoid β] [module 𝕜 E]
-  [ordered_smul 𝕜 E] [has_scalar 𝕜 β] {s : set E} {f : E → β}
+  [ordered_smul 𝕜 E] {s : set E} {f : E → β}
 
 lemma monotone_on.quasiconvex_on (hf : monotone_on f s) (hs : convex 𝕜 s) : quasiconvex_on 𝕜 s f :=
 hf.convex_le hs

@@ -137,7 +137,7 @@ begin
   { rintro h,
     refine ⟨x + c, _, add_sub_cancel_right _ _⟩,
     rw mem_Ico at ⊢ h,
-    exact ⟨sub_le_iff_right.1 h.1, nat.add_lt_of_lt_sub_right h.2⟩ }
+    exact ⟨sub_le_iff_right.1 h.1, lt_sub_iff_right.1 h.2⟩ }
 end
 
 lemma Ico_image_const_sub_eq_Ico (hac : a ≤ c) :
@@ -148,21 +148,20 @@ begin
   split,
   { rintro ⟨x, hx, rfl⟩,
     rw mem_Ico at hx,
-    refine ⟨_, ((nat.sub_le_sub_left_iff hac).2 hx.1).trans_lt ((nat.sub_lt_sub_right_iff hac).2
+    refine ⟨_, ((sub_le_sub_iff_left' hac).2 hx.1).trans_lt ((sub_lt_sub_iff_right' hac).2
       (nat.lt_succ_self _))⟩,
     cases lt_or_le c b,
     { rw nat.sub_eq_zero_of_le h,
       exact zero_le _ },
     { rw ←succ_sub_succ c,
-      exact (nat.sub_le_sub_left_iff (succ_le_succ $ hx.2.le.trans h)).2 hx.2 } },
+      exact (sub_le_sub_iff_left' (succ_le_succ $ hx.2.le.trans h)).2 hx.2 } },
   { rintro ⟨hb, ha⟩,
-    rw [nat.lt_sub_left_iff_add_lt, lt_succ_iff] at ha,
+    rw [lt_sub_iff_left, lt_succ_iff] at ha,
     have hx : x ≤ c := (nat.le_add_left _ _).trans ha,
     refine ⟨c - x, _, nat.sub_sub_self hx⟩,
     { rw mem_Ico,
-      refine ⟨nat.le_sub_right_of_add_le ha, _⟩,
-      rw [nat.sub_lt_left_iff_lt_add hx, ←succ_le_iff],
-      exact nat.le_add_of_sub_le_right hb } }
+      refine ⟨le_sub_of_add_le_right' ha, _⟩,
+      rwa [sub_lt_iff_left hx, ←succ_le_iff, sub_le_iff_right] } }
 end
 
 lemma range_image_pred_top_sub (n : ℕ) :

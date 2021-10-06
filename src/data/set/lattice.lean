@@ -301,19 +301,6 @@ let ⟨z, zb₁, zb₂⟩ := hd b₁ b₂,
     ⟨x, xf, xa₁, xa₂⟩ := h z a₁ (zb₁ fb₁) a₂ (zb₂ fb₂) in
 ⟨x, ⟨z, xf⟩, xa₁, xa₂⟩
 
-lemma pairwise_on_Union {r : α → α → Prop} {f : ι → set α} (h : directed (⊆) f) :
-  (⋃ n, f n).pairwise_on r ↔ (∀ n, (f n).pairwise_on r) :=
-begin
-  split,
-  { assume H n,
-    exact pairwise_on.mono (subset_Union _ _) H },
-  { assume H i hi j hj hij,
-    rcases mem_Union.1 hi with ⟨m, hm⟩,
-    rcases mem_Union.1 hj with ⟨n, hn⟩,
-    rcases h m n with ⟨p, mp, np⟩,
-    exact H p i (mp hm) j (np hn) hij }
-end
-
 lemma Union_inter_subset {ι α} {s t : ι → set α} : (⋃ i, s i ∩ t i) ⊆ (⋃ i, s i) ∩ (⋃ i, t i) :=
 by { rintro x ⟨_, ⟨i, rfl⟩, xs, xt⟩, exact ⟨⟨_, ⟨i, rfl⟩, xs⟩, _, ⟨i, rfl⟩, xt⟩ }
 
@@ -1014,6 +1001,23 @@ lemma image_bInter_subset {p : ι → Prop} (s : Π i (hi : p i), set α) (f : �
 lemma image_sInter_subset (S : set (set α)) (f : α → β) :
   f '' (⋂₀ S) ⊆ ⋂ s ∈ S, f '' s :=
 by { rw sInter_eq_bInter, apply image_bInter_subset }
+
+lemma pairwise_on_Union {r : α → α → Prop} {f : ι → set α} (h : directed (⊆) f) :
+  (⋃ n, f n).pairwise_on r ↔ (∀ n, (f n).pairwise_on r) :=
+begin
+  split,
+  { assume H n,
+    exact pairwise_on.mono (subset_Union _ _) H },
+  { assume H i hi j hj hij,
+    rcases mem_Union.1 hi with ⟨m, hm⟩,
+    rcases mem_Union.1 hj with ⟨n, hn⟩,
+    rcases h m n with ⟨p, mp, np⟩,
+    exact H p i (mp hm) j (np hn) hij }
+end
+
+lemma pairwise_on_sUnion {r : α → α → Prop} {s : set (set α)} (h : directed_on (⊆) s) :
+  (⋃₀ s).pairwise_on r ↔ (∀ a ∈ s, set.pairwise_on a r) :=
+by { rw [sUnion_eq_Union, pairwise_on_Union (h.directed_coe), set_coe.forall], refl }
 
 /-! ### `inj_on` -/
 

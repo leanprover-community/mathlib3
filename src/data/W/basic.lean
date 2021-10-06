@@ -37,7 +37,73 @@ instance : inhabited (W_type (λ (_ : unit), empty)) :=
 
 namespace W_type
 
-variables {α : Type*} {β : α → Type*} [Π a : α, fintype (β a)]
+variables {α : Type*} {β : α → Type*}
+
+/-- The canonical map to the corresponding sigma type, returning the label of a node as an
+  element `a` of `α`, and the children of the node as a function `β a → W_type β`. -/
+def to_sigma : W_type β → Σ a : α, β a → W_type β
+| ⟨a, f⟩ := ⟨a, f⟩
+
+/-- The canonical map from the sigma type into a `W_type`. Given a node `a : α`, and
+  its children as a function `β a → W_type β`, return the corresponding tree. -/
+def of_sigma : (Σ a : α, β a → W_type β) → W_type β
+| ⟨a, f⟩ := W_type.mk a f
+
+@[simp] lemma of_sigma_to_sigma : Π (w : W_type β),
+  of_sigma (to_sigma w) = w
+| ⟨a, f⟩ := rfl
+
+@[simp] lemma to_sigma_of_sigma : Π (s : Σ a : α, β a → W_type β),
+  to_sigma (of_sigma s) = s
+| ⟨a, f⟩ := rfl
+
+variable (β)
+
+/-- The canonical bijection with the sigma type, showing that `W_type` is a fixed point of
+  the polynomial `Σ a : α, β a → W_type β`.  -/
+@[simps] def equiv_sigma : W_type β ≃ Σ a : α, β a → W_type β :=
+{ to_fun := to_sigma,
+  inv_fun := of_sigma,
+  left_inv := of_sigma_to_sigma,
+  right_inv := to_sigma_of_sigma }
+
+variable {β}
+
+/-- The canonical map from `W_type β` into any type `γ` given a map `(Σ a : α, β a → γ) → γ`. -/
+def elim (γ : Type*) (fγ : (Σ a : α, β a → γ) → γ) : W_type β → γ
+| ⟨a, f⟩ := fγ ⟨a, λ b, elim (f b)⟩
+
+lemma elim_injective (γ : Type*) (fγ : (Σ a : α, β a → γ) → γ)
+  (fγ_injective : function.injective fγ) :
+  function.injective (elim γ fγ)
+| ⟨a₁, f₁⟩ ⟨a₂, f₂⟩ h := begin
+  obtain ⟨rfl, h⟩ := sigma.mk.inj (fγ_injective h),
+  congr' with x,
+  exact elim_injective (congr_fun (eq_of_heq h) x : _),
+end
+
+instance [hα : is_empty α] : is_empty (W_type β) :=
+⟨λ w, W_type.rec_on w (is_empty.elim hα)⟩
+
+lemma infinite_of_nonempty_of_is_empty (a b : α) [ha : nonempty (β a)]
+  [he : is_empty (β b)] : infinite (W_type β) :=
+⟨begin
+  introsI hf,
+  have hba : b ≠ a, from λ h, ha.elim (is_empty.elim' (show is_empty (β a), from h ▸ he)),
+  refine not_injective_infinite_fintype
+    (λ n : ℕ, show W_type β, from nat.rec_on n
+      ⟨b, is_empty.elim' he⟩
+      (λ n ih, ⟨a, λ _, ih⟩)) _,
+  intros n m h,
+  induction n with n ih generalizing m h,
+  { cases m with m; simp * at * },
+  { cases m with m,
+    { simp * at * },
+    { refine congr_arg nat.succ (ih _),
+      simp [function.funext_iff, *] at * } }
+end⟩
+
+variables [Π a : α, fintype (β a)]
 
 /-- The depth of a finitely branching tree. -/
 def depth : W_type β → ℕ

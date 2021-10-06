@@ -381,7 +381,7 @@ end
 variables [inner_product_space 𝕜 E] [inner_product_space ℝ F]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 local notation `IK` := @is_R_or_C.I 𝕜 _
-local notation `absR` := _root_.abs
+local notation `absR` := has_abs.abs
 local notation `absK` := @is_R_or_C.abs 𝕜 _
 local postfix `†`:90 := @is_R_or_C.conj 𝕜 _
 local postfix `⋆`:90 := complex.conj

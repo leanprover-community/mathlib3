@@ -62,6 +62,9 @@ of_nat_of_decode (encodek _)
 def eqv (α) [denumerable α] : α ≃ ℕ :=
 ⟨encode, of_nat α, of_nat_encode, encode_of_nat⟩
 
+@[priority 100] -- See Note [lower instance priority]
+instance : infinite α := infinite.of_surjective _ (eqv α).surjective
+
 /-- A type equivalent to `ℕ` is denumerable. -/
 def mk' {α} (e : α ≃ ℕ) : denumerable α :=
 { encode := e,

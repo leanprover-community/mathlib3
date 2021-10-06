@@ -417,6 +417,12 @@ section order
 @[simp] lemma top_ne_nat (n : ℕ) : ∞ ≠ n := with_top.top_ne_nat n
 @[simp] lemma one_lt_top : 1 < ∞ := coe_lt_top
 
+@[simp, norm_cast] lemma to_nnreal_nat (n : ℕ) : (n : ℝ≥0∞).to_nnreal = n :=
+by conv_lhs { rw [← ennreal.coe_nat n, ennreal.to_nnreal_coe] }
+
+@[simp, norm_cast] lemma to_real_nat (n : ℕ) : (n : ℝ≥0∞).to_real = n :=
+by conv_lhs { rw [← ennreal.of_real_coe_nat n, ennreal.to_real_of_real (nat.cast_nonneg _)] }
+
 lemma le_coe_iff : a ≤ ↑r ↔ (∃p:ℝ≥0, a = p ∧ p ≤ r) := with_top.le_coe_iff
 lemma coe_le_iff : ↑r ≤ a ↔ (∀p:ℝ≥0, a = p → r ≤ p) := with_top.coe_le_iff
 
@@ -890,6 +896,28 @@ begin
   exact real.to_nnreal_sum_of_nonneg hf,
 end
 
+theorem sum_lt_sum_of_nonempty {s : finset α} (hs : s.nonempty)
+  {f g : α → ℝ≥0∞} (Hlt : ∀ i ∈ s, f i < g i) :
+  ∑ i in s, f i < ∑ i in s, g i :=
+begin
+  classical,
+  induction s using finset.induction_on with a s as IH,
+  { exact (finset.not_nonempty_empty hs).elim },
+  { rcases finset.eq_empty_or_nonempty s with rfl|h's,
+    { simp [Hlt _ (finset.mem_singleton_self _)] },
+    { simp only [as, finset.sum_insert, not_false_iff],
+      exact ennreal.add_lt_add (Hlt _ (finset.mem_insert_self _ _))
+        (IH h's (λ i hi, Hlt _ (finset.mem_insert_of_mem hi))) } }
+end
+
+theorem exists_le_of_sum_le {s : finset α} (hs : s.nonempty)
+  {f g : α → ℝ≥0∞} (Hle : ∑ i in s, f i ≤ ∑ i in s, g i) :
+  ∃ i ∈ s, f i ≤ g i :=
+begin
+  contrapose! Hle,
+  apply ennreal.sum_lt_sum_of_nonempty hs Hle,
+end
+
 end sum
 
 section interval
@@ -983,7 +1011,7 @@ protected lemma inv_pow {n : ℕ} : (a^n)⁻¹ = (a⁻¹)^n :=
 begin
   by_cases a = 0; cases a; cases n; simp [*, none_eq_top, some_eq_coe,
     zero_pow, top_pow, nat.zero_lt_succ] at *,
-  rw [← coe_inv h, ← coe_pow, ← coe_inv (pow_ne_zero _ h), ← inv_pow', coe_pow]
+  rw [← coe_inv h, ← coe_pow, ← coe_inv (pow_ne_zero _ h), ← inv_pow₀, coe_pow]
 end
 
 @[simp] lemma inv_inv : (a⁻¹)⁻¹ = a :=

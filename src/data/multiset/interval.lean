@@ -16,13 +16,9 @@ This file provides basic results about all the `multiset.Ixx`, which are defined
 Bring the lemmas about `multiset.Ico` in `data.multiset.intervals` here and in `data.nat.interval`.
 -/
 
-protected lemma multiset.nodup.erase_dup {α : Type*} [decidable_eq α] {s : multiset α}
-  (h : s.nodup) :
-  s.erase_dup = s :=
-multiset.erase_dup_eq_self.2 h
+variables {α : Type*}
 
 namespace multiset
-variables {α : Type*}
 section preorder
 variables [preorder α] [locally_finite_order α] {a b : α}
 

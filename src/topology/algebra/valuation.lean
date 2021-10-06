@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2021 Patrick Massot. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Patrick Massot
+-/
+
 import topology.algebra.nonarchimedean.bases
 import topology.algebra.uniform_filter_basis
 import ring_theory.valuation.basic

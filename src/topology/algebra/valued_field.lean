@@ -6,8 +6,6 @@ Authors: Patrick Massot
 
 import topology.algebra.valuation
 import topology.algebra.with_zero_topology
-import topology.algebra.field
-import topology.algebra.ordered.basic
 import topology.algebra.uniform_field
 
 /-!
@@ -226,7 +224,8 @@ lemma valued.continuous_extension : continuous (valued.extension : hat K → Γ�
     { have : tendsto (λ p : hat K × hat K, p.1*p.2⁻¹) ((𝓝 1).prod (𝓝 1)) (𝓝 1),
       { rw ← nhds_prod_eq,
         conv {congr, skip, skip, rw ← (one_mul (1 : hat K))},
-        refine tendsto.mul continuous_fst.continuous_at (tendsto.comp _ continuous_snd.continuous_at),
+        refine tendsto.mul continuous_fst.continuous_at
+                           (tendsto.comp _ continuous_snd.continuous_at),
         convert topological_division_ring.continuous_inv (1 : hat K) zero_ne_one.symm,
         exact inv_one.symm },
       rcases tendsto_prod_self_iff.mp this V V_in with ⟨U, U_in, hU⟩,

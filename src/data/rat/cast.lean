@@ -118,14 +118,14 @@ by simp [sub_eq_add_neg, (cast_add_of_ne_zero m0 this)]
   rw [(d₁.commute_cast (_:α)).inv_right₀.eq]
 end
 
-@[simp, norm_cast] theorem cast_inv_nat (n : ℕ) : ((n⁻¹ : ℚ) : α) = n⁻¹ :=
+@[simp] theorem cast_inv_nat (n : ℕ) : ((n⁻¹ : ℚ) : α) = n⁻¹ :=
 begin
   cases n, { simp },
   simp_rw [coe_nat_eq_mk, inv_def, mk, mk_nat, dif_neg n.succ_ne_zero, mk_pnat],
   simp [cast_def]
 end
 
-@[simp, norm_cast] theorem cast_inv_int (n : ℤ) : ((n⁻¹ : ℚ) : α) = n⁻¹ :=
+@[simp] theorem cast_inv_int (n : ℤ) : ((n⁻¹ : ℚ) : α) = n⁻¹ :=
 begin
   cases n,
   { exact cast_inv_nat _ },

@@ -19,7 +19,7 @@ structure `box_integral.prepartition (I : box_integral.box ι)` that stores a co
 such that
 
 * each box `J ∈ boxes` is a subbox of `I`;
-* the boxes pairwise disjoint as sets in `ℝⁿ`.
+* the boxes are pairwise disjoint as sets in `ℝⁿ`.
 
 Then we define a predicate `box_integral.prepartition.is_partition`; `π.is_partition` means that the
 boxes of `π` actually cover the whole `I`. We also define some operations on prepartitions:
@@ -305,7 +305,7 @@ begin
     rwa π.bUnion_index_of_mem hJ₂ hJ₁ at hJ }
 end
 
-/-- Restrict a partition to a box. -/
+/-- Restrict a prepartition to a box. -/
 @[simps] def restrict (π : prepartition I) (J : box ι) :
   prepartition J :=
 { boxes := π.boxes.pimage J.inter,
@@ -467,7 +467,7 @@ section distortion
 
 variable [fintype ι]
 
-/-- Distortion of a prepartition is the maximum of the distortions of the boxes of this
+/-- The distortion of a prepartition is the maximum of the distortions of the boxes of this
 prepartition. -/
 def distortion : ℝ≥0 := π.boxes.sup box.distortion
 

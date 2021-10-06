@@ -185,15 +185,15 @@ def is_Henstock (π : tagged_prepartition I) : Prop := ∀ J ∈ π, π.tag J �
 /-- In a Henstock prepartition, there are at most `2 ^ fintype.card ι` boxes with a given tag. -/
 lemma is_Henstock.card_filter_tag_eq_le [fintype ι] (h : π.is_Henstock) (x : ι → ℝ) :
   (π.boxes.filter (λ J, π.tag J = x)).card ≤ 2 ^ fintype.card ι :=
-calc (π.boxes.filter (λ J, π.tag J = x)).card ≤  (π.boxes.filter (λ J : box ι, x ∈ J.Icc)).card :
+calc (π.boxes.filter (λ J, π.tag J = x)).card ≤ (π.boxes.filter (λ J : box ι, x ∈ J.Icc)).card :
   begin
     refine finset.card_le_of_subset (λ J hJ, _),
     rw finset.mem_filter at hJ ⊢, rcases hJ with ⟨hJ, rfl⟩,
     exact ⟨hJ, h J hJ⟩
   end
-...  ≤ 2 ^ fintype.card ι : π.to_prepartition.card_filter_mem_Icc_le x
+... ≤ 2 ^ fintype.card ι : π.to_prepartition.card_filter_mem_Icc_le x
 
-/-- A tagged partition `π` is subordinate to `r : (ι → ℝ) → ℝ` if each box `J ∈ π` is included by
+/-- A tagged partition `π` is subordinate to `r : (ι → ℝ) → ℝ` if each box `J ∈ π` is included in
 the closed ball with center `π.tag J` and radius `r (π.tag J)`. -/
 def is_subordinate [fintype ι] (π : tagged_prepartition I) (r : (ι → ℝ) → Ioi (0 : ℝ)) : Prop :=
 ∀ J ∈ π, (J : _).Icc ⊆ closed_ball (π.tag J) (r $ π.tag J)
@@ -234,7 +234,7 @@ calc diam J.Icc ≤ diam (closed_ball (π.tag J) (r $ π.tag J)) :
 
 /-- Tagged prepartition with single box and prescribed tag. -/
 @[simps { fully_applied := ff }]
-def single (I J : box ι) (hJ :  J ≤ I) (x : ι → ℝ) (h : x ∈ I.Icc) : tagged_prepartition I :=
+def single (I J : box ι) (hJ : J ≤ I) (x : ι → ℝ) (h : x ∈ I.Icc) : tagged_prepartition I :=
 ⟨prepartition.single I J hJ, λ J, x, λ J, h⟩
 
 @[simp] lemma mem_single {J'} (hJ : J ≤ I) (h : x ∈ I.Icc) : J' ∈ single I J hJ x h ↔ J' = J :=
@@ -328,7 +328,7 @@ section distortion
 variables [fintype ι] (π)
 open finset
 
-/-- Distortion of a tagged prepartition is the maximum of distortions of its boxes. -/
+/-- The distortion of a tagged prepartition is the maximum of distortions of its boxes. -/
 def distortion : ℝ≥0 := π.to_prepartition.distortion
 
 lemma distortion_le_of_mem (h : J ∈ π) : J.distortion ≤ π.distortion :=

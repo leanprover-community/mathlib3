@@ -10,7 +10,7 @@ import topology.uniform_space.compact_separated
 /-!
 # Integrals of Riemann, Henstock-Kurzweil, and McShane
 
-In this file we define integral of a function over a box in `ℝⁿ. The same definition works for
+In this file we define the integral of a function over a box in `ℝⁿ. The same definition works for
 Riemann, Henstock-Kurzweil, and McShane integrals.
 
 As usual, we represent `ℝⁿ` as the type of functions `ι → ℝ` for some finite type `ι`. A rectangular

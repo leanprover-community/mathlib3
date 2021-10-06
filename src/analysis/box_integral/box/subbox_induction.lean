@@ -129,7 +129,7 @@ begin
   -- Now we clear unneeded assumptions
   clear_value J, clear hpI hs J_succ s,
   -- Let `z` be the unique common point of all `(J n).Icc`. Then `H_nhds` proves `p (J n)` for
-  -- sufficiently lart `n`. This contradicts `hJp`.
+  -- sufficiently large `n`. This contradicts `hJp`.
   set z : ι → ℝ := ⨆ n, (J n).lower,
   have hzJ : ∀ n, z ∈ (J n).Icc,
     from mem_Inter.1 (csupr_mem_Inter_Icc_of_antitone_Icc

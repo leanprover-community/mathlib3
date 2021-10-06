@@ -444,7 +444,7 @@ end fintype
 end prepartition
 
 /-- A function on `box ι` is called box additive if for every box `I` and a hyperplane
-`{y | y i = x}` we have `f (I ∩ {y | y i ≤ x}) + f (I ∩ {y | x < y i}) = f I`. We formualte this
+`{y | y i = x}` we have `f (I ∩ {y | y i ≤ x}) + f (I ∩ {y | x < y i}) = f I`. We formulate this
 property in terms of `box_integral.box.split_lower` and `box_integral.box.split_upper`.
 
 This property implies that for any partition `π` of a box `I` into smaller boxes we have
@@ -574,8 +574,8 @@ f.map (continuous_linear_map.lsmul ℝ ℝ).to_linear_map.to_add_monoid_hom
 
 end to_smul
 
-/-- Given a box `I₀` in `ℝⁿ⁺¹`, `f x : box (fin n) → G` is a family of functions and for
-`x ∈ [I₀.lower i, I₀.upper i]`, `f x` is box-additive on subboxes of `i`-th face of `I₀`, then
+/-- Given a box `I₀` in `ℝⁿ⁺¹`, `f x : box (fin n) → G` is a family of functions indexed by a real `x` and for
+`x ∈ [I₀.lower i, I₀.upper i]`, `f x` is box-additive on subboxes of the `i`-th face of `I₀`, then
 `λ J, f (J.upper i) (J.face i) - f (J.lower i) (J.face i)` is box-additive on subboxes of `I₀`. -/
 @[simps] def {u} upper_sub_lower {G : Type u} [add_comm_group G]
   (I₀ : box (fin (n + 1))) (i : fin (n + 1)) (f : ℝ → box (fin n) → G)

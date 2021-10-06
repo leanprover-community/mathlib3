@@ -278,11 +278,11 @@ section distortion
 
 variable [fintype ι]
 
-/-- Distortion of a box `I` is the maximum of the ratios of the lengths of its edges.
+/-- The distortion of a box `I` is the maximum of the ratios of the lengths of its edges.
 It is defined as the maximum of the ratios
 `nndist I.lower I.upper / nndist (I.lower i) (I.upper i)`. -/
 def distortion (I : box ι) : ℝ≥0 :=
-finset.univ.sup $ λ i : ι, nndist (I : _).lower I.upper / nndist (I.lower i) (I.upper i)
+finset.univ.sup $ λ i : ι, nndist I.lower I.upper / nndist (I.lower i) (I.upper i)
 
 lemma distortion_eq_of_sub_eq_div {I J : box ι} {r : ℝ}
   (h : ∀ i, I.upper i - I.lower i = (J.upper i - J.lower i) / r) :

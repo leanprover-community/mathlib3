@@ -122,6 +122,10 @@ calc a⊓b * (a ⊔ b) = a ⊓ b * ((a * b) * (b⁻¹ ⊔ a⁻¹)) :
 namespace lattice_ordered_comm_group
 
 -- Bourbaki A.VI.12 Definition 4
+/--
+Let `α` be a lattice ordered commutative group with identity `1`. For an element `a` of type `α`,
+the element `a ⊔ 1` is said to be the *positive component* of `a`, denoted `a⁺`.
+-/
 @[to_additive pos /-"
 Let `α` be a lattice ordered commutative group with identity `0`. For an element `a` of type `α`,
 the element `a ⊔ 0` is said to be the *positive component* of `a`, denoted `a⁺`.
@@ -130,6 +134,10 @@ the element `a ⊔ 0` is said to be the *positive component* of `a`, denoted `a�
 def mpos (a : α) : α :=  a ⊔ 1
 postfix `⁺`:1000 := mpos
 
+/--
+Let `α` be a lattice ordered commutative group with identity `1`. For an element `a` of type `α`,
+the element `(-a) ⊔ 1` is said to be the *negative component* of `a`, denoted `a⁻`.
+-/
 @[to_additive neg /-"
 Let `α` be a lattice ordered commutative group with identity `0`. For an element `a` of type `α`,
 the element `(-a) ⊔ 0` is said to be the *negative component* of `a`, denoted `a⁻`.

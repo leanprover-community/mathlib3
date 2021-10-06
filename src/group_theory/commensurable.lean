@@ -51,25 +51,31 @@ end
 
 def conj_subgroup (g : G) (Γ : subgroup G) : subgroup G := mul_aut.conj g •  Γ
 
-
-
 @[simp]
-lemma conf_cong_mem  (g : G)  (Γ : subgroup G) (h : G) :
+lemma conf_cong_mem''  (g : G)  (Γ : subgroup G) (h : G) :
  (h ∈ conj_subgroup g Γ) ↔ ∃ x : Γ, g * x * g⁻¹ = h  :=
 begin
   rw conj_subgroup,
+  simp,
   split,
-  intro h,
-  cases h,
-  use h_w,
-  apply h_h.1,
-  simp at *,
-  apply h_h.2,
-  intro h,
-  cases h,
-  rw ← h_h,
-  sorry,
+  intro H,
+  cases H,
+  use H_w,
+  simp only [H_h],
+  simp only [H_h, subgroup.coe_mk],
+  intro H,
+  cases H,
+  use H_w,
+  simp only [true_and, set_like.coe_mem],
+  apply H_h,
 end
+
+lemma conf_cong_mem  (g : G) (Γ : subgroup G) (h : G) :
+  (h ∈ conj_subgroup g Γ) ↔ ∃ x : G, x ∈ Γ ∧ g * x * g⁻¹ = h  :=
+iff.rfl
+@[simp] lemma conf_cong_mem'  (g : G)  (Γ : subgroup G) (h : G) :
+  (h ∈ conj_subgroup g Γ) ↔ ∃ x : Γ, g * x * g⁻¹ = h  :=
+subgroup.mem_map.trans subtype.exists'
 
 lemma cong_subgroup_id_eq_self (H : subgroup G) : conj_subgroup 1 H = H :=
 begin
@@ -106,6 +112,14 @@ noncomputable def  inf_quot_cast (H K L : subgroup G) :
 
   }
 
+lemma aux (H K L : subgroup G) :
+  (((H ⊓ K).subgroup_of L).subgroup_of (K.subgroup_of L)).index ≤ ((H ⊓ K).subgroup_of K).index :=
+
+begin
+sorry,
+end
+
+
 lemma index_triple_int (H K L : subgroup G) :
   (subgroup.subgroup_of (H ⊓ K)  L).index =
   (subgroup.subgroup_of K  L).index *  (subgroup.subgroup_of H (K ⊓ L)).index :=
@@ -127,9 +141,13 @@ simp [H],
 end
 
 
+
 lemma trans (H K L : subgroup G) (h1 : commensurable H K ) (h2 : commensurable K L) :
-  commensurable H K :=
+  commensurable H L :=
 begin
+  simp_rw commensurable at *,
+  have h3: (subgroup.subgroup_of (H ⊓ K)  L) ≤ (subgroup.subgroup_of K  L), by {sorry,},
+  have h4:= subgroup.index_eq_mul_of_le h3,
 sorry,
 end
 

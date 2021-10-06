@@ -50,6 +50,9 @@ open_locale pointwise
 lemma smul_mem_pointwise_smul (m : G) (a : α) (S : subgroup G) : m ∈ S → a • m ∈ a • S :=
 (set.smul_mem_smul_set : _ → _ ∈ a • (S : set G))
 
+@[simp]
+lemma mem_smul_subgroup (a : α) (S : subgroup G) (x: G) : x ∈ a • S ↔ ∃ y, y ∈ S ∧ a • y = x := iff.rfl
+
 end monoid
 
 section group

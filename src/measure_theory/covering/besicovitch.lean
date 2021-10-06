@@ -8,7 +8,7 @@ import set_theory.cardinal_ordinal
 import measure_theory.measure.haar_lebesgue
 
 /-!
-# Besicovitch covering theorem
+# Besicovitch covering theorems
 
 The topological Besicovitch covering theorem ensures that, in a nice metric space, there exists a
 number `N` such that, from any family of balls with bounded radii, one can extract `N` families,
@@ -23,6 +23,12 @@ satisfied by finite-dimensional real vector spaces.
 In this file, we prove the topological Besicovitch covering theorem,
 in `besicovitch.exist_disjoint_covering_families`.
 
+The measurable Besicovitch theorem ensures that, in the same class of metric spaces, if at every
+point one considers a class of balls of arbitrarily small radii, called admissible balls, then
+one can cover almost all the space by a family of disjoint admissible balls.
+It is deduced from the topological Besicovitch theorem, and proved
+in `besicovitch.exists_disjoint_closed_ball_covering`
+
 ## Main definitions and results
 
 * `satellite_config α N τ` is the type of all satellite configurations of `N+1` points
@@ -31,8 +37,16 @@ in `besicovitch.exist_disjoint_covering_families`.
   there is no satellite configuration of `N+1` points with parameter `τ`.
 * `exist_disjoint_covering_families` is the topological Besicovitch covering theorem: from any
   family of balls one can extract finitely many disjoint subfamilies covering the same set.
+* `exists_disjoint_closed_ball_covering` is the measurable Besicovitch covering theorem: from any
+  family of balls with arbitrarily small radii at every point, one can extract countably many
+  disjoint balls covering almost all the space. While the value of `N` is relevant for the precise
+  statement of the topological Besicovitch theorem, it becomes irrelevant for the measurable one.
+  Therefore, this statement is expressed using the `Prop`-valued
+  typeclass `has_besicovitch_covering`
 
 ## Implementation
+
+#### Sketch of proof of the topological Besicovitch theorem:
 
 We choose balls in a greedy way. First choose a ball with maximal radius (or rather, since there
 is no guarantee the maximal radius is realized, a ball with radius within a factor `τ` of the
@@ -50,15 +64,17 @@ colors. Moreover, the inductive construction ensures that the radii of all the b
 they form a satellite configuration with `N+1` balls (essentially by definition of satellite
 configurations). Since we assume that there are no such configurations, this is a contradiction.
 
-## Todo
+#### Sketch of proof of the measurable Besicovitch theorem:
 
-Deduce the measurable Besicovitch theorem: consider a set `s` of finite measure, and for each `c`
-in `s` a set of balls centered at `c` of arbitrarily small radius. Then one can choose among
-all these balls a disjoint family covering almost all `s`.
-
-While the value of `N` is relevant for the precise statement of the topological Besicovitch theorem,
-it becomes irrelevant for the measurable one. Therefore, this statement will be expressed using the
-`Prop`-valued typeclass `has_besicovitch_covering` (which is currently introduced, but not used).
+From the topological Besicovitch theorem, one can find a disjoint countable family of balls
+covering a proportion `> 1/(N+1)` of the space. Taking a large enough finite subset of these balls,
+one gets the same property for finitely many balls. Their union is closed. Therefore, any point in
+the complement has around it an admissible ball not intersecting these finitely many balls. Applying
+again the topological Besicovitch theorem, one extracts from these a disjoint countable subfamily
+covering a proportion `> 1(N+1)` of the reamining points, and then even a disjoint finite subfamily.
+Then one goes on again and again, covering at each step a positive proportion of the remaining
+points, while remaining disjoint from the already chosen balls. The union of all thse balls is
+the desired almost everywhere covering.
 -/
 
 noncomputable theory
@@ -466,6 +482,9 @@ end
 ### Measurable Besicovitch covering theorems
 -/
 
+/-- Consider, for each `x` in a set `s`, a radius `r x ∈ (0, 1]`. Then one can find finitely
+many disjoint balls of the form `closed_ball x (r x)` covering a proportion `1/(N+1)` of `s`, if
+there are no satellite configurations with `N+1` points. -/
 lemma exist_finset_disjoint_balls_large_measure
   [second_countable_topology α] [measurable_space α] [opens_measurable_space α]
   (μ : measure α) [is_finite_measure μ] {N : ℕ} {τ : ℝ}
@@ -474,6 +493,7 @@ lemma exist_finset_disjoint_balls_large_measure
   ∃ (t : finset α), (↑t ⊆ s) ∧ μ (s \ (⋃ (x ∈ t), closed_ball x (r x))) ≤ N/(N+1) * μ s
     ∧ (t : set α).pairwise_on (disjoint on (λ x, closed_ball x (r x))) :=
 begin
+  -- exclude the trivial case where `μ s = 0`.
   rcases le_or_lt (μ s) 0 with hμs|hμs,
   { have : μ s = 0 := le_bot_iff.1 hμs,
     refine ⟨∅, by simp only [finset.coe_empty, empty_subset], _, _⟩,
@@ -486,6 +506,9 @@ begin
   { unfreezingI { rintros rfl },
     inhabit α,
     exact (not_is_empty_of_nonempty _) hN },
+  /- We will apply the topological Besicovitch theorem, giving `N` disjoint subfamilies of balls
+  covering `s`. Among these, one of them covers a proportion at least `1/N` of `s`. A large
+  enough finite subfamily will then cover a proportion at least `1/(N+1)`. -/
   let a : ball_package s α :=
   { c := λ x, x,
     r := λ x, r x,
@@ -518,6 +541,7 @@ begin
       { exact ennreal.coe_nat_ne_top }
     end
     ... ≤ ∑ i, μ (s ∩ v i) : by { conv_lhs { rw A }, apply measure_Union_fintype_le },
+  -- choose an index `i` of a subfamily covering at least a proportion `1/N` of `s`.
   obtain ⟨i, -, hi⟩ : ∃ (i : fin N) (hi : i ∈ finset.univ), μ s / N ≤ μ (s ∩ v i),
   { apply ennreal.exists_le_of_sum_le _ S,
     exact ⟨⟨0, bot_lt_iff_ne_bot.2 Npos⟩, finset.mem_univ _⟩ },
@@ -533,6 +557,7 @@ begin
     { refl },
     { exact pairwise_on_disjoint_on_mono (hu i) (λ k hk, inter_subset_right _ _) },
     { exact λ b hb, smeas.inter measurable_set_closed_ball } },
+  -- A large enough finite subfamily of `u i` will also cover a proportion `> 1/(N+1)` of `s`.
   obtain ⟨w, hw⟩ : ∃ (w : finset ↥(u i)),
     μ s / (↑N + 1) < ∑ (x : ↥(u i)) in w, μ (s ∩ closed_ball (x : α) (r (x : α))),
   { have C : has_sum (λ (x : u i), μ (s ∩ closed_ball x (r x))) (μ (s ∩ (v i))),
@@ -540,6 +565,7 @@ begin
     have D := ((tendsto_order.1 C).1 _ hi).exists,
     dsimp at D,
     exact D, },
+  -- Bring back the finset `w i` of `↑(u i)` to a finset of `α`, and check that it works by design.
   refine ⟨finset.image (λ (x : u i), x) w, _, _, _⟩,
   { simp only [image_subset_iff, coe_coe, finset.coe_image],
     assume y hy,
@@ -575,9 +601,6 @@ begin
     exact hu i k' k'.2 l' l'.2 k'nel' }
 end
 
-.
-
-
 /-- The measurable Besicovitch covering theorem. Assume that, for any `x` in a measurable set `s`,
 one is given a set of admissible closed balls centered at `x`, with arbitrarily small radii.
 Then there exists a disjoint covering of almost all `s` by admissible closed balls centered at some
@@ -597,9 +620,15 @@ theorem exists_disjoint_closed_ball_covering_of_finite_measure
     ∧ t.pairwise_on (disjoint on (λ p, closed_ball p.1 p.2)) :=
 begin
   rcases hb.no_satellite_config with ⟨N, τ, hτ, hN⟩,
+  /- Introduce a property `P` on finsets saying that we have a nice disjoint covering of a
+    subset of `s` by admissible balls. -/
   let P : finset (α × ℝ) → Prop := λ t,
     (t : set (α × ℝ)).pairwise_on (disjoint on (λ p, closed_ball p.1 p.2)) ∧
     (∀ (p : α × ℝ), p ∈ t → p.1 ∈ s) ∧ (∀ (p : α × ℝ), p ∈ t → p.2 ∈ f p.1),
+  /- Given a finite good covering of a subset `s`, one can find a larger finite good covering,
+  covering additionally a proportion at least `1/(N+1)` of leftover points. This follows from
+  `exist_finset_disjoint_balls_large_measure` applied to balls not intersecting the initial
+  covering. -/
   have : ∀ (t : finset (α × ℝ)), P t → ∃ (u : finset (α × ℝ)), t ⊆ u ∧ P u ∧
     μ (s \ (⋃ (p : α × ℝ) (hp : p ∈ u), closed_ball p.1 p.2)) ≤
       N/(N+1) * μ (s \ (⋃ (p : α × ℝ) (hp : p ∈ t), closed_ball p.1 p.2)),
@@ -660,6 +689,9 @@ begin
         exact (hr p' (vs' p'v)).1 } },
     { convert hμv using 2,
       rw [finset.set_bUnion_union, ← diff_diff, finset.set_bUnion_finset_image] } },
+  /- Define `F` associating to a finite good covering the above enlarged good covering, covering
+  a proportion `1/(N+1)` of leftover points. Iterating `F`, one will get larger and larger good
+  coverings, missing in the end only a measure-zero set. -/
   choose! F hF using this,
   let u := λ n, F^[n] ∅,
   have u_succ : ∀ (n : ℕ), u n.succ = F (u n) :=
@@ -731,8 +763,9 @@ theorem exists_disjoint_closed_ball_covering
     ∧ μ (s \ (⋃ (p : α × ℝ) (hp : p ∈ t), closed_ball p.1 p.2)) = 0
     ∧ t.pairwise_on (disjoint on (λ p, closed_ball p.1 p.2)) :=
 begin
-  rcases exists_absolutely_continuous_is_finite_measure μ with ⟨ν, hν, hμν⟩,
-  resetI,
+  /- This is deduced from the finite measure case, by using a finite measure with respect to which
+  the initial sigma-finite measure is absolutely continuous. -/
+  unfreezingI { rcases exists_absolutely_continuous_is_finite_measure μ with ⟨ν, hν, hμν⟩ },
   rcases exists_disjoint_closed_ball_covering_of_finite_measure ν f s smeas hf hf' hf''
     with ⟨t, t_count, ts, tr, tν, tdisj⟩,
   exact ⟨t, t_count, ts, tr, hμν tν, tdisj⟩,

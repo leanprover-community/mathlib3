@@ -766,7 +766,8 @@ sub_le_iff_left
 protected lemma sub_le_of_sub_le (h : a - b ≤ c) : a - c ≤ b :=
 sub_le_iff_sub_le.mp h
 
-protected lemma sub_eq_zero_iff_le : a - b = 0 ↔ a ≤ b :=
+-- todo: make `sub_eq_zero_iff_le` a `@[simp]` lemma
+@[simp] protected lemma sub_eq_zero_iff_le : a - b = 0 ↔ a ≤ b :=
 sub_eq_zero_iff_le
 
 -- todo: make `sub_pos_iff_lt` a `@[simp]` lemma

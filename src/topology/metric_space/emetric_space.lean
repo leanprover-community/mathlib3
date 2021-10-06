@@ -3,7 +3,7 @@ Copyright (c) 2015, 2017 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis, Johannes Hölzl, Mario Carneiro, Sébastien Gouëzel
 -/
-import data.nat.intervals
+import data.nat.interval
 import data.real.ennreal
 import topology.uniform_space.pi
 import topology.uniform_space.uniform_convergence

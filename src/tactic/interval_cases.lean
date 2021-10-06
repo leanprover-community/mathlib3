@@ -3,9 +3,9 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import data.fin.intervals
-import data.int.intervals
-import data.pnat.intervals
+import data.fin.interval
+import data.int.interval
+import data.pnat.interval
 import tactic.fin_cases
 
 /-!

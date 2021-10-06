@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 -/
 
 import algebra.big_operators.basic
-import data.nat.intervals
+import data.nat.interval
 import tactic.linarith
 
 /-!

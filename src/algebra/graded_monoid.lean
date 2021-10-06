@@ -231,7 +231,10 @@ def ghas_mul.of_subobjects {S : Type*} [set_like S R] [has_mul R] [has_add ι]
   ghas_mul (λ i, carriers i) :=
 { mul := λ i j a b, ⟨(a * b : R), mul_mem a b⟩ }
 
-/-- Build a `gmonoid` instance for a collection of `add_submonoid`s. -/
+/-- Build a `gmonoid` instance for a collection of subobjects.
+
+See note [reducible non-instances]. -/
+@[reducible]
 def gmonoid.of_subobjects {S : Type*} [set_like S R] [monoid R] [add_monoid ι]
   (carriers : ι → S)
   (one_mem : (1 : R) ∈ carriers 0)
@@ -244,7 +247,10 @@ def gmonoid.of_subobjects {S : Type*} [set_like S R] [monoid R] [add_monoid ι]
   ..ghas_one.of_subobjects carriers one_mem,
   ..ghas_mul.of_subobjects carriers mul_mem }
 
-/-- Build a `gcomm_monoid` instance for a collection of `add_submonoid`s. -/
+/-- Build a `gcomm_monoid` instance for a collection of subobjects.
+
+See note [reducible non-instances]. -/
+@[reducible]
 def gcomm_monoid.of_subobjects {S : Type*} [set_like S R] [comm_monoid R] [add_comm_monoid ι]
   (carriers : ι → S)
   (one_mem : (1 : R) ∈ carriers 0)
@@ -272,7 +278,6 @@ instance has_mul.ghas_mul [has_add ι] [has_mul R] : graded_monoid.ghas_mul (λ 
 
 /-- If all grades are the same type and themselves form a monoid, then there is a trivial grading
 structure. -/
-@[simps one mul]
 instance monoid.gmonoid [add_monoid ι] [monoid R] : graded_monoid.gmonoid (λ i : ι, R) :=
 { one_mul := λ a, sigma.ext (zero_add _) (heq_of_eq (one_mul _)),
   mul_one := λ a, sigma.ext (add_zero _) (heq_of_eq (mul_one _)),
@@ -282,7 +287,6 @@ instance monoid.gmonoid [add_monoid ι] [monoid R] : graded_monoid.gmonoid (λ i
 
 /-- If all grades are the same type and themselves form a commutative monoid, then there is a
 trivial grading structure. -/
-@[simps one mul]
 instance comm_monoid.gcomm_monoid [add_comm_monoid ι] [comm_monoid R] :
   graded_monoid.gcomm_monoid (λ i : ι, R) :=
 { mul_comm := λ a b, sigma.ext (add_comm _ _) (heq_of_eq (mul_comm _ _)),

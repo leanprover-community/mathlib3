@@ -111,7 +111,10 @@ variables {R : Type*}
 
 /-! #### From `add_submonoid`s -/
 
-/-- Build a `gsemiring` instance for a collection of `add_submonoid`s. -/
+/-- Build a `gsemiring` instance for a collection of `add_submonoid`s.
+
+See note [reducible non-instances]. -/
+@[reducible]
 def gsemiring.of_add_submonoids [semiring R] [add_monoid ι]
   (carriers : ι → add_submonoid R)
   (one_mem : (1 : R) ∈ carriers 0)
@@ -123,7 +126,10 @@ def gsemiring.of_add_submonoids [semiring R] [add_monoid ι]
   add_mul := λ i j _ _ _, subtype.ext (add_mul _ _ _),
   ..graded_monoid.gmonoid.of_subobjects carriers one_mem mul_mem }
 
-/-- Build a `gcomm_semiring` instance for a collection of `add_submonoid`s. -/
+/-- Build a `gcomm_semiring` instance for a collection of `add_submonoid`s.
+
+See note [reducible non-instances]. -/
+@[reducible]
 def gcomm_semiring.of_add_submonoids [comm_semiring R] [add_comm_monoid ι]
   (carriers : ι → add_submonoid R)
   (one_mem : (1 : R) ∈ carriers 0)
@@ -134,7 +140,10 @@ def gcomm_semiring.of_add_submonoids [comm_semiring R] [add_comm_monoid ι]
 
 /-! #### From `add_subgroup`s -/
 
-/-- Build a `gsemiring` instance for a collection of `add_subgroup`s. -/
+/-- Build a `gsemiring` instance for a collection of `add_subgroup`s.
+
+See note [reducible non-instances]. -/
+@[reducible]
 def gsemiring.of_add_subgroups [ring R] [add_monoid ι]
   (carriers : ι → add_subgroup R)
   (one_mem : (1 : R) ∈ carriers 0)
@@ -142,7 +151,10 @@ def gsemiring.of_add_subgroups [ring R] [add_monoid ι]
   gsemiring (λ i, carriers i) :=
 gsemiring.of_add_submonoids (λ i, (carriers i).to_add_submonoid) one_mem mul_mem
 
-/-- Build a `gcomm_semiring` instance for a collection of `add_subgroup`s. -/
+/-- Build a `gcomm_semiring` instance for a collection of `add_subgroup`s.
+
+See note [reducible non-instances]. -/
+@[reducible]
 def gcomm_semiring.of_add_subgroups [comm_ring R] [add_comm_monoid ι]
   (carriers : ι → add_subgroup R)
   (one_mem : (1 : R) ∈ carriers 0)
@@ -154,8 +166,10 @@ gcomm_semiring.of_add_submonoids (λ i, (carriers i).to_add_submonoid) one_mem m
 
 variables {A : Type*}
 
-/-- Build a `gsemiring` instance for a collection of `submodules`s. -/
-@[simps one mul]
+/-- Build a `gsemiring` instance for a collection of `submodules`s.
+
+See note [reducible non-instances]. -/
+@[reducible]
 def gsemiring.of_submodules
   [comm_semiring R] [semiring A] [algebra R A] [add_monoid ι]
   (carriers : ι → submodule R A)
@@ -164,8 +178,10 @@ def gsemiring.of_submodules
   gsemiring (λ i, carriers i) :=
 gsemiring.of_add_submonoids (λ i, (carriers i).to_add_submonoid) one_mem mul_mem
 
-/-- Build a `gcomm_semiring` instance for a collection of `submodules`s. -/
-@[simps one mul]
+/-- Build a `gcomm_semiring` instance for a collection of `submodules`s.
+
+See note [reducible non-instances]. -/
+@[reducible]
 def gcomm_semiring.of_submodules
   [comm_semiring R] [comm_semiring A] [algebra R A] [add_comm_monoid ι]
   (carriers : ι → submodule R A)

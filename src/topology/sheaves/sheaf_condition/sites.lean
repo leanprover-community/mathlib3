@@ -299,7 +299,7 @@ lemma index_of_hom_spec (f : Σ V, {f : V ⟶ supr U // presieve_of_covering U f
 /--
 The canonical morphism from the first object in the sites diagram to the first object in the
 spaces diagram. Note that this is *not* an isomorphism, as the product `pi_opens F U` may contain
-duplicate factors, i.e. we may have `U i = U j` but `i ≠ j`.
+duplicate factors, i.e. `U : ι → opens X` may not be injective.
 -/
 def first_obj_to_pi_opens : presheaf.first_obj (presieve_of_covering U) F ⟶ pi_opens F U :=
 pi.lift (λ i, pi.π _ (hom_of_index U i))
@@ -307,17 +307,17 @@ pi.lift (λ i, pi.π _ (hom_of_index U i))
 /--
 The canonical morphism from the first object in the spaces diagram to the first object in the
 sites diagram. Note that this is *not* an isomorphism, as the product `pi_opens F U` may contain
-duplicate factors, i.e. we may have `U i = U j` but `i ≠ j`.
+duplicate factors, i.e. `U : ι → opens X` may not be injective.
 -/
 def pi_opens_to_first_obj : pi_opens F U ⟶ presheaf.first_obj (presieve_of_covering U) F :=
 pi.lift (λ f, pi.π _ (index_of_hom U f) ≫ F.map (eq_to_hom (index_of_hom_spec U f)).op)
 
 /--
 Even though `first_obj_to_pi_opens` and `pi_opens_to_first_obj` are not inverse to each other,
-applying them both after a fork map `s.ι` does nothing. Intuitively, this is because a compatible
-family of elements `s : Π i : ι, F.obj (op (U i))` does not care about duplicate open sets:
+applying them both after a fork map `s.ι` does nothing. The intuition here is that a compatible
+family `s : Π i : ι, F.obj (op (U i))` does not care about duplicate open sets:
 If `U i = U j` the the compatible family coincides on the intersection `U i ⊓ U j = U i = U j`,
-hence `s i = s j` (module some `eq_to_hom` magic).
+hence `s i = s j` (module an `eq_to_hom` arrow).
 -/
 lemma fork_ι_comp_pi_opens_to_first_obj_to_pi_opens_eq
   (s : limits.fork (left_res F U) (right_res F U)) :
@@ -326,30 +326,35 @@ begin
   ext j,
   dunfold first_obj_to_pi_opens pi_opens_to_first_obj,
   rw [category.assoc, category.assoc, limit.lift_π, fan.mk_π_app, limit.lift_π, fan.mk_π_app],
-
+  -- The issue here is that `index_of_hom U (hom_of_index U j)` need not be equal to `j`.
+  -- But `U j = U (index_of_hom U (hom_of_index U j))` and hence we obtain the following
+  -- `eq_to_hom` arrow:
   have i_eq : U j ⟶ U j ⊓ U (index_of_hom U (hom_of_index U j)),
   { apply eq_to_hom, rw ← index_of_hom_spec U, exact inf_idem.symm, },
+  -- Since `s` is a fork, we know that `s.ι ≫ left_res F U = s.ι ≫ right_res F U`.
+  -- We compose both sides of this equality with the canonical projection at the index pair
+  -- `(j, index_of_hom U (hom_of_index U j)` and the restriction along `i_eq`.
   have := congr_arg (λ f, f ≫
     pi.π (λ p : ι × ι, F.obj (op (U p.1 ⊓ U p.2))) (j, index_of_hom U (hom_of_index U j)) ≫
     F.map i_eq.op) s.condition,
   dsimp at this,
   rw [category.assoc, category.assoc] at this,
-
   symmetry,
+  -- We claim that this is equality is our goal
   convert this using 2,
-  { dsimp [left_res],
+  { dunfold left_res,
     rw [limit.lift_π_assoc, fan.mk_π_app, category.assoc, ← F.map_comp],
     erw F.map_id,
     rw category.comp_id },
-  { dsimp [right_res],
+  { dunfold right_res,
     rw [limit.lift_π_assoc, fan.mk_π_app, category.assoc, ← F.map_comp],
     congr, }
 end
 
-def second_obj_to_pi_inters : presheaf.second_obj (presieve_of_covering U) F ⟶ pi_inters F U :=
-pi.lift (λ i, pi.π _ (hom_of_index U i.fst, hom_of_index U i.snd) ≫
-  F.map (eq_to_hom (complete_lattice.pullback_eq_inf _ _).symm).op)
-
+/--
+The canonical morphism from the second object of the spaces diagram to the second object of the
+sites diagram.
+-/
 def pi_inters_to_second_obj : pi_inters F U ⟶ presheaf.second_obj (presieve_of_covering U) F :=
 pi.lift (λ f, pi.π _ (index_of_hom U f.fst, index_of_hom U f.snd) ≫
   F.map (eq_to_hom
@@ -360,7 +365,7 @@ lemma pi_opens_to_first_obj_comp_fist_map_eq :
   left_res F U ≫ pi_inters_to_second_obj F U :=
 begin
   ext ⟨f, g⟩,
-  dsimp [pi_opens_to_first_obj, presheaf.first_map, left_res, pi_inters_to_second_obj],
+  dunfold pi_opens_to_first_obj presheaf.first_map left_res pi_inters_to_second_obj,
   rw [category.assoc, category.assoc, limit.lift_π, fan.mk_π_app, limit.lift_π, fan.mk_π_app,
     ← category.assoc, ← category.assoc, limit.lift_π, fan.mk_π_app, limit.lift_π, fan.mk_π_app,
     category.assoc, category.assoc, ← F.map_comp, ← F.map_comp],
@@ -372,7 +377,7 @@ lemma pi_opens_to_first_obj_comp_second_map_eq :
   right_res F U ≫ pi_inters_to_second_obj F U :=
 begin
   ext ⟨f, g⟩,
-  dsimp [pi_opens_to_first_obj, presheaf.second_map, right_res, pi_inters_to_second_obj],
+  dunfold pi_opens_to_first_obj presheaf.second_map right_res pi_inters_to_second_obj,
   rw [category.assoc, category.assoc, limit.lift_π, fan.mk_π_app, limit.lift_π, fan.mk_π_app,
     ← category.assoc, ← category.assoc, limit.lift_π, fan.mk_π_app, limit.lift_π, fan.mk_π_app,
     category.assoc, category.assoc, ← F.map_comp, ← F.map_comp],
@@ -393,7 +398,7 @@ lemma res_comp_pi_opens_to_first_obj_eq :
   res F U ≫ pi_opens_to_first_obj F U = presheaf.fork_map (presieve_of_covering U) F :=
 begin
   ext f,
-  dsimp [res, pi_opens_to_first_obj, presheaf.fork_map],
+  dunfold res pi_opens_to_first_obj presheaf.fork_map,
   rw [category.assoc, limit.lift_π, fan.mk_π_app, limit.lift_π, fan.mk_π_app, ← category.assoc,
     limit.lift_π, fan.mk_π_app, ← F.map_comp],
   congr,
@@ -401,8 +406,7 @@ end
 
 end presieve_of_covering
 
-open is_sheaf_sites_of_is_sheaf_spaces
-open is_sheaf_spaces_of_is_sheaf_sites
+open presieve_of_covering
 
 lemma is_sheaf_spaces_of_is_sheaf_sites
   (Fsh : presheaf.is_sheaf (opens.grothendieck_topology X) F) :
@@ -410,25 +414,28 @@ lemma is_sheaf_spaces_of_is_sheaf_sites
 begin
   intros ι U,
   rw presheaf.is_sheaf_iff_is_sheaf' at Fsh,
-  obtain ⟨h_limit⟩ := Fsh (supr U) (presieve_of_covering U) (presieve_of_covering_mem_grothendieck_topology U),
+  -- We know that the sites diagram for `presieve_of_covering U` is a limit fork
+  obtain ⟨h_limit⟩ := Fsh (supr U) (presieve_of_covering U)
+    (presieve_of_covering.mem_grothendieck_topology U),
   refine ⟨fork.is_limit.mk' _ _⟩,
-
+  -- Here, we are given an arbitrary fork of the spaces diagram and need to show that it factors
+  -- uniquely through our limit fork.
   intro s,
-
+  -- Composing `s.ι` with `pi_opens_to_first_obj F U` gives a fork of the sites diagram, which
+  -- must factor through `presheaf.fork_map`.
   obtain ⟨l, hl⟩ := fork.is_limit.lift' h_limit (s.ι ≫ pi_opens_to_first_obj F U) _,
   swap,
   { rw [category.assoc, category.assoc, pi_opens_to_first_obj_comp_fist_map_eq,
     pi_opens_to_first_obj_comp_second_map_eq, ← category.assoc, ← category.assoc, s.condition] },
+  -- We claim that `l` also gives a factorization of `s.ι`
   refine ⟨l, _, _⟩,
   { rw [← fork_ι_comp_pi_opens_to_first_obj_to_pi_opens_eq F U s, ← category.assoc, ← hl,
     category.assoc, fork.ι_of_ι, fork_map_comp_first_map_to_pi_opens_eq], refl },
   { intros m hm,
     apply fork.is_limit.hom_ext h_limit,
-    rw fork.ι_of_ι at ⊢ hl,
-    rw hl,
+    rw [hl, fork.ι_of_ι],
     simp_rw ← res_comp_pi_opens_to_first_obj_eq,
-    rw ← category.assoc,
-    erw hm, },
+    erw [← category.assoc, hm], },
 end
 
 lemma is_sheaf_sites_iff_is_sheaf_spaces :

@@ -15,7 +15,7 @@ import algebra.periodic
 -/
 
 noncomputable theory
-open classical set filter topological_space metric
+open classical filter int metric set topological_space
 open_locale classical topological_space filter uniformity interval
 
 universes u v w

@@ -44,7 +44,7 @@ open_locale classical topological_space
 universes u v w
 
 open classical set function topological_space filter metric quotient
-open bounded_continuous_function nat Kuratowski_embedding
+open bounded_continuous_function nat int Kuratowski_embedding
 open sum (inl inr)
 
 local attribute [instance] metric_space_sum

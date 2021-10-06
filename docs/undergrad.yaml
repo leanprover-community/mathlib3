@@ -213,7 +213,7 @@ Bilinear and Quadratic Forms Over a Vector Space:
   Euclidean and Hermitian spaces:
     Euclidean vector spaces: 'inner_product_space'
     Hermitian vector spaces: 'inner_product_space'
-    dual isomorphism in the euclidean case: 'inner_product_space.isometric.to_dual'
+    dual isomorphism in the euclidean case: 'inner_product_space.to_dual'
     orthogonal complement: 'submodule.orthogonal'
     Cauchy-Schwarz inequality: 'inner_mul_inner_self_le'
     norm: 'inner_product_space.of_core.to_has_norm'

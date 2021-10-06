@@ -119,7 +119,7 @@ begin
           norm_cast,
           rw nat.cast_sub (nat.div_le_of_le_mul _),
           rw [←mul_assoc, nat.mul_div_cancel' ha, add_mul],
-          exact (nat.sub_le_self _ _).trans (nat.le_add_right _ _),
+          exact sub_le_self'.trans (nat.le_add_right _ _),
         end
     ... = a (n + 2) / a (n + 1) * b + (a 0 * a (n + 2)) / (a (n + 1) * a (n + 2))
         : by rw [add_div, add_mul, sub_div, mul_div_right_comm, add_sub_sub_cancel,

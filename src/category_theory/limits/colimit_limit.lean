@@ -93,35 +93,8 @@ by { dsimp [colimit_limit_to_limit_colimit], simp, }
      colimit.ι ((curry.obj F).obj j) k (limit.π ((curry.obj (swap K J ⋙ F)).obj k) j f) :=
 by { dsimp [colimit_limit_to_limit_colimit], simp, }
 
-noncomputable theory
-variables (G : J ⥤ K ⥤ C) [has_limit G]
-
-/--
-For a functor `G : J ⥤ K ⥤ C`, its limit `K ⥤ C` is given by `(G' : K ⥤ J ⥤ C) ⋙ lim`.
-Note that this does not require `K` to be small.
--/
-@[simps] def limit_iso_swap_comp_lim {K : Type v} [category.{v₂} K] (G : J ⥤ K ⥤ C) [has_limit G] :
-  limit G ≅ curry.obj (swap K J ⋙ uncurry.obj G) ⋙ lim :=
-nat_iso.of_components (λ Y, limit_obj_iso_limit_comp_evaluation G Y ≪≫
-  (lim.map_iso (eq_to_iso (by
-  { apply functor.hext,
-    { intro X, simp },
-    { intros X₁ X₂ f, dsimp only [swap], simp }}))))
-  (λ Y₁ Y₂ f,
-    begin
-      ext1 x,
-      dsimp only [swap],
-      simp only [limit_obj_iso_limit_comp_evaluation_hom_π_assoc, category.comp_id,
-        limit_obj_iso_limit_comp_evaluation_hom_π, eq_to_iso.hom, curry.obj_map_app,
-        nat_trans.naturality, category.id_comp, eq_to_hom_refl, functor.comp_map,
-        eq_to_hom_app, lim_map_π_assoc, lim_map_π, category.assoc,
-        uncurry.obj_map, lim_map_eq_lim_map, iso.trans_hom,
-        nat_trans.id_app, category_theory.functor.map_id, functor.map_iso_hom],
-      erw category.id_comp,
-    end)
-
 /-- The map `colimit_limit_to_limit_colimit` realized as a map of cones. -/
-@[simps] def colimit_limit_to_limit_colimit_cone :
+@[simps] noncomputable def colimit_limit_to_limit_colimit_cone (G : J ⥤ K ⥤ C) [has_limit G] :
   colim.map_cone (limit.cone G) ⟶ limit.cone (G ⋙ colim) :=
 { hom := colim.map (limit_iso_swap_comp_lim G).hom ≫
     colimit_limit_to_limit_colimit (uncurry.obj G : _) ≫

@@ -571,13 +571,11 @@ finprod_mem_insert_of_eq_one_if_not_mem (λ _, h)
 lemma finprod_mem_dvd {f : α → N} (a : α) (hf : finite (mul_support f)) :
   (f a) ∣ (finprod f) :=
 begin
-  classical,
-  by_cases ha: a ∈ (mul_support f),
-  { rw [finprod_eq_prod_of_mul_support_to_finset_subset f hf (set.subset.refl _),
-      finset.prod_eq_mul_prod_diff_singleton ((finite.mem_to_finset hf).mpr ha) f],
-    use ∏ (x : α) in hf.to_finset \ {a}, f x },
-  { rw [mem_mul_support, not_not] at ha,
-    rw ha, exact one_dvd (finprod f) }
+  by_cases ha : a ∈ (mul_support f),
+  { rw finprod_eq_prod_of_mul_support_to_finset_subset f hf (set.subset.refl _),
+    exact finset.dvd_prod_of_mem f ((finite.mem_to_finset hf).mpr ha) },
+  { rw nmem_mul_support.mp ha,
+    exact one_dvd (finprod f) }
 end
 
 /-- The product of `f i` over `i ∈ {a, b}`, `a ≠ b`, is equal to `f a * f b`. -/

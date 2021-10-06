@@ -79,6 +79,12 @@ lemma smul_pos_iff_of_pos (hc : 0 < c) : 0 < c • a ↔ 0 < a :=
 calc 0 < c • a ↔ c • 0 < c • a : by rw smul_zero'
            ... ↔ 0 < a         : smul_lt_smul_iff_of_pos hc
 
+lemma monotone_smul_left (hc : 0 ≤ c) : monotone (has_scalar.smul c : M → M) :=
+λ a b h, smul_le_smul_of_nonneg h hc
+
+lemma strict_mono_smul_left (hc : 0 < c) : strict_mono (has_scalar.smul c : M → M) :=
+λ a b h, smul_lt_smul_of_pos h hc
+
 end ordered_smul
 
 /-- If `R` is a linear ordered semifield, then it suffices to verify only the first axiom of
@@ -140,6 +146,14 @@ calc c • a ≤ b ↔ c • a ≤ c • c⁻¹ • b : by rw [smul_inv_smul₀ 
 lemma le_smul_iff_of_pos (hc : 0 < c) : a ≤ c • b ↔ c⁻¹ • a ≤ b :=
 calc a ≤ c • b ↔ c • c⁻¹ • a ≤ c • b : by rw [smul_inv_smul₀ hc.ne']
 ... ↔ c⁻¹ • a ≤ b : smul_le_smul_iff_of_pos hc
+
+/-- Left scalar multiplication as an order isomorphism. -/
+@[simps] def order_iso.smul_left {c : k} (hc : 0 < c) : M ≃o M :=
+{ to_fun := λ b, c • b,
+  inv_fun := λ b, c⁻¹ • b,
+  left_inv := inv_smul_smul₀ hc.ne',
+  right_inv := smul_inv_smul₀ hc.ne',
+  map_rel_iff' := λ b₁ b₂, smul_le_smul_iff_of_pos hc }
 
 end field
 

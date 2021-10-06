@@ -79,7 +79,7 @@ private def pnat_multiplicity (n : ℕ+) : ℕ :=
 local notation `v` := pnat_multiplicity
 
 /-- An auxiliary polynomial over the integers, that satisfies
-`(frobenius_poly_aux p n - X n ^ p) / p = frobenius_poly p n`.
+`p * (frobenius_poly_aux p n) + X n ^ p = frobenius_poly p n`.
 This makes it easy to show that `frobenius_poly p n` is congruent to `X n ^ p`
 modulo `p`. -/
 noncomputable def frobenius_poly_aux : ℕ → mv_polynomial ℕ ℤ

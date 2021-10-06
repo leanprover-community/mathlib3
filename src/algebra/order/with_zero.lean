@@ -140,6 +140,9 @@ lemma mul_inv_lt_of_lt_mul₀ (h : x < y * z) : x * z⁻¹ < y :=
 have hz : z ≠ 0 := (mul_ne_zero_iff.1 $ ne_zero_of_lt h).2,
 by { contrapose! h, simpa only [inv_inv₀] using mul_inv_le_of_le_mul (inv_ne_zero hz) h }
 
+lemma inv_mul_lt_of_lt_mul₀ (h : x < y * z) : y⁻¹ * x < z :=
+by { rw mul_comm at *, exact mul_inv_lt_of_lt_mul₀ h }
+
 lemma mul_lt_right₀ (c : α) (h : a < b) (hc : c ≠ 0) : a * c < b * c :=
 by { contrapose! h, exact le_of_le_mul_right hc h }
 

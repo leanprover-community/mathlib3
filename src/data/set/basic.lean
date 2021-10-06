@@ -1582,6 +1582,12 @@ by { rcases hs.eq_empty_or_singleton with rfl|⟨x, rfl⟩, exacts [he, h₁ _] 
 lemma subsingleton_univ [subsingleton α] : (univ : set α).subsingleton :=
 λ x hx y hy, subsingleton.elim x y
 
+lemma subsingleton_of_univ_subsingleton (h : (univ : set α).subsingleton) : subsingleton α :=
+⟨λ a b, h (mem_univ a) (mem_univ b)⟩
+
+@[simp] lemma subsingleton_univ_iff : (univ : set α).subsingleton ↔ subsingleton α :=
+⟨subsingleton_of_univ_subsingleton, λ h, @subsingleton_univ _ h⟩
+
 lemma subsingleton_of_subsingleton [subsingleton α] {s : set α} : set.subsingleton s :=
 subsingleton.mono subsingleton_univ (subset_univ s)
 
@@ -2018,6 +2024,11 @@ by simp [pairwise_on_insert]
 lemma pairwise_on_pair_of_symmetric {r : α → α → Prop} {x y : α} (hr : symmetric r) :
   pairwise_on {x, y} r ↔ (x ≠ y → r x y) :=
 by simp [pairwise_on_insert_of_symmetric hr]
+
+lemma pairwise_on_disjoint_on_mono {s : set α} {f g : α → set β}
+  (h : s.pairwise_on (disjoint on f)) (h' : ∀ x ∈ s, g x ⊆ f x) :
+  s.pairwise_on (disjoint on g) :=
+λ i hi j hj hij, disjoint.mono (h' i hi) (h' j hj) (h i hi j hj hij)
 
 end set
 

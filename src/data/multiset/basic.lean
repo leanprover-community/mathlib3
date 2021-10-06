@@ -529,7 +529,7 @@ def strong_downward_induction {p : multiset α → Sort*} {n : ℕ} (H : ∀ t�
   t₂.card ≤ n → t₁ < t₂ → p t₂) → t₁.card ≤ n → p t₁) :
   ∀ (s : multiset α), s.card ≤ n → p s
 | s := H s (λ t ht h, have n - card t < n - card s,
-     from (nat.sub_lt_sub_left_iff ht).2 (card_lt_of_lt h),
+     from (sub_lt_sub_iff_left_of_le ht).2 (card_lt_of_lt h),
   strong_downward_induction t ht)
 using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ (t : multiset α), n - t.card)⟩]}
 

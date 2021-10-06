@@ -236,7 +236,7 @@ begin
   cases (n % m).zero_le.eq_or_lt with hn hn,
   { simpa [←hn] using nat.mod_eq_of_lt hk },
   { have mpos : 0 < m := k.zero_le.trans_lt hk,
-    have hm : m - n % m < m := nat.sub_lt_self mpos hn,
+    have hm : m - n % m < m := sub_lt_self' mpos hn,
     have hn' : n % m < m := nat.mod_lt _ mpos,
     simpa [mod_eq_of_lt hm, nat.sub_add_cancel hn'.le] using nat.mod_eq_of_lt hk }
 end
@@ -264,7 +264,7 @@ begin
   { rw [eq_nil_of_length_eq_zero hl.symm, rotate_nil, rotate_eq_nil_iff] },
   { cases (nat.zero_le (n % l'.length)).eq_or_lt with hn hn,
     { simp [←hn] },
-    { rw [mod_eq_of_lt (nat.sub_lt_self hl hn), nat.sub_add_cancel, mod_self, rotate_zero],
+    { rw [mod_eq_of_lt (sub_lt_self' hl hn), nat.sub_add_cancel, mod_self, rotate_zero],
       exact (nat.mod_lt _ hl).le } }
 end
 
@@ -295,8 +295,8 @@ begin
     { have : k'.succ < (x :: l).length,
       { simp [←hk', hk, nat.mod_lt] },
       rw [nat.mod_eq_of_lt, nat.sub_add_cancel, rotate_length],
-      { exact nat.sub_le_self _ _ },
-      { exact nat.sub_lt_self (by simp) nat.succ_pos' } } }
+      { exact sub_le_self' },
+      { exact sub_lt_self' (by simp) nat.succ_pos' } } }
 end
 
 lemma map_rotate {β : Type*} (f : α → β) (l : list α) (n : ℕ) :
@@ -358,7 +358,7 @@ begin
   cases l with hd tl,
   { simp },
   { use (hd :: tl).length * n - n,
-    rw [rotate_rotate, nat.add_sub_cancel', rotate_length_mul],
+    rw [rotate_rotate, add_sub_cancel_of_le, rotate_length_mul],
     exact nat.le_mul_of_pos_left (by simp) }
 end
 

@@ -769,6 +769,17 @@ lemma mem_lower_bounds_image (Ha : a ∈ lower_bounds s) :
   f a ∈ lower_bounds (f '' s) :=
 ball_image_of_ball (assume x H, Hf (Ha ‹x ∈ s›))
 
+lemma image_upper_bounds_subset_upper_bounds_image (hf : monotone f) :
+  f '' upper_bounds s ⊆ upper_bounds (f '' s) :=
+begin
+  rintro _ ⟨a, ha, rfl⟩,
+  exact hf.mem_upper_bounds_image ha,
+end
+
+lemma image_lower_bounds_subset_lower_bounds_image (hf : monotone f) :
+  f '' lower_bounds s ⊆ lower_bounds (f '' s) :=
+hf.dual.image_upper_bounds_subset_upper_bounds_image
+
 /-- The image under a monotone function of a set which is bounded above is bounded above. -/
 lemma map_bdd_above (hf : monotone f) : bdd_above s → bdd_above (f '' s)
 | ⟨C, hC⟩ := ⟨f C, hf.mem_upper_bounds_image hC⟩
@@ -794,6 +805,49 @@ lemma le_is_glb_image (Ha : is_glb s a) {b : β} (Hb : is_glb (f '' s) b) :
 Hb.2 (Hf.mem_lower_bounds_image Ha.1)
 
 end monotone
+
+namespace antitone
+variables [preorder α] [preorder β] {f : α → β} (hf : antitone f) {a : α} {s : set α}
+
+lemma mem_upper_bounds_image (ha : a ∈ lower_bounds s) :
+  f a ∈ upper_bounds (f '' s) :=
+hf.dual_right.mem_lower_bounds_image ha
+
+lemma mem_lower_bounds_image (ha : a ∈ upper_bounds s) :
+  f a ∈ lower_bounds (f '' s) :=
+hf.dual_right.mem_upper_bounds_image ha
+
+lemma image_lower_bounds_subset_upper_bounds_image (hf : antitone f) :
+  f '' lower_bounds s ⊆ upper_bounds (f '' s) :=
+hf.dual_right.image_lower_bounds_subset_lower_bounds_image
+
+lemma image_upper_bounds_subset_lower_bounds_image (hf : antitone f) :
+  f '' upper_bounds s ⊆ lower_bounds (f '' s) :=
+hf.dual_right.image_upper_bounds_subset_upper_bounds_image
+
+/-- The image under an antitone function of a set which is bounded above is bounded below. -/
+lemma map_bdd_above (hf : antitone f) : bdd_above s → bdd_below (f '' s) :=
+hf.dual_right.map_bdd_above
+
+/-- The image under an antitone function of a set which is bounded below is bounded above. -/
+lemma map_bdd_below (hf : antitone f) : bdd_below s → bdd_above (f '' s) :=
+hf.dual_right.map_bdd_below
+
+/-- An antitone map sends a greatest element of a set to a least element of its image. -/
+lemma map_is_greatest (ha : is_greatest s a) : is_least (f '' s) (f a) :=
+hf.dual_right.map_is_greatest ha
+
+/-- An antitone map sends a least element of a set to a greatest element of its image. -/
+lemma map_is_least (ha : is_least s a) : is_greatest (f '' s) (f a) :=
+hf.dual_right.map_is_least ha
+
+lemma is_lub_image_le (ha : is_glb s a) {b : β} (hb : is_lub (f '' s) b) : b ≤ f a :=
+hf.dual_left.is_lub_image_le ha hb
+
+lemma le_is_glb_image (ha : is_lub s a) {b : β} (hb : is_glb (f '' s) b) : f a ≤ b :=
+hf.dual_left.le_is_glb_image ha hb
+
+end antitone
 
 lemma is_glb.of_image [preorder α] [preorder β] {f : α → β} (hf : ∀ {x y}, f x ≤ f y ↔ x ≤ y)
   {s : set α} {x : α} (hx : is_glb (f '' s) (f x)) :
@@ -842,38 +896,48 @@ lemma is_glb_prod [preorder α] [preorder β] {s : set (α × β)} (p : α × β
 
 namespace order_iso
 
-variables [preorder α] [preorder β]
+variables [preorder α] [preorder β] (f : α ≃o β)
 
-@[simp] lemma is_lub_image (f : α ≃o β) {s : set α} {x : β} :
+lemma upper_bounds_image {s : set α} :
+  upper_bounds (f '' s) = f '' upper_bounds s :=
+subset.antisymm
+  (λ x hx, ⟨f.symm x, λ y hy, f.le_symm_apply.2 (hx $ mem_image_of_mem _ hy), f.apply_symm_apply x⟩)
+  f.monotone.image_upper_bounds_subset_upper_bounds_image
+
+lemma lower_bounds_image {s : set α} :
+  lower_bounds (f '' s) = f '' lower_bounds s :=
+@upper_bounds_image (order_dual α) (order_dual β) _ _ f.dual _
+
+@[simp] lemma is_lub_image {s : set α} {x : β} :
   is_lub (f '' s) x ↔ is_lub s (f.symm x) :=
 ⟨λ h, is_lub.of_image (λ _ _, f.le_iff_le) ((f.apply_symm_apply x).symm ▸ h),
   λ h, is_lub.of_image (λ _ _, f.symm.le_iff_le) $ (f.symm_image_image s).symm ▸ h⟩
 
-lemma is_lub_image' (f : α ≃o β) {s : set α} {x : α} :
+lemma is_lub_image' {s : set α} {x : α} :
   is_lub (f '' s) (f x) ↔ is_lub s x :=
 by rw [is_lub_image, f.symm_apply_apply]
 
-@[simp] lemma is_glb_image (f : α ≃o β) {s : set α} {x : β} :
+@[simp] lemma is_glb_image {s : set α} {x : β} :
   is_glb (f '' s) x ↔ is_glb s (f.symm x) :=
 f.dual.is_lub_image
 
-lemma is_glb_image' (f : α ≃o β) {s : set α} {x : α} :
+lemma is_glb_image' {s : set α} {x : α} :
   is_glb (f '' s) (f x) ↔ is_glb s x :=
 f.dual.is_lub_image'
 
-@[simp] lemma is_lub_preimage (f : α ≃o β) {s : set β} {x : α} :
+@[simp] lemma is_lub_preimage {s : set β} {x : α} :
   is_lub (f ⁻¹' s) x ↔ is_lub s (f x) :=
 by rw [← f.symm_symm, ← image_eq_preimage, is_lub_image]
 
-lemma is_lub_preimage' (f : α ≃o β) {s : set β} {x : β} :
+lemma is_lub_preimage' {s : set β} {x : β} :
   is_lub (f ⁻¹' s) (f.symm x) ↔ is_lub s x :=
 by rw [is_lub_preimage, f.apply_symm_apply]
 
-@[simp] lemma is_glb_preimage (f : α ≃o β) {s : set β} {x : α} :
+@[simp] lemma is_glb_preimage {s : set β} {x : α} :
   is_glb (f ⁻¹' s) x ↔ is_glb s (f x) :=
 f.dual.is_lub_preimage
 
-lemma is_glb_preimage' (f : α ≃o β) {s : set β} {x : β} :
+lemma is_glb_preimage' {s : set β} {x : β} :
   is_glb (f ⁻¹' s) (f.symm x) ↔ is_glb s x :=
 f.dual.is_lub_preimage'
 

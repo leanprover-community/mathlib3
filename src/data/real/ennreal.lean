@@ -753,7 +753,8 @@ sub_add_cancel_of_le h
 lemma sub_le_sub (h₁ : a ≤ b) (h₂ : d ≤ c) : a - c ≤ b - d :=
 sub_le_sub' h₁ h₂
 
-lemma add_sub_cancel_of_le (h : b ≤ a) : b + (a - b) = a :=
+-- todo: make `add_sub_cancel_of_le` a `@[simp]` lemma
+@[simp] lemma add_sub_cancel_of_le (h : b ≤ a) : b + (a - b) = a :=
 add_sub_cancel_of_le h
 
 lemma sub_add_self_eq_max : (a - b) + b = max a b :=

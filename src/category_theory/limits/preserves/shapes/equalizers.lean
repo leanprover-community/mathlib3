@@ -102,6 +102,32 @@ begin
   apply_instance
 end
 
+open walking_parallel_pair_hom
+open walking_parallel_pair
+
+def preserves_equalizer_mk {X Y : C} (f g : X ⟶ Y)
+  (H : ∀ {Z} (z : Z ⟶ X) (w) (H : is_limit (fork.of_ι z w : fork f g)),
+    is_limit (G.map_cone (fork.of_ι z w : fork f g)) ) :
+  preserves_limit (parallel_pair f g) G := ⟨λ c hc, by
+  { have : c = fork.of_ι (c.π.app zero)
+    ((c.π.naturality left).symm.trans (c.π.naturality right : _) : _),
+    { cases c, congr, ext F, cases F,
+      { simp },
+      { convert (c_π.naturality left), erw id_comp } },
+    rw this at hc ⊢,
+    apply H,
+    exact hc }⟩
+
+def preserves_equalizers_mk
+  (H : ∀ {X Y : C} (f g : X ⟶ Y), preserves_limit (parallel_pair f g) G) :
+  preserves_limits_of_shape walking_parallel_pair G := ⟨λ F, by
+  { have : F = parallel_pair (F.map left) (F.map right),
+    { apply functor.hext,
+      { intro X, simp },
+      { intros X Y f, cases X; cases Y; cases f; tidy } },
+    rw this,
+    apply H }⟩
+
 end equalizers
 
 section coequalizers

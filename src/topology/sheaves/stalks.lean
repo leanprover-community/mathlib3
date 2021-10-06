@@ -319,10 +319,7 @@ begin
       -- Here, we need to use injectivity of the stalk maps.
       apply (h z).1,
       erw [stalk_functor_map_germ_apply, stalk_functor_map_germ_apply],
-      dsimp,
-      simp_rw ← comp_apply,
-      erw [f.naturality, f.naturality],
-      simp_rw [comp_apply, heq, ← comp_apply, ← G.1.map_comp],
+      simp_rw [← comp_apply, f.naturality, comp_apply, heq, ← comp_apply, ← G.1.map_comp],
       refl, } },
 
   intro x,

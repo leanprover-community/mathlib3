@@ -404,7 +404,7 @@ instance : metric_space GH_space :=
     have : range Φ = range Ψ,
     { have hΦ : is_compact (range Φ) := is_compact_range Φisom.continuous,
       have hΨ : is_compact (range Ψ) := is_compact_range Ψisom.continuous,
-      apply (Hausdorff_dist_zero_iff_eq_of_closed _ _ _).1 (DΦΨ.symm),
+      apply (is_closed.Hausdorff_dist_zero_iff_eq _ _ _).1 (DΦΨ.symm),
       { exact hΦ.is_closed },
       { exact hΨ.is_closed },
       { exact Hausdorff_edist_ne_top_of_nonempty_of_bounded (range_nonempty _)

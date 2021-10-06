@@ -629,6 +629,9 @@ lemma is_open.mem_nhds {a : α} {s : set α} (hs : is_open s) (ha : a ∈ s) :
   s ∈ 𝓝 a :=
 mem_nhds_iff.2 ⟨s, subset.refl _, hs, ha⟩
 
+lemma is_closed.compl_mem_nhds {a : α} {s : set α} (hs : is_closed s) (ha : a ∉ s) : sᶜ ∈ 𝓝 a :=
+hs.is_open_compl.mem_nhds (mem_compl ha)
+
 lemma is_open.eventually_mem {a : α} {s : set α} (hs : is_open s) (ha : a ∈ s) :
   ∀ᶠ x in 𝓝 a, x ∈ s :=
 is_open.mem_nhds hs ha

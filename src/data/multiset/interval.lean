@@ -65,20 +65,20 @@ by rw [Icc, finset.Icc_self, finset.singleton_val]
 end partial_order
 
 section ordered_cancel_add_comm_monoid
-variables [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α] [decidable_eq α]
+variables [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α]
   [locally_finite_order α]
 
 lemma map_add_const_Icc (a b c : α) : (Icc a b).map ((+) c) = Icc (a + c) (b + c) :=
-by rw [Icc, Icc, ←finset.image_add_const_Icc, finset.image_val,
-    multiset.nodup.erase_dup (multiset.nodup_map (add_right_injective c) (finset.nodup _))]
+by { classical, rw [Icc, Icc, ←finset.image_add_const_Icc, finset.image_val,
+    multiset.nodup.erase_dup (multiset.nodup_map (add_right_injective c) (finset.nodup _))] }
 
 lemma map_add_const_Ioc (a b c : α) : (Ioc a b).map ((+) c) = Ioc (a + c) (b + c) :=
-by rw [Ioc, Ioc, ←finset.image_add_const_Ioc, finset.image_val,
-    multiset.nodup.erase_dup (multiset.nodup_map (add_right_injective c) (finset.nodup _))]
+by { classical, rw [Ioc, Ioc, ←finset.image_add_const_Ioc, finset.image_val,
+    multiset.nodup.erase_dup (multiset.nodup_map (add_right_injective c) (finset.nodup _))] }
 
 lemma map_add_const_Ioo (a b c : α) : (Ioo a b).map ((+) c) = Ioo (a + c) (b + c) :=
-by rw [Ioo, Ioo, ←finset.image_add_const_Ioo, finset.image_val,
-    multiset.nodup.erase_dup (multiset.nodup_map (add_right_injective c) (finset.nodup _))]
+by { classical, rw [Ioo, Ioo, ←finset.image_add_const_Ioo, finset.image_val,
+    multiset.nodup.erase_dup (multiset.nodup_map (add_right_injective c) (finset.nodup _))] }
 
 end ordered_cancel_add_comm_monoid
 end multiset

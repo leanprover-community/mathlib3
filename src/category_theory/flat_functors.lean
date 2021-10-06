@@ -96,15 +96,92 @@ begin
   apply_instance
 end
 
+def ulift_functor_trivial : ulift_functor.{u₁ u₁} ≅ 𝟭 (Type u₁) :=
+begin
+  fapply nat_iso.of_components,
+  apply ulift_trivial,
+  by tidy
+end
+
+lemma curry_evaluation_uncurried_eq_evaluation {C : Type u₁} [category.{v₁} C]
+  {D : Type u₂} [category.{v₂} D] :
+  curry.obj (evaluation_uncurried C D) = evaluation C D :=
+begin
+  fapply functor.ext,
+  { intro X,
+    apply functor.hext,
+    { intro F, simp },
+    { intros F G α, simp } },
+  { intros X Y f, ext F, simp }
+end
+
+lemma lem {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
+  {E : Type u₃} [category.{v₃} E] {E' : Type u₃} [category.{v₃} E'] (F : C ⥤ D) (G : D × E ⥤ E') :
+    curry.obj (F.prod (𝟭 E) ⋙ G) = F ⋙ curry.obj G :=
+begin
+  fapply functor.ext,
+  { intro X,
+    apply functor.hext,
+    { intro Y, simp },
+    { intros Y Z f, simpa } },
+  { intros X Y f, ext, simp }
+end
+
+local attribute [ext] functor.ext
+
+lemma uncurry_coyoneda {C : Type u₁} [category.{v₁} C] :
+  uncurry.obj (coyoneda : Cᵒᵖ ⥤ _ ⥤ Type v₁) = functor.hom C := by tidy
+
+lemma curry_hom_functor {C : Type u₁} [category.{v₁} C] :
+  curry.obj (functor.hom C : Cᵒᵖ × C ⥤ Type v₁) = coyoneda := by tidy
+
 def preserves_finite_limit_of_flat (F : C ⥤ D) [representably_flat F]
   (J : Type u₁) [small_category J] [fin_category J] :
   preserves_limits_of_shape J F := by {
-  have := F ⋙ yoneda,
-  have := yoneda ⋙ (Lan F.op : _),
-  have := colimit_adj.extend_along_yoneda (F ⋙ yoneda) ≅ Lan F.op,
-  let := whisker_left yoneda (Lan.adjunction (Type u₁) F.op).unit,
+  -- have : (Lan (yoneda : C ⥤ Cᵒᵖ ⥤ Type u₁)).obj (F ⋙ yoneda) ≅ Lan F.op := by {
+  --   -- simp,
+  --   admit
+  -- },
+  have : yoneda ⋙ (whiskering_left Dᵒᵖ (Dᵒᵖ ⥤ Type u₁)ᵒᵖ (Type u₁)).obj yoneda.op ≅ 𝟭 (Dᵒᵖ ⥤ Type u₁) := by {
+    -- fapply nat_iso.of_components,
+    -- intro X, simp,
+    let : yoneda_pairing D ≅ evaluation_uncurried Dᵒᵖ (Type u₁) := by {
+      apply (yoneda_lemma D).trans,
+      refine iso_whisker_left (evaluation_uncurried Dᵒᵖ (Type u₁)) (ulift_functor_trivial),
+    },
+    let eq := curry.map_iso this,
+    rw curry_evaluation_uncurried_eq_evaluation at eq,
+    erw lem yoneda.op at eq,
+    rw curry_hom_functor at eq,
+    -- change curry.obj (yoneda.op.prod (𝟭 (Dᵒᵖ ⥤ Type u₁))) ⋙ functor.hom (Dᵒᵖ ⥤ Type u₁) ≅ evaluation Dᵒᵖ (Type u₁) at this,
+    -- simp at this,
+    -- have := iso_whisker_left uncurry (yoneda_lemma D),
+
+  },
+  -- have : colimit_adj.extend_along_yoneda (F ⋙ yoneda) ≅ (Lan F.op : _),
+  -- {
+  --   apply adjunction.nat_iso_of_right_adjoint_nat_iso,
+  --   exact colimit_adj.yoneda_adjunction (F ⋙ yoneda),
+  --   exact Lan.adjunction (Type u₁) F.op,
+  --   -- simp[colimit_adj.restricted_yoneda],
+  --   change (yoneda ⋙ (whiskering_left _ _ _).obj yoneda.op) ⋙ (whiskering_left _ _ _).obj F.op ≅
+  --     𝟭 _ ⋙ (whiskering_left _ _ _).obj F.op,
+  --   apply iso_whisker_right _ ((whiskering_left _ _ _).obj F.op),
+  --   have := yoneda_lemma D,
+  -- }
+  -- have := colimit_adj.yoneda_adjunction (F ⋙ yoneda),
+  -- have : Lan F.op ⊣ colimit_adj.restricted_yoneda (F ⋙ yoneda), {
+  --   unfold colimit_adj.restricted_yoneda,
+  --   have := Lan.adjunction (Type u₁) F.op,
+  -- nat_iso_of_right_adjoint_nat_iso
+  -- },
+  -- have := (colimit_adj.is_extension_along_yoneda (F ⋙ yoneda)).symm,
+  -- have := colimit_adj.extend_along_yoneda_iso_Kan (F ⋙ yoneda),
+  -- have := colimit_adj.extend_along_yoneda (F ⋙ yoneda) ≅ Lan F.op,
+  -- let := whisker_left yoneda (Lan.adjunction (Type u₁) F.op).unit,
   -- simp at this,
-  -- haveI : = Lan_presesrves_finite_limit_of_flat F,
+  -- haveI := Lan_presesrves_finite_limit_of_flat F J,
+
 }
 
 end small_category

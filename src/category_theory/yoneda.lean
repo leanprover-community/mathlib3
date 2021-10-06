@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.hom_functor
+import category_theory.currying
 
 /-!
 # The Yoneda embedding
@@ -46,6 +47,12 @@ The co-Yoneda embedding, as a functor from `Cᵒᵖ` into co-presheaves on `C`.
   { obj := λ Y, unop X ⟶ Y,
     map := λ Y Y' f g, g ≫ f },
   map := λ X X' f, { app := λ Y g, f.unop ≫ g } }
+
+local attribute [ext] functor.ext
+
+lemma uncurry_coyoneda : uncurry.obj (coyoneda : Cᵒᵖ ⥤ _ ⥤ Type v₁) = functor.hom C := by tidy
+
+lemma curry_hom_functor : curry.obj (functor.hom C : Cᵒᵖ × C ⥤ Type v₁) = coyoneda := by tidy
 
 namespace yoneda
 
@@ -384,5 +391,14 @@ lemma yoneda_sections_small_inv_app_apply {C : Type u₁} [small_category C] (X 
   (F : Cᵒᵖ ⥤ Type u₁) (t : F.obj (op X)) (Y : Cᵒᵖ) (f : Y.unop ⟶ X) :
   ((yoneda_sections_small X F).inv t).app Y f = F.map f.op t :=
 rfl
+
+def curried_yoneda_lemma {C : Type u₁} [small_category C] :
+  (yoneda.op ⋙ coyoneda : Cᵒᵖ ⥤ (Cᵒᵖ ⥤ Type u₁) ⥤ Type u₁) ≅ evaluation Cᵒᵖ (Type u₁) :=
+begin
+  refine eq_to_iso _ ≪≫ curry.map_iso (yoneda_lemma C ≪≫
+    iso_whisker_left (evaluation_uncurried Cᵒᵖ (Type u₁)) ulift_functor_trivial) ≪≫ eq_to_iso _,
+  { erw [curry_prod_id_comp yoneda.op, curry_hom_functor] },
+  { erw curry_evaluation_uncurried_eq_evaluation }
+end
 
 end category_theory

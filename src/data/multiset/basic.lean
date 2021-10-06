@@ -1490,13 +1490,16 @@ instance : has_sub (multiset α) := ⟨multiset.sub⟩
 
 @[simp] theorem coe_sub (s t : list α) : (s - t : multiset α) = (s.diff t : list α) := rfl
 
-/-- Use `sub_zero'` instead. -/
+/-- This is a special case of `sub_zero'`, which should be used instead of this.
+  This is needed to prove `has_ordered_sub (multiset α)`. -/
 protected theorem sub_zero (s : multiset α) : s - 0 = s :=
 quot.induction_on s $ λ l, rfl
 
 @[simp] theorem sub_cons (a : α) (s t : multiset α) : s - a ::ₘ t = s.erase a - t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ diff_cons _ _ _
 
+/-- This is a special case of `sub_le_iff_right`, which should be used instead of this.
+  This is needed to prove `has_ordered_sub (multiset α)`. -/
 protected theorem sub_le_iff_le_add : s - t ≤ u ↔ s ≤ u + t :=
 by revert s; exact
 multiset.induction_on t (by simp [multiset.sub_zero])

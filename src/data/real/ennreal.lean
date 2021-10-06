@@ -690,15 +690,19 @@ begin
   { rintro h b c hbc, apply ennreal.le_of_add_le_add_left h hbc }
 end
 
+/-- This lemma has an abbreviated name because it is used frequently. -/
 lemma cancel_of_ne {a : ℝ≥0∞} (h : a ≠ ∞) : add_le_cancellable a :=
 add_le_cancellable_iff_ne.mpr h
 
+/-- This lemma has an abbreviated name because it is used frequently. -/
 lemma cancel_of_lt {a : ℝ≥0∞} (h : a < ∞) : add_le_cancellable a :=
 cancel_of_ne $ lt_top_iff_ne_top.mp h
 
+/-- This lemma has an abbreviated name because it is used frequently. -/
 lemma cancel_of_lt' {a b : ℝ≥0∞} (h : a < b) : add_le_cancellable a :=
 cancel_of_lt $ h.trans_le le_top
 
+/-- This lemma has an abbreviated name because it is used frequently. -/
 lemma cancel_coe {a : ℝ≥0} : add_le_cancellable (a : ℝ≥0∞) :=
 cancel_of_ne coe_ne_top
 
@@ -715,15 +719,15 @@ section sub
 lemma sub_eq_Inf {a b : ℝ≥0∞} : a - b = Inf {d | a ≤ d + b} :=
 le_antisymm (le_Inf $ λ c, sub_le_iff_right.mpr) $ Inf_le le_sub_add
 
-/-- We keep this lemma as special case of `with_top.coe_sub`. -/
+/-- This is a special case of `with_top.coe_sub` in the `ennreal` namespace -/
 lemma coe_sub : ↑(p - r) = (↑p:ℝ≥0∞) - r :=
 by norm_cast
 
-/-- We keep this lemma as special case of `with_top.top_sub_coe`. -/
+/-- This is a special case of `with_top.top_sub_coe` in the `ennreal` namespace -/
 lemma top_sub_coe : ∞ - ↑r = ∞ :=
 by simp
 
-/-- We keep this lemma as special case of `with_top.sub_top`. -/
+/-- This is a special case of `with_top.sub_top` in the `ennreal` namespace -/
 lemma sub_top : a - ∞ = 0 :=
 by simp
 

@@ -126,7 +126,7 @@ by cases o₁; cases o₂; exact dec_trivial
 
 end ordering
 
-lemma dual_compares [has_lt α] {a b : α} {o : ordering} :
+lemma order_dual.dual_compares [has_lt α] {a b : α} {o : ordering} :
   @ordering.compares (order_dual α) _ o a b ↔ @ordering.compares α _ o b a :=
 by { cases o, exacts [iff.rfl, eq_comm, iff.rfl] }
 

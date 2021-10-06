@@ -718,10 +718,11 @@ namespace with_top
 section
 variables [has_sub α] [has_zero α]
 
-def with_top.sub : Π (a b : with_top α), with_top α
-| _ ⊤ := 0
+/-- If `α` has subtraction and `0`, we can extend the subtraction to `with_top α`. -/
+protected def sub : Π (a b : with_top α), with_top α
+| _       ⊤       := 0
+| ⊤       (x : α) := ⊤
 | (x : α) (y : α) := (x - y : α)
-| ⊤ (x : α) := ⊤
 
 instance : has_sub (with_top α) :=
 ⟨with_top.sub⟩

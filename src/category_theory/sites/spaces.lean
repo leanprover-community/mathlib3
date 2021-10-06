@@ -32,7 +32,7 @@ We define the two separately, rather than defining the Grothendieck topology as 
 by the pretopology for the purpose of having nice definitional properties for the sieves.
 -/
 
-universes u
+universe u
 
 namespace opens
 variables (T : Type u) [topological_space T]

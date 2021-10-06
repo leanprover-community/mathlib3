@@ -115,7 +115,8 @@ def star_monoid_of_comm {R : Type*} [comm_monoid R] : star_monoid R :=
 section
 local attribute [instance] star_monoid_of_comm
 
-@[simp] lemma star_id_of_comm {R : Type*} [comm_semiring R] {x : R} : star x = x := rfl
+/-- Note that since `star_monoid_of_comm` is reducible, `simp` can already prove this. --/
+lemma star_id_of_comm {R : Type*} [comm_semiring R] {x : R} : star x = x := rfl
 
 end
 

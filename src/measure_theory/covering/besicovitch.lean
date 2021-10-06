@@ -5,7 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import topology.metric_space.basic
 import set_theory.cardinal_ordinal
-import measure_theory.measure.haar_lebesgue
+import measure_theory.integral.lebesgue
 
 /-!
 # Besicovitch covering theorems

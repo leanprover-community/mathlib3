@@ -103,7 +103,6 @@ This is the condition `h`.
 Finally, the last ball is chosen after all the other ones, meaning that `h` can be strengthened
 by keeping only one side of the alternative in `hlast`.
 -/
-@[nolint has_inhabited_instance]
 structure besicovitch.satellite_config (α : Type*) [metric_space α] (N : ℕ) (τ : ℝ) :=
 (c : fin N.succ → α)
 (r : fin N.succ → ℝ)

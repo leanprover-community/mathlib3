@@ -478,7 +478,7 @@ begin
 end
 
 /-!
-### Measurable Besicovitch covering theorems
+### The measurable Besicovitch covering theorem
 -/
 
 /-- Consider, for each `x` in a set `s`, a radius `r x ∈ (0, 1]`. Then one can find finitely
@@ -557,13 +557,11 @@ begin
     { exact pairwise_on_disjoint_on_mono (hu i) (λ k hk, inter_subset_right _ _) },
     { exact λ b hb, smeas.inter measurable_set_closed_ball } },
   -- A large enough finite subfamily of `u i` will also cover a proportion `> 1/(N+1)` of `s`.
-  obtain ⟨w, hw⟩ : ∃ (w : finset ↥(u i)),
-    μ s / (↑N + 1) < ∑ (x : ↥(u i)) in w, μ (s ∩ closed_ball (x : α) (r (x : α))),
+  obtain ⟨w, hw⟩ : ∃ (w : finset (u i)),
+    μ s / (N + 1) < ∑ (x : u i) in w, μ (s ∩ closed_ball (x : α) (r (x : α))),
   { have C : has_sum (λ (x : u i), μ (s ∩ closed_ball x (r x))) (μ (s ∩ (v i))),
       by { rw B, exact ennreal.summable.has_sum },
-    have D := ((tendsto_order.1 C).1 _ hi).exists,
-    dsimp at D,
-    exact D, },
+    exact ((tendsto_order.1 C).1 _ hi).exists },
   -- Bring back the finset `w i` of `↑(u i)` to a finset of `α`, and check that it works by design.
   refine ⟨finset.image (λ (x : u i), x) w, _, _, _⟩,
   { simp only [image_subset_iff, coe_coe, finset.coe_image],
@@ -591,9 +589,9 @@ begin
         apply smeas.inter measurable_set_closed_ball }
     end },
   { assume k hk l hl hkl,
-    obtain ⟨k', k'w, rfl⟩ : ∃ (k' : ↥(u i)), k' ∈ w ∧ ↑↑k' = k,
+    obtain ⟨k', k'w, rfl⟩ : ∃ (k' : u i), k' ∈ w ∧ ↑↑k' = k,
       by simpa only [mem_image, finset.mem_coe, coe_coe, finset.coe_image] using hk,
-    obtain ⟨l', l'w, rfl⟩ : ∃ (l' : ↥(u i)), l' ∈ w ∧ ↑↑l' = l,
+    obtain ⟨l', l'w, rfl⟩ : ∃ (l' : u i), l' ∈ w ∧ ↑↑l' = l,
       by simpa only [mem_image, finset.mem_coe, coe_coe, finset.coe_image] using hl,
     have k'nel' : (k' : s) ≠ l',
       by { assume h, rw h at hkl, exact hkl rfl },

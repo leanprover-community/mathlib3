@@ -137,5 +137,4 @@ begin
   have hw : s.sum w = 1, { simp [hij, finset.sum_ite, finset.filter_insert, finset.filter_eq'], },
   use s.affine_combination p w,
   simp [barycentric_coord_apply_combination_of_mem h_ind h_tot hi hw],
-    eq_self_iff_true, not_true, forall_false_left],
 end

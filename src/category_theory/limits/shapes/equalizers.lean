@@ -254,25 +254,11 @@ def fork.is_limit.lift' {s : fork f g} (hs : is_limit s) {W : C} (k : W ⟶ X) (
   {l : W ⟶ s.X // l ≫ fork.ι s = k} :=
 ⟨hs.lift $ fork.of_ι _ h, hs.fac _ _⟩
 
-lemma fork.is_limit.lift'_unique {s : fork f g} (hs : is_limit s) {W : C} (k : W ⟶ X)
-  (hk : k ≫ f = k ≫ g) (l : W ⟶ s.X) (hl : l ≫ fork.ι s = k) :
-  l = fork.is_limit.lift' hs k hk :=
-hs.uniq (fork.of_ι _ hk) l (λ j, walking_parallel_pair.cases_on j hl
-  (by rw [← fork.app_zero_right, ← fork.app_zero_right, ← fork.ι_eq_app_zero, ← fork.ι_eq_app_zero,
-    fork.ι_of_ι, ← category.assoc, hl]))
-
 /-- If `s` is a colimit cofork over `f` and `g`, then a morphism `k : Y ⟶ W` satisfying
     `f ≫ k = g ≫ k` induces a morphism `l : s.X ⟶ W` such that `cofork.π s ≫ l = k`. -/
 def cofork.is_colimit.desc' {s : cofork f g} (hs : is_colimit s) {W : C} (k : Y ⟶ W)
   (h : f ≫ k = g ≫ k) : {l : s.X ⟶ W // cofork.π s ≫ l = k} :=
 ⟨hs.desc $ cofork.of_π _ h, hs.fac _ _⟩
-
-lemma cofork.is_colimit.desc'_unique {s : cofork f g} (hs : is_colimit s) {W : C} (k : Y ⟶ W)
-  (hk : f ≫ k = g ≫ k) (l : s.X ⟶ W) (hl : cofork.π s ≫ l = k) :
-  l = cofork.is_colimit.desc' hs k hk :=
-hs.uniq (cofork.of_π _ hk) l (λ j, walking_parallel_pair.cases_on j
-  (by rw [← cofork.right_app_one, ← cofork.right_app_one, ← cofork.π_eq_app_one,
-    ← cofork.π_eq_app_one, cofork.π_of_π, category.assoc, hl]) hl)
 
 /-- This is a slightly more convenient method to verify that a fork is a limit cone. It
     only asks for a proof of facts that carry any mathematical content -/

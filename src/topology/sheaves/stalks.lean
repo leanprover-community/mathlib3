@@ -310,7 +310,7 @@ begin
     { use s,
       apply G.eq_of_locally_eq' V U iVU V_cover,
       intro x,
-      erw [← comp_apply, ← f.naturality, comp_apply, s_spec, heq] },
+      rw [← comp_apply, ← f.naturality, comp_apply, s_spec, heq] },
     { intros x y,
       -- What's left to show here is that the secions `sf` are compatible, i.e. they agree on
       -- the intersections `V x ⊓ V y`. We prove this by showing that all germs are equal.

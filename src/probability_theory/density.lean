@@ -53,6 +53,41 @@ open_locale classical measure_theory nnreal ennreal
 
 namespace measure_theory
 
+namespace set
+
+variables {α M : Type*} [has_one M] [measurable_space α] {μ : measure α}
+
+@[to_additive]
+lemma mul_indicator_eq_one_iff (s : set α) (f : α → M) (a : α) :
+  s.mul_indicator f a ≠ 1 ↔ a ∈ s ∩ function.mul_support f :=
+begin
+  split; intro h,
+  { by_contra hmem,
+    simp only [set.mem_inter_eq, not_and, not_not, function.mem_mul_support] at hmem,
+    refine h _,
+    by_cases a ∈ s,
+    { simp_rw [set.mul_indicator, if_pos h],
+      exact hmem h },
+    { simp_rw [set.mul_indicator, if_neg h] } },
+  { simp_rw [set.mul_indicator, if_pos h.1],
+    exact h.2 }
+end
+
+@[to_additive]
+lemma mul_indicator_ae_eq_one
+  [measurable_space α] (μ : measure α) (f : α → M) (s : set α)
+  (h : s.mul_indicator f =ᵐ[μ] 1) : μ (s ∩ function.mul_support f) = 0 :=
+begin
+  rw [filter.eventually_eq, ae_iff] at h,
+  convert h,
+  ext a,
+  rw ← mul_indicator_eq_one_iff s f,
+  refl
+end
+
+
+end set
+
 open topological_space measure_theory.measure
 
 variables {α E : Type*} [normed_group E] [measurable_space E] [second_countable_topology E]
@@ -80,6 +115,14 @@ lemma pdf_undef {m : measurable_space α} {ℙ : measure α} {μ : measure E} {X
   (h : ¬ has_pdf X ℙ μ) :
   pdf X ℙ μ = 0 :=
 by simp only [pdf, dif_neg h]
+
+lemma has_pdf_of_pdf_ne_zero {m : measurable_space α} {ℙ : measure α} {μ : measure E} {X : α → E}
+  (h : pdf X ℙ μ ≠ 0) : has_pdf X ℙ μ :=
+begin
+  by_contra hpdf,
+  rw [pdf, dif_neg hpdf] at h,
+  exact hpdf (false.rec (has_pdf X ℙ μ) (h rfl))
+end
 
 lemma pdf_eq_zero_of_not_measurable {m : measurable_space α}
   {ℙ : measure α} {μ : measure E} {X : α → E} (hX : ¬ measurable X) :
@@ -322,106 +365,121 @@ section
 
 /-! **Uniform Distribution** -/
 
-/-- A random variable `X` has uniform distribution if it has a probability density function `f`
-with compact support `s` such that `f = (μ s)⁻¹ 1ₛ` a.e. where `1ₛ` is the indicator function
-for `s`.
-We require compact support since otherwise the expectation might not be finite. -/
-class uniform {m : measurable_space α} (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac)
-  extends has_pdf X ℙ μ :=
-(support' : set E) (compact_support' : is_compact support')
-(support_not_null' : 0 < μ support')
-(uniform' : pdf X ℙ μ =ᵐ[μ] support'.indicator ((μ support')⁻¹ • 1))
+-- /-- A random variable `X` has uniform distribution if it has a probability density function `f`
+-- with compact support `s` such that `f = (μ s)⁻¹ 1ₛ` a.e. where `1ₛ` is the indicator function
+-- for `s`.
+-- We require compact support since otherwise the expectation might not be finite. -/
+-- class uniform {m : measurable_space α} (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac)
+--   extends has_pdf X ℙ μ :=
+-- (support' : set E) (compact_support' : is_compact support')
+-- (support_not_null' : 0 < μ support')
+-- (uniform' : pdf X ℙ μ =ᵐ[μ] support'.indicator ((μ support')⁻¹ • 1))
 
 def is_uniform {m : measurable_space α} (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac)
   (support : set E) :=
 pdf X ℙ μ =ᵐ[μ] support.indicator ((μ support)⁻¹ • 1)
 
-namespace uniform
+namespace is_uniform
 
-/-- The support of the probability density function of a random variable of uniform distribution. -/
-def support {m : measurable_space α}
-  (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac) [hX : uniform X ℙ μ] : set E :=
-hX.support'
+lemma has_pdf {m : measurable_space α} {X : α → E} {ℙ : measure α} {μ : measure E}
+  {support : set E} (hns : μ support ≠ 0) (hnt : μ support ≠ ⊤) (hu : is_uniform X ℙ μ support) :
+  has_pdf X ℙ μ :=
+has_pdf_of_pdf_ne_zero
+begin
+  intro hpdf,
+  rw [is_uniform, hpdf] at hu,
+  suffices : μ (support ∩ function.support ((μ support)⁻¹ • 1)) = 0,
+  { have heq : function.support ((μ support)⁻¹ • (1 : E → ℝ≥0∞)) = set.univ,
+    { ext x,
+      rw [function.mem_support],
+      simp [hnt] },
+    rw [heq, set.inter_univ] at this,
+    exact hns this },
+  exact set.indicator_ae_eq_zero μ ((μ support)⁻¹ • 1) support hu.symm,
+end
 
-lemma is_compact_support {m : measurable_space α}
-  (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac) [hX : uniform X ℙ μ] :
-  is_compact (support X ℙ μ) :=
-hX.compact_support'
+-- /-- The support of the probability density function of a random variable of uniform distribution. -/
+-- def support {m : measurable_space α}
+--   (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac) [hX : uniform X ℙ μ] : set E :=
+-- hX.support'
 
-@[measurability]
-lemma measurable_set_support {m : measurable_space α}
-  (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac) [hX : uniform X ℙ μ] :
-  measurable_set (support X ℙ μ) :=
-(is_compact_support X ℙ μ).is_closed.measurable_set
+-- lemma is_compact_support {m : measurable_space α}
+--   (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac) [hX : uniform X ℙ μ] :
+--   is_compact (support X ℙ μ) :=
+-- hX.compact_support'
 
-lemma support_not_null {m : measurable_space α}
-  (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac) [hX : uniform X ℙ μ] :
-  0 < μ (support X ℙ μ) :=
-hX.support_not_null'
+-- @[measurability]
+-- lemma measurable_set_support {m : measurable_space α}
+--   (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac) [hX : uniform X ℙ μ] :
+--   measurable_set (support X ℙ μ) :=
+-- (is_compact_support X ℙ μ).is_closed.measurable_set
 
-lemma pdf_ae_eq {m : measurable_space α} (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac)
-  [hX : uniform X ℙ μ] :
-  pdf X ℙ μ =ᵐ[μ] (support X ℙ μ).indicator ((μ (support X ℙ μ))⁻¹ • 1) :=
-hX.uniform'
+-- lemma support_not_null {m : measurable_space α}
+--   (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac) [hX : uniform X ℙ μ] :
+--   0 < μ (support X ℙ μ) :=
+-- hX.support_not_null'
+
+-- lemma pdf_ae_eq {m : measurable_space α} (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac)
+--   [hX : uniform X ℙ μ] :
+--   pdf X ℙ μ =ᵐ[μ] (support X ℙ μ).indicator ((μ (support X ℙ μ))⁻¹ • 1) :=
+-- hX.uniform'
 
 lemma pdf_to_real_ae_eq {m : measurable_space α}
-  (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac) [hX : uniform X ℙ μ] :
+  {X : α → E} {ℙ : measure α} {μ : measure E} {s : set E} (hX : is_uniform X ℙ μ s) :
   (λ x, (pdf X ℙ μ x).to_real) =ᵐ[μ]
-  (λ x, ((support X ℙ μ).indicator ((μ (support X ℙ μ))⁻¹ • (1 : E → ℝ≥0∞)) x).to_real) :=
-filter.eventually_eq.fun_comp (pdf_ae_eq X ℙ μ) ennreal.to_real
+  (λ x, (s.indicator ((μ s)⁻¹ • (1 : E → ℝ≥0∞)) x).to_real) :=
+filter.eventually_eq.fun_comp hX ennreal.to_real
 
-variables [is_finite_measure ℙ] {X : α → ℝ} [uniform X ℙ volume]
+variables [is_finite_measure ℙ] {X : α → ℝ} (hX : measurable X)
+variables {s : set ℝ} (hms : measurable_set s) (hcs : is_compact s) (hns : volume s ≠ 0)
 
-lemma mul_pdf_integrable (hX : measurable X) :
-  integrable (λ x : ℝ, x * (pdf X ℙ volume x).to_real) volume :=
+include hX hms hcs hns
+
+lemma mul_pdf_integrable (huX : is_uniform X ℙ volume s) :
+  integrable (λ x : ℝ, x * (pdf X ℙ volume x).to_real) :=
 begin
-  by_cases hsupp : volume (support X ℙ) = ∞,
+  by_cases hsupp : volume s = ∞,
   { have : pdf X ℙ =ᵐ[volume] 0,
-    { refine ae_eq_trans (pdf_ae_eq X ℙ) _,
+    { refine ae_eq_trans huX _,
       simp [hsupp] },
     refine integrable.congr (integrable_zero _ _ _) _,
     rw [(by simp : (λ x, 0 : ℝ → ℝ) = (λ x, x * (0 : ℝ≥0∞).to_real))],
     refine filter.eventually_eq.mul (ae_eq_refl _)
       (filter.eventually_eq.fun_comp this.symm ennreal.to_real) },
   refine ⟨ae_measurable_id'.mul (measurable_pdf X ℙ).ae_measurable.ennreal_to_real, _⟩,
-  refine has_finite_integral_mul (pdf_ae_eq X ℙ) _,
-  set ind := (volume (support X ℙ))⁻¹ • (1 : ℝ → ℝ≥0∞) with hind,
-  have : ∀ x, ↑∥x∥₊ * (support X ℙ).indicator ind x =
-    (support X ℙ).indicator (λ x, ∥x∥₊ * ind x) x :=
-      λ x, ((support X ℙ).indicator_mul_right (λ x, ↑∥x∥₊) ind).symm,
-  simp only [this, lintegral_indicator _ (measurable_set_support X ℙ), hind, mul_one,
+  refine has_finite_integral_mul huX _,
+  set ind := (volume s)⁻¹ • (1 : ℝ → ℝ≥0∞) with hind,
+  have : ∀ x, ↑∥x∥₊ * s.indicator ind x = s.indicator (λ x, ∥x∥₊ * ind x) x :=
+      λ x, (s.indicator_mul_right (λ x, ↑∥x∥₊) ind).symm,
+  simp only [this, lintegral_indicator _ hms, hind, mul_one,
              algebra.id.smul_eq_mul, pi.one_apply, pi.smul_apply],
   rw lintegral_mul_const _ measurable_nnnorm.coe_nnreal_ennreal,
-  { exact (ennreal.mul_lt_top (set_lintegral_lt_top_of_is_compact
-      hsupp (is_compact_support X ℙ) continuous_nnnorm).ne
-      (ennreal.inv_lt_top.2 (support_not_null X ℙ)).ne).ne },
+  { refine (ennreal.mul_lt_top (set_lintegral_lt_top_of_is_compact
+      hsupp hcs continuous_nnnorm).ne (ennreal.inv_lt_top.2 (pos_iff_ne_zero.mpr hns)).ne).ne },
   { apply_instance }
 end
 
 /-- A real uniform random variable `X` with support `s` has expectation
 `(λ s)⁻¹ * ∫ x in s, x ∂λ` where `λ` is the Lebesgue measure. -/
-lemma integral_eq (hX : measurable X) :
-  ∫ x, X x ∂ℙ =
-  (volume (support X ℙ))⁻¹.to_real * ∫ x in support X ℙ, x ∂(volume) :=
+lemma integral_eq (hnt : volume s ≠ ⊤) (huX : is_uniform X ℙ volume s) :
+  ∫ x, X x ∂ℙ = (volume s)⁻¹.to_real * ∫ x in s, x :=
 begin
+  haveI := has_pdf hns hnt huX,
   rw ← integral_mul_eq_integral,
   all_goals { try { apply_instance } },
-  rw integral_congr_ae (filter.eventually_eq.mul (ae_eq_refl _) (pdf_to_real_ae_eq X ℙ)),
-  have : ∀ x, x * ((support X ℙ).indicator
-      ((volume (support X ℙ))⁻¹ • (1 : ℝ → ℝ≥0∞)) x).to_real =
-    x * ((support X ℙ).indicator
-      ((volume (support X ℙ))⁻¹.to_real • (1 : ℝ → ℝ)) x),
+  rw integral_congr_ae (filter.eventually_eq.mul (ae_eq_refl _) (pdf_to_real_ae_eq huX)),
+  have : ∀ x, x * (s.indicator ((volume s)⁻¹ • (1 : ℝ → ℝ≥0∞)) x).to_real =
+    x * (s.indicator ((volume s)⁻¹.to_real • (1 : ℝ → ℝ)) x),
   { refine λ x, congr_arg ((*) x) _,
-    by_cases hx : x ∈ support X ℙ,
+    by_cases hx : x ∈ s,
     { simp [set.indicator_of_mem hx] },
     { simp [set.indicator_of_not_mem hx] }},
-  simp_rw [this, ← (support X ℙ).indicator_mul_right (λ x, x),
-           integral_indicator (measurable_set_support X ℙ)],
-  change ∫ x in support X ℙ, x * ((volume (support X ℙ))⁻¹.to_real • 1) ∂(volume) = _,
+  simp_rw [this, ← s.indicator_mul_right (λ x, x),  integral_indicator hms],
+  change ∫ x in s, x * ((volume s)⁻¹.to_real • 1) ∂(volume) = _,
   rw [integral_mul_right, mul_comm, algebra.id.smul_eq_mul, mul_one],
 end .
 
-end uniform
+end is_uniform
 
 end
 

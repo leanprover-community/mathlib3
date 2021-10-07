@@ -39,6 +39,10 @@ variables {C}
 
 namespace SheafedSpace
 
+/-- Construct a sheafed space out of a topological space and a sheaf. -/
+@[simps] def mk' (X : Top) (F : sheaf C X) : SheafedSpace C :=
+{ carrier := X, presheaf := F.1, is_sheaf := F.2 }
+
 instance coe_carrier : has_coe (SheafedSpace C) Top :=
 { coe := λ X, X.carrier }
 
@@ -54,12 +58,10 @@ rfl
 instance (X : SheafedSpace.{v} C) : topological_space X := X.carrier.str
 
 /-- The trivial `punit` valued sheaf on any topological space. -/
-noncomputable
 def punit (X : Top) : SheafedSpace (discrete punit) :=
 { is_sheaf := presheaf.is_sheaf_punit _,
   ..@PresheafedSpace.const (discrete punit) _ X punit.star }
 
-noncomputable
 instance : inhabited (SheafedSpace (discrete _root_.punit)) := ⟨punit (Top.of pempty)⟩
 
 instance : category (SheafedSpace C) :=
@@ -109,7 +111,6 @@ open Top.presheaf
 /--
 The restriction of a sheafed space along an open embedding into the space.
 -/
-noncomputable
 def restrict {U : Top} (X : SheafedSpace C)
   (f : U ⟶ (X : Top.{v})) (h : open_embedding f) : SheafedSpace C :=
 { is_sheaf := λ ι 𝒰, ⟨is_limit.of_iso_limit
@@ -120,7 +121,6 @@ def restrict {U : Top} (X : SheafedSpace C)
 /--
 The restriction of a sheafed space `X` to the top subspace is isomorphic to `X` itself.
 -/
-noncomputable
 def restrict_top_iso (X : SheafedSpace C) :
   X.restrict (opens.inclusion ⊤) (opens.open_embedding ⊤) ≅ X :=
 @preimage_iso _ _ _ _ forget_to_PresheafedSpace _ _

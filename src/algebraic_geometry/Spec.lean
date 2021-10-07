@@ -76,7 +76,7 @@ The spectrum, as a contravariant functor from commutative rings to topological s
 The spectrum of a commutative ring, as a `SheafedSpace`.
 -/
 @[simps] def Spec.SheafedSpace_obj (R : CommRing) : SheafedSpace CommRing :=
-{ carrier := Spec.Top_obj R, ..structure_sheaf R }
+SheafedSpace.mk' (Spec.Top_obj R) (structure_sheaf R)
 
 /--
 The induced map of a ring homomorphism on the ring spectra, as a morphism of sheafed spaces.
@@ -106,7 +106,7 @@ PresheafedSpace.ext _ _ (Spec.Top_map_comp f g) $ nat_trans.ext _ _ $ funext $ Œ
 begin
   dsimp,
   erw [Top.presheaf.pushforward.comp_inv_app, ‚Üê category.assoc, category.comp_id,
-    (structure_sheaf T).presheaf.map_id, category.comp_id, comap_comp],
+    (structure_sheaf T).1.map_id, category.comp_id, comap_comp],
   refl,
 end
 

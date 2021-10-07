@@ -97,17 +97,17 @@ lemma left_mem_Ici : a ∈ Ici a := by simp
 @[simp] lemma right_mem_Ioc : b ∈ Ioc a b ↔ a < b := by simp [le_refl]
 lemma right_mem_Iic : a ∈ Iic a := by simp
 
-@[simp] lemma dual_Ici : Ici (to_dual a) = Iic a := rfl
-@[simp] lemma dual_Iic : Iic (to_dual a) = Ici a := rfl
-@[simp] lemma dual_Ioi : Ioi (to_dual a) = Iio a := rfl
-@[simp] lemma dual_Iio : Iio (to_dual a) = Ioi a := rfl
-@[simp] lemma dual_Icc : Icc (to_dual a) (to_dual b) = Icc b a :=
+@[simp] lemma dual_Ici : Ici (to_dual a) = of_dual ⁻¹' Iic a := rfl
+@[simp] lemma dual_Iic : Iic (to_dual a) = of_dual ⁻¹' Ici a := rfl
+@[simp] lemma dual_Ioi : Ioi (to_dual a) = of_dual ⁻¹' Iio a := rfl
+@[simp] lemma dual_Iio : Iio (to_dual a) = of_dual ⁻¹' Ioi a := rfl
+@[simp] lemma dual_Icc : Icc (to_dual a) (to_dual b) = of_dual ⁻¹' Icc b a :=
 set.ext $ λ x, and_comm _ _
-@[simp] lemma dual_Ioc : Ioc (to_dual a) (to_dual b) = Ico b a :=
+@[simp] lemma dual_Ioc : Ioc (to_dual a) (to_dual b) = of_dual ⁻¹' Ico b a :=
 set.ext $ λ x, and_comm _ _
-@[simp] lemma dual_Ico : Ico (to_dual a) (to_dual b) = Ioc b a :=
+@[simp] lemma dual_Ico : Ico (to_dual a) (to_dual b) = of_dual ⁻¹' Ioc b a :=
 set.ext $ λ x, and_comm _ _
-@[simp] lemma dual_Ioo : Ioo (to_dual a) (to_dual b) = Ioo b a :=
+@[simp] lemma dual_Ioo : Ioo (to_dual a) (to_dual b) = of_dual ⁻¹' Ioo b a :=
 set.ext $ λ x, and_comm _ _
 
 @[simp] lemma nonempty_Icc : (Icc a b).nonempty ↔ a ≤ b :=
@@ -432,14 +432,14 @@ by rw [← Ico_diff_left, diff_union_self,
   union_eq_self_of_subset_right (singleton_subset_iff.2 $ left_mem_Ico.2 hab)]
 
 lemma Ioo_union_right (hab : a < b) : Ioo a b ∪ {b} = Ioc a b :=
-by simpa only [dual_Ioo, dual_Ico] using @Ioo_union_left (order_dual α) _ b a hab
+by simpa only [dual_Ioo, dual_Ico] using Ioo_union_left (show to_dual b < to_dual a, from hab)
 
 lemma Ioc_union_left (hab : a ≤ b) : Ioc a b ∪ {a} = Icc a b :=
 by rw [← Icc_diff_left, diff_union_self,
   union_eq_self_of_subset_right (singleton_subset_iff.2 $ left_mem_Icc.2 hab)]
 
 lemma Ico_union_right (hab : a ≤ b) : Ico a b ∪ {b} = Icc a b :=
-by simpa only [dual_Ioc, dual_Icc] using @Ioc_union_left (order_dual α) _ b a hab
+by simpa only [dual_Ioc, dual_Icc] using Ioc_union_left (show to_dual b ≤ to_dual a, from hab)
 
 lemma mem_Ici_Ioi_of_subset_of_subset {s : set α} (ho : Ioi a ⊆ s) (hc : s ⊆ Ici a) :
   s ∈ ({Ici a, Ioi a} : set (set α)) :=
@@ -494,7 +494,7 @@ end
 lemma mem_Ioo_or_eq_right_of_mem_Ioc {x : α} (hmem : x ∈ Ioc a b) :
   x = b ∨ x ∈ Ioo a b :=
 begin
-  have := @mem_Ioo_or_eq_left_of_mem_Ico (order_dual α) _ b a x,
+  have := @mem_Ioo_or_eq_left_of_mem_Ico _ _ (to_dual b) (to_dual a) (to_dual x),
   rw [dual_Ioo, dual_Ico] at this,
   exact this hmem
 end

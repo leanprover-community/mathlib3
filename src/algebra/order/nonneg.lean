@@ -42,6 +42,7 @@ instance densely_ordered [preorder α] [densely_ordered α] {a : α} :
   densely_ordered {x : α // a ≤ x} :=
 show densely_ordered (Ici a), from set.densely_ordered
 
+/-- If `Sup ∅ ≤ a` then `{x : α // a ≤ x}` is a `conditionally_complete_linear_order_bot`. -/
 @[reducible]
 protected noncomputable def conditionally_complete_linear_order_bot
   [conditionally_complete_linear_order α] {a : α} (h : Sup ∅ ≤ a) :
@@ -206,6 +207,7 @@ section linear_order
 
 variables [has_zero α] [linear_order α]
 
+/-- The function `a ↦ max a 0` of type `α → {x : α // 0 ≤ x}`. -/
 def to_nonneg (a : α) : {x : α // 0 ≤ x} :=
 ⟨max a 0, le_max_right _ _⟩
 

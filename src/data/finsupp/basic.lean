@@ -2686,7 +2686,8 @@ section canonically_ordered_monoid
 
 variables [canonically_ordered_add_monoid M] [has_sub M] [has_ordered_sub M]
 
-/-- Todo: rename. It is defined more generally for `canonically_ordered_add_monoid` -/
+/-- This is called `tsub` for truncated subtraction, to distinguish it with subtraction in an
+additive group. -/
 instance tsub : has_sub (α →₀ M) :=
 ⟨zip_with (λ m n, m - n) (sub_self' 0)⟩
 

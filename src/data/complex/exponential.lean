@@ -178,7 +178,7 @@ by rw [sum_sigma', sum_sigma']; exact sum_bij
 (λ a ha, have h₁ : a.1 < n := mem_range.1 (mem_sigma.1 ha).1,
   have h₂ : a.2 < nat.succ a.1 := mem_range.1 (mem_sigma.1 ha).2,
     mem_sigma.2 ⟨mem_range.2 (lt_of_lt_of_le h₂ h₁),
-    mem_range.2 ((nat.sub_lt_sub_right_iff (nat.le_of_lt_succ h₂)).2 h₁)⟩)
+    mem_range.2 ((sub_lt_sub_iff_right' (nat.le_of_lt_succ h₂)).2 h₁)⟩)
 (λ _ _, rfl)
 (λ ⟨a₁, a₂⟩ ⟨b₁, b₂⟩ ha hb h,
   have ha : a₁ < n ∧ a₂ ≤ a₁ :=
@@ -193,7 +193,7 @@ by rw [sum_sigma', sum_sigma']; exact sum_bij
 (λ ⟨a₁, a₂⟩ ha,
   have ha : a₁ < n ∧ a₂ < n - a₁ :=
       ⟨mem_range.1 (mem_sigma.1 ha).1, (mem_range.1 (mem_sigma.1 ha).2)⟩,
-  ⟨⟨a₂ + a₁, a₁⟩, ⟨mem_sigma.2 ⟨mem_range.2 (nat.lt_sub_right_iff_add_lt.1 ha.2),
+  ⟨⟨a₂ + a₁, a₁⟩, ⟨mem_sigma.2 ⟨mem_range.2 (lt_sub_iff_right.1 ha.2),
     mem_range.2 (nat.lt_succ_of_le (nat.le_add_left _ _))⟩,
   sigma.mk.inj_iff.2 ⟨rfl, heq_of_eq (nat.add_sub_cancel _ _).symm⟩⟩⟩)
 
@@ -266,7 +266,7 @@ have hsumlesum : ∑ i in range (max N M + 1), abv (a i) *
     ∑ i in range (max N M + 1), abv (a i) * (ε / (2 * P)),
   from sum_le_sum (λ m hmJ, mul_le_mul_of_nonneg_left
     (le_of_lt (hN (K - m) K
-      (nat.le_sub_left_of_add_le (le_trans
+      (le_sub_of_add_le_left' (le_trans
         (by rw two_mul; exact add_le_add (le_of_lt (mem_range.1 hmJ))
           (le_trans (le_max_left _ _) (le_of_lt (lt_add_one _)))) hK))
       (le_of_lt hKN))) (abv_nonneg abv _)),
@@ -1202,7 +1202,7 @@ lemma sum_div_factorial_le {α : Type*} [linear_ordered_field α] (n j : ℕ) (h
 calc ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α)
     = ∑ m in range (j - n), 1 / (m + n)! :
   sum_bij (λ m _, m - n)
-    (λ m hm, mem_range.2 $ (nat.sub_lt_sub_right_iff (by simp at hm; tauto)).2
+    (λ m hm, mem_range.2 $ (sub_lt_sub_iff_right' (by simp at hm; tauto)).2
       (by simp at hm; tauto))
     (λ m hm, by rw nat.sub_add_cancel; simp at *; tauto)
     (λ a₁ a₂ ha₁ ha₂ h,
@@ -1210,7 +1210,7 @@ calc ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α)
               add_left_inj, eq_comm] at h;
         simp at *; tauto)
     (λ b hb, ⟨b + n,
-      mem_filter.2 ⟨mem_range.2 $ nat.add_lt_of_lt_sub_right (mem_range.1 hb), nat.le_add_left _ _⟩,
+      mem_filter.2 ⟨mem_range.2 $ lt_sub_iff_right.mp (mem_range.1 hb), nat.le_add_left _ _⟩,
       by rw nat.add_sub_cancel⟩)
 ... ≤ ∑ m in range (j - n), (n! * n.succ ^ m)⁻¹ :
   begin
@@ -1259,7 +1259,7 @@ begin
     begin
       refine congr_arg abs (sum_congr rfl (λ m hm, _)),
       rw [mem_filter, mem_range] at hm,
-      rw [← mul_div_assoc, ← pow_add, nat.add_sub_cancel' hm.2]
+      rw [← mul_div_assoc, ← pow_add, add_sub_cancel_of_le hm.2]
     end
   ... ≤ ∑ m in filter (λ k, n ≤ k) (range j), abs (x ^ n * (_ / m!)) : abv_sum_le_sum_abv _ _
   ... ≤ ∑ m in filter (λ k, n ≤ k) (range j), abs x ^ n * (1 / m!) :

@@ -465,7 +465,7 @@ def radical (I : ideal R) : ideal R :=
       (λ hcm, I.mul_mem_right _ $ I.mul_mem_left _ $ nat.add_comm n m ▸
         (nat.add_sub_assoc hcm n).symm ▸
         (pow_add y n (m-c)).symm ▸ I.mul_mem_right _ hyni)
-      (λ hmc, I.mul_mem_right _ $ I.mul_mem_right _ $ nat.add_sub_cancel' hmc ▸
+      (λ hmc, I.mul_mem_right _ $ I.mul_mem_right _ $ add_sub_cancel_of_le hmc ▸
         (pow_add x m (c-m)).symm ▸ I.mul_mem_right _ hxmi)⟩,
   smul_mem' := λ r s ⟨n, hsni⟩, ⟨n, (mul_pow r s n).symm ▸ I.mul_mem_left (r^n) hsni⟩ }
 

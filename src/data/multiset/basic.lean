@@ -1541,7 +1541,7 @@ theorem sub_le_self (s t : multiset α) : s - t ≤ s :=
 sub_le_self' -- implicit args
 
 @[simp] theorem card_sub {s t : multiset α} (h : t ≤ s) : card (s - t) = card s - card t :=
-(nat.sub_eq_of_eq_add $ by rw [add_comm, ← card_add, sub_add_cancel h]).symm
+(sub_eq_of_eq_add_rev $ by rw [add_comm, ← card_add, sub_add_cancel h]).symm
 
 /-! ### Union -/
 

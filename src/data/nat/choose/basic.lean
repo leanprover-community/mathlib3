@@ -171,7 +171,7 @@ lemma choose_succ_right_eq (n k : ℕ) : choose n (k + 1) * (k + 1) = choose n k
 begin
   have e : (n+1) * choose n k = choose n k * (k+1) + choose n (k+1) * (k+1),
     rw [← right_distrib, ← choose_succ_succ, succ_mul_choose_eq],
-  rw [← nat.sub_eq_of_eq_add e, mul_comm, ← nat.mul_sub_left_distrib, add_sub_add_right_eq_sub']
+  rw [← sub_eq_of_eq_add_rev e, mul_comm, ← nat.mul_sub_left_distrib, add_sub_add_right_eq_sub']
 end
 
 @[simp] lemma choose_succ_self_right : ∀ (n:ℕ), (n+1).choose n = n+1

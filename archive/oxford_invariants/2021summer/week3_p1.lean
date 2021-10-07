@@ -122,7 +122,7 @@ begin
           exact sub_le_self'.trans (nat.le_add_right _ _),
         end
     ... = a (n + 2) / a (n + 1) * b + (a 0 * a (n + 2)) / (a (n + 1) * a (n + 2))
-        : by rw [add_div, add_mul, sub_div, mul_div_right_comm, add_sub_sub_cancel,
+        : by rw [add_div, add_mul, sub_div, mul_div_right_comm, add_sub_sub_cancel',
             mul_div_mul_right _ _ (a_pos _ le_rfl).ne']
     ... = ∑ (i : ℕ) in finset.range (n + 2), a 0 * a (n + 2) / (a i * a (i + 1))
         : begin
@@ -133,6 +133,6 @@ begin
         end },
   -- Check the divisibility condition
   { rw [nat.mul_sub_left_distrib, ← mul_assoc, nat.mul_div_cancel' ha, add_mul,
-      nat.mul_div_cancel' han, nat.add_sub_sub_cancel ha₀, nat.add_sub_cancel],
+      nat.mul_div_cancel' han, add_sub_sub_cancel' ha₀, nat.add_sub_cancel],
     exact dvd_mul_right _ _ }
 end

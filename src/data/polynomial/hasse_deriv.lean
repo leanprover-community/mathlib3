@@ -88,7 +88,7 @@ begin
   ext i,
   simp only [hasse_deriv_coeff, coeff_monomial],
   by_cases hnik : n = i + k,
-  { rw [if_pos hnik, if_pos, ← hnik], apply nat.sub_eq_of_eq_add, rwa add_comm },
+  { rw [if_pos hnik, if_pos, ← hnik], apply sub_eq_of_eq_add_rev, rwa add_comm },
   { rw [if_neg hnik, mul_zero],
     by_cases hkn : k ≤ n,
     { rw [← nat.sub_eq_iff_eq_add hkn] at hnik, rw [if_neg hnik] },

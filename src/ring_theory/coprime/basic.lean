@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Ken Lee, Chris Hughes
 -/
 import tactic.ring
-import tactic.linarith
 import algebra.ring.basic
 
 /-!
@@ -246,8 +245,10 @@ lemma sq_add_sq_ne_zero {R : Type*} [linear_ordered_comm_ring R] {a b : R} (h : 
   a ^ 2 + b ^ 2 ≠ 0 :=
 begin
   intros h',
-  refine @not_coprime_zero_zero R _ _ _,
-  convert h; nlinarith
+  obtain ⟨ha, hb⟩ := (add_eq_zero_iff' (sq_nonneg a) (sq_nonneg b)).mp h',
+  obtain rfl := pow_eq_zero ha,
+  obtain rfl := pow_eq_zero hb,
+  exact not_coprime_zero_zero h
 end
 
 end is_coprime

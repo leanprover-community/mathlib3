@@ -2678,7 +2678,7 @@ subrelation.wf (sum_id_lt_of_lt) $ inv_image.wf _ nat.lt_wf
 
 variable {α}
 
-/-! Declarations about subtraction on `finsupp`.
+/-! Declarations about subtraction on `finsupp` with codomain a `canonically_ordered_add_monoid`.
 
 Some of these lemmas are used to develop the partial derivative on `mv_polynomial`. -/
 section nat_sub

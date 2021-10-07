@@ -819,32 +819,14 @@ iff.intro
 
 lemma sub_mul (h : 0 < b → b < a → c ≠ ∞) : (a - b) * c = a * c - b * c :=
 begin
-  cases le_or_lt a b with hab hab,
-  { simp [hab, mul_right_mono hab] },
-  symmetry,
-  cases eq_or_lt_of_le (zero_le b) with hb hb,
-  { subst b, simp },
-  apply sub_eq_of_add_eq,
-  { exact mul_ne_top (ne_top_of_lt hab) (h hb hab) },
-  rw [← add_mul, sub_add_cancel_of_le (le_of_lt hab)]
+  cases le_or_lt a b with hab hab, { simp [hab, mul_right_mono hab] },
+  rcases eq_or_lt_of_le (zero_le b) with rfl|hb, { simp },
+  exact (cancel_of_lt' hab).sub_mul (cancel_of_ne (h hb hab))
 end
 
 lemma mul_sub (h : 0 < c → c < b → a ≠ ∞) :
   a * (b - c) = a * b - a * c :=
 by { simp only [mul_comm a], exact sub_mul h }
-
-lemma sub_mul_ge : a * c - b * c ≤ (a - b) * c :=
-begin
-  -- with `0 < b → b < a → c ≠ ∞` Lean names the first variable `a`
-  by_cases h : ∀ (hb : 0 < b), b < a → c ≠ ∞,
-  { rw [sub_mul h],
-    exact le_refl _ },
-  { push_neg at h,
-    rcases h with ⟨hb, hba, hc⟩,
-    subst c,
-    simp only [mul_top, if_neg (ne_of_gt hb), if_neg (ne_of_gt $ lt_trans hb hba), sub_self,
-      zero_le] }
-end
 
 end sub
 

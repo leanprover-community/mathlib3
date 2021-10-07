@@ -954,7 +954,7 @@ end
 variables {I}
 
 lemma irreducible_pow_sup (hI : I ≠ ⊥) {p : ideal T} (hp : irreducible p) (n : ℕ) :
-  p^n ⊔ I = p^(min ((factors I).count p) n) :=
+  p^n ⊔ I = p^(min ((normalized_factors I).count p) n) :=
 by rw [sup_eq_prod_inf_factors (p^n) I (pow_ne_zero n hp.ne_zero) hI, ← inf_eq_inter,
        normalized_factors_irreducible_pow hp, normalize_eq p, repeat_inf, prod_repeat]
 
@@ -962,7 +962,7 @@ lemma irreducible_pow_sup_of_ge (hI : I ≠ ⊥) {p : ideal T} (hp : irreducible
   (hn : ↑n ≤ multiplicity p I) : p^n ⊔ I = p^n :=
 begin
   rw [irreducible_pow_sup hI hp, min_eq_right],
-  rwa [multiplicity_eq_count_factors hp hI, enat.coe_le_coe, normalize_eq p]
+  rwa [multiplicity_eq_count_normalized_factors hp hI, enat.coe_le_coe, normalize_eq p]
     at hn
 end
 
@@ -971,8 +971,8 @@ lemma irreducible_pow_sup_of_le (hI : I ≠ ⊥) {p : ideal T} (hp : irreducible
 begin
   rw [irreducible_pow_sup hI hp, min_eq_left],
   congr,
-  { rw [← enat.coe_inj, enat.coe_get, multiplicity_eq_count_factors hp hI, normalize_eq p] },
-  { rwa [multiplicity_eq_count_factors hp hI, enat.coe_le_coe, normalize_eq p]
+  { rw [← enat.coe_inj, enat.coe_get, multiplicity_eq_count_normalized_factors hp hI, normalize_eq p] },
+  { rwa [multiplicity_eq_count_normalized_factors hp hI, enat.coe_le_coe, normalize_eq p]
       at hn }
 end
 
@@ -1078,16 +1078,16 @@ begin
 end
 
 lemma seq_pow_eventually_constant' (hI : I ≠ ⊥) {p : ideal T} (hp : irreducible p) :
-  shifted_seq_pow_constant I p ((factors I).count p) :=
+  shifted_seq_pow_constant I p ((normalized_factors I).count p) :=
 begin
   refine (pow_map_mk_constant_iff_multiplicity_le hI hp).2 _,
-  rw [multiplicity_eq_count_factors hp hI, normalize_eq],
+  rw [multiplicity_eq_count_normalized_factors hp hI, normalize_eq],
 end
 
 /--The quotient multiplicity of `p` is the least natural number `n` such that the sequence of
  powers `(p')^m` for `m ≥ n` is constant, where `p'` is the image of `p` in `R/I` -/
 def quotient_multiplicity (hI : I ≠ ⊥) {p : ideal T} (hp : irreducible p) : ℕ :=
-nat.find ⟨(factors I).count p, seq_pow_eventually_constant' hI hp⟩
+nat.find ⟨(normalized_factors I).count p, seq_pow_eventually_constant' hI hp⟩
 
 /--The quotient multiplicity of a prime factor `p` of `I ≠ 0` is equal to the multiplicity of `p`
   in the factorisation of `I` -/
@@ -1096,13 +1096,16 @@ lemma quotient_multiplicity_eq_count (hI : I ≠ 0) (p : ideal T) (hp : irreduci
 begin
   apply le_antisymm,
   { rw [quotient_multiplicity, ← pow_map_mk_constant_iff_multiplicity_le hI hp],
-    exact nat.find_spec (exists.intro ((factors I).count p)
+    exact nat.find_spec (exists.intro ((normalized_factors I).count p)
       (seq_pow_eventually_constant' hI hp)) },
-  { rw [quotient_multiplicity, multiplicity_eq_count_factors hp hI, normalize_eq, enat.coe_le_coe],
-    exact nat.find_min' (exists.intro ((factors I).count p)
+  { rw [quotient_multiplicity, multiplicity_eq_count_normalized_factors hp hI, normalize_eq,
+    enat.coe_le_coe],
+    exact nat.find_min' (exists.intro ((normalized_factors I).count p)
     (seq_pow_eventually_constant' hI hp)) (seq_pow_eventually_constant' hI hp) }
 end
 
+-- This should probably be in another file, although I'm not sure if this is useful as a lemma
+-- as it's only used twice.
 lemma comap_map_map_ne_bot_of_lt  (f : I.quotient ≃+* J.quotient) {p : ideal T} (hJ : J ≠ ⊥) :
  (comap J^.quotient.mk (map (f : I.quotient →+* J.quotient) (map I^.quotient.mk p))) ≠ ⊥ :=
 begin
@@ -1113,40 +1116,77 @@ begin
     exact this },
 end
 
--- This should probably be in another file
-lemma comap_map_map_is_prime_of_is_prime_and_le {R : Type*}[comm_ring R] {S : Type*} [comm_ring S]
-  {I : ideal R} {J : ideal S} {p : ideal R} (hp₁ : I ≤ p) (hp₂ : p.is_prime)
-  (f : I.quotient ≃+* J.quotient) :
-  (comap J^.quotient.mk (map (f : I.quotient →+* J.quotient) (map I^.quotient.mk p))).is_prime :=
+lemma comap_map_map_mem_normalized_factors_of_mem_normalized_factors (hI : I ≠ ⊥) (hJ : J ≠ ⊥)
+  (f : I.quotient ≃+* J.quotient) {p : ideal T} (hp : p ∈ normalized_factors I) :
+  (comap J^.quotient.mk (map ↑f (map I^.quotient.mk p))) ∈ normalized_factors J :=
 begin
+  suffices H₃ : (comap J^.quotient.mk (map ↑f (map I^.quotient.mk p))) ∈ normalized_factors
+    (comap J^.quotient.mk (map ↑f (map I^.quotient.mk p))),
+  { refine multiset.mem_of_le ((dvd_iff_normalized_factors_le_normalized_factors
+    (comap_map_map_ne_bot_of_lt f hJ) hJ).1 _) H₃,
+    rw dvd_iff_le,
+    have : (J^.quotient.mk).ker ≤ (comap J^.quotient.mk (map ↑f (map I^.quotient.mk p))) :=
+      ker_le_comap J^.quotient.mk,
+    rw mk_ker at this,
+    exact this },
+  rw normalized_factors_irreducible,
+  exact multiset.mem_singleton.mpr ((associated_iff_eq.1 (normalize_associated
+    (comap J^.quotient.mk (map ↑f (map I^.quotient.mk p))))).symm),
+  apply prime.irreducible,
+  apply (prime_iff_is_prime (comap_map_map_ne_bot_of_lt f hJ)).2,
   convert comap_is_prime J^.quotient.mk _,
   convert map_is_prime_of_equiv f,
-  refine map_is_prime_of_surjective quotient.mk_surjective _,
+  convert map_is_prime_of_surjective quotient.mk_surjective _,
+  exact (is_prime_of_prime (prime_of_normalized_factor p hp)),
   rw mk_ker,
-  exact hp₁,
+  exact (dvd_iff_le.1 (dvd_of_mem_normalized_factors hp)),
 end
 
-lemma comap_map_comap_irreducible_of_mem_factors (hI : I ≠ ⊥) (hJ : J ≠ ⊥)
-  (f : I.quotient ≃+* J.quotient) {p : ideal T} (hp : p ∈ factors I) :
-  irreducible (comap J^.quotient.mk (map (f : I.quotient →+* J.quotient) (map I^.quotient.mk p))):=
-begin
-  apply prime.irreducible,
-  rw prime_iff_is_prime (comap_map_map_ne_bot_of_lt f hJ),
-  apply comap_map_map_is_prime_of_is_prime_and_le (dvd_iff_le.1 (dvd_of_mem_factors hp))
-    (is_prime_of_prime (prime_of_factor p hp)),
-end
+def ideal_correspondence (hI : I ≠ ⊥) (hJ : J ≠ ⊥) (f : I.quotient ≃+* J.quotient):
+  {p : ideal T | p ∈ normalized_factors I} ≃ {p : ideal S | p ∈ normalized_factors J} :=
+{
+  to_fun := λ X, ⟨comap J^.quotient.mk (map ↑f (map I^.quotient.mk X)),
+    begin
+      obtain ⟨p, hp⟩ := X,
+      exact comap_map_map_mem_normalized_factors_of_mem_normalized_factors hI hJ f hp,
+    end⟩,
+  inv_fun := λ X, ⟨comap I^.quotient.mk (map ↑(f.symm) (map J^.quotient.mk X)),
+    begin
+      obtain ⟨p, hp⟩ := X,
+      exact comap_map_map_mem_normalized_factors_of_mem_normalized_factors hJ hI f.symm hp,
+    end⟩,
+  left_inv := λ X,
+    begin
+      obtain ⟨p, hp⟩:= X,
+      rw [subtype.mk_eq_mk, subtype.coe_mk, subtype.coe_mk, map_comap_of_surjective _
+        quotient.mk_surjective, map_of_equiv _ f, comap_map_of_surjective _ quotient.mk_surjective,
+        ← ring_hom.ker_eq_comap_bot, mk_ker, sup_of_le_left
+        (le_of_dvd (dvd_of_mem_normalized_factors hp))],
+    end,
+  right_inv := λ X,
+    begin
+      obtain ⟨p, hp⟩:= X,
+      rw [subtype.mk_eq_mk, subtype.coe_mk, subtype.coe_mk, map_comap_of_surjective _
+        quotient.mk_surjective],
+      nth_rewrite 0 ← ring_equiv.symm_symm f,
+      rw [map_of_equiv _ f.symm, comap_map_of_surjective _ quotient.mk_surjective,
+        ← ring_hom.ker_eq_comap_bot, mk_ker, sup_of_le_left
+        (le_of_dvd (dvd_of_mem_normalized_factors hp))],
+    end
+}
 
-lemma temporary (hI : I ≠ ⊥) (hJ : J ≠ ⊥) (f : I.quotient ≃+* J.quotient) {p : ideal T}
-  (hp : p ∈ factors I) (n : ℕ) : shifted_seq_pow_constant I p n
-  ↔ shifted_seq_pow_constant J (comap J^.quotient.mk (map ↑f (map I^.quotient.mk p))) n :=
+lemma shifted_seq_pow_constant_iff_ideal_correspondence_shifted_eq_pow_constant (hI : I ≠ ⊥)
+  (hJ : J ≠ ⊥) (f : I.quotient ≃+* J.quotient) {p : ideal T} (hp : p ∈ normalized_factors I)
+  (n : ℕ) : shifted_seq_pow_constant I p n
+  ↔ shifted_seq_pow_constant J ↑(ideal_correspondence hI hJ f ⟨p, hp⟩) n :=
 begin
   split,
   { rw [shifted_seq_pow_constant, shifted_seq_pow_constant],
     intros hn m hm,
     specialize hn m hm,
     apply_fun map (f : I.quotient →+* J.quotient) at hn,
-    rw [map_comap_of_surjective J^.quotient.mk quotient.mk_surjective, ← map_pow,
-      hn, map_pow] },
+    rw [ideal_correspondence, equiv.coe_fn_mk, subtype.coe_mk, subtype.coe_mk,
+      map_comap_of_surjective J^.quotient.mk quotient.mk_surjective, ← map_pow, hn, map_pow] },
   { rw [shifted_seq_pow_constant, shifted_seq_pow_constant],
     intros hn m hm,
     specialize hn m hm,
@@ -1157,19 +1197,31 @@ begin
     exact hn }
 end
 
+lemma irreducible_ideal_correspondence (hI : I ≠ 0) (hJ : J ≠ 0) (f : I.quotient ≃+* J.quotient)
+  {p : ideal T} (hp : p ∈ normalized_factors I) :
+  irreducible (ideal_correspondence hI hJ f ⟨p, hp⟩ : ideal S) :=
+begin
+  obtain ⟨q, hq⟩ := ideal_correspondence hI hJ f ⟨p, hp⟩,
+  rw subtype.coe_mk,
+  exact irreducible_of_normalized_factor q hq,
+end
+
+
 theorem multiplicity_eq_of_quot_equiv (hI : I ≠ 0) (hJ : J ≠ 0) (f : I.quotient ≃+* J.quotient)
-  {p : ideal T} (hp : p ∈ factors I): quotient_multiplicity hI (irreducible_of_factor p hp) =
-  quotient_multiplicity hJ (comap_map_comap_irreducible_of_mem_factors hI hJ f hp) :=
+  {p : ideal T} (hp : p ∈ normalized_factors I):
+  quotient_multiplicity hI (irreducible_of_normalized_factor p hp) =
+  quotient_multiplicity hJ (irreducible_ideal_correspondence hI hJ f hp) :=
 begin
   apply le_antisymm,
   { rw [quotient_multiplicity, quotient_multiplicity],
     apply nat.find_min',
-    rw temporary hI hJ f hp,
+    rw shifted_seq_pow_constant_iff_ideal_correspondence_shifted_eq_pow_constant hI hJ f hp,
     refine nat.find_spec _ },
   { rw [quotient_multiplicity, quotient_multiplicity],
     apply nat.find_min',
-    rw ← temporary hI hJ f hp,
+    rw ← shifted_seq_pow_constant_iff_ideal_correspondence_shifted_eq_pow_constant hI hJ f hp,
     refine nat.find_spec _ },
 end
+
 
 end quotient_multiplicity

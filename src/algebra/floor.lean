@@ -348,6 +348,9 @@ begin
   exact hn.trans (int.to_nat_le_to_nat (int.le_floor.2 h)),
 end
 
+lemma floor_pos (ha : 1 ≤ a) : 0 < ⌊a⌋₊ :=
+zero_lt_one.trans_le (le_floor_of_le $ by rwa cast_one)
+
 lemma le_floor_iff (ha : 0 ≤ a) : n ≤ ⌊a⌋₊ ↔ ↑n ≤ a :=
 ⟨λ h, (nat.cast_le.2 h).trans (floor_le ha), le_floor_of_le⟩
 
@@ -386,6 +389,9 @@ begin
   norm_cast,
   exact int.le_to_nat _,
 end
+
+lemma sub_one_lt_floor (a : α) : a - 1 < ⌊a⌋₊ :=
+sub_lt_iff_lt_add.2 (lt_floor_add_one a)
 
 lemma floor_eq_zero_iff : ⌊a⌋₊ = 0 ↔ a < 1 :=
 begin

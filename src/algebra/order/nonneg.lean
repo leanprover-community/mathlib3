@@ -188,7 +188,7 @@ rfl
 
 end linear_order
 
-end nonneg
-
-instance [linear_ordered_ring α] : has_ordered_sub {x : α // 0 ≤ x} :=
+instance has_ordered_sub [linear_ordered_ring α] : has_ordered_sub {x : α // 0 ≤ x} :=
 ⟨by { rintro ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩, simp [sub_le_iff_le_add] }⟩
+
+end nonneg

@@ -1434,6 +1434,15 @@ lemma dense_range.exists_mem_open (hf : dense_range f) {s : set β} (ho : is_ope
   ∃ a, f a ∈ s :=
 exists_range_iff.1 $ hf.exists_mem_open ho hs
 
+lemma dense_range.mem_nhds {f : κ → β} (h : dense_range f) {b : β} {U : set β}
+  (U_in : U ∈ nhds b) : ∃ a, f a ∈ U :=
+begin
+  rcases (mem_closure_iff_nhds.mp
+    ((dense_range_iff_closure_range.mp h).symm ▸ mem_univ b : b ∈ closure (range f)) U U_in)
+    with ⟨_, h, a, rfl⟩,
+  exact ⟨a, h⟩
+end
+
 end dense_range
 
 end continuous

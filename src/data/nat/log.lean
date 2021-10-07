@@ -115,8 +115,8 @@ end
 lemma log_mono {b : ℕ} : monotone (λ n : ℕ, log b n) :=
 λ x y, log_le_log_of_le
 
-lemma log_left_gt_one_anti {n : ℕ} : antitone (subtype.restrict (λ b, log b n) (λ b, 1 < b)) :=
-λ c b hb, log_le_log_of_left_ge c.property (subtype.coe_le_coe.2 hb)
+lemma log_left_gt_one_anti {n : ℕ} : antitone_on (λ b, log b n) (set.Ioi 1) :=
+λ _ hc _ _ hb, log_le_log_of_left_ge (set.mem_Iio.1 hc) hb
 
 private lemma add_pred_div_lt {b n : ℕ} (hb : 1 < b) (hn : 2 ≤ n) : (n + b - 1)/b < n :=
 begin
@@ -226,8 +226,8 @@ end
 lemma clog_mono (b : ℕ) : monotone (clog b) :=
 λ x y, clog_le_clog_of_le _
 
-lemma clog_left_gt_one_anti {n : ℕ} : antitone (subtype.restrict (λ b, clog b n) (λ b, 1 < b)) :=
-λ c b hb, clog_le_clog_of_left_ge c.property (subtype.coe_le_coe.2 hb)
+lemma clog_left_gt_one_anti {n : ℕ} : antitone_on (λ b : ℕ, clog b n) (set.Ioi 1) :=
+λ _ hc _ _ hb, clog_le_clog_of_left_ge (set.mem_Iio.1 hc) hb
 
 lemma log_le_clog (b n : ℕ) : log b n ≤ clog b n :=
 begin

@@ -101,21 +101,21 @@ begin
       exact (pow_log_le_self hb hn).trans h } }
 end
 
-lemma log_le_log_of_left_ge {b c n : ℕ} (hc : c > 1) (hb : b ≥ c) : log b n ≤ log c n :=
+lemma log_le_log_of_left_ge {b c n : ℕ} (hc : 1 < c) (hb : c ≤ b) : log b n ≤ log c n :=
 begin
-  cases n, { simp, },
-  { rw ← pow_le_iff_le_log hc (zero_lt_succ n),
-    exact calc
-      c ^ log b n.succ ≤ b ^ log b n.succ : pow_le_pow_of_le_left
-                                              (le_of_lt $ zero_lt_one.trans hc) hb _
-                   ... ≤ n.succ           : pow_log_le_self (lt_of_lt_of_le hc hb)
-                                              (zero_lt_succ n), },
+  cases n, { simp },
+  rw ← pow_le_iff_le_log hc (zero_lt_succ n),
+  exact calc
+    c ^ log b n.succ ≤ b ^ log b n.succ : pow_le_pow_of_le_left
+                                            (le_of_lt $ zero_lt_one.trans hc) hb _
+                 ... ≤ n.succ           : pow_log_le_self (lt_of_lt_of_le hc hb)
+                                            (zero_lt_succ n)
 end
 
 lemma log_mono {b : ℕ} : monotone (λ n : ℕ, log b n) :=
 λ x y, log_le_log_of_le
 
-lemma log_left_gt_one_anti {n : ℕ} : antitone (subtype.restrict (λ b, log b n) (λ b, b > 1)) :=
+lemma log_left_gt_one_anti {n : ℕ} : antitone (subtype.restrict (λ b, log b n) (λ b, 1 < b)) :=
 λ c b hb, log_le_log_of_left_ge c.property (subtype.coe_le_coe.2 hb)
 
 private lemma add_pred_div_lt {b n : ℕ} (hb : 1 < b) (hn : 2 ≤ n) : (n + b - 1)/b < n :=
@@ -214,19 +214,19 @@ begin
       exact h.trans (le_pow_clog hb _) } }
 end
 
-lemma clog_le_clog_of_left_ge {b c n : ℕ} (hc : c > 1) (hb : b ≥ c) : clog b n ≤ clog c n :=
+lemma clog_le_clog_of_left_ge {b c n : ℕ} (hc : 1 < c) (hb : c ≤ b) : clog b n ≤ clog c n :=
 begin
-  cases n, { simp, },
-  { rw ← le_pow_iff_clog_le (lt_of_lt_of_le hc hb),
-    exact calc
-      n.succ ≤ c ^ clog c n.succ : le_pow_clog hc _
-         ... ≤ b ^ clog c n.succ : pow_le_pow_of_le_left (le_of_lt $ zero_lt_one.trans hc) hb _, },
+  cases n, { simp },
+  rw ← le_pow_iff_clog_le (lt_of_lt_of_le hc hb),
+  exact calc
+    n.succ ≤ c ^ clog c n.succ : le_pow_clog hc _
+       ... ≤ b ^ clog c n.succ : pow_le_pow_of_le_left (le_of_lt $ zero_lt_one.trans hc) hb _
 end
 
 lemma clog_mono (b : ℕ) : monotone (clog b) :=
 λ x y, clog_le_clog_of_le _
 
-lemma clog_left_gt_one_anti {n : ℕ} : antitone (subtype.restrict (λ b, clog b n) (λ b, b > 1)) :=
+lemma clog_left_gt_one_anti {n : ℕ} : antitone (subtype.restrict (λ b, clog b n) (λ b, 1 < b)) :=
 λ c b hb, clog_le_clog_of_left_ge c.property (subtype.coe_le_coe.2 hb)
 
 lemma log_le_clog (b n : ℕ) : log b n ≤ clog b n :=

@@ -5,6 +5,7 @@ Authors: Eric Wieser
 -/
 import algebra.star.basic
 import algebra.ring.pi
+import algebra.module.pi
 
 /-!
 # `star` on pi types
@@ -32,7 +33,7 @@ instance [Π i, has_involutive_star (f i)] : has_involutive_star (Π i, f i) :=
 instance [Π i, monoid (f i)] [Π i, star_monoid (f i)] : star_monoid (Π i, f i) :=
 { star_mul := λ _ _, funext $ λ _, star_mul _ _ }
 
-instance [Π i, has_add (f i)] [Π i, star_add_monoid (f i)] : star_add_monoid (Π i, f i) :=
+instance [Π i, add_monoid (f i)] [Π i, star_add_monoid (f i)] : star_add_monoid (Π i, f i) :=
 { star_add := λ _ _, funext $ λ _, star_add _ _ }
 
 instance [Π i, semiring (f i)] [Π i, star_ring (f i)] : star_ring (Π i, f i) :=

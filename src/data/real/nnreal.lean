@@ -48,9 +48,9 @@ open_locale classical big_operators
 
 /-- Nonnegative real numbers. -/
 @[derive [semilattice_inf_bot, densely_ordered,
-  linear_ordered_add_comm_monoid, linear_ordered_semiring, ordered_comm_semiring,
-  canonically_linear_ordered_add_monoid, canonically_ordered_comm_semiring,
-  has_sub, has_ordered_sub, linear_ordered_comm_group_with_zero, has_div, inhabited, archimedean]]
+  canonically_linear_ordered_add_monoid, linear_ordered_comm_group_with_zero, archimedean,
+  linear_ordered_semiring, ordered_comm_semiring, canonically_ordered_comm_semiring,
+  has_sub, has_ordered_sub, has_div, inhabited]]
 def nnreal := {r : ℝ // 0 ≤ r}
 localized "notation ` ℝ≥0 ` := nnreal" in nnreal
 

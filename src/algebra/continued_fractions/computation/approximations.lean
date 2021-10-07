@@ -64,11 +64,11 @@ begin
   case nat.zero
   { have : int_fract_pair.of v = ifp_n, by injection nth_stream_eq,
     rw [←this, int_fract_pair.of],
-    exact ⟨fract_nonneg, fract_lt_one⟩ },
+    exact ⟨fract_nonneg _, fract_lt_one _⟩ },
   case nat.succ
   { rcases (succ_nth_stream_eq_some_iff.elim_left nth_stream_eq) with ⟨_, _, _, ifp_of_eq_ifp_n⟩,
     rw [←ifp_of_eq_ifp_n, int_fract_pair.of],
-    exact ⟨fract_nonneg, fract_lt_one⟩ }
+    exact ⟨fract_nonneg _, fract_lt_one _⟩ }
 end
 
 /-- Shows that the fractional parts of the stream are nonnegative. -/

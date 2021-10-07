@@ -112,10 +112,13 @@ begin
   simp [mem_center_iff, smul_def, mul_inv_eq_iff_eq_mul]
 end
 
-instance subgroup.mul_distrib_mul_action {H : subgroup G} [hH : H.normal] :
+instance subgroup.conj_action {H : subgroup G} [hH : H.normal] :
+  has_scalar (conj_act G) H :=
+⟨λ g h, ⟨g • h, hH.conj_mem h.1 h.2 (of_conj_act g)⟩⟩
+
+instance subgroup.conj_mul_distrib_mul_action {H : subgroup G} [hH : H.normal] :
   mul_distrib_mul_action (conj_act G) H :=
-@function.injective.mul_distrib_mul_action (conj_act G) G H _ _ _ _
-  ⟨λ g h, ⟨g • h, hH.conj_mem h h.2 (of_conj_act g)⟩⟩ H.subtype subtype.coe_injective (λ g h, rfl)
+(subtype.coe_injective).mul_distrib_mul_action H.subtype (λ (g : conj_act G) (h : H), rfl)
 
 lemma subgroup.coe_conj_smul {H : subgroup G} [hH : H.normal] (g : conj_act G) (h : H) :
   ↑(g • h) = g • (h : G) := rfl

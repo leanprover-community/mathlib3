@@ -51,7 +51,7 @@ open_locale classical big_operators
 @[derive [semilattice_inf_bot, densely_ordered,
   linear_ordered_add_comm_monoid, linear_ordered_semiring, ordered_comm_semiring,
   canonically_linear_ordered_add_monoid, canonically_ordered_comm_semiring,
-  has_sub, has_ordered_sub, has_inv, has_div, inhabited]]
+  has_sub, has_ordered_sub, linear_ordered_comm_group_with_zero, has_div, inhabited, archimedean]]
 def nnreal := {r : ℝ // 0 ≤ r}
 localized "notation ` ℝ≥0 ` := nnreal" in nnreal
 
@@ -103,12 +103,12 @@ example : nontrivial ℝ≥0 := by apply_instance
 protected lemma coe_injective : function.injective (coe : ℝ≥0 → ℝ) := subtype.coe_injective
 @[simp, norm_cast] protected lemma coe_eq {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) = r₂ ↔ r₁ = r₂ :=
 nnreal.coe_injective.eq_iff
-@[simp, norm_cast] protected lemma coe_zero : ((0 : ℝ≥0) : ℝ) = 0 := rfl
-@[simp, norm_cast] protected lemma coe_one  : ((1 : ℝ≥0) : ℝ) = 1 := rfl
-@[simp, norm_cast] protected lemma coe_add (r₁ r₂ : ℝ≥0) : ((r₁ + r₂ : ℝ≥0) : ℝ) = r₁ + r₂ := rfl
-@[simp, norm_cast] protected lemma coe_mul (r₁ r₂ : ℝ≥0) : ((r₁ * r₂ : ℝ≥0) : ℝ) = r₁ * r₂ := rfl
-@[simp, norm_cast] protected lemma coe_inv (r : ℝ≥0) : ((r⁻¹ : ℝ≥0) : ℝ) = r⁻¹ := rfl
-@[simp, norm_cast] protected lemma coe_div (r₁ r₂ : ℝ≥0) : ((r₁ / r₂ : ℝ≥0) : ℝ) = r₁ / r₂ := rfl
+protected lemma coe_zero : ((0 : ℝ≥0) : ℝ) = 0 := rfl
+protected lemma coe_one  : ((1 : ℝ≥0) : ℝ) = 1 := rfl
+protected lemma coe_add (r₁ r₂ : ℝ≥0) : ((r₁ + r₂ : ℝ≥0) : ℝ) = r₁ + r₂ := rfl
+protected lemma coe_mul (r₁ r₂ : ℝ≥0) : ((r₁ * r₂ : ℝ≥0) : ℝ) = r₁ * r₂ := rfl
+protected lemma coe_inv (r : ℝ≥0) : ((r⁻¹ : ℝ≥0) : ℝ) = r⁻¹ := rfl
+protected lemma coe_div (r₁ r₂ : ℝ≥0) : ((r₁ / r₂ : ℝ≥0) : ℝ) = r₁ / r₂ := rfl
 @[simp, norm_cast] protected lemma coe_bit0 (r : ℝ≥0) : ((bit0 r : ℝ≥0) : ℝ) = bit0 r := rfl
 @[simp, norm_cast] protected lemma coe_bit1 (r : ℝ≥0) : ((bit1 r : ℝ≥0) : ℝ) = bit1 r := rfl
 
@@ -175,13 +175,7 @@ example : distrib_mul_action (units ℝ≥0) ℝ := by apply_instance
 
 end actions
 
-instance : comm_group_with_zero ℝ≥0 :=
-{ zero := 0,
-  mul := (*),
-  one := 1,
-  inv := has_inv.inv,
-  div := (/),
-  .. nnreal.coe_injective.comm_group_with_zero _ rfl rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) }
+example : comm_group_with_zero ℝ≥0 := by apply_instance
 
 @[simp, norm_cast] lemma coe_indicator {α} (s : set α) (f : α → ℝ≥0) (a : α) :
   ((s.indicator f a : ℝ≥0) : ℝ) = s.indicator (λ x, f x) a :=
@@ -230,8 +224,8 @@ begin
   exact finset.prod_congr rfl (λ x hxs, by rw real.coe_to_nnreal _ (hf x hxs)),
 end
 
-@[norm_cast] lemma nsmul_coe (r : ℝ≥0) (n : ℕ) : ↑(n • r) = n • (r:ℝ) :=
-to_real_hom.to_add_monoid_hom.map_nsmul _ _
+lemma nsmul_coe (r : ℝ≥0) (n : ℕ) : ↑(n • r) = n • (r:ℝ) :=
+by norm_cast
 
 @[simp, norm_cast] protected lemma coe_nat_cast (n : ℕ) : (↑(↑n : ℝ≥0) : ℝ) = n :=
 to_real_hom.map_nat_cast n
@@ -262,31 +256,18 @@ galois_insertion.monotone_intro nnreal.coe_mono real.to_nnreal_mono
   real.le_coe_to_nnreal (λ _, real.to_nnreal_coe)
 
 example : order_bot ℝ≥0 := by apply_instance
-
 example : canonically_linear_ordered_add_monoid ℝ≥0 := by apply_instance
-
 example : linear_ordered_add_comm_monoid ℝ≥0 := by apply_instance
-
 example : distrib_lattice ℝ≥0 := by apply_instance
-
 example : semilattice_inf_bot ℝ≥0 := by apply_instance
-
 example : semilattice_sup_bot ℝ≥0 := by apply_instance
-
 example : linear_ordered_semiring ℝ≥0 := by apply_instance
-
 example : ordered_comm_semiring ℝ≥0 := by apply_instance
-
-instance : linear_ordered_comm_group_with_zero ℝ≥0 :=
-{ mul_le_mul_left := assume a b h c, mul_le_mul (le_refl c) h (zero_le a) (zero_le c),
-  zero_le_one := zero_le 1,
-  .. nnreal.linear_ordered_semiring,
-  .. nnreal.comm_group_with_zero }
-
+example : linear_ordered_comm_monoid  ℝ≥0 := by apply_instance
+example : linear_ordered_comm_monoid_with_zero ℝ≥0 := by apply_instance
+example : linear_ordered_comm_group_with_zero ℝ≥0 := by apply_instance
 example : canonically_ordered_comm_semiring ℝ≥0 := by apply_instance
-
 example : densely_ordered ℝ≥0 := by apply_instance
-
 example : no_top_order ℝ≥0 := by apply_instance
 
 lemma bdd_above_coe {s : set ℝ≥0} : bdd_above ((coe : ℝ≥0 → ℝ) '' s) ↔ bdd_above s :=
@@ -298,10 +279,10 @@ iff.intro
 lemma bdd_below_coe (s : set ℝ≥0) : bdd_below ((coe : ℝ≥0 → ℝ) '' s) :=
 ⟨0, assume r ⟨q, _, eq⟩, eq ▸ q.2⟩
 
-example : conditionally_complete_linear_order_bot ℝ≥0 :=
+instance : conditionally_complete_linear_order_bot ℝ≥0 :=
 { cSup_empty := (function.funext_iff.1
     (@subset_Sup_def ℝ (set.Ici (0 : ℝ)) _ ⟨(0 : ℝ≥0)⟩) ∅).trans $ nnreal.eq $ by simp,
-  .. nnreal.order_bot,
+  .. (by apply_instance : order_bot ℝ≥0),
   .. @ord_connected_subset_conditionally_complete_linear_order ℝ (set.Ici (0 : ℝ)) _ ⟨(0 : ℝ≥0)⟩ _ }
 
 lemma coe_Sup (s : set ℝ≥0) : (↑(Sup s) : ℝ) = Sup ((coe : ℝ≥0 → ℝ) '' s) :=
@@ -312,10 +293,7 @@ lemma coe_Inf (s : set ℝ≥0) : (↑(Inf s) : ℝ) = Inf ((coe : ℝ≥0 → �
 eq.symm $ @subset_Inf_of_within ℝ (set.Ici 0) _ ⟨(0 : ℝ≥0)⟩ s $
   real.Inf_nonneg _ $ λ y ⟨x, _, hy⟩, hy ▸ x.2
 
-instance : archimedean ℝ≥0 :=
-⟨ assume x y pos_y,
-  let ⟨n, hr⟩ := archimedean.arch (x:ℝ) (pos_y : (0 : ℝ) < y) in
-  ⟨n, show (x:ℝ) ≤ (n • y : ℝ≥0), by simp [*, -nsmul_eq_mul, nsmul_coe]⟩ ⟩
+example : archimedean ℝ≥0 := by apply_instance
 
 lemma le_of_forall_pos_le_add {a b : ℝ≥0} (h : ∀ε, 0 < ε → a ≤ b + ε) : a ≤ b :=
 le_of_forall_le_of_dense $ assume x hxb,
@@ -504,8 +482,8 @@ section sub
 /-!
 ### Lemmas about subtraction
 
-In this section we provide the instance `nnreal.has_ordered_sub` and a few lemmas about subtraction
-that do not fit well into any other typeclass. For lemmas about subtraction and addition see lemmas
+In this section we provide a few lemmas about subtraction that do not fit well into any other
+typeclass. For lemmas about subtraction and addition see lemmas
 about `has_ordered_sub` in the file `algebra.order.sub`. See also `mul_sub'` and `sub_mul'`. -/
 
 lemma sub_def {r p : ℝ≥0} : r - p = real.to_nnreal (r - p) := rfl

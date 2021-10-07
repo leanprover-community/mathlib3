@@ -365,16 +365,6 @@ section
 
 /-! **Uniform Distribution** -/
 
--- /-- A random variable `X` has uniform distribution if it has a probability density function `f`
--- with compact support `s` such that `f = (μ s)⁻¹ 1ₛ` a.e. where `1ₛ` is the indicator function
--- for `s`.
--- We require compact support since otherwise the expectation might not be finite. -/
--- class uniform {m : measurable_space α} (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac)
---   extends has_pdf X ℙ μ :=
--- (support' : set E) (compact_support' : is_compact support')
--- (support_not_null' : 0 < μ support')
--- (uniform' : pdf X ℙ μ =ᵐ[μ] support'.indicator ((μ support')⁻¹ • 1))
-
 /-- A random variable `X` has uniform distribution if it has a probability density function `f`
 with support `s` such that `f = (μ s)⁻¹ 1ₛ` a.e. where `1ₛ` is the indicator function for `s`. -/
 def is_uniform {m : measurable_space α} (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac)
@@ -399,32 +389,6 @@ begin
     exact hns this },
   exact set.indicator_ae_eq_zero μ ((μ support)⁻¹ • 1) support hu.symm,
 end
-
--- /-- The support of the probability density function of a random variable of uniform distribution. -/
--- def support {m : measurable_space α}
---   (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac) [hX : uniform X ℙ μ] : set E :=
--- hX.support'
-
--- lemma is_compact_support {m : measurable_space α}
---   (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac) [hX : uniform X ℙ μ] :
---   is_compact (support X ℙ μ) :=
--- hX.compact_support'
-
--- @[measurability]
--- lemma measurable_set_support {m : measurable_space α}
---   (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac) [hX : uniform X ℙ μ] :
---   measurable_set (support X ℙ μ) :=
--- (is_compact_support X ℙ μ).is_closed.measurable_set
-
--- lemma support_not_null {m : measurable_space α}
---   (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac) [hX : uniform X ℙ μ] :
---   0 < μ (support X ℙ μ) :=
--- hX.support_not_null'
-
--- lemma pdf_ae_eq {m : measurable_space α} (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac)
---   [hX : uniform X ℙ μ] :
---   pdf X ℙ μ =ᵐ[μ] (support X ℙ μ).indicator ((μ (support X ℙ μ))⁻¹ • 1) :=
--- hX.uniform'
 
 lemma pdf_to_real_ae_eq {m : measurable_space α}
   {X : α → E} {ℙ : measure α} {μ : measure E} {s : set E} (hX : is_uniform X ℙ μ s) :

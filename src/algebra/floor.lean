@@ -49,9 +49,15 @@ A `floor_ring` is a linear ordered ring over `α` with a function
 -/
 class floor_ring (α) [linear_ordered_ring α] :=
 (floor : α → ℤ)
-(le_floor : ∀ (z : ℤ) (a : α), z ≤ floor a ↔ (z : α) ≤ a)
+(ceil : α → ℤ)
+(gc_floor : galois_connection coe floor)
+(gc_ceil : galois_connection ceil coe)
 
-instance : floor_ring ℤ := { floor := id, le_floor := λ _ _, by rw int.cast_id; refl }
+instance : floor_ring ℤ :=
+{ floor := id,
+  ceil := id,
+  gc_floor := λ a b, by { rw int.cast_id, refl },
+  gc_ceil := λ a b, by { rw int.cast_id, refl } }
 
 namespace int
 variables [linear_ordered_ring α] [floor_ring α]
@@ -60,7 +66,7 @@ variables [linear_ordered_ring α] [floor_ring α]
 def floor : α → ℤ := floor_ring.floor
 
 /-- `int.ceil a` is the smallest integer `z` such that `a ≤ z`. It is denoted with `⌈a⌉`. -/
-def ceil (a : α) : ℤ := -floor (-a)
+def ceil : α → ℤ := floor_ring.ceil
 
 /-- `int.fract a`, the fractional part of `a`, is `a` minus its floor. -/
 def fract (a : α) : α := a - floor a
@@ -71,17 +77,19 @@ notation `⌈` a `⌉` := int.ceil a
 
 /-! #### Floor -/
 
-lemma le_floor : ∀ {z : ℤ} {a : α}, z ≤ ⌊a⌋ ↔ (z : α) ≤ a :=
-floor_ring.le_floor
+lemma gc_coe_floor : galois_connection (coe : ℤ → α) floor := floor_ring.gc_floor
+
+lemma le_floor {z : ℤ} {a : α} : z ≤ ⌊a⌋ ↔ (z : α) ≤ a :=
+(floor_ring.gc_floor z a).symm
 
 lemma floor_lt {a : α} {z : ℤ} : ⌊a⌋ < z ↔ a < z :=
 lt_iff_lt_of_le_iff_le le_floor
 
 lemma floor_le (a : α) : (⌊a⌋ : α) ≤ a :=
-le_floor.1 le_rfl
+gc_coe_floor.l_u_le a
 
 lemma floor_nonneg {a : α} : 0 ≤ ⌊a⌋ ↔ 0 ≤ a :=
-by rw [le_floor]; refl
+by { rw [le_floor], refl }
 
 lemma lt_succ_floor (a : α) : a < ⌊a⌋.succ :=
 floor_lt.1 $ int.lt_succ_self _
@@ -101,7 +109,7 @@ eq_of_forall_le_iff $ λ a, by rw [le_floor, int.cast_le]
 by rw [← int.cast_one, floor_coe]
 
 @[mono] lemma floor_mono {a b : α} (h : a ≤ b) : ⌊a⌋ ≤ ⌊b⌋ :=
-le_floor.2 (le_trans (floor_le _) h)
+gc_coe_floor.monotone_u h
 
 @[simp] lemma floor_add_int (a : α) (z : ℤ) : ⌊a + z⌋ = ⌊a⌋ + z :=
 eq_of_forall_le_iff $ λ a, by rw [le_floor,
@@ -122,8 +130,8 @@ eq.trans (by rw [int.cast_neg, sub_eq_add_neg]) (floor_add_int _ _)
 @[simp] lemma floor_sub_nat (a : α) (n : ℕ) : ⌊a - n⌋ = ⌊a⌋ - n :=
 floor_sub_int a n
 
-lemma abs_sub_lt_one_of_floor_eq_floor {α : Type*} [linear_ordered_comm_ring α]
-  [floor_ring α] {a b : α} (h : ⌊a⌋ = ⌊b⌋) : |a - b| < 1 :=
+lemma abs_sub_lt_one_of_floor_eq_floor {α : Type*} [linear_ordered_comm_ring α] [floor_ring α]
+  {a b : α} (h : ⌊a⌋ = ⌊b⌋) : |a - b| < 1 :=
 begin
   have : a < ⌊a⌋ + 1         := lt_floor_add_one a,
   have : b < ⌊b⌋ + 1         :=  lt_floor_add_one b,
@@ -152,7 +160,9 @@ lemma floor_eq_on_Ico (n : ℤ) : ∀ a ∈ set.Ico (n : α) (n + 1), ⌊a⌋ = 
 lemma floor_eq_on_Ico' (n : ℤ) : ∀ a ∈ set.Ico (n : α) (n + 1), (⌊a⌋ : α) = n :=
 λ a ha, congr_arg _ $ floor_eq_on_Ico n a ha
 
-@[simp] lemma floor_add_fract (a : α) : (⌊a⌋ : α) + fract a = a := by unfold fract; simp
+/-! #### Fractional part -/
+
+@[simp] lemma floor_add_fract (a : α) : (⌊a⌋ : α) + fract a = a := add_sub_cancel'_right _ _
 
 @[simp] lemma fract_add_floor (a : α) : fract a + ⌊a⌋ = a := sub_add_cancel _ _
 
@@ -216,9 +226,18 @@ begin
   abel
 end
 
+/-! #### Ceil -/
+
+lemma gc_ceil_coe : galois_connection ceil (coe : ℤ → α) := floor_ring.gc_ceil
 
 lemma ceil_le {z : ℤ} {a : α} : ⌈a⌉ ≤ z ↔ a ≤ z :=
-by rw [ceil, neg_le, le_floor, int.cast_neg, neg_le_neg_iff]
+gc_ceil_coe a z
+
+lemma floor_neg {a : α} : ⌊-a⌋ = -⌈a⌉ :=
+eq_of_forall_le_iff (λ z, by rw [le_neg, ceil_le, le_floor, int.cast_neg, le_neg])
+
+lemma ceil_neg {a : α} : ⌈-a⌉ = -⌊a⌋ :=
+eq_of_forall_ge_iff (λ z, by rw [neg_le, ceil_le, le_floor, int.cast_neg, neg_le])
 
 lemma lt_ceil {a : α} {z : ℤ} : z < ⌈a⌉ ↔ (z : α) < a :=
 lt_iff_lt_of_le_iff_le ceil_le
@@ -227,30 +246,27 @@ lemma ceil_le_floor_add_one (a : α) : ⌈a⌉ ≤ ⌊a⌋ + 1 :=
 by { rw [ceil_le, int.cast_add, int.cast_one], exact (lt_floor_add_one a).le }
 
 lemma le_ceil (a : α) : a ≤ ⌈a⌉ :=
-ceil_le.1 le_rfl
+gc_ceil_coe.le_u_l a
 
 @[simp] lemma ceil_coe (z : ℤ) : ⌈(z : α)⌉ = z :=
-by rw [ceil, ← int.cast_neg, floor_coe, neg_neg]
+eq_of_forall_ge_iff $ λ a, by rw [ceil_le, int.cast_le]
 
 lemma ceil_mono {a b : α} (h : a ≤ b) : ⌈a⌉ ≤ ⌈b⌉ :=
-ceil_le.2 (le_trans h (le_ceil _))
+gc_ceil_coe.monotone_l h
 
 @[simp] lemma ceil_add_int (a : α) (z : ℤ) : ⌈a + z⌉ = ⌈a⌉ + z :=
-by rw [ceil, neg_add', floor_sub_int, neg_sub, sub_eq_neg_add]; refl
+by rw [←neg_inj, neg_add', ←floor_neg, ←floor_neg, neg_add', floor_sub_int]
 
 lemma ceil_sub_int (a : α) (z : ℤ) : ⌈a - z⌉ = ⌈a⌉ - z :=
 eq.trans (by rw [int.cast_neg, sub_eq_add_neg]) (ceil_add_int _ _)
 
 lemma ceil_lt_add_one (a : α) : (⌈a⌉ : α) < a + 1 :=
-by rw [← lt_ceil, ← int.cast_one, ceil_add_int]; apply lt_add_one
+by { rw [← lt_ceil, ← int.cast_one, ceil_add_int], apply lt_add_one }
 
 lemma ceil_pos {a : α} : 0 < ⌈a⌉ ↔ 0 < a :=
-⟨ λ h, have ⌊-a⌋ < 0, from neg_of_neg_pos h,
-  pos_of_neg_neg $ lt_of_not_ge $ (not_iff_not_of_iff floor_nonneg).1 this.not_le,
- λ h, have -a < 0, from neg_neg_of_pos h,
-  neg_pos_of_neg $ lt_of_not_ge $ (not_iff_not_of_iff floor_nonneg).2 this.not_le⟩
+by { rw lt_ceil, refl }
 
-@[simp] lemma ceil_zero : ⌈(0 : α)⌉ = 0 := by simp [ceil]
+@[simp] lemma ceil_zero : ⌈(0 : α)⌉ = 0 := ceil_coe 0
 
 lemma ceil_nonneg {a : α} (ha : 0 ≤ a) : 0 ≤ ⌈a⌉ :=
 by exact_mod_cast ha.trans (le_ceil a)
@@ -267,6 +283,8 @@ lemma ceil_eq_on_Ioc' (z : ℤ) : ∀ a ∈ set.Ioc (z - 1 : α) z, (⌈a⌉ : �
 
 lemma floor_lt_ceil_of_lt {a b : α} (h : a < b) : ⌊a⌋ < ⌈b⌉ :=
 cast_lt.1 $ (floor_le a).trans_lt $ h.trans_le $ le_ceil b
+
+/-! #### Intervals -/
 
 @[simp] lemma preimage_Ioo {a b : α} :
   ((coe : ℤ → α) ⁻¹' (set.Ioo a b)) = set.Ioo ⌊a⌋ ⌈b⌉ :=
@@ -298,7 +316,7 @@ by { ext, simp [le_floor] }
 
 end int
 
-/-! ### `floor` and `ceil` -/
+/-! ### `nat.floor` and `nat.ceil` -/
 
 namespace nat
 variables [linear_ordered_ring α] [floor_ring α] {a : α} {n : ℕ}

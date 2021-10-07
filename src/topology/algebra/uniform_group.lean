@@ -224,7 +224,7 @@ lemma topological_add_group.separated_iff_zero_closed :
   separated_space G ↔ is_closed ({0} : set G) :=
 begin
   rw [separated_space_iff, ← closure_eq_iff_is_closed],
-  split ; intro h,
+  split; intro h,
   { apply subset.antisymm,
     { intros x x_in,
       have := group_separation_rel x 0,

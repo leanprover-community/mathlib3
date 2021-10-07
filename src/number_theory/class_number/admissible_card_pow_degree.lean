@@ -191,7 +191,7 @@ begin
   have anti_archim' : ∀ {i j k} {ε : ℝ}, (card_pow_degree (A i % b - A j % b) : ℝ) < ε →
     (card_pow_degree (A j % b - A k % b) : ℝ) < ε → (card_pow_degree (A i % b - A k % b) : ℝ) < ε,
   { intros i j k ε,
-    rw [← lt_ceil, ← lt_ceil, ← lt_ceil],
+    simp_rw [← int.lt_ceil],
     exact card_pow_degree_anti_archimedean },
 
   obtain ⟨t', ht'⟩ := ih (fin.tail A),

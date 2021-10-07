@@ -41,10 +41,6 @@ variables (K : Type*) [field K]  [uniform_space K]
 
 local notation `hat` := completion
 
-@[priority 100]
-instance [separated_space K] : nontrivial (hat K) :=
-⟨⟨0, 1, λ h, zero_ne_one $ (uniform_embedding_coe K).inj h⟩⟩
-
 /--
 A topological field is completable if it is separated and the image under
 the mapping x ↦ x⁻¹ of every Cauchy filter (with respect to the additive uniform structure)
@@ -54,6 +50,13 @@ a field.
 -/
 class completable_top_field extends separated_space K : Prop :=
 (nice : ∀ F : filter K, cauchy F → 𝓝 0 ⊓ F = ⊥ → cauchy (map (λ x, x⁻¹) F))
+
+namespace uniform_space
+namespace completion
+
+@[priority 100]
+instance [separated_space K] : nontrivial (hat K) :=
+⟨⟨0, 1, λ h, zero_ne_one $ (uniform_embedding_coe K).inj h⟩⟩
 
 variables {K}
 
@@ -87,7 +90,7 @@ end
 The value of `hat_inv` at zero is not really specified, although it's probably zero.
 Here we explicitly enforce the `inv_zero` axiom.
 -/
-instance completion.has_inv : has_inv (hat K) := ⟨λ x, if x = 0 then 0 else hat_inv x⟩
+instance : has_inv (hat K) := ⟨λ x, if x = 0 then 0 else hat_inv x⟩
 
 variables [topological_division_ring K]
 
@@ -147,7 +150,7 @@ begin
   rwa [closure_singleton, mem_singleton_iff] at fxclo
 end
 
-instance field_completion : field (hat K) :=
+instance : field (hat K) :=
 { exists_pair_ne := ⟨0, 1, λ h, zero_ne_one ((uniform_embedding_coe K).inj h)⟩,
   mul_inv_cancel := λ x x_ne, by { dsimp [has_inv.inv],
                                    simp [if_neg x_ne, mul_hat_inv_cancel x_ne], },
@@ -155,7 +158,7 @@ instance field_completion : field (hat K) :=
   ..completion.has_inv,
   ..(by apply_instance : comm_ring (hat K)) }
 
-instance topological_division_ring_completion : topological_division_ring (hat K) :=
+instance : topological_division_ring (hat K) :=
 { continuous_inv := begin
     intros x x_ne,
     have : {y | hat_inv y = y⁻¹ } ∈ 𝓝 x,
@@ -168,3 +171,6 @@ instance topological_division_ring_completion : topological_division_ring (hat K
     exact continuous_at.congr (continuous_hat_inv x_ne) this
   end,
   ..completion.top_ring_compl }
+
+end completion
+end uniform_space

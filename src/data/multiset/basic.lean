@@ -1513,33 +1513,6 @@ quotient.induction_on₂ s t $ λ l₁ l₂,
 show ↑(l₁.diff l₂) = foldl erase erase_comm ↑l₁ ↑l₂,
 by { rw diff_eq_foldl l₁ l₂, symmetry, exact foldl_hom _ _ _ _ _ (λ x y, rfl) }
 
-theorem add_sub_of_le (h : s ≤ t) : s + (t - s) = t :=
-add_sub_cancel_of_le h
-
-theorem sub_add' : s - (t + u) = s - t - u :=
-sub_add_eq_sub_sub'
-
-theorem sub_add_cancel (h : t ≤ s) : s - t + t = s :=
-sub_add_cancel_of_le h
-
-@[simp] theorem add_sub_cancel_left (s : multiset α) : ∀ t, s + t - s = t :=
-add_sub_cancel_left s
-
-@[simp] theorem add_sub_cancel (s t : multiset α) : s + t - t = s :=
-add_sub_cancel_right s t
-
-theorem sub_le_sub_right (h : s ≤ t) (u) : s - u ≤ t - u :=
-sub_le_sub_right' h u
-
-theorem sub_le_sub_left (h : s ≤ t) : ∀ u, u - t ≤ u - s :=
-sub_le_sub_left' h
-
-theorem le_sub_add (s t : multiset α) : s ≤ s - t + t :=
-le_sub_add -- implicit args
-
-theorem sub_le_self (s t : multiset α) : s - t ≤ s :=
-sub_le_self' -- implicit args
-
 @[simp] theorem card_sub {s t : multiset α} (h : t ≤ s) : card (s - t) = card s - card t :=
 (nat.sub_eq_of_eq_add $ by rw [add_comm, ← card_add, sub_add_cancel_of_le h]).symm
 

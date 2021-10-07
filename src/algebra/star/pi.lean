@@ -11,9 +11,6 @@ import algebra.ring.pi
 
 We put a `has_star` structure on pi types that operates elementwise, such that it describes the
 complex conjugation of vectors.
-
-Note that `pi.star_module` is in a different file to avoid pulling in everything from
-`algebra/algebra/basic`.
 -/
 
 universes u v w
@@ -40,5 +37,10 @@ instance [Π i, has_add (f i)] [Π i, star_add_monoid (f i)] : star_add_monoid (
 
 instance [Π i, semiring (f i)] [Π i, star_ring (f i)] : star_ring (Π i, f i) :=
 { ..pi.star_add_monoid, ..(pi.star_monoid : star_monoid (Π i, f i)) }
+
+instance {R : Type w}
+  [Π i, has_scalar R (f i)] [has_star R] [Π i, has_star (f i)] [Π i, star_module R (f i)] :
+  star_module R (Π i, f i) :=
+{ star_smul := λ r x, funext $ λ i, star_smul r (x i) }
 
 end pi

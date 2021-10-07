@@ -14,7 +14,7 @@ the definition of conjugation as a homomorphism into the automorphism group.
 ## Main definitions
 
 A type alias `conj_act G` is introduced for a group `G`. The group `conj_act G` acts on `G`
-by conjugation.
+by conjugation. The group `conj_act G` also acts on any normal subgroup of `G` by conjugation.
 
 ## Implementation Notes
 
@@ -112,8 +112,8 @@ begin
   simp [mem_center_iff, smul_def, mul_inv_eq_iff_eq_mul]
 end
 
-/-- As normal subgroups are closed under conjugation, they inherit
-the conjugation action of the underlying group. -/
+/-- As normal subgroups are closed under conjugation, they inherit the conjugation action
+  of the underlying group. -/
 instance subgroup.conj_action {H : subgroup G} [hH : H.normal] :
   has_scalar (conj_act G) H :=
 ⟨λ g h, ⟨g • h, hH.conj_mem h.1 h.2 (of_conj_act g)⟩⟩

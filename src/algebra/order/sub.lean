@@ -727,7 +727,7 @@ protected def sub : Π (a b : with_top α), with_top α
 instance : has_sub (with_top α) :=
 ⟨with_top.sub⟩
 
-@[norm_cast] lemma coe_sub {a b : α} : ((a - b : α) : with_top α) = a - b := rfl
+@[simp, norm_cast] lemma coe_sub {a b : α} : (↑(a - b) : with_top α) = ↑a - ↑b := rfl
 @[simp] lemma top_sub_coe {a : α} : (⊤ : with_top α) - a = ⊤ := rfl
 @[simp] lemma sub_top {a : with_top α} : a - ⊤ = 0 := by { cases a; refl }
 
@@ -740,7 +740,8 @@ begin
   rintro x y z,
   induction y using with_top.rec_top_coe, { simp },
   induction x using with_top.rec_top_coe, { simp },
-  induction z using with_top.rec_top_coe; simp [← coe_sub, ← coe_add, sub_le_iff_right]
+  induction z using with_top.rec_top_coe, { simp },
+  norm_cast, exact sub_le_iff_right
 end
 
 

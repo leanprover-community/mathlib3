@@ -696,11 +696,11 @@ add_le_cancellable_iff_ne.mpr h
 
 /-- This lemma has an abbreviated name because it is used frequently. -/
 lemma cancel_of_lt {a : ℝ≥0∞} (h : a < ∞) : add_le_cancellable a :=
-cancel_of_ne $ lt_top_iff_ne_top.mp h
+cancel_of_ne h.ne
 
 /-- This lemma has an abbreviated name because it is used frequently. -/
 lemma cancel_of_lt' {a b : ℝ≥0∞} (h : a < b) : add_le_cancellable a :=
-cancel_of_lt $ h.trans_le le_top
+cancel_of_ne h.ne_top
 
 /-- This lemma has an abbreviated name because it is used frequently. -/
 lemma cancel_coe {a : ℝ≥0} : add_le_cancellable (a : ℝ≥0∞) :=
@@ -720,8 +720,8 @@ lemma sub_eq_Inf {a b : ℝ≥0∞} : a - b = Inf {d | a ≤ d + b} :=
 le_antisymm (le_Inf $ λ c, sub_le_iff_right.mpr) $ Inf_le le_sub_add
 
 /-- This is a special case of `with_top.coe_sub` in the `ennreal` namespace -/
-lemma coe_sub : ↑(p - r) = (↑p:ℝ≥0∞) - r :=
-by norm_cast
+lemma coe_sub : (↑(p - r) : ℝ≥0∞) = ↑p - ↑r :=
+by simp
 
 /-- This is a special case of `with_top.top_sub_coe` in the `ennreal` namespace -/
 lemma top_sub_coe : ∞ - ↑r = ∞ :=
@@ -790,7 +790,8 @@ mt sub_eq_top_iff.mp $ mt and.left ha
 lemma sub_le_sub_add_sub : a - c ≤ a - b + (b - c) :=
 sub_le_sub_add_sub
 
-/-- The following lemmas cannot be directly replaced by the general lemmas. -/
+/-! The following lemmas cannot be directly replaced by the general lemmas. -/
+
 protected lemma sub_lt_of_lt_add (hac : c ≤ a) (h : a < b + c) : a - c < b :=
 ((cancel_of_lt' $ hac.trans_lt h).sub_lt_iff_right hac).mpr h
 

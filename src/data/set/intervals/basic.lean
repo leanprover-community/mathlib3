@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot, Yury Kudryashov, Rémy
 import algebra.order.group
 import data.set.basic
 import order.rel_iso
+import order.order_dual
 
 /-!
 # Intervals
@@ -31,6 +32,7 @@ universe u
 namespace set
 
 open set
+open order_dual (to_dual of_dual)
 
 section intervals
 variables {α : Type u} [preorder α] {a a₁ a₂ b b₁ b₂ x : α}
@@ -95,17 +97,17 @@ lemma left_mem_Ici : a ∈ Ici a := by simp
 @[simp] lemma right_mem_Ioc : b ∈ Ioc a b ↔ a < b := by simp [le_refl]
 lemma right_mem_Iic : a ∈ Iic a := by simp
 
-@[simp] lemma dual_Ici : @Ici (order_dual α) _ a = @Iic α _ a := rfl
-@[simp] lemma dual_Iic : @Iic (order_dual α) _ a = @Ici α _ a := rfl
-@[simp] lemma dual_Ioi : @Ioi (order_dual α) _ a = @Iio α _ a := rfl
-@[simp] lemma dual_Iio : @Iio (order_dual α) _ a = @Ioi α _ a := rfl
-@[simp] lemma dual_Icc : @Icc (order_dual α) _ a b = @Icc α _ b a :=
+@[simp] lemma dual_Ici : Ici (to_dual a) = Iic a := rfl
+@[simp] lemma dual_Iic : Iic (to_dual a) = Ici a := rfl
+@[simp] lemma dual_Ioi : Ioi (to_dual a) = Iio a := rfl
+@[simp] lemma dual_Iio : Iio (to_dual a) = Ioi a := rfl
+@[simp] lemma dual_Icc : Icc (to_dual a) (to_dual b) = Icc b a :=
 set.ext $ λ x, and_comm _ _
-@[simp] lemma dual_Ioc : @Ioc (order_dual α) _ a b = @Ico α _ b a :=
+@[simp] lemma dual_Ioc : Ioc (to_dual a) (to_dual b) = Ico b a :=
 set.ext $ λ x, and_comm _ _
-@[simp] lemma dual_Ico : @Ico (order_dual α) _ a b = @Ioc α _ b a :=
+@[simp] lemma dual_Ico : Ico (to_dual a) (to_dual b) = Ioc b a :=
 set.ext $ λ x, and_comm _ _
-@[simp] lemma dual_Ioo : @Ioo (order_dual α) _ a b = @Ioo α _ b a :=
+@[simp] lemma dual_Ioo : Ioo (to_dual a) (to_dual b) = Ioo b a :=
 set.ext $ λ x, and_comm _ _
 
 @[simp] lemma nonempty_Icc : (Icc a b).nonempty ↔ a ≤ b :=

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, François Dupuis
 -/
 import analysis.convex.basic
+import order.order_dual
 import tactic.field_simp
 import tactic.linarith
 import tactic.ring
@@ -70,16 +71,16 @@ convex 𝕜 s ∧
 
 variables {𝕜 s f}
 
-lemma convex_on.dual (hf : convex_on 𝕜 s f) : @concave_on 𝕜 E (order_dual β) _ _ _ _ _ s f := hf
+open order_dual (to_dual of_dual)
 
-lemma concave_on.dual (hf : concave_on 𝕜 s f) : @convex_on 𝕜 E (order_dual β) _ _ _ _ _ s f := hf
+lemma convex_on.dual (hf : convex_on 𝕜 s f) : concave_on 𝕜 s (to_dual ∘ f) := hf
 
-lemma strict_convex_on.dual (hf : strict_convex_on 𝕜 s f) :
-  @strict_concave_on 𝕜 E (order_dual β) _ _ _ _ _ s f :=
+lemma concave_on.dual (hf : concave_on 𝕜 s f) : convex_on 𝕜 s (to_dual ∘ f) := hf
+
+lemma strict_convex_on.dual (hf : strict_convex_on 𝕜 s f) : strict_concave_on 𝕜 s (to_dual ∘ f) :=
 hf
 
-lemma strict_concave_on.dual (hf : strict_concave_on 𝕜 s f) :
-  @strict_convex_on 𝕜 E (order_dual β) _ _ _ _ _ s f :=
+lemma strict_concave_on.dual (hf : strict_concave_on 𝕜 s f) : strict_convex_on 𝕜 s (to_dual ∘ f) :=
 hf
 
 lemma convex_on_id {s : set β} (hs : convex 𝕜 s) : convex_on 𝕜 s id := ⟨hs, by { intros, refl }⟩

@@ -23,7 +23,7 @@ This adjunction is used to show that every presheaf is a colimit of representabl
 Further, the left adjoint `colimit_adj.extend_along_yoneda : (Cᵒᵖ ⥤ Type u) ⥤ ℰ` satisfies
 `yoneda ⋙ L ≅ A`, that is, an extension of `A : C ⥤ ℰ` to `(Cᵒᵖ ⥤ Type u) ⥤ ℰ` through
 `yoneda : C ⥤ Cᵒᵖ ⥤ Type u`. It is the left Kan extension of `A` along the yoneda embedding,
-sometimes known as the Yoneda extension.
+sometimes known as the Yoneda extension, as proved in `extend_along_yoneda_iso_Kan`.
 
 `unique_extension_along_yoneda` shows `extend_along_yoneda` is unique amongst cocontinuous functors
 with this property, establishing the presheaf category as the free cocompletion of a small category.

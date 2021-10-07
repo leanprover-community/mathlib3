@@ -24,7 +24,7 @@ open int
 /-- We can partition a finite family into `partition_card ε` sets, such that the remainders
 in each set are close together. -/
 lemma exists_partition_int (n : ℕ) {ε : ℝ} (hε : 0 < ε) {b : ℤ} (hb : b ≠ 0) (A : fin n → ℤ) :
-  ∃ (t : fin n → fin (nat.ceil (1 / ε))),
+  ∃ (t : fin n → fin ⌈1 / ε⌉₊),
   ∀ i₀ i₁, t i₀ = t i₁ → ↑(abs (A i₁ % b - A i₀ % b)) < abs b • ε :=
 begin
   have hb' : (0 : ℝ) < ↑(abs b) := int.cast_pos.mpr (abs_pos.mpr hb),
@@ -51,7 +51,7 @@ end
 
 /-- `abs : ℤ → ℤ` is an admissible absolute value -/
 noncomputable def abs_is_admissible : is_admissible absolute_value.abs :=
-{ card := λ ε, nat.ceil (1 / ε),
+{ card := λ ε, ⌈1 / ε⌉₊,
   exists_partition' := λ n ε hε b hb, exists_partition_int n hε hb,
   .. absolute_value.abs_is_euclidean }
 

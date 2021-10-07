@@ -482,17 +482,16 @@ lemma pred_le_iff {n m : ℕ} : pred n ≤ m ↔ n ≤ succ m :=
 
 /-! ### `sub`
 
-Todo: clean up the remaining lemmas that are proven in general for `has_ordered_sub`. -/
+Most lemmas come from the `has_ordered_sub` instance on `ℕ`. -/
 
-protected theorem sub_le_iff_right : m - n ≤ k ↔ m ≤ k + n :=
+instance : has_ordered_sub ℕ :=
 begin
+  constructor,
+  intros m n k,
   induction n with n ih generalizing k,
   { simp },
   { simp only [sub_succ, add_succ, succ_add, ih, pred_le_iff] }
 end
-
-instance : has_ordered_sub ℕ :=
-⟨λ n m k, nat.sub_le_iff_right⟩
 
 lemma lt_pred_iff {n m : ℕ} : n < pred m ↔ succ n < m :=
 show n < m - 1 ↔ n + 1 < m, from lt_sub_iff_right

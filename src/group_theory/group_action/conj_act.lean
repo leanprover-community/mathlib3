@@ -114,14 +114,11 @@ end
 
 instance subgroup.mul_distrib_mul_action {H : subgroup G} [hH : H.normal] :
   mul_distrib_mul_action (conj_act G) H :=
-{ smul := λ g h, ⟨g • h, hH.conj_mem h.1 h.2 (of_conj_act g)⟩,
-  one_smul := λ h, subtype.ext (one_smul G h),
-  mul_smul := λ g₁ g₂ h, subtype.ext (mul_smul g₁ g₂ h),
-  smul_one := λ g, subtype.ext (by simp [smul_def]),
-  smul_mul := λ g h₁ h₂, subtype.ext (by simp [smul_def]) }
+@function.injective.mul_distrib_mul_action (conj_act G) G H _ _ _ _
+  ⟨λ g h, ⟨g • h, hH.conj_mem h h.2 (of_conj_act g)⟩⟩ H.subtype subtype.coe_injective (λ g h, rfl)
 
-lemma subgroup.coe_smul_eq_mul_aut_conj {H : subgroup G} [hH : H.normal] (g : conj_act G) (h : H) :
-  ↑(g • h) = mul_aut.conj (of_conj_act g) h := rfl
+lemma subgroup.coe_conj_smul {H : subgroup G} [hH : H.normal] (g : conj_act G) (h : H) :
+  ↑(g • h) = g • (h : G) := rfl
 
 /-- Group conjugation on a normal subgroup. Analogous to `mul_aut.conj`. -/
 def _root_.mul_aut.conj_normal {H : subgroup G} [hH : H.normal] : G →* mul_aut H :=

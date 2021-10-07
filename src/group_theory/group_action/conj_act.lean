@@ -120,7 +120,7 @@ instance subgroup.conj_action {H : subgroup G} [hH : H.normal] :
 
 instance subgroup.conj_mul_distrib_mul_action {H : subgroup G} [hH : H.normal] :
   mul_distrib_mul_action (conj_act G) H :=
-(subtype.coe_injective).mul_distrib_mul_action H.subtype (λ (g : conj_act G) (h : H), rfl)
+(subtype.coe_injective).mul_distrib_mul_action H.subtype subgroup.coe_conj_smul
 
 lemma subgroup.coe_conj_smul {H : subgroup G} [hH : H.normal] (g : conj_act G) (h : H) :
   ↑(g • h) = g • (h : G) := rfl

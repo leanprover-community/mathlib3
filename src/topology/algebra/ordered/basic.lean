@@ -1043,10 +1043,8 @@ end
 
 lemma exists_Ico_subset_of_mem_nhds' {a : α} {s : set α} (hs : s ∈ 𝓝 a) {u : α} (hu : a < u) :
   ∃ u' ∈ Ioc a u, Ico a u' ⊆ s :=
-begin
-  convert @exists_Ioc_subset_of_mem_nhds' (order_dual α) _ _ _ _ _ hs _ hu,
-  ext, rw [dual_Ico, dual_Ioc]
-end
+by simpa only [order_dual.exists, exists_prop, dual_Ico, dual_Ioc]
+    using exists_Ioc_subset_of_mem_nhds' (show of_dual ⁻¹' s ∈ 𝓝 (to_dual a), from hs) hu.dual
 
 lemma exists_Ioc_subset_of_mem_nhds {a : α} {s : set α} (hs : s ∈ 𝓝 a) (h : ∃ l, l < a) :
   ∃ l < a, Ioc l a ⊆ s :=
@@ -1386,13 +1384,8 @@ lemma tfae_mem_nhds_within_Iio {a b : α} (h : a < b) (s : set α) :
     s ∈ 𝓝[Ioo a b] b,   -- 2 : `s` is a neighborhood of `b` within `(a, b)`
     ∃ l ∈ Ico a b, Ioo l b ⊆ s,    -- 3 : `s` includes `(l, b)` for some `l ∈ [a, b)`
     ∃ l ∈ Iio b, Ioo l b ⊆ s] :=   -- 4 : `s` includes `(l, b)` for some `l < b`
-begin
-  have := @tfae_mem_nhds_within_Ioi (order_dual α) _ _ _ _ _ h s,
-  -- If we call `convert` here, it generates wrong equations, so we need to simplify first
-  simp only [exists_prop] at this ⊢,
-  rw [dual_Ioi, dual_Ioc, dual_Ioo] at this,
-  convert this; ext l; rw [dual_Ioo]
-end
+by simpa only [exists_prop, order_dual.exists, dual_Ioi, dual_Ioc, dual_Ioo]
+    using tfae_mem_nhds_within_Ioi h.dual (of_dual ⁻¹' s)
 
 lemma mem_nhds_within_Iio_iff_exists_mem_Ico_Ioo_subset {a l' : α} {s : set α} (hl' : l' < a) :
   s ∈ 𝓝[Iio a] a ↔ ∃l ∈ Ico l' a, Ioo l a ⊆ s :=
@@ -1415,8 +1408,9 @@ with `l < a`. -/
 lemma mem_nhds_within_Iio_iff_exists_Ico_subset [no_bot_order α] [densely_ordered α]
   {a : α} {s : set α} : s ∈ 𝓝[Iio a] a ↔ ∃l ∈ Iio a, Ico l a ⊆ s :=
 begin
-  convert @mem_nhds_within_Ioi_iff_exists_Ioc_subset (order_dual α) _ _ _ _ _ _ _,
-  simp only [dual_Ioc], refl
+  have : of_dual ⁻¹' s ∈ 𝓝[Ioi (to_dual a)] (to_dual a) ↔ _ :=
+    mem_nhds_within_Ioi_iff_exists_Ioc_subset,
+  simpa only [order_dual.exists, exists_prop, dual_Ioc] using this,
 end
 
 /-- The following statements are equivalent:
@@ -1492,13 +1486,8 @@ lemma tfae_mem_nhds_within_Iic {a b : α} (h : a < b) (s : set α) :
     s ∈ 𝓝[Ioc a b] b,   -- 2 : `s` is a neighborhood of `b` within `(a, b]`
     ∃ l ∈ Ico a b, Ioc l b ⊆ s,    -- 3 : `s` includes `(l, b]` for some `l ∈ [a, b)`
     ∃ l ∈ Iio b, Ioc l b ⊆ s] :=   -- 4 : `s` includes `(l, b]` for some `l < b`
-begin
-  have := @tfae_mem_nhds_within_Ici (order_dual α) _ _ _ _ _ h s,
-  -- If we call `convert` here, it generates wrong equations, so we need to simplify first
-  simp only [exists_prop] at this ⊢,
-  rw [dual_Icc, dual_Ioc, dual_Ioi] at this,
-  convert this; ext l; rw [dual_Ico]
-end
+by simpa only [exists_prop, order_dual.exists, dual_Ici, dual_Ioc, dual_Icc, dual_Ico]
+    using tfae_mem_nhds_within_Ici h.dual (of_dual ⁻¹' s)
 
 lemma mem_nhds_within_Iic_iff_exists_mem_Ico_Ioc_subset {a l' : α} {s : set α} (hl' : l' < a) :
   s ∈ 𝓝[Iic a] a ↔ ∃l ∈ Ico l' a, Ioc l a ⊆ s :=
@@ -2477,12 +2466,9 @@ end
 lemma comap_coe_nhds_within_Ioi_of_Ioo_subset (ha : s ⊆ Ioi a)
   (hs : s.nonempty → ∃ b > a, Ioo a b ⊆ s) :
   comap (coe : s → α) (𝓝[Ioi a] a) = at_bot :=
-begin
-  refine @comap_coe_nhds_within_Iio_of_Ioo_subset (order_dual α) _ _ _ _ _ _ ha (λ h, _),
-  rcases hs h with ⟨b, hab, h⟩,
-  use [b, hab],
-  rwa dual_Ioo
-end
+comap_coe_nhds_within_Iio_of_Ioo_subset
+  (show of_dual ⁻¹' s ⊆ Iio (to_dual a), from ha)
+  (λ h, by simpa only [order_dual.exists, dual_Ioo] using hs h)
 
 lemma map_coe_at_top_of_Ioo_subset (hb : s ⊆ Iio b)
   (hs : ∀ a' < b, ∃ a < b, Ioo a b ⊆ s) :
@@ -2500,10 +2486,10 @@ lemma map_coe_at_bot_of_Ioo_subset (ha : s ⊆ Ioi a)
   (hs : ∀ b' > a, ∃ b > a, Ioo a b ⊆ s) :
   map (coe : s → α) at_bot = (𝓝[Ioi a] a) :=
 begin
-  refine @map_coe_at_top_of_Ioo_subset (order_dual α) _ _ _ _ a s ha (λ b' hb', _),
-  rcases hs b' hb' with ⟨b, hab, hbs⟩,
-  use [b, hab],
-  rwa dual_Ioo
+  -- the elaborator gets stuck without `(... : _)`
+  refine (map_coe_at_top_of_Ioo_subset
+    (show of_dual ⁻¹' s ⊆ Iio (to_dual a), from ha) (λ b' hb', _) : _),
+  simpa only [order_dual.exists, dual_Ioo] using hs b' hb',
 end
 
 /-- The `at_top` filter for an open interval `Ioo a b` comes from the left-neighbourhoods filter at

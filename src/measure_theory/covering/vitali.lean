@@ -7,7 +7,7 @@ import topology.metric_space.basic
 import measure_theory.constructions.borel_space
 
 /-!
-# Vitali covering theorem
+# Vitali covering theorems
 -/
 
 variables {α : Type*}
@@ -23,12 +23,13 @@ When `t` is a family of balls, the `τ`-enlargment of `ball x r` is `ball x ((1+
 it is expressed in terms of a function `δ` (think "radius" or "diameter"), positive and bounded on
 all elements of `t`. The condition is that every element `a` of `t` should intersect an
 element `b` of `u` of size larger than that of `a` up to `τ`, i.e., `δ b ≥ δ a / τ`. -/
-theorem vitali (t : set (set α)) (δ : set α → ℝ) (τ : ℝ) (hτ : 1 < τ) (δpos : ∀ a ∈ t, 0 < δ a)
+theorem vitali_covering
+  (t : set (set α)) (δ : set α → ℝ) (τ : ℝ) (hτ : 1 < τ) (δpos : ∀ a ∈ t, 0 < δ a)
   (R : ℝ) (δle : ∀ a ∈ t, δ a ≤ R) (hne : ∀ a ∈ t, set.nonempty a) :
   ∃ u ⊆ t, u.pairwise_on (disjoint on id) ∧
     ∀ a ∈ t, ∃ b ∈ u, set.nonempty (a ∩ b) ∧ δ a ≤ τ * δ b :=
 begin
-  /- The proof could be formulated by a transfinite induction. First pick an element of `t` with `δ`
+  /- The proof could be formulated as a transfinite induction. First pick an element of `t` with `δ`
   as large as possible (up to a factor of `τ`). Then among the remaining elements not intersecting
   the already chosen one, pick another element with large `δ`. Go on forever (transfinitely) until
   there is nothing left.
@@ -126,6 +127,147 @@ end
 
 open metric measure_theory set
 open_locale nnreal
+
+set_option profiler true
+
+/-- Vitali covering theorem, closed balls version: given a family `t` of closed balls, one can
+extract a disjoint subfamily `u ⊆ t` so that all balls in `t` are covered by the 5-times
+dilations of balls in `u`. -/
+theorem vitali_covering_closed_ball [metric_space α] {β : Type*}
+  (t : set (set α)) (R : ℝ) (ht : ∀ s ∈ t, ∃ x r, s = closed_ball x r ∧ r ≤ R) :
+  ∃ u ⊆ t, u.pairwise_on (disjoint on id) ∧
+    ∀ a ∈ t, ∃ x r, closed_ball x r ∈ u ∧ a ⊆ closed_ball x (5 * r) :=
+begin
+  /- For the proof, one wishes to apply the abstract version of the Vitali covering theorem to the
+  function `δ (closed_ball x r) = r`. This would work directly if all radii were positive. It turns
+  out that the theorem is still true without this positivity assumption, but slightly more painful
+  to write: one applies the abstract Vitali to the subfamily `t'` of `t` made of balls of positive
+  radius, to get a disjoint subfamily `u'`, and then one adds back the balls of radius `0` that
+  are not covered by `⋃₀ u'` (they are automatically pairwise disjoint, and still satisfy the
+  statement). -/
+  -- Exclude the trivial case where `t` is empty (to be able to use `choose!` later).
+  rcases eq_empty_or_nonempty t with rfl|tnonempty,
+  { refine ⟨∅, subset.refl _, by simp⟩ },
+  haveI : inhabited α,
+  { choose s hst using tnonempty,
+    choose x r hxr using ht s hst,
+    exact ⟨x⟩ },
+  -- Exclude the trivial case where `t` is reduced to the empty set.
+  by_cases t_eq_empty : t = {∅},
+  { rw t_eq_empty,
+    refine ⟨{∅}, subset.refl _, _⟩,
+    simp only [true_and, closed_ball_eq_empty, mem_singleton_iff, and_true, empty_subset, forall_eq,
+      pairwise_on_singleton, exists_const],
+    exact ⟨-1, by simp only [right.neg_neg_iff, zero_lt_one]⟩ },
+  -- The real proof starts now. Since the center or the radius of a ball is not uniquely defined
+  -- in a general metric space, we just choose one for definiteness.
+  choose! x r hxr using ht,
+  -- `t'` is the subfamily of balls in `t` with positive radius, to which we will apply
+  -- the abstract Vitali theorem to get a nice subfamily `u'`..
+  let t' := {s' | s' ∈ t ∧ 0 < r s'},
+  obtain ⟨u', u't', u'_disj, hu'⟩ :
+    (∃ (u' : set (set α)) (H : u' ⊆ t'), u'.pairwise_on (disjoint on id) ∧
+      ∀ (a : set α), a ∈ t' → (∃ (b : set α) (H : b ∈ u'), (a ∩ b).nonempty ∧ r a ≤ 2 * r b)),
+  { apply vitali_covering t' r 2 one_lt_two (λ s' hs't', hs't'.2) R
+      (λ s' hs't', (hxr s' hs't'.1).2),
+    assume s' hs't',
+    rw (hxr s' hs't'.1).1,
+    simp only [hs't'.2.le, nonempty_closed_ball] },
+  -- Put in `u''` all the radius 0 elements of `t` that are not covered by `u'`.
+  let u'' := {s | s ∈ t ∧ r s = 0 ∧ s ∩ (⋃₀ u') = ∅},
+  -- Show that `u'` or `u''` is nonempty (otherwise, `t` would be reduced to the empty set, a case
+  -- we have already excluded).
+  have u'u''_nonempty : (u' ∪ u'').nonempty,
+  { simp only [union_nonempty],
+    by_contra,
+    simp only [not_or_distrib, not_nonempty_iff_eq_empty] at h,
+    have : ∃ a ∈ t, a ≠ ∅,
+    { contrapose! t_eq_empty,
+      apply subset.antisymm,
+      { simpa only using t_eq_empty },
+      { rcases tnonempty with ⟨a, hat⟩,
+        have := t_eq_empty a hat,
+        simpa only [this, singleton_subset_iff] using hat } },
+    rcases this with ⟨a, hat, a_nonempty⟩,
+    rcases lt_trichotomy (r a) 0 with ra|ra|ra,
+    { rw [(hxr a hat).1, closed_ball_eq_empty.2 ra] at a_nonempty,
+      exact a_nonempty rfl },
+    { have : a ∈ u'', by simp only [hat, ra, h.left, inter_empty, sUnion_empty, mem_set_of_eq,
+        eq_self_iff_true, and_self],
+      rwa h.2 at this },
+    { rcases hu' a ⟨hat, ra⟩ with ⟨b, bu', hb⟩,
+      rwa h.1 at bu' } },
+  have A : ∀ s ∈ t, r s = 0 → s = {x s},
+  { assume s hst hrs,
+    conv_lhs { rw [(hxr s hst).1, hrs, closed_ball_zero] } },
+  have u'u''t : u' ∪ u'' ⊆ t := union_subset (λ s hs, (u't' hs).1) (λ s hs, hs.1),
+  -- we will now check that `u' ∪ u''` is the desired disjoint family
+  refine ⟨u' ∪ u'', u'u''t, _, _⟩,
+  { -- check that `u' ∪ u''` is disjoint.
+    simp only [pairwise_on_union, u'_disj, true_and, and_imp, mem_set_of_eq, ne.def],
+    simp only [function.on_fun, disjoint.comm, id.def, and_self],
+    split,
+    { assume s hs s' hs' hss',
+      rw [A s hs.1 hs.2.1, A s' hs'.1 hs'.2.1] at ⊢ hss',
+      simpa only [ne.def, singleton_eq_singleton_iff, disjoint_singleton_right] using hss'.symm },
+    { assume s' s'u' a hat ra hinter hne,
+      rw A a hat ra at hinter ⊢,
+      simp only [not_exists, exists_prop, not_and, mem_set_of_eq, singleton_inter_eq_empty]
+        at hinter,
+      simpa only [disjoint_singleton_right] using hinter _ s'u' } },
+  { -- check that any ball of radius `r` in `t` is contained in the 5-dilation of a ball
+    -- in `u' ∪ u''`. This depends on the value of `r`.
+    assume s hst,
+    rcases lt_trichotomy (r s) 0 with rneg|rzero|rpos,
+    -- if `r` is negative (i.e., we are dealing with the empty set), use the fact that `u' ∪ u''`
+    -- is nonempty.
+    { have : s = ∅, by { rw (hxr s hst).1, simp only [rneg, closed_ball_eq_empty] },
+      simp only [this, empty_subset, and_true],
+      rcases u'u''_nonempty with ⟨a, ha⟩,
+      have := hxr a (u'u''t ha),
+      rw this.1 at ha,
+      exact ⟨_, _, ha⟩ },
+    -- if `r` is zero (i.e., we are dealing with a singleton), either it is contained in no element
+    -- of `u'`, and then it is in `u''` and we can use it directly. Or it is contained in an element
+    -- of `u'`, and then we can use this element (no enlargement would be necessary).
+    { rcases eq_empty_or_nonempty (s ∩ ⋃₀ u') with H|H,
+      { refine ⟨x s, 0, _, _⟩,
+        { apply mem_union_right,
+          have : s ∈ u'' := ⟨hst, rzero, H⟩,
+          rwa [A s hst rzero, ← closed_ball_zero] at this },
+        { conv_lhs { rw [A s hst rzero, ← closed_ball_zero] },
+          simp only [imp_self, forall_const, mem_singleton_iff, mul_zero] } },
+      { obtain ⟨a, au', xsa⟩ : ∃ (a : set α), a ∈ u' ∧ x s ∈ a,
+        { rw [A s hst rzero] at H,
+          simpa only [exists_prop, mem_set_of_eq, singleton_inter_nonempty] using H },
+        refine ⟨x a, r a, _, _⟩,
+        { apply mem_union_left,
+          convert au',
+          exact (hxr a (u't' au').1).1.symm },
+        { rw [A s hst rzero, singleton_subset_iff],
+          rw (hxr a (u't' au').1).1 at xsa,
+          apply (closed_ball_subset_closed_ball _) xsa,
+          linarith [(u't' au').2] } } },
+    -- finally, if `r` is positive, we are considering an element `s` in `t'`. By definition
+    -- of `u'`, the set `s` interects an element `a` of `u'` with comparable radius. Then the fact
+    -- that `s` is contained in the 5-dilation of `a` is straightforward.
+    { have st' : s ∈ t' := ⟨hst, rpos⟩,
+      obtain ⟨a, au', sa, rsa⟩ : (∃ (a : set α) (H : a ∈ u'), (s ∩ a).nonempty ∧ r s ≤ 2 * r a) :=
+        hu' s st',
+      refine ⟨x a, r a, _, _⟩,
+      { apply mem_union_left,
+        convert au',
+        exact (hxr a (u't' au').1).1.symm },
+      { rw (hxr s st'.1).1 at sa ⊢,
+        rw (hxr a (u't' au').1).1 at sa,
+        have : dist (x s) (x a) ≤ r s + r a :=
+          dist_le_add_of_nonempty_closed_ball_inter_closed_ball sa,
+        apply closed_ball_subset_closed_ball',
+        linarith } } }
+end
+
+#exit
+
 
 theorem measurable_vitali [metric_space α] [measurable_space α] [opens_measurable_space α]
   (μ : measure α) [is_locally_finite_measure μ] (s : set α)

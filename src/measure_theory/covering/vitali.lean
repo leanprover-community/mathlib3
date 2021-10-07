@@ -8,12 +8,21 @@ import measure_theory.constructions.borel_space
 
 /-!
 # Vitali covering theorems
+
+The topological Vitali covering theorem, in its most classical version, states the following.
+Consider a family of balls `(B (x_i, r_i))_{i ∈ I}` in a metric space, with uniformly bounded
+radii. Then one can extract a disjoint subfamily indexed by `J ⊆ I`, such that any `B (x_i, r_i)`
+is included in a ball `B (x_j, 5 r_j)`.
+
+We prove this theorem in `vitali_covering_closed_ball`. It is deduced from a more general version,
+called `vitali_covering`, which applies to any family of sets together with a size function `δ`
+(think "radius" or "diameter").
 -/
 
 variables {α : Type*}
 
-open set
-open_locale classical
+open set metric measure_theory
+open_locale nnreal classical
 
 /-- Vitali covering theorem: given a set `t` of subsets of a type, one may extract a disjoint
 subfamily `u` such that the `τ`-enlargment of this family covers all elements of `t`, where `τ > 1`
@@ -101,8 +110,8 @@ begin
   { rw pairwise_on_insert_of_symmetric, swap,
     { simp only [function.on_fun, symmetric, disjoint.comm, imp_self, forall_const] },
     exact ⟨uT.2.1, λ b bu ba', a'A.2 b bu⟩ },
-  -- check that every element `c` of `t` intersecting `u ∪ {a'}` intersects an element of this family
-  -- with large `δ`.
+  -- check that every element `c` of `t` intersecting `u ∪ {a'}` intersects an element of this
+  -- family with large `δ`.
   { assume c ct b ba'u hcb,
     -- if `c` already intersects an element of `u`, then it intersects an element of `u` with
     -- large `δ` by the assumption on `u`, and there is nothing left to do.
@@ -111,8 +120,8 @@ begin
       rcases uT.2.2 c ct d du hd with ⟨d', d'u, hd'⟩,
       exact ⟨d', mem_insert_of_mem _ d'u, hd'⟩ },
     -- otherwise, `c` belongs to `A`. The element of `u ∪ {a'}` that it intersects has to be `a'`.
-    -- moreover, `δ c` is smaller than the maximum `m` of `δ` over `A`, which is `≤ δ a' / τ` thanks
-    -- to the good choice of `a'`. This is the desired inequality.
+    -- moreover, `δ c` is smaller than the maximum `m` of `δ` over `A`, which is `≤ δ a' / τ`
+    -- thanks to the good choice of `a'`. This is the desired inequality.
     { push_neg at H,
       simp only [← not_disjoint_iff_nonempty_inter, not_not] at H,
       rcases mem_insert_iff.1 ba'u with rfl|H',
@@ -124,16 +133,10 @@ begin
         exact (hcb (H _ H')).elim } } }
 end
 
-
-open metric measure_theory set
-open_locale nnreal
-
-set_option profiler true
-
 /-- Vitali covering theorem, closed balls version: given a family `t` of closed balls, one can
 extract a disjoint subfamily `u ⊆ t` so that all balls in `t` are covered by the 5-times
 dilations of balls in `u`. -/
-theorem vitali_covering_closed_ball [metric_space α] {β : Type*}
+theorem vitali_covering_closed_ball [metric_space α]
   (t : set (set α)) (R : ℝ) (ht : ∀ s ∈ t, ∃ x r, s = closed_ball x r ∧ r ≤ R) :
   ∃ u ⊆ t, u.pairwise_on (disjoint on id) ∧
     ∀ a ∈ t, ∃ x r, closed_ball x r ∈ u ∧ a ⊆ closed_ball x (5 * r) :=

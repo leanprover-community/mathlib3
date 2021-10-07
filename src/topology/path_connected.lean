@@ -358,6 +358,7 @@ end
 
 /-- For a path `γ`, `γ.truncate` gives a "continuous family of paths", by which we
   mean the uncurried function which maps `(t₀, t₁, s)` to `γ.truncate t₀ t₁ s` is continuous. -/
+@[continuity]
 lemma truncate_continuous_family {X : Type*} [topological_space X] {a b : X}
   (γ : path a b) : continuous (λ x, γ.truncate x.1 x.2.1 x.2.2 : ℝ × ℝ × I → X) :=
 γ.continuous_extend.comp
@@ -370,6 +371,7 @@ lemma truncate_continuous_family {X : Type*} [topological_space X] {a b : X}
       `exact continuous_subtype_coe`
     `end` -/
 
+@[continuity]
 lemma truncate_const_continuous_family {X : Type*} [topological_space X] {a b : X}
   (γ : path a b) (t : ℝ) : continuous ↿(γ.truncate t) :=
 have key : continuous (λ x, (t, x) : ℝ × I → ℝ × ℝ × I) := continuous_const.prod_mk continuous_id,

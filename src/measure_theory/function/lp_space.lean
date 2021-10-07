@@ -75,7 +75,7 @@ function coercion from the coercion to almost everywhere defined functions.
 
 noncomputable theory
 open topological_space measure_theory filter
-open_locale nnreal ennreal big_operators topological_space
+open_locale nnreal ennreal big_operators topological_space measure_theory
 
 lemma fact_one_le_one_ennreal : fact ((1 : ℝ≥0∞) ≤ 1) := ⟨le_refl _⟩
 

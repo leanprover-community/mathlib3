@@ -932,7 +932,7 @@ begin
   refine sum_range_induction _ _ (nat.sub_self _) (λ n, _) _,
   have h₁ : f n ≤ f (n+1) := h (nat.le_succ _),
   have h₂ : f 0 ≤ f n := h (nat.zero_le _),
-  rw [←nat.sub_add_comm h₂, nat.add_sub_cancel' h₁],
+  rw [←nat.sub_add_comm h₂, add_sub_cancel_of_le h₁],
 end
 
 @[simp] lemma prod_const (b : β) : (∏ x in s, b) = b ^ s.card :=
@@ -1043,6 +1043,14 @@ prod_eq_mul_prod_diff_singleton (mem_univ a) f
 lemma _root_.fintype.prod_eq_prod_compl_mul [decidable_eq α] [fintype α] (a : α) (f : α → β) :
   ∏ i, f i = (∏ i in {a}ᶜ, f i) * f a :=
 prod_eq_prod_diff_singleton_mul (mem_univ a) f
+
+lemma dvd_prod_of_mem (f : α → β) {a : α} {s : finset α} (ha : a ∈ s) :
+  f a ∣ ∏ i in s, f i :=
+begin
+  classical,
+  rw finset.prod_eq_mul_prod_diff_singleton ha,
+  exact dvd_mul_right _ _,
+end
 
 /-- A product can be partitioned into a product of products, each equivalent under a setoid. -/
 @[to_additive "A sum can be partitioned into a sum of sums, each equivalent under a setoid."]

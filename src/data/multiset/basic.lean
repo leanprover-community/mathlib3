@@ -529,7 +529,7 @@ def strong_downward_induction {p : multiset α → Sort*} {n : ℕ} (H : ∀ t�
   t₂.card ≤ n → t₁ < t₂ → p t₂) → t₁.card ≤ n → p t₁) :
   ∀ (s : multiset α), s.card ≤ n → p s
 | s := H s (λ t ht h, have n - card t < n - card s,
-     from (nat.sub_lt_sub_left_iff ht).2 (card_lt_of_lt h),
+     from (sub_lt_sub_iff_left_of_le ht).2 (card_lt_of_lt h),
   strong_downward_induction t ht)
 using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ (t : multiset α), n - t.card)⟩]}
 
@@ -1490,13 +1490,16 @@ instance : has_sub (multiset α) := ⟨multiset.sub⟩
 
 @[simp] theorem coe_sub (s t : list α) : (s - t : multiset α) = (s.diff t : list α) := rfl
 
-/-- Use `sub_zero'` instead. -/
+/-- This is a special case of `sub_zero'`, which should be used instead of this.
+  This is needed to prove `has_ordered_sub (multiset α)`. -/
 protected theorem sub_zero (s : multiset α) : s - 0 = s :=
 quot.induction_on s $ λ l, rfl
 
 @[simp] theorem sub_cons (a : α) (s t : multiset α) : s - a ::ₘ t = s.erase a - t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ diff_cons _ _ _
 
+/-- This is a special case of `sub_le_iff_right`, which should be used instead of this.
+  This is needed to prove `has_ordered_sub (multiset α)`. -/
 protected theorem sub_le_iff_le_add : s - t ≤ u ↔ s ≤ u + t :=
 by revert s; exact
 multiset.induction_on t (by simp [multiset.sub_zero])
@@ -1510,31 +1513,31 @@ quotient.induction_on₂ s t $ λ l₁ l₂,
 show ↑(l₁.diff l₂) = foldl erase erase_comm ↑l₁ ↑l₂,
 by { rw diff_eq_foldl l₁ l₂, symmetry, exact foldl_hom _ _ _ _ _ (λ x y, rfl) }
 
-protected theorem add_sub_of_le (h : s ≤ t) : s + (t - s) = t :=
+theorem add_sub_of_le (h : s ≤ t) : s + (t - s) = t :=
 add_sub_cancel_of_le h
 
-protected theorem sub_add' : s - (t + u) = s - t - u :=
+theorem sub_add' : s - (t + u) = s - t - u :=
 sub_add_eq_sub_sub'
 
-protected theorem sub_add_cancel (h : t ≤ s) : s - t + t = s :=
+theorem sub_add_cancel (h : t ≤ s) : s - t + t = s :=
 sub_add_cancel_of_le h
 
-protected theorem add_sub_cancel_left (s : multiset α) : ∀ t, s + t - s = t :=
+@[simp] theorem add_sub_cancel_left (s : multiset α) : ∀ t, s + t - s = t :=
 add_sub_cancel_left s
 
-protected theorem add_sub_cancel (s t : multiset α) : s + t - t = s :=
+@[simp] theorem add_sub_cancel (s t : multiset α) : s + t - t = s :=
 add_sub_cancel_right s t
 
-protected theorem sub_le_sub_right (h : s ≤ t) (u) : s - u ≤ t - u :=
+theorem sub_le_sub_right (h : s ≤ t) (u) : s - u ≤ t - u :=
 sub_le_sub_right' h u
 
-protected theorem sub_le_sub_left (h : s ≤ t) : ∀ u, u - t ≤ u - s :=
+theorem sub_le_sub_left (h : s ≤ t) : ∀ u, u - t ≤ u - s :=
 sub_le_sub_left' h
 
-protected theorem le_sub_add (s t : multiset α) : s ≤ s - t + t :=
+theorem le_sub_add (s t : multiset α) : s ≤ s - t + t :=
 le_sub_add -- implicit args
 
-protected theorem sub_le_self (s t : multiset α) : s - t ≤ s :=
+theorem sub_le_self (s t : multiset α) : s - t ≤ s :=
 sub_le_self' -- implicit args
 
 @[simp] theorem card_sub {s t : multiset α} (h : t ≤ s) : card (s - t) = card s - card t :=

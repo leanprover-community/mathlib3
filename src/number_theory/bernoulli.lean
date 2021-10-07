@@ -84,7 +84,7 @@ lemma bernoulli'_spec' (n : ℕ) :
 begin
   refine ((sum_antidiagonal_eq_sum_range_succ_mk _ n).trans _).trans (bernoulli'_spec n),
   refine sum_congr rfl (λ x hx, _),
-  simp only [nat.add_sub_cancel', mem_range_succ_iff.mp hx, cast_sub],
+  simp only [add_sub_cancel_of_le, mem_range_succ_iff.mp hx, cast_sub],
 end
 
 /-! ### Examples -/
@@ -121,7 +121,7 @@ begin
   congr',
   have : ((n - k : ℕ) : ℚ) + 1 ≠ 0 := by apply_mod_cast succ_ne_zero,
   field_simp [← cast_sub (mem_range.1 hk).le, mul_comm],
-  rw_mod_cast [nat.sub_add_eq_add_sub (mem_range.1 hk).le, choose_mul_succ_eq],
+  rw_mod_cast [sub_add_eq_add_sub' (mem_range.1 hk).le, choose_mul_succ_eq],
 end
 
 /-- The exponential generating function for the Bernoulli numbers `bernoulli' n`. -/

@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.limits.preserves.limits
+import category_theory.currying
+import category_theory.products
 
 open category_theory category_theory.category
 
@@ -241,5 +243,55 @@ instance evaluation_preserves_limits [has_limits C] (k : K) :
 instance evaluation_preserves_colimits [has_colimits C] (k : K) :
   preserves_colimits ((evaluation K C).obj k) :=
 { preserves_colimits_of_shape := λ J 𝒥, by resetI; apply_instance }
+
+open category_theory.prod
+
+/--
+For a functor `G : J ⥤ K ⥤ C`, its limit `K ⥤ C` is given by `(G' : K ⥤ J ⥤ C) ⋙ lim`.
+Note that this does not require `K` to be small.
+-/
+@[simps] def limit_iso_swap_comp_lim [has_limits_of_shape J C] (G : J ⥤ K ⥤ C) [has_limit G] :
+  limit G ≅ curry.obj (swap K J ⋙ uncurry.obj G) ⋙ lim :=
+nat_iso.of_components (λ Y, limit_obj_iso_limit_comp_evaluation G Y ≪≫
+  (lim.map_iso (eq_to_iso (by
+  { apply functor.hext,
+    { intro X, simp },
+    { intros X₁ X₂ f, dsimp only [swap], simp }}))))
+  begin
+    intros Y₁ Y₂ f,
+    ext1 x,
+    dsimp only [swap],
+    simp only [limit_obj_iso_limit_comp_evaluation_hom_π_assoc, category.comp_id,
+      limit_obj_iso_limit_comp_evaluation_hom_π, eq_to_iso.hom, curry.obj_map_app,
+      nat_trans.naturality, category.id_comp, eq_to_hom_refl, functor.comp_map,
+      eq_to_hom_app, lim_map_π_assoc, lim_map_π, category.assoc,
+      uncurry.obj_map, lim_map_eq_lim_map, iso.trans_hom,
+      nat_trans.id_app, category_theory.functor.map_id, functor.map_iso_hom],
+    erw category.id_comp,
+  end
+
+/--
+For a functor `G : J ⥤ K ⥤ C`, its colimit `K ⥤ C` is given by `(G' : K ⥤ J ⥤ C) ⋙ colim`.
+Note that this does not require `K` to be small.
+-/
+@[simps]
+def colimit_iso_swap_comp_colim [has_colimits_of_shape J C] (G : J ⥤ K ⥤ C) [has_colimit G] :
+  colimit G ≅ curry.obj (swap K J ⋙ uncurry.obj G) ⋙ colim :=
+nat_iso.of_components (λ Y, colimit_obj_iso_colimit_comp_evaluation G Y ≪≫
+  (colim.map_iso (eq_to_iso (by
+  { apply functor.hext,
+    { intro X, simp },
+    { intros X Y f, dsimp only [swap], simp, } }))))
+  begin
+    intros Y₁ Y₂ f,
+    ext1 x,
+    rw ← (colimit.ι G x).naturality_assoc f,
+    dsimp only [swap],
+    simp only [eq_to_iso.hom, colimit_obj_iso_colimit_comp_evaluation_ι_app_hom_assoc,
+      curry.obj_map_app, colimit.ι_map, category.id_comp, eq_to_hom_refl, iso.trans_hom,
+      functor.comp_map, eq_to_hom_app, colimit.ι_map_assoc, functor.map_iso_hom,
+      category.assoc, uncurry.obj_map, nat_trans.id_app, category_theory.functor.map_id],
+    erw category.id_comp,
+  end
 
 end category_theory.limits

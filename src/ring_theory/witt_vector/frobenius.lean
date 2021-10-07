@@ -57,7 +57,7 @@ open_locale big_operators
 variables (p)
 include hp
 
-/-- The rational polynomials that give the coefficients of `frobenius x`,
+/-- The rational funcions that give the coefficients of `frobenius x`,
 in terms of the coefficients of `x`.
 These polynomials actually have integral coefficients,
 see `frobenius_poly` and `map_frobenius_poly`. -/

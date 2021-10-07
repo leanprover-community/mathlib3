@@ -8,42 +8,42 @@ import algebra.gcd_monoid.euclidean_domain
 import ring_theory.localization
 
 /-!
-# The field of rational polynomials
+# The field of rational funcions
 
-This file defines the field `ratpoly K` of rational polynomials over a field `K`,
+This file defines the field `ratfunc K` of rational funcions over a field `K`,
 and shows it is the field of fractions of `polynomial K`.
 
 ## Main definitions
 
-Working with rational polynomials as polynomials:
- - `ratpoly.field` provides a field structure
- - `ratpoly.C` is the constant polynomial
- - `ratpoly.X` is the indeterminate
- - `ratpoly.eval` evaluates a rational polynomial given a value for the indeterminate
-Use `algebra_map` to map polynomials to rational polynomials and `is_fraction_ring.alg_equiv`
-to map other fields of fractions of `polynomial K` to `ratpoly K`.
+Working with rational funcions as polynomials:
+ - `ratfunc.field` provides a field structure
+ - `ratfunc.C` is the constant polynomial
+ - `ratfunc.X` is the indeterminate
+ - `ratfunc.eval` evaluates a rational funcion given a value for the indeterminate
+Use `algebra_map` to map polynomials to rational funcions and `is_fraction_ring.alg_equiv`
+to map other fields of fractions of `polynomial K` to `ratfunc K`.
 
-Working with rational polynomials as fractions:
- - `ratpoly.num` and `ratpoly.denom` give the numerator and denominator.
-   These values are chosen to be coprime and such that `ratpoly.denom` is monic.
+Working with rational funcions as fractions:
+ - `ratfunc.num` and `ratfunc.denom` give the numerator and denominator.
+   These values are chosen to be coprime and such that `ratfunc.denom` is monic.
 
 We also have a set of recursion and induction principles:
- - `ratpoly.lift_on`: define a function by mapping a fraction of polynomials `p/q` to `f p q`,
+ - `ratfunc.lift_on`: define a function by mapping a fraction of polynomials `p/q` to `f p q`,
    if `f` is well-defined in the sense that `p/q = p'/q' → f p q = f p' q'`.
- - `ratpoly.lift_on'`: define a function by mapping a fraction of polynomials `p/q` to `f p q`,
+ - `ratfunc.lift_on'`: define a function by mapping a fraction of polynomials `p/q` to `f p q`,
    if `f` is well-defined in the sense that `f (a * p) (a * q) = f p' q'`.
- - `ratpoly.induction_on`: if `P` holds on `p / q` for all polynomials `p q`, then `P` holds on all
-   rational polynomials
+ - `ratfunc.induction_on`: if `P` holds on `p / q` for all polynomials `p q`, then `P` holds on all
+   rational funcions
 
 ## Implementation notes
 
 To provide good API encapsulation and speed up unification problems,
-`ratpoly` is defined as a structure, and all operations are `@[irreducible] def`s
+`ratfunc` is defined as a structure, and all operations are `@[irreducible] def`s
 
 We need a couple of maps to set up the `field` and `is_fraction_ring` structure,
-namely `ratpoly.of_fraction_ring`, `ratpoly.to_fraction_ring`, `ratpoly.mk` and
-`ratpoly.aux_equiv`.
-All these maps get `simp`ed to bundled morphisms like `algebra_map (polynomial K) (ratpoly K)`
+namely `ratfunc.of_fraction_ring`, `ratfunc.to_fraction_ring`, `ratfunc.mk` and
+`ratfunc.aux_equiv`.
+All these maps get `simp`ed to bundled morphisms like `algebra_map (polynomial K) (ratfunc K)`
 and `is_localization.alg_equiv`.
 -/
 
@@ -55,82 +55,82 @@ universes u v
 
 variables (K : Type u) [field K]
 
-/-- `ratpoly K` is `K(x)`, the field of rational polynomials over `K`.
+/-- `ratfunc K` is `K(x)`, the field of rational funcions over `K`.
 
-The inclusion of polynomials into `ratpoly` is `algebra_map (polynomial K) (ratpoly K)`,
-the maps between `ratpoly K` and another field of fractions of `polynomial K`,
+The inclusion of polynomials into `ratfunc` is `algebra_map (polynomial K) (ratfunc K)`,
+the maps between `ratfunc K` and another field of fractions of `polynomial K`,
 especially `fraction_ring (polynomial K)`, are given by `is_localization.algebra_equiv`.
 -/
-structure ratpoly : Type u := of_fraction_ring ::
+structure ratfunc : Type u := of_fraction_ring ::
 (to_fraction_ring : fraction_ring (polynomial K))
 
-namespace ratpoly
+namespace ratfunc
 
 variables {K}
 
 section rec
 
-/-! ### Constructing `ratpoly`s and their induction principles -/
+/-! ### Constructing `ratfunc`s and their induction principles -/
 
-lemma of_fraction_ring_injective : function.injective (of_fraction_ring : _ → ratpoly K) :=
+lemma of_fraction_ring_injective : function.injective (of_fraction_ring : _ → ratfunc K) :=
 λ x y, of_fraction_ring.inj
 
 lemma to_fraction_ring_injective :
   function.injective (to_fraction_ring : _ → fraction_ring (polynomial K))
 | ⟨x⟩ ⟨y⟩ rfl := rfl
 
-/-- `ratpoly.mk (p q : polynomial K)` is `p / q` as a rational polynomial.
+/-- `ratfunc.mk (p q : polynomial K)` is `p / q` as a rational funcion.
 
 If `q = 0`, then `mk` returns 0.
 
-This is an auxiliary definition used to define an `algebra` structure on `ratpoly`;
+This is an auxiliary definition used to define an `algebra` structure on `ratfunc`;
 the `simp` normal form of `mk p q` is `algebra_map _ _ p / algebra_map _ _ q`.
 -/
-@[irreducible] protected def mk (p q : polynomial K) : ratpoly K :=
+@[irreducible] protected def mk (p q : polynomial K) : ratfunc K :=
 of_fraction_ring (algebra_map _ _ p / algebra_map _ _ q)
 
 lemma mk_eq_div' (p q : polynomial K) :
-  ratpoly.mk p q = of_fraction_ring (algebra_map _ _ p / algebra_map _ _ q) :=
-by unfold ratpoly.mk
+  ratfunc.mk p q = of_fraction_ring (algebra_map _ _ p / algebra_map _ _ q) :=
+by unfold ratfunc.mk
 
-lemma mk_zero (p : polynomial K) : ratpoly.mk p 0 = of_fraction_ring 0 :=
+lemma mk_zero (p : polynomial K) : ratfunc.mk p 0 = of_fraction_ring 0 :=
 by rw [mk_eq_div', ring_hom.map_zero, div_zero]
 
 lemma mk_coe_def (p : polynomial K) (q : (polynomial K)⁰) :
-  ratpoly.mk p q = of_fraction_ring (is_localization.mk' _ p q) :=
+  ratfunc.mk p q = of_fraction_ring (is_localization.mk' _ p q) :=
 by simp only [mk_eq_div', ← localization.mk_eq_mk', fraction_ring.mk_eq_div]
 
 lemma mk_def_of_mem (p : polynomial K) {q} (hq : q ∈ (polynomial K)⁰) :
-  ratpoly.mk p q = of_fraction_ring (is_localization.mk' _ p ⟨q, hq⟩) :=
+  ratfunc.mk p q = of_fraction_ring (is_localization.mk' _ p ⟨q, hq⟩) :=
 by simp only [← mk_coe_def, set_like.coe_mk]
 
 lemma mk_def_of_ne (p : polynomial K) {q : polynomial K} (hq : q ≠ 0) :
-  ratpoly.mk p q = of_fraction_ring (is_localization.mk' _ p
+  ratfunc.mk p q = of_fraction_ring (is_localization.mk' _ p
     ⟨q, mem_non_zero_divisors_iff_ne_zero.mpr hq⟩) :=
 mk_def_of_mem p _
 
 lemma mk_eq_localization_mk (p : polynomial K) {q : polynomial K} (hq : q ≠ 0) :
-  ratpoly.mk p q = of_fraction_ring (localization.mk p
+  ratfunc.mk p q = of_fraction_ring (localization.mk p
     ⟨q, mem_non_zero_divisors_iff_ne_zero.mpr hq⟩) :=
 by rw [mk_def_of_ne, localization.mk_eq_mk']
 
-lemma mk_one' (p : polynomial K) : ratpoly.mk p 1 = of_fraction_ring (algebra_map _ _ p) :=
+lemma mk_one' (p : polynomial K) : ratfunc.mk p 1 = of_fraction_ring (algebra_map _ _ p) :=
 by rw [← is_localization.mk'_one (fraction_ring (polynomial K)) p, ← mk_coe_def, submonoid.coe_one]
 
 lemma mk_eq_mk {p q p' q' : polynomial K} (hq : q ≠ 0) (hq' : q' ≠ 0) :
-  ratpoly.mk p q = ratpoly.mk p' q' ↔ p * q' = p' * q :=
+  ratfunc.mk p q = ratfunc.mk p' q' ↔ p * q' = p' * q :=
 by rw [mk_def_of_ne _ hq, mk_def_of_ne _ hq', of_fraction_ring_injective.eq_iff,
        is_localization.mk'_eq_iff_eq, set_like.coe_mk, set_like.coe_mk,
        (is_fraction_ring.injective (polynomial K) (fraction_ring (polynomial K))).eq_iff]
 
-/-- Non-dependent recursion principle for `ratpoly K`: if `f p q : P` for all `p q`,
+/-- Non-dependent recursion principle for `ratfunc K`: if `f p q : P` for all `p q`,
 such that `p * q' = p' * q` implies `f p q = f p' q'`, then we can find a value of `P`
-for all elements of `ratpoly K` by setting `lift_on (p / q) f _ = f p q`.
+for all elements of `ratfunc K` by setting `lift_on (p / q) f _ = f p q`.
 
 The value of `f p 0` for any `p` is never used and in principle this may be anything,
 although many usages of `lift_on` assume `f p 0 = f 0 1`.
 -/
-@[irreducible] protected def lift_on {P : Sort v} (x : ratpoly K)
+@[irreducible] protected def lift_on {P : Sort v} (x : ratfunc K)
   (f : ∀ (p q : polynomial K), P)
   (H : ∀ {p q p' q'} (hq : q ≠ 0) (hq' : q' ≠ 0), p * q' = p' * q → f p q = f p' q') :
   P :=
@@ -143,9 +143,9 @@ localization.lift_on (to_fraction_ring x) (λ p q, f p q) (λ p p' q q' h, H
 lemma lift_on_mk {P : Sort v} (p q : polynomial K)
   (f : ∀ (p q : polynomial K), P) (f0 : ∀ p, f p 0 = f 0 1)
   (H : ∀ {p q p' q'} (hq : q ≠ 0) (hq' : q' ≠ 0), p * q' = p' * q → f p q = f p' q') :
-  (ratpoly.mk p q).lift_on f @H = f p q :=
+  (ratfunc.mk p q).lift_on f @H = f p q :=
 begin
-  unfold ratpoly.lift_on,
+  unfold ratfunc.lift_on,
   by_cases hq : q = 0,
   { subst hq,
     simp only [mk_zero, f0, ← localization.mk_zero 1, localization.lift_on_mk,
@@ -153,14 +153,14 @@ begin
   { simp only [mk_eq_localization_mk _ hq, localization.lift_on_mk, set_like.coe_mk] }
 end
 
-/-- Non-dependent recursion principle for `ratpoly K`: if `f p q : P` for all `p q`,
+/-- Non-dependent recursion principle for `ratfunc K`: if `f p q : P` for all `p q`,
 such that `f (a * p) (a * q) = f p q`, then we can find a value of `P`
-for all elements of `ratpoly K` by setting `lift_on' (p / q) f _ = f p q`.
+for all elements of `ratfunc K` by setting `lift_on' (p / q) f _ = f p q`.
 
 The value of `f p 0` for any `p` is never used and in principle this may be anything,
 although many usages of `lift_on'` assume `f p 0 = f 0 1`.
 -/
-@[irreducible] protected def lift_on' {P : Sort v} (x : ratpoly K)
+@[irreducible] protected def lift_on' {P : Sort v} (x : ratfunc K)
   (f : ∀ (p q : polynomial K), P)
   (H : ∀ {p q a} (hq : q ≠ 0) (ha : a ≠ 0), f (a * p) (a * q) = f p q) :
   P :=
@@ -181,16 +181,16 @@ end)
 lemma lift_on'_mk {P : Sort v} (p q : polynomial K)
   (f : ∀ (p q : polynomial K), P) (f0 : ∀ p, f p 0 = f 0 1)
   (H : ∀ {p q a} (hq : q ≠ 0) (ha : a ≠ 0), f (a * p) (a * q) = f p q) :
-  (ratpoly.mk p q).lift_on' f @H = f p q :=
-by rw [ratpoly.lift_on', ratpoly.lift_on_mk _ _ _ f0]
+  (ratfunc.mk p q).lift_on' f @H = f p q :=
+by rw [ratfunc.lift_on', ratfunc.lift_on_mk _ _ _ f0]
 
-/-- Induction principle for `ratpoly K`: if `f p q : P (ratpoly.mk p q)` for all `p q`,
-then `P` holds on all elements of `ratpoly K`.
+/-- Induction principle for `ratfunc K`: if `f p q : P (ratfunc.mk p q)` for all `p q`,
+then `P` holds on all elements of `ratfunc K`.
 
 See also `induction_on`, which is a recursion principle defined in terms of `algebra_map`.
 -/
-@[irreducible] protected lemma induction_on' {P : ratpoly K → Prop} :
-  Π (x : ratpoly K) (f : ∀ (p q : polynomial K) (hq : q ≠ 0), P (ratpoly.mk p q)), P x
+@[irreducible] protected lemma induction_on' {P : ratfunc K → Prop} :
+  Π (x : ratfunc K) (f : ∀ (p q : polynomial K) (hq : q ≠ 0), P (ratfunc.mk p q)), P x
 | ⟨x⟩ f := localization.induction_on x
   (λ ⟨p, q⟩, by simpa only [mk_coe_def, localization.mk_eq_mk'] using f p q
     (mem_non_zero_divisors_iff_ne_zero.mp q.2))
@@ -201,68 +201,68 @@ section field
 
 /-! ### Defining the field structure -/
 
-/-- The zero rational polynomial. -/
-@[irreducible] protected def zero : ratpoly K := ⟨0⟩
-instance : has_zero (ratpoly K) := ⟨ratpoly.zero⟩
-lemma of_fraction_ring_zero : (of_fraction_ring 0 : ratpoly K) = 0 :=
-by unfold has_zero.zero ratpoly.zero
+/-- The zero rational funcion. -/
+@[irreducible] protected def zero : ratfunc K := ⟨0⟩
+instance : has_zero (ratfunc K) := ⟨ratfunc.zero⟩
+lemma of_fraction_ring_zero : (of_fraction_ring 0 : ratfunc K) = 0 :=
+by unfold has_zero.zero ratfunc.zero
 
-/-- Addition of rational polynomials. -/
-@[irreducible] protected def add : ratpoly K → ratpoly K → ratpoly K
+/-- Addition of rational funcions. -/
+@[irreducible] protected def add : ratfunc K → ratfunc K → ratfunc K
 | ⟨p⟩ ⟨q⟩ := ⟨p + q⟩
-instance : has_add (ratpoly K) := ⟨ratpoly.add⟩
+instance : has_add (ratfunc K) := ⟨ratfunc.add⟩
 lemma of_fraction_ring_add (p q : fraction_ring (polynomial K)) :
   of_fraction_ring (p + q) = of_fraction_ring p + of_fraction_ring q :=
-by unfold has_add.add ratpoly.add
+by unfold has_add.add ratfunc.add
 
-/-- Subtraction of rational polynomials. -/
-@[irreducible] protected def sub : ratpoly K → ratpoly K → ratpoly K
+/-- Subtraction of rational funcions. -/
+@[irreducible] protected def sub : ratfunc K → ratfunc K → ratfunc K
 | ⟨p⟩ ⟨q⟩ := ⟨p - q⟩
-instance : has_sub (ratpoly K) := ⟨ratpoly.sub⟩
+instance : has_sub (ratfunc K) := ⟨ratfunc.sub⟩
 lemma of_fraction_ring_sub (p q : fraction_ring (polynomial K)) :
   of_fraction_ring (p - q) = of_fraction_ring p - of_fraction_ring q :=
-by unfold has_sub.sub ratpoly.sub
+by unfold has_sub.sub ratfunc.sub
 
-/-- Additive inverse of a rational polynomial. -/
-@[irreducible] protected def neg : ratpoly K → ratpoly K
+/-- Additive inverse of a rational funcion. -/
+@[irreducible] protected def neg : ratfunc K → ratfunc K
 | ⟨p⟩ := ⟨-p⟩
-instance : has_neg (ratpoly K) := ⟨ratpoly.neg⟩
+instance : has_neg (ratfunc K) := ⟨ratfunc.neg⟩
 lemma of_fraction_ring_neg (p : fraction_ring (polynomial K)) :
   of_fraction_ring (-p) = - of_fraction_ring p :=
-by unfold has_neg.neg ratpoly.neg
+by unfold has_neg.neg ratfunc.neg
 
-/-- The multiplicative unit of rational polynomials. -/
-@[irreducible] protected def one : ratpoly K := ⟨1⟩
-instance : has_one (ratpoly K) := ⟨ratpoly.one⟩
-lemma of_fraction_ring_one : (of_fraction_ring 1 : ratpoly K) = 1 :=
-by unfold has_one.one ratpoly.one
+/-- The multiplicative unit of rational funcions. -/
+@[irreducible] protected def one : ratfunc K := ⟨1⟩
+instance : has_one (ratfunc K) := ⟨ratfunc.one⟩
+lemma of_fraction_ring_one : (of_fraction_ring 1 : ratfunc K) = 1 :=
+by unfold has_one.one ratfunc.one
 
-/-- Multiplication of rational polynomials. -/
-@[irreducible] protected def mul : ratpoly K → ratpoly K → ratpoly K
+/-- Multiplication of rational funcions. -/
+@[irreducible] protected def mul : ratfunc K → ratfunc K → ratfunc K
 | ⟨p⟩ ⟨q⟩ := ⟨p * q⟩
-instance : has_mul (ratpoly K) := ⟨ratpoly.mul⟩
+instance : has_mul (ratfunc K) := ⟨ratfunc.mul⟩
 lemma of_fraction_ring_mul (p q : fraction_ring (polynomial K)) :
   of_fraction_ring (p * q) = of_fraction_ring p * of_fraction_ring q :=
-by unfold has_mul.mul ratpoly.mul
+by unfold has_mul.mul ratfunc.mul
 
-/-- Division of rational polynomials. -/
-@[irreducible] protected def div : ratpoly K → ratpoly K → ratpoly K
+/-- Division of rational funcions. -/
+@[irreducible] protected def div : ratfunc K → ratfunc K → ratfunc K
 | ⟨p⟩ ⟨q⟩ := ⟨p / q⟩
-instance : has_div (ratpoly K) := ⟨ratpoly.div⟩
+instance : has_div (ratfunc K) := ⟨ratfunc.div⟩
 lemma of_fraction_ring_div (p q : fraction_ring (polynomial K)) :
   of_fraction_ring (p / q) = of_fraction_ring p / of_fraction_ring q :=
-by unfold has_div.div ratpoly.div
+by unfold has_div.div ratfunc.div
 
-/-- Multiplicative inverse of a rational polynomial. -/
-@[irreducible] protected def inv : ratpoly K → ratpoly K
+/-- Multiplicative inverse of a rational funcion. -/
+@[irreducible] protected def inv : ratfunc K → ratfunc K
 | ⟨p⟩ := ⟨p⁻¹⟩
-instance : has_inv (ratpoly K) := ⟨ratpoly.inv⟩
+instance : has_inv (ratfunc K) := ⟨ratfunc.inv⟩
 lemma of_fraction_ring_inv (p : fraction_ring (polynomial K)) :
   of_fraction_ring (p⁻¹) = (of_fraction_ring p)⁻¹ :=
-by unfold has_inv.inv ratpoly.inv
+by unfold has_inv.inv ratfunc.inv
 
 -- Auxiliary lemma for the `field` instance
-lemma mul_inv_cancel : ∀ {p : ratpoly K} (hp : p ≠ 0), p * p⁻¹ = 1
+lemma mul_inv_cancel : ∀ {p : ratfunc K} (hp : p ≠ 0), p * p⁻¹ = 1
 | ⟨p⟩ h := have p ≠ 0 := λ hp, h $ by rw [hp, of_fraction_ring_zero],
 by simpa only [← of_fraction_ring_inv, ← of_fraction_ring_mul, ← of_fraction_ring_one]
   using _root_.mul_inv_cancel this
@@ -274,33 +274,33 @@ variables [is_scalar_tower R (polynomial K) (polynomial K)]
 
 -- Can't define this in terms of `localization.has_scalar`, because that one
 -- is not general enough.
-instance : has_scalar R (ratpoly K) :=
-⟨λ c p, p.lift_on (λ p q, ratpoly.mk (c • p) q) (λ p q p' q' hq hq' h, (mk_eq_mk hq hq').mpr $
+instance : has_scalar R (ratfunc K) :=
+⟨λ c p, p.lift_on (λ p q, ratfunc.mk (c • p) q) (λ p q p' q' hq hq' h, (mk_eq_mk hq hq').mpr $
   by rw [smul_mul_assoc, h, smul_mul_assoc])⟩
 
 lemma mk_smul (c : R) (p q : polynomial K) :
-  ratpoly.mk (c • p) q = c • ratpoly.mk p q :=
-show ratpoly.mk (c • p) q = (ratpoly.mk p q).lift_on _ _,
-from symm $ (lift_on_mk p q _ (λ p, show ratpoly.mk (c • p) 0 = ratpoly.mk (c • 0) 1,
+  ratfunc.mk (c • p) q = c • ratfunc.mk p q :=
+show ratfunc.mk (c • p) q = (ratfunc.mk p q).lift_on _ _,
+from symm $ (lift_on_mk p q _ (λ p, show ratfunc.mk (c • p) 0 = ratfunc.mk (c • 0) 1,
   by rw [mk_zero, smul_zero, mk_eq_localization_mk (0 : polynomial K) one_ne_zero,
          localization.mk_zero]) _)
 
-instance : is_scalar_tower R (polynomial K) (ratpoly K) :=
+instance : is_scalar_tower R (polynomial K) (ratfunc K) :=
 ⟨λ c p q, q.induction_on' (λ q r _, by rw [← mk_smul, smul_assoc, mk_smul, mk_smul])⟩
 
 end has_scalar
 
 variables (K)
 
-instance : inhabited (ratpoly K) :=
+instance : inhabited (ratfunc K) :=
 ⟨0⟩
-instance : nontrivial (ratpoly K) :=
+instance : nontrivial (ratfunc K) :=
 ⟨⟨0, 1, mt (congr_arg to_fraction_ring) $
   by simpa only [← of_fraction_ring_zero, ← of_fraction_ring_one] using zero_ne_one⟩⟩
 
-/-- Solve equations for `ratpoly K` by working in `fraction_ring (polynomial K)`. -/
+/-- Solve equations for `ratfunc K` by working in `fraction_ring (polynomial K)`. -/
 meta def frac_tac : tactic unit :=
-`[repeat { rintro (⟨⟩ : ratpoly _) },
+`[repeat { rintro (⟨⟩ : ratfunc _) },
   simp only [← of_fraction_ring_zero, ← of_fraction_ring_add, ← of_fraction_ring_sub,
     ← of_fraction_ring_neg, ← of_fraction_ring_one, ← of_fraction_ring_mul, ← of_fraction_ring_div,
     ← of_fraction_ring_inv,
@@ -308,9 +308,9 @@ meta def frac_tac : tactic unit :=
     add_comm, add_left_comm, mul_comm, mul_left_comm, sub_eq_add_neg, div_eq_mul_inv,
     add_mul, zero_mul, one_mul, ← neg_mul_eq_neg_mul, ← neg_mul_eq_mul_neg, add_right_neg]]
 
-/-- Solve equations for `ratpoly K` by applying `ratpoly.induction_on`. -/
+/-- Solve equations for `ratfunc K` by applying `ratfunc.induction_on`. -/
 meta def smul_tac : tactic unit :=
-`[repeat { rintro (x : ratpoly _) <|> intro },
+`[repeat { rintro (x : ratfunc _) <|> intro },
   refine x.induction_on' (λ p q hq, _),
   simp_rw [← mk_smul, mk_eq_localization_mk _ hq],
   simp only [add_comm, mul_comm, zero_smul, succ_nsmul, gsmul_eq_mul, mul_add, mul_one, mul_zero,
@@ -320,7 +320,7 @@ meta def smul_tac : tactic unit :=
     localization.mk_zero, localization.add_mk_self, localization.neg_mk,
     of_fraction_ring_zero, ← of_fraction_ring_add, ← of_fraction_ring_neg]]
 
-instance : field (ratpoly K) :=
+instance : field (ratfunc K) :=
 { add := (+),
   add_assoc := by frac_tac,
   add_comm := by frac_tac,
@@ -353,17 +353,17 @@ instance : field (ratpoly K) :=
   gsmul_neg' := by smul_tac,
   npow := npow_rec,
   gpow := gpow_rec,
-  .. ratpoly.nontrivial K }
+  .. ratfunc.nontrivial K }
 
 end field
 
 section is_fraction_ring
 
-/-! ### `ratpoly` as field of fractions of `polynomial` -/
+/-! ### `ratfunc` as field of fractions of `polynomial` -/
 
 instance (R : Type*) [comm_semiring R] [algebra R (polynomial K)] :
-  algebra R (ratpoly K) :=
-{ to_fun := λ x, ratpoly.mk (algebra_map _ _ x) 1,
+  algebra R (ratfunc K) :=
+{ to_fun := λ x, ratfunc.mk (algebra_map _ _ x) 1,
   map_add' := λ x y, by simp only [mk_one', ring_hom.map_add, of_fraction_ring_add],
   map_mul' := λ x y, by simp only [mk_one', ring_hom.map_mul, of_fraction_ring_mul],
   map_one' := by simp only [mk_one', ring_hom.map_one, of_fraction_ring_one],
@@ -376,14 +376,14 @@ instance (R : Type*) [comm_semiring R] [algebra R (polynomial K)] :
 
 variables {K}
 
-lemma mk_one (x : polynomial K) : ratpoly.mk x 1 = algebra_map _ _ x := rfl
+lemma mk_one (x : polynomial K) : ratfunc.mk x 1 = algebra_map _ _ x := rfl
 
 lemma of_fraction_ring_algebra_map (x : polynomial K) :
   of_fraction_ring (algebra_map _ (fraction_ring (polynomial K)) x) = algebra_map _ _ x :=
 by rw [← mk_one, mk_one']
 
 @[simp] lemma mk_eq_div (p q : polynomial K) :
-  ratpoly.mk p q = (algebra_map _ _ p / algebra_map _ _ q) :=
+  ratfunc.mk p q = (algebra_map _ _ p / algebra_map _ _ q) :=
 by simp only [mk_eq_div', of_fraction_ring_div, of_fraction_ring_algebra_map]
 
 variables (K)
@@ -392,29 +392,29 @@ lemma of_fraction_ring_comp_algebra_map :
   of_fraction_ring ∘ algebra_map (polynomial K) (fraction_ring (polynomial K)) = algebra_map _ _ :=
 funext of_fraction_ring_algebra_map
 
-lemma algebra_map_injective : function.injective (algebra_map (polynomial K) (ratpoly K)) :=
+lemma algebra_map_injective : function.injective (algebra_map (polynomial K) (ratfunc K)) :=
 begin
   rw ← of_fraction_ring_comp_algebra_map,
   exact of_fraction_ring_injective.comp (is_fraction_ring.injective _ _),
 end
 
 @[simp] lemma algebra_map_eq_zero_iff {x : polynomial K} :
-  algebra_map (polynomial K) (ratpoly K) x = 0 ↔ x = 0 :=
+  algebra_map (polynomial K) (ratfunc K) x = 0 ↔ x = 0 :=
 ⟨(ring_hom.injective_iff _).mp (algebra_map_injective K) _, λ hx, by rw [hx, ring_hom.map_zero]⟩
 
 variables {K}
 
 lemma algebra_map_ne_zero {x : polynomial K} (hx : x ≠ 0) :
-  algebra_map (polynomial K) (ratpoly K) x ≠ 0 :=
+  algebra_map (polynomial K) (ratfunc K) x ≠ 0 :=
 mt (algebra_map_eq_zero_iff K).mp hx
 
 variables (K)
 
-/-- `ratpoly K` is isomorphic to the field of fractions of `polynomial K`, as rings.
+/-- `ratfunc K` is isomorphic to the field of fractions of `polynomial K`, as rings.
 
 This is an auxiliary definition; `simp`-normal form is `is_localization.alg_equiv`.
 -/
-def aux_equiv : fraction_ring (polynomial K) ≃+* ratpoly K :=
+def aux_equiv : fraction_ring (polynomial K) ≃+* ratfunc K :=
 { to_fun := of_fraction_ring,
   inv_fun := to_fraction_ring,
   left_inv := λ x, rfl,
@@ -422,8 +422,8 @@ def aux_equiv : fraction_ring (polynomial K) ≃+* ratpoly K :=
   map_add' := of_fraction_ring_add,
   map_mul' := of_fraction_ring_mul }
 
-/-- `ratpoly K` is the field of fractions of the polynomials over `K`. -/
-instance : is_fraction_ring (polynomial K) (ratpoly K) :=
+/-- `ratfunc K` is the field of fractions of the polynomials over `K`. -/
+instance : is_fraction_ring (polynomial K) (ratfunc K) :=
 { map_units := λ y, by rw ← of_fraction_ring_algebra_map;
     exact (aux_equiv K).to_ring_hom.is_unit_map (is_localization.map_units _ y),
   eq_iff_exists := λ x y, by rw [← of_fraction_ring_algebra_map, ← of_fraction_ring_algebra_map];
@@ -436,31 +436,31 @@ variables {K}
 @[simp] lemma lift_on_div {P : Sort v} (p q : polynomial K)
   (f : ∀ (p q : polynomial K), P) (f0 : ∀ p, f p 0 = f 0 1)
   (H : ∀ {p q p' q'} (hq : q ≠ 0) (hq' : q' ≠ 0), p * q' = p' * q → f p q = f p' q') :
-  (algebra_map _ (ratpoly K) p / algebra_map _ _ q).lift_on f @H = f p q :=
+  (algebra_map _ (ratfunc K) p / algebra_map _ _ q).lift_on f @H = f p q :=
 by rw [← mk_eq_div, lift_on_mk _ _ f f0 @H]
 
 @[simp] lemma lift_on'_div {P : Sort v} (p q : polynomial K)
   (f : ∀ (p q : polynomial K), P) (f0 : ∀ p, f p 0 = f 0 1) (H) :
-  (algebra_map _ (ratpoly K) p / algebra_map _ _ q).lift_on' f @H = f p q :=
-by { rw [ratpoly.lift_on', lift_on_div], assumption }
+  (algebra_map _ (ratfunc K) p / algebra_map _ _ q).lift_on' f @H = f p q :=
+by { rw [ratfunc.lift_on', lift_on_div], assumption }
 
-/-- Induction principle for `ratpoly K`: if `f p q : P (p / q)` for all `p q : polynomial K`,
-then `P` holds on all elements of `ratpoly K`.
+/-- Induction principle for `ratfunc K`: if `f p q : P (p / q)` for all `p q : polynomial K`,
+then `P` holds on all elements of `ratfunc K`.
 
-See also `induction_on'`, which is a recursion principle defined in terms of `ratpoly.mk`.
+See also `induction_on'`, which is a recursion principle defined in terms of `ratfunc.mk`.
 -/
-protected lemma induction_on {P : ratpoly K → Prop} (x : ratpoly K)
+protected lemma induction_on {P : ratfunc K → Prop} (x : ratfunc K)
   (f : ∀ (p q : polynomial K) (hq : q ≠ 0),
-    P (algebra_map _ (ratpoly K) p / algebra_map _ _ q)) :
+    P (algebra_map _ (ratfunc K) p / algebra_map _ _ q)) :
   P x :=
 x.induction_on' (λ p q hq, by simpa using f p q hq)
 
 lemma of_fraction_ring_mk' (x : polynomial K) (y : (polynomial K)⁰) :
-  of_fraction_ring (is_localization.mk' _ x y) = is_localization.mk' (ratpoly K) x y :=
+  of_fraction_ring (is_localization.mk' _ x y) = is_localization.mk' (ratfunc K) x y :=
 by rw [is_fraction_ring.mk'_eq_div, is_fraction_ring.mk'_eq_div, ← mk_eq_div', ← mk_eq_div]
 
 @[simp] lemma of_fraction_ring_eq :
-  (of_fraction_ring : fraction_ring (polynomial K) → ratpoly K) =
+  (of_fraction_ring : fraction_ring (polynomial K) → ratfunc K) =
     is_localization.alg_equiv (polynomial K)⁰ _ _ :=
 funext $ λ x, localization.induction_on x $ λ x,
 by simp only [is_localization.alg_equiv_apply, is_localization.ring_equiv_of_ring_equiv_apply,
@@ -468,7 +468,7 @@ by simp only [is_localization.alg_equiv_apply, is_localization.ring_equiv_of_rin
     of_fraction_ring_mk', ring_equiv.coe_to_ring_hom, ring_equiv.refl_apply, set_like.eta]
 
 @[simp] lemma to_fraction_ring_eq :
-  (to_fraction_ring : ratpoly K → fraction_ring (polynomial K)) =
+  (to_fraction_ring : ratfunc K → fraction_ring (polynomial K)) =
     is_localization.alg_equiv (polynomial K)⁰ _ _ :=
 funext $ λ ⟨x⟩, localization.induction_on x $ λ x,
 by simp only [localization.mk_eq_mk'_apply, of_fraction_ring_mk', is_localization.alg_equiv_apply,
@@ -592,9 +592,9 @@ begin
       euclidean_domain.mul_div_cancel _ hq]
 end
 
-/-- `ratpoly.num_denom` are numerator and denominator of a rational polynomial,
+/-- `ratfunc.num_denom` are numerator and denominator of a rational funcion,
 normalized such that the denominator is monic. -/
-def num_denom (x : ratpoly K) : polynomial K × polynomial K :=
+def num_denom (x : ratfunc K) : polynomial K × polynomial K :=
 x.lift_on' (λ p q, if q = 0 then ⟨0, 1⟩ else let r := gcd p q in
   ⟨polynomial.C ((q / r).leading_coeff⁻¹) * (p / r),
    polynomial.C ((q / r).leading_coeff⁻¹) * (q / r)⟩)
@@ -633,19 +633,19 @@ begin
   simp,
 end
 
-/-- `ratpoly.num` is the numerator of a rational polynomial,
+/-- `ratfunc.num` is the numerator of a rational funcion,
 normalized such that the denominator is monic. -/
-def num (x : ratpoly K) : polynomial K := x.num_denom.1
+def num (x : ratfunc K) : polynomial K := x.num_denom.1
 
 @[simp] lemma num_div (p : polynomial K) {q : polynomial K} (hq : q ≠ 0) :
   num (algebra_map _ _ p / algebra_map _ _ q) =
     polynomial.C ((q / gcd p q).leading_coeff⁻¹) * (p / gcd p q) :=
 by rw [num, num_denom_div _ hq]
 
-@[simp] lemma num_zero : num (0 : ratpoly K) = 0 :=
+@[simp] lemma num_zero : num (0 : ratfunc K) = 0 :=
 by { convert num_div (0 : polynomial K) one_ne_zero; simp }
 
-@[simp] lemma num_one : num (1 : ratpoly K) = 1 :=
+@[simp] lemma num_one : num (1 : ratfunc K) = 1 :=
 by { convert num_div (1 : polynomial K) one_ne_zero; simp }
 
 @[simp] lemma num_algebra_map (p : polynomial K) :
@@ -661,32 +661,32 @@ begin
       using euclidean_domain.right_div_gcd_ne_zero hq },
 end
 
-/-- `ratpoly.denom` is the denominator of a rational polynomial,
+/-- `ratfunc.denom` is the denominator of a rational funcion,
 normalized such that it is monic. -/
-def denom (x : ratpoly K) : polynomial K := x.num_denom.2
+def denom (x : ratfunc K) : polynomial K := x.num_denom.2
 
 @[simp] lemma denom_div (p : polynomial K) {q : polynomial K} (hq : q ≠ 0) :
   denom (algebra_map _ _ p / algebra_map _ _ q) =
     polynomial.C ((q / gcd p q).leading_coeff⁻¹) * (q / gcd p q) :=
 by rw [denom, num_denom_div _ hq]
 
-lemma monic_denom (x : ratpoly K) : (denom x).monic :=
+lemma monic_denom (x : ratfunc K) : (denom x).monic :=
 x.induction_on (λ p q hq, begin
   rw [denom_div p hq, mul_comm],
   exact polynomial.monic_mul_leading_coeff_inv (euclidean_domain.right_div_gcd_ne_zero hq)
 end)
 
-lemma denom_ne_zero (x : ratpoly K) : denom x ≠ 0 :=
+lemma denom_ne_zero (x : ratfunc K) : denom x ≠ 0 :=
 (monic_denom x).ne_zero
 
-@[simp] lemma denom_zero : denom (0 : ratpoly K) = 1 :=
+@[simp] lemma denom_zero : denom (0 : ratfunc K) = 1 :=
 by { convert denom_div (0 : polynomial K) one_ne_zero; simp }
 
-@[simp] lemma denom_one : denom (1 : ratpoly K) = 1 :=
+@[simp] lemma denom_one : denom (1 : ratfunc K) = 1 :=
 by { convert denom_div (1 : polynomial K) one_ne_zero; simp }
 
 @[simp] lemma denom_algebra_map (p : polynomial K) :
-  denom (algebra_map _ (ratpoly K) p) = 1 :=
+  denom (algebra_map _ (ratfunc K) p) = 1 :=
 by { convert denom_div p one_ne_zero; simp }
 
 @[simp] lemma denom_div_dvd (p : polynomial K) {q : polynomial K} (hq : q ≠ 0) :
@@ -698,7 +698,7 @@ begin
       using euclidean_domain.right_div_gcd_ne_zero hq },
 end
 
-@[simp] lemma num_div_denom (x : ratpoly K) :
+@[simp] lemma num_div_denom (x : ratfunc K) :
   algebra_map _ _ (num x) / algebra_map _ _ (denom x) = x :=
 x.induction_on (λ p q hq, begin
   by_cases hp : p = 0, { simp [hp] },
@@ -714,14 +714,14 @@ x.induction_on (λ p q hq, begin
     exact inv_ne_zero (polynomial.leading_coeff_ne_zero.mpr q_div_ne_zero) },
 end)
 
-@[simp] lemma num_eq_zero_iff {x : ratpoly K} : num x = 0 ↔ x = 0 :=
+@[simp] lemma num_eq_zero_iff {x : ratfunc K} : num x = 0 ↔ x = 0 :=
 ⟨λ h, by rw [← num_div_denom x, h, ring_hom.map_zero, zero_div],
  λ h, h.symm ▸ num_zero⟩
 
-lemma num_ne_zero {x : ratpoly K} (hx : x ≠ 0) : num x ≠ 0 :=
+lemma num_ne_zero {x : ratfunc K} (hx : x ≠ 0) : num x ≠ 0 :=
 mt num_eq_zero_iff.mp hx
 
-lemma num_mul_eq_mul_denom_iff {x : ratpoly K} {p q : polynomial K}
+lemma num_mul_eq_mul_denom_iff {x : ratfunc K} {p q : polynomial K}
   (hq : q ≠ 0) :
   x.num * q = p * x.denom ↔ x = algebra_map _ _ p / algebra_map _ _ q :=
 begin
@@ -732,7 +732,7 @@ begin
   exact algebra_map_ne_zero (denom_ne_zero x)
 end
 
-lemma num_denom_add (x y : ratpoly K) :
+lemma num_denom_add (x y : ratfunc K) :
   (x + y).num * (x.denom * y.denom) = (x.num * y.denom + x.denom * y.num) * (x + y).denom :=
 (num_mul_eq_mul_denom_iff (mul_ne_zero (denom_ne_zero x) (denom_ne_zero y))).mpr $
 begin
@@ -742,13 +742,13 @@ begin
   { exact algebra_map_ne_zero (denom_ne_zero y) }
 end
 
-lemma num_denom_mul (x y : ratpoly K) :
+lemma num_denom_mul (x y : ratfunc K) :
   (x * y).num * (x.denom * y.denom) = x.num * y.num * (x * y).denom :=
 (num_mul_eq_mul_denom_iff (mul_ne_zero (denom_ne_zero x) (denom_ne_zero y))).mpr $
   by conv_lhs { rw [← num_div_denom x, ← num_div_denom y, div_mul_div,
                     ← ring_hom.map_mul, ← ring_hom.map_mul] }
 
-lemma num_dvd {x : ratpoly K} {p : polynomial K} (hp : p ≠ 0) :
+lemma num_dvd {x : ratfunc K} {p : polynomial K} (hp : p ≠ 0) :
   num x ∣ p ↔ ∃ (q : polynomial K) (hq : q ≠ 0), x = algebra_map _ _ p / algebra_map _ _ q :=
 begin
   split,
@@ -762,7 +762,7 @@ begin
     exact num_div_dvd p hq },
 end
 
-lemma denom_dvd {x : ratpoly K} {q : polynomial K} (hq : q ≠ 0) :
+lemma denom_dvd {x : ratfunc K} {q : polynomial K} (hq : q ≠ 0) :
   denom x ∣ q ↔ ∃ (p : polynomial K), x = algebra_map _ _ p / algebra_map _ _ q :=
 begin
   split,
@@ -775,7 +775,7 @@ begin
     exact denom_div_dvd p hq },
 end
 
-lemma num_mul_dvd (x y : ratpoly K) : num (x * y) ∣ num x * num y :=
+lemma num_mul_dvd (x y : ratfunc K) : num (x * y) ∣ num x * num y :=
 begin
   by_cases hx : x = 0,
   { simp [hx] },
@@ -786,14 +786,14 @@ begin
   rw [ring_hom.map_mul, ring_hom.map_mul, ← div_mul_div, num_div_denom, num_div_denom]
 end
 
-lemma denom_mul_dvd (x y : ratpoly K) : denom (x * y) ∣ denom x * denom y :=
+lemma denom_mul_dvd (x y : ratfunc K) : denom (x * y) ∣ denom x * denom y :=
 begin
   rw denom_dvd (mul_ne_zero (denom_ne_zero x) (denom_ne_zero y)),
   refine ⟨x.num * y.num, _⟩,
   rw [ring_hom.map_mul, ring_hom.map_mul, ← div_mul_div, num_div_denom, num_div_denom]
 end
 
-lemma denom_add_dvd (x y : ratpoly K) : denom (x + y) ∣ denom x * denom y :=
+lemma denom_add_dvd (x y : ratfunc K) : denom (x + y) ∣ denom x * denom y :=
 begin
   rw denom_dvd (mul_ne_zero (denom_ne_zero x) (denom_ne_zero y)),
   refine ⟨x.num * y.denom + x.denom * y.num, _⟩,
@@ -809,50 +809,50 @@ section eval
 
 /-! ### Polynomial structure: `C`, `X`, `eval` -/
 
-/-- `ratpoly.C a` is the constant rational polynomial `a`. -/
-def C : K →+* ratpoly K :=
+/-- `ratfunc.C a` is the constant rational funcion `a`. -/
+def C : K →+* ratfunc K :=
 algebra_map _ _
 
-@[simp] lemma algebra_map_eq_C : algebra_map K (ratpoly K) = C := rfl
+@[simp] lemma algebra_map_eq_C : algebra_map K (ratfunc K) = C := rfl
 @[simp] lemma algebra_map_C (a : K) :
-  algebra_map (polynomial K) (ratpoly K) (polynomial.C a) = C a := rfl
+  algebra_map (polynomial K) (ratfunc K) (polynomial.C a) = C a := rfl
 @[simp] lemma algebra_map_comp_C :
-  (algebra_map (polynomial K) (ratpoly K)).comp polynomial.C = C := rfl
+  (algebra_map (polynomial K) (ratfunc K)).comp polynomial.C = C := rfl
 
 @[simp] lemma num_C (c : K) : num (C c) = polynomial.C c :=
 num_algebra_map _
 @[simp] lemma denom_C (c : K) : denom (C c) = 1 :=
 denom_algebra_map _
 
-/-- `ratpoly.X` is the polynomial variable (aka indeterminate). -/
-def X : ratpoly K := algebra_map (polynomial K) (ratpoly K) polynomial.X
+/-- `ratfunc.X` is the polynomial variable (aka indeterminate). -/
+def X : ratfunc K := algebra_map (polynomial K) (ratfunc K) polynomial.X
 
 @[simp] lemma algebra_map_X :
-  algebra_map (polynomial K) (ratpoly K) polynomial.X = X := rfl
+  algebra_map (polynomial K) (ratfunc K) polynomial.X = X := rfl
 
-@[simp] lemma num_X : num (X : ratpoly K) = polynomial.X :=
+@[simp] lemma num_X : num (X : ratfunc K) = polynomial.X :=
 num_algebra_map _
-@[simp] lemma denom_X : denom (X : ratpoly K) = 1 :=
+@[simp] lemma denom_X : denom (X : ratfunc K) = 1 :=
 denom_algebra_map _
 
 variables {L : Type*} [field L]
 
-/-- Evaluate a rational polynomial `p` given a ring hom `f` from the scalar field
+/-- Evaluate a rational funcion `p` given a ring hom `f` from the scalar field
 to the target and a value `x` for the variable in the target.
 
 Fractions are reduced by clearing common denominators before evaluating:
 `eval id 1 ((X^2 - 1) / (X - 1)) = eval id 1 (X + 1) = 2`, not `0 / 0 = 0`.
 -/
-def eval (f : K →+* L) (a : L) (p : ratpoly K) : L :=
+def eval (f : K →+* L) (a : L) (p : ratfunc K) : L :=
 (num p).eval₂ f a / (denom p).eval₂ f a
 
 variables {f : K →+* L} {a : L}
 
 lemma eval_eq_zero_of_eval₂_denom_eq_zero
-  {x : ratpoly K} (h : polynomial.eval₂ f a (denom x) = 0) :
+  {x : ratfunc K} (h : polynomial.eval₂ f a (denom x) = 0) :
   eval f a x = 0 :=
 by rw [eval, h, div_zero]
-lemma eval₂_denom_ne_zero {x : ratpoly K} (h : eval f a x ≠ 0) :
+lemma eval₂_denom_ne_zero {x : ratfunc K} (h : eval f a x ≠ 0) :
   polynomial.eval₂ f a (denom x) ≠ 0 :=
 mt eval_eq_zero_of_eval₂_denom_eq_zero h
 
@@ -864,16 +864,16 @@ variables (f a)
 @[simp] lemma eval_one : eval f a 1 = 1 := by simp [eval]
 @[simp] lemma eval_algebra_map {S : Type*} [comm_semiring S] [algebra S (polynomial K)] (p : S) :
   eval f a (algebra_map _ _ p) = (algebra_map _ (polynomial K) p).eval₂ f a :=
-by simp [eval, is_scalar_tower.algebra_map_apply S (polynomial K) (ratpoly K)]
+by simp [eval, is_scalar_tower.algebra_map_apply S (polynomial K) (ratfunc K)]
 
 /-- `eval` is an additive homomorphism except when a denominator evaluates to `0`.
 
 Counterexample: `eval _ 1 (X / (X-1)) + eval _ 1 (-1 / (X-1)) = 0`
 `... ≠ 1 = eval _ 1 ((X-1) / (X-1))`.
 
-See also `ratpoly.eval₂_denom_ne_zero` to make the hypotheses simpler but less general.
+See also `ratfunc.eval₂_denom_ne_zero` to make the hypotheses simpler but less general.
 -/
-lemma eval_add {x y : ratpoly K}
+lemma eval_add {x y : ratfunc K}
   (hx : polynomial.eval₂ f a (denom x) ≠ 0) (hy : polynomial.eval₂ f a (denom y) ≠ 0) :
   eval f a (x + y) = eval f a x + eval f a y :=
 begin
@@ -893,9 +893,9 @@ end
 
 Counterexample: `eval _ 0 X * eval _ 0 (1/X) = 0 ≠ 1 = eval _ 0 1 = eval _ 0 (X * 1/X)`.
 
-See also `ratpoly.eval₂_denom_ne_zero` to make the hypotheses simpler but less general.
+See also `ratfunc.eval₂_denom_ne_zero` to make the hypotheses simpler but less general.
 -/
-lemma eval_mul {x y : ratpoly K}
+lemma eval_mul {x y : ratfunc K}
   (hx : polynomial.eval₂ f a (denom x) ≠ 0) (hy : polynomial.eval₂ f a (denom y) ≠ 0) :
   eval f a (x * y) = eval f a x * eval f a y :=
 begin
@@ -913,4 +913,4 @@ end
 
 end eval
 
-end ratpoly
+end ratfunc

@@ -3,7 +3,7 @@ Copyright (c) 2021 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen, Ashvni Narayanan
 -/
-import field_theory.ratpoly
+import field_theory.ratfunc
 import ring_theory.algebraic
 import ring_theory.integrally_closed
 
@@ -14,7 +14,7 @@ This file defines a function field and the ring of integers corresponding to it.
 
 ## Main definitions
  - `function_field Fq F` states that `F` is a function field over the (finite) field `Fq`,
-   i.e. it is a finite extension of the field of rational polynomials in one variable over `Fq`.
+   i.e. it is a finite extension of the field of rational funcions in one variable over `Fq`.
  - `function_field.ring_of_integers` defines the ring of integers corresponding to a function field
     as the integral closure of `polynomial Fq` in the function field.
 
@@ -38,22 +38,22 @@ noncomputable theory
 variables (Fq F : Type) [field Fq] [field F]
 
 /-- `F` is a function field over the finite field `Fq` if it is a finite
-extension of the field of rational polynomials in one variable over `Fq`.
+extension of the field of rational funcions in one variable over `Fq`.
 
 Note that `F` can be a function field over multiple, non-isomorphic, `Fq`.
 -/
-abbreviation function_field [algebra (ratpoly Fq) F] : Prop :=
-finite_dimensional (ratpoly Fq) F
+abbreviation function_field [algebra (ratfunc Fq) F] : Prop :=
+finite_dimensional (ratfunc Fq) F
 
 /-- `F` is a function field over `Fq` iff it is a finite extension of `Fq(t)`. -/
 protected lemma function_field_iff (Fqt : Type*) [field Fqt]
   [algebra (polynomial Fq) Fqt] [is_fraction_ring (polynomial Fq) Fqt]
-  [algebra (ratpoly Fq) F] [algebra Fqt F]
+  [algebra (ratfunc Fq) F] [algebra Fqt F]
   [algebra (polynomial Fq) F] [is_scalar_tower (polynomial Fq) Fqt F]
-  [is_scalar_tower (polynomial Fq) (ratpoly Fq) F] :
+  [is_scalar_tower (polynomial Fq) (ratfunc Fq) F] :
   function_field Fq F ↔ finite_dimensional Fqt F :=
 begin
-  let e := is_localization.alg_equiv (non_zero_divisors (polynomial Fq)) (ratpoly Fq) Fqt,
+  let e := is_localization.alg_equiv (non_zero_divisors (polynomial Fq)) (ratfunc Fq) Fqt,
   have : ∀ c (x : F), e c • x = c • x,
   { intros c x,
     rw [algebra.smul_def, algebra.smul_def],
@@ -63,7 +63,7 @@ begin
       intros; simp only [alg_equiv.map_one, ring_hom.map_one, alg_equiv.map_mul, ring_hom.map_mul,
                          alg_equiv.commutes, ← is_scalar_tower.algebra_map_apply], },
   split; intro h; resetI,
-  { let b := finite_dimensional.fin_basis (ratpoly Fq) F,
+  { let b := finite_dimensional.fin_basis (ratfunc Fq) F,
     exact finite_dimensional.of_fintype_basis (b.map_coeffs e this) },
   { let b := finite_dimensional.fin_basis Fqt F,
     refine finite_dimensional.of_fintype_basis (b.map_coeffs e.symm _),
@@ -90,14 +90,14 @@ instance : is_domain (ring_of_integers Fq F) :=
 instance : is_integral_closure (ring_of_integers Fq F) (polynomial Fq) F :=
 integral_closure.is_integral_closure _ _
 
-variables [algebra (ratpoly Fq) F] [function_field Fq F]
-variables [is_scalar_tower (polynomial Fq) (ratpoly Fq) F]
+variables [algebra (ratfunc Fq) F] [function_field Fq F]
+variables [is_scalar_tower (polynomial Fq) (ratfunc Fq) F]
 
 instance : is_fraction_ring (ring_of_integers Fq F) F :=
-integral_closure.is_fraction_ring_of_finite_extension (ratpoly Fq) F
+integral_closure.is_fraction_ring_of_finite_extension (ratfunc Fq) F
 
 instance : is_integrally_closed (ring_of_integers Fq F) :=
-integral_closure.is_integrally_closed_of_finite_extension (ratpoly Fq)
+integral_closure.is_integrally_closed_of_finite_extension (ratfunc Fq)
 
 -- TODO: show `ring_of_integers Fq F` is a Dedekind domain
 

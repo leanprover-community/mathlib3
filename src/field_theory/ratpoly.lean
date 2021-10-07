@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 
+import algebra.gcd_monoid.euclidean_domain
 import ring_theory.localization
 
 /-!
@@ -603,8 +604,8 @@ x.lift_on' (λ p q, if q = 0 then ⟨0, 1⟩ else let r := gcd p q in
     have hpq : gcd p q ≠ 0 := mt (and.right ∘ (gcd_eq_zero_iff _ _).mp) hq,
     have ha' : a.leading_coeff ≠ 0 := polynomial.leading_coeff_ne_zero.mpr ha,
     have hainv : (a.leading_coeff)⁻¹ ≠ 0 := inv_ne_zero ha',
-    simp only [prod.ext_iff, gcd_mul_left, normalize_apply, norm_unit_eq_leading_coeff_inv ha,
-      mul_assoc],
+    simp only [prod.ext_iff, gcd_mul_left, normalize_apply, polynomial.coe_norm_unit, mul_assoc,
+      comm_group_with_zero.coe_norm_unit ha'],
     have hdeg : (gcd p q).degree ≤ q.degree := degree_gcd_le_right _ hq,
     have hdeg' : (polynomial.C (a.leading_coeff⁻¹) * gcd p q).degree ≤ q.degree,
     { rw [polynomial.degree_mul, polynomial.degree_C hainv, zero_add],
@@ -613,7 +614,7 @@ x.lift_on' (λ p q, if q = 0 then ⟨0, 1⟩ else let r := gcd p q in
       (C_mul_dvd hainv).mpr (gcd_dvd_left p q),
     have hdivq : (polynomial.C a.leading_coeff⁻¹) * gcd p q ∣ q :=
       (C_mul_dvd hainv).mpr (gcd_dvd_right p q),
-    rw [mul_div_mul_cancel _ _ _ ha hdivp, mul_div_mul_cancel _ _ _ ha hdivq,
+    rw [euclidean_domain.mul_div_mul_cancel ha hdivp, euclidean_domain.mul_div_mul_cancel ha hdivq,
         leading_coeff_div hdeg, leading_coeff_div hdeg', polynomial.leading_coeff_mul,
         polynomial.leading_coeff_C, div_C_mul, div_C_mul,
         ← mul_assoc, ← polynomial.C_mul, ← mul_assoc, ← polynomial.C_mul],
@@ -655,9 +656,9 @@ by { convert num_div p one_ne_zero; simp }
   num (algebra_map _ _ p / algebra_map _ _ q) ∣ p :=
 begin
   rw [num_div _ hq, C_mul_dvd],
-  { exact div_dvd_of_dvd (gcd_dvd_left p q) },
+  { exact euclidean_domain.div_dvd_of_dvd (gcd_dvd_left p q) },
   { simpa only [ne.def, inv_eq_zero, polynomial.leading_coeff_eq_zero]
-      using right_dvd_gcd_ne_zero hq },
+      using euclidean_domain.right_div_gcd_ne_zero hq },
 end
 
 /-- `ratpoly.denom` is the denominator of a rational polynomial,
@@ -672,7 +673,7 @@ by rw [denom, num_denom_div _ hq]
 lemma monic_denom (x : ratpoly K) : (denom x).monic :=
 x.induction_on (λ p q hq, begin
   rw [denom_div p hq, mul_comm],
-  exact polynomial.monic_mul_leading_coeff_inv (right_dvd_gcd_ne_zero hq)
+  exact polynomial.monic_mul_leading_coeff_inv (euclidean_domain.right_div_gcd_ne_zero hq)
 end)
 
 lemma denom_ne_zero (x : ratpoly K) : denom x ≠ 0 :=
@@ -692,16 +693,16 @@ by { convert denom_div p one_ne_zero; simp }
   denom (algebra_map _ _ p / algebra_map _ _ q) ∣ q :=
 begin
   rw [denom_div _ hq, C_mul_dvd],
-  { exact div_dvd_of_dvd (gcd_dvd_right p q) },
+  { exact euclidean_domain.div_dvd_of_dvd (gcd_dvd_right p q) },
   { simpa only [ne.def, inv_eq_zero, polynomial.leading_coeff_eq_zero]
-      using right_dvd_gcd_ne_zero hq },
+      using euclidean_domain.right_div_gcd_ne_zero hq },
 end
 
 @[simp] lemma num_div_denom (x : ratpoly K) :
   algebra_map _ _ (num x) / algebra_map _ _ (denom x) = x :=
 x.induction_on (λ p q hq, begin
   by_cases hp : p = 0, { simp [hp] },
-  have q_div_ne_zero := right_dvd_gcd_ne_zero hq,
+  have q_div_ne_zero := euclidean_domain.right_div_gcd_ne_zero hq,
   rw [num_div p hq, denom_div p hq, ring_hom.map_mul, ring_hom.map_mul,
     mul_div_mul_left, div_eq_div_iff, ← ring_hom.map_mul, ← ring_hom.map_mul, mul_comm _ q,
     ← euclidean_domain.mul_div_assoc, ← euclidean_domain.mul_div_assoc, mul_comm],
@@ -913,5 +914,3 @@ end
 end eval
 
 end ratpoly
-
-#lint

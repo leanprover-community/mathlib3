@@ -81,6 +81,7 @@ open valued
 
 /-- The topology coming from a valuation on a division rings make it a topological division ring
     [BouAC, VI.5.1 middle of Proposition 1] -/
+@[priority 100]
 instance valued.topological_division_ring [valued K] : topological_division_ring K :=
 { continuous_inv :=
     begin
@@ -100,6 +101,7 @@ instance valued.topological_division_ring [valued K] : topological_division_ring
   ..(by apply_instance : topological_ring K) }
 
 /-- A valued division ring is separated. -/
+@[priority 100]
 instance valued_ring.separated [valued K] : separated_space K :=
 begin
   apply topological_add_group.separated_of_zero_sep,
@@ -151,6 +153,7 @@ open valued uniform_space
 local notation `hat ` := completion
 
 /-- A valued field is completable. -/
+@[priority 100]
 instance valued.completable : completable_top_field K :=
 { nice := begin
     rintros F hF h0,

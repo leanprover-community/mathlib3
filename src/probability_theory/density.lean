@@ -55,7 +55,7 @@ namespace measure_theory
 
 namespace set
 
-variables {α M : Type*} [has_one M] [measurable_space α] {μ : measure α}
+variables {α M : Type*} [has_one M]
 
 @[to_additive]
 lemma mul_indicator_eq_one_iff (s : set α) (f : α → M) (a : α) :
@@ -375,6 +375,8 @@ section
 -- (support_not_null' : 0 < μ support')
 -- (uniform' : pdf X ℙ μ =ᵐ[μ] support'.indicator ((μ support')⁻¹ • 1))
 
+/-- A random variable `X` has uniform distribution if it has a probability density function `f`
+with support `s` such that `f = (μ s)⁻¹ 1ₛ` a.e. where `1ₛ` is the indicator function for `s`. -/
 def is_uniform {m : measurable_space α} (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac)
   (support : set E) :=
 pdf X ℙ μ =ᵐ[μ] support.indicator ((μ support)⁻¹ • 1)
@@ -430,12 +432,12 @@ lemma pdf_to_real_ae_eq {m : measurable_space α}
   (λ x, (s.indicator ((μ s)⁻¹ • (1 : E → ℝ≥0∞)) x).to_real) :=
 filter.eventually_eq.fun_comp hX ennreal.to_real
 
-variables [is_finite_measure ℙ] {X : α → ℝ} (hX : measurable X)
-variables {s : set ℝ} (hms : measurable_set s) (hcs : is_compact s) (hns : volume s ≠ 0)
+variables [is_finite_measure ℙ] {X : α → ℝ}
+variables {s : set ℝ} (hms : measurable_set s) (hns : volume s ≠ 0)
 
-include hX hms hcs hns
+include hms hns
 
-lemma mul_pdf_integrable (huX : is_uniform X ℙ volume s) :
+lemma mul_pdf_integrable (hcs : is_compact s) (huX : is_uniform X ℙ volume s) :
   integrable (λ x : ℝ, x * (pdf X ℙ volume x).to_real) :=
 begin
   by_cases hsupp : volume s = ∞,

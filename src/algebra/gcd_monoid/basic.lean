@@ -177,6 +177,9 @@ instance : normalization_monoid α :=
 lemma coe_norm_unit {a : α} (h0 : a ≠ 0) : (↑(norm_unit a) : α) = a⁻¹ :=
 by simp [norm_unit, h0]
 
+lemma normalize_eq_one {a : α} (h0 : a ≠ 0) : normalize a = 1 :=
+by simp [norm_unit, h0]
+
 end comm_group_with_zero
 
 namespace associates
@@ -1055,3 +1058,37 @@ normalized_gcd_monoid_of_lcm
   (λ a b, normalize_idem _)
 
 end constructors
+
+namespace comm_group_with_zero
+
+variables (G₀ : Type*) [comm_group_with_zero G₀] [decidable_eq G₀]
+
+@[priority 100] -- see Note [lower instance priority]
+instance : gcd_monoid G₀ :=
+{ gcd := λ a b, if a = 0 ∧ b = 0 then 0 else 1,
+  lcm := λ a b, if a = 0 ∨ b = 0 then 0 else 1,
+  gcd_dvd_left := λ a b, by { split_ifs with h, { rw h.1 }, { exact one_dvd _ } },
+  gcd_dvd_right := λ a b, by { split_ifs with h, { rw h.2 }, { exact one_dvd _ } },
+  dvd_gcd := λ a b c hac hab, begin
+    split_ifs with h, { apply dvd_zero },
+    cases not_and_distrib.mp h with h h;
+      refine is_unit_iff_dvd_one.mp (is_unit_of_dvd_unit _ (is_unit.mk0 _ h));
+      assumption
+  end,
+  gcd_mul_lcm := λ a b, begin
+    by_cases ha : a = 0, { simp [ha] },
+    by_cases hb : b = 0, { simp [hb] },
+    rw [if_neg (not_and_of_not_left _ ha), one_mul, if_neg (not_or ha hb)],
+    exact (associated_one_iff_is_unit.mpr ((is_unit.mk0 _ ha).mul (is_unit.mk0 _ hb))).symm
+  end,
+  lcm_zero_left := λ b, if_pos (or.inl rfl),
+  lcm_zero_right := λ a, if_pos (or.inr rfl) }
+
+@[priority 100] -- see Note [lower instance priority]
+instance : normalized_gcd_monoid G₀ :=
+{ normalize_gcd := λ a b, by { unfold gcd, split_ifs; simp },
+  normalize_lcm := λ a b, by { unfold lcm, split_ifs; simp },
+  .. comm_group_with_zero.gcd_monoid G₀,
+  .. comm_group_with_zero.normalization_monoid }
+
+end comm_group_with_zero

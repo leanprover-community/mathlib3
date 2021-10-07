@@ -142,7 +142,7 @@ end
 instance yoneda_functor_reflects_limits : reflects_limits (@yoneda D _) :=
 limits.fully_faithful_reflects_limits _
 
-instance coyoneda_functor_reflects_limits :
-  reflects_limits (@coyoneda D _) := limits.fully_faithful_reflects_limits _
+instance coyoneda_functor_reflects_limits : reflects_limits (@coyoneda D _) :=
+limits.fully_faithful_reflects_limits _
 
 end category_theory

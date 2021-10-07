@@ -500,6 +500,9 @@ mem_Inf
 @[simp]
 lemma subset_closure : s ⊆ closure L s := (closure L).le_closure s
 
+lemma not_mem_of_not_mem_closure {P : M} (hP : P ∉ closure L s) : P ∉ s :=
+λ h, hP (subset_closure h)
+
 @[simp]
 lemma closed (S : L.substructure M) : (closure L).closed (S : set M) :=
 congr rfl ((closure L).eq_of_le set.subset.rfl (λ x xS, mem_closure.2 (λ T hT, hT xS)))

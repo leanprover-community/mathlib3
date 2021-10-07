@@ -93,8 +93,8 @@ by by_cases hs : i ∈ s; field_simp [split_center_box, hs, mul_two, two_mul]
 /-- Let `p` be a predicate on `box ι`, let `I` be a box. Suppose that the following two properties
 hold true.
 
-* `H_ind` : Consider a smaller box `J ≤ I`. The hyperplanes passing through the center of `J` split it
-  into `2 ^ n` boxes. If `p` holds true on each of these boxes, then it true on `J`.
+* `H_ind` : Consider a smaller box `J ≤ I`. The hyperplanes passing through the center of `J` split
+  it into `2 ^ n` boxes. If `p` holds true on each of these boxes, then it true on `J`.
 
 * `H_nhds` : For each `z` in the closed box `I.Icc` there exists a neighborhood `U` of `z` within
   `I.Icc` such that for every box `J ≤ I` such that `z ∈ J.Icc ⊆ U`, if `J` is homothetic to `I`

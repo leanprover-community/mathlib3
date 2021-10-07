@@ -971,7 +971,8 @@ lemma irreducible_pow_sup_of_le (hI : I ≠ ⊥) {p : ideal T} (hp : irreducible
 begin
   rw [irreducible_pow_sup hI hp, min_eq_left],
   congr,
-  { rw [← enat.coe_inj, enat.coe_get, multiplicity_eq_count_normalized_factors hp hI, normalize_eq p] },
+  { rw [← enat.coe_inj, enat.coe_get, multiplicity_eq_count_normalized_factors hp hI,
+    normalize_eq p] },
   { rwa [multiplicity_eq_count_normalized_factors hp hI, enat.coe_le_coe, normalize_eq p]
       at hn }
 end

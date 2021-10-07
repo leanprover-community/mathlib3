@@ -27,9 +27,6 @@ open set
 
 variables {α : Type*}
 
-instance [partial_order α] [no_top_order α] {a : α} : no_top_order (Ici a) :=
-⟨λ x, let ⟨y, hy⟩ := no_top x.1 in ⟨⟨y, le_trans x.2 hy.le⟩, hy⟩ ⟩
-
 namespace nonneg
 
 instance order_bot [partial_order α] {a : α} : order_bot {x : α // a ≤ x} :=
@@ -187,10 +184,6 @@ protected lemma coe_div [linear_ordered_field α] (a b : {x : α // 0 ≤ x}) :
 @[simp] lemma mk_div_mk [linear_ordered_field α] {x y : α} (hx : 0 ≤ x) (hy : 0 ≤ y) :
   (⟨x, hx⟩ : {x : α // 0 ≤ x}) / ⟨y, hy⟩ = ⟨x / y, div_nonneg hx hy⟩ :=
 rfl
-
-lemma le_iff_exists_nonneg_add [ordered_ring α] (a b : α) : a ≤ b ↔ ∃ c ≥ 0, b = a + c :=
-⟨λ h, ⟨b - a, sub_nonneg.mpr h, by simp⟩,
-  λ ⟨c, hc, h⟩, by { rw [h, le_add_iff_nonneg_right], exact hc }⟩
 
 instance canonically_ordered_add_monoid [ordered_ring α] :
   canonically_ordered_add_monoid {x : α // 0 ≤ x} :=

@@ -269,7 +269,6 @@ instance evaluation_preserves_colimits [has_colimits C] (k : K) :
   preserves_colimits ((evaluation K C).obj k) :=
 { preserves_colimits_of_shape := λ J 𝒥, by resetI; apply_instance }
 
-<<<<<<< HEAD
 /-- `F : D ⥤ K ⥤ C` preserves limit if it does for each `k : K`. -/
 def preserves_colimit_of_evaluation (F : D ⥤ K ⥤ C) (G : J ⥤ D)
   (H : Π (k), preserves_colimit G (F ⋙ (evaluation K C).obj k)) : preserves_colimit G F := ⟨λ c hc,
@@ -293,7 +292,6 @@ def preserves_colimits_of_evaluation (F : D ⥤ K ⥤ C)
   preserves_colimits F :=
 ⟨λ L hL, by exactI preserves_colimits_of_shape_of_evaluation
     F L (λ k, preserves_colimits.preserves_colimits_of_shape)⟩
-=======
 open category_theory.prod
 
 /--
@@ -343,6 +341,5 @@ nat_iso.of_components (λ Y, colimit_obj_iso_colimit_comp_evaluation G Y ≪≫
       category.assoc, uncurry.obj_map, nat_trans.id_app, category_theory.functor.map_id],
     erw category.id_comp,
   end
->>>>>>> 0bc7c2d56b73475624ea3e02c80def237ee83136
 
 end category_theory.limits

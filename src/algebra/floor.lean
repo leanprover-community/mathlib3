@@ -59,6 +59,20 @@ instance : floor_ring ℤ :=
   gc_floor := λ a b, by { rw int.cast_id, refl },
   gc_ceil := λ a b, by { rw int.cast_id, refl } }
 
+def floor_ring.of_floor (α) [linear_ordered_ring α] (floor : α → ℤ)
+  (gc_floor : galois_connection coe floor) : floor_ring α :=
+{ floor := floor,
+  ceil := λ a, -floor (-a),
+  gc_floor := gc_floor,
+  gc_ceil := λ a z, by rw [neg_le, ←gc_floor, int.cast_neg, neg_le_neg_iff] }
+
+def floor_ring.of_ceil (α) [linear_ordered_ring α] (ceil : α → ℤ)
+  (gc_ceil : galois_connection ceil coe) : floor_ring α :=
+{ floor := λ a, -ceil (-a),
+  ceil := ceil,
+  gc_floor := λ a z, by rw [le_neg, gc_ceil, int.cast_neg, neg_le_neg_iff],
+  gc_ceil := gc_ceil }
+
 namespace int
 variables [linear_ordered_ring α] [floor_ring α]
 

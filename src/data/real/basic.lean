@@ -357,14 +357,13 @@ begin
     refine int.cast_le.1 (hy.trans _),
     push_cast,
     exact mul_le_mul_of_nonneg_right ((hU yS).trans hk.le) d.cast_nonneg },
-  choose f hf using λ d : ℕ, int.exists_greatest_of_bdd (this d) ⟨⌊L * d⌋, L, hL, floor_le _⟩,
+  choose f hf using λ d : ℕ, int.exists_greatest_of_bdd (this d) ⟨⌊L * d⌋, L, hL, int.floor_le _⟩,
   have hf₁ : ∀ n > 0, ∃ y ∈ S, ((f n / n:ℚ):ℝ) ≤ y := λ n n0,
     let ⟨y, yS, hy⟩ := (hf n).1 in
     ⟨y, yS, by simpa using (div_le_iff ((nat.cast_pos.2 n0):((_:ℝ) < _))).2 hy⟩,
   have hf₂ : ∀ (n > 0) (y ∈ S), (y - (n:ℕ)⁻¹ : ℝ) < (f n / n:ℚ),
   { intros n n0 y yS,
-    have := lt_of_lt_of_le (sub_one_lt_floor _)
-      (int.cast_le.2 $ (hf n).2 _ ⟨y, yS, floor_le _⟩),
+    have := (int.sub_one_lt_floor _).trans_le (int.cast_le.2 $ (hf n).2 _ ⟨y, yS, int.floor_le _⟩),
     simp [-sub_eq_add_neg],
     rwa [lt_div_iff ((nat.cast_pos.2 n0):((_:ℝ) < _)), sub_mul, _root_.inv_mul_cancel],
     exact ne_of_gt (nat.cast_pos.2 n0) },

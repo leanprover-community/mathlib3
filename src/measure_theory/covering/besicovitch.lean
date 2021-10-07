@@ -71,7 +71,7 @@ covering a proportion `> 1/(N+1)` of the space. Taking a large enough finite sub
 one gets the same property for finitely many balls. Their union is closed. Therefore, any point in
 the complement has around it an admissible ball not intersecting these finitely many balls. Applying
 again the topological Besicovitch theorem, one extracts from these a disjoint countable subfamily
-covering a proportion `> 1(N+1)` of the remaining points, and then even a disjoint finite subfamily.
+covering a proportion `> 1/(N+1)` of the remaining points, and then even a disjoint finite subfamily.
 Then one goes on again and again, covering at each step a positive proportion of the remaining
 points, while remaining disjoint from the already chosen balls. The union of all these balls is
 the desired almost everywhere covering.

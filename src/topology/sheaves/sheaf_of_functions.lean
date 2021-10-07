@@ -50,7 +50,7 @@ form a sheaf.
 In fact, the proof is identical when we do this for dependent functions to a type family `T`,
 so we do the more general case.
 -/
-def to_Types_is_sheaf (T : X → Type u) : (presheaf_to_Types X T).is_sheaf :=
+lemma to_Types_is_sheaf (T : X → Type u) : (presheaf_to_Types X T).is_sheaf :=
 is_sheaf_of_is_sheaf_unique_gluing_types _ $ λ ι U sf hsf,
 -- We use the sheaf condition in terms of unique gluing
 -- U is a family of open sets, indexed by `ι` and `sf` is a compatible family of sections.
@@ -89,7 +89,7 @@ end
 The presheaf of not-necessarily-continuous functions to
 a target type `T` satsifies the sheaf condition.
 -/
-def to_Type_is_sheaf (T : Type u) : (presheaf_to_Type X T).is_sheaf :=
+lemma to_Type_is_sheaf (T : Type u) : (presheaf_to_Type X T).is_sheaf :=
 to_Types_is_sheaf X (λ _, T)
 
 end Top.presheaf

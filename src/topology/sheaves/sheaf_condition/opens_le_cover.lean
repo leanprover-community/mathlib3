@@ -216,7 +216,7 @@ in terms of a limit diagram over all `{ V : opens X // ∃ i, V ≤ U i }`
 is equivalent to the reformulation
 in terms of a limit diagram over `U i` and `U i ⊓ U j`.
 -/
-def is_sheaf_opens_le_cover_iff_is_sheaf_pairwise_intersections (F : presheaf C X) :
+lemma is_sheaf_opens_le_cover_iff_is_sheaf_pairwise_intersections (F : presheaf C X) :
   F.is_sheaf_opens_le_cover ↔ F.is_sheaf_pairwise_intersections :=
 forall_congr (λ ι, forall_congr (λ U, equiv.nonempty_congr $
   calc is_limit (F.map_cone (opens_le_cover_cocone U).op)
@@ -240,7 +240,7 @@ variables [has_products C]
 The sheaf condition in terms of an equalizer diagram is equivalent
 to the reformulation in terms of a limit diagram over all `{ V : opens X // ∃ i, V ≤ U i }`.
 -/
-def sheaf_condition_equiv_sheaf_condition_opens_le_cover (F : presheaf C X) :
+lemma is_sheaf_iff_is_sheaf_opens_le_cover (F : presheaf C X) :
   F.is_sheaf ↔ F.is_sheaf_opens_le_cover :=
 iff.trans
   (is_sheaf_iff_is_sheaf_pairwise_intersections F)

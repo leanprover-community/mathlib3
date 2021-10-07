@@ -39,10 +39,6 @@ variables {C}
 
 namespace SheafedSpace
 
-/-- Construct a sheafed space out of a topological space and a sheaf. -/
-@[simps] def mk' (X : Top) (F : sheaf C X) : SheafedSpace C :=
-{ carrier := X, presheaf := F.1, is_sheaf := F.2 }
-
 instance coe_carrier : has_coe (SheafedSpace C) Top :=
 { coe := λ X, X.carrier }
 

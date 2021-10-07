@@ -134,6 +134,7 @@ end
 /-- A continuous map extending a path to `ℝ`, constant before `0` and after `1`. -/
 def extend : ℝ → X := Icc_extend zero_le_one γ
 
+@[continuity]
 lemma continuous_extend : continuous γ.extend :=
 γ.continuous.Icc_extend
 

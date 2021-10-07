@@ -432,14 +432,14 @@ by rw [← Ico_diff_left, diff_union_self,
   union_eq_self_of_subset_right (singleton_subset_iff.2 $ left_mem_Ico.2 hab)]
 
 lemma Ioo_union_right (hab : a < b) : Ioo a b ∪ {b} = Ioc a b :=
-by simpa only [dual_Ioo, dual_Ico] using Ioo_union_left (show to_dual b < to_dual a, from hab)
+by simpa only [dual_Ioo, dual_Ico] using Ioo_union_left hab.dual
 
 lemma Ioc_union_left (hab : a ≤ b) : Ioc a b ∪ {a} = Icc a b :=
 by rw [← Icc_diff_left, diff_union_self,
   union_eq_self_of_subset_right (singleton_subset_iff.2 $ left_mem_Icc.2 hab)]
 
 lemma Ico_union_right (hab : a ≤ b) : Ico a b ∪ {b} = Icc a b :=
-by simpa only [dual_Ioc, dual_Icc] using Ioc_union_left (show to_dual b ≤ to_dual a, from hab)
+by simpa only [dual_Ioc, dual_Icc] using Ioc_union_left hab.dual
 
 lemma mem_Ici_Ioi_of_subset_of_subset {s : set α} (ho : Ioi a ⊆ s) (hc : s ⊆ Ici a) :
   s ∈ ({Ici a, Ioi a} : set (set α)) :=

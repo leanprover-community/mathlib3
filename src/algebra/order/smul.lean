@@ -101,9 +101,8 @@ begin
 end
 
 lemma smul_nonneg (hc : 0 ≤ c) (ha : 0 ≤ a) : 0 ≤ c • a :=
-calc
-  (0 : M) = c • (0 : M) : (smul_zero' M c).symm
-  ... ≤ c • a : smul_le_smul_of_nonneg ha hc
+calc (0 : M) = c • (0 : M) : (smul_zero' M c).symm
+         ... ≤ c • a : smul_le_smul_of_nonneg ha hc
 
 lemma smul_nonpos_of_nonneg_of_nonpos (hc : 0 ≤ c) (ha : a ≤ 0) : c • a ≤ 0 :=
 @smul_nonneg R (order_dual M) _ _ _ _ _ _ hc ha

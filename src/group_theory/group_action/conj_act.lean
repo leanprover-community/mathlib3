@@ -118,12 +118,12 @@ instance subgroup.conj_action {H : subgroup G} [hH : H.normal] :
   has_scalar (conj_act G) H :=
 ⟨λ g h, ⟨g • h, hH.conj_mem h.1 h.2 (of_conj_act g)⟩⟩
 
+lemma subgroup.coe_conj_smul {H : subgroup G} [hH : H.normal] (g : conj_act G) (h : H) :
+  ↑(g • h) = g • (h : G) := rfl
+
 instance subgroup.conj_mul_distrib_mul_action {H : subgroup G} [hH : H.normal] :
   mul_distrib_mul_action (conj_act G) H :=
 (subtype.coe_injective).mul_distrib_mul_action H.subtype subgroup.coe_conj_smul
-
-lemma subgroup.coe_conj_smul {H : subgroup G} [hH : H.normal] (g : conj_act G) (h : H) :
-  ↑(g • h) = g • (h : G) := rfl
 
 /-- Group conjugation on a normal subgroup. Analogous to `mul_aut.conj`. -/
 def _root_.mul_aut.conj_normal {H : subgroup G} [hH : H.normal] : G →* mul_aut H :=

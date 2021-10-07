@@ -58,30 +58,14 @@ namespace set
 variables {α M : Type*} [has_one M]
 
 @[to_additive]
-lemma mul_indicator_eq_one_iff (s : set α) (f : α → M) (a : α) :
-  s.mul_indicator f a ≠ 1 ↔ a ∈ s ∩ function.mul_support f :=
-begin
-  split; intro h,
-  { by_contra hmem,
-    simp only [set.mem_inter_eq, not_and, not_not, function.mem_mul_support] at hmem,
-    refine h _,
-    by_cases a ∈ s,
-    { simp_rw [set.mul_indicator, if_pos h],
-      exact hmem h },
-    { simp_rw [set.mul_indicator, if_neg h] } },
-  { simp_rw [set.mul_indicator, if_pos h.1],
-    exact h.2 }
-end
-
-@[to_additive]
 lemma mul_indicator_ae_eq_one
-  [measurable_space α] (μ : measure α) (f : α → M) (s : set α)
+  [measurable_space α] {μ : measure α} {f : α → M} {s : set α}
   (h : s.mul_indicator f =ᵐ[μ] 1) : μ (s ∩ function.mul_support f) = 0 :=
 begin
   rw [filter.eventually_eq, ae_iff] at h,
   convert h,
   ext a,
-  rw ← mul_indicator_eq_one_iff s f,
+  rw ← set.mul_indicator_eq_one_iff,
   refl
 end
 
@@ -387,7 +371,7 @@ begin
       simp [hnt] },
     rw [heq, set.inter_univ] at this,
     exact hns this },
-  exact set.indicator_ae_eq_zero μ ((μ support)⁻¹ • 1) support hu.symm,
+  exact set.indicator_ae_eq_zero hu.symm,
 end
 
 lemma pdf_to_real_ae_eq {m : measurable_space α}

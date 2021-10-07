@@ -74,7 +74,7 @@ begin
   { rw [nat.succ_add k l, derived_series_of_ideal_succ, derived_series_of_ideal_succ, ih], },
 end
 
-lemma derived_series_of_ideal_le {I J : lie_ideal R L} {k l : ℕ} (h₁ : I ≤ J) (h₂ : l ≤ k) :
+@[mono] lemma derived_series_of_ideal_le {I J : lie_ideal R L} {k l : ℕ} (h₁ : I ≤ J) (h₂ : l ≤ k) :
   D k I ≤ D l J :=
 begin
   revert l, induction k with k ih; intros l h₂,

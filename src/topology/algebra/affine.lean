@@ -12,7 +12,9 @@ import linear_algebra.affine_space.affine_map
 For now, this contains only a few facts regarding the continuity of affine maps in the special
 case when the point space and vector space are the same.
 
-TODO: Deal with the case where the point spaces are different from the vector spaces.
+TODO: Deal with the case where the point spaces are different from the vector spaces. Note that
+we do have some results in this direction under the assumption that the topologies are induced by
+(semi)norms.
 -/
 
 namespace affine_map
@@ -25,7 +27,8 @@ section ring
 
 variables [ring R] [module R E] [module R F]
 
-/-- An affine map is continuous iff its underlying linear map is continuous. -/
+/-- An affine map is continuous iff its underlying linear map is continuous. See also
+`affine_map.continuous_linear_iff`. -/
 lemma continuous_iff {f : E →ᵃ[R] F} :
   continuous f ↔ continuous f.linear :=
 begin

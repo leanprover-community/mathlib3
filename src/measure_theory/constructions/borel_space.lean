@@ -313,14 +313,14 @@ end
 
 variables {α' : Type*} [topological_space α'] [measurable_space α']
 
-lemma meas_interior_of_null_bdry {μ : measure α'} {s : set α'}
+lemma measure_interior_of_null_bdry {μ : measure α'} {s : set α'}
   (h_nullbdry : μ (frontier s) = 0) : μ (interior s) = μ s :=
-meas_eq_meas_smaller_of_between_null_diff
+measure_eq_measure_smaller_of_between_null_diff
   interior_subset subset_closure h_nullbdry
 
-lemma meas_closure_of_null_bdry {μ : measure α'} {s : set α'}
+lemma measure_closure_of_null_bdry {μ : measure α'} {s : set α'}
   (h_nullbdry : μ (frontier s) = 0) : μ (closure s) = μ s :=
-(meas_eq_meas_larger_of_between_null_diff
+(measure_eq_measure_larger_of_between_null_diff
   interior_subset subset_closure h_nullbdry).symm
 
 section preorder
@@ -546,10 +546,10 @@ lemma continuous.ae_measurable2 [second_countable_topology α] [second_countable
 h.measurable.comp_ae_measurable (hf.prod_mk hg)
 
 @[priority 100]
-instance has_continuous_inv'.has_measurable_inv [group_with_zero γ] [t1_space γ]
-  [has_continuous_inv' γ] :
+instance has_continuous_inv₀.has_measurable_inv [group_with_zero γ] [t1_space γ]
+  [has_continuous_inv₀ γ] :
   has_measurable_inv γ :=
-⟨measurable_of_continuous_on_compl_singleton 0 continuous_on_inv'⟩
+⟨measurable_of_continuous_on_compl_singleton 0 continuous_on_inv₀⟩
 
 @[priority 100, to_additive]
 instance has_continuous_mul.has_measurable_mul₂ [second_countable_topology γ] [has_mul γ]
@@ -812,28 +812,26 @@ begin
   exact ⟨hg.exists.some, hg.mono (λ y hy, is_glb.unique hy hg.exists.some_spec)⟩,
 end
 
-lemma measurable_of_monotone [linear_order β] [order_closed_topology β] {f : β → α}
+protected lemma monotone.measurable [linear_order β] [order_closed_topology β] {f : β → α}
   (hf : monotone f) : measurable f :=
 suffices h : ∀ x, ord_connected (f ⁻¹' Ioi x),
   from measurable_of_Ioi (λ x, (h x).measurable_set),
 λ x, ord_connected_def.mpr (λ a ha b hb c hc, lt_of_lt_of_le ha (hf hc.1))
 
-alias measurable_of_monotone ← monotone.measurable
-
 lemma ae_measurable_restrict_of_monotone_on [linear_order β] [order_closed_topology β]
-  {μ : measure β} {s : set β} (hs : measurable_set s) {f : β → α}
-  (hf : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f x ≤ f y) : ae_measurable f (μ.restrict s) :=
+  {μ : measure β} {s : set β} (hs : measurable_set s) {f : β → α} (hf : monotone_on f s) :
+  ae_measurable f (μ.restrict s) :=
 have this : monotone (f ∘ coe : s → α), from λ ⟨x, hx⟩ ⟨y, hy⟩ (hxy : x ≤ y), hf hx hy hxy,
 ae_measurable_restrict_of_measurable_subtype hs this.measurable
 
-lemma measurable_of_antitone [linear_order β] [order_closed_topology β] {f : β → α}
-  (hf : ∀ ⦃x y : β⦄, x ≤ y → f y ≤ f x) :
+protected lemma antitone.measurable [linear_order β] [order_closed_topology β] {f : β → α}
+  (hf : antitone f) :
   measurable f :=
-@measurable_of_monotone (order_dual α) β _ _ ‹_› _ _ _ _ _ ‹_› _ _ _ hf
+@monotone.measurable (order_dual α) β _ _ ‹_› _ _ _ _ _ ‹_› _ _ _ hf
 
 lemma ae_measurable_restrict_of_antitone_on [linear_order β] [order_closed_topology β]
-  {μ : measure β} {s : set β} (hs : measurable_set s) {f : β → α}
-  (hf : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f y ≤ f x) : ae_measurable f (μ.restrict s) :=
+  {μ : measure β} {s : set β} (hs : measurable_set s) {f : β → α} (hf : antitone_on f s) :
+  ae_measurable f (μ.restrict s) :=
 @ae_measurable_restrict_of_monotone_on (order_dual α) β _ _ ‹_› _ _ _ _ _ ‹_› _ _ _ _ hs _ hf
 
 end linear_order
@@ -1114,11 +1112,9 @@ def finite_spanning_sets_in_Ioo_rat (μ : measure ℝ) [is_locally_finite_measur
       refine ⟨-(n + 1), n + 1, _, by norm_cast⟩,
       exact (neg_nonpos.2 (@nat.cast_nonneg ℚ _ (n + 1))).trans_lt n.cast_add_one_pos
     end,
-  finite := λ n,
-    calc μ (Ioo _ _) ≤ μ (Icc _ _) : μ.mono Ioo_subset_Icc_self
-                 ... < ∞           : is_compact_Icc.is_finite_measure,
+  finite := λ n, measure_Ioo_lt_top,
   spanning := Union_eq_univ_iff.2 $ λ x,
-    ⟨⌊abs x⌋₊, neg_lt.1 ((neg_le_abs_self x).trans_lt (lt_nat_floor_add_one _)),
+    ⟨⌊|x|⌋₊, neg_lt.1 ((neg_le_abs_self x).trans_lt (lt_nat_floor_add_one _)),
       (le_abs_self x).trans_lt (lt_nat_floor_add_one _)⟩ }
 
 lemma measure_ext_Ioo_rat {μ ν : measure ℝ} [is_locally_finite_measure μ]
@@ -1259,7 +1255,7 @@ end
 
 instance : has_measurable_sub₂ ℝ≥0∞ :=
 ⟨by apply measurable_of_measurable_nnreal_nnreal;
-  simp [← ennreal.coe_sub, continuous_sub.measurable.coe_nnreal_ennreal]⟩
+  simp [← with_top.coe_sub, continuous_sub.measurable.coe_nnreal_ennreal]⟩
 
 instance : has_measurable_inv ℝ≥0∞ := ⟨ennreal.continuous_inv.measurable⟩
 
@@ -1457,7 +1453,7 @@ begin
     rw [tendsto_pi], rw [tendsto_pi] at lim, intro x,
     exact ((continuous_inf_nndist_pt s).tendsto (g x)).comp (lim x) },
   have h4s : g ⁻¹' s = (λ x, inf_nndist (g x) s) ⁻¹' {0},
-  { ext x, simp [h1s, ← mem_iff_inf_dist_zero_of_closed h1s h2s, ← nnreal.coe_eq_zero] },
+  { ext x, simp [h1s, ← h1s.mem_iff_inf_dist_zero h2s, ← nnreal.coe_eq_zero] },
   rw [h4s], exact this (measurable_set_singleton 0),
 end
 
@@ -1604,62 +1600,3 @@ lemma ae_measurable_smul_const {f : α → 𝕜} {μ : measure α} {c : E} (hc :
 ae_measurable_comp_iff_of_closed_embedding (λ y : 𝕜, y • c) (closed_embedding_smul_left hc)
 
 end normed_space
-
-/-- If `s` is a compact set and `μ` is finite at `𝓝 x` for every `x ∈ s`, then `s` admits an open
-superset of finite measure. -/
-lemma is_compact.exists_open_superset_measure_lt_top' [topological_space α]
-  {s : set α} {μ : measure α} (h : is_compact s) (hμ : ∀ x ∈ s, μ.finite_at_filter (𝓝 x)) :
-  ∃ U ⊇ s, is_open U ∧ μ U < ∞ :=
-begin
-  refine is_compact.induction_on h _ _ _ _,
-  { use ∅, simp [superset] },
-  { rintro s t hst ⟨U, htU, hUo, hU⟩, exact ⟨U, hst.trans htU, hUo, hU⟩ },
-  { rintro s t ⟨U, hsU, hUo, hU⟩ ⟨V, htV, hVo, hV⟩,
-    refine ⟨U ∪ V, union_subset_union hsU htV, hUo.union hVo,
-      (measure_union_le _ _).trans_lt $ ennreal.add_lt_top.2 ⟨hU, hV⟩⟩ },
-  { intros x hx,
-    rcases (hμ x hx).exists_mem_basis (nhds_basis_opens _) with ⟨U, ⟨hx, hUo⟩, hU⟩,
-    exact ⟨U, nhds_within_le_nhds (hUo.mem_nhds hx), U, subset.rfl, hUo, hU⟩ }
-end
-
-/-- If `s` is a compact set and `μ` is a locally finite measure, then `s` admits an open superset of
-finite measure. -/
-lemma is_compact.exists_open_superset_measure_lt_top [topological_space α]
-  {s : set α} (μ : measure α) [is_locally_finite_measure μ] (h : is_compact s) :
-  ∃ U ⊇ s, is_open U ∧ μ U < ∞ :=
-h.exists_open_superset_measure_lt_top' $ λ x hx, μ.finite_at_nhds x
-
-lemma is_compact.measure_lt_top_of_nhds_within [topological_space α]
-  {s : set α} {μ : measure α} (h : is_compact s) (hμ : ∀ x ∈ s, μ.finite_at_filter (𝓝[s] x)) :
-  μ s < ∞ :=
-is_compact.induction_on h (by simp) (λ s t hst ht, (measure_mono hst).trans_lt ht)
-  (λ s t hs ht, (measure_union_le s t).trans_lt (ennreal.add_lt_top.2 ⟨hs, ht⟩)) hμ
-
-lemma is_compact.measure_lt_top [topological_space α] {s : set α} {μ : measure α}
-  [is_locally_finite_measure μ] (h : is_compact s) :
-  μ s < ∞ :=
-h.measure_lt_top_of_nhds_within $ λ x hx, μ.finite_at_nhds_within _ _
-
-/-- Compact covering of a `σ`-compact topological space as
-`measure_theory.measure.finite_spanning_sets_in`. -/
-def measure_theory.measure.finite_spanning_sets_in_compact [topological_space α]
-  [sigma_compact_space α] (μ : measure α) [is_locally_finite_measure μ] :
-  μ.finite_spanning_sets_in {K | is_compact K} :=
-{ set := compact_covering α,
-  set_mem := is_compact_compact_covering α,
-  finite := λ n, (is_compact_compact_covering α n).measure_lt_top,
-  spanning := Union_compact_covering α }
-
-/-- A locally finite measure on a `σ`-compact topological space admits a finite spanning sequence
-of open sets. -/
-def measure_theory.measure.finite_spanning_sets_in_open [topological_space α]
-  [sigma_compact_space α] (μ : measure α) [is_locally_finite_measure μ] :
-  μ.finite_spanning_sets_in {K | is_open K} :=
-{ set := λ n, ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some,
-  set_mem := λ n,
-    ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.snd.1,
-  finite := λ n,
-    ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.snd.2,
-  spanning := eq_univ_of_subset (Union_subset_Union $ λ n,
-    ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.fst)
-    (Union_compact_covering α) }

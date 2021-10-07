@@ -188,7 +188,7 @@ begin
   clear n, dsimp [measure,inv_image], intros n ih,
   by_cases h' : n > 100,
   { rw [part.examples.f91.equations.eqn_1,if_pos h'],
-    existsi n - 10, rw nat.sub_add_eq_add_sub, norm_num [pure],
+    existsi n - 10, rw sub_add_eq_add_sub', norm_num [pure],
     apply le_of_lt, transitivity 100, norm_num, exact h' },
   { rw [part.examples.f91.equations.eqn_1,if_neg h'],
     simp, rcases ih (n + 11) _ with ⟨n',hn₀,hn₁⟩,

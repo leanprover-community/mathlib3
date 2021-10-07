@@ -705,7 +705,7 @@ begin
   rw [mul_comm, ← neg_mul_eq_neg_mul, finset.sum_mul],
   convert hq using 2,
   refine finset.sum_congr rfl (λ i hi, _),
-  have : 1 ≤ p.nat_degree - i := nat.le_sub_left_of_add_le (finset.mem_range.mp hi),
+  have : 1 ≤ p.nat_degree - i := le_sub_of_add_le_left' (finset.mem_range.mp hi),
   rw [mul_assoc, ← pow_succ', nat.sub_add_cancel this]
 end
 

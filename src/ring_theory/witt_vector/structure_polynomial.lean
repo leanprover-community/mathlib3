@@ -180,11 +180,11 @@ begin
   exact pow_ne_zero _ (nat.cast_ne_zero.2 hp.1.ne_zero),
 end
 
-/-- `witt_structure_int Φ` is a family of polynomials `ℕ → mv_polynomial (idx × ℕ) ℚ`
+/-- `witt_structure_int Φ` is a family of polynomials `ℕ → mv_polynomial (idx × ℕ) ℤ`
 that are uniquely characterised by the property that
 ```
-bind₁ (witt_structure_int p Φ) (witt_polynomial p ℚ n) =
-bind₁ (λ i, (rename (prod.mk i) (witt_polynomial p ℚ n))) Φ
+bind₁ (witt_structure_int p Φ) (witt_polynomial p ℤ n) =
+bind₁ (λ i, (rename (prod.mk i) (witt_polynomial p ℤ n))) Φ
 ```
 In other words: evaluating the `n`-th Witt polynomial on the family `witt_structure_int Φ`
 is the same as evaluating `Φ` on the (appropriately renamed) `n`-th Witt polynomials.

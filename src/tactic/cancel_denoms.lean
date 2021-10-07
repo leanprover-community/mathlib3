@@ -78,7 +78,7 @@ begin
   { rintro rfl, refl },
   { intro h,
     simp only [←mul_assoc] at h,
-    refine mul_left_cancel' (mul_ne_zero _ _) h,
+    refine mul_left_cancel₀ (mul_ne_zero _ _) h,
     apply mul_ne_zero, apply div_ne_zero,
     all_goals {apply ne_of_gt; assumption <|> exact zero_lt_one}}
 end

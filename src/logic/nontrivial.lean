@@ -62,6 +62,8 @@ lemma subtype.nontrivial_iff_exists_ne (p : α → Prop) (x : subtype p) :
   nontrivial (subtype p) ↔ ∃ (y : α) (hy : p y), y ≠ x :=
 by simp only [nontrivial_iff_exists_ne x, subtype.exists, ne.def, subtype.ext_iff, subtype.coe_mk]
 
+instance : nontrivial Prop := ⟨⟨true, false, true_ne_false⟩⟩
+
 /--
 See Note [lower instance priority]
 

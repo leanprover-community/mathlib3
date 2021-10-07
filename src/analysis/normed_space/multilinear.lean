@@ -130,7 +130,7 @@ begin
   refine ⟨_, this, _⟩,
   refine f.bound_of_shell (λ _, ε0) (λ _, hc) (λ m hcm hm, _),
   refine (hε m ((pi_norm_lt_iff ε0).2 hm)).le.trans _,
-  rw [← div_le_iff' this, one_div, ← inv_pow', inv_div, fintype.card, ← prod_const],
+  rw [← div_le_iff' this, one_div, ← inv_pow₀, inv_div, fintype.card, ← prod_const],
   exact prod_le_prod (λ _ _, div_nonneg ε0.le (norm_nonneg _)) (λ i _, hcm i)
 end
 

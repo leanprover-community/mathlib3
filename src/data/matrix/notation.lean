@@ -148,6 +148,12 @@ set.ext $ λ y, by simp [fin.exists_fin_succ, eq_comm]
 @[simp] lemma range_empty (u : fin 0 → α) : set.range u = ∅ :=
 set.range_eq_empty _
 
+@[simp] lemma vec_cons_const (a : α) : vec_cons a (λ k : fin n, a) = λ _, a :=
+funext $ fin.forall_fin_succ.2 ⟨rfl, cons_val_succ _ _⟩
+
+lemma vec_single_eq_const (a : α) : ![a] = λ _, a :=
+funext $ unique.forall_iff.2 rfl
+
 /-- `![a, b, ...] 1` is equal to `b`.
 
   The simplifier needs a special lemma for length `≥ 2`, in addition to
@@ -215,7 +221,7 @@ begin
   { rw [fin.coe_mk, not_lt] at h,
     simp only [fin.ext_iff, fin.coe_add, fin.coe_mk, nat.mod_eq_sub_mod h],
     refine (nat.mod_eq_of_lt _).symm,
-    rw nat.sub_lt_left_iff_lt_add h,
+    rw sub_lt_iff_left h,
     exact add_lt_add i.property i.property }
 end
 
@@ -235,7 +241,7 @@ begin
       simp only [fin.ext_iff, fin.coe_add, fin.coe_mk, nat.mod_add_mod, fin.coe_one,
                  nat.mod_eq_sub_mod h],
       refine (nat.mod_eq_of_lt _).symm,
-      rw nat.sub_lt_left_iff_lt_add h,
+      rw sub_lt_iff_left h,
       exact nat.add_succ_lt_add i.property i.property } }
 end
 

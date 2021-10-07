@@ -428,6 +428,34 @@ begin
     exact mem_Ico.mp hy, },
 end
 
+theorem something_important
+{G : Type*}
+[add_group G]
+[topological_space G]
+[t2_space G]
+[topological_add_group G]
+[measurable_space G]
+[borel_space G]
+[topological_space.second_countable_topology G]
+{μ : measure_theory.measure G}
+[measure_theory.sigma_finite μ]
+(hμ : measure_theory.is_add_left_invariant ⇑μ)
+(K₀ : topological_space.positive_compacts G)
+{H : add_subgroup G}
+{s t : set G}
+(hs : measurable_set s)
+(A: set (quotient_add_group.quotient H))
+[measurable_space (quotient_add_group.quotient H)]
+(hA: measurable_set A)
+[has_add (quotient_add_group.quotient H)]
+(x : quotient_add_group.quotient H)
+ : (μ.restrict s) (quotient_add_group.mk ⁻¹' (has_add.add x ⁻¹' A)) = (μ.restrict s) (quotient_add_group.mk ⁻¹' A)
+ :=
+ begin
+
+   sorry,
+ end
+
 
 lemma something1
 --(S : set ℝ ) (hS : measurable_set S)
@@ -466,6 +494,8 @@ begin
       measure_theory.measure.map_apply],
 
     {
+
+
       -- make this a lemma for the group theory library! ...
       obtain ⟨x0, hx0⟩ := @quotient.exists_rep _
         (quotient_add_group.left_rel genBy1) x,
@@ -570,10 +600,8 @@ begin
     { exact meas1, },
     { exact hA, },
     { exact meas1, },
-    { sorry, --  measurable_set (has_add.add x ⁻¹' A)
-    },
-    { sorry, -- measurable (has_add.add x)
-    },
+    { refine measurable_set_preimage (measurable_const_add _) hA, },
+    { refine measurable_const_add _, },
     { exact hA, }, },
 end
 

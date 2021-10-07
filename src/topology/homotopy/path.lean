@@ -11,8 +11,7 @@ import topology.path_connected
 # Homotopy between paths
 
 In this file, we define a `homotopy` between two `path`s. In addition, we define a relation
-`homotopic` on `path`s, and prove that it is an equivalence relation. Finally, we also define
-(but do not yet prove that is a group) the fundamental group of a space.
+`homotopic` on `path`s, and prove that it is an equivalence relation.
 
 ## Definitions
 
@@ -25,8 +24,6 @@ In this file, we define a `homotopy` between two `path`s. In addition, we define
 * `path.homotopic p₀ p₁` is the relation saying that there is a homotopy between `p₀` and `p₁`
 * `path.homotopic.setoid x₀ x₁` is the setoid on `path`s from `path.homotopic`
 * `path.homotopic.quotient x₀ x₁` is the quotient type from `path x₀ x₀` by `path.homotopic.setoid`
-* `first_homotopy x₀` is defined to be `path.homotopic.quotient x₀ x₀`. That is, the fundamental
-  group of `X` based at `x₀`.
 
 ## Todos
 
@@ -77,7 +74,14 @@ begin
   simp,
 end
 
+def eval (F : homotopy p₀ p₁) (t : I) : path x₀ x₁ :=
+{ to_fun := F.to_homotopy.curry t,
+  source' := sorry,
+  target' := sorry }
+
 end
+
+section
 
 variables {p₀ p₁ p₂ : path x₀ x₁}
 
@@ -118,6 +122,34 @@ lemma symm_trans (F : homotopy p₀ p₁) (G : homotopy p₁ p₂) :
   (F.trans G).symm = G.symm.trans F.symm :=
 continuous_map.homotopy_rel.symm_trans _ _
 
+end
+
+section
+
+variables {x₂ : X}
+
+def trans' {p₀ q₀ : path x₀ x₁} {p₁ q₁ : path x₁ x₂} (F : homotopy p₀ q₀) (G : homotopy p₁ q₁) :
+  homotopy (p₀.trans p₁) (q₀.trans q₁) :=
+{ to_fun := λ x,
+  if (x.2 : ℝ) ≤ 1/2 then
+    (F.eval x.1).extend (2 * x.2)
+  else
+    (G.eval x.1).extend (2 * x.2 - 1),
+  continuous_to_fun := begin
+    refine continuous_if_le (continuous_induced_dom.comp continuous_snd) continuous_const _ _ _,
+    { apply continuous.continuous_on,
+      apply continuous.comp,
+     },
+    -- { exact continuous_induced_dom.comp continuous_snd}
+    -- continuity,
+    -- continuity,
+  end,
+  to_fun_zero := _,
+  to_fun_one := _,
+  prop' := _ }
+
+end
+
 end homotopy
 
 /--
@@ -156,11 +188,3 @@ instance : inhabited (homotopic.quotient () ()) :=
 end homotopic
 
 end path
-
-/--
-The quotient on `path x₀ x₀` by the equivalence relation `path.homotopic`. That is, the fundamental
-group of `X` based at `x₀`.
--/
-def first_homotopy (x₀ : X) := path.homotopic.quotient x₀ x₀
-
-instance : inhabited (first_homotopy ()) := path.homotopic.quotient.inhabited

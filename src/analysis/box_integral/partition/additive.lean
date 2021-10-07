@@ -11,8 +11,10 @@ import data.set.intervals.proj_Icc
 # Box additive functions
 
 We say that a function `f : box ι → M` from boxes in `ℝⁿ` to a commutative additive monoid `M` is
-*box additive* on subboxes of `I₀ : with_bot (box ι)` if for any box `J`, `↑J ≤ I₀`, and a partition
-`π` of `J`, `f J = ∑ J' in π.boxes, f J'`.
+*box additive* on subboxes of `I₀ : with_top (box ι)` if for any box `J`, `↑J ≤ I₀`, and a partition
+`π` of `J`, `f J = ∑ J' in π.boxes, f J'`. We use `I₀ : with_top (box ι)` instead of `I₀ : box ι` to
+use the same definition for functions box additive on subboxes of a box and for functions box
+additive on all boxes.
 
 Examples of box-additive functions include the measure of a box and the integral of a fixed
 integrable function over a box.
@@ -349,6 +351,10 @@ begin
   { simp_rw [split_many_insert, ← inf_assoc, ihp, inf_split, bUnion_assoc] }
 end
 
+/-- Let `s : finset (ι × ℝ)` be a set of hyperplanes `{x : ι → ℝ | x i = r}` in `ι → ℝ` encoded as
+pairs `(i, r)`. Suppose that this set contains all faces of a box `J`. The hyperplanes of `s` split
+a box `I` into subboxes. Let `Js` be one of them. If `J` and `Js` have nonempty intersection, then
+`Js` is a subbox of `J`.  -/
 lemma nonempty_inter_imp_le_of_subset_of_mem_split_many {I J Js : box ι} {s : finset (ι × ℝ)}
   (H : ∀ i, {(i, J.lower i), (i, J.upper i)} ⊆ s) (HJs : Js ∈ split_many I s)
   (Hn : (J ∩ Js : set (ι → ℝ)).nonempty) : Js ≤ J :=
@@ -370,6 +376,11 @@ section fintype
 
 variable [fintype ι]
 
+/-- Let `s` be a finite set of boxes in `ℝⁿ = ι → ℝ`. Then there exists a finite set `t₀` of
+hyperplanes (namely, the set of all hyperfaces of boxes in `s`) such that for any `t ⊇ t₀`
+and any box `I` in `ℝⁿ` the following holds. The hyperplanes from `t` split `I` into subboxes.
+Let `J'` be one of them, and let `J` be one of the boxes in `s`. If these boxes have a nonempty
+intersection, then `J' ≤ J`. -/
 lemma exists_split_many_forall_nonempty_imp_le (s : finset (box ι)) :
   ∃ t₀ : finset (ι × ℝ), ∀ (t ⊇ t₀) (I : box ι) (J ∈ s) (J' ∈ split_many I t),
     (J ∩ J' : set (ι → ℝ)).nonempty → J' ≤ J :=
@@ -408,7 +419,7 @@ end
 `split_many I s ≤ π`. -/
 lemma is_partition.exists_split_many_le {I : box ι} {π : prepartition I}
   (h : is_partition π) : ∃ s, split_many I s ≤ π :=
-(exists_split_many_forall_nonempty_imp_le π.boxes).imp $ λ s hs, h.ge_iff.2 $
+(exists_split_many_forall_nonempty_imp_le π.boxes).imp $ λ s hs, h.le_iff.2 $
   λ Js hJs J hJ Hne, hs s (finset.subset.refl _) I J hJ _ hJs (Hne.mono (inter_comm _ _).subset)
 
 /-- For every prepartition `π` of `I` there exists a prepartition that covers exactly
@@ -443,19 +454,18 @@ end fintype
 
 end prepartition
 
-/-- A function on `box ι` is called box additive if for every box `I` and a hyperplane
-`{y | y i = x}` we have `f (I ∩ {y | y i ≤ x}) + f (I ∩ {y | x < y i}) = f I`. We formulate this
-property in terms of `box_integral.box.split_lower` and `box_integral.box.split_upper`.
-
-This property implies that for any partition `π` of a box `I` into smaller boxes we have
-`f I = ∑ J in π.boxes, f J`. -/
+/-- A function on `box ι` is called box additive if for every box `J` and a partition `π` of `J`
+we have `f J = ∑ Ji in π.boxes, f Ji`. A function is called box additive on subboxes of `I : box ι`
+if the same property holds for `J ≤ I`. We formalize these two notions in the same definition
+using `I : with_bot (box ι)`: the value `I = ⊤` corresponds to functions box additive on the whole
+space.  -/
 structure box_additive_map (ι M : Type*) [add_comm_monoid M] (I : with_top (box ι)) :=
 (to_fun : box ι → M)
 (sum_partition_boxes' : ∀ J : box ι, ↑J ≤ I → ∀ π : prepartition J, π.is_partition →
-  ∑ J' in π.boxes, to_fun J' = to_fun J)
+  ∑ Ji in π.boxes, to_fun Ji = to_fun J)
 
-notation ι ` →ᵇᵃ `:25 M := box_additive_map ι M ⊤
-notation ι ` →ᵇᵃ[`:25 I `] ` M := box_additive_map ι M I
+localized "notation ι ` →ᵇᵃ `:25 M := box_integral.box_additive_map ι M ⊤" in box_integral
+localized "notation ι ` →ᵇᵃ[`:25 I `] ` M := box_integral.box_additive_map ι M I" in box_integral
 
 namespace box_additive_map
 

@@ -35,7 +35,7 @@ We define the following operations on boxes:
   map from `box ι` to `set (ι → ℝ)`;
 * `box_integral.box.inter`: intersection of two boxes; this is a partial function in the sense that
   its codomain is `part (box ι)`;
-* `box_integral.box.face I i : box ({i}ᶜ : set ι)`: a face of `I : box_integral.box ι`;
+* `box_integral.box.face I i : box (fin n)`: a hyperface of `I : box_integral.box (fin (n + 1))`;
 * `box_integral.box.distortion`: the maximal ratio of two lengths of edges of a box; defined as the
   supremum of `nndist I.lower I.upper / nndist (I.lower i) (I.upper i)`.
 
@@ -181,8 +181,8 @@ lemma nonempty_coe_inter_coe {I J : box ι} :
 by simp only [coe_eq_pi, ← pi_inter_distrib, univ_pi_nonempty_iff, Ioc_inter_Ioc, set.nonempty_Ioc,
   sup_eq_max, inf_eq_min]
 
-/-- Intersection of two boxes. Since two nonempty boxes can be disjoint, this function takes a
-proof of `(I ∩ J : set (ι → ℝ)).nonempty` as an argument. -/
+/-- Intersection of two boxes. Since two nonempty boxes can be disjoint, this function takes values
+in `part (box ι)` with `(inter I J).dom = (I ∩ J : set (ι → ℝ)).nonempty`. -/
 @[simps dom] def inter (I J : box ι) : part (box ι) :=
 { dom := (I ∩ J : set (ι → ℝ)).nonempty,
   get := λ H, ⟨_, _, nonempty_coe_inter_coe.1 H⟩ }
@@ -243,6 +243,12 @@ part.eq_some_iff.2 $ mem_inter.2 $ eq.symm $ by simpa
 lemma inter_of_ge (h : I ≤ J) : J.inter I = part.some I :=
 by rw [inter_comm, inter_of_le h]
 
+/-!
+### Supremum of two boxes
+-/
+
+/-- `I ⊔ J` is the least box that includes bot `I` and `J`. Since `↑I ∪ ↑J` is usually not a box,
+`↑(I ⊔ J)` is larger than `↑I ∪ ↑J`. -/
 instance : has_sup (box ι) :=
 ⟨λ I J, ⟨I.lower ⊓ J.lower, I.upper ⊔ J.upper,
   λ i, (min_le_left _ _).trans_lt $ (I.lower_lt_upper i).trans_le (le_max_left _ _)⟩⟩
@@ -253,6 +259,10 @@ instance : semilattice_sup (box ι) :=
   sup_le := λ I₁ I₂ J h₁ h₂, le_iff_bounds.2 ⟨le_inf (antitone_lower h₁) (antitone_lower h₂),
     sup_le (monotone_upper h₁) (monotone_upper h₂)⟩,
   .. box.partial_order, .. box.has_sup }
+
+/-!
+### Hyperface of a box in `ℝⁿ⁺¹ = fin (n + 1) → ℝ`
+-/
 
 /-- Face of a box in `ℝⁿ⁺¹ = fin (n + 1) → ℝ`: the box in `ℝⁿ = fin n → ℝ` with corners at
 `I.lower ∘ fin.insert_nth i` and `I.upper ∘ fin.insert_nth i`. -/
@@ -267,6 +277,12 @@ lemma maps_to_insert_nth_face_Icc {n} (I : box (fin (n + 1))) {i : fin (n + 1)} 
   (hx : x ∈ Icc (I.lower i) (I.upper i)) :
   maps_to (i.insert_nth x) (I.face i).Icc I.Icc :=
 λ y hy, fin.insert_nth_mem_Icc.2 ⟨hx, hy⟩
+
+lemma maps_to_insert_nth_face {n} (I : box (fin (n + 1))) {i : fin (n + 1)} {x : ℝ}
+  (hx : x ∈ Ioc (I.lower i) (I.upper i)) :
+  maps_to (i.insert_nth x) (I.face i) I :=
+λ y hy, by simpa only [mem_coe, mem_def, i.forall_iff_succ_above, hx, fin.insert_nth_apply_same,
+  fin.insert_nth_apply_succ_above, true_and]
 
 lemma continuous_on_face_Icc {X} [topological_space X] {n} {f : (fin (n + 1) → ℝ) → X}
   {I : box (fin (n + 1))} (h : continuous_on f I.Icc) {i : fin (n + 1)} {x : ℝ}

@@ -25,7 +25,7 @@ rectangular box, measure
 
 open set
 noncomputable theory
-open_locale ennreal big_operators classical
+open_locale ennreal big_operators classical box_integral
 
 variables {ι : Type*}
 

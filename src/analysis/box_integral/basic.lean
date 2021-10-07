@@ -39,9 +39,6 @@ constant). We also prove a version of the Henstock-Sacks inequality (see
 integrability of continuous functions, and provide a criterion for integrability w.r.t. a
 non-Riemann filter (e.g., Henstock-Kurzweil and McShane).
 
-Finally, we prove integrability of a continuous function and provide a sufficient condition for
-integrability of a function along a non-Riemann integration filter (e.g., `Henstock` or `McShane`).
-
 ## Notation
 
 - `ℝⁿ`: local notation for `ι → ℝ`
@@ -51,7 +48,7 @@ integrability of a function along a non-Riemann integration filter (e.g., `Henst
 integral
 -/
 
-open_locale big_operators classical topological_space nnreal filter uniformity
+open_locale big_operators classical topological_space nnreal filter uniformity box_integral
 open set finset function filter metric box_integral.integration_filter
 
 noncomputable theory

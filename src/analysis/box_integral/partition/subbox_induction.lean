@@ -206,7 +206,7 @@ def union_compl_to_subordinate (π₁ : tagged_prepartition I) (π₂ : preparti
   (hU : π₂.Union = I \ π₁.Union) (r : (ι → ℝ) → Ioi (0 : ℝ)) :
   tagged_prepartition I :=
 π₁.disj_union (π₂.to_subordinate r)
-  (prepartition.disjoint_Union_of_eq_diff ((π₂.Union_to_subordinate r).trans hU))
+  (((π₂.Union_to_subordinate r).trans hU).symm ▸ disjoint_diff)
 
 lemma is_partition_union_compl_to_subordinate (π₁ : tagged_prepartition I) (π₂ : prepartition I)
   (hU : π₂.Union = I \ π₁.Union) (r : (ι → ℝ) → Ioi (0 : ℝ)) :

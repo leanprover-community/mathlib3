@@ -460,9 +460,6 @@ by simp [disj_union, prepartition.Union, Union_or, Union_union_distrib]
   ∑ J in π₁.boxes ∪ π₂.boxes, f J = ∑ J in π₁.boxes, f J + ∑ J in π₂.boxes, f J :=
 sum_union $ disjoint_boxes_of_disjoint_Union h
 
-lemma disjoint_Union_of_eq_diff (h : π₂.Union = I \ π₁.Union) : disjoint π₁.Union π₂.Union :=
-h.symm ▸ disjoint_diff
-
 section distortion
 
 variable [fintype ι]
@@ -531,7 +528,7 @@ let ⟨J, hJ, _⟩ := h _ I.upper_mem in ⟨J, hJ⟩
 lemma eq_of_boxes_subset (h₁ : π₁.is_partition) (h₂ : π₁.boxes ⊆ π₂.boxes) : π₁ = π₂ :=
 eq_of_boxes_subset_Union_superset h₂ $ h₁.Union_subset _
 
-lemma ge_iff (h : π₂.is_partition) :
+lemma le_iff (h : π₂.is_partition) :
   π₁ ≤ π₂ ↔ ∀ (J ∈ π₁) (J' ∈ π₂), (J ∩ J' : set (ι → ℝ)).nonempty → J ≤ J' :=
 le_iff_nonempty_imp_le_and_Union_subset.trans $ and_iff_left $ h.Union_subset _
 
@@ -554,7 +551,7 @@ lemma Union_bUnion_partition (h : ∀ J ∈ π, (πi J).is_partition) : (π.bUni
   (h J hJ).Union_eq
 
 lemma is_partition_disj_union_of_eq_diff (h : π₂.Union = I \ π₁.Union) :
-  is_partition (π₁.disj_union π₂ (disjoint_Union_of_eq_diff h)) :=
+  is_partition (π₁.disj_union π₂ (h.symm ▸ disjoint_diff)) :=
 is_partition_iff_Union_eq.2 $ (Union_disj_union _).trans $ by simp [h, π₁.Union_subset]
 
 end prepartition

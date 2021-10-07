@@ -31,7 +31,8 @@ namespace box_integral
 variables {ι : Type*}
 
 /-- A tagged prepartition is a prepartition enriched with a tagged point for each box of the
-prepartition. -/
+prepartition. For simiplicity we require that `tag` is defined for all boxes in `ι → ℝ` but
+we will use onle the values of `tag` on the boxes of the partition. -/
 structure tagged_prepartition (I : box ι) extends prepartition I :=
 (tag : box ι → ι → ℝ)
 (tag_mem_Icc : ∀ J, tag J ∈ I.Icc)

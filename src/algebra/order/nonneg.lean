@@ -139,7 +139,7 @@ lemma le_iff_exists_nonneg_add [ordered_ring α] (a b : α) : a ≤ b ↔ ∃ c 
 instance canonically_ordered_add_monoid [ordered_ring α] :
   canonically_ordered_add_monoid {x : α // 0 ≤ x} :=
 { le_iff_exists_add     := λ ⟨a, ha⟩ ⟨b, hb⟩,
-    by simpa [mk_add_mk, subtype.exists, subtype.mk_eq_mk] using le_iff_exists_nonneg_add a b,
+    by simpa only [mk_add_mk, subtype.exists, subtype.mk_eq_mk] using le_iff_exists_nonneg_add a b,
   ..nonneg.ordered_add_comm_monoid,
   ..nonneg.order_bot }
 

@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
 import algebra.group.type_tags
 import algebra.group_with_zero
+import data.equiv.set
 
 /-!
 # Multiplicative and additive equivs

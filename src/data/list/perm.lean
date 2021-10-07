@@ -1024,7 +1024,7 @@ begin
     have h₀ : n = xs.length - n',
     { dsimp [n'], rwa nat.sub_sub_self, } ,
     have h₁ : n' ≤ xs.length,
-    { apply nat.sub_le_self },
+    { apply sub_le_self' },
     have h₂ : xs.drop n = (xs.reverse.take n').reverse,
     { rw [reverse_take _ h₁, h₀, reverse_reverse], },
     rw [h₂],

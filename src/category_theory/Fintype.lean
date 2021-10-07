@@ -5,7 +5,7 @@ Authors: Bhavik Mehta, Adam Topaz
 -/
 
 import data.fintype.basic
-import data.fin
+import data.fin.basic
 import category_theory.concrete_category.bundled
 import category_theory.concrete_category
 import category_theory.full_subcategory

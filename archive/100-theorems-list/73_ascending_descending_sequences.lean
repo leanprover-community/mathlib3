@@ -150,10 +150,10 @@ begin
     refine ⟨_, _⟩,
     -- Need to get `a_i ≤ r`, here phrased as: there is some `a < r` with `a+1 = a_i`.
     { refine ⟨(ab i).1 - 1, _, nat.succ_pred_eq_of_pos z.1⟩,
-      rw nat.sub_lt_right_iff_lt_add z.1,
+      rw sub_lt_iff_right z.1,
       apply nat.lt_succ_of_le q.1 },
     { refine ⟨(ab i).2 - 1, _, nat.succ_pred_eq_of_pos z.2⟩,
-      rw nat.sub_lt_right_iff_lt_add z.2,
+      rw sub_lt_iff_right z.2,
       apply nat.lt_succ_of_le q.2 } },
   -- To get our contradiction, it suffices to prove `n ≤ r * s`
   apply not_le_of_lt hn,

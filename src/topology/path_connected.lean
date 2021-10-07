@@ -277,16 +277,19 @@ def cast (γ : path x y) {x' y'} (hx : x' = x) (hy : y' = y) : path x' y' :=
   (γ.cast hx hy : I → X) = γ :=
 rfl
 
+@[continuity]
 lemma symm_continuous_family {X ι : Type*} [topological_space X] [topological_space ι]
   {a b : ι → X} (γ : Π (t : ι), path (a t) (b t)) (h : continuous ↿γ) :
   continuous ↿(λ t, (γ t).symm) :=
 h.comp (continuous_id.prod_map continuous_symm)
 
+@[continuity]
 lemma continuous_uncurry_extend_of_continuous_family {X ι : Type*} [topological_space X]
   [topological_space ι] {a b : ι → X}  (γ : Π (t : ι), path (a t) (b t)) (h : continuous ↿γ) :
   continuous ↿(λ t, (γ t).extend) :=
 h.comp (continuous_id.prod_map continuous_proj_Icc)
 
+@[continuity]
 lemma trans_continuous_family {X ι : Type*} [topological_space X] [topological_space ι]
   {a b c : ι → X}
   (γ₁ : Π (t : ι), path (a t) (b t)) (h₁ : continuous ↿γ₁)

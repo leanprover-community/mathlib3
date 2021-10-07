@@ -25,6 +25,13 @@ open set
 
 variables {α : Type*}
 
+instance [partial_order α] [no_top_order α] {a : α} : no_top_order (Ici a) :=
+⟨λ x, let ⟨y, hy⟩ := no_top x.1 in ⟨⟨y, le_trans x.2 hy.le⟩, hy⟩ ⟩
+
+lemma le_iff_exists_nonneg_add (a b : α) : a ≤ b ↔ ∃ c ≥ 0, b = a + c :=
+⟨λ h, ⟨b - a, sub_nonneg.mpr h, by simp⟩,
+  λ ⟨c, hc, h⟩, by { rw [h, le_add_iff_nonneg_right], exact hc }⟩
+
 namespace nonneg
 
 /-- -/

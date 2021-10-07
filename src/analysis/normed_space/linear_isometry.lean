@@ -343,6 +343,13 @@ e.isometry.comp_continuous_on_iff
   continuous (e ∘ f) ↔ continuous f :=
 e.isometry.comp_continuous_iff
 
+/-- Construct a linear isometry equiv from a surjective linear isometry. -/
+noncomputable def of_surjective (f : E₁ →ₗᵢ[R] F)
+  (hfr : function.surjective f) :
+  E₁ ≃ₗᵢ[R] F :=
+{ norm_map' := f.norm_map,
+  .. linear_equiv.of_bijective f.to_linear_map f.injective hfr }
+
 variables (R)
 /-- The negation operation on a normed space `E`, considered as a linear isometry equivalence. -/
 def neg : E ≃ₗᵢ[R] E :=

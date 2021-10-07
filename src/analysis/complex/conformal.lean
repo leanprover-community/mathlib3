@@ -74,7 +74,7 @@ variables {f : ℂ → ℂ} {z : ℂ} {g : ℂ →L[ℝ] ℂ}
 
 lemma is_conformal_map.is_complex_or_conj_linear (h : is_conformal_map g) :
   (∃ (map : ℂ →L[ℂ] ℂ), map.restrict_scalars ℝ = g) ∨
-  (∃ (map : ℂ →L[ℂ] ℂ), map.restrict_scalars ℝ = g.comp ↑conj_cle) :=
+  (∃ (map : ℂ →L[ℂ] ℂ), map.restrict_scalars ℝ = g ∘L ↑conj_cle) :=
 begin
   rcases h with ⟨c, hc, li, hg⟩,
   rcases linear_isometry_complex (li.to_linear_isometry_equiv rfl) with ⟨a, ha⟩,
@@ -100,7 +100,7 @@ end
 lemma is_conformal_map_iff_is_complex_or_conj_linear:
   is_conformal_map g ↔
   ((∃ (map : ℂ →L[ℂ] ℂ), map.restrict_scalars ℝ = g) ∨
-   (∃ (map : ℂ →L[ℂ] ℂ), map.restrict_scalars ℝ = g.comp ↑conj_cle)) ∧ g ≠ 0 :=
+   (∃ (map : ℂ →L[ℂ] ℂ), map.restrict_scalars ℝ = g ∘L ↑conj_cle)) ∧ g ≠ 0 :=
 begin
   split,
   { exact λ h, ⟨h.is_complex_or_conj_linear, h.ne_zero⟩, },
@@ -108,7 +108,7 @@ begin
     { refine is_conformal_map_complex_linear _,
       contrapose! h₂ with w,
       simp [w] },
-    { have minor₁ : g = (map.restrict_scalars ℝ).comp ↑conj_cle,
+    { have minor₁ : g = (map.restrict_scalars ℝ) ∘L ↑conj_cle,
       { ext1,
         simp [hmap] },
       rw minor₁ at ⊢ h₂,

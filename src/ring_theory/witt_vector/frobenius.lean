@@ -79,7 +79,7 @@ private def pnat_multiplicity (n : ℕ+) : ℕ :=
 local notation `v` := pnat_multiplicity
 
 /-- An auxiliary polynomial over the integers, that satisfies
-`(frobenius_poly_aux p n - X n ^ p) / p = frobenius_poly p n`.
+`p * (frobenius_poly_aux p n) + X n ^ p = frobenius_poly p n`.
 This makes it easy to show that `frobenius_poly p n` is congruent to `X n ^ p`
 modulo `p`. -/
 noncomputable def frobenius_poly_aux : ℕ → mv_polynomial ℕ ℤ
@@ -122,7 +122,7 @@ begin
   have aux : (multiplicity p ((p ^ n).choose (j + 1))).dom,
   { rw [← multiplicity.finite_iff_dom, multiplicity.finite_nat_iff],
     exact ⟨hp.1.ne_one, nat.choose_pos hj⟩, },
-  rw [← enat.coe_get aux, enat.coe_le_coe, nat.sub_le_left_iff_le_add,
+  rw [← enat.coe_get aux, enat.coe_le_coe, sub_le_iff_left,
       ← enat.coe_le_coe, nat.cast_add, pnat_multiplicity, enat.coe_get, enat.coe_get, add_comm],
   exact (hp.1.multiplicity_choose_prime_pow hj j.succ_pos).ge,
 end
@@ -135,8 +135,8 @@ begin
   generalize h : (v p ⟨j + 1, j.succ_pos⟩) = m,
   suffices : m ≤ n - i ∧ m ≤ j,
   { rw [←nat.sub_add_comm this.2, add_comm i j, nat.add_sub_assoc (this.1.trans (nat.sub_le n i)),
-      add_assoc, nat.sub.right_comm, add_comm i, nat.sub_add_cancel (nat.le_sub_right_of_add_le
-      ((nat.le_sub_left_iff_add_le hi.le).mp this.1))] },
+      add_assoc, nat.sub.right_comm, add_comm i, nat.sub_add_cancel (le_sub_of_add_le_right'
+      ((le_sub_iff_left hi.le).mp this.1))] },
   split,
   { rw [← h, ← enat.coe_le_coe, pnat_multiplicity, enat.coe_get,
         ← hp.1.multiplicity_choose_prime_pow hj j.succ_pos],

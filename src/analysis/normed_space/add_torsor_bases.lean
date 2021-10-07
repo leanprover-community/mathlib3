@@ -3,7 +3,7 @@ Copyright (c) 2021 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import analysis.normed_space.add_torsor
+import analysis.normed_space.banach
 import analysis.normed_space.finite_dimension
 import linear_algebra.affine_space.barycentric_coords
 
@@ -15,12 +15,8 @@ This file contains results about bases in normed affine spaces.
 ## Main definitions:
 
  * `continuous_barycentric_coord`
+ * `is_open_map_barycentric_coord`
  * `exists_subset_affine_independent_affine_span_eq_top_of_open`
-
-## TODO
-
-Prove `barycentric_coord h_ind h_tot i` is an open map in finite (non-zero) dimensions.
-
 -/
 
 section barycentric
@@ -33,6 +29,14 @@ variables {p : ι → P} (h_ind : affine_independent 𝕜 p) (h_tot : affine_spa
 @[continuity]
 lemma continuous_barycentric_coord (i : ι) : continuous (barycentric_coord h_ind h_tot i) :=
 affine_map.continuous_of_finite_dimensional _
+
+local attribute [instance] finite_dimensional.complete
+
+lemma is_open_map_barycentric_coord [nontrivial ι] (i : ι) :
+  is_open_map (barycentric_coord h_ind h_tot i) :=
+open_mapping_affine
+  (continuous_barycentric_coord h_ind h_tot i)
+  (surjective_barycentric_coord h_ind h_tot i)
 
 end barycentric
 

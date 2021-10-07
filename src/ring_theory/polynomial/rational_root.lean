@@ -101,7 +101,7 @@ begin
   by_cases h : j < p.nat_degree,
   { rw coeff_scale_roots,
     refine (dvd_mul_of_dvd_right _ _).mul_right _,
-    convert pow_dvd_pow _ (nat.succ_le_iff.mpr (nat.lt_sub_left_of_add_lt _)),
+    convert pow_dvd_pow _ (nat.succ_le_iff.mpr (lt_sub_iff_left.mpr _)),
     { exact (pow_one _).symm },
     simpa using h },
   rw [←nat_degree_scale_roots p (denom A r)] at *,

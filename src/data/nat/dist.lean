@@ -41,7 +41,7 @@ theorem dist_eq_sub_of_le_right {n m : ℕ} (h : m ≤ n) : dist n m = n - m :=
 begin rw [dist_comm], apply dist_eq_sub_of_le h end
 
 theorem dist_tri_left (n m : ℕ) : m ≤ dist n m + n :=
-le_trans (nat.le_sub_add _ _) (add_le_add_right (nat.le_add_left _ _) _)
+le_trans le_sub_add (add_le_add_right (nat.le_add_left _ _) _)
 
 theorem dist_tri_right (n m : ℕ) : m ≤ n + dist n m :=
 by rw add_comm; apply dist_tri_left
@@ -61,8 +61,8 @@ eq.trans (dist_eq_sub_of_le (zero_le n)) (nat.sub_zero n)
 theorem dist_add_add_right (n k m : ℕ) : dist (n + k) (m + k) = dist n m :=
 calc
   dist (n + k) (m + k) = ((n + k) - (m + k)) + ((m + k)-(n + k)) : rfl
-                   ... = (n - m) + ((m + k) - (n + k))   : by rw nat.add_sub_add_right
-                   ... = (n - m) + (m - n)               : by rw nat.add_sub_add_right
+                   ... = (n - m) + ((m + k) - (n + k))   : by rw add_sub_add_right_eq_sub'
+                   ... = (n - m) + (m - n)               : by rw add_sub_add_right_eq_sub'
 
 theorem dist_add_add_left (k n m : ℕ) : dist (k + n) (k + m) = dist n m :=
 begin rw [add_comm k n, add_comm k m], apply dist_add_add_right end
@@ -73,19 +73,10 @@ calc
        ... = dist (k + l) (k + m) : by rw h
        ... = dist l m             : by rw dist_add_add_left
 
-protected theorem sub_lt_sub_add_sub (n m k : ℕ) : n - k ≤ (n - m) + (m - k) :=
-or.elim (le_total k m)
-  (assume : k ≤ m,
-    begin rw ←nat.add_sub_assoc this, apply nat.sub_le_sub_right, apply nat.le_sub_add end)
-  (assume : k ≥ m,
-    begin rw [nat.sub_eq_zero_of_le this, add_zero], apply nat.sub_le_sub_left, exact this end)
-
 theorem dist.triangle_inequality (n m k : ℕ) : dist n k ≤ dist n m + dist m k :=
 have dist n m + dist m k = (n - m) + (m - k) + ((k - m) + (m - n)),
   by simp [dist.def, add_comm, add_left_comm],
-begin
-  rw [this, dist.def], apply add_le_add, repeat { apply nat.sub_lt_sub_add_sub }
-end
+by { rw [this, dist.def], exact add_le_add sub_le_sub_add_sub sub_le_sub_add_sub }
 
 theorem dist_mul_right (n k m : ℕ) : dist (n * k) (m * k) = dist n m * k :=
 by rw [dist.def, dist.def, right_distrib, nat.mul_sub_right_distrib, nat.mul_sub_right_distrib]

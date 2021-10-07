@@ -201,9 +201,8 @@ begin
       apply ne_of_lt;
       rw nat.lt_iff_add_one_le;
       exact h3 },
-    repeat { rw add_comm,
-             apply le_trans _ (nat.le_sub_add _ _),
-            { apply le_max_right <|> apply le_max_left } } }
+    { refine le_trans (le_max_right _ _) le_add_sub },
+    { refine le_trans (le_max_left _ _) le_add_sub } }
 end
 
 open_locale omega

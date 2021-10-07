@@ -36,6 +36,16 @@ set.Ici.order_bot
 instance no_top_order [partial_order α] [no_top_order α] {a : α} : no_top_order {x : α // a ≤ x} :=
 set.Ici.no_top_order
 
+instance semilattice_inf_bot [semilattice_inf α] {a : α} : semilattice_inf_bot {x : α // a ≤ x} :=
+set.Ici.semilattice_inf_bot
+
+instance densely_ordered [preorder α] [densely_ordered α] {a : α} :
+  densely_ordered {x : α // a ≤ x} :=
+show densely_ordered (Ici a), from set.densely_ordered
+
+instance inhabited [preorder α] {a : α} : inhabited {x : α // a ≤ x} :=
+⟨⟨a, le_rfl⟩⟩
+
 instance has_zero [has_zero α] [preorder α] : has_zero {x : α // 0 ≤ x} :=
 ⟨⟨0, le_rfl⟩⟩
 

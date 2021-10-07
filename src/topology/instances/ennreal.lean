@@ -120,6 +120,16 @@ begin
   exact tendsto_id
 end
 
+lemma eventually_eq_of_to_real_eventually_eq {l : filter α} {f g : α → ℝ≥0∞}
+  (hfi : ∀ᶠ x in l, f x ≠ ∞) (hgi : ∀ᶠ x in l, g x ≠ ∞)
+  (hfg : (λ x, (f x).to_real) =ᶠ[l] (λ x, (g x).to_real)) :
+  f =ᶠ[l] g :=
+begin
+  filter_upwards [hfi, hgi, hfg],
+  intros x hfx hgx hfgx,
+  rwa ← ennreal.to_real_eq_to_real hfx hgx,
+end
+
 lemma continuous_on_to_nnreal : continuous_on ennreal.to_nnreal {a | a ≠ ∞}  :=
 λ a ha, continuous_at.continuous_within_at (tendsto_to_nnreal ha)
 
@@ -472,7 +482,7 @@ supr_mul
 protected lemma tendsto_coe_sub : ∀{b:ℝ≥0∞}, tendsto (λb:ℝ≥0∞, ↑r - b) (𝓝 b) (𝓝 (↑r - b)) :=
 begin
   refine (forall_ennreal.2 $ and.intro (assume a, _) _),
-  { simp [@nhds_coe a, tendsto_map'_iff, (∘), tendsto_coe, coe_sub.symm],
+  { simp [@nhds_coe a, tendsto_map'_iff, (∘), tendsto_coe, ← with_top.coe_sub],
     exact tendsto_const_nhds.sub tendsto_id },
   simp,
   exact (tendsto.congr' (mem_of_superset (lt_mem_nhds $ @coe_lt_top r) $

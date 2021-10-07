@@ -11,12 +11,6 @@ import data.prod
 
 ## Definitions
 
-### Predicates on functions
-
-- `monotone f`: A function between two types equipped with `≤` is monotone if `a ≤ b` implies
-  `f a ≤ f b`.
-- `strict_mono f` : A function between two types equipped with `<` is strictly monotone if
-  `a < b` implies `f a < f b`.
 - `order_dual α` : A type tag reversing the meaning of all inequalities.
 
 ### Transfering orders
@@ -32,24 +26,18 @@ import data.prod
 - `densely_ordered`: An order with no gap, i.e. for any two elements `a < b` there exists `c` such
   that `a < c < b`.
 
-## Main theorems
-
-- `monotone_nat_of_le_succ`: If `f : ℕ → α` and `f n ≤ f (n + 1)` for all `n`, then `f` is
-  monotone.
-- `strict_mono_nat_of_lt_succ`: If `f : ℕ → α` and `f n < f (n + 1)` for all `n`, then `f` is
-  strictly monotone.
-
 ## TODO
 
 - expand module docs
 - automatic construction of dual definitions / theorems
 
 ## See also
+
 - `algebra.order.basic` for basic lemmas about orders, and projection notation for orders
 
 ## Tags
 
-preorder, order, partial order, linear order, monotone, strictly monotone
+preorder, order, partial order, linear order
 -/
 
 open function
@@ -60,7 +48,7 @@ variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
 attribute [simp] le_refl
 
 @[simp] lemma lt_self_iff_false [preorder α] (a : α) : a < a ↔ false :=
-by simp [lt_irrefl a]
+⟨lt_irrefl a, false.elim⟩
 
 attribute [ext] has_le
 
@@ -119,66 +107,9 @@ instance order.preimage.decidable {α β} (f : α → β) (s : β → β → Pro
   decidable_rel (f ⁻¹'o s) :=
 λ x y, H _ _
 
-section monotone
-variables [preorder α] [preorder β] [preorder γ]
+/-! ### Order dual -/
 
-/-- A function between preorders is monotone if `a ≤ b` implies `f a ≤ f b`. -/
-def monotone (f : α → β) : Prop := ∀ ⦃a b⦄, a ≤ b → f a ≤ f b
-
-theorem monotone_id : @monotone α α _ _ id := λ x y h, h
-
-theorem monotone_const {b : β} : monotone (λ (a : α), b) := λ x y h, le_refl b
-
-protected theorem monotone.comp {g : β → γ} {f : α → β} (m_g : monotone g) (m_f : monotone f) :
-  monotone (g ∘ f) :=
-λ a b h, m_g (m_f h)
-
-protected theorem monotone.iterate {f : α → α} (hf : monotone f) (n : ℕ) : monotone (f^[n]) :=
-nat.rec_on n monotone_id (λ n ihn, ihn.comp hf)
-
-lemma monotone_nat_of_le_succ {f : ℕ → α} (hf : ∀ n, f n ≤ f (n + 1)) :
-  monotone f | n m h :=
-begin
-  induction h,
-  { refl },
-  { transitivity, assumption, exact hf _ }
-end
-
-lemma monotone.reflect_lt {α β} [linear_order α] [preorder β] {f : α → β} (hf : monotone f)
-  {x x' : α} (h : f x < f x') : x < x' :=
-by { rw [← not_le], intro h', apply not_le_of_lt h, exact hf h' }
-
-/-- If `f` is a monotone function from `ℕ` to a preorder such that `y` lies between `f x` and
-  `f (x + 1)`, then `y` doesn't lie in the range of `f`. -/
-lemma monotone.ne_of_lt_of_lt_nat {α} [preorder α] {f : ℕ → α} (hf : monotone f)
-  (x x' : ℕ) {y : α} (h1 : f x < y) (h2 : y < f (x + 1)) : f x' ≠ y :=
-by { rintro rfl, apply (hf.reflect_lt h1).not_le, exact nat.le_of_lt_succ (hf.reflect_lt h2) }
-
-/-- If `f` is a monotone function from `ℤ` to a preorder such that `y` lies between `f x` and
-  `f (x + 1)`, then `y` doesn't lie in the range of `f`. -/
-lemma monotone.ne_of_lt_of_lt_int {α} [preorder α] {f : ℤ → α} (hf : monotone f)
-  (x x' : ℤ) {y : α} (h1 : f x < y) (h2 : y < f (x + 1)) : f x' ≠ y :=
-by { rintro rfl, apply (hf.reflect_lt h1).not_le, exact int.le_of_lt_add_one (hf.reflect_lt h2) }
-
-end monotone
-
-/-- A function `f` is strictly monotone if `a < b` implies `f a < f b`. -/
-def strict_mono [has_lt α] [has_lt β] (f : α → β) : Prop :=
-∀ ⦃a b⦄, a < b → f a < f b
-
-lemma strict_mono_id [has_lt α] : strict_mono (id : α → α) := λ a b, id
-
-/-- A function `f` is strictly monotone increasing on `t` if `x < y` for `x,y ∈ t` implies
-`f x < f y`. -/
-def strict_mono_incr_on [has_lt α] [has_lt β] (f : α → β) (t : set α) : Prop :=
-∀ ⦃x⦄ (hx : x ∈ t) ⦃y⦄ (hy : y ∈ t), x < y → f x < f y
-
-/-- A function `f` is strictly monotone decreasing on `t` if `x < y` for `x,y ∈ t` implies
-`f y < f x`. -/
-def strict_mono_decr_on [has_lt α] [has_lt β] (f : α → β) (t : set α) : Prop :=
-∀ ⦃x⦄ (hx : x ∈ t) ⦃y⦄ (hy : y ∈ t), x < y → f y < f x
-
-/-- Type tag for a set with dual order: `≤` means `≥` and `<` means `>`. -/
+/-- Type synonym to equip a type with the dual order: `≤` means `≥` and `<` means `>`. -/
 def order_dual (α : Type*) : Type* := α
 
 namespace order_dual
@@ -241,197 +172,12 @@ theorem cmp_le_flip {α} [has_le α] [@decidable_rel α (≤)] (x y : α) :
 
 end order_dual
 
-namespace strict_mono_incr_on
-
-section dual
-
-variables [preorder α] [preorder β] {f : α → β} {s : set α}
-
-protected lemma dual (H : strict_mono_incr_on f s) :
-  @strict_mono_incr_on (order_dual α) (order_dual β) _ _ f s :=
-λ x hx y hy, H hy hx
-
-protected lemma dual_right (H : strict_mono_incr_on f s) :
-  @strict_mono_decr_on α (order_dual β) _ _ f s :=
-H
-
-end dual
-
-variables [linear_order α] [preorder β] {f : α → β} {s : set α} {x y : α}
-
-lemma le_iff_le (H : strict_mono_incr_on f s) (hx : x ∈ s) (hy : y ∈ s) :
-  f x ≤ f y ↔ x ≤ y :=
-⟨λ h, le_of_not_gt $ λ h', not_le_of_lt (H hy hx h') h,
- λ h, h.lt_or_eq_dec.elim (λ h', le_of_lt (H hx hy h')) (λ h', h' ▸ le_refl _)⟩
-
-lemma lt_iff_lt (H : strict_mono_incr_on f s) (hx : x ∈ s) (hy : y ∈ s) :
-  f x < f y ↔ x < y :=
-by simp only [H.le_iff_le, hx, hy, lt_iff_le_not_le]
-
-protected theorem compares (H : strict_mono_incr_on f s) (hx : x ∈ s) (hy : y ∈ s) :
-  ∀ {o}, ordering.compares o (f x) (f y) ↔ ordering.compares o x y
-| ordering.lt := H.lt_iff_lt hx hy
-| ordering.eq := ⟨λ h, ((H.le_iff_le hx hy).1 h.le).antisymm ((H.le_iff_le hy hx).1 h.symm.le),
-                   congr_arg _⟩
-| ordering.gt := H.lt_iff_lt hy hx
-
-end strict_mono_incr_on
-
-namespace strict_mono_decr_on
-
-section dual
-
-variables [preorder α] [preorder β] {f : α → β} {s : set α}
-
-protected lemma dual (H : strict_mono_decr_on f s) :
-  @strict_mono_decr_on (order_dual α) (order_dual β) _ _ f s :=
-λ x hx y hy, H hy hx
-
-protected lemma dual_right (H : strict_mono_decr_on f s) :
-  @strict_mono_incr_on α (order_dual β) _ _ f s :=
-H
-
-end dual
-
-variables [linear_order α] [preorder β] {f : α → β} {s : set α} {x y : α}
-
-lemma le_iff_le (H : strict_mono_decr_on f s) (hx : x ∈ s) (hy : y ∈ s) :
-  f x ≤ f y ↔ y ≤ x :=
-H.dual_right.le_iff_le hy hx
-
-lemma lt_iff_lt (H : strict_mono_decr_on f s) (hx : x ∈ s) (hy : y ∈ s) :
-  f x < f y ↔ y < x :=
-H.dual_right.lt_iff_lt hy hx
-
-protected theorem compares (H : strict_mono_decr_on f s) (hx : x ∈ s) (hy : y ∈ s) {o : ordering} :
-  ordering.compares o (f x) (f y) ↔ ordering.compares o y x :=
-order_dual.dual_compares.trans $ H.dual_right.compares hy hx
-
-end strict_mono_decr_on
-
-namespace strict_mono
-open ordering function
-
-protected lemma strict_mono_incr_on [has_lt α] [has_lt β] {f : α → β} (hf : strict_mono f)
-  (s : set α) :
-  strict_mono_incr_on f s :=
-λ x hx y hy hxy, hf hxy
-
-lemma comp [has_lt α] [has_lt β] [has_lt γ] {g : β → γ} {f : α → β}
-  (hg : strict_mono g) (hf : strict_mono f) :
-  strict_mono (g ∘ f) :=
-λ a b h, hg (hf h)
-
-protected theorem iterate [has_lt α] {f : α → α} (hf : strict_mono f) (n : ℕ) :
-  strict_mono (f^[n]) :=
-nat.rec_on n strict_mono_id (λ n ihn, ihn.comp hf)
-
-lemma id_le {φ : ℕ → ℕ} (h : strict_mono φ) : ∀ n, n ≤ φ n :=
-λ n, nat.rec_on n (nat.zero_le _)
-  (λ n hn, nat.succ_le_of_lt (lt_of_le_of_lt hn $ h $ nat.lt_succ_self n))
-
-protected lemma ite' [preorder α] [has_lt β] {f g : α → β} (hf : strict_mono f) (hg : strict_mono g)
-  {p : α → Prop} [decidable_pred p] (hp : ∀ ⦃x y⦄, x < y → p y → p x)
-  (hfg : ∀ ⦃x y⦄, p x → ¬p y → x < y → f x < g y) :
-  strict_mono (λ x, if p x then f x else g x) :=
-begin
-  intros x y h,
-  by_cases hy : p y,
-  { have hx : p x := hp h hy,
-    simpa [hx, hy] using hf h },
-  { by_cases hx : p x,
-    { simpa [hx, hy] using hfg hx hy h },
-    { simpa [hx, hy] using hg h} }
-end
-
-protected lemma ite [preorder α] [preorder β] {f g : α → β} (hf : strict_mono f)
-  (hg : strict_mono g) {p : α → Prop} [decidable_pred p] (hp : ∀ ⦃x y⦄, x < y → p y → p x)
-  (hfg : ∀ x, f x ≤ g x) :
-  strict_mono (λ x, if p x then f x else g x) :=
-hf.ite' hg hp $ λ x y hx hy h, (hf h).trans_le (hfg y)
-
-section
-variables [linear_order α] [preorder β] {f : α → β}
-
-lemma lt_iff_lt (H : strict_mono f) {a b} : f a < f b ↔ a < b :=
-(H.strict_mono_incr_on set.univ).lt_iff_lt trivial trivial
-
-protected theorem compares (H : strict_mono f) {a b} {o} :
-  compares o (f a) (f b) ↔ compares o a b :=
-(H.strict_mono_incr_on set.univ).compares trivial trivial
-
-lemma injective (H : strict_mono f) : injective f :=
-λ x y h, show compares eq x y, from H.compares.1 h
-
-lemma le_iff_le (H : strict_mono f) {a b} : f a ≤ f b ↔ a ≤ b :=
-(H.strict_mono_incr_on set.univ).le_iff_le trivial trivial
-
-lemma top_preimage_top (H : strict_mono f) {a} (h_top : ∀ p, p ≤ f a) (x : α) : x ≤ a :=
-H.le_iff_le.mp (h_top (f x))
-
-lemma bot_preimage_bot (H : strict_mono f) {a} (h_bot : ∀ p, f a ≤ p) (x : α) : a ≤ x :=
-H.le_iff_le.mp (h_bot (f x))
-
-end
-
--- `preorder α` isn't strong enough: if the preorder on α is an equivalence relation,
--- then `strict_mono f` is vacuously true.
-lemma monotone [partial_order α] [preorder β] {f : α → β} (H : strict_mono f) : monotone f :=
-λ a b h, (lt_or_eq_of_le h).rec (le_of_lt ∘ (@H _ _)) (by rintro rfl; refl)
-
-end strict_mono
-
-lemma strict_mono_nat_of_lt_succ {β} [preorder β] {f : ℕ → β} (h : ∀ n, f n < f (n + 1)) :
-  strict_mono f :=
-by { intros n m hnm, induction hnm with m' hnm' ih, apply h, exact ih.trans (h _) }
-
-section
-open function
-
-lemma injective_of_lt_imp_ne [linear_order α] {f : α → β} (h : ∀ x y, x < y → f x ≠ f y) :
-  injective f :=
-begin
-  intros x y k,
-  contrapose k,
-  rw [←ne.def, ne_iff_lt_or_gt] at k,
-  cases k,
-  { apply h _ _ k },
-  { rw eq_comm,
-    apply h _ _ k }
-end
-
-lemma injective_of_le_imp_le [partial_order α] [preorder β] (f : α → β)
-  (h : ∀ {x y}, f x ≤ f y → x ≤ y) : injective f :=
-λ x y hxy, (h hxy.le).antisymm (h hxy.ge)
-
-lemma strict_mono_of_monotone_of_injective [partial_order α] [partial_order β] {f : α → β}
-  (h₁ : monotone f) (h₂ : injective f) : strict_mono f :=
-λ a b h,
-begin
-  rw lt_iff_le_and_ne at ⊢ h,
-  exact ⟨h₁ h.1, λ e, h.2 (h₂ e)⟩
-end
-
-lemma monotone.strict_mono_iff_injective [linear_order α] [partial_order β] {f : α → β}
-  (h : monotone f) : strict_mono f ↔ injective f :=
-⟨λ h, h.injective, strict_mono_of_monotone_of_injective h⟩
-
-lemma strict_mono_of_le_iff_le [preorder α] [preorder β] {f : α → β}
-  (h : ∀ x y, x ≤ y ↔ f x ≤ f y) : strict_mono f :=
-λ a b, by simp [lt_iff_le_not_le, h] {contextual := tt}
-
-end
-
 /-! ### Order instances on the function space -/
 
-instance pi.preorder {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] : preorder (Πi, α i) :=
+instance pi.preorder {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] : preorder (Π i, α i) :=
 { le       := λ x y, ∀ i, x i ≤ y i,
   le_refl  := λ a i, le_refl (a i),
   le_trans := λ a b c h₁ h₂ i, le_trans (h₁ i) (h₂ i) }
-
-lemma function.monotone_eval {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] (i : ι) :
-  monotone (function.eval i : (Π i, α i) → α i) :=
-λ f g H, H i
 
 lemma pi.le_def {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] {x y : Π i, α i} :
   x ≤ y ↔ ∀ i, x i ≤ y i :=
@@ -457,33 +203,11 @@ lemma update_le_update_iff {ι : Type u} {α : ι → Type v} [∀ i, preorder (
 by simp [update_le_iff] {contextual := tt}
 
 instance pi.partial_order {ι : Type u} {α : ι → Type v} [∀ i, partial_order (α i)] :
-  partial_order (Πi, α i) :=
+  partial_order (Π i, α i) :=
 { le_antisymm := λ f g h1 h2, funext (λ b, (h1 b).antisymm (h2 b)),
   ..pi.preorder }
 
-theorem comp_le_comp_left_of_monotone [preorder α] [preorder β]
-  {f : β → α} {g h : γ → β} (m_f : monotone f) (le_gh : g ≤ h) :
-  has_le.le.{max w u} (f ∘ g) (f ∘ h) :=
-λ x, m_f (le_gh x)
-
-section monotone
-variables [preorder α] [preorder γ]
-
-protected theorem monotone.order_dual {f : α → γ} (hf : monotone f) :
-  @monotone (order_dual α) (order_dual γ) _ _ f :=
-λ x y hxy, hf hxy
-
-theorem monotone_lam {f : α → β → γ} (m : ∀ b, monotone (λ a, f a b)) : monotone f :=
-λ a a' h b, m b h
-
-theorem monotone_app (f : β → α → γ) (b : β) (m : monotone (λ a b, f b a)) : monotone (f b) :=
-λ a a' h, m h b
-
-end monotone
-
-theorem strict_mono.order_dual [has_lt α] [has_lt β] {f : α → β} (hf : strict_mono f) :
-  @strict_mono (order_dual α) (order_dual β) _ _ f :=
-λ x y hxy, hf hxy
+/-! ### Lifts of order instances -/
 
 /-- Transfer a `preorder` on `β` to a `preorder` on `α` using a function `f : α → β`.
 See note [reducible non-instances]. -/
@@ -536,12 +260,6 @@ partial_order.lift subtype.val subtype.val_injective
 instance subtype.linear_order {α} [linear_order α] (p : α → Prop) : linear_order (subtype p) :=
 linear_order.lift subtype.val subtype.val_injective
 
-lemma subtype.mono_coe [preorder α] (t : set α) : monotone (coe : (subtype t) → α) :=
-λ x y, id
-
-lemma subtype.strict_mono_coe [preorder α] (t : set α) : strict_mono (coe : (subtype t) → α) :=
-λ x y, id
-
 namespace prod
 
 instance (α : Type u) (β : Type v) [has_le α] [has_le β] : has_le (α × β) :=
@@ -571,17 +289,9 @@ instance (α : Type u) (β : Type v) [partial_order α] [partial_order β] :
 
 end prod
 
-lemma monotone_fst {α β : Type*} [preorder α] [preorder β] : monotone (@prod.fst α β) :=
-λ x y h, h.1
+/-! ### Additional order classes -/
 
-lemma monotone_snd {α β : Type*} [preorder α] [preorder β] : monotone (@prod.snd α β) :=
-λ x y h, h.2
-
-/-!
-### Additional order classes
--/
-
-/-- order without a top element; sometimes called cofinal -/
+/-- Order without a maximal element. Sometimes called cofinal. -/
 class no_top_order (α : Type u) [preorder α] : Prop :=
 (no_top : ∀ a : α, ∃ a', a < a')
 
@@ -592,12 +302,36 @@ instance nonempty_gt {α : Type u} [preorder α] [no_top_order α] (a : α) :
   nonempty {x // a < x} :=
 nonempty_subtype.2 (no_top a)
 
-/-- order without a bottom element; somtimes called coinitial or dense -/
+/-- `a : α` is a top element of `α` if it is greater than or equal to any other element of `α`.
+This predicate is useful, e.g., to make some statements and proofs work in both cases
+`[order_top α]` and `[no_top_order α]`. -/
+def is_top {α : Type u} [has_le α] (a : α) : Prop := ∀ b, b ≤ a
+
+@[simp] lemma not_is_top {α : Type u} [preorder α] [no_top_order α] (a : α) : ¬is_top a :=
+λ h, let ⟨b, hb⟩ := no_top a in hb.not_le (h b)
+
+lemma is_top.unique {α : Type u} [partial_order α] {a b : α} (ha : is_top a) (hb : a ≤ b) :
+  a = b :=
+le_antisymm hb (ha b)
+
+/-- Order without a minimal element. Sometimes called coinitial or dense. -/
 class no_bot_order (α : Type u) [preorder α] : Prop :=
 (no_bot : ∀ a : α, ∃ a', a' < a)
 
 lemma no_bot [preorder α] [no_bot_order α] : ∀ a : α, ∃ a', a' < a :=
 no_bot_order.no_bot
+
+/-- `a : α` is a bottom element of `α` if it is less than or equal to any other element of `α`.
+This predicate is useful, e.g., to make some statements and proofs work in both cases
+`[order_bot α]` and `[no_bot_order α]`. -/
+def is_bot {α : Type u} [has_le α] (a : α) : Prop := ∀ b, a ≤ b
+
+@[simp] lemma not_is_bot {α : Type u} [preorder α] [no_bot_order α] (a : α) : ¬is_bot a :=
+λ h, let ⟨b, hb⟩ := no_bot a in hb.not_le (h b)
+
+lemma is_bot.unique {α : Type u} [partial_order α] {a b : α} (ha : is_bot a) (hb : b ≤ a) :
+  a = b :=
+le_antisymm (ha b) hb
 
 instance order_dual.no_top_order (α : Type u) [preorder α] [no_bot_order α] :
   no_top_order (order_dual α) :=
@@ -652,6 +386,8 @@ or_iff_not_imp_left.2 $ λ h,
     λ a ha₂, le_of_not_gt $ λ ha₁, h ⟨a, ha₁, ha₂⟩⟩
 
 variables {s : β → β → Prop} {t : γ → γ → Prop}
+
+/-! ### Linear order from a total partial order -/
 
 /-- Type synonym to create an instance of `linear_order` from a `partial_order` and
 `is_total α (≤)` -/

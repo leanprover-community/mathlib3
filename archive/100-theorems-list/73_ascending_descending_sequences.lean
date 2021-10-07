@@ -39,20 +39,20 @@ We then show the pair of labels must be unique. Now if there is no increasing se
 which is a contradiction if there are more than `r * s` elements.
 -/
 theorem erdos_szekeres {r s n : ℕ} {f : fin n → α} (hn : r * s < n) (hf : injective f) :
-  (∃ (t : finset (fin n)), r < t.card ∧ strict_mono_incr_on f ↑t) ∨
-  (∃ (t : finset (fin n)), s < t.card ∧ strict_mono_decr_on f ↑t) :=
+  (∃ (t : finset (fin n)), r < t.card ∧ strict_mono_on f ↑t) ∨
+  (∃ (t : finset (fin n)), s < t.card ∧ strict_anti_on f ↑t) :=
 begin
   -- Given an index `i`, produce the set of increasing (resp., decreasing) subsequences which ends
   -- at `i`.
   let inc_sequences_ending_in : fin n → finset (finset (fin n)) :=
-    λ i, univ.powerset.filter (λ t, finset.max t = some i ∧ strict_mono_incr_on f ↑t),
+    λ i, univ.powerset.filter (λ t, finset.max t = some i ∧ strict_mono_on f ↑t),
   let dec_sequences_ending_in : fin n → finset (finset (fin n)) :=
-    λ i, univ.powerset.filter (λ t, finset.max t = some i ∧ strict_mono_decr_on f ↑t),
+    λ i, univ.powerset.filter (λ t, finset.max t = some i ∧ strict_anti_on f ↑t),
   -- The singleton sequence is in both of the above collections.
   -- (This is useful to show that the maximum length subsequence is at least 1, and that the set
   -- of subsequences is nonempty.)
-  have inc_i : ∀ i, {i} ∈ inc_sequences_ending_in i := λ i, by simp [strict_mono_incr_on],
-  have dec_i : ∀ i, {i} ∈ dec_sequences_ending_in i := λ i, by simp [strict_mono_decr_on],
+  have inc_i : ∀ i, {i} ∈ inc_sequences_ending_in i := λ i, by simp [strict_mono_on],
+  have dec_i : ∀ i, {i} ∈ dec_sequences_ending_in i := λ i, by simp [strict_anti_on],
   -- Define the pair of labels: at index `i`, the pair is the maximum length of an increasing
   -- subsequence ending at `i`, paired with the maximum length of a decreasing subsequence ending
   -- at `i`.
@@ -110,7 +110,7 @@ begin
           apply le_of_lt ‹i < j› },
         -- To show it's increasing (i.e., `f` is monotone increasing on `t.insert j`), we do cases
         -- on what the possibilities could be - either in `t` or equals `j`.
-        simp only [strict_mono_incr_on, strict_mono_decr_on, coe_insert, set.mem_insert_iff,
+        simp only [strict_mono_on, strict_anti_on, coe_insert, set.mem_insert_iff,
           mem_coe],
         -- Most of the cases are just bashes.
         rintros x ⟨rfl | _⟩ y ⟨rfl | _⟩ _,
@@ -150,10 +150,10 @@ begin
     refine ⟨_, _⟩,
     -- Need to get `a_i ≤ r`, here phrased as: there is some `a < r` with `a+1 = a_i`.
     { refine ⟨(ab i).1 - 1, _, nat.succ_pred_eq_of_pos z.1⟩,
-      rw nat.sub_lt_right_iff_lt_add z.1,
+      rw sub_lt_iff_right z.1,
       apply nat.lt_succ_of_le q.1 },
     { refine ⟨(ab i).2 - 1, _, nat.succ_pred_eq_of_pos z.2⟩,
-      rw nat.sub_lt_right_iff_lt_add z.2,
+      rw sub_lt_iff_right z.2,
       apply nat.lt_succ_of_le q.2 } },
   -- To get our contradiction, it suffices to prove `n ≤ r * s`
   apply not_le_of_lt hn,

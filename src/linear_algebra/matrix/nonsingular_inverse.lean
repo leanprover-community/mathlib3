@@ -298,7 +298,7 @@ begin
     simp [h, adjugate_eq_one_of_card_eq_one h] },
   have one_lt_card : 1 < fintype.card n := by linarith,
   have zero_lt_card_sub_one : 0 < fintype.card n - 1 :=
-    (nat.sub_lt_sub_right_iff (refl 1)).mpr one_lt_card,
+    (sub_lt_sub_iff_right' (refl 1)).mpr one_lt_card,
 
   apply det_adjugate_of_cancel,
   intros b hb,
@@ -362,6 +362,14 @@ calc A⁻¹ ⬝ A = (Aᵀ ⬝ (Aᵀ)⁻¹)ᵀ : by { rw [transpose_mul,
                                     transpose_transpose], }
          ... = 1ᵀ             : by { rw Aᵀ.mul_nonsing_inv, exact A.is_unit_det_transpose h, }
          ... = 1              : transpose_one
+
+lemma nonsing_inv_cancel_or_zero :
+  (A⁻¹ ⬝ A = 1 ∧ A ⬝ A⁻¹ = 1) ∨ A⁻¹ = 0 :=
+begin
+  by_cases h : is_unit A.det,
+  { exact or.inl ⟨nonsing_inv_mul _ h, mul_nonsing_inv _ h⟩ },
+  { exact or.inr (nonsing_inv_apply_not_is_unit _ h) }
+end
 
 @[simp] lemma nonsing_inv_det (h : is_unit A.det) : A⁻¹.det * A.det = 1 :=
 by rw [←det_mul, A.nonsing_inv_mul h, det_one]

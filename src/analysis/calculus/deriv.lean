@@ -1317,7 +1317,7 @@ begin
     rcases eq_or_ne v 0 with rfl|hd,
     { simp only [mul_zero, deriv_const] },
     { refine deriv_zero_of_not_differentiable_at (mt (λ H, _) hu),
-      simpa only [mul_inv_cancel_right' hd] using H.mul_const v⁻¹ } }
+      simpa only [mul_inv_cancel_right₀ hd] using H.mul_const v⁻¹ } }
 end
 
 @[simp] lemma deriv_mul_const_field' (v : 𝕜') : deriv (λ x, u x * v) = λ x, deriv u x * v :=
@@ -1375,7 +1375,7 @@ begin
     field_simp [hx, hy, hz], ring, },
   refine (is_O_refl (λ p : 𝕜 × 𝕜, p.1 - p.2) _).mul_is_o ((is_o_one_iff _).2 _),
   rw [← sub_self (x * x)⁻¹],
-  exact tendsto_const_nhds.sub ((continuous_mul.tendsto (x, x)).inv' $ mul_ne_zero hx hx)
+  exact tendsto_const_nhds.sub ((continuous_mul.tendsto (x, x)).inv₀ $ mul_ne_zero hx hx)
 end
 
 theorem has_deriv_at_inv (x_ne_zero : x ≠ 0) :
@@ -1895,9 +1895,9 @@ begin
   { have hx : x ≠ 0, from h.resolve_right hm.not_le,
     have := (has_strict_deriv_at_inv _).scomp _ (this (-m) (neg_pos.2 hm));
       [skip, exact fpow_ne_zero_of_ne_zero hx _],
-    simp only [(∘), fpow_neg, one_div, inv_inv', smul_eq_mul] at this,
+    simp only [(∘), fpow_neg, one_div, inv_inv₀, smul_eq_mul] at this,
     convert this using 1,
-    rw [sq, mul_inv', inv_inv', int.cast_neg, ← neg_mul_eq_neg_mul, neg_mul_neg,
+    rw [sq, mul_inv₀, inv_inv₀, int.cast_neg, ← neg_mul_eq_neg_mul, neg_mul_neg,
       ← fpow_add hx, mul_assoc, ← fpow_add hx], congr, abel },
   { simp only [hm, gpow_zero, int.cast_zero, zero_mul, has_strict_deriv_at_const] },
   { exact this m hm }

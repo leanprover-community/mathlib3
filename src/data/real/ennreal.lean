@@ -720,7 +720,7 @@ lemma sub_eq_Inf {a b : ℝ≥0∞} : a - b = Inf {d | a ≤ d + b} :=
 le_antisymm (le_Inf $ λ c, sub_le_iff_right.mpr) $ Inf_le le_sub_add
 
 /-- This is a special case of `with_top.coe_sub` in the `ennreal` namespace -/
-lemma coe_sub : (↑(p - r) : ℝ≥0∞) = ↑p - ↑r :=
+lemma coe_sub : (↑(r - p) : ℝ≥0∞) = ↑r - ↑p :=
 by simp
 
 /-- This is a special case of `with_top.top_sub_coe` in the `ennreal` namespace -/
@@ -781,7 +781,7 @@ lemma sub_zero : a - 0 = a :=
 sub_zero' a -- explicit
 
 lemma sub_eq_top_iff : a - b = ∞ ↔ a = ∞ ∧ b ≠ ∞ :=
-by cases a; cases b; simp [← coe_sub]
+by { cases a; cases b; simp [← with_top.coe_sub] }
 
 lemma sub_ne_top (ha : a ≠ ∞) : a - b ≠ ∞ :=
 mt sub_eq_top_iff.mp $ mt and.left ha

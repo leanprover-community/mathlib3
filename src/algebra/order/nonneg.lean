@@ -30,8 +30,7 @@ instance [partial_order α] [no_top_order α] {a : α} : no_top_order (Ici a) :=
 
 namespace nonneg
 
-/-- -/
-instance order_bot [order_bot α] {a : α} : order_bot {x : α // a ≤ x} :=
+instance order_bot [partial_order α] {a : α} : order_bot {x : α // a ≤ x} :=
 set.Ici.order_bot
 
 instance no_top_order [partial_order α] [no_top_order α] {a : α} : no_top_order {x : α // a ≤ x} :=
@@ -140,19 +139,19 @@ lemma le_iff_exists_nonneg_add [ordered_ring α] (a b : α) : a ≤ b ↔ ∃ c 
 instance canonically_ordered_add_monoid [ordered_ring α] :
   canonically_ordered_add_monoid {x : α // 0 ≤ x} :=
 { le_iff_exists_add     := λ ⟨a, ha⟩ ⟨b, hb⟩,
-    by simpa only [mk_add_mk, set_coe.exists, subtype.mk_eq_mk] using le_iff_exists_nonneg_add a b,
+    by simpa [mk_add_mk, subtype.exists, subtype.mk_eq_mk] using le_iff_exists_nonneg_add a b,
   ..nonneg.ordered_add_comm_monoid,
   ..nonneg.order_bot }
 
 instance canonically_ordered_comm_semiring [ordered_comm_ring α] [no_zero_divisors α] :
   canonically_ordered_comm_semiring {x : α // 0 ≤ x} :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := by { rintro ⟨a, ha⟩ ⟨b, hb⟩, simp },
-  .. set.Ici.canonically_ordered_add_monoid,
-  .. set.Ici.ordered_comm_semiring }
+  ..nonneg.canonically_ordered_add_monoid,
+  ..nonneg.ordered_comm_semiring }
 
 instance canonically_linear_ordered_add_monoid [linear_ordered_ring α] :
   canonically_linear_ordered_add_monoid {x : α // 0 ≤ x} :=
-{ ..subtype.linear_order _, ..set.Ici.canonically_ordered_add_monoid }
+{ ..subtype.linear_order _, ..nonneg.canonically_ordered_add_monoid }
 
 section linear_order
 

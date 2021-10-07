@@ -744,5 +744,4 @@ begin
   norm_cast, exact sub_le_iff_right
 end
 
-
 end with_top

@@ -800,7 +800,7 @@ def basic_open_iso (f : R) : (structure_sheaf R).1.obj (op (basic_open f)) ≅
 
 @[elementwise] lemma to_global_factors : to_open R ⊤ =
   (CommRing.of_hom (algebra_map R (localization.away (1 : R)))) ≫ (to_basic_open R (1 : R)) ≫
-  (structure_sheaf R).presheaf.map (eq_to_hom (basic_open_one.symm)).op :=
+  (structure_sheaf R).1.map (eq_to_hom (basic_open_one.symm)).op :=
 begin
   change to_open R ⊤ = (to_basic_open R 1).comp _ ≫ _,
   unfold CommRing.of_hom,
@@ -817,7 +817,7 @@ begin
 end
 
 /-- The ring isomorphism between the ring `R` and the global sections `Γ(X, 𝒪ₓ)`. -/
-@[simps] def global_sections_iso : CommRing.of R ≅ (structure_sheaf R).presheaf.obj (op ⊤) :=
+@[simps] def global_sections_iso : CommRing.of R ≅ (structure_sheaf R).1.obj (op ⊤) :=
 as_iso (to_open R ⊤)
 
 @[simp] lemma global_sections_iso_hom (R : CommRing) :

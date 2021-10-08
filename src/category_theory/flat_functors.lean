@@ -15,21 +15,22 @@ import category_theory.limits.functor_category
 /-!
 # Representably flat functors
 
-Define representably flat functors as functors such that the catetory of structured arrows over `X`
-is cofiltered for each `X`. This concept is also knows as flat functors as in [Elephant], or
+We define representably flat functors as functors such that the catetory of structured arrows
+over `X` is cofiltered for each `X`. This concept is also knows as flat functors as in [Elephant]
 Remark C2.3.7, and this name is suggested by Mike Shulman in
 https://golem.ph.utexas.edu/category/2011/06/flat_functors_and_morphisms_of.html to differentiate
 this concept from other notions of flatness.
 
+This definition is equivalent to left exact functors (functors that preserves finite limits) when
+`C` has all finite limits.
+
 ## Main results
-* If `F : C ⥤ D` preserves finite limits and `C` has all finite limits, then `F` is flat.
-* If `F : C ⥤ D` is a flat functor between small categories, then both `Lan F.op` and `F`
-preserves finite limits.
 
-## Future work
-
-* Presumably flat functors still preserves finite limits in big categories under certain
-constraints, such as
+* `flat_of_preserves_finite_limit`: If `F : C ⥤ D` preserves finite limits and `C` has all finite
+limits, then `F` is flat.
+* `preserves_finite_limit_of_flat`: If `F : C ⥤ D` is a flat, then it preserves all finite limits.
+* `Lan_preserves_finite_limit_of_flat`: If `F : C ⥤ D` is a flat functor between small categories,
+then `Lan F.op` preserves all finite limits.
 
 -/
 
@@ -44,15 +45,15 @@ namespace category_theory
 section representably_flat
 variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
 
-class representably_flat (u : C ⥤ D) : Prop :=
-(cofiltered : ∀ (X : D), is_cofiltered (structured_arrow X u))
+/--
+A functor `F : C ⥤ D` is representably-flat functor if the comma category `(X/F)`
+is cofiltered for each `X : C`.
+-/
+class representably_flat (F : C ⥤ D) : Prop :=
+(cofiltered : ∀ (X : D), is_cofiltered (structured_arrow X F))
 
-lemma functor.flat_cofiltered (u : C ⥤ D) [representably_flat u] (X : D) :
- is_cofiltered (structured_arrow X u) := representably_flat.cofiltered X
-
-variables (u : C ⥤ D) [representably_flat u] {X : D} (Y₁ Y₂ : costructured_arrow u X)
-
-instance cofiltered_of_flat := u.flat_cofiltered X
+instance functor.flat_cofiltered (F : C ⥤ D) [representably_flat F] (X : D) :
+ is_cofiltered (structured_arrow X F) := representably_flat.cofiltered X
 
 end representably_flat
 
@@ -85,23 +86,13 @@ open category_theory.limits.walking_parallel_pair_hom
 
 
 namespace preserves_finite_limit_of_flat
-@[simps]
-def cone_to_diagram_of_structured_arrows {J : Type*} [category J] {K : J ⥤ C}
-(F : C ⥤ D) (c : cone (K ⋙ F)) : (J ⥤ structured_arrow c.X F) :=
-{ obj := λ X, structured_arrow.mk (c.π.app X),
-  map := λ X Y f, structured_arrow.hom_mk (K.map f)
-    (by { convert (c.π.naturality f).symm, exact (category.id_comp _).symm }) }
+variables {J : Type v₁} [small_category J]
 
-lemma cone_diagram_proj {J : Type*} [category J] {K : J ⥤ C}
-(F : C ⥤ D) (c : cone (K ⋙ F)) :
-  cone_to_diagram_of_structured_arrows F c ⋙ structured_arrow.proj c.X F = K := by
-{ apply functor.hext; tidy }
-
-variables (J : Type v₁) [small_category J] [fin_category J]
-
--- noncomputable
-section end
-variable {J}
+/--
+(Implementation).
+Given a cone `c : cone K` and a map `f : X ⟶ F.obj c.X`, we can construct a cone of structured
+arrows over `X` with `f` as the cone point. This is the underlying diagram of structured arrows.
+-/
 @[simps]
 def diagram_of_structured_arrows_of_extend {K : J ⥤ C} (F : C ⥤ D) (c : cone (K ⋙ F)) {X : D}
   (f : X ⟶ c.X) : J ⥤ structured_arrow X F :=
@@ -115,6 +106,11 @@ def diagram_of_structured_arrows_of_extend {K : J ⥤ C} (F : C ⥤ D) (c : cone
 -- variables (F : C ⥤ D) [representably_flat F] [fin_category J]
 variables {K : J ⥤ C} (F : C ⥤ D) (c : cone K)
 
+/--
+(Implementation).
+Given a cone `c : cone K` and a map `f : X ⟶ F.obj c.X`, we can construct a cone of structured
+arrows over `X` with `f` as the cone point.
+-/
 @[simps]
 def cone_of_structured_arrows_of_extend {X : D} (f : X ⟶ F.obj c.X) :
   cone (diagram_of_structured_arrows_of_extend F (F.map_cone c) f) :=
@@ -122,19 +118,23 @@ def cone_of_structured_arrows_of_extend {X : D} (f : X ⟶ F.obj c.X) :
   π := { app := λ j, structured_arrow.hom_mk (c.π.app j) rfl,
          naturality' := λ j k g, by { ext, dsimp, simp } } }
 
-variables [representably_flat F] {c} (hc : is_limit c) (s : cone (K ⋙ F))
+variables [representably_flat F] [fin_category J] {c} (hc : is_limit c) (s : cone (K ⋙ F))
 include hc
 
+/--
+(Implementation).
+Given a limit cone `c : cone K` and a cone `s : cone (K ⋙ F)` with `F` representably flat,
+`s` can factor through `F.map_cone c`.
+-/
 noncomputable def lift : s.X ⟶ F.obj c.X :=
 begin
-let s' := is_cofiltered.cone (cone_to_diagram_of_structured_arrows F s),
-exact s'.X.hom ≫ F.map (hc.lift ((cones.postcompose (eq_to_hom (cone_diagram_proj F s))).obj
+let s' := is_cofiltered.cone (diagram_of_structured_arrows_of_extend F s (𝟙 _)),
+exact s'.X.hom ≫ F.map (hc.lift ((cones.postcompose (eq_to_hom (by apply functor.hext; tidy))).obj
   ((structured_arrow.proj s.X F).map_cone s'))),
 end
 
 lemma fac (x : J) : lift F hc s ≫ (F.map_cone c).π.app x = s.π.app x :=
-by { unfold lift, simpa [←F.map_comp] }
-
+by { unfold lift, delta diagram_of_structured_arrows_of_extend, simp [←F.map_comp] }
 
 lemma uniq {K : J ⥤ C} {c : cone K} (hc : is_limit c)
   (s : cone (K ⋙ F)) (f₁ f₂ : s.X ⟶ F.obj c.X)
@@ -149,15 +149,14 @@ let eq_hom : diagram_of_structured_arrows_of_extend F (F.map_cone c) f₂ ⟶
       (by { erw [F.map_id, category.comp_id], exact (h₂ j).trans (h₁ j).symm }),
     naturality' := λ j k f, by
       { ext, simp[@category.comp_id _ _ _ (K.obj k), @category.id_comp _ _ (K.obj j)] } },
-let bicone := bicones_mk _ c₁ ((cones.postcompose eq_hom).obj c₂),
-let c₀ := is_cofiltered.cone bicone,
-let g₁ : c₀.X ⟶ c₁.X := c₀.π.app (bicones.left),
-let g₂ : c₀.X ⟶ c₂.X := c₀.π.app (bicones.right),
+let c₀ := is_cofiltered.cone (bicone_mk _ c₁ ((cones.postcompose eq_hom).obj c₂)),
+let g₁ : c₀.X ⟶ c₁.X := c₀.π.app (bicone.left),
+let g₂ : c₀.X ⟶ c₂.X := c₀.π.app (bicone.right),
 have extend_eq : c.extend g₁.right = c.extend g₂.right,
 { unfold cone.extend, congr' 1,
   ext x, change g₁.right ≫ c.π.app x = g₂.right ≫ c.π.app x,
-  injection (c₀.π.naturality (bicones_hom.left x)).symm.trans
-    (c₀.π.naturality (bicones_hom.right x) : _) with _ h,
+  injection (c₀.π.naturality (bicone_hom.left x)).symm.trans
+    (c₀.π.naturality (bicone_hom.right x) : _) with _ h,
   convert h, exact (category.comp_id (c.π.app x)).symm },
 have : g₁.right = g₂.right,
 { rw hc.uniq (c.extend g₁.right) g₁.right (λ j, by simp),
@@ -173,6 +172,7 @@ end
 
 end preserves_finite_limit_of_flat
 
+/-- Representably flat functors preserves finite limits. -/
 noncomputable
 def preserves_finite_limit_of_flat (F : C ⥤ D) [representably_flat F]
 (J : Type v₁) [small_category J] [fin_category J]
@@ -235,5 +235,4 @@ begin
 end
 
 end small_category
-
 end category_theory

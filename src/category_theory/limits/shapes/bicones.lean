@@ -116,4 +116,3 @@ instance bicone_small_category [∀ (j k : J), decidable_eq (j ⟶ k)] :
 instance bicone_fin_category [fin_category J] : fin_category (bicone J) := {}
 end small_category
 end category_theory
-#lint

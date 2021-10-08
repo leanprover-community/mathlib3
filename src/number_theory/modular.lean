@@ -3,35 +3,36 @@ Copyright (c) 2021 Alex Kontorovich and Heather Macbeth and Marc Masdeu. All rig
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex Kontorovich, Heather Macbeth, Marc Masdeu
 -/
+
 import analysis.complex.upper_half_plane
 
 /-!
 # The action of the modular group SL(2, ℤ) on the upper half-plane
 
-  We define the action of `SL(2,ℤ)` on `ℍ` (via restriction of the `SL(2,ℝ)` action in
-  `analysis.complex.upper_half_plane`). We then define the standard fundamental domain
-  (`modular_group.fundamental_domain`, `𝒟`) for this action and show
-  (`modular_group.exists_smul_mem_fundamental_domain`) that any point in `ℍ` can be
-  moved inside `𝒟`.
+We define the action of `SL(2,ℤ)` on `ℍ` (via restriction of the `SL(2,ℝ)` action in
+`analysis.complex.upper_half_plane`). We then define the standard fundamental domain
+(`modular_group.fundamental_domain`, `𝒟`) for this action and show
+(`modular_group.exists_smul_mem_fundamental_domain`) that any point in `ℍ` can be
+moved inside `𝒟`.
 
-  Standard proofs make use of the identity
+Standard proofs make use of the identity
 
-  `g • z = a / c - 1 / (c (cz + d))`
+`g • z = a / c - 1 / (c (cz + d))`
 
-  for `g = [[a, b], [c, d]]` in `SL(2)`, but this requires separate handling of whether `c = 0`.
-  Instead, our proof makes use of the following perhaps novel identity (see
-  `modular_group.smul_eq_acbd_add`):
+for `g = [[a, b], [c, d]]` in `SL(2)`, but this requires separate handling of whether `c = 0`.
+Instead, our proof makes use of the following perhaps novel identity (see
+`modular_group.smul_eq_acbd_add`):
 
-  `g • z = (a c + b d) / (c^2 + d^2) + (d z - c) / ((c^2 + d^2) (c z + d))`
+`g • z = (a c + b d) / (c^2 + d^2) + (d z - c) / ((c^2 + d^2) (c z + d))`
 
-  where there is no issue of division by zero.
+where there is no issue of division by zero.
 
-  Another feature is that we delay until the very end the consideration of special matrices
-  `T=[[1,1],[0,1]]` (see `modular_group.T`) and `S=[[0,-1],[1,0]]` (see `modular_group.S`), by
-  instead using abstract theory on the properness of certain maps (phrased in terms of the filters
-  `filter.cocompact`, `filter.cofinite`, etc) to deduce existence theorems, first to prove the
-  existence of `g` maximizing `(g•z).im` (see `modular_group.exists_g_with_max_im`), and then among
-  those, to minimize `|(g•z).re|` (see `modular_group.exists_g_with_given_cd_and_min_re`).
+Another feature is that we delay until the very end the consideration of special matrices
+`T=[[1,1],[0,1]]` (see `modular_group.T`) and `S=[[0,-1],[1,0]]` (see `modular_group.S`), by
+instead using abstract theory on the properness of certain maps (phrased in terms of the filters
+`filter.cocompact`, `filter.cofinite`, etc) to deduce existence theorems, first to prove the
+existence of `g` maximizing `(g•z).im` (see `modular_group.exists_g_with_max_im`), and then among
+those, to minimize `|(g•z).re|` (see `modular_group.exists_g_with_given_cd_and_min_re`).
 -/
 
 open complex matrix matrix.special_linear_group upper_half_plane

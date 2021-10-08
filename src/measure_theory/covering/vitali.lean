@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import topology.metric_space.basic
 import measure_theory.constructions.borel_space
+import measure_theory.covering.vitali_family
 
 /-!
 # Vitali covering theorems
@@ -144,10 +145,10 @@ begin
   /- For the proof, one wishes to apply the abstract version of the Vitali covering theorem to the
   function `δ (closed_ball x r) = r`. This would work directly if all radii were positive. It turns
   out that the theorem is still true without this positivity assumption, but slightly more painful
-  to write: one applies the abstract Vitali to the subfamily `t'` of `t` made of balls of positive
-  radius, to get a disjoint subfamily `u'`, and then one adds back the balls of radius `0` that
-  are not covered by `⋃₀ u'` (they are automatically pairwise disjoint, and still satisfy the
-  statement). -/
+  to write: one applies the abstract Vitali theorem to the subfamily `t'` of `t` made of balls of
+  positive radius, to get a disjoint subfamily `u'`, and then one adds back the balls of
+  radius `0` that are not covered by `⋃₀ u'` (they are automatically pairwise disjoint, and still
+  satisfy the statement). -/
   -- Exclude the trivial case where `t` is empty (to be able to use `choose!` later).
   rcases eq_empty_or_nonempty t with rfl|tnonempty,
   { refine ⟨∅, subset.refl _, by simp⟩ },

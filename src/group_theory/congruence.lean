@@ -114,16 +114,16 @@ instance : has_coe_to_fun (con M) := ⟨_, λ c, λ x y, @setoid.r _ c.to_setoid
 
 /-- Congruence relations are reflexive. -/
 @[to_additive "Additive congruence relations are reflexive."]
-protected lemma refl (x) : c x x := c.to_setoid.2.1 x
+protected lemma refl (x) : c x x := c.to_setoid.refl' x
 
 /-- Congruence relations are symmetric. -/
 @[to_additive "Additive congruence relations are symmetric."]
-protected lemma symm : ∀ {x y}, c x y → c y x := λ _ _ h, c.to_setoid.2.2.1 h
+protected lemma symm : ∀ {x y}, c x y → c y x := λ _ _ h, c.to_setoid.symm' h
 
 /-- Congruence relations are transitive. -/
 @[to_additive "Additive congruence relations are transitive."]
 protected lemma trans : ∀ {x y z}, c x y → c y z → c x z :=
-λ _ _ _ h, c.to_setoid.2.2.2 h
+λ _ _ _ h, c.to_setoid.trans' h
 
 /-- Multiplicative congruence relations preserve multiplication. -/
 @[to_additive "Additive congruence relations preserve addition."]
@@ -175,9 +175,7 @@ lemma ext'_iff {c d : con M} : c.r = d.r ↔ c = d :=
 /-- The kernel of a multiplication-preserving function as a congruence relation. -/
 @[to_additive "The kernel of an addition-preserving function as an additive congruence relation."]
 def mul_ker (f : M → P) (h : ∀ x y, f (x * y) = f x * f y) : con M :=
-{ to_setoid :=
-  { r := λ x y, f x = f y,
-    iseqv := ⟨λ _, rfl, λ _ _, eq.symm, λ _ _ _, eq.trans⟩, },
+{ to_setoid := setoid.ker f,
   mul' := λ _ _ _ _ h1 h2, by { dsimp at *, rw [h, h1, h2, h], } }
 
 /-- Given types with multiplications `M, N`, the product of two congruence relations `c` on `M` and
@@ -346,7 +344,7 @@ setoid.ext' $ λ x y, ⟨λ h r ⟨c, hS, hr⟩, by rw ←hr; exact h c hS,
     under the map to the underlying binary relation. -/
 @[to_additive "The infimum of a set of additive congruence relations is the same as the infimum
 of the set's image under the map to the underlying binary relation."]
-lemma Inf_def (S : set (con M)) : (Inf S).r = Inf ((λ c : con M, (c : M → M → Prop)) '' S) :=
+lemma Inf_def (S : set (con M)) : ⇑(Inf S) = Inf (@set.image (con M) (M → M → Prop) coe_fn S) :=
 by { ext, simp only [Inf_image, infi_apply, infi_Prop_eq], refl }
 
 @[to_additive]
@@ -468,7 +466,8 @@ end
 @[to_additive "The supremum of a set of additive congruence relations is the same as the smallest
 additive congruence relation containing the supremum of the set's image under the map to the
 underlying binary relation."]
-lemma Sup_def {S : set (con M)} : Sup S = con_gen (Sup ((λ c : con M, (c : M → M → Prop)) '' S)) :=
+lemma Sup_def {S : set (con M)} :
+  Sup S = con_gen (Sup (@set.image (con M) (M → M → Prop) coe_fn S)) :=
 begin
   rw [Sup_eq_con_gen, Sup_image],
   congr' with x y,
@@ -482,7 +481,7 @@ variables (M)
 @[to_additive "There is a Galois insertion of additive congruence relations on a type with
 an addition `M` into binary relations on `M`."]
 protected noncomputable def gi :
-  @galois_insertion (M → M → Prop) (con M) _ _ con_gen (λ c : con M, (c : M → M → Prop)) :=
+  @galois_insertion (M → M → Prop) (con M) _ _ con_gen coe_fn :=
 { choice := λ r h, con_gen r,
   gc := λ r c, ⟨λ H _ _ h, H $ con_gen.rel.of _ _ h, λ H, con_gen_of_con c ▸ con_gen_mono H⟩,
   le_l_u := λ x, (con_gen_of_con x).symm ▸ le_refl x,

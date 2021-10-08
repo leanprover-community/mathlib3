@@ -517,7 +517,7 @@ by simp only [continuous_within_at, nhds_within_Ioo_eq_nhds_within_Ioi h]
 lemma Ioo_mem_nhds_within_Iio {a b c : α} (H : b ∈ Ioc a c) :
   Ioo a c ∈ 𝓝[Iio b] b :=
 by simpa only [dual_Ioo] using Ioo_mem_nhds_within_Ioi
-  (show b ∈ Ico (to_dual c) (to_dual a), from H.symm)
+  (show to_dual b ∈ Ico (to_dual c) (to_dual a), from H.symm)
 
 lemma Ico_mem_nhds_within_Iio {a b c : α} (H : b ∈ Ioc a c) :
   Ico a c ∈ 𝓝[Iio b] b :=
@@ -603,7 +603,7 @@ mem_of_superset (Ioo_mem_nhds_within_Iic H) Ioo_subset_Ico_self
 lemma Ioc_mem_nhds_within_Iic {a b c : α} (H : b ∈ Ioc a c) :
   Ioc a c ∈ 𝓝[Iic b] b :=
 by simpa only [dual_Ico] using Ico_mem_nhds_within_Ici
-  (show b ∈ Ico (to_dual c) (to_dual a), from H.symm)
+  (show to_dual b ∈ Ico (to_dual c) (to_dual a), from H.symm)
 
 lemma Icc_mem_nhds_within_Iic {a b c : α} (H : b ∈ Ioc a c) :
   Icc a c ∈ 𝓝[Iic b] b :=

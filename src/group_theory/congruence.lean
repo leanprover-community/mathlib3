@@ -130,8 +130,8 @@ protected lemma trans : ∀ {x y z}, c x y → c y z → c x z :=
 protected lemma mul : ∀ {w x y z}, c w x → c y z → c (w * y) (x * z) :=
 λ _ _ _ _ h1 h2, c.mul' h1 h2
 
-@[simp, to_additive] lemma rel_mk {r : M → M → Prop} {h₁ h₂ a b} :
-  con.mk ⟨r, h₁⟩ h₂ a b ↔ r a b :=
+@[simp, to_additive] lemma rel_mk {s : setoid M} {h a b} :
+  con.mk s h a b ↔ r a b :=
 iff.rfl
 
 /-- Given a type `M` with a multiplication, a congruence relation `c` on `M`, and elements of `M`
@@ -176,7 +176,7 @@ lemma ext'_iff {c d : con M} : c.r = d.r ↔ c = d :=
 @[to_additive "The kernel of an addition-preserving function as an additive congruence relation."]
 def mul_ker (f : M → P) (h : ∀ x y, f (x * y) = f x * f y) : con M :=
 { to_setoid := setoid.ker f,
-  mul' := λ _ _ _ _ h1 h2, by { dsimp at *, rw [h, h1, h2, h], } }
+  mul' := λ _ _ _ _ h1 h2, by { dsimp [setoid.ker] at *, rw [h, h1, h2, h], } }
 
 /-- Given types with multiplications `M, N`, the product of two congruence relations `c` on `M` and
     `d` on `N`: `(x₁, x₂), (y₁, y₂) ∈ M × N` are related by `c.prod d` iff `x₁` is related to `y₁`

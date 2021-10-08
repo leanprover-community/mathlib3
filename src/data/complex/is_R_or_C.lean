@@ -365,12 +365,6 @@ by { by_cases h : (I : K) = 0; field_simp [h] }
 lemma norm_conj {z : K} : ∥conj z∥ = ∥z∥ :=
 by simp only [←sqrt_norm_sq_eq_norm, norm_sq_conj]
 
---lemma conj_inv {z : K} : conj (z⁻¹) = (conj z)⁻¹ :=
---by simp only [inv_def, norm_conj, ring_equiv.map_mul, conj_of_real]
---
---lemma conj_div {z w : K} : conj (z / w) = (conj z) / (conj w) :=
---by rw [div_eq_inv_mul, div_eq_inv_mul, ring_equiv.map_mul]; simp only [conj_inv]
-
 /-! ### Cast lemmas -/
 
 @[simp, norm_cast, priority 900] theorem of_real_nat_cast (n : ℕ) : ((n : ℝ) : K) = n :=

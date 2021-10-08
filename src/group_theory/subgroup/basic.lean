@@ -224,10 +224,10 @@ protected def copy (K : subgroup G) (s : set G) (hs : s = K) : subgroup G :=
   mul_mem' := hs.symm ▸ K.mul_mem',
   inv_mem' := hs.symm ▸ K.inv_mem' }
 
-@[simp] lemma coe_copy (K : subgroup X) (s : set X) (hs : s = ↑K) :
-  (K.copy s hs : set X) = s := rfl
+@[simp] lemma coe_copy (K : subgroup G) (s : set G) (hs : s = ↑K) :
+  (K.copy s hs : set G) = s := rfl
 
-lemma copy_eq (K : subgroup X) (s : set X) (hs : s = ↑K) : K.copy s hs = K :=
+lemma copy_eq (K : subgroup G) (s : set G) (hs : s = ↑K) : K.copy s hs = K :=
 set_like.coe_injective hs
 
 /-- Two subgroups are equal if they have the same elements. -/

@@ -40,7 +40,7 @@ meta def by_contra' (h : parse ident?) (t : parse (tk ":" *> texpr)?) : tactic u
     t ← to_expr ``(%%t : Prop),
     (e, pr) ← push_neg.normalize_negations t <|> refl_conv t,
     unify e e',
-    () <$ (mk_eq_symm pr >>= mk_eq_trans pr' >>= replace_hyp h₁ e)
+    () <$ (mk_eq_symm pr >>= mk_eq_trans pr' >>= replace_hyp h₁ t)
   end
 
 add_tactic_doc

@@ -171,7 +171,6 @@ def of_real_clm : ℝ →L[ℝ] ℂ := of_real_li.to_continuous_linear_map
 noncomputable instance : is_R_or_C ℂ :=
 { re := ⟨complex.re, complex.zero_re, complex.add_re⟩,
   im := ⟨complex.im, complex.zero_im, complex.add_im⟩,
-  conj := complex.conj,
   I := complex.I,
   I_re_ax := by simp only [add_monoid_hom.coe_mk, complex.I_re],
   I_mul_I_ax := by simp only [complex.I_mul_I, eq_self_iff_true, or_true],
@@ -183,14 +182,35 @@ noncomputable instance : is_R_or_C ℂ :=
                                       complex.coe_algebra_map, complex.of_real_eq_coe],
   mul_re_ax := λ z w, by simp only [complex.mul_re, add_monoid_hom.coe_mk],
   mul_im_ax := λ z w, by simp only [add_monoid_hom.coe_mk, complex.mul_im],
-  conj_re_ax := λ z, by simp only [ring_hom.coe_mk, add_monoid_hom.coe_mk, complex.conj_re],
-  conj_im_ax := λ z, by simp only [ring_hom.coe_mk, complex.conj_im, add_monoid_hom.coe_mk],
-  conj_I_ax := by simp only [complex.conj_I, ring_hom.coe_mk],
+  conj_re_ax := λ z, --by simp [star_ring_aut_apply, ring_hom.coe_mk, add_monoid_hom.coe_mk, complex.conj_re],
+  begin
+    dsimp,
+    simp [star_ring_aut_apply, star_def],
+    change (conj z).re = z.re,
+    simp only [conj_re],
+  end,
+  conj_im_ax := λ z, --by simp only [ring_hom.coe_mk, complex.conj_im, add_monoid_hom.coe_mk],
+  begin
+    dsimp,
+    change (conj z).im = -z.im,
+    simp only [conj_im],
+  end,
+  conj_I_ax := --by simp only [complex.conj_I, ring_hom.coe_mk],
+  begin
+    change conj I = -I,
+    simp only [conj_I],
+  end,
   norm_sq_eq_def_ax := λ z, by simp only [←complex.norm_sq_eq_abs, ←complex.norm_sq_apply,
     add_monoid_hom.coe_mk, complex.norm_eq_abs],
   mul_im_I_ax := λ z, by simp only [mul_one, add_monoid_hom.coe_mk, complex.I_im],
-  inv_def_ax := λ z, by simp only [complex.inv_def, complex.norm_sq_eq_abs, complex.coe_algebra_map,
-    complex.of_real_eq_coe, complex.norm_eq_abs],
+  --inv_def_ax := λ z, by simp only [complex.inv_def, complex.norm_sq_eq_abs, complex.coe_algebra_map,
+  --  complex.of_real_eq_coe, complex.norm_eq_abs],
+  inv_def_ax := λ z,
+  begin
+    dsimp,
+    have : star_ring_aut z = conj z := rfl,
+    simp only [this, complex.inv_def, complex.norm_sq_eq_abs],
+  end,
   div_I_ax := complex.div_I }
 
 end complex
@@ -199,7 +219,7 @@ namespace is_R_or_C
 
 local notation `reC` := @is_R_or_C.re ℂ _
 local notation `imC` := @is_R_or_C.im ℂ _
-local notation `conjC` := @is_R_or_C.conj ℂ _
+local notation `conjC` := star_ring_aut
 local notation `IC` := @is_R_or_C.I ℂ _
 local notation `absC` := @is_R_or_C.abs ℂ _
 local notation `norm_sqC` := @is_R_or_C.norm_sq ℂ _

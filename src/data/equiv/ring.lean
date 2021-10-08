@@ -364,31 +364,23 @@ end semiring_hom
 
 section big_operators
 
-lemma ring_equiv.map_list_prod [semiring R] [semiring S] (f : R ≃+* S) (l : list R) :
-  f l.prod = (l.map f).prod :=
-f.to_ring_hom.map_list_prod l
+lemma map_list_prod [semiring R] [semiring S] (f : R ≃+* S) (l : list R) :
+  f l.prod = (l.map f).prod := f.to_ring_hom.map_list_prod l
 
-lemma ring_equiv.map_list_sum [non_assoc_semiring R] [non_assoc_semiring S]
-  (f : R ≃+* S) (l : list R) :
-  f l.sum = (l.map f).sum :=
-f.to_add_monoid_hom.map_list_sum l
+lemma map_list_sum [non_assoc_semiring R] [non_assoc_semiring S] (f : R ≃+* S) (l : list R) :
+  f l.sum = (l.map f).sum := f.to_add_monoid_hom.map_list_sum l
 
-lemma ring_equiv.map_multiset_prod [comm_semiring R] [comm_semiring S] (f : R ≃+* S)
-  (s : multiset R) :
-  f s.prod = (s.map f).prod :=
-f.to_monoid_hom.map_multiset_prod s
+lemma map_multiset_prod [comm_semiring R] [comm_semiring S] (f : R ≃+* S) (s : multiset R) :
+  f s.prod = (s.map f).prod := f.to_monoid_hom.map_multiset_prod s
 
-lemma ring_equiv.map_multiset_sum [non_assoc_semiring R] [non_assoc_semiring S]
-  (f : R ≃+* S) (s : multiset R) :
-  f s.sum = (s.map f).sum :=
-f.to_add_monoid_hom.map_multiset_sum s
+lemma map_multiset_sum [non_assoc_semiring R] [non_assoc_semiring S]
+  (f : R ≃+* S) (s : multiset R) : f s.sum = (s.map f).sum := f.to_add_monoid_hom.map_multiset_sum s
 
-lemma ring_equiv.map_prod {α : Type*} [comm_semiring R] [comm_semiring S] (g : R ≃+* S) (f : α → R)
-  (s : finset α) :
-  g (∏ x in s, f x) = ∏ x in s, g (f x) :=
+lemma map_prod {α : Type*} [comm_semiring R] [comm_semiring S] (g : R ≃+* S) (f : α → R)
+  (s : finset α) : g (∏ x in s, f x) = ∏ x in s, g (f x) :=
 g.to_monoid_hom.map_prod f s
 
-lemma ring_equiv.map_sum {α : Type*} [non_assoc_semiring R] [non_assoc_semiring S]
+lemma map_sum {α : Type*} [non_assoc_semiring R] [non_assoc_semiring S]
   (g : R ≃+* S) (f : α → R) (s : finset α) : g (∑ x in s, f x) = ∑ x in s, g (f x) :=
 g.to_add_monoid_hom.map_sum f s
 

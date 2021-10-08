@@ -442,12 +442,27 @@ lemma is_sheaf_sites_iff_is_sheaf_spaces :
   presheaf.is_sheaf (opens.grothendieck_topology X) F ↔ F.is_sheaf :=
 iff.intro (is_sheaf_spaces_of_is_sheaf_sites F) (is_sheaf_sites_of_is_sheaf_spaces F)
 
-lemma Sheaf_sites_eq_sheaf_spaces : Sheaf (opens.grothendieck_topology X) C = sheaf C X :=
+variables (C X)
+
+@[simps]
+def Sheaf_sites_to_sheaf_spaces : Sheaf (opens.grothendieck_topology X) C ⥤ sheaf C X :=
+{ obj := λ F, ⟨F.1, is_sheaf_spaces_of_is_sheaf_sites F.1 F.2⟩,
+  map := λ F G f, f }
+
+@[simps]
+def Sheaf_spaces_to_sheaf_sites : sheaf C X ⥤ Sheaf (opens.grothendieck_topology X) C :=
+{ obj := λ F, ⟨F.1, is_sheaf_sites_of_is_sheaf_spaces F.1 F.2⟩,
+  map := λ F G f, f }
+
+@[simps]
+def Sheaf_spaces_equivelence_sheaf_sites : Sheaf (opens.grothendieck_topology X) C ≌ sheaf C X :=
 begin
-  dunfold sheaf Sheaf,
-  congr,
-  ext F,
-  exact is_sheaf_sites_iff_is_sheaf_spaces F,
+  refine equivalence.mk (Sheaf_sites_to_sheaf_spaces C X) (Sheaf_spaces_to_sheaf_sites C X) _ _,
+  all_goals {
+    refine nat_iso.of_components (λ F, eq_to_iso (subtype.ext rfl)) (λ F G f, _),
+    ext U, dsimp,
+    erw [nat_trans.comp_app, nat_trans.comp_app, eq_to_hom_refl G.1 rfl, eq_to_hom_refl F.1 rfl,
+      nat_trans.id_app G.1, category.comp_id, nat_trans.id_app F.1, category.id_comp], },
 end
 
 end Top.presheaf

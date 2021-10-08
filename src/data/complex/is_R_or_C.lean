@@ -184,14 +184,6 @@ by { rw ext_iff, simp only [of_real_im, conj_im, eq_self_iff_true, conj_re, and_
 
 @[simp] lemma conj_conj (z : K) : conj (conj z) = z := star_star z
 
---lemma conj_involutive : @function.involutive K is_R_or_C.conj := conj_conj
---lemma conj_bijective : @function.bijective K K is_R_or_C.conj := conj_involutive.bijective
-
---lemma conj_inj (z w : K) : conj z = conj w ↔ z = w := conj_bijective.1.eq_iff
-
---lemma conj_eq_zero {z : K} : conj z = 0 ↔ z = 0 :=
---ring_hom.map_eq_zero conj
-
 lemma conj_eq_re_sub_im (z : K) : conj z = re z - (im z) * I := by { rw ext_iff, simp, }
 
 lemma conj_smul (r : ℝ) (z : K) : conj (r • z) = r • conj z :=
@@ -373,11 +365,11 @@ by { by_cases h : (I : K) = 0; field_simp [h] }
 lemma norm_conj {z : K} : ∥conj z∥ = ∥z∥ :=
 by simp only [←sqrt_norm_sq_eq_norm, norm_sq_conj]
 
-lemma conj_inv {z : K} : conj (z⁻¹) = (conj z)⁻¹ :=
-by simp only [inv_def, norm_conj, ring_equiv.map_mul, conj_of_real]
-
-lemma conj_div {z w : K} : conj (z / w) = (conj z) / (conj w) :=
-by rw [div_eq_inv_mul, div_eq_inv_mul, ring_equiv.map_mul]; simp only [conj_inv]
+--lemma conj_inv {z : K} : conj (z⁻¹) = (conj z)⁻¹ :=
+--by simp only [inv_def, norm_conj, ring_equiv.map_mul, conj_of_real]
+--
+--lemma conj_div {z w : K} : conj (z / w) = (conj z) / (conj w) :=
+--by rw [div_eq_inv_mul, div_eq_inv_mul, ring_equiv.map_mul]; simp only [conj_inv]
 
 /-! ### Cast lemmas -/
 

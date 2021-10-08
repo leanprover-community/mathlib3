@@ -186,18 +186,14 @@ by rw [pow_bit1', I_mul_I]
 
 /-! ### Complex conjugation -/
 
+/-- This defines the complex conjugate as the `star` operation of the `star_ring ℂ`. It
+is recommended to use the ring automorphism version `star_ring_aut`, available under the
+notation `conj` in the locale `complex_conjugate`. -/
 instance : star_ring ℂ :=
 { star := λ z, ⟨z.re, -z.im⟩,
   star_involutive := λ x, by simp only [eta, neg_neg],
   star_mul := λ a b, by ext; simp [add_comm]; ring,
   star_add := λ a b, by ext; simp [add_comm] }
-
-/-- The complex conjugate. -/
---def conj : ℂ →+* ℂ :=
---begin
---  refine_struct { to_fun := λ z : ℂ, (⟨z.re, -z.im⟩ : ℂ), .. };
---  { intros, ext; simp [add_comm], },
---end
 
 @[simp] lemma conj_re (z : ℂ) : (conj z).re = z.re := rfl
 @[simp] lemma conj_im (z : ℂ) : (conj z).im = -z.im := rfl
@@ -211,17 +207,7 @@ instance : star_ring ℂ :=
 
 @[simp] lemma conj_neg_I : conj (-I) = I := ext_iff.2 $ by simp
 
-@[simp] lemma conj_conj (z : ℂ) : conj (conj z) = z := by simp only [star_ring_aut_apply, star_star]
-
---lemma conj_involutive : function.involutive conj := conj_conj
-
---lemma conj_bijective : function.bijective conj := conj_involutive.bijective
-
---lemma conj_inj {z w : ℂ} : conj z = conj w ↔ z = w :=
---conj_bijective.1.eq_iff
-
---@[simp] lemma conj_eq_zero {z : ℂ} : conj z = 0 ↔ z = 0 :=
---by simpa using @conj_inj z 0
+alias star_ring_aut_self_apply ← conj_conj
 
 lemma eq_conj_iff_real {z : ℂ} : conj z = z ↔ ∃ r : ℝ, z = r :=
 ⟨λ h, ⟨z.re, ext rfl $ eq_zero_of_neg_eq (congr_arg im h)⟩,
@@ -229,11 +215,6 @@ lemma eq_conj_iff_real {z : ℂ} : conj z = z ↔ ∃ r : ℝ, z = r :=
 
 lemma eq_conj_iff_re {z : ℂ} : conj z = z ↔ (z.re : ℂ) = z :=
 eq_conj_iff_real.trans ⟨by rintro ⟨r, rfl⟩; simp, λ h, ⟨_, h.symm⟩⟩
-
-
---lemma conj_sub (z z': ℂ) : conj (z - z') = conj z - conj z' := conj.map_sub z z'
-
---lemma conj_one : conj 1 = 1 := by rw conj.map_one
 
 lemma eq_conj_iff_im {z : ℂ} : conj z = z ↔ z.im = 0 :=
 ⟨λ h, add_self_eq_zero.mp (neg_eq_iff_add_eq_zero.mp (congr_arg im h)),

@@ -25,7 +25,6 @@ If the target of the main goal is a proposition `p`,
 `by_contra' h : q` will normalize negations in `¬ p`, normalize negations in `q`,
 and then check that the two normalized forms are equal.
 The resulting hypothesis is the pre-normalized form, `q`.
-This tactic will attempt to normalize negations in `¬ p` using `push_neg`.
 
 This tactic uses classical reasoning.
 

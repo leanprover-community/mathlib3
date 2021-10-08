@@ -202,7 +202,8 @@ begin
   apply functor.hext,
   { intro Y, simp },
   intros Y₁ Y₂ f,
-  simp only [functor.comp_map, evaluation_obj_map, whiskering_left_obj_map, Lan_map_app, heq_iff_eq],
+  simp only [functor.comp_map, evaluation_obj_map,
+    whiskering_left_obj_map, Lan_map_app, heq_iff_eq],
   symmetry,
   apply (colimit.is_colimit (Lan.diagram F Y₁ X)).uniq { X := colimit _, ι := _ }
     (colim.map (whisker_left (costructured_arrow.proj F X) f)),

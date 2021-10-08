@@ -465,7 +465,7 @@ h ▸ add_sub_cancel _ _
 theorem sub_le_self (a b : ordinal) : a - b ≤ a :=
 sub_le.2 $ le_add_left _ _
 
-theorem add_sub_cancel_of_le {a b : ordinal} (h : b ≤ a) : b + (a - b) = a :=
+protected theorem add_sub_cancel_of_le {a b : ordinal} (h : b ≤ a) : b + (a - b) = a :=
 le_antisymm begin
   rcases zero_or_succ_or_limit (a-b) with e|⟨c,e⟩|l,
   { simp only [e, add_zero, h] },
@@ -509,7 +509,7 @@ end
 
 @[simp, priority 990]
 theorem one_add_of_omega_le {o} (h : omega ≤ o) : 1 + o = o :=
-by rw [← add_sub_cancel_of_le h, ← add_assoc, one_add_omega]
+by rw [← ordinal.add_sub_cancel_of_le h, ← add_assoc, one_add_omega]
 
 /-! ### Multiplication of ordinals-/
 
@@ -827,7 +827,7 @@ by simp only [mod_def, div_eq_zero_of_lt h, mul_zero, sub_zero]
 by simp only [mod_def, zero_div, mul_zero, sub_self]
 
 theorem div_add_mod (a b : ordinal) : b * (a / b) + a % b = a :=
-add_sub_cancel_of_le $ mul_div_le _ _
+ordinal.add_sub_cancel_of_le $ mul_div_le _ _
 
 theorem mod_lt (a) {b : ordinal} (h : b ≠ 0) : a % b < b :=
 (add_lt_add_iff_left (b * (a / b))).1 $
@@ -1082,7 +1082,7 @@ end
 
 theorem power_dvd_power (a) {b c : ordinal}
   (h : b ≤ c) : a ^ b ∣ a ^ c :=
-by { rw [← add_sub_cancel_of_le h, power_add], apply dvd_mul_right }
+by { rw [← ordinal.add_sub_cancel_of_le h, power_add], apply dvd_mul_right }
 
 theorem power_dvd_power_iff {a b c : ordinal}
   (a1 : 1 < a) : a ^ b ∣ a ^ c ↔ b ≤ c :=
@@ -1334,7 +1334,7 @@ not_congr nat_cast_eq_zero
 (_root_.le_total m n).elim
   (λ h, by rw [nat.sub_eq_zero_iff_le.2 h, ordinal.sub_eq_zero_iff_le.2 (nat_cast_le.2 h)]; refl)
   (λ h, (add_left_cancel n).1 $ by rw [← nat.cast_add,
-     nat.add_sub_cancel' h, add_sub_cancel_of_le (nat_cast_le.2 h)])
+     add_sub_cancel_of_le h, ordinal.add_sub_cancel_of_le (nat_cast_le.2 h)])
 
 @[simp] theorem nat_cast_div {m n : ℕ} : ((m / n : ℕ) : ordinal) = m / n :=
 if n0 : n = 0 then by simp only [n0, nat.div_zero, nat.cast_zero, div_zero] else
@@ -1500,7 +1500,7 @@ theorem add_lt_omega_power {a b c : ordinal} (h₁ : a < omega ^ c) (h₂ : b < 
 by rwa [← add_omega_power h₁, add_lt_add_iff_left]
 
 theorem add_absorp {a b c : ordinal} (h₁ : a < omega ^ b) (h₂ : omega ^ b ≤ c) : a + c = c :=
-by rw [← add_sub_cancel_of_le h₂, ← add_assoc, add_omega_power h₁]
+by rw [← ordinal.add_sub_cancel_of_le h₂, ← add_assoc, add_omega_power h₁]
 
 theorem add_absorp_iff {o : ordinal} (o0 : 0 < o) : (∀ a < o, a + o = o) ↔ ∃ a, o = omega ^ a :=
 ⟨λ H, ⟨log omega o, begin

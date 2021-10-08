@@ -3,7 +3,6 @@ Copyright (c) 2019 Alexander Bentkamp. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, François Dupuis
 -/
-import algebra.module.ordered
 import analysis.convex.basic
 import tactic.field_simp
 import tactic.linarith
@@ -71,9 +70,21 @@ convex 𝕜 s ∧
 
 variables {𝕜 s f}
 
-lemma convex_on_id {s : set 𝕜} (hs : convex 𝕜 s) : convex_on 𝕜 s id := ⟨hs, by { intros, refl }⟩
+lemma convex_on.dual (hf : convex_on 𝕜 s f) : @concave_on 𝕜 E (order_dual β) _ _ _ _ _ s f := hf
 
-lemma concave_on_id {s : set 𝕜} (hs : convex 𝕜 s) : concave_on 𝕜 s id := ⟨hs, by { intros, refl }⟩
+lemma concave_on.dual (hf : concave_on 𝕜 s f) : @convex_on 𝕜 E (order_dual β) _ _ _ _ _ s f := hf
+
+lemma strict_convex_on.dual (hf : strict_convex_on 𝕜 s f) :
+  @strict_concave_on 𝕜 E (order_dual β) _ _ _ _ _ s f :=
+hf
+
+lemma strict_concave_on.dual (hf : strict_concave_on 𝕜 s f) :
+  @strict_convex_on 𝕜 E (order_dual β) _ _ _ _ _ s f :=
+hf
+
+lemma convex_on_id {s : set β} (hs : convex 𝕜 s) : convex_on 𝕜 s id := ⟨hs, by { intros, refl }⟩
+
+lemma concave_on_id {s : set β} (hs : convex 𝕜 s) : concave_on 𝕜 s id := ⟨hs, by { intros, refl }⟩
 
 lemma convex_on.subset {t : set E} (hf : convex_on 𝕜 t f) (hst : s ⊆ t) (hs : convex 𝕜 s) :
   convex_on 𝕜 s f :=
@@ -98,7 +109,7 @@ lemma convex_on.add (hf : convex_on 𝕜 s f) (hg : convex_on 𝕜 s g) :
 
 lemma concave_on.add (hf : concave_on 𝕜 s f) (hg : concave_on 𝕜 s g) :
   concave_on 𝕜 s (λ x, f x + g x) :=
-@convex_on.add _ _ (order_dual β) _ _ _ _ _ _ f g hf hg
+hf.dual.add hg
 
 end distrib_mul_action
 
@@ -127,7 +138,7 @@ lemma convex_on.convex_le (hf : convex_on 𝕜 s f) (r : β) :
 
 lemma concave_on.convex_ge (hf : concave_on 𝕜 s f) (r : β) :
   convex 𝕜 {x ∈ s | r ≤ f x} :=
-@convex_on.convex_le 𝕜 E (order_dual β) _ _ _ _ _ _ _ f hf r
+hf.dual.convex_le r
 
 lemma convex_on.convex_epigraph (hf : convex_on 𝕜 s f) :
   convex 𝕜 {p : E × β | p.1 ∈ s ∧ f p.1 ≤ p.2} :=
@@ -141,7 +152,7 @@ end
 
 lemma concave_on.convex_hypograph (hf : concave_on 𝕜 s f) :
   convex 𝕜 {p : E × β | p.1 ∈ s ∧ p.2 ≤ f p.1} :=
-@convex_on.convex_epigraph 𝕜 E (order_dual β) _ _ _ _ _ _ _ f hf
+hf.dual.convex_epigraph
 
 lemma convex_on_iff_convex_epigraph :
   convex_on 𝕜 s f ↔ convex 𝕜 {p : E × β | p.1 ∈ s ∧ f p.1 ≤ p.2} :=
@@ -170,7 +181,7 @@ lemma convex_on.translate_right (hf : convex_on 𝕜 s f) :
 /-- If a function is concave on `s`, it remains concave after a translation. -/
 lemma concave_on.translate_right (hf : concave_on 𝕜 s f) :
   concave_on 𝕜 ((λ z, c + z) ⁻¹' s) (f ∘ (λ z, c + z)) :=
-@convex_on.translate_right 𝕜 E (order_dual β) _ _ _ _ _ _ _ _ hf
+hf.dual.translate_right
 
 /-- If a function is convex on `s`, it remains convex after a translation. -/
 lemma convex_on.translate_left (hf : convex_on 𝕜 s f) :
@@ -180,7 +191,7 @@ by simpa only [add_comm] using hf.translate_right
 /-- If a function is concave on `s`, it remains concave after a translation. -/
 lemma concave_on.translate_left (hf : concave_on 𝕜 s f) :
   concave_on 𝕜 ((λ z, c + z) ⁻¹' s) (f ∘ (λ z, z + c)) :=
-by simpa only [add_comm] using hf.translate_right
+hf.dual.translate_left
 
 end module
 
@@ -278,7 +289,7 @@ lemma convex_on.comp_linear_map {f : F → β} {s : set F} (hf : convex_on 𝕜 
 /-- If `g` is concave on `s`, so is `(g ∘ f)` on `f ⁻¹' s` for a linear `f`. -/
 lemma concave_on.comp_linear_map {f : F → β} {s : set F} (hf : concave_on 𝕜 s f) (g : E →ₗ[𝕜] F) :
   concave_on 𝕜 (g ⁻¹' s) (f ∘ g) :=
-@convex_on.comp_linear_map 𝕜 E F (order_dual β) _ _ _ _ _ _ _ f s hf g
+hf.dual.comp_linear_map g
 
 end module
 end ordered_add_comm_monoid
@@ -298,8 +309,8 @@ convex_iff_forall_pos.2 $ λ x y hx hy a b ha hb hab, ⟨hf.1 hx.1 hy.1 ha.le hb
                                 (smul_le_smul_of_nonneg hy.2.le hb.le)
     ... = r                 : convex.combo_self hab _⟩
 
-lemma concave_on.convex_lt (hf : concave_on 𝕜 s f) (r : β) : convex 𝕜 {x ∈ s | r < f x} :=
-@convex_on.convex_lt 𝕜 E (order_dual β) _ _ _ _ _ _ _ f hf r
+lemma concave_on.convex_gt (hf : concave_on 𝕜 s f) (r : β) : convex 𝕜 {x ∈ s | r < f x} :=
+hf.dual.convex_lt r
 
 lemma convex_on.convex_strict_epigraph (hf : convex_on 𝕜 s f) :
   convex 𝕜 {p : E × β | p.1 ∈ s ∧ f p.1 < p.2} :=
@@ -314,7 +325,7 @@ end
 
 lemma concave_on.convex_strict_hypograph (hf : concave_on 𝕜 s f) :
   convex 𝕜 {p : E × β | p.1 ∈ s ∧ p.2 < f p.1} :=
-@convex_on.convex_strict_epigraph 𝕜 E (order_dual β) _ _ _ _ _ _ _ _ hf
+hf.dual.convex_strict_epigraph
 
 end module
 end ordered_cancel_add_comm_monoid
@@ -341,7 +352,7 @@ end
 /-- The pointwise minimum of concave functions is concave. -/
 lemma concave_on.inf (hf : concave_on 𝕜 s f) (hg : concave_on 𝕜 s g) :
   concave_on 𝕜 s (f ⊓ g) :=
-@convex_on.sup 𝕜 E (order_dual β) _ _ _ _ _ _ _ f g hf hg
+hf.dual.sup hg
 
 /-- A convex function on a segment is upper-bounded by the max of its endpoints. -/
 lemma convex_on.le_on_segment' (hf : convex_on 𝕜 s f) {x y : E} (hx : x ∈ s) (hy : y ∈ s)
@@ -355,10 +366,10 @@ calc
   ... = max (f x) (f y) : convex.combo_self hab _
 
 /-- A concave function on a segment is lower-bounded by the min of its endpoints. -/
-lemma concave_on.le_on_segment' (hf : concave_on 𝕜 s f) {x y : E} (hx : x ∈ s) (hy : y ∈ s)
+lemma concave_on.ge_on_segment' (hf : concave_on 𝕜 s f) {x y : E} (hx : x ∈ s) (hy : y ∈ s)
   {a b : 𝕜} (ha : 0 ≤ a) (hb : 0 ≤ b) (hab : a + b = 1) :
   min (f x) (f y) ≤ f (a • x + b • y) :=
-@convex_on.le_on_segment' 𝕜 E (order_dual β) _ _ _ _ _ _ _ f hf x y hx hy a b ha hb hab
+hf.dual.le_on_segment' hx hy ha hb hab
 
 /-- A convex function on a segment is upper-bounded by the max of its endpoints. -/
 lemma convex_on.le_on_segment (hf : convex_on 𝕜 s f) {x y z : E} (hx : x ∈ s) (hy : y ∈ s)
@@ -367,10 +378,10 @@ lemma convex_on.le_on_segment (hf : convex_on 𝕜 s f) {x y z : E} (hx : x ∈ 
 let ⟨a, b, ha, hb, hab, hz⟩ := hz in hz ▸ hf.le_on_segment' hx hy ha hb hab
 
 /-- A concave function on a segment is lower-bounded by the min of its endpoints. -/
-lemma concave_on.le_on_segment (hf : concave_on 𝕜 s f) {x y z : E} (hx : x ∈ s) (hy : y ∈ s)
+lemma concave_on.ge_on_segment (hf : concave_on 𝕜 s f) {x y z : E} (hx : x ∈ s) (hy : y ∈ s)
   (hz : z ∈ [x -[𝕜] y]) :
   min (f x) (f y) ≤ f z :=
-@convex_on.le_on_segment 𝕜 E (order_dual β) _ _ _ _ _ _ _ f hf x y z hx hy hz
+hf.dual.le_on_segment hx hy hz
 
 end linear_ordered_add_comm_monoid
 
@@ -394,7 +405,7 @@ le_of_not_lt $ λ h, lt_irrefl (f (a • x + b • y)) $
 lemma concave_on.left_le_of_le_right' (hf : concave_on 𝕜 s f) {x y : E} (hx : x ∈ s) (hy : y ∈ s)
   {a b : 𝕜} (ha : 0 < a) (hb : 0 ≤ b) (hab : a + b = 1) (hfy : f (a • x + b • y) ≤ f y) :
   f x ≤ f (a • x + b • y) :=
-@convex_on.le_left_of_right_le' 𝕜 E (order_dual β) _ _ _ _ _ _ _ f hf x y hx hy a b ha hb hab hfy
+hf.dual.le_left_of_right_le' hx hy ha hb hab hfy
 
 lemma convex_on.le_right_of_left_le' (hf : convex_on 𝕜 s f) {x y : E} {a b : 𝕜}
   (hx : x ∈ s) (hy : y ∈ s) (ha : 0 ≤ a) (hb : 0 < b) (hab : a + b = 1)
@@ -409,7 +420,7 @@ lemma concave_on.le_right_of_left_le' (hf : concave_on 𝕜 s f) {x y : E} {a b 
   (hx : x ∈ s) (hy : y ∈ s) (ha : 0 ≤ a) (hb : 0 < b) (hab : a + b = 1)
   (hfx : f (a • x + b • y) ≤ f x) :
   f y ≤ f (a • x + b • y) :=
-@convex_on.le_right_of_left_le' 𝕜 E (order_dual β) _ _ _ _ _ _ _ f hf x y a b hx hy ha hb hab hfx
+hf.dual.le_right_of_left_le' hx hy ha hb hab hfx
 
 lemma convex_on.le_left_of_right_le (hf : convex_on 𝕜 s f) {x y z : E} (hx : x ∈ s)
   (hy : y ∈ s) (hz : z ∈ open_segment 𝕜 x y) (hyz : f y ≤ f z) :
@@ -422,7 +433,7 @@ end
 lemma concave_on.left_le_of_le_right (hf : concave_on 𝕜 s f) {x y z : E} (hx : x ∈ s)
   (hy : y ∈ s) (hz : z ∈ open_segment 𝕜 x y) (hyz : f z ≤ f y) :
   f x ≤ f z :=
-@convex_on.le_left_of_right_le 𝕜 E (order_dual β) _ _ _ _ _ _ _ f hf x y z hx hy hz hyz
+hf.dual.le_left_of_right_le hx hy hz hyz
 
 lemma convex_on.le_right_of_left_le (hf : convex_on 𝕜 s f) {x y z : E} (hx : x ∈ s)
   (hy : y ∈ s) (hz : z ∈ open_segment 𝕜 x y) (hxz : f x ≤ f z) :
@@ -435,7 +446,7 @@ end
 lemma concave_on.le_right_of_left_le (hf : concave_on 𝕜 s f) {x y z : E} (hx : x ∈ s)
   (hy : y ∈ s) (hz : z ∈ open_segment 𝕜 x y) (hxz : f z ≤ f x) :
   f y ≤ f z :=
-@convex_on.le_right_of_left_le 𝕜 E (order_dual β) _ _ _ _ _ _ _ f hf x y z hx hy hz hxz
+hf.dual.le_right_of_left_le hx hy hz hxz
 
 end ordered_smul
 end linear_ordered_cancel_add_comm_monoid
@@ -478,8 +489,7 @@ variables [ordered_add_comm_monoid β]
 section module
 variables [has_scalar 𝕜 E] [module 𝕜 β] [ordered_smul 𝕜 β] {s : set E} {f : E → β}
 
-lemma convex_on.smul {c : 𝕜} (hc : 0 ≤ c)
-  (hf : convex_on 𝕜 s f) : convex_on 𝕜 s (λ x, c • f x) :=
+lemma convex_on.smul {c : 𝕜} (hc : 0 ≤ c) (hf : convex_on 𝕜 s f) : convex_on 𝕜 s (λ x, c • f x) :=
 ⟨hf.1, λ x y hx hy a b ha hb hab,
   calc
     c • f (a • x + b • y) ≤ c • (a • f x + b • f y)
@@ -487,9 +497,9 @@ lemma convex_on.smul {c : 𝕜} (hc : 0 ≤ c)
     ... = a • (c • f x) + b • (c • f y)
       : by rw [smul_add, smul_comm c, smul_comm c]; apply_instance⟩
 
-lemma concave_on.smul {c : 𝕜} (hc : 0 ≤ c)
-  (hf : concave_on 𝕜 s f) : concave_on 𝕜 s (λ x, c • f x) :=
-@convex_on.smul _ _ (order_dual β) _ _ _ _ _ _ _ f c hc hf
+lemma concave_on.smul {c : 𝕜} (hc : 0 ≤ c) (hf : concave_on 𝕜 s f) :
+  concave_on 𝕜 s (λ x, c • f x) :=
+hf.dual.smul hc
 
 end module
 end ordered_add_comm_monoid
@@ -516,7 +526,7 @@ lemma convex_on.comp_affine_map {f : F → β} (g : E →ᵃ[𝕜] F) {s : set F
 /-- If a function is concave on `s`, it remains concave when precomposed by an affine map. -/
 lemma concave_on.comp_affine_map {f : F → β} (g : E →ᵃ[𝕜] F) {s : set F} (hf : concave_on 𝕜 s f) :
   concave_on 𝕜 (g ⁻¹' s) (f ∘ g) :=
-@convex_on.comp_affine_map _ _ _ (order_dual β) _ _ _ _ _ _ _ f g s hf
+hf.dual.comp_affine_map g
 
 end module
 end ordered_add_comm_monoid

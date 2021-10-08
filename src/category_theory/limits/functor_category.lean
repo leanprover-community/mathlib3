@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.limits.preserves.limits
+import category_theory.currying
+import category_theory.products
 
 open category_theory category_theory.category
 
@@ -238,7 +240,8 @@ instance evaluation_preserves_limits [has_limits C] (k : K) :
   preserves_limits ((evaluation K C).obj k) :=
 { preserves_limits_of_shape := λ J 𝒥, by resetI; apply_instance }
 
-lemma preserves_limit_if_evaluation (F : D ⥤ K ⥤ C) (G : J ⥤ D)
+/-- `F : D ⥤ K ⥤ C` preserves limit if it does for each `k : K`. -/
+def preserves_limit_of_evaluation (F : D ⥤ K ⥤ C) (G : J ⥤ D)
   (H : Π (k : K), preserves_limit G (F ⋙ (evaluation K C).obj k : D ⥤ C)) :
   preserves_limit G F := ⟨λ c hc,
 begin
@@ -249,23 +252,25 @@ begin
   exact preserves_limit.preserves hc,
 end⟩
 
-lemma preserves_limits_of_shape_if_evaluation (F : D ⥤ K ⥤ C) (J : Type v) [small_category J]
+/-- `F : D ⥤ K ⥤ C` preserves limits of shape `J` if it does for each `k : K`. -/
+def preserves_limits_of_shape_of_evaluation (F : D ⥤ K ⥤ C) (J : Type v) [small_category J]
   (H : Π (k : K), preserves_limits_of_shape J (F ⋙ (evaluation K C).obj k)) :
   preserves_limits_of_shape J F :=
-⟨λ G, preserves_limit_if_evaluation F G (λ k, preserves_limits_of_shape.preserves_limit)⟩
+⟨λ G, preserves_limit_of_evaluation F G (λ k, preserves_limits_of_shape.preserves_limit)⟩
 
-lemma preserves_limits_if_evaluation (F : D ⥤ K ⥤ C)
+/-- `F : D ⥤ K ⥤ C` preserves all limits if it does for each `k : K`. -/
+def preserves_limits_of_evaluation (F : D ⥤ K ⥤ C)
   (H : Π (k : K), preserves_limits (F ⋙ (evaluation K C).obj k)) :
   preserves_limits F :=
-⟨λ L hL, by { letI := hL,
-  exact preserves_limits_of_shape_if_evaluation
-    F L (λ k, preserves_limits.preserves_limits_of_shape) }⟩
+⟨λ L hL, by exactI preserves_limits_of_shape_of_evaluation
+    F L (λ k, preserves_limits.preserves_limits_of_shape)⟩
 
 instance evaluation_preserves_colimits [has_colimits C] (k : K) :
   preserves_colimits ((evaluation K C).obj k) :=
 { preserves_colimits_of_shape := λ J 𝒥, by resetI; apply_instance }
 
-lemma preserves_colimit_if_evaluation (F : D ⥤ K ⥤ C) (G : J ⥤ D)
+/-- `F : D ⥤ K ⥤ C` preserves limit if it does for each `k : K`. -/
+def preserves_colimit_of_evaluation (F : D ⥤ K ⥤ C) (G : J ⥤ D)
   (H : Π (k), preserves_colimit G (F ⋙ (evaluation K C).obj k)) : preserves_colimit G F := ⟨λ c hc,
 begin
   apply evaluation_jointly_reflects_colimits,
@@ -275,17 +280,66 @@ begin
   exact preserves_colimit.preserves hc,
 end⟩
 
-lemma preserves_colimits_of_shape_if_evaluation (F : D ⥤ K ⥤ C) (J : Type v) [small_category J]
+/-- `F : D ⥤ K ⥤ C` preserves all colimits of shape `J` if it does for each `k : K`. -/
+def preserves_colimits_of_shape_of_evaluation (F : D ⥤ K ⥤ C) (J : Type v) [small_category J]
   (H : Π (k : K), preserves_colimits_of_shape J (F ⋙ (evaluation K C).obj k)) :
   preserves_colimits_of_shape J F :=
-⟨λ G, preserves_colimit_if_evaluation F G (λ k, preserves_colimits_of_shape.preserves_colimit)⟩
+⟨λ G, preserves_colimit_of_evaluation F G (λ k, preserves_colimits_of_shape.preserves_colimit)⟩
 
-lemma preserves_colimits_if_evaluation (F : D ⥤ K ⥤ C)
+/-- `F : D ⥤ K ⥤ C` preserves all colimits if it does for each `k : K`. -/
+def preserves_colimits_of_evaluation (F : D ⥤ K ⥤ C)
   (H : Π (k : K), preserves_colimits (F ⋙ (evaluation K C).obj k)) :
   preserves_colimits F :=
-⟨λ L hL, by { letI := hL,
-  exact preserves_colimits_of_shape_if_evaluation
-    F L (λ k, preserves_colimits.preserves_colimits_of_shape) }⟩
+⟨λ L hL, by exactI preserves_colimits_of_shape_of_evaluation
+    F L (λ k, preserves_colimits.preserves_colimits_of_shape)⟩
+open category_theory.prod
 
+/--
+For a functor `G : J ⥤ K ⥤ C`, its limit `K ⥤ C` is given by `(G' : K ⥤ J ⥤ C) ⋙ lim`.
+Note that this does not require `K` to be small.
+-/
+@[simps] def limit_iso_swap_comp_lim [has_limits_of_shape J C] (G : J ⥤ K ⥤ C) [has_limit G] :
+  limit G ≅ curry.obj (swap K J ⋙ uncurry.obj G) ⋙ lim :=
+nat_iso.of_components (λ Y, limit_obj_iso_limit_comp_evaluation G Y ≪≫
+  (lim.map_iso (eq_to_iso (by
+  { apply functor.hext,
+    { intro X, simp },
+    { intros X₁ X₂ f, dsimp only [swap], simp }}))))
+  begin
+    intros Y₁ Y₂ f,
+    ext1 x,
+    dsimp only [swap],
+    simp only [limit_obj_iso_limit_comp_evaluation_hom_π_assoc, category.comp_id,
+      limit_obj_iso_limit_comp_evaluation_hom_π, eq_to_iso.hom, curry.obj_map_app,
+      nat_trans.naturality, category.id_comp, eq_to_hom_refl, functor.comp_map,
+      eq_to_hom_app, lim_map_π_assoc, lim_map_π, category.assoc,
+      uncurry.obj_map, lim_map_eq_lim_map, iso.trans_hom,
+      nat_trans.id_app, category_theory.functor.map_id, functor.map_iso_hom],
+    erw category.id_comp,
+  end
+
+/--
+For a functor `G : J ⥤ K ⥤ C`, its colimit `K ⥤ C` is given by `(G' : K ⥤ J ⥤ C) ⋙ colim`.
+Note that this does not require `K` to be small.
+-/
+@[simps]
+def colimit_iso_swap_comp_colim [has_colimits_of_shape J C] (G : J ⥤ K ⥤ C) [has_colimit G] :
+  colimit G ≅ curry.obj (swap K J ⋙ uncurry.obj G) ⋙ colim :=
+nat_iso.of_components (λ Y, colimit_obj_iso_colimit_comp_evaluation G Y ≪≫
+  (colim.map_iso (eq_to_iso (by
+  { apply functor.hext,
+    { intro X, simp },
+    { intros X Y f, dsimp only [swap], simp, } }))))
+  begin
+    intros Y₁ Y₂ f,
+    ext1 x,
+    rw ← (colimit.ι G x).naturality_assoc f,
+    dsimp only [swap],
+    simp only [eq_to_iso.hom, colimit_obj_iso_colimit_comp_evaluation_ι_app_hom_assoc,
+      curry.obj_map_app, colimit.ι_map, category.id_comp, eq_to_hom_refl, iso.trans_hom,
+      functor.comp_map, eq_to_hom_app, colimit.ι_map_assoc, functor.map_iso_hom,
+      category.assoc, uncurry.obj_map, nat_trans.id_app, category_theory.functor.map_id],
+    erw category.id_comp,
+  end
 
 end category_theory.limits

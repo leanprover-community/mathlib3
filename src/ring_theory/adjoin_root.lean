@@ -277,7 +277,7 @@ such that `pb.gen` has a minimal polynomial `g`, then `S` is isomorphic to `adjo
 Compare `power_basis.equiv_of_root`, which would require
 `h₂ : aeval pb.gen (minpoly R (root g)) = 0`; that minimal polynomial is not
 guaranteed to be identical to `g`. -/
-@[simps]
+@[simps {fully_applied := ff}]
 def equiv' (h₁ : aeval (root g) (minpoly R pb.gen) = 0) (h₂ : aeval pb.gen g = 0) :
   adjoin_root g ≃ₐ[R] S :=
 { to_fun := adjoin_root.lift_hom g pb.gen h₂,

@@ -173,9 +173,13 @@ def comp (g : N → M) : has_scalar N α :=
 
 variables {α}
 
-/-- If an action forms a scalar tower then so does the action formed by `has_scalar.comp`. -/
+/-- If an action forms a scalar tower then so does the action formed by `has_scalar.comp`.
+
+This cannot be an instance because it can cause infinite loops whenever the `has_scalar` arguments
+are still metavariables.
+-/
 @[priority 100]
-instance comp.is_scalar_tower [has_scalar M β] [has_scalar α β] [is_scalar_tower M α β]
+lemma comp.is_scalar_tower [has_scalar M β] [has_scalar α β] [is_scalar_tower M α β]
   (g : N → M) :
   (by haveI := comp α g; haveI := comp β g; exact is_scalar_tower N α β) :=
 by exact {smul_assoc := λ n, @smul_assoc _ _ _ _ _ _ _ (g n) }

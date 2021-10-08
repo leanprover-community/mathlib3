@@ -270,13 +270,6 @@ begin
   exact key_smul,
 end
 
-/-- Integration against a finite_measure defines a linear map from nonnegative bounded continuous
-functions to nonnegative real numbers. -/
-def test_against_nn_linear_map (μ : finite_measure α) : (α →ᵇ ℝ≥0) →ₗ[ℝ≥0] ℝ≥0 :=
-{ to_fun := (λ f, μ.test_against_nn f),
-  map_add' := test_against_nn_add μ,
-  map_smul' := test_against_nn_smul μ, }
-
 lemma test_against_nn_lipschitz_estimate (μ : finite_measure α) (f g : α →ᵇ ℝ≥0) :
   μ.test_against_nn f ≤ μ.test_against_nn g + (nndist f g) * μ.mass :=
 begin

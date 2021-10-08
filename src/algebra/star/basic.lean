@@ -11,10 +11,10 @@ import data.equiv.ring_aut
 import data.equiv.mul_add_aut
 
 /-!
-# Star monoids and star rings
+# Star monoids, rings, and modules
 
-We introduce the basic algebraic notions of star monoids, and star rings.
-Star algebras are introduced in `algebra.algebra.star`.
+We introduce the basic algebraic notions of star monoids, star rings, and star modules.
+A star algebra is simply a star ring that is also a star module.
 
 These are implemented as "mixin" typeclasses, so to summon a star ring (for example)
 one needs to write `(R : Type) [ring R] [star_ring R]`.
@@ -41,10 +41,12 @@ class has_star (R : Type u) :=
 
 variables {R : Type u}
 
+export has_star (star)
+
 /--
 A star operation (e.g. complex conjugate).
 -/
-def star [has_star R] (r : R) : R := has_star.star r
+add_decl_doc star
 
 /-- The opposite type carries the same star operation. -/
 instance [has_star R] : has_star (Rᵒᵖ) :=
@@ -77,8 +79,8 @@ so `star (r * s) = star s * star r`.
 class star_monoid (R : Type u) [monoid R] extends has_involutive_star R :=
 (star_mul : ∀ r s : R, star (r * s) = star s * star r)
 
-@[simp] lemma star_mul [monoid R] [star_monoid R] (r s : R) : star (r * s) = star s * star r :=
-star_monoid.star_mul r s
+export star_monoid (star_mul)
+attribute [simp] star_mul
 
 /-- `star` as an `mul_equiv` from `R` to `Rᵒᵖ` -/
 @[simps apply]
@@ -121,9 +123,37 @@ def star_monoid_of_comm {R : Type*} [comm_monoid R] : star_monoid R :=
 section
 local attribute [instance] star_monoid_of_comm
 
-@[simp] lemma star_id_of_comm {R : Type*} [comm_semiring R] {x : R} : star x = x := rfl
+/-- Note that since `star_monoid_of_comm` is reducible, `simp` can already prove this. --/
+lemma star_id_of_comm {R : Type*} [comm_semiring R] {x : R} : star x = x := rfl
 
 end
+
+/--
+A `*`-additive monoid `R` is an additive monoid with an involutive `star` operation which
+preserves addition.
+-/
+class star_add_monoid (R : Type u) [add_monoid R] extends has_involutive_star R :=
+(star_add : ∀ r s : R, star (r + s) = star r + star s)
+
+export star_add_monoid (star_add)
+attribute [simp] star_add
+
+instance [add_monoid R] [star_add_monoid R] : star_add_monoid (Rᵒᵖ) :=
+{ star_add := λ x y, unop_injective (star_add x.unop y.unop) }
+
+/-- `star` as an `add_equiv` -/
+@[simps apply]
+def star_add_equiv [add_monoid R] [star_add_monoid R] : R ≃+ R :=
+{ to_fun := star,
+  map_add' := star_add,
+  ..(has_involutive_star.star_involutive.to_equiv star)}
+
+variables (R)
+
+@[simp] lemma star_zero [add_monoid R] [star_add_monoid R] : star (0 : R) = 0 :=
+(star_add_equiv : R ≃+ R).map_zero
+
+variables {R}
 
 /--
 A `*`-ring `R` is a (semi)ring with an involutive `star` operation which is additive
@@ -133,25 +163,12 @@ which makes `R` with its multiplicative structure into a `*`-monoid
 class star_ring (R : Type u) [semiring R] extends star_monoid R :=
 (star_add : ∀ r s : R, star (r + s) = star r + star s)
 
-@[simp] lemma star_add [semiring R] [star_ring R] (r s : R) : star (r + s) = star r + star s :=
-star_ring.star_add r s
-
-/-- `star` as an `add_equiv` -/
-@[simps apply]
-def star_add_equiv [semiring R] [star_ring R] : R ≃+ R :=
-{ to_fun := star,
-  map_add' := star_add,
-  ..(has_involutive_star.star_involutive.to_equiv star)}
-
-variables (R)
-
-@[simp] lemma star_zero [semiring R] [star_ring R] : star (0 : R) = 0 :=
-(star_add_equiv : R ≃+ R).map_zero
-
-variables {R}
+@[priority 100]
+instance star_ring.to_star_add_monoid [semiring R] [star_ring R] : star_add_monoid R :=
+{ star_add := star_ring.star_add }
 
 instance [semiring R] [star_ring R] : star_ring (Rᵒᵖ) :=
-{ star_add := λ x y, unop_injective (star_add x.unop y.unop) }
+{ .. opposite.star_add_monoid }
 
 /-- `star` as an `ring_equiv` from `R` to `Rᵒᵖ` -/
 @[simps apply]
@@ -213,3 +230,25 @@ class star_ordered_ring (R : Type u) [ordered_semiring R] extends star_ring R :=
 
 lemma star_mul_self_nonneg [ordered_semiring R] [star_ordered_ring R] {r : R} : 0 ≤ star r * r :=
 star_ordered_ring.star_mul_self_nonneg r
+
+/--
+A star module `A` over a star ring `R` is a module which is a star add monoid,
+and the two star structures are compatible in the sense
+`star (r • a) = star r • star a`.
+
+Note that it is up to the user of this typeclass to enforce
+`[semiring R] [star_ring R] [add_comm_monoid A] [star_add_monoid A] [module R A]`, and that
+the statement only requires `[has_star R] [has_star A] [has_scalar R A]`.
+
+If used as `[comm_ring R] [star_ring R] [semiring A] [star_ring A] [algebra R A]`, this represents a
+star algebra.
+-/
+class star_module (R : Type u) (A : Type v) [has_star R] [has_star A] [has_scalar R A] :=
+(star_smul : ∀ (r : R) (a : A), star (r • a) = star r • star a)
+
+export star_module (star_smul)
+attribute [simp] star_smul
+
+/-- A commutative star monoid is a star module over itself via `monoid.to_mul_action`. -/
+instance star_monoid.to_star_module [comm_monoid R] [star_monoid R] : star_module R R :=
+⟨λ r s, (star_mul r s).trans (mul_comm _ _)⟩

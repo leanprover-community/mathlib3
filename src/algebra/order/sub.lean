@@ -43,7 +43,7 @@ In other words, `a - b` is the least `c` such that `a ≤ b + c`.
 This is satisfied both by the subtraction in additive ordered groups and by truncated subtraction
 in canonically ordered monoids on many specific types.
 -/
-class has_ordered_sub (α : Type*) [preorder α] [has_add α] [has_sub α] :=
+class has_ordered_sub (α : Type*) [has_le α] [has_add α] [has_sub α] :=
 (sub_le_iff_right : ∀ a b c : α, a - b ≤ c ↔ a ≤ c + b)
 
 section has_add
@@ -293,6 +293,17 @@ variables {a b c d : α} [linear_order α] [add_comm_monoid α] [has_sub α] [ha
 /-- See `lt_of_sub_lt_sub_right_of_le` for a weaker statement in a partial order. -/
 lemma lt_of_sub_lt_sub_right (h : a - c < b - c) : a < b :=
 lt_imp_lt_of_le_imp_le (λ h, sub_le_sub_right' h c) h
+
+/-- See `lt_sub_iff_right_of_le` for a weaker statement in a partial order. -/
+lemma lt_sub_iff_right : a < b - c ↔ a + c < b :=
+lt_iff_lt_of_le_iff_le sub_le_iff_right
+
+/-- See `lt_sub_iff_left_of_le` for a weaker statement in a partial order. -/
+lemma lt_sub_iff_left : a < b - c ↔ c + a < b :=
+lt_iff_lt_of_le_iff_le sub_le_iff_left
+
+lemma lt_sub_comm : a < b - c ↔ c < b - a :=
+lt_sub_iff_left.trans lt_sub_iff_right.symm
 
 section cov
 variable [covariant_class α α (+) (≤)]
@@ -660,16 +671,6 @@ end add_le_cancellable
 section contra
 variable [contravariant_class α α (+) (≤)]
 
-/-- See `lt_sub_iff_right_of_le` for a weaker statement in a partial order.
-This lemma also holds for `ennreal`, but we need a different proof for that. -/
-lemma lt_sub_iff_right : a < b - c ↔ a + c < b :=
-contravariant.add_le_cancellable.lt_sub_iff_right
-
-/-- See `lt_sub_iff_left_of_le` for a weaker statement in a partial order.
-This lemma also holds for `ennreal`, but we need a different proof for that. -/
-lemma lt_sub_iff_left : a < b - c ↔ c + a < b :=
-contravariant.add_le_cancellable.lt_sub_iff_left
-
 /-- This lemma also holds for `ennreal`, but we need a different proof for that. -/
 lemma sub_lt_sub_iff_right' (h : c ≤ a) : a - c < b - c ↔ a < b :=
 contravariant.add_le_cancellable.sub_lt_sub_iff_right h
@@ -712,3 +713,36 @@ lemma sub_add_min : a - b + min a b = a :=
 by { rw [← sub_min, sub_add_cancel_of_le], apply min_le_left }
 
 end canonically_linear_ordered_add_monoid
+
+namespace with_top
+
+section
+variables [has_sub α] [has_zero α]
+
+/-- If `α` has subtraction and `0`, we can extend the subtraction to `with_top α`. -/
+protected def sub : Π (a b : with_top α), with_top α
+| _       ⊤       := 0
+| ⊤       (x : α) := ⊤
+| (x : α) (y : α) := (x - y : α)
+
+instance : has_sub (with_top α) :=
+⟨with_top.sub⟩
+
+@[simp, norm_cast] lemma coe_sub {a b : α} : (↑(a - b) : with_top α) = ↑a - ↑b := rfl
+@[simp] lemma top_sub_coe {a : α} : (⊤ : with_top α) - a = ⊤ := rfl
+@[simp] lemma sub_top {a : with_top α} : a - ⊤ = 0 := by { cases a; refl }
+
+end
+
+variables [canonically_ordered_add_monoid α] [has_sub α] [has_ordered_sub α]
+instance : has_ordered_sub (with_top α) :=
+begin
+  constructor,
+  rintro x y z,
+  induction y using with_top.rec_top_coe, { simp },
+  induction x using with_top.rec_top_coe, { simp },
+  induction z using with_top.rec_top_coe, { simp },
+  norm_cast, exact sub_le_iff_right
+end
+
+end with_top

@@ -812,19 +812,6 @@ begin
   rw [← padic_norm_e.eq_padic_norm', ← padic.cast_eq_of_rat]
 end
 
-instance : nondiscrete_normed_field ℚ_[p] :=
-{ non_trivial := ⟨padic.of_rat p (p⁻¹), begin
-    have h0 : p ≠ 0 := ne_of_gt (hp.1.pos),
-    have h1 : 1 < p := hp.1.one_lt,
-    rw [← padic.cast_eq_of_rat, eq_padic_norm],
-    simp only [padic_norm, inv_eq_zero],
-    simp only [if_neg] {discharger := `[exact_mod_cast h0]},
-    norm_cast,
-    simp only [padic_val_rat.inv] {discharger := `[exact_mod_cast h0]},
-    rw [neg_neg, padic_val_rat.padic_val_rat_self h1, gpow_one],
-    exact_mod_cast h1,
-  end⟩ }
-
 @[simp] lemma norm_p : ∥(p : ℚ_[p])∥ = p⁻¹ :=
 begin
   have p₀ : p ≠ 0 := hp.1.ne_zero,
@@ -834,13 +821,19 @@ end
 
 lemma norm_p_lt_one : ∥(p : ℚ_[p])∥ < 1 :=
 begin
-  rw [norm_p, inv_eq_one_div, div_lt_iff, one_mul],
-  { exact_mod_cast hp.1.one_lt },
-  { exact_mod_cast hp.1.pos }
+  rw norm_p,
+  apply inv_lt_one,
+  exact_mod_cast hp.1.one_lt
 end
 
 @[simp] lemma norm_p_pow (n : ℤ) : ∥(p^n : ℚ_[p])∥ = p^-n :=
 by rw [normed_field.norm_fpow, norm_p]; field_simp
+
+instance : nondiscrete_normed_field ℚ_[p] :=
+{ non_trivial := ⟨p⁻¹, begin
+    rw [normed_field.norm_inv, norm_p, inv_inv₀],
+    exact_mod_cast hp.1.one_lt
+  end⟩ }
 
 protected theorem image {q : ℚ_[p]} : q ≠ 0 → ∃ n : ℤ, ∥q∥ = ↑((↑p : ℚ) ^ (-n)) :=
 quotient.induction_on q $ λ f hf,

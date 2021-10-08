@@ -57,6 +57,9 @@ lemma convex_hull_mono (hst : s ⊆ t) : convex_hull 𝕜 s ⊆ convex_hull 𝕜
 lemma convex.convex_hull_eq {s : set E} (hs : convex 𝕜 s) : convex_hull 𝕜 s = s :=
 closure_operator.mem_mk₃_closed hs
 
+@[simp] lemma convex_hull_univ : convex_hull 𝕜 (univ : set E) = univ :=
+closure_operator.closure_top (convex_hull 𝕜)
+
 @[simp] lemma convex_hull_empty : convex_hull 𝕜 (∅ : set E) = ∅ := convex_empty.convex_hull_eq
 
 @[simp] lemma convex_hull_empty_iff : convex_hull 𝕜 s = ∅ ↔ s = ∅ :=

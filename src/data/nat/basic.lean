@@ -199,6 +199,9 @@ instance unique_add_units : unique (add_units ℕ) :=
 
 /-! ### Equalities and inequalities involving zero and one -/
 
+lemma one_le_iff_ne_zero {n : ℕ} : 1 ≤ n ↔ n ≠ 0 :=
+(show 1 ≤ n ↔ 0 < n, from iff.rfl).trans pos_iff_ne_zero
+
 lemma one_lt_iff_ne_zero_and_ne_one : ∀ {n : ℕ}, 1 < n ↔ n ≠ 0 ∧ n ≠ 1
 | 0     := dec_trivial
 | 1     := dec_trivial

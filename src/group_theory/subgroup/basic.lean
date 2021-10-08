@@ -290,7 +290,7 @@ lemma prod_mem {G : Type*} [comm_group G] (K : subgroup G)
   ∏ c in t, f c ∈ K :=
 K.to_submonoid.prod_mem h
 
-@[to_additive add_subgroup.smul_mem]
+@[to_additive add_subgroup.nsmul_mem]
 lemma pow_mem {x : G} (hx : x ∈ K) : ∀ n : ℕ, x ^ n ∈ K := K.to_submonoid.pow_mem hx
 
 @[to_additive]

@@ -1414,9 +1414,8 @@ variables (R) {A : Type*} [comm_ring A] [algebra R A]
 instance {I : ideal A} : algebra R (ideal.quotient I) :=
 { to_fun := λ x, ideal.quotient.mk I (algebra_map R A x),
   smul := (•),
-  smul_def' := λ r x, quot.induction_on x $ λ x,
-    by simp_rw [submodule.quotient.quot_mk_eq_mk, ideal.quotient.mk_eq_mk, ← ring_hom.map_mul,
-      ← ideal.quotient.mk_eq_mk, ← algebra.smul_def, submodule.quotient.mk_smul],
+   smul_def' := λ r x, quotient.induction_on' x $ λ x,
+      ((quotient.mk I).congr_arg $ algebra.smul_def _ _).trans (ring_hom.map_mul _ _ _),
   commutes' := λ _ _, mul_comm _ _,
   .. ring_hom.comp (ideal.quotient.mk I) (algebra_map R A) }
 

@@ -7,7 +7,7 @@ namespace commensurable
 
 open_locale pointwise
 
-variables {G : Type*} [group G]
+variables {G G' : Type*} [group G][group G']
 
 def commensurable (H K : subgroup G) : Prop :=
   subgroup.index (subgroup.subgroup_of H K) ≠ 0 ∧
@@ -76,12 +76,57 @@ cases x,
 assumption,
 end
 
-def maap (H K : subgroup G) : (H.subgroup_of K) →  H :=
-λ x, (⟨x.1.1, sub_to_inter H K x⟩ :  H)
+def maap (H K : subgroup G) : (H.subgroup_of K) →  H ⊓ K :=
+λ x, (⟨x.1, by { have:= sub_to_inter H K x,simp, apply this, }⟩ :  H ⊓ K)
 
 def paam (H K : subgroup G) : H ⊓ K → (H.subgroup_of K) :=
 λ x, ( ⟨(⟨x.1, by {cases x, tidy,} ⟩ : K), by {tidy,}⟩ : (H.subgroup_of K))
 
+
+
+noncomputable def quotient_map_subgroup_of_of_le' {A' A B' B : subgroup G}
+  (h' : A' ≤ B') (h : A ≤ B) :
+  quotient_group.quotient (A'.subgroup_of A) → quotient_group.quotient (B'.subgroup_of B) :=
+λ x, quotient_group.mk (⟨x.out', by {sorry} ⟩  : B)
+
+lemma a1 (H K L : subgroup G) :
+    ((H ⊓ K).subgroup_of L).map L.subtype = (H .subgroup_of (K ⊓ L)).map (K ⊓ L).subtype :=
+begin
+have h1:= subgroup.subgroup_of_map_subtype (H ⊓ K) L,
+have h2:=  subgroup.subgroup_of_map_subtype H (K ⊓ L),
+rw ← inf_assoc at h2,rw h1, rw h2,
+end
+
+
+lemma subgroup_of_le (H K L : subgroup G) (h : H ≤ K) : H.subgroup_of L ≤ K.subgroup_of L :=
+begin
+intros x h, cases x, solve_by_elim,
+end
+
+lemma a2 (H K L : subgroup G):
+  ((((H ⊓ K).subgroup_of L).subgroup_of (K.subgroup_of L)).map (K.subgroup_of L).subtype).map L.subtype  =
+  (( H.subgroup_of (K ⊓ L) ).map ((K ⊓ L)).subtype) :=
+ begin
+simp_rw [subgroup.subgroup_of_map_subtype],
+have h1:= subgroup.subgroup_of_map_subtype ((H ⊓ K).subgroup_of L) (K.subgroup_of L),
+have : ((H ⊓ K).subgroup_of L) ⊓  (K.subgroup_of L) =  ((H ⊓ K).subgroup_of L),
+  by {simp, apply subgroup_of_le, simp,},
+rw this,
+simp_rw [subgroup.subgroup_of_map_subtype],
+rw inf_assoc,
+ end
+
+
+noncomputable def  inf_quot_cast (H K L : subgroup G) :
+  quotient_group.quotient (((H ⊓ K).subgroup_of L).subgroup_of (K.subgroup_of L)) ≃
+  quotient_group.quotient (H.subgroup_of (K ⊓ L)) :={
+    to_fun := λ x, maap K L (x.out'),
+    inv_fun:= λ x, paam K L x.out',
+    left_inv:= by {rw maap, rw paam, simp, intro x, simp, sorry,},
+    right_inv:= by {sorry,},
+
+
+  }
 
 /--/
 noncomputable def  inf_quot_cast (H K L : subgroup G) :
@@ -127,10 +172,23 @@ simp at this,
 apply this,
 end
 
+
+
+
+
 lemma inf_ind_prod (H K L : subgroup G) :
    ((H ⊓ K).subgroup_of L).index =0  →
    (H.subgroup_of L).index=0 ∨ (K.subgroup_of (L ⊓ H)).index = 0 :=
  begin
+have h1: (subgroup.subgroup_of (H ⊓ K)  L) ≤ (subgroup.subgroup_of H  L), by {apply subgroup_of_le, simp,},
+have h2:= subgroup.index_eq_mul_of_le h1,
+intro h,
+rw h at h2,
+simp at h2,
+cases h2,
+simp [h2],
+
+
 sorry,
  end
 
@@ -144,8 +202,17 @@ noncomputable def  inf_quot_map (H K L : subgroup G) :
 lemma inf_quot_map_injective (H K L : subgroup G) : function.injective (inf_quot_map H K L) :=
 
 begin
-sorry,
-
+rw function.injective ,
+rw inf_quot_map,
+intros a b,
+intro hab,
+have ha:=  quotient.out_eq' a,
+have hb:=  quotient.out_eq' b,
+rw ← ha,
+rw ← hb,
+rw quotient.eq',
+simp at hab,
+convert hab,
 end
 
 
@@ -160,10 +227,6 @@ have H1:=cardinal.to_nat_zero_of_injective' (inf_quot_map_injective H K L),
 apply H1 h,
 end
 
-lemma subgroup_of_le (H K L : subgroup G) (h : H ≤ K) : H.subgroup_of L ≤ K.subgroup_of L :=
-begin
-intros x h, cases x, solve_by_elim,
-end
 
 lemma trans (H K L : subgroup G) (hhk : commensurable H K ) (hkl : commensurable K L) :
   commensurable H L :=

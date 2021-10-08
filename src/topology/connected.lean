@@ -122,7 +122,9 @@ begin
     Hs.is_preconnected Ht.is_preconnected
 end
 
-/-- Theorem of bark and tree : if a set is within a (pre)connected set and its closure, then it is (pre)connected as well. -/
+/-- Theorem of bark and tree :
+if a set is within a (pre)connected set and its closure,
+then it is (pre)connected as well. -/
 theorem is_preconnected.inclosure {s : set α} {t : set α}
   (H : is_preconnected s) (Kst : s ⊆ t) (Ktcs : t ⊆ closure s) :
   is_preconnected t :=

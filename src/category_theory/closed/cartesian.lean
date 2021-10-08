@@ -147,7 +147,8 @@ def uncurry : (Y ⟶ A ⟹ X) → (A ⨯ Y ⟶ X) :=
 
 end cartesian_closed
 
-open cartesian_closed
+local notation `curry` := cartesian_closed.curry
+local notation `uncurry` := cartesian_closed.uncurry
 
 variables [has_finite_products C] [exponentiable A]
 

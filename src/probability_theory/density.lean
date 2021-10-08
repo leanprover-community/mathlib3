@@ -53,25 +53,6 @@ open_locale classical measure_theory nnreal ennreal
 
 namespace measure_theory
 
-namespace set
-
-variables {α M : Type*} [has_one M]
-
-@[to_additive]
-lemma mul_indicator_ae_eq_one
-  [measurable_space α] {μ : measure α} {f : α → M} {s : set α}
-  (h : s.mul_indicator f =ᵐ[μ] 1) : μ (s ∩ function.mul_support f) = 0 :=
-begin
-  rw [filter.eventually_eq, ae_iff] at h,
-  convert h,
-  ext a,
-  rw ← set.mul_indicator_eq_one_iff,
-  refl
-end
-
-
-end set
-
 open topological_space measure_theory.measure
 
 variables {α E : Type*} [normed_group E] [measurable_space E] [second_countable_topology E]

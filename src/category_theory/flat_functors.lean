@@ -235,6 +235,7 @@ begin
   apply_instance
 end
 
+/-- If `Lan F.op : (Cᵒᵖ ⥤ Type*) ⥤ (Dᵒᵖ ⥤ Type*)` preserves limits of shape `J`, so will `F`. -/
 noncomputable
 def preserves_limit_of_Lan_presesrves_limit (F : C ⥤ D) (J : Type u₁) [small_category J]
   [preserves_limits_of_shape J (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ Type u₁))] :

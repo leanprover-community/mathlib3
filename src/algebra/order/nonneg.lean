@@ -104,7 +104,7 @@ lemma nsmul_coe [ordered_add_comm_monoid α] (n : ℕ) (r : {x : α // 0 ≤ x})
   ↑(n • r) = n • (r : α) :=
 nonneg.coe_add_monoid_hom.map_nsmul _ _
 
-instance archimedian [ordered_add_comm_monoid α] [archimedean α] : archimedean {x : α // 0 ≤ x} :=
+instance archimedean [ordered_add_comm_monoid α] [archimedean α] : archimedean {x : α // 0 ≤ x} :=
 ⟨ assume x y pos_y,
   let ⟨n, hr⟩ := archimedean.arch (x : α) (pos_y : (0 : α) < y) in
   ⟨n, show (x : α) ≤ (n • y : {x : α // 0 ≤ x}), by simp [*, -nsmul_eq_mul, nsmul_coe]⟩ ⟩

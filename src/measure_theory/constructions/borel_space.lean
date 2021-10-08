@@ -1255,7 +1255,7 @@ end
 
 instance : has_measurable_sub₂ ℝ≥0∞ :=
 ⟨by apply measurable_of_measurable_nnreal_nnreal;
-  simp [← ennreal.coe_sub, continuous_sub.measurable.coe_nnreal_ennreal]⟩
+  simp [← with_top.coe_sub, continuous_sub.measurable.coe_nnreal_ennreal]⟩
 
 instance : has_measurable_inv ℝ≥0∞ := ⟨ennreal.continuous_inv.measurable⟩
 

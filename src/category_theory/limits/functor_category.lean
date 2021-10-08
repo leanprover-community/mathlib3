@@ -11,9 +11,9 @@ open category_theory category_theory.category
 
 namespace category_theory.limits
 
-universes v v₂ u -- morphism levels before object levels. See note [category_theory universes].
+universes v v₂ u u₂ -- morphism levels before object levels. See note [category_theory universes].
 
-variables {C : Type u} [category.{v} C]
+variables {C : Type u} [category.{v} C] {D : Type u₂} [category.{v} D]
 
 variables {J K : Type v} [small_category J] [category.{v₂} K]
 
@@ -240,10 +240,58 @@ instance evaluation_preserves_limits [has_limits C] (k : K) :
   preserves_limits ((evaluation K C).obj k) :=
 { preserves_limits_of_shape := λ J 𝒥, by resetI; apply_instance }
 
+/-- `F : D ⥤ K ⥤ C` preserves limit if it does for each `k : K`. -/
+def preserves_limit_of_evaluation (F : D ⥤ K ⥤ C) (G : J ⥤ D)
+  (H : Π (k : K), preserves_limit G (F ⋙ (evaluation K C).obj k : D ⥤ C)) :
+  preserves_limit G F := ⟨λ c hc,
+begin
+  apply evaluation_jointly_reflects_limits,
+  intro X,
+  haveI := H X,
+  change is_limit ((F ⋙ (evaluation K C).obj X).map_cone c),
+  exact preserves_limit.preserves hc,
+end⟩
+
+/-- `F : D ⥤ K ⥤ C` preserves limits of shape `J` if it does for each `k : K`. -/
+def preserves_limits_of_shape_of_evaluation (F : D ⥤ K ⥤ C) (J : Type v) [small_category J]
+  (H : Π (k : K), preserves_limits_of_shape J (F ⋙ (evaluation K C).obj k)) :
+  preserves_limits_of_shape J F :=
+⟨λ G, preserves_limit_of_evaluation F G (λ k, preserves_limits_of_shape.preserves_limit)⟩
+
+/-- `F : D ⥤ K ⥤ C` preserves all limits if it does for each `k : K`. -/
+def preserves_limits_of_evaluation (F : D ⥤ K ⥤ C)
+  (H : Π (k : K), preserves_limits (F ⋙ (evaluation K C).obj k)) :
+  preserves_limits F :=
+⟨λ L hL, by exactI preserves_limits_of_shape_of_evaluation
+    F L (λ k, preserves_limits.preserves_limits_of_shape)⟩
+
 instance evaluation_preserves_colimits [has_colimits C] (k : K) :
   preserves_colimits ((evaluation K C).obj k) :=
 { preserves_colimits_of_shape := λ J 𝒥, by resetI; apply_instance }
 
+/-- `F : D ⥤ K ⥤ C` preserves limit if it does for each `k : K`. -/
+def preserves_colimit_of_evaluation (F : D ⥤ K ⥤ C) (G : J ⥤ D)
+  (H : Π (k), preserves_colimit G (F ⋙ (evaluation K C).obj k)) : preserves_colimit G F := ⟨λ c hc,
+begin
+  apply evaluation_jointly_reflects_colimits,
+  intro X,
+  haveI := H X,
+  change is_colimit ((F ⋙ (evaluation K C).obj X).map_cocone c),
+  exact preserves_colimit.preserves hc,
+end⟩
+
+/-- `F : D ⥤ K ⥤ C` preserves all colimits of shape `J` if it does for each `k : K`. -/
+def preserves_colimits_of_shape_of_evaluation (F : D ⥤ K ⥤ C) (J : Type v) [small_category J]
+  (H : Π (k : K), preserves_colimits_of_shape J (F ⋙ (evaluation K C).obj k)) :
+  preserves_colimits_of_shape J F :=
+⟨λ G, preserves_colimit_of_evaluation F G (λ k, preserves_colimits_of_shape.preserves_colimit)⟩
+
+/-- `F : D ⥤ K ⥤ C` preserves all colimits if it does for each `k : K`. -/
+def preserves_colimits_of_evaluation (F : D ⥤ K ⥤ C)
+  (H : Π (k : K), preserves_colimits (F ⋙ (evaluation K C).obj k)) :
+  preserves_colimits F :=
+⟨λ L hL, by exactI preserves_colimits_of_shape_of_evaluation
+    F L (λ k, preserves_colimits.preserves_colimits_of_shape)⟩
 open category_theory.prod
 
 /--

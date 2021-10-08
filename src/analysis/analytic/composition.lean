@@ -537,7 +537,7 @@ finset.sigma (finset.Ico m M) (λ (n : ℕ), fintype.pi_finset (λ (i : fin n), 
 @[simp] lemma mem_comp_partial_sum_source_iff (m M N : ℕ) (i : Σ n, (fin n) → ℕ) :
   i ∈ comp_partial_sum_source m M N ↔
     (m ≤ i.1 ∧ i.1 < M) ∧ ∀ (a : fin i.1), 1 ≤ i.2 a ∧ i.2 a < N :=
-by simp only [comp_partial_sum_source, finset.Ico.mem, fintype.mem_pi_finset, finset.mem_sigma,
+by simp only [comp_partial_sum_source, finset.mem_Ico, fintype.mem_pi_finset, finset.mem_sigma,
   iff_self]
 
 /-- Change of variables appearing to compute the composition of partial sums of formal

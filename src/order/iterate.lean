@@ -3,7 +3,6 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import order.basic
 import logic.function.iterate
 import data.nat.basic
 
@@ -83,7 +82,7 @@ lemma iterate_le_id_of_le_id (h : f ≤ id) :
 lemma iterate_le_iterate_of_id_le (h : id ≤ f) {m n : ℕ} (hmn : m ≤ n) :
   f^[m] ≤ (f^[n]) :=
 begin
-  rw [←nat.add_sub_cancel' hmn, add_comm, function.iterate_add],
+  rw [←add_sub_cancel_of_le hmn, add_comm, function.iterate_add],
   exact λ x, id_le_iterate_of_id_le h _ _,
 end
 

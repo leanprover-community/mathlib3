@@ -315,7 +315,7 @@ begin
       apply le_pred_of_lt,
       apply zmod.val_lt },
     { rw [nat.mul_sub_left_distrib, mul_one, ← pow_succ'],
-      apply nat.add_sub_cancel' (le_of_lt hp) } }
+      apply add_sub_cancel_of_le (le_of_lt hp) } }
 end
 
 lemma appr_mono (x : ℤ_[p]) : monotone x.appr :=

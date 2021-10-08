@@ -43,6 +43,40 @@ lemma aeval_mod_by_monic_eq_self_of_root [algebra R S]
   aeval x (p %ₘ q) = aeval x p :=
 eval₂_mod_by_monic_eq_self_of_root hq hx
 
+lemma mod_by_monic_eq_of_dvd_sub [nontrivial R] (hq : q.monic) {p₁ p₂ : polynomial R}
+  (h : q ∣ (p₁ - p₂)) :
+  p₁ %ₘ q = p₂ %ₘ q :=
+begin
+  obtain ⟨f, sub_eq⟩ := h,
+  refine (div_mod_by_monic_unique (p₂ /ₘ q + f) _ hq
+    ⟨_, degree_mod_by_monic_lt _ hq⟩).2,
+  rw [sub_eq_iff_eq_add.mp sub_eq, mul_add, ← add_assoc, mod_by_monic_add_div _ hq, add_comm]
+end
+
+lemma add_mod_by_monic [nontrivial R] (hq : q.monic)
+  (p₁ p₂ : polynomial R) : (p₁ + p₂) %ₘ q = p₁ %ₘ q + p₂ %ₘ q :=
+(div_mod_by_monic_unique (p₁ /ₘ q + p₂ /ₘ q) _ hq
+  ⟨by rw [mul_add, add_left_comm, add_assoc, mod_by_monic_add_div _ hq, ← add_assoc,
+          add_comm (q * _), mod_by_monic_add_div _ hq],
+    (degree_add_le _ _).trans_lt (max_lt (degree_mod_by_monic_lt _ hq)
+      (degree_mod_by_monic_lt _ hq))⟩).2
+
+lemma smul_mod_by_monic [nontrivial R] (hq : q.monic)
+  (c : R) (p : polynomial R) : (c • p) %ₘ q = c • (p %ₘ q) :=
+(div_mod_by_monic_unique (c • (p /ₘ q)) (c • (p %ₘ q)) hq
+  ⟨by rw [mul_smul_comm, ← smul_add, mod_by_monic_add_div p hq],
+   (degree_smul_le _ _).trans_lt (degree_mod_by_monic_lt _ hq)⟩).2
+
+/--
+`polynomial.mod_by_monic_hom (hq : monic (q : polynomial R))` is `_ %ₘ q` as a `R`-linear map.
+-/
+@[simps]
+def mod_by_monic_hom [nontrivial R] (hq : q.monic) :
+  polynomial R →ₗ[R] polynomial R :=
+{ to_fun := λ p, p %ₘ q,
+  map_add' := add_mod_by_monic hq,
+  map_smul' := smul_mod_by_monic hq }
+
 end comm_ring
 
 section no_zero_divisors
@@ -253,8 +287,8 @@ then
     rw degree_eq_nat_degree hp at hpd,
     exact with_bot.coe_le_coe.2 (with_bot.coe_lt_coe.1 hpd)
   end,
-  have hdiv0 : p /ₘ (X - C x) ≠ 0 := mt (div_by_monic_eq_zero_iff (monic_X_sub_C x)
-    (ne_zero_of_monic (monic_X_sub_C x))).1 $ not_lt.2 hdeg,
+  have hdiv0 : p /ₘ (X - C x) ≠ 0 := mt (div_by_monic_eq_zero_iff (monic_X_sub_C x)).1 $
+    not_lt.2 hdeg,
   ⟨x ::ₘ t, calc (card (x ::ₘ t) : with_bot ℕ) = t.card + 1 :
       by exact_mod_cast card_cons _ _
     ... ≤ degree p :
@@ -577,10 +611,10 @@ begin
   have hp := mod_by_monic_add_div p hmonic,
   have hzero : (p /ₘ q) ≠ 0,
   { intro h,
-    exact not_lt_of_le hdegree ((div_by_monic_eq_zero_iff hmonic (monic.ne_zero hmonic)).1 h) },
+    exact not_lt_of_le hdegree ((div_by_monic_eq_zero_iff hmonic).1 h) },
   have deglt : (p %ₘ q).degree < (q * (p /ₘ q)).degree,
   { rw degree_mul,
-    refine lt_of_lt_of_le (degree_mod_by_monic_lt p hmonic (monic.ne_zero hmonic)) _,
+    refine lt_of_lt_of_le (degree_mod_by_monic_lt p hmonic) _,
     rw [degree_eq_nat_degree (monic.ne_zero hmonic), degree_eq_nat_degree hzero],
     norm_cast,
     simp only [zero_le, le_add_iff_nonneg_right] },

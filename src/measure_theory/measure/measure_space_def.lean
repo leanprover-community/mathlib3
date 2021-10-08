@@ -219,6 +219,10 @@ begin
   exact measure_bUnion_le s.countable_to_set f
 end
 
+lemma measure_Union_fintype_le [fintype β] (f : β → set α) :
+  μ (⋃ b, f b) ≤ ∑ p, μ (f p) :=
+by { convert measure_bUnion_finset_le finset.univ f, simp }
+
 lemma measure_bUnion_lt_top {s : set β} {f : β → set α} (hs : finite s)
   (hfin : ∀ i ∈ s, μ (f i) ≠ ∞) : μ (⋃ i ∈ s, f i) < ∞ :=
 begin

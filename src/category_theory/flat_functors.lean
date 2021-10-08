@@ -9,7 +9,7 @@ import category_theory.limits.preserves.functor_category
 import category_theory.limits.presheaf
 import category_theory.limits.yoneda
 import category_theory.limits.preserves.shapes.equalizers
-import category_theory.bicones
+import category_theory.limits.shapes.bicones
 import category_theory.limits.functor_category
 
 /-!
@@ -234,7 +234,6 @@ begin
   apply_instance
 end
 
-#check category_theory.whiskering_left_preserves_limits
 end small_category
 
 end category_theory

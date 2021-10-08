@@ -59,7 +59,7 @@ protected def copy (S : subsemiring R) (s : set R) (hs : s = ↑S) : subsemiring
   (S.copy s hs : set R) = s := rfl
 
 lemma copy_eq (S : subsemiring R) (s : set R) (hs : s = ↑S) : S.copy s hs = S :=
-coe_injective hs
+set_like.coe_injective hs
 
 lemma to_submonoid_injective : function.injective (to_submonoid : subsemiring R → submonoid R)
 | r s h := ext (set_like.ext_iff.mp h : _)

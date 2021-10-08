@@ -33,16 +33,15 @@ begin
   exact r0,
 end
 
-end gcd_monoid
-
-section normalized_gcd_monoid
-
-variables [normalized_gcd_monoid R]
-
 lemma right_div_gcd_ne_zero {p q : R} (hq : q ≠ 0) :
   q / gcd_monoid.gcd p q ≠ 0 :=
-by rw gcd_comm; apply left_div_gcd_ne_zero hq
+begin
+  obtain ⟨r, hr⟩ := gcd_monoid.gcd_dvd_right p q,
+  obtain ⟨pq0, r0⟩ : gcd_monoid.gcd p q ≠ 0 ∧ r ≠ 0 := mul_ne_zero_iff.mp (hr ▸ hq),
+  rw [hr, mul_comm, mul_div_cancel _ pq0] { occs := occurrences.pos [1] },
+  exact r0,
+end
 
-end normalized_gcd_monoid
+end gcd_monoid
 
 end euclidean_domain

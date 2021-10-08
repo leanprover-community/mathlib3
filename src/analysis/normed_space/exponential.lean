@@ -5,7 +5,6 @@ Authors: Anatole Dedecker
 -/
 import algebra.char_p.algebra
 import analysis.calculus.deriv
-import analysis.calculus.fderiv_analytic
 import analysis.specific_limits
 import data.complex.exponential
 import analysis.complex.basic
@@ -311,7 +310,7 @@ begin
       - ((1 : 𝔸' →L[𝕂] 𝔸').smul_right x) h) * exp 𝕂 𝔸 (t • x))
     =ᶠ[𝓝 0] (λ h, exp 𝕂 𝔸 ((t + h) • x) - exp 𝕂 𝔸 (t • x)
       - (((1 : 𝔸' →L[𝕂] 𝔸').smul_right x).smul_right (exp 𝕂 𝔸 (t • x))) h),
-  { refine (is_o.mul_const_left _ _).congr' this (eventually_eq.refl _ _),
+  { refine (is_o.mul _ _).congr' this (eventually_eq.refl _ _),
     rw ← @has_fderiv_at_iff_is_o_nhds_zero _ _ _ _ _ _ _ _
       (λ u, exp 𝕂 𝔸 (u • x)) ((1 : 𝔸' →L[𝕂] 𝔸').smul_right x) 0,
     have : has_fderiv_at (exp 𝕂 𝔸) (1 : 𝔸 →L[𝕂] 𝔸) (((1 : 𝔸' →L[𝕂] 𝔸').smul_right x) 0),
@@ -506,8 +505,8 @@ begin
         = (∥x∥^n * ∥x∥) * (∥(n! : ℝ)∥⁻¹ * ∥((n+1 : ℕ) : ℝ)∥⁻¹) * ((∥x∥^n)⁻¹ * ∥(n! : ℝ)∥) :
           by rw [ normed_field.norm_div, normed_field.norm_div,
                   normed_field.norm_pow, normed_field.norm_pow, pow_add, pow_one,
-                  div_eq_mul_inv, div_eq_mul_inv, div_eq_mul_inv, mul_inv₀, inv_inv₀,
-                  nat.factorial_succ, nat.cast_mul, normed_field.norm_mul, mul_inv_rev₀ ]
+                  div_eq_mul_inv, div_eq_mul_inv, div_eq_mul_inv, mul_inv', inv_inv',
+                  nat.factorial_succ, nat.cast_mul, normed_field.norm_mul, mul_inv_rev' ]
     ... = (∥x∥ * ∥((n+1 : ℕ) : ℝ)∥⁻¹) * (∥x∥^n * (∥x∥^n)⁻¹) * (∥(n! : ℝ)∥ * ∥(n! : ℝ)∥⁻¹) :
           by linarith --faster than ac_refl !
     ... = (∥x∥ * ∥((n+1 : ℕ) : ℝ)∥⁻¹) * 1 * 1 :
@@ -701,7 +700,7 @@ begin
   { have h' : (n! : 𝕂') ≠ 0 := λ hyp, h (key.mpr hyp),
     suffices : (n! : 𝕂) • (n!⁻¹ : 𝕂') = (n! : 𝕂) • ((n!⁻¹ : 𝕂) • 1),
     { apply_fun (λ (x : 𝕂'), (n!⁻¹ : 𝕂) • x) at this,
-      rwa [inv_smul_smul₀ h, inv_smul_smul₀ h] at this },
+      rwa [inv_smul_smul' h, inv_smul_smul' h] at this },
     rw [← smul_assoc, ← nsmul_eq_smul_cast, nsmul_eq_smul_cast 𝕂' _ (_ : 𝕂')],
     field_simp [h, h'] }
 end

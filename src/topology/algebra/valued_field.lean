@@ -292,7 +292,7 @@ end
 
 /-- the extension of a valuation on a division ring to its completion. -/
 noncomputable def valued.extension_valuation :
-valuation (hat K) (Γ₀ K) :=
+  valuation (hat K) (Γ₀ K) :=
 { to_fun := valued.extension,
   map_zero' := by { simpa [← v.map_zero, ← valued.extension_extends (0 : K)] },
   map_one' := by { rw [← completion.coe_one, valued.extension_extends (1 : K)],
@@ -317,9 +317,10 @@ valuation (hat K) (Γ₀ K) :=
       exact  (is_closed_le (cont.comp continuous_add) $ cont.comp continuous_fst).union
         (is_closed_le (cont.comp continuous_add) $ cont.comp continuous_snd) },
     { intros x y,
+      dsimp,
       norm_cast,
       rw ← le_max_iff,
-      exact valuation.map_add _ _ _ },
+      exact v.map_add x y, },
   end }
 
 end valuation_on_valued_field_completion

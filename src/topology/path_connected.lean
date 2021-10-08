@@ -134,6 +134,7 @@ end
 /-- A continuous map extending a path to `ℝ`, constant before `0` and after `1`. -/
 def extend : ℝ → X := Icc_extend zero_le_one γ
 
+@[continuity]
 lemma continuous_extend : continuous γ.extend :=
 γ.continuous.Icc_extend
 
@@ -276,16 +277,19 @@ def cast (γ : path x y) {x' y'} (hx : x' = x) (hy : y' = y) : path x' y' :=
   (γ.cast hx hy : I → X) = γ :=
 rfl
 
+@[continuity]
 lemma symm_continuous_family {X ι : Type*} [topological_space X] [topological_space ι]
   {a b : ι → X} (γ : Π (t : ι), path (a t) (b t)) (h : continuous ↿γ) :
   continuous ↿(λ t, (γ t).symm) :=
 h.comp (continuous_id.prod_map continuous_symm)
 
+@[continuity]
 lemma continuous_uncurry_extend_of_continuous_family {X ι : Type*} [topological_space X]
   [topological_space ι] {a b : ι → X}  (γ : Π (t : ι), path (a t) (b t)) (h : continuous ↿γ) :
   continuous ↿(λ t, (γ t).extend) :=
 h.comp (continuous_id.prod_map continuous_proj_Icc)
 
+@[continuity]
 lemma trans_continuous_family {X ι : Type*} [topological_space X] [topological_space ι]
   {a b c : ι → X}
   (γ₁ : Π (t : ι), path (a t) (b t)) (h₁ : continuous ↿γ₁)
@@ -354,6 +358,7 @@ end
 
 /-- For a path `γ`, `γ.truncate` gives a "continuous family of paths", by which we
   mean the uncurried function which maps `(t₀, t₁, s)` to `γ.truncate t₀ t₁ s` is continuous. -/
+@[continuity]
 lemma truncate_continuous_family {X : Type*} [topological_space X] {a b : X}
   (γ : path a b) : continuous (λ x, γ.truncate x.1 x.2.1 x.2.2 : ℝ × ℝ × I → X) :=
 γ.continuous_extend.comp
@@ -366,6 +371,7 @@ lemma truncate_continuous_family {X : Type*} [topological_space X] {a b : X}
       `exact continuous_subtype_coe`
     `end` -/
 
+@[continuity]
 lemma truncate_const_continuous_family {X : Type*} [topological_space X] {a b : X}
   (γ : path a b) (t : ℝ) : continuous ↿(γ.truncate t) :=
 have key : continuous (λ x, (t, x) : ℝ × I → ℝ × ℝ × I) := continuous_const.prod_mk continuous_id,

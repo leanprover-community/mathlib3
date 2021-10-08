@@ -351,14 +351,14 @@ section
 
 /-- A random variable `X` has uniform distribution if it has a probability density function `f`
 with support `s` such that `f = (μ s)⁻¹ 1ₛ` a.e. where `1ₛ` is the indicator function for `s`. -/
-def is_uniform {m : measurable_space α} (X : α → E) (ℙ : measure α) (μ : measure E . volume_tac)
-  (support : set E) :=
+def is_uniform {m : measurable_space α} (X : α → E) (support : set E)
+  (ℙ : measure α) (μ : measure E . volume_tac) :=
 pdf X ℙ μ =ᵐ[μ] support.indicator ((μ support)⁻¹ • 1)
 
 namespace is_uniform
 
 lemma has_pdf {m : measurable_space α} {X : α → E} {ℙ : measure α} {μ : measure E}
-  {support : set E} (hns : μ support ≠ 0) (hnt : μ support ≠ ⊤) (hu : is_uniform X ℙ μ support) :
+  {support : set E} (hns : μ support ≠ 0) (hnt : μ support ≠ ⊤) (hu : is_uniform X support ℙ μ) :
   has_pdf X ℙ μ :=
 has_pdf_of_pdf_ne_zero
 begin
@@ -375,7 +375,7 @@ begin
 end
 
 lemma pdf_to_real_ae_eq {m : measurable_space α}
-  {X : α → E} {ℙ : measure α} {μ : measure E} {s : set E} (hX : is_uniform X ℙ μ s) :
+  {X : α → E} {ℙ : measure α} {μ : measure E} {s : set E} (hX : is_uniform X s ℙ μ) :
   (λ x, (pdf X ℙ μ x).to_real) =ᵐ[μ]
   (λ x, (s.indicator ((μ s)⁻¹ • (1 : E → ℝ≥0∞)) x).to_real) :=
 filter.eventually_eq.fun_comp hX ennreal.to_real
@@ -385,7 +385,7 @@ variables {s : set ℝ} (hms : measurable_set s) (hns : volume s ≠ 0)
 
 include hms hns
 
-lemma mul_pdf_integrable (hcs : is_compact s) (huX : is_uniform X ℙ volume s) :
+lemma mul_pdf_integrable (hcs : is_compact s) (huX : is_uniform X s ℙ) :
   integrable (λ x : ℝ, x * (pdf X ℙ volume x).to_real) :=
 begin
   by_cases hsupp : volume s = ∞,
@@ -411,7 +411,7 @@ end
 
 /-- A real uniform random variable `X` with support `s` has expectation
 `(λ s)⁻¹ * ∫ x in s, x ∂λ` where `λ` is the Lebesgue measure. -/
-lemma integral_eq (hnt : volume s ≠ ⊤) (huX : is_uniform X ℙ volume s) :
+lemma integral_eq (hnt : volume s ≠ ⊤) (huX : is_uniform X s ℙ) :
   ∫ x, X x ∂ℙ = (volume s)⁻¹.to_real * ∫ x in s, x :=
 begin
   haveI := has_pdf hns hnt huX,

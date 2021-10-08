@@ -454,10 +454,9 @@ end
 /-- algebra isomorphism between `adjoin_root` and `F⟮α⟯` -/
 noncomputable def adjoin_root_equiv_adjoin (h : is_integral F α) :
   adjoin_root (minpoly F α) ≃ₐ[F] F⟮α⟯ :=
-alg_equiv.of_bijective (alg_hom.mk (adjoin_root.lift (algebra_map F F⟮α⟯)
-  (adjoin_simple.gen F α) (aeval_gen_minpoly F α)) (ring_hom.map_one _)
-  (λ x y, ring_hom.map_mul _ x y) (ring_hom.map_zero _) (λ x y, ring_hom.map_add _ x y)
-  (by { exact λ _, adjoin_root.lift_of })) (begin
+alg_equiv.of_bijective
+  (adjoin_root.lift_hom (minpoly F α) (adjoin_simple.gen F α) (aeval_gen_minpoly F α))
+  (begin
     set f := adjoin_root.lift _ _ (aeval_gen_minpoly F α : _),
     haveI := minpoly.irreducible h,
     split,
@@ -472,11 +471,7 @@ alg_equiv.of_bijective (alg_hom.mk (adjoin_root.lift (algebra_map F F⟮α⟯)
 lemma adjoin_root_equiv_adjoin_apply_root (h : is_integral F α) :
   adjoin_root_equiv_adjoin F h (adjoin_root.root (minpoly F α)) =
     adjoin_simple.gen F α :=
-begin
-  refine adjoin_root.lift_root,
-  { exact minpoly F α },
-  { exact aeval_gen_minpoly F α }
-end
+adjoin_root.lift_root (aeval_gen_minpoly F α)
 
 section power_basis
 

@@ -93,7 +93,7 @@ lemma injective.of_comp_iff' (f : α → β) {g : γ → α} (hg : bijective g) 
   λ h, h.comp hg.injective⟩
 
 lemma injective.comp_left {f₁ f₂ : α → β} {g : β → γ}
-  (hg : function.injective g) (hgf : g ∘ f₁ = g ∘ f₂) : f₁ = f₂ :=
+  (hg : function.injective g) : function.injective ((∘) g : (α → β) → (α → γ)) := λ f₁ f₂ hgf,
 begin
   refine funext (λ i, hg _),
   exact congr_fun hgf i,

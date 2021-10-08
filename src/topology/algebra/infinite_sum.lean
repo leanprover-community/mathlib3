@@ -4,14 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import algebra.big_operators.intervals
-import topology.instances.real
-import topology.algebra.module
-import algebra.indicator_function
-import data.equiv.encodable.lattice
-import data.fintype.card
-import data.nat.parity
 import algebra.big_operators.nat_antidiagonal
-import order.filter.at_top_bot
+import data.equiv.encodable.lattice
+import topology.algebra.mul_action
+import topology.instances.real
 
 /-!
 # Infinite sum over a topological monoid
@@ -1163,7 +1159,7 @@ alias summable_abs_iff ↔ summable.of_abs summable.abs
 end linear_order
 
 section cauchy_seq
-open finset.Ico filter
+open filter
 
 /-- If the extended distance between consecutive points of a sequence is estimated
 by a summable series of `nnreal`s, then the original sequence is a Cauchy sequence. -/

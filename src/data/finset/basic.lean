@@ -1052,7 +1052,8 @@ lemma erase_inj_on (s : finset α) : set.inj_on s.erase s :=
 /-! ### sdiff -/
 
 /-- `s \ t` is the set consisting of the elements of `s` that are not in `t`. -/
-instance : has_sdiff (finset α) := ⟨λs₁ s₂, ⟨s₁.1 - s₂.1, nodup_of_le (sub_le_self _ _) s₁.2⟩⟩
+instance : has_sdiff (finset α) :=
+⟨λs₁ s₂, ⟨s₁.1 - s₂.1, nodup_of_le sub_le_self' s₁.2⟩⟩
 
 @[simp] lemma sdiff_val (s₁ s₂ : finset α) : (s₁ \ s₂).val = s₁.val - s₂.val := rfl
 

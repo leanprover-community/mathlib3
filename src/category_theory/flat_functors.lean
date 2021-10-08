@@ -81,56 +81,189 @@ lemma flat_of_preserves_finite_limit [has_limits C] (F : C ⥤ D)
 
 open category_theory.limits.walking_parallel_pair_hom
 
-lemma flat_preserves_products [has_equalizers C] (F : C ⥤ D) [representably_flat F]
-: preserves_limits_of_shape walking_parallel_pair F :=
+
+@[simps]
+def cone_to_diagram_of_structured_arrows {J : Type*} [category J] {K : J ⥤ C}
+(F : C ⥤ D) (c : cone (K ⋙ F)) : (J ⥤ structured_arrow c.X F) :=
+{ obj := λ X, structured_arrow.mk (c.π.app X),
+  map := λ X Y f, structured_arrow.hom_mk (K.map f)
+    (by { convert (c.π.naturality f).symm, exact (category.id_comp _).symm }) }
+
+lemma cone_diagram_proj {J : Type*} [category J] {K : J ⥤ C}
+(F : C ⥤ D) (c : cone (K ⋙ F)) :
+  cone_to_diagram_of_structured_arrows F c ⋙ structured_arrow.proj c.X F = K := by
+{ apply functor.hext; tidy }
+
+variables (J : Type v₁) [small_category J] [fin_category J]
+
+@[derive decidable_eq]
+inductive bicones (J : Type v₁)
+| left : bicones
+| right : bicones
+| diagram (val : J) : bicones
+
+@[derive decidable_eq]
+inductive bicones_hom : bicones J → bicones J → Type v₁
+| left_id  : bicones_hom bicones.left bicones.left
+| right_id : bicones_hom bicones.right bicones.right
+| left (j : J) : bicones_hom bicones.left (bicones.diagram j)
+| right (j : J) : bicones_hom bicones.right (bicones.diagram j)
+| diagram {j k : J} (f : j ⟶ k) : bicones_hom (bicones.diagram j) (bicones.diagram k)
+
+instance fin_bicones [fin_category J] : fintype (bicones J) :=
+{ elems := [bicones.left, bicones.right].to_finset ∪ finset.image bicones.diagram (fintype.elems J),
+  complete := λ j, by { cases j; simp, exact fintype.complete j, }, }
+
+
+
+@[simps]
+def bicones_category_struct : category_struct (bicones J) :=
+{ hom := bicones_hom J,
+  id := λ j, bicones.cases_on j
+    bicones_hom.left_id bicones_hom.right_id (λ k, bicones_hom.diagram (𝟙 k)),
+  comp := λ X Y Z f g, by
+  { cases f, exact g, exact g,
+    cases g, exact bicones_hom.left g_k,
+    cases g, exact bicones_hom.right g_k,
+    cases g, exact bicones_hom.diagram (f_f ≫ g_f) } }
+
+
+instance bicones_category : category (bicones J) :=
+{ id_comp' := λ X Y f, by { cases f; simp },
+  comp_id' := λ X Y f, by { cases f; simp },
+  assoc' := λ W X Y Z f g h, by { cases f; cases g; cases h; simp },
+  ..(bicones_category_struct J) }
+
+def bicones_mk {F : J ⥤ C} (c₁ c₂ : cone F) : bicones J ⥤ C :=
+{ obj := λ X, bicones.cases_on X c₁.X c₂.X (λ j, F.obj j),
+  map := λ X Y f, by
+  { cases f, exact (𝟙 _), exact (𝟙 _),
+    exact c₁.π.app f_1,
+    exact c₂.π.app f_1,
+    exact F.map f_f, },
+  map_id' := λ X, by { cases X; simp },
+  map_comp' := λ X Y Z f g, by
+  { cases f,
+    exact (category.id_comp _).symm,
+    exact (category.id_comp _).symm,
+    cases g, exact (category.id_comp _).symm.trans (c₁.π.naturality g_f : _),
+    cases g, exact (category.id_comp _).symm.trans (c₂.π.naturality g_f : _),
+    cases g, exact F.map_comp _ _ } }
+
+-- noncomputable
+section end
+variable {J}
+@[simps]
+def diagram_of_structured_arrows_of_extend {K : J ⥤ C} (F : C ⥤ D) (c : cone (K ⋙ F)) {X : D}
+  (f : X ⟶ c.X) : J ⥤ structured_arrow X F :=
+{ obj := λ j, structured_arrow.mk (f ≫ c.π.app j),
+  map := λ j k g, structured_arrow.hom_mk (K.map g)
+    (by simp only [structured_arrow.mk_hom_eq_self, category.assoc, @category.id_comp _ _ c.X,
+      ← c.π.naturality g, ← functor.comp_map, functor.const.obj_map]),
+  map_id' := λ X, by simpa,
+  map_comp' := λ X Y Z g h, by { ext, simp } }
+
+variables (F : C ⥤ D) [representably_flat F] [fin_category J]
+
+def cone_of_structured_arrows_of_extend {K : J ⥤ C} (F : C ⥤ D) (c : cone K) {X : D}
+  (f : X ⟶ F.obj c.X) : cone (diagram_of_structured_arrows_of_extend F (F.map_cone c) f) :=
+{ X := structured_arrow.mk f,
+  π := { app := λ j, structured_arrow.hom_mk (c.π.app j) rfl,
+         naturality' := λ j k g, by { ext, dsimp, simp } } }
+
+noncomputable
+def preserves_finite_limit_of_flat_lift {K : J ⥤ C} {c : cone K} (hc : is_limit c)
+  (s : cone (K ⋙ F)) : s.X ⟶ F.obj c.X :=
 begin
-  apply preserves_equalizers_mk,
-  intros X Y f g,
-  apply preserves_equalizer_mk,
-  intros Z h w is_lim,
-  apply (is_limit_map_cone_fork_equiv F w).2,
-  apply fork.is_limit.mk',
-  intro s,
-  let c0 : structured_arrow _ F := structured_arrow.mk s.ι,
-  let c1 : structured_arrow _ F := structured_arrow.mk (s.π.app walking_parallel_pair.one),
-  let f' : c0 ⟶ c1 := structured_arrow.hom_mk f sorry,
-    -- (by { convert (s.π.naturality left).symm, erw category.id_comp, refl }),
-  let g' : c0 ⟶ c1 := structured_arrow.hom_mk g sorry,
-    -- (by { convert (s.π.naturality right).symm, erw category.id_comp, refl }),
-  let W := is_cofiltered.eq f' g', simp at W,
-  let s' := (fork.of_ι (is_cofiltered.eq_hom f' g').right
-    (by injection is_cofiltered.eq_condition f' g')),
-  -- let eq : structured_arrow _ F := structured_arrow.mk
-  --   ((is_cofiltered.eq f' g').hom ≫ F.map (is_lim.lift s')),
-  use (is_cofiltered.eq f' g').hom ≫ F.map (is_lim.lift s'),
-  split, admit,
-  -- { simp,
-  --   rw ← F.map_comp,
-  --   have := is_lim.fac s' walking_parallel_pair.zero, simp at this,
-  --   rw this,
-  --   rw ← (is_cofiltered.eq_hom f' g').w,
-  --   erw category.id_comp,
-  --   refl },
-  { intros m hm,
-  let W' : structured_arrow _ F := structured_arrow.mk m,
-  let h' : W' ⟶ c0 := structured_arrow.hom_mk h hm,
-  let V := is_cofiltered.cone (cospan h' (is_cofiltered.eq_hom f' g')),
-  have : (V.π.app walking_cospan.left).right = (V.π.app walking_cospan.right).right ≫ is_lim.lift s',
-  {
-    admit
-    -- let V_fork : fork f'.right g'.right := fork.of_ι
-    --   ((V.π.app walking_cospan.left).right ≫ h) (by simp[w]),
-    -- have eq₁ := is_lim.uniq V_fork (V.π.app walking_cospan.left).right
-    --   (λ j, by { sorry /-cases j; simp-/ }),
-    -- have eq₂ := is_lim.uniq V_fork ((V.π.app walking_cospan.right).right ≫ (is_lim.lift s'))
-    --   (λ j, by { sorry /-cases j; simp-/ }),
-    },
-    convert congr_arg (λ f, V.X.hom ≫ F.map f) this using 1,
-    convert (V.π.app walking_cospan.left).w,
-    erw comp_id,
-    -- simp,
-  }
+let s' := is_cofiltered.cone (cone_to_diagram_of_structured_arrows F s),
+exact s'.X.hom ≫ F.map (hc.lift ((cones.postcompose (eq_to_hom (cone_diagram_proj F s))).obj
+  ((structured_arrow.proj s.X F).map_cone s'))),
 end
+
+noncomputable
+lemma preserves_finite_limit_of_flat_uniq {K : J ⥤ C} {c : cone K} (hc : is_limit c)
+  (s : cone (K ⋙ F)) (f₁ f₂ : s.X ⟶ F.obj c.X)
+  (h₁ : ∀ (j : J), f₁ ≫ (F.map_cone c).π.app j = s.π.app j)
+  (h₂ : ∀ (j : J), f₂ ≫ (F.map_cone c).π.app j = s.π.app j) : f₁ = f₂ :=
+begin
+let c₁ := cone_of_structured_arrows_of_extend F c f₁,
+let c₂ := cone_of_structured_arrows_of_extend F c f₁,
+let bicone := bicones_mk _ c₁ c₂,
+let c₀ := is_cofiltered.cone bicone,
+end
+
+def flat_preserves_finite_limit (F : C ⥤ D) [representably_flat F]
+(J : Type v₁) [small_category J] [fin_category J]
+: preserves_limits_of_shape J F := {
+  preserves_limit := λ K, {
+    preserves := λ c hc, by {
+      let c' := cone_to_diagram_of_structured_arrows F (F.map_cone c),
+      have := is_cofiltered.cone c',
+      refine {
+        lift := λ s, by {
+          let s' := cone_to_diagram_of_structured_arrows F s,
+          let := (cones.postcompose (eq_to_hom (cone_diagram_proj F s))).obj
+            ((structured_arrow.proj s.X F).map_cone (is_cofiltered.cone s')),
+          exact (is_cofiltered.cone s').X.hom ≫ F.map (hc.lift this),
+        },
+        fac' := λ s x, by simpa[← F.map_comp],
+        uniq' := _
+      },
+      intros s f h, dsimp,
+      let W' : structured_arrow s.X F := structured_arrow.mk f,
+      let c₁ := cone_to_diagram_of_structured_arrows F s,
+      let c₂ := cone_to_diagram_of_structured_arrows F ((F.map_cone c).extend f),
+      let c₀ := bicones_mk J (is_cofiltered.cone c₁) (is_cofiltered.cone c₂ : _),
+      -- let cn := bicones_mk
+    }
+  }
+}
+-- noncomputable
+-- def flat_preserves_equalizers (F : C ⥤ D) [representably_flat F]
+-- : preserves_limits_of_shape walking_parallel_pair F :=
+-- begin
+--   apply preserves_equalizers_mk,
+--   intros X Y f g,
+--   apply preserves_equalizer_mk,
+--   intros Z h w is_lim,
+--   apply (is_limit_map_cone_fork_equiv F w).2,
+--   apply fork.is_limit.mk',
+--   intro s,
+--   let c0 : structured_arrow _ F := structured_arrow.mk s.ι,
+--   let c1 : structured_arrow _ F := structured_arrow.mk (s.π.app walking_parallel_pair.one),
+--   let f' : c0 ⟶ c1 := structured_arrow.hom_mk f
+--     (by { convert (s.π.naturality left).symm, erw category.id_comp, refl }),
+--   let g' : c0 ⟶ c1 := structured_arrow.hom_mk g
+--     (by { convert (s.π.naturality right).symm, erw category.id_comp, refl }),
+--   let W := is_cofiltered.eq f' g', simp at W,
+--   let s' := (fork.of_ι (is_cofiltered.eq_hom f' g').right
+--     (by injection is_cofiltered.eq_condition f' g')),
+--   have eq : is_lim.lift s' ≫ h = (is_cofiltered.eq_hom f' g').right :=
+--     is_lim.fac s' walking_parallel_pair.zero,
+--   use (is_cofiltered.eq f' g').hom ≫ F.map (is_lim.lift s'),
+--   split,
+--   { simpa [-category.id_comp, ←F.map_comp, eq, ←(is_cofiltered.eq_hom f' g').w]
+--       using category.id_comp _ },
+--   { intros m hm,
+--   let W' : structured_arrow _ F := structured_arrow.mk m,
+--   let h' : W' ⟶ c0 := structured_arrow.hom_mk h hm,
+--   let V := is_cofiltered.cone (cospan h' (is_cofiltered.eq_hom f' g')),
+--   have : (V.π.app walking_cospan.left).right = (V.π.app walking_cospan.right).right ≫ is_lim.lift s',
+--   { let V_fork : fork f'.right g'.right := fork.of_ι
+--       ((V.π.app walking_cospan.left).right ≫ h) (by simp [w]),
+--     rw is_lim.uniq V_fork (V.π.app walking_cospan.left).right
+--       (λ j, by { cases j; simp }),
+--     have : (V.π.app walking_cospan.left).right ≫ h =
+--       (V.π.app walking_cospan.right).right ≫ (is_cofiltered.eq_hom f' g').right,
+--     { injection (V.π.naturality walking_cospan.hom.inl).symm.trans
+--         (V.π.naturality walking_cospan.hom.inr : _) },
+--     exact (is_lim.uniq V_fork ((V.π.app walking_cospan.right).right ≫ (is_lim.lift s'))
+--       (λ j, by { cases j; simp [←eq, this] })).symm },
+--   convert congr_arg (λ f, V.X.hom ≫ F.map f) this using 1,
+--   { convert (V.π.app walking_cospan.left).w,
+--     erw category.id_comp, refl },
+--   { simpa }}
+-- end
 
 
 end has_limit

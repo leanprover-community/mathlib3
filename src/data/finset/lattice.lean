@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.finset.fold
+import data.finset.option
 import data.multiset.lattice
 import order.order_dual
 import order.complete_lattice

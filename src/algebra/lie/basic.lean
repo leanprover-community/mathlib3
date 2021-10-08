@@ -269,10 +269,6 @@ by { ext, refl, }
 @[simp] lemma coe_mk (f : L₁ → L₂) (h₁ h₂ h₃) :
   ((⟨⟨f, h₁, h₂⟩, h₃⟩ : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) = f := rfl
 
-@[norm_cast, simp] lemma coe_linear_mk (f : L₁ →ₗ[R] L₂) (h₁ h₂ h₃) :
-  ((⟨⟨f, h₁, h₂⟩, h₃⟩ : L₁ →ₗ⁅R⁆ L₂) : L₁ →ₗ[R] L₂) = ⟨f, h₁, h₂⟩ :=
-by { ext, refl, }
-
 /-- The composition of morphisms is a morphism. -/
 def comp (f : L₂ →ₗ⁅R⁆ L₃) (g : L₁ →ₗ⁅R⁆ L₂) : L₁ →ₗ⁅R⁆ L₃ :=
 { map_lie' := λ x y, by { change f (g ⁅x, y⁆) = ⁅f (g x), f (g y)⁆, rw [map_lie, map_lie], },

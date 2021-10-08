@@ -216,3 +216,5 @@ class star_ordered_ring (R : Type u) [ordered_semiring R] extends star_ring R :=
 
 lemma star_mul_self_nonneg [ordered_semiring R] [star_ordered_ring R] {r : R} : 0 ≤ star r * r :=
 star_ordered_ring.star_mul_self_nonneg r
+
+localized "notation `conj` := star_ring_aut" in complex_conjugate

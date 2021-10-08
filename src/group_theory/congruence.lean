@@ -346,7 +346,7 @@ setoid.ext' $ λ x y, ⟨λ h r ⟨c, hS, hr⟩, by rw ←hr; exact h c hS,
     under the map to the underlying binary relation. -/
 @[to_additive "The infimum of a set of additive congruence relations is the same as the infimum
 of the set's image under the map to the underlying binary relation."]
-lemma Inf_def (S : set (con M)) : (Inf S).r = Inf ((λ c : con M, c.to_setoid.r) '' S) :=
+lemma Inf_def (S : set (con M)) : (Inf S).r = Inf ((λ c : con M, (c : M → M → Prop)) '' S) :=
 by { ext, simp only [Inf_image, infi_apply, infi_Prop_eq], refl }
 
 @[to_additive]
@@ -468,7 +468,7 @@ end
 @[to_additive "The supremum of a set of additive congruence relations is the same as the smallest
 additive congruence relation containing the supremum of the set's image under the map to the
 underlying binary relation."]
-lemma Sup_def {S : set (con M)} : Sup S = con_gen (Sup ((λ c : con M, c.to_setoid.r) '' S)) :=
+lemma Sup_def {S : set (con M)} : Sup S = con_gen (Sup ((λ c : con M, (c : M → M → Prop)) '' S)) :=
 begin
   rw [Sup_eq_con_gen, Sup_image],
   congr' with x y,
@@ -482,7 +482,7 @@ variables (M)
 @[to_additive "There is a Galois insertion of additive congruence relations on a type with
 an addition `M` into binary relations on `M`."]
 protected noncomputable def gi :
-  @galois_insertion (M → M → Prop) (con M) _ _ con_gen (λ c : con M, c.to_setoid.r) :=
+  @galois_insertion (M → M → Prop) (con M) _ _ con_gen (λ c : con M, (c : M → M → Prop)) :=
 { choice := λ r h, con_gen r,
   gc := λ r c, ⟨λ H _ _ h, H $ con_gen.rel.of _ _ h, λ H, con_gen_of_con c ▸ con_gen_mono H⟩,
   le_l_u := λ x, (con_gen_of_con x).symm ▸ le_refl x,

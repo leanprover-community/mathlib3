@@ -680,7 +680,7 @@ instance nat_ge.sampleable {x} : slim_check.sampleable { y : ℕ // x ≤ y } :=
          do { (y : ℕ) ← slim_check.sampleable.sample ℕ,
               pure ⟨x+y, by norm_num⟩ },
   shrink := λ ⟨y, h⟩, (λ a : { y' // sizeof y' < sizeof (y - x) },
-    subtype.rec_on a $ λ δ h', ⟨⟨x + δ, nat.le_add_right _ _⟩, nat.add_lt_of_lt_sub_left h'⟩) <$>
+    subtype.rec_on a $ λ δ h', ⟨⟨x + δ, nat.le_add_right _ _⟩, lt_sub_iff_left.mp h'⟩) <$>
       shrink (y - x) }
 
 /- there is no `nat_lt.sampleable` instance because if `y = 0`, there is no valid choice

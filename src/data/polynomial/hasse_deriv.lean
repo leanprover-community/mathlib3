@@ -145,11 +145,11 @@ begin
   { rw [choose_eq_zero_of_lt hikl, mul_zero],
     by_cases hil : i < l,
     { rw [choose_eq_zero_of_lt hil, mul_zero] },
-    { push_neg at hil, rw [← nat.sub_lt_right_iff_lt_add hil] at hikl,
+    { push_neg at hil, rw [← sub_lt_iff_right hil] at hikl,
       rw [choose_eq_zero_of_lt hikl , zero_mul], }, },
   push_neg at hikl, apply @cast_injective ℚ,
   have h1 : l ≤ i     := nat.le_of_add_le_right hikl,
-  have h2 : k ≤ i - l := nat.le_sub_right_of_add_le hikl,
+  have h2 : k ≤ i - l := le_sub_of_add_le_right' hikl,
   have h3 : k ≤ k + l := le_self_add,
   have H : ∀ (n : ℕ), (n! : ℚ) ≠ 0, { exact_mod_cast factorial_ne_zero },
   -- why can't `field_simp` help me here?

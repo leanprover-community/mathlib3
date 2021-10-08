@@ -233,7 +233,7 @@ begin
       { rw [ne.def, prod.mk.inj_iff, not_and_distrib],
         exact or.inl (ne_of_gt (nat.sub_pos_of_lt h)) },
       { congr,
-        { exact (nat.add_sub_cancel' h.le).symm },
+        { exact (add_sub_cancel_of_le h.le).symm },
         { change b2 = a2 + (b2 + a2),
           rw [add_comm b2, ← add_assoc, add_self_zmod_2, zero_add] } } } },
   { rcases h with ⟨⟨⟨c, c2⟩, hc⟩, abc⟩,

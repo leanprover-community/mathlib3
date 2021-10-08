@@ -1087,13 +1087,13 @@ by rw [← map_coe_Iic_at_bot a, tendsto_map'_iff]
 lemma map_add_at_top_eq_nat (k : ℕ) : map (λa, a + k) at_top = at_top :=
 map_at_top_eq_of_gc (λa, a - k) k
   (assume a b h, add_le_add_right h k)
-  (assume a b h, (nat.le_sub_right_iff_add_le h).symm)
+  (assume a b h, (le_sub_iff_right h).symm)
   (assume a h, by rw [nat.sub_add_cancel h])
 
 lemma map_sub_at_top_eq_nat (k : ℕ) : map (λa, a - k) at_top = at_top :=
 map_at_top_eq_of_gc (λa, a + k) 0
   (assume a b h, nat.sub_le_sub_right h _)
-  (assume a b _, nat.sub_le_right_iff_le_add)
+  (assume a b _, sub_le_iff_right)
   (assume b _, by rw [nat.add_sub_cancel])
 
 lemma tendsto_add_at_top_nat (k : ℕ) : tendsto (λa, a + k) at_top at_top :=

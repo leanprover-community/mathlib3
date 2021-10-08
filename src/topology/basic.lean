@@ -629,6 +629,9 @@ lemma is_open.mem_nhds {a : α} {s : set α} (hs : is_open s) (ha : a ∈ s) :
   s ∈ 𝓝 a :=
 mem_nhds_iff.2 ⟨s, subset.refl _, hs, ha⟩
 
+lemma is_closed.compl_mem_nhds {a : α} {s : set α} (hs : is_closed s) (ha : a ∉ s) : sᶜ ∈ 𝓝 a :=
+hs.is_open_compl.mem_nhds (mem_compl ha)
+
 lemma is_open.eventually_mem {a : α} {s : set α} (hs : is_open s) (ha : a ∈ s) :
   ∀ᶠ x in 𝓝 a, x ∈ s :=
 is_open.mem_nhds hs ha
@@ -1430,6 +1433,15 @@ lemma dense_range.exists_mem_open (hf : dense_range f) {s : set β} (ho : is_ope
   (hs : s.nonempty) :
   ∃ a, f a ∈ s :=
 exists_range_iff.1 $ hf.exists_mem_open ho hs
+
+lemma dense_range.mem_nhds {f : κ → β} (h : dense_range f) {b : β} {U : set β}
+  (U_in : U ∈ nhds b) : ∃ a, f a ∈ U :=
+begin
+  rcases (mem_closure_iff_nhds.mp
+    ((dense_range_iff_closure_range.mp h).symm ▸ mem_univ b : b ∈ closure (range f)) U U_in)
+    with ⟨_, h, a, rfl⟩,
+  exact ⟨a, h⟩
+end
 
 end dense_range
 

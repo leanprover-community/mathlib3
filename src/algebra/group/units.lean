@@ -266,6 +266,10 @@ def is_unit [monoid M] (a : M) : Prop := ∃ u : units M, (u : M) = a
 @[nontriviality] lemma is_unit_of_subsingleton [monoid M] [subsingleton M] (a : M) : is_unit a :=
 ⟨⟨a, a, subsingleton.elim _ _, subsingleton.elim _ _⟩, rfl⟩
 
+instance [monoid M] [subsingleton M] : unique (units M) :=
+{ default := 1,
+  uniq := λ a, units.coe_eq_one.mp $ subsingleton.elim (a : M) 1 }
+
 @[simp, to_additive is_add_unit_add_unit]
 protected lemma units.is_unit [monoid M] (u : units M) : is_unit (u : M) := ⟨u, rfl⟩
 

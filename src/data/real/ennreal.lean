@@ -790,16 +790,14 @@ mt sub_eq_top_iff.mp $ mt and.left ha
 lemma sub_le_sub_add_sub : a - c ≤ a - b + (b - c) :=
 sub_le_sub_add_sub
 
+lemma lt_sub_iff_add_lt : a < b - c ↔ a + c < b := lt_sub_iff_right
+
+lemma lt_sub_comm : a < b - c ↔ c < b - a := lt_sub_comm
+
 /-! The following lemmas cannot be directly replaced by the general lemmas. -/
 
 protected lemma sub_lt_of_lt_add (hac : c ≤ a) (h : a < b + c) : a - c < b :=
 ((cancel_of_lt' $ hac.trans_lt h).sub_lt_iff_right hac).mpr h
-
-lemma lt_sub_iff_add_lt : a < b - c ↔ a + c < b :=
-by { cases c, { simp }, exact cancel_coe.lt_sub_iff_right }
-
-lemma lt_sub_comm : a < b - c ↔ c < b - a :=
-by rw [lt_sub_iff_add_lt, lt_sub_iff_add_lt, add_comm]
 
 @[simp] lemma add_sub_self (hb : b ≠ ∞) : (a + b) - b = a :=
 (cancel_of_ne hb).add_sub_cancel_right

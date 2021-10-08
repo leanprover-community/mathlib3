@@ -33,8 +33,8 @@ We define the following operations on boxes:
 * a `partial_order` instance such that `I ≤ J` is equivalent to `(I : set (ι → ℝ)) ⊆ J`;
 * `box_integral.box.Icc`: the closed box `set.Icc I.lower I.upper`; defined as a bundled monotone
   map from `box ι` to `set (ι → ℝ)`;
-* `box_integral.box.inter`: intersection of two boxes; this is a partial function in the sense that
-  its codomain is `part (box ι)`;
+* `box_integral.box.inter`: intersection of two boxes; since two boxes can be disjoint, the codomain
+  of this function is `with_bot (box ι)`, where `⊥` encodes the empty set;
 * `box_integral.box.face I i : box (fin n)`: a hyperface of `I : box_integral.box (fin (n + 1))`;
 * `box_integral.box.distortion`: the maximal ratio of two lengths of edges of a box; defined as the
   supremum of `nndist I.lower I.upper / nndist (I.lower i) (I.upper i)`.
@@ -47,7 +47,7 @@ rectangular box
 open set function metric
 
 noncomputable theory
-open_locale nnreal
+open_locale nnreal classical
 
 namespace box_integral
 
@@ -160,89 +160,6 @@ lemma monotone_upper : monotone (λ I : box ι, I.upper) :=
 
 lemma coe_subset_Icc : ↑I ⊆ I.Icc := λ x hx, ⟨λ i, (hx i).1.le, λ i, (hx i).2⟩
 
-lemma part_eq_part {o₁ o₂ : part (box ι)} :
-  o₁ = o₂ ↔ (⋃ J ∈ o₁, ↑J : set (ι → ℝ)) = (⋃ J ∈ o₂, ↑J : set (ι → ℝ)) :=
-begin
-  refine ⟨λ h, h ▸ rfl, λ h, _⟩,
-  rcases ⟨o₁.eq_none_or_eq_some, o₂.eq_none_or_eq_some⟩ with ⟨rfl|⟨I₁, rfl⟩, rfl|⟨I₂, rfl⟩⟩;
-    try { refl }; simpa using h
-end
-
-/-!
-### Intersection of two boxes
-
-Since two nonempty boxes can be disjoint, we can't define a `has_inf` instance on
-`box_integral.box ι`. So, we define a function `box_integral.box.inter` that takes a proof of
-`(I ∩ J : set (ι → ℝ)).nonempty` as an argument.
--/
-
-lemma nonempty_coe_inter_coe {I J : box ι} :
-  (I ∩ J : set (ι → ℝ)).nonempty ↔ ∀ i, max (I.lower i) (J.lower i) < min (I.upper i) (J.upper i) :=
-by simp only [coe_eq_pi, ← pi_inter_distrib, univ_pi_nonempty_iff, Ioc_inter_Ioc, set.nonempty_Ioc,
-  sup_eq_max, inf_eq_min]
-
-/-- Intersection of two boxes. Since two nonempty boxes can be disjoint, this function takes values
-in `part (box ι)` with `(inter I J).dom = (I ∩ J : set (ι → ℝ)).nonempty`. -/
-@[simps dom] def inter (I J : box ι) : part (box ι) :=
-{ dom := (I ∩ J : set (ι → ℝ)).nonempty,
-  get := λ H, ⟨_, _, nonempty_coe_inter_coe.1 H⟩ }
-
-@[simp, norm_cast] lemma coe_inter_get (H : (I ∩ J : set (ι → ℝ)).nonempty) :
-  ((I.inter J).get H : set (ι → ℝ)) = I ∩ J :=
-by simp only [inter, coe_eq_pi, ← pi_inter_distrib, Ioc_inter_Ioc, sup_eq_max, inf_eq_min]
-
-@[simp] lemma mem_inter_get_iff (H : (I ∩ J : set (ι → ℝ)).nonempty) :
-  x ∈ (I.inter J).get H ↔ x ∈ I ∧ x ∈ J :=
-by simp only [← mem_coe, coe_inter_get, mem_inter_eq]
-
-lemma mem_inter_get (hI : x ∈ I) (hJ : x ∈ J) :
-  x ∈ (I.inter J).get ⟨x, hI, hJ⟩ :=
-(mem_inter_get_iff _).2 ⟨hI, hJ⟩
-
-@[simp] lemma mem_inter {J'} : J' ∈ I.inter J ↔ (J' : set (ι → ℝ)) = I ∩ J :=
-⟨λ ⟨H, Heq⟩, Heq ▸ coe_inter_get H,
-  λ H, ⟨by simpa [H] using J'.nonempty_coe, injective_coe $ by rw [coe_inter_get, H]⟩⟩
-
-lemma mem_inter' {J'} : J' ∈ I.inter J ↔ ∀ x, x ∈ J' ↔ x ∈ I ∧ x ∈ J :=
-by simp [set.ext_iff]
-
-lemma bUnion_mem_inter_coe (I J : box ι) : (⋃ J' ∈ I.inter J, (J' : set (ι → ℝ))) = I ∩ J :=
-by simp [-mem_inter, part.mem_eq]
-
-@[simp] lemma bUnion_coe_eq_inter_coe (I J : box ι) :
-  (⋃ (J' : box ι) (hJ' : (J' : set (ι → ℝ)) = I ∩ J), (J' : set (ι → ℝ))) = I ∩ J :=
-by simpa using bUnion_mem_inter_coe I J
-
-lemma le_left_of_mem_inter {J' : box ι} (h : J' ∈ I.inter J) : J' ≤ I :=
-λ x hx, ((mem_inter'.1 h x).1 hx).1
-
-lemma le_right_of_mem_inter {J' : box ι} (h : J' ∈ I.inter J) : J' ≤ J :=
-λ x hx, ((mem_inter'.1 h x).1 hx).2
-
-lemma inter_get_le_left (H : (I ∩ J : set (ι → ℝ)).nonempty) : (I.inter J).get H ≤ I :=
-λ x hx, ((mem_inter_get_iff H).1 hx).1
-
-lemma inter_get_le_right (H : (I ∩ J : set (ι → ℝ)).nonempty) : (I.inter J).get H ≤ J :=
-λ x hx, ((mem_inter_get_iff H).1 hx).2
-
-@[simp] lemma le_inter_get_iff (H : (I ∩ J : set (ι → ℝ)).nonempty) {I'} :
-  I' ≤ (I.inter J).get H ↔ I' ≤ I ∧ I' ≤ J :=
-by simp only [le_def, mem_inter_get_iff, forall_and_distrib]
-
-lemma le_inter_get {J₁ J₂} (h₁ : I ≤ J₁) (h₂ : I ≤ J₂) :
-  I ≤ (J₁.inter J₂).get ⟨I.upper, h₁ I.upper_mem, h₂ I.upper_mem⟩ :=
-(le_inter_get_iff _).2 ⟨h₁, h₂⟩
-
-lemma inter_comm :
-  I.inter J = J.inter I :=
-by { ext, simp [inter_comm] }
-
-lemma inter_of_le (h : I ≤ J) : I.inter J = part.some I :=
-part.eq_some_iff.2 $ mem_inter.2 $ eq.symm $ by simpa
-
-lemma inter_of_ge (h : I ≤ J) : J.inter I = part.some I :=
-by rw [inter_comm, inter_of_le h]
-
 /-!
 ### Supremum of two boxes
 -/
@@ -259,6 +176,100 @@ instance : semilattice_sup (box ι) :=
   sup_le := λ I₁ I₂ J h₁ h₂, le_iff_bounds.2 ⟨le_inf (antitone_lower h₁) (antitone_lower h₂),
     sup_le (monotone_upper h₁) (monotone_upper h₂)⟩,
   .. box.partial_order, .. box.has_sup }
+
+
+/-!
+### `with_bot (box ι)`
+
+In this section we define coercion from `with_bot (box ι)` to `set (ι → ℝ)` by sending `⊥` to `∅`.
+-/
+
+instance with_bot_coe : has_coe_t (with_bot (box ι)) (set (ι → ℝ)) := ⟨λ o, o.elim ∅ coe⟩
+
+@[simp, norm_cast] lemma coe_bot : ((⊥ : with_bot (box ι)) : set (ι → ℝ)) = ∅ := rfl
+
+@[simp, norm_cast] lemma coe_coe : ((I : with_bot (box ι)) : set (ι → ℝ)) = I := rfl
+
+lemma is_some_iff : ∀ {I : with_bot (box ι)}, I.is_some ↔ (I : set (ι → ℝ)).nonempty
+| ⊥ := by { erw option.is_some, simp }
+| (I : box ι) := by { erw option.is_some, simp [I.nonempty_coe] }
+
+lemma bUnion_coe_eq_coe (I : with_bot (box ι)) :
+  (⋃ (J : box ι) (hJ : ↑J =  I), (J : set (ι → ℝ))) = I :=
+by induction I using with_bot.rec_bot_coe; simp [with_bot.coe_eq_coe]
+
+@[simp, norm_cast] lemma with_bot_coe_subset_iff {I J : with_bot (box ι)} :
+  (I : set (ι → ℝ)) ⊆ J ↔ I ≤ J :=
+begin
+  induction I using with_bot.rec_bot_coe, { simp },
+  induction J using with_bot.rec_bot_coe, { simp [subset_empty_iff] },
+  simp
+end
+
+@[simp, norm_cast] lemma with_bot_coe_inj {I J : with_bot (box ι)} :
+  (I : set (ι → ℝ)) = J ↔ I = J :=
+by simp only [subset.antisymm_iff, ← le_antisymm_iff,  with_bot_coe_subset_iff]
+
+/-- Make a `with_bot (box ι)` from a pair of corners `l u : ι → ℝ`. If `l i < u i` for all `i`,
+then the result is `⟨l, u, _⟩ : box ι`, otherwise it is `⊥`. In any case, the result interpreted
+as a set in `ι → ℝ` is the set `{x : ι → ℝ | ∀ i, x i ∈ Ioc (l i) (u i)}`.  -/
+def mk' (l u : ι → ℝ) : with_bot (box ι) :=
+if h : ∀ i, l i < u i then ↑(⟨l, u, h⟩ : box ι) else ⊥
+
+@[simp] lemma coe_mk' (l u : ι → ℝ) : (mk' l u : set (ι → ℝ)) = pi univ (λ i, Ioc (l i) (u i)) :=
+begin
+  rw mk', split_ifs,
+  { exact coe_eq_pi _ },
+  { rcases not_forall.mp h with ⟨i, hi⟩,
+    rw [coe_bot, univ_pi_eq_empty], exact Ioc_eq_empty hi }
+end
+
+instance : has_inf (with_bot (box ι)) :=
+⟨λ I, with_bot.rec_bot_coe (λ J, ⊥) (λ I J, with_bot.rec_bot_coe ⊥
+  (λ J, mk' (I.lower ⊔ J.lower) (I.upper ⊓ J.upper)) J) I⟩
+
+@[simp] lemma coe_inf (I J : with_bot (box ι)) : (↑(I ⊓ J) : set (ι → ℝ)) = I ∩ J :=
+begin
+  induction I using with_bot.rec_bot_coe, { change ∅ = _, simp },
+  induction J using with_bot.rec_bot_coe, { change ∅ = _, simp },
+  change ↑(mk' _ _) = _,
+  simp only [coe_eq_pi, ← pi_inter_distrib, Ioc_inter_Ioc, pi.sup_apply, pi.inf_apply, coe_mk',
+    coe_coe]
+end
+
+instance : lattice (with_bot (box ι)) :=
+{ inf_le_left := λ I J,
+    begin
+      rw [← with_bot_coe_subset_iff, coe_inf],
+      exact inter_subset_left _ _
+    end,
+  inf_le_right := λ I J,
+    begin
+      rw [← with_bot_coe_subset_iff, coe_inf],
+      exact inter_subset_right _ _
+    end,
+  le_inf := λ I J₁ J₂ h₁ h₂,
+    begin
+      simp only [← with_bot_coe_subset_iff, coe_inf] at *,
+      exact subset_inter h₁ h₂
+    end,
+  .. with_bot.semilattice_sup, .. box.with_bot.has_inf }
+
+instance : semilattice_inf_bot (with_bot (box ι)) :=
+{ .. box.with_bot.lattice, .. with_bot.semilattice_sup }
+
+@[simp, norm_cast] lemma disjoint_with_bot_coe {I J : with_bot (box ι)} :
+  disjoint (I : set (ι → ℝ)) J ↔ disjoint I J :=
+by { simp only [disjoint, ← with_bot_coe_subset_iff, coe_inf], refl }
+
+lemma disjoint_coe : disjoint (I : with_bot (box ι)) J ↔ disjoint (I : set (ι → ℝ)) J :=
+disjoint_with_bot_coe.symm
+
+lemma le_left_of_coe_eq_inf {I J₁ J₂ : box ι} (h : (I : with_bot (box ι)) = J₁ ⊓ J₂) : I ≤ J₁ :=
+with_bot.coe_le_coe.1 $ h.trans_le inf_le_left
+
+lemma le_right_of_coe_eq_inf {I J₁ J₂ : box ι} (h : (I : with_bot (box ι)) = J₁ ⊓ J₂) : I ≤ J₂ :=
+with_bot.coe_le_coe.1 $ h.trans_le inf_le_right
 
 /-!
 ### Hyperface of a box in `ℝⁿ⁺¹ = fin (n + 1) → ℝ`

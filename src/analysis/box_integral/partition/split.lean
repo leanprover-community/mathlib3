@@ -45,163 +45,81 @@ variables {ι M : Type*} {n : ℕ}
 
 namespace box
 
+variables {I : box ι} {i : ι} {x : ℝ} {y : ι → ℝ}
+
 /-- Given a box `I` and `x ∈ (I.lower i, I.upper i)`, the hyperplane `{y : ι → ℝ | y i = x}` splits
 `I` into two boxes. `box_integral.box.split_lower I i x` is the box `I ∩ {y | y i ≤ x}`
-(if it is nonempty). -/
-@[simps dom get_lower {fully_applied := ff}] def split_lower (I : box ι) (i : ι) (x : ℝ) :
-  part (box ι) :=
-{ dom := I.lower i < x,
-  get := λ hx, ⟨I.lower, update I.upper i (min x (I.upper i)),
-    (forall_update_iff _ (λ j z, I.lower j < z)).2
-      ⟨lt_min hx $ I.lower_lt_upper i, λ j _, I.lower_lt_upper j⟩⟩ }
+(if it is nonempty). As usual, we represent a box that may be empty as
+`with_bot (box_integral.box ι)`. -/
+def split_lower (I : box ι) (i : ι) (x : ℝ) : with_bot (box ι) :=
+mk' I.lower (update I.upper i (min x (I.upper i)))
 
-@[simp] lemma split_lower_get_upper [decidable_eq ι] (I : box ι) (i : ι) (x : ℝ)
-  (hx : I.lower i < x) :
-  ((I.split_lower i x).get hx).upper = update I.upper i (min x (I.upper i)) :=
-by { simp only [split_lower], congr }
-
-@[simp] lemma mem_split_lower_get_iff (I : box ι) {i x hx} {y : ι → ℝ} :
-  y ∈ (I.split_lower i x).get hx ↔ y ∈ I ∧ y i ≤ x :=
+@[simp] lemma coe_split_lower : (split_lower I i x : set (ι → ℝ)) = I ∩ {y | y i ≤ x} :=
 begin
-  simp only [mem_def, mem_Ioc, forall_and_distrib, split_lower, and_assoc],
-  refine and_congr_right (λ H, (@le_update_iff _ _ _ _ y I.upper i _).trans _),
-  rw [le_min_iff, and_assoc, and_forall_ne i, and_comm]
+  rw [split_lower, coe_mk'],
+  ext y,
+  simp only [mem_univ_pi, mem_Ioc, mem_inter_eq, mem_coe, mem_set_of_eq, forall_and_distrib,
+    ← pi.le_def, le_update_iff, le_min_iff, and_assoc, and_forall_ne i, mem_def],
+  rw [and_comm (y i ≤ x), pi.le_def]
 end
 
-lemma mem_split_lower_get (I : box ι) {i x} {y : ι → ℝ} (h₁ : y ∈ I) (h₂ : y i ≤ x) :
-  y ∈ (I.split_lower i x).get ((h₁ i).1.trans_le h₂) :=
-I.mem_split_lower_get_iff.2 ⟨h₁, h₂⟩
-
-@[simp] lemma coe_split_lower_get (I : box ι) {i x hx} :
-  ((I.split_lower i x).get hx : set (ι → ℝ)) = I ∩ {y | y i ≤ x} :=
-set.ext $ λ y, I.mem_split_lower_get_iff
-
-lemma split_lower_get_le (I : box ι) {i x hx} : (I.split_lower i x).get hx ≤ I :=
-coe_subset_coe.1 $ by simp only [coe_split_lower_get, inter_subset_left]
-
-lemma mem_split_lower {I J : box ι} {i x} :
-  J ∈ I.split_lower i x ↔ (J : set (ι → ℝ)) = I ∩ {y | y i ≤ x} :=
-begin
-  refine ⟨λ ⟨H, Heq⟩, Heq ▸ coe_split_lower_get _, λ H, ⟨_, injective_coe _⟩⟩,
-  { have := J.upper_mem, rw [← mem_coe, H] at this,
-    exact (this.1 i).1.trans_le this.2 },
-  { rw [coe_split_lower_get, H] }
-end
-
-@[simp] lemma Union_coe_mem_split_lower (I : box ι) (i : ι) (x : ℝ) :
-  (⋃ J ∈ I.split_lower i x, ↑J : set (ι → ℝ)) = I ∩ {y | y i ≤ x} :=
-begin
-  ext y, simp only [mem_Union], fsplit,
-  { rintro ⟨J, hJ, hy⟩, rwa mem_split_lower.1 hJ at hy },
-  { exact λ hy, ⟨_, ⟨_, rfl⟩, I.mem_split_lower_get hy.1 hy.2⟩ }
-end
+lemma split_lower_le : I.split_lower i x ≤ I := with_bot_coe_subset_iff.1 $ by simp
 
 lemma split_lower_of_le_lower (I : box ι) {i x} (h : x ≤ I.lower i) :
-  I.split_lower i x = part.none :=
-part.eq_none_iff'.2 h.not_lt
+  I.split_lower i x = ⊥ :=
+begin
+  rw [← with_bot_coe_inj, coe_split_lower, coe_bot, eq_empty_iff_forall_not_mem],
+  rintro y ⟨hy : y ∈ I, hyi : y i ≤ x⟩,
+  exact (hyi.trans h).not_lt (hy i).1
+end
 
 lemma split_lower_of_upper_le (I : box ι) {i x} (h : I.upper i ≤ x) :
-  I.split_lower i x = part.some I :=
+  I.split_lower i x = I :=
 begin
-  rw ← @part.get_eq_iff_eq_some _ (I.split_lower i x) ((I.lower_lt_upper i).trans_le h),
-  ext y, simpa using (show y ∈ I → y i ≤ x, from λ hy, (hy i).2.trans h)
+  rw [← with_bot_coe_inj, coe_split_lower, coe_coe, inter_eq_left_iff_subset],
+  exact λ y hy, (hy i).2.trans h
 end
 
 /-- Given a box `I` and `x ∈ (I.lower i, I.upper i)`, the hyperplane `{y : ι → ℝ | y i = x}` splits
-`I` into two boxes. `box_integral.box.split_upper I i x hx` is the box `I ∩ {y | x < y i}`
-(if it is nonempty). -/
-@[simps dom get_upper {fully_applied := ff}] def split_upper (I : box ι) (i : ι) (x : ℝ) :
-  part (box ι) :=
-{ dom := x < I.upper i,
-  get := λ hx, ⟨update I.lower i (max x (I.lower i)), I.upper,
-    (forall_update_iff _ (λ j z, z < I.upper j)).2
-      ⟨max_lt hx $ I.lower_lt_upper i, λ j _, I.lower_lt_upper j⟩⟩ }
+`I` into two boxes. `box_integral.box.split_upper I i x` is the box `I ∩ {y | x < y i}`
+(if it is nonempty). As usual, we represent a box that may be empty as
+`with_bot (box_integral.box ι)`. -/
+def split_upper (I : box ι) (i : ι) (x : ℝ) : with_bot (box ι) :=
+mk' (update I.lower i (max x (I.lower i))) I.upper
 
-@[simp] lemma split_upper_get_lower [decidable_eq ι] (I : box ι) (i : ι) (x : ℝ)
-  (h : x < I.upper i) :
-  ((I.split_upper i x).get h).lower = update I.lower i (max x (I.lower i)) :=
-by { simp only [split_upper], congr }
-
-@[simp] lemma mem_split_upper_get_iff (I : box ι) {i x hx} {y : ι → ℝ} :
-  y ∈ (I.split_upper i x).get hx ↔ y ∈ I ∧ x < y i :=
+@[simp] lemma coe_split_upper : (split_upper I i x : set (ι → ℝ)) = I ∩ {y | x < y i} :=
 begin
-  simp only [mem_def, mem_Ioc, forall_and_distrib, split_upper,
-    forall_update_iff _ (λ j z, z < y j)],
-  rw [max_lt_iff, and_assoc (x < y i), and_forall_ne i, and_assoc, and_comm]
+  rw [split_upper, coe_mk'],
+  ext y,
+  simp only [mem_univ_pi, mem_Ioc, mem_inter_eq, mem_coe, mem_set_of_eq, forall_and_distrib,
+    forall_update_iff I.lower (λ j z, z < y j), max_lt_iff, and_assoc (x < y i),
+    and_forall_ne i, mem_def],
+  exact and_comm _ _
 end
 
-@[simp] lemma mem_split_upper_get (I : box ι) {i x} {y : ι → ℝ} (h₁ : y ∈ I) (h₂ : x < y i) :
-  y ∈ (I.split_upper i x).get (h₂.trans_le (h₁ i).2) :=
-I.mem_split_upper_get_iff.2 ⟨h₁, h₂⟩
-
-@[simp] lemma coe_split_upper_get (I : box ι) {i x hx} :
-  ((I.split_upper i x).get hx : set (ι → ℝ)) = I ∩ {y | x < y i} :=
-set.ext $ λ y, I.mem_split_upper_get_iff
-
-lemma split_upper_get_le (I : box ι) {i x hx} : (I.split_upper i x).get hx ≤ I :=
-coe_subset_coe.1 $ by simp only [coe_split_upper_get, inter_subset_left]
-
-lemma mem_split_upper {I J : box ι} {i x} :
-  J ∈ I.split_upper i x ↔ (J : set (ι → ℝ)) = I ∩ {y | x < y i} :=
-begin
-  refine ⟨λ ⟨H, Heq⟩, Heq ▸ coe_split_upper_get _, λ H, ⟨_, injective_coe _⟩⟩,
-  { have := J.upper_mem, rw [← mem_coe, H, set.mem_inter_eq, mem_set_of_eq] at this,
-    exact lt_of_lt_of_le this.2 (this.1 i).2 },
-  { rw [coe_split_upper_get, H] }
-end
-
-@[simp] lemma Union_coe_mem_split_upper (I : box ι) (i : ι) (x : ℝ) :
-  (⋃ J ∈ I.split_upper i x, ↑J : set (ι → ℝ)) = I ∩ {y | x < y i} :=
-begin
-  ext y, simp only [mem_Union], fsplit,
-  { rintro ⟨J, hJ, hy⟩, rwa mem_split_upper.1 hJ at hy },
-  { exact λ hy, ⟨_, ⟨_, rfl⟩, I.mem_split_upper_get hy.1 hy.2⟩ }
-end
+lemma split_upper_le : I.split_upper i x ≤ I := with_bot_coe_subset_iff.1 $ by simp
 
 lemma split_upper_of_le_lower (I : box ι) {i x} (h : x ≤ I.lower i) :
-  I.split_upper i x = part.some I :=
+  I.split_upper i x = I :=
 begin
-  rw ← @part.get_eq_iff_eq_some _ (I.split_upper i x) (h.trans_lt (I.lower_lt_upper i)),
-  ext y, simpa using (show y ∈ I → x < y i, from λ hy, h.trans_lt (hy i).1)
+  rw [← with_bot_coe_inj, coe_split_upper, coe_coe, inter_eq_left_iff_subset],
+  exact λ y hy, h.trans_lt (hy i).1
 end
 
 lemma split_upper_of_upper_le (I : box ι) {i x} (h : I.upper i ≤ x) :
-  I.split_upper i x = part.none :=
-part.eq_none_iff'.2 h.not_lt
-
-lemma disjoint_of_mem_split_lower_of_mem_split_upper {I Jl Ju : box ι} {i : ι} {x : ℝ}
-  (Hl : Jl ∈ I.split_lower i x) (Hu : Ju ∈ I.split_upper i x) :
-  disjoint (Jl : set (ι → ℝ)) Ju :=
+  I.split_upper i x = ⊥ :=
 begin
-  rw [mem_split_lower.1 Hl, mem_split_upper.1 Hu],
-  refine (disjoint.inf_left' _ _).inf_right' _,
-  exact λ y hy, @not_lt_of_le _ _ (y i) x hy.1 hy.2
+  rw [← with_bot_coe_inj, coe_split_upper, coe_bot, eq_empty_iff_forall_not_mem],
+  rintro y ⟨hy : y ∈ I, hyi : x < y i⟩,
+  exact (h.trans_lt hyi).not_le (hy i).2
 end
 
-lemma ne_of_mem_split_lower_of_mem_split_upper {I Jl Ju : box ι} {i : ι} {x : ℝ}
-  (hl : Jl ∈ I.split_lower i x) (hu : Ju ∈ I.split_upper i x) : Jl ≠ Ju :=
-ne_of_disjoint_coe (disjoint_of_mem_split_lower_of_mem_split_upper hl hu)
-
-lemma disjoint_split_lower_get_split_upper_get {I : box ι} {i : ι} {x : ℝ} (hl hu) :
-  disjoint ((I.split_lower i x).get hl : set (ι → ℝ)) ((I.split_upper i x).get hu) :=
-disjoint_of_mem_split_lower_of_mem_split_upper (part.get_mem _) (part.get_mem _)
-
-lemma split_lower_get_ne_split_upper_get {I : box ι} {i : ι} {x : ℝ} (hl hu) :
-  (I.split_lower i x).get hl ≠ (I.split_upper i x).get hu :=
-ne_of_mem_split_lower_of_mem_split_upper (part.get_mem _) (part.get_mem _)
-
-lemma map_split_lower_add_upper_get_or_else_zero {M : Type*} [add_zero_class M] (I : box ι) (i : ι)
-  (x : ℝ) (f : box ι → M) :
-  ((I.split_lower i x).map f).get_or_else 0 + ((I.split_upper i x).map f).get_or_else 0 =
-    if h : x ∈ Ioo (I.lower i) (I.upper i) then
-      f ((I.split_lower i x).get (and.left h)) + f ((I.split_upper i x).get (and.right h))
-    else f I :=
+lemma disjoint_split_lower_split_upper (I : box ι) (i : ι) (x : ℝ) :
+  disjoint (I.split_lower i x) (I.split_upper i x) :=
 begin
-  split_ifs with hx,
-  { rw [part.get_or_else, part.get_or_else, dif_pos, dif_pos, part.map_get, part.map_get] },
-  { rw [mem_Ioo, not_and_distrib, not_lt, not_lt] at hx, cases hx,
-    { simp [split_upper_of_le_lower _ hx, split_lower_of_le_lower _ hx] },
-    { simp [split_upper_of_upper_le _ hx, split_lower_of_upper_le _ hx] } }
+  rw [← disjoint_with_bot_coe, coe_split_lower, coe_split_upper],
+  refine (disjoint.inf_left' _ _).inf_right' _,
+  exact λ y (hy : y i ≤ x ∧ x < y i), not_lt_of_le hy.1 hy.2
 end
 
 @[simp] lemma face_split_lower_get_same (I : box (fin (n + 1))) (i x hx) :

@@ -166,6 +166,10 @@ variables [comm_monoid β]
 lemma prod_empty {f : α → β} : (∏ x in (∅:finset α), f x) = 1 := rfl
 
 @[simp, to_additive]
+lemma prod_cons (h : a ∉ s) : (∏ x in (cons a s h), f x) = f a * ∏ x in s, f x :=
+fold_cons h
+
+@[simp, to_additive]
 lemma prod_insert [decidable_eq α] : a ∉ s → (∏ x in (insert a s), f x) = f a * ∏ x in s, f x :=
 fold_insert
 
@@ -813,13 +817,13 @@ by { rw [range_one], apply @prod_singleton β ℕ 0 f }
 
 open multiset
 
-lemma prod_multiset_map_count [decidable_eq α] (s : multiset α)
+@[to_additive] lemma prod_multiset_map_count [decidable_eq α] (s : multiset α)
   {M : Type*} [comm_monoid M] (f : α → M) :
   (s.map f).prod = ∏ m in s.to_finset, (f m) ^ (s.count m) :=
 begin
-  apply s.induction_on, { simp only [prod_const_one, count_zero, prod_zero, pow_zero, map_zero] },
-  intros a s ih,
-  simp only [prod_cons, map_cons, to_finset_cons, ih],
+  induction s using multiset.induction_on with a s ih,
+  { simp only [prod_const_one, count_zero, prod_zero, pow_zero, map_zero] },
+  simp only [multiset.prod_cons, map_cons, to_finset_cons, ih],
   by_cases has : a ∈ s.to_finset,
   { rw [insert_eq_of_mem has, ← insert_erase has, prod_insert (not_mem_erase _ _),
         prod_insert (not_mem_erase _ _), ← mul_assoc, count_cons_self, pow_succ],
@@ -830,12 +834,6 @@ begin
   rw count_cons_of_ne,
   rintro rfl, exact has hx
 end
-
-lemma sum_multiset_map_count [decidable_eq α] (s : multiset α)
-  {M : Type*} [add_comm_monoid M] (f : α → M) :
-  (s.map f).sum = ∑ m in s.to_finset, s.count m • f m :=
-@prod_multiset_map_count _ _ _ (multiplicative M) _ f
-attribute [to_additive] prod_multiset_map_count
 
 @[to_additive]
 lemma prod_multiset_count [decidable_eq α] [comm_monoid α] (s : multiset α) :

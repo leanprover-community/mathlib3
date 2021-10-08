@@ -159,6 +159,11 @@ instance : monoid (E →ₗᵢ[R] E) :=
 @[simp] lemma coe_one : ⇑(1 : E →ₗᵢ[R] E) = id := rfl
 @[simp] lemma coe_mul (f g : E →ₗᵢ[R] E) : ⇑(f * g) = f ∘ g := rfl
 
+/-- Construct a `linear_isometry` from a `linear_map` satisfying `isometry`. -/
+def linear_map.to_linear_isometry (f : E →ₛₗ[σ₁₂] E₂) {x : E} (hf : isometry f) : E →ₛₗᵢ[σ₁₂] E₂ :=
+{ norm_map' := by { simp_rw [←dist_zero_right, ←f.map_zero], exact λ x, hf.dist_eq x _ },
+  .. f }
+
 end linear_isometry
 
 namespace submodule

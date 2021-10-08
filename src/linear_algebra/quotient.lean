@@ -106,14 +106,14 @@ section has_scalar
 variables {S : Type*} [has_scalar S R] [has_scalar S M] [is_scalar_tower S R M] (P : submodule R M)
 
 instance : has_scalar S (quotient P) :=
-⟨λ a x, quotient.lift_on' x (λ x, mk (a • x)) $
- λ x y h, (quotient.eq P).2 $ by simpa [smul_sub] using P.smul_mem (a • 1 : R) h⟩
+⟨λ a, quotient.map' ((•) a) $ λ x y h, by simpa [smul_sub] using P.smul_mem (a • 1 : R) h⟩
 
 @[simp] theorem mk_smul (r : S) (x : M) : (mk (r • x) : quotient P) = r • mk x := rfl
 
-@[simp] theorem mk_nsmul (n : ℕ) : (mk (n • x) : quotient P) = n • mk x := rfl
+@[simp] theorem mk_smul (r : S) (x : M) : (mk (r • x) : quotient P) = r • mk x := rfl
 
-instance : is_scalar_tower S R P.quotient :=
+instance (T : Type*) [has_scalar T R] [has_scalar T M] [is_scalar_tower T R M] [has_scalar S T]
+  [is_scalar_tower S T M] : is_scalar_tower S T P.quotient :=
 { smul_assoc := by rintros x y ⟨z⟩; rw [quot_mk_eq_mk, ← mk_smul, smul_assoc, mk_smul, mk_smul] }
 
 end has_scalar

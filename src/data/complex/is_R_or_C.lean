@@ -40,7 +40,7 @@ open_locale big_operators
 section
 
 local notation `𝓚` := algebra_map ℝ _
-local notation `conj` := star_ring_aut
+open_locale complex_conjugate
 
 /--
 This typeclass captures properties shared by ℝ and ℂ, with an API that closely matches that of ℂ.
@@ -70,10 +70,7 @@ end
 namespace is_R_or_C
 variables {K : Type*} [is_R_or_C K]
 
---local postfix `†`:100 := @is_R_or_C.conj K _
---local postfix `†`:100 := (@star_ring_aut K _ _ : K → K)
---local notation `conj` := (@star_ring_aut K _ _ : K → K)
-local notation `conj` := star_ring_aut
+open_locale complex_conjugate
 
 /- The priority must be set at 900 to ensure that coercions are tried in the right order.
 See Note [coercion into rings], or `data/nat/cast.lean` for more details. -/
@@ -688,11 +685,12 @@ end instances
 
 namespace is_R_or_C
 
+open_locale complex_conjugate
+
 section cleanup_lemmas
 
 local notation `reR` := @is_R_or_C.re ℝ _
 local notation `imR` := @is_R_or_C.im ℝ _
-local notation `conj` := star_ring_aut
 local notation `IR` := @is_R_or_C.I ℝ _
 local notation `absR` := @is_R_or_C.abs ℝ _
 local notation `norm_sqR` := @is_R_or_C.norm_sq ℝ _
@@ -710,8 +708,6 @@ by simp [is_R_or_C.abs, abs, real.sqrt_mul_self_eq_abs]
 end cleanup_lemmas
 
 section linear_maps
-
-local notation `conj` := star_ring_aut
 
 variables {K : Type*} [is_R_or_C K]
 

@@ -386,7 +386,7 @@ lemma map_int_cast_smul [add_comm_group M] [add_comm_group M₂]
 by simp only [←gsmul_eq_smul_cast, f.map_gsmul]
 
 lemma map_nat_cast_smul [add_comm_monoid M] [add_comm_monoid M₂] (f : M →+ M₂)
-  (R S : Type*) [semiring R] [semiring S] [module R M] [module S M₂](x : ℕ) (a : M) :
+  (R S : Type*) [semiring R] [semiring S] [module R M] [module S M₂] (x : ℕ) (a : M) :
   f ((x : R) • a) = (x : S) • f a :=
 by simp only [←nsmul_eq_smul_cast, f.map_nsmul]
 

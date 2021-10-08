@@ -123,11 +123,9 @@ where this condition is automatically satisfied.
 lemma leading_coeff_multiset_prod' (h : (t.map leading_coeff).prod ≠ 0) :
   t.prod.leading_coeff = (t.map leading_coeff).prod :=
 begin
-  revert h,
-  refine multiset.induction_on t _ (λ a t ih ht, _), { simp },
-  rw [map_cons, prod_cons] at ht,
-  simp only [map_cons, prod_cons],
-  rw polynomial.leading_coeff_mul'; { rwa ih, apply right_ne_zero_of_mul ht }
+  induction t using multiset.induction_on with a t ih, { simp },
+  simp only [map_cons, multiset.prod_cons] at h ⊢,
+  rw polynomial.leading_coeff_mul'; { rwa ih, apply right_ne_zero_of_mul h }
 end
 
 /--

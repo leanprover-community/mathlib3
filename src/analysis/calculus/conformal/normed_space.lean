@@ -22,6 +22,8 @@ if it is real differentiable at that point and its differential `is_conformal_li
 ## Main results
 * The conformality of the composition of two conformal maps, the identity map
   and multiplications by nonzero constants
+* The conformality of the local inverse of a conformal local homeomorphism between Banach spaces
+  with surjective differential
 * `conformal_at_iff_is_conformal_map_fderiv`: an equivalent definition of the conformality of a map
 
 In `analysis.calculus.conformal.inner_product`:

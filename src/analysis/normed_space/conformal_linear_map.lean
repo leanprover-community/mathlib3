@@ -19,6 +19,7 @@ a nonzero multiple of a linear isometry.
 
 * The conformality of the composition of two conformal linear maps, the identity map
   and multiplications by nonzero constants as continuous linear maps
+* The conformality of the inverse of a conformal linear equivalence
 * `is_conformal_map_of_subsingleton`: all continuous linear maps on singleton spaces are conformal
 * `is_conformal_map.preserves_angle`: if a continuous linear map is conformal, then it
                                       preserves all angles in the normed space

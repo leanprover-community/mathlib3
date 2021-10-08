@@ -182,8 +182,6 @@ by { rw ext_iff, simp only [of_real_im, conj_im, eq_self_iff_true, conj_re, and_
 
 @[simp] lemma conj_neg_I : conj (-I) = (I : K) := by simp [ext_iff]
 
-@[simp] lemma conj_conj (z : K) : conj (conj z) = z := star_star z
-
 lemma conj_eq_re_sub_im (z : K) : conj z = re z - (im z) * I := by { rw ext_iff, simp, }
 
 lemma conj_smul (r : ℝ) (z : K) : conj (r • z) = r • conj z :=

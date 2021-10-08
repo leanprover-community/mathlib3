@@ -260,27 +260,13 @@ begin
   repeat { exact (bounded_continuous_function.nnreal.to_ennreal_comp_measurable _), },
 end
 
--- Hmmm, what is the right way to do this `nnreal_mul_ennreal_to_nnreal`?
--- If this deserves to be added, then perhaps in `data.real.ennreal`?
--- It seems like a typical coercion issue to me, although it is only used once here.
-lemma _root_.ennreal.nnreal_mul_ennreal_to_nnreal (c : ℝ≥0) (z : ℝ≥0∞) :
-  c * z.to_nnreal = ((c : ℝ≥0∞) * z).to_nnreal :=
-begin
-  by_cases z_infty : z = ∞,
-  { rw z_infty,
-    simp only [ennreal.top_to_nnreal, ennreal.to_nnreal_mul_top, mul_zero], },
-  { have z_lt_top : z < ∞ := ne.lt_top z_infty,
-    simp only [ennreal.to_nnreal_mul, ennreal.to_nnreal_coe], },
-end
-
 lemma test_against_nn_smul (μ : finite_measure α) (c : ℝ≥0) (f : α →ᵇ ℝ≥0) :
   μ.test_against_nn (c • f) = c * μ.test_against_nn f :=
 begin
   simp only [←ennreal.coe_eq_coe, algebra.id.smul_eq_mul, bounded_continuous_function.coe_smul,
              test_against_nn_coe_eq, ennreal.coe_mul],
-  have key_smul := @lintegral_mul_const _ _ (μ : measure α) c _
+  have key_smul := @lintegral_const_mul _ _ (μ : measure α) c _
                    (bounded_continuous_function.nnreal.to_ennreal_comp_measurable f),
-  simp_rw mul_comm at key_smul,
   exact key_smul,
 end
 

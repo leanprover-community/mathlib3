@@ -24,10 +24,14 @@ a.k.a. the interval `[0, ∞)`. We also define the following operations and stru
   the following instances instead:
 
   - `linear_ordered_semiring ℝ≥0`;
-  - `comm_semiring ℝ≥0`;
+  - `ordered_comm_semiring ℝ≥0`;
   - `canonically_ordered_comm_semiring ℝ≥0`;
   - `linear_ordered_comm_group_with_zero ℝ≥0`;
+  - `canonically_linear_ordered_add_monoid ℝ≥0`
   - `archimedean ℝ≥0`.
+
+  These instances are derived from corresponding instances about the type `{x : α // 0 ≤ x}` in an
+  appropriate ordered field/ring/group/monoid `α`. See `algebra/order/nonneg`.
 
 * `real.to_nnreal x` is defined as `⟨max x 0, _⟩`, i.e. `↑(real.to_nnreal x) = x` when `0 ≤ x` and
   `↑(real.to_nnreal x) = 0` otherwise.

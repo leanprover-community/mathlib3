@@ -161,11 +161,14 @@ def star_ring_equiv [semiring R] [star_ring R] : R ≃+* Rᵒᵖ :=
   ..star_mul_equiv}
 
 /-- `star` as a `ring_aut` for commutative `R`. -/
-@[simps apply]
+--@[simps apply]
 def star_ring_aut [comm_semiring R] [star_ring R] : ring_aut R :=
 { to_fun := star,
   ..star_add_equiv,
   ..star_mul_aut }
+
+lemma star_ring_aut_apply [comm_semiring R] [star_ring R] {x : R} :
+  star_ring_aut x = star x := rfl
 
 section
 open_locale big_operators

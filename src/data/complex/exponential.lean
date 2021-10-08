@@ -17,7 +17,7 @@ hyperbolic sine, hyperbolic cosine, and hyperbolic tangent functions.
 
 local notation `abs'` := has_abs.abs
 open is_absolute_value
-open_locale classical big_operators nat
+open_locale classical big_operators nat complex_conjugate
 
 section
 open real is_absolute_value finset
@@ -475,9 +475,9 @@ begin
   rw [← lim_conj],
   refine congr_arg lim (cau_seq.ext (λ _, _)),
   dsimp [exp', function.comp, cau_seq_conj],
-  rw conj.map_sum,
+  rw star_ring_aut.map_sum,
   refine sum_congr rfl (λ n hn, _),
-  rw [conj.map_div, conj.map_pow, ← of_real_nat_cast, conj_of_real]
+  rw [ring_equiv.map_div, ring_equiv.map_pow, ← of_real_nat_cast, conj_of_real]
 end
 
 @[simp] lemma of_real_exp_of_real_re (x : ℝ) : ((exp x).re : ℂ) = exp x :=

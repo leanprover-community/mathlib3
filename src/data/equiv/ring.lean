@@ -386,6 +386,17 @@ g.to_ring_hom.map_sum f s
 
 end big_operators
 
+section division_ring
+
+variables {K K' : Type*} [division_ring K] [semiring R] [nontrivial R] [division_ring K']
+  (f : K ≃+* R) (g : K ≃+* K') (x y : K)
+
+lemma map_inv : g x⁻¹ = (g x)⁻¹ := g.to_ring_hom.map_inv x
+
+lemma map_div : g (x / y) = g x / g y := g.to_ring_hom.map_div x y
+
+end division_ring
+
 end ring_equiv
 
 namespace mul_equiv

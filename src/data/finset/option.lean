@@ -7,9 +7,21 @@ import data.finset.basic
 import order.preorder_hom
 
 /-!
-# `finset.erase_none`
+# Finite sets in `option α`
 
-In this file we define `finset.erase_none : finset (option α) → finset α`.
+In this file we define
+
+* `option.to_finset`: construct an empty or singleton `finset α` from an `option α`;
+* `finset.insert_none`: given `s : finset α`, lift it to a finset on `option α` using `option.some`
+  and then insert `option.none`;
+* `finset.erase_none`: given `s : finset (option α)`, returns `t : finset α` such that
+  `x ∈ t ↔ some x ∈ s`.
+
+Then we prove some basic lemmas about these definitions.
+
+## Tags
+
+finset, option
 -/
 
 variables {α β : Type*}
@@ -19,16 +31,17 @@ open function
 namespace option
 
 /-- Construct an empty or singleton finset from an `option` -/
-def to_finset : option α → finset α
-| none     := ∅
-| (some a) := {a}
+def to_finset (o : option α) : finset α := o.elim ∅ singleton
 
 @[simp] theorem to_finset_none : none.to_finset = (∅ : finset α) := rfl
 
 @[simp] theorem to_finset_some {a : α} : (some a).to_finset = {a} := rfl
 
 @[simp] theorem mem_to_finset {a : α} {o : option α} : a ∈ o.to_finset ↔ a ∈ o :=
-by cases o; simp only [to_finset, finset.mem_singleton, option.mem_def, eq_comm]; refl
+by cases o; simp [eq_comm]
+
+theorem card_to_finset (o : option α) : o.to_finset.card = o.elim 0 1 :=
+by cases o; refl
 
 end option
 
@@ -50,6 +63,9 @@ order_embedding.of_map_le_iff (λ s, cons none (s.map embedding.some) $ by simp)
 
 theorem some_mem_insert_none {s : finset α} {a : α} :
   some a ∈ s.insert_none ↔ a ∈ s := by simp
+
+@[simp] theorem card_insert_none (s : finset α) : s.insert_none.card = s.card + 1 :=
+by simp [insert_none]
 
 /-- Given `s : finset (option α)`, `s.erase_none : finset α` is the set of `x : α` such that
 `some x ∈ s`. -/
@@ -76,11 +92,13 @@ by simpa only [map_eq_image] using erase_none_map_some s
   (s.erase_none : set α) = some ⁻¹' s :=
 set.ext $ λ x, mem_erase_none
 
-@[simp] lemma erase_none_union [decidable_eq (option α)] [decidable_eq α] (s t : finset (option α)) :
+@[simp] lemma erase_none_union [decidable_eq (option α)] [decidable_eq α]
+  (s t : finset (option α)) :
   (s ∪ t).erase_none = s.erase_none ∪ t.erase_none :=
 by { ext, simp }
 
-@[simp] lemma erase_none_inter [decidable_eq (option α)] [decidable_eq α] (s t : finset (option α)) :
+@[simp] lemma erase_none_inter [decidable_eq (option α)] [decidable_eq α]
+  (s t : finset (option α)) :
   (s ∩ t).erase_none = s.erase_none ∩ t.erase_none :=
 by { ext, simp }
 

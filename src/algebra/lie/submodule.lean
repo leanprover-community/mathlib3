@@ -102,6 +102,12 @@ protected def copy (s : set M) (hs : s = ↑N) : lie_submodule R L M :=
   smul_mem' := hs.symm ▸ N.smul_mem',
   lie_mem   := hs.symm ▸ N.lie_mem, }
 
+@[simp] lemma coe_copy (S : lie_submodule R L M) (s : set M) (hs : s = ↑S) :
+  (S.copy s hs : set M) = s := rfl
+
+lemma copy_eq (S : lie_submodule R L M) (s : set M) (hs : s = ↑S) : S.copy s hs = S :=
+coe_injective hs
+
 instance : lie_ring_module L N :=
 { bracket     := λ (x : L) (m : N), ⟨⁅x, m.val⁆, N.lie_mem m.property⟩,
   add_lie     := by { intros x y m, apply set_coe.ext, apply add_lie, },

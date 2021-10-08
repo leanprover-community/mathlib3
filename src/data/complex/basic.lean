@@ -211,8 +211,7 @@ instance : star_ring ℂ :=
 
 @[simp] lemma conj_neg_I : conj (-I) = I := ext_iff.2 $ by simp
 
---@[simp] lemma conj_conj (z : ℂ) : conj (conj z) = z :=
---ext_iff.2 $ by simp
+@[simp] lemma conj_conj (z : ℂ) : conj (conj z) = z := by simp only [star_ring_aut_apply, star_star]
 
 --lemma conj_involutive : function.involutive conj := conj_conj
 

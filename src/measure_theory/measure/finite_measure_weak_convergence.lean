@@ -418,9 +418,8 @@ lemma test_against_nn_mono (μ : probability_measure α)
   {f g : α →ᵇ ℝ≥0} (f_le_g : (f : α → ℝ≥0) ≤ g) :
   μ.test_against_nn f ≤ μ.test_against_nn g :=
 begin
-  have key := finite_measure.test_against_nn_mono μ.to_finite_measure f_le_g,
-  simp only [to_finite_measure_test_against_nn_eq_test_against_nn] at key,
-  exact key,
+  have key := μ.to_finite_measure.test_against_nn_mono f_le_g,
+  simpa using key
 end
 
 variables [opens_measurable_space α]

@@ -6,11 +6,10 @@ Authors: Andrew Yang
 import category_theory.limits.kan_extension
 import category_theory.limits.filtered_colimit_commutes_finite_limit
 import category_theory.limits.preserves.functor_category
-import category_theory.limits.presheaf
-import category_theory.limits.yoneda
 import category_theory.limits.preserves.shapes.equalizers
 import category_theory.limits.shapes.bicones
-import category_theory.limits.functor_category
+import category_theory.limits.presheaf
+import category_theory.limits.yoneda
 
 /-!
 # Representably flat functors
@@ -30,7 +29,9 @@ This definition is equivalent to left exact functors (functors that preserves fi
 limits, then `F` is flat.
 * `preserves_finite_limit_of_flat`: If `F : C ⥤ D` is a flat, then it preserves all finite limits.
 * `Lan_preserves_finite_limit_of_flat`: If `F : C ⥤ D` is a flat functor between small categories,
-then `Lan F.op` preserves all finite limits.
+then the functor `Lan F.op` between presheaves of sets preserves all finite limits.
+* `preserves_limit_of_Lan_preserves_limit`: If the functor `Lan F.op` between presheaves of sets
+preserves limits of shape `J`, then so will `F`.
 
 -/
 
@@ -231,6 +232,16 @@ begin
   rw Lan_evaluation_eq_colim,
   haveI : is_filtered (costructured_arrow F.op K) :=
     is_filtered.of_equivalence (structured_arrow_op_equivalence F (unop K)),
+  apply_instance
+end
+
+noncomputable
+def preserves_limit_of_Lan_presesrves_limit (F : C ⥤ D) (J : Type u₁) [small_category J]
+  [preserves_limits_of_shape J (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ Type u₁))] :
+  preserves_limits_of_shape J F :=
+begin
+  apply preserves_limits_of_shape_of_reflects_of_preserves F yoneda,
+  exact preserves_limits_of_shape_of_nat_iso (comp_yoneda_iso_yoneda_comp_Lan F).symm,
   apply_instance
 end
 

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 
-import data.finset.intervals
+import data.nat.interval
 import data.polynomial.derivative
 import tactic.linarith
 
@@ -123,12 +123,12 @@ lemma coeff_iterated_deriv_as_prod_Ico :
   ∀ m : ℕ, (iterated_deriv f k).coeff m = (∏ i in Ico m.succ (m + k.succ), i) * (f.coeff (m+k)) :=
 begin
   induction k with k ih,
-  { simp only [add_zero, forall_const, one_mul, Ico.self_eq_empty, eq_self_iff_true,
+  { simp only [add_zero, forall_const, one_mul, Ico_self, eq_self_iff_true,
       iterated_deriv_zero_right, prod_empty] },
   { intro m, rw [iterated_deriv_succ, coeff_derivative, ih (m+1), mul_right_comm],
     apply congr_arg2,
     { have set_eq : (Ico m.succ (m + k.succ.succ)) = (Ico (m + 1).succ (m + 1 + k.succ)) ∪ {m+1},
-      { rw [union_comm, ←insert_eq, Ico.insert_succ_bot, add_succ, add_succ, add_succ _ k,
+      { rw [union_comm, ←insert_eq, Ico_insert_succ_left, add_succ, add_succ, add_succ _ k,
             ←succ_eq_add_one, succ_add],
         rw succ_eq_add_one,
         linarith },
@@ -136,7 +136,7 @@ begin
       apply congr_arg2,
       { refl },
       { simp only [prod_singleton], norm_cast },
-      { simp only [succ_pos', disjoint_singleton, and_true, lt_add_iff_pos_right, not_le, Ico.mem],
+      { simp only [succ_pos', disjoint_singleton, and_true, lt_add_iff_pos_right, not_le, mem_Ico],
         exact lt_add_one (m + 1) } },
     { exact congr_arg _ (succ_add m k) } },
 end

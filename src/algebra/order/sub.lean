@@ -294,6 +294,17 @@ variables {a b c d : α} [linear_order α] [add_comm_monoid α] [has_sub α] [ha
 lemma lt_of_sub_lt_sub_right (h : a - c < b - c) : a < b :=
 lt_imp_lt_of_le_imp_le (λ h, sub_le_sub_right' h c) h
 
+/-- See `lt_sub_iff_right_of_le` for a weaker statement in a partial order. -/
+lemma lt_sub_iff_right : a < b - c ↔ a + c < b :=
+lt_iff_lt_of_le_iff_le sub_le_iff_right
+
+/-- See `lt_sub_iff_left_of_le` for a weaker statement in a partial order. -/
+lemma lt_sub_iff_left : a < b - c ↔ c + a < b :=
+lt_iff_lt_of_le_iff_le sub_le_iff_left
+
+lemma lt_sub_comm : a < b - c ↔ c < b - a :=
+lt_sub_iff_left.trans lt_sub_iff_right.symm
+
 section cov
 variable [covariant_class α α (+) (≤)]
 
@@ -659,16 +670,6 @@ end add_le_cancellable
 
 section contra
 variable [contravariant_class α α (+) (≤)]
-
-/-- See `lt_sub_iff_right_of_le` for a weaker statement in a partial order.
-This lemma also holds for `ennreal`, but we need a different proof for that. -/
-lemma lt_sub_iff_right : a < b - c ↔ a + c < b :=
-contravariant.add_le_cancellable.lt_sub_iff_right
-
-/-- See `lt_sub_iff_left_of_le` for a weaker statement in a partial order.
-This lemma also holds for `ennreal`, but we need a different proof for that. -/
-lemma lt_sub_iff_left : a < b - c ↔ c + a < b :=
-contravariant.add_le_cancellable.lt_sub_iff_left
 
 /-- This lemma also holds for `ennreal`, but we need a different proof for that. -/
 lemma sub_lt_sub_iff_right' (h : c ≤ a) : a - c < b - c ↔ a < b :=

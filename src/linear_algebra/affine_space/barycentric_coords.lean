@@ -123,3 +123,18 @@ begin
   have hq : q = s.affine_combination p (function.const ι (1 : k)), { simp, },
   rw [pi.one_apply, hq, barycentric_coord_apply_combination_of_mem h_ind h_tot hi hw],
 end
+
+lemma surjective_barycentric_coord [nontrivial ι] (i : ι) :
+  function.surjective $ barycentric_coord h_ind h_tot i :=
+begin
+  classical,
+  intros x,
+  obtain ⟨j, hij⟩ := exists_ne i,
+  let s : finset ι := {i, j},
+  have hi : i ∈ s, { simp, },
+  have hj : j ∈ s, { simp, },
+  let w : ι → k := λ j', if j' = i then x else 1-x,
+  have hw : s.sum w = 1, { simp [hij, finset.sum_ite, finset.filter_insert, finset.filter_eq'], },
+  use s.affine_combination p w,
+  simp [barycentric_coord_apply_combination_of_mem h_ind h_tot hi hw],
+end

@@ -710,6 +710,15 @@ begin
   exact subsingleton_of_univ_subsingleton h₂,
 end
 
+lemma eq_univ_of_subsingleton_span_eq_top {s : set P} (h₁ : s.subsingleton)
+  (h₂ : affine_span k s = ⊤) : s = (univ : set P) :=
+begin
+  obtain ⟨p, hp⟩ := affine_subspace.nonempty_of_affine_span_eq_top k V P h₂,
+  have : s = {p}, { exact subset.antisymm (λ q hq, h₁ hq hp) (by simp [hp]), },
+  rw [this, eq_comm, ← subsingleton_iff_singleton (mem_univ p), subsingleton_univ_iff],
+  exact subsingleton_of_subsingleton_span_eq_top h₁ h₂,
+end
+
 /-- A nonempty affine subspace is `⊤` if and only if its direction is
 `⊤`. -/
 @[simp] lemma direction_eq_top_iff_of_nonempty {s : affine_subspace k P}

@@ -796,9 +796,9 @@ begin
     eventually_at_top.1 ((tendsto_pow_const_div_const_pow_of_one_lt n
       (one_lt_exp_iff.2 zero_lt_one)).eventually (gt_mem_nhds this)),
   simp only [← exp_nat_mul, mul_one, div_lt_iff, exp_pos, ← div_eq_inv_mul] at hN,
-  refine ⟨N, trivial, λ x hx, _⟩, rw mem_Ioi at hx,
+  refine ⟨N, trivial, λ x hx, _⟩, rw set.mem_Ioi at hx,
   have hx₀ : 0 < x, from N.cast_nonneg.trans_lt hx,
-  rw [mem_Ici, le_div_iff (pow_pos hx₀ _), ← le_div_iff' hC₀],
+  rw [set.mem_Ici, le_div_iff (pow_pos hx₀ _), ← le_div_iff' hC₀],
   calc x ^ n ≤ ⌈x⌉₊ ^ n : pow_le_pow_of_le_left hx₀.le (le_nat_ceil _) _
   ... ≤ exp ⌈x⌉₊ / (exp 1 * C) : (hN _ (lt_nat_ceil.2 hx).le).le
   ... ≤ exp (x + 1) / (exp 1 * C) : div_le_div_of_le (mul_pos (exp_pos _) hC₀).le

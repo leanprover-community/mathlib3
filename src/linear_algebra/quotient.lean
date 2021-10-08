@@ -155,12 +155,9 @@ where `P : submodule R M`.
 def restrict_scalars_equiv [ring S] [has_scalar S R] [module S M] [is_scalar_tower S R M]
   (P : submodule R M) :
   (P.restrict_scalars S).quotient ≃ₗ[S] P.quotient :=
-{ to_fun := quot.map id (λ x y, id),
-  inv_fun := quot.map id (λ x y, id),
-  left_inv := λ x, quot.induction_on x (λ x', rfl),
-  right_inv := λ x, quot.induction_on x (λ x', rfl),
-  map_add' := λ x y, quot.induction_on₂ x y (λ x' y', rfl),
-  map_smul' := λ c x, quot.induction_on x (λ x', rfl) }
+{ map_add' := λ x y, quotient.induction_on₂' x y (λ x' y', rfl),
+  map_smul' := λ c x, quotient.induction_on' x (λ x', rfl),
+  ..quotient.congr_right $ λ _ _, iff.rfl }
 
 end module
 

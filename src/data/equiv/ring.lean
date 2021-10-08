@@ -397,6 +397,16 @@ lemma map_div : g (x / y) = g x / g y := g.to_ring_hom.map_div x y
 
 end division_ring
 
+section group_power
+
+variables [semiring R] [semiring S]
+
+@[simp] lemma map_pow (f : R ≃+* S) (a) :
+  ∀ n : ℕ, f (a ^ n) = (f a) ^ n :=
+f.to_ring_hom.map_pow a
+
+end group_power
+
 end ring_equiv
 
 namespace mul_equiv

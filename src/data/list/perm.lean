@@ -296,7 +296,7 @@ this ▸ hbd
 lemma rel_perm (hr : bi_unique r) : (forall₂ r ⇒ forall₂ r ⇒ (↔)) perm perm :=
 assume a b hab c d hcd, iff.intro
   (rel_perm_imp hr.2 hab hcd)
-  (rel_perm_imp (left_unique_flip hr.1) hab.flip hcd.flip)
+  (rel_perm_imp hr.left.flip hab.flip hcd.flip)
 
 end rel
 
@@ -1024,7 +1024,7 @@ begin
     have h₀ : n = xs.length - n',
     { dsimp [n'], rwa nat.sub_sub_self, } ,
     have h₁ : n' ≤ xs.length,
-    { apply nat.sub_le_self },
+    { apply sub_le_self' },
     have h₂ : xs.drop n = (xs.reverse.take n').reverse,
     { rw [reverse_take _ h₁, h₀, reverse_reverse], },
     rw [h₂],

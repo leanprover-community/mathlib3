@@ -216,6 +216,11 @@ begin
       image_subset_iff.2 hvu⟩ }
 end
 
+protected lemma is_topological_basis.continuous {β : Type*} [topological_space β]
+  {B : set (set β)} (hB : is_topological_basis B) (f : α → β) (hf : ∀ s ∈ B, is_open (f ⁻¹' s)) :
+  continuous f :=
+begin rw hB.eq_generate_from, exact continuous_generated_from hf end
+
 variables (α)
 
 /-- A separable space is one with a countable dense subset, available through
@@ -255,6 +260,47 @@ def dense_seq [separable_space α] [nonempty α] : ℕ → α := classical.some 
 /-- The sequence `dense_seq α` has dense range. -/
 @[simp] lemma dense_range_dense_seq [separable_space α] [nonempty α] :
   dense_range (dense_seq α) := classical.some_spec (exists_dense_seq α)
+
+variable {α}
+
+/-- In a separable space, a family of nonempty disjoint open sets is countable. -/
+lemma countable_of_is_open_of_disjoint [separable_space α] {β : Type*}
+  (s : β → set α) {a : set β} (ha : ∀ i ∈ a, is_open (s i)) (h'a : ∀ i ∈ a, (s i).nonempty)
+  (h : a.pairwise_on (disjoint on s)) :
+  countable a :=
+begin
+  rcases eq_empty_or_nonempty a with rfl|H, { exact countable_empty },
+  haveI : inhabited α,
+  { choose i ia using H,
+    choose y hy using h'a i ia,
+    exact ⟨y⟩ },
+  rcases exists_countable_dense α with ⟨u, u_count, u_dense⟩,
+  have : ∀ i, i ∈ a → ∃ y, y ∈ s i ∩ u :=
+    λ i hi, dense_iff_inter_open.1 u_dense (s i) (ha i hi) (h'a i hi),
+  choose! f hf using this,
+  have f_inj : inj_on f a,
+  { assume i hi j hj hij,
+    have : ¬disjoint (s i) (s j),
+    { rw not_disjoint_iff_nonempty_inter,
+      refine ⟨f i, (hf i hi).1, _⟩,
+      rw hij,
+      exact (hf j hj).1 },
+    contrapose! this,
+    exact h i hi j hj this },
+  apply countable_of_injective_of_countable_image f_inj,
+  apply u_count.mono _,
+  exact image_subset_iff.2 (λ i hi, (hf i hi).2)
+end
+
+/-- In a separable space, a family of disjoint sets with nonempty interiors is countable. -/
+lemma countable_of_nonempty_interior_of_disjoint [separable_space α] {β : Type*} (s : β → set α)
+  {a : set β} (ha : ∀ i ∈ a, (interior (s i)).nonempty) (h : a.pairwise_on (disjoint on s)) :
+  countable a :=
+begin
+  have : a.pairwise_on (disjoint on (λ i, interior (s i))) :=
+    pairwise_on_disjoint_on_mono h (λ i hi, interior_subset),
+  exact countable_of_is_open_of_disjoint (λ i, interior (s i)) (λ i hi, is_open_interior) ha this
+end
 
 end topological_space
 
@@ -341,6 +387,13 @@ protected lemma dense_range.separable_space {α β : Type*} [topological_space �
   separable_space β :=
 let ⟨s, s_cnt, s_dense⟩ := exists_countable_dense α in
 ⟨⟨f '' s, countable.image s_cnt f, h.dense_image h' s_dense⟩⟩
+
+lemma dense.exists_countable_dense_subset {α : Type*} [topological_space α]
+  {s : set α} [separable_space s] (hs : dense s) :
+  ∃ t ⊆ s, countable t ∧ dense t :=
+let ⟨t, htc, htd⟩ := exists_countable_dense s
+in ⟨coe '' t, image_subset_iff.2 $ λ x _, mem_preimage.2 $ subtype.coe_prop _, htc.image coe,
+  hs.dense_range_coe.dense_image continuous_subtype_val htd⟩
 
 namespace topological_space
 universe u

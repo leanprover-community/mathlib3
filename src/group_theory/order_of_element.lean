@@ -126,6 +126,10 @@ attribute [to_additive add_order_of_nsmul_eq_zero] pow_order_of_eq_one
 lemma order_of_eq_zero (h : ¬ is_of_fin_order x) : order_of x = 0 :=
 by rwa [order_of, minimal_period, dif_neg]
 
+@[to_additive add_order_of_eq_zero_iff] lemma order_of_eq_zero_iff :
+  order_of x = 0 ↔ ¬ is_of_fin_order x :=
+⟨λ h H, (order_of_pos' H).ne' h, order_of_eq_zero⟩
+
 lemma nsmul_ne_zero_of_lt_add_order_of' (n0 : n ≠ 0) (h : n < add_order_of a) :
   n • a ≠ 0 :=
 λ j, not_is_periodic_pt_of_pos_of_lt_minimal_period n0 h
@@ -322,7 +326,7 @@ by_contradiction $ assume ne : n ≠ m,
     by { rw [h₂, pow_add] at eq, apply mul_left_cancel, convert eq.symm, exact mul_one (x ^ n) },
   have le : order_of x ≤ m - n, from order_of_le_of_pow_eq_one h₁ h₃,
   have lt : m - n < order_of x,
-    from (nat.sub_lt_left_iff_lt_add h).mpr $ nat.lt_add_left _ _ _ hm,
+    from (sub_lt_iff_left h).mpr $ nat.lt_add_left _ _ _ hm,
   lt_irrefl _ (le.trans_lt lt)
 
 -- TODO: This lemma was originally private, but this doesn't seem to work with `to_additive`,
@@ -382,10 +386,6 @@ begin
 end
 
 attribute [to_additive gsmul_eq_mod_add_order_of] gpow_eq_mod_order_of
-
-@[to_additive add_order_of_eq_zero_iff] lemma order_of_eq_zero_iff :
-  order_of x = 0 ↔ ¬ is_of_fin_order x :=
-⟨λ h H, (order_of_pos' H).ne' h, order_of_eq_zero⟩
 
 @[to_additive nsmul_inj_iff_of_add_order_of_eq_zero]
 lemma pow_inj_iff_of_order_of_eq_zero (h : order_of x = 0) {n m : ℕ} :
@@ -475,10 +475,11 @@ lemma exists_pow_eq_one (x : G) : is_of_fin_order x :=
 begin
   refine (is_of_fin_order_iff_pow_eq_one _).mpr _,
   obtain ⟨i, j, a_eq, ne⟩ : ∃(i j : ℕ), x ^ i = x ^ j ∧ i ≠ j :=
-    by simpa only [not_forall, exists_prop] using (not_injective_infinite_fintype (λi:ℕ, x^i)),
+    by simpa only [not_forall, exists_prop, injective]
+      using (not_injective_infinite_fintype (λi:ℕ, x^i)),
   wlog h'' : j ≤ i,
   refine ⟨i - j, nat.sub_pos_of_lt (lt_of_le_of_ne h'' ne.symm), mul_right_injective (x^j) _⟩,
-  rw [mul_one, ← pow_add, ← a_eq, nat.add_sub_cancel' h''],
+  rw [mul_one, ← pow_add, ← a_eq, add_sub_cancel_of_le h''],
 end
 
 lemma exists_nsmul_eq_zero (a : A) : is_of_fin_add_order a :=

@@ -250,7 +250,7 @@ begin
       { rw is_conj_iff,
         use σ'⁻¹,
         simp [mul_assoc] },
-      refine is_conj_trans _ key,
+      refine is_conj.trans _ key,
       have hs : σ.cycle_type = σ'.cycle_type,
       { rw [←finset.mem_def, mem_cycle_factors_finset_iff] at hσ'l,
         rw [hσ.cycle_type, ←hσ', hσ'l.left.cycle_type] },
@@ -450,7 +450,7 @@ begin
   have hf2 : ∀ j k v, f k (f j v) = f (j + k) v :=
   λ j k v, vectors_prod_eq_one.rotate_rotate v j k,
   have hf3 : ∀ v, f p v = v := vectors_prod_eq_one.rotate_length,
-  let σ := equiv.mk (f 1) (f (p - 1)) (λ s, by rw [hf2, nat.add_sub_cancel' hp.out.pos, hf3])
+  let σ := equiv.mk (f 1) (f (p - 1)) (λ s, by rw [hf2, add_sub_cancel_of_le hp.out.one_lt.le, hf3])
     (λ s, by rw [hf2, nat.sub_add_cancel hp.out.pos, hf3]),
   have hσ : ∀ k v, (σ ^ k) v = f k v :=
   λ k v, nat.rec (hf1 v).symm (λ k hk, eq.trans (by exact congr_arg σ hk) (hf2 k 1 v)) k,
@@ -497,7 +497,7 @@ def partition (σ : perm α) : partition (fintype.card α) :=
     { exact lt_of_lt_of_le zero_lt_one (ge_of_eq (multiset.eq_of_mem_repeat hn)) },
   end,
   parts_sum := by rw [sum_add, sum_cycle_type, multiset.sum_repeat, nsmul_eq_mul,
-    nat.cast_id, mul_one, nat.add_sub_cancel' σ.support.card_le_univ] }
+    nat.cast_id, mul_one, add_sub_cancel_of_le σ.support.card_le_univ] }
 
 lemma parts_partition {σ : perm α} :
   σ.partition.parts = σ.cycle_type + repeat 1 (fintype.card α - σ.support.card) := rfl

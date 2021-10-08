@@ -21,8 +21,10 @@ namespace submodule
 variables {R : Type u} {M : Type v}
 variables [comm_ring R] [add_comm_group M] [module R M]
 
+open_locale pointwise
+
 instance has_scalar' : has_scalar (ideal R) (submodule R M) :=
-⟨λ I N, ⨆ r : I, N.map (r.1 • linear_map.id)⟩
+⟨λ I N, ⨆ r : I, (r : R) • N⟩
 
 /-- `N.annihilator` is the ideal of all elements `r : R` such that `r • N = 0`. -/
 def annihilator (N : submodule R M) : ideal R :=
@@ -398,16 +400,16 @@ mul_one r ▸ hst ▸ (mul_add r s t).symm ▸ ideal.add_mem (I * J) (mul_mem_mu
   (mul_mem_mul hri htj)
 
 variables (I)
-theorem mul_bot : I * ⊥ = ⊥ :=
+@[simp] theorem mul_bot : I * ⊥ = ⊥ :=
 submodule.smul_bot I
 
-theorem bot_mul : ⊥ * I = ⊥ :=
+@[simp] theorem bot_mul : ⊥ * I = ⊥ :=
 submodule.bot_smul I
 
-theorem mul_top : I * ⊤ = I :=
+@[simp] theorem mul_top : I * ⊤ = I :=
 ideal.mul_comm ⊤ I ▸ submodule.top_smul I
 
-theorem top_mul : ⊤ * I = I :=
+@[simp] theorem top_mul : ⊤ * I = I :=
 submodule.top_smul I
 variables {I}
 
@@ -463,7 +465,7 @@ def radical (I : ideal R) : ideal R :=
       (λ hcm, I.mul_mem_right _ $ I.mul_mem_left _ $ nat.add_comm n m ▸
         (nat.add_sub_assoc hcm n).symm ▸
         (pow_add y n (m-c)).symm ▸ I.mul_mem_right _ hyni)
-      (λ hmc, I.mul_mem_right _ $ I.mul_mem_right _ $ nat.add_sub_cancel' hmc ▸
+      (λ hmc, I.mul_mem_right _ $ I.mul_mem_right _ $ add_sub_cancel_of_le hmc ▸
         (pow_add x m (c-m)).symm ▸ I.mul_mem_right _ hxmi)⟩,
   smul_mem' := λ r s ⟨n, hsni⟩, ⟨n, (mul_pow r s n).symm ▸ I.mul_mem_left (r^n) hsni⟩ }
 

@@ -208,7 +208,7 @@ begin
         (f a) (g a) _ hp1,
       rw [ennreal.div_add_div_same, one_add_one_eq_two,
         ennreal.div_self ennreal.two_ne_zero ennreal.coe_ne_top], },
-    { rw ←ennreal.lt_top_iff_ne_top,
+    { rw ← lt_top_iff_ne_top,
       refine ennreal.rpow_lt_top_of_nonneg hp0 _,
       rw [one_div, ennreal.inv_ne_top],
       exact ennreal.two_ne_zero, },
@@ -261,7 +261,7 @@ begin
     have hpp2 : p * p2 = q,
     { symmetry, rw [mul_comm, ←div_eq_iff hp0_ne], },
     have hpq2 : p * q2 = r,
-    { rw [← inv_inv' r, ← one_div, ← one_div, h_one_div_r],
+    { rw [← inv_inv₀ r, ← one_div, ← one_div, h_one_div_r],
       field_simp [q2, real.conjugate_exponent, p2, hp0_ne, hq0_ne] },
     simp_rw [div_mul_div, mul_one, mul_comm p2, mul_comm q2, hpp2, hpq2],
   end
@@ -379,8 +379,8 @@ begin
   { rw [h0, @ennreal.zero_rpow_of_pos (1/p) (by simp [lt_of_lt_of_le zero_lt_one hp1])],
     exact zero_le _, },
   have htop : ∫⁻ a, ((f+g) a) ^ p ∂ μ ≠ ⊤,
-  { rw ←ne.def at hf_top hg_top,
-    rw ←ennreal.lt_top_iff_ne_top at hf_top hg_top ⊢,
+  { rw ← ne.def at hf_top hg_top,
+    rw ← lt_top_iff_ne_top at hf_top hg_top ⊢,
     exact lintegral_rpow_add_lt_top_of_lintegral_rpow_lt_top hf hf_top hg hg_top hp1, },
   exact lintegral_Lp_add_le_aux hpq hf hf_top hg hg_top h0 htop,
 end

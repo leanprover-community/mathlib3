@@ -117,6 +117,7 @@ quotient.hrec_on m (@list.rec α (λl, C ⟦l⟧) C_0 (λa l b, C_cons a ⟦l⟧
     (assume a l l' b b' hl, have ⟦l⟧ = ⟦l'⟧, from quot.sound hl, by cc)
     (assume a a' l, C_cons_heq a a' ⟦l⟧)
 
+/-- Companion to `multiset.rec` with more convenient argument order. -/
 @[elab_as_eliminator]
 protected def rec_on (m : multiset α)
   (C_0 : C 0)
@@ -499,6 +500,10 @@ pos_iff_ne_zero.trans $ not_congr card_eq_zero
 theorem card_pos_iff_exists_mem {s : multiset α} : 0 < card s ↔ ∃ a, a ∈ s :=
 quot.induction_on s $ λ l, length_pos_iff_exists_mem
 
+/-- A strong induction principle for multisets:
+If you construct a value for a particular multiset given values for all strictly smaller multisets,
+you can construct a value for any multiset.
+-/
 @[elab_as_eliminator] def strong_induction_on {p : multiset α → Sort*} :
   ∀ (s : multiset α), (∀ s, (∀t < s, p t) → p s) → p s
 | s := λ ih, ih s $ λ t h,
@@ -524,7 +529,7 @@ def strong_downward_induction {p : multiset α → Sort*} {n : ℕ} (H : ∀ t�
   t₂.card ≤ n → t₁ < t₂ → p t₂) → t₁.card ≤ n → p t₁) :
   ∀ (s : multiset α), s.card ≤ n → p s
 | s := H s (λ t ht h, have n - card t < n - card s,
-     from (nat.sub_lt_sub_left_iff ht).2 (card_lt_of_lt h),
+     from (sub_lt_sub_iff_left_of_le ht).2 (card_lt_of_lt h),
   strong_downward_induction t ht)
 using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ (t : multiset α), n - t.card)⟩]}
 
@@ -682,6 +687,14 @@ theorem card_erase_lt_of_mem {a : α} {s : multiset α} : a ∈ s → card (s.er
 theorem card_erase_le {a : α} {s : multiset α} : card (s.erase a) ≤ card s :=
 card_le_of_le (erase_le a s)
 
+theorem card_erase_eq_ite {a : α} {s : multiset α} :
+  card (s.erase a) = if a ∈ s then pred (card s) else card s :=
+begin
+  by_cases h : a ∈ s,
+  { rwa [card_erase_of_mem h, if_pos] },
+  { rwa [erase_of_not_mem h, if_neg] }
+end
+
 end erase
 
 @[simp] theorem coe_reverse (l : list α) : (reverse l : multiset α) = l :=
@@ -714,6 +727,13 @@ theorem map_repeat (f : α → β) (a : α) (k : ℕ) : (repeat a k).map f = rep
 
 @[simp] theorem map_add (f : α → β) (s t) : map f (s + t) = map f s + map f t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ map_append _ _ _
+
+/-- If each element of `s : multiset α` can be lifted to `β`, then `s` can be lifted to
+`multiset β`. -/
+instance [can_lift α β] : can_lift (multiset α) (multiset β) :=
+{ cond := λ s, ∀ x ∈ s, can_lift.cond β x,
+  coe := map can_lift.coe,
+  prf := by { rintro ⟨l⟩ hl, lift l to list β using hl, exact ⟨l, coe_map _ _⟩ } }
 
 /-- `multiset.map` as an `add_monoid_hom`. -/
 def map_add_monoid_hom (f : α → β) : multiset α →+ multiset β :=
@@ -890,7 +910,8 @@ foldl_induction' f H x p p s p_f px p_s
 
 /-- Product of a multiset given a commutative monoid structure on `α`.
   `prod {a, b, c} = a * b * c` -/
-@[to_additive]
+@[to_additive "Sum of a multiset given a commutative additive monoid structure on `α`.
+  `sum {a, b, c} = a + b + c`"]
 def prod [comm_monoid α] : multiset α → α :=
 foldr (*) (λ x y z, by simp [mul_left_comm]) 1
 
@@ -1423,6 +1444,8 @@ quotient.induction_on m $ assume l, congr_arg coe $ congr_arg (list.cons _) $
 section decidable_pi_exists
 variables {m : multiset α}
 
+/-- If `p` is a decidable predicate,
+so is the predicate that all elements of a multiset satisfy `p`. -/
 protected def decidable_forall_multiset {p : α → Prop} [hp : ∀a, decidable (p a)] :
   decidable (∀a∈m, p a) :=
 quotient.rec_on_subsingleton m (λl, decidable_of_iff (∀a∈l, p a) $ by simp)
@@ -1438,6 +1461,8 @@ instance decidable_eq_pi_multiset {β : α → Type*} [h : ∀a, decidable_eq (�
   decidable_eq (Πa∈m, β a) :=
 assume f g, decidable_of_iff (∀a (h : a ∈ m), f a h = g a h) (by simp [function.funext_iff])
 
+/-- If `p` is a decidable predicate,
+so is the existence of an element in a multiset satisfying `p`. -/
 def decidable_exists_multiset {p : α → Prop} [decidable_pred p] :
   decidable (∃ x ∈ m, p x) :=
 quotient.rec_on_subsingleton m list.decidable_exists_mem
@@ -1455,8 +1480,8 @@ end decidable_pi_exists
 section
 variables [decidable_eq α] {s t u : multiset α} {a b : α}
 
-/-- `s - t` is the multiset such that
-  `count a (s - t) = count a s - count a t` for all `a`. -/
+/-- `s - t` is the multiset such that `count a (s - t) = count a s - count a t` for all `a`
+  (note that it is truncated subtraction, so it is `0` if `count a t ≥ count a s`). -/
 protected def sub (s t : multiset α) : multiset α :=
 quotient.lift_on₂ s t (λ l₁ l₂, (l₁.diff l₂ : multiset α)) $ λ v₁ v₂ w₁ w₂ p₁ p₂,
   quot.sound $ p₁.diff p₂
@@ -1465,65 +1490,55 @@ instance : has_sub (multiset α) := ⟨multiset.sub⟩
 
 @[simp] theorem coe_sub (s t : list α) : (s - t : multiset α) = (s.diff t : list α) := rfl
 
-theorem sub_eq_fold_erase (s t : multiset α) : s - t = foldl erase erase_comm s t :=
-quotient.induction_on₂ s t $ λ l₁ l₂,
-show ↑(l₁.diff l₂) = foldl erase erase_comm ↑l₁ ↑l₂,
-by { rw diff_eq_foldl l₁ l₂, symmetry, exact foldl_hom _ _ _ _ _ (λ x y, rfl) }
-
-@[simp] theorem sub_zero (s : multiset α) : s - 0 = s :=
+/-- This is a special case of `sub_zero'`, which should be used instead of this.
+  This is needed to prove `has_ordered_sub (multiset α)`. -/
+protected theorem sub_zero (s : multiset α) : s - 0 = s :=
 quot.induction_on s $ λ l, rfl
 
 @[simp] theorem sub_cons (a : α) (s t : multiset α) : s - a ::ₘ t = s.erase a - t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ diff_cons _ _ _
 
-theorem add_sub_of_le (h : s ≤ t) : s + (t - s) = t :=
-begin
-  revert t,
-  refine multiset.induction_on s (by simp) (λ a s IH t h, _),
-  have := cons_erase (mem_of_le h (mem_cons_self _ _)),
-  rw [cons_add, sub_cons, IH, this],
-  exact (cons_le_cons_iff a).1 (this.symm ▸ h)
-end
-
-theorem sub_add' : s - (t + u) = s - t - u :=
-quotient.induction_on₃ s t u $
-λ l₁ l₂ l₃, congr_arg coe $ diff_append _ _ _
-
-theorem sub_add_cancel (h : t ≤ s) : s - t + t = s :=
-by rw [add_comm, add_sub_of_le h]
-
-@[simp] theorem add_sub_cancel_left (s : multiset α) : ∀ t, s + t - s = t :=
-multiset.induction_on s (by simp)
-  (λ a s IH t, by rw [cons_add, sub_cons, erase_cons_head, IH])
-
-@[simp] theorem add_sub_cancel (s t : multiset α) : s + t - t = s :=
-by rw [add_comm, add_sub_cancel_left]
-
-theorem sub_le_sub_right (h : s ≤ t) (u) : s - u ≤ t - u :=
-by revert s t h; exact
-multiset.induction_on u (by simp {contextual := tt})
-  (λ a u IH s t h, by simp [IH, erase_le_erase a h])
-
-theorem sub_le_sub_left (h : s ≤ t) : ∀ u, u - t ≤ u - s :=
-le_induction_on h $ λ l₁ l₂ h, begin
-  induction h with l₁ l₂ a s IH l₁ l₂ a s IH; intro u,
-  { refl },
-  { rw [← cons_coe, sub_cons],
-    exact le_trans (sub_le_sub_right (erase_le _ _) _) (IH u) },
-  { rw [← cons_coe, sub_cons, ← cons_coe, sub_cons],
-    exact IH _ }
-end
-
-theorem sub_le_iff_le_add : s - t ≤ u ↔ s ≤ u + t :=
+/-- This is a special case of `sub_le_iff_right`, which should be used instead of this.
+  This is needed to prove `has_ordered_sub (multiset α)`. -/
+protected theorem sub_le_iff_le_add : s - t ≤ u ↔ s ≤ u + t :=
 by revert s; exact
-multiset.induction_on t (by simp)
+multiset.induction_on t (by simp [multiset.sub_zero])
   (λ a t IH s, by simp [IH, erase_le_iff_le_cons])
 
+instance : has_ordered_sub (multiset α) :=
+⟨λ n m k, multiset.sub_le_iff_le_add⟩
+
+theorem sub_eq_fold_erase (s t : multiset α) : s - t = foldl erase erase_comm s t :=
+quotient.induction_on₂ s t $ λ l₁ l₂,
+show ↑(l₁.diff l₂) = foldl erase erase_comm ↑l₁ ↑l₂,
+by { rw diff_eq_foldl l₁ l₂, symmetry, exact foldl_hom _ _ _ _ _ (λ x y, rfl) }
+
+theorem add_sub_of_le (h : s ≤ t) : s + (t - s) = t :=
+add_sub_cancel_of_le h
+
+theorem sub_add' : s - (t + u) = s - t - u :=
+sub_add_eq_sub_sub'
+
+theorem sub_add_cancel (h : t ≤ s) : s - t + t = s :=
+sub_add_cancel_of_le h
+
+@[simp] theorem add_sub_cancel_left (s : multiset α) : ∀ t, s + t - s = t :=
+add_sub_cancel_left s
+
+@[simp] theorem add_sub_cancel (s t : multiset α) : s + t - t = s :=
+add_sub_cancel_right s t
+
+theorem sub_le_sub_right (h : s ≤ t) (u) : s - u ≤ t - u :=
+sub_le_sub_right' h u
+
+theorem sub_le_sub_left (h : s ≤ t) : ∀ u, u - t ≤ u - s :=
+sub_le_sub_left' h
+
 theorem le_sub_add (s t : multiset α) : s ≤ s - t + t :=
-sub_le_iff_le_add.1 (le_refl _)
+le_sub_add -- implicit args
 
 theorem sub_le_self (s t : multiset α) : s - t ≤ s :=
-sub_le_iff_le_add.2 (le_add_right _ _)
+sub_le_self' -- implicit args
 
 @[simp] theorem card_sub {s t : multiset α} (h : t ≤ s) : card (s - t) = card s - card t :=
 (nat.sub_eq_of_eq_add $ by rw [add_comm, ← card_add, sub_add_cancel h]).symm
@@ -2145,6 +2160,18 @@ begin
   by_cases x = a,
     simp only [min_comm, h, if_true, eq_self_iff_true],
     simp only [h, if_false, zero_min],
+end
+
+/-- `multiset.map f` preserves `count` if `f` is injective on the set of elements contained in
+the multiset -/
+theorem count_map_eq_count [decidable_eq β] (f : α → β) (s : multiset α)
+ (hf : set.inj_on f {x : α | x ∈ s}) (x ∈ s) : (s.map f).count (f x) = s.count x :=
+begin
+  suffices : (filter (λ (a : α), f x = f a) s).count x = card (filter (λ (a : α), f x = f a) s),
+  { rw [count, countp_map, ← this],
+    exact count_filter_of_pos rfl },
+  { rw eq_repeat.2 ⟨rfl, λ b hb, eq_comm.1 ((hf H (mem_filter.1 hb).left) (mem_filter.1 hb).right)⟩,
+    simp only [count_repeat, eq_self_iff_true, if_true, card_repeat]},
 end
 
 end

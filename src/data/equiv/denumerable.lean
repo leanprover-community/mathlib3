@@ -62,6 +62,9 @@ of_nat_of_decode (encodek _)
 def eqv (α) [denumerable α] : α ≃ ℕ :=
 ⟨encode, of_nat α, of_nat_encode, encode_of_nat⟩
 
+@[priority 100] -- See Note [lower instance priority]
+instance : infinite α := infinite.of_surjective _ (eqv α).surjective
+
 /-- A type equivalent to `ℕ` is denumerable. -/
 def mk' {α} (e : α ≃ ℕ) : denumerable α :=
 { encode := e,
@@ -159,7 +162,7 @@ lemma exists_succ (x : s) : ∃ n, x.1 + n + 1 ∈ s :=
 classical.by_contradiction $ λ h,
 have ∀ (a : ℕ) (ha : a ∈ s), a < x.val.succ,
   from λ a ha, lt_of_not_ge (λ hax, h ⟨a - (x.1 + 1),
-    by rwa [add_right_comm, nat.add_sub_cancel' hax]⟩),
+    by rwa [add_right_comm, add_sub_cancel_of_le hax]⟩),
 fintype.false
   ⟨(((multiset.range x.1.succ).filter (∈ s)).pmap
       (λ (y : ℕ) (hy : y ∈ s), subtype.mk y hy)

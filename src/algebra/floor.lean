@@ -95,8 +95,8 @@ by rw [← int.cast_one, floor_coe]
 le_floor.2 (le_trans (floor_le _) h)
 
 lemma floor_pos : 0 < ⌊a⌋ ↔ 1 ≤ a :=
-⟨λ h, le_trans (by rwa [←int.cast_one, int.cast_le, ←zero_add (1 : ℤ), int.add_one_le_iff]) (floor_le _),
-    λ h, zero_lt_one.trans_le (le_floor.2 $ by rwa int.cast_one)⟩
+⟨λ h, le_trans (by rwa [←int.cast_one, int.cast_le, ←zero_add (1 : ℤ), int.add_one_le_iff])
+  (floor_le _), λ h, zero_lt_one.trans_le (le_floor.2 $ by rwa int.cast_one)⟩
 
 @[simp] theorem floor_add_int (x : α) (z : ℤ) : ⌊x + z⌋ = ⌊x⌋ + z :=
 eq_of_forall_le_iff $ λ a, by rw [le_floor,

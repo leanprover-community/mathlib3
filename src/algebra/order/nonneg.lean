@@ -10,17 +10,29 @@ import order.lattice_intervals
 import order.conditionally_complete_lattice
 
 /-!
-## The type of nonnegative elements
+# The type of nonnegative elements
 
-This file proves properties about `{x : α // 0 ≤ x}`.
-Note that we could also use `set.Ici (0 : α)`.
+This file defines instances and prove some properties about the nonnegative elements
+`{x : α // 0 ≤ x}` of an arbitrary type `α`.
+
+Currently we only state instances and states some `simp`/`norm_cast` lemmas.
+
+When `α` is `ℝ`, this will give us some properties about `ℝ≥0`.
+
+## Main declarations
+
+* `{x : α // 0 ≤ x}` is a `canonically_linear_ordered_add_monoid` if `α` is a `linear_ordered_ring`.
+* `{x : α // 0 ≤ x}` is a `linear_ordered_comm_group_with_zero` if `α` is a `linear_ordered_field`.
+
+## Implementation Notes
+
+Instead of `{x : α // 0 ≤ x}` we could also use `set.Ici (0 : α)`, which is definitionally equal.
 However, using the explicit subtype has a big advantage: when writing and element explicitly
 with a proof of nonnegativity as `⟨x, hx⟩`, the `hx` is expected to have type `0 ≤ x`. If we would
 use `Ici 0`, then the type is expected to be `x ∈ Ici 0`. Although these types are definitionally
-equal, this often confused the elaborator.
-We prove that `{x : α // 0 ≤ x}` is a `canonically_linear_ordered_add_monoid` if `α` is a
-`linear_ordered_ring`.
-When `α` is `ℝ`, this will give us some properties about `ℝ≥0`.
+equal, this often confuses the elaborator. Similar problems arise when doing cases on an element.
+
+The disadvantage is that we have to duplicate some instances about `set.Ici` to this subtype.
 -/
 
 open set

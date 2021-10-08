@@ -10,6 +10,7 @@ import category_theory.limits.presheaf
 import category_theory.limits.yoneda
 import category_theory.limits.preserves.shapes.equalizers
 import category_theory.bicones
+import category_theory.limits.functor_category
 
 /-!
 # Representably flat functors
@@ -225,7 +226,7 @@ def Lan_presesrves_finite_limit_of_flat (F : C ⥤ D) [representably_flat F]
   (J : Type u₁) [small_category J] [fin_category J] :
   preserves_limits_of_shape J (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ Type u₁)) :=
 begin
-  apply preserves_limits_of_shape_if_evaluation (Lan F.op : (Cᵒᵖ ⥤ Type u₁) ⥤ (Dᵒᵖ ⥤ Type u₁)) J,
+  apply preserves_limits_of_shape_of_evaluation (Lan F.op : (Cᵒᵖ ⥤ Type u₁) ⥤ (Dᵒᵖ ⥤ Type u₁)) J,
   intro K,
   rw Lan_evaluation_eq_colim,
   haveI : is_filtered (costructured_arrow F.op K) :=
@@ -233,31 +234,7 @@ begin
   apply_instance
 end
 
-noncomputable
-def extend_of_comp_yoneda_iso_Lan (F : C ⥤ D) :
-  colimit_adj.extend_along_yoneda (F ⋙ yoneda) ≅ Lan F.op :=
-adjunction.nat_iso_of_right_adjoint_nat_iso
-  (colimit_adj.yoneda_adjunction (F ⋙ yoneda))
-  (Lan.adjunction (Type u₁) F.op)
-  (iso_whisker_right curried_yoneda_lemma' ((whiskering_left Cᵒᵖ Dᵒᵖ (Type u₁)).obj F.op : _))
-
-noncomputable
-def yoneda_comp_Lan (F : C ⥤ D) : F ⋙ yoneda ≅ yoneda ⋙ Lan F.op :=
-(colimit_adj.is_extension_along_yoneda (F ⋙ yoneda)).symm ≪≫
-  iso_whisker_left yoneda (extend_of_comp_yoneda_iso_Lan F)
-
-noncomputable
-def preserves_finite_limit_of_flat (F : C ⥤ D) [representably_flat F]
-  (J : Type u₁) [small_category J] [fin_category J] :
-  preserves_limits_of_shape J F := by {
-  apply preserves_limits_of_shape_of_reflects_of_preserves F yoneda,
-  haveI := Lan_presesrves_finite_limit_of_flat F J,
-  exact preserves_limits_of_shape_of_nat_iso (yoneda_comp_Lan F).symm,
-  apply_instance
-}
-
--- local attribute[ext] functor.hext
-
+#check category_theory.whiskering_left_preserves_limits
 end small_category
 
 end category_theory

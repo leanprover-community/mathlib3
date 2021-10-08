@@ -446,8 +446,8 @@ def prodL :
 /-- `continuous_multilinear_map.pi` as a `linear_isometry_equiv`. -/
 def piₗᵢ {ι' : Type v'} [fintype ι'] {E' : ι' → Type wE'} [Π i', normed_group (E' i')]
   [Π i', normed_space 𝕜 (E' i')] :
-  @linear_isometry_equiv 𝕜 (Π i', continuous_multilinear_map 𝕜 E (E' i'))
-    (continuous_multilinear_map 𝕜 E (Π i, E' i)) _ _ _
+  @linear_isometry_equiv 𝕜 𝕜 _ _ (ring_hom.id 𝕜) _ _ _
+    (Π i', continuous_multilinear_map 𝕜 E (E' i')) (continuous_multilinear_map 𝕜 E (Π i, E' i)) _ _
       (@pi.module ι' _ 𝕜 _ _ (λ i', infer_instance)) _ :=
 { to_linear_equiv :=
   -- note: `pi_linear_equiv` does not unify correctly here, presumably due to issues with dependent

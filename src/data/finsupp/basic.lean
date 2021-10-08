@@ -2678,7 +2678,7 @@ subrelation.wf (sum_id_lt_of_lt) $ inv_image.wf _ nat.lt_wf
 
 variable {α}
 
-/-! Declarations about subtraction on `finsupp`.
+/-! Declarations about subtraction on `finsupp` with codomain a `canonically_ordered_add_monoid`.
 
 Some of these lemmas are used to develop the partial derivative on `mv_polynomial`. -/
 section nat_sub
@@ -2686,13 +2686,14 @@ section canonically_ordered_monoid
 
 variables [canonically_ordered_add_monoid M] [has_sub M] [has_ordered_sub M]
 
-/-- Todo: rename. It is defined more generally for `canonically_ordered_add_monoid` -/
-instance nat_sub : has_sub (α →₀ M) :=
+/-- This is called `tsub` for truncated subtraction, to distinguish it with subtraction in an
+additive group. -/
+instance tsub : has_sub (α →₀ M) :=
 ⟨zip_with (λ m n, m - n) (sub_self' 0)⟩
 
-@[simp] lemma coe_nat_sub (g₁ g₂ : α →₀ M) : ⇑(g₁ - g₂) = g₁ - g₂ := rfl
+@[simp] lemma coe_tsub (g₁ g₂ : α →₀ M) : ⇑(g₁ - g₂) = g₁ - g₂ := rfl
 
-lemma nat_sub_apply (g₁ g₂ : α →₀ M) (a : α) : (g₁ - g₂) a = g₁ a - g₂ a := rfl
+lemma tsub_apply (g₁ g₂ : α →₀ M) (a : α) : (g₁ - g₂) a = g₁ a - g₂ a := rfl
 
 instance : canonically_ordered_add_monoid (α →₀ M) :=
 { bot := 0,
@@ -2705,46 +2706,16 @@ instance : canonically_ordered_add_monoid (α →₀ M) :=
     end,
  ..(by apply_instance : ordered_add_comm_monoid (α →₀ M)) }
 
-protected theorem sub_le_iff_right {f g h : α →₀ M} : f - g ≤ h ↔ f ≤ h + g :=
-begin
-  apply forall_congr, intro x,
-  simp only [finsupp.coe_nat_sub, pi.add_apply, sub_le_iff_right, finsupp.coe_add, pi.sub_apply]
-end
-
 instance : has_ordered_sub (α →₀ M) :=
-⟨λ n m k, finsupp.sub_le_iff_right⟩
+⟨λ n m k, forall_congr $ λ x, sub_le_iff_right⟩
 
-@[simp] lemma single_nat_sub {a : α} {n₁ n₂ : M} : single a (n₁ - n₂) = single a n₁ - single a n₂ :=
+@[simp] lemma single_tsub {a : α} {n₁ n₂ : M} : single a (n₁ - n₂) = single a n₁ - single a n₂ :=
 begin
   ext f,
   by_cases h : (a = f),
-  { rw [h, nat_sub_apply, single_eq_same, single_eq_same, single_eq_same] },
-  rw [nat_sub_apply, single_eq_of_ne h, single_eq_of_ne h, single_eq_of_ne h, sub_self']
+  { rw [h, tsub_apply, single_eq_same, single_eq_same, single_eq_same] },
+  rw [tsub_apply, single_eq_of_ne h, single_eq_of_ne h, single_eq_of_ne h, sub_self']
 end
-
-lemma nat_zero_sub (f : α →₀ M) : 0 - f = 0 :=
-zero_sub' f
-
-lemma nat_sub_self (f : α →₀ M) : f - f = 0 :=
-sub_self' f
-
-lemma nat_add_sub_of_le {f g : α →₀ M} (h : f ≤ g) : f + (g - f) = g :=
-add_sub_cancel_of_le h
-
-lemma nat_sub_add_cancel {f g : α →₀ M} (h : f ≤ g) : g - f + f = g :=
-sub_add_cancel_of_le h
-
-variables [contravariant_class M M (+) (≤)]
-
-lemma nat_add_sub_cancel (f g : α →₀ M) : f + g - g = f :=
-add_sub_cancel_right f g
-
-lemma nat_add_sub_cancel_left (f g : α →₀ M) : f + g - f = g :=
-add_sub_cancel_left f g
-
-lemma nat_add_sub_assoc {f₁ f₂ : α →₀ M} (h : f₁ ≤ f₂) (f₃ : α →₀ M) :
-  f₃ + f₂ - f₁ = f₃ + (f₂ - f₁) :=
-add_sub_assoc_of_le h f₃
 
 end canonically_ordered_monoid
 

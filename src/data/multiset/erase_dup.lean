@@ -60,6 +60,8 @@ theorem erase_dup_eq_self {s : multiset α} : erase_dup s = s ↔ nodup s :=
 
 alias erase_dup_eq_self ↔ _ multiset.nodup.erase_dup
 
+alias erase_dup_eq_self ↔ _ multiset.nodup.erase_dup
+
 theorem erase_dup_eq_zero {s : multiset α} : erase_dup s = 0 ↔ s = 0 :=
 ⟨λ h, eq_zero_of_subset_zero $ h ▸ subset_erase_dup _,
  λ h, h.symm ▸ erase_dup_zero⟩

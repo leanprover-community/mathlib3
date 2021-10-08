@@ -26,14 +26,21 @@ TODOs:
 
 ## Main definitions
 
-The main definitions are the types `finite_measure α` and `probability_measure α`.
+The main definitions are the
+ * types `finite_measure α` and `probability_measure α`;
+ * `to_weak_dual_of_bounded_continuous_nnreal : finite_measure α → (weak_dual ℝ≥0 (α →ᵇ ℝ≥0))`
+   allowing to interpret a finite measure as a continuous linear functional on the space of
+   bounded continuous nonnegative functions on `α`. This will be used for the definition of the
+   topology of weak convergence.
 
 TODO:
 * Define the topologies on the above types.
 
 ## Main results
 
-None yet.
+ * Finite measures `μ` on `α` give rise to continuous linear functionals on the space of
+   bounded continuous nonnegative functions on `α` via integration:
+   `to_weak_dual_of_bounded_continuous_nnreal : finite_measure α → (weak_dual ℝ≥0 (α →ᵇ ℝ≥0))`.
 
 TODO:
 * Portmanteau theorem.

@@ -84,7 +84,7 @@ General algebra:
     separable polynomial: 'polynomial.separable'
     $K[X]$ is Euclidean: 'polynomial.euclidean_domain'
     Hilbert basis theorem: 'polynomial.is_noetherian_ring'
-    $A[X]$ has gcd and lcm if $A$ does: 'polynomial.gcd_monoid'
+    $A[X]$ has gcd and lcm if $A$ does: 'polynomial.normalized_gcd_monoid'
     $A[X]$ is a UFD when $A$ is a UFD: 'polynomial.unique_factorization_monoid'
     irreducible polynomial: 'irreducible'
     Eisenstein's criterion: 'polynomial.irreducible_of_eisenstein_criterion'
@@ -253,7 +253,7 @@ Analysis:
     Hahn-Banach theorem: 'exists_extension_norm_eq'
     dual of a normed space: 'normed_space.dual'
     Fréchet-Riesz representation of the dual of a Hilbert space: 'inner_product_space.to_dual'
-    isometric inclusion in double dual: 'normed_space.inclusion_in_double_dual_isometry'
+    isometric inclusion in double dual: 'normed_space.inclusion_in_double_dual_li'
     completeness of spaces of bounded continuous functions: 'bounded_continuous_function.complete_space'
 
   Differentiability:

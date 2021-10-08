@@ -43,7 +43,7 @@ In other words, `a - b` is the least `c` such that `a ≤ b + c`.
 This is satisfied both by the subtraction in additive ordered groups and by truncated subtraction
 in canonically ordered monoids on many specific types.
 -/
-class has_ordered_sub (α : Type*) [preorder α] [has_add α] [has_sub α] :=
+class has_ordered_sub (α : Type*) [has_le α] [has_add α] [has_sub α] :=
 (sub_le_iff_right : ∀ a b c : α, a - b ≤ c ↔ a ≤ c + b)
 
 section has_add
@@ -245,11 +245,11 @@ lemma eq_sub_of_add_eq'' (h : a + c = b) : a = b - c :=
 contravariant.add_le_cancellable.eq_sub_of_add_eq h
 
 @[simp]
-lemma add_sub_cancel_right : a + b - b = a :=
+lemma add_sub_cancel_right (a b : α) : a + b - b = a :=
 contravariant.add_le_cancellable.add_sub_cancel_right
 
 @[simp]
-lemma add_sub_cancel_left : a + b - a = b :=
+lemma add_sub_cancel_left (a b : α) : a + b - a = b :=
 contravariant.add_le_cancellable.add_sub_cancel_left
 
 lemma le_sub_of_add_le_left' (h : a + b ≤ c) : b ≤ c - a :=
@@ -269,7 +269,7 @@ end contra
 section both
 variables [covariant_class α α (+) (≤)] [contravariant_class α α (+) (≤)]
 
-lemma add_sub_add_right_eq_sub' : (a + c) - (b + c) = a - b :=
+lemma add_sub_add_right_eq_sub' (a c b : α) : (a + c) - (b + c) = a - b :=
 begin
   apply le_antisymm,
   { rw [sub_le_iff_left, add_right_comm], exact add_le_add_right le_add_sub c },
@@ -293,6 +293,17 @@ variables {a b c d : α} [linear_order α] [add_comm_monoid α] [has_sub α] [ha
 /-- See `lt_of_sub_lt_sub_right_of_le` for a weaker statement in a partial order. -/
 lemma lt_of_sub_lt_sub_right (h : a - c < b - c) : a < b :=
 lt_imp_lt_of_le_imp_le (λ h, sub_le_sub_right' h c) h
+
+/-- See `lt_sub_iff_right_of_le` for a weaker statement in a partial order. -/
+lemma lt_sub_iff_right : a < b - c ↔ a + c < b :=
+lt_iff_lt_of_le_iff_le sub_le_iff_right
+
+/-- See `lt_sub_iff_left_of_le` for a weaker statement in a partial order. -/
+lemma lt_sub_iff_left : a < b - c ↔ c + a < b :=
+lt_iff_lt_of_le_iff_le sub_le_iff_left
+
+lemma lt_sub_comm : a < b - c ↔ c < b - a :=
+lt_sub_iff_left.trans lt_sub_iff_right.symm
 
 section cov
 variable [covariant_class α α (+) (≤)]
@@ -345,16 +356,16 @@ by { refine ((sub_le_sub_iff_right' h).mp h2.le).lt_of_ne _, rintro rfl, exact h
 lemma sub_eq_zero_iff_le : a - b = 0 ↔ a ≤ b :=
 by rw [← nonpos_iff_eq_zero, sub_le_iff_left, add_zero]
 
-@[simp] lemma sub_self' : a - a = 0 :=
+@[simp] lemma sub_self' (a : α) : a - a = 0 :=
 sub_eq_zero_iff_le.mpr le_rfl
 
 @[simp] lemma sub_le_self' : a - b ≤ a :=
 sub_le_iff_left.mpr $ le_add_left le_rfl
 
-@[simp] lemma sub_zero' : a - 0 = a :=
+@[simp] lemma sub_zero' (a : α) : a - 0 = a :=
 le_antisymm sub_le_self' $ le_add_sub.trans_eq $ zero_add _
 
-@[simp] lemma zero_sub' : 0 - a = 0 :=
+@[simp] lemma zero_sub' (a : α) : 0 - a = 0 :=
 sub_eq_zero_iff_le.mpr $ zero_le a
 
 lemma sub_self_add (a b : α) : a - (a + b) = 0 :=
@@ -660,16 +671,6 @@ end add_le_cancellable
 section contra
 variable [contravariant_class α α (+) (≤)]
 
-/-- See `lt_sub_iff_right_of_le` for a weaker statement in a partial order.
-This lemma also holds for `ennreal`, but we need a different proof for that. -/
-lemma lt_sub_iff_right : a < b - c ↔ a + c < b :=
-contravariant.add_le_cancellable.lt_sub_iff_right
-
-/-- See `lt_sub_iff_left_of_le` for a weaker statement in a partial order.
-This lemma also holds for `ennreal`, but we need a different proof for that. -/
-lemma lt_sub_iff_left : a < b - c ↔ c + a < b :=
-contravariant.add_le_cancellable.lt_sub_iff_left
-
 /-- This lemma also holds for `ennreal`, but we need a different proof for that. -/
 lemma sub_lt_sub_iff_right' (h : c ≤ a) : a - c < b - c ↔ a < b :=
 contravariant.add_le_cancellable.sub_lt_sub_iff_right h
@@ -712,3 +713,36 @@ lemma sub_add_min : a - b + min a b = a :=
 by { rw [← sub_min, sub_add_cancel_of_le], apply min_le_left }
 
 end canonically_linear_ordered_add_monoid
+
+namespace with_top
+
+section
+variables [has_sub α] [has_zero α]
+
+/-- If `α` has subtraction and `0`, we can extend the subtraction to `with_top α`. -/
+protected def sub : Π (a b : with_top α), with_top α
+| _       ⊤       := 0
+| ⊤       (x : α) := ⊤
+| (x : α) (y : α) := (x - y : α)
+
+instance : has_sub (with_top α) :=
+⟨with_top.sub⟩
+
+@[simp, norm_cast] lemma coe_sub {a b : α} : (↑(a - b) : with_top α) = ↑a - ↑b := rfl
+@[simp] lemma top_sub_coe {a : α} : (⊤ : with_top α) - a = ⊤ := rfl
+@[simp] lemma sub_top {a : with_top α} : a - ⊤ = 0 := by { cases a; refl }
+
+end
+
+variables [canonically_ordered_add_monoid α] [has_sub α] [has_ordered_sub α]
+instance : has_ordered_sub (with_top α) :=
+begin
+  constructor,
+  rintro x y z,
+  induction y using with_top.rec_top_coe, { simp },
+  induction x using with_top.rec_top_coe, { simp },
+  induction z using with_top.rec_top_coe, { simp },
+  norm_cast, exact sub_le_iff_right
+end
+
+end with_top

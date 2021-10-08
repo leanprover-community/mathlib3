@@ -66,14 +66,14 @@ lemma dist_eq (z w : ℂ) : dist z w = abs (z - w) := rfl
 
 @[simp] lemma norm_real (r : ℝ) : ∥(r : ℂ)∥ = ∥r∥ := abs_of_real _
 
-@[simp] lemma norm_rat (r : ℚ) : ∥(r : ℂ)∥ = _root_.abs (r : ℝ) :=
-suffices ∥((r : ℝ) : ℂ)∥ = _root_.abs r, by simpa,
+@[simp] lemma norm_rat (r : ℚ) : ∥(r : ℂ)∥ = |(r : ℝ)| :=
+suffices ∥((r : ℝ) : ℂ)∥ = |r|, by simpa,
 by rw [norm_real, real.norm_eq_abs]
 
 @[simp] lemma norm_nat (n : ℕ) : ∥(n : ℂ)∥ = n := abs_of_nat _
 
-@[simp] lemma norm_int {n : ℤ} : ∥(n : ℂ)∥ = _root_.abs n :=
-suffices ∥((n : ℝ) : ℂ)∥ = _root_.abs n, by simpa,
+@[simp] lemma norm_int {n : ℤ} : ∥(n : ℂ)∥ = |n| :=
+suffices ∥((n : ℝ) : ℂ)∥ = |n|, by simpa,
 by rw [norm_real, real.norm_eq_abs]
 
 lemma norm_int_of_nonneg {n : ℤ} (hn : 0 ≤ n) : ∥(n : ℂ)∥ = n :=
@@ -123,6 +123,15 @@ def im_clm : ℂ →L[ℝ] ℝ := im_lm.mk_continuous 1 (λ x, by simp [real.nor
 le_antisymm (linear_map.mk_continuous_norm_le _ zero_le_one _) $
 calc 1 = ∥im_clm I∥ : by simp
    ... ≤ ∥im_clm∥ : unit_le_op_norm _ _ (by simp)
+
+lemma restrict_scalars_one_smul_right' {E : Type*} [normed_group E] [normed_space ℂ E] (x : E) :
+  continuous_linear_map.restrict_scalars ℝ ((1 : ℂ →L[ℂ] ℂ).smul_right x : ℂ →L[ℂ] E) =
+    re_clm.smul_right x + I • im_clm.smul_right x :=
+by { ext ⟨a, b⟩, simp [mk_eq_add_mul_I, add_smul, mul_smul, smul_comm I] }
+
+lemma restrict_scalars_one_smul_right (x : ℂ) :
+  continuous_linear_map.restrict_scalars ℝ ((1 : ℂ →L[ℂ] ℂ).smul_right x : ℂ →L[ℂ] ℂ) = x • 1 :=
+by { ext1 z, dsimp, apply mul_comm }
 
 /-- The complex-conjugation function from `ℂ` to itself is an isometric linear equivalence. -/
 def conj_lie : ℂ ≃ₗᵢ[ℝ] ℂ := ⟨conj_ae.to_linear_equiv, abs_conj⟩

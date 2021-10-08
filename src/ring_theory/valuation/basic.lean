@@ -191,7 +191,7 @@ variables [linear_ordered_comm_group_with_zero Γ₀] {R} {Γ₀} (v : valuation
 
 @[simp] lemma map_inv {K : Type*} [division_ring K]
   (v : valuation K Γ₀) {x : K} : v x⁻¹ = (v x)⁻¹ :=
-v.to_monoid_with_zero_hom.map_inv' x
+v.to_monoid_with_zero_hom.map_inv x
 
 lemma map_units_inv (x : units R) : v (x⁻¹ : units R) = (v x)⁻¹ :=
 v.to_monoid_with_zero_hom.to_monoid_hom.map_units_inv x
@@ -236,6 +236,13 @@ begin
   simpa using this
 end
 
+/-- The subgroup of elements whose valuation is less than a certain unit.-/
+def lt_add_subgroup (v : valuation R Γ₀) (γ : units Γ₀) : add_subgroup R :=
+{ carrier   := {x | v x < γ},
+  zero_mem' := by { have h := units.ne_zero γ, contrapose! h, simpa using h },
+  add_mem'  := λ x y x_in y_in, lt_of_le_of_lt (v.map_add x y) (max_lt x_in y_in),
+  neg_mem'  := λ x x_in, by rwa [set.mem_set_of_eq, map_neg] }
+
 end group
 end basic -- end of section
 
@@ -260,7 +267,7 @@ by { subst h }
 lemma map {v' : valuation R Γ₀} (f : monoid_with_zero_hom Γ₀ Γ'₀) (hf : monotone f)
   (inf : injective f) (h : v.is_equiv v') :
   (v.map f hf).is_equiv (v'.map f hf) :=
-let H : strict_mono f := strict_mono_of_monotone_of_injective hf inf in
+let H : strict_mono f := hf.strict_mono_of_injective inf in
 λ r s,
 calc f (v r) ≤ f (v s) ↔ v r ≤ v s   : by rw H.le_iff_le
                    ... ↔ v' r ≤ v' s : h r s
@@ -302,7 +309,7 @@ begin
   intros x y,
   by_cases hy : y = 0, { simp [hy, zero_iff], },
   rw show y = 1 * y, by rw one_mul,
-  rw [← (inv_mul_cancel_right' hy x)],
+  rw [← (inv_mul_cancel_right₀ hy x)],
   iterate 2 {rw [v.map_mul _ y, v'.map_mul _ y]},
   rw [v.map_one, v'.map_one],
   split; intro H,

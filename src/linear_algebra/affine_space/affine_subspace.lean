@@ -700,6 +700,25 @@ by rw [direction_eq_vector_span, bot_coe, vector_span_def, vsub_empty, submodule
 
 variables {k V P}
 
+lemma subsingleton_of_subsingleton_span_eq_top {s : set P} (h₁ : s.subsingleton)
+  (h₂ : affine_span k s = ⊤) : subsingleton P :=
+begin
+  obtain ⟨p, hp⟩ := affine_subspace.nonempty_of_affine_span_eq_top k V P h₂,
+  have : s = {p}, { exact subset.antisymm (λ q hq, h₁ hq hp) (by simp [hp]), },
+  rw [this, ← affine_subspace.ext_iff, affine_subspace.coe_affine_span_singleton,
+    affine_subspace.top_coe, eq_comm, ← subsingleton_iff_singleton (mem_univ _)] at h₂,
+  exact subsingleton_of_univ_subsingleton h₂,
+end
+
+lemma eq_univ_of_subsingleton_span_eq_top {s : set P} (h₁ : s.subsingleton)
+  (h₂ : affine_span k s = ⊤) : s = (univ : set P) :=
+begin
+  obtain ⟨p, hp⟩ := affine_subspace.nonempty_of_affine_span_eq_top k V P h₂,
+  have : s = {p}, { exact subset.antisymm (λ q hq, h₁ hq hp) (by simp [hp]), },
+  rw [this, eq_comm, ← subsingleton_iff_singleton (mem_univ p), subsingleton_univ_iff],
+  exact subsingleton_of_subsingleton_span_eq_top h₁ h₂,
+end
+
 /-- A nonempty affine subspace is `⊤` if and only if its direction is
 `⊤`. -/
 @[simp] lemma direction_eq_top_iff_of_nonempty {s : affine_subspace k P}

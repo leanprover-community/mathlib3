@@ -240,19 +240,10 @@ attribute [simp] val_zero
 
 lemma zero_le (a : fin (n + 1)) : 0 ≤ a := zero_le a.1
 
+lemma zero_lt_one : (0 : fin (n + 2)) < 1 := nat.zero_lt_one
+
 lemma pos_iff_ne_zero (a : fin (n+1)) : 0 < a ↔ a ≠ 0 :=
-begin
-  split,
-  { rintros h rfl, exact lt_irrefl _ h, },
-  { rintros h,
-    apply (@pos_iff_ne_zero _ _ (a : ℕ)).mpr,
-    cases a,
-    rintro w,
-    apply h,
-    simp at w,
-    subst w,
-    refl, },
-end
+by rw [← coe_fin_lt, coe_zero, pos_iff_ne_zero, ne.def, ne.def, ext_iff, coe_zero]
 
 lemma eq_zero_or_eq_succ {n : ℕ} (i : fin (n+1)) : i = 0 ∨ ∃ j : fin n, i = j.succ :=
 begin
@@ -799,7 +790,7 @@ by simp only [ext_iff, coe_pred, coe_mk, nat.add_sub_cancel]
 -- This is not a simp lemma by default, because `pred_mk_succ` is nicer when it applies.
 lemma pred_mk {n : ℕ} (i : ℕ) (h : i < n + 1) (w) :
   fin.pred ⟨i, h⟩ w =
-  ⟨i - 1, by rwa nat.sub_lt_right_iff_lt_add (nat.pos_of_ne_zero (fin.vne_of_ne w))⟩ :=
+  ⟨i - 1, by rwa sub_lt_iff_right (nat.succ_le_of_lt $ nat.pos_of_ne_zero (fin.vne_of_ne w))⟩ :=
 rfl
 
 @[simp] lemma pred_le_pred_iff {n : ℕ} {a b : fin n.succ} {ha : a ≠ 0} {hb : b ≠ 0} :
@@ -827,7 +818,7 @@ end
 
 /-- `sub_nat i h` subtracts `m` from `i`, generalizes `fin.pred`. -/
 def sub_nat (m) (i : fin (n + m)) (h : m ≤ (i : ℕ)) : fin n :=
-⟨(i : ℕ) - m, by { rw [nat.sub_lt_right_iff_lt_add h], exact i.is_lt }⟩
+⟨(i : ℕ) - m, by { rw [sub_lt_iff_right h], exact i.is_lt }⟩
 
 @[simp] lemma coe_sub_nat (i : fin (n + m)) (h : m ≤ i) : (i.sub_nat m h : ℕ) = i - m :=
 rfl
@@ -950,6 +941,15 @@ lemma exists_fin_succ {P : fin (n+1) → Prop} :
 ⟨λ ⟨i, h⟩, fin.cases or.inl (λ i hi, or.inr ⟨i, hi⟩) i h,
   λ h, or.elim h (λ h, ⟨0, h⟩) $ λ⟨i, hi⟩, ⟨i.succ, hi⟩⟩
 
+lemma forall_fin_one {p : fin 1 → Prop} : (∀ i, p i) ↔ p 0 := @unique.forall_iff (fin 1) _ p
+lemma exists_fin_one {p : fin 1 → Prop} : (∃ i, p i) ↔ p 0 := @unique.exists_iff (fin 1) _ p
+
+lemma forall_fin_two {p : fin 2 → Prop} : (∀ i, p i) ↔ p 0 ∧ p 1 :=
+forall_fin_succ.trans $ and_congr_right $ λ _, forall_fin_one
+
+lemma exists_fin_two {p : fin 2 → Prop} : (∃ i, p i) ↔ p 0 ∨ p 1 :=
+exists_fin_succ.trans $ or_congr_right exists_fin_one
+
 /--
 Define `C i` by reverse induction on `i : fin (n + 1)` via induction on the underlying `nat` value.
 This function has two arguments: `hlast` handles the base case on `C (fin.last n)`,
@@ -968,7 +968,7 @@ else
   let j : fin n := ⟨i, lt_of_le_of_ne (nat.le_of_lt_succ i.2) (λ h, hi (fin.ext h))⟩ in
   have wf : n + 1 - j.succ < n + 1 - i, begin
     cases i,
-    rw [nat.sub_lt_sub_left_iff];
+    rw [sub_lt_sub_iff_left_of_le];
     simp [*, nat.succ_le_iff],
   end,
   have hi : i = fin.cast_succ j, from fin.ext rfl,
@@ -1586,7 +1586,7 @@ for the vector length. -/
 def append {α : Type*} {o : ℕ} (ho : o = m + n) (u : fin m → α) (v : fin n → α) : fin o → α :=
 λ i, if h : (i : ℕ) < m
   then u ⟨i, h⟩
-  else v ⟨(i : ℕ) - m, (nat.sub_lt_left_iff_lt_add (le_of_not_lt h)).2 (ho ▸ i.property)⟩
+  else v ⟨(i : ℕ) - m, (sub_lt_iff_left (le_of_not_lt h)).2 (ho ▸ i.property)⟩
 
 @[simp] lemma fin_append_apply_zero {α : Type*} {o : ℕ} (ho : (o + 1) = (m + 1) + n)
   (u : fin (m + 1) → α) (v : fin n → α) :
@@ -1809,6 +1809,16 @@ by simp [funext_iff, forall_iff_succ_above i, eq_comm]
 lemma eq_insert_nth_iff {i : fin (n + 1)} {x : α i} {p : Π j, α (i.succ_above j)} {q : Π j, α j} :
   q = i.insert_nth x p ↔ q i = x ∧ p = (λ j, q (i.succ_above j)) :=
 eq_comm.trans insert_nth_eq_iff
+
+lemma insert_nth_apply_below {i j : fin (n + 1)} (h : j < i) (x : α i)
+  (p : Π k, α (i.succ_above k)) :
+  i.insert_nth x p j = eq.rec_on (succ_above_cast_lt h) (p $ j.cast_lt _) :=
+by rw [insert_nth, succ_above_cases, dif_neg h.ne, dif_pos h]
+
+lemma insert_nth_apply_above {i j : fin (n + 1)} (h : i < j) (x : α i)
+  (p : Π k, α (i.succ_above k)) :
+  i.insert_nth x p j = eq.rec_on (succ_above_pred h) (p $ j.pred _) :=
+by rw [insert_nth, succ_above_cases, dif_neg h.ne', dif_neg h.not_lt]
 
 lemma insert_nth_zero (x : α 0) (p : Π j : fin n, α (succ_above 0 j)) :
   insert_nth 0 x p = cons x (λ j, _root_.cast (congr_arg α (congr_fun succ_above_zero j)) (p j)) :=

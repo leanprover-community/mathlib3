@@ -50,7 +50,7 @@ begin
     exact add_le_add ihn this,
     exacts [n.one_le_two_pow, nat.pow_le_pow_of_le_right zero_lt_two n.le_succ] },
   have : ∀ k ∈ Ico (2 ^ n) (2 ^ (n + 1)), f k ≤ f (2 ^ n) :=
-    λ k hk, hf (pow_pos zero_lt_two _) (Ico.mem.mp hk).1,
+    λ k hk, hf (pow_pos zero_lt_two _) (mem_Ico.mp hk).1,
   convert sum_le_sum this,
   simp [pow_succ, two_mul]
 end
@@ -72,8 +72,8 @@ begin
     exacts [add_le_add_right n.one_le_two_pow _,
       add_le_add_right (nat.pow_le_pow_of_le_right zero_lt_two n.le_succ) _] },
   have : ∀ k ∈ Ico (2 ^ n + 1) (2 ^ (n + 1) + 1), f (2 ^ (n + 1)) ≤ f k :=
-    λ k hk, hf (n.one_le_two_pow.trans_lt $ (nat.lt_succ_of_le le_rfl).trans_le (Ico.mem.mp hk).1)
-      (nat.le_of_lt_succ $ (Ico.mem.mp hk).2),
+    λ k hk, hf (n.one_le_two_pow.trans_lt $ (nat.lt_succ_of_le le_rfl).trans_le (mem_Ico.mp hk).1)
+      (nat.le_of_lt_succ $ (mem_Ico.mp hk).2),
   convert sum_le_sum this,
   simp [pow_succ, two_mul]
 end
@@ -162,7 +162,7 @@ begin
   cases `0 ≤ p` and `p < 0` separately. -/
   { rw ← summable_condensed_iff_of_nonneg,
     { simp_rw [nat.cast_pow, nat.cast_two, ← rpow_nat_cast, ← rpow_mul zero_lt_two.le, mul_comm _ p,
-        rpow_mul zero_lt_two.le, rpow_nat_cast, ← inv_pow', ← mul_pow,
+        rpow_mul zero_lt_two.le, rpow_nat_cast, ← inv_pow₀, ← mul_pow,
         summable_geometric_iff_norm_lt_1],
       nth_rewrite 0 [← rpow_one 2],
       rw [← division_def, ← rpow_sub zero_lt_two, norm_eq_abs,

@@ -37,7 +37,6 @@ import analysis.complex.upper_half_plane
 open complex matrix matrix.special_linear_group upper_half_plane
 noncomputable theory
 
-local notation `|` x `|` := _root_.abs x
 local notation `SL(` n `, ` R `)`:= special_linear_group (fin n) R
 local prefix `↑ₘ`:1024 := @coe _ (matrix (fin 2) (fin 2) ℤ) _
 
@@ -126,7 +125,7 @@ begin
     apply linear_map.ext,
     intros c,
     have hz : 0 < (z:ℂ).im := z.2,
-    have : (z:ℂ).im ≠ 0 := hz.ne.symm,
+    have : (z:ℂ).im ≠ 0 := hz.ne',
     ext i,
     fin_cases i,
     { field_simp },
@@ -258,7 +257,7 @@ begin
 end
 
 lemma tendsto_abs_re_smul (z:ℍ) {p : fin 2 → ℤ} (hp : is_coprime (p 0) (p 1)) :
-  tendsto (λ g : {g : SL(2, ℤ) // g 1 = p}, _root_.abs (((g : SL(2, ℤ)) • z).re))
+  tendsto (λ g : {g : SL(2, ℤ) // g 1 = p}, |((g : SL(2, ℤ)) • z).re|)
     cofinite at_top :=
 begin
   suffices : tendsto (λ g : (λ g : SL(2, ℤ), g 1) ⁻¹' {p}, (((g : SL(2, ℤ)) • z).re))
@@ -267,7 +266,7 @@ begin
   have : ((p 0 : ℝ) ^ 2 + p 1 ^ 2)⁻¹ ≠ 0,
   { apply inv_ne_zero,
     exact_mod_cast hp.sq_add_sq_ne_zero },
-  let f := homeomorph.mul_right' _ this,
+  let f := homeomorph.mul_right₀ _ this,
   let ff := homeomorph.add_right (((p 1:ℂ)* z - p 0) / ((p 0 ^ 2 + p 1 ^ 2) * (p 0 * z + p 1))).re,
   convert ((f.trans ff).closed_embedding.tendsto_cocompact).comp (tendsto_acbd hp),
   ext g,
@@ -302,7 +301,7 @@ end
   `|(g•z).re|`.  -/
 lemma exists_g_with_given_cd_and_min_re (z:ℍ) {cd : fin 2 → ℤ} (hcd : is_coprime (cd 0) (cd 1)) :
   ∃ g : SL(2,ℤ), ↑ₘg 1 = cd ∧ (∀ g' : SL(2,ℤ), ↑ₘg 1 = ↑ₘg' 1 →
-  _root_.abs ((g • z).re) ≤ _root_.abs ((g' • z).re)) :=
+  |(g • z).re| ≤ |(g' • z).re|) :=
 begin
   haveI : nonempty {g : SL(2, ℤ) // g 1 = cd} := let ⟨x, hx⟩ := bottom_row_surj hcd in ⟨⟨x, hx.2⟩⟩,
   obtain ⟨g, hg⟩ := filter.tendsto.exists_forall_le (tendsto_abs_re_smul z hcd),

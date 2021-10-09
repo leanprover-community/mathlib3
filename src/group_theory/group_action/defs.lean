@@ -328,8 +328,8 @@ by rw [smul_assoc, one_smul]
   (y : N) : (x • 1) * y = x • y :=
 smul_one_smul N x y
 
-@[simp] lemma mul_smul_one {M N} [monoid N] [has_scalar M N] [is_scalar_tower M N N]
-  [smul_comm_class M N N] (x : M) (y : N) :
+@[simp, to_additive] lemma mul_smul_one {M N} [monoid N] [has_scalar M N] [smul_comm_class M N N]
+  (x : M) (y : N) :
   y * (x • 1) = x • y :=
 by rw [← smul_eq_mul, ← smul_comm, smul_eq_mul, mul_one]
 

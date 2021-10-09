@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 import data.equiv.mul_add
 import algebra.field
 import algebra.opposites
+import algebra.big_operators.basic
 
 /-!
 # (Semi)ring equivs
@@ -34,6 +35,8 @@ multiplication in `equiv.perm`, and multiplication in `category_theory.End`, not
 
 equiv, mul_equiv, add_equiv, ring_equiv, mul_aut, add_aut, ring_aut
 -/
+
+open_locale big_operators
 
 variables {R : Type*} {S : Type*} {S' : Type*}
 
@@ -358,6 +361,30 @@ lemma of_hom_inv_symm_apply (hom : R →+* S) (inv : S →+* R) (hom_inv_id inv_
   (of_hom_inv hom inv hom_inv_id inv_hom_id).symm s = inv s := rfl
 
 end semiring_hom
+
+section big_operators
+
+lemma map_list_prod [semiring R] [semiring S] (f : R ≃+* S) (l : list R) :
+  f l.prod = (l.map f).prod := f.to_ring_hom.map_list_prod l
+
+lemma map_list_sum [non_assoc_semiring R] [non_assoc_semiring S] (f : R ≃+* S) (l : list R) :
+  f l.sum = (l.map f).sum := f.to_ring_hom.map_list_sum l
+
+lemma map_multiset_prod [comm_semiring R] [comm_semiring S] (f : R ≃+* S) (s : multiset R) :
+  f s.prod = (s.map f).prod := f.to_ring_hom.map_multiset_prod s
+
+lemma map_multiset_sum [non_assoc_semiring R] [non_assoc_semiring S]
+  (f : R ≃+* S) (s : multiset R) : f s.sum = (s.map f).sum := f.to_ring_hom.map_multiset_sum s
+
+lemma map_prod {α : Type*} [comm_semiring R] [comm_semiring S] (g : R ≃+* S) (f : α → R)
+  (s : finset α) : g (∏ x in s, f x) = ∏ x in s, g (f x) :=
+g.to_ring_hom.map_prod f s
+
+lemma map_sum {α : Type*} [non_assoc_semiring R] [non_assoc_semiring S]
+  (g : R ≃+* S) (f : α → R) (s : finset α) : g (∑ x in s, f x) = ∑ x in s, g (f x) :=
+g.to_ring_hom.map_sum f s
+
+end big_operators
 
 end ring_equiv
 

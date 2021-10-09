@@ -80,7 +80,7 @@ if n = 0 then 0 else X (n-1)
 lemma aeval_verschiebung_poly' (x : 𝕎 R) (n : ℕ) :
   aeval x.coeff (verschiebung_poly n) = (verschiebung_fun x).coeff n :=
 begin
- cases n,
+  cases n,
   { simp only [verschiebung_poly, verschiebung_fun_coeff_zero, if_pos rfl, alg_hom.map_zero] },
   { rw [verschiebung_poly, verschiebung_fun_coeff_succ, if_neg (n.succ_ne_zero),
         aeval_X, nat.succ_eq_add_one, nat.add_sub_cancel] }

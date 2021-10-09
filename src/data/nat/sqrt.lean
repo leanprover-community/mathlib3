@@ -96,7 +96,7 @@ begin
     rw [@sqrt_aux_1 (2 * r * 2^m) (n-r*r) (2^m * 2^m) b0 (n - (r + 2^m) * (r + 2^m)),
       hm, re, ← right_distrib],
     { apply H2 hl },
-    apply eq.symm, apply nat.sub_eq_of_eq_add,
+    apply eq.symm, apply sub_eq_of_eq_add_rev,
     rw [← add_assoc, (_ : r*r + _ = _)],
     exact (add_sub_cancel_of_le hl).symm,
     simp [left_distrib, right_distrib, two_mul, mul_comm, mul_assoc, add_assoc] },

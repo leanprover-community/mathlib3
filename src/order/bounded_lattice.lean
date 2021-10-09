@@ -614,14 +614,6 @@ instance semilattice_inf [semilattice_inf α] : semilattice_inf_bot (with_bot α
 
 lemma coe_inf [semilattice_inf α] (a b : α) : ((a ⊓ b : α) : with_bot α) = a ⊓ b := rfl
 
-lemma le_left_of_coe_eq_coe_inf_coe [semilattice_inf α] {a b c : α} (h : (a : with_bot α) = b ⊓ c) :
-  a ≤ b :=
-coe_le_coe.1 $ h.trans_le inf_le_left
-
-lemma le_right_of_coe_eq_coe_inf_coe [semilattice_inf α] {a b c : α} (h : (a : with_bot α) = b ⊓ c) :
-  a ≤ c :=
-coe_le_coe.1 $ h.trans_le inf_le_right
-
 instance lattice [lattice α] : lattice (with_bot α) :=
 { ..with_bot.semilattice_sup, ..with_bot.semilattice_inf }
 

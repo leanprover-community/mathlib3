@@ -1105,17 +1105,14 @@ begin
     (seq_pow_eventually_constant' hI hp)) (seq_pow_eventually_constant' hI hp) }
 end
 
--- This should probably be in another file, although I'm not sure if this is useful as a lemma
--- as it's only used twice.
-lemma comap_map_map_ne_bot_of_lt  (f : I.quotient ≃+* J.quotient) {p : ideal T} (hJ : J ≠ ⊥) :
- (comap J^.quotient.mk (map (f : I.quotient →+* J.quotient) (map I^.quotient.mk p))) ≠ ⊥ :=
-begin
-  refine ne_bot_of_le_ne_bot hJ _,
-  {  have : (J^.quotient.mk).ker ≤ comap (J^.quotient.mk) (map ↑f (map (I^.quotient.mk) p)),
-    { exact ker_le_comap (J^.quotient.mk) },
-    rw mk_ker at this,
-    exact this },
-end
+lemma quotient.mk_injective_iff {R : Type*} [comm_ring R] {I : ideal R} :
+  function.injective I^.quotient.mk ↔ I = ⊥ :=
+by rw [ring_hom.injective_iff_ker_eq_bot, mk_ker]
+
+lemma comap_ne_bot_of_not_injective {R S : Type*} [comm_ring R] [comm_ring S]
+  {f : R →+* S} (hf : ¬ function.injective f) (I : ideal S) :
+  comap f I ≠ ⊥ :=
+ne_bot_of_le_ne_bot (mt f.injective_iff_ker_eq_bot.mpr hf) (ker_le_comap f)
 
 lemma comap_map_map_mem_normalized_factors_of_mem_normalized_factors (hI : I ≠ ⊥) (hJ : J ≠ ⊥)
   (f : I.quotient ≃+* J.quotient) {p : ideal T} (hp : p ∈ normalized_factors I) :
@@ -1124,7 +1121,8 @@ begin
   suffices H₃ : (comap J^.quotient.mk (map ↑f (map I^.quotient.mk p))) ∈ normalized_factors
     (comap J^.quotient.mk (map ↑f (map I^.quotient.mk p))),
   { refine multiset.mem_of_le ((dvd_iff_normalized_factors_le_normalized_factors
-    (comap_map_map_ne_bot_of_lt f hJ) hJ).1 _) H₃,
+      (comap_ne_bot_of_not_injective (mt quotient.mk_injective_iff.mp hJ) _)
+       hJ).1 _) H₃,
     rw dvd_iff_le,
     have : (J^.quotient.mk).ker ≤ (comap J^.quotient.mk (map ↑f (map I^.quotient.mk p))) :=
       ker_le_comap J^.quotient.mk,

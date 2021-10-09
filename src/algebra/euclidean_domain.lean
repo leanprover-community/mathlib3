@@ -6,6 +6,7 @@ Authors: Louis Carlin, Mario Carneiro
 
 import data.int.basic
 import algebra.field
+import algebra.gcd_monoid.basic
 
 /-!
 # Euclidean domains
@@ -68,7 +69,7 @@ set_option old_structure_cmd true
   function `R → ℕ`. This definition is slightly generalised to include a well founded relation
   `r` with the property that `r (a % b) b`, instead of a valuation.  -/
 @[protect_proj without mul_left_not_lt r_well_founded]
-class euclidean_domain (R : Type u) extends comm_ring R, nontrivial R :=
+class euclidean_domain_core (R : Type u) extends comm_ring R, nontrivial R :=
 (quotient : R → R → R)
 (quotient_zero : ∀ a, quotient a 0 = 0)
 (remainder : R → R → R)
@@ -80,19 +81,20 @@ class euclidean_domain (R : Type u) extends comm_ring R, nontrivial R :=
 end old_structure_cmd
 
 namespace euclidean_domain
+open euclidean_domain_core
 variable {R : Type u}
-variables [euclidean_domain R]
+variables [euclidean_domain_core R]
 
-local infix ` ≺ `:50 := euclidean_domain.r
-
-@[priority 70] -- see Note [lower instance priority]
-instance : has_div R := ⟨euclidean_domain.quotient⟩
+local infix ` ≺ `:50 := euclidean_domain_core.r
 
 @[priority 70] -- see Note [lower instance priority]
-instance : has_mod R := ⟨euclidean_domain.remainder⟩
+instance : has_div R := ⟨euclidean_domain_core.quotient⟩
+
+@[priority 70] -- see Note [lower instance priority]
+instance : has_mod R := ⟨euclidean_domain_core.remainder⟩
 
 theorem div_add_mod (a b : R) : b * (a / b) + a % b = a :=
-euclidean_domain.quotient_mul_add_remainder_eq _ _
+euclidean_domain_core.quotient_mul_add_remainder_eq _ _
 
 lemma mod_add_div (a b : R) : a % b + b * (a / b) = a :=
 (add_comm _ _).trans (div_add_mod _ _)
@@ -103,13 +105,13 @@ by { rw mul_comm, exact mod_add_div _ _ }
 lemma div_add_mod' (m k : R) : (m / k) * k + m % k = m :=
 by { rw mul_comm, exact div_add_mod _ _ }
 
-lemma mod_eq_sub_mul_div {R : Type*} [euclidean_domain R] (a b : R) :
+lemma mod_eq_sub_mul_div {R : Type*} [euclidean_domain_core R] (a b : R) :
   a % b = a - b * (a / b) :=
 calc a % b = b * (a / b) + a % b - b * (a / b) : (add_sub_cancel' _ _).symm
 ... = a - b * (a / b) : by rw div_add_mod
 
 theorem mod_lt : ∀ a {b : R}, b ≠ 0 → (a % b) ≺ b :=
-euclidean_domain.remainder_lt
+euclidean_domain_core.remainder_lt
 
 theorem mul_right_not_lt {a : R} (b) (h : a ≠ 0) : ¬(a * b) ≺ b :=
 by { rw mul_comm, exact mul_left_not_lt b h }
@@ -158,12 +160,23 @@ mod_eq_zero.2 (one_dvd _)
 mod_eq_zero.2 (dvd_zero _)
 
 @[simp, priority 900] lemma div_zero (a : R) : a / 0 = 0 :=
-euclidean_domain.quotient_zero a
+euclidean_domain_core.quotient_zero a
 
 @[simp, priority 900] lemma zero_div {a : R} : 0 / a = 0 :=
 classical.by_cases
   (λ a0 : a = 0, a0.symm ▸ div_zero 0)
   (λ a0, by simpa only [zero_mul] using mul_div_cancel 0 a0)
+
+@[priority 70] -- see Note [lower instance priority]
+instance (R : Type*) [e : euclidean_domain_core R] : integral_domain R :=
+by { haveI := classical.dec_eq R, exact
+{ eq_zero_or_eq_zero_of_mul_eq_zero :=
+    λ a b h, (or_iff_not_and_not.2 $ λ h0,
+      h0.1 $ by rw [← mul_div_cancel a h0.2, h, zero_div]),
+  zero := 0, add := (+), mul := (*), ..e }}
+
+class _root_.euclidean_domain (R : Type u) extends euclidean_domain_core R, gcd_monoid R.
+
 
 @[simp, priority 900] lemma div_self {a : R} (a0 : a ≠ 0) : a / a = 1 :=
 by simpa only [one_mul] using mul_div_cancel 1 a0
@@ -320,14 +333,6 @@ by { have := @xgcd_aux_P _ _ _ a b a b 1 0 0 1
   (by rw [P, mul_one, mul_zero, add_zero]) (by rw [P, mul_one, mul_zero, zero_add]),
 rwa [xgcd_aux_val, xgcd_val] at this }
 
-@[priority 70] -- see Note [lower instance priority]
-instance (R : Type*) [e : euclidean_domain R] : integral_domain R :=
-by { haveI := classical.dec_eq R, exact
-{ eq_zero_or_eq_zero_of_mul_eq_zero :=
-    λ a b h, (or_iff_not_and_not.2 $ λ h0,
-      h0.1 $ by rw [← mul_div_cancel a h0.2, h, zero_div]),
-  zero := 0, add := (+), mul := (*), ..e }}
-
 end gcd
 
 section lcm
@@ -403,7 +408,29 @@ end lcm
 
 end euclidean_domain
 
-instance int.euclidean_domain : euclidean_domain ℤ :=
+section
+variables {β : Type*} [euclidean_domain_core β] [decidable_eq β]
+
+open euclidean_domain
+
+-- TODO: This is really slow
+def euclidean_domain.gcd_monoid_of_core : gcd_monoid β :=
+{ gcd := gcd,
+  lcm := lcm,
+  gcd_dvd_left := gcd_dvd_left,
+  gcd_dvd_right := gcd_dvd_right,
+  dvd_gcd := λ a b c, dvd_gcd,
+  gcd_mul_lcm := λ a b, by rw euclidean_domain.gcd_mul_lcm,
+  lcm_zero_left := lcm_zero_left,
+  lcm_zero_right := lcm_zero_right }
+
+@[reducible] def euclidean_domain.of_core : euclidean_domain β :=
+{ ..(infer_instance : euclidean_domain_core β ),
+  ..euclidean_domain.gcd_monoid_of_core }
+
+end
+
+instance int.euclidean_domain_core : euclidean_domain_core ℤ :=
 { add := (+),
   mul := (*),
   one := 1,
@@ -423,9 +450,11 @@ instance int.euclidean_domain : euclidean_domain ℤ :=
       exact mul_le_mul_of_nonneg_left (int.nat_abs_pos_of_ne_zero b0) (nat.zero_le _) },
   .. int.comm_ring,
   .. int.nontrivial }
+instance int.euclidean_domain : euclidean_domain ℤ :=
+euclidean_domain.of_core
 
 @[priority 100] -- see Note [lower instance priority]
-instance field.to_euclidean_domain {K : Type u} [field K] : euclidean_domain K :=
+instance field.to_euclidean_domain_core {K : Type u} [field K] : euclidean_domain_core K :=
 { add := (+),
   mul := (*),
   one := 1,
@@ -442,3 +471,5 @@ instance field.to_euclidean_domain {K : Type u} [field K] : euclidean_domain K :
   remainder_lt := λ a b hnb, by simp [hnb],
   mul_left_not_lt := λ a b hnb ⟨hab, hna⟩, or.cases_on (mul_eq_zero.1 hab) hna hnb,
   .. ‹field K› }
+instance field.to_euclidean_domain {K : Type u} [field K] [decidable_eq K] : euclidean_domain K :=
+euclidean_domain.of_core

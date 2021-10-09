@@ -3,10 +3,11 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker
 -/
-import algebra.big_operators.basic
+--import algebra.big_operators.basic
 import algebra.divisibility
 import algebra.invertible
-
+import algebra.group_power.basic
+import data.multiset
 /-!
 # Associated, prime, and irreducible elements.
 -/
@@ -103,9 +104,10 @@ lemma exists_mem_multiset_map_dvd {s : multiset β} {f : β → α} :
 λ h, by simpa only [exists_prop, multiset.mem_map, exists_exists_and_eq_and]
   using hp.exists_mem_multiset_dvd h
 
-lemma exists_mem_finset_dvd {s : finset β} {f : β → α} :
-  p ∣ s.prod f → ∃ i ∈ s, p ∣ f i :=
-hp.exists_mem_multiset_map_dvd
+-- appears to be unused, but I can find another place for it.
+--lemma exists_mem_finset_dvd {s : finset β} {f : β → α} :
+--  p ∣ s.prod f → ∃ i ∈ s, p ∣ f i :=
+--hp.exists_mem_multiset_map_dvd
 
 end prime
 

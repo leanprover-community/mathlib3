@@ -114,10 +114,10 @@ protected def copy (S : subfield K) (s : set K) (hs : s = ↑S) : subfield K :=
   inv_mem' := hs.symm ▸ S.inv_mem',
   ..S.to_subring.copy s hs }
 
-@[simp] lemma coe_copy (S : subfield X) (s : set X) (hs : s = ↑S) :
-  (S.copy s hs : set X) = s := rfl
+@[simp] lemma coe_copy (S : subfield K) (s : set K) (hs : s = ↑S) :
+  (S.copy s hs : set K) = s := rfl
 
-lemma copy_eq (S : subfield X) (s : set X) (hs : s = ↑S) : S.copy s hs = S :=
+lemma copy_eq (S : subfield K) (s : set K) (hs : s = ↑S) : S.copy s hs = S :=
 set_like.coe_injective hs
 
 @[simp] lemma coe_to_subring (s : subfield K) : (s.to_subring : set K) = s :=

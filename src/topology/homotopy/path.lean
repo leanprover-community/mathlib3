@@ -230,5 +230,3 @@ instance : inhabited (homotopic.quotient () ()) :=
 end homotopic
 
 end path
-
-#lint

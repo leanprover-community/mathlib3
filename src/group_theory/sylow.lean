@@ -5,6 +5,7 @@ Authors: Chris Hughes, Thomas Browning
 -/
 
 import group_theory.p_group
+import data.set_like.fintype
 
 /-!
 # Sylow theorems
@@ -47,18 +48,31 @@ structure sylow extends subgroup G :=
 
 variables {p} {G}
 
+namespace sylow
+
 instance : has_coe (sylow p G) (subgroup G) := ⟨sylow.to_subgroup⟩
 
-@[simp] lemma sylow.to_subgroup_eq_coe {P : sylow p G} : P.to_subgroup = ↑P := rfl
+@[simp] lemma to_subgroup_eq_coe {P : sylow p G} : P.to_subgroup = ↑P := rfl
 
-@[ext] lemma sylow.ext {P Q : sylow p G} (h : (P : subgroup G) = Q) : P = Q :=
+@[simp] lemma coe_mk (P) (h1) (h2) : (@sylow.mk p G _ P h1 h2 : subgroup G) = P := rfl
+
+instance : set_like (sylow p G) G :=
+{ coe := coe,
+  coe_injective' := λ P Q h,
+  begin
+    rcases P with ⟨P, hP, hP'⟩, rcases Q with ⟨Q, hQ, hQ'⟩, congr, ext,
+    simp only [coe_mk, coe_coe, set_like.coe_set_eq] at h, rw h
+  end }
+
+@[ext] lemma ext {P Q : sylow p G} (h : (P : subgroup G) = Q) : P = Q :=
 by cases P; cases Q; congr'
 
-lemma sylow.ext_iff {P Q : sylow p G} : P = Q ↔ (P : subgroup G) = Q :=
-⟨congr_arg coe, sylow.ext⟩
+lemma ext_iff {P Q : sylow p G} : P = Q ↔ (P : subgroup G) = Q :=
+⟨congr_arg coe, ext⟩
 
-noncomputable instance [fintype G] : fintype (sylow p G) :=
-fintype.of_injective (coe : sylow p G → set G) (λ P Q, sylow.ext ∘ subgroup.ext ∘ set.ext_iff.mp)
+noncomputable instance [fintype G] : fintype (sylow p G) := set_like.fintype
+
+end sylow
 
 /-- A generalization of **Sylow's first theorem**.
   Every `p`-subgroup is contained in a Sylow `p`-subgroup. -/
@@ -104,7 +118,7 @@ lemma sylow.coe_smul {g : G} {P : sylow p G} :
 lemma sylow.smul_eq_iff_mem_normalizer {g : G} {P : sylow p G} :
   g • P = P ↔ g ∈ P.1.normalizer :=
 begin
-  rw [eq_comm, sylow.ext_iff, set_like.ext_iff, ←inv_mem_iff, mem_normalizer_iff, inv_inv],
+  rw [eq_comm, set_like.ext_iff, ←inv_mem_iff, mem_normalizer_iff, inv_inv],
   exact forall_congr (λ h, iff_congr iff.rfl ⟨λ ⟨a, b, c⟩, (congr_arg _ c).mp
     ((congr_arg (∈ P.1) (mul_aut.inv_apply_self G (mul_aut.conj g) a)).mpr b),
     λ hh, ⟨(mul_aut.conj g)⁻¹ h, hh, mul_aut.apply_inv_self G (mul_aut.conj g) h⟩⟩),

@@ -195,8 +195,6 @@ def pi {ι : Type*} {f : ι → Type*} [Π i, has_mul (f i)]
 
 variables (c)
 
-@[simp, to_additive] lemma coe_eq : c.to_setoid.r = c := rfl
-
 -- Quotients
 
 /-- Defining the quotient by a congruence relation of a type with a multiplication. -/

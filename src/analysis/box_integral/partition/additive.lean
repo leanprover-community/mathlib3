@@ -86,14 +86,9 @@ instance : has_add (ι →ᵇᵃ[I₀] M) :=
 instance : add_comm_monoid (ι →ᵇᵃ[I₀] M) :=
 function.injective.add_comm_monoid _ coe_injective rfl (λ _ _, rfl)
 
-@[simp] lemma map_split_add (f : ι →ᵇᵃ[I₀] M) (hI : ↑I ≤ I₀) {x : ℝ} (hl : I.lower i < x)
-  (hu : x < I.upper i) :
-  f ((I.split_lower i x).get hl) + f ((I.split_upper i x).get hu) = f I :=
-begin
-  rw [← f.sum_partition_boxes hI (is_partition_split I i x),
-    split_boxes_of_mem_Ioo ⟨hl, hu⟩, sum_pair],
-  exact box.split_lower_get_ne_split_upper_get hl hu
-end
+@[simp] lemma map_split_add (f : ι →ᵇᵃ[I₀] M) (hI : ↑I ≤ I₀) (i : ι) (x : ℝ) :
+  (I.split_lower i x).elim 0 f + (I.split_upper i x).elim 0 f = f I :=
+by rw [← f.sum_partition_boxes hI (is_partition_split I i x), sum_split_boxes]
 
 /-- If `f` is box-additive on subboxes of `I₀`, then it is box-additive on subboxes of any
 `I ≤ I₀`. -/
@@ -103,8 +98,8 @@ end
 /-- If `f : box ι → M` is box additive on partitions of the form `split I i x`, then it is box
 additive. -/
 def of_map_split_add [fintype ι] (f : box ι → M) (I₀ : with_top (box ι))
-  (hf : ∀ I : box ι, ↑I ≤ I₀ → ∀ {i x} hl hu,
-    f ((I.split_lower i x).get hl) + f ((I.split_upper i x).get hu) = f I) :
+  (hf : ∀ I : box ι, ↑I ≤ I₀ → ∀ {i x}, x ∈ Ioo (I.lower i) (I.upper i) →
+    (I.split_lower i x).elim 0 f + (I.split_upper i x).elim 0 f = f I) :
   ι →ᵇᵃ[I₀] M :=
 begin
   refine ⟨f, _⟩,
@@ -114,8 +109,8 @@ begin
     rw [split_many_insert, inf_split, ← ihs, bUnion_boxes, sum_bUnion_boxes],
     refine finset.sum_congr rfl (λ J' hJ', _),
     by_cases h : a.2 ∈ Ioo (J'.lower a.1) (J'.upper a.1),
-    { rw [split_boxes_of_mem_Ioo h, sum_pair (box.split_lower_get_ne_split_upper_get _ _)],
-      exact hf _ ((with_top.coe_le_coe.2 $ le_of_mem _ hJ').trans hI) _ _ },
+    { rw sum_split_boxes,
+      exact hf _ ((with_top.coe_le_coe.2 $ le_of_mem _ hJ').trans hI) h },
     { rw [split_of_not_mem_Ioo h, top_boxes, finset.sum_singleton] } },
   intros I hI π hπ,
   have Hle : ∀ J ∈ π, ↑J ≤ I₀, from λ J hJ, (with_top.coe_le_coe.2 $ π.le_of_mem hJ).trans hI,
@@ -177,22 +172,26 @@ end to_smul
 of_map_split_add
   (λ J : box (fin (n + 1)), f (J.upper i) (J.face i) - f (J.lower i) (J.face i)) I₀
   begin
-    rintros J hJ j x (hl : J.lower j < x) (hu : x < J.upper j),
+    intros J hJ j,
     rw with_top.coe_le_coe at hJ,
-    simp only [split_lower_get_lower, split_lower_get_upper, split_upper_get_lower,
-      split_upper_get_upper, min_eq_left hu.le, max_eq_left hl.le],
-
-    rcases eq_or_ne j i with rfl|hne,
-    { simp },
-    { rcases fin.exists_succ_above_eq hne with ⟨j, rfl⟩,
-      simp only [face_split_lower_succ_above_get, face_split_upper_succ_above_get,
-        update_noteq hne.symm, sub_add_comm],
-      have : J.face i ≤ I₀.face i, from face_mono hJ i,
-      rw le_iff_Icc at hJ,
-      simp only [hf (J.upper i) ⟨(hJ J.upper_mem_Icc).1 i, (hJ J.upper_mem_Icc).2 i⟩,
-        hf (J.lower i) ⟨(hJ J.lower_mem_Icc).1 i, (hJ J.lower_mem_Icc).2 i⟩,
-        (fb _).map_split_add (with_top.coe_le_coe.2 this),
-        (fb _).map_split_add (with_top.coe_le_coe.2 this)] }
+    refine i.succ_above_cases _ _ j,
+    { intros x hx,
+      simp only [box.split_lower_def hx, box.split_upper_def hx, update_same, 
+        ← with_bot.some_eq_coe, option.elim, box.face, (∘), update_noteq (fin.succ_above_ne _ _)],
+      abel },
+    { clear j, intros j x hx,
+      have : (J.face i : with_top (box (fin n))) ≤ I₀.face i,
+        from with_top.coe_le_coe.2 (face_mono hJ i),
+      rw [le_iff_Icc, @box.Icc_eq_pi _ I₀] at hJ,
+      rw [hf _ (hJ J.upper_mem_Icc _ trivial), hf _ (hJ J.lower_mem_Icc _ trivial),
+        ← (fb _).map_split_add this j x, ← (fb _).map_split_add this j x],
+      have hx' : x ∈ Ioo ((J.face i).lower j) ((J.face i).upper j) := hx,
+      simp only [box.split_lower_def hx, box.split_upper_def hx,
+        box.split_lower_def hx', box.split_upper_def hx',
+        ← with_bot.some_eq_coe, option.elim, box.face_mk,
+        update_noteq (fin.succ_above_ne _ _).symm, sub_add_comm,
+        update_comp_eq_of_injective _ i.succ_above.injective j x, ← hf],
+      simp only [box.face] }
   end
 
 end box_additive_map

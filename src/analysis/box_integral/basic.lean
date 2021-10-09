@@ -397,7 +397,7 @@ If `box.integral.integration_filter.bRiemann = tt`, then `r c x` does not depend
 then we use `r c x = 1`.  -/
 def convergence_r (h : integrable I l f vol) (ε : ℝ) : ℝ≥0 → ℝⁿ → Ioi (0 : ℝ) :=
 if hε : 0 < ε then (has_integral_iff.1 h.has_integral ε hε).some
-else λ _ _, ⟨1, mem_Ioi.2 zero_lt_one⟩
+else λ _ _, ⟨1, set.mem_Ioi.2 zero_lt_one⟩
 
 variables {c c₁ c₂ : ℝ≥0} {ε ε₁ ε₂ : ℝ} {π₁ π₂ : tagged_prepartition I}
 

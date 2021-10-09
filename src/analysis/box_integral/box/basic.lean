@@ -24,20 +24,23 @@ define instances `has_mem (ι → ℝ) (box ι)` and `has_coe_t (box ι) (set $ 
 interpreted as the set `{x | ∀ i, x i ∈ set.Ioc (I.lower i) (I.upper i)}`. This way boxes of a
 partition are pairwise disjoint and their union is exactly the original box.
 
-We require boxes to be nonempty, because this way coercion to sets is injective. If needed, the
-empty box can be represented as `⊥ : with_bot (box_integral.box ι)`.
+We require boxes to be nonempty, because this way coercion to sets is injective. The empty box can
+be represented as `⊥ : with_bot (box_integral.box ι)`.
 
 We define the following operations on boxes:
 
 * coercion to `set (ι → ℝ)` and `has_mem (ι → ℝ) (box_integral.box ι)` as described above;
-* a `partial_order` instance such that `I ≤ J` is equivalent to `(I : set (ι → ℝ)) ⊆ J`;
+* `partial_order` and `semilattice_sup` instances such that `I ≤ J` is equivalent to
+  `(I : set (ι → ℝ)) ⊆ J`;
+* `lattice` and `semilattice_inf_bot` instances on `with_bot (box_integral.box ι)`;
 * `box_integral.box.Icc`: the closed box `set.Icc I.lower I.upper`; defined as a bundled monotone
   map from `box ι` to `set (ι → ℝ)`;
-* `box_integral.box.inter`: intersection of two boxes; since two boxes can be disjoint, the codomain
-  of this function is `with_bot (box ι)`, where `⊥` encodes the empty set;
 * `box_integral.box.face I i : box (fin n)`: a hyperface of `I : box_integral.box (fin (n + 1))`;
 * `box_integral.box.distortion`: the maximal ratio of two lengths of edges of a box; defined as the
   supremum of `nndist I.lower I.upper / nndist (I.lower i) (I.upper i)`.
+
+We also provide a convenience constructor `box_integral.box.mk' (l u : ι → ℝ) : with_bot (box ι)`
+that returns the box `⟨l, u, _⟩` if it is nonempty and `⊥` otherwise.
 
 ## Tags
 
@@ -216,6 +219,17 @@ as a set in `ι → ℝ` is the set `{x : ι → ℝ | ∀ i, x i ∈ Ioc (l i) 
 def mk' (l u : ι → ℝ) : with_bot (box ι) :=
 if h : ∀ i, l i < u i then ↑(⟨l, u, h⟩ : box ι) else ⊥
 
+@[simp] lemma mk'_eq_bot {l u : ι → ℝ} : mk' l u = ⊥ ↔ ∃ i, u i ≤ l i :=
+by { rw mk', split_ifs; simpa using h }
+
+@[simp] lemma mk'_eq_coe {l u : ι → ℝ} : mk' l u = I ↔ l = I.lower ∧ u = I.upper :=
+begin
+  cases I with lI uI hI, rw mk', split_ifs,
+  { simp [with_bot.coe_eq_coe] },
+  { suffices : l = lI → u ≠ uI, by simpa,
+    rintro rfl rfl, exact h hI }
+end
+
 @[simp] lemma coe_mk' (l u : ι → ℝ) : (mk' l u : set (ι → ℝ)) = pi univ (λ i, Ioc (l i) (u i)) :=
 begin
   rw mk', split_ifs,
@@ -277,6 +291,10 @@ by rw [disjoint_coe, set.not_disjoint_iff_nonempty_inter]
 `I.lower ∘ fin.insert_nth i` and `I.upper ∘ fin.insert_nth i`. -/
 @[simps] def face {n} (I : box (fin (n + 1))) (i : fin (n + 1)) : box (fin n) :=
 ⟨I.lower ∘ fin.succ_above i, I.upper ∘ fin.succ_above i, λ j, I.lower_lt_upper _⟩
+
+@[simp] lemma face_mk {n} (l u : fin (n + 1) → ℝ) (h : ∀ i, l i < u i) (i : fin (n + 1)) :
+  face ⟨l, u, h⟩ i = ⟨l ∘ fin.succ_above i, u ∘ fin.succ_above i, λ j, h _⟩ :=
+rfl
 
 @[mono] lemma face_mono {n} {I J : box (fin (n + 1))} (h : I ≤ J) (i : fin (n + 1)) :
   face I i ≤ face J i :=

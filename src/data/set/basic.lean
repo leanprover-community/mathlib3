@@ -798,6 +798,14 @@ by { ext, simp }
 @[simp] lemma sep_false : {a ∈ s | false} = ∅ :=
 by { ext, simp }
 
+lemma sep_inter_sep {p q : α → Prop} :
+  {x ∈ s | p x} ∩ {x ∈ s | q x} = {x ∈ s | p x ∧ q x} :=
+begin
+  ext,
+  simp_rw [mem_inter_iff, mem_sep_iff],
+  rw [and_and_and_comm, and_self],
+end
+
 @[simp] lemma subset_singleton_iff {α : Type*} {s : set α} {x : α} : s ⊆ {x} ↔ ∀ y ∈ s, y = x :=
 iff.rfl
 

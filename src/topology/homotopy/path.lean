@@ -140,9 +140,14 @@ end
 
 section
 
-variables {x₂ : X}
+variables {x₂ : X} {p₀ q₀ : path x₀ x₁} {p₁ q₁ : path x₁ x₂}
 
-def trans' {p₀ q₀ : path x₀ x₁} {p₁ q₁ : path x₁ x₂} (F : homotopy p₀ q₀) (G : homotopy p₁ q₁) :
+/--
+Suppose `p₀` and `q₀` are paths from `x₀` to `x₁`, `p₁` and `q₁` are paths from `x₁` to `x₂`.
+Furthermore, suppose `F : homotopy p₀ q₀` and `G : homotopy p₁ q₁`. Then we can define a homotopy
+from `p₀.trans p₁` to `q₀.trans q₁`.
+-/
+def trans' (F : homotopy p₀ q₀) (G : homotopy p₁ q₁) :
   homotopy (p₀.trans p₁) (q₀.trans q₁) :=
 { to_fun := λ x,
   if (x.2 : ℝ) ≤ 1/2 then
@@ -167,6 +172,18 @@ def trans' {p₀ q₀ : path x₀ x₁} {p₁ q₁ : path x₁ x₂} (F : homoto
       rw ht,
       norm_num }
   end }
+
+lemma trans'_apply (F : homotopy p₀ q₀) (G : homotopy p₁ q₁) (x : I × I) :
+  F.trans' G x =
+  if h : (x.2 : ℝ) ≤ 1/2 then
+    F.eval x.1 ⟨2 * x.2, (unit_interval.mul_pos_mem_iff zero_lt_two).2 ⟨x.2.2.1, h⟩⟩
+  else
+    G.eval x.1 ⟨2 * x.2 - 1, unit_interval.two_mul_sub_one_mem_iff.2 ⟨(not_le.1 h).le, x.2.2.2⟩⟩ :=
+show ite _ _ _ = _, by split_ifs; exact path.extend_extends _ _
+
+lemma trans'_half (F : homotopy p₀ q₀) (G : homotopy p₁ q₁) (t : I) :
+  F.trans' G (t, ⟨1/2, by norm_num, by norm_num⟩) = x₁ :=
+show ite _ _ _ = _, by norm_num
 
 end
 

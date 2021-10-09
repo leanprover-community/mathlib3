@@ -778,7 +778,7 @@ end
 
 lemma image_lower_bounds_subset_lower_bounds_image (hf : monotone f) :
   f '' lower_bounds s ⊆ lower_bounds (f '' s) :=
-@image_upper_bounds_subset_upper_bounds_image (order_dual α) (order_dual β) _ _ _ _ hf.dual
+hf.dual.image_upper_bounds_subset_upper_bounds_image
 
 /-- The image under a monotone function of a set which is bounded above is bounded above. -/
 lemma map_bdd_above (hf : monotone f) : bdd_above s → bdd_above (f '' s)
@@ -805,6 +805,49 @@ lemma le_is_glb_image (Ha : is_glb s a) {b : β} (Hb : is_glb (f '' s) b) :
 Hb.2 (Hf.mem_lower_bounds_image Ha.1)
 
 end monotone
+
+namespace antitone
+variables [preorder α] [preorder β] {f : α → β} (hf : antitone f) {a : α} {s : set α}
+
+lemma mem_upper_bounds_image (ha : a ∈ lower_bounds s) :
+  f a ∈ upper_bounds (f '' s) :=
+hf.dual_right.mem_lower_bounds_image ha
+
+lemma mem_lower_bounds_image (ha : a ∈ upper_bounds s) :
+  f a ∈ lower_bounds (f '' s) :=
+hf.dual_right.mem_upper_bounds_image ha
+
+lemma image_lower_bounds_subset_upper_bounds_image (hf : antitone f) :
+  f '' lower_bounds s ⊆ upper_bounds (f '' s) :=
+hf.dual_right.image_lower_bounds_subset_lower_bounds_image
+
+lemma image_upper_bounds_subset_lower_bounds_image (hf : antitone f) :
+  f '' upper_bounds s ⊆ lower_bounds (f '' s) :=
+hf.dual_right.image_upper_bounds_subset_upper_bounds_image
+
+/-- The image under an antitone function of a set which is bounded above is bounded below. -/
+lemma map_bdd_above (hf : antitone f) : bdd_above s → bdd_below (f '' s) :=
+hf.dual_right.map_bdd_above
+
+/-- The image under an antitone function of a set which is bounded below is bounded above. -/
+lemma map_bdd_below (hf : antitone f) : bdd_below s → bdd_above (f '' s) :=
+hf.dual_right.map_bdd_below
+
+/-- An antitone map sends a greatest element of a set to a least element of its image. -/
+lemma map_is_greatest (ha : is_greatest s a) : is_least (f '' s) (f a) :=
+hf.dual_right.map_is_greatest ha
+
+/-- An antitone map sends a least element of a set to a greatest element of its image. -/
+lemma map_is_least (ha : is_least s a) : is_greatest (f '' s) (f a) :=
+hf.dual_right.map_is_least ha
+
+lemma is_lub_image_le (ha : is_glb s a) {b : β} (hb : is_lub (f '' s) b) : b ≤ f a :=
+hf.dual_left.is_lub_image_le ha hb
+
+lemma le_is_glb_image (ha : is_lub s a) {b : β} (hb : is_glb (f '' s) b) : f a ≤ b :=
+hf.dual_left.le_is_glb_image ha hb
+
+end antitone
 
 lemma is_glb.of_image [preorder α] [preorder β] {f : α → β} (hf : ∀ {x y}, f x ≤ f y ↔ x ≤ y)
   {s : set α} {x : α} (hx : is_glb (f '' s) (f x)) :

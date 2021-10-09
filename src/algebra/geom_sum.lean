@@ -82,7 +82,7 @@ begin
   rw [mem_range, nat.lt_iff_add_one_le] at j_in,
   congr,
   apply nat.sub_sub_self,
-  exact nat.le_sub_right_of_add_le j_in
+  exact le_sub_of_add_le_right' j_in
 end
 
 @[simp] theorem geom_sum₂_with_one [semiring α] (x : α) (n : ℕ) :
@@ -123,7 +123,7 @@ theorem geom_sum₂_self {α : Type*} [comm_ring α] (x : α) (n : ℕ) :
 calc  ∑ i in finset.range n, x ^ i * x ^ (n - 1 - i)
     = ∑ i in finset.range n, x ^ (i + (n - 1 - i)) : by simp_rw [← pow_add]
 ... = ∑ i in finset.range n, x ^ (n - 1) : finset.sum_congr rfl
-  (λ i hi, congr_arg _ $ nat.add_sub_cancel' $ nat.le_pred_of_lt $ finset.mem_range.1 hi)
+  (λ i hi, congr_arg _ $ add_sub_cancel_of_le $ nat.le_pred_of_lt $ finset.mem_range.1 hi)
 ... = (finset.range n).card • (x ^ (n - 1)) : finset.sum_const _
 ... = n * x ^ (n - 1) : by rw [finset.card_range, nsmul_eq_mul]
 
@@ -219,7 +219,7 @@ begin
       rw ← pow_add,
       congr,
       rw [mem_range, nat.lt_iff_add_one_le, add_comm] at j_in,
-      have h' : n - m + (m - (1 + j)) = n - (1 + j) := nat.sub_add_sub_cancel hmn j_in,
+      have h' : n - m + (m - (1 + j)) = n - (1 + j) := sub_add_sub_cancel'' hmn j_in,
       rw [nat.sub_sub m, h', nat.sub_sub] },
   rw this,
   simp_rw pow_mul_comm y (n-m) _,
@@ -239,7 +239,7 @@ begin
   suffices : n - 1 - i + 1 = n - i, { rw this },
   cases n,
   { exact absurd (list.mem_range.mp hi) i.not_lt_zero },
-  { rw [nat.sub_add_eq_add_sub (nat.le_pred_of_lt (list.mem_range.mp hi)),
+  { rw [sub_add_eq_add_sub' (nat.le_pred_of_lt (list.mem_range.mp hi)),
         nat.sub_add_cancel (nat.succ_le_iff.mpr n.succ_pos)] },
 end
 
@@ -346,26 +346,26 @@ begin
   { rw [sum_range_zero, zero_mul],
     exact nat.zero_le _ },
   rw mul_comm,
-  exact (nat.pred_mul_geom_sum_le a b n).trans (nat.sub_le_self _ _),
+  exact (nat.pred_mul_geom_sum_le a b n).trans sub_le_self',
 end
 
 lemma nat.geom_sum_Ico_le {b : ℕ} (hb : 2 ≤ b) (a n : ℕ) :
   ∑ i in Ico 1 n, a/b^i ≤ a/(b - 1) :=
 begin
   cases n,
-  { rw [Ico.eq_empty_of_le zero_le_one, sum_empty],
+  { rw [Ico_eq_empty_of_le zero_le_one, sum_empty],
     exact nat.zero_le _ },
   rw ←add_le_add_iff_left a,
   calc
     a + ∑ (i : ℕ) in Ico 1 n.succ, a/b^i
         = a/b^0 + ∑ (i : ℕ) in Ico 1 n.succ, a/b^i : by rw [pow_zero, nat.div_one]
     ... = ∑ i in range n.succ, a/b^i : begin
-          rw [range_eq_Ico, ←finset.Ico.insert_succ_bot (nat.succ_pos _), sum_insert],
-          exact λ h, zero_lt_one.not_le (Ico.mem.1 h).1,
+          rw [range_eq_Ico, ←nat.Ico_insert_succ_left (nat.succ_pos _), sum_insert],
+          exact λ h, zero_lt_one.not_le (mem_Ico.1 h).1,
         end
     ... ≤ a * b/(b - 1) : nat.geom_sum_le hb a _
     ... = (a * 1 + a * (b - 1))/(b - 1)
-        : by rw [←mul_add, nat.add_sub_cancel' (one_le_two.trans hb)]
+        : by rw [←mul_add, add_sub_cancel_of_le (one_le_two.trans hb)]
     ... = a + a/(b - 1)
         : by rw [mul_one, nat.add_mul_div_right _ _ (nat.sub_pos_of_lt hb), add_comm]
 end

@@ -3213,7 +3213,7 @@ begin
 end
 
 /-- The extreme value theorem: if a continuous function `f` tends to negative infinity away from
-compactx sets, then it has a global maximum. -/
+compact sets, then it has a global maximum. -/
 lemma continuous.exists_forall_ge {α : Type*} [topological_space α] [nonempty α] {f : α → β}
   (hf : continuous f) (hlim : tendsto f (cocompact α) at_bot) :
   ∃ x, ∀ y, f y ≤ f x :=

@@ -54,23 +54,15 @@ instance : has_coe (sylow p G) (subgroup G) := ⟨sylow.to_subgroup⟩
 
 @[simp] lemma to_subgroup_eq_coe {P : sylow p G} : P.to_subgroup = ↑P := rfl
 
-@[simp] lemma coe_mk (P) (h1) (h2) : (@sylow.mk p G _ P h1 h2 : subgroup G) = P := rfl
-
-instance : set_like (sylow p G) G :=
-{ coe := coe,
-  coe_injective' := λ P Q h,
-  begin
-    rcases P with ⟨P, hP, hP'⟩, rcases Q with ⟨Q, hQ, hQ'⟩, congr, ext,
-    simp only [coe_mk, coe_coe, set_like.coe_set_eq] at h, rw h
-  end }
-
 @[ext] lemma ext {P Q : sylow p G} (h : (P : subgroup G) = Q) : P = Q :=
 by cases P; cases Q; congr'
 
 lemma ext_iff {P Q : sylow p G} : P = Q ↔ (P : subgroup G) = Q :=
 ⟨congr_arg coe, ext⟩
 
-noncomputable instance [fintype G] : fintype (sylow p G) := set_like.fintype
+instance : set_like (sylow p G) G :=
+{ coe := coe,
+  coe_injective' := λ P Q h, ext (set_like.coe_injective h) }
 
 end sylow
 

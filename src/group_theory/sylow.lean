@@ -5,7 +5,6 @@ Authors: Chris Hughes, Thomas Browning
 -/
 
 import group_theory.p_group
-import data.set_like.fintype
 
 /-!
 # Sylow theorems

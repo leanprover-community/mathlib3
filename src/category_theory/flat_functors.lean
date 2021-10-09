@@ -77,6 +77,10 @@ def to_cone {X : D} (f : X ⟶ F.obj c.X) :
 { X := mk f, π := { app := λ j, hom_mk (c.π.app j) rfl,
                     naturality' := λ j k g, by { ext, dsimp, simp } } }
 
+local @[simp]
+lemma eq_to_hom_right {L : A ⥤ T} {R : B ⥤ T} (X Y : comma L R) (H : X = Y) :
+  comma_morphism.right (eq_to_hom H) = eq_to_hom (by { cases H, refl }) := by { cases H, refl }
+
 /--
 If a cone `s₁` factors through another cone `s₂`, then the two constructed diagrams are actually
 the same.

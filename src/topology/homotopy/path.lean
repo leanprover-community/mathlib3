@@ -75,9 +75,23 @@ begin
 end
 
 def eval (F : homotopy p₀ p₁) (t : I) : path x₀ x₁ :=
-{ to_fun := λ u, F (t, u),
-  source' := sorry,
-  target' := sorry }
+{ to_fun := F.to_homotopy.curry t,
+  source' := by simp,
+  target' := by simp }
+
+@[simp]
+lemma eval_zero (F : homotopy p₀ p₁) : F.eval 0 = p₀ :=
+begin
+  ext t,
+  simp [eval],
+end
+
+@[simp]
+lemma eval_one (F : homotopy p₀ p₁) : F.eval 1 = p₁ :=
+begin
+  ext t,
+  simp [eval],
+end
 
 end
 
@@ -136,17 +150,23 @@ def trans' {p₀ q₀ : path x₀ x₁} {p₁ q₁ : path x₁ x₂} (F : homoto
   else
     (G.eval x.1).extend (2 * x.2 - 1),
   continuous_to_fun := begin
-    refine continuous_if_le (continuous_induced_dom.comp continuous_snd) continuous_const _ _ _,
-    { apply continuous.continuous_on,
-      apply continuous.comp,
-     },
-    -- { exact continuous_induced_dom.comp continuous_snd}
-    -- continuity,
-    -- continuity,
+    refine continuous_if_le (continuous_induced_dom.comp continuous_snd) continuous_const
+      (F.to_homotopy.continuous.comp (by continuity)).continuous_on
+      (G.to_homotopy.continuous.comp (by continuity)).continuous_on _,
+    intros x hx,
+    norm_num [hx]
   end,
-  to_fun_zero := _,
-  to_fun_one := _,
-  prop' := _ }
+  to_fun_zero := λ x, by norm_num [path.trans],
+  to_fun_one := λ x, by norm_num [path.trans],
+  prop' := begin
+    rintros x t ht,
+    cases ht,
+    { rw ht,
+      simp },
+    { rw set.mem_singleton_iff at ht,
+      rw ht,
+      norm_num }
+  end }
 
 end
 

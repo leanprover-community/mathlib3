@@ -207,8 +207,6 @@ instance : star_ring ℂ :=
 
 @[simp] lemma conj_neg_I : conj (-I) = I := ext_iff.2 $ by simp
 
-alias star_ring_aut_self_apply ← conj_conj
-
 lemma eq_conj_iff_real {z : ℂ} : conj z = z ↔ ∃ r : ℝ, z = r :=
 ⟨λ h, ⟨z.re, ext rfl $ eq_zero_of_neg_eq (congr_arg im h)⟩,
  λ ⟨h, e⟩, by rw [e, conj_of_real]⟩

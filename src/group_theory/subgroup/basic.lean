@@ -843,6 +843,11 @@ lemma mem_map_equiv {f : G ≃* N} {K : subgroup G} {x : N} :
 @set.mem_image_equiv _ _ ↑K f.to_equiv x
 
 @[to_additive]
+lemma apply_mem_map_injective {f : G ≃* N} (hf : function.injective f) {K : subgroup G} {x : G} :
+  f x ∈ K.map f.to_monoid_hom ↔ x ∈ K :=
+hf.mem_set_image
+
+@[to_additive]
 lemma map_equiv_eq_comap_symm (f : G ≃* N) (K : subgroup G) :
   K.map f.to_monoid_hom = K.comap f.symm.to_monoid_hom :=
 set_like.coe_injective (f.to_equiv.image_eq_preimage K)

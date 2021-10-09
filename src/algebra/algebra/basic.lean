@@ -151,9 +151,6 @@ instance to_module : module R A :=
   add_smul := by simp [smul_def, add_mul],
   zero_smul := by simp [smul_def] }
 
--- from now on, we don't want to use the following instance anymore
-attribute [instance, priority 0] algebra.to_has_scalar
-
 lemma algebra_map_eq_smul_one (r : R) : algebra_map R A r = r • 1 :=
 calc algebra_map R A r = algebra_map R A r * 1 : (mul_one _).symm
                    ... = r • 1                 : (algebra.smul_def r 1).symm

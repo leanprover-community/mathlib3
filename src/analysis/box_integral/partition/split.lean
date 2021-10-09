@@ -36,8 +36,8 @@ rectangular box, partition, hyperplane
 -/
 
 noncomputable theory
-open_locale classical big_operators
-open function set
+open_locale classical big_operators filter
+open function set filter
 
 namespace box_integral
 
@@ -121,7 +121,7 @@ begin
   refine (disjoint.inf_left' _ _).inf_right' _,
   exact λ y (hy : y i ≤ x ∧ x < y i), not_lt_of_le hy.1 hy.2
 end
-
+/-
 @[simp] lemma face_split_lower_get_same (I : box (fin (n + 1))) (i x hx) :
   face ((split_lower I i x).get hx) i = face I i :=
 begin
@@ -156,7 +156,7 @@ begin
   intros k hk,
   convert update_noteq (i.succ_above.injective.ne hk) _ _
 end
-
+-/
 end box
 
 namespace prepartition
@@ -166,48 +166,31 @@ variables {I J : box ι} {i : ι} {x : ℝ}
 /-- The partition of `I : box ι` into the boxes `I ∩ {y | y ≤ x i}` and `I ∩ {y | x i < y}`.
 One of these boxes can be empty, then this partition is just the single-box partition `⊤`. -/
 def split (I : box ι) (i : ι) (x : ℝ) : prepartition I :=
-{ boxes := (I.split_lower i x).to_finset ∪ (I.split_upper i x).to_finset,
-  le_of_mem' :=
-    begin
-      simp only [finset.mem_union, part.mem_to_finset],
-      rintro J (⟨H, rfl⟩|⟨H, rfl⟩),
-      exacts [I.split_lower_get_le, I.split_upper_get_le]
-    end,
-  pairwise_disjoint :=
-    begin
-      simp only [finset.coe_union, part.coe_to_finset,
-        pairwise_on_union_of_symmetric (symmetric_disjoint.comap _),
-        set.subsingleton.pairwise_on, part.subsingleton, true_and, mem_set_of_eq],
-      exact λ J₁ h₁ J₂ h₂ _, box.disjoint_of_mem_split_lower_of_mem_split_upper h₁ h₂
-    end }
+of_with_bot {I.split_lower i x, I.split_upper i x}
+  begin
+    simp only [finset.mem_insert, finset.mem_singleton],
+    rintro J (rfl|rfl),
+    exacts [box.split_lower_le, box.split_upper_le]
+  end
+  begin
+    simp only [finset.coe_insert, finset.coe_singleton, true_and, set.mem_singleton_iff,
+     pairwise_on_insert_of_symmetric symmetric_disjoint, pairwise_on_singleton],
+    rintro J rfl -,
+    exact I.disjoint_split_lower_split_upper i x
+  end
 
-@[simp] lemma mem_split_iff : J ∈ split I i x ↔ J ∈ I.split_lower i x ∨ J ∈ I.split_upper i x :=
+@[simp] lemma mem_split_iff : J ∈ split I i x ↔ ↑J = I.split_lower i x ∨ ↑J = I.split_upper i x :=
 by simp [split]
 
 lemma mem_split_iff' : J ∈ split I i x ↔
   (J : set (ι → ℝ)) = I ∩ {y | y i ≤ x} ∨ (J : set (ι → ℝ)) = I ∩ {y | x < y i} :=
-by simp [mem_split_iff, box.mem_split_lower, box.mem_split_upper]
-
-lemma is_partition_split (I : box ι) (i : ι) (x : ℝ) : is_partition (split I i x) :=
-begin
-  intros y hy,
-  simp only [exists_prop, mem_split_iff],
-  cases le_or_lt (y i) x with hle hlt,
-  exacts [⟨_, or.inl $ part.get_mem _, I.mem_split_lower_get hy hle⟩,
-    ⟨_, or.inr $ part.get_mem _, I.mem_split_upper_get hy hlt⟩]
-end
+by simp [mem_split_iff, ← box.with_bot_coe_inj]
 
 @[simp] lemma Union_split (I : box ι) (i : ι) (x : ℝ) : (split I i x).Union = I :=
-(is_partition_split I i x).Union_eq
+by simp [split, ← inter_union_distrib_left, ← set_of_or, le_or_lt]
 
-/-- If `I.lower i < x < I.upper i`, then the hyperplane `{y | y i = x}` splits `I` into two
-boxes. -/
-lemma split_boxes_of_mem_Ioo (h : x ∈ Ioo (I.lower i) (I.upper i)) :
-  (split I i x).boxes = {(I.split_lower i x).get h.1, (I.split_upper i x).get h.2} :=
-begin
-  ext J,
-  simp only [finset.mem_insert, finset.mem_singleton, mem_boxes, mem_split_iff, part.eq_get_iff_mem]
-end
+lemma is_partition_split (I : box ι) (i : ι) (x : ℝ) : is_partition (split I i x) :=
+is_partition_iff_Union_eq.2 $ Union_split I i x
 
 /-- If `x ∉ (I.lower i, I.upper i)`, then the hyperplane `{y | y i = x}` does not split `I`. -/
 lemma split_of_not_mem_Ioo (h : x ∉ Ioo (I.lower i) (I.upper i)) : split I i x = ⊤ :=
@@ -233,10 +216,9 @@ lemma coe_eq_of_mem_split_of_lt_mem {y : ι → ℝ} (h₁ : J ∈ split I i x) 
 @[simp] lemma restrict_split (h : I ≤ J) (i : ι) (x : ℝ) : (split J i x).restrict I = split I i x :=
 begin
   refine ((is_partition_split J i x).restrict h).eq_of_boxes_subset _,
-  simp only [restrict_boxes, finset.pimage_subset, mem_split_iff, mem_boxes],
+  simp only [finset.subset_iff, mem_boxes, mem_restrict', exists_prop, mem_split_iff'],
   have : ∀ s, (I ∩ s : set (ι → ℝ)) ⊆ J, from λ s, (inter_subset_left _ _).trans h,
-  rintro J' (⟨H₁, rfl⟩|⟨H₂, rfl⟩) J ⟨hJ, rfl⟩; [left, right];
-    simp [box.mem_split_lower, box.mem_split_upper, inter_left_comm ↑I, this]
+  rintro J₁ ⟨J₂, (H₂|H₂), H₁⟩; [left, right]; simp [H₁, H₂, inter_left_comm ↑I, this],
 end
 
 lemma inf_split (π : prepartition I) (i : ι) (x : ℝ) :
@@ -279,12 +261,12 @@ end
 pairs `(i, r)`. Suppose that this set contains all faces of a box `J`. The hyperplanes of `s` split
 a box `I` into subboxes. Let `Js` be one of them. If `J` and `Js` have nonempty intersection, then
 `Js` is a subbox of `J`.  -/
-lemma nonempty_inter_imp_le_of_subset_of_mem_split_many {I J Js : box ι} {s : finset (ι × ℝ)}
+lemma not_disjoint_imp_le_of_subset_of_mem_split_many {I J Js : box ι} {s : finset (ι × ℝ)}
   (H : ∀ i, {(i, J.lower i), (i, J.upper i)} ⊆ s) (HJs : Js ∈ split_many I s)
-  (Hn : (J ∩ Js : set (ι → ℝ)).nonempty) : Js ≤ J :=
+  (Hn : ¬disjoint (J : with_bot (box ι)) Js) : Js ≤ J :=
 begin
   simp only [finset.insert_subset, finset.singleton_subset_iff] at H,
-  rcases Hn with ⟨x, hx, hxs⟩,
+  rcases box.not_disjoint_coe_iff_nonempty_inter.mp Hn with ⟨x, hx, hxs⟩,
   refine λ y hy i, ⟨_, _⟩,
   { rcases split_many_le_split I (H i).1 HJs with ⟨Jl, Hmem : Jl ∈ split I i (J.lower i), Hle⟩,
     have := Hle hxs,
@@ -305,55 +287,56 @@ hyperplanes (namely, the set of all hyperfaces of boxes in `s`) such that for an
 and any box `I` in `ℝⁿ` the following holds. The hyperplanes from `t` split `I` into subboxes.
 Let `J'` be one of them, and let `J` be one of the boxes in `s`. If these boxes have a nonempty
 intersection, then `J' ≤ J`. -/
-lemma exists_split_many_forall_nonempty_imp_le (s : finset (box ι)) :
-  ∃ t₀ : finset (ι × ℝ), ∀ (t ⊇ t₀) (I : box ι) (J ∈ s) (J' ∈ split_many I t),
-    (J ∩ J' : set (ι → ℝ)).nonempty → J' ≤ J :=
+lemma eventually_not_disjoint_imp_le_of_mem_split_many (s : finset (box ι)) :
+  ∀ᶠ t : finset (ι × ℝ) in at_top, ∀ (I : box ι) (J ∈ s) (J' ∈ split_many I t),
+    ¬disjoint (J : with_bot (box ι)) J' → J' ≤ J :=
 begin
-  refine ⟨s.bUnion (λ J, finset.univ.bUnion (λ i, {(i, J.lower i), (i, J.upper i)})),
-    λ t ht I J hJ J' hJ', nonempty_inter_imp_le_of_subset_of_mem_split_many (λ i, _) hJ'⟩,
+  refine eventually_at_top.2
+    ⟨s.bUnion (λ J, finset.univ.bUnion (λ i, {(i, J.lower i), (i, J.upper i)})),
+      λ t ht I J hJ J' hJ', not_disjoint_imp_le_of_subset_of_mem_split_many (λ i, _) hJ'⟩,
   exact λ p hp, ht (finset.mem_bUnion.2 ⟨J, hJ, finset.mem_bUnion.2 ⟨i, finset.mem_univ _, hp⟩⟩)
 end
 
-lemma exists_split_many_inf_eq_filter (π : prepartition I) :
-  ∃ s : finset (ι × ℝ), ∀ t ⊇ s,
+lemma eventually_split_many_inf_eq_filter (π : prepartition I) :
+  ∀ᶠ t : finset (ι × ℝ) in at_top,
     π ⊓ (split_many I t) = (split_many I t).filter (λ J, ↑J ⊆ π.Union) :=
 begin
-  refine (exists_split_many_forall_nonempty_imp_le π.boxes).imp (λ s hs t ht, _),
-  refine eq_of_boxes_subset_Union_superset _ _,
-  { simp only [finset.subset_iff, mem_inf, mem_boxes, mem_filter],
-    rintro J ⟨J₁, h₁, J₂, h₂, h⟩,
-    have := hs t ht I J₁ h₁ J₂ h₂ h.fst, rw [box.inter_of_ge this, part.mem_some_iff] at h, subst J,
-    exact ⟨h₂, (box.coe_subset_coe.2 this).trans (π.subset_Union h₁)⟩ },
-  { simp only [set.subset_def, mem_Union, exists_prop, mem_filter],
-    rintro x ⟨J, ⟨hJs, hJ⟩, hx⟩, rcases hJ x hx with ⟨J', hJ', hx'⟩,
-    exact ⟨_, mem_inf.2 ⟨J', hJ', J, hJs, _, rfl⟩, box.mem_inter_get hx' hx⟩ }
+  refine (eventually_not_disjoint_imp_le_of_mem_split_many π.boxes).mono (λ t ht, _),
+  refine le_antisymm ((bUnion_le_iff _).2 $ λ J hJ, _) (le_inf (λ J hJ, _) (filter_le _ _)),
+  { refine of_with_bot_mono _,
+    simp only [finset.mem_image, exists_prop, mem_boxes, mem_filter],
+    rintro _ ⟨J₁, h₁, rfl⟩ hne,
+    refine ⟨_, ⟨J₁, ⟨h₁, subset.trans _ (π.subset_Union hJ)⟩, rfl⟩, le_rfl⟩,
+    exact ht I J hJ J₁ h₁ (mt disjoint_iff.1 hne) },
+  { rw mem_filter at hJ,
+    rcases set.mem_bUnion_iff.1 (hJ.2 J.upper_mem) with ⟨J', hJ', hmem⟩,
+    refine ⟨J', hJ', ht I _ hJ' _ hJ.1 $ box.not_disjoint_coe_iff_nonempty_inter.2 _⟩,
+    exact ⟨J.upper, hmem, J.upper_mem⟩  }
 end
 
 lemma exists_split_many_inf_eq_filter_of_finite (s : set (prepartition I)) (hs : s.finite) :
   ∃ t : finset (ι × ℝ), ∀ π ∈ s,
     π ⊓ (split_many I t) = (split_many I t).filter (λ J, ↑J ⊆ π.Union) :=
 begin
-  choose t ht using (λ π : prepartition I, exists_split_many_inf_eq_filter π),
-  refine ⟨hs.to_finset.sup t, λ π hπ, ht π _ _⟩,
-  change t π ≤ _,
-  exact finset.le_sup (hs.mem_to_finset.2 hπ)
+  have := λ π (hπ : π ∈ s), eventually_split_many_inf_eq_filter π,
+  exact (hs.eventually_all.2 this).exists
 end
 
 /-- If `π` is a partition of `I`, then there exists a finite set `s` of hyperplanes such that
 `split_many I s ≤ π`. -/
 lemma is_partition.exists_split_many_le {I : box ι} {π : prepartition I}
   (h : is_partition π) : ∃ s, split_many I s ≤ π :=
-(exists_split_many_forall_nonempty_imp_le π.boxes).imp $ λ s hs, h.le_iff.2 $
-  λ Js hJs J hJ Hne, hs s (finset.subset.refl _) I J hJ _ hJs (Hne.mono (inter_comm _ _).subset)
+(eventually_split_many_inf_eq_filter π).exists.imp $ λ s hs,
+  by { rwa [h.Union_eq, filter_of_true, inf_eq_right] at hs, exact λ J hJ, le_of_mem _ hJ }
 
 /-- For every prepartition `π` of `I` there exists a prepartition that covers exactly
 `I \ π.Union`. -/
 lemma exists_Union_eq_diff (π : prepartition I) :
   ∃ π' : prepartition I, π'.Union = I \ π.Union :=
 begin
-  rcases π.exists_split_many_inf_eq_filter with ⟨s, hs⟩,
+  rcases π.eventually_split_many_inf_eq_filter.exists with ⟨s, hs⟩,
   use (split_many I s).filter (λ J, ¬(J : set (ι → ℝ)) ⊆ π.Union),
-  simp [← hs s (finset.subset.refl _)],
+  simp [← hs]
 end
 
 /-- If `π` is a prepartition of `I`, then `π.compl` is a prepartition of `I`

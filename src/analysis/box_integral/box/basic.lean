@@ -265,11 +265,9 @@ by { simp only [disjoint, ← with_bot_coe_subset_iff, coe_inf], refl }
 lemma disjoint_coe : disjoint (I : with_bot (box ι)) J ↔ disjoint (I : set (ι → ℝ)) J :=
 disjoint_with_bot_coe.symm
 
-lemma le_left_of_coe_eq_inf {I J₁ J₂ : box ι} (h : (I : with_bot (box ι)) = J₁ ⊓ J₂) : I ≤ J₁ :=
-with_bot.coe_le_coe.1 $ h.trans_le inf_le_left
-
-lemma le_right_of_coe_eq_inf {I J₁ J₂ : box ι} (h : (I : with_bot (box ι)) = J₁ ⊓ J₂) : I ≤ J₂ :=
-with_bot.coe_le_coe.1 $ h.trans_le inf_le_right
+lemma not_disjoint_coe_iff_nonempty_inter :
+  ¬disjoint (I : with_bot (box ι)) J ↔ (I ∩ J : set (ι → ℝ)).nonempty :=
+by rw [disjoint_coe, set.not_disjoint_iff_nonempty_inter]
 
 /-!
 ### Hyperface of a box in `ℝⁿ⁺¹ = fin (n + 1) → ℝ`

@@ -42,27 +42,24 @@ open_locale big_operators
 
 variables (K L : Type*) [field K] [field L] [algebra K L]
 
-section
-set_option old_structure_cmd true
-
 /-- `S : intermediate_field K L` is a subset of `L` such that there is a field
 tower `L / S / K`. -/
-structure intermediate_field extends subalgebra K L, subfield L
+structure intermediate_field extends subalgebra K L :=
+(neg_mem' : ∀ x ∈ carrier, -x ∈ carrier)
+(inv_mem' : ∀ x ∈ carrier, x⁻¹ ∈ carrier)
 
 /-- Reinterpret an `intermediate_field` as a `subalgebra`. -/
 add_decl_doc intermediate_field.to_subalgebra
-
-/-- Reinterpret an `intermediate_field` as a `subfield`. -/
-add_decl_doc intermediate_field.to_subfield
-
-end
 
 variables {K L} (S : intermediate_field K L)
 
 namespace intermediate_field
 
+/-- Reinterpret an `intermediate_field` as a `subfield`. -/
+def to_subfield : subfield L := { ..S.to_subalgebra, ..S }
+
 instance : set_like (intermediate_field K L) L :=
-⟨intermediate_field.carrier, λ p q h, by cases p; cases q; congr'⟩
+⟨λ S, S.to_subalgebra.carrier, by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨h⟩, congr, }⟩
 
 @[simp]
 lemma mem_carrier {s : intermediate_field K L} {x : L} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
@@ -77,7 +74,7 @@ set_like.ext h
 
 @[simp] lemma mem_mk (s : set L) (hK : ∀ x, algebra_map K L x ∈ s)
   (ho hm hz ha hn hi) (x : L) :
-  x ∈ intermediate_field.mk s ho hm hz ha hK hn hi ↔ x ∈ s := iff.rfl
+  x ∈ intermediate_field.mk (subalgebra.mk s ho hm hz ha hK) hn hi ↔ x ∈ s := iff.rfl
 
 @[simp] lemma mem_to_subalgebra (s : intermediate_field K L) (x : L) :
   x ∈ s.to_subalgebra ↔ x ∈ s := iff.rfl

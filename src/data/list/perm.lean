@@ -704,7 +704,7 @@ end⟩
 lemma subperm.cons_right {α : Type*} {l l' : list α} (x : α) (h : l <+~ l') : l <+~ x :: l' :=
 h.trans (sublist_cons x l').subperm
 
-/-- The list version of `multiset.add_sub_of_le`. -/
+/-- The list version of `add_sub_cancel_of_le` for multisets. -/
 lemma subperm_append_diff_self_of_count_le {l₁ l₂ : list α}
   (h : ∀ x ∈ l₁, count x l₁ ≤ count x l₂) : l₁ ++ l₂.diff l₁ ~ l₂ :=
 begin
@@ -1024,7 +1024,7 @@ begin
     have h₀ : n = xs.length - n',
     { dsimp [n'], rwa nat.sub_sub_self, } ,
     have h₁ : n' ≤ xs.length,
-    { apply nat.sub_le_self },
+    { apply sub_le_self' },
     have h₂ : xs.drop n = (xs.reverse.take n').reverse,
     { rw [reverse_take _ h₁, h₀, reverse_reverse], },
     rw [h₂],

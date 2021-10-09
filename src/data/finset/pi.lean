@@ -73,14 +73,14 @@ assume e₁ e₂ eq,
   pi (insert a s) t = (t a).bUnion (λb, (pi s t).image (pi.cons s a b)) :=
 begin
   apply eq_of_veq,
-  rw ← multiset.erase_dup_eq_self.2 (pi (insert a s) t).2,
+  rw ← (pi (insert a s) t).2.erase_dup,
   refine (λ s' (h : s' = a ::ₘ s.1), (_ : erase_dup (multiset.pi s' (λ a, (t a).1)) =
     erase_dup ((t a).1.bind $ λ b,
     erase_dup $ (multiset.pi s.1 (λ (a : α), (t a).val)).map $
       λ f a' h', multiset.pi.cons s.1 a b f a' (h ▸ h')))) _ (insert_val_of_not_mem ha),
   subst s', rw pi_cons,
   congr, funext b,
-  rw multiset.erase_dup_eq_self.2,
+  rw multiset.nodup.erase_dup,
   exact multiset.nodup_map (multiset.pi_cons_injective ha) (pi s t).2,
 end
 

@@ -93,7 +93,7 @@ open measure vector_measure
 
 theorem with_densityᵥ_rn_deriv_eq
   (s : signed_measure α) (μ : measure α) [sigma_finite μ]
-  (h : s ≪ μ.to_ennreal_vector_measure) :
+  (h : s ≪ᵥ μ.to_ennreal_vector_measure) :
   μ.with_densityᵥ (s.rn_deriv μ) = s :=
 begin
   rw [absolutely_continuous_ennreal_iff,
@@ -119,7 +119,7 @@ end
 /-- The Radon-Nikodym theorem for signed measures. -/
 theorem absolutely_continuous_iff_with_densityᵥ_rn_deriv_eq
   (s : signed_measure α) (μ : measure α) [sigma_finite μ] :
-  s ≪ μ.to_ennreal_vector_measure ↔
+  s ≪ᵥ μ.to_ennreal_vector_measure ↔
   μ.with_densityᵥ (s.rn_deriv μ) = s :=
 ⟨with_densityᵥ_rn_deriv_eq s μ,
  λ h, h ▸ with_densityᵥ_absolutely_continuous _ _⟩

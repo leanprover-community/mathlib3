@@ -121,7 +121,7 @@ begin
     add_monoid_hom.compr₂_apply, add_monoid_hom.mul_apply, add_equiv.coe_to_add_monoid_hom,
     finsupp.single_add_hom_apply],
   simp only [add_monoid_algebra.single_mul_single, this, add_monoid_algebra.to_direct_sum_single],
-  rw [direct_sum.of_mul_of, semiring.direct_sum_mul],
+  rw [direct_sum.of_mul_of, has_mul.ghas_mul_mul],
 end
 
 end add_monoid_algebra

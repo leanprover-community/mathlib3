@@ -151,7 +151,7 @@ theorem eq_of_veq : ∀ {s t : finset α}, s.1 = t.1 → s = t
 ⟨eq_of_veq, congr_arg _⟩
 
 @[simp] theorem erase_dup_eq_self [decidable_eq α] (s : finset α) : erase_dup s.1 = s.1 :=
-erase_dup_eq_self.2 s.2
+s.2.erase_dup
 
 instance has_decidable_eq [decidable_eq α] : decidable_eq (finset α)
 | s₁ s₂ := decidable_of_iff _ val_inj
@@ -1052,7 +1052,8 @@ lemma erase_inj_on (s : finset α) : set.inj_on s.erase s :=
 /-! ### sdiff -/
 
 /-- `s \ t` is the set consisting of the elements of `s` that are not in `t`. -/
-instance : has_sdiff (finset α) := ⟨λs₁ s₂, ⟨s₁.1 - s₂.1, nodup_of_le (sub_le_self _ _) s₁.2⟩⟩
+instance : has_sdiff (finset α) :=
+⟨λs₁ s₂, ⟨s₁.1 - s₂.1, nodup_of_le sub_le_self' s₁.2⟩⟩
 
 @[simp] lemma sdiff_val (s₁ s₂ : finset α) : (s₁ \ s₂).val = s₁.val - s₂.val := rfl
 
@@ -1676,7 +1677,7 @@ def to_finset (s : multiset α) : finset α := ⟨_, nodup_erase_dup s⟩
 @[simp] theorem to_finset_val (s : multiset α) : s.to_finset.1 = s.erase_dup := rfl
 
 theorem to_finset_eq {s : multiset α} (n : nodup s) : finset.mk s n = s.to_finset :=
-finset.val_inj.1 (erase_dup_eq_self.2 n).symm
+finset.val_inj.1 n.erase_dup.symm
 
 lemma nodup.to_finset_inj {l l' : multiset α} (hl : nodup l) (hl' : nodup l')
   (h : l.to_finset = l'.to_finset) : l = l' :=
@@ -1963,7 +1964,7 @@ theorem image_to_finset [decidable_eq α] {s : multiset α} :
 ext $ λ _, by simp only [mem_image, multiset.mem_to_finset, exists_prop, multiset.mem_map]
 
 theorem image_val_of_inj_on (H : set.inj_on f s) : (image f s).1 = s.1.map f :=
-multiset.erase_dup_eq_self.2 (nodup_map_on H s.2)
+(nodup_map_on H s.2).erase_dup
 
 @[simp]
 theorem image_id [decidable_eq α] : s.image id = s :=
@@ -2060,7 +2061,7 @@ ext $ λ ⟨x, hx⟩, ⟨or.cases_on (mem_insert.1 hx)
 λ _, finset.mem_attach _ _⟩
 
 theorem map_eq_image (f : α ↪ β) (s : finset α) : s.map f = s.image f :=
-eq_of_veq $ (multiset.erase_dup_eq_self.2 (s.map f).2).symm
+eq_of_veq (s.map f).2.erase_dup.symm
 
 lemma image_const {s : finset α} (h : s.nonempty) (b : β) : s.image (λa, b) = singleton b :=
 ext $ assume b', by simp only [mem_image, exists_prop, exists_and_distrib_right,
@@ -2460,7 +2461,7 @@ def strong_downward_induction {p : finset α → Sort*} {n : ℕ} (H : ∀ t₁,
   t₂.card ≤ n → t₁ ⊂ t₂ → p t₂) → t₁.card ≤ n → p t₁) :
   ∀ (s : finset α), s.card ≤ n → p s
 | s := H s (λ t ht h, have n - card t < n - card s,
-     from (nat.sub_lt_sub_left_iff ht).2 (finset.card_lt_card h),
+     from (sub_lt_sub_iff_left_of_le ht).2 (finset.card_lt_card h),
   strong_downward_induction t ht)
 using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ (t : finset α), n - t.card)⟩]}
 

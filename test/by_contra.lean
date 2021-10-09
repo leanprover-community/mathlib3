@@ -24,3 +24,11 @@ begin
   revert h,
   exact dec_trivial
 end
+
+example : 1 < 2 :=
+begin
+  by_contra' : 2 ≤ 1,
+  guard_hyp' this : 2 ≤ 1, -- this is not defeq to `¬ 1 < 2`
+  revert this,
+  exact dec_trivial
+end

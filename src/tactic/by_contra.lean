@@ -26,9 +26,10 @@ If the target of the main goal is a proposition `p`,
 and then check that the two normalized forms are equal.
 The resulting hypothesis is the pre-normalized form, `q`.
 
-This tactic uses classical reasoning.
+If the name `h` is not explicitly provided, then `this` will be used as name.
 
-A variant on the tactic `by_contra` (`tactic.interactive.by_contra`).
+This tactic uses classical reasoning.
+It is a variant on the tactic `by_contra` (`tactic.interactive.by_contra`).
 -/
 meta def by_contra' (h : parse ident?) (t : parse (tk ":" *> texpr)?) : tactic unit := do
   let h := h.get_or_else `this,

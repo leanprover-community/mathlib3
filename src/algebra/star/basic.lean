@@ -193,6 +193,10 @@ lemma star_ring_aut_apply [comm_semiring R] [star_ring R] {x : R} :
 @[simp] lemma star_ring_aut_self_apply [comm_semiring R] [star_ring R] {x : R} :
   star_ring_aut (star_ring_aut x) = x := star_star x
 
+-- A more convenient name for complex conjugation
+alias star_ring_aut_self_apply ← complex.conj_conj
+alias star_ring_aut_self_apply ← is_R_or_C.conj_conj
+
 section
 open_locale big_operators
 

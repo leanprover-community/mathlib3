@@ -54,7 +54,7 @@ as Parseval's formula.
 -/
 
 noncomputable theory
-open_locale ennreal
+open_locale ennreal complex_conjugate
 open topological_space continuous_map measure_theory measure_theory.measure algebra submodule set
 
 local attribute [instance] fact_one_le_two_ennreal
@@ -91,7 +91,7 @@ continuous maps from `circle` to `ℂ`. -/
 
 @[simp] lemma fourier_zero {z : circle} : fourier 0 z = 1 := rfl
 
-@[simp] lemma fourier_neg {n : ℤ} {z : circle} : fourier (-n) z = complex.conj (fourier n z) :=
+@[simp] lemma fourier_neg {n : ℤ} {z : circle} : fourier (-n) z = conj (fourier n z) :=
 by simp [← coe_inv_circle_eq_conj z]
 
 @[simp] lemma fourier_add {m n : ℤ} {z : circle} :

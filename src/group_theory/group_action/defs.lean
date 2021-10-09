@@ -338,7 +338,7 @@ lemma is_scalar_tower.of_smul_one_mul {M N} [monoid N] [has_scalar M N]
   is_scalar_tower M N N :=
 ⟨λ x y z, by rw [← h, smul_eq_mul, mul_assoc, h, smul_eq_mul]⟩
 
-lemma smul_comm_class.of_mul_smul_one {M N} [monoid N] [has_scalar M N]
+@[to_additive] lemma smul_comm_class.of_mul_smul_one {M N} [monoid N] [has_scalar M N]
   (H : ∀ (x : M) (y : N), y * (x • (1 : N)) = x • y) : smul_comm_class M N N :=
 ⟨λ x y z, by rw [← H x z, smul_eq_mul, ← H, smul_eq_mul, mul_assoc]⟩
 

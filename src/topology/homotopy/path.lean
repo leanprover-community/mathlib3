@@ -21,6 +21,8 @@ In this file, we define a `homotopy` between two `path`s. In addition, we define
 * `path.homotopy.trans F G`, where `F : path.homotopy p₀ p₁`, `G : path.homotopy p₁ p₂` is the
   `path.homotopy p₀ p₂` defined by putting the first homotopy on `[0, 1/2]` and the second on
   `[1/2, 1]`
+* `path.homotopy.trans' F G`, where `F : path.homotopy p₀ q₀` and `G : path.homotopy p₁ q₁` is
+  a `path.homotopy (p₀.trans p₁) (q₀.trans q₁)`
 * `path.homotopic p₀ p₁` is the relation saying that there is a homotopy between `p₀` and `p₁`
 * `path.homotopic.setoid x₀ x₁` is the setoid on `path`s from `path.homotopic`
 * `path.homotopic.quotient x₀ x₁` is the quotient type from `path x₀ x₀` by `path.homotopic.setoid`

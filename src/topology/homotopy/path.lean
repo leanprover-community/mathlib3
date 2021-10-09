@@ -76,6 +76,9 @@ begin
   simp,
 end
 
+/--
+Evaluating a path homotopy at an intermediate point, giving us a `path`.
+-/
 def eval (F : homotopy p₀ p₁) (t : I) : path x₀ x₁ :=
 { to_fun := F.to_homotopy.curry t,
   source' := by simp,
@@ -227,3 +230,5 @@ instance : inhabited (homotopic.quotient () ()) :=
 end homotopic
 
 end path
+
+#lint

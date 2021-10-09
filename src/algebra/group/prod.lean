@@ -93,13 +93,24 @@ instance [mul_one_class M] [mul_one_class N] : mul_one_class (M × N) :=
 
 @[to_additive]
 instance [monoid M] [monoid N] : monoid (M × N) :=
-{ .. prod.semigroup, .. prod.mul_one_class }
+{ npow := λ z a, ⟨monoid.npow z a.1, monoid.npow z a.2⟩,
+  npow_zero' := λ z, ext (monoid.npow_zero' _) (monoid.npow_zero' _),
+  npow_succ' := λ z a, ext (monoid.npow_succ' _ _) (monoid.npow_succ' _ _),
+  .. prod.semigroup, .. prod.mul_one_class }
+
+@[to_additive]
+instance [div_inv_monoid G] [div_inv_monoid H] : div_inv_monoid (G × H) :=
+{ div_eq_mul_inv := λ a b, mk.inj_iff.mpr ⟨div_eq_mul_inv _ _, div_eq_mul_inv _ _⟩,
+  gpow := λ z a, ⟨div_inv_monoid.gpow z a.1, div_inv_monoid.gpow z a.2⟩,
+  gpow_zero' := λ z, ext (div_inv_monoid.gpow_zero' _) (div_inv_monoid.gpow_zero' _),
+  gpow_succ' := λ z a, ext (div_inv_monoid.gpow_succ' _ _) (div_inv_monoid.gpow_succ' _ _),
+  gpow_neg' := λ z a, ext (div_inv_monoid.gpow_neg' _ _) (div_inv_monoid.gpow_neg' _ _),
+  .. prod.monoid, .. prod.has_inv, .. prod.has_div }
 
 @[to_additive]
 instance [group G] [group H] : group (G × H) :=
 { mul_left_inv := assume a, mk.inj_iff.mpr ⟨mul_left_inv _, mul_left_inv _⟩,
-  div_eq_mul_inv := λ a b, mk.inj_iff.mpr ⟨div_eq_mul_inv _ _, div_eq_mul_inv _ _⟩,
-  .. prod.monoid, .. prod.has_inv, .. prod.has_div }
+  .. prod.div_inv_monoid }
 
 @[to_additive]
 instance [comm_semigroup G] [comm_semigroup H] : comm_semigroup (G × H) :=

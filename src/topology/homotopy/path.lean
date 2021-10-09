@@ -75,7 +75,7 @@ begin
 end
 
 def eval (F : homotopy p₀ p₁) (t : I) : path x₀ x₁ :=
-{ to_fun := F.to_homotopy.curry t,
+{ to_fun := λ u, F (t, u),
   source' := sorry,
   target' := sorry }
 

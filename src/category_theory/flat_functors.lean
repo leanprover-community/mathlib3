@@ -77,9 +77,11 @@ def to_cone {X : D} (f : X ⟶ F.obj c.X) :
 { X := mk f, π := { app := λ j, hom_mk (c.π.app j) rfl,
                     naturality' := λ j k g, by { ext, dsimp, simp } } }
 
-local @[simp]
-lemma eq_to_hom_right {L : A ⥤ T} {R : B ⥤ T} (X Y : comma L R) (H : X = Y) :
+lemma eq_to_hom_right {A : Type*} [category A] {B : Type*} [category B] {T : Type*} [category T]
+  {L : A ⥤ T} {R : B ⥤ T} (X Y : comma L R) (H : X = Y) :
   comma_morphism.right (eq_to_hom H) = eq_to_hom (by { cases H, refl }) := by { cases H, refl }
+
+local attribute[simp] eq_to_hom_right
 
 /--
 If a cone `s₁` factors through another cone `s₂`, then the two constructed diagrams are actually
@@ -166,7 +168,7 @@ begin
   { intro j,
     injection c₀.π.naturality (bicone_hom.left  j) with _ e₁,
     injection c₀.π.naturality (bicone_hom.right j) with _ e₂,
-    simpa using e₁.symm.trans e₂ },
+    simpa [eq_to_hom_right] using e₁.symm.trans e₂ },
   have : c.extend g₁.right = c.extend g₂.right,
   { unfold cone.extend, congr' 1, ext x, apply this },
 

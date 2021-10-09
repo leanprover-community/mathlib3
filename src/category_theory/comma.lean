@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johan Commelin, Bhavik Mehta
 -/
 import category_theory.natural_isomorphism
+import category_theory.eq_to_hom
 
 /-!
 # Comma categories
@@ -254,6 +255,15 @@ lemma post_post (L : A ⥤ T) (R : B ⥤ T) (F : T ⥤ C) (G : C ⥤ D) :
   post L R F ⋙ post (L ⋙ F) (R ⋙ F) G = post L R (F ⋙ G) := rfl
 
 end
+
+@[simp]
+lemma eq_to_hom_left {L : A ⥤ T} {R : B ⥤ T} (X Y : comma L R) (H : X = Y) :
+  comma_morphism.left (eq_to_hom H) = eq_to_hom (by { cases H, refl }) := by { cases H, refl }
+
+@[simp]
+lemma eq_to_hom_right {L : A ⥤ T} {R : B ⥤ T} (X Y : comma L R) (H : X = Y) :
+  comma_morphism.right (eq_to_hom H) = eq_to_hom (by { cases H, refl }) := by { cases H, refl }
+
 end comma
 
 end category_theory

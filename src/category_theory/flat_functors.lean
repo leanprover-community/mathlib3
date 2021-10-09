@@ -10,6 +10,7 @@ import category_theory.limits.preserves.shapes.equalizers
 import category_theory.limits.shapes.bicones
 import category_theory.limits.presheaf
 import category_theory.limits.yoneda
+import category_theory.limits.comma
 
 /-!
 # Representably flat functors
@@ -61,6 +62,7 @@ def to_diagram : J ⥤ structured_arrow c.X K :=
   map_id' := λ X, by simpa,
   map_comp' := λ X Y Z g h, by { ext, simp } }
 
+/-- Given a diagram of `structured_arrow X F`s, we may obtain a cone with cone point `X`. -/
 @[simps]
 def diagram_to_cone {X : D} (G : J ⥤ structured_arrow X F) : cone (G ⋙ proj X F ⋙ F) := {
   X := X, π := { app := λ j, (G.obj j).hom } }
@@ -79,35 +81,15 @@ def to_cone {X : D} (f : X ⟶ F.obj c.X) :
 If a cone `s₁` factors through another cone `s₂`, then the two constructed diagrams are actually
 the same.
 -/
-def to_diagram_comp_map (s₁ s₂ : cone K)
+lemma to_diagram_comp_map (s₁ s₂ : cone K)
   (f : s₁.X ⟶ s₂.X) (H : ∀ (j : J), f ≫ s₂.π.app j = s₁.π.app j) :
-    to_diagram s₂ ⋙ structured_arrow.map f = to_diagram s₁ := by { apply functor.ext, tidy }
+    to_diagram s₂ ⋙ structured_arrow.map f = to_diagram s₁ := by { apply functor.ext, tidy, }
 
 end structured_arrow_cone
-
 
 section representably_flat
 variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
 
-
-@[simp]
-lemma eq_to_hom_right {A : Type*} [category A] {B : Type*} [category B] {T : Type*} [category T]
-  {L : A ⥤ T} {R : B ⥤ T} (X Y : comma L R) (H : X = Y) :
-  comma_morphism.right (eq_to_hom H) = eq_to_hom (by { cases H, refl }) := by { cases H, refl }
-
-lemma comma.hext {A : Type*} [category A] {B : Type*} [category B] {T : Type*} [category T]
-  {L : A ⥤ T} {R : B ⥤ T} (X Y : comma L R) (h₁ : X.left = Y.left) (h₂ : X.right = Y.right)
-  (h₃ : X.hom == Y.hom) : X = Y := by { cases X, cases Y, congr; assumption }
-
-lemma cone.ext {A : Type*} [category A] {B : Type*} [category B] {F : A ⥤ B} (c d : cone F)
-  (h₁ : c.X = d.X) (h₂ : ∀ j : A, c.π.app j = (eq_to_hom h₁) ≫ d.π.app j) : c = d :=
-begin
-  cases c, cases d, cases h₁, congr,
-  cases c_π, cases d_π, congr,
-  { ext x,
-    specialize h₂ x, dsimp only at h₂, rw h₂,
-    simp }
-end
 /--
 A functor `F : C ⥤ D` is representably-flat functor if the comma category `(X/F)`
 is cofiltered for each `X : C`.
@@ -123,117 +105,20 @@ end representably_flat
 section has_limit
 variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₁} D]
 
-open structured_arrow
-open structured_arrow_cone
-variables {J : Type v₁} [small_category J] {F : C ⥤ D}
-variables [preserves_limits_of_shape J F] {X : D} (K : J ⥤ structured_arrow X F)
-variables (c : limit_cone (K ⋙ proj X F))
-
-include c
-
-@[simps] def lifts_limit_cone_of_preserve : cone K :=
-begin
-  let hc' : is_limit (F.map_cone c.cone) := preserves_limit.preserves c.is_limit,
-  let s := to_cone F c.cone (hc'.lift (diagram_to_cone F K)),
-  have K_eq : to_diagram (F.map_cone c.cone) ⋙ map (hc'.lift (diagram_to_cone F K)) ⋙
-    pre (diagram_to_cone F K).X (K ⋙ proj X F) F = K,
-  { apply functor.ext, { intros _ _ _, ext, simp },
-    intro j,
-    apply comma.hext,
-    cases (K.obj j).left, refl, refl, simpa using hc'.fac (diagram_to_cone F K) j },
-  exact (cones.postcompose (eq_to_hom K_eq)).obj s,
-end
-
-def lifts_limit_cone_of_preserve_is_limit : is_limit (lifts_limit_cone_of_preserve K c) :=
-begin
-  let hc' : is_limit (F.map_cone c.cone) := preserves_limit.preserves c.is_limit,
-  refine { lift := λ s', hom_mk (c.is_limit.lift ((proj X F).map_cone s')) _,
-    fac' := _, uniq' := _},
-  { apply hc'.uniq (diagram_to_cone F K),
-    intro j,
-    simp [←F.map_comp, c.is_limit.fac ((proj X F).map_cone s') j] },
-  { intros s' j, ext,
-    change c.is_limit.lift _ ≫ c.cone.π.app j ≫ _ = _,
-    rw [← category.assoc, c.is_limit.fac ((proj X F).map_cone s')j],
-    simpa [-category.comp_id] using category.comp_id ((s'.π.app j).right) },
-  { intros s' m h,
-    ext,
-    apply c.is_limit.uniq ((proj X F).map_cone s'),
-    intro j, convert congr_arg comma_morphism.right (h j),
-    simpa [-category.comp_id] using (category.comp_id (c.cone.π.app j)).symm }
-end
-
-lemma lifts_limit_cone_of_preserve_is_lift :
-  (proj X F).map_cone (lifts_limit_cone_of_preserve K c) = c.cone :=
-by { fapply cone.ext, { dsimp, refl }, { intro x, dsimp, simp, erw category.comp_id, } }
-
-omit c
-
-lemma lifts_limit_cone_of_preserve_of_proj_comp (c : cone K)
-  (hc : is_limit ((proj X F).map_cone c)) : lifts_limit_cone_of_preserve K ⟨_, hc⟩ = c :=
-begin
-fapply cone.ext,
-{ apply comma.hext,
-  { simp },
-  { simp },
-  { symmetry,
-    simp only [heq_iff_eq],
-    apply (preserves_limit.preserves hc).uniq (diagram_to_cone F K),
-    intro _, simp } },
-{ intro j, dsimp, ext, simp, erw category.comp_id },
-end
-
-instance proj_reflects_limit_of_preserve : reflects_limit K (proj X F) := ⟨λ c hc,
-begin
-rw ← lifts_limit_cone_of_preserve_of_proj_comp K c,
-apply lifts_limit_cone_of_preserve_is_limit _ ⟨_, hc⟩,
-end⟩
-
-instance proj_creates_limit_of_preserve : creates_limit K (proj X F) :=
-⟨λ c hc, ⟨_, eq_to_iso (lifts_limit_cone_of_preserve_is_lift K ⟨c, hc⟩)⟩⟩
-
-instance proj_preserves_limit_of_shape_preserve : preserves_limits_of_shape J (proj X F) := {}
-
-instance proj_creates_limit_of_shape_preserve : creates_limits_of_shape J (proj X F) := {}
-
-instance has_limits_of_preserve [has_limits_of_shape J C] :
-  has_limits_of_shape J (structured_arrow X F) :=
-has_limits_of_shape_of_has_limits_of_shape_creates_limits_of_shape (proj X F)
-
-noncomputable
-instance proj_preserves_limits_of_preserve [has_limits_of_shape J C] :
-  preserves_limits_of_shape J (proj X F) := ⟨λ K,
-begin
-apply preserves_limit_of_preserves_limit_cone,
-apply lifts_limit_cone_of_preserve_is_limit,
-apply get_limit_cone,
-rw lifts_limit_cone_of_preserve_is_lift,
-apply limit_cone.is_limit
-end⟩
-
-section end
+@[priority 100]
+instance cofiltered_of_has_finite_limit [has_finite_limits C] : is_cofiltered C :=
+{ cocone_objs := λ A B, ⟨limits.prod A B, limits.prod.fst, limits.prod.snd, trivial⟩,
+  cocone_maps :=  λ A B f g, ⟨equalizer f g, equalizer.ι f g, equalizer.condition f g⟩,
+  nonempty := ⟨⊤_ C⟩ }
 
 lemma flat_of_preserves_finite_limit [has_limits C] (F : C ⥤ D)
   (H : ∀ (J : Type v₁) [h : small_category J] [h' : @fin_category J h],
     @preserves_limits_of_shape _ _ _ _ J h F) : representably_flat F := ⟨λ X,
-{ cocone_objs := λ A B, by
-  { let fn := limits.binary_fan.mk A.hom B.hom,
-    let is_lim := is_limit_of_has_binary_product_of_preserves_limit F A.right B.right,
-    use structured_arrow.mk (is_lim.lift fn),
-    use structured_arrow.hom_mk limits.prod.fst (is_lim.fac fn walking_pair.left),
-    use structured_arrow.hom_mk limits.prod.snd (is_lim.fac fn walking_pair.right) },
-  cocone_maps := λ A B f g, by
-  { let fn : fork (F.map f.right) (F.map g.right) := limits.fork.of_ι A.hom (f.w.symm.trans g.w),
-    let is_lim := is_limit_of_has_equalizer_of_preserves_limit F f.right g.right,
-    use structured_arrow.mk (is_lim.lift fn),
-    use structured_arrow.hom_mk (equalizer.ι f.right g.right)
-      (is_lim.fac fn walking_parallel_pair.zero),
-    ext,
-    exact equalizer.condition f.right g.right },
-  nonempty := by
-  { haveI := has_terminal_of_has_terminal_of_preserves_limit F,
-    exact nonempty.intro (structured_arrow.mk
-      (terminal.from X ≫ (preserves_terminal.iso F).inv)) } }⟩
+begin
+  haveI : has_finite_limits (structured_arrow X F) :=
+    { out := λ J _ _, by { resetI, apply_instance } },
+  apply_instance
+end⟩
 
 namespace preserves_finite_limit_of_flat
 open structured_arrow
@@ -241,6 +126,7 @@ open structured_arrow_cone
 variables {J : Type v₁} [small_category J] [fin_category J] {K : J ⥤ C}
 variables (F : C ⥤ D) [representably_flat F] {c : cone K} (hc : is_limit c) (s : cone (K ⋙ F))
 include hc
+
 /--
 (Implementation).
 Given a limit cone `c : cone K` and a cone `s : cone (K ⋙ F)` with `F` representably flat,
@@ -372,4 +258,3 @@ end
 
 end small_category
 end category_theory
-#lint

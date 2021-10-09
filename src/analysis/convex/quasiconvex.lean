@@ -44,15 +44,19 @@ variables [add_comm_monoid E] [add_comm_monoid F]
 section ordered_add_comm_monoid
 variables (𝕜) [ordered_add_comm_monoid β] [has_scalar 𝕜 E] (s : set E) (f : E → β)
 
-/-- A function is quasiconvex if all its sublevels are convex. -/
+/-- A function is quasiconvex if all its sublevels are convex.
+This means that, for all `r`, `{x ∈ s | f x ≤ r}` is `𝕜`-convex. -/
 def quasiconvex_on : Prop :=
 ∀ r, convex 𝕜 {x ∈ s | f x ≤ r}
 
-/-- A function is quasiconcave if all its superlevels are convex. -/
+/-- A function is quasiconcave if all its superlevels are convex.
+This means that, for all `r`, `{x ∈ s | r ≤ f x}` is `𝕜`-convex. -/
 def quasiconcave_on : Prop :=
 ∀ r, convex 𝕜 {x ∈ s | r ≤ f x}
 
-/-- A function is quasilinear if it is both quasiconvex and quasiconcave. -/
+/-- A function is quasilinear if it is both quasiconvex and quasiconcave.
+This means that, for all `r`,
+the sets `{x ∈ s | f x ≤ r}` and `{x ∈ s | r ≤ f x}` are `𝕜`-convex. -/
 def quasilinear_on : Prop :=
 quasiconvex_on 𝕜 s f ∧ quasiconcave_on 𝕜 s f
 

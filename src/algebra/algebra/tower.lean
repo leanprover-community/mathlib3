@@ -106,7 +106,7 @@ instance subalgebra' (S₀ : subalgebra R S) : is_scalar_tower R S₀ A :=
 begin
   unfreezingI { cases h1 with f1 g1 h11 h12, cases h2 with f2 g2 h21 h22,
   cases f1, cases f2, congr', { ext r x, exact h },
-  ext r, erw [← mul_one (g1 r), ← h12, ← mul_one (g2 r), ← h22, h], refl }
+  ext r, erw [← mul_one (g1 r), ← h12, ← mul_one (g2 r), ← h22, h], }
 end
 
 /-- In a tower, the canonical map from the middle element to the top element is an

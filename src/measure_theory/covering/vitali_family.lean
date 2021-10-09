@@ -6,6 +6,22 @@ Authors: Sébastien Gouëzel
 import topology.metric_space.basic
 import measure_theory.constructions.borel_space
 
+/-!
+# Vitali families
+
+On a metric space with a measure `μ`, consider for each `x` a family of closed sets with
+nonempty interiors, called `sets_at x`. This family is a Vitali family if it satisfies the following
+property: consider a (possible non-measurable) set `s`, and for any `x` in `s` a
+subfamily `f x` of `sets_at x` containing sets of arbitrarily small diameter. Then one can extract
+a disjoint subfamily covering almost all `s`.
+
+Vitali families are provided by covering theorems such as the Besicovitch covering theorem or the
+Vitali covering theorem. They make it possible to formulate general versions of theorems on
+differentiations of measure that apply in both contexts.
+
+This file defines Vitali families.
+-/
+
 open measure_theory metric set
 
 variables {α : Type*} [metric_space α]

@@ -843,8 +843,8 @@ lemma mem_map_equiv {f : G ≃* N} {K : subgroup G} {x : N} :
 @set.mem_image_equiv _ _ ↑K f.to_equiv x
 
 @[to_additive]
-lemma apply_mem_map_injective {f : G ≃* N} (hf : function.injective f) {K : subgroup G} {x : G} :
-  f x ∈ K.map f.to_monoid_hom ↔ x ∈ K :=
+lemma apply_mem_map_of_injective {f : G →* N} (hf : function.injective f) {K : subgroup G} {x : G} :
+  f x ∈ K.map f ↔ x ∈ K :=
 hf.mem_set_image
 
 @[to_additive]

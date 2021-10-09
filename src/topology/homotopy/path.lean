@@ -27,7 +27,7 @@ In this file, we define a `homotopy` between two `path`s. In addition, we define
 
 ## Todos
 
-Prove that `first_homotopy x₀` is a `group`.
+Define the fundamental group(oid).
 -/
 
 universes u v

@@ -57,6 +57,9 @@ by cases P; cases Q; congr'
 lemma sylow.ext_iff {P Q : sylow p G} : P = Q ↔ (P : subgroup G) = Q :=
 ⟨congr_arg coe, sylow.ext⟩
 
+noncomputable instance [fintype G] : fintype (sylow p G) :=
+fintype.of_injective (coe : sylow p G → set G) (λ P Q, sylow.ext ∘ subgroup.ext ∘ set.ext_iff.mp)
+
 /-- A generalization of **Sylow's first theorem**.
   Every `p`-subgroup is contained in a Sylow `p`-subgroup. -/
 lemma is_p_group.exists_le_sylow {P : subgroup G} (hP : is_p_group p P) :

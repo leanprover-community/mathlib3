@@ -215,8 +215,7 @@ def equiv_real_prodₗ : ℂ ≃L[ℝ] ℝ × ℝ :=
     refine linear_map.continuous_of_bound (equiv_real_prod_add_hom_lm.symm.to_linear_map) 2 _,
     rintro ⟨a, b⟩,
     rw two_mul,
-    exact le_trans (abs_le_abs_re_add_abs_im _)
-      (add_le_add (le_max_left _ _) (le_max_right _ _)),
+    exact le_trans (abs_le_abs_re_add_abs_im _) (add_le_add (le_max_left _ _) (le_max_right _ _)),
   end, .. equiv_real_prod_add_hom }
 
 end

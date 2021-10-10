@@ -29,6 +29,7 @@ open Top.presheaf
 
 namespace algebraic_geometry
 
+/-- The type of Ringed spaces, as an abbreviation for `SheafedSpace CommRing`. -/
 abbreviation RingedSpace : Type* := SheafedSpace CommRing
 
 namespace RingedSpace

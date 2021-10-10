@@ -106,7 +106,7 @@ lemma comp_sup_eq_sup_comp_of_is_total [is_total α (≤)] {γ : Type} [semilatt
   (g : α → γ) (mono_g : monotone g) (bot : g ⊥ = ⊥) : g (s.sup f) = s.sup (g ∘ f) :=
 comp_sup_eq_sup_comp g mono_g.map_sup bot
 
-/-- Computating `sup` in a subtype (closed under `sup`) is the same as computing it in `α`. -/
+/-- Computing `sup` in a subtype (closed under `sup`) is the same as computing it in `α`. -/
 lemma sup_coe {P : α → Prop}
   {Pbot : P ⊥} {Psup : ∀{{x y}}, P x → P y → P (x ⊔ y)}
   (t : finset β) (f : β → {x : α // P x}) :
@@ -257,7 +257,7 @@ lemma comp_inf_eq_inf_comp_of_is_total [h : is_total α (≤)] {γ : Type} [semi
   (g : α → γ) (mono_g : monotone g) (top : g ⊤ = ⊤) : g (s.inf f) = s.inf (g ∘ f) :=
 comp_inf_eq_inf_comp g mono_g.map_inf top
 
-/-- Computating `inf` in a subtype (closed under `inf`) is the same as computing it in `α`. -/
+/-- Computing `inf` in a subtype (closed under `inf`) is the same as computing it in `α`. -/
 lemma inf_coe {P : α → Prop}
   {Ptop : P ⊤} {Pinf : ∀{{x y}}, P x → P y → P (x ⊓ y)}
   (t : finset β) (f : β → {x : α // P x}) :

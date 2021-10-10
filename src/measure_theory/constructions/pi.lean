@@ -328,6 +328,21 @@ begin
   exact λ i, measurable_set_closed_ball
 end
 
+lemma pi_unique_eq_map {β : Type*} {m : measurable_space β} (μ : measure β) (α : Type*) [unique α] :
+  measure.pi (λ a : α, μ) = map (measurable_equiv.fun_unique α β).symm μ :=
+begin
+  set e := measurable_equiv.fun_unique α β,
+  have : pi_premeasure (λ _ : α, μ.to_outer_measure) = map e.symm μ,
+  { ext1 s,
+    rw [pi_premeasure, fintype.prod_unique, to_outer_measure_apply, e.symm.map_apply],
+    congr' 1, exact e.to_equiv.image_eq_preimage s },
+  simp only [measure.pi, outer_measure.pi, this, bounded_by_measure, to_outer_measure_to_measure],
+end
+
+lemma map_fun_unique {α β : Type*} [unique α] {m : measurable_space β} (μ : measure β) :
+  map (measurable_equiv.fun_unique α β) (measure.pi $ λ _, μ) = μ :=
+(measurable_equiv.fun_unique α β).map_apply_eq_iff_map_symm_apply_eq.2 (pi_unique_eq_map μ _).symm
+
 variable {μ}
 
 /-- `measure.pi μ` has finite spanning sets in rectangles of finite spanning sets. -/
@@ -382,6 +397,36 @@ variable (μ)
 
 instance pi.sigma_finite : sigma_finite (measure.pi μ) :=
 (finite_spanning_sets_in.pi (λ i, (μ i).to_finite_spanning_sets_in) (λ _ _, id)).sigma_finite
+
+lemma {u} pi_fin_two_eq_map {α : fin 2 → Type u} {m : Π i, measurable_space (α i)}
+  (μ : Π i, measure (α i)) [∀ i, sigma_finite (μ i)] :
+  measure.pi μ = map (measurable_equiv.pi_fin_two α).symm ((μ 0).prod (μ 1)) :=
+begin
+  refine pi_eq (λ s hs, _),
+  rw [measurable_equiv.map_apply, fin.prod_univ_succ, fin.prod_univ_succ, fin.prod_univ_zero,
+    mul_one, ← measure.prod_prod (hs _) (hs _)]; [skip, apply_instance],
+  congr' 1,
+  ext ⟨a, b⟩,
+  simp [fin.forall_fin_succ, is_empty.forall_iff]
+end
+
+lemma {u} map_pi_fin_two {α : fin 2 → Type u} {m : Π i, measurable_space (α i)}
+  (μ : Π i, measure (α i)) [∀ i, sigma_finite (μ i)] :
+  map (measurable_equiv.pi_fin_two α) (measure.pi μ) = ((μ 0).prod (μ 1)) :=
+(measurable_equiv.pi_fin_two α).map_apply_eq_iff_map_symm_apply_eq.2 (pi_fin_two_eq_map μ).symm
+
+lemma prod_eq_map_fin_two_arrow {α : Type*} {m : measurable_space α} (μ ν : measure α)
+  [sigma_finite μ] [sigma_finite ν] :
+  μ.prod ν = map measurable_equiv.fin_two_arrow (measure.pi ![μ, ν]) :=
+begin
+  haveI : ∀ i, sigma_finite (![μ, ν] i) := fin.forall_fin_two.2 ⟨‹_›, ‹_›⟩,
+  exact (map_pi_fin_two ![μ, ν]).symm
+end
+
+lemma prod_eq_map_fin_two_arrow_same {α : Type*} {m : measurable_space α} (μ : measure α)
+  [sigma_finite μ] :
+  μ.prod μ = map measurable_equiv.fin_two_arrow (measure.pi $ λ _, μ) :=
+by rw [prod_eq_map_fin_two_arrow, matrix.vec_single_eq_const, matrix.vec_cons_const]
 
 lemma pi_eval_preimage_null {i : ι} {s : set (α i)} (hs : μ i s = 0) :
   measure.pi μ (eval i ⁻¹' s) = 0 :=
@@ -566,5 +611,115 @@ lemma volume_pi_closed_ball [Π i, measure_space (α i)] [∀ i, sigma_finite (v
   (x : Π i, α i) {r : ℝ} (hr : 0 ≤ r) :
   volume (metric.closed_ball x r) = ∏ i, volume (metric.closed_ball (x i) r) :=
 measure.pi_closed_ball _ _ hr
+
+section fun_unique
+/-!
+### Integral over `ι → α` with `[unique ι]`
+
+In this section we prove some lemmas that relate integrals over `ι → β`, where `ι` is a type with
+unique element (e.g., `unit` or `fin 1`) and integrals over `β`.
+-/
+
+variables {β E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E]
+  [topological_space.second_countable_topology E] [borel_space E] [complete_space E]
+
+lemma integral_fun_unique_pi (ι) [unique ι] {m : measurable_space β} (μ : measure β)
+  (f : (ι → β) → E) :
+  ∫ y, f y ∂(measure.pi (λ _, μ)) = ∫ x, f (λ _, x) ∂μ :=
+by rw [measure.pi_unique_eq_map μ ι, integral_map_equiv]; refl
+
+lemma integral_fun_unique_pi' (ι : Type*) [unique ι] {m : measurable_space β} (μ : measure β)
+  (f : β → E) :
+  ∫ y : ι → β, f (y (default ι)) ∂(measure.pi (λ _, μ)) = ∫ x, f x ∂μ :=
+integral_fun_unique_pi ι μ _
+
+lemma integral_fun_unique (ι : Type*) [unique ι] [measure_space β] (f : (ι → β) → E) :
+  ∫ y, f y = ∫ x, f (λ _, x) :=
+integral_fun_unique_pi ι volume f
+
+lemma integral_fun_unique' (ι : Type*) [unique ι] [measure_space β] (f : β → E) :
+  ∫ y : ι → β, f (y (default ι)) = ∫ x, f x :=
+integral_fun_unique_pi' ι volume f
+
+lemma set_integral_fun_unique_pi (ι : Type*) [unique ι] {m : measurable_space β} (μ : measure β)
+  (f : (ι → β) → E) (s : set (ι → β)) :
+  ∫ y in s, f y ∂(measure.pi (λ _, μ)) = ∫ x in const ι ⁻¹' s, f (λ _, x) ∂μ :=
+by rw [measure.pi_unique_eq_map μ ι, set_integral_map_equiv]; refl
+
+lemma set_integral_fun_unique_pi' (ι : Type*) [unique ι] {m : measurable_space β} (μ : measure β)
+  (f : β → E) (s : set β) :
+  ∫ y : ι → β in function.eval (default ι) ⁻¹' s, f (y (default ι)) ∂(measure.pi (λ _, μ)) =
+    ∫ x in s, f x ∂μ :=
+by erw [set_integral_fun_unique_pi, (equiv.fun_unique ι β).symm_preimage_preimage]
+
+lemma set_integral_fun_unique (ι : Type*) [unique ι] [measure_space β] (f : (ι → β) → E)
+  (s : set (ι → β)) :
+  ∫ y in s, f y = ∫ x in const ι ⁻¹' s, f (λ _, x) :=
+by convert set_integral_fun_unique_pi ι volume f s
+
+lemma set_integral_fun_unique' (ι : Type*) [unique ι] [measure_space β] (f : β → E) (s : set β) :
+  ∫ y : ι → β in @function.eval ι (λ _, β) (default ι) ⁻¹' s, f (y (default ι)) = ∫ x in s, f x :=
+by convert set_integral_fun_unique_pi' ι volume f s
+
+end fun_unique
+
+section fin_two_arrow
+
+variables {β E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E]
+  [topological_space.second_countable_topology E] [borel_space E] [complete_space E]
+
+lemma integral_fin_two_arrow_pi {m : measurable_space β} (μ ν : measure β)
+  [sigma_finite μ] [sigma_finite ν] (f : (fin 2 → β) → E) :
+  ∫ y, f y ∂(measure.pi ![μ, ν]) = ∫ x, f ![x.1, x.2] ∂(μ.prod ν) :=
+begin
+  haveI : ∀ i, sigma_finite (![μ, ν] i) := fin.forall_fin_two.2 ⟨‹_›, ‹_›⟩,
+  rw [measure.pi_fin_two_eq_map, integral_map_equiv], refl
+end
+
+lemma integral_fin_two_arrow_pi' {m : measurable_space β} (μ ν : measure β) [sigma_finite μ]
+  [sigma_finite ν] (f : β × β → E) :
+  ∫ y : fin 2 → β, f (y 0, y 1) ∂(measure.pi ![μ, ν]) = ∫ x, f x ∂(μ.prod ν) :=
+by { rw [measure.prod_eq_map_fin_two_arrow, integral_map_equiv], refl }
+
+lemma integral_fin_two_arrow [measure_space β] [sigma_finite (volume : measure β)]
+  (f : (fin 2 → β) → E) :
+  ∫ y, f y = ∫ x : β × β, f ![x.1, x.2] :=
+by rw [volume_pi, measure.volume_eq_prod, ← integral_fin_two_arrow_pi, matrix.vec_single_eq_const,
+  matrix.vec_cons_const]
+
+lemma integral_fin_two_arrow' [measure_space β] [sigma_finite (volume : measure β)]
+  (f : β × β → E) :
+  ∫ y : fin 2 → β, f (y 0, y 1) = ∫ x, f x :=
+by rw [volume_pi, measure.volume_eq_prod, ← integral_fin_two_arrow_pi', matrix.vec_single_eq_const,
+  matrix.vec_cons_const]
+
+lemma set_integral_fin_two_arrow_pi {m : measurable_space β} (μ ν : measure β)
+  [sigma_finite μ] [sigma_finite ν] (f : (fin 2 → β) → E) (s : set (fin 2 → β)) :
+  ∫ y in s, f y ∂(measure.pi ![μ, ν]) =
+    ∫ x : β × β in (fin_two_arrow_equiv β).symm ⁻¹' s, f ![x.1, x.2] ∂(μ.prod ν) :=
+begin
+  haveI : ∀ i, sigma_finite (![μ, ν] i) := fin.forall_fin_two.2 ⟨‹_›, ‹_›⟩,
+  rw [measure.pi_fin_two_eq_map, set_integral_map_equiv], refl
+end
+
+lemma set_integral_fin_two_arrow_pi' {m : measurable_space β} (μ ν : measure β)
+  [sigma_finite μ] [sigma_finite ν] (f : β × β → E) (s : set (β × β)) :
+  ∫ y : fin 2 → β in fin_two_arrow_equiv β ⁻¹' s, f (y 0, y 1) ∂(measure.pi ![μ, ν]) =
+    ∫ x in s, f x ∂(μ.prod ν) :=
+by { rw [set_integral_fin_two_arrow_pi, equiv.symm_preimage_preimage], simp }
+
+lemma set_integral_fin_two_arrow [measure_space β] [sigma_finite (volume : measure β)]
+  (f : (fin 2 → β) → E) (s : set (fin 2 → β)) :
+  ∫ y in s, f y = ∫ x in (fin_two_arrow_equiv β).symm ⁻¹' s, f ![x.1, x.2] :=
+by rw [measure.volume_eq_prod, ← set_integral_fin_two_arrow_pi, volume_pi,
+  matrix.vec_single_eq_const, matrix.vec_cons_const]
+
+lemma set_integral_fin_two_arrow' [measure_space β] [sigma_finite (volume : measure β)]
+  (f : β × β → E) (s : set (β × β)) :
+  ∫ y : fin 2 → β in fin_two_arrow_equiv β ⁻¹' s, f (y 0, y 1) = ∫ x in s, f x :=
+by rw [measure.volume_eq_prod, ← set_integral_fin_two_arrow_pi', volume_pi,
+  matrix.vec_single_eq_const, matrix.vec_cons_const]
+
+end fin_two_arrow
 
 end measure_theory

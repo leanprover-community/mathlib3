@@ -56,14 +56,18 @@ quot.induction_on s nodup_erase_dup
 
 theorem erase_dup_eq_self {s : multiset α} : erase_dup s = s ↔ nodup s :=
 ⟨λ e, e ▸ nodup_erase_dup s,
- quot.induction_on s $ λ l h, congr_arg coe $ erase_dup_eq_self.2 h⟩
+ quot.induction_on s $ λ l h, congr_arg coe h.erase_dup⟩
+
+alias erase_dup_eq_self ↔ _ multiset.nodup.erase_dup
+
+alias erase_dup_eq_self ↔ _ multiset.nodup.erase_dup
 
 theorem erase_dup_eq_zero {s : multiset α} : erase_dup s = 0 ↔ s = 0 :=
 ⟨λ h, eq_zero_of_subset_zero $ h ▸ subset_erase_dup _,
  λ h, h.symm ▸ erase_dup_zero⟩
 
 @[simp] theorem erase_dup_singleton {a : α} : erase_dup ({a} : multiset α) = {a} :=
-erase_dup_eq_self.2 $ nodup_singleton _
+(nodup_singleton _).erase_dup
 
 theorem le_erase_dup {s t : multiset α} : s ≤ erase_dup t ↔ s ≤ t ∧ nodup s :=
 ⟨λ h, ⟨le_trans h (erase_dup_le _), nodup_of_le h (nodup_erase_dup _)⟩,

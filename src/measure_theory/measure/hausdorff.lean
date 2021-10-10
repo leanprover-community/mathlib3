@@ -26,9 +26,9 @@ The value of `μH[d]`, `d > 0`, on a set `s` (measurable or not) is given by
 ```
 
 For every set `s` for any `d < d'` we have either `μH[d] s = ∞` or `μH[d'] s = 0`, see
-`measure_theory.measure.hausdorff_measure_zero_or_top`. The Hausdorff dimension `dimH s : ℝ≥0∞` of a
-set `s` is the supremum of `d : ℝ≥0` such that `μH[d] s = ∞`. Then `μH[d] s = ∞` for `d < dimH s`
-and `μH[d] s = 0` for `dimH s < d`.
+`measure_theory.measure.hausdorff_measure_zero_or_top`. In
+`topology.metric_space.hausdorff_dimension` we use this fact to define the Hausdorff dimension
+`dimH` of a set in an (extended) metric space.
 
 We also define two generalizations of the Hausdorff measure. In one generalization (see
 `measure_theory.measure.mk_metric`) we take any function `m (diam s)` instead of `(diam s) ^ d`. In
@@ -62,8 +62,6 @@ measures.
     ∑' n, ⨆ (ht : ¬set.subsingleton (t n)), (emetric.diam (t n)) ^ d`,
   see `measure_theory.measure.hausdorff_measure_apply'`. In the most interesting case `0 < d` one
   can omit the `⨆ (ht : ¬set.subsingleton (t n))` part.
-* `measure_theory.dimH`: the Hausdorff dimension of a set. For the Hausdorff dimension of the whole
-  space we use `measure_theory.dimH (set.univ : set X)`.
 
 ## Main statements
 
@@ -73,46 +71,19 @@ measures.
   on an extended metric space `X` (that is, it is additive on pairs of metric separated sets), then
   every Borel set is Caratheodory measurable (hence, `μ` defines an actual
   `measure_theory.measure`). See also `measure_theory.measure.mk_metric`.
-* `measure_theory.measure.hausdorff_measure_mono`: `μH[d] s` is a monotonically decreasing function
+* `measure_theory.measure.hausdorff_measure_mono`: `μH[d] s` is an antitone function
   of `d`.
 * `measure_theory.measure.hausdorff_measure_zero_or_top`: if `d₁ < d₂`, then for any `s`, either
   `μH[d₂] s = 0` or `μH[d₁] s = ∞`. Together with the previous lemma, this means that `μH[d] s` is
   equal to infinity on some ray `(-∞, D)` and is equal to zero on `(D, +∞)`, where `D` is a possibly
   infinite number called the *Hausdorff dimension* of `s`; `μH[D] s` can be zero, infinity, or
   anything in between.
-* `measure_theory.measure.hausdorff_measure_of_lt_dimH`,
-  `measure_theory.measure.hausdorff_measure_of_dimH_lt`: if `d < dimH s`
-  (resp., `dimH s < d`), then `μH[d] s = ∞` (resp., `μH[d] s = 0`).
-* `measure_theory.measure.dimH_union`: the Hausdorff dimension of the union of two sets is the
-  maximum of their Hausdorff dimensions.
-* `measure_theory.measure.dimH_Union`, `measure_theory.measure.dimH_bUnion`,
-  `measure_theory.measure.dimH_sUnion`: the Hausdorff dimension of a countable union of sets is the
-  supremum of their Hausdorff dimensions.
-* `measure_theory.measure.no_atoms_hausdorff`, `measure_theory.measure.dimH_empty`,
-  `measure_theory.measure.dimH_singleton`, `set.subsingleton.dimH_zero`, `set.countable.dimH_zero`:
-  Hausdorff measure has no atoms and `dimH s = 0` whenever `s` is countable.
-
-### (Pre)images under (anti)lipschitz and Hölder continuous maps
-
-* `holder_with.dimH_image_le` etc: if `f : X → Y` is Hölder continuous with exponent `r > 0`, then
-  for any `s`, `dimH (f '' s) ≤ dimH s / r`. We prove versions of this statement for `holder_with`,
-  `holder_on_with`, and locally Hölder maps, as well as for `set.image` and `set.range`.
-* `lipschitz_with.dimH_image_le` etc: Lipschitz continuous maps do not increase the Hausdorff
-  dimension of sets.
-* for a map that is known to be both Lipschitz and antilipschitz (e.g., for an `isometry` or
-  a `continuous_linear_equiv`) we also prove `dimH (f '' s) = dimH s`.
+* `measure_theory.measure.no_atoms_hausdorff`: Hausdorff measure has no atoms.
 
 ### Hausdorff measure in `ℝⁿ`
 
 * `measure_theory.hausdorff_measure_pi_real`: for a nonempty `ι`, `μH[card ι]` on `ι → ℝ` equals
   Lebesgue measure.
-* `real.dimH_of_nonempty_interior`: if `s` is a set in a finite dimensional real vector space `E`
-  with nonempty interior, then the Hausdorff dimension of `s` is equal to the dimension of `E`.
-* `dense_compl_of_dimH_lt_finrank`: if `s` is a set in a finite dimensional real vector space `E`
-  with Hausdorff dimension strictly less than the dimension of `E`, the `s` has a dense complement.
-* `times_cont_diff.dense_compl_range_of_finrank_lt_finrank`: the complement to the range of a `C¹`
-  smooth map is dense provided that the dimension of the domain is strictly less than the dimension
-  of the codomain.
 
 ## Notations
 
@@ -142,7 +113,7 @@ to be zero on subsingletons because this way we can have a
 
 ## Tags
 
-Hausdorff measure, Hausdorff dimension, dimension, measure, metric measure
+Hausdorff measure, measure, metric measure
 -/
 
 open_locale nnreal ennreal topological_space big_operators
@@ -492,9 +463,9 @@ lemma outer_measure.coe_mk_metric [measurable_space X] [borel_space X] (m : ℝ�
   ⇑(outer_measure.mk_metric m : outer_measure X) = measure.mk_metric m :=
 by rw [← measure.mk_metric_to_outer_measure, coe_to_outer_measure]
 
-variables [measurable_space X] [borel_space X]
-
 namespace measure
+
+variables [measurable_space X] [borel_space X]
 
 /-- If `c ∉ {0, ∞}` and `m₁ d ≤ c * m₂ d` for `0 < d < ε` for some `ε > 0`
 (we use `≤ᶠ[𝓝[Ioi 0]]` to state this), then `mk_metric m₁ hm₁ ≤ c • mk_metric m₂ hm₂`. -/
@@ -692,91 +663,6 @@ end measure
 open_locale measure_theory
 open measure
 
-/-- Hausdorff dimension of a set in an (e)metric space. -/
-def dimH (s : set X) : ℝ≥0∞ := ⨆ (d : ℝ≥0) (hd : μH[d] s = ∞), d
-
-lemma dimH_subsingleton {s : set X} (h : s.subsingleton) : dimH s = 0 :=
-by simp [dimH, h.measure_zero]
-
-alias dimH_subsingleton ← set.subsingleton.dimH_zero
-
-@[simp] lemma dimH_empty : dimH (∅ : set X) = 0 := subsingleton_empty.dimH_zero
-
-@[simp] lemma dimH_singleton (x : X) : dimH ({x} : set X) = 0 := subsingleton_singleton.dimH_zero
-
-lemma hausdorff_measure_of_lt_dimH {s : set X} {d : ℝ≥0}
-  (h : ↑d < dimH s) : μH[d] s = ∞ :=
-begin
-  simp only [dimH, lt_supr_iff] at h,
-  rcases h with ⟨d', hsd', hdd'⟩,
-  rw [ennreal.coe_lt_coe, ← nnreal.coe_lt_coe] at hdd',
-  refine (hausdorff_measure_zero_or_top hdd' s).resolve_left (λ h, _),
-  exact (ennreal.zero_ne_top $ h.symm.trans hsd').elim
-end
-
-lemma dimH_le_of_hausdorff_measure_ne_top {s : set X} {d : ℝ≥0} (h : μH[d] s ≠ ∞) :
-  dimH s ≤ d :=
-le_of_not_lt $ mt hausdorff_measure_of_lt_dimH h
-
-lemma le_dimH_of_hausdorff_measure_eq_top {s : set X} {d : ℝ≥0} (h : μH[d] s = ∞) :
-  ↑d ≤ dimH s :=
-le_bsupr d h
-
-lemma hausdorff_measure_of_dimH_lt {s : set X} {d : ℝ≥0}
-  (h : dimH s < d) : μH[d] s = 0 :=
-begin
-  rcases ennreal.lt_iff_exists_nnreal_btwn.1 h with ⟨d', hsd', hd'd⟩,
-  rw [ennreal.coe_lt_coe, ← nnreal.coe_lt_coe] at hd'd,
-  exact (hausdorff_measure_zero_or_top hd'd s).resolve_right
-    (λ h, hsd'.not_le (le_bsupr d' h))
-end
-
-lemma measure_zero_of_dimH_lt {μ : measure X} {d : ℝ≥0}
-  (h : μ ≪ μH[d]) {s : set X} (hd : dimH s < d) :
-  μ s = 0 :=
-h $ hausdorff_measure_of_dimH_lt hd
-
-lemma le_dimH_of_hausdorff_measure_ne_zero {s : set X} {d : ℝ≥0} (h : μH[d] s ≠ 0) :
-  ↑d ≤ dimH s :=
-le_of_not_lt $ mt hausdorff_measure_of_dimH_lt h
-
-lemma dimH_of_hausdorff_measure_ne_zero_ne_top {d : ℝ≥0} {s : set X} (h : μH[d] s ≠ 0)
-  (h' : μH[d] s ≠ ∞) : dimH s = d :=
-le_antisymm (dimH_le_of_hausdorff_measure_ne_top h') (le_dimH_of_hausdorff_measure_ne_zero h)
-
-@[mono] lemma dimH_mono {s t : set X} (h : s ⊆ t) : dimH s ≤ dimH t :=
-bsupr_le $ λ d hd, le_dimH_of_hausdorff_measure_eq_top $
-  top_unique $ hd ▸ measure_mono h
-
-@[simp] lemma dimH_Union [encodable ι] (s : ι → set X) :
-  dimH (⋃ i, s i) = ⨆ i, dimH (s i) :=
-begin
-  refine le_antisymm (bsupr_le $ λ d hd, _) (supr_le $ λ i, dimH_mono $ subset_Union _ _),
-  contrapose! hd,
-  have : ∀ i, μH[d] (s i) = 0,
-    from λ i, hausdorff_measure_of_dimH_lt ((le_supr (λ i, dimH (s i)) i).trans_lt hd),
-  rw measure_Union_null this,
-  exact ennreal.zero_ne_top
-end
-
-@[simp] lemma dimH_bUnion {s : set ι} (hs : countable s) (t : ι → set X) :
-  dimH (⋃ i ∈ s, t i) = ⨆ i ∈ s, dimH (t i) :=
-begin
-  haveI := hs.to_encodable,
-  rw [← Union_subtype, dimH_Union, ← supr_subtype'']
-end
-
-@[simp] lemma dimH_sUnion {S : set (set X)} (hS : countable S) : dimH (⋃₀ S) = ⨆ s ∈ S, dimH s :=
-by rw [sUnion_eq_bUnion, dimH_bUnion hS]
-
-@[simp] lemma dimH_union (s t : set X) : dimH (s ∪ t) = max (dimH s) (dimH t) :=
-by rw [union_eq_Union, dimH_Union, supr_bool_eq, cond, cond, ennreal.sup_eq_max]
-
-lemma dimH_countable {s : set X} (hs : countable s) : dimH s = 0 :=
-bUnion_of_singleton s ▸ by simp only [dimH_bUnion hs, dimH_singleton, ennreal.supr_zero_eq_zero]
-
-alias dimH_countable ← set.countable.dimH_zero
-
 /-!
 ### Hausdorff measure and Lebesgue measure
 -/
@@ -922,66 +808,7 @@ begin
       exact ennreal.rpow_le_rpow (h.ediam_image_inter_le _) hd } }
 end
 
-/-- If `f` is a Hölder continuous map with exponent `r > 0`, then `dimH (f '' s) ≤ dimH s / r`. -/
-lemma dimH_image_le (h : holder_on_with C r f s) (hr : 0 < r) :
-  dimH (f '' s) ≤ dimH s / r :=
-begin
-  refine bsupr_le (λ d hd, _),
-  have := h.hausdorff_measure_image_le hr d.coe_nonneg,
-  rw [hd, ennreal.coe_rpow_of_nonneg _ d.coe_nonneg, top_le_iff] at this,
-  have Hrd : μH[(r * d : ℝ≥0)] s = ⊤,
-  { contrapose this, exact ennreal.mul_ne_top ennreal.coe_ne_top this },
-  rw [ennreal.le_div_iff_mul_le, mul_comm, ← ennreal.coe_mul],
-  exacts [le_dimH_of_hausdorff_measure_eq_top Hrd, or.inl (mt ennreal.coe_eq_zero.1 hr.ne'),
-    or.inl ennreal.coe_ne_top]
-end
-
 end holder_on_with
-
-namespace holder_with
-
-variables {C r : ℝ≥0} {f : X → Y} {s : set X}
-
-/-- If `f : X → Y` is Hölder continuous with a positive exponent `r`, then the Hausdorff dimension
-of the image of a set `s` is at most `dimH s / r`. -/
-lemma dimH_image_le (h : holder_with C r f) (hr : 0 < r) (s : set X) :
-  dimH (f '' s) ≤ dimH s / r :=
-(h.holder_on_with s).dimH_image_le hr
-
-/-- If `f` is a Hölder continuous map with exponent `r > 0`, then the Hausdorff dimension of its
-range is at most the Hausdorff dimension of its domain divided by `r`. -/
-lemma dimH_range_le (h : holder_with C r f) (hr : 0 < r) :
-  dimH (range f) ≤ dimH (univ : set X) / r :=
-@image_univ _ _ f ▸ h.dimH_image_le hr univ
-
-end holder_with
-
-/-- If `s` is a set in a space `X` with second countable topology and `f : X → Y` is Hölder
-continuous in a neighborhood within `s` of every point `x ∈ s` with the same positive exponent `r`
-but possibly different coefficients, then the Hausdorff dimension of the image `f '' s` is at most
-the Hausdorff dimension of `s` divided by `r`. -/
-lemma dimH_image_le_of_locally_holder_on [second_countable_topology X] {r : ℝ≥0} {f : X → Y}
-  (hr : 0 < r) {s : set X} (hf : ∀ x ∈ s, ∃ (C : ℝ≥0) (t ∈ 𝓝[s] x), holder_on_with C r f t) :
-  dimH (f '' s) ≤ dimH s / r :=
-begin
-  choose! C t htn hC using hf,
-  rcases countable_cover_nhds_within htn with ⟨u, hus, huc, huU⟩,
-  replace huU := inter_eq_self_of_subset_left huU, rw inter_bUnion at huU,
-  rw [← huU, image_bUnion, dimH_bUnion huc, dimH_bUnion huc], simp only [ennreal.supr_div],
-  exact bsupr_le_bsupr (λ x hx, ((hC x (hus hx)).mono (inter_subset_right _ _)).dimH_image_le hr)
-end
-
-/-- If `f : X → Y` is Hölder continuous in a neighborhood of every point `x : X` with the same
-positive exponent `r` but possibly different coefficients, then the Hausdorff dimension of the range
-of `f` is at most the Hausdorff dimension of `X` divided by `r`. -/
-lemma dimH_range_le_of_locally_holder_on [second_countable_topology X] {r : ℝ≥0} {f : X → Y}
-  (hr : 0 < r) (hf : ∀ x : X, ∃ (C : ℝ≥0) (s ∈ 𝓝 x), holder_on_with C r f s) :
-  dimH (range f) ≤ dimH (univ : set X) / r :=
-begin
-  rw ← image_univ,
-  refine dimH_image_le_of_locally_holder_on hr (λ x _, _),
-  simpa only [exists_prop, nhds_within_univ] using hf x
-end
 
 namespace lipschitz_on_with
 
@@ -992,10 +819,6 @@ lemma hausdorff_measure_image_le (h : lipschitz_on_with K f s) {d : ℝ} (hd : 0
   μH[d] (f '' s) ≤ K ^ d * μH[d] s :=
 by simpa only [nnreal.coe_one, one_mul]
   using h.holder_on_with.hausdorff_measure_image_le zero_lt_one hd
-
-/-- If `f : X → Y` is Lipschitz continuous on `s`, then `dimH (f '' s) ≤ dimH s`. -/
-lemma dimH_image_le (h : lipschitz_on_with K f s) : dimH (f '' s) ≤ dimH s :=
-by simpa using h.holder_on_with.dimH_image_le zero_lt_one
 
 end lipschitz_on_with
 
@@ -1009,40 +832,7 @@ lemma hausdorff_measure_image_le (h : lipschitz_with K f) {d : ℝ} (hd : 0 ≤ 
   μH[d] (f '' s) ≤ K ^ d * μH[d] s :=
 (h.lipschitz_on_with s).hausdorff_measure_image_le hd
 
-/-- If `f` is a Lipschitz continuous map, then `dimH (f '' s) ≤ dimH s`. -/
-lemma dimH_image_le (h : lipschitz_with K f) (s : set X) : dimH (f '' s) ≤ dimH s :=
-(h.lipschitz_on_with s).dimH_image_le
-
-/-- If `f` is a Lipschitz continuous map, then the Hausdorff dimension of its range is at most the
-Hausdorff dimension of its domain. -/
-lemma dimH_range_le (h : lipschitz_with K f) : dimH (range f) ≤ dimH (univ : set X) :=
-@image_univ _ _ f ▸ h.dimH_image_le univ
-
 end lipschitz_with
-
-/-- If `s` is a set in an extended metric space `X` with second countable topology and `f : X → Y`
-is Lipschitz in a neighborhood within `s` of every point `x ∈ s`, then the Hausdorff dimension of
-the image `f '' s` is at most the Hausdorff dimension of `s`. -/
-lemma dimH_image_le_of_locally_lipschitz_on [second_countable_topology X] {f : X → Y}
-  {s : set X} (hf : ∀ x ∈ s, ∃ (C : ℝ≥0) (t ∈ 𝓝[s] x), lipschitz_on_with C f t) :
-  dimH (f '' s) ≤ dimH s :=
-begin
-  have : ∀ x ∈ s, ∃ (C : ℝ≥0) (t ∈ 𝓝[s] x), holder_on_with C 1 f t,
-    by simpa only [holder_on_with_one] using hf,
-  simpa only [ennreal.coe_one, ennreal.div_one]
-    using dimH_image_le_of_locally_holder_on zero_lt_one this
-end
-
-/-- If `f : X → Y` is Lipschitz in a neighborhood of each point `x : X`, then the Hausdorff
-dimension of `range f` is at most the Hausdorff dimension of `X`. -/
-lemma dimH_range_le_of_locally_lipschitz_on [second_countable_topology X] {f : X → Y}
-  (hf : ∀ x : X, ∃ (C : ℝ≥0) (s ∈ 𝓝 x), lipschitz_on_with C f s) :
-  dimH (range f) ≤ dimH (univ : set X) :=
-begin
-  rw ← image_univ,
-  refine dimH_image_le_of_locally_lipschitz_on (λ x _, _),
-  simpa only [exists_prop, nhds_within_univ] using hf x
-end
 
 /-!
 ### Antilipschitz maps do not decrease Hausdorff measures and dimension
@@ -1081,21 +871,6 @@ lemma le_hausdorff_measure_image (hf : antilipschitz_with K f) (hd : 0 ≤ d) (s
 calc μH[d] s ≤ μH[d] (f ⁻¹' (f '' s)) : measure_mono (subset_preimage_image _ _)
          ... ≤ K ^ d * μH[d] (f '' s) : hf.hausdorff_measure_preimage_le hd (f '' s)
 
-lemma dimH_preimage_le (hf : antilipschitz_with K f) (s : set Y) :
-  dimH (f ⁻¹' s) ≤ dimH s :=
-begin
-  refine bsupr_le (λ d hd, le_dimH_of_hausdorff_measure_eq_top _),
-  have := hf.hausdorff_measure_preimage_le d.coe_nonneg s,
-  rw [hd, top_le_iff] at this,
-  contrapose! this,
-  exact ennreal.mul_ne_top (by simp) this
-end
-
-lemma le_dimH_image (hf : antilipschitz_with K f) (s : set X) :
-  dimH s ≤ dimH (f '' s) :=
-calc dimH s ≤ dimH (f ⁻¹' (f '' s)) : dimH_mono (subset_preimage_image _ _)
-        ... ≤ dimH (f '' s)         : hf.dimH_preimage_le _
-
 end antilipschitz_with
 
 /-!
@@ -1125,9 +900,6 @@ begin
   rw [map_apply hf.continuous.measurable hs, restrict_apply hs, hf.hausdorff_measure_preimage hd]
 end
 
-lemma dimH_image (hf : isometry f) (s : set X) : dimH (f '' s) = dimH s :=
-le_antisymm (hf.lipschitz.dimH_image_le _) (hf.antilipschitz.le_dimH_image _)
-
 end isometry
 
 namespace isometric
@@ -1140,149 +912,4 @@ e.isometry.hausdorff_measure_image (or.inr e.surjective) s
   μH[d] (e ⁻¹' s) = μH[d] s :=
 by rw [← e.image_symm, e.symm.hausdorff_measure_image]
 
-@[simp] lemma dimH_image (e : X ≃ᵢ Y) (s : set X) : dimH (e '' s) = dimH s :=
-e.isometry.dimH_image s
-
-@[simp] lemma dimH_preimage (e : X ≃ᵢ Y) (s : set Y) : dimH (e ⁻¹' s) = dimH s :=
-by rw [← e.image_symm, e.symm.dimH_image]
-
-lemma dimH_univ (e : X ≃ᵢ Y) : dimH (univ : set X) = dimH (univ : set Y) :=
-by rw [← e.dimH_preimage univ, preimage_univ]
-
 end isometric
-
-namespace continuous_linear_equiv
-
-variables {𝕜 E F : Type*} [nondiscrete_normed_field 𝕜]
-  [normed_group E] [normed_space 𝕜 E] [measurable_space E] [borel_space E]
-  [normed_group F] [normed_space 𝕜 F] [measurable_space F] [borel_space F]
-
-@[simp] lemma dimH_image (e : E ≃L[𝕜] F) (s : set E) : dimH (e '' s) = dimH s :=
-le_antisymm (e.lipschitz.dimH_image_le s) $
-  by simpa only [e.symm_image_image] using e.symm.lipschitz.dimH_image_le (e '' s)
-
-@[simp] lemma dimH_preimage (e : E ≃L[𝕜] F) (s : set F) : dimH (e ⁻¹' s) = dimH s :=
-by rw [← e.image_symm_eq_preimage, e.symm.dimH_image]
-
-lemma dimH_univ (e : E ≃L[𝕜] F) : dimH (univ : set E) = dimH (univ : set F) :=
-by rw [← e.dimH_preimage, preimage_univ]
-
-end continuous_linear_equiv
-
-namespace real
-
-variables {E : Type*} [fintype ι] [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
-  [measurable_space E] [borel_space E]
-
-open measure_theory
-
-open_locale measure_theory
-
-theorem dimH_ball_pi (x : ι → ℝ) {r : ℝ} (hr : 0 < r) :
-  dimH (metric.ball x r) = fintype.card ι :=
-begin
-  casesI is_empty_or_nonempty ι,
-  { rwa [dimH_subsingleton, eq_comm, nat.cast_eq_zero, fintype.card_eq_zero_iff],
-    exact λ x _ y _, subsingleton.elim x y },
-  { rw ← ennreal.coe_nat,
-    have : μH[fintype.card ι] (metric.ball x r) = ennreal.of_real ((2 * r) ^ fintype.card ι),
-      by rw [hausdorff_measure_pi_real, real.volume_pi_ball _ hr],
-    refine dimH_of_hausdorff_measure_ne_zero_ne_top _ _; rw [nnreal.coe_nat_cast, this],
-    { simp [pow_pos (mul_pos zero_lt_two hr)] },
-    { exact ennreal.of_real_ne_top } }
-end
-
-theorem dimH_ball_pi_fin {n : ℕ} (x : fin n → ℝ) {r : ℝ} (hr : 0 < r) :
-  dimH (metric.ball x r) = n :=
-by rw [dimH_ball_pi x hr, fintype.card_fin]
-
-theorem dimH_univ_pi (ι : Type*) [fintype ι] : dimH (univ : set (ι → ℝ)) = fintype.card ι :=
-by simp only [← metric.Union_ball_nat_succ (0 : ι → ℝ), dimH_Union,
-  dimH_ball_pi _ (nat.cast_add_one_pos _), supr_const]
-
-theorem dimH_univ_pi_fin (n : ℕ) : dimH (univ : set (fin n → ℝ)) = n :=
-by rw [dimH_univ_pi, fintype.card_fin]
-
-theorem dimH_of_mem_nhds {x : E} {s : set E} (h : s ∈ 𝓝 x) :
-  dimH s = finrank ℝ E :=
-begin
-  haveI : finite_dimensional ℝ (fin (finrank ℝ E) → ℝ), from is_noetherian_pi',
-  have e : E ≃L[ℝ] (fin (finrank ℝ E) → ℝ),
-    from continuous_linear_equiv.of_finrank_eq (finite_dimensional.finrank_fin_fun ℝ).symm,
-  rw ← e.dimH_image,
-  refine le_antisymm _ _,
-  { exact (dimH_mono (subset_univ _)).trans_eq (dimH_univ_pi_fin _) },
-  { have : e '' s ∈ 𝓝 (e x), by { rw ← e.map_nhds_eq, exact image_mem_map h },
-    rcases metric.nhds_basis_ball.mem_iff.1 this with ⟨r, hr0, hr⟩,
-    simpa only [dimH_ball_pi_fin (e x) hr0] using dimH_mono hr }
-end
-
-theorem dimH_of_nonempty_interior {s : set E} (h : (interior s).nonempty) :
-  dimH s = finrank ℝ E :=
-let ⟨x, hx⟩ := h in dimH_of_mem_nhds (mem_interior_iff_mem_nhds.1 hx)
-
-variable (E)
-
-theorem dimH_univ_eq_finrank : dimH (univ : set E) = finrank ℝ E :=
-dimH_of_mem_nhds (@univ_mem _ (𝓝 0))
-
-theorem dimH_univ : dimH (univ : set ℝ) = 1 :=
-by rw [dimH_univ_eq_finrank ℝ, finite_dimensional.finrank_self, nat.cast_one]
-
-end real
-
-variables {E F : Type*}
-  [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E] [measurable_space E] [borel_space E]
-  [normed_group F] [normed_space ℝ F] [measurable_space F] [borel_space F]
-
-theorem dense_compl_of_dimH_lt_finrank {s : set E} (hs : dimH s < finrank ℝ E) : dense sᶜ :=
-begin
-  refine λ x, mem_closure_iff_nhds.2 (λ t ht, ne_empty_iff_nonempty.1 $ λ he, hs.not_le _),
-  rw [← diff_eq, diff_eq_empty] at he,
-  rw [← real.dimH_of_mem_nhds ht],
-  exact dimH_mono he
-end
-
-/-!
-### Hausdorff dimension and `C¹`-smooth maps
-
-`C¹`-smooth maps are locally Lipschitz continuous, hence they do not increase the Hausdorff
-dimension of sets.
--/
-
-/-- Let `f` be a function defined on a finite dimensional real normed space. If `f` is `C¹`-smooth
-on a convex set `s`, then the Hausdorff dimension of `f '' s` is less than or equal to the Hausdorff
-dimension of `s`.
-
-TODO: do we actually need `convex ℝ s`? -/
-lemma times_cont_diff_on.dimH_image_le {f : E → F} {s t : set E} (hf : times_cont_diff_on ℝ 1 f s)
-  (hc : convex ℝ s) (ht : t ⊆ s) :
-  dimH (f '' t) ≤ dimH t :=
-dimH_image_le_of_locally_lipschitz_on $ λ x hx,
-  let ⟨C, u, hu, hf⟩ := (hf x (ht hx)).exists_lipschitz_on_with hc
-  in ⟨C, u, nhds_within_mono _ ht hu, hf⟩
-
-/-- The Hausdorff dimension of the range of a `C¹`-smooth function defined on a finite dimensional
-real normed space is at most the dimension of its domain as a vector space over `ℝ`. -/
-lemma times_cont_diff.dimH_range_le {f : E → F} (h : times_cont_diff ℝ 1 f) :
-  dimH (range f) ≤ finrank ℝ E :=
-calc dimH (range f) = dimH (f '' univ) : by rw image_univ
-... ≤ dimH (univ : set E) : h.times_cont_diff_on.dimH_image_le convex_univ subset.rfl
-... = finrank ℝ E : real.dimH_univ_eq_finrank E
-
-/-- A particular case of Sard's Theorem. Let `f : E → F` be a map between finite dimensional real
-vector spaces. Suppose that `f` is `C¹` smooth on a convex set `s` of Hausdorff dimension strictly
-less than the dimension of `F`. Then the complement of the image `f '' s` is dense in `F`. -/
-lemma times_cont_diff_on.dense_compl_image_of_dimH_lt_finrank [finite_dimensional ℝ F] {f : E → F}
-  {s t : set E} (h : times_cont_diff_on ℝ 1 f s) (hc : convex ℝ s) (ht : t ⊆ s)
-  (htF : dimH t < finrank ℝ F) :
-  dense (f '' t)ᶜ :=
-dense_compl_of_dimH_lt_finrank $ (h.dimH_image_le hc ht).trans_lt htF
-
-/-- A particular case of Sard's Theorem. If `f` is a `C¹` smooth map from a real vector space to a
-real vector space `F` of strictly larger dimension, then the complement of the range of `f` is dense
-in `F`. -/
-lemma times_cont_diff.dense_compl_range_of_finrank_lt_finrank [finite_dimensional ℝ F] {f : E → F}
-  (h : times_cont_diff ℝ 1 f) (hEF : finrank ℝ E < finrank ℝ F) :
-  dense (range f)ᶜ :=
-dense_compl_of_dimH_lt_finrank $ h.dimH_range_le.trans_lt $ ennreal.coe_nat_lt_coe_nat.2 hEF

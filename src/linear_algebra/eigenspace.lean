@@ -8,7 +8,7 @@ import field_theory.is_alg_closed.basic
 import linear_algebra.finsupp
 import linear_algebra.matrix.to_lin
 import order.preorder_hom
-import linear_algebra.charpoly
+import linear_algebra.charpoly.basic
 
 /-!
 # Eigenvectors and eigenvalues
@@ -83,7 +83,7 @@ calc
   ... = (f - b⁻¹ • a • linear_map.id).ker : by rw smul_smul
   ... = (f - b⁻¹ • algebra_map K (End K V) a).ker : rfl
   ... = (b • (f - b⁻¹ • algebra_map K (End K V) a)).ker : by rw linear_map.ker_smul _ b hb
-  ... = (b • f - algebra_map K (End K V) a).ker : by rw [smul_sub, smul_inv_smul' hb]
+  ... = (b • f - algebra_map K (End K V) a).ker : by rw [smul_sub, smul_inv_smul₀ hb]
 
 lemma eigenspace_aeval_polynomial_degree_1
   (f : End K V) (q : polynomial K) (hq : degree q = 1) :
@@ -93,7 +93,7 @@ calc
       = (q.leading_coeff • f - algebra_map K (End K V) (- q.coeff 0)).ker
     : by { rw eigenspace_div, intro h, rw leading_coeff_eq_zero_iff_deg_eq_bot.1 h at hq, cases hq }
   ... = (aeval f (C q.leading_coeff * X + C (q.coeff 0))).ker
-    : by { rw [C_mul', aeval_def], simpa [algebra_map, algebra.to_ring_hom], }
+    : by { rw [C_mul', aeval_def], simp [algebra_map, algebra.to_ring_hom], }
   ... = (aeval f q).ker
      : by { congr, apply (eq_X_add_C_of_degree_eq_one hq).symm }
 
@@ -404,8 +404,8 @@ begin
   induction k with k ih,
   { rw [pow_zero, pow_zero, linear_map.one_eq_id],
     apply (submodule.ker_subtype _).symm },
-  { erw [pow_succ', pow_succ', linear_map.ker_comp,
-      ih, ←linear_map.ker_comp, linear_map.comp_assoc], }
+  { erw [pow_succ', pow_succ', linear_map.ker_comp, linear_map.ker_comp, ih,
+      ← linear_map.ker_comp, ← linear_map.ker_comp, linear_map.comp_assoc] },
 end
 
 /-- Generalized eigenrange and generalized eigenspace for exponent `finrank K V` are disjoint. -/

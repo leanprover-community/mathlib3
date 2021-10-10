@@ -102,33 +102,12 @@ end
 section
 open_locale complex_order
 
-lemma complex_ordered_smul : ordered_smul ℝ ℂ :=
-{ smul_lt_smul_of_pos := λ z w x h₁ h₂,
-  begin
-    obtain ⟨y, l, rfl⟩ := lt_def.mp h₁,
-    refine lt_def.mpr ⟨x * y, _, _⟩,
-    exact mul_pos h₂ l,
-    ext; simp [mul_add],
-  end,
-  lt_of_smul_lt_smul_of_pos := λ z w x h₁ h₂,
-  begin
-    obtain ⟨y, l, e⟩ := lt_def.mp h₁,
-    by_cases h : x = 0,
-    { subst h, exfalso, apply lt_irrefl 0 h₂, },
-    { refine lt_def.mpr ⟨y / x, div_pos l h₂, _⟩,
-      replace e := congr_arg (λ z, (x⁻¹ : ℂ) * z) e,
-      simp only [mul_add, ←mul_assoc, h, one_mul, of_real_eq_zero, real_smul, ne.def,
-        not_false_iff, inv_mul_cancel] at e,
-      convert e,
-      simp only [div_eq_iff_mul_eq, h, of_real_eq_zero, of_real_div, ne.def, not_false_iff],
-      norm_cast,
-      simp [mul_comm _ y, mul_assoc, h] },
-  end }
+protected lemma ordered_smul : ordered_smul ℝ ℂ :=
+ordered_smul.mk' $ λ a b r hab hr, ⟨by simp [hr, hab.1.le], by simp [hab.2]⟩
 
-localized "attribute [instance] complex_ordered_smul" in complex_order
+localized "attribute [instance] complex.ordered_smul" in complex_order
 
 end
-
 
 open submodule finite_dimensional
 

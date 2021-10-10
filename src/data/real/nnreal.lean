@@ -504,7 +504,7 @@ section mul
 lemma mul_eq_mul_left {a b c : ℝ≥0} (h : a ≠ 0) : (a * b = a * c ↔ b = c) :=
 begin
   rw [← nnreal.eq_iff, ← nnreal.eq_iff, nnreal.coe_mul, nnreal.coe_mul], split,
-  { exact mul_left_cancel' (mt (@nnreal.eq_iff a 0).1 h) },
+  { exact mul_left_cancel₀ (mt (@nnreal.eq_iff a 0).1 h) },
   { assume h, rw [h] }
 end
 
@@ -522,7 +522,7 @@ end mul
 
 section pow
 
-lemma pow_mono_decr_exp {a : ℝ≥0} (m n : ℕ) (mn : m ≤ n) (a1 : a ≤ 1) :
+lemma pow_antitone_exp {a : ℝ≥0} (m n : ℕ) (mn : m ≤ n) (a1 : a ≤ 1) :
   a ^ n ≤ a ^ m :=
 begin
   rcases le_iff_exists_add.mp mn with ⟨k, rfl⟩,
@@ -566,7 +566,7 @@ by simp [pos_iff_ne_zero]
 lemma div_pos {r p : ℝ≥0} (hr : 0 < r) (hp : 0 < p) : 0 < r / p :=
 by simpa only [div_eq_mul_inv] using mul_pos hr (inv_pos.2 hp)
 
-protected lemma mul_inv {r p : ℝ≥0} : (r * p)⁻¹ = p⁻¹ * r⁻¹ := nnreal.eq $ mul_inv_rev' _ _
+protected lemma mul_inv {r p : ℝ≥0} : (r * p)⁻¹ = p⁻¹ * r⁻¹ := nnreal.eq $ mul_inv_rev₀ _ _
 
 lemma div_self_le (r : ℝ≥0) : r / r ≤ 1 :=
 if h : r = 0 then by simp [h] else by rw [div_self h]
@@ -646,7 +646,7 @@ lemma le_of_forall_lt_one_mul_le {x y : ℝ≥0} (h : ∀a<1, a * x ≤ y) : x �
 le_of_forall_ge_of_dense $ assume a ha,
   have hx : x ≠ 0 := pos_iff_ne_zero.1 (lt_of_le_of_lt (zero_le _) ha),
   have hx' : x⁻¹ ≠ 0, by rwa [(≠), inv_eq_zero],
-  have a * x⁻¹ < 1, by rwa [← lt_inv_iff_mul_lt hx', inv_inv'],
+  have a * x⁻¹ < 1, by rwa [← lt_inv_iff_mul_lt hx', inv_inv₀],
   have (a * x⁻¹) * x ≤ y, from h _ this,
   by rwa [mul_assoc, inv_mul_cancel hx, mul_one] at this
 
@@ -706,7 +706,7 @@ by rw [div_eq_inv_mul, div_eq_inv_mul, real.to_nnreal_mul (inv_nonneg.2 hy), rea
 
 end inv
 
-@[simp] lemma abs_eq (x : ℝ≥0) : abs (x : ℝ) = x :=
+@[simp] lemma abs_eq (x : ℝ≥0) : |(x : ℝ)| = x :=
 abs_of_nonneg x.property
 
 end nnreal
@@ -715,18 +715,18 @@ namespace real
 
 /-- The absolute value on `ℝ` as a map to `ℝ≥0`. -/
 @[pp_nodot] def nnabs : monoid_with_zero_hom ℝ ℝ≥0 :=
-{ to_fun := λ x, ⟨abs x, abs_nonneg x⟩,
+{ to_fun := λ x, ⟨|x|, abs_nonneg x⟩,
   map_zero' := by { ext, simp },
   map_one' := by { ext, simp },
   map_mul' := λ x y, by { ext, simp [abs_mul] } }
 
-@[norm_cast, simp] lemma coe_nnabs (x : ℝ) : (nnabs x : ℝ) = abs x :=
+@[norm_cast, simp] lemma coe_nnabs (x : ℝ) : (nnabs x : ℝ) = |x| :=
 by simp [nnabs]
 
 @[simp] lemma nnabs_of_nonneg {x : ℝ} (h : 0 ≤ x) : nnabs x = to_nnreal x :=
 by { ext, simp [coe_to_nnreal x h, abs_of_nonneg h] }
 
-lemma coe_to_nnreal_le (x : ℝ) : (to_nnreal x : ℝ) ≤ abs x :=
+lemma coe_to_nnreal_le (x : ℝ) : (to_nnreal x : ℝ) ≤ |x| :=
 max_le (le_abs_self _) (abs_nonneg _)
 
 lemma cast_nat_abs_eq_nnabs_cast (n : ℤ) :

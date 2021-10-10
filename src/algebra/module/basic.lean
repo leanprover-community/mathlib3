@@ -121,7 +121,7 @@ def module.to_add_monoid_End : R →+* add_monoid.End M :=
   map_add' := λ x y, add_monoid_hom.ext $ λ r, by simp [add_smul],
   ..distrib_mul_action.to_add_monoid_End R M }
 
-/-- A convenience alias for `module.to_add_monoid_End` as a `monoid_hom`, usually to allow the
+/-- A convenience alias for `module.to_add_monoid_End` as an `add_monoid_hom`, usually to allow the
 use of `add_monoid_hom.flip`. -/
 def smul_add_hom : R →+ M →+ M :=
 (module.to_add_monoid_End R M).to_add_monoid_hom
@@ -380,39 +380,77 @@ lemma map_int_module_smul [add_comm_group M] [add_comm_group M₂]
   (f : M →+ M₂) (x : ℤ) (a : M) : f (x • a) = x • f a :=
 by simp only [f.map_gsmul]
 
-lemma map_int_cast_smul
-  [ring R] [add_comm_group M] [add_comm_group M₂] [module R M] [module R M₂]
-  (f : M →+ M₂) (x : ℤ) (a : M) : f ((x : R) • a) = (x : R) • f a :=
+lemma map_int_cast_smul [add_comm_group M] [add_comm_group M₂]
+  (f : M →+ M₂) (R S : Type*) [ring R] [ring S] [module R M] [module S M₂]
+  (x : ℤ) (a : M) : f ((x : R) • a) = (x : S) • f a :=
 by simp only [←gsmul_eq_smul_cast, f.map_gsmul]
 
-lemma map_nat_cast_smul
-  [semiring R] [add_comm_monoid M] [add_comm_monoid M₂]
-  [module R M] [module R M₂] (f : M →+ M₂) (x : ℕ) (a : M) :
-  f ((x : R) • a) = (x : R) • f a :=
+lemma map_nat_cast_smul [add_comm_monoid M] [add_comm_monoid M₂] (f : M →+ M₂)
+  (R S : Type*) [semiring R] [semiring S] [module R M] [module S M₂] (x : ℕ) (a : M) :
+  f ((x : R) • a) = (x : S) • f a :=
 by simp only [←nsmul_eq_smul_cast, f.map_nsmul]
 
-lemma map_rat_cast_smul {R : Type*} [division_ring R] [char_zero R]
-  {E : Type*} [add_comm_group E] [module R E] {F : Type*} [add_comm_group F] [module R F]
-  (f : E →+ F) (c : ℚ) (x : E) :
-  f ((c : R) • x) = (c : R) • f x :=
+lemma map_inv_int_cast_smul {E F : Type*} [add_comm_group E] [add_comm_group F] (f : E →+ F)
+  (R S : Type*) [division_ring R] [division_ring S] [module R E] [module S F]
+  (n : ℤ) (x : E) :
+  f ((n⁻¹ : R) • x) = (n⁻¹ : S) • f x :=
 begin
-  have : ∀ (x : E) (n : ℕ), 0 < n → f (((n⁻¹ : ℚ) : R) • x) = ((n⁻¹ : ℚ) : R) • f x,
-  { intros x n hn,
-    replace hn : (n : R) ≠ 0 := nat.cast_ne_zero.2 (ne_of_gt hn),
-    conv_rhs { congr, skip, rw [← one_smul R x, ← mul_inv_cancel hn, mul_smul] },
-    rw [f.map_nat_cast_smul, smul_smul, rat.cast_inv, rat.cast_coe_nat,
-      inv_mul_cancel hn, one_smul] },
-  refine c.num_denom_cases_on (λ m n hn hmn, _),
-  rw [rat.mk_eq_div, div_eq_mul_inv, rat.cast_mul, int.cast_coe_nat, mul_smul, mul_smul,
-    rat.cast_coe_int, f.map_int_cast_smul, this _ n hn]
+  by_cases hR : (n : R) = 0; by_cases hS : (n : S) = 0,
+  { simp [hR, hS] },
+  { suffices : ∀ y, f y = 0, by simp [this], clear x, intro x,
+    rw [← inv_smul_smul₀ hS (f x), ← map_int_cast_smul f R S], simp [hR] },
+  { suffices : ∀ y, f y = 0, by simp [this], clear x, intro x,
+    rw [← smul_inv_smul₀ hR x, map_int_cast_smul f R S, hS, zero_smul] },
+  { rw [← inv_smul_smul₀ hS (f _), ← map_int_cast_smul f R S, smul_inv_smul₀ hR] }
 end
+
+lemma map_inv_nat_cast_smul {E F : Type*} [add_comm_group E] [add_comm_group F] (f : E →+ F)
+  (R S : Type*) [division_ring R] [division_ring S] [module R E] [module S F]
+  (n : ℕ) (x : E) :
+  f ((n⁻¹ : R) • x) = (n⁻¹ : S) • f x :=
+f.map_inv_int_cast_smul R S n x
+
+lemma map_rat_cast_smul {E F : Type*} [add_comm_group E] [add_comm_group F] (f : E →+ F)
+  (R S : Type*) [division_ring R] [division_ring S] [module R E] [module S F]
+  (c : ℚ) (x : E) :
+  f ((c : R) • x) = (c : S) • f x :=
+by rw [rat.cast_def, rat.cast_def, div_eq_mul_inv, div_eq_mul_inv, mul_smul, mul_smul,
+  map_int_cast_smul f R S, map_inv_nat_cast_smul f R S]
 
 lemma map_rat_module_smul {E : Type*} [add_comm_group E] [module ℚ E]
   {F : Type*} [add_comm_group F] [module ℚ F] (f : E →+ F) (c : ℚ) (x : E) :
   f (c • x) = c • f x :=
-rat.cast_id c ▸ f.map_rat_cast_smul c x
+rat.cast_id c ▸ f.map_rat_cast_smul ℚ ℚ c x
 
 end add_monoid_hom
+
+/-- There can be at most one `module ℚ E` structure on an additive commutative group. This is not
+an instance because `simp` becomes very slow if we have many `subsingleton` instances,
+see [gh-6025]. -/
+lemma subsingleton_rat_module (E : Type*) [add_comm_group E] : subsingleton (module ℚ E) :=
+⟨λ P Q, module_ext P Q $ λ r x,
+  @add_monoid_hom.map_rat_module_smul E ‹_› P E ‹_› Q (add_monoid_hom.id _) r x⟩
+
+/-- If `E` is a vector space over two division rings `R` and `S`, then scalar multiplications
+agree on inverses of integer numbers in `R` and `S`. -/
+lemma inv_int_cast_smul_eq {E : Type*} (R S : Type*) [add_comm_group E] [division_ring R]
+  [division_ring S] [module R E] [module S E] (n : ℤ) (x : E) :
+  (n⁻¹ : R) • x = (n⁻¹ : S) • x :=
+(add_monoid_hom.id E).map_inv_int_cast_smul R S n x
+
+/-- If `E` is a vector space over two division rings `R` and `S`, then scalar multiplications
+agree on inverses of natural numbers in `R` and `S`. -/
+lemma inv_nat_cast_smul_eq {E : Type*} (R S : Type*) [add_comm_group E] [division_ring R]
+  [division_ring S] [module R E] [module S E] (n : ℕ) (x : E) :
+  (n⁻¹ : R) • x = (n⁻¹ : S) • x :=
+(add_monoid_hom.id E).map_inv_nat_cast_smul R S n x
+
+/-- If `E` is a vector space over two division rings `R` and `S`, then scalar multiplications
+agree on rational numbers in `R` and `S`. -/
+lemma rat_cast_smul_eq {E : Type*} (R S : Type*) [add_comm_group E] [division_ring R]
+  [division_ring S] [module R E] [module S E] (r : ℚ) (x : E) :
+  (r : R) • x = (r : S) • x :=
+(add_monoid_hom.id E).map_rat_cast_smul R S r x
 
 section no_zero_smul_divisors
 /-! ### `no_zero_smul_divisors`

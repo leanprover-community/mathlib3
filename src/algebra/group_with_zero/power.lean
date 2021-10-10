@@ -36,20 +36,20 @@ variables {G₀ : Type*} [group_with_zero G₀]
 
 section nat_pow
 
-@[simp, field_simps] theorem inv_pow' (a : G₀) (n : ℕ) : (a⁻¹) ^ n = (a ^ n)⁻¹ :=
+@[simp, field_simps] theorem inv_pow₀ (a : G₀) (n : ℕ) : (a⁻¹) ^ n = (a ^ n)⁻¹ :=
 begin
   induction n with n ih,
   { rw [pow_zero, pow_zero], exact inv_one.symm },
-  { rw [pow_succ', pow_succ, ih, mul_inv_rev'] }
+  { rw [pow_succ', pow_succ, ih, mul_inv_rev₀] }
 end
 
-theorem pow_sub' (a : G₀) {m n : ℕ} (ha : a ≠ 0) (h : n ≤ m) : a ^ (m - n) = a ^ m * (a ^ n)⁻¹ :=
+theorem pow_sub₀ (a : G₀) {m n : ℕ} (ha : a ≠ 0) (h : n ≤ m) : a ^ (m - n) = a ^ m * (a ^ n)⁻¹ :=
 have h1 : m - n + n = m, from nat.sub_add_cancel h,
 have h2 : a ^ (m - n) * a ^ n = a ^ m, by rw [←pow_add, h1],
 by simpa only [div_eq_mul_inv] using eq_div_of_mul_eq (pow_ne_zero _ ha) h2
 
-theorem pow_inv_comm' (a : G₀) (m n : ℕ) : (a⁻¹) ^ m * a ^ n = a ^ n * (a⁻¹) ^ m :=
-(commute.refl a).inv_left'.pow_pow m n
+theorem pow_inv_comm₀ (a : G₀) (m n : ℕ) : (a⁻¹) ^ m * a ^ n = a ^ n * (a⁻¹) ^ m :=
+(commute.refl a).inv_left₀.pow_pow m n
 
 end nat_pow
 
@@ -79,20 +79,20 @@ end
 @[simp] theorem fpow_neg (a : G₀) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹
 | (n+1:ℕ) := div_inv_monoid.gpow_neg' _ _
 | 0       := by { change a ^ (0 : ℤ) = (a ^ (0 : ℤ))⁻¹, simp }
-| -[1+ n] := by { rw [gpow_neg_succ_of_nat, inv_inv', ← gpow_coe_nat], refl }
+| -[1+ n] := by { rw [gpow_neg_succ_of_nat, inv_inv₀, ← gpow_coe_nat], refl }
 
 theorem fpow_neg_one (x : G₀) : x ^ (-1:ℤ) = x⁻¹ :=
 by { rw [← congr_arg has_inv.inv (pow_one x), fpow_neg, ← gpow_coe_nat], refl }
 
 theorem inv_fpow (a : G₀) : ∀n:ℤ, a⁻¹ ^ n = (a ^ n)⁻¹
-| (n : ℕ) := by rw [gpow_coe_nat, gpow_coe_nat, inv_pow']
-| -[1+ n] := by rw [gpow_neg_succ_of_nat, gpow_neg_succ_of_nat, inv_pow']
+| (n : ℕ) := by rw [gpow_coe_nat, gpow_coe_nat, inv_pow₀]
+| -[1+ n] := by rw [gpow_neg_succ_of_nat, gpow_neg_succ_of_nat, inv_pow₀]
 
 lemma fpow_add_one {a : G₀} (ha : a ≠ 0) : ∀ n : ℤ, a ^ (n + 1) = a ^ n * a
 | (n : ℕ)    := by simp [← int.coe_nat_succ, pow_succ']
 | -[1+0]     := by simp [int.neg_succ_of_nat_eq, ha]
 | -[1+(n+1)] := by rw [int.neg_succ_of_nat_eq, fpow_neg, neg_add, neg_add_cancel_right, fpow_neg,
-  ← int.coe_nat_succ, gpow_coe_nat, gpow_coe_nat, pow_succ _ (n + 1), mul_inv_rev', mul_assoc,
+  ← int.coe_nat_succ, gpow_coe_nat, gpow_coe_nat, pow_succ _ (n + 1), mul_inv_rev₀, mul_assoc,
   inv_mul_cancel ha, mul_one]
 
 lemma fpow_sub_one {a : G₀} (ha : a ≠ 0) (n : ℤ) : a ^ (n - 1) = a ^ n * a⁻¹ :=
@@ -125,7 +125,7 @@ by rw [fpow_add h, gpow_one]
 theorem semiconj_by.fpow_right {a x y : G₀} (h : semiconj_by a x y) :
   ∀ m : ℤ, semiconj_by a (x^m) (y^m)
 | (n : ℕ) := by simp [h.pow_right n]
-| -[1+n]  := by simp [(h.pow_right (n + 1)).inv_right']
+| -[1+n]  := by simp [(h.pow_right (n + 1)).inv_right₀]
 
 theorem commute.fpow_right {a b : G₀} (h : commute a b) : ∀ m : ℤ, commute a (b^m) :=
 h.fpow_right
@@ -161,16 +161,16 @@ end
 theorem fpow_mul (a : G₀) : ∀ m n : ℤ, a ^ (m * n) = (a ^ m) ^ n
 | (m : ℕ) (n : ℕ) := by { rw [gpow_coe_nat, gpow_coe_nat, ← pow_mul, ← gpow_coe_nat], refl }
 | (m : ℕ) -[1+ n] := by { rw [gpow_coe_nat, gpow_neg_succ_of_nat, ← pow_mul, coe_nat_mul_neg_succ,
-    fpow_neg, inv_inj', ← gpow_coe_nat], refl }
-| -[1+ m] (n : ℕ) := by { rw [gpow_coe_nat, gpow_neg_succ_of_nat, ← inv_pow', ← pow_mul,
-    neg_succ_mul_coe_nat, fpow_neg, inv_pow', inv_inj', ← gpow_coe_nat], refl }
+    fpow_neg, inv_inj₀, ← gpow_coe_nat], refl }
+| -[1+ m] (n : ℕ) := by { rw [gpow_coe_nat, gpow_neg_succ_of_nat, ← inv_pow₀, ← pow_mul,
+    neg_succ_mul_coe_nat, fpow_neg, inv_pow₀, inv_inj₀, ← gpow_coe_nat], refl }
 | -[1+ m] -[1+ n] := by { rw [gpow_neg_succ_of_nat, gpow_neg_succ_of_nat, neg_succ_mul_neg_succ,
-    inv_pow', inv_inv', ← pow_mul, ← gpow_coe_nat], refl }
+    inv_pow₀, inv_inv₀, ← pow_mul, ← gpow_coe_nat], refl }
 
 theorem fpow_mul' (a : G₀) (m n : ℤ) : a ^ (m * n) = (a ^ n) ^ m :=
 by rw [mul_comm, fpow_mul]
 
-@[simp, norm_cast] lemma units.coe_gpow' (u : units G₀) :
+@[simp, norm_cast] lemma units.coe_gpow₀ (u : units G₀) :
   ∀ (n : ℤ), ((u ^ n : units G₀) : G₀) = u ^ n
 | (n : ℕ) := by { rw [gpow_coe_nat, gpow_coe_nat], exact u.coe_pow n }
 | -[1+k] := by rw [gpow_neg_succ_of_nat, gpow_neg_succ_of_nat, units.coe_inv', u.coe_pow]
@@ -185,7 +185,7 @@ by rw [sub_eq_add_neg, fpow_add ha, fpow_neg, div_eq_mul_inv]
 lemma commute.mul_fpow {a b : G₀} (h : commute a b) :
   ∀ (i : ℤ), (a * b) ^ i = (a ^ i) * (b ^ i)
 | (n : ℕ) := by simp [h.mul_pow n]
-| -[1+n]  := by simp [h.mul_pow, (h.pow_pow _ _).eq, mul_inv_rev']
+| -[1+n]  := by simp [h.mul_pow, (h.pow_pow _ _).eq, mul_inv_rev₀]
 
 lemma mul_fpow {G₀ : Type*} [comm_group_with_zero G₀] (a b : G₀) (m : ℤ):
   (a * b) ^ m = (a ^ m) * (b ^ m) :=
@@ -212,7 +212,7 @@ end
 
 theorem one_div_pow {a : G₀} (n : ℕ) :
   (1 / a) ^ n = 1 / a ^ n :=
-by simp only [one_div, inv_pow']
+by simp only [one_div, inv_pow₀]
 
 theorem one_div_fpow {a : G₀} (n : ℤ) :
   (1 / a) ^ n = 1 / a ^ n :=
@@ -229,7 +229,7 @@ variables {G₀ : Type*} [comm_group_with_zero G₀]
 
 @[simp] theorem div_pow (a b : G₀) (n : ℕ) :
   (a / b) ^ n = a ^ n / b ^ n :=
-by simp only [div_eq_mul_inv, mul_pow, inv_pow']
+by simp only [div_eq_mul_inv, mul_pow, inv_pow₀]
 
 @[simp] theorem div_fpow (a : G₀) {b : G₀} (n : ℤ) :
   (a / b) ^ n = a ^ n / b ^ n :=
@@ -248,7 +248,7 @@ lemma monoid_with_zero_hom.map_fpow {G₀ G₀' : Type*} [group_with_zero G₀] 
 | (n : ℕ) := by { rw [gpow_coe_nat, gpow_coe_nat], exact f.to_monoid_hom.map_pow x n }
 | -[1+n] := begin
     rw [gpow_neg_succ_of_nat, gpow_neg_succ_of_nat],
-    exact ((f.map_inv' _).trans $ congr_arg _ $ f.to_monoid_hom.map_pow x _)
+    exact ((f.map_inv _).trans $ congr_arg _ $ f.to_monoid_hom.map_pow x _)
   end
 
 -- I haven't been able to find a better home for this:

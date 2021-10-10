@@ -932,7 +932,7 @@ begin
   refine sum_range_induction _ _ (nat.sub_self _) (λ n, _) _,
   have h₁ : f n ≤ f (n+1) := h (nat.le_succ _),
   have h₂ : f 0 ≤ f n := h (nat.zero_le _),
-  rw [←nat.sub_add_comm h₂, nat.add_sub_cancel' h₁],
+  rw [←nat.sub_add_comm h₂, add_sub_cancel_of_le h₁],
 end
 
 @[simp] lemma prod_const (b : β) : (∏ x in s, b) = b ^ s.card :=
@@ -1001,8 +1001,9 @@ finset.strong_induction_on s
 
 
 /-- The product of the composition of functions `f` and `g`, is the product
-over `b ∈ s.image g` of `f b` to the power of the cardinality of the fibre of `b` -/
-lemma prod_comp [decidable_eq γ] {s : finset α} (f : γ → β) (g : α → γ) :
+over `b ∈ s.image g` of `f b` to the power of the cardinality of the fibre of `b`. See also
+`finset.prod_image`. -/
+lemma prod_comp [decidable_eq γ] (f : γ → β) (g : α → γ) :
   ∏ a in s, f (g a) = ∏ b in s.image g, f b ^ (s.filter (λ a, g a = b)).card  :=
 calc ∏ a in s, f (g a)
     = ∏ x in (s.image g).sigma (λ b : γ, s.filter (λ a, g a = b)), f (g x.2) :
@@ -1042,6 +1043,14 @@ prod_eq_mul_prod_diff_singleton (mem_univ a) f
 lemma _root_.fintype.prod_eq_prod_compl_mul [decidable_eq α] [fintype α] (a : α) (f : α → β) :
   ∏ i, f i = (∏ i in {a}ᶜ, f i) * f a :=
 prod_eq_prod_diff_singleton_mul (mem_univ a) f
+
+lemma dvd_prod_of_mem (f : α → β) {a : α} {s : finset α} (ha : a ∈ s) :
+  f a ∣ ∏ i in s, f i :=
+begin
+  classical,
+  rw finset.prod_eq_mul_prod_diff_singleton ha,
+  exact dvd_mul_right _ _,
+end
 
 /-- A product can be partitioned into a product of products, each equivalent under a setoid. -/
 @[to_additive "A sum can be partitioned into a sum of sums, each equivalent under a setoid."]
@@ -1100,7 +1109,7 @@ end
 /-- Taking a product over `s : finset α` is the same as multiplying the value on a single element
 `f a` by the product of `s.erase a`. -/
 @[to_additive "Taking a sum over `s : finset α` is the same as adding the value on a single element
-`f a` to the the sum over `s.erase a`."]
+`f a` to the sum over `s.erase a`."]
 lemma mul_prod_erase [decidable_eq α] (s : finset α) (f : α → β) {a : α} (h : a ∈ s) :
   f a * (∏ x in s.erase a, f x) = ∏ x in s, f x :=
 by rw [← prod_insert (not_mem_erase a s), insert_erase h]
@@ -1188,11 +1197,12 @@ lemma sum_boole {s : finset α} {p : α → Prop} [non_assoc_semiring β] {hp : 
   (∑ x in s, if p x then (1 : β) else (0 : β)) = (s.filter p).card :=
 by simp [sum_ite]
 
-lemma sum_comp [add_comm_monoid β] [decidable_eq γ] {s : finset α} (f : γ → β) (g : α → γ) :
+lemma sum_comp [add_comm_monoid β] [decidable_eq γ] (f : γ → β) (g : α → γ) :
   ∑ a in s, f (g a) = ∑ b in s.image g, (s.filter (λ a, g a = b)).card • (f b) :=
 @prod_comp (multiplicative β) _ _ _ _ _ _ _
 attribute [to_additive "The sum of the composition of functions `f` and `g`, is the sum
-over `b ∈ s.image g` of `f b` times of the cardinality of the fibre of `b`"] prod_comp
+over `b ∈ s.image g` of `f b` times of the cardinality of the fibre of `b`. See also
+`finset.sum_image`."] prod_comp
 
 lemma eq_sum_range_sub [add_comm_group β] (f : ℕ → β) (n : ℕ) :
   f n = f 0 + ∑ i in range n, (f (i+1) - f i) :=
@@ -1314,7 +1324,7 @@ begin
   { push_neg at h,
     have h' := prod_ne_zero_iff.mpr h,
     have hf : ∀ x ∈ s, (f x)⁻¹ * f x = 1 := λ x hx, inv_mul_cancel (h x hx),
-    apply mul_right_cancel' h',
+    apply mul_right_cancel₀ h',
     simp [h, h', ← finset.prod_mul_distrib, prod_congr rfl hf] }
 end
 

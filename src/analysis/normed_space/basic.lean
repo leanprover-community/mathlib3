@@ -15,8 +15,8 @@ import analysis.normed.group.basic
 /-!
 # Normed spaces
 
-Since a lot of elementary properties don't require `∥x∥ = 0 → x = 0` we start setting up the
-theory of `semi_normed_group` and we specialize to `normed_group` at the end.
+In this file we define (semi)normed rings, fields, spaces, and algebras. We also prove some theorems
+about these definitions.
 -/
 
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}

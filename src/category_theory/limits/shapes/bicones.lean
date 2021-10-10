@@ -77,8 +77,8 @@ variables (J : Type v₁) [small_category J]
 /--
 Given a diagram `F : J ⥤ C` and two `cone F`s, we can join them into a diagram `bicone J ⥤ C`.
 -/
-def bicone_mk [∀ (j k : J), decidable_eq (j ⟶ k)] {C : Type u₁} [category.{v₁} C] {F : J ⥤ C}
-  (c₁ c₂ : cone F) : bicone J ⥤ C :=
+@[simps] def bicone_mk [∀ (j k : J), decidable_eq (j ⟶ k)] {C : Type u₁} [category.{v₁} C]
+  {F : J ⥤ C} (c₁ c₂ : cone F) : bicone J ⥤ C :=
 { obj := λ X, bicone.cases_on X c₁.X c₂.X (λ j, F.obj j),
   map := λ X Y f, by
   { cases f, exact (𝟙 _), exact (𝟙 _),
@@ -116,4 +116,3 @@ instance bicone_small_category [∀ (j k : J), decidable_eq (j ⟶ k)] :
 instance bicone_fin_category [fin_category J] : fin_category (bicone J) := {}
 end small_category
 end category_theory
-#lint

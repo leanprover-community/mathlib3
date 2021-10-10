@@ -1209,7 +1209,7 @@ lemma eq_sum_range_sub [add_comm_group β] (f : ℕ → β) (n : ℕ) :
 by { rw finset.sum_range_sub, abel }
 
 lemma eq_sum_range_sub' [add_comm_group β] (f : ℕ → β) (n : ℕ) :
-  f n = ∑ i in range (n + 1), if i = 0 then f 0 else f i - f (i - 1) :=
+  f n = ∑ i in range (n + 1), nat.cases_on i (f 0) (λ j, f (j + 1) - f j) :=
 begin
   conv_lhs { rw [finset.eq_sum_range_sub f] },
   simp [finset.sum_range_succ', add_comm]

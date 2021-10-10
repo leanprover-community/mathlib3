@@ -18,7 +18,7 @@ import tactic.abel
 -/
 
 noncomputable theory
-open_locale classical uniformity topological_space filter
+open_locale classical uniformity topological_space filter big_operators
 
 section uniform_add_group
 open filter set
@@ -140,6 +140,28 @@ lemma uniform_continuous_of_continuous [uniform_space β] [add_group β] [unifor
 uniform_continuous_of_tendsto_zero $
   suffices tendsto f (𝓝 0) (𝓝 (f 0)), by rwa f.map_zero at this,
   h.tendsto 0
+
+lemma cauchy_seq.add {ι : Type*} [semilattice_sup ι] {u v : ι → α} (hu : cauchy_seq u)
+  (hv : cauchy_seq v) : cauchy_seq (u + v) :=
+uniform_continuous_add.comp_cauchy_seq (hu.prod hv)
+
+lemma cauchy_seq_iff_tendsto_sub_at_top_0 {ι : Type*} [semilattice_sup ι] [nonempty ι] {f : ι → α} :
+  cauchy_seq f ↔ tendsto (λ i : ι × ι, f i.2 - f i.1) at_top (𝓝 0) :=
+by { rw [cauchy_seq_iff_tendsto, uniformity_eq_comap_nhds_zero, tendsto_comap_iff], refl }
+
+lemma cauchy_seq_sum_of_eventually_eq {ι E : Type*} [add_comm_group E]
+  [uniform_space E] [uniform_add_group E] {u v : ι → E} (h : u =ᶠ[cofinite] v)
+  (hu : cauchy_seq (λ s : finset ι, ∑ k in s, u k)) :
+  cauchy_seq (λ s : finset ι, ∑ k in s, v k) :=
+begin
+  rw [cauchy_seq_iff_tendsto_sub_at_top_0] at hu ⊢,
+  obtain ⟨s, hs⟩ : ∃ s : finset ι, ∀ t, ∑ i in t \ s, u i = ∑ i in t \ s, v i,
+  { refine ⟨h.to_finset, λ t, finset.sum_congr rfl (λ x hx, _)⟩,
+    exact and.right (by simpa using hx) },
+  refine hu.congr' (eventually_at_top.2 ⟨(s, s), _⟩),
+  rintro ⟨t₁, t₂⟩ ⟨h₁ : s ⊆ t₁, h₂ : s ⊆ t₂⟩,
+  simp only [← finset.sum_sdiff h₁, ← finset.sum_sdiff h₂, add_sub_add_right_eq_sub, hs]
+end
 
 end uniform_add_group
 

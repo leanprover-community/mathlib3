@@ -214,8 +214,6 @@ instance [field α] : field (opposite α) :=
 instance (R : Type*) [has_scalar R α] : has_scalar R (opposite α) :=
 { smul := λ c x, op (c • unop x) }
 
-lemma smul_def {R : Type*} [has_scalar R α] (c : R) (x : αᵒᵖ) : c • x = op (c • unop x) := rfl
-
 instance (R : Type*) [monoid R] [mul_action R α] : mul_action R (opposite α) :=
 { one_smul := λ x, unop_injective $ one_smul R (unop x),
   mul_smul := λ r₁ r₂ x, unop_injective $ mul_smul r₁ r₂ (unop x),

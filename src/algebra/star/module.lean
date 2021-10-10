@@ -19,8 +19,9 @@ It is defined on a star algebra `A` over the base ring `R`.
   requires a ring hom of type `R →+* Rᵒᵖ`, which is very undesirable in the commutative case.
   One way out would be to define a new typeclass `is_op R S` and have an instance `is_op R R`
   for commutative `R`.
-- Also note that such a definition involving `Rᵒᵖ` would require adding the appropriate
-  `ring_hom_inv_pair` instances to be able to define the semilinear equivalence.
+- Also note that such a definition involving `Rᵒᵖ` or `is_op R S` would require adding
+  the appropriate `ring_hom_inv_pair` instances to be able to define the semilinear
+  equivalence.
 -/
 
 /-- If `A` is a left- and right- module over a commutative `R` with compatible actions,

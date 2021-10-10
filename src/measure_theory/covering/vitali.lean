@@ -214,27 +214,136 @@ begin
 end
 
 open topological_space
+open_locale ennreal topological_space
 
 .
+
+open filter
 
 theorem measurable_vitali [metric_space α] [measurable_space α] [opens_measurable_space α]
   [second_countable_topology α]
   (μ : measure α) [is_locally_finite_measure μ] (s : set α)
   (t : set (set α)) (hf : ∀ x ∈ s, ∀ (ε > (0 : ℝ)), ∃ a ∈ t, x ∈ a ∧ a ⊆ closed_ball x ε)
   (ht : ∀ a ∈ t, (interior a).nonempty) (h't : ∀ a ∈ t, is_closed a)
-  (C : ℝ≥0) (h : ∀ a ∈ t, ∀ x ∈ a, μ (closed_ball x (5 * diam a)) ≤ C * μ a) :
+  (C : ℝ≥0) (h : ∀ a ∈ t, ∃ x ∈ a, μ (closed_ball x (5 * diam a)) ≤ C * μ a) :
   ∃ u ⊆ t, countable u ∧ u.pairwise_on (disjoint on id) ∧ μ (s \ ⋃ (a ∈ u), a) = 0 :=
 begin
-  let t' := {a ∈ t | bounded a ∧ diam a ≤ 1},
+  rcases eq_empty_or_nonempty s with rfl|nonempty,
+  { refine ⟨∅, empty_subset _, countable_empty, by simp only [pairwise_on_empty],
+      by simp only [measure_empty, Union_false, Union_empty, diff_self]⟩ },
+  haveI : inhabited α,
+  { choose x hx using nonempty,
+    exact ⟨x⟩ },
+  have : ∀ x, ∃ r, 0 < r ∧ r ≤ 1 ∧ μ (closed_ball x (20 * r)) < ∞, sorry,
+  /-{ assume x,
+    obtain ⟨R, Rpos, μR⟩ : ∃ (R : ℝ) (hR : 0 < R), μ (closed_ball x R) < ∞ :=
+      (μ.finite_at_nhds x).exists_mem_basis nhds_basis_closed_ball,
+    refine ⟨min 1 (R/20), _, min_le_left _ _, _⟩,
+    { simp only [true_and, lt_min_iff, zero_lt_one],
+      linarith },
+    { apply lt_of_le_of_lt (measure_mono _) μR,
+      apply closed_ball_subset_closed_ball,
+      calc 20 * min 1 (R / 20) ≤ 20 * (R/20) :
+        mul_le_mul_of_nonneg_left (min_le_right _ _) (by norm_num)
+      ... = R : by ring } },-/
+  choose r hr using this,
+  let t' := {a ∈ t | ∃ x, a ⊆ closed_ball x (r x)},
   obtain ⟨u, ut', u_disj, hu⟩ : ∃ u ⊆ t', u.pairwise_on (disjoint on id) ∧
     ∀ a ∈ t', ∃ b ∈ u, set.nonempty (a ∩ b) ∧ diam a ≤ 2 * diam b,
-  { have A : ∀ (a : set α), a ∈ t' → diam a ≤ 1 := λ a ha, ha.2.2,
+  sorry,
+  /-{ have A : ∀ (a : set α), a ∈ t' → diam a ≤ 2,
+    { rintros a ⟨hat, ⟨x, hax⟩⟩,
+      calc diam a ≤ diam (closed_ball x (r x)) : diam_mono hax bounded_closed_ball
+      ... ≤ 2 * r x : diam_closed_ball (hr x).1.le
+      ... ≤ 2 * 1 : mul_le_mul_of_nonneg_left (hr x).2.1 zero_le_two
+      ... = 2 : by norm_num },
     have B : ∀ (a : set α), a ∈ t' → a.nonempty :=
       λ a hat', nonempty.mono interior_subset (ht a hat'.1),
-    exact vitali_covering t' diam 2 one_lt_two (λ a ha, diam_nonneg) 1 A B },
+    exact vitali_covering t' diam 2 one_lt_two (λ a ha, diam_nonneg) 2 A B },-/
   have ut : u ⊆ t := λ a hau, (ut' hau).1,
   have u_count : countable u :=
     countable_of_nonempty_interior_of_disjoint id (λ a ha, ht a (ut ha)) u_disj,
   refine ⟨u, λ a hat', (ut' hat').1, u_count, u_disj, _⟩,
+  refine null_of_locally_null _ (λ x hx, _),
+  let v := {a ∈ u | (a ∩ ball x (r x)).nonempty },
+  have vu : v ⊆ u := λ a ha, ha.1,
+  obtain ⟨R, μR, hR⟩ : ∃ R, μ (closed_ball x R) < ∞ ∧
+                          ∀ a ∈ u, (a ∩ ball x (r x)).nonempty → a ⊆ closed_ball x R,
+  sorry,
+  /-{ have : ∀ a ∈ u, ∃ y, a ⊆ closed_ball y (r y) := λ a hau, (ut' hau).2,
+    choose! y hy using this,
+    have Idist_v : ∀ a ∈ v, dist (y a) x ≤ r (y a) + r x,
+    { assume a hav,
+      apply dist_le_add_of_nonempty_closed_ball_inter_closed_ball,
+      exact hav.2.mono (inter_subset_inter (hy a hav.1) ball_subset_closed_ball) },
+    set R0 := Sup ((λ a, r (y a)) '' v) with hR0,
+    have R0_bdd : bdd_above ((λ a, r (y a)) '' v),
+    { refine ⟨1, λ r' hr', _⟩,
+      rcases (mem_image _ _ _).1 hr' with ⟨b, hb, rfl⟩,
+      exact (hr _).2.1 },
+    rcases le_total R0 (r x) with H|H,
+    { refine ⟨20 * r x, (hr x).2.2, λ a au hax, _⟩,
+      refine (hy a au).trans _,
+      apply closed_ball_subset_closed_ball',
+      have : r (y a) ≤ R0 := le_cSup R0_bdd (mem_image_of_mem _ ⟨au, hax⟩),
+      linarith [(hr (y a)).1.le, (hr x).1.le, Idist_v a ⟨au, hax⟩] },
+    { have R0pos : 0 < R0, by linarith [(hr x).1],
+      have vnonempty : v.nonempty,
+      { by_contra,
+        rw [← ne_empty_iff_nonempty, not_not] at h,
+        simp only [h, real.Sup_empty, image_empty] at hR0,
+        exact lt_irrefl _ (R0pos.trans_le (le_of_eq hR0)) },
+      obtain ⟨a, hav, R0a⟩ : ∃ a ∈ v, R0/2 < r (y a),
+      { obtain ⟨r', r'mem, hr'⟩ : ∃ r' ∈ ((λ a, r (y a)) '' v), R0 / 2 < r' :=
+          exists_lt_of_lt_cSup (nonempty_image_iff.2 vnonempty) (half_lt_self R0pos),
+        rcases (mem_image _ _ _).1 r'mem with ⟨a, hav, rfl⟩,
+        exact ⟨a, hav, hr'⟩ },
+      refine ⟨8 * R0, _, _⟩,
+      { apply lt_of_le_of_lt (measure_mono _) (hr (y a)).2.2,
+        apply closed_ball_subset_closed_ball',
+        rw dist_comm,
+        linarith [Idist_v a hav] },
+      { assume b bu hbx,
+        refine (hy b bu).trans _,
+        apply closed_ball_subset_closed_ball',
+        have : r (y b) ≤ R0 := le_cSup R0_bdd (mem_image_of_mem _ ⟨bu, hbx⟩),
+        linarith [Idist_v b ⟨bu, hbx⟩] } } }-/
+  refine ⟨ball x (r x), _, le_antisymm (le_of_forall_lt' (λ ε εpos, _)) bot_le⟩,
+  { apply mem_nhds_within_of_mem_nhds (is_open_ball.mem_nhds _),
+    simp only [(hr x).left, mem_ball, dist_self] },
+  have I : ∑' (a : v), μ a < ∞,
+  { calc ∑' (a : v), μ a = μ (⋃ (a ∈ v), a) : begin
+      rw measure_bUnion (u_count.mono vu) _ (λ a ha, (h't _ (vu.trans ut ha)).measurable_set),
+      exact u_disj.mono vu
+    end
+    ... ≤ μ (closed_ball x R) : measure_mono (bUnion_subset (λ a ha, hR a (vu ha) ha.2))
+    ... < ∞ : μR },
+  obtain ⟨w, hw⟩ : ∃ (w : finset ↥v), ∑' (a : {a // a ∉ w}), μ a < ε,
+  { haveI : ne_bot (at_top : filter (finset v)) := at_top_ne_bot,
+    exact ((tendsto_order.1 (ennreal.tendsto_tsum_compl_at_top_zero I.ne)).2 ε εpos).exists },
+  choose! y hy using h,
+  have : (s \ ⋃ (a : set α) (H : a ∈ u), a) ∩ ball x (r x)
+    ⊆ ⋃ (a : {a // a ∉ w}), closed_ball (y a) (5 * diam (a : set α)),
+  { assume z hz,
+    let k := ⋃ (a : v) (ha : a ∈ w), (a : set α),
+    have : is_closed k :=
+      is_closed_bUnion w.finite_to_set (λ i hi, h't _ (ut (vu i.2))),
+    have : ∃ d, 0 < d ∧ closed_ball z d ∩ k = ∅,
+    { rcases eq_empty_or_nonempty k with hk|hk,
+      { refine ⟨1, zero_lt_one, by simp [hk]⟩ },
+      have : z ∉ k,
+      { simp only [not_exists, exists_prop, mem_Union, mem_sep_eq, forall_exists_index,
+          set_coe.exists, not_and, exists_and_distrib_right, subtype.coe_mk],
+        assume b hbv h'b h'z,
+        have : z ∈ (s \ ⋃ (a : set α) (H : a ∈ u), a) ∩ (⋃ (a : set α) (H : a ∈ u), a) :=
+          mem_inter (mem_of_mem_inter_left hz) (mem_bUnion (vu hbv) h'z),
+        simpa only [diff_inter_self] },
+      refine ⟨inf_dist z k / 2, _, _⟩,
+      have Z := is_closed.not_mem_iff_inf_dist_pos
+
+
+    }
+
+  }
 
 end

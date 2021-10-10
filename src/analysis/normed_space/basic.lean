@@ -342,6 +342,8 @@ instance {r : ℝ} : has_neg (sphere (0:α) r) :=
 rfl
 
 namespace isometric
+-- TODO This material is superseded by similar constructions such as
+-- `affine_isometry_equiv.const_vadd`; deduplicate
 
 /-- Addition `y ↦ y + x` as an `isometry`. -/
 protected def add_right (x : α) : α ≃ᵢ α :=

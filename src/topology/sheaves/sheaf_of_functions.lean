@@ -70,7 +70,7 @@ begin
     ext x,
     -- Now we need to verify that this lifted function restricts correctly to each set `U i`.
     -- Of course, the difficulty is that at any given point `x ∈ U i`,
-    -- we may have used the axiom of choice to pick a differnt `j` with `x ∈ U j`
+    -- we may have used the axiom of choice to pick a different `j` with `x ∈ U j`
     -- when defining the function.
     -- Thus we'll need to use the fact that the restrictions are compatible.
     convert congr_fun (hsf (index ⟨x,_⟩) i) ⟨x,⟨index_spec ⟨x.1,_⟩,x.2⟩⟩,

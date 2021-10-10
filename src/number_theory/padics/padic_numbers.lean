@@ -812,19 +812,6 @@ begin
   rw [← padic_norm_e.eq_padic_norm', ← padic.cast_eq_of_rat]
 end
 
-instance : nondiscrete_normed_field ℚ_[p] :=
-{ non_trivial := ⟨padic.of_rat p (p⁻¹), begin
-    have h0 : p ≠ 0 := ne_of_gt (hp.1.pos),
-    have h1 : 1 < p := hp.1.one_lt,
-    rw [← padic.cast_eq_of_rat, eq_padic_norm],
-    simp only [padic_norm, inv_eq_zero],
-    simp only [if_neg] {discharger := `[exact_mod_cast h0]},
-    norm_cast,
-    simp only [padic_val_rat.inv] {discharger := `[exact_mod_cast h0]},
-    rw [neg_neg, padic_val_rat.padic_val_rat_self h1, gpow_one],
-    exact_mod_cast h1,
-  end⟩ }
-
 @[simp] lemma norm_p : ∥(p : ℚ_[p])∥ = p⁻¹ :=
 begin
   have p₀ : p ≠ 0 := hp.1.ne_zero,
@@ -834,13 +821,19 @@ end
 
 lemma norm_p_lt_one : ∥(p : ℚ_[p])∥ < 1 :=
 begin
-  rw [norm_p, inv_eq_one_div, div_lt_iff, one_mul],
-  { exact_mod_cast hp.1.one_lt },
-  { exact_mod_cast hp.1.pos }
+  rw norm_p,
+  apply inv_lt_one,
+  exact_mod_cast hp.1.one_lt
 end
 
 @[simp] lemma norm_p_pow (n : ℤ) : ∥(p^n : ℚ_[p])∥ = p^-n :=
 by rw [normed_field.norm_fpow, norm_p]; field_simp
+
+instance : nondiscrete_normed_field ℚ_[p] :=
+{ non_trivial := ⟨p⁻¹, begin
+    rw [normed_field.norm_inv, norm_p, inv_inv₀],
+    exact_mod_cast hp.1.one_lt
+  end⟩ }
 
 protected theorem image {q : ℚ_[p]} : q ≠ 0 → ∃ n : ℤ, ∥q∥ = ↑((↑p : ℚ) ^ (-n)) :=
 quotient.induction_on q $ λ f hf,
@@ -941,7 +934,8 @@ end normed_space
 end padic_norm_e
 
 namespace padic
-variables {p : ℕ} [fact p.prime]
+variables {p : ℕ} [hp_prime : fact p.prime]
+include hp_prime
 
 set_option eqn_compiler.zeta true
 instance complete : cau_seq.is_complete ℚ_[p] norm :=
@@ -1029,4 +1023,23 @@ begin
   { exact_mod_cast (fact.out p.prime).ne_zero }
 end
 
+section norm_le_iff
+/-! ### Various characterizations of open unit balls -/
+lemma norm_le_pow_iff_norm_lt_pow_add_one (x : ℚ_[p]) (n : ℤ) :
+  ∥x∥ ≤ p ^ n ↔ ∥x∥ < p ^ (n + 1) :=
+begin
+  have aux : ∀ n : ℤ, 0 < (p ^ n : ℝ),
+  { apply nat.fpow_pos_of_pos, exact hp_prime.1.pos },
+  by_cases hx0 : x = 0, { simp [hx0, norm_zero, aux, le_of_lt (aux _)], },
+  rw norm_eq_pow_val hx0,
+  have h1p : 1 < (p : ℝ), { exact_mod_cast hp_prime.1.one_lt },
+  have H := fpow_strict_mono h1p,
+  rw [H.le_iff_le, H.lt_iff_lt, int.lt_add_one_iff],
+end
+
+lemma norm_lt_pow_iff_norm_le_pow_sub_one (x : ℚ_[p]) (n : ℤ) :
+  ∥x∥ < p ^ n ↔ ∥x∥ ≤ p ^ (n - 1) :=
+by rw [norm_le_pow_iff_norm_lt_pow_add_one, sub_add_cancel]
+
+end norm_le_iff
 end padic

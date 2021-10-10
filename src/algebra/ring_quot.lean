@@ -281,7 +281,7 @@ begin
 end
 
 @[irreducible] private def star' : ring_quot r → ring_quot r
-| ⟨a⟩ := ⟨quot.map (_root_.star : R → R) (rel.star r hr) a⟩
+| ⟨a⟩ := ⟨quot.map (star : R → R) (rel.star r hr) a⟩
 
 lemma star'_quot (hr : ∀ a b, r a b → r (star a) (star b)) {a} :
   (star' r hr ⟨quot.mk _ a⟩ : ring_quot r) = ⟨quot.mk _ (star a)⟩ :=

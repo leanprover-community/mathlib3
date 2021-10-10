@@ -455,7 +455,7 @@ begin
   { conv_rhs {rw ← coeff_mul_X _ s},
     congr' with  t,
     by_cases hj : s = t,
-    { subst t, simp only [nat_sub_apply, add_apply, single_eq_same],
+    { subst t, simp only [tsub_apply, add_apply, single_eq_same],
       refine (nat.sub_add_cancel $ nat.pos_of_ne_zero _).symm, rwa finsupp.mem_support_iff at h },
     { simp [single_eq_of_ne hj] } },
   { rw ← not_mem_support_iff, intro hm, apply h,

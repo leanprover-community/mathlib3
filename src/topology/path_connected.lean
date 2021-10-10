@@ -450,7 +450,7 @@ begin
   rw [range_comp, this, image_univ],
 end
 
-lemma refl_reparam (γ : path x y) {f : I → I} (hfcont : continuous f) (hf₀ : f 0 = 0)
+lemma refl_reparam {f : I → I} (hfcont : continuous f) (hf₀ : f 0 = 0)
   (hf₁ : f 1 = 1) : (refl x).reparam f hfcont hf₀ hf₁ = refl x :=
 begin
   ext,

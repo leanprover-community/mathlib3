@@ -1749,4 +1749,12 @@ def quot_quot_equiv_quot_sup : (J.map (ideal.quotient.mk I)).quotient ≃+* (I �
 ring_equiv.of_hom_inv (quot_quot_to_quot_sup I J) (lift_sup_quot_quot_mk I J)
   (by { ext z, refl }) (by { ext z, refl })
 
+/-- The obvious isomorphism `R/(I ⊔ J) → R/(J ⊔ I)`  -/
+def quot_sup_to_quot_sup_comm : (I ⊔ J).quotient ≃+* (J ⊔ I).quotient := quot_equiv_of_eq sup_comm
+
+/-- The obvious isomorphism `(R/I)/J' → (R/J)/I' `   -/
+def quot_quot_equiv_comm : (J.map I^.quotient.mk).quotient ≃+* (I.map J^.quotient.mk).quotient :=
+  ring_equiv.trans (ring_equiv.trans (quot_quot_equiv_quot_sup I J) (quot_sup_to_quot_sup_comm I J))
+  (quot_quot_equiv_quot_sup J I).symm
+
 end double_quot

@@ -30,6 +30,8 @@ if for all covering sieves `R` in `D`, `R.pushforward u` is a covering sieve in 
 structure cover_preserving (J : grothendieck_topology C) (K : grothendieck_topology D) (u : C ⥤ D) :=
 (cover_preserve : ∀ {U : C} {S : sieve U} (hS : S ∈ J U), S.functor_pushforward u ∈ K (u.obj U))
 
+open category_theory.limits.walking_cospan (left right)
+
 lemma compatible.functor_pushforward {C : Type*} {D : Type*} [category.{v₁} C] [category.{v₁} D]
   {u : C ⥤ D} [representably_flat u] {P : Dᵒᵖ ⥤ Type _} {Z : C} {T : presieve Z}
   {x : family_of_elements (u.op ⋙ P) T} (h : x.compatible) :
@@ -41,16 +43,18 @@ begin
   Note that by the definition of `functor_pushforward`, `Z₁` and `Z₂` are in the images of `u`,
   i.e. `g₁`, `g₂` are costructured arrows over `W`.
    -/
-  intros Z₁ Z₂ W g₁ g₂ f₁ f₂ h₁ h₂ eq,
+  rintros Z₁ Z₂ W g₁ g₂ f₁' f₂' H₁ H₂ eq,
+  let X₁ := H₁.some, let f₁ := H₁.some_spec.some, let h₁ := H₁.some_spec.some_spec.some,
+  obtain ⟨hf₁, hf₁'⟩ : T f₁ ∧ f₁' = h₁ ≫ u.map f₁ := H₁.some_spec.some_spec.some_spec,
+  let X₂ := H₂.some, let f₂ := H₂.some_spec.some, let h₂ := H₂.some_spec.some_spec.some,
+  obtain ⟨hf₂, hf₂'⟩ : T f₂ ∧ f₂' = h₂ ≫ u.map f₂ := H₂.some_spec.some_spec.some_spec,
+  rw [hf₁', hf₂'] at eq,
+  suffices : P.map (g₁ ≫ h₁).op (x f₁ hf₁) = P.map (g₂ ≫ h₂).op (x f₂ hf₂), simpa using this,
 
   /- First, `g₁` and `g₂` forms a cone over `cospan f₁ f₂`. -/
-  have : cospan f₁ f₂ = cospan h₁.premap h₂.premap ⋙ u,
-  { fapply functor.ext,
-    { intro X, cases X, simp, cases X; simp },
-    { intros X Y f, cases f, cases X, simpa,
-      { simp, erw category.id_comp, simp },
-      { cases f_1; simp } } },
-  let c := ((cones.postcompose (eq_to_hom this)).obj (pullback_cone.mk g₁ g₂ eq) : _),
+  let c : cone (cospan f₁ f₂ ⋙ u) :=
+    (cones.postcompose (diagram_iso_cospan (cospan f₁ f₂ ⋙ u)).inv).obj
+      (pullback_cone.mk (g₁ ≫ h₁) (g₂ ≫ h₂) (by simpa using eq)),
 
   /-
   This cone viewed as a cone over `cospan _ _ ⋙ u` (since `f₁` `f₂` has preimages) can then be
@@ -59,10 +63,10 @@ begin
   `W`, it suffices to prove that it is compatible when restricted onto `u(c'.X.right)`.
   -/
   let c' := is_cofiltered.cone (structured_arrow_cone.to_diagram c ⋙ structured_arrow.pre _ _ _),
-  have eq₁ : g₁ = (c'.X.hom ≫ u.map (c'.π.app walking_cospan.left).right) ≫ eq_to_hom (by simp),
-  { erw ← (c'.π.app walking_cospan.left).w, dsimp, simp },
-  have eq₂ : g₂ = (c'.X.hom ≫ u.map (c'.π.app walking_cospan.right).right) ≫ eq_to_hom (by simp),
-  { erw ← (c'.π.app walking_cospan.right).w, dsimp, simp },
+  have eq₁ : g₁ ≫ h₁ = (c'.X.hom ≫ u.map (c'.π.app left).right) ≫ eq_to_hom (by simp),
+  { erw ← (c'.π.app left).w, dsimp, simp },
+  have eq₂ : g₂ ≫ h₂ = (c'.X.hom ≫ u.map (c'.π.app right).right) ≫ eq_to_hom (by simp),
+  { erw ← (c'.π.app right).w, dsimp, simp },
   conv_lhs { rw eq₁ },
   conv_rhs { rw eq₂ },
   simp only [op_comp, functor.map_comp, types_comp_apply, eq_to_hom_op, eq_to_hom_map],
@@ -111,12 +115,10 @@ begin
   intros X U S hS x hx,
   split, swap,
   { change family_of_elements (u.op ⋙ ℱ.val ⋙ coyoneda.obj (op X)) ⇑S at x,
-    apply (ℱ.2 X _ (hu.cover_preserve hS)).amalgamate (x.functor_pushforward u).sieve_extend,
-    apply family_of_elements.compatible.sieve_extend,
-    exact compatible.functor_pushforward hx,
-  },
+    apply (ℱ.2 X _ (hu.cover_preserve hS)).amalgamate (x.functor_pushforward u),
+    exact compatible.functor_pushforward hx },
   split,
-  { sorry },
+  { intros V f hf, dsimp, sorry },
   { sorry }
 end
 

@@ -268,6 +268,11 @@ begin
   exact t.restrict (le_generate R),
 end
 
+lemma family_of_elements.comp_of_compatible {x : family_of_elements P S} (t : x.compatible)
+  {f : Y ⟶ X} (hf : S f) {Z} (g : Z ⟶ Y) :
+    x (g ≫ f) (S.downward_closed hf g) = P.map g.op (x f hf) :=
+by simpa using t (𝟙 _) g (S.downward_closed hf g) hf (category.id_comp _)
+
 section functor_pullback
 variables {D : Type u₂} [category.{v} D] (F : D ⥤ C) {Z : D}
 variables {T : presieve (F.obj Z)} {x : family_of_elements P T}
@@ -290,20 +295,15 @@ end functor_pullback
 
 /--
 Given a family of elements of a sieve `S` on `X` whose values factors through `F`, we can
-realize it as a family of elements of `S.functor_pushforward F`.
+realize it as a family of elements of `S.functor_pushforward F`. Since the preimage is obtained by
+choice, this is not well-defined generally.
 -/
 noncomputable
-def family_of_elements.functor_pushforward {D : Type u₂} [category.{v} D] (F : D ⥤ C) {Z : D}
-  {T : presieve Z} (x : family_of_elements (F.op ⋙ P) T) :
-    family_of_elements P (T.functor_pushforward F) := λ Y f hf,
-      (eq_to_hom (by simp) : P.obj _ ⟶ _) (x _ hf.premap_cover)
+def family_of_elements.functor_pushforward {D : Type u₂} [category.{v} D] (F : D ⥤ C) {X : D}
+  {T : presieve X} (x : family_of_elements (F.op ⋙ P) T) :
+    family_of_elements P (T.functor_pushforward F) := λ Y f h,
+      by { choose Z g h h₁ h₂ using h, exact P.map h.op (x g h₁) }
   -- family_of_elements (F.op ⋙ P) (T.functor_pullback F) := λ Y f hf, x (F.map f) hf
-
-@[simp]
-lemma family_of_elements.functor_pushforward_apply {D : Type u₂} [category.{v} D] (F : D ⥤ C)
-  {Z : D} {T : presieve Z} (x : family_of_elements (F.op ⋙ P) T) {Y : C} {f : Y ⟶ F.obj Z}
-  (hf : functor_pushforward F T f) : x.functor_pushforward F f hf =
-    (eq_to_hom (by simp) : P.obj _ ⟶ _) (x _ hf.premap_cover) := rfl
 
 section pullback
 

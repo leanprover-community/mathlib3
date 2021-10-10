@@ -193,6 +193,44 @@ noncomputable instance : is_R_or_C ℂ :=
     complex.of_real_eq_coe, complex.norm_eq_abs],
   div_I_ax := complex.div_I }
 
+variables {α β γ : Type*}
+  [add_comm_monoid α] [topological_space α]
+  [add_comm_monoid γ] [topological_space γ]
+#where
+lemma has_sum.prod_mk {f : β → α} {g : β → γ} {a : α} {b : γ}
+  (hf : has_sum f a) (hg : has_sum g b) :
+  has_sum (λ x, (⟨f x, g x⟩ : α × γ)) ⟨a, b⟩ :=
+by simp [has_sum, ← prod_mk_sum, filter.tendsto.prod_mk_nhds hf hg]
+
+def equiv_real_prod_add_hom : ℂ ≃+ ℝ × ℝ :=
+{ map_add' := by simp, .. equiv_real_prod }
+
+def equiv_real_prod_add_hom_lm : ℂ ≃ₗ[ℝ] ℝ × ℝ :=
+{ map_smul' := by simp [equiv_real_prod_add_hom], .. equiv_real_prod_add_hom }
+
+def equiv_real_prodₗ : ℂ ≃L[ℝ] ℝ × ℝ :=
+{ map_smul' := by simp [equiv_real_prod_add_hom],
+  continuous_to_fun := continuous_re.prod_mk continuous_im,
+  continuous_inv_fun :=
+  begin
+    refine linear_map.continuous_of_bound (equiv_real_prod_add_hom_lm.symm.to_linear_map) 2 _,
+    rintro ⟨a, b⟩,
+    rw two_mul,
+    exact le_trans (abs_le_abs_re_add_abs_im _)
+      (add_le_add (le_max_left _ _) (le_max_right _ _)),
+  end, .. equiv_real_prod_add_hom }
+
+lemma has_sum_iff (f : α → ℂ) (c : ℂ) :
+  has_sum f c ↔ has_sum (λ x, (f x).re) c.re ∧ has_sum (λ x, (f x).im) c.im :=
+begin
+  split,
+  { exact λ h, ⟨h.mapL re_clm, h.mapL im_clm⟩ },
+  { rintro ⟨h₁, h₂⟩,
+    convert (has_sum.prod_mk h₁ h₂).mapL equiv_real_prodₗ.symm.to_continuous_linear_map,
+    { ext x; refl },
+    { cases c, refl } }
+end
+
 end complex
 
 namespace is_R_or_C

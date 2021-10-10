@@ -11,6 +11,7 @@ import category_theory.limits.shapes.bicones
 import category_theory.limits.presheaf
 import category_theory.limits.yoneda
 import category_theory.limits.comma
+import category_theory.sites.sheaf_of_types
 
 /-!
 # Representably flat functors
@@ -33,6 +34,9 @@ limits, then `F` is flat.
 then the functor `Lan F.op` between presheaves of sets preserves all finite limits.
 * `preserves_limit_of_Lan_preserves_limit`: If the functor `Lan F.op` between presheaves of sets
 preserves limits of shape `J`, then so will `F`.
+* `family_of_elements_compatible_of_flat`: If `F : C ⥤ D` is a flat functor, and a
+`family_of_elements` over a sieve in `C` that factors through `u.op` is compatible,
+then the family of elements viewed as a family over the image sieve in `D` is also compatible.
 
 -/
 
@@ -263,4 +267,74 @@ begin
 end
 
 end small_category
+
+namespace presieve.family_of_elements
+open presieve
+open category_theory.limits.walking_cospan (left right)
+variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₁} D]
+variables (u : C ⥤ D) [representably_flat u] {P : Dᵒᵖ ⥤ Type v₁} {Z : C} {T : presieve Z}
+variables {x : family_of_elements (u.op ⋙ P) T} (h : x.compatible)
+include h
+
+/-
+We ought to show that for each `f₁ ≫ u.map g₁ = f₂ ≫ u.map g₂`, the restriction of
+`x` along the two paths are the same given `x` is compatible in the image of `u`.
+  -/
+lemma family_of_elements_compatible_of_flat {Y₁ Y₂ : C} {X : D}
+  (f₁ : X ⟶ u.obj Y₁) (f₂ : X ⟶ u.obj Y₂) {g₁ : Y₁ ⟶ Z} {g₂ : Y₂ ⟶ Z}
+  (hg₁ : T g₁) (hg₂ : T g₂) (eq : f₁ ≫ u.map g₁ = f₂ ≫ u.map g₂) :
+  P.map f₁.op (x g₁ hg₁) = P.map f₂.op (x g₂ hg₂) :=
+begin
+  /- First, `f₁` and `f₂` forms a cone over `cospan g₁ g₂ ⋙ u`. -/
+  let c : cone (cospan g₁ g₂ ⋙ u) :=
+    (cones.postcompose (diagram_iso_cospan (cospan g₁ g₂ ⋙ u)).inv).obj
+      (pullback_cone.mk f₁ f₂ eq),
+
+  /-
+  This can then be viewed as a cospan of structured arrows, and we may obtain an arbitrary cone
+  over it since `structured_arrow W u` is cofiltered.
+  Then, it suffices to prove that it is compatible when restricted onto `u(c'.X.right)`.
+  -/
+  let c' := is_cofiltered.cone (structured_arrow_cone.to_diagram c ⋙ structured_arrow.pre _ _ _),
+  have eq₁ : f₁ = (c'.X.hom ≫ u.map (c'.π.app left).right) ≫ eq_to_hom (by simp),
+  { erw ← (c'.π.app left).w, dsimp, simp },
+  have eq₂ : f₂ = (c'.X.hom ≫ u.map (c'.π.app right).right) ≫ eq_to_hom (by simp),
+  { erw ← (c'.π.app right).w, dsimp, simp },
+  conv_lhs { rw eq₁ },
+  conv_rhs { rw eq₂ },
+  simp only [op_comp, functor.map_comp, types_comp_apply, eq_to_hom_op, eq_to_hom_map],
+  congr' 1,
+
+  /-
+  Now, since everything now falls in the image of `u`,
+  the result follows from the compatibleness of `x` in the image of `u`.
+  -/
+  injection c'.π.naturality walking_cospan.hom.inl with _ e₁,
+  injection c'.π.naturality walking_cospan.hom.inr with _ e₂,
+  exact h (c'.π.app left).right (c'.π.app right).right hg₁ hg₂ (e₁.symm.trans e₂),
+
+end
+
+lemma compatible.functor_pushforward : (x.functor_pushforward u).compatible :=
+begin
+  rintros Z₁ Z₂ W g₁ g₂ f₁' f₂' H₁ H₂ eq,
+  unfold family_of_elements.functor_pushforward,
+  rcases get_functor_pushforward_structure H₁ with ⟨X₁, f₁, h₁, hf₁, rfl⟩,
+  rcases get_functor_pushforward_structure H₂ with ⟨X₂, f₂, h₂, hf₂, rfl⟩,
+  suffices : P.map (g₁ ≫ h₁).op (x f₁ hf₁) = P.map (g₂ ≫ h₂).op (x f₂ hf₂), simpa using this,
+  apply family_of_elements_compatible_of_flat u h,
+  simpa using eq,
+end
+
+lemma functor_pushforward_apply_map {Y : C} {f: Y ⟶ Z} (hf) :
+  x.functor_pushforward u (u.map f) (image_mem_functor_pushforward u T hf) = x f hf :=
+begin
+  unfold family_of_elements.functor_pushforward,
+  rcases e₁ : get_functor_pushforward_structure (image_mem_functor_pushforward u T hf) with
+    ⟨X, g, f', hg, eq⟩,
+  simpa using family_of_elements_compatible_of_flat u h f' (𝟙 _) hg hf (by simp[eq]),
+end
+
+end presieve.family_of_elements
+
 end category_theory

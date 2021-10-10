@@ -50,7 +50,7 @@ open category_theory.limits
 namespace category_theory
 section cover_preserving
 variables {C : Type*} [category C] {D : Type*} [category D] {E : Type*} [category E]
-variables {J : grothendieck_topology C} {K : grothendieck_topology D}
+variables (J : grothendieck_topology C) (K : grothendieck_topology D)
 variables {L : grothendieck_topology E}
 
 /--
@@ -58,11 +58,13 @@ A functor `u : (C, J) ⥤ (D, K)` between sites is called to have the cover-pres
 if for all covering sieves `R` in `D`, `R.pushforward_functor u` is a covering sieve in `C`.
 -/
 @[nolint has_inhabited_instance]
-structure cover_preserving (J : grothendieck_topology C) (K : grothendieck_topology D) (u : C ⥤ D) :=
+structure cover_preserving (u : C ⥤ D) :=
 (cover_preserve : ∀ {U : C} {S : sieve U} (hS : S ∈ J U), S.functor_pushforward u ∈ K (u.obj U))
 
 /-- The identity functor on a site is cover-preserving. -/
 def id_cover_preserving : cover_preserving J J (𝟭 _) := ⟨λ U S hS, by simpa using hS⟩
+
+variables (J) (K)
 
 /-- The composition of two cover-preserving functors are cover-preserving -/
 def comp_cover_preserving {u} (hu : cover_preserving J K u) {v} (hv : cover_preserving K L v) :

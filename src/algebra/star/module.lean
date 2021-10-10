@@ -24,7 +24,7 @@ It is defined on a star algebra `A` over the base ring `R`.
   equivalence.
 -/
 
-/-- If `A` is a left- and right- module over a commutative `R` with compatible actions,
+/-- If `A` is a module over a commutative `R` with compatible actions,
 then `star` is a semilinear equivalence. -/
 def star_linear_equiv {R : Type*} {A : Type*}
   [comm_ring R] [star_ring R] [semiring A] [star_ring A] [module R A] [star_module R A]  :

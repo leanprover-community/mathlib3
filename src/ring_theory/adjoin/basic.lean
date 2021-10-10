@@ -114,8 +114,8 @@ le_antisymm ((adjoin_to_submodule_le R).mpr hs) (span_le_adjoin R s)
 
 lemma adjoin_image (f : A →ₐ[R] B) (s : set A) :
   adjoin R (f '' s) = (adjoin R s).map f :=
-eq_of_forall_ge_iff $ λ c,
-  by simp only [subalgebra.map_le, adjoin_le_iff, subalgebra.coe_comap, set.image_subset_iff]
+le_antisymm (adjoin_le $ set.image_subset _ subset_adjoin) $
+subalgebra.map_le.2 $ adjoin_le $ set.image_subset_iff.1 subset_adjoin
 
 @[simp] lemma adjoin_insert_adjoin (x : A) :
   adjoin R (insert x ↑(adjoin R s)) = adjoin R (insert x s) :=

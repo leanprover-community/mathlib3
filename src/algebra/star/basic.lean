@@ -82,6 +82,11 @@ class star_monoid (R : Type u) [monoid R] extends has_involutive_star R :=
 export star_monoid (star_mul)
 attribute [simp] star_mul
 
+/-- In a commutative ring, make `simp` prefer leaving the order unchanged. -/
+@[simp] lemma star_mul' [comm_monoid R] [star_monoid R] (x y : R) :
+  star (x * y) = star x * star y :=
+(star_mul x y).trans (mul_comm _ _)
+
 /-- `star` as an `mul_equiv` from `R` to `Rᵒᵖ` -/
 @[simps apply]
 def star_mul_equiv [monoid R] [star_monoid R] : R ≃* Rᵒᵖ :=
@@ -93,7 +98,7 @@ def star_mul_equiv [monoid R] [star_monoid R] : R ≃* Rᵒᵖ :=
 @[simps apply]
 def star_mul_aut [comm_monoid R] [star_monoid R] : mul_aut R :=
 { to_fun := star,
-  map_mul' := λ x y, (star_mul x y).trans (mul_comm _ _),
+  map_mul' := star_mul',
   ..(has_involutive_star.star_involutive.to_equiv star) }
 
 variables (R)

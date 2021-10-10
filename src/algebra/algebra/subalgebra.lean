@@ -234,15 +234,10 @@ S.to_submodule.is_scalar_tower
 
 instance algebra' [comm_semiring R'] [has_scalar R' R] [algebra R' A]
   [is_scalar_tower R' R A] : algebra R' S :=
-{ commutes' := λ c x, subtype.eq $ algebra.commutes _ _,
-  smul_def' := λ c x, subtype.eq $ algebra.smul_def _ _,
-  .. (algebra_map R' A).cod_srestrict S.to_subsemiring $ λ x, begin
-    rw [algebra.algebra_map_eq_smul_one, ←smul_one_smul R x (1 : A),
-      ←algebra.algebra_map_eq_smul_one],
-    exact algebra_map_mem S _,
-  end }
-instance : algebra R S := S.algebra'
+{ smul_assoc := λ r a b, subtype.ext $ smul_assoc r (a : A) (b : A),
+  smul_comm := λ r a b, subtype.ext $ smul_comm r (a : A) (b : A) }
 
+instance : algebra R S := S.algebra'
 
 end
 
@@ -904,7 +899,8 @@ then `T` is an `R`-subalgebra of `A`. -/
 def under {R : Type u} {A : Type v} [comm_semiring R] [comm_semiring A]
   {i : algebra R A} (S : subalgebra R A)
   (T : subalgebra S A) : subalgebra R A :=
-{ algebra_map_mem' := λ r, T.algebra_map_mem ⟨algebra_map R A r, S.algebra_map_mem r⟩,
+{ algebra_map_mem' := λ r, by simpa [algebra_map_eq]
+    using T.algebra_map_mem ⟨algebra_map R A r, S.algebra_map_mem r⟩,
   .. T }
 
 @[simp] lemma mem_under {R : Type u} {A : Type v} [comm_semiring R] [comm_semiring A]
@@ -954,7 +950,7 @@ variables {R : Type*} [semiring R]
 
 /-- A subsemiring is a `ℕ`-subalgebra. -/
 def subalgebra_of_subsemiring (S : subsemiring R) : subalgebra ℕ R :=
-{ algebra_map_mem' := λ i, S.coe_nat_mem i,
+{ algebra_map_mem' := λ i, by simpa only [ring_hom.eq_nat_cast] using S.coe_nat_mem i,
   .. S }
 
 @[simp] lemma mem_subalgebra_of_subsemiring {x : R} {S : subsemiring R} :
@@ -969,10 +965,7 @@ variables {R : Type*} [ring R]
 
 /-- A subring is a `ℤ`-subalgebra. -/
 def subalgebra_of_subring (S : subring R) : subalgebra ℤ R :=
-{ algebra_map_mem' := λ i, int.induction_on i S.zero_mem
-  (λ i ih, S.add_mem ih S.one_mem)
-  (λ i ih, show ((-i - 1 : ℤ) : R) ∈ S, by { rw [int.cast_sub, int.cast_one],
-    exact S.sub_mem ih S.one_mem }),
+{ algebra_map_mem' := λ i, by simpa only [ring_hom.eq_int_cast] using S.coe_int_mem i,
   .. S }
 
 variables {S : Type*} [semiring S]

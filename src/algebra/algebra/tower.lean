@@ -48,7 +48,7 @@ def lsmul : A →ₐ[R] module.End R M :=
 
 lemma lmul_algebra_map (x : R) :
   lmul R A (algebra_map R A x) = algebra.lsmul R A x :=
-eq.symm $ linear_map.ext $ smul_def'' x
+eq.symm $ linear_map.ext $ smul_def x
 
 end algebra
 
@@ -82,9 +82,6 @@ theorem of_algebra_map_eq' [algebra R A]
 of_algebra_map_eq $ ring_hom.ext_iff.1 h
 
 variables (R S A)
-
-instance subalgebra (S₀ : subalgebra R S) : is_scalar_tower S₀ S A :=
-of_algebra_map_eq $ λ x, rfl
 
 variables [algebra R A] [algebra R B]
 variables [is_scalar_tower R S A] [is_scalar_tower R S B]
@@ -137,15 +134,11 @@ ring_hom.ext f.map_algebra_map
 
 variables (R) {S A B}
 
--- conflicts with is_scalar_tower.subalgebra
-@[priority 999] instance subsemiring (U : subsemiring S) : is_scalar_tower U S A :=
-of_algebra_map_eq $ λ x, rfl
-
 @[nolint instance_priority]
 instance of_ring_hom {R A B : Type*} [comm_semiring R] [comm_semiring A] [comm_semiring B]
   [algebra R A] [algebra R B] (f : A →ₐ[R] B) :
   @is_scalar_tower R A B _ (f.to_ring_hom.to_algebra.to_has_scalar) _ :=
-by { letI := (f : A →+* B).to_algebra, exact of_algebra_map_eq (λ x, (f.commutes x).symm) }
+{ smul_assoc := λ x y z, show f (x • y) * z = x • (f y * z), by rw [f.map_smul, smul_mul_assoc] }
 
 end semiring
 
@@ -153,7 +146,7 @@ section division_ring
 variables [field R] [division_ring S] [algebra R S] [char_zero R] [char_zero S]
 
 instance rat : is_scalar_tower ℚ R S :=
-of_algebra_map_eq $ λ x, ((algebra_map R S).map_rat_cast x).symm
+{ smul_assoc := λ r x y, ((smul_add_hom R S).flip y).map_rat_module_smul r x }
 
 end division_ring
 

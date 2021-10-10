@@ -128,10 +128,6 @@ def restrict_scalars.alg_equiv : restrict_scalars R S A ≃ₐ[S] A := alg_equiv
 variables [comm_semiring R] [algebra R S]
 
 /-- `R ⟶ S` induces `S-Alg ⥤ R-Alg` -/
-instance : algebra R (restrict_scalars R S A) :=
-{ smul := (•),
-  commutes' := λ r x, algebra.commutes _ _,
-  smul_def' := λ _ _, algebra.smul_def _ _,
-  .. (algebra_map S A).comp (algebra_map R S) }
+instance : algebra R (restrict_scalars R S A) := { }
 
 end algebra

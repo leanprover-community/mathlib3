@@ -32,7 +32,7 @@ def lmul : A →ₐ[R] (End R A) :=
 { map_one' := by { ext a, exact one_mul a },
   map_mul' := by { intros a b, ext c, exact mul_assoc a b c },
   map_zero' := by { ext a, exact zero_mul a },
-  commutes' := by { intro r, ext a, dsimp, rw [smul_def] },
+  commutes' := by { intro r, ext a, dsimp, rw [smul_def, linear_map.id_apply] },
   .. (show A →ₗ[R] A →ₗ[R] A, from linear_map.mk₂ R (*)
   (λ x y z, add_mul x y z)
   (λ c x y, by rw [smul_def, smul_def, mul_assoc _ x y])

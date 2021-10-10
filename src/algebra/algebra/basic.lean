@@ -5,7 +5,7 @@ Authors: Kenny Lau, Yury Kudryashov
 -/
 import algebra.iterate_hom
 import data.equiv.ring_aut
-import algebra.module.basic
+import algebra.module.opposites
 import linear_algebra.basic
 
 /-!

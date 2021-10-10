@@ -629,7 +629,7 @@ by rw [lim_eq_lim_im_add_lim_re]; simp
 
 lemma is_cau_seq_conj (f : cau_seq ℂ abs) : is_cau_seq abs (λ n, conj (f n)) :=
 λ ε ε0, let ⟨i, hi⟩ := f.2 ε ε0 in
-⟨i, λ j hj, by rw [← ring_equiv.map_sub, abs_conj]; exact hi j hj⟩
+⟨i, λ j hj, by rw [← star_sub, abs_conj]; exact hi j hj⟩
 
 /-- The complex conjugate of a complex Cauchy sequence, as a complex Cauchy sequence. -/
 noncomputable def cau_seq_conj (f : cau_seq ℂ abs) : cau_seq ℂ abs :=

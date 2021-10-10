@@ -179,18 +179,13 @@ def star_ring_equiv [semiring R] [star_ring R] : R ≃+* Rᵒᵖ :=
 
 /-- `star` as a `ring_aut` for commutative `R`. This is used to denote complex
 conjugation, and is available under the notation `conj` in the locale `complex_conjugate` -/
+@[simps]
 def star_ring_aut [comm_semiring R] [star_ring R] : ring_aut R :=
 { to_fun := star,
   ..star_add_equiv,
   ..star_mul_aut }
 
 localized "notation `conj` := star_ring_aut" in complex_conjugate
-
--- This is not a simp lemma, since we usually want simp to keep `star_ring_aut` bundled.
--- For example, for complex conjugation, we don't want simp to turn `conj x`
--- into `⟨x.re, -x.im⟩` automatically since most lemmas are about `conj x`.
-lemma star_ring_aut_apply [comm_semiring R] [star_ring R] {x : R} :
-  star_ring_aut x = star x := rfl
 
 @[simp] lemma star_ring_aut_self_apply [comm_semiring R] [star_ring R] (x : R) :
   star_ring_aut (star_ring_aut x) = x := star_star x

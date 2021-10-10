@@ -10,6 +10,7 @@ import tactic.linarith
 import tactic.norm_cast
 import tactic.norm_num
 import tactic.ring_exp
+import set_theory.cardinal
 
 
 /-!
@@ -207,6 +208,14 @@ begin
       { linarith }}},
 end
 
+lemma snorg {a b n : ℕ} (h : 2 * n + 1 ≤ a + b) : n + 1 ≤ a ∨ n + 1 ≤ b :=
+begin
+  by_contradiction w,
+  simp [not_or_distrib] at w,
+  cases w with w₁ w₂,
+  linarith,
+end
+
 -- If for n ∈ ℕ, and finite sets B, X, Y such that B ⊆ X ∪ Y and B has cardinality at least
 -- 2 * n + 1, then there exists a subset C ⊆ A of cardinality at least n + 1, which is entirely
 -- contained in X or Y. For our result, we will apply this lemma with n = 1 and any X such that
@@ -214,44 +223,28 @@ end
 -- pairwise unequal pair of B sums to a perfect square.
 lemma finset_subset_or_complement_cardinality {α : Type*} [decidable_eq α] (B X Y : finset α)
   (h : B ⊆ X ∪ Y) {n : ℕ} (hB : 2 * n + 1 ≤ B.card) :
-  (∃ C, C ⊆ B ∧ C ⊆ X ∧ n + 1 ≤ C.card) ∨ (∃ C, C ⊆ B ∧ C ⊆ Y ∧ n + 1 ≤ C.card) :=
+  ∃ C, C ⊆ B ∧ n + 1 ≤ C.card ∧ (C ⊆ X ∨ C ⊆ Y) :=
 begin
-  by_contra h,
-  push_neg at h,
-  cases h with h₁ h₂,
-  have h₃ : B \ (Y \ X) ⊆ B := finset.sdiff_subset B (Y \ X),
-  have h₄ : B \ (Y \ X) ⊆ X,
-  { refine ((finset.sdiff_subset_sdiff h (finset.subset.refl (Y \ X))).trans (λ i hi, _)),
-    simp only [not_and, not_not, finset.mem_sdiff, finset.mem_union] at hi,
+  let C₁ := B ∩ X,
+  let C₂ := B \ X,
+  have h₁ : B.card = C₁.card + C₂.card,
+  { have h₂ : disjoint C₁ C₂,
+    { rw disjoint_iff,
+      simp },
+    convert finset.card_disjoint_union h₂,
+    rw ← finset.sdiff_union_inter B X,
+    rw finset.union_comm },
+  rw h₁ at hB,
+  rcases snorg hB with hC₁|hC₂,
+  { refine ⟨C₁, (finset.inter_subset_left B X), hC₁, or.inl (finset.inter_subset_right B X)⟩, },
+  { refine ⟨C₂, (finset.sdiff_subset B X), hC₂, or.inr _⟩,
+    apply finset.subset.trans (finset.sdiff_subset_sdiff h (finset.subset.refl X)) _,
+    intros i hi,
+    simp only [finset.mem_sdiff, finset.mem_union] at hi,
     cases hi with hi₁ hi₂,
     cases hi₁,
-    { exact hi₁ },
-    { exact hi₂ hi₁ }},
-  have h₅ : B \ (X \ Y) ⊆ B := finset.sdiff_subset B (X \ Y),
-  have h₆ : B \ (X \ Y) ⊆ Y,
-  { refine ((finset.sdiff_subset_sdiff h (finset.subset.refl (X \ Y))).trans (λ i hi, _)),
-    simp only [not_and, not_not, finset.mem_sdiff, finset.mem_union] at hi,
-    cases hi with hi₁ hi₂,
-    cases hi₁,
-    { exact hi₂ hi₁ },
-    { exact hi₁ }},
-  specialize h₁ (B \ (Y \ X)) h₃ h₄,
-  specialize h₂ (B \ (X \ Y)) h₅ h₆,
-  have h₇ : B ⊆ B \ (Y \ X) ∪ B \ (X \ Y),
-  { intros i hi,
-    simp only [not_and, not_not, finset.mem_sdiff, finset.mem_union],
-    have h₈ : i ∈ X ∨ i ∈ Y := finset.mem_union.mp (h hi),
-    cases h₈,
-    { left,
-      exact ⟨hi, (λ x, h₈)⟩ },
-    { right,
-      exact ⟨hi,(λ x, h₈)⟩ }},
-  replace h₇ := finset.card_le_of_subset h₇,
-  have h₉ : B.card ≤  2 * n,
-  { apply le_trans h₇ _,
-    apply le_trans ((B \ (Y \ X)).card_union_le (B \ (X \ Y))) _,
-    linarith },
-  linarith,
+    { contradiction },
+    { exact hi₁ }}
 end
 
 lemma finset_two_le_card_exists_pair_neq (C : finset ℕ) (hC : 2 ≤ C.card) :
@@ -286,7 +279,7 @@ begin
   -- for any A ⊆ [n, 2n], either C ⊆ A or C ⊆ [n, 2n] \ A and C has cardinality greater
   -- or equal to 2.
   have hp₂ := finset_subset_or_complement_cardinality B (finset.Ico n (2 * n + 1) \ A) A hBA hB,
-  rcases hp₂ with (⟨C, hCB, hCA, hC⟩ | ⟨C, hCB, hCA, hC⟩),
+  rcases hp₂ with (⟨C, hCB, hC, (hCA | hCA)⟩),
   -- First, we deal with the case when C ⊆ [n, 2n] \ A.
   { right,
     norm_num at hC,

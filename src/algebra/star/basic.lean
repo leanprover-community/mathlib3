@@ -187,6 +187,7 @@ def star_ring_aut [comm_semiring R] [star_ring R] : ring_aut R :=
 -- notation available.
 localized "notation `conj` := star_ring_aut" in complex_conjugate
 
+-- This is not a simp lemma, since we usually want simp to keep `star_ring_aut` bundled.
 lemma star_ring_aut_apply [comm_semiring R] [star_ring R] {x : R} :
   star_ring_aut x = star x := rfl
 

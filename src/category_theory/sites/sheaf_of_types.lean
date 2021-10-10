@@ -288,6 +288,23 @@ end
 
 end functor_pullback
 
+/--
+Given a family of elements of a sieve `S` on `X` whose values factors through `F`, we can
+realize it as a family of elements of `S.functor_pushforward F`.
+-/
+noncomputable
+def family_of_elements.functor_pushforward {D : Type u₂} [category.{v} D] (F : D ⥤ C) {Z : D}
+  {T : presieve Z} (x : family_of_elements (F.op ⋙ P) T) :
+    family_of_elements P (T.functor_pushforward F) := λ Y f hf,
+      (eq_to_hom (by simp) : P.obj _ ⟶ _) (x _ hf.premap_cover)
+  -- family_of_elements (F.op ⋙ P) (T.functor_pullback F) := λ Y f hf, x (F.map f) hf
+
+@[simp]
+lemma family_of_elements.functor_pushforward_apply {D : Type u₂} [category.{v} D] (F : D ⥤ C)
+  {Z : D} {T : presieve Z} (x : family_of_elements (F.op ⋙ P) T) {Y : C} {f : Y ⟶ F.obj Z}
+  (hf : functor_pushforward F T f) : x.functor_pushforward F f hf =
+    (eq_to_hom (by simp) : P.obj _ ⟶ _) (x _ hf.premap_cover) := rfl
+
 section pullback
 
 /--

@@ -48,6 +48,8 @@ A star operation (e.g. complex conjugate).
 -/
 add_decl_doc star
 
+localized "notation `conj` := star" in complex_conjugate
+
 /-- The opposite type carries the same star operation. -/
 instance [has_star R] : has_star (Rᵒᵖ) :=
 { star := λ r, op (star (r.unop)) }
@@ -184,8 +186,6 @@ def star_ring_aut [comm_semiring R] [star_ring R] : ring_aut R :=
 { to_fun := star,
   ..star_add_equiv,
   ..star_mul_aut }
-
-localized "notation `conj` := star_ring_aut" in complex_conjugate
 
 @[simp] lemma star_ring_aut_self_apply [comm_semiring R] [star_ring R] (x : R) :
   star_ring_aut (star_ring_aut x) = x := star_star x

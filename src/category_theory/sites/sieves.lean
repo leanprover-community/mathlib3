@@ -25,7 +25,7 @@ import data.set.lattice
 sieve, pullback
 -/
 
-universes v₁ v₂ u₁ u₂
+universes v₁ v₂ v₃ u₁ u₂ u₃
 namespace category_theory
 
 open category limits
@@ -139,78 +139,34 @@ begin
 end
 
 /-- Given a presieve on `F(X)`, we can define a presieve on `X` by taking the preimage via `F`. -/
-def functor_pullback {X : C} (R : presieve (F.obj X)) : presieve X := λ _ f, R (F.map f)
+def functor_pullback (R : presieve (F.obj X)) : presieve X := λ _ f, R (F.map f)
 
-@[simp] lemma functor_pullback_mem {X : C} (R : presieve (F.obj X)) {Y} (f : Y ⟶ X) :
+@[simp] lemma functor_pullback_mem (R : presieve (F.obj X)) {Y} (f : Y ⟶ X) :
   R.functor_pullback F f = R (F.map f) := rfl
 
-@[simp] lemma functor_pullback_id {X : C} (R : presieve X) : R.functor_pullback (𝟭 _) = R := rfl
+@[simp] lemma functor_pullback_id (R : presieve X) : R.functor_pullback (𝟭 _) = R := rfl
 
-@[simp] lemma functor_pullback_apply {X : C} (R : presieve (F.obj X)) {Y} (f : Y ⟶ X) :
-  R.functor_pullback F f ↔ R (F.map f) := by unfold functor_pullback
+lemma functor_pullback_apply (R : presieve (F.obj X)) {Y} (f : Y ⟶ X) :
+  R.functor_pullback F f ↔ R (F.map f) := iff.rfl
 
 section functor_pushforward
-
-structure functor_pushforward_structure {X : C} {Y : D} (f : Y ⟶ F.obj X) :=
-(preobj : C) (premap : preobj ⟶ X) (preobj_image : F.obj preobj = Y)
-(premap_image : F.map premap = (eq_to_hom preobj_image) ≫ f)
+variables {E : Type u₃} [category.{v₃} E] (G : D ⥤ E)
 
 /-- Given a presieve on `X`, we can define a presieve on `F(X)` by taking the image via `F`. -/
-def functor_pushforward {X : C} (R : presieve X) : presieve (F.obj X) :=
-λ Y f, ∃ (H : functor_pushforward_structure F f), R H.premap
+def functor_pushforward (S : presieve X) : presieve (F.obj X) :=
+λ Y f, ∃ (Z : C) (g : Z ⟶ X) (h : Y ⟶ F.obj Z), S g ∧ f = h ≫ F.map g
 
-variables {F} {R : presieve X} {X': D} {g : X' ⟶ F.obj X} (H : R.functor_pushforward F g)
-noncomputable
-def functor_pushforward.preobj : C := (classical.some H).preobj
-
-noncomputable
-def functor_pushforward.premap : functor_pushforward.preobj H ⟶ X := (classical.some H).premap
-
-@[simp] lemma functor_pushforward.preobj_image : F.obj (functor_pushforward.preobj H) = X' :=
-(classical.some H).preobj_image
-
-@[simp] lemma functor_pushforward.premap_image :
-  F.map (functor_pushforward.premap H) = (eq_to_hom (functor_pushforward.preobj_image H)) ≫ g :=
-(classical.some H).premap_image
-
-lemma functor_pushforward.premap_cover : R (functor_pushforward.premap H) := classical.some_spec H
-
-@[simp]
-lemma functor_pushforward_id {X : C} (R : presieve X) : R.functor_pushforward (𝟭 _) = R :=
+lemma functor_pushforward_comp (R : presieve X) :
+  R.functor_pushforward (F ⋙ G) = (R.functor_pushforward F).functor_pushforward G :=
 begin
-ext x f,
-change R.functor_pushforward (𝟭 C) f ↔ R f,
-split,
-{ rintro ⟨⟨preobj, _, preobj_image, premap_image⟩, h⟩,
-  cases (show preobj = x, from preobj_image),
-  convert h,
-  simpa using premap_image.symm },
-{ intro h,
-  exact ⟨⟨x, f, rfl, by simp⟩, h⟩ },
+  ext x f,
+  split,
+  { rintro ⟨X, f₁, g₁, h₁, rfl⟩, exact ⟨F.obj X, F.map f₁, g₁, ⟨X, f₁, 𝟙 _, h₁, by simp⟩, rfl⟩ },
+  { rintro ⟨X, f₁, g₁, ⟨X', f₂, g₂, h₁, rfl⟩, rfl⟩, use ⟨X', f₂, g₁ ≫ G.map g₂, h₁, by simp⟩ }
 end
 
-@[simp]
-lemma functor_pushforward_comp {E : Type*} [category E] (F : C ⥤ D) (G : D ⥤ E) {X : C}
-  (R : presieve X) :
-  R.functor_pushforward (F ⋙ G) = ((R.functor_pushforward F).functor_pushforward G) :=
-begin
-ext x f,
-change R.functor_pushforward (F ⋙ G) f ↔ functor_pushforward G (functor_pushforward F R) f,
-split,
-{ rintro ⟨⟨preobj, premap, preobj_image, premap_image⟩, h⟩,
-  exact ⟨⟨F.obj preobj, F.map premap, preobj_image, premap_image⟩,
-    ⟨preobj, premap, by simp, by simp⟩, h⟩ },
-{ rintro ⟨⟨preobj, premap, preobj_image, premap_image⟩,
-  ⟨preobj', premap', preobj_image', premap_image'⟩, h⟩,
-  use preobj', use premap',
-  { dsimp at preobj_image',
-   rw ← preobj_image' at preobj_image,
-   exact preobj_image },
-  { dsimp at premap_image',
-    dsimp, rw premap_image', simp, rw premap_image, simp },
-  exact h }
-end
-
+lemma image_mem_functor_pushforward (R : presieve X) {f : Y ⟶ X} (h : R f) :
+  R.functor_pushforward F (F.map f) := ⟨Y, f, 𝟙 _, h, by simp⟩
 
 end functor_pushforward
 end presieve
@@ -225,7 +181,7 @@ structure sieve {C : Type u₁} [category.{v₁} C] (X : C) :=
 
 namespace sieve
 
-instance {X : C} : has_coe_to_fun (sieve X) := ⟨_, sieve.arrows⟩
+instance : has_coe_to_fun (sieve X) := ⟨_, sieve.arrows⟩
 
 initialize_simps_projections sieve (arrows → apply)
 
@@ -513,10 +469,13 @@ begin
     exact ⟨_, _, _, presieve.pullback_arrows.mk _ _ hk, pullback.lift_snd _ _ comm⟩ },
 end
 
+section functor
+variables {E : Type u₃} [category.{v₃} E] (G : D ⥤ E)
+
 /--
 If `R` is a sieve, then the `category_theory.presieve.functor_pullback` of `R` is actually a sieve.
 -/
-def functor_pullback {X : C} (R : sieve (F.obj X)) : sieve X :=
+@[simps] def functor_pullback (R : sieve (F.obj X)) : sieve X :=
 { arrows := presieve.functor_pullback F R,
   downward_closed' := λ _ _ f hf g,
   begin
@@ -525,12 +484,125 @@ def functor_pullback {X : C} (R : sieve (F.obj X)) : sieve X :=
     exact R.downward_closed hf (F.map g),
   end }
 
-@[simp] lemma functor_pullback_id {X : C} (R : sieve X) : R.functor_pullback (𝟭 _) = R :=
+@[simp] lemma functor_pullback_arrows (R : sieve (F.obj X)) :
+  (R.functor_pullback F).arrows = R.arrows.functor_pullback F := rfl
+
+@[simp] lemma functor_pullback_id (R : sieve X) : R.functor_pullback (𝟭 _) = R :=
 by { ext, refl }
 
+lemma functor_pullback_comp (R : sieve ((F ⋙ G).obj X)) :
+  R.functor_pullback (F ⋙ G) = (R.functor_pullback G).functor_pullback F := by { ext, refl }
+
+lemma functor_pushforward_extend_eq {R : presieve X} :
+  (generate R).arrows.functor_pushforward F = R.functor_pushforward F :=
+begin
+  ext Y f, split,
+  { rintro ⟨X', g, f', ⟨X'', g', f'', h₁, rfl⟩, rfl⟩,
+    exact ⟨X'', f'', f' ≫ F.map g', h₁, by simp⟩ },
+  { rintro ⟨X', g, f', h₁, h₂⟩, exact ⟨X', g, f', le_generate R _ h₁, h₂⟩ }
+end
+
 /-- The sieve generated by the image of `R` under `F`. -/
-@[simps] def functor_pushforward {X : C} (R : sieve X) : sieve (F.obj X) :=
-generate (R.arrows.functor_pushforward F)
+@[simps] def functor_pushforward (R : sieve X) : sieve (F.obj X) :=
+{ arrows := R.arrows.functor_pushforward F,
+  downward_closed' := λ Y Z f h g, by
+  { obtain ⟨X, α, β, hα, rfl⟩ := h,
+    refine ⟨X, α, g ≫ β, hα, by simp⟩ } }
+
+@[simp] lemma functor_pushforward_id (R : sieve X) :
+  R.functor_pushforward (𝟭 _) = R :=
+begin
+  ext X f,
+  split,
+  { intro hf,
+    obtain ⟨X, g, h, hg, rfl⟩ := hf,
+    exact R.downward_closed hg h, },
+  { intro hf,
+    refine ⟨X, f, 𝟙 _, hf, by simp⟩ }
+end
+
+lemma functor_pushforward_comp (R : sieve X) :
+  R.functor_pushforward (F ⋙ G) = (R.functor_pushforward F).functor_pushforward G :=
+by { ext, simpa [R.arrows.functor_pushforward_comp F G] }
+
+
+lemma functor_galois_connection (X : C) : _root_.galois_connection
+  (sieve.functor_pushforward F : sieve X → sieve (F.obj X)) (sieve.functor_pullback F) :=
+begin
+  intros R S,
+  split,
+  { intros hle X f hf,
+    apply hle,
+    refine ⟨X, f, 𝟙 _, hf, _⟩,
+    rw category.id_comp, },
+  { intros hle Y f hf,
+    obtain ⟨X, g, h, hg, rfl⟩ := hf,
+    apply sieve.downward_closed S,
+    exact hle g hg, }
+end
+
+lemma functor_pullback_monotone (X : C) :
+  monotone (sieve.functor_pullback F : sieve (F.obj X) → sieve X) :=
+(functor_galois_connection F X).monotone_u
+
+lemma functor_pushforward_montone (X : C) :
+  monotone (sieve.functor_pushforward F : sieve X → sieve (F.obj X)) :=
+(functor_galois_connection F X).monotone_l
+
+lemma le_functor_pushforward_pullback (R : sieve X) :
+  R ≤ (R.functor_pushforward F).functor_pullback F :=
+(functor_galois_connection F X).le_u_l _
+
+lemma functor_pullback_pushforward_le (R : sieve (F.obj X)) :
+  (R.functor_pullback F).functor_pushforward F ≤ R :=
+(functor_galois_connection F X).l_u_le _
+
+lemma functor_pushforward_union (S R : sieve X) :
+  (S ⊔ R).functor_pushforward F = S.functor_pushforward F ⊔ R.functor_pushforward F :=
+(functor_galois_connection F X).l_sup
+
+lemma functor_pullback_union (S R : sieve (F.obj X)) :
+  (S ⊔ R).functor_pullback F = S.functor_pullback F ⊔ R.functor_pullback F := rfl
+
+lemma functor_pullback_inter (S R : sieve (F.obj X)) :
+  (S ⊓ R).functor_pullback F = S.functor_pullback F ⊓ R.functor_pullback F := rfl
+
+lemma functor_pushforward_bot (F : C ⥤ D) (X : C) :
+  (⊥ : sieve X).functor_pushforward F = ⊥ := (functor_galois_connection F X).l_bot
+
+lemma functor_pullback_bot (F : C ⥤ D) (X : C) :
+  (⊥ : sieve (F.obj X)).functor_pullback F = ⊥ := rfl
+
+lemma functor_pullback_top (F : C ⥤ D) (X : C) :
+  (⊤ : sieve (F.obj X)).functor_pullback F = ⊤ := rfl
+
+lemma image_mem_functor_pushforward (R : sieve X) {V} {f : V ⟶ X} (h : R f) :
+  R.functor_pushforward F (F.map f) := ⟨V, f, 𝟙 _, h, by simp⟩
+
+/-- When `F` is essentially surjective and full, the galois connection is a galois insertion. -/
+def ess_surj_full_functor_galois_insertion [ess_surj F] [full F] (X : C) : galois_insertion
+  (sieve.functor_pushforward F : sieve X → sieve (F.obj X)) (sieve.functor_pullback F) :=
+begin
+apply (functor_galois_connection F X).to_galois_insertion,
+intros S Y f hf,
+use F.obj_preimage Y,
+use F.preimage ((F.obj_obj_preimage_iso Y).hom ≫ f),
+use (F.obj_obj_preimage_iso Y).inv,
+simpa using S.downward_closed hf _,
+end
+
+/-- When `F` is fully faithful, the galois connection is a galois coinsertion. -/
+def fully_faithful_functor_galois_coinsertion [full F] [faithful F] (X : C) : galois_coinsertion
+  (sieve.functor_pushforward F : sieve X → sieve (F.obj X)) (sieve.functor_pullback F) :=
+begin
+apply (functor_galois_connection F X).to_galois_coinsertion,
+rintros S Y f ⟨Z, g, h, h₁, h₂⟩,
+rw [←F.image_preimage h, ←F.map_comp] at h₂,
+rw F.map_injective h₂,
+exact S.downward_closed h₁ _,
+end
+
+end functor
 
 /-- A sieve induces a presheaf. -/
 @[simps]

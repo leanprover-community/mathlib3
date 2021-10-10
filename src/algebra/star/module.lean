@@ -16,6 +16,8 @@ It is defined on a star algebra `A` over the base ring `R`.
 
 - We only define it for commutative `R` for now; the noncommutative case would require
   using `star_ring_equiv` between `R` and `Rᵒᵖ`, which is undesirable in the commutative case.
+- Note that such a definition involving `Rᵒᵖ` would require adding the appropriate
+  `ring_hom_inv_pair` instances to be able to define the semilinear equivalence.
 -/
 
 /-- If `A` is a left- and right- module over a commutative `R` with compatible actions,

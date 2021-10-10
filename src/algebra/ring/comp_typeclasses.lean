@@ -106,7 +106,7 @@ lemma of_ring_equiv (e : R₁ ≃+* R₂) :
 
 /--
 Swap the direction of a `ring_hom_inv_pair`. This is not an instance as it would loop, and better
-instances are often available.
+instances are often available and may often be preferrable to using this one.
 
 See note [reducible non-instances].
 -/

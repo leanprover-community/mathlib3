@@ -250,15 +250,6 @@ attribute [simp] star_smul
 instance star_monoid.to_star_module [comm_monoid R] [star_monoid R] : star_module R R :=
 ⟨λ r s, (star_mul r s).trans (mul_comm _ _)⟩
 
-/-- If `A` is a left- and right- module over a commutative `R` with compatible actions,
-then `star` is a semilinear equivalence. -/
-def star_linear_equiv {R : Type u} {A : Type v}
-  [comm_ring R] [star_ring R] [semiring A] [star_ring A] [module R A]  :
-    A ≃ₛₗ[((star_ring_aut : ring_aut R) : R →+* R)] A :=
-{ to_fun := star,
-  map_smul' := star_smul,
-  .. star_add_equiv }
-
 namespace ring_hom_inv_pair
 
 /-- Instance needed to define star-linear maps over a commutative star ring

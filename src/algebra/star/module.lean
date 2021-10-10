@@ -12,7 +12,7 @@ import data.equiv.module
 We define `star_linear_equiv`, which is the star operation bundled as a star-linear map.
 It is defined on a star algebra `A` over the base ring `R`.
 
-# TODO
+## TODO
 
 - We only define it for commutative `R` for now; the noncommutative case would require
   using `star_ring_equiv` between `R` and `Rᵒᵖ`, which is undesirable in the commutative case.

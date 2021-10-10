@@ -268,8 +268,8 @@ begin
   exact t.restrict (le_generate R),
 end
 
-lemma family_of_elements.comp_of_compatible {x : family_of_elements P S} (t : x.compatible)
-  {f : Y ⟶ X} (hf : S f) {Z} (g : Z ⟶ Y) :
+lemma family_of_elements.comp_of_compatible (S : sieve X) {x : family_of_elements P S}
+  (t : x.compatible) {f : Y ⟶ X} (hf : S f) {Z} (g : Z ⟶ Y) :
     x (g ≫ f) (S.downward_closed hf g) = P.map g.op (x f hf) :=
 by simpa using t (𝟙 _) g (S.downward_closed hf g) hf (category.id_comp _)
 
@@ -302,8 +302,7 @@ noncomputable
 def family_of_elements.functor_pushforward {D : Type u₂} [category.{v} D] (F : D ⥤ C) {X : D}
   {T : presieve X} (x : family_of_elements (F.op ⋙ P) T) :
     family_of_elements P (T.functor_pushforward F) := λ Y f h,
-      by { choose Z g h h₁ h₂ using h, exact P.map h.op (x g h₁) }
-  -- family_of_elements (F.op ⋙ P) (T.functor_pullback F) := λ Y f hf, x (F.map f) hf
+by { obtain ⟨Z, g, h, h₁, _⟩ := get_functor_pushforward_structure h, exact P.map h.op (x g h₁) }
 
 section pullback
 

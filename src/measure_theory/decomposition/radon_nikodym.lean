@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
 import measure_theory.decomposition.lebesgue
+import measure_theory.measure.complex
 
 /-!
 # Radon-Nikodym theorem

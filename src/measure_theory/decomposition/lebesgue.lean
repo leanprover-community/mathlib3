@@ -1197,4 +1197,11 @@ end
 
 end signed_measure
 
+namespace complex_measure
+
+
+
+
+end complex_measure
+
 end measure_theory

@@ -19,7 +19,7 @@ for `set α`, and some more set constructions.
 * `set.Union`: Union of an indexed family of sets.
 * `set.Inter`: Intersection of an indexed family of sets.
 * `set.sInter`: **s**et **Inter**. Intersection of sets belonging to a set of sets.
-* `set.sUnion`: **s**et **Union**. Intersection of sets belonging to a set of sets. This is actually
+* `set.sUnion`: **s**et **Union**. Union of sets belonging to a set of sets. This is actually
   defined in core Lean.
 * `set.sInter_eq_bInter`, `set.sUnion_eq_bInter`: Shows that `⋂₀ s = ⋂ x ∈ s, x` and
   `⋃₀ s = ⋃ x ∈ s, x`.
@@ -237,11 +237,11 @@ compl_supr
 compl_infi
 
 -- classical -- complete_boolean_algebra
-theorem Union_eq_comp_Inter_comp (s : ι → set β) : (⋃ i, s i) = (⋂ i, (s i)ᶜ)ᶜ :=
+theorem Union_eq_compl_Inter_compl (s : ι → set β) : (⋃ i, s i) = (⋂ i, (s i)ᶜ)ᶜ :=
 by simp only [compl_Inter, compl_compl]
 
 -- classical -- complete_boolean_algebra
-theorem Inter_eq_comp_Union_comp (s : ι → set β) : (⋂ i, s i) = (⋃ i, (s i)ᶜ)ᶜ :=
+theorem Inter_eq_compl_Union_compl (s : ι → set β) : (⋂ i, s i) = (⋃ i, (s i)ᶜ)ᶜ :=
 by simp only [compl_Union, compl_compl]
 
 theorem inter_Union (s : set β) (t : ι → set β) :
@@ -300,6 +300,19 @@ by simp only [directed_on, exists_prop, mem_Union, exists_imp_distrib]; exact
 let ⟨z, zb₁, zb₂⟩ := hd b₁ b₂,
     ⟨x, xf, xa₁, xa₂⟩ := h z a₁ (zb₁ fb₁) a₂ (zb₂ fb₂) in
 ⟨x, ⟨z, xf⟩, xa₁, xa₂⟩
+
+lemma pairwise_on_Union {r : α → α → Prop} {f : ι → set α} (h : directed (⊆) f) :
+  (⋃ n, f n).pairwise_on r ↔ (∀ n, (f n).pairwise_on r) :=
+begin
+  split,
+  { assume H n,
+    exact pairwise_on.mono (subset_Union _ _) H },
+  { assume H i hi j hj hij,
+    rcases mem_Union.1 hi with ⟨m, hm⟩,
+    rcases mem_Union.1 hj with ⟨n, hn⟩,
+    rcases h m n with ⟨p, mp, np⟩,
+    exact H p i (mp hm) j (np hn) hij }
+end
 
 lemma Union_inter_subset {ι α} {s t : ι → set α} : (⋃ i, s i ∩ t i) ⊆ (⋃ i, s i) ∩ (⋃ i, t i) :=
 by { rintro x ⟨_, ⟨i, rfl⟩, xs, xt⟩, exact ⟨⟨_, ⟨i, rfl⟩, xs⟩, _, ⟨i, rfl⟩, xt⟩ }
@@ -786,7 +799,7 @@ theorem compl_sInter (S : set (set α)) :
 by rw [sUnion_eq_compl_sInter_compl, compl_compl_image]
 
 -- classical
-theorem sInter_eq_comp_sUnion_compl (S : set (set α)) :
+theorem sInter_eq_compl_sUnion_compl (S : set (set α)) :
    ⋂₀ S = (⋃₀ (compl '' S))ᶜ :=
 by rw [←compl_compl (⋂₀ S), compl_sInter]
 

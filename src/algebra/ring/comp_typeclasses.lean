@@ -95,7 +95,7 @@ instance triples₂ {σ₂₁ : R₂ →+* R₁} [ring_hom_inv_pair σ₁₂ σ�
 Construct a `ring_hom_inv_pair` from both directions of a ring equiv.
 
 This is not an instance, as for equivalences that are involutions, a better instance
-would be `ring_hom_inv_pair e e`.
+would be `ring_hom_inv_pair e e`. Indeed, this declaration is not currently used in mathlib.
 
 See note [reducible non-instances].
 -/
@@ -106,7 +106,8 @@ lemma of_ring_equiv (e : R₁ ≃+* R₂) :
 
 /--
 Swap the direction of a `ring_hom_inv_pair`. This is not an instance as it would loop, and better
-instances are often available and may often be preferrable to using this one.
+instances are often available and may often be preferrable to using this one. Indeed, this
+declaration is not currently used in mathlib.
 
 See note [reducible non-instances].
 -/

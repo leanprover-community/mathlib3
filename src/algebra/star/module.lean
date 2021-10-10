@@ -14,9 +14,12 @@ It is defined on a star algebra `A` over the base ring `R`.
 
 ## TODO
 
-- We only define it for commutative `R` for now; the noncommutative case would require
-  using `star_ring_equiv` between `R` and `Rᵒᵖ`, which is undesirable in the commutative case.
-- Note that such a definition involving `Rᵒᵖ` would require adding the appropriate
+- Define `star_linear_equiv` for noncommutative `R`. We only the commutative case for now since,
+  in the noncommutative case, the ring hom needs to reverse the order of multiplication. This
+  requires a ring hom of type `R →+* Rᵒᵖ`, which is very undesirable in the commutative case.
+  One way out would be to define a new typeclass `is_op R S` and have an instance `is_op R R`
+  for commutative `R`.
+- Also note that such a definition involving `Rᵒᵖ` would require adding the appropriate
   `ring_hom_inv_pair` instances to be able to define the semilinear equivalence.
 -/
 

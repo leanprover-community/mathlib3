@@ -47,7 +47,8 @@ namespace sheaf_condition
 /--
 The category of open sets contained in some element of the cover.
 -/
-def opens_le_cover : Type v := { V : opens X // ∃ i, V ≤ U i }
+def opens_le_cover_s (V : opens X) := ∃ i, V ≤ U i
+def opens_le_cover : Type v := { V // opens_le_cover_s U V }
 
 instance [inhabited ι] : inhabited (opens_le_cover U) :=
 ⟨⟨⊥, default ι, bot_le⟩⟩

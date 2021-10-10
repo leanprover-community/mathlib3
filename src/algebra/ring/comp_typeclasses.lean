@@ -100,7 +100,7 @@ would be `ring_hom_inv_pair e e`.
 See note [reducible non-instances].
 -/
 @[reducible]
-def of_ring_equiv (e : R₁ ≃+* R₂) :
+lemma of_ring_equiv (e : R₁ ≃+* R₂) :
   ring_hom_inv_pair (↑e : R₁ →+* R₂) ↑e.symm :=
 ⟨e.symm_to_ring_hom_comp_to_ring_hom, e.symm.symm_to_ring_hom_comp_to_ring_hom⟩
 

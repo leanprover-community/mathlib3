@@ -122,6 +122,12 @@ end op_induction
 
 open op_induction
 
+/--
+`op_induction x` takes a hypothesis `x : αᵒᵖ`, and replaces it with `x : α`,
+replacing all appearances of `x` with `op x`.
+
+`op_induction` without an argument looks for any single hypothesis of this form.
+-/
 meta def op_induction (h : option name) : tactic unit :=
 do h ← match h with
    | (some h) := pure h
@@ -133,10 +139,17 @@ do h ← match h with
    tactic.intro h,
    skip
 
--- For use with `local attribute [tidy] op_induction`
+/- Variant of `op_induction` with no argument, for use with `local attribute [tidy] op_induction` -/
 meta def op_induction' := op_induction none
 
 namespace interactive
+
+/--
+`op_induction x` takes a hypothesis `x : αᵒᵖ`, and replaces it with `x : α`,
+replacing all appearances of `x` with `op x`.
+
+`op_induction` without an argument looks for any single hypothesis of this form.
+-/
 meta def op_induction (h : parse ident?) : tactic unit :=
 tactic.op_induction h
 end interactive
